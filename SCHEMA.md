@@ -34,8 +34,25 @@ incrementa desde `curso.html` y `guia.html`) · `collection_id` (FK) ·
 `search_content`.
 
 **Bloques de curso** (`blocks`): `hook`, `concept`, `warning`, `tip`,
-`example`, `quiz`, `checklist`, `reward`. El XP de la recompensa sale de
-`guides.xp_reward`, no del bloque `reward`.
+`example` (teoría — pensados para usarse con moderación, la teoría a fondo
+va en `reference_blocks` de la guía), `quiz`, `truefalse`, `fillblank`,
+`match`, `order` (práctica), `checklist`, `reward`. El XP de la recompensa
+sale de `guides.xp_reward`, no del bloque `reward`.
+
+Formato de los bloques de práctica nuevos:
+- `truefalse`: `{ statement, is_true: boolean, explanation }`
+- `fillblank`: `{ before, after, options: string[], correct_option }` — el
+  hueco se rellena eligiendo entre `options`, no escribiendo texto libre.
+- `match`: `{ title, pairs: [{ left, right }, ...] }` — relacionar cada
+  término de la izquierda con su pareja de la derecha (se mezclan al
+  mostrarse).
+- `order`: `{ title, items: string[] }` — `items` debe estar en el orden
+  correcto en la base de datos; se mezcla al mostrarse y el usuario
+  reconstruye el orden tocando los pasos.
+
+Recomendación de contenido: un curso no debería repetir la guía. Usa
+`hook` para enganchar, como mucho un par de bloques de teoría si hace
+falta un puente rápido, y el resto en dinámicas de práctica.
 
 **Bloques de referencia** (`reference_blocks`): `heading`, `paragraph`,
 `image`, `list`, `highlight`.

@@ -12,6 +12,16 @@ const stage = document.getElementById('cursoStage')
 const progressFill = document.getElementById('progressFill')
 const btnContinue = document.getElementById('btnContinue')
 const btnBack = document.getElementById('btnBack')
+const btnPrevious = document.getElementById('btnPrevious')
+
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
 
 function updateProgress() {
   const pct = blocks.length > 1 ? (currentIndex / (blocks.length - 1)) * 100 : 100
@@ -65,6 +75,73 @@ function renderQuiz(b) {
     </div>`
 }
 
+function renderTrueFalse(b) {
+  return `
+    <div class="block block-quiz block-truefalse">
+      <div class="block-header quiz-header">
+        <span class="block-label">¿VERDADERO O FALSO? +5 XP</span>
+      </div>
+      <h2 class="block-question">${escapeHtml(b.statement || '')}</h2>
+      <div class="tf-options">
+        <button class="tf-option" data-value="true">✅ Verdadero</button>
+        <button class="tf-option" data-value="false">❌ Falso</button>
+      </div>
+      <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
+    </div>`
+}
+
+function renderFillBlank(b) {
+  const options = (b.options || [])
+    .map((opt) => `<button class="fillblank-option" data-value="${escapeHtml(opt)}">${escapeHtml(opt)}</button>`)
+    .join('')
+  return `
+    <div class="block block-quiz block-fillblank">
+      <div class="block-header quiz-header">
+        <span class="block-label">RELLENA EL HUECO +5 XP</span>
+      </div>
+      <p class="fillblank-sentence">
+        ${escapeHtml(b.before || '')} <span class="fillblank-slot" id="fillblankSlot">＿＿＿＿</span> ${escapeHtml(b.after || '')}
+      </p>
+      <div class="fillblank-options">${options}</div>
+      <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
+    </div>`
+}
+
+function renderMatch(b) {
+  const pairs = b.pairs || []
+  const lefts = pairs.map((p, i) => ({ text: p.left, i }))
+  const rights = shuffle(pairs.map((p, i) => ({ text: p.right, i })))
+  const leftHtml = lefts.map((l) => `<button class="match-item" data-side="left" data-pair="${l.i}">${escapeHtml(l.text)}</button>`).join('')
+  const rightHtml = rights.map((r) => `<button class="match-item" data-side="right" data-pair="${r.i}">${escapeHtml(r.text)}</button>`).join('')
+  return `
+    <div class="block block-quiz block-match">
+      <div class="block-header quiz-header">
+        <span class="block-label">RELACIONA LAS PAREJAS +5 XP</span>
+      </div>
+      <h2 class="block-question">${escapeHtml(b.title || 'Une cada término con su pareja')}</h2>
+      <div class="match-columns">
+        <div class="match-col">${leftHtml}</div>
+        <div class="match-col">${rightHtml}</div>
+      </div>
+    </div>`
+}
+
+function renderOrder(b) {
+  const items = b.items || []
+  const bank = shuffle(items.map((text, i) => ({ text, i })))
+  const bankHtml = bank.map((item) => `<button class="order-chip" data-index="${item.i}">${escapeHtml(item.text)}</button>`).join('')
+  return `
+    <div class="block block-quiz block-order">
+      <div class="block-header quiz-header">
+        <span class="block-label">ORDENA LOS PASOS +5 XP</span>
+      </div>
+      <h2 class="block-question">${escapeHtml(b.title || 'Toca los pasos en el orden correcto')}</h2>
+      <div class="order-answer" id="orderAnswer"></div>
+      <div class="order-bank" id="orderBank">${bankHtml}</div>
+      <p class="order-feedback hidden" id="orderFeedback">Ese orden no es correcto — quita algún paso y prueba otra vez.</p>
+    </div>`
+}
+
 function renderChecklist(b) {
   const items = (b.items || [])
     .map((item, i) => `
@@ -81,7 +158,6 @@ function renderChecklist(b) {
 }
 
 function renderReward(b) {
-  const xp = guide.xp_reward || 20
   return `
     <div class="block block-reward">
       <div class="card-stack on-navy" aria-hidden="true">
@@ -114,6 +190,14 @@ function getBlockHTML(block) {
       return renderConceptLike(block, 'block-example', '📌 EJEMPLO')
     case 'quiz':
       return renderQuiz(block)
+    case 'truefalse':
+      return renderTrueFalse(block)
+    case 'fillblank':
+      return renderFillBlank(block)
+    case 'match':
+      return renderMatch(block)
+    case 'order':
+      return renderOrder(block)
     case 'checklist':
       return renderChecklist(block)
     case 'reward':
@@ -138,37 +222,204 @@ function animateXP(target) {
   }, 30)
 }
 
-async function setupBlockLogic(block) {
-  if (block.type === 'quiz') {
-    btnContinue.disabled = true
-    btnContinue.classList.add('disabled')
+function markPracticeCorrect() {
+  if (session) {
+    addXP(session.user.id, 5)
+    incrementQuizCorrect(session.user.id)
+  }
+  btnContinue.disabled = false
+  btnContinue.classList.remove('disabled')
+}
 
-    stage.querySelectorAll('.quiz-option').forEach((btn) => {
-      btn.addEventListener('click', function onClick() {
-        const selected = parseInt(this.dataset.index, 10)
-        const isCorrect = selected === block.correct_index
+function setupQuiz(block) {
+  stage.querySelectorAll('.quiz-option').forEach((btn) => {
+    btn.addEventListener('click', function onClick() {
+      const selected = parseInt(this.dataset.index, 10)
+      const isCorrect = selected === block.correct_index
 
-        stage.querySelectorAll('.quiz-option').forEach((b, i) => {
-          b.disabled = true
-          if (i === block.correct_index) b.classList.add('correct')
-          if (i === selected && !isCorrect) b.classList.add('incorrect')
-        })
+      stage.querySelectorAll('.quiz-option').forEach((b, i) => {
+        b.disabled = true
+        if (i === block.correct_index) b.classList.add('correct')
+        if (i === selected && !isCorrect) b.classList.add('incorrect')
+      })
 
-        const explanationEl = stage.querySelector('.quiz-explanation')
-        if (explanationEl) {
-          explanationEl.textContent = `${isCorrect ? '¡Correcto! ' : '¡Casi! '}${block.explanation || ''}`
-          explanationEl.classList.remove('hidden')
-        }
-
-        if (isCorrect && session) {
-          addXP(session.user.id, 5)
-          incrementQuizCorrect(session.user.id)
-        }
-
+      showExplanation(isCorrect, block.explanation)
+      if (isCorrect) markPracticeCorrect()
+      else {
         btnContinue.disabled = false
         btnContinue.classList.remove('disabled')
+      }
+    })
+  })
+}
+
+function setupTrueFalse(block) {
+  stage.querySelectorAll('.tf-option').forEach((btn) => {
+    btn.addEventListener('click', function onClick() {
+      const selected = this.dataset.value === 'true'
+      const isCorrect = selected === !!block.is_true
+
+      stage.querySelectorAll('.tf-option').forEach((b) => {
+        b.disabled = true
+        const isTrueBtn = b.dataset.value === 'true'
+        if (isTrueBtn === !!block.is_true) b.classList.add('correct')
+        else if (b === this && !isCorrect) b.classList.add('incorrect')
+      })
+
+      showExplanation(isCorrect, block.explanation)
+      if (isCorrect) markPracticeCorrect()
+      else {
+        btnContinue.disabled = false
+        btnContinue.classList.remove('disabled')
+      }
+    })
+  })
+}
+
+function setupFillBlank(block) {
+  const slot = document.getElementById('fillblankSlot')
+  stage.querySelectorAll('.fillblank-option').forEach((btn) => {
+    btn.addEventListener('click', function onClick() {
+      const selected = this.dataset.value
+      const isCorrect = selected === block.correct_option
+
+      stage.querySelectorAll('.fillblank-option').forEach((b) => {
+        b.disabled = true
+        if (b.dataset.value === block.correct_option) b.classList.add('correct')
+        if (b === this && !isCorrect) b.classList.add('incorrect')
+      })
+
+      if (slot) slot.textContent = selected
+
+      showExplanation(isCorrect, block.explanation)
+      if (isCorrect) markPracticeCorrect()
+      else {
+        btnContinue.disabled = false
+        btnContinue.classList.remove('disabled')
+      }
+    })
+  })
+}
+
+function setupMatch(block) {
+  const total = (block.pairs || []).length
+  let matchedCount = 0
+  let selectedLeft = null
+
+  stage.querySelectorAll('.match-item').forEach((item) => {
+    item.addEventListener('click', function onClick() {
+      if (this.classList.contains('matched')) return
+
+      if (this.dataset.side === 'left') {
+        stage.querySelectorAll('.match-item[data-side="left"]').forEach((el) => el.classList.remove('selected'))
+        this.classList.add('selected')
+        selectedLeft = this
+        return
+      }
+
+      if (!selectedLeft) return
+
+      const isCorrect = selectedLeft.dataset.pair === this.dataset.pair
+      if (isCorrect) {
+        selectedLeft.classList.remove('selected')
+        selectedLeft.classList.add('matched')
+        this.classList.add('matched')
+        selectedLeft = null
+        matchedCount++
+        if (matchedCount === total) {
+          markPracticeCorrect()
+        }
+      } else {
+        const wrongLeft = selectedLeft
+        const wrongRight = this
+        wrongRight.classList.add('wrong')
+        wrongLeft.classList.add('wrong')
+        setTimeout(() => {
+          wrongRight.classList.remove('wrong')
+          wrongLeft.classList.remove('wrong', 'selected')
+        }, 400)
+        selectedLeft = null
+      }
+    })
+  })
+}
+
+function setupOrder(block) {
+  const correctOrder = (block.items || []).map((_, i) => i)
+  const answerEl = document.getElementById('orderAnswer')
+  const bankEl = document.getElementById('orderBank')
+  const feedbackEl = document.getElementById('orderFeedback')
+  const current = []
+
+  function renderAnswer() {
+    answerEl.innerHTML = current
+      .map((idx) => `<button class="order-chip placed" data-index="${idx}">${escapeHtml(block.items[idx])}</button>`)
+      .join('')
+    answerEl.querySelectorAll('.order-chip').forEach((chip) => {
+      chip.addEventListener('click', function onClick() {
+        const idx = parseInt(this.dataset.index, 10)
+        current.splice(current.indexOf(idx), 1)
+        feedbackEl.classList.add('hidden')
+        renderAnswer()
+        renderBank()
+        btnContinue.disabled = true
+        btnContinue.classList.add('disabled')
       })
     })
+  }
+
+  function renderBank() {
+    bankEl.querySelectorAll('.order-chip').forEach((chip) => {
+      const idx = parseInt(chip.dataset.index, 10)
+      chip.classList.toggle('hidden', current.includes(idx))
+    })
+  }
+
+  bankEl.querySelectorAll('.order-chip').forEach((chip) => {
+    chip.addEventListener('click', function onClick() {
+      const idx = parseInt(this.dataset.index, 10)
+      if (current.includes(idx)) return
+      current.push(idx)
+      renderAnswer()
+      renderBank()
+
+      if (current.length === correctOrder.length) {
+        const isCorrect = current.every((v, i) => v === correctOrder[i])
+        if (isCorrect) {
+          markPracticeCorrect()
+        } else {
+          feedbackEl.classList.remove('hidden')
+        }
+      }
+    })
+  })
+}
+
+function showExplanation(isCorrect, explanation) {
+  const explanationEl = stage.querySelector('.quiz-explanation')
+  if (!explanationEl) return
+  explanationEl.textContent = `${isCorrect ? '¡Correcto! ' : '¡Casi! '}${explanation || ''}`
+  explanationEl.classList.remove('hidden')
+}
+
+const PRACTICE_TYPES = ['quiz', 'truefalse', 'fillblank', 'match', 'order']
+
+async function setupBlockLogic(block) {
+  if (PRACTICE_TYPES.includes(block.type)) {
+    btnContinue.disabled = true
+    btnContinue.classList.add('disabled')
+  }
+
+  if (block.type === 'quiz') {
+    setupQuiz(block)
+  } else if (block.type === 'truefalse') {
+    setupTrueFalse(block)
+  } else if (block.type === 'fillblank') {
+    setupFillBlank(block)
+  } else if (block.type === 'match') {
+    setupMatch(block)
+  } else if (block.type === 'order') {
+    setupOrder(block)
   } else if (block.type === 'checklist') {
     btnContinue.disabled = true
     btnContinue.classList.add('disabled')
@@ -197,18 +448,22 @@ async function setupBlockLogic(block) {
   }
 }
 
-function renderBlock(index) {
+function renderBlock(index, direction = 'forward') {
   const block = blocks[index]
   btnContinue.style.display = ''
   btnContinue.textContent = index === blocks.length - 1 ? 'Finalizar' : 'Continuar →'
+  btnPrevious.classList.toggle('hidden', index === 0 || block.type === 'reward')
 
-  stage.classList.add('slide-out-left')
+  const outClass = direction === 'forward' ? 'slide-out-left' : 'slide-out-right'
+  const inClass = direction === 'forward' ? 'slide-in-right' : 'slide-in-left'
+
+  stage.classList.add(outClass)
 
   setTimeout(() => {
     stage.innerHTML = getBlockHTML(block)
-    stage.classList.remove('slide-out-left')
-    stage.classList.add('slide-in-right')
-    setTimeout(() => stage.classList.remove('slide-in-right'), 300)
+    stage.classList.remove(outClass)
+    stage.classList.add(inClass)
+    setTimeout(() => stage.classList.remove(inClass), 300)
 
     updateProgress()
     setupBlockLogic(block)
@@ -223,6 +478,7 @@ function renderLocked(message) {
       <p class="block-body">${escapeHtml(message)}</p>
     </div>`
   btnContinue.style.display = 'none'
+  btnPrevious.classList.add('hidden')
 }
 
 async function loadCourse() {
@@ -290,8 +546,15 @@ btnContinue.addEventListener('click', () => {
   if (currentIndex < blocks.length - 1) {
     currentIndex++
     persistIndex(currentIndex)
-    renderBlock(currentIndex)
+    renderBlock(currentIndex, 'forward')
   }
+})
+
+btnPrevious.addEventListener('click', () => {
+  if (currentIndex === 0) return
+  currentIndex--
+  persistIndex(currentIndex)
+  renderBlock(currentIndex, 'backward')
 })
 
 btnBack.addEventListener('click', () => {

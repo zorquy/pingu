@@ -267,6 +267,10 @@ const COURSE_BLOCK_DEFAULTS = {
   tip: { type: 'tip', emoji: '💡', title: '', body: '', highlight: '' },
   example: { type: 'example', emoji: '📌', title: '', body: '', highlight: '' },
   quiz: { type: 'quiz', question: '', options: ['', ''], correct_index: 0, explanation: '' },
+  truefalse: { type: 'truefalse', statement: '', is_true: true, explanation: '' },
+  fillblank: { type: 'fillblank', before: '', after: '', options: ['', ''], correct_option: '' },
+  match: { type: 'match', title: '', pairs: [{ left: '', right: '' }, { left: '', right: '' }] },
+  order: { type: 'order', title: '', items: ['', '', ''] },
   checklist: { type: 'checklist', title: '', items: [''] },
   reward: { type: 'reward', next_guide_slug: '' },
 }
@@ -302,6 +306,29 @@ function fieldsForCourseBlock(block, i) {
         <textarea class="be-field" data-i="${i}" data-f="options" placeholder="Opciones (una por línea)">${escapeHtml((block.options || []).join('\n'))}</textarea>
         <input class="be-field" data-i="${i}" data-f="correct_index" type="number" placeholder="Índice de la correcta (0, 1, 2...)" value="${block.correct_index ?? 0}" />
         <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
+    case 'truefalse':
+      return `
+        <input class="be-field" data-i="${i}" data-f="statement" placeholder="Afirmación" value="${escapeHtml(block.statement || '')}" />
+        <select class="be-field" data-i="${i}" data-f="is_true">
+          <option value="true" ${block.is_true ? 'selected' : ''}>Verdadero</option>
+          <option value="false" ${!block.is_true ? 'selected' : ''}>Falso</option>
+        </select>
+        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
+    case 'fillblank':
+      return `
+        <input class="be-field" data-i="${i}" data-f="before" placeholder="Texto antes del hueco" value="${escapeHtml(block.before || '')}" />
+        <input class="be-field" data-i="${i}" data-f="after" placeholder="Texto después del hueco" value="${escapeHtml(block.after || '')}" />
+        <textarea class="be-field" data-i="${i}" data-f="options" placeholder="Opciones (una por línea)">${escapeHtml((block.options || []).join('\n'))}</textarea>
+        <input class="be-field" data-i="${i}" data-f="correct_option" placeholder="Opción correcta (texto exacto)" value="${escapeHtml(block.correct_option || '')}" />
+        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
+    case 'match':
+      return `
+        <input class="be-field" data-i="${i}" data-f="title" placeholder="Título (opcional)" value="${escapeHtml(block.title || '')}" />
+        <textarea class="be-field" data-i="${i}" data-f="pairs" placeholder="Una pareja por línea: término :: definición">${escapeHtml((block.pairs || []).map((p) => `${p.left} :: ${p.right}`).join('\n'))}</textarea>`
+    case 'order':
+      return `
+        <input class="be-field" data-i="${i}" data-f="title" placeholder="Título (opcional)" value="${escapeHtml(block.title || '')}" />
+        <textarea class="be-field" data-i="${i}" data-f="items" placeholder="Pasos en el orden correcto (uno por línea)">${escapeHtml((block.items || []).join('\n'))}</textarea>`
     case 'checklist':
       return `
         <input class="be-field" data-i="${i}" data-f="title" placeholder="Título" value="${escapeHtml(block.title || '')}" />
@@ -394,6 +421,16 @@ function renderCourseBlockEditor(blocks) {
         blocks[i][f] = input.value.split('\n').map((s) => s.trim()).filter(Boolean)
       } else if (f === 'correct_index') {
         blocks[i][f] = Number(input.value) || 0
+      } else if (f === 'is_true') {
+        blocks[i][f] = input.value === 'true'
+      } else if (f === 'pairs') {
+        blocks[i][f] = input.value
+          .split('\n')
+          .map((line) => {
+            const [left, right] = line.split('::').map((s) => (s || '').trim())
+            return { left: left || '', right: right || '' }
+          })
+          .filter((p) => p.left || p.right)
       } else {
         blocks[i][f] = input.value
       }
