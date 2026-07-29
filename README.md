@@ -18,6 +18,11 @@ desplegar en Netlify.
    conectado.
 3. Asegúrate de que exista un bucket público de Storage llamado `images`
    (usado por `/admin` para subir e insertar imágenes).
+4. Para el generador de cursos con IA (botón "✨ Generar con IA" en el editor
+   de guías), añade la variable de entorno `ANTHROPIC_API_KEY` en Netlify
+   (Site settings → Environment variables) con una clave de
+   [console.anthropic.com](https://console.anthropic.com). Sin esa variable
+   el resto del panel funciona igual, solo ese botón da error.
 
 ## Desarrollo local
 

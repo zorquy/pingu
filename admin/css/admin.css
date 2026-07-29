@@ -221,6 +221,16 @@ body {
   margin-bottom: 16px;
 }
 
+.admin-ai-generate {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  background: var(--ice);
+  border-radius: var(--radius-md);
+}
+
 .block-editor-item {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);

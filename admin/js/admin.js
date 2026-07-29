@@ -360,6 +360,27 @@ function fieldsForReferenceBlock(block, i) {
   }
 }
 
+function flattenReferenceBlocksToText(blocks) {
+  return blocks
+    .map((b) => {
+      switch (b.type) {
+        case 'heading':
+          return `## ${b.text || ''}`
+        case 'paragraph':
+        case 'highlight':
+          return b.text || ''
+        case 'list':
+          return (b.items || []).map((i) => `- ${i}`).join('\n')
+        case 'image':
+          return b.caption ? `[Imagen: ${b.caption}]` : ''
+        default:
+          return ''
+      }
+    })
+    .filter(Boolean)
+    .join('\n\n')
+}
+
 function makeSortable(containerEl, list, onChange) {
   let dragIndex = null
   containerEl.querySelectorAll('.block-editor-item').forEach((el) => {
@@ -577,6 +598,10 @@ async function openGuideModal(guide) {
     </div>
 
     <div class="tab-panel" id="gtab-course">
+      <div class="admin-ai-generate">
+        <button class="btn-secondary" id="btnGenerateCourseAI">✨ Generar con IA</button>
+        <span style="font-size:12px; color: var(--text-mid);">Usa el título, la descripción y la guía de referencia para proponer bloques. Podrás revisarlos y editarlos antes de guardar.</span>
+      </div>
       <div id="blockEditorList"></div>
       <button class="btn-secondary" id="btnAddCourseBlock">+ Añadir bloque</button>
     </div>
@@ -626,6 +651,41 @@ async function openGuideModal(guide) {
   document.getElementById('btnAddCourseBlock').addEventListener('click', () => {
     courseBlocks.push({ ...COURSE_BLOCK_DEFAULTS.concept })
     renderCourseBlockEditor(courseBlocks)
+  })
+
+  document.getElementById('btnGenerateCourseAI').addEventListener('click', async (e) => {
+    const btn = e.currentTarget
+    const title = document.getElementById('gTitle').value.trim()
+    const description = document.getElementById('gDescription').value.trim()
+    const referenceText = flattenReferenceBlocksToText(refBlocks)
+
+    if (!title || !referenceText) {
+      alert('Rellena el título y al menos un bloque en "Guía de referencia" antes de generar el curso con IA.')
+      return
+    }
+    if (courseBlocks.length > 0 && !confirm(`Esto reemplazará los ${courseBlocks.length} bloques actuales del curso por los generados. ¿Continuar?`)) {
+      return
+    }
+
+    const originalLabel = btn.textContent
+    btn.disabled = true
+    btn.textContent = 'Generando…'
+    try {
+      const res = await fetch('/.netlify/functions/generate-course', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ title, description, referenceText, blockCount: 7 }),
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Error desconocido')
+      courseBlocks.splice(0, courseBlocks.length, ...result.blocks)
+      renderCourseBlockEditor(courseBlocks)
+    } catch (err) {
+      alert('No se pudo generar el curso con IA:\n' + err.message)
+    } finally {
+      btn.disabled = false
+      btn.textContent = originalLabel
+    }
   })
   document.getElementById('btnAddRefBlock').addEventListener('click', () => {
     refBlocks.push({ ...REFERENCE_BLOCK_DEFAULTS.paragraph })

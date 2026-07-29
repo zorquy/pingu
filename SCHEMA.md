@@ -54,6 +54,23 @@ Recomendación de contenido: un curso no debería repetir la guía. Usa
 `hook` para enganchar, como mucho un par de bloques de teoría si hace
 falta un puente rápido, y el resto en dinámicas de práctica.
 
+**Generador de cursos con IA**: en la pestaña "Bloques del curso" del editor
+de guías hay un botón "✨ Generar con IA" que llama a la función de Netlify
+`netlify/functions/generate-course.mjs`. Esa función envía a la API de
+Anthropic (Claude) el título, la descripción y el texto de la guía de
+referencia (aplanado desde `reference_blocks`), y le pide que proponga los
+bloques del curso siguiendo exactamente estas reglas: 1 `hook` al principio,
+como mucho 1 bloque de teoría puente, el resto mezclando dinámicas de
+práctica (quiz/truefalse/fillblank/match/order) sin repetir el mismo tipo
+más de 2 veces seguidas, y 1 `reward` al final. La función valida el JSON
+devuelto (descarta bloques con campos obligatorios ausentes y fuerza el
+`reward` final) antes de devolverlo al admin. Los bloques generados
+sustituyen a los del editor solo tras confirmación y siguen siendo
+completamente editables antes de guardar — no se guardan solos. Requiere la
+variable de entorno `ANTHROPIC_API_KEY` en Netlify; sin ella, el resto del
+panel funciona igual y solo ese botón devuelve un error explicando que falta
+la clave.
+
 **Bloques de referencia** (`reference_blocks`): `heading`, `paragraph`,
 `image`, `list`, `highlight`.
 
