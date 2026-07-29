@@ -528,69 +528,90 @@ async function openGuideModal(guide) {
 
   openModal(`
     <h3>${guide ? 'Editar' : 'Nueva'} guía</h3>
-    <div class="form-group"><label>Título</label><input id="gTitle" value="${escapeHtml(g.title)}" /></div>
-    <div class="form-group"><label>Slug</label><input id="gSlug" value="${escapeHtml(g.slug)}" /></div>
-    <div class="form-group"><label>Categoría</label>
-      <select id="gCategory">${categories.map((c) => `<option value="${c.id}" ${c.id === g.category_id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}</select>
-    </div>
-    <div class="form-group"><label>Colección (opcional)</label>
-      <select id="gCollection">
-        <option value="">Ninguna</option>
-        ${collectionsForCategory.map((c) => `<option value="${c.id}" ${c.id === g.collection_id ? 'selected' : ''}>${escapeHtml(c.title)}</option>`).join('')}
-      </select>
-    </div>
-    <div class="form-group"><label>Orden dentro de la colección</label><input id="gCollectionOrder" type="number" value="${g.collection_order ?? 0}" /></div>
-    <div class="form-group"><label>Emoji de portada</label><input id="gCoverEmoji" value="${escapeHtml(g.cover_emoji || '')}" /></div>
-    <div class="form-group"><label>Imagen de portada (URL)</label><input id="gCoverImage" value="${escapeHtml(g.cover_image || '')}" /></div>
-    <div class="form-group"><label>Descripción</label><textarea id="gDescription">${escapeHtml(g.description || '')}</textarea></div>
-    <div class="form-group"><label>Nivel</label>
-      <select id="gLevel">
-        <option value="beginner" ${g.level === 'beginner' ? 'selected' : ''}>Básico</option>
-        <option value="intermediate" ${g.level === 'intermediate' ? 'selected' : ''}>Intermedio</option>
-        <option value="advanced" ${g.level === 'advanced' ? 'selected' : ''}>Avanzado</option>
-      </select>
-    </div>
-    <div class="form-group"><label>Rareza</label>
-      <select id="gRarity">
-        ${['bronze', 'silver', 'gold', 'platinum'].map((r) => `<option value="${r}" ${g.guide_rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
-      </select>
-    </div>
-    <div class="form-group"><label><input type="checkbox" id="gIsPro" ${g.is_pro ? 'checked' : ''} /> Contenido Pro</label></div>
-    <div class="form-group"><label>XP de recompensa (al completar el curso)</label><input id="gXpReward" type="number" value="${g.xp_reward ?? 20}" /></div>
-    <div class="form-group"><label>Minutos estimados</label><input id="gMins" type="number" value="${g.estimated_mins || 5}" /></div>
-    <div class="form-group"><label>Tags (separados por coma)</label><input id="gTags" value="${escapeHtml((g.tags || []).join(', '))}" /></div>
-    <div class="form-group"><label>Contenido de búsqueda</label><textarea id="gSearchContent">${escapeHtml(g.search_content || '')}</textarea></div>
-    <div class="form-group">
-      <label><input type="checkbox" id="gPublished" ${g.published_at ? 'checked' : ''} /> Publicada</label>
-    </div>
-    <div class="form-group">
-      <label><input type="checkbox" id="gRefUnlocked" ${g.reference_unlocked_by_default ? 'checked' : ''} /> Guía de referencia desbloqueada por defecto (si no, hay que completar el curso primero)</label>
+    <div class="tabs" id="guideModalTabs">
+      <button class="tab-btn active" data-gtab="general">General</button>
+      <button class="tab-btn" data-gtab="course">Bloques del curso</button>
+      <button class="tab-btn" data-gtab="reference">Guía de referencia</button>
+      <button class="tab-btn" data-gtab="routes">Rutas</button>
     </div>
 
-    <h4 style="margin: 16px 0 8px; font-weight: 800;">Rutas de aprendizaje</h4>
-    <div id="guideRoutesList">
-      ${pathsCache
-        .map((p) => {
-          const existing = (g.route_ids || []).includes(p.id)
-          return `
-        <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
-          <input type="checkbox" class="gr-check" data-route-id="${p.id}" ${existing ? 'checked' : ''} />
-          <span style="flex:1;">${p.emoji || ''} ${escapeHtml(p.title)}</span>
-          <input type="number" class="gr-position" data-route-id="${p.id}" placeholder="Posición" style="width: 90px;" value="${existingPositions[p.id] ?? 0}" />
-        </div>`
-        })
-        .join('')}
+    <div class="tab-panel active" id="gtab-general">
+      <div class="form-group"><label>Título</label><input id="gTitle" value="${escapeHtml(g.title)}" /></div>
+      <div class="form-group"><label>Slug</label><input id="gSlug" value="${escapeHtml(g.slug)}" /></div>
+      <div class="form-group"><label>Categoría</label>
+        <select id="gCategory">${categories.map((c) => `<option value="${c.id}" ${c.id === g.category_id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label>Colección (opcional)</label>
+        <select id="gCollection">
+          <option value="">Ninguna</option>
+          ${collectionsForCategory.map((c) => `<option value="${c.id}" ${c.id === g.collection_id ? 'selected' : ''}>${escapeHtml(c.title)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Orden dentro de la colección</label><input id="gCollectionOrder" type="number" value="${g.collection_order ?? 0}" /></div>
+      <div class="form-group"><label>Emoji de portada</label><input id="gCoverEmoji" value="${escapeHtml(g.cover_emoji || '')}" /></div>
+      <div class="form-group"><label>Imagen de portada (URL)</label><input id="gCoverImage" value="${escapeHtml(g.cover_image || '')}" /></div>
+      <div class="form-group"><label>Descripción</label><textarea id="gDescription">${escapeHtml(g.description || '')}</textarea></div>
+      <div class="form-group"><label>Nivel</label>
+        <select id="gLevel">
+          <option value="beginner" ${g.level === 'beginner' ? 'selected' : ''}>Básico</option>
+          <option value="intermediate" ${g.level === 'intermediate' ? 'selected' : ''}>Intermedio</option>
+          <option value="advanced" ${g.level === 'advanced' ? 'selected' : ''}>Avanzado</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Rareza</label>
+        <select id="gRarity">
+          ${['bronze', 'silver', 'gold', 'platinum'].map((r) => `<option value="${r}" ${g.guide_rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label><input type="checkbox" id="gIsPro" ${g.is_pro ? 'checked' : ''} /> Contenido Pro</label></div>
+      <div class="form-group"><label>XP de recompensa (al completar el curso)</label><input id="gXpReward" type="number" value="${g.xp_reward ?? 20}" /></div>
+      <div class="form-group"><label>Minutos estimados</label><input id="gMins" type="number" value="${g.estimated_mins || 5}" /></div>
+      <div class="form-group"><label>Tags (separados por coma)</label><input id="gTags" value="${escapeHtml((g.tags || []).join(', '))}" /></div>
+      <div class="form-group"><label>Contenido de búsqueda</label><textarea id="gSearchContent">${escapeHtml(g.search_content || '')}</textarea></div>
+      <div class="form-group">
+        <label><input type="checkbox" id="gPublished" ${g.published_at ? 'checked' : ''} /> Publicada</label>
+      </div>
+      <div class="form-group">
+        <label><input type="checkbox" id="gRefUnlocked" ${g.reference_unlocked_by_default ? 'checked' : ''} /> Guía de referencia desbloqueada por defecto (si no, hay que completar el curso primero)</label>
+      </div>
     </div>
 
-    <h4 style="margin: 16px 0 8px; font-weight: 800;">Bloques del curso</h4>
-    <div id="blockEditorList"></div>
-    <button class="btn-secondary" id="btnAddCourseBlock" style="margin-bottom: 16px;">+ Añadir bloque</button>
+    <div class="tab-panel" id="gtab-course">
+      <div id="blockEditorList"></div>
+      <button class="btn-secondary" id="btnAddCourseBlock">+ Añadir bloque</button>
+    </div>
 
-    <h4 style="margin: 16px 0 8px; font-weight: 800;">Bloques de referencia (guía)</h4>
-    <div id="refBlockEditorList"></div>
-    <button class="btn-secondary" id="btnAddRefBlock" style="margin-bottom: 16px;">+ Añadir bloque</button>
+    <div class="tab-panel" id="gtab-reference">
+      <div id="refBlockEditorList"></div>
+      <button class="btn-secondary" id="btnAddRefBlock">+ Añadir bloque</button>
+    </div>
 
-    <button class="btn-primary btn-block" id="btnSaveGuide">Guardar</button>`)
+    <div class="tab-panel" id="gtab-routes">
+      <div id="guideRoutesList">
+        ${pathsCache
+          .map((p) => {
+            const existing = (g.route_ids || []).includes(p.id)
+            return `
+          <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+            <input type="checkbox" class="gr-check" data-route-id="${p.id}" ${existing ? 'checked' : ''} />
+            <span style="flex:1;">${p.emoji || ''} ${escapeHtml(p.title)}</span>
+            <input type="number" class="gr-position" data-route-id="${p.id}" placeholder="Posición" style="width: 90px;" value="${existingPositions[p.id] ?? 0}" />
+          </div>`
+          })
+          .join('')}
+      </div>
+    </div>
+
+    <button class="btn-primary btn-block" id="btnSaveGuide" style="margin-top: 16px;">Guardar</button>`)
+
+  document.getElementById('guideModalTabs').querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.getElementById('guideModalTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
+      modalContent.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'))
+      btn.classList.add('active')
+      document.getElementById(`gtab-${btn.dataset.gtab}`).classList.add('active')
+    })
+  })
 
   renderCourseBlockEditor(courseBlocks)
   renderReferenceBlockEditor(refBlocks)
@@ -896,58 +917,6 @@ async function loadUsers() {
   )
 }
 
-// ── Notifications ──
-async function loadNotifications() {
-  const { data } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(20)
-  const notifications = data || []
-
-  document.getElementById('notificationsTable').innerHTML = `
-    <p style="font-size: 12px; color: var(--text-mid); margin-bottom: 12px;">
-      Esto solo registra la notificación en la base de datos — no hay servicio de envío de push
-      conectado (necesitaría un backend con Expo/FCM/APNs), así que "Marcar como enviada" no llega
-      realmente a los dispositivos de los usuarios.
-    </p>
-    <table class="admin-table">
-      <thead><tr><th>Título</th><th>Mensaje</th><th>Estado</th><th>Creada</th><th></th></tr></thead>
-      <tbody>
-        ${notifications
-          .map(
-            (n) => `
-          <tr>
-            <td>${escapeHtml(n.title)}</td>
-            <td>${escapeHtml(n.body)}</td>
-            <td>${escapeHtml(n.status || 'draft')}</td>
-            <td>${new Date(n.created_at).toLocaleString('es-ES')}</td>
-            <td class="admin-row-actions">
-              ${n.status !== 'sent' ? `<button data-mark-sent="${n.id}">Marcar como enviada</button>` : ''}
-            </td>
-          </tr>`
-          )
-          .join('')}
-      </tbody>
-    </table>`
-
-  document.querySelectorAll('[data-mark-sent]').forEach((btn) =>
-    btn.addEventListener('click', async () => {
-      await supabase
-        .from('notifications')
-        .update({ status: 'sent', sent_at: new Date().toISOString() })
-        .eq('id', btn.dataset.markSent)
-      loadNotifications()
-    })
-  )
-}
-
-document.getElementById('btnSendNotification').addEventListener('click', async () => {
-  const title = document.getElementById('notifTitle').value.trim()
-  const body = document.getElementById('notifMessage').value.trim()
-  if (!title || !body) return
-  await supabase.from('notifications').insert({ title, body, target: 'all', status: 'draft' })
-  document.getElementById('notifTitle').value = ''
-  document.getElementById('notifMessage').value = ''
-  loadNotifications()
-})
-
 // ── Images (Supabase Storage) ──
 async function loadImages() {
   const { data, error } = await supabase.storage.from('images').list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } })
@@ -999,7 +968,7 @@ async function init() {
   initSidebar()
   await loadCategories()
   await Promise.all([loadCollections(), loadPaths()])
-  await Promise.all([loadDashboard(), loadGuides(), loadAchievements(), loadUsers(), loadNotifications(), loadImages()])
+  await Promise.all([loadDashboard(), loadGuides(), loadAchievements(), loadUsers(), loadImages()])
 }
 
 init()

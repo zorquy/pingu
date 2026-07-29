@@ -107,14 +107,15 @@ anterior para maquetar el home dinámicamente, dilo y lo conecto — de
 momento sus datos no se leen ni se escriben desde ningún sitio.
 
 ## `notifications`
-`id` · `title` · `body` · `data` (jsonb) · `target` (siempre `'all'` por
-ahora) · `status` (`draft`/`sent`) · `scheduled_at` · `sent_at` ·
-`sent_count` · `created_at`. El admin puede crear notificaciones y
-marcarlas como "enviadas", pero **no hay ningún servicio de push
-conectado** (necesitaría un backend con Expo/FCM/APNs u otro proveedor de
-web push) — esto solo deja constancia en la base de datos, no llega a los
-dispositivos. `user_profiles.push_token` (del proyecto Expo anterior) no
-se usa ni se toca desde la web.
+`id` · `title` · `body` · `data` (jsonb) · `target` · `status`
+(`draft`/`sent`) · `scheduled_at` · `sent_at` · `sent_count` ·
+`created_at`. **Sin panel de administración por ahora** — se quitó la
+sección de `/admin` porque no había ningún servicio de push conectado
+(necesitaría un backend con Expo/FCM/APNs u otro proveedor de web push) y
+solo dejaba constancia en la base de datos sin llegar a ningún
+dispositivo. La tabla sigue existiendo tal cual en Supabase por si en el
+futuro se monta el envío real. `user_profiles.push_token` (del proyecto
+Expo anterior) tampoco se usa ni se toca desde la web.
 
 ## `user_profiles`
 `id` (= auth.users.id) · `username` · `display_name` (se usa para mostrar
