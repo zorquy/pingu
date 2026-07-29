@@ -84,6 +84,11 @@ function renderReward(b) {
   const xp = guide.xp_reward || 20
   return `
     <div class="block block-reward">
+      <div class="card-stack on-navy" aria-hidden="true">
+        <span class="tcg-card c1"></span>
+        <span class="tcg-card c2"></span>
+        <span class="tcg-card c3"></span>
+      </div>
       <div class="reward-trophy">🏆</div>
       <h2>¡Curso completado!</h2>
       <div class="xp-display"><span id="xpCounter">0</span> XP</div>

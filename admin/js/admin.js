@@ -716,7 +716,7 @@ async function loadAchievements() {
           <tr>
             <td>${a.emoji || '🏆'}</td>
             <td>${escapeHtml(a.title)}</td>
-            <td>${escapeHtml(a.rarity || 'bronze')}</td>
+            <td><span class="rarity-chip rarity-${a.rarity || 'bronze'}">${escapeHtml(a.rarity || 'bronze')}</span></td>
             <td>${CONDITION_LABELS[a.condition?.type] || a.condition?.type || '—'} ≥ ${a.condition?.count ?? '—'}</td>
             <td>${a.xp_reward || 0}</td>
             <td>${a.is_active ? '✓' : ''}</td>

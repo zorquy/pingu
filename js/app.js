@@ -14,6 +14,20 @@ export function getInitial(name) {
   return name.trim().charAt(0).toUpperCase()
 }
 
+const TINT_COUNT = 5
+
+export function tintClassForKey(key) {
+  const str = String(key ?? '')
+  let hash = 0
+  for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0
+  return `icon-tint-${hash % TINT_COUNT}`
+}
+
+export function cardMediaHtml(imageUrl, emoji) {
+  if (!imageUrl) return ''
+  return `<div class="card-media" style="background-image:url('${imageUrl.replace(/'/g, '%27')}')"><span class="card-media-badge">${emoji || '📘'}</span></div>`
+}
+
 export async function getSession() {
   const { data: { session } } = await supabase.auth.getSession()
   return session

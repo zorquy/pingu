@@ -1,6 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession } from './app.js'
-import { rarityColor } from './gamification.js'
+import { escapeHtml, getSession, tintClassForKey } from './app.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -22,7 +21,7 @@ function renderGuideCard(guide, statusInfo) {
       <div class="guide-meta">
         <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
         <span class="time-tag">${guide.estimated_mins || 5} min</span>
-        <span class="time-tag" style="color:${rarityColor(guide.guide_rarity)}">● ${escapeHtml(guide.guide_rarity || 'bronze')}</span>
+        <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
         ${statusInfo.status === 'started' ? '<span class="badge badge-progress">EN PROGRESO</span>' : ''}
         ${statusInfo.status === 'completed' ? '<span class="badge badge-completed">✓ COMPLETADO</span>' : ''}
       </div>
@@ -59,7 +58,7 @@ async function initCategoryMode() {
   document.title = `${category.name} — PokeDoc`
   document.getElementById('breadcrumbCurrent').textContent = category.name
   document.getElementById('categoryHeader').innerHTML = `
-    <div class="emoji-big">${category.emoji || '📘'}</div>
+    <div class="emoji-big ${tintClassForKey(category.id)}">${category.emoji || '📘'}</div>
     <div>
       <h1>${escapeHtml(category.name)}</h1>
       <p>${escapeHtml(category.description || '')}</p>
@@ -131,7 +130,7 @@ async function initPathMode() {
   document.title = `${path.title} — PokeDoc`
   document.getElementById('breadcrumbCurrent').textContent = path.title
   document.getElementById('categoryHeader').innerHTML = `
-    <div class="emoji-big">${path.emoji || '🧭'}</div>
+    <div class="emoji-big ${tintClassForKey(path.id)}">${path.emoji || '🧭'}</div>
     <div>
       <h1>${escapeHtml(path.title)}</h1>
       <p>${escapeHtml(path.description || '')}</p>

@@ -1,6 +1,5 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, getProfile } from './app.js'
-import { rarityColor } from './gamification.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -92,7 +91,7 @@ async function init() {
       <div class="article-meta">
         <span class="time-tag">${guide.estimated_mins || 5} min</span>
         <span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
-        <span class="time-tag" style="color:${rarityColor(guide.guide_rarity)}">● ${escapeHtml(guide.guide_rarity || 'bronze')}</span>
+        <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
         <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
         <button class="btn-secondary" id="btnSave" style="margin-left: auto; padding: 6px 12px; font-size: 13px;">☆ Guardar</button>
       </div>

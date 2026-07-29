@@ -19,17 +19,6 @@ export function invalidateAchievementsCache() {
   achievementsCache = null
 }
 
-export const RARITY_COLORS = {
-  bronze: '#cd7f32',
-  silver: '#94a3b8',
-  gold: '#d4af37',
-  platinum: '#7dd3fc',
-}
-
-export function rarityColor(rarity) {
-  return RARITY_COLORS[rarity] || 'var(--navy)'
-}
-
 export function calculateLevel(xp) {
   if (xp >= 1500) return 'Maestro'
   if (xp >= 700) return 'Experto'
@@ -200,7 +189,9 @@ export function showAchievementModal(achievement) {
     })
   }
 
-  modal.querySelector('#achievementIcon').textContent = achievement.emoji || '🏆'
+  const iconEl = modal.querySelector('#achievementIcon')
+  iconEl.textContent = achievement.emoji || '🏆'
+  iconEl.className = `achievement-icon rarity-${achievement.rarity || 'bronze'}`
   modal.querySelector('#achievementName').textContent = achievement.title
   modal.querySelector('#achievementDesc').textContent = achievement.description || ''
   modal.querySelector('#achievementXP').textContent = achievement.xp_reward || 0

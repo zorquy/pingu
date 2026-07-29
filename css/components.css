@@ -62,12 +62,10 @@
   width: 64px;
   height: 64px;
   border-radius: var(--radius-lg);
-  background: var(--ice);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: inset 0 0 0 1px var(--ice-dark);
 }
 
 .category-header h1 {
@@ -469,11 +467,10 @@
   width: 78px;
   height: 78px;
   border-radius: 50%;
-  background: var(--ice);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 0 0 1px var(--ice-dark);
+  box-shadow: inset 0 0 0 1px rgba(13, 27, 42, 0.08);
 }
 
 .achievement-card h3 {
@@ -882,14 +879,6 @@
   max-width: 280px;
 }
 
-.profile-xp-bar .progress-track {
-  background: var(--border);
-}
-
-.profile-xp-bar .progress-track .fill {
-  background: var(--navy);
-}
-
 .profile-xp-bar .xp-label {
   font-size: 11px;
   color: var(--text-dim);
@@ -931,7 +920,18 @@
 }
 
 .achievement-tile .icon {
-  font-size: 26px;
+  font-size: 22px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(13, 27, 42, 0.08);
+}
+
+.achievement-tile.locked .icon {
+  background: var(--bg);
 }
 
 .achievement-tile .name {

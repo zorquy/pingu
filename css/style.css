@@ -15,6 +15,19 @@
   --success-bg: #e6f7f2;
   --warning: #c8720a;
   --warning-bg: #fdf1de;
+  --indigo: #4f46e5;
+  --indigo-bg: #edecfd;
+  --pink: #be185d;
+  --pink-bg: #fce8f1;
+
+  --rarity-bronze: #a8622f;
+  --rarity-bronze-bg: linear-gradient(155deg, #f3e1d1, #e6c6a4);
+  --rarity-silver: #6b7c88;
+  --rarity-silver-bg: linear-gradient(155deg, #eef2f4, #d3dee3);
+  --rarity-gold: #a6790a;
+  --rarity-gold-bg: linear-gradient(155deg, #fbedc4, #f0cf7c);
+  --rarity-platinum: #2a7ba6;
+  --rarity-platinum-bg: linear-gradient(155deg, #e4f4fb, #bfe3f2);
 
   --radius-sm: 7px;
   --radius-md: 10px;
@@ -553,6 +566,7 @@ button.btn-block {
   display: flex;
   flex-direction: column;
   gap: 9px;
+  overflow: hidden;
   transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
 
@@ -605,10 +619,11 @@ button.btn-block {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
@@ -711,15 +726,23 @@ button.btn-block {
   width: 100%;
   height: 7px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--border);
   overflow: hidden;
 }
 
 .progress-track .fill {
   height: 100%;
-  background: var(--ice);
+  background: var(--navy);
   border-radius: var(--radius-pill);
   transition: width 0.4s var(--ease);
+}
+
+.continue-card .progress-track {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.continue-card .progress-track .fill {
+  background: var(--ice);
 }
 
 .continue-card .btn-primary {
@@ -822,6 +845,179 @@ button.btn-block {
   100% {
     background-position: -200% 0;
   }
+}
+
+/* ── Card-stack decoration (motivo de cartas TCG) ── */
+.card-stack {
+  position: relative;
+  width: 106px;
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.tcg-card {
+  position: absolute;
+  width: 58px;
+  height: 80px;
+  border-radius: 9px;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 22px rgba(13, 27, 42, 0.22);
+}
+
+.tcg-card::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.tcg-card.c1 {
+  left: 0;
+  top: 10px;
+  transform: rotate(-13deg);
+  z-index: 1;
+  background: linear-gradient(155deg, var(--ice) 0%, var(--white) 65%);
+  color: var(--navy);
+}
+
+.tcg-card.c2 {
+  left: 24px;
+  top: 0;
+  transform: rotate(-1deg);
+  z-index: 3;
+  background: linear-gradient(155deg, #ffffff 0%, var(--ice) 75%);
+  color: var(--navy-light);
+}
+
+.tcg-card.c3 {
+  left: 48px;
+  top: 8px;
+  transform: rotate(11deg);
+  z-index: 2;
+  background: linear-gradient(155deg, var(--ice-dark) 0%, var(--white) 70%);
+  color: var(--navy);
+}
+
+.card-stack.on-navy .tcg-card {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* ── Icon color variety (categorías) ── */
+.icon-tint-0 {
+  background: var(--ice);
+  color: var(--navy);
+  box-shadow: inset 0 0 0 1px var(--ice-dark);
+}
+
+.icon-tint-1 {
+  background: var(--indigo-bg);
+  color: var(--indigo);
+  box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.18);
+}
+
+.icon-tint-2 {
+  background: var(--warning-bg);
+  color: var(--warning);
+  box-shadow: inset 0 0 0 1px rgba(200, 114, 10, 0.18);
+}
+
+.icon-tint-3 {
+  background: var(--success-bg);
+  color: var(--success);
+  box-shadow: inset 0 0 0 1px rgba(13, 158, 110, 0.18);
+}
+
+.icon-tint-4 {
+  background: var(--pink-bg);
+  color: var(--pink);
+  box-shadow: inset 0 0 0 1px rgba(190, 24, 93, 0.18);
+}
+
+/* ── Card media (imagen de portada, si existe) ── */
+.card-media {
+  height: 108px;
+  margin: -18px -18px 12px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px;
+}
+
+.card-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(13, 27, 42, 0) 45%, rgba(13, 27, 42, 0.6));
+}
+
+.card-media-badge {
+  position: relative;
+  z-index: 1;
+  font-size: 19px;
+  background: rgba(255, 255, 255, 0.95);
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Rarity medallions (logros / rareza de guías) ── */
+.rarity-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px 3px 6px;
+  border-radius: var(--radius-pill);
+  text-transform: capitalize;
+}
+
+.rarity-chip::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.rarity-bronze {
+  background: var(--rarity-bronze-bg);
+  color: var(--rarity-bronze);
+}
+
+.rarity-silver {
+  background: var(--rarity-silver-bg);
+  color: var(--rarity-silver);
+}
+
+.rarity-gold {
+  background: var(--rarity-gold-bg);
+  color: var(--rarity-gold);
+}
+
+.rarity-platinum {
+  background: var(--rarity-platinum-bg);
+  color: var(--rarity-platinum);
+}
+
+/* ── Alternating section band ── */
+.band-ice {
+  background: linear-gradient(180deg, var(--ice) 0%, rgba(225, 240, 244, 0.35) 100%);
+  border-top: 1px solid var(--ice-dark);
+  border-bottom: 1px solid var(--ice-dark);
 }
 
 /* ── Footer ── */

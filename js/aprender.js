@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession } from './app.js'
+import { escapeHtml, getSession, tintClassForKey } from './app.js'
 
 function initTabs() {
   const tabs = document.querySelectorAll('.tab-btn')
@@ -44,11 +44,11 @@ async function loadCategories(session) {
       const pct = total > 0 ? Math.round((done / total) * 100) : 0
       return `
       <div class="category-row">
-        <div class="category-icon" style="font-size: 26px;">${cat.emoji || '📘'}</div>
+        <div class="category-icon ${tintClassForKey(cat.id)}" style="font-size: 26px;">${cat.emoji || '📘'}</div>
         <div class="row-info">
           <h2>${escapeHtml(cat.name)}</h2>
           <p>${escapeHtml(cat.description || '')}</p>
-          <div class="progress-track"><div class="fill" style="width: ${pct}%; background: var(--navy);"></div></div>
+          <div class="progress-track"><div class="fill" style="width: ${pct}%"></div></div>
           <div class="progress-label">${done} de ${total} cursos completados</div>
           <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="btn-guide">Ver guías →</a>
         </div>
@@ -102,7 +102,7 @@ async function loadPaths(session) {
         <h3>${escapeHtml(path.title)}</h3>
         <p>${escapeHtml(path.description || '')}</p>
         <span class="path-meta">${total} guías${session ? ` · ${done}/${total} completadas` : ''}</span>
-        ${session ? `<div class="progress-track"><div class="fill" style="width: ${pct}%; background: var(--navy);"></div></div>` : ''}
+        ${session ? `<div class="progress-track"><div class="fill" style="width: ${pct}%"></div></div>` : ''}
         <a href="categoria.html?path=${encodeURIComponent(path.slug)}" class="btn-primary">${label}</a>
       </div>`
     })

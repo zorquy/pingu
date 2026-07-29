@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut } from './app.js'
-import { getAllAchievements, levelProgress, rarityColor } from './gamification.js'
+import { getAllAchievements, levelProgress } from './gamification.js'
 
 async function loadProfile(session) {
   const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', session.user.id).single()
@@ -55,8 +55,8 @@ async function loadAchievements(profile) {
     .map((a) => {
       const isUnlocked = unlocked.includes(a.id)
       return `
-      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}" style="${isUnlocked ? `border-color:${rarityColor(a.rarity)}` : ''}">
-        <span class="icon">${isUnlocked ? a.emoji || '🏆' : '🔒'}</span>
+      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
+        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? a.emoji || '🏆' : '🔒'}</span>
         <span class="name">${escapeHtml(a.title)}</span>
       </div>`
     })
