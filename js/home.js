@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, tintClassForKey, cardMediaHtml } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml } from './app.js'
 import { getAllAchievements } from './gamification.js'
 
 function startOfWeekIso() {
@@ -50,7 +50,7 @@ async function loadCategories() {
         ? cardMediaHtml(cat.cover_image, cat.emoji)
         : `<div class="category-icon ${tintClassForKey(cat.id)}" style="font-size: 22px;">${cat.emoji || '📘'}</div>`
       return `
-    <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="category-card">
+    <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="category-card ${borderTintClassForKey(cat.id)}">
       ${icon}
       <h3>${escapeHtml(cat.name)}</h3>
       <p>${escapeHtml(cat.description || '')}</p>
@@ -98,7 +98,7 @@ async function loadRecent() {
   grid.innerHTML = data
     .map(
       (g) => `
-    <div class="recent-card" data-slug="${escapeHtml(g.slug)}" data-title="${escapeHtml(g.title)}">
+    <div class="recent-card ${borderRarityClass(g.guide_rarity)}" data-slug="${escapeHtml(g.slug)}" data-title="${escapeHtml(g.title)}">
       ${g.cover_image ? cardMediaHtml(g.cover_image, g.cover_emoji) : `<span class="emoji">${g.cover_emoji || '📘'}</span>`}
       <h3>${escapeHtml(g.title)}</h3>
       <p>${escapeHtml(g.description || '')}</p>

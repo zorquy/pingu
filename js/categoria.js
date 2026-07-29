@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, tintClassForKey } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, borderRarityClass } from './app.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -12,7 +12,7 @@ function renderGuideCard(guide, statusInfo) {
     : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📄 Guía</span>`
 
   return `
-  <div class="guide-card">
+  <div class="guide-card ${borderRarityClass(guide.guide_rarity)}">
     <div class="guide-card-icon">${guide.cover_emoji || '📘'}</div>
     <div class="guide-card-info">
       <span class="guide-label">${escapeHtml(guide.categoryName || '')}</span>

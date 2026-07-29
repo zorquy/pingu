@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { burstConfetti } from './app.js'
 
 // Los logros se gestionan desde /admin en la tabla `achievement_definitions`.
 // `condition` es jsonb: { type: 'completed_guides_count' | 'total_xp' | 'quiz_correct_count', count: number }
@@ -168,6 +169,8 @@ export async function checkAchievements(userId) {
 
 export function showAchievementModal(achievement) {
   if (!achievement) return
+
+  burstConfetti()
 
   let modal = document.getElementById('achievementModal')
   if (!modal) {

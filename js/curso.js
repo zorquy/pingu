@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession } from './app.js'
+import { escapeHtml, getSession, burstConfetti } from './app.js'
 import { markCourseStarted, markCourseCompleted, addXP, incrementQuizCorrect } from './gamification.js'
 
 let blocks = []
@@ -154,7 +154,11 @@ async function setupBlockLogic(block) {
           if (i === selected && !isCorrect) b.classList.add('incorrect')
         })
 
-        stage.querySelector('.quiz-explanation')?.classList.remove('hidden')
+        const explanationEl = stage.querySelector('.quiz-explanation')
+        if (explanationEl) {
+          explanationEl.textContent = `${isCorrect ? '¡Correcto! ' : '¡Casi! '}${block.explanation || ''}`
+          explanationEl.classList.remove('hidden')
+        }
 
         if (isCorrect && session) {
           addXP(session.user.id, 5)
@@ -182,6 +186,7 @@ async function setupBlockLogic(block) {
     btnContinue.style.display = 'none'
     const xp = guide.xp_reward || 20
     animateXP(xp)
+    burstConfetti()
 
     if (session) {
       await markCourseCompleted(session.user.id, guide.id, xp)

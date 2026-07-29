@@ -16,16 +16,69 @@ export function getInitial(name) {
 
 const TINT_COUNT = 5
 
-export function tintClassForKey(key) {
+function tintIndexForKey(key) {
   const str = String(key ?? '')
   let hash = 0
   for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0
-  return `icon-tint-${hash % TINT_COUNT}`
+  return hash % TINT_COUNT
+}
+
+export function tintClassForKey(key) {
+  return `icon-tint-${tintIndexForKey(key)}`
+}
+
+export function borderTintClassForKey(key) {
+  return `border-tint-${tintIndexForKey(key)}`
+}
+
+export function borderRarityClass(rarity) {
+  return `border-rarity-${rarity || 'bronze'}`
 }
 
 export function cardMediaHtml(imageUrl, emoji) {
   if (!imageUrl) return ''
   return `<div class="card-media" style="background-image:url('${imageUrl.replace(/'/g, '%27')}')"><span class="card-media-badge">${emoji || '📘'}</span></div>`
+}
+
+const CONFETTI_COLORS = ['var(--navy)', 'var(--indigo)', 'var(--warning)', 'var(--success)', 'var(--pink)', 'var(--ice-dark)']
+let confettiStyleInjected = false
+
+export function burstConfetti(count = 28) {
+  if (!confettiStyleInjected) {
+    const style = document.createElement('style')
+    style.textContent = `
+      .confetti-piece {
+        position: fixed;
+        top: -12px;
+        width: 8px;
+        height: 14px;
+        border-radius: 2px;
+        pointer-events: none;
+        z-index: 400;
+        animation-name: confettiFall;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+      }
+      @keyframes confettiFall {
+        to { transform: translateY(105vh) rotate(600deg); opacity: 0.3; }
+      }
+    `
+    document.head.appendChild(style)
+    confettiStyleInjected = true
+  }
+
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement('div')
+    piece.className = 'confetti-piece'
+    piece.style.left = `${Math.random() * 100}vw`
+    piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length]
+    const duration = 2.2 + Math.random() * 1.2
+    const delay = Math.random() * 0.3
+    piece.style.animationDuration = `${duration}s`
+    piece.style.animationDelay = `${delay}s`
+    document.body.appendChild(piece)
+    setTimeout(() => piece.remove(), (duration + delay) * 1000 + 150)
+  }
 }
 
 export async function getSession() {
