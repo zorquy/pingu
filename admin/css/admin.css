@@ -60,7 +60,7 @@ body {
   color: var(--ice);
   font-weight: 600;
   font-size: 14px;
-  transition: background 0.15s ease;
+  transition: background 0.15s var(--ease);
 }
 
 .admin-nav-item:hover {
@@ -70,6 +70,9 @@ body {
 .admin-nav-item.active {
   background: rgba(255, 255, 255, 0.15);
   color: var(--white);
+  border-radius: var(--radius-sm);
+  margin: 0 8px;
+  width: calc(100% - 16px);
 }
 
 .admin-back {
@@ -84,6 +87,39 @@ body {
   padding: 32px 40px;
   min-width: 0;
   overflow-x: auto;
+}
+
+@media (max-width: 860px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    padding: 16px 0;
+  }
+  .admin-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0 12px;
+    gap: 4px;
+  }
+  .admin-nav-item {
+    white-space: nowrap;
+    padding: 9px 14px;
+  }
+  .admin-nav-item.active {
+    margin: 0;
+    width: auto;
+  }
+  .admin-back {
+    text-align: center;
+    padding: 10px 20px;
+  }
+  .admin-main {
+    padding: 22px 18px;
+  }
 }
 
 .admin-section {

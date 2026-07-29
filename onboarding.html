@@ -13,22 +13,26 @@
     .onb-box { width: 100%; max-width: 420px; }
     .onb-step { display: none; flex-direction: column; gap: 18px; text-align: center; }
     .onb-step.active { display: flex; }
-    .onb-welcome { background: var(--navy); color: var(--white); border-radius: var(--radius-xl); padding: 56px 28px; align-items: center; }
+    .onb-welcome { background: var(--navy); color: var(--white); border-radius: var(--radius-xl); padding: 56px 28px; align-items: center; position: relative; overflow: hidden; }
+    .onb-welcome::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,0.14), transparent 60%); pointer-events: none; }
     .onb-welcome .logo { font-weight: 800; font-size: 22px; }
-    .onb-welcome h1 { font-size: 26px; font-weight: 800; }
+    .onb-welcome h1 { font-size: 25px; font-weight: 800; letter-spacing: -0.4px; }
     .onb-welcome p { color: var(--ice); font-size: 14px; }
-    .onb-welcome .btn-primary { background: var(--white); color: var(--navy); }
+    .onb-welcome .btn-primary { background: var(--white); color: var(--navy); box-shadow: none; }
     .onb-welcome .btn-primary:hover { background: var(--ice); }
     .onb-options { display: flex; flex-direction: column; gap: 10px; }
-    .onb-option-card { border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 16px; text-align: left; font-weight: 700; background: var(--white); }
+    .onb-option-card { border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 16px; text-align: left; font-weight: 700; background: var(--white); transition: border-color 0.15s var(--ease); }
+    .onb-option-card:hover { border-color: var(--border-strong); }
     .onb-option-card.selected { border-color: var(--navy); background: var(--ice); color: var(--navy); }
     .onb-interests-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .onb-interest-card { border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 14px; font-weight: 700; font-size: 13px; background: var(--white); }
+    .onb-interest-card { border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 14px; font-weight: 700; font-size: 13px; background: var(--white); transition: border-color 0.15s var(--ease); }
+    .onb-interest-card:hover { border-color: var(--border-strong); }
     .onb-interest-card.selected { border-color: var(--navy); background: var(--ice); color: var(--navy); }
-    .onb-path-card { background: var(--navy); color: var(--white); border-radius: var(--radius-xl); padding: 28px; text-align: center; }
-    .onb-path-card h3 { font-size: 20px; font-weight: 800; margin: 8px 0; }
-    .onb-path-card p { color: var(--ice); font-size: 14px; margin-bottom: 16px; }
-    .onb-path-card .btn-primary { background: var(--white); color: var(--navy); width: 100%; }
+    .onb-path-card { background: var(--navy); color: var(--white); border-radius: var(--radius-xl); padding: 28px; text-align: center; position: relative; overflow: hidden; }
+    .onb-path-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,0.14), transparent 60%); pointer-events: none; }
+    .onb-path-card h3 { font-size: 19px; font-weight: 800; margin: 8px 0; }
+    .onb-path-card p { color: var(--ice); font-size: 13.5px; margin-bottom: 16px; }
+    .onb-path-card .btn-primary { background: var(--white); color: var(--navy); width: 100%; box-shadow: none; }
   </style>
 </head>
 <body>

@@ -51,6 +51,7 @@ async function initCategoryMode() {
   const { data: category, error } = await supabase.from('categories').select('*').eq('slug', slug).single()
 
   if (error || !category) {
+    document.getElementById('categoryHeader').innerHTML = ''
     document.getElementById('guidesList').innerHTML = `<p class="empty-state">Categoría no encontrada.</p>`
     return
   }
@@ -122,6 +123,7 @@ async function initPathMode() {
   const { data: path, error } = await supabase.from('learning_paths').select('*').eq('slug', pathSlug).single()
 
   if (error || !path) {
+    document.getElementById('categoryHeader').innerHTML = ''
     document.getElementById('guidesList').innerHTML = `<p class="empty-state">Ruta no encontrada.</p>`
     return
   }
@@ -171,6 +173,7 @@ async function init() {
   } else if (slug) {
     await initCategoryMode()
   } else {
+    document.getElementById('categoryHeader').innerHTML = ''
     document.getElementById('guidesList').innerHTML = `<p class="empty-state">Categoría no encontrada.</p>`
   }
 }

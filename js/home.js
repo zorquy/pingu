@@ -55,6 +55,19 @@ async function loadCategories() {
     </a>`
     )
     .join('')
+
+  const heroCategories = document.getElementById('heroStatCategories')
+  if (heroCategories) heroCategories.textContent = data.length
+}
+
+async function loadHeroGuideCount() {
+  const el = document.getElementById('heroStatGuides')
+  if (!el) return
+  const { count } = await supabase
+    .from('guides')
+    .select('*', { count: 'exact', head: true })
+    .not('published_at', 'is', null)
+  el.textContent = count || 0
 }
 
 function openGuideModal(guide) {
@@ -162,7 +175,7 @@ async function init() {
     document.getElementById('signupBanner').style.display = 'block'
   }
 
-  await Promise.all([loadContinue(session), loadCategories(), loadRecent(), loadStats(session)])
+  await Promise.all([loadContinue(session), loadCategories(), loadRecent(), loadStats(session), loadHeroGuideCount()])
 }
 
 init()
