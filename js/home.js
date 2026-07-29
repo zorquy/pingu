@@ -1,6 +1,5 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession } from './app.js'
-import { categoryIconSvg } from './icons.js'
 import { getAllAchievements } from './gamification.js'
 
 function startOfWeekIso() {
@@ -18,17 +17,17 @@ async function loadContinue(session) {
 
   const { data } = await supabase
     .from('user_progress')
-    .select('*, guides(title, slug, estimated_mins, blocks)')
+    .select('*, guides(title, slug, blocks)')
     .eq('user_id', session.user.id)
     .eq('status', 'started')
-    .order('updated_at', { ascending: false })
+    .order('started_at', { ascending: false })
     .limit(1)
 
   const item = data?.[0]
   if (!item || !item.guides) return
 
   const totalBlocks = Array.isArray(item.guides.blocks) ? item.guides.blocks.length : 1
-  const pct = Math.min(100, Math.round(((item.current_block_index || 0) / Math.max(totalBlocks - 1, 1)) * 100))
+  const pct = Math.min(100, Math.round(((item.current_block || 0) / Math.max(totalBlocks - 1, 1)) * 100))
 
   document.getElementById('continueTitle').textContent = item.guides.title
   document.getElementById('continueFill').style.width = `${pct}%`
@@ -38,7 +37,7 @@ async function loadContinue(session) {
 
 async function loadCategories() {
   const grid = document.getElementById('categoriesGrid')
-  const { data, error } = await supabase.from('categories').select('*, guides(count)').order('order_pos')
+  const { data, error } = await supabase.from('categories').select('*').order('order_pos')
 
   if (error || !data || data.length === 0) {
     grid.innerHTML = `<p class="empty-state">No hay categorías disponibles todavía.</p>`
@@ -49,10 +48,10 @@ async function loadCategories() {
     .map(
       (cat) => `
     <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="category-card">
-      <div class="category-icon">${categoryIconSvg(cat.icon)}</div>
+      <div class="category-icon" style="font-size: 22px;">${cat.emoji || '📘'}</div>
       <h3>${escapeHtml(cat.name)}</h3>
       <p>${escapeHtml(cat.description || '')}</p>
-      <span class="pill">${cat.guides?.[0]?.count ?? 0} guías</span>
+      <span class="pill">${cat.guide_count ?? 0} guías</span>
     </a>`
     )
     .join('')
@@ -84,11 +83,11 @@ async function loadRecent() {
     .map(
       (g) => `
     <div class="recent-card" data-slug="${escapeHtml(g.slug)}" data-title="${escapeHtml(g.title)}">
-      <span class="emoji">${g.emoji || '📘'}</span>
+      <span class="emoji">${g.cover_emoji || '📘'}</span>
       <h3>${escapeHtml(g.title)}</h3>
       <p>${escapeHtml(g.description || '')}</p>
       <div class="meta">
-        <span class="badge ${g.badge === 'Pro' ? 'badge-pro' : 'badge-free'}">${g.badge || 'Gratis'}</span>
+        <span class="badge ${g.is_pro ? 'badge-pro' : 'badge-free'}">${g.is_pro ? 'Pro' : 'Gratis'}</span>
         <span class="time-tag">${g.estimated_mins || 5} min</span>
       </div>
     </div>`
@@ -110,7 +109,8 @@ async function loadStats(session) {
     .from('user_progress')
     .select('xp_earned')
     .eq('user_id', session.user.id)
-    .gte('updated_at', startOfWeekIso())
+    .eq('status', 'completed')
+    .gte('completed_at', startOfWeekIso())
 
   const weekXP = (weekProgress || []).reduce((sum, p) => sum + (p.xp_earned || 0), 0)
 
@@ -128,11 +128,11 @@ async function loadStats(session) {
 
   const unlocked = profile?.achievements || []
   const allAchievements = await getAllAchievements()
-  const next = allAchievements.find((a) => !unlocked.includes(a.key))
+  const next = allAchievements.find((a) => !unlocked.includes(a.id))
 
   document.getElementById('statWeekXP').textContent = weekXP
   document.getElementById('statCompleted').textContent = completedCount || 0
-  document.getElementById('statNextAchievement').textContent = next ? next.name : '¡Todos!'
+  document.getElementById('statNextAchievement').textContent = next ? next.title : '¡Todos!'
   section.style.display = 'block'
 }
 

@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession } from './app.js'
-import { markCourseStarted, markCourseCompleted, addXP } from './gamification.js'
+import { markCourseStarted, markCourseCompleted, addXP, incrementQuizCorrect } from './gamification.js'
 
 let blocks = []
 let currentIndex = 0
@@ -22,7 +22,7 @@ async function persistIndex(index) {
   if (!session) return
   await supabase
     .from('user_progress')
-    .update({ current_block_index: index, updated_at: new Date().toISOString() })
+    .update({ current_block: index })
     .eq('user_id', session.user.id)
     .eq('guide_id', guide.id)
 }
@@ -81,6 +81,7 @@ function renderChecklist(b) {
 }
 
 function renderReward(b) {
+  const xp = guide.xp_reward || 20
   return `
     <div class="block block-reward">
       <div class="reward-trophy">🏆</div>
@@ -152,6 +153,7 @@ async function setupBlockLogic(block) {
 
         if (isCorrect && session) {
           addXP(session.user.id, 5)
+          incrementQuizCorrect(session.user.id)
         }
 
         btnContinue.disabled = false
@@ -173,7 +175,7 @@ async function setupBlockLogic(block) {
     })
   } else if (block.type === 'reward') {
     btnContinue.style.display = 'none'
-    const xp = block.xp || 20
+    const xp = guide.xp_reward || 20
     animateXP(xp)
 
     if (session) {
@@ -203,6 +205,16 @@ function renderBlock(index) {
   }, 300)
 }
 
+function renderLocked(message) {
+  stage.innerHTML = `
+    <div class="block" style="text-align: center;">
+      <span style="font-size: 40px;">🔒</span>
+      <h2>Contenido Pro</h2>
+      <p class="block-body">${escapeHtml(message)}</p>
+    </div>`
+  btnContinue.style.display = 'none'
+}
+
 async function loadCourse() {
   const slug = new URLSearchParams(window.location.search).get('slug')
   if (!slug) {
@@ -228,18 +240,32 @@ async function loadCourse() {
   categorySlug = data.categories?.slug || null
   session = await getSession()
 
+  supabase.from('guides').update({ view_count: (guide.view_count || 0) + 1 }).eq('id', guide.id)
+
+  if (guide.is_pro) {
+    let isPro = false
+    if (session) {
+      const { data: profile } = await supabase.from('user_profiles').select('is_pro').eq('id', session.user.id).single()
+      isPro = !!profile?.is_pro
+    }
+    if (!isPro) {
+      renderLocked(session ? 'Este curso es exclusivo para usuarios Pro.' : 'Inicia sesión con una cuenta Pro para acceder a este curso.')
+      return
+    }
+  }
+
   currentIndex = 0
 
   if (session) {
     const { data: existing } = await supabase
       .from('user_progress')
-      .select('status, current_block_index')
+      .select('status, current_block')
       .eq('user_id', session.user.id)
       .eq('guide_id', guide.id)
       .maybeSingle()
 
-    if (existing && existing.status === 'started' && existing.current_block_index) {
-      currentIndex = Math.min(existing.current_block_index, blocks.length - 1)
+    if (existing && existing.status === 'started' && existing.current_block) {
+      currentIndex = Math.min(existing.current_block, blocks.length - 1)
     }
 
     await markCourseStarted(session.user.id, guide.id)

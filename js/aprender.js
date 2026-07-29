@@ -1,6 +1,5 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession } from './app.js'
-import { categoryIconSvg } from './icons.js'
 
 function initTabs() {
   const tabs = document.querySelectorAll('.tab-btn')
@@ -16,10 +15,7 @@ function initTabs() {
 
 async function loadCategories(session) {
   const list = document.getElementById('categoriesList')
-  const { data: categories, error } = await supabase
-    .from('categories')
-    .select('*, guides(count)')
-    .order('order_pos')
+  const { data: categories, error } = await supabase.from('categories').select('*').order('order_pos')
 
   if (error || !categories || categories.length === 0) {
     list.innerHTML = `<p class="empty-state">No hay categorías disponibles todavía.</p>`
@@ -43,12 +39,12 @@ async function loadCategories(session) {
 
   list.innerHTML = categories
     .map((cat) => {
-      const total = cat.guides?.[0]?.count ?? 0
+      const total = cat.guide_count ?? 0
       const done = completedByCategory[cat.id] || 0
       const pct = total > 0 ? Math.round((done / total) * 100) : 0
       return `
       <div class="category-row">
-        <div class="category-icon">${categoryIconSvg(cat.icon)}</div>
+        <div class="category-icon" style="font-size: 26px;">${cat.emoji || '📘'}</div>
         <div class="row-info">
           <h2>${escapeHtml(cat.name)}</h2>
           <p>${escapeHtml(cat.description || '')}</p>
@@ -65,8 +61,9 @@ async function loadPaths(session) {
   const list = document.getElementById('pathsList')
   const { data: paths, error } = await supabase
     .from('learning_paths')
-    .select('*, path_guides(count)')
-    .order('order_pos')
+    .select('*, guide_routes(count)')
+    .order('is_featured', { ascending: false })
+    .order('title')
 
   if (error || !paths || paths.length === 0) {
     list.innerHTML = `<p class="empty-state">No hay rutas disponibles todavía.</p>`
@@ -85,13 +82,13 @@ async function loadPaths(session) {
 
   const rows = await Promise.all(
     paths.map(async (path) => {
-      const total = path.path_guides?.[0]?.count ?? 0
+      const total = path.guide_routes?.[0]?.count ?? 0
       let done = 0
       let started = false
 
       if (session && total > 0) {
-        const { data: pathGuides } = await supabase.from('path_guides').select('guide_id').eq('path_id', path.id)
-        const ids = (pathGuides || []).map((pg) => pg.guide_id)
+        const { data: routeGuides } = await supabase.from('guide_routes').select('guide_id').eq('route_id', path.id)
+        const ids = (routeGuides || []).map((rg) => rg.guide_id)
         done = ids.filter((id) => completedGuideIds.has(id)).length
         started = done > 0
       }
@@ -102,7 +99,7 @@ async function loadPaths(session) {
       return `
       <div class="path-card ${escapeHtml(path.slug)}">
         <span class="emoji">${path.emoji || '🧭'}</span>
-        <h3>${escapeHtml(path.name || path.title)}</h3>
+        <h3>${escapeHtml(path.title)}</h3>
         <p>${escapeHtml(path.description || '')}</p>
         <span class="path-meta">${total} guías${session ? ` · ${done}/${total} completadas` : ''}</span>
         ${session ? `<div class="progress-track"><div class="fill" style="width: ${pct}%; background: var(--navy);"></div></div>` : ''}

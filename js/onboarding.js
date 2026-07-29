@@ -1,13 +1,13 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, requireAuth } from './app.js'
 
-const state = { level: null, interests: new Set() }
+const state = { level: null, interests: new Set(), recommendedPath: null }
 let categories = []
 
-const PATH_BY_LEVEL = {
-  nuevo: { slug: 'beginner_path', name: 'Primeros pasos', emoji: '🌱', desc: 'Los fundamentos para empezar con buen pie.' },
-  intermedio: { slug: 'smart_buying_path', name: 'Compra con cabeza', emoji: '🧠', desc: 'Aprende a comprar y detectar cartas falsas.' },
-  experimentado: { slug: 'card_value_path', name: 'Valor de las cartas', emoji: '💎', desc: 'Domina rarezas, grading y valor de mercado.' },
+const LEVEL_INTRO = {
+  nuevo: 'Como estás empezando, te recomendamos esta ruta:',
+  intermedio: 'Con lo que ya sabes, esta ruta te viene bien:',
+  experimentado: 'Para afinar los detalles, prueba esta ruta:',
 }
 
 function goToStep(n) {
@@ -16,29 +16,41 @@ function goToStep(n) {
 }
 
 async function loadCategories() {
-  const { data } = await supabase.from('categories').select('id, name, slug').order('order_pos').limit(6)
+  const { data } = await supabase.from('categories').select('id, slug, name').order('order_pos').limit(6)
   categories = data || []
   document.getElementById('onbInterestsGrid').innerHTML = categories
-    .map((c) => `<button class="onb-interest-card" data-id="${c.id}">${escapeHtml(c.name)}</button>`)
+    .map((c) => `<button class="onb-interest-card" data-slug="${escapeHtml(c.slug)}">${escapeHtml(c.name)}</button>`)
     .join('')
 
   document.querySelectorAll('.onb-interest-card').forEach((card) => {
     card.addEventListener('click', () => {
-      const id = card.dataset.id
+      const slug = card.dataset.slug
       card.classList.toggle('selected')
-      if (state.interests.has(id)) state.interests.delete(id)
-      else state.interests.add(id)
+      if (state.interests.has(slug)) state.interests.delete(slug)
+      else state.interests.add(slug)
       document.getElementById('btnStep4Next').disabled = state.interests.size === 0
     })
   })
 }
 
-function showRecommendedPath() {
-  const path = PATH_BY_LEVEL[state.level] || PATH_BY_LEVEL.nuevo
-  document.getElementById('onbRecommendedPath').innerHTML = `
-    <span style="font-size: 30px;">${path.emoji}</span>
-    <h3>${escapeHtml(path.name)}</h3>
-    <p>${escapeHtml(path.desc)}</p>`
+async function showRecommendedPath() {
+  const { data: paths } = await supabase
+    .from('learning_paths')
+    .select('slug, title, description, emoji')
+    .order('is_featured', { ascending: false })
+    .order('title')
+    .limit(1)
+
+  const path = paths?.[0]
+  state.recommendedPath = path?.slug || null
+
+  document.getElementById('onbRecommendedPath').innerHTML = path
+    ? `
+      <p style="opacity:.85; font-size: 13px; margin-bottom: 4px;">${LEVEL_INTRO[state.level] || ''}</p>
+      <span style="font-size: 30px;">${path.emoji || '🧭'}</span>
+      <h3>${escapeHtml(path.title)}</h3>
+      <p>${escapeHtml(path.description || '')}</p>`
+    : `<p>Todavía no hay rutas configuradas — ¡explora las categorías libremente!</p>`
 }
 
 async function finishOnboarding(session, name) {
@@ -46,8 +58,9 @@ async function finishOnboarding(session, name) {
     .from('user_profiles')
     .update({
       username: name,
-      experience_level: state.level,
+      display_name: name,
       interests: Array.from(state.interests),
+      recommended_path: state.recommendedPath,
       onboarding_completed: true,
     })
     .eq('id', session.user.id)
@@ -84,8 +97,8 @@ async function init() {
   })
   document.getElementById('btnStep3Next').addEventListener('click', () => goToStep(4))
 
-  document.getElementById('btnStep4Next').addEventListener('click', () => {
-    showRecommendedPath()
+  document.getElementById('btnStep4Next').addEventListener('click', async () => {
+    await showRecommendedPath()
     goToStep(5)
   })
 

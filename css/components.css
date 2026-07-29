@@ -150,7 +150,8 @@
 
 .path-card {
   border-radius: var(--radius-lg);
-  border: 1.5px solid;
+  border: 1.5px solid var(--border);
+  background: var(--white);
   padding: 20px;
   display: flex;
   flex-direction: column;

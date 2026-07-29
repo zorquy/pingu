@@ -87,7 +87,7 @@ async function runSearch(rawQuery) {
       (g) => `
     <a href="guia.html?slug=${encodeURIComponent(g.slug)}" class="search-result" style="display: block;">
       <span class="guide-label">${escapeHtml(g.categories?.name || '')}</span>
-      <h3>${g.emoji || ''} ${escapeHtml(g.title)}</h3>
+      <h3>${g.cover_emoji || ''} ${escapeHtml(g.title)}</h3>
       <p class="snippet">${snippet(g.search_content || g.description, query)}</p>
     </a>`
     )

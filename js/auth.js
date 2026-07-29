@@ -157,12 +157,11 @@ btnSaveName?.addEventListener('click', async () => {
   } = await supabase.auth.getUser()
   if (!user) return
 
+  const name = nameInput.value.trim()
   await supabase.from('user_profiles').upsert({
     id: user.id,
-    username: nameInput.value.trim(),
-    total_xp: 0,
-    level: 'Novato',
-    achievements: [],
+    username: name,
+    display_name: name,
     onboarding_completed: false,
   })
 

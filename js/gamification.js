@@ -1,18 +1,33 @@
 import { supabase } from './supabase.js'
 
-// Los logros en sí (nombre, icono, XP, condición) se gestionan desde /admin
-// en la tabla `achievements`. condition_type: 'completed_count' | 'total_xp'.
+// Los logros se gestionan desde /admin en la tabla `achievement_definitions`.
+// `condition` es jsonb: { type: 'completed_guides_count' | 'total_xp' | 'quiz_correct_count', count: number }
 let achievementsCache = null
 
 export async function getAllAchievements() {
   if (achievementsCache) return achievementsCache
-  const { data } = await supabase.from('achievements').select('*').order('order_pos')
+  const { data } = await supabase
+    .from('achievement_definitions')
+    .select('*')
+    .eq('is_active', true)
+    .order('xp_reward')
   achievementsCache = data || []
   return achievementsCache
 }
 
 export function invalidateAchievementsCache() {
   achievementsCache = null
+}
+
+export const RARITY_COLORS = {
+  bronze: '#cd7f32',
+  silver: '#94a3b8',
+  gold: '#d4af37',
+  platinum: '#7dd3fc',
+}
+
+export function rarityColor(rarity) {
+  return RARITY_COLORS[rarity] || 'var(--navy)'
 }
 
 export function calculateLevel(xp) {
@@ -51,6 +66,15 @@ export async function addXP(userId, amount) {
   return newXP
 }
 
+export async function incrementQuizCorrect(userId) {
+  const { data } = await supabase.from('user_profiles').select('quiz_correct_count').eq('id', userId).single()
+  await supabase
+    .from('user_profiles')
+    .update({ quiz_correct_count: (data?.quiz_correct_count || 0) + 1 })
+    .eq('id', userId)
+  await checkAchievements(userId)
+}
+
 export async function markCourseStarted(userId, guideId) {
   await supabase.from('user_progress').upsert(
     {
@@ -58,10 +82,23 @@ export async function markCourseStarted(userId, guideId) {
       guide_id: guideId,
       status: 'started',
       started_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id,guide_id' }
   )
+}
+
+export async function unlockReference(userId, guideId) {
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('unlocked_references')
+    .eq('id', userId)
+    .single()
+  const unlocked = profile?.unlocked_references || []
+  if (unlocked.includes(guideId)) return
+  await supabase
+    .from('user_profiles')
+    .update({ unlocked_references: [...unlocked, guideId] })
+    .eq('id', userId)
 }
 
 export async function markCourseCompleted(userId, guideId, xpEarned = 20) {
@@ -71,14 +108,26 @@ export async function markCourseCompleted(userId, guideId, xpEarned = 20) {
       guide_id: guideId,
       status: 'completed',
       completed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
       xp_earned: xpEarned,
     },
     { onConflict: 'user_id,guide_id' }
   )
 
+  await unlockReference(userId, guideId)
   await addXP(userId, xpEarned)
   await checkAchievements(userId)
+}
+
+function achievementValue(condition, stats) {
+  switch (condition?.type) {
+    case 'total_xp':
+      return stats.totalXp
+    case 'quiz_correct_count':
+      return stats.quizCorrectCount
+    case 'completed_guides_count':
+    default:
+      return stats.completedCount
+  }
 }
 
 export async function checkAchievements(userId) {
@@ -88,25 +137,35 @@ export async function checkAchievements(userId) {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('status', 'completed'),
-    supabase.from('user_profiles').select('total_xp, achievements').eq('id', userId).single(),
+    supabase
+      .from('user_profiles')
+      .select('total_xp, achievements, quiz_correct_count')
+      .eq('id', userId)
+      .single(),
     getAllAchievements(),
   ])
 
   if (!profile) return []
 
   const unlocked = profile.achievements || []
+  const stats = {
+    completedCount: completedCount || 0,
+    totalXp: profile.total_xp || 0,
+    quizCorrectCount: profile.quiz_correct_count || 0,
+  }
   const newlyUnlocked = []
 
   for (const a of achievements) {
-    if (unlocked.includes(a.key)) continue
-    const value = a.condition_type === 'total_xp' ? profile.total_xp : completedCount || 0
-    if (value >= a.condition_value) newlyUnlocked.push(a)
+    if (unlocked.includes(a.id)) continue
+    const value = achievementValue(a.condition, stats)
+    const threshold = a.condition?.count ?? Infinity
+    if (value >= threshold) newlyUnlocked.push(a)
   }
 
   if (newlyUnlocked.length > 0) {
     await supabase
       .from('user_profiles')
-      .update({ achievements: [...unlocked, ...newlyUnlocked.map((a) => a.key)] })
+      .update({ achievements: [...unlocked, ...newlyUnlocked.map((a) => a.id)] })
       .eq('id', userId)
 
     const bonusXp = newlyUnlocked.reduce((sum, a) => sum + (a.xp_reward || 0), 0)
@@ -115,7 +174,7 @@ export async function checkAchievements(userId) {
     showAchievementModal(newlyUnlocked[0])
   }
 
-  return newlyUnlocked.map((a) => a.key)
+  return newlyUnlocked.map((a) => a.id)
 }
 
 export function showAchievementModal(achievement) {
@@ -141,8 +200,8 @@ export function showAchievementModal(achievement) {
     })
   }
 
-  modal.querySelector('#achievementIcon').textContent = achievement.icon || '🏆'
-  modal.querySelector('#achievementName').textContent = achievement.name
+  modal.querySelector('#achievementIcon').textContent = achievement.emoji || '🏆'
+  modal.querySelector('#achievementName').textContent = achievement.title
   modal.querySelector('#achievementDesc').textContent = achievement.description || ''
   modal.querySelector('#achievementXP').textContent = achievement.xp_reward || 0
   modal.classList.remove('hidden')

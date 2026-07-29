@@ -6,14 +6,18 @@ desplegar en Netlify.
 
 ## Configuración
 
-1. Abre `js/supabase.js` y sustituye `'TU_URL'` y `'TU_KEY'` por la URL y la
-   anon key de tu proyecto de Supabase (las mismas que usabas como
-   `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY`).
-2. Revisa `SCHEMA.md`: describe las tablas y columnas que el código espera
-   encontrar en tu base de datos. No se ha modificado ningún dato ni tabla
-   desde aquí — solo compáralo con tu esquema real y ajusta lo que falte.
-3. Crea (si no existe) un bucket público de Storage llamado `images` para
-   las imágenes que se suben desde `/admin`.
+1. `js/supabase.js` ya tiene la URL y la publishable key de tu proyecto
+   Supabase (`zqamujmfavwrsqlgbead`) — si cambias de proyecto, actualízalas
+   ahí.
+2. `SCHEMA.md` documenta el esquema real de tu base de datos (confirmado
+   directamente desde tu SQL Editor) y las decisiones/limitaciones que
+   surgieron al adaptarlo: contenido Pro con protección solo cosmética
+   (no hay política RLS que distinga `is_pro`), el conteo de "cursos
+   completados" del dashboard de admin limitado por RLS a los del propio
+   admin, y las notificaciones que no tienen un servicio de push real
+   conectado.
+3. Asegúrate de que exista un bucket público de Storage llamado `images`
+   (usado por `/admin` para subir e insertar imágenes).
 
 ## Desarrollo local
 

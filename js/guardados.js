@@ -4,36 +4,53 @@ import { escapeHtml, requireAuth } from './app.js'
 async function loadSaved(session) {
   const list = document.getElementById('savedList')
 
-  const { data, error } = await supabase
-    .from('saved_guides')
-    .select('id, guides(slug, title, emoji, estimated_mins)')
-    .eq('user_id', session.user.id)
-    .order('created_at', { ascending: false })
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('saved_guides')
+    .eq('id', session.user.id)
+    .single()
 
-  if (error || !data || data.length === 0) {
+  const savedIds = profile?.saved_guides || []
+  if (savedIds.length === 0) {
     list.innerHTML = `<p class="empty-state">Todavía no has guardado ninguna guía. Pulsa ☆ Guardar en cualquier guía para verla aquí.</p>`
     return
   }
 
-  list.innerHTML = data
-    .filter((row) => row.guides)
+  const { data: guides } = await supabase
+    .from('guides')
+    .select('id, slug, title, cover_emoji, estimated_mins')
+    .in('id', savedIds)
+
+  if (!guides || guides.length === 0) {
+    list.innerHTML = `<p class="empty-state">Todavía no has guardado ninguna guía.</p>`
+    return
+  }
+
+  list.innerHTML = guides
     .map(
-      (row) => `
-    <div class="saved-guide-row" data-id="${row.id}">
-      <span style="font-size: 22px;">${row.guides.emoji || '📘'}</span>
+      (g) => `
+    <div class="saved-guide-row" data-id="${g.id}">
+      <span style="font-size: 22px;">${g.cover_emoji || '📘'}</span>
       <div class="info">
-        <h3>${escapeHtml(row.guides.title)}</h3>
-        <span class="time-tag">${row.guides.estimated_mins || 5} min</span>
+        <h3>${escapeHtml(g.title)}</h3>
+        <span class="time-tag">${g.estimated_mins || 5} min</span>
       </div>
-      <a href="guia.html?slug=${encodeURIComponent(row.guides.slug)}" class="btn-guide">Leer →</a>
-      <button class="unsave-btn" data-id="${row.id}" title="Quitar">×</button>
+      <a href="guia.html?slug=${encodeURIComponent(g.slug)}" class="btn-guide">Leer →</a>
+      <button class="unsave-btn" data-id="${g.id}" title="Quitar">×</button>
     </div>`
     )
     .join('')
 
   list.querySelectorAll('.unsave-btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      await supabase.from('saved_guides').delete().eq('id', btn.dataset.id)
+      const { data: current } = await supabase
+        .from('user_profiles')
+        .select('saved_guides')
+        .eq('id', session.user.id)
+        .single()
+      const next = (current?.saved_guides || []).filter((id) => id !== btn.dataset.id)
+      await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
+
       btn.closest('.saved-guide-row').remove()
       if (!list.querySelector('.saved-guide-row')) {
         list.innerHTML = `<p class="empty-state">Todavía no has guardado ninguna guía.</p>`

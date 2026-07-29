@@ -4,6 +4,8 @@ import { invalidateAchievementsCache } from '../../js/gamification.js'
 
 let categories = []
 let guidesCache = []
+let collectionsCache = []
+let pathsCache = []
 
 // ── Access gate ──
 async function checkAccess() {
@@ -63,18 +65,29 @@ async function loadDashboard() {
 
   document.getElementById('dashboardStats').innerHTML = `
     <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${userCount || 0}</div><div>Usuarios</div></div>
-    <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${completedCount || 0}</div><div>Cursos completados</div></div>
-    <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${guideCount || 0}</div><div>Guías publicadas</div></div>`
+    <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${completedCount || 0}</div><div>Cursos completados *</div></div>
+    <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${guideCount || 0}</div><div>Guías publicadas</div></div>
+    <p style="grid-column: 1/-1; font-size: 12px; color: var(--text-mid);">* Por las políticas RLS actuales de <code>user_progress</code> (solo <code>auth.uid() = user_id</code>, sin excepción para admins), esta cifra solo cuenta tus propios cursos completados, no los de todos los usuarios. Para un total real haría falta añadir una política de lectura para admins en esa tabla.</p>`
 }
 
 // ── Categories ──
+async function recalcCategoryGuideCount(categoryId) {
+  if (!categoryId) return
+  const { count } = await supabase
+    .from('guides')
+    .select('*', { count: 'exact', head: true })
+    .eq('category_id', categoryId)
+    .not('published_at', 'is', null)
+  await supabase.from('categories').update({ guide_count: count || 0 }).eq('id', categoryId)
+}
+
 async function loadCategories() {
   const { data } = await supabase.from('categories').select('*').order('order_pos')
   categories = data || []
 
   document.getElementById('categoriesTable').innerHTML = `
     <table class="admin-table">
-      <thead><tr><th>Orden</th><th>Emoji</th><th>Nombre</th><th>Slug</th><th></th></tr></thead>
+      <thead><tr><th>Orden</th><th>Emoji</th><th>Nombre</th><th>Slug</th><th>Guías</th><th></th></tr></thead>
       <tbody>
         ${categories
           .map(
@@ -84,6 +97,7 @@ async function loadCategories() {
             <td>${c.emoji || ''}</td>
             <td>${escapeHtml(c.name)}</td>
             <td>${escapeHtml(c.slug)}</td>
+            <td>${c.guide_count ?? 0}</td>
             <td class="admin-row-actions">
               <button data-edit="${c.id}">Editar</button>
               <button class="danger" data-delete="${c.id}">Eliminar</button>
@@ -107,14 +121,14 @@ async function loadCategories() {
 }
 
 function openCategoryModal(category) {
-  const c = category || { name: '', slug: '', description: '', emoji: '', icon: '', order_pos: categories.length }
+  const c = category || { name: '', slug: '', description: '', emoji: '', cover_image: '', order_pos: categories.length }
   openModal(`
     <h3>${category ? 'Editar' : 'Nueva'} categoría</h3>
     <div class="form-group"><label>Nombre</label><input id="catName" value="${escapeHtml(c.name)}" /></div>
     <div class="form-group"><label>Slug</label><input id="catSlug" value="${escapeHtml(c.slug)}" /></div>
     <div class="form-group"><label>Descripción</label><textarea id="catDescription">${escapeHtml(c.description || '')}</textarea></div>
     <div class="form-group"><label>Emoji</label><input id="catEmoji" value="${escapeHtml(c.emoji || '')}" /></div>
-    <div class="form-group"><label>Icono (clave SVG)</label><input id="catIcon" value="${escapeHtml(c.icon || '')}" placeholder="shield, search, tag, star, book, trophy, box, users, chart" /></div>
+    <div class="form-group"><label>Imagen de portada (URL)</label><input id="catCoverImage" value="${escapeHtml(c.cover_image || '')}" /></div>
     <div class="form-group"><label>Orden</label><input id="catOrder" type="number" value="${c.order_pos ?? 0}" /></div>
     <button class="btn-primary btn-block" id="btnSaveCategory">Guardar</button>`)
 
@@ -124,7 +138,7 @@ function openCategoryModal(category) {
       slug: document.getElementById('catSlug').value.trim(),
       description: document.getElementById('catDescription').value.trim(),
       emoji: document.getElementById('catEmoji').value.trim(),
-      icon: document.getElementById('catIcon').value.trim(),
+      cover_image: document.getElementById('catCoverImage').value.trim() || null,
       order_pos: Number(document.getElementById('catOrder').value) || 0,
     }
     if (c.id) payload.id = c.id
@@ -136,9 +150,78 @@ function openCategoryModal(category) {
 
 document.getElementById('btnNewCategory').addEventListener('click', () => openCategoryModal(null))
 
+// ── Guide collections ──
+async function loadCollections() {
+  const { data } = await supabase.from('guide_collections').select('*, categories(name)').order('created_at')
+  collectionsCache = data || []
+
+  document.getElementById('collectionsTable').innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Emoji</th><th>Título</th><th>Categoría</th><th>Slug</th><th></th></tr></thead>
+      <tbody>
+        ${collectionsCache
+          .map(
+            (col) => `
+          <tr>
+            <td>${col.emoji || ''}</td>
+            <td>${escapeHtml(col.title)}</td>
+            <td>${escapeHtml(col.categories?.name || '—')}</td>
+            <td>${escapeHtml(col.slug)}</td>
+            <td class="admin-row-actions">
+              <button data-edit="${col.id}">Editar</button>
+              <button class="danger" data-delete="${col.id}">Eliminar</button>
+            </td>
+          </tr>`
+          )
+          .join('')}
+      </tbody>
+    </table>`
+
+  document.querySelectorAll('#collectionsTable [data-edit]').forEach((btn) =>
+    btn.addEventListener('click', () => openCollectionModal(collectionsCache.find((c) => c.id === btn.dataset.edit)))
+  )
+  document.querySelectorAll('#collectionsTable [data-delete]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      if (!confirm('¿Eliminar esta colección? Las guías dentro no se eliminan, solo quedan sin colección.')) return
+      await supabase.from('guide_collections').delete().eq('id', btn.dataset.delete)
+      loadCollections()
+    })
+  )
+}
+
+function openCollectionModal(collection) {
+  const col = collection || { title: '', slug: '', emoji: '', description: '', category_id: categories[0]?.id || '' }
+  openModal(`
+    <h3>${collection ? 'Editar' : 'Nueva'} colección</h3>
+    <div class="form-group"><label>Título</label><input id="colTitle" value="${escapeHtml(col.title)}" /></div>
+    <div class="form-group"><label>Slug</label><input id="colSlug" value="${escapeHtml(col.slug)}" /></div>
+    <div class="form-group"><label>Emoji</label><input id="colEmoji" value="${escapeHtml(col.emoji || '')}" /></div>
+    <div class="form-group"><label>Descripción</label><textarea id="colDescription">${escapeHtml(col.description || '')}</textarea></div>
+    <div class="form-group"><label>Categoría</label>
+      <select id="colCategory">${categories.map((c) => `<option value="${c.id}" ${c.id === col.category_id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}</select>
+    </div>
+    <button class="btn-primary btn-block" id="btnSaveCollection">Guardar</button>`)
+
+  document.getElementById('btnSaveCollection').addEventListener('click', async () => {
+    const payload = {
+      title: document.getElementById('colTitle').value.trim(),
+      slug: document.getElementById('colSlug').value.trim(),
+      emoji: document.getElementById('colEmoji').value.trim(),
+      description: document.getElementById('colDescription').value.trim(),
+      category_id: document.getElementById('colCategory').value,
+    }
+    if (col.id) payload.id = col.id
+    await supabase.from('guide_collections').upsert(payload)
+    closeModal()
+    loadCollections()
+  })
+}
+
+document.getElementById('btnNewCollection').addEventListener('click', () => openCollectionModal(null))
+
 // ── Guides ──
 async function loadGuides() {
-  const { data } = await supabase.from('guides').select('*, categories(name)').order('order_pos')
+  const { data } = await supabase.from('guides').select('*, categories(name)').order('created_at', { ascending: false })
   guidesCache = data || []
 
   document.getElementById('guidesTable').innerHTML = `
@@ -149,7 +232,7 @@ async function loadGuides() {
           .map(
             (g) => `
           <tr>
-            <td>${g.emoji || ''} ${escapeHtml(g.title)}</td>
+            <td>${g.cover_emoji || ''} ${escapeHtml(g.title)}${g.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</td>
             <td>${escapeHtml(g.categories?.name || '—')}</td>
             <td>${g.published_at ? '<span class="badge badge-completed">Publicada</span>' : '<span class="badge badge-progress">Borrador</span>'}</td>
             <td class="admin-row-actions">
@@ -168,8 +251,11 @@ async function loadGuides() {
   document.querySelectorAll('#guidesTable [data-delete]').forEach((btn) =>
     btn.addEventListener('click', async () => {
       if (!confirm('¿Eliminar esta guía?')) return
+      const g = guidesCache.find((x) => x.id === btn.dataset.delete)
       await supabase.from('guides').delete().eq('id', btn.dataset.delete)
+      await recalcCategoryGuideCount(g?.category_id)
       loadGuides()
+      loadCategories()
     })
   )
 }
@@ -182,7 +268,7 @@ const COURSE_BLOCK_DEFAULTS = {
   example: { type: 'example', emoji: '📌', title: '', body: '', highlight: '' },
   quiz: { type: 'quiz', question: '', options: ['', ''], correct_index: 0, explanation: '' },
   checklist: { type: 'checklist', title: '', items: [''] },
-  reward: { type: 'reward', xp: 20, next_guide_slug: '' },
+  reward: { type: 'reward', next_guide_slug: '' },
 }
 
 const REFERENCE_BLOCK_DEFAULTS = {
@@ -222,7 +308,7 @@ function fieldsForCourseBlock(block, i) {
         <textarea class="be-field" data-i="${i}" data-f="items" placeholder="Items (uno por línea)">${escapeHtml((block.items || []).join('\n'))}</textarea>`
     case 'reward':
       return `
-        <input class="be-field" data-i="${i}" data-f="xp" type="number" placeholder="XP" value="${block.xp ?? 20}" />
+        <p style="font-size:12px; color:var(--text-mid); margin: -4px 0 4px;">El XP de este curso se controla con el campo "XP de recompensa" de arriba, no aquí.</p>
         <input class="be-field" data-i="${i}" data-f="next_guide_slug" placeholder="Slug del siguiente curso (opcional)" value="${escapeHtml(block.next_guide_slug || '')}" />`
     default:
       return ''
@@ -306,7 +392,7 @@ function renderCourseBlockEditor(blocks) {
       const f = input.dataset.f
       if (f === 'options' || f === 'items') {
         blocks[i][f] = input.value.split('\n').map((s) => s.trim()).filter(Boolean)
-      } else if (f === 'correct_index' || f === 'xp') {
+      } else if (f === 'correct_index') {
         blocks[i][f] = Number(input.value) || 0
       } else {
         blocks[i][f] = input.value
@@ -358,26 +444,50 @@ function renderReferenceBlockEditor(blocks) {
   makeSortable(el, blocks, () => renderReferenceBlockEditor(blocks))
 }
 
-function openGuideModal(guide) {
+async function saveGuideRoutes(guideId, selectedRoutes) {
+  await supabase.from('guide_routes').delete().eq('guide_id', guideId)
+  if (selectedRoutes.length > 0) {
+    await supabase.from('guide_routes').insert(
+      selectedRoutes.map((r) => ({ guide_id: guideId, route_id: r.routeId, position: r.position }))
+    )
+  }
+}
+
+async function openGuideModal(guide) {
+  let existingPositions = {}
+  if (guide) {
+    const { data: routes } = await supabase.from('guide_routes').select('route_id, position').eq('guide_id', guide.id)
+    existingPositions = (routes || []).reduce((acc, r) => {
+      acc[r.route_id] = r.position
+      return acc
+    }, {})
+  }
+
   const g = guide || {
     title: '',
     slug: '',
     description: '',
     category_id: categories[0]?.id || '',
-    emoji: '',
+    cover_emoji: '',
+    cover_image: '',
     estimated_mins: 5,
-    level: 'Básico',
-    badge: 'Gratis',
-    order_pos: guidesCache.length,
+    level: 'beginner',
+    guide_rarity: 'bronze',
+    is_pro: false,
+    xp_reward: 20,
     tags: [],
     search_content: '',
     published_at: null,
     blocks: [],
     reference_blocks: [],
+    reference_unlocked_by_default: false,
+    collection_id: '',
+    collection_order: 0,
   }
 
   const courseBlocks = JSON.parse(JSON.stringify(g.blocks || []))
   const refBlocks = JSON.parse(JSON.stringify(g.reference_blocks || []))
+  const collectionsForCategory = collectionsCache.filter((c) => c.category_id === g.category_id)
 
   openModal(`
     <h3>${guide ? 'Editar' : 'Nueva'} guía</h3>
@@ -386,25 +496,53 @@ function openGuideModal(guide) {
     <div class="form-group"><label>Categoría</label>
       <select id="gCategory">${categories.map((c) => `<option value="${c.id}" ${c.id === g.category_id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}</select>
     </div>
-    <div class="form-group"><label>Emoji</label><input id="gEmoji" value="${escapeHtml(g.emoji || '')}" /></div>
+    <div class="form-group"><label>Colección (opcional)</label>
+      <select id="gCollection">
+        <option value="">Ninguna</option>
+        ${collectionsForCategory.map((c) => `<option value="${c.id}" ${c.id === g.collection_id ? 'selected' : ''}>${escapeHtml(c.title)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Orden dentro de la colección</label><input id="gCollectionOrder" type="number" value="${g.collection_order ?? 0}" /></div>
+    <div class="form-group"><label>Emoji de portada</label><input id="gCoverEmoji" value="${escapeHtml(g.cover_emoji || '')}" /></div>
+    <div class="form-group"><label>Imagen de portada (URL)</label><input id="gCoverImage" value="${escapeHtml(g.cover_image || '')}" /></div>
     <div class="form-group"><label>Descripción</label><textarea id="gDescription">${escapeHtml(g.description || '')}</textarea></div>
     <div class="form-group"><label>Nivel</label>
       <select id="gLevel">
-        ${['Básico', 'Intermedio', 'Avanzado'].map((l) => `<option ${l === g.level ? 'selected' : ''}>${l}</option>`).join('')}
+        <option value="beginner" ${g.level === 'beginner' ? 'selected' : ''}>Básico</option>
+        <option value="intermediate" ${g.level === 'intermediate' ? 'selected' : ''}>Intermedio</option>
+        <option value="advanced" ${g.level === 'advanced' ? 'selected' : ''}>Avanzado</option>
       </select>
     </div>
-    <div class="form-group"><label>Badge</label>
-      <select id="gBadge">
-        <option ${g.badge === 'Gratis' ? 'selected' : ''}>Gratis</option>
-        <option ${g.badge === 'Pro' ? 'selected' : ''}>Pro</option>
+    <div class="form-group"><label>Rareza</label>
+      <select id="gRarity">
+        ${['bronze', 'silver', 'gold', 'platinum'].map((r) => `<option value="${r}" ${g.guide_rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
       </select>
     </div>
+    <div class="form-group"><label><input type="checkbox" id="gIsPro" ${g.is_pro ? 'checked' : ''} /> Contenido Pro</label></div>
+    <div class="form-group"><label>XP de recompensa (al completar el curso)</label><input id="gXpReward" type="number" value="${g.xp_reward ?? 20}" /></div>
     <div class="form-group"><label>Minutos estimados</label><input id="gMins" type="number" value="${g.estimated_mins || 5}" /></div>
-    <div class="form-group"><label>Orden</label><input id="gOrder" type="number" value="${g.order_pos ?? 0}" /></div>
     <div class="form-group"><label>Tags (separados por coma)</label><input id="gTags" value="${escapeHtml((g.tags || []).join(', '))}" /></div>
     <div class="form-group"><label>Contenido de búsqueda</label><textarea id="gSearchContent">${escapeHtml(g.search_content || '')}</textarea></div>
     <div class="form-group">
       <label><input type="checkbox" id="gPublished" ${g.published_at ? 'checked' : ''} /> Publicada</label>
+    </div>
+    <div class="form-group">
+      <label><input type="checkbox" id="gRefUnlocked" ${g.reference_unlocked_by_default ? 'checked' : ''} /> Guía de referencia desbloqueada por defecto (si no, hay que completar el curso primero)</label>
+    </div>
+
+    <h4 style="margin: 16px 0 8px; font-weight: 800;">Rutas de aprendizaje</h4>
+    <div id="guideRoutesList">
+      ${pathsCache
+        .map((p) => {
+          const existing = (g.route_ids || []).includes(p.id)
+          return `
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+          <input type="checkbox" class="gr-check" data-route-id="${p.id}" ${existing ? 'checked' : ''} />
+          <span style="flex:1;">${p.emoji || ''} ${escapeHtml(p.title)}</span>
+          <input type="number" class="gr-position" data-route-id="${p.id}" placeholder="Posición" style="width: 90px;" value="${existingPositions[p.id] ?? 0}" />
+        </div>`
+        })
+        .join('')}
     </div>
 
     <h4 style="margin: 16px 0 8px; font-weight: 800;">Bloques del curso</h4>
@@ -420,6 +558,13 @@ function openGuideModal(guide) {
   renderCourseBlockEditor(courseBlocks)
   renderReferenceBlockEditor(refBlocks)
 
+  document.getElementById('gCategory').addEventListener('change', (e) => {
+    const newCollections = collectionsCache.filter((c) => c.category_id === e.target.value)
+    document.getElementById('gCollection').innerHTML =
+      `<option value="">Ninguna</option>` +
+      newCollections.map((c) => `<option value="${c.id}">${escapeHtml(c.title)}</option>`).join('')
+  })
+
   document.getElementById('btnAddCourseBlock').addEventListener('click', () => {
     courseBlocks.push({ ...COURSE_BLOCK_DEFAULTS.concept })
     renderCourseBlockEditor(courseBlocks)
@@ -431,26 +576,49 @@ function openGuideModal(guide) {
 
   document.getElementById('btnSaveGuide').addEventListener('click', async () => {
     const published = document.getElementById('gPublished').checked
+    const newCategoryId = document.getElementById('gCategory').value
+    const collectionId = document.getElementById('gCollection').value || null
+
+    const selectedRoutes = Array.from(document.querySelectorAll('.gr-check:checked')).map((chk) => ({
+      routeId: chk.dataset.routeId,
+      position: Number(document.querySelector(`.gr-position[data-route-id="${chk.dataset.routeId}"]`)?.value) || 0,
+    }))
+
     const payload = {
       title: document.getElementById('gTitle').value.trim(),
       slug: document.getElementById('gSlug').value.trim(),
-      category_id: document.getElementById('gCategory').value,
-      emoji: document.getElementById('gEmoji').value.trim(),
+      category_id: newCategoryId,
+      collection_id: collectionId,
+      collection_order: Number(document.getElementById('gCollectionOrder').value) || 0,
+      cover_emoji: document.getElementById('gCoverEmoji').value.trim(),
+      cover_image: document.getElementById('gCoverImage').value.trim() || null,
       description: document.getElementById('gDescription').value.trim(),
       level: document.getElementById('gLevel').value,
-      badge: document.getElementById('gBadge').value,
+      guide_rarity: document.getElementById('gRarity').value,
+      is_pro: document.getElementById('gIsPro').checked,
+      xp_reward: Number(document.getElementById('gXpReward').value) || 20,
       estimated_mins: Number(document.getElementById('gMins').value) || 5,
-      order_pos: Number(document.getElementById('gOrder').value) || 0,
       tags: document.getElementById('gTags').value.split(',').map((s) => s.trim()).filter(Boolean),
       search_content: document.getElementById('gSearchContent').value.trim(),
       published_at: published ? g.published_at || new Date().toISOString() : null,
+      reference_unlocked_by_default: document.getElementById('gRefUnlocked').checked,
       blocks: courseBlocks,
       reference_blocks: refBlocks,
+      has_reference_blocks: refBlocks.length > 0,
+      route_ids: selectedRoutes.map((r) => r.routeId),
     }
     if (g.id) payload.id = g.id
-    await supabase.from('guides').upsert(payload)
+
+    const { data: saved } = await supabase.from('guides').upsert(payload).select('id').single()
+    const guideId = saved?.id || g.id
+    if (guideId) await saveGuideRoutes(guideId, selectedRoutes)
+
+    await recalcCategoryGuideCount(newCategoryId)
+    if (g.category_id && g.category_id !== newCategoryId) await recalcCategoryGuideCount(g.category_id)
+
     closeModal()
     loadGuides()
+    loadCategories()
   })
 }
 
@@ -458,20 +626,25 @@ document.getElementById('btnNewGuide').addEventListener('click', () => openGuide
 
 // ── Learning paths ──
 async function loadPaths() {
-  const { data } = await supabase.from('learning_paths').select('*').order('order_pos')
-  const paths = data || []
+  const { data } = await supabase
+    .from('learning_paths')
+    .select('*')
+    .order('is_featured', { ascending: false })
+    .order('title')
+  pathsCache = data || []
 
   document.getElementById('pathsTable').innerHTML = `
     <table class="admin-table">
-      <thead><tr><th>Emoji</th><th>Nombre</th><th>Slug</th><th></th></tr></thead>
+      <thead><tr><th>Emoji</th><th>Título</th><th>Slug</th><th>Destacada</th><th></th></tr></thead>
       <tbody>
-        ${paths
+        ${pathsCache
           .map(
             (p) => `
           <tr>
             <td>${p.emoji || ''}</td>
-            <td>${escapeHtml(p.name || p.title || '')}</td>
+            <td>${escapeHtml(p.title)}</td>
             <td>${escapeHtml(p.slug)}</td>
+            <td>${p.is_featured ? '✓' : ''}</td>
             <td class="admin-row-actions">
               <button data-edit="${p.id}">Editar</button>
               <button class="danger" data-delete="${p.id}">Eliminar</button>
@@ -483,7 +656,7 @@ async function loadPaths() {
     </table>`
 
   document.querySelectorAll('#pathsTable [data-edit]').forEach((btn) =>
-    btn.addEventListener('click', () => openPathModal(paths.find((p) => p.id === btn.dataset.edit)))
+    btn.addEventListener('click', () => openPathModal(pathsCache.find((p) => p.id === btn.dataset.edit)))
   )
   document.querySelectorAll('#pathsTable [data-delete]').forEach((btn) =>
     btn.addEventListener('click', async () => {
@@ -495,23 +668,23 @@ async function loadPaths() {
 }
 
 function openPathModal(path) {
-  const p = path || { name: '', slug: '', description: '', emoji: '', order_pos: 0 }
+  const p = path || { title: '', slug: '', description: '', emoji: '', is_featured: false }
   openModal(`
     <h3>${path ? 'Editar' : 'Nueva'} ruta</h3>
-    <div class="form-group"><label>Nombre</label><input id="pName" value="${escapeHtml(p.name || '')}" /></div>
-    <div class="form-group"><label>Slug (usa uno de los 5 estilos: beginner_path, anti_scam_path, smart_buying_path, card_value_path, collecting_mastery_path)</label><input id="pSlug" value="${escapeHtml(p.slug)}" /></div>
+    <div class="form-group"><label>Título</label><input id="pTitle" value="${escapeHtml(p.title || '')}" /></div>
+    <div class="form-group"><label>Slug</label><input id="pSlug" value="${escapeHtml(p.slug)}" /></div>
     <div class="form-group"><label>Descripción</label><textarea id="pDescription">${escapeHtml(p.description || '')}</textarea></div>
     <div class="form-group"><label>Emoji</label><input id="pEmoji" value="${escapeHtml(p.emoji || '')}" /></div>
-    <div class="form-group"><label>Orden</label><input id="pOrder" type="number" value="${p.order_pos ?? 0}" /></div>
+    <div class="form-group"><label><input type="checkbox" id="pFeatured" ${p.is_featured ? 'checked' : ''} /> Destacada (se recomienda en el onboarding)</label></div>
     <button class="btn-primary btn-block" id="btnSavePath">Guardar</button>`)
 
   document.getElementById('btnSavePath').addEventListener('click', async () => {
     const payload = {
-      name: document.getElementById('pName').value.trim(),
+      title: document.getElementById('pTitle').value.trim(),
       slug: document.getElementById('pSlug').value.trim(),
       description: document.getElementById('pDescription').value.trim(),
       emoji: document.getElementById('pEmoji').value.trim(),
-      order_pos: Number(document.getElementById('pOrder').value) || 0,
+      is_featured: document.getElementById('pFeatured').checked,
     }
     if (p.id) payload.id = p.id
     await supabase.from('learning_paths').upsert(payload)
@@ -523,22 +696,30 @@ function openPathModal(path) {
 document.getElementById('btnNewPath').addEventListener('click', () => openPathModal(null))
 
 // ── Achievements ──
+const CONDITION_LABELS = {
+  completed_guides_count: 'Cursos completados',
+  total_xp: 'XP total',
+  quiz_correct_count: 'Preguntas acertadas',
+}
+
 async function loadAchievements() {
-  const { data } = await supabase.from('achievements').select('*').order('order_pos')
+  const { data } = await supabase.from('achievement_definitions').select('*').order('xp_reward')
   const achievements = data || []
 
   document.getElementById('achievementsTable').innerHTML = `
     <table class="admin-table">
-      <thead><tr><th>Icono</th><th>Nombre</th><th>Condición</th><th>XP</th><th></th></tr></thead>
+      <thead><tr><th>Icono</th><th>Título</th><th>Rareza</th><th>Condición</th><th>XP</th><th>Activo</th><th></th></tr></thead>
       <tbody>
         ${achievements
           .map(
             (a) => `
           <tr>
-            <td>${a.icon || '🏆'}</td>
-            <td>${escapeHtml(a.name)}</td>
-            <td>${a.condition_type === 'total_xp' ? `XP ≥ ${a.condition_value}` : `Cursos completados ≥ ${a.condition_value}`}</td>
+            <td>${a.emoji || '🏆'}</td>
+            <td>${escapeHtml(a.title)}</td>
+            <td>${escapeHtml(a.rarity || 'bronze')}</td>
+            <td>${CONDITION_LABELS[a.condition?.type] || a.condition?.type || '—'} ≥ ${a.condition?.count ?? '—'}</td>
             <td>${a.xp_reward || 0}</td>
+            <td>${a.is_active ? '✓' : ''}</td>
             <td class="admin-row-actions">
               <button data-edit="${a.id}">Editar</button>
               <button class="danger" data-delete="${a.id}">Eliminar</button>
@@ -555,7 +736,7 @@ async function loadAchievements() {
   document.querySelectorAll('#achievementsTable [data-delete]').forEach((btn) =>
     btn.addEventListener('click', async () => {
       if (!confirm('¿Eliminar este logro?')) return
-      await supabase.from('achievements').delete().eq('id', btn.dataset.delete)
+      await supabase.from('achievement_definitions').delete().eq('id', btn.dataset.delete)
       invalidateAchievementsCache()
       loadAchievements()
     })
@@ -564,45 +745,65 @@ async function loadAchievements() {
 
 function openAchievementModal(achievement) {
   const a = achievement || {
-    key: '',
-    name: '',
+    id: '',
+    title: '',
     description: '',
-    icon: '🏆',
-    xp_reward: 0,
-    condition_type: 'completed_count',
-    condition_value: 1,
-    order_pos: 0,
+    emoji: '🏆',
+    icon_url: '',
+    cover_image: '',
+    rarity: 'bronze',
+    xp_reward: 50,
+    is_active: true,
+    condition: { type: 'completed_guides_count', count: 1 },
   }
   openModal(`
     <h3>${achievement ? 'Editar' : 'Nuevo'} logro</h3>
-    <div class="form-group"><label>Clave única</label><input id="aKey" value="${escapeHtml(a.key)}" placeholder="first_course" /></div>
-    <div class="form-group"><label>Nombre</label><input id="aName" value="${escapeHtml(a.name)}" /></div>
+    <div class="form-group"><label>Clave única (id)</label><input id="aId" value="${escapeHtml(a.id)}" placeholder="first_course" ${achievement ? 'disabled' : ''} /></div>
+    <div class="form-group"><label>Título</label><input id="aTitle" value="${escapeHtml(a.title)}" /></div>
     <div class="form-group"><label>Descripción</label><textarea id="aDescription">${escapeHtml(a.description || '')}</textarea></div>
-    <div class="form-group"><label>Icono (emoji)</label><input id="aIcon" value="${escapeHtml(a.icon || '')}" /></div>
-    <div class="form-group"><label>Tipo de condición</label>
-      <select id="aConditionType">
-        <option value="completed_count" ${a.condition_type === 'completed_count' ? 'selected' : ''}>Cursos completados</option>
-        <option value="total_xp" ${a.condition_type === 'total_xp' ? 'selected' : ''}>XP total</option>
+    <div class="form-group"><label>Emoji</label><input id="aEmoji" value="${escapeHtml(a.emoji || '')}" /></div>
+    <div class="form-group"><label>Icono (URL, opcional)</label><input id="aIconUrl" value="${escapeHtml(a.icon_url || '')}" /></div>
+    <div class="form-group"><label>Imagen de portada (URL, opcional)</label><input id="aCoverImage" value="${escapeHtml(a.cover_image || '')}" /></div>
+    <div class="form-group"><label>Rareza</label>
+      <select id="aRarity">
+        ${['bronze', 'silver', 'gold', 'platinum'].map((r) => `<option value="${r}" ${a.rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
       </select>
     </div>
-    <div class="form-group"><label>Valor de la condición</label><input id="aConditionValue" type="number" value="${a.condition_value ?? 1}" /></div>
-    <div class="form-group"><label>XP de recompensa</label><input id="aXpReward" type="number" value="${a.xp_reward ?? 0}" /></div>
-    <div class="form-group"><label>Orden</label><input id="aOrder" type="number" value="${a.order_pos ?? 0}" /></div>
+    <div class="form-group"><label>Tipo de condición</label>
+      <select id="aConditionType">
+        <option value="completed_guides_count" ${a.condition?.type === 'completed_guides_count' ? 'selected' : ''}>Cursos completados</option>
+        <option value="total_xp" ${a.condition?.type === 'total_xp' ? 'selected' : ''}>XP total</option>
+        <option value="quiz_correct_count" ${a.condition?.type === 'quiz_correct_count' ? 'selected' : ''}>Preguntas acertadas</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Valor de la condición</label><input id="aConditionCount" type="number" value="${a.condition?.count ?? 1}" /></div>
+    <div class="form-group"><label>XP de recompensa</label><input id="aXpReward" type="number" value="${a.xp_reward ?? 50}" /></div>
+    <div class="form-group"><label><input type="checkbox" id="aIsActive" ${a.is_active ? 'checked' : ''} /> Activo</label></div>
     <button class="btn-primary btn-block" id="btnSaveAchievement">Guardar</button>`)
 
   document.getElementById('btnSaveAchievement').addEventListener('click', async () => {
     const payload = {
-      key: document.getElementById('aKey').value.trim(),
-      name: document.getElementById('aName').value.trim(),
+      title: document.getElementById('aTitle').value.trim(),
       description: document.getElementById('aDescription').value.trim(),
-      icon: document.getElementById('aIcon').value.trim(),
-      condition_type: document.getElementById('aConditionType').value,
-      condition_value: Number(document.getElementById('aConditionValue').value) || 0,
+      emoji: document.getElementById('aEmoji').value.trim(),
+      icon_url: document.getElementById('aIconUrl').value.trim() || null,
+      cover_image: document.getElementById('aCoverImage').value.trim() || null,
+      rarity: document.getElementById('aRarity').value,
+      condition: {
+        type: document.getElementById('aConditionType').value,
+        count: Number(document.getElementById('aConditionCount').value) || 0,
+      },
       xp_reward: Number(document.getElementById('aXpReward').value) || 0,
-      order_pos: Number(document.getElementById('aOrder').value) || 0,
+      is_active: document.getElementById('aIsActive').checked,
     }
-    if (a.id) payload.id = a.id
-    await supabase.from('achievements').upsert(payload)
+    if (achievement) {
+      payload.id = a.id
+    } else {
+      const newId = document.getElementById('aId').value.trim()
+      if (!newId) return
+      payload.id = newId
+    }
+    await supabase.from('achievement_definitions').upsert(payload)
     invalidateAchievementsCache()
     closeModal()
     loadAchievements()
@@ -615,24 +816,26 @@ document.getElementById('btnNewAchievement').addEventListener('click', () => ope
 async function loadUsers() {
   const { data } = await supabase
     .from('user_profiles')
-    .select('id, username, total_xp, level, is_admin')
+    .select('id, username, display_name, total_xp, level, is_admin, is_pro')
     .order('total_xp', { ascending: false })
   const users = data || []
 
   document.getElementById('usersTable').innerHTML = `
     <table class="admin-table">
-      <thead><tr><th>Nombre</th><th>Nivel</th><th>XP</th><th>Admin</th><th></th></tr></thead>
+      <thead><tr><th>Nombre</th><th>Nivel</th><th>XP</th><th>Admin</th><th>Pro</th><th></th></tr></thead>
       <tbody>
         ${users
           .map(
             (u) => `
           <tr>
-            <td>${escapeHtml(u.username || u.id)}</td>
+            <td>${escapeHtml(u.display_name || u.username || u.id)}</td>
             <td>${escapeHtml(u.level || 'Novato')}</td>
             <td>${u.total_xp || 0}</td>
             <td>${u.is_admin ? '✓' : ''}</td>
+            <td>${u.is_pro ? '✓' : ''}</td>
             <td class="admin-row-actions">
               <button data-toggle-admin="${u.id}" data-current="${u.is_admin ? '1' : '0'}">${u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
+              <button data-toggle-pro="${u.id}" data-current="${u.is_pro ? '1' : '0'}">${u.is_pro ? 'Quitar Pro' : 'Hacer Pro'}</button>
             </td>
           </tr>`
           )
@@ -647,6 +850,13 @@ async function loadUsers() {
       loadUsers()
     })
   )
+  document.querySelectorAll('[data-toggle-pro]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const makePro = btn.dataset.current !== '1'
+      await supabase.from('user_profiles').update({ is_pro: makePro }).eq('id', btn.dataset.togglePro)
+      loadUsers()
+    })
+  )
 }
 
 // ── Notifications ──
@@ -655,28 +865,47 @@ async function loadNotifications() {
   const notifications = data || []
 
   document.getElementById('notificationsTable').innerHTML = `
+    <p style="font-size: 12px; color: var(--text-mid); margin-bottom: 12px;">
+      Esto solo registra la notificación en la base de datos — no hay servicio de envío de push
+      conectado (necesitaría un backend con Expo/FCM/APNs), así que "Marcar como enviada" no llega
+      realmente a los dispositivos de los usuarios.
+    </p>
     <table class="admin-table">
-      <thead><tr><th>Título</th><th>Mensaje</th><th>Enviada</th></tr></thead>
+      <thead><tr><th>Título</th><th>Mensaje</th><th>Estado</th><th>Creada</th><th></th></tr></thead>
       <tbody>
         ${notifications
           .map(
             (n) => `
           <tr>
             <td>${escapeHtml(n.title)}</td>
-            <td>${escapeHtml(n.message)}</td>
+            <td>${escapeHtml(n.body)}</td>
+            <td>${escapeHtml(n.status || 'draft')}</td>
             <td>${new Date(n.created_at).toLocaleString('es-ES')}</td>
+            <td class="admin-row-actions">
+              ${n.status !== 'sent' ? `<button data-mark-sent="${n.id}">Marcar como enviada</button>` : ''}
+            </td>
           </tr>`
           )
           .join('')}
       </tbody>
     </table>`
+
+  document.querySelectorAll('[data-mark-sent]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      await supabase
+        .from('notifications')
+        .update({ status: 'sent', sent_at: new Date().toISOString() })
+        .eq('id', btn.dataset.markSent)
+      loadNotifications()
+    })
+  )
 }
 
 document.getElementById('btnSendNotification').addEventListener('click', async () => {
   const title = document.getElementById('notifTitle').value.trim()
-  const message = document.getElementById('notifMessage').value.trim()
-  if (!title || !message) return
-  await supabase.from('notifications').insert({ title, message, target: 'all' })
+  const body = document.getElementById('notifMessage').value.trim()
+  if (!title || !body) return
+  await supabase.from('notifications').insert({ title, body, target: 'all', status: 'draft' })
   document.getElementById('notifTitle').value = ''
   document.getElementById('notifMessage').value = ''
   loadNotifications()
@@ -732,15 +961,8 @@ async function init() {
 
   initSidebar()
   await loadCategories()
-  await Promise.all([
-    loadDashboard(),
-    loadGuides(),
-    loadPaths(),
-    loadAchievements(),
-    loadUsers(),
-    loadNotifications(),
-    loadImages(),
-  ])
+  await Promise.all([loadCollections(), loadPaths()])
+  await Promise.all([loadDashboard(), loadGuides(), loadAchievements(), loadUsers(), loadNotifications(), loadImages()])
 }
 
 init()

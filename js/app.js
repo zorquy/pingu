@@ -42,7 +42,7 @@ export async function signOut() {
   window.location.href = 'index.html'
 }
 
-function renderNavUser(session) {
+async function renderNavUser(session) {
   const el = document.getElementById('nav-user')
   if (!el) return
 
@@ -51,8 +51,10 @@ function renderNavUser(session) {
     return
   }
 
-  const name = session.user.user_metadata?.username || session.user.email
-  el.innerHTML = `<a href="perfil.html" class="nav-user-avatar" title="${escapeHtml(name)}">${getInitial(name)}</a>`
+  const profile = await getProfile(session.user.id)
+  const name = profile?.display_name || profile?.username || session.user.email
+  const color = profile?.avatar_color || 'var(--navy)'
+  el.innerHTML = `<a href="perfil.html" class="nav-user-avatar" style="background:${color}" title="${escapeHtml(name)}">${getInitial(name)}</a>`
 }
 
 function initScrollShadow() {

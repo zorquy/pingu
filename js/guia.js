@@ -1,8 +1,11 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession } from './app.js'
+import { escapeHtml, getSession, getProfile } from './app.js'
+import { rarityColor } from './gamification.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
+
+const LEVEL_LABELS = { beginner: 'Básico', intermediate: 'Intermedio', advanced: 'Avanzado' }
 
 function renderReferenceBlock(block, headings) {
   switch (block.type) {
@@ -25,20 +28,12 @@ function renderReferenceBlock(block, headings) {
 }
 
 async function toggleSave(session, guideId, btn) {
-  const { data: existing } = await supabase
-    .from('saved_guides')
-    .select('id')
-    .eq('user_id', session.user.id)
-    .eq('guide_id', guideId)
-    .maybeSingle()
-
-  if (existing) {
-    await supabase.from('saved_guides').delete().eq('id', existing.id)
-    btn.textContent = '☆ Guardar'
-  } else {
-    await supabase.from('saved_guides').insert({ user_id: session.user.id, guide_id: guideId })
-    btn.textContent = '★ Guardado'
-  }
+  const profile = await getProfile(session.user.id)
+  const saved = profile?.saved_guides || []
+  const isSaved = saved.includes(guideId)
+  const next = isSaved ? saved.filter((id) => id !== guideId) : [...saved, guideId]
+  await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
+  btn.textContent = isSaved ? '☆ Guardar' : '★ Guardado'
 }
 
 async function init() {
@@ -60,11 +55,28 @@ async function init() {
   }
 
   document.title = `${guide.title} — PokeDoc`
+  supabase.from('guides').update({ view_count: (guide.view_count || 0) + 1 }).eq('id', guide.id)
+
+  const session = await getSession()
+  const profile = session ? await getProfile(session.user.id) : null
+
+  const isUnlocked =
+    guide.reference_unlocked_by_default || (profile?.unlocked_references || []).includes(guide.id)
+  const hasContent = Array.isArray(guide.reference_blocks) && guide.reference_blocks.length > 0
 
   const headings = []
-  const bodyHtml = Array.isArray(guide.reference_blocks) && guide.reference_blocks.length > 0
-    ? guide.reference_blocks.map((b) => renderReferenceBlock(b, headings)).join('')
-    : `<p>${escapeHtml(guide.description || 'Esta guía todavía no tiene contenido de referencia.')}</p>`
+  let bodyHtml
+  if (!hasContent) {
+    bodyHtml = `<p>${escapeHtml(guide.description || 'Esta guía todavía no tiene contenido de referencia.')}</p>`
+  } else if (!isUnlocked) {
+    bodyHtml = `
+      <div class="empty-state" style="border: 1px dashed var(--border); border-radius: var(--radius-lg); padding: 32px;">
+        <span style="font-size: 32px;">🔒</span>
+        <p style="margin-top: 8px;">Completa el curso de esta guía para desbloquear el artículo de referencia.</p>
+      </div>`
+  } else {
+    bodyHtml = guide.reference_blocks.map((b) => renderReferenceBlock(b, headings)).join('')
+  }
 
   main.innerHTML = `
     <div class="breadcrumb">
@@ -73,14 +85,15 @@ async function init() {
       <span>›</span> <span>${escapeHtml(guide.title)}</span>
     </div>
     <div class="article-header">
-      <span class="emoji-big">${guide.emoji || '📘'}</span>
+      <span class="emoji-big">${guide.cover_emoji || '📘'}</span>
       <span class="guide-label">${escapeHtml(guide.categories?.name || '')}</span>
       <h1>${escapeHtml(guide.title)}</h1>
       <p class="lead">${escapeHtml(guide.description || '')}</p>
       <div class="article-meta">
         <span class="time-tag">${guide.estimated_mins || 5} min</span>
-        <span class="time-tag">${escapeHtml(guide.level || 'Básico')}</span>
-        <span class="badge ${guide.badge === 'Pro' ? 'badge-pro' : 'badge-free'}">${guide.badge || 'Gratis'}</span>
+        <span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
+        <span class="time-tag" style="color:${rarityColor(guide.guide_rarity)}">● ${escapeHtml(guide.guide_rarity || 'bronze')}</span>
+        <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
         <button class="btn-secondary" id="btnSave" style="margin-left: auto; padding: 6px 12px; font-size: 13px;">☆ Guardar</button>
       </div>
     </div>
@@ -90,24 +103,17 @@ async function init() {
       <a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-primary">Hacer el curso →</a>
     </div>`
 
-  if (headings.length > 0) {
+  if (headings.length > 0 && isUnlocked) {
     document.getElementById('articleSidebar').innerHTML = `
       <h4>En esta guía</h4>
       ${headings.map((h) => `<a href="#${h.id}">${escapeHtml(h.text)}</a>`).join('')}`
   }
 
-  const session = await getSession()
   const btnSave = document.getElementById('btnSave')
   if (!session) {
     btnSave.addEventListener('click', () => (window.location.href = 'auth.html'))
   } else {
-    const { data: existing } = await supabase
-      .from('saved_guides')
-      .select('id')
-      .eq('user_id', session.user.id)
-      .eq('guide_id', guide.id)
-      .maybeSingle()
-    if (existing) btnSave.textContent = '★ Guardado'
+    if ((profile?.saved_guides || []).includes(guide.id)) btnSave.textContent = '★ Guardado'
     btnSave.addEventListener('click', () => toggleSave(session, guide.id, btnSave))
   }
 }
