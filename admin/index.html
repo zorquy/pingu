@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — PokeDoc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/admin/css/admin.css" />
+</head>
+<body>
+  <div id="adminGate" class="admin-gate">
+    <p>Comprobando acceso…</p>
+  </div>
+
+  <div class="admin-layout hidden" id="adminLayout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Poke<span>Doc</span> <span class="admin-tag">Admin</span></div>
+      <nav class="admin-nav">
+        <button class="admin-nav-item active" data-section="dashboard">📊 Dashboard</button>
+        <button class="admin-nav-item" data-section="guides">📘 Guías</button>
+        <button class="admin-nav-item" data-section="categories">🗂️ Categorías</button>
+        <button class="admin-nav-item" data-section="paths">🧭 Rutas</button>
+        <button class="admin-nav-item" data-section="achievements">🏆 Logros</button>
+        <button class="admin-nav-item" data-section="users">👥 Usuarios</button>
+        <button class="admin-nav-item" data-section="notifications">🔔 Notificaciones</button>
+        <button class="admin-nav-item" data-section="images">🖼️ Imágenes</button>
+      </nav>
+      <a href="/index.html" class="admin-back">← Volver a PokeDoc</a>
+    </aside>
+
+    <main class="admin-main">
+      <section class="admin-section active" id="section-dashboard">
+        <h1>Dashboard</h1>
+        <div class="admin-stats-grid" id="dashboardStats"></div>
+      </section>
+
+      <section class="admin-section" id="section-guides">
+        <div class="admin-section-header">
+          <h1>Guías</h1>
+          <button class="btn-primary" id="btnNewGuide">+ Nueva guía</button>
+        </div>
+        <div id="guidesTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-categories">
+        <div class="admin-section-header">
+          <h1>Categorías</h1>
+          <button class="btn-primary" id="btnNewCategory">+ Nueva categoría</button>
+        </div>
+        <div id="categoriesTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-paths">
+        <div class="admin-section-header">
+          <h1>Rutas</h1>
+          <button class="btn-primary" id="btnNewPath">+ Nueva ruta</button>
+        </div>
+        <div id="pathsTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-achievements">
+        <div class="admin-section-header">
+          <h1>Logros</h1>
+          <button class="btn-primary" id="btnNewAchievement">+ Nuevo logro</button>
+        </div>
+        <div id="achievementsTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-users">
+        <h1>Usuarios</h1>
+        <div id="usersTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-notifications">
+        <h1>Notificaciones</h1>
+        <div class="admin-card" style="margin-bottom: 20px;">
+          <div class="form-group">
+            <label>Título</label>
+            <input type="text" id="notifTitle" />
+          </div>
+          <div class="form-group">
+            <label>Mensaje</label>
+            <textarea id="notifMessage"></textarea>
+          </div>
+          <button class="btn-primary" id="btnSendNotification">Enviar a todos los usuarios</button>
+        </div>
+        <div id="notificationsTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-images">
+        <h1>Imágenes</h1>
+        <div class="admin-card" style="margin-bottom: 20px;">
+          <input type="file" id="imageUploadInput" accept="image/*" />
+          <p style="font-size: 12px; color: var(--text-mid); margin-top: 8px;">Se suben al bucket "images" de Supabase Storage.</p>
+        </div>
+        <div class="admin-image-grid" id="imagesGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-overlay hidden" id="adminModal">
+    <div class="modal-box admin-modal-box">
+      <span class="modal-close" id="adminModalClose">×</span>
+      <div id="adminModalContent"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/admin/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bienvenido — PokeDoc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <style>
+    .onb-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .onb-box { width: 100%; max-width: 420px; }
+    .onb-step { display: none; flex-direction: column; gap: 18px; text-align: center; }
+    .onb-step.active { display: flex; }
+    .onb-welcome { background: var(--navy); color: var(--white); border-radius: var(--radius-xl); padding: 56px 28px; align-items: center; }
+    .onb-welcome .logo { font-weight: 800; font-size: 22px; }
+    .onb-welcome h1 { font-size: 26px; font-weight: 800; }
+    .onb-welcome p { color: var(--ice); font-size: 14px; }
+    .onb-welcome .btn-primary { background: var(--white); color: var(--navy); }
+    .onb-welcome .btn-primary:hover { background: var(--ice); }
+    .onb-options { display: flex; flex-direction: column; gap: 10px; }
+    .onb-option-card { border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 16px; text-align: left; font-weight: 700; background: var(--white); }
+    .onb-option-card.selected { border-color: var(--navy); background: var(--ice); color: var(--navy); }
+    .onb-interests-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .onb-interest-card { border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 14px; font-weight: 700; font-size: 13px; background: var(--white); }
+    .onb-interest-card.selected { border-color: var(--navy); background: var(--ice); color: var(--navy); }
+    .onb-path-card { background: var(--navy); color: var(--white); border-radius: var(--radius-xl); padding: 28px; text-align: center; }
+    .onb-path-card h3 { font-size: 20px; font-weight: 800; margin: 8px 0; }
+    .onb-path-card p { color: var(--ice); font-size: 14px; margin-bottom: 16px; }
+    .onb-path-card .btn-primary { background: var(--white); color: var(--navy); width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="onb-page">
+    <div class="onb-box">
+      <div class="onb-step onb-welcome active" id="onbStep1">
+        <div class="logo">Poke<span style="opacity:.85">Doc</span></div>
+        <h1>¡Bienvenido a PokeDoc!</h1>
+        <p>Vamos a personalizar tu experiencia en menos de un minuto.</p>
+        <button class="btn-primary btn-block" id="btnStep1Next">Empezar →</button>
+      </div>
+
+      <div class="onb-step" id="onbStep2">
+        <h2>¿Cómo te llamamos?</h2>
+        <input type="text" id="onbNameInput" class="auth-input" placeholder="Tu nombre" />
+        <button class="btn-primary btn-block" id="btnStep2Next" disabled>Siguiente →</button>
+      </div>
+
+      <div class="onb-step" id="onbStep3">
+        <h2>¿Cuál es tu nivel?</h2>
+        <div class="onb-options" id="onbLevelOptions">
+          <button class="onb-option-card" data-value="nuevo">🌱 Soy nuevo en esto</button>
+          <button class="onb-option-card" data-value="intermedio">📈 Nivel intermedio</button>
+          <button class="onb-option-card" data-value="experimentado">🏆 Ya soy experimentado</button>
+        </div>
+        <button class="btn-primary btn-block" id="btnStep3Next" disabled>Siguiente →</button>
+      </div>
+
+      <div class="onb-step" id="onbStep4">
+        <h2>¿Qué te interesa más?</h2>
+        <p class="subtext" style="margin-top:-10px;">Elige una o varias categorías.</p>
+        <div class="onb-interests-grid" id="onbInterestsGrid"></div>
+        <button class="btn-primary btn-block" id="btnStep4Next" disabled>Siguiente →</button>
+      </div>
+
+      <div class="onb-step" id="onbStep5">
+        <h2>Tu ruta recomendada</h2>
+        <div class="onb-path-card" id="onbRecommendedPath"></div>
+        <button class="btn-primary btn-block" id="btnFinish">¡Empezar!</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/onboarding.js"></script>
+</body>
+</html>

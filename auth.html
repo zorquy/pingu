@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entrar — PokeDoc</title>
+  <meta name="description" content="Inicia sesión o crea tu cuenta en PokeDoc." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-box">
+      <div class="auth-logo">Poke<span>Doc</span></div>
+
+      <div id="stepEmail">
+        <h2>¿Cuál es tu email?</h2>
+        <p class="subtext">Te enviaremos un código para entrar, sin contraseñas.</p>
+        <div class="form-group" style="margin-top: 16px;">
+          <input type="email" id="emailInput" class="auth-input" placeholder="tu@email.com" autocomplete="email" autofocus />
+        </div>
+        <p class="auth-error"></p>
+        <button id="btnSendCode" class="btn-primary btn-block" disabled>Enviar código</button>
+      </div>
+
+      <div id="stepOtp" class="hidden">
+        <h2>Revisa tu email</h2>
+        <p class="subtext">Escribe el código de 6 dígitos que enviamos a <strong id="otpEmailLabel"></strong></p>
+        <div class="otp-boxes" style="margin: 16px 0;">
+          <input class="otp-box" maxlength="1" inputmode="numeric" />
+          <input class="otp-box" maxlength="1" inputmode="numeric" />
+          <input class="otp-box" maxlength="1" inputmode="numeric" />
+          <input class="otp-box" maxlength="1" inputmode="numeric" />
+          <input class="otp-box" maxlength="1" inputmode="numeric" />
+          <input class="otp-box" maxlength="1" inputmode="numeric" />
+        </div>
+        <p class="auth-error"></p>
+        <p class="auth-resend">¿No te llegó? <button id="btnResend">Reenviar código</button></p>
+      </div>
+
+      <div id="stepName" class="hidden">
+        <h2>¿Cómo te llamamos?</h2>
+        <p class="subtext">Así aparecerás en tu perfil y en tus logros.</p>
+        <div class="form-group" style="margin-top: 16px;">
+          <input type="text" id="nameInput" class="auth-input" placeholder="Tu nombre" autofocus />
+        </div>
+        <button id="btnSaveName" class="btn-primary btn-block" disabled>Empezar →</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buscar — PokeDoc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="index.html">Inicio</a>
+        <a href="aprender.html">Aprender</a>
+        <a href="buscar.html">Buscar</a>
+        <a href="guardados.html">Guardados</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="index.html">Inicio</a>
+      <a href="aprender.html">Aprender</a>
+      <a href="buscar.html">Buscar</a>
+      <a href="guardados.html">Guardados</a>
+    </div>
+  </nav>
+
+  <main class="page-content container">
+    <div class="page-header" style="padding-top: 8px;">
+      <h1>Buscar</h1>
+    </div>
+
+    <div class="search-input-wrap">
+      <input type="text" id="searchInput" class="search-input" placeholder="Cartas falsas, PSA, rarezas…" autofocus />
+    </div>
+
+    <div class="search-filters" id="categoryFilters"></div>
+
+    <div id="searchEmptyState">
+      <div class="search-chips" id="searchChips"></div>
+    </div>
+
+    <div id="searchResults"></div>
+  </main>
+
+  <footer class="footer">© 2026 PokeDoc — Hecho para coleccionistas.</footer>
+
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/search.js"></script>
+</body>
+</html>

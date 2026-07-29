@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Curso — PokeDoc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/curso.css" />
+</head>
+<body>
+  <div class="curso-layout">
+    <div class="curso-progress-bar">
+      <div class="curso-progress-fill" id="progressFill"></div>
+    </div>
+    <button class="btn-back" id="btnBack">← Atrás</button>
+
+    <div class="curso-stage" id="cursoStage">
+      <p class="empty-state">Cargando curso…</p>
+    </div>
+
+    <div class="curso-footer">
+      <button class="btn-continue" id="btnContinue">Continuar →</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/curso.js"></script>
+</body>
+</html>

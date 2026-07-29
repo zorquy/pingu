@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aprender — PokeDoc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="index.html">Inicio</a>
+        <a href="aprender.html">Aprender</a>
+        <a href="buscar.html">Buscar</a>
+        <a href="guardados.html">Guardados</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="index.html">Inicio</a>
+      <a href="aprender.html">Aprender</a>
+      <a href="buscar.html">Buscar</a>
+      <a href="guardados.html">Guardados</a>
+    </div>
+  </nav>
+
+  <main class="page-content container">
+    <div class="page-header">
+      <h1>Aprender</h1>
+      <p>Explora por categoría o sigue una ruta guiada de principio a fin.</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="categorias">Categorías</button>
+      <button class="tab-btn" data-tab="rutas">Rutas</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-categorias">
+      <div class="path-list" id="categoriesList">
+        <div class="skeleton" style="height: 110px;"></div>
+        <div class="skeleton" style="height: 110px;"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-rutas">
+      <div class="path-list" id="pathsList">
+        <div class="skeleton" style="height: 130px;"></div>
+        <div class="skeleton" style="height: 130px;"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">© 2026 PokeDoc — Hecho para coleccionistas.</footer>
+
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/aprender.js"></script>
+</body>
+</html>
