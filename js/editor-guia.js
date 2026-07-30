@@ -7,6 +7,7 @@ import {
   COURSE_BLOCK_DEFAULTS,
 } from './block-editor.js'
 import { initRichTextEditor, richTextToolbarHtml } from './richtext-editor.js'
+import { showToast } from './toast.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -105,15 +106,15 @@ function buildPayload(reviewStatus) {
 async function save(reviewStatus) {
   const title = document.getElementById('mgTitle').value.trim()
   if (!title) {
-    alert('Ponle un título a tu guía antes de guardar.')
+    showToast('Ponle un título a tu guía antes de guardar.')
     return
   }
   if (reviewStatus === 'pending' && refBlocks.length === 0) {
-    alert('Añade contenido en Documentación antes de enviar la guía a revisión.')
+    showToast('Añade contenido en Documentación antes de enviar la guía a revisión.')
     return
   }
   if (reviewStatus === 'pending' && courseBlocks.length === 0) {
-    alert('Añade al menos un bloque al curso interactivo antes de enviarlo a revisión.')
+    showToast('Añade al menos un bloque al curso interactivo antes de enviarlo a revisión.')
     return
   }
 
@@ -122,7 +123,7 @@ async function save(reviewStatus) {
 
   const { error } = await supabase.from('guides').upsert(payload)
   if (error) {
-    alert('No se pudo guardar la guía: ' + error.message)
+    showToast('No se pudo guardar la guía: ' + error.message)
     return
   }
   window.location.href = 'perfil.html'

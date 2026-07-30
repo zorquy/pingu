@@ -7,6 +7,7 @@ import {
   renderReferenceBlocksHtml,
 } from '../../js/block-editor.js'
 import { initRichTextEditor, richTextToolbarHtml } from '../../js/richtext-editor.js'
+import { showToast } from '../../js/toast.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -242,7 +243,7 @@ async function persistGuide(extraFields = {}) {
 
   const { data: saved, error } = await supabase.from('guides').upsert(payload).select('id').single()
   if (error) {
-    alert('No se pudo guardar la guía: ' + error.message)
+    showToast('No se pudo guardar la guía: ' + error.message)
     return
   }
   const id = saved?.id || existingGuide?.id
@@ -279,7 +280,7 @@ async function init() {
       coverImageUrl = await uploadGuideImage(currentSession.user.id, file)
       updateCoverImagePreview()
     } catch (err) {
-      alert('No se pudo subir la imagen: ' + err.message)
+      showToast('No se pudo subir la imagen: ' + err.message)
     }
   })
   document.getElementById('btnRemoveCoverImage').addEventListener('click', () => {
@@ -306,7 +307,7 @@ async function init() {
     const referenceText = flattenReferenceBlocksToText(refBlocks)
 
     if (!title || !referenceText) {
-      alert('Rellena el título y la Documentación antes de generar el curso con IA.')
+      showToast('Rellena el título y la Documentación antes de generar el curso con IA.')
       return
     }
     if (courseBlocks.length > 0 && !confirm(`Esto reemplazará los ${courseBlocks.length} bloques actuales del curso por los generados. ¿Continuar?`)) {
@@ -327,7 +328,7 @@ async function init() {
       courseBlocks.splice(0, courseBlocks.length, ...result.blocks)
       renderCourse()
     } catch (err) {
-      alert('No se pudo generar el curso con IA:\n' + err.message)
+      showToast('No se pudo generar el curso con IA: ' + err.message)
     } finally {
       btn.disabled = false
       btn.textContent = originalLabel

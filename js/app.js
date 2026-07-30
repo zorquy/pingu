@@ -137,7 +137,19 @@ export async function getProfile(userId) {
   return data
 }
 
+const MAX_IMAGE_MB = 5
+
+export function validateImageFile(file, maxMB = MAX_IMAGE_MB) {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Ese archivo no es una imagen.')
+  }
+  if (file.size > maxMB * 1024 * 1024) {
+    throw new Error(`La imagen pesa demasiado (máximo ${maxMB} MB).`)
+  }
+}
+
 export async function uploadProfileImage(userId, file, kind) {
+  validateImageFile(file)
   const ext = (file.name.split('.').pop() || 'png').toLowerCase()
   const path = `${userId}/${kind}-${Date.now()}.${ext}`
   const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
@@ -147,6 +159,7 @@ export async function uploadProfileImage(userId, file, kind) {
 }
 
 export async function uploadGuideImage(userId, file) {
+  validateImageFile(file)
   const ext = (file.name.split('.').pop() || 'png').toLowerCase()
   const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
   const { error } = await supabase.storage.from('guide-images').upload(path, file)

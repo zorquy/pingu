@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, profileUrl, profileParamsFromLocation } from './app.js'
 import { levelProgress, contributorTier, getAllAchievements } from './gamification.js'
 import { renderWall } from './wall.js'
+import { showToast } from './toast.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
@@ -314,7 +315,7 @@ async function loadReviews() {
 
   document.getElementById('btnSubmitReview').addEventListener('click', async () => {
     if (!selectedRating) {
-      alert('Elige una valoración de 1 a 5 estrellas.')
+      showToast('Elige una valoración de 1 a 5 estrellas.')
       return
     }
     const body = document.getElementById('reviewBody').value.trim()

@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl } from './app.js'
 import { getAllAchievements, levelProgress } from './gamification.js'
 import { renderWall } from './wall.js'
+import { showToast } from './toast.js'
 
 let currentSession = null
 let currentProfile = null
@@ -223,7 +224,7 @@ document.getElementById('bannerFileInput')?.addEventListener('change', async (e)
     currentProfile = { ...currentProfile, banner_url: url }
     applyHeroVisuals(currentProfile, displayName(currentProfile, currentSession.user.email))
   } catch (err) {
-    alert('No se pudo subir la imagen: ' + err.message)
+    showToast('No se pudo subir la imagen: ' + err.message)
   }
 })
 
@@ -237,7 +238,7 @@ document.getElementById('avatarFileInput')?.addEventListener('change', async (e)
     currentProfile = { ...currentProfile, avatar_url: url }
     applyHeroVisuals(currentProfile, displayName(currentProfile, currentSession.user.email))
   } catch (err) {
-    alert('No se pudo subir la imagen: ' + err.message)
+    showToast('No se pudo subir la imagen: ' + err.message)
   }
 })
 

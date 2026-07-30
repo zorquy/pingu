@@ -1,4 +1,5 @@
 import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify/+esm'
+import { showToast } from './toast.js'
 
 const ALLOWED_TAGS = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'blockquote']
 const ALLOWED_ATTR = ['href', 'src', 'alt', 'target', 'rel']
@@ -65,7 +66,7 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
       document.execCommand('insertImage', false, url)
       emit()
     } catch (err) {
-      alert('No se pudo subir la imagen: ' + err.message)
+      showToast('No se pudo subir la imagen: ' + err.message)
     }
   })
 

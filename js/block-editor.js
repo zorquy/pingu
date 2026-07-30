@@ -1,6 +1,7 @@
 import { escapeHtml } from './app.js'
 import { bbcodeToolbarHtml, wireBBCodeToolbars, parseBBCode } from './bbcode.js'
 import { sanitizeRichText } from './richtext-editor.js'
+import { showToast } from './toast.js'
 
 // Render de un bloque de referencia a HTML final — lo usan tanto guia.js
 // (la página real) como la vista previa en vivo del editor, para que las
@@ -249,7 +250,7 @@ export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
           blocks[i].image_url = url
           renderCourseBlockEditor(containerEl, blocks, uploadImage)
         } catch (err) {
-          alert('No se pudo subir la imagen: ' + err.message)
+          showToast('No se pudo subir la imagen: ' + err.message)
         }
       })
     })

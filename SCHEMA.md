@@ -265,6 +265,22 @@ convirtiendo a rutas absolutas (con `/` inicial) todo lo que usa
 `usuario.html`). El resto de páginas del sitio no se sirven vía
 reescritura, así que no les afectaba este problema.
 
+**Toasts en vez de `alert()`**: `js/toast.js` (`showToast(mensaje, tipo)`)
+sustituye a los `alert()` puramente informativos (errores de guardado, de
+subida de imagen, validaciones de formulario) en ambos editores de guía,
+`perfil.js`, `usuario.js`, `block-editor.js`, `richtext-editor.js` y
+`admin.js`. Los diálogos que necesitan una respuesta síncrona del usuario
+(`window.confirm`, `window.prompt`, como al rechazar una guía o generar el
+curso con IA) se mantienen tal cual — un toast no sirve para eso.
+
+**Validación de imágenes al subir**: `validateImageFile(file, maxMB=5)`
+(en `js/app.js`) rechaza archivos que no sean `image/*` o que pesen más de
+5 MB, con un mensaje claro vía toast en vez de dejar que la subida falle
+en silencio o suba un archivo enorme. La usan `uploadProfileImage`,
+`uploadGuideImage` y la subida directa del panel "Imágenes" de
+`admin/js/admin.js` (bucket `images`, el único que no pasa por los
+helpers de `app.js`).
+
 ## Contenido colaborativo (`guides.author_id` / `review_status`)
 Cualquier usuario registrado puede crear guías desde "Mis guías" en su
 perfil. Columnas nuevas en `guides`: `author_id` (uuid, autor; `null` =

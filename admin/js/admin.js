@@ -1,6 +1,7 @@
 import { supabase } from '../../js/supabase.js'
-import { escapeHtml, getSession } from '../../js/app.js'
+import { escapeHtml, getSession, validateImageFile } from '../../js/app.js'
 import { invalidateAchievementsCache } from '../../js/gamification.js'
+import { showToast } from '../../js/toast.js'
 
 let categories = []
 let guidesCache = []
@@ -574,7 +575,7 @@ async function loadImages() {
   grid.querySelectorAll('.admin-image-tile').forEach((tile) =>
     tile.addEventListener('click', () => {
       navigator.clipboard?.writeText(tile.dataset.url)
-      alert(`URL copiada:\n${tile.dataset.url}`)
+      showToast(`URL copiada: ${tile.dataset.url}`, 'success')
     })
   )
 }
@@ -582,10 +583,17 @@ async function loadImages() {
 document.getElementById('imageUploadInput').addEventListener('change', async (e) => {
   const file = e.target.files[0]
   if (!file) return
+  try {
+    validateImageFile(file)
+  } catch (err) {
+    showToast(err.message)
+    e.target.value = ''
+    return
+  }
   const path = `${Date.now()}-${file.name}`
   const { error } = await supabase.storage.from('images').upload(path, file)
   if (error) {
-    alert('Error al subir la imagen: ' + error.message)
+    showToast('Error al subir la imagen: ' + error.message)
     return
   }
   e.target.value = ''
