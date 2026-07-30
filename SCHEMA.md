@@ -192,6 +192,19 @@ pública. **A propósito, el reseñado no puede borrar reseñas que no le
 gusten** — solo quien la escribió o un admin, para que la reputación
 tenga peso real.
 
+## `user_follows` (seguidores/seguidos)
+`follower_id` · `following_id` · `created_at`. Clave primaria compuesta
+`(follower_id, following_id)` — no se puede seguir dos veces a la misma
+persona, y un check constraint impide `follower_id = following_id`
+(seguirte a ti mismo). Lectura pública (para contar/listar seguidores de
+cualquiera); solo `follower_id = auth.uid()` puede crear o borrar sus
+propias filas (seguir/dejar de seguir). Migración:
+`supabase-migration-follows.sql`.
+
+Se usa en la pestaña "Acerca" de `perfil.html`/`usuario.html` (contadores +
+listas de avatares) y en el botón "Seguir/Dejar de seguir" de
+`usuario.html` (oculto si ves tu propio perfil).
+
 ## `user_progress`
 `id` · `user_id` · `guide_id` · `status` (`started`/`completed`) ·
 `xp_earned` · `started_at` · `completed_at` · `current_block` (posición
@@ -224,3 +237,6 @@ frontend asume:
   (`auth.uid() = id`); los admins pueden leer/actualizar cualquier fila.
 - `user_progress`: cada usuario solo ve/edita sus propias filas — sin
   excepción para admins (ver limitación arriba).
+- `user_follows`, `profile_comments`, `profile_reviews`: lectura pública;
+  cada usuario solo puede crear/borrar sus propias filas (ver detalle en
+  cada tabla más arriba).
