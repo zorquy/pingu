@@ -88,17 +88,34 @@ proteger el contenido Pro de verdad, hace falta una política RLS específica
 o una Edge Function — no lo he tocado porque implica cambiar la base de
 datos.
 
-## `guide_routes`
-Tabla puente ruta ↔ guía: `guide_id` (FK) · `route_id` (FK →
-learning_paths) · `position` (orden dentro de la ruta). Es la fuente de
-verdad para "qué guías tiene esta ruta" — `route_ids` en `guides` es solo
-una copia de conveniencia.
+## `guide_routes` / `learning_paths` (rutas — retiradas de la navegación)
+Tabla puente ruta ↔ guía (`guide_routes`: `guide_id`, `route_id`,
+`position`) y las rutas en sí (`learning_paths`: `id`, `slug`, `title`,
+`description`, `emoji`, `guide_ids`, `is_featured`). **Ya no aparecen en
+ninguna página de cara al usuario** — se quitó la pestaña "Rutas" de
+`aprender.html` y el modo `?path=` de `categoria.html` para simplificar el
+modelo mental a "cada guía va a una única categoría, y punto". El panel
+de administración conserva el CRUD de rutas por si se retoma la idea más
+adelante, pero ninguna guía se organiza por rutas de cara al público.
+`onboarding.html` recomendaba una ruta al final del asistente; ahora
+recomienda una categoría (ver `user_profiles.recommended_path` abajo).
 
-## `learning_paths`
-`id` · `slug` · `title` · `description` · `emoji` · `guide_ids` (uuid[],
-desnormalizado — no se mantiene desde este panel, usa `guide_routes` para
-consultas fiables) · `is_featured` (bool, se usa para recomendar una ruta
-en el onboarding).
+## `guide_reviews` (valoraciones y comentarios sobre la guía)
+`id` · `guide_id` (FK → guides) · `reviewer_id` (FK → auth.users) ·
+`rating` (1-5) · `body` (comentario opcional) · `created_at`. Única por
+`(guide_id, reviewer_id)`. Lectura pública; solo el propio autor puede
+borrar su reseña (o un admin). Migración:
+`supabase-migration-guide-reviews.sql`.
+
+Esto valora **la guía en general** (el concepto, no el curso interactivo
+ni la documentación por separado) — se muestra en el modal ampliado que
+abre `js/guide-modal.js` al hacer clic en la tarjeta de una guía (en
+`categoria.html`, la página de inicio y `guardados.html`), junto con la
+media de estrellas, quién la creó (enlace a su perfil), el estado de
+"guardado" (`user_profiles.saved_guides`, que ya era compartido entre
+curso y documentación al estar indexado por `guides.id`) y los botones
+para entrar al Curso o a la Documentación (antes "Guía" — se renombró en
+los botones para no confundirla con el concepto general de "guía").
 
 ## `achievement_definitions`
 Logros 100% configurables desde `/admin`. `id` (text, clave única elegida
@@ -147,7 +164,9 @@ aparte) · `unlocked_references` (uuid[]) · `avatar_color` (color de fondo
 del avatar, con fallback a navy) · `is_admin` · `quiz_correct_count` ·
 `push_token` (no usado desde la web) · `onboarding_completed` · `interests`
 (text[], slugs de categorías elegidas en el onboarding) · `recommended_path`
-(text, slug de `learning_paths` recomendado en el onboarding) · `bio`
+(text — el nombre de la columna quedó de cuando esto recomendaba una
+`learning_path`; ahora que las rutas se quitaron de la navegación,
+guarda el **slug de una categoría** de `categories`, no de una ruta) · `bio`
 (texto libre, perfil público) · `banner_color` (color de fondo de la
 cabecera del perfil público, se usa solo si no hay `banner_url`) ·
 `showcase_achievement` (id de `achievement_definitions` que el usuario elige

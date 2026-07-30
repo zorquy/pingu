@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml } from './app.js'
 import { getAllAchievements } from './gamification.js'
+import { openGuideModal, setupGuideModalClose } from './guide-modal.js'
 
 function startOfWeekIso() {
   const now = new Date()
@@ -73,14 +74,6 @@ async function loadHeroGuideCount() {
   el.textContent = count || 0
 }
 
-function openGuideModal(guide) {
-  const modal = document.getElementById('guideModal')
-  document.getElementById('guideModalTitle').textContent = guide.title
-  document.getElementById('guideModalCourseBtn').href = `curso.html?slug=${encodeURIComponent(guide.slug)}`
-  document.getElementById('guideModalArticleBtn').href = `guia.html?slug=${encodeURIComponent(guide.slug)}`
-  modal.classList.remove('hidden')
-}
-
 async function loadRecent() {
   const grid = document.getElementById('recentGrid')
   const { data, error } = await supabase
@@ -98,7 +91,7 @@ async function loadRecent() {
   grid.innerHTML = data
     .map(
       (g) => `
-    <div class="recent-card ${borderRarityClass(g.guide_rarity)}" data-slug="${escapeHtml(g.slug)}" data-title="${escapeHtml(g.title)}">
+    <div class="recent-card ${borderRarityClass(g.guide_rarity)}" data-guide-id="${g.id}">
       ${g.cover_image ? cardMediaHtml(g.cover_image, g.cover_emoji) : `<span class="emoji">${g.cover_emoji || '📘'}</span>`}
       <h3>${escapeHtml(g.title)}</h3>
       <p>${escapeHtml(g.description || '')}</p>
@@ -112,9 +105,7 @@ async function loadRecent() {
     .join('')
 
   grid.querySelectorAll('.recent-card').forEach((card) => {
-    card.addEventListener('click', () => {
-      openGuideModal({ slug: card.dataset.slug, title: card.dataset.title })
-    })
+    card.addEventListener('click', () => openGuideModal(card.dataset.guideId))
   })
 }
 
@@ -154,12 +145,7 @@ async function loadStats(session) {
 }
 
 function setupModals() {
-  document.getElementById('guideModalClose')?.addEventListener('click', () => {
-    document.getElementById('guideModal').classList.add('hidden')
-  })
-  document.getElementById('guideModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'guideModal') e.target.classList.add('hidden')
-  })
+  setupGuideModalClose()
   document.getElementById('btnWhatIsPokeDoc')?.addEventListener('click', () => {
     document.getElementById('whatIsModal').classList.remove('hidden')
   })

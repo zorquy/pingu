@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, requireAuth } from './app.js'
+import { openGuideModal, setupGuideModalClose } from './guide-modal.js'
 
 async function loadSaved(session) {
   const list = document.getElementById('savedList')
@@ -29,20 +30,24 @@ async function loadSaved(session) {
   list.innerHTML = guides
     .map(
       (g) => `
-    <div class="saved-guide-row" data-id="${g.id}">
+    <div class="saved-guide-row" data-id="${g.id}" style="cursor:pointer;">
       <span style="font-size: 22px;">${g.cover_emoji || '📘'}</span>
       <div class="info">
         <h3>${escapeHtml(g.title)}</h3>
         <span class="time-tag">${g.estimated_mins || 5} min</span>
       </div>
-      <a href="guia.html?slug=${encodeURIComponent(g.slug)}" class="btn-guide">Leer →</a>
       <button class="unsave-btn" data-id="${g.id}" title="Quitar">×</button>
     </div>`
     )
     .join('')
 
+  list.querySelectorAll('.saved-guide-row').forEach((row) => {
+    row.addEventListener('click', () => openGuideModal(row.dataset.id))
+  })
+
   list.querySelectorAll('.unsave-btn').forEach((btn) => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation()
       const { data: current } = await supabase
         .from('user_profiles')
         .select('saved_guides')
@@ -62,6 +67,7 @@ async function loadSaved(session) {
 async function init() {
   const session = await requireAuth()
   if (!session) return
+  setupGuideModalClose(() => loadSaved(session))
   await loadSaved(session)
 }
 

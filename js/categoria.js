@@ -1,18 +1,18 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, borderRarityClass } from './app.js'
+import { openGuideModal, setupGuideModalClose } from './guide-modal.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
-const pathSlug = params.get('path')
 
 function renderGuideCard(guide, statusInfo) {
   const courseLabel = statusInfo.status === 'completed' ? 'Repasar' : '🎓 Curso'
   const guideBtn = guide.has_reference_blocks
-    ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide">📄 Guía</a>`
-    : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📄 Guía</span>`
+    ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">📖 Documentación</a>`
+    : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📖 Documentación</span>`
 
   return `
-  <div class="guide-card ${borderRarityClass(guide.guide_rarity)}">
+  <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}" style="cursor:pointer;">
     <div class="guide-card-icon">${guide.cover_emoji || '📘'}</div>
     <div class="guide-card-info">
       <span class="guide-label">${escapeHtml(guide.categoryName || '')}</span>
@@ -27,7 +27,7 @@ function renderGuideCard(guide, statusInfo) {
       </div>
     </div>
     <div class="guide-actions">
-      <a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course">${courseLabel}</a>
+      <a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course" onclick="event.stopPropagation()">${courseLabel}</a>
       ${guideBtn}
     </div>
   </div>`
@@ -118,59 +118,17 @@ async function initCategoryMode() {
   document.getElementById('guidesList').innerHTML = html
 }
 
-async function initPathMode() {
-  const { data: path, error } = await supabase.from('learning_paths').select('*').eq('slug', pathSlug).single()
-
-  if (error || !path) {
-    document.getElementById('categoryHeader').innerHTML = ''
-    document.getElementById('guidesList').innerHTML = `<p class="empty-state">Ruta no encontrada.</p>`
-    return
-  }
-
-  document.title = `${path.title} — PokeDoc`
-  document.getElementById('breadcrumbCurrent').textContent = path.title
-  document.getElementById('categoryHeader').innerHTML = `
-    <div class="emoji-big ${tintClassForKey(path.id)}">${path.emoji || '🧭'}</div>
-    <div>
-      <h1>${escapeHtml(path.title)}</h1>
-      <p>${escapeHtml(path.description || '')}</p>
-    </div>`
-
-  const { data: routeGuides } = await supabase
-    .from('guide_routes')
-    .select('position, guides(*, categories(name))')
-    .eq('route_id', path.id)
-    .order('position', { ascending: true })
-
-  const guideList = (routeGuides || []).filter((rg) => rg.guides).map((rg) => ({ ...rg.guides, categoryName: rg.guides.categories?.name }))
-
-  if (guideList.length === 0) {
-    document.getElementById('guidesList').innerHTML = `<p class="empty-state">Esta ruta todavía no tiene guías.</p>`
-    return
-  }
-
-  const session = await getSession()
-  const progressByGuide = await buildProgressByGuide(session, guideList.map((g) => g.id))
-
-  const completedCount = guideList.filter((g) => progressByGuide[g.id] === 'completed').length
-  if (session) {
-    const track = document.getElementById('categoryProgressTrack')
-    track.style.display = 'block'
-    document.getElementById('categoryProgressFill').style.width = `${Math.round(
-      (completedCount / guideList.length) * 100
-    )}%`
-  }
-
-  document.getElementById('guidesList').innerHTML = guideList
-    .map((g) => renderGuideCard(g, { status: progressByGuide[g.id] || 'none' }))
-    .join('')
+function wireGuideCardClicks() {
+  document.getElementById('guidesList').querySelectorAll('[data-guide-id]').forEach((card) => {
+    card.addEventListener('click', () => openGuideModal(card.dataset.guideId))
+  })
 }
 
 async function init() {
-  if (pathSlug) {
-    await initPathMode()
-  } else if (slug) {
+  setupGuideModalClose()
+  if (slug) {
     await initCategoryMode()
+    wireGuideCardClicks()
   } else {
     document.getElementById('categoryHeader').innerHTML = ''
     document.getElementById('guidesList').innerHTML = `<p class="empty-state">Categoría no encontrada.</p>`

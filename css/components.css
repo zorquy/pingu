@@ -1410,6 +1410,50 @@
   margin-top: 2px;
 }
 
+/* ── Modal ampliado de guía ── */
+.guide-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.guide-modal-icon {
+  font-size: 32px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.guide-modal-desc {
+  color: var(--text-mid);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.guide-modal-rating {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.guide-modal-rating-summary {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.is-saved {
+  background: var(--ice) !important;
+  color: var(--navy) !important;
+  border-color: var(--navy) !important;
+}
+
 /* ── Forms (generic, admin) ── */
 .form-group {
   display: flex;
