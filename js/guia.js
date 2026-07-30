@@ -50,6 +50,9 @@ async function init() {
 
   const session = await getSession()
   const profile = session ? await getProfile(session.user.id) : null
+  const proContent = guide.has_pro_content
+    ? (await supabase.from('guide_pro_content').select('*').eq('guide_id', guide.id).maybeSingle()).data
+    : null
 
   const isUnlocked =
     guide.reference_unlocked_by_default || (profile?.unlocked_references || []).includes(guide.id)
@@ -68,6 +71,17 @@ async function init() {
   } else {
     bodyHtml = renderReferenceBlocksHtml(guide.reference_blocks, headings)
   }
+
+  const proBodyHtml = guide.has_pro_content
+    ? proContent
+      ? renderReferenceBlocksHtml(proContent.blocks)
+      : `
+      <div class="empty-state pro-paywall">
+        <span style="font-size: 32px;">🌟</span>
+        <p style="margin-top: 8px;">Este contenido es exclusivo para usuarios Pro: ejemplos, consejos y trucos avanzados aparte de la documentación gratuita.</p>
+        ${session ? '' : `<a href="auth.html" class="btn-primary" style="margin-top:12px;">Inicia sesión</a>`}
+      </div>`
+    : ''
 
   main.innerHTML = `
     <div class="breadcrumb">
@@ -89,11 +103,30 @@ async function init() {
         <button class="btn-secondary" id="btnSave" style="margin-left: auto; padding: 6px 12px; font-size: 13px;">☆ Guardar</button>
       </div>
     </div>
-    <div class="article-body">${bodyHtml}</div>
+    ${
+      guide.has_pro_content
+        ? `
+    <div class="tabs" id="articleTabs">
+      <button class="tab-btn active" data-atab="docu">📖 Documentación</button>
+      <button class="tab-btn" data-atab="pro">🌟 Guía Pro</button>
+    </div>
+    <div class="tab-panel active" id="atab-docu"><div class="article-body">${bodyHtml}</div></div>
+    <div class="tab-panel" id="atab-pro"><div class="article-body">${proBodyHtml}</div></div>`
+        : `<div class="article-body">${bodyHtml}</div>`
+    }
     <div class="article-cta">
       <p>¿Quieres aprenderlo paso a paso?</p>
       <a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-primary">Hacer el curso →</a>
     </div>`
+
+  document.getElementById('articleTabs')?.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.getElementById('articleTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
+      document.querySelectorAll('.tab-panel[id^="atab-"]').forEach((p) => p.classList.remove('active'))
+      btn.classList.add('active')
+      document.getElementById(`atab-${btn.dataset.atab}`).classList.add('active')
+    })
+  })
 
   if (headings.length > 0 && isUnlocked) {
     document.getElementById('articleSidebar').innerHTML = `

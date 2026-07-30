@@ -31,6 +31,9 @@ let refBlocks = []
 let coverImageUrl = ''
 let draftScope = null
 let stopAutosave = () => {}
+let proBlocks = []
+let proActive = false
+let proPublishedAt = null
 
 function updateCoverImagePreview() {
   document.getElementById('gCoverImagePreview').src = coverImageUrl
@@ -48,6 +51,8 @@ function captureState() {
     level: document.getElementById('gLevel').value,
     refBlocks,
     courseBlocks,
+    proBlocks,
+    proActive,
   }
 }
 
@@ -61,11 +66,43 @@ function applyDraftState(state) {
   document.getElementById('gLevel').value = state.level || 'beginner'
   refBlocks = state.refBlocks || []
   courseBlocks = state.courseBlocks || []
+  proBlocks = state.proBlocks || []
+  proActive = !!state.proActive
 }
 
 function setRefHtml(html) {
   refBlocks = html.trim() ? [{ type: 'richtext', html }] : []
   updateCourseGate()
+}
+
+function setProHtml(html) {
+  proBlocks = html.trim() ? [{ type: 'richtext', html }] : []
+}
+
+function updateProStatusBadge() {
+  const badge = document.getElementById('proStatusBadge')
+  badge.innerHTML = proPublishedAt
+    ? '<span class="badge badge-completed">✅ Publicada</span>'
+    : '<span class="badge badge-progress">Borrador (sin publicar)</span>'
+}
+
+function renderPro() {
+  document.getElementById('proActivateWrap').classList.toggle('hidden', proActive)
+  document.getElementById('proEditorWrap').classList.toggle('hidden', !proActive)
+  if (!proActive) return
+
+  updateProStatusBadge()
+  const toolbarEl = document.getElementById('proRteToolbar')
+  toolbarEl.innerHTML = richTextToolbarHtml()
+  const initialHtml = proBlocks[0]?.html || ''
+  initRichTextEditor({
+    toolbarEl,
+    surfaceEl: document.getElementById('proRteSurface'),
+    initialHtml,
+    onChange: setProHtml,
+    uploadImage: (file) => uploadGuideImage(currentSession.user.id, file),
+  })
+  setProHtml(initialHtml)
 }
 
 async function checkAccess() {
@@ -212,6 +249,13 @@ async function loadExistingGuide() {
   courseBlocks = JSON.parse(JSON.stringify(data.blocks || []))
   refBlocks = JSON.parse(JSON.stringify(data.reference_blocks || []))
 
+  const { data: proContent } = await supabase.from('guide_pro_content').select('*').eq('guide_id', data.id).maybeSingle()
+  if (proContent) {
+    proActive = true
+    proBlocks = proContent.blocks || []
+    proPublishedAt = proContent.published_at || null
+  }
+
   if (data.author_id) {
     const { data: author } = await supabase.from('user_profiles').select('display_name, username').eq('id', data.author_id).single()
     const authorName = author?.display_name || author?.username || 'Usuario'
@@ -259,6 +303,7 @@ function buildPayload() {
     blocks: courseBlocks,
     reference_blocks: refBlocks,
     has_reference_blocks: refBlocks.length > 0,
+    has_pro_content: !!proPublishedAt,
     route_ids: selectedRoutes.map((r) => r.routeId),
   }
   if (existingGuide?.id) payload.id = existingGuide.id
@@ -276,6 +321,9 @@ async function persistGuide(extraFields = {}) {
   }
   const id = saved?.id || existingGuide?.id
   if (id) await saveGuideRoutes(id, selectedRoutes)
+  if (id && proActive) {
+    await supabase.from('guide_pro_content').upsert({ guide_id: id, blocks: proBlocks, published_at: proPublishedAt }, { onConflict: 'guide_id' })
+  }
 
   await recalcCategoryGuideCount(newCategoryId)
   if (existingGuide?.category_id && existingGuide.category_id !== newCategoryId) await recalcCategoryGuideCount(existingGuide.category_id)
@@ -305,6 +353,7 @@ async function init() {
 
   renderRef()
   renderCourse()
+  renderPro()
   updateCourseGate()
   stopAutosave = startAutosave(draftScope, captureState)
 
@@ -323,6 +372,34 @@ async function init() {
   document.getElementById('btnRemoveCoverImage').addEventListener('click', () => {
     coverImageUrl = ''
     updateCoverImagePreview()
+  })
+
+  document.getElementById('btnActivatePro').addEventListener('click', () => {
+    const initialHtml = refBlocks[0]?.type === 'richtext' ? refBlocks[0].html : renderReferenceBlocksHtml(refBlocks)
+    proBlocks = initialHtml.trim() ? [{ type: 'richtext', html: initialHtml }] : []
+    proActive = true
+    renderPro()
+  })
+
+  document.getElementById('btnPublishPro').addEventListener('click', async () => {
+    if (!existingGuide?.id) {
+      showToast('Guarda la guía primero antes de publicar la Guía Pro.')
+      return
+    }
+    proPublishedAt = new Date().toISOString()
+    await supabase.from('guide_pro_content').upsert({ guide_id: existingGuide.id, blocks: proBlocks, published_at: proPublishedAt }, { onConflict: 'guide_id' })
+    await supabase.from('guides').update({ has_pro_content: true }).eq('id', existingGuide.id)
+    updateProStatusBadge()
+    showToast('Guía Pro publicada.', 'success')
+  })
+
+  document.getElementById('btnUnpublishPro').addEventListener('click', async () => {
+    if (!existingGuide?.id) return
+    proPublishedAt = null
+    await supabase.from('guide_pro_content').update({ published_at: null }).eq('guide_id', existingGuide.id)
+    await supabase.from('guides').update({ has_pro_content: false }).eq('id', existingGuide.id)
+    updateProStatusBadge()
+    showToast('Guía Pro despublicada — ya no es visible para los usuarios Pro.', 'success')
   })
 
   document.getElementById('btnAddCourseBlock').addEventListener('click', () => {

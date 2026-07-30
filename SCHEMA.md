@@ -466,3 +466,44 @@ El panel de admin tiene una sección nueva "🚩 Reportes"
 (`admin/index.html` + `loadReports()` en `admin/js/admin.js`) que lista
 los reportes `pending` con quién reportó y por qué, y deja marcarlos como
 revisados o descartarlos.
+
+## Guía Pro (monetización)
+Migración: `supabase-migration-guide-pro-content.sql`. Cada guía puede
+tener, aparte de la Documentación y el Curso (que **siempre son
+gratis**), una pestaña extra "🌟 Guía Pro" con contenido exclusivo — la
+idea es que empiece como copia de la Documentación y el equipo de admin
+le añada ejemplos, consejos y trucos avanzados antes de publicarla.
+
+**Por qué una tabla aparte y no una columna más en `guides`**: `guides`
+es de lectura pública (necesario para SEO/descubrimiento), así que
+cualquier columna en esa tabla se sirve a cualquiera que consulte la API
+directamente — es justo el gap de seguridad que ya había anotado (el
+`is_pro` de toda la vida es solo cosmético). El contenido Pro de verdad
+vive en `guide_pro_content` (`guide_id` PK/FK, `blocks` jsonb en el mismo
+formato `richtext` que `reference_blocks`, `published_at`), con su propia
+RLS: un usuario con `user_profiles.is_pro = true` solo puede leer filas
+con `published_at` no nulo; el equipo de admin (`is_admin()`) tiene acceso
+total para editar el borrador antes de publicar. A un usuario sin Pro,
+Supabase directamente no le devuelve la fila — no hace falta fiarse de
+que el frontend esconda nada.
+
+`guides.has_pro_content` (booleano, público y cosmético) es la señal que
+usa el frontend para saber si pintar la pestaña "Guía Pro" en `guia.html`
+sin necesitar acceso al contenido real — se actualiza únicamente al
+publicar/despublicar (no basta con "activarla" en el editor). En
+`js/guia.js`, si `has_pro_content` es `true` se muestran pestañas
+Documentación/Guía Pro; si la consulta a `guide_pro_content` devuelve fila
+(usuario Pro o admin) se pinta el contenido, si no, un aviso de paywall
+con CTA a iniciar sesión.
+
+**Solo editable desde el panel de admin** (`admin/editor-guia.html`,
+pestaña "🌟 Guía Pro"): botón "Activar Guía Pro" copia el HTML actual de
+la Documentación como punto de partida (sin persistir todavía), después
+el mismo editor WYSIWYG de `richtext-editor.js`. "Publicar Guía Pro" y
+"Despublicar" son acciones inmediatas e independientes del botón
+"Guardar" general — hacen su propio upsert/update y actualizan
+`has_pro_content` en el momento, tal y como se pidió: la Guía Pro no se
+hace visible hasta que se publica explícitamente, para poder seguir
+editándola sin que se vea a medio hacer. El editor de guías de los
+usuarios de la comunidad (`editor-guia.html` normal) no tiene esta
+pestaña — la Guía Pro es contenido curado por el equipo de admin.

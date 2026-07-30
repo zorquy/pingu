@@ -25,6 +25,7 @@
     <div class="tabs" id="editorTabs">
       <button class="tab-btn active" data-etab="general">General y Documentación</button>
       <button class="tab-btn" data-etab="course">🎓 Curso interactivo</button>
+      <button class="tab-btn" data-etab="pro">🌟 Guía Pro</button>
       <button class="tab-btn" data-etab="advanced">⚙️ Avanzado</button>
     </div>
 
@@ -89,6 +90,34 @@
         <div id="courseBlockEditorContent" class="hidden">
           <div id="blockEditorList" class="editor-block-list"></div>
           <button class="btn-secondary" id="btnAddCourseBlock">+ Añadir bloque</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-panel" id="etab-pro">
+      <section class="editor-panel">
+        <div class="section-header-row">
+          <h2 class="section-title">🌟 Guía Pro</h2>
+          <span id="proStatusBadge"></span>
+        </div>
+        <p class="subtext" style="margin-top:-8px;">
+          Contenido exclusivo para usuarios Pro — aparte de la Documentación y el Curso, que siempre son gratis.
+          Empieza como una copia de la Documentación; añade aquí ejemplos, consejos y contenido avanzado.
+        </p>
+
+        <div id="proActivateWrap">
+          <button class="btn-secondary" id="btnActivatePro">🌟 Activar Guía Pro para esta guía</button>
+        </div>
+
+        <div id="proEditorWrap" class="hidden">
+          <div class="rte-wrap">
+            <div class="rte-toolbar" id="proRteToolbar"></div>
+            <div class="rte-surface article-body" id="proRteSurface"></div>
+          </div>
+          <div class="editor-actions" style="margin-top:16px;">
+            <button class="btn-outline" id="btnUnpublishPro">Despublicar</button>
+            <button class="btn-primary" id="btnPublishPro">Publicar Guía Pro</button>
+          </div>
         </div>
       </section>
     </div>

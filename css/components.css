@@ -1860,3 +1860,10 @@ textarea.be-field {
 .report-btn:hover {
   color: #dc2626;
 }
+
+/* ── Guía Pro (paywall) ── */
+.pro-paywall {
+  border: 1.5px dashed #f2b705;
+  background: linear-gradient(180deg, rgba(242, 183, 5, 0.08), transparent 60%);
+  border-radius: var(--radius-lg);
+}
