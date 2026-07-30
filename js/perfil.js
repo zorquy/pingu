@@ -125,6 +125,63 @@ document.getElementById('achievementsToggle')?.addEventListener('click', () => {
   document.getElementById('achievementsAccordion').classList.toggle('open')
 })
 
+// ── Pestañas del perfil ──
+document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.getElementById('profileTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
+    document.querySelectorAll('.tab-panel[id^="ptab-"]').forEach((p) => p.classList.remove('active'))
+    btn.classList.add('active')
+    document.getElementById(`ptab-${btn.dataset.ptab}`).classList.add('active')
+  })
+})
+
+// ── Siguiendo / Seguidores ──
+function followChipHtml(p) {
+  const name = displayName(p, '')
+  const avatarStyle = p.avatar_url
+    ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
+    : `background-color:${p.avatar_color || 'var(--navy)'}`
+  return `<a class="follow-avatar-chip" href="usuario.html?id=${p.id}"><span class="mini-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
+}
+
+async function loadFollowSummary(session) {
+  const [{ data: following }, { data: followers }] = await Promise.all([
+    supabase.from('user_follows').select('following_id').eq('follower_id', session.user.id),
+    supabase.from('user_follows').select('follower_id').eq('following_id', session.user.id),
+  ])
+
+  document.getElementById('followingCount').textContent = following?.length || 0
+  document.getElementById('followersCount').textContent = followers?.length || 0
+
+  const followingIds = (following || []).map((f) => f.following_id)
+  const followerIds = (followers || []).map((f) => f.follower_id)
+  const allIds = [...new Set([...followingIds, ...followerIds])]
+
+  let profilesById = {}
+  if (allIds.length > 0) {
+    const { data: profiles } = await supabase.from('user_profiles').select('id, display_name, username, avatar_url, avatar_color').in('id', allIds)
+    profilesById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
+  }
+
+  const followingListEl = document.getElementById('followingList')
+  const followersListEl = document.getElementById('followersList')
+  followingListEl.innerHTML = followingIds.length
+    ? followingIds.map((id) => followChipHtml(profilesById[id] || { id })).join('')
+    : `<p class="empty-state">Todavía no sigues a nadie.</p>`
+  followersListEl.innerHTML = followerIds.length
+    ? followerIds.map((id) => followChipHtml(profilesById[id] || { id })).join('')
+    : `<p class="empty-state">Todavía no tienes seguidores.</p>`
+
+  document.getElementById('btnShowFollowing').addEventListener('click', () => {
+    followingListEl.classList.remove('hidden')
+    followersListEl.classList.add('hidden')
+  })
+  document.getElementById('btnShowFollowers').addEventListener('click', () => {
+    followersListEl.classList.remove('hidden')
+    followingListEl.classList.add('hidden')
+  })
+}
+
 async function loadCompletedCourses(session) {
   const { data } = await supabase
     .from('user_progress')
@@ -452,7 +509,7 @@ async function init() {
   currentSession = session
 
   const profile = await loadProfile(session)
-  await Promise.all([loadStats(session, profile), loadCompletedCourses(session), loadMyGuides(session), loadWall(session)])
+  await Promise.all([loadStats(session, profile), loadCompletedCourses(session), loadMyGuides(session), loadWall(session), loadFollowSummary(session)])
   await loadAchievements(profile)
 
   document.getElementById('btnLogout').addEventListener('click', signOut)

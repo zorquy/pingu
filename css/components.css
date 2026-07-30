@@ -1255,6 +1255,72 @@
   border-color: var(--navy);
 }
 
+/* ── Seguidores / seguidos ── */
+.follow-summary-row {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 16px;
+}
+
+.follow-summary-item {
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: left;
+}
+
+.follow-summary-item strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.follow-summary-item span {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.follow-avatar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.follow-avatar-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.follow-avatar-chip .mini-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--navy);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.about-block {
+  margin-bottom: 32px;
+}
+
 /* ── Forms (generic, admin) ── */
 .form-group {
   display: flex;

@@ -37,18 +37,43 @@
       <div class="skeleton" style="width: 72px; height: 72px; border-radius: 50%;"></div>
     </div>
 
-    <div class="stats-row" style="margin-bottom: 32px;" id="profileStats"></div>
+    <button class="btn-primary hidden" id="btnFollowToggle" style="margin-bottom: 20px;"></button>
 
-    <h2 class="section-title">Guías publicadas</h2>
-    <div id="publishedGuides" style="margin-bottom: 32px;"></div>
+    <div class="stats-row" style="margin-bottom: 20px;" id="profileStats"></div>
 
-    <h2 class="section-title">Reseñas</h2>
-    <div id="reviewForm" style="margin-bottom: 16px;"></div>
-    <div id="reviewsList" style="margin-bottom: 32px;"></div>
+    <div class="tabs" id="profileTabs">
+      <button class="tab-btn active" data-ptab="wall">Muro</button>
+      <button class="tab-btn" data-ptab="guides">Guías</button>
+      <button class="tab-btn" data-ptab="about">Acerca</button>
+    </div>
 
-    <h2 class="section-title">Muro</h2>
-    <div id="commentForm" style="margin-bottom: 16px;"></div>
-    <div id="commentsList"></div>
+    <div class="tab-panel active" id="ptab-wall">
+      <div id="commentForm" style="margin-bottom: 16px;"></div>
+      <div id="commentsList"></div>
+    </div>
+
+    <div class="tab-panel" id="ptab-guides">
+      <h2 class="section-title">Guías publicadas</h2>
+      <div id="publishedGuides"></div>
+    </div>
+
+    <div class="tab-panel" id="ptab-about">
+      <div class="about-block">
+        <div class="follow-summary-row">
+          <button class="follow-summary-item" id="btnShowFollowing" type="button"><strong id="followingCount">0</strong><span>Siguiendo</span></button>
+          <button class="follow-summary-item" id="btnShowFollowers" type="button"><strong id="followersCount">0</strong><span>Seguidores</span></button>
+        </div>
+        <div class="follow-avatar-row hidden" id="followingList"></div>
+        <div class="follow-avatar-row hidden" id="followersList"></div>
+      </div>
+
+      <h2 class="section-title">Trofeos</h2>
+      <div class="achievements-grid about-block" id="achievementsGrid"></div>
+
+      <h2 class="section-title">Reseñas</h2>
+      <div id="reviewForm" style="margin-bottom: 16px;"></div>
+      <div id="reviewsList"></div>
+    </div>
   </main>
 
   <footer class="footer">© 2026 PokeDoc — Hecho para coleccionistas.</footer>

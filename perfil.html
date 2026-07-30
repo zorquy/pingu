@@ -50,33 +50,53 @@
 
     <div class="stats-row" style="margin-bottom: 20px;" id="profileStats"></div>
 
-    <button class="btn-outline" id="btnEditProfile" style="margin-bottom: 24px;">Editar biografía</button>
+    <div class="tabs" id="profileTabs">
+      <button class="tab-btn active" data-ptab="wall">Muro</button>
+      <button class="tab-btn" data-ptab="guides">Guías</button>
+      <button class="tab-btn" data-ptab="about">Acerca</button>
+    </div>
 
-    <div class="accordion" id="achievementsAccordion">
-      <button class="accordion-header" id="achievementsToggle" type="button">
-        <span>🏆 Logros (<span id="achievementsCount">0/0</span>)</span>
-        <span class="chevron">▾</span>
-      </button>
-      <div class="accordion-body">
-        <div class="achievements-grid" id="achievementsGrid"></div>
+    <div class="tab-panel active" id="ptab-wall">
+      <div id="commentForm" style="margin-bottom: 16px;"></div>
+      <div id="commentsList"></div>
+    </div>
+
+    <div class="tab-panel" id="ptab-guides">
+      <div class="section-header-row">
+        <h2 class="section-title">Mis guías</h2>
+        <button class="btn-primary" id="btnNewMyGuide">+ Nueva guía</button>
       </div>
+      <p class="subtext" style="margin: -8px 0 16px;">Cualquiera puede crear guías y cursos. Cuando la tengas lista, envíala a revisión — un moderador la aprobará antes de que aparezca en la web.</p>
+      <div id="myGuidesList"></div>
     </div>
 
-    <div class="section-header-row">
-      <h2 class="section-title">Mis guías</h2>
-      <button class="btn-primary" id="btnNewMyGuide">+ Nueva guía</button>
+    <div class="tab-panel" id="ptab-about">
+      <button class="btn-outline" id="btnEditProfile" style="margin-bottom: 24px;">Editar biografía</button>
+
+      <div class="about-block">
+        <div class="follow-summary-row">
+          <button class="follow-summary-item" id="btnShowFollowing" type="button"><strong id="followingCount">0</strong><span>Siguiendo</span></button>
+          <button class="follow-summary-item" id="btnShowFollowers" type="button"><strong id="followersCount">0</strong><span>Seguidores</span></button>
+        </div>
+        <div class="follow-avatar-row hidden" id="followingList"></div>
+        <div class="follow-avatar-row hidden" id="followersList"></div>
+      </div>
+
+      <div class="accordion open about-block" id="achievementsAccordion">
+        <button class="accordion-header" id="achievementsToggle" type="button">
+          <span>🏆 Trofeos (<span id="achievementsCount">0/0</span>)</span>
+          <span class="chevron">▾</span>
+        </button>
+        <div class="accordion-body">
+          <div class="achievements-grid" id="achievementsGrid"></div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Cursos completados</h2>
+      <div id="completedCourses"></div>
+
+      <button class="btn-outline" id="btnLogout" style="margin-top: 24px;">Cerrar sesión</button>
     </div>
-    <p class="subtext" style="margin: -8px 0 16px;">Cualquiera puede crear guías y cursos. Cuando la tengas lista, envíala a revisión — un moderador la aprobará antes de que aparezca en la web.</p>
-    <div id="myGuidesList" style="margin-bottom: 32px;"></div>
-
-    <h2 class="section-title">Muro</h2>
-    <div id="commentForm" style="margin-bottom: 16px;"></div>
-    <div id="commentsList" style="margin-bottom: 32px;"></div>
-
-    <h2 class="section-title">Cursos completados</h2>
-    <div id="completedCourses"></div>
-
-    <button class="btn-outline" id="btnLogout" style="margin-top: 32px;">Cerrar sesión</button>
   </main>
 
   <footer class="footer">© 2026 PokeDoc — Hecho para coleccionistas.</footer>

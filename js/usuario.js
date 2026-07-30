@@ -93,6 +93,117 @@ async function loadReputationAndGuides() {
     .join('')
 }
 
+// ── Pestañas del perfil ──
+document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.getElementById('profileTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
+    document.querySelectorAll('.tab-panel[id^="ptab-"]').forEach((p) => p.classList.remove('active'))
+    btn.classList.add('active')
+    document.getElementById(`ptab-${btn.dataset.ptab}`).classList.add('active')
+  })
+})
+
+// ── Seguir / Dejar de seguir ──
+async function loadFollowButton() {
+  const btn = document.getElementById('btnFollowToggle')
+  if (!currentSession || currentSession.user.id === profileId) {
+    btn.classList.add('hidden')
+    return
+  }
+  btn.classList.remove('hidden')
+
+  const { data } = await supabase
+    .from('user_follows')
+    .select('follower_id')
+    .eq('follower_id', currentSession.user.id)
+    .eq('following_id', profileId)
+    .maybeSingle()
+
+  let isFollowing = !!data
+  function render() {
+    btn.textContent = isFollowing ? 'Dejar de seguir' : '+ Seguir'
+    btn.classList.toggle('btn-primary', !isFollowing)
+    btn.classList.toggle('btn-outline', isFollowing)
+  }
+  render()
+
+  btn.onclick = async () => {
+    btn.disabled = true
+    if (isFollowing) {
+      await supabase.from('user_follows').delete().eq('follower_id', currentSession.user.id).eq('following_id', profileId)
+    } else {
+      await supabase.from('user_follows').insert({ follower_id: currentSession.user.id, following_id: profileId })
+    }
+    isFollowing = !isFollowing
+    render()
+    btn.disabled = false
+    await loadFollowSummary()
+  }
+}
+
+function followChipHtml(p) {
+  const name = p.display_name || p.username || 'Usuario'
+  const avatarStyle = p.avatar_url
+    ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
+    : `background-color:${p.avatar_color || 'var(--navy)'}`
+  return `<a class="follow-avatar-chip" href="usuario.html?id=${p.id}"><span class="mini-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
+}
+
+async function loadFollowSummary() {
+  const [{ data: following }, { data: followers }] = await Promise.all([
+    supabase.from('user_follows').select('following_id').eq('follower_id', profileId),
+    supabase.from('user_follows').select('follower_id').eq('following_id', profileId),
+  ])
+
+  document.getElementById('followingCount').textContent = following?.length || 0
+  document.getElementById('followersCount').textContent = followers?.length || 0
+
+  const followingIds = (following || []).map((f) => f.following_id)
+  const followerIds = (followers || []).map((f) => f.follower_id)
+  const allIds = [...new Set([...followingIds, ...followerIds])]
+
+  let profilesById = {}
+  if (allIds.length > 0) {
+    const { data: profiles } = await supabase.from('user_profiles').select('id, display_name, username, avatar_url, avatar_color').in('id', allIds)
+    profilesById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
+  }
+
+  const followingListEl = document.getElementById('followingList')
+  const followersListEl = document.getElementById('followersList')
+  followingListEl.innerHTML = followingIds.length
+    ? followingIds.map((id) => followChipHtml(profilesById[id] || { id })).join('')
+    : `<p class="empty-state">Todavía no sigue a nadie.</p>`
+  followersListEl.innerHTML = followerIds.length
+    ? followerIds.map((id) => followChipHtml(profilesById[id] || { id })).join('')
+    : `<p class="empty-state">Todavía no tiene seguidores.</p>`
+
+  document.getElementById('btnShowFollowing').addEventListener('click', () => {
+    followingListEl.classList.remove('hidden')
+    followersListEl.classList.add('hidden')
+  })
+  document.getElementById('btnShowFollowers').addEventListener('click', () => {
+    followersListEl.classList.remove('hidden')
+    followingListEl.classList.add('hidden')
+  })
+}
+
+// ── Trofeos ──
+async function loadAchievementsGrid() {
+  const unlocked = profile?.achievements || []
+  const all = await getAllAchievements()
+  const grid = document.getElementById('achievementsGrid')
+  grid.innerHTML = all
+    .map((a) => {
+      const isUnlocked = unlocked.includes(a.id)
+      return `
+      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
+        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? a.emoji || '🏆' : '🔒'}</span>
+        <span class="name">${escapeHtml(a.title)}</span>
+      </div>`
+    })
+    .join('')
+}
+
 async function namesForIds(ids) {
   const uniqueIds = [...new Set(ids)]
   if (uniqueIds.length === 0) return {}
@@ -195,7 +306,7 @@ async function init() {
     return
   }
 
-  await Promise.all([loadReputationAndGuides(), loadReviews(), loadComments()])
+  await Promise.all([loadReputationAndGuides(), loadReviews(), loadComments(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid()])
 }
 
 init()
