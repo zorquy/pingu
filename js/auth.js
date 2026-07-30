@@ -25,15 +25,20 @@ function friendlyAuthError(error) {
     return 'Email o contraseña incorrectos.'
   }
   if (msg.includes('already registered') || msg.includes('already been registered') || msg.includes('user already exists')) {
-    return 'Ya existe una cuenta con ese email. Inicia sesión en vez de crear una nueva.'
+    return 'Ya existe una cuenta con ese email. Inicia sesión en vez de crear una nueva (o usa "¿Olvidaste tu contraseña?" si te registraste antes sin contraseña).'
+  }
+  if (msg.includes('not confirmed')) {
+    return 'Confirma tu cuenta desde el enlace que te enviamos por email antes de iniciar sesión.'
+  }
+  if (msg.includes('invalid format') || msg.includes('unable to validate email')) {
+    return 'Revisa que el email sea correcto.'
   }
   if (msg.includes('password') && (msg.includes('short') || msg.includes('at least') || msg.includes('6 characters'))) {
     return 'La contraseña debe tener al menos 6 caracteres.'
   }
-  if (msg.includes('email')) {
-    return 'Revisa que el email sea correcto.'
-  }
-  return 'Ha ocurrido un error. Inténtalo de nuevo.'
+  // Sin traducción conocida: mostramos el mensaje real de Supabase en vez de
+  // enmascararlo con un genérico que podría despistar sobre la causa real.
+  return error?.message || 'Ha ocurrido un error. Inténtalo de nuevo.'
 }
 
 function validEmail(value) {
