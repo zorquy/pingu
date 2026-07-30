@@ -3,6 +3,7 @@ import { escapeHtml, getInitial, getSession, profileUrl, profileParamsFromLocati
 import { levelProgress, contributorTier, getAllAchievements } from './gamification.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
+import { reportButtonHtml, wireReportButtons } from './report.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
@@ -273,9 +274,12 @@ async function loadReviews() {
         <span>${starsHtml(r.rating)}</span>
       </div>
       ${r.body ? `<p style="margin:6px 0 0; font-size:13.5px; color:var(--text-mid);">${escapeHtml(r.body)}</p>` : ''}
+      ${currentSession && currentSession.user.id !== r.reviewer_id ? `<div style="margin-top:6px;">${reportButtonHtml('profile_review', r.id)}</div>` : ''}
     </div>`
         )
         .join('')
+
+  wireReportButtons(container, currentSession)
 
   const formContainer = document.getElementById('reviewForm')
   if (!currentSession) {

@@ -444,3 +444,25 @@ frontend asume:
 - `user_follows`, `profile_comments`, `profile_reviews`: lectura pública;
   cada usuario solo puede crear/borrar sus propias filas (ver detalle en
   cada tabla más arriba).
+
+## Reportar contenido inapropiado (`content_reports`)
+Migración: `supabase-migration-content-reports.sql`. Tabla `content_reports`
+(`reporter_id`, `content_type` — `guide`/`profile_comment`/`guide_comment`/
+`profile_review` —, `content_id`, `reason` opcional, `status`
+`pending`/`reviewed`/`dismissed`, `created_at`). RLS: cualquier usuario
+logueado puede insertar sus propios reportes (`auth.uid() = reporter_id`);
+solo `is_admin()` puede leerlos y actualizarlos — un usuario normal no
+puede ver reportes, ni siquiera los suyos.
+
+`js/report.js` es el módulo compartido: `reportButtonHtml(tipo, id)` pinta
+el botón 🚩, `wireReportButtons(containerEl, session)` engancha el click
+(pide un motivo opcional con `prompt()` e inserta la fila). Está enganchado
+en `js/wall.js` (así cubre de una vez comentarios de muro y de guía, ya
+que `renderWall` se usa para ambos), en `js/usuario.js` (reseñas de
+perfil) y en `js/guide-modal.js` (la guía en sí). En todos los sitios se
+oculta el botón sobre tu propio contenido.
+
+El panel de admin tiene una sección nueva "🚩 Reportes"
+(`admin/index.html` + `loadReports()` en `admin/js/admin.js`) que lista
+los reportes `pending` con quién reportó y por qué, y deja marcarlos como
+revisados o descartarlos.

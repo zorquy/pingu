@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, getInitial, profileUrl, borderRarityClass } from './app.js'
 import { renderWall } from './wall.js'
+import { reportButtonHtml, wireReportButtons } from './report.js'
 
 export function starsHtml(rating, size = 16) {
   return Array.from({ length: 5 })
@@ -221,7 +222,7 @@ export async function openGuideModal(guideId) {
     </div>
     ${authorHtml}
     <div class="guide-modal-rating" id="guideModalRating"></div>
-    <div class="modal-actions" style="flex-direction:row; margin-top:16px;">
+    <div class="modal-actions" style="flex-direction:row; margin-top:16px; align-items:center;">
       <button class="btn-outline" id="guideModalSaveBtn">${isSaved ? '★ Guardado' : '☆ Guardar'}</button>
       <a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course">🎓 Curso</a>
       ${
@@ -229,6 +230,7 @@ export async function openGuideModal(guideId) {
           ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide">📖 Documentación</a>`
           : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📖 Documentación</span>`
       }
+      ${session ? `<span style="margin-left:auto;">${reportButtonHtml('guide', guide.id)}</span>` : ''}
     </div>
     <h3 style="margin-top:20px;">Comentarios</h3>
     <div id="guideModalCommentsForm" style="margin-bottom:12px;"></div>
@@ -246,6 +248,7 @@ export async function openGuideModal(guideId) {
     })
   }
 
+  wireReportButtons(content, session)
   await loadRatingWidget(guide.id, session, document.getElementById('guideModalRating'))
   await renderWall({
     listEl: document.getElementById('guideModalCommentsList'),

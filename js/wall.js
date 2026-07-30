@@ -1,5 +1,11 @@
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
+import { reportButtonHtml, wireReportButtons } from './report.js'
+
+const REPORT_TYPE_BY_TABLE = {
+  profile_comments: 'profile_comment',
+  guide_comments: 'guide_comment',
+}
 
 async function namesForIds(ids) {
   const uniqueIds = [...new Set(ids)]
@@ -38,7 +44,10 @@ export async function renderWall({
         <span class="date" style="color:var(--text-dim); font-size:12px;">${new Date(c.created_at).toLocaleDateString('es-ES')}</span>
       </div>
       <p style="margin:6px 0 0; font-size:13.5px;">${escapeHtml(c.body)}</p>
-      ${currentSession && (currentSession.user.id === c.author_id || currentSession.user.id === profileId) ? `<button data-delete-comment="${c.id}" style="margin-top:6px; font-size:11px; color:#dc2626; font-weight:700;">Eliminar</button>` : ''}
+      <div style="display:flex; gap:10px; margin-top:6px;">
+        ${currentSession && (currentSession.user.id === c.author_id || currentSession.user.id === profileId) ? `<button data-delete-comment="${c.id}" style="font-size:11px; color:#dc2626; font-weight:700;">Eliminar</button>` : ''}
+        ${currentSession && currentSession.user.id !== c.author_id ? reportButtonHtml(REPORT_TYPE_BY_TABLE[table] || 'profile_comment', c.id) : ''}
+      </div>
     </div>`
         )
         .join('')
@@ -50,6 +59,7 @@ export async function renderWall({
       renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage })
     })
   )
+  wireReportButtons(listEl, currentSession)
 
   if (!formEl) return
 

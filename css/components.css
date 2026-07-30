@@ -1849,3 +1849,14 @@ textarea.be-field {
 .toast-success {
   background: var(--success, #16a34a);
 }
+
+/* ── Reportar contenido ── */
+.report-btn {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.report-btn:hover {
+  color: #dc2626;
+}

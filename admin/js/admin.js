@@ -600,6 +600,73 @@ document.getElementById('imageUploadInput').addEventListener('change', async (e)
   loadImages()
 })
 
+// ── Reportes de contenido ──
+const REPORT_TYPE_LABELS = {
+  guide: '📘 Guía',
+  profile_comment: '💬 Comentario de muro',
+  guide_comment: '💬 Comentario de guía',
+  profile_review: '⭐ Reseña de perfil',
+}
+
+async function loadReports() {
+  const { data } = await supabase
+    .from('content_reports')
+    .select('*')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+
+  const reports = data || []
+  const reporterIds = [...new Set(reports.map((r) => r.reporter_id))]
+  let reportersById = {}
+  if (reporterIds.length > 0) {
+    const { data: reporters } = await supabase.from('user_profiles').select('id, display_name, username').in('id', reporterIds)
+    reportersById = Object.fromEntries((reporters || []).map((r) => [r.id, r]))
+  }
+
+  const container = document.getElementById('reportsTable')
+  if (reports.length === 0) {
+    container.innerHTML = `<p class="empty-state">No hay reportes pendientes.</p>`
+    return
+  }
+
+  container.innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Tipo</th><th>Motivo</th><th>Reportado por</th><th>Fecha</th><th></th></tr></thead>
+      <tbody>
+        ${reports
+          .map((r) => {
+            const reporter = reportersById[r.reporter_id]
+            const reporterName = reporter?.display_name || reporter?.username || 'Usuario'
+            return `
+          <tr>
+            <td>${REPORT_TYPE_LABELS[r.content_type] || r.content_type}</td>
+            <td>${escapeHtml(r.reason || '—')}</td>
+            <td>${escapeHtml(reporterName)}</td>
+            <td>${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
+            <td class="admin-row-actions">
+              <button data-report-reviewed="${r.id}">Marcar revisado</button>
+              <button data-report-dismiss="${r.id}">Descartar</button>
+            </td>
+          </tr>`
+          })
+          .join('')}
+      </tbody>
+    </table>`
+
+  container.querySelectorAll('[data-report-reviewed]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      await supabase.from('content_reports').update({ status: 'reviewed' }).eq('id', btn.dataset.reportReviewed)
+      loadReports()
+    })
+  )
+  container.querySelectorAll('[data-report-dismiss]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      await supabase.from('content_reports').update({ status: 'dismissed' }).eq('id', btn.dataset.reportDismiss)
+      loadReports()
+    })
+  )
+}
+
 // ── Init ──
 async function init() {
   const session = await checkAccess()
@@ -608,7 +675,7 @@ async function init() {
   initSidebar()
   await loadCategories()
   await Promise.all([loadCollections(), loadPaths()])
-  await Promise.all([loadDashboard(), loadPending(), loadGuides(), loadAchievements(), loadUsers(), loadImages()])
+  await Promise.all([loadDashboard(), loadPending(), loadGuides(), loadAchievements(), loadUsers(), loadImages(), loadReports()])
 }
 
 init()
