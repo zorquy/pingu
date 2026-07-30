@@ -496,18 +496,53 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
   margin-bottom: 8px;
 }
 
 .block-editor-item-header select {
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
+  flex: 1;
+}
+
+.block-type-icon {
+  font-size: 18px;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .block-editor-item-header .remove-block {
   color: #dc2626;
   font-size: 12px;
   font-weight: 700;
+}
+
+.bbcode-toolbar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.bbcode-toolbar button {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bbcode-toolbar button:hover {
+  background: var(--ice-dark);
 }
 
 /* ── Editor de guías a página completa ── */

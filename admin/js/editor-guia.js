@@ -1,0 +1,313 @@
+import { supabase } from '../../js/supabase.js'
+import { escapeHtml, getSession } from '../../js/app.js'
+import {
+  COURSE_BLOCK_DEFAULTS,
+  REFERENCE_BLOCK_DEFAULTS,
+  flattenReferenceBlocksToText,
+  renderCourseBlockEditor,
+  renderReferenceBlockEditor,
+} from '../../js/block-editor.js'
+
+const params = new URLSearchParams(window.location.search)
+const guideId = params.get('id')
+
+const REVIEW_STATUS_BADGE = {
+  draft: '<span class="badge badge-progress">Borrador</span>',
+  pending: '<span class="badge badge-pro">Pendiente de revisión</span>',
+  approved: '<span class="badge badge-completed">Aprobada</span>',
+  rejected: '<span class="badge badge-danger">Rechazada</span>',
+}
+
+let existingGuide = null
+let categories = []
+let collectionsCache = []
+let pathsCache = []
+let existingRoutePositions = {}
+let courseBlocks = []
+let refBlocks = []
+
+async function checkAccess() {
+  const session = await getSession()
+  if (!session) {
+    window.location.href = '/auth.html'
+    return null
+  }
+  const { data: profile } = await supabase.from('user_profiles').select('is_admin').eq('id', session.user.id).single()
+  if (!profile?.is_admin) {
+    window.location.href = '/index.html'
+    return null
+  }
+  document.getElementById('adminGate').classList.add('hidden')
+  document.getElementById('editorRoot').classList.remove('hidden')
+  return session
+}
+
+function wireTabs() {
+  document.getElementById('editorTabs').querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.getElementById('editorTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
+      document.querySelectorAll('.tab-panel[id^="etab-"]').forEach((p) => p.classList.remove('active'))
+      btn.classList.add('active')
+      document.getElementById(`etab-${btn.dataset.etab}`).classList.add('active')
+    })
+  })
+}
+
+function updateCourseGate() {
+  const locked = refBlocks.length === 0
+  document.getElementById('courseLockedNotice').classList.toggle('hidden', !locked)
+  document.getElementById('courseBlockEditorContent').classList.toggle('hidden', locked)
+  document.getElementById('btnToggleRefPreview').classList.toggle('hidden', locked)
+  if (locked) document.getElementById('refPreviewPanel').classList.add('hidden')
+}
+
+function renderRef() {
+  renderReferenceBlockEditor(document.getElementById('refBlockEditorList'), refBlocks)
+}
+
+function renderCourse() {
+  renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks)
+}
+
+async function loadCategoriesAndCollections(selectedCategoryId) {
+  const [{ data: cats }, { data: cols }] = await Promise.all([
+    supabase.from('categories').select('id, name').order('order_pos'),
+    supabase.from('guide_collections').select('*').order('created_at'),
+  ])
+  categories = cats || []
+  collectionsCache = cols || []
+
+  document.getElementById('gCategory').innerHTML = categories
+    .map((c) => `<option value="${c.id}" ${c.id === selectedCategoryId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`)
+    .join('')
+
+  document.getElementById('gCategory').addEventListener('change', (e) => renderCollectionOptions(e.target.value))
+}
+
+function renderCollectionOptions(categoryId, selectedCollectionId) {
+  const forCategory = collectionsCache.filter((c) => c.category_id === categoryId)
+  document.getElementById('gCollection').innerHTML =
+    `<option value="">Ninguna</option>` +
+    forCategory.map((c) => `<option value="${c.id}" ${c.id === selectedCollectionId ? 'selected' : ''}>${escapeHtml(c.title)}</option>`).join('')
+}
+
+async function loadPaths(guide) {
+  const { data } = await supabase.from('learning_paths').select('*').order('is_featured', { ascending: false }).order('title')
+  pathsCache = data || []
+
+  if (guide) {
+    const { data: routes } = await supabase.from('guide_routes').select('route_id, position').eq('guide_id', guide.id)
+    existingRoutePositions = (routes || []).reduce((acc, r) => {
+      acc[r.route_id] = r.position
+      return acc
+    }, {})
+  }
+
+  const existingIds = guide?.route_ids || []
+  document.getElementById('guideRoutesList').innerHTML = pathsCache
+    .map((p) => {
+      const checked = existingIds.includes(p.id)
+      return `
+      <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+        <input type="checkbox" class="gr-check" data-route-id="${p.id}" ${checked ? 'checked' : ''} />
+        <span style="flex:1;">${p.emoji || ''} ${escapeHtml(p.title)}</span>
+        <input type="number" class="gr-position" data-route-id="${p.id}" placeholder="Posición" style="width: 90px;" value="${existingRoutePositions[p.id] ?? 0}" />
+      </div>`
+    })
+    .join('')
+}
+
+async function saveGuideRoutes(id, selectedRoutes) {
+  await supabase.from('guide_routes').delete().eq('guide_id', id)
+  if (selectedRoutes.length > 0) {
+    await supabase.from('guide_routes').insert(selectedRoutes.map((r) => ({ guide_id: id, route_id: r.routeId, position: r.position })))
+  }
+}
+
+async function recalcCategoryGuideCount(categoryId) {
+  if (!categoryId) return
+  const { count } = await supabase
+    .from('guides')
+    .select('*', { count: 'exact', head: true })
+    .eq('category_id', categoryId)
+    .not('published_at', 'is', null)
+  await supabase.from('categories').update({ guide_count: count || 0 }).eq('id', categoryId)
+}
+
+async function loadExistingGuide() {
+  const { data } = await supabase.from('guides').select('*').eq('id', guideId).single()
+  if (!data) return
+  existingGuide = data
+  document.getElementById('editorTitle').textContent = 'Editar guía'
+
+  document.getElementById('gTitle').value = data.title || ''
+  document.getElementById('gSlug').value = data.slug || ''
+  document.getElementById('gCoverEmoji').value = data.cover_emoji || ''
+  document.getElementById('gCoverImage').value = data.cover_image || ''
+  document.getElementById('gDescription').value = data.description || ''
+  document.getElementById('gLevel').value = data.level || 'beginner'
+  document.getElementById('gRarity').value = data.guide_rarity || 'bronze'
+  document.getElementById('gIsPro').checked = !!data.is_pro
+  document.getElementById('gXpReward').value = data.xp_reward ?? 20
+  document.getElementById('gMins').value = data.estimated_mins || 5
+  document.getElementById('gTags').value = (data.tags || []).join(', ')
+  document.getElementById('gSearchContent').value = data.search_content || ''
+  document.getElementById('gPublished').checked = !!data.published_at
+  document.getElementById('gRefUnlocked').checked = !!data.reference_unlocked_by_default
+  document.getElementById('gCollectionOrder').value = data.collection_order ?? 0
+
+  courseBlocks = JSON.parse(JSON.stringify(data.blocks || []))
+  refBlocks = JSON.parse(JSON.stringify(data.reference_blocks || []))
+
+  if (data.author_id) {
+    const { data: author } = await supabase.from('user_profiles').select('display_name, username').eq('id', data.author_id).single()
+    const authorName = author?.display_name || author?.username || 'Usuario'
+    document.getElementById('submissionBanner').innerHTML = `
+      <div class="admin-ai-generate" style="margin-top: 12px;">
+        <span>Enviada por <strong>${escapeHtml(authorName)}</strong> ${REVIEW_STATUS_BADGE[data.review_status] || ''}</span>
+        ${data.review_status === 'rejected' && data.rejection_reason ? `<span style="font-size:12px; color:#dc2626;">Motivo del rechazo: ${escapeHtml(data.rejection_reason)}</span>` : ''}
+      </div>`
+  }
+
+  if (data.review_status === 'pending') {
+    document.getElementById('btnApproveGuide').classList.remove('hidden')
+    document.getElementById('btnRejectGuide').classList.remove('hidden')
+  }
+}
+
+function buildPayload() {
+  const published = document.getElementById('gPublished').checked
+  const newCategoryId = document.getElementById('gCategory').value
+  const collectionId = document.getElementById('gCollection').value || null
+
+  const selectedRoutes = Array.from(document.querySelectorAll('.gr-check:checked')).map((chk) => ({
+    routeId: chk.dataset.routeId,
+    position: Number(document.querySelector(`.gr-position[data-route-id="${chk.dataset.routeId}"]`)?.value) || 0,
+  }))
+
+  const payload = {
+    title: document.getElementById('gTitle').value.trim(),
+    slug: document.getElementById('gSlug').value.trim(),
+    category_id: newCategoryId,
+    collection_id: collectionId,
+    collection_order: Number(document.getElementById('gCollectionOrder').value) || 0,
+    cover_emoji: document.getElementById('gCoverEmoji').value.trim(),
+    cover_image: document.getElementById('gCoverImage').value.trim() || null,
+    description: document.getElementById('gDescription').value.trim(),
+    level: document.getElementById('gLevel').value,
+    guide_rarity: document.getElementById('gRarity').value,
+    is_pro: document.getElementById('gIsPro').checked,
+    xp_reward: Number(document.getElementById('gXpReward').value) || 20,
+    estimated_mins: Number(document.getElementById('gMins').value) || 5,
+    tags: document.getElementById('gTags').value.split(',').map((s) => s.trim()).filter(Boolean),
+    search_content: document.getElementById('gSearchContent').value.trim(),
+    published_at: published ? existingGuide?.published_at || new Date().toISOString() : null,
+    reference_unlocked_by_default: document.getElementById('gRefUnlocked').checked,
+    blocks: courseBlocks,
+    reference_blocks: refBlocks,
+    has_reference_blocks: refBlocks.length > 0,
+    route_ids: selectedRoutes.map((r) => r.routeId),
+  }
+  if (existingGuide?.id) payload.id = existingGuide.id
+  return { payload, newCategoryId, selectedRoutes }
+}
+
+async function persistGuide(extraFields = {}) {
+  const { payload, newCategoryId, selectedRoutes } = buildPayload()
+  Object.assign(payload, extraFields)
+
+  const { data: saved, error } = await supabase.from('guides').upsert(payload).select('id').single()
+  if (error) {
+    alert('No se pudo guardar la guía: ' + error.message)
+    return
+  }
+  const id = saved?.id || existingGuide?.id
+  if (id) await saveGuideRoutes(id, selectedRoutes)
+
+  await recalcCategoryGuideCount(newCategoryId)
+  if (existingGuide?.category_id && existingGuide.category_id !== newCategoryId) await recalcCategoryGuideCount(existingGuide.category_id)
+
+  window.location.href = 'index.html'
+}
+
+async function init() {
+  const session = await checkAccess()
+  if (!session) return
+
+  wireTabs()
+
+  if (guideId) await loadExistingGuide()
+  await loadCategoriesAndCollections(existingGuide?.category_id)
+  renderCollectionOptions(existingGuide?.category_id || categories[0]?.id, existingGuide?.collection_id)
+  await loadPaths(existingGuide)
+
+  renderRef()
+  renderCourse()
+  updateCourseGate()
+
+  new MutationObserver(updateCourseGate).observe(document.getElementById('refBlockEditorList'), { childList: true })
+
+  document.getElementById('btnAddRefBlock').addEventListener('click', () => {
+    refBlocks.push({ ...REFERENCE_BLOCK_DEFAULTS.paragraph })
+    renderRef()
+  })
+  document.getElementById('btnAddCourseBlock').addEventListener('click', () => {
+    courseBlocks.push({ ...COURSE_BLOCK_DEFAULTS.concept })
+    renderCourse()
+  })
+
+  document.getElementById('btnToggleRefPreview').addEventListener('click', () => {
+    const panel = document.getElementById('refPreviewPanel')
+    const willShow = panel.classList.contains('hidden')
+    if (willShow) panel.textContent = flattenReferenceBlocksToText(refBlocks) || 'La documentación todavía no tiene texto.'
+    panel.classList.toggle('hidden', !willShow)
+  })
+
+  document.getElementById('btnGenerateCourseAI').addEventListener('click', async (e) => {
+    const btn = e.currentTarget
+    const title = document.getElementById('gTitle').value.trim()
+    const description = document.getElementById('gDescription').value.trim()
+    const referenceText = flattenReferenceBlocksToText(refBlocks)
+
+    if (!title || !referenceText) {
+      alert('Rellena el título y la Documentación antes de generar el curso con IA.')
+      return
+    }
+    if (courseBlocks.length > 0 && !confirm(`Esto reemplazará los ${courseBlocks.length} bloques actuales del curso por los generados. ¿Continuar?`)) {
+      return
+    }
+
+    const originalLabel = btn.textContent
+    btn.disabled = true
+    btn.textContent = 'Generando…'
+    try {
+      const res = await fetch('/.netlify/functions/generate-course', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ title, description, referenceText, blockCount: 7 }),
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Error desconocido')
+      courseBlocks.splice(0, courseBlocks.length, ...result.blocks)
+      renderCourse()
+    } catch (err) {
+      alert('No se pudo generar el curso con IA:\n' + err.message)
+    } finally {
+      btn.disabled = false
+      btn.textContent = originalLabel
+    }
+  })
+
+  document.getElementById('btnSaveGuide').addEventListener('click', () => persistGuide())
+  document.getElementById('btnApproveGuide').addEventListener('click', () =>
+    persistGuide({ review_status: 'approved', published_at: new Date().toISOString() })
+  )
+  document.getElementById('btnRejectGuide').addEventListener('click', async () => {
+    const reason = window.prompt('¿Por qué se rechaza esta guía? (se le mostrará al autor)')
+    if (reason === null) return
+    await supabase.from('guides').update({ review_status: 'rejected', rejection_reason: reason }).eq('id', existingGuide.id)
+    window.location.href = 'index.html'
+  })
+}
+
+init()

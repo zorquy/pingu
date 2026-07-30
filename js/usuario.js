@@ -9,6 +9,9 @@ let profileId = params.get('id')
 
 let currentSession = null
 let profile = null
+let achievementsCache = []
+let followingCache = []
+let followerCache = []
 
 async function resolveProfileId() {
   if (profileId) return true
@@ -24,6 +27,25 @@ function starsHtml(rating, size = 16) {
     .join('')
 }
 
+// ── Modal genérico (popups de Siguiendo/Seguidores/Trofeos) ──
+const modal = document.getElementById('profileModal')
+const modalContent = document.getElementById('profileModalContent')
+
+function openModal(html) {
+  modalContent.innerHTML = html
+  modal.classList.remove('hidden')
+}
+
+function closeModal() {
+  modal.classList.add('hidden')
+  modalContent.innerHTML = ''
+}
+
+document.getElementById('profileModalClose')?.addEventListener('click', closeModal)
+modal?.addEventListener('click', (e) => {
+  if (e.target === modal) closeModal()
+})
+
 async function loadHeader() {
   const { data } = await supabase.from('user_profiles').select('*').eq('id', profileId).single()
   profile = data
@@ -32,23 +54,31 @@ async function loadHeader() {
   const name = profile.display_name || profile.username || 'Usuario'
   const xp = profile.total_xp || 0
   const progress = levelProgress(xp)
-  const avatarColor = profile.avatar_color || 'var(--navy)'
-  const bannerColor = profile.banner_color || 'var(--ice)'
+
+  document.title = `${name} — PokeDoc`
+
+  const banner = document.getElementById('heroBanner')
+  banner.style.background = profile.banner_url
+    ? `url('${profile.banner_url.replace(/'/g, '%27')}') center/cover`
+    : profile.banner_color || 'var(--ice)'
+
+  const avatar = document.getElementById('heroAvatar')
+  if (profile.avatar_url) {
+    avatar.style.backgroundImage = `url('${profile.avatar_url.replace(/'/g, '%27')}')`
+    avatar.textContent = ''
+  } else {
+    avatar.style.backgroundColor = profile.avatar_color || 'var(--navy)'
+    avatar.textContent = getInitial(name)
+  }
 
   const achievements = await getAllAchievements()
   const showcase = achievements.find((a) => a.id === profile.showcase_achievement)
 
-  document.title = `${name} — PokeDoc`
-
-  document.getElementById('profileHeader').innerHTML = `
-    <div class="profile-banner" style="background:${bannerColor}"></div>
-    <div class="profile-avatar" style="background:${avatarColor}">${getInitial(name)}</div>
-    <div class="profile-info">
-      <h2>${escapeHtml(name)}${profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
-      <div class="profile-level">${progress.level} · ${xp} XP</div>
-      ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
-      ${showcase ? `<div class="achievement-tile" style="display:inline-flex; margin-top:8px; width:auto; flex-direction:row; gap:8px; align-items:center; padding:6px 12px;"><span class="icon rarity-${showcase.rarity || 'bronze'}" style="width:28px;height:28px;font-size:16px;">${showcase.emoji || '🏆'}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}
-    </div>`
+  document.getElementById('heroInfo').innerHTML = `
+    <h2>${escapeHtml(name)}${profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
+    <div class="profile-level">${progress.level} · ${xp} XP</div>
+    ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
+    ${showcase ? `<div class="achievement-tile" style="display:inline-flex; margin-top:8px; width:auto; flex-direction:row; gap:8px; align-items:center; padding:6px 12px;"><span class="icon rarity-${showcase.rarity || 'bronze'}" style="width:28px;height:28px;font-size:16px;">${showcase.emoji || '🏆'}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`
 
   return true
 }
@@ -158,6 +188,19 @@ function followChipHtml(p) {
   return `<a class="follow-avatar-chip" href="${profileUrl(p)}"><span class="mini-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
 }
 
+function openFollowListModal(title, list, emptyMessage) {
+  openModal(`
+    <h3>${title}</h3>
+    <div class="follow-avatar-row">${list.length ? list.map(followChipHtml).join('') : `<p class="empty-state">${emptyMessage}</p>`}</div>`)
+}
+
+document.getElementById('btnShowFollowing')?.addEventListener('click', () =>
+  openFollowListModal('Siguiendo', followingCache, 'Todavía no sigue a nadie.')
+)
+document.getElementById('btnShowFollowers')?.addEventListener('click', () =>
+  openFollowListModal('Seguidores', followerCache, 'Todavía no tiene seguidores.')
+)
+
 async function loadFollowSummary() {
   const [{ data: following }, { data: followers }] = await Promise.all([
     supabase.from('user_follows').select('following_id').eq('follower_id', profileId),
@@ -177,41 +220,33 @@ async function loadFollowSummary() {
     profilesById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
   }
 
-  const followingListEl = document.getElementById('followingList')
-  const followersListEl = document.getElementById('followersList')
-  followingListEl.innerHTML = followingIds.length
-    ? followingIds.map((id) => followChipHtml(profilesById[id] || { id })).join('')
-    : `<p class="empty-state">Todavía no sigue a nadie.</p>`
-  followersListEl.innerHTML = followerIds.length
-    ? followerIds.map((id) => followChipHtml(profilesById[id] || { id })).join('')
-    : `<p class="empty-state">Todavía no tiene seguidores.</p>`
-
-  document.getElementById('btnShowFollowing').addEventListener('click', () => {
-    followingListEl.classList.remove('hidden')
-    followersListEl.classList.add('hidden')
-  })
-  document.getElementById('btnShowFollowers').addEventListener('click', () => {
-    followersListEl.classList.remove('hidden')
-    followingListEl.classList.add('hidden')
-  })
+  followingCache = followingIds.map((id) => profilesById[id] || { id })
+  followerCache = followerIds.map((id) => profilesById[id] || { id })
 }
 
 // ── Trofeos ──
-async function loadAchievementsGrid() {
-  const unlocked = profile?.achievements || []
-  const all = await getAllAchievements()
-  const grid = document.getElementById('achievementsGrid')
-  grid.innerHTML = all
-    .map((a) => {
-      const isUnlocked = unlocked.includes(a.id)
-      return `
+function achievementTileHtml(a, unlocked) {
+  const isUnlocked = unlocked.includes(a.id)
+  return `
       <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
         <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? a.emoji || '🏆' : '🔒'}</span>
         <span class="name">${escapeHtml(a.title)}</span>
       </div>`
-    })
-    .join('')
 }
+
+async function loadAchievementsGrid() {
+  const unlocked = profile?.achievements || []
+  achievementsCache = await getAllAchievements()
+  document.getElementById('heroTrophyCount').textContent = unlocked.length
+  document.getElementById('achievementsGrid').innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
+}
+
+document.getElementById('btnShowTrophies')?.addEventListener('click', () => {
+  const unlocked = profile?.achievements || []
+  openModal(`
+    <h3>Trofeos (${unlocked.length}/${achievementsCache.length})</h3>
+    <div class="achievements-grid">${achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')}</div>`)
+})
 
 async function namesForIds(ids) {
   const uniqueIds = [...new Set(ids)]

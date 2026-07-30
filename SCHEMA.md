@@ -227,19 +227,38 @@ RLS: la lectura pública de `guides` pasó de "todas las filas" a solo
 viendo todo). El autor puede insertar/editar/borrar sus propias filas solo
 mientras están en `draft` o `rejected`.
 
-**Editor a página completa** (`editor-guia.html` / `js/editor-guia.js`):
-desde "Mis guías" en el perfil, crear o editar una guía ya no abre un
-modal pequeño — navega a esta página dedicada (`?id=<guía>` para editar,
-sin parámetro para una nueva). Reutiliza `js/block-editor.js` tal cual,
-solo que con más espacio y bloques más grandes. Regla nueva: **el curso
-interactivo está bloqueado hasta que la Documentación tenga al menos un
-bloque** — un `MutationObserver` sobre la lista de bloques de referencia
-decide si mostrar el aviso de bloqueo o el editor del curso, y mientras se
-edita el curso hay un botón "Ver documentación" que muestra el texto de
+**Editor a página completa** (`editor-guia.html` / `js/editor-guia.js`
+para "Mis guías" en el perfil; `admin/editor-guia.html` /
+`admin/js/editor-guia.js` para `/admin`): crear o editar una guía ya no
+abre un modal pequeño en ninguno de los dos sitios — navega a una página
+dedicada (`?id=<guía>` para editar, sin parámetro para una nueva).
+Ambas comparten la misma estructura de pestañas para no tener un scroll
+kilométrico: **"General y Documentación"** y **"🎓 Curso interactivo"**;
+la versión de admin añade una tercera pestaña **"⚙️ Avanzado"** con lo
+que solo gestiona un moderador (rareza, XP, Pro, tags, contenido de
+búsqueda, publicar, rutas) y conserva el generador con IA y los botones
+Aprobar/Rechazar sobre guías pendientes. Ambas reutilizan
+`js/block-editor.js` tal cual, con bloques más grandes y espaciosos.
+
+Regla nueva en ambos editores: **el curso interactivo está bloqueado
+hasta que la Documentación tenga al menos un bloque** — un
+`MutationObserver` sobre la lista de bloques de referencia decide si
+mostrar el aviso de bloqueo o el editor del curso, y mientras se edita el
+curso hay un botón "Ver documentación" que muestra el texto de
 referencia ya escrito (aplanado con `flattenReferenceBlocksToText`) para
-no tener que ir y venir entre pestañas. El editor de `/admin` (con rutas,
-rareza, aprobar/rechazar, generador con IA) se queda como estaba, en su
-modal — no se ha tocado.
+no tener que ir y venir entre pestañas.
+
+**BBCode** (`js/bbcode.js`): los campos de texto largo del editor de
+bloques (párrafos de la documentación, cuerpo de los bloques de
+concepto/aviso/consejo/ejemplo, subtexto del enganche) tienen una
+pequeña barra de formato estilo foro antiguo — **B**, *I*, <u>U</u>,
+enlace y lista — que inserta `[b]`, `[i]`, `[u]`, `[url=...]` y
+`[list][*]...[/list]` en el textarea. `parseBBCode()` escapa el HTML
+primero y solo después sustituye esas etiquetas por `<strong>`/`<em>`
+/etc., así que no hay forma de inyectar HTML a través del texto del
+usuario; los enlaces `[url=]` además se descartan si no empiezan por
+`http(s)://`. Se aplica al renderizar en `guia.js` (párrafo/destacado) y
+`curso.js` (cuerpo y subtexto de bloques tipo concepto).
 
 ## `profile_comments` (muro del perfil)
 `id` · `profile_id` (de quién es el muro) · `author_id` (quién escribe) ·

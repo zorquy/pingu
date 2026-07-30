@@ -1,4 +1,5 @@
 import { escapeHtml } from './app.js'
+import { bbcodeToolbarHtml, wireBBCodeToolbars } from './bbcode.js'
 
 export const COURSE_BLOCK_DEFAULTS = {
   hook: { type: 'hook', emoji: '👋', headline: '', subtext: '' },
@@ -23,13 +24,37 @@ export const REFERENCE_BLOCK_DEFAULTS = {
   highlight: { type: 'highlight', text: '' },
 }
 
+export const COURSE_BLOCK_LABELS = {
+  hook: { icon: '👋', label: 'Enganche inicial' },
+  concept: { icon: '💡', label: 'Concepto' },
+  warning: { icon: '⚠️', label: 'Aviso' },
+  tip: { icon: '💡', label: 'Consejo' },
+  example: { icon: '📌', label: 'Ejemplo' },
+  quiz: { icon: '❓', label: 'Pregunta' },
+  truefalse: { icon: '✅', label: 'Verdadero o falso' },
+  fillblank: { icon: '✏️', label: 'Rellenar hueco' },
+  match: { icon: '🔗', label: 'Relacionar parejas' },
+  order: { icon: '🔢', label: 'Ordenar pasos' },
+  checklist: { icon: '☑️', label: 'Checklist' },
+  reward: { icon: '🏆', label: 'Recompensa final' },
+}
+
+export const REFERENCE_BLOCK_LABELS = {
+  heading: { icon: '🔠', label: 'Encabezado' },
+  paragraph: { icon: '📝', label: 'Párrafo' },
+  image: { icon: '🖼️', label: 'Imagen' },
+  list: { icon: '📋', label: 'Lista' },
+  highlight: { icon: '⭐', label: 'Destacado' },
+}
+
 export function fieldsForCourseBlock(block, i) {
   switch (block.type) {
     case 'hook':
       return `
         <input class="be-field" data-i="${i}" data-f="emoji" placeholder="Emoji" value="${escapeHtml(block.emoji || '')}" />
         <input class="be-field" data-i="${i}" data-f="headline" placeholder="Titular" value="${escapeHtml(block.headline || '')}" />
-        <textarea class="be-field" data-i="${i}" data-f="subtext" placeholder="Subtexto">${escapeHtml(block.subtext || '')}</textarea>`
+        ${bbcodeToolbarHtml(`cb-subtext-${i}`)}
+        <textarea class="be-field" id="cb-subtext-${i}" data-i="${i}" data-f="subtext" placeholder="Subtexto">${escapeHtml(block.subtext || '')}</textarea>`
     case 'concept':
     case 'warning':
     case 'tip':
@@ -37,7 +62,8 @@ export function fieldsForCourseBlock(block, i) {
       return `
         <input class="be-field" data-i="${i}" data-f="emoji" placeholder="Emoji" value="${escapeHtml(block.emoji || '')}" />
         <input class="be-field" data-i="${i}" data-f="title" placeholder="Título" value="${escapeHtml(block.title || '')}" />
-        <textarea class="be-field" data-i="${i}" data-f="body" placeholder="Texto">${escapeHtml(block.body || '')}</textarea>
+        ${bbcodeToolbarHtml(`cb-body-${i}`)}
+        <textarea class="be-field" id="cb-body-${i}" data-i="${i}" data-f="body" placeholder="Texto">${escapeHtml(block.body || '')}</textarea>
         <input class="be-field" data-i="${i}" data-f="image_url" placeholder="URL de imagen (opcional)" value="${escapeHtml(block.image_url || '')}" />
         <input class="be-field" data-i="${i}" data-f="highlight" placeholder="Destacado (opcional)" value="${escapeHtml(block.highlight || '')}" />`
     case 'quiz':
@@ -88,7 +114,9 @@ export function fieldsForReferenceBlock(block, i) {
     case 'highlight':
       return `<input class="rbe-field" data-i="${i}" data-f="text" placeholder="Texto" value="${escapeHtml(block.text || '')}" />`
     case 'paragraph':
-      return `<textarea class="rbe-field" data-i="${i}" data-f="text" placeholder="Texto">${escapeHtml(block.text || '')}</textarea>`
+      return `
+        ${bbcodeToolbarHtml(`rb-text-${i}`)}
+        <textarea class="rbe-field" id="rb-text-${i}" data-i="${i}" data-f="text" placeholder="Texto">${escapeHtml(block.text || '')}</textarea>`
     case 'image':
       return `
         <input class="rbe-field" data-i="${i}" data-f="url" placeholder="URL de imagen" value="${escapeHtml(block.url || '')}" />
@@ -148,9 +176,10 @@ export function renderCourseBlockEditor(containerEl, blocks) {
       (b, i) => `
     <div class="block-editor-item" data-index="${i}">
       <div class="block-editor-item-header">
+        <span class="block-type-icon">${COURSE_BLOCK_LABELS[b.type]?.icon || '📦'}</span>
         <select class="be-type" data-i="${i}">
           ${Object.keys(COURSE_BLOCK_DEFAULTS)
-            .map((t) => `<option value="${t}" ${t === b.type ? 'selected' : ''}>${t}</option>`)
+            .map((t) => `<option value="${t}" ${t === b.type ? 'selected' : ''}>${escapeHtml(COURSE_BLOCK_LABELS[t]?.label || t)}</option>`)
             .join('')}
         </select>
         <span class="remove-block" data-i="${i}">Quitar ×</span>
@@ -197,6 +226,7 @@ export function renderCourseBlockEditor(containerEl, blocks) {
     })
   )
   makeSortable(containerEl, blocks, () => renderCourseBlockEditor(containerEl, blocks))
+  wireBBCodeToolbars(containerEl)
 }
 
 export function renderReferenceBlockEditor(containerEl, blocks) {
@@ -205,9 +235,10 @@ export function renderReferenceBlockEditor(containerEl, blocks) {
       (b, i) => `
     <div class="block-editor-item" data-index="${i}">
       <div class="block-editor-item-header">
+        <span class="block-type-icon">${REFERENCE_BLOCK_LABELS[b.type]?.icon || '📦'}</span>
         <select class="rbe-type" data-i="${i}">
           ${Object.keys(REFERENCE_BLOCK_DEFAULTS)
-            .map((t) => `<option value="${t}" ${t === b.type ? 'selected' : ''}>${t}</option>`)
+            .map((t) => `<option value="${t}" ${t === b.type ? 'selected' : ''}>${escapeHtml(REFERENCE_BLOCK_LABELS[t]?.label || t)}</option>`)
             .join('')}
         </select>
         <span class="remove-block" data-i="${i}">Quitar ×</span>
@@ -238,4 +269,5 @@ export function renderReferenceBlockEditor(containerEl, blocks) {
     })
   )
   makeSortable(containerEl, blocks, () => renderReferenceBlockEditor(containerEl, blocks))
+  wireBBCodeToolbars(containerEl)
 }

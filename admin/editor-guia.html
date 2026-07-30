@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor de guía — Admin PokeDoc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/admin/css/admin.css" />
+</head>
+<body>
+  <div id="adminGate" class="admin-gate">
+    <p>Comprobando acceso…</p>
+  </div>
+
+  <main class="page-content container hidden" id="editorRoot">
+    <div class="editor-header">
+      <a href="index.html" class="editor-back">← Volver al panel</a>
+      <h1 id="editorTitle">Nueva guía</h1>
+      <div id="submissionBanner"></div>
+    </div>
+
+    <div class="tabs" id="editorTabs">
+      <button class="tab-btn active" data-etab="general">General y Documentación</button>
+      <button class="tab-btn" data-etab="course">🎓 Curso interactivo</button>
+      <button class="tab-btn" data-etab="advanced">⚙️ Avanzado</button>
+    </div>
+
+    <div class="tab-panel active" id="etab-general">
+      <section class="editor-panel">
+        <h2 class="section-title">General</h2>
+        <div class="editor-general-grid">
+          <div class="form-group"><label>Título</label><input id="gTitle" placeholder="Título de la guía" /></div>
+          <div class="form-group"><label>Slug</label><input id="gSlug" placeholder="slug-de-la-guia" /></div>
+          <div class="form-group"><label>Categoría</label><select id="gCategory"></select></div>
+          <div class="form-group"><label>Colección (opcional)</label><select id="gCollection"></select></div>
+          <div class="form-group"><label>Orden en la colección</label><input id="gCollectionOrder" type="number" value="0" /></div>
+          <div class="form-group"><label>Emoji de portada</label><input id="gCoverEmoji" placeholder="📘" /></div>
+          <div class="form-group"><label>Imagen de portada (URL)</label><input id="gCoverImage" placeholder="https://..." /></div>
+          <div class="form-group"><label>Nivel</label>
+            <select id="gLevel">
+              <option value="beginner">Básico</option>
+              <option value="intermediate">Intermedio</option>
+              <option value="advanced">Avanzado</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Descripción</label><textarea id="gDescription"></textarea></div>
+      </section>
+
+      <section class="editor-panel">
+        <h2 class="section-title">📖 Documentación</h2>
+        <p class="subtext" style="margin-top:-8px;">El contenido de referencia. El curso interactivo se construye a partir de aquí.</p>
+        <div id="refBlockEditorList" class="editor-block-list"></div>
+        <button class="btn-secondary" id="btnAddRefBlock">+ Añadir bloque</button>
+      </section>
+    </div>
+
+    <div class="tab-panel" id="etab-course">
+      <section class="editor-panel" id="courseSection">
+        <div class="admin-ai-generate">
+          <button class="btn-secondary" id="btnGenerateCourseAI">✨ Generar con IA</button>
+          <span style="font-size:12px; color: var(--text-mid);">Usa el título, la descripción y la documentación para proponer bloques. Podrás revisarlos y editarlos antes de guardar.</span>
+        </div>
+
+        <div class="section-header-row">
+          <h2 class="section-title">🎓 Curso interactivo</h2>
+          <button class="btn-outline hidden" id="btnToggleRefPreview" type="button">👁 Ver documentación</button>
+        </div>
+
+        <div class="empty-state" id="courseLockedNotice">
+          🔒 Añade al menos un bloque en <strong>Documentación</strong> antes de crear el curso interactivo.
+        </div>
+
+        <div id="refPreviewPanel" class="editor-ref-preview hidden"></div>
+
+        <div id="courseBlockEditorContent" class="hidden">
+          <div id="blockEditorList" class="editor-block-list"></div>
+          <button class="btn-secondary" id="btnAddCourseBlock">+ Añadir bloque</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-panel" id="etab-advanced">
+      <section class="editor-panel">
+        <h2 class="section-title">Moderación y metadatos</h2>
+        <div class="editor-general-grid">
+          <div class="form-group"><label>Rareza</label>
+            <select id="gRarity">
+              <option value="bronze">bronze</option>
+              <option value="silver">silver</option>
+              <option value="gold">gold</option>
+              <option value="platinum">platinum</option>
+            </select>
+          </div>
+          <div class="form-group"><label>XP de recompensa</label><input id="gXpReward" type="number" value="20" /></div>
+          <div class="form-group"><label>Minutos estimados</label><input id="gMins" type="number" value="5" /></div>
+          <div class="form-group"><label>Tags (separados por coma)</label><input id="gTags" /></div>
+        </div>
+        <div class="form-group"><label><input type="checkbox" id="gIsPro" /> Contenido Pro</label></div>
+        <div class="form-group"><label><input type="checkbox" id="gPublished" /> Publicada</label></div>
+        <div class="form-group"><label><input type="checkbox" id="gRefUnlocked" /> Documentación desbloqueada por defecto (si no, hay que completar el curso primero)</label></div>
+        <div class="form-group"><label>Contenido de búsqueda</label><textarea id="gSearchContent"></textarea></div>
+      </section>
+
+      <section class="editor-panel">
+        <h2 class="section-title">🧭 Rutas</h2>
+        <div id="guideRoutesList"></div>
+      </section>
+    </div>
+
+    <div class="editor-actions">
+      <button class="btn-outline hidden" id="btnRejectGuide">Rechazar</button>
+      <button class="btn-primary hidden" id="btnApproveGuide" style="background: var(--success);">Aprobar y publicar</button>
+      <button class="btn-primary" id="btnSaveGuide">Guardar</button>
+    </div>
+  </main>
+
+  <script type="module" src="js/editor-guia.js"></script>
+</body>
+</html>

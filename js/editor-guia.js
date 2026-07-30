@@ -110,9 +110,22 @@ async function save(reviewStatus) {
   window.location.href = 'perfil.html'
 }
 
+function wireTabs() {
+  document.getElementById('editorTabs').querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.getElementById('editorTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
+      document.querySelectorAll('.tab-panel[id^="etab-"]').forEach((p) => p.classList.remove('active'))
+      btn.classList.add('active')
+      document.getElementById(`etab-${btn.dataset.etab}`).classList.add('active')
+    })
+  })
+}
+
 async function init() {
   currentSession = await requireAuth()
   if (!currentSession) return
+
+  wireTabs()
 
   if (guideId) await loadExistingGuide(currentSession)
   await loadCategoriesForSelect(existingGuide?.category_id)

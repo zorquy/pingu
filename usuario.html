@@ -35,8 +35,19 @@
   </nav>
 
   <main class="page-content container-narrow">
-    <div class="profile-header" id="profileHeader">
-      <div class="skeleton" style="width: 72px; height: 72px; border-radius: 50%;"></div>
+    <div class="profile-hero" id="profileHero">
+      <div class="profile-hero-banner" id="heroBanner"></div>
+      <div class="profile-hero-body">
+        <div class="profile-hero-avatar-wrap">
+          <div class="profile-hero-avatar" id="heroAvatar">?</div>
+        </div>
+        <div class="profile-hero-info" id="heroInfo"></div>
+      </div>
+      <div class="profile-hero-social">
+        <button class="hero-social-item" id="btnShowFollowing" type="button"><strong id="followingCount">0</strong> Siguiendo</button>
+        <button class="hero-social-item" id="btnShowFollowers" type="button"><strong id="followersCount">0</strong> Seguidores</button>
+        <button class="hero-social-item" id="btnShowTrophies" type="button">🏆 <strong id="heroTrophyCount">0</strong> Trofeos</button>
+      </div>
     </div>
 
     <button class="btn-primary hidden" id="btnFollowToggle" style="margin-bottom: 20px;"></button>
@@ -60,16 +71,7 @@
     </div>
 
     <div class="tab-panel" id="ptab-about">
-      <div class="about-block">
-        <div class="follow-summary-row">
-          <button class="follow-summary-item" id="btnShowFollowing" type="button"><strong id="followingCount">0</strong><span>Siguiendo</span></button>
-          <button class="follow-summary-item" id="btnShowFollowers" type="button"><strong id="followersCount">0</strong><span>Seguidores</span></button>
-        </div>
-        <div class="follow-avatar-row hidden" id="followingList"></div>
-        <div class="follow-avatar-row hidden" id="followersList"></div>
-      </div>
-
-      <h2 class="section-title">Trofeos</h2>
+      <h2 class="section-title">🏆 Trofeos</h2>
       <div class="achievements-grid about-block" id="achievementsGrid"></div>
 
       <h2 class="section-title">Reseñas</h2>
@@ -79,6 +81,13 @@
   </main>
 
   <footer class="footer">© 2026 PokeDoc — Hecho para coleccionistas.</footer>
+
+  <div class="modal-overlay hidden" id="profileModal">
+    <div class="modal-box modal-box-wide">
+      <span class="modal-close" id="profileModalClose">×</span>
+      <div id="profileModalContent"></div>
+    </div>
+  </div>
 
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/usuario.js"></script>

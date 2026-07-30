@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, burstConfetti } from './app.js'
 import { markCourseStarted, markCourseCompleted, addXP, incrementQuizCorrect } from './gamification.js'
+import { parseBBCode } from './bbcode.js'
 
 let blocks = []
 let currentIndex = 0
@@ -42,7 +43,7 @@ function renderHook(b) {
     <div class="block block-hook">
       <span class="block-emoji">${b.emoji || '👋'}</span>
       <h1 class="block-headline">${escapeHtml(b.headline || '')}</h1>
-      <p class="block-subtext">${escapeHtml(b.subtext || '')}</p>
+      <p class="block-subtext">${parseBBCode(b.subtext || '')}</p>
     </div>`
 }
 
@@ -55,8 +56,8 @@ function renderConceptLike(b, extraClass, label) {
       </div>
       ${b.image_url ? `<img src="${b.image_url}" class="block-image" onerror="this.style.display='none'">` : ''}
       <h2 class="block-title">${escapeHtml(b.title || '')}</h2>
-      <p class="block-body">${escapeHtml(b.body || '')}</p>
-      ${b.highlight ? `<div class="block-highlight">${escapeHtml(b.highlight)}</div>` : ''}
+      <p class="block-body">${parseBBCode(b.body || '')}</p>
+      ${b.highlight ? `<div class="block-highlight">${parseBBCode(b.highlight)}</div>` : ''}
     </div>`
 }
 

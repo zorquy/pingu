@@ -40,48 +40,57 @@
       <h1 id="editorTitle">Nueva guía</h1>
     </div>
 
-    <section class="editor-panel">
-      <h2 class="section-title">General</h2>
-      <div class="editor-general-grid">
-        <div class="form-group"><label>Título</label><input id="mgTitle" placeholder="Título de la guía" /></div>
-        <div class="form-group"><label>Categoría</label><select id="mgCategory"></select></div>
-        <div class="form-group"><label>Emoji de portada</label><input id="mgCoverEmoji" placeholder="📘" /></div>
-        <div class="form-group"><label>Nivel</label>
-          <select id="mgLevel">
-            <option value="beginner">Básico</option>
-            <option value="intermediate">Intermedio</option>
-            <option value="advanced">Avanzado</option>
-          </select>
+    <div class="tabs" id="editorTabs">
+      <button class="tab-btn active" data-etab="general">General y Documentación</button>
+      <button class="tab-btn" data-etab="course">🎓 Curso interactivo</button>
+    </div>
+
+    <div class="tab-panel active" id="etab-general">
+      <section class="editor-panel">
+        <h2 class="section-title">General</h2>
+        <div class="editor-general-grid">
+          <div class="form-group"><label>Título</label><input id="mgTitle" placeholder="Título de la guía" /></div>
+          <div class="form-group"><label>Categoría</label><select id="mgCategory"></select></div>
+          <div class="form-group"><label>Emoji de portada</label><input id="mgCoverEmoji" placeholder="📘" /></div>
+          <div class="form-group"><label>Nivel</label>
+            <select id="mgLevel">
+              <option value="beginner">Básico</option>
+              <option value="intermediate">Intermedio</option>
+              <option value="advanced">Avanzado</option>
+            </select>
+          </div>
         </div>
-      </div>
-      <div class="form-group"><label>Descripción</label><textarea id="mgDescription" placeholder="De qué trata esta guía"></textarea></div>
-      <p class="subtext">La rareza, el XP y si se destaca en la web los decide el equipo de moderación al aprobarla.</p>
-    </section>
+        <div class="form-group"><label>Descripción</label><textarea id="mgDescription" placeholder="De qué trata esta guía"></textarea></div>
+        <p class="subtext">La rareza, el XP y si se destaca en la web los decide el equipo de moderación al aprobarla.</p>
+      </section>
 
-    <section class="editor-panel">
-      <h2 class="section-title">📖 Documentación</h2>
-      <p class="subtext" style="margin-top:-8px;">El contenido de referencia: la teoría a fondo, con calma y sin prisa. Escribe esto primero — el curso interactivo se construye a partir de aquí.</p>
-      <div id="refBlockEditorList" class="editor-block-list"></div>
-      <button class="btn-secondary" id="btnAddRefBlock">+ Añadir bloque</button>
-    </section>
+      <section class="editor-panel">
+        <h2 class="section-title">📖 Documentación</h2>
+        <p class="subtext" style="margin-top:-8px;">El contenido de referencia: la teoría a fondo, con calma y sin prisa. Escribe esto primero — el curso interactivo se construye a partir de aquí.</p>
+        <div id="refBlockEditorList" class="editor-block-list"></div>
+        <button class="btn-secondary" id="btnAddRefBlock">+ Añadir bloque</button>
+      </section>
+    </div>
 
-    <section class="editor-panel" id="courseSection">
-      <div class="section-header-row">
-        <h2 class="section-title">🎓 Curso interactivo</h2>
-        <button class="btn-outline hidden" id="btnToggleRefPreview" type="button">👁 Ver documentación</button>
-      </div>
+    <div class="tab-panel" id="etab-course">
+      <section class="editor-panel" id="courseSection">
+        <div class="section-header-row">
+          <h2 class="section-title">🎓 Curso interactivo</h2>
+          <button class="btn-outline hidden" id="btnToggleRefPreview" type="button">👁 Ver documentación</button>
+        </div>
 
-      <div class="empty-state" id="courseLockedNotice">
-        🔒 Añade al menos un bloque en <strong>Documentación</strong> antes de crear el curso interactivo. El curso se construye a partir de esa base.
-      </div>
+        <div class="empty-state" id="courseLockedNotice">
+          🔒 Añade al menos un bloque en <strong>Documentación</strong> antes de crear el curso interactivo. El curso se construye a partir de esa base.
+        </div>
 
-      <div id="refPreviewPanel" class="editor-ref-preview hidden"></div>
+        <div id="refPreviewPanel" class="editor-ref-preview hidden"></div>
 
-      <div id="courseBlockEditorContent" class="hidden">
-        <div id="blockEditorList" class="editor-block-list"></div>
-        <button class="btn-secondary" id="btnAddCourseBlock">+ Añadir bloque</button>
-      </div>
-    </section>
+        <div id="courseBlockEditorContent" class="hidden">
+          <div id="blockEditorList" class="editor-block-list"></div>
+          <button class="btn-secondary" id="btnAddCourseBlock">+ Añadir bloque</button>
+        </div>
+      </section>
+    </div>
 
     <div class="editor-actions">
       <button class="btn-outline" id="btnSaveDraft">Guardar borrador</button>

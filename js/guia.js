@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, getProfile, profileUrl } from './app.js'
+import { parseBBCode } from './bbcode.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -14,13 +15,13 @@ function renderReferenceBlock(block, headings) {
       return `<h2 id="${id}">${escapeHtml(block.text || '')}</h2>`
     }
     case 'paragraph':
-      return `<p>${escapeHtml(block.text || '')}</p>`
+      return `<p>${parseBBCode(block.text || '')}</p>`
     case 'image':
       return `<img src="${block.url}" alt="${escapeHtml(block.caption || '')}" onerror="this.style.display='none'">`
     case 'list':
       return `<ul>${(block.items || []).map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`
     case 'highlight':
-      return `<div class="block-highlight">${escapeHtml(block.text || '')}</div>`
+      return `<div class="block-highlight">${parseBBCode(block.text || '')}</div>`
     default:
       return ''
   }
