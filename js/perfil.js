@@ -1,12 +1,10 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl } from './app.js'
 import { getAllAchievements, levelProgress } from './gamification.js'
-import { renderCourseBlockEditor, renderReferenceBlockEditor } from './block-editor.js'
 import { renderWall } from './wall.js'
 
 let currentSession = null
 let currentProfile = null
-let categoriesCache = []
 let achievementsCache = []
 
 const REVIEW_STATUS_LABELS = {
@@ -92,22 +90,30 @@ async function loadStats(session, profile) {
     </div>`
 }
 
+function achievementTileHtml(a, unlocked) {
+  const isUnlocked = unlocked.includes(a.id)
+  return `
+      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
+        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? a.emoji || '🏆' : '🔒'}</span>
+        <span class="name">${escapeHtml(a.title)}</span>
+      </div>`
+}
+
 async function loadAchievements(profile) {
   const unlocked = profile?.achievements || []
   const grid = document.getElementById('achievementsGrid')
   achievementsCache = await getAllAchievements()
   document.getElementById('achievementsCount').textContent = `${unlocked.length}/${achievementsCache.length}`
-  grid.innerHTML = achievementsCache
-    .map((a) => {
-      const isUnlocked = unlocked.includes(a.id)
-      return `
-      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
-        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? a.emoji || '🏆' : '🔒'}</span>
-        <span class="name">${escapeHtml(a.title)}</span>
-      </div>`
-    })
-    .join('')
+  document.getElementById('heroTrophyCount').textContent = unlocked.length
+  grid.innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
 }
+
+document.getElementById('btnShowTrophies')?.addEventListener('click', () => {
+  const unlocked = currentProfile?.achievements || []
+  openModal(`
+    <h3>Trofeos (${unlocked.length}/${achievementsCache.length})</h3>
+    <div class="achievements-grid">${achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')}</div>`)
+})
 
 document.getElementById('achievementsToggle')?.addEventListener('click', () => {
   document.getElementById('achievementsAccordion').classList.toggle('open')
@@ -132,6 +138,9 @@ function followChipHtml(p) {
   return `<a class="follow-avatar-chip" href="${profileUrl(p)}"><span class="mini-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
 }
 
+let followingCache = []
+let followerCache = []
+
 async function loadFollowSummary(session) {
   const [{ data: following }, { data: followers }] = await Promise.all([
     supabase.from('user_follows').select('following_id').eq('follower_id', session.user.id),
@@ -151,24 +160,22 @@ async function loadFollowSummary(session) {
     profilesById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
   }
 
-  const followingListEl = document.getElementById('followingList')
-  const followersListEl = document.getElementById('followersList')
-  followingListEl.innerHTML = followingIds.length
-    ? followingIds.map((id) => followChipHtml(profilesById[id] || { id })).join('')
-    : `<p class="empty-state">Todavía no sigues a nadie.</p>`
-  followersListEl.innerHTML = followerIds.length
-    ? followerIds.map((id) => followChipHtml(profilesById[id] || { id })).join('')
-    : `<p class="empty-state">Todavía no tienes seguidores.</p>`
-
-  document.getElementById('btnShowFollowing').addEventListener('click', () => {
-    followingListEl.classList.remove('hidden')
-    followersListEl.classList.add('hidden')
-  })
-  document.getElementById('btnShowFollowers').addEventListener('click', () => {
-    followersListEl.classList.remove('hidden')
-    followingListEl.classList.add('hidden')
-  })
+  followingCache = followingIds.map((id) => profilesById[id] || { id })
+  followerCache = followerIds.map((id) => profilesById[id] || { id })
 }
+
+function openFollowListModal(title, list, emptyMessage) {
+  openModal(`
+    <h3>${title}</h3>
+    <div class="follow-avatar-row">${list.length ? list.map(followChipHtml).join('') : `<p class="empty-state">${emptyMessage}</p>`}</div>`)
+}
+
+document.getElementById('btnShowFollowing')?.addEventListener('click', () =>
+  openFollowListModal('Siguiendo', followingCache, 'Todavía no sigues a nadie.')
+)
+document.getElementById('btnShowFollowers')?.addEventListener('click', () =>
+  openFollowListModal('Seguidores', followerCache, 'Todavía no tienes seguidores.')
+)
 
 async function loadCompletedCourses(session) {
   const { data } = await supabase
@@ -270,7 +277,7 @@ async function loadMyGuides(session) {
     .join('')
 
   container.querySelectorAll('[data-edit]').forEach((btn) =>
-    btn.addEventListener('click', () => openMyGuideModal(myGuidesCache.find((g) => g.id === btn.dataset.edit)))
+    btn.addEventListener('click', () => (window.location.href = `editor-guia.html?id=${btn.dataset.edit}`))
   )
   container.querySelectorAll('[data-delete]').forEach((btn) =>
     btn.addEventListener('click', async () => {
@@ -299,142 +306,7 @@ modal?.addEventListener('click', (e) => {
   if (e.target === modal) closeModal()
 })
 
-async function loadCategoriesForSelect() {
-  if (categoriesCache.length > 0) return categoriesCache
-  const { data } = await supabase.from('categories').select('id, name').order('order_pos')
-  categoriesCache = data || []
-  return categoriesCache
-}
-
-async function openMyGuideModal(guide) {
-  const categories = await loadCategoriesForSelect()
-
-  const g = guide || {
-    title: '',
-    slug: '',
-    category_id: categories[0]?.id || '',
-    cover_emoji: '',
-    description: '',
-    level: 'beginner',
-    blocks: [],
-    reference_blocks: [],
-  }
-
-  const courseBlocks = JSON.parse(JSON.stringify(g.blocks || []))
-  const refBlocks = JSON.parse(JSON.stringify(g.reference_blocks || []))
-
-  openModal(`
-    <h3>${guide ? 'Editar guía' : 'Nueva guía'}</h3>
-    <div class="tabs" id="myGuideTabs">
-      <button class="tab-btn active" data-mtab="general">General</button>
-      <button class="tab-btn" data-mtab="course">Bloques del curso</button>
-      <button class="tab-btn" data-mtab="reference">Guía de referencia</button>
-    </div>
-
-    <div class="tab-panel active" id="mtab-general">
-      <div class="form-group"><label>Título</label><input id="mgTitle" value="${escapeHtml(g.title)}" /></div>
-      <div class="form-group"><label>Categoría</label>
-        <select id="mgCategory">${categories.map((c) => `<option value="${c.id}" ${c.id === g.category_id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}</select>
-      </div>
-      <div class="form-group"><label>Emoji de portada</label><input id="mgCoverEmoji" value="${escapeHtml(g.cover_emoji || '')}" /></div>
-      <div class="form-group"><label>Descripción</label><textarea id="mgDescription">${escapeHtml(g.description || '')}</textarea></div>
-      <div class="form-group"><label>Nivel</label>
-        <select id="mgLevel">
-          <option value="beginner" ${g.level === 'beginner' ? 'selected' : ''}>Básico</option>
-          <option value="intermediate" ${g.level === 'intermediate' ? 'selected' : ''}>Intermedio</option>
-          <option value="advanced" ${g.level === 'advanced' ? 'selected' : ''}>Avanzado</option>
-        </select>
-      </div>
-      <p class="subtext">La rareza, el XP y si se destaca en la web los decide el equipo de moderación al aprobarla.</p>
-    </div>
-
-    <div class="tab-panel" id="mtab-course">
-      <div id="myBlockEditorList"></div>
-      <button class="btn-secondary" id="btnAddMyCourseBlock">+ Añadir bloque</button>
-    </div>
-
-    <div class="tab-panel" id="mtab-reference">
-      <div id="myRefBlockEditorList"></div>
-      <button class="btn-secondary" id="btnAddMyRefBlock">+ Añadir bloque</button>
-    </div>
-
-    <div class="modal-actions" style="flex-direction: row; margin-top: 16px;">
-      <button class="btn-outline" id="btnSaveMyGuideDraft" style="flex:1;">Guardar borrador</button>
-      <button class="btn-primary" id="btnSubmitMyGuide" style="flex:1;">Enviar a revisión</button>
-    </div>`)
-
-  document.getElementById('myGuideTabs').querySelectorAll('.tab-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.getElementById('myGuideTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
-      modalContent.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'))
-      btn.classList.add('active')
-      document.getElementById(`mtab-${btn.dataset.mtab}`).classList.add('active')
-    })
-  })
-
-  renderCourseBlockEditor(document.getElementById('myBlockEditorList'), courseBlocks)
-  renderReferenceBlockEditor(document.getElementById('myRefBlockEditorList'), refBlocks)
-
-  document.getElementById('btnAddMyCourseBlock').addEventListener('click', () => {
-    courseBlocks.push({ type: 'concept', emoji: '💡', title: '', body: '', image_url: '', highlight: '' })
-    renderCourseBlockEditor(document.getElementById('myBlockEditorList'), courseBlocks)
-  })
-  document.getElementById('btnAddMyRefBlock').addEventListener('click', () => {
-    refBlocks.push({ type: 'paragraph', text: '' })
-    renderReferenceBlockEditor(document.getElementById('myRefBlockEditorList'), refBlocks)
-  })
-
-  async function buildPayload(reviewStatus) {
-    const title = document.getElementById('mgTitle').value.trim()
-    return {
-      title,
-      slug: guide?.slug || `${slugify(title)}-${Math.random().toString(36).slice(2, 6)}`,
-      category_id: document.getElementById('mgCategory').value,
-      cover_emoji: document.getElementById('mgCoverEmoji').value.trim(),
-      description: document.getElementById('mgDescription').value.trim(),
-      level: document.getElementById('mgLevel').value,
-      blocks: courseBlocks,
-      reference_blocks: refBlocks,
-      has_reference_blocks: refBlocks.length > 0,
-      author_id: currentSession.user.id,
-      review_status: reviewStatus,
-      submitted_at: reviewStatus === 'pending' ? new Date().toISOString() : guide?.submitted_at || null,
-      estimated_mins: guide?.estimated_mins || 5,
-      xp_reward: guide?.xp_reward || 20,
-      guide_rarity: guide?.guide_rarity || 'bronze',
-      is_pro: false,
-      tags: guide?.tags || [],
-    }
-  }
-
-  async function save(reviewStatus) {
-    const title = document.getElementById('mgTitle').value.trim()
-    if (!title) {
-      alert('Ponle un título a tu guía antes de guardar.')
-      return
-    }
-    if (reviewStatus === 'pending' && courseBlocks.length === 0) {
-      alert('Añade al menos un bloque al curso antes de enviarlo a revisión.')
-      return
-    }
-
-    const payload = await buildPayload(reviewStatus)
-    if (guide?.id) payload.id = guide.id
-
-    const { error } = await supabase.from('guides').upsert(payload)
-    if (error) {
-      alert('No se pudo guardar la guía: ' + error.message)
-      return
-    }
-    closeModal()
-    loadMyGuides(currentSession)
-  }
-
-  document.getElementById('btnSaveMyGuideDraft').addEventListener('click', () => save('draft'))
-  document.getElementById('btnSubmitMyGuide').addEventListener('click', () => save('pending'))
-}
-
-document.getElementById('btnNewMyGuide')?.addEventListener('click', () => openMyGuideModal(null))
+document.getElementById('btnNewMyGuide')?.addEventListener('click', () => (window.location.href = 'editor-guia.html'))
 
 // ── Editar biografía ──
 document.getElementById('btnEditProfile')?.addEventListener('click', () => {

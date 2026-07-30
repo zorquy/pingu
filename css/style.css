@@ -73,7 +73,7 @@ h1, h2, h3,
 .nav-logo, .auth-logo,
 .hero-pill, .badge, .pill, .rarity-chip, .filter-pill,
 .stat-card .value, .hero-panel-stat .value, .xp-display, .achievement-xp,
-.continue-card .label, .eyebrow {
+.eyebrow {
   font-family: var(--font-display);
   font-weight: 600;
 }
@@ -715,40 +715,6 @@ button.btn-block {
   color: var(--text-dim);
 }
 
-/* ── Continue card ── */
-.continue-card {
-  background: var(--navy);
-  color: var(--white);
-  border-radius: var(--radius-xl);
-  padding: 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  position: relative;
-  overflow: hidden;
-}
-
-.continue-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(140% 100% at 100% 0%, rgba(255, 255, 255, 0.12), transparent 55%);
-  pointer-events: none;
-}
-
-.continue-card .label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ice);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-}
-
-.continue-card h3 {
-  font-size: 19px;
-  font-weight: 800;
-}
-
 .progress-track {
   width: 100%;
   height: 7px;
@@ -764,28 +730,6 @@ button.btn-block {
   transition: width 0.4s var(--ease);
 }
 
-.continue-card .progress-track {
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.continue-card .progress-track .fill {
-  background: var(--ice);
-}
-
-.continue-card .btn-primary {
-  background: var(--white);
-  color: var(--navy);
-  align-self: flex-start;
-  box-shadow: 0 4px 0 0 var(--ice-dark);
-}
-
-.continue-card .btn-primary:hover {
-  background: var(--ice);
-}
-
-.continue-card .btn-primary:active {
-  box-shadow: 0 0 0 0 var(--ice-dark);
-}
 
 /* ── Stats row ── */
 .stats-row {

@@ -2,30 +2,6 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml } from './app.js'
 import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
 
-async function loadContinue(session) {
-  const section = document.getElementById('continueSection')
-  if (!session) return
-
-  const { data } = await supabase
-    .from('user_progress')
-    .select('*, guides(title, slug, blocks)')
-    .eq('user_id', session.user.id)
-    .eq('status', 'started')
-    .order('started_at', { ascending: false })
-    .limit(1)
-
-  const item = data?.[0]
-  if (!item || !item.guides) return
-
-  const totalBlocks = Array.isArray(item.guides.blocks) ? item.guides.blocks.length : 1
-  const pct = Math.min(100, Math.round(((item.current_block || 0) / Math.max(totalBlocks - 1, 1)) * 100))
-
-  document.getElementById('continueTitle').textContent = item.guides.title
-  document.getElementById('continueFill').style.width = `${pct}%`
-  document.getElementById('continueBtn').href = `curso.html?slug=${encodeURIComponent(item.guides.slug)}`
-  section.style.display = 'block'
-}
-
 async function loadCategories() {
   const grid = document.getElementById('categoriesGrid')
   const { data, error } = await supabase.from('categories').select('*').order('order_pos')
@@ -124,7 +100,7 @@ async function init() {
     document.getElementById('signupBanner').style.display = 'block'
   }
 
-  await Promise.all([loadContinue(session), loadCategories(), loadRecent(), loadHeroGuideCount()])
+  await Promise.all([loadCategories(), loadRecent(), loadHeroGuideCount()])
   await decorateGuideCards(document.getElementById('recentGrid'), session)
 }
 

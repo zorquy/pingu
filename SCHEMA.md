@@ -227,6 +227,20 @@ RLS: la lectura pública de `guides` pasó de "todas las filas" a solo
 viendo todo). El autor puede insertar/editar/borrar sus propias filas solo
 mientras están en `draft` o `rejected`.
 
+**Editor a página completa** (`editor-guia.html` / `js/editor-guia.js`):
+desde "Mis guías" en el perfil, crear o editar una guía ya no abre un
+modal pequeño — navega a esta página dedicada (`?id=<guía>` para editar,
+sin parámetro para una nueva). Reutiliza `js/block-editor.js` tal cual,
+solo que con más espacio y bloques más grandes. Regla nueva: **el curso
+interactivo está bloqueado hasta que la Documentación tenga al menos un
+bloque** — un `MutationObserver` sobre la lista de bloques de referencia
+decide si mostrar el aviso de bloqueo o el editor del curso, y mientras se
+edita el curso hay un botón "Ver documentación" que muestra el texto de
+referencia ya escrito (aplanado con `flattenReferenceBlocksToText`) para
+no tener que ir y venir entre pestañas. El editor de `/admin` (con rutas,
+rareza, aprobar/rechazar, generador con IA) se queda como estaba, en su
+modal — no se ha tocado.
+
 ## `profile_comments` (muro del perfil)
 `id` · `profile_id` (de quién es el muro) · `author_id` (quién escribe) ·
 `body` · `created_at`. Lectura pública; solo el propio autor del
@@ -249,9 +263,15 @@ cualquiera); solo `follower_id = auth.uid()` puede crear o borrar sus
 propias filas (seguir/dejar de seguir). Migración:
 `supabase-migration-follows.sql`.
 
-Se usa en la pestaña "Acerca" de `perfil.html`/`usuario.html` (contadores +
-listas de avatares) y en el botón "Seguir/Dejar de seguir" de
-`usuario.html` (oculto si ves tu propio perfil).
+En `perfil.html` los contadores de Siguiendo/Seguidores viven ahora en el
+propio hero (junto al nombre y el XP), siempre visibles sin cambiar de
+pestaña — clicarlos abre un popup con la lista de avatares (reutiliza el
+modal `#profileModal`). El "🏆 Trofeos" del hero funciona igual: es un
+recuento clicable que abre el mismo popup con la rejilla de logros; la
+pestaña "Acerca" conserva la rejilla completa además, para quien prefiera
+verla sin popups. En `usuario.html` (perfil de otra persona) esto sigue
+en la pestaña "Acerca", junto con el botón "Seguir/Dejar de seguir"
+(oculto si ves tu propio perfil).
 
 ## `user_progress`
 `id` · `user_id` · `guide_id` · `status` (`started`/`completed`) ·
