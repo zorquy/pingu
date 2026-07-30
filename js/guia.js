@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, getProfile } from './app.js'
+import { escapeHtml, getSession, getProfile, profileUrl } from './app.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -60,11 +60,11 @@ async function init() {
   if (guide.author_id) {
     const { data: author } = await supabase
       .from('user_profiles')
-      .select('display_name, username')
+      .select('id, display_name, username')
       .eq('id', guide.author_id)
       .single()
     const authorName = author?.display_name || author?.username || 'un colaborador'
-    authorHtml = `<p class="subtext" style="margin-top:-4px;">Guía enviada por <a href="usuario.html?id=${guide.author_id}" style="color:var(--navy); font-weight:700;">${escapeHtml(authorName)}</a></p>`
+    authorHtml = `<p class="subtext" style="margin-top:-4px;">Guía enviada por <a href="${profileUrl(author)}" style="color:var(--navy); font-weight:700;">${escapeHtml(authorName)}</a></p>`
   }
 
   const session = await getSession()

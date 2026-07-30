@@ -81,6 +81,34 @@ export function burstConfetti(count = 28) {
   }
 }
 
+export function slugify(text) {
+  return String(text || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 80)
+}
+
+export function profileUrl(p) {
+  return p?.username ? `usuario.html?u=${encodeURIComponent(p.username)}` : `usuario.html?id=${p?.id}`
+}
+
+export async function uniqueUsername(base, excludeUserId) {
+  const clean = slugify(base) || 'user'
+  let query = supabase.from('user_profiles').select('username').ilike('username', `${clean}%`)
+  if (excludeUserId) query = query.neq('id', excludeUserId)
+  const { data } = await query
+  const taken = new Set((data || []).map((r) => (r.username || '').toLowerCase()))
+  if (!taken.has(clean)) return clean
+  let i = 2
+  while (taken.has(`${clean}-${i}`)) i++
+  return `${clean}-${i}`
+}
+
 export async function getSession() {
   const { data: { session } } = await supabase.auth.getSession()
   return session

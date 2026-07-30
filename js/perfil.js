@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage } from './app.js'
+import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl } from './app.js'
 import { getAllAchievements, levelProgress } from './gamification.js'
 import { renderCourseBlockEditor, renderReferenceBlockEditor } from './block-editor.js'
 import { renderWall } from './wall.js'
@@ -8,18 +8,6 @@ let currentSession = null
 let currentProfile = null
 let categoriesCache = []
 let achievementsCache = []
-
-function slugify(text) {
-  return String(text || '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 80)
-}
 
 const REVIEW_STATUS_LABELS = {
   draft: { text: 'Borrador', badgeClass: 'badge-progress' },
@@ -141,7 +129,7 @@ function followChipHtml(p) {
   const avatarStyle = p.avatar_url
     ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
     : `background-color:${p.avatar_color || 'var(--navy)'}`
-  return `<a class="follow-avatar-chip" href="usuario.html?id=${p.id}"><span class="mini-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
+  return `<a class="follow-avatar-chip" href="${profileUrl(p)}"><span class="mini-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
 }
 
 async function loadFollowSummary(session) {
@@ -455,7 +443,13 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
   const unlockedAchievements = achievementsCache.filter((a) => unlocked.includes(a.id))
 
   openModal(`
-    <h3>Editar biografía</h3>
+    <h3>Editar perfil</h3>
+    <div class="form-group">
+      <label>Nombre de usuario (para tu enlace público)</label>
+      <input id="peUsername" value="${escapeHtml(currentProfile?.username || '')}" placeholder="tu-nombre-de-usuario" />
+      <p class="subtext" id="peUsernamePreview" style="margin:0;"></p>
+      <p class="subtext" id="peUsernameError" style="margin:0; color:#dc2626; display:none;">Ese nombre de usuario ya está en uso, prueba con otro.</p>
+    </div>
     <div class="form-group"><label>Sobre ti</label><textarea id="peBio" placeholder="Cuéntanos algo sobre ti...">${escapeHtml(currentProfile?.bio || '')}</textarea></div>
     <div class="form-group">
       <label>Color de tu cabecera (si no subes una imagen de banner)</label>
@@ -481,8 +475,29 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
     })
   )
 
+  const usernameInput = document.getElementById('peUsername')
+  const usernamePreview = document.getElementById('peUsernamePreview')
+  function updateUsernamePreview() {
+    usernamePreview.textContent = `usuario.html?u=${slugify(usernameInput.value) || '…'}`
+  }
+  updateUsernamePreview()
+  usernameInput.addEventListener('input', updateUsernamePreview)
+
   document.getElementById('btnSaveProfileEdit').addEventListener('click', async () => {
+    const usernameError = document.getElementById('peUsernameError')
+    usernameError.style.display = 'none'
+
+    const desiredUsername = slugify(usernameInput.value) || currentProfile?.username
+    if (desiredUsername !== currentProfile?.username) {
+      const { data: taken } = await supabase.from('user_profiles').select('id').ilike('username', desiredUsername).neq('id', currentSession.user.id).maybeSingle()
+      if (taken) {
+        usernameError.style.display = 'block'
+        return
+      }
+    }
+
     const payload = {
+      username: desiredUsername,
       bio: document.getElementById('peBio').value.trim(),
       banner_color: selectedBanner,
       showcase_achievement: document.getElementById('peShowcase').value || null,

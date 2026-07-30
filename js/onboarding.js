@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, requireAuth } from './app.js'
+import { escapeHtml, requireAuth, uniqueUsername } from './app.js'
 
 const state = { level: null, interests: new Set(), recommendedPath: null }
 let categories = []
@@ -54,10 +54,11 @@ async function showRecommendedPath() {
 }
 
 async function finishOnboarding(session, name) {
+  const username = await uniqueUsername(name, session.user.id)
   await supabase
     .from('user_profiles')
     .update({
-      username: name,
+      username,
       display_name: name,
       interests: Array.from(state.interests),
       recommended_path: state.recommendedPath,
@@ -72,8 +73,8 @@ async function init() {
   const session = await requireAuth()
   if (!session) return
 
-  const { data: profile } = await supabase.from('user_profiles').select('username').eq('id', session.user.id).single()
-  if (profile?.username) document.getElementById('onbNameInput').value = profile.username
+  const { data: profile } = await supabase.from('user_profiles').select('display_name, username').eq('id', session.user.id).single()
+  if (profile?.display_name || profile?.username) document.getElementById('onbNameInput').value = profile.display_name || profile.username
 
   await loadCategories()
 

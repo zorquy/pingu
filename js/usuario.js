@@ -1,13 +1,22 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, getSession } from './app.js'
+import { escapeHtml, getInitial, getSession, profileUrl } from './app.js'
 import { levelProgress, contributorTier, getAllAchievements } from './gamification.js'
 import { renderWall } from './wall.js'
 
 const params = new URLSearchParams(window.location.search)
-const profileId = params.get('id')
+const usernameParam = params.get('u')
+let profileId = params.get('id')
 
 let currentSession = null
 let profile = null
+
+async function resolveProfileId() {
+  if (profileId) return true
+  if (!usernameParam) return false
+  const { data } = await supabase.from('user_profiles').select('id').ilike('username', usernameParam).maybeSingle()
+  profileId = data?.id || null
+  return !!profileId
+}
 
 function starsHtml(rating, size = 16) {
   return Array.from({ length: 5 })
@@ -146,7 +155,7 @@ function followChipHtml(p) {
   const avatarStyle = p.avatar_url
     ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
     : `background-color:${p.avatar_color || 'var(--navy)'}`
-  return `<a class="follow-avatar-chip" href="usuario.html?id=${p.id}"><span class="mini-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
+  return `<a class="follow-avatar-chip" href="${profileUrl(p)}"><span class="mini-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
 }
 
 async function loadFollowSummary() {
@@ -293,7 +302,8 @@ function loadComments() {
 }
 
 async function init() {
-  if (!profileId) {
+  const found = await resolveProfileId()
+  if (!found) {
     document.querySelector('main').innerHTML = `<p class="empty-state">Usuario no encontrado.</p>`
     return
   }

@@ -135,8 +135,12 @@ futuro se monta el envío real. `user_profiles.push_token` (del proyecto
 Expo anterior) tampoco se usa ni se toca desde la web.
 
 ## `user_profiles`
-`id` (= auth.users.id) · `username` · `display_name` (se usa para mostrar
-el nombre en toda la web; `username` queda como respaldo) · `total_xp` ·
+`id` (= auth.users.id) · `username` (desde `supabase-migration-usernames.sql`,
+único e insensible a mayúsculas — es el "handle" que se usa en las URLs
+públicas, `usuario.html?u=<username>`; se genera automáticamente en el
+onboarding a partir del nombre, y se puede cambiar luego desde "Editar
+perfil") · `display_name` (se usa para mostrar el nombre en toda la web;
+`username` queda como respaldo) · `total_xp` ·
 `level` · `is_pro` · `achievements` (text[], ids de `achievement_definitions`
 desbloqueados) · `saved_guides` (uuid[], ids de guías guardadas — sin tabla
 aparte) · `unlocked_references` (uuid[]) · `avatar_color` (color de fondo
@@ -156,6 +160,14 @@ en vez de `avatar_color`/`banner_color`).
 cualquiera puede leer cualquier fila de `user_profiles` (antes solo se leía
 la propia). Hace falta para que exista `usuario.html` (perfil público de
 otro usuario con muro, reseñas y sus guías).
+
+**Directorio de la comunidad**: `usuarios.html` (enlace "Comunidad" en el
+nav) lista todos los perfiles ordenados por `total_xp` con un buscador por
+nombre/username en el cliente. `usuario.html` acepta tanto
+`?u=<username>` (nuevo, se resuelve con un `ilike` contra `username`) como
+el antiguo `?id=<uuid>` (se mantiene por compatibilidad con enlaces ya
+generados). El helper `profileUrl()` de `js/app.js` decide cuál usar al
+generar enlaces.
 
 ## Contenido colaborativo (`guides.author_id` / `review_status`)
 Cualquier usuario registrado puede crear guías desde "Mis guías" en su
