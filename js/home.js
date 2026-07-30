@@ -1,16 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml } from './app.js'
-import { getAllAchievements } from './gamification.js'
-import { openGuideModal, setupGuideModalClose } from './guide-modal.js'
-
-function startOfWeekIso() {
-  const now = new Date()
-  const day = now.getDay() === 0 ? 7 : now.getDay()
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - day + 1)
-  monday.setHours(0, 0, 0, 0)
-  return monday.toISOString()
-}
+import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
 
 async function loadContinue(session) {
   const section = document.getElementById('continueSection')
@@ -100,6 +90,10 @@ async function loadRecent() {
         <span class="time-tag">${g.estimated_mins || 5} min</span>
         <span class="rarity-chip rarity-${g.guide_rarity || 'bronze'}">${g.guide_rarity || 'bronze'}</span>
       </div>
+      <div class="guide-card-social">
+        <button class="card-save-btn" data-card-save title="Guardar">☆</button>
+        <span class="card-rating" data-card-rating>Sin valorar</span>
+      </div>
     </div>`
     )
     .join('')
@@ -107,41 +101,6 @@ async function loadRecent() {
   grid.querySelectorAll('.recent-card').forEach((card) => {
     card.addEventListener('click', () => openGuideModal(card.dataset.guideId))
   })
-}
-
-async function loadStats(session) {
-  if (!session) return
-  const section = document.getElementById('statsSection')
-
-  const { data: weekProgress } = await supabase
-    .from('user_progress')
-    .select('xp_earned')
-    .eq('user_id', session.user.id)
-    .eq('status', 'completed')
-    .gte('completed_at', startOfWeekIso())
-
-  const weekXP = (weekProgress || []).reduce((sum, p) => sum + (p.xp_earned || 0), 0)
-
-  const { count: completedCount } = await supabase
-    .from('user_progress')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', session.user.id)
-    .eq('status', 'completed')
-
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('achievements')
-    .eq('id', session.user.id)
-    .single()
-
-  const unlocked = profile?.achievements || []
-  const allAchievements = await getAllAchievements()
-  const next = allAchievements.find((a) => !unlocked.includes(a.id))
-
-  document.getElementById('statWeekXP').textContent = weekXP
-  document.getElementById('statCompleted').textContent = completedCount || 0
-  document.getElementById('statNextAchievement').textContent = next ? next.title : '¡Todos!'
-  section.style.display = 'block'
 }
 
 function setupModals() {
@@ -165,7 +124,8 @@ async function init() {
     document.getElementById('signupBanner').style.display = 'block'
   }
 
-  await Promise.all([loadContinue(session), loadCategories(), loadRecent(), loadStats(session), loadHeroGuideCount()])
+  await Promise.all([loadContinue(session), loadCategories(), loadRecent(), loadHeroGuideCount()])
+  await decorateGuideCards(document.getElementById('recentGrid'), session)
 }
 
 init()

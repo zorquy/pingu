@@ -8,18 +8,27 @@ async function namesForIds(ids) {
   return Object.fromEntries((data || []).map((p) => [p.id, p.display_name || p.username || 'Usuario']))
 }
 
-export async function renderWall({ listEl, formEl, profileId, currentSession }) {
+export async function renderWall({
+  listEl,
+  formEl,
+  profileId,
+  currentSession,
+  table = 'profile_comments',
+  idField = 'profile_id',
+  placeholder = 'Escribe algo en este muro...',
+  emptyMessage = 'Todavía no hay nada escrito en este muro.<br>¡Sé el primero en dejar un mensaje!',
+}) {
   const { data } = await supabase
-    .from('profile_comments')
+    .from(table)
     .select('*')
-    .eq('profile_id', profileId)
+    .eq(idField, profileId)
     .order('created_at', { ascending: false })
 
   const comments = data || []
   const namesById = await namesForIds(comments.map((c) => c.author_id))
 
   listEl.innerHTML = comments.length === 0
-    ? `<div class="wall-empty">💬 Todavía no hay nada escrito en este muro.<br>¡Sé el primero en dejar un mensaje!</div>`
+    ? `<div class="wall-empty">💬 ${emptyMessage}</div>`
     : comments
         .map(
           (c) => `
@@ -37,28 +46,28 @@ export async function renderWall({ listEl, formEl, profileId, currentSession }) 
   listEl.querySelectorAll('[data-delete-comment]').forEach((btn) =>
     btn.addEventListener('click', async () => {
       if (!confirm('¿Eliminar este comentario?')) return
-      await supabase.from('profile_comments').delete().eq('id', btn.dataset.deleteComment)
-      renderWall({ listEl, formEl, profileId, currentSession })
+      await supabase.from(table).delete().eq('id', btn.dataset.deleteComment)
+      renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage })
     })
   )
 
   if (!formEl) return
 
   if (!currentSession) {
-    formEl.innerHTML = `<p class="subtext"><a href="auth.html" style="color:var(--navy); font-weight:700;">Inicia sesión</a> para escribir en este muro.</p>`
+    formEl.innerHTML = `<p class="subtext"><a href="auth.html" style="color:var(--navy); font-weight:700;">Inicia sesión</a> para escribir aquí.</p>`
     return
   }
 
   formEl.innerHTML = `
     <div class="simple-card">
-      <textarea id="wallCommentBody" placeholder="Escribe algo en este muro..."></textarea>
+      <textarea id="wallCommentBody" placeholder="${escapeHtml(placeholder)}"></textarea>
       <button class="btn-primary" id="btnSubmitWallComment" style="margin-top:8px;">Publicar</button>
     </div>`
 
   document.getElementById('btnSubmitWallComment').addEventListener('click', async () => {
     const body = document.getElementById('wallCommentBody').value.trim()
     if (!body) return
-    await supabase.from('profile_comments').insert({ profile_id: profileId, author_id: currentSession.user.id, body })
-    renderWall({ listEl, formEl, profileId, currentSession })
+    await supabase.from(table).insert({ [idField]: profileId, author_id: currentSession.user.id, body })
+    renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage })
   })
 }

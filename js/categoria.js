@@ -1,37 +1,9 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, tintClassForKey, borderRarityClass } from './app.js'
-import { openGuideModal, setupGuideModalClose } from './guide-modal.js'
+import { escapeHtml, getSession, tintClassForKey } from './app.js'
+import { openGuideModal, setupGuideModalClose, renderGuideCardHtml, decorateGuideCards } from './guide-modal.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
-
-function renderGuideCard(guide, statusInfo) {
-  const courseLabel = statusInfo.status === 'completed' ? 'Repasar' : '🎓 Curso'
-  const guideBtn = guide.has_reference_blocks
-    ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">📖 Documentación</a>`
-    : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📖 Documentación</span>`
-
-  return `
-  <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}" style="cursor:pointer;">
-    <div class="guide-card-icon">${guide.cover_emoji || '📘'}</div>
-    <div class="guide-card-info">
-      <span class="guide-label">${escapeHtml(guide.categoryName || '')}</span>
-      <h3>${escapeHtml(guide.title)}</h3>
-      <p>${escapeHtml(guide.description || '')}</p>
-      <div class="guide-meta">
-        <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
-        <span class="time-tag">${guide.estimated_mins || 5} min</span>
-        <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
-        ${statusInfo.status === 'started' ? '<span class="badge badge-progress">EN PROGRESO</span>' : ''}
-        ${statusInfo.status === 'completed' ? '<span class="badge badge-completed">✓ COMPLETADO</span>' : ''}
-      </div>
-    </div>
-    <div class="guide-actions">
-      <a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course" onclick="event.stopPropagation()">${courseLabel}</a>
-      ${guideBtn}
-    </div>
-  </div>`
-}
 
 async function buildProgressByGuide(session, guideIds) {
   if (!session || guideIds.length === 0) return {}
@@ -52,7 +24,7 @@ async function initCategoryMode() {
   if (error || !category) {
     document.getElementById('categoryHeader').innerHTML = ''
     document.getElementById('guidesList').innerHTML = `<p class="empty-state">Categoría no encontrada.</p>`
-    return
+    return null
   }
 
   document.title = `${category.name} — PokeDoc`
@@ -77,7 +49,7 @@ async function initCategoryMode() {
   const guideList = guides || []
   if (guideList.length === 0) {
     document.getElementById('guidesList').innerHTML = `<p class="empty-state">Todavía no hay guías en esta categoría.</p>`
-    return
+    return null
   }
 
   const session = await getSession()
@@ -104,7 +76,7 @@ async function initCategoryMode() {
     }
   }
 
-  const renderGuide = (g) => renderGuideCard({ ...g, categoryName: category.name }, { status: progressByGuide[g.id] || 'none' })
+  const renderGuide = (g) => renderGuideCardHtml(g, { statusBadge: progressByGuide[g.id] || 'none', categoryLabel: category.name })
 
   let html = ''
   for (const col of collectionList) {
@@ -116,6 +88,7 @@ async function initCategoryMode() {
   html += uncategorized.map(renderGuide).join('')
 
   document.getElementById('guidesList').innerHTML = html
+  return session
 }
 
 function wireGuideCardClicks() {
@@ -127,8 +100,9 @@ function wireGuideCardClicks() {
 async function init() {
   setupGuideModalClose()
   if (slug) {
-    await initCategoryMode()
+    const session = await initCategoryMode()
     wireGuideCardClicks()
+    await decorateGuideCards(document.getElementById('guidesList'), session)
   } else {
     document.getElementById('categoryHeader').innerHTML = ''
     document.getElementById('guidesList').innerHTML = `<p class="empty-state">Categoría no encontrada.</p>`

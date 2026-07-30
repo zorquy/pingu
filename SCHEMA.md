@@ -117,6 +117,23 @@ curso y documentación al estar indexado por `guides.id`) y los botones
 para entrar al Curso o a la Documentación (antes "Guía" — se renombró en
 los botones para no confundirla con el concepto general de "guía").
 
+La tarjeta pequeña (en `categoria.html`, la home y `guardados.html`) ya
+muestra el botón de guardar y la valoración media **antes** de abrir el
+modal — no hace falta clicar para verlos. `js/guide-modal.js` expone
+`renderGuideCardHtml()` y `decorateGuideCards()` para que las tres
+páginas pinten exactamente la misma tarjeta y no se dupliquen entre sí.
+
+## `guide_comments` (comentarios sobre la guía, estilo muro)
+`id` · `guide_id` (FK → guides) · `author_id` (FK → auth.users) · `body` ·
+`created_at`. Lectura pública; solo el propio autor (o un admin) puede
+borrar su comentario. Migración: `supabase-migration-guide-comments.sql`.
+
+Es la conversación libre bajo una guía (como el muro de un perfil, pero
+para la guía) — **separada** de `guide_reviews`, que es solo la
+puntuación de 1 a 5 estrellas. `js/wall.js` (antes solo para
+`profile_comments`) se generalizó para poder pintar cualquiera de los
+dos muros pasándole `table`/`idField`.
+
 ## `achievement_definitions`
 Logros 100% configurables desde `/admin`. `id` (text, clave única elegida
 a mano, ej. `first_course`) · `title` · `description` · `emoji` ·

@@ -1411,35 +1411,39 @@
 }
 
 /* ── Modal ampliado de guía ── */
-.guide-modal-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 12px;
-}
-
-.guide-modal-icon {
-  font-size: 32px;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-md);
-  background: var(--ice);
+.guide-modal-banner {
+  height: 130px;
+  border-radius: var(--radius-lg);
+  background-size: cover;
+  background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  margin-bottom: 14px;
+}
+
+.guide-modal-banner-emoji {
+  font-size: 46px;
 }
 
 .guide-modal-desc {
   color: var(--text-mid);
   font-size: 14px;
   line-height: 1.5;
-  margin-bottom: 12px;
+  margin: 8px 0 12px;
+}
+
+.guide-modal-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .guide-modal-rating {
   border-top: 1px solid var(--border);
-  padding-top: 14px;
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
 }
 
 .guide-modal-rating-summary {
@@ -1452,6 +1456,32 @@
   background: var(--ice) !important;
   color: var(--navy) !important;
   border-color: var(--navy) !important;
+}
+
+/* ── Guardar y valoración en la tarjeta pequeña ── */
+.guide-card-social {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.card-save-btn {
+  font-size: 14px;
+  line-height: 1;
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.card-rating {
+  font-size: 12px;
+  color: var(--text-mid);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 /* ── Forms (generic, admin) ── */

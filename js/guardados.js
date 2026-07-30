@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, requireAuth } from './app.js'
-import { openGuideModal, setupGuideModalClose } from './guide-modal.js'
+import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
 
 async function loadSaved(session) {
   const list = document.getElementById('savedList')
@@ -30,11 +30,12 @@ async function loadSaved(session) {
   list.innerHTML = guides
     .map(
       (g) => `
-    <div class="saved-guide-row" data-id="${g.id}" style="cursor:pointer;">
+    <div class="saved-guide-row" data-guide-id="${g.id}" style="cursor:pointer;">
       <span style="font-size: 22px;">${g.cover_emoji || '📘'}</span>
       <div class="info">
         <h3>${escapeHtml(g.title)}</h3>
         <span class="time-tag">${g.estimated_mins || 5} min</span>
+        <span class="card-rating" data-card-rating>Sin valorar</span>
       </div>
       <button class="unsave-btn" data-id="${g.id}" title="Quitar">×</button>
     </div>`
@@ -42,8 +43,10 @@ async function loadSaved(session) {
     .join('')
 
   list.querySelectorAll('.saved-guide-row').forEach((row) => {
-    row.addEventListener('click', () => openGuideModal(row.dataset.id))
+    row.addEventListener('click', () => openGuideModal(row.dataset.guideId))
   })
+
+  await decorateGuideCards(list, session)
 
   list.querySelectorAll('.unsave-btn').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
