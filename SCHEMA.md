@@ -110,6 +110,17 @@ bloques del curso interactivo) tiene `max-height` + `overflow-y: auto`, así
 que añadir muchos bloques ya no alarga infinitamente la página del editor —
 el listado hace scroll dentro de su propio recuadro.
 
+**Bug real encontrado y arreglado — toolbar del editor WYSIWYG tapada por
+la navbar en móvil**: `.rte-wrap` tenía `overflow: hidden` solo para
+recortar las esquinas redondeadas del recuadro. Pero eso convierte a
+`.rte-wrap` en el "scrollport" de su hijo sticky (`.rte-toolbar`) en vez de
+la página — al no poder desplazarse él mismo, el sticky se rompe y la
+toolbar queda mal posicionada bajo la navbar (también sticky) al hacer
+scroll. Arreglado quitando el `overflow: hidden` del wrapper y redondeando
+las esquinas directamente en `.rte-toolbar` (arriba) y `.rte-surface`
+(abajo) por separado; además se le da a la toolbar `top: 60px` (en vez de
+`0`) para que se quede pegada justo debajo de la navbar, no debajo de ella.
+
 **Contenido gated**: si `reference_unlocked_by_default` es `false`, el
 artículo de referencia solo se muestra si el usuario tiene el `id` de la
 guía en `user_profiles.unlocked_references` (se añade automáticamente al

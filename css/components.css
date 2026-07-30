@@ -618,7 +618,10 @@ textarea.be-field {
 .rte-wrap {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  /* Ojo: nada de overflow:hidden aquí — convertiría a este contenedor en
+     el "scrollport" de la toolbar sticky de abajo (al no poder desplazarse
+     él mismo) y rompería el sticky respecto a la página. Las esquinas se
+     redondean en toolbar/surface por separado en su lugar. */
 }
 
 .rte-toolbar {
@@ -628,8 +631,12 @@ textarea.be-field {
   padding: 8px;
   background: var(--bg);
   border-bottom: 1.5px solid var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   position: sticky;
-  top: 0;
+  /* Debajo de la navbar (también sticky, top:0): sin este offset, ambas
+     compiten por el mismo punto de anclaje y la toolbar queda tapada un
+     instante al hacer scroll. */
+  top: 60px;
   z-index: 1;
 }
 
@@ -658,6 +665,7 @@ textarea.be-field {
   outline: none;
   font-size: 15px;
   line-height: 1.75;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 .rte-surface img {
