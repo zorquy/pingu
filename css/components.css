@@ -984,19 +984,6 @@ textarea.be-field {
   font-weight: 600;
 }
 
-.article-cta {
-  margin-top: 40px;
-  background: var(--ice);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  text-align: center;
-}
-
-.article-cta p {
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
 .article-sidebar {
   width: 210px;
   flex-shrink: 0;
@@ -1578,7 +1565,7 @@ textarea.be-field {
   font-weight: 600;
 }
 
-.follow-avatar-chip .mini-avatar {
+.mini-avatar {
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -1867,4 +1854,95 @@ textarea.be-field {
   border: 1.5px dashed #f2b705;
   background: linear-gradient(180deg, rgba(242, 183, 5, 0.08), transparent 60%);
   border-radius: var(--radius-lg);
+}
+
+/* ── Comentarios de guía estilo foro ── */
+.guide-forum {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.forum-post {
+  display: flex;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.forum-post-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.forum-post-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.forum-post-author {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.forum-post-date {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.forum-post-text {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.forum-quote {
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  color: var(--text-mid);
+}
+
+.forum-reply-btn {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.forum-reply-btn:hover {
+  color: var(--navy);
+}
+
+.forum-reply-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 8px 12px;
+  background: var(--ice);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.forum-reply-banner button {
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.forum-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-mid);
 }

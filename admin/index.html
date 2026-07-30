@@ -48,7 +48,10 @@
       <section class="admin-section" id="section-guides">
         <div class="admin-section-header">
           <h1>Guías</h1>
-          <button class="btn-primary" id="btnNewGuide">+ Nueva guía</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-outline" id="btnMigrateOldGuides" title="Convierte las guías con el formato de bloques antiguo a un único bloque de texto enriquecido, igual que el editor nuevo">🔄 Adaptar al editor nuevo</button>
+            <button class="btn-primary" id="btnNewGuide">+ Nueva guía</button>
+          </div>
         </div>
         <div id="guidesTable"></div>
       </section>

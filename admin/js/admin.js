@@ -2,6 +2,7 @@ import { supabase } from '../../js/supabase.js'
 import { escapeHtml, getSession, validateImageFile } from '../../js/app.js'
 import { invalidateAchievementsCache } from '../../js/gamification.js'
 import { showToast } from '../../js/toast.js'
+import { renderReferenceBlocksHtml } from '../../js/block-editor.js'
 
 let categories = []
 let guidesCache = []
@@ -317,6 +318,31 @@ async function loadGuides() {
 }
 
 document.getElementById('btnNewGuide').addEventListener('click', () => (window.location.href = 'editor-guia.html'))
+
+document.getElementById('btnMigrateOldGuides').addEventListener('click', async (e) => {
+  if (!confirm('Esto convierte las guías con el formato de bloques antiguo a un único bloque de texto enriquecido (lo mismo que pasaría si abrieras y guardases cada una en el editor nuevo). ¿Continuar?')) return
+
+  const btn = e.currentTarget
+  btn.disabled = true
+  const originalLabel = btn.textContent
+  btn.textContent = 'Adaptando…'
+
+  const { data: guides } = await supabase.from('guides').select('id, reference_blocks')
+  let migrated = 0
+  for (const g of guides || []) {
+    const blocks = g.reference_blocks || []
+    const alreadyMigrated = blocks.length === 1 && blocks[0]?.type === 'richtext'
+    if (alreadyMigrated || blocks.length === 0) continue
+    const html = renderReferenceBlocksHtml(blocks)
+    await supabase.from('guides').update({ reference_blocks: [{ type: 'richtext', html }] }).eq('id', g.id)
+    migrated++
+  }
+
+  btn.disabled = false
+  btn.textContent = originalLabel
+  showToast(migrated > 0 ? `Se adaptaron ${migrated} guías al nuevo formato.` : 'No había guías con el formato antiguo.', 'success')
+  loadGuides()
+})
 
 // ── Learning paths ──
 async function loadPaths() {

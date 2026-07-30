@@ -170,16 +170,26 @@ modal — no hace falta clicar para verlos. `js/guide-modal.js` expone
 `renderGuideCardHtml()` y `decorateGuideCards()` para que las tres
 páginas pinten exactamente la misma tarjeta y no se dupliquen entre sí.
 
-## `guide_comments` (comentarios sobre la guía, estilo muro)
+## `guide_comments` (comentarios sobre la guía, estilo foro)
 `id` · `guide_id` (FK → guides) · `author_id` (FK → auth.users) · `body` ·
-`created_at`. Lectura pública; solo el propio autor (o un admin) puede
-borrar su comentario. Migración: `supabase-migration-guide-comments.sql`.
+`reply_to_id` (FK → guide_comments, `on delete set null`) · `created_at`.
+Lectura pública; solo el propio autor (o un admin) puede borrar su
+comentario. Migraciones: `supabase-migration-guide-comments.sql` +
+`supabase-migration-guide-forum.sql` (añade `reply_to_id`).
 
-Es la conversación libre bajo una guía (como el muro de un perfil, pero
-para la guía) — **separada** de `guide_reviews`, que es solo la
-puntuación de 1 a 5 estrellas. `js/wall.js` (antes solo para
-`profile_comments`) se generalizó para poder pintar cualquiera de los
-dos muros pasándole `table`/`idField`.
+Es la conversación libre bajo una guía — **separada** de `guide_reviews`,
+que es solo la puntuación de 1 a 5 estrellas. En `guia.html` se pinta como
+un foro paginado (`js/guide-forum.js`, 10 comentarios por página vía
+`.range()`), con la propia documentación de la guía haciendo de "post
+principal" arriba (encabezado con avatar/nombre del autor, clase
+`.guide-modal-author` reutilizada de `guide-modal.js`) y los comentarios
+de los usuarios debajo, cada uno con avatar, autor, fecha y un botón
+"↩ Responder" que cita el mensaje anterior (`reply_to_id`) mostrando un
+`.forum-quote` con el autor y un fragmento del mensaje citado. La página
+se recuerda en `?page=N` en la URL. `js/wall.js` (para
+`profile_comments`) es un módulo aparte, no comparte código con
+`guide-forum.js` — son dos estilos de conversación distintos (muro plano
+vs. foro paginado con citas).
 
 ## `achievement_definitions`
 Logros 100% configurables desde `/admin`. `id` (text, clave única elegida
@@ -547,3 +557,55 @@ variable `saving` que descarta cualquier llamada mientras la anterior
 sigue en marcha, más deshabilitar los botones de guardar durante el
 guardado (reactivándolos solo si falla). Verificado con Playwright
 espiando las llamadas reales a `upsert` con un doble clic simultáneo.
+
+## Adaptar guías antiguas al editor WYSIWYG (botón admin)
+Las guías creadas con el sistema antiguo de bloques discretos
+(`paragraph`/`heading`/`list`/`image`/`highlight`) siguen funcionando
+(`renderReferenceBlocksHtml` las sabe pintar), pero para tenerlas "todas
+enteras" en el mismo formato que el editor WYSIWYG nuevo, `/admin` →
+Guías tiene un botón "🔄 Adaptar al editor nuevo"
+(`admin/js/admin.js`, junto a `btnNewGuide`) que:
+1. Lee `reference_blocks` de todas las guías.
+2. Se salta las que ya están en formato richtext (`[{ type: 'richtext' }]`)
+   o no tienen contenido de referencia (`[]`).
+3. Al resto les pasa los bloques por `renderReferenceBlocksHtml` (la misma
+   función que ya usa el sitio público, así que el resultado visual es
+   idéntico) y guarda el HTML resultante como un único bloque
+   `[{ type: 'richtext', html }]`.
+
+Es una acción de admin mediada por el cliente de Supabase de la app (no
+un script suelto contra la base de datos), así que respeta el mismo RLS
+que cualquier otra escritura del panel.
+
+## CTA de "Hacer el curso" quitado de la Documentación
+`guia.html` ya no muestra el aviso "¿Quieres aprenderlo paso a paso? →
+Hacer el curso" bajo el artículo — la página de Documentación es ahora
+solo eso, documentación (más el foro de comentarios debajo). El curso
+interactivo sigue existiendo y se accede igual desde las tarjetas de
+guía en `categoria.html`/`index.html`/`guardados.html`.
+
+## Responder a un comentario del muro te lleva al muro de esa persona
+En `perfil.html`/`usuario.html`, cada comentario del muro (`profile_comments`,
+no afecta a `guide_comments`) tiene un enlace "Responder" que lleva al
+muro **del autor de ese comentario concreto** con `?reply_to=<id>` en la
+URL (`js/wall.js`). Al llegar ahí se ve un aviso "Respondiendo a
+X: '...'" sobre el textarea con un botón para cancelar, y al publicar la
+respuesta se limpia el parámetro de la URL. Es la forma de que, si
+alguien te escribe en tu muro, puedas ir a responderle directamente en
+el suyo en vez de dejarle la respuesta enterrada en el tuyo.
+
+## Bug real en el stub de pruebas: `.update(payload).eq(...)` mutaba toda la tabla
+Al construir el foro de comentarios se detectó que el stub de Supabase
+usado para las pruebas con Playwright (no es código del repo — vive en
+el scratchpad de la sesión) ejecutaba `.update()` en cuanto se llamaba,
+usando los filtros acumulados **hasta ese momento** — pero el patrón real
+de Supabase siempre encadena `.eq()` DESPUÉS de `.update()`
+(`supabase.from(t).update(payload).eq('id', x)`), así que el filtro
+llegaba tarde y el `.update()` se aplicaba sin ningún filtro, es decir, a
+todas las filas de la tabla. Se arregló haciendo que `.update()`/`.delete()`
+/`.insert()`/`.upsert()` difieran la mutación hasta que la promesa
+realmente se resuelve (cuando el código hace `await`), momento en el que
+ya se han encadenado todos los `.eq()` posteriores. Se descubrió al
+probar el botón de migración de guías: con una sola guía por migrar, el
+stub (con el bug) marcaba erróneamente 3-4 guías como migradas con
+contenido cruzado entre ellas.

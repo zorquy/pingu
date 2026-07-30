@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, getProfile, profileUrl } from './app.js'
+import { escapeHtml, getInitial, getSession, getProfile, profileUrl } from './app.js'
 import { renderReferenceBlocksHtml } from './block-editor.js'
+import { initGuideForum } from './guide-forum.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -37,16 +38,31 @@ async function init() {
   document.title = `${guide.title} — PokeDoc`
   supabase.from('guides').update({ view_count: (guide.view_count || 0) + 1 }).eq('id', guide.id)
 
-  let authorHtml = ''
+  let author = null
   if (guide.author_id) {
-    const { data: author } = await supabase
+    const { data } = await supabase
       .from('user_profiles')
-      .select('id, display_name, username')
+      .select('id, display_name, username, avatar_url, avatar_color')
       .eq('id', guide.author_id)
       .single()
-    const authorName = author?.display_name || author?.username || 'un colaborador'
-    authorHtml = `<p class="subtext" style="margin-top:-4px;">Guía enviada por <a href="${profileUrl(author)}" style="color:var(--navy); font-weight:700;">${escapeHtml(authorName)}</a></p>`
+    author = data
   }
+  const authorName = author ? author.display_name || author.username || 'un colaborador' : 'PokeDoc'
+  const authorAvatarStyle = author?.avatar_url
+    ? `background-image:url('${author.avatar_url.replace(/'/g, '%27')}')`
+    : `background-color:${author?.avatar_color || 'var(--navy)'}`
+  const opHeaderHtml = `
+    <div class="guide-modal-author">
+      ${
+        author
+          ? `<a class="mini-avatar" href="${profileUrl(author)}" style="width:36px; height:36px; font-size:14px; ${authorAvatarStyle}">${author.avatar_url ? '' : getInitial(authorName)}</a>`
+          : `<span class="mini-avatar" style="width:36px; height:36px; font-size:16px; background-color:var(--navy);">🛡️</span>`
+      }
+      <div>
+        <span class="subtext" style="margin:0; display:block;">${author ? 'Publicada por' : 'Guía oficial de'}</span>
+        ${author ? `<a href="${profileUrl(author)}" style="font-weight:700; color:var(--navy);">${escapeHtml(authorName)}</a>` : `<strong>${escapeHtml(authorName)}</strong>`}
+      </div>
+    </div>`
 
   const session = await getSession()
   const profile = session ? await getProfile(session.user.id) : null
@@ -94,7 +110,7 @@ async function init() {
       <span class="guide-label">${escapeHtml(guide.categories?.name || '')}</span>
       <h1>${escapeHtml(guide.title)}</h1>
       <p class="lead">${escapeHtml(guide.description || '')}</p>
-      ${authorHtml}
+      ${opHeaderHtml}
       <div class="article-meta">
         <span class="time-tag">${guide.estimated_mins || 5} min</span>
         <span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
@@ -114,10 +130,10 @@ async function init() {
     <div class="tab-panel" id="atab-pro"><div class="article-body">${proBodyHtml}</div></div>`
         : `<div class="article-body">${bodyHtml}</div>`
     }
-    <div class="article-cta">
-      <p>¿Quieres aprenderlo paso a paso?</p>
-      <a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-primary">Hacer el curso →</a>
-    </div>`
+    <section class="guide-forum">
+      <h2 class="section-title">💬 Comentarios</h2>
+      <div id="forumContainer"></div>
+    </section>`
 
   document.getElementById('articleTabs')?.querySelectorAll('.tab-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -141,6 +157,8 @@ async function init() {
     if ((profile?.saved_guides || []).includes(guide.id)) btnSave.textContent = '★ Guardado'
     btnSave.addEventListener('click', () => toggleSave(session, guide.id, btnSave))
   }
+
+  initGuideForum({ containerEl: document.getElementById('forumContainer'), guideId: guide.id, currentSession: session })
 }
 
 init()
