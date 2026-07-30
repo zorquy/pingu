@@ -199,6 +199,9 @@ export function showAchievementModal(achievement) {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeAchievementModal()
     })
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeAchievementModal()
+    })
   }
 
   const iconEl = modal.querySelector('#achievementIcon')

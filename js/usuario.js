@@ -129,7 +129,7 @@ async function loadReputationAndGuides() {
     .map(
       (g) => `
     <a href="/guia.html?slug=${encodeURIComponent(g.slug)}" class="completed-course-row" style="text-decoration:none; color:inherit;">
-      <span>${g.cover_emoji || '📘'} ${escapeHtml(g.title)}</span>
+      <span>${escapeHtml(g.cover_emoji || '📘')} ${escapeHtml(g.title)}</span>
       <span class="date">${escapeHtml(g.categories?.name || '')}</span>
     </a>`
     )

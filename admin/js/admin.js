@@ -258,7 +258,7 @@ async function loadPending() {
             const authorName = author?.display_name || author?.username || 'Usuario'
             return `
           <tr>
-            <td>${g.cover_emoji || ''} ${escapeHtml(g.title || 'Sin título')}</td>
+            <td>${escapeHtml(g.cover_emoji || '')} ${escapeHtml(g.title || 'Sin título')}</td>
             <td>${escapeHtml(g.categories?.name || '—')}</td>
             <td>${escapeHtml(authorName)}</td>
             <td>${g.submitted_at ? new Date(g.submitted_at).toLocaleDateString('es-ES') : '—'}</td>
@@ -289,7 +289,7 @@ async function loadGuides() {
           .map(
             (g) => `
           <tr>
-            <td>${g.cover_emoji || ''} ${escapeHtml(g.title)}${g.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}${g.has_pro_content ? ' <span class="badge badge-pro">🌟 Guía Pro</span>' : ''}</td>
+            <td>${escapeHtml(g.cover_emoji || '')} ${escapeHtml(g.title)}${g.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}${g.has_pro_content ? ' <span class="badge badge-pro">🌟 Guía Pro</span>' : ''}</td>
             <td>${escapeHtml(g.categories?.name || '—')}</td>
             <td>${g.published_at ? '<span class="badge badge-completed">Publicada</span>' : '<span class="badge badge-progress">Borrador</span>'}</td>
             <td class="admin-row-actions">

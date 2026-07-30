@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, profileUrl } from './app.js'
 import { showToast } from './toast.js'
+import { reportButtonHtml, wireReportButtons } from './report.js'
 
 const PAGE_SIZE = 10
 
@@ -81,7 +82,11 @@ export function initGuideForum({ containerEl, guideId, currentSession }) {
           </div>
           ${parent ? `<div class="forum-quote">En respuesta a <strong>${escapeHtml(authorName(parent.author_id))}</strong>: “${escapeHtml(snippet(parent.body))}”</div>` : ''}
           <p class="forum-post-text">${escapeHtml(c.body)}</p>
-          ${currentSession ? `<button class="forum-reply-btn" data-reply-id="${c.id}" data-reply-name="${escapeHtml(name)}">↩ Responder</button>` : ''}
+          <div class="forum-post-actions">
+            ${currentSession ? `<button class="forum-reply-btn" data-reply-id="${c.id}" data-reply-name="${escapeHtml(name)}">↩ Responder</button>` : ''}
+            ${currentSession?.user.id === c.author_id ? `<button class="forum-delete-btn" data-delete-id="${c.id}">Eliminar</button>` : ''}
+            ${currentSession && currentSession.user.id !== c.author_id ? reportButtonHtml('guide_comment', c.id) : ''}
+          </div>
         </div>
       </div>`
     }
@@ -112,6 +117,16 @@ export function initGuideForum({ containerEl, guideId, currentSession }) {
         document.getElementById('forumCommentBody')?.focus()
       })
     )
+
+    containerEl.querySelectorAll('.forum-delete-btn').forEach((btn) =>
+      btn.addEventListener('click', async () => {
+        if (!confirm('¿Eliminar este comentario?')) return
+        await supabase.from('guide_comments').delete().eq('id', btn.dataset.deleteId)
+        render(page)
+      })
+    )
+
+    wireReportButtons(containerEl, currentSession)
 
     function renderReplyBanner() {
       const banner = document.getElementById('forumReplyBanner')

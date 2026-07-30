@@ -46,7 +46,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
 
   return `
   <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}">
-    <div class="guide-card-icon">${guide.cover_emoji || '📘'}</div>
+    <div class="guide-card-icon">${escapeHtml(guide.cover_emoji || '📘')}</div>
     <div class="guide-card-info">
       ${categoryLabel ? `<span class="guide-label">${escapeHtml(categoryLabel)}</span>` : ''}
       <h3>${escapeHtml(guide.title)}</h3>
@@ -213,7 +213,7 @@ export async function openGuideModal(guideId) {
   }
 
   content.innerHTML = `
-    <div class="guide-modal-banner" style="${bannerStyle}">${!guide.cover_image ? `<span class="guide-modal-banner-emoji">${guide.cover_emoji || '📘'}</span>` : ''}</div>
+    <div class="guide-modal-banner" style="${bannerStyle}">${!guide.cover_image ? `<span class="guide-modal-banner-emoji">${escapeHtml(guide.cover_emoji || '📘')}</span>` : ''}</div>
     <span class="guide-label">${escapeHtml(guide.categories?.name || '')}</span>
     <h3>${escapeHtml(guide.title)}</h3>
     <p class="guide-modal-desc">${escapeHtml(guide.description || '')}</p>

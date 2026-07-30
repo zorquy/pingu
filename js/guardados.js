@@ -31,7 +31,7 @@ async function loadSaved(session) {
     .map(
       (g) => `
     <div class="saved-guide-row" data-guide-id="${g.id}" style="cursor:pointer;">
-      <span style="font-size: 22px;">${g.cover_emoji || '📘'}</span>
+      <span style="font-size: 22px;">${escapeHtml(g.cover_emoji || '📘')}</span>
       <div class="info">
         <h3>${escapeHtml(g.title)}</h3>
         <span class="time-tag">${g.estimated_mins || 5} min</span>

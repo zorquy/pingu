@@ -37,7 +37,7 @@ export function borderRarityClass(rarity) {
 
 export function cardMediaHtml(imageUrl, emoji) {
   if (!imageUrl) return ''
-  return `<div class="card-media" style="background-image:url('${imageUrl.replace(/'/g, '%27')}')"><span class="card-media-badge">${emoji || '📘'}</span></div>`
+  return `<div class="card-media" style="background-image:url('${imageUrl.replace(/'/g, '%27')}')"><span class="card-media-badge">${escapeHtml(emoji || '📘')}</span></div>`
 }
 
 const CONFETTI_COLORS = ['var(--navy)', 'var(--indigo)', 'var(--warning)', 'var(--success)', 'var(--pink)', 'var(--ice-dark)']

@@ -106,7 +106,7 @@ async function init() {
       <span>›</span> <span>${escapeHtml(guide.title)}</span>
     </div>
     <div class="article-header">
-      <span class="emoji-big">${guide.cover_emoji || '📘'}</span>
+      <span class="emoji-big">${escapeHtml(guide.cover_emoji || '📘')}</span>
       <span class="guide-label">${escapeHtml(guide.categories?.name || '')}</span>
       <h1>${escapeHtml(guide.title)}</h1>
       <p class="lead">${escapeHtml(guide.description || '')}</p>

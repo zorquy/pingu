@@ -609,3 +609,47 @@ ya se han encadenado todos los `.eq()` posteriores. Se descubrió al
 probar el botón de migración de guías: con una sola guía por migrar, el
 stub (con el bug) marcaba erróneamente 3-4 guías como migradas con
 contenido cruzado entre ellas.
+
+## Bug real de seguridad: XSS almacenado vía `cover_emoji` (y el emoji de los bloques de curso)
+`guides.cover_emoji` es un campo de texto libre sin ninguna validación
+(`<input id="mgCoverEmoji">` en el editor de guías de cualquier usuario de
+la comunidad, `editor-guia.html`) y se pintaba **sin escapar** en la
+tarjeta de guía por todo el sitio: `js/home.js`, `js/search.js`,
+`js/guardados.js`, `js/perfil.js`, `js/usuario.js`, `js/guia.js`,
+`js/guide-modal.js` (×2) y las dos tablas de guías de `/admin`. Cualquier
+usuario podía crear una guía con `cover_emoji` = un `<img onerror=...>` y
+ese HTML se ejecutaba para cualquier visitante que viera la home, un
+resultado de búsqueda, sus guardados o el propio panel de admin al
+revisar guías pendientes — el caso más grave, porque ahí se ejecutaría
+con la sesión de un admin. Lo mismo pasaba con el campo `emoji` (y
+`image_url` como atributo `src`) de los bloques de curso `hook`/
+`concept`/`warning`/`tip`/`example` en `js/curso.js`. Se arregló envolviendo
+los ocho+dos sitios con `escapeHtml()` (incluido el helper compartido
+`cardMediaHtml` de `js/app.js`). El resto de emojis sin escapar que
+quedan en el código (categorías, colecciones, logros) los edita
+únicamente un admin desde `/admin`, así que no son la misma clase de
+vulnerabilidad (requieren que la cuenta de admin ya esté comprometida).
+
+Verificado con Playwright: una guía de prueba con
+`cover_emoji = '<img src=x onerror="window.__xssFired=...">'` visitando
+home/búsqueda/categoría/guia.html/curso.html, confirmando `__xssFired`
+en 0, y revirtiendo un punto a la vez para comprobar que la prueba SÍ
+detecta la regresión (el `<img>` se parseaba de verdad y disparaba
+`onerror`).
+
+## Paridad de moderación en el foro de comentarios de guía
+Al construir el foro paginado (`js/guide-forum.js`) se perdieron dos
+cosas que sí tenía el hilo de comentarios anterior (el que usaba
+`js/wall.js` dentro del popup de `guide-modal.js`): poder reportar el
+comentario de otra persona y poder borrar el tuyo propio. Se añadieron
+de vuelta — reportar con `reportButtonHtml`/`wireReportButtons` (mismo
+sistema que el resto del sitio) y "Eliminar" (visible solo al autor del
+comentario, coherente con la política RLS `guide_comments_delete`:
+`auth.uid() = author_id or is_admin()`).
+
+## Modal de logro desbloqueado sin cierre por Escape
+`gamification.js` → `showAchievementModal()` crea su modal por JS en
+vez de vivir en el HTML estático, así que se quedó fuera del barrido de
+accesibilidad de modales de una ronda anterior (que buscaba
+`<span class="modal-close">` en los archivos `.html`). Se le añadió el
+mismo listener de `Escape` que tienen todos los demás modales del sitio.

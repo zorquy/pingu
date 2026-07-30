@@ -1909,8 +1909,14 @@ textarea.be-field {
   color: var(--text-mid);
 }
 
-.forum-reply-btn {
+.forum-post-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   margin-top: 8px;
+}
+
+.forum-reply-btn {
   font-size: 12px;
   font-weight: 700;
   color: var(--text-dim);
@@ -1918,6 +1924,16 @@ textarea.be-field {
 
 .forum-reply-btn:hover {
   color: var(--navy);
+}
+
+.forum-delete-btn {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.forum-delete-btn:hover {
+  color: #dc2626;
 }
 
 .forum-reply-banner {

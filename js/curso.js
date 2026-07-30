@@ -41,7 +41,7 @@ async function persistIndex(index) {
 function renderHook(b) {
   return `
     <div class="block block-hook">
-      <span class="block-emoji">${b.emoji || '👋'}</span>
+      <span class="block-emoji">${escapeHtml(b.emoji || '👋')}</span>
       <h1 class="block-headline">${escapeHtml(b.headline || '')}</h1>
       <p class="block-subtext">${parseBBCode(b.subtext || '')}</p>
     </div>`
@@ -51,10 +51,10 @@ function renderConceptLike(b, extraClass, label) {
   return `
     <div class="block ${extraClass}">
       <div class="block-header">
-        <span>${b.emoji || ''}</span>
+        <span>${escapeHtml(b.emoji || '')}</span>
         <span class="block-label">${label}</span>
       </div>
-      ${b.image_url ? `<img src="${b.image_url}" class="block-image" onerror="this.style.display='none'">` : ''}
+      ${b.image_url ? `<img src="${escapeHtml(b.image_url)}" class="block-image" onerror="this.style.display='none'">` : ''}
       <h2 class="block-title">${escapeHtml(b.title || '')}</h2>
       <p class="block-body">${parseBBCode(b.body || '')}</p>
       ${b.highlight ? `<div class="block-highlight">${parseBBCode(b.highlight)}</div>` : ''}

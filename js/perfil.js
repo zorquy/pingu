@@ -266,7 +266,7 @@ async function loadMyGuides(session) {
       const canEdit = g.review_status === 'draft' || g.review_status === 'rejected'
       return `
       <div class="my-guide-row">
-        <span>${g.cover_emoji || '📘'} ${escapeHtml(g.title || 'Sin título')}</span>
+        <span>${escapeHtml(g.cover_emoji || '📘')} ${escapeHtml(g.title || 'Sin título')}</span>
         <span class="badge ${status.badgeClass}">${status.text}</span>
         <span class="my-guide-actions">
           ${canEdit ? `<button data-edit="${g.id}">Editar</button>` : ''}

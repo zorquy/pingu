@@ -58,7 +58,7 @@ async function loadRecent() {
     .map(
       (g) => `
     <div class="recent-card ${borderRarityClass(g.guide_rarity)}" data-guide-id="${g.id}">
-      ${g.cover_image ? cardMediaHtml(g.cover_image, g.cover_emoji) : `<span class="emoji">${g.cover_emoji || '📘'}</span>`}
+      ${g.cover_image ? cardMediaHtml(g.cover_image, g.cover_emoji) : `<span class="emoji">${escapeHtml(g.cover_emoji || '📘')}</span>`}
       <h3>${escapeHtml(g.title)}</h3>
       <p>${escapeHtml(g.description || '')}</p>
       <div class="meta">
