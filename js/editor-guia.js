@@ -3,6 +3,7 @@ import { escapeHtml, requireAuth, slugify } from './app.js'
 import {
   renderCourseBlockEditor,
   renderReferenceBlockEditor,
+  renderReferenceBlocksHtml,
   flattenReferenceBlocksToText,
   COURSE_BLOCK_DEFAULTS,
   REFERENCE_BLOCK_DEFAULTS,
@@ -33,8 +34,15 @@ function updateCourseGate() {
   if (locked) document.getElementById('refPreviewPanel').classList.add('hidden')
 }
 
+function updateLivePreview() {
+  const html = renderReferenceBlocksHtml(refBlocks)
+  document.getElementById('refLivePreview').innerHTML =
+    html || `<p class="empty-state" style="padding: 20px 0;">Empieza a escribir para ver aquí cómo va quedando.</p>`
+}
+
 function renderRef() {
   renderReferenceBlockEditor(document.getElementById('refBlockEditorList'), refBlocks)
+  updateLivePreview()
 }
 
 function renderCourse() {
@@ -134,7 +142,9 @@ async function init() {
   renderCourse()
   updateCourseGate()
 
-  new MutationObserver(updateCourseGate).observe(document.getElementById('refBlockEditorList'), { childList: true })
+  const refListEl = document.getElementById('refBlockEditorList')
+  new MutationObserver(updateCourseGate).observe(refListEl, { childList: true })
+  ;['input', 'change', 'click', 'drop'].forEach((evt) => refListEl.addEventListener(evt, updateLivePreview))
 
   document.getElementById('btnAddRefBlock').addEventListener('click', () => {
     refBlocks.push({ ...REFERENCE_BLOCK_DEFAULTS.paragraph })

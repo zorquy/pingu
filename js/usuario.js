@@ -1,11 +1,10 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, getSession, profileUrl } from './app.js'
+import { escapeHtml, getInitial, getSession, profileUrl, profileParamsFromLocation } from './app.js'
 import { levelProgress, contributorTier, getAllAchievements } from './gamification.js'
 import { renderWall } from './wall.js'
 
-const params = new URLSearchParams(window.location.search)
-const usernameParam = params.get('u')
-let profileId = params.get('id')
+const { username: usernameParam, id: idParam } = profileParamsFromLocation()
+let profileId = idParam
 
 let currentSession = null
 let profile = null

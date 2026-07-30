@@ -350,7 +350,7 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
   const usernameInput = document.getElementById('peUsername')
   const usernamePreview = document.getElementById('peUsernamePreview')
   function updateUsernamePreview() {
-    usernamePreview.textContent = `usuario.html?u=${slugify(usernameInput.value) || '…'}`
+    usernamePreview.textContent = `pokedocpingu.netlify.app/usuario/${slugify(usernameInput.value) || '…'}`
   }
   updateUsernamePreview()
   usernameInput.addEventListener('input', updateUsernamePreview)

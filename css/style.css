@@ -71,7 +71,7 @@ body {
 h1, h2, h3,
 .btn-primary, .btn-secondary, .btn-outline,
 .nav-logo, .auth-logo,
-.hero-pill, .badge, .pill, .rarity-chip, .filter-pill,
+.hero-pill, .badge, .pill, .rarity-chip,
 .stat-card .value, .hero-panel-stat .value, .xp-display, .achievement-xp,
 .eyebrow {
   font-family: var(--font-display);

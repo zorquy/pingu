@@ -171,7 +171,7 @@ Expo anterior) tampoco se usa ni se toca desde la web.
 ## `user_profiles`
 `id` (= auth.users.id) · `username` (desde `supabase-migration-usernames.sql`,
 único e insensible a mayúsculas — es el "handle" que se usa en las URLs
-públicas, `usuario.html?u=<username>`; se genera automáticamente en el
+públicas, `/usuario/<username>`; se genera automáticamente en el
 onboarding a partir del nombre, y se puede cambiar luego desde "Editar
 perfil") · `display_name` (se usa para mostrar el nombre en toda la web;
 `username` queda como respaldo) · `total_xp` ·
@@ -199,11 +199,21 @@ otro usuario con muro, reseñas y sus guías).
 
 **Directorio de la comunidad**: `usuarios.html` (enlace "Comunidad" en el
 nav) lista todos los perfiles ordenados por `total_xp` con un buscador por
-nombre/username en el cliente. `usuario.html` acepta tanto
-`?u=<username>` (nuevo, se resuelve con un `ilike` contra `username`) como
-el antiguo `?id=<uuid>` (se mantiene por compatibilidad con enlaces ya
-generados). El helper `profileUrl()` de `js/app.js` decide cuál usar al
-generar enlaces.
+nombre/username en el cliente.
+
+**Enlaces de perfil legibles**: `netlify.toml` reescribe
+`/usuario/:username` a `/usuario.html?u=:username` (regla que tiene que
+ir antes del catch-all `/*` del SPA, si no nunca se llegaría a aplicar).
+Como es una reescritura en el servidor, la barra de direcciones del
+navegador se queda en `/usuario/<username>` y no aparece ningún `?u=` —
+por eso `js/usuario.js` ya no lee solo `window.location.search`, sino
+`profileParamsFromLocation()` (en `js/app.js`), que primero mira la ruta
+(`/usuario/<username>`) y si no encuentra nada cae de vuelta a
+`?u=<username>` o `?id=<uuid>` (por si se entra directo a
+`usuario.html`, o en local, donde no hay redirects de Netlify). El
+helper `profileUrl()` de `js/app.js` es quien decide qué generar al
+crear un enlace — ahora mismo siempre `/usuario/<username>` si el
+perfil tiene username, o el `?id=` antiguo como último recurso.
 
 ## Contenido colaborativo (`guides.author_id` / `review_status`)
 Cualquier usuario registrado puede crear guías desde "Mis guías" en su
@@ -259,6 +269,20 @@ primero y solo después sustituye esas etiquetas por `<strong>`/`<em>`
 usuario; los enlaces `[url=]` además se descartan si no empiezan por
 `http(s)://`. Se aplica al renderizar en `guia.js` (párrafo/destacado) y
 `curso.js` (cuerpo y subtexto de bloques tipo concepto).
+
+**Vista previa en vivo de la Documentación**: la pestaña "General y
+Documentación" de ambos editores va en dos columnas — el editor de
+bloques a la izquierda y una tarjeta con pinta de artículo real
+(`.article-body`) a la derecha, que se actualiza en cada tecla/click
+dentro de la lista de bloques (delegación de `input`/`change`/`click`/
+`drop` sobre el contenedor, más una llamada explícita al añadir o quitar
+un bloque). Usa `renderReferenceBlocksHtml()` — la misma función que
+pinta la guía de verdad en `guia.js` — para que la vista previa sea
+exactamente lo que se va a publicar, no una aproximación. De paso se
+corrigió que `.block-highlight` vivía en `css/curso.css`, que
+`guia.html` no enlaza, así que el bloque "destacado" de la documentación
+nunca había tenido estilo en la página real; ahora vive en
+`css/components.css`, enlazado en todas partes.
 
 ## `profile_comments` (muro del perfil)
 `id` · `profile_id` (de quién es el muro) · `author_id` (quién escribe) ·

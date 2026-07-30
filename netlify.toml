@@ -1,6 +1,14 @@
 [functions]
   directory = "netlify/functions"
 
+# Enlaces de perfil legibles: /usuario/<nombre-de-usuario> en vez de
+# /usuario.html?u=<nombre-de-usuario>. Tiene que ir ANTES del catch-all de
+# abajo — Netlify aplica la primera regla que coincide.
+[[redirects]]
+  from = "/usuario/:username"
+  to = "/usuario.html?u=:username"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

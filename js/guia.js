@@ -1,31 +1,11 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, getProfile, profileUrl } from './app.js'
-import { parseBBCode } from './bbcode.js'
+import { renderReferenceBlocksHtml } from './block-editor.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
 
 const LEVEL_LABELS = { beginner: 'Básico', intermediate: 'Intermedio', advanced: 'Avanzado' }
-
-function renderReferenceBlock(block, headings) {
-  switch (block.type) {
-    case 'heading': {
-      const id = `section-${headings.length}`
-      headings.push({ id, text: block.text })
-      return `<h2 id="${id}">${escapeHtml(block.text || '')}</h2>`
-    }
-    case 'paragraph':
-      return `<p>${parseBBCode(block.text || '')}</p>`
-    case 'image':
-      return `<img src="${block.url}" alt="${escapeHtml(block.caption || '')}" onerror="this.style.display='none'">`
-    case 'list':
-      return `<ul>${(block.items || []).map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`
-    case 'highlight':
-      return `<div class="block-highlight">${parseBBCode(block.text || '')}</div>`
-    default:
-      return ''
-  }
-}
 
 async function toggleSave(session, guideId, btn) {
   const profile = await getProfile(session.user.id)
@@ -86,7 +66,7 @@ async function init() {
         <p style="margin-top: 8px;">Completa el curso de esta guía para desbloquear el artículo de referencia.</p>
       </div>`
   } else {
-    bodyHtml = guide.reference_blocks.map((b) => renderReferenceBlock(b, headings)).join('')
+    bodyHtml = renderReferenceBlocksHtml(guide.reference_blocks, headings)
   }
 
   main.innerHTML = `

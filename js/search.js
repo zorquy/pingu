@@ -1,15 +1,10 @@
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 
-const SUGGESTED = ['cartas falsas', 'rarezas', 'PSA', 'backs', 'grading', 'holográfica']
-
 const input = document.getElementById('searchInput')
 const resultsEl = document.getElementById('searchResults')
-const emptyStateEl = document.getElementById('searchEmptyState')
-const chipsEl = document.getElementById('searchChips')
-const filtersEl = document.getElementById('categoryFilters')
+const categorySelect = document.getElementById('categorySelect')
 
-let categories = []
 let activeCategoryId = null
 let debounceTimer = null
 
@@ -29,31 +24,16 @@ function snippet(text, query) {
   return `${start > 0 ? '…' : ''}${before}<mark>${match}</mark>${after}${end < text.length ? '…' : ''}`
 }
 
-function renderChips() {
-  chipsEl.innerHTML = SUGGESTED.map((s) => `<button class="search-chip" data-q="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('')
-  chipsEl.querySelectorAll('.search-chip').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      input.value = chip.dataset.q
-      runSearch(chip.dataset.q)
-    })
-  })
-}
-
 async function loadCategories() {
   const { data } = await supabase.from('categories').select('id, name, slug').order('order_pos')
-  categories = data || []
-  filtersEl.innerHTML = [
-    `<button class="filter-pill active" data-id="">Todas</button>`,
-    ...categories.map((c) => `<button class="filter-pill" data-id="${c.id}">${escapeHtml(c.name)}</button>`),
-  ].join('')
+  const categories = data || []
+  categorySelect.innerHTML =
+    `<option value="">Todas las categorías</option>` +
+    categories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')
 
-  filtersEl.querySelectorAll('.filter-pill').forEach((pill) => {
-    pill.addEventListener('click', () => {
-      filtersEl.querySelectorAll('.filter-pill').forEach((p) => p.classList.remove('active'))
-      pill.classList.add('active')
-      activeCategoryId = pill.dataset.id || null
-      runSearch(input.value.trim())
-    })
+  categorySelect.addEventListener('change', () => {
+    activeCategoryId = categorySelect.value || null
+    runSearch(input.value.trim())
   })
 }
 
@@ -61,11 +41,9 @@ async function runSearch(rawQuery) {
   const query = sanitizeForFilter(rawQuery)
 
   if (!query) {
-    emptyStateEl.style.display = 'block'
-    resultsEl.innerHTML = ''
+    resultsEl.innerHTML = `<p class="empty-state">Escribe algo para buscar entre las guías.</p>`
     return
   }
-  emptyStateEl.style.display = 'none'
 
   let q = supabase
     .from('guides')
@@ -99,5 +77,5 @@ input?.addEventListener('input', () => {
   debounceTimer = setTimeout(() => runSearch(input.value.trim()), 300)
 })
 
-renderChips()
+runSearch('')
 loadCategories()

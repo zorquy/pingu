@@ -524,25 +524,118 @@
   font-weight: 700;
 }
 
+/* ── Campos de texto del editor de bloques ── */
+.be-field,
+.rbe-field {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s var(--ease);
+}
+
+.be-field:focus,
+.rbe-field:focus {
+  border-color: var(--navy);
+}
+
+textarea.be-field,
+textarea.rbe-field {
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.5;
+}
+
 .bbcode-toolbar {
   display: flex;
-  gap: 4px;
-  margin-bottom: 4px;
+  gap: 2px;
+  padding: 6px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
 .bbcode-toolbar button {
-  min-width: 26px;
-  height: 26px;
-  padding: 0 6px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
   border-radius: var(--radius-sm);
-  background: var(--ice);
-  color: var(--navy);
-  font-size: 12px;
+  background: none;
+  color: var(--text-mid);
+  font-size: 14px;
   font-weight: 800;
 }
 
 .bbcode-toolbar button:hover {
-  background: var(--ice-dark);
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.bbcode-toolbar button[data-tag="i"] {
+  font-style: italic;
+}
+
+.bbcode-toolbar button[data-tag="u"] {
+  text-decoration: underline;
+}
+
+.bbcode-toolbar + textarea.be-field,
+.bbcode-toolbar + textarea.rbe-field {
+  margin-top: 0;
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  min-height: 260px;
+  font-size: 15px;
+  line-height: 1.7;
+  padding: 16px;
+}
+
+/* ── Editor con vista previa en vivo (Documentación) ── */
+.editor-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .editor-split {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+  .editor-preview-col {
+    position: sticky;
+    top: 88px;
+  }
+}
+
+.editor-preview-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.editor-preview-card {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  background: var(--white);
+  min-height: 220px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.editor-preview-card .article-body :first-child {
+  margin-top: 0;
 }
 
 /* ── Editor de guías a página completa ── */
@@ -724,50 +817,6 @@
   box-shadow: var(--shadow-ring);
 }
 
-.search-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.search-chip {
-  background: var(--ice);
-  color: var(--navy);
-  font-weight: 600;
-  font-size: 12.5px;
-  padding: 8px 13px;
-  border-radius: var(--radius-pill);
-  transition: background 0.15s var(--ease);
-}
-
-.search-chip:hover {
-  background: var(--ice-dark);
-}
-
-.search-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.filter-pill {
-  padding: 7px 14px;
-  border-radius: var(--radius-pill);
-  border: 1.5px solid var(--border);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-mid);
-  transition: background 0.15s var(--ease), border-color 0.15s var(--ease), color 0.15s var(--ease);
-}
-
-.filter-pill.active {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: var(--white);
-}
-
 .search-result {
   padding: 16px 0;
   border-bottom: 1px solid var(--border);
@@ -866,6 +915,15 @@
 .article-body ol {
   margin: 0 0 16px 20px;
   list-style: revert;
+}
+
+.block-highlight {
+  background: rgba(30, 81, 117, 0.07);
+  border-left: 3px solid var(--navy);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
 .article-cta {

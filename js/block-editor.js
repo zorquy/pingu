@@ -1,5 +1,32 @@
 import { escapeHtml } from './app.js'
-import { bbcodeToolbarHtml, wireBBCodeToolbars } from './bbcode.js'
+import { bbcodeToolbarHtml, wireBBCodeToolbars, parseBBCode } from './bbcode.js'
+
+// Render de un bloque de referencia a HTML final — lo usan tanto guia.js
+// (la página real) como la vista previa en vivo del editor, para que las
+// dos coincidan exactamente.
+export function renderReferenceBlock(block, headings = []) {
+  switch (block.type) {
+    case 'heading': {
+      const id = `section-${headings.length}`
+      headings.push({ id, text: block.text })
+      return `<h2 id="${id}">${escapeHtml(block.text || '')}</h2>`
+    }
+    case 'paragraph':
+      return `<p>${parseBBCode(block.text || '')}</p>`
+    case 'image':
+      return block.url ? `<img src="${block.url}" alt="${escapeHtml(block.caption || '')}" onerror="this.style.display='none'">` : ''
+    case 'list':
+      return `<ul>${(block.items || []).map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`
+    case 'highlight':
+      return `<div class="block-highlight">${parseBBCode(block.text || '')}</div>`
+    default:
+      return ''
+  }
+}
+
+export function renderReferenceBlocksHtml(blocks, headings = []) {
+  return (blocks || []).map((b) => renderReferenceBlock(b, headings)).join('')
+}
 
 export const COURSE_BLOCK_DEFAULTS = {
   hook: { type: 'hook', emoji: '👋', headline: '', subtext: '' },

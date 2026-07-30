@@ -53,8 +53,18 @@
       <section class="editor-panel">
         <h2 class="section-title">📖 Documentación</h2>
         <p class="subtext" style="margin-top:-8px;">El contenido de referencia. El curso interactivo se construye a partir de aquí.</p>
-        <div id="refBlockEditorList" class="editor-block-list"></div>
-        <button class="btn-secondary" id="btnAddRefBlock">+ Añadir bloque</button>
+        <div class="editor-split">
+          <div>
+            <div id="refBlockEditorList" class="editor-block-list"></div>
+            <button class="btn-secondary" id="btnAddRefBlock">+ Añadir bloque</button>
+          </div>
+          <div class="editor-preview-col">
+            <div class="editor-preview-label">👁 Vista previa en vivo</div>
+            <div class="editor-preview-card">
+              <div class="article-body" id="refLivePreview"></div>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
 

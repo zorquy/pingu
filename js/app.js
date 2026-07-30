@@ -94,7 +94,21 @@ export function slugify(text) {
 }
 
 export function profileUrl(p) {
-  return p?.username ? `usuario.html?u=${encodeURIComponent(p.username)}` : `usuario.html?id=${p?.id}`
+  return p?.username ? `usuario/${encodeURIComponent(p.username)}` : `usuario.html?id=${p?.id}`
+}
+
+// El redirect de netlify.toml reescribe /usuario/<nombre> a
+// /usuario.html?u=<nombre> en el servidor sin tocar la URL del navegador,
+// así que el username no aparece en window.location.search — hay que
+// sacarlo de la ruta. Se mantiene ?u=/?id= como alternativa por si se
+// entra directo a usuario.html (o en local, donde no hay redirects).
+export function profileParamsFromLocation() {
+  const params = new URLSearchParams(window.location.search)
+  const pathMatch = window.location.pathname.match(/\/usuario\/([^/?#]+)/)
+  return {
+    username: pathMatch ? decodeURIComponent(pathMatch[1]) : params.get('u'),
+    id: params.get('id'),
+  }
 }
 
 export async function uniqueUsername(base, excludeUserId) {
