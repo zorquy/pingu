@@ -507,3 +507,20 @@ hace visible hasta que se publica explícitamente, para poder seguir
 editándola sin que se vea a medio hacer. El editor de guías de los
 usuarios de la comunidad (`editor-guia.html` normal) no tiene esta
 pestaña — la Guía Pro es contenido curado por el equipo de admin.
+
+## Accesibilidad de los modales y toasts
+Todos los modales del sitio (guía ampliada, perfil/trofeos/seguidores,
+"Qué es PokeDoc", admin) tenían el botón de cerrar como un `<span>` —
+nada de esto era alcanzable con teclado ni tenía nombre accesible, y
+tampoco se podían cerrar con Escape. Se cambió `<span class="modal-close">`
+por `<button aria-label="Cerrar">` en las seis páginas que lo usan
+(`categoria.html`, `guardados.html`, `index.html` ×2, `perfil.html`,
+`usuario.html`, `admin/index.html`), y se añadió un listener de `Escape`
+en cada punto donde se abre/cierra un modal (`guide-modal.js`, `home.js`,
+`perfil.js`, `usuario.js`, `admin/js/admin.js`). El reset global de
+`button` en `style.css` ya deja el botón visualmente igual que el span.
+
+De paso: `js/toast.js` marca su contenedor con `role="status"` y
+`aria-live="polite"` para que un lector de pantalla anuncie los mensajes,
+y los botones de guardar/quitar solo-icono (`.card-save-btn`,
+`.unsave-btn`) llevan `aria-label` además del `title` que ya tenían.

@@ -4,6 +4,8 @@ function getContainer() {
   if (container && document.body.contains(container)) return container
   container = document.createElement('div')
   container.className = 'toast-container'
+  container.setAttribute('role', 'status')
+  container.setAttribute('aria-live', 'polite')
   document.body.appendChild(container)
   return container
 }

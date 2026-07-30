@@ -46,6 +46,9 @@ document.getElementById('profileModalClose')?.addEventListener('click', closeMod
 modal?.addEventListener('click', (e) => {
   if (e.target === modal) closeModal()
 })
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !modal?.classList.contains('hidden')) closeModal()
+})
 
 async function loadHeader() {
   const { data } = await supabase.from('user_profiles').select('*').eq('id', profileId).single()

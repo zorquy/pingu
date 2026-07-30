@@ -37,7 +37,7 @@ async function loadSaved(session) {
         <span class="time-tag">${g.estimated_mins || 5} min</span>
         <span class="card-rating" data-card-rating>Sin valorar</span>
       </div>
-      <button class="unsave-btn" data-id="${g.id}" title="Quitar">×</button>
+      <button class="unsave-btn" data-id="${g.id}" title="Quitar" aria-label="Quitar de guardados">×</button>
     </div>`
     )
     .join('')

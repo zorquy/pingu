@@ -67,7 +67,7 @@ async function loadRecent() {
         <span class="rarity-chip rarity-${g.guide_rarity || 'bronze'}">${g.guide_rarity || 'bronze'}</span>
       </div>
       <div class="guide-card-social">
-        <button class="card-save-btn" data-card-save title="Guardar">☆</button>
+        <button class="card-save-btn" data-card-save title="Guardar" aria-label="Guardar">☆</button>
         <span class="card-rating" data-card-rating>Sin valorar</span>
       </div>
     </div>`
@@ -89,6 +89,9 @@ function setupModals() {
   })
   document.getElementById('whatIsModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'whatIsModal') e.target.classList.add('hidden')
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') document.getElementById('whatIsModal')?.classList.add('hidden')
   })
 }
 

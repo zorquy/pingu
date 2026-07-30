@@ -59,7 +59,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
         ${statusBadge === 'completed' ? '<span class="badge badge-completed">✓ COMPLETADO</span>' : ''}
       </div>
       <div class="guide-card-social">
-        <button class="card-save-btn" data-card-save title="Guardar" onclick="event.stopPropagation()">☆</button>
+        <button class="card-save-btn" data-card-save title="Guardar" aria-label="Guardar" onclick="event.stopPropagation()">☆</button>
         <span class="card-rating" data-card-rating>Sin valorar</span>
       </div>
     </div>
@@ -93,6 +93,7 @@ export async function decorateGuideCards(containerEl, session) {
     if (!saveBtn) return
     const isSaved = savedIds.includes(id)
     saveBtn.textContent = isSaved ? '★' : '☆'
+    saveBtn.setAttribute('aria-label', isSaved ? 'Quitar de guardados' : 'Guardar')
     saveBtn.classList.toggle('is-saved', isSaved)
     saveBtn.addEventListener('click', async (e) => {
       e.stopPropagation()
@@ -102,6 +103,7 @@ export async function decorateGuideCards(containerEl, session) {
       }
       const nowSaved = await toggleSaved(session, id)
       saveBtn.textContent = nowSaved ? '★' : '☆'
+      saveBtn.setAttribute('aria-label', nowSaved ? 'Quitar de guardados' : 'Guardar')
       saveBtn.classList.toggle('is-saved', nowSaved)
     })
   })
@@ -270,5 +272,8 @@ export function setupGuideModalClose(onClose) {
   document.getElementById('guideModalClose')?.addEventListener('click', close)
   document.getElementById('guideModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'guideModal') close()
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('guideModal')?.classList.contains('hidden')) close()
   })
 }
