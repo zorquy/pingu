@@ -94,7 +94,7 @@ export function slugify(text) {
 }
 
 export function profileUrl(p) {
-  return p?.username ? `usuario/${encodeURIComponent(p.username)}` : `usuario.html?id=${p?.id}`
+  return p?.username ? `/usuario/${encodeURIComponent(p.username)}` : `/usuario.html?id=${p?.id}`
 }
 
 // El redirect de netlify.toml reescribe /usuario/<nombre> a
@@ -146,10 +146,19 @@ export async function uploadProfileImage(userId, file, kind) {
   return data.publicUrl
 }
 
+export async function uploadGuideImage(userId, file) {
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase()
+  const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+  const { error } = await supabase.storage.from('guide-images').upload(path, file)
+  if (error) throw error
+  const { data } = supabase.storage.from('guide-images').getPublicUrl(path)
+  return data.publicUrl
+}
+
 export async function requireAuth() {
   const session = await getSession()
   if (!session) {
-    window.location.href = 'auth.html'
+    window.location.href = '/auth.html'
     return null
   }
   return session
@@ -157,7 +166,7 @@ export async function requireAuth() {
 
 export async function signOut() {
   await supabase.auth.signOut()
-  window.location.href = 'index.html'
+  window.location.href = '/index.html'
 }
 
 async function renderNavUser(session) {
@@ -165,14 +174,14 @@ async function renderNavUser(session) {
   if (!el) return
 
   if (!session) {
-    el.innerHTML = `<a href="auth.html" class="btn-primary">Entrar</a>`
+    el.innerHTML = `<a href="/auth.html" class="btn-primary">Entrar</a>`
     return
   }
 
   const profile = await getProfile(session.user.id)
   const name = profile?.display_name || profile?.username || session.user.email
   const color = profile?.avatar_color || 'var(--navy)'
-  el.innerHTML = `<a href="perfil.html" class="nav-user-avatar" style="background:${color}" title="${escapeHtml(name)}">${getInitial(name)}</a>`
+  el.innerHTML = `<a href="/perfil.html" class="nav-user-avatar" style="background:${color}" title="${escapeHtml(name)}">${getInitial(name)}</a>`
 }
 
 function initScrollShadow() {

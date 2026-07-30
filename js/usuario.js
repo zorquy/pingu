@@ -123,7 +123,7 @@ async function loadReputationAndGuides() {
   container.innerHTML = guides
     .map(
       (g) => `
-    <a href="guia.html?slug=${encodeURIComponent(g.slug)}" class="completed-course-row" style="text-decoration:none; color:inherit;">
+    <a href="/guia.html?slug=${encodeURIComponent(g.slug)}" class="completed-course-row" style="text-decoration:none; color:inherit;">
       <span>${g.cover_emoji || '📘'} ${escapeHtml(g.title)}</span>
       <span class="date">${escapeHtml(g.categories?.name || '')}</span>
     </a>`
@@ -278,7 +278,7 @@ async function loadReviews() {
 
   const formContainer = document.getElementById('reviewForm')
   if (!currentSession) {
-    formContainer.innerHTML = `<p class="subtext"><a href="auth.html" style="color:var(--navy); font-weight:700;">Inicia sesión</a> para dejar una reseña.</p>`
+    formContainer.innerHTML = `<p class="subtext"><a href="/auth.html" style="color:var(--navy); font-weight:700;">Inicia sesión</a> para dejar una reseña.</p>`
     return
   }
   if (currentSession.user.id === profileId) {

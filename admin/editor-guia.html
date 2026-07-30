@@ -38,7 +38,15 @@
           <div class="form-group"><label>Colección (opcional)</label><select id="gCollection"></select></div>
           <div class="form-group"><label>Orden en la colección</label><input id="gCollectionOrder" type="number" value="0" /></div>
           <div class="form-group"><label>Emoji de portada</label><input id="gCoverEmoji" placeholder="📘" /></div>
-          <div class="form-group"><label>Imagen de portada (URL)</label><input id="gCoverImage" placeholder="https://..." /></div>
+          <div class="form-group">
+            <label>Imagen de portada</label>
+            <div class="cover-image-upload">
+              <img id="gCoverImagePreview" class="cover-image-preview hidden" alt="Portada" />
+              <button type="button" class="btn-outline" id="btnUploadCoverImage">📤 Subir imagen</button>
+              <button type="button" class="btn-outline hidden" id="btnRemoveCoverImage">Quitar</button>
+              <input type="file" accept="image/*" id="gCoverImageFile" hidden />
+            </div>
+          </div>
           <div class="form-group"><label>Nivel</label>
             <select id="gLevel">
               <option value="beginner">Básico</option>
@@ -53,17 +61,9 @@
       <section class="editor-panel">
         <h2 class="section-title">📖 Documentación</h2>
         <p class="subtext" style="margin-top:-8px;">El contenido de referencia. El curso interactivo se construye a partir de aquí.</p>
-        <div class="editor-split">
-          <div>
-            <div id="refBlockEditorList" class="editor-block-list"></div>
-            <button class="btn-secondary" id="btnAddRefBlock">+ Añadir bloque</button>
-          </div>
-          <div class="editor-preview-col">
-            <div class="editor-preview-label">👁 Vista previa en vivo</div>
-            <div class="editor-preview-card">
-              <div class="article-body" id="refLivePreview"></div>
-            </div>
-          </div>
+        <div class="rte-wrap">
+          <div class="rte-toolbar" id="refRteToolbar"></div>
+          <div class="rte-surface article-body" id="refRteSurface"></div>
         </div>
       </section>
     </div>

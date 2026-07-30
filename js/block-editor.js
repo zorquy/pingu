@@ -1,11 +1,24 @@
 import { escapeHtml } from './app.js'
 import { bbcodeToolbarHtml, wireBBCodeToolbars, parseBBCode } from './bbcode.js'
+import { sanitizeRichText } from './richtext-editor.js'
 
 // Render de un bloque de referencia a HTML final — lo usan tanto guia.js
 // (la página real) como la vista previa en vivo del editor, para que las
-// dos coincidan exactamente.
+// dos coincidan exactamente. `richtext` es el tipo nuevo (editor WYSIWYG);
+// los demás son de guías antiguas creadas con el editor de bloques previo.
 export function renderReferenceBlock(block, headings = []) {
   switch (block.type) {
+    case 'richtext': {
+      const clean = sanitizeRichText(block.html || '')
+      if (typeof DOMParser === 'undefined') return clean
+      const doc = new DOMParser().parseFromString(clean, 'text/html')
+      doc.querySelectorAll('h2, h3').forEach((h) => {
+        const id = `section-${headings.length}`
+        h.id = id
+        headings.push({ id, text: h.textContent })
+      })
+      return doc.body.innerHTML
+    }
     case 'heading': {
       const id = `section-${headings.length}`
       headings.push({ id, text: block.text })
@@ -43,14 +56,6 @@ export const COURSE_BLOCK_DEFAULTS = {
   reward: { type: 'reward', next_guide_slug: '' },
 }
 
-export const REFERENCE_BLOCK_DEFAULTS = {
-  heading: { type: 'heading', text: '' },
-  paragraph: { type: 'paragraph', text: '' },
-  image: { type: 'image', url: '', caption: '' },
-  list: { type: 'list', items: [''] },
-  highlight: { type: 'highlight', text: '' },
-}
-
 export const COURSE_BLOCK_LABELS = {
   hook: { icon: '👋', label: 'Enganche inicial' },
   concept: { icon: '💡', label: 'Concepto' },
@@ -64,14 +69,6 @@ export const COURSE_BLOCK_LABELS = {
   order: { icon: '🔢', label: 'Ordenar pasos' },
   checklist: { icon: '☑️', label: 'Checklist' },
   reward: { icon: '🏆', label: 'Recompensa final' },
-}
-
-export const REFERENCE_BLOCK_LABELS = {
-  heading: { icon: '🔠', label: 'Encabezado' },
-  paragraph: { icon: '📝', label: 'Párrafo' },
-  image: { icon: '🖼️', label: 'Imagen' },
-  list: { icon: '📋', label: 'Lista' },
-  highlight: { icon: '⭐', label: 'Destacado' },
 }
 
 export function fieldsForCourseBlock(block, i) {
@@ -91,7 +88,11 @@ export function fieldsForCourseBlock(block, i) {
         <input class="be-field" data-i="${i}" data-f="title" placeholder="Título" value="${escapeHtml(block.title || '')}" />
         ${bbcodeToolbarHtml(`cb-body-${i}`)}
         <textarea class="be-field" id="cb-body-${i}" data-i="${i}" data-f="body" placeholder="Texto">${escapeHtml(block.body || '')}</textarea>
-        <input class="be-field" data-i="${i}" data-f="image_url" placeholder="URL de imagen (opcional)" value="${escapeHtml(block.image_url || '')}" />
+        <div class="be-image-row">
+          <input class="be-field" data-i="${i}" data-f="image_url" placeholder="Sin imagen" value="${escapeHtml(block.image_url || '')}" readonly />
+          <button type="button" class="btn-outline be-upload-image" data-i="${i}">📤 Subir imagen</button>
+          <input type="file" accept="image/*" class="be-image-file" data-i="${i}" hidden />
+        </div>
         <input class="be-field" data-i="${i}" data-f="highlight" placeholder="Destacado (opcional)" value="${escapeHtml(block.highlight || '')}" />`
     case 'quiz':
       return `
@@ -135,30 +136,12 @@ export function fieldsForCourseBlock(block, i) {
   }
 }
 
-export function fieldsForReferenceBlock(block, i) {
-  switch (block.type) {
-    case 'heading':
-    case 'highlight':
-      return `<input class="rbe-field" data-i="${i}" data-f="text" placeholder="Texto" value="${escapeHtml(block.text || '')}" />`
-    case 'paragraph':
-      return `
-        ${bbcodeToolbarHtml(`rb-text-${i}`)}
-        <textarea class="rbe-field" id="rb-text-${i}" data-i="${i}" data-f="text" placeholder="Texto">${escapeHtml(block.text || '')}</textarea>`
-    case 'image':
-      return `
-        <input class="rbe-field" data-i="${i}" data-f="url" placeholder="URL de imagen" value="${escapeHtml(block.url || '')}" />
-        <input class="rbe-field" data-i="${i}" data-f="caption" placeholder="Descripción" value="${escapeHtml(block.caption || '')}" />`
-    case 'list':
-      return `<textarea class="rbe-field" data-i="${i}" data-f="items" placeholder="Items (uno por línea)">${escapeHtml((block.items || []).join('\n'))}</textarea>`
-    default:
-      return ''
-  }
-}
-
 export function flattenReferenceBlocksToText(blocks) {
   return blocks
     .map((b) => {
       switch (b.type) {
+        case 'richtext':
+          return (b.html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
         case 'heading':
           return `## ${b.text || ''}`
         case 'paragraph':
@@ -197,7 +180,7 @@ export function makeSortable(containerEl, list, onChange) {
   })
 }
 
-export function renderCourseBlockEditor(containerEl, blocks) {
+export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
   containerEl.innerHTML = blocks
     .map(
       (b, i) => `
@@ -220,13 +203,13 @@ export function renderCourseBlockEditor(containerEl, blocks) {
     sel.addEventListener('change', () => {
       const i = Number(sel.dataset.i)
       blocks[i] = { ...COURSE_BLOCK_DEFAULTS[sel.value] }
-      renderCourseBlockEditor(containerEl, blocks)
+      renderCourseBlockEditor(containerEl, blocks, uploadImage)
     })
   )
   containerEl.querySelectorAll('.remove-block').forEach((btn) =>
     btn.addEventListener('click', () => {
       blocks.splice(Number(btn.dataset.i), 1)
-      renderCourseBlockEditor(containerEl, blocks)
+      renderCourseBlockEditor(containerEl, blocks, uploadImage)
     })
   )
   containerEl.querySelectorAll('.be-field').forEach((input) =>
@@ -252,49 +235,25 @@ export function renderCourseBlockEditor(containerEl, blocks) {
       }
     })
   )
-  makeSortable(containerEl, blocks, () => renderCourseBlockEditor(containerEl, blocks))
-  wireBBCodeToolbars(containerEl)
-}
-
-export function renderReferenceBlockEditor(containerEl, blocks) {
-  containerEl.innerHTML = blocks
-    .map(
-      (b, i) => `
-    <div class="block-editor-item" data-index="${i}">
-      <div class="block-editor-item-header">
-        <span class="block-type-icon">${REFERENCE_BLOCK_LABELS[b.type]?.icon || '📦'}</span>
-        <select class="rbe-type" data-i="${i}">
-          ${Object.keys(REFERENCE_BLOCK_DEFAULTS)
-            .map((t) => `<option value="${t}" ${t === b.type ? 'selected' : ''}>${escapeHtml(REFERENCE_BLOCK_LABELS[t]?.label || t)}</option>`)
-            .join('')}
-        </select>
-        <span class="remove-block" data-i="${i}">Quitar ×</span>
-      </div>
-      ${fieldsForReferenceBlock(b, i)}
-    </div>`
-    )
-    .join('')
-
-  containerEl.querySelectorAll('.rbe-type').forEach((sel) =>
-    sel.addEventListener('change', () => {
-      const i = Number(sel.dataset.i)
-      blocks[i] = { ...REFERENCE_BLOCK_DEFAULTS[sel.value] }
-      renderReferenceBlockEditor(containerEl, blocks)
+  if (uploadImage) {
+    containerEl.querySelectorAll('.be-upload-image').forEach((btn) => {
+      const i = Number(btn.dataset.i)
+      const fileInput = containerEl.querySelector(`.be-image-file[data-i="${i}"]`)
+      btn.addEventListener('click', () => fileInput.click())
+      fileInput.addEventListener('change', async () => {
+        const file = fileInput.files[0]
+        fileInput.value = ''
+        if (!file) return
+        try {
+          const url = await uploadImage(file)
+          blocks[i].image_url = url
+          renderCourseBlockEditor(containerEl, blocks, uploadImage)
+        } catch (err) {
+          alert('No se pudo subir la imagen: ' + err.message)
+        }
+      })
     })
-  )
-  containerEl.querySelectorAll('.remove-block').forEach((btn) =>
-    btn.addEventListener('click', () => {
-      blocks.splice(Number(btn.dataset.i), 1)
-      renderReferenceBlockEditor(containerEl, blocks)
-    })
-  )
-  containerEl.querySelectorAll('.rbe-field').forEach((input) =>
-    input.addEventListener('input', () => {
-      const i = Number(input.dataset.i)
-      const f = input.dataset.f
-      blocks[i][f] = f === 'items' ? input.value.split('\n').map((s) => s.trim()).filter(Boolean) : input.value
-    })
-  )
-  makeSortable(containerEl, blocks, () => renderReferenceBlockEditor(containerEl, blocks))
+  }
+  makeSortable(containerEl, blocks, () => renderCourseBlockEditor(containerEl, blocks, uploadImage))
   wireBBCodeToolbars(containerEl)
 }

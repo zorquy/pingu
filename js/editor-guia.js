@@ -1,13 +1,12 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, requireAuth, slugify } from './app.js'
+import { escapeHtml, requireAuth, slugify, uploadGuideImage } from './app.js'
 import {
   renderCourseBlockEditor,
-  renderReferenceBlockEditor,
   renderReferenceBlocksHtml,
   flattenReferenceBlocksToText,
   COURSE_BLOCK_DEFAULTS,
-  REFERENCE_BLOCK_DEFAULTS,
 } from './block-editor.js'
+import { initRichTextEditor, richTextToolbarHtml } from './richtext-editor.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -16,6 +15,11 @@ let currentSession = null
 let existingGuide = null
 let courseBlocks = []
 let refBlocks = []
+
+function setRefHtml(html) {
+  refBlocks = html.trim() ? [{ type: 'richtext', html }] : []
+  updateCourseGate()
+}
 
 async function loadCategoriesForSelect(selectedId) {
   const { data } = await supabase.from('categories').select('id, name').order('order_pos')
@@ -34,19 +38,25 @@ function updateCourseGate() {
   if (locked) document.getElementById('refPreviewPanel').classList.add('hidden')
 }
 
-function updateLivePreview() {
-  const html = renderReferenceBlocksHtml(refBlocks)
-  document.getElementById('refLivePreview').innerHTML =
-    html || `<p class="empty-state" style="padding: 20px 0;">Empieza a escribir para ver aquí cómo va quedando.</p>`
-}
-
 function renderRef() {
-  renderReferenceBlockEditor(document.getElementById('refBlockEditorList'), refBlocks)
-  updateLivePreview()
+  const toolbarEl = document.getElementById('refRteToolbar')
+  toolbarEl.innerHTML = richTextToolbarHtml()
+  // Si la guía es de antes del editor WYSIWYG, tenía varios bloques
+  // (encabezado/párrafo/imagen...); los convertimos una vez a HTML para
+  // seguir editándolos en la superficie continua nueva.
+  const initialHtml = refBlocks.length === 1 && refBlocks[0].type === 'richtext' ? refBlocks[0].html : renderReferenceBlocksHtml(refBlocks)
+  initRichTextEditor({
+    toolbarEl,
+    surfaceEl: document.getElementById('refRteSurface'),
+    initialHtml,
+    onChange: setRefHtml,
+    uploadImage: (file) => uploadGuideImage(currentSession.user.id, file),
+  })
+  setRefHtml(initialHtml)
 }
 
 function renderCourse() {
-  renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks)
+  renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks, (file) => uploadGuideImage(currentSession.user.id, file))
 }
 
 async function loadExistingGuide(session) {
@@ -141,15 +151,6 @@ async function init() {
   renderRef()
   renderCourse()
   updateCourseGate()
-
-  const refListEl = document.getElementById('refBlockEditorList')
-  new MutationObserver(updateCourseGate).observe(refListEl, { childList: true })
-  ;['input', 'change', 'click', 'drop'].forEach((evt) => refListEl.addEventListener(evt, updateLivePreview))
-
-  document.getElementById('btnAddRefBlock').addEventListener('click', () => {
-    refBlocks.push({ ...REFERENCE_BLOCK_DEFAULTS.paragraph })
-    renderRef()
-  })
 
   document.getElementById('btnAddCourseBlock').addEventListener('click', () => {
     courseBlocks.push({ ...COURSE_BLOCK_DEFAULTS.concept })

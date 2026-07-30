@@ -54,7 +54,7 @@ export async function renderWall({
   if (!formEl) return
 
   if (!currentSession) {
-    formEl.innerHTML = `<p class="subtext"><a href="auth.html" style="color:var(--navy); font-weight:700;">Inicia sesión</a> para escribir aquí.</p>`
+    formEl.innerHTML = `<p class="subtext"><a href="/auth.html" style="color:var(--navy); font-weight:700;">Inicia sesión</a> para escribir aquí.</p>`
     return
   }
 

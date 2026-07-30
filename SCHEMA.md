@@ -71,8 +71,44 @@ variable de entorno `ANTHROPIC_API_KEY` en Netlify; sin ella, el resto del
 panel funciona igual y solo ese botón devuelve un error explicando que falta
 la clave.
 
-**Bloques de referencia** (`reference_blocks`): `heading`, `paragraph`,
-`image`, `list`, `highlight`.
+**Bloques de referencia** (`reference_blocks`): `richtext` (el tipo actual —
+ver más abajo), y los antiguos `heading`, `paragraph`, `image`, `list`,
+`highlight` que siguen soportados en el render (`renderReferenceBlock` en
+`js/block-editor.js`) para guías creadas antes de este cambio.
+
+**Editor de Documentación (WYSIWYG)**: desde este cambio, la pestaña
+"Documentación" de `editor-guia.html` (usuario) y `admin/editor-guia.html`
+ya no es una lista de bloques — es un único editor de texto enriquecido a
+página completa (`js/richtext-editor.js`), con una barra de herramientas
+tipo Word (negrita/cursiva/subrayado/H2/H3/párrafo/listas/enlace/imagen)
+sobre un `contenteditable` que ocupa toda la pantalla. Se guarda como un
+único bloque `{ type: 'richtext', html }` en `reference_blocks`. Al abrir
+una guía antigua con varios bloques del sistema previo, el editor los
+convierte una vez a HTML (con `renderReferenceBlocksHtml`) para que se
+sigan editando en la superficie continua nueva — al guardar, quedan ya
+como un solo bloque `richtext`.
+
+Sanitización: `sanitizeRichText` (en `richtext-editor.js`, con DOMPurify vía
+CDN) limpia el HTML tanto al guardar como, crucialmente, **también en
+`renderReferenceBlock`** al pintar la guía publicada (`guia.js`) — las
+políticas RLS dejan que un autor escriba su propia fila de `guides`
+directamente por la API saltándose el editor, así que sanear solo en el
+editor no bastaría para evitar HTML/JS inyectado.
+
+**Subida de imágenes en guías**: además de la imagen dentro del editor de
+Documentación, los bloques de curso `concept`/`warning`/`tip`/`example` y
+la portada de la guía (`cover_image`, solo en el editor de admin) tienen
+un botón "Subir imagen" que usa `uploadGuideImage` (en `js/app.js`) contra
+el bucket de Storage `guide-images` — ver
+`supabase-migration-guide-images.sql` (política igual que `avatars`: cada
+usuario solo puede escribir dentro de su propia carpeta
+`guide-images/<user-id>/...`, lectura pública). Ya no hay ningún campo de
+"URL de imagen" editable a mano en estos sitios.
+
+**Curso: contención de scroll**: `.editor-block-list` (donde viven los
+bloques del curso interactivo) tiene `max-height` + `overflow-y: auto`, así
+que añadir muchos bloques ya no alarga infinitamente la página del editor —
+el listado hace scroll dentro de su propio recuadro.
 
 **Contenido gated**: si `reference_unlocked_by_default` es `false`, el
 artículo de referencia solo se muestra si el usuario tiene el `id` de la
@@ -214,6 +250,20 @@ por eso `js/usuario.js` ya no lee solo `window.location.search`, sino
 helper `profileUrl()` de `js/app.js` es quien decide qué generar al
 crear un enlace — ahora mismo siempre `/usuario/<username>` si el
 perfil tiene username, o el `?id=` antiguo como último recurso.
+
+**Bug crítico corregido — rutas relativas rompían `/usuario/<username>`**:
+como la reescritura de Netlify es del lado del servidor, la barra de
+direcciones se queda en `/usuario/<username>` mientras sirve el contenido
+de `usuario.html` — cualquier ruta relativa en ese documento (`css/...`,
+`js/...`, `<a href="perfil.html">`, etc.) se resolvía entonces contra
+`/usuario/` en vez de la raíz del sitio, así que el CSS y los enlaces
+internos no cargaban y la página se veía completamente rota. Se corrigió
+convirtiendo a rutas absolutas (con `/` inicial) todo lo que usa
+`usuario.html`, `js/usuario.js` y `js/wall.js` (muro compartido con
+`perfil.html`), y también `profileUrl()`, `signOut()`, `requireAuth()` y
+`renderNavUser()` en `js/app.js` (usadas en todas las páginas, incluida
+`usuario.html`). El resto de páginas del sitio no se sirven vía
+reescritura, así que no les afectaba este problema.
 
 ## Contenido colaborativo (`guides.author_id` / `review_status`)
 Cualquier usuario registrado puede crear guías desde "Mis guías" en su

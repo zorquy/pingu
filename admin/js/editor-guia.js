@@ -1,13 +1,12 @@
 import { supabase } from '../../js/supabase.js'
-import { escapeHtml, getSession } from '../../js/app.js'
+import { escapeHtml, getSession, uploadGuideImage } from '../../js/app.js'
 import {
   COURSE_BLOCK_DEFAULTS,
-  REFERENCE_BLOCK_DEFAULTS,
   flattenReferenceBlocksToText,
   renderCourseBlockEditor,
-  renderReferenceBlockEditor,
   renderReferenceBlocksHtml,
 } from '../../js/block-editor.js'
+import { initRichTextEditor, richTextToolbarHtml } from '../../js/richtext-editor.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -19,6 +18,7 @@ const REVIEW_STATUS_BADGE = {
   rejected: '<span class="badge badge-danger">Rechazada</span>',
 }
 
+let currentSession = null
 let existingGuide = null
 let categories = []
 let collectionsCache = []
@@ -26,6 +26,18 @@ let pathsCache = []
 let existingRoutePositions = {}
 let courseBlocks = []
 let refBlocks = []
+let coverImageUrl = ''
+
+function updateCoverImagePreview() {
+  document.getElementById('gCoverImagePreview').src = coverImageUrl
+  document.getElementById('gCoverImagePreview').classList.toggle('hidden', !coverImageUrl)
+  document.getElementById('btnRemoveCoverImage').classList.toggle('hidden', !coverImageUrl)
+}
+
+function setRefHtml(html) {
+  refBlocks = html.trim() ? [{ type: 'richtext', html }] : []
+  updateCourseGate()
+}
 
 async function checkAccess() {
   const session = await getSession()
@@ -62,19 +74,22 @@ function updateCourseGate() {
   if (locked) document.getElementById('refPreviewPanel').classList.add('hidden')
 }
 
-function updateLivePreview() {
-  const html = renderReferenceBlocksHtml(refBlocks)
-  document.getElementById('refLivePreview').innerHTML =
-    html || `<p class="empty-state" style="padding: 20px 0;">Empieza a escribir para ver aquí cómo va quedando.</p>`
-}
-
 function renderRef() {
-  renderReferenceBlockEditor(document.getElementById('refBlockEditorList'), refBlocks)
-  updateLivePreview()
+  const toolbarEl = document.getElementById('refRteToolbar')
+  toolbarEl.innerHTML = richTextToolbarHtml()
+  const initialHtml = refBlocks.length === 1 && refBlocks[0].type === 'richtext' ? refBlocks[0].html : renderReferenceBlocksHtml(refBlocks)
+  initRichTextEditor({
+    toolbarEl,
+    surfaceEl: document.getElementById('refRteSurface'),
+    initialHtml,
+    onChange: setRefHtml,
+    uploadImage: (file) => uploadGuideImage(currentSession.user.id, file),
+  })
+  setRefHtml(initialHtml)
 }
 
 function renderCourse() {
-  renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks)
+  renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks, (file) => uploadGuideImage(currentSession.user.id, file))
 }
 
 async function loadCategoriesAndCollections(selectedCategoryId) {
@@ -151,7 +166,8 @@ async function loadExistingGuide() {
   document.getElementById('gTitle').value = data.title || ''
   document.getElementById('gSlug').value = data.slug || ''
   document.getElementById('gCoverEmoji').value = data.cover_emoji || ''
-  document.getElementById('gCoverImage').value = data.cover_image || ''
+  coverImageUrl = data.cover_image || ''
+  updateCoverImagePreview()
   document.getElementById('gDescription').value = data.description || ''
   document.getElementById('gLevel').value = data.level || 'beginner'
   document.getElementById('gRarity').value = data.guide_rarity || 'bronze'
@@ -200,7 +216,7 @@ function buildPayload() {
     collection_id: collectionId,
     collection_order: Number(document.getElementById('gCollectionOrder').value) || 0,
     cover_emoji: document.getElementById('gCoverEmoji').value.trim(),
-    cover_image: document.getElementById('gCoverImage').value.trim() || null,
+    cover_image: coverImageUrl || null,
     description: document.getElementById('gDescription').value.trim(),
     level: document.getElementById('gLevel').value,
     guide_rarity: document.getElementById('gRarity').value,
@@ -241,6 +257,7 @@ async function persistGuide(extraFields = {}) {
 async function init() {
   const session = await checkAccess()
   if (!session) return
+  currentSession = session
 
   wireTabs()
 
@@ -253,14 +270,23 @@ async function init() {
   renderCourse()
   updateCourseGate()
 
-  const refListEl = document.getElementById('refBlockEditorList')
-  new MutationObserver(updateCourseGate).observe(refListEl, { childList: true })
-  ;['input', 'change', 'click', 'drop'].forEach((evt) => refListEl.addEventListener(evt, updateLivePreview))
-
-  document.getElementById('btnAddRefBlock').addEventListener('click', () => {
-    refBlocks.push({ ...REFERENCE_BLOCK_DEFAULTS.paragraph })
-    renderRef()
+  document.getElementById('btnUploadCoverImage').addEventListener('click', () => document.getElementById('gCoverImageFile').click())
+  document.getElementById('gCoverImageFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0]
+    e.target.value = ''
+    if (!file) return
+    try {
+      coverImageUrl = await uploadGuideImage(currentSession.user.id, file)
+      updateCoverImagePreview()
+    } catch (err) {
+      alert('No se pudo subir la imagen: ' + err.message)
+    }
   })
+  document.getElementById('btnRemoveCoverImage').addEventListener('click', () => {
+    coverImageUrl = ''
+    updateCoverImagePreview()
+  })
+
   document.getElementById('btnAddCourseBlock').addEventListener('click', () => {
     courseBlocks.push({ ...COURSE_BLOCK_DEFAULTS.concept })
     renderCourse()
