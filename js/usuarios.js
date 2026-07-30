@@ -3,13 +3,17 @@ import { escapeHtml, getInitial, profileUrl } from './app.js'
 
 let allUsers = []
 
+const RANK_MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' }
+
 function userCardHtml(p) {
   const name = p.display_name || p.username || 'Usuario'
   const avatarStyle = p.avatar_url
     ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
     : `background-color:${p.avatar_color || 'var(--navy)'}`
+  const rankBadge = RANK_MEDALS[p.rank] || `#${p.rank}`
   return `
-    <a class="user-card" href="${profileUrl(p)}">
+    <a class="user-card${p.rank <= 3 ? ' user-card-top' : ''}" href="${profileUrl(p)}">
+      <span class="user-card-rank">${rankBadge}</span>
       <span class="user-card-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>
       <div class="user-card-info">
         <h3>${escapeHtml(name)}</h3>
@@ -37,7 +41,7 @@ async function init() {
     .order('total_xp', { ascending: false })
     .limit(200)
 
-  allUsers = data || []
+  allUsers = (data || []).map((p, i) => ({ ...p, rank: i + 1 }))
   render(allUsers)
 
   document.getElementById('userSearchInput').addEventListener('input', (e) => {

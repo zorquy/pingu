@@ -233,9 +233,14 @@ cualquiera puede leer cualquier fila de `user_profiles` (antes solo se leía
 la propia). Hace falta para que exista `usuario.html` (perfil público de
 otro usuario con muro, reseñas y sus guías).
 
-**Directorio de la comunidad**: `usuarios.html` (enlace "Comunidad" en el
-nav) lista todos los perfiles ordenados por `total_xp` con un buscador por
-nombre/username en el cliente.
+**Directorio de la comunidad / ranking por XP**: `usuarios.html` (enlace
+"Comunidad" en el nav) ya pedía los perfiles ordenados por `total_xp`
+descendente — ahora además se les asigna un `rank` (posición 1, 2, 3...)
+en `js/usuarios.js` y se muestra como insignia en la tarjeta: medalla
+🥇🥈🥉 para el top 3 (con un borde dorado sutil en la tarjeta) y `#N` para
+el resto. El buscador filtra la lista pero conserva el rank global de cada
+persona (no renumera al filtrar). Tiene un buscador por nombre/username en
+el cliente.
 
 **Enlaces de perfil legibles**: `netlify.toml` reescribe
 `/usuario/:username` a `/usuario.html?u=:username` (regla que tiene que
