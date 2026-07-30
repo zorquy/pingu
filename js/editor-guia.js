@@ -8,6 +8,7 @@ import {
 } from './block-editor.js'
 import { initRichTextEditor, richTextToolbarHtml } from './richtext-editor.js'
 import { showToast } from './toast.js'
+import { loadDraft, clearDraft, startAutosave } from './editor-autosave.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -16,6 +17,30 @@ let currentSession = null
 let existingGuide = null
 let courseBlocks = []
 let refBlocks = []
+let draftScope = null
+let stopAutosave = () => {}
+
+function captureState() {
+  return {
+    title: document.getElementById('mgTitle').value,
+    category_id: document.getElementById('mgCategory').value,
+    cover_emoji: document.getElementById('mgCoverEmoji').value,
+    description: document.getElementById('mgDescription').value,
+    level: document.getElementById('mgLevel').value,
+    refBlocks,
+    courseBlocks,
+  }
+}
+
+function applyDraftState(state) {
+  document.getElementById('mgTitle').value = state.title || ''
+  if (state.category_id) document.getElementById('mgCategory').value = state.category_id
+  document.getElementById('mgCoverEmoji').value = state.cover_emoji || ''
+  document.getElementById('mgDescription').value = state.description || ''
+  document.getElementById('mgLevel').value = state.level || 'beginner'
+  refBlocks = state.refBlocks || []
+  courseBlocks = state.courseBlocks || []
+}
 
 function setRefHtml(html) {
   refBlocks = html.trim() ? [{ type: 'richtext', html }] : []
@@ -126,6 +151,8 @@ async function save(reviewStatus) {
     showToast('No se pudo guardar la guía: ' + error.message)
     return
   }
+  stopAutosave()
+  clearDraft(draftScope)
   window.location.href = 'perfil.html'
 }
 
@@ -149,9 +176,16 @@ async function init() {
   if (guideId) await loadExistingGuide(currentSession)
   await loadCategoriesForSelect(existingGuide?.category_id)
 
+  draftScope = `${currentSession.user.id}:${guideId || 'new'}`
+  const draft = loadDraft(draftScope)
+  if (draft && confirm('Hay un borrador sin guardar de esta guía (autoguardado). ¿Quieres recuperarlo?')) {
+    applyDraftState(draft.data)
+  }
+
   renderRef()
   renderCourse()
   updateCourseGate()
+  stopAutosave = startAutosave(draftScope, captureState)
 
   document.getElementById('btnAddCourseBlock').addEventListener('click', () => {
     courseBlocks.push({ ...COURSE_BLOCK_DEFAULTS.concept })

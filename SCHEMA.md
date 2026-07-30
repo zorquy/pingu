@@ -281,6 +281,17 @@ en silencio o suba un archivo enorme. La usan `uploadProfileImage`,
 `admin/js/admin.js` (bucket `images`, el único que no pasa por los
 helpers de `app.js`).
 
+**Autoguardado de borrador en los editores de guía**: `js/editor-autosave.js`
+guarda cada 8s (y en `beforeunload`) un snapshot del formulario en
+`localStorage`, con clave `pokedoc-editor-draft-<userId>:<guideId|'new'>`.
+Al abrir el editor, si hay un borrador guardado se ofrece recuperarlo con
+un `confirm()`. Al guardar con éxito se limpia el borrador — para eso hace
+falta parar el autoguardado (`stopAutosave()`, la función que devuelve
+`startAutosave`) **antes** de navegar fuera de la página: si no, el evento
+`beforeunload` de esa misma navegación vuelve a escribir el borrador que se
+acaba de borrar (bug real que apareció al probarlo con Playwright y que
+quedó cubierto por ese mismo test).
+
 ## Contenido colaborativo (`guides.author_id` / `review_status`)
 Cualquier usuario registrado puede crear guías desde "Mis guías" en su
 perfil. Columnas nuevas en `guides`: `author_id` (uuid, autor; `null` =

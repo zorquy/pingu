@@ -8,6 +8,7 @@ import {
 } from '../../js/block-editor.js'
 import { initRichTextEditor, richTextToolbarHtml } from '../../js/richtext-editor.js'
 import { showToast } from '../../js/toast.js'
+import { loadDraft, clearDraft, startAutosave } from '../../js/editor-autosave.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -28,11 +29,38 @@ let existingRoutePositions = {}
 let courseBlocks = []
 let refBlocks = []
 let coverImageUrl = ''
+let draftScope = null
+let stopAutosave = () => {}
 
 function updateCoverImagePreview() {
   document.getElementById('gCoverImagePreview').src = coverImageUrl
   document.getElementById('gCoverImagePreview').classList.toggle('hidden', !coverImageUrl)
   document.getElementById('btnRemoveCoverImage').classList.toggle('hidden', !coverImageUrl)
+}
+
+function captureState() {
+  return {
+    title: document.getElementById('gTitle').value,
+    category_id: document.getElementById('gCategory').value,
+    cover_emoji: document.getElementById('gCoverEmoji').value,
+    cover_image: coverImageUrl,
+    description: document.getElementById('gDescription').value,
+    level: document.getElementById('gLevel').value,
+    refBlocks,
+    courseBlocks,
+  }
+}
+
+function applyDraftState(state) {
+  document.getElementById('gTitle').value = state.title || ''
+  if (state.category_id) document.getElementById('gCategory').value = state.category_id
+  document.getElementById('gCoverEmoji').value = state.cover_emoji || ''
+  coverImageUrl = state.cover_image || ''
+  updateCoverImagePreview()
+  document.getElementById('gDescription').value = state.description || ''
+  document.getElementById('gLevel').value = state.level || 'beginner'
+  refBlocks = state.refBlocks || []
+  courseBlocks = state.courseBlocks || []
 }
 
 function setRefHtml(html) {
@@ -252,6 +280,8 @@ async function persistGuide(extraFields = {}) {
   await recalcCategoryGuideCount(newCategoryId)
   if (existingGuide?.category_id && existingGuide.category_id !== newCategoryId) await recalcCategoryGuideCount(existingGuide.category_id)
 
+  stopAutosave()
+  clearDraft(draftScope)
   window.location.href = 'index.html'
 }
 
@@ -267,9 +297,16 @@ async function init() {
   renderCollectionOptions(existingGuide?.category_id || categories[0]?.id, existingGuide?.collection_id)
   await loadPaths(existingGuide)
 
+  draftScope = `${currentSession.user.id}:${guideId || 'new'}`
+  const draft = loadDraft(draftScope)
+  if (draft && confirm('Hay un borrador sin guardar de esta guía (autoguardado). ¿Quieres recuperarlo?')) {
+    applyDraftState(draft.data)
+  }
+
   renderRef()
   renderCourse()
   updateCourseGate()
+  stopAutosave = startAutosave(draftScope, captureState)
 
   document.getElementById('btnUploadCoverImage').addEventListener('click', () => document.getElementById('gCoverImageFile').click())
   document.getElementById('gCoverImageFile').addEventListener('change', async (e) => {
@@ -343,6 +380,8 @@ async function init() {
     const reason = window.prompt('¿Por qué se rechaza esta guía? (se le mostrará al autor)')
     if (reason === null) return
     await supabase.from('guides').update({ review_status: 'rejected', rejection_reason: reason }).eq('id', existingGuide.id)
+    stopAutosave()
+    clearDraft(draftScope)
     window.location.href = 'index.html'
   })
 }
