@@ -310,13 +310,23 @@ function buildPayload() {
   return { payload, newCategoryId, selectedRoutes }
 }
 
+let saving = false
+
 async function persistGuide(extraFields = {}) {
+  if (saving) return
+  saving = true
+  document.getElementById('btnSaveGuide').disabled = true
+  document.getElementById('btnApproveGuide').disabled = true
+
   const { payload, newCategoryId, selectedRoutes } = buildPayload()
   Object.assign(payload, extraFields)
 
   const { data: saved, error } = await supabase.from('guides').upsert(payload).select('id').single()
   if (error) {
     showToast('No se pudo guardar la guía: ' + error.message)
+    saving = false
+    document.getElementById('btnSaveGuide').disabled = false
+    document.getElementById('btnApproveGuide').disabled = false
     return
   }
   const id = saved?.id || existingGuide?.id

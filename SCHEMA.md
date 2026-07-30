@@ -524,3 +524,26 @@ De paso: `js/toast.js` marca su contenedor con `role="status"` y
 `aria-live="polite"` para que un lector de pantalla anuncie los mensajes,
 y los botones de guardar/quitar solo-icono (`.card-save-btn`,
 `.unsave-btn`) llevan `aria-label` además del `title` que ya tenían.
+
+## Dos bugs reales encontrados y arreglados (revisión de código)
+
+**Condición de carrera en el buscador** (`js/search.js`): `runSearch()` no
+tenía forma de saber si su propia respuesta seguía siendo la más
+reciente. Si el usuario escribía rápido (o cambiaba de categoría), una
+consulta más lenta lanzada antes podía resolver DESPUÉS de una más nueva
+y pisar los resultados correctos con los antiguos. Se añadió un contador
+`searchSeq`: cada `runSearch()` guarda su propio número de secuencia al
+empezar, y si al resolver ya no coincide con el contador global (porque
+se lanzó una búsqueda más nueva mientras tanto), descarta su resultado
+sin pintarlo. Verificado con Playwright forzando artificialmente que la
+consulta más vieja tardase más que la más nueva.
+
+**Doble envío en los editores de guía** (`js/editor-guia.js` y
+`admin/js/editor-guia.js`): al crear una guía nueva (sin `existingGuide.id`
+todavía), un doble clic rápido en "Guardar borrador"/"Guardar" disparaba
+dos `upsert` con slugs distintos (el slug se genera con un sufijo
+aleatorio), creando dos filas duplicadas en vez de una. Se añadió una
+variable `saving` que descarta cualquier llamada mientras la anterior
+sigue en marcha, más deshabilitar los botones de guardar durante el
+guardado (reactivándolos solo si falla). Verificado con Playwright
+espiando las llamadas reales a `upsert` con un doble clic simultáneo.

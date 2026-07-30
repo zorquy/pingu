@@ -128,7 +128,10 @@ function buildPayload(reviewStatus) {
   }
 }
 
+let saving = false
+
 async function save(reviewStatus) {
+  if (saving) return
   const title = document.getElementById('mgTitle').value.trim()
   if (!title) {
     showToast('Ponle un título a tu guía antes de guardar.')
@@ -143,12 +146,19 @@ async function save(reviewStatus) {
     return
   }
 
+  saving = true
+  document.getElementById('btnSaveDraft').disabled = true
+  document.getElementById('btnSubmit').disabled = true
+
   const payload = buildPayload(reviewStatus)
   if (existingGuide?.id) payload.id = existingGuide.id
 
   const { error } = await supabase.from('guides').upsert(payload)
   if (error) {
     showToast('No se pudo guardar la guía: ' + error.message)
+    saving = false
+    document.getElementById('btnSaveDraft').disabled = false
+    document.getElementById('btnSubmit').disabled = false
     return
   }
   stopAutosave()

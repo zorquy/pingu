@@ -7,6 +7,7 @@ const categorySelect = document.getElementById('categorySelect')
 
 let activeCategoryId = null
 let debounceTimer = null
+let searchSeq = 0
 
 function sanitizeForFilter(str) {
   return str.replace(/[,()%]/g, ' ').trim()
@@ -38,6 +39,7 @@ async function loadCategories() {
 }
 
 async function runSearch(rawQuery) {
+  const seq = ++searchSeq
   const query = sanitizeForFilter(rawQuery)
 
   if (!query) {
@@ -54,6 +56,7 @@ async function runSearch(rawQuery) {
   if (activeCategoryId) q = q.eq('category_id', activeCategoryId)
 
   const { data, error } = await q.limit(20)
+  if (seq !== searchSeq) return // ya hay una búsqueda más nueva en marcha o resuelta
 
   if (error || !data || data.length === 0) {
     resultsEl.innerHTML = `<p class="empty-state">No se encontraron resultados para "${escapeHtml(rawQuery)}".</p>`
