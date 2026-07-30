@@ -374,6 +374,34 @@
   padding: 16px;
 }
 
+.simple-card textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 70px;
+  outline: none;
+  transition: border-color 0.15s var(--ease);
+}
+
+.simple-card textarea:focus {
+  border-color: var(--navy);
+}
+
+.wall-empty {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--text-dim);
+  font-size: 14px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
 .star-picker {
   display: flex;
   gap: 4px;
@@ -1013,16 +1041,16 @@
 
 .profile-hero-body {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 16px;
-  padding: 0 24px 20px;
-  margin-top: -48px;
+  padding: 12px 24px 20px;
   position: relative;
 }
 
 .profile-hero-avatar-wrap {
   position: relative;
   flex-shrink: 0;
+  margin-top: -48px;
 }
 
 .profile-hero-avatar {
@@ -1059,7 +1087,7 @@
 }
 
 .profile-hero-info {
-  padding-top: 8px;
+  padding-top: 22px;
   flex: 1;
   min-width: 0;
 }
@@ -1067,6 +1095,7 @@
 .profile-hero-info h2 {
   font-size: 20px;
   font-weight: 800;
+  word-break: break-word;
 }
 
 .profile-hero-badges {

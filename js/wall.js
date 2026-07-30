@@ -19,7 +19,7 @@ export async function renderWall({ listEl, formEl, profileId, currentSession }) 
   const namesById = await namesForIds(comments.map((c) => c.author_id))
 
   listEl.innerHTML = comments.length === 0
-    ? `<p class="empty-state">Todavía no hay nada escrito en este muro.</p>`
+    ? `<div class="wall-empty">💬 Todavía no hay nada escrito en este muro.<br>¡Sé el primero en dejar un mensaje!</div>`
     : comments
         .map(
           (c) => `
