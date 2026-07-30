@@ -33,22 +33,45 @@
   </nav>
 
   <main class="page-content container-narrow">
-    <div class="profile-header" id="profileHeader">
-      <div class="skeleton" style="width: 72px; height: 72px; border-radius: 50%;"></div>
+    <div class="profile-hero" id="profileHero">
+      <div class="profile-hero-banner" id="heroBanner">
+        <button class="profile-hero-edit-btn" id="btnEditBanner" type="button">🖉 Banner</button>
+        <input type="file" id="bannerFileInput" accept="image/*" class="hidden" />
+      </div>
+      <div class="profile-hero-body">
+        <div class="profile-hero-avatar-wrap">
+          <div class="profile-hero-avatar" id="heroAvatar">?</div>
+          <button class="profile-hero-avatar-edit" id="btnEditAvatar" type="button" title="Cambiar foto">🖉</button>
+          <input type="file" id="avatarFileInput" accept="image/*" class="hidden" />
+        </div>
+        <div class="profile-hero-info" id="heroInfo"></div>
+      </div>
     </div>
-    <button class="btn-outline" id="btnEditProfile" style="margin-bottom: 24px;">Editar perfil</button>
 
-    <div class="stats-row" style="margin-bottom: 32px;" id="profileStats"></div>
+    <div class="stats-row" style="margin-bottom: 20px;" id="profileStats"></div>
 
-    <h2 class="section-title">Logros</h2>
-    <div class="achievements-grid" id="achievementsGrid" style="margin-bottom: 32px;"></div>
+    <button class="btn-outline" id="btnEditProfile" style="margin-bottom: 24px;">Editar biografía</button>
+
+    <div class="accordion" id="achievementsAccordion">
+      <button class="accordion-header" id="achievementsToggle" type="button">
+        <span>🏆 Logros (<span id="achievementsCount">0/0</span>)</span>
+        <span class="chevron">▾</span>
+      </button>
+      <div class="accordion-body">
+        <div class="achievements-grid" id="achievementsGrid"></div>
+      </div>
+    </div>
 
     <div class="section-header-row">
       <h2 class="section-title">Mis guías</h2>
       <button class="btn-primary" id="btnNewMyGuide">+ Nueva guía</button>
     </div>
-    <p class="subtext" style="margin: -20px 0 16px;">Cualquiera puede crear guías y cursos. Cuando la tengas lista, envíala a revisión — un moderador la aprobará antes de que aparezca en la web.</p>
+    <p class="subtext" style="margin: -8px 0 16px;">Cualquiera puede crear guías y cursos. Cuando la tengas lista, envíala a revisión — un moderador la aprobará antes de que aparezca en la web.</p>
     <div id="myGuidesList" style="margin-bottom: 32px;"></div>
+
+    <h2 class="section-title">Muro</h2>
+    <div id="commentForm" style="margin-bottom: 16px;"></div>
+    <div id="commentsList" style="margin-bottom: 32px;"></div>
 
     <h2 class="section-title">Cursos completados</h2>
     <div id="completedCourses"></div>

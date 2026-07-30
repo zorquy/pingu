@@ -1,7 +1,8 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, requireAuth, signOut } from './app.js'
+import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage } from './app.js'
 import { getAllAchievements, levelProgress } from './gamification.js'
 import { renderCourseBlockEditor, renderReferenceBlockEditor } from './block-editor.js'
+import { renderWall } from './wall.js'
 
 let currentSession = null
 let currentProfile = null
@@ -27,39 +28,62 @@ const REVIEW_STATUS_LABELS = {
   rejected: { text: 'Rechazada', badgeClass: 'badge-danger' },
 }
 
+function displayName(profile, fallbackEmail) {
+  return profile?.display_name || profile?.username || fallbackEmail || 'Usuario'
+}
+
+function applyHeroVisuals(profile, name) {
+  const banner = document.getElementById('heroBanner')
+  const bannerUrl = profile?.banner_url
+  banner.style.background = bannerUrl
+    ? `url('${bannerUrl.replace(/'/g, '%27')}') center/cover`
+    : profile?.banner_color || 'var(--ice)'
+
+  const avatar = document.getElementById('heroAvatar')
+  const avatarUrl = profile?.avatar_url
+  if (avatarUrl) {
+    avatar.style.backgroundImage = `url('${avatarUrl.replace(/'/g, '%27')}')`
+    avatar.textContent = ''
+  } else {
+    avatar.style.backgroundImage = 'none'
+    avatar.style.backgroundColor = profile?.avatar_color || 'var(--navy)'
+    avatar.textContent = getInitial(name)
+  }
+}
+
 async function loadProfile(session) {
   const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', session.user.id).single()
   currentProfile = profile
-  const name = profile?.display_name || profile?.username || session.user.email
+  const name = displayName(profile, session.user.email)
   const xp = profile?.total_xp || 0
   const progress = levelProgress(xp)
-  const avatarColor = profile?.avatar_color || 'var(--navy)'
-  const bannerColor = profile?.banner_color || 'var(--ice)'
 
-  document.getElementById('profileHeader').innerHTML = `
-    <div class="profile-banner" style="background:${bannerColor}"></div>
-    <div class="profile-avatar" style="background:${avatarColor}">${getInitial(name)}</div>
-    <div class="profile-info">
-      <h2>${escapeHtml(name)}${profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
-      <div class="profile-level">${progress.level} · ${xp} XP</div>
-      <div class="profile-xp-bar">
-        <div class="progress-track"><div class="fill" style="width: ${progress.pct}%"></div></div>
-        <div class="xp-label">${progress.next ? `${progress.next - xp} XP para el siguiente nivel` : 'Nivel máximo'}</div>
-      </div>
-      ${profile?.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
-    </div>`
+  applyHeroVisuals(profile, name)
+
+  document.getElementById('heroInfo').innerHTML = `
+    <h2>${escapeHtml(name)}${profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
+    <div class="profile-level">${progress.level} · ${xp} XP</div>
+    <div class="profile-xp-bar">
+      <div class="progress-track"><div class="fill" style="width: ${progress.pct}%"></div></div>
+      <div class="xp-label">${progress.next ? `${progress.next - xp} XP para el siguiente nivel` : 'Nivel máximo'}</div>
+    </div>
+    ${profile?.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}`
 
   return profile
 }
 
 async function loadStats(session, profile) {
-  const { count: completedCount } = await supabase
-    .from('user_progress')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', session.user.id)
-    .eq('status', 'completed')
+  const [{ count: completedCount }, { data: reviews }] = await Promise.all([
+    supabase
+      .from('user_progress')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', session.user.id)
+      .eq('status', 'completed'),
+    supabase.from('profile_reviews').select('rating').eq('profile_id', session.user.id),
+  ])
 
   const unlockedCount = (profile?.achievements || []).length
+  const avgRating = reviews && reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null
 
   document.getElementById('profileStats').innerHTML = `
     <div class="stat-card">
@@ -68,11 +92,15 @@ async function loadStats(session, profile) {
     </div>
     <div class="stat-card">
       <div class="value">${unlockedCount}</div>
-      <div class="label">Logros desbloqueados</div>
+      <div class="label">Logros</div>
     </div>
     <div class="stat-card">
       <div class="value">${profile?.quiz_correct_count || 0}</div>
       <div class="label">Preguntas acertadas</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">${avgRating ? `⭐ ${avgRating.toFixed(1)}` : '—'}</div>
+      <div class="label">Valoración (${reviews?.length || 0})</div>
     </div>`
 }
 
@@ -80,6 +108,7 @@ async function loadAchievements(profile) {
   const unlocked = profile?.achievements || []
   const grid = document.getElementById('achievementsGrid')
   achievementsCache = await getAllAchievements()
+  document.getElementById('achievementsCount').textContent = `${unlocked.length}/${achievementsCache.length}`
   grid.innerHTML = achievementsCache
     .map((a) => {
       const isUnlocked = unlocked.includes(a.id)
@@ -91,6 +120,10 @@ async function loadAchievements(profile) {
     })
     .join('')
 }
+
+document.getElementById('achievementsToggle')?.addEventListener('click', () => {
+  document.getElementById('achievementsAccordion').classList.toggle('open')
+})
 
 async function loadCompletedCourses(session) {
   const { data } = await supabase
@@ -117,6 +150,44 @@ async function loadCompletedCourses(session) {
     )
     .join('')
 }
+
+// ── Foto y banner ──
+document.getElementById('btnEditBanner')?.addEventListener('click', (e) => {
+  e.stopPropagation()
+  document.getElementById('bannerFileInput').click()
+})
+document.getElementById('btnEditAvatar')?.addEventListener('click', (e) => {
+  e.stopPropagation()
+  document.getElementById('avatarFileInput').click()
+})
+
+document.getElementById('bannerFileInput')?.addEventListener('change', async (e) => {
+  const file = e.target.files[0]
+  e.target.value = ''
+  if (!file) return
+  try {
+    const url = await uploadProfileImage(currentSession.user.id, file, 'banner')
+    await supabase.from('user_profiles').update({ banner_url: url }).eq('id', currentSession.user.id)
+    currentProfile = { ...currentProfile, banner_url: url }
+    applyHeroVisuals(currentProfile, displayName(currentProfile, currentSession.user.email))
+  } catch (err) {
+    alert('No se pudo subir la imagen: ' + err.message)
+  }
+})
+
+document.getElementById('avatarFileInput')?.addEventListener('change', async (e) => {
+  const file = e.target.files[0]
+  e.target.value = ''
+  if (!file) return
+  try {
+    const url = await uploadProfileImage(currentSession.user.id, file, 'avatar')
+    await supabase.from('user_profiles').update({ avatar_url: url }).eq('id', currentSession.user.id)
+    currentProfile = { ...currentProfile, avatar_url: url }
+    applyHeroVisuals(currentProfile, displayName(currentProfile, currentSession.user.email))
+  } catch (err) {
+    alert('No se pudo subir la imagen: ' + err.message)
+  }
+})
 
 // ── Mis guías ──
 let myGuidesCache = []
@@ -320,17 +391,17 @@ async function openMyGuideModal(guide) {
 
 document.getElementById('btnNewMyGuide')?.addEventListener('click', () => openMyGuideModal(null))
 
-// ── Editar perfil ──
+// ── Editar biografía ──
 document.getElementById('btnEditProfile')?.addEventListener('click', () => {
   const BANNER_COLORS = ['var(--ice)', 'var(--navy)', 'var(--indigo)', 'var(--success)', 'var(--warning)', 'var(--pink)']
   const unlocked = currentProfile?.achievements || []
   const unlockedAchievements = achievementsCache.filter((a) => unlocked.includes(a.id))
 
   openModal(`
-    <h3>Editar perfil</h3>
+    <h3>Editar biografía</h3>
     <div class="form-group"><label>Sobre ti</label><textarea id="peBio" placeholder="Cuéntanos algo sobre ti...">${escapeHtml(currentProfile?.bio || '')}</textarea></div>
     <div class="form-group">
-      <label>Color de tu cabecera</label>
+      <label>Color de tu cabecera (si no subes una imagen de banner)</label>
       <div class="color-swatch-row" id="peBannerSwatches">
         ${BANNER_COLORS.map((c) => `<span class="color-swatch ${c === (currentProfile?.banner_color || 'var(--ice)') ? 'selected' : ''}" data-color="${c}" style="background:${c}"></span>`).join('')}
       </div>
@@ -366,13 +437,22 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
   })
 })
 
+async function loadWall(session) {
+  await renderWall({
+    listEl: document.getElementById('commentsList'),
+    formEl: document.getElementById('commentForm'),
+    profileId: session.user.id,
+    currentSession: session,
+  })
+}
+
 async function init() {
   const session = await requireAuth()
   if (!session) return
   currentSession = session
 
   const profile = await loadProfile(session)
-  await Promise.all([loadStats(session, profile), loadCompletedCourses(session), loadMyGuides(session)])
+  await Promise.all([loadStats(session, profile), loadCompletedCourses(session), loadMyGuides(session), loadWall(session)])
   await loadAchievements(profile)
 
   document.getElementById('btnLogout').addEventListener('click', signOut)

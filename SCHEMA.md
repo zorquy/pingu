@@ -145,8 +145,12 @@ del avatar, con fallback a navy) · `is_admin` · `quiz_correct_count` ·
 (text[], slugs de categorías elegidas en el onboarding) · `recommended_path`
 (text, slug de `learning_paths` recomendado en el onboarding) · `bio`
 (texto libre, perfil público) · `banner_color` (color de fondo de la
-cabecera del perfil público) · `showcase_achievement` (id de
-`achievement_definitions` que el usuario elige destacar en su perfil).
+cabecera del perfil público, se usa solo si no hay `banner_url`) ·
+`showcase_achievement` (id de `achievement_definitions` que el usuario elige
+destacar en su perfil) · `avatar_url` / `banner_url` (de la migración
+`supabase-migration-avatars.sql` — foto y banner subidos por el propio
+usuario al bucket de Storage `avatars`; si están rellenos, la web los usa
+en vez de `avatar_color`/`banner_color`).
 
 **Perfiles públicos**: desde la migración `supabase-migration-social.sql`,
 cualquiera puede leer cualquier fila de `user_profiles` (antes solo se leía
@@ -203,6 +207,12 @@ tabla (no lo he hecho porque implica tocar RLS).
 ## Supabase Storage
 Bucket público `images`, usado por `/admin` para subir e insertar URLs de
 imágenes en guías/categorías/logros.
+
+Bucket público `avatars` (de `supabase-migration-avatars.sql`), usado desde
+`perfil.html` para que cada usuario suba su propia foto y banner. Cada
+usuario solo puede escribir dentro de su propia carpeta
+(`avatars/<su-user-id>/...`) — la política RLS de `storage.objects` lo
+fuerza comparando `(storage.foldername(name))[1]` con `auth.uid()`.
 
 ## RLS
 No se ha tocado ninguna política. Resumen de lo que ya existía y que el

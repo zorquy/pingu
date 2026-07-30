@@ -95,6 +95,15 @@ export async function getProfile(userId) {
   return data
 }
 
+export async function uploadProfileImage(userId, file, kind) {
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase()
+  const path = `${userId}/${kind}-${Date.now()}.${ext}`
+  const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+  if (error) throw error
+  const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+  return data.publicUrl
+}
+
 export async function requireAuth() {
   const session = await getSession()
   if (!session) {

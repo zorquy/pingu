@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession } from './app.js'
 import { levelProgress, contributorTier, getAllAchievements } from './gamification.js'
+import { renderWall } from './wall.js'
 
 const params = new URLSearchParams(window.location.search)
 const profileId = params.get('id')
@@ -171,53 +172,12 @@ async function loadReviews() {
 }
 
 // ── Muro ──
-async function loadComments() {
-  const { data } = await supabase.from('profile_comments').select('*').eq('profile_id', profileId).order('created_at', { ascending: false })
-  const comments = data || []
-  const namesById = await namesForIds(comments.map((c) => c.author_id))
-
-  const container = document.getElementById('commentsList')
-  container.innerHTML = comments.length === 0
-    ? `<p class="empty-state">Todavía no hay nada escrito en este muro.</p>`
-    : comments
-        .map(
-          (c) => `
-    <div class="my-guide-row" style="flex-direction:column; align-items:flex-start;">
-      <div style="display:flex; justify-content:space-between; width:100%;">
-        <strong>${escapeHtml(namesById[c.author_id] || 'Usuario')}</strong>
-        <span class="date" style="color:var(--text-dim); font-size:12px;">${new Date(c.created_at).toLocaleDateString('es-ES')}</span>
-      </div>
-      <p style="margin:6px 0 0; font-size:13.5px;">${escapeHtml(c.body)}</p>
-      ${currentSession && (currentSession.user.id === c.author_id || currentSession.user.id === profileId) ? `<button class="my-guide-actions" data-delete-comment="${c.id}" style="margin-top:6px; font-size:11px; color:#dc2626; font-weight:700;">Eliminar</button>` : ''}
-    </div>`
-        )
-        .join('')
-
-  container.querySelectorAll('[data-delete-comment]').forEach((btn) =>
-    btn.addEventListener('click', async () => {
-      if (!confirm('¿Eliminar este comentario?')) return
-      await supabase.from('profile_comments').delete().eq('id', btn.dataset.deleteComment)
-      loadComments()
-    })
-  )
-
-  const formContainer = document.getElementById('commentForm')
-  if (!currentSession) {
-    formContainer.innerHTML = `<p class="subtext"><a href="auth.html" style="color:var(--navy); font-weight:700;">Inicia sesión</a> para escribir en este muro.</p>`
-    return
-  }
-
-  formContainer.innerHTML = `
-    <div class="simple-card">
-      <textarea id="commentBody" placeholder="Escribe algo en este muro..."></textarea>
-      <button class="btn-primary" id="btnSubmitComment" style="margin-top:8px;">Publicar</button>
-    </div>`
-
-  document.getElementById('btnSubmitComment').addEventListener('click', async () => {
-    const body = document.getElementById('commentBody').value.trim()
-    if (!body) return
-    await supabase.from('profile_comments').insert({ profile_id: profileId, author_id: currentSession.user.id, body })
-    loadComments()
+function loadComments() {
+  return renderWall({
+    listEl: document.getElementById('commentsList'),
+    formEl: document.getElementById('commentForm'),
+    profileId,
+    currentSession,
   })
 }
 
