@@ -1,6 +1,13 @@
 import { supabase } from '../../js/supabase.js'
 import { escapeHtml, getSession } from '../../js/app.js'
 import { invalidateAchievementsCache } from '../../js/gamification.js'
+import {
+  COURSE_BLOCK_DEFAULTS,
+  REFERENCE_BLOCK_DEFAULTS,
+  flattenReferenceBlocksToText,
+  renderCourseBlockEditor,
+  renderReferenceBlockEditor,
+} from '../../js/block-editor.js'
 
 let categories = []
 let guidesCache = []
@@ -219,6 +226,58 @@ function openCollectionModal(collection) {
 
 document.getElementById('btnNewCollection').addEventListener('click', () => openCollectionModal(null))
 
+// ── Guías pendientes de revisión ──
+let pendingCache = []
+
+async function loadPending() {
+  const { data } = await supabase
+    .from('guides')
+    .select('*, categories(name)')
+    .eq('review_status', 'pending')
+    .order('submitted_at', { ascending: true })
+
+  pendingCache = data || []
+  const authorIds = [...new Set(pendingCache.map((g) => g.author_id).filter(Boolean))]
+  let authorsById = {}
+  if (authorIds.length > 0) {
+    const { data: authors } = await supabase.from('user_profiles').select('id, display_name, username').in('id', authorIds)
+    authorsById = Object.fromEntries((authors || []).map((a) => [a.id, a]))
+  }
+
+  const container = document.getElementById('pendingTable')
+  if (pendingCache.length === 0) {
+    container.innerHTML = `<p class="empty-state">No hay guías pendientes de revisión.</p>`
+    return
+  }
+
+  container.innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Título</th><th>Categoría</th><th>Autor</th><th>Enviada</th><th></th></tr></thead>
+      <tbody>
+        ${pendingCache
+          .map((g) => {
+            const author = authorsById[g.author_id]
+            const authorName = author?.display_name || author?.username || 'Usuario'
+            return `
+          <tr>
+            <td>${g.cover_emoji || ''} ${escapeHtml(g.title || 'Sin título')}</td>
+            <td>${escapeHtml(g.categories?.name || '—')}</td>
+            <td>${escapeHtml(authorName)}</td>
+            <td>${g.submitted_at ? new Date(g.submitted_at).toLocaleDateString('es-ES') : '—'}</td>
+            <td class="admin-row-actions">
+              <button data-review="${g.id}">Revisar</button>
+            </td>
+          </tr>`
+          })
+          .join('')}
+      </tbody>
+    </table>`
+
+  container.querySelectorAll('[data-review]').forEach((btn) =>
+    btn.addEventListener('click', () => openGuideModal(pendingCache.find((g) => g.id === btn.dataset.review)))
+  )
+}
+
 // ── Guides ──
 async function loadGuides() {
   const { data } = await supabase.from('guides').select('*, categories(name)').order('created_at', { ascending: false })
@@ -260,248 +319,6 @@ async function loadGuides() {
   )
 }
 
-const COURSE_BLOCK_DEFAULTS = {
-  hook: { type: 'hook', emoji: '👋', headline: '', subtext: '' },
-  concept: { type: 'concept', emoji: '💡', title: '', body: '', image_url: '', highlight: '' },
-  warning: { type: 'warning', emoji: '⚠️', title: '', body: '', highlight: '' },
-  tip: { type: 'tip', emoji: '💡', title: '', body: '', highlight: '' },
-  example: { type: 'example', emoji: '📌', title: '', body: '', highlight: '' },
-  quiz: { type: 'quiz', question: '', options: ['', ''], correct_index: 0, explanation: '' },
-  truefalse: { type: 'truefalse', statement: '', is_true: true, explanation: '' },
-  fillblank: { type: 'fillblank', before: '', after: '', options: ['', ''], correct_option: '' },
-  match: { type: 'match', title: '', pairs: [{ left: '', right: '' }, { left: '', right: '' }] },
-  order: { type: 'order', title: '', items: ['', '', ''] },
-  checklist: { type: 'checklist', title: '', items: [''] },
-  reward: { type: 'reward', next_guide_slug: '' },
-}
-
-const REFERENCE_BLOCK_DEFAULTS = {
-  heading: { type: 'heading', text: '' },
-  paragraph: { type: 'paragraph', text: '' },
-  image: { type: 'image', url: '', caption: '' },
-  list: { type: 'list', items: [''] },
-  highlight: { type: 'highlight', text: '' },
-}
-
-function fieldsForCourseBlock(block, i) {
-  switch (block.type) {
-    case 'hook':
-      return `
-        <input class="be-field" data-i="${i}" data-f="emoji" placeholder="Emoji" value="${escapeHtml(block.emoji || '')}" />
-        <input class="be-field" data-i="${i}" data-f="headline" placeholder="Titular" value="${escapeHtml(block.headline || '')}" />
-        <textarea class="be-field" data-i="${i}" data-f="subtext" placeholder="Subtexto">${escapeHtml(block.subtext || '')}</textarea>`
-    case 'concept':
-    case 'warning':
-    case 'tip':
-    case 'example':
-      return `
-        <input class="be-field" data-i="${i}" data-f="emoji" placeholder="Emoji" value="${escapeHtml(block.emoji || '')}" />
-        <input class="be-field" data-i="${i}" data-f="title" placeholder="Título" value="${escapeHtml(block.title || '')}" />
-        <textarea class="be-field" data-i="${i}" data-f="body" placeholder="Texto">${escapeHtml(block.body || '')}</textarea>
-        <input class="be-field" data-i="${i}" data-f="image_url" placeholder="URL de imagen (opcional)" value="${escapeHtml(block.image_url || '')}" />
-        <input class="be-field" data-i="${i}" data-f="highlight" placeholder="Destacado (opcional)" value="${escapeHtml(block.highlight || '')}" />`
-    case 'quiz':
-      return `
-        <input class="be-field" data-i="${i}" data-f="question" placeholder="Pregunta" value="${escapeHtml(block.question || '')}" />
-        <textarea class="be-field" data-i="${i}" data-f="options" placeholder="Opciones (una por línea)">${escapeHtml((block.options || []).join('\n'))}</textarea>
-        <input class="be-field" data-i="${i}" data-f="correct_index" type="number" placeholder="Índice de la correcta (0, 1, 2...)" value="${block.correct_index ?? 0}" />
-        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
-    case 'truefalse':
-      return `
-        <input class="be-field" data-i="${i}" data-f="statement" placeholder="Afirmación" value="${escapeHtml(block.statement || '')}" />
-        <select class="be-field" data-i="${i}" data-f="is_true">
-          <option value="true" ${block.is_true ? 'selected' : ''}>Verdadero</option>
-          <option value="false" ${!block.is_true ? 'selected' : ''}>Falso</option>
-        </select>
-        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
-    case 'fillblank':
-      return `
-        <input class="be-field" data-i="${i}" data-f="before" placeholder="Texto antes del hueco" value="${escapeHtml(block.before || '')}" />
-        <input class="be-field" data-i="${i}" data-f="after" placeholder="Texto después del hueco" value="${escapeHtml(block.after || '')}" />
-        <textarea class="be-field" data-i="${i}" data-f="options" placeholder="Opciones (una por línea)">${escapeHtml((block.options || []).join('\n'))}</textarea>
-        <input class="be-field" data-i="${i}" data-f="correct_option" placeholder="Opción correcta (texto exacto)" value="${escapeHtml(block.correct_option || '')}" />
-        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
-    case 'match':
-      return `
-        <input class="be-field" data-i="${i}" data-f="title" placeholder="Título (opcional)" value="${escapeHtml(block.title || '')}" />
-        <textarea class="be-field" data-i="${i}" data-f="pairs" placeholder="Una pareja por línea: término :: definición">${escapeHtml((block.pairs || []).map((p) => `${p.left} :: ${p.right}`).join('\n'))}</textarea>`
-    case 'order':
-      return `
-        <input class="be-field" data-i="${i}" data-f="title" placeholder="Título (opcional)" value="${escapeHtml(block.title || '')}" />
-        <textarea class="be-field" data-i="${i}" data-f="items" placeholder="Pasos en el orden correcto (uno por línea)">${escapeHtml((block.items || []).join('\n'))}</textarea>`
-    case 'checklist':
-      return `
-        <input class="be-field" data-i="${i}" data-f="title" placeholder="Título" value="${escapeHtml(block.title || '')}" />
-        <textarea class="be-field" data-i="${i}" data-f="items" placeholder="Items (uno por línea)">${escapeHtml((block.items || []).join('\n'))}</textarea>`
-    case 'reward':
-      return `
-        <p style="font-size:12px; color:var(--text-mid); margin: -4px 0 4px;">El XP de este curso se controla con el campo "XP de recompensa" de arriba, no aquí.</p>
-        <input class="be-field" data-i="${i}" data-f="next_guide_slug" placeholder="Slug del siguiente curso (opcional)" value="${escapeHtml(block.next_guide_slug || '')}" />`
-    default:
-      return ''
-  }
-}
-
-function fieldsForReferenceBlock(block, i) {
-  switch (block.type) {
-    case 'heading':
-    case 'highlight':
-      return `<input class="rbe-field" data-i="${i}" data-f="text" placeholder="Texto" value="${escapeHtml(block.text || '')}" />`
-    case 'paragraph':
-      return `<textarea class="rbe-field" data-i="${i}" data-f="text" placeholder="Texto">${escapeHtml(block.text || '')}</textarea>`
-    case 'image':
-      return `
-        <input class="rbe-field" data-i="${i}" data-f="url" placeholder="URL de imagen" value="${escapeHtml(block.url || '')}" />
-        <input class="rbe-field" data-i="${i}" data-f="caption" placeholder="Descripción" value="${escapeHtml(block.caption || '')}" />`
-    case 'list':
-      return `<textarea class="rbe-field" data-i="${i}" data-f="items" placeholder="Items (uno por línea)">${escapeHtml((block.items || []).join('\n'))}</textarea>`
-    default:
-      return ''
-  }
-}
-
-function flattenReferenceBlocksToText(blocks) {
-  return blocks
-    .map((b) => {
-      switch (b.type) {
-        case 'heading':
-          return `## ${b.text || ''}`
-        case 'paragraph':
-        case 'highlight':
-          return b.text || ''
-        case 'list':
-          return (b.items || []).map((i) => `- ${i}`).join('\n')
-        case 'image':
-          return b.caption ? `[Imagen: ${b.caption}]` : ''
-        default:
-          return ''
-      }
-    })
-    .filter(Boolean)
-    .join('\n\n')
-}
-
-function makeSortable(containerEl, list, onChange) {
-  let dragIndex = null
-  containerEl.querySelectorAll('.block-editor-item').forEach((el) => {
-    el.setAttribute('draggable', 'true')
-    el.addEventListener('dragstart', () => {
-      dragIndex = Number(el.dataset.index)
-      el.classList.add('dragging')
-    })
-    el.addEventListener('dragend', () => el.classList.remove('dragging'))
-    el.addEventListener('dragover', (e) => e.preventDefault())
-    el.addEventListener('drop', (e) => {
-      e.preventDefault()
-      const dropIndex = Number(el.dataset.index)
-      if (dragIndex === null || dragIndex === dropIndex) return
-      const [moved] = list.splice(dragIndex, 1)
-      list.splice(dropIndex, 0, moved)
-      onChange()
-    })
-  })
-}
-
-function renderCourseBlockEditor(blocks) {
-  const el = document.getElementById('blockEditorList')
-  el.innerHTML = blocks
-    .map(
-      (b, i) => `
-    <div class="block-editor-item" data-index="${i}">
-      <div class="block-editor-item-header">
-        <select class="be-type" data-i="${i}">
-          ${Object.keys(COURSE_BLOCK_DEFAULTS)
-            .map((t) => `<option value="${t}" ${t === b.type ? 'selected' : ''}>${t}</option>`)
-            .join('')}
-        </select>
-        <span class="remove-block" data-i="${i}">Quitar ×</span>
-      </div>
-      ${fieldsForCourseBlock(b, i)}
-    </div>`
-    )
-    .join('')
-
-  el.querySelectorAll('.be-type').forEach((sel) =>
-    sel.addEventListener('change', () => {
-      const i = Number(sel.dataset.i)
-      blocks[i] = { ...COURSE_BLOCK_DEFAULTS[sel.value] }
-      renderCourseBlockEditor(blocks)
-    })
-  )
-  el.querySelectorAll('.remove-block').forEach((btn) =>
-    btn.addEventListener('click', () => {
-      blocks.splice(Number(btn.dataset.i), 1)
-      renderCourseBlockEditor(blocks)
-    })
-  )
-  el.querySelectorAll('.be-field').forEach((input) =>
-    input.addEventListener('input', () => {
-      const i = Number(input.dataset.i)
-      const f = input.dataset.f
-      if (f === 'options' || f === 'items') {
-        blocks[i][f] = input.value.split('\n').map((s) => s.trim()).filter(Boolean)
-      } else if (f === 'correct_index') {
-        blocks[i][f] = Number(input.value) || 0
-      } else if (f === 'is_true') {
-        blocks[i][f] = input.value === 'true'
-      } else if (f === 'pairs') {
-        blocks[i][f] = input.value
-          .split('\n')
-          .map((line) => {
-            const [left, right] = line.split('::').map((s) => (s || '').trim())
-            return { left: left || '', right: right || '' }
-          })
-          .filter((p) => p.left || p.right)
-      } else {
-        blocks[i][f] = input.value
-      }
-    })
-  )
-  makeSortable(el, blocks, () => renderCourseBlockEditor(blocks))
-}
-
-function renderReferenceBlockEditor(blocks) {
-  const el = document.getElementById('refBlockEditorList')
-  el.innerHTML = blocks
-    .map(
-      (b, i) => `
-    <div class="block-editor-item" data-index="${i}">
-      <div class="block-editor-item-header">
-        <select class="rbe-type" data-i="${i}">
-          ${Object.keys(REFERENCE_BLOCK_DEFAULTS)
-            .map((t) => `<option value="${t}" ${t === b.type ? 'selected' : ''}>${t}</option>`)
-            .join('')}
-        </select>
-        <span class="remove-block" data-i="${i}">Quitar ×</span>
-      </div>
-      ${fieldsForReferenceBlock(b, i)}
-    </div>`
-    )
-    .join('')
-
-  el.querySelectorAll('.rbe-type').forEach((sel) =>
-    sel.addEventListener('change', () => {
-      const i = Number(sel.dataset.i)
-      blocks[i] = { ...REFERENCE_BLOCK_DEFAULTS[sel.value] }
-      renderReferenceBlockEditor(blocks)
-    })
-  )
-  el.querySelectorAll('.remove-block').forEach((btn) =>
-    btn.addEventListener('click', () => {
-      blocks.splice(Number(btn.dataset.i), 1)
-      renderReferenceBlockEditor(blocks)
-    })
-  )
-  el.querySelectorAll('.rbe-field').forEach((input) =>
-    input.addEventListener('input', () => {
-      const i = Number(input.dataset.i)
-      const f = input.dataset.f
-      blocks[i][f] = f === 'items' ? input.value.split('\n').map((s) => s.trim()).filter(Boolean) : input.value
-    })
-  )
-  makeSortable(el, blocks, () => renderReferenceBlockEditor(blocks))
-}
-
 async function saveGuideRoutes(guideId, selectedRoutes) {
   await supabase.from('guide_routes').delete().eq('guide_id', guideId)
   if (selectedRoutes.length > 0) {
@@ -511,14 +328,31 @@ async function saveGuideRoutes(guideId, selectedRoutes) {
   }
 }
 
+const REVIEW_STATUS_BADGE = {
+  draft: '<span class="badge badge-progress">Borrador</span>',
+  pending: '<span class="badge badge-pro">Pendiente de revisión</span>',
+  approved: '<span class="badge badge-completed">Aprobada</span>',
+  rejected: '<span class="badge badge-danger">Rechazada</span>',
+}
+
 async function openGuideModal(guide) {
   let existingPositions = {}
+  let submissionAuthor = null
   if (guide) {
     const { data: routes } = await supabase.from('guide_routes').select('route_id, position').eq('guide_id', guide.id)
     existingPositions = (routes || []).reduce((acc, r) => {
       acc[r.route_id] = r.position
       return acc
     }, {})
+
+    if (guide.author_id) {
+      const { data: author } = await supabase
+        .from('user_profiles')
+        .select('display_name, username')
+        .eq('id', guide.author_id)
+        .single()
+      submissionAuthor = author?.display_name || author?.username || 'Usuario'
+    }
   }
 
   const g = guide || {
@@ -549,6 +383,11 @@ async function openGuideModal(guide) {
 
   openModal(`
     <h3>${guide ? 'Editar' : 'Nueva'} guía</h3>
+    ${submissionAuthor ? `
+    <div class="admin-ai-generate" style="margin-bottom: 16px;">
+      <span>Enviada por <strong>${escapeHtml(submissionAuthor)}</strong> ${REVIEW_STATUS_BADGE[guide.review_status] || ''}</span>
+      ${guide.review_status === 'rejected' && guide.rejection_reason ? `<span style="font-size:12px; color:#dc2626;">Motivo del rechazo: ${escapeHtml(guide.rejection_reason)}</span>` : ''}
+    </div>` : ''}
     <div class="tabs" id="guideModalTabs">
       <button class="tab-btn active" data-gtab="general">General</button>
       <button class="tab-btn" data-gtab="course">Bloques del curso</button>
@@ -627,7 +466,12 @@ async function openGuideModal(guide) {
       </div>
     </div>
 
-    <button class="btn-primary btn-block" id="btnSaveGuide" style="margin-top: 16px;">Guardar</button>`)
+    <button class="btn-primary btn-block" id="btnSaveGuide" style="margin-top: 16px;">Guardar</button>
+    ${guide?.review_status === 'pending' ? `
+    <div class="modal-actions" style="flex-direction: row; margin-top: 8px;">
+      <button class="btn-primary btn-block" id="btnApproveGuide" style="background: var(--success);">Aprobar y publicar</button>
+      <button class="btn-outline btn-block" id="btnRejectGuide">Rechazar</button>
+    </div>` : ''}`)
 
   document.getElementById('guideModalTabs').querySelectorAll('.tab-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -638,8 +482,8 @@ async function openGuideModal(guide) {
     })
   })
 
-  renderCourseBlockEditor(courseBlocks)
-  renderReferenceBlockEditor(refBlocks)
+  renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks)
+  renderReferenceBlockEditor(document.getElementById('refBlockEditorList'), refBlocks)
 
   document.getElementById('gCategory').addEventListener('change', (e) => {
     const newCollections = collectionsCache.filter((c) => c.category_id === e.target.value)
@@ -650,7 +494,7 @@ async function openGuideModal(guide) {
 
   document.getElementById('btnAddCourseBlock').addEventListener('click', () => {
     courseBlocks.push({ ...COURSE_BLOCK_DEFAULTS.concept })
-    renderCourseBlockEditor(courseBlocks)
+    renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks)
   })
 
   document.getElementById('btnGenerateCourseAI').addEventListener('click', async (e) => {
@@ -679,7 +523,7 @@ async function openGuideModal(guide) {
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || 'Error desconocido')
       courseBlocks.splice(0, courseBlocks.length, ...result.blocks)
-      renderCourseBlockEditor(courseBlocks)
+      renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks)
     } catch (err) {
       alert('No se pudo generar el curso con IA:\n' + err.message)
     } finally {
@@ -689,10 +533,10 @@ async function openGuideModal(guide) {
   })
   document.getElementById('btnAddRefBlock').addEventListener('click', () => {
     refBlocks.push({ ...REFERENCE_BLOCK_DEFAULTS.paragraph })
-    renderReferenceBlockEditor(refBlocks)
+    renderReferenceBlockEditor(document.getElementById('refBlockEditorList'), refBlocks)
   })
 
-  document.getElementById('btnSaveGuide').addEventListener('click', async () => {
+  function buildPayload(extraFields = {}) {
     const published = document.getElementById('gPublished').checked
     const newCategoryId = document.getElementById('gCategory').value
     const collectionId = document.getElementById('gCollection').value || null
@@ -724,8 +568,14 @@ async function openGuideModal(guide) {
       reference_blocks: refBlocks,
       has_reference_blocks: refBlocks.length > 0,
       route_ids: selectedRoutes.map((r) => r.routeId),
+      ...extraFields,
     }
     if (g.id) payload.id = g.id
+    return { payload, newCategoryId, selectedRoutes }
+  }
+
+  async function persistGuide(extraFields = {}) {
+    const { payload, newCategoryId, selectedRoutes } = buildPayload(extraFields)
 
     const { data: saved } = await supabase.from('guides').upsert(payload).select('id').single()
     const guideId = saved?.id || g.id
@@ -737,6 +587,21 @@ async function openGuideModal(guide) {
     closeModal()
     loadGuides()
     loadCategories()
+    loadPending()
+  }
+
+  document.getElementById('btnSaveGuide').addEventListener('click', () => persistGuide())
+
+  document.getElementById('btnApproveGuide')?.addEventListener('click', () =>
+    persistGuide({ review_status: 'approved', published_at: new Date().toISOString() })
+  )
+
+  document.getElementById('btnRejectGuide')?.addEventListener('click', async () => {
+    const reason = window.prompt('¿Por qué se rechaza esta guía? (se le mostrará al autor)')
+    if (reason === null) return
+    await supabase.from('guides').update({ review_status: 'rejected', rejection_reason: reason }).eq('id', g.id)
+    closeModal()
+    loadPending()
   })
 }
 
@@ -1028,7 +893,7 @@ async function init() {
   initSidebar()
   await loadCategories()
   await Promise.all([loadCollections(), loadPaths()])
-  await Promise.all([loadDashboard(), loadGuides(), loadAchievements(), loadUsers(), loadImages()])
+  await Promise.all([loadDashboard(), loadPending(), loadGuides(), loadAchievements(), loadUsers(), loadImages()])
 }
 
 init()

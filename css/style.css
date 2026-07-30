@@ -705,6 +705,11 @@ button.btn-block {
   color: var(--success);
 }
 
+.badge-danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
 .time-tag {
   font-size: 12px;
   color: var(--text-dim);

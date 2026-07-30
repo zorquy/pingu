@@ -15,38 +15,58 @@
     <div class="auth-box">
       <div class="auth-logo">Poke<span>Doc</span></div>
 
-      <div id="stepEmail">
-        <h2>¿Cuál es tu email?</h2>
-        <p class="subtext">Te enviaremos un código para entrar, sin contraseñas.</p>
+      <div id="stepLogin">
+        <h2>Bienvenido de nuevo</h2>
+        <p class="subtext">Inicia sesión con tu email y contraseña.</p>
         <div class="form-group" style="margin-top: 16px;">
-          <input type="email" id="emailInput" class="auth-input" placeholder="tu@email.com" autocomplete="email" autofocus />
+          <input type="email" id="loginEmail" class="auth-input" placeholder="tu@email.com" autocomplete="email" autofocus />
+        </div>
+        <div class="form-group" style="margin-top: 10px;">
+          <input type="password" id="loginPassword" class="auth-input" placeholder="Contraseña" autocomplete="current-password" />
         </div>
         <p class="auth-error"></p>
-        <button id="btnSendCode" class="btn-primary btn-block" disabled>Enviar código</button>
+        <button id="btnLogin" class="btn-primary btn-block" style="margin-top: 8px;">Entrar</button>
+        <button id="btnGoogleLogin" class="btn-outline btn-block auth-google-btn" style="margin-top: 10px;">Continuar con Google</button>
+        <p class="auth-switch">
+          <button id="btnGoToForgot">¿Olvidaste tu contraseña?</button>
+        </p>
+        <p class="auth-switch">
+          ¿No tienes cuenta? <button id="btnGoToRegister">Crear una</button>
+        </p>
       </div>
 
-      <div id="stepOtp" class="hidden">
-        <h2>Revisa tu email</h2>
-        <p class="subtext">Escribe el código de 6 dígitos que enviamos a <strong id="otpEmailLabel"></strong></p>
-        <div class="otp-boxes" style="margin: 16px 0;">
-          <input class="otp-box" maxlength="1" inputmode="numeric" />
-          <input class="otp-box" maxlength="1" inputmode="numeric" />
-          <input class="otp-box" maxlength="1" inputmode="numeric" />
-          <input class="otp-box" maxlength="1" inputmode="numeric" />
-          <input class="otp-box" maxlength="1" inputmode="numeric" />
-          <input class="otp-box" maxlength="1" inputmode="numeric" />
+      <div id="stepRegister" class="hidden">
+        <h2>Crea tu cuenta</h2>
+        <p class="subtext">Solo necesitas un nombre, tu email y una contraseña.</p>
+        <div class="form-group" style="margin-top: 16px;">
+          <input type="text" id="registerName" class="auth-input" placeholder="Tu nombre" autocomplete="name" />
+        </div>
+        <div class="form-group" style="margin-top: 10px;">
+          <input type="email" id="registerEmail" class="auth-input" placeholder="tu@email.com" autocomplete="email" />
+        </div>
+        <div class="form-group" style="margin-top: 10px;">
+          <input type="password" id="registerPassword" class="auth-input" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password" />
         </div>
         <p class="auth-error"></p>
-        <p class="auth-resend">¿No te llegó? <button id="btnResend">Reenviar código</button></p>
+        <button id="btnRegister" class="btn-primary btn-block" style="margin-top: 8px;">Crear cuenta →</button>
+        <button id="btnGoogleRegister" class="btn-outline btn-block auth-google-btn" style="margin-top: 10px;">Continuar con Google</button>
+        <p class="auth-switch">
+          ¿Ya tienes cuenta? <button id="btnGoToLogin1">Inicia sesión</button>
+        </p>
       </div>
 
-      <div id="stepName" class="hidden">
-        <h2>¿Cómo te llamamos?</h2>
-        <p class="subtext">Así aparecerás en tu perfil y en tus logros.</p>
+      <div id="stepForgot" class="hidden">
+        <h2>Recuperar contraseña</h2>
+        <p class="subtext">Te enviaremos un enlace a tu email para elegir una nueva contraseña.</p>
         <div class="form-group" style="margin-top: 16px;">
-          <input type="text" id="nameInput" class="auth-input" placeholder="Tu nombre" autofocus />
+          <input type="email" id="forgotEmail" class="auth-input" placeholder="tu@email.com" autocomplete="email" />
         </div>
-        <button id="btnSaveName" class="btn-primary btn-block" disabled>Empezar →</button>
+        <p class="auth-error"></p>
+        <p class="auth-success hidden" id="forgotSuccess">Revisa tu email — te hemos enviado un enlace para restablecer la contraseña.</p>
+        <button id="btnSendReset" class="btn-primary btn-block" style="margin-top: 8px;">Enviar enlace</button>
+        <p class="auth-switch">
+          <button id="btnGoToLogin2">← Volver a iniciar sesión</button>
+        </p>
       </div>
     </div>
   </div>

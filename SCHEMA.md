@@ -143,7 +143,50 @@ aparte) · `unlocked_references` (uuid[]) · `avatar_color` (color de fondo
 del avatar, con fallback a navy) · `is_admin` · `quiz_correct_count` ·
 `push_token` (no usado desde la web) · `onboarding_completed` · `interests`
 (text[], slugs de categorías elegidas en el onboarding) · `recommended_path`
-(text, slug de `learning_paths` recomendado en el onboarding).
+(text, slug de `learning_paths` recomendado en el onboarding) · `bio`
+(texto libre, perfil público) · `banner_color` (color de fondo de la
+cabecera del perfil público) · `showcase_achievement` (id de
+`achievement_definitions` que el usuario elige destacar en su perfil).
+
+**Perfiles públicos**: desde la migración `supabase-migration-social.sql`,
+cualquiera puede leer cualquier fila de `user_profiles` (antes solo se leía
+la propia). Hace falta para que exista `usuario.html` (perfil público de
+otro usuario con muro, reseñas y sus guías).
+
+## Contenido colaborativo (`guides.author_id` / `review_status`)
+Cualquier usuario registrado puede crear guías desde "Mis guías" en su
+perfil. Columnas nuevas en `guides`: `author_id` (uuid, autor; `null` =
+contenido propio/admin, como hasta ahora) · `review_status`
+(`draft`/`pending`/`approved`/`rejected`, default `'approved'` para no
+afectar a lo ya publicado) · `rejection_reason` (motivo si se rechaza) ·
+`submitted_at`.
+
+Flujo: el autor crea/edita en `draft`, le da a "Enviar a revisión"
+(`review_status = 'pending'`) y ya no puede tocarla. Un admin la revisa en
+la pestaña "Pendientes" de `/admin`: al aprobar se le pone `published_at`
+(igual que a cualquier guía) y `review_status = 'approved'`; al rechazar,
+`review_status = 'rejected'` + `rejection_reason`, y el autor puede
+editarla y reenviarla. Campos como XP, rareza, colección o rutas los deja
+en su valor por defecto el autor y los ajusta el admin al aprobar — el
+autor no elige eso él mismo.
+
+RLS: la lectura pública de `guides` pasó de "todas las filas" a solo
+`published_at IS NOT NULL` (o el propio autor viendo lo suyo, o admin
+viendo todo). El autor puede insertar/editar/borrar sus propias filas solo
+mientras están en `draft` o `rejected`.
+
+## `profile_comments` (muro del perfil)
+`id` · `profile_id` (de quién es el muro) · `author_id` (quién escribe) ·
+`body` · `created_at`. Lectura pública; solo el propio autor del
+comentario, el dueño del muro, o un admin pueden borrarlo.
+
+## `profile_reviews` (reseñas entre usuarios)
+`id` · `profile_id` (a quién se reseña) · `reviewer_id` (quién reseña) ·
+`rating` (1-5) · `body` · `created_at`. Única por `(profile_id,
+reviewer_id)` — puedes actualizar tu reseña pero no dejar dos. Lectura
+pública. **A propósito, el reseñado no puede borrar reseñas que no le
+gusten** — solo quien la escribió o un admin, para que la reputación
+tenga peso real.
 
 ## `user_progress`
 `id` · `user_id` · `guide_id` · `status` (`started`/`completed`) ·

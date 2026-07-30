@@ -1,13 +1,10 @@
 import { supabase } from './supabase.js'
 
 const steps = {
-  email: document.getElementById('stepEmail'),
-  otp: document.getElementById('stepOtp'),
-  name: document.getElementById('stepName'),
+  login: document.getElementById('stepLogin'),
+  register: document.getElementById('stepRegister'),
+  forgot: document.getElementById('stepForgot'),
 }
-
-let currentEmail = ''
-let resendTimer = null
 
 function showStep(step) {
   Object.values(steps).forEach((el) => el?.classList.add('hidden'))
@@ -22,10 +19,16 @@ function setError(stepEl, message) {
 function friendlyAuthError(error) {
   const msg = (error?.message || '').toLowerCase()
   if (msg.includes('rate limit') || msg.includes('too many')) {
-    return 'Has pedido demasiados códigos seguidos. Espera un minuto e inténtalo de nuevo.'
+    return 'Demasiados intentos seguidos. Espera un minuto e inténtalo de nuevo.'
   }
-  if (msg.includes('invalid') && msg.includes('otp')) {
-    return 'El código no es correcto o ha caducado.'
+  if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials')) {
+    return 'Email o contraseña incorrectos.'
+  }
+  if (msg.includes('already registered') || msg.includes('already been registered') || msg.includes('user already exists')) {
+    return 'Ya existe una cuenta con ese email. Inicia sesión en vez de crear una nueva.'
+  }
+  if (msg.includes('password') && (msg.includes('short') || msg.includes('at least') || msg.includes('6 characters'))) {
+    return 'La contraseña debe tener al menos 6 caracteres.'
   }
   if (msg.includes('email')) {
     return 'Revisa que el email sea correcto.'
@@ -33,137 +36,150 @@ function friendlyAuthError(error) {
   return 'Ha ocurrido un error. Inténtalo de nuevo.'
 }
 
-// ── Paso 1: email ──
-const emailInput = document.getElementById('emailInput')
-const btnSendCode = document.getElementById('btnSendCode')
-
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
-emailInput?.addEventListener('input', () => {
-  btnSendCode.disabled = !validEmail(emailInput.value.trim())
-})
-
-btnSendCode?.addEventListener('click', async () => {
-  const email = emailInput.value.trim()
-  setError(steps.email, '')
-  btnSendCode.disabled = true
-  btnSendCode.textContent = 'Enviando...'
-
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: true },
-  })
-
-  btnSendCode.textContent = 'Enviar código'
-
-  if (error) {
-    setError(steps.email, friendlyAuthError(error))
-    btnSendCode.disabled = false
-    return
-  }
-
-  currentEmail = email
-  document.getElementById('otpEmailLabel').textContent = email
-  showStep('otp')
-  startResendTimer()
-  document.querySelector('.otp-box')?.focus()
-})
-
-// ── Paso 2: OTP ──
-const otpBoxes = Array.from(document.querySelectorAll('.otp-box'))
-
-otpBoxes.forEach((box, i) => {
-  box.addEventListener('input', () => {
-    box.value = box.value.replace(/\D/g, '').slice(0, 1)
-    box.classList.remove('error')
-    if (box.value && i < otpBoxes.length - 1) otpBoxes[i + 1].focus()
-    maybeSubmitOtp()
-  })
-  box.addEventListener('keydown', (e) => {
-    if (e.key === 'Backspace' && !box.value && i > 0) {
-      otpBoxes[i - 1].focus()
-    }
-  })
-})
-
-async function maybeSubmitOtp() {
-  const code = otpBoxes.map((b) => b.value).join('')
-  if (code.length !== 6) return
-  setError(steps.otp, '')
-
-  const { data, error } = await supabase.auth.verifyOtp({
-    email: currentEmail,
-    token: code,
-    type: 'email',
-  })
-
-  if (error) {
-    otpBoxes.forEach((b) => b.classList.add('error'))
-    setError(steps.otp, friendlyAuthError(error))
-    return
-  }
-
-  const userId = data.user.id
+async function afterAuth(userId) {
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('username, onboarding_completed')
     .eq('id', userId)
     .single()
 
-  if (!profile || !profile.username) {
-    showStep('name')
+  window.location.href = profile?.onboarding_completed === false ? 'onboarding.html' : 'index.html'
+}
+
+function signInWithGoogle() {
+  supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${window.location.origin}/index.html` },
+  })
+}
+
+document.getElementById('btnGoogleLogin')?.addEventListener('click', signInWithGoogle)
+document.getElementById('btnGoogleRegister')?.addEventListener('click', signInWithGoogle)
+
+// ── Navegación entre pasos ──
+document.getElementById('btnGoToRegister')?.addEventListener('click', () => showStep('register'))
+document.getElementById('btnGoToForgot')?.addEventListener('click', () => showStep('forgot'))
+document.getElementById('btnGoToLogin1')?.addEventListener('click', () => showStep('login'))
+document.getElementById('btnGoToLogin2')?.addEventListener('click', () => showStep('login'))
+
+// ── Login ──
+const btnLogin = document.getElementById('btnLogin')
+
+btnLogin?.addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim()
+  const password = document.getElementById('loginPassword').value
+  setError(steps.login, '')
+
+  if (!validEmail(email) || !password) {
+    setError(steps.login, 'Escribe tu email y contraseña.')
     return
   }
 
-  window.location.href = profile.onboarding_completed === false ? 'onboarding.html' : 'index.html'
-}
+  btnLogin.disabled = true
+  btnLogin.textContent = 'Entrando...'
 
-function startResendTimer() {
-  const btn = document.getElementById('btnResend')
-  if (!btn) return
-  let seconds = 30
-  btn.disabled = true
-  clearInterval(resendTimer)
-  const update = () => {
-    btn.textContent = seconds > 0 ? `Reenviar código (${seconds}s)` : 'Reenviar código'
-    btn.disabled = seconds > 0
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+  btnLogin.disabled = false
+  btnLogin.textContent = 'Entrar'
+
+  if (error) {
+    setError(steps.login, friendlyAuthError(error))
+    return
   }
-  update()
-  resendTimer = setInterval(() => {
-    seconds--
-    update()
-    if (seconds <= 0) clearInterval(resendTimer)
-  }, 1000)
-}
 
-document.getElementById('btnResend')?.addEventListener('click', async () => {
-  await supabase.auth.signInWithOtp({ email: currentEmail, options: { shouldCreateUser: true } })
-  startResendTimer()
+  await afterAuth(data.user.id)
 })
 
-// ── Paso 3: nombre ──
-const nameInput = document.getElementById('nameInput')
-const btnSaveName = document.getElementById('btnSaveName')
+// ── Registro ──
+const btnRegister = document.getElementById('btnRegister')
 
-nameInput?.addEventListener('input', () => {
-  btnSaveName.disabled = nameInput.value.trim().length < 2
-})
+btnRegister?.addEventListener('click', async () => {
+  const name = document.getElementById('registerName').value.trim()
+  const email = document.getElementById('registerEmail').value.trim()
+  const password = document.getElementById('registerPassword').value
+  setError(steps.register, '')
 
-btnSaveName?.addEventListener('click', async () => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return
+  if (name.length < 2) {
+    setError(steps.register, 'Escribe tu nombre.')
+    return
+  }
+  if (!validEmail(email)) {
+    setError(steps.register, 'Revisa que el email sea correcto.')
+    return
+  }
+  if (password.length < 6) {
+    setError(steps.register, 'La contraseña debe tener al menos 6 caracteres.')
+    return
+  }
 
-  const name = nameInput.value.trim()
+  btnRegister.disabled = true
+  btnRegister.textContent = 'Creando cuenta...'
+
+  const { data, error } = await supabase.auth.signUp({ email, password })
+
+  btnRegister.disabled = false
+  btnRegister.textContent = 'Crear cuenta →'
+
+  if (error) {
+    setError(steps.register, friendlyAuthError(error))
+    return
+  }
+
+  if (!data.session) {
+    // El proyecto de Supabase tiene activada la confirmación por email:
+    // la cuenta se crea pero no hay sesión hasta que se confirme.
+    setError(steps.register, '')
+    steps.register.querySelector('h2').textContent = 'Revisa tu email'
+    steps.register.querySelector('.subtext').textContent = 'Te hemos enviado un enlace para confirmar tu cuenta. Ábrelo y luego inicia sesión.'
+    document.getElementById('registerName').closest('.form-group').classList.add('hidden')
+    document.getElementById('registerEmail').closest('.form-group').classList.add('hidden')
+    document.getElementById('registerPassword').closest('.form-group').classList.add('hidden')
+    btnRegister.classList.add('hidden')
+    document.getElementById('btnGoogleRegister').classList.add('hidden')
+    return
+  }
+
   await supabase.from('user_profiles').upsert({
-    id: user.id,
+    id: data.user.id,
     username: name,
     display_name: name,
     onboarding_completed: false,
   })
 
   window.location.href = 'onboarding.html'
+})
+
+// ── Recuperar contraseña ──
+const btnSendReset = document.getElementById('btnSendReset')
+
+btnSendReset?.addEventListener('click', async () => {
+  const email = document.getElementById('forgotEmail').value.trim()
+  setError(steps.forgot, '')
+
+  if (!validEmail(email)) {
+    setError(steps.forgot, 'Revisa que el email sea correcto.')
+    return
+  }
+
+  btnSendReset.disabled = true
+  btnSendReset.textContent = 'Enviando...'
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password.html`,
+  })
+
+  btnSendReset.disabled = false
+  btnSendReset.textContent = 'Enviar enlace'
+
+  if (error) {
+    setError(steps.forgot, friendlyAuthError(error))
+    return
+  }
+
+  document.getElementById('forgotSuccess').classList.remove('hidden')
 })

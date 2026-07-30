@@ -56,6 +56,17 @@ async function init() {
   document.title = `${guide.title} — PokeDoc`
   supabase.from('guides').update({ view_count: (guide.view_count || 0) + 1 }).eq('id', guide.id)
 
+  let authorHtml = ''
+  if (guide.author_id) {
+    const { data: author } = await supabase
+      .from('user_profiles')
+      .select('display_name, username')
+      .eq('id', guide.author_id)
+      .single()
+    const authorName = author?.display_name || author?.username || 'un colaborador'
+    authorHtml = `<p class="subtext" style="margin-top:-4px;">Guía enviada por <a href="usuario.html?id=${guide.author_id}" style="color:var(--navy); font-weight:700;">${escapeHtml(authorName)}</a></p>`
+  }
+
   const session = await getSession()
   const profile = session ? await getProfile(session.user.id) : null
 
@@ -88,6 +99,7 @@ async function init() {
       <span class="guide-label">${escapeHtml(guide.categories?.name || '')}</span>
       <h1>${escapeHtml(guide.title)}</h1>
       <p class="lead">${escapeHtml(guide.description || '')}</p>
+      ${authorHtml}
       <div class="article-meta">
         <span class="time-tag">${guide.estimated_mins || 5} min</span>
         <span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>

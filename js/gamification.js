@@ -36,6 +36,15 @@ export const LEVEL_THRESHOLDS = [
   { level: 'Maestro', min: 1500, next: null },
 ]
 
+// Reputación de colaborador, basada en cuántas guías/cursos ha aprobado
+// la moderación (no en XP, que ya mide el progreso como estudiante).
+export function contributorTier(approvedGuidesCount) {
+  if (approvedGuidesCount >= 10) return { title: 'Leyenda de la comunidad', emoji: '👑' }
+  if (approvedGuidesCount >= 5) return { title: 'Colaborador destacado', emoji: '⭐' }
+  if (approvedGuidesCount >= 1) return { title: 'Colaborador', emoji: '🌱' }
+  return { title: 'Miembro', emoji: '👤' }
+}
+
 export function levelProgress(xp) {
   const current = LEVEL_THRESHOLDS.find((l) => l.next === null || xp < l.next) || LEVEL_THRESHOLDS[0]
   if (current.next === null) return { ...current, pct: 100 }

@@ -20,6 +20,7 @@
       <div class="admin-logo">Poke<span>Doc</span> <span class="admin-tag">Admin</span></div>
       <nav class="admin-nav">
         <button class="admin-nav-item active" data-section="dashboard">📊 Dashboard</button>
+        <button class="admin-nav-item" data-section="pending">🕓 Pendientes</button>
         <button class="admin-nav-item" data-section="guides">📘 Guías</button>
         <button class="admin-nav-item" data-section="categories">🗂️ Categorías</button>
         <button class="admin-nav-item" data-section="collections">📚 Colecciones</button>
@@ -35,6 +36,12 @@
       <section class="admin-section active" id="section-dashboard">
         <h1>Dashboard</h1>
         <div class="admin-stats-grid" id="dashboardStats"></div>
+      </section>
+
+      <section class="admin-section" id="section-pending">
+        <h1>Pendientes de revisión</h1>
+        <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Guías y cursos enviados por usuarios, a la espera de aprobación.</p>
+        <div id="pendingTable"></div>
       </section>
 
       <section class="admin-section" id="section-guides">

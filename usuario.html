@@ -36,36 +36,24 @@
     <div class="profile-header" id="profileHeader">
       <div class="skeleton" style="width: 72px; height: 72px; border-radius: 50%;"></div>
     </div>
-    <button class="btn-outline" id="btnEditProfile" style="margin-bottom: 24px;">Editar perfil</button>
 
     <div class="stats-row" style="margin-bottom: 32px;" id="profileStats"></div>
 
-    <h2 class="section-title">Logros</h2>
-    <div class="achievements-grid" id="achievementsGrid" style="margin-bottom: 32px;"></div>
+    <h2 class="section-title">Guías publicadas</h2>
+    <div id="publishedGuides" style="margin-bottom: 32px;"></div>
 
-    <div class="section-header-row">
-      <h2 class="section-title">Mis guías</h2>
-      <button class="btn-primary" id="btnNewMyGuide">+ Nueva guía</button>
-    </div>
-    <p class="subtext" style="margin: -20px 0 16px;">Cualquiera puede crear guías y cursos. Cuando la tengas lista, envíala a revisión — un moderador la aprobará antes de que aparezca en la web.</p>
-    <div id="myGuidesList" style="margin-bottom: 32px;"></div>
+    <h2 class="section-title">Reseñas</h2>
+    <div id="reviewForm" style="margin-bottom: 16px;"></div>
+    <div id="reviewsList" style="margin-bottom: 32px;"></div>
 
-    <h2 class="section-title">Cursos completados</h2>
-    <div id="completedCourses"></div>
-
-    <button class="btn-outline" id="btnLogout" style="margin-top: 32px;">Cerrar sesión</button>
+    <h2 class="section-title">Muro</h2>
+    <div id="commentForm" style="margin-bottom: 16px;"></div>
+    <div id="commentsList"></div>
   </main>
 
   <footer class="footer">© 2026 PokeDoc — Hecho para coleccionistas.</footer>
 
-  <div class="modal-overlay hidden" id="profileModal">
-    <div class="modal-box modal-box-wide">
-      <span class="modal-close" id="profileModalClose">×</span>
-      <div id="profileModalContent"></div>
-    </div>
-  </div>
-
   <script type="module" src="js/app.js"></script>
-  <script type="module" src="js/perfil.js"></script>
+  <script type="module" src="js/usuario.js"></script>
 </body>
 </html>

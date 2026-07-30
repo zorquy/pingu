@@ -23,6 +23,19 @@ desplegar en Netlify.
    (Site settings → Environment variables) con una clave de
    [console.anthropic.com](https://console.anthropic.com). Sin esa variable
    el resto del panel funciona igual, solo ese botón da error.
+5. Ejecuta `supabase-migration-social.sql` en el SQL Editor de Supabase para
+   activar las guías colaborativas y los perfiles públicos (muro, reseñas).
+6. Login por contraseña: si quieres que crear cuenta sea 100% sin fricción
+   (sin ningún email de por medio), desactiva "Confirm email" en tu proyecto
+   Supabase → Authentication → Providers → Email. Si lo dejas activado, tras
+   registrarse el usuario recibe un enlace de confirmación (una sola vez, no
+   un código cada vez que inicia sesión).
+7. Login con Google (opcional): en Supabase → Authentication → Providers →
+   Google, actívalo y añade el Client ID/Secret de un proyecto en
+   [Google Cloud Console](https://console.cloud.google.com/) (con la URI de
+   redirección que te muestra el propio panel de Supabase autorizada ahí).
+   Sin esto configurado, el botón "Continuar con Google" da error — el resto
+   del login (email + contraseña) funciona igual.
 
 ## Desarrollo local
 
