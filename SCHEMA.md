@@ -653,3 +653,19 @@ vez de vivir en el HTML estático, así que se quedó fuera del barrido de
 accesibilidad de modales de una ronda anterior (que buscaba
 `<span class="modal-close">` en los archivos `.html`). Se le añadió el
 mismo listener de `Escape` que tienen todos los demás modales del sitio.
+
+## Bug real: el registro no generaba un username único/slugificado
+`js/auth.js` (registro con contraseña) guardaba `username: name` — el
+nombre tal cual lo escribe la persona, sin pasar por `slugify()` ni por
+la comprobación de unicidad — a pesar de que `user_profiles` tiene un
+índice único sobre `lower(username)` desde
+`supabase-migration-usernames.sql`, y de que ya existía el helper
+`uniqueUsername()` en `js/app.js` para esto exacto (usado en
+`onboarding.js` y en el cambio de username desde `perfil.js`). Dos
+personas registrándose con el mismo nombre (o el mismo nombre en
+distinta mayúscula/minúscula) hacían que el `upsert` fallase por la
+restricción única — y el error ni siquiera se comprobaba, así que la
+persona seguía a onboarding sin enterarse de que su perfil no se había
+guardado. Se arregló llamando a `uniqueUsername(name, data.user.id)`
+igual que en el resto del código, y comprobando el error del `upsert`
+para mostrarlo en el formulario en vez de ignorarlo en silencio.

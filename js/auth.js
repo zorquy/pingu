@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { uniqueUsername } from './app.js'
 
 const steps = {
   login: document.getElementById('stepLogin'),
@@ -160,12 +161,18 @@ btnRegister?.addEventListener('click', async () => {
     return
   }
 
-  await supabase.from('user_profiles').upsert({
+  const username = await uniqueUsername(name, data.user.id)
+  const { error: profileError } = await supabase.from('user_profiles').upsert({
     id: data.user.id,
-    username: name,
+    username,
     display_name: name,
     onboarding_completed: false,
   })
+
+  if (profileError) {
+    setError(steps.register, friendlyAuthError(profileError))
+    return
+  }
 
   window.location.href = 'onboarding.html'
 })
