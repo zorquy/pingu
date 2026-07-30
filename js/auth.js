@@ -55,11 +55,22 @@ async function afterAuth(userId) {
   window.location.href = profile?.onboarding_completed === false ? 'onboarding.html' : 'index.html'
 }
 
-function signInWithGoogle() {
-  supabase.auth.signInWithOAuth({
+async function signInWithGoogle(e) {
+  const btn = e.currentTarget
+  btn.disabled = true
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: `${window.location.origin}/index.html` },
   })
+  // Si signInWithOAuth funciona, el navegador ya ha saltado a Google antes
+  // de que esto se ejecute. Si seguimos aquí, ha fallado — mostramos el
+  // motivo en vez de dejar el botón como "colgado" sin explicación.
+  btn.disabled = false
+  if (error) {
+    const stepEl = btn.closest('#stepLogin, #stepRegister')
+    if (stepEl) setError(stepEl, friendlyAuthError(error))
+    console.error('Google sign-in error:', error)
+  }
 }
 
 document.getElementById('btnGoogleLogin')?.addEventListener('click', signInWithGoogle)
