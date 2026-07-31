@@ -9,6 +9,7 @@ import {
 import { initRichTextEditor, richTextToolbarHtml } from '../../js/richtext-editor.js'
 import { showToast } from '../../js/toast.js'
 import { loadDraft, clearDraft, startAutosave } from '../../js/editor-autosave.js'
+import { addXP } from '../../js/gamification.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -318,6 +319,9 @@ async function persistGuide(extraFields = {}) {
   document.getElementById('btnSaveGuide').disabled = true
   document.getElementById('btnApproveGuide').disabled = true
 
+  const wasApproved = existingGuide?.review_status === 'approved'
+  const authorId = existingGuide?.author_id || null
+
   const { payload, newCategoryId, selectedRoutes } = buildPayload()
   Object.assign(payload, extraFields)
 
@@ -333,6 +337,13 @@ async function persistGuide(extraFields = {}) {
   if (id) await saveGuideRoutes(id, selectedRoutes)
   if (id && proActive) {
     await supabase.from('guide_pro_content').upsert({ guide_id: id, blocks: proBlocks, published_at: proPublishedAt }, { onConflict: 'guide_id' })
+  }
+
+  // Recompensa al autor de la comunidad la primera vez que se aprueba su
+  // guía (no en cada guardado posterior) — mismo XP que ya se le da al
+  // dar el curso, para que publicar también cuente como progreso.
+  if (extraFields.review_status === 'approved' && !wasApproved && authorId) {
+    await addXP(authorId, payload.xp_reward)
   }
 
   await recalcCategoryGuideCount(newCategoryId)

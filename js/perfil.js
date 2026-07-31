@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl } from './app.js'
-import { getAllAchievements, levelProgress } from './gamification.js'
+import { getAllAchievements, levelProgress, contributorTier } from './gamification.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 
@@ -60,17 +60,23 @@ async function loadProfile(session) {
 }
 
 async function loadStats(session, profile) {
-  const [{ count: completedCount }, { data: reviews }] = await Promise.all([
+  const [{ count: completedCount }, { data: reviews }, { count: approvedGuidesCount }] = await Promise.all([
     supabase
       .from('user_progress')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', session.user.id)
       .eq('status', 'completed'),
     supabase.from('profile_reviews').select('rating').eq('profile_id', session.user.id),
+    supabase
+      .from('guides')
+      .select('*', { count: 'exact', head: true })
+      .eq('author_id', session.user.id)
+      .eq('review_status', 'approved'),
   ])
 
   const unlockedCount = (profile?.achievements || []).length
   const avgRating = reviews && reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null
+  const tier = contributorTier(approvedGuidesCount || 0)
 
   document.getElementById('profileStats').innerHTML = `
     <div class="stat-card">
@@ -88,6 +94,10 @@ async function loadStats(session, profile) {
     <div class="stat-card">
       <div class="value">${avgRating ? `⭐ ${avgRating.toFixed(1)}` : '—'}</div>
       <div class="label">Valoración (${reviews?.length || 0})</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">${tier.emoji}</div>
+      <div class="label">${tier.title}</div>
     </div>`
 }
 

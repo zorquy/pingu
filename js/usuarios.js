@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, profileUrl } from './app.js'
 import { openGuideModal, setupGuideModalClose, renderGuideCardHtml, decorateGuideCards } from './guide-modal.js'
+import { contributorTier } from './gamification.js'
 
 let allUsers = []
 let allCommunityGuides = []
@@ -13,6 +14,7 @@ function userCardHtml(p) {
     ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
     : `background-color:${p.avatar_color || 'var(--navy)'}`
   const rankBadge = RANK_MEDALS[p.rank] || `#${p.rank}`
+  const tier = contributorTier(p.approvedGuidesCount || 0)
   return `
     <a class="user-card${p.rank <= 3 ? ' user-card-top' : ''}" href="${profileUrl(p)}">
       <span class="user-card-rank">${rankBadge}</span>
@@ -20,6 +22,7 @@ function userCardHtml(p) {
       <div class="user-card-info">
         <h3>${escapeHtml(name)}</h3>
         <p>${p.level ? escapeHtml(p.level) + ' · ' : ''}${p.total_xp || 0} XP</p>
+        ${p.approvedGuidesCount > 0 ? `<p class="subtext" style="margin:2px 0 0;">${tier.emoji} ${escapeHtml(tier.title)}</p>` : ''}
       </div>
     </a>`
 }
@@ -37,13 +40,21 @@ function render(list) {
 }
 
 async function loadUsers() {
-  const { data } = await supabase
-    .from('user_profiles')
-    .select('id, username, display_name, level, total_xp, avatar_url, avatar_color')
-    .order('total_xp', { ascending: false })
-    .limit(200)
+  const [{ data }, { data: approvedGuides }] = await Promise.all([
+    supabase
+      .from('user_profiles')
+      .select('id, username, display_name, level, total_xp, avatar_url, avatar_color')
+      .order('total_xp', { ascending: false })
+      .limit(200),
+    supabase.from('guides').select('author_id').eq('review_status', 'approved').not('author_id', 'is', null),
+  ])
 
-  allUsers = (data || []).map((p, i) => ({ ...p, rank: i + 1 }))
+  const approvedCountByAuthor = (approvedGuides || []).reduce((acc, g) => {
+    acc[g.author_id] = (acc[g.author_id] || 0) + 1
+    return acc
+  }, {})
+
+  allUsers = (data || []).map((p, i) => ({ ...p, rank: i + 1, approvedGuidesCount: approvedCountByAuthor[p.id] || 0 }))
   render(allUsers)
 
   document.getElementById('userSearchInput').addEventListener('input', (e) => {

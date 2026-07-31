@@ -371,6 +371,40 @@ que ahora muestra un aviso "🕓 Guía de la comunidad pendiente de
 revisión..." cuando corresponde; `guia.js` (la página de documentación
 completa) muestra el mismo aviso arriba del todo.
 
+## Incentivos para publicar guías: rango de colaborador visible + XP al aprobar
+Para que crear guías cuente tanto como aprender, sin montar un foro:
+
+- **XP al autor cuando se aprueba su guía** (`admin/js/editor-guia.js`
+  → `persistGuide()`): la primera vez que una guía pasa a
+  `review_status = 'approved'` (no en guardados posteriores del mismo
+  estado), se le da al autor el mismo XP que ya se lleva quien completa
+  su curso (`payload.xp_reward`, el valor que el admin ajusta al
+  aprobar) vía `addXP()`. Publicar una guía que se aprueba ahora suma
+  progreso real, no solo reconocimiento.
+- **Rango de colaborador visible**: `contributorTier()` (en
+  `gamification.js`) ya existía pero no se mostraba en ningún sitio.
+  Ahora aparece como una tarjeta más en las estadísticas del propio
+  perfil (`perfil.js`, antes solo se veía en el perfil público de otra
+  persona vía `usuario.js`) y como sello bajo el XP en cada tarjeta del
+  directorio de "Comunidad" (`usuarios.js`, contando guías aprobadas por
+  autor con una sola consulta agrupada) — solo se muestra si la persona
+  tiene alguna guía aprobada, para no repetir "Miembro" en todas las
+  tarjetas por defecto.
+
+Deliberadamente **no** se mezcla este rango con el ranking de XP
+(que sigue siendo solo sobre aprender/completar cursos) — son dos
+señales distintas (quién estudia vs. quién aporta) para no confundir
+ambas cosas en un solo número.
+
+Verificado con Playwright: aprobar una guía pendiente aumenta el XP del
+autor exactamente en su `xp_reward` (y volver a guardar una guía ya
+aprobada NO vuelve a darlo); el rango de colaborador aparece en el
+propio perfil y en las tarjetas de Comunidad de quien tiene guías
+aprobadas. Para comprobar el efecto del `approve` sin que la navegación
+posterior (`window.location.href`) reiniciase el estado del stub de
+pruebas, se neutralizó esa navegación solo en la copia de prueba del
+scratchpad — no es código del repo.
+
 **Editor a página completa** (`editor-guia.html` / `js/editor-guia.js`
 para "Mis guías" en el perfil; `admin/editor-guia.html` /
 `admin/js/editor-guia.js` para `/admin`): crear o editar una guía ya no
