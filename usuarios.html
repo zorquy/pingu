@@ -37,18 +37,40 @@
   <main class="page-content container-narrow">
     <div class="page-header" style="padding-top: 8px;">
       <h1>Comunidad</h1>
-      <p class="subtext">Clasificación por XP — descubre a otros coleccionistas, sigue a los que más aportan y échale un vistazo a sus perfiles.</p>
+      <p class="subtext">Descubre a otros coleccionistas y las guías que ha creado la comunidad.</p>
     </div>
 
-    <div class="search-input-wrap">
-      <input type="text" id="userSearchInput" class="search-input" placeholder="Buscar por nombre de usuario…" autofocus />
+    <div class="tabs" id="communityTabs">
+      <button class="tab-btn active" data-ctab="users">Usuarios</button>
+      <button class="tab-btn" data-ctab="guides">Guías de la comunidad</button>
     </div>
 
-    <div id="userDirectoryEmpty"></div>
-    <div class="user-directory-grid" id="userDirectoryGrid"></div>
+    <div class="tab-panel active" id="ctab-users">
+      <div class="search-input-wrap">
+        <input type="text" id="userSearchInput" class="search-input" placeholder="Buscar por nombre de usuario…" />
+      </div>
+      <div id="userDirectoryEmpty"></div>
+      <div class="user-directory-grid" id="userDirectoryGrid"></div>
+    </div>
+
+    <div class="tab-panel" id="ctab-guides">
+      <p class="subtext" style="margin: -4px 0 16px;">Guías creadas por la comunidad, con o sin revisar todavía — las que llevan el sello ✓ Aprobada ya las ha comprobado el equipo de PokeDoc y también aparecen en el sitio oficial.</p>
+      <div class="search-input-wrap">
+        <input type="text" id="communityGuideSearchInput" class="search-input" placeholder="Buscar guías de la comunidad…" />
+      </div>
+      <div id="communityGuidesEmpty"></div>
+      <div class="grid-guides" id="communityGuidesGrid"></div>
+    </div>
   </main>
 
   <footer class="footer">© 2026 PokeDoc — Hecho para coleccionistas.</footer>
+
+  <div class="modal-overlay hidden" id="guideModal">
+    <div class="modal-box modal-box-wide">
+      <button type="button" class="modal-close" id="guideModalClose" aria-label="Cerrar">×</button>
+      <div id="guideModalContent"></div>
+    </div>
+  </div>
 
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/usuarios.js"></script>

@@ -37,8 +37,9 @@ async function getRatingStats(guideIds) {
   return stats
 }
 
-// ── Tarjeta de guía (usada en categoria.html, la home y guardados.html) ──
-export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel = '' } = {}) {
+// ── Tarjeta de guía (usada en categoria.html, la home, guardados.html y
+// la sección de Comunidad) ──
+export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel = '', reviewBadge = null, authorName = null } = {}) {
   const courseLabel = statusBadge === 'completed' ? 'Repasar' : '🎓 Curso'
   const guideBtn = guide.has_reference_blocks
     ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">📖 Documentación</a>`
@@ -51,12 +52,14 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
       ${categoryLabel ? `<span class="guide-label">${escapeHtml(categoryLabel)}</span>` : ''}
       <h3>${escapeHtml(guide.title)}</h3>
       <p>${escapeHtml(guide.description || '')}</p>
+      ${authorName ? `<p class="subtext" style="margin:2px 0 0;">De ${escapeHtml(authorName)}</p>` : ''}
       <div class="guide-meta">
         <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
         <span class="time-tag">${guide.estimated_mins || 5} min</span>
         <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
         ${statusBadge === 'started' ? '<span class="badge badge-progress">EN PROGRESO</span>' : ''}
         ${statusBadge === 'completed' ? '<span class="badge badge-completed">✓ COMPLETADO</span>' : ''}
+        ${reviewBadge ? `<span class="badge ${guide.review_status === 'approved' ? 'badge-completed' : 'badge-pro'}">${escapeHtml(reviewBadge)}</span>` : ''}
       </div>
       <div class="guide-card-social">
         <button class="card-save-btn" data-card-save title="Guardar" aria-label="Guardar" onclick="event.stopPropagation()">☆</button>
@@ -214,6 +217,11 @@ export async function openGuideModal(guideId) {
 
   content.innerHTML = `
     <div class="guide-modal-banner" style="${bannerStyle}">${!guide.cover_image ? `<span class="guide-modal-banner-emoji">${escapeHtml(guide.cover_emoji || '📘')}</span>` : ''}</div>
+    ${
+      guide.review_status === 'pending'
+        ? `<p class="subtext" style="background:var(--ice); padding:8px 12px; border-radius:var(--radius-sm); margin-bottom:10px;">🕓 Guía de la comunidad pendiente de revisión — todavía no la ha comprobado el equipo de PokeDoc.</p>`
+        : ''
+    }
     <span class="guide-label">${escapeHtml(guide.categories?.name || '')}</span>
     <h3>${escapeHtml(guide.title)}</h3>
     <p class="guide-modal-desc">${escapeHtml(guide.description || '')}</p>

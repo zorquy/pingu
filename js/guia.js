@@ -106,6 +106,11 @@ async function init() {
       <span>›</span> <span>${escapeHtml(guide.title)}</span>
     </div>
     <div class="article-header">
+      ${
+        guide.review_status === 'pending'
+          ? `<p class="subtext" style="background:var(--ice); padding:8px 12px; border-radius:var(--radius-sm); margin-bottom:10px;">🕓 Guía de la comunidad pendiente de revisión — todavía no la ha comprobado el equipo de PokeDoc.</p>`
+          : ''
+      }
       <span class="emoji-big">${escapeHtml(guide.cover_emoji || '📘')}</span>
       <span class="guide-label">${escapeHtml(guide.categories?.name || '')}</span>
       <h1>${escapeHtml(guide.title)}</h1>

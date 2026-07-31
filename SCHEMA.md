@@ -335,10 +335,41 @@ editarla y reenviarla. Campos como XP, rareza, colección o rutas los deja
 en su valor por defecto el autor y los ajusta el admin al aprobar — el
 autor no elige eso él mismo.
 
-RLS: la lectura pública de `guides` pasó de "todas las filas" a solo
-`published_at IS NOT NULL` (o el propio autor viendo lo suyo, o admin
-viendo todo). El autor puede insertar/editar/borrar sus propias filas solo
+RLS: la lectura pública de `guides` pasó de "todas las filas" a
+`published_at IS NOT NULL` o `review_status = 'pending'` (o el propio
+autor viendo lo suyo, o admin viendo todo — ver más abajo "Guías de
+comunidad"). El autor puede insertar/editar/borrar sus propias filas solo
 mientras están en `draft` o `rejected`.
+
+## Guías de comunidad visibles antes de la aprobación
+Hasta ahora una guía enviada a revisión quedaba invisible para todo el
+mundo (excepto su autor y los admins) hasta que se aprobaba. Ahora,
+según se pidió, el sitio distingue **guías oficiales** (las que crea el
+equipo o las que ya aprobó un admin — siguen siendo las únicas que
+aparecen en la home/categorías/buscador de siempre, sin ningún cambio
+ahí) de **guías de comunidad** (cualquier guía con `author_id`, esté
+`pending` o ya `approved`), que se listan en una pestaña nueva **"Guías
+de la comunidad"** dentro de Comunidad (`usuarios.html`/`js/usuarios.js`,
+junto a la pestaña "Usuarios" que ya existía), con su propio buscador de
+texto (título/descripción/autor) — deliberadamente **sin mezclarse** con
+el buscador o las categorías del sitio oficial, para no diluir esa
+experiencia curada.
+
+Migración: `supabase-migration-community-guides.sql` — amplía la
+política `guides_select` para permitir también leer filas con
+`review_status = 'pending'` (antes solo se podía leer lo publicado, o lo
+propio, o siendo admin). Las guías en `draft` o `rejected` siguen sin
+ser públicas.
+
+Cada tarjeta (reutiliza `renderGuideCardHtml` de `guide-modal.js`, ahora
+con los parámetros opcionales `reviewBadge` y `authorName`) muestra el
+autor y un sello: "Pendiente de revisión" o "✓ Aprobada" — las aprobadas
+se quedan también listadas aquí, a modo de "vitrina" de lo que ha
+aportado la comunidad, aunque ya vivan además en el sitio oficial. Al
+pinchar se abre el mismo modal de guía de siempre (`openGuideModal`),
+que ahora muestra un aviso "🕓 Guía de la comunidad pendiente de
+revisión..." cuando corresponde; `guia.js` (la página de documentación
+completa) muestra el mismo aviso arriba del todo.
 
 **Editor a página completa** (`editor-guia.html` / `js/editor-guia.js`
 para "Mis guías" en el perfil; `admin/editor-guia.html` /
