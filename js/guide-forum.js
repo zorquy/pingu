@@ -26,7 +26,7 @@ function snippet(text, len = 90) {
 // Comentarios de guía estilo foro: paginado, con citar/responder. La
 // documentación de arriba hace de "post principal" — esto pinta solo los
 // comentarios de los usuarios debajo.
-export function initGuideForum({ containerEl, guideId, currentSession }) {
+export function initGuideForum({ containerEl, guideId, currentSession, isAdmin = false }) {
   let replyingTo = null
 
   function updatePageInUrl(page) {
@@ -84,7 +84,7 @@ export function initGuideForum({ containerEl, guideId, currentSession }) {
           <p class="forum-post-text">${escapeHtml(c.body)}</p>
           <div class="forum-post-actions">
             ${currentSession ? `<button class="forum-reply-btn" data-reply-id="${c.id}" data-reply-name="${escapeHtml(name)}">↩ Responder</button>` : ''}
-            ${currentSession?.user.id === c.author_id ? `<button class="forum-delete-btn" data-delete-id="${c.id}">Eliminar</button>` : ''}
+            ${currentSession && (currentSession.user.id === c.author_id || isAdmin) ? `<button class="forum-delete-btn" data-delete-id="${c.id}">Eliminar</button>` : ''}
             ${currentSession && currentSession.user.id !== c.author_id ? reportButtonHtml('guide_comment', c.id) : ''}
           </div>
         </div>

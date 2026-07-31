@@ -1,5 +1,5 @@
 import { supabase } from '../../js/supabase.js'
-import { escapeHtml, getSession, validateImageFile } from '../../js/app.js'
+import { escapeHtml, getSession, validateImageFile, profileUrl } from '../../js/app.js'
 import { invalidateAchievementsCache } from '../../js/gamification.js'
 import { showToast } from '../../js/toast.js'
 import { renderReferenceBlocksHtml } from '../../js/block-editor.js'
@@ -641,6 +641,64 @@ const REPORT_TYPE_LABELS = {
   profile_review: '⭐ Reseña de perfil',
 }
 
+function snippet(text, len = 90) {
+  const clean = (text || '').trim()
+  if (!clean) return '(sin texto)'
+  return clean.length > len ? clean.slice(0, len) + '…' : clean
+}
+
+// Cada content_type reportado vive en una tabla distinta — sin esto el
+// admin solo veía "Comentario de guía" o "Reseña de perfil" sin ningún
+// rastro de QUÉ se reportó, así que no había forma de moderar sin ir a
+// buscarlo a mano fila por fila.
+async function loadContentPreviews(reports) {
+  const idsByType = reports.reduce((acc, r) => {
+    acc[r.content_type] = acc[r.content_type] || []
+    acc[r.content_type].push(r.content_id)
+    return acc
+  }, {})
+  const previews = {}
+
+  if (idsByType.guide?.length > 0) {
+    const { data } = await supabase.from('guides').select('id, title, slug').in('id', idsByType.guide)
+    ;(data || []).forEach((g) => {
+      previews[g.id] = { text: g.title, url: `/guia.html?slug=${encodeURIComponent(g.slug)}` }
+    })
+  }
+
+  if (idsByType.guide_comment?.length > 0) {
+    const { data: comments } = await supabase.from('guide_comments').select('id, body, guide_id').in('id', idsByType.guide_comment)
+    const guideIds = [...new Set((comments || []).map((c) => c.guide_id))]
+    const { data: guides } = guideIds.length > 0 ? await supabase.from('guides').select('id, slug').in('id', guideIds) : { data: [] }
+    const slugById = Object.fromEntries((guides || []).map((g) => [g.id, g.slug]))
+    ;(comments || []).forEach((c) => {
+      previews[c.id] = { text: snippet(c.body), url: slugById[c.guide_id] ? `/guia.html?slug=${encodeURIComponent(slugById[c.guide_id])}` : null }
+    })
+  }
+
+  if (idsByType.profile_comment?.length > 0 || idsByType.profile_review?.length > 0) {
+    const commentIds = idsByType.profile_comment || []
+    const reviewIds = idsByType.profile_review || []
+    const [{ data: comments }, { data: reviews }] = await Promise.all([
+      commentIds.length > 0 ? supabase.from('profile_comments').select('id, body, profile_id').in('id', commentIds) : Promise.resolve({ data: [] }),
+      reviewIds.length > 0 ? supabase.from('profile_reviews').select('id, body, rating, profile_id').in('id', reviewIds) : Promise.resolve({ data: [] }),
+    ])
+    const profileIds = [...new Set([...(comments || []), ...(reviews || [])].map((r) => r.profile_id))]
+    const { data: profiles } = profileIds.length > 0 ? await supabase.from('user_profiles').select('id, username').in('id', profileIds) : { data: [] }
+    const profileById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
+    ;(comments || []).forEach((c) => {
+      const p = profileById[c.profile_id]
+      previews[c.id] = { text: snippet(c.body), url: p ? profileUrl(p) : null }
+    })
+    ;(reviews || []).forEach((r) => {
+      const p = profileById[r.profile_id]
+      previews[r.id] = { text: `${'★'.repeat(r.rating)} ${snippet(r.body)}`, url: p ? profileUrl(p) : null }
+    })
+  }
+
+  return previews
+}
+
 async function loadReports() {
   const { data } = await supabase
     .from('content_reports')
@@ -650,11 +708,13 @@ async function loadReports() {
 
   const reports = data || []
   const reporterIds = [...new Set(reports.map((r) => r.reporter_id))]
-  let reportersById = {}
-  if (reporterIds.length > 0) {
-    const { data: reporters } = await supabase.from('user_profiles').select('id, display_name, username').in('id', reporterIds)
-    reportersById = Object.fromEntries((reporters || []).map((r) => [r.id, r]))
-  }
+  const [reportersData, previews] = await Promise.all([
+    reporterIds.length > 0
+      ? supabase.from('user_profiles').select('id, display_name, username').in('id', reporterIds)
+      : Promise.resolve({ data: [] }),
+    loadContentPreviews(reports),
+  ])
+  const reportersById = Object.fromEntries((reportersData.data || []).map((r) => [r.id, r]))
 
   const container = document.getElementById('reportsTable')
   if (reports.length === 0) {
@@ -664,15 +724,23 @@ async function loadReports() {
 
   container.innerHTML = `
     <table class="admin-table">
-      <thead><tr><th>Tipo</th><th>Motivo</th><th>Reportado por</th><th>Fecha</th><th></th></tr></thead>
+      <thead><tr><th>Tipo</th><th>Contenido reportado</th><th>Motivo</th><th>Reportado por</th><th>Fecha</th><th></th></tr></thead>
       <tbody>
         ${reports
           .map((r) => {
             const reporter = reportersById[r.reporter_id]
             const reporterName = reporter?.display_name || reporter?.username || 'Usuario'
+            const preview = previews[r.content_id]
             return `
           <tr>
             <td>${REPORT_TYPE_LABELS[r.content_type] || r.content_type}</td>
+            <td>${
+              preview
+                ? preview.url
+                  ? `<a href="${preview.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(preview.text)}</a>`
+                  : escapeHtml(preview.text)
+                : '<em>Contenido eliminado</em>'
+            }</td>
             <td>${escapeHtml(r.reason || '—')}</td>
             <td>${escapeHtml(reporterName)}</td>
             <td>${new Date(r.created_at).toLocaleDateString('es-ES')}</td>

@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, getSession, profileUrl, profileParamsFromLocation } from './app.js'
+import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation } from './app.js'
 import { levelProgress, contributorTier, getAllAchievements } from './gamification.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
@@ -9,6 +9,7 @@ const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
 
 let currentSession = null
+let isViewerAdmin = false
 let profile = null
 let achievementsCache = []
 let followingCache = []
@@ -340,6 +341,7 @@ function loadComments() {
     formEl: document.getElementById('commentForm'),
     profileId,
     currentSession,
+    isAdmin: isViewerAdmin,
   })
 }
 
@@ -351,6 +353,7 @@ async function init() {
   }
 
   currentSession = await getSession()
+  isViewerAdmin = currentSession ? !!(await getProfile(currentSession.user.id))?.is_admin : false
 
   const ok = await loadHeader()
   if (!ok) {

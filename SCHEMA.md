@@ -567,6 +567,34 @@ El panel de admin tiene una sección nueva "🚩 Reportes"
 los reportes `pending` con quién reportó y por qué, y deja marcarlos como
 revisados o descartarlos.
 
+**Hueco real que se arregló: la tabla de reportes no mostraba QUÉ se
+había reportado.** Solo se veía el tipo genérico ("💬 Comentario de
+guía"), el motivo y quién reportó — para saber si el contenido era
+realmente inapropiado, el admin tenía que ir a buscarlo a mano fila por
+fila, sin ninguna pista de dónde. Se añadió `loadContentPreviews()`, que
+agrupa los reportes por `content_type` y hace una consulta por tabla
+(`guides`/`guide_comments`/`profile_comments`/`profile_reviews`) para
+traer un fragmento del texto real (o el título, o ★+texto en el caso de
+reseñas) y un enlace a dónde vive — la guía para `guide`/`guide_comment`,
+el perfil del autor para `profile_comment`/`profile_review`. Si el
+contenido ya se borró mientras tanto, se muestra "*Contenido eliminado*"
+en vez de romperse.
+
+**Segundo hueco relacionado: aunque el admin viera y siguiera el enlace,
+no podía borrar el comentario/reseña de otra persona.** Las políticas RLS
+de `guide_comments`/`profile_comments`/`profile_reviews`/`guide_reviews`
+siempre permitieron `is_admin()` además del propio autor, pero ningún
+sitio del cliente mostraba el botón "Eliminar" para un admin sobre
+contenido ajeno — `js/wall.js` y `js/guide-forum.js` solo comprobaban
+"eres el autor" (o, en el muro, "eres el dueño de ese muro"). Se añadió
+un parámetro `isAdmin` a `renderWall()` y a `initGuideForum()` que amplía
+esa condición; los que llaman a estas funciones con una sesión activa
+(`js/guia.js`, `js/guide-modal.js`, `js/usuario.js`) ahora resuelven si
+quien mira es admin (reutilizando el `profile` que ya tenían cargado, o
+con una consulta a `user_profiles.is_admin` cuando no lo tenían) y se lo
+pasan. `perfil.js` no necesitó cambios: como siempre muestra tu propio
+muro, el autoborrado que ya tenía cubre el caso.
+
 ## Guía Pro (monetización)
 Migración: `supabase-migration-guide-pro-content.sql`. Cada guía puede
 tener, aparte de la Documentación y el Curso (que **siempre son

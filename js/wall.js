@@ -27,6 +27,7 @@ export async function renderWall({
   idField = 'profile_id',
   placeholder = 'Escribe algo en este muro...',
   emptyMessage = 'Todavía no hay nada escrito en este muro.<br>¡Sé el primero en dejar un mensaje!',
+  isAdmin = false,
 }) {
   const { data } = await supabase
     .from(table)
@@ -54,7 +55,7 @@ export async function renderWall({
       </div>
       <p style="margin:6px 0 0; font-size:13.5px;">${escapeHtml(c.body)}</p>
       <div style="display:flex; gap:10px; margin-top:6px;">
-        ${currentSession && (currentSession.user.id === c.author_id || currentSession.user.id === profileId) ? `<button data-delete-comment="${c.id}" style="font-size:11px; color:#dc2626; font-weight:700;">Eliminar</button>` : ''}
+        ${currentSession && (currentSession.user.id === c.author_id || currentSession.user.id === profileId || isAdmin) ? `<button data-delete-comment="${c.id}" style="font-size:11px; color:#dc2626; font-weight:700;">Eliminar</button>` : ''}
         ${canReply ? `<a href="${replyHref}" style="font-size:11px; color:var(--text-dim); font-weight:700;">Responder</a>` : ''}
         ${currentSession && currentSession.user.id !== c.author_id ? reportButtonHtml(REPORT_TYPE_BY_TABLE[table] || 'profile_comment', c.id) : ''}
       </div>
@@ -66,7 +67,7 @@ export async function renderWall({
     btn.addEventListener('click', async () => {
       if (!confirm('¿Eliminar este comentario?')) return
       await supabase.from(table).delete().eq('id', btn.dataset.deleteComment)
-      renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage })
+      renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage, isAdmin })
     })
   )
   wireReportButtons(listEl, currentSession)
@@ -94,7 +95,7 @@ export async function renderWall({
     const url = new URL(window.location.href)
     url.searchParams.delete('reply_to')
     window.history.replaceState({}, '', url)
-    renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage })
+    renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage, isAdmin })
   })
 
   document.getElementById('btnSubmitWallComment').addEventListener('click', async () => {
@@ -106,6 +107,6 @@ export async function renderWall({
       url.searchParams.delete('reply_to')
       window.history.replaceState({}, '', url)
     }
-    renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage })
+    renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage, isAdmin })
   })
 }

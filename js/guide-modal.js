@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, getInitial, profileUrl, borderRarityClass } from './app.js'
+import { escapeHtml, getSession, getProfile, getInitial, profileUrl, borderRarityClass } from './app.js'
 import { renderWall } from './wall.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 
@@ -170,6 +170,7 @@ export async function openGuideModal(guideId) {
     supabase.from('guides').select('*, categories(name)').eq('id', guideId).single(),
     getSession(),
   ])
+  const viewerProfile = session ? await getProfile(session.user.id) : null
 
   if (!guide) {
     content.innerHTML = `<p class="empty-state">Guía no encontrada.</p>`
@@ -277,6 +278,7 @@ export async function openGuideModal(guideId) {
     idField: 'guide_id',
     placeholder: 'Comenta esta guía...',
     emptyMessage: 'Todavía no hay comentarios en esta guía.<br>¡Sé el primero en comentar!',
+    isAdmin: !!viewerProfile?.is_admin,
   })
 }
 

@@ -163,7 +163,7 @@ async function init() {
     btnSave.addEventListener('click', () => toggleSave(session, guide.id, btnSave))
   }
 
-  initGuideForum({ containerEl: document.getElementById('forumContainer'), guideId: guide.id, currentSession: session })
+  initGuideForum({ containerEl: document.getElementById('forumContainer'), guideId: guide.id, currentSession: session, isAdmin: !!profile?.is_admin })
 }
 
 init()
