@@ -669,3 +669,24 @@ persona seguía a onboarding sin enterarse de que su perfil no se había
 guardado. Se arregló llamando a `uniqueUsername(name, data.user.id)`
 igual que en el resto del código, y comprobando el error del `upsert`
 para mostrarlo en el formulario en vez de ignorarlo en silencio.
+
+## Bug real de seguridad: la función de IA para generar cursos no comprobaba quién la llamaba
+`netlify/functions/generate-course.mjs` (el botón "Generar curso con IA"
+del editor de admin) llamaba a la API de pago de Anthropic sin comprobar
+en absoluto quién hacía la petición — cualquiera que descubriera la URL
+(visible en las peticiones de red del propio panel de admin) podía
+llamarla directamente y generar cursos gratis a costa de la cuenta de
+Anthropic del proyecto, sin necesitar sesión ni ser admin. Se añadió
+`requireAdminUserId()`: valida el token de sesión contra el propio
+Supabase (`/auth/v1/user`, con la anon key pública — no hace falta la
+service role key) y comprueba `user_profiles.is_admin` (de lectura
+pública) antes de dejar pasar la petición; devuelve 401 si falta el
+token, es inválido, o el usuario no es admin. `admin/js/editor-guia.js`
+ahora manda `Authorization: Bearer <access_token>` de la sesión actual
+al llamar a la función.
+
+Verificado con una prueba unitaria en Node que simula `fetch` (sin
+token / token inválido / válido pero no admin / admin válido), ya que
+este sandbox no tiene acceso de red real a Supabase ni Anthropic —
+revirtiendo la comprobación se confirmó que todas las peticiones pasaban
+con 200 sin ningún control.

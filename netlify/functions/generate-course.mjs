@@ -68,9 +68,42 @@ function validateBlocks(rawBlocks) {
   return ordered
 }
 
+const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
+const SUPABASE_ANON_KEY = 'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ'
+
+// Esta función llama a la API de pago de Anthropic, así que solo puede
+// invocarla un admin autenticado — si no, cualquiera con la URL podría
+// generar cursos gratis a costa de la cuenta del proyecto. Verificamos el
+// token contra el propio Supabase (no hace falta la service role key: el
+// endpoint /auth/v1/user valida el JWT y user_profiles.is_admin es de
+// lectura pública) en vez de confiar en nada que mande el cliente.
+async function requireAdminUserId(req) {
+  const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '')
+  if (!token) return null
+
+  const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY },
+  })
+  if (!userRes.ok) return null
+  const user = await userRes.json()
+  if (!user?.id) return null
+
+  const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/user_profiles?id=eq.${user.id}&select=is_admin`, {
+    headers: { apikey: SUPABASE_ANON_KEY, authorization: `Bearer ${token}` },
+  })
+  if (!profileRes.ok) return null
+  const [profile] = await profileRes.json()
+  return profile?.is_admin ? user.id : null
+}
+
 export default async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Método no permitido' }), { status: 405 })
+  }
+
+  const adminId = await requireAdminUserId(req)
+  if (!adminId) {
+    return new Response(JSON.stringify({ error: 'No autorizado.' }), { status: 401 })
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY

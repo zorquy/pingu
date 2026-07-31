@@ -444,7 +444,7 @@ async function init() {
     try {
       const res = await fetch('/.netlify/functions/generate-course', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${currentSession.access_token}` },
         body: JSON.stringify({ title, description, referenceText, blockCount: 7 }),
       })
       const result = await res.json()
