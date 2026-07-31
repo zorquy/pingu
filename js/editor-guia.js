@@ -141,10 +141,6 @@ async function save(reviewStatus) {
     showToast('Añade contenido en Documentación antes de enviar la guía a revisión.')
     return
   }
-  if (reviewStatus === 'pending' && courseBlocks.length === 0) {
-    showToast('Añade al menos un bloque al curso interactivo antes de enviarlo a revisión.')
-    return
-  }
 
   saving = true
   document.getElementById('btnSaveDraft').disabled = true

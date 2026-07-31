@@ -41,6 +41,10 @@ async function getRatingStats(guideIds) {
 // la sección de Comunidad) ──
 export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel = '', reviewBadge = null, authorName = null } = {}) {
   const courseLabel = statusBadge === 'completed' ? 'Repasar' : '🎓 Curso'
+  const hasCourse = Array.isArray(guide.blocks) && guide.blocks.length > 0
+  const courseBtn = hasCourse
+    ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course" onclick="event.stopPropagation()">${courseLabel}</a>`
+    : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">🎓 Curso</span>`
   const guideBtn = guide.has_reference_blocks
     ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">📖 Documentación</a>`
     : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📖 Documentación</span>`
@@ -67,7 +71,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
       </div>
     </div>
     <div class="guide-actions">
-      <a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course" onclick="event.stopPropagation()">${courseLabel}</a>
+      ${courseBtn}
       ${guideBtn}
     </div>
   </div>`
@@ -234,7 +238,11 @@ export async function openGuideModal(guideId) {
     <div class="guide-modal-rating" id="guideModalRating"></div>
     <div class="modal-actions" style="flex-direction:row; margin-top:16px; align-items:center;">
       <button class="btn-outline" id="guideModalSaveBtn">${isSaved ? '★ Guardado' : '☆ Guardar'}</button>
-      <a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course">🎓 Curso</a>
+      ${
+        Array.isArray(guide.blocks) && guide.blocks.length > 0
+          ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course">🎓 Curso</a>`
+          : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">🎓 Curso</span>`
+      }
       ${
         guide.has_reference_blocks
           ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide">📖 Documentación</a>`

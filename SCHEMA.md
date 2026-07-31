@@ -405,6 +405,31 @@ posterior (`window.location.href`) reiniciase el estado del stub de
 pruebas, se neutralizó esa navegación solo en la copia de prueba del
 scratchpad — no es código del repo.
 
+## El curso interactivo pasa a ser opcional al publicar una guía
+Antes, el editor de "Mis guías" (`editor-guia.html`/`js/editor-guia.js`)
+exigía que tanto la Documentación como el curso interactivo tuvieran al
+menos un bloque antes de poder "Enviar a revisión". Se quitó esa segunda
+condición: **solo la Documentación es obligatoria**, el curso interactivo
+es opcional (la pestaña ahora dice "🎓 Curso interactivo (opcional)" con
+una nota explicándolo). Así se baja la barrera de entrada para quien solo
+quiere aportar documentación rápida, sin obligar a nadie a montar un
+curso completo tipo Duolingo si no le apetece — quien sí quiera hacerlo
+sigue pudiendo, y el curso se sigue construyendo a partir de la
+Documentación como hasta ahora (el aviso de bloqueo de la pestaña de
+curso no cambia).
+
+Como una guía ahora puede quedarse sin bloques de curso (`blocks: []`),
+el botón "🎓 Curso" de la tarjeta de guía (`renderGuideCardHtml` en
+`guide-modal.js`, usado en home/categoría/guardados/Comunidad) y el del
+modal ampliado (`openGuideModal`) se deshabilitan igual que ya hacía el
+botón "📖 Documentación" cuando no hay contenido — para no dejar un
+enlace muerto a "Este curso todavía no está disponible" (`curso.js` ya
+manejaba ese caso, pero sin avisar antes de hacer clic).
+
+Nota: esta relajación es solo para el editor de la comunidad
+(`js/editor-guia.js`); el editor de `/admin` nunca tuvo esta validación,
+así que no hizo falta tocarlo.
+
 **Editor a página completa** (`editor-guia.html` / `js/editor-guia.js`
 para "Mis guías" en el perfil; `admin/editor-guia.html` /
 `admin/js/editor-guia.js` para `/admin`): crear o editar una guía ya no
