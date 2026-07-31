@@ -566,6 +566,10 @@ async function loadUsers() {
   document.querySelectorAll('[data-toggle-admin]').forEach((btn) =>
     btn.addEventListener('click', async () => {
       const makeAdmin = btn.dataset.current !== '1'
+      const confirmMsg = makeAdmin
+        ? 'Vas a dar acceso de admin completo a esta persona (podrá gestionar guías, usuarios, reportes y más). ¿Continuar?'
+        : '¿Quitarle el acceso de admin a esta persona?'
+      if (!confirm(confirmMsg)) return
       await supabase.from('user_profiles').update({ is_admin: makeAdmin }).eq('id', btn.dataset.toggleAdmin)
       loadUsers()
     })

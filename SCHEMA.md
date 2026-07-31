@@ -690,3 +690,12 @@ token / token inválido / válido pero no admin / admin válido), ya que
 este sandbox no tiene acceso de red real a Supabase ni Anthropic —
 revirtiendo la comprobación se confirmó que todas las peticiones pasaban
 con 200 sin ningún control.
+
+## Dar admin a alguien desde /admin no pedía confirmación
+En la tabla de Usuarios de `/admin`, el botón "Hacer admin" cambiaba
+`is_admin` al primer clic, sin ningún `confirm()` — a diferencia de
+cualquier otra acción consecuente del sitio (borrar guía, borrar
+comentario, etc.), que sí lo piden. Un clic accidentado en la fila
+equivocada daba acceso total de admin (gestionar guías, usuarios,
+reportes...) sin previo aviso. Se añadió un `confirm()` con un mensaje
+distinto según se conceda o se quite el acceso.
