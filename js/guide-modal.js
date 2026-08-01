@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getSession, getProfile, getInitial, profileUrl, borderRarityClass } from './app.js'
 import { renderWall } from './wall.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
+import { createNotification } from './notifications.js'
 
 export function starsHtml(rating, size = 16) {
   return Array.from({ length: 5 })
@@ -117,7 +118,7 @@ export async function decorateGuideCards(containerEl, session) {
 }
 
 // ── Widget de valoración (solo estrellas, dentro del modal) ──
-async function loadRatingWidget(guideId, session, container) {
+async function loadRatingWidget(guideId, session, container, guide = null) {
   const { data } = await supabase.from('guide_reviews').select('*').eq('guide_id', guideId)
   const reviews = data || []
   const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null
@@ -149,10 +150,21 @@ async function loadRatingWidget(guideId, session, container) {
     s.addEventListener('click', async () => {
       selected = Number(s.dataset.value)
       renderStars()
+      const isNewRating = !mine
       await supabase
         .from('guide_reviews')
         .upsert({ guide_id: guideId, reviewer_id: session.user.id, rating: selected }, { onConflict: 'guide_id,reviewer_id' })
-      await loadRatingWidget(guideId, session, container)
+      if (isNewRating && guide?.author_id) {
+        await createNotification({
+          recipientId: guide.author_id,
+          actorId: session.user.id,
+          type: 'guide_rating',
+          title: 'Nueva valoración en tu guía',
+          body: `${'★'.repeat(selected)} en "${guide.title}"`,
+          link: `/guia.html?slug=${guide.slug}`,
+        })
+      }
+      await loadRatingWidget(guideId, session, container, guide)
     })
   )
 }
@@ -268,7 +280,7 @@ export async function openGuideModal(guideId) {
   }
 
   wireReportButtons(content, session)
-  await loadRatingWidget(guide.id, session, document.getElementById('guideModalRating'))
+  await loadRatingWidget(guide.id, session, document.getElementById('guideModalRating'), guide)
   await renderWall({
     listEl: document.getElementById('guideModalCommentsList'),
     formEl: document.getElementById('guideModalCommentsForm'),

@@ -193,8 +193,71 @@ async function renderNavUser(session) {
 
   const profile = await getProfile(session.user.id)
   const name = profile?.display_name || profile?.username || session.user.email
-  const color = profile?.avatar_color || 'var(--navy)'
-  el.innerHTML = `<a href="/perfil.html" class="nav-user-avatar" style="background:${color}" title="${escapeHtml(name)}">${getInitial(name)}</a>`
+  const avatarStyle = profile?.avatar_url
+    ? `background-image:url('${profile.avatar_url.replace(/'/g, '%27')}')`
+    : `background-color:${profile?.avatar_color || 'var(--navy)'}`
+
+  el.innerHTML = `
+    <div class="nav-user-wrap" id="navUserWrap">
+      <button type="button" class="nav-user-avatar" id="navUserBtn" style="${avatarStyle}" aria-label="Tu cuenta" title="${escapeHtml(name)}">${profile?.avatar_url ? '' : getInitial(name)}</button>
+      <div class="nav-user-dropdown hidden" id="navUserDropdown"></div>
+    </div>`
+
+  const wrap = document.getElementById('navUserWrap')
+  const dropdown = document.getElementById('navUserDropdown')
+  let loaded = false
+
+  async function loadDropdown() {
+    const [{ contributorTier }, { count: approvedGuidesCount }] = await Promise.all([
+      import('./gamification.js'),
+      supabase
+        .from('guides')
+        .select('*', { count: 'exact', head: true })
+        .eq('author_id', session.user.id)
+        .eq('review_status', 'approved'),
+    ])
+    const tier = contributorTier(approvedGuidesCount || 0)
+
+    dropdown.innerHTML = `
+      <div class="nav-user-header">
+        <span class="nav-user-avatar-lg" style="${avatarStyle}">${profile?.avatar_url ? '' : getInitial(name)}</span>
+        <div>
+          <strong>${escapeHtml(name)}</strong>
+          ${profile?.username ? `<span class="subtext">@${escapeHtml(profile.username)}</span>` : ''}
+        </div>
+      </div>
+      <div class="nav-user-stats">
+        <div><strong>${profile?.total_xp || 0}</strong><span>XP</span></div>
+        <div><strong>${escapeHtml(profile?.level || 'Novato')}</strong><span>Nivel</span></div>
+        ${(approvedGuidesCount || 0) > 0 ? `<div><strong>${tier.emoji}</strong><span>${escapeHtml(tier.title)}</span></div>` : ''}
+      </div>
+      <div class="nav-user-links">
+        <a href="/perfil.html">👤 Mi perfil</a>
+        <a href="/guardados.html">⭐ Guardados</a>
+        <button type="button" id="navUserSignOut">🚪 Cerrar sesión</button>
+      </div>`
+
+    document.getElementById('navUserSignOut').addEventListener('click', signOut)
+  }
+
+  document.getElementById('navUserBtn').addEventListener('click', async () => {
+    const willShow = dropdown.classList.contains('hidden')
+    dropdown.classList.toggle('hidden', !willShow)
+    if (willShow && !loaded) {
+      loaded = true
+      await loadDropdown()
+    }
+  })
+  document.addEventListener('click', (e) => {
+    if (!wrap.contains(e.target)) dropdown.classList.add('hidden')
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') dropdown.classList.add('hidden')
+  })
+}
+
+function hideBuscarNavLink() {
+  document.querySelectorAll('.nav-links a[href="buscar.html"]').forEach((a) => a.remove())
 }
 
 function initScrollShadow() {
@@ -232,8 +295,11 @@ export async function initNavbar() {
   initScrollShadow()
   initMobileMenu()
   markActiveLink()
+  hideBuscarNavLink()
   const session = await getSession()
   renderNavUser(session)
+  const { renderNavSearch } = await import('./nav-search.js')
+  renderNavSearch()
   if (session) {
     const { renderNotificationBell } = await import('./notifications.js')
     renderNotificationBell(session)

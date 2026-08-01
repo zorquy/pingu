@@ -337,9 +337,20 @@ async function loadReviews() {
       return
     }
     const body = document.getElementById('reviewBody').value.trim()
+    const isNewReview = !myReview
     await supabase
       .from('profile_reviews')
       .upsert({ profile_id: profileId, reviewer_id: currentSession.user.id, rating: selectedRating, body }, { onConflict: 'profile_id,reviewer_id' })
+    if (isNewReview) {
+      await createNotification({
+        recipientId: profileId,
+        actorId: currentSession.user.id,
+        type: 'profile_rating',
+        title: 'Nueva reseña en tu perfil',
+        body: `${'★'.repeat(selectedRating)}${body ? ' — ' + body : ''}`,
+        link: '/perfil.html',
+      })
+    }
     await Promise.all([loadReviews(), loadReputationAndGuides()])
   })
 }

@@ -80,5 +80,7 @@ input?.addEventListener('input', () => {
   debounceTimer = setTimeout(() => runSearch(input.value.trim()), 300)
 })
 
-runSearch('')
+const qFromUrl = new URLSearchParams(window.location.search).get('q') || ''
+if (input) input.value = qFromUrl
+runSearch(qFromUrl)
 loadCategories()

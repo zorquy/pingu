@@ -931,3 +931,64 @@ página 1 del resultado filtrado (en vez de intentar pintar una página 2
 vacía de una lista filtrada más corta) — quitando el troceo por página
 (pintando la lista entera siempre) se confirmó que el test detecta la
 regresión: la página 1 pasa a mostrar las 16 guías en vez de 12.
+
+## Rediseño de la barra de navegación (lupa + campanita + menú de cuenta)
+Se sustituyó el enlace de texto "Buscar" de `.nav-links` (y el resto de
+la barra de la derecha) por una fila de iconos estilo foro clásico:
+🔍 lupa de búsqueda, 🔔 campanita de notificaciones (ya existía) y el
+avatar, ahora con un menú desplegable en vez de ser un simple enlace a
+`/perfil.html`. Todo se inyecta por JS desde `initNavbar()`
+(`js/app.js`), igual que ya hacía la campanita — cero cambios de HTML
+en las páginas. `hideBuscarNavLink()` quita el link "Buscar" de
+`.nav-links` en tiempo de ejecución (se deja tal cual en el menú móvil,
+donde el popup de búsqueda no encaja bien).
+
+**Lupa de búsqueda** (`js/nav-search.js`): el primer clic abre un mini
+popup con un input y un botón "Buscar" (además de un enlace "Búsqueda
+avanzada…" directo a `/buscar.html`); si el popup ya está abierto, un
+segundo clic en el icono navega directamente a
+`/buscar.html?q=<lo escrito>` (lo mismo que el submit del formulario o
+pulsar Enter). `js/search.js` ahora lee `?q=` de la URL al cargar para
+precargar el input y lanzar la búsqueda automáticamente, así que un
+enlace con query ya deja la página de búsqueda lista sin que haga falta
+volver a escribir.
+
+**Menú de cuenta** (avatar, dentro de `renderNavUser()` en `js/app.js`):
+al pulsar el avatar se abre un mini perfil con avatar grande, nombre,
+`@username`, una fila de estadísticas (XP total, nivel y, si tiene
+alguna guía aprobada, su rango de colaborador vía `contributorTier()`
+— importado con `import()` dinámico para no crear un ciclo con
+`gamification.js`, que a su vez importa `burstConfetti` de `app.js`) y
+enlaces a "Mi perfil", "Guardados" y "Cerrar sesión". No incluye
+todavía "Firma", "Privacidad", "Ignorados" ni "Estado" — son conceptos
+nuevos que no existen en el sitio, así que se han dejado fuera de esta
+ronda a propósito en vez de montar páginas de relleno; se pueden añadir
+más adelante si hacen falta de verdad.
+
+**Ampliación de la campanita**: se añadieron dos disparadores nuevos —
+valorar una guía con estrellas (`guide_rating`, en el widget de
+valoración del modal ampliado, `js/guide-modal.js`) y dejar una reseña
+en un perfil (`profile_rating`, `js/usuario.js`) — ambos solo avisan la
+PRIMERA vez que alguien valora (cambiar una valoración ya puesta no
+genera spam de notificaciones), cubriendo lo que se pidió como "likes"
+y "ratings" ya que el sitio no tiene un sistema de "me gusta"
+independiente, solo valoraciones de 1 a 5 estrellas sobre guías y
+perfiles.
+
+**Mensajería privada**: deliberadamente NO incluida en esta ronda — es
+una función nueva de verdad (tablas, hilos, bandeja) que se decidió
+tratar aparte para no mezclarla con este rediseño. El permiso ya
+decidido para cuando se monte: cualquier usuario logueado podrá
+escribirle a cualquier otro, sin restricción de seguimiento mutuo.
+
+Verificado con Playwright: el link de texto "Buscar" desaparece de la
+barra, la lupa abre el popup al primer clic y (comprobado interceptando
+la petición real, ya que el servidor local de pruebas recorta la query
+al redirigir `.html` con `?query` — algo que no pasa en Netlify, que no
+tiene ninguna regla para `buscar.html`) el segundo clic pide
+`/buscar.html?q=<lo escrito>` tal cual; `buscar.html` precarga el input
+al abrir con `?q=` en la URL; el menú de cuenta muestra el nombre, el
+XP y los enlaces reales; valorar una guía ajena y reseñar un perfil
+ajeno crean sus notificaciones — quitando `hideBuscarNavLink()` y la
+notificación de valoración de guía por separado se confirmó que el
+test detecta ambas regresiones.
