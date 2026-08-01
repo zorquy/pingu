@@ -1262,3 +1262,39 @@ para ese tipo no inserte nada, mientras que otros tipos no tocados
 comprobación de preferencias en `createNotification()` se confirmó que
 el test detecta la regresión (la notificación desactivada vuelve a
 crearse).
+
+## Modo oscuro
+Todo el diseño de la web ya salía de un único bloque `:root { --navy:
+...; --bg: ...; --text: ...; ... }` en `css/style.css`, así que el modo
+oscuro se implementó casi entero como un bloque de reemplazo,
+`:root[data-theme='dark'] { ... }`, con los mismos nombres de variable
+en tonos oscuros — sin tocar el resto de reglas CSS, que ya las usan
+todas. Se encontró un bug real durante la verificación visual: `.navbar`
+tenía el fondo escrito a mano (`rgba(255, 255, 255, 0.92)`) en vez de con
+variable, así que se quedaba clara aunque el resto de la página pasara a
+oscuro. Se corrigió añadiendo `--navbar-bg` (clara/oscura) y usando
+`background: var(--navbar-bg)`.
+
+`js/theme.js` añade el botón de sol/luna a la barra de navegación (junto
+a la lupa de búsqueda, antes del menú de cuenta) usando los iconos
+nuevos `sun`/`moon` de `js/icons.js`; al hacer clic alterna
+`document.documentElement.dataset.theme` entre `'light'`/`'dark'` y lo
+guarda en `localStorage` bajo la clave `pokedoc-theme`. Para evitar el
+parpadeo de tema claro al cargar con el oscuro ya guardado, las 17
+páginas HTML del sitio llevan un script en línea, síncrono, justo
+después de `<meta charset="UTF-8" />` (antes de que se cargue ningún
+CSS ni se pinte nada) que lee `localStorage` y, si no hay preferencia
+guardada, cae a `matchMedia('(prefers-color-scheme: dark)')` (la
+preferencia del sistema, que no se persiste — solo se usa como arranque
+por defecto).
+
+Verificado con Playwright: sin preferencia guardada arranca en claro con
+el icono de luna; el clic cambia `data-theme` a `dark`, lo persiste en
+`localStorage` y cambia el icono a sol; con `pokedoc-theme=dark` ya
+guardado antes de cargar, `data-theme` ya vale `dark` nada más hacer
+`goto` (sin esperar a que termine de cargar la página) y la navbar usa
+el fondo oscuro; alternar de vuelta a claro también persiste. Deshacer
+temporalmente el fix de `--navbar-bg` (volviendo al `rgba(255, 255,
+255, 0.92)` fijo) hizo fallar la comprobación de la navbar en oscuro,
+confirmando que el test detecta la regresión; se restauró el fix y
+volvió a pasar.

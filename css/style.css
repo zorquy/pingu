@@ -40,9 +40,41 @@
   --shadow-md: 0 12px 32px rgba(13, 27, 42, 0.09);
   --shadow-ring: 0 0 0 3px rgba(30, 81, 117, 0.16);
 
+  --navbar-bg: rgba(255, 255, 255, 0.92);
+
   --container-w: 1160px;
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
   --font-display: 'Fredoka', 'Inter', sans-serif;
+}
+
+/* ── Modo oscuro ──
+   Todo el sitio se construye sobre estas variables (fondo, texto, bordes,
+   tarjetas...), así que redefinirlas aquí basta para la mayor parte de la
+   interfaz. El atributo data-theme lo pone un script en línea en el
+   <head> de cada página, antes de pintar nada, para no dar un parpadeo de
+   tema claro al cargar con el oscuro ya guardado. */
+:root[data-theme='dark'] {
+  --navy: #4a90c2;
+  --navy-light: #63a8d6;
+  --navy-dark: #3a76a3;
+  --ice: #1c2b38;
+  --ice-dark: #243847;
+  --bg: #0f1720;
+  --white: #182430;
+  --text: #e8eef2;
+  --text-mid: #9fb3bd;
+  --text-dim: #64808c;
+  --border: #26333d;
+  --border-strong: #34434f;
+  --success: #34d399;
+  --success-bg: #11312a;
+  --warning: #f0a940;
+  --warning-bg: #3a2a11;
+  --indigo: #818cf8;
+  --indigo-bg: #211f3d;
+  --pink: #f472b6;
+  --pink-bg: #3a1526;
+  --navbar-bg: rgba(15, 23, 32, 0.92);
 }
 
 * {
@@ -141,7 +173,7 @@ select {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--navbar-bg);
   backdrop-filter: saturate(1.4) blur(10px);
   -webkit-backdrop-filter: saturate(1.4) blur(10px);
   border-bottom: 1px solid var(--border);

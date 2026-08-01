@@ -308,6 +308,8 @@ export async function initNavbar() {
   renderNavUser(session)
   const { renderNavSearch } = await import('./nav-search.js')
   renderNavSearch()
+  const { renderThemeToggle } = await import('./theme.js')
+  renderThemeToggle()
   if (session) {
     const { renderNavMessages } = await import('./nav-messages.js')
     renderNavMessages(session)
