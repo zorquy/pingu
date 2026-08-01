@@ -1101,3 +1101,23 @@ uno propio lo borra tanto de la base como del hilo pintado (revirtiendo
 `deleteMessage()` se confirmó que el test lo detecta); visitar
 `?with=<tu propio id>` te devuelve a la bandeja de mensajes en vez de
 quedarse cargando para siempre.
+
+## Bug real: los desplegables de la navbar se salían de la pantalla en móvil
+Con la lupa, los mensajes y la campanita apretados a la derecha (más el
+avatar), cada desplegable se posicionaba con `right: 0` **relativo a su
+propio icono**, no al borde de la pantalla. Como los desplegables miden
+260-320px de ancho y solo el último icono de la fila (el avatar) está
+cerca del borde derecho real, abrir la lupa, los mensajes o la
+campanita en un móvil normal (375px) sacaba buena parte del
+desplegable fuera de la pantalla por la izquierda — el texto quedaba
+literalmente cortado ("...ones" en vez de "Conversaciones"). Se
+arregló con una media query (`max-width: 899px`, el mismo punto en el
+que la barra ya pasa a hamburguesa) que ancla estos tres desplegables
+al viewport con `position: fixed; left: 12px; right: 12px;` en vez de
+depender de dónde esté su icono.
+
+Verificado con Playwright a 375px de ancho: los tres desplegables
+(lupa, mensajes, campanita) quedan dentro de la pantalla al abrirse —
+antes del fix, comprobando el `boundingBox()` de cada uno, el `x` daba
+negativo (parte del desplegable literalmente fuera del viewport por la
+izquierda).

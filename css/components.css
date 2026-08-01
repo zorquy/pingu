@@ -2205,3 +2205,23 @@ textarea.be-field {
 .nav-user-links button:hover {
   background: var(--ice);
 }
+
+/* ── Desplegables de la navbar en móvil ──
+   Con varios iconos apretados a la derecha (lupa, mensajes, campanita,
+   avatar), `right: 0` relativo a cada icono individual saca el
+   desplegable (320px/280px de ancho) fuera de la pantalla por la
+   izquierda en cualquier icono que no sea el último de la fila. Por
+   debajo del punto en el que la barra pasa a hamburguesa, se ancla el
+   desplegable al viewport en vez de al icono que lo abre. */
+@media (max-width: 899px) {
+  .nav-bell-dropdown,
+  .nav-search-dropdown,
+  .nav-user-dropdown {
+    position: fixed;
+    top: 76px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+  }
+}
