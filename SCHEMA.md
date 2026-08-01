@@ -906,3 +906,28 @@ comentario en guía, comentario en muro y nuevo seguidor crean la fila
 correcta en `user_notifications` — revirtiendo a mano la notificación
 del comentario de muro se confirmó que el test la detecta como
 ausente, y restaurándola vuelve a pasar.
+
+## Paginación en "Guías de la comunidad"
+La pestaña "Guías de la comunidad" de `usuarios.html`/`js/usuarios.js`
+seguía cargando y pintando TODAS las guías de comunidad de golpe (sin
+`.range()` ni límite), a diferencia del foro de comentarios de guía
+(`js/guide-forum.js`) que ya paginaba. Como esta pestaña además tiene un
+buscador en el cliente que filtra sobre la lista ya cargada en memoria,
+paginar la consulta a Supabase con `.range()` habría roto ese buscador
+(dejaría de poder buscar entre guías que no están en la página actual).
+Se optó por seguir cargando la lista completa una sola vez (igual que
+antes) pero **paginar el pintado**: `renderCommunityGuides(list, session,
+page)` trocea la lista ya filtrada en páginas de 12
+(`COMMUNITY_GUIDES_PAGE_SIZE`) y añade los mismos controles "← Anterior /
+Página N de M / Siguiente →" que ya existían en el foro de comentarios
+(reutiliza la clase `.forum-pagination`). Escribir en el buscador
+siempre vuelve a la página 1 del resultado filtrado.
+
+Verificado con Playwright: con más de 12 guías de comunidad, la primera
+página muestra exactamente 12 tarjetas y "Página 1 de 2", "Anterior"
+está deshabilitado en la primera página y "Siguiente" en la última, y
+buscar mientras se está en la página 2 vuelve correctamente a la
+página 1 del resultado filtrado (en vez de intentar pintar una página 2
+vacía de una lista filtrada más corta) — quitando el troceo por página
+(pintando la lista entera siempre) se confirmó que el test detecta la
+regresión: la página 1 pasa a mostrar las 16 guías en vez de 12.

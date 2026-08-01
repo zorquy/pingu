@@ -5,8 +5,10 @@ import { contributorTier } from './gamification.js'
 
 let allUsers = []
 let allCommunityGuides = []
+let communityGuidesPage = 1
 
 const RANK_MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' }
+const COMMUNITY_GUIDES_PAGE_SIZE = 12
 
 function userCardHtml(p) {
   const name = p.display_name || p.username || 'Usuario'
@@ -68,16 +70,24 @@ async function loadUsers() {
 }
 
 // ── Guías de la comunidad (pendientes de revisión + ya aprobadas) ──
-function renderCommunityGuides(list, session) {
+function renderCommunityGuides(list, session, page = 1) {
   const grid = document.getElementById('communityGuidesGrid')
   const empty = document.getElementById('communityGuidesEmpty')
+  const paginationEl = document.getElementById('communityGuidesPagination')
   if (list.length === 0) {
     grid.innerHTML = ''
+    paginationEl.innerHTML = ''
     empty.innerHTML = `<p class="empty-state">Todavía no hay guías de la comunidad que coincidan con tu búsqueda.</p>`
     return
   }
   empty.innerHTML = ''
-  grid.innerHTML = list
+
+  const totalPages = Math.max(1, Math.ceil(list.length / COMMUNITY_GUIDES_PAGE_SIZE))
+  communityGuidesPage = Math.min(Math.max(1, page), totalPages)
+  const from = (communityGuidesPage - 1) * COMMUNITY_GUIDES_PAGE_SIZE
+  const pageItems = list.slice(from, from + COMMUNITY_GUIDES_PAGE_SIZE)
+
+  grid.innerHTML = pageItems
     .map((g) =>
       renderGuideCardHtml(g, {
         categoryLabel: g.categories?.name || '',
@@ -91,6 +101,17 @@ function renderCommunityGuides(list, session) {
     card.addEventListener('click', () => openGuideModal(card.dataset.guideId))
   })
   decorateGuideCards(grid, session)
+
+  paginationEl.innerHTML =
+    totalPages > 1
+      ? `<div class="forum-pagination">
+        <button class="btn-outline" id="communityGuidesPrevPage" ${communityGuidesPage <= 1 ? 'disabled' : ''}>← Anterior</button>
+        <span>Página ${communityGuidesPage} de ${totalPages}</span>
+        <button class="btn-outline" id="communityGuidesNextPage" ${communityGuidesPage >= totalPages ? 'disabled' : ''}>Siguiente →</button>
+      </div>`
+      : ''
+  paginationEl.querySelector('#communityGuidesPrevPage')?.addEventListener('click', () => renderCommunityGuides(list, session, communityGuidesPage - 1))
+  paginationEl.querySelector('#communityGuidesNextPage')?.addEventListener('click', () => renderCommunityGuides(list, session, communityGuidesPage + 1))
 }
 
 async function loadCommunityGuides(session) {
@@ -118,7 +139,7 @@ async function loadCommunityGuides(session) {
   document.getElementById('communityGuideSearchInput').addEventListener('input', (e) => {
     const q = e.target.value.trim().toLowerCase()
     if (!q) {
-      renderCommunityGuides(allCommunityGuides, session)
+      renderCommunityGuides(allCommunityGuides, session, 1)
       return
     }
     renderCommunityGuides(
@@ -128,7 +149,8 @@ async function loadCommunityGuides(session) {
           (g.description || '').toLowerCase().includes(q) ||
           (g.authorName || '').toLowerCase().includes(q)
       ),
-      session
+      session,
+      1
     )
   })
 }
