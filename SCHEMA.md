@@ -1159,3 +1159,43 @@ de la navbar/mensajería/notificaciones tras el cambio (búsqueda,
 mensajes, campanita, valoraciones, doble envío, mobile) — todo sigue
 pasando igual, confirmando que sustituir el emoji por el SVG dentro del
 mismo botón no rompió ningún selector ni comportamiento.
+
+## Reportar mensajes privados
+Migración: `supabase-migration-report-messages.sql`. Los mensajes
+privados eran el único tipo de contenido generado por usuarios sin
+botón de reportar (guías, comentarios de muro/guía y reseñas de perfil
+ya lo tenían desde antes). Se añade `'private_message'` a la lista de
+`content_type` permitidos en `content_reports` (la migración busca y
+sustituye el `check` existente por su nombre real en `pg_constraint`
+en vez de asumir el nombre autogenerado, por si Supabase le puso uno
+distinto al que genera Postgres por defecto).
+
+**El hueco de RLS que hacía falta cerrar**: las políticas de
+`private_messages` solo dejan leer un mensaje a quien es participante
+de esa conversación (`is_conversation_participant()`) — ni siquiera un
+admin podía ver el contenido de un mensaje reportado, porque nunca es
+participante de conversaciones ajenas. Se añadió una política nueva,
+deliberadamente estrecha: un admin puede leer un mensaje privado **si y
+solo si ese mensaje concreto ya ha sido reportado**
+(`exists (select 1 from content_reports where content_type =
+'private_message' and content_id = private_messages.id)`) — no da
+acceso a la conversación entera ni a mensajes no reportados, solo al
+mensaje puntual que alguien ha señalado.
+
+`js/mensajes.js` reutiliza `reportButtonHtml`/`wireReportButtons` de
+`js/report.js` (mismo sistema que el resto del sitio): el botón 🚩
+aparece en los mensajes ajenos del hilo, en el mismo sitio donde tus
+propios mensajes muestran "Eliminar" (nunca los dos a la vez). En
+`admin/js/admin.js`, `loadContentPreviews()` gana una rama para
+`private_message` que muestra "De `<remitente>`: `<fragmento>`" sin
+enlace (a diferencia del resto de tipos, que sí enlazan a la guía o el
+perfil) — un admin no puede abrir el hilo completo aunque quisiera, así
+que no tiene sentido ofrecer ese enlace.
+
+Verificado con Playwright: el botón de reportar aparece en un mensaje
+ajeno y no en el propio; reportar crea la fila
+`content_reports` con `content_type = 'private_message'`; el panel de
+reportes de `/admin` muestra "✉️ Mensaje privado" con quién lo envió y
+un fragmento del texto — quitando la rama de `private_message` en
+`loadContentPreviews()` se confirmó que el test detecta la regresión
+(deja de aparecer el remitente/fragmento en la tabla).

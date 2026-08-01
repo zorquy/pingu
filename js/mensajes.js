@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, profileUrl } from './app.js'
 import { listConversations, loadThreadMessages, markConversationRead, sendMessage, deleteMessage, getOtherParticipant, findOrCreateConversation, isParticipant } from './messages.js'
+import { reportButtonHtml, wireReportButtons } from './report.js'
 
 const root = document.getElementById('messagesRoot')
 const params = new URLSearchParams(window.location.search)
@@ -141,7 +142,7 @@ async function renderThread(session, conversationId) {
           <p style="margin:0; font-size:13.5px; white-space:pre-wrap;">${escapeHtml(m.body)}</p>
           <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
             <span style="font-size:10.5px; opacity:0.7;">${timeAgo(m.created_at)}</span>
-            ${mine ? `<button type="button" data-delete-msg="${m.id}" style="font-size:10.5px; opacity:0.7; text-decoration:underline;">Eliminar</button>` : ''}
+            ${mine ? `<button type="button" data-delete-msg="${m.id}" style="font-size:10.5px; opacity:0.7; text-decoration:underline;">Eliminar</button>` : reportButtonHtml('private_message', m.id)}
           </div>
         </div>`
             })
@@ -153,6 +154,7 @@ async function renderThread(session, conversationId) {
         await refreshMessages()
       })
     )
+    wireReportButtons(el, session)
   }
   await refreshMessages()
 

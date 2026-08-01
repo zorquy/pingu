@@ -641,6 +641,7 @@ const REPORT_TYPE_LABELS = {
   profile_comment: '💬 Comentario de muro',
   guide_comment: '💬 Comentario de guía',
   profile_review: '⭐ Reseña de perfil',
+  private_message: '✉️ Mensaje privado',
 }
 
 function snippet(text, len = 90) {
@@ -675,6 +676,21 @@ async function loadContentPreviews(reports) {
     const slugById = Object.fromEntries((guides || []).map((g) => [g.id, g.slug]))
     ;(comments || []).forEach((c) => {
       previews[c.id] = { text: snippet(c.body), url: slugById[c.guide_id] ? `/guia.html?slug=${encodeURIComponent(slugById[c.guide_id])}` : null }
+    })
+  }
+
+  if (idsByType.private_message?.length > 0) {
+    // La política RLS de private_messages solo deja leer al admin las filas
+    // que ya han sido reportadas (private_messages_admin_select_reported) —
+    // nunca el resto de una conversación privada.
+    const { data: messages } = await supabase.from('private_messages').select('id, body, sender_id').in('id', idsByType.private_message)
+    const senderIds = [...new Set((messages || []).map((m) => m.sender_id))]
+    const { data: senders } = senderIds.length > 0 ? await supabase.from('user_profiles').select('id, display_name, username').in('id', senderIds) : { data: [] }
+    const senderById = Object.fromEntries((senders || []).map((p) => [p.id, p]))
+    ;(messages || []).forEach((m) => {
+      const sender = senderById[m.sender_id]
+      const senderName = sender?.display_name || sender?.username || 'Usuario'
+      previews[m.id] = { text: `De ${senderName}: ${snippet(m.body)}`, url: null }
     })
   }
 
