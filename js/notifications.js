@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
+import { icons } from './icons.js'
 
 // Crea una notificación para OTRA persona como efecto de una acción normal
 // (comentar, seguir, aprobar una guía...). No hace nada si no hay
@@ -44,7 +45,7 @@ export async function renderNotificationBell(session) {
   wrap.id = 'navBell'
   wrap.innerHTML = `
     <button type="button" class="nav-bell-btn" id="navBellBtn" aria-label="Notificaciones">
-      🔔<span class="nav-bell-badge hidden" id="navBellBadge">0</span>
+      ${icons.bell(19)}<span class="nav-bell-badge hidden" id="navBellBadge">0</span>
     </button>
     <div class="nav-bell-dropdown hidden" id="navBellDropdown">
       <div class="nav-bell-header">

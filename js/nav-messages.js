@@ -1,5 +1,6 @@
 import { escapeHtml } from './app.js'
 import { listConversations } from './messages.js'
+import { icons } from './icons.js'
 
 function timeAgo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime()
@@ -34,7 +35,7 @@ export async function renderNavMessages(session) {
   wrap.id = 'navMsg'
   wrap.innerHTML = `
     <button type="button" class="nav-bell-btn" id="navMsgBtn" aria-label="Mensajes">
-      ✉️<span class="nav-bell-badge hidden" id="navMsgBadge">0</span>
+      ${icons.mail(19)}<span class="nav-bell-badge hidden" id="navMsgBadge">0</span>
     </button>
     <div class="nav-bell-dropdown hidden" id="navMsgDropdown">
       <div class="nav-bell-header">
@@ -43,7 +44,7 @@ export async function renderNavMessages(session) {
       </div>
       <div id="navMsgList"><p class="empty-state" style="padding:16px;">Cargando…</p></div>
       <div class="nav-bell-header" style="border-top:1px solid var(--border); border-bottom:none;">
-        <a href="/mensajes.html?new=1">✏️ Iniciar una nueva conversación</a>
+        <a href="/mensajes.html?new=1" style="display:flex; align-items:center; gap:6px;">${icons.edit(14)} Iniciar una nueva conversación</a>
       </div>
     </div>`
   navRight.insertBefore(wrap, navUser)

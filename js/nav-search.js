@@ -1,3 +1,5 @@
+import { icons } from './icons.js'
+
 // Lupa de búsqueda en la navbar: primer clic abre un mini popup, segundo
 // clic (con el popup ya abierto) lleva a la búsqueda grande (/buscar.html).
 export function renderNavSearch() {
@@ -9,7 +11,7 @@ export function renderNavSearch() {
   wrap.className = 'nav-search-wrap'
   wrap.id = 'navSearch'
   wrap.innerHTML = `
-    <button type="button" class="nav-search-btn" id="navSearchBtn" aria-label="Buscar">🔍</button>
+    <button type="button" class="nav-search-btn" id="navSearchBtn" aria-label="Buscar">${icons.search(19)}</button>
     <div class="nav-search-dropdown hidden" id="navSearchDropdown">
       <form id="navSearchForm">
         <input type="text" id="navSearchInput" class="search-input" placeholder="Buscar guías…" autocomplete="off" />

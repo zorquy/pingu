@@ -1121,3 +1121,41 @@ Verificado con Playwright a 375px de ancho: los tres desplegables
 antes del fix, comprobando el `boundingBox()` de cada uno, el `x` daba
 negativo (parte del desplegable literalmente fuera del viewport por la
 izquierda).
+
+## Iconos SVG en vez de emoji en la barra de navegación
+Los emoji de la lupa (🔍), el sobre (✉️), la campanita (🔔) y el menú
+de cuenta (👤/⭐/🚪) se sustituyeron por iconos SVG en línea, estilo
+trazo fino (misma familia visual que Feather/Lucide — círculos y líneas
+limpias, sin relleno) en vez de los emoji nativos del sistema
+operativo, que se veían inconsistentes entre dispositivos y le daban un
+aire más "cutre"/genérico a la barra.
+
+`js/icons.js` es el módulo compartido: una función `icon(inner, size)`
+que envuelve cualquier `<path>`/`<circle>`/etc. en un `<svg>` con
+`stroke="currentColor"` (así hereda el color de texto de donde se
+pinte, sin CSS aparte) y expone `icons.search/bell/mail/user/logOut/
+star/edit`. Son SVG escritos a mano, **sin depender de ningún paquete
+ni CDN externo** — no hace falta instalar nada ni cargar una fuente de
+iconos por red (lo cual, de paso, evita el mismo tipo de lentitud/
+inestabilidad de red ya vista con Google Fonts en este entorno).
+
+Se usan en `js/nav-search.js` (lupa), `js/notifications.js`
+(campanita), `js/nav-messages.js` (sobre + lápiz de "nueva
+conversación") y `js/app.js` (👤 Mi perfil, ⭐ Guardados, 🚪 Cerrar
+sesión del menú de cuenta). El resto de emoji del sitio (los de
+categorías, logros, guías, bloques de curso, etc.) se dejan tal cual —
+esos son "personalidad de marca" elegida por quien crea el contenido,
+no elementos de interfaz, así que no es la misma categoría de cosa que
+pedía cambiarse.
+
+CSS: `.nav-bell-btn`/`.nav-search-btn` pasan de centrar un emoji por
+`font-size` a centrar el SVG con flexbox y `color: var(--text-mid)`
+(con hover a `var(--navy)`); `.nav-user-links a/button` ganan
+`display:flex; align-items:center; gap:10px` para alinear el icono con
+el texto de cada opción del menú.
+
+Verificado con Playwright: se volvió a pasar toda la batería de tests
+de la navbar/mensajería/notificaciones tras el cambio (búsqueda,
+mensajes, campanita, valoraciones, doble envío, mobile) — todo sigue
+pasando igual, confirmando que sustituir el emoji por el SVG dentro del
+mismo botón no rompió ningún selector ni comportamiento.

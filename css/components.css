@@ -1970,9 +1970,18 @@ textarea.be-field {
 
 .nav-bell-btn {
   position: relative;
-  font-size: 18px;
-  line-height: 1;
-  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+  color: var(--text-mid);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.nav-bell-btn:hover {
+  color: var(--navy);
+  background: var(--ice);
 }
 
 .nav-bell-badge {
@@ -2060,9 +2069,18 @@ textarea.be-field {
 }
 
 .nav-search-btn {
-  font-size: 17px;
-  line-height: 1;
-  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+  color: var(--text-mid);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.nav-search-btn:hover {
+  color: var(--navy);
+  background: var(--ice);
 }
 
 .nav-search-dropdown {
@@ -2194,6 +2212,9 @@ textarea.be-field {
 
 .nav-user-links a,
 .nav-user-links button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 10px 16px;
   text-align: left;
   font-size: 13.5px;
