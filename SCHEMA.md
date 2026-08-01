@@ -817,3 +817,25 @@ comentario, etc.), que sí lo piden. Un clic accidentado en la fila
 equivocada daba acceso total de admin (gestionar guías, usuarios,
 reportes...) sin previo aviso. Se añadió un `confirm()` con un mensaje
 distinto según se conceda o se quite el acceso.
+
+## Bug real de seguridad: se podía farmear XP infinito en el curso yendo atrás
+`js/curso.js` volvía a pintar cualquier bloque desde cero cada vez que se
+visitaba (`renderBlock()` → `getBlockHTML(block)`, sin memoria de si ya
+se había respondido). Como el botón "← Anterior" deja retroceder a
+cualquier bloque ya visto, y `markPracticeCorrect()` daba +5 XP y sumaba
+`quiz_correct_count` cada vez que se acertaba una pregunta sin ningún
+control de si esa pregunta YA se había acertado antes, bastaba con ir
+hacia atrás y hacia adelante por el mismo quiz/verdadero-falso/rellenar
+hueco/relacionar/ordenar y volver a acertarlo para ganar XP sin límite —
+rompiendo por completo el sentido del ranking por XP, los logros
+(`total_xp`, `quiz_correct_count`) y el rango de colaborador. Se arregló
+con un `Set` (`completedPracticeIndices`) que recuerda qué posiciones del
+curso ya han dado su XP; `markPracticeCorrect()` ahora solo premia la
+primera vez que se acierta cada bloque, pero sigue desbloqueando
+"Continuar" todas las veces (no bloquea la navegación, solo el premio
+duplicado).
+
+Verificado con Playwright: contestar bien un quiz da +5 XP una vez;
+retroceder y volver a contestarlo bien (repetido varias veces) ya no
+suma nada más — revirtiendo el fix se confirmó que sin él el XP subía
++5 en cada repetición, sin límite.

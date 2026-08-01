@@ -8,6 +8,10 @@ let currentIndex = 0
 let guide = null
 let session = null
 let categorySlug = null
+// Un bloque de práctica ya completado no debe volver a dar XP si el
+// usuario retrocede con "Anterior" y lo vuelve a acertar — sin esto,
+// ir hacia atrás y hacia adelante por el mismo quiz daba XP infinito.
+const completedPracticeIndices = new Set()
 
 const stage = document.getElementById('cursoStage')
 const progressFill = document.getElementById('progressFill')
@@ -224,7 +228,8 @@ function animateXP(target) {
 }
 
 function markPracticeCorrect() {
-  if (session) {
+  if (session && !completedPracticeIndices.has(currentIndex)) {
+    completedPracticeIndices.add(currentIndex)
     addXP(session.user.id, 5)
     incrementQuizCorrect(session.user.id)
   }
