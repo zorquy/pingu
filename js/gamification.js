@@ -123,6 +123,8 @@ function achievementValue(condition, stats) {
       return stats.totalXp
     case 'quiz_correct_count':
       return stats.quizCorrectCount
+    case 'approved_guides_count':
+      return stats.approvedGuidesCount
     case 'completed_guides_count':
     default:
       return stats.completedCount
@@ -130,12 +132,17 @@ function achievementValue(condition, stats) {
 }
 
 export async function checkAchievements(userId) {
-  const [{ count: completedCount }, { data: profile }, achievements] = await Promise.all([
+  const [{ count: completedCount }, { count: approvedGuidesCount }, { data: profile }, achievements] = await Promise.all([
     supabase
       .from('user_progress')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('status', 'completed'),
+    supabase
+      .from('guides')
+      .select('*', { count: 'exact', head: true })
+      .eq('author_id', userId)
+      .eq('review_status', 'approved'),
     supabase
       .from('user_profiles')
       .select('total_xp, achievements, quiz_correct_count')
@@ -151,6 +158,7 @@ export async function checkAchievements(userId) {
     completedCount: completedCount || 0,
     totalXp: profile.total_xp || 0,
     quizCorrectCount: profile.quiz_correct_count || 0,
+    approvedGuidesCount: approvedGuidesCount || 0,
   }
   const newlyUnlocked = []
 

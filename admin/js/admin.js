@@ -420,6 +420,7 @@ const CONDITION_LABELS = {
   completed_guides_count: 'Cursos completados',
   total_xp: 'XP total',
   quiz_correct_count: 'Preguntas acertadas',
+  approved_guides_count: 'Guías aprobadas (autor)',
 }
 
 async function loadAchievements() {
@@ -494,6 +495,7 @@ function openAchievementModal(achievement) {
         <option value="completed_guides_count" ${a.condition?.type === 'completed_guides_count' ? 'selected' : ''}>Cursos completados</option>
         <option value="total_xp" ${a.condition?.type === 'total_xp' ? 'selected' : ''}>XP total</option>
         <option value="quiz_correct_count" ${a.condition?.type === 'quiz_correct_count' ? 'selected' : ''}>Preguntas acertadas</option>
+        <option value="approved_guides_count" ${a.condition?.type === 'approved_guides_count' ? 'selected' : ''}>Guías aprobadas (autor)</option>
       </select>
     </div>
     <div class="form-group"><label>Valor de la condición</label><input id="aConditionCount" type="number" value="${a.condition?.count ?? 1}" /></div>

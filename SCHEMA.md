@@ -202,9 +202,23 @@ a mano, ej. `first_course`) · `title` · `description` · `emoji` ·
 - `completed_guides_count` — nº de guías con `user_progress.status = 'completed'`
 - `total_xp` — `user_profiles.total_xp`
 - `quiz_correct_count` — `user_profiles.quiz_correct_count`
+- `approved_guides_count` — nº de guías con `guides.author_id = <usuario>`
+  y `review_status = 'approved'` (logros por **aportar** contenido, no solo
+  por aprenderlo — pensado para algo como "Primera guía aprobada")
 
 Cualquier otro `type` simplemente nunca se desbloquea (no rompe nada, pero
-tampoco hace nada).
+tampoco hace nada). `checkAchievements()` ya se llama automáticamente al
+dar XP (`addXP()`) cada vez que se aprueba una guía por primera vez
+(`admin/js/editor-guia.js`), así que un logro de `approved_guides_count`
+se desbloquea en el mismo momento en que el admin aprueba la guía que lo
+cumple — sin ningún disparador nuevo que añadir.
+
+Verificado con Playwright: crear un logro `approved_guides_count: 1` y
+aprobar la primera guía de una autora sin guías aprobadas todavía hace
+que se desbloquee en el acto (y suma su `xp_reward` de bonus, aparte del
+`xp_reward` de la propia guía) — quitando el `case` de
+`approved_guides_count` en `achievementValue()` se confirmó que sin él el
+logro nunca se desbloquea.
 
 ## `home_config`
 Fila única (`id = 1`) con `blocks` (jsonb) y `updated_at`. **No se usa**
