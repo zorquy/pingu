@@ -1063,3 +1063,41 @@ segundo participante se confirmó que, sin ese fix, el test lo detecta
 (el destinatario no podía abrir su propio hilo — un efecto colateral
 observable del hueco, ya que sin RLS real en el stub de pruebas no se
 puede simular directamente "alguien ajeno cuela por el id").
+
+## Repaso de la mensajería privada tras montarla: dos bugs reales más
+Al revisar `js/mensajes.js` con la misma mirada que ya encontró el
+"doble envío" en los editores de guía, aparecieron dos huecos del
+mismo estilo, más uno menor de robustez:
+
+- **Doble clic en "Enviar" podía duplicar el mensaje**: el botón no se
+  desactivaba ni había ninguna bandera mientras la petición estaba en
+  marcha, así que un doble clic rápido disparaba dos inserciones con el
+  mismo texto. Se arregló con una bandera `sending` + `btn.disabled`
+  mientras dura el envío, igual que la de los editores. **Nota sobre
+  cómo se probó**: dos `page.click()` de Playwright por separado NO
+  bastan para reproducir la carrera (el viaje de ida y vuelta entre uno
+  y otro deja tiempo de sobra para que el primero termine contra un
+  stub tan rápido) — hubo que disparar `btn.click(); btn.click()`
+  seguidos y síncronos dentro de un único `page.evaluate()`, igual que
+  se hizo para demostrar el bug de los editores.
+- **Los mensajes propios no se podían borrar**: la migración ya daba
+  permiso RLS para ello (`private_messages_delete`,
+  `sender_id = auth.uid()`) pero ningún botón de la interfaz lo usaba.
+  Se añadió "Eliminar" bajo cada mensaje propio (con `confirm()`, igual
+  que el resto del sitio), usando `deleteMessage()` de
+  `js/messages.js`.
+- **Escribirte a ti mismo por URL a mano** (`/mensajes.html?with=<tu
+  propio id>`) dejaba la página colgada en "Cargando…" para siempre,
+  porque `findOrCreateConversation()` lanza un error que nadie
+  capturaba. No es alcanzable desde ningún botón real del sitio (el
+  botón "Mensaje" se oculta en tu propio perfil), pero como el arreglo
+  es de una línea, se añadió un redirect a la bandeja en ese caso en
+  vez de dejarlo así.
+
+Verificado con Playwright: doble clic síncrono en "Enviar" guarda el
+mensaje una sola vez (revirtiendo la bandera `sending` se confirmó que
+sin ella se duplicaba); "Eliminar" no aparece en un mensaje ajeno, y en
+uno propio lo borra tanto de la base como del hilo pintado (revirtiendo
+`deleteMessage()` se confirmó que el test lo detecta); visitar
+`?with=<tu propio id>` te devuelve a la bandeja de mensajes en vez de
+quedarse cargando para siempre.

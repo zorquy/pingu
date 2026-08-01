@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, profileUrl } from './app.js'
-import { listConversations, loadThreadMessages, markConversationRead, sendMessage, getOtherParticipant, findOrCreateConversation, isParticipant } from './messages.js'
+import { listConversations, loadThreadMessages, markConversationRead, sendMessage, deleteMessage, getOtherParticipant, findOrCreateConversation, isParticipant } from './messages.js'
 
 const root = document.getElementById('messagesRoot')
 const params = new URLSearchParams(window.location.search)
@@ -90,8 +90,11 @@ async function renderNewConversation(session) {
             })
             .join('')
 
+    let starting = false
     resultsEl.querySelectorAll('[data-user-id]').forEach((btn) =>
       btn.addEventListener('click', async () => {
+        if (starting) return
+        starting = true
         const conversationId = await findOrCreateConversation(session.user.id, btn.dataset.userId)
         window.location.href = `/mensajes.html?c=${conversationId}`
       })
@@ -136,19 +139,36 @@ async function renderThread(session, conversationId) {
               return `
         <div style="align-self:${mine ? 'flex-end' : 'flex-start'}; max-width:75%; background:${mine ? 'var(--navy)' : 'var(--ice)'}; color:${mine ? 'var(--white)' : 'var(--text)'}; padding:8px 12px; border-radius:var(--radius-md);">
           <p style="margin:0; font-size:13.5px; white-space:pre-wrap;">${escapeHtml(m.body)}</p>
-          <span style="font-size:10.5px; opacity:0.7;">${timeAgo(m.created_at)}</span>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+            <span style="font-size:10.5px; opacity:0.7;">${timeAgo(m.created_at)}</span>
+            ${mine ? `<button type="button" data-delete-msg="${m.id}" style="font-size:10.5px; opacity:0.7; text-decoration:underline;">Eliminar</button>` : ''}
+          </div>
         </div>`
             })
             .join('')
+    el.querySelectorAll('[data-delete-msg]').forEach((btn) =>
+      btn.addEventListener('click', async () => {
+        if (!confirm('¿Eliminar este mensaje?')) return
+        await deleteMessage(btn.dataset.deleteMsg)
+        await refreshMessages()
+      })
+    )
   }
   await refreshMessages()
 
+  let sending = false
   document.getElementById('btnSendMsg').addEventListener('click', async () => {
+    if (sending) return
     const body = document.getElementById('msgBody').value.trim()
     if (!body) return
+    sending = true
+    const btn = document.getElementById('btnSendMsg')
+    btn.disabled = true
     await sendMessage(conversationId, session.user.id, body)
     document.getElementById('msgBody').value = ''
     await refreshMessages()
+    sending = false
+    btn.disabled = false
   })
 }
 
@@ -159,6 +179,11 @@ async function init() {
   const withUserId = params.get('with')
   const conversationId = params.get('c')
   const isNew = params.get('new')
+
+  if (withUserId === session.user.id) {
+    window.location.href = '/mensajes.html'
+    return
+  }
 
   if (withUserId) {
     root.innerHTML = `<p class="empty-state">Cargando…</p>`

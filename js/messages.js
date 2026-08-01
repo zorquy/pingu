@@ -89,6 +89,10 @@ export async function sendMessage(conversationId, senderId, body) {
   await supabase.from('private_messages').insert({ conversation_id: conversationId, sender_id: senderId, body })
 }
 
+export async function deleteMessage(messageId) {
+  await supabase.from('private_messages').delete().eq('id', messageId)
+}
+
 export async function getOtherParticipant(conversationId, myId) {
   const { data } = await supabase.from('conversation_participants').select('user_id').eq('conversation_id', conversationId).neq('user_id', myId).maybeSingle()
   if (!data) return null
