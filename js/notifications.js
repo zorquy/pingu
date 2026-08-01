@@ -6,8 +6,21 @@ import { icons } from './icons.js'
 // (comentar, seguir, aprobar una guía...). No hace nada si no hay
 // destinatario o si el destinatario es quien realiza la acción — nadie se
 // notifica a sí mismo.
+export const NOTIFICATION_TYPES = {
+  guide_comment: 'Comentarios en tus guías',
+  guide_rating: 'Valoraciones en tus guías',
+  new_follower: 'Nuevos seguidores',
+  profile_rating: 'Reseñas en tu perfil',
+  wall_comment: 'Comentarios en tu muro',
+  followed_guide_published: 'Guías nuevas de quien sigues',
+  guide_approved: 'Tu guía ha sido aprobada',
+  guide_rejected: 'Tu guía ha sido rechazada',
+}
+
 export async function createNotification({ recipientId, actorId, type, title, body = null, link = null }) {
   if (!recipientId || recipientId === actorId) return
+  const { data: recipient } = await supabase.from('user_profiles').select('notification_prefs_disabled').eq('id', recipientId).single()
+  if ((recipient?.notification_prefs_disabled || []).includes(type)) return
   const { error } = await supabase.from('user_notifications').insert({ recipient_id: recipientId, type, title, body, link })
   if (error) console.error('No se pudo crear la notificación:', error.message)
 }

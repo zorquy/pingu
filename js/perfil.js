@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl } from './app.js'
 import { getAllAchievements, levelProgress, contributorTier } from './gamification.js'
+import { NOTIFICATION_TYPES } from './notifications.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 
@@ -354,6 +355,15 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
         ${unlockedAchievements.map((a) => `<option value="${a.id}" ${a.id === currentProfile?.showcase_achievement ? 'selected' : ''}>${escapeHtml(a.title)}</option>`).join('')}
       </select>
     </div>
+    <div class="form-group">
+      <label>Notificaciones que quieres recibir</label>
+      ${Object.entries(NOTIFICATION_TYPES)
+        .map(([type, label]) => {
+          const disabled = (currentProfile?.notification_prefs_disabled || []).includes(type)
+          return `<label class="checkbox-row"><input type="checkbox" data-notif-pref="${type}" ${disabled ? '' : 'checked'} /> ${escapeHtml(label)}</label>`
+        })
+        .join('')}
+    </div>
     <button class="btn-primary btn-block" id="btnSaveProfileEdit">Guardar</button>`)
 
   let selectedBanner = currentProfile?.banner_color || 'var(--ice)'
@@ -386,11 +396,16 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       }
     }
 
+    const notificationPrefsDisabled = Array.from(modalContent.querySelectorAll('[data-notif-pref]'))
+      .filter((cb) => !cb.checked)
+      .map((cb) => cb.dataset.notifPref)
+
     const payload = {
       username: desiredUsername,
       bio: document.getElementById('peBio').value.trim(),
       banner_color: selectedBanner,
       showcase_achievement: document.getElementById('peShowcase').value || null,
+      notification_prefs_disabled: notificationPrefsDisabled,
     }
     await supabase.from('user_profiles').update(payload).eq('id', currentSession.user.id)
     closeModal()

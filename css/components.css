@@ -1747,6 +1747,21 @@ textarea.be-field {
   color: var(--text-mid);
 }
 
+.checkbox-row {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.checkbox-row input {
+  width: auto;
+}
+
 .form-group input,
 .form-group textarea,
 .form-group select {

@@ -1228,3 +1228,37 @@ dar XP; aparece tanto en el perfil como en el menú de cuenta —
 rompiendo a propósito la condición de "sigue si fue ayer" (forzando
 que siempre reinicie a 1) se confirmó que el test detecta la
 regresión.
+
+**Nota sobre el stub de pruebas**: al dar XP en cada carga de página para
+cualquier usuario cuyo `last_active_date` de seed no sea "hoy", esta
+función empezó a alterar el `total_xp` de Ash en CUALQUIER test que lo
+usara de actor genérico (la inmensa mayoría de los de esta sesión),
+rompiendo aserciones de XP exacto que no tienen nada que ver con la
+racha. Se corrigió dejando a Ash con `last_active_date` ya en "hoy" en
+el seed (la racha no hace nada en su caso, como si ya hubiera entrado),
+y dejando `null`/"ayer" solo en Brock y Misty, que son quienes usan los
+tests dedicados a la racha. No es código del repo, vive en el stub del
+scratchpad.
+
+## Preferencias de notificaciones
+Migración: `supabase-migration-notification-prefs.sql` — una columna
+nueva en `user_profiles`, `notification_prefs_disabled` (text[],
+`'{}'` por defecto — todo activado). `createNotification()` en
+`js/notifications.js` consulta esa lista del destinatario antes de
+insertar y no hace nada si el tipo está en ella; `NOTIFICATION_TYPES`
+(el mismo módulo) es el mapa `tipo → etiqueta en español` que usa tanto
+esta comprobación como el formulario de preferencias, para no tener la
+lista de tipos duplicada en dos sitios.
+
+La UI vive dentro del mismo modal "Editar perfil" de `perfil.js` (pestaña
+"Acerca"): una casilla por tipo, todas marcadas por defecto, que se
+guardan junto con el resto del formulario (bio, username, banner...) en
+el mismo `update` a `user_profiles`.
+
+Verificado con Playwright: todas las casillas empiezan marcadas:
+desactivar "Nuevos seguidores" y guardar hace que `createNotification()`
+para ese tipo no inserte nada, mientras que otros tipos no tocados
+(`wall_comment`) siguen funcionando con normalidad — quitando la
+comprobación de preferencias en `createNotification()` se confirmó que
+el test detecta la regresión (la notificación desactivada vuelve a
+crearse).
