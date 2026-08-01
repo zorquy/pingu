@@ -74,6 +74,32 @@ export async function incrementQuizCorrect(userId) {
   await checkAchievements(userId)
 }
 
+const STREAK_BONUS_XP = 5
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function yesterdayISO() {
+  return new Date(Date.now() - 86400_000).toISOString().slice(0, 10)
+}
+
+// Racha diaria: la primera vez que alguien entra cada día suma un pequeño
+// bonus de XP y avanza el contador (o lo reinicia a 1 si dejó pasar un día
+// sin entrar). Idempotente dentro del mismo día — entrar varias veces el
+// mismo día no vuelve a sumar nada.
+export async function checkDailyStreak(userId) {
+  const { data: profile } = await supabase.from('user_profiles').select('current_streak, last_active_date').eq('id', userId).single()
+  if (!profile) return
+
+  const today = todayISO()
+  if (profile.last_active_date === today) return
+
+  const newStreak = profile.last_active_date === yesterdayISO() ? (profile.current_streak || 0) + 1 : 1
+  await supabase.from('user_profiles').update({ current_streak: newStreak, last_active_date: today }).eq('id', userId)
+  await addXP(userId, STREAK_BONUS_XP)
+}
+
 export async function markCourseStarted(userId, guideId) {
   await supabase.from('user_progress').upsert(
     {

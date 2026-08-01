@@ -230,6 +230,7 @@ async function renderNavUser(session) {
       <div class="nav-user-stats">
         <div><strong>${profile?.total_xp || 0}</strong><span>XP</span></div>
         <div><strong>${escapeHtml(profile?.level || 'Novato')}</strong><span>Nivel</span></div>
+        ${(profile?.current_streak || 0) > 0 ? `<div><strong>🔥 ${profile.current_streak}</strong><span>Racha</span></div>` : ''}
         ${(approvedGuidesCount || 0) > 0 ? `<div><strong>${tier.emoji}</strong><span>${escapeHtml(tier.title)}</span></div>` : ''}
       </div>
       <div class="nav-user-links">
@@ -298,6 +299,12 @@ export async function initNavbar() {
   markActiveLink()
   hideBuscarNavLink()
   const session = await getSession()
+  if (session) {
+    // No se espera a que termine — en el 99% de las cargas de página no
+    // hace nada (ya se contó hoy), así que no debería frenar el resto de
+    // la navbar.
+    import('./gamification.js').then(({ checkDailyStreak }) => checkDailyStreak(session.user.id))
+  }
   renderNavUser(session)
   const { renderNavSearch } = await import('./nav-search.js')
   renderNavSearch()

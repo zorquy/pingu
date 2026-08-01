@@ -1199,3 +1199,32 @@ reportes de `/admin` muestra "✉️ Mensaje privado" con quién lo envió y
 un fragmento del texto — quitando la rama de `private_message` en
 `loadContentPreviews()` se confirmó que el test detecta la regresión
 (deja de aparecer el remitente/fragmento en la tabla).
+
+## Racha diaria de XP
+Migración: `supabase-migration-streak.sql` — dos columnas nuevas en
+`user_profiles`: `current_streak` (int, días seguidos) y
+`last_active_date` (date). `checkDailyStreak(userId)` en
+`js/gamification.js` se llama una vez por carga de página desde
+`initNavbar()` (sin esperar a que termine, para no frenar el resto de
+la navbar — en el 99% de las cargas no hace nada porque ya se contó
+hoy): si `last_active_date` es hoy, no hace nada; si es ayer, suma 1 a
+la racha; en cualquier otro caso (primera vez, o dejó pasar un día) la
+reinicia a 1. Cada vez que de verdad avanza la racha, da un bonus fijo
+de +5 XP vía `addXP()` (que de paso ya recalcula el nivel y comprueba
+logros, como cualquier otra fuente de XP del sitio).
+
+Se muestra en dos sitios: la tarjeta de estadísticas del propio perfil
+(`perfil.js`, "🔥 N — Racha (días)") y, para que se vea sin tener que
+entrar al perfil cada vez (todo el sentido de una racha es que se vea a
+menudo), como una estadística más del menú de cuenta de la navbar
+(`js/app.js`) — esta última solo si la racha es mayor que 0, igual que
+ya hacía el rango de colaborador.
+
+Verificado con Playwright: la primera vez que alguien entra (sin
+`last_active_date` previo) la racha pasa a 1 y suma exactamente +5 XP;
+si ya estuvo activo ayer, la racha continúa (3 → 4) en vez de
+reiniciarse; entrar dos veces el mismo día no vuelve a incrementar ni a
+dar XP; aparece tanto en el perfil como en el menú de cuenta —
+rompiendo a propósito la condición de "sigue si fue ayer" (forzando
+que siempre reinicie a 1) se confirmó que el test detecta la
+regresión.

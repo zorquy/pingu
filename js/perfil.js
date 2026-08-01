@@ -98,6 +98,10 @@ async function loadStats(session, profile) {
     <div class="stat-card">
       <div class="value">${tier.emoji}</div>
       <div class="label">${tier.title}</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">🔥 ${profile?.current_streak || 0}</div>
+      <div class="label">Racha (días)</div>
     </div>`
 }
 
