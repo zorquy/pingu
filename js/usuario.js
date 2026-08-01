@@ -4,6 +4,7 @@ import { levelProgress, contributorTier, getAllAchievements } from './gamificati
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
+import { createNotification } from './notifications.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
@@ -177,6 +178,15 @@ async function loadFollowButton() {
       await supabase.from('user_follows').delete().eq('follower_id', currentSession.user.id).eq('following_id', profileId)
     } else {
       await supabase.from('user_follows').insert({ follower_id: currentSession.user.id, following_id: profileId })
+      const follower = await getProfile(currentSession.user.id)
+      await createNotification({
+        recipientId: profileId,
+        actorId: currentSession.user.id,
+        type: 'new_follower',
+        title: 'Nuevo seguidor',
+        body: follower?.display_name || follower?.username || 'Alguien',
+        link: follower ? profileUrl(follower) : '/usuarios.html',
+      })
     }
     isFollowing = !isFollowing
     render()

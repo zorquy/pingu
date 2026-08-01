@@ -839,3 +839,56 @@ Verificado con Playwright: contestar bien un quiz da +5 XP una vez;
 retroceder y volver a contestarlo bien (repetido varias veces) ya no
 suma nada más — revirtiendo el fix se confirmó que sin él el XP subía
 +5 en cada repetición, sin límite.
+
+## Campanita de notificaciones en la barra de navegación
+Migración: `supabase-migration-user-notifications.sql` — nueva tabla
+`user_notifications` (id, recipient_id, type, title, body, link,
+read_at, created_at; índice por `(recipient_id, created_at desc)`).
+RLS: cada persona solo ve y marca como leídas sus propias
+notificaciones; cualquier persona logueada puede insertar una
+notificación **para otra** (no para sí misma) como efecto de una acción
+normal. Es una tabla nueva, distinta de la `notifications` ya
+existente (esa sigue pensada para avisos globales de admin sin ningún
+proveedor de push conectado — ver más arriba).
+
+`js/notifications.js` expone `createNotification({recipientId, actorId,
+type, title, body, link})` (con guarda de autonotificación: si
+`recipientId === actorId` no hace nada) y `renderNotificationBell(session)`,
+que inyecta la campanita por JS justo antes de `#nav-user` dentro de
+`.nav-right` — así aparece en todas las páginas con navbar sin tocar
+ningún HTML, porque `initNavbar()` (en `js/app.js`) la llama
+automáticamente vía import dinámico (para evitar un import circular:
+`notifications.js` importa `escapeHtml` de `app.js`). Muestra un
+contador de no leídas, un desplegable con las 20 notificaciones más
+recientes, marca como leída al pulsar una individual y tiene "Marcar
+todas como leídas" (`.is('read_at', null)`).
+
+Disparadores conectados: aprobar o rechazar una guía (con el motivo)
+avisa al autor (`admin/js/editor-guia.js`, reutilizando el
+`wasApproved`/`authorId` que ya rastreaba el XP al aprobar); una guía
+nueva aprobada avisa además a quien sigue a su autor
+(`user_follows`); comentar en una guía avisa a su autor, tanto desde
+el foro principal de `guia.html` (`js/guide-forum.js`, con
+`guideAuthorId` pasado desde `guia.js`) como desde el mini-muro de
+comentarios del modal ampliado (`js/wall.js`, resolviendo primero el
+`author_id` de la guía porque ese flujo solo tiene el id de la guía a
+mano); comentar en el muro de un perfil avisa a quien es dueño de ese
+muro (`js/wall.js`); seguir a alguien avisa a la persona seguida
+(`js/usuario.js`, solo al seguir, no al dejar de seguir).
+
+**Bug real encontrado al probarlo**: las notificaciones se pintan como
+`<a href="...">` para poder llevar a la persona directamente al
+contenido — pero al hacer clic el navegador empezaba a navegar
+**antes** de que terminara la petición async que marca `read_at`, así
+que casi nunca quedaba marcada como leída si tenía enlace (la
+navegación cancela la petición en marcha). Se arregló con
+`e.preventDefault()`, esperando a que el `update` termine, y solo
+entonces navegando a mano con `window.location.href`.
+
+Verificado con Playwright: la campanita se pinta con el contador de no
+leídas correcto, el desplegable se abre y marca como leída al pulsar un
+ítem (con el fix del `preventDefault`), y los disparadores de
+comentario en guía, comentario en muro y nuevo seguidor crean la fila
+correcta en `user_notifications` — revirtiendo a mano la notificación
+del comentario de muro se confirmó que el test la detecta como
+ausente, y restaurándola vuelve a pasar.

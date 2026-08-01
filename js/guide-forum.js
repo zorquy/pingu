@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, profileUrl } from './app.js'
 import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
+import { createNotification } from './notifications.js'
 
 const PAGE_SIZE = 10
 
@@ -26,7 +27,7 @@ function snippet(text, len = 90) {
 // Comentarios de guía estilo foro: paginado, con citar/responder. La
 // documentación de arriba hace de "post principal" — esto pinta solo los
 // comentarios de los usuarios debajo.
-export function initGuideForum({ containerEl, guideId, currentSession, isAdmin = false }) {
+export function initGuideForum({ containerEl, guideId, currentSession, isAdmin = false, guideAuthorId = null, guideTitle = '', guideSlug = '' }) {
   let replyingTo = null
 
   function updatePageInUrl(page) {
@@ -160,6 +161,14 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
         showToast('No se pudo publicar el comentario: ' + error.message)
         return
       }
+      await createNotification({
+        recipientId: guideAuthorId,
+        actorId: currentSession.user.id,
+        type: 'guide_comment',
+        title: 'Nuevo comentario en tu guía',
+        body: guideTitle,
+        link: `/guia.html?slug=${guideSlug}`,
+      })
       replyingTo = null
       const newCount = (count || 0) + 1
       render(Math.max(1, Math.ceil(newCount / PAGE_SIZE)))

@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, profileUrl } from './app.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
+import { createNotification } from './notifications.js'
 
 const REPORT_TYPE_BY_TABLE = {
   profile_comments: 'profile_comment',
@@ -102,6 +103,30 @@ export async function renderWall({
     const body = document.getElementById('wallCommentBody').value.trim()
     if (!body) return
     await supabase.from(table).insert({ [idField]: profileId, author_id: currentSession.user.id, body })
+
+    if (isProfileWall) {
+      await createNotification({
+        recipientId: profileId,
+        actorId: currentSession.user.id,
+        type: 'wall_comment',
+        title: 'Nuevo comentario en tu muro',
+        body,
+        link: '/perfil.html',
+      })
+    } else {
+      const { data: guideForNotif } = await supabase.from('guides').select('author_id, title, slug').eq('id', profileId).single()
+      if (guideForNotif) {
+        await createNotification({
+          recipientId: guideForNotif.author_id,
+          actorId: currentSession.user.id,
+          type: 'guide_comment',
+          title: 'Nuevo comentario en tu guía',
+          body: guideForNotif.title,
+          link: `/guia.html?slug=${guideForNotif.slug}`,
+        })
+      }
+    }
+
     if (replyToId) {
       const url = new URL(window.location.href)
       url.searchParams.delete('reply_to')

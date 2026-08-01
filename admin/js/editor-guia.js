@@ -10,6 +10,7 @@ import { initRichTextEditor, richTextToolbarHtml } from '../../js/richtext-edito
 import { showToast } from '../../js/toast.js'
 import { loadDraft, clearDraft, startAutosave } from '../../js/editor-autosave.js'
 import { addXP } from '../../js/gamification.js'
+import { createNotification } from '../../js/notifications.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -313,6 +314,20 @@ function buildPayload() {
 
 let saving = false
 
+async function notifyFollowersOfNewGuide(authorId, title, slug) {
+  const { data: followers } = await supabase.from('user_follows').select('follower_id').eq('following_id', authorId)
+  for (const f of followers || []) {
+    await createNotification({
+      recipientId: f.follower_id,
+      actorId: authorId,
+      type: 'followed_guide_published',
+      title: 'Nueva guía publicada',
+      body: title,
+      link: `/guia.html?slug=${slug}`,
+    })
+  }
+}
+
 async function persistGuide(extraFields = {}) {
   if (saving) return
   saving = true
@@ -344,6 +359,15 @@ async function persistGuide(extraFields = {}) {
   // dar el curso, para que publicar también cuente como progreso.
   if (extraFields.review_status === 'approved' && !wasApproved && authorId) {
     await addXP(authorId, payload.xp_reward)
+    await createNotification({
+      recipientId: authorId,
+      actorId: currentSession.user.id,
+      type: 'guide_approved',
+      title: 'Tu guía ha sido aprobada',
+      body: payload.title,
+      link: `/guia.html?slug=${payload.slug}`,
+    })
+    await notifyFollowersOfNewGuide(authorId, payload.title, payload.slug)
   }
 
   await recalcCategoryGuideCount(newCategoryId)
@@ -478,6 +502,16 @@ async function init() {
     const reason = window.prompt('¿Por qué se rechaza esta guía? (se le mostrará al autor)')
     if (reason === null) return
     await supabase.from('guides').update({ review_status: 'rejected', rejection_reason: reason }).eq('id', existingGuide.id)
+    if (existingGuide.author_id) {
+      await createNotification({
+        recipientId: existingGuide.author_id,
+        actorId: currentSession.user.id,
+        type: 'guide_rejected',
+        title: 'Tu guía ha sido rechazada',
+        body: reason,
+        link: '/perfil.html',
+      })
+    }
     stopAutosave()
     clearDraft(draftScope)
     window.location.href = 'index.html'

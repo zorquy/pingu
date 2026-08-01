@@ -234,6 +234,10 @@ export async function initNavbar() {
   markActiveLink()
   const session = await getSession()
   renderNavUser(session)
+  if (session) {
+    const { renderNotificationBell } = await import('./notifications.js')
+    renderNotificationBell(session)
+  }
   return session
 }
 
