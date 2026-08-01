@@ -148,6 +148,17 @@ document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((bt
   })
 })
 
+// ── Mensaje privado ──
+function loadMessageButton() {
+  const btn = document.getElementById('btnMessageUser')
+  if (!currentSession || currentSession.user.id === profileId) {
+    btn.classList.add('hidden')
+    return
+  }
+  btn.classList.remove('hidden')
+  btn.href = `/mensajes.html?with=${profileId}`
+}
+
 // ── Seguir / Dejar de seguir ──
 async function loadFollowButton() {
   const btn = document.getElementById('btnFollowToggle')
@@ -382,6 +393,7 @@ async function init() {
     return
   }
 
+  loadMessageButton()
   await Promise.all([loadReputationAndGuides(), loadReviews(), loadComments(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid()])
 }
 

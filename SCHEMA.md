@@ -992,3 +992,74 @@ XP y los enlaces reales; valorar una guía ajena y reseñar un perfil
 ajeno crean sus notificaciones — quitando `hideBuscarNavLink()` y la
 notificación de valoración de guía por separado se confirmó que el
 test detecta ambas regresiones.
+
+## Mensajería privada (conversaciones 1 a 1)
+Migración: `supabase-migration-private-messages.sql` — tres tablas
+nuevas (`conversations`, `conversation_participants` con
+`last_read_at`, y `private_messages`) y una función auxiliar
+`is_conversation_participant(conv_id)` (SECURITY DEFINER, como
+`is_admin()`) que las políticas RLS usan para comprobar "¿formo parte
+de esta conversación?" sin caer en recursión al consultar la propia
+`conversation_participants` desde su propia política. Cualquier
+usuario logueado puede escribirle a cualquier otro — sin restricción de
+seguimiento mutuo, tal como se decidió — así que la única puerta de
+entrada real es "eres participante o no". Insertar un participante
+nuevo está permitido si la fila es la tuya propia, o si ya eres
+participante de esa conversación (así, al crear una conversación:
+primero te insertas a ti, y esa condición ya te deja añadir también a
+la otra persona).
+
+**Límite conocido y aceptado**: no hay ningún tope de 2 participantes
+por conversación a nivel de base de datos (haría falta un trigger). El
+cliente siempre inserta exactamente dos, así que en el uso normal del
+sitio nunca pasa de ahí — igual que otros límites ya documentados en
+este archivo (p. ej. `is_pro` es solo cosmético), se deja anotado en vez
+de montar un trigger para un caso que requeriría llamar a la API a mano
+con intención de saltárselo.
+
+`js/messages.js` es la capa de datos compartida (usada por la
+campanita de mensajes de la navbar y por `mensajes.html`):
+`findOrCreateConversation()` reutiliza la conversación si ya existe
+entre dos personas en vez de crear una duplicada cada vez; `sendMessage`
+/`loadThreadMessages`/`markConversationRead`/`listConversations`
+resuelven cada uno una petición sencilla; `isParticipant()` es una
+comprobación extra en el cliente (aparte de lo que ya hace RLS en el
+servidor) para no mostrar un hilo ajeno solo por adivinar su id, si
+algo llegara a fallar en el lado del servidor.
+
+**Campanita de mensajes** (`js/nav-messages.js`, ✉️, se inyecta igual
+que la de notificaciones): contador de conversaciones con algo sin
+leer, desplegable con las últimas conversaciones (nombre de la otra
+persona + fragmento del último mensaje + fecha), "Ver todo…" a
+`/mensajes.html` e "Iniciar una nueva conversación" a
+`/mensajes.html?new=1`.
+
+**`mensajes.html`** (`js/mensajes.js`) hace de bandeja y de hilo a la
+vez, según la query string: sin parámetros, lista las conversaciones;
+`?c=<id>` abre un hilo (marca como leído al abrirlo); `?with=<id de
+usuario>` busca-o-crea la conversación con esa persona y redirige a su
+`?c=`; `?new=1` muestra un buscador de usuarios para arrancar una
+conversación nueva desde cero. En `usuario.html`, el perfil de
+cualquier otra persona (no el tuyo) tiene un botón "✉️ Mensaje" junto a
+"Seguir" que lleva a `?with=<su id>`.
+
+Los mensajes privados **no** generan una fila en `user_notifications`
+— tienen su propio sistema de no-leídos (la campanita de mensajes, con
+`last_read_at` por participante), así que mezclarlos con la campanita
+de notificaciones habría sido redundante.
+
+Verificado con Playwright: la campanita de mensajes muestra el no
+leído y el desplegable con la otra persona y el último mensaje; el
+botón "Mensaje" del perfil ajeno reutiliza la conversación existente en
+vez de crear una duplicada; enviar un mensaje lo guarda con el
+`sender_id` correcto y aparece en el hilo; buscar a alguien sin
+conversación previa crea una nueva (con un id distinto de una ya
+existente) y esa persona también queda como participante y puede abrir
+el hilo desde su lado. Al revisar esto último se encontró un hueco
+real: `getOtherParticipant()` no comprobaba que quien mira el hilo
+fuera realmente participante — así que se añadió `isParticipant()`
+como comprobación extra en el cliente; comentando la inserción del
+segundo participante se confirmó que, sin ese fix, el test lo detecta
+(el destinatario no podía abrir su propio hilo — un efecto colateral
+observable del hueco, ya que sin RLS real en el stub de pruebas no se
+puede simular directamente "alguien ajeno cuela por el id").

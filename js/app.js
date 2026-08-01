@@ -301,6 +301,8 @@ export async function initNavbar() {
   const { renderNavSearch } = await import('./nav-search.js')
   renderNavSearch()
   if (session) {
+    const { renderNavMessages } = await import('./nav-messages.js')
+    renderNavMessages(session)
     const { renderNotificationBell } = await import('./notifications.js')
     renderNotificationBell(session)
   }
