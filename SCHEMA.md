@@ -1401,3 +1401,20 @@ usuario correctos; lanzar 10 errores seguidos no registra más de 5
 (el límite); el admin ve el error y puede marcarlo como revisado. Se
 subió el límite a 50 para comprobar que el test de rate-limit lo
 detecta; se restauró y volvió a pasar.
+
+## Auditoría de datos de prueba (`supabase-audit-test-data.sql`)
+Script de solo lectura (nada de código de la app, no aplica el
+proceso de pruebas con Playwright) para repasar en el SQL Editor de
+Supabase antes de invitar a testers: busca guías, categorías,
+perfiles y comentarios con pinta de ser contenido de prueba (títulos
+con "test", "prueba", "lorem ipsum", relleno numerado tipo
+`g-page-*`...), y da un recuento general de cuánto contenido real hay
+ya. No borra nada automáticamente — al final incluye, comentado, el
+patrón de `delete ... where id in (...)` a rellenar a mano una vez
+identificadas las filas concretas que sí sobran.
+
+Aclaración importante: no tengo acceso a la base real desde este
+entorno (solo al stub de pruebas), así que no puedo confirmar qué
+contenido de prueba hay de verdad ahí — este script es para que tú
+mismo lo compruebes, no una lista de cosas que ya sé que hay que
+borrar.
