@@ -866,6 +866,67 @@ async function loadFeedback() {
   )
 }
 
+// ── Solicitudes de borrado de cuenta ──
+// Solo registra la solicitud: el borrado en sí (auth.users con la service
+// role key) hay que hacerlo a mano desde el dashboard de Supabase, porque
+// no sabemos cómo se comportan las claves foráneas ya existentes en la
+// base real ante ese borrado (cascada, restricción...) y un intento
+// automático a ciegas podría fallar a medias o dejar datos huérfanos.
+async function loadAccountDeletionRequests() {
+  const { data } = await supabase
+    .from('account_deletion_requests')
+    .select('*')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+
+  const items = data || []
+  const userIds = [...new Set(items.map((r) => r.user_id))]
+  const { data: usersData } = userIds.length > 0 ? await supabase.from('user_profiles').select('id, display_name, username').in('id', userIds) : { data: [] }
+  const userById = Object.fromEntries((usersData || []).map((u) => [u.id, u]))
+
+  const container = document.getElementById('accountDeletionTable')
+  if (items.length === 0) {
+    container.innerHTML = `<p class="empty-state">No hay solicitudes de borrado pendientes.</p>`
+    return
+  }
+
+  container.innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Usuario</th><th>Fecha</th><th></th></tr></thead>
+      <tbody>
+        ${items
+          .map((r) => {
+            const user = userById[r.user_id]
+            const userName = user?.display_name || user?.username || 'Usuario'
+            return `
+          <tr>
+            <td>${escapeHtml(userName)}</td>
+            <td>${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
+            <td class="admin-row-actions">
+              <button data-deletion-done="${r.id}">Marcar hecha</button>
+              <button data-deletion-dismiss="${r.id}">Descartar</button>
+            </td>
+          </tr>`
+          })
+          .join('')}
+      </tbody>
+    </table>`
+
+  container.querySelectorAll('[data-deletion-done]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      if (!confirm('¿Confirmas que ya has borrado esta cuenta a mano en Supabase? Esto solo marca la solicitud como hecha, no borra nada por sí solo.')) return
+      await supabase.from('account_deletion_requests').update({ status: 'done' }).eq('id', btn.dataset.deletionDone)
+      loadAccountDeletionRequests()
+    })
+  )
+  container.querySelectorAll('[data-deletion-dismiss]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      await supabase.from('account_deletion_requests').update({ status: 'dismissed' }).eq('id', btn.dataset.deletionDismiss)
+      loadAccountDeletionRequests()
+    })
+  )
+}
+
 // ── Errores de cliente (registrados automáticamente desde error-log.js) ──
 async function loadClientErrors() {
   const { data } = await supabase
@@ -975,6 +1036,7 @@ async function init() {
     loadFeedback(),
     loadClientErrors(),
     loadAnalytics(),
+    loadAccountDeletionRequests(),
   ])
 
   document.getElementById('analyticsDays')?.addEventListener('change', loadAnalytics)

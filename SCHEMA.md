@@ -1706,3 +1706,56 @@ por defecto), que el admin agrupa correctamente por página y suma
 bien el total, y el estado vacío cuando no hay visitas. Se rompió a
 propósito el agrupado por página en el admin para confirmar que el
 test lo detecta; se restauró y volvió a pasar.
+
+## Borrado de cuenta en autoservicio (solo solicitud, no ejecución directa)
+No tengo acceso a la clave de servicio de Supabase desde el cliente
+(ni debería exponerse nunca ahí) ni forma de comprobar contra el
+esquema real qué pasaría con los `ON DELETE` en cascada de todas las
+tablas relacionadas (guías, comentarios, mensajes, seguidores...) si
+se borrara un usuario directamente. Por seguridad, en vez de un botón
+que borre de verdad, se implementó un flujo de solicitud + revisión
+manual, calcado del patrón ya existente de `content_reports`/
+`app_feedback`.
+
+Migración: `supabase-migration-account-deletion-requests.sql` — tabla
+`account_deletion_requests` (`user_id`, `status` con
+`check (status in ('pending', 'done', 'dismissed'))`, `created_at`),
+con política de insertar solo la propia (`user_id = auth.uid()`),
+política de leer solo la propia, y políticas de admin para leer/
+actualizar cualquiera.
+
+En `perfil.html`, dentro de la pestaña "Acerca", hay un botón
+"Solicitar borrado de mi cuenta" (en rojo, para diferenciarlo de las
+acciones normales). Al pulsarlo, tras un `confirm()`, `js/perfil.js`
+inserta una fila con `status: 'pending'` explícito (no basta con
+confiar en el valor por defecto de la columna: el stub de pruebas no
+lo aplica, y además es más claro dejarlo explícito en el propio
+código en vez de depender de un default invisible). Si ya existe una
+solicitud pendiente propia, el botón se sustituye por un aviso de
+"ya tienes una solicitud pendiente" en vez de dejar pedir otra.
+
+El admin tiene una sección nueva ("🗑️ Bajas") que lista las
+solicitudes pendientes con acciones "Marcar hecha" (pide una segunda
+confirmación recordando que esto NO borra nada por sí solo, solo
+marca que ya se gestionó a mano desde el panel de Supabase) y
+"Descartar".
+
+`privacidad.html`, sección "Tus derechos", se actualizó para señalar
+este botón en vez del texto anterior que decía "usa el botón de
+feedback... de momento a mano".
+
+Nota de test: el stub de pruebas no persiste `account_deletion_requests`
+entre cargas de página (se reinicia a la fila de seed en cada
+`goto()`), y hacer clic en una pestaña del admin no vuelve a pedir
+los datos (solo muestra la sección ya pintada al cargar la página).
+Por eso el test del admin no crea una solicitud en vivo y navega,
+sino que usa directamente la fila de seed (de Misty/user-2) presente
+desde la carga inicial — mismo patrón ya usado para `content_reports`
+antes en el proyecto. Se verificó: el botón solicita y crea la fila
+con `status: 'pending'`, tras lo cual se oculta y aparece el aviso de
+pendiente; cancelar el `confirm()` no crea nada ni oculta el botón;
+el admin ve la solicitud de seed y "Marcar hecha" la quita de la
+lista de pendientes. Se rompió a propósito la condición que detecta
+una solicitud pendiente (`if (data)` → `if (false)`) para confirmar
+que el test detecta que el botón nunca se oculta ni aparece el aviso;
+se restauró y volvió a pasar.

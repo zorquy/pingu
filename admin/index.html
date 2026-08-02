@@ -34,6 +34,7 @@
         <button class="admin-nav-item" data-section="feedback">💬 Feedback</button>
         <button class="admin-nav-item" data-section="errors">🐞 Errores</button>
         <button class="admin-nav-item" data-section="analytics">📈 Analítica</button>
+        <button class="admin-nav-item" data-section="account-deletions">🗑️ Bajas</button>
         <button class="admin-nav-item" data-section="images">🖼️ Imágenes</button>
       </nav>
       <a href="/index.html" class="admin-back">← Volver a PokeDoc</a>
@@ -128,6 +129,12 @@
         </div>
         <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Recuento propio de páginas visitadas, sin cookies ni servicios externos — <strong id="analyticsTotal">0</strong> visitas en el periodo.</p>
         <div id="analyticsTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-account-deletions">
+        <h1>Bajas</h1>
+        <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Solicitudes de borrado de cuenta. Marcar como "hecha" NO borra nada por sí solo — hay que borrar la cuenta a mano desde el dashboard de Supabase primero.</p>
+        <div id="accountDeletionTable"></div>
       </section>
 
       <section class="admin-section" id="section-images">

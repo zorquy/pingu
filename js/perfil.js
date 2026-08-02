@@ -423,6 +423,25 @@ async function loadWall(session) {
   })
 }
 
+async function loadAccountDeletionStatus(session) {
+  const { data } = await supabase
+    .from('account_deletion_requests')
+    .select('status')
+    .eq('user_id', session.user.id)
+    .eq('status', 'pending')
+    .maybeSingle()
+
+  const btn = document.getElementById('btnRequestAccountDeletion')
+  const statusEl = document.getElementById('deleteAccountStatus')
+  if (data) {
+    btn.classList.add('hidden')
+    statusEl.textContent = 'Ya tienes una solicitud de borrado pendiente de revisión.'
+  } else {
+    btn.classList.remove('hidden')
+    statusEl.textContent = ''
+  }
+}
+
 async function init() {
   const session = await requireAuth()
   if (!session) return
@@ -431,8 +450,20 @@ async function init() {
   const profile = await loadProfile(session)
   await Promise.all([loadStats(session, profile), loadCompletedCourses(session), loadMyGuides(session), loadWall(session), loadFollowSummary(session)])
   await loadAchievements(profile)
+  await loadAccountDeletionStatus(session)
 
   document.getElementById('btnLogout').addEventListener('click', signOut)
+  document.getElementById('btnRequestAccountDeletion').addEventListener('click', async () => {
+    if (
+      !confirm(
+        'Vas a solicitar el borrado de tu cuenta y de tus datos. No se borra al instante — el equipo lo revisa y lo confirma a mano. ¿Continuar?'
+      )
+    )
+      return
+    const { error } = await supabase.from('account_deletion_requests').insert({ user_id: session.user.id, status: 'pending' })
+    showToast(error ? 'No se pudo enviar la solicitud: ' + error.message : 'Solicitud enviada. Te confirmaremos cuando esté procesada.', error ? 'error' : 'success')
+    if (!error) await loadAccountDeletionStatus(session)
+  })
 }
 
 init()
