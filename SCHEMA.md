@@ -1298,3 +1298,28 @@ temporalmente el fix de `--navbar-bg` (volviendo al `rgba(255, 255,
 255, 0.92)` fijo) hizo fallar la comprobación de la navbar en oscuro,
 confirmando que el test detecta la regresión; se restauró el fix y
 volvió a pasar.
+
+## Feedback general (previo al lanzamiento a testers)
+Migración: `supabase-migration-app-feedback.sql` — tabla `app_feedback`
+(`user_id`, `body`, `page_url`, `status` con default `'new'`). Es
+deliberadamente una tabla aparte de `content_reports`: esta última es
+para denunciar contenido publicado por otro usuario (una guía, un
+comentario...), mientras que `app_feedback` es para que cualquiera
+mande sugerencias o avisos de bugs que no apuntan a ningún contenido
+concreto.
+
+`js/feedback.js` monta el modal bajo demanda (`openFeedbackModal()`) y
+lo engancha desde el desplegable de cuenta en `js/app.js`
+("💬 Enviar feedback", junto a "Cerrar sesión"). El admin tiene una
+sección nueva ("💬 Feedback" en la barra lateral, `loadFeedback()` en
+`admin/js/admin.js`) que lista el feedback con `status = 'new'` y
+permite marcarlo como revisado o descartarlo, calcada de la sección de
+Reportes que ya existía.
+
+Verificado con Playwright: el botón aparece en el desplegable, abre el
+modal, enviar vacío no hace nada, enviar con texto lo guarda y cierra
+el modal, y el admin lo ve en su sección y puede marcarlo como
+revisado (tras lo cual desaparece de la lista de "nuevo"). Se
+comprobó el detector de regresiones cambiando el filtro de
+`loadFeedback()` a `status = 'reviewed'`: el test detectó que el admin
+dejaba de ver el feedback nuevo; se restauró y volvió a pasar.

@@ -236,10 +236,16 @@ async function renderNavUser(session) {
       <div class="nav-user-links">
         <a href="/perfil.html">${icons.user(16)} Mi perfil</a>
         <a href="/guardados.html">${icons.star(16)} Guardados</a>
+        <button type="button" id="navFeedbackBtn">💬 Enviar feedback</button>
         <button type="button" id="navUserSignOut">${icons.logOut(16)} Cerrar sesión</button>
       </div>`
 
     document.getElementById('navUserSignOut').addEventListener('click', signOut)
+    document.getElementById('navFeedbackBtn').addEventListener('click', async () => {
+      dropdown.classList.add('hidden')
+      const { openFeedbackModal } = await import('./feedback.js')
+      openFeedbackModal()
+    })
   }
 
   document.getElementById('navUserBtn').addEventListener('click', async () => {

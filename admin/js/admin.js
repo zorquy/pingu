@@ -786,6 +786,63 @@ async function loadReports() {
   )
 }
 
+// ── Feedback general (bugs/sugerencias, no ligado a contenido concreto) ──
+async function loadFeedback() {
+  const { data } = await supabase
+    .from('app_feedback')
+    .select('*')
+    .eq('status', 'new')
+    .order('created_at', { ascending: true })
+
+  const items = data || []
+  const userIds = [...new Set(items.map((f) => f.user_id))]
+  const { data: usersData } = userIds.length > 0 ? await supabase.from('user_profiles').select('id, display_name, username').in('id', userIds) : { data: [] }
+  const userById = Object.fromEntries((usersData || []).map((u) => [u.id, u]))
+
+  const container = document.getElementById('feedbackTable')
+  if (items.length === 0) {
+    container.innerHTML = `<p class="empty-state">No hay feedback nuevo.</p>`
+    return
+  }
+
+  container.innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>De</th><th>Mensaje</th><th>Página</th><th>Fecha</th><th></th></tr></thead>
+      <tbody>
+        ${items
+          .map((f) => {
+            const user = userById[f.user_id]
+            const userName = user?.display_name || user?.username || 'Usuario'
+            return `
+          <tr>
+            <td>${escapeHtml(userName)}</td>
+            <td>${escapeHtml(f.body)}</td>
+            <td>${escapeHtml(f.page_url || '—')}</td>
+            <td>${new Date(f.created_at).toLocaleDateString('es-ES')}</td>
+            <td class="admin-row-actions">
+              <button data-feedback-reviewed="${f.id}">Marcar revisado</button>
+              <button data-feedback-dismiss="${f.id}">Descartar</button>
+            </td>
+          </tr>`
+          })
+          .join('')}
+      </tbody>
+    </table>`
+
+  container.querySelectorAll('[data-feedback-reviewed]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      await supabase.from('app_feedback').update({ status: 'reviewed' }).eq('id', btn.dataset.feedbackReviewed)
+      loadFeedback()
+    })
+  )
+  container.querySelectorAll('[data-feedback-dismiss]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      await supabase.from('app_feedback').update({ status: 'dismissed' }).eq('id', btn.dataset.feedbackDismiss)
+      loadFeedback()
+    })
+  )
+}
+
 // ── Init ──
 async function init() {
   const session = await checkAccess()
@@ -794,7 +851,7 @@ async function init() {
   initSidebar()
   await loadCategories()
   await Promise.all([loadCollections(), loadPaths()])
-  await Promise.all([loadDashboard(), loadPending(), loadGuides(), loadAchievements(), loadUsers(), loadImages(), loadReports()])
+  await Promise.all([loadDashboard(), loadPending(), loadGuides(), loadAchievements(), loadUsers(), loadImages(), loadReports(), loadFeedback()])
 }
 
 init()
