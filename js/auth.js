@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { uniqueUsername } from './app.js'
+import { showToast } from './toast.js'
 
 const steps = {
   login: document.getElementById('stepLogin'),
@@ -86,10 +87,13 @@ document.getElementById('btnGoToLogin2')?.addEventListener('click', () => showSt
 // ── Login ──
 const btnLogin = document.getElementById('btnLogin')
 
+const btnResendConfirmation = document.getElementById('btnResendConfirmation')
+
 btnLogin?.addEventListener('click', async () => {
   const email = document.getElementById('loginEmail').value.trim()
   const password = document.getElementById('loginPassword').value
   setError(steps.login, '')
+  btnResendConfirmation.classList.add('hidden')
 
   if (!validEmail(email) || !password) {
     setError(steps.login, 'Escribe tu email y contraseña.')
@@ -106,10 +110,22 @@ btnLogin?.addEventListener('click', async () => {
 
   if (error) {
     setError(steps.login, friendlyAuthError(error))
+    if ((error.message || '').toLowerCase().includes('not confirmed')) {
+      btnResendConfirmation.dataset.email = email
+      btnResendConfirmation.classList.remove('hidden')
+    }
     return
   }
 
   await afterAuth(data.user.id)
+})
+
+btnResendConfirmation?.addEventListener('click', async () => {
+  const email = btnResendConfirmation.dataset.email
+  btnResendConfirmation.disabled = true
+  const { error } = await supabase.auth.resend({ type: 'signup', email })
+  btnResendConfirmation.disabled = false
+  showToast(error ? friendlyAuthError(error) : 'Te hemos reenviado el enlace de confirmación.', error ? 'error' : 'success')
 })
 
 // ── Registro ──

@@ -1347,3 +1347,28 @@ páginas, cada una carga con su título y su contenido clave (el aviso
 de marcas en Términos, la mención a Supabase/Netlify en Privacidad).
 Se rompió a propósito el texto de un enlace del footer para confirmar
 que el test lo detecta; se restauró y volvió a pasar.
+
+## Reenviar confirmación de email
+`js/auth.js` ya avisaba de "Confirma tu cuenta desde el enlace que te
+enviamos por email" al intentar iniciar sesión sin confirmar (y ya
+mostraba "Revisa tu email" justo después de registrarse, si el
+proyecto de Supabase tiene la confirmación por email activada), pero
+no había forma de volver a pedir ese email si se perdía o caducaba.
+Se añadió un botón "Reenviar email de confirmación" en `auth.html`
+(oculto por defecto, dentro del paso de login), que aparece solo
+cuando el error de login es justo ese ("Email not confirmed") y llama
+a `supabase.auth.resend({ type: 'signup', email })` con el email que
+se acaba de escribir.
+
+**Importante:** esto depende de que el proyecto de Supabase tenga
+activado "Confirm email" en Authentication → Settings del panel — es
+un ajuste del dashboard, no algo que se pueda activar desde una
+migración SQL ni desde el código del sitio.
+
+Verificado con Playwright (con el stub simulando el error "Email not
+confirmed" para una contraseña de prueba): el botón empieza oculto,
+aparece solo tras ese error concreto (no con una contraseña
+simplemente incorrecta), reenviar muestra un toast de éxito, y si el
+reenvío falla se muestra el error real en vez de uno genérico. Se
+rompió a propósito la condición que detecta el error para confirmar
+que el test lo pilla; se restauró y volvió a pasar.
