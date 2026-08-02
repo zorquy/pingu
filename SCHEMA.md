@@ -2287,3 +2287,44 @@ Comunidad, que usa 12 guías de relleno para probar la página 2 y la
 búsqueda, se actualizó para que esas guías de relleno sean `pending`
 en vez de `approved` — ya que su propósito es rellenar la lista que
 ahora es solo de pendientes, no representar guías aprobadas reales.)
+
+## Bug real: "Editar perfil" ilegible en modo oscuro, y mal repartido en móvil
+
+Dos problemas en la cabecera de `perfil.html`:
+
+1. **Contraste en oscuro.** `.profile-hero-edit-btn` (usado tanto por
+   "Banner" como por "Editar perfil") tiene un fondo fijo
+   (`rgba(13, 27, 42, 0.55)`, pensado para verse bien encima de
+   cualquier foto de banner, en cualquier tema) pero el texto usaba
+   `color: var(--white)` — y `--white` es un token semántico de
+   "superficie/tarjeta" que en modo oscuro pasa a ser `#182430` (casi
+   negro), no blanco de verdad. Resultado: texto casi invisible sobre
+   un fondo también oscuro. Se cambió a `color: #fff` fijo, ya que el
+   fondo del botón tampoco cambia con el tema.
+
+2. **Reparto en móvil.** El botón "Editar perfil" se añadió como un
+   tercer elemento en la fila flex junto al avatar (96px) y la
+   columna de nombre/bio (`flex: 1`). En escritorio hay sitio de
+   sobra, pero en un móvil normal (files disponibles ~290px sin
+   padding) el avatar más el propio botón (que no se encoge, mide
+   ~110px de ancho por el icono+texto) dejaban a la columna de
+   nombre/bio con solo ~54px — forzando que "Coleccionista", la barra
+   de XP y la bio se partieran en varias líneas apretadas mientras
+   sobraba hueco vacío a la derecha del botón. Se añadió un punto de
+   corte (`@media max-width: 640px`) que hace que la fila haga wrap y
+   fuerza al botón a caer en su propia línea completa (con un
+   separador invisible de `flex-basis: 100%` delante suyo, la técnica
+   habitual para partir una fila flex sin que el elemento siguiente
+   se estire), alineado a la derecha y con su tamaño natural — dejando
+   toda la fila de arriba (avatar + nombre + bio) con el ancho que
+   necesita.
+
+Verificado con Playwright en tres escenarios: móvil + oscuro (el
+texto de "Editar perfil" y "Banner" es blanco de verdad), móvil +
+claro (la columna de nombre/bio mide más de 120px y el botón cae
+debajo del avatar, sin estirarse a todo el ancho), y escritorio (el
+botón se queda junto al nombre, sin romper el diseño ancho que ya
+funcionaba). Se rompió a propósito cada arreglo por separado
+(volviendo a `var(--white)`, y quitando el separador que fuerza el
+salto de línea) para confirmar que el test detecta cada regresión,
+se restauraron y volvió a pasar todo.

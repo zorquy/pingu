@@ -1343,7 +1343,10 @@ textarea.be-field {
   padding: 6px 12px;
   border-radius: var(--radius-pill);
   background: rgba(13, 27, 42, 0.55);
-  color: var(--white);
+  /* Blanco fijo (no var(--white), que en modo oscuro pasa a ser el
+     color de superficie/tarjeta oscuro): este botón siempre va sobre
+     un fondo oscuro traslúcido, en cualquier tema. */
+  color: #fff;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -1356,12 +1359,44 @@ textarea.be-field {
   right: 12px;
 }
 
+.profile-hero-edit-inline {
+  position: static;
+  flex-shrink: 0;
+  margin-top: 22px;
+}
+
+.profile-hero-row-break {
+  display: none;
+}
+
 .profile-hero-body {
   display: flex;
   align-items: flex-start;
   gap: 16px;
   padding: 12px 24px 20px;
   position: relative;
+}
+
+@media (max-width: 640px) {
+  .profile-hero-body {
+    flex-wrap: wrap;
+  }
+
+  /* Fuerza que el botón caiga en su propia línea en vez de robarle
+     ancho a la columna de nombre/bio (que en móvil apenas tiene
+     sitio junto al avatar de 96px). Un elemento con flex-basis:100%
+     siempre inicia una línea nueva; el botón que va después se sitúa
+     ahí sin tener que estirarse él mismo a lo ancho. */
+  .profile-hero-row-break {
+    display: block;
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  .profile-hero-edit-inline {
+    margin-top: 12px;
+    margin-left: auto;
+  }
 }
 
 .profile-hero-avatar-wrap {
