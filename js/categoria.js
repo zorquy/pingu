@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, tintClassForKey } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, categoryIconHtml } from './app.js'
 import { openGuideModal, setupGuideModalClose, renderGuideCardHtml, decorateGuideCards } from './guide-modal.js'
 
 const params = new URLSearchParams(window.location.search)
@@ -30,7 +30,7 @@ async function initCategoryMode() {
   document.title = `${category.name} — PokeDoc`
   document.getElementById('breadcrumbCurrent').textContent = category.name
   document.getElementById('categoryHeader').innerHTML = `
-    <div class="emoji-big ${tintClassForKey(category.id)}">${category.emoji || '📘'}</div>
+    <div class="emoji-big ${tintClassForKey(category.id)}">${categoryIconHtml(category, 38)}</div>
     <div>
       <h1>${escapeHtml(category.name)}</h1>
       <p>${escapeHtml(category.description || '')}</p>

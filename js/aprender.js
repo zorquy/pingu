@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, categoryIconHtml } from './app.js'
 
 async function loadCategories(session) {
   const list = document.getElementById('categoriesList')
@@ -32,7 +32,7 @@ async function loadCategories(session) {
       const pct = total > 0 ? Math.round((done / total) * 100) : 0
       return `
       <div class="category-row ${borderTintClassForKey(cat.id)}">
-        <div class="category-icon ${tintClassForKey(cat.id)}" style="font-size: 26px;">${cat.emoji || '📘'}</div>
+        <div class="category-icon ${tintClassForKey(cat.id)}">${categoryIconHtml(cat, 26)}</div>
         <div class="row-info">
           <h2>${escapeHtml(cat.name)}</h2>
           <p>${escapeHtml(cat.description || '')}</p>

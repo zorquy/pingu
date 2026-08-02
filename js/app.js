@@ -41,6 +41,20 @@ export function cardMediaHtml(imageUrl, emoji) {
   return `<div class="card-media" style="background-image:url('${imageUrl.replace(/'/g, '%27')}')"><span class="card-media-badge">${escapeHtml(emoji || '📘')}</span></div>`
 }
 
+// Contenido para el cuadradito de icono de una categoría (.category-icon,
+// .emoji-big...): si tiene un dibujo propio (icon_image, subido a mano
+// desde el admin) se muestra ese en vez del emoji — el emoji se queda
+// como alternativa automática para las categorías que todavía no tengan
+// icono personalizado. `size` controla tanto el tamaño de fuente del
+// emoji como el ancho/alto del dibujo, para que el peso visual sea
+// parecido elijas lo que elijas.
+export function categoryIconHtml(category, size = 24) {
+  if (category?.icon_image) {
+    return `<img src="${category.icon_image.replace(/'/g, '%27')}" alt="" class="category-icon-img" style="width:${size}px; height:${size}px;" />`
+  }
+  return `<span style="font-size:${size}px;">${escapeHtml(category?.emoji || '📘')}</span>`
+}
+
 const CONFETTI_COLORS = ['var(--navy)', 'var(--indigo)', 'var(--warning)', 'var(--success)', 'var(--pink)', 'var(--ice-dark)']
 let confettiStyleInjected = false
 

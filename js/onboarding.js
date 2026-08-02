@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, requireAuth, uniqueUsername } from './app.js'
+import { escapeHtml, requireAuth, uniqueUsername, categoryIconHtml } from './app.js'
 
 const state = { level: null, interests: new Set(), recommendedCategory: null }
 let categories = []
@@ -41,7 +41,7 @@ function showRecommendedCategory() {
   document.getElementById('onbRecommendedCategory').innerHTML = category
     ? `
       <p style="opacity:.85; font-size: 13px; margin-bottom: 4px;">${LEVEL_INTRO[state.level] || ''}</p>
-      <span style="font-size: 30px;">${category.emoji || '📘'}</span>
+      ${categoryIconHtml(category, 30)}
       <h3>${escapeHtml(category.name)}</h3>
       <p>${escapeHtml(category.description || '')}</p>`
     : `<p>Todavía no hay categorías configuradas — ¡vuelve pronto!</p>`

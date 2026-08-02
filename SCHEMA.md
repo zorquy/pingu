@@ -1547,3 +1547,34 @@ del admin. Se rompieron a propósito la marca de pestaña activa por
 defecto y la asignación del emoji elegido al input, uno por uno, para
 confirmar que los tests detectan cada regresión; se restauraron y
 volvieron a pasar.
+
+## Icono de categoría personalizado (dibujo en vez de emoji)
+Migración: `supabase-migration-category-icon-image.sql` — columna
+nueva `icon_image` en `categories` (separada de `cover_image`, que ya
+existía y se usa para una foto de portada grande; `icon_image` es
+para un dibujo pequeño en el cuadradito de icono, un uso distinto).
+
+`categoryIconHtml(category, size)` en `js/app.js` es el punto único
+que decide qué pintar: si la categoría tiene `icon_image`, un
+`<img>`; si no, el emoji de siempre (que se queda como alternativa
+automática mientras no haya dibujo). Se usa en los cuatro sitios
+donde aparecía el emoji de categoría: la rejilla de la home
+(`home.js`), el listado de "Aprender" (`aprender.js`), la cabecera de
+`categoria.html` (`categoria.js`) y la categoría recomendada del
+onboarding (`onboarding.js`) — antes cada uno repetía su propio
+`cat.emoji || '📘'`.
+
+El admin tiene un campo nuevo, "Icono personalizado (URL, opcional)",
+en el formulario de categorías, con una miniatura en la tabla cuando
+ya hay uno puesto. El flujo pensado es: subir el dibujo desde la
+pestaña "Imágenes" del admin (ya sube a Supabase Storage y da una
+URL pública) y pegar esa URL en el campo nuevo de la categoría —
+sin tocar código para cada icono nuevo.
+
+Verificado con Playwright: una categoría con `icon_image` muestra la
+imagen en vez del emoji en las cuatro ubicaciones (home, aprender,
+cabecera de categoría) y en la tabla del admin; una categoría sin
+`icon_image` sigue mostrando el emoji con normalidad; el formulario
+de edición carga el valor guardado. Se rompió a propósito la
+condición que decide imagen-vs-emoji en `categoryIconHtml()` para
+confirmar que el test lo detecta; se restauró y volvió a pasar.

@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml } from './app.js'
 import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
 
 async function loadCategories() {
@@ -13,9 +13,10 @@ async function loadCategories() {
 
   grid.innerHTML = data
     .map((cat) => {
-      const icon = cat.cover_image
-        ? cardMediaHtml(cat.cover_image, cat.emoji)
-        : `<div class="category-icon ${tintClassForKey(cat.id)}" style="font-size: 22px;">${cat.emoji || '📘'}</div>`
+      const icon =
+        cat.cover_image && !cat.icon_image
+          ? cardMediaHtml(cat.cover_image, cat.emoji)
+          : `<div class="category-icon ${tintClassForKey(cat.id)}">${categoryIconHtml(cat, 22)}</div>`
       return `
     <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="category-card ${borderTintClassForKey(cat.id)}">
       ${icon}

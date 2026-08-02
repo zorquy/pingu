@@ -92,14 +92,14 @@ async function loadCategories() {
 
   document.getElementById('categoriesTable').innerHTML = `
     <table class="admin-table">
-      <thead><tr><th>Orden</th><th>Emoji</th><th>Nombre</th><th>Slug</th><th>Guías</th><th></th></tr></thead>
+      <thead><tr><th>Orden</th><th>Icono</th><th>Nombre</th><th>Slug</th><th>Guías</th><th></th></tr></thead>
       <tbody>
         ${categories
           .map(
             (c) => `
           <tr>
             <td>${c.order_pos ?? ''}</td>
-            <td>${c.emoji || ''}</td>
+            <td>${c.icon_image ? `<img src="${c.icon_image.replace(/"/g, '&quot;')}" alt="" style="width:24px; height:24px; object-fit:contain;" />` : c.emoji || ''}</td>
             <td>${escapeHtml(c.name)}</td>
             <td>${escapeHtml(c.slug)}</td>
             <td>${c.guide_count ?? 0}</td>
@@ -126,13 +126,14 @@ async function loadCategories() {
 }
 
 function openCategoryModal(category) {
-  const c = category || { name: '', slug: '', description: '', emoji: '', cover_image: '', order_pos: categories.length }
+  const c = category || { name: '', slug: '', description: '', emoji: '', cover_image: '', icon_image: '', order_pos: categories.length }
   openModal(`
     <h3>${category ? 'Editar' : 'Nueva'} categoría</h3>
     <div class="form-group"><label>Nombre</label><input id="catName" value="${escapeHtml(c.name)}" /></div>
     <div class="form-group"><label>Slug</label><input id="catSlug" value="${escapeHtml(c.slug)}" /></div>
     <div class="form-group"><label>Descripción</label><textarea id="catDescription">${escapeHtml(c.description || '')}</textarea></div>
     <div class="form-group"><label>Emoji</label><input id="catEmoji" value="${escapeHtml(c.emoji || '')}" /></div>
+    <div class="form-group"><label>Icono personalizado (URL, opcional)</label><input id="catIconImage" value="${escapeHtml(c.icon_image || '')}" placeholder="https://..." /><p style="font-size:12px; color:var(--text-mid); margin-top:4px;">Sustituye al emoji en las tarjetas de categoría. Sube la imagen en la pestaña "Imágenes" y pega aquí la URL.</p></div>
     <div class="form-group"><label>Imagen de portada (URL)</label><input id="catCoverImage" value="${escapeHtml(c.cover_image || '')}" /></div>
     <div class="form-group"><label>Orden</label><input id="catOrder" type="number" value="${c.order_pos ?? 0}" /></div>
     <button class="btn-primary btn-block" id="btnSaveCategory">Guardar</button>`)
@@ -143,6 +144,7 @@ function openCategoryModal(category) {
       slug: document.getElementById('catSlug').value.trim(),
       description: document.getElementById('catDescription').value.trim(),
       emoji: document.getElementById('catEmoji').value.trim(),
+      icon_image: document.getElementById('catIconImage').value.trim() || null,
       cover_image: document.getElementById('catCoverImage').value.trim() || null,
       order_pos: Number(document.getElementById('catOrder').value) || 0,
     }
