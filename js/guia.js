@@ -128,7 +128,7 @@ async function init() {
       guide.has_pro_content
         ? `
     <div class="tabs" id="articleTabs">
-      <button class="tab-btn active" data-atab="docu">📖 Documentación</button>
+      <button class="tab-btn active" data-atab="docu">📖 Básico</button>
       <button class="tab-btn" data-atab="pro">🌟 Guía Pro</button>
     </div>
     <div class="tab-panel active" id="atab-docu"><div class="article-body">${bodyHtml}</div></div>

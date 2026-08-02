@@ -139,7 +139,7 @@ async function save(reviewStatus) {
     return
   }
   if (reviewStatus === 'pending' && refBlocks.length === 0) {
-    showToast('Añade contenido en Documentación antes de enviar la guía a revisión.')
+    showToast('Añade contenido en la Guía antes de enviarla a revisión.')
     return
   }
 

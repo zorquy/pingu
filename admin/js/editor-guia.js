@@ -468,7 +468,7 @@ async function init() {
     const referenceText = flattenReferenceBlocksToText(refBlocks)
 
     if (!title || !referenceText) {
-      showToast('Rellena el título y la Documentación antes de generar el curso con IA.')
+      showToast('Rellena el título y la Guía antes de generar el curso con IA.')
       return
     }
     if (courseBlocks.length > 0 && !confirm(`Esto reemplazará los ${courseBlocks.length} bloques actuales del curso por los generados. ¿Continuar?`)) {

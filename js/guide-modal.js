@@ -47,8 +47,8 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
     ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course" onclick="event.stopPropagation()">${courseLabel}</a>`
     : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">🎓 Curso</span>`
   const guideBtn = guide.has_reference_blocks
-    ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">📖 Documentación</a>`
-    : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📖 Documentación</span>`
+    ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">📖 Guía</a>`
+    : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📖 Guía</span>`
 
   return `
   <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}">
@@ -72,8 +72,8 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
       </div>
     </div>
     <div class="guide-actions">
-      ${courseBtn}
       ${guideBtn}
+      ${courseBtn}
     </div>
   </div>`
 }
@@ -252,14 +252,14 @@ export async function openGuideModal(guideId) {
     <div class="modal-actions" style="flex-direction:row; margin-top:16px; align-items:center;">
       <button class="btn-outline" id="guideModalSaveBtn">${isSaved ? '★ Guardado' : '☆ Guardar'}</button>
       ${
+        guide.has_reference_blocks
+          ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide">📖 Guía</a>`
+          : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📖 Guía</span>`
+      }
+      ${
         Array.isArray(guide.blocks) && guide.blocks.length > 0
           ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course">🎓 Curso</a>`
           : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">🎓 Curso</span>`
-      }
-      ${
-        guide.has_reference_blocks
-          ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide">📖 Documentación</a>`
-          : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📖 Documentación</span>`
       }
       ${session ? `<span style="margin-left:auto;">${reportButtonHtml('guide', guide.id)}</span>` : ''}
     </div>

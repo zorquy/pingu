@@ -1578,3 +1578,48 @@ cabecera de categoría) y en la tabla del admin; una categoría sin
 de edición carga el valor guardado. Se rompió a propósito la
 condición que decide imagen-vs-emoji en `categoryIconHtml()` para
 confirmar que el test lo detecta; se restauró y volvió a pasar.
+
+## Bug real: tarjetas de guía de distinto alto en categoria.html
+`#guidesList` (la rejilla de guías dentro de una categoría) tenía
+`align-items: start` en su versión de escritorio (`display: grid`),
+que anula el comportamiento por defecto de CSS Grid (`stretch`) y
+hace que cada tarjeta ocupe solo la altura de su propio contenido en
+vez de estirarse para igualar la fila — con eso, dos guías con
+descripciones de distinta longitud quedaban con bordes a alturas
+distintas, en vez de parejas. Se quitó esa línea; `.grid-guides` (la
+rejilla que usan home/comunidad/guardados) nunca tuvo este problema
+porque nunca tocaba `align-items`.
+
+Verificado con Playwright: dos guías de la misma categoría con
+descripciones de longitud muy distinta (g-xss y g-1 en el stub, ~60 y
+~20 caracteres) quedan con exactamente la misma altura de tarjeta. Se
+repuso a propósito el `align-items: start` para confirmar que el test
+detecta la diferencia de alturas; se quitó de nuevo y volvió a pasar.
+
+## Renombrar "Documentación" a "Guía", y priorizarla sobre el Curso
+"Documentación" se cambió por "Guía" en los botones de la tarjeta y
+el modal de guía, en las pestañas de ambos editores (usuario y
+admin), y en los mensajes de aviso relacionados — el nombre no
+gustaba y "Guía" es más natural para quien viene a leer. El botón
+Guía (antes "🎓 Curso" primero, "📖 Documentación" después) ahora va
+primero y lleva el estilo destacado (fondo navy); el Curso pasa a
+segundo lugar con el estilo secundario, ya que es opcional y no todas
+las guías lo tienen — se intercambiaron los colores de `.btn-guide` y
+`.btn-course` en `css/components.css` en vez de solo el orden en el
+HTML, para que el peso visual coincida con la importancia real.
+
+Una excepción a propósito: en `guia.html`, cuando una guía tiene
+contenido Pro aparecen dos pestañas, y la de pago ya se llama
+"🌟 Guía Pro" — si la pestaña gratuita también pasara a llamarse
+"Guía" quedarían dos pestañas empezando por la misma palabra, la
+misma colisión de nombres que motivó llamarla "Documentación" en su
+día. Ahí se dejó como "📖 Básico" en vez de "Guía", para distinguirla
+claramente de "Guía Pro".
+
+Verificado con Playwright: ni la tarjeta de guía ni el modal ni los
+editores dicen ya "Documentación" en ningún sitio; el botón de Guía
+aparece antes que el de Curso y con el fondo navy (destacado); en
+`guia.html` con contenido Pro, la pestaña gratuita dice "Básico" y la
+de pago sigue diciendo "Guía Pro". Se deshizo a propósito el
+reordenado de los botones para confirmar que el test lo detecta; se
+restauró y volvió a pasar.

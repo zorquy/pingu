@@ -26,7 +26,7 @@
     </div>
 
     <div class="tabs" id="editorTabs">
-      <button class="tab-btn active" data-etab="general">General y Documentación</button>
+      <button class="tab-btn active" data-etab="general">General y Guía</button>
       <button class="tab-btn" data-etab="course">🎓 Curso interactivo</button>
       <button class="tab-btn" data-etab="pro">🌟 Guía Pro</button>
       <button class="tab-btn" data-etab="advanced">⚙️ Avanzado</button>
@@ -63,7 +63,7 @@
       </section>
 
       <section class="editor-panel">
-        <h2 class="section-title">📖 Documentación</h2>
+        <h2 class="section-title">📖 Guía</h2>
         <p class="subtext" style="margin-top:-8px;">El contenido de referencia. El curso interactivo se construye a partir de aquí.</p>
         <div class="rte-wrap">
           <div class="rte-toolbar" id="refRteToolbar"></div>
@@ -76,16 +76,16 @@
       <section class="editor-panel" id="courseSection">
         <div class="admin-ai-generate">
           <button class="btn-secondary" id="btnGenerateCourseAI">✨ Generar con IA</button>
-          <span style="font-size:12px; color: var(--text-mid);">Usa el título, la descripción y la documentación para proponer bloques. Podrás revisarlos y editarlos antes de guardar.</span>
+          <span style="font-size:12px; color: var(--text-mid);">Usa el título, la descripción y la guía para proponer bloques. Podrás revisarlos y editarlos antes de guardar.</span>
         </div>
 
         <div class="section-header-row">
           <h2 class="section-title">🎓 Curso interactivo</h2>
-          <button class="btn-outline hidden" id="btnToggleRefPreview" type="button">👁 Ver documentación</button>
+          <button class="btn-outline hidden" id="btnToggleRefPreview" type="button">👁 Ver guía</button>
         </div>
 
         <div class="empty-state" id="courseLockedNotice">
-          🔒 Añade al menos un bloque en <strong>Documentación</strong> antes de crear el curso interactivo.
+          🔒 Añade al menos un bloque en <strong>Guía</strong> antes de crear el curso interactivo.
         </div>
 
         <div id="refPreviewPanel" class="editor-ref-preview hidden"></div>
@@ -104,8 +104,8 @@
           <span id="proStatusBadge"></span>
         </div>
         <p class="subtext" style="margin-top:-8px;">
-          Contenido exclusivo para usuarios Pro — aparte de la Documentación y el Curso, que siempre son gratis.
-          Empieza como una copia de la Documentación; añade aquí ejemplos, consejos y contenido avanzado.
+          Contenido exclusivo para usuarios Pro — aparte de la Guía y el Curso, que siempre son gratis.
+          Empieza como una copia de la Guía; añade aquí ejemplos, consejos y contenido avanzado.
         </p>
 
         <div id="proActivateWrap">
@@ -143,7 +143,7 @@
         </div>
         <div class="form-group"><label><input type="checkbox" id="gIsPro" /> Contenido Pro</label></div>
         <div class="form-group"><label><input type="checkbox" id="gPublished" /> Publicada</label></div>
-        <div class="form-group"><label><input type="checkbox" id="gRefUnlocked" /> Documentación desbloqueada por defecto (si no, hay que completar el curso primero)</label></div>
+        <div class="form-group"><label><input type="checkbox" id="gRefUnlocked" /> Guía desbloqueada por defecto (si no, hay que completar el curso primero)</label></div>
         <div class="form-group"><label>Contenido de búsqueda</label><textarea id="gSearchContent"></textarea></div>
       </section>
 

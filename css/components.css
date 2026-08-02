@@ -248,7 +248,6 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
-    align-items: start;
   }
   #guidesList > h2 {
     grid-column: 1 / -1;
@@ -336,21 +335,23 @@
   transition: background 0.15s var(--ease);
 }
 
-.btn-course {
+/* La Guía es la acción principal (siempre existe); el Curso es
+   opcional, así que lleva el estilo secundario. */
+.btn-guide {
   background: var(--navy);
   color: var(--white);
 }
 
-.btn-course:hover {
+.btn-guide:hover {
   background: var(--navy-light);
 }
 
-.btn-guide {
+.btn-course {
   background: var(--ice);
   color: var(--navy);
 }
 
-.btn-guide:hover {
+.btn-course:hover {
   background: var(--ice-dark);
 }
 
