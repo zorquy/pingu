@@ -3,6 +3,7 @@ import { escapeHtml, getSession, getProfile, getInitial, profileUrl, borderRarit
 import { renderWall } from './wall.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { createNotification } from './notifications.js'
+import { icons } from './icons.js'
 
 export function starsHtml(rating, size = 16) {
   return Array.from({ length: 5 })
@@ -67,7 +68,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
         ${reviewBadge ? `<span class="badge ${guide.review_status === 'approved' ? 'badge-completed' : 'badge-pro'}">${escapeHtml(reviewBadge)}</span>` : ''}
       </div>
       <div class="guide-card-social">
-        <button class="card-save-btn" data-card-save title="Guardar" aria-label="Guardar" onclick="event.stopPropagation()">☆</button>
+        <button class="card-save-btn" data-card-save title="Guardar" aria-label="Guardar" onclick="event.stopPropagation()">${icons.bookmark(16)}</button>
         <span class="card-rating" data-card-rating>Sin valorar</span>
       </div>
     </div>
@@ -100,7 +101,7 @@ export async function decorateGuideCards(containerEl, session) {
     const saveBtn = card.querySelector('[data-card-save]')
     if (!saveBtn) return
     const isSaved = savedIds.includes(id)
-    saveBtn.textContent = isSaved ? '★' : '☆'
+    saveBtn.innerHTML = icons.bookmark(16, isSaved)
     saveBtn.setAttribute('aria-label', isSaved ? 'Quitar de guardados' : 'Guardar')
     saveBtn.classList.toggle('is-saved', isSaved)
     saveBtn.addEventListener('click', async (e) => {
@@ -110,7 +111,7 @@ export async function decorateGuideCards(containerEl, session) {
         return
       }
       const nowSaved = await toggleSaved(session, id)
-      saveBtn.textContent = nowSaved ? '★' : '☆'
+      saveBtn.innerHTML = icons.bookmark(16, nowSaved)
       saveBtn.setAttribute('aria-label', nowSaved ? 'Quitar de guardados' : 'Guardar')
       saveBtn.classList.toggle('is-saved', nowSaved)
     })
@@ -250,7 +251,7 @@ export async function openGuideModal(guideId) {
     ${authorHtml}
     <div class="guide-modal-rating" id="guideModalRating"></div>
     <div class="modal-actions" style="flex-direction:row; margin-top:16px; align-items:center;">
-      <button class="btn-outline" id="guideModalSaveBtn">${isSaved ? '★ Guardado' : '☆ Guardar'}</button>
+      <button class="btn-outline" id="guideModalSaveBtn">${icons.bookmark(16, isSaved)} ${isSaved ? 'Guardado' : 'Guardar'}</button>
       ${
         guide.has_reference_blocks
           ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide">📖 Guía</a>`
@@ -274,7 +275,7 @@ export async function openGuideModal(guideId) {
     saveBtn.classList.toggle('is-saved', isSaved)
     saveBtn.addEventListener('click', async () => {
       const nowSaved = await toggleSaved(session, guide.id)
-      saveBtn.textContent = nowSaved ? '★ Guardado' : '☆ Guardar'
+      saveBtn.innerHTML = `${icons.bookmark(16, nowSaved)} ${nowSaved ? 'Guardado' : 'Guardar'}`
       saveBtn.classList.toggle('is-saved', nowSaved)
     })
   }

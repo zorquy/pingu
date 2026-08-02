@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml } from './app.js'
 import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
+import { icons } from './icons.js'
 
 async function loadCategories() {
   const grid = document.getElementById('categoriesGrid')
@@ -68,7 +69,7 @@ async function loadRecent() {
         <span class="rarity-chip rarity-${g.guide_rarity || 'bronze'}">${g.guide_rarity || 'bronze'}</span>
       </div>
       <div class="guide-card-social">
-        <button class="card-save-btn" data-card-save title="Guardar" aria-label="Guardar">☆</button>
+        <button class="card-save-btn" data-card-save title="Guardar" aria-label="Guardar">${icons.bookmark(16)}</button>
         <span class="card-rating" data-card-rating>Sin valorar</span>
       </div>
     </div>`

@@ -1802,13 +1802,13 @@ textarea.be-field {
 }
 
 .card-save-btn {
-  font-size: 14px;
-  line-height: 1;
-  padding: 4px 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
   border-radius: var(--radius-sm);
   background: var(--ice);
   color: var(--navy);
-  font-weight: 700;
 }
 
 .card-rating {
@@ -1941,9 +1941,9 @@ textarea.be-field {
 
 /* ── Reportar contenido ── */
 .report-btn {
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
   color: var(--text-dim);
-  font-weight: 700;
 }
 
 .report-btn:hover {

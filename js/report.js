@@ -1,8 +1,9 @@
 import { supabase } from './supabase.js'
 import { showToast } from './toast.js'
+import { icons } from './icons.js'
 
 export function reportButtonHtml(contentType, contentId) {
-  return `<button class="report-btn" data-report-type="${contentType}" data-report-id="${contentId}" title="Reportar">🚩</button>`
+  return `<button class="report-btn" data-report-type="${contentType}" data-report-id="${contentId}" title="Reportar" aria-label="Reportar">${icons.flag(14)}</button>`
 }
 
 export function wireReportButtons(containerEl, session) {

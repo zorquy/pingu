@@ -1919,3 +1919,43 @@ registro continúa con normalidad. Se rompió a propósito el chequeo de
 longitud (comprobando `< 100` en vez de `< 8`) para confirmar que el
 test detecta que una contraseña válida quedaría rechazada; se
 restauró y volvió a pasar.
+
+## Icono de guardar (marcador) y de reportar (bandera) en vez de emoji/estrella
+Detectaste dos iconos que no encajaban: el botón de "guardar" guía usaba
+una estrella (☆/★) tanto en la tarjeta pequeña como en el modal
+ampliado, que se confundía con la valoración de la guía (que también
+usa estrellas, justo al lado); y el botón de reportar seguía usando el
+emoji 🚩 en vez de un icono SVG, rompiendo la convención ya establecida
+en el resto del sitio (navbar, menú de cuenta, tema, etc., todos con
+`js/icons.js`).
+
+Se añadieron dos iconos nuevos a `js/icons.js`: `bookmark(size, filled)`
+(un marcador de página — el mismo icono en dos estados, relleno cuando
+está guardado y solo el contorno cuando no, para no necesitar dos SVGs
+distintos) y `flag(size)`. Se sustituyó:
+- `.card-save-btn` (tarjeta pequeña de guía, usada en `guide-modal.js`
+  y en la sección "Añadidas recientemente" de `js/home.js`) — ahora
+  pinta `icons.bookmark()` en vez de ☆/★, y `decorateGuideCards()`
+  alterna entre relleno/contorno igual que antes alternaba de estrella
+  vacía a llena.
+- El botón "Guardar"/"Guardado" del modal ampliado de guía
+  (`guideModalSaveBtn`, en `js/guide-modal.js`) — mismo icono, ahora
+  junto al texto en vez de sustituirlo por un asterisco de estrella.
+- `reportButtonHtml()` (en `js/report.js`, compartido por
+  `guide-modal.js`, `guide-forum.js`, `wall.js`, `usuario.js` y
+  `mensajes.js`) — ahora pinta `icons.flag()` en vez del emoji 🚩.
+
+Las estrellas de **valoración** (`starsHtml()`, el widget de puntuar
+de 1 a 5, `card-rating`) se dejaron tal cual — ahí sí tiene sentido
+usar estrellas, es justo lo que representan; el problema era solo que
+el botón de guardar usaba el mismo símbolo al lado y parecía parte de
+la valoración.
+
+Verificado con Playwright: el botón de guardar de la tarjeta ya no
+contiene ☆/★ sino un `<svg>`, y al guardar cambia a la versión
+rellena (`fill="currentColor"`); el botón "Guardar" del modal grande
+usa el mismo icono junto al texto; el botón de reportar ya no
+contiene el emoji 🚩 sino un `<svg>`. Se rompieron a propósito ambos
+cambios (report.js volviendo al emoji, y el botón del modal volviendo
+a ☆/★) para confirmar que el test detecta las dos regresiones; se
+restauraron y volvió a pasar todo.
