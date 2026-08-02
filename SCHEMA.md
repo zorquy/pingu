@@ -2256,3 +2256,34 @@ Verificado con Playwright: una guía nueva creada desde `/admin`
 guarda `author_id` igual al id de la sesión de admin logueada. Se
 rompió a propósito quitando ese campo del payload para confirmar que
 el test lo detecta, se restauró y volvió a pasar.
+
+## Comunidad: solo pendientes de revisión, no todo lo aprobado desde siempre
+
+`loadCommunityGuides()` (en `usuarios.js`) mostraba tanto guías
+`pending` como `approved`, ordenadas por fecha de envío descendente.
+Eso significaba que una vez aprobada, una guía se quedaba en la
+pestaña "Comunidad" para siempre — duplicando información, porque
+una guía aprobada ya vive en su categoría normal (Aprender/categoría)
+con su autor atribuido igual que cualquier guía oficial. Además,
+al confirmarlo se vio que las guías creadas directamente desde
+`/admin` (no enviadas a revisión) nunca llevan `review_status`
+relleno, así que nunca aparecían ahí — no por ser del admin, sino
+porque nunca pasaron por el flujo de envío/aprobación.
+
+Se cambió a mostrar solo `review_status = 'pending'`, ordenadas por
+fecha de envío **ascendente** (las más antiguas primero, para que
+ninguna quede esperando revisión enterrada bajo envíos más nuevos).
+Se quitó también el badge "✓ Aprobada" de la fila compacta, porque
+ahora todo lo que aparece ahí es por definición pendiente.
+
+Verificado con Playwright: una guía aprobada con autor de la
+comunidad ya no aparece en Comunidad; una rechazada tampoco; una
+creada desde `/admin` sin autor tampoco; las pendientes sí aparecen
+con el badge "Pendiente", y la más antigua sale antes que la más
+reciente. Se rompió a propósito volviendo al filtro y orden
+anteriores para confirmar que el test detecta que la guía aprobada
+reaparece, se restauró y volvió a pasar. (El test de paginación de
+Comunidad, que usa 12 guías de relleno para probar la página 2 y la
+búsqueda, se actualizó para que esas guías de relleno sean `pending`
+en vez de `approved` — ya que su propósito es rellenar la lista que
+ahora es solo de pendientes, no representar guías aprobadas reales.)

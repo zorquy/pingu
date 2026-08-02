@@ -73,12 +73,11 @@ async function loadUsers() {
 // de guide-modal.js: aquí puede haber cientos de guías de calidad muy
 // variable, así que se listan finas en vez de en tarjetas grandes.
 function renderCommunityGuideRowHtml(guide) {
-  const approved = guide.review_status === 'approved'
   return `
   <div class="community-guide-row" data-guide-id="${guide.id}">
     <div class="community-guide-row-icon">${escapeHtml(guide.cover_emoji || '📘')}</div>
     <div class="community-guide-row-info">
-      <h3>${escapeHtml(guide.title)}<span class="badge community-guide-row-badge ${approved ? 'badge-completed' : 'badge-pro'}">${approved ? '✓ Aprobada' : 'Pendiente'}</span></h3>
+      <h3>${escapeHtml(guide.title)}<span class="badge community-guide-row-badge badge-pro">Pendiente</span></h3>
       <p>${guide.authorName ? `De ${escapeHtml(guide.authorName)} — ` : ''}${escapeHtml(guide.description || '')}</p>
     </div>
     <div class="community-guide-row-meta">
@@ -88,7 +87,9 @@ function renderCommunityGuideRowHtml(guide) {
   </div>`
 }
 
-// ── Guías de la comunidad (pendientes de revisión + ya aprobadas) ──
+// ── Guías de la comunidad pendientes de revisión (las aprobadas ya
+// viven en su categoría normal, con su autor atribuido — no hace
+// falta duplicarlas aquí) ──
 function renderCommunityGuides(list, session, page = 1) {
   const grid = document.getElementById('communityGuidesGrid')
   const empty = document.getElementById('communityGuidesEmpty')
@@ -130,8 +131,8 @@ async function loadCommunityGuides(session) {
     .from('guides')
     .select('*, categories(name)')
     .not('author_id', 'is', null)
-    .in('review_status', ['pending', 'approved'])
-    .order('submitted_at', { ascending: false })
+    .eq('review_status', 'pending')
+    .order('submitted_at', { ascending: true })
 
   const list = guides || []
   const authorIds = [...new Set(list.map((g) => g.author_id))]
