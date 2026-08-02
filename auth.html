@@ -50,6 +50,12 @@
         <div class="form-group" style="margin-top: 10px;">
           <input type="password" id="registerPassword" class="auth-input" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password" />
         </div>
+        <!-- Honeypot anti-bot: invisible para personas, pero un bot que rellena
+             todos los campos de un formulario suele caer en este. Si llega
+             relleno, el registro se descarta en silencio (ver js/auth.js). -->
+        <div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; opacity: 0;" aria-hidden="true">
+          <input type="text" id="registerWebsite" name="website" tabindex="-1" autocomplete="off" />
+        </div>
         <p class="auth-error"></p>
         <button id="btnRegister" class="btn-primary btn-block" style="margin-top: 8px;">Crear cuenta →</button>
         <button id="btnGoogleRegister" class="btn-outline btn-block auth-google-btn" style="margin-top: 10px;">Continuar con Google</button>

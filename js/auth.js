@@ -135,6 +135,17 @@ btnResendConfirmation?.addEventListener('click', async () => {
 // ── Registro ──
 const btnRegister = document.getElementById('btnRegister')
 
+function showFakeRegisterSuccess() {
+  setError(steps.register, '')
+  steps.register.querySelector('h2').textContent = 'Revisa tu email'
+  steps.register.querySelector('.subtext').textContent = 'Te hemos enviado un enlace para confirmar tu cuenta. Ábrelo y luego inicia sesión.'
+  document.getElementById('registerName').closest('.form-group').classList.add('hidden')
+  document.getElementById('registerEmail').closest('.form-group').classList.add('hidden')
+  document.getElementById('registerPassword').closest('.form-group').classList.add('hidden')
+  btnRegister.classList.add('hidden')
+  document.getElementById('btnGoogleRegister').classList.add('hidden')
+}
+
 btnRegister?.addEventListener('click', async () => {
   const name = document.getElementById('registerName').value.trim()
   const email = document.getElementById('registerEmail').value.trim()
@@ -154,6 +165,15 @@ btnRegister?.addEventListener('click', async () => {
     return
   }
 
+  // Honeypot anti-bot: un campo invisible para personas (ver auth.html) que
+  // solo un bot rellenaría. Si viene relleno, se finge éxito sin llegar a
+  // crear ninguna cuenta ni gastar un intento real contra Supabase — así el
+  // bot no aprende que se le ha detectado y no insiste con más variantes.
+  if (document.getElementById('registerWebsite')?.value) {
+    showFakeRegisterSuccess()
+    return
+  }
+
   btnRegister.disabled = true
   btnRegister.textContent = 'Creando cuenta...'
 
@@ -170,14 +190,7 @@ btnRegister?.addEventListener('click', async () => {
   if (!data.session) {
     // El proyecto de Supabase tiene activada la confirmación por email:
     // la cuenta se crea pero no hay sesión hasta que se confirme.
-    setError(steps.register, '')
-    steps.register.querySelector('h2').textContent = 'Revisa tu email'
-    steps.register.querySelector('.subtext').textContent = 'Te hemos enviado un enlace para confirmar tu cuenta. Ábrelo y luego inicia sesión.'
-    document.getElementById('registerName').closest('.form-group').classList.add('hidden')
-    document.getElementById('registerEmail').closest('.form-group').classList.add('hidden')
-    document.getElementById('registerPassword').closest('.form-group').classList.add('hidden')
-    btnRegister.classList.add('hidden')
-    document.getElementById('btnGoogleRegister').classList.add('hidden')
+    showFakeRegisterSuccess()
     return
   }
 

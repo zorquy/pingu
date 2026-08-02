@@ -1644,3 +1644,33 @@ tenga configurado; el perfil público (`usuario.html`) también lo
 muestra. Se rompió a propósito la condición que decide dibujo-vs-
 emoji para confirmar que el test lo detecta; se restauró y volvió a
 pasar.
+
+## Honeypot anti-bot en el registro
+Campo trampa (`#registerWebsite`, en `auth.html`) que una persona
+nunca ve — fuera de pantalla (`left: -9999px`) y con el contenedor a
+`opacity: 0`, más `tabindex="-1"` y `aria-hidden` — pero que un bot
+que rellena todos los campos de un formulario suele acabar rellenando
+igualmente. Si llega relleno, `js/auth.js` ni siquiera llama a
+`supabase.auth.signUp()`: directamente finge la misma pantalla de
+éxito ("Revisa tu email") que ve alguien real tras registrarse, para
+no delatarse ni gastar un intento real contra Supabase. Esa pantalla
+de éxito se extrajo a una función compartida, `showFakeRegisterSuccess()`,
+que ahora usan tanto el caso real (cuando el proyecto tiene activada
+la confirmación por email) como el caso honeypot.
+
+Nota de test: Playwright considera "visible" cualquier elemento con
+caja no vacía y sin `visibility:hidden`, sin tener en cuenta la
+posición fuera de pantalla ni la opacidad heredada del contenedor —
+que es justo la técnica usada aquí a propósito, para despistar
+también a bots que sí comprueban `display:none`/`visibility:hidden`.
+Por eso el test no usa `isVisible()` de Playwright, sino que comprueba
+directamente la posición y la opacidad del contenedor.
+
+Verificado con Playwright: el campo existe pero queda fuera de
+pantalla y con opacidad 0; rellenarlo hace que nunca se llegue a
+llamar a `signUp()` de verdad (el botón nunca pasa por "Creando
+cuenta...") y aun así se muestra la pantalla de éxito; un registro
+normal, sin tocar el campo trampa, sigue funcionando igual que antes.
+Se rompió a propósito la comprobación del honeypot para confirmar que
+el test detecta que se cuela un registro real; se restauró y volvió
+a pasar.
