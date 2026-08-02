@@ -16,52 +16,59 @@
 --   desaparecer porque su autor borre la cuenta — pasa a mostrarse
 --   como "Guía oficial de PokeDoc", que ya es como se comporta el
 --   código cuando author_id es null).
+--
+-- Se salta automáticamente cualquier tabla que todavía no exista en
+-- tu base (por si alguna de sus migraciones no se ha ejecutado
+-- todavía) y busca el nombre real de cada restricción en vez de
+-- asumirlo, así que da igual cómo se llame.
 -- ============================================================
 
--- user_profiles no se creó con ningún script de este repo, así que
--- no sabemos el nombre exacto de su restricción — la buscamos en
--- vez de asumirlo.
 do $$
 declare
+  targets text[][] := array[
+    array['public.user_profiles', 'id', 'CASCADE'],
+    array['public.account_deletion_requests', 'user_id', 'CASCADE'],
+    array['public.app_feedback', 'user_id', 'CASCADE'],
+    array['public.content_reports', 'reporter_id', 'CASCADE'],
+    array['public.client_errors', 'user_id', 'SET NULL'],
+    array['public.page_views', 'user_id', 'SET NULL'],
+    array['public.guides', 'author_id', 'SET NULL']
+  ];
+  t text[];
   fk record;
+  col_attnum smallint;
+  new_conname text;
 begin
-  for fk in
-    select conname from pg_constraint
-    where conrelid = 'public.user_profiles'::regclass
-      and confrelid = 'auth.users'::regclass
-      and contype = 'f'
+  foreach t slice 1 in array targets
   loop
-    execute format('alter table public.user_profiles drop constraint %I', fk.conname);
+    if to_regclass(t[1]) is null then
+      raise notice 'Tabla % no existe todavía, se salta.', t[1];
+      continue;
+    end if;
+
+    select attnum into col_attnum
+    from pg_attribute
+    where attrelid = t[1]::regclass and attname = t[2] and not attisdropped;
+
+    if col_attnum is null then
+      raise notice 'Columna %.% no existe todavía, se salta.', t[1], t[2];
+      continue;
+    end if;
+
+    for fk in
+      select conname from pg_constraint
+      where conrelid = t[1]::regclass
+        and confrelid = 'auth.users'::regclass
+        and contype = 'f'
+        and conkey = array[col_attnum]
+    loop
+      execute format('alter table %s drop constraint %I', t[1], fk.conname);
+    end loop;
+
+    new_conname := replace(t[1], 'public.', '') || '_' || t[2] || '_fkey';
+    execute format(
+      'alter table %s add constraint %I foreign key (%I) references auth.users(id) on delete %s',
+      t[1], new_conname, t[2], t[3]
+    );
   end loop;
-
-  alter table public.user_profiles
-    add constraint user_profiles_id_fkey
-    foreign key (id) references auth.users(id) on delete cascade;
 end $$;
-
--- El resto sí se creó con migraciones de este repo (referencia
--- inline sin nombre propio), así que Postgres les puso el nombre
--- automático <tabla>_<columna>_fkey.
-alter table account_deletion_requests drop constraint if exists account_deletion_requests_user_id_fkey;
-alter table account_deletion_requests add constraint account_deletion_requests_user_id_fkey
-  foreign key (user_id) references auth.users(id) on delete cascade;
-
-alter table app_feedback drop constraint if exists app_feedback_user_id_fkey;
-alter table app_feedback add constraint app_feedback_user_id_fkey
-  foreign key (user_id) references auth.users(id) on delete cascade;
-
-alter table content_reports drop constraint if exists content_reports_reporter_id_fkey;
-alter table content_reports add constraint content_reports_reporter_id_fkey
-  foreign key (reporter_id) references auth.users(id) on delete cascade;
-
-alter table client_errors drop constraint if exists client_errors_user_id_fkey;
-alter table client_errors add constraint client_errors_user_id_fkey
-  foreign key (user_id) references auth.users(id) on delete set null;
-
-alter table page_views drop constraint if exists page_views_user_id_fkey;
-alter table page_views add constraint page_views_user_id_fkey
-  foreign key (user_id) references auth.users(id) on delete set null;
-
-alter table guides drop constraint if exists guides_author_id_fkey;
-alter table guides add constraint guides_author_id_fkey
-  foreign key (author_id) references auth.users(id) on delete set null;

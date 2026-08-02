@@ -2206,3 +2206,17 @@ sin autor de la comunidad). Como `user_profiles` no se creó con
 ningún script de este repo, la migración busca el nombre real de su
 restricción en vez de asumirlo, por si se llama distinto a lo
 habitual.
+
+Al ejecutarla la primera vez saltó `ERROR: 42P01: relation
+"content_reports" does not exist"` — esa migración en concreto no se
+había llegado a ejecutar todavía. Se reescribió el script para que
+compruebe con `to_regclass()` si cada tabla (y columna) existe antes
+de tocarla, así que ahora se salta silenciosamente (con un `NOTICE`,
+no un error) cualquier tabla que todavía no tengas creada, en vez de
+abortar todo el script a la primera que falte. Probado de extremo a
+extremo en una base Postgres local: creando un usuario con filas en
+las siete tablas y borrándolo, las de cascada se vacían y las de
+`SET NULL` conservan la fila con la referencia a `null`; también se
+comprobó que el script se puede volver a ejecutar sin problema
+(vuelve a dejar las restricciones igual) y que si `content_reports`
+sí existe, la reconstruye con cascada con normalidad.
