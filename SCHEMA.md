@@ -1418,3 +1418,34 @@ entorno (solo al stub de pruebas), así que no puedo confirmar qué
 contenido de prueba hay de verdad ahí — este script es para que tú
 mismo lo compruebes, no una lista de cosas que ya sé que hay que
 borrar.
+
+## SEO mínimo
+Favicon (`assets/favicon.svg`, un icono simple con la misma "P" en
+navy que ya usa `.nav-logo::before`), enlazado desde las 19 páginas
+HTML del sitio (públicas y de admin). Meta description añadida a las
+páginas públicas que no la tenían (`aprender`, `buscar`, `categoria`,
+`curso`, `guia`, `usuario`, `usuarios`) — `index`, `auth`, `terminos`
+y `privacidad` ya la tenían de antes.
+
+Las páginas que no tiene sentido que indexe un buscador (acciones
+privadas de cuenta, o todo `/admin/`) llevan `<meta name="robots"
+content="noindex" />`: `editor-guia.html`, `guardados.html`,
+`mensajes.html`, `onboarding.html`, `perfil.html`,
+`reset-password.html` y las dos páginas de `/admin/`.
+
+`robots.txt` bloquea `/admin/` y apunta a `sitemap.xml`. El sitemap
+solo lista páginas verdaderamente estáticas (`index`, `aprender`,
+`buscar`, `usuarios`, `terminos`, `privacidad`) — las páginas de
+contenido dinámico (`categoria.html`, `guia.html`, `usuario.html`...)
+se quedan fuera a propósito, porque sus URLs dependen de datos que
+viven en Supabase y generarlas necesitaría un paso de compilación en
+el despliegue que este proyecto no tiene. **El sitemap usa
+`https://tu-dominio.example/...` como placeholder — hay que
+sustituirlo por el dominio real antes de que sirva de algo.**
+
+Verificado con Playwright: el favicon aparece en el `<head>`, una
+página pública tiene meta description y no tiene noindex, una página
+privada (mensajes) y el admin sí llevan noindex, `robots.txt` bloquea
+`/admin/` y `sitemap.xml` se sirve con `index.html` dentro. Se rompió
+a propósito el `Disallow` de `robots.txt` para confirmar que el test
+lo detecta; se restauró y volvió a pasar.

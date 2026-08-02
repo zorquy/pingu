@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sustituye "https://tu-dominio.example" por el dominio real de Netlify
+  (o el dominio propio, si tienes uno) antes de dar esto por bueno —
+  no lo sé desde aquí y un sitemap con el dominio equivocado no sirve
+  de nada para Google.
+
+  Solo incluye páginas verdaderamente estáticas. Las páginas de
+  contenido dinámico (categoria.html, guia.html, usuario.html...) no
+  están aquí porque sus URLs dependen de datos que viven en Supabase,
+  no en el código del sitio — generarlas necesitaría un paso de
+  compilación en el despliegue, que este proyecto no tiene.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://tu-dominio.example/index.html</loc></url>
+  <url><loc>https://tu-dominio.example/aprender.html</loc></url>
+  <url><loc>https://tu-dominio.example/buscar.html</loc></url>
+  <url><loc>https://tu-dominio.example/usuarios.html</loc></url>
+  <url><loc>https://tu-dominio.example/terminos.html</loc></url>
+  <url><loc>https://tu-dominio.example/privacidad.html</loc></url>
+</urlset>
