@@ -2261,3 +2261,55 @@ textarea.be-field {
     max-width: none;
   }
 }
+
+/* ── Páginas legales (Términos, Privacidad) ── */
+.legal-page h2 {
+  margin: 32px 0 10px;
+  font-size: 18px;
+}
+
+.legal-page h2:first-of-type {
+  margin-top: 8px;
+}
+
+.legal-page p,
+.legal-page li {
+  color: var(--text-mid);
+  line-height: 1.65;
+  font-size: 14.5px;
+}
+
+.legal-page ul {
+  margin: 8px 0 8px 4px;
+}
+
+.legal-page li {
+  margin: 4px 0;
+  padding-left: 18px;
+  position: relative;
+}
+
+.legal-page li::before {
+  content: '•';
+  position: absolute;
+  left: 2px;
+  color: var(--navy);
+}
+
+.legal-page .subtext {
+  margin-bottom: 24px;
+}
+
+/* ── Footer con enlaces legales ── */
+.footer-links {
+  margin-top: 8px;
+}
+
+.footer-links a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footer-links a:hover {
+  color: var(--navy);
+}

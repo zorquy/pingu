@@ -1323,3 +1323,27 @@ revisado (tras lo cual desaparece de la lista de "nuevo"). Se
 comprobó el detector de regresiones cambiando el filtro de
 `loadFeedback()` a `status = 'reviewed'`: el test detectó que el admin
 dejaba de ver el feedback nuevo; se restauró y volvió a pasar.
+
+## Páginas de Términos de uso y Privacidad
+Dos páginas estáticas nuevas, `terminos.html` y `privacidad.html`, con
+el mismo navbar/footer que el resto del sitio (clase `.legal-page`
+nueva en `css/components.css` para el espaciado de títulos/párrafos/
+listas). El footer de las 13 páginas públicas que ya tenían pie de
+página (`index.html`, `aprender.html`, `buscar.html`, `categoria.html`,
+`editor-guia.html`, `guardados.html`, `guia.html`, `mensajes.html`,
+`perfil.html`, `usuario.html`, `usuarios.html`, además de las dos
+nuevas) ahora enlaza a ambas.
+
+El contenido cubre lo esencial para una beta cerrada en español: qué
+es PokeDoc y el aviso de que no está afiliado a Nintendo/Game Freak/
+The Pokémon Company (al tratarse de un sitio de fans sobre el TCG de
+Pokémon), qué datos se guardan y para qué, con quién se comparten
+(Supabase y Netlify, que son quienes alojan el sitio), moderación y
+reportes, y cómo pedir que se borren los datos (a mano, vía el botón
+de feedback, ya que todavía no hay autoservicio).
+
+Verificado con Playwright: el footer de la home lleva a ambas
+páginas, cada una carga con su título y su contenido clave (el aviso
+de marcas en Términos, la mención a Supabase/Netlify en Privacidad).
+Se rompió a propósito el texto de un enlace del footer para confirmar
+que el test lo detecta; se restauró y volvió a pasar.

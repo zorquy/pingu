@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacidad — PokeDoc</title>
+  <meta name="description" content="Política de privacidad de PokeDoc: qué datos guardamos y para qué." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="index.html">Inicio</a>
+        <a href="aprender.html">Aprender</a>
+        <a href="buscar.html">Buscar</a>
+        <a href="guardados.html">Guardados</a>
+        <a href="usuarios.html">Comunidad</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="index.html">Inicio</a>
+      <a href="aprender.html">Aprender</a>
+      <a href="buscar.html">Buscar</a>
+      <a href="guardados.html">Guardados</a>
+      <a href="usuarios.html">Comunidad</a>
+    </div>
+  </nav>
+
+  <main class="page-content container-narrow legal-page">
+    <div class="page-header" style="padding-top: 8px;">
+      <h1>Privacidad</h1>
+      <p class="subtext">Última actualización: agosto de 2026. Somos un proyecto pequeño en fase beta — esto resume, en lenguaje claro, qué datos guardamos y por qué.</p>
+    </div>
+
+    <h2>1. Qué datos guardamos</h2>
+    <ul>
+      <li><strong>De tu cuenta:</strong> email, y si te registras con Google, el nombre y la foto que compartas desde ahí.</li>
+      <li><strong>De tu perfil:</strong> nombre de usuario, nombre para mostrar, biografía, avatar y color de portada — todo lo que rellenes tú mismo, es opcional salvo el nombre de usuario.</li>
+      <li><strong>De tu actividad:</strong> las guías, comentarios, reseñas y mensajes privados que escribas; tus valoraciones, seguidores/seguidos, XP y logros conseguidos.</li>
+      <li><strong>Técnicos:</strong> tu tema (claro/oscuro) se guarda en tu navegador (localStorage), no en el servidor.</li>
+    </ul>
+    <p>No pedimos ni guardamos datos de pago — PokeDoc no vende nada.</p>
+
+    <h2>2. Para qué los usamos</h2>
+    <ul>
+      <li>Para que puedas iniciar sesión y usar las funciones de la comunidad (guías, mensajes, seguidores, notificaciones...).</li>
+      <li>Para mostrar tu perfil público a otros usuarios, con la información que tú decidas rellenar.</li>
+      <li>Para moderar el contenido reportado por la comunidad.</li>
+      <li>Para mejorar PokeDoc, a partir del feedback que nos mandes.</li>
+    </ul>
+    <p>No usamos tus datos con fines publicitarios ni los vendemos a terceros.</p>
+
+    <h2>3. Con quién los compartimos</h2>
+    <p>PokeDoc funciona sobre <strong>Supabase</strong> (base de datos, autenticación y almacenamiento de imágenes) y se aloja en <strong>Netlify</strong>. Si te registras con Google, Google procesa la autenticación según sus propias condiciones. No compartimos tus datos con nadie más.</p>
+
+    <h2>4. Mensajes privados</h2>
+    <p>Los mensajes que envías a otro usuario solo los puede leer esa persona. El equipo de moderación solo puede acceder a un mensaje concreto si alguien lo ha reportado — nunca al resto de la conversación.</p>
+
+    <h2>5. Cookies y almacenamiento local</h2>
+    <p>No usamos cookies de rastreo ni de publicidad. Usamos el almacenamiento local de tu navegador (localStorage) únicamente para recordar tu sesión y tu tema (claro/oscuro).</p>
+
+    <h2>6. Tus derechos</h2>
+    <p>Puedes editar o borrar tu propio contenido (guías, comentarios, mensajes) en cualquier momento desde la propia app. Si quieres que eliminemos tu cuenta o los datos asociados, escríbenos usando el botón de feedback — al ser una beta pequeña, de momento este proceso lo gestionamos a mano en vez de con un botón de autoservicio.</p>
+
+    <h2>7. Contacto</h2>
+    <p>Para cualquier duda sobre privacidad, puedes escribirnos usando el botón de feedback dentro de la app.</p>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 PokeDoc — Hecho para coleccionistas.</p>
+    <p class="footer-links"><a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
