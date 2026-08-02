@@ -150,7 +150,11 @@ function openCategoryModal(category) {
       order_pos: Number(document.getElementById('catOrder').value) || 0,
     }
     if (c.id) payload.id = c.id
-    await supabase.from('categories').upsert(payload)
+    const { error } = await supabase.from('categories').upsert(payload)
+    if (error) {
+      showToast('No se pudo guardar la categoría: ' + error.message)
+      return
+    }
     closeModal()
     loadCategories()
   })
@@ -219,7 +223,11 @@ function openCollectionModal(collection) {
       category_id: document.getElementById('colCategory').value,
     }
     if (col.id) payload.id = col.id
-    await supabase.from('guide_collections').upsert(payload)
+    const { error } = await supabase.from('guide_collections').upsert(payload)
+    if (error) {
+      showToast('No se pudo guardar la colección: ' + error.message)
+      return
+    }
     closeModal()
     loadCollections()
   })
@@ -410,7 +418,11 @@ function openPathModal(path) {
       is_featured: document.getElementById('pFeatured').checked,
     }
     if (p.id) payload.id = p.id
-    await supabase.from('learning_paths').upsert(payload)
+    const { error } = await supabase.from('learning_paths').upsert(payload)
+    if (error) {
+      showToast('No se pudo guardar la ruta: ' + error.message)
+      return
+    }
     closeModal()
     loadPaths()
   })
@@ -528,7 +540,11 @@ function openAchievementModal(achievement) {
       if (!newId) return
       payload.id = newId
     }
-    await supabase.from('achievement_definitions').upsert(payload)
+    const { error } = await supabase.from('achievement_definitions').upsert(payload)
+    if (error) {
+      showToast('No se pudo guardar el logro: ' + error.message)
+      return
+    }
     invalidateAchievementsCache()
     closeModal()
     loadAchievements()

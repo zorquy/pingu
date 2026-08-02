@@ -2152,3 +2152,30 @@ muestra su contenido real en vez del aviso de "completa el curso".
 Se rompió a propósito reintroduciendo la comprobación de
 `isUnlocked` para confirmar que el test la detecta, se restauró y
 volvió a pasar.
+
+## Bug real: crear/editar categorías (y colecciones, rutas, logros) en `/admin` no avisaba si fallaba
+
+Los formularios de "Categorías", "Colecciones", "Rutas" y "Logros" en
+`/admin` guardaban con `supabase.from(tabla).upsert(payload)` sin
+comprobar el `error` de la respuesta — el mismo patrón de bug ya
+corregido antes en "Editar perfil" (`js/perfil.js`). Si el `upsert`
+fallaba (RLS, restricción única en `slug`, columna obligatoria
+vacía...), el código seguía igual cerrando el modal y recargando la
+tabla como si hubiera ido bien, así que la nueva fila simplemente no
+aparecía sin ningún aviso — justo el síntoma reportado ("le doy a
+guardar y no hace nada"). Se corrigió en los cuatro formularios: si
+`upsert` devuelve error, se muestra un toast con el mensaje real de
+Supabase y el modal se queda abierto para poder corregir y
+reintentar.
+
+Verificado con Playwright: crear una categoría nueva se refleja en
+la tabla y cierra el modal; un guardado que falla (simulado en el
+stub de pruebas con un error de RLS) muestra el toast de error y
+mantiene el modal abierto en vez de fingir éxito. Se rompió a
+propósito quitando la comprobación del error para confirmar que los
+dos últimos tests fallan, se restauró y volvieron a pasar los 4.
+
+Nota para ti: ahora que esto está arreglado, si sigues sin poder
+crear "Mazos & estrategia" el toast te dirá el motivo exacto (por
+ejemplo, si el slug ya existe o si hay algún problema de permisos) —
+avísame con el mensaje exacto que te salga y lo diagnosticamos.
