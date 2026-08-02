@@ -305,7 +305,6 @@ function buildPayload() {
     reference_unlocked_by_default: document.getElementById('gRefUnlocked').checked,
     blocks: courseBlocks,
     reference_blocks: refBlocks,
-    has_reference_blocks: refBlocks.length > 0,
     has_pro_content: !!proPublishedAt,
     route_ids: selectedRoutes.map((r) => r.routeId),
   }

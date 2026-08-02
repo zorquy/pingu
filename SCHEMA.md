@@ -26,7 +26,9 @@ para mostrar cabeceras de sección cuando una guía tiene `collection_id`.
 `tags` (text[]) · `cover_emoji` · `cover_image` · `published_at` ·
 `created_at` · `reference_blocks` (jsonb, artículo de referencia) ·
 `reference_unlocked_by_default` (bool) · `has_reference_blocks` (bool,
-calculado en `/admin` al guardar) · `route_ids` (uuid[], copia
+**columna generada por Postgres** a partir de `reference_blocks` — el
+cliente no debe enviar ningún valor para ella, ver más abajo) ·
+`route_ids` (uuid[], copia
 desnormalizada — la fuente de verdad para consultas es `guide_routes`) ·
 `level` (`beginner`/`intermediate`/`advanced`) · `view_count` (se
 incrementa desde `curso.html` y `guia.html`) · `collection_id` (FK) ·
@@ -1799,3 +1801,36 @@ acceso de red para descargar el binario de WebKit — la auditoría se
 hizo con la emulación de viewport de Chromium, que cubre el problema
 real (es un desbordamiento de layout por ancho, no algo específico
 del motor de render).
+
+## Bug real (reportado en producción): no se podía guardar ninguna guía nueva
+Error real que diste tú: `No se pudo guardar la guía: cannot insert a
+non-DEFAULT value into column "has_reference_blocks"`. Ese mensaje es
+el que da Postgres cuando una columna es **generada** (`GENERATED
+ALWAYS AS (...) STORED`) y alguien intenta enviarle un valor a mano —
+lo rechaza aunque el valor "calculado a mano" coincida con lo que la
+propia base habría calculado.
+
+En tu base real, `guides.has_reference_blocks` es justo eso: una
+columna generada a partir de `reference_blocks`, no una columna
+normal que el cliente rellena. Pero tanto `js/editor-guia.js`
+(editor de la comunidad) como `admin/js/editor-guia.js` (editor de
+admin) seguían calculando `has_reference_blocks: refBlocks.length >
+0` en el propio JS y mandándolo en el `insert`/`upsert` — lo cual
+bloqueaba **cualquier guardado de guía nueva o editada**, no solo un
+caso concreto. Este documento tenía además la descripción antigua
+("calculado en /admin al guardar"), que asumía que era una columna
+normal — ya está corregida arriba.
+
+Arreglo: se quitó `has_reference_blocks` del payload en los dos
+editores. Ahora es Postgres quien la calcula sola en cada
+insert/update, que es exactamente para lo que sirve una columna
+generada — el frontend no tiene que tocarla ni mantenerla
+sincronizada a mano, y sigue leyéndose igual en `js/guide-modal.js`
+(para decidir si el botón de Documentación aparece habilitado).
+
+No he podido reproducir el error exacto contra la base real (este
+sandbox no tiene acceso de red a Supabase), pero el mensaje de
+Postgres es inequívoco sobre la causa, y el fix es quitar el campo
+del payload — no hay otra forma de que ese error concreto
+desaparezca. Verifica guardando una guía nueva desde tu perfil o
+desde `/admin` para confirmar que ya funciona.

@@ -117,7 +117,6 @@ function buildPayload(reviewStatus) {
     level: document.getElementById('mgLevel').value,
     blocks: courseBlocks,
     reference_blocks: refBlocks,
-    has_reference_blocks: refBlocks.length > 0,
     author_id: currentSession.user.id,
     review_status: reviewStatus,
     submitted_at: reviewStatus === 'pending' ? new Date().toISOString() : existingGuide?.submitted_at || null,
