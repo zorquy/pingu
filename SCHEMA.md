@@ -2328,3 +2328,65 @@ funcionaba). Se rompió a propósito cada arreglo por separado
 (volviendo a `var(--white)`, y quitando el separador que fuerza el
 salto de línea) para confirmar que el test detecta cada regresión,
 se restauraron y volvió a pasar todo.
+
+## Bug real: texto negro en modo oscuro en el buscador
+
+`.search-input` (usado en `/buscar`, en el desplegable de búsqueda de
+la navbar, y en los dos buscadores de la pestaña Comunidad) ponía
+`background: var(--white)` — que en modo oscuro es un fondo casi
+negro — pero nunca fijaba `color`, así que el texto escrito se
+quedaba con el negro por defecto del navegador: negro sobre casi
+negro, ilegible. Es el mismo patrón de bug que ya apareció antes con
+`--white` mal usado como "blanco literal" en vez de como el token de
+superficie que realmente es.
+
+Antes de aplicar el arreglo se hizo una auditoría automática con
+Playwright de todos los `<input>`/`<textarea>`/`<select>` visibles en
+10 páginas del sitio en modo oscuro, comparando el contraste real
+entre `color` y `background-color` calculados por el navegador (no
+solo mirando el CSS a ojo). `.search-input` fue el único caso con
+contraste roto en todo el sitio — se confirmó también revisando el
+CSS entero en busca de cualquier otra regla de campo de formulario
+que fije un fondo reactivo al tema (`var(--white)`/`var(--ice)`/
+`var(--bg)`) sin fijar también el color del texto; no había ninguna
+más. Se corrigió añadiendo `color: var(--text)`.
+
+Verificado con Playwright: el texto escrito en el buscador usa el
+color de texto correcto sobre el fondo oscuro. Se rompió a propósito
+quitando el `color` para confirmar que el test detecta que vuelve a
+ser negro, se restauró y volvió a pasar.
+
+## Bug real: tarjetas de "Mis guías" de alturas distintas
+
+En la pestaña "Guías" del perfil propio, cada guía se pintaba en una
+fila `flex-wrap: wrap` sin límite de ancho para el título. Un título
+largo (p. ej. "Cómo detectar una caja de Pokémon falsa (guía
+visual)") se partía en dos líneas y encima empujaba el badge de
+estado a una tercera línea, haciendo esa fila mucho más alta que las
+de títulos cortos — rompiendo la sensación de lista uniforme.
+
+Se corrigió en dos partes:
+- El título ahora se recorta a una sola línea con "…" en vez de
+  partirse (`text-overflow: ellipsis`), y el `<span>` lleva un
+  atributo `title` con el texto completo para poder leerlo entero al
+  pasar el cursor. La fila pasa a `flex-wrap: nowrap` y el badge/los
+  botones se marcan `flex-shrink: 0` para que solo el título ceda
+  espacio, nunca ellos.
+- Un segundo desajuste de 6px: las guías aprobadas o pendientes no
+  muestran los botones "Editar"/"Eliminar" (solo aplican a borrador y
+  rechazada), así que ese hueco quedaba sin altura y esas filas
+  salían más bajas que las que sí tienen botones. Se le puso una
+  `min-height` a `.my-guide-actions` para reservar el espacio siempre,
+  tengan botones o no.
+- Se dejó aparte, a propósito, el caso de una guía rechazada: esa
+  fila sí puede ser más alta que el resto, porque muestra el motivo
+  real del rechazo (información necesaria, no solo un título largo).
+
+Verificado con Playwright en móvil y escritorio: una guía con título
+larguísimo y otra con título corto miden ahora exactamente lo mismo
+de alto (antes: 80px vs 48px; ahora: 54px vs 54px), el título largo
+se ve recortado con "…" y el tooltip conserva el texto completo. Se
+rompió a propósito cada uno de los tres cambios por separado (volver
+a `flex-wrap: wrap`, quitar el `min-height` de las acciones) para
+confirmar que el test detecta cada regresión, se restauraron y
+volvió a pasar todo.

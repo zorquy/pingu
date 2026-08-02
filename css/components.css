@@ -974,6 +974,7 @@ textarea.be-field {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
+  color: var(--text);
   outline: none;
   transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
@@ -1606,7 +1607,7 @@ textarea.be-field {
 
 .my-guide-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
@@ -1617,9 +1618,38 @@ textarea.be-field {
   font-size: 14px;
 }
 
+/* El título se recorta con "…" en vez de partirse en varias líneas,
+   para que todas las filas midan lo mismo sin importar lo largo que
+   sea el título (el atributo title="" del span deja leerlo entero al
+   pasar el ratón). El badge y los botones nunca se encogen ni saltan
+   de línea: solo el título cede espacio. */
+.my-guide-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-guide-row > .badge {
+  flex-shrink: 0;
+}
+
 .my-guide-actions {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
+  /* Los botones Editar/Eliminar solo salen en borradores y guías
+     rechazadas; en las demás filas este hueco queda vacío. Se
+     reserva su altura igualmente para que todas las filas midan lo
+     mismo tengan o no botones. */
+  min-height: 24px;
+}
+
+/* La fila de guías rechazadas sí puede ser más alta que el resto —
+   lleva un motivo de rechazo real, no es solo un título largo. */
+.my-guide-row:has(.my-guide-reason) {
+  flex-wrap: wrap;
 }
 
 .my-guide-actions button {
