@@ -843,6 +843,64 @@ async function loadFeedback() {
   )
 }
 
+// ── Errores de cliente (registrados automáticamente desde error-log.js) ──
+async function loadClientErrors() {
+  const { data } = await supabase
+    .from('client_errors')
+    .select('*')
+    .eq('status', 'new')
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  const items = data || []
+  const userIds = [...new Set(items.map((e) => e.user_id).filter(Boolean))]
+  const { data: usersData } = userIds.length > 0 ? await supabase.from('user_profiles').select('id, display_name, username').in('id', userIds) : { data: [] }
+  const userById = Object.fromEntries((usersData || []).map((u) => [u.id, u]))
+
+  const container = document.getElementById('errorsTable')
+  if (items.length === 0) {
+    container.innerHTML = `<p class="empty-state">No hay errores nuevos. 🎉</p>`
+    return
+  }
+
+  container.innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Mensaje</th><th>Página</th><th>Usuario</th><th>Fecha</th><th></th></tr></thead>
+      <tbody>
+        ${items
+          .map((e) => {
+            const user = e.user_id ? userById[e.user_id] : null
+            const userName = user?.display_name || user?.username || (e.user_id ? 'Usuario' : 'Anónimo')
+            return `
+          <tr>
+            <td title="${escapeHtml(e.stack || '')}">${escapeHtml(e.message)}</td>
+            <td>${escapeHtml(e.page_url || '—')}</td>
+            <td>${escapeHtml(userName)}</td>
+            <td>${new Date(e.created_at).toLocaleString('es-ES')}</td>
+            <td class="admin-row-actions">
+              <button data-error-reviewed="${e.id}">Marcar revisado</button>
+              <button data-error-dismiss="${e.id}">Descartar</button>
+            </td>
+          </tr>`
+          })
+          .join('')}
+      </tbody>
+    </table>`
+
+  container.querySelectorAll('[data-error-reviewed]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      await supabase.from('client_errors').update({ status: 'reviewed' }).eq('id', btn.dataset.errorReviewed)
+      loadClientErrors()
+    })
+  )
+  container.querySelectorAll('[data-error-dismiss]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      await supabase.from('client_errors').update({ status: 'dismissed' }).eq('id', btn.dataset.errorDismiss)
+      loadClientErrors()
+    })
+  )
+}
+
 // ── Init ──
 async function init() {
   const session = await checkAccess()
@@ -851,7 +909,7 @@ async function init() {
   initSidebar()
   await loadCategories()
   await Promise.all([loadCollections(), loadPaths()])
-  await Promise.all([loadDashboard(), loadPending(), loadGuides(), loadAchievements(), loadUsers(), loadImages(), loadReports(), loadFeedback()])
+  await Promise.all([loadDashboard(), loadPending(), loadGuides(), loadAchievements(), loadUsers(), loadImages(), loadReports(), loadFeedback(), loadClientErrors()])
 }
 
 init()

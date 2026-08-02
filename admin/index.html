@@ -30,6 +30,7 @@
         <button class="admin-nav-item" data-section="users">👥 Usuarios</button>
         <button class="admin-nav-item" data-section="reports">🚩 Reportes</button>
         <button class="admin-nav-item" data-section="feedback">💬 Feedback</button>
+        <button class="admin-nav-item" data-section="errors">🐞 Errores</button>
         <button class="admin-nav-item" data-section="images">🖼️ Imágenes</button>
       </nav>
       <a href="/index.html" class="admin-back">← Volver a PokeDoc</a>
@@ -105,6 +106,12 @@
         <h1>Feedback</h1>
         <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Sugerencias y bugs enviados por la comunidad, sin revisar todavía.</p>
         <div id="feedbackTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-errors">
+        <h1>Errores</h1>
+        <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Errores de JavaScript registrados automáticamente desde el navegador de los usuarios. Pasa el ratón por encima del mensaje para ver la traza completa.</p>
+        <div id="errorsTable"></div>
       </section>
 
       <section class="admin-section" id="section-images">

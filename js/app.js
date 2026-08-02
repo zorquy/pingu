@@ -300,6 +300,7 @@ function markActiveLink() {
 }
 
 export async function initNavbar() {
+  import('./error-log.js').then(({ initErrorLogging }) => initErrorLogging())
   initScrollShadow()
   initMobileMenu()
   markActiveLink()

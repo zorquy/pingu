@@ -1372,3 +1372,32 @@ simplemente incorrecta), reenviar muestra un toast de éxito, y si el
 reenvío falla se muestra el error real en vez de uno genérico. Se
 rompió a propósito la condición que detecta el error para confirmar
 que el test lo pilla; se restauró y volvió a pasar.
+
+## Registro de errores de cliente
+Migración: `supabase-migration-client-errors.sql` — tabla
+`client_errors` (`user_id` nullable, `message`, `stack`, `page_url`,
+`user_agent`, `status` con default `'new'`). El insert está abierto a
+cualquiera (`with check (true)`), incluso sin sesión, porque muchos
+errores pueden pasar antes de que exista una — es la única tabla del
+proyecto con esa política tan abierta, a propósito, ya que solo
+guarda telemetría de errores, no contenido de usuario.
+
+Alternativa casera a un servicio externo tipo Sentry, ya que no hay
+credenciales de ningún APM en este proyecto. `js/error-log.js`
+engancha `window.addEventListener('error', ...)` y
+`'unhandledrejection'` desde `initNavbar()` (`js/app.js`, muy al
+principio, antes de cualquier otra cosa) y guarda mensaje, traza,
+página y usuario (si hay sesión). Tiene un tope de 5 errores por
+carga de página para no inundar la tabla si algo entra en bucle.
+
+El admin tiene una sección nueva ("🐞 Errores"), calcada de Feedback y
+Reportes: lista los errores con `status = 'new'` (los 50 más
+recientes), con la traza completa en el `title` del mensaje, y permite
+marcarlos como revisados o descartarlos.
+
+Verificado con Playwright: un error sin capturar y una promesa
+rechazada sin capturar se registran con el mensaje, la página y el
+usuario correctos; lanzar 10 errores seguidos no registra más de 5
+(el límite); el admin ve el error y puede marcarlo como revisado. Se
+subió el límite a 50 para comprobar que el test de rate-limit lo
+detecta; se restauró y volvió a pasar.
