@@ -1834,3 +1834,49 @@ Postgres es inequívoco sobre la causa, y el fix es quitar el campo
 del payload — no hay otra forma de que ese error concreto
 desaparezca. Verifica guardando una guía nueva desde tu perfil o
 desde `/admin` para confirmar que ya funciona.
+
+## Guías de la comunidad: fila compacta en vez de tarjeta grande, y botón de crear
+Pediste dos cosas tras ver la primera guía de comunidad guardada: que
+la lista de "Guías de la comunidad" (pestaña de `usuarios.html`) no
+use la misma tarjeta grande y vertical que una guía oficial —porque
+aquí puede haber cientos de guías de calidad muy variable, y en
+tarjeta grande no caben muchas de un vistazo—, y un botón para crear
+una guía nueva directamente desde Comunidad, en vez de tener que ir a
+Perfil → Guías.
+
+**Fila compacta**: `renderCommunityGuideRowHtml()` (nuevo, en
+`js/usuarios.js`) sustituye a `renderGuideCardHtml()` de
+`guide-modal.js` **solo en esta pestaña** — a propósito no se tocó
+`renderGuideCardHtml`, que se sigue usando tal cual en
+`categoria.html`/la home/`guardados.html` para las guías oficiales.
+La fila nueva es una línea horizontal fina: icono pequeño, título en
+negrita con el sello (✓ Aprobada / Pendiente) pegado al lado, una
+línea con el autor y la descripción truncada con `...` si no cabe, y
+a la derecha la valoración media y los minutos estimados (esto último
+se oculta en móvil por debajo de 640px para no romper la fila).
+Sigue reutilizando `decorateGuideCards()` para rellenar la valoración
+media (mismo dato, `data-card-rating`), pero sin el botón de guardar
+en estrella — en una lista de exploración así no aporta tanto como en
+las tarjetas grandes, y quitarlo deja la fila más fina.
+
+CSS nuevo en `css/components.css`: `.community-guide-list` (columna
+con poco espacio entre filas) y `.community-guide-row` y derivados —
+ninguno reutiliza clases de `.guide-card`, para no arriesgarse a que
+un cambio futuro en la tarjeta oficial afecte sin querer a esta lista
+(y viceversa).
+
+**Botón "+ Crear guía"**: en la pestaña de guías de Comunidad, junto
+al buscador, un enlace directo a `/editor-guia.html` (el mismo editor
+que ya usa "Mis guías" en el perfil). No hace falta comprobar sesión
+aquí — `requireAuth()` dentro del propio editor ya redirige a
+`auth.html` si no has iniciado sesión, igual que en cualquier otro
+punto de entrada al editor.
+
+Verificado con Playwright: se pintan varias filas compactas y hacer
+clic en una abre el modal de guía de siempre (mismo `data-guide-id` +
+`openGuideModal`); el botón "+ Crear guía" apunta a
+`/editor-guia.html` y pulsarlo navega ahí de verdad; en móvil se
+oculta el bloque de valoración/minutos y la página no tiene scroll
+horizontal. Se rompieron a propósito el CSS que oculta ese bloque en
+móvil y el `href` del botón para confirmar que el test detecta ambas
+regresiones; se restauraron y volvió a pasar todo.

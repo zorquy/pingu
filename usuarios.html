@@ -48,11 +48,14 @@
 
     <div class="tab-panel active" id="ctab-guides">
       <p class="subtext" style="margin: -4px 0 16px;">Guías creadas por la comunidad, con o sin revisar todavía — las que llevan el sello ✓ Aprobada ya las ha comprobado el equipo de PokeDoc y también aparecen en el sitio oficial.</p>
-      <div class="search-input-wrap">
-        <input type="text" id="communityGuideSearchInput" class="search-input" placeholder="Buscar guías de la comunidad…" />
+      <div style="display: flex; gap: 10px; align-items: center; margin: 18px 0;">
+        <div class="search-input-wrap" style="margin: 0; flex: 1;">
+          <input type="text" id="communityGuideSearchInput" class="search-input" placeholder="Buscar guías de la comunidad…" />
+        </div>
+        <a href="/editor-guia.html" class="btn-primary" style="white-space: nowrap;">+ Crear guía</a>
       </div>
       <div id="communityGuidesEmpty"></div>
-      <div class="grid-guides" id="communityGuidesGrid"></div>
+      <div class="community-guide-list" id="communityGuidesGrid"></div>
       <div id="communityGuidesPagination"></div>
     </div>
 

@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, profileUrl } from './app.js'
-import { openGuideModal, setupGuideModalClose, renderGuideCardHtml, decorateGuideCards } from './guide-modal.js'
+import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
 import { contributorTier } from './gamification.js'
 
 let allUsers = []
@@ -69,6 +69,25 @@ async function loadUsers() {
   })
 }
 
+// Fila compacta y en horizontal — a propósito distinta de la tarjeta grande
+// de guide-modal.js: aquí puede haber cientos de guías de calidad muy
+// variable, así que se listan finas en vez de en tarjetas grandes.
+function renderCommunityGuideRowHtml(guide) {
+  const approved = guide.review_status === 'approved'
+  return `
+  <div class="community-guide-row" data-guide-id="${guide.id}">
+    <div class="community-guide-row-icon">${escapeHtml(guide.cover_emoji || '📘')}</div>
+    <div class="community-guide-row-info">
+      <h3>${escapeHtml(guide.title)}<span class="badge community-guide-row-badge ${approved ? 'badge-completed' : 'badge-pro'}">${approved ? '✓ Aprobada' : 'Pendiente'}</span></h3>
+      <p>${guide.authorName ? `De ${escapeHtml(guide.authorName)} — ` : ''}${escapeHtml(guide.description || '')}</p>
+    </div>
+    <div class="community-guide-row-meta">
+      <span data-card-rating>Sin valorar</span>
+      <span>${guide.estimated_mins || 5} min</span>
+    </div>
+  </div>`
+}
+
 // ── Guías de la comunidad (pendientes de revisión + ya aprobadas) ──
 function renderCommunityGuides(list, session, page = 1) {
   const grid = document.getElementById('communityGuidesGrid')
@@ -87,15 +106,7 @@ function renderCommunityGuides(list, session, page = 1) {
   const from = (communityGuidesPage - 1) * COMMUNITY_GUIDES_PAGE_SIZE
   const pageItems = list.slice(from, from + COMMUNITY_GUIDES_PAGE_SIZE)
 
-  grid.innerHTML = pageItems
-    .map((g) =>
-      renderGuideCardHtml(g, {
-        categoryLabel: g.categories?.name || '',
-        authorName: g.authorName,
-        reviewBadge: g.review_status === 'approved' ? '✓ Aprobada' : 'Pendiente de revisión',
-      })
-    )
-    .join('')
+  grid.innerHTML = pageItems.map(renderCommunityGuideRowHtml).join('')
 
   grid.querySelectorAll('[data-guide-id]').forEach((card) => {
     card.addEventListener('click', () => openGuideModal(card.dataset.guideId))
