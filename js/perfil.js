@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl } from './app.js'
+import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml } from './app.js'
 import { getAllAchievements, levelProgress, contributorTier } from './gamification.js'
 import { NOTIFICATION_TYPES } from './notifications.js'
 import { renderWall } from './wall.js'
@@ -110,7 +110,7 @@ function achievementTileHtml(a, unlocked) {
   const isUnlocked = unlocked.includes(a.id)
   return `
       <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
-        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? a.emoji || '🏆' : '🔒'}</span>
+        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? achievementIconHtml(a, 22) : '🔒'}</span>
         <span class="name">${escapeHtml(a.title)}</span>
       </div>`
 }

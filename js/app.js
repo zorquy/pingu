@@ -55,6 +55,17 @@ export function categoryIconHtml(category, size = 24) {
   return `<span style="font-size:${size}px;">${escapeHtml(category?.emoji || '📘')}</span>`
 }
 
+// Igual que categoryIconHtml pero para logros: achievement_definitions ya
+// tenía la columna icon_url desde hace tiempo (y el admin ya dejaba
+// rellenarla), pero nada en el sitio la usaba todavía — solo se pintaba
+// el emoji siempre. El dibujo tiene prioridad si existe; si no, el emoji.
+export function achievementIconHtml(achievement, size = 24) {
+  if (achievement?.icon_url) {
+    return `<img src="${achievement.icon_url.replace(/'/g, '%27')}" alt="" class="category-icon-img" style="width:${size}px; height:${size}px;" />`
+  }
+  return `<span style="font-size:${size}px;">${escapeHtml(achievement?.emoji || '🏆')}</span>`
+}
+
 const CONFETTI_COLORS = ['var(--navy)', 'var(--indigo)', 'var(--warning)', 'var(--success)', 'var(--pink)', 'var(--ice-dark)']
 let confettiStyleInjected = false
 

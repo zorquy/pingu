@@ -1623,3 +1623,24 @@ aparece antes que el de Curso y con el fondo navy (destacado); en
 de pago sigue diciendo "Guía Pro". Se deshizo a propósito el
 reordenado de los botones para confirmar que el test lo detecta; se
 restauró y volvió a pasar.
+
+## Icono personalizado en logros (icon_url ya existía, no se usaba)
+`achievement_definitions.icon_url` ya existía en el esquema y el
+formulario de admin ya lo dejaba rellenar ("Icono (URL, opcional)"),
+pero nada en el sitio lo leía todavía — solo se pintaba `a.emoji`
+siempre. Se añadió `achievementIconHtml(achievement, size)` en
+`js/app.js` (mismo patrón que `categoryIconHtml`) y se enganchó en
+los cuatro sitios donde se pintaba el emoji de un logro: el modal de
+"¡logro desbloqueado!" (`gamification.js`), la rejilla de trofeos de
+`perfil.js` y de `usuario.js`, y el logro destacado del perfil público
+(`usuario.js`). Un logro bloqueado sigue mostrando el candado 🔒 pase
+lo que pase, tenga o no `icon_url` — el dibujo solo se muestra cuando
+ya está desbloqueado.
+
+Verificado con Playwright: un logro desbloqueado con `icon_url`
+muestra el dibujo; uno desbloqueado sin `icon_url` sigue mostrando el
+emoji; uno bloqueado muestra el candado y nunca el dibujo aunque lo
+tenga configurado; el perfil público (`usuario.html`) también lo
+muestra. Se rompió a propósito la condición que decide dibujo-vs-
+emoji para confirmar que el test lo detecta; se restauró y volvió a
+pasar.

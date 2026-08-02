@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation } from './app.js'
+import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml } from './app.js'
 import { levelProgress, contributorTier, getAllAchievements } from './gamification.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
@@ -84,7 +84,7 @@ async function loadHeader() {
     <h2>${escapeHtml(name)}${profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
     <div class="profile-level">${progress.level} · ${xp} XP</div>
     ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
-    ${showcase ? `<div class="achievement-tile" style="display:inline-flex; margin-top:8px; width:auto; flex-direction:row; gap:8px; align-items:center; padding:6px 12px;"><span class="icon rarity-${showcase.rarity || 'bronze'}" style="width:28px;height:28px;font-size:16px;">${showcase.emoji || '🏆'}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`
+    ${showcase ? `<div class="achievement-tile" style="display:inline-flex; margin-top:8px; width:auto; flex-direction:row; gap:8px; align-items:center; padding:6px 12px;"><span class="icon rarity-${showcase.rarity || 'bronze'}" style="width:28px;height:28px;">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`
 
   return true
 }
@@ -255,7 +255,7 @@ function achievementTileHtml(a, unlocked) {
   const isUnlocked = unlocked.includes(a.id)
   return `
       <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
-        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? a.emoji || '🏆' : '🔒'}</span>
+        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? achievementIconHtml(a, 22) : '🔒'}</span>
         <span class="name">${escapeHtml(a.title)}</span>
       </div>`
 }

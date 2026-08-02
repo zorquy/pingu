@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { burstConfetti } from './app.js'
+import { burstConfetti, achievementIconHtml } from './app.js'
 
 // Los logros se gestionan desde /admin en la tabla `achievement_definitions`.
 // `condition` es jsonb: { type: 'completed_guides_count' | 'total_xp' | 'quiz_correct_count', count: number }
@@ -239,7 +239,7 @@ export function showAchievementModal(achievement) {
   }
 
   const iconEl = modal.querySelector('#achievementIcon')
-  iconEl.textContent = achievement.emoji || '🏆'
+  iconEl.innerHTML = achievementIconHtml(achievement, 42)
   iconEl.className = `achievement-icon rarity-${achievement.rarity || 'bronze'}`
   modal.querySelector('#achievementName').textContent = achievement.title
   modal.querySelector('#achievementDesc').textContent = achievement.description || ''
