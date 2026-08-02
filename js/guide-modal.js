@@ -63,8 +63,8 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
         <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
         <span class="time-tag">${guide.estimated_mins || 5} min</span>
         <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
-        ${statusBadge === 'started' ? '<span class="badge badge-progress">EN PROGRESO</span>' : ''}
-        ${statusBadge === 'completed' ? '<span class="badge badge-completed">✓ COMPLETADO</span>' : ''}
+        ${hasCourse && statusBadge === 'started' ? '<span class="badge badge-progress">EN PROGRESO</span>' : ''}
+        ${hasCourse && statusBadge === 'completed' ? '<span class="badge badge-completed">✓ COMPLETADO</span>' : ''}
         ${reviewBadge ? `<span class="badge ${guide.review_status === 'approved' ? 'badge-completed' : 'badge-pro'}">${escapeHtml(reviewBadge)}</span>` : ''}
       </div>
       <div class="guide-card-social">

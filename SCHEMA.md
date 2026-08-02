@@ -2220,3 +2220,39 @@ las siete tablas y borrándolo, las de cascada se vacían y las de
 comprobó que el script se puede volver a ejecutar sin problema
 (vuelve a dejar las restricciones igual) y que si `content_reports`
 sí existe, la reconstruye con cascada con normalidad.
+
+## Bug real: badge "EN PROGRESO" en una guía que ya no tiene curso
+
+`renderGuideCardHtml()` (usada en categoría, home, guardados y
+Comunidad) pintaba el badge "EN PROGRESO"/"COMPLETADO" mirando solo
+`user_progress.status`, sin comprobar si la guía sigue teniendo
+curso. Si una guía tenía curso, alguien lo empezaba (o lo
+completaba) y luego se le quitaban los bloques de curso (por ejemplo,
+al pasarla a ser solo documentación), la fila de `user_progress` de
+esa persona seguía existiendo y el badge se quedaba mostrando "EN
+PROGRESO" para siempre, aunque ya no hubiera ningún curso que hacer.
+La función ya calculaba `hasCourse` (para decidir si el botón
+"Curso" está activo o deshabilitado); solo faltaba usar esa misma
+variable para condicionar también el badge.
+
+Verificado con Playwright: una guía sin bloques de curso pero con una
+fila de `user_progress` antigua en estado `started` no muestra "EN
+PROGRESO". Se rompió a propósito quitando la condición `hasCourse &&`
+para confirmar que el test lo detecta, se restauró y volvió a pasar.
+
+## Bug real: guías creadas en /admin se atribuían a "PokeDoc oficial" en vez de a quien las creó
+
+El editor de guías del admin nunca rellenaba `author_id` al crear una
+guía nueva, así que siempre quedaba `null` — y `guia.html` muestra
+"Guía oficial de PokeDoc" cuando no hay autor. Pero quien crea la
+guía desde `/admin` sigue siendo una persona con su propia cuenta
+(admin), así que debería aparecer como autor igual que pasa con las
+guías enviadas desde la comunidad. Se corrigió para que `author_id`
+se rellene con el id de la sesión de admin actual al crear una guía
+nueva; al editar una ya existente se respeta el `author_id` que ya
+tuviera (para no reasignar guías antiguas sin que se pida).
+
+Verificado con Playwright: una guía nueva creada desde `/admin`
+guarda `author_id` igual al id de la sesión de admin logueada. Se
+rompió a propósito quitando ese campo del payload para confirmar que
+el test lo detecta, se restauró y volvió a pasar.

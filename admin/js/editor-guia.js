@@ -302,6 +302,7 @@ function buildPayload() {
     tags: document.getElementById('gTags').value.split(',').map((s) => s.trim()).filter(Boolean),
     search_content: document.getElementById('gSearchContent').value.trim(),
     published_at: published ? existingGuide?.published_at || new Date().toISOString() : null,
+    author_id: existingGuide?.author_id || currentSession.user.id,
     blocks: courseBlocks,
     reference_blocks: refBlocks,
     has_pro_content: !!proPublishedAt,
