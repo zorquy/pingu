@@ -9,6 +9,7 @@ import {
 import { initRichTextEditor, richTextToolbarHtml } from './richtext-editor.js'
 import { showToast } from './toast.js'
 import { loadDraft, clearDraft, startAutosave } from './editor-autosave.js'
+import { attachEmojiPicker } from './emoji-picker.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -178,6 +179,7 @@ async function init() {
   if (!currentSession) return
 
   wireTabs()
+  attachEmojiPicker(document.getElementById('mgCoverEmoji'))
 
   if (guideId) await loadExistingGuide(currentSession)
   await loadCategoriesForSelect(existingGuide?.category_id)

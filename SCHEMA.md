@@ -1498,3 +1498,52 @@ null then ... end if;`, así que ahora la migración solo toca las
 tablas que existen de verdad y no aborta entera por una que falte. El
 propio script incluye, comentada al final, la consulta para comprobar
 cuáles de las seis tablas afectadas existen en tu base.
+
+## Retoques finales: menú, pestañas de Comunidad, icono de feedback y selector de emoji
+Cuatro ajustes pedidos tras revisar el sitio:
+
+**"Buscar" fuera del menú de texto.** Era redundante con la lupa de
+búsqueda (que ya hace lo mismo con un popup + `/buscar.html` para la
+búsqueda avanzada), así que se quitó el enlace de texto tanto del
+menú de escritorio como del menú móvil (hamburguesa) en las 13
+páginas que llevan navbar completa — antes solo se ocultaba con JS
+(`hideBuscarNavLink()` en `js/app.js`, y solo en escritorio, no en
+el menú móvil), así que en el hamburguesa seguía apareciendo. Ahora
+está quitado directamente del HTML y esa función ya no existe.
+`buscar.html` sigue siendo una página normal y funcional, solo que ya
+no tiene un enlace de texto en el menú.
+
+**Pestaña "Guías de la comunidad" primero.** En `usuarios.html`,
+"Usuarios" era la pestaña por defecto; ahora "Guías de la comunidad"
+es la primera y la que se ve al entrar, con "Usuarios" como
+secundaria. Es solo un cambio de orden en el HTML (la lógica de
+`usuarios.js` que engancha las pestañas ya era genérica por
+`data-ctab`, no hacía falta tocarla).
+
+**Icono en vez de emoji en "Enviar feedback".** El botón del
+desplegable de cuenta llevaba el emoji 💬 mientras que el resto de
+enlaces de ese menú (Mi perfil, Guardados, Cerrar sesión) usan los
+iconos SVG en línea de `js/icons.js`. Se añadió `icons.messageSquare`
+con el mismo estilo de trazo fino que el resto.
+
+**Selector de emoji para la portada de las guías.** Antes el campo
+"Emoji de portada" (`editor-guia.html`/`admin/editor-guia.html`) era
+un input de texto donde había que pegar el emoji a mano. `js/
+emoji-picker.js` (`attachEmojiPicker(input)`) añade un botón junto al
+input que abre una rejilla de ~36 emojis pensados para el tema del
+sitio (cartas, lupa, escudo, rareza, tipos...); al elegir uno se
+rellena el input (que se deja editable por si alguien prefiere pegar
+otro) y se dispara un evento `input` para que cualquier lógica que
+esté escuchando (autoguardado, etc.) se entere del cambio.
+
+Verificado con Playwright: "Buscar" ya no aparece ni en el menú de
+escritorio ni en el móvil (y el resto de enlaces siguen ahí); la
+pestaña de guías es la activa por defecto en Comunidad y cambiar a
+Usuarios sigue funcionando; el botón de feedback usa un `<svg>` en
+vez del emoji; el selector de emoji abre el panel, deja elegir una
+opción, rellena el input y el botón, se cierra solo al elegir o al
+hacer clic fuera, y funciona igual en el editor de usuario y en el
+del admin. Se rompieron a propósito la marca de pestaña activa por
+defecto y la asignación del emoji elegido al input, uno por uno, para
+confirmar que los tests detectan cada regresión; se restauraron y
+volvieron a pasar.

@@ -9,6 +9,7 @@ import {
 import { initRichTextEditor, richTextToolbarHtml } from '../../js/richtext-editor.js'
 import { showToast } from '../../js/toast.js'
 import { loadDraft, clearDraft, startAutosave } from '../../js/editor-autosave.js'
+import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { addXP } from '../../js/gamification.js'
 import { createNotification } from '../../js/notifications.js'
 
@@ -384,6 +385,7 @@ async function init() {
   currentSession = session
 
   wireTabs()
+  attachEmojiPicker(document.getElementById('gCoverEmoji'))
 
   if (guideId) await loadExistingGuide()
   await loadCategoriesAndCollections(existingGuide?.category_id)

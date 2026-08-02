@@ -19,7 +19,6 @@
       <div class="nav-links">
         <a href="index.html">Inicio</a>
         <a href="aprender.html">Aprender</a>
-        <a href="buscar.html">Buscar</a>
         <a href="guardados.html">Guardados</a>
         <a href="usuarios.html">Comunidad</a>
       </div>
@@ -31,7 +30,6 @@
     <div class="nav-menu-mobile" id="navMobileMenu">
       <a href="index.html">Inicio</a>
       <a href="aprender.html">Aprender</a>
-      <a href="buscar.html">Buscar</a>
       <a href="guardados.html">Guardados</a>
       <a href="usuarios.html">Comunidad</a>
     </div>
@@ -44,19 +42,11 @@
     </div>
 
     <div class="tabs" id="communityTabs">
-      <button class="tab-btn active" data-ctab="users">Usuarios</button>
-      <button class="tab-btn" data-ctab="guides">Guías de la comunidad</button>
+      <button class="tab-btn active" data-ctab="guides">Guías de la comunidad</button>
+      <button class="tab-btn" data-ctab="users">Usuarios</button>
     </div>
 
-    <div class="tab-panel active" id="ctab-users">
-      <div class="search-input-wrap">
-        <input type="text" id="userSearchInput" class="search-input" placeholder="Buscar por nombre de usuario…" />
-      </div>
-      <div id="userDirectoryEmpty"></div>
-      <div class="user-directory-grid" id="userDirectoryGrid"></div>
-    </div>
-
-    <div class="tab-panel" id="ctab-guides">
+    <div class="tab-panel active" id="ctab-guides">
       <p class="subtext" style="margin: -4px 0 16px;">Guías creadas por la comunidad, con o sin revisar todavía — las que llevan el sello ✓ Aprobada ya las ha comprobado el equipo de PokeDoc y también aparecen en el sitio oficial.</p>
       <div class="search-input-wrap">
         <input type="text" id="communityGuideSearchInput" class="search-input" placeholder="Buscar guías de la comunidad…" />
@@ -64,6 +54,14 @@
       <div id="communityGuidesEmpty"></div>
       <div class="grid-guides" id="communityGuidesGrid"></div>
       <div id="communityGuidesPagination"></div>
+    </div>
+
+    <div class="tab-panel" id="ctab-users">
+      <div class="search-input-wrap">
+        <input type="text" id="userSearchInput" class="search-input" placeholder="Buscar por nombre de usuario…" />
+      </div>
+      <div id="userDirectoryEmpty"></div>
+      <div class="user-directory-grid" id="userDirectoryGrid"></div>
     </div>
   </main>
 

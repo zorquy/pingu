@@ -236,7 +236,7 @@ async function renderNavUser(session) {
       <div class="nav-user-links">
         <a href="/perfil.html">${icons.user(16)} Mi perfil</a>
         <a href="/guardados.html">${icons.star(16)} Guardados</a>
-        <button type="button" id="navFeedbackBtn">💬 Enviar feedback</button>
+        <button type="button" id="navFeedbackBtn">${icons.messageSquare(16)} Enviar feedback</button>
         <button type="button" id="navUserSignOut">${icons.logOut(16)} Cerrar sesión</button>
       </div>`
 
@@ -262,10 +262,6 @@ async function renderNavUser(session) {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') dropdown.classList.add('hidden')
   })
-}
-
-function hideBuscarNavLink() {
-  document.querySelectorAll('.nav-links a[href="buscar.html"]').forEach((a) => a.remove())
 }
 
 function initScrollShadow() {
@@ -304,7 +300,6 @@ export async function initNavbar() {
   initScrollShadow()
   initMobileMenu()
   markActiveLink()
-  hideBuscarNavLink()
   const session = await getSession()
   if (session) {
     const profile = await getProfile(session.user.id)
