@@ -307,6 +307,12 @@ export async function initNavbar() {
   hideBuscarNavLink()
   const session = await getSession()
   if (session) {
+    const profile = await getProfile(session.user.id)
+    if (profile?.is_banned) {
+      await supabase.auth.signOut()
+      window.location.href = '/auth.html?banned=1'
+      return session
+    }
     // No se espera a que termine — en el 99% de las cargas de página no
     // hace nada (ya se contó hoy), así que no debería frenar el resto de
     // la navbar.

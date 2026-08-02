@@ -538,13 +538,13 @@ document.getElementById('btnNewAchievement').addEventListener('click', () => ope
 async function loadUsers() {
   const { data } = await supabase
     .from('user_profiles')
-    .select('id, username, display_name, total_xp, level, is_admin, is_pro')
+    .select('id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted')
     .order('total_xp', { ascending: false })
   const users = data || []
 
   document.getElementById('usersTable').innerHTML = `
     <table class="admin-table">
-      <thead><tr><th>Nombre</th><th>Nivel</th><th>XP</th><th>Admin</th><th>Pro</th><th></th></tr></thead>
+      <thead><tr><th>Nombre</th><th>Nivel</th><th>XP</th><th>Admin</th><th>Pro</th><th>Estado</th><th></th></tr></thead>
       <tbody>
         ${users
           .map(
@@ -555,9 +555,12 @@ async function loadUsers() {
             <td>${u.total_xp || 0}</td>
             <td>${u.is_admin ? '✓' : ''}</td>
             <td>${u.is_pro ? '✓' : ''}</td>
+            <td>${u.is_banned ? '🚫 Baneado' : u.is_muted ? '🔇 Silenciado' : ''}</td>
             <td class="admin-row-actions">
               <button data-toggle-admin="${u.id}" data-current="${u.is_admin ? '1' : '0'}">${u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
               <button data-toggle-pro="${u.id}" data-current="${u.is_pro ? '1' : '0'}">${u.is_pro ? 'Quitar Pro' : 'Hacer Pro'}</button>
+              <button data-toggle-muted="${u.id}" data-current="${u.is_muted ? '1' : '0'}">${u.is_muted ? 'Quitar silencio' : 'Silenciar'}</button>
+              <button data-toggle-banned="${u.id}" data-current="${u.is_banned ? '1' : '0'}">${u.is_banned ? 'Quitar baneo' : 'Banear'}</button>
             </td>
           </tr>`
           )
@@ -580,6 +583,24 @@ async function loadUsers() {
     btn.addEventListener('click', async () => {
       const makePro = btn.dataset.current !== '1'
       await supabase.from('user_profiles').update({ is_pro: makePro }).eq('id', btn.dataset.togglePro)
+      loadUsers()
+    })
+  )
+  document.querySelectorAll('[data-toggle-muted]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const makeMuted = btn.dataset.current !== '1'
+      await supabase.from('user_profiles').update({ is_muted: makeMuted }).eq('id', btn.dataset.toggleMuted)
+      loadUsers()
+    })
+  )
+  document.querySelectorAll('[data-toggle-banned]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const makeBanned = btn.dataset.current !== '1'
+      const confirmMsg = makeBanned
+        ? 'Vas a banear a esta persona: se le cerrará la sesión y no podrá volver a entrar ni publicar nada. ¿Continuar?'
+        : '¿Quitarle el baneo a esta persona?'
+      if (!confirm(confirmMsg)) return
+      await supabase.from('user_profiles').update({ is_banned: makeBanned }).eq('id', btn.dataset.toggleBanned)
       loadUsers()
     })
   )

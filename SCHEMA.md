@@ -1449,3 +1449,41 @@ privada (mensajes) y el admin sí llevan noindex, `robots.txt` bloquea
 `/admin/` y `sitemap.xml` se sirve con `index.html` dentro. Se rompió
 a propósito el `Disallow` de `robots.txt` para confirmar que el test
 lo detecta; se restauró y volvió a pasar.
+
+## Moderación: banear y silenciar usuarios
+Migración: `supabase-migration-user-moderation.sql` — dos columnas
+nuevas en `user_profiles` (`is_banned`, `is_muted`, ambas `boolean
+not null default false`) y dos funciones auxiliares SECURITY DEFINER,
+`is_banned()`/`is_muted()` (mismo patrón que `is_admin()` e
+`is_conversation_participant()` de migraciones anteriores).
+
+**Banear** cierra la sesión de esa persona en cuanto vuelve a cargar
+cualquier página (comprobado en `initNavbar()`, `js/app.js`, justo
+después de obtener la sesión) y la manda a `/auth.html?banned=1`, que
+muestra "Esta cuenta ha sido suspendida...". **Silenciar** no la echa
+ni le impide seguir navegando — solo evita que publique nada nuevo.
+Ambos estados, además, quedan reforzados a nivel de RLS: las políticas
+de inserción de `guides`, `profile_comments`, `profile_reviews`,
+`guide_comments`, `guide_reviews` y `private_messages` ahora exigen
+`not is_banned() and not is_muted()`, así que aunque alguien saltara
+el aviso del cliente, la base de datos seguiría rechazando cualquier
+intento de publicar.
+
+El admin tiene dos botones nuevos por usuario en la sección
+"Usuarios" ("Banear"/"Quitar baneo" y "Silenciar"/"Quitar silencio"),
+con confirmación antes de banear (igual que ya pasaba con "Hacer
+admin"), y una columna de estado que muestra "🚫 Baneado" o
+"🔇 Silenciado" cuando aplica.
+
+Verificado con Playwright: el admin puede banear/desbanear y
+silenciar/dessilenciar desde la tabla de usuarios y el estado se
+refleja al momento; un usuario baneado que vuelve a cargar la navbar
+(`initNavbar()`) cierra sesión y acaba en la página de login, que
+muestra el aviso de cuenta suspendida; un usuario solo silenciado NO
+es expulsado. Lo que no se puede probar con Playwright contra el stub
+(como con el resto de políticas de RLS de toda la sesión) es que la
+base de datos real rechace el insert de un baneado/silenciado — el
+stub no simula RLS, solo se puede confirmar en el SQL Editor de
+Supabase tras aplicar la migración. Se rompió a propósito la
+comprobación de `is_banned` en `initNavbar()` para confirmar que el
+test lo detecta; se restauró y volvió a pasar.

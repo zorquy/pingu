@@ -13,6 +13,10 @@ function showStep(step) {
   steps[step]?.classList.remove('hidden')
 }
 
+if (new URLSearchParams(window.location.search).get('banned') === '1') {
+  setError(steps.login, 'Esta cuenta ha sido suspendida. Si crees que es un error, contáctanos.')
+}
+
 function setError(stepEl, message) {
   const errorEl = stepEl.querySelector('.auth-error')
   if (errorEl) errorEl.textContent = message || ''
