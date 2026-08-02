@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml } from './app.js'
+import { icons } from './icons.js'
 import { getAllAchievements, levelProgress, contributorTier } from './gamification.js'
 import { NOTIFICATION_TYPES } from './notifications.js'
 import { renderWall } from './wall.js'
@@ -93,15 +94,15 @@ async function loadStats(session, profile) {
       <div class="label">Preguntas acertadas</div>
     </div>
     <div class="stat-card">
-      <div class="value">${avgRating ? `⭐ ${avgRating.toFixed(1)}` : '—'}</div>
+      <div class="value" style="display:flex; align-items:center; justify-content:center; gap:5px;">${avgRating ? `${icons.star(18)} ${avgRating.toFixed(1)}` : '—'}</div>
       <div class="label">Valoración (${reviews?.length || 0})</div>
     </div>
     <div class="stat-card">
-      <div class="value">${tier.emoji}</div>
+      <div class="value" style="display:flex; justify-content:center;">${tier.icon}</div>
       <div class="label">${tier.title}</div>
     </div>
     <div class="stat-card">
-      <div class="value">🔥 ${profile?.current_streak || 0}</div>
+      <div class="value" style="display:flex; align-items:center; justify-content:center; gap:5px;">${icons.flame(18)} ${profile?.current_streak || 0}</div>
       <div class="label">Racha (días)</div>
     </div>`
 }
@@ -110,7 +111,7 @@ function achievementTileHtml(a, unlocked) {
   const isUnlocked = unlocked.includes(a.id)
   return `
       <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
-        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? achievementIconHtml(a, 22) : '🔒'}</span>
+        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? achievementIconHtml(a, 22) : icons.lock(22)}</span>
         <span class="name">${escapeHtml(a.title)}</span>
       </div>`
 }

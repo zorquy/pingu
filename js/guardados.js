@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, requireAuth } from './app.js'
 import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
+import { icons } from './icons.js'
 
 async function loadSaved(session) {
   const list = document.getElementById('savedList')
@@ -13,7 +14,7 @@ async function loadSaved(session) {
 
   const savedIds = profile?.saved_guides || []
   if (savedIds.length === 0) {
-    list.innerHTML = `<p class="empty-state">Todavía no has guardado ninguna guía. Pulsa ☆ Guardar en cualquier guía para verla aquí.</p>`
+    list.innerHTML = `<p class="empty-state" style="display:flex; align-items:center; justify-content:center; gap:5px; flex-wrap:wrap;">Todavía no has guardado ninguna guía. Pulsa ${icons.bookmark(14)} Guardar en cualquier guía para verla aquí.</p>`
     return
   }
 

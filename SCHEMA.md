@@ -1959,3 +1959,77 @@ contiene el emoji 🚩 sino un `<svg>`. Se rompieron a propósito ambos
 cambios (report.js volviendo al emoji, y el botón del modal volviendo
 a ☆/★) para confirmar que el test detecta las dos regresiones; se
 restauraron y volvió a pasar todo.
+
+## Barrido completo de emojis del sitio → iconos SVG, y botones Guardar/Guía/Curso del mismo tamaño
+Señalaste dos cosas concretas sobre la ficha ampliada de guía —
+"📖 Guía"/"🎓 Curso" seguían siendo emoji, y el botón "Guardar" se
+veía más grande que "Guía"/"Curso" en la misma fila— y pediste
+además un repaso de **todos** los emojis del sitio para sustituirlos
+por iconos SVG, como ya se hizo en su día con la navbar.
+
+**Qué se tocó y qué no.** Se repasaron los ~180 emoji que había
+repartidos en 32 archivos (`.html`/`.js`) y se separaron en dos
+grupos:
+- **Decoración fija de interfaz** (botones, pestañas, cabeceras de
+  sección, el menú del admin, insignias de estado como "Baneado"/
+  "Publicada", el selector de tipo de bloque del editor de curso...):
+  se sustituyó por iconos SVG nuevos en `js/icons.js` (bookOpen,
+  graduationCap, clock, folder, layers, compass, trophy, users, bug,
+  barChart, trash, image, refreshCw, flame, lock, sparkles, eye,
+  upload, settings, link, listOrdered, checkSquare, helpCircle,
+  checkCircle, xCircle, package, send, volumeX, ban, crown, sprout,
+  trendingUp, shield, zap, lightbulb, triangleAlert, pin — sumados a
+  los que ya existían de la navbar).
+- **Emoji que es contenido, no icono**: el selector de emoji para
+  portada de guía/categoría/logro (`js/emoji-picker.js`, con su
+  paleta completa) y cualquier sitio donde se lee `guide.cover_emoji`,
+  `category.emoji`, `achievement.emoji` o `block.emoji` — eso es una
+  función deliberada (el admin o el autor elige su propio emoji, con
+  la opción de subir un icono en su lugar, ver la sección de logros
+  más arriba) y tocarlo habría roto esa función. Tampoco se tocaron
+  las estrellas de valoración (`★`, que sí representan una puntuación
+  de verdad) ni las flechas tipográficas (`→`/`←`/`↩`, que no son
+  emoji ni se pintan en color).
+
+**`contributorTier()`** (en `gamification.js`) devolvía un emoji
+(👑/⭐/🌱/👤) en un campo llamado `emoji` — se cambió a `icon` con el
+SVG ya renderizado (`icons.crown(16)`, etc.), y se actualizaron sus
+4 usos (`perfil.js`, `usuario.js`, `usuarios.js`, `app.js`). Las
+medallas 🥇🥈🥉 del ranking de la comunidad (`usuarios.js`) pasaron a
+un icono de trofeo junto al número de puesto (`🏆 #1`), en vez de
+buscar un emoji de medalla concreto para cada color.
+
+**Botones "Guardar"/"Guía"/"Curso" del mismo tamaño.** En el modal
+ampliado de guía, "Guardar" usa `.btn-outline` (más grande, con
+borde) mientras que "Guía"/"Curso" usan `.btn-guide`/`.btn-course`
+(pensados para la tarjeta pequeña, más compactos). Se añadió una
+regla específica `.modal-actions .btn-guide, .modal-actions .btn-course`
+que iguala el padding, el radio, el tamaño de letra y — el detalle
+que costó encontrar— el `line-height` y un `border: 1px solid
+transparent` a juego, porque `.btn-outline` sí tiene borde de 1px y
+sin ese borde invisible los tres botones diferían en 2px de alto
+aunque el resto de medidas coincidiera. Fuera del modal (tarjeta
+pequeña de `categoria.html`/home/Comunidad) `.btn-guide`/`.btn-course`
+se quedan con su tamaño compacto de siempre, que es lo que corresponde
+a ese espacio más reducido.
+
+Verificado con Playwright: ninguna tarjeta ni el modal contienen ya
+emoji de interfaz (comprobado con una expresión regular sobre el
+texto visible); los tres botones del modal miden exactamente lo
+mismo de alto (44px). Se rompió a propósito el `border` invisible
+añadido para confirmar que el test detecta que vuelven a medir
+distinto (44 vs 42); se restauró y volvió a pasar.
+
+Nota: no pude probar en vivo `admin/index.html` ni los dos editores
+de guía (`editor-guia.html`, `admin/editor-guia.html`) porque en este
+sandbox, justo durante esta tarea, dejó de haber salida de red hacia
+`cdn.jsdelivr.net` (de donde `richtext-editor.js` importa DOMPurify)
+— confirmado con un `curl` directo, que da timeout. Como es un
+`import` estático que falla, bloquea la carga de todo el módulo
+(incluida la comprobación de acceso del admin), así que esas páginas
+se quedaban colgadas en "Comprobando acceso…" incluso sin tocar nada
+mío. Esto es una limitación puntual de este sandbox, no de tu sitio
+real (tus usuarios sí tienen acceso a internet) — lo comprobé
+inspeccionando el HTML inyectado directamente (sin depender de que el
+JS termine de cargar): el sidebar del admin tiene sus 14 iconos SVG
+nuevos y ningún emoji en el texto visible.

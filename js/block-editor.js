@@ -2,6 +2,7 @@ import { escapeHtml } from './app.js'
 import { bbcodeToolbarHtml, wireBBCodeToolbars, parseBBCode } from './bbcode.js'
 import { sanitizeRichText } from './richtext-editor.js'
 import { showToast } from './toast.js'
+import { icons } from './icons.js'
 
 // Render de un bloque de referencia a HTML final — lo usan tanto guia.js
 // (la página real) como la vista previa en vivo del editor, para que las
@@ -58,18 +59,18 @@ export const COURSE_BLOCK_DEFAULTS = {
 }
 
 export const COURSE_BLOCK_LABELS = {
-  hook: { icon: '👋', label: 'Enganche inicial' },
-  concept: { icon: '💡', label: 'Concepto' },
-  warning: { icon: '⚠️', label: 'Aviso' },
-  tip: { icon: '💡', label: 'Consejo' },
-  example: { icon: '📌', label: 'Ejemplo' },
-  quiz: { icon: '❓', label: 'Pregunta' },
-  truefalse: { icon: '✅', label: 'Verdadero o falso' },
-  fillblank: { icon: '✏️', label: 'Rellenar hueco' },
-  match: { icon: '🔗', label: 'Relacionar parejas' },
-  order: { icon: '🔢', label: 'Ordenar pasos' },
-  checklist: { icon: '☑️', label: 'Checklist' },
-  reward: { icon: '🏆', label: 'Recompensa final' },
+  hook: { icon: icons.zap(16), label: 'Enganche inicial' },
+  concept: { icon: icons.lightbulb(16), label: 'Concepto' },
+  warning: { icon: icons.triangleAlert(16), label: 'Aviso' },
+  tip: { icon: icons.lightbulb(16), label: 'Consejo' },
+  example: { icon: icons.pin(16), label: 'Ejemplo' },
+  quiz: { icon: icons.helpCircle(16), label: 'Pregunta' },
+  truefalse: { icon: icons.checkCircle(16), label: 'Verdadero o falso' },
+  fillblank: { icon: icons.edit(16), label: 'Rellenar hueco' },
+  match: { icon: icons.link(16), label: 'Relacionar parejas' },
+  order: { icon: icons.listOrdered(16), label: 'Ordenar pasos' },
+  checklist: { icon: icons.checkSquare(16), label: 'Checklist' },
+  reward: { icon: icons.trophy(16), label: 'Recompensa final' },
 }
 
 export function fieldsForCourseBlock(block, i) {
@@ -91,7 +92,7 @@ export function fieldsForCourseBlock(block, i) {
         <textarea class="be-field" id="cb-body-${i}" data-i="${i}" data-f="body" placeholder="Texto">${escapeHtml(block.body || '')}</textarea>
         <div class="be-image-row">
           <input class="be-field" data-i="${i}" data-f="image_url" placeholder="Sin imagen" value="${escapeHtml(block.image_url || '')}" readonly />
-          <button type="button" class="btn-outline be-upload-image" data-i="${i}">📤 Subir imagen</button>
+          <button type="button" class="btn-outline be-upload-image" data-i="${i}">${icons.upload(15)} Subir imagen</button>
           <input type="file" accept="image/*" class="be-image-file" data-i="${i}" hidden />
         </div>
         <input class="be-field" data-i="${i}" data-f="highlight" placeholder="Destacado (opcional)" value="${escapeHtml(block.highlight || '')}" />`
@@ -187,7 +188,7 @@ export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
       (b, i) => `
     <div class="block-editor-item" data-index="${i}">
       <div class="block-editor-item-header">
-        <span class="block-type-icon">${COURSE_BLOCK_LABELS[b.type]?.icon || '📦'}</span>
+        <span class="block-type-icon">${COURSE_BLOCK_LABELS[b.type]?.icon || icons.package(16)}</span>
         <select class="be-type" data-i="${i}">
           ${Object.keys(COURSE_BLOCK_DEFAULTS)
             .map((t) => `<option value="${t}" ${t === b.type ? 'selected' : ''}>${escapeHtml(COURSE_BLOCK_LABELS[t]?.label || t)}</option>`)

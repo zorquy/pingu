@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, profileUrl } from './app.js'
 import { listConversations, loadThreadMessages, markConversationRead, sendMessage, deleteMessage, getOtherParticipant, findOrCreateConversation, isParticipant } from './messages.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
+import { icons } from './icons.js'
 
 const root = document.getElementById('messagesRoot')
 const params = new URLSearchParams(window.location.search)
@@ -28,7 +29,7 @@ async function renderInbox(session) {
   root.innerHTML = `
     <div class="page-header" style="padding-top: 8px;">
       <h1>Mensajes</h1>
-      <p>Tus conversaciones privadas. <a href="/mensajes.html?new=1">✏️ Nueva conversación</a></p>
+      <p>Tus conversaciones privadas. <a href="/mensajes.html?new=1" style="display:inline-flex; align-items:center; gap:4px;">${icons.edit(13)} Nueva conversación</a></p>
     </div>
     <div id="inboxList"><div class="skeleton" style="height:70px; margin-bottom:12px;"></div></div>`
 

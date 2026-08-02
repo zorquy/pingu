@@ -3,6 +3,7 @@ import { escapeHtml, getSession, validateImageFile, profileUrl } from '../../js/
 import { invalidateAchievementsCache } from '../../js/gamification.js'
 import { showToast } from '../../js/toast.js'
 import { renderReferenceBlocksHtml } from '../../js/block-editor.js'
+import { icons } from '../../js/icons.js'
 
 let categories = []
 let guidesCache = []
@@ -291,7 +292,7 @@ async function loadGuides() {
           .map(
             (g) => `
           <tr>
-            <td>${escapeHtml(g.cover_emoji || '')} ${escapeHtml(g.title)}${g.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}${g.has_pro_content ? ' <span class="badge badge-pro">🌟 Guía Pro</span>' : ''}</td>
+            <td>${escapeHtml(g.cover_emoji || '')} ${escapeHtml(g.title)}${g.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}${g.has_pro_content ? ` <span class="badge badge-pro">${icons.star(11)} Guía Pro</span>` : ''}</td>
             <td>${escapeHtml(g.categories?.name || '—')}</td>
             <td>${g.published_at ? '<span class="badge badge-completed">Publicada</span>' : '<span class="badge badge-progress">Borrador</span>'}</td>
             <td class="admin-row-actions">
@@ -557,7 +558,7 @@ async function loadUsers() {
             <td>${u.total_xp || 0}</td>
             <td>${u.is_admin ? '✓' : ''}</td>
             <td>${u.is_pro ? '✓' : ''}</td>
-            <td>${u.is_banned ? '🚫 Baneado' : u.is_muted ? '🔇 Silenciado' : ''}</td>
+            <td>${u.is_banned ? `${icons.ban(14)} Baneado` : u.is_muted ? `${icons.volumeX(14)} Silenciado` : ''}</td>
             <td class="admin-row-actions">
               <button data-toggle-admin="${u.id}" data-current="${u.is_admin ? '1' : '0'}">${u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
               <button data-toggle-pro="${u.id}" data-current="${u.is_pro ? '1' : '0'}">${u.is_pro ? 'Quitar Pro' : 'Hacer Pro'}</button>
@@ -660,11 +661,11 @@ document.getElementById('imageUploadInput').addEventListener('change', async (e)
 
 // ── Reportes de contenido ──
 const REPORT_TYPE_LABELS = {
-  guide: '📘 Guía',
-  profile_comment: '💬 Comentario de muro',
-  guide_comment: '💬 Comentario de guía',
-  profile_review: '⭐ Reseña de perfil',
-  private_message: '✉️ Mensaje privado',
+  guide: `${icons.bookOpen(14)} Guía`,
+  profile_comment: `${icons.messageSquare(14)} Comentario de muro`,
+  guide_comment: `${icons.messageSquare(14)} Comentario de guía`,
+  profile_review: `${icons.star(14)} Reseña de perfil`,
+  private_message: `${icons.mail(14)} Mensaje privado`,
 }
 
 function snippet(text, len = 90) {
@@ -943,7 +944,7 @@ async function loadClientErrors() {
 
   const container = document.getElementById('errorsTable')
   if (items.length === 0) {
-    container.innerHTML = `<p class="empty-state">No hay errores nuevos. 🎉</p>`
+    container.innerHTML = `<p class="empty-state">No hay errores nuevos.</p>`
     return
   }
 

@@ -7,6 +7,9 @@
 }
 
 .tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 11px 4px;
   margin-right: 20px;
   font-weight: 700;
@@ -326,6 +329,10 @@
 
 .btn-course,
 .btn-guide {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   font-size: 12.5px;
   font-weight: 700;
   padding: 8px 13px;
@@ -333,6 +340,21 @@
   white-space: nowrap;
   text-align: center;
   transition: background 0.15s var(--ease);
+}
+
+/* En el modal ampliado, Guía y Curso van en la misma fila que el botón
+   "Guardar" (.btn-outline) — para que no se vean como una acción menor
+   junto a un botón más grande, adoptan aquí el mismo tamaño y radio que
+   el resto de botones del sitio; en la tarjeta pequeña se quedan
+   compactos, que es lo que corresponde a ese espacio. */
+.modal-actions .btn-guide,
+.modal-actions .btn-course {
+  padding: 13px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: 14.5px;
+  line-height: 1;
+  gap: 8px;
 }
 
 /* La Guía es la acción principal (siempre existe); el Curso es
@@ -1409,6 +1431,9 @@ textarea.be-field {
 }
 
 .hero-social-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: none;
   border: none;
   font-size: 13px;

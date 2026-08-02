@@ -8,6 +8,7 @@ import {
 } from '../../js/block-editor.js'
 import { initRichTextEditor, richTextToolbarHtml } from '../../js/richtext-editor.js'
 import { showToast } from '../../js/toast.js'
+import { icons } from '../../js/icons.js'
 import { loadDraft, clearDraft, startAutosave } from '../../js/editor-autosave.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { addXP } from '../../js/gamification.js'
@@ -85,7 +86,7 @@ function setProHtml(html) {
 function updateProStatusBadge() {
   const badge = document.getElementById('proStatusBadge')
   badge.innerHTML = proPublishedAt
-    ? '<span class="badge badge-completed">✅ Publicada</span>'
+    ? `<span class="badge badge-completed">${icons.checkCircle(13)} Publicada</span>`
     : '<span class="badge badge-progress">Borrador (sin publicar)</span>'
 }
 

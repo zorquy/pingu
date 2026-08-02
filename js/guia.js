@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl } from './app.js'
 import { renderReferenceBlocksHtml } from './block-editor.js'
 import { initGuideForum } from './guide-forum.js'
+import { icons } from './icons.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -14,7 +15,7 @@ async function toggleSave(session, guideId, btn) {
   const isSaved = saved.includes(guideId)
   const next = isSaved ? saved.filter((id) => id !== guideId) : [...saved, guideId]
   await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
-  btn.textContent = isSaved ? '☆ Guardar' : '★ Guardado'
+  btn.innerHTML = isSaved ? `${icons.bookmark(14, true)} Guardado` : `${icons.bookmark(14)} Guardar`
 }
 
 async function init() {
@@ -56,7 +57,7 @@ async function init() {
       ${
         author
           ? `<a class="mini-avatar" href="${profileUrl(author)}" style="width:36px; height:36px; font-size:14px; ${authorAvatarStyle}">${author.avatar_url ? '' : getInitial(authorName)}</a>`
-          : `<span class="mini-avatar" style="width:36px; height:36px; font-size:16px; background-color:var(--navy);">🛡️</span>`
+          : `<span class="mini-avatar" style="width:36px; height:36px; background-color:var(--navy); color:var(--white); display:flex; align-items:center; justify-content:center;">${icons.shield(18)}</span>`
       }
       <div>
         <span class="subtext" style="margin:0; display:block;">${author ? 'Publicada por' : 'Guía oficial de'}</span>
@@ -81,7 +82,7 @@ async function init() {
   } else if (!isUnlocked) {
     bodyHtml = `
       <div class="empty-state" style="border: 1px dashed var(--border); border-radius: var(--radius-lg); padding: 32px;">
-        <span style="font-size: 32px;">🔒</span>
+        <span style="display:flex; justify-content:center;">${icons.lock(32)}</span>
         <p style="margin-top: 8px;">Completa el curso de esta guía para desbloquear el artículo de referencia.</p>
       </div>`
   } else {
@@ -93,7 +94,7 @@ async function init() {
       ? renderReferenceBlocksHtml(proContent.blocks)
       : `
       <div class="empty-state pro-paywall">
-        <span style="font-size: 32px;">🌟</span>
+        <span style="display:flex; justify-content:center;">${icons.star(32)}</span>
         <p style="margin-top: 8px;">Este contenido es exclusivo para usuarios Pro: ejemplos, consejos y trucos avanzados aparte de la documentación gratuita.</p>
         ${session ? '' : `<a href="auth.html" class="btn-primary" style="margin-top:12px;">Inicia sesión</a>`}
       </div>`
@@ -108,7 +109,7 @@ async function init() {
     <div class="article-header">
       ${
         guide.review_status === 'pending'
-          ? `<p class="subtext" style="background:var(--ice); padding:8px 12px; border-radius:var(--radius-sm); margin-bottom:10px;">🕓 Guía de la comunidad pendiente de revisión — todavía no la ha comprobado el equipo de PokeDoc.</p>`
+          ? `<p class="subtext" style="background:var(--ice); padding:8px 12px; border-radius:var(--radius-sm); margin-bottom:10px; display:flex; align-items:center; gap:6px;">${icons.clock(14)} Guía de la comunidad pendiente de revisión — todavía no la ha comprobado el equipo de PokeDoc.</p>`
           : ''
       }
       <span class="emoji-big">${escapeHtml(guide.cover_emoji || '📘')}</span>
@@ -121,22 +122,22 @@ async function init() {
         <span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
         <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
         <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
-        <button class="btn-secondary" id="btnSave" style="margin-left: auto; padding: 6px 12px; font-size: 13px;">☆ Guardar</button>
+        <button class="btn-secondary" id="btnSave" style="margin-left: auto; padding: 6px 12px; font-size: 13px;">${icons.bookmark(14)} Guardar</button>
       </div>
     </div>
     ${
       guide.has_pro_content
         ? `
     <div class="tabs" id="articleTabs">
-      <button class="tab-btn active" data-atab="docu">📖 Básico</button>
-      <button class="tab-btn" data-atab="pro">🌟 Guía Pro</button>
+      <button class="tab-btn active" data-atab="docu">${icons.bookOpen(15)} Básico</button>
+      <button class="tab-btn" data-atab="pro">${icons.star(15)} Guía Pro</button>
     </div>
     <div class="tab-panel active" id="atab-docu"><div class="article-body">${bodyHtml}</div></div>
     <div class="tab-panel" id="atab-pro"><div class="article-body">${proBodyHtml}</div></div>`
         : `<div class="article-body">${bodyHtml}</div>`
     }
     <section class="guide-forum">
-      <h2 class="section-title">💬 Comentarios</h2>
+      <h2 class="section-title">${icons.messageSquare(18)} Comentarios</h2>
       <div id="forumContainer"></div>
     </section>`
 
@@ -159,7 +160,7 @@ async function init() {
   if (!session) {
     btnSave.addEventListener('click', () => (window.location.href = 'auth.html'))
   } else {
-    if ((profile?.saved_guides || []).includes(guide.id)) btnSave.textContent = '★ Guardado'
+    if ((profile?.saved_guides || []).includes(guide.id)) btnSave.innerHTML = `${icons.bookmark(14, true)} Guardado`
     btnSave.addEventListener('click', () => toggleSave(session, guide.id, btnSave))
   }
 

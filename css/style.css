@@ -447,6 +447,9 @@ button.btn-block {
 }
 
 .section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 22px;
   font-weight: 800;
   margin-bottom: 20px;
@@ -729,6 +732,9 @@ button.btn-block {
 }
 
 .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 11px;
   font-weight: 700;
   padding: 3px 9px;

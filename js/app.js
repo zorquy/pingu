@@ -269,8 +269,8 @@ async function renderNavUser(session) {
       <div class="nav-user-stats">
         <div><strong>${profile?.total_xp || 0}</strong><span>XP</span></div>
         <div><strong>${escapeHtml(profile?.level || 'Novato')}</strong><span>Nivel</span></div>
-        ${(profile?.current_streak || 0) > 0 ? `<div><strong>🔥 ${profile.current_streak}</strong><span>Racha</span></div>` : ''}
-        ${(approvedGuidesCount || 0) > 0 ? `<div><strong>${tier.emoji}</strong><span>${escapeHtml(tier.title)}</span></div>` : ''}
+        ${(profile?.current_streak || 0) > 0 ? `<div><strong style="display:inline-flex; align-items:center; gap:3px;">${icons.flame(14)} ${profile.current_streak}</strong><span>Racha</span></div>` : ''}
+        ${(approvedGuidesCount || 0) > 0 ? `<div><strong style="display:flex; justify-content:center;">${tier.icon}</strong><span>${escapeHtml(tier.title)}</span></div>` : ''}
       </div>
       <div class="nav-user-links">
         <a href="/perfil.html">${icons.user(16)} Mi perfil</a>

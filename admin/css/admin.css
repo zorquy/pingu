@@ -55,6 +55,9 @@ body {
 }
 
 .admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   text-align: left;
   padding: 12px 20px;
   color: var(--ice);

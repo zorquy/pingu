@@ -622,7 +622,8 @@
 }
 
 .reward-trophy {
-  font-size: 52px;
+  display: flex;
+  justify-content: center;
 }
 
 .block-reward h2 {

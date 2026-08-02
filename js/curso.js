@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getSession, burstConfetti } from './app.js'
 import { markCourseStarted, markCourseCompleted, addXP, incrementQuizCorrect } from './gamification.js'
 import { parseBBCode } from './bbcode.js'
+import { icons } from './icons.js'
 
 let blocks = []
 let currentIndex = 0
@@ -88,8 +89,8 @@ function renderTrueFalse(b) {
       </div>
       <h2 class="block-question">${escapeHtml(b.statement || '')}</h2>
       <div class="tf-options">
-        <button class="tf-option" data-value="true">✅ Verdadero</button>
-        <button class="tf-option" data-value="false">❌ Falso</button>
+        <button class="tf-option" data-value="true">${icons.checkCircle(16)} Verdadero</button>
+        <button class="tf-option" data-value="false">${icons.xCircle(16)} Falso</button>
       </div>
       <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
     </div>`
@@ -170,7 +171,7 @@ function renderReward(b) {
         <span class="tcg-card c2"></span>
         <span class="tcg-card c3"></span>
       </div>
-      <div class="reward-trophy">🏆</div>
+      <div class="reward-trophy">${icons.trophy(52)}</div>
       <h2>¡Curso completado!</h2>
       <div class="xp-display"><span id="xpCounter">0</span> XP</div>
       ${!session ? '<p style="color: var(--ice); font-size: 13px;">Crea una cuenta para guardar tu progreso y XP.</p>' : ''}
@@ -188,11 +189,11 @@ function getBlockHTML(block) {
     case 'concept':
       return renderConceptLike(block, 'block-concept', 'CONCEPTO')
     case 'warning':
-      return renderConceptLike(block, 'block-warning', '⚠️ CUIDADO')
+      return renderConceptLike(block, 'block-warning', 'CUIDADO')
     case 'tip':
-      return renderConceptLike(block, 'block-tip', '💡 CONSEJO')
+      return renderConceptLike(block, 'block-tip', 'CONSEJO')
     case 'example':
-      return renderConceptLike(block, 'block-example', '📌 EJEMPLO')
+      return renderConceptLike(block, 'block-example', 'EJEMPLO')
     case 'quiz':
       return renderQuiz(block)
     case 'truefalse':
@@ -479,7 +480,7 @@ function renderBlock(index, direction = 'forward') {
 function renderLocked(message) {
   stage.innerHTML = `
     <div class="block" style="text-align: center;">
-      <span style="font-size: 40px;">🔒</span>
+      <span style="display:flex; justify-content:center;">${icons.lock(40)}</span>
       <h2>Contenido Pro</h2>
       <p class="block-body">${escapeHtml(message)}</p>
     </div>`

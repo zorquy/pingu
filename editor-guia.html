@@ -43,7 +43,7 @@
 
     <div class="tabs" id="editorTabs">
       <button class="tab-btn active" data-etab="general">General y Guía</button>
-      <button class="tab-btn" data-etab="course">🎓 Curso interactivo</button>
+      <button class="tab-btn" data-etab="course"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5Z"></path><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"></path></svg> Curso interactivo</button>
     </div>
 
     <div class="tab-panel active" id="etab-general">
@@ -66,7 +66,7 @@
       </section>
 
       <section class="editor-panel">
-        <h2 class="section-title">📖 Guía</h2>
+        <h2 class="section-title"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg> Guía</h2>
         <p class="subtext" style="margin-top:-8px;">El contenido de referencia: la teoría a fondo, con calma y sin prisa. Escribe esto primero — el curso interactivo se construye a partir de aquí.</p>
         <div class="rte-wrap">
           <div class="rte-toolbar" id="refRteToolbar"></div>
@@ -78,13 +78,14 @@
     <div class="tab-panel" id="etab-course">
       <section class="editor-panel" id="courseSection">
         <div class="section-header-row">
-          <h2 class="section-title">🎓 Curso interactivo (opcional)</h2>
-          <button class="btn-outline hidden" id="btnToggleRefPreview" type="button">👁 Ver guía</button>
+          <h2 class="section-title"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5Z"></path><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"></path></svg> Curso interactivo (opcional)</h2>
+          <button class="btn-outline hidden" id="btnToggleRefPreview" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Ver guía</button>
         </div>
-        <p class="subtext" style="margin: -8px 0 16px;">No hace falta para publicar — con la pestaña Guía basta. Si le añades un curso interactivo, aparecerá también el botón "🎓 Curso" para quien quiera practicar.</p>
+        <p class="subtext" style="margin: -8px 0 16px;">No hace falta para publicar — con la pestaña Guía basta. Si le añades un curso interactivo, aparecerá también el botón "Curso" para quien quiera practicar.</p>
 
-        <div class="empty-state" id="courseLockedNotice">
-          🔒 Añade al menos un bloque en <strong>Guía</strong> antes de crear el curso interactivo. El curso se construye a partir de esa base.
+        <div class="empty-state" id="courseLockedNotice" style="display:flex; align-items:center; gap:8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          Añade al menos un bloque en <strong>Guía</strong> antes de crear el curso interactivo. El curso se construye a partir de esa base.
         </div>
 
         <div id="refPreviewPanel" class="editor-ref-preview hidden"></div>

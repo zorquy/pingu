@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, profileUrl } from './app.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { createNotification } from './notifications.js'
+import { icons } from './icons.js'
 
 const REPORT_TYPE_BY_TABLE = {
   profile_comments: 'profile_comment',
@@ -41,7 +42,7 @@ export async function renderWall({
   const isProfileWall = table === 'profile_comments'
 
   listEl.innerHTML = comments.length === 0
-    ? `<div class="wall-empty">💬 ${emptyMessage}</div>`
+    ? `<div class="wall-empty" style="display:flex; flex-direction:column; align-items:center; gap:6px;">${icons.messageSquare(24)} <span>${emptyMessage}</span></div>`
     : comments
         .map((c) => {
           const authorProfile = profilesById[c.author_id]

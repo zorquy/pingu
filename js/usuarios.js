@@ -2,12 +2,12 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, profileUrl } from './app.js'
 import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
 import { contributorTier } from './gamification.js'
+import { icons } from './icons.js'
 
 let allUsers = []
 let allCommunityGuides = []
 let communityGuidesPage = 1
 
-const RANK_MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' }
 const COMMUNITY_GUIDES_PAGE_SIZE = 12
 
 function userCardHtml(p) {
@@ -15,7 +15,7 @@ function userCardHtml(p) {
   const avatarStyle = p.avatar_url
     ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
     : `background-color:${p.avatar_color || 'var(--navy)'}`
-  const rankBadge = RANK_MEDALS[p.rank] || `#${p.rank}`
+  const rankBadge = p.rank <= 3 ? `${icons.trophy(14)} #${p.rank}` : `#${p.rank}`
   const tier = contributorTier(p.approvedGuidesCount || 0)
   return `
     <a class="user-card${p.rank <= 3 ? ' user-card-top' : ''}" href="${profileUrl(p)}">
@@ -24,7 +24,7 @@ function userCardHtml(p) {
       <div class="user-card-info">
         <h3>${escapeHtml(name)}</h3>
         <p>${p.level ? escapeHtml(p.level) + ' · ' : ''}${p.total_xp || 0} XP</p>
-        ${p.approvedGuidesCount > 0 ? `<p class="subtext" style="margin:2px 0 0;">${tier.emoji} ${escapeHtml(tier.title)}</p>` : ''}
+        ${p.approvedGuidesCount > 0 ? `<p class="subtext" style="margin:2px 0 0; display:flex; align-items:center; gap:4px;">${tier.icon} ${escapeHtml(tier.title)}</p>` : ''}
       </div>
     </a>`
 }

@@ -42,14 +42,14 @@ async function getRatingStats(guideIds) {
 // ── Tarjeta de guía (usada en categoria.html, la home, guardados.html y
 // la sección de Comunidad) ──
 export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel = '', reviewBadge = null, authorName = null } = {}) {
-  const courseLabel = statusBadge === 'completed' ? 'Repasar' : '🎓 Curso'
+  const courseLabel = statusBadge === 'completed' ? 'Repasar' : `${icons.graduationCap(15)} Curso`
   const hasCourse = Array.isArray(guide.blocks) && guide.blocks.length > 0
   const courseBtn = hasCourse
     ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course" onclick="event.stopPropagation()">${courseLabel}</a>`
-    : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">🎓 Curso</span>`
+    : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">${icons.graduationCap(15)} Curso</span>`
   const guideBtn = guide.has_reference_blocks
-    ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">📖 Guía</a>`
-    : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📖 Guía</span>`
+    ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">${icons.bookOpen(15)} Guía</a>`
+    : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">${icons.bookOpen(15)} Guía</span>`
 
   return `
   <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}">
@@ -216,7 +216,7 @@ export async function openGuideModal(guideId) {
     </div>`
     : `
     <div class="guide-modal-author">
-      <span class="mini-avatar" style="width:36px; height:36px; font-size:16px; background-color:var(--navy);">🛡️</span>
+      <span class="mini-avatar" style="width:36px; height:36px; background-color:var(--navy); color:var(--white); display:flex; align-items:center; justify-content:center;">${icons.shield(18)}</span>
       <div>
         <span class="subtext" style="margin:0; display:block;">Creador</span>
         <span style="font-weight:700;">Guía oficial de PokeDoc</span>
@@ -237,7 +237,7 @@ export async function openGuideModal(guideId) {
     <div class="guide-modal-banner" style="${bannerStyle}">${!guide.cover_image ? `<span class="guide-modal-banner-emoji">${escapeHtml(guide.cover_emoji || '📘')}</span>` : ''}</div>
     ${
       guide.review_status === 'pending'
-        ? `<p class="subtext" style="background:var(--ice); padding:8px 12px; border-radius:var(--radius-sm); margin-bottom:10px;">🕓 Guía de la comunidad pendiente de revisión — todavía no la ha comprobado el equipo de PokeDoc.</p>`
+        ? `<p class="subtext" style="background:var(--ice); padding:8px 12px; border-radius:var(--radius-sm); margin-bottom:10px; display:flex; align-items:center; gap:6px;">${icons.clock(14)} Guía de la comunidad pendiente de revisión — todavía no la ha comprobado el equipo de PokeDoc.</p>`
         : ''
     }
     <span class="guide-label">${escapeHtml(guide.categories?.name || '')}</span>
@@ -254,13 +254,13 @@ export async function openGuideModal(guideId) {
       <button class="btn-outline" id="guideModalSaveBtn">${icons.bookmark(16, isSaved)} ${isSaved ? 'Guardado' : 'Guardar'}</button>
       ${
         guide.has_reference_blocks
-          ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide">📖 Guía</a>`
-          : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">📖 Guía</span>`
+          ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide">${icons.bookOpen(16)} Guía</a>`
+          : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">${icons.bookOpen(16)} Guía</span>`
       }
       ${
         Array.isArray(guide.blocks) && guide.blocks.length > 0
-          ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course">🎓 Curso</a>`
-          : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">🎓 Curso</span>`
+          ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course">${icons.graduationCap(16)} Curso</a>`
+          : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">${icons.graduationCap(16)} Curso</span>`
       }
       ${session ? `<span style="margin-left:auto;">${reportButtonHtml('guide', guide.id)}</span>` : ''}
     </div>

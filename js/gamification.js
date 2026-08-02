@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { burstConfetti, achievementIconHtml } from './app.js'
+import { icons } from './icons.js'
 
 // Los logros se gestionan desde /admin en la tabla `achievement_definitions`.
 // `condition` es jsonb: { type: 'completed_guides_count' | 'total_xp' | 'quiz_correct_count', count: number }
@@ -39,10 +40,10 @@ export const LEVEL_THRESHOLDS = [
 // Reputación de colaborador, basada en cuántas guías/cursos ha aprobado
 // la moderación (no en XP, que ya mide el progreso como estudiante).
 export function contributorTier(approvedGuidesCount) {
-  if (approvedGuidesCount >= 10) return { title: 'Leyenda de la comunidad', emoji: '👑' }
-  if (approvedGuidesCount >= 5) return { title: 'Colaborador destacado', emoji: '⭐' }
-  if (approvedGuidesCount >= 1) return { title: 'Colaborador', emoji: '🌱' }
-  return { title: 'Miembro', emoji: '👤' }
+  if (approvedGuidesCount >= 10) return { title: 'Leyenda de la comunidad', icon: icons.crown(16) }
+  if (approvedGuidesCount >= 5) return { title: 'Colaborador destacado', icon: icons.star(16) }
+  if (approvedGuidesCount >= 1) return { title: 'Colaborador', icon: icons.sprout(16) }
+  return { title: 'Miembro', icon: icons.user(16) }
 }
 
 export function levelProgress(xp) {

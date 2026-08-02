@@ -5,6 +5,7 @@ import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { createNotification } from './notifications.js'
+import { icons } from './icons.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
@@ -103,7 +104,7 @@ async function loadReputationAndGuides() {
 
   document.getElementById('profileStats').innerHTML = `
     <div class="stat-card">
-      <div class="value">${tier.emoji}</div>
+      <div class="value" style="display:flex; justify-content:center;">${tier.icon}</div>
       <div class="label">${tier.title}</div>
     </div>
     <div class="stat-card">
@@ -255,7 +256,7 @@ function achievementTileHtml(a, unlocked) {
   const isUnlocked = unlocked.includes(a.id)
   return `
       <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
-        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? achievementIconHtml(a, 22) : '🔒'}</span>
+        <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? achievementIconHtml(a, 22) : icons.lock(22)}</span>
         <span class="name">${escapeHtml(a.title)}</span>
       </div>`
 }

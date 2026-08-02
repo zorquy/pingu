@@ -1,5 +1,6 @@
 import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify/+esm'
 import { showToast } from './toast.js'
+import { icons } from './icons.js'
 
 const ALLOWED_TAGS = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'blockquote']
 const ALLOWED_ATTR = ['href', 'src', 'alt', 'target', 'rel']
@@ -21,13 +22,13 @@ const TOOLBAR_ACTIONS = [
   { cmd: 'formatBlock', arg: 'P', icon: '¶', title: 'Párrafo' },
   { cmd: 'insertUnorderedList', icon: '•', title: 'Lista' },
   { cmd: 'insertOrderedList', icon: '1.', title: 'Lista numerada' },
-  { cmd: 'createLink', icon: '🔗', title: 'Enlace', prompt: true },
+  { cmd: 'createLink', icon: icons.link(15), title: 'Enlace', prompt: true },
 ]
 
 export function richTextToolbarHtml() {
   return `
     ${TOOLBAR_ACTIONS.map((a, i) => `<button type="button" data-i="${i}" title="${a.title}">${a.icon}</button>`).join('')}
-    <button type="button" data-action="image" title="Insertar imagen">🖼️ Imagen</button>
+    <button type="button" data-action="image" title="Insertar imagen">${icons.image(15)} Imagen</button>
     <input type="file" accept="image/*" class="rte-image-input" hidden />`
 }
 

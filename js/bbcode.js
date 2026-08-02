@@ -1,4 +1,5 @@
 import { escapeHtml } from './app.js'
+import { icons } from './icons.js'
 
 // BBCode al viejo estilo de foro: [b] [i] [u] [url=...] [list][*]...[/list]
 // Se escapa el HTML primero, así que las etiquetas que generamos aquí son
@@ -32,7 +33,7 @@ export const BBCODE_BUTTONS = [
   { tag: 'b', label: 'B', title: 'Negrita', before: '[b]', after: '[/b]' },
   { tag: 'i', label: 'I', title: 'Cursiva', before: '[i]', after: '[/i]' },
   { tag: 'u', label: 'U', title: 'Subrayado', before: '[u]', after: '[/u]' },
-  { tag: 'url', label: '🔗', title: 'Enlace', before: '[url=https://]', after: '[/url]' },
+  { tag: 'url', label: icons.link(13), title: 'Enlace', before: '[url=https://]', after: '[/url]' },
   { tag: 'list', label: '•', title: 'Lista', before: '[list]\n[*]', after: '\n[/list]' },
 ]
 

@@ -38,13 +38,13 @@
   <main class="page-content container-narrow">
     <div class="profile-hero" id="profileHero">
       <div class="profile-hero-banner" id="heroBanner">
-        <button class="profile-hero-edit-btn" id="btnEditBanner" type="button">🖉 Banner</button>
+        <button class="profile-hero-edit-btn" id="btnEditBanner" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Banner</button>
         <input type="file" id="bannerFileInput" accept="image/*" class="hidden" />
       </div>
       <div class="profile-hero-body">
         <div class="profile-hero-avatar-wrap">
           <div class="profile-hero-avatar" id="heroAvatar">?</div>
-          <button class="profile-hero-avatar-edit" id="btnEditAvatar" type="button" title="Cambiar foto">🖉</button>
+          <button class="profile-hero-avatar-edit" id="btnEditAvatar" type="button" title="Cambiar foto"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button>
           <input type="file" id="avatarFileInput" accept="image/*" class="hidden" />
         </div>
         <div class="profile-hero-info" id="heroInfo"></div>
@@ -52,7 +52,7 @@
       <div class="profile-hero-social">
         <button class="hero-social-item" id="btnShowFollowing" type="button"><strong id="followingCount">0</strong> Siguiendo</button>
         <button class="hero-social-item" id="btnShowFollowers" type="button"><strong id="followersCount">0</strong> Seguidores</button>
-        <button class="hero-social-item" id="btnShowTrophies" type="button">🏆 <strong id="heroTrophyCount">0</strong> Trofeos</button>
+        <button class="hero-social-item" id="btnShowTrophies" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg> <strong id="heroTrophyCount">0</strong> Trofeos</button>
       </div>
     </div>
 
@@ -83,7 +83,7 @@
 
       <div class="accordion about-block" id="achievementsAccordion">
         <button class="accordion-header" id="achievementsToggle" type="button">
-          <span>🏆 Trofeos (<span id="achievementsCount">0/0</span>)</span>
+          <span style="display:inline-flex; align-items:center; gap:6px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg> Trofeos (<span id="achievementsCount">0/0</span>)</span>
           <span class="chevron">▾</span>
         </button>
         <div class="accordion-body">
