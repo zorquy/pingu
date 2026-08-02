@@ -174,6 +174,20 @@ export function validateImageFile(file, maxMB = MAX_IMAGE_MB) {
   }
 }
 
+// Debe coincidir con la política de contraseñas configurada en Supabase
+// (Authentication → Providers → Email → Password requirements): mínimo 8
+// caracteres, con mayúsculas, minúsculas, números y símbolos. Comprobarlo
+// aquí antes de llamar a Supabase evita un viaje de ida y vuelta solo para
+// que lo rechace, y deja mostrar un único mensaje claro en español en vez
+// del mensaje en inglés que devuelve la API.
+export function passwordStrengthError(password) {
+  if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres, con mayúsculas, minúsculas, números y símbolos.'
+  if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+    return 'La contraseña debe tener mayúsculas, minúsculas, números y símbolos.'
+  }
+  return null
+}
+
 export async function uploadProfileImage(userId, file, kind) {
   validateImageFile(file)
   const ext = (file.name.split('.').pop() || 'png').toLowerCase()

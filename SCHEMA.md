@@ -1880,3 +1880,42 @@ oculta el bloque de valoración/minutos y la página no tiene scroll
 horizontal. Se rompieron a propósito el CSS que oculta ese bloque en
 móvil y el `href` del botón para confirmar que el test detecta ambas
 regresiones; se restauraron y volvió a pasar todo.
+
+## Política de contraseñas actualizada (mín. 8, mayúscula+minúscula+número+símbolo)
+Activaste en Supabase (Authentication → Providers → Email → Password
+requirements) la opción "Lowercase, uppercase letters, digits and
+symbols" y subiste el mínimo a 8 caracteres. El frontend seguía
+validando en el cliente "al menos 6 caracteres" (registro y
+recuperar contraseña), así que alguien podía rellenar una contraseña
+que pasaba esa comprobación local pero que Supabase rechazaba igual
+al llegar — y el mensaje que se veía entonces era el texto en inglés
+de la API, o un genérico poco útil ("No se pudo guardar la
+contraseña. Pide un enlace nuevo...") en el caso de recuperar
+contraseña, que además da un consejo equivocado para este caso (el
+enlace era válido, el problema era la contraseña).
+
+Se añadió `passwordStrengthError(password)` (nuevo, en `js/app.js`),
+compartido entre el registro (`js/auth.js`) y recuperar contraseña
+(`js/reset-password.js`), que comprueba en el cliente exactamente lo
+mismo que exige ahora Supabase — 8+ caracteres, con mayúscula,
+minúscula, número y símbolo — antes de llamar a la API, mostrando
+directamente el mensaje claro en español en vez de esperar el
+rechazo del servidor. Como red de seguridad por si la política de
+Supabase cambia otra vez sin actualizar este chequeo, `friendlyAuthError()`
+(registro) y el manejo de error de `reset-password.js` también
+reconocen la respuesta real de Supabase para contraseña débil/corta y
+la traducen al mismo mensaje, en vez de mostrar el texto en inglés.
+Los placeholders de `auth.html` y `reset-password.html` se
+actualizaron para reflejar el requisito real.
+
+Nota de test: el stub de pruebas no simula el rechazo de Supabase por
+contraseña débil (`signUp()`/`updateUser()` siempre tienen éxito ahí
+pase lo que pase), así que lo que se pudo verificar con Playwright es
+la validación del lado del cliente — que es la que evita la llamada
+en la inmensa mayoría de los casos: una contraseña débil no llega a
+llamar a `signUp()`/`updateUser()` y muestra el mensaje nuevo, y una
+contraseña que cumple los cuatro requisitos pasa sin error y el
+registro continúa con normalidad. Se rompió a propósito el chequeo de
+longitud (comprobando `< 100` en vez de `< 8`) para confirmar que el
+test detecta que una contraseña válida quedaría rechazada; se
+restauró y volvió a pasar.

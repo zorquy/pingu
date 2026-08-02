@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { uniqueUsername } from './app.js'
+import { uniqueUsername, passwordStrengthError } from './app.js'
 import { showToast } from './toast.js'
 
 const steps = {
@@ -39,8 +39,8 @@ function friendlyAuthError(error) {
   if (msg.includes('invalid format') || msg.includes('unable to validate email')) {
     return 'Revisa que el email sea correcto.'
   }
-  if (msg.includes('password') && (msg.includes('short') || msg.includes('at least') || msg.includes('6 characters'))) {
-    return 'La contraseña debe tener al menos 6 caracteres.'
+  if (msg.includes('password') && (msg.includes('short') || msg.includes('character') || msg.includes('weak'))) {
+    return 'La contraseña debe tener al menos 8 caracteres, con mayúsculas, minúsculas, números y símbolos.'
   }
   // Sin traducción conocida: mostramos el mensaje real de Supabase en vez de
   // enmascararlo con un genérico que podría despistar sobre la causa real.
@@ -160,8 +160,9 @@ btnRegister?.addEventListener('click', async () => {
     setError(steps.register, 'Revisa que el email sea correcto.')
     return
   }
-  if (password.length < 6) {
-    setError(steps.register, 'La contraseña debe tener al menos 6 caracteres.')
+  const pwError = passwordStrengthError(password)
+  if (pwError) {
+    setError(steps.register, pwError)
     return
   }
 

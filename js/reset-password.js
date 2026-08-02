@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { passwordStrengthError } from './app.js'
 
 const stepReset = document.getElementById('stepReset')
 const stepInvalid = document.getElementById('stepInvalid')
@@ -32,8 +33,9 @@ btnSavePassword?.addEventListener('click', async () => {
   const password = document.getElementById('newPassword').value
   setError('')
 
-  if (password.length < 6) {
-    setError('La contraseña debe tener al menos 6 caracteres.')
+  const pwError = passwordStrengthError(password)
+  if (pwError) {
+    setError(pwError)
     return
   }
 
@@ -46,7 +48,12 @@ btnSavePassword?.addEventListener('click', async () => {
   btnSavePassword.textContent = 'Guardar contraseña'
 
   if (error) {
-    setError('No se pudo guardar la contraseña. Pide un enlace nuevo e inténtalo otra vez.')
+    const msg = (error.message || '').toLowerCase()
+    setError(
+      msg.includes('password') && (msg.includes('short') || msg.includes('character') || msg.includes('weak'))
+        ? 'La contraseña debe tener al menos 8 caracteres, con mayúsculas, minúsculas, números y símbolos.'
+        : 'No se pudo guardar la contraseña. Pide un enlace nuevo e inténtalo otra vez.'
+    )
     return
   }
 
