@@ -1674,3 +1674,35 @@ normal, sin tocar el campo trampa, sigue funcionando igual que antes.
 Se rompió a propósito la comprobación del honeypot para confirmar que
 el test detecta que se cuela un registro real; se restauró y volvió
 a pasar.
+
+## Analítica básica autoalojada (sin servicio externo, sin cookies)
+No tengo credenciales para dar de alta Plausible/Umami ni ningún
+servicio de terceros, así que se implementó un recuento propio y
+mínimo. Migración: `supabase-migration-page-views.sql` — tabla
+`page_views` (`path`, `user_id` nullable, `created_at`), con el
+mismo insert abierto a cualquiera que `client_errors` (solo hay dos
+tablas así en todo el proyecto, a propósito: ninguna de las dos
+guarda contenido de usuario, solo telemetría).
+
+`js/analytics.js` (`logPageView(session)`) se llama desde
+`initNavbar()` en cada carga de página, con el `path` y el `user_id`
+si hay sesión (o `null` si no) — sin cookies, sin id de visitante,
+sin nada persistido en el navegador; cada carga es una fila suelta.
+
+El admin tiene una sección nueva ("📈 Analítica") con un desplegable
+de periodo (7/30/90 días) que agrupa las visitas por página en el
+propio JS del admin (no hay `group by` fácil desde el cliente de
+Supabase) y muestra el total y el desglose por página.
+
+Nota de test: el stub de pruebas no aplica de verdad los filtros
+`.gte()`/`.lte()` por fecha (siempre devuelve todas las filas,
+al igual que tampoco simula RLS) — el desplegable de periodo no se
+pudo probar de forma realista con Playwright por esa limitación del
+stub, no del código real. Sí se pudo comprobar todo lo demás:
+registrar una visita real, que las filas con `user_id` nulo son
+válidas (el stub tampoco permite simular una visita realmente
+anónima, porque `getSession()` siempre devuelve una sesión, admin-1
+por defecto), que el admin agrupa correctamente por página y suma
+bien el total, y el estado vacío cuando no hay visitas. Se rompió a
+propósito el agrupado por página en el admin para confirmar que el
+test lo detecta; se restauró y volvió a pasar.

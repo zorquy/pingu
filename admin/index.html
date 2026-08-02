@@ -33,6 +33,7 @@
         <button class="admin-nav-item" data-section="reports">🚩 Reportes</button>
         <button class="admin-nav-item" data-section="feedback">💬 Feedback</button>
         <button class="admin-nav-item" data-section="errors">🐞 Errores</button>
+        <button class="admin-nav-item" data-section="analytics">📈 Analítica</button>
         <button class="admin-nav-item" data-section="images">🖼️ Imágenes</button>
       </nav>
       <a href="/index.html" class="admin-back">← Volver a PokeDoc</a>
@@ -114,6 +115,19 @@
         <h1>Errores</h1>
         <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Errores de JavaScript registrados automáticamente desde el navegador de los usuarios. Pasa el ratón por encima del mensaje para ver la traza completa.</p>
         <div id="errorsTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-analytics">
+        <div class="admin-section-header">
+          <h1>Analítica</h1>
+          <select id="analyticsDays">
+            <option value="7">Últimos 7 días</option>
+            <option value="30">Últimos 30 días</option>
+            <option value="90">Últimos 90 días</option>
+          </select>
+        </div>
+        <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Recuento propio de páginas visitadas, sin cookies ni servicios externos — <strong id="analyticsTotal">0</strong> visitas en el periodo.</p>
+        <div id="analyticsTable"></div>
       </section>
 
       <section class="admin-section" id="section-images">

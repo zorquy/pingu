@@ -338,6 +338,7 @@ export async function initNavbar() {
     // la navbar.
     import('./gamification.js').then(({ checkDailyStreak }) => checkDailyStreak(session.user.id))
   }
+  import('./analytics.js').then(({ logPageView }) => logPageView(session))
   renderNavUser(session)
   const { renderNavSearch } = await import('./nav-search.js')
   renderNavSearch()

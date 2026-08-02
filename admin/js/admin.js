@@ -924,6 +924,38 @@ async function loadClientErrors() {
   )
 }
 
+// ── Analítica básica (page_views) — sin servicio externo, sin cookies ──
+async function loadAnalytics() {
+  const days = Number(document.getElementById('analyticsDays')?.value) || 7
+  const since = new Date(Date.now() - days * 86400_000).toISOString()
+
+  const { data } = await supabase.from('page_views').select('path, created_at').gte('created_at', since)
+  const views = data || []
+
+  const container = document.getElementById('analyticsTable')
+  const totalEl = document.getElementById('analyticsTotal')
+  if (totalEl) totalEl.textContent = views.length
+
+  if (views.length === 0) {
+    container.innerHTML = `<p class="empty-state">Todavía no hay visitas registradas en este periodo.</p>`
+    return
+  }
+
+  const countByPath = views.reduce((acc, v) => {
+    acc[v.path] = (acc[v.path] || 0) + 1
+    return acc
+  }, {})
+  const rows = Object.entries(countByPath).sort((a, b) => b[1] - a[1])
+
+  container.innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Página</th><th>Visitas</th></tr></thead>
+      <tbody>
+        ${rows.map(([path, count]) => `<tr><td>${escapeHtml(path)}</td><td>${count}</td></tr>`).join('')}
+      </tbody>
+    </table>`
+}
+
 // ── Init ──
 async function init() {
   const session = await checkAccess()
@@ -932,7 +964,20 @@ async function init() {
   initSidebar()
   await loadCategories()
   await Promise.all([loadCollections(), loadPaths()])
-  await Promise.all([loadDashboard(), loadPending(), loadGuides(), loadAchievements(), loadUsers(), loadImages(), loadReports(), loadFeedback(), loadClientErrors()])
+  await Promise.all([
+    loadDashboard(),
+    loadPending(),
+    loadGuides(),
+    loadAchievements(),
+    loadUsers(),
+    loadImages(),
+    loadReports(),
+    loadFeedback(),
+    loadClientErrors(),
+    loadAnalytics(),
+  ])
+
+  document.getElementById('analyticsDays')?.addEventListener('change', loadAnalytics)
 }
 
 init()
