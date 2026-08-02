@@ -337,6 +337,10 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
   openModal(`
     <h3>Editar perfil</h3>
     <div class="form-group">
+      <label>Nombre visible</label>
+      <input id="peDisplayName" value="${escapeHtml(currentProfile?.display_name || '')}" placeholder="Cómo quieres que te vean" />
+    </div>
+    <div class="form-group">
       <label>Nombre de usuario (para tu enlace público)</label>
       <input id="peUsername" value="${escapeHtml(currentProfile?.username || '')}" placeholder="tu-nombre-de-usuario" />
       <p class="subtext" id="peUsernamePreview" style="margin:0;"></p>
@@ -402,6 +406,7 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       .map((cb) => cb.dataset.notifPref)
 
     const payload = {
+      display_name: document.getElementById('peDisplayName').value.trim() || null,
       username: desiredUsername,
       bio: document.getElementById('peBio').value.trim(),
       banner_color: selectedBanner,

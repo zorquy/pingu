@@ -113,20 +113,6 @@ export async function markCourseStarted(userId, guideId) {
   )
 }
 
-export async function unlockReference(userId, guideId) {
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('unlocked_references')
-    .eq('id', userId)
-    .single()
-  const unlocked = profile?.unlocked_references || []
-  if (unlocked.includes(guideId)) return
-  await supabase
-    .from('user_profiles')
-    .update({ unlocked_references: [...unlocked, guideId] })
-    .eq('id', userId)
-}
-
 export async function markCourseCompleted(userId, guideId, xpEarned = 20) {
   await supabase.from('user_progress').upsert(
     {
@@ -139,7 +125,6 @@ export async function markCourseCompleted(userId, guideId, xpEarned = 20) {
     { onConflict: 'user_id,guide_id' }
   )
 
-  await unlockReference(userId, guideId)
   await addXP(userId, xpEarned)
   await checkAchievements(userId)
 }

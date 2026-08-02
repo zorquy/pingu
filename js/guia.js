@@ -71,23 +71,12 @@ async function init() {
     ? (await supabase.from('guide_pro_content').select('*').eq('guide_id', guide.id).maybeSingle()).data
     : null
 
-  const isUnlocked =
-    guide.reference_unlocked_by_default || (profile?.unlocked_references || []).includes(guide.id)
   const hasContent = Array.isArray(guide.reference_blocks) && guide.reference_blocks.length > 0
 
   const headings = []
-  let bodyHtml
-  if (!hasContent) {
-    bodyHtml = `<p>${escapeHtml(guide.description || 'Esta guía todavía no tiene contenido de referencia.')}</p>`
-  } else if (!isUnlocked) {
-    bodyHtml = `
-      <div class="empty-state" style="border: 1px dashed var(--border); border-radius: var(--radius-lg); padding: 32px;">
-        <span style="display:flex; justify-content:center;">${icons.lock(32)}</span>
-        <p style="margin-top: 8px;">Completa el curso de esta guía para desbloquear el artículo de referencia.</p>
-      </div>`
-  } else {
-    bodyHtml = renderReferenceBlocksHtml(guide.reference_blocks, headings)
-  }
+  const bodyHtml = hasContent
+    ? renderReferenceBlocksHtml(guide.reference_blocks, headings)
+    : `<p>${escapeHtml(guide.description || 'Esta guía todavía no tiene contenido de referencia.')}</p>`
 
   const proBodyHtml = guide.has_pro_content
     ? proContent
@@ -150,7 +139,7 @@ async function init() {
     })
   })
 
-  if (headings.length > 0 && isUnlocked) {
+  if (headings.length > 0) {
     document.getElementById('articleSidebar').innerHTML = `
       <h4>En esta guía</h4>
       ${headings.map((h) => `<a href="#${h.id}">${escapeHtml(h.text)}</a>`).join('')}`

@@ -2091,3 +2091,64 @@ navegación a `perfil.html` tras guardar reinicia el stub de pruebas
 en memoria). Se rompió a propósito el envío de `cover_image` en el
 payload para confirmar que el test lo detecta, se restauró y volvió
 a pasar.
+
+## Bug real: falta de espacio en los bordes en móvil
+
+`.hero` y `.section` fijaban `padding: 52px 0 44px` / `padding: 44px
+0` con la propiedad abreviada `padding`, que fija los cuatro lados a
+la vez. Como esos elementos siempre se combinan con `.container`
+(que pone `padding: 0 24px` a los lados), y las dos reglas tienen la
+misma especificidad, ganaba la que aparece después en la hoja de
+estilos — así que el `0` de los lados de `.hero`/`.section` anulaba
+por completo el margen lateral de `.container` en todas las páginas.
+El resultado: en el hero, "Explora por tema", "Añadidas
+recientemente" y cualquier sección con esas dos clases, el contenido
+tocaba literalmente el borde de la pantalla (0px de margen, no solo
+"poco margen"). Se corrigió cambiando ambas reglas a
+`padding-top`/`padding-bottom` sueltos, que no tocan los lados y
+dejan que `.container` mande en el padding horizontal.
+
+Verificado con Playwright en un viewport de móvil (390px): antes del
+arreglo la cuadrícula de categorías empezaba exactamente en x=0
+(pegada al borde); después empieza en x=24 (con el margen del
+`.container`). Se rompió a propósito volviendo a la abreviatura
+`padding: 52px 0 44px` para confirmar que el test lo detecta, se
+restauró y volvió a pasar.
+
+## Nombre visible editable (no solo nombre de usuario)
+
+El perfil muestra `display_name` si existe (si no, cae a
+`username`), pero el modal de "Editar perfil" solo dejaba cambiar el
+`username` (el que forma parte del enlace público). Por eso cambiar
+el nombre de usuario no cambiaba el nombre que se ve en la cabecera
+del perfil — son dos campos distintos. Se añadió un campo "Nombre
+visible" al modal que edita `display_name` directamente.
+
+Verificado con Playwright: el campo aparece en el modal, y tras
+guardar, tanto la cabecera del perfil como la fila guardada en
+Supabase reflejan el nuevo nombre visible.
+
+## Bug real: la guía no se podía leer sin completar el curso
+
+`guia.html` ocultaba el artículo de referencia (documentación) de
+cualquier guía a menos que `reference_unlocked_by_default` fuera
+`true` en la base o el usuario ya hubiera completado el curso (lo
+que añadía el id de la guía a `user_profiles.unlocked_references`).
+El editor de guías de la comunidad nunca exponía ese campo (solo
+existía como casilla oculta en el editor del admin), así que
+absolutamente ninguna guía de la comunidad podía desbloquearse nunca
+— y en general, guía (documentación) y curso son cosas distintas: no
+tiene sentido bloquear la lectura de un artículo por no haber hecho
+un curso interactivo aparte, que además puede ni existir. Se quitó
+la restricción por completo: la documentación de una guía se
+muestra siempre que tenga contenido, sin depender del curso. También
+se quitó la casilla ahora inútil del editor del admin
+("Guía desbloqueada por defecto...") y el código muerto asociado
+(`unlockReference()`, `unlocked_references`) en `gamification.js`.
+
+Verificado con Playwright: una guía con documentación pero sin
+`reference_unlocked_by_default` (el caso de cualquier guía nueva)
+muestra su contenido real en vez del aviso de "completa el curso".
+Se rompió a propósito reintroduciendo la comprobación de
+`isUnlocked` para confirmar que el test la detecta, se restauró y
+volvió a pasar.

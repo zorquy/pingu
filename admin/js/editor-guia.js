@@ -247,7 +247,6 @@ async function loadExistingGuide() {
   document.getElementById('gTags').value = (data.tags || []).join(', ')
   document.getElementById('gSearchContent').value = data.search_content || ''
   document.getElementById('gPublished').checked = !!data.published_at
-  document.getElementById('gRefUnlocked').checked = !!data.reference_unlocked_by_default
   document.getElementById('gCollectionOrder').value = data.collection_order ?? 0
 
   courseBlocks = JSON.parse(JSON.stringify(data.blocks || []))
@@ -303,7 +302,6 @@ function buildPayload() {
     tags: document.getElementById('gTags').value.split(',').map((s) => s.trim()).filter(Boolean),
     search_content: document.getElementById('gSearchContent').value.trim(),
     published_at: published ? existingGuide?.published_at || new Date().toISOString() : null,
-    reference_unlocked_by_default: document.getElementById('gRefUnlocked').checked,
     blocks: courseBlocks,
     reference_blocks: refBlocks,
     has_pro_content: !!proPublishedAt,
