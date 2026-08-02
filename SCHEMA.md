@@ -1759,3 +1759,43 @@ lista de pendientes. Se rompió a propósito la condición que detecta
 una solicitud pendiente (`if (data)` → `if (false)`) para confirmar
 que el test detecta que el botón nunca se oculta ni aparece el aviso;
 se restauró y volvió a pasar.
+
+## Bug real de móvil: el botón de menú de la navbar quedaba fuera de pantalla
+Auditoría más profunda con Playwright emulando viewports estrechos
+(375px, 390px, 360px) sobre `perfil.html`, `mensajes.html`,
+`guia.html`, `editor-guia.html` y `auth.html` con sesión iniciada.
+Con sesión, `.nav-right` acumula seis elementos — buscar, tema
+claro/oscuro, mensajes, campana de notificaciones, avatar y el propio
+botón ☰ de menú — que en total no caben junto al logo en una pantalla
+de móvil normal: el contenido de la navbar se salía por la derecha
+(`scrollWidth` de hasta 421px sobre un viewport de 375px), y como
+nada limita ese desbordamiento, el botón de menú (el único
+modo de llegar a Inicio/Aprender/Guardados/Comunidad en móvil, ya que
+`.nav-links` está oculto ahí) quedaba literalmente fuera del área
+visible en vez de solo apretado.
+
+Arreglo en `css/style.css`, sin tocar ningún HTML: por debajo de
+860px se reduce el hueco entre los iconos de `.nav-right` (14px →
+6px), y por debajo de 480px se colapsa el logo a solo su icono
+cuadrado (`font-size: 0` en `.nav-logo`, que también vacía el texto
+plano "Poke" antes del `<span>Doc</span>` sin tener que tocar el
+marcado de cada página) — el resultado es la misma navbar, con el
+mismo icono reconocible, pero sin el nombre "PokeDoc" en texto en
+pantallas muy estrechas.
+
+Verificado con Playwright en los tres anchos de prueba y las cinco
+páginas: ninguna combinación produce ya scroll horizontal
+(`document.documentElement.scrollWidth` igual al ancho del viewport),
+el botón de menú queda dentro del viewport y sigue abriendo
+`#navMobileMenu` al pulsarlo, y el logo colapsado sigue siendo un
+elemento visible y clicable (solo el icono). Se revirtió el CSS del
+arreglo para confirmar que el mismo test detecta la regresión (el
+botón de menú vuelve a quedar fuera de pantalla); se restauró y
+volvió a pasar.
+
+Nota: no se pudo probar con WebKit (para aproximar Safari de verdad)
+porque este sandbox solo tiene Chromium preinstalado y no tiene
+acceso de red para descargar el binario de WebKit — la auditoría se
+hizo con la emulación de viewport de Chromium, que cubre el problema
+real (es un desbordamiento de layout por ancho, no algo específico
+del motor de render).

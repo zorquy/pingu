@@ -344,6 +344,24 @@ select {
   }
 }
 
+@media (max-width: 859px) {
+  /* Con sesión, nav-right acumula búsqueda + tema + mensajes + campana +
+     avatar + el propio botón de menú: en móvil no caben todos junto al
+     logo sin desbordar la página horizontalmente (el botón de menú
+     quedaba fuera de la pantalla). Se reduce el hueco entre iconos y, por
+     debajo de 480px, se colapsa el texto del logo a solo el icono. */
+  .nav-right {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 479px) {
+  .nav-logo {
+    font-size: 0;
+    gap: 0;
+  }
+}
+
 /* ── Buttons ── */
 .btn-primary,
 .btn-secondary,
