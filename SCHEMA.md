@@ -1487,3 +1487,14 @@ stub no simula RLS, solo se puede confirmar en el SQL Editor de
 Supabase tras aplicar la migración. Se rompió a propósito la
 comprobación de `is_banned` en `initNavbar()` para confirmar que el
 test lo detecta; se restauró y volvió a pasar.
+
+**Corrección tras el primer intento real:** al ejecutarla en la base
+real dio `ERROR: 42P01: relation "guide_comments" does not exist` —
+esa tabla la crea `supabase-migration-guide-comments.sql`, de una
+ronda anterior, que aparentemente no se había llegado a ejecutar (o
+esa tabla se llama distinto en la base real). Se reescribió el bloque
+de políticas envolviendo cada tabla en `if to_regclass(...) is not
+null then ... end if;`, así que ahora la migración solo toca las
+tablas que existen de verdad y no aborta entera por una que falte. El
+propio script incluye, comentada al final, la consulta para comprobar
+cuáles de las seis tablas afectadas existen en tu base.
