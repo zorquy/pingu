@@ -18,14 +18,22 @@ let currentSession = null
 let existingGuide = null
 let courseBlocks = []
 let refBlocks = []
+let coverImageUrl = ''
 let draftScope = null
 let stopAutosave = () => {}
+
+function updateCoverImagePreview() {
+  document.getElementById('mgCoverImagePreview').src = coverImageUrl
+  document.getElementById('mgCoverImagePreview').classList.toggle('hidden', !coverImageUrl)
+  document.getElementById('btnRemoveCoverImage').classList.toggle('hidden', !coverImageUrl)
+}
 
 function captureState() {
   return {
     title: document.getElementById('mgTitle').value,
     category_id: document.getElementById('mgCategory').value,
     cover_emoji: document.getElementById('mgCoverEmoji').value,
+    cover_image: coverImageUrl,
     description: document.getElementById('mgDescription').value,
     level: document.getElementById('mgLevel').value,
     refBlocks,
@@ -37,6 +45,8 @@ function applyDraftState(state) {
   document.getElementById('mgTitle').value = state.title || ''
   if (state.category_id) document.getElementById('mgCategory').value = state.category_id
   document.getElementById('mgCoverEmoji').value = state.cover_emoji || ''
+  coverImageUrl = state.cover_image || ''
+  updateCoverImagePreview()
   document.getElementById('mgDescription').value = state.description || ''
   document.getElementById('mgLevel').value = state.level || 'beginner'
   refBlocks = state.refBlocks || []
@@ -100,6 +110,8 @@ async function loadExistingGuide(session) {
   document.getElementById('editorTitle').textContent = 'Editar guía'
   document.getElementById('mgTitle').value = data.title || ''
   document.getElementById('mgCoverEmoji').value = data.cover_emoji || ''
+  coverImageUrl = data.cover_image || ''
+  updateCoverImagePreview()
   document.getElementById('mgDescription').value = data.description || ''
   document.getElementById('mgLevel').value = data.level || 'beginner'
   courseBlocks = JSON.parse(JSON.stringify(data.blocks || []))
@@ -113,6 +125,7 @@ function buildPayload(reviewStatus) {
     slug: existingGuide?.slug || `${slugify(title)}-${Math.random().toString(36).slice(2, 6)}`,
     category_id: document.getElementById('mgCategory').value,
     cover_emoji: document.getElementById('mgCoverEmoji').value.trim(),
+    cover_image: coverImageUrl || null,
     description: document.getElementById('mgDescription').value.trim(),
     level: document.getElementById('mgLevel').value,
     blocks: courseBlocks,
@@ -197,6 +210,23 @@ async function init() {
   document.getElementById('btnAddCourseBlock').addEventListener('click', () => {
     courseBlocks.push({ ...COURSE_BLOCK_DEFAULTS.concept })
     renderCourse()
+  })
+
+  document.getElementById('btnUploadCoverImage').addEventListener('click', () => document.getElementById('mgCoverImageFile').click())
+  document.getElementById('mgCoverImageFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0]
+    e.target.value = ''
+    if (!file) return
+    try {
+      coverImageUrl = await uploadGuideImage(currentSession.user.id, file)
+      updateCoverImagePreview()
+    } catch (err) {
+      showToast('No se pudo subir la imagen: ' + err.message)
+    }
+  })
+  document.getElementById('btnRemoveCoverImage').addEventListener('click', () => {
+    coverImageUrl = ''
+    updateCoverImagePreview()
   })
 
   document.getElementById('btnToggleRefPreview').addEventListener('click', () => {

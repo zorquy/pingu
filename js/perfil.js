@@ -408,7 +408,11 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       showcase_achievement: document.getElementById('peShowcase').value || null,
       notification_prefs_disabled: notificationPrefsDisabled,
     }
-    await supabase.from('user_profiles').update(payload).eq('id', currentSession.user.id)
+    const { error } = await supabase.from('user_profiles').update(payload).eq('id', currentSession.user.id)
+    if (error) {
+      showToast('No se pudo guardar el perfil: ' + error.message)
+      return
+    }
     closeModal()
     currentProfile = { ...currentProfile, ...payload }
     loadProfile(currentSession)

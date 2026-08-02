@@ -2033,3 +2033,61 @@ real (tus usuarios sí tienen acceso a internet) — lo comprobé
 inspeccionando el HTML inyectado directamente (sin depender de que el
 JS termine de cargar): el sidebar del admin tiene sus 14 iconos SVG
 nuevos y ningún emoji en el texto visible.
+
+## Botón "Editar perfil" más visible
+
+Estaba escondido dentro de la pestaña "Acerca" del perfil, así que
+había que hacer dos clics para encontrarlo. Se movió a la cabecera
+del perfil (`.profile-hero-body`), como tercer elemento junto al
+avatar y el nombre/nivel, visible siempre sin cambiar de pestaña. El
+JS (`perfil.js`) no necesitó cambios porque localiza el botón por
+`id`, no por su posición en el DOM.
+
+## Bug real: "Editar perfil" no guardaba los cambios
+
+El modal de edición de perfil llamaba a `supabase.from('user_profiles')
+.update(...)` pero nunca comprobaba si Supabase devolvía un error: si
+el `update` fallaba, el código seguía igual cerrando el modal y
+actualizando el estado local como si hubiera ido bien, así que la
+página parecía guardar el cambio pero al recargar volvía a los datos
+de antes. Se corrigió comprobando el `error` de la respuesta: si hay
+error, se muestra un toast ("No se pudo guardar el perfil: ...") y el
+modal se queda abierto; solo se cierra y se actualiza el estado local
+si el guardado fue de verdad correcto.
+
+Este bug probablemente se manifestó en producción por la migración
+`supabase-migration-notification-prefs.sql` (columna
+`notification_prefs_disabled`): si no se ha ejecutado, cualquier
+guardado que toque preferencias de notificación falla en la base
+real con un error de columna inexistente, y antes de este arreglo esa
+falla pasaba desapercibida.
+
+Verificado con Playwright: el botón es visible sin cambiar de
+pestaña y abre el modal; un guardado correcto sí persiste el cambio
+en la base y cierra el modal; un guardado que falla (simulado en el
+stub de pruebas) muestra el toast de error y mantiene el modal
+abierto. Se rompió a propósito quitando la comprobación del error
+para confirmar que los dos últimos tests fallan, se restauró y
+volvieron a pasar los 6.
+
+## Imagen de portada en el editor de guías de la comunidad
+
+El editor de guías de la comunidad (`editor-guia.html`) solo dejaba
+poner un emoji como portada; el editor del admin ya tenía subida de
+imagen desde antes. Se igualó: nuevo campo "Imagen de portada
+(opcional)" con vista previa, botón "Subir imagen" (usa
+`uploadGuideImage()` de `app.js`, que valida el archivo y lo sube al
+bucket `guide-images`) y botón "Quitar". El campo `cover_image` se
+guarda en el payload final, se incluye en el autoguardado de
+borrador y se recupera al editar una guía existente o al restaurar
+un borrador.
+
+Verificado con Playwright: el botón de subir imagen existe, subir un
+archivo muestra la vista previa y el botón "Quitar", "Quitar" oculta
+la vista previa otra vez, y la guía guardada de verdad lleva
+`cover_image` relleno en el payload que se envía a Supabase (se
+interceptó el `upsert` para comprobar el payload real, porque la
+navegación a `perfil.html` tras guardar reinicia el stub de pruebas
+en memoria). Se rompió a propósito el envío de `cover_image` en el
+payload para confirmar que el test lo detecta, se restauró y volvió
+a pasar.
