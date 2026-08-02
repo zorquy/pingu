@@ -2179,3 +2179,30 @@ Nota para ti: ahora que esto está arreglado, si sigues sin poder
 crear "Mazos & estrategia" el toast te dirá el motivo exacto (por
 ejemplo, si el slug ya existe o si hay algún problema de permisos) —
 avísame con el mensaje exacto que te salga y lo diagnosticamos.
+
+## Migración pendiente: no se puede borrar un usuario desde Authentication
+
+Migración: `supabase-migration-fix-user-delete-fks.sql`. Varias
+tablas tienen una columna que apunta a `auth.users(id)` sin `ON
+DELETE CASCADE` ni `SET NULL`: `user_profiles.id`,
+`account_deletion_requests.user_id`, `app_feedback.user_id`,
+`content_reports.reporter_id`, `client_errors.user_id`,
+`page_views.user_id` y `guides.author_id`. En cuanto ese usuario
+tiene una sola fila en cualquiera de esas tablas, Postgres bloquea el
+`DELETE` de `auth.users` con una violación de clave foránea —
+Supabase Studio no explica el motivo, solo muestra un `[]` vacío
+("Failed to delete user").
+
+La migración reconstruye esas restricciones con la regla correcta
+para cada caso: `user_profiles`, `account_deletion_requests`,
+`app_feedback` y `content_reports` se borran en cascada junto con el
+usuario (no tienen sentido sin él); `client_errors.user_id`,
+`page_views.user_id` y `guides.author_id` se ponen a `NULL` en vez de
+borrarse (el registro de error o la vista de página sigue siendo útil
+para analítica, y una guía no debería desaparecer porque su autor
+borre la cuenta — con `author_id` a `null` ya se muestra como "Guía
+oficial de PokeDoc", el mismo fallback que usa el código para guías
+sin autor de la comunidad). Como `user_profiles` no se creó con
+ningún script de este repo, la migración busca el nombre real de su
+restricción en vez de asumirlo, por si se llama distinto a lo
+habitual.
