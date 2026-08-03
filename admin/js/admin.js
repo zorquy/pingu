@@ -5,6 +5,7 @@ import { showToast } from '../../js/toast.js'
 import { renderReferenceBlocksHtml } from '../../js/block-editor.js'
 import { icons } from '../../js/icons.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
+import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch } from '../../js/tcgdex.js'
 
 let categories = []
 let guidesCache = []
@@ -1195,6 +1196,170 @@ async function loadAnalytics() {
   </div>`
 }
 
+// ── Cartas (espejo del catálogo de TCGdex) ──
+//
+// La importación corre AQUÍ, en el navegador de un admin, con su propia
+// sesión y las políticas de RLS de siempre. No hay ningún script suelto
+// tocando la base por fuera de la web.
+
+let tcgSetsRemotos = []   // lo que TCGdex dice que existe
+let tcgSetsLocales = []   // lo que ya tenemos importado
+let importCancelado = false
+
+function cardsNota(texto, aviso = false) {
+  const el = document.getElementById('cardsImportNote')
+  el.className = aviso ? 'admin-note-warn' : 'admin-note'
+  el.textContent = texto
+}
+
+async function loadCards() {
+  const [setsRes, cartasRes] = await Promise.all([
+    supabase.from('tcg_sets').select('*').order('release_date', { ascending: false, nullsFirst: false }),
+    supabase.from('tcg_cards').select('id', { count: 'exact', head: true }),
+  ])
+
+  if (setsRes.error) {
+    // El caso típico: la migración todavía no se ha ejecutado. Decirlo
+    // claro vale más que una tabla vacía que no explica nada.
+    document.getElementById('cardsSummary').innerHTML = ''
+    document.getElementById('cardsSetsTable').innerHTML = ''
+    cardsNota(`No se puede leer tcg_sets: ${setsRes.error.message}. Aplica supabase-migration-cartas.sql.`, true)
+    document.getElementById('btnLoadTcgSets').disabled = true
+    return
+  }
+
+  tcgSetsLocales = setsRes.data || []
+  const importados = tcgSetsLocales.filter((s) => s.imported_at).length
+
+  document.getElementById('cardsSummary').innerHTML = [
+    statCardHtml(cartasRes.count ?? 0, 'Cartas', 'en nuestra base'),
+    statCardHtml(importados, 'Sets importados', tcgSetsRemotos.length ? `de ${tcgSetsRemotos.length} en TCGdex` : 'pulsa "Buscar sets"'),
+    statCardHtml(tcgSetsLocales.length - importados, 'Sets pendientes', 'conocidos pero sin cartas'),
+  ].join('')
+
+  renderCardsSets()
+}
+
+function renderCardsSets() {
+  const filtro = normalizeSearch(document.getElementById('cardsSetFilter')?.value || '')
+  const filas = tcgSetsLocales.filter((s) => !filtro || normalizeSearch(s.name).includes(filtro))
+
+  if (filas.length === 0) {
+    document.getElementById('cardsSetsTable').innerHTML = tcgSetsLocales.length
+      ? `<p class="empty-state">Ningún set coincide con el filtro.</p>`
+      : `<p class="empty-state">Todavía no hay sets. Pulsa "Buscar sets en TCGdex" para traer la lista.</p>`
+    return
+  }
+
+  document.getElementById('cardsSetsTable').innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Set</th><th style="width:110px;">Cartas</th><th style="width:110px;">Estado</th><th style="width:110px;"></th></tr></thead>
+      <tbody>
+        ${filas
+          .map(
+            (s) => `<tr>
+              <td>${escapeHtml(s.name)} <span class="admin-path">${escapeHtml(s.id)}${s.release_date ? ' · ' + s.release_date : ''}</span></td>
+              <td>${s.imported_cards || 0}${s.card_count_total ? ` / ${s.card_count_total}` : ''}</td>
+              <td>${s.imported_at ? '<span class="badge-ok">Importado</span>' : '<span class="badge-pending">Pendiente</span>'}</td>
+              <td><button class="btn-outline btn-small" data-import-set="${escapeHtml(s.id)}">${s.imported_at ? 'Reimportar' : 'Importar'}</button></td>
+            </tr>`
+          )
+          .join('')}
+      </tbody>
+    </table>`
+
+  document.querySelectorAll('[data-import-set]').forEach((btn) =>
+    btn.addEventListener('click', () => importarSets([btn.dataset.importSet]))
+  )
+}
+
+// Trae la LISTA de sets (no las cartas). Son ~220 filas en una petición.
+async function cargarSetsDeTcgdex() {
+  const btn = document.getElementById('btnLoadTcgSets')
+  btn.disabled = true
+  cardsNota('Pidiendo la lista de sets a TCGdex…')
+  try {
+    tcgSetsRemotos = await fetchSets()
+    const filas = tcgSetsRemotos.map(setToRow)
+    // En trozos: PostgREST tiene un límite de tamaño de petición y 220
+    // filas de una vez lo rozan.
+    for (let i = 0; i < filas.length; i += 100) {
+      const { error } = await supabase.from('tcg_sets').upsert(filas.slice(i, i + 100), { onConflict: 'id' })
+      if (error) throw error
+    }
+    cardsNota(`${filas.length} sets conocidos. Ahora "Importar los que faltan" trae las cartas.`)
+    document.getElementById('btnImportPending').disabled = false
+    await loadCards()
+  } catch (err) {
+    cardsNota(`No se pudo traer la lista: ${err.message}`, true)
+  } finally {
+    btn.disabled = false
+  }
+}
+
+async function importarSets(ids) {
+  if (ids.length === 0) {
+    cardsNota('No queda ningún set por importar.')
+    return
+  }
+  importCancelado = false
+  const barra = document.getElementById('cardsProgress')
+  const relleno = document.getElementById('cardsProgressFill')
+  barra.classList.remove('hidden')
+  document.getElementById('btnCancelImport').classList.remove('hidden')
+  document.getElementById('btnImportPending').disabled = true
+
+  let hechos = 0
+  let cartasTotal = 0
+  const fallos = []
+
+  for (const setId of ids) {
+    if (importCancelado) break
+    try {
+      const set = await fetchSet(setId)
+      const filas = (set.cards || []).map((c) => cardToRow(c, setId))
+      for (let i = 0; i < filas.length; i += 200) {
+        const { error } = await supabase.from('tcg_cards').upsert(filas.slice(i, i + 200), { onConflict: 'id' })
+        if (error) throw error
+      }
+      const { error: errSet } = await supabase
+        .from('tcg_sets')
+        .update({ imported_at: new Date().toISOString(), imported_cards: filas.length })
+        .eq('id', setId)
+      if (errSet) throw errSet
+      cartasTotal += filas.length
+    } catch (err) {
+      fallos.push(`${setId}: ${err.message}`)
+    }
+    hechos++
+    relleno.style.width = `${Math.round((hechos / ids.length) * 100)}%`
+    cardsNota(`Importando… ${hechos} de ${ids.length} sets, ${cartasTotal} cartas.${fallos.length ? ` ${fallos.length} con fallo.` : ''}`)
+  }
+
+  barra.classList.add('hidden')
+  relleno.style.width = '0%'
+  document.getElementById('btnCancelImport').classList.add('hidden')
+  document.getElementById('btnImportPending').disabled = false
+
+  // Un set que falle no debe parar los otros 219, pero tampoco puede
+  // pasar desapercibido: se dicen cuáles y por qué.
+  const resumen = importCancelado ? 'Importación cancelada.' : 'Importación terminada.'
+  cardsNota(`${resumen} ${cartasTotal} cartas en ${hechos - fallos.length} sets.${fallos.length ? ` Fallaron ${fallos.length}: ${fallos.slice(0, 3).join(' · ')}` : ''}`, fallos.length > 0)
+  await loadCards()
+}
+
+function initCardsSection() {
+  document.getElementById('btnLoadTcgSets')?.addEventListener('click', cargarSetsDeTcgdex)
+  document.getElementById('btnImportPending')?.addEventListener('click', () =>
+    importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => s.id))
+  )
+  document.getElementById('btnCancelImport')?.addEventListener('click', () => {
+    importCancelado = true
+    cardsNota('Cancelando al terminar el set en curso…')
+  })
+  document.getElementById('cardsSetFilter')?.addEventListener('input', renderCardsSets)
+}
+
 // ── Init ──
 async function init() {
   const session = await checkAccess()
@@ -1215,7 +1380,10 @@ async function init() {
     loadClientErrors(),
     loadAnalytics(),
     loadAccountDeletionRequests(),
+    loadCards(),
   ])
+
+  initCardsSection()
 
   document.getElementById('analyticsDays')?.addEventListener('change', loadAnalytics)
 }

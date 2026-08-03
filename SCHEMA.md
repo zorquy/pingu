@@ -3264,3 +3264,116 @@ vez" pasaba incluso con el fallo puesto, porque buscaba el texto
 "Inicio" y la fila duplicada se llamaba `/index.html`. Se sustituyó por
 una que normaliza las rutas mostradas y exige que no haya dos filas para
 la misma página.
+
+## El espejo de cartas (TCGdex)
+
+Base para dos cosas: poder meter las cartas de un mazo en una guía de
+"Mazos & estrategia", y más adelante el álbum de colección. Las dos
+necesitan lo mismo — un catálogo de cartas consultable— así que se
+construye una vez.
+
+Los datos vienen de [TCGdex](https://tcgdex.dev): gratis, comunitario,
+**sin clave de API** (por eso se llama desde el navegador, sin proxy) y
+con más de 10 idiomas, español incluido.
+
+### No se consulta en vivo: se copia
+
+`supabase-migration-cartas.sql` crea `tcg_sets` y `tcg_cards`. La
+importación se lanza desde **/admin → Cartas**.
+
+Tres razones para copiar en vez de preguntar cada vez:
+
+1. **La API no pagina por defecto.** `/cards?name=pika` devuelve *todas*
+   las coincidencias. Para un buscador que consulta mientras escribes,
+   no sirve.
+2. **El álbum tendrá que cruzar cartas con datos de cada usuario.** Eso
+   no se puede hacer si las cartas viven fuera.
+3. Si TCGdex se cae o cambia de condiciones, la web sigue.
+
+Son ~23.600 cartas en ~220 sets: unos 8 MB.
+
+**Importar el catálogo entero son ~220 peticiones, no 23.000**, porque
+`/sets/{id}` devuelve el set con todas sus cartas dentro.
+
+Lo que trae ese listado es poco: `id`, `localId`, `name` e `image`.
+Suficiente para el buscador. Las columnas de tipo, rareza y HP se quedan
+a null a propósito — las necesitará el álbum para filtrar, y traerlas
+exige una petición **por carta**.
+
+### Las imágenes no se copian
+
+Se guarda solo la ruta (`swsh/swsh3/136`) y se enlazan a su CDN. Las
+cartas son de Nintendo/Creatures/GAME FREAK: enlazarlas es una cosa y
+alojarlas es otra.
+
+La ruta se guarda **sin el idioma delante**, porque la URL lo lleva
+(`assets.tcgdex.net/es/swsh/swsh3/136/high.webp`) y el español no está
+completo. Comprobado abriendo las dos: la carta de Sword & Shield existe
+en español y la de Set Base no. Así se puede montar la URL en español y
+caer a inglés sin volver a preguntar.
+
+### La cobertura del español está partida por épocas
+
+Medido carta a carta sobre la base de datos real (está en GitHub, y a
+GitHub sí se llega desde el entorno de trabajo):
+
+- **Sword & Shield, Scarlet & Violet, Mega Evolution: 98-100%.**
+- Sun & Moon 93%, Black & White y XY ~80%.
+- **Base, Gym, Neo, E-Card, EX, Diamond & Pearl, Platinum, HeartGold: 0%.**
+
+En total, 15.438 de 23.599 cartas tienen nombre español (65%).
+
+Pero el golpe es menor de lo que parece, y esto también se midió: de las
+que sí lo tienen, **solo el 10% de los Pokémon cambia de nombre**
+(Charizard es Charizard), frente al **94% de los entrenadores** (*Float
+Stone* → *Piedra Pómez*) y el **100% de las energías**.
+
+O sea: el hueco duele justo donde vive el constructor de mazos, que está
+lleno de entrenadores y energías, y casi nada en el vintage. Se decidió
+enseñar el inglés sin marcarlo: es como se llaman esas cartas en la vida
+real y marcarlas ensuciaría sets enteros donde TODAS lo llevarían.
+
+### Buscar sin tildes: dos bugs que solo salieron ejecutando
+
+Se cargó el catálogo real (23.505 cartas) en un Postgres 16 de verdad
+antes de entregar nada. Salieron dos fallos que una revisión a ojo no
+habría visto:
+
+**1. 1.159 cartas llevan tilde o eñe.** Con un `ILIKE` normal, quien
+escriba "pomez" no encuentra "Piedra Pómez" — y aquí casi nadie va a
+poner las tildes. Se arregló con una columna generada `name_search`
+(`unaccent(lower(name))`) más un índice de trigramas, y normalizando en
+JS lo que se teclea de la misma forma.
+
+**2. JS y Postgres no normalizaban igual.** Comparando las 23.505
+cartas una a una salieron 35 discrepancias: `unaccent()` de Postgres
+también convierte la puntuación tipográfica (`Farfetch’d` → `farfetch'd`),
+la ligadura `Æ` → `ae` y la `¿`/`¡` a `?`/`!`, y el `normalize('NFD')` de
+JS no hace nada de eso. Una carta guardada de una forma y buscada de
+otra es invisible. Tras arreglarlo: **0 discrepancias en las 23.505**.
+
+El índice de trigramas se comprobó con `EXPLAIN ANALYZE`: 1,3 ms usando
+el índice frente a 7 ms de recorrido completo. Con 23.000 filas Postgres
+elige el recorrido completo porque le sale igual de barato; el índice
+está para cuando eso deje de ser cierto.
+
+### Verificación
+
+33 comprobaciones con Playwright, con la API de TCGdex simulada
+(interceptando sus URLs con respuestas que copian la forma exacta de su
+documentación): traer la lista, importar, que un set que falla no tumbe a
+los otros 219, que una carta sin escaneo entre igual con `image_path` a
+null, que un 503 se cuente en vez de romper, el montaje de las URLs de
+imagen y el filtro de sets.
+
+La migración se ejecutó contra Postgres 16 real, con y sin `is_admin()`,
+y dos veces seguidas para comprobar que es idempotente.
+
+Se rompió a propósito la extracción de la ruta de imagen y las pruebas lo
+detectaron.
+
+**Lo que NO se ha podido probar:** el entorno de trabajo no tiene salida
+a internet (la política de red solo deja pasar npm, pypi y GitHub), así
+que nunca se ha hablado con la API de verdad. La forma de las respuestas
+viene de su documentación. La primera prueba real es pulsar "Buscar sets
+en TCGdex" en el panel.
