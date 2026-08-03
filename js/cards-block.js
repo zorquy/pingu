@@ -41,18 +41,18 @@ function cartaHtml(carta) {
       // vez. El `onerror=null` antes de reasignar corta el bucle si la
       // segunda tampoco existe.
       `<img src="${escapeHtml(src)}" alt="${escapeHtml(carta.name)}" loading="lazy"
-         onerror="if(!this.dataset.r){this.dataset.r=1;this.src='${escapeHtml(reserva)}'}else{this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{className:'tcg-card-noimg',textContent:this.alt}))}">`
-    : `<span class="tcg-card-noimg">${escapeHtml(carta.name)}</span>`
-  return `<li class="tcg-card" title="${escapeHtml(pie)}">
+         onerror="if(!this.dataset.r){this.dataset.r=1;this.src='${escapeHtml(reserva)}'}else{this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{className:'deck-card-noimg',textContent:this.alt}))}">`
+    : `<span class="deck-card-noimg">${escapeHtml(carta.name)}</span>`
+  return `<li class="deck-card" title="${escapeHtml(pie)}">
     ${img}
-    <span class="tcg-card-name">${escapeHtml(carta.name)}</span>
-    <span class="tcg-card-set">${escapeHtml(setName)} #${escapeHtml(carta.local_id)}</span>
+    <span class="deck-card-name">${escapeHtml(carta.name)}</span>
+    <span class="deck-card-set">${escapeHtml(setName)} #${escapeHtml(carta.local_id)}</span>
   </li>`
 }
 
 export function renderDeckHtml(cartas, idsPedidos = []) {
   if (cartas.length === 0) {
-    return `<p class="tcg-deck-empty">No se han podido cargar las cartas de esta lista.</p>`
+    return `<p class="deck-empty">No se han podido cargar las cartas de esta lista.</p>`
   }
   // Se respeta el orden en que las puso el autor, no el que devuelva la
   // base.
@@ -60,8 +60,8 @@ export function renderDeckHtml(cartas, idsPedidos = []) {
   const ordenadas = idsPedidos.length ? idsPedidos.map((id) => porId[id]).filter(Boolean) : cartas
   const faltan = idsPedidos.length - ordenadas.length
   return `
-    <ul class="tcg-card-grid">${ordenadas.map(cartaHtml).join('')}</ul>
-    ${faltan > 0 ? `<p class="tcg-deck-note">${faltan} carta(s) de esta lista ya no están en el catálogo.</p>` : ''}`
+    <ul class="deck-grid">${ordenadas.map(cartaHtml).join('')}</ul>
+    ${faltan > 0 ? `<p class="deck-note">${faltan} carta(s) de esta lista ya no están en el catálogo.</p>` : ''}`
 }
 
 // Busca los <tcg-deck> dentro de `raiz` y los rellena. Una sola consulta
@@ -73,7 +73,7 @@ export async function hydrateDecks(raiz) {
   const porBloque = bloques.map((el) => parseDeckIds(el.getAttribute('data-cards')))
   const todos = porBloque.flat()
   if (todos.length === 0) {
-    bloques.forEach((el) => { el.innerHTML = `<p class="tcg-deck-empty">Lista de cartas vacía.</p>` })
+    bloques.forEach((el) => { el.innerHTML = `<p class="deck-empty">Lista de cartas vacía.</p>` })
     return
   }
 
@@ -81,7 +81,7 @@ export async function hydrateDecks(raiz) {
   try {
     cartas = await cardsByIds(todos)
   } catch {
-    bloques.forEach((el) => { el.innerHTML = `<p class="tcg-deck-empty">No se han podido cargar las cartas.</p>` })
+    bloques.forEach((el) => { el.innerHTML = `<p class="deck-empty">No se han podido cargar las cartas.</p>` })
     return
   }
 

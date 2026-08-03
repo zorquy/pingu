@@ -45,20 +45,50 @@ export function cardImageFallbackUrl(imagePath, calidad = 'low') {
   return cardImageUrl(imagePath, calidad, IDIOMA_RESERVA)
 }
 
-async function pedir(ruta) {
-  const res = await fetch(`${API}/${IDIOMA}/${ruta}`, { headers: { Accept: 'application/json' } })
-  if (!res.ok) throw new Error(`TCGdex respondió ${res.status} en /${ruta}`)
+async function pedir(ruta, idioma = IDIOMA) {
+  const res = await fetch(`${API}/${idioma}/${ruta}`, { headers: { Accept: 'application/json' } })
+  if (!res.ok) throw new Error(`TCGdex respondió ${res.status} en /${idioma}/${ruta}`)
   return res.json()
 }
 
+// La lista de sets se pide en INGLÉS a propósito. El catálogo español no
+// cubre las épocas antiguas (Base, Gym, Neo, EX, Diamond & Pearl...), y
+// pidiéndola en español se quedaban fuera sets enteros — con sus cartas.
+// Los identificadores de set no dependen del idioma, así que la lista
+// inglesa es la completa y sirve igual.
 export function fetchSets() {
-  return pedir('sets')
+  return pedir('sets', IDIOMA_RESERVA)
 }
 
-// Devuelve el set CON todas sus cartas dentro. Es la petición que hace
-// que importar el catálogo entero sean ~220 peticiones y no 23.000.
-export function fetchSet(setId) {
-  return pedir(`sets/${encodeURIComponent(setId)}`)
+// Devuelve el set CON todas sus cartas dentro: por eso importar el
+// catálogo entero son ~220 sets y no 23.000 peticiones sueltas.
+//
+// Se piden las DOS versiones y se mezclan:
+//   - el inglés manda la lista completa de cartas (no falta ninguna),
+//   - el español pisa el nombre y la imagen cuando existen.
+//
+// Así una carta sin traducir sale en inglés en vez de no salir.
+export async function fetchSet(setId) {
+  const ruta = `sets/${encodeURIComponent(setId)}`
+  const [en, es] = await Promise.all([
+    pedir(ruta, IDIOMA_RESERVA),
+    // Que el español falle no puede dejarnos sin set: hay sets que solo
+    // existen en inglés y ahí responde 404.
+    pedir(ruta, IDIOMA).catch(() => null),
+  ])
+
+  const esPorId = Object.fromEntries((es?.cards || []).map((c) => [c.id, c]))
+  return {
+    ...en,
+    // El nombre del set sí se prefiere en español cuando lo hay.
+    name: es?.name || en.name,
+    serie: es?.serie || en.serie,
+    logo: es?.logo || en.logo,
+    cards: (en.cards || []).map((c) => {
+      const t = esPorId[c.id]
+      return t ? { ...c, name: t.name || c.name, image: t.image || c.image } : c
+    }),
+  }
 }
 
 function fecha(valor) {

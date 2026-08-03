@@ -3659,3 +3659,58 @@ prueba**, que tenía el mismo punto ciego.
 
 Verificación final: 20 migraciones aplicables ejecutadas dos veces
 seguidas contra Postgres 16, **0 fallos**.
+
+## Las cartas salían diminutas: choque de nombres de clase
+
+Una lista de cartas en una guía se veía como **un recuadro de 58×80 px,
+sin nombre ni set**.
+
+La causa: **ya existía una clase `.tcg-card`** en `style.css` para la
+baraja decorativa de la portada (las tres cartas inclinadas del hero).
+Esa regla lleva `position: absolute; width: 58px; height: 80px`, y mis
+elementos nuevos se llamaban igual, así que la heredaban entera.
+
+Renombradas todas a `deck-*` (`deck-grid`, `deck-card`,
+`deck-card-name`, `deck-card-set`, `deck-empty`…). La clase decorativa
+estaba antes; la que se mueve es la nueva.
+
+De paso, `.article-body ul` (dos partes de selector) le ganaba en
+especificidad a `.deck-grid` (una), y volvía a meter sangría y viñetas
+dentro de una guía. Se añadió `.article-body .deck-grid`.
+
+### Ninguna prueba lo veía
+
+Las pruebas contaban elementos: *"2 cartas, todo OK"*, mientras en
+pantalla salían aplastadas. Contar nodos no dice nada del aspecto.
+
+Ahora hay una prueba que **mide**: que la carta ocupa su columna entera
+(±2 px de la pista del grid), que no está posicionada en absoluto, que
+pasa de 100 px de ancho, que el nombre se ve y ocupa el ancho de la
+carta, y que no hay sangría ni viñetas. Se volvió a poner el nombre
+antiguo a propósito y saltaron tres comprobaciones.
+
+Es la misma lección que con las tildes o con la idempotencia: si la
+prueba no mide lo que el usuario ve, no prueba lo que importa.
+
+## Faltaban cartas: la lista de sets se pedía solo en español
+
+TCGdex sirve cada idioma por separado, y **el español no cubre las
+épocas antiguas**. Pidiendo `/v2/es/sets` se quedaban fuera sets enteros
+— con todas sus cartas. Por eso había cartas que no aparecían en el
+buscador por mucho que se importara.
+
+Ahora:
+
+- **La lista de sets se pide en inglés**, que es la completa. Los
+  identificadores de set no dependen del idioma.
+- **De cada set se piden las DOS versiones y se mezclan**: el inglés
+  manda la lista completa de cartas y el español pisa el nombre y la
+  imagen cuando existen.
+
+Así una carta sin traducir **sale en inglés en vez de no salir**. Son
+~440 peticiones en vez de ~220 para el catálogo entero: sigue siendo
+nada, y el español fallando en un set (responde 404 donde no existe) ya
+no deja ese set fuera.
+
+**Hay que reimportar** para que esto surta efecto: los sets que nunca
+entraron siguen sin estar.

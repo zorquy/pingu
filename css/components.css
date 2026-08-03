@@ -2733,7 +2733,10 @@ tcg-deck {
   margin: 20px 0;
 }
 
-.tcg-card-grid {
+.deck-grid,
+/* `.article-body ul` gana por especificidad a una sola clase, así que le
+   volvía a poner sangría y viñetas dentro de una guía. */
+.article-body .deck-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 12px;
@@ -2742,7 +2745,7 @@ tcg-deck {
   margin: 0;
 }
 
-.tcg-card {
+.deck-card {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -2750,7 +2753,7 @@ tcg-deck {
   min-width: 0;
 }
 
-.tcg-card img {
+.deck-card img {
   width: 100%;
   aspect-ratio: 245 / 342;
   object-fit: contain;
@@ -2758,7 +2761,7 @@ tcg-deck {
   background: var(--ice);
 }
 
-.tcg-card-noimg {
+.deck-card-noimg {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2772,7 +2775,7 @@ tcg-deck {
   font-weight: 700;
 }
 
-.tcg-card-name {
+.deck-card-name {
   font-size: 12.5px;
   font-weight: 700;
   line-height: 1.3;
@@ -2781,7 +2784,7 @@ tcg-deck {
   white-space: nowrap;
 }
 
-.tcg-card-set {
+.deck-card-set {
   font-size: 11px;
   color: var(--text-mid);
   overflow: hidden;
@@ -2789,8 +2792,8 @@ tcg-deck {
   white-space: nowrap;
 }
 
-.tcg-deck-empty,
-.tcg-deck-note {
+.deck-empty,
+.deck-note {
   font-size: 12.5px;
   color: var(--text-mid);
   margin: 8px 0 0;
