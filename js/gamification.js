@@ -39,11 +39,59 @@ export const LEVEL_THRESHOLDS = [
 
 // Reputación de colaborador, basada en cuántas guías/cursos ha aprobado
 // la moderación (no en XP, que ya mide el progreso como estudiante).
+export const CONTRIBUTOR_TIERS = [
+  { min: 0, title: 'Miembro', icon: icons.user },
+  { min: 1, title: 'Colaborador', icon: icons.sprout },
+  { min: 5, title: 'Colaborador destacado', icon: icons.star },
+  { min: 10, title: 'Leyenda de la comunidad', icon: icons.crown },
+]
+
 export function contributorTier(approvedGuidesCount) {
-  if (approvedGuidesCount >= 10) return { title: 'Leyenda de la comunidad', icon: icons.crown(16) }
-  if (approvedGuidesCount >= 5) return { title: 'Colaborador destacado', icon: icons.star(16) }
-  if (approvedGuidesCount >= 1) return { title: 'Colaborador', icon: icons.sprout(16) }
-  return { title: 'Miembro', icon: icons.user(16) }
+  const tier = [...CONTRIBUTOR_TIERS].reverse().find((t) => approvedGuidesCount >= t.min) || CONTRIBUTOR_TIERS[0]
+  return { title: tier.title, icon: tier.icon(16) }
+}
+
+// Contenido del modal "ver todos los niveles/rangos" — se abre al hacer
+// clic en el nivel o en la tarjeta de Colaborador del perfil (propio o
+// público), para que cualquiera pueda ver hasta dónde puede llegar.
+export function levelLadderHtml(xp) {
+  return `
+    <h3>Niveles</h3>
+    <p class="subtext" style="margin-bottom:14px;">Subes de nivel automáticamente según tu XP total.</p>
+    <div class="ladder-list">
+      ${LEVEL_THRESHOLDS.map((l) => {
+        const isCurrent = xp >= l.min && (l.next === null || xp < l.next)
+        return `
+        <div class="ladder-item ${isCurrent ? 'ladder-item-current' : ''}">
+          <div class="ladder-item-main">
+            <strong>${l.level}</strong>
+            <span class="subtext">${l.min}+ XP</span>
+          </div>
+          ${isCurrent ? '<span class="badge badge-completed">Tu nivel</span>' : ''}
+        </div>`
+      }).join('')}
+    </div>`
+}
+
+export function tierLadderHtml(approvedGuidesCount) {
+  return `
+    <h3>Colaborador</h3>
+    <p class="subtext" style="margin-bottom:14px;">Depende de cuántas guías tuyas ha aprobado la moderación.</p>
+    <div class="ladder-list">
+      ${CONTRIBUTOR_TIERS.map((t, i) => {
+        const nextMin = CONTRIBUTOR_TIERS[i + 1]?.min
+        const isCurrent = approvedGuidesCount >= t.min && (nextMin === undefined || approvedGuidesCount < nextMin)
+        return `
+        <div class="ladder-item ${isCurrent ? 'ladder-item-current' : ''}">
+          <span class="ladder-item-icon">${t.icon(18)}</span>
+          <div class="ladder-item-main">
+            <strong>${t.title}</strong>
+            <span class="subtext">${t.min === 0 ? 'Desde el principio' : `${t.min}+ guías aprobadas`}</span>
+          </div>
+          ${isCurrent ? '<span class="badge badge-completed">Tu rango</span>' : ''}
+        </div>`
+      }).join('')}
+    </div>`
 }
 
 export function levelProgress(xp) {

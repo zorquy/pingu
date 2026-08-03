@@ -2454,3 +2454,46 @@ Verificado con Playwright: el `<span>Racha</span>` queda por debajo
 del número/icono (no en la misma línea). Se rompió a propósito
 volviendo a `inline-flex` para confirmar que el test detecta que
 vuelven a quedar en la misma línea, se restauró y volvió a pasar.
+
+## Niveles y rango de Colaborador consultables desde el perfil
+
+El nivel ("Coleccionista", etc.) y el rango de Colaborador solo se
+veían como texto — no había forma de saber qué niveles/rangos
+existen ni qué hace falta para el siguiente. Ahora ambos son
+clicables (en `perfil.html` **y** en `usuario.html`, el perfil
+público de cualquiera, para que sea información consultable por
+todo el mundo, no solo por el propio usuario) y abren un modal con
+la escalera completa, resaltando en cuál estás:
+
+- Clic en el nivel (bajo el nombre, "Coleccionista · 580 XP") → modal
+  con los 5 niveles y su XP mínimo.
+- Clic en la tarjeta de "Colaborador" (entre las estadísticas) →
+  modal con los 4 rangos y cuántas guías aprobadas hace falta para
+  cada uno.
+
+Para no duplicar los umbrales en dos sitios, se extrajo
+`CONTRIBUTOR_TIERS` (un array ordenado, igual que ya existía
+`LEVEL_THRESHOLDS`) del que `contributorTier()` deriva el rango
+actual — antes eran un `if/else` en cadena sin la lista expuesta.
+Las dos funciones nuevas, `levelLadderHtml(xp)` y
+`tierLadderHtml(approvedGuidesCount)` (en `gamification.js`),
+generan el HTML del modal reutilizando el modal genérico
+`#profileModal` que ya existe en ambas páginas (el mismo que usa
+"Editar perfil" o "Siguiendo/Seguidores").
+
+El nivel pasó de `<div class="profile-level">` a
+`<button type="button">` (el reset global de `button` ya deja que
+se vea igual que el div de antes) para que sea accesible por
+teclado; la tarjeta de "Colaborador" también pasó de `<div
+class="stat-card">` a `<button class="stat-card">`, mientras el
+resto de tarjetas (Cursos completados, Preguntas, Valoración,
+Racha) se quedan como `<div>` normales, sin clic, porque no tienen
+una "escalera" de niveles que mostrar.
+
+Verificado con Playwright en `perfil.html` (perfil propio) y en
+`usuario.html` (perfil público de otra persona): ambos botones
+existen, ambos modales listan los 5 niveles / 4 rangos completos,
+marcan el actual con una etiqueta ("Tu nivel"/"Tu rango"), y se
+cierran con el botón de cerrar o con Escape. Se rompió a propósito
+quitando el `addEventListener` del nivel para confirmar que el test
+detecta que el modal ya no se abre, se restauró y volvió a pasar.

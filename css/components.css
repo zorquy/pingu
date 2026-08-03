@@ -1309,10 +1309,17 @@ textarea.be-field {
 }
 
 .profile-level {
+  display: block;
   font-size: 13px;
   color: var(--navy);
   font-weight: 700;
   margin: 4px 0 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-level:hover {
+  text-decoration: underline;
 }
 
 .profile-xp-bar {
@@ -1589,6 +1596,43 @@ textarea.be-field {
   font-size: 11.5px;
   font-weight: 700;
   line-height: 1.3;
+}
+
+/* ── Modal "ver todos los niveles/rangos" ── */
+.ladder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ladder-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.ladder-item-current {
+  border-color: var(--navy);
+  background: var(--ice);
+}
+
+.ladder-item-icon {
+  flex-shrink: 0;
+  display: flex;
+}
+
+.ladder-item-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.ladder-item-main strong {
+  font-size: 14px;
 }
 
 .completed-course-row {

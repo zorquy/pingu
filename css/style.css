@@ -824,6 +824,16 @@ button.btn-block {
   text-align: center;
 }
 
+button.stat-card {
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease);
+}
+
+button.stat-card:hover {
+  border-color: var(--navy);
+}
+
 .stat-card .value {
   font-size: 22px;
   font-weight: 800;

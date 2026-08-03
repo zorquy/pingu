@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml } from './app.js'
 import { icons } from './icons.js'
-import { getAllAchievements, levelProgress, contributorTier } from './gamification.js'
+import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { NOTIFICATION_TYPES } from './notifications.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
@@ -51,12 +51,14 @@ async function loadProfile(session) {
 
   document.getElementById('heroInfo').innerHTML = `
     <h2>${escapeHtml(name)}${profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
-    <div class="profile-level">${progress.level} · ${xp} XP</div>
+    <button type="button" class="profile-level" id="btnLevelInfo">${progress.level} · ${xp} XP</button>
     <div class="profile-xp-bar">
       <div class="progress-track"><div class="fill" style="width: ${progress.pct}%"></div></div>
       <div class="xp-label">${progress.next ? `${progress.next - xp} XP para el siguiente nivel` : 'Nivel máximo'}</div>
     </div>
     ${profile?.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}`
+
+  document.getElementById('btnLevelInfo').addEventListener('click', () => openModal(levelLadderHtml(xp)))
 
   return profile
 }
@@ -92,14 +94,16 @@ async function loadStats(session, profile) {
       <div class="value" style="display:flex; align-items:center; justify-content:center; gap:5px;">${avgRating ? `${icons.star(18)} ${avgRating.toFixed(1)}` : '—'}</div>
       <div class="label">Valoración (${reviews?.length || 0})</div>
     </div>
-    <div class="stat-card">
+    <button type="button" class="stat-card" id="btnTierInfo">
       <div class="value" style="display:flex; justify-content:center;">${tier.icon}</div>
       <div class="label">${tier.title}</div>
-    </div>
+    </button>
     <div class="stat-card">
       <div class="value" style="display:flex; align-items:center; justify-content:center; gap:5px;">${icons.flame(18)} ${profile?.current_streak || 0}</div>
       <div class="label">Racha (días)</div>
     </div>`
+
+  document.getElementById('btnTierInfo').addEventListener('click', () => openModal(tierLadderHtml(approvedGuidesCount || 0)))
 }
 
 function achievementTileHtml(a, unlocked) {

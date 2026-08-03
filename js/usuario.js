@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml } from './app.js'
-import { levelProgress, contributorTier, getAllAchievements } from './gamification.js'
+import { levelProgress, contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
@@ -83,9 +83,11 @@ async function loadHeader() {
 
   document.getElementById('heroInfo').innerHTML = `
     <h2>${escapeHtml(name)}${profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
-    <div class="profile-level">${progress.level} · ${xp} XP</div>
+    <button type="button" class="profile-level" id="btnLevelInfo">${progress.level} · ${xp} XP</button>
     ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
     ${showcase ? `<div class="achievement-tile" style="display:inline-flex; margin-top:8px; width:auto; flex-direction:row; gap:8px; align-items:center; padding:6px 12px;"><span class="icon rarity-${showcase.rarity || 'bronze'}" style="width:28px;height:28px;">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`
+
+  document.getElementById('btnLevelInfo').addEventListener('click', () => openModal(levelLadderHtml(xp)))
 
   return true
 }
@@ -103,10 +105,10 @@ async function loadReputationAndGuides() {
   const tier = contributorTier(approvedCount || 0)
 
   document.getElementById('profileStats').innerHTML = `
-    <div class="stat-card">
+    <button type="button" class="stat-card" id="btnTierInfo">
       <div class="value" style="display:flex; justify-content:center;">${tier.icon}</div>
       <div class="label">${tier.title}</div>
-    </div>
+    </button>
     <div class="stat-card">
       <div class="value">${approvedCount || 0}</div>
       <div class="label">Guías aprobadas</div>
@@ -115,6 +117,8 @@ async function loadReputationAndGuides() {
       <div class="value">${avgRating ? avgRating.toFixed(1) : '—'}</div>
       <div class="label">Valoración media (${reviews?.length || 0})</div>
     </div>`
+
+  document.getElementById('btnTierInfo').addEventListener('click', () => openModal(tierLadderHtml(approvedCount || 0)))
 
   const { data: guides } = await supabase
     .from('guides')
