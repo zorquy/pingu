@@ -2,6 +2,8 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl } from './app.js'
 import { renderReferenceBlocksHtml } from './block-editor.js'
 import { initGuideForum } from './guide-forum.js'
+import { markGuideRead, READ_XP } from './gamification.js'
+import { showToast } from './toast.js'
 import { icons } from './icons.js'
 
 const params = new URLSearchParams(window.location.search)
@@ -16,6 +18,53 @@ async function toggleSave(session, guideId, btn) {
   const next = isSaved ? saved.filter((id) => id !== guideId) : [...saved, guideId]
   await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
   btn.innerHTML = isSaved ? `${icons.bookmark(14, true)} Guardado` : `${icons.bookmark(14)} Guardar`
+}
+
+// Marcar una guía como leída solo por abrirla sería regalar el XP: se
+// espera a que el final del artículo entre en pantalla Y a que haya
+// pasado un tiempo mínimo, para que no cuente quien baja de golpe hasta
+// los comentarios.
+const MIN_READ_SECONDS = 15
+
+function setupReadTracking(session, guide) {
+  if (!session) return
+  const sentinel = document.getElementById('articleEndSentinel')
+  if (!sentinel || typeof IntersectionObserver === 'undefined') return
+
+  const openedAt = Date.now()
+  let done = false
+  let timer = null
+
+  async function marcar() {
+    if (done) return
+    done = true
+    observer.disconnect()
+    if (timer) clearTimeout(timer)
+    try {
+      const esNueva = await markGuideRead(session.user.id, guide.id)
+      if (esNueva) showToast(`Guía leída · +${READ_XP} XP`, 'success')
+    } catch {
+      // Ya queda registrado en client_errors. No se avisa al usuario:
+      // ha venido a leer, no a que le demos la turra con el XP.
+    }
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    if (done) return
+    const visible = entries.some((e) => e.isIntersecting)
+    if (!visible) {
+      // Ha vuelto a subir antes de tiempo: se cancela la cuenta atrás.
+      if (timer) { clearTimeout(timer); timer = null }
+      return
+    }
+    const falta = MIN_READ_SECONDS * 1000 - (Date.now() - openedAt)
+    if (falta <= 0) { marcar(); return }
+    // En una guía corta el final ya se ve nada más abrir, y el
+    // observador NO vuelve a dispararse porque la intersección no
+    // cambia. Sin este temporizador, esas guías no se marcarían nunca.
+    if (!timer) timer = setTimeout(marcar, falta)
+  })
+  observer.observe(sentinel)
 }
 
 async function init() {
@@ -125,6 +174,7 @@ async function init() {
     <div class="tab-panel" id="atab-pro"><div class="article-body">${proBodyHtml}</div></div>`
         : `<div class="article-body">${bodyHtml}</div>`
     }
+    <div id="articleEndSentinel" aria-hidden="true"></div>
     <section class="guide-forum">
       <h2 class="section-title">${icons.messageSquare(18)} Comentarios</h2>
       <div id="forumContainer"></div>
@@ -152,6 +202,8 @@ async function init() {
     if ((profile?.saved_guides || []).includes(guide.id)) btnSave.innerHTML = `${icons.bookmark(14, true)} Guardado`
     btnSave.addEventListener('click', () => toggleSave(session, guide.id, btnSave))
   }
+
+  setupReadTracking(session, guide)
 
   initGuideForum({
     containerEl: document.getElementById('forumContainer'),

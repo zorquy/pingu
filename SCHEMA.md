@@ -2919,3 +2919,70 @@ viene relleno con el nombre de Google, sin nombre del proveedor cae al
 email, el mínimo de 2 caracteres sigue bloqueando, quien ya tiene nombre
 no es molestado, y la lista de Comunidad enseña 340 XP como "Entrenador"
 en vez del "Coleccionista" que tiene guardado.
+
+## Leer una guía cuenta
+
+La gamificación premiaba lo complementario e ignoraba lo principal:
+completar un curso daba 20-40 XP y quedaba marcado, mientras que leerse
+una guía entera solo incrementaba `guides.view_count`. Alguien que se
+hubiera leído toda la web seguía a 0 XP.
+
+**Dónde se guarda.** Una columna `read_at` nueva en `user_progress`
+(`supabase-migration-guias-leidas.sql`), no una tabla aparte: esa tabla ya
+es "mi relación con esta guía", ya está indexada por `(user_id, guide_id)`
+y ya tiene las políticas RLS correctas.
+
+Consecuencia importante: **`status` pasa a admitir NULL**. Una guía que
+solo se ha leído crea una fila con `read_at` puesto y `status` a null.
+Todo lo que cuenta cursos filtra ahora `status is not null` — incluida la
+analítica del panel, que si no habría contado esas filas como "cursos
+empezados". El upsert de marcar como leída manda solo `read_at`, así que
+no pisa el estado del curso si la guía tenía uno.
+
+**Cuándo se marca.** No al abrir, que sería regalar el XP. Hay un
+marcador invisible al final del artículo y se exige que **entre en
+pantalla** y que hayan pasado **15 segundos** desde que se abrió. Si se
+sube antes de tiempo, la cuenta atrás se cancela.
+
+Detalle que costó ver: en una guía corta el marcador ya se ve nada más
+abrir, y `IntersectionObserver` **no vuelve a dispararse** porque la
+intersección nunca cambia. Sin un temporizador para el tiempo que falta,
+esas guías no se marcarían nunca. Releer no vuelve a dar XP ni reescribe
+la fecha original.
+
+Son 10 XP, menos que un curso a propósito: leer cuesta menos que hacer
+los ejercicios, pero tenía que valer algo.
+
+**Las barras de progreso ahora miden lectura.** Tanto el listado de
+Aprender como la cabecera de categoría dividen entre el total de guías, no
+entre los cursos. Es la acción principal y la única que existe en todas
+las categorías; los cursos pasan a una línea secundaria ("2 de 3 cursos
+hechos") donde los haya. La barra de `categoria.html` además **no tenía
+etiqueta**, así que no se sabía qué medía: ahora la lleva.
+
+Esto no deshace el arreglo anterior de no contar guías sin curso como
+cursos — ese fallo sigue vigilado en las pruebas, ahora sobre la línea de
+cursos.
+
+De paso, `aprender.js` dejó de pedir `guides(category_id)` anidado y mapea
+por `guide_id` contra las guías que ya tenía cargadas: una consulta plana
+es más predecible.
+
+**Dos fallos de fidelidad del stub que salieron aquí**, ambos hacían
+fallar código correcto:
+
+- `maybeSingle()` devolvía error cuando no había filas. En Supabase real
+  eso solo lo hace `single()`; `maybeSingle()` devuelve `data: null` sin
+  error. Con el stub anterior, `markGuideRead` fallaba justo en el caso
+  normal: la primera vez que alguien lee una guía.
+- El mínimo de 15 segundos se deja configurable **solo en la copia de
+  pruebas** para no esperar 15 s por caso. El valor del repo es fijo.
+
+**Verificación.** La migración contra un PostgreSQL 16 temporal: añade la
+columna, hace `status` nullable, es idempotente, y el upsert de lectura ni
+pisa un `status = 'completed'` existente ni reinicia la fecha al releer.
+Con Playwright, 15 comprobaciones: abrir sin leer no cuenta, llegar al
+final y quedarse sí, da exactamente 10 XP, releer no vuelve a darlos,
+marcar como leída conserva el curso completado, la tarjeta enseña "LEÍDA"
+sin decir "COMPLETADO" en una guía sin curso, y Aprender mide lectura
+manteniendo la línea de cursos.

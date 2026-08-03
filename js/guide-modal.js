@@ -41,7 +41,7 @@ async function getRatingStats(guideIds) {
 
 // ── Tarjeta de guía (usada en categoria.html, la home, guardados.html y
 // la sección de Comunidad) ──
-export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel = '', reviewBadge = null } = {}) {
+export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel = '', reviewBadge = null, isRead = false } = {}) {
   const courseLabel = statusBadge === 'completed' ? 'Repasar' : `${icons.graduationCap(15)} Curso`
   const hasCourse = guideHasCourse(guide)
   const courseBtn = hasCourse
@@ -62,6 +62,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
         <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
         <span class="time-tag">${guide.estimated_mins || 5} min</span>
         <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
+        ${isRead ? '<span class="badge badge-read">✓ LEÍDA</span>' : ''}
         ${hasCourse && statusBadge === 'started' ? '<span class="badge badge-progress">EN PROGRESO</span>' : ''}
         ${hasCourse && statusBadge === 'completed' ? '<span class="badge badge-completed">✓ COMPLETADO</span>' : ''}
         ${reviewBadge ? `<span class="badge ${guide.review_status === 'approved' ? 'badge-completed' : 'badge-pro'}">${escapeHtml(reviewBadge)}</span>` : ''}

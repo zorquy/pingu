@@ -1060,7 +1060,7 @@ async function loadAnalytics() {
     supabase.from('page_views').select('path, user_id, created_at').gte('created_at', since),
     supabase.from('user_profiles').select('id, created_at, current_streak'),
     supabase.from('guides').select('id, title, slug, view_count, blocks').not('published_at', 'is', null),
-    supabase.from('user_progress').select('guide_id, user_id, status'),
+    supabase.from('user_progress').select('guide_id, user_id, status, read_at'),
     supabase.from('guide_comments').select('id, created_at').gte('created_at', since),
     supabase.from('profile_comments').select('id, created_at').gte('created_at', since),
   ])
@@ -1084,6 +1084,11 @@ async function loadAnalytics() {
     statCardHtml(profiles.length, 'Usuarios registrados', 'en total'),
     statCardHtml(`${pctLogged}%`, 'Visitas con sesión', 'el resto son anónimas'),
     statCardHtml(withStreak, 'Con racha viva', 'más de un día seguido'),
+    statCardHtml(
+      progressRes.error ? '—' : (progressRes.data || []).filter((p) => p.read_at).length,
+      'Guías leídas',
+      'en total, por todo el mundo'
+    ),
   ].join('')
 
   // ── Visitas por día ──
@@ -1149,6 +1154,9 @@ async function loadAnalytics() {
 
     const byGuide = new Map()
     for (const p of progress) {
+      // Desde que existe `read_at`, una fila puede ser solo de lectura y
+      // llevar `status` a null. Esas no son cursos empezados.
+      if (!p.status) continue
       const e = byGuide.get(p.guide_id) || { started: 0, completed: 0 }
       if (p.status === 'completed') e.completed++
       else e.started++

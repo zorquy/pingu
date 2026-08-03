@@ -9,11 +9,11 @@ async function buildProgressByGuide(session, guideIds) {
   if (!session || guideIds.length === 0) return {}
   const { data: progress } = await supabase
     .from('user_progress')
-    .select('guide_id, status')
+    .select('guide_id, status, read_at')
     .eq('user_id', session.user.id)
     .in('guide_id', guideIds)
   return (progress || []).reduce((acc, p) => {
-    acc[p.guide_id] = p.status
+    acc[p.guide_id] = { status: p.status, isRead: !!p.read_at }
     return acc
   }, {})
 }
@@ -55,17 +55,26 @@ async function initCategoryMode() {
   const session = await getSession()
   const progressByGuide = await buildProgressByGuide(session, guideList.map((g) => g.id))
 
-  // Solo cuentan las guías con curso: las de solo lectura no se pueden
-  // "completar", así que si entraran en el divisor la barra nunca llegaría
-  // al final por mucho que hicieras todos los cursos de la categoría.
+  // La barra mide guías leídas sobre el total, igual que el listado de
+  // Aprender: es la acción principal y existe en todas las categorías.
+  // Los cursos, cuando los hay, van como línea secundaria — antes esta
+  // barra dividía entre los cursos y no se sabía qué estaba midiendo,
+  // porque ni siquiera tenía etiqueta.
   const courseList = guideList.filter(guideHasCourse)
-  const completedCount = courseList.filter((g) => progressByGuide[g.id] === 'completed').length
-  if (session && courseList.length > 0) {
-    const track = document.getElementById('categoryProgressTrack')
-    track.style.display = 'block'
+  const completedCount = courseList.filter((g) => progressByGuide[g.id]?.status === 'completed').length
+  const readCount = guideList.filter((g) => progressByGuide[g.id]?.isRead).length
+  if (session) {
+    document.getElementById('categoryProgressWrap').style.display = 'block'
     document.getElementById('categoryProgressFill').style.width = `${Math.round(
-      (completedCount / courseList.length) * 100
+      (readCount / guideList.length) * 100
     )}%`
+    const plural = guideList.length === 1 ? 'guía leída' : 'guías leídas'
+    const cursos =
+      courseList.length > 0
+        ? ` · ${completedCount} de ${courseList.length} ${courseList.length === 1 ? 'curso hecho' : 'cursos hechos'}`
+        : ''
+    document.getElementById('categoryProgressLabel').textContent =
+      `${readCount} de ${guideList.length} ${plural}${cursos}`
   }
 
   const collectionList = collections || []
@@ -80,7 +89,12 @@ async function initCategoryMode() {
     }
   }
 
-  const renderGuide = (g) => renderGuideCardHtml(g, { statusBadge: progressByGuide[g.id] || 'none', categoryLabel: category.name })
+  const renderGuide = (g) =>
+    renderGuideCardHtml(g, {
+      statusBadge: progressByGuide[g.id]?.status || 'none',
+      isRead: !!progressByGuide[g.id]?.isRead,
+      categoryLabel: category.name,
+    })
 
   let html = ''
   for (const col of collectionList) {

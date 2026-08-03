@@ -189,6 +189,44 @@ export async function markCourseStarted(userId, guideId) {
   }
 }
 
+// XP por leerse una guía entera. Menos que un curso a propósito: leer
+// cuesta menos que hacer los ejercicios, pero tenía que valer algo — la
+// web es sobre todo de guías y hasta ahora leerlas no daba nada.
+export const READ_XP = 10
+
+// Devuelve true solo la primera vez que se lee esa guía, para que quien
+// llama sepa si debe celebrarlo. Releer no vuelve a dar XP ni cambia la
+// fecha original.
+export async function markGuideRead(userId, guideId) {
+  const { data: existing, error: readError } = await supabase
+    .from('user_progress')
+    .select('read_at')
+    .eq('user_id', userId)
+    .eq('guide_id', guideId)
+    .maybeSingle()
+
+  if (readError) {
+    logClientError(`No se pudo comprobar si la guía estaba leída: ${readError.message}`, readError.details || null)
+    throw new Error(readError.message)
+  }
+  if (existing?.read_at) return false
+
+  // Solo se manda read_at: el upsert no toca `status`, así que si esta
+  // guía tenía además un curso empezado o completado, ese estado se
+  // queda como estaba.
+  const { error } = await supabase.from('user_progress').upsert(
+    { user_id: userId, guide_id: guideId, read_at: new Date().toISOString() },
+    { onConflict: 'user_id,guide_id' }
+  )
+  if (error) {
+    logClientError(`No se pudo marcar la guía como leída: ${error.message}`, error.details || error.hint || null)
+    throw new Error(error.message)
+  }
+
+  await addXP(userId, READ_XP)
+  return true
+}
+
 export async function markCourseCompleted(userId, guideId, xpEarned = 20) {
   const { error } = await supabase.from('user_progress').upsert(
     {
