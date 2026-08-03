@@ -22,21 +22,30 @@ export function invalidateAchievementsCache() {
   achievementsCache = null
 }
 
+// Los umbrales de antes se alcanzaban demasiado rápido: con ~55 XP por
+// curso (5 por bloque de práctica más la recompensa) y +5 al día por la
+// racha, alguien recién registrado llegaba a "Experto" habiendo hecho el
+// contenido una vez. Ahora subir cuesta de verdad: hacerse todas las
+// guías publicadas hoy deja a alguien alrededor de Entrenador, y los
+// niveles altos piden constancia durante mucho tiempo.
+export const LEVEL_THRESHOLDS = [
+  { level: 'Novato', min: 0, next: 250 },
+  { level: 'Entrenador', min: 250, next: 1000 },
+  { level: 'Coleccionista', min: 1000, next: 3000 },
+  { level: 'Experto', min: 3000, next: 8000 },
+  { level: 'Maestro', min: 8000, next: null },
+]
+
+// Deriva de LEVEL_THRESHOLDS a propósito: antes esta función repetía los
+// mismos números escritos a mano, así que tocar la tabla de niveles sin
+// tocar esto (o al revés) dejaba las dos versiones diciendo cosas
+// distintas.
 export function calculateLevel(xp) {
-  if (xp >= 1500) return 'Maestro'
-  if (xp >= 700) return 'Experto'
-  if (xp >= 300) return 'Coleccionista'
-  if (xp >= 100) return 'Entrenador'
-  return 'Novato'
+  const total = xp || 0
+  const match = [...LEVEL_THRESHOLDS].reverse().find((l) => total >= l.min)
+  return (match || LEVEL_THRESHOLDS[0]).level
 }
 
-export const LEVEL_THRESHOLDS = [
-  { level: 'Novato', min: 0, next: 100 },
-  { level: 'Entrenador', min: 100, next: 300 },
-  { level: 'Coleccionista', min: 300, next: 700 },
-  { level: 'Experto', min: 700, next: 1500 },
-  { level: 'Maestro', min: 1500, next: null },
-]
 
 // Reputación de colaborador, basada en cuántas guías/cursos ha aprobado
 // la moderación (no en XP, que ya mide el progreso como estudiante).

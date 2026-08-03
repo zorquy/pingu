@@ -217,6 +217,19 @@ export async function uploadGuideImage(userId, file) {
   return data.publicUrl
 }
 
+// Google manda el nombre de la cuenta en user_metadata al iniciar sesión,
+// pero nada lo estaba leyendo: por eso quien entraba con Google se quedaba
+// sin display_name y salía como "Usuario" por toda la web. Esto solo se
+// usa como sugerencia para rellenar el onboarding — el nombre definitivo
+// lo elige la persona.
+export function suggestedNameFromSession(session) {
+  const meta = session?.user?.user_metadata || {}
+  const fromProvider = meta.full_name || meta.name || meta.preferred_username || meta.given_name
+  if (fromProvider) return String(fromProvider).trim()
+  const email = session?.user?.email || ''
+  return email ? email.split('@')[0] : ''
+}
+
 export async function requireAuth() {
   const session = await getSession()
   if (!session) {
@@ -257,7 +270,7 @@ async function renderNavUser(session) {
   let loaded = false
 
   async function loadDropdown() {
-    const [{ contributorTier }, { count: approvedGuidesCount }] = await Promise.all([
+    const [{ contributorTier, calculateLevel }, { count: approvedGuidesCount }] = await Promise.all([
       import('./gamification.js'),
       supabase
         .from('guides')
@@ -277,7 +290,7 @@ async function renderNavUser(session) {
       </div>
       <div class="nav-user-stats">
         <div><strong>${profile?.total_xp || 0}</strong><span>XP</span></div>
-        <div><strong>${escapeHtml(profile?.level || 'Novato')}</strong><span>Nivel</span></div>
+        <div><strong>${escapeHtml(calculateLevel(profile?.total_xp))}</strong><span>Nivel</span></div>
         ${(profile?.current_streak || 0) > 0 ? `<div><strong style="display:flex; align-items:center; justify-content:center; gap:3px;">${icons.flame(14)} ${profile.current_streak}</strong><span>Racha</span></div>` : ''}
         ${(approvedGuidesCount || 0) > 0 ? `<div><strong style="display:flex; justify-content:center;">${tier.icon}</strong><span>${escapeHtml(tier.title)}</span></div>` : ''}
       </div>
@@ -356,6 +369,28 @@ export async function initNavbar() {
       window.location.href = '/auth.html?banned=1'
       return session
     }
+    // Quien entra con Google nunca pasaba por el onboarding (el redirect
+    // de OAuth va directo a index.html y se salta la comprobación que sí
+    // hace el login con contraseña), así que se quedaba sin nombre. Aquí
+    // se le manda a elegirlo.
+    //
+    // La condición mira si NO HAY NOMBRE, en vez de fiarse solo de
+    // onboarding_completed: hay cuentas antiguas con esa columna a null
+    // que sí tienen nombre, y no hay que molestarlas.
+    //
+    // El `#nav-user` es lo que decide dónde se aplica esto. No basta con
+    // que onboarding.html no pinte navbar: esta función se ejecuta al
+    // IMPORTAR este módulo, y onboarding.js lo importa para usar
+    // requireAuth — sin esta comprobación, el onboarding se redirigía a
+    // sí mismo en bucle. auth.html y reset-password.html quedan fuera por
+    // el mismo motivo.
+    const hasNavbar = !!document.getElementById('nav-user')
+    const hasName = !!(profile?.display_name || profile?.username)
+    if (hasNavbar && (!hasName || profile?.onboarding_completed === false)) {
+      window.location.href = '/onboarding.html'
+      return session
+    }
+
     // No se espera a que termine — en el 99% de las cargas de página no
     // hace nada (ya se contó hoy), así que no debería frenar el resto de
     // la navbar.

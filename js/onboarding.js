@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, requireAuth, uniqueUsername, categoryIconHtml } from './app.js'
+import { escapeHtml, requireAuth, uniqueUsername, categoryIconHtml, suggestedNameFromSession } from './app.js'
 
 const state = { level: null, interests: new Set(), recommendedCategory: null }
 let categories = []
@@ -49,16 +49,22 @@ function showRecommendedCategory() {
 
 async function finishOnboarding(session, name) {
   const username = await uniqueUsername(name, session.user.id)
-  await supabase
-    .from('user_profiles')
-    .update({
-      username,
-      display_name: name,
-      interests: Array.from(state.interests),
-      recommended_path: state.recommendedCategory,
-      onboarding_completed: true,
-    })
-    .eq('id', session.user.id)
+  // upsert y no update: quien entra con Google puede no tener todavía
+  // fila en user_profiles, y un update no crearía ninguna.
+  const { error } = await supabase.from('user_profiles').upsert({
+    id: session.user.id,
+    username,
+    display_name: name,
+    interests: Array.from(state.interests),
+    recommended_path: state.recommendedCategory,
+    onboarding_completed: true,
+  })
+
+  if (error) {
+    const { showToast } = await import('./toast.js')
+    showToast('No hemos podido guardar tu perfil. Inténtalo otra vez.')
+    return
+  }
 
   window.location.href = 'index.html'
 }
@@ -67,8 +73,12 @@ async function init() {
   const session = await requireAuth()
   if (!session) return
 
-  const { data: profile } = await supabase.from('user_profiles').select('display_name, username').eq('id', session.user.id).single()
-  if (profile?.display_name || profile?.username) document.getElementById('onbNameInput').value = profile.display_name || profile.username
+  const { data: profile } = await supabase.from('user_profiles').select('display_name, username').eq('id', session.user.id).maybeSingle()
+  // Si ya hay nombre guardado se respeta; si no, se sugiere el de la
+  // cuenta con la que ha entrado (Google lo manda en user_metadata). Sigue
+  // siendo obligatorio confirmarlo, pero se evita la pantalla en blanco.
+  document.getElementById('onbNameInput').value =
+    profile?.display_name || profile?.username || suggestedNameFromSession(session)
 
   await loadCategories()
 

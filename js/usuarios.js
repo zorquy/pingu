@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, profileUrl } from './app.js'
 import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
-import { contributorTier } from './gamification.js'
+import { contributorTier, calculateLevel } from './gamification.js'
 import { icons } from './icons.js'
 
 let allUsers = []
@@ -23,7 +23,7 @@ function userCardHtml(p) {
       <span class="user-card-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>
       <div class="user-card-info">
         <h3>${escapeHtml(name)}</h3>
-        <p>${p.level ? escapeHtml(p.level) + ' · ' : ''}${p.total_xp || 0} XP</p>
+        <p>${escapeHtml(calculateLevel(p.total_xp))} · ${p.total_xp || 0} XP</p>
         ${p.approvedGuidesCount > 0 ? `<p class="subtext" style="margin:2px 0 0; display:flex; align-items:center; gap:4px;">${tier.icon} ${escapeHtml(tier.title)}</p>` : ''}
       </div>
     </a>`

@@ -2838,3 +2838,84 @@ una visita de hace 40 días. Para que eso fuese comprobable hubo que
 implementar `gte`/`lte` en el stub, que hasta ahora los ignoraba. Y
 simulando que RLS rechaza `user_progress`, el panel avisa de la migración
 que falta en vez de enseñar una tabla vacía.
+
+## Nadie empieza llamándose "Usuario"
+
+Quien entraba con Google se quedaba sin nombre y salía como "Usuario" por
+toda la web (ese literal es el último recurso de una docena de sitios,
+para cuando no hay ni `display_name` ni `username`).
+
+**Por qué pasaba.** El onboarding ya pedía nombre y ya era obligatorio
+(el botón de continuar exige 2 caracteres). El problema era quién llegaba
+a él: `redirectAfterLogin` de `auth.js` comprueba `onboarding_completed`,
+pero **solo se ejecuta en el login con contraseña**. El `redirectTo` de
+`signInWithOAuth` apunta directo a `index.html`, así que quien entra con
+Google se saltaba esa comprobación por completo y nunca veía el
+onboarding.
+
+Y encima el dato estaba a mano sin usar: Google manda el nombre de la
+cuenta en `user_metadata` (por eso el panel de Supabase Auth sí muestra
+"Denis", "Diego Mateo"...), pero nada lo leía.
+
+**Arreglado así.** `initNavbar()` manda al onboarding a cualquier persona
+con sesión que no tenga nombre, entre por donde entre. El onboarding
+precarga el campo con `suggestedNameFromSession()`: el nombre del
+proveedor si lo hay, y si no la parte del email antes de la arroba. Sigue
+siendo obligatorio confirmarlo — solo se evita la pantalla en blanco.
+`finishOnboarding` pasa a `upsert` porque quien llega por OAuth puede no
+tener todavía fila en `user_profiles`, y un `update` no crearía ninguna.
+
+**El detalle que casi provoca un bucle infinito.** La condición incluye
+`document.getElementById('nav-user')`. No basta con que `onboarding.html`
+no pinte navbar: `initNavbar()` se ejecuta **al importar `app.js`**, y
+`onboarding.js` lo importa para usar `requireAuth`. Sin esa comprobación
+el onboarding se redirigía a sí mismo sin parar y la página no llegaba a
+cargar nunca. Se verificó quitándola a propósito: el test se queda colgado
+en la carga, que es justo el síntoma.
+
+La condición mira **si no hay nombre**, no solo `onboarding_completed`:
+hay cuentas antiguas con esa columna a `null` que sí tienen nombre, y no
+hay que mandarlas otra vez al onboarding.
+
+## Los niveles de XP cuestan bastante más
+
+Con ~55 XP por curso (5 por bloque de práctica más la recompensa) y +5 al
+día por la racha, alguien recién registrado llegaba a "Experto" con
+hacerse el contenido una vez. Los umbrales nuevos:
+
+    Novato          0
+    Entrenador    250
+    Coleccionista 1.000
+    Experto       3.000
+    Maestro       8.000
+
+Con las 13 guías publicadas hoy, hacérselas todas deja a alguien
+alrededor de Entrenador. Los niveles altos piden constancia.
+
+**Un fallo latente que salió al tocarlo**: `calculateLevel()` tenía los
+umbrales **repetidos a mano** en una cadena de `if`, aparte de la tabla
+`LEVEL_THRESHOLDS`. Cambiar solo la tabla no habría servido de nada — la
+función habría seguido devolviendo los niveles viejos. Ahora deriva de la
+tabla, que queda como única fuente.
+
+**La columna `level` estaba desfasando la interfaz.** `user_profiles.level`
+es un valor guardado que la app solo reescribe cuando alguien gana XP. El
+perfil ya calculaba el nivel desde `total_xp`, pero la lista de Comunidad
+y el desplegable de la navbar leían la columna, así que habrían seguido
+enseñando el nivel viejo. Ahora los tres lo calculan.
+`supabase-migration-recalcular-niveles.sql` pone además la columna al día
+para que el dato de la base no se contradiga con lo que se ve.
+
+**Verificación.** La migración contra un PostgreSQL 16 temporal con los
+usuarios de la captura: 920 y 785 XP pasan de "Experto" a "Entrenador",
+490 de "Coleccionista" a "Entrenador", y `total_xp` nulo cae en "Novato".
+Es idempotente. Se comprobaron además las **12 fronteras** (0, 249, 250,
+999, 1000, 2999, 3000, 7999, 8000...) contrastando el `case` del SQL con
+la función de JavaScript una a una, porque son dos copias de los mismos
+umbrales y podrían separarse.
+
+Con Playwright: quien no tiene nombre acaba en el onboarding, el campo
+viene relleno con el nombre de Google, sin nombre del proveedor cae al
+email, el mínimo de 2 caracteres sigue bloqueando, quien ya tiene nombre
+no es molestado, y la lista de Comunidad enseña 340 XP como "Entrenador"
+en vez del "Coleccionista" que tiene guardado.
