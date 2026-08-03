@@ -8,6 +8,7 @@ import { icons } from './icons.js'
 // notifica a sí mismo.
 export const NOTIFICATION_TYPES = {
   guide_comment: 'Comentarios en tus guías',
+  comment_reply: 'Respuestas a tus comentarios',
   guide_rating: 'Valoraciones en tus guías',
   new_follower: 'Nuevos seguidores',
   profile_rating: 'Reseñas en tu perfil',
@@ -23,6 +24,60 @@ export async function createNotification({ recipientId, actorId, type, title, bo
   if ((recipient?.notification_prefs_disabled || []).includes(type)) return
   const { error } = await supabase.from('user_notifications').insert({ recipient_id: recipientId, type, title, body, link })
   if (error) console.error('No se pudo crear la notificación:', error.message)
+}
+
+// Quién debe enterarse de un comentario en una guía.
+//
+// Dos agujeros que había:
+//
+//  1. Las guías OFICIALES tienen `author_id` a null (se crearon con SQL,
+//     no las escribió una cuenta). Como no había destinatario, un
+//     comentario en ellas no avisaba a NADIE — ni al equipo. Y son
+//     justamente las guías que más se comentan. Ahora avisa a los
+//     administradores.
+//
+//  2. Responder a un comentario avisaba al autor de la GUÍA, no a la
+//     persona a la que respondías. Quien preguntaba algo no se enteraba
+//     de que le habían contestado.
+async function adminIds() {
+  const { data, error } = await supabase.from('user_profiles').select('id').eq('is_admin', true)
+  if (error) return []
+  return (data || []).map((p) => p.id)
+}
+
+export async function notifyGuideComment({ guideAuthorId, actorId, guideTitle, guideSlug, replyToAuthorId = null }) {
+  const link = `/guia.html?slug=${guideSlug}`
+  const enviados = new Set([actorId])
+
+  // La respuesta va primero: si alguien es a la vez el autor de la guía y
+  // la persona a la que respondes, el aviso útil es "te han respondido",
+  // no "han comentado en tu guía".
+  if (replyToAuthorId && !enviados.has(replyToAuthorId)) {
+    enviados.add(replyToAuthorId)
+    await createNotification({
+      recipientId: replyToAuthorId,
+      actorId,
+      type: 'comment_reply',
+      title: 'Te han respondido a un comentario',
+      body: guideTitle,
+      link,
+    })
+  }
+
+  // Sin autor es una guía oficial: la lleva el equipo.
+  const destinos = guideAuthorId ? [guideAuthorId] : await adminIds()
+  for (const id of destinos) {
+    if (enviados.has(id)) continue
+    enviados.add(id)
+    await createNotification({
+      recipientId: id,
+      actorId,
+      type: 'guide_comment',
+      title: guideAuthorId ? 'Nuevo comentario en tu guía' : 'Nuevo comentario en una guía de PokeDoc',
+      body: guideTitle,
+      link,
+    })
+  }
 }
 
 function timeAgo(iso) {

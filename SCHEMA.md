@@ -3543,3 +3543,64 @@ el HTML (mi reemplazo no encajaba con el marcado real). La sección sí
 funcionaba, así que sin la comprobación del banner habría pasado por
 buena — y el banner es justo la parte que hace que el problema no sea
 silencioso.
+
+## Los avisos de comentarios no llegaban a quien tocaba
+
+Dos agujeros distintos, los dos de la misma pieza.
+
+### 1. Comentar en una guía oficial no avisaba a NADIE
+
+Las guías del equipo tienen `author_id` a **null**: se crearon con SQL,
+no las escribió una cuenta. `createNotification` sale sin hacer nada si
+no hay destinatario, así que un comentario en ellas no generaba ningún
+aviso — ni al equipo ni a nadie.
+
+Y son justamente las guías que más se comentan, porque son casi todo el
+contenido del sitio.
+
+Ahora, cuando la guía no tiene autor, el aviso va **a todos los
+administradores** (`user_profiles.is_admin`). El texto cambia también:
+"Nuevo comentario en una guía de PokeDoc" en vez de "en tu guía", que
+sería mentira — la guía no es de nadie en concreto.
+
+### 2. Responder a alguien avisaba al autor de la guía, no a esa persona
+
+El botón "Responder" guardaba bien el `reply_to_id`, pero el aviso
+seguía yendo al autor de la guía. Quien preguntaba algo **no se enteraba
+de que le habían contestado**, que es lo único que le importa.
+
+Ahora `notifyGuideComment` reparte así:
+
+- **A quien respondes**, si respondes a alguien → `comment_reply`, "Te
+  han respondido a un comentario".
+- **Al autor de la guía** (o a los admins si es oficial) →
+  `guide_comment`.
+
+**El orden importa.** La respuesta se manda primero, y nadie recibe dos
+avisos por el mismo comentario. Si alguien es a la vez el autor de la
+guía y la persona a la que respondes, gana "te han respondido": es el
+aviso concreto, el otro sobra.
+
+`comment_reply` se añadió a `NOTIFICATION_TYPES`, así que sale en las
+preferencias y se puede desactivar como los demás.
+
+El aviso va con `.catch()`: el comentario ya está guardado cuando se
+manda, y un fallo al avisar no puede hacer parecer que no se publicó.
+
+### Verificación
+
+16 comprobaciones con Playwright sobre el caso real —una guía oficial sin
+autor y otra de un usuario—: el comentario en la oficial llega al equipo
+con el texto correcto, el de una guía de usuario llega a su autora y no
+al equipo, la respuesta llega a quien preguntó, nadie recibe dos avisos
+por el mismo comentario, y quien comenta no se avisa a sí mismo.
+
+Se rompieron los dos arreglos **por separado** y cada uno hizo saltar sus
+propias comprobaciones (2 y 3 respectivamente), así que ninguno está
+cubierto "de rebote" por el otro.
+
+Nota de pruebas: el stub siembra avisos de ejemplo, y filtrarlos por el
+prefijo del identificador no funcionaba. Hay que comparar qué avisos
+existían **antes** de comentar. Sin eso, tres comprobaciones fallaban por
+datos sembrados y no por el código — la misma trampa que ya pasó con la
+fila de ejemplo de `client_errors`.

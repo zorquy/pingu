@@ -2,7 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, profileUrl } from './app.js'
 import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
-import { createNotification } from './notifications.js'
+import { notifyGuideComment } from './notifications.js'
 
 const PAGE_SIZE = 10
 
@@ -84,7 +84,7 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
           ${parent ? `<div class="forum-quote">En respuesta a <strong>${escapeHtml(authorName(parent.author_id))}</strong>: “${escapeHtml(snippet(parent.body))}”</div>` : ''}
           <p class="forum-post-text">${escapeHtml(c.body)}</p>
           <div class="forum-post-actions">
-            ${currentSession ? `<button class="forum-reply-btn" data-reply-id="${c.id}" data-reply-name="${escapeHtml(name)}">↩ Responder</button>` : ''}
+            ${currentSession ? `<button class="forum-reply-btn" data-reply-id="${c.id}" data-reply-name="${escapeHtml(name)}" data-reply-author="${escapeHtml(c.author_id || '')}">↩ Responder</button>` : ''}
             ${currentSession && (currentSession.user.id === c.author_id || isAdmin) ? `<button class="forum-delete-btn" data-delete-id="${c.id}">Eliminar</button>` : ''}
             ${currentSession && currentSession.user.id !== c.author_id ? reportButtonHtml('guide_comment', c.id) : ''}
           </div>
@@ -113,7 +113,7 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
 
     containerEl.querySelectorAll('.forum-reply-btn').forEach((btn) =>
       btn.addEventListener('click', () => {
-        replyingTo = { id: btn.dataset.replyId, name: btn.dataset.replyName }
+        replyingTo = { id: btn.dataset.replyId, name: btn.dataset.replyName, authorId: btn.dataset.replyAuthor || null }
         renderReplyBanner()
         document.getElementById('forumCommentBody')?.focus()
       })
@@ -161,14 +161,14 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
         showToast('No se pudo publicar el comentario: ' + error.message)
         return
       }
-      await createNotification({
-        recipientId: guideAuthorId,
+      // El aviso no puede tumbar el comentario, que ya está guardado.
+      await notifyGuideComment({
+        guideAuthorId,
         actorId: currentSession.user.id,
-        type: 'guide_comment',
-        title: 'Nuevo comentario en tu guía',
-        body: guideTitle,
-        link: `/guia.html?slug=${guideSlug}`,
-      })
+        guideTitle,
+        guideSlug,
+        replyToAuthorId: replyingTo?.authorId || null,
+      }).catch((err) => console.error('No se pudo avisar del comentario:', err.message))
       replyingTo = null
       const newCount = (count || 0) + 1
       render(Math.max(1, Math.ceil(newCount / PAGE_SIZE)))
