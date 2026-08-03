@@ -250,7 +250,7 @@ export async function openGuideModal(guideId) {
     </div>
     ${authorHtml}
     <div class="guide-modal-rating" id="guideModalRating"></div>
-    <div class="modal-actions" style="flex-direction:row; margin-top:16px; align-items:center;">
+    <div class="modal-actions modal-actions-row">
       <button class="btn-outline" id="guideModalSaveBtn">${icons.bookmark(16, isSaved)} ${isSaved ? 'Guardado' : 'Guardar'}</button>
       ${
         guide.has_reference_blocks

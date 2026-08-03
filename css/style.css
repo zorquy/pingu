@@ -717,6 +717,14 @@ button.btn-block {
   display: flex;
   align-items: center;
   overflow: hidden;
+  /* Mismo motivo que en el banner del modal: el cover_emoji lo escribe
+     quien crea la guía, y si ahí acaba una cadena larga en vez de un
+     emoji, sin este tope estira la tarjeta a lo ancho. Se recorta con
+     "…" igual que allí, para que sea un recorte declarado y no un
+     desborde escondido. */
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .recent-card h3 {
@@ -826,6 +834,20 @@ button.btn-block {
 
 .stats-row-single .stat-card {
   padding: 14px 6px;
+  /* Un hijo de grid tiene min-width:auto, así que se niega a encogerse por
+     debajo de su contenido: con 5 columnas y una etiqueta larga
+     ("Colaborador"), la última se salía por la derecha en móviles de
+     360px. Con min-width:0 la columna sí puede encoger y la etiqueta se
+     recorta dentro de su sitio. */
+  min-width: 0;
+  overflow: hidden;
+}
+
+.stats-row-single .stat-card .value,
+.stats-row-single .stat-card .label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .stats-row-single .stat-card .value {

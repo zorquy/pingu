@@ -2986,3 +2986,61 @@ final y quedarse sí, da exactamente 10 XP, releer no vuelve a darlos,
 marcar como leída conserva el curso completado, la tarjeta enseña "LEÍDA"
 sin decir "COMPLETADO" en una guía sin curso, y Aprender mide lectura
 manteniendo la línea de cursos.
+
+## Móvil: nada se arrastra de lado
+
+En el móvil se podía arrastrar el modal de una guía hacia los lados, lo
+que rompe la sensación de app. Se arreglaron los casos concretos y se
+dejó una **auditoría** (`audit-movil.mjs` en el scratchpad) que recorre 15
+páginas y 5 popups a 360 y 390 px buscando desbordes horizontales.
+
+**La trampa de CSS detrás.** `.modal-box-wide` tenía `max-height: 85vh` +
+`overflow-y: auto`. Poner `overflow-y` distinto de `visible` hace que
+`overflow-x` pase a `auto` **por especificación**, aunque no se escriba.
+Así que cualquier contenedor con scroll vertical se convierte en un
+carrusel horizontal en cuanto algo dentro no cabe.
+
+**Los cuatro desbordes encontrados:**
+
+1. La fila de acciones del modal (Guardar / Guía / Curso / reportar)
+   llevaba `flex-direction: row` en un estilo en línea que pisaba el
+   `column` del CSS, y **sin `flex-wrap`**: en un móvil estrecho el botón
+   de Curso se salía. Ahora es una clase, `.modal-actions-row`, con
+   `flex-wrap: wrap`. El estilo en línea desaparece.
+2. `.modal-box-wide` lleva además `overflow-x: hidden` como red de
+   seguridad, para que un desborde futuro no vuelva a hacerlo arrastrable.
+3. Las 5 tarjetas de estadísticas del perfil (`.stats-row-single`) se
+   salían a 360 px: un hijo de grid tiene `min-width: auto` y se niega a
+   encoger por debajo de su contenido. Con `min-width: 0` la columna ya
+   puede encoger y la etiqueta se recorta con "…".
+4. `.profile-hero-social` (seguidores / siguiendo / trofeos) no envolvía y
+   el tercer contador se salía del recuadro.
+
+Y dos blindajes preventivos: el emoji de portada del banner del modal y el
+de la tarjeta de la home. Ese campo lo escribe quien crea la guía, así que
+si ahí acaba una cadena larga en vez de un emoji, estiraba el contenedor.
+Ahora se recorta con "…".
+
+**Lo que aprendió la auditoría por el camino** (dos veces estuvo a punto
+de dar un aprobado falso):
+
+- Mirar solo `document.scrollWidth` **no ve** el desborde de un modal, que
+  scrollea por dentro sin ensanchar el documento — justo el caso que se
+  reportó. Hay que recorrer los contenedores con scroll uno a uno.
+- Mirar solo `overflow-x: auto/scroll` hace que **poner `overflow-x:
+  hidden` "arregle" la auditoría sin arreglar nada**: el contenido sigue
+  sin caber, solo que ahora se recorta invisible en vez de arrastrarse. Se
+  comprobó midiendo los botones uno a uno: con `flex-wrap` ocupan 3 filas
+  y ninguno queda cortado.
+- Recortar a propósito con `text-overflow: ellipsis` o `line-clamp` **no
+  es un fallo**, es lo correcto. Sin esa excepción la auditoría marcaba
+  como problema justo lo que ya estaba bien resuelto.
+
+**No se ha puesto `overflow-x: hidden` en el `body`.** Es el parche
+habitual para esto y habría tapado los cuatro fallos de golpe, pero
+también habría dejado la auditoría ciega para siempre. Se han arreglado
+las causas.
+
+Verificado: 0 desbordes en las 15 páginas y los 5 popups, a 360 y 390 px.
+Se revirtieron los arreglos a propósito, uno a uno, y la auditoría los
+volvió a detectar.

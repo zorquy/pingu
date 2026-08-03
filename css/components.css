@@ -592,6 +592,12 @@
   text-align: left;
   max-height: 85vh;
   overflow-y: auto;
+  /* Poner overflow-y:auto hace que overflow-x pase a `auto` por
+     especificación, aunque no se escriba. Sin este `hidden`, cualquier
+     cosa que no quepa dentro convierte el modal en un carrusel
+     horizontal que se arrastra con el dedo — que es justo lo que
+     pasaba en móvil con la fila de botones. */
+  overflow-x: hidden;
 }
 
 .modal-box-wide h3 {
@@ -891,6 +897,20 @@ textarea.be-field {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Variante en fila (el modal de guía: Guardar / Guía / Curso / reportar).
+   `flex-wrap` es lo que evita que en un móvil estrecho el último botón se
+   salga por la derecha en vez de bajar a la línea siguiente. */
+.modal-box .modal-actions-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.modal-box .modal-actions-row > * {
+  min-width: 0;
 }
 
 .modal-close {
@@ -1481,9 +1501,19 @@ textarea.be-field {
 
 .profile-hero-social {
   display: flex;
-  gap: 22px;
+  /* Sin envolver, los tres contadores (seguidores, siguiendo, trofeos)
+     no caben en un móvil de 360px y el último se salía del recuadro. */
+  flex-wrap: wrap;
+  gap: 10px 22px;
   padding: 14px 24px;
   border-top: 1px solid var(--border);
+}
+
+@media (max-width: 420px) {
+  .profile-hero-social {
+    gap: 10px 16px;
+    padding: 14px 16px;
+  }
 }
 
 .hero-social-item {
@@ -1902,10 +1932,18 @@ textarea.be-field {
   align-items: center;
   justify-content: center;
   margin-bottom: 14px;
+  /* El emoji de portada lo escribe quien crea la guía. Si ahí acaba algo
+     que no es un emoji (una cadena larga), sin esto se estira y arrastra
+     todo el modal de lado. */
+  overflow: hidden;
 }
 
 .guide-modal-banner-emoji {
   font-size: 46px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .guide-modal-desc {
