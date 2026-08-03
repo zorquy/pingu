@@ -447,3 +447,44 @@ body {
   padding: 5px 10px;
   font-size: 12.5px;
 }
+
+/* ── Aviso de migraciones sin ejecutar ── */
+
+.schema-alert {
+  background: #fee2e2;
+  border-left: 4px solid #dc2626;
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #7f1d1d;
+}
+
+.schema-alert code {
+  background: rgba(255, 255, 255, 0.6);
+  padding: 1px 5px;
+  border-radius: 3px;
+  word-break: break-all;
+}
+
+.schema-alert ul {
+  margin: 8px 0 0 18px;
+}
+
+.schema-ok {
+  font-size: 13.5px;
+  color: var(--text-mid);
+  margin-bottom: 16px;
+}
+
+.badge-falta {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #fee2e2;
+  color: #dc2626;
+}

@@ -35,6 +35,7 @@
         <button class="admin-nav-item" data-section="errors"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="6" width="8" height="14" rx="4"></rect><path d="M19 7l-3 2"></path><path d="M5 7l3 2"></path><path d="M19 19l-3-2"></path><path d="M5 19l3-2"></path><path d="M12 6V2"></path><path d="M9 2h6"></path></svg> Errores</button>
         <button class="admin-nav-item" data-section="analytics"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> Analítica</button>
         <button class="admin-nav-item" data-section="account-deletions"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path></svg> Bajas</button>
+        <button class="admin-nav-item" data-section="database"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14a9 3 0 0 0 18 0V5"></path><path d="M3 12a9 3 0 0 0 18 0"></path></svg> Base de datos</button>
         <button class="admin-nav-item" data-section="cards"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="14" height="16" rx="2"></rect><path d="M8 2h12a2 2 0 0 1 2 2v12"></path></svg> Cartas</button>
         <button class="admin-nav-item" data-section="images"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Imágenes</button>
       </nav>
@@ -43,6 +44,7 @@
 
     <main class="admin-main">
       <section class="admin-section active" id="section-dashboard">
+        <div id="schemaBanner"></div>
         <h1>Dashboard</h1>
         <div class="admin-stats-grid" id="dashboardStats"></div>
       </section>
@@ -154,6 +156,16 @@
         <h1>Bajas</h1>
         <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Solicitudes de borrado de cuenta. Marcar como "hecha" NO borra nada por sí solo — hay que borrar la cuenta a mano desde el dashboard de Supabase primero.</p>
         <div id="accountDeletionTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-database">
+        <h1>Base de datos</h1>
+        <p class="admin-note">
+          Comprueba que la base tiene lo que el código da por hecho. Cada comprobación pide una columna
+          por la misma vía que la usa la web, así que si aquí falla, a un usuario le falla igual.
+        </p>
+        <div class="admin-stats-grid" id="schemaSummary"></div>
+        <div id="schemaTable" style="margin-top:20px;"></div>
       </section>
 
       <section class="admin-section" id="section-cards">

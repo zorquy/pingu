@@ -3470,3 +3470,76 @@ no llega a `cdn.jsdelivr.net`, así que la copia de pruebas usa
 saneado comprobaban el sustituto y no el saneado de verdad. Se reescribió
 para que respete `ALLOWED_TAGS`, `ALLOWED_ATTR` y `ALLOW_DATA_ATTR`. Vive
 solo en el directorio de pruebas; el repositorio nunca lo toca.
+
+## Nadie podía comentar: faltaba una migración
+
+Un tester intentó comentar y le salió:
+
+```
+Could not find the 'reply_to_id' column of 'guide_comments'
+in the schema cache
+```
+
+**No era un fallo del código.** `supabase-migration-guide-forum.sql`
+—que añade esa columna— nunca se ejecutó en la base real. El código manda
+`reply_to_id` en **todos** los comentarios, también en los que no
+responden a nadie (va a `null`), así que sin la columna PostgREST rechaza
+la fila entera. Resultado: comentar estaba roto para todo el mundo, en
+todas las guías.
+
+La migración era de una línea sin comentarios ni comprobación, fácil de
+saltarse entre las otras treinta. Ahora explica qué se rompe si no se
+ejecuta, va en una transacción, añade el índice que faltaba y termina
+con una consulta que confirma que la columna existe.
+
+El `on delete set null` (y no `cascade`) es a propósito: al borrar un
+comentario, sus respuestas **no** desaparecen con él. Comprobado
+ejecutándolo contra Postgres 16 real: se borra el padre y la respuesta
+sigue ahí con `reply_to_id` a null.
+
+## Comprobación del esquema en el panel
+
+El problema de fondo no era esa columna: era que **una migración sin
+ejecutar no se nota hasta que alguien usa la función que la necesita**, y
+entonces revienta con un mensaje de PostgREST en inglés que no le sugiere
+a nadie "ejecuta este fichero".
+
+`js/schema-check.js` guarda una lista de 22 requisitos —tabla, columna,
+qué fichero la crea y **qué se rompe si falta**— y los comprueba pidiendo
+cada columna por la misma vía que usa la web. Si aquí falla, a un usuario
+le falla igual.
+
+Lo del "qué se rompe" es lo que lo hace útil. "Falta
+`guide_comments.reply_to_id`" no le dice a nadie si corre prisa; "Nadie
+puede comentar en las guías", sí.
+
+Dos sitios:
+
+- **Sección "Base de datos"**, con la lista completa y los ficheros
+  pendientes agrupados. Se agrupa **por fichero**, no por columna, porque
+  lo accionable es "ejecuta este .sql": dos columnas del mismo fichero
+  son una sola tarea.
+- **Aviso rojo en el Dashboard**, que es lo primero que se abre. Si solo
+  estuviera en su pestaña habría que sospechar para ir a mirar, y el
+  problema es justo que no se sospecha.
+
+**Distingue "no existe" de "no puedo leerlo".** Solo cuenta como
+migración pendiente si el error es de columna o tabla inexistente
+(`42703`, `42P01`, `PGRST204`). Un fallo de permisos o de red se marca
+aparte como "sin poder comprobar": decir "ejecuta este fichero" cuando el
+problema es otro haría perder el tiempo.
+
+### Verificación
+
+22 comprobaciones con Playwright, incluido el caso real reproducido
+—simulando que falta `guide_comments.reply_to_id` con el mismo error que
+da PostgREST de verdad—: salta el aviso al abrir el panel, dice que nadie
+puede comentar, nombra el fichero exacto y marca la fila. Con la base
+completa no molesta con nada.
+
+Durante la prueba salió un fallo mío: **el aviso del Dashboard no
+aparecía**, porque el `<div>` donde se pinta nunca llegó a insertarse en
+el HTML (mi reemplazo no encajaba con el marcado real). La sección sí
+funcionaba, así que sin la comprobación del banner habría pasado por
+buena — y el banner es justo la parte que hace que el problema no sea
+silencioso.

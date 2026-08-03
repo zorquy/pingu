@@ -6,6 +6,7 @@ import { renderReferenceBlocksHtml } from '../../js/block-editor.js'
 import { icons } from '../../js/icons.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch } from '../../js/tcgdex.js'
+import { checkSchema } from '../../js/schema-check.js'
 
 let categories = []
 let guidesCache = []
@@ -1196,6 +1197,79 @@ async function loadAnalytics() {
   </div>`
 }
 
+// ── Base de datos: ¿está todo migrado? ──
+//
+// Una migración sin ejecutar no se nota hasta que alguien usa la función
+// que la necesita. Pasó: faltaba guide_comments.reply_to_id y nadie
+// podía comentar en ninguna guía, y el aviso que salía era un mensaje de
+// PostgREST en inglés que no le dice a nadie qué hacer.
+
+async function loadSchemaCheck() {
+  const { resultados, faltan, dudas } = await checkSchema()
+
+  document.getElementById('schemaSummary').innerHTML = [
+    statCardHtml(resultados.length - faltan.length - dudas.length, 'Comprobaciones OK', 'de ' + resultados.length),
+    statCardHtml(faltan.length, 'Migraciones sin ejecutar', faltan.length ? 'hay funciones rotas' : 'ninguna'),
+    statCardHtml(dudas.length, 'Sin poder comprobar', 'permisos o red'),
+  ].join('')
+
+  // Agrupado por fichero: lo accionable es "ejecuta este .sql", no
+  // "falta esta columna". Dos columnas del mismo fichero son una tarea.
+  const porFichero = {}
+  for (const r of faltan) (porFichero[r.fichero] ||= []).push(r)
+
+  const pendientes = Object.entries(porFichero)
+  document.getElementById('schemaTable').innerHTML = `
+    ${
+      pendientes.length
+        ? `<div class="schema-alert">
+             <strong>Faltan ${pendientes.length} migración(es) por ejecutar.</strong>
+             Ábrelas en el SQL Editor de Supabase, pega el contenido y ejecútalas.
+             <ul>${pendientes
+               .map(
+                 ([fichero, rs]) =>
+                   `<li><code>${escapeHtml(fichero)}</code> — ${escapeHtml(rs.map((r) => r.rompe).join(' '))}</li>`
+               )
+               .join('')}</ul>
+           </div>`
+        : `<p class="schema-ok">Todo lo que el código necesita está en la base.</p>`
+    }
+    <table class="admin-table">
+      <thead><tr><th>Comprobación</th><th style="width:110px;">Estado</th><th>Si falta</th></tr></thead>
+      <tbody>
+        ${resultados
+          .map(
+            (r) => `<tr>
+              <td>${escapeHtml(r.tabla)}.${escapeHtml(r.columna)} <span class="admin-path">${escapeHtml(r.fichero)}</span></td>
+              <td>${
+                r.estado === 'ok'
+                  ? '<span class="badge-ok">OK</span>'
+                  : r.estado === 'falta'
+                    ? '<span class="badge-falta">Falta</span>'
+                    : '<span class="badge-pending">¿?</span>'
+              }</td>
+              <td>${escapeHtml(r.estado === 'ok' ? '' : r.rompe)}${r.detalle ? `<span class="admin-path">${escapeHtml(r.detalle)}</span>` : ''}</td>
+            </tr>`
+          )
+          .join('')}
+      </tbody>
+    </table>`
+
+  // Y un aviso en el Dashboard, que es lo primero que se abre. Si solo
+  // estuviera en su propia pestaña habría que sospechar antes de mirar,
+  // y el problema es justo que no se sospecha.
+  const banner = document.getElementById('schemaBanner')
+  if (banner) {
+    banner.innerHTML = pendientes.length
+      ? `<div class="schema-alert">
+           <strong>Faltan ${pendientes.length} migración(es) por ejecutar</strong> y hay funciones rotas para los usuarios:
+           ${escapeHtml(faltan.map((r) => r.rompe).join(' '))}
+           <br />Mira la sección <strong>Base de datos</strong> para ver cuáles.
+         </div>`
+      : ''
+  }
+}
+
 // ── Cartas (espejo del catálogo de TCGdex) ──
 //
 // La importación corre AQUÍ, en el navegador de un admin, con su propia
@@ -1381,6 +1455,7 @@ async function init() {
     loadAnalytics(),
     loadAccountDeletionRequests(),
     loadCards(),
+    loadSchemaCheck(),
   ])
 
   initCardsSection()
