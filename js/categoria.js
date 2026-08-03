@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, tintClassForKey, categoryIconHtml } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, categoryIconHtml, guideHasCourse } from './app.js'
 import { openGuideModal, setupGuideModalClose, renderGuideCardHtml, decorateGuideCards } from './guide-modal.js'
 
 const params = new URLSearchParams(window.location.search)
@@ -55,12 +55,16 @@ async function initCategoryMode() {
   const session = await getSession()
   const progressByGuide = await buildProgressByGuide(session, guideList.map((g) => g.id))
 
-  const completedCount = guideList.filter((g) => progressByGuide[g.id] === 'completed').length
-  if (session) {
+  // Solo cuentan las guías con curso: las de solo lectura no se pueden
+  // "completar", así que si entraran en el divisor la barra nunca llegaría
+  // al final por mucho que hicieras todos los cursos de la categoría.
+  const courseList = guideList.filter(guideHasCourse)
+  const completedCount = courseList.filter((g) => progressByGuide[g.id] === 'completed').length
+  if (session && courseList.length > 0) {
     const track = document.getElementById('categoryProgressTrack')
     track.style.display = 'block'
     document.getElementById('categoryProgressFill').style.width = `${Math.round(
-      (completedCount / guideList.length) * 100
+      (completedCount / courseList.length) * 100
     )}%`
   }
 

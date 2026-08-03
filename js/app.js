@@ -36,6 +36,15 @@ export function borderRarityClass(rarity) {
   return `border-rarity-${rarity || 'bronze'}`
 }
 
+// Una guía puede tener solo documentación (para leer) o además un curso
+// (los bloques interactivos de curso.html). Solo las que tienen curso
+// cuentan para las barras de progreso: si no, una categoría con 1 curso
+// y 2 guías de lectura decía "1 de 3 cursos completados" y la barra no
+// llegaba nunca al final.
+export function guideHasCourse(guide) {
+  return Array.isArray(guide?.blocks) && guide.blocks.length > 0
+}
+
 export function cardMediaHtml(imageUrl, emoji) {
   if (!imageUrl) return ''
   return `<div class="card-media" style="background-image:url('${imageUrl.replace(/'/g, '%27')}')"><span class="card-media-badge">${escapeHtml(emoji || '📘')}</span></div>`

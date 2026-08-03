@@ -2546,3 +2546,51 @@ Verificado con Playwright en `categoria.html` (17 tarjetas, todas a
 sin el `height` de la descripción la diferencia sube a 75px y la
 descripción larga deja de recortarse; sin la caja del emoji sube a
 62px. Se restauraron ambas y volvió a pasar.
+
+## Las barras de progreso solo cuentan las guías que tienen curso
+
+Una guía puede llevar dos cosas independientes: la **documentación**
+(`reference_blocks`, para leer en `guia.html`) y el **curso**
+(`blocks`, los pasos interactivos de `curso.html`). Hay guías que solo
+tienen documentación, y esas no se pueden "completar" — no hay nada
+que terminar.
+
+El listado de "Aprender" usaba `categories.guide_count` como
+denominador, que son **todas** las guías publicadas de la categoría.
+Con una categoría de 1 curso y 2 guías de solo lectura decía "1 de 3
+cursos completados" con la barra a un tercio, y por muchos cursos que
+hicieras nunca llegaba al final. `categoria.html` tenía el mismo fallo
+en su barra de cabecera, dividiendo entre `guideList.length`.
+
+Ahora ambas dividen entre las guías que de verdad tienen curso.
+`aprender.js` ya no puede usar el contador cacheado de la categoría, así
+que pide `id, category_id, blocks` de las guías publicadas y las cuenta
+en el cliente; `categoria.js` filtra la lista que ya tenía cargada.
+
+La regla "esto tiene curso" estaba escrita a mano en tres sitios de
+`guide-modal.js` y era justo lo que se había desincronizado, así que se
+extrajo a `guideHasCourse(guide)` en `js/app.js` y los cuatro ficheros
+la comparten.
+
+Dos casos que se arreglaron de camino:
+
+- Si una guía pierde su curso después de que alguien lo complete, el
+  progreso guardado sigue en `user_progress`. El numerador se limita con
+  `Math.min(...)` para no enseñar "2 de 1".
+- Una categoría **sin ningún curso** ya no pinta una barra vacía al 0%.
+  En su lugar dice cuántas guías hay para leer.
+
+Verificado con Playwright montando el caso exacto: categoría con 1 curso
+(completado) + 2 guías de solo lectura. Da "1 de 1 curso completado" y
+las dos barras al 100%. Se revirtió el arreglo a propósito y la prueba
+reprodujo el fallo original ("1 de 3 cursos completados", barras al 33%,
+y la categoría sin cursos volviendo a pintar barra); se restauró y
+volvió a pasar.
+
+Aviso para futuros tests: sembrar `__FAKE_EXTRA_PROGRESS__` con
+`user_id: 'admin-1'` **cuelga la página**. Es una limitación del stub,
+no del sitio — el stub reconstruye el perfil de `admin-1` en cada
+consulta, así que el `update` de logros nunca se queda guardado y
+`addXP` → `checkAchievements` → `addXP` se llaman en bucle infinito. Hay
+que usar un usuario de `USER_PROFILES` (p. ej. `user-1`, Ash) vía
+`window.__FAKE_SESSION__`.

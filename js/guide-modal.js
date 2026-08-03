@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, getProfile, getInitial, profileUrl, borderRarityClass } from './app.js'
+import { escapeHtml, getSession, getProfile, getInitial, profileUrl, borderRarityClass, guideHasCourse } from './app.js'
 import { renderWall } from './wall.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { createNotification } from './notifications.js'
@@ -43,7 +43,7 @@ async function getRatingStats(guideIds) {
 // la sección de Comunidad) ──
 export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel = '', reviewBadge = null } = {}) {
   const courseLabel = statusBadge === 'completed' ? 'Repasar' : `${icons.graduationCap(15)} Curso`
-  const hasCourse = Array.isArray(guide.blocks) && guide.blocks.length > 0
+  const hasCourse = guideHasCourse(guide)
   const courseBtn = hasCourse
     ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course" onclick="event.stopPropagation()">${courseLabel}</a>`
     : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">${icons.graduationCap(15)} Curso</span>`
@@ -257,7 +257,7 @@ export async function openGuideModal(guideId) {
           : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">${icons.bookOpen(16)} Guía</span>`
       }
       ${
-        Array.isArray(guide.blocks) && guide.blocks.length > 0
+        guideHasCourse(guide)
           ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course">${icons.graduationCap(16)} Curso</a>`
           : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">${icons.graduationCap(16)} Curso</span>`
       }
