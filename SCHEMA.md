@@ -2779,3 +2779,62 @@ las llamadas de auth; la vista previa del username usa el host actual. Se
 revirtió el `emailRedirectTo` a propósito y la prueba lo detectó; se
 restauró y volvió a pasar. La regla de `netlify.toml` no se puede probar
 en local (la aplica el CDN de Netlify, no el sitio).
+
+## Estadísticas de uso reales en /admin
+
+La sección "Analítica" contaba solo visitas por ruta. Ahora es un panel
+de uso con seis bloques:
+
+- **Resumen del periodo**: visitas, usuarios activos (distintos, con
+  sesión), altas nuevas, usuarios registrados, % de visitas con sesión
+  iniciada y cuántas personas tienen una racha viva.
+- **Visitas por día**: un gráfico de barras del periodo elegido. Está
+  hecho con una rejilla CSS y divs de altura variable — no se ha traído
+  ninguna librería de gráficos para cuatro barras.
+- **Páginas más visitadas**, con barra comparativa.
+- **Guías más vistas**, de `guides.view_count`. Ojo: ese contador es
+  **acumulado desde siempre** y no distingue si la visita fue a la
+  documentación o al curso, porque `guia.js` y `curso.js` incrementan el
+  mismo campo. No se filtra por periodo.
+- **Cursos**: cuánta gente ha empezado y completado cada uno, ordenados
+  por uso, con el porcentaje que llega al final. Es la métrica más
+  accionable: un curso con muchos empezados y pocos acabados señala dónde
+  se atasca la gente.
+- **Actividad de la comunidad**: comentarios en guías y mensajes en muros
+  del periodo, más el reparto de guías con y sin curso.
+
+**La migración que hace falta.** `supabase-migration-admin-analytics.sql`
+añade una política de lectura de `user_progress` para admins. Sin ella la
+única política era `auth.uid() = user_id`, así que el panel solo veía el
+progreso del propio admin — y el "Cursos completados" del dashboard daba
+una cifra equivocada sin decirlo. La migración no toca las políticas de
+escritura: cada persona sigue escribiendo solo su propio progreso.
+
+Siguiendo lo aprendido con el bug del progreso que fallaba en silencio,
+aquí **no se enseña un cero como si fuera un dato**: si la consulta de
+`user_progress` da error, se dice cuál es y qué migración aplicar; y si
+devuelve un solo usuario habiendo varios registrados, se avisa de que
+probablemente falte la política en vez de dar la cifra por buena. El
+dashboard hace lo mismo: muestra "—" y el motivo en lugar de un 0.
+
+**Limitación de `page_views`.** Solo guarda `path`, no la query string, y
+las guías se ven en `/guia.html?slug=…`. Por eso "páginas más visitadas"
+no puede desglosar por guía y esa parte se saca de `guides.view_count`.
+Se dejó así a propósito: la tabla no guarda identificador de visitante ni
+nada que permita perfilar a nadie.
+
+**Verificación.** La migración se aplicó contra un PostgreSQL 16 temporal:
+falla con un mensaje claro si no existe `is_admin()`, crea la política, se
+puede relanzar sin error y deja intacta la de escritura. De paso se
+corrigió la consulta de diagnóstico de políticas en esta migración y en
+`supabase-migration-user-progress-unique.sql`: usaban `cmd` sobre la tabla
+`pg_policy`, que no tiene esa columna — lo correcto es la vista
+`pg_policies`. El fallo salió al ejecutarlas de verdad.
+
+En el panel, con Playwright: se pintan los seis bloques, el gráfico saca
+una barra por día (7 y 90), y el selector de periodo cambia los datos de
+verdad — con 7 días salen 3 visitas y con 90 salen 5, porque el stub tiene
+una visita de hace 40 días. Para que eso fuese comprobable hubo que
+implementar `gte`/`lte` en el stub, que hasta ahora los ignoraba. Y
+simulando que RLS rechaza `user_progress`, el panel avisa de la migración
+que falta en vez de enseñar una tabla vacía.

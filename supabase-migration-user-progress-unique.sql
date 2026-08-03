@@ -56,11 +56,10 @@ group by status;
 -- 1d. Políticas RLS de la tabla, por si la causa fuese otra.
 --     Para que la app pueda escribir hace falta que el usuario pueda
 --     hacer INSERT y UPDATE de sus propias filas.
-select polname as politica, cmd as operacion,
-       pg_get_expr(polqual, polrelid) as using_expr,
-       pg_get_expr(polwithcheck, polrelid) as with_check_expr
-from pg_policy
-where polrelid = 'user_progress'::regclass;
+select policyname as politica, cmd as operacion,
+       qual as using_expr, with_check as with_check_expr
+from pg_policies
+where tablename = 'user_progress';
 
 
 -- ────────────────────────────────────────────────────────────

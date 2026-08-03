@@ -63,17 +63,26 @@ document.addEventListener('keydown', (e) => {
 
 // ── Dashboard ──
 async function loadDashboard() {
-  const [{ count: userCount }, { count: completedCount }, { count: guideCount }] = await Promise.all([
+  const [{ count: userCount }, completedRes, { count: guideCount }] = await Promise.all([
     supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
     supabase.from('user_progress').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
     supabase.from('guides').select('*', { count: 'exact', head: true }).not('published_at', 'is', null),
   ])
 
+  // Hasta la migración supabase-migration-admin-analytics.sql, la única
+  // política de lectura de user_progress era auth.uid() = user_id, así
+  // que esta cifra contaba solo los cursos del propio admin. Si la
+  // consulta falla, se dice en vez de enseñar un cero engañoso.
+  const completedLabel = completedRes.error ? '—' : completedRes.count || 0
+  const completedNote = completedRes.error
+    ? `<p style="grid-column: 1/-1; font-size: 12px; color: var(--text-mid);">No se ha podido leer <code>user_progress</code> (${escapeHtml(completedRes.error.message)}). Aplica <code>supabase-migration-admin-analytics.sql</code> para que el equipo pueda ver el progreso de todos los usuarios.</p>`
+    : ''
+
   document.getElementById('dashboardStats').innerHTML = `
     <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${userCount || 0}</div><div>Usuarios</div></div>
-    <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${completedCount || 0}</div><div>Cursos completados *</div></div>
+    <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${completedLabel}</div><div>Cursos completados</div></div>
     <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${guideCount || 0}</div><div>Guías publicadas</div></div>
-    <p style="grid-column: 1/-1; font-size: 12px; color: var(--text-mid);">* Por las políticas RLS actuales de <code>user_progress</code> (solo <code>auth.uid() = user_id</code>, sin excepción para admins), esta cifra solo cuenta tus propios cursos completados, no los de todos los usuarios. Para un total real haría falta añadir una política de lectura para admins en esa tabla.</p>`
+    ${completedNote}`
 }
 
 // ── Categories ──
@@ -1002,36 +1011,171 @@ async function loadClientErrors() {
   )
 }
 
-// ── Analítica básica (page_views) — sin servicio externo, sin cookies ──
+// ── Analítica (page_views + progreso + contenido) — sin servicio externo ──
+
+// Barra de una fila de tabla, para comparar magnitudes de un vistazo sin
+// tener que leer los números.
+function barCellHtml(value, max) {
+  const pct = max > 0 ? Math.max(2, Math.round((value / max) * 100)) : 0
+  return `<span class="bar-cell" style="width:${pct}%"></span>`
+}
+
+function rankTableHtml(rows, headers, { max } = {}) {
+  if (rows.length === 0) return `<p class="empty-state">Nada que mostrar todavía.</p>`
+  const top = max ?? Math.max(...rows.map((r) => r.value))
+  return `
+    <table class="admin-table">
+      <thead><tr><th>${headers[0]}</th><th style="width:90px;">${headers[1]}</th><th style="width:35%;"></th></tr></thead>
+      <tbody>
+        ${rows
+          .map(
+            (r) => `<tr>
+              <td>${r.html || escapeHtml(r.label)}</td>
+              <td><strong>${r.value}</strong>${r.suffix || ''}</td>
+              <td>${barCellHtml(r.value, top)}</td>
+            </tr>`
+          )
+          .join('')}
+      </tbody>
+    </table>`
+}
+
+function statCardHtml(value, label, note = '') {
+  return `<div class="admin-card">
+    <div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${value}</div>
+    <div>${escapeHtml(label)}</div>
+    ${note ? `<div style="font-size:11.5px;color:var(--text-mid);margin-top:4px;">${escapeHtml(note)}</div>` : ''}
+  </div>`
+}
+
+function dayKey(d) {
+  return new Date(d).toISOString().slice(0, 10)
+}
+
 async function loadAnalytics() {
   const days = Number(document.getElementById('analyticsDays')?.value) || 7
   const since = new Date(Date.now() - days * 86400_000).toISOString()
 
-  const { data } = await supabase.from('page_views').select('path, created_at').gte('created_at', since)
-  const views = data || []
+  const [viewsRes, profilesRes, guidesRes, progressRes, guideCommentsRes, wallCommentsRes] = await Promise.all([
+    supabase.from('page_views').select('path, user_id, created_at').gte('created_at', since),
+    supabase.from('user_profiles').select('id, created_at, current_streak'),
+    supabase.from('guides').select('id, title, slug, view_count, blocks').not('published_at', 'is', null),
+    supabase.from('user_progress').select('guide_id, user_id, status'),
+    supabase.from('guide_comments').select('id, created_at').gte('created_at', since),
+    supabase.from('profile_comments').select('id, created_at').gte('created_at', since),
+  ])
 
-  const container = document.getElementById('analyticsTable')
-  const totalEl = document.getElementById('analyticsTotal')
-  if (totalEl) totalEl.textContent = views.length
+  const views = viewsRes.data || []
+  const profiles = profilesRes.data || []
+  const guides = guidesRes.data || []
+  const progress = progressRes.data || []
 
-  if (views.length === 0) {
-    container.innerHTML = `<p class="empty-state">Todavía no hay visitas registradas en este periodo.</p>`
-    return
+  // ── Resumen ──
+  const withSession = views.filter((v) => v.user_id)
+  const activeUsers = new Set(withSession.map((v) => v.user_id)).size
+  const newUsers = profiles.filter((p) => p.created_at && p.created_at >= since).length
+  const pctLogged = views.length ? Math.round((withSession.length / views.length) * 100) : 0
+  const withStreak = profiles.filter((p) => (p.current_streak || 0) > 1).length
+
+  document.getElementById('analyticsSummary').innerHTML = [
+    statCardHtml(views.length, 'Visitas', `en los últimos ${days} días`),
+    statCardHtml(activeUsers, 'Usuarios activos', 'con sesión iniciada'),
+    statCardHtml(newUsers, 'Altas nuevas', `en los últimos ${days} días`),
+    statCardHtml(profiles.length, 'Usuarios registrados', 'en total'),
+    statCardHtml(`${pctLogged}%`, 'Visitas con sesión', 'el resto son anónimas'),
+    statCardHtml(withStreak, 'Con racha viva', 'más de un día seguido'),
+  ].join('')
+
+  // ── Visitas por día ──
+  const byDay = new Map()
+  for (let i = days - 1; i >= 0; i--) byDay.set(dayKey(Date.now() - i * 86400_000), 0)
+  for (const v of views) {
+    const k = dayKey(v.created_at)
+    if (byDay.has(k)) byDay.set(k, byDay.get(k) + 1)
   }
+  const dayEntries = [...byDay.entries()]
+  const maxDay = Math.max(1, ...dayEntries.map(([, n]) => n))
+  // Con 90 días no caben 90 etiquetas: se enseña una de cada N.
+  const labelEvery = Math.ceil(dayEntries.length / 12)
+  document.getElementById('analyticsChart').innerHTML = `
+    <div class="chart-bars">
+      ${dayEntries
+        .map(([d, n]) => `<div class="chart-bar" title="${d}: ${n} visitas"><span class="fill" style="height:${Math.round((n / maxDay) * 100)}%"></span></div>`)
+        .join('')}
+    </div>
+    <div class="chart-axis">
+      ${dayEntries.map(([d], i) => `<span>${i % labelEvery === 0 ? d.slice(5) : ''}</span>`).join('')}
+    </div>`
 
+  // ── Páginas más visitadas ──
   const countByPath = views.reduce((acc, v) => {
     acc[v.path] = (acc[v.path] || 0) + 1
     return acc
   }, {})
-  const rows = Object.entries(countByPath).sort((a, b) => b[1] - a[1])
+  const pathRows = Object.entries(countByPath)
+    .sort((a, b) => b[1] - a[1])
+    .map(([path, value]) => ({ label: path, value }))
+  document.getElementById('analyticsTable').innerHTML = rankTableHtml(pathRows, ['Página', 'Visitas'])
 
-  container.innerHTML = `
-    <table class="admin-table">
-      <thead><tr><th>Página</th><th>Visitas</th></tr></thead>
-      <tbody>
-        ${rows.map(([path, count]) => `<tr><td>${escapeHtml(path)}</td><td>${count}</td></tr>`).join('')}
-      </tbody>
-    </table>`
+  // ── Guías más vistas ──
+  const guideRows = guides
+    .filter((g) => (g.view_count || 0) > 0)
+    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+    .slice(0, 15)
+    .map((g) => ({
+      html: `<a href="/guia.html?slug=${encodeURIComponent(g.slug)}" target="_blank" rel="noopener">${escapeHtml(g.title)}</a>`,
+      value: g.view_count || 0,
+    }))
+  document.getElementById('analyticsGuides').innerHTML = rankTableHtml(guideRows, ['Guía', 'Vistas'])
+
+  // ── Cursos ──
+  const note = document.getElementById('analyticsCoursesNote')
+  const coursesWithBlocks = guides.filter((g) => Array.isArray(g.blocks) && g.blocks.length > 0)
+
+  if (progressRes.error) {
+    note.className = 'admin-note-warn'
+    note.textContent = `No se ha podido leer user_progress: ${progressRes.error.message}. Aplica supabase-migration-admin-analytics.sql.`
+    document.getElementById('analyticsCourses').innerHTML = ''
+  } else {
+    const distinctUsers = new Set(progress.map((p) => p.user_id)).size
+    // Si solo aparece un usuario habiendo varios registrados, lo más
+    // probable es que falte la política de lectura para admins y solo
+    // estemos viendo el progreso propio.
+    const looksRestricted = distinctUsers <= 1 && profiles.length > 1
+    note.className = looksRestricted ? 'admin-note-warn' : 'admin-note'
+    note.textContent = looksRestricted
+      ? 'Solo se ve el progreso de un usuario. Si esperabas más, falta aplicar supabase-migration-admin-analytics.sql, que da lectura de user_progress al equipo.'
+      : `Progreso de ${distinctUsers} usuario(s) sobre ${coursesWithBlocks.length} guías con curso.`
+
+    const byGuide = new Map()
+    for (const p of progress) {
+      const e = byGuide.get(p.guide_id) || { started: 0, completed: 0 }
+      if (p.status === 'completed') e.completed++
+      else e.started++
+      byGuide.set(p.guide_id, e)
+    }
+    const courseRows = coursesWithBlocks
+      .map((g) => {
+        const e = byGuide.get(g.id) || { started: 0, completed: 0 }
+        const total = e.started + e.completed
+        return {
+          html: `${escapeHtml(g.title)}<div style="font-size:11.5px;color:var(--text-mid);">${e.completed} completado(s) · ${e.started} a medias</div>`,
+          value: total,
+          suffix: total > 0 ? ` <span style="font-weight:400;color:var(--text-mid);">(${Math.round((e.completed / total) * 100)}% acaba)</span>` : '',
+        }
+      })
+      .filter((r) => r.value > 0)
+      .sort((a, b) => b.value - a.value)
+    document.getElementById('analyticsCourses').innerHTML = rankTableHtml(courseRows, ['Curso', 'Lo han hecho'])
+  }
+
+  // ── Comunidad ──
+  document.getElementById('analyticsCommunity').innerHTML = `<div class="admin-stats-grid">
+    ${statCardHtml((guideCommentsRes.data || []).length, 'Comentarios en guías', `en los últimos ${days} días`)}
+    ${statCardHtml((wallCommentsRes.data || []).length, 'Mensajes en muros', `en los últimos ${days} días`)}
+    ${statCardHtml(guides.length, 'Guías publicadas', 'en total')}
+    ${statCardHtml(coursesWithBlocks.length, 'De ellas con curso', 'el resto son solo documentación')}
+  </div>`
 }
 
 // ── Init ──

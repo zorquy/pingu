@@ -127,8 +127,26 @@
             <option value="90">Últimos 90 días</option>
           </select>
         </div>
-        <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Recuento propio de páginas visitadas, sin cookies ni servicios externos — <strong id="analyticsTotal">0</strong> visitas en el periodo.</p>
+        <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Datos propios, sin cookies ni servicios externos.</p>
+
+        <div class="admin-stats-grid" id="analyticsSummary"></div>
+
+        <h2 class="admin-subtitle">Visitas por día</h2>
+        <div id="analyticsChart"></div>
+
+        <h2 class="admin-subtitle">Páginas más visitadas</h2>
         <div id="analyticsTable"></div>
+
+        <h2 class="admin-subtitle">Guías más vistas</h2>
+        <p class="admin-note">Contador acumulado de <code>guides.view_count</code>, desde siempre — no se filtra por periodo.</p>
+        <div id="analyticsGuides"></div>
+
+        <h2 class="admin-subtitle">Cursos: empezados y completados</h2>
+        <p class="admin-note" id="analyticsCoursesNote"></p>
+        <div id="analyticsCourses"></div>
+
+        <h2 class="admin-subtitle">Actividad de la comunidad</h2>
+        <div id="analyticsCommunity"></div>
       </section>
 
       <section class="admin-section" id="section-account-deletions">
