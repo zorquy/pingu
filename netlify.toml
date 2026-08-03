@@ -1,6 +1,21 @@
 [functions]
   directory = "netlify/functions"
 
+# El dominio bueno es pokedoc.es. Quien llegue al subdominio de Netlify
+# (por un enlace antiguo, o porque un redirect de Supabase le ha mandado
+# ahí después de iniciar sesión) se manda a pokedoc.es conservando la
+# ruta. Va la PRIMERA porque Netlify aplica la primera regla que coincide.
+#
+# Solo coincide con el subdominio de producción exacto: las previsualiza-
+# ciones de despliegue (deploy-preview-N--pokedocpingu.netlify.app y
+# rama--pokedocpingu.netlify.app) no encajan en el patrón y siguen
+# funcionando en su propia URL.
+[[redirects]]
+  from = "https://pokedocpingu.netlify.app/*"
+  to = "https://pokedoc.es/:splat"
+  status = 301
+  force = true
+
 # Enlaces de perfil legibles: /usuario/<nombre-de-usuario> en vez de
 # /usuario.html?u=<nombre-de-usuario>. Tiene que ir ANTES del catch-all de
 # abajo — Netlify aplica la primera regla que coincide.

@@ -127,7 +127,11 @@ btnLogin?.addEventListener('click', async () => {
 btnResendConfirmation?.addEventListener('click', async () => {
   const email = btnResendConfirmation.dataset.email
   btnResendConfirmation.disabled = true
-  const { error } = await supabase.auth.resend({ type: 'signup', email })
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: `${window.location.origin}/index.html` },
+  })
   btnResendConfirmation.disabled = false
   showToast(error ? friendlyAuthError(error) : 'Te hemos reenviado el enlace de confirmación.', error ? 'error' : 'success')
 })
@@ -178,7 +182,14 @@ btnRegister?.addEventListener('click', async () => {
   btnRegister.disabled = true
   btnRegister.textContent = 'Creando cuenta...'
 
-  const { data, error } = await supabase.auth.signUp({ email, password })
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    // Sin esto, el enlace del email de confirmación vuelve al "Site URL"
+    // del proyecto de Supabase (el dominio de Netlify) en vez de al
+    // dominio desde el que la persona se ha registrado.
+    options: { emailRedirectTo: `${window.location.origin}/index.html` },
+  })
 
   btnRegister.disabled = false
   btnRegister.textContent = 'Crear cuenta →'

@@ -2733,3 +2733,49 @@ que se quiere después de terminar un curso: ver qué más hay.
 
 `next_guide_slug` sigue existiendo en los datos y en el editor, pero la
 pantalla de recompensa ya no lo usa.
+
+## El dominio bueno es pokedoc.es, no el subdominio de Netlify
+
+Al iniciar sesión en `pokedoc.es` acababas en
+`pokedocpingu.netlify.app`. Hay tres piezas, y **dos de ellas no están en
+este repositorio** — son ajustes de paneles externos.
+
+**En el código (arreglado aquí).**
+
+`signInWithOAuth` y `resetPasswordForEmail` ya construían el destino con
+`window.location.origin`, así que respetaban el dominio de origen. Pero
+`signUp` y `auth.resend` **no pasaban `emailRedirectTo`**, y sin ese dato
+el enlace del email de confirmación vuelve siempre al "Site URL" del
+proyecto de Supabase. Ahora los cuatro flujos usan el origen actual.
+
+`perfil.js` escribía `pokedocpingu.netlify.app` a mano en la vista previa
+del nombre de usuario; ahora usa `window.location.host`.
+
+`robots.txt` declaraba `Sitemap: /sitemap.xml` en relativo, que la
+especificación no admite — tiene que ser una URL absoluta. Apunta ya a
+`https://pokedoc.es/sitemap.xml`. El `sitemap.xml` ya usaba pokedoc.es.
+
+**En `netlify.toml` (arreglado aquí).** Una regla nueva, la primera de
+todas, manda `https://pokedocpingu.netlify.app/*` a
+`https://pokedoc.es/:splat` con un 301 forzado. Es la red de seguridad:
+aunque un redirect externo devuelva a alguien al subdominio, acaba en el
+dominio bueno conservando la ruta. Solo coincide con el subdominio de
+producción exacto, así que las previsualizaciones de despliegue
+(`deploy-preview-N--…` y `rama--…`) siguen funcionando en su propia URL.
+
+**En el panel de Supabase (hay que hacerlo a mano).** En Authentication →
+URL Configuration: el **Site URL** debe ser `https://pokedoc.es`, y las
+URLs de `pokedoc.es` tienen que estar en la lista de **Redirect URLs**
+permitidas. Si un `redirectTo` no está en esa lista, Supabase lo descarta
+y usa el Site URL en su lugar — que es exactamente el síntoma original.
+
+**En el panel de Netlify (conviene).** Domain management → poner
+`pokedoc.es` como dominio principal, para que Netlify mismo redirija los
+alias en vez de depender de la regla del `netlify.toml`.
+
+Verificado con Playwright: `signUp` manda `emailRedirectTo` con el origen
+desde el que se navega y no queda ningún `netlify.app` escrito a mano en
+las llamadas de auth; la vista previa del username usa el host actual. Se
+revirtió el `emailRedirectTo` a propósito y la prueba lo detectó; se
+restauró y volvió a pasar. La regla de `netlify.toml` no se puede probar
+en local (la aplica el CDN de Netlify, no el sitio).

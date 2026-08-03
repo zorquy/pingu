@@ -2,4 +2,4 @@ User-agent: *
 Disallow: /admin/
 Allow: /
 
-Sitemap: /sitemap.xml
+Sitemap: https://pokedoc.es/sitemap.xml

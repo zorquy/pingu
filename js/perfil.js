@@ -382,7 +382,10 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
   const usernameInput = document.getElementById('peUsername')
   const usernamePreview = document.getElementById('peUsernamePreview')
   function updateUsernamePreview() {
-    usernamePreview.textContent = `pokedocpingu.netlify.app/usuario/${slugify(usernameInput.value) || '…'}`
+    // El dominio sale de dónde estás, no escrito a mano: si no, la vista
+    // previa enseñaba el subdominio de Netlify aunque estuvieras en
+    // pokedoc.es.
+    usernamePreview.textContent = `${window.location.host}/usuario/${slugify(usernameInput.value) || '…'}`
   }
   updateUsernamePreview()
   usernameInput.addEventListener('input', updateUsernamePreview)
