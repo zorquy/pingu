@@ -3774,3 +3774,47 @@ más la línea. Con `display: inline-block` sí recorta.
 Merece la pena anotarlo: el arreglo se dio por bueno con un número peor
 que el de partida, y solo se vio porque la comprobación mide el ancho en
 vez de dar por hecho que la regla CSS hace lo que parece.
+
+## Las tarjetas de la home se quedaron sin clic
+
+Al quitar el pop-up, las tarjetas de "Añadidas recientemente" dejaron de
+hacer nada al pincharlas.
+
+**La causa.** La home tiene maqueta propia (`.recent-card`, con portada
+grande), no la tarjeta compartida. Solo llevaba `data-guide-id`, y el
+manejador nuevo necesita `data-slug` y `data-has-guide` para saber a
+dónde ir. Se quedó muda.
+
+Lo mismo pasaba en las filas de Comunidad y en las de Guardados: cada una
+tiene su propia maqueta.
+
+Ahora las cuatro llevan los mismos datos y se comportan igual: **a la
+guía si la tiene, al curso si solo tiene curso**. Y las de la home
+enseñan también quién ha escrito cada guía, como las de categoría.
+
+**Lo que falló fue la prueba, no solo el código.** Había una
+comprobación de que el pop-up ya no se pintaba en la home… y pasaba.
+Comprobar que algo *ya no está* no dice nada sobre si lo que lo
+sustituye funciona. Ahora se comprueba que **al pinchar pasa algo**: que
+la tarjeta sabe su destino y que se produce la navegación.
+
+También se comprobó que el botón de guardar **no** navega: está dentro de
+una tarjeta que ahora es clicable entera.
+
+## `has_reference_blocks`: casi doy una falsa alarma
+
+Buscando el fallo anterior salió que ningún fichero de la web calcula
+`has_reference_blocks`, el campo del que dependía el botón "Guía" y ahora
+el destino del clic. Estuve a punto de reportarlo como bug grave.
+
+**No lo era.** Es una **columna GENERATED** de la base real (el stub de
+pruebas ya simulaba su comportamiento: rechaza que se le escriba un valor
+explícito). Existe, solo que no se ve en el código de la web.
+
+Aun así se añadió `guideHasReference()` en `app.js`: usa el campo si la
+consulta lo trae y, si no, lo deduce de `reference_blocks`. No arregla
+nada roto — evita que una consulta que no seleccione esa columna deje
+todas las tarjetas creyendo que no hay documentación.
+
+Anotado porque el reflejo de "no lo calcula nadie → está roto" era
+razonable y habría sido incorrecto. El stub guardaba la respuesta.

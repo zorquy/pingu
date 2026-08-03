@@ -45,6 +45,18 @@ export function guideHasCourse(guide) {
   return Array.isArray(guide?.blocks) && guide.blocks.length > 0
 }
 
+// Simétrica de la de arriba, para la parte de Documentación.
+//
+// Antes las tarjetas miraban `guide.has_reference_blocks`, un campo que
+// NO calcula nadie en la web: solo existía en el stub de pruebas. Si la
+// base no lo trae, sale undefined y la tarjeta cree que la guía no tiene
+// documentación. Ahora se deduce del propio contenido, y el campo, si
+// viene, se respeta.
+export function guideHasReference(guide) {
+  if (typeof guide?.has_reference_blocks === 'boolean') return guide.has_reference_blocks
+  return Array.isArray(guide?.reference_blocks) && guide.reference_blocks.length > 0
+}
+
 export function cardMediaHtml(imageUrl, emoji) {
   if (!imageUrl) return ''
   return `<div class="card-media" style="background-image:url('${imageUrl.replace(/'/g, '%27')}')"><span class="card-media-badge">${escapeHtml(emoji || '📘')}</span></div>`

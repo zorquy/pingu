@@ -10,7 +10,7 @@
 // pintaba en dos sitios) y la valoración se movió al final de la guía y
 // del curso (js/guide-rating.js).
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, profileUrl, borderRarityClass, guideHasCourse } from './app.js'
+import { escapeHtml, getSession, profileUrl, borderRarityClass, guideHasCourse, guideHasReference } from './app.js'
 import { icons } from './icons.js'
 import { starsHtml as _stars } from './guide-rating.js'
 
@@ -52,12 +52,13 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
   const courseBtn = hasCourse
     ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course" onclick="event.stopPropagation()">${courseLabel}</a>`
     : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">${icons.graduationCap(15)} Curso</span>`
-  const guideBtn = guide.has_reference_blocks
+  const hasGuide = guideHasReference(guide)
+  const guideBtn = hasGuide
     ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">${icons.bookOpen(15)} Guía</a>`
     : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">${icons.bookOpen(15)} Guía</span>`
 
   return `
-  <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}" data-author-id="${escapeHtml(guide.author_id || '')}" data-slug="${escapeHtml(guide.slug || '')}" data-has-guide="${guide.has_reference_blocks ? '1' : ''}" tabindex="0" role="link">
+  <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}" data-author-id="${escapeHtml(guide.author_id || '')}" data-slug="${escapeHtml(guide.slug || '')}" data-has-guide="${hasGuide ? '1' : ''}" tabindex="0" role="link">
     <div class="guide-card-icon${guide.cover_image ? ' has-cover' : ''}"${
       guide.cover_image ? ` style="background-image:url('${guide.cover_image.replace(/'/g, '%27')}')"` : ''
     }>${guide.cover_image ? '' : escapeHtml(guide.cover_emoji || '📘')}</div>

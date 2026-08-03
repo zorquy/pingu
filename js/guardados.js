@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, requireAuth } from './app.js'
+import { escapeHtml, requireAuth, guideHasReference } from './app.js'
 import { decorateGuideCards } from './guide-card.js'
 import { icons } from './icons.js'
 
@@ -20,7 +20,7 @@ async function loadSaved(session) {
 
   const { data: guides } = await supabase
     .from('guides')
-    .select('id, slug, title, cover_emoji, estimated_mins')
+    .select('id, slug, title, cover_emoji, estimated_mins, blocks, reference_blocks')
     .in('id', savedIds)
 
   if (!guides || guides.length === 0) {
@@ -31,7 +31,7 @@ async function loadSaved(session) {
   list.innerHTML = guides
     .map(
       (g) => `
-    <div class="saved-guide-row" data-guide-id="${g.id}" data-slug="${escapeHtml(g.slug || '')}" style="cursor:pointer;">
+    <div class="saved-guide-row" data-guide-id="${g.id}" data-slug="${escapeHtml(g.slug || '')}" data-has-guide="${guideHasReference(g) ? '1' : ''}" style="cursor:pointer;">
       <span style="font-size: 22px;">${escapeHtml(g.cover_emoji || '📘')}</span>
       <div class="info">
         <h3>${escapeHtml(g.title)}</h3>
@@ -47,7 +47,12 @@ async function loadSaved(session) {
   // compartida), así que su clic se ata aquí.
   list.querySelectorAll('.saved-guide-row').forEach((row) => {
     const slug = row.dataset.slug
-    if (slug) row.addEventListener('click', () => { window.location.href = `guia.html?slug=${encodeURIComponent(slug)}` })
+    if (!slug) return
+    // Igual que las demás tarjetas: a la guía si la tiene, si no al curso.
+    const destino = row.dataset.hasGuide
+      ? `guia.html?slug=${encodeURIComponent(slug)}`
+      : `curso.html?slug=${encodeURIComponent(slug)}`
+    row.addEventListener('click', () => { window.location.href = destino })
   })
 
   await decorateGuideCards(list, session)

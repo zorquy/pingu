@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml, guideHasReference } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { icons } from './icons.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
@@ -60,7 +60,7 @@ async function loadRecent() {
   grid.innerHTML = data
     .map(
       (g) => `
-    <div class="recent-card ${borderRarityClass(g.guide_rarity)}" data-guide-id="${g.id}">
+    <div class="recent-card ${borderRarityClass(g.guide_rarity)}" data-guide-id="${g.id}" data-author-id="${escapeHtml(g.author_id || '')}" data-slug="${escapeHtml(g.slug || '')}" data-has-guide="${guideHasReference(g) ? '1' : ''}" tabindex="0" role="link">
       ${g.cover_image ? cardMediaHtml(g.cover_image, g.cover_emoji) : `<span class="emoji">${escapeHtml(g.cover_emoji || '📘')}</span>`}
       <h3>${escapeHtml(g.title)}</h3>
       <p>${escapeHtml(g.description || '')}</p>
@@ -69,16 +69,15 @@ async function loadRecent() {
         <span class="time-tag">${g.estimated_mins || 5} min</span>
         <span class="rarity-chip rarity-${g.guide_rarity || 'bronze'}">${g.guide_rarity || 'bronze'}</span>
       </div>
+      <div class="guide-card-author" data-card-author></div>
       <div class="guide-card-social">
-        <button class="card-save-btn" data-card-save title="Guardar" aria-label="Guardar">${icons.bookmark(16)}</button>
+        <button class="card-save-btn" data-card-save title="Guardar" aria-label="Guardar" onclick="event.stopPropagation()">${icons.bookmark(16)}</button>
         <span class="card-rating" data-card-rating>Sin valorar</span>
       </div>
     </div>`
     )
     .join('')
 
-  grid.querySelectorAll('.recent-card').forEach((card) => {
-  })
 }
 
 // Solo para quien ha iniciado sesión. Alguien que llega buscando si su

@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, getSession, profileUrl } from './app.js'
+import { escapeHtml, getInitial, getSession, profileUrl, guideHasReference } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { contributorTier, calculateLevel } from './gamification.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
@@ -75,7 +75,7 @@ async function loadUsers() {
 // variable, así que se listan finas en vez de en tarjetas grandes.
 function renderCommunityGuideRowHtml(guide) {
   return `
-  <div class="community-guide-row" data-guide-id="${guide.id}">
+  <div class="community-guide-row" data-guide-id="${guide.id}" data-slug="${escapeHtml(guide.slug || '')}" data-has-guide="${guideHasReference(guide) ? '1' : ''}" tabindex="0" role="link">
     <div class="community-guide-row-icon">${escapeHtml(guide.cover_emoji || '📘')}</div>
     <div class="community-guide-row-info">
       <h3>${escapeHtml(guide.title)}<span class="badge community-guide-row-badge badge-pro">Pendiente</span></h3>
