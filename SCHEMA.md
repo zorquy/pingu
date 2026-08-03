@@ -2390,3 +2390,48 @@ rompió a propósito cada uno de los tres cambios por separado (volver
 a `flex-wrap: wrap`, quitar el `min-height` de las acciones) para
 confirmar que el test detecta cada regresión, se restauraron y
 volvió a pasar todo.
+
+## Perfil propio: quitar "Logros" de las estadísticas y ponerlas en una sola fila
+
+Las 6 tarjetas de estadísticas del perfil (`#profileStats`) incluían
+"Logros" (número de logros desbloqueados) — redundante, porque el
+número de trofeos ya se muestra justo arriba, en la cabecera
+("10 Trofeos"), y con el mismo nombre ("trofeos") que el que usa esa
+sección para referirse a los logros. Se quitó esa tarjeta. Con 5
+tarjetas en vez de 6, `.stats-row` (que reparte con
+`grid-template-columns: repeat(auto-fit, minmax(110px, 1fr))`) seguía
+partiéndolas en dos filas en pantallas estrechas. Se añadió una
+variante `.stats-row-single` (solo en `perfil.html`, no toca
+`usuario.html`, que comparte la misma clase base `.stats-row` pero
+con solo 3 tarjetas distintas) que fuerza `repeat(5, 1fr)` — siempre
+una sola fila, con las tarjetas encogiéndose si hace falta en vez de
+saltar de línea.
+
+Verificado con Playwright: quedan exactamente 5 tarjetas, "Logros" ya
+no aparece, y las 5 están en la misma fila (mismo `top`). Se rompió a
+propósito quitando la regla `.stats-row-single` para confirmar que
+vuelven a partirse en varias filas, se restauró y volvió a pasar.
+
+## Bug real: los datos del desplegable de cuenta se solapaban en la navbar
+
+`.nav-user-stats` (XP, Nivel, y si aplican Racha y Colaborador, hasta
+4 datos) era una fila `flex` sin `gap` dentro de un desplegable de
+solo 260px — con 4 columnas repartiéndose ese ancho sin espacio
+entre ellas, cada una tenía sitio real para menos de 21px de texto.
+Un nombre de nivel largo como "Coleccionista" desbordaba visualmente
+sobre la columna vecina.
+
+Se cambió a una cuadrícula de 2 columnas (`display: grid;
+grid-template-columns: repeat(2, 1fr); gap: 10px 8px`), así que con 2
+datos queda en una fila de 2, y con 3 o 4 pasa a dos filas de 2 —
+cada dato con el doble de ancho real que antes. Como red de
+seguridad adicional se le puso `text-overflow: ellipsis` al valor,
+por si algún nombre de nivel es incluso más largo que el espacio de
+una columna del desplegable.
+
+Verificado con Playwright: con los 4 datos presentes (XP, Nivel,
+Racha, Colaborador, el caso exacto de la captura reportada), ninguno
+mide menos de 90px de ancho (antes: ~21px) y ninguno se solapa con
+otro. Se rompió a propósito volviendo al `flex` sin `gap` para
+confirmar que el test detecta que el ancho vuelve a ser insuficiente,
+se restauró y volvió a pasar.

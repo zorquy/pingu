@@ -76,7 +76,6 @@ async function loadStats(session, profile) {
       .eq('review_status', 'approved'),
   ])
 
-  const unlockedCount = (profile?.achievements || []).length
   const avgRating = reviews && reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null
   const tier = contributorTier(approvedGuidesCount || 0)
 
@@ -84,10 +83,6 @@ async function loadStats(session, profile) {
     <div class="stat-card">
       <div class="value">${completedCount || 0}</div>
       <div class="label">Cursos completados</div>
-    </div>
-    <div class="stat-card">
-      <div class="value">${unlockedCount}</div>
-      <div class="label">Logros</div>
     </div>
     <div class="stat-card">
       <div class="value">${profile?.quiz_correct_count || 0}</div>

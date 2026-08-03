@@ -2372,20 +2372,25 @@ textarea.be-field {
 }
 
 .nav-user-stats {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 8px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
 }
 
 .nav-user-stats > div {
-  flex: 1;
   text-align: center;
+  min-width: 0;
 }
 
 .nav-user-stats strong {
   display: block;
   font-size: 14px;
   color: var(--navy);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nav-user-stats span {

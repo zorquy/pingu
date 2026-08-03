@@ -796,6 +796,26 @@ button.btn-block {
   gap: 12px;
 }
 
+/* Perfil propio: 5 tarjetas fijas en una sola fila (en vez de que
+   auto-fit las reparta en 2 filas en pantallas estrechas) — las
+   etiquetas se encogen si hace falta en vez de saltar de fila. */
+.stats-row-single {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.stats-row-single .stat-card {
+  padding: 14px 6px;
+}
+
+.stats-row-single .stat-card .value {
+  font-size: 18px;
+}
+
+.stats-row-single .stat-card .label {
+  font-size: 10px;
+}
+
 .stat-card {
   background: var(--white);
   border: 1px solid var(--border);
