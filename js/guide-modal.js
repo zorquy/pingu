@@ -53,7 +53,9 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
 
   return `
   <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}">
-    <div class="guide-card-icon">${escapeHtml(guide.cover_emoji || '📘')}</div>
+    <div class="guide-card-icon${guide.cover_image ? ' has-cover' : ''}"${
+      guide.cover_image ? ` style="background-image:url('${guide.cover_image.replace(/'/g, '%27')}')"` : ''
+    }>${guide.cover_image ? '' : escapeHtml(guide.cover_emoji || '📘')}</div>
     <div class="guide-card-info">
       ${categoryLabel ? `<span class="guide-label">${escapeHtml(categoryLabel)}</span>` : ''}
       <h3 title="${escapeHtml(guide.title)}">${escapeHtml(guide.title)}</h3>

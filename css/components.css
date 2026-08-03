@@ -273,6 +273,12 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* El hueco del icono enseña la PORTADA cuando la guía tiene, y el emoji
+   cuando no. Se probó a poner la portada grande arriba, como en la home,
+   pero la mayoría de las guías no tienen portada: quedaba una rejilla a
+   parches, y con una imagen de 160 px por tarjeta se pasaba de ver 4
+   guías de un vistazo a ver 2. Así se gana la referencia visual sin
+   perder densidad, y el que no tenga portada no desentona. */
 .guide-card-icon {
   font-size: 26px;
   width: 46px;
@@ -284,6 +290,14 @@
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 3px 0 0 var(--ice-dark);
+  overflow: hidden;
+}
+
+.guide-card-icon.has-cover {
+  background-size: cover;
+  background-position: center;
+  /* Sin la sombra de "pastilla": con una foto dentro parece un botón. */
+  box-shadow: none;
 }
 
 .guide-card-info {
