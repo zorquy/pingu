@@ -4,6 +4,7 @@ import { invalidateAchievementsCache } from '../../js/gamification.js'
 import { showToast } from '../../js/toast.js'
 import { renderReferenceBlocksHtml } from '../../js/block-editor.js'
 import { icons } from '../../js/icons.js'
+import { normalizePath, pageLabel } from '../../js/page-views.js'
 
 let categories = []
 let guidesCache = []
@@ -1113,13 +1114,21 @@ async function loadAnalytics() {
     </div>`
 
   // ── Páginas más visitadas ──
+  // Se vuelve a normalizar AQUÍ, al leer, no solo al escribir: si no, las
+  // filas ya guardadas ("/index.html", "/aprender.html", "/usuario/pingu")
+  // seguirían apareciendo sueltas durante meses, que es justo el problema
+  // que se está arreglando.
   const countByPath = views.reduce((acc, v) => {
-    acc[v.path] = (acc[v.path] || 0) + 1
+    const ruta = normalizePath(v.path)
+    acc[ruta] = (acc[ruta] || 0) + 1
     return acc
   }, {})
   const pathRows = Object.entries(countByPath)
     .sort((a, b) => b[1] - a[1])
-    .map(([path, value]) => ({ label: path, value }))
+    .map(([path, value]) => ({
+      html: `${escapeHtml(pageLabel(path))} <span class="admin-path">${escapeHtml(path)}</span>`,
+      value,
+    }))
   document.getElementById('analyticsTable').innerHTML = rankTableHtml(pathRows, ['Página', 'Visitas'])
 
   // ── Guías más vistas ──

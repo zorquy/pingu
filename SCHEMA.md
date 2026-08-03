@@ -3194,3 +3194,73 @@ simulado antes de entregarla: un tercero solo ve las filas de quien no se
 ha escondido, y quien se ha escondido sigue viendo las suyas.
 
 El filtro de privacidad se rompió a propósito y el test lo detectó.
+
+## Las rutas de la analítica estaban partidas
+
+En "Páginas más visitadas" salían `/` con 263 y `/index.html` con 26.
+Son la misma página. Igual `/aprender` (62) y `/aprender.html` (4),
+`/admin/` (58) y `/admin/index.html` (18), `/usuario.html` (11) y
+`/usuario/pingu` (6).
+
+**La causa.** Se guardaba `location.pathname` en crudo. Netlify sirve la
+misma página por varias URLs — con `.html` y sin él, `/` e `/index.html`,
+y `/usuario/:username` reescrito a `/usuario.html?u=`. Según el enlace
+que pinchara cada persona, la visita caía en una fila u otra. El ranking
+no estaba solo feo: estaba **mal**, porque repartía el total de una
+página entre dos o tres filas.
+
+**Y lo que faltaba.** `/categoria.html` juntaba las seis categorías en
+una fila de 133 visitas, y `/guia.html` todas las guías en 44. Justo lo
+que se quiere saber —*cuál* se usa más— era lo único que no se veía,
+porque la identidad de esas páginas está en la query, no en la ruta.
+
+### `normalizePath()`
+
+En `js/page-views.js`. Quita la barra final y el `.html`, colapsa
+`/index` a su carpeta, y para las páginas que se identifican por la query
+mete el slug en la ruta: `/categoria.html?slug=history` →
+`/categoria/history`.
+
+El slug se limpia antes (`[^a-zA-Z0-9_-]` fuera, 60 caracteres máximo):
+cualquiera puede escribir lo que quiera en la query y eso acaba en una
+tabla y luego en una pantalla del panel.
+
+**Los perfiles se juntan a propósito.** `/usuario/pingu` y
+`/usuario.html?u=pingu` van los dos a `/usuario`, sin el nombre. Guardar
+a quién mira cada persona —y las filas llevan `user_id`— sería un
+registro de quién vigila a quién. Para saber si la gente usa los perfiles
+basta con el total.
+
+### Se normaliza también AL LEER
+
+`admin.js` vuelve a pasar `normalizePath()` sobre cada fila al pintar la
+tabla, no solo al escribir. Sin eso, las filas ya guardadas seguirían
+apareciendo sueltas durante meses y el arreglo no se notaría hasta que
+caducaran — que es justo el problema que se estaba arreglando.
+
+Lo que no se puede recuperar es el detalle de las visitas viejas a
+categorías y guías: ese dato nunca se guardó. Esas filas se etiquetan
+como "sin detalle (visitas antiguas)" en vez de mezclarlas con las
+nuevas y fingir que se sabe algo que no se sabe.
+
+### Nombres legibles
+
+Cada fila enseña "Inicio" y, detrás y en gris, `/`. La ruta a secas no
+dice nada de un vistazo, y la primera reacción a ver `/` en lo alto de la
+tabla fue pensar que era un fallo.
+
+### Verificación
+
+30 comprobaciones con Playwright: la tabla de casos de `normalizePath`
+(incluida basura y un slug de 500 caracteres), lo que se guarda de verdad
+al visitar páginas reales, y la tabla del panel con filas "antiguas"
+sembradas en el stub tal y como estaban en la base real.
+
+Se quitó la normalización de lectura a propósito y saltaron 8
+comprobaciones — reproduciendo exactamente la captura del problema.
+
+Eso además destapó una comprobación floja mía: "la home sale una sola
+vez" pasaba incluso con el fallo puesto, porque buscaba el texto
+"Inicio" y la fila duplicada se llamaba `/index.html`. Se sustituyó por
+una que normaliza las rutas mostradas y exige que no haya dos filas para
+la misma página.
