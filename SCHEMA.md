@@ -2435,3 +2435,22 @@ mide menos de 90px de ancho (antes: ~21px) y ninguno se solapa con
 otro. Se rompió a propósito volviendo al `flex` sin `gap` para
 confirmar que el test detecta que el ancho vuelve a ser insuficiente,
 se restauró y volvió a pasar.
+
+## Bug real: "Racha" en la misma línea que el número, a diferencia del resto
+
+En el mismo desplegable de cuenta, XP/Nivel/Colaborador pintan el
+valor con `display: flex` (o el `display: block` por defecto de
+`.nav-user-stats strong`), así que la etiqueta ("XP", "Nivel"...)
+cae siempre debajo en su propia línea. El de Racha era el único que
+usaba `display: inline-flex` para alinear el icono de fuego junto al
+número — pero al ser un nivel "inline", el `<span>Racha</span>` que
+va justo después no bajaba de línea y se quedaba pegado al lado
+("🔥2 RACHA" en vez de "🔥2" arriba y "RACHA" debajo). Se cambió a
+`display: flex` (como ya hacía el de Colaborador), que sí rompe línea
+al ser un nivel de caja "block" por fuera aunque siga siendo flex por
+dentro.
+
+Verificado con Playwright: el `<span>Racha</span>` queda por debajo
+del número/icono (no en la misma línea). Se rompió a propósito
+volviendo a `inline-flex` para confirmar que el test detecta que
+vuelven a quedar en la misma línea, se restauró y volvió a pasar.
