@@ -2594,3 +2594,69 @@ consulta, así que el `update` de logros nunca se queda guardado y
 `addXP` → `checkAchievements` → `addXP` se llaman en bucle infinito. Hay
 que usar un usuario de `USER_PROFILES` (p. ej. `user-1`, Ash) vía
 `window.__FAKE_SESSION__`.
+
+## Contenido inicial: `supabase-seed-contenido.sql`
+
+13 guías oficiales escritas para arrancar la web, repartidas por las seis
+categorías (cuatro estaban vacías del todo):
+
+- **Primeros pasos** (2): empezar una colección sin arruinarte, y el
+  glosario del vocabulario que se usa en los anuncios.
+- **Comprar, vender & mercado** (2): tasar una carta de verdad (pedida
+  contra ventas reales), y comprar seguro de segunda mano.
+- **¿Es real o fake?** (4): los 6 chequeos, el test de la luz y el rip
+  test, slabs falsos, y producto sellado resellado.
+- **Identificar cartas** (2): leer la franja inferior de una carta, y el
+  mapa de rarezas de normal a alt art.
+- **Mazos & estrategia** (2): cómo se juega en 5 minutos, y la proporción
+  de un primer mazo.
+- **Historia & curiosidades** (1): 1999, el Set Base y sus variantes.
+
+Cada guía lleva documentación completa (un bloque `richtext`) **y** curso
+interactivo: 95 bloques en total, todos empezando por `hook` y acabando en
+`reward`, encadenados entre sí con `next_guide_slug` para que al terminar
+uno te proponga el siguiente.
+
+Entran como guías oficiales: `author_id = null` (la web muestra "Guía
+oficial" en vez de un autor), `review_status = 'approved'`, `is_pro =
+false` y `reference_unlocked_by_default = true`, para que la documentación
+se pueda leer sin completar antes el curso.
+
+**Cómo está construido el fichero.** El `insert` no lleva `category_id`
+a pelo: hace `join categories c on c.slug = s.category_slug`, así que se
+engancha solo a las categorías por slug y no depende de ningún uuid. Al
+final recalcula `categories.guide_count`, que no tiene trigger en la base
+y si no se quedaría desincronizado.
+
+Es **idempotente**: `on conflict (slug) do nothing`. Se puede ejecutar más
+de una vez sin duplicar ni pisar nada, y no toca ninguna guía existente.
+
+El SQL se genera desde un script (el contenido se define como estructuras
+de datos y el fichero se escribe a partir de ellas) en vez de escribirse a
+mano, porque meter el JSON de `blocks`/`reference_blocks` dentro de
+literales SQL a mano es pedir un error de escapado.
+
+El HTML de la documentación se limita a las etiquetas que deja pasar
+`sanitizeRichText` (`p br strong b em i u h2 h3 ul ol li a img
+blockquote`). Nada de tablas: DOMPurify las quitaría al pintar la guía y
+el contenido se perdería.
+
+**Verificación.** Se levantó un PostgreSQL 16 temporal con el esquema
+mínimo (incluida la columna generada `has_reference_blocks`) y una guía
+preexistente de control, y se ejecutó el fichero de verdad: entra sin
+errores, deja las seis categorías con su recuento correcto, y al lanzarlo
+por segunda vez no duplica nada (14 filas = 13 + la de control) ni altera
+la guía que ya estaba. Se validó además que todos los bloques de práctica
+son coherentes: ningún `correct_index` fuera de rango, ninguna
+`correct_option` que no esté entre las opciones, ninguna opción repetida y
+ningún `match` con dos respuestas idénticas. Por último se cargaron las 13
+guías en el stub y se comprobó con Playwright que las 13 documentaciones se
+pintan enteras (entre 2.400 y 3.700 caracteres cada una, con sus títulos,
+listas y citas) y que los 13 cursos arrancan y avanzan sin errores de JS.
+
+Alcance real de ese último test: el recorrido del curso se detiene en el
+primer bloque de práctica que exige respuesta, porque el script no contesta
+las preguntas — cubre las 3-4 primeras pantallas de cada curso, no las 95
+en su totalidad. La corrección de los bloques que quedan más allá está
+cubierta por la validación de campos descrita arriba, que sí los revisa
+todos uno a uno.
