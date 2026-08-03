@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getSession, burstConfetti } from './app.js'
 import { markCourseStarted, markCourseCompleted, addXP, incrementQuizCorrect } from './gamification.js'
 import { parseBBCode } from './bbcode.js'
+import { showToast } from './toast.js'
 import { icons } from './icons.js'
 
 let blocks = []
@@ -175,8 +176,9 @@ function renderReward(b) {
       <h2>¡Curso completado!</h2>
       <div class="xp-display"><span id="xpCounter">0</span> XP</div>
       ${!session ? '<p style="color: var(--ice); font-size: 13px;">Crea una cuenta para guardar tu progreso y XP.</p>' : ''}
+      <p class="reward-save-warning hidden" id="rewardSaveWarning"></p>
       <div class="reward-actions">
-        ${b.next_guide_slug ? `<a href="curso.html?slug=${encodeURIComponent(b.next_guide_slug)}" class="btn-primary">Siguiente curso →</a>` : ''}
+        <a href="aprender.html" class="btn-primary">Seguir explorando →</a>
         <a href="index.html" class="btn-secondary">Volver al inicio</a>
       </div>
     </div>`
@@ -447,7 +449,19 @@ async function setupBlockLogic(block) {
     burstConfetti()
 
     if (session) {
-      await markCourseCompleted(session.user.id, guide.id, xp)
+      try {
+        await markCourseCompleted(session.user.id, guide.id, xp)
+      } catch {
+        // El curso se ha terminado en pantalla, pero la base lo ha
+        // rechazado. Callarlo haría que el usuario creyera que su
+        // progreso está guardado cuando no lo está.
+        const warning = document.getElementById('rewardSaveWarning')
+        if (warning) {
+          warning.textContent = 'No hemos podido guardar tu progreso. Vuelve a entrar al curso más tarde para que cuente.'
+          warning.classList.remove('hidden')
+        }
+        showToast('No hemos podido guardar tu progreso.')
+      }
     }
   } else {
     btnContinue.disabled = false
@@ -541,8 +555,14 @@ async function loadCourse() {
       currentIndex = Math.min(existing.current_block, blocks.length - 1)
     }
 
-    await markCourseStarted(session.user.id, guide.id)
-    if (currentIndex > 0) await persistIndex(currentIndex)
+    try {
+      await markCourseStarted(session.user.id, guide.id)
+      if (currentIndex > 0) await persistIndex(currentIndex)
+    } catch {
+      // Ya queda registrado en client_errors. El curso se puede hacer
+      // igualmente, así que no se bloquea la carga por esto.
+      showToast('No hemos podido guardar que has empezado este curso.')
+    }
   }
 
   renderBlock(currentIndex)

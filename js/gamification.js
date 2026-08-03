@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { burstConfetti, achievementIconHtml } from './app.js'
 import { icons } from './icons.js'
+import { logClientError } from './error-log.js'
 
 // Los logros se gestionan desde /admin en la tabla `achievement_definitions`.
 // `condition` es jsonb: { type: 'completed_guides_count' | 'total_xp' | 'quiz_correct_count', count: number }
@@ -108,7 +109,15 @@ export async function addXP(userId, amount) {
   const newXP = (data?.total_xp || 0) + amount
   const newLevel = calculateLevel(newXP)
 
-  await supabase.from('user_profiles').update({ total_xp: newXP, level: newLevel }).eq('id', userId)
+  const { error } = await supabase.from('user_profiles').update({ total_xp: newXP, level: newLevel }).eq('id', userId)
+  if (error) {
+    // Si el XP no se guarda, checkAchievements() volvería a ver el mismo
+    // total en la siguiente llamada; peor aún, si tampoco se guardan los
+    // logros desbloqueados, addXP y checkAchievements se llamarían en
+    // bucle. Se corta aquí.
+    logClientError(`No se pudo guardar el XP: ${error.message}`, error.details || error.hint || null)
+    throw new Error(error.message)
+  }
 
   await checkAchievements(userId)
   return newXP
@@ -149,8 +158,14 @@ export async function checkDailyStreak(userId) {
   await addXP(userId, STREAK_BONUS_XP)
 }
 
+// Estos dos escritos se hacían sin mirar el `{ error }` que devuelve
+// Supabase, así que si la base los rechazaba (por RLS, o porque falta el
+// índice único de (user_id, guide_id) que necesita el upsert para
+// resolver el onConflict) el curso se veía terminado en pantalla y no se
+// guardaba nada, sin ninguna pista de por qué. Ahora el fallo se registra
+// y se propaga para que quien llama pueda avisar al usuario.
 export async function markCourseStarted(userId, guideId) {
-  await supabase.from('user_progress').upsert(
+  const { error } = await supabase.from('user_progress').upsert(
     {
       user_id: userId,
       guide_id: guideId,
@@ -159,10 +174,14 @@ export async function markCourseStarted(userId, guideId) {
     },
     { onConflict: 'user_id,guide_id' }
   )
+  if (error) {
+    logClientError(`No se pudo marcar el curso como empezado: ${error.message}`, error.details || error.hint || null)
+    throw new Error(error.message)
+  }
 }
 
 export async function markCourseCompleted(userId, guideId, xpEarned = 20) {
-  await supabase.from('user_progress').upsert(
+  const { error } = await supabase.from('user_progress').upsert(
     {
       user_id: userId,
       guide_id: guideId,
@@ -172,6 +191,10 @@ export async function markCourseCompleted(userId, guideId, xpEarned = 20) {
     },
     { onConflict: 'user_id,guide_id' }
   )
+  if (error) {
+    logClientError(`No se pudo guardar el curso completado: ${error.message}`, error.details || error.hint || null)
+    throw new Error(error.message)
+  }
 
   await addXP(userId, xpEarned)
   await checkAchievements(userId)

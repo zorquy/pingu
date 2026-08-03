@@ -24,6 +24,13 @@ async function logError(message, stack) {
   }
 }
 
+// Para registrar a mano un fallo que no lanza excepción — por ejemplo el
+// `{ error }` que devuelve una consulta de Supabase, que si nadie lo mira
+// se queda en silencio y no aparece nunca en el panel de errores.
+export function logClientError(message, stack) {
+  return logError(message, stack)
+}
+
 export function initErrorLogging() {
   window.addEventListener('error', (e) => {
     logError(e.message, e.error?.stack)

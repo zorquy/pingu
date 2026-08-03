@@ -2660,3 +2660,76 @@ las preguntas — cubre las 3-4 primeras pantallas de cada curso, no las 95
 en su totalidad. La corrección de los bloques que quedan más allá está
 cubierta por la validación de campos descrita arriba, que sí los revisa
 todos uno a uno.
+
+## Bug real: los cursos completados no se guardaban
+
+Al terminar un curso salía el confeti, el contador de XP y "¡Curso
+completado!", pero la guía seguía sin aparecer como completada. El
+progreso no se guardaba **y nadie se enteraba**.
+
+**Causa raíz.** `markCourseCompleted()` (y `markCourseStarted()`) escriben
+en `user_progress` con un upsert:
+
+```
+.upsert({ ... }, { onConflict: 'user_id,guide_id' })
+```
+
+PostgREST lo traduce a `INSERT ... ON CONFLICT (user_id, guide_id)`, y
+Postgres solo acepta esa cláusula si existe un índice único o una
+restricción única sobre **exactamente** esas dos columnas. Si no existe,
+falla siempre con `42P10: there is no unique or exclusion constraint
+matching the ON CONFLICT specification`.
+
+**Por qué no se veía.** Ninguna de las tres funciones que escriben
+progreso miraba el `{ error }` que devuelve Supabase — se hacía
+`await supabase.from(...).upsert(...)` a secas. El fallo era del todo
+silencioso: la interfaz celebraba el curso y la base no guardaba nada.
+
+Este documento decía que `user_progress` era "único por (user_id,
+guide_id)", pero eso venía de la descripción de la tabla, no de haber
+comprobado que la restricción existiera de verdad.
+
+**Arreglado en dos mitades.**
+
+En el cliente, `markCourseStarted`, `markCourseCompleted` y `addXP` ahora
+comprueban el error, lo registran con `logClientError()` (nuevo export de
+`error-log.js`, para fallos que no lanzan excepción y por tanto no los
+recogen los manejadores globales) y lo propagan. `curso.js` los captura:
+si el guardado falla, la pantalla de recompensa muestra un aviso visible
+(`.reward-save-warning`) y un toast, en vez de dar por bueno un progreso
+que no se ha guardado.
+
+En la base, `supabase-migration-user-progress-unique.sql` crea el índice
+que falta. El fichero está dividido en bloques: primero diagnostica (¿hay
+índice?, ¿hay filas duplicadas?, ¿qué políticas RLS hay?), luego repara, y
+sólo si hay duplicados hace falta el bloque de limpieza — que conserva la
+fila más avanzada de cada par (completed gana a started, y a igualdad la
+más reciente).
+
+De paso, `addXP` también corta si no puede guardar el XP: si el total no
+se persiste y los logros tampoco, `addXP` → `checkAchievements` → `addXP`
+se llamarían en bucle indefinidamente.
+
+**Verificación.** Contra un PostgreSQL 16 temporal se reprodujo el fallo
+exacto: el mismo upsert que hace la app devuelve `42P10` sin el índice, y
+funciona en cuanto se crea. El índice es idempotente (`if not exists`) y
+la limpieza de duplicados deja una sola fila conservando el estado
+`completed`. En el cliente, con Playwright y un interruptor de prueba que
+simula ese mismo error de Postgres: con la base sana el curso queda
+guardado como `completed` y no se avisa de nada; con la base rechazando el
+upsert aparece el aviso, sale el toast, y el fallo queda registrado en
+`client_errors` con el mensaje de Postgres.
+
+## El botón final del curso ahora lleva a Aprender
+
+La pantalla de recompensa pintaba "Siguiente curso →" a partir de
+`next_guide_slug` del bloque `reward`. Si ese slug apuntaba a un curso que
+no existe (o que existe pero no tiene bloques), el botón dejaba al usuario
+en una página vacía.
+
+Se ha sustituido por "Seguir explorando →", que lleva siempre a
+`aprender.html`. Es un destino que no puede romperse y encaja mejor con lo
+que se quiere después de terminar un curso: ver qué más hay.
+
+`next_guide_slug` sigue existiendo en los datos y en el editor, pero la
+pantalla de recompensa ya no lo usa.

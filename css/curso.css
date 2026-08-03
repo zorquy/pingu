@@ -639,6 +639,20 @@
   letter-spacing: -0.5px;
 }
 
+/* Aviso de que el progreso no se ha podido guardar. Va sobre el fondo
+   --navy de la recompensa, así que los colores son literales y no tokens
+   que cambian con el tema (var(--white) aquí sería casi negro en oscuro). */
+.reward-save-warning {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #ffd9a8;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 217, 168, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin: 4px 0 0;
+}
+
 .reward-actions {
   display: flex;
   flex-direction: column;
