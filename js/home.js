@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml } from './app.js'
 import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
 import { icons } from './icons.js'
+import { loadActivity, renderActivityHtml } from './activity.js'
 
 async function loadCategories() {
   const grid = document.getElementById('categoriesGrid')
@@ -81,6 +82,21 @@ async function loadRecent() {
   })
 }
 
+// Solo para quien ha iniciado sesión. Alguien que llega buscando si su
+// carta es falsa no quiere ver quién se ha apuntado hoy; un miembro sí
+// agradece ver que aquello está vivo.
+async function loadHomeActivity(session) {
+  if (!session) return
+  try {
+    const eventos = await loadActivity(4)
+    if (eventos.length === 0) return
+    document.getElementById('homeActivityFeed').innerHTML = renderActivityHtml(eventos)
+    document.getElementById('homeActivity').classList.remove('hidden')
+  } catch {
+    // Si falla, la home se queda como siempre. No es contenido crítico.
+  }
+}
+
 function setupModals() {
   setupGuideModalClose()
   document.getElementById('btnWhatIsPokeDoc')?.addEventListener('click', () => {
@@ -105,7 +121,7 @@ async function init() {
     document.getElementById('signupBanner').style.display = 'block'
   }
 
-  await Promise.all([loadCategories(), loadRecent(), loadHeroGuideCount()])
+  await Promise.all([loadCategories(), loadRecent(), loadHeroGuideCount(), loadHomeActivity(session)])
   await decorateGuideCards(document.getElementById('recentGrid'), session)
 }
 

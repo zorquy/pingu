@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, profileUrl } from './app.js'
 import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
 import { contributorTier, calculateLevel } from './gamification.js'
+import { loadActivity, renderActivityHtml } from './activity.js'
 import { icons } from './icons.js'
 
 let allUsers = []
@@ -174,6 +175,9 @@ function wireTabs() {
       document.querySelectorAll('.tab-panel[id^="ctab-"]').forEach((p) => p.classList.remove('active'))
       btn.classList.add('active')
       document.getElementById(`ctab-${btn.dataset.ctab}`).classList.add('active')
+      // Se carga la primera vez que se abre la pestaña, no al entrar en la
+      // página: son cuatro consultas y la mayoría de visitas no la miran.
+      if (btn.dataset.ctab === 'activity') cargarActividad()
     })
   })
 }
@@ -186,3 +190,19 @@ async function init() {
 }
 
 init()
+
+
+let actividadCargada = false
+
+async function cargarActividad() {
+  if (actividadCargada) return
+  actividadCargada = true
+  const cont = document.getElementById('activityFeed')
+  cont.innerHTML = `<div class="skeleton" style="height: 90px;"></div>`
+  try {
+    cont.innerHTML = renderActivityHtml(await loadActivity(30))
+  } catch {
+    actividadCargada = false
+    cont.innerHTML = `<p class="empty-state">No hemos podido cargar la actividad. Vuelve a intentarlo.</p>`
+  }
+}

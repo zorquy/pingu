@@ -368,6 +368,11 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
         })
         .join('')}
     </div>
+    <div class="form-group">
+      <label>Privacidad</label>
+      <label class="checkbox-row"><input type="checkbox" id="peHideActivity" ${currentProfile?.hide_activity ? 'checked' : ''} /> No mostrar mi actividad en Comunidad</label>
+      <p class="subtext" style="margin:2px 0 0;">Si lo activas, lo que leas y los cursos que hagas dejan de aparecer en el hilo de actividad y dejan de ser visibles para el resto.</p>
+    </div>
     <button class="btn-primary btn-block" id="btnSaveProfileEdit">Guardar</button>`)
 
   let selectedBanner = currentProfile?.banner_color || 'var(--ice)'
@@ -414,6 +419,7 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       banner_color: selectedBanner,
       showcase_achievement: document.getElementById('peShowcase').value || null,
       notification_prefs_disabled: notificationPrefsDisabled,
+      hide_activity: document.getElementById('peHideActivity').checked,
     }
     const { error } = await supabase.from('user_profiles').update(payload).eq('id', currentSession.user.id)
     if (error) {

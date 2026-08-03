@@ -3097,3 +3097,100 @@ Nota para futuros tests: el stub siembra una fila de ejemplo en
 para poder probar la tabla del panel. Al contar errores hay que
 descontarla — sin eso parece un fallo real de la web, y me costó un rato
 descartarlo.
+
+## Actividad reciente
+
+Un hilo de "qué está pasando en PokeDoc": *Ash ha completado el curso X*,
+*Misty se ha leído Y*, *alguien se ha unido*. Está en la pestaña
+**Actividad** de Comunidad (`usuarios.html`) y como adelanto corto en la
+home, solo con sesión iniciada.
+
+### No hay tabla de eventos
+
+Lo normal sería una tabla `activity_events` en la que cada acción escribe
+una fila. Aquí no: el hilo se **arma leyendo lo que ya existe**, en
+`js/activity.js`.
+
+| Fuente | Tabla | Evento |
+|---|---|---|
+| Cursos terminados | `user_progress` (`status='completed'`) | ha completado el curso |
+| Guías leídas | `user_progress` (`read_at`) | se ha leído |
+| Guías publicadas | `guides` (`published_at`) | ha publicado la guía |
+| Comentarios | `guide_comments` | ha comentado en |
+| Altas | `user_profiles` (`created_at`) | se ha unido a PokeDoc |
+
+Cuatro consultas en paralelo, se normalizan a `{tipo, userId, guideId,
+fecha}`, se mezclan y se ordenan por fecha. La ventaja no es ahorrar una
+tabla: es que **no hay nada que se pueda desincronizar**. Un registro de
+eventos aparte se queda mintiendo en cuanto alguien borra una guía o se
+deshace un progreso. Aquí, si el dato de origen cambia, el hilo cambia.
+El coste es que no se pueden registrar acciones que no dejen rastro en
+ninguna tabla; si algún día hacen falta (un "ha subido de nivel"), habrá
+que replantearlo.
+
+Se piden más eventos de los que se van a enseñar (`limite * 3`) porque
+parte se cae al filtrar, y se recorta al final.
+
+### El interruptor `hide_activity`
+
+Para poder enseñar el progreso de otros, `user_progress` tiene que ser
+legible públicamente. Hasta ahora solo lo leía su dueño (y los admins).
+`supabase-migration-actividad.sql` añade una tercera política de lectura:
+
+```sql
+create policy "user_progress_public_activity" on user_progress
+  for select using (
+    exists (select 1 from user_profiles p
+            where p.id = user_progress.user_id and p.hide_activity = false)
+  );
+```
+
+**Esto es un cambio de privacidad y conviene tenerlo claro.** Qué guías
+lee y qué cursos hace cada persona pasa a ser público — no solo en el
+hilo, sino en la API para quien sepa consultarla. En un sitio de
+aprendizaje es lo esperable (Duolingo enseña lo mismo), pero es una
+decisión, no un detalle.
+
+Por eso viene con salida: `user_profiles.hide_activity` (booleano, por
+defecto `false`), con una casilla en Editar perfil. Quien lo active
+desaparece del hilo **y sus filas de progreso vuelven a ser privadas**,
+porque la propia política lo comprueba — no es solo un filtro de
+pantalla. Las políticas se combinan con OR, así que no se le quita nada a
+nadie: cada uno sigue leyendo lo suyo y los admins lo siguen viendo todo.
+
+Las otras tres fuentes (guías, comentarios, altas) ya eran de lectura
+pública, así que ahí el `hide_activity` se aplica en el cliente.
+
+### Tope por persona
+
+Con veinte usuarios, alguien que se lee cinco guías seguidas llena el
+hilo él solo y **parece que no hay nadie más** — justo lo contrario de lo
+que busca la función. `MAX_POR_PERSONA = 3` reparte el sitio. Se vio en
+la salida de un test, no razonándolo: `{"Ash":3,"Misty":3}` después de
+que uno solo ocupara todo.
+
+### Detalles
+
+- **Carga perezosa**: la pestaña no consulta nada hasta que se pincha.
+  Son cuatro consultas y no tienen por qué pagarlas quienes entran a
+  Comunidad a buscar gente.
+- **La home solo con sesión**: sin sesión el adelanto no se pinta. A
+  quien llega de fuera le interesa el contenido, no quién ha leído qué; y
+  un hilo con dos líneas hace que el sitio parezca más vacío de lo que
+  está.
+- **Eventos huérfanos**: si la guía ya no existe o se despublicó, el
+  evento se descarta — no se puede enlazar a ningún sitio.
+
+### Verificación
+
+18 comprobaciones con Playwright: la pestaña existe y no carga sola, al
+pincharla salen eventos con enlaces vivos a perfil y guía, el interruptor
+esconde a quien lo activa sin vaciar el hilo, el adelanto de la home
+aparece solo con sesión y como mucho con 4, la casilla se guarda, y a 360
+px no desborda.
+
+La migración se ejecutó contra un Postgres 16 real con un `auth.uid()`
+simulado antes de entregarla: un tercero solo ve las filas de quien no se
+ha escondido, y quien se ha escondido sigue viendo las suyas.
+
+El filtro de privacidad se rompió a propósito y el test lo detectó.
