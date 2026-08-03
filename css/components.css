@@ -303,13 +303,26 @@
   font-size: 15px;
   font-weight: 700;
   margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* Se recorta a 2 líneas con "…" y se reserva esa altura de 2 líneas
+   siempre (height, no solo el límite de line-clamp) — si no, una
+   descripción de una sola línea ocupaba menos que una de dos y las
+   tarjetas seguían sin medir lo mismo. */
 .guide-card-info p {
   font-size: 12.5px;
   color: var(--text-mid);
   margin-top: 4px;
   line-height: 1.4;
+  height: 2.8em;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .guide-meta {

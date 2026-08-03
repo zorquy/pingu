@@ -2497,3 +2497,52 @@ marcan el actual con una etiqueta ("Tu nivel"/"Tu rango"), y se
 cierran con el botón de cerrar o con Escape. Se rompió a propósito
 quitando el `addEventListener` del nivel para confirmar que el test
 detecta que el modal ya no se abre, se restauró y volvió a pasar.
+
+## Tarjetas de guía siempre del mismo alto (categorías y "Añadidas recientemente")
+Aunque una corrección anterior ya igualaba las tarjetas *dentro de
+una misma fila* (quitando `align-items: start`, ver más arriba), el
+problema seguía viéndose entre filas y en móvil (una sola columna,
+donde cada tarjeta va sola en su fila y no tiene con quién
+igualarse): una guía con una descripción de tres líneas era mucho
+más alta que otra con una sola. Ahora el título y la descripción se
+recortan a un número fijo de líneas en las dos rejillas que usan
+tarjeta grande: `.guide-card-info` (categorías, vía
+`renderGuideCardHtml`) y `.recent-card` (la home).
+
+El detalle que costó encontrar: `-webkit-line-clamp` **solo pone un
+máximo** de líneas para el contenido que se desborda, no reserva esa
+altura para el contenido que ocupa menos. Con `line-clamp: 2` a
+secas, una descripción de una línea seguía midiendo una línea y las
+tarjetas seguían descuadradas. Hay que añadir además un `height`
+explícito (`2.8em` en `.guide-card-info p` y `2.9em` en
+`.recent-card p`, es decir `line-height` × 2) para que el hueco de
+las dos líneas esté siempre reservado. El título se recorta a una
+línea con `text-overflow: ellipsis`, y en las tarjetas de categoría
+se añadió un `title=` con el texto completo del título y de la
+descripción, para que al pasar el ratón se pueda leer lo que se ha
+cortado.
+
+De paso, `.recent-card .emoji` no tenía caja fija (a diferencia de
+`.guide-card-icon`, que ya medía 46×46): si el `cover_emoji` era
+raro o largo, se repartía en varias líneas y estiraba la tarjeta.
+Se le puso `height: 34px` con `overflow: hidden`.
+
+Nota sobre lo que **no** se ha igualado: en la home, una guía con
+`cover_image` lleva a propósito una banda de imagen de 108px arriba
+y es legítimamente más alta que una que solo tiene emoji. Eso es
+diseño, no un fallo, así que el test compara solo tarjetas del mismo
+tipo.
+
+También se quitó la opción `authorName` de `renderGuideCardHtml`
+(pintaba una línea "De <autor>" bajo la descripción). Se añadió en
+d2bd991 para la sección de Comunidad y quedó huérfana en 936e729,
+cuando esa sección pasó a usar `renderCommunityGuideRowHtml`: ningún
+sitio la pasaba ya, y de haberse vuelto a usar habría descuadrado
+las alturas otra vez.
+
+Verificado con Playwright en `categoria.html` (17 tarjetas, todas a
+176px) y en la home a 380px de ancho, una sola columna (todas a
+217,7px). Se rompió a propósito cada mitad del arreglo por separado:
+sin el `height` de la descripción la diferencia sube a 75px y la
+descripción larga deja de recortarse; sin la caja del emoji sube a
+62px. Se restauraron ambas y volvió a pasar.

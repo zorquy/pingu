@@ -41,7 +41,7 @@ async function getRatingStats(guideIds) {
 
 // ── Tarjeta de guía (usada en categoria.html, la home, guardados.html y
 // la sección de Comunidad) ──
-export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel = '', reviewBadge = null, authorName = null } = {}) {
+export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel = '', reviewBadge = null } = {}) {
   const courseLabel = statusBadge === 'completed' ? 'Repasar' : `${icons.graduationCap(15)} Curso`
   const hasCourse = Array.isArray(guide.blocks) && guide.blocks.length > 0
   const courseBtn = hasCourse
@@ -56,9 +56,8 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
     <div class="guide-card-icon">${escapeHtml(guide.cover_emoji || '📘')}</div>
     <div class="guide-card-info">
       ${categoryLabel ? `<span class="guide-label">${escapeHtml(categoryLabel)}</span>` : ''}
-      <h3>${escapeHtml(guide.title)}</h3>
-      <p>${escapeHtml(guide.description || '')}</p>
-      ${authorName ? `<p class="subtext" style="margin:2px 0 0;">De ${escapeHtml(authorName)}</p>` : ''}
+      <h3 title="${escapeHtml(guide.title)}">${escapeHtml(guide.title)}</h3>
+      <p title="${escapeHtml(guide.description || '')}">${escapeHtml(guide.description || '')}</p>
       <div class="guide-meta">
         <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
         <span class="time-tag">${guide.estimated_mins || 5} min</span>

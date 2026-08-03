@@ -713,17 +713,30 @@ button.btn-block {
 
 .recent-card .emoji {
   font-size: 26px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
 }
 
 .recent-card h3 {
   font-size: 15.5px;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .recent-card p {
   font-size: 13px;
   color: var(--text-mid);
   line-height: 1.45;
+  height: 2.9em;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .recent-card .meta {
