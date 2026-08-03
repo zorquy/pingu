@@ -16,14 +16,18 @@ create index if not exists guide_reviews_guide_idx on guide_reviews(guide_id);
 
 alter table guide_reviews enable row level security;
 
+drop policy if exists "guide_reviews_select" on guide_reviews;
 create policy "guide_reviews_select" on guide_reviews
   for select using (true);
 
+drop policy if exists "guide_reviews_insert" on guide_reviews;
 create policy "guide_reviews_insert" on guide_reviews
   for insert with check (auth.uid() = reviewer_id);
 
+drop policy if exists "guide_reviews_update" on guide_reviews;
 create policy "guide_reviews_update" on guide_reviews
   for update using (auth.uid() = reviewer_id);
 
+drop policy if exists "guide_reviews_delete" on guide_reviews;
 create policy "guide_reviews_delete" on guide_reviews
   for delete using (auth.uid() = reviewer_id or is_admin());

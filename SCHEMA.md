@@ -3604,3 +3604,58 @@ prefijo del identificador no funcionaba. Hay que comparar qué avisos
 existían **antes** de comentar. Sin eso, tres comprobaciones fallaban por
 datos sembrados y no por el código — la misma trampa que ya pasó con la
 fila de ejemplo de `client_errors`.
+
+## El diagnóstico daba una falsa alarma
+
+Recién estrenado, el panel decía que faltaba ejecutar
+`supabase-migration-user-notifications.sql`. **Y ya estaba ejecutada.**
+
+La lista de requisitos comprobaba `user_notifications.is_read`. Esa
+columna no existe ni ha existido nunca: se llama **`read_at`**, como usa
+el propio `notifications.js` en cinco sitios. Escribí la lista de memoria
+en vez de contrastarla con las migraciones.
+
+**Una falsa alarma es peor que no tener diagnóstico**: enseña a
+ignorarlo, y el día que avise de algo real ya nadie lo mira.
+
+### Ahora la lista se comprueba sola
+
+`test-requisitos-reales.mjs` contrasta los 22 requisitos contra el
+repositorio, sin tocar la base:
+
+1. Que la columna y la tabla **aparecen de verdad en el fichero .sql**
+   que el requisito dice que las crea.
+2. Que la columna **la usa algún .js**. Si no la usa nadie, comprobarla
+   es ruido que solo puede dar falsas alarmas.
+3. Que las migraciones se pueden ejecutar dos veces.
+
+## Todas las migraciones son ahora idempotentes
+
+El otro problema del mismo día: al reejecutar la migración salía
+
+```
+ERROR: 42710: policy "user_notifications_select" ... already exists
+```
+
+`create policy` a secas falla si la política ya existe. Eso **hace
+pensar que algo va mal cuando en realidad está todo bien**, y encima
+deja la duda de si el resto del fichero se aplicó (no: la transacción
+aborta ahí).
+
+Se repasaron **las 30 migraciones**: cada `create policy` lleva su `drop
+policy if exists` delante, y cada `create table`/`create index` su `if
+not exists`. Trece ficheros retocados.
+
+### Lo que solo salió ejecutando
+
+El análisis estático dio 30 de 30 en verde, pero al ejecutar cada
+migración **dos veces contra un Postgres 16 real** apareció una más:
+`supabase-migration-report-messages.sql`. Su política se llamaba **sin
+comillas** (`create policy nombre on tabla`) y mi patrón las exigía.
+
+Es el mismo aprendizaje de siempre en este proyecto: revisar el SQL no
+sustituye a ejecutarlo. Se arregló la migración **y el patrón de la
+prueba**, que tenía el mismo punto ciego.
+
+Verificación final: 20 migraciones aplicables ejecutadas dos veces
+seguidas contra Postgres 16, **0 fallos**.

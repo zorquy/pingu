@@ -16,13 +16,16 @@ create table if not exists content_reports (
 alter table content_reports enable row level security;
 
 -- Cualquier usuario logueado puede reportar (como sí mismo).
+drop policy if exists "content_reports_insert_own" on content_reports;
 create policy "content_reports_insert_own" on content_reports
   for insert with check (auth.uid() = reporter_id);
 
 -- Solo el equipo de moderación puede ver y gestionar los reportes
 -- (is_admin() ya existe de migraciones anteriores).
+drop policy if exists "content_reports_admin_select" on content_reports;
 create policy "content_reports_admin_select" on content_reports
   for select using (is_admin());
 
+drop policy if exists "content_reports_admin_update" on content_reports;
 create policy "content_reports_admin_update" on content_reports
   for update using (is_admin());

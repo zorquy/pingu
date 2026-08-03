@@ -33,7 +33,7 @@ export const REQUISITOS = [
   { tabla: 'app_feedback', columna: 'body', fichero: 'supabase-migration-app-feedback.sql', rompe: 'El botón de feedback no guarda nada.' },
   { tabla: 'client_errors', columna: 'message', fichero: 'supabase-migration-client-errors.sql', rompe: 'Los errores de los usuarios no se registran.' },
   { tabla: 'page_views', columna: 'path', fichero: 'supabase-migration-page-views.sql', rompe: 'No hay analítica de visitas.' },
-  { tabla: 'user_notifications', columna: 'is_read', fichero: 'supabase-migration-user-notifications.sql', rompe: 'La campanita de avisos no funciona.' },
+  { tabla: 'user_notifications', columna: 'read_at', fichero: 'supabase-migration-user-notifications.sql', rompe: 'La campanita de avisos no funciona.' },
   { tabla: 'private_messages', columna: 'body', fichero: 'supabase-migration-private-messages.sql', rompe: 'Los mensajes privados no funcionan.' },
   { tabla: 'account_deletion_requests', columna: 'status', fichero: 'supabase-migration-account-deletion-requests.sql', rompe: 'No se puede pedir la baja de cuenta.' },
   { tabla: 'guide_pro_content', columna: 'blocks', fichero: 'supabase-migration-guide-pro-content.sql', rompe: 'El contenido Pro no se carga.' },

@@ -25,18 +25,22 @@ alter table account_deletion_requests enable row level security;
 -- Cualquier usuario logueado puede solicitar el borrado de su propia
 -- cuenta (una vez, en principio — el cliente ya evita solicitudes
 -- duplicadas, pero no pasa nada si hay más de una).
+drop policy if exists "account_deletion_requests_insert_own" on account_deletion_requests;
 create policy "account_deletion_requests_insert_own" on account_deletion_requests
   for insert with check (auth.uid() = user_id);
 
 -- El propio usuario puede ver sus solicitudes (para no repetir el
 -- botón si ya tiene una pendiente).
+drop policy if exists "account_deletion_requests_select_own" on account_deletion_requests;
 create policy "account_deletion_requests_select_own" on account_deletion_requests
   for select using (auth.uid() = user_id);
 
 -- El equipo puede ver y gestionar todas (is_admin() ya existe de
 -- migraciones anteriores).
+drop policy if exists "account_deletion_requests_admin_select" on account_deletion_requests;
 create policy "account_deletion_requests_admin_select" on account_deletion_requests
   for select using (is_admin());
 
+drop policy if exists "account_deletion_requests_admin_update" on account_deletion_requests;
 create policy "account_deletion_requests_admin_update" on account_deletion_requests
   for update using (is_admin());

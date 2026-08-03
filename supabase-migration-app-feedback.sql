@@ -16,13 +16,16 @@ create table if not exists app_feedback (
 alter table app_feedback enable row level security;
 
 -- Cualquier usuario logueado puede mandar feedback (como sí mismo).
+drop policy if exists "app_feedback_insert_own" on app_feedback;
 create policy "app_feedback_insert_own" on app_feedback
   for insert with check (auth.uid() = user_id);
 
 -- Solo el equipo puede verlo y gestionarlo (is_admin() ya existe de
 -- migraciones anteriores).
+drop policy if exists "app_feedback_admin_select" on app_feedback;
 create policy "app_feedback_admin_select" on app_feedback
   for select using (is_admin());
 
+drop policy if exists "app_feedback_admin_update" on app_feedback;
 create policy "app_feedback_admin_update" on app_feedback
   for update using (is_admin());

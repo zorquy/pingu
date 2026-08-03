@@ -19,6 +19,7 @@ end $$;
 alter table content_reports add constraint content_reports_content_type_check
   check (content_type in ('guide', 'profile_comment', 'guide_comment', 'profile_review', 'private_message'));
 
+drop policy if exists private_messages_admin_select_reported on private_messages;
 create policy private_messages_admin_select_reported on private_messages
   for select using (
     is_admin() and exists (

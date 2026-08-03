@@ -19,10 +19,12 @@ alter table page_views enable row level security;
 -- Cualquiera puede registrar una visita, incluso sin sesión — igual que
 -- client_errors, es la única otra tabla con un insert tan abierto, porque
 -- aquí tampoco hay contenido de usuario, solo qué página se cargó.
+drop policy if exists "page_views_insert_anyone" on page_views;
 create policy "page_views_insert_anyone" on page_views
   for insert with check (true);
 
 -- Solo el equipo puede ver el recuento (is_admin() ya existe de
 -- migraciones anteriores).
+drop policy if exists "page_views_admin_select" on page_views;
 create policy "page_views_admin_select" on page_views
   for select using (is_admin());

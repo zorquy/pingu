@@ -20,13 +20,16 @@ alter table client_errors enable row level security;
 
 -- Cualquiera puede registrar un error, incluso sin haber iniciado
 -- sesión (muchos errores pueden pasar antes de que exista una sesión).
+drop policy if exists "client_errors_insert_anyone" on client_errors;
 create policy "client_errors_insert_anyone" on client_errors
   for insert with check (true);
 
 -- Solo el equipo puede verlos y gestionarlos (is_admin() ya existe de
 -- migraciones anteriores).
+drop policy if exists "client_errors_admin_select" on client_errors;
 create policy "client_errors_admin_select" on client_errors
   for select using (is_admin());
 
+drop policy if exists "client_errors_admin_update" on client_errors;
 create policy "client_errors_admin_update" on client_errors
   for update using (is_admin());

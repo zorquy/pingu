@@ -22,6 +22,7 @@ create table if not exists guide_pro_content (
 alter table guide_pro_content enable row level security;
 
 -- Usuarios Pro: solo pueden leer contenido ya publicado.
+drop policy if exists "guide_pro_content_select_pro" on guide_pro_content;
 create policy "guide_pro_content_select_pro" on guide_pro_content
   for select using (
     published_at is not null
@@ -29,5 +30,6 @@ create policy "guide_pro_content_select_pro" on guide_pro_content
   );
 
 -- Equipo de moderación: acceso total (editar el borrador antes de publicar, etc.).
+drop policy if exists "guide_pro_content_admin_all" on guide_pro_content;
 create policy "guide_pro_content_admin_all" on guide_pro_content
   for all using (is_admin()) with check (is_admin());

@@ -15,11 +15,14 @@ create index if not exists guide_comments_guide_idx on guide_comments(guide_id);
 
 alter table guide_comments enable row level security;
 
+drop policy if exists "guide_comments_select" on guide_comments;
 create policy "guide_comments_select" on guide_comments
   for select using (true);
 
+drop policy if exists "guide_comments_insert" on guide_comments;
 create policy "guide_comments_insert" on guide_comments
   for insert with check (auth.uid() = author_id);
 
+drop policy if exists "guide_comments_delete" on guide_comments;
 create policy "guide_comments_delete" on guide_comments
   for delete using (auth.uid() = author_id or is_admin());

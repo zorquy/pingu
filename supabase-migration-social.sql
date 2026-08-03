@@ -25,11 +25,13 @@ alter table guides add column if not exists submitted_at timestamptz;
 drop policy if exists "guides_public_read" on guides;
 drop policy if exists "Public read guides" on guides;
 
+drop policy if exists "guides_select" on guides;
 create policy "guides_select" on guides
   for select
   using (published_at is not null or auth.uid() = author_id or is_admin());
 
 -- El autor puede crear filas propias (empezando en draft o pending).
+drop policy if exists "guides_author_insert" on guides;
 create policy "guides_author_insert" on guides
   for insert
   with check (auth.uid() = author_id and review_status in ('draft', 'pending'));
@@ -37,12 +39,14 @@ create policy "guides_author_insert" on guides
 -- El autor puede editar sus propias filas SOLO mientras están en
 -- draft o rejected (una vez en pending/approved, ya no puede tocarlas
 -- sin pasar de nuevo por revisión admin).
+drop policy if exists "guides_author_update" on guides;
 create policy "guides_author_update" on guides
   for update
   using (auth.uid() = author_id and review_status in ('draft', 'rejected'))
   with check (auth.uid() = author_id and review_status in ('draft', 'pending'));
 
 -- El autor puede borrar sus propios borradores/rechazados.
+drop policy if exists "guides_author_delete" on guides;
 create policy "guides_author_delete" on guides
   for delete
   using (auth.uid() = author_id and review_status in ('draft', 'rejected'));
@@ -61,6 +65,7 @@ alter table user_profiles add column if not exists showcase_achievement text;
 -- hace falta lectura pública. Las políticas existentes
 -- (user_profiles_own, Admin read profiles, Admin update profiles)
 -- no se tocan; esta política adicional solo AMPLÍA quién puede leer.
+drop policy if exists "user_profiles_public_read" on user_profiles;
 create policy "user_profiles_public_read" on user_profiles
   for select
   using (true);
@@ -76,14 +81,17 @@ create table if not exists profile_comments (
 
 alter table profile_comments enable row level security;
 
+drop policy if exists "profile_comments_select" on profile_comments;
 create policy "profile_comments_select" on profile_comments
   for select using (true);
 
+drop policy if exists "profile_comments_insert" on profile_comments;
 create policy "profile_comments_insert" on profile_comments
   for insert with check (auth.uid() = author_id);
 
 -- Puede borrar el comentario quien lo escribió, el dueño del muro
 -- (moderar su propio perfil) o un admin.
+drop policy if exists "profile_comments_delete" on profile_comments;
 create policy "profile_comments_delete" on profile_comments
   for delete using (auth.uid() = author_id or auth.uid() = profile_id or is_admin());
 
@@ -100,16 +108,20 @@ create table if not exists profile_reviews (
 
 alter table profile_reviews enable row level security;
 
+drop policy if exists "profile_reviews_select" on profile_reviews;
 create policy "profile_reviews_select" on profile_reviews
   for select using (true);
 
+drop policy if exists "profile_reviews_insert" on profile_reviews;
 create policy "profile_reviews_insert" on profile_reviews
   for insert with check (auth.uid() = reviewer_id and reviewer_id <> profile_id);
 
+drop policy if exists "profile_reviews_update" on profile_reviews;
 create policy "profile_reviews_update" on profile_reviews
   for update using (auth.uid() = reviewer_id) with check (auth.uid() = reviewer_id);
 
 -- A propósito: el reseñado NO puede borrar reseñas que no le gusten,
 -- solo quien la escribió o un admin. Así una reseña negativa pesa de verdad.
+drop policy if exists "profile_reviews_delete" on profile_reviews;
 create policy "profile_reviews_delete" on profile_reviews
   for delete using (auth.uid() = reviewer_id or is_admin());
