@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, requireAuth } from './app.js'
-import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
+import { decorateGuideCards } from './guide-card.js'
 import { icons } from './icons.js'
 
 async function loadSaved(session) {
@@ -31,7 +31,7 @@ async function loadSaved(session) {
   list.innerHTML = guides
     .map(
       (g) => `
-    <div class="saved-guide-row" data-guide-id="${g.id}" style="cursor:pointer;">
+    <div class="saved-guide-row" data-guide-id="${g.id}" data-slug="${escapeHtml(g.slug || '')}" style="cursor:pointer;">
       <span style="font-size: 22px;">${escapeHtml(g.cover_emoji || '📘')}</span>
       <div class="info">
         <h3>${escapeHtml(g.title)}</h3>
@@ -43,8 +43,11 @@ async function loadSaved(session) {
     )
     .join('')
 
+  // Las filas de Guardados tienen maqueta propia (no la tarjeta
+  // compartida), así que su clic se ata aquí.
   list.querySelectorAll('.saved-guide-row').forEach((row) => {
-    row.addEventListener('click', () => openGuideModal(row.dataset.guideId))
+    const slug = row.dataset.slug
+    if (slug) row.addEventListener('click', () => { window.location.href = `guia.html?slug=${encodeURIComponent(slug)}` })
   })
 
   await decorateGuideCards(list, session)
@@ -71,7 +74,6 @@ async function loadSaved(session) {
 async function init() {
   const session = await requireAuth()
   if (!session) return
-  setupGuideModalClose(() => loadSaved(session))
   await loadSaved(session)
 }
 

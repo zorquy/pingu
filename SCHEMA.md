@@ -3714,3 +3714,63 @@ no deja ese set fuera.
 
 **Hay que reimportar** para que esto surta efecto: los sets que nunca
 entraron siguen sin estar.
+
+## Fuera el pop-up de la tarjeta
+
+Pinchar una tarjeta de guía abría una ventana ampliada. Se ha quitado:
+ahora lleva **directa a la guía** (o al curso, si la guía solo tiene
+curso).
+
+**Era un callejón sin salida.** Sus únicas salidas eran los botones
+"Guía" y "Curso" — los mismos dos que la tarjeta ya tiene. Costaba un
+clic y no acercaba al contenido.
+
+Y tenía dos cosas dentro que estaban en el sitio equivocado:
+
+- **Comentarios.** Era el mismo hilo que se pinta dentro de la guía,
+  repetido en la pantalla de navegación. O sea que **se podía comentar
+  una guía sin haberla abierto**. En una web sobre detectar
+  falsificaciones, consejos escritos por quien solo ha visto el titular
+  es lo último que interesa. Ahora los comentarios solo viven dentro de
+  la guía.
+
+- **La valoración, que solo existía ahí.** No se podía valorar ni desde
+  la guía ni al terminar el curso: únicamente desde el pop-up, es decir
+  **solo desde donde no habías leído nada**. El resultado se veía en la
+  web: todas las guías con 5.0. Una estrella dada al hojear no distingue
+  una guía buena de una mala.
+
+  Se movió a `js/guide-rating.js` y ahora aparece **al final de la guía**
+  (entre el texto y los comentarios) y **al terminar el curso**.
+
+Lo que sí se rescató del pop-up es **quién ha escrito la guía**, que
+ahora sale en la tarjeta pequeña. En esta web la autoría pesa: no es lo
+mismo un consejo del equipo que uno de alguien que se registró ayer. El
+nombre enlaza a su perfil, y ese enlace no abre la guía.
+
+`js/guide-modal.js` pasó a `js/guide-card.js` — el nombre ya no describía
+lo que hace.
+
+### Verificación
+
+26 comprobaciones con Playwright: la tarjeta navega a la guía correcta,
+el pop-up no se pinta en ninguna de las tres páginas que lo usaban, la
+autoría sale y enlaza al perfil sin abrir la guía, la valoración está
+después del texto y antes de los comentarios, guarda la nota, y sin
+sesión invita a entrar en vez de romperse.
+
+### Un desborde de propina
+
+Probando en móvil salió que la guía se arrastraba de lado: 499 px en una
+pantalla de 360. El culpable era el **emoji de portada**, que es texto
+libre escrito por el autor — nada impide meter ahí una cadena larga, y la
+guía de pruebas XSS lo hace.
+
+El primer arreglo (`max-width` + `overflow: hidden`) **empeoró la cosa**:
+lo dejó en 1127 px, porque `overflow` no tiene ningún efecto sobre un
+elemento en línea y el `white-space: nowrap` que le puse alargó todavía
+más la línea. Con `display: inline-block` sí recorta.
+
+Merece la pena anotarlo: el arreglo se dio por bueno con un número peor
+que el de partida, y solo se vio porque la comprobación mide el ancho en
+vez de dar por hecho que la regla CSS hace lo que parece.

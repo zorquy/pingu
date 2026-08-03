@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml } from './app.js'
-import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
+import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { icons } from './icons.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 
@@ -78,7 +78,6 @@ async function loadRecent() {
     .join('')
 
   grid.querySelectorAll('.recent-card').forEach((card) => {
-    card.addEventListener('click', () => openGuideModal(card.dataset.guideId))
   })
 }
 
@@ -98,7 +97,6 @@ async function loadHomeActivity(session) {
 }
 
 function setupModals() {
-  setupGuideModalClose()
   document.getElementById('btnWhatIsPokeDoc')?.addEventListener('click', () => {
     document.getElementById('whatIsModal').classList.remove('hidden')
   })
@@ -122,6 +120,7 @@ async function init() {
   }
 
   await Promise.all([loadCategories(), loadRecent(), loadHeroGuideCount(), loadHomeActivity(session)])
+  wireGuideCardClicks(document.getElementById('recentGrid'))
   await decorateGuideCards(document.getElementById('recentGrid'), session)
 }
 

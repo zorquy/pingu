@@ -1078,6 +1078,20 @@ textarea.be-field {
   padding: 8px 0 22px;
 }
 
+/* El "emoji" de portada lo escribe el autor y es texto libre: nada
+   impide meter ahí una cadena larga. Sin este tope, eso ensancha la
+   cabecera y hace que la página se arrastre de lado en móvil. */
+.emoji-big {
+  /* inline-block hace falta: `overflow` no tiene ningún efecto sobre un
+     elemento en línea, así que sin esto el recorte no recorta nada. */
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
 .article-header .emoji-big {
   font-size: 36px;
 }
@@ -1937,54 +1951,19 @@ textarea.be-field {
 }
 
 /* ── Modal ampliado de guía ── */
-.guide-modal-banner {
-  height: 130px;
-  border-radius: var(--radius-lg);
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
-  /* El emoji de portada lo escribe quien crea la guía. Si ahí acaba algo
-     que no es un emoji (una cadena larga), sin esto se estira y arrastra
-     todo el modal de lado. */
-  overflow: hidden;
-}
 
-.guide-modal-banner-emoji {
-  font-size: 46px;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
-.guide-modal-desc {
-  color: var(--text-mid);
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 8px 0 12px;
-}
 
-.guide-modal-author {
+/* La autoría en la página de la guía. Antes vivía en el pop-up; se
+   quedó cuando este desapareció, pero el nombre ya no encajaba. */
+.guide-author {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 14px;
 }
 
-.guide-modal-rating {
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 0;
-}
 
-.guide-modal-rating-summary {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
 
 .is-saved {
   background: var(--ice) !important;
@@ -2937,4 +2916,106 @@ tcg-deck {
   color: var(--navy);
   font-size: 11.5px;
   font-weight: 700;
+}
+
+/* ── Valorar una guía (al final de la guía y del curso) ── */
+
+.rating-box {
+  margin: 32px 0 8px;
+  padding: 18px 20px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.rating-box h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+
+.rating-box .star-picker {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.rating-box .star-pick {
+  font-size: 30px;
+  line-height: 1;
+  color: var(--border);
+  background: none;
+  padding: 0 2px;
+  transition: color 0.12s var(--ease), transform 0.12s var(--ease);
+}
+
+.rating-box .star-pick:hover {
+  transform: scale(1.15);
+}
+
+.rating-box .star-pick.selected {
+  color: var(--warning);
+}
+
+.rating-summary {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text-mid);
+}
+
+.rating-summary.subtle {
+  font-style: italic;
+}
+
+.rating-hint {
+  font-size: 12px;
+  color: var(--text-mid);
+  margin: 6px 0 0;
+  min-height: 1em;
+}
+
+/* Dentro del curso el fondo es oscuro: la caja no puede ser blanca. */
+.block-reward .rating-box {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--white);
+}
+
+.block-reward .rating-box .rating-summary,
+.block-reward .rating-box .rating-hint {
+  color: var(--ice);
+}
+
+/* ── Autoría en la tarjeta de guía ── */
+
+.guide-card-author {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.guide-card-author .autor-link,
+.guide-card-author .autor-oficial {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-mid);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guide-card-author .autor-link:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.guide-card-author .autor-oficial {
+  color: var(--navy);
 }

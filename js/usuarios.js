@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, profileUrl } from './app.js'
-import { openGuideModal, setupGuideModalClose, decorateGuideCards } from './guide-modal.js'
+import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { contributorTier, calculateLevel } from './gamification.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 import { icons } from './icons.js'
@@ -71,7 +71,7 @@ async function loadUsers() {
 }
 
 // Fila compacta y en horizontal — a propósito distinta de la tarjeta grande
-// de guide-modal.js: aquí puede haber cientos de guías de calidad muy
+// de guide-card.js: aquí puede haber cientos de guías de calidad muy
 // variable, así que se listan finas en vez de en tarjetas grandes.
 function renderCommunityGuideRowHtml(guide) {
   return `
@@ -111,8 +111,8 @@ function renderCommunityGuides(list, session, page = 1) {
   grid.innerHTML = pageItems.map(renderCommunityGuideRowHtml).join('')
 
   grid.querySelectorAll('[data-guide-id]').forEach((card) => {
-    card.addEventListener('click', () => openGuideModal(card.dataset.guideId))
   })
+  wireGuideCardClicks(grid)
   decorateGuideCards(grid, session)
 
   paginationEl.innerHTML =
@@ -184,7 +184,6 @@ function wireTabs() {
 
 async function init() {
   wireTabs()
-  setupGuideModalClose()
   const session = await getSession()
   await Promise.all([loadUsers(), loadCommunityGuides(session)])
 }

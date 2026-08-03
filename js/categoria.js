@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, categoryIconHtml, guideHasCourse } from './app.js'
-import { openGuideModal, setupGuideModalClose, renderGuideCardHtml, decorateGuideCards } from './guide-modal.js'
+import { renderGuideCardHtml, decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -109,17 +109,12 @@ async function initCategoryMode() {
   return session
 }
 
-function wireGuideCardClicks() {
-  document.getElementById('guidesList').querySelectorAll('[data-guide-id]').forEach((card) => {
-    card.addEventListener('click', () => openGuideModal(card.dataset.guideId))
-  })
-}
+
 
 async function init() {
-  setupGuideModalClose()
   if (slug) {
     const session = await initCategoryMode()
-    wireGuideCardClicks()
+    wireGuideCardClicks(document.getElementById('guidesList'))
     await decorateGuideCards(document.getElementById('guidesList'), session)
   } else {
     document.getElementById('categoryHeader').innerHTML = ''

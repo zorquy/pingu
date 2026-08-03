@@ -177,6 +177,7 @@ function renderReward(b) {
       <div class="xp-display"><span id="xpCounter">0</span> XP</div>
       ${!session ? '<p style="color: var(--ice); font-size: 13px;">Crea una cuenta para guardar tu progreso y XP.</p>' : ''}
       <p class="reward-save-warning hidden" id="rewardSaveWarning"></p>
+      <div id="cursoRating"></div>
       <div class="reward-actions">
         <a href="aprender.html" class="btn-primary">Seguir explorando →</a>
         <a href="index.html" class="btn-secondary">Volver al inicio</a>
@@ -447,6 +448,19 @@ async function setupBlockLogic(block) {
     const xp = guide.xp_reward || 20
     animateXP(xp)
     burstConfetti()
+
+    // Valorar al terminar el curso, que es donde de verdad se tiene
+    // opinión sobre si ha servido.
+    import('./guide-rating.js')
+      .then(({ renderRatingWidget }) =>
+        renderRatingWidget(document.getElementById('cursoRating'), {
+          guideId: guide.id,
+          session,
+          guide,
+          titulo: '¿Qué te ha parecido el curso?',
+        })
+      )
+      .catch(() => {})
 
     if (session) {
       try {

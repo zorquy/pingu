@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl } from './app.js'
 import { renderReferenceBlocksHtml } from './block-editor.js'
 import { hydrateDecks } from './cards-block.js'
+import { renderRatingWidget } from './guide-rating.js'
 import { initGuideForum } from './guide-forum.js'
 import { markGuideRead, READ_XP } from './gamification.js'
 import { showToast } from './toast.js'
@@ -103,7 +104,7 @@ async function init() {
     ? `background-image:url('${author.avatar_url.replace(/'/g, '%27')}')`
     : `background-color:${author?.avatar_color || 'var(--navy)'}`
   const opHeaderHtml = `
-    <div class="guide-modal-author">
+    <div class="guide-author">
       ${
         author
           ? `<a class="mini-avatar" href="${profileUrl(author)}" style="width:36px; height:36px; font-size:14px; ${authorAvatarStyle}">${author.avatar_url ? '' : getInitial(authorName)}</a>`
@@ -176,6 +177,7 @@ async function init() {
         : `<div class="article-body">${bodyHtml}</div>`
     }
     <div id="articleEndSentinel" aria-hidden="true"></div>
+    <div id="guideRating"></div>
     <section class="guide-forum">
       <h2 class="section-title">${icons.messageSquare(18)} Comentarios</h2>
       <div id="forumContainer"></div>
@@ -194,6 +196,14 @@ async function init() {
   // rellenan con los datos de nuestra tabla. Va con .catch() porque una
   // lista que no cargue no puede tumbar el resto de la guía.
   hydrateDecks(main).catch(() => {})
+
+  // La valoración va al FINAL, después de haber leído. Antes solo se
+  // podía valorar desde el pop-up de la tarjeta, o sea sin leer nada.
+  renderRatingWidget(document.getElementById('guideRating'), {
+    guideId: guide.id,
+    session,
+    guide,
+  }).catch(() => {})
 
   if (headings.length > 0) {
     document.getElementById('articleSidebar').innerHTML = `
