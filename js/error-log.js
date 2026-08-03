@@ -5,9 +5,16 @@ import { supabase } from './supabase.js'
 // una animación).
 const MAX_ERRORS_PER_LOAD = 5
 let loggedCount = 0
+// Un módulo que no carga dispara los dos manejadores globales, así que el
+// mismo "Failed to fetch" entraba dos veces por cada carga de página y
+// duplicaba todo el listado del panel.
+const yaRegistrados = new Set()
 
 async function logError(message, stack) {
   if (loggedCount >= MAX_ERRORS_PER_LOAD) return
+  const clave = String(message || '').slice(0, 200)
+  if (yaRegistrados.has(clave)) return
+  yaRegistrados.add(clave)
   loggedCount++
   try {
     const { data: { session } } = await supabase.auth.getSession()

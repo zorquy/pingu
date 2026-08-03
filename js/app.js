@@ -357,7 +357,13 @@ function markActiveLink() {
 }
 
 export async function initNavbar() {
-  import('./error-log.js').then(({ initErrorLogging }) => initErrorLogging())
+  // Todos los import() dinámicos de aquí llevan .catch(): si uno falla
+  // (red inestable, o un bloqueador que se carga el fichero), lo que
+  // toca es que ese trozo no funcione y ya, no que reviente el resto de
+  // la navbar ni que se llene el registro de errores. Un módulo que no
+  // carga dispara los DOS manejadores globales (error y
+  // unhandledrejection), así que cada fallo se registraba por duplicado.
+  import('./error-log.js').then(({ initErrorLogging }) => initErrorLogging()).catch(() => {})
   initScrollShadow()
   initMobileMenu()
   markActiveLink()
@@ -394,19 +400,15 @@ export async function initNavbar() {
     // No se espera a que termine — en el 99% de las cargas de página no
     // hace nada (ya se contó hoy), así que no debería frenar el resto de
     // la navbar.
-    import('./gamification.js').then(({ checkDailyStreak }) => checkDailyStreak(session.user.id))
+    import('./gamification.js').then(({ checkDailyStreak }) => checkDailyStreak(session.user.id)).catch(() => {})
   }
-  import('./analytics.js').then(({ logPageView }) => logPageView(session))
-  renderNavUser(session)
-  const { renderNavSearch } = await import('./nav-search.js')
-  renderNavSearch()
-  const { renderThemeToggle } = await import('./theme.js')
-  renderThemeToggle()
+  import('./page-views.js').then(({ logPageView }) => logPageView(session)).catch(() => {})
+  renderNavUser(session).catch(() => {})
+  await import('./nav-search.js').then(({ renderNavSearch }) => renderNavSearch()).catch(() => {})
+  await import('./theme.js').then(({ renderThemeToggle }) => renderThemeToggle()).catch(() => {})
   if (session) {
-    const { renderNavMessages } = await import('./nav-messages.js')
-    renderNavMessages(session)
-    const { renderNotificationBell } = await import('./notifications.js')
-    renderNotificationBell(session)
+    await import('./nav-messages.js').then(({ renderNavMessages }) => renderNavMessages(session)).catch(() => {})
+    await import('./notifications.js').then(({ renderNotificationBell }) => renderNotificationBell(session)).catch(() => {})
   }
   return session
 }

@@ -3044,3 +3044,56 @@ las causas.
 Verificado: 0 desbordes en las 15 páginas y los 5 popups, a 360 y 390 px.
 Se revirtieron los arreglos a propósito, uno a uno, y la auditoría los
 volvió a detectar.
+
+## Los "Failed to fetch" del panel de errores
+
+El registro de errores se estaba llenando de "Failed to fetch": **dos por
+cada carga de página, con el mismo segundo**. Ese patrón (dos entradas
+idénticas y simultáneas) es la pista: no son dos fallos, es uno solo que
+dispara los **dos** manejadores globales que registra `error-log.js`
+(`error` y `unhandledrejection`).
+
+**La causa.** El módulo se llamaba `js/analytics.js`. Los bloqueadores de
+anuncios y de rastreo (uBlock, los escudos de Brave, los bloqueadores de
+contenido de Safari en iPhone) bloquean por norma cualquier URL cuya ruta
+contenga `analytics`. Con ese nombre, el `import()` dinámico fallaba en el
+navegador de cualquiera que use uno.
+
+Renombrado a **`js/page-views.js`**, que además describe mejor lo que hace
+(escribe en la tabla `page_views`).
+
+**Y el fallo de fondo, que era peor que el nombre.** Ninguno de los
+`import()` dinámicos de `initNavbar()` tenía `.catch()`. Un módulo que no
+carga —por un bloqueador o por red mala— no solo ensuciaba el registro:
+podía cortar el resto de la navbar. Ahora los siete llevan `.catch()`, así
+que lo que falle deja de funcionar solo eso.
+
+`error-log.js` además no repite el mismo mensaje dos veces en la misma
+carga.
+
+## El SyntaxError de `guideHasCourse`
+
+`Importing binding name 'guideHasCourse' is not found` es caché
+desincronizada, no un fallo de código: el navegador tenía un `js/app.js`
+viejo (sin ese export) y pidió un `js/guide-modal.js` nuevo (que sí lo
+importa). Los ficheros no llevan huella en el nombre, así que un
+despliegue puede dejar esa mezcla — y entonces la página **se queda en
+blanco**, porque un módulo que no resuelve un import no ejecuta nada.
+
+Mitigado con cabeceras en `netlify.toml`: `/js/*` y `/css/*` con
+`max-age=0, must-revalidate`. El navegador pregunta siempre si su copia
+vale; cuando el fichero no ha cambiado responde 304, así que no penaliza.
+No lo elimina del todo (haría falta poner huella en los nombres, que pide
+un paso de build), pero reduce mucho la ventana.
+
+**Verificación.** Con Playwright, cortando la petición de un módulo igual
+que haría un bloqueador: no se registra ningún error, la navbar se sigue
+montando, la home sigue pintando y lo que va después del módulo caído
+sigue cargando. Y lanzando el mismo error por las dos vías, se guarda una
+sola vez.
+
+Nota para futuros tests: el stub siembra una fila de ejemplo en
+`client_errors` (`Cannot read properties of undefined (reading "map")`)
+para poder probar la tabla del panel. Al contar errores hay que
+descontarla — sin eso parece un fallo real de la web, y me costó un rato
+descartarlo.

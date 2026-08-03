@@ -1,6 +1,27 @@
 [functions]
   directory = "netlify/functions"
 
+# El SyntaxError "Importing binding name 'guideHasCourse' is not found" que
+# apareció en el registro de errores es caché desincronizada: el navegador
+# tenía en caché un js/app.js viejo (sin ese export) y pidió un
+# js/guide-modal.js nuevo (que sí lo importa). Como los ficheros no llevan
+# huella en el nombre, un despliegue puede dejar esa mezcla y la página se
+# queda en blanco, porque un módulo que no resuelve un import no ejecuta
+# nada.
+#
+# Forzar la revalidación en cada carga hace que el navegador pregunte
+# siempre si su copia sigue valiendo. Sigue usando la caché cuando el
+# fichero no ha cambiado (responde 304), así que no penaliza.
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
 # El dominio bueno es pokedoc.es. Quien llegue al subdominio de Netlify
 # (por un enlace antiguo, o porque un redirect de Supabase le ha mandado
 # ahí después de iniciar sesión) se manda a pokedoc.es conservando la
