@@ -3377,3 +3377,96 @@ a internet (la política de red solo deja pasar npm, pypi y GitHub), así
 que nunca se ha hablado con la API de verdad. La forma de las respuestas
 viene de su documentación. La primera prueba real es pulsar "Buscar sets
 en TCGdex" en el panel.
+
+## Meter cartas en una guía
+
+Botón **Cartas** en la barra del editor de Documentación (`richTextToolbarHtml`).
+Abre un buscador, eliges las que quieras y se insertan como una rejilla.
+
+### Lo que se guarda son SOLO identificadores
+
+Dentro de la guía queda esto y nada más:
+
+```html
+<tcg-deck data-cards="swsh3-136,base1-4"></tcg-deck>
+```
+
+Ni imágenes, ni nombres, ni maquetación. La rejilla la genera
+`js/cards-block.js` leyendo `tcg_cards` en el momento de pintar. Tres
+razones:
+
+1. **Lo que escribe un autor nunca acaba siendo HTML de verdad.** Solo
+   identificadores, y encima validados: `parseDeckIds` exige el formato
+   `algo-algo` y descarta el resto, con tope de 60 cartas.
+2. Si mañana cambia el diseño de las cartas, **cambian todas las guías ya
+   escritas** sin tocarlas.
+3. Si TCGdex corrige el nombre de una carta, la guía se corrige sola.
+
+### El detalle que hacía falta resolver
+
+En el editor, la lista **sí** se rellena con las cartas — si no, el autor
+estaría escribiendo a ciegas. Pero esa superficie es `contenteditable`, o
+sea que su `innerHTML` es exactamente lo que se guardaría.
+
+Se resuelve en `sanitizeRichText`: **vacía siempre el contenido de
+`<tcg-deck>`**. La vista previa vive en pantalla y muere al guardar. Un
+`<tcg-deck>` sin identificadores válidos se elimina entero.
+
+Al sanitizador se le añadió la etiqueta `tcg-deck` y el atributo
+`data-cards`, y de paso se le puso **`ALLOW_DATA_ATTR: false`**: con
+`ALLOWED_ATTR` explícito, DOMPurify seguía dejando pasar *cualquier*
+`data-*`. Ahora pasa solo el nuestro.
+
+La lista lleva `contenteditable="false"` (se pone al rellenarla, no al
+guardarla) para que el cursor no se meta entre las cartas. Y al insertar
+se añade un párrafo detrás: sin eso el cursor se queda atrapado al final y
+no hay forma de seguir escribiendo debajo.
+
+### Las imágenes, en español con vuelta a inglés
+
+Cada `<img>` pide el escaneo español y, si no existe, reintenta en inglés
+**una sola vez** (`data-r` marca que ya se intentó; sin ese freno, una
+carta sin ninguna de las dos versiones entraría en bucle). Si tampoco
+existe la inglesa, se sustituye por el nombre en un recuadro. Esto es lo
+que hace que las cartas anteriores a 2011 se vean, porque en español no
+hay escaneos de esa época.
+
+### Detalles
+
+- **Las cartas salen en el orden en que las eligió el autor**, no en el
+  que las devuelva la base.
+- **Una carta que ya no esté en el catálogo se dice, no se calla**: "1
+  carta(s) de esta lista ya no están en el catálogo". Desaparecer en
+  silencio dejaría un mazo incompleto sin que nadie se entere.
+- **Si no encuentra nada, el buscador sugiere que falte importar el set**.
+  Sin eso parece que la búsqueda está rota, cuando lo que pasa es que
+  nadie ha pulsado el botón del panel.
+- Búsquedas numeradas: si vuelve una respuesta vieja después de una nueva,
+  se descarta. Es el mismo fallo que ya se arregló en `buscar.html`.
+- Una sola consulta para todas las listas de la página, aunque haya
+  varias.
+
+### Verificación
+
+32 comprobaciones con Playwright: el botón existe, el buscador encuentra
+"Piedra Pómez" tecleando "pomez", se eligen cartas de sets distintos, se
+insertan en el editor y **se ven** mientras editas, las imágenes se piden
+en español, la guía publicada las pinta con nombre y set, y la carta que
+ya no existe se avisa.
+
+Sobre el saneado en concreto: una lista normal sobrevive, lo que le metan
+dentro se tira, los identificadores inventados (`../../etc/passwd`,
+`<script>`) se descartan uno a uno, una lista vacía se elimina entera,
+otros `data-*` no pasan y el `<script>` se sigue yendo.
+
+Se quitó a propósito el vaciado del contenido y saltaron las dos
+comprobaciones que lo cubren, enseñando el HTML de las cartas guardado
+dentro de la guía — que es justo lo que no debe pasar.
+
+**Nota sobre el sustituto de DOMPurify en pruebas.** El entorno de trabajo
+no llega a `cdn.jsdelivr.net`, así que la copia de pruebas usa
+`dompurify-stub.js`. Tenía la lista de etiquetas escrita a mano e
+**ignoraba la configuración que se le pasara**, con lo que las pruebas del
+saneado comprobaban el sustituto y no el saneado de verdad. Se reescribió
+para que respete `ALLOWED_TAGS`, `ALLOWED_ATTR` y `ALLOW_DATA_ATTR`. Vive
+solo en el directorio de pruebas; el repositorio nunca lo toca.

@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl } from './app.js'
 import { renderReferenceBlocksHtml } from './block-editor.js'
+import { hydrateDecks } from './cards-block.js'
 import { initGuideForum } from './guide-forum.js'
 import { markGuideRead, READ_XP } from './gamification.js'
 import { showToast } from './toast.js'
@@ -188,6 +189,11 @@ async function init() {
       document.getElementById(`atab-${btn.dataset.atab}`).classList.add('active')
     })
   })
+
+  // Las listas de cartas se guardan solo como identificadores; aquí se
+  // rellenan con los datos de nuestra tabla. Va con .catch() porque una
+  // lista que no cargue no puede tumbar el resto de la guía.
+  hydrateDecks(main).catch(() => {})
 
   if (headings.length > 0) {
     document.getElementById('articleSidebar').innerHTML = `

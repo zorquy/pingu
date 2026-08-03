@@ -2723,3 +2723,201 @@ textarea.be-field {
   flex-shrink: 0;
   display: flex;
 }
+
+/* ── Listas de cartas dentro de una guía ── */
+/* Lo que se guarda es <tcg-deck data-cards="id1,id2">; todo lo de dentro
+   lo genera cards-block.js desde nuestra tabla. */
+
+tcg-deck {
+  display: block;
+  margin: 20px 0;
+}
+
+.tcg-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tcg-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  /* Sin esto, un nombre largo ensancha la celda y desborda en móvil. */
+  min-width: 0;
+}
+
+.tcg-card img {
+  width: 100%;
+  aspect-ratio: 245 / 342;
+  object-fit: contain;
+  border-radius: 6px;
+  background: var(--ice);
+}
+
+.tcg-card-noimg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  aspect-ratio: 245 / 342;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tcg-card-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tcg-card-set {
+  font-size: 11px;
+  color: var(--text-mid);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tcg-deck-empty,
+.tcg-deck-note {
+  font-size: 12.5px;
+  color: var(--text-mid);
+  margin: 8px 0 0;
+}
+
+/* ── Buscador de cartas del editor ── */
+
+.card-picker h3 {
+  margin-bottom: 6px;
+}
+
+.cp-help {
+  font-size: 12.5px;
+  color: var(--text-mid);
+  margin-bottom: 12px;
+}
+
+.cp-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.cp-status {
+  font-size: 12px;
+  color: var(--text-mid);
+  margin: 8px 0;
+}
+
+.cp-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  /* Con muchos resultados el modal crecería sin fin; se hace scroll aquí
+     dentro. overflow-x oculto porque poner overflow-y hace que el eje x
+     pase a "auto" y la rejilla se pueda arrastrar de lado. */
+  max-height: 46vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.cp-result {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+  padding: 6px;
+  text-align: left;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.cp-result:hover {
+  background: var(--ice);
+}
+
+.cp-result.elegida {
+  border-color: var(--navy);
+  background: var(--ice);
+}
+
+.cp-result img {
+  width: 100%;
+  aspect-ratio: 245 / 342;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.cp-noimg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 245 / 342;
+  border-radius: 4px;
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: 11px;
+}
+
+.cp-name,
+.cp-set {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-name {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cp-set {
+  font-size: 10.5px;
+  color: var(--text-mid);
+}
+
+.cp-chosen-title {
+  font-size: 12px;
+  font-weight: 700;
+  margin: 12px 0 6px;
+}
+
+.cp-chosen-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 4px;
+  max-height: 90px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.cp-chosen-list button {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 11.5px;
+  font-weight: 700;
+}
