@@ -8,6 +8,7 @@ import { markGuideRead, READ_XP } from './gamification.js'
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
+import { MOSTRAR_PLANES } from './planes.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -117,7 +118,11 @@ async function init() {
 
   const session = await getSession()
   const profile = session ? await getProfile(session.user.id) : null
-  const proContent = guide.has_pro_content
+  // `mostrarPro` manda sobre todo lo de esta guía: si los planes están
+  // ocultos no hay pestaña, no hay muro y ni siquiera se pide el contenido
+  // Pro a la base — una consulta menos por visita.
+  const mostrarPro = MOSTRAR_PLANES && guide.has_pro_content
+  const proContent = mostrarPro
     ? (await supabase.from('guide_pro_content').select('*').eq('guide_id', guide.id).maybeSingle()).data
     : null
 
@@ -128,7 +133,7 @@ async function init() {
     ? renderReferenceBlocksHtml(guide.reference_blocks, headings)
     : `<p>${escapeHtml(guide.description || 'Esta guía todavía no tiene contenido de referencia.')}</p>`
 
-  const proBodyHtml = guide.has_pro_content
+  const proBodyHtml = mostrarPro
     ? proContent
       ? renderReferenceBlocksHtml(proContent.blocks)
       : `
@@ -160,12 +165,12 @@ async function init() {
         <span class="time-tag">${guide.estimated_mins || 5} min</span>
         <span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
         <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
-        <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
+        ${MOSTRAR_PLANES ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
         <button class="btn-secondary" id="btnSave" style="margin-left: auto; padding: 6px 12px; font-size: 13px;">${icons.bookmark(14)} Guardar</button>
       </div>
     </div>
     ${
-      guide.has_pro_content
+      mostrarPro
         ? `
     <div class="tabs" id="articleTabs">
       <button class="tab-btn active" data-atab="docu">${icons.bookOpen(15)} Básico</button>

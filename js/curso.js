@@ -5,6 +5,7 @@ import { parseBBCode } from './bbcode.js'
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
+import { MOSTRAR_PLANES } from './planes.js'
 
 let blocks = []
 let currentIndex = 0
@@ -544,7 +545,7 @@ async function loadCourse() {
 
   supabase.from('guides').update({ view_count: (guide.view_count || 0) + 1 }).eq('id', guide.id)
 
-  if (guide.is_pro) {
+  if (MOSTRAR_PLANES && guide.is_pro) {
     let isPro = false
     if (session) {
       const { data: profile } = await supabase.from('user_profiles').select('is_pro').eq('id', session.user.id).single()

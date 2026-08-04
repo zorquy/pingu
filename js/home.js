@@ -3,6 +3,7 @@ import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderR
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
+import { MOSTRAR_PLANES } from './planes.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 
 async function loadCategories() {
@@ -66,7 +67,7 @@ async function loadRecent() {
       <h3>${escapeHtml(g.title)}</h3>
       <p>${escapeHtml(g.description || '')}</p>
       <div class="meta">
-        <span class="badge ${g.is_pro ? 'badge-pro' : 'badge-free'}">${g.is_pro ? 'Pro' : 'Gratis'}</span>
+        ${MOSTRAR_PLANES ? `<span class="badge ${g.is_pro ? 'badge-pro' : 'badge-free'}">${g.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
         <span class="time-tag">${g.estimated_mins || 5} min</span>
         <span class="rarity-chip rarity-${g.guide_rarity || 'bronze'}">${g.guide_rarity || 'bronze'}</span>
       </div>

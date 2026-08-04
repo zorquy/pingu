@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarStyle, applyAvatarTo } from './app.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
+import { MOSTRAR_PLANES } from './planes.js'
 import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES } from './notifications.js'
 import { authorRatingSummary } from './guide-rating.js'
@@ -43,7 +44,7 @@ async function loadProfile(session) {
   applyHeroVisuals(profile, name)
 
   document.getElementById('heroInfo').innerHTML = `
-    <h2>${escapeHtml(name)}${profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
+    <h2>${escapeHtml(name)}${MOSTRAR_PLANES && profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
     <button type="button" class="profile-level" id="btnLevelInfo">${progress.level} · ${xp} XP</button>
     <div class="profile-xp-bar">
       <div class="progress-track"><div class="fill" style="width: ${progress.pct}%"></div></div>

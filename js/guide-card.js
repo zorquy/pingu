@@ -13,6 +13,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getSession, profileUrl, borderRarityClass, guideHasCourse, guideHasReference } from './app.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
+import { MOSTRAR_PLANES } from './planes.js'
 import { starsHtml as _stars } from './guide-rating.js'
 
 export { starsHtml } from './guide-rating.js'
@@ -68,7 +69,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
       <h3 title="${escapeHtml(guide.title)}">${escapeHtml(guide.title)}</h3>
       <p title="${escapeHtml(guide.description || '')}">${escapeHtml(guide.description || '')}</p>
       <div class="guide-meta">
-        <span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>
+        ${MOSTRAR_PLANES ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
         <span class="time-tag">${guide.estimated_mins || 5} min</span>
         <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
         ${isRead ? '<span class="badge badge-read">✓ LEÍDA</span>' : ''}

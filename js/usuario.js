@@ -7,6 +7,7 @@ import { showToast } from './toast.js'
 import { createNotification } from './notifications.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
+import { MOSTRAR_PLANES } from './planes.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
@@ -70,7 +71,7 @@ async function loadHeader() {
   const showcase = achievements.find((a) => a.id === profile.showcase_achievement)
 
   document.getElementById('heroInfo').innerHTML = `
-    <h2>${escapeHtml(name)}${profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
+    <h2>${escapeHtml(name)}${MOSTRAR_PLANES && profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
     <button type="button" class="profile-level" id="btnLevelInfo">${progress.level} · ${xp} XP</button>
     ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
     ${showcase ? `<div class="achievement-tile" style="display:inline-flex; margin-top:8px; width:auto; flex-direction:row; gap:8px; align-items:center; padding:6px 12px;"><span class="icon rarity-${showcase.rarity || 'bronze'}" style="width:28px;height:28px;">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`

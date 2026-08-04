@@ -4566,3 +4566,53 @@ cuarta, hereda el cursor por llevar el rol correcto.
 mitad del arreglo. Los enlaces y botones de dentro traen el suyo y siguen
 mandando ellos: se comprobó que el botón de "Curso" desactivado sigue
 enseñando el "no permitido".
+
+## Ni "Gratis" ni "Pro" a la vista
+
+La etiqueta "Gratis" en cada tarjeta de guía no informaba de nada: PokeDoc
+es gratis entero. Lo único que conseguía era **sugerir que existe una
+versión de pago** — nadie pone "Gratis" salvo cuando hay algo que no lo
+es. Fuera, junto con todo lo demás que hablaba de planes.
+
+### Un interruptor, no un borrado
+
+`js/planes.js` exporta un solo `MOSTRAR_PLANES = false`. No se ha
+eliminado nada: las columnas `is_pro` y `has_pro_content`, la tabla
+`guide_pro_content` y el editor de contenido Pro del panel de admin siguen
+donde estaban. Poniendo el interruptor a `true` vuelve todo.
+
+Lo que apaga, en siete sitios:
+
+| Dónde | Qué desaparece |
+|---|---|
+| Tarjeta de guía, home, cabecera de guía | la chapa "Gratis" / "Pro" |
+| `guia.html` | la pestaña "Guía Pro" y el muro de pago |
+| Perfil propio y ajeno | la chapa "Pro" junto al nombre |
+| `curso.html` | el candado "Contenido Pro" |
+
+Y de paso, la portada decía "Crear cuenta **gratis**" — mismo problema,
+misma solución: ahora es "Crear cuenta".
+
+### El candado también se quita, y es a propósito
+
+Con el interruptor apagado, una guía marcada como Pro **se ve entera**.
+Podría haberse dejado el candado puesto y quitarle solo la explicación,
+pero eso es lo peor de las dos opciones: una puerta cerrada sin decir por
+qué. Si el sitio es gratis, es gratis.
+
+Efecto secundario que sale gratis: `guia.html` ya no consulta
+`guide_pro_content` cuando no va a enseñarlo — una petición menos por
+visita en las guías que lo tuvieran.
+
+### La prueba no busca palabras
+
+La primera versión escaneaba el texto de la página buscando "Pro" y
+"Gratis". Mal: una guía puede llamarse "Guía con Pro anunciado" o decir
+"gratis" en su cuerpo, y eso es **contenido**, no interfaz. Habría fallado
+por lo que escribió alguien.
+
+Lo que se mira son los elementos concretos: `.badge` cuyo texto sea
+exactamente "Pro" o "Gratis", la clase `.badge-free`, el botón de pestaña
+"Guía Pro", el `.pro-paywall` y el bloque del candado. 10 páginas × con
+sesión y sin ella, porque el muro cambiaba de texto según estuvieras
+dentro o fuera.
