@@ -1,4 +1,5 @@
 import { renderEmail, sendEmail, PROVEEDORES } from '../lib/email.mjs'
+import { smtpConfigDesdeEntorno, sendViaSmtp } from '../lib/email-smtp.mjs'
 
 // Vacía la cola de correo (`email_outbox`) y envía lo pendiente.
 //
@@ -14,15 +15,19 @@ import { renderEmail, sendEmail, PROVEEDORES } from '../lib/email.mjs'
 //                              forma de leer la cola y de resolver la
 //                              dirección de correo desde auth.users.
 //                              NO la pongas en ningún fichero del repo.
-//   EMAIL_PROVIDER             resend | brevo | postmark | mailgun | sendgrid
-//   EMAIL_API_KEY              la clave del proveedor
+//   EMAIL_PROVIDER             smtp | resend | brevo | postmark | mailgun | sendgrid
 //   EMAIL_FROM                 p.ej. PokeDoc <avisos@pokedoc.es>
-//   EMAIL_MAILGUN_DOMAIN       solo si usas Mailgun
 //   SITE_URL                   opcional, por defecto https://pokedoc.es
 //
-// Si falta EMAIL_API_KEY, la función NO falla: no hace nada y lo dice.
-// Así se puede desplegar todo esto antes de tener el proveedor listo sin
-// que el registro de Netlify se llene de errores rojos.
+//   Con EMAIL_PROVIDER=smtp (buzón normal: Hostinger, Zoho, Gmail...):
+//   SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS
+//
+//   Con un proveedor de API HTTP:
+//   EMAIL_API_KEY, y EMAIL_MAILGUN_DOMAIN solo si usas Mailgun
+//
+// Si falta la configuración de envío, la función NO falla: no hace nada
+// y lo dice. Así se puede desplegar todo esto antes de tener el correo
+// listo sin que el registro de Netlify se llene de errores rojos.
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 const POR_PASADA = 50
@@ -66,20 +71,30 @@ async function marcar(id, campos, clave) {
 export default async () => {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   const apiKey = process.env.EMAIL_API_KEY
-  const provider = (process.env.EMAIL_PROVIDER || 'resend').toLowerCase()
+  const provider = (process.env.EMAIL_PROVIDER || 'smtp').toLowerCase()
   const from = process.env.EMAIL_FROM || 'PokeDoc <avisos@pokedoc.es>'
   const siteUrl = process.env.SITE_URL || 'https://pokedoc.es'
+  const smtp = provider === 'smtp' ? smtpConfigDesdeEntorno() : null
 
-  if (!clave || !apiKey) {
-    return new Response(
-      JSON.stringify({ ok: true, enviados: 0, nota: 'Sin SUPABASE_SERVICE_ROLE_KEY o EMAIL_API_KEY: no se envía nada.' }),
-      { status: 200, headers: { 'content-type': 'application/json' } }
-    )
-  }
   if (!PROVEEDORES.includes(provider)) {
     return new Response(
       JSON.stringify({ ok: false, error: `EMAIL_PROVIDER="${provider}" no vale. Válidos: ${PROVEEDORES.join(', ')}` }),
       { status: 500, headers: { 'content-type': 'application/json' } }
+    )
+  }
+
+  // Cada proveedor necesita cosas distintas, así que se dice cuál falta
+  // en vez de un "no configurado" genérico que obliga a adivinar.
+  const falta = !clave
+    ? 'SUPABASE_SERVICE_ROLE_KEY'
+    : provider === 'smtp'
+      ? (smtp ? null : 'SMTP_HOST, SMTP_USER y SMTP_PASS')
+      : (apiKey ? null : 'EMAIL_API_KEY')
+
+  if (falta) {
+    return new Response(
+      JSON.stringify({ ok: true, enviados: 0, nota: `Falta configurar ${falta}: no se envía nada.` }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
     )
   }
 
@@ -119,16 +134,12 @@ export default async () => {
         unsubscribeUrl,
       })
 
-      await sendEmail(provider, {
-        apiKey,
-        from,
-        to,
-        subject,
-        html,
-        text,
-        unsubscribeUrl,
-        mailgunDomain: process.env.EMAIL_MAILGUN_DOMAIN,
-      })
+      const mensaje = { apiKey, from, to, subject, html, text, unsubscribeUrl, mailgunDomain: process.env.EMAIL_MAILGUN_DOMAIN }
+      if (provider === 'smtp') {
+        await sendViaSmtp(smtp, mensaje)
+      } else {
+        await sendEmail(provider, mensaje)
+      }
 
       await marcar(fila.id, { status: 'sent', sent_at: new Date().toISOString(), attempts: fila.attempts + 1 }, clave)
       enviados++

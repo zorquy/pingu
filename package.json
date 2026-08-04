@@ -1,0 +1,9 @@
+{
+  "name": "pokedoc",
+  "private": true,
+  "type": "module",
+  "description": "La web es HTML/CSS/JS a pelo y no necesita compilarse ni instalarse nada. Este package.json existe SOLO para que Netlify instale nodemailer, que usa la función programada que manda los avisos por correo cuando EMAIL_PROVIDER=smtp (un buzón normal, tipo Hostinger, en vez de un servicio con API HTTP). Nada del sitio depende de esto: si algún día se cambia a un proveedor de API, se puede quitar.",
+  "dependencies": {
+    "nodemailer": "^9.0.3"
+  }
+}

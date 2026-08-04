@@ -96,21 +96,40 @@ export function renderEmail({ subject, preview, link, siteUrl, unsubscribeUrl, c
 // Todos reciben lo mismo y devuelven { url, method, headers, body } para
 // que la prueba pueda comprobar la petición sin llegar a hacerla.
 
-export const PROVEEDORES = ['resend', 'brevo', 'postmark', 'mailgun', 'sendgrid']
+// `smtp` va aparte de los demás: no es una API HTTP, es el protocolo de
+// correo de toda la vida. Sirve para cualquier buzón normal — Hostinger,
+// Zoho, Gmail... — y es lo que hace falta cuando tu correo es un buzón y
+// no un servicio de envío transaccional.
+export const PROVEEDORES_HTTP = ['resend', 'brevo', 'postmark', 'mailgun', 'sendgrid']
+export const PROVEEDORES = [...PROVEEDORES_HTTP, 'smtp']
+
+// RFC 8058: baja de un clic. Con estas dos cabeceras, Gmail y Outlook
+// enseñan su propio botón de "cancelar suscripción" y le dan al enlace
+// sin que la persona llegue a abrir el correo. Tenerlo mejora la
+// entregabilidad además de ser lo correcto.
+export function cabecerasDeBaja(unsubscribeUrl) {
+  if (!unsubscribeUrl) return {}
+  return {
+    'List-Unsubscribe': `<${unsubscribeUrl}>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  }
+}
+
+// El mensaje tal y como lo espera nodemailer. Se construye aquí, y no
+// dentro del envío, para poder comprobarlo sin abrir ninguna conexión.
+export function buildSmtpMessage(msg) {
+  const { from, to, subject, html, text, unsubscribeUrl } = msg
+  return { from, to, subject, text, html, headers: cabecerasDeBaja(unsubscribeUrl) }
+}
 
 export function buildProviderRequest(provider, msg) {
   const { apiKey, from, to, subject, html, text, unsubscribeUrl, mailgunDomain } = msg
 
-  // RFC 8058: baja de un clic. Con estas dos cabeceras, Gmail y Outlook
-  // enseñan su propio botón de "cancelar suscripción" y le da al enlace
-  // sin abrir el correo. Tenerlo mejora la entregabilidad además de ser
-  // lo correcto — y para envíos masivos Gmail ya lo exige.
-  const cabecerasBaja = unsubscribeUrl
-    ? {
-        'List-Unsubscribe': `<${unsubscribeUrl}>`,
-        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-      }
-    : {}
+  if (provider === 'smtp') {
+    throw new Error('El proveedor "smtp" no usa HTTP: se envía con buildSmtpMessage + sendViaSmtp.')
+  }
+
+  const cabecerasBaja = cabecerasDeBaja(unsubscribeUrl)
 
   switch (provider) {
     case 'resend':

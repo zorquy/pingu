@@ -4123,6 +4123,52 @@ pie) y POST (la baja de un clic de RFC 8058, que es la que usa el botón
 de Gmail). El redirect de `netlify.toml` es una reescritura 200 y no un
 301 justamente por eso: un 301 convertiría ese POST en GET.
 
+### Hostinger es un BUZÓN, no un servicio de envío
+
+El proyecto usa el correo de Hostinger, que no tiene API HTTP: se envía
+por SMTP de toda la vida. Por eso `EMAIL_PROVIDER=smtp` es el valor por
+defecto y `netlify/lib/email-smtp.mjs` existe.
+
+Eso trae la **primera y única dependencia del proyecto** (nodemailer) y,
+con ella, el primer `package.json`. Va en un fichero aparte y se importa
+con `await import()` solo cuando toca, para que ni las pruebas del
+pintado ni los proveedores HTTP la carguen.
+
+Dos cosas que cuestan de diagnosticar si no se avisan:
+
+- **El puerto decide el cifrado.** El 465 va cifrado desde el primer
+  byte (`secure: true`); el 587 empieza en claro y sube con STARTTLS
+  (`secure: false`). Ponerlo al revés da un error de conexión que no
+  menciona nada de esto.
+- **El remitente tiene que ser el buzón autenticado.** Casi todos los
+  servidores rechazan enviar en nombre de otra dirección con un 550
+  mudo. `remitenteValido()` lo comprueba ANTES de conectar y dice qué
+  poner en `EMAIL_FROM`.
+
+Y lo que hace falta en el DNS del dominio, que es aparte del código: MX
+(para recibir), SPF, DKIM y DMARC (para que lo que se envía no acabe en
+spam). Sin eso, esto no sirve de nada — y arrastra también a los correos
+de verificación y de recuperar contraseña.
+
+### La prueba de SMTP levanta un servidor SMTP de verdad
+
+`test-correo-smtp.mjs` arranca un `smtp-server` en local y le envía. Con
+un doble de nodemailer solo se comprobaría que llamo a la función con
+los argumentos que yo mismo he elegido; un servidor real recibe el
+mensaje **ya serializado**, así que comprueba que las cabeceras salgan,
+que el multipart texto+HTML se monte y que las tildes sobrevivan.
+
+De ahí salieron dos cosas:
+
+- Las cabeceras van **plegadas** en varias líneas (RFC 5322), así que un
+  `includes` sobre el crudo no encuentra la URL: hay que desplegarlas
+  primero.
+- `mailparser` no expone `list-unsubscribe` en su mapa de cabeceras. Mi
+  primera aserción lo miraba ahí y decía que faltaba una cabecera que sí
+  estaba. **Era la prueba la que estaba mal, no el código** — se
+  comprueba contra el mensaje en crudo, que es lo que el servidor ha
+  recibido de verdad.
+
 ### Lecciones de método de esta tanda
 
 - **Un `SECURITY DEFINER` sin `revoke` es una API pública.** Cerrar la
