@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml } from './app.js'
+import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarColorForKey } from './app.js'
 import { icons } from './icons.js'
 import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { NOTIFICATION_TYPES } from './notifications.js'
@@ -37,7 +37,7 @@ function applyHeroVisuals(profile, name) {
     avatar.textContent = ''
   } else {
     avatar.style.backgroundImage = 'none'
-    avatar.style.backgroundColor = profile?.avatar_color || 'var(--navy)'
+    avatar.style.backgroundColor = profile?.avatar_color || avatarColorForKey(profile?.id || profile?.username || '')
     avatar.textContent = getInitial(name)
   }
 }

@@ -52,11 +52,58 @@ export function borderRarityClass(rarity) {
 //
 // Con foto: color transparente. Sin foto: el círculo de color, del mismo
 // tamaño, con la inicial.
+// Colores para el avatar de quien no tiene foto.
+//
+// `avatar_color` existe en la base pero NO se le asignaba a nadie, así
+// que todo el mundo caía en el azul por defecto y las listas de gente
+// eran un muro de círculos idénticos. En vez de rellenar la columna con
+// una migración, el color se DEDUCE del identificador: es estable (a
+// cada persona le toca siempre el mismo), no hace falta escribir nada, y
+// funciona desde ya para las cuentas que ya existen.
+//
+// Si alguien elige un color a mano, ese manda.
+const COLORES_AVATAR = [
+  '#1e5175', // azul PokeDoc
+  '#8b5cf6', // violeta
+  '#0e9488', // verde azulado
+  '#d97706', // ámbar
+  '#db2777', // rosa
+  '#0284c7', // celeste
+  '#65a30d', // verde
+  '#dc2626', // rojo
+  '#7c3aed', // púrpura
+  '#0891b2', // cian
+]
+
+export function avatarColorForKey(key) {
+  // No se reutiliza tintIndexForKey: ese hash es polinómico (h*31+c) y al
+  // hacerle un módulo pequeño el resultado depende sobre todo de los
+  // últimos caracteres. Con identificadores largos y parecidos entre sí
+  // —como los UUID de Supabase— eso agrupaba a la gente en unos pocos
+  // colores. Medido: 4 de 10 colores para 20 personas.
+  //
+  // Esta mezcla final (un finalizador tipo xorshift) reparte los bits
+  // altos hacia los bajos antes del módulo.
+  const s = String(key ?? '')
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 16777619) >>> 0
+  }
+  h ^= h >>> 16
+  h = Math.imul(h, 2246822507) >>> 0
+  h ^= h >>> 13
+  h = Math.imul(h, 3266489909) >>> 0
+  h ^= h >>> 16
+  return COLORES_AVATAR[h % COLORES_AVATAR.length]
+}
+
 export function avatarStyle(profile) {
   if (profile?.avatar_url) {
     return `background-image:url('${String(profile.avatar_url).replace(/'/g, '%27')}'); background-color:transparent;`
   }
-  return `background-color:${profile?.avatar_color || 'var(--navy)'};`
+  const color = profile?.avatar_color || avatarColorForKey(profile?.id || profile?.username || '')
+  return `background-color:${color};`
 }
 
 export function guideHasCourse(guide) {
@@ -252,6 +299,19 @@ export async function uploadGuideImage(userId, file) {
 // sin display_name y salía como "Usuario" por toda la web. Esto solo se
 // usa como sugerencia para rellenar el onboarding — el nombre definitivo
 // lo elige la persona.
+// Foto de perfil que trae el proveedor al entrar con Google. Viene en
+// `user_metadata` con dos nombres distintos según el proveedor, así que
+// se miran los dos.
+//
+// Solo se usa si la persona NO tiene ya una foto propia: quien se haya
+// subido la suya no debe verla sustituida por la de Google al volver a
+// entrar.
+export function avatarFromSession(session) {
+  const meta = session?.user?.user_metadata || {}
+  const url = meta.avatar_url || meta.picture
+  return typeof url === 'string' && /^https:\/\//.test(url) ? url : null
+}
+
 export function suggestedNameFromSession(session) {
   const meta = session?.user?.user_metadata || {}
   const fromProvider = meta.full_name || meta.name || meta.preferred_username || meta.given_name
@@ -283,7 +343,18 @@ async function renderNavUser(session) {
     return
   }
 
-  const profile = await getProfile(session.user.id)
+  let profile = await getProfile(session.user.id)
+
+  // Quien entra con Google trae su foto en la sesión. Se guarda la
+  // primera vez que se ve, y solo si no tiene ya una propia — así las
+  // cuentas de Google que se registraron ANTES de esto también la cogen,
+  // no solo las nuevas. Si falla, no pasa nada: la navbar sigue.
+  const fotoProveedor = avatarFromSession(session)
+  if (fotoProveedor && profile && !profile.avatar_url) {
+    const { error } = await supabase.from('user_profiles').update({ avatar_url: fotoProveedor }).eq('id', session.user.id)
+    if (!error) profile = { ...profile, avatar_url: fotoProveedor }
+  }
+
   const name = profile?.display_name || profile?.username || session.user.email
   const estiloAvatar = avatarStyle(profile)
 

@@ -3878,3 +3878,71 @@ Y un fallo real que salió del barrido posterior: `avatarStyle` se usaba
 en `guia.js` y `activity.js` **sin importarlo**, lo que dejaba la página
 de la guía en blanco. Se añadió una comprobación que recorre todos los
 ficheros buscando ese descuido.
+
+## Avatares y campanita
+
+### Los colores de avatar eran todos el mismo
+
+`user_profiles.avatar_color` existe en la base pero **no se le asignaba
+nunca a nadie**, así que todo el mundo caía en el azul por defecto y las
+listas de gente eran un muro de círculos idénticos.
+
+No se ha rellenado la columna con una migración: el color se **deduce del
+identificador**. Es estable (a cada persona le toca siempre el mismo), no
+hay que escribir nada, y funciona desde ya para las cuentas que ya
+existen. Si alguien elige color a mano, ese manda.
+
+**El hash importó más de lo esperado.** El primer intento reutilizaba
+`tintIndexForKey`, que es polinómico (`h*31+c`): al aplicarle un módulo
+pequeño, el resultado depende sobre todo de los últimos caracteres. Con
+UUID —largos y parecidos entre sí— agrupaba a la gente en pocos colores:
+**4 de 10 para 20 personas**. Con una mezcla final tipo avalancha
+(FNV-1a + finalizador) sube a la media teórica.
+
+### La foto de Google
+
+Quien entra con Google trae su foto en la sesión (`user_metadata`, con
+dos nombres distintos según el proveedor). Se guarda **la primera vez que
+se ve**, en `renderNavUser` y no en el onboarding: así las cuentas de
+Google que se registraron **antes** de esto también la cogen, no solo las
+nuevas.
+
+Solo si no hay ya una foto propia — quien se haya subido la suya no debe
+verla sustituida al volver a entrar. Y solo si la URL es `https://`.
+
+### La campanita se quedaba con los mismos avisos
+
+Listaba las 20 últimas notificaciones, leídas o no. Leías cinco "nuevo
+comentario" y ahí seguían.
+
+Ahora **la campanita solo enseña lo que no has leído**. Al leer una (o al
+pulsar "marcar todas"), desaparece de la lista.
+
+**No se borran de la base**: siguen ahí por si algún día hace falta un
+historial. Lo que cambia es qué enseña la campanita. La prueba lo
+comprueba explícitamente: la lista queda vacía **y** las filas siguen
+existiendo, marcadas como leídas.
+
+### Los mensajes NO se tocan, y es a propósito
+
+Se revisaron y funcionan distinto porque **son otra cosa**: una lista de
+conversaciones, no un buzón de avisos. Una conversación debe seguir ahí
+después de leerla — lo que se limpia es el "no leído"
+(`conversation_participants.last_read_at`), no la fila. Ya funcionaba
+así; ahora hay una prueba que lo fija, para que a nadie (yo incluido) le
+tiente "igualarlo" a la campanita.
+
+### El umbral de una prueba, medido en vez de elegido a ojo
+
+La comprobación del reparto de colores se puso primero en "≥7 colores
+distintos para 20 personas". **Fallaba el 18% de las veces sin que nada
+estuviera roto**: con 20 personas y 10 colores la media es 7,7, pero por
+el problema del cumpleaños baja a 4 de vez en cuando.
+
+Se midió sobre 5.000 muestras y se bajó a **≥5**, que da un 0,8% de falso
+fallo. Una prueba que salta sin motivo es peor que no tenerla: enseña a
+ignorar los fallos.
+
+Y de paso quedó claro que el 6 que devolvía no era un hash malo, sino
+azar — aunque el cambio de hash se mantiene porque el reparto sí era peor
+de lo que debía.

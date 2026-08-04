@@ -129,6 +129,14 @@ export async function renderNotificationBell(session) {
       .from('user_notifications')
       .select('*')
       .eq('recipient_id', session.user.id)
+      // Solo las SIN LEER. Antes se listaban las 20 últimas leídas o no,
+      // así que la campanita se quedaba con los mismos avisos para
+      // siempre: leías cinco "nuevo comentario" y seguían ahí. Ahora, al
+      // leer una, desaparece de la lista.
+      //
+      // No se borran de la base: siguen ahí por si algún día hace falta
+      // un historial. Lo que cambia es qué enseña la campanita.
+      .is('read_at', null)
       .order('created_at', { ascending: false })
       .limit(20)
     return data || []
@@ -147,7 +155,7 @@ export async function renderNotificationBell(session) {
     const list = document.getElementById('navBellList')
     list.innerHTML =
       notifications.length === 0
-        ? `<p class="empty-state" style="padding:16px;">No tienes notificaciones todavía.</p>`
+        ? `<p class="empty-state" style="padding:16px;">Estás al día. No tienes avisos sin leer.</p>`
         : notifications.map(notificationItemHtml).join('')
 
     list.querySelectorAll('[data-notif-id]').forEach((item) =>
@@ -155,7 +163,13 @@ export async function renderNotificationBell(session) {
         e.preventDefault()
         await supabase.from('user_notifications').update({ read_at: new Date().toISOString() }).eq('id', item.dataset.notifId)
         const href = item.getAttribute('href')
-        if (href && href !== '#') window.location.href = href
+        if (href && href !== '#') {
+          window.location.href = href
+          return
+        }
+        // Sin enlace no hay navegación, así que hay que repintar aquí
+        // para que el aviso desaparezca de verdad.
+        await refresh()
       })
     )
   }
