@@ -106,6 +106,24 @@ export function avatarStyle(profile) {
   return `background-color:${color};`
 }
 
+// La misma decisión que avatarStyle, pero aplicada sobre un elemento que
+// ya está en el DOM (los avatares grandes del perfil se pintan así, no
+// con una plantilla). Existe para que no haya dos sitios decidiendo
+// "¿foto o color?": ese reparto a mano fue justo lo que dejó tres
+// ficheros pintando el azul por defecto.
+export function applyAvatarTo(el, profile, inicial = '') {
+  if (!el) return
+  if (profile?.avatar_url) {
+    el.style.backgroundImage = `url('${String(profile.avatar_url).replace(/'/g, '%27')}')`
+    el.style.backgroundColor = 'transparent'
+    el.textContent = ''
+    return
+  }
+  el.style.backgroundImage = 'none'
+  el.style.backgroundColor = profile?.avatar_color || avatarColorForKey(profile?.id || profile?.username || '')
+  el.textContent = inicial
+}
+
 export function guideHasCourse(guide) {
   return Array.isArray(guide?.blocks) && guide.blocks.length > 0
 }

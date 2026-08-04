@@ -3946,3 +3946,50 @@ ignorar los fallos.
 Y de paso quedó claro que el 6 que devolvía no era un hash malo, sino
 azar — aunque el cambio de hash se mantiene porque el reparto sí era peor
 de lo que debía.
+
+## Los colores de avatar no llegaron a tres pantallas
+
+El cambio anterior se dio por bueno y en la web seguía todo del mismo
+azul. La causa: el patrón del avatar estaba copiado en **nueve**
+ficheros y solo se arreglaron seis. Los tres que faltaban
+—`usuarios.js`, `usuario.js` y `perfil.js`— son justo los del directorio
+de Comunidad y los perfiles, o sea las pantallas donde más se nota.
+
+**Cómo se me escaparon.** Busqué los ficheros con `grep ... | head -12`
+y la salida se cortó antes de enseñarlos. Un recuento truncado no es un
+recuento: el `head` estaba ahí para no llenar la pantalla y acabó
+decidiendo qué se arreglaba.
+
+Ahora hay una prueba que **recorre todos los `.js` del repositorio** y
+falla si alguno vuelve a montar el estilo del avatar por su cuenta. No
+depende de que yo busque bien.
+
+De paso salió que dos ficheros seguían repartiendo a mano la decisión
+"¿foto o color?" sobre un elemento del DOM. Se añadió `applyAvatarTo()`
+para ese caso, así que ya solo hay dos funciones —una para plantillas,
+otra para elementos— y ningún sitio decide por su cuenta.
+
+## La foto de Google para las cuentas que ya existían
+
+El código la guarda la primera vez que esa persona entra, pero eso
+depende de que vuelva. `supabase-migration-avatares-google.sql` la copia
+de golpe desde `auth.users.raw_user_meta_data`, que es donde Supabase
+deja lo que manda el proveedor y de donde **no se copia solo** a
+`user_profiles`.
+
+No pisa a quien ya tenga foto propia, y exige `https://` — probado
+contra Postgres 16 con un caso `javascript:` que se queda fuera.
+
+Detalle de la comprobación: la consulta final marcaba como "pendiente"
+justo el caso que la migración se salta a propósito, así que parecía que
+no había funcionado. Se le puso el mismo filtro `https://`.
+
+## El aro del avatar y el color de cabecera
+
+- **Fuera el aro** del avatar del perfil: era un borde de 4 px que en
+  modo oscuro se leía como un círculo raro alrededor de la foto, más
+  visible desde que el color ya no se pinta debajo.
+- **El selector de colores de "Editar perfil" es el de la CABECERA**, no
+  el del avatar — solo se usa si no subes una imagen de cabecera. Se
+  ocultaba mal: ahora no aparece si ya hay imagen, y cuando aparece lo
+  dice.

@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarColorForKey } from './app.js'
+import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarStyle, applyAvatarTo } from './app.js'
 import { icons } from './icons.js'
 import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { NOTIFICATION_TYPES } from './notifications.js'
@@ -28,18 +28,7 @@ function applyHeroVisuals(profile, name) {
     ? `url('${bannerUrl.replace(/'/g, '%27')}') center/cover`
     : profile?.banner_color || 'var(--ice)'
 
-  const avatar = document.getElementById('heroAvatar')
-  const avatarUrl = profile?.avatar_url
-  if (avatarUrl) {
-    avatar.style.backgroundImage = `url('${avatarUrl.replace(/'/g, '%27')}')`
-    // Con foto, nada de color detrás: asomaba por los bordes redondeados.
-    avatar.style.backgroundColor = 'transparent'
-    avatar.textContent = ''
-  } else {
-    avatar.style.backgroundImage = 'none'
-    avatar.style.backgroundColor = profile?.avatar_color || avatarColorForKey(profile?.id || profile?.username || '')
-    avatar.textContent = getInitial(name)
-  }
+  applyAvatarTo(document.getElementById('heroAvatar'), profile, getInitial(name))
 }
 
 async function loadProfile(session) {
@@ -150,10 +139,8 @@ document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((bt
 // ── Siguiendo / Seguidores ──
 function followChipHtml(p) {
   const name = displayName(p, '')
-  const avatarStyle = p.avatar_url
-    ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
-    : `background-color:${p.avatar_color || 'var(--navy)'}`
-  return `<a class="follow-avatar-chip" href="${profileUrl(p)}"><span class="mini-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
+  const estiloAvatar = avatarStyle(p)
+  return `<a class="follow-avatar-chip" href="${profileUrl(p)}"><span class="mini-avatar" style="${estiloAvatar}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
 }
 
 let followingCache = []
@@ -348,12 +335,20 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       <p class="subtext" id="peUsernameError" style="margin:0; color:#dc2626; display:none;">Ese nombre de usuario ya está en uso, prueba con otro.</p>
     </div>
     <div class="form-group"><label>Sobre ti</label><textarea id="peBio" placeholder="Cuéntanos algo sobre ti...">${escapeHtml(currentProfile?.bio || '')}</textarea></div>
-    <div class="form-group">
-      <label>Color de tu cabecera (si no subes una imagen de banner)</label>
+    ${
+      // Este color es el de la CABECERA (el banner), no el del avatar. Si
+      // ya hay una imagen de banner subida no pinta nada, así que ni se
+      // enseña: era la parte del formulario que más confundía.
+      currentProfile?.banner_url
+        ? ''
+        : `<div class="form-group">
+      <label>Color de tu cabecera</label>
+      <p class="subtext" style="margin:0 0 6px;">Se usa mientras no subas una imagen de cabecera.</p>
       <div class="color-swatch-row" id="peBannerSwatches">
         ${BANNER_COLORS.map((c) => `<span class="color-swatch ${c === (currentProfile?.banner_color || 'var(--ice)') ? 'selected' : ''}" data-color="${c}" style="background:${c}"></span>`).join('')}
       </div>
-    </div>
+    </div>`
+    }
     <div class="form-group">
       <label>Logro destacado en tu perfil</label>
       <select id="peShowcase">

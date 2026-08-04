@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml } from './app.js'
+import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml, avatarStyle, applyAvatarTo } from './app.js'
 import { levelProgress, contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
@@ -69,14 +69,7 @@ async function loadHeader() {
     ? `url('${profile.banner_url.replace(/'/g, '%27')}') center/cover`
     : profile.banner_color || 'var(--ice)'
 
-  const avatar = document.getElementById('heroAvatar')
-  if (profile.avatar_url) {
-    avatar.style.backgroundImage = `url('${profile.avatar_url.replace(/'/g, '%27')}')`
-    avatar.textContent = ''
-  } else {
-    avatar.style.backgroundColor = profile.avatar_color || 'var(--navy)'
-    avatar.textContent = getInitial(name)
-  }
+  applyAvatarTo(document.getElementById('heroAvatar'), profile, getInitial(name))
 
   const achievements = await getAllAchievements()
   const showcase = achievements.find((a) => a.id === profile.showcase_achievement)
@@ -213,10 +206,8 @@ async function loadFollowButton() {
 
 function followChipHtml(p) {
   const name = p.display_name || p.username || 'Usuario'
-  const avatarStyle = p.avatar_url
-    ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
-    : `background-color:${p.avatar_color || 'var(--navy)'}`
-  return `<a class="follow-avatar-chip" href="${profileUrl(p)}"><span class="mini-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
+  const estiloAvatar = avatarStyle(p)
+  return `<a class="follow-avatar-chip" href="${profileUrl(p)}"><span class="mini-avatar" style="${estiloAvatar}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
 }
 
 function openFollowListModal(title, list, emptyMessage) {

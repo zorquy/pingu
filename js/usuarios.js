@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, getSession, profileUrl, guideHasReference } from './app.js'
+import { escapeHtml, getInitial, getSession, profileUrl, guideHasReference, avatarStyle } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { contributorTier, calculateLevel } from './gamification.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
@@ -13,15 +13,13 @@ const COMMUNITY_GUIDES_PAGE_SIZE = 12
 
 function userCardHtml(p) {
   const name = p.display_name || p.username || 'Usuario'
-  const avatarStyle = p.avatar_url
-    ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
-    : `background-color:${p.avatar_color || 'var(--navy)'}`
+  const estiloAvatar = avatarStyle(p)
   const rankBadge = p.rank <= 3 ? `${icons.trophy(14)} #${p.rank}` : `#${p.rank}`
   const tier = contributorTier(p.approvedGuidesCount || 0)
   return `
     <a class="user-card${p.rank <= 3 ? ' user-card-top' : ''}" href="${profileUrl(p)}">
       <span class="user-card-rank">${rankBadge}</span>
-      <span class="user-card-avatar" style="${avatarStyle}">${p.avatar_url ? '' : getInitial(name)}</span>
+      <span class="user-card-avatar" style="${estiloAvatar}">${p.avatar_url ? '' : getInitial(name)}</span>
       <div class="user-card-info">
         <h3>${escapeHtml(name)}</h3>
         <p>${escapeHtml(calculateLevel(p.total_xp))} · ${p.total_xp || 0} XP</p>
