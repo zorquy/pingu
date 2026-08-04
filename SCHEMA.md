@@ -4043,3 +4043,95 @@ no había funcionado. Se le puso el mismo filtro `https://`.
   el del avatar — solo se usa si no subes una imagen de cabecera. Se
   ocultaba mal: ahora no aparece si ya hay imagen, y cuando aparece lo
   dice.
+
+## Avisos por correo
+
+Solo dos cosas mandan correo: **un mensaje privado** y **una respuesta a
+un comentario tuyo**. Es una lista corta a propósito — un correo se gana
+cuando la cosa es personal, conversacional y se pierde si no la ves. Las
+valoraciones, los seguidores y las guías nuevas son interesantes pero no
+urgentes, y llenar la bandeja con eso es lo que hace que la gente se dé
+de baja de todo, incluido lo que sí le importaba.
+
+Piezas: `supabase-migration-correo-avisos.sql` (cola + disparadores),
+`netlify/lib/email.mjs` (pintado y proveedores), `netlify/functions/
+send-emails.mjs` (vacía la cola cada 5 min) y `netlify/functions/
+baja-correo.mjs` (baja sin iniciar sesión).
+
+### Los disparadores NO van sobre `user_notifications`
+
+Que es donde parecía natural ponerlos, porque ahí ya llegan todos los
+avisos. Su política de RLS es:
+
+```sql
+for insert with check (auth.uid() is not null and recipient_id <> auth.uid())
+```
+
+Cualquiera puede insertar una fila para cualquiera, **con el título y el
+cuerpo que quiera**. Para la campanita eso es una molestia; colgando el
+correo de ahí sería que cualquier miembro pudiera hacer que pokedoc.es
+mande un correo con texto arbitrario a cualquier otro. Eso es phishing
+con tu propio dominio, y quema la reputación de envío — que arrastra
+también los correos de verificación y de recuperar contraseña.
+
+Los disparadores van sobre las tablas de origen, donde la RLS ya
+demuestra quién escribió qué: `private_messages` (obliga a ser
+participante de la conversación) y `guide_comments` (obliga a ser el
+autor). Destinatario y texto se deducen ahí.
+
+### El agujero que abrí por el camino
+
+Cerrada la tabla, la ataqué y **seguía entrando**: `enqueue_email` es
+`SECURITY DEFINER`, y en PostgreSQL una función nueva es ejecutable por
+`public` por defecto. PostgREST la exponía como RPC, así que
+`set role authenticated; select enqueue_email(...)` insertaba la fila
+igual. La puerta de atrás era la función, no la tabla.
+
+Se arregla con `revoke all on function ... from public, anon,
+authenticated` en las tres. Los disparadores siguen funcionando: una
+función de disparador la invoca el motor y no comprueba el permiso
+EXECUTE de quien hace el INSERT. Está comprobado ejecutándolo, en los dos
+sentidos — que la llamada directa falla y que el disparador sigue
+encolando.
+
+La migración trae esa comprobación en su bloque final: las tres columnas
+de permiso tienen que salir en `false`.
+
+### Agrupar no es un detalle
+
+Diez mensajes seguidos en la misma conversación son **un** correo, no
+diez, y tras enviar uno de ese hilo se callan 30 minutos. Sin eso, una
+conversación en directo se convierte en un correo por frase, que es
+exactamente lo que provoca que te marquen como spam en vez de darte de
+baja.
+
+### Dos ejes de preferencias, no uno
+
+`notification_prefs_disabled` (campanita) y `notification_email_disabled`
+(correo) son columnas distintas. Reutilizar la primera habría sido más
+corto, pero "quiero el aviso en la campanita pero no en el correo" es la
+preferencia más común del mundo y con un solo array no se puede
+expresar. Ese tipo de decisión duele mucho más migrarla después.
+
+### `avatar_color` no, `email_unsubscribe_token` sí
+
+La baja va con token en la URL, sin iniciar sesión. Obligar a entrar en
+la web para dejar de recibir correo es de las cosas que hacen que la
+gente le dé a "marcar como spam" en vez de a darse de baja, y eso hace
+mucho más daño que perder un suscriptor. Se admiten GET (el enlace del
+pie) y POST (la baja de un clic de RFC 8058, que es la que usa el botón
+de Gmail). El redirect de `netlify.toml` es una reescritura 200 y no un
+301 justamente por eso: un 301 convertiría ese POST en GET.
+
+### Lecciones de método de esta tanda
+
+- **Un `SECURITY DEFINER` sin `revoke` es una API pública.** Cerrar la
+  tabla y dar por cerrado el asunto habría dejado el agujero entero.
+  Lo encontré porque probé a atacarlo, no porque lo leyera.
+- **Escribir rangos de caracteres de control dentro de una expresión
+  regular es frágil**: al editar el fichero se convirtieron en bytes
+  literales y dejaron el módulo como binario. Filtrar por punto de código
+  (`c.codePointAt(0) < 32`) se lee y no se rompe.
+- Un `perl`/`python` con `s.index(...)` sobre un texto que aparece más de
+  una vez machaca la ocurrencia equivocada: me borró `sanitizeHeader`
+  entero y dejó `escapeHtml` con el cuerpo de otra función.

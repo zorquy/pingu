@@ -2,7 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarStyle, applyAvatarTo } from './app.js'
 import { icons } from './icons.js'
 import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
-import { NOTIFICATION_TYPES } from './notifications.js'
+import { NOTIFICATION_TYPES, EMAIL_TYPES } from './notifications.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 
@@ -357,11 +357,21 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       </select>
     </div>
     <div class="form-group">
-      <label>Notificaciones que quieres recibir</label>
+      <label>Avisos en la campanita</label>
       ${Object.entries(NOTIFICATION_TYPES)
         .map(([type, label]) => {
           const disabled = (currentProfile?.notification_prefs_disabled || []).includes(type)
           return `<label class="checkbox-row"><input type="checkbox" data-notif-pref="${type}" ${disabled ? '' : 'checked'} /> ${escapeHtml(label)}</label>`
+        })
+        .join('')}
+    </div>
+    <div class="form-group">
+      <label>Avisos por correo</label>
+      <p class="subtext" style="margin:0 0 6px;">Solo te escribimos cuando alguien se dirige a ti directamente. Aunque lo desactives, lo seguirás viendo al entrar en la web.</p>
+      ${Object.entries(EMAIL_TYPES)
+        .map(([type, label]) => {
+          const disabled = (currentProfile?.notification_email_disabled || []).includes(type)
+          return `<label class="checkbox-row"><input type="checkbox" data-email-pref="${type}" ${disabled ? '' : 'checked'} /> ${escapeHtml(label)}</label>`
         })
         .join('')}
     </div>
@@ -409,6 +419,12 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       .filter((cb) => !cb.checked)
       .map((cb) => cb.dataset.notifPref)
 
+    // Columna aparte de la campanita: "quiero el aviso pero no el correo"
+    // es la preferencia más común y con un solo array no se puede decir.
+    const notificationEmailDisabled = Array.from(modalContent.querySelectorAll('[data-email-pref]'))
+      .filter((cb) => !cb.checked)
+      .map((cb) => cb.dataset.emailPref)
+
     const payload = {
       display_name: document.getElementById('peDisplayName').value.trim() || null,
       username: desiredUsername,
@@ -416,6 +432,7 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       banner_color: selectedBanner,
       showcase_achievement: document.getElementById('peShowcase').value || null,
       notification_prefs_disabled: notificationPrefsDisabled,
+      notification_email_disabled: notificationEmailDisabled,
       hide_activity: document.getElementById('peHideActivity').checked,
     }
     const { error } = await supabase.from('user_profiles').update(payload).eq('id', currentSession.user.id)

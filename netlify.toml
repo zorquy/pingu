@@ -37,6 +37,20 @@
   status = 301
   force = true
 
+# Baja de los avisos por correo con una ruta corta. Va aquí, y no se deja
+# en `/.netlify/functions/baja-correo`, porque esta URL se enseña en el pie
+# de cada correo y viaja en la cabecera List-Unsubscribe: una URL larga y
+# con pinta de tripas del servidor es de las que hacen que alguien
+# desconfíe y le dé a "marcar como spam" en vez de a darse de baja.
+#
+# Es una reescritura (200) y no un redirect a propósito: la baja de un
+# clic de RFC 8058 manda un POST, y un 301/302 lo convertiría en GET por
+# el camino, así que el botón de Gmail dejaría de funcionar.
+[[redirects]]
+  from = "/baja-correo"
+  to = "/.netlify/functions/baja-correo"
+  status = 200
+
 # Enlaces de perfil legibles: /usuario/<nombre-de-usuario> en vez de
 # /usuario.html?u=<nombre-de-usuario>. Tiene que ir ANTES del catch-all de
 # abajo — Netlify aplica la primera regla que coincide.

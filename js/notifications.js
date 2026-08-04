@@ -18,6 +18,28 @@ export const NOTIFICATION_TYPES = {
   guide_rejected: 'Tu guía ha sido rechazada',
 }
 
+// De qué se avisa TAMBIÉN por correo.
+//
+// Es una lista corta a propósito. Un correo se justifica cuando la cosa
+// es personal, conversacional y se pierde si no la ves: un mensaje
+// privado sin contestar mata la conversación, y una respuesta que no ves
+// deja el hilo muerto. Lo demás (valoraciones, seguidores, guías nuevas)
+// es interesante pero no urgente, y llenar la bandeja con eso es lo que
+// hace que la gente se dé de baja de todo, incluido lo que sí le
+// importaba.
+//
+// Quien manda de verdad son los disparadores de
+// `supabase-migration-correo-avisos.sql`: esta lista es para pintar las
+// casillas del perfil y para la página de baja. Si algún día se añade un
+// tipo, hay que tocar los dos sitios.
+//
+// `private_message` no está en NOTIFICATION_TYPES porque los mensajes no
+// pasan por la campanita: tienen su propio icono en la barra.
+export const EMAIL_TYPES = {
+  private_message: 'Mensajes privados',
+  comment_reply: 'Respuestas a tus comentarios',
+}
+
 export async function createNotification({ recipientId, actorId, type, title, body = null, link = null }) {
   if (!recipientId || recipientId === actorId) return
   const { data: recipient } = await supabase.from('user_profiles').select('notification_prefs_disabled').eq('id', recipientId).single()
