@@ -3,6 +3,7 @@ import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugi
 import { icons } from './icons.js'
 import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES } from './notifications.js'
+import { authorRatingSummary } from './guide-rating.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 
@@ -55,13 +56,12 @@ async function loadProfile(session) {
 }
 
 async function loadStats(session, profile) {
-  const [{ count: completedCount }, { data: reviews }, { count: approvedGuidesCount }] = await Promise.all([
+  const [{ count: completedCount }, { count: approvedGuidesCount }] = await Promise.all([
     supabase
       .from('user_progress')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', session.user.id)
       .eq('status', 'completed'),
-    supabase.from('profile_reviews').select('rating').eq('profile_id', session.user.id),
     supabase
       .from('guides')
       .select('*', { count: 'exact', head: true })
@@ -69,7 +69,8 @@ async function loadStats(session, profile) {
       .eq('review_status', 'approved'),
   ])
 
-  const avgRating = reviews && reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null
+  // La nota es la de SUS GUÍAS, no una nota puesta a la persona.
+  const { media: avgRating, total: totalNotas } = await authorRatingSummary(session.user.id)
   const tier = contributorTier(approvedGuidesCount || 0)
 
   document.getElementById('profileStats').innerHTML = `
@@ -83,7 +84,7 @@ async function loadStats(session, profile) {
     </div>
     <div class="stat-card">
       <div class="value" style="display:flex; align-items:center; justify-content:center; gap:5px;">${avgRating ? `${icons.star(18)} ${avgRating.toFixed(1)}` : '—'}</div>
-      <div class="label">Valoración (${reviews?.length || 0})</div>
+      <div class="label">Nota de tus guías (${totalNotas})</div>
     </div>
     <button type="button" class="stat-card" id="btnTierInfo">
       <div class="value" style="display:flex; justify-content:center;">${tier.icon}</div>

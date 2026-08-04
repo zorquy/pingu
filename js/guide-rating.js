@@ -19,6 +19,33 @@ export function starsHtml(rating, size = 16) {
     .join('')
 }
 
+// La nota media que ha sacado lo que ESCRIBE esta persona.
+//
+// Sustituye a la media de `profile_reviews`, que era una nota puesta a la
+// persona en sí. Esa se podía poner sin haber leído nada suyo, duplicaba
+// lo que ya hace el muro, y ponerle 2 estrellas a alguien es un insulto
+// mientras que ponérselas a una guía es una crítica. Esta se gana
+// escribiendo, y es la que de verdad sirve para decidir si te fías de sus
+// guías.
+export async function authorRatingSummary(authorId) {
+  if (!authorId) return { media: null, total: 0 }
+
+  const { data: guias } = await supabase
+    .from('guides')
+    .select('id')
+    .eq('author_id', authorId)
+    .eq('review_status', 'approved')
+
+  const ids = (guias || []).map((g) => g.id)
+  if (ids.length === 0) return { media: null, total: 0 }
+
+  const { data } = await supabase.from('guide_reviews').select('rating').in('guide_id', ids)
+  const notas = data || []
+  if (notas.length === 0) return { media: null, total: 0 }
+
+  return { media: notas.reduce((s, r) => s + r.rating, 0) / notas.length, total: notas.length }
+}
+
 function haceCuanto(iso) {
   const seg = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000))
   if (seg < 60) return 'ahora mismo'

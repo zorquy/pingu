@@ -1,9 +1,9 @@
 import { supabase } from './supabase.js'
+import { authorRatingSummary } from './guide-rating.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml, avatarStyle, applyAvatarTo } from './app.js'
 import { levelProgress, contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
-import { reportButtonHtml, wireReportButtons } from './report.js'
 import { createNotification } from './notifications.js'
 import { icons } from './icons.js'
 
@@ -23,12 +23,6 @@ async function resolveProfileId() {
   const { data } = await supabase.from('user_profiles').select('id').ilike('username', usernameParam).maybeSingle()
   profileId = data?.id || null
   return !!profileId
-}
-
-function starsHtml(rating, size = 16) {
-  return Array.from({ length: 5 })
-    .map((_, i) => `<span style="font-size:${size}px; color:${i < Math.round(rating) ? 'var(--warning)' : 'var(--border)'};">★</span>`)
-    .join('')
 }
 
 // ── Modal genérico (popups de Siguiendo/Seguidores/Trofeos) ──
@@ -92,8 +86,9 @@ async function loadReputationAndGuides() {
     .eq('author_id', profileId)
     .eq('review_status', 'approved')
 
-  const { data: reviews } = await supabase.from('profile_reviews').select('rating').eq('profile_id', profileId)
-  const avgRating = reviews && reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null
+  // La nota es la que ha sacado lo que ESCRIBE, no una nota puesta a la
+  // persona: eso último se quitó (ver SCHEMA.md).
+  const { media: avgRating, total: totalNotas } = await authorRatingSummary(profileId)
 
   const tier = contributorTier(approvedCount || 0)
 
@@ -108,7 +103,7 @@ async function loadReputationAndGuides() {
     </div>
     <div class="stat-card">
       <div class="value">${avgRating ? avgRating.toFixed(1) : '—'}</div>
-      <div class="label">Valoración media (${reviews?.length || 0})</div>
+      <div class="label">Nota de sus guías (${totalNotas})</div>
     </div>`
 
   document.getElementById('btnTierInfo').addEventListener('click', () => openModal(tierLadderHtml(approvedCount || 0)))
@@ -270,98 +265,6 @@ document.getElementById('btnShowTrophies')?.addEventListener('click', () => {
     <div class="achievements-grid">${achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')}</div>`)
 })
 
-async function namesForIds(ids) {
-  const uniqueIds = [...new Set(ids)]
-  if (uniqueIds.length === 0) return {}
-  const { data } = await supabase.from('user_profiles').select('id, display_name, username').in('id', uniqueIds)
-  return Object.fromEntries((data || []).map((p) => [p.id, p.display_name || p.username || 'Usuario']))
-}
-
-// ── Reseñas ──
-async function loadReviews() {
-  const { data } = await supabase.from('profile_reviews').select('*').eq('profile_id', profileId).order('created_at', { ascending: false })
-  const reviews = data || []
-  const namesById = await namesForIds(reviews.map((r) => r.reviewer_id))
-
-  const container = document.getElementById('reviewsList')
-  container.innerHTML = reviews.length === 0
-    ? `<p class="empty-state">Todavía no tiene reseñas.</p>`
-    : reviews
-        .map(
-          (r) => `
-    <div class="my-guide-row" style="flex-direction:column; align-items:flex-start;">
-      <div style="display:flex; justify-content:space-between; width:100%;">
-        <strong>${escapeHtml(namesById[r.reviewer_id] || 'Usuario')}</strong>
-        <span>${starsHtml(r.rating)}</span>
-      </div>
-      ${r.body ? `<p style="margin:6px 0 0; font-size:13.5px; color:var(--text-mid);">${escapeHtml(r.body)}</p>` : ''}
-      ${currentSession && currentSession.user.id !== r.reviewer_id ? `<div style="margin-top:6px;">${reportButtonHtml('profile_review', r.id)}</div>` : ''}
-    </div>`
-        )
-        .join('')
-
-  wireReportButtons(container, currentSession)
-
-  const formContainer = document.getElementById('reviewForm')
-  if (!currentSession) {
-    formContainer.innerHTML = `<p class="subtext"><a href="/auth.html" style="color:var(--navy); font-weight:700;">Inicia sesión</a> para dejar una reseña.</p>`
-    return
-  }
-  if (currentSession.user.id === profileId) {
-    formContainer.innerHTML = ''
-    return
-  }
-
-  const myReview = reviews.find((r) => r.reviewer_id === currentSession.user.id)
-  let selectedRating = myReview?.rating || 0
-
-  formContainer.innerHTML = `
-    <div class="simple-card">
-      <div class="star-picker" id="starPicker">
-        ${[1, 2, 3, 4, 5].map((v) => `<span class="star-pick" data-value="${v}">★</span>`).join('')}
-      </div>
-      <textarea id="reviewBody" placeholder="Escribe una reseña (opcional)">${escapeHtml(myReview?.body || '')}</textarea>
-      <button class="btn-primary" id="btnSubmitReview" style="margin-top:8px;">${myReview ? 'Actualizar reseña' : 'Enviar reseña'}</button>
-    </div>`
-
-  function renderStars() {
-    document.querySelectorAll('.star-pick').forEach((s) => {
-      s.classList.toggle('selected', Number(s.dataset.value) <= selectedRating)
-    })
-  }
-  renderStars()
-
-  document.querySelectorAll('.star-pick').forEach((s) =>
-    s.addEventListener('click', () => {
-      selectedRating = Number(s.dataset.value)
-      renderStars()
-    })
-  )
-
-  document.getElementById('btnSubmitReview').addEventListener('click', async () => {
-    if (!selectedRating) {
-      showToast('Elige una valoración de 1 a 5 estrellas.')
-      return
-    }
-    const body = document.getElementById('reviewBody').value.trim()
-    const isNewReview = !myReview
-    await supabase
-      .from('profile_reviews')
-      .upsert({ profile_id: profileId, reviewer_id: currentSession.user.id, rating: selectedRating, body }, { onConflict: 'profile_id,reviewer_id' })
-    if (isNewReview) {
-      await createNotification({
-        recipientId: profileId,
-        actorId: currentSession.user.id,
-        type: 'profile_rating',
-        title: 'Nueva reseña en tu perfil',
-        body: `${'★'.repeat(selectedRating)}${body ? ' — ' + body : ''}`,
-        link: '/perfil.html',
-      })
-    }
-    await Promise.all([loadReviews(), loadReputationAndGuides()])
-  })
-}
-
 // ── Muro ──
 function loadComments() {
   return renderWall({
@@ -390,7 +293,7 @@ async function init() {
   }
 
   loadMessageButton()
-  await Promise.all([loadReputationAndGuides(), loadReviews(), loadComments(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid()])
+  await Promise.all([loadReputationAndGuides(), loadComments(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid()])
 }
 
 init()

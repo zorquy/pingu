@@ -4,7 +4,12 @@ import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { notifyGuideComment } from './notifications.js'
 
-const PAGE_SIZE = 10
+// 20 y no 10. Con 10, una guía con 12 comentarios ya se parte en dos
+// páginas, y los DOS más nuevos quedan escondidos en la segunda — que es
+// la que nadie pincha. Justo lo contrario de lo que quieres en una
+// comunidad que empieza. Con el volumen actual, esto significa que casi
+// nunca se pagina.
+const PAGE_SIZE = 20
 
 async function profilesByIds(ids) {
   const uniqueIds = [...new Set(ids)]

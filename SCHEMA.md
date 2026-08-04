@@ -4373,3 +4373,55 @@ antes de tener cuenta es pedirle dos cosas a la vez, y no hace ninguna.
 
 **La invitación es deliberadamente sosa**, no un banner de colores: al
 final de CADA guía, un reclamo llamativo cansa a la décima que lees.
+
+## Fuera las reseñas de perfil; la nota pasa a ser la de tus guías
+
+`profile_reviews` dejaba ponerle una nota de 1 a 5 **a una persona**. Se
+quita, por tres motivos que se refuerzan entre sí:
+
+1. **Duplica el muro.** Los dos son "dejar un mensaje público en el perfil
+   de alguien".
+2. **No se gana.** Podías puntuar a quien no habías leído nunca.
+3. **Puntuar a una persona no es lo mismo que puntuar su trabajo.** Un 2
+   a una guía es una crítica; un 2 a una persona es un insulto. En una
+   comunidad de 20 conocidos eso genera roce, no información.
+
+En su lugar, la estadística del perfil enseña la **media de las
+valoraciones que han recibido SUS guías** (`authorRatingSummary` en
+`js/guide-rating.js`). Esa se gana escribiendo, ya se estaba recogiendo,
+y es la que sirve para lo único que importa aquí: decidir si te fías de
+lo que escribe.
+
+**La tabla `profile_reviews` NO se toca.** El código deja de leerla y de
+escribirla, pero las filas siguen ahí y el panel de admin sigue sabiendo
+mostrar los reportes antiguos de ese tipo. Borrar datos de gente por un
+cambio de criterio de producto es irreversible; dejar una tabla huérfana,
+no.
+
+También se quitó `profile_rating` de `NOTIFICATION_TYPES`: era una
+casilla de preferencias para un aviso que ya no puede ocurrir.
+
+### Un `Promise.all` desalineado, casi
+
+Al quitar la consulta de `profile_reviews` de `loadStats`, la
+desestructuración quedó con **tres** variables para **dos** resultados.
+Eso no da error: `approvedGuidesCount` pasa a ser `undefined` y el resto
+de números salen mal en silencio. Se pilló al revisar el diff, y la
+prueba lo cubre comprobando que ningún número del perfil salga como
+`undefined`. Con el fallo puesto a mano, la página entera se queda en
+blanco con `Cannot read properties of undefined`.
+
+## Comentarios por página: de 10 a 20
+
+Con 10, una guía con 12 comentarios ya se parte en dos páginas y los
+**dos más nuevos** quedan en la segunda, que es la que nadie pincha —
+justo lo contrario de lo que quieres en una comunidad que arranca. Con 20
+y el volumen actual, casi nunca se pagina.
+
+### Otra prueba que no comprobaba nada
+
+La primera versión de la comprobación de `authorRatingSummary` miraba a
+Ash y se conformaba con `typeof total === 'number'`. Ash no tiene notas,
+así que daba verde con un 0 — habría pasado igual con la función
+devolviendo siempre cero. Ahora mira a quien SÍ tiene notas y exige el
+número exacto (media 4, total 1).
