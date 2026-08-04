@@ -130,6 +130,22 @@ Fíjate en el patrón: un apartado de contexto que avisa de los límites del
 método, y luego apartados numerados. Los párrafos son cortos y cada uno
 dice **una** cosa.
 
+### Imágenes: el tamaño decide dónde van
+
+No hay forma de marcar una imagen como "en línea" o "en bloque" — el
+saneador borra `class` y `style`. Lo decide su tamaño, y funciona solo:
+
+- **Una imagen pequeña** (un símbolo de rareza, un icono de energía) se
+  queda **en la misma línea** que el texto. Es lo que hace falta para
+  listas del tipo `<li><strong>Common</strong> <img …> · círculo negro
+  · …</li>`.
+- **Una imagen ancha** no cabe al lado del texto, así que el navegador la
+  baja sola a su propio renglón, a lo ancho del artículo.
+
+O sea: para que un símbolo salga junto al texto, basta con que la imagen
+sea pequeña de verdad (15–20px de lado). Si subes un recorte de 400px
+esperando que quede en línea, se irá a su propia fila.
+
 ### Cartas de Pokémon dentro del artículo
 
 Se pueden incrustar cartas reales con una etiqueta propia:

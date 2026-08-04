@@ -4251,3 +4251,39 @@ Dos cosas que casi la dejan sin valor:
 
 Y se comprobó que subir los campos a 16px **no crea desbordes nuevos**:
 once páginas a 360px de ancho, más el buscador de la barra abierto.
+
+## Imágenes dentro del texto de una guía
+
+El reset global de `css/style.css` tiene `img { display: block }`, que
+está bien en tarjetas y avatares (evita el hueco que deja el descendente
+de la línea) pero dentro de un texto corrido **rompe la línea siempre**.
+
+Al escribir una lista de rarezas —`<li><strong>Common</strong> <img> ·
+círculo negro · …</li>`— el símbolo se iba a su propio renglón. Medido:
+ese `<li>` pasaba de **28px de alto a 104px**, tres líneas para lo que es
+una.
+
+### Por qué no se arregla con una clase
+
+Porque no se puede. El saneador (`ALLOWED_ATTR` en `richtext-editor.js`)
+borra `class` y `style`, así que **no hay ninguna forma de que el autor
+marque una imagen como "en línea"** al escribirla. Cualquier solución que
+dependa de eso no funciona.
+
+### La solución: que lo decida el tamaño
+
+`.article-body img` pasa a `inline-block` con `vertical-align: middle`. A
+partir de ahí no hace falta ninguna regla más:
+
+- Un símbolo pequeño cabe al lado del texto y se queda ahí.
+- Una imagen ancha no cabe en el hueco que queda, así que el navegador la
+  baja sola a su propio renglón, como antes.
+
+Y como la superficie del editor lleva `class="rte-surface article-body"`,
+lo que ves al escribir es lo que sale publicado, sin duplicar nada.
+
+Ninguna de las 13 guías publicadas usa `<img>`, así que este cambio no
+podía alterar contenido existente. `test-imagenes-articulo.mjs` lo vigila
+comparando contra la altura de **una línea real** en vez de contra un
+número escrito a mano, y comprueba también que la imagen quede centrada
+con el texto (±4px) y que una imagen ancha siga sin desbordar en móvil.

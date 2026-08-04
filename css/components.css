@@ -1134,9 +1134,31 @@ textarea.be-field {
   margin-bottom: 16px;
 }
 
+/* Las imágenes del artículo fluyen CON el texto.
+ *
+ * El reset global de style.css pone `img { display: block }`, que está
+ * bien en tarjetas y avatares (evita el hueco que deja el descendente de
+ * la línea). Pero dentro de un texto corrido rompe la línea SIEMPRE: al
+ * escribir "Common ⚪ · círculo negro" el símbolo se iba a su propio
+ * renglón, y ese párrafo pasaba de 26px de alto a 104px.
+ *
+ * Con `inline-block` el autor no tiene que marcar nada — y eso importa,
+ * porque el saneador borra `class` y `style`, así que no hay ninguna
+ * forma de decir "esta imagen va en línea" al escribirla.
+ *
+ * El tamaño resuelve solo los dos casos, sin reglas ni excepciones:
+ *   - Un símbolo pequeño cabe al lado del texto y se queda ahí.
+ *   - Una imagen ancha no cabe en el hueco que queda, así que el
+ *     navegador la baja a su propia línea, como antes.
+ *
+ * `vertical-align: middle` la centra con la altura de la x en vez de
+ * dejarla colgando de la línea base, que es como queda bien junto a
+ * texto. */
 .article-body img {
   border-radius: var(--radius-md);
-  margin: 16px 0;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 4px 2px;
 }
 
 .article-body ul,
