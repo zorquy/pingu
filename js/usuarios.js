@@ -5,6 +5,7 @@ import { contributorTier, calculateLevel } from './gamification.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
+import { plegarTexto, contienePlegado } from './texto.js'
 
 let allUsers = []
 let allCommunityGuides = []
@@ -60,12 +61,14 @@ async function loadUsers() {
   render(allUsers)
 
   document.getElementById('userSearchInput').addEventListener('input', (e) => {
-    const q = e.target.value.trim().toLowerCase()
+    // Se filtra sobre la lista ya cargada, así que el plegado de acentos
+    // se hace aquí en el navegador: "jesus" encuentra a "Jesús".
+    const q = plegarTexto(e.target.value.trim())
     if (!q) {
       render(allUsers)
       return
     }
-    render(allUsers.filter((p) => (p.display_name || '').toLowerCase().includes(q) || (p.username || '').toLowerCase().includes(q)))
+    render(allUsers.filter((p) => contienePlegado(p.display_name, q) || contienePlegado(p.username, q)))
   })
 }
 
@@ -149,17 +152,14 @@ async function loadCommunityGuides(session) {
   renderCommunityGuides(allCommunityGuides, session)
 
   document.getElementById('communityGuideSearchInput').addEventListener('input', (e) => {
-    const q = e.target.value.trim().toLowerCase()
+    const q = plegarTexto(e.target.value.trim())
     if (!q) {
       renderCommunityGuides(allCommunityGuides, session, 1)
       return
     }
     renderCommunityGuides(
       allCommunityGuides.filter(
-        (g) =>
-          (g.title || '').toLowerCase().includes(q) ||
-          (g.description || '').toLowerCase().includes(q) ||
-          (g.authorName || '').toLowerCase().includes(q)
+        (g) => contienePlegado(g.title, q) || contienePlegado(g.description, q) || contienePlegado(g.authorName, q)
       ),
       session,
       1

@@ -1449,6 +1449,14 @@ el despliegue que este proyecto no tiene. **El sitemap usa
 `https://tu-dominio.example/...` como placeholder — hay que
 sustituirlo por el dominio real antes de que sirva de algo.**
 
+> **Nota posterior.** Los dos "pero" de este párrafo ya no están: el
+> dominio es `pokedoc.es`, y el sitemap **ya incluye las guías y las
+> categorías** — lo genera una función en la petición, sin paso de
+> compilación (ver *Sitemap generado en la petición*, al final del
+> documento). Y las páginas públicas ya llevan etiquetas Open Graph, que
+> aquí faltaban por completo (ver *Compartir un enlace: vista previa de
+> verdad*).
+
 Verificado con Playwright: el favicon aparece en el `<head>`, una
 página pública tiene meta description y no tiene noindex, una página
 privada (mensajes) y el admin sí llevan noindex, `robots.txt` bloquea
@@ -4655,3 +4663,202 @@ La mascota va, entonces, sin fondo en los dos temas. La prueba no exige
 ningún contraste mínimo, pero **sigue midiéndolo y lo imprime**: si algún
 día alguien se replantea esto, tendrá el número delante en vez de
 discutirlo a ojo.
+
+## Compartir un enlace: vista previa de verdad (Open Graph)
+
+**El problema.** WhatsApp, Twitter, Discord y Telegram **no ejecutan
+JavaScript**. Cuando alguien pega `https://pokedoc.es/guia.html?slug=x`,
+su robot descarga el HTML tal cual sale del servidor y lee el `<head>`.
+El título y la descripción de una guía los ponía `js/guia.js` **después**,
+ya en el navegador — así que el robot solo veía `Guía — PokeDoc` y la
+descripción genérica. Todas las guías del sitio se veían **exactamente
+iguales** al compartirlas, y encima no había ni una sola etiqueta `og:` en
+todo el sitio.
+
+**La solución, en dos capas.**
+
+1. **Estática**: las once páginas públicas (`index`, `aprender`, `buscar`,
+   `usuarios`, `terminos`, `privacidad`, `auth`, `guia`, `curso`,
+   `categoria`, `usuario`) llevan un bloque de etiquetas entre marcadores:
+
+   ```html
+   <!-- meta-social:inicio -->
+   ... og:title, og:description, og:image, twitter:card ...
+   <!-- meta-social:fin -->
+   ```
+
+   Las páginas verdaderamente estáticas llevan además `<link
+   rel="canonical">` y `og:url`. Las dinámicas **no**: sin el slug, todas
+   apuntarían a la misma URL y le estaríamos diciendo a Google que una
+   guía y otra son la misma página. Se las pone la Edge Function.
+
+2. **Dinámica**: `netlify/edge-functions/meta-social.js`, registrada en
+   `/guia.html`, `/curso.html`, `/categoria.html`, `/usuario.html` y
+   `/usuario/*`. Se ejecuta **en el servidor, antes de entregar la
+   página**: pide a Supabase los datos por el slug (o el nombre de
+   usuario), y sustituye el bloque entre marcadores, el `<title>` y la
+   `meta description`. El robot y la persona reciben el mismo documento;
+   la persona además ejecuta el JS de siempre, que no ha cambiado.
+
+**Por qué una Edge Function y no un paso de compilación.** El sitio es
+HTML/CSS/JS a pelo, sin build. Generar una página por guía obligaría a
+montar uno y a redesplegar cada vez que alguien publica algo. Esto se
+resuelve en la petición y no añade ninguna pieza al proyecto.
+
+**Regla de oro: esto no puede tumbar el sitio.** Si Supabase tarda, falla,
+o devuelve algo que no es JSON, se sirve la página tal cual venía — peor
+vista previa, nunca página en blanco. Hay un límite de 2,5 s
+(`AbortSignal.timeout`) porque un robot de WhatsApp que espera se rinde y
+no enseña nada, y una persona que espera se va. Solo se toca `text/html`
+con respuesta correcta: un 404, un JSON o un recurso pasan intactos. Y se
+quita el `content-length` original de las cabeceras, porque el HTML ya no
+mide lo mismo y anunciar un tamaño que no cuadra corta la respuesta a
+medias.
+
+Usa la **clave publicable**, la misma que ya viaja en `js/supabase.js`:
+aquí solo se leen filas públicas. La clave secreta no pinta nada.
+
+**Detalles pensados:**
+
+- Un perfil con avatar usa `twitter:card: summary` (tarjeta cuadrada): una
+  foto cuadrada en una tarjeta panorámica sale recortada por arriba y por
+  abajo. Sin avatar, tarjeta grande con la imagen de marca.
+- `og:image:width/height` solo se declaran para la imagen por defecto, que
+  es la única cuyas medidas conocemos. Mentir ahí hace que la red reserve
+  un hueco que luego no encaja.
+- Las descripciones se recortan a 180 caracteres **por un espacio**, para
+  no dejar una palabra partida.
+- Un título con `"` o `<script>` se escapa antes de meterlo en el
+  atributo. Probado con una guía llamada `"><script>window.pwned=1</script>`.
+- No se declara `cache` en la Edge Function a propósito: cachearla
+  ahorraría una consulta, pero dejaría vistas previas viejas rondando
+  después de editar una guía, que es justo lo que veníamos a arreglar.
+
+### `assets/images/og-default.png`
+
+La imagen que sale cuando la página no tiene portada propia. 1200×630 (la
+medida que piden todas las redes), con el logotipo, el titular de la home,
+la pastilla de "En español" y el pingüino cartero sobre el navy de la
+marca. Hecha con las fuentes de verdad del sitio (Fredoka para el
+logotipo, Inter para el resto), sacadas de los paquetes de `@fontsource`.
+
+Se probó a poner detrás las tres cartas insinuadas del hero y se quitaron:
+la mascota ocupa toda esa mitad, así que asomaban por los bordes como
+rectángulos sueltos en vez de leerse como cartas.
+
+## Sitemap generado en la petición
+
+`sitemap.xml` era un fichero estático con seis URLs y un comentario que
+explicaba por qué no estaban las guías. Resultado práctico: Google no
+tenía forma de enterarse de que existe una guía nueva salvo rastreando
+enlaces.
+
+Ahora lo genera `netlify/functions/sitemap.mjs`, y `netlify.toml`
+reescribe `/sitemap.xml` a esa función (`force = true`, para que si
+alguien vuelve a añadir el fichero estático no gane silenciosamente y deje
+el sitemap congelado sin que se note). **El fichero `sitemap.xml` ya no
+existe en el repo.**
+
+Lista: las seis páginas fijas + una entrada por categoría + una por guía
+publicada (`published_at` no nulo), con `<lastmod>` sacado de la fecha de
+publicación.
+
+**Los perfiles de usuario NO se listan**, a propósito: la web todavía no
+es pública, nadie ha pedido que su perfil salga en Google, y
+`/usuarios.html` ya da acceso a todos desde dentro. El día que se quiera,
+se añaden en esa función.
+
+Si Supabase falla, devuelve **200 con las páginas fijas**, no un 500: un
+sitemap que da error le dice a Google que el sitio está roto. Los slugs
+van por `encodeURIComponent`, porque un `&` en un slug rompe el XML.
+
+## Búsqueda que no distingue acentos
+
+Migración: **`supabase-migration-busqueda-acentos.sql`** (hay que
+ejecutarla a mano en el SQL Editor de Supabase; es idempotente).
+
+**El problema.** `ilike` ignora las mayúsculas pero **no los acentos**: en
+Postgres `'falsificacion'` no encuentra `'falsificación'`. En español eso
+es medio buscador roto, porque nadie escribe los acentos al buscar.
+
+Hasta ahora se esquivaba a mano: en `guides.search_content` el texto se
+escribía **sin acentos** ("nucleo negro") para que el `ilike` lo pillara.
+Eso funciona mientras las guías las escriba quien conoce el truco; en
+cuanto las escribe la comunidad, deja de funcionar. Y obliga a que ese
+campo esté mal escrito, así que tampoco vale para enseñarlo.
+
+**La solución.** Una función `public.plegar_texto()` (quita acentos y pasa
+a minúsculas) y dos columnas **generadas por Postgres**:
+
+- `guides.search_norm` — `title` + `description` + `search_content`
+- `user_profiles.search_norm` — `display_name` + `username`
+
+Las dos son **GENERADAS**: el cliente no debe enviarlas nunca (igual que
+`guides.has_reference_blocks`). Postgres las recalcula solo al guardar.
+Las columnas originales no se tocan: se siguen enseñando con sus acentos.
+Ambas llevan índice GIN de trigramas para que el `ilike '%algo%'` no acabe
+leyendo la tabla entera.
+
+**Por qué no búsqueda de texto completo (`to_tsvector`)**: cambiaría lo
+que significa buscar. Hoy "falsi" encuentra "falsificación" porque busca
+un trozo dentro de la palabra; el texto completo busca palabras enteras y
+raíces, y dejaría de encontrarlo. Esto arregla los acentos sin cambiar
+nada más.
+
+**Detalle de Postgres**: una columna generada exige una función
+`IMMUTABLE`, y `unaccent()` a secas es `STABLE` (depende del diccionario).
+Se envuelve nombrando el diccionario explícitamente, que es la forma
+habitual de dejarla inmutable de verdad. Consecuencia a tener presente: si
+alguna vez se cambiara el diccionario `unaccent`, las columnas ya
+calculadas no se recalcularían solas.
+
+### El lado del navegador
+
+- **`js/texto.js`** — `plegarTexto()` hace lo mismo que la función de
+  Postgres (NFD + tirar las marcas diacríticas + minúsculas). **Los dos
+  lados tienen que plegar igual**: si uno quita los acentos y el otro no,
+  el buscador deja de encontrar cosas y no da ningún error que lo delate.
+  `plegarConMapa()` devuelve además un mapa de posiciones, para poder
+  resaltar en el texto original (con sus tildes) lo que se encontró en el
+  plegado — la normalización cambia la longitud, así que las posiciones no
+  coinciden por las bravas.
+- **`js/busqueda.js`** — `conVueltaAtras()`. Entre que se despliega este
+  código y se ejecuta la migración, la columna no existe. Sin esto el
+  buscador diría "no se encontraron resultados" para todo: un fallo mudo,
+  que es el peor tipo. Con esto, detecta el error `42703` de PostgREST,
+  avisa por consola y **sigue buscando como antes** hasta que la migración
+  esté puesta. Cuando lleve tiempo hecha, se puede quitar.
+- **`js/search.js`** — busca contra `search_norm` (una sola columna: ya
+  junta título, descripción y texto) y resalta usando el mapa. El `select`
+  pasa a ser de columnas contadas en vez de `*`: `search_norm` repite el
+  texto entero de la guía, y traerlo veinte veces por búsqueda para no
+  usarlo es regalar megas al que busca desde el móvil.
+- **`js/mensajes.js`** — buscar a quién escribirle, también contra
+  `search_norm`.
+- **`js/usuarios.js`** — los dos filtros del directorio se hacen sobre una
+  lista ya cargada, así que ahí el plegado se hace en el navegador.
+
+### Cómo se ha probado
+
+- **La migración, contra un PostgreSQL 16 de verdad** con `unaccent` y
+  `pg_trgm`: las columnas se calculan solas, `'falsificacion'` encuentra
+  la guía acentuada, `'jesus'` encuentra a "Jesús", `'nino'` encuentra a
+  "Niño", intentar escribir `search_norm` da error (es generada), y
+  ejecutarla dos veces no rompe nada. También con las extensiones
+  instaladas en `public` en vez de en `extensions`, por si el proyecto es
+  antiguo.
+- **La Edge Function y el sitemap, en Node** (`test-og-sitemap.mjs`, 72
+  comprobaciones), con `fetch` sustituido por un Supabase de mentira y
+  sirviendo los HTML de verdad del repo: incluye Supabase caído, lento,
+  devolviendo 500 y devolviendo basura, un título con `<script>`, un `&`
+  en un slug, y que el XML lo acepte un analizador de verdad.
+- **La búsqueda, con Playwright** (`test-busqueda-acentos.mjs`) contra la
+  copia de pruebas, cuyo Supabase de mentira calcula `search_norm` igual
+  que la columna generada y sabe fingir el error `42703` para probar el
+  hueco sin migrar.
+- **Comprobación de rigor** en las dos: se deshace cada arreglo uno por
+  uno (no escapar el título, añadir etiquetas en vez de sustituirlas,
+  quitar el try/catch, quitar el límite de tiempo, no codificar el slug,
+  plegar solo a minúsculas, quitar la vuelta atrás, resaltar sin traducir
+  posiciones...) y se exige que la prueba se ponga en rojo **por lo que
+  tiene que ponerse**. Si sigue en verde, esa comprobación no vale.

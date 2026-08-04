@@ -1,6 +1,8 @@
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { inlineIconHtml } from './content-icon.js'
+import { plegarConMapa } from './texto.js'
+import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 
 const input = document.getElementById('searchInput')
 const resultsEl = document.getElementById('searchResults')
@@ -14,15 +16,28 @@ function sanitizeForFilter(str) {
   return str.replace(/[,()%]/g, ' ').trim()
 }
 
-function snippet(text, query) {
+// Trozo del texto alrededor de lo encontrado, con la coincidencia
+// resaltada.
+//
+// La búsqueda va por el texto plegado (sin acentos) pero lo que se enseña
+// es el original, así que las posiciones se traducen con el mapa: si
+// alguien busca "falsificacion" y la guía dice "falsificación", se
+// subraya la palabra tal cual está escrita, con su tilde.
+function snippet(text, terminoPlegado) {
   if (!text) return ''
-  const idx = text.toLowerCase().indexOf(query.toLowerCase())
-  if (idx === -1) return escapeHtml(text.slice(0, 120))
-  const start = Math.max(0, idx - 40)
-  const end = Math.min(text.length, idx + query.length + 60)
-  const before = escapeHtml(text.slice(start, idx))
-  const match = escapeHtml(text.slice(idx, idx + query.length))
-  const after = escapeHtml(text.slice(idx + query.length, end))
+  if (!terminoPlegado) return escapeHtml(text.slice(0, 120))
+
+  const { plegado, mapa } = plegarConMapa(text)
+  const encontrado = plegado.indexOf(terminoPlegado)
+  if (encontrado === -1) return escapeHtml(text.slice(0, 120))
+
+  const desde = mapa[encontrado]
+  const hasta = mapa[encontrado + terminoPlegado.length]
+  const start = Math.max(0, desde - 40)
+  const end = Math.min(text.length, hasta + 60)
+  const before = escapeHtml(text.slice(start, desde))
+  const match = escapeHtml(text.slice(desde, hasta))
+  const after = escapeHtml(text.slice(hasta, end))
   return `${start > 0 ? '…' : ''}${before}<mark>${match}</mark>${after}${end < text.length ? '…' : ''}`
 }
 
@@ -42,21 +57,37 @@ async function loadCategories() {
 async function runSearch(rawQuery) {
   const seq = ++searchSeq
   const query = sanitizeForFilter(rawQuery)
+  // Lo mismo, pero sin acentos: es lo que se compara contra la columna
+  // `search_norm`, que Postgres guarda ya plegada.
+  const termino = terminoParaFiltro(rawQuery)
 
   if (!query) {
     resultsEl.innerHTML = `<p class="empty-state">Escribe algo para buscar entre las guías.</p>`
     return
   }
 
-  let q = supabase
-    .from('guides')
-    .select('*, categories(name)')
-    .not('published_at', 'is', null)
-    .or(`title.ilike.%${query}%,description.ilike.%${query}%,search_content.ilike.%${query}%`)
+  const base = () => {
+    // Columnas contadas, no `*`: `search_norm` repite el texto entero de
+    // la guía, y traerlo veinte veces por búsqueda para no usarlo es
+    // regalar megas al que busca desde el móvil.
+    const q = supabase
+      .from('guides')
+      .select('slug, title, description, cover_emoji, search_content, categories(name)')
+      .not('published_at', 'is', null)
+    return activeCategoryId ? q.eq('category_id', activeCategoryId) : q
+  }
 
-  if (activeCategoryId) q = q.eq('category_id', activeCategoryId)
-
-  const { data, error } = await q.limit(20)
+  const { data, error } = await conVueltaAtras(
+    // Una sola columna: `search_norm` ya junta título, descripción y
+    // texto de la guía, todo sin acentos.
+    () => base().ilike('search_norm', `%${termino}%`).limit(20),
+    // Sin la migración puesta, se busca como antes: distinguiendo
+    // acentos, pero encontrando algo.
+    () =>
+      base()
+        .or(`title.ilike.%${query}%,description.ilike.%${query}%,search_content.ilike.%${query}%`)
+        .limit(20)
+  )
   if (seq !== searchSeq) return // ya hay una búsqueda más nueva en marcha o resuelta
 
   if (error || !data || data.length === 0) {
@@ -70,7 +101,7 @@ async function runSearch(rawQuery) {
     <a href="guia.html?slug=${encodeURIComponent(g.slug)}" class="search-result" style="display: block;">
       <span class="guide-label">${escapeHtml(g.categories?.name || '')}</span>
       <h3>${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title)}</h3>
-      <p class="snippet">${snippet(g.search_content || g.description, query)}</p>
+      <p class="snippet">${snippet(g.search_content || g.description, termino)}</p>
     </a>`
     )
     .join('')

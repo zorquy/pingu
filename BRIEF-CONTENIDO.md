@@ -418,7 +418,11 @@ Detalles de SQL que rompen esto si se pasan por alto:
 - **`on conflict (slug) do nothing`** hace que se pueda ejecutar dos veces
   sin duplicar nada.
 - **`search_content`** es el texto que usa el buscador: el artículo sin
-  etiquetas HTML, en plano.
+  etiquetas HTML, en plano. **Escríbelo bien, con sus acentos.** Antes se
+  ponía a posta sin tildes ("nucleo negro") para que el buscador lo
+  encontrase; ya no hace falta y no se debe hacer, porque la base de datos
+  pliega los acentos sola (ver *Búsqueda que no distingue acentos* en
+  `SCHEMA.md`).
 
 Después de ejecutar, pega esto para comprobar que ha entrado de verdad:
 

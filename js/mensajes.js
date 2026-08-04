@@ -3,6 +3,7 @@ import { escapeHtml, getInitial, requireAuth, profileUrl, avatarStyle } from './
 import { listConversations, loadThreadMessages, markConversationRead, sendMessage, deleteMessage, getOtherParticipant, findOrCreateConversation, isParticipant } from './messages.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { icons } from './icons.js'
+import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 
 const root = document.getElementById('messagesRoot')
 const params = new URLSearchParams(window.location.search)
@@ -65,12 +66,15 @@ async function renderNewConversation(session) {
       resultsEl.innerHTML = ''
       return
     }
-    const { data } = await supabase
-      .from('user_profiles')
-      .select('id, username, display_name, avatar_url')
-      .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
-      .neq('id', session.user.id)
-      .limit(10)
+    // Buscar "jesus" tiene que encontrar a "Jesús": se compara contra la
+    // columna plegada, y si la migración de acentos todavía no está
+    // puesta se busca como antes (ver js/busqueda.js).
+    const base = () =>
+      supabase.from('user_profiles').select('id, username, display_name, avatar_url').neq('id', session.user.id)
+    const { data } = await conVueltaAtras(
+      () => base().ilike('search_norm', `%${terminoParaFiltro(q)}%`).limit(10),
+      () => base().or(`display_name.ilike.%${q}%,username.ilike.%${q}%`).limit(10)
+    )
     const results = data || []
     resultsEl.innerHTML =
       results.length === 0

@@ -1,6 +1,11 @@
 [functions]
   directory = "netlify/functions"
 
+# Las Edge Functions viven en netlify/edge-functions/, que es donde
+# Netlify las busca por defecto; cada fichero declara sus rutas en su
+# propio `export const config`. Hoy solo hay una: meta-social.js, que
+# rellena la vista previa de los enlaces al compartirlos.
+
 # El SyntaxError "Importing binding name 'guideHasCourse' is not found" que
 # apareció en el registro de errores es caché desincronizada: el navegador
 # tenía en caché un js/app.js viejo (sin ese export) y pidió un
@@ -50,6 +55,17 @@
   from = "/baja-correo"
   to = "/.netlify/functions/baja-correo"
   status = 200
+
+# El sitemap lo genera una función, para que incluya las guías y las
+# categorías publicadas (ver netlify/functions/sitemap.mjs). Ya no existe
+# el fichero estático sitemap.xml; `force = true` está de todos modos para
+# que, si alguien vuelve a añadirlo, no gane silenciosamente y deje el
+# sitemap congelado sin que se note.
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/sitemap"
+  status = 200
+  force = true
 
 # Enlaces de perfil legibles: /usuario/<nombre-de-usuario> en vez de
 # /usuario.html?u=<nombre-de-usuario>. Tiene que ir ANTES del catch-all de
