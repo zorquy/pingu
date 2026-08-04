@@ -4616,3 +4616,39 @@ exactamente "Pro" o "Gratis", la clase `.badge-free`, el botón de pestaña
 "Guía Pro", el `.pro-paywall` y el bloque del candado. 10 páginas × con
 sesión y sin ella, porque el muro cambiaba de texto según estuvieras
 dentro o fuera.
+
+## La mascota y el pop-up de "¿Qué es PokeDoc?"
+
+El texto anterior decía que PokeDoc era una "base de conocimiento
+gamificada". Dos problemas: "gamificada" es palabra de folleto, no de
+coleccionista; y no mencionaba lo único que de verdad define el sitio —
+que es de la comunidad y que **cualquiera puede escribir**. El texto
+nuevo lo dice en la primera frase y termina en "Crea y comparte".
+
+### El pingüino cartero
+
+`assets/images/mascota.png`. Llegó como PNG de 1077×1301 con casi la mitad
+del lienzo vacío; recortado al contenido real queda en 523×791 y pasa de
+234 KB a 115 KB. El `width`/`height` van puestos en el HTML **y**
+`height: auto` en el CSS: así el navegador reserva el hueco con la
+proporción correcta antes de descargar la imagen y el texto no pega un
+salto al terminar de cargar.
+
+Va con `alt=""` a propósito: es decorativa. Lo que cuenta qué es PokeDoc
+es el texto de al lado, y un lector de pantalla que lea "ilustración de un
+pingüino cartero" no aporta nada, solo estorba.
+
+### En oscuro hace falta ponerle un fondo, y no es capricho
+
+El pingüino tiene el cuerpo y las alas **negras con contorno negro**. El
+fondo del modal en tema oscuro es `#182430`, casi negro también. Medido:
+el contraste entre las alas y ese fondo es de **1,3:1** — o sea que no se
+ven, y el personaje parece flotar sin brazos.
+
+Con la chapa clara detrás sube a **18,9:1**. Los dos números salen de
+medir la luminancia relativa según WCAG en la página real, con y sin la
+regla, no de mirarlo a ojo.
+
+La chapa es un color fijo (`#e6f6fb`) y no `var(--ice)`: en tema oscuro
+esa variable también es oscura y no arreglaría nada. En tema claro no se
+le pone nada, porque ahí ya contrasta 21:1 sola.

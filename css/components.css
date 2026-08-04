@@ -3233,3 +3233,62 @@ a.rater-name:hover {
 .guide-card-author .autor-oficial {
   color: var(--navy);
 }
+
+/* ── La mascota ──────────────────────────────────────────────────── */
+
+/* El pop-up de "¿Qué es PokeDoc?". Es más ancho que un modal normal
+   porque ahora lleva dibujo y dos párrafos: con los 360px de un modal
+   corriente el pingüino saldría del tamaño de un sello. */
+.modal-box-mascota {
+  max-width: 560px;
+  text-align: left;
+}
+
+.mascota-fila {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.mascota-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-mid);
+}
+
+/* `height: auto` con el width/height puestos en el HTML: el navegador
+   reserva el hueco con la proporción correcta antes de descargar la
+   imagen, y así el texto no da un salto cuando termina de cargar. */
+.mascota {
+  width: 130px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+/* En móvil el pingüino se pone arriba y centrado: a 130px de ancho al
+   lado del texto no quedaría sitio para ninguno de los dos. */
+@media (max-width: 560px) {
+  .mascota-fila {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .mascota {
+    width: 110px;
+  }
+}
+
+/* EN OSCURO HAY QUE PONERLE UN FONDO, NO ES CAPRICHO.
+   El pingüino tiene el cuerpo y las alas negras con contorno negro. Sobre
+   el fondo del modal en tema oscuro (#182430) el contraste es de 1.3:1
+   —medido—, o sea que las alas sencillamente no se ven y el personaje
+   parece flotar sin brazos.
+   La chapa clara es fija a propósito, no usa var(--ice): en oscuro esa
+   variable también es oscura y no arreglaría nada. */
+:root[data-theme='dark'] .mascota {
+  background: #e6f6fb;
+  border-radius: 14px;
+  padding: 8px;
+}
