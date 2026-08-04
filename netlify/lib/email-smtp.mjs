@@ -49,14 +49,31 @@ export function remitenteValido(from, smtpUser) {
   )
 }
 
-export async function sendViaSmtp(config, msg, crearTransporte = null) {
+// Crea el transporte UNA vez por pasada, no uno por correo.
+//
+// Con `pool: true` nodemailer reutiliza la conexión para todos los
+// mensajes de la tanda. Sin esto, cada correo abría su propio TCP + TLS +
+// autenticación: con 50 pendientes son 50 saludos seguidos contra el
+// buzón, que es exactamente el patrón que hace saltar los límites por
+// hora de un servidor de correo normal (y además es lentísimo).
+export async function crearTransporteSmtp(config, crearTransporte = null) {
   const crear = crearTransporte || (await import('nodemailer')).default.createTransport
-  const transporte = crear(config)
+  return crear({ ...config, pool: true, maxConnections: 1, maxMessages: 100 })
+}
+
+export async function sendViaSmtp(config, msg, transporteOCrear = null) {
+  // Admite que le pasen un transporte ya montado (lo normal, una vez por
+  // pasada) o una función para crearlo (las pruebas, y el caso suelto).
+  const yaEsTransporte = transporteOCrear && typeof transporteOCrear.sendMail === 'function'
+  const transporte = yaEsTransporte
+    ? transporteOCrear
+    : await crearTransporteSmtp(config, transporteOCrear)
+
   const mensaje = buildSmtpMessage({ ...msg, from: remitenteValido(msg.from, config.auth?.user) })
   await transporte.sendMail(mensaje)
-  // Los buzones limitan cuántos correos por hora aceptan, y en un envío
-  // seguido conviene cerrar la conexión en vez de dejarla colgando hasta
-  // que la función se congele.
-  if (typeof transporte.close === 'function') transporte.close()
+
+  // Solo se cierra si lo hemos abierto aquí: si nos lo han prestado, lo
+  // cierra quien lo creó, al terminar toda la tanda.
+  if (!yaEsTransporte && typeof transporte.close === 'function') transporte.close()
   return true
 }

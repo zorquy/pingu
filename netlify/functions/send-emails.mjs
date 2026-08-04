@@ -1,5 +1,5 @@
 import { renderEmail, sendEmail, PROVEEDORES } from '../lib/email.mjs'
-import { smtpConfigDesdeEntorno, sendViaSmtp } from '../lib/email-smtp.mjs'
+import { smtpConfigDesdeEntorno, sendViaSmtp, crearTransporteSmtp } from '../lib/email-smtp.mjs'
 
 // Vacía la cola de correo (`email_outbox`) y envía lo pendiente.
 //
@@ -107,6 +107,9 @@ export default async () => {
   let enviados = 0
   let fallidos = 0
 
+  // Una sola conexión SMTP para toda la tanda (ver crearTransporteSmtp).
+  const transporte = provider === 'smtp' && (pendientes || []).length ? await crearTransporteSmtp(smtp) : null
+
   for (const fila of pendientes || []) {
     try {
       const to = await buscarDestinatario(fila.recipient_id, clave)
@@ -136,7 +139,7 @@ export default async () => {
 
       const mensaje = { apiKey, from, to, subject, html, text, unsubscribeUrl, mailgunDomain: process.env.EMAIL_MAILGUN_DOMAIN }
       if (provider === 'smtp') {
-        await sendViaSmtp(smtp, mensaje)
+        await sendViaSmtp(smtp, mensaje, transporte)
       } else {
         await sendEmail(provider, mensaje)
       }
@@ -160,6 +163,8 @@ export default async () => {
       fallidos++
     }
   }
+
+  if (transporte && typeof transporte.close === 'function') transporte.close()
 
   return new Response(JSON.stringify({ ok: true, enviados, fallidos, revisados: (pendientes || []).length }), {
     status: 200,

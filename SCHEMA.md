@@ -4150,6 +4150,19 @@ Y lo que hace falta en el DNS del dominio, que es aparte del código: MX
 spam). Sin eso, esto no sirve de nada — y arrastra también a los correos
 de verificación y de recuperar contraseña.
 
+### Una conexión por tanda, no una por correo
+
+`sendViaSmtp` creaba su propio transporte en cada llamada, o sea un
+TCP + TLS + autenticación **por cada correo**. Con 50 pendientes son 50
+saludos seguidos contra el buzón, que es justo el patrón que dispara los
+límites por hora de un servidor de correo normal (y además es lento).
+
+Ahora `crearTransporteSmtp` monta uno con `pool: true` al principio de la
+pasada y todos los mensajes van por ahí. `sendViaSmtp` acepta tanto un
+transporte prestado como una función para crearlo, y solo cierra el que
+ha abierto él. Comprobado contra el servidor de pruebas contando
+conexiones: 10 correos → 1 conexión.
+
 ### La prueba de SMTP levanta un servidor SMTP de verdad
 
 `test-correo-smtp.mjs` arranca un `smtp-server` en local y le envía. Con
