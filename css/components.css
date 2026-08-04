@@ -3022,6 +3022,28 @@ button.rating-summary[aria-expanded='true'] .rating-summary-caret {
   font-style: italic;
 }
 
+/* Invitación a escribir, al final de una guía. Deliberadamente sosa: no
+ * es una llamada a la acción que compita con el contenido, es una puerta
+ * que se ve si la buscas. Un banner de colores al final de CADA guía
+ * cansa a la décima que lees. */
+.write-invite {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-mid);
+  text-align: center;
+}
+
+.write-invite svg {
+  vertical-align: -2px;
+  margin-right: 2px;
+}
+
+.write-invite a {
+  color: var(--navy);
+  font-weight: 600;
+}
+
 .rater-panel {
   margin-top: 10px;
   padding-top: 10px;

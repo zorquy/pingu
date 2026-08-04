@@ -176,6 +176,7 @@ async function init() {
     }
     <div id="articleEndSentinel" aria-hidden="true"></div>
     <div id="guideRating"></div>
+    <div id="guideWriteInvite"></div>
     <section class="guide-forum">
       <h2 class="section-title">${icons.messageSquare(18)} Comentarios</h2>
       <div id="forumContainer"></div>
@@ -202,6 +203,26 @@ async function init() {
     session,
     guide,
   }).catch(() => {})
+
+  // Invitación a escribir, al terminar de leer.
+  //
+  // Va aquí y no en un banner de la home porque el momento importa: quien
+  // acaba de leerse una guía entera sobre un tema es justo quien puede
+  // pensar "pues de esto yo sé otra cosa". En la home, la misma frase le
+  // llega a alguien que todavía no sabe ni de qué va el sitio.
+  //
+  // Se le enseña solo a quien ha iniciado sesión: a quien está de paso,
+  // pedirle que escriba una guía antes de tener cuenta es pedirle dos
+  // cosas a la vez, y no hace ninguna.
+  const invitacion = document.getElementById('guideWriteInvite')
+  if (invitacion && session) {
+    invitacion.innerHTML = `
+      <p class="write-invite">
+        ${icons.edit(14)} ¿Sabes algo que no está en PokeDoc?
+        <a href="/editor-guia.html">Escribe tu propia guía</a> — no hace falta
+        terminarla de una sentada, se guarda sola.
+      </p>`
+  }
 
   if (headings.length > 0) {
     document.getElementById('articleSidebar').innerHTML = `

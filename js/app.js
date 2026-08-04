@@ -420,6 +420,14 @@ async function renderNavUser(session) {
       </div>
       <div class="nav-user-links">
         <a href="/perfil.html">${icons.user(16)} Mi perfil</a>
+        <!-- Escribir una guía estaba SOLO dentro de una pestaña de
+             Comunidad y de otra del perfil: había que saber que existía
+             para encontrarlo. Aquí está en todas las páginas, en el menú
+             que la gente ya abre. No se pone en la barra de navegación a
+             propósito — se dejó en tres enlaces justamente para que no
+             se llenara, y la inmensa mayoría de las visitas vienen a
+             leer, no a escribir. -->
+        <a href="/editor-guia.html">${icons.edit(16)} Escribir una guía</a>
         <a href="/guardados.html">${icons.bookmark(16)} Guardados</a>
         <button type="button" id="navFeedbackBtn">${icons.messageSquare(16)} Enviar feedback</button>
         <button type="button" id="navUserSignOut">${icons.logOut(16)} Cerrar sesión</button>

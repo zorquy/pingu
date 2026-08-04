@@ -4340,3 +4340,36 @@ socialmente no es lo mismo.
 - El caso "sin valoraciones" tenía un `else` que pasaba siempre. Una
   prueba que no comprueba nada es peor que no tenerla, porque parece
   cobertura. Ahora usa una guía que de verdad no tiene ninguna.
+
+## Hacer visible "escribir una guía"
+
+Antes solo se llegaba desde dos sitios, y los dos **dentro de una
+pestaña**: Comunidad → Guías de la comunidad, y perfil → Mis guías. Había
+que saber que existía para encontrarlo.
+
+Lo primero fue mirar si el problema era de fricción o de visibilidad: el
+editor **solo exige un título** para guardar un borrador, y autoguarda.
+O sea que llegar era el problema, no escribir.
+
+Dos puertas nuevas:
+
+- **En el menú de cuenta**, que está en todas las páginas y que la gente
+  ya abre por otras cosas.
+- **Al final de una guía**, después de valorar y antes de los
+  comentarios. El momento importa: quien acaba de leerse una guía entera
+  sobre un tema es justo quien puede pensar "de esto yo sé otra cosa". La
+  misma frase en la home le llega a alguien que aún no sabe de qué va el
+  sitio.
+
+### Lo que NO se hizo, y por qué
+
+**No va en la barra de navegación.** Se dejó en tres enlaces a propósito
+— se quitó "Guardados" de ahí justamente para eso — y la inmensa mayoría
+de las visitas vienen a leer, no a escribir. Hay una comprobación que
+falla si alguien vuelve a llenarla.
+
+**No se le enseña a quien no tiene sesión.** Pedirle que escriba una guía
+antes de tener cuenta es pedirle dos cosas a la vez, y no hace ninguna.
+
+**La invitación es deliberadamente sosa**, no un banner de colores: al
+final de CADA guía, un reclamo llamativo cansa a la décima que lees.
