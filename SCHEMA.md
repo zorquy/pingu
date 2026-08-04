@@ -4287,3 +4287,56 @@ podía alterar contenido existente. `test-imagenes-articulo.mjs` lo vigila
 comparando contra la altura de **una línea real** en vez de contra un
 número escrito a mano, y comprueba también que la imagen quede centrada
 con el texto (±4px) y que una imagen ancha siga sin desbordar en móvil.
+
+## Quién ha valorado una guía
+
+El usuario vio aparecer una valoración, no reconoció a nadie en el hilo de
+actividad y sospechó que se podía valorar sin cuenta.
+
+**No se puede.** Se comprobó atacando las políticas reales cargadas en un
+PostgreSQL: valorar sin sesión, valorar dejando el autor en blanco,
+valorar firmando como otra persona, y modificar o borrar la nota de otro
+— los cinco intentos rechazados. La política es
+`with check (auth.uid() = reviewer_id)`, y sin sesión `auth.uid()` es
+nulo, así que la comparación nunca es verdadera. Queda en
+`prueba-rls-valoraciones.sql`.
+
+*(La primera versión de ese ataque estaba mal: cambiaba de rol pero no
+soltaba `request.jwt.claim.sub`, así que los casos "anónimos" seguían
+siendo el usuario anterior — y por eso "anon" conseguía borrar una fila.
+Volverse anónimo son DOS cosas.)*
+
+Lo que sí faltaba era **poder mirarlo**: el resumen solo decía "5.0 · 1
+valoración" y no había forma de saber de quién. Ahora ese resumen es un
+botón que despliega la lista debajo: quién, su nota y cuándo.
+
+### Por qué no va al hilo de actividad
+
+Decisión explícita del usuario. Valorar es más delicado que comentar: si
+alguien le pone 2 estrellas a una guía y eso se anuncia en Comunidad con
+su nombre, deja de valorar con sinceridad. Consultarlo a propósito es
+distinto de que se publique solo.
+
+### `hide_activity` se respeta aquí también
+
+Quien pidió no aparecer en los listados públicos sale como **"Un
+usuario"**, sin enlace a su perfil. Pero **su nota sigue contando para la
+media y su fila sigue apareciendo**, para que el número del resumen y las
+filas de abajo cuadren siempre — un contador que no cuadra con la lista
+es la clase de detalle que hace dudar de todo lo demás.
+
+Nota de alcance: estos datos ya eran legibles por cualquiera vía la API
+(`select using (true)`; la media se calcula en el navegador leyendo todas
+las filas). Esto no destapa nada nuevo, pero sí lo hace visible, que
+socialmente no es lo mismo.
+
+### Dos trampas de la prueba
+
+- **Contar `<span>` de estrellas no comprueba la nota.** Las estrellas
+  vacías también son ★, solo cambia el color. La primera versión daba
+  verde aunque la nota se pintara mal; ahora cuenta las encendidas de
+  verdad mirando el color calculado, y verifica que a cada persona le
+  corresponde SU nota (2, 3 y 5).
+- El caso "sin valoraciones" tenía un `else` que pasaba siempre. Una
+  prueba que no comprueba nada es peor que no tenerla, porque parece
+  cobertura. Ahora usa una guía que de verdad no tiene ninguna.

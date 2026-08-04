@@ -2984,14 +2984,115 @@ tcg-deck {
   color: var(--warning);
 }
 
+/* El resumen es un BOTÓN cuando hay valoraciones: al pincharlo se
+ * despliega quién ha valorado. Se mantiene con aspecto de texto porque
+ * sigue siendo, ante todo, el dato de la media. */
 .rating-summary {
   display: block;
+  width: 100%;
   font-size: 13.5px;
   color: var(--text-mid);
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 2px 0;
+}
+
+button.rating-summary {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+button.rating-summary:hover {
+  color: var(--text);
+}
+
+.rating-summary-caret {
+  display: inline-block;
+  font-size: 11px;
+  margin-left: 2px;
+  transition: transform 0.15s var(--ease);
+}
+
+button.rating-summary[aria-expanded='true'] .rating-summary-caret {
+  transform: rotate(180deg);
 }
 
 .rating-summary.subtle {
   font-style: italic;
+}
+
+.rater-panel {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+
+.rater-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rater-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.rater-avatar {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--border);
+  background-size: cover;
+  background-position: center;
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rater-name {
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  /* Un nombre largo no debe empujar las estrellas fuera de la caja. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+a.rater-name:hover {
+  text-decoration: underline;
+}
+
+.rater-stars {
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.rater-date {
+  color: var(--text-dim);
+  font-size: 11.5px;
+  flex-shrink: 0;
+}
+
+/* En móvil la fecha sobra antes que el nombre. */
+@media (max-width: 420px) {
+  .rater-date {
+    display: none;
+  }
 }
 
 .rating-hint {

@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { createNotification } from './notifications.js'
+import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 
 // Valorar una guía.
 //
@@ -18,6 +19,52 @@ export function starsHtml(rating, size = 16) {
     .join('')
 }
 
+function haceCuanto(iso) {
+  const seg = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000))
+  if (seg < 60) return 'ahora mismo'
+  const min = Math.floor(seg / 60)
+  if (min < 60) return `hace ${min} min`
+  const h = Math.floor(min / 60)
+  if (h < 24) return `hace ${h} h`
+  const d = Math.floor(h / 24)
+  if (d === 1) return 'ayer'
+  if (d < 30) return `hace ${d} días`
+  const m = Math.floor(d / 30)
+  return m === 1 ? 'hace un mes' : `hace ${m} meses`
+}
+
+// Quién ha valorado. Se despliega bajo el resumen al pincharlo.
+//
+// Estos datos ya eran públicos: la política de `guide_reviews` es
+// `select using (true)`, y la media que se ve arriba se calcula leyendo
+// todas las filas desde el navegador. O sea que esto no destapa nada
+// nuevo — pero sí lo hace VISIBLE, que socialmente no es lo mismo. Por
+// eso se respeta `hide_activity`: quien ha pedido no aparecer en los
+// listados públicos sale como "Un usuario", sin enlace a su perfil. Su
+// nota sigue contando para la media, así que el número de arriba y la
+// lista de abajo siempre cuadran.
+function listaValoradoresHtml(reviews, perfilesPorId) {
+  const filas = [...reviews]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .map((r) => {
+      const p = perfilesPorId[r.reviewer_id]
+      const oculto = !p || p.hide_activity
+      const nombre = oculto ? 'Un usuario' : p.display_name || p.username || 'Un usuario'
+      const avatar = `<span class="rater-avatar" style="${oculto ? '' : avatarStyle(p)}">${oculto ? '' : escapeHtml(getInitial(nombre))}</span>`
+      const quien = oculto
+        ? `<span class="rater-name">${escapeHtml(nombre)}</span>`
+        : `<a class="rater-name" href="${profileUrl(p)}">${escapeHtml(nombre)}</a>`
+      return `<li class="rater-row">
+          ${avatar}
+          ${quien}
+          <span class="rater-stars">${starsHtml(r.rating, 13)}</span>
+          <span class="rater-date">${r.created_at ? haceCuanto(r.created_at) : ''}</span>
+        </li>`
+    })
+    .join('')
+  return `<ul class="rater-list">${filas}</ul>`
+}
+
 export async function renderRatingWidget(container, { guideId, session, guide = null, titulo = '¿Te ha servido esta guía?' }) {
   if (!container) return
 
@@ -29,9 +76,40 @@ export async function renderRatingWidget(container, { guideId, session, guide = 
   const reviews = data || []
   const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null
 
+  // Los perfiles de quienes han valorado, para poder desplegar la lista.
+  // Se piden aquí y no al pinchar para que abrir sea instantáneo: son
+  // pocas filas y ya se ha hecho una consulta de todas formas.
+  let perfilesPorId = {}
+  if (reviews.length) {
+    const ids = [...new Set(reviews.map((r) => r.reviewer_id).filter(Boolean))]
+    const { data: perfiles } = await supabase
+      .from('user_profiles')
+      .select('id, username, display_name, avatar_url, hide_activity')
+      .in('id', ids)
+    perfilesPorId = Object.fromEntries((perfiles || []).map((p) => [p.id, p]))
+  }
+
+  const cuantas = `${reviews.length} ${reviews.length === 1 ? 'valoración' : 'valoraciones'}`
   const resumen = avg
-    ? `<span class="rating-summary">${starsHtml(avg)} <strong>${avg.toFixed(1)}</strong> · ${reviews.length} valoración(es)</span>`
+    ? `<button type="button" class="rating-summary" data-ver-quien aria-expanded="false" aria-controls="raterList">
+         ${starsHtml(avg)} <strong>${avg.toFixed(1)}</strong> · ${cuantas}
+         <span class="rating-summary-caret" aria-hidden="true">▾</span>
+       </button>
+       <div class="rater-panel hidden" id="raterList">${listaValoradoresHtml(reviews, perfilesPorId)}</div>`
     : `<span class="rating-summary subtle">Todavía sin valoraciones</span>`
+
+  // Enganchar el desplegable. Se hace en una función porque el widget se
+  // vuelve a pintar entero al votar, y si no habría que acordarse de
+  // reengancharlo — que es justo lo que se olvida.
+  const wireDesplegable = () => {
+    const boton = container.querySelector('[data-ver-quien]')
+    const panel = container.querySelector('#raterList')
+    if (!boton || !panel) return
+    boton.addEventListener('click', () => {
+      const abierto = panel.classList.toggle('hidden') === false
+      boton.setAttribute('aria-expanded', String(abierto))
+    })
+  }
 
   if (!session) {
     container.innerHTML = `
@@ -40,6 +118,7 @@ export async function renderRatingWidget(container, { guideId, session, guide = 
         ${resumen}
         <p class="subtext"><a href="/auth.html">Inicia sesión</a> para valorarla.</p>
       </div>`
+    wireDesplegable()
     return
   }
 
@@ -57,6 +136,8 @@ export async function renderRatingWidget(container, { guideId, session, guide = 
       ${resumen}
       <p class="rating-hint" data-rating-hint>${mia ? 'Ya la has valorado. Puedes cambiar tu nota.' : ''}</p>
     </div>`
+
+  wireDesplegable()
 
   const pintar = () => {
     container.querySelectorAll('.star-pick').forEach((s) => s.classList.toggle('selected', Number(s.dataset.value) <= elegida))
