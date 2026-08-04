@@ -1203,3 +1203,44 @@ button.stat-card:hover {
   font-size: 11.5px;
   margin-top: 1px;
 }
+
+/* ────────────────────────────────────────────────────────────
+   El zoom de iOS al enfocar un campo
+   ────────────────────────────────────────────────────────────
+
+   Safari en iOS AMPLÍA la página entera cuando enfocas un input,
+   textarea o select cuyo font-size sea MENOR de 16px. Al ampliar,
+   la maqueta se sale por la derecha: el usuario abría la lupa de la
+   barra, aparecía el teclado y el botón "Buscar" y el título se iban
+   fuera de pantalla.
+
+   No hay forma de desactivarlo. `user-scalable=no` en el viewport lo
+   evitaría en teoría, pero iOS lo ignora desde hace años — a propósito,
+   porque impedir hacer zoom es una barrera para quien ve poco. Así que
+   la ÚNICA solución es que el campo mida 16px o más.
+
+   Va como regla general y no campo por campo porque es un problema de
+   clase: le pasa a cualquier campo del sitio, y a los que se añadan
+   mañana. Medido antes de escribir esto: el buscador de la barra estaba
+   a 13px (y sale en TODAS las páginas), y a 14px los campos de acceso,
+   las cajas de comentarios, el selector de categoría y el editor.
+
+   Las dos condiciones son necesarias:
+   - `max-width: 900px` coge los móviles.
+   - `pointer: coarse` coge las tabletas, que son anchas pero también
+     hacen zoom al enfocar.
+
+   El !important es deliberado: reglas como `.auth-input { font-size:
+   14px }` tienen más especificidad que un selector de etiqueta y
+   ganarían. Esto no es una preferencia de diseño que se pueda pisar,
+   es una restricción de la plataforma.
+
+   Lo vigila test-zoom-movil.mjs, que recorre todas las páginas midiendo
+   cada campo. */
+@media (max-width: 900px), (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  textarea,
+  select {
+    font-size: max(16px, 1em) !important;
+  }
+}

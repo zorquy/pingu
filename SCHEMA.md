@@ -4194,3 +4194,60 @@ De ahí salieron dos cosas:
 - Un `perl`/`python` con `s.index(...)` sobre un texto que aparece más de
   una vez machaca la ocurrencia equivocada: me borró `sanitizeHeader`
   entero y dejó `escapeHtml` con el cuerpo de otra función.
+
+## El zoom de iOS al enfocar un campo
+
+Safari en iOS **amplía la página entera** al enfocar un `input`,
+`textarea` o `select` cuyo `font-size` sea menor de 16px. Al ampliar, la
+maqueta se sale por la derecha: el usuario abría la lupa de la barra,
+salía el teclado, y el botón "Buscar" y el título quedaban fuera de
+pantalla.
+
+No se puede desactivar. `user-scalable=no` lo evitaría en teoría, pero
+iOS lo ignora desde hace años — a propósito, porque impedir hacer zoom
+es una barrera para quien ve poco. La única solución es que el campo mida
+16px o más.
+
+**Es un problema de clase, no del buscador.** Se midieron todos los
+campos de todas las páginas antes de tocar nada:
+
+| Campo | Medía |
+|---|---|
+| `#navSearchInput` (sale en TODAS las páginas) | 13px |
+| `.auth-input` × 4 (entrar y registrarse) | 14px |
+| `#forumCommentBody`, `#wallCommentBody` | 14px |
+| `#categorySelect`, `#mgTitle`, `#mgCategory`, `#mgCoverEmoji` | 14px |
+
+Por eso el arreglo es una regla general al final de `css/style.css` y no
+un retoque campo por campo: así cubre también los que se añadan mañana.
+
+Las **dos** condiciones de la media query hacen falta, y está comprobado
+rompiendo cada una por separado:
+
+- `max-width: 900px` coge los móviles.
+- `pointer: coarse` coge las tabletas, que son anchas pero amplían
+  igual. Sin esta rama, los campos de `auth.html` seguían a 14px en un
+  iPad en horizontal.
+
+El `!important` es deliberado: `.auth-input { font-size: 14px }` tiene
+más especificidad que un selector de etiqueta y ganaría. Esto no es una
+preferencia de diseño que se pueda pisar, es una restricción de la
+plataforma.
+
+### Notas de la prueba
+
+`test-zoom-movil.mjs` recorre nueve páginas midiendo **cada** campo, y
+comprueba además que el viewport no traiga `user-scalable=no`.
+
+Dos cosas que casi la dejan sin valor:
+
+- Para probar la rama `pointer: coarse` hace falta `hasTouch: true` en
+  Playwright. Sin eso la prueba caería en la rama del ancho y pasaría en
+  verde **sin haber comprobado esa rama**.
+- Mi primera comprobación de "en escritorio no cambia nada" afirmaba que
+  el buscador de `/buscar` medía menos de 16px, y ya medía 17 desde
+  antes: fallaba estando todo bien. Ahora mide `#navSearchInput`, que en
+  móvil sube de 13 a 16 y en escritorio debe seguir en 13.
+
+Y se comprobó que subir los campos a 16px **no crea desbordes nuevos**:
+once páginas a 360px de ancho, más el buscador de la barra abierto.
