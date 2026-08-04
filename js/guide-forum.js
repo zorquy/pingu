@@ -1,16 +1,10 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, profileUrl } from './app.js'
+import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { notifyGuideComment } from './notifications.js'
 
 const PAGE_SIZE = 10
-
-function avatarStyle(p) {
-  return p?.avatar_url
-    ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
-    : `background-color:${p?.avatar_color || 'var(--navy)'}`
-}
 
 async function profilesByIds(ids) {
   const uniqueIds = [...new Set(ids)]

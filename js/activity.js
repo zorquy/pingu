@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, profileUrl } from './app.js'
+import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 import { icons } from './icons.js'
 
 // Hilo de actividad reciente. No hay tabla de eventos: se arma leyendo
@@ -126,9 +126,7 @@ const TEXTOS = {
 function eventoHtml(e) {
   const t = TEXTOS[e.tipo]
   const nombre = e.perfil?.display_name || e.perfil?.username || 'Alguien'
-  const estiloAvatar = e.perfil?.avatar_url
-    ? `background-image:url('${e.perfil.avatar_url.replace(/'/g, '%27')}')`
-    : `background-color:${e.perfil?.avatar_color || 'var(--navy)'}`
+  const estiloAvatar = avatarStyle(e.perfil)
   const destino = e.guia
     ? ` <a href="/guia.html?slug=${encodeURIComponent(e.guia.slug)}">${escapeHtml(e.guia.title)}</a>`
     : ''

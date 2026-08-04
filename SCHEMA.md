@@ -3818,3 +3818,63 @@ todas las tarjetas creyendo que no hay documentación.
 
 Anotado porque el reflejo de "no lo calcula nadie → está roto" era
 razonable y habría sido incorrecto. El stub guardaba la respuesta.
+
+## Barra de navegación y avatares
+
+Tres retoques pedidos, uno de ellos con un fallo de fondo.
+
+**"Guardados" fuera de la barra de arriba.** Estaba repetido: en la barra
+y en el menú de la cuenta. Se queda solo en el menú, con el **mismo icono
+de marcador** que el botón de guardar de las tarjetas — antes era una
+estrella, que ya significa otra cosa en esta web (la valoración).
+
+**El color de fondo asomaba por detrás de la foto de perfil.**
+
+Varias clases de avatar traen un `background-color` de fábrica en el CSS
+(`.nav-user-avatar-lg`, por ejemplo, lleva `var(--navy)`). Al pintar el
+avatar solo se ponía `background-image`, así que **el color seguía ahí
+debajo** y se veía por los bordes redondeados o allí donde la imagen no
+cubriera del todo.
+
+No se podía arreglar solo en el CSS sin romper el caso sin foto, que
+necesita ese color.
+
+Ahora hay un único `avatarStyle(profile)` en `app.js`:
+
+- **Con foto:** la imagen y `background-color: transparent`.
+- **Sin foto:** el círculo del color del perfil, del mismo tamaño, con la
+  inicial.
+
+El patrón estaba **copiado en seis ficheros** (`app.js`, `activity.js`,
+`guia.js`, `guide-forum.js`, `mensajes.js`, `perfil.js`) y todos tenían
+el mismo fallo. Esa duplicación era la causa de que nadie lo viera: no
+había un sitio donde estuviera mal, había seis donde estaba igual de mal.
+
+### Verificación
+
+17 comprobaciones con Playwright. La del color **mide el color calculado**
+del elemento, no la regla CSS: con foto tiene que salir transparente, sin
+foto el color del perfil, y en los dos casos 40×40. Además, un barrido
+por todos los avatares de una página comprueba que ninguno pinta color
+debajo de una foto.
+
+Se quitó el `transparent` a propósito y saltaron 3 comprobaciones.
+
+### Dos trampas de la prueba, anotadas
+
+1. **La primera versión pasaba sin probar nada.** El perfil que inyectaba
+   el test se *añadía* a la lista del stub en vez de sustituir al de ese
+   id, así que ganaba el original y la página nunca veía los datos de
+   prueba. Se vio porque la inicial que salía era la del usuario por
+   defecto. Ahora el stub mezcla por id.
+
+2. **El primer rigor check dio "TODO OK" sin haber roto nada**: el
+   reemplazo que debía introducir el fallo no encajó con el texto. Un
+   rigor check que pasa es una señal de alarma, no de tranquilidad —
+   había que comprobar que el cambio se había aplicado antes de creerse
+   el resultado.
+
+Y un fallo real que salió del barrido posterior: `avatarStyle` se usaba
+en `guia.js` y `activity.js` **sin importarlo**, lo que dejaba la página
+de la guía en blanco. Se añadió una comprobación que recorre todos los
+ficheros buscando ese descuido.

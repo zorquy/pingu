@@ -32,6 +32,8 @@ function applyHeroVisuals(profile, name) {
   const avatarUrl = profile?.avatar_url
   if (avatarUrl) {
     avatar.style.backgroundImage = `url('${avatarUrl.replace(/'/g, '%27')}')`
+    // Con foto, nada de color detrás: asomaba por los bordes redondeados.
+    avatar.style.backgroundColor = 'transparent'
     avatar.textContent = ''
   } else {
     avatar.style.backgroundImage = 'none'

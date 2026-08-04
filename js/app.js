@@ -41,6 +41,24 @@ export function borderRarityClass(rarity) {
 // cuentan para las barras de progreso: si no, una categoría con 1 curso
 // y 2 guías de lectura decía "1 de 3 cursos completados" y la barra no
 // llegaba nunca al final.
+// Estilo del avatar de una persona, en un solo sitio.
+//
+// El patrón estaba copiado en seis ficheros y en todos tenía el mismo
+// fallo: cuando HAY foto solo se ponía `background-image`, pero varias
+// clases traen un `background-color` de fábrica en el CSS. Resultado: el
+// color asomaba por detrás de la foto (por los bordes redondeados, o si
+// la imagen no cubre del todo). Se ve raro y no hay forma de quitarlo
+// desde el CSS sin romper el caso sin foto.
+//
+// Con foto: color transparente. Sin foto: el círculo de color, del mismo
+// tamaño, con la inicial.
+export function avatarStyle(profile) {
+  if (profile?.avatar_url) {
+    return `background-image:url('${String(profile.avatar_url).replace(/'/g, '%27')}'); background-color:transparent;`
+  }
+  return `background-color:${profile?.avatar_color || 'var(--navy)'};`
+}
+
 export function guideHasCourse(guide) {
   return Array.isArray(guide?.blocks) && guide.blocks.length > 0
 }
@@ -267,13 +285,11 @@ async function renderNavUser(session) {
 
   const profile = await getProfile(session.user.id)
   const name = profile?.display_name || profile?.username || session.user.email
-  const avatarStyle = profile?.avatar_url
-    ? `background-image:url('${profile.avatar_url.replace(/'/g, '%27')}')`
-    : `background-color:${profile?.avatar_color || 'var(--navy)'}`
+  const estiloAvatar = avatarStyle(profile)
 
   el.innerHTML = `
     <div class="nav-user-wrap" id="navUserWrap">
-      <button type="button" class="nav-user-avatar" id="navUserBtn" style="${avatarStyle}" aria-label="Tu cuenta" title="${escapeHtml(name)}">${profile?.avatar_url ? '' : getInitial(name)}</button>
+      <button type="button" class="nav-user-avatar" id="navUserBtn" style="${estiloAvatar}" aria-label="Tu cuenta" title="${escapeHtml(name)}">${profile?.avatar_url ? '' : getInitial(name)}</button>
       <div class="nav-user-dropdown hidden" id="navUserDropdown"></div>
     </div>`
 
@@ -294,7 +310,7 @@ async function renderNavUser(session) {
 
     dropdown.innerHTML = `
       <div class="nav-user-header">
-        <span class="nav-user-avatar-lg" style="${avatarStyle}">${profile?.avatar_url ? '' : getInitial(name)}</span>
+        <span class="nav-user-avatar-lg" style="${estiloAvatar}">${profile?.avatar_url ? '' : getInitial(name)}</span>
         <div>
           <strong>${escapeHtml(name)}</strong>
           ${profile?.username ? `<span class="subtext">@${escapeHtml(profile.username)}</span>` : ''}
@@ -308,7 +324,7 @@ async function renderNavUser(session) {
       </div>
       <div class="nav-user-links">
         <a href="/perfil.html">${icons.user(16)} Mi perfil</a>
-        <a href="/guardados.html">${icons.star(16)} Guardados</a>
+        <a href="/guardados.html">${icons.bookmark(16)} Guardados</a>
         <button type="button" id="navFeedbackBtn">${icons.messageSquare(16)} Enviar feedback</button>
         <button type="button" id="navUserSignOut">${icons.logOut(16)} Cerrar sesión</button>
       </div>`

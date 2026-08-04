@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, getSession, getProfile, profileUrl } from './app.js'
+import { escapeHtml, getInitial, getSession, getProfile, profileUrl, avatarStyle } from './app.js'
 import { renderReferenceBlocksHtml } from './block-editor.js'
 import { hydrateDecks } from './cards-block.js'
 import { renderRatingWidget } from './guide-rating.js'
@@ -100,9 +100,7 @@ async function init() {
     author = data
   }
   const authorName = author ? author.display_name || author.username || 'un colaborador' : 'PokeDoc'
-  const authorAvatarStyle = author?.avatar_url
-    ? `background-image:url('${author.avatar_url.replace(/'/g, '%27')}')`
-    : `background-color:${author?.avatar_color || 'var(--navy)'}`
+  const authorAvatarStyle = avatarStyle(author)
   const opHeaderHtml = `
     <div class="guide-author">
       ${

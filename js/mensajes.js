@@ -1,17 +1,11 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, requireAuth, profileUrl } from './app.js'
+import { escapeHtml, getInitial, requireAuth, profileUrl, avatarStyle } from './app.js'
 import { listConversations, loadThreadMessages, markConversationRead, sendMessage, deleteMessage, getOtherParticipant, findOrCreateConversation, isParticipant } from './messages.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { icons } from './icons.js'
 
 const root = document.getElementById('messagesRoot')
 const params = new URLSearchParams(window.location.search)
-
-function avatarStyle(p) {
-  return p?.avatar_url
-    ? `background-image:url('${p.avatar_url.replace(/'/g, '%27')}')`
-    : `background-color:${p?.avatar_color || 'var(--navy)'}`
-}
 
 function timeAgo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime()
