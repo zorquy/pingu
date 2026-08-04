@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, categoryIconHtml, guideHasCourse } from './app.js'
 import { renderGuideCardHtml, decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
+import { inlineIconHtml } from './content-icon.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -100,7 +101,7 @@ async function initCategoryMode() {
   for (const col of collectionList) {
     const items = byCollection[col.id] || []
     if (items.length === 0) continue
-    html += `<h2 class="section-title" style="font-size:18px; margin-top:24px;">${col.emoji || ''} ${escapeHtml(col.title)}</h2>`
+    html += `<h2 class="section-title" style="font-size:18px; margin-top:24px;">${col.emoji ? inlineIconHtml(col.emoji, 18, 'folder') : ''}${escapeHtml(col.title)}</h2>`
     html += items.map(renderGuide).join('')
   }
   html += uncategorized.map(renderGuide).join('')

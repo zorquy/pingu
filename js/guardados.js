@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, requireAuth, guideHasReference } from './app.js'
 import { decorateGuideCards } from './guide-card.js'
 import { icons } from './icons.js'
+import { contentIconHtml } from './content-icon.js'
 
 async function loadSaved(session) {
   const list = document.getElementById('savedList')
@@ -32,7 +33,7 @@ async function loadSaved(session) {
     .map(
       (g) => `
     <div class="saved-guide-row" data-guide-id="${g.id}" data-slug="${escapeHtml(g.slug || '')}" data-has-guide="${guideHasReference(g) ? '1' : ''}" style="cursor:pointer;">
-      <span style="font-size: 22px;">${escapeHtml(g.cover_emoji || '📘')}</span>
+      <span class="saved-guide-icon">${contentIconHtml(g.cover_emoji, 22, 'bookOpen')}</span>
       <div class="info">
         <h3>${escapeHtml(g.title)}</h3>
         <span class="time-tag">${g.estimated_mins || 5} min</span>

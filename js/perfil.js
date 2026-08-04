@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarStyle, applyAvatarTo } from './app.js'
 import { icons } from './icons.js'
+import { inlineIconHtml } from './content-icon.js'
 import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES } from './notifications.js'
 import { authorRatingSummary } from './guide-rating.js'
@@ -271,7 +272,7 @@ async function loadMyGuides(session) {
       const canEdit = g.review_status === 'draft' || g.review_status === 'rejected'
       return `
       <div class="my-guide-row">
-        <span class="my-guide-title" title="${escapeHtml(g.title || 'Sin título')}">${escapeHtml(g.cover_emoji || '📘')} ${escapeHtml(g.title || 'Sin título')}</span>
+        <span class="my-guide-title" title="${escapeHtml(g.title || 'Sin título')}">${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title || 'Sin título')}</span>
         <span class="badge ${status.badgeClass}">${status.text}</span>
         <span class="my-guide-actions">
           ${canEdit ? `<button data-edit="${g.id}">Editar</button>` : ''}

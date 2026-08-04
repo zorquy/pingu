@@ -4,6 +4,8 @@ import { invalidateAchievementsCache } from '../../js/gamification.js'
 import { showToast } from '../../js/toast.js'
 import { renderReferenceBlocksHtml } from '../../js/block-editor.js'
 import { icons } from '../../js/icons.js'
+import { contentIconHtml, inlineIconHtml } from '../../js/content-icon.js'
+import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch } from '../../js/tcgdex.js'
 import { checkSchema } from '../../js/schema-check.js'
@@ -112,7 +114,7 @@ async function loadCategories() {
             (c) => `
           <tr>
             <td>${c.order_pos ?? ''}</td>
-            <td>${c.icon_image ? `<img src="${c.icon_image.replace(/"/g, '&quot;')}" alt="" style="width:24px; height:24px; object-fit:contain;" />` : c.emoji || ''}</td>
+            <td>${c.icon_image ? `<img src="${c.icon_image.replace(/"/g, '&quot;')}" alt="" style="width:24px; height:24px; object-fit:contain;" />` : contentIconHtml(c.emoji, 20, 'bookOpen')}</td>
             <td>${escapeHtml(c.name)}</td>
             <td>${escapeHtml(c.slug)}</td>
             <td>${c.guide_count ?? 0}</td>
@@ -145,11 +147,13 @@ function openCategoryModal(category) {
     <div class="form-group"><label>Nombre</label><input id="catName" value="${escapeHtml(c.name)}" /></div>
     <div class="form-group"><label>Slug</label><input id="catSlug" value="${escapeHtml(c.slug)}" /></div>
     <div class="form-group"><label>Descripción</label><textarea id="catDescription">${escapeHtml(c.description || '')}</textarea></div>
-    <div class="form-group"><label>Emoji</label><input id="catEmoji" value="${escapeHtml(c.emoji || '')}" /></div>
-    <div class="form-group"><label>Icono personalizado (URL, opcional)</label><input id="catIconImage" value="${escapeHtml(c.icon_image || '')}" placeholder="https://..." /><p style="font-size:12px; color:var(--text-mid); margin-top:4px;">Sustituye al emoji en las tarjetas de categoría. Sube la imagen en la pestaña "Imágenes" y pega aquí la URL.</p></div>
+    <div class="form-group"><label>Icono</label><input id="catEmoji" value="${escapeHtml(c.emoji || '')}" /></div>
+    <div class="form-group"><label>Icono personalizado (URL, opcional)</label><input id="catIconImage" value="${escapeHtml(c.icon_image || '')}" placeholder="https://..." /><p style="font-size:12px; color:var(--text-mid); margin-top:4px;">Sustituye al icono en las tarjetas de categoría. Sube la imagen en la pestaña "Imágenes" y pega aquí la URL.</p></div>
     <div class="form-group"><label>Imagen de portada (URL)</label><input id="catCoverImage" value="${escapeHtml(c.cover_image || '')}" /></div>
     <div class="form-group"><label>Orden</label><input id="catOrder" type="number" value="${c.order_pos ?? 0}" /></div>
     <button class="btn-primary btn-block" id="btnSaveCategory">Guardar</button>`)
+
+  attachEmojiPicker(document.getElementById('catEmoji'))
 
   document.getElementById('btnSaveCategory').addEventListener('click', async () => {
     const payload = {
@@ -187,7 +191,7 @@ async function loadCollections() {
           .map(
             (col) => `
           <tr>
-            <td>${col.emoji || ''}</td>
+            <td>${contentIconHtml(col.emoji, 20, 'folder')}</td>
             <td>${escapeHtml(col.title)}</td>
             <td>${escapeHtml(col.categories?.name || '—')}</td>
             <td>${escapeHtml(col.slug)}</td>
@@ -219,12 +223,14 @@ function openCollectionModal(collection) {
     <h3>${collection ? 'Editar' : 'Nueva'} colección</h3>
     <div class="form-group"><label>Título</label><input id="colTitle" value="${escapeHtml(col.title)}" /></div>
     <div class="form-group"><label>Slug</label><input id="colSlug" value="${escapeHtml(col.slug)}" /></div>
-    <div class="form-group"><label>Emoji</label><input id="colEmoji" value="${escapeHtml(col.emoji || '')}" /></div>
+    <div class="form-group"><label>Icono</label><input id="colEmoji" value="${escapeHtml(col.emoji || '')}" /></div>
     <div class="form-group"><label>Descripción</label><textarea id="colDescription">${escapeHtml(col.description || '')}</textarea></div>
     <div class="form-group"><label>Categoría</label>
       <select id="colCategory">${categories.map((c) => `<option value="${c.id}" ${c.id === col.category_id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}</select>
     </div>
     <button class="btn-primary btn-block" id="btnSaveCollection">Guardar</button>`)
+
+  attachEmojiPicker(document.getElementById('colEmoji'))
 
   document.getElementById('btnSaveCollection').addEventListener('click', async () => {
     const payload = {
@@ -281,7 +287,7 @@ async function loadPending() {
             const authorName = author?.display_name || author?.username || 'Usuario'
             return `
           <tr>
-            <td>${escapeHtml(g.cover_emoji || '')} ${escapeHtml(g.title || 'Sin título')}</td>
+            <td>${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title || 'Sin título')}</td>
             <td>${escapeHtml(g.categories?.name || '—')}</td>
             <td>${escapeHtml(authorName)}</td>
             <td>${g.submitted_at ? new Date(g.submitted_at).toLocaleDateString('es-ES') : '—'}</td>
@@ -312,7 +318,7 @@ async function loadGuides() {
           .map(
             (g) => `
           <tr>
-            <td>${escapeHtml(g.cover_emoji || '')} ${escapeHtml(g.title)}${g.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}${g.has_pro_content ? ` <span class="badge badge-pro">${icons.star(11)} Guía Pro</span>` : ''}</td>
+            <td>${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title)}${g.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}${g.has_pro_content ? ` <span class="badge badge-pro">${icons.star(11)} Guía Pro</span>` : ''}</td>
             <td>${escapeHtml(g.categories?.name || '—')}</td>
             <td>${g.published_at ? '<span class="badge badge-completed">Publicada</span>' : '<span class="badge badge-progress">Borrador</span>'}</td>
             <td class="admin-row-actions">
@@ -384,7 +390,7 @@ async function loadPaths() {
           .map(
             (p) => `
           <tr>
-            <td>${p.emoji || ''}</td>
+            <td>${contentIconHtml(p.emoji, 20, 'bookOpen')}</td>
             <td>${escapeHtml(p.title)}</td>
             <td>${escapeHtml(p.slug)}</td>
             <td>${p.is_featured ? '✓' : ''}</td>
@@ -417,9 +423,11 @@ function openPathModal(path) {
     <div class="form-group"><label>Título</label><input id="pTitle" value="${escapeHtml(p.title || '')}" /></div>
     <div class="form-group"><label>Slug</label><input id="pSlug" value="${escapeHtml(p.slug)}" /></div>
     <div class="form-group"><label>Descripción</label><textarea id="pDescription">${escapeHtml(p.description || '')}</textarea></div>
-    <div class="form-group"><label>Emoji</label><input id="pEmoji" value="${escapeHtml(p.emoji || '')}" /></div>
+    <div class="form-group"><label>Icono</label><input id="pEmoji" value="${escapeHtml(p.emoji || '')}" /></div>
     <div class="form-group"><label><input type="checkbox" id="pFeatured" ${p.is_featured ? 'checked' : ''} /> Destacada (se recomienda en el onboarding)</label></div>
     <button class="btn-primary btn-block" id="btnSavePath">Guardar</button>`)
+
+  attachEmojiPicker(document.getElementById('pEmoji'))
 
   document.getElementById('btnSavePath').addEventListener('click', async () => {
     const payload = {
@@ -462,7 +470,7 @@ async function loadAchievements() {
           .map(
             (a) => `
           <tr>
-            <td>${a.emoji || '🏆'}</td>
+            <td>${contentIconHtml(a.emoji, 20, 'trophy')}</td>
             <td>${escapeHtml(a.title)}</td>
             <td><span class="rarity-chip rarity-${a.rarity || 'bronze'}">${escapeHtml(a.rarity || 'bronze')}</span></td>
             <td>${CONDITION_LABELS[a.condition?.type] || a.condition?.type || '—'} ≥ ${a.condition?.count ?? '—'}</td>
@@ -496,7 +504,7 @@ function openAchievementModal(achievement) {
     id: '',
     title: '',
     description: '',
-    emoji: '🏆',
+    emoji: 'trophy',
     icon_url: '',
     cover_image: '',
     rarity: 'bronze',
@@ -509,7 +517,7 @@ function openAchievementModal(achievement) {
     <div class="form-group"><label>Clave única (id)</label><input id="aId" value="${escapeHtml(a.id)}" placeholder="first_course" ${achievement ? 'disabled' : ''} /></div>
     <div class="form-group"><label>Título</label><input id="aTitle" value="${escapeHtml(a.title)}" /></div>
     <div class="form-group"><label>Descripción</label><textarea id="aDescription">${escapeHtml(a.description || '')}</textarea></div>
-    <div class="form-group"><label>Emoji</label><input id="aEmoji" value="${escapeHtml(a.emoji || '')}" /></div>
+    <div class="form-group"><label>Icono</label><input id="aEmoji" value="${escapeHtml(a.emoji || '')}" /></div>
     <div class="form-group"><label>Icono (URL, opcional)</label><input id="aIconUrl" value="${escapeHtml(a.icon_url || '')}" /></div>
     <div class="form-group"><label>Imagen de portada (URL, opcional)</label><input id="aCoverImage" value="${escapeHtml(a.cover_image || '')}" /></div>
     <div class="form-group"><label>Rareza</label>
@@ -529,6 +537,8 @@ function openAchievementModal(achievement) {
     <div class="form-group"><label>XP de recompensa</label><input id="aXpReward" type="number" value="${a.xp_reward ?? 50}" /></div>
     <div class="form-group"><label><input type="checkbox" id="aIsActive" ${a.is_active ? 'checked' : ''} /> Activo</label></div>
     <button class="btn-primary btn-block" id="btnSaveAchievement">Guardar</button>`)
+
+  attachEmojiPicker(document.getElementById('aEmoji'))
 
   document.getElementById('btnSaveAchievement').addEventListener('click', async () => {
     const payload = {

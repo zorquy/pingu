@@ -7,6 +7,7 @@ import { initGuideForum } from './guide-forum.js'
 import { markGuideRead, READ_XP } from './gamification.js'
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
+import { contentIconHtml } from './content-icon.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -150,7 +151,7 @@ async function init() {
           ? `<p class="subtext" style="background:var(--ice); padding:8px 12px; border-radius:var(--radius-sm); margin-bottom:10px; display:flex; align-items:center; gap:6px;">${icons.clock(14)} Guía de la comunidad pendiente de revisión — todavía no la ha comprobado el equipo de PokeDoc.</p>`
           : ''
       }
-      <span class="emoji-big">${escapeHtml(guide.cover_emoji || '📘')}</span>
+      <span class="emoji-big">${contentIconHtml(guide.cover_emoji, 40, 'bookOpen')}</span>
       <span class="guide-label">${escapeHtml(guide.categories?.name || '')}</span>
       <h1>${escapeHtml(guide.title)}</h1>
       <p class="lead">${escapeHtml(guide.description || '')}</p>

@@ -4425,3 +4425,144 @@ Ash y se conformaba con `typeof total === 'number'`. Ash no tiene notas,
 así que daba verde con un 0 — habría pasado igual con la función
 devolviendo siempre cero. Ahora mira a quien SÍ tiene notas y exige el
 número exacto (media 4, total 1).
+
+## Los emojis de contenido pasan a ser iconos
+
+El sitio ya usaba iconos SVG de trazo en la interfaz (barra de navegación,
+botones, tipos de bloque). Lo que quedaba con emojis era **el contenido**:
+portadas de guía, categorías, colecciones, rutas, logros y bloques de
+curso. Mezclar las dos cosas se nota mucho, porque un emoji lo dibuja el
+sistema operativo del que mira: el mismo `🔍` es gris y plano en Windows,
+azul y redondo en un iPhone y otra cosa en Android.
+
+### Esto NO era buscar y reemplazar
+
+Los emojis de PokeDoc no están en el código. Son **datos**:
+
+| Dónde | Columna |
+|---|---|
+| Guías | `guides.cover_emoji` |
+| Categorías | `categories.emoji` |
+| Colecciones | `guide_collections.emoji` |
+| Rutas | `learning_paths.emoji` |
+| Logros | `achievement_definitions.emoji` |
+| Bloques de curso | la clave `emoji` dentro del JSON de `blocks` |
+
+O sea que hay emojis dentro de contenido que ya escribió gente. Cambiar
+los ficheros no cambia nada de eso, y migrar la base a lo bruto sería
+reescribir el trabajo de otros por un cambio de estilo.
+
+### La regla, en un solo sitio
+
+Todo pasa por `contentIconHtml()` en `js/content-icon.js`, que mira el
+valor guardado y decide, **en este orden**:
+
+1. ¿Es el nombre de un icono nuestro (`'search'`, `'gem'`)? → ese icono.
+2. ¿Es un emoji que sabemos traducir? → su icono equivalente.
+3. ¿Ninguna de las dos? → **se pinta tal cual**, escapado.
+
+El punto 3 es el importante y es deliberado. Si alguien puso un emoji que
+no está en la tabla, sigue viéndose lo que puso. Nunca queda un hueco
+vacío por no reconocer algo: perder contenido de otra persona sería mucho
+peor que un emoji suelto. Y como pasa por `escapeHtml`, es también lo que
+sigue conteniendo el XSS — la guía de prueba tiene como `cover_emoji` un
+`<img onerror=...>` y se sigue viendo como texto.
+
+Consecuencia práctica: **no hay migración SQL que ejecutar**. Lo viejo se
+traduce al vuelo, lo nuevo se guarda ya como nombre de icono.
+
+### El diccionario no es inventado
+
+Los 61 emojis de la tabla salen de mirar lo que se usa de verdad: las
+portadas de las 13 guías de la semilla, las categorías, los bloques de
+curso, y los 36 del selector antiguo. Se comprobó con un barrido sobre
+todos los `.sql` del repo que no quedara ninguno sin traducir.
+
+Un caso que ilustra por qué el diccionario tiene que mirar el contenido y
+no una lista genérica: el bloque `🥪` del curso del núcleo negro. Está ahí
+porque una carta auténtica son varias capas pegadas "como un sándwich".
+Traducirlo a comida habría sido literal y absurdo; le toca `layers`.
+
+### La única excepción: la banderita
+
+En la portada hay un `🇪🇸 En español`. Se queda, y es a conciencia: un
+icono de un solo trazo no puede decir "España". El globo terráqueo, que
+sería lo más parecido, diría justo lo contrario — "internacional". Es el
+único sitio del proyecto donde el emoji lleva información que el icono
+perdería. La prueba lo tiene en una lista blanca de un solo elemento, para
+que si algún día se quiere quitar sea una decisión y no un descuido.
+
+### El selector del editor
+
+`js/emoji-picker.js` conserva su nombre y su función exportada a
+propósito — lo importan los dos editores y renombrarlo por estética
+habría sido tocar cuatro sitios sin ganar nada. Lo que cambia es que
+ofrece 38 iconos agrupados por para qué sirven y guarda el **nombre**.
+
+Sigue siendo un campo de texto por debajo, así que una guía guardada con
+un emoji se abre en el editor mostrando ya su icono equivalente (se
+entiende sin explicar nada que ese emoji ahora es ese dibujo), y quien
+quiera poner algo que no esté en la lista puede escribirlo.
+
+Detalle que solo se ve cuando lo pruebas: con emojis, cuál estaba elegido
+se distinguía por el dibujo de colores. Con iconos de un solo trazo, no
+hay forma de saberlo — hizo falta un `.selected` con fondo propio.
+
+### El fallo que solo aparece al cambiar un emoji por un SVG
+
+El botón del selector se repinta a sí mismo nada más entrar en su propio
+manejador de click (por si el valor lo ha puesto otro código, como cargar
+un borrador). Con un emoji dentro daba igual: al pulsar sobre un nodo de
+texto, el `e.target` que llega es el propio botón.
+
+Con un SVG dentro, `e.target` es el SVG. Y para cuando el evento sube
+hasta el `document` — donde está el "si has pulsado fuera, cierra" — ese
+SVG ya lo ha sustituido el repintado, así que `wrap.contains(e.target)`
+da **falso**, se dispara el cierre, y el panel se abría y se cerraba en el
+mismo click. El selector, sencillamente, no se abría.
+
+La solución es `pointer-events: none` en el contenido del botón, para que
+el objetivo del click sea siempre el botón. Vale la pena señalar cómo
+apareció: no leyendo el código, sino haciendo que la prueba pulsara el
+botón y mirara si el panel quedaba visible. Un cambio "solo de estilo" —
+un carácter por un dibujo — rompió una interacción entera.
+
+Ahora ese selector está también en los cuatro formularios de `/admin`
+(categoría, colección, ruta, **logro**) y en cada bloque de curso, que
+antes eran campos de texto pelados donde había que pegar un emoji a mano.
+
+### El ciclo de importación que apareció por el camino
+
+`content-icon.js` necesitaba `escapeHtml`, que vivía en `app.js`; y
+`app.js` necesita el resolutor. Los módulos de JavaScript toleran los
+ciclos porque las declaraciones de función se elevan, pero depender de esa
+sutileza es frágil: basta con que alguien convierta la función en una
+`const` para que deje de funcionar, y el síntoma es una página en blanco
+sin explicación (ya pasó algo parecido con `avatarStyle`).
+
+`escapeHtml` se sacó a `js/html.js` y `app.js` lo reexporta, así que los
+treinta y pico ficheros que hacen `import { escapeHtml } from './app.js'`
+siguen igual.
+
+## El cursor de mano en las tarjetas de guía
+
+Las tarjetas de guía son un `<div>` con un click encima, no un `<a>`. El
+navegador no tiene forma de saberlo, así que aplicaba lo de siempre:
+flecha sobre el hueco de la tarjeta y **barra de escribir sobre el título
+y la descripción** — justo donde está el ratón cuando vas a pinchar, y
+justo lo contrario de lo que pasa, porque seleccionar ese texto no sirve
+de nada: el click abre la guía.
+
+De las tres tarjetas clicables, dos (`.recent-card` de la home y
+`.community-guide-row` del perfil) ya tenían `cursor: pointer` y la
+principal (`.guide-card`, la de las listas de categoría y guardados) no.
+
+La regla se engancha a `[role="link"]` y no a cada clase, porque ese
+atributo es exactamente lo que marca "esto se comporta como un enlace":
+lo llevan esas tres y nada más en todo `js/`. Si mañana aparece una
+cuarta, hereda el cursor por llevar el rol correcto.
+
+`cursor` se hereda, así que el texto de dentro lo coge solo — que es la
+mitad del arreglo. Los enlaces y botones de dentro traen el suyo y siguen
+mandando ellos: se comprobó que el botón de "Curso" desactivado sigue
+enseñando el "no permitido".

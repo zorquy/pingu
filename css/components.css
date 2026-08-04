@@ -268,6 +268,25 @@
   transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 
+/* Las tarjetas de guía son un <div> con un click encima, no un <a>. El
+   navegador no tiene forma de saberlo: sin esto el cursor sale de flecha
+   sobre el hueco de la tarjeta y de barra de texto sobre el título y la
+   descripción, que es justo lo contrario de lo que pasa — el texto no se
+   puede seleccionar de forma útil porque el click abre la guía.
+
+   Se engancha a [role="link"] y no a cada clase porque ese atributo es
+   exactamente lo que marca "esto se comporta como un enlace": lo llevan
+   las tres tarjetas clicables (.guide-card en las listas de categoría y
+   guardados, .recent-card en la home, .community-guide-row en el perfil
+   de cada usuario) y nada más. Si mañana aparece una cuarta, hereda el
+   cursor por llevar el rol correcto, sin tocar este fichero.
+
+   `cursor` se hereda, así que los hijos lo cogen solos; los botones y
+   enlaces de dentro traen el suyo y siguen mandando ellos. */
+[role='link'] {
+  cursor: pointer;
+}
+
 .guide-card:hover {
   border-color: var(--border-strong);
   box-shadow: var(--shadow-sm);
@@ -2639,11 +2658,28 @@ textarea.be-field {
   border-color: var(--navy);
 }
 
+/* ESTO NO ES COSMÉTICO, ARREGLA UN FALLO.
+   El botón se repinta a sí mismo (`pintarBoton()`) nada más entrar en su
+   propio manejador de click. Con un emoji dentro daba igual: el click
+   sobre un nodo de texto llega con `e.target` = el botón. Con un SVG
+   dentro, `e.target` es el SVG — y para cuando el evento sube hasta el
+   `document`, ese SVG ya lo ha sustituido el repintado, así que
+   `wrap.contains(e.target)` da falso, el cierre por "click fuera" se
+   dispara y el panel se abría y se cerraba en el mismo click.
+   Con esto el objetivo del click es siempre el botón. */
+.emoji-picker-btn > *,
+.emoji-picker-option > * {
+  pointer-events: none;
+}
+
 .emoji-picker-panel {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  width: 240px;
+  /* 6 columnas de 34 px + 5 huecos de 4 + 10 de relleno a cada lado. Con
+     los 240 px de antes las casillas no cabían por 4 px y la última
+     columna se salía por el borde. */
+  width: 254px;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 4px;
@@ -2670,6 +2706,36 @@ textarea.be-field {
 
 .emoji-picker-option:hover {
   background: var(--ice);
+}
+
+/* El que está puesto ahora mismo. Con emojis se distinguía por el dibujo
+   de colores; con iconos de un solo trazo hace falta decirlo con el
+   fondo, o no hay forma de saber cuál está elegido. */
+.emoji-picker-option.selected {
+  background: var(--navy);
+  color: var(--white);
+}
+
+/* Un icono pegado a un texto en la misma línea (títulos de guía en las
+   listas, cabeceras de colección). Ver inlineIconHtml en content-icon.js:
+   un SVG en línea se apoya en la línea base con toda su caja, así que sin
+   bajarlo un poco queda flotando por encima de las letras. */
+.inline-content-icon {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -0.15em;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+/* La fila de una guía guardada: el hueco del icono, del tamaño que tenía
+   el emoji que había antes. */
+.saved-guide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  flex-shrink: 0;
 }
 
 /* ── Icono de categoría personalizado (dibujo en vez de emoji) ── */

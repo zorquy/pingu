@@ -68,4 +68,29 @@ export const icons = {
   lightbulb: (size) => icon('<path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"></path>', size),
   triangleAlert: (size) => icon('<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>', size),
   pin: (size) => icon('<path d="M12 2a7 7 0 0 0-7 7c0 6 7 13 7 13s7-7 7-13a7 7 0 0 0-7-7z"></path><circle cx="12" cy="9" r="2.5"></circle>', size),
+
+  // ── Añadidos para sustituir a los emojis del contenido ──
+  //
+  // El vocabulario no es inventado: sale de los emojis que se usan de
+  // verdad en las portadas de las guías, en las categorías y en el
+  // selector del editor. Mismo trazo de 2 y mismo lienzo de 24 que los de
+  // arriba, para que no se note cuáles vinieron después.
+  cards: (size) => icon('<rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 3h9a2 2 0 0 1 2 2v11"></path>', size),
+  coins: (size) => icon('<ellipse cx="12" cy="6" rx="8" ry="3"></ellipse><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"></path><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path>', size),
+  gem: (size) => icon('<path d="M6 3h12l4 6-10 12L2 9z"></path><path d="M2 9h20"></path><path d="M12 21 8 9l2-6"></path><path d="m12 21 4-12-2-6"></path>', size),
+  target: (size) => icon('<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1.5"></circle>', size),
+  snowflake: (size) => icon('<line x1="12" y1="2" x2="12" y2="22"></line><line x1="3.3" y1="7" x2="20.7" y2="17"></line><line x1="3.3" y1="17" x2="20.7" y2="7"></line><path d="m9 5 3-3 3 3"></path><path d="m9 19 3 3 3-3"></path>', size),
+  gamepad: (size) => icon('<line x1="7" y1="12" x2="11" y2="12"></line><line x1="9" y1="10" x2="9" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="17.5" y1="11" x2="17.51" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="5"></rect>', size),
+  droplet: (size) => icon('<path d="M12 2.7 6.7 8a7.5 7.5 0 1 0 10.6 0z"></path>', size),
+  palette: (size) => icon('<circle cx="13.5" cy="6.5" r="1"></circle><circle cx="17.5" cy="10.5" r="1"></circle><circle cx="8.5" cy="7.5" r="1"></circle><circle cx="6.5" cy="12.5" r="1"></circle><path d="M12 2a10 10 0 0 0 0 20 2.5 2.5 0 0 0 2-4 2.5 2.5 0 0 1 2-4h2a4 4 0 0 0 4-4 10 10 0 0 0-10-8z"></path>', size),
+  ruler: (size) => icon('<path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4z"></path><path d="m7.5 10.5 2 2"></path><path d="m10.5 7.5 2 2"></path><path d="m13.5 4.5 2 2"></path>', size),
+  receipt: (size) => icon('<path d="M4 2v20l2.5-1.5L9 22l2.5-1.5L14 22l2.5-1.5L19 22V2l-2.5 1.5L14 2l-2.5 1.5L9 2 6.5 3.5z"></path><line x1="8" y1="8" x2="15" y2="8"></line><line x1="8" y1="12" x2="15" y2="12"></line>', size),
+  hash: (size) => icon('<line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line>', size),
+  scan: (size) => icon('<path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><circle cx="12" cy="12" r="3.5"></circle>', size),
+  leaf: (size) => icon('<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"></path><path d="M2 21c0-3 1.9-5.7 4.5-7.5"></path>', size),
 }
+
+// Los nombres válidos, sacados del propio objeto: si se añade un icono
+// arriba, esta lista se entera sola. Una lista escrita a mano al lado se
+// desincroniza el día que alguien añada uno y no baje hasta aquí.
+export const ICON_NAMES = Object.keys(icons)

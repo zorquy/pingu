@@ -12,6 +12,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, profileUrl, borderRarityClass, guideHasCourse, guideHasReference } from './app.js'
 import { icons } from './icons.js'
+import { contentIconHtml } from './content-icon.js'
 import { starsHtml as _stars } from './guide-rating.js'
 
 export { starsHtml } from './guide-rating.js'
@@ -61,7 +62,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
   <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}" data-author-id="${escapeHtml(guide.author_id || '')}" data-slug="${escapeHtml(guide.slug || '')}" data-has-guide="${hasGuide ? '1' : ''}" tabindex="0" role="link">
     <div class="guide-card-icon${guide.cover_image ? ' has-cover' : ''}"${
       guide.cover_image ? ` style="background-image:url('${guide.cover_image.replace(/'/g, '%27')}')"` : ''
-    }>${guide.cover_image ? '' : escapeHtml(guide.cover_emoji || '📘')}</div>
+    }>${guide.cover_image ? '' : contentIconHtml(guide.cover_emoji, 22, 'bookOpen')}</div>
     <div class="guide-card-info">
       ${categoryLabel ? `<span class="guide-label">${escapeHtml(categoryLabel)}</span>` : ''}
       <h3 title="${escapeHtml(guide.title)}">${escapeHtml(guide.title)}</h3>

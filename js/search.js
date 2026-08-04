@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
+import { inlineIconHtml } from './content-icon.js'
 
 const input = document.getElementById('searchInput')
 const resultsEl = document.getElementById('searchResults')
@@ -68,7 +69,7 @@ async function runSearch(rawQuery) {
       (g) => `
     <a href="guia.html?slug=${encodeURIComponent(g.slug)}" class="search-result" style="display: block;">
       <span class="guide-label">${escapeHtml(g.categories?.name || '')}</span>
-      <h3>${escapeHtml(g.cover_emoji || '')} ${escapeHtml(g.title)}</h3>
+      <h3>${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title)}</h3>
       <p class="snippet">${snippet(g.search_content || g.description, query)}</p>
     </a>`
     )

@@ -11,6 +11,7 @@ import { showToast } from '../../js/toast.js'
 import { icons } from '../../js/icons.js'
 import { loadDraft, clearDraft, startAutosave } from '../../js/editor-autosave.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
+import { inlineIconHtml } from '../../js/content-icon.js'
 import { addXP } from '../../js/gamification.js'
 import { createNotification } from '../../js/notifications.js'
 
@@ -203,7 +204,7 @@ async function loadPaths(guide) {
       return `
       <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
         <input type="checkbox" class="gr-check" data-route-id="${p.id}" ${checked ? 'checked' : ''} />
-        <span style="flex:1;">${p.emoji || ''} ${escapeHtml(p.title)}</span>
+        <span style="flex:1;">${inlineIconHtml(p.emoji, 16, 'bookOpen')}${escapeHtml(p.title)}</span>
         <input type="number" class="gr-position" data-route-id="${p.id}" placeholder="Posición" style="width: 90px;" value="${existingRoutePositions[p.id] ?? 0}" />
       </div>`
     })

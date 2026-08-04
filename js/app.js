@@ -1,14 +1,11 @@
 import { supabase } from './supabase.js'
 import { icons } from './icons.js'
+import { contentIconHtml } from './content-icon.js'
 
-export function escapeHtml(str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
+// Vive en html.js para romper el ciclo con content-icon.js. Se reexporta
+// para que los ficheros que ya lo importaban de aquí sigan igual.
+export { escapeHtml } from './html.js'
+import { escapeHtml } from './html.js'
 
 export function getInitial(name) {
   if (!name) return '?'
@@ -149,7 +146,7 @@ export function guideHasReference(guide) {
 
 export function cardMediaHtml(imageUrl, emoji) {
   if (!imageUrl) return ''
-  return `<div class="card-media" style="background-image:url('${imageUrl.replace(/'/g, '%27')}')"><span class="card-media-badge">${escapeHtml(emoji || '📘')}</span></div>`
+  return `<div class="card-media" style="background-image:url('${imageUrl.replace(/'/g, '%27')}')"><span class="card-media-badge">${contentIconHtml(emoji, 16, 'bookOpen')}</span></div>`
 }
 
 // Contenido para el cuadradito de icono de una categoría (.category-icon,
@@ -163,7 +160,7 @@ export function categoryIconHtml(category, size = 24) {
   if (category?.icon_image) {
     return `<img src="${category.icon_image.replace(/'/g, '%27')}" alt="" class="category-icon-img" style="width:${size}px; height:${size}px;" />`
   }
-  return `<span style="font-size:${size}px;">${escapeHtml(category?.emoji || '📘')}</span>`
+  return contentIconHtml(category?.emoji, size, 'bookOpen')
 }
 
 // Igual que categoryIconHtml pero para logros: achievement_definitions ya
@@ -174,7 +171,7 @@ export function achievementIconHtml(achievement, size = 24) {
   if (achievement?.icon_url) {
     return `<img src="${achievement.icon_url.replace(/'/g, '%27')}" alt="" class="category-icon-img" style="width:${size}px; height:${size}px;" />`
   }
-  return `<span style="font-size:${size}px;">${escapeHtml(achievement?.emoji || '🏆')}</span>`
+  return contentIconHtml(achievement?.emoji, size, 'trophy')
 }
 
 const CONFETTI_COLORS = ['var(--navy)', 'var(--indigo)', 'var(--warning)', 'var(--success)', 'var(--pink)', 'var(--ice-dark)']

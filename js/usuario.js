@@ -6,6 +6,7 @@ import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 import { createNotification } from './notifications.js'
 import { icons } from './icons.js'
+import { inlineIconHtml } from './content-icon.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
@@ -124,7 +125,7 @@ async function loadReputationAndGuides() {
     .map(
       (g) => `
     <a href="/guia.html?slug=${encodeURIComponent(g.slug)}" class="completed-course-row" style="text-decoration:none; color:inherit;">
-      <span>${escapeHtml(g.cover_emoji || '📘')} ${escapeHtml(g.title)}</span>
+      <span>${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title)}</span>
       <span class="date">${escapeHtml(g.categories?.name || '')}</span>
     </a>`
     )

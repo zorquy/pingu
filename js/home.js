@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml, guideHasReference } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { icons } from './icons.js'
+import { contentIconHtml } from './content-icon.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 
 async function loadCategories() {
@@ -61,7 +62,7 @@ async function loadRecent() {
     .map(
       (g) => `
     <div class="recent-card ${borderRarityClass(g.guide_rarity)}" data-guide-id="${g.id}" data-author-id="${escapeHtml(g.author_id || '')}" data-slug="${escapeHtml(g.slug || '')}" data-has-guide="${guideHasReference(g) ? '1' : ''}" tabindex="0" role="link">
-      ${g.cover_image ? cardMediaHtml(g.cover_image, g.cover_emoji) : `<span class="emoji">${escapeHtml(g.cover_emoji || '📘')}</span>`}
+      ${g.cover_image ? cardMediaHtml(g.cover_image, g.cover_emoji) : `<span class="emoji">${contentIconHtml(g.cover_emoji, 32, 'bookOpen')}</span>`}
       <h3>${escapeHtml(g.title)}</h3>
       <p>${escapeHtml(g.description || '')}</p>
       <div class="meta">

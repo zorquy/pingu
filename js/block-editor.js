@@ -3,6 +3,7 @@ import { bbcodeToolbarHtml, wireBBCodeToolbars, parseBBCode } from './bbcode.js'
 import { sanitizeRichText } from './richtext-editor.js'
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
+import { attachEmojiPicker } from './emoji-picker.js'
 
 // Render de un bloque de referencia a HTML final — lo usan tanto guia.js
 // (la página real) como la vista previa en vivo del editor, para que las
@@ -43,12 +44,17 @@ export function renderReferenceBlocksHtml(blocks, headings = []) {
   return (blocks || []).map((b) => renderReferenceBlock(b, headings)).join('')
 }
 
+// El campo se sigue llamando `emoji` porque así se llama en los bloques
+// ya guardados en la base y renombrarlo obligaría a migrar contenido de
+// otra gente; lo que cambia es lo que se guarda dentro: el nombre de un
+// icono ('sparkles') en vez del carácter. Los bloques antiguos siguen
+// teniendo su emoji y se pintan igual, traducidos al vuelo.
 export const COURSE_BLOCK_DEFAULTS = {
-  hook: { type: 'hook', emoji: '👋', headline: '', subtext: '' },
-  concept: { type: 'concept', emoji: '💡', title: '', body: '', image_url: '', highlight: '' },
-  warning: { type: 'warning', emoji: '⚠️', title: '', body: '', highlight: '' },
-  tip: { type: 'tip', emoji: '💡', title: '', body: '', highlight: '' },
-  example: { type: 'example', emoji: '📌', title: '', body: '', highlight: '' },
+  hook: { type: 'hook', emoji: 'sparkles', headline: '', subtext: '' },
+  concept: { type: 'concept', emoji: 'lightbulb', title: '', body: '', image_url: '', highlight: '' },
+  warning: { type: 'warning', emoji: 'triangleAlert', title: '', body: '', highlight: '' },
+  tip: { type: 'tip', emoji: 'lightbulb', title: '', body: '', highlight: '' },
+  example: { type: 'example', emoji: 'pin', title: '', body: '', highlight: '' },
   quiz: { type: 'quiz', question: '', options: ['', ''], correct_index: 0, explanation: '' },
   truefalse: { type: 'truefalse', statement: '', is_true: true, explanation: '' },
   fillblank: { type: 'fillblank', before: '', after: '', options: ['', ''], correct_option: '' },
@@ -77,7 +83,7 @@ export function fieldsForCourseBlock(block, i) {
   switch (block.type) {
     case 'hook':
       return `
-        <input class="be-field" data-i="${i}" data-f="emoji" placeholder="Emoji" value="${escapeHtml(block.emoji || '')}" />
+        <input class="be-field" data-i="${i}" data-f="emoji" placeholder="Icono" value="${escapeHtml(block.emoji || '')}" />
         <input class="be-field" data-i="${i}" data-f="headline" placeholder="Titular" value="${escapeHtml(block.headline || '')}" />
         ${bbcodeToolbarHtml(`cb-subtext-${i}`)}
         <textarea class="be-field" id="cb-subtext-${i}" data-i="${i}" data-f="subtext" placeholder="Subtexto">${escapeHtml(block.subtext || '')}</textarea>`
@@ -86,7 +92,7 @@ export function fieldsForCourseBlock(block, i) {
     case 'tip':
     case 'example':
       return `
-        <input class="be-field" data-i="${i}" data-f="emoji" placeholder="Emoji" value="${escapeHtml(block.emoji || '')}" />
+        <input class="be-field" data-i="${i}" data-f="emoji" placeholder="Icono" value="${escapeHtml(block.emoji || '')}" />
         <input class="be-field" data-i="${i}" data-f="title" placeholder="Título" value="${escapeHtml(block.title || '')}" />
         ${bbcodeToolbarHtml(`cb-body-${i}`)}
         <textarea class="be-field" id="cb-body-${i}" data-i="${i}" data-f="body" placeholder="Texto">${escapeHtml(block.body || '')}</textarea>
@@ -200,6 +206,11 @@ export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
     </div>`
     )
     .join('')
+
+  // Cada campo de icono lleva su propio selector. Va aquí y no dentro de
+  // fieldsForCourseBlock porque el editor se repinta entero (cambiar de
+  // tipo, quitar un bloque) y los <input> son nodos nuevos cada vez.
+  containerEl.querySelectorAll('.be-field[data-f="emoji"]').forEach((input) => attachEmojiPicker(input))
 
   containerEl.querySelectorAll('.be-type').forEach((sel) =>
     sel.addEventListener('change', () => {

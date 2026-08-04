@@ -4,6 +4,7 @@ import { markCourseStarted, markCourseCompleted, addXP, incrementQuizCorrect } f
 import { parseBBCode } from './bbcode.js'
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
+import { contentIconHtml } from './content-icon.js'
 
 let blocks = []
 let currentIndex = 0
@@ -47,7 +48,7 @@ async function persistIndex(index) {
 function renderHook(b) {
   return `
     <div class="block block-hook">
-      <span class="block-emoji">${escapeHtml(b.emoji || '👋')}</span>
+      <span class="block-emoji">${contentIconHtml(b.emoji, 34, 'sparkles')}</span>
       <h1 class="block-headline">${escapeHtml(b.headline || '')}</h1>
       <p class="block-subtext">${parseBBCode(b.subtext || '')}</p>
     </div>`
@@ -57,7 +58,7 @@ function renderConceptLike(b, extraClass, label) {
   return `
     <div class="block ${extraClass}">
       <div class="block-header">
-        <span>${escapeHtml(b.emoji || '')}</span>
+        <span>${b.emoji ? contentIconHtml(b.emoji, 20, 'lightbulb') : ''}</span>
         <span class="block-label">${label}</span>
       </div>
       ${b.image_url ? `<img src="${escapeHtml(b.image_url)}" class="block-image" onerror="this.style.display='none'">` : ''}
