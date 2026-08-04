@@ -4638,17 +4638,20 @@ Va con `alt=""` a propósito: es decorativa. Lo que cuenta qué es PokeDoc
 es el texto de al lado, y un lector de pantalla que lea "ilustración de un
 pingüino cartero" no aporta nada, solo estorba.
 
-### En oscuro hace falta ponerle un fondo, y no es capricho
+### El contraste en oscuro: medido, y descartado a propósito
 
 El pingüino tiene el cuerpo y las alas **negras con contorno negro**. El
-fondo del modal en tema oscuro es `#182430`, casi negro también. Medido:
-el contraste entre las alas y ese fondo es de **1,3:1** — o sea que no se
-ven, y el personaje parece flotar sin brazos.
+fondo del modal en tema oscuro es `#182430`, casi negro también. Medido
+con la fórmula de luminancia de WCAG sobre la página real: el contraste
+entre las alas y ese fondo es de **1,3:1** (en claro, 21:1).
 
-Con la chapa clara detrás sube a **18,9:1**. Los dos números salen de
-medir la luminancia relativa según WCAG en la página real, con y sin la
-regla, no de mirarlo a ojo.
+Se probó a ponerle una chapa clara detrás, que lo subía a 18,9:1. **Se
+descartó**: cantaba más de lo que arreglaba, y lo que se pierde son los
+bordes de las alas, no el personaje — la cabeza, la panza y el buzón
+siguen viéndose perfectamente. Decisión de producto, tomada mirando el
+resultado.
 
-La chapa es un color fijo (`#e6f6fb`) y no `var(--ice)`: en tema oscuro
-esa variable también es oscura y no arreglaría nada. En tema claro no se
-le pone nada, porque ahí ya contrasta 21:1 sola.
+La mascota va, entonces, sin fondo en los dos temas. La prueba no exige
+ningún contraste mínimo, pero **sigue midiéndolo y lo imprime**: si algún
+día alguien se replantea esto, tendrá el número delante en vez de
+discutirlo a ojo.

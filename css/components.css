@@ -3279,16 +3279,3 @@ a.rater-name:hover {
     width: 110px;
   }
 }
-
-/* EN OSCURO HAY QUE PONERLE UN FONDO, NO ES CAPRICHO.
-   El pingüino tiene el cuerpo y las alas negras con contorno negro. Sobre
-   el fondo del modal en tema oscuro (#182430) el contraste es de 1.3:1
-   —medido—, o sea que las alas sencillamente no se ven y el personaje
-   parece flotar sin brazos.
-   La chapa clara es fija a propósito, no usa var(--ice): en oscuro esa
-   variable también es oscura y no arreglaría nada. */
-:root[data-theme='dark'] .mascota {
-  background: #e6f6fb;
-  border-radius: 14px;
-  padding: 8px;
-}
