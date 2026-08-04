@@ -44,7 +44,7 @@ async function loadUsers() {
   const [{ data }, { data: approvedGuides }] = await Promise.all([
     supabase
       .from('user_profiles')
-      .select('id, username, display_name, level, total_xp, avatar_url, avatar_color')
+      .select('id, username, display_name, level, total_xp, avatar_url')
       .order('total_xp', { ascending: false })
       .limit(200),
     supabase.from('guides').select('author_id').eq('review_status', 'approved').not('author_id', 'is', null),

@@ -250,8 +250,11 @@ perfil") · `display_name` (se usa para mostrar el nombre en toda la web;
 `username` queda como respaldo) · `total_xp` ·
 `level` · `is_pro` · `achievements` (text[], ids de `achievement_definitions`
 desbloqueados) · `saved_guides` (uuid[], ids de guías guardadas — sin tabla
-aparte) · `unlocked_references` (uuid[]) · `avatar_color` (color de fondo
-del avatar, con fallback a navy) · `is_admin` · `quiz_correct_count` ·
+aparte) · `unlocked_references` (uuid[]) · `avatar_color` (**en desuso**:
+la web ya no la lee. Nadie la escribía nunca, así que solo contenía su
+valor por defecto y hacía que todo el mundo saliera del mismo azul; el
+color de quien no tiene foto se deduce ahora del `id`, con
+`avatarColorForKey` en `js/app.js`) · `is_admin` · `quiz_correct_count` ·
 `push_token` (no usado desde la web) · `onboarding_completed` · `interests`
 (text[], slugs de categorías elegidas en el onboarding) · `recommended_path`
 (text — el nombre de la columna quedó de cuando esto recomendaba una
@@ -262,8 +265,9 @@ cabecera del perfil público, se usa solo si no hay `banner_url`) ·
 `showcase_achievement` (id de `achievement_definitions` que el usuario elige
 destacar en su perfil) · `avatar_url` / `banner_url` (de la migración
 `supabase-migration-avatars.sql` — foto y banner subidos por el propio
-usuario al bucket de Storage `avatars`; si están rellenos, la web los usa
-en vez de `avatar_color`/`banner_color`).
+usuario al bucket de Storage `avatars`. `banner_url`, si está relleno,
+manda sobre `banner_color`; `avatar_url`, si está relleno, manda sobre el
+color deducido).
 
 **Perfiles públicos**: desde la migración `supabase-migration-social.sql`,
 cualquiera puede leer cualquier fila de `user_profiles` (antes solo se leía
@@ -3890,7 +3894,7 @@ listas de gente eran un muro de círculos idénticos.
 No se ha rellenado la columna con una migración: el color se **deduce del
 identificador**. Es estable (a cada persona le toca siempre el mismo), no
 hay que escribir nada, y funciona desde ya para las cuentas que ya
-existen. Si alguien elige color a mano, ese manda.
+existen.
 
 **El hash importó más de lo esperado.** El primer intento reutilizaba
 `tintIndexForKey`, que es polinómico (`h*31+c`): al aplicarle un módulo
@@ -3898,6 +3902,52 @@ pequeño, el resultado depende sobre todo de los últimos caracteres. Con
 UUID —largos y parecidos entre sí— agrupaba a la gente en pocos colores:
 **4 de 10 para 20 personas**. Con una mezcla final tipo avalancha
 (FNV-1a + finalizador) sube a la media teórica.
+
+### Y aun así seguían saliendo todos azules: dos causas
+
+El usuario volvió a avisar de que la gente sin foto seguía teniendo el
+mismo azul. Eran **dos fallos independientes**, y ninguno de los dos era
+el que yo había documentado arriba.
+
+**1. `COLORES_AVATAR[-3]` es `undefined`.** El finalizador del hash
+acababa en `h ^= h >>> 16`, y en JavaScript el XOR devuelve un entero
+**con signo**. Casi la mitad de las veces `h` quedaba negativo, `h % 10`
+salía negativo y el índice caía fuera del array. El resultado era
+`background-color: undefined`, que el navegador **descarta sin dar
+error**, dejando el azul de la hoja de estilos. Medido sobre 10.000 UUID
+reales: **el 44,8%**. Sumando el 10% al que le tocaba de verdad el azul
+de la paleta, más de la mitad del censo salía azul. Se arregla con
+`(h >>> 0) % COLORES_AVATAR.length`.
+
+`tintIndexForKey` no tiene este fallo porque su `>>> 0` va dentro del
+bucle, así que el valor ya llega sin signo al módulo.
+
+**2. La columna de la base ganaba siempre.** `avatarStyle` hacía
+`profile?.avatar_color || avatarColorForKey(...)`, con el comentario "si
+alguien elige un color a mano, ese manda". Pero **nadie puede elegirlo**:
+ni la web ni el admin escriben `avatar_color` en ningún sitio (se
+comprobó buscando escrituras en todos los `.js` y `.html`). La columna
+solo puede traer su valor por defecto, igual para todo el mundo. O sea
+que esa condición no protegía ningún caso real y anulaba el reparto
+entero. Ahora no se mira, y se ha quitado de los nueve `select` que la
+pedían.
+
+**Por qué la prueba anterior no lo vio.** Contaba `new Set(colores).size`
+y exigía "al menos 5 colores distintos de 10". Con el 45% en `undefined`,
+ese `undefined` **contaba como un color distinto más** y el recuento
+cuadraba. Contar valores distintos no es comprobar que cada valor sea
+válido. `test-color-avatar.mjs` ahora exige que todo resultado case con
+`/^#[0-9a-f]{6}$/`, que se usen los 10 colores, que ninguno acapare más
+del 14%, y mide el color **calculado** del círculo en pantalla — que es
+lo único que detecta un `background-color` inválido, porque no da error:
+simplemente se ignora.
+
+Y una trampa de la propia prueba: su generador con semilla hacía
+`semilla * 1103515245`, que se pasa de los 53 bits que JavaScript maneja
+sin perder precisión. Repetía valores (949 distintos de 2000) y falseaba
+el reparto medido —marcaba un 12,4% de sesgo donde el hash real da
+10,12%—. Corregido con `Math.imul`. **Un generador roto en la prueba
+parece un fallo en el código que se está probando.**
 
 ### La foto de Google
 

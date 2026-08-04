@@ -54,14 +54,16 @@ export function borderRarityClass(rarity) {
 // tamaño, con la inicial.
 // Colores para el avatar de quien no tiene foto.
 //
-// `avatar_color` existe en la base pero NO se le asignaba a nadie, así
-// que todo el mundo caía en el azul por defecto y las listas de gente
-// eran un muro de círculos idénticos. En vez de rellenar la columna con
-// una migración, el color se DEDUCE del identificador: es estable (a
-// cada persona le toca siempre el mismo), no hace falta escribir nada, y
+// El color se DEDUCE del identificador: es estable (a cada persona le
+// toca siempre el mismo), no hace falta escribir nada en la base, y
 // funciona desde ya para las cuentas que ya existen.
 //
-// Si alguien elige un color a mano, ese manda.
+// La columna `user_profiles.avatar_color` NO se mira. Tiene valor por
+// defecto en la base y ni la web ni el admin la escriben nunca: nadie
+// puede elegir color de avatar. O sea que lo único que puede traer es el
+// mismo azul para todo el mundo. Respetarla "por si alguien lo ha
+// elegido a mano" protegía un caso que no existe y rompía el que sí:
+// ganaba siempre y anulaba el reparto entero.
 const COLORES_AVATAR = [
   '#1e5175', // azul PokeDoc
   '#8b5cf6', // violeta
@@ -95,15 +97,20 @@ export function avatarColorForKey(key) {
   h ^= h >>> 13
   h = Math.imul(h, 3266489909) >>> 0
   h ^= h >>> 16
-  return COLORES_AVATAR[h % COLORES_AVATAR.length]
+  // El `>>> 0` de aquí NO es decorativo. En JavaScript el XOR devuelve un
+  // entero con SIGNO: la línea de arriba deja `h` negativo casi la mitad
+  // de las veces, `h % 10` sale negativo, y `COLORES_AVATAR[-3]` es
+  // `undefined`. Eso acababa en `background-color: undefined`, que el
+  // navegador descarta sin dar error, dejando el azul de la hoja de
+  // estilos. Medido con UUID reales: el 45% de la gente.
+  return COLORES_AVATAR[(h >>> 0) % COLORES_AVATAR.length]
 }
 
 export function avatarStyle(profile) {
   if (profile?.avatar_url) {
     return `background-image:url('${String(profile.avatar_url).replace(/'/g, '%27')}'); background-color:transparent;`
   }
-  const color = profile?.avatar_color || avatarColorForKey(profile?.id || profile?.username || '')
-  return `background-color:${color};`
+  return `background-color:${avatarColorForKey(profile?.id || profile?.username || '')};`
 }
 
 // La misma decisión que avatarStyle, pero aplicada sobre un elemento que
@@ -120,7 +127,7 @@ export function applyAvatarTo(el, profile, inicial = '') {
     return
   }
   el.style.backgroundImage = 'none'
-  el.style.backgroundColor = profile?.avatar_color || avatarColorForKey(profile?.id || profile?.username || '')
+  el.style.backgroundColor = avatarColorForKey(profile?.id || profile?.username || '')
   el.textContent = inicial
 }
 

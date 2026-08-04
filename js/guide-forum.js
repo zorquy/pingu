@@ -9,7 +9,7 @@ const PAGE_SIZE = 10
 async function profilesByIds(ids) {
   const uniqueIds = [...new Set(ids)]
   if (uniqueIds.length === 0) return {}
-  const { data } = await supabase.from('user_profiles').select('id, display_name, username, avatar_url, avatar_color').in('id', uniqueIds)
+  const { data } = await supabase.from('user_profiles').select('id, display_name, username, avatar_url').in('id', uniqueIds)
   return Object.fromEntries((data || []).map((p) => [p.id, p]))
 }
 

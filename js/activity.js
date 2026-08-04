@@ -83,7 +83,7 @@ export async function loadActivity(limite = 20) {
 
   const [{ data: perfiles }, { data: guias }] = await Promise.all([
     userIds.length
-      ? supabase.from('user_profiles').select('id, username, display_name, avatar_url, avatar_color, hide_activity').in('id', userIds)
+      ? supabase.from('user_profiles').select('id, username, display_name, avatar_url, hide_activity').in('id', userIds)
       : Promise.resolve({ data: [] }),
     guideIds.length
       ? supabase.from('guides').select('id, title, slug').in('id', guideIds)

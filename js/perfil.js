@@ -161,7 +161,7 @@ async function loadFollowSummary(session) {
 
   let profilesById = {}
   if (allIds.length > 0) {
-    const { data: profiles } = await supabase.from('user_profiles').select('id, display_name, username, avatar_url, avatar_color').in('id', allIds)
+    const { data: profiles } = await supabase.from('user_profiles').select('id, display_name, username, avatar_url').in('id', allIds)
     profilesById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
   }
 

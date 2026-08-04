@@ -94,7 +94,7 @@ async function init() {
   if (guide.author_id) {
     const { data } = await supabase
       .from('user_profiles')
-      .select('id, display_name, username, avatar_url, avatar_color')
+      .select('id, display_name, username, avatar_url')
       .eq('id', guide.author_id)
       .single()
     author = data

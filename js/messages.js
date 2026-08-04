@@ -43,7 +43,7 @@ export async function listConversations(myId) {
   const otherIds = [...new Set(Object.values(otherIdByConv))]
   const { data: profiles } =
     otherIds.length > 0
-      ? await supabase.from('user_profiles').select('id, username, display_name, avatar_url, avatar_color').in('id', otherIds)
+      ? await supabase.from('user_profiles').select('id, username, display_name, avatar_url').in('id', otherIds)
       : { data: [] }
   const profileById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
 
@@ -98,7 +98,7 @@ export async function getOtherParticipant(conversationId, myId) {
   if (!data) return null
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('id, username, display_name, avatar_url, avatar_color')
+    .select('id, username, display_name, avatar_url')
     .eq('id', data.user_id)
     .single()
   return profile

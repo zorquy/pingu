@@ -67,7 +67,7 @@ async function renderNewConversation(session) {
     }
     const { data } = await supabase
       .from('user_profiles')
-      .select('id, username, display_name, avatar_url, avatar_color')
+      .select('id, username, display_name, avatar_url')
       .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
       .neq('id', session.user.id)
       .limit(10)
