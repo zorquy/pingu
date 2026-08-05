@@ -5607,3 +5607,87 @@ solo se llega a las funciones publicadas.
   con su columna de autor, sus citas y sus "me gusta"; responder citando;
   el tema cerrado; el panel de `/admin`; que un tema nuevo salga en
   Actividad; y que las tres pantallas quepan en 360 px.
+
+## El foro, segunda vuelta: títulos, moderación y edición
+
+Migración: **`supabase-migration-foro-titulos.sql`** (va DESPUÉS de
+`supabase-migration-foro.sql`; es idempotente).
+
+### El "me gusta" en tu propio mensaje
+
+Daba un error de PostgreSQL en crudo por pantalla:
+*new row violates row-level security policy for table "forum_post_likes"*.
+La base hacía lo correcto —aplaudirse solo no es señal de nada— pero **el
+botón se enseñaba igual**, así que la única forma de descubrir la regla
+era chocarse con ella.
+
+Ahora en tu propio mensaje no sale el botón. Y si el error llega por
+cualquier otro camino, se traduce: *"No puedes darle a tu propio
+mensaje"*. Un error de base de datos en la cara de alguien es siempre un
+fallo de quien lo escribió, no de quien lo lee.
+
+### Títulos de foro
+
+`user_profiles.forum_title`: texto libre que un admin escribe desde
+`/admin` y que se lee bajo el nombre de esa persona en cada mensaje. Es
+**puro reconocimiento y no da ningún permiso**.
+
+Manda sobre lo demás: si alguien tiene título, se lee ese; si no, el rango
+de colaborador (que se gana escribiendo guías); y si tampoco, el nivel.
+
+### Moderadores
+
+`user_profiles.is_moderator` + `public.is_staff()` (= admin **o**
+moderación). Todas las políticas del foro pasan a usar `is_staff()`, así
+que un moderador **fija, cierra, mueve, edita y borra en el foro sin
+entrar al panel de administración**. Los foros escondidos siguen siendo
+cosa de administración: no abrir un foro es una decisión de producto, no
+de moderación.
+
+Ponerse un título o nombrarse moderador lo impide un disparador: la
+política de `user_profiles` deja que cada cual edite su fila, así que sin
+él cualquiera podría ascenderse solo.
+
+### Editar mensajes
+
+Se edita **en su sitio**, con el mismo editor con formato, en vez de en
+una ventana aparte: así se ve el mensaje rodeado de la conversación a la
+que contesta.
+
+`edited_at` lo pone un **disparador**, no el navegador. Si dependiera del
+cliente bastaría con no mandarlo para editar a escondidas. Y solo se marca
+cuando cambia el texto: tocar otra columna no ensucia el mensaje con un
+"editado" que nadie ha hecho.
+
+### La trampa que destapó su propia prueba
+
+El disparador que impide ascenderse revertía **también** lo que se escribe
+sin sesión — es decir, desde el SQL Editor o con la clave de servicio.
+Nombrar el primer moderador a mano no habría funcionado, **y sin dar
+ningún error**. Ahora los dos disparadores de este tipo solo actúan cuando
+hay alguien identificado: los frenos son para la API, no para la consola.
+
+### Actividad del foro en el perfil
+
+`js/foro-actividad.js`, compartido por el perfil propio y el público: los
+temas que ha abierto esa persona y los mensajes que ha escrito, en **dos
+listas y no una**. Son dos cosas distintas — abrir un tema es proponer
+algo y responder es ayudar en lo de otro—, y mezcladas no se distingue
+quién arranca conversaciones de quién las sostiene.
+
+El primer mensaje de un tema **es** el tema, así que no se cuenta también
+como mensaje. Se carga al abrir su pestaña, no al entrar al perfil.
+
+### El foro en el sitemap y al compartirlo
+
+Los temas son el contenido que más gente puede traer de fuera ("¿es falsa
+esta carta?" es una búsqueda real). Ahora están en el sitemap, con
+`lastmod` en la fecha del último mensaje, y los foros también. Los foros
+escondidos no se listan.
+
+### Sobre el tope de XP, que no es un tope de mensajes
+
+Se puede escribir sin límite: no hay esperas ni máximos. Lo único topado
+es el **XP** — a partir de 10 mensajes en un día los siguientes no suman,
+y uno de menos de 80 caracteres tampoco. Es un freno al farmeo, no a la
+participación: el mensaje se publica igual.

@@ -18,6 +18,7 @@ import {
   urlForo,
   urlTema,
   temaDeLaRuta,
+  esDelEquipo,
   faltaElForo,
 } from './foro-comun.js'
 import { calculateLevel } from './gamification.js'
@@ -44,7 +45,7 @@ const elPaginacion = document.getElementById('temaPaginacion')
 const elResponder = document.getElementById('temaResponder')
 
 let sesion = null
-let soyAdmin = false
+let soyStaff = false
 let tema = null
 let foro = null
 let pagina = paginaPedida
@@ -60,10 +61,17 @@ function migasHtml(trozos) {
     .join('<span class="foro-migas-sep" aria-hidden="true">›</span>')
 }
 
-// El título de debajo del nombre. Es el rango de colaborador si lo tiene
-// (que se gana escribiendo guías) y, si no, el nivel — para que nadie se
-// quede sin nada debajo del nombre, que queda desangelado.
+// El título de debajo del nombre, por orden de mando:
+//
+//   1. El que le haya puesto un admin a mano (forum_title). Manda sobre
+//      todo lo demás: si alguien es "Perito de falsificaciones", eso es
+//      lo que se lee, no su nivel.
+//   2. El rango de colaborador, que se gana escribiendo guías.
+//   3. El nivel, para que nadie se quede sin nada debajo del nombre.
 function tituloDe(perfil, guiasAprobadas) {
+  if (perfil?.forum_title) {
+    return `<span class="foro-autor-titulo foro-autor-titulo-propio">${escapeHtml(perfil.forum_title)}</span>`
+  }
   if (guiasAprobadas > 0) return badgeHtml(guiasAprobadas)
   const nivel = perfil?.level || calculateLevel(perfil?.total_xp || 0)
   return `<span class="foro-autor-titulo">${escapeHtml(nivel)}</span>`
@@ -72,6 +80,7 @@ function tituloDe(perfil, guiasAprobadas) {
 function chapasDe(perfil, esAutorDelTema) {
   const chapas = []
   if (perfil?.is_admin) chapas.push('<span class="foro-chapa foro-chapa-equipo">Miembro del equipo</span>')
+  else if (perfil?.is_moderator) chapas.push('<span class="foro-chapa foro-chapa-equipo">Moderación</span>')
   if (esAutorDelTema) chapas.push('<span class="foro-chapa">Abrió el tema</span>')
   return chapas.join('')
 }
@@ -122,9 +131,9 @@ function pintarCabecera(perfilAutor) {
       · <span title="${escapeHtml(fechaLarga(tema.created_at))}">${escapeHtml(haceCuanto(tema.created_at))}</span>
       · ${icons.eye(13)} ${tema.view_count || 0}
     </p>
-    ${soyAdmin ? panelModeracionHtml() : ''}`
+    ${soyStaff ? panelModeracionHtml() : ''}`
 
-  if (soyAdmin) {
+  if (soyStaff) {
     document.getElementById('btnFijar')?.addEventListener('click', () => moderar({ is_pinned: !tema.is_pinned }))
     document.getElementById('btnCerrar')?.addEventListener('click', () => moderar({ is_locked: !tema.is_locked }))
   }
@@ -174,13 +183,17 @@ async function pintarMensajes() {
       : Promise.resolve({ data: [] }),
   ])
 
-  // Los perfiles de quien administra: hace falta saberlo para la chapa de
-  // "Miembro del equipo".
-  const { data: admins } = await supabase
-    .from('user_profiles')
-    .select('id, is_admin')
-    .in('id', [...new Set(lista.map((m) => m.author_id).filter(Boolean))])
-  for (const a of admins || []) if (perfiles[a.id]) perfiles[a.id].is_admin = a.is_admin
+  // Quién es del equipo y qué título le han puesto: hace falta para la
+  // columna del autor. Si la migración de títulos todavía no está puesta,
+  // la consulta falla y se sigue sin ellos — el foro no depende de esto.
+  const autores = [...new Set(lista.map((m) => m.author_id).filter(Boolean))]
+  if (autores.length) {
+    const { data: extra } = await supabase
+      .from('user_profiles')
+      .select('id, is_admin, is_moderator, forum_title')
+      .in('id', autores)
+    for (const a of extra || []) if (perfiles[a.id]) Object.assign(perfiles[a.id], a)
+  }
 
   const citadoPorId = Object.fromEntries((citadosData || []).map((c) => [c.id, c]))
   const likesPorMensaje = {}
@@ -236,15 +249,23 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, likes) {
              </blockquote>`
           : ''
       }
-      <div class="article-body foro-mensaje-texto">${sanitizeRichText(m.body_html || '')}</div>
+      <div class="article-body foro-mensaje-texto" data-texto="${m.id}">${sanitizeRichText(m.body_html || '')}</div>
       <footer class="foro-mensaje-pie">
         <div class="foro-mensaje-izq">
           ${reportButtonHtml('forum_post', m.id)}
-          ${esMio || soyAdmin ? `<button type="button" class="link-btn" data-borrar="${m.id}">${icons.trash(13)} Borrar</button>` : ''}
+          ${esMio || soyStaff ? `<button type="button" class="link-btn" data-editar="${m.id}">${icons.edit(13)} Editar</button>` : ''}
+          ${esMio || soyStaff ? `<button type="button" class="link-btn" data-borrar="${m.id}">${icons.trash(13)} Borrar</button>` : ''}
         </div>
         <div class="foro-mensaje-der">
-          <button type="button" class="foro-accion ${meGusta ? 'foro-accion-on' : ''}" data-megusta="${m.id}"
-                  aria-pressed="${meGusta}">${icons.thumbsUp(14, meGusta)} Me gusta${likes.length ? ` · ${likes.length}` : ''}</button>
+          ${
+            // En tu propio mensaje no hay "Me gusta": la base lo prohíbe
+            // (aplaudirse solo no es una señal de nada), y enseñar un
+            // botón que siempre va a dar error es peor que no enseñarlo.
+            esMio
+              ? ''
+              : `<button type="button" class="foro-accion ${meGusta ? 'foro-accion-on' : ''}" data-megusta="${m.id}"
+                  aria-pressed="${meGusta}">${icons.thumbsUp(14, meGusta)} Me gusta${likes.length ? ` · ${likes.length}` : ''}</button>`
+          }
           <button type="button" class="foro-accion" data-citar="${m.id}">${icons.quote(14)} Citar</button>
         </div>
       </footer>
@@ -294,6 +315,83 @@ function enganchar(perfiles) {
   elMensajes.querySelectorAll('[data-borrar]').forEach((b) =>
     b.addEventListener('click', () => borrarMensaje(b.dataset.borrar))
   )
+  elMensajes.querySelectorAll('[data-editar]').forEach((b) =>
+    b.addEventListener('click', () => editarMensaje(b.dataset.editar))
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Editar un mensaje ya publicado
+// ─────────────────────────────────────────────────────────────
+//
+// Se edita EN SU SITIO, con el mismo editor de siempre, en vez de en una
+// ventana aparte: así se ve el mensaje rodeado de la conversación a la que
+// contesta, que es justo lo que hace falta para corregirlo bien.
+//
+// El editor se carga a demanda: la mayoría de quien lee un tema no va a
+// editar nada.
+async function editarMensaje(postId) {
+  const caja = elMensajes.querySelector(`[data-texto="${postId}"]`)
+  if (!caja || caja.dataset.editando === '1') return
+  caja.dataset.editando = '1'
+
+  const { data: mensaje } = await supabase.from('forum_posts').select('body_html').eq('id', postId).maybeSingle()
+  const original = mensaje?.body_html || ''
+
+  const [{ richTextToolbarHtml, initRichTextEditor }, { uploadGuideImage }] = await Promise.all([
+    import('./richtext-editor.js'),
+    import('./app.js'),
+  ])
+
+  const antes = caja.innerHTML
+  caja.innerHTML = `
+    <div class="rte-wrap">
+      <div id="editarBarra-${postId}"></div>
+      <div class="rte-surface" id="editarCuerpo-${postId}"></div>
+    </div>
+    <div class="foro-form-acciones">
+      <button type="button" class="btn-primary" data-guardar-edicion="${postId}">Guardar</button>
+      <button type="button" class="btn-secondary" data-cancelar-edicion="${postId}">Cancelar</button>
+    </div>`
+
+  const barra = document.getElementById(`editarBarra-${postId}`)
+  barra.innerHTML = richTextToolbarHtml()
+  let html = original
+  initRichTextEditor({
+    toolbarEl: barra,
+    surfaceEl: document.getElementById(`editarCuerpo-${postId}`),
+    initialHtml: original,
+    onChange: (nuevo) => {
+      html = nuevo
+    },
+    uploadImage: (file) => uploadGuideImage(sesion.user.id, file),
+  })
+
+  const cerrar = () => {
+    caja.dataset.editando = ''
+    caja.innerHTML = antes
+  }
+  caja.querySelector('[data-cancelar-edicion]').addEventListener('click', cerrar)
+
+  caja.querySelector('[data-guardar-edicion]').addEventListener('click', async (e) => {
+    const limpio = sanitizeRichText(html || document.getElementById(`editarCuerpo-${postId}`).innerHTML)
+    if (limpio.replace(/<[^>]*>/g, '').trim().length < 2) {
+      showToast('El mensaje no puede quedarse vacío. Si querías quitarlo, bórralo.')
+      return
+    }
+    e.target.disabled = true
+    // `edited_at` lo pone un disparador de la base, no esto: si dependiera
+    // del navegador, bastaría con no mandarlo para editar a escondidas.
+    const { error } = await supabase.from('forum_posts').update({ body_html: limpio }).eq('id', postId)
+    e.target.disabled = false
+    if (error) {
+      showToast('No se ha podido guardar: ' + error.message)
+      return
+    }
+    caja.dataset.editando = ''
+    await pintarMensajes()
+    showToast('Guardado.', 'success')
+  })
 }
 
 function pintarAvisoDeCita(perfil) {
@@ -315,7 +413,14 @@ async function alternarMeGusta(postId, boton) {
     : await supabase.from('forum_post_likes').insert({ post_id: postId, user_id: sesion.user.id })
 
   if (error) {
-    showToast(activo ? 'No se ha podido quitar.' : 'No se ha podido dar: ' + error.message)
+    // El caso típico es el mensaje propio, que la base no deja. No se
+    // enseña el error de PostgreSQL en crudo: se dice lo que pasa.
+    const propio = /row-level security/i.test(error.message || '')
+    showToast(
+      propio
+        ? 'No puedes darle a tu propio mensaje.'
+        : (activo ? 'No se ha podido quitar: ' : 'No se ha podido dar: ') + error.message
+    )
     return
   }
   await pintarMensajes()
@@ -337,7 +442,7 @@ async function borrarMensaje(postId) {
 // Responder
 // ─────────────────────────────────────────────────────────────
 async function montarRespuesta() {
-  if (tema.is_locked && !soyAdmin) {
+  if (tema.is_locked && !soyStaff) {
     elResponder.innerHTML = `<p class="empty-state">${icons.lock(14)} Este tema está cerrado. Ya no se puede responder.</p>`
     return
   }
@@ -456,10 +561,7 @@ async function init() {
     return
   }
   sesion = await getSession()
-  if (sesion) {
-    const { data } = await supabase.from('user_profiles').select('is_admin').eq('id', sesion.user.id).maybeSingle()
-    soyAdmin = !!data?.is_admin
-  }
+  if (sesion) soyStaff = await esDelEquipo(sesion)
 
   if (!(await cargar())) return
 

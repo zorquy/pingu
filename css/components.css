@@ -4195,6 +4195,88 @@ a.rater-name:hover {
   color: var(--text-mid);
 }
 
+/* El título puesto a mano por un admin pesa más que el nivel: se
+   distingue para que se lea como lo que es, un reconocimiento. */
+.foro-autor-titulo-propio {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+/* ── Actividad del foro en el perfil ── */
+.foro-act-columnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+.foro-act-titular {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.foro-act-titular span {
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 12px;
+}
+
+.foro-act-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.foro-act-fila {
+  display: flex;
+  gap: 9px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.foro-act-fila:first-child {
+  border-top: none;
+}
+
+.foro-act-icono {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.foro-act-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.foro-act-titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.foro-act-titulo:hover {
+  color: var(--navy);
+}
+
+.foro-act-trozo {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.5;
+}
+
+.foro-act-cuerpo small {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
 .foro-mensaje-autor .contributor-badge {
   font-size: 11.5px;
 }

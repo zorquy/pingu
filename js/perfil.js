@@ -130,6 +130,17 @@ document.getElementById('achievementsToggle')?.addEventListener('click', () => {
   document.getElementById('achievementsAccordion').classList.toggle('open')
 })
 
+// La actividad del foro se carga la PRIMERA vez que se abre su pestaña, y
+// no al entrar al perfil: son varias consultas y la mayoría de las visitas
+// no van a mirarla.
+let foroCargado = false
+async function cargarForoUnaVez() {
+  if (foroCargado || !currentSession) return
+  foroCargado = true
+  const { pintarActividadDelForo } = await import('./foro-actividad.js')
+  await pintarActividadDelForo(document.getElementById('foroActividad'), currentSession.user.id, { esMio: true })
+}
+
 // ── Pestañas del perfil ──
 document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -137,6 +148,7 @@ document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((bt
     document.querySelectorAll('.tab-panel[id^="ptab-"]').forEach((p) => p.classList.remove('active'))
     btn.classList.add('active')
     document.getElementById(`ptab-${btn.dataset.ptab}`).classList.add('active')
+    if (btn.dataset.ptab === 'foro') cargarForoUnaVez()
   })
 })
 

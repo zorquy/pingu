@@ -610,15 +610,35 @@ document.getElementById('btnNewAchievement').addEventListener('click', () => ope
 
 // ── Users ──
 async function loadUsers() {
-  const { data } = await supabase
+  // is_moderator y forum_title son de supabase-migration-foro-titulos.sql.
+  // Si todavía no está puesta, la consulta falla ENTERA y la tabla de
+  // usuarios se quedaría en blanco: por eso se reintenta sin ellas.
+  let { data, error } = await supabase
     .from('user_profiles')
-    .select('id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted')
+    .select('id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted, is_moderator, forum_title')
     .order('total_xp', { ascending: false })
+  let conForo = !error
+  if (error) {
+    const alterno = await supabase
+      .from('user_profiles')
+      .select('id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted')
+      .order('total_xp', { ascending: false })
+    data = alterno.data
+  }
   const users = data || []
 
   document.getElementById('usersTable').innerHTML = `
+    ${
+      conForo
+        ? `<p class="admin-note">El <strong>título de foro</strong> es lo que se lee bajo el nombre de esa persona en cada
+             mensaje ("Miembro del equipo", "Perito de falsificaciones"…). Es solo reconocimiento: no da ningún permiso.
+             La <strong>moderación</strong> sí: puede fijar, cerrar, editar y borrar en el foro, pero no entra aquí.</p>`
+        : `<p class="admin-note">Para los títulos de foro y la moderación, falta ejecutar supabase-migration-foro-titulos.sql.</p>`
+    }
     <table class="admin-table">
-      <thead><tr><th>Nombre</th><th>Nivel</th><th>XP</th><th>Admin</th><th>Pro</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Nombre</th><th>Nivel</th><th>XP</th><th>Admin</th><th>Pro</th>${
+        conForo ? '<th>Título de foro</th>' : ''
+      }<th>Estado</th><th></th></tr></thead>
       <tbody>
         ${users
           .map(
@@ -629,8 +649,24 @@ async function loadUsers() {
             <td>${u.total_xp || 0}</td>
             <td>${u.is_admin ? '✓' : ''}</td>
             <td>${u.is_pro ? '✓' : ''}</td>
-            <td>${u.is_banned ? `${icons.ban(14)} Baneado` : u.is_muted ? `${icons.volumeX(14)} Silenciado` : ''}</td>
+            ${
+              conForo
+                ? `<td><input type="text" value="${escapeHtml(u.forum_title || '')}" data-titulo-foro="${u.id}"
+                       placeholder="Sin título" style="width:170px;" /></td>`
+                : ''
+            }
+            <td>${u.is_banned ? `${icons.ban(14)} Baneado` : u.is_muted ? `${icons.volumeX(14)} Silenciado` : ''}${
+              u.is_moderator ? `${icons.shield(14)} Moderación` : ''
+            }</td>
             <td class="admin-row-actions">
+              ${conForo ? `<button data-guardar-titulo="${u.id}">Guardar título</button>` : ''}
+              ${
+                conForo
+                  ? `<button data-toggle-mod="${u.id}" data-current="${u.is_moderator ? '1' : '0'}">${
+                      u.is_moderator ? 'Quitar moderación' : 'Hacer moderador/a'
+                    }</button>`
+                  : ''
+              }
               <button data-toggle-admin="${u.id}" data-current="${u.is_admin ? '1' : '0'}">${u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
               <button data-toggle-pro="${u.id}" data-current="${u.is_pro ? '1' : '0'}">${u.is_pro ? 'Quitar Pro' : 'Hacer Pro'}</button>
               <button data-toggle-muted="${u.id}" data-current="${u.is_muted ? '1' : '0'}">${u.is_muted ? 'Quitar silencio' : 'Silenciar'}</button>
@@ -641,6 +677,32 @@ async function loadUsers() {
           .join('')}
       </tbody>
     </table>`
+
+  document.querySelectorAll('[data-guardar-titulo]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.guardarTitulo
+      const valor = document.querySelector(`[data-titulo-foro="${id}"]`).value.trim()
+      const { error: err } = await supabase.from('user_profiles').update({ forum_title: valor || null }).eq('id', id)
+      showToast(err ? 'No se ha podido guardar: ' + err.message : 'Título guardado.', err ? 'error' : 'success')
+    })
+  )
+
+  document.querySelectorAll('[data-toggle-mod]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const nombrar = btn.dataset.current !== '1'
+      if (
+        !confirm(
+          nombrar
+            ? 'Va a poder fijar, cerrar, editar y borrar en el foro (pero no entrar a este panel). ¿Continuar?'
+            : '¿Quitarle la moderación del foro?'
+        )
+      )
+        return
+      const { error: err } = await supabase.from('user_profiles').update({ is_moderator: nombrar }).eq('id', btn.dataset.toggleMod)
+      if (err) showToast('No se ha podido: ' + err.message)
+      loadUsers()
+    })
+  )
 
   document.querySelectorAll('[data-toggle-admin]').forEach((btn) =>
     btn.addEventListener('click', async () => {

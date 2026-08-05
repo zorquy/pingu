@@ -26,6 +26,7 @@ const ESTATICAS = [
   ['/aprender.html', '0.9'],
   ['/buscar.html', '0.6'],
   ['/usuarios.html', '0.6'],
+  ['/foro.html', '0.8'],
   ['/terminos.html', '0.3'],
   ['/privacidad.html', '0.3'],
 ]
@@ -74,13 +75,20 @@ export default async () => {
   const urls = ESTATICAS.map(([ruta, priority]) => ({ loc: `${SITIO}${ruta}`, priority, changefreq: 'daily' }))
 
   try {
-    const [guias, categorias] = await Promise.all([
+    const [guias, categorias, foros, temas] = await Promise.all([
       // Sin published_at no es pública. El límite es un tope de
       // seguridad: el formato admite 50.000 URLs por fichero y no vamos a
       // acercarnos, pero una consulta sin límite es una consulta que
       // algún día devuelve toda la tabla.
       consultar('guides?published_at=not.is.null&select=slug,published_at&order=published_at.desc&limit=5000'),
       consultar('categories?select=slug&order=order_pos'),
+      // El foro va con su propio `catch`: si todavía no está migrado, la
+      // consulta falla y el resto del sitemap tiene que salir igual.
+      consultar('forum_boards?is_hidden=is.false&select=slug&order=position').catch(() => []),
+      // Los temas son de lo que más gente puede traer de fuera ("¿es
+      // falsa esta carta?" es una búsqueda real), y hasta ahora Google no
+      // tenía forma de saber que existen.
+      consultar('forum_threads?select=id,last_post_at&order=last_post_at.desc&limit=5000').catch(() => []),
     ])
 
     for (const c of categorias) {
@@ -100,6 +108,22 @@ export default async () => {
           lastmod: soloFecha(g.published_at),
           priority: '0.8',
           changefreq: 'monthly',
+        })
+      }
+    }
+    for (const f of foros) {
+      if (f.slug) {
+        urls.push({ loc: `${SITIO}/foro/${encodeURIComponent(f.slug)}`, priority: '0.7', changefreq: 'daily' })
+      }
+    }
+
+    for (const t of temas) {
+      if (t.id) {
+        urls.push({
+          loc: `${SITIO}/tema/${encodeURIComponent(t.id)}`,
+          lastmod: soloFecha(t.last_post_at),
+          priority: '0.6',
+          changefreq: 'weekly',
         })
       }
     }

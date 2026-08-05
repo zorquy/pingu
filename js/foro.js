@@ -12,6 +12,7 @@ import {
   urlForo,
   urlTema,
   foroDeLaRuta,
+  esDelEquipo,
   faltaElForo,
 } from './foro-comun.js'
 
@@ -36,7 +37,7 @@ const migas = document.getElementById('foroMigas')
 const acciones = document.getElementById('foroAcciones')
 
 let sesion = null
-let soyAdmin = false
+let soyStaff = false
 
 function migasHtml(trozos) {
   return trozos
@@ -222,7 +223,7 @@ async function pintarForo() {
     ].filter(Boolean)
   )
 
-  const puedeEscribir = foro.post_policy === 'todos' || soyAdmin
+  const puedeEscribir = foro.post_policy === 'todos' || soyStaff
   acciones.innerHTML = puedeEscribir
     ? `<button type="button" class="btn-primary" id="btnNuevoTema">${icons.edit(15)} Abrir un tema</button>`
     : `<span class="subtext">${icons.lock ? icons.lock(14) : ''} Solo el equipo abre temas aquí</span>`
@@ -461,10 +462,7 @@ async function abrirFormularioTema(foro) {
 // ─────────────────────────────────────────────────────────────
 async function init() {
   sesion = await getSession()
-  if (sesion) {
-    const { data } = await supabase.from('user_profiles').select('is_admin').eq('id', sesion.user.id).maybeSingle()
-    soyAdmin = !!data?.is_admin
-  }
+  if (sesion) soyStaff = await esDelEquipo(sesion)
   if (slugForo) await pintarForo()
   else await pintarIndice()
 }

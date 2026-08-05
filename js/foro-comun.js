@@ -93,6 +93,26 @@ export function temaDeLaRuta() {
   return new URLSearchParams(window.location.search).get('t')
 }
 
+// "Del equipo" es administración O moderación. Un moderador ordena el
+// foro (fijar, cerrar, borrar, editar) sin tener las llaves del panel de
+// administración entero.
+//
+// Si la migración de títulos todavía no está puesta, `is_moderator` no
+// existe y la consulta falla entera: se reintenta con lo que sí hay, para
+// que el foro siga funcionando mientras tanto.
+export async function esDelEquipo(sesion) {
+  if (!sesion) return false
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('is_admin, is_moderator')
+    .eq('id', sesion.user.id)
+    .maybeSingle()
+  if (!error) return !!(data?.is_admin || data?.is_moderator)
+
+  const { data: solo } = await supabase.from('user_profiles').select('is_admin').eq('id', sesion.user.id).maybeSingle()
+  return !!solo?.is_admin
+}
+
 // Cuando falta la migración no se enseña un error de base de datos: se
 // dice lo que pasa, en cristiano.
 export function faltaElForo(error) {
