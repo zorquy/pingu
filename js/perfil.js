@@ -5,7 +5,7 @@ import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES } from './notifications.js'
-import { authorRatingSummary } from './guide-rating.js'
+import { authorRatingSummary, starsHtml } from './guide-rating.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 
@@ -252,12 +252,59 @@ document.getElementById('avatarFileInput')?.addEventListener('change', async (e)
 // ── Mis guías ──
 let myGuidesCache = []
 
+// Cómo le va a cada guía: lecturas, guardados, comentarios, valoración y
+// agradecimientos.
+//
+// POR QUÉ ESTO IMPORTA: `guides.view_count` se lleva incrementando en
+// cada visita desde siempre, y no se enseñaba en ningún sitio. El autor
+// no sabía si su guía la habían leído 3 personas o 300. Escribir era
+// tirar algo a un pozo, y eso es lo que hace que nadie escriba la
+// segunda.
+//
+// Los números salen de la función `guide_author_stats` de
+// supabase-migration-recompensas-autor.sql: una sola consulta, y con la
+// comprobación de que quien pregunta es el autor hecha en la base.
+async function loadGuideStats(userId) {
+  const { data, error } = await supabase.rpc('guide_author_stats', { p_author: userId })
+  // Sin la migración puesta, simplemente no hay números. El resto del
+  // panel funciona igual.
+  if (error) return {}
+  return Object.fromEntries((data || []).map((r) => [r.guide_id, r]))
+}
+
+function statsHtml(s) {
+  if (!s) return ''
+  const publicada = !!s.published_at
+  if (!publicada) return ''
+
+  // Con todo a cero no se pinta nada. Enseñarle "0 lecturas · 0
+  // guardados" a alguien que acaba de publicar desanima más que no poner
+  // nada; en cuanto haya una lectura, aparece.
+  const total = (s.lecturas || 0) + Number(s.guardados || 0) + Number(s.comentarios || 0) + Number(s.agradecimientos || 0)
+  if (total === 0) {
+    return `<p class="my-guide-stats my-guide-stats-vacio">Publicada hace poco — todavía no ha pasado nada por aquí.</p>`
+  }
+
+  const trozo = (n, uno, varios) => (Number(n) > 0 ? `<span><strong>${n}</strong> ${Number(n) === 1 ? uno : varios}</span>` : '')
+  return `
+    <p class="my-guide-stats">
+      ${trozo(s.lecturas, 'lectura', 'lecturas')}
+      ${trozo(s.agradecimientos, 'gracias', 'gracias')}
+      ${trozo(s.guardados, 'guardado', 'guardados')}
+      ${trozo(s.comentarios, 'comentario', 'comentarios')}
+      ${s.nota ? `<span>${starsHtml(Number(s.nota), 12)} <strong>${s.nota}</strong></span>` : ''}
+    </p>`
+}
+
 async function loadMyGuides(session) {
-  const { data } = await supabase
-    .from('guides')
-    .select('id, title, cover_emoji, review_status, rejection_reason, categories(name)')
-    .eq('author_id', session.user.id)
-    .order('submitted_at', { ascending: false, nullsFirst: false })
+  const [{ data }, stats] = await Promise.all([
+    supabase
+      .from('guides')
+      .select('id, title, cover_emoji, review_status, rejection_reason, categories(name)')
+      .eq('author_id', session.user.id)
+      .order('submitted_at', { ascending: false, nullsFirst: false }),
+    loadGuideStats(session.user.id),
+  ])
 
   myGuidesCache = data || []
   const container = document.getElementById('myGuidesList')
@@ -280,6 +327,7 @@ async function loadMyGuides(session) {
           ${canEdit ? `<button class="danger" data-delete="${g.id}">Eliminar</button>` : ''}
         </span>
         ${g.review_status === 'rejected' && g.rejection_reason ? `<p class="my-guide-reason">Motivo del rechazo: ${escapeHtml(g.rejection_reason)}</p>` : ''}
+        ${statsHtml(stats[g.id])}
       </div>`
     })
     .join('')

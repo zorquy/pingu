@@ -3557,3 +3557,92 @@ a.rater-name:hover {
     width: 110px;
   }
 }
+
+/* ── "Me ha servido" ──
+   Deliberadamente más grande y más visible que las estrellas: es lo que
+   va a pulsar la mayoría, porque no obliga a juzgar a nadie. */
+.helpful-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 22px 0 6px;
+}
+
+.helpful-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.helpful-btn:hover {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.helpful-btn.helpful-on {
+  background: var(--success-bg);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.helpful-count,
+.helpful-solo-contador {
+  font-size: 13.5px;
+  color: var(--text-mid);
+  margin: 22px 0 6px;
+}
+
+.helpful-count {
+  margin: 0;
+}
+
+/* ── Rango de colaborador junto al nombre ── */
+.contributor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 7px;
+  padding: 1px 8px 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 11.5px;
+  font-weight: 700;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.contributor-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ── Cómo va mi guía (perfil → Mis guías) ── */
+.my-guide-stats {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--text-mid);
+}
+
+.my-guide-stats strong {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.my-guide-stats-vacio {
+  font-style: italic;
+  color: var(--text-dim);
+}

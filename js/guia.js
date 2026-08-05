@@ -9,6 +9,8 @@ import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
+import { montarBotonHelpful } from './guide-helpful.js'
+import { contributorBadgeHtml } from './contributor-badge.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -103,6 +105,11 @@ async function init() {
   }
   const authorName = author ? author.display_name || author.username || 'un colaborador' : 'PokeDoc'
   const authorAvatarStyle = avatarStyle(author)
+  // El rango de colaborador se enseña AQUÍ, junto al nombre, y no solo
+  // en el perfil: el reconocimiento que hay que ir a buscar no
+  // recompensa a nadie. Esta es la única pantalla donde a un autor lo
+  // lee gente que no lo conoce.
+  const authorBadge = author ? await contributorBadgeHtml(author.id) : ''
   const opHeaderHtml = `
     <div class="guide-author">
       ${
@@ -112,7 +119,7 @@ async function init() {
       }
       <div>
         <span class="subtext" style="margin:0; display:block;">${author ? 'Publicada por' : 'Guía oficial de'}</span>
-        ${author ? `<a href="${profileUrl(author)}" style="font-weight:700; color:var(--navy);">${escapeHtml(authorName)}</a>` : `<strong>${escapeHtml(authorName)}</strong>`}
+        ${author ? `<a href="${profileUrl(author)}" style="font-weight:700; color:var(--navy);">${escapeHtml(authorName)}</a>${authorBadge}` : `<strong>${escapeHtml(authorName)}</strong>`}
       </div>
     </div>`
 
@@ -181,6 +188,7 @@ async function init() {
         : `<div class="article-body">${bodyHtml}</div>`
     }
     <div id="articleEndSentinel" aria-hidden="true"></div>
+    <div id="guideHelpful"></div>
     <div id="guideRating"></div>
     <div id="guideWriteInvite"></div>
     <section class="guide-forum">
@@ -201,6 +209,11 @@ async function init() {
   // rellenan con los datos de nuestra tabla. Va con .catch() porque una
   // lista que no cargue no puede tumbar el resto de la guía.
   hydrateDecks(main).catch(() => {})
+
+  // "Me ha servido" va ANTES de las estrellas, y es a propósito: es lo
+  // que va a pulsar la mayoría. Pedir una nota de 1 a 5 nada más
+  // terminar de leer es pedir un juicio; esto solo pide un gracias.
+  montarBotonHelpful(document.getElementById('guideHelpful'), guide, session).catch(() => {})
 
   // La valoración va al FINAL, después de haber leído. Antes solo se
   // podía valorar desde el pop-up de la tarjeta, o sea sin leer nada.

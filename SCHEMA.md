@@ -5055,3 +5055,111 @@ filtrar las clases, no traducir el formato pegado, deshacer los `<div>`,
 volver a soltar las cartas al final, quitar el párrafo semilla, que el
 botón de anchura no haga nada, dejar los enlaces sin subrayar) y se exige
 que la prueba se ponga en rojo **por lo que tiene que ponerse**.
+
+## Recompensar a quien escribe guías (tanda 1)
+
+Migración: **`supabase-migration-recompensas-autor.sql`** (hay que
+ejecutarla a mano en el SQL Editor; es idempotente).
+
+**El problema.** `guides.view_count` se llevaba incrementando en cada
+visita desde siempre… y no se enseñaba en ningún sitio. El autor no sabía
+si su guía la habían leído 3 personas o 300, ni cuánta gente la había
+guardado, ni si alguien la había comentado. Se ganaba XP una vez, al
+aprobarla, y a partir de ahí silencio. Eso es lo que hace que nadie
+escriba la segunda.
+
+### `guide_helpful` — "me ha servido"
+
+Un clic, sin escribir. Es distinto de las estrellas **a propósito**: una
+valoración es un juicio ("te pongo un 4"), cuesta pensarla, y mucha gente
+no la deja porque no se ve con derecho a puntuar a nadie. Esto no juzga:
+dice gracias. Y es el número que de verdad quiere ver quien escribe.
+
+Clave primaria `(guide_id, user_id)`: una persona agradece una guía una
+vez. RLS: el recuento es público, solo puedes agradecer en tu nombre, y
+**no puedes agradecer tu propia guía** (aplaudirse a uno mismo no es
+señal de nada). El autor sí ve el número — es justo el dato que le
+interesa —, pero sin botón.
+
+Con cero agradecimientos no se enseña un "0" pelado: un contador a cero
+en una guía recién publicada desanima más que no poner nada.
+
+### `guide_author_stats()` — cómo va mi guía
+
+Lecturas, lectores identificados, guardados, comentarios,
+agradecimientos, valoraciones y nota media, de una sola consulta, en el
+panel "Mis guías" del perfil.
+
+Va como **SECURITY DEFINER** por una razón concreta: los guardados viven
+en `user_profiles.saved_guides` (un array por persona), así que contarlos
+obliga a recorrer la tabla de perfiles entera — con los permisos de quien
+llama eso sería, además de lento, una forma rara de pasearse por los
+datos de los demás. Aquí dentro se cuenta y se devuelve solo el número. Y
+como es SECURITY DEFINER, **lo primero que hace es comprobar que quien
+pregunta es el autor** (o un admin).
+
+Misma idea que con el contador: si una guía publicada no tiene todavía
+ningún movimiento, en vez de "0 lecturas · 0 guardados" pone *"Publicada
+hace poco — todavía no ha pasado nada por aquí"*.
+
+### XP al autor por ser leído y por ser útil
+
++2 XP por cada lectura, +5 por cada agradecimiento, con **disparadores de
+Postgres**.
+
+**Por qué en la base y no en el navegador**: el XP del resto de la web lo
+suma el cliente (lee `total_xp` y escribe `total_xp + n`). Para el XP
+propio eso ya es flojo; para el XP que te dan **otros** sería regalado —
+bastaría con llamar a la API a mano. Aquí lo suma Postgres cuando ocurre
+el hecho.
+
+**No hace falta un tope diario**: el tope natural es más fuerte. Una
+persona solo puede marcar una guía como leída una vez (índice único de
+`user_progress`) y solo puede agradecerla una vez (clave primaria de
+`guide_helpful`). Para inflar el contador harían falta cuentas nuevas, no
+clics. Y el XP **no se resta** al retirar un agradecimiento: quitarle
+puntos a alguien por algo que hizo otro se vive como un castigo.
+
+### El rango de colaborador, donde te lee la gente
+
+`js/contributor-badge.js`. El rango ("Colaborador", "Leyenda de la
+comunidad") solo se veía entrando a un perfil, y casi nadie entra a un
+perfil. Ahora sale **junto al nombre en la guía y en cada comentario**:
+las dos pantallas donde a alguien lo lee gente que no lo conoce.
+
+Con 0 guías aprobadas no se pone nada — "Miembro" al lado de cada nombre
+no dice nada y ensucia todas las líneas. Los recuentos se piden **todos
+de una vez** por página y se recuerdan: una consulta por comentario sería
+una barbaridad en un hilo largo.
+
+### Cómo se ha probado
+
+- **La migración, contra PostgreSQL 16 de verdad**, imitando lo justo de
+  Supabase (`auth.uid()`, `is_admin()`): que la lectura suma +2 una sola
+  vez aunque la fila se vuelva a tocar, que el agradecimiento suma +5,
+  que agradecer dos veces lo rechaza la base, que una guía **sin autor**
+  (las oficiales) no rompe el disparador, que el autor leyéndose a sí
+  mismo no se da XP, y que las estadísticas devuelven 0 filas a quien no
+  es el autor.
+- **Las políticas RLS, dejando de ser superusuario** (si no, no se
+  aplican): agradecer en nombre de otro → prohibido; agradecer tu propia
+  guía → prohibido; agradecer la de otro → permitido; borrar el
+  agradecimiento ajeno → prohibido; el tuyo → permitido.
+- **La web, con Playwright**: el botón, el contador, que queda guardado
+  de verdad, que **se avisa al autor**, que el autor no tiene botón pero
+  sí número, que sin cuenta se invita a entrar en vez de tragarse el
+  clic, los números en el perfil, y la chapita de rango en la guía y en
+  los comentarios.
+- **Y una comprobación al revés**: que el navegador **no** le suma XP al
+  autor. Si algún día alguien lo "arregla" sumándolo desde el cliente,
+  esa comprobación se pone en rojo.
+
+### Dos agujeros del Supabase de mentira que salieron aquí
+
+1. **No existía la tabla `user_notifications`**, así que todos los avisos
+   que creaba la web en las pruebas se escribían en el vacío y ninguna
+   prueba lo notaba.
+2. **No existía el modo "sin sesión"**. Las pruebas que decían
+   `(sin sesión)` simplemente no ponían `window.__FAKE_SESSION__`, y eso
+   daba `admin-1`: comprobaban lo contrario de lo que decía su nombre.
+   Ahora `'none'` hace que `auth.getSession()` devuelva null de verdad.

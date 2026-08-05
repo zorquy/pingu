@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
+import { contributorCounts, badgeHtml } from './contributor-badge.js'
 import { notifyGuideComment } from './notifications.js'
 
 // 20 y no 10. Con 10, una guía con 12 comentarios ya se parte en dos
@@ -63,6 +64,14 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
     ])
     const parentAuthors = await profilesByIds(Object.values(parentsById).map((p) => p.author_id))
 
+    // El rango de colaborador de cada persona que aparece en la página.
+    // Se piden todos de una vez: una consulta por comentario sería una
+    // barbaridad en un hilo largo.
+    const rangos = await contributorCounts([
+      ...Object.keys(profilesById),
+      ...Object.keys(parentAuthors),
+    ])
+
     function authorName(id) {
       const p = profilesById[id] || parentAuthors[id]
       return p?.display_name || p?.username || 'Usuario'
@@ -77,7 +86,7 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
         <a class="mini-avatar" href="${profile ? profileUrl(profile) : '#'}" style="width:44px; height:44px; font-size:16px; ${avatarStyle(profile)}">${profile?.avatar_url ? '' : getInitial(name)}</a>
         <div class="forum-post-body">
           <div class="forum-post-header">
-            <a href="${profile ? profileUrl(profile) : '#'}" class="forum-post-author">${escapeHtml(name)}</a>
+            <a href="${profile ? profileUrl(profile) : '#'}" class="forum-post-author">${escapeHtml(name)}</a>${badgeHtml(rangos[c.author_id])}
             <span class="forum-post-date">${new Date(c.created_at).toLocaleString('es-ES')}</span>
           </div>
           ${parent ? `<div class="forum-quote">En respuesta a <strong>${escapeHtml(authorName(parent.author_id))}</strong>: “${escapeHtml(snippet(parent.body))}”</div>` : ''}
