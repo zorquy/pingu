@@ -214,8 +214,11 @@ function formularioHtml() {
   if (!sesion) {
     return `<p class="subtext peticiones-aviso">${icons.helpCircle(14)} <a href="/auth.html">Entra con tu cuenta</a> para pedir una guía o votar las de los demás.</p>`
   }
+  // Misma caja que el formulario de comentarios de una guía
+  // (`.simple-card`): es la referencia visual del sitio para "escribe
+  // algo aquí", y no tiene sentido que cada sitio invente la suya.
   return `
-    <form class="peticion-form" id="peticionForm">
+    <form class="simple-card peticion-form" id="peticionForm">
       <input type="text" id="peticionTitulo" maxlength="120" required
              placeholder="¿Qué te gustaría que alguien explicara?" />
       <textarea id="peticionDetalle" maxlength="500" rows="2"

@@ -5228,3 +5228,96 @@ justo lo que frena a la gente.
   avise **a quien la pidió y a los que la votaron sin duplicar**, que sin
   cuenta se pueda mirar pero votar invite a entrar, y que "Retirar" solo
   salga en la tuya.
+
+## Retoques: formularios, memoria de pestaña y carga
+
+### Los campos de formulario tenían la forma que les daba el navegador
+
+`css/style.css` solo les heredaba la tipografía. Un campo sin clase propia
+salía como un rectángulo de sistema, con esquinas vivas y borde gris —
+justo al lado del recuadro de comentarios de una guía, que sí está
+redondeado. Ahora hay una regla base para todos: mismo redondeo, borde,
+relleno y foco.
+
+**El fondo se queda blanco también en tema oscuro**, a propósito y por
+petición expresa: es como está el recuadro de comentarios y es la
+referencia que se quería. Por eso son valores fijos y no `var(--white)`,
+que en oscuro se volvería oscuro.
+
+Los tipos se listan uno a uno (`text`, `email`, `password`…) en vez de
+usar `input` a secas, que también pillaría casillas, botones de radio,
+deslizadores y selectores de fichero.
+
+La prueba no comprueba números escritos a mano: **mide el recuadro de
+comentarios de una guía de verdad y compara**. Lo que se pedía era "que se
+parezca a ese", no "que tenga 7px de radio".
+
+### La pestaña abierta se recuerda
+
+Abrías Usuarios en Comunidad, recargabas, y volvías a Guías de la
+comunidad. Ahora la pestaña va en el ancla de la dirección
+(`#peticiones`), así que recargar te deja donde estabas, el botón de atrás
+funciona y se puede pasar el enlace de una pestaña concreta.
+
+Se usa `replaceState` y no `pushState`: si cada clic dejara una entrada en
+el historial, salir de la página a base de "atrás" obligaría a recorrer
+todas las pestañas que hubieras mirado.
+
+### Por qué cargaba lento
+
+Dos cosas, y la segunda era la gorda.
+
+**1. Los iconos de la barra se pedían en fila.** `renderNavbar` tenía un
+`await` por icono: hasta que no bajaba y se ejecutaba el módulo de la lupa
+no empezaba a pedirse el del tema, y así hasta la campana. Por eso
+aparecían de izquierda a derecha y la campana siempre la última. Ahora se
+descargan **a la vez** y se pintan en orden — el orden hay que forzarlo,
+porque cada módulo se mete solo en la barra al terminar y si no los
+iconos saldrían en el orden en que acabara de bajar cada uno, distinto en
+cada carga.
+
+**2. El SDK de Supabase se pedía a cdn.jsdelivr.net en cada carga.** Eso
+significaba resolver un dominio nuevo, negociar TLS con él y bajar un
+módulo que a su vez pedía más módulos encadenados, **antes de poder mirar
+siquiera si había sesión iniciada**. Era lo primero de la cadena y lo
+bloqueaba todo. Lo mismo con DOMPurify en las páginas de guía y editor.
+
+Ahora los dos van empaquetados en `js/vendor/` y se sirven desde el propio
+sitio. Tres cosas mejoran de golpe:
+
+- Se acaba el viaje a un tercero antes de arrancar.
+- **Se acaba un punto único de fallo**: hasta ahora, si jsdelivr estaba
+  caído o bloqueado, PokeDoc no cargaba. Nada.
+- Se acaba la dependencia sin fijar: se pedía "la última versión", que
+  podía cambiar bajo los pies sin avisar. Ahora la versión está escrita en
+  el fichero y solo cambia cuando se regenera a mano (las instrucciones
+  están en la cabecera de cada uno).
+
+`netlify.toml` les da caché de un año, al contrario que el resto de `/js/*`
+(que se revalida en cada carga): son librerías que solo cambian cuando se
+regeneran, y revalidar 210 KB en cada visita no tiene sentido.
+
+**Efecto secundario bueno**: la copia de pruebas ya usa **DOMPurify de
+verdad**. Antes había que sustituirlo por un remedo escrito a mano
+(jsdelivr no es alcanzable desde el entorno de desarrollo), así que las
+pruebas del saneador estaban midiendo el remedo.
+
+**Y el menú de cuenta** ya no espera a una consulta para desplegarse: se
+pinta al momento con lo que ya se sabe y el recuento de guías aprobadas se
+rellena cuando llega.
+
+### Un fallo real que salió al hacerlo
+
+Al paralelizar los iconos puse un `try/catch` normal alrededor de unas
+funciones `async`. Eso **no** atrapa una promesa rechazada: se convierte
+en un error suelto de la página. Lo destapó la prueba, porque la campanita
+fallaba (el Supabase de mentira no implementaba `.is()`, que es como pide
+los avisos sin leer). Arreglado lo uno y lo otro — y ese fallo de la
+campana llevaba ahí desde siempre, tapado por un `.catch()` del arranque.
+
+### Pedir una guía sale en Actividad
+
+El hilo de la comunidad contaba guías publicadas, comentarios, cursos y
+altas. Pedir una guía también es actividad — de hecho es de las cosas más
+baratas de hacer y de las que más ganas dan de entrar a ver qué han
+pedido.

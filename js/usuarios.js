@@ -168,18 +168,43 @@ async function loadCommunityGuides(session) {
   })
 }
 
+// La pestaña abierta se guarda en la dirección (#usuarios, #peticiones...).
+//
+// Antes no se guardaba en ningún sitio: abrías Usuarios, recargabas, y
+// volvías a Guías de la comunidad. Con el ancla, recargar te deja donde
+// estabas, el botón de atrás funciona y además se puede pasar el enlace
+// de una pestaña concreta a alguien.
+//
+// Se usa replaceState y no pushState a propósito: si cada clic en una
+// pestaña dejara una entrada en el historial, salir de la página a base
+// de "atrás" obligaría a recorrer todas las pestañas que hubieras
+// mirado.
+function abrirPestana(nombre, { recordar = true } = {}) {
+  const btn = document.querySelector(`#communityTabs .tab-btn[data-ctab="${nombre}"]`)
+  if (!btn) return false
+
+  document.getElementById('communityTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
+  document.querySelectorAll('.tab-panel[id^="ctab-"]').forEach((p) => p.classList.remove('active'))
+  btn.classList.add('active')
+  document.getElementById(`ctab-${nombre}`).classList.add('active')
+
+  if (recordar) history.replaceState(null, '', `#${nombre}`)
+
+  // Se cargan la primera vez que se abren, no al entrar en la página: son
+  // varias consultas y la mayoría de visitas no las miran.
+  if (nombre === 'activity') cargarActividad()
+  if (nombre === 'peticiones') cargarPeticiones()
+  return true
+}
+
 function wireTabs() {
   document.getElementById('communityTabs')?.querySelectorAll('.tab-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.getElementById('communityTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
-      document.querySelectorAll('.tab-panel[id^="ctab-"]').forEach((p) => p.classList.remove('active'))
-      btn.classList.add('active')
-      document.getElementById(`ctab-${btn.dataset.ctab}`).classList.add('active')
-      // Se carga la primera vez que se abre la pestaña, no al entrar en la
-      // página: son cuatro consultas y la mayoría de visitas no la miran.
-      if (btn.dataset.ctab === 'activity') cargarActividad()
-      if (btn.dataset.ctab === 'peticiones') cargarPeticiones()
-    })
+    btn.addEventListener('click', () => abrirPestana(btn.dataset.ctab))
+  })
+  // Volver atrás/adelante también cambia de pestaña.
+  window.addEventListener('hashchange', () => {
+    const nombre = window.location.hash.replace('#', '')
+    if (nombre) abrirPestana(nombre, { recordar: false })
   })
 }
 
@@ -192,11 +217,11 @@ async function cargarPeticiones() {
 
 async function init() {
   wireTabs()
-  // Se llega desde "¿No sabes de qué escribir?" con #peticiones: hay que
-  // abrir esa pestaña, o el enlace deja a la persona mirando otra cosa.
-  if (window.location.hash === '#peticiones') {
-    document.querySelector('[data-ctab="peticiones"]')?.click()
-  }
+  // Con qué pestaña se llega: la del ancla si la hay (por recargar, por
+  // el botón de atrás, o por un enlace como el de "¿No sabes de qué
+  // escribir?"), y si no la de siempre.
+  const pedida = window.location.hash.replace('#', '')
+  if (pedida) abrirPestana(pedida, { recordar: false })
   const session = await getSession()
   await Promise.all([loadUsers(), loadCommunityGuides(session)])
 }

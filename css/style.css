@@ -132,10 +132,68 @@ button {
   color: inherit;
 }
 
+/* Aspecto base de TODOS los campos de formulario.
+ *
+ * Antes solo se heredaba la tipografía, así que un campo sin clase
+ * propia salía con la forma que le diera el navegador: rectángulo con
+ * esquinas vivas y borde gris de sistema. Al lado del recuadro de
+ * comentarios de las guías —que sí está redondeado— cantaba mucho.
+ *
+ * El FONDO se queda blanco a propósito, también en tema oscuro: es como
+ * está el recuadro de comentarios y es la referencia que se quiere. Por
+ * eso son valores fijos y no `var(--white)`, que en oscuro se volvería
+ * oscuro.
+ *
+ * Se listan los tipos uno a uno a propósito: `input` a secas también
+ * pillaría casillas, botones de radio, deslizadores y selectores de
+ * fichero, que no se pintan así.
+ *
+ * Las clases que ya tienen su propio aspecto (.search-input, .auth-input,
+ * .cp-input, .be-field...) ganan por especificidad y siguen igual. */
 input,
 textarea,
 select {
   font-family: inherit;
+}
+
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='search'],
+input[type='number'],
+input[type='url'],
+input[type='date'],
+textarea,
+select {
+  background: #ffffff;
+  color: #0d1b2a;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s var(--ease);
+}
+
+input[type='text']:focus,
+input[type='email']:focus,
+input[type='password']:focus,
+input[type='search']:focus,
+input[type='number']:focus,
+input[type='url']:focus,
+input[type='date']:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--navy);
+}
+
+::placeholder {
+  color: #94adb8;
+  opacity: 1;
+}
+
+textarea {
+  resize: vertical;
 }
 
 :focus-visible {

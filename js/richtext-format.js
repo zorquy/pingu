@@ -1,4 +1,4 @@
-import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify/+esm'
+import DOMPurify from './vendor/dompurify.js'
 import { parseDeckIds } from './cards-block.js'
 
 // Qué formato se puede guardar dentro de una guía, y cómo se normaliza.

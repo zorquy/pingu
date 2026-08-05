@@ -27,6 +27,17 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
+# js/vendor/ es la excepción: son librerías empaquetadas (Supabase,
+# DOMPurify) que solo cambian cuando se regeneran a mano. Revalidar 210 KB
+# en cada carga de página no tiene sentido — se cachean un año.
+#
+# Va DESPUÉS de la regla de /js/* a propósito: Netlify aplica la más
+# específica que coincida, y esta lo es.
+[[headers]]
+  for = "/js/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 # El dominio bueno es pokedoc.es. Quien llegue al subdominio de Netlify
 # (por un enlace antiguo, o porque un redirect de Supabase le ha mandado
 # ahí después de iniciar sesión) se manda a pokedoc.es conservando la

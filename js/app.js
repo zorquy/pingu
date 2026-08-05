@@ -390,16 +390,29 @@ async function renderNavUser(session) {
   const dropdown = document.getElementById('navUserDropdown')
   let loaded = false
 
+  // El módulo de gamificación se pide YA, no al pulsar: si se espera al
+  // clic, abrir el menú obliga a bajar un fichero antes de enseñar nada.
+  const gamificacion = import('./gamification.js').catch(() => null)
+
+  function statsHtml(g, approvedGuidesCount) {
+    if (!g) return ''
+    const tier = g.contributorTier(approvedGuidesCount || 0)
+    return `
+      <div><strong>${profile?.total_xp || 0}</strong><span>XP</span></div>
+      <div><strong>${escapeHtml(g.calculateLevel(profile?.total_xp))}</strong><span>Nivel</span></div>
+      ${(profile?.current_streak || 0) > 0 ? `<div><strong style="display:flex; align-items:center; justify-content:center; gap:3px;">${icons.flame(14)} ${profile.current_streak}</strong><span>Racha</span></div>` : ''}
+      ${(approvedGuidesCount || 0) > 0 ? `<div><strong style="display:flex; justify-content:center;">${tier.icon}</strong><span>${escapeHtml(tier.title)}</span></div>` : ''}`
+  }
+
+  // El menú se pinta ENTERO al momento con lo que ya se sabe (el perfil
+  // se cargó al arrancar la página), y el recuento de guías aprobadas
+  // —lo único que falta— se rellena cuando llega.
+  //
+  // Antes se esperaba a esa consulta antes de pintar nada, así que el
+  // menú tardaba en desplegarse aunque el 90% de lo que enseña ya
+  // estuviera disponible.
   async function loadDropdown() {
-    const [{ contributorTier, calculateLevel }, { count: approvedGuidesCount }] = await Promise.all([
-      import('./gamification.js'),
-      supabase
-        .from('guides')
-        .select('*', { count: 'exact', head: true })
-        .eq('author_id', session.user.id)
-        .eq('review_status', 'approved'),
-    ])
-    const tier = contributorTier(approvedGuidesCount || 0)
+    const g = await gamificacion
 
     dropdown.innerHTML = `
       <div class="nav-user-header">
@@ -409,12 +422,7 @@ async function renderNavUser(session) {
           ${profile?.username ? `<span class="subtext">@${escapeHtml(profile.username)}</span>` : ''}
         </div>
       </div>
-      <div class="nav-user-stats">
-        <div><strong>${profile?.total_xp || 0}</strong><span>XP</span></div>
-        <div><strong>${escapeHtml(calculateLevel(profile?.total_xp))}</strong><span>Nivel</span></div>
-        ${(profile?.current_streak || 0) > 0 ? `<div><strong style="display:flex; align-items:center; justify-content:center; gap:3px;">${icons.flame(14)} ${profile.current_streak}</strong><span>Racha</span></div>` : ''}
-        ${(approvedGuidesCount || 0) > 0 ? `<div><strong style="display:flex; justify-content:center;">${tier.icon}</strong><span>${escapeHtml(tier.title)}</span></div>` : ''}
-      </div>
+      <div class="nav-user-stats" id="navUserStats">${statsHtml(g, null)}</div>
       <div class="nav-user-links">
         <a href="/perfil.html">${icons.user(16)} Mi perfil</a>
         <!-- Escribir una guía estaba SOLO dentro de una pestaña de
@@ -429,6 +437,19 @@ async function renderNavUser(session) {
         <button type="button" id="navFeedbackBtn">${icons.messageSquare(16)} Enviar feedback</button>
         <button type="button" id="navUserSignOut">${icons.logOut(16)} Cerrar sesión</button>
       </div>`
+
+    // El recuento, cuando llegue. Solo repinta la fila de estadísticas,
+    // así que no se pierde el foco ni se mueve nada de sitio.
+    supabase
+      .from('guides')
+      .select('*', { count: 'exact', head: true })
+      .eq('author_id', session.user.id)
+      .eq('review_status', 'approved')
+      .then(({ count }) => {
+        const fila = document.getElementById('navUserStats')
+        if (fila && count) fila.innerHTML = statsHtml(g, count)
+      })
+      .catch(() => {})
 
     document.getElementById('navUserSignOut').addEventListener('click', signOut)
     document.getElementById('navFeedbackBtn').addEventListener('click', async () => {
@@ -533,11 +554,41 @@ export async function initNavbar() {
   }
   import('./page-views.js').then(({ logPageView }) => logPageView(session)).catch(() => {})
   renderNavUser(session).catch(() => {})
-  await import('./nav-search.js').then(({ renderNavSearch }) => renderNavSearch()).catch(() => {})
-  await import('./theme.js').then(({ renderThemeToggle }) => renderThemeToggle()).catch(() => {})
+
+  // Los iconos de la barra: se DESCARGAN a la vez y se PINTAN en orden.
+  //
+  // Antes iban con un `await` cada uno, encadenados: hasta que no bajaba
+  // y se ejecutaba el módulo de la lupa no empezaba a pedirse el del
+  // tema, y así hasta la campana. Por eso aparecían de izquierda a
+  // derecha, uno detrás de otro, y la campana siempre la última: eran
+  // cuatro viajes en fila en vez de cuatro a la vez.
+  //
+  // No vale con lanzarlos todos y ya: cada módulo se mete solo en la
+  // barra al terminar, así que el orden de los iconos sería el orden en
+  // que acaben de bajar — distinto en cada carga. Por eso se espera a
+  // tenerlos todos y se pinta en el orden de siempre.
+  const modulos = await Promise.all([
+    import('./nav-search.js').catch(() => null),
+    import('./theme.js').catch(() => null),
+    session ? import('./nav-messages.js').catch(() => null) : null,
+    session ? import('./notifications.js').catch(() => null) : null,
+  ])
+  const [busqueda, tema, mensajes, campana] = modulos
+
+  // Cada icono se pinta aislado: que falle uno no puede dejar la barra a
+  // medias. El `catch` tiene que cubrir también los fallos ASÍNCRONOS —
+  // estas funciones son `async`, y un try/catch normal no atrapa una
+  // promesa rechazada, se convierte en un error suelto de la página.
+  const pintar = (fn) => {
+    try {
+      Promise.resolve(fn()).catch(() => {})
+    } catch {}
+  }
+  pintar(() => busqueda?.renderNavSearch())
+  pintar(() => tema?.renderThemeToggle())
   if (session) {
-    await import('./nav-messages.js').then(({ renderNavMessages }) => renderNavMessages(session)).catch(() => {})
-    await import('./notifications.js').then(({ renderNotificationBell }) => renderNotificationBell(session)).catch(() => {})
+    pintar(() => mensajes?.renderNavMessages(session))
+    pintar(() => campana?.renderNotificationBell(session))
   }
   return session
 }

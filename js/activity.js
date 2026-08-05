@@ -30,7 +30,7 @@ function haceCuanto(iso) {
 export async function loadActivity(limite = 20) {
   const desde = new Date(Date.now() - 60 * 86400_000).toISOString()
 
-  const [progreso, guiasNuevas, comentarios, altas] = await Promise.all([
+  const [progreso, guiasNuevas, comentarios, altas, peticiones] = await Promise.all([
     supabase
       .from('user_progress')
       .select('user_id, guide_id, status, completed_at, read_at')
@@ -53,6 +53,15 @@ export async function loadActivity(limite = 20) {
       .select('id, created_at')
       .order('created_at', { ascending: false })
       .limit(POR_FUENTE),
+    // Pedir una guía también es actividad de la comunidad: es de las
+    // cosas más baratas de hacer y de las que más ganas dan de entrar a
+    // ver. Si la tabla todavía no existe (migración sin ejecutar), la
+    // consulta falla y el resto del hilo sigue igual.
+    supabase
+      .from('guide_requests')
+      .select('id, title, requester_id, created_at')
+      .order('created_at', { ascending: false })
+      .limit(POR_FUENTE),
   ])
 
   const eventos = []
@@ -71,6 +80,9 @@ export async function loadActivity(limite = 20) {
   }
   for (const u of altas.data || []) {
     if (u.created_at) eventos.push({ tipo: 'alta', userId: u.id, fecha: u.created_at })
+  }
+  for (const r of peticiones.data || []) {
+    eventos.push({ tipo: 'peticion', userId: r.requester_id, texto: r.title, fecha: r.created_at })
   }
 
   eventos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
@@ -121,6 +133,7 @@ const TEXTOS = {
   guia: { icono: 'sparkles', verbo: 'ha publicado la guía' },
   comentario: { icono: 'messageSquare', verbo: 'ha comentado en' },
   alta: { icono: 'user', verbo: 'se ha unido a PokeDoc' },
+  peticion: { icono: 'helpCircle', verbo: 'ha pedido una guía sobre' },
 }
 
 function eventoHtml(e) {
@@ -129,7 +142,9 @@ function eventoHtml(e) {
   const estiloAvatar = avatarStyle(e.perfil)
   const destino = e.guia
     ? ` <a href="/guia.html?slug=${encodeURIComponent(e.guia.slug)}">${escapeHtml(e.guia.title)}</a>`
-    : ''
+    : e.texto
+      ? ` <a href="/usuarios.html#peticiones">${escapeHtml(e.texto)}</a>`
+      : ''
   return `
     <li class="activity-item">
       <a class="mini-avatar activity-avatar" href="${profileUrl(e.perfil)}" style="${estiloAvatar}">${
