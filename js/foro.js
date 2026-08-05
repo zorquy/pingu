@@ -11,6 +11,7 @@ import {
   etiquetaHtml,
   urlForo,
   urlTema,
+  foroDeLaRuta,
   faltaElForo,
 } from './foro-comun.js'
 
@@ -26,7 +27,7 @@ import {
 const PAGINA = 20
 
 const params = new URLSearchParams(window.location.search)
-const slugForo = params.get('f')
+const slugForo = foroDeLaRuta()
 const paginaActual = Math.max(1, Number(params.get('p') || 1))
 
 const principal = document.getElementById('foroPrincipal')

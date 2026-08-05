@@ -70,6 +70,29 @@ export function etiquetaHtml(prefix) {
 export const urlForo = (slug) => `/foro/${encodeURIComponent(slug)}`
 export const urlTema = (id, pagina) => `/tema/${encodeURIComponent(id)}${pagina && pagina > 1 ? `?p=${pagina}` : ''}`
 
+// De dónde se saca QUÉ foro o QUÉ tema hay que pintar.
+//
+// netlify.toml reescribe /foro/<slug> a /foro.html?f=<slug> con estado
+// 200. Una reescritura NO cambia la barra de direcciones: el navegador
+// se queda en /foro/<slug>, así que ese `?f=` lo ve el servidor y no lo
+// ve JavaScript — `window.location.search` está vacío. Si solo se mirara
+// la query, entrar en un foro llevaría siempre al índice general.
+//
+// Por eso manda la RUTA, y la query queda como alternativa para cuando se
+// entra directo a foro.html (y en local, donde no hay reescrituras). Es
+// lo mismo que hace profileParamsFromLocation() con /usuario/<nombre>.
+export function foroDeLaRuta() {
+  const enLaRuta = window.location.pathname.match(/\/foro\/([^/?#]+)/)
+  if (enLaRuta) return decodeURIComponent(enLaRuta[1])
+  return new URLSearchParams(window.location.search).get('f')
+}
+
+export function temaDeLaRuta() {
+  const enLaRuta = window.location.pathname.match(/\/tema\/([^/?#]+)/)
+  if (enLaRuta) return decodeURIComponent(enLaRuta[1])
+  return new URLSearchParams(window.location.search).get('t')
+}
+
 // Cuando falta la migración no se enseña un error de base de datos: se
 // dice lo que pasa, en cristiano.
 export function faltaElForo(error) {

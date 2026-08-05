@@ -17,6 +17,7 @@ import {
   badgeHtml,
   urlForo,
   urlTema,
+  temaDeLaRuta,
   faltaElForo,
 } from './foro-comun.js'
 import { calculateLevel } from './gamification.js'
@@ -33,7 +34,7 @@ import { calculateLevel } from './gamification.js'
 const PAGINA = 20
 
 const params = new URLSearchParams(window.location.search)
-const temaId = params.get('t')
+const temaId = temaDeLaRuta()
 const paginaPedida = Math.max(1, Number(params.get('p') || 1))
 
 const elMigas = document.getElementById('temaMigas')
