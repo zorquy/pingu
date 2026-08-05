@@ -130,6 +130,16 @@ function buildPayload(reviewStatus) {
     level: document.getElementById('mgLevel').value,
     blocks: courseBlocks,
     reference_blocks: refBlocks,
+    // El buscador busca en `search_content`, no dentro de
+    // `reference_blocks` (que es JSON y Postgres no sabe recorrer con un
+    // ilike). Este editor no tiene campo para eso, ni debería tenerlo:
+    // nadie va a escribir a mano una copia en plano de su propio
+    // artículo. Se saca del texto de la guía al guardar.
+    //
+    // Sin esto, de una guía de la comunidad solo se podían encontrar el
+    // título y la descripción — el artículo entero era invisible para el
+    // buscador.
+    search_content: flattenReferenceBlocksToText(refBlocks),
     author_id: currentSession.user.id,
     review_status: reviewStatus,
     submitted_at: reviewStatus === 'pending' ? new Date().toISOString() : existingGuide?.submitted_at || null,

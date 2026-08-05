@@ -301,7 +301,13 @@ function buildPayload() {
     xp_reward: Number(document.getElementById('gXpReward').value) || 20,
     estimated_mins: Number(document.getElementById('gMins').value) || 5,
     tags: document.getElementById('gTags').value.split(',').map((s) => s.trim()).filter(Boolean),
-    search_content: document.getElementById('gSearchContent').value.trim(),
+    // Aquí sí hay campo, porque a veces interesa afinar a mano qué
+    // encuentra el buscador. Pero si se deja vacío se saca del texto de
+    // la guía, igual que en el editor de la comunidad: una guía sin
+    // `search_content` solo se encuentra por el título y la descripción,
+    // y eso no es lo que espera nadie.
+    search_content:
+      document.getElementById('gSearchContent').value.trim() || flattenReferenceBlocksToText(refBlocks),
     published_at: published ? existingGuide?.published_at || new Date().toISOString() : null,
     author_id: existingGuide?.author_id || currentSession.user.id,
     blocks: courseBlocks,

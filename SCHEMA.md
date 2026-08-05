@@ -4862,3 +4862,41 @@ calculadas no se recalcularían solas.
   plegar solo a minúsculas, quitar la vuelta atrás, resaltar sin traducir
   posiciones...) y se exige que la prueba se ponga en rojo **por lo que
   tiene que ponerse**. Si sigue en verde, esa comprobación no vale.
+
+### Agujero que salió al revisar esto: el artículo no era buscable
+
+Al comprobar si todo lo anterior valía también para el contenido nuevo
+apareció un fallo anterior a todo esto: **el editor de la comunidad nunca
+rellenaba `search_content`**.
+
+El buscador busca en `search_content`, no dentro de `reference_blocks`
+(que es JSON, y Postgres no lo recorre con un `ilike`). Como el editor de
+usuario no tiene campo para eso — ni debe tenerlo, nadie va a escribir a
+mano una copia en plano de su propio artículo —, de una guía escrita por
+la comunidad solo se podían encontrar **el título y la descripción**. El
+artículo entero era invisible.
+
+Arreglado en los dos editores, con `flattenReferenceBlocksToText()`, que
+ya existía:
+
+- **`js/editor-guia.js`** (comunidad): siempre lo deduce del texto de la
+  guía al guardar.
+- **`admin/js/editor-guia.js`**: el campo manual sigue mandando cuando
+  está relleno (a veces interesa afinar qué encuentra el buscador), pero
+  si se deja vacío se deduce igual.
+
+Como `search_norm` es una columna generada, en cuanto se guarda la guía
+Postgres recalcula solo el texto plegado. No hay nada que ejecutar.
+
+**Para las guías que ya existen**: las antiguas tienen `search_content`
+escrito a mano y **sin acentos**, que era el truco de antes. Siguen
+encontrándose, pero el fragmento que se enseña en los resultados sale sin
+tildes. Si se quiere arreglar, basta con abrir cada guía en el editor de
+admin, **vaciar el campo "Contenido de búsqueda"** y guardar: se vuelve a
+deducir del artículo, esta vez bien escrito.
+
+Probado escribiendo una guía de verdad en los dos editores y mirando qué
+se guardó (no lo que dice el código): el texto entra, sin etiquetas HTML,
+y plegado contiene "campeon" cuando el artículo dice "campeón". Y con el
+campo de admin relleno, no se le pega el texto del artículo. Rigor:
+deshaciendo cada uno de los dos arreglos la prueba se pone en rojo.
