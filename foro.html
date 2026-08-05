@@ -25,18 +25,22 @@
   <!-- meta-social:fin -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/components.css" />
+  <!-- RUTAS ABSOLUTAS, no relativas. Esta página también se sirve en
+       /foro/<slug>, que está un nivel más abajo: con "css/style.css" el
+       navegador pediría /foro/css/style.css y la página saldría sin
+       estilos y sin JavaScript. Es el mismo fallo que tuvo /usuario/<nombre>. -->
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/components.css" />
 </head>
 <body>
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <a href="/index.html" class="nav-logo">Poke<span>Doc</span></a>
       <div class="nav-links">
-        <a href="index.html">Inicio</a>
-        <a href="aprender.html">Aprender</a>
-        <a href="foro.html">Foro</a>
-        <a href="usuarios.html">Comunidad</a>
+        <a href="/index.html">Inicio</a>
+        <a href="/aprender.html">Aprender</a>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Comunidad</a>
       </div>
       <div class="nav-right">
         <div id="nav-user"></div>
@@ -44,10 +48,10 @@
       </div>
     </div>
     <div class="nav-menu-mobile" id="navMobileMenu">
-      <a href="index.html">Inicio</a>
-      <a href="aprender.html">Aprender</a>
-      <a href="foro.html">Foro</a>
-      <a href="usuarios.html">Comunidad</a>
+      <a href="/index.html">Inicio</a>
+      <a href="/aprender.html">Aprender</a>
+      <a href="/foro.html">Foro</a>
+      <a href="/usuarios.html">Comunidad</a>
     </div>
   </nav>
 
@@ -75,7 +79,7 @@
     <p class="footer-links"><a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
   </footer>
 
-  <script type="module" src="js/app.js"></script>
-  <script type="module" src="js/foro.js"></script>
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/foro.js"></script>
 </body>
 </html>
