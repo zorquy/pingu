@@ -5471,3 +5471,139 @@ estaba en el código:
 
 Ninguno era un fallo de la web, pero los cuatro hacían que las pruebas
 midieran menos de lo que parecía.
+
+## El foro
+
+Migración: **`supabase-migration-foro.sql`** (hay que ejecutarla a mano;
+es idempotente).
+
+**Las guías son un motivo para entrar una vez. El foro es un motivo para
+entrar todos los días**, aunque no haya nada nuevo publicado. Es lo único
+que mantiene viva una comunidad pequeña entre guía y guía.
+
+La forma es la de un foro clásico —secciones › foros › (subforos) › temas
+› mensajes— y está copiada a propósito: es una estructura que la gente ya
+sabe leer sin que nadie se la explique.
+
+### Lo que NO se ha copiado es el tamaño
+
+El foro de referencia (Whack a Hack) tiene 22.000 miembros y 335.000
+mensajes; con eso, veinte foros están todos vivos. Aquí somos veinte
+personas, y **veinte cajas con "0 temas" comunican "aquí no hay nadie"
+mucho más fuerte de lo que comunicaría no tener foro**.
+
+Por eso la estructura vive en la **base de datos y no en el HTML**: se
+arranca con pocos foros y se abren más desde `/admin`, sin desplegar, el
+día que un tema ya no quepa en los que hay. Ese es el orden correcto —
+un foro se abre cuando hace falta, nunca por si acaso.
+
+Arranca con tres secciones y siete foros: Comunidad (Anuncios,
+Presentaciones, Sugerencias y fallos + *Web* y *Contenido*), Colección
+(*¿Es falsa? ¿Cuánto vale?*, Muestra tu colección + *Cartas del mes*, e
+Intercambios **escondido**) y Café (General).
+
+*Intercambios* nace oculto a propósito: con veinte personas no hay
+mercado, y en cuanto hay dinero de por medio hay estafas y hay que
+moderar de verdad. Se abre con un clic el día que tenga sentido.
+
+### Las tablas
+
+| tabla | qué guarda |
+| --- | --- |
+| `forum_sections` | las cabeceras del índice |
+| `forum_boards` | foros **y subforos** — un subforo es un foro con `parent_id` |
+| `forum_threads` | temas, con `prefix` (la etiqueta), `is_pinned`, `is_locked` |
+| `forum_posts` | mensajes, con `reply_to_id` para las citas |
+| `forum_post_likes` | "me gusta", uno por cabeza (clave primaria compuesta) |
+
+Un subforo **no** tiene tabla propia porque es exactamente lo mismo que
+un foro: tiene temas, permisos y puede tener hijos. Una tabla aparte
+duplicaría todo eso para no ganar nada.
+
+`forum_boards_resumen` es la vista del índice: cada foro con sus números
+y su último mensaje ya resueltos, **incluyendo los de sus subforos** (si
+no, un foro que solo hace de contenedor saldría con 0 temas y parecería
+muerto). Lleva `security_invoker = true`, que **no es opcional**: por
+defecto una vista se consulta con los permisos de quien la creó, así que
+sin eso la vista se saltaría las políticas y enseñaría los foros
+escondidos a cualquiera.
+
+Los contadores del tema (`post_count`, `last_post_at`) los mantiene un
+disparador que **recuenta entero** en vez de sumar y restar. Con este
+volumen el coste no existe, y a cambio un borrado o un movimiento no
+pueden dejar el contador mintiendo para siempre.
+
+### XP por participar, con dos frenos
+
+Abrir un tema da **5 XP**; responder, **2**. Lo concede un disparador y
+no el navegador, por lo mismo que el resto del XP.
+
+Aquí **no hay tope natural** (a diferencia de "me ha servido", que lo
+topa una clave primaria), así que lleva dos:
+
+1. **Menos de 80 caracteres de texto no dan nada.** Un "gracias" o un
+   "+1" no es participar, y si diera XP el foro se llenaría de eso en una
+   semana.
+2. **Como mucho 10 mensajes al día cuentan.** Quien escribe de verdad no
+   llega ahí casi nunca; quien quiera farmear, sí.
+
+### Quién puede qué
+
+- **Abrir tema**: en foros con `post_policy = 'todos'`, cualquiera que no
+  esté baneado ni silenciado. Anuncios es `'staff'`: todo el mundo lo lee,
+  solo el equipo escribe.
+- **Editar**: el autor puede cambiar el título y la etiqueta de SU tema.
+  **Fijar, cerrar, mover y las visitas son cosa del equipo**, y eso lo
+  impone un disparador que revierte esos campos si quien escribe no es
+  admin — la política de UPDATE por sí sola no bastaría, porque el autor
+  sí puede tocar su fila.
+- **Borrar un tema**: el equipo siempre; el autor solo mientras no haya
+  contestado nadie. Borrar un tema con respuestas es borrar los mensajes
+  de otros.
+- **"Me gusta"**: en tu nombre, y no a ti mismo.
+
+### La pantalla del tema
+
+Columna del autor a la izquierda (avatar grande, nombre, título y chapas)
+y el mensaje a la derecha con su número, su fecha, *Me gusta / Citar /
+Reportar* y la fila de reacciones. Es la disposición clásica y se mantiene
+porque hace que se vea de un golpe **quién** dice cada cosa, que en un
+foro pesa tanto como lo que se dice.
+
+El título bajo el nombre es el **rango de colaborador** si lo tiene (se
+gana escribiendo guías) y, si no, el nivel — para que nadie se quede sin
+nada debajo del nombre.
+
+### Lo que se hereda ya hecho
+
+El foro no arrancó de cero: enchufa en los avisos y la campanita, el XP y
+los rangos, el hilo de Actividad (un tema nuevo sale ahí; las respuestas
+**no**, o una conversación animada taparía todo lo demás), reportar
+contenido, banear y silenciar, y el editor de texto con formato e
+imágenes.
+
+### Un fallo real que salió al probarlo
+
+El disparador que impide que alguien se infle las visitas de su tema
+**también frenaba a `forum_ver_tema()`**, que es la única función que las
+cuenta. Resultado: el contador se habría quedado clavado en cero para
+siempre. Se arregló con una marca de sesión que la función pone y el
+disparador respeta; nadie puede ponérsela desde fuera, porque por la API
+solo se llega a las funciones publicadas.
+
+### Cómo se ha probado
+
+- **Contra PostgreSQL 16 de verdad** (`prueba-foro.sql`, 35
+  comprobaciones) y dejando de ser superusuario, si no RLS no se aplica:
+  quién abre temas y dónde, que un silenciado no escribe, que el autor no
+  se fija ni se mueve ni se infla las visitas, que un tema cerrado no
+  admite respuestas salvo del equipo, los contadores al insertar y al
+  borrar, el XP con sus dos frenos, que no puedes darte "me gusta" a ti
+  mismo, y que un foro escondido no se cuela **ni por la tabla ni por la
+  vista**. Más que la migración aguanta ejecutarse dos veces.
+- **La pantalla, con Playwright** (`test-foro.mjs`): el índice con sus
+  secciones, subforos y números; la lista de temas con el fijado arriba;
+  abrir un tema; que sin cuenta se pueda leer pero no escribir; el tema
+  con su columna de autor, sus citas y sus "me gusta"; responder citando;
+  el tema cerrado; el panel de `/admin`; que un tema nuevo salga en
+  Actividad; y que las tres pantallas quepan en 360 px.

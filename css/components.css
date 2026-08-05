@@ -3830,6 +3830,582 @@ a.rater-name:hover {
   border-radius: var(--radius-sm);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   El foro
+   ══════════════════════════════════════════════════════════════ */
+
+/* Panel del foro en /admin */
+.foro-admin-fila {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.foro-admin-fila input[type='text'] {
+  flex: 1;
+  min-width: 180px;
+}
+
+.foro-admin-hijo td:first-child {
+  padding-left: 18px;
+}
+
+.foro-admin-rama {
+  color: var(--text-dim);
+}
+
+.foro-admin-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* Migas de pan: en un foro no son adorno. Son la única forma de saber
+   dónde estás cuando llegas a un tema desde fuera. */
+.foro-migas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin: 4px 0 14px;
+  font-size: 13px;
+  color: var(--text-mid);
+}
+
+.foro-migas a {
+  color: var(--text-mid);
+  font-weight: 600;
+}
+
+.foro-migas a:hover {
+  color: var(--navy);
+}
+
+.foro-migas-sep {
+  color: var(--text-dim);
+}
+
+.foro-cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.foro-columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 24px;
+  align-items: start;
+}
+
+.foro-seccion {
+  margin-bottom: 26px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.foro-seccion-titulo {
+  margin: 0;
+  padding: 12px 18px;
+  background: var(--ice);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: var(--text);
+}
+
+/* Una fila de foro o de tema: icono, cuerpo, números y último mensaje. */
+.foro-fila,
+.foro-tema-fila {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 150px 230px;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.foro-seccion > .foro-fila:first-of-type,
+.foro-seccion > .foro-tema-fila:first-of-type {
+  border-top: none;
+}
+
+.foro-fila-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--navy);
+  opacity: 0.55;
+}
+
+.foro-tema-fijado .foro-fila-icono {
+  opacity: 1;
+  color: var(--warning);
+}
+
+.foro-fila-cuerpo h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0 0 3px;
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.foro-fila-cuerpo h3 a {
+  color: var(--text);
+}
+
+.foro-fila-cuerpo h3 a:hover {
+  color: var(--navy);
+}
+
+.foro-fila-cuerpo .subtext {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.foro-subforos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 7px 0 0;
+}
+
+.foro-subforos a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.foro-fila-numeros {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+}
+
+.foro-fila-numeros span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.foro-fila-numeros small {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.foro-fila-numeros strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.foro-ultimo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.foro-ultimo-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.foro-ultimo-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foro-ultimo-texto .subtext {
+  font-size: 12px;
+}
+
+.foro-ultimo-vacio {
+  justify-content: flex-start;
+  font-size: 12.5px;
+}
+
+/* Etiqueta del tema: [Duda], [Oficial]... */
+.foro-etiqueta {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.foro-chapa {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.foro-chapa-cerrado {
+  background: var(--border);
+  color: var(--text-mid);
+}
+
+.foro-chapa-equipo {
+  background: var(--indigo-bg);
+  color: var(--indigo);
+}
+
+/* Barra lateral: lo último escrito. */
+.foro-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+}
+
+.foro-panel h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.foro-reciente {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.foro-reciente:first-of-type {
+  border-top: none;
+}
+
+.foro-reciente-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.foro-reciente-texto strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foro-reciente-texto small {
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+/* ── El tema ── */
+.tema-cabecera h1 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 0 0 6px;
+  font-size: 26px;
+  line-height: 1.25;
+}
+
+.tema-firma {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 18px;
+}
+
+.tema-moderacion {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.tema-moderacion button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 12.5px;
+}
+
+/* Un mensaje: columna del autor a la izquierda, contenido a la derecha.
+   Es la disposición clásica de foro, y se mantiene porque hace que se vea
+   de un golpe QUIÉN dice cada cosa — que en un foro pesa tanto como lo
+   que se dice. */
+.foro-mensaje {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.foro-mensaje-autor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 14px;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+
+.foro-mensaje-autor .mini-avatar {
+  border-radius: 50%;
+}
+
+.foro-autor-nombre a {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.foro-autor-titulo {
+  font-size: 12px;
+  color: var(--text-mid);
+}
+
+.foro-mensaje-autor .contributor-badge {
+  font-size: 11.5px;
+}
+
+.foro-mensaje-cuerpo {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 18px 12px;
+  min-width: 0;
+}
+
+.foro-mensaje-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.foro-mensaje-num {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.foro-mensaje-texto {
+  flex: 1;
+}
+
+.foro-cita {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.foro-cita-quien {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.foro-cita .article-body {
+  font-size: 14px;
+  color: var(--text-mid);
+}
+
+.foro-mensaje-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.foro-mensaje-izq,
+.foro-mensaje-der {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.foro-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-mid);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.foro-accion:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.foro-accion-on {
+  border-color: var(--navy);
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.foro-megustas {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 7px 12px;
+  background: var(--ice);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  color: var(--text-mid);
+}
+
+/* ── Formularios del foro ── */
+.foro-form {
+  margin-bottom: 20px;
+}
+
+.foro-form h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.foro-form-fila {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.foro-form-fila select {
+  flex: 0 0 150px;
+}
+
+.foro-form-fila input {
+  flex: 1;
+}
+
+.foro-form-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.foro-respondiendo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  background: var(--ice);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+/* En móvil se cae todo a una columna: las cuatro columnas de un índice de
+   foro no caben en 360 px ni forzándolas, y lo que se pierde (números y
+   último mensaje al lado) es justo lo prescindible. */
+@media (max-width: 900px) {
+  .foro-columnas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .foro-fila,
+  .foro-tema-fila {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .foro-fila-numeros {
+    grid-column: 2;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  .foro-fila-numeros span {
+    flex-direction: row;
+    gap: 5px;
+    align-items: baseline;
+  }
+
+  .foro-ultimo {
+    grid-column: 2;
+  }
+
+  .foro-mensaje {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* En móvil la columna del autor se convierte en una línea encima del
+     mensaje, como una firma normal. */
+  .foro-mensaje-autor {
+    flex-direction: row;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .foro-mensaje-autor .mini-avatar {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 15px !important;
+  }
+
+  .foro-form-fila {
+    flex-direction: column;
+  }
+
+  .foro-form-fila select {
+    flex: 1;
+  }
+}
+
 /* ── Sugerir una corrección ── */
 .sugerencia-btn {
   display: inline-flex;

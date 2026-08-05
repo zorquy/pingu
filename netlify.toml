@@ -86,6 +86,19 @@
   to = "/usuario.html?u=:username"
   status = 200
 
+# Lo mismo en el foro: /foro/<slug-del-foro> y /tema/<id>. `/foro` a secas
+# no necesita regla, porque Netlify sirve foro.html antes de llegar al
+# catch-all; estas dos sí, porque no existe ningún fichero con ese nombre.
+[[redirects]]
+  from = "/foro/:slug"
+  to = "/foro.html?f=:slug"
+  status = 200
+
+[[redirects]]
+  from = "/tema/:id"
+  to = "/tema.html?t=:id"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

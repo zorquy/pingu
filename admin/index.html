@@ -30,6 +30,7 @@
         <button class="admin-nav-item" data-section="paths"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg> Rutas</button>
         <button class="admin-nav-item" data-section="achievements"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg> Logros</button>
         <button class="admin-nav-item" data-section="users"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Usuarios</button>
+        <button class="admin-nav-item" data-section="foro"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="13" y2="13"></line></svg> Foro</button>
         <button class="admin-nav-item" data-section="reports"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg> Reportes</button>
         <button class="admin-nav-item" data-section="feedback"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Feedback</button>
         <button class="admin-nav-item" data-section="errors"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="6" width="8" height="14" rx="4"></rect><path d="M19 7l-3 2"></path><path d="M5 7l3 2"></path><path d="M19 19l-3-2"></path><path d="M5 19l3-2"></path><path d="M12 6V2"></path><path d="M9 2h6"></path></svg> Errores</button>
@@ -112,6 +113,43 @@
       <section class="admin-section" id="section-users">
         <h1>Usuarios</h1>
         <div id="usersTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-foro">
+        <h1>Foro</h1>
+        <p class="admin-note">
+          La estructura del foro se monta aquí, no en el código: se pueden abrir foros nuevos,
+          renombrarlos, moverlos y esconderlos sin desplegar nada. Empieza con pocos y abre uno
+          cuando un tema ya no quepa en los que hay — un foro vacío desanima más que no tenerlo.
+        </p>
+        <div class="admin-card" style="margin-bottom: 20px;">
+          <h3 style="margin-top: 0;">Nueva sección</h3>
+          <div class="foro-admin-fila">
+            <input type="text" id="foroSeccionNombre" placeholder="Nombre de la sección (Comunidad, Colección…)" />
+            <button class="btn-primary" id="btnCrearSeccion">Crear sección</button>
+          </div>
+        </div>
+        <div class="admin-card" style="margin-bottom: 20px;">
+          <h3 style="margin-top: 0;">Nuevo foro</h3>
+          <div class="foro-admin-fila">
+            <select id="foroNuevoSeccion" aria-label="Sección"></select>
+            <select id="foroNuevoPadre" aria-label="Dentro de">
+              <option value="">— Foro principal —</option>
+            </select>
+          </div>
+          <div class="foro-admin-fila">
+            <input type="text" id="foroNuevoNombre" placeholder="Nombre del foro" />
+            <select id="foroNuevoPolitica" aria-label="Quién puede abrir temas">
+              <option value="todos">Cualquiera abre temas</option>
+              <option value="staff">Solo el equipo</option>
+            </select>
+          </div>
+          <div class="foro-admin-fila">
+            <input type="text" id="foroNuevaDescripcion" placeholder="Descripción (una línea, se ve en el índice)" />
+            <button class="btn-primary" id="btnCrearForo">Crear foro</button>
+          </div>
+        </div>
+        <div id="foroEstructura"></div>
       </section>
 
       <section class="admin-section" id="section-reports">

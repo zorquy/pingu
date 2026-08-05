@@ -21,6 +21,17 @@ export const icons = {
     ),
   moon: (size) => icon('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>', size),
   messageSquare: (size) => icon('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>', size),
+  // Como el marcador: admite pintarse relleno para el estado "ya le has
+  // dado" sin necesitar un segundo SVG.
+  thumbsUp: (size, filled = false) =>
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${
+      filled ? 'currentColor' : 'none'
+    }" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`,
+  quote: (size) =>
+    icon(
+      '<path d="M10 11H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6a5 5 0 0 1-5 5"></path><path d="M20 11h-4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6a5 5 0 0 1-5 5"></path>',
+      size
+    ),
   // A diferencia de los demás iconos, admite un segundo argumento para
   // pintarse relleno (guardado) o solo el contorno (sin guardar) — evita
   // tener dos SVGs distintos para el mismo icono en sus dos estados.

@@ -4,23 +4,23 @@
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aprender — PokeDoc</title>
+  <title>Tema — Foro de PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
-  <meta name="description" content="Explora guías y cursos interactivos de Pokémon TCG organizados por categoría, en español." />
+  <meta name="description" content="Un tema del foro de PokeDoc." />
   <!-- meta-social:inicio -->
-  <link rel="canonical" href="https://pokedoc.es/aprender.html" />
-  <meta property="og:url" content="https://pokedoc.es/aprender.html" />
+  <link rel="canonical" href="https://pokedoc.es/tema.html" />
+  <meta property="og:url" content="https://pokedoc.es/tema.html" />
   <meta property="og:site_name" content="PokeDoc" />
-  <meta property="og:type" content="website" />
+  <meta property="og:type" content="article" />
   <meta property="og:locale" content="es_ES" />
-  <meta property="og:title" content="Aprender — PokeDoc" />
-  <meta property="og:description" content="Explora guías y cursos interactivos de Pokémon TCG organizados por categoría, en español." />
+  <meta property="og:title" content="Tema — Foro de PokeDoc" />
+  <meta property="og:description" content="Un tema del foro de PokeDoc." />
   <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Aprender — PokeDoc" />
-  <meta name="twitter:description" content="Explora guías y cursos interactivos de Pokémon TCG organizados por categoría, en español." />
+  <meta name="twitter:title" content="Tema — Foro de PokeDoc" />
+  <meta name="twitter:description" content="Un tema del foro de PokeDoc." />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -52,15 +52,16 @@
   </nav>
 
   <main class="page-content container">
-    <div class="page-header">
-      <h1>Aprender</h1>
-      <p>Explora las categorías y descubre nuevas guías.</p>
+    <nav class="foro-migas" id="temaMigas" aria-label="Dónde estás"></nav>
+
+    <div class="tema-cabecera" id="temaCabecera"></div>
+
+    <div id="temaMensajes">
+      <div class="skeleton" style="height: 160px;"></div>
     </div>
 
-    <div class="path-list" id="categoriesList">
-      <div class="skeleton" style="height: 110px;"></div>
-      <div class="skeleton" style="height: 110px;"></div>
-    </div>
+    <div id="temaPaginacion"></div>
+    <div id="temaResponder"></div>
   </main>
 
   <footer class="footer">
@@ -69,6 +70,6 @@
   </footer>
 
   <script type="module" src="js/app.js"></script>
-  <script type="module" src="js/aprender.js"></script>
+  <script type="module" src="js/tema.js"></script>
 </body>
 </html>

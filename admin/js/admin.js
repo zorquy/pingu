@@ -1,5 +1,5 @@
 import { supabase } from '../../js/supabase.js'
-import { escapeHtml, getSession, validateImageFile, profileUrl } from '../../js/app.js'
+import { escapeHtml, getSession, validateImageFile, profileUrl, slugify } from '../../js/app.js'
 import { invalidateAchievementsCache } from '../../js/gamification.js'
 import { showToast } from '../../js/toast.js'
 import { renderReferenceBlocksHtml } from '../../js/block-editor.js'
@@ -812,6 +812,192 @@ async function loadContentPreviews(reports) {
   return previews
 }
 
+// ── El foro: montar la estructura ──
+//
+// Las secciones y los foros viven en la base de datos, no en el HTML, para
+// poder abrir un foro nuevo sin desplegar. Aquí se crean, se renombran, se
+// mueven de sitio y se esconden.
+//
+// La regla de oro es la contraria a la que apetece: NO abrir foros por si
+// acaso. Un foro con "0 temas" desanima más que no tenerlo, así que se abre
+// uno cuando un tema ya no cabe en los que hay.
+async function loadForo() {
+  const contenedor = document.getElementById('foroEstructura')
+  if (!contenedor) return
+
+  const [{ data: secciones, error }, { data: foros }] = await Promise.all([
+    supabase.from('forum_sections').select('*').order('position'),
+    supabase.from('forum_boards').select('*').order('position'),
+  ])
+
+  if (error) {
+    contenedor.innerHTML = `<p class="admin-note">El foro todavía no está activado: falta ejecutar supabase-migration-foro.sql.</p>`
+    return
+  }
+
+  const listaSecciones = secciones || []
+  const listaForos = foros || []
+
+  // Los desplegables de "nuevo foro"
+  const selSeccion = document.getElementById('foroNuevoSeccion')
+  const selPadre = document.getElementById('foroNuevoPadre')
+  selSeccion.innerHTML = listaSecciones.map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('')
+  selPadre.innerHTML =
+    '<option value="">— Foro principal —</option>' +
+    listaForos
+      .filter((f) => !f.parent_id)
+      .map((f) => `<option value="${f.id}">Dentro de ${escapeHtml(f.name)}</option>`)
+      .join('')
+
+  const hijosDe = (id) => listaForos.filter((f) => f.parent_id === id)
+
+  const filaForo = (f, esHijo) => `
+    <tr class="${esHijo ? 'foro-admin-hijo' : ''}">
+      <td>${esHijo ? '<span class="foro-admin-rama">└</span> ' : ''}<input type="text" value="${escapeHtml(f.name)}" data-nombre="${f.id}" /></td>
+      <td><input type="text" value="${escapeHtml(f.description || '')}" data-desc="${f.id}" placeholder="Sin descripción" /></td>
+      <td><input type="number" value="${f.position}" data-pos="${f.id}" style="width:64px;" /></td>
+      <td>
+        <select data-politica="${f.id}">
+          <option value="todos" ${f.post_policy === 'todos' ? 'selected' : ''}>Cualquiera</option>
+          <option value="staff" ${f.post_policy === 'staff' ? 'selected' : ''}>Solo equipo</option>
+        </select>
+      </td>
+      <td><label class="foro-admin-check"><input type="checkbox" data-oculto="${f.id}" ${f.is_hidden ? 'checked' : ''} /> Oculto</label></td>
+      <td>
+        <button class="btn-secondary" data-guardar-foro="${f.id}">Guardar</button>
+        <button class="admin-danger" data-borrar-foro="${f.id}">Borrar</button>
+      </td>
+    </tr>`
+
+  contenedor.innerHTML = listaSecciones
+    .map((s) => {
+      const suyos = listaForos.filter((f) => f.section_id === s.id && !f.parent_id)
+      return `
+      <div class="admin-card" style="margin-bottom:18px;">
+        <div class="foro-admin-fila">
+          <input type="text" value="${escapeHtml(s.name)}" data-seccion-nombre="${s.id}" />
+          <input type="number" value="${s.position}" data-seccion-pos="${s.id}" style="width:64px;" />
+          <button class="btn-secondary" data-guardar-seccion="${s.id}">Guardar</button>
+          <button class="admin-danger" data-borrar-seccion="${s.id}">Borrar sección</button>
+        </div>
+        ${
+          suyos.length === 0
+            ? '<p class="admin-note" style="margin:12px 0 0;">Esta sección no tiene foros todavía.</p>'
+            : `<table class="admin-table" style="margin-top:12px;">
+                 <thead><tr><th>Foro</th><th>Descripción</th><th>Orden</th><th>Quién escribe</th><th></th><th></th></tr></thead>
+                 <tbody>${suyos
+                   .map((f) => filaForo(f, false) + hijosDe(f.id).map((h) => filaForo(h, true)).join(''))
+                   .join('')}</tbody>
+               </table>`
+        }
+      </div>`
+    })
+    .join('')
+
+  contenedor.querySelectorAll('[data-guardar-foro]').forEach((b) =>
+    b.addEventListener('click', () => guardarForo(b.dataset.guardarForo))
+  )
+  contenedor.querySelectorAll('[data-borrar-foro]').forEach((b) =>
+    b.addEventListener('click', () => borrarForo(b.dataset.borrarForo))
+  )
+  contenedor.querySelectorAll('[data-guardar-seccion]').forEach((b) =>
+    b.addEventListener('click', () => guardarSeccion(b.dataset.guardarSeccion))
+  )
+  contenedor.querySelectorAll('[data-borrar-seccion]').forEach((b) =>
+    b.addEventListener('click', () => borrarSeccion(b.dataset.borrarSeccion))
+  )
+}
+
+async function guardarForo(id) {
+  const cambios = {
+    name: document.querySelector(`[data-nombre="${id}"]`).value.trim(),
+    description: document.querySelector(`[data-desc="${id}"]`).value.trim() || null,
+    position: Number(document.querySelector(`[data-pos="${id}"]`).value) || 0,
+    post_policy: document.querySelector(`[data-politica="${id}"]`).value,
+    is_hidden: document.querySelector(`[data-oculto="${id}"]`).checked,
+  }
+  const { error } = await supabase.from('forum_boards').update(cambios).eq('id', id)
+  showToast(error ? 'No se ha podido guardar: ' + error.message : 'Guardado.', error ? 'error' : 'success')
+  if (!error) loadForo()
+}
+
+// Borrar un foro se lleva por delante sus temas y mensajes. Se avisa con
+// el número exacto, no con un "¿seguro?" a secas: no es lo mismo tirar un
+// foro vacío que uno con doscientos mensajes dentro.
+async function borrarForo(id) {
+  const { count } = await supabase.from('forum_threads').select('*', { count: 'exact', head: true }).eq('board_id', id)
+  const temas = count || 0
+  if (!confirm(temas === 0 ? '¿Borrar este foro?' : `Este foro tiene ${temas} tema(s), y se borrarán con él. ¿Seguro?`)) return
+  const { error } = await supabase.from('forum_boards').delete().eq('id', id)
+  showToast(error ? 'No se ha podido borrar: ' + error.message : 'Borrado.', error ? 'error' : 'success')
+  if (!error) loadForo()
+}
+
+async function guardarSeccion(id) {
+  const { error } = await supabase
+    .from('forum_sections')
+    .update({
+      name: document.querySelector(`[data-seccion-nombre="${id}"]`).value.trim(),
+      position: Number(document.querySelector(`[data-seccion-pos="${id}"]`).value) || 0,
+    })
+    .eq('id', id)
+  showToast(error ? 'No se ha podido guardar: ' + error.message : 'Guardado.', error ? 'error' : 'success')
+  if (!error) loadForo()
+}
+
+async function borrarSeccion(id) {
+  const { count } = await supabase.from('forum_boards').select('*', { count: 'exact', head: true }).eq('section_id', id)
+  if (!confirm(count ? `La sección tiene ${count} foro(s), y se borrarán con ella. ¿Seguro?` : '¿Borrar esta sección?')) return
+  const { error } = await supabase.from('forum_sections').delete().eq('id', id)
+  showToast(error ? 'No se ha podido borrar: ' + error.message : 'Borrada.', error ? 'error' : 'success')
+  if (!error) loadForo()
+}
+
+// El slug se saca del nombre y se le pega un sufijo si ya existe: es lo
+// que va en la URL, y una colisión silenciosa dejaría dos foros peleándose
+// por la misma dirección.
+async function slugLibre(nombre) {
+  const base = slugify(nombre) || 'foro'
+  const { data } = await supabase.from('forum_boards').select('slug').like('slug', `${base}%`)
+  const usados = new Set((data || []).map((f) => f.slug))
+  if (!usados.has(base)) return base
+  let n = 2
+  while (usados.has(`${base}-${n}`)) n++
+  return `${base}-${n}`
+}
+
+document.getElementById('btnCrearSeccion')?.addEventListener('click', async () => {
+  const nombre = document.getElementById('foroSeccionNombre').value.trim()
+  if (!nombre) return showToast('Ponle nombre a la sección.')
+  const { error } = await supabase.from('forum_sections').insert({ name: nombre, position: 99 })
+  if (error) return showToast('No se ha podido crear: ' + error.message)
+  document.getElementById('foroSeccionNombre').value = ''
+  showToast('Sección creada.', 'success')
+  loadForo()
+})
+
+document.getElementById('btnCrearForo')?.addEventListener('click', async () => {
+  const nombre = document.getElementById('foroNuevoNombre').value.trim()
+  const seccion = document.getElementById('foroNuevoSeccion').value
+  if (!nombre) return showToast('Ponle nombre al foro.')
+  if (!seccion) return showToast('Crea antes una sección.')
+
+  const { error } = await supabase.from('forum_boards').insert({
+    section_id: seccion,
+    parent_id: document.getElementById('foroNuevoPadre').value || null,
+    name: nombre,
+    slug: await slugLibre(nombre),
+    description: document.getElementById('foroNuevaDescripcion').value.trim() || null,
+    post_policy: document.getElementById('foroNuevoPolitica').value,
+    position: 99,
+  })
+  if (error) return showToast('No se ha podido crear: ' + error.message)
+  document.getElementById('foroNuevoNombre').value = ''
+  document.getElementById('foroNuevaDescripcion').value = ''
+  showToast('Foro creado.', 'success')
+  loadForo()
+})
+
 async function loadReports() {
   const { data } = await supabase
     .from('content_reports')
@@ -1499,6 +1685,7 @@ async function init() {
     loadAccountDeletionRequests(),
     loadCards(),
     loadSchemaCheck(),
+    loadForo(),
   ])
 
   initCardsSection()

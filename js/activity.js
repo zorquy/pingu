@@ -30,7 +30,7 @@ function haceCuanto(iso) {
 export async function loadActivity(limite = 20) {
   const desde = new Date(Date.now() - 60 * 86400_000).toISOString()
 
-  const [progreso, guiasNuevas, comentarios, altas, peticiones] = await Promise.all([
+  const [progreso, guiasNuevas, comentarios, altas, peticiones, temas] = await Promise.all([
     supabase
       .from('user_progress')
       .select('user_id, guide_id, status, completed_at, read_at')
@@ -62,6 +62,15 @@ export async function loadActivity(limite = 20) {
       .select('id, title, requester_id, created_at')
       .order('created_at', { ascending: false })
       .limit(POR_FUENTE),
+    // Abrir un tema en el foro es de lo que más movimiento genera, así
+    // que tiene que salir aquí. Solo los temas, no cada respuesta: si
+    // entraran los mensajes, una conversación animada taparía todo lo
+    // demás del hilo.
+    supabase
+      .from('forum_threads')
+      .select('id, title, author_id, created_at')
+      .order('created_at', { ascending: false })
+      .limit(POR_FUENTE),
   ])
 
   const eventos = []
@@ -83,6 +92,9 @@ export async function loadActivity(limite = 20) {
   }
   for (const r of peticiones.data || []) {
     eventos.push({ tipo: 'peticion', userId: r.requester_id, texto: r.title, fecha: r.created_at })
+  }
+  for (const t of temas.data || []) {
+    eventos.push({ tipo: 'tema', userId: t.author_id, texto: t.title, enlace: `/tema/${t.id}`, fecha: t.created_at })
   }
 
   eventos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
@@ -134,17 +146,23 @@ const TEXTOS = {
   comentario: { icono: 'messageSquare', verbo: 'ha comentado en' },
   alta: { icono: 'user', verbo: 'se ha unido a PokeDoc' },
   peticion: { icono: 'helpCircle', verbo: 'ha pedido una guía sobre' },
+  tema: { icono: 'messageSquare', verbo: 'ha abierto un tema en el foro:' },
 }
 
 function eventoHtml(e) {
   const t = TEXTOS[e.tipo]
   const nombre = e.perfil?.display_name || e.perfil?.username || 'Alguien'
   const estiloAvatar = avatarStyle(e.perfil)
+  // El destino depende del tipo: una guía enlaza a la guía; lo que trae
+  // `enlace` propio (un tema del foro) va a lo suyo; y lo que solo tiene
+  // texto es una petición, que vive en la pestaña de la comunidad.
   const destino = e.guia
     ? ` <a href="/guia.html?slug=${encodeURIComponent(e.guia.slug)}">${escapeHtml(e.guia.title)}</a>`
-    : e.texto
-      ? ` <a href="/usuarios.html#peticiones">${escapeHtml(e.texto)}</a>`
-      : ''
+    : e.enlace && e.texto
+      ? ` <a href="${e.enlace}">${escapeHtml(e.texto)}</a>`
+      : e.texto
+        ? ` <a href="/usuarios.html#peticiones">${escapeHtml(e.texto)}</a>`
+        : ''
   return `
     <li class="activity-item">
       <a class="mini-avatar activity-avatar" href="${profileUrl(e.perfil)}" style="${estiloAvatar}">${

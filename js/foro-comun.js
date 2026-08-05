@@ -1,0 +1,82 @@
+import { supabase } from './supabase.js'
+import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
+import { contributorCounts, badgeHtml } from './contributor-badge.js'
+
+// Lo que repiten las tres pantallas del foro (índice, lista de temas y
+// tema): fechas, gente y la firma del autor.
+
+export function haceCuanto(iso) {
+  if (!iso) return ''
+  const segundos = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000))
+  if (segundos < 60) return 'hace un momento'
+  const minutos = Math.floor(segundos / 60)
+  if (minutos < 60) return `hace ${minutos} min`
+  const horas = Math.floor(minutos / 60)
+  if (horas < 24) return `hace ${horas} h`
+  const dias = Math.floor(horas / 24)
+  if (dias === 1) return 'ayer'
+  if (dias < 30) return `hace ${dias} días`
+  const meses = Math.floor(dias / 30)
+  return meses === 1 ? 'hace un mes' : `hace ${meses} meses`
+}
+
+// Fecha completa para el título emergente: "hace 3 h" está bien para
+// leer de un vistazo, pero a veces hace falta saber el día exacto.
+export function fechaLarga(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })
+}
+
+export function nombreDe(perfil) {
+  return perfil?.display_name || perfil?.username || 'Alguien'
+}
+
+export async function perfilesPorId(ids) {
+  const unicos = [...new Set((ids || []).filter(Boolean))]
+  if (unicos.length === 0) return {}
+  const { data } = await supabase
+    .from('user_profiles')
+    .select('id, username, display_name, avatar_url, level, total_xp')
+    .in('id', unicos)
+  return Object.fromEntries((data || []).map((p) => [p.id, p]))
+}
+
+export function avatarHtml(perfil, tamano = 20) {
+  const nombre = nombreDe(perfil)
+  const estilo = `width:${tamano}px; height:${tamano}px; font-size:${Math.round(tamano * 0.45)}px; ${avatarStyle(perfil)}`
+  const contenido = perfil?.avatar_url ? '' : escapeHtml(getInitial(nombre))
+  if (!perfil) return `<span class="mini-avatar" style="${estilo}">${contenido}</span>`
+  return `<a class="mini-avatar" href="${profileUrl(perfil)}" style="${estilo}">${contenido}</a>`
+}
+
+export function enlacePerfil(perfil) {
+  const nombre = escapeHtml(nombreDe(perfil))
+  return perfil ? `<a href="${profileUrl(perfil)}">${nombre}</a>` : `<span>${nombre}</span>`
+}
+
+// El rango de colaborador de varias personas de una vez. Se reexporta
+// desde aquí para que las pantallas del foro no tengan que saber de dónde
+// sale.
+export { contributorCounts, badgeHtml }
+
+// La etiqueta que va delante del título del tema ([Duda], [Oficial]...).
+export function etiquetaHtml(prefix) {
+  if (!prefix) return ''
+  return `<span class="foro-etiqueta">${escapeHtml(prefix)}</span>`
+}
+
+// Un tema y un foro se enlazan siempre igual. Las rutas bonitas
+// (/foro/<slug> y /tema/<id>) las resuelve netlify.toml.
+export const urlForo = (slug) => `/foro/${encodeURIComponent(slug)}`
+export const urlTema = (id, pagina) => `/tema/${encodeURIComponent(id)}${pagina && pagina > 1 ? `?p=${pagina}` : ''}`
+
+// Cuando falta la migración no se enseña un error de base de datos: se
+// dice lo que pasa, en cristiano.
+export function faltaElForo(error) {
+  if (!error) return false
+  return (
+    error.code === '42P01' ||
+    error.code === 'PGRST205' ||
+    /forum_/.test(`${error.message || ''} ${error.details || ''}`)
+  )
+}
