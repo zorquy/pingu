@@ -5321,3 +5321,153 @@ El hilo de la comunidad contaba guías publicadas, comentarios, cursos y
 altas. Pedir una guía también es actividad — de hecho es de las cosas más
 baratas de hacer y de las que más ganas dan de entrar a ver qué han
 pedido.
+
+## Sugerir correcciones a la guía de otro (tanda 3)
+
+Migración: **`supabase-migration-sugerencias.sql`** (hay que ejecutarla a
+mano; es idempotente).
+
+**Escribir una guía entera es un salto muy grande. Ver una errata no.**
+Un dato que ya no es cierto, una explicación que no se entiende, un enlace
+roto — eso lo puede detectar cualquiera desde el primer día, y es la única
+forma de aportar que tiene quien todavía no se ve capaz de escribir nada.
+
+Y arregla otra cosa distinta: **las guías envejecen**. El TCG cambia,
+salen sets nuevos, y una guía escrita hace un año se queda coja sin que su
+autor se entere. Quien lo nota es quien la está leyendo.
+
+### Aceptar no edita nada
+
+Esta es la decisión de diseño que sostiene todo lo demás. Aceptar una
+sugerencia **no toca el texto de la guía**: quiere decir *"tienes razón y
+ya lo he arreglado"*, y **acredita a quien avisó**. Por eso el botón dice
+"Aceptar" y no "Aplicar".
+
+Meterle mano al texto de otro automáticamente sería una wiki, que es otra
+cosa y bastante peor para esto: nadie publicaría una guía sabiendo que
+cualquiera se la puede reescribir. Así el autor sigue siendo el autor y
+quien avisó se lleva el crédito, que era lo que se buscaba.
+
+### `guide_suggestions`
+
+| columna | para qué |
+| --- | --- |
+| `guide_id` | la guía |
+| `author_id` | quien la sugiere (`on delete set null`: el crédito sobrevive a la baja) |
+| `quote` | el trozo al que se refiere, copiado a mano. Opcional |
+| `body` | qué está mal y qué debería decir |
+| `status` | `pending` / `accepted` / `rejected` |
+| `resolved_at` | cuándo se resolvió |
+
+**Quién ve qué** es la política que más importa:
+
+- Las **aceptadas son públicas**. Tienen que serlo: *son* el crédito, y
+  sin poder leerlas no habría forma de pintar el "Con correcciones de…"
+  bajo la firma.
+- Las **pendientes y las rechazadas** solo las ven el autor de la guía,
+  quien las escribió y los admins. Una lista pública de "fallos de esta
+  guía" sería una picota — con eso nadie publica nada.
+
+El resto:
+
+- **Insert**: en tu nombre, y `auth.uid() is distinct from` el autor de la
+  guía. Sugerirte correcciones a ti mismo no tiene sentido: edita la guía.
+- **Update**: solo el autor de la guía (o un admin). Quien la sugirió
+  **no** puede cambiarle el estado a la suya; si pudiera, cualquiera se
+  acreditaría solo.
+- **Delete**: la tuya, y solo mientras siga `pending`. Retirar una ya
+  aceptada sería borrar un crédito que el autor ya ha reconocido.
+
+### El XP lo da un disparador, no el navegador
+
+`xp_por_sugerencia_aceptada()` da **+10 XP a quien sugirió, solo al pasar
+a `accepted`, y solo la primera vez** (`old.status <> 'accepted'`). Por lo
+mismo que el resto del XP que conceden otros: quien lo concede es el autor
+de la guía, así que no puede depender del navegador de quien lo recibe.
+
+Y solo al aceptarla: si diera XP al enviarla, esto se llenaría en dos días
+de "buena guía :)".
+
+### Dónde se ve
+
+- **En la guía** (`js/guia.js`): la línea de créditos bajo la firma, y el
+  botón *"¿Ves algo que no está bien?"* con un formulario en línea (trozo
+  citado opcional + qué está mal). Al autor no le sale el botón. A quien
+  no ha entrado le sale, pero al pulsarlo se le invita a entrar — es mejor
+  que esconderlo, porque así se ve que la web acepta correcciones.
+- **En el perfil** (`js/perfil.js`): cada guía propia con correcciones
+  esperando lleva una chapa con el número, y al pulsarla se abre la lista
+  con *Aceptar* / *Descartar*.
+- **Solo se avisa al aceptar.** Un "te han rechazado la corrección" no le
+  sirve a nadie y quita las ganas de volver a avisar.
+
+## La guía destacada de la portada
+
+**La elige una persona desde `/admin`, no un algoritmo.** Es la
+recompensa más alta que se le puede dar a quien escribe: alguien ha leído
+su guía y ha decidido ponerla en la portada, con una nota escrita a mano
+diciendo por qué.
+
+Un ranking automático por visitas premia lo que ya es popular; esto premia
+lo que está bien hecho, que no es lo mismo — y con veinte personas, lo
+automático se nota vacío enseguida.
+
+Se guarda en **`home_config`**, la fila única que ya existía y que no
+usaba nadie: leerla es público, escribirla solo un admin. Va dentro de
+`blocks.destacada` (`{ guide_id, nota }`) para no añadir columnas a una
+tabla que quizá algún día sirva para más cosas.
+
+**Si no hay ninguna elegida, la sección no existe.** No hay hueco, ni
+"próximamente", ni una guía puesta al azar para rellenar.
+
+### Cómo se ha probado
+
+- **Los permisos, contra PostgreSQL 16 de verdad** y dejando de ser
+  superusuario (si no, RLS no se aplica): el autor no puede sugerirse en
+  su propia guía; un desconocido no ve una pendiente; quien la sugirió no
+  puede aceptársela; aceptarla da +10 XP **una sola vez**; una vez
+  aceptada pasa a ser pública; y quien la sugirió ya no puede retirarla.
+- **La pantalla, con Playwright**: que el crédito solo salga con las
+  aceptadas, que a la autora no le salga el botón (pero sí los créditos),
+  que sin cuenta se invite a entrar, que una sugerencia vacía no se envíe,
+  que se avise al autor al enviarla y a quien la sugirió al aceptarla,
+  que **el navegador no toque el XP**, y que la destacada se guarde desde
+  el admin, salga en la portada con su nota y su autor, y que sin elegir
+  ninguna no quede un hueco.
+- **Y el rigor**: `rigor-tanda3.mjs` rompe a propósito cada una de esas
+  diez cosas y exige que la prueba se ponga roja **por ese motivo** y no
+  por otro.
+
+### La barra de pestañas ya no arrastra la página en el móvil
+
+Comunidad tiene cuatro pestañas desde que existen las peticiones, y a
+360 px no caben. `.tabs` era un `flex` sin `wrap` ni desplazamiento, así
+que lo que se desplazaba de lado era **la página entera** (396 px de
+ancho en una pantalla de 360). Ahora la fila se desplaza sola, con la
+barra escondida y las pestañas sin partir (`white-space: nowrap`).
+
+### Cuatro agujeros del banco de pruebas que salieron aquí
+
+El rigor sirvió para lo de siempre y para una cosa más: **una de las diez
+roturas no ponía la prueba en rojo**. Repartir el XP desde el navegador
+—que es justo lo que no se debe hacer— seguía en verde. El motivo no
+estaba en el código:
+
+1. **El Supabase de mentira devolvía copias** de las filas de `guides` y
+   `user_profiles` (les añadía `search_norm` con un `map`). Cualquier
+   `.update()` sobre esas dos tablas se aplicaba al clon y **se perdía sin
+   dar error**. Eso deja sin valor toda prueba de guardar un perfil,
+   publicar una guía o banear a alguien.
+2. **`.order()` y `.limit()` no hacían nada.** El orden lo daba la
+   casualidad del orden de inserción, así que ni "lo más nuevo primero"
+   ni "lo más votado arriba" estaban comprobados. Al implementarlos salió
+   que el desplegable de mensajes enseñaba el mensaje **más viejo** de la
+   conversación en la copia de pruebas.
+3. **`.or()` se dejaba por el camino los filtros `is null`** al encadenar.
+4. Faltaban semillas enteras (mensajería, un aviso sin leer), y por eso
+   tres pruebas antiguas llevaban tiempo sin llegar ni a arrancar — y otra
+   comprobaba el interruptor de privacidad de Actividad **usando un gancho
+   que el falso ya no entendía**, o sea sin comprobar nada.
+
+Ninguno era un fallo de la web, pero los cuatro hacían que las pruebas
+midieran menos de lo que parecía.

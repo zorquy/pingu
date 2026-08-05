@@ -11,6 +11,8 @@ export const NOTIFICATION_TYPES = {
   comment_reply: 'Respuestas a tus comentarios',
   guide_rating: 'Valoraciones en tus guías',
   guide_helpful: 'Cuando a alguien le sirve tu guía',
+  guide_suggestion: 'Correcciones que te sugieren',
+  guide_suggestion_accepted: 'Cuando aceptan tu corrección',
   guide_request_fulfilled: 'Cuando se escribe una guía que pediste',
   new_follower: 'Nuevos seguidores',
   wall_comment: 'Comentarios en tu muro',

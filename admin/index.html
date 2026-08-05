@@ -47,6 +47,17 @@
         <div id="schemaBanner"></div>
         <h1>Dashboard</h1>
         <div class="admin-stats-grid" id="dashboardStats"></div>
+
+        <div class="admin-destacada" id="destacadaPanel">
+          <h2>Guía destacada</h2>
+          <p class="subtext">Sale en la portada. Elegida a mano: un "esta guía es buena" dicho por una persona vale
+            más que cualquier número automático. Cámbiala cuando quieras.</p>
+          <div class="admin-destacada-campos">
+            <select id="destacadaSelect"><option value="">— Ninguna —</option></select>
+            <input type="text" id="destacadaNota" maxlength="140" placeholder="Por qué la destacas (opcional)" />
+            <button class="btn-primary" id="btnGuardarDestacada">Guardar</button>
+          </div>
+        </div>
       </section>
 
       <section class="admin-section" id="section-pending">

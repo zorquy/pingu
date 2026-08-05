@@ -67,7 +67,40 @@ document.addEventListener('keydown', (e) => {
 })
 
 // ── Dashboard ──
+// ── Guía destacada de la portada ──
+//
+// Se guarda en `home_config`, la fila única que ya existía y que no usaba
+// nadie: leerla es público y escribirla solo puede un admin, que es
+// exactamente lo que hace falta. Se guarda dentro de `blocks` para no
+// añadir columnas a una tabla que quizá algún día sirva para más cosas.
+async function loadDestacada() {
+  const panel = document.getElementById('destacadaPanel')
+  if (!panel) return
+  const select = document.getElementById('destacadaSelect')
+  const nota = document.getElementById('destacadaNota')
+
+  const [{ data: guias }, { data: config }] = await Promise.all([
+    supabase.from('guides').select('id, title').not('published_at', 'is', null).order('title'),
+    supabase.from('home_config').select('blocks').eq('id', 1).maybeSingle(),
+  ])
+
+  const actual = config?.blocks?.destacada || {}
+  select.innerHTML =
+    '<option value="">— Ninguna —</option>' +
+    (guias || []).map((g) => `<option value="${g.id}" ${g.id === actual.guide_id ? 'selected' : ''}>${escapeHtml(g.title)}</option>`).join('')
+  nota.value = actual.nota || ''
+
+  document.getElementById('btnGuardarDestacada').addEventListener('click', async () => {
+    const destacada = select.value ? { guide_id: select.value, nota: nota.value.trim() || null } : null
+    const { error } = await supabase
+      .from('home_config')
+      .upsert({ id: 1, blocks: { ...(config?.blocks || {}), destacada }, updated_at: new Date().toISOString() })
+    showToast(error ? 'No se ha podido guardar: ' + error.message : 'Guardado. Ya sale en la portada.', error ? 'error' : 'success')
+  })
+}
+
 async function loadDashboard() {
+  loadDestacada().catch(() => {})
   const [{ count: userCount }, completedRes, { count: guideCount }] = await Promise.all([
     supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
     supabase.from('user_progress').select('*', { count: 'exact', head: true }).eq('status', 'completed'),

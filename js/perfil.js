@@ -6,6 +6,7 @@ import { MOSTRAR_PLANES } from './planes.js'
 import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES } from './notifications.js'
 import { authorRatingSummary, starsHtml } from './guide-rating.js'
+import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 
@@ -300,13 +301,16 @@ async function loadMyGuides(session) {
   const [{ data }, stats] = await Promise.all([
     supabase
       .from('guides')
-      .select('id, title, cover_emoji, review_status, rejection_reason, categories(name)')
+      .select('id, title, slug, cover_emoji, review_status, rejection_reason, categories(name)')
       .eq('author_id', session.user.id)
       .order('submitted_at', { ascending: false, nullsFirst: false }),
     loadGuideStats(session.user.id),
   ])
 
   myGuidesCache = data || []
+  // Lo que le han sugerido corregir. Se pide de una vez para todas sus
+  // guías; sin la migración puesta devuelve vacío y no se enseña nada.
+  const sugerencias = await sugerenciasPendientes(myGuidesCache.map((g) => g.id)).catch(() => ({}))
   const container = document.getElementById('myGuidesList')
 
   if (myGuidesCache.length === 0) {
@@ -332,9 +336,23 @@ async function loadMyGuides(session) {
         </span>
         ${g.review_status === 'rejected' && g.rejection_reason ? `<p class="my-guide-reason">Motivo del rechazo: ${escapeHtml(g.rejection_reason)}</p>` : ''}
         ${statsHtml(stats[g.id])}
+        ${
+          (sugerencias[g.id] || []).length
+            ? `<button type="button" class="my-guide-sugerencias" data-sugerencias="${g.id}">
+                 ${icons.flag(13)} ${sugerencias[g.id].length} ${sugerencias[g.id].length === 1 ? 'corrección sugerida' : 'correcciones sugeridas'}
+               </button>`
+            : ''
+        }
       </div>`
     })
     .join('')
+
+  container.querySelectorAll('[data-sugerencias]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const guia = myGuidesCache.find((g) => g.id === btn.dataset.sugerencias)
+      abrirSugerencias(guia, sugerencias[btn.dataset.sugerencias] || [], session)
+    })
+  )
 
   container.querySelectorAll('[data-edit]').forEach((btn) =>
     btn.addEventListener('click', () => (window.location.href = `editor-guia.html?id=${btn.dataset.edit}`))
@@ -346,6 +364,79 @@ async function loadMyGuides(session) {
       loadMyGuides(currentSession)
     })
   )
+}
+
+// Revisar las correcciones que te han sugerido.
+//
+// "Aceptar" NO cambia el texto de la guía: quiere decir "tienes razón y
+// ya lo he arreglado". Por eso el botón lo dice así y no "aplicar" — que
+// haría pensar que el cambio se hace solo.
+function abrirSugerencias(guia, lista, session) {
+  if (!guia) return
+  const overlay = document.createElement('div')
+  overlay.className = 'modal-overlay'
+  overlay.innerHTML = `
+    <div class="modal-box modal-box-wide" role="dialog" aria-modal="true" aria-label="Correcciones sugeridas">
+      <button type="button" class="modal-close" data-cerrar aria-label="Cerrar">×</button>
+      <h3>Correcciones sugeridas</h3>
+      <p class="subtext">En <strong>${escapeHtml(guia.title || 'tu guía')}</strong>. Aceptar no cambia el texto —
+        quiere decir "tienes razón, ya lo he arreglado", y acredita a quien avisó.</p>
+      <div id="listaSugerencias"></div>
+    </div>`
+  document.body.appendChild(overlay)
+
+  const cerrar = () => overlay.remove()
+  overlay.querySelector('[data-cerrar]').addEventListener('click', cerrar)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) cerrar()
+  })
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') {
+      cerrar()
+      document.removeEventListener('keydown', esc)
+    }
+  })
+
+  const lista_el = overlay.querySelector('#listaSugerencias')
+  const pintar = () => {
+    if (lista.length === 0) {
+      lista_el.innerHTML = `<p class="empty-state">No queda ninguna pendiente.</p>`
+      return
+    }
+    lista_el.innerHTML = lista
+      .map(
+        (s) => `
+      <div class="sugerencia-item" data-id="${s.id}">
+        ${s.quote ? `<p class="sugerencia-cita">“${escapeHtml(s.quote)}”</p>` : ''}
+        <p class="sugerencia-cuerpo">${escapeHtml(s.body)}</p>
+        <div class="sugerencia-item-acciones">
+          <button type="button" class="btn-primary" data-aceptar="${s.id}">Aceptar</button>
+          <button type="button" class="btn-secondary" data-descartar="${s.id}">Descartar</button>
+        </div>
+      </div>`
+      )
+      .join('')
+
+    lista_el.querySelectorAll('[data-aceptar], [data-descartar]').forEach((btn) =>
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.aceptar || btn.dataset.descartar
+        const acepta = !!btn.dataset.aceptar
+        const s = lista.find((x) => x.id === id)
+        btn.disabled = true
+        const { error } = await resolverSugerencia(s, acepta, guia.title, guia.slug)
+        if (error) {
+          btn.disabled = false
+          showToast('No se ha podido guardar: ' + error.message)
+          return
+        }
+        lista.splice(lista.indexOf(s), 1)
+        showToast(acepta ? 'Aceptada. Se le ha avisado y aparece acreditado en la guía.' : 'Descartada.', 'success')
+        pintar()
+        if (lista.length === 0) loadMyGuides(session)
+      })
+    )
+  }
+  pintar()
 }
 
 const modal = document.getElementById('profileModal')

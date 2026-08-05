@@ -1,15 +1,28 @@
 /* ── Tabs ── */
+/* La fila de pestañas se desplaza SOLA cuando no caben. Comunidad tiene
+   cuatro y a 360 px no entran: antes la que se desplazaba de lado era la
+   página entera, que es de las cosas que peor sientan en el móvil. La
+   barra de desplazamiento se esconde — se arrastra con el dedo. */
 .tabs {
   display: flex;
   gap: 4px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 26px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex: 0 0 auto;
+  white-space: nowrap;
   padding: 11px 4px;
   margin-right: 20px;
   font-weight: 700;
@@ -3815,4 +3828,199 @@ a.rater-name:hover {
   padding: 9px 12px;
   background: var(--ice);
   border-radius: var(--radius-sm);
+}
+
+/* ── Sugerir una corrección ── */
+.sugerencia-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 6px 0;
+  background: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.sugerencia-btn:hover:not(:disabled) {
+  color: var(--navy);
+}
+
+.sugerencia-btn:disabled {
+  cursor: default;
+  color: var(--success);
+  text-decoration: none;
+}
+
+.sugerencia-form {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 4px;
+  padding: 14px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.sugerencia-form input,
+.sugerencia-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sugerencia-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+/* Créditos bajo la firma del autor */
+.guide-creditos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-mid);
+}
+
+.guide-creditos a {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+/* Revisar las sugerencias (perfil → Mis guías) */
+.my-guide-sugerencias {
+  flex-basis: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 4px 10px;
+  align-self: flex-start;
+  border-radius: var(--radius-pill);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.sugerencia-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sugerencia-cita {
+  margin: 0 0 6px;
+  padding-left: 10px;
+  border-left: 3px solid var(--border-strong);
+  font-size: 13px;
+  color: var(--text-mid);
+  font-style: italic;
+}
+
+.sugerencia-cuerpo {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.sugerencia-item-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.sugerencia-item-acciones button {
+  padding: 5px 14px;
+  font-size: 13px;
+}
+
+/* ── Guía destacada de la portada ── */
+.destacada {
+  margin: 26px 0 6px;
+  padding: 20px 22px;
+  background: var(--ice);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+}
+
+.destacada-sello {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+  color: var(--white);
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.destacada-titulo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+
+.destacada-titulo:hover {
+  color: var(--navy);
+}
+
+.destacada-nota {
+  margin: 7px 0 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.destacada-autor {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.destacada-autor a {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+/* Panel de admin */
+.admin-destacada {
+  margin-top: 28px;
+  padding: 18px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.admin-destacada h2 {
+  margin: 0 0 4px;
+  font-size: 17px;
+}
+
+.admin-destacada-campos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-destacada-campos select {
+  flex: 1 1 240px;
+}
+
+.admin-destacada-campos input {
+  flex: 2 1 260px;
 }

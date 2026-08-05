@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml, guideHasReference } from './app.js'
+import { escapeHtml, getSession, profileUrl, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml, guideHasReference } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
@@ -126,3 +126,44 @@ async function init() {
 }
 
 init()
+
+// ── La guía destacada de la semana ──
+//
+// La elige una persona desde /admin, no un algoritmo. Es la recompensa
+// más alta que se le puede dar a quien escribe: alguien ha leído su guía
+// y ha decidido ponerla en la portada.
+//
+// Si no hay ninguna elegida, la sección no existe — mejor eso que un
+// hueco con "próximamente".
+async function cargarDestacada() {
+  const seccion = document.getElementById('destacadaSeccion')
+  if (!seccion) return
+
+  const { data: config } = await supabase.from('home_config').select('blocks').eq('id', 1).maybeSingle()
+  const elegida = config?.blocks?.destacada
+  if (!elegida?.guide_id) return
+
+  const { data: guia } = await supabase
+    .from('guides')
+    .select('id, slug, title, description, cover_emoji, author_id')
+    .eq('id', elegida.guide_id)
+    .not('published_at', 'is', null)
+    .maybeSingle()
+  if (!guia) return
+
+  let autor = null
+  if (guia.author_id) {
+    const { data } = await supabase.from('user_profiles').select('id, username, display_name').eq('id', guia.author_id).maybeSingle()
+    autor = data
+  }
+
+  document.getElementById('destacada').innerHTML = `
+    <span class="destacada-sello">${icons.star(13)} Guía destacada</span>
+    <a class="destacada-titulo" href="/guia.html?slug=${encodeURIComponent(guia.slug)}">
+      ${contentIconHtml(guia.cover_emoji, 22, 'bookOpen')} ${escapeHtml(guia.title)}
+    </a>
+    ${elegida.nota ? `<p class="destacada-nota">“${escapeHtml(elegida.nota)}”</p>` : `<p class="destacada-nota">${escapeHtml(guia.description || '')}</p>`}
+    ${autor ? `<p class="destacada-autor">De <a href="${profileUrl(autor)}">${escapeHtml(autor.display_name || autor.username)}</a></p>` : ''}`
+  seccion.style.display = ''
+}
+cargarDestacada().catch(() => {})
