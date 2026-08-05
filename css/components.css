@@ -3646,3 +3646,168 @@ a.rater-name:hover {
   font-style: italic;
   color: var(--text-dim);
 }
+
+/* ── Peticiones de guías ── */
+.peticion-form {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  margin-bottom: 18px;
+  background: var(--ice);
+  border-radius: var(--radius-lg);
+}
+
+.peticion-form input,
+.peticion-form textarea {
+  width: 100%;
+}
+
+.peticion-form button {
+  justify-self: start;
+}
+
+.peticiones-aviso {
+  padding: 12px 14px;
+  background: var(--ice);
+  border-radius: var(--radius-md);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.peticion {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.peticion-cumplida {
+  opacity: 0.72;
+}
+
+/* El voto es lo primero que se ve, y a propósito: el número es lo que
+   convence a alguien de ponerse a escribir. */
+.peticion-voto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 48px;
+  flex-shrink: 0;
+  padding: 6px 0;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-mid);
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.peticion-voto:hover:not(:disabled) {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.peticion-voto-on {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--white);
+}
+
+.peticion-voto:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.peticion-voto-flecha {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.peticion-voto-num {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.peticion-cuerpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.peticion-cuerpo h3 {
+  font-size: 15.5px;
+  font-weight: 700;
+  margin: 0 0 3px;
+}
+
+.peticion-detalle {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  color: var(--text-mid);
+  line-height: 1.55;
+}
+
+.peticion-pie {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.peticion-fecha::before {
+  content: '·';
+  margin-right: 6px;
+}
+
+.peticion-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.peticion-acciones .btn-secondary {
+  padding: 5px 11px;
+  font-size: 12.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.peticion-borrar {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  text-decoration: underline;
+}
+
+.peticion-hecha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 9px 0 0;
+  font-size: 13px;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.peticiones-sub {
+  margin: 26px 0 4px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+
+.editor-desde-peticion {
+  margin: -8px 0 14px;
+  padding: 9px 12px;
+  background: var(--ice);
+  border-radius: var(--radius-sm);
+}

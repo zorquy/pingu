@@ -6,6 +6,7 @@ import { loadActivity, renderActivityHtml } from './activity.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
 import { plegarTexto, contienePlegado } from './texto.js'
+import { initPeticiones } from './peticiones.js'
 
 let allUsers = []
 let allCommunityGuides = []
@@ -177,12 +178,25 @@ function wireTabs() {
       // Se carga la primera vez que se abre la pestaña, no al entrar en la
       // página: son cuatro consultas y la mayoría de visitas no la miran.
       if (btn.dataset.ctab === 'activity') cargarActividad()
+      if (btn.dataset.ctab === 'peticiones') cargarPeticiones()
     })
   })
 }
 
+let peticionesCargadas = false
+async function cargarPeticiones() {
+  if (peticionesCargadas) return
+  peticionesCargadas = true
+  initPeticiones(document.getElementById('peticionesPanel'), await getSession())
+}
+
 async function init() {
   wireTabs()
+  // Se llega desde "¿No sabes de qué escribir?" con #peticiones: hay que
+  // abrir esa pestaña, o el enlace deja a la persona mirando otra cosa.
+  if (window.location.hash === '#peticiones') {
+    document.querySelector('[data-ctab="peticiones"]')?.click()
+  }
   const session = await getSession()
   await Promise.all([loadUsers(), loadCommunityGuides(session)])
 }

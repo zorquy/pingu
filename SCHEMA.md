@@ -5163,3 +5163,68 @@ una barbaridad en un hilo largo.
    `(sin sesión)` simplemente no ponían `window.__FAKE_SESSION__`, y eso
    daba `admin-1`: comprobaban lo contrario de lo que decía su nombre.
    Ahora `'none'` hace que `auth.getSession()` devuelva null de verdad.
+
+## Peticiones de guías (tanda 2)
+
+Migración: **`supabase-migration-peticiones-guias.sql`** (hay que
+ejecutarla a mano; es idempotente).
+
+**La pregunta que bloquea a la mayoría** no es "¿me apetece escribir?",
+es **"¿de qué escribo?"**. Alguien que sabe mucho de un tema no se pone a
+escribir porque no sabe si le interesa a alguien.
+
+Esto es una lista donde cualquiera pide un tema y los demás lo votan.
+Quien se anima ve **cuánta gente lo está esperando** antes de empezar, y
+al publicarla avisa de un clic a todos los que la pidieron.
+
+**No es un foro**, y la diferencia importa: no hay conversación, ni
+respuestas, ni temas sueltos. Es una lista de necesidades. Un foro habría
+que moderarlo; esto se ordena solo — o se vota, o no.
+
+### Dónde vive
+
+Una **pestaña dentro de Comunidad** (`usuarios.html`), no una página
+nueva en el menú. Con veinte personas, una entrada más en la barra que
+lleva a una lista vacía canta mucho; ahí dentro convive con lo demás. Se
+carga solo al abrir la pestaña, como la de Actividad.
+
+Se llega también desde el panel "Mis guías" del perfil cuando está vacío
+(*"¿No sabes de qué? Mira lo que está pidiendo la gente"*), con
+`#peticiones` — que abre esa pestaña al llegar. Ese es el sitio exacto:
+quien mira ese panel vacío es justo quien se ha planteado escribir algo y
+no sabe de qué.
+
+### Tablas y permisos
+
+`guide_requests` (título, detalle, quién la pide, guía que la cumple) y
+`guide_request_votes` (uno por persona y petición). Más una vista,
+`guide_requests_con_votos`, que trae **el recuento ya hecho**: sin ella
+habría que traerse todos los votos al navegador para contarlos.
+
+La política interesante es la de marcar una petición como cumplida.
+Pueden hacerlo quien la pidió, un admin, **y quien haya escrito la guía**
+— ese último caso es el que hace que funcione: el que se anima marca él
+mismo la petición y así avisa a los que la estaban esperando. El
+`with check` impide apuntarse la guía de otro: solo se puede enlazar una
+guía de la que eres autor.
+
+### El puente entre pedir y escribir
+
+"Escribir esta guía" abre el editor **con el título ya puesto** y un
+aviso de que viene de una petición. Empezar con la página en blanco es
+justo lo que frena a la gente.
+
+### Cómo se ha probado
+
+- **Los permisos, contra PostgreSQL 16 de verdad** y dejando de ser
+  superusuario (si no, RLS no se aplica): pedir en nombre de otro →
+  prohibido; votar dos veces → lo corta la clave primaria; marcar
+  cumplida con **tu** guía → permitido; **apuntarse la guía de otro** →
+  la base lo rechaza; borrar la petición de otro → prohibido. Y que la
+  vista devuelve los votos contados.
+- **La pantalla, con Playwright**: el orden por votos, votar y desvotar
+  (y que quede guardado), pedir una guía, que lo ya escrito no se pueda
+  votar, que el editor arranque con el título, que "Ya la he escrito"
+  avise **a quien la pidió y a los que la votaron sin duplicar**, que sin
+  cuenta se pueda mirar pero votar invite a entrar, y que "Retirar" solo
+  salga en la tuya.

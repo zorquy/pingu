@@ -204,6 +204,21 @@ async function init() {
   attachEmojiPicker(document.getElementById('mgCoverEmoji'))
 
   if (guideId) await loadExistingGuide(currentSession)
+
+  // Se llega aquí desde una petición de guía ("Escribir esta guía"): el
+  // título viene puesto para no arrancar con la página en blanco, que es
+  // justo lo que frena a la gente.
+  const tituloPedido = params.get('titulo')
+  if (!guideId && tituloPedido) {
+    document.getElementById('mgTitle').value = tituloPedido.slice(0, 120)
+    const pedidaPor = params.get('peticion')
+    if (pedidaPor) {
+      const aviso = document.createElement('p')
+      aviso.className = 'subtext editor-desde-peticion'
+      aviso.textContent = 'Estás escribiendo una guía que ha pedido alguien de la comunidad. Cuando la publiques, podrás avisarles desde Comunidad → Peticiones.'
+      document.getElementById('mgTitle').closest('.form-group')?.after(aviso)
+    }
+  }
   await loadCategoriesForSelect(existingGuide?.category_id)
 
   draftScope = `${currentSession.user.id}:${guideId || 'new'}`

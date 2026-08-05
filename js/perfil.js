@@ -310,7 +310,11 @@ async function loadMyGuides(session) {
   const container = document.getElementById('myGuidesList')
 
   if (myGuidesCache.length === 0) {
-    container.innerHTML = `<p class="empty-state">Todavía no has creado ninguna guía. Anímate a compartir lo que sabes.</p>`
+    // El enlace a las peticiones va justo aquí, y no en un menú: quien
+    // mira este panel vacío es exactamente quien se ha planteado escribir
+    // algo y no sabe de qué.
+    container.innerHTML = `<p class="empty-state">Todavía no has creado ninguna guía. Anímate a compartir lo que sabes.<br>
+      ¿No sabes de qué? <a href="/usuarios.html#peticiones">Mira lo que está pidiendo la gente</a>.</p>`
     return
   }
 
