@@ -51,6 +51,11 @@ export const icons = {
       size
     ),
   link: (size) => icon('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>', size),
+  // Alineación: lo que se mueve son las líneas cortas, y es eso lo que
+  // hace que se entienda de un vistazo cuál es cuál.
+  alignLeft: (size) => icon('<line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="13" y2="12"></line><line x1="3" y1="18" x2="17" y2="18"></line>', size),
+  alignCenter: (size) => icon('<line x1="3" y1="6" x2="21" y2="6"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="5" y1="18" x2="19" y2="18"></line>', size),
+  alignRight: (size) => icon('<line x1="3" y1="6" x2="21" y2="6"></line><line x1="11" y1="12" x2="21" y2="12"></line><line x1="7" y1="18" x2="21" y2="18"></line>', size),
   listOrdered: (size) => icon('<line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-1.5 2-2.5S5 14 4 14"></path>', size),
   checkSquare: (size) => icon('<polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>', size),
   helpCircle: (size) => icon('<circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line>', size),

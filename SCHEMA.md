@@ -4900,3 +4900,158 @@ se guardó (no lo que dice el código): el texto entra, sin etiquetas HTML,
 y plegado contiene "campeon" cuando el artículo dice "campeón". Y con el
 campo de admin relleno, no se le pega el texto del artículo. Rigor:
 deshaciendo cada uno de los dos arreglos la prueba se pone en rojo.
+
+## El editor de guías: formato, imágenes y cartas
+
+Cuatro cosas que faltaban o estaban mal, y el saneador nuevo que hace
+falta para que todas ellas se puedan guardar sin abrir un agujero.
+
+### `js/richtext-format.js` — qué se puede guardar
+
+Antes, lo único que sobrevivía al guardar eran unas pocas etiquetas sin
+ningún atributo: ni `class` ni `style`. Eso hacía imposible cualquier cosa
+que no fuera negrita o cursiva.
+
+**Por qué clases y no estilos.** Un editor con colores necesita guardar
+"este trozo va en rojo". Lo fácil sería dejar pasar `style`, pero eso es
+dejar pasar CSS arbitrario dentro de la página de otra persona:
+posicionamiento encima de otras cosas, fondos que llaman a una URL
+externa, texto invisible. Así que el color se guarda como una **clase de
+una lista cerrada** (`rt-c-rojo`, `rt-h-amarillo`, `rt-al-c`,
+`rt-fig-d`...), y el navegador puede escribir lo que quiera mientras
+edita: al guardar se traduce a la clase y el `style` se tira.
+
+La **única** excepción es la anchura de una imagen o de una lista de
+cartas, y no se filtra: se descarta lo que venía y **se vuelve a
+escribir** a partir de un número entre 10 y 100, así que no hay cadena
+que colar. Una anchura del 2% sube a 10, una del 900% baja a 100, y un
+`calc(...)` se tira entero.
+
+El saneador además:
+
+- Traduce `<font color>` (que generan algunos navegadores) y
+  `style="color:…"` a la clase de la paleta. Un color que **no** está en
+  la paleta se descarta.
+- Traduce **el formato escrito como estilo a etiquetas**:
+  `<span style="font-weight:700">` → `<strong>`, `font-style:italic` →
+  `<em>`, `line-through` → `<s>`. Esto pasa por dos caminos y los dos son
+  normales: `execCommand` con `styleWithCSS` encendido, y **pegar desde
+  Word o Google Docs**. Sin esta traducción el formato se veía mientras
+  escribías y desaparecía al guardar.
+- Convierte `<div>` en `<p>` en vez de deshacerlo. Algunos navegadores
+  usan `<div>` como separador de párrafo al pulsar Enter: deshacerlo
+  pegaría todo el texto del artículo en un solo bloque.
+- Le pone `target="_blank" rel="noopener noreferrer"` a los enlaces
+  externos, y deja los internos en la misma pestaña.
+- Quita los pies de foto vacíos, los `<span>` que no dicen nada y los
+  `width="320"` en píxeles que deja Firefox al redimensionar por su
+  cuenta.
+
+Se llama en **dos** sitios, a propósito: al guardar (desde el editor) y al
+pintar la guía publicada. Un autor puede escribir su fila de `guides`
+directamente por la API saltándose el editor, así que sanear solo al
+guardar no bastaría.
+
+### La barra de herramientas
+
+Lo que había: negrita, cursiva, subrayado, H2, H3, párrafo, dos listas y
+enlace. Lo que hay ahora, agrupado con separadores: **tachado**, **color
+de texto** (7 colores) y **resaltado** (4) en paletas desplegables,
+**limpiar formato**, **cita**, **alineación** (izquierda/centro/derecha)
+y **quitar enlace**.
+
+`styleWithCSS` se enciende **solo** para la alineación y los colores. Con
+él encendido para todo, la negrita se guardaba como
+`<span style="font-weight:bold">` y el saneador la tiraba.
+
+El enlace, además: si no hay nada seleccionado, antes no pasaba
+absolutamente nada; ahora escribe la propia dirección y la enlaza. Y si
+lo seleccionado ya parece una URL, se ofrece como sugerencia.
+
+### Los enlaces se ven
+
+El reset global pone `a { color: inherit; text-decoration: none }`, que
+está bien en tarjetas y botones, pero dentro de un artículo dejaba los
+enlaces **exactamente iguales que el resto del texto**: no había nada que
+dijera que ahí había un enlace. Ahora van en color de marca y subrayados,
+en el editor y en la guía publicada. En tema oscuro `--navy` ya es un azul
+claro, así que la misma regla vale para los dos.
+
+### Imágenes: tamaño, colocación y pie de foto
+
+Al pinchar una imagen (o una lista de cartas) aparece **una segunda fila
+en la barra de herramientas** con: un **deslizador de anchura** (10–100%)
+más atajos de 25/50/100, **alineación** —izquierda y derecha hacen que el
+texto la rodee, como en Word—, **pie de foto**, **subir/bajar** y
+**quitar**.
+
+Está en la barra y no flotando sobre la imagen a propósito: la barra es
+pegajosa, así que no se va de sitio al hacer scroll, no tapa lo que estás
+mirando y en el móvil se llega a ella igual. Un tirador en la esquina
+sería más "de Word", pero en un móvil no hay forma de agarrarlo.
+
+La imagen se envuelve en `<figure>` **la primera vez que se le toca algo**,
+no al insertarla: hay guías que usan imágenes pequeñas como símbolos
+dentro de una frase (⚪ de rareza, por ejemplo), y envolverlas las sacaría
+de la línea.
+
+En pantallas estrechas las figuras flotadas pasan a ancho completo: al 30%
+en un móvil el texto quedaba en columnas de dos palabras.
+
+### Las cartas se insertan donde está el cursor
+
+Era el fallo más molesto: `openCardPicker()` añadía la lista **al final
+del artículo**, siempre, sin forma de moverla.
+
+La causa: pulsar un botón de la barra saca el foco de la superficie y
+borra la selección, así que cuando se cerraba el selector ya no había
+ningún sitio "donde estabas". Ahora se recuerda el cursor
+(`selectionchange`) y la lista se inserta **justo debajo del párrafo donde
+estaba**. Y se le puede cambiar el tamaño y moverla con la misma barra que
+las imágenes.
+
+### Una superficie vacía arranca con un párrafo
+
+Sin esto, lo primero que escribías quedaba como texto suelto colgando de
+la superficie, sin `<p>` alrededor. Se ve igual, pero no es un bloque: no
+se puede alinear, y "subir/bajar" una imagen no tiene contra qué
+intercambiarla. El primer párrafo del artículo se comportaba distinto a
+todos los demás.
+
+Como contrapartida hay que distinguir "vacío" de "un párrafo vacío": si
+no, una guía sin escribir contaría como escrita y se podría enviar a
+revisión. Al guardar, una superficie sin texto y sin imágenes emite
+cadena vacía.
+
+### Cómo se ha probado
+
+`test-editor-formato.mjs`, en tres capas, porque cada una se rompe sola:
+
+1. **El saneador**, llamándolo directamente con 26 casos: colores dentro
+   y fuera de la paleta, `<font>`, formato pegado desde Word, `style` con
+   `position:fixed` y `url()` externa, clases del sitio inyectadas,
+   `data-*` ajenos, `<script>`, `onerror`, `javascript:` en un enlace,
+   anchuras absurdas, `<div>`, pies vacíos, listas de cartas.
+2. **El editor**, escribiendo de verdad con teclado y ratón en la página
+   real: subir una imagen por el input de fichero, cambiarle la anchura y
+   **medir que ocupa la mitad de verdad**, ponerle pie, moverla, borrarla;
+   abrir el selector de cartas, buscar, elegir y comprobar **en qué
+   posición** cae la lista.
+3. **La guía publicada**, comprobando lo que se VE: que el enlace esté
+   subrayado y de otro color que el texto (en los dos temas), que una
+   figura al 40% mida el 40% del artículo, que el pie salga, que el rojo
+   sea rojo y el resaltado tenga fondo.
+
+**Aviso sobre DOMPurify**: en la copia de pruebas es un sustituto
+(jsdelivr no es alcanzable desde el entorno de desarrollo). Se reescribió
+para que respete la configuración que se le pasa — el anterior tenía la
+lista de etiquetas escrita a mano y ni siquiera dejaba pasar `<tcg-deck>`,
+así que las pruebas del contenido estaban midiendo el stub. Aun así, sirve
+para comprobar la lógica **nuestra**, no la solidez de DOMPurify, que es
+el que corre en producción.
+
+**Rigor**: se deshace cada arreglo uno por uno (dejar pasar el `style`, no
+filtrar las clases, no traducir el formato pegado, deshacer los `<div>`,
+volver a soltar las cartas al final, quitar el párrafo semilla, que el
+botón de anchura no haga nada, dejar los enlaces sin subrayar) y se exige
+que la prueba se ponga en rojo **por lo que tiene que ponerse**.

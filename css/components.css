@@ -786,8 +786,10 @@ textarea.be-field {
 
 .rte-toolbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
+  /* Dos filas: los botones de siempre y, debajo, la barra que sale al
+     seleccionar una imagen o una lista de cartas. */
+  flex-direction: column;
+  gap: 6px;
   padding: 8px;
   background: var(--bg);
   border-bottom: 1.5px solid var(--border);
@@ -800,6 +802,13 @@ textarea.be-field {
   z-index: 1;
 }
 
+.rte-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+}
+
 .rte-toolbar button {
   min-width: 34px;
   height: 34px;
@@ -809,11 +818,118 @@ textarea.be-field {
   color: var(--text-mid);
   font-size: 14px;
   font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .rte-toolbar button:hover {
   background: var(--ice);
   color: var(--navy);
+}
+
+/* Separador entre grupos de botones. Con tantos botones, sin esto la
+   barra se lee como una lista larga en vez de como grupos. */
+.rte-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 5px;
+  background: var(--border-strong);
+  flex-shrink: 0;
+}
+
+.rte-tachadura {
+  font-size: 10px;
+  font-weight: 800;
+  margin-left: -3px;
+}
+
+/* ── Paletas de color ── */
+.rte-color-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.rte-paleta {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  gap: 4px;
+  padding: 7px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.rte-paleta button {
+  min-width: 28px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+.rte-swatch-letra {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.rte-swatch-caja {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(13, 27, 42, 0.18);
+}
+
+/* ── Barra del bloque seleccionado ── */
+.rte-blockbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--ice);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.rte-blockbar-nombre {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--navy);
+}
+
+.rte-blockbar-grupo {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.rte-blockbar-grupo input[type='range'] {
+  width: 110px;
+  accent-color: var(--navy);
+}
+
+.rte-blockbar-valor {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-mid);
+  min-width: 36px;
+}
+
+.rte-blockbar button {
+  height: 28px;
+  min-width: 30px;
+  font-size: 12.5px;
+  background: var(--white);
+  border: 1px solid var(--border);
 }
 
 .rte-surface {
@@ -831,6 +947,15 @@ textarea.be-field {
 .rte-surface img {
   max-width: 100%;
   border-radius: var(--radius-md);
+}
+
+/* Lo que está seleccionado se ve seleccionado. Es un `outline` y no un
+   `border` a propósito: un borde cambiaría el tamaño del elemento y la
+   imagen daría un salto al pincharla. */
+.rte-surface .rt-sel,
+.rte-surface figure:has(.rt-sel) {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
 }
 
 /* ── Imagen de portada subida (en vez de URL) ── */
@@ -1161,9 +1286,10 @@ textarea.be-field {
  * escribir "Common ⚪ · círculo negro" el símbolo se iba a su propio
  * renglón, y ese párrafo pasaba de 26px de alto a 104px.
  *
- * Con `inline-block` el autor no tiene que marcar nada — y eso importa,
- * porque el saneador borra `class` y `style`, así que no hay ninguna
- * forma de decir "esta imagen va en línea" al escribirla.
+ * Con `inline-block` el autor no tiene que marcar nada: una imagen suelta
+ * sigue fluyendo con el texto. (Cuando el autor le toca el tamaño, la
+ * colocación o el pie, el editor la envuelve en un <figure>, y entonces
+ * mandan las reglas de .rt-fig de más abajo.)
  *
  * El tamaño resuelve solo los dos casos, sin reglas ni excepciones:
  *   - Un símbolo pequeño cabe al lado del texto y se queda ahí.
@@ -1184,6 +1310,158 @@ textarea.be-field {
 .article-body ol {
   margin: 0 0 16px 20px;
   list-style: revert;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Formato del contenido de una guía
+   ═══════════════════════════════════════════════════════════════
+   Las mismas reglas para lo que se está escribiendo (.rte-surface) y
+   para la guía ya publicada (.article-body). Tienen que ser LAS MISMAS:
+   si no, el autor ve una cosa y el lector otra, y no hay forma de
+   escribir con confianza.
+
+   Las clases (rt-c-*, rt-h-*, rt-al-*, rt-fig-*) son las de la lista
+   cerrada de js/richtext-format.js. Cambiar un color aquí sin cambiarlo
+   allí hace que el texto se vea de un color mientras se escribe y de
+   otro al guardar. */
+
+:root {
+  --rt-rojo: #c0392b;
+  --rt-naranja: #c8720a;
+  --rt-verde: #0d9e6e;
+  --rt-azul: #1e5175;
+  --rt-morado: #4f46e5;
+  --rt-rosa: #be185d;
+  --rt-gris: #52717f;
+}
+
+/* En oscuro los mismos colores serían ilegibles sobre el fondo casi
+   negro, así que cada uno tiene su versión clara. La clase es la misma:
+   lo que cambia es el valor. */
+:root[data-theme='dark'] {
+  --rt-rojo: #ff8f85;
+  --rt-naranja: #f0a94a;
+  --rt-verde: #4fd6a8;
+  --rt-azul: #7fc4ec;
+  --rt-morado: #a5a0ff;
+  --rt-rosa: #f58bb8;
+  --rt-gris: #9fb3bd;
+}
+
+.rt-c-rojo { color: var(--rt-rojo); }
+.rt-c-naranja { color: var(--rt-naranja); }
+.rt-c-verde { color: var(--rt-verde); }
+.rt-c-azul { color: var(--rt-azul); }
+.rt-c-morado { color: var(--rt-morado); }
+.rt-c-rosa { color: var(--rt-rosa); }
+.rt-c-gris { color: var(--rt-gris); }
+
+/* Un resaltado es un rotulador: fondo claro y texto oscuro en los dos
+   temas. Dejarlo adaptarse al tema oscuro lo convertiría en un fondo
+   oscuro, que ya no se lee como resaltado. */
+.rt-h-amarillo,
+.rt-h-verde,
+.rt-h-azul,
+.rt-h-rosa {
+  color: #0d1b2a;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.rt-h-amarillo { background: #fff3a3; }
+.rt-h-verde { background: #c8f2e2; }
+.rt-h-azul { background: #cfe8f7; }
+.rt-h-rosa { background: #fbd5e5; }
+
+.rt-al-i { text-align: left; }
+.rt-al-c { text-align: center; }
+.rt-al-d { text-align: right; }
+
+/* ── Enlaces ──
+   El reset global pone `a { color: inherit; text-decoration: none }`, que
+   está bien en tarjetas y botones pero dentro de un texto dejaba los
+   enlaces exactamente iguales que el resto: no había NADA que dijera que
+   ahí había un enlace. En oscuro --navy ya es un azul claro, así que la
+   misma regla vale para los dos temas. */
+.article-body a,
+.rte-surface a {
+  color: var(--navy);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+
+.article-body a:hover,
+.rte-surface a:hover {
+  color: var(--navy-light);
+}
+
+/* ── Figuras: imagen con tamaño, colocación y pie ── */
+.rt-fig {
+  margin: 20px 0;
+  max-width: 100%;
+}
+
+.rt-fig img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  border-radius: var(--radius-md);
+}
+
+.rt-fig figcaption {
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-mid);
+  text-align: center;
+}
+
+/* Estas tres valen también para una lista de cartas (<tcg-deck>), que no
+   es una figura pero se coloca igual. */
+.rt-fig-c {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.rt-fig-i {
+  float: left;
+  margin: 6px 22px 14px 0;
+}
+
+.rt-fig-d {
+  float: right;
+  margin: 6px 0 14px 22px;
+}
+
+/* Un float que nadie limpia se sale del artículo y se mete en lo que
+   venga debajo (los comentarios, el pie de página). */
+.article-body::after,
+.rte-surface::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+tcg-deck {
+  display: block;
+  max-width: 100%;
+  margin: 20px 0;
+}
+
+/* En una pantalla estrecha no hay sitio para que el texto rodee nada:
+   una imagen al 30% flotando deja columnas de dos palabras. El
+   `!important` es para ganarle a la anchura que el autor dejó escrita en
+   el propio elemento. */
+@media (max-width: 640px) {
+  .rt-fig-i,
+  .rt-fig-d {
+    float: none;
+    width: 100% !important;
+    margin: 20px 0;
+  }
 }
 
 .block-highlight {

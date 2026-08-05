@@ -1,6 +1,6 @@
 import { escapeHtml } from './app.js'
 import { bbcodeToolbarHtml, wireBBCodeToolbars, parseBBCode } from './bbcode.js'
-import { sanitizeRichText } from './richtext-editor.js'
+import { sanitizeRichText } from './richtext-format.js'
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { attachEmojiPicker } from './emoji-picker.js'
