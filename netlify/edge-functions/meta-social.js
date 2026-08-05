@@ -201,12 +201,86 @@ async function metaDePerfil(url) {
   }
 }
 
+// El cuerpo de un mensaje del foro es HTML. Para una descripción hace
+// falta el texto pelado, y con los espacios en su sitio: quitar las
+// etiquetas a secas pega la última palabra de un párrafo con la primera
+// del siguiente.
+export function textoDeHtml(html) {
+  return String(html ?? '')
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    // Numéricas (&#233; o &#xE9;): el editor las produce en algunos casos
+    // al pegar desde Word. Las nombradas raras se dejan como están; no
+    // vale la pena arrastrar una tabla de entidades hasta el borde.
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    // El & va el ÚLTIMO: si se resolviera antes, un "&amp;lt;" acabaría
+    // convertido en "<" y se colaría una etiqueta que no estaba.
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+async function metaDeTema(url) {
+  const enRuta = url.pathname.match(/^\/tema\/([^/?#]+)/)
+  const id = enRuta ? decodeURIComponent(enRuta[1]) : url.searchParams.get('t')
+  // Es un uuid: si llega cualquier otra cosa, ni se pregunta.
+  if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return null
+
+  // Las dos consultas a la vez: son independientes y así el robot espera
+  // una vez y no dos.
+  const [tema, primero] = await Promise.all([
+    pedir(`forum_threads?id=eq.${encodeURIComponent(id)}&select=title,prefix,post_count&limit=1`),
+    pedir(`forum_posts?thread_id=eq.${encodeURIComponent(id)}&order=created_at.asc&select=body_html&limit=1`),
+  ])
+  if (!tema?.title) return null
+
+  const respuestas = Math.max(0, (tema.post_count || 1) - 1)
+  const descripcion =
+    recortar(textoDeHtml(primero?.body_html)) ||
+    `Un tema del foro de PokeDoc${respuestas ? ` con ${respuestas} ${respuestas === 1 ? 'respuesta' : 'respuestas'}` : ''}.`
+
+  return {
+    url: `${SITIO}/tema/${encodeURIComponent(id)}`,
+    tipo: 'article',
+    titulo: `${tema.prefix ? `[${tema.prefix}] ` : ''}${tema.title} — Foro de PokeDoc`,
+    descripcion,
+    imagen: IMAGEN_POR_DEFECTO,
+  }
+}
+
+async function metaDeForo(url) {
+  const enRuta = url.pathname.match(/^\/foro\/([^/?#]+)/)
+  const slug = enRuta ? decodeURIComponent(enRuta[1]) : url.searchParams.get('f')
+  // Sin slug es el índice del foro, que ya trae sus etiquetas escritas a
+  // mano en foro.html.
+  if (!slug) return null
+
+  const foro = await pedir(
+    `forum_boards?slug=eq.${encodeURIComponent(slug)}&is_hidden=is.false&select=name,description&limit=1`
+  )
+  if (!foro?.name) return null
+
+  return {
+    url: `${SITIO}/foro/${encodeURIComponent(slug)}`,
+    titulo: `${foro.name} — Foro de PokeDoc`,
+    descripcion: recortar(foro.description) || `${foro.name}, en el foro de PokeDoc sobre Pokémon TCG.`,
+    imagen: IMAGEN_POR_DEFECTO,
+  }
+}
+
 async function calcularMeta(url) {
   const ruta = url.pathname
   if (ruta.startsWith('/guia')) return metaDeGuia(url, false)
   if (ruta.startsWith('/curso')) return metaDeGuia(url, true)
   if (ruta.startsWith('/categoria')) return metaDeCategoria(url)
   if (ruta.startsWith('/usuario')) return metaDePerfil(url)
+  if (ruta.startsWith('/tema')) return metaDeTema(url)
+  if (ruta.startsWith('/foro')) return metaDeForo(url)
   return null
 }
 
@@ -247,5 +321,15 @@ export default async (request, context) => {
 // dejaría vistas previas viejas rondando después de editar una guía, y
 // eso es justo lo que veníamos a arreglar.
 export const config = {
-  path: ['/guia.html', '/curso.html', '/categoria.html', '/usuario.html', '/usuario/*'],
+  path: [
+    '/guia.html',
+    '/curso.html',
+    '/categoria.html',
+    '/usuario.html',
+    '/usuario/*',
+    '/tema.html',
+    '/tema/*',
+    '/foro.html',
+    '/foro/*',
+  ],
 }
