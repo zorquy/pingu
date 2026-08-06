@@ -8,6 +8,7 @@ import {
   perfilesPorId,
   avatarHtml,
   enlacePerfil,
+  nombreDe,
   etiquetaHtml,
   urlForo,
   urlTema,
@@ -61,7 +62,7 @@ function ultimoHtml({ titulo, url, fecha, perfil }) {
   if (!fecha) return `<div class="foro-ultimo foro-ultimo-vacio"><span class="subtext">Sin mensajes todavía</span></div>`
   return `
     <div class="foro-ultimo">
-      ${avatarHtml(perfil, 30)}
+      ${avatarHtml(perfil, 28)}
       <div class="foro-ultimo-texto">
         <a class="foro-ultimo-titulo" href="${url}">${escapeHtml(titulo || 'Ver tema')}</a>
         <span class="subtext" title="${escapeHtml(fechaLarga(fecha))}">${escapeHtml(haceCuanto(fecha))} · ${enlacePerfil(perfil)}</span>
@@ -90,7 +91,7 @@ async function pintarIndice() {
     const subforos = hijosDe(f.id)
     return `
     <div class="foro-fila">
-      <div class="foro-fila-icono" aria-hidden="true">${icons.messageSquare(22)}</div>
+      <div class="foro-fila-icono" aria-hidden="true">${icons.messageSquare(18)}</div>
       <div class="foro-fila-cuerpo">
         <h3><a href="${urlForo(f.slug)}">${escapeHtml(f.name)}</a></h3>
         ${f.description ? `<p class="subtext">${escapeHtml(f.description)}</p>` : ''}
@@ -176,14 +177,18 @@ async function pintarLateral() {
     .map((m) => {
       const tema = temaPorId[m.thread_id]
       if (!tema) return ''
+      // Dos enlaces HERMANOS, nunca uno dentro de otro: el avatar ya es un
+      // <a> al perfil, y un <a> dentro de otro <a> no existe en HTML — el
+      // navegador cierra el de fuera al toparse con el de dentro, y el
+      // título se quedaba sin enlace (no se podía entrar en el tema).
       return `
-      <a class="foro-reciente" href="${urlTema(m.thread_id)}">
-        ${avatarHtml(perfiles[m.author_id], 28)}
+      <div class="foro-reciente">
+        ${avatarHtml(perfiles[m.author_id], 26)}
         <span class="foro-reciente-texto">
-          <strong>${escapeHtml(tema.title)}</strong>
-          <small>${escapeHtml(haceCuanto(m.created_at))}</small>
+          <a class="foro-reciente-titulo" href="${urlTema(m.thread_id)}">${escapeHtml(tema.title)}</a>
+          <small>${escapeHtml(haceCuanto(m.created_at))} · ${escapeHtml(nombreDe(perfiles[m.author_id]))}</small>
         </span>
-      </a>`
+      </div>`
     })
     .join('')
 
@@ -284,7 +289,7 @@ async function pintarListaDeTemas(foro) {
            .map(
              (s) => `
          <div class="foro-fila">
-           <div class="foro-fila-icono" aria-hidden="true">${icons.messageSquare(22)}</div>
+           <div class="foro-fila-icono" aria-hidden="true">${icons.messageSquare(18)}</div>
            <div class="foro-fila-cuerpo">
              <h3><a href="${urlForo(s.slug)}">${escapeHtml(s.name)}</a></h3>
              ${s.description ? `<p class="subtext">${escapeHtml(s.description)}</p>` : ''}
@@ -373,7 +378,7 @@ async function abrirFormularioTema(foro) {
              sale del estilo de todo lo demás. -->
         <input type="text" id="temaTitulo" maxlength="140" placeholder="El título, claro y concreto" />
       </div>
-      <div class="rte-wrap">
+      <div class="rte-wrap rte-compacta">
         <div id="temaBarra"></div>
         <div class="rte-surface" id="temaCuerpo"></div>
       </div>
@@ -390,6 +395,7 @@ async function abrirFormularioTema(foro) {
     toolbarEl: barra,
     surfaceEl: document.getElementById('temaCuerpo'),
     initialHtml: '',
+    placeholder: 'Cuenta de qué va…',
     onChange: (html) => {
       cuerpoHtml = html
     },

@@ -5691,3 +5691,56 @@ Se puede escribir sin límite: no hay esperas ni máximos. Lo único topado
 es el **XP** — a partir de 10 mensajes en un día los siguientes no suman,
 y uno de menos de 80 caracteres tampoco. Es un freno al farmeo, no a la
 participación: el mensaje se publica igual.
+
+## El foro, tercera vuelta: la escala y un enlace que no era enlace
+
+### Un `<a>` dentro de otro `<a>` no existe
+
+En la columna «Lo último» del índice, la fila entera era un enlace al
+tema y dentro llevaba el avatar, que **ya es** un enlace al perfil. Eso
+no es HTML válido, y el navegador no avisa: el analizador **cierra el
+enlace de fuera** en cuanto se topa con el de dentro. Resultado, el
+título quedaba fuera de todo enlace y no se podía entrar en el tema
+desde ahí, aunque el código pareciera decir lo contrario.
+
+Arreglado poniendo los dos enlaces como **hermanos** — avatar al perfil,
+título al tema —, que además es lo que hacía ya `ultimoHtml()` en la
+columna del último mensaje de cada foro.
+
+La prueba mira el `href` **de verdad** del título, no que exista una
+etiqueta: con la fila rota, el `<strong>` seguía ahí y una comprobación
+por texto habría pasado igual.
+
+### La escala: un foro se barre, no se lee
+
+El foro nació con la tipografía y los aires del resto de la web, que está
+pensada para leer guías. Un índice de foros no se lee: se **barre** — se
+busca dónde hay movimiento y se entra. Con filas de 16 px de aire y
+títulos de 15,5 px cabían cuatro foros en pantalla.
+
+Bajado un punto todo a la vez, que es la única forma de que siga
+pareciendo una sola cosa: filas a 10 px, títulos a 14,5 px, la columna
+del autor de 180 a 146 px, su avatar de 76 a 56 px, y el texto del
+mensaje a 14,5 px/1,6 en vez de los 16 px/1,75 de una guía. Nada de esto
+toca `.article-body`: las guías siguen con su tamaño de lectura larga.
+
+### La caja de escribir tenía tamaño de guía
+
+`.rte-surface` es la misma pieza en el editor de guías y en el foro, y
+nace con `min-height: 60vh` porque una guía se escribe en una pantalla en
+blanco. En un tema eso abría media pantalla vacía debajo del último
+mensaje.
+
+Se resuelve con un modificador, `.rte-compacta`, en el envoltorio: altura
+mínima de 110 px, menos aire, botones de 28 px y la barra **sin**
+`position: sticky` (en una caja baja, una barra pegajosa se despega de su
+propia caja al hacer scroll y se queda flotando sobre el mensaje de al
+lado). El editor de guías no se entera de nada.
+
+De paso, el editor acepta ahora un `placeholder`. No se puede hacer con
+`:empty` en CSS — una superficie «vacía» nunca lo está, lleva dentro el
+`<p><br></p>` semilla —, así que la marca una clase (`rte-vacia`) que se
+recalcula en cada cambio con la función que ya sabía distinguir vacío de
+lleno. Y va como pseudoelemento: cualquier cosa de verdad metida en un
+`contenteditable` se puede seleccionar, borrar o acabar guardada dentro
+del mensaje.

@@ -946,15 +946,58 @@ textarea.be-field {
 }
 
 .rte-surface {
+  --rte-pad-y: 32px;
+  --rte-pad-x: 32px;
+  position: relative;
   min-height: 60vh;
   max-height: 75vh;
   overflow-y: auto;
-  padding: 32px;
+  padding: var(--rte-pad-y) var(--rte-pad-x);
   background: var(--white);
   outline: none;
   font-size: 15px;
   line-height: 1.75;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* El texto de ayuda de la caja vacía. Va como pseudoelemento y no como
+   contenido real: dentro de un contenteditable, cualquier cosa de verdad
+   se puede seleccionar, borrar o acabar guardada en el mensaje. */
+.rte-surface.rte-vacia::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: var(--rte-pad-y);
+  left: var(--rte-pad-x);
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+/* ── La caja de escribir del foro ──
+   Es la misma máquina que la del editor de guías, pero un mensaje de foro
+   no es una guía: empieza en el tamaño de una respuesta y crece con lo
+   que se escribe, en vez de abrir media pantalla en blanco. */
+.rte-compacta .rte-surface {
+  --rte-pad-y: 12px;
+  --rte-pad-x: 14px;
+  min-height: 110px;
+  max-height: 55vh;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.rte-compacta .rte-toolbar {
+  gap: 4px;
+  padding: 5px 6px;
+  /* En una caja baja, una barra pegajosa se despega de su propia caja al
+     hacer scroll y se queda flotando sobre el mensaje de al lado. */
+  position: static;
+}
+
+.rte-compacta .rte-toolbar button {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 7px;
+  font-size: 13px;
 }
 
 .rte-surface img {
@@ -3895,6 +3938,20 @@ a.rater-name:hover {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  padding-bottom: 12px;
+}
+
+.foro-cabecera h1 {
+  font-size: 24px;
+}
+
+.foro-cabecera p {
+  font-size: 13.5px;
+}
+
+.foro-cabecera-acciones .btn-primary {
+  padding: 9px 18px;
+  font-size: 14px;
 }
 
 .foro-columnas {
@@ -3904,8 +3961,13 @@ a.rater-name:hover {
   align-items: start;
 }
 
+/* ── La escala del foro ──
+   Un foro no se lee como un artículo: se BARRE. Cuantas más filas entran
+   sin hacer scroll, mejor se ve de un vistazo dónde hay conversación. Por
+   eso aquí todo va un punto más apretado que en el resto de la web —
+   filas más bajas, tipografías algo menores y avatares más pequeños. */
 .foro-seccion {
-  margin-bottom: 26px;
+  margin-bottom: 18px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -3914,9 +3976,9 @@ a.rater-name:hover {
 
 .foro-seccion-titulo {
   margin: 0;
-  padding: 12px 18px;
+  padding: 9px 16px;
   background: var(--ice);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.2px;
   color: var(--text);
@@ -3926,10 +3988,10 @@ a.rater-name:hover {
 .foro-fila,
 .foro-tema-fila {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 150px 230px;
+  grid-template-columns: 26px minmax(0, 1fr) 120px 210px;
   align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
+  gap: 12px;
+  padding: 10px 16px;
   border-top: 1px solid var(--border);
 }
 
@@ -3955,9 +4017,9 @@ a.rater-name:hover {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 7px;
-  margin: 0 0 3px;
-  font-size: 15.5px;
+  gap: 6px;
+  margin: 0 0 1px;
+  font-size: 14.5px;
   font-weight: 700;
   line-height: 1.35;
 }
@@ -3975,28 +4037,29 @@ a.rater-name:hover {
   align-items: center;
   gap: 6px;
   margin: 0;
-  font-size: 13px;
+  font-size: 12.5px;
+  line-height: 1.45;
 }
 
 .foro-subforos {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 14px;
-  margin: 7px 0 0;
+  gap: 4px 12px;
+  margin: 4px 0 0;
 }
 
 .foro-subforos a {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--navy);
 }
 
 .foro-fila-numeros {
   display: flex;
-  gap: 18px;
+  gap: 14px;
   justify-content: center;
 }
 
@@ -4008,19 +4071,19 @@ a.rater-name:hover {
 }
 
 .foro-fila-numeros small {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-dim);
 }
 
 .foro-fila-numeros strong {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .foro-ultimo {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -4031,7 +4094,7 @@ a.rater-name:hover {
 }
 
 .foro-ultimo-titulo {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--text);
   overflow: hidden;
@@ -4039,8 +4102,12 @@ a.rater-name:hover {
   white-space: nowrap;
 }
 
+.foro-ultimo-titulo:hover {
+  color: var(--navy);
+}
+
 .foro-ultimo-texto .subtext {
-  font-size: 12px;
+  font-size: 11.5px;
 }
 
 .foro-ultimo-vacio {
@@ -4082,20 +4149,20 @@ a.rater-name:hover {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
+  padding: 12px 14px;
 }
 
 .foro-panel h3 {
-  margin: 0 0 10px;
-  font-size: 14px;
+  margin: 0 0 8px;
+  font-size: 13px;
   font-weight: 800;
 }
 
 .foro-reciente {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 8px 0;
+  gap: 8px;
+  padding: 7px 0;
   border-top: 1px solid var(--border);
 }
 
@@ -4109,8 +4176,9 @@ a.rater-name:hover {
   min-width: 0;
 }
 
-.foro-reciente-texto strong {
-  font-size: 13px;
+.foro-reciente-titulo {
+  display: block;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--text);
   overflow: hidden;
@@ -4118,9 +4186,16 @@ a.rater-name:hover {
   white-space: nowrap;
 }
 
+.foro-reciente-titulo:hover {
+  color: var(--navy);
+}
+
 .foro-reciente-texto small {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── El tema ── */
@@ -4128,9 +4203,9 @@ a.rater-name:hover {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 9px;
-  margin: 0 0 6px;
-  font-size: 26px;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 22px;
   line-height: 1.25;
 }
 
@@ -4138,13 +4213,14 @@ a.rater-name:hover {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 0 18px;
+  margin: 0 0 14px;
+  font-size: 12.5px;
 }
 
 .tema-moderacion {
   display: flex;
   gap: 8px;
-  margin: 0 0 18px;
+  margin: 0 0 14px;
 }
 
 .tema-moderacion button {
@@ -4161,11 +4237,11 @@ a.rater-name:hover {
    que se dice. */
 .foro-mensaje {
   display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
+  grid-template-columns: 146px minmax(0, 1fr);
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   overflow: hidden;
 }
 
@@ -4173,8 +4249,8 @@ a.rater-name:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 20px 14px;
+  gap: 4px;
+  padding: 14px 10px;
   background: var(--bg);
   border-right: 1px solid var(--border);
   text-align: center;
@@ -4185,13 +4261,14 @@ a.rater-name:hover {
 }
 
 .foro-autor-nombre a {
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 800;
   color: var(--navy);
 }
 
 .foro-autor-titulo {
-  font-size: 12px;
+  font-size: 11.5px;
+  line-height: 1.35;
   color: var(--text-mid);
 }
 
@@ -4278,13 +4355,13 @@ a.rater-name:hover {
 }
 
 .foro-mensaje-autor .contributor-badge {
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .foro-mensaje-cuerpo {
   display: flex;
   flex-direction: column;
-  padding: 14px 18px 12px;
+  padding: 10px 16px 10px;
   min-width: 0;
 }
 
@@ -4293,24 +4370,38 @@ a.rater-name:hover {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding-bottom: 9px;
+  padding-bottom: 7px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
 }
 
 .foro-mensaje-num {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-dim);
 }
 
+/* El mensaje de un foro no es un artículo: se escribe corto y se lee
+   seguido. Con el tamaño de guía (16px/1.75) tres líneas ocupaban media
+   pantalla. */
 .foro-mensaje-texto {
   flex: 1;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.foro-mensaje-texto p {
+  margin-bottom: 10px;
+}
+
+.foro-mensaje-texto p:last-child {
+  margin-bottom: 0;
 }
 
 .foro-cita {
-  margin: 0 0 14px;
-  padding: 10px 14px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
   background: var(--bg);
   border-left: 3px solid var(--border-strong);
   border-radius: var(--radius-sm);
@@ -4325,8 +4416,13 @@ a.rater-name:hover {
 }
 
 .foro-cita .article-body {
-  font-size: 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
   color: var(--text-mid);
+}
+
+.foro-cita .article-body p:last-child {
+  margin-bottom: 0;
 }
 
 .foro-mensaje-pie {
@@ -4335,8 +4431,8 @@ a.rater-name:hover {
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 12px;
-  padding-top: 10px;
+  margin-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--border);
 }
 
@@ -4351,7 +4447,7 @@ a.rater-name:hover {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 10px;
+  padding: 3px 9px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   background: none;
@@ -4377,8 +4473,8 @@ a.rater-name:hover {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 10px;
-  padding: 7px 12px;
+  margin-top: 8px;
+  padding: 5px 10px;
   background: var(--ice);
   border-radius: var(--radius-sm);
   font-size: 12.5px;
@@ -4412,7 +4508,15 @@ a.rater-name:hover {
 .foro-form-acciones {
   display: flex;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 10px;
+}
+
+/* Responder no es "empezar a coleccionar": es el botón de todos los días
+   y no tiene por qué pesar como una llamada a la acción de portada. */
+.foro-form-acciones .btn-primary,
+.foro-form-acciones .btn-secondary {
+  padding: 8px 18px;
+  font-size: 14px;
 }
 
 .foro-respondiendo {

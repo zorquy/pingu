@@ -229,7 +229,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, likes) {
   return `
   <article class="foro-mensaje" id="mensaje-${m.id}" data-mensaje="${m.id}" data-autor="${escapeHtml(m.author_id || '')}">
     <div class="foro-mensaje-autor">
-      ${avatarHtml(perfil, 76)}
+      ${avatarHtml(perfil, 56)}
       <div class="foro-autor-nombre">${enlacePerfil(perfil)}</div>
       ${tituloDe(perfil, cuentas[m.author_id] || 0)}
       ${chapasDe(perfil, m.author_id && m.author_id === tema.author_id)}
@@ -345,7 +345,7 @@ async function editarMensaje(postId) {
 
   const antes = caja.innerHTML
   caja.innerHTML = `
-    <div class="rte-wrap">
+    <div class="rte-wrap rte-compacta">
       <div id="editarBarra-${postId}"></div>
       <div class="rte-surface" id="editarCuerpo-${postId}"></div>
     </div>
@@ -462,7 +462,7 @@ async function montarRespuesta() {
         ${icons.quote(13)} Citando a <strong data-quien>un mensaje</strong>.
         <button type="button" class="link-btn" id="btnQuitarCita">Quitar la cita</button>
       </p>
-      <div class="rte-wrap">
+      <div class="rte-wrap rte-compacta">
         <div id="respuestaBarra"></div>
         <div class="rte-surface" id="respuestaCuerpo"></div>
       </div>
@@ -478,6 +478,7 @@ async function montarRespuesta() {
     toolbarEl: barra,
     surfaceEl: document.getElementById('respuestaCuerpo'),
     initialHtml: '',
+    placeholder: 'Escribe tu respuesta…',
     onChange: (html) => {
       cuerpoHtml = html
     },

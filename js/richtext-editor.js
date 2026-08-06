@@ -114,7 +114,7 @@ export function richTextToolbarHtml() {
 
 // toolbarEl y surfaceEl ya deben estar en el DOM (con richTextToolbarHtml()
 // como contenido del primero). uploadImage(file) debe devolver la URL pública.
-export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange, uploadImage }) {
+export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange, uploadImage, placeholder }) {
   // Volver a montar el editor sobre la misma superficie no puede dejar
   // colgando las escuchas del anterior. Se guardan EN la superficie y no
   // en una variable del módulo porque el panel de admin monta dos
@@ -165,7 +165,20 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   // parecen contenido: sin esto, una guía sin escribir nada contaría
   // como escrita y se podría enviar a revisión.
   const superficieVacia = () => !surfaceEl.textContent.trim() && !surfaceEl.querySelector('img, tcg-deck')
-  const emit = () => onChange(superficieVacia() ? '' : sanitizeRichText(surfaceEl.innerHTML))
+
+  // El texto de ayuda de una superficie vacía.
+  //
+  // No vale `:empty` en CSS: una superficie "vacía" nunca lo está de
+  // verdad — lleva dentro el <p><br></p> semilla de aquí arriba. Se marca
+  // con una clase, que ya sabemos calcular bien.
+  const marcarVacia = () => surfaceEl.classList.toggle('rte-vacia', superficieVacia())
+  if (placeholder) surfaceEl.dataset.placeholder = placeholder
+  marcarVacia()
+
+  const emit = () => {
+    marcarVacia()
+    onChange(superficieVacia() ? '' : sanitizeRichText(surfaceEl.innerHTML))
+  }
 
   // ── Dónde estaba el cursor ──
   //
