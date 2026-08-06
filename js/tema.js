@@ -346,7 +346,7 @@ async function editarMensaje(postId) {
   const antes = caja.innerHTML
   caja.innerHTML = `
     <div class="rte-wrap rte-compacta">
-      <div id="editarBarra-${postId}"></div>
+      <div class="rte-toolbar" id="editarBarra-${postId}"></div>
       <div class="rte-surface" id="editarCuerpo-${postId}"></div>
     </div>
     <div class="foro-form-acciones">
@@ -463,7 +463,7 @@ async function montarRespuesta() {
         <button type="button" class="link-btn" id="btnQuitarCita">Quitar la cita</button>
       </p>
       <div class="rte-wrap rte-compacta">
-        <div id="respuestaBarra"></div>
+        <div class="rte-toolbar" id="respuestaBarra"></div>
         <div class="rte-surface" id="respuestaCuerpo"></div>
       </div>
       <div class="foro-form-acciones">

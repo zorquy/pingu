@@ -144,8 +144,10 @@ async function pintarIndice() {
 // números y nada más se lee como un archivo; con los últimos mensajes a
 // la vista se lee como un sitio donde hay gente.
 //
-// A propósito NO hay "usuarios en línea": con veinte personas, un "en
-// línea: 1" enseña soledad. Los mensajes recientes, no.
+// Debajo van los números del foro. Ojo con lo que se enseña: un
+// "usuarios en línea: 1" con veinte miembros enseña soledad, así que no
+// hay tal cosa. Lo que sí hay es "por aquí hoy", que con poca gente
+// sigue siendo un número honesto y agradable de ver.
 async function pintarLateral() {
   const { data: mensajes, error } = await supabase
     .from('forum_posts')
@@ -192,7 +194,82 @@ async function pintarLateral() {
     })
     .join('')
 
-  lateral.innerHTML = filas ? `<div class="foro-panel"><h3>Lo último</h3>${filas}</div>` : ''
+  const ultimo = filas ? `<div class="foro-panel"><h3>Lo último</h3>${filas}</div>` : ''
+  lateral.innerHTML = ultimo
+
+  // Los números van después y por separado: si tardan o fallan, "Lo
+  // último" ya está en pantalla.
+  const numeros = await panelDeNumerosHtml()
+  lateral.innerHTML = ultimo + numeros
+}
+
+// ─────────────────────────────────────────────────────────────
+// Los números del foro
+// ─────────────────────────────────────────────────────────────
+//
+// Cuatro consultas de solo contar (`head: true`, sin traerse ni una
+// fila) más dos pequeñas. Todas en paralelo y todas tolerantes: si
+// alguna falla, esa línea no sale y las demás sí.
+function filaNumero(etiqueta, valor) {
+  return `<div class="foro-numero"><span>${escapeHtml(etiqueta)}</span><strong>${escapeHtml(String(valor))}</strong></div>`
+}
+
+async function contar(tabla) {
+  try {
+    const { count, error } = await supabase.from(tabla).select('id', { count: 'exact', head: true })
+    return error ? null : count || 0
+  } catch {
+    return null
+  }
+}
+
+async function panelDeNumerosHtml() {
+  const hoy = new Date().toISOString().slice(0, 10)
+
+  const [temas, mensajes, miembros, nuevo, porAqui] = await Promise.all([
+    contar('forum_threads'),
+    contar('forum_posts'),
+    contar('user_profiles'),
+    // El último en registrarse. `created_at` puede no existir en bases
+    // antiguas, así que si da error simplemente no se enseña esa línea.
+    supabase
+      .from('user_profiles')
+      .select('id, username, display_name')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data, error }) => (error ? null : data?.[0] || null))
+      .catch(() => null),
+    // Quién ha pasado por aquí hoy. Sale de `last_active_date`, que ya
+    // mantiene la racha diaria. Quien esconde su actividad no aparece.
+    supabase
+      .from('user_profiles')
+      .select('id, username, display_name, hide_activity')
+      .eq('last_active_date', hoy)
+      .limit(40)
+      .then(({ data, error }) => (error ? [] : (data || []).filter((p) => !p.hide_activity)))
+      .catch(() => []),
+  ])
+
+  const lineas = [
+    temas === null ? '' : filaNumero('Temas', temas),
+    mensajes === null ? '' : filaNumero('Mensajes', mensajes),
+    miembros === null ? '' : filaNumero('Miembros', miembros),
+    nuevo
+      ? `<div class="foro-numero"><span>El último</span><strong>${enlacePerfil(nuevo)}</strong></div>`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('')
+
+  const gente = porAqui.length
+    ? `<div class="foro-panel">
+         <h3>Por aquí hoy <span class="foro-panel-cuenta">${porAqui.length}</span></h3>
+         <p class="foro-gente">${porAqui.map((p) => enlacePerfil(p)).join('<span aria-hidden="true">, </span>')}</p>
+       </div>`
+    : ''
+
+  const numeros = lineas ? `<div class="foro-panel"><h3>El foro en números</h3>${lineas}</div>` : ''
+  return gente + numeros
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -256,7 +333,13 @@ async function pintarListaDeTemas(foro) {
   ])
 
   const lista = temas || []
-  const perfiles = await perfilesPorId(lista.map((t) => t.author_id))
+  // Los autores de dos cosas a la vez: quien abrió cada tema y quien
+  // escribió el último mensaje. Suelen coincidir (un tema sin respuestas
+  // los tiene iguales), y `perfilesPorId` ya quita los repetidos.
+  const perfiles = await perfilesPorId([
+    ...lista.map((t) => t.author_id),
+    ...lista.map((t) => t.last_post_author_id),
+  ])
   const totalPaginas = Math.max(1, Math.ceil((count || 0) / PAGINA))
 
   const filaTema = (t) => `
@@ -279,7 +362,17 @@ async function pintarListaDeTemas(foro) {
         <span><small>Respuestas</small><strong>${Math.max(0, (t.post_count || 1) - 1)}</strong></span>
         <span><small>Visitas</small><strong>${t.view_count || 0}</strong></span>
       </div>
-      ${ultimoHtml({ titulo: 'Ir al último', url: urlTema(t.id), fecha: t.last_post_at, perfil: null })}
+      ${ultimoHtml({
+        titulo: 'Ir al último',
+        url: urlTema(t.id),
+        fecha: t.last_post_at,
+        // `last_post_author_id` llega de supabase-migration-foro-ultimo-autor.sql.
+        // Sin esa migración es `undefined` y aquí se cae al autor del
+        // tema: en un tema sin respuestas es exactamente el mismo, y en
+        // uno con respuestas es una aproximación mucho mejor que el
+        // "Alguien" que salía antes.
+        perfil: perfiles[t.last_post_author_id] || perfiles[t.author_id],
+      })}
     </div>`
 
   const subforosHtml = (subforos || []).length
@@ -379,7 +472,7 @@ async function abrirFormularioTema(foro) {
         <input type="text" id="temaTitulo" maxlength="140" placeholder="El título, claro y concreto" />
       </div>
       <div class="rte-wrap rte-compacta">
-        <div id="temaBarra"></div>
+        <div class="rte-toolbar" id="temaBarra"></div>
         <div class="rte-surface" id="temaCuerpo"></div>
       </div>
       <div class="foro-form-acciones">

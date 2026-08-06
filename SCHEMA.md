@@ -5915,3 +5915,100 @@ en el que las tablas no existen; durante ese rato el curso se juega
 igual, con marcador y medalla incluidos. Lo único que se pierde es
 guardar la marca y enseñar los porcentajes. Ninguna función de ese
 fichero lanza: devuelven `null`, `0` o lista vacía.
+
+# Cuatro cosas del foro que solo se ven usándolo
+
+## «hace 13 h · Alguien»
+
+En la lista de temas, la columna de la derecha decía quién había escrito
+el último mensaje… y decía **«Alguien»**, que es el texto de respaldo de
+`nombreDe()` para cuando no se sabe de quién es un perfil.
+
+No se sabía porque `forum_threads` guarda **cuándo** fue el último
+mensaje (`last_post_at`) pero no **de quién**, así que la lista pasaba
+`perfil: null` y se pintaba el respaldo. Salía hasta en los temas sin
+respuestas, donde el último mensaje es el primero y su autor está a dos
+centímetros en la misma fila.
+
+Migración: `supabase-migration-foro-ultimo-autor.sql` añade
+`forum_threads.last_post_author_id`, mantenido por el **mismo**
+disparador que ya llevaba `post_count` y `last_post_at`, y rellena los
+temas que ya existían. La alternativa era, al pintar la página, pedir el
+último mensaje de cada uno de los veinte temas.
+
+Si se borran todos los mensajes de un tema, la columna cae al autor del
+tema en vez de quedarse en `null`: así no puede volver a aparecer un
+«Alguien» por la puerta de atrás.
+
+El cliente además tolera que la migración no esté aplicada:
+`perfiles[t.last_post_author_id] || perfiles[t.author_id]`. Sin migración
+enseña a quien abrió el tema, que en un tema sin respuestas es
+exactamente el mismo, y en uno con respuestas sigue siendo mejor que
+«Alguien».
+
+## La barra de formato del foro no tenía estilo. Ninguno.
+
+Se veía como un churro de símbolos pegados: `¶H2H3 B/US A▮Tx`. La causa
+no era el espaciado: en el foro, el contenedor de la barra era
+
+```html
+<div id="respuestaBarra"></div>
+```
+
+**sin la clase `rte-toolbar`**, que es la que lleva todo el CSS de la
+barra. Solo la tenía el editor de guías (`<div class="rte-toolbar"
+id="refRteToolbar">`). Sin ella, los botones salían en crudo: 7 px de
+ancho, 15 de alto y pegados unos a otros.
+
+Estaba en los tres sitios del foro que montan un editor: la respuesta,
+la edición en el sitio y el formulario de tema nuevo.
+
+Con la clase puesta ya aplica la variante compacta, que además se ha
+soltado un poco: hueco de 3 px entre botones, botones de 30 px, borde al
+pasar por encima y separadores con 6 px de margen a cada lado.
+
+⚠️ Una prueba que mida `.rte-toolbar button` a secas mide también los
+botones de la **paleta de colores**, que están escondidos y valen 0 px.
+Hay que medir hijos directos de `.rte-tools`.
+
+## La chapa que se salía del cuadro
+
+`.contributor-badge` («Colaborador destacado») nace para ir **en línea**,
+al lado de un nombre en un comentario: por eso lleva `white-space:
+nowrap` y un margen a la izquierda. Metida en la columna del autor de un
+mensaje del foro, que mide 146 px y va centrada, ese `nowrap` la sacaba
+por la derecha.
+
+Se arregla solo dentro de `.foro-mensaje-autor`: sin margen, `max-width:
+100%` y `white-space: normal` para que parta en dos líneas. Lo mismo para
+`.foro-chapa` y `.foro-autor-titulo`, porque un título puesto a mano
+desde /admin puede ser cualquier cosa.
+
+⚠️ Al probarlo: con `max-width` puesto hay **dos** formas de salirse, y
+mirar solo una no vale. La caja puede ser más ancha que la columna, o
+puede caber y ser el TEXTO el que se derrama por dentro (`scrollWidth >
+clientWidth`). Con `nowrap` pasa lo segundo, y la primera versión de la
+prueba daba por bueno el fallo original.
+
+## La lateral, ya no tan sosa
+
+Debajo de «Lo último» van dos paneles más:
+
+- **Por aquí hoy** — quién ha pasado, de `user_profiles.last_active_date`
+  (la columna que ya mantiene la racha diaria). Respeta `hide_activity`.
+- **El foro en números** — temas, mensajes, miembros y el último en
+  registrarse.
+
+Cuatro consultas de solo contar (`head: true`, sin traerse ni una fila)
+más dos pequeñas, todas en paralelo y **todas tolerantes**: si una falla,
+esa línea no sale y las demás sí. La del último en registrarse ordena por
+`created_at`, que podría no existir en bases antiguas; si da error,
+simplemente no se enseña esa línea.
+
+Se pintan **después** de «Lo último» y en un segundo paso, para que la
+parte importante de la columna esté en pantalla aunque los números
+tarden.
+
+Sigue sin haber «usuarios en línea»: con veinte miembros, un «en línea:
+1» enseña soledad. «Por aquí hoy» es el mismo dato contado de una manera
+que no deprime.

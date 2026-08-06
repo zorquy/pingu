@@ -987,17 +987,49 @@ textarea.be-field {
 
 .rte-compacta .rte-toolbar {
   gap: 4px;
-  padding: 5px 6px;
+  padding: 7px 8px;
   /* En una caja baja, una barra pegajosa se despega de su propia caja al
      hacer scroll y se queda flotando sobre el mensaje de al lado. */
   position: static;
 }
 
+/* Encoger la barra no puede significar amontonarla.
+
+   OJO: durante un tiempo esto no se veía porque el contenedor de la
+   barra en el foro (`<div id="respuestaBarra">`) NO llevaba la clase
+   `rte-toolbar` — solo la llevaba el del editor de guías. Sin esa clase
+   no le aplicaba NINGUNA regla de la barra: los botones salían en crudo,
+   de 7 px de ancho y pegados unos a otros. Se veía como un churro de
+   símbolos y parecía un problema de espaciado.
+
+   Al bajar los botones a 28 px con 2 px de hueco, "¶H2H3 B/US A▮Tx" se
+   leía como un solo churro de símbolos: no se distinguía dónde acababa
+   un botón y empezaba el siguiente, ni qué botones iban juntos. Se
+   arregla dando aire (hueco entre botones y márgenes en los
+   separadores) y un borde que aparece al pasar por encima, para que
+   cada botón se vea como un botón. */
+.rte-compacta .rte-tools {
+  gap: 3px;
+  row-gap: 5px;
+}
+
 .rte-compacta .rte-toolbar button {
-  min-width: 28px;
-  height: 28px;
-  padding: 0 7px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 9px;
   font-size: 13px;
+  /* Transparente y no ausente: si el borde apareciera solo al pasar por
+     encima, los botones se moverían un píxel. */
+  border: 1px solid transparent;
+}
+
+.rte-compacta .rte-toolbar button:hover {
+  border-color: var(--border-strong);
+}
+
+.rte-compacta .rte-sep {
+  height: 18px;
+  margin: 0 6px;
 }
 
 .rte-surface img {
@@ -4272,6 +4304,35 @@ a.rater-name:hover {
   color: var(--text-mid);
 }
 
+/* La columna del autor mide 146 px, y ahí dentro no cabe entera una
+   chapa como "Colaborador destacado".
+   `.contributor-badge` nace para ir EN LÍNEA, al lado de un nombre en un
+   comentario: por eso lleva `white-space: nowrap` y un margen a la
+   izquierda. Metida en una columna estrecha y centrada, ese nowrap la
+   sacaba del cuadro por la derecha. Aquí se le quita el margen y se le
+   deja partir en dos líneas. */
+.foro-mensaje-autor .contributor-badge {
+  margin-left: 0;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  padding: 3px 9px;
+}
+
+.foro-mensaje-autor .contributor-badge svg {
+  flex-shrink: 0;
+}
+
+/* Lo mismo para las chapas de equipo y "Abrió el tema": son cortas hoy,
+   pero un título puesto a mano desde /admin puede ser cualquier cosa. */
+.foro-mensaje-autor .foro-chapa,
+.foro-mensaje-autor .foro-autor-titulo {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 /* El título puesto a mano por un admin pesa más que el nivel: se
    distingue para que se lea como lo que es, un reconocimiento. */
 .foro-autor-titulo-propio {
@@ -4887,4 +4948,52 @@ a.reto-tarjeta:hover {
 .reto-flecha {
   color: var(--text-dim);
   font-weight: 700;
+}
+
+/* ── Los números del foro, en la lateral ── */
+.foro-numero {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 13px;
+  color: var(--text-mid);
+  border-bottom: 1px solid var(--border);
+}
+
+.foro-numero:last-child {
+  border-bottom: none;
+}
+
+.foro-numero strong {
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.foro-numero strong a {
+  color: var(--navy);
+}
+
+/* El contador que va al lado del título del panel. */
+.foro-panel-cuenta {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.foro-gente {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-mid);
+}
+
+.foro-gente a {
+  color: var(--navy);
+  font-weight: 600;
 }
