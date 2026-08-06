@@ -6111,3 +6111,209 @@ que existen, que la mascota no se pida sola, y un techo de 150 KB
 comprimidos para la portada. El techo no está para afinar: está para que
 si alguien mete otra librería de 200 KB salte ahí y no en el móvil de
 alguien.
+
+# El foro, para usarlo a diario
+
+Las seis cosas que separan un foro que se visita de uno que se USA. Todas
+salieron de la misma frase: «al foro entro, miro y me voy».
+
+Migración: `supabase-migration-foro-mejoras.sql`.
+
+## Qué hay nuevo desde la última vez
+
+Sin esto, volver al foro es comparar fechas a ojo.
+
+```sql
+create table public.forum_thread_reads (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  thread_id uuid not null references public.forum_threads (id) on delete cascade,
+  last_read_at timestamptz not null default now(),
+  primary key (user_id, thread_id)
+);
+alter table public.user_profiles add column forum_read_all_at timestamptz;
+```
+
+Se guarda **la fecha, no un booleano**. Con un booleano, cada mensaje
+nuevo obligaría a marcar como no leído a todo el mundo: una escritura por
+persona y por mensaje. Con la fecha, escribe solo quien lee, y la
+comparación la hace la consulta.
+
+Y **«marcar todo como leído» es una sola fila en el perfil**
+(`forum_read_all_at`), no una por tema. Con mil temas, lo segundo serían
+mil escrituras por un clic.
+
+Un tema está sin leer cuando su `last_post_at` es posterior a la más nueva
+de las dos marcas. Se pinta con la clase `foro-tema-nuevo` (título en
+negrita) y un punto delante: en una lista larga, el peso de la letra se ve
+de un vistazo y un color no siempre.
+
+Lo leído es **privado** — política `for all using (auth.uid() = user_id)`.
+Sin sesión no se marca nada: poner media pantalla en negrita a quien acaba
+de llegar no le dice nada.
+
+### Un caso que la prueba destapó
+
+`marcasDeLectura()` devuelve `hayDatos`, que **no** es lo mismo que «no
+hay lecturas». Si la migración todavía no se ha ejecutado, la tabla no
+existe, no llega ni una marca… y con la primera versión el foro entero
+salía en negrita para siempre, sin forma de quitarlo. Ahora, mientras no
+se pueda saber, no se marca nada.
+
+## Que te avisen donde estabas hablando
+
+```sql
+create table public.forum_subscriptions (
+  user_id uuid, thread_id uuid, created_at timestamptz,
+  primary key (user_id, thread_id)
+);
+```
+
+Quien escribe en un tema **queda suscrito solo** (disparador
+`trg_forum_suscribir_al_escribir`): es lo que espera cualquiera, si has
+hablado ahí quieres saber qué te contestan. Se deshace con el botón de
+dejar de seguir, y el insert es `on conflict do nothing` — si te diste de
+baja y vuelves a escribir, se te vuelve a suscribir, que es lo que
+significa volver a participar.
+
+La lista de suscritos **no es pública**: quién sigue qué es información
+sobre a quién le interesa qué, y no aporta nada a cambio de enseñarla. La
+política solo deja ver las propias. Por eso avisar no lo puede hacer el
+navegador, y lo hace la base:
+
+```sql
+create function public.forum_avisar_suscritos(p_thread uuid, p_post uuid, p_titulo text)
+returns integer language plpgsql security definer …
+```
+
+`security definer`, así que sí ve la lista — pero solo devuelve **cuántos
+avisos ha creado**. Antes de crear ninguno comprueba que el mensaje
+existe, es de ese tema y es de quien llama; sin esa guarda, cualquiera
+podría llamarla con un tema al azar y llenarle la campanita a media web.
+Respeta `notification_prefs_disabled` y nunca avisa a quien acaba de
+escribir.
+
+El botón de seguir se pinta **antes** de que conteste la base y se vuelve
+atrás si falla: un botón que tarda medio segundo en reaccionar se pulsa
+dos veces.
+
+## Buscar dentro del foro
+
+El buscador del sitio miraba guías y personas; los mensajes del foro no
+los veía nadie.
+
+Mismo método que el buscador de guías: una columna generada con el texto
+plegado y un índice trigram encima.
+
+```sql
+alter table public.forum_threads add column search_norm text
+  generated always as (public.plegar_texto(coalesce(title,'') || ' ' || coalesce(prefix,''))) stored;
+
+alter table public.forum_posts add column search_norm text
+  generated always as (
+    public.plegar_texto(regexp_replace(coalesce(body_html,''), '<[^>]*>', ' ', 'g'))
+  ) stored;
+```
+
+En los mensajes hay que **quitar las etiquetas antes de plegar**: el
+cuerpo se guarda como HTML, y sin eso buscar «div» o «strong» encontraría
+todos los mensajes del foro. Es una comprobación de la prueba, no una
+suposición.
+
+Al ser columnas *generadas*, no se pueden escribir a mano: nadie puede
+colocarse en todas las búsquedas.
+
+Los resultados salen en el propio `/foro?q=…`, no en una página nueva: la
+misma cabecera, las mismas migas, y el botón de atrás hace lo que se
+espera. Y si la columna no existe todavía se dice («el buscador todavía no
+está activado») en vez de enseñar «no hay resultados», que sería mentira.
+
+**Dónde va**: arriba del todo, encima del título, alineado a la derecha y
+con 300 px de ancho. Es un `<form>` de verdad, así que funciona con Enter.
+Quien viene a leer no lo necesita; quien viene a buscar algo lo encuentra
+donde espera.
+
+## Citar el trozo seleccionado
+
+Al soltar el ratón sobre el texto de un mensaje sale un botón flotante
+«Citar esto»; al pulsarlo, ese trozo entra en la caja como `<blockquote>`,
+se marca el mensaje como citado (para que el aviso llegue a quien toca) y
+el cursor queda debajo para seguir escribiendo.
+
+Dos detalles que costaron:
+
+- El navegador **encola los `selectionchange`**, así que uno de la propia
+  selección que acabas de hacer llega *después* de haber puesto el botón y
+  se lo llevaba por delante. Se compara el texto de la selección con el
+  del botón: solo se quita si ha cambiado de verdad.
+- Con el ratón encima no se quita nunca. Al pulsar, el navegador deshace
+  la selección; si el botón desapareciera en ese momento, el clic no
+  llegaría a producirse.
+
+Menos de tres caracteres no sacan el botón: si no, sería un botón que
+aparece cada vez que pinchas en un mensaje.
+
+## Vista previa y borrador
+
+La vista previa usa **el mismo saneador y las mismas clases** que un
+mensaje publicado, para que lo que se ve ahí sea lo que se va a ver
+luego. Se actualiza sola mientras se escribe.
+
+El borrador vive en `sessionStorage`, no en la base: es para el accidente
+de cerrar la pestaña o darle a atrás, no para escribir desde tres sitios
+—guardarlo en la base costaría una escritura por tecla y no arregla nada
+más. Va **por tema** (`pokedoc-borrador-tema-<id>`), para que dos
+borradores no se pisen, se recupera avisando, y se borra al publicar. Un
+cuerpo vacío no se guarda: si no, borrar lo escrito dejaría un borrador de
+un párrafo en blanco que luego «se recupera».
+
+## Menciones con @nombre
+
+Dos mitades: al **publicar** se sacan los nombres y se avisa a esas
+personas («Te han mencionado en el foro», no «te han respondido»); al
+**leer**, los `@nombre` que corresponden a alguien de verdad se convierten
+en enlace a su perfil.
+
+Al enlazar se trabaja sobre el DOM y **solo en nodos de texto**, no con un
+`replace` sobre la cadena: un replace tocaría también lo que hay dentro de
+los atributos (un `href`, un `alt`) y podría partir el HTML por la mitad.
+Tampoco se entra en `a`, `code` ni `pre` — un `@nombre` dentro de un `<a>`
+sería un enlace dentro de otro, que no existe en HTML.
+
+Como mucho **cinco menciones por mensaje**, y no es por rendimiento: un
+mensaje con veinte menciones no es una conversación, es una lista de
+correo.
+
+### El correo que mencionaba a alguien
+
+El patrón era `/@([a-z0-9][a-z0-9_-]{1,29})/gi`, y con él «escribe a
+hola@pokedoc.es» mencionaba —y avisaba— a `@pokedoc`. Ahora el patrón se
+come también el carácter de delante y exige que sea el principio del texto
+o algo que no forme parte de una dirección.
+
+No se usa un lookbehind (`(?<!…)`) a propósito: si un navegador viejo no
+lo entiende, el error es **de sintaxis**, y un error de sintaxis tira el
+módulo entero al cargarse — o sea que el tema no se vería.
+
+## Cómo se ha probado
+
+- `prueba-foro-mejoras.sql` — 23 comprobaciones contra PostgreSQL real:
+  que quien escribe queda suscrito, que nadie ve las suscripciones ni las
+  lecturas ajenas, que no se puede avisar en nombre de un mensaje ajeno,
+  que quien apagó ese aviso no lo recibe, que el título se guarda plegado,
+  que el cuerpo se guarda sin sus etiquetas y que la columna generada no
+  se puede escribir a mano.
+- `test-foro-mejoras.mjs` — 104 comprobaciones con Playwright sobre las
+  seis funciones, incluido el hueco entre desplegar el código y ejecutar
+  la migración (`__SIN_MIGRACION__`), donde el foro tiene que funcionar
+  entero.
+- `rigor-foro-mejoras.py` — rompe cada arreglo por separado y comprueba
+  que la prueba se pone en rojo. **15 roturas, 15 pilladas** — pero solo
+  a la segunda: la primera vuelta destapó que la comprobación del
+  buscador por título miraba el texto de toda la página, y un tema
+  encontrado por sus mensajes también enseña su título, así que daba por
+  buena una búsqueda de títulos rota. Ahora mira solo la sección
+  'Temas'.
+
+Dos fallos de verdad que salieron de escribir la prueba, no de leerla: el
+`mencionados` que `mensajeHtml()` usaba sin recibirlo (tiraba el tema
+entero con un `ReferenceError`) y el correo que se leía como mención.

@@ -71,6 +71,15 @@
   <main class="page-content container">
     <nav class="foro-migas" id="foroMigas" aria-label="Dónde estás"></nav>
 
+    <!-- El buscador del foro. Va arriba del todo y pequeño: quien viene
+         a leer no lo necesita, y quien viene a buscar algo concreto lo
+         encuentra donde espera. Es un <form> de verdad para que también
+         funcione con la tecla Enter y sin JavaScript. -->
+    <form class="foro-buscador" id="foroBuscador" role="search">
+      <input type="search" name="q" id="foroBuscadorTexto" placeholder="Buscar en el foro…" autocomplete="off" aria-label="Buscar en el foro" />
+      <button type="submit" class="foro-buscador-btn" aria-label="Buscar"></button>
+    </form>
+
     <div class="page-header foro-cabecera" style="padding-top: 8px;">
       <div>
         <h1 id="foroTitulo">Foro</h1>

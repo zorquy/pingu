@@ -22,6 +22,8 @@ import {
   faltaElForo,
 } from './foro-comun.js'
 import { calculateLevel } from './gamification.js'
+import { marcarLeido, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
+import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 
 // Un tema del foro.
 //
@@ -130,13 +132,58 @@ function pintarCabecera(perfilAutor) {
       ${avatarHtml(perfilAutor, 20)} ${enlacePerfil(perfilAutor)}
       · <span title="${escapeHtml(fechaLarga(tema.created_at))}">${escapeHtml(haceCuanto(tema.created_at))}</span>
       · ${icons.eye(13)} ${tema.view_count || 0}
+      ${sesion ? '<button type="button" class="tema-seguir" id="btnSeguirTema" aria-pressed="false">…</button>' : ''}
     </p>
     ${soyStaff ? panelModeracionHtml() : ''}`
 
+  if (sesion) engancharSeguir()
   if (soyStaff) {
     document.getElementById('btnFijar')?.addEventListener('click', () => moderar({ is_pinned: !tema.is_pinned }))
     document.getElementById('btnCerrar')?.addEventListener('click', () => moderar({ is_locked: !tema.is_locked }))
   }
+}
+
+// Seguir un tema: te avisan cuando alguien responde.
+//
+// Quien escribe queda suscrito solo (lo hace un disparador en la base),
+// así que este botón sirve sobre todo para dos cosas: seguir un tema en
+// el que aún no has hablado, y dejar de seguir uno que se te ha ido de
+// las manos.
+async function engancharSeguir() {
+  const boton = document.getElementById('btnSeguirTema')
+  if (!boton) return
+
+  let siguiendo = await estaSuscrito(sesion.user.id, tema.id)
+  const pintar = () => {
+    boton.innerHTML = siguiendo
+      ? `${icons.bell(13)} Siguiendo`
+      : `${icons.bell(13)} Seguir`
+    boton.classList.toggle('tema-seguir-si', siguiendo)
+    boton.setAttribute('aria-pressed', String(siguiendo))
+    boton.title = siguiendo
+      ? 'Te avisamos cuando alguien responda. Pulsa para dejar de seguirlo.'
+      : 'Te avisaremos cuando alguien responda.'
+  }
+  pintar()
+
+  boton.addEventListener('click', async () => {
+    boton.disabled = true
+    // Se pinta el cambio antes de que responda la base: si falla, se
+    // vuelve atrás. Un botón que tarda medio segundo en reaccionar se
+    // pulsa dos veces.
+    const antes = siguiendo
+    siguiendo = !siguiendo
+    pintar()
+    const ok = antes
+      ? await desuscribir(sesion.user.id, tema.id)
+      : await suscribir(sesion.user.id, tema.id)
+    if (!ok) {
+      siguiendo = antes
+      pintar()
+      showToast('No se ha podido cambiar. Puede que falte la migración del foro.')
+    }
+    boton.disabled = false
+  })
 }
 
 function panelModeracionHtml() {
@@ -171,6 +218,9 @@ async function pintarMensajes() {
     .range(desde, desde + PAGINA - 1)
 
   const lista = mensajes || []
+  // Los @nombre de esta página, resueltos de una sola consulta: se pega
+  // todo el HTML y se buscan los mencionados que existen de verdad.
+  const mencionados = porNombre(await perfilesMencionados(lista.map((m) => m.body_html || '').join(' ')))
   const citados = [...new Set(lista.map((m) => m.reply_to_id).filter(Boolean))]
   const [perfiles, cuentas, { data: citadosData }, { data: megustas }] = await Promise.all([
     perfilesPorId([...lista.map((m) => m.author_id), tema.author_id]),
@@ -200,7 +250,7 @@ async function pintarMensajes() {
   for (const l of megustas || []) (likesPorMensaje[l.post_id] ||= []).push(l.user_id)
 
   elMensajes.innerHTML = lista
-    .map((m, i) => mensajeHtml(m, desde + i + 1, perfiles, cuentas, citadoPorId, likesPorMensaje[m.id] || []))
+    .map((m, i) => mensajeHtml(m, desde + i + 1, perfiles, cuentas, citadoPorId, likesPorMensaje[m.id] || [], mencionados))
     .join('')
 
   elPaginacion.innerHTML = paginacionHtml(totalPaginas)
@@ -219,7 +269,7 @@ async function pintarMensajes() {
   wireReportButtons(elMensajes, sesion)
 }
 
-function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, likes) {
+function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, likes, mencionados) {
   const perfil = perfiles[m.author_id]
   const nombre = nombreDe(perfil)
   const citado = m.reply_to_id ? citadoPorId[m.reply_to_id] : null
@@ -249,7 +299,10 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, likes) {
              </blockquote>`
           : ''
       }
-      <div class="article-body foro-mensaje-texto" data-texto="${m.id}">${sanitizeRichText(m.body_html || '')}</div>
+      <div class="article-body foro-mensaje-texto" data-texto="${m.id}">${enlazarMenciones(
+        sanitizeRichText(m.body_html || ''),
+        mencionados
+      )}</div>
       <footer class="foro-mensaje-pie">
         <div class="foro-mensaje-izq">
           ${reportButtonHtml('forum_post', m.id)}
@@ -394,12 +447,14 @@ async function editarMensaje(postId) {
   })
 }
 
-function pintarAvisoDeCita(perfil) {
+// `nombre` es para cuando se cita desde la selección: ahí no hay perfil
+// cargado a mano, pero el nombre está escrito en el propio mensaje.
+function pintarAvisoDeCita(perfil, nombre) {
   const aviso = document.getElementById('respondiendoA')
   if (!aviso) return
   aviso.classList.toggle('hidden', !citandoA)
   const quien = aviso.querySelector('[data-quien]')
-  if (quien) quien.textContent = perfil ? nombreDe(perfil) : 'un mensaje'
+  if (quien) quien.textContent = nombre || (perfil ? nombreDe(perfil) : 'un mensaje')
 }
 
 async function alternarMeGusta(postId, boton) {
@@ -466,23 +521,42 @@ async function montarRespuesta() {
         <div class="rte-toolbar" id="respuestaBarra"></div>
         <div class="rte-surface" id="respuestaCuerpo"></div>
       </div>
+      <div class="foro-previa hidden" id="respuestaPrevia">
+        <span class="foro-previa-eti">Así se va a ver</span>
+        <div class="article-body foro-mensaje-texto" id="respuestaPreviaCuerpo"></div>
+      </div>
       <div class="foro-form-acciones">
         <button type="submit" class="btn-primary" id="btnResponder">${icons.send(14)} Responder</button>
+        <button type="button" class="btn-secondary" id="btnVistaPrevia">${icons.eye(14)} Vista previa</button>
       </div>
     </form>`
 
   const barra = document.getElementById('respuestaBarra')
   barra.innerHTML = richTextToolbarHtml()
-  let cuerpoHtml = ''
+  const superficie = document.getElementById('respuestaCuerpo')
+  let cuerpoHtml = borradoSalvado.leer()
   initRichTextEditor({
     toolbarEl: barra,
-    surfaceEl: document.getElementById('respuestaCuerpo'),
-    initialHtml: '',
+    surfaceEl: superficie,
+    initialHtml: cuerpoHtml,
     placeholder: 'Escribe tu respuesta…',
     onChange: (html) => {
       cuerpoHtml = html
+      borradoSalvado.guardar(html)
+      if (vistaPreviaAbierta) pintarVistaPrevia(html)
     },
     uploadImage: (file) => uploadGuideImage(sesion.user.id, file),
+  })
+  if (cuerpoHtml) showToast('Hemos recuperado lo que estabas escribiendo.')
+
+  // Vista previa: el mismo saneador y las mismas clases que un mensaje
+  // publicado, para que lo que se ve aquí sea lo que se va a ver ahí.
+  document.getElementById('btnVistaPrevia').addEventListener('click', () => {
+    vistaPreviaAbierta = !vistaPreviaAbierta
+    const caja = document.getElementById('respuestaPrevia')
+    caja.classList.toggle('hidden', !vistaPreviaAbierta)
+    document.getElementById('btnVistaPrevia').classList.toggle('activo', vistaPreviaAbierta)
+    if (vistaPreviaAbierta) pintarVistaPrevia(cuerpoHtml || superficie.innerHTML)
   })
 
   document.getElementById('btnQuitarCita').addEventListener('click', () => {
@@ -518,8 +592,9 @@ async function montarRespuesta() {
       return
     }
 
-    await avisar()
+    await avisar(cuerpo)
     citandoA = null
+    borradoSalvado.borrar()
     document.getElementById('respuestaCuerpo').innerHTML = '<p><br></p>'
     cuerpoHtml = ''
     pintarAvisoDeCita()
@@ -532,27 +607,175 @@ async function montarRespuesta() {
   })
 }
 
-// A quien abrió el tema se le avisa de que le han contestado, y a quien se
-// cita, de que le han citado. Si son la misma persona, un aviso y no dos.
-async function avisar() {
+// ─────────────────────────────────────────────────────────────
+// La caja de responder: borrador, vista previa y citar la selección
+// ─────────────────────────────────────────────────────────────
+
+let vistaPreviaAbierta = false
+
+function pintarVistaPrevia(html) {
+  const caja = document.getElementById('respuestaPreviaCuerpo')
+  if (!caja) return
+  const limpio = sanitizeRichText(html || '')
+  caja.innerHTML = limpio.replace(/<[^>]*>/g, '').trim()
+    ? limpio
+    : '<p class="subtext">Todavía no has escrito nada.</p>'
+}
+
+// El borrador vive en el navegador, no en la base.
+//
+// Es para el accidente de cerrar la pestaña o darle a atrás, no para
+// escribir desde tres sitios: guardarlo en la base costaría una escritura
+// por tecla y no arregla nada más. Va por tema, para que dos borradores
+// de dos temas no se pisen.
+const borradoSalvado = {
+  clave: () => `pokedoc-borrador-tema-${temaId}`,
+  leer() {
+    try {
+      return sessionStorage.getItem(this.clave()) || ''
+    } catch {
+      return ''
+    }
+  },
+  guardar(html) {
+    try {
+      // Vacío no se guarda: si no, borrar lo escrito dejaría un borrador
+      // de un párrafo en blanco que luego "se recupera".
+      if (!String(html || '').replace(/<[^>]*>/g, '').trim()) sessionStorage.removeItem(this.clave())
+      else sessionStorage.setItem(this.clave(), html)
+    } catch {
+      // Modo privado con el almacenamiento capado: sin borrador, pero el
+      // foro funciona igual.
+    }
+  },
+  borrar() {
+    try {
+      sessionStorage.removeItem(this.clave())
+    } catch {}
+  },
+}
+
+// Citar justo lo que se ha seleccionado.
+//
+// Al soltar el ratón sobre el texto de un mensaje sale un botón flotante;
+// al pulsarlo, ese trozo entra en la caja de responder como cita y se
+// marca el mensaje como citado (para que el aviso llegue a quien toca).
+function engancharCitarSeleccion() {
+  let boton = null
+
+  const quitar = () => {
+    boton?.remove()
+    boton = null
+  }
+
+  document.addEventListener('selectionchange', () => {
+    if (!boton) return
+    // Con el ratón encima no se quita nunca: al pulsar, el navegador
+    // deshace la selección, y si el botón desapareciera en ese momento el
+    // clic no llegaría a producirse.
+    if (boton.matches(':hover')) return
+    // Y se quita solo si la selección ha CAMBIADO de verdad. El navegador
+    // encola los selectionchange, así que uno de la propia selección que
+    // acaba de hacerse llega DESPUÉS de haber puesto el botón; comparando
+    // el texto, ese no se lo lleva por delante.
+    if ((window.getSelection()?.toString().trim() || '') === boton.dataset.cita) return
+    quitar()
+  })
+
+  elMensajes.addEventListener('mouseup', (e) => {
+    const sel = window.getSelection()
+    const texto = sel?.toString().trim()
+    if (!texto || texto.length < 3) return quitar()
+
+    const dentro = e.target.closest?.('[data-texto]')
+    if (!dentro) return quitar()
+
+    quitar()
+    boton = document.createElement('button')
+    boton.type = 'button'
+    boton.className = 'foro-citar-flotante'
+    boton.innerHTML = `${icons.quote(13)} Citar esto`
+    boton.dataset.cita = texto
+    boton.style.left = `${e.pageX}px`
+    boton.style.top = `${e.pageY + 10}px`
+    const quien = dentro.closest('.foro-mensaje')?.querySelector('.foro-autor-nombre')?.textContent.trim()
+    boton.addEventListener('click', () => {
+      citarTexto(texto, dentro.dataset.texto, quien)
+      quitar()
+    })
+    document.body.appendChild(boton)
+  })
+}
+
+function citarTexto(texto, postId, quien) {
+  const superficie = document.getElementById('respuestaCuerpo')
+  if (!superficie) {
+    showToast('Entra con tu cuenta para poder citar.')
+    return
+  }
+  citandoA = postId || null
+  pintarAvisoDeCita(null, quien)
+
+  // Se mete como <blockquote> delante de lo que ya hubiera escrito, y se
+  // deja el cursor debajo para seguir escribiendo.
+  const cita = document.createElement('blockquote')
+  cita.textContent = texto
+  const hueco = document.createElement('p')
+  hueco.innerHTML = '<br>'
+  superficie.prepend(cita, hueco)
+  superficie.dispatchEvent(new Event('input', { bubbles: true }))
+  superficie.focus()
+  hueco.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+// A quién se avisa de una respuesta:
+//
+//   · a quien abrió el tema,
+//   · a quien se ha citado,
+//   · a quien se ha mencionado con @nombre,
+//   · y a quien SIGUE el tema (eso lo hace la base, ver más abajo).
+//
+// Los tres primeros van en un Set: si son la misma persona, un aviso y no
+// tres.
+async function avisar(cuerpo) {
   const destinatarios = new Set()
   if (tema.author_id && tema.author_id !== sesion.user.id) destinatarios.add(tema.author_id)
   if (citandoA) {
     const { data } = await supabase.from('forum_posts').select('author_id').eq('id', citandoA).maybeSingle()
     if (data?.author_id && data.author_id !== sesion.user.id) destinatarios.add(data.author_id)
   }
+
+  const mencionados = await perfilesMencionados(cuerpo || '')
+  mencionados.forEach((p) => {
+    if (p.id !== sesion.user.id) destinatarios.add(p.id)
+  })
+
   await Promise.all(
     [...destinatarios].map((uid) =>
       createNotification({
         recipientId: uid,
         actorId: sesion.user.id,
         type: 'forum_reply',
-        title: 'Te han respondido en el foro',
+        title: mencionados.some((p) => p.id === uid) ? 'Te han mencionado en el foro' : 'Te han respondido en el foro',
         body: tema.title,
         link: urlTema(tema.id),
       })
     )
   )
+
+  // Y los suscritos, que los avisa una función de la base porque desde
+  // aquí no se puede ver quién sigue un tema. Se le pasa el mensaje
+  // recién creado para que compruebe que es nuestro; sin ese mensaje no
+  // se avisa a nadie.
+  const { data: mio } = await supabase
+    .from('forum_posts')
+    .select('id')
+    .eq('thread_id', tema.id)
+    .eq('author_id', sesion.user.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (mio?.id) await avisarSuscritos(tema.id, mio.id, tema.title)
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -568,6 +791,12 @@ async function init() {
 
   await pintarMensajes()
   await montarRespuesta()
+  engancharCitarSeleccion()
+
+  // Entrar en un tema es haberlo leído. Va al final y sin `await`: es lo
+  // último que importa de la carga, y si falla (migración sin ejecutar)
+  // no puede impedir que se vea el tema.
+  if (sesion) marcarLeido(sesion.user.id, tema.id)
 
   // La visita se suma después de pintar: que se vea el tema no puede
   // depender de que el contador funcione.

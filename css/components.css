@@ -5008,3 +5008,211 @@ a.reto-tarjeta:hover {
   color: var(--navy);
   font-weight: 600;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   El foro, para usarlo a diario
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── El buscador ──
+   Discreto y arriba del todo: quien viene a leer no lo necesita, y quien
+   viene a buscar algo concreto lo encuentra donde lo espera. */
+.foro-buscador {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 300px;
+  margin: 0 0 10px auto;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 3px 5px 3px 12px;
+  transition: border-color 0.15s var(--ease);
+}
+
+.foro-buscador:focus-within {
+  border-color: var(--navy);
+}
+
+.foro-buscador input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  padding: 5px 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.foro-buscador input:focus {
+  outline: none;
+}
+
+/* El botón es la lupa, dibujada con CSS para no meter otro SVG: la
+   barra de arriba ya trae el suyo. */
+.foro-buscador-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--navy);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.foro-buscador-btn::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border: 1.8px solid currentColor;
+  border-radius: 50%;
+}
+
+.foro-buscador-btn::after {
+  content: '';
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 6px;
+  height: 1.8px;
+  background: currentColor;
+  transform: rotate(45deg);
+}
+
+.foro-buscador-btn:hover {
+  background: var(--navy);
+  color: var(--white);
+}
+
+/* ── Resultados ── */
+.foro-resultado .foro-fila-cuerpo h3 {
+  margin-bottom: 2px;
+}
+
+.foro-resultado-trozo {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.5;
+  margin: 2px 0 3px;
+}
+
+/* ── Lo que no has leído ──
+   El peso de la letra se ve de un vistazo en una lista larga; un color
+   distinto, no siempre. */
+.foro-tema-nuevo .foro-fila-cuerpo h3 a {
+  font-weight: 800;
+}
+
+.foro-punto-nuevo {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--navy);
+  vertical-align: middle;
+}
+
+.foro-btn-leido {
+  padding: 8px 14px;
+  font-size: 13.5px;
+}
+
+/* ── Seguir un tema ── */
+.tema-seguir {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 2px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.tema-seguir:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.tema-seguir-si {
+  background: var(--ice);
+  border-color: var(--ice-dark);
+  color: var(--navy);
+}
+
+/* ── Citar lo seleccionado ──
+   Sale flotando junto al ratón al soltar sobre un texto seleccionado. */
+.foro-citar-flotante {
+  position: absolute;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+  color: var(--white);
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: var(--shadow-md, 0 6px 20px rgba(13, 27, 42, 0.18));
+  transform: translateX(-50%);
+}
+
+.foro-citar-flotante:hover {
+  background: var(--navy-dark);
+}
+
+/* ── Vista previa de la respuesta ── */
+.foro-previa {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.foro-previa.hidden {
+  display: none;
+}
+
+.foro-previa-eti {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.foro-form-acciones .btn-secondary.activo {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+/* ── Menciones ── */
+.mencion {
+  color: var(--navy);
+  font-weight: 700;
+  background: var(--ice);
+  border-radius: var(--radius-sm);
+  padding: 0 4px;
+}
+
+.mencion:hover {
+  background: var(--ice-dark);
+}
+
+@media (max-width: 700px) {
+  .foro-buscador {
+    max-width: none;
+    margin-left: 0;
+  }
+}

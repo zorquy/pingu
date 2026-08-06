@@ -16,6 +16,8 @@ import {
   esDelEquipo,
   faltaElForo,
 } from './foro-comun.js'
+import { marcasDeLectura, estaSinLeer, marcarTodoLeido } from './foro-lecturas.js'
+import { plegarTexto } from './texto.js'
 
 // El foro. Esta página hace dos cosas según la URL:
 //
@@ -31,6 +33,7 @@ const PAGINA = 20
 const params = new URLSearchParams(window.location.search)
 const slugForo = foroDeLaRuta()
 const paginaActual = Math.max(1, Number(params.get('p') || 1))
+const consulta = (params.get('q') || '').trim()
 
 const principal = document.getElementById('foroPrincipal')
 const lateral = document.getElementById('foroLateral')
@@ -39,6 +42,9 @@ const acciones = document.getElementById('foroAcciones')
 
 let sesion = null
 let soyStaff = false
+// Las marcas de lectura de quien mira. Se piden una vez al arrancar y se
+// usan en el índice y en la lista de temas.
+let marcas = null
 
 function migasHtml(trozos) {
   return trozos
@@ -68,6 +74,32 @@ function ultimoHtml({ titulo, url, fecha, perfil }) {
         <span class="subtext" title="${escapeHtml(fechaLarga(fecha))}">${escapeHtml(haceCuanto(fecha))} · ${enlacePerfil(perfil)}</span>
       </div>
     </div>`
+}
+
+// El botón de "marcar todo como leído".
+//
+// Solo aparece con sesión iniciada y solo si hay algo sin leer: un botón
+// para marcar como leído lo que ya lo está es ruido.
+function botonMarcarTodoHtml(hayAlgoSinLeer) {
+  if (!sesion || !hayAlgoSinLeer) return ''
+  return `<button type="button" class="btn-secondary foro-btn-leido" id="btnMarcarLeido">${icons.checkCircle(15)} Marcar todo como leído</button>`
+}
+
+function engancharMarcarTodo() {
+  document.getElementById('btnMarcarLeido')?.addEventListener('click', async (e) => {
+    const boton = e.currentTarget
+    boton.disabled = true
+    const ok = await marcarTodoLeido(sesion.user.id)
+    if (!ok) {
+      boton.disabled = false
+      showToast('No se ha podido marcar como leído.')
+      return
+    }
+    // Se recarga en vez de repintar a mano: la marca afecta al índice, a
+    // la lista de temas y a los puntos de cada fila, y recargar deja
+    // todo coherente sin tres caminos distintos que mantener.
+    window.location.reload()
+  })
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -306,14 +338,16 @@ async function pintarForo() {
   )
 
   const puedeEscribir = foro.post_policy === 'todos' || soyStaff
-  acciones.innerHTML = puedeEscribir
+  const abrirTema = puedeEscribir
     ? `<button type="button" class="btn-primary" id="btnNuevoTema">${icons.edit(15)} Abrir un tema</button>`
     : `<span class="subtext">${icons.lock ? icons.lock(14) : ''} Solo el equipo abre temas aquí</span>`
 
-  await pintarListaDeTemas(foro)
+  const hayNuevos = await pintarListaDeTemas(foro)
+  acciones.innerHTML = botonMarcarTodoHtml(hayNuevos) + abrirTema
   await pintarLateral()
 
   document.getElementById('btnNuevoTema')?.addEventListener('click', () => abrirFormularioTema(foro))
+  engancharMarcarTodo()
 }
 
 async function pintarListaDeTemas(foro) {
@@ -342,11 +376,17 @@ async function pintarListaDeTemas(foro) {
   ])
   const totalPaginas = Math.max(1, Math.ceil((count || 0) / PAGINA))
 
-  const filaTema = (t) => `
-    <div class="foro-tema-fila ${t.is_pinned ? 'foro-tema-fijado' : ''}">
+  const filaTema = (t) => {
+    // Un tema "sin leer" tiene mensajes posteriores a tu última visita.
+    // Se marca con una clase (el título en negrita y un punto delante),
+    // no con un color distinto: en una lista larga, el peso de la letra
+    // se ve de un vistazo y el color no siempre.
+    const sinLeer = estaSinLeer(t, marcas)
+    return `
+    <div class="foro-tema-fila ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''}">
       <div class="foro-fila-icono" aria-hidden="true">${
-        t.is_pinned ? icons.pin?.(18) || icons.star(18) : icons.messageSquare(18)
-      }</div>
+        sinLeer ? `<span class="foro-punto-nuevo" title="Con mensajes nuevos"></span>` : ''
+      }${t.is_pinned ? icons.pin?.(18) || icons.star(18) : icons.messageSquare(18)}</div>
       <div class="foro-fila-cuerpo">
         <h3>
           ${t.is_pinned ? '<span class="foro-chapa">Fijado</span>' : ''}
@@ -374,6 +414,7 @@ async function pintarListaDeTemas(foro) {
         perfil: perfiles[t.last_post_author_id] || perfiles[t.author_id],
       })}
     </div>`
+  }
 
   const subforosHtml = (subforos || []).length
     ? `<section class="foro-seccion">
@@ -416,6 +457,10 @@ async function pintarListaDeTemas(foro) {
       window.location.href = url.toString()
     })
   )
+
+  // Se devuelve si hay algo sin leer para que la cabecera decida si
+  // enseña el botón de "marcar todo como leído".
+  return lista.some((t) => estaSinLeer(t, marcas))
 }
 
 function paginacionHtml(total) {
@@ -559,10 +604,154 @@ async function abrirFormularioTema(foro) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Los resultados de una búsqueda
+// ─────────────────────────────────────────────────────────────
+//
+// Se busca en dos sitios y se juntan: en el TÍTULO de los temas y en el
+// TEXTO de los mensajes. Las dos consultas van contra `search_norm`, la
+// columna plegada (sin acentos, en minúsculas) que trae
+// supabase-migration-foro-mejoras.sql, así que "pikachu" encuentra
+// "Pikachu" y "reimpresion" encuentra "reimpresión".
+const MAX_RESULTADOS = 25
+
+function trozoConLaPalabra(texto, aguja) {
+  const plano = String(texto || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  const donde = plegarTexto(plano).indexOf(aguja)
+  if (donde === -1) return plano.slice(0, 160)
+  // Un poco de texto por delante para que el trozo no empiece a media
+  // palabra y se entienda de qué habla.
+  const desde = Math.max(0, donde - 60)
+  return (desde > 0 ? '…' : '') + plano.slice(desde, desde + 200) + (plano.length > desde + 200 ? '…' : '')
+}
+
+async function pintarBusqueda() {
+  migas.innerHTML = migasHtml([
+    { texto: 'Inicio', url: '/' },
+    { texto: 'Foro', url: '/foro' },
+    { texto: 'Buscar' },
+  ])
+  document.getElementById('foroTitulo').textContent = `Buscar: ${consulta}`
+  document.getElementById('foroSubtitulo').textContent = 'En los títulos de los temas y en el texto de los mensajes.'
+  acciones.innerHTML = ''
+  lateral.innerHTML = ''
+
+  const aguja = plegarTexto(consulta)
+  const patron = `%${aguja}%`
+
+  const [porTitulo, porMensaje] = await Promise.all([
+    supabase
+      .from('forum_threads')
+      .select('id, title, prefix, last_post_at, post_count')
+      .ilike('search_norm', patron)
+      .order('last_post_at', { ascending: false })
+      .limit(MAX_RESULTADOS),
+    supabase
+      .from('forum_posts')
+      .select('id, thread_id, author_id, body_html, created_at')
+      .ilike('search_norm', patron)
+      .order('created_at', { ascending: false })
+      .limit(MAX_RESULTADOS),
+  ])
+
+  // Si la columna no existe todavía (migración sin ejecutar), se dice en
+  // vez de enseñar "no hay resultados", que sería mentira.
+  if (faltaLaBusqueda(porTitulo.error) || faltaLaBusqueda(porMensaje.error)) {
+    principal.innerHTML = `<p class="empty-state">El buscador del foro todavía no está activado.</p>`
+    return
+  }
+
+  const temas = porTitulo.data || []
+  const mensajes = porMensaje.data || []
+  const perfiles = await perfilesPorId(mensajes.map((m) => m.author_id))
+
+  // Los temas de los mensajes encontrados, para poder poner su título.
+  const idsTema = [...new Set(mensajes.map((m) => m.thread_id))]
+  const temasDeMensajes = idsTema.length
+    ? (await supabase.from('forum_threads').select('id, title').in('id', idsTema)).data || []
+    : []
+  const tituloDe = Object.fromEntries(temasDeMensajes.map((t) => [t.id, t.title]))
+
+  if (!temas.length && !mensajes.length) {
+    principal.innerHTML = `<p class="empty-state">No hay nada con “${escapeHtml(consulta)}”. Prueba con una palabra más corta.</p>`
+    return
+  }
+
+  const bloqueTemas = temas.length
+    ? `<section class="foro-seccion">
+         <h2 class="foro-seccion-titulo">Temas (${temas.length})</h2>
+         ${temas
+           .map(
+             (t) => `
+           <div class="foro-fila foro-resultado">
+             <div class="foro-fila-icono" aria-hidden="true">${icons.messageSquare(18)}</div>
+             <div class="foro-fila-cuerpo">
+               <h3>${etiquetaHtml(t.prefix)} <a href="${urlTema(t.id)}">${escapeHtml(t.title)}</a></h3>
+               <p class="subtext">${Math.max(0, (t.post_count || 1) - 1)} respuestas · ${escapeHtml(haceCuanto(t.last_post_at))}</p>
+             </div>
+           </div>`
+           )
+           .join('')}
+       </section>`
+    : ''
+
+  const bloqueMensajes = mensajes.length
+    ? `<section class="foro-seccion">
+         <h2 class="foro-seccion-titulo">Mensajes (${mensajes.length})</h2>
+         ${mensajes
+           .map(
+             (m) => `
+           <div class="foro-fila foro-resultado">
+             <div class="foro-fila-icono" aria-hidden="true">${avatarHtml(perfiles[m.author_id], 26)}</div>
+             <div class="foro-fila-cuerpo">
+               <h3><a href="${urlTema(m.thread_id)}#mensaje-${m.id}">${escapeHtml(tituloDe[m.thread_id] || 'Ver el mensaje')}</a></h3>
+               <p class="foro-resultado-trozo">${escapeHtml(trozoConLaPalabra(m.body_html, aguja))}</p>
+               <p class="subtext">${escapeHtml(nombreDe(perfiles[m.author_id]))} · ${escapeHtml(haceCuanto(m.created_at))}</p>
+             </div>
+           </div>`
+           )
+           .join('')}
+       </section>`
+    : ''
+
+  principal.innerHTML = bloqueTemas + bloqueMensajes
+}
+
+// La columna `search_norm` llega con la migración de mejoras. Si no
+// está, Postgres devuelve 42703 (columna inexistente).
+function faltaLaBusqueda(error) {
+  return !!error && (error.code === '42703' || /search_norm/.test(error.message || ''))
+}
+
+// ─────────────────────────────────────────────────────────────
+// El buscador
+// ─────────────────────────────────────────────────────────────
+//
+// Los resultados salen en el propio /foro?q=..., no en una página nueva:
+// es el mismo sitio, con la misma cabecera y las mismas migas, y así el
+// botón de atrás del navegador hace lo que se espera.
+function engancharBuscador() {
+  const form = document.getElementById('foroBuscador')
+  const campo = document.getElementById('foroBuscadorTexto')
+  if (!form || !campo) return
+  campo.value = consulta || ''
+  form.addEventListener('submit', (e) => {
+    e.preventDefault()
+    const q = campo.value.trim()
+    // Sin texto se vuelve al foro, que es lo que espera quien acaba de
+    // vaciar la caja y darle a Enter.
+    window.location.href = q ? `/foro?q=${encodeURIComponent(q)}` : '/foro'
+  })
+}
+
 async function init() {
   sesion = await getSession()
-  if (sesion) soyStaff = await esDelEquipo(sesion)
-  if (slugForo) await pintarForo()
+  if (sesion) {
+    soyStaff = await esDelEquipo(sesion)
+    marcas = await marcasDeLectura(sesion.user.id)
+  }
+  engancharBuscador()
+  if (consulta) await pintarBusqueda()
+  else if (slugForo) await pintarForo()
   else await pintarIndice()
 }
 
