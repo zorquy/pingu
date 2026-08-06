@@ -3993,6 +3993,17 @@ a.rater-name:hover {
   align-items: start;
 }
 
+/* Los paneles de la lateral, separados.
+   Sin esto se apilaban pegados —solo los separaba el borde de 1 px— y
+   los tres se leían como un único bloque largo en vez de como tres
+   cosas distintas. El hueco es algo menor que el de las columnas: son
+   hermanos dentro de la misma columna, no dos zonas de la página. */
+.foro-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 /* ── La escala del foro ──
    Un foro no se lee como un artículo: se BARRE. Cuantas más filas entran
    sin hacer scroll, mejor se ve de un vistazo dónde hay conversación. Por
