@@ -7,8 +7,21 @@
   <title>Guardados — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <meta name="robots" content="noindex" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- Estos seis módulos los carga TODA página. Sin esto el navegador
+       los descubre en cascada —la página pide su .js, ese pide app.js,
+       app.js pide supabase.js y ese el bundle de 152 KB—, y cada salto
+       es un viaje de ida y vuelta más antes de poder pintar. Con
+       modulepreload se piden los seis a la vez, desde el primer momento.
+       Van estos y no todo el grafo a propósito: son los que no cambian
+       de página a página, así que no se quedan obsoletos solos. -->
+  <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
+  <link rel="modulepreload" href="/js/supabase.js" />
+  <link rel="modulepreload" href="/js/app.js" />
+  <link rel="modulepreload" href="/js/icons.js" />
+  <link rel="modulepreload" href="/js/content-icon.js" />
+  <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
 </head>

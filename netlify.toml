@@ -38,6 +38,15 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Las fuentes: un año y sin revalidar. Son dos ficheros que solo cambian
+# si se cambia de tipografía, y llevan el nombre de la familia dentro, así
+# que un cambio sería un fichero nuevo. Revalidarlas en cada carga sería
+# pagar un viaje de ida y vuelta por algo que no se mueve nunca.
+[[headers]]
+  for = "/assets/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 # El dominio bueno es pokedoc.es. Quien llegue al subdominio de Netlify
 # (por un enlace antiguo, o porque un redirect de Supabase le ha mandado
 # ahí después de iniciar sesión) se manda a pokedoc.es conservando la

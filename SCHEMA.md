@@ -6012,3 +6012,102 @@ tarden.
 Sigue sin haber «usuarios en línea»: con veinte miembros, un «en línea:
 1» enseña soledad. «Por aquí hoy» es el mismo dato contado de una manera
 que no deprime.
+
+# Que la web cargue rápido
+
+Antes de tocar nada, medir. Cada página se llevaba entre **425 y 550 KB
+sin comprimir**, y hasta `terminos.html` —una página de texto legal—
+bajaba 297 KB de JavaScript.
+
+## Lo que de verdad pesaba
+
+### El bundle de Supabase traía cosas que no se usan
+
+`js/vendor/supabase-js.js` iba en las 19 páginas y ocupaba 210 KB (54,9
+comprimido). Dentro venía **Realtime entero, con su cliente de
+WebSocket** — y PokeDoc no tiene ni una suscripción en vivo: no hay un
+solo `.channel()` ni `.subscribe()` en todo el código. También venía el
+cliente de Edge Functions, que tampoco se usa (la única función de borde
+la ejecuta Netlify, no el navegador).
+
+Se regenera con esbuild sustituyendo esos dos paquetes por los
+sustitutos de `herramientas/`, que avisan con un mensaje claro si algún
+día alguien los llama:
+
+    150,7 KB en vez de 209,5 (37,6 comprimido en vez de 54,9)
+
+**−17,3 KB comprimidos en cada carga de cada página**, y 56 KB menos de
+JavaScript que analizar.
+
+⚠️ La suite de Playwright usa un Supabase falso, así que **el bundle de
+verdad no se ejecuta en ninguna prueba de navegador**. Por eso hay una
+aparte, `test-vendor-supabase.mjs`, que crea el cliente en Node y
+comprueba una por una las piezas que el sitio usa (consultas, sesión,
+storage, rpc). Sin ella, un recorte mal hecho no lo habría cazado nadie.
+
+### Las fuentes venían de Google
+
+Las 19 páginas pedían a `fonts.googleapis.com` una hoja de estilo **que
+bloquea el pintado**, y esa hoja pedía a su vez las fuentes a
+`fonts.gstatic.com` — un tercer dominio, y encima sin `preconnect`.
+Cuatro viajes (DNS, TLS, la hoja, las fuentes) antes de poder pintar una
+letra, y dos puntos de fallo ajenos.
+
+Ahora se sirven desde el propio sitio, con `@font-face` en `style.css` y
+cacheadas un año. Y son **variables**: un fichero por familia cubre todos
+los pesos. Con las estáticas harían falta siete (400/500/600/800 de Inter
+y 500/600/700 de Fredoka): 142 KB en siete peticiones, contra **76 KB en
+dos**.
+
+Se declaran como `Inter` y `Fredoka` a secas —sin el «Variable» que traen
+los paquetes de fontsource— para que el resto del CSS siga valiendo tal
+cual.
+
+### La cascada de módulos
+
+Los módulos se descubren en cadena: la página pide su `.js`, ese pide
+`app.js`, `app.js` pide `supabase.js`, y ese el bundle. Medido: **siete
+niveles**. Cada salto es un viaje de ida y vuelta más antes de empezar.
+
+Ahora las 21 páginas llevan `modulepreload` de los seis módulos que
+carga **toda** página (`vendor/supabase-js`, `supabase`, `app`, `icons`,
+`content-icon`, `html`). Se piden los seis a la vez desde el primer
+momento.
+
+Van solo esos seis y no el grafo entero a propósito: son los que no
+cambian de página a página, así que estos `<link>` no se quedan
+obsoletos solos cuando alguien toca los imports de una página.
+
+### 112 KB de mascota que casi nadie veía
+
+`mascota.png` vive dentro del modal «¿Qué es PokeDoc?», que empieza
+oculto — y aun así el navegador se bajaba sus 112 KB en cada visita a la
+portada. Ahora es WebP (35 KB, un 69 % menos) y con `loading="lazy"`: no
+se pide hasta que alguien abre el modal.
+
+## Lo que se midió y se decidió NO hacer
+
+**Partir `components.css` por páginas.** Parecía la mejora obvia: 95 KB
+en todas las páginas con el foro, los editores y el resto dentro. Pero al
+medirlo:
+
+- comprimido son **20,7 KB**, no 95;
+- la familia más grande (`.foro-*`) es el 13 % ≈ **2,7 KB comprimidos**;
+- y sacarla fuera le añade **una petición más** a las páginas del foro.
+
+Cambiar 2,7 KB por un fichero más, con el riesgo de que un selector se
+quede en el fichero equivocado y algo se rompa en silencio, no sale a
+cuenta. Si algún día el CSS se dobla, se revisa.
+
+## El resultado
+
+La portada, comprimida: **122 KB** (91 de JS en 24 módulos + 29 de CSS +
+el HTML), sin una sola petición a un dominio ajeno.
+
+`test-carga.mjs` fija todo esto: que ninguna página pida nada a Google ni
+a un CDN, que las fuentes sean dos y nuestras, que el bundle siga por
+debajo de 160 KB y sin WebSockets, que las precargas apunten a ficheros
+que existen, que la mascota no se pida sola, y un techo de 150 KB
+comprimidos para la portada. El techo no está para afinar: está para que
+si alguien mete otra librería de 200 KB salte ahí y no en el móvil de
+alguien.
