@@ -167,3 +167,66 @@ async function cargarDestacada() {
   seccion.style.display = ''
 }
 cargarDestacada().catch(() => {})
+
+// ── El reto del día y el repaso ──
+//
+// Es lo que da motivo para volver mañana: cinco preguntas nuevas cada
+// día, las mismas para todo el mundo, y las que fallaste esperándote
+// unos días después.
+//
+// Se pinta sin bloquear el resto de la home y se calla si algo falla:
+// mientras la migración de los cursos no esté aplicada, estas dos
+// tarjetas simplemente no aparecen.
+async function cargarReto() {
+  const seccion = document.getElementById('retoSeccion')
+  if (!seccion) return
+
+  const session = await getSession()
+  if (!session) return
+
+  const [{ yaJugadoHoy, PREGUNTAS_POR_RETO }, { cuantasParaRepasar }] = await Promise.all([
+    import('./reto-diario.js'),
+    import('./curso-datos.js'),
+  ])
+
+  const [jugado, porRepasar] = await Promise.all([
+    yaJugadoHoy(session.user.id),
+    cuantasParaRepasar(session.user.id),
+  ])
+
+  const tarjetas = []
+  tarjetas.push(
+    jugado
+      ? `<div class="reto-tarjeta reto-tarjeta-hecha">
+           <span class="reto-icono">${icons.flame(20)}</span>
+           <div class="reto-texto">
+             <strong>Reto de hoy: ${jugado.correct} de ${jugado.total}</strong>
+             <small>Mañana hay cinco preguntas nuevas.</small>
+           </div>
+         </div>`
+      : `<a class="reto-tarjeta" href="/curso.html?reto=hoy">
+           <span class="reto-icono">${icons.flame(20)}</span>
+           <div class="reto-texto">
+             <strong>Reto de hoy</strong>
+             <small>${PREGUNTAS_POR_RETO} preguntas, las mismas para todos.</small>
+           </div>
+           <span class="reto-flecha">→</span>
+         </a>`
+  )
+
+  if (porRepasar > 0) {
+    tarjetas.push(`
+      <a class="reto-tarjeta" href="/curso.html?reto=repaso">
+        <span class="reto-icono">${icons.refreshCw(20)}</span>
+        <div class="reto-texto">
+          <strong>${porRepasar} ${porRepasar === 1 ? 'pregunta' : 'preguntas'} por repasar</strong>
+          <small>De lo que fallaste hace unos días.</small>
+        </div>
+        <span class="reto-flecha">→</span>
+      </a>`)
+  }
+
+  document.getElementById('retoTarjetas').innerHTML = tarjetas.join('')
+  seccion.style.display = ''
+}
+cargarReto().catch(() => {})

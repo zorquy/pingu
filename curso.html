@@ -34,6 +34,14 @@
     </div>
     <button class="btn-back" id="btnBack">Salir</button>
 
+    <!-- El marcador. Sin nada que suba en pantalla, acertar y fallar se
+         sienten igual, y eso es lo que hacía que esto pareciera un
+         examen en vez de un juego. -->
+    <div class="curso-hud hidden" id="cursoHud" aria-live="polite">
+      <span class="hud-racha hidden" id="hudRacha"></span>
+      <span class="hud-puntos"><strong id="hudPuntos">0</strong> pts</span>
+    </div>
+
     <div class="curso-stage" id="cursoStage">
       <p class="empty-state">Cargando curso…</p>
     </div>

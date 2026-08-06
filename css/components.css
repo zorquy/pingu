@@ -4786,3 +4786,105 @@ a.rater-name:hover {
 .admin-destacada-campos input {
   flex: 2 1 260px;
 }
+
+/* ── Editor: los bloques de curso con cartas ── */
+.be-cartas-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.be-cartas-row textarea { flex: 1; }
+
+.be-ayuda {
+  font-size: 12px;
+  color: var(--text-mid);
+  margin: -2px 0 2px;
+}
+
+/* Marcar la zona buena pinchando en la imagen. */
+.be-zonas {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.be-zonas img {
+  max-width: 100%;
+  max-height: 320px;
+  display: block;
+  border-radius: var(--radius-sm);
+  cursor: crosshair;
+  user-select: none;
+}
+
+.be-zona {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2.5px dashed var(--success);
+  background: rgba(13, 158, 110, 0.16);
+  cursor: pointer;
+}
+
+.be-zona:hover {
+  border-color: #dc2626;
+  background: rgba(220, 38, 38, 0.16);
+}
+
+/* ── El reto del día en la home ── */
+.reto-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.reto-tarjeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition: border-color 0.15s var(--ease), transform 0.1s var(--ease);
+}
+
+a.reto-tarjeta:hover {
+  border-color: var(--navy);
+  transform: translateY(-1px);
+}
+
+.reto-tarjeta-hecha {
+  background: var(--bg);
+  color: var(--text-mid);
+}
+
+.reto-icono {
+  display: flex;
+  color: var(--navy);
+  flex-shrink: 0;
+}
+
+.reto-tarjeta-hecha .reto-icono { color: var(--text-dim); }
+
+.reto-texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.reto-texto strong { font-size: 14.5px; }
+
+.reto-texto small {
+  font-size: 12.5px;
+  color: var(--text-mid);
+}
+
+.reto-flecha {
+  color: var(--text-dim);
+  font-weight: 700;
+}

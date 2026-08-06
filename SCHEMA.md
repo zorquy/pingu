@@ -5744,3 +5744,174 @@ recalcula en cada cambio con la función que ya sabía distinguir vacío de
 lleno. Y va como pseudoelemento: cualquier cosa de verdad metida en un
 `contenteditable` se puede seleccionar, borrar o acabar guardada dentro
 del mensaje.
+
+# Los cursos dejan de ser un examen
+
+Un tester lo dijo tal cual: «parecen las preguntas de un curso online, no
+un curso gamificado». Mirando el código tenía toda la razón, y el motivo
+no era el contenido:
+
+- **Fallar no costaba nada.** Acertaras o fallaras, el botón de continuar
+  se habilitaba igual (`else { btnContinue.disabled = false }`). Sin
+  consecuencia no hay tensión, y sin tensión aquello es un formulario.
+- **Todo valía +5 XP fijos**, y la etiqueta lo decía en cada bloque. Una
+  recompensa constante y predecible deja de leerse como recompensa.
+- **No había marcador.** Terminabas y te daban `guides.xp_reward`, un
+  número que no dependía de lo bien que lo hubieras hecho: daba igual
+  acertarlo todo que fallarlo todo.
+- **Las preguntas eran texto**, en una web que tiene 23.600 cartas en su
+  propia base de datos.
+- **Se hacía una vez y ya.** Ningún motivo para volver.
+
+Migración: `supabase-migration-cursos-juego.sql`.
+
+## Las reglas, aparte de la pantalla
+
+`js/curso-juego.js` no toca ni el DOM ni la red: son las reglas puras
+(cuántos puntos, qué medalla, la clave de una pregunta). Está separado
+por dos motivos. Uno, las necesitan también el reto diario y el repaso.
+Dos, así se pueden probar sin navegador — `test-curso-reglas.mjs` corre
+en un segundo.
+
+**Puntuación.** 10 puntos por acierto, y el multiplicador sube con la
+racha: ×2 a los 3 aciertos seguidos, ×3 a los 5. Fallar la rompe entera.
+Lo que engancha no es el 10, es que el siguiente valga 20 — y por eso la
+cabecera de cada pregunta dice lo que vale **antes** de responder.
+
+**Medallas.** Oro al 100 %, plata al 80 %, bronce al 50 %. Repetir el
+curso para mejorarla es lo que convierte «he terminado el curso» en
+«quiero el oro».
+
+⚠️ Esos tres umbrales están **repetidos** en el disparador
+`course_attempt_medalla()` de la migración. Los de la base son los que
+mandan: la medalla que se guarda la calcula Postgres, no el navegador.
+Los de JavaScript solo sirven para pintarla antes de guardar nada. Si se
+tocan en un sitio hay que tocarlos en el otro.
+
+## Lo que fallas vuelve antes de terminar
+
+Cada pregunta fallada se **reencola** justo antes de la pantalla final,
+marcada como REPESCA. Es el truco que separa practicar de hacer un
+examen: la que no te sabes te la vuelves a encontrar antes de salir.
+
+La repesca da 3 puntos, no 10, y **no cuenta como acierto de la
+partida**. Si contara, fallar no costaría nada y volveríamos al problema
+de partida: la nota ya está puesta, la repesca es para aprendértela.
+
+## Cómo se impide farmear XP
+
+Esto era lo más delicado de todo el cambio, porque repetir un curso pasa
+a ser algo que queremos que la gente haga.
+
+| Qué | Antes | Ahora |
+|---|---|---|
+| +5 XP por bloque acertado | en cada partida | solo la **primera** partida de ese curso (`haJugadoAntes()`) |
+| `quiz_correct_count` (alimenta un logro) | en cada partida | igual: solo la primera |
+| XP del curso (`xp_reward`) | al completar | igual, solo la primera vez |
+| Subir de medalla | no existía | +10 al llegar a plata, +25 a oro, **una sola vez** (`xpPorMejoraDeMedalla`) |
+
+El techo por curso queda cerrado y no depende de cuántas veces se juegue.
+
+## Siempre desde el principio
+
+Antes se reanudaba por `user_progress.current_block`. Con puntuación eso
+no se sostiene: quien entrara directo al último bloque haría un 1 de 1,
+se llevaría el oro y su XP en diez segundos. Ahora una partida es una
+partida — las mismas preguntas para todos. Los cursos son de cinco
+minutos, así que no se pierde gran cosa. `current_block` se sigue
+guardando porque es la posición por la que vas y no cuesta nada.
+
+## Las tablas nuevas
+
+- **`course_attempts`** — una fila por partida, con puntuación, aciertos,
+  medalla y duración. Sin `update` ni `delete` en las políticas: una
+  partida jugada es un hecho. Las puntuaciones imposibles las cortan
+  restricciones `check` (`score <= total * 30 + 500`).
+- **`question_stats`** — veces respondida y veces acertada cada pregunta,
+  para el «solo la acierta el 43 % de la comunidad». **No tiene políticas
+  de insert ni de update a propósito**: la única puerta es
+  `record_question_answer()`, que es `security definer` y solo sabe sumar
+  uno. Si la tabla fuera escribible, un `update ... set times_correct =
+  99999` desde la consola del navegador se cargaría el dato para todos.
+- **`course_review_queue`** — lo que fallaste, con **una copia del
+  bloque** dentro. Copia y no referencia: el curso puede editarse o
+  despublicarse entre que fallas y que repasas.
+- **`daily_challenge_results`** — el resultado del reto del día. La clave
+  primaria `(user_id, day)` es lo que impide repetirlo hasta que salga
+  bien.
+- **`course_leaderboard(guide_id, limite)`** — la mejor partida de cada
+  persona, numerada. `distinct on (user_id)` para que quien juega diez
+  veces no ocupe la tabla entera, y devuelve la clasificación completa
+  con su puesto para poder decirte «vas el 14º» aunque no salgas en el
+  top 10. Respeta `hide_activity` y esconde a los baneados.
+
+### La clave de una pregunta
+
+`claveDePregunta()` es un hash corto (FNV-1a) del **enunciado**, no la
+posición del bloque. Con la posición, reordenar los bloques de un curso
+mezclaría las estadísticas de unas preguntas con las de otras. Con el
+enunciado, reordenar no afecta y **reescribir** la pregunta la convierte
+en otra que empieza de cero — que es lo correcto: el «43 % la falló» de
+la pregunta vieja no dice nada de la nueva.
+
+## Preguntas con cartas de verdad
+
+Tres tipos de bloque nuevos, todos con el mismo principio que ya seguían
+las listas de cartas de las guías: **se guardan solo identificadores de
+TCGdex**, y el dibujo lo monta la web leyendo `tcg_cards`.
+
+- **`cartaquiz`** — varias cartas en pantalla, eliges una.
+  `{ question, card_ids[], correct_id, explanation }`
+- **`zonas`** — «encuentra el fallo»: una imagen y tocas dónde está.
+  `{ question, image_url, zones: [{x, y, r}], explanation }`. Las
+  coordenadas van en **tanto por ciento**, no en píxeles, porque la
+  imagen se ve a otro tamaño en el móvil, en el editor y en el curso. Se
+  enseña la zona buena se acierte o no: quien falla tiene que ver dónde
+  estaba.
+- **`clasifica`** — arrastrar (bueno, tocar) cada carta a su montón.
+  `{ title, buckets[], cards: [{id, bucket}], explanation }`
+
+En `match` y en `clasifica`, equivocarse **no impide** terminar el
+bloque, pero cuenta como fallo. Si no, serían los dos únicos sitios donde
+la racha no se puede perder y bastaría con ir a fuerza bruta.
+
+Las cartas se piden al pintar el bloque, no al cargar el curso: no tiene
+sentido bajarse veinte imágenes que a lo mejor no se ven. El bloque
+aparece al instante con el hueco y las imágenes entran cuando llegan.
+
+**Lo que no se ha hecho: ordenar cartas por precio.** `tcg_cards` no
+tiene precio y no hay de dónde sacarlo sin otra fuente de datos. Meter
+precios a mano en el bloque envejecería mal y encima parecería un dato
+oficial de la web.
+
+## El reto diario y el repaso
+
+No son una página aparte: son el mismo `curso.html` con `?reto=hoy` o
+`?reto=repaso` (`js/curso.js`, variable `modo`). Una partida es una
+partida — marcador, racha y medalla funcionan igual — y así no hay un
+segundo motor que mantener.
+
+**Las cinco preguntas del día son las mismas para todo el mundo** y no
+las prepara ningún proceso nocturno: se sortean en el cliente con la
+fecha como semilla (`barajarConSemilla`, mulberry32). Antes de sortear
+se ordenan por su clave, porque el orden en que Supabase devuelva los
+cursos no está garantizado y si cambiara, cambiaría el reto del día.
+
+El repaso saca las preguntas de `course_review_queue` cuyo `review_after`
+ya pasó (dos días después de fallarlas). Acertarla la borra de la cola;
+volver a fallarla la deja ahí.
+
+XP: 15 por el reto del día (uno al día), 3 por cada pregunta recuperada
+en el repaso. Ninguno de los dos reparte XP por bloque.
+
+Las dos cosas se ofrecen desde la home (`#retoSeccion`), solo con la
+sesión iniciada.
+
+## Todo esto aguanta sin la migración aplicada
+
+`js/curso-datos.js` **falla en silencio a propósito**, entera. Entre que
+se sube el código y se ejecuta la migración en el SQL Editor hay un rato
+en el que las tablas no existen; durante ese rato el curso se juega
+igual, con marcador y medalla incluidos. Lo único que se pierde es
+guardar la marca y enseñar los porcentajes. Ninguna función de ese
+fichero lanza: devuelven `null`, `0` o lista vacía.

@@ -60,6 +60,12 @@ export const COURSE_BLOCK_DEFAULTS = {
   fillblank: { type: 'fillblank', before: '', after: '', options: ['', ''], correct_option: '' },
   match: { type: 'match', title: '', pairs: [{ left: '', right: '' }, { left: '', right: '' }] },
   order: { type: 'order', title: '', items: ['', '', ''] },
+  // Los tres de cartas guardan SOLO identificadores de TCGdex, igual que
+  // las listas de cartas de las guías: el dibujo lo monta la web leyendo
+  // `tcg_cards`.
+  cartaquiz: { type: 'cartaquiz', question: '', card_ids: [], correct_id: '', explanation: '' },
+  zonas: { type: 'zonas', question: '', image_url: '', zones: [], explanation: '' },
+  clasifica: { type: 'clasifica', title: '', buckets: ['', ''], cards: [], explanation: '' },
   checklist: { type: 'checklist', title: '', items: [''] },
   reward: { type: 'reward', next_guide_slug: '' },
 }
@@ -75,6 +81,9 @@ export const COURSE_BLOCK_LABELS = {
   fillblank: { icon: icons.edit(16), label: 'Rellenar hueco' },
   match: { icon: icons.link(16), label: 'Relacionar parejas' },
   order: { icon: icons.listOrdered(16), label: 'Ordenar pasos' },
+  cartaquiz: { icon: icons.cards(16), label: 'Elegir la carta' },
+  zonas: { icon: icons.scan(16), label: 'Encontrar el fallo' },
+  clasifica: { icon: icons.layers(16), label: 'Clasificar cartas' },
   checklist: { icon: icons.checkSquare(16), label: 'Checklist' },
   reward: { icon: icons.trophy(16), label: 'Recompensa final' },
 }
@@ -131,6 +140,47 @@ export function fieldsForCourseBlock(block, i) {
       return `
         <input class="be-field" data-i="${i}" data-f="title" placeholder="Título (opcional)" value="${escapeHtml(block.title || '')}" />
         <textarea class="be-field" data-i="${i}" data-f="items" placeholder="Pasos en el orden correcto (uno por línea)">${escapeHtml((block.items || []).join('\n'))}</textarea>`
+    case 'cartaquiz':
+      return `
+        <input class="be-field" data-i="${i}" data-f="question" placeholder="Pregunta (¿cuál es la falsa?)" value="${escapeHtml(block.question || '')}" />
+        <div class="be-cartas-row">
+          <textarea class="be-field" data-i="${i}" data-f="card_ids" placeholder="Identificadores de carta, uno por línea (swsh3-136)">${escapeHtml((block.card_ids || []).join('\n'))}</textarea>
+          <button type="button" class="btn-outline be-buscar-cartas" data-i="${i}" data-campo="card_ids">${icons.search(15)} Buscar cartas</button>
+        </div>
+        <input class="be-field" data-i="${i}" data-f="correct_id" placeholder="Identificador de la carta correcta" value="${escapeHtml(block.correct_id || '')}" />
+        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
+    case 'zonas':
+      return `
+        <input class="be-field" data-i="${i}" data-f="question" placeholder="Enunciado (toca el canto de la carta)" value="${escapeHtml(block.question || '')}" />
+        <div class="be-image-row">
+          <input class="be-field" data-i="${i}" data-f="image_url" placeholder="Sin imagen" value="${escapeHtml(block.image_url || '')}" readonly />
+          <button type="button" class="btn-outline be-upload-image" data-i="${i}">${icons.upload(15)} Subir imagen</button>
+          <input type="file" accept="image/*" class="be-image-file" data-i="${i}" hidden />
+        </div>
+        ${
+          block.image_url
+            ? `<p class="be-ayuda">Pincha en la imagen para marcar la zona buena. Vuelve a pinchar en una marca para quitarla.</p>
+               <div class="be-zonas" data-i="${i}">
+                 <img src="${escapeHtml(block.image_url)}" alt="" draggable="false" />
+                 ${(block.zones || [])
+                   .map(
+                     (z, zi) =>
+                       `<span class="be-zona" data-i="${i}" data-z="${zi}" style="left:${z.x}%; top:${z.y}%; width:${(z.r || 10) * 2}%; height:${(z.r || 10) * 2}%"></span>`
+                   )
+                   .join('')}
+               </div>`
+            : '<p class="be-ayuda">Sube una imagen para poder marcar dónde está el fallo.</p>'
+        }
+        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
+    case 'clasifica':
+      return `
+        <input class="be-field" data-i="${i}" data-f="title" placeholder="Enunciado (pon cada carta en su rareza)" value="${escapeHtml(block.title || '')}" />
+        <textarea class="be-field" data-i="${i}" data-f="buckets" placeholder="Montones, uno por línea (Común / Rara / Ultra rara)">${escapeHtml((block.buckets || []).join('\n'))}</textarea>
+        <div class="be-cartas-row">
+          <textarea class="be-field" data-i="${i}" data-f="cards" placeholder="Una carta por línea: swsh3-136 :: Rara">${escapeHtml((block.cards || []).map((c) => `${c.id} :: ${c.bucket}`).join('\n'))}</textarea>
+          <button type="button" class="btn-outline be-buscar-cartas" data-i="${i}" data-campo="cards">${icons.search(15)} Buscar cartas</button>
+        </div>
+        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
     case 'checklist':
       return `
         <input class="be-field" data-i="${i}" data-f="title" placeholder="Título" value="${escapeHtml(block.title || '')}" />
@@ -229,8 +279,18 @@ export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
     input.addEventListener('input', () => {
       const i = Number(input.dataset.i)
       const f = input.dataset.f
-      if (f === 'options' || f === 'items') {
+      if (f === 'options' || f === 'items' || f === 'buckets' || f === 'card_ids') {
         blocks[i][f] = input.value.split('\n').map((s) => s.trim()).filter(Boolean)
+      } else if (f === 'cards') {
+        // "swsh3-136 :: Rara" por línea. El montón se compara luego con
+        // los de `buckets`, así que tiene que escribirse igual.
+        blocks[i][f] = input.value
+          .split('\n')
+          .map((line) => {
+            const [id, bucket] = line.split('::').map((s) => (s || '').trim())
+            return { id: id || '', bucket: bucket || '' }
+          })
+          .filter((c) => c.id)
       } else if (f === 'correct_index') {
         blocks[i][f] = Number(input.value) || 0
       } else if (f === 'is_true') {
@@ -267,6 +327,54 @@ export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
       })
     })
   }
+  // Buscar cartas sin salir del editor. Se añaden al final del campo,
+  // que es lo que espera quien acaba de escribir tres a mano.
+  containerEl.querySelectorAll('.be-buscar-cartas').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const i = Number(btn.dataset.i)
+      const campo = btn.dataset.campo
+      const { openCardPicker } = await import('./card-picker.js')
+      const ids = await openCardPicker()
+      if (!ids || !ids.length) return
+      if (campo === 'card_ids') {
+        blocks[i].card_ids = [...(blocks[i].card_ids || []), ...ids]
+      } else {
+        // Sin montón: lo pone el autor después. Meterlas con uno
+        // inventado sería peor, porque parecería que ya está hecho.
+        blocks[i].cards = [...(blocks[i].cards || []), ...ids.map((id) => ({ id, bucket: '' }))]
+      }
+      renderCourseBlockEditor(containerEl, blocks, uploadImage)
+    })
+  )
+
+  // Marcar la zona buena pinchando en la imagen. Se guarda en tanto por
+  // ciento, no en píxeles: la imagen se ve a otro tamaño en el móvil, en
+  // el editor y en el curso.
+  const RADIO_ZONA = 9
+  containerEl.querySelectorAll('.be-zonas').forEach((lienzo) => {
+    const i = Number(lienzo.dataset.i)
+    const img = lienzo.querySelector('img')
+    if (!img) return
+    img.addEventListener('click', (e) => {
+      const caja = img.getBoundingClientRect()
+      const x = Math.round(((e.clientX - caja.left) / caja.width) * 1000) / 10
+      const y = Math.round(((e.clientY - caja.top) / caja.height) * 1000) / 10
+      blocks[i].zones = [...(blocks[i].zones || []), { x, y, r: RADIO_ZONA }]
+      renderCourseBlockEditor(containerEl, blocks, uploadImage)
+    })
+    lienzo.querySelectorAll('.be-zona').forEach((marca) =>
+      marca.addEventListener('click', (e) => {
+        // La marca es hermana de la imagen, no hija, así que el clic no
+        // llega al manejador de la imagen por sí solo. Esto es por si
+        // algún día el manejador se cuelga de `.be-zonas` en vez del
+        // <img>: entonces sí haría falta.
+        e.stopPropagation()
+        blocks[i].zones = (blocks[i].zones || []).filter((_, zi) => zi !== Number(marca.dataset.z))
+        renderCourseBlockEditor(containerEl, blocks, uploadImage)
+      })
+    )
+  })
+
   makeSortable(containerEl, blocks, () => renderCourseBlockEditor(containerEl, blocks, uploadImage))
   wireBBCodeToolbars(containerEl)
 }

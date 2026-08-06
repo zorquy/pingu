@@ -689,3 +689,416 @@
 .block-reward .btn-secondary:active {
   box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.18);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   El juego
+   ══════════════════════════════════════════════════════════════
+   Un curso no se aprueba, se JUEGA. Todo lo de aquí abajo existe
+   para que acertar y fallar se sientan distinto: el marcador que
+   sube, la racha que se ve venir, y la medalla al final. */
+
+/* ── El marcador ── */
+.curso-hud {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px 6px 10px;
+  box-shadow: var(--shadow-sm);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.hud-puntos strong {
+  font-size: 16px;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+
+/* La racha solo aparece cuando ya hay racha: un contador a cero
+   ocupando sitio todo el rato no dice nada. */
+.hud-racha {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--ice);
+  color: var(--navy);
+  border-radius: var(--radius-pill);
+  padding: 3px 9px;
+  font-size: 12.5px;
+}
+
+.hud-racha-fuerte {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.hud-racha b {
+  font-weight: 800;
+}
+
+/* El "+20" que sale volando del marcador al acertar. */
+.hud-suma {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--success);
+  pointer-events: none;
+  animation: hud-suma-sube 0.9s var(--ease) forwards;
+}
+
+@keyframes hud-suma-sube {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-34px); }
+}
+
+.hud-late {
+  animation: hud-latido 0.35s var(--ease);
+}
+
+@keyframes hud-latido {
+  50% { transform: scale(1.28); }
+}
+
+/* Nadie con `prefers-reduced-motion` quiere números saltando. */
+@media (prefers-reduced-motion: reduce) {
+  .hud-suma, .hud-late { animation: none; }
+  .hud-suma { opacity: 0; }
+}
+
+/* ── Lo que vale la pregunta ── */
+.quiz-header {
+  justify-content: space-between;
+}
+
+.block-vale {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-dim);
+  background: var(--bg);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.block-vale-fuerte {
+  color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.block-vale-repesca {
+  color: var(--indigo);
+  background: var(--indigo-bg);
+}
+
+/* Un borde de color al responder: el resultado se ve antes de leer
+   nada. */
+.block-acertado { border-color: var(--success); }
+.block-fallado { border-color: #dc2626; }
+
+/* ── La pantalla final ── */
+.reward-medalla {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 16px 22px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.reward-medalla strong {
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.reward-medalla small {
+  font-size: 12.5px;
+  color: var(--ice);
+  opacity: 0.85;
+}
+
+.reward-medalla-icono {
+  display: flex;
+}
+
+.reward-medalla-oro .reward-medalla-icono { color: #f0cf7c; }
+.reward-medalla-plata .reward-medalla-icono { color: #d3dee3; }
+.reward-medalla-bronce .reward-medalla-icono { color: #e6c6a4; }
+.reward-medalla-ninguna .reward-medalla-icono { color: var(--ice); opacity: 0.7; }
+
+.reward-desglose {
+  list-style: none;
+  width: 100%;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13.5px;
+}
+
+.reward-desglose li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ice);
+}
+
+.reward-desglose strong {
+  color: var(--white);
+  font-variant-numeric: tabular-nums;
+}
+
+.reward-bonus strong {
+  color: #f0cf7c;
+}
+
+.reward-record {
+  font-size: 13.5px;
+  color: var(--ice);
+  min-height: 1em;
+}
+
+.reward-record-nuevo {
+  color: #f0cf7c;
+  font-weight: 700;
+}
+
+.reward-xp {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.reward-xp.hidden,
+.reward-tabla:empty {
+  display: none;
+}
+
+/* ── Mejores marcas ── */
+.reward-tabla {
+  width: 100%;
+  max-width: 320px;
+  text-align: left;
+}
+
+.reward-tabla h3 {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--ice);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.reward-tabla-lista {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reward-tabla-lista li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 9px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+}
+
+.reward-tabla-yo {
+  background: rgba(255, 255, 255, 0.16);
+  font-weight: 700;
+}
+
+.reward-tabla-pos {
+  color: var(--ice);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.reward-tabla-nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reward-tabla-pts {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* El salto entre el top y tu fila cuando no estás entre los diez. */
+.reward-tabla-corte {
+  display: block;
+  text-align: center;
+  color: var(--ice);
+  opacity: 0.5;
+  padding: 0;
+  line-height: 1;
+}
+
+@media (max-width: 600px) {
+  .curso-hud {
+    top: 14px;
+    right: 12px;
+    padding: 5px 11px 5px 8px;
+    font-size: 12.5px;
+  }
+  .hud-puntos strong { font-size: 14.5px; }
+}
+
+/* ── Los bloques con cartas de verdad ──
+   Preguntar sobre cartas con palabras es un examen; poner la carta en
+   pantalla es un juego. */
+.cartas-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.carta-opcion {
+  padding: 4px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 90px;
+  transition: border-color 0.15s var(--ease), transform 0.1s var(--ease);
+}
+
+.carta-opcion img {
+  width: 100%;
+  border-radius: 5px;
+  display: block;
+}
+
+.carta-opcion:hover:not(:disabled) {
+  border-color: var(--navy);
+  transform: translateY(-2px);
+}
+
+.carta-opcion:disabled { cursor: default; }
+.carta-opcion.correct { border-color: var(--success); background: var(--success-bg); }
+.carta-opcion.incorrect { border-color: #dc2626; background: #fee2e2; }
+.carta-opcion.wrong { animation: carta-no 0.4s var(--ease); }
+
+@keyframes carta-no {
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.carta-opcion-noimg {
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 20px 8px;
+  text-align: center;
+  word-break: break-all;
+}
+
+/* ── Encontrar el fallo ── */
+.zonas-lienzo {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.zonas-lienzo img {
+  max-width: 100%;
+  max-height: 46vh;
+  border-radius: var(--radius-md);
+  cursor: crosshair;
+  user-select: none;
+}
+
+/* La zona buena y el punto donde se pinchó, los dos centrados sobre su
+   coordenada — de ahí el translate del 50 %. */
+.zona-marca,
+.zona-clic {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.zona-marca {
+  border: 2.5px dashed var(--success);
+  background: rgba(13, 158, 110, 0.14);
+}
+
+.zona-clic {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--white);
+}
+
+.zona-clic-bien { background: var(--success); }
+.zona-clic-mal { background: #dc2626; }
+
+/* ── Clasificar cartas ── */
+.clasifica-mano {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.clasifica-mano .carta-opcion,
+.clasifica-cubo-contenido .carta-opcion {
+  width: 74px;
+  min-height: 0;
+}
+
+.carta-opcion.elegida {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px var(--ice);
+}
+
+.clasifica-cubos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.clasifica-cubo {
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  min-height: 84px;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.clasifica-cubo:hover { border-color: var(--navy); background: var(--ice); }
+.clasifica-cubo.wrong { border-color: #dc2626; background: #fee2e2; }
+
+.clasifica-cubo-nombre {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-mid);
+  margin-bottom: 6px;
+}
+
+.clasifica-cubo-contenido {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
