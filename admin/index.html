@@ -194,6 +194,11 @@
         </div>
         <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Datos propios, sin cookies ni servicios externos.</p>
 
+        <!-- Sale solo si alguna consulta ha fallado. Un cero puede
+             significar "no ha entrado nadie" o "no he podido leerlo", y
+             sin decirlo no hay forma de distinguirlos. -->
+        <div id="analyticsErrores"></div>
+
         <div class="admin-stats-grid" id="analyticsSummary"></div>
 
         <h2 class="admin-subtitle">Visitas por día</h2>

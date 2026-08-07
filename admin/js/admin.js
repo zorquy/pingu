@@ -1359,6 +1359,42 @@ async function loadAnalytics() {
     supabase.from('profile_comments').select('id, created_at').gte('created_at', since),
   ])
 
+  // Lo que ha fallado se DICE.
+  //
+  // Antes esto no se miraba: si la consulta se caía —la tabla no existe
+  // porque falta la migración, la RLS no deja leerla, lo que sea— se
+  // cogía `|| []` y la pantalla enseñaba un tranquilo "0 visitas". Un
+  // cero y un error se veían exactamente igual, así que no había forma
+  // de saber si la analítica estaba vacía o rota.
+  //
+  // `user_progress` ya se contaba aparte porque tiene su propia
+  // migración; ahora se avisa de todas por el mismo sitio.
+  const fallos = [
+    ['page_views', viewsRes.error, 'supabase-migration-page-views.sql'],
+    ['user_profiles', profilesRes.error, null],
+    ['guides', guidesRes.error, null],
+    ['user_progress', progressRes.error, 'supabase-migration-admin-analytics.sql'],
+    ['guide_comments', guideCommentsRes.error, null],
+    ['profile_comments', wallCommentsRes.error, null],
+  ].filter(([, error]) => error)
+
+  document.getElementById('analyticsErrores').innerHTML = fallos.length
+    ? `<div class="admin-warning">
+         <strong>Faltan datos: ${fallos.length === 1 ? 'una consulta ha fallado' : `${fallos.length} consultas han fallado`}.</strong>
+         Lo que salga a cero aquí abajo puede ser eso y no que no haya pasado nada.
+         <ul style="margin: 8px 0 0; padding-left: 20px;">
+           ${fallos
+             .map(
+               ([tabla, error, migracion]) =>
+                 `<li><code>${escapeHtml(tabla)}</code>: ${escapeHtml(error.message || 'error desconocido')}${
+                   migracion ? ` — prueba a aplicar <code>${escapeHtml(migracion)}</code>.` : ''
+                 }</li>`
+             )
+             .join('')}
+         </ul>
+       </div>`
+    : ''
+
   const views = viewsRes.data || []
   const profiles = profilesRes.data || []
   const guides = guidesRes.data || []

@@ -6633,3 +6633,77 @@ cascade`: el CASCADE se lleva la clave ajena, no la tabla), así que la
 segunda pasada chocaba con las filas de la primera y el disparador ni
 llegaba a ejecutarse. **La prueba estaba en rojo por estar sucia, no por
 estar mal** — que es el fallo más caro de diagnosticar de los dos.
+
+# La analítica no estaba rota: es que no sabía decir si lo estaba
+
+La pantalla de Analítica del panel funciona —está bien cableada y se
+pinta sin errores—, pero tenía un defecto que la hacía indistinguible de
+una pantalla muerta.
+
+## Un cero y un error se veían igual
+
+```js
+const views = viewsRes.data || []      // ← y si viewsRes.error?
+```
+
+Nadie miraba `viewsRes.error`. Si la consulta se caía —la tabla no existe
+porque falta la migración, la RLS no deja leerla, lo que sea— se cogía el
+`|| []` y la pantalla enseñaba un tranquilo **«0 visitas»**. Exactamente
+lo mismo que si de verdad no hubiera entrado nadie.
+
+`user_progress` sí se contaba aparte (tiene su propia migración y su
+propia nota). Ahora se comprueban **las seis** consultas y lo que falle
+sale arriba en un aviso ámbar, con el mensaje de la base y, cuando se
+sabe, la migración que probablemente falta.
+
+El aviso es ámbar y no rojo a propósito: la pantalla sigue siendo útil
+con lo que sí ha llegado, y pintarla entera de rojo haría pensar que no
+vale nada.
+
+## `gte` y `lte` eran no-ops en el doble de Supabase
+
+Al ir a probar esto salió algo peor: el Supabase falso trataba `.gte()` y
+`.lte()` como si no existieran.
+
+```js
+if (['select', 'gte', 'lte', 'textSearch', 'contains'].includes(prop)) {
+  return (...args) => con({})     // no hacía nada
+}
+```
+
+O sea que **ningún filtro por fechas del sitio se había probado nunca**.
+«Los últimos 7 días» del panel devolvía la tabla entera y la prueba lo
+daba por bueno. Ya están implementados, comparando fechas como fechas
+(con cadenas, `'9'` sale mayor que `'10'`) y dejando fuera los nulos,
+igual que SQL.
+
+## Y `page_views` no estaba en el doble
+
+Tampoco estaba la tabla, así que `matchTable` devolvía un array nuevo y
+vacío en cada llamada: los insert se perdían y las lecturas daban cero.
+La pantalla salía a cero **siempre**, con lo cual no había forma de ver
+si estaba bien o rota — que era justo lo que había que mirar. Ahora tiene
+nueve visitas sembradas, una de ellas fuera de la ventana de siete días
+para que el filtro tenga algo que descartar.
+
+## De paso: la tabla de páginas se lee
+
+- Los temas del foro se juntan todos en `/tema`. Aquí la razón no es la
+  privacidad (esa es la de `/usuario`) sino que **la ruta es un uuid**:
+  cincuenta filas de `/tema/8f3a1c…` no le dicen nada a nadie. Para saber
+  qué temas se leen ya está el contador de visitas de cada tema.
+- `/foro/<slug>` sí se guarda entero: el slug se lee, y saber qué foro se
+  usa es justo lo interesante.
+- `/foro` y `/tema` tienen nombre legible en la tabla.
+
+## Cómo se ha probado
+
+`test-analitica.mjs`, 20 comprobaciones: con datos, con la tabla caída, y
+las reglas de normalización de rutas (estas últimas sin navegador, que
+son funciones puras). Rigor: 5 roturas, 5 pilladas.
+
+Un detalle de la prueba que costó un rojo: abrir `/admin` **registra su
+propia visita**, así que el total no es exactamente el sembrado. La
+comprobación de los periodos compara los dos en la misma pestaña —la
+ventana ancha tiene que ver más que la estrecha— en vez de esperar un
+número fijo.

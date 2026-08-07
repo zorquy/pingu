@@ -49,6 +49,12 @@ export function normalizePath(pathname, search = '') {
   // si la gente usa los perfiles basta con el total.
   if (ruta === '/usuario' || ruta.startsWith('/usuario/')) return '/usuario'
 
+  // Los temas del foro se juntan todos en "/tema", y aquí la razón es
+  // otra: la ruta es un uuid. Una tabla con cincuenta filas de
+  // "/tema/8f3a1c…" no le dice nada a nadie, y para saber qué temas se
+  // leen ya está el contador de visitas de cada tema.
+  if (ruta === '/tema' || ruta.startsWith('/tema/')) return '/tema'
+
   const clave = POR_SLUG[ruta]
   if (clave) {
     const slug = limpiarSlug(new URLSearchParams(search || '').get(clave))
@@ -60,6 +66,8 @@ export function normalizePath(pathname, search = '') {
 const NOMBRES = {
   '/': 'Inicio',
   '/aprender': 'Aprender',
+  '/foro': 'Foro · portada',
+  '/tema': 'Foro · temas',
   '/usuarios': 'Comunidad',
   '/perfil': 'Mi perfil',
   '/usuario': 'Perfiles de usuario',
@@ -86,6 +94,9 @@ const PREFIJOS = [
   ['/categoria/', 'Categoría'],
   ['/guia/', 'Guía'],
   ['/curso/', 'Curso'],
+  // /foro/<slug> sí se guarda entero: el slug se lee, a diferencia del
+  // uuid de un tema, y saber qué foro se usa es justo lo interesante.
+  ['/foro/', 'Foro'],
 ]
 
 // Nombre legible para la tabla del panel. "/" no le dice nada a nadie.

@@ -488,3 +488,24 @@ body {
   background: #fee2e2;
   color: #dc2626;
 }
+
+/* Aviso de que algo no se ha podido leer. Va en ámbar y no en rojo a
+   propósito: la pantalla sigue siendo útil con lo que sí ha llegado, y
+   pintarla de rojo entero haría pensar que no vale nada. */
+.admin-warning {
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  border: 1px solid #e5b53d;
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: #fdf6e3;
+  color: #6b4e07;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-warning code {
+  background: rgba(107, 78, 7, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
