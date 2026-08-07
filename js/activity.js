@@ -4,7 +4,8 @@ import { icons } from './icons.js'
 import { logClientError } from './error-log.js'
 
 // Hilo de actividad reciente. No hay tabla de eventos: se arma leyendo
-// lo que ya existe (progreso, guías, comentarios, altas) y mezclando por
+// lo que ya existe (progreso, guías —publicadas y en revisión—,
+// comentarios, altas, peticiones y temas) y mezclando por
 // fecha. Así no hay nada que escribir en cada acción ni un registro que
 // se pueda desincronizar con la realidad.
 //
@@ -31,7 +32,7 @@ function haceCuanto(iso) {
 export async function loadActivity(limite = 20) {
   const desde = new Date(Date.now() - 60 * 86400_000).toISOString()
 
-  const [progreso, guiasNuevas, comentarios, altas, peticiones, temas] = await Promise.all([
+  const [progreso, guiasNuevas, guiasEnCamino, comentarios, altas, peticiones, temas] = await Promise.all([
     supabase
       .from('user_progress')
       .select('user_id, guide_id, status, completed_at, read_at')
@@ -43,6 +44,31 @@ export async function loadActivity(limite = 20) {
       .not('published_at', 'is', null)
       .not('author_id', 'is', null)
       .order('published_at', { ascending: false })
+      .limit(POR_FUENTE),
+    // Las que están EN CAMINO, no solo las publicadas.
+    //
+    // Escribir una guía lleva días y hasta ahora no se veía por ninguna
+    // parte hasta que el equipo la aprobaba: quien la estaba escribiendo
+    // no recibía ni una señal de que alguien se hubiera enterado. En una
+    // comunidad que arranca, eso es justo lo que hay que premiar.
+    //
+    // Se piden las que están en revisión y NO los borradores: enviar a
+    // revisión es un acto deliberado de "esto ya lo enseño", mientras que
+    // un borrador a medias es privado y anunciarlo sería sacarlo sin
+    // permiso. Por eso el filtro es `submitted_at is not null` además del
+    // estado.
+    //
+    // Se pueden leer y enlazar sin problema: la política `guides_select`
+    // deja ver las `pending` a propósito (ver
+    // supabase-migration-community-guides.sql) y guia.html ya pinta el
+    // aviso de "pendiente de revisión".
+    supabase
+      .from('guides')
+      .select('id, title, slug, author_id, submitted_at')
+      .eq('review_status', 'pending')
+      .not('submitted_at', 'is', null)
+      .not('author_id', 'is', null)
+      .order('submitted_at', { ascending: false })
       .limit(POR_FUENTE),
     supabase
       .from('guide_comments')
@@ -76,7 +102,7 @@ export async function loadActivity(limite = 20) {
 
   // Qué fuentes NO han contestado.
   //
-  // Las seis consultas se leían con `.data || []` y nadie miraba el
+  // Las siete consultas se leían con `.data || []` y nadie miraba el
   // error: si una fallaba —falta una migración, la RLS no deja leer, se
   // cayó la red— el hilo enseñaba "todavía no hay actividad". Es la
   // misma mentira que decía la analítica, y encima en la pantalla donde
@@ -88,6 +114,7 @@ export async function loadActivity(limite = 20) {
   const fallos = [
     ['user_progress', progreso.error],
     ['guides', guiasNuevas.error],
+    ['guides (en revisión)', guiasEnCamino.error],
     ['guide_comments', comentarios.error],
     ['user_profiles', altas.error],
     ['guide_requests', peticiones.error],
@@ -96,7 +123,7 @@ export async function loadActivity(limite = 20) {
 
   if (fallos.length) {
     logClientError(
-      `Hilo de actividad: ${fallos.length} de 6 fuentes han fallado — ` +
+      `Hilo de actividad: ${fallos.length} de 7 fuentes han fallado — ` +
         fallos.map(([tabla, error]) => `${tabla}: ${error.message || 'error'}`).join('; ')
     )
   }
@@ -111,6 +138,9 @@ export async function loadActivity(limite = 20) {
   }
   for (const g of guiasNuevas.data || []) {
     eventos.push({ tipo: 'guia', userId: g.author_id, guideId: g.id, fecha: g.published_at })
+  }
+  for (const g of guiasEnCamino.data || []) {
+    eventos.push({ tipo: 'guia_enviada', userId: g.author_id, guideId: g.id, fecha: g.submitted_at })
   }
   for (const c of comentarios.data || []) {
     eventos.push({ tipo: 'comentario', userId: c.author_id, guideId: c.guide_id, fecha: c.created_at })
@@ -175,6 +205,7 @@ const TEXTOS = {
   curso: { icono: 'graduationCap', verbo: 'ha completado el curso' },
   lectura: { icono: 'bookOpen', verbo: 'se ha leído' },
   guia: { icono: 'sparkles', verbo: 'ha publicado la guía' },
+  guia_enviada: { icono: 'edit', verbo: 'ha enviado a revisión la guía' },
   comentario: { icono: 'messageSquare', verbo: 'ha comentado en' },
   alta: { icono: 'user', verbo: 'se ha unido a PokeDoc' },
   peticion: { icono: 'helpCircle', verbo: 'ha pedido una guía sobre' },
@@ -211,7 +242,7 @@ function eventoHtml(e) {
 // `resultado` es lo que devuelve loadActivity(): { eventos, fallos }.
 //
 // La regla es una sola: solo se dice "todavía no hay actividad" cuando
-// las SEIS fuentes han contestado. Si alguna falló, el hilo vacío puede
+// TODAS las fuentes han contestado. Si alguna falló, el hilo vacío puede
 // ser eso, y afirmar que no hay nada sería mentir — que es exactamente
 // lo que hacía antes.
 export function renderActivityHtml(resultado, { vacio = 'Todavía no hay actividad. ¡Sé el primero!' } = {}) {

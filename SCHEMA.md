@@ -6717,7 +6717,7 @@ el primero!» — y eso en la pantalla donde se mira si la comunidad está
 viva.
 
 La regla ahora es una sola: **solo se dice que no hay actividad cuando
-las seis fuentes han contestado.** Si alguna falló, se dice «no se ha
+TODAS las fuentes han contestado.** Si alguna falló, se dice «no se ha
 podido cargar» y ya.
 
 Y con dos límites deliberados:
@@ -6733,6 +6733,69 @@ Y con dos límites deliberados:
 Son dos llamadas en todo el sitio (la home y `/usuarios`); en la home, si
 no hay eventos el bloque no se abre — ni para decir que está vacío ni
 para decir que falló, porque ahí es un extra de la portada.
+
+# Escribir una guía no se veía por ninguna parte hasta aprobarla
+
+Una guía tarda días en escribirse. Hasta ahora, durante todos esos días
+—y durante los que la cola de revisión tardase en atenderse— **el hilo de
+actividad no decía absolutamente nada**: quien la estaba escribiendo no
+recibía ni una señal de que alguien se hubiera enterado, y el resto de la
+comunidad no veía que hubiera nadie escribiendo. En una comunidad que
+arranca y que necesita guías, eso es justo lo contrario de lo que hay que
+premiar.
+
+`loadActivity()` tiene ahora una **séptima fuente**: las guías en
+revisión.
+
+```js
+supabase
+  .from('guides')
+  .select('id, title, slug, author_id, submitted_at')
+  .eq('review_status', 'pending')
+  .not('submitted_at', 'is', null)
+  .not('author_id', 'is', null)
+  .order('submitted_at', { ascending: false })
+  .limit(POR_FUENTE)
+```
+
+Sale como «*Fulano* **ha enviado a revisión la guía** *Título*», con
+verbo propio: decir «ha publicado» de algo que aún no lo está le
+prometería a quien lo lee una guía terminada.
+
+## Qué NO sale, y por qué
+
+- **Los borradores no.** Enviar a revisión es un acto deliberado de «esto
+  ya lo enseño»; un borrador a medias es privado, y anunciarlo sería
+  publicarlo sin permiso.
+- **Las rechazadas tampoco.** No es una noticia que se le quiera dar a la
+  comunidad y menos a quien la escribió.
+
+El detalle que hace falta saber para no equivocarse aquí:
+`js/editor-guia.js` **conserva el `submitted_at` viejo** al volver a
+guardar como borrador (`submitted_at: reviewStatus === 'pending' ? now :
+existingGuide?.submitted_at || null`). O sea que una guía enviada,
+rechazada y en proceso de reescritura es una fila con `review_status =
+'draft'` y una **fecha de envío reciente** — iría directa a la cabecera
+del hilo. Lo único que la mantiene fuera es el filtro por estado.
+
+## Se puede enlazar
+
+La política `guides_select` deja ver las `pending` **a propósito** (`using
+(published_at is not null or review_status = 'pending' or auth.uid() =
+author_id or is_admin())`, ver `supabase-migration-community-guides.sql`)
+y `guia.html` ya pinta el aviso de «pendiente de revisión». El enlace del
+hilo lleva ahí y no a un 404.
+
+## Cómo se ha probado
+
+Cinco comprobaciones más en `test-menciones-fuera.mjs`. Rigor: 4 roturas,
+4 pilladas — pero la del borrador **estuvo verde por el motivo
+equivocado** en la primera pasada. El doble de Supabase tenía el borrador
+con `submitted_at: null`, así que al colarse se ordenaba por la época de
+Unix, caía al fondo del hilo y se salía del recorte de 20. La prueba
+decía «no aparece» y lo que estaba comprobando era que aparecía el
+último. Poniéndole al doble la fecha reciente que tendría de verdad, la
+rotura sale roja.
 
 # Menciones fuera del foro
 
