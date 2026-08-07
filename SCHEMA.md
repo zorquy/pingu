@@ -6507,3 +6507,68 @@ pasara, no que pasara *por la razón correcta*.
   propio `mousedown`, antes de que se pierda el foco. Lo que hay que
   comprobar es lo de después: que se puede **seguir escribiendo** donde
   estabas.
+
+# La guía y su curso eran dos islas
+
+Una guía tiene dos mitades —la teoría y el curso— que viven en páginas
+distintas. Y no se enlazaban en ninguna dirección: leías la guía entera
+sin enterarte de que existía un curso, y acababas el curso sin manera de
+volver a la teoría más que buscando la guía otra vez por el catálogo.
+
+## De la guía al curso: dos sitios, dos pesos
+
+- **Arriba**, junto a Guardar, un botón pequeño. Quien ya sabe que quiere
+  el curso lo encuentra sin leerse la teoría entera, y a quien viene a
+  leer no le tapa nada.
+- **Al final**, la llamada de verdad: «¿Te ha servido? Ponlo a prueba»,
+  diciendo lo que hay al otro lado (preguntas, racha, medalla) y cuánto
+  se tarda.
+
+Los dos solo aparecen si esa guía **tiene** curso (`guideHasCourse`).
+
+El de abajo va **antes** de «Me ha servido» y de las estrellas, y es a
+propósito: acabas de leer y lo siguiente que quieres hacer es ponerlo a
+prueba, no puntuar.
+
+Nota histórica: aquí hubo un CTA de «Hacer el curso» que se quitó al
+meter el foro de comentarios (commit `36b5c50`). No se quitó por malo —
+lo desplazó otra cosa. Vuelve repartido en dos pesos para que no compita
+con los comentarios.
+
+## Del curso a la guía
+
+En la pantalla final, «Repasar la teoría». Es lo que se pide justo
+después de fallar algo: «vale, ¿y esto dónde lo explican?».
+
+Solo en el curso de una guía (el reto diario y el repaso mezclan
+preguntas de varias, así que no hay *una* teoría a la que volver) y solo
+si esa guía tiene documentación (`guideHasReference`).
+
+## La valoración era del curso pero puntuaba la guía
+
+Al terminar el curso se pintaban las estrellas con el título «¿Qué te ha
+parecido el curso?». Escribían en `guide_reviews`: **la nota era de la
+guía**. Quien acababa el curso puntuaba una documentación que a lo mejor
+ni había abierto, y esa nota es la que sale luego en las tarjetas, en el
+buscador y en las estadísticas de autor.
+
+Quitada del curso. La valoración vive en la guía, al terminar de leerla,
+que es donde se tiene opinión sobre lo que se está puntuando.
+
+La prueba comprueba las dos mitades: que al acabar el curso no se valora
+nada **y** que las estrellas siguen estando en la guía. Sin lo segundo,
+«quitar la valoración del curso» y «cargarse la valoración del sitio»
+darían el mismo verde.
+
+## Cómo se ha probado
+
+`test-guia-curso.mjs`, 28 comprobaciones. Rigor: 7 roturas, 7 pilladas —
+dos de ellas después de arreglar la prueba, y las dos por el mismo vicio
+de siempre:
+
+- `count()` en vez de `isVisible()`: esconder la llamada con CSS la
+  dejaba en el DOM, así que contarla seguía dando 1.
+- Buscar `#cursoRating` (el hueco donde iban las estrellas) en vez de las
+  estrellas: quitar el contenedor no impide que alguien las pinte en otro
+  sitio de la pantalla final. Ahora se buscan las clases del propio
+  widget.

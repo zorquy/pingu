@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, burstConfetti } from './app.js'
+import { escapeHtml, getSession, burstConfetti, guideHasReference } from './app.js'
 import { markCourseStarted, markCourseCompleted, addXP, incrementQuizCorrect } from './gamification.js'
 import { parseBBCode } from './bbcode.js'
 import { showToast } from './toast.js'
@@ -405,13 +405,24 @@ function renderReward(b) {
       ${!session ? '<p style="color: var(--ice); font-size: 13px;">Crea una cuenta para guardar tu marca y tu XP.</p>' : ''}
       <p class="reward-save-warning hidden" id="rewardSaveWarning"></p>
       <div class="reward-tabla" id="rewardTabla"></div>
-      <div id="cursoRating"></div>
       <div class="reward-actions">
         ${
           // El reto del día se juega una vez y ya: ofrecer "repetir"
           // sería ofrecer algo que la base va a rechazar.
           modo === 'curso' && resumen.medal !== 'oro'
             ? '<button class="btn-primary" id="btnRepetir">Repetir y mejorar la medalla</button>'
+            : ''
+        }
+        ${
+          // La vuelta a la teoría. Solo en el curso de una guía —el reto
+          // y el repaso mezclan preguntas de varias— y solo si esa guía
+          // tiene documentación que leer.
+          //
+          // Es lo que se pide justo después de fallar algo: "vale, ¿y
+          // esto dónde lo explican?". Sin este botón había que volver a
+          // buscar la guía por el catálogo.
+          modo === 'curso' && guideHasReference(guide)
+            ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-secondary">${icons.bookOpen(15)} Repasar la teoría</a>`
             : ''
         }
         <a href="aprender.html" class="${modo === 'curso' && resumen.medal !== 'oro' ? 'btn-secondary' : 'btn-primary'}">Seguir explorando →</a>
@@ -1054,21 +1065,16 @@ async function setupBlockLogic(block) {
     const btnRepetir = document.getElementById('btnRepetir')
     if (btnRepetir) btnRepetir.addEventListener('click', () => window.location.reload())
 
-    // Valorar al terminar el curso, que es donde de verdad se tiene
-    // opinión sobre si ha servido. En el reto y en el repaso no hay un
-    // curso que valorar: las preguntas vienen de cinco sitios distintos.
-    if (modo === 'curso') {
-      import('./guide-rating.js')
-        .then(({ renderRatingWidget }) =>
-          renderRatingWidget(document.getElementById('cursoRating'), {
-            guideId: guide.id,
-            session,
-            guide,
-            titulo: '¿Qué te ha parecido el curso?',
-          })
-        )
-        .catch(() => {})
-    }
+    // Aquí NO se valora nada.
+    //
+    // Antes se pintaban las estrellas con el título "¿Qué te ha parecido
+    // el curso?", pero escribían en `guide_reviews`: la nota era de la
+    // GUÍA, no del curso. Quien acababa el curso puntuaba una
+    // documentación que a lo mejor ni había abierto, y esa nota es la que
+    // sale luego en las tarjetas y en el ranking de autores.
+    //
+    // La valoración vive en la guía, al terminar de leerla, que es donde
+    // se tiene opinión sobre lo que se está puntuando.
 
     if (session) {
       if (modo === 'curso') await cerrarYGuardar(resumen)

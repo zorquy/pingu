@@ -5269,3 +5269,55 @@ a.reto-tarjeta:hover {
 .mencion-opcion-texto .subtext {
   font-size: 11px;
 }
+
+/* ── El puente entre la guía y su curso ──
+   La guía y el curso son dos páginas de la misma cosa y no se
+   enlazaban entre sí. Esto es la llamada del final de la guía; el botón
+   pequeño de arriba y el de vuelta desde el curso reutilizan
+   .btn-secondary tal cual. */
+.guia-cta-curso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 24px 0 4px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, var(--navy), var(--indigo, var(--navy)));
+  color: var(--white);
+  border-radius: var(--radius);
+}
+
+.guia-cta-curso h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--white);
+}
+
+/* La bajada hereda el color del bloque: .subtext a secas se pierde
+   sobre el fondo oscuro. */
+.guia-cta-curso .subtext {
+  margin: 4px 0 0;
+  color: var(--ice);
+}
+
+.guia-cta-curso .btn-primary {
+  flex-shrink: 0;
+  background: var(--white);
+  color: var(--navy);
+}
+
+/* En el móvil el botón pasa a ocupar toda la línea: partido en dos
+   columnas de 150 px no se lee ni se pulsa bien. */
+@media (max-width: 520px) {
+  .guia-cta-curso .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* El botón de arriba, discreto y sin robarle sitio a Guardar. */
+.guia-ir-al-curso {
+  padding: 6px 12px;
+  font-size: 13px;
+}

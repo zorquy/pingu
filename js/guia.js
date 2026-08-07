@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, getSession, getProfile, profileUrl, avatarStyle } from './app.js'
+import { escapeHtml, getInitial, getSession, getProfile, profileUrl, avatarStyle, guideHasCourse } from './app.js'
 import { renderReferenceBlocksHtml } from './block-editor.js'
 import { hydrateDecks } from './cards-block.js'
 import { renderRatingWidget } from './guide-rating.js'
@@ -139,6 +139,10 @@ async function init() {
     : null
 
   const hasContent = Array.isArray(guide.reference_blocks) && guide.reference_blocks.length > 0
+  // Las dos mitades de una guía —la teoría y el curso— viven en páginas
+  // distintas y hasta ahora no se enlazaban entre sí: se leía la guía y
+  // no había manera de enterarse de que existía un curso encima.
+  const hayCurso = guideHasCourse(guide)
 
   const headings = []
   const bodyHtml = hasContent
@@ -179,6 +183,15 @@ async function init() {
         <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
         ${MOSTRAR_PLANES ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
         <button class="btn-secondary" id="btnSave" style="margin-left: auto; padding: 6px 12px; font-size: 13px;">${icons.bookmark(14)} Guardar</button>
+        ${
+          // Arriba va DISCRETO, junto a Guardar: quien ya sabe que
+          // quiere el curso lo encuentra sin leerse la teoría entera, y
+          // a quien viene a leer no le tapa nada. La llamada de verdad
+          // va abajo, al terminar de leer.
+          hayCurso
+            ? `<a class="btn-secondary guia-ir-al-curso" href="curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(14)} Hacer el curso</a>`
+            : ''
+        }
       </div>
     </div>
     ${
@@ -193,6 +206,21 @@ async function init() {
         : `<div class="article-body">${bodyHtml}</div>`
     }
     <div id="articleEndSentinel" aria-hidden="true"></div>
+    ${
+      // Al terminar de leer, la pregunta que toca. Va ANTES de "me ha
+      // servido" y de las estrellas a propósito: acabas de leer y lo
+      // siguiente que quieres hacer es ponerlo a prueba, no puntuar.
+      hayCurso
+        ? `
+    <div class="guia-cta-curso">
+      <div>
+        <h2>¿Te ha servido? Ponlo a prueba</h2>
+        <p class="subtext">Esta guía tiene curso: preguntas, racha y medalla. Se tarda ${guide.estimated_mins || 5} minutos.</p>
+      </div>
+      <a class="btn-primary" href="curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(15)} Hacer el curso</a>
+    </div>`
+        : ''
+    }
     <div id="guideHelpful"></div>
     <div id="guideSuggestion"></div>
     <div id="guideRating"></div>
