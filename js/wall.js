@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, profileUrl } from './app.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { createNotification } from './notifications.js'
+import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 import { icons } from './icons.js'
 
 const REPORT_TYPE_BY_TABLE = {
@@ -41,6 +42,11 @@ export async function renderWall({
   const profilesById = await profilesForIds(comments.map((c) => c.author_id))
   const isProfileWall = table === 'profile_comments'
 
+  // Los @nombre del muro, de una sola consulta.
+  const mencionados = porNombre(
+    await perfilesMencionados(comments.map((c) => escapeHtml(c.body || '')).join(' '))
+  )
+
   listEl.innerHTML = comments.length === 0
     ? `<div class="wall-empty" style="display:flex; flex-direction:column; align-items:center; gap:6px;">${icons.messageSquare(24)} <span>${emptyMessage}</span></div>`
     : comments
@@ -55,7 +61,7 @@ export async function renderWall({
         <strong>${escapeHtml(authorName)}</strong>
         <span class="date" style="color:var(--text-dim); font-size:12px;">${new Date(c.created_at).toLocaleDateString('es-ES')}</span>
       </div>
-      <p style="margin:6px 0 0; font-size:13.5px;">${escapeHtml(c.body)}</p>
+      <p style="margin:6px 0 0; font-size:13.5px;">${enlazarMenciones(escapeHtml(c.body), mencionados)}</p>
       <div style="display:flex; gap:10px; margin-top:6px;">
         ${currentSession && (currentSession.user.id === c.author_id || currentSession.user.id === profileId || isAdmin) ? `<button data-delete-comment="${c.id}" style="font-size:11px; color:#dc2626; font-weight:700;">Eliminar</button>` : ''}
         ${canReply ? `<a href="${replyHref}" style="font-size:11px; color:var(--text-dim); font-weight:700;">Responder</a>` : ''}
@@ -100,6 +106,10 @@ export async function renderWall({
     renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage, isAdmin })
   })
 
+  import('./mencion-autocompletar.js')
+    .then((m) => m.engancharAutocompletarMenciones(document.getElementById('wallCommentBody')))
+    .catch(() => {})
+
   document.getElementById('btnSubmitWallComment').addEventListener('click', async () => {
     const body = document.getElementById('wallCommentBody').value.trim()
     if (!body) return
@@ -127,6 +137,26 @@ export async function renderWall({
         })
       }
     }
+
+    // Y a quien se haya mencionado. Va después del aviso al dueño del
+    // muro (o de la guía) y nunca duplica: si el mencionado ES el dueño,
+    // ya tiene el suyo y aquí se salta.
+    const yaAvisado = isProfileWall ? profileId : null
+    const gente = await perfilesMencionados(escapeHtml(body))
+    await Promise.all(
+      gente
+        .filter((p) => p.id !== currentSession.user.id && p.id !== yaAvisado)
+        .map((p) =>
+          createNotification({
+            recipientId: p.id,
+            actorId: currentSession.user.id,
+            type: 'wall_comment',
+            title: 'Te han mencionado en un muro',
+            body: body.slice(0, 140),
+            link: isProfileWall ? profileUrl({ id: profileId }) : '/guia.html',
+          })
+        )
+    ).catch(() => {})
 
     if (replyToId) {
       const url = new URL(window.location.href)

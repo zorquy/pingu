@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 import { icons } from './icons.js'
+import { logClientError } from './error-log.js'
 
 // Hilo de actividad reciente. No hay tabla de eventos: se arma leyendo
 // lo que ya existe (progreso, guías, comentarios, altas) y mezclando por
@@ -73,6 +74,33 @@ export async function loadActivity(limite = 20) {
       .limit(POR_FUENTE),
   ])
 
+  // Qué fuentes NO han contestado.
+  //
+  // Las seis consultas se leían con `.data || []` y nadie miraba el
+  // error: si una fallaba —falta una migración, la RLS no deja leer, se
+  // cayó la red— el hilo enseñaba "todavía no hay actividad". Es la
+  // misma mentira que decía la analítica, y encima en la pantalla donde
+  // se mira si la comunidad está viva.
+  //
+  // El detalle técnico no se le enseña a quien visita: va al registro de
+  // errores, que es donde el equipo puede verlo. Lo que cambia en
+  // pantalla es solo que deja de afirmarse que no hay nada.
+  const fallos = [
+    ['user_progress', progreso.error],
+    ['guides', guiasNuevas.error],
+    ['guide_comments', comentarios.error],
+    ['user_profiles', altas.error],
+    ['guide_requests', peticiones.error],
+    ['forum_threads', temas.error],
+  ].filter(([, error]) => error)
+
+  if (fallos.length) {
+    logClientError(
+      `Hilo de actividad: ${fallos.length} de 6 fuentes han fallado — ` +
+        fallos.map(([tabla, error]) => `${tabla}: ${error.message || 'error'}`).join('; ')
+    )
+  }
+
   const eventos = []
   for (const p of progreso.data || []) {
     if (p.status === 'completed' && p.completed_at) {
@@ -123,7 +151,7 @@ export async function loadActivity(limite = 20) {
   const MAX_POR_PERSONA = 3
   const usadosPorPersona = {}
 
-  return candidatos
+  const lista = candidatos
     .filter((e) => {
       const perfil = perfilPorId[e.userId]
       if (!perfil || perfil.hide_activity) return false
@@ -137,6 +165,10 @@ export async function loadActivity(limite = 20) {
     })
     .slice(0, limite)
     .map((e) => ({ ...e, perfil: perfilPorId[e.userId], guia: e.guideId ? guiaPorId[e.guideId] : null }))
+
+  // Se devuelven los eventos Y si algo falló. Sin lo segundo, quien
+  // pinta no puede distinguir "no hay nada" de "no he podido mirarlo".
+  return { eventos: lista, fallos: fallos.map(([tabla]) => tabla) }
 }
 
 const TEXTOS = {
@@ -176,7 +208,21 @@ function eventoHtml(e) {
     </li>`
 }
 
-export function renderActivityHtml(eventos, { vacio = 'Todavía no hay actividad. ¡Sé el primero!' } = {}) {
-  if (eventos.length === 0) return `<p class="empty-state">${escapeHtml(vacio)}</p>`
+// `resultado` es lo que devuelve loadActivity(): { eventos, fallos }.
+//
+// La regla es una sola: solo se dice "todavía no hay actividad" cuando
+// las SEIS fuentes han contestado. Si alguna falló, el hilo vacío puede
+// ser eso, y afirmar que no hay nada sería mentir — que es exactamente
+// lo que hacía antes.
+export function renderActivityHtml(resultado, { vacio = 'Todavía no hay actividad. ¡Sé el primero!' } = {}) {
+  const eventos = resultado?.eventos || []
+  const fallos = resultado?.fallos || []
+
+  if (eventos.length === 0) {
+    // Sin detalles técnicos: esto lo lee cualquiera que entre, no el
+    // equipo. El detalle va al registro de errores desde loadActivity().
+    const texto = fallos.length ? 'No se ha podido cargar la actividad ahora mismo. Inténtalo en un momento.' : vacio
+    return `<p class="empty-state">${escapeHtml(texto)}</p>`
+  }
   return `<ul class="activity-list">${eventos.map(eventoHtml).join('')}</ul>`
 }

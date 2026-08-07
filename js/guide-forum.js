@@ -3,7 +3,8 @@ import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { contributorCounts, badgeHtml } from './contributor-badge.js'
-import { notifyGuideComment } from './notifications.js'
+import { notifyGuideComment, createNotification } from './notifications.js'
+import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 
 // 20 y no 10. Con 10, una guía con 12 comentarios ya se parte en dos
 // páginas, y los DOS más nuevos quedan escondidos en la segunda — que es
@@ -72,6 +73,12 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
       ...Object.keys(parentAuthors),
     ])
 
+    // Los @nombre de esta página, de una sola consulta. Igual que en el
+    // foro: se pega todo el texto y se buscan los que existen de verdad.
+    const mencionados = porNombre(
+      await perfilesMencionados(comments.map((c) => escapeHtml(c.body || '')).join(' '))
+    )
+
     function authorName(id) {
       const p = profilesById[id] || parentAuthors[id]
       return p?.display_name || p?.username || 'Usuario'
@@ -90,7 +97,7 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
             <span class="forum-post-date">${new Date(c.created_at).toLocaleString('es-ES')}</span>
           </div>
           ${parent ? `<div class="forum-quote">En respuesta a <strong>${escapeHtml(authorName(parent.author_id))}</strong>: “${escapeHtml(snippet(parent.body))}”</div>` : ''}
-          <p class="forum-post-text">${escapeHtml(c.body)}</p>
+          <p class="forum-post-text">${enlazarMenciones(escapeHtml(c.body), mencionados)}</p>
           <div class="forum-post-actions">
             ${currentSession ? `<button class="forum-reply-btn" data-reply-id="${c.id}" data-reply-name="${escapeHtml(name)}" data-reply-author="${escapeHtml(c.author_id || '')}">↩ Responder</button>` : ''}
             ${currentSession && (currentSession.user.id === c.author_id || isAdmin) ? `<button class="forum-delete-btn" data-delete-id="${c.id}">Eliminar</button>` : ''}
@@ -159,6 +166,10 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
         <textarea id="forumCommentBody" placeholder="Escribe un comentario..."></textarea>
         <button class="btn-primary" id="btnSubmitForumComment" style="margin-top:8px;">Publicar</button>
       </div>`
+    import('./mencion-autocompletar.js')
+      .then((m) => m.engancharAutocompletarMenciones(document.getElementById('forumCommentBody')))
+      .catch(() => {})
+
     document.getElementById('btnSubmitForumComment').addEventListener('click', async () => {
       const body = document.getElementById('forumCommentBody').value.trim()
       if (!body) return
@@ -177,6 +188,11 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
         guideSlug,
         replyToAuthorId: replyingTo?.authorId || null,
       }).catch((err) => console.error('No se pudo avisar del comentario:', err.message))
+
+      // Y a quien se haya mencionado con @nombre. Va aparte de
+      // notifyGuideComment porque ese avisa al autor de la guía y a quien
+      // se responde; esto es otra cosa: te han llamado por tu nombre.
+      await avisarMencionados(body, currentSession.user.id, guideSlug).catch(() => {})
       replyingTo = null
       const newCount = (count || 0) + 1
       render(Math.max(1, Math.ceil(newCount / PAGE_SIZE)))
@@ -185,4 +201,28 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
 
   const initialPage = Math.max(1, parseInt(new URLSearchParams(window.location.search).get('page') || '1', 10) || 1)
   render(initialPage)
+}
+
+
+// Avisa a quien se ha mencionado con @nombre en un comentario de guía.
+//
+// Nunca a uno mismo, y como mucho a cinco (el tope lo pone
+// nombresMencionados). Si falla, el comentario ya está publicado: esto
+// no puede tumbarlo.
+async function avisarMencionados(body, actorId, guideSlug) {
+  const gente = await perfilesMencionados(escapeHtml(body || ''))
+  await Promise.all(
+    gente
+      .filter((p) => p.id !== actorId)
+      .map((p) =>
+        createNotification({
+          recipientId: p.id,
+          actorId,
+          type: 'guide_comment',
+          title: 'Te han mencionado en un comentario',
+          body: body.slice(0, 140),
+          link: `/guia.html?slug=${encodeURIComponent(guideSlug || '')}`,
+        })
+      )
+  )
 }

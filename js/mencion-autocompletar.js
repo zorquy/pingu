@@ -30,8 +30,27 @@ const TECLAS_DE_LA_LISTA = new Set(['ArrowDown', 'ArrowUp', 'Enter', 'Tab', 'Esc
 // no es una mención.
 const ENCURSO = /(^|[^a-zA-Z0-9@._-])@([a-zA-Z0-9][a-zA-Z0-9_-]{0,29})?$/
 
+const esTextarea = (el) => el?.tagName === 'TEXTAREA' || el?.tagName === 'INPUT'
+
 // Qué se está escribiendo justo delante del cursor, si es una mención.
+//
+// Hay dos superficies distintas y no se parecen en nada: la caja del foro
+// es un `contenteditable` (nodos de texto y rangos) y las de los
+// comentarios, el muro y los mensajes son `<textarea>` (una cadena y un
+// número). Lo que sí comparten es el patrón: si aquí se aceptara algo que
+// PATRON luego no reconoce, la lista dejaría elegir a alguien a quien no
+// se va a avisar.
 function tokenEnElCursor(superficie) {
+  if (esTextarea(superficie)) {
+    const pos = superficie.selectionStart
+    // Con texto seleccionado no se sugiere nada: no se está escribiendo.
+    if (pos === null || pos !== superficie.selectionEnd) return null
+    const m = superficie.value.slice(0, pos).match(ENCURSO)
+    if (!m) return null
+    const escrito = m[2] || ''
+    return { nodo: superficie, desde: pos - escrito.length - 1, hasta: pos, escrito }
+  }
+
   const sel = window.getSelection()
   if (!sel || !sel.isCollapsed || sel.rangeCount === 0) return null
 
@@ -137,6 +156,23 @@ export function engancharAutocompletarMenciones(superficie) {
   // de cero en algunos navegadores y la lista acabaría en la esquina.
   function colocar() {
     if (!lista || !token) return
+
+    // En un textarea no hay forma barata de saber dónde está el cursor
+    // en pantalla (habría que medir el texto con un div espejo). Se
+    // ancla debajo de la caja entera: es predecible, se asocia sin duda
+    // a lo que estás escribiendo, y en el móvil no se pelea con el
+    // teclado.
+    if (esTextarea(superficie)) {
+      const caja = superficie.getBoundingClientRect()
+      const alto = lista.offsetHeight || 0
+      const debajo = caja.bottom + alto + 8 < window.innerHeight
+      lista.style.left = `${caja.left + window.scrollX}px`
+      lista.style.top = debajo
+        ? `${caja.bottom + window.scrollY + 4}px`
+        : `${caja.top + window.scrollY - alto - 4}px`
+      return
+    }
+
     const r = document.createRange()
     try {
       r.setStart(token.nodo, token.desde)
@@ -157,6 +193,22 @@ export function engancharAutocompletarMenciones(superficie) {
 
   function elegir(perfil) {
     if (!perfil || !token) return
+
+    if (esTextarea(superficie)) {
+      // Aquí el espacio del final SÍ es uno normal: en un textarea el
+      // valor es texto plano y no lo colapsa nadie. El espacio duro del
+      // otro camino es por cómo pinta el navegador un contenteditable.
+      const relleno = `@${perfil.username} `
+      const v = superficie.value
+      superficie.value = v.slice(0, token.desde) + relleno + v.slice(token.hasta)
+      const fin = token.desde + relleno.length
+      superficie.setSelectionRange(fin, fin)
+      superficie.focus()
+      cerrar()
+      superficie.dispatchEvent(new Event('input', { bubbles: true }))
+      return
+    }
+
     const r = document.createRange()
     try {
       r.setStart(token.nodo, token.desde)

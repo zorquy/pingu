@@ -4,6 +4,7 @@ import { listConversations, loadThreadMessages, markConversationRead, sendMessag
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { icons } from './icons.js'
 import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
+import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 
 const root = document.getElementById('messagesRoot')
 const params = new URLSearchParams(window.location.search)
@@ -130,6 +131,18 @@ async function renderThread(session, conversationId) {
   async function refreshMessages() {
     const messages = await loadThreadMessages(conversationId)
     const el = document.getElementById('threadMessages')
+    // Los @nombre de la conversación se enlazan al perfil, pero AQUÍ NO
+    // SE AVISA A NADIE.
+    //
+    // Mencionar a alguien en una conversación privada no puede mandarle
+    // un aviso: le llegaría "te han mencionado" por un mensaje que no
+    // puede leer, y le diría que dos personas están hablando de él. El
+    // enlace sí tiene sentido —"habla con @jesus" y lo abres— porque no
+    // sale de la pantalla.
+    const mencionados = porNombre(
+      await perfilesMencionados(messages.map((m) => escapeHtml(m.body || '')).join(' '))
+    )
+
     el.innerHTML =
       messages.length === 0
         ? `<p class="empty-state">Todavía no hay mensajes. ¡Escribe el primero!</p>`
@@ -138,7 +151,7 @@ async function renderThread(session, conversationId) {
               const mine = m.sender_id === session.user.id
               return `
         <div style="align-self:${mine ? 'flex-end' : 'flex-start'}; max-width:75%; background:${mine ? 'var(--navy)' : 'var(--ice)'}; color:${mine ? 'var(--white)' : 'var(--text)'}; padding:8px 12px; border-radius:var(--radius-md);">
-          <p style="margin:0; font-size:13.5px; white-space:pre-wrap;">${escapeHtml(m.body)}</p>
+          <p style="margin:0; font-size:13.5px; white-space:pre-wrap;">${enlazarMenciones(escapeHtml(m.body), mencionados)}</p>
           <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
             <span style="font-size:10.5px; opacity:0.7;">${timeAgo(m.created_at)}</span>
             ${mine ? `<button type="button" data-delete-msg="${m.id}" style="font-size:10.5px; opacity:0.7; text-decoration:underline;">Eliminar</button>` : reportButtonHtml('private_message', m.id)}
@@ -156,6 +169,10 @@ async function renderThread(session, conversationId) {
     wireReportButtons(el, session)
   }
   await refreshMessages()
+
+  import('./mencion-autocompletar.js')
+    .then((m) => m.engancharAutocompletarMenciones(document.getElementById('msgBody')))
+    .catch(() => {})
 
   let sending = false
   document.getElementById('btnSendMsg').addEventListener('click', async () => {

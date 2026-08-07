@@ -6707,3 +6707,85 @@ propia visita**, así que el total no es exactamente el sembrado. La
 comprobación de los periodos compara los dos en la misma pestaña —la
 ventana ancha tiene que ver más que la estrecha— en vez de esperar un
 número fijo.
+
+# El hilo de actividad tampoco sabía decir que estaba roto
+
+Mismo fallo que el de la analítica, encontrado buscando el patrón a
+propósito: `js/activity.js` hacía **seis consultas y no miraba ni un solo
+`.error`**. Si fallaban, el hilo enseñaba «Todavía no hay actividad. ¡Sé
+el primero!» — y eso en la pantalla donde se mira si la comunidad está
+viva.
+
+La regla ahora es una sola: **solo se dice que no hay actividad cuando
+las seis fuentes han contestado.** Si alguna falló, se dice «no se ha
+podido cargar» y ya.
+
+Y con dos límites deliberados:
+
+- **Sin detalles técnicos en pantalla.** Esto lo lee cualquiera que
+  entre, no el equipo. El nombre de la tabla y el mensaje de la base van
+  al registro de errores (`logClientError`), que es donde se ven.
+- **Un fallo parcial no se anuncia.** Si cinco fuentes contestan y una
+  no, se enseña lo que hay: el hilo es útil igual y el aviso sería ruido.
+  Solo cambia lo que se dice cuando no hay NADA que enseñar.
+
+`loadActivity()` devuelve ahora `{ eventos, fallos }` en vez de un array.
+Son dos llamadas en todo el sitio (la home y `/usuarios`); en la home, si
+no hay eventos el bloque no se abre — ni para decir que está vacío ni
+para decir que falló, porque ahí es un extra de la portada.
+
+# Menciones fuera del foro
+
+Las menciones solo existían en el foro. Los comentarios de guías, el muro
+del perfil y los mensajes privados eran un `<textarea>` pelado: alguien
+aprendía a mencionar en el foro, lo probaba ahí y no pasaba nada.
+
+## La lista de @ ahora también funciona en un `<textarea>`
+
+`js/mencion-autocompletar.js` solo sabía de `contenteditable` (nodos de
+texto y rangos). Un textarea es otra cosa: una cadena y un número. Se ha
+añadido una rama para eso, compartiendo lo único que importa que sea
+igual — **el patrón**: si la lista ofreciera algo que `PATRON` luego no
+reconoce, te dejaría elegir a alguien a quien no se va a avisar.
+
+Dos diferencias que no son capricho:
+
+- **Dónde se coloca.** En un textarea no hay forma barata de saber dónde
+  está el cursor en pantalla (haría falta medir el texto con un div
+  espejo). Se ancla debajo de la caja entera: predecible, sin duda de a
+  qué pertenece, y en el móvil no se pelea con el teclado.
+- **El espacio del final es uno normal**, no el duro. En un textarea el
+  valor es texto plano y no lo colapsa nadie; el espacio duro del otro
+  camino era por cómo pinta el navegador un `contenteditable`.
+
+## En los mensajes privados se enlaza, pero NO se avisa
+
+Esto es lo único con enjundia de la tanda. Mencionar a alguien en una
+conversación privada **no puede mandarle un aviso**: le llegaría «te han
+mencionado» por un mensaje que no puede leer, y de paso le diría que dos
+personas están hablando de él.
+
+El enlace sí se pone —«habla con @jesus» y lo abres— porque no sale de la
+pantalla de quien ya podía leer el mensaje.
+
+## Sin avisos duplicados
+
+En el muro, quien recibe el «comentario en tu muro» no recibe además el
+de mención si se le nombra en el mismo comentario. En los comentarios de
+guías, el aviso de mención va aparte del que ya manda
+`notifyGuideComment` (al autor de la guía y a quien se responde).
+
+## Cómo se ha probado
+
+`test-menciones-fuera.mjs`, 24 comprobaciones sobre las cuatro pantallas.
+Rigor: 8 roturas, 8 pilladas — una a la segunda, y por el vicio de
+siempre: la comprobación del aviso duplicado mencionaba a **un tercero**
+en el muro de Misty, y así el duplicado no se puede dar por definición.
+Ahora se menciona a la propia dueña del muro, que es el único caso donde
+la regla hace algo.
+
+Para poder probar el hilo de actividad caído hizo falta que el doble de
+Supabase supiera fallar **una consulta concreta** y no todas las de una
+tabla: `user_profiles` la usa media web, y tumbarla entera habría roto la
+página en vez de vaciar el hilo. Se apuntan ahora las columnas que pide
+cada `select` para poder distinguirlas.

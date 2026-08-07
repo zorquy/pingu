@@ -88,9 +88,12 @@ async function loadRecent() {
 async function loadHomeActivity(session) {
   if (!session) return
   try {
-    const eventos = await loadActivity(4)
-    if (eventos.length === 0) return
-    document.getElementById('homeActivityFeed').innerHTML = renderActivityHtml(eventos)
+    const actividad = await loadActivity(4)
+    // En la home, si no hay nada que enseñar el bloque no se abre — ni
+    // para decir que está vacío ni para decir que ha fallado. Es un
+    // extra de la portada, no la pantalla de actividad.
+    if (actividad.eventos.length === 0) return
+    document.getElementById('homeActivityFeed').innerHTML = renderActivityHtml(actividad)
     document.getElementById('homeActivity').classList.remove('hidden')
   } catch {
     // Si falla, la home se queda como siempre. No es contenido crítico.
