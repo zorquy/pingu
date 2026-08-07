@@ -528,10 +528,11 @@ async function abrirFormularioTema(foro) {
 
   const barra = document.getElementById('temaBarra')
   barra.innerHTML = richTextToolbarHtml()
+  const superficieTema = document.getElementById('temaCuerpo')
   let cuerpoHtml = ''
   initRichTextEditor({
     toolbarEl: barra,
-    surfaceEl: document.getElementById('temaCuerpo'),
+    surfaceEl: superficieTema,
     initialHtml: '',
     placeholder: 'Cuenta de qué va…',
     onChange: (html) => {
@@ -539,6 +540,12 @@ async function abrirFormularioTema(foro) {
     },
     uploadImage: (file) => uploadGuideImage(sesion.user.id, file),
   })
+  // El módulo se pide aquí y no arriba del todo: la lista de @ solo hace
+  // falta cuando alguien abre la caja de escribir, y el índice del foro
+  // lo carga todo el mundo.
+  import('./mencion-autocompletar.js')
+    .then((m) => m.engancharAutocompletarMenciones(superficieTema))
+    .catch(() => {})
 
   document.getElementById('btnCancelarTema').addEventListener('click', () => {
     hueco.innerHTML = ''

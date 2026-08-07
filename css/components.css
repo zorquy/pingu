@@ -5216,3 +5216,56 @@ a.reto-tarjeta:hover {
     margin-left: 0;
   }
 }
+
+/* ── La lista que sale al escribir @ ──
+   Va colgada de <body> con position:absolute y coordenadas de página:
+   dentro de la caja de escribir la recortaría el overflow del editor. */
+.mencion-lista {
+  position: absolute;
+  z-index: 300;
+  min-width: 210px;
+  max-width: 260px;
+  padding: 4px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(15, 30, 50, 0.16);
+  overflow: hidden;
+}
+
+.mencion-opcion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: calc(var(--radius) - 4px);
+  cursor: pointer;
+}
+
+.mencion-opcion.activa,
+.mencion-opcion:hover {
+  background: var(--ice);
+}
+
+.mencion-opcion-texto {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+/* El nombre largo se corta en vez de ensanchar la lista. */
+.mencion-opcion-texto b,
+.mencion-opcion-texto .subtext {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mencion-opcion-texto b {
+  font-size: 13px;
+}
+
+.mencion-opcion-texto .subtext {
+  font-size: 11px;
+}

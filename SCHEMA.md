@@ -6413,3 +6413,97 @@ nada: preguntaba si leer `email_outbox` desde la web daba error 42501. No
 lo da — **la RLS filtra filas, no deniega el acceso**. Con RLS activada y
 cero políticas la tabla se ve vacía, que es lo que hay que comprobar:
 que hay filas y que desde la web no se ve ninguna.
+
+# Que las menciones se noten
+
+Las menciones funcionaban y aun así parecían rotas, por una razón simple:
+**no había ninguna señal**. Escribías `@loquesea`, no pasaba nada, y no
+tenías forma de saber si habías acertado hasta después de publicar.
+
+Tres cosas, y solo la primera es nueva.
+
+## La lista al escribir @
+
+`js/mencion-autocompletar.js`. Escribes `@`, sale una lista con avatar,
+nombre y **nombre de usuario** —que es lo que hay que escribir—, y se
+elige con las flechas, con Enter, con Tab o con el ratón.
+
+Busca por las dos cosas: por nombre de usuario y por el nombre que se ve,
+este último contra `search_norm`, así que escribir `@jesus` encuentra a
+«Jesús». Y con la arroba sola lista a los primeros: en una comunidad
+pequeña, «¿quién hay?» es una pregunta razonable.
+
+Lo que inserta es **texto plano** (`@nombre`), no un enlace. El enlace lo
+pone `enlazarMenciones()` al pintar el mensaje publicado, así que el
+cuerpo que se guarda es idéntico se haya escrito a mano o con la lista, y
+el saneador no tiene que dejar pasar nada nuevo.
+
+El patrón que decide si estás escribiendo una mención empieza **igual**
+que `PATRON` en `js/menciones.js`. Tiene que ser así: si la lista
+ofreciera algo que el patrón luego no reconoce, te dejaría elegir a
+alguien a quien no se va a avisar. Por eso en «escribe a hola@» no sale
+nada, igual que `hola@pokedoc` no es una mención.
+
+### Tres cosas que solo se ven al probarlo
+
+- **El espacio del final tiene que ser duro (` `).** Uno normal al
+  final de un párrafo se colapsa: el navegador lo borra al escribir la
+  letra siguiente, y `@misty mira` se convertía en `@mistymira`. Como no
+  es ninguno de los caracteres que forman un nombre, el patrón lo trata
+  como separador igual que un espacio normal.
+
+- **El `keyup` deshacía lo que hacía el `keydown`.** Las teclas de la
+  lista se manejan en `keydown`, pero su `keyup` llegaba después y volvía
+  a buscar y repintar: la flecha abajo movía la marca y 120 ms más tarde
+  volvía a la primera opción, y Escape cerraba la lista para que se
+  abriera sola acto seguido. Ahora esas cinco teclas se ignoran en
+  `keyup`, y Escape recuerda qué mención cerró para no reabrirla.
+
+- **`mousedown` con `preventDefault`, no `click`.** Sin eso, pulsar en la
+  lista le quita el foco a la caja de escribir, se pierde el cursor y ya
+  no hay dónde insertar el nombre.
+
+## La vista previa enseña las menciones
+
+Prometía «lo que ves aquí es lo que se va a ver ahí» y era el único sitio
+donde comprobar un `@nombre` antes de publicarlo — pero ahí salía en
+texto plano existiera esa persona o no. Ahora se pinta dos veces: primero
+el texto (inmediato, que es lo que se está escribiendo) y detrás con los
+enlaces, cuando llega la consulta. Al revés se vería un parpadeo en cada
+tecla.
+
+## Mayúsculas: el navegador y el correo comparaban distinto
+
+`perfilesMencionados()` buscaba con `in('username', …)`, o sea texto
+exacto, mientras que el disparador del correo compara `lower(username)`.
+Hoy coinciden porque todos los usernames son minúsculas desde la
+migración de usernames, pero bastaba **un** username con una mayúscula
+para que a esa persona le llegara el correo y en el mensaje no se le
+viera el enlace. Ahora el navegador usa `ilike` sin comodines, que es una
+igualdad insensible a mayúsculas — la misma comparación que hace la base.
+
+## Cómo se ha probado
+
+31 comprobaciones nuevas en `test-foro-mejoras.mjs`, incluida la de punta
+a punta: elegir de la lista, publicar, y comprobar que sale el enlace
+**y** que le llega el aviso a esa persona.
+
+Rigor con `rigor-menciones.py`: 10 roturas, 10 pilladas — pero **tres solo
+a la segunda**, y las tres por lo mismo: la prueba miraba que la cosa
+pasara, no que pasara *por la razón correcta*.
+
+- Escape: se comprobaba que la lista se cerraba, y se cerraba igual sin
+  recordar que se había cerrado a mano, porque nada volvía a abrirla en
+  esos 200 ms. Ahora se pulsa Shift después (una tecla que no escribe ni
+  mueve el cursor, pero que sí vuelve a mirar si hay una mención) y se
+  comprueba que sigue cerrada — y que escribir otra letra sí la reabre.
+- Buscar por el nombre que se ve: se escribía `@je` para encontrar a
+  «Jesús Martínez», pero su nombre de usuario ES `jesus`, así que lo
+  encontraba por ahí y la parte de `search_norm` no se probaba. Ahora se
+  le cambia el nombre a «Álex Ruiz» y se escribe `@alex`, que su nombre
+  de usuario no puede encontrar.
+- El `preventDefault` del `mousedown`: comprobar que al pinchar se
+  inserta el nombre no distingue nada, porque el nombre se inserta en el
+  propio `mousedown`, antes de que se pierda el foco. Lo que hay que
+  comprobar es lo de después: que se puede **seguir escribiendo** donde
+  estabas.

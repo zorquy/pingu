@@ -24,6 +24,7 @@ import {
 import { calculateLevel } from './gamification.js'
 import { marcarLeido, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
+import { engancharAutocompletarMenciones } from './mencion-autocompletar.js'
 
 // Un tema del foro.
 //
@@ -409,16 +410,18 @@ async function editarMensaje(postId) {
 
   const barra = document.getElementById(`editarBarra-${postId}`)
   barra.innerHTML = richTextToolbarHtml()
+  const superficieEdicion = document.getElementById(`editarCuerpo-${postId}`)
   let html = original
   initRichTextEditor({
     toolbarEl: barra,
-    surfaceEl: document.getElementById(`editarCuerpo-${postId}`),
+    surfaceEl: superficieEdicion,
     initialHtml: original,
     onChange: (nuevo) => {
       html = nuevo
     },
     uploadImage: (file) => uploadGuideImage(sesion.user.id, file),
   })
+  engancharAutocompletarMenciones(superficieEdicion)
 
   const cerrar = () => {
     caja.dataset.editando = ''
@@ -547,6 +550,7 @@ async function montarRespuesta() {
     },
     uploadImage: (file) => uploadGuideImage(sesion.user.id, file),
   })
+  engancharAutocompletarMenciones(superficie)
   if (cuerpoHtml) showToast('Hemos recuperado lo que estabas escribiendo.')
 
   // Vista previa: el mismo saneador y las mismas clases que un mensaje
@@ -613,13 +617,33 @@ async function montarRespuesta() {
 
 let vistaPreviaAbierta = false
 
+// La previa enseña TAMBIÉN las menciones ya enlazadas. Sin eso prometía
+// una cosa y hacía otra: era el único sitio donde comprobar si has
+// escrito bien un @nombre antes de publicarlo, y ahí salía en texto
+// plano tanto si existía esa persona como si no.
+//
+// La consulta de los perfiles va detrás, así que la previa se pinta dos
+// veces: primero el texto (inmediato, que es lo que se está escribiendo)
+// y luego con los enlaces. Al revés se vería un parpadeo en cada tecla.
+let previaEnCurso = 0
 function pintarVistaPrevia(html) {
   const caja = document.getElementById('respuestaPreviaCuerpo')
   if (!caja) return
   const limpio = sanitizeRichText(html || '')
-  caja.innerHTML = limpio.replace(/<[^>]*>/g, '').trim()
-    ? limpio
-    : '<p class="subtext">Todavía no has escrito nada.</p>'
+  if (!limpio.replace(/<[^>]*>/g, '').trim()) {
+    caja.innerHTML = '<p class="subtext">Todavía no has escrito nada.</p>'
+    return
+  }
+  caja.innerHTML = limpio
+
+  const mio = ++previaEnCurso
+  perfilesMencionados(limpio)
+    .then((gente) => {
+      // Si se ha seguido escribiendo, esta respuesta ya no vale.
+      if (mio !== previaEnCurso || !gente.length) return
+      caja.innerHTML = enlazarMenciones(limpio, porNombre(gente))
+    })
+    .catch(() => {})
 }
 
 // El borrador vive en el navegador, no en la base.

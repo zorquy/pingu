@@ -62,8 +62,17 @@ export function textoPlano(html) {
 
 // Los perfiles que existen de verdad entre los mencionados.
 //
-// `in` con los nombres en minúsculas: los usernames del sitio ya se
-// guardan así (migración de usernames), así que no hace falta nada raro.
+// Se compara SIN distinguir mayúsculas (`ilike` sin comodines es una
+// igualdad insensible), y no con un `in` sobre el texto exacto. Los
+// usernames del sitio se guardan en minúsculas desde la migración de
+// usernames, así que hoy da lo mismo — pero el disparador del correo
+// compara `lower(username)`, y con un `in` exacto aquí bastaba UN
+// username con una mayúscula para que a esa persona le llegara el correo
+// y en el mensaje no se le viera el enlace.
+//
+// Son cinco nombres como mucho (MAXIMO), así que el filtro es corto. Y
+// solo pueden contener [a-z0-9_-] por el patrón, con lo que no hay nada
+// que escapar al montarlo.
 export async function perfilesMencionados(html) {
   const nombres = nombresMencionados(textoPlano(html))
   if (!nombres.length) return []
@@ -71,7 +80,7 @@ export async function perfilesMencionados(html) {
     const { data, error } = await supabase
       .from('user_profiles')
       .select('id, username, display_name')
-      .in('username', nombres)
+      .or(nombres.map((n) => `username.ilike.${n}`).join(','))
     if (error) return []
     return data || []
   } catch {
