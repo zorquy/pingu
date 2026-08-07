@@ -34,6 +34,7 @@ const NOMBRES = {
   comment_reply: 'las respuestas a tus comentarios',
   forum_reply: 'las respuestas en los temas que sigues',
   forum_mention: 'los avisos de cuando te mencionan',
+  new_follower: 'los avisos de seguidores nuevos',
 }
 const TIPOS = Object.keys(NOMBRES)
 

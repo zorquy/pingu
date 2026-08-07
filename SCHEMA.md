@@ -6572,3 +6572,64 @@ de siempre:
   estrellas: quitar el contenedor no impide que alguien las pinte en otro
   sitio de la pantalla final. Ahora se buscan las clases del propio
   widget.
+
+# Correo cuando alguien te sigue
+
+Hasta ahora un seguidor nuevo solo llegaba a la campanita, o sea solo si
+entrabas. Ahora también por correo.
+
+Migración: `supabase-migration-correo-seguidores.sql`.
+
+## Por qué este sí, si la norma era «solo lo que se pierde»
+
+La regla de `supabase-migration-correo-avisos.sql` es que un correo se
+justifica cuando alguien **se dirige a ti** y la cosa se pierde si no la
+ves. Un seguidor no espera respuesta, así que en su día se dejó fuera a
+propósito.
+
+Entra ahora porque en una comunidad que arranca un seguidor nuevo **sí**
+es una señal: es la prueba de que hay alguien al otro lado. Pero entra
+con una condición.
+
+## La condición: agrupado por destinatario
+
+La clave de agrupación es `follow:<a-quien>`, **una por destinatario y no
+una por pareja**. `enqueue_email` deja pasar como mucho un correo con la
+misma clave cada media hora, así que cinco seguidores en diez minutos son
+un correo, no cinco. Sin esa agrupación esto no estaría aquí.
+
+Tiene una consecuencia que se acepta: el asunto nombra al primero de la
+tanda, no a todos. Prometer «y 4 más» obligaría a contar al enviar y no
+al encolar, y no compensa.
+
+Y de paso cierra un agujero: sin agrupar, dejar de seguir y volver a
+seguir en bucle sería un correo por vuelta. La prueba lo comprueba.
+
+## Detalles
+
+- El enlace lleva **al perfil de quien te sigue**, que es lo que quieres
+  mirar para decidir si le devuelves el seguimiento.
+- La vista previa es **su bio**, si la tiene: da contexto sin abrir nada.
+  Sin bio se encola igual, solo que sin previa.
+- No se avisa de un seguidor **baneado**, ni se escribe a una cuenta
+  baneada.
+- El nombre pasa por `email_preview`, que colapsa los espacios. Aquí eso
+  importa más que en los otros dos avisos: el nombre lo elige **quien
+  sigue**, o sea que es texto de un desconocido yendo a la cabecera
+  `Subject` de un correo que mandamos nosotros. Un `\n` ahí permitiría
+  inyectar cabeceras.
+
+## Cómo se ha probado
+
+`prueba-correo-seguidores.sql`, 18 comprobaciones contra PostgreSQL real
+con la migración de correo de verdad. Rigor: 7 roturas, 7 pilladas — la
+del salto de línea, solo después de añadir el caso, porque ningún usuario
+de prueba tenía un nombre con `\n`.
+
+Y un fallo de la propia prueba que apareció al pasarla dos veces: salía
+en rojo la segunda vez. `base-foro.sql` no tira `user_follows` ni
+`email_outbox` (esta última sobrevive incluso al `drop schema auth
+cascade`: el CASCADE se lleva la clave ajena, no la tabla), así que la
+segunda pasada chocaba con las filas de la primera y el disparador ni
+llegaba a ejecutarse. **La prueba estaba en rojo por estar sucia, no por
+estar mal** — que es el fallo más caro de diagnosticar de los dos.

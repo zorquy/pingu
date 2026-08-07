@@ -25,18 +25,24 @@ export const NOTIFICATION_TYPES = {
 // De qué se avisa TAMBIÉN por correo.
 //
 // Es una lista corta a propósito. Un correo se justifica cuando la cosa
-// es personal, conversacional y se pierde si no la ves: un mensaje
-// privado sin contestar mata la conversación, y una respuesta que no ves
-// deja el hilo muerto. Lo demás (valoraciones, seguidores, guías nuevas)
-// es interesante pero no urgente, y llenar la bandeja con eso es lo que
-// hace que la gente se dé de baja de todo, incluido lo que sí le
+// es personal y se pierde si no la ves: un mensaje privado sin contestar
+// mata la conversación, y una respuesta que no ves deja el hilo muerto.
+// Lo que es interesante pero no urgente (valoraciones, guías nuevas de
+// quien sigues) se queda en la campanita: llenar la bandeja con eso es lo
+// que hace que la gente se dé de baja de TODO, incluido lo que sí le
 // importaba.
 //
+// `new_follower` es el caso de en medio, y entra con una condición: va
+// AGRUPADO por destinatario (clave `follow:<a-quien>`), así que son como
+// mucho un correo cada media hora por muchos seguidores que lleguen. Sin
+// esa agrupación no estaría aquí.
+//
 // Quien manda de verdad son los disparadores de
-// `supabase-migration-correo-avisos.sql` y
-// `supabase-migration-correo-foro.sql`: esta lista es para pintar las
-// casillas del perfil. Si algún día se añade un tipo hay que tocar TRES
-// sitios: la migración que lo encola, esta lista, y TIPOS en
+// `supabase-migration-correo-avisos.sql`,
+// `supabase-migration-correo-foro.sql` y
+// `supabase-migration-correo-seguidores.sql`: esta lista es para pintar
+// las casillas del perfil. Si algún día se añade un tipo hay que tocar
+// TRES sitios: la migración que lo encola, esta lista, y NOMBRES en
 // netlify/functions/baja-correo.mjs.
 //
 // `private_message` no está en NOTIFICATION_TYPES porque los mensajes no
@@ -51,6 +57,7 @@ export const EMAIL_TYPES = {
   comment_reply: 'Respuestas a tus comentarios',
   forum_reply: 'Respuestas en temas que sigues',
   forum_mention: 'Cuando te mencionan con @tunombre',
+  new_follower: 'Seguidores nuevos',
 }
 
 export async function createNotification({ recipientId, actorId, type, title, body = null, link = null }) {
