@@ -35,12 +35,29 @@ export function nombresMencionados(texto) {
   return [...vistos]
 }
 
+// Las etiquetas que separan palabras. Las de dentro de una frase (b, i,
+// a, code…) no separan nada: "<b>@ash</b>," es "@ash,".
+const BLOQUES = 'p, div, br, li, ul, ol, h1, h2, h3, h4, h5, h6, blockquote, tr, td, pre, hr'
+
 // El texto de un cuerpo HTML, sin etiquetas. Se usa para buscar las
 // menciones sin tropezar con los atributos: sin esto, un enlace a
 // `/usuario/@algo` contaría como mención.
+//
+// El espacio delante de cada bloque hace falta de verdad: `textContent`
+// a secas pega los párrafos, así que "<p>hola</p><p>@ash</p>" salía como
+// "hola@ash" — y eso, con la regla que descarta las direcciones de
+// correo, deja de ser una mención. Empezar un párrafo con @alguien es lo
+// más normal del mundo y no avisaba a nadie.
+//
+// La misma división de bloques está en menciones_de() dentro de
+// supabase-migration-correo-foro.sql, que es quien manda el correo. Si
+// aquí se separa distinto que allí, alguien recibe el correo pero no ve
+// el enlace en el mensaje, o al revés.
 export function textoPlano(html) {
   if (typeof DOMParser === 'undefined') return String(html || '').replace(/<[^>]*>/g, ' ')
-  return new DOMParser().parseFromString(String(html || ''), 'text/html').body.textContent || ''
+  const doc = new DOMParser().parseFromString(String(html || ''), 'text/html')
+  doc.body.querySelectorAll(BLOQUES).forEach((el) => el.before(' '))
+  return doc.body.textContent || ''
 }
 
 // Los perfiles que existen de verdad entre los mencionados.

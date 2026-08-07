@@ -22,9 +22,20 @@ import { escapeHtml } from '../lib/email.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
-// Solo estos dos tipos mandan correo hoy. Se valida contra la lista para
-// que nadie pueda meter basura en la columna a través del parámetro.
-const TIPOS = ['private_message', 'comment_reply']
+// Los tipos que mandan correo hoy, y cómo se llaman en la página de
+// baja. Se valida contra estas claves para que nadie pueda meter basura
+// en la columna a través del parámetro `tipo`.
+//
+// Tiene que ir a la par de EMAIL_TYPES (js/notifications.js) y de las
+// migraciones que encolan (supabase-migration-correo-avisos.sql y
+// supabase-migration-correo-foro.sql).
+const NOMBRES = {
+  private_message: 'los mensajes privados',
+  comment_reply: 'las respuestas a tus comentarios',
+  forum_reply: 'las respuestas en los temas que sigues',
+  forum_mention: 'los avisos de cuando te mencionan',
+}
+const TIPOS = Object.keys(NOMBRES)
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -94,11 +105,7 @@ export default async (req) => {
     return new Response('OK', { status: 200, headers: { 'content-type': 'text/plain' } })
   }
 
-  const queTipo = TIPOS.includes(tipo)
-    ? tipo === 'private_message'
-      ? 'los mensajes privados'
-      : 'las respuestas a tus comentarios'
-    : 'todos los avisos'
+  const queTipo = NOMBRES[tipo] || 'todos los avisos'
 
   return respuestaHtml(
     pagina(

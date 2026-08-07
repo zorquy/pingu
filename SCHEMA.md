@@ -6317,3 +6317,99 @@ módulo entero al cargarse — o sea que el tema no se vería.
 Dos fallos de verdad que salieron de escribir la prueba, no de leerla: el
 `mencionados` que `mensajeHtml()` usaba sin recibirlo (tiraba el tema
 entero con un `ReferenceError`) y el correo que se leía como mención.
+
+# El correo del foro
+
+El foro entero se quedaba en la campanita, y la campanita solo la ve
+quien entra. O sea: sigues un tema, te contestan, y no te enteras hasta
+que vuelves por tu cuenta. Con una comunidad pequeña eso es lo que apaga
+un foro.
+
+Migración: `supabase-migration-correo-foro.sql`.
+
+## A quién se le escribe
+
+- A quien te **menciona** con @tunombre (`forum_mention`).
+- A quien **sigue** el tema y a quien has **citado** (`forum_reply`).
+
+No se escribe por cada mensaje a todo el mundo. La regla es la misma que
+en `supabase-migration-correo-avisos.sql`: un correo se justifica cuando
+alguien se dirige a ti, no cuando pasa algo cerca.
+
+Quien abrió el tema no necesita caso aparte — el disparador
+`trg_forum_suscribir_al_escribir` ya le suscribió al escribir el primer
+mensaje.
+
+## Por qué el disparador va sobre `forum_posts`
+
+Por lo mismo que los otros dos no cuelgan de `user_notifications`: esa
+tabla deja insertar a cualquiera una fila para cualquiera con el texto
+que quiera, así que colgar el correo de ahí sería dejar que cualquier
+miembro mandara un correo desde pokedoc.es con el asunto que le diera la
+gana. En `forum_posts` la RLS ya demuestra quién escribió qué.
+
+Y como en las otras, la función del disparador lleva su `revoke`: es
+`security definer`, y sin eso PostgREST la expone como RPC.
+
+## Dos tipos y no uno
+
+`forum_reply` y `forum_mention` se pueden apagar por separado. «Avísame
+solo si me llaman por mi nombre» es de las preferencias más pedidas y con
+un solo tipo no se puede expresar.
+
+Tienen además **claves de agrupación distintas**: `foro:<tema>` y
+`foromen:<tema>`. Diez respuestas seguidas en un tema animado son un
+correo (lo agrupa `enqueue_email`), pero una mención no se queda tragada
+por ese correo — te están llamando por tu nombre, no es lo mismo.
+
+Si algún día se añade un tipo hay que tocar **tres** sitios: la migración
+que lo encola, `EMAIL_TYPES` en `js/notifications.js` y `NOMBRES` en
+`netlify/functions/baja-correo.mjs`.
+
+## Quitar las etiquetas: dos pasadas, no una
+
+El cuerpo se guarda como HTML y hay que dejarlo en texto plano, tanto
+para buscar las menciones como para la vista previa del correo. Y no vale
+una sola pasada:
+
+- Las etiquetas **de bloque** (`p`, `div`, `br`, `li`…) dejan un espacio.
+  Sin él, `<p>hola</p><p>@ash</p>` es `hola@ash`, que por la regla de las
+  direcciones de correo **deja de ser una mención**.
+- Las **de dentro de una frase** (`b`, `i`, `a`, `code`…) no dejan nada.
+  Con un espacio, `<b>@ash</b>,` se lee `@ash ,` y así sale en el correo.
+
+## ⚠️ La regla de las menciones está duplicada
+
+`menciones_de()` en la migración y `PATRON` + `BLOQUES` en
+`js/menciones.js` tienen que decir lo mismo. No se puede compartir el
+código —una vive en Postgres y la otra en el navegador—, así que lo que
+se comparte son los casos de prueba: los mismos ocho casos están en
+`prueba-correo-foro.sql` y en `test-foro-mejoras.mjs`. Si divergen,
+alguien recibe el correo pero no ve el enlace en el mensaje, o al revés.
+
+## Un fallo que venía de la tanda anterior
+
+Escribir la versión SQL destapó que `textoPlano()` usaba `textContent` a
+secas, que **pega los párrafos**. Empezar un párrafo con `@alguien` —lo
+más normal del mundo— daba `hola@ash`, o sea una dirección de correo, y
+no avisaba ni enlazaba a nadie. Con dos menciones en párrafos distintos
+se perdía la segunda.
+
+Estaba en producción desde la tanda de las mejoras del foro y ninguna
+prueba lo miraba, porque todos los casos de prueba tenían la mención en
+el mismo párrafo que el texto.
+
+## Cómo se ha probado
+
+- `prueba-correo-foro.sql` — 31 comprobaciones contra PostgreSQL real,
+  ejecutando la migración de correo **de verdad** (no una copia de
+  `enqueue_email`): lo que se prueba incluye la agrupación y las
+  preferencias, que viven ahí dentro.
+- `rigor-correo-foro.py` — 12 roturas, 12 pilladas. Más una en el lado
+  JavaScript (volver a `textContent` a secas), también pillada.
+
+Una comprobación que estaba mal planteada y pasaba en verde sin probar
+nada: preguntaba si leer `email_outbox` desde la web daba error 42501. No
+lo da — **la RLS filtra filas, no deniega el acceso**. Con RLS activada y
+cero políticas la tabla se ve vacía, que es lo que hay que comprobar:
+que hay filas y que desde la web no se ve ninguna.

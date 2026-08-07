@@ -33,15 +33,24 @@ export const NOTIFICATION_TYPES = {
 // importaba.
 //
 // Quien manda de verdad son los disparadores de
-// `supabase-migration-correo-avisos.sql`: esta lista es para pintar las
-// casillas del perfil y para la página de baja. Si algún día se añade un
-// tipo, hay que tocar los dos sitios.
+// `supabase-migration-correo-avisos.sql` y
+// `supabase-migration-correo-foro.sql`: esta lista es para pintar las
+// casillas del perfil. Si algún día se añade un tipo hay que tocar TRES
+// sitios: la migración que lo encola, esta lista, y TIPOS en
+// netlify/functions/baja-correo.mjs.
 //
 // `private_message` no está en NOTIFICATION_TYPES porque los mensajes no
 // pasan por la campanita: tienen su propio icono en la barra.
+//
+// `forum_mention` tampoco está: en la campanita, que te mencionen llega
+// como `forum_reply` con otro título. Por correo sí se separan, porque
+// "avísame solo si me llaman por mi nombre" es una preferencia que mucha
+// gente quiere y con un solo tipo no se puede expresar.
 export const EMAIL_TYPES = {
   private_message: 'Mensajes privados',
   comment_reply: 'Respuestas a tus comentarios',
+  forum_reply: 'Respuestas en temas que sigues',
+  forum_mention: 'Cuando te mencionan con @tunombre',
 }
 
 export async function createNotification({ recipientId, actorId, type, title, body = null, link = null }) {
