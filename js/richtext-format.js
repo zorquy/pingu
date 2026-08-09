@@ -69,7 +69,15 @@ const ALLOWED_TAGS = [
   'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'del',
   'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'blockquote',
   'span', 'font', 'div', 'figure', 'figcaption', 'tcg-deck',
+  // El spoiler: <details> con su <summary>. Se pliega y se despliega
+  // solo, sin una línea de JavaScript, y el teclado lo abre igual que el
+  // ratón — por eso es esto y no un div con un `click`.
+  'details', 'summary',
 ]
+// `open` NO está en la lista a propósito: se cae al sanear, así que un
+// spoiler llega SIEMPRE cerrado a quien lo lee, deje el autor el editor
+// como lo deje. Si no, se podría publicar un spoiler ya abierto, que es
+// lo contrario de lo que se pide al ponerlo.
 const ALLOWED_ATTR = ['href', 'src', 'alt', 'target', 'rel', 'data-cards', 'class', 'style', 'color', 'align', 'width', 'height']
 
 // Los elementos a los que se les respeta una anchura. En el resto, el
@@ -258,6 +266,30 @@ export function sanitizeRichText(html) {
   // Un pie de foto vacío deja un hueco raro debajo de la imagen.
   doc.querySelectorAll('figcaption').forEach((fc) => {
     if (!fc.textContent.trim()) fc.remove()
+  })
+
+  // Spoilers: la pestaña siempre tiene que decir algo, y un spoiler sin
+  // nada dentro es un botón que al pulsarlo no abre nada.
+  doc.querySelectorAll('details').forEach((det) => {
+    let sum = det.querySelector(':scope > summary')
+    if (!sum) {
+      sum = doc.createElement('summary')
+      det.prepend(sum)
+    }
+    if (!sum.textContent.trim()) sum.textContent = 'Spoiler'
+    // El resumen cuenta como texto del <details>, así que para saber si
+    // está vacío hay que mirar lo de fuera del resumen.
+    const cuerpo = [...det.childNodes].filter((n) => n !== sum)
+    const hayAlgo = cuerpo.some(
+      (n) => (n.textContent || '').trim() || (n.querySelector?.('img, tcg-deck') ?? false)
+    )
+    if (!hayAlgo) det.remove()
+  })
+
+  // Un <summary> suelto, fuera de su <details>, no significa nada y el
+  // navegador lo pinta como un párrafo con un triángulo delante.
+  doc.querySelectorAll('summary').forEach((sum) => {
+    if (sum.parentElement?.tagName !== 'DETAILS') sum.replaceWith(...sum.childNodes)
   })
 
   // Un <tcg-deck> guarda SOLO los identificadores de las cartas. Lo que

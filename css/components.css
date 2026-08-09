@@ -1524,6 +1524,82 @@ textarea.be-field {
   color: var(--navy-light);
 }
 
+/* ── Spoiler ──
+   Un <details> nativo: se pliega y se despliega sin JavaScript y el
+   teclado lo abre igual que el ratón. Aquí solo se le quita la pinta de
+   elemento del navegador. */
+.article-body details,
+.rte-surface details {
+  margin: 18px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.article-body summary,
+.rte-surface summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--text-mid);
+  cursor: pointer;
+  /* El triángulo de serie se pinta a mano abajo, para que gire igual en
+     todos los navegadores y no dependa del de cada uno. */
+  list-style: none;
+  user-select: none;
+}
+
+.article-body summary::-webkit-details-marker,
+.rte-surface summary::-webkit-details-marker {
+  display: none;
+}
+
+.article-body summary::before,
+.rte-surface summary::before {
+  content: '';
+  flex-shrink: 0;
+  width: 0;
+  height: 0;
+  border-left: 6px solid currentColor;
+  border-top: 4.5px solid transparent;
+  border-bottom: 4.5px solid transparent;
+  transition: transform 0.15s var(--ease);
+}
+
+.article-body details[open] > summary::before,
+.rte-surface details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.article-body summary:hover,
+.rte-surface summary:hover {
+  color: var(--navy);
+  background: var(--ice);
+}
+
+/* El contenido, separado de la pestaña por una línea para que se vea
+   dónde empieza lo que estaba plegado. */
+.article-body details[open] > :not(summary),
+.rte-surface details[open] > :not(summary) {
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
+.article-body details[open] > summary,
+.rte-surface details[open] > summary {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+
+.article-body details > :last-child,
+.rte-surface details > :last-child {
+  margin-bottom: 12px;
+}
+
 /* ── Figuras: imagen con tamaño, colocación y pie ── */
 .rt-fig {
   margin: 20px 0;

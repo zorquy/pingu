@@ -7070,3 +7070,68 @@ la prueba acertaba al decir que el enlace seguía a la vista. El fallo era
 del script de rigor, no del test ni del sitio — el `.hidden` propio de
 PokeDoc sí lleva `!important` y funciona. Cambiado a un `style` en línea,
 las seis salen rojas.
+
+# El spoiler
+
+Faltaba poder plegar un trozo de texto. Sin eso, una guía larga o un tema
+del foro se convierten en un muro: el que responde con la lista entera de
+su colección, el que quiere destripar la respuesta de un acertijo sin
+destripársela a quien todavía no ha mirado, el que mete cuatro párrafos
+de contexto que la mayoría se va a saltar.
+
+Es un **`<details>` con su `<summary>`**, nativo. Se pliega y se despliega
+**sin una línea de JavaScript**, y el teclado lo abre igual que el ratón.
+De ahí que sea esto y no un `div` con un `click`: no hay estado que
+sincronizar, no hay nada que romper si falla un módulo, y sale accesible
+de fábrica.
+
+Como las guías y el foro comparten editor (`richtext-editor.js`) y
+saneador (`richtext-format.js`), sale **en los dos sitios a la vez**.
+
+## Abierto para quien escribe, cerrado para quien lee
+
+La decisión que sostiene todo lo demás:
+
+- **En el editor, siempre abierto.** No es capricho: dentro de un
+  `contenteditable`, pulsar el resumen **coloca el cursor en vez de
+  plegar**. Un spoiler cerrado sería contenido que el autor no puede ni
+  ver ni tocar.
+- **Publicado, siempre cerrado.** El atributo `open` **no está** en
+  `ALLOWED_ATTR`, así que se cae al sanear. Deje el autor el editor como
+  lo deje, el lector recibe el spoiler plegado — que es lo que se pide al
+  ponerlo.
+
+Son dos caminos distintos, y esto importó: el spoiler recién insertado
+nace abierto por su cuenta (`det.open = true` en `ponerSpoiler`), pero el
+que viene **guardado** llega cerrado y hay que abrirlo al cargar
+(`abrirSpoilers()`). La primera versión de la prueba solo cubría el
+primero.
+
+## Lo que normaliza el saneador
+
+Cuatro reglas, todas por el mismo motivo: que no se publique un spoiler
+roto.
+
+- Un `<details>` **sin `<summary>`** recibe uno que dice «Spoiler». Sin
+  eso el navegador pinta un triángulo sin etiqueta.
+- Un resumen **en blanco**, lo mismo.
+- Un spoiler **sin nada dentro** se tira: es un botón que al pulsarlo no
+  abre nada. Para saber si está vacío hay que mirar lo de fuera del
+  resumen, porque el resumen también cuenta como texto del `<details>`.
+- Un `<summary>` **suelto**, fuera de su `<details>`, se deshace: el
+  navegador lo pinta como un párrafo con un triángulo delante que no
+  hace nada.
+
+## Cómo se ha probado
+
+`test-spoiler.mjs`, 35 comprobaciones: ponerlo en el editor, meter dentro
+lo que estaba seleccionado, reabrir una guía guardada, las cuatro
+normalizaciones, que no se cuele un `onclick` ni un `<script>`, y que
+quien lee —tanto una guía como un tema del foro— lo reciba cerrado, lo
+abra al pulsar y **también con el teclado**.
+
+Rigor: **9 roturas, 9 pilladas, a la segunda**. La que se escapó fue
+apagar `abrirSpoilers()`, y el motivo es el de arriba: la prueba miraba
+solo el spoiler recién puesto, que nace abierto solo. El caso que
+faltaba —volver a abrir una guía que ya tenía uno guardado— es
+precisamente el que deja al autor sin poder tocar su propio texto.

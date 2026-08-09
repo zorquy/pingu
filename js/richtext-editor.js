@@ -42,7 +42,12 @@ const ACCIONES = [
   { separador: true },
   { enlace: true, etiqueta: icons.link(15), titulo: 'Insertar enlace' },
   { cmd: 'unlink', etiqueta: `${icons.link(15)}<span class="rte-tachadura">✕</span>`, titulo: 'Quitar enlace' },
+  { separador: true },
+  { spoiler: true, etiqueta: icons.eye(15), titulo: 'Spoiler (texto plegado)' },
 ]
+
+// Lo que pone en la pestaña del spoiler mientras el autor no lo cambie.
+export const SPOILER_RESUMEN = 'Spoiler'
 
 function paletaHtml(tipo) {
   const colores = tipo === 'texto' ? COLORES_TEXTO : COLORES_FONDO
@@ -124,6 +129,14 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
 
   surfaceEl.innerHTML = sanitizeRichText(initialHtml)
   surfaceEl.setAttribute('contenteditable', 'true')
+
+  // Dentro del editor los spoilers se abren todos. No es un capricho:
+  // dentro de un contenteditable, pulsar el resumen coloca el cursor en
+  // vez de plegar, así que un spoiler cerrado sería contenido que el
+  // autor no puede ni ver ni tocar. Publicados salen cerrados, porque
+  // `open` no sobrevive al saneador.
+  const abrirSpoilers = () => surfaceEl.querySelectorAll('details').forEach((d) => (d.open = true))
+  abrirSpoilers()
 
   // Una superficie vacía arranca con un párrafo de verdad.
   //
@@ -233,6 +246,8 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
       devolverCursor()
       if (accion.enlace) {
         ponerEnlace()
+      } else if (accion.spoiler) {
+        ponerSpoiler()
       } else {
         ordenSilenciosa('styleWithCSS', NECESITAN_CSS.has(accion.cmd))
         ordenSilenciosa(accion.cmd, accion.arg)
@@ -291,6 +306,53 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     sel.addRange(r)
     ordenSilenciosa('createLink', url)
     sel.collapseToEnd()
+  }
+
+  // ── Spoiler ──
+  //
+  // Un <details> con su <summary>: se pliega y se despliega solo, sin
+  // una línea de JavaScript, y responde igual al teclado que al ratón.
+  //
+  // Dentro del editor se deja SIEMPRE abierto, para que el autor vea y
+  // pueda tocar lo que hay dentro. Publicado sale siempre cerrado, que
+  // es lo que se pide al poner un spoiler: el atributo `open` no está en
+  // la lista del saneador, así que se cae al guardar (ver
+  // js/richtext-format.js).
+  function ponerSpoiler() {
+    const sel = document.getSelection()
+    const dentro = sel && !sel.isCollapsed ? sel.getRangeAt(0).extractContents() : null
+
+    const det = document.createElement('details')
+    det.open = true
+    const sum = document.createElement('summary')
+    sum.textContent = SPOILER_RESUMEN
+    det.appendChild(sum)
+
+    const cuerpo = document.createElement('p')
+    // Lo que estuviera seleccionado se mete dentro; si no había nada,
+    // un párrafo vacío donde escribir.
+    if (dentro && dentro.textContent.trim()) cuerpo.appendChild(dentro)
+    else cuerpo.innerHTML = '<br>'
+    det.appendChild(cuerpo)
+
+    const donde = bloqueDelCursor()
+    if (donde) donde.after(det)
+    else surfaceEl.appendChild(det)
+
+    // Un párrafo detrás: sin él, el cursor se queda atrapado dentro del
+    // spoiler y no hay forma de seguir escribiendo debajo. Es el mismo
+    // problema que ya tenían las listas de cartas.
+    const p = document.createElement('p')
+    p.innerHTML = '<br>'
+    det.after(p)
+
+    // El cursor va al cuerpo del spoiler, que es donde se quiere seguir
+    // escribiendo — no al resumen.
+    const r = document.createRange()
+    r.selectNodeContents(cuerpo)
+    r.collapse(true)
+    sel?.removeAllRanges()
+    sel?.addRange(r)
   }
 
   // ── Imagen ──
