@@ -5000,6 +5000,14 @@ a.reto-tarjeta:hover {
   font-weight: 700;
 }
 
+/* Los atajos de la portada (foro y escribir una guía) reutilizan la
+   tarjeta del reto. Separación arriba para que, cuando el reto del día
+   también esté visible, se lean como dos grupos y no como una fila de
+   cuatro tarjetas iguales. */
+#atajosSeccion {
+  margin-top: 20px;
+}
+
 /* ── Los números del foro, en la lateral ── */
 .foro-numero {
   display: flex;

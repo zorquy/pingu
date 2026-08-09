@@ -113,6 +113,39 @@
       <div class="reto-tarjetas" id="retoTarjetas"></div>
     </section>
 
+    <!-- Las dos cosas que la portada no enseñaba.
+         El foro y el editor de guías existían solo en el menú, y un menú
+         hay que abrirlo para saber lo que hay dentro: quien llegaba a
+         pokedoc.es no tenía forma de enterarse de que esto es una
+         comunidad donde se pregunta y se escribe, no una web de leer.
+         Van en HTML y no pintados por JavaScript a propósito: son
+         enlaces de navegación, así que tienen que existir desde el
+         primer instante y poder rastrearse.
+         "Escribir una guía" se le enseña también a quien no ha entrado:
+         es de las cosas que mejor explican qué es esto. Si pulsa sin
+         sesión, requireAuth() lo manda a registrarse, que es justo lo
+         que se busca. -->
+    <section class="container" id="atajosSeccion">
+      <div class="reto-tarjetas">
+        <a class="reto-tarjeta" href="foro.html">
+          <span class="reto-icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>
+          <div class="reto-texto">
+            <strong>Entra en el foro</strong>
+            <small>Pregunta, enseña tus cartas y habla con otros coleccionistas.</small>
+          </div>
+          <span class="reto-flecha">→</span>
+        </a>
+        <a class="reto-tarjeta" href="editor-guia.html">
+          <span class="reto-icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></span>
+          <div class="reto-texto">
+            <strong>Escribe una guía</strong>
+            <small>¿Sabes de algo? Compártelo y sal publicado con tu nombre.</small>
+          </div>
+          <span class="reto-flecha">→</span>
+        </a>
+      </div>
+    </section>
+
     <section class="section container">
       <h2 class="section-title">Explora por tema</h2>
       <div class="grid-categories" id="categoriesGrid">

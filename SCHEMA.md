@@ -7021,3 +7021,52 @@ no muestra publicidad. Lo que sí exige el RGPD (art. 13.1.a) es la
 identidad del responsable y una vía de contacto, y eso está. El día que
 haya una entidad detrás, ahí van la denominación social y el NIF en lugar
 de la persona física.
+
+# El foro y el editor no se encontraban desde la portada
+
+Se lo dijeron a él: *«que sí, que está en el menú, pero para que sea más
+visible»*. Y tenían razón — un menú hay que **abrirlo** para saber lo que
+hay dentro. Quien llegaba a pokedoc.es veía guías, categorías y un reto
+diario, y no tenía forma de enterarse de que esto es una **comunidad
+donde se pregunta y se escribe**, no una web de leer artículos.
+
+Dos tarjetas nuevas en la portada, justo debajo del reto del día:
+
+- **Entra en el foro** → `foro.html`
+- **Escribe una guía** → `editor-guia.html`
+
+## Tres decisiones
+
+**Van en HTML, no pintadas por JavaScript.** Son enlaces de navegación:
+tienen que existir desde el primer instante, sin esperar a que cargue un
+módulo, y poder rastrearse. Por eso los dos iconos van como SVG en línea
+en vez de `icons.messageSquare(20)` — es la misma pareja de rutas
+copiada de `js/icons.js`.
+
+**Se le enseñan también a quien NO ha entrado.** Es el caso que importa:
+alguien que llega desde una story y todavía no tiene cuenta. Si los
+atajos solo salieran con sesión, no explicarían nada justo a quien hay
+que convencer. Al pulsar «Escribe una guía» sin sesión, `requireAuth()`
+lo manda a registrarse — que es exactamente lo que se busca.
+
+**Reutilizan `.reto-tarjeta`**, la tarjeta del reto diario, en vez de
+inventar un componente. Con un `margin-top` de 20 px en la sección, para
+que cuando el reto también esté visible se lean como **dos grupos** y no
+como una fila de cuatro cosas iguales.
+
+## Cómo se ha probado
+
+`test-atajos-portada.mjs`, 17 comprobaciones: que se ven (con `isVisible`
+y no con `count`, porque un enlace tapado no lo encuentra nadie), que se
+ven **sin cuenta**, que llevan a donde dicen, que sin sesión el de
+escribir acaba en el registro, y que en el móvil no aparece scroll
+horizontal.
+
+Rigor: 6 roturas, 6 pilladas — **a la segunda**. Las dos primeras
+escondían el enlace con el atributo `hidden`, y no pasaba nada: el
+`[hidden] { display: none }` del navegador **pierde** contra el
+`display: flex` de `.reto-tarjeta`, así que la "rotura" no rompía nada y
+la prueba acertaba al decir que el enlace seguía a la vista. El fallo era
+del script de rigor, no del test ni del sitio — el `.hidden` propio de
+PokeDoc sí lleva `!important` y funciona. Cambiado a un `style` en línea,
+las seis salen rojas.
