@@ -337,14 +337,21 @@ async function loadMyGuides(session) {
   container.innerHTML = myGuidesCache
     .map((g) => {
       const status = REVIEW_STATUS_LABELS[g.review_status] || REVIEW_STATUS_LABELS.draft
-      const canEdit = g.review_status === 'draft' || g.review_status === 'rejected'
+      // Editar y borrar dejaron de ir juntos. Una guía en revisión SÍ se
+      // puede seguir editando —terminarla no puede depender de que el
+      // equipo la rechace— pero no se puede borrar: está en la cola de
+      // alguien, y que desaparezca mientras la están leyendo es peor que
+      // tener que pedir que la quiten. La política de RLS dice lo mismo
+      // (ver supabase-migration-editar-en-revision.sql).
+      const canEdit = ['draft', 'rejected', 'pending'].includes(g.review_status)
+      const canDelete = g.review_status === 'draft' || g.review_status === 'rejected'
       return `
       <div class="my-guide-row">
         <span class="my-guide-title" title="${escapeHtml(g.title || 'Sin título')}">${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title || 'Sin título')}</span>
         <span class="badge ${status.badgeClass}">${status.text}</span>
         <span class="my-guide-actions">
           ${canEdit ? `<button data-edit="${g.id}">Editar</button>` : ''}
-          ${canEdit ? `<button class="danger" data-delete="${g.id}">Eliminar</button>` : ''}
+          ${canDelete ? `<button class="danger" data-delete="${g.id}">Eliminar</button>` : ''}
         </span>
         ${g.review_status === 'rejected' && g.rejection_reason ? `<p class="my-guide-reason">Motivo del rechazo: ${escapeHtml(g.rejection_reason)}</p>` : ''}
         ${statsHtml(stats[g.id])}

@@ -6852,3 +6852,167 @@ Supabase supiera fallar **una consulta concreta** y no todas las de una
 tabla: `user_profiles` la usa media web, y tumbarla entera habría roto la
 página en vez de vaciar el hilo. Se apuntan ahora las columnas que pide
 cada `select` para poder distinguirlas.
+
+# Mandar una guía a revisión la cerraba con llave
+
+Lo contó alguien que estaba escribiendo una: le dio a **Enviar a
+revisión**, y a partir de ahí ya no podía tocarla. Ni para corregir una
+errata, ni para terminar lo que le faltaba. La única forma de recuperar
+el control era que el equipo se la **rechazara**.
+
+Escribir una guía lleva días, y no todo el mundo entiende que ese botón
+es definitivo. El que la mandó a medias —para ver cómo quedaba, o sin
+saberlo— se quedaba sin poder seguir.
+
+## Lo impedían TRES capas, no una
+
+Es lo que hace que este arreglo no sea de una línea. Cualquiera de las
+tres por separado deja el problema en pie:
+
+1. **La política de RLS** (`guides_author_update`): `using (… review_status
+   in ('draft', 'rejected'))`. Sin tocar esto, el editor guarda y la base
+   rechaza la fila **en silencio** — cero filas afectadas, sin error.
+2. **El editor** (`js/editor-guia.js`): `loadExistingGuide()` te mandaba a
+   `perfil.html` si el estado no era `draft` o `rejected`.
+3. **El panel "Mis guías"** (`js/perfil.js`): sin botón de Editar.
+
+Y encima faltaba lo que él pidió expresamente: poder llegar al editor
+**desde la propia guía**, que es la pantalla donde el autor relee lo que
+lleva escrito.
+
+## Qué se ha abierto y qué no
+
+Abierto: el autor edita su guía en `pending`. Cerrado, igual que antes:
+
+- **Las `approved` siguen sin poder tocarse.** Esa ya la ha leído alguien
+  del equipo y la está leyendo la comunidad; cambiarla por detrás sería
+  publicar sin revisar. Para eso están las sugerencias de corrección.
+- **Borrar en revisión, tampoco.** Está en la cola de alguien, y que
+  desaparezca mientras la están leyendo es peor que pedir que la quiten.
+  Por eso `canEdit` y `canDelete` dejaron de ser la misma variable.
+- **El `with check` no se toca** (`draft`/`pending`): es lo que impide que
+  un autor se apruebe a sí mismo la guía.
+
+## Baneados y silenciados: la condición nueva
+
+La política vieja no los miraba, y al ampliar a `pending` hay que
+decirlo:
+
+```sql
+using (
+  auth.uid() = author_id
+  and (
+    review_status in ('draft', 'rejected')
+    or (review_status = 'pending' and not is_banned() and not is_muted())
+  )
+)
+```
+
+La condición va **solo en la rama nueva**, a propósito. Editar un
+borrador es privado y no llega a nadie, así que quien pudiera hacerlo
+antes lo sigue pudiendo hacer — sin regresiones. Pero una guía en
+revisión está **a un clic de publicarse**: dejar que un baneado le siga
+metiendo mano sería colarle contenido a la cola de publicación.
+
+## Los dos botones del editor no valían
+
+Una guía ya enviada no se puede guardar con los mismos botones que un
+borrador, y esto es lo más fácil de hacer mal:
+
+- **"Guardar borrador"** la habría sacado de la cola del equipo sin
+  decírselo a nadie. El autor creería que guarda y lo que estaría
+  haciendo es **retirarla de revisión**.
+- **"Enviar a revisión"** no significa nada cuando ya está enviada.
+
+Se deja un botón solo, **"Guardar cambios"**, y un aviso arriba diciendo
+que el equipo revisará la última versión guardada.
+
+## La trampa: `submitted_at`
+
+Esta es la que se cuela sola. El hilo de actividad ordena por
+`submitted_at` y anuncia *"ha enviado a revisión la guía X"*. Si guardar
+pisara esa fecha, alguien que se pasa la tarde puliendo su guía **volvería
+a la cabecera del hilo cada vez que le da a guardar**. La fecha se pone
+solo en el salto de borrador a revisión:
+
+```js
+submitted_at:
+  reviewStatus === 'pending' && existingGuide?.review_status !== 'pending'
+    ? new Date().toISOString()
+    : existingGuide?.submitted_at || null,
+```
+
+Y va con su comprobación en la prueba, porque el descuido no se ve
+mirando el editor: se ve dos pantallas más allá.
+
+## Cómo se ha probado
+
+**SQL contra un PostgreSQL de verdad** (13 comprobaciones, con el rol
+`webuser` que sí pasa por RLS), sobre las políticas copiadas tal cual de
+producción. Dos rojos, los dos de la prueba y no del código, y los dos
+instructivos:
+
+- El "baneado" era el **usuario 3 de `base-foro.sql`, que es el ADMIN**.
+  La política `guides_admin_all` le daba el permiso, así que la
+  comprobación salía verde sin probar nada del baneo. Hizo falta un
+  usuario nuevo.
+- Editar una rechazada **dejándola en `rejected`** da 42501, porque el
+  `with check` solo admite `draft`/`pending`. No es un fallo: el editor
+  escribe siempre el `review_status` al guardar, así que una rechazada
+  vuelve como borrador. La prueba estaba pidiendo algo que la app no
+  hace.
+
+**Navegador**: `test-editar-en-revision.mjs`, 26 comprobaciones sobre las
+cuatro pantallas. Rigor: **9 roturas, 9 pilladas**.
+
+Un tercer rojo que también era del doble de Supabase: la guía pendiente
+de prueba tenía `reference_blocks: []`, y eso **es un estado que la app no
+puede producir** — para llegar a `pending`, `save()` exige que haya
+bloques. El guardián de contenido vacío bloqueaba el guardado y la prueba
+salía roja por eso y no por lo que medía. De paso salió un detalle real:
+ese guardián decía *"añade contenido antes de enviarla a revisión"* a
+quien solo estaba guardando algo ya enviado. Ahora dice lo que pasa.
+
+# Los legales ya dicen quién hay detrás
+
+Faltaba lo básico: la política de privacidad explicaba bien el
+tratamiento pero **no identificaba a un responsable ni daba una dirección
+de contacto**, así que no había a quién escribir para ejercer derechos.
+Con 20 invitados se aguanta; abriendo al público, no.
+
+Lo que se ha añadido, en `privacidad.html`:
+
+- **Responsable y contacto** (`info@pokedoc.es`), que es el art. 13.1.a
+  del RGPD.
+- **Base jurídica** de cada tratamiento: ejecución del servicio para la
+  cuenta y lo que publicas, consentimiento para los correos, interés
+  legítimo para moderar y para saber qué páginas se usan.
+- **Plazos de conservación**, con 12 meses para visitas y errores.
+- **Transferencias fuera del EEE**: Supabase, Netlify y Google pueden
+  procesar fuera, amparado en cláusulas contractuales tipo.
+- **Derechos completos** (acceso, rectificación, supresión, limitación,
+  oposición, portabilidad, retirada del consentimiento) y la **AEPD** como
+  vía de reclamación.
+- **Edad mínima de 14 años** y aviso de cambios.
+
+Y dos tratamientos que **estaban ocurriendo sin declararse**, encontrados
+al repasar el esquema en vez de al leer la página:
+
+- **`page_views`** guarda qué página se visita y cuándo, con `user_id` si
+  hay sesión abierta.
+- **`client_errors`** guarda el mensaje de error, la página y el
+  navegador, también con `user_id`.
+
+Ninguno de los dos aparecía en "qué datos guardamos". No son opcionales
+de mencionar: llevan identificador de usuario, así que son datos
+personales.
+
+En `terminos.html`: titular y contacto, **edad mínima**, **ley aplicable**
+(española, con los fueros del consumidor a salvo) y una cláusula de
+**responsabilidad** que dice en voz alta lo que el sitio es — información
+orientativa hecha por aficionados, no un peritaje; si hay dinero de por
+medio, contrastar con un servicio de autentificación profesional.
+
+Queda un hueco que no se puede rellenar desde el código: el **nombre y
+apellidos** (o la denominación social y el NIF) de quien está al frente.
+Va marcado con un comentario en las dos páginas.

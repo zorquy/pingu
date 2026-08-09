@@ -92,6 +92,23 @@ function renderRef() {
   setRefHtml(initialHtml)
 }
 
+// Una guía que YA está en revisión no se guarda con los mismos dos
+// botones que un borrador.
+//
+// "Guardar borrador" la sacaría de la cola del equipo sin decírselo a
+// nadie: el autor creería que ha guardado y lo que habría hecho es
+// retirarla de revisión. Y "Enviar a revisión" no significa nada cuando
+// ya está enviada. Así que se deja un botón solo, que guarda dejándola
+// donde está.
+function marcarEnRevision() {
+  document.getElementById('btnSaveDraft').classList.add('hidden')
+  document.getElementById('btnSubmit').textContent = 'Guardar cambios'
+  const aviso = document.getElementById('editorAvisoRevision')
+  aviso.textContent =
+    'Esta guía está en revisión. Puedes seguir editándola: el equipo revisará la última versión que hayas guardado.'
+  aviso.classList.remove('hidden')
+}
+
 function renderCourse() {
   renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks, (file) => uploadGuideImage(currentSession.user.id, file))
 }
@@ -102,12 +119,21 @@ async function loadExistingGuide(session) {
     window.location.href = 'perfil.html'
     return
   }
-  if (!['draft', 'rejected'].includes(data.review_status)) {
+  // `pending` entra aquí a propósito. Escribir una guía lleva días y
+  // antes, en cuanto le dabas a "Enviar a revisión", esta página te
+  // echaba a perfil.html: no podías tocarla ni para una errata. Quien la
+  // mandó a medias se quedaba sin poder terminarla.
+  //
+  // `approved` sigue fuera: esa ya la ha leído el equipo y la está
+  // leyendo la comunidad. Cambiarla por detrás sería publicar sin
+  // revisar.
+  if (!['draft', 'rejected', 'pending'].includes(data.review_status)) {
     window.location.href = 'perfil.html'
     return
   }
   existingGuide = data
   document.getElementById('editorTitle').textContent = 'Editar guía'
+  if (data.review_status === 'pending') marcarEnRevision()
   document.getElementById('mgTitle').value = data.title || ''
   document.getElementById('mgCoverEmoji').value = data.cover_emoji || ''
   coverImageUrl = data.cover_image || ''
@@ -142,7 +168,18 @@ function buildPayload(reviewStatus) {
     search_content: flattenReferenceBlocksToText(refBlocks),
     author_id: currentSession.user.id,
     review_status: reviewStatus,
-    submitted_at: reviewStatus === 'pending' ? new Date().toISOString() : existingGuide?.submitted_at || null,
+    // La fecha de envío es la del envío, no la del último guardado.
+    //
+    // Desde que se puede seguir editando una guía en revisión, esto
+    // importa: el hilo de actividad ordena por `submitted_at` y anuncia
+    // "ha enviado a revisión la guía X". Si se pisara en cada guardado,
+    // alguien que se pasa la tarde puliendo su guía volvería a la
+    // cabecera del hilo cada vez que le da a guardar. Se pone SOLO en el
+    // salto de borrador a revisión.
+    submitted_at:
+      reviewStatus === 'pending' && existingGuide?.review_status !== 'pending'
+        ? new Date().toISOString()
+        : existingGuide?.submitted_at || null,
     estimated_mins: existingGuide?.estimated_mins || 5,
     xp_reward: existingGuide?.xp_reward || 20,
     guide_rarity: existingGuide?.guide_rarity || 'bronze',
@@ -160,8 +197,16 @@ async function save(reviewStatus) {
     showToast('Ponle un título a tu guía antes de guardar.')
     return
   }
+  // Una guía en revisión no puede quedarse vacía: el equipo tiene algo
+  // en su cola y de repente no hay nada que leer. Pero el aviso no puede
+  // ser el mismo, porque ya está enviada — decirle "antes de enviarla a
+  // revisión" a quien solo está guardando no explica nada.
   if (reviewStatus === 'pending' && refBlocks.length === 0) {
-    showToast('Añade contenido en la Guía antes de enviarla a revisión.')
+    showToast(
+      existingGuide?.review_status === 'pending'
+        ? 'La guía no puede quedarse sin contenido mientras está en revisión.'
+        : 'Añade contenido en la Guía antes de enviarla a revisión.'
+    )
     return
   }
 

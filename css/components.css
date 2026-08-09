@@ -1077,6 +1077,18 @@ textarea.be-field {
   color: var(--navy);
 }
 
+/* El aviso de "esta guía está en revisión". Mismo tono que el banner de
+   la guía pendiente en guia.html: es información, no una advertencia. */
+.editor-aviso-revision {
+  margin: 10px 0 0;
+  padding: 9px 13px;
+  background: var(--ice);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  color: var(--text-mid);
+  max-width: 720px;
+}
+
 .editor-panel {
   background: var(--white);
   border: 1px solid var(--border);
@@ -1308,6 +1320,33 @@ textarea.be-field {
 
 .article-header {
   padding: 8px 0 22px;
+}
+
+/* El aviso de "pendiente de revisión". Cuando quien mira es el autor
+   lleva dentro el botón de seguir editando, así que el texto tiene que
+   poder encogerse y el botón quedarse entero — de ahí el `flex:1` en el
+   texto y el `margin-left:auto` en el botón. En móvil se apila. */
+.guia-aviso-pendiente {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--ice);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+}
+
+.guia-aviso-pendiente > span {
+  flex: 1;
+  min-width: 200px;
+}
+
+.guia-seguir-editando {
+  margin-left: auto;
+  padding: 6px 12px;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 /* El "emoji" de portada lo escribe el autor y es texto libre: nada

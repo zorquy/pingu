@@ -52,6 +52,11 @@
     <div class="editor-header">
       <a href="perfil.html" class="editor-back">← Volver a mi perfil</a>
       <h1 id="editorTitle">Nueva guía</h1>
+      <!-- Solo aparece si la guía está en revisión (lo rellena
+           js/editor-guia.js). Sin esto, quien vuelve a entrar a editarla
+           no sabe si lo que guarda sigue en la cola del equipo o se ha
+           salido de ella. -->
+      <p class="editor-aviso-revision hidden" id="editorAvisoRevision"></p>
     </div>
 
     <div class="tabs" id="editorTabs">

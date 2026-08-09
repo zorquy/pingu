@@ -122,7 +122,11 @@ async function init() {
           : `<span class="mini-avatar" style="width:36px; height:36px; background-color:var(--navy); color:var(--white); display:flex; align-items:center; justify-content:center;">${icons.shield(18)}</span>`
       }
       <div>
-        <span class="subtext" style="margin:0; display:block;">${author ? 'Publicada por' : 'Guía oficial de'}</span>
+        <span class="subtext" style="margin:0; display:block;">${
+          // "Publicada por" es falso mientras está en revisión: no está
+          // publicada. Se dice lo que sí es cierto — que la ha escrito.
+          author ? (guide.review_status === 'pending' ? 'Escrita por' : 'Publicada por') : 'Guía oficial de'
+        }</span>
         ${author ? `<a href="${profileUrl(author)}" style="font-weight:700; color:var(--navy);">${escapeHtml(authorName)}</a>${authorBadge}` : `<strong>${escapeHtml(authorName)}</strong>`}
       </div>
     </div>
@@ -130,6 +134,9 @@ async function init() {
 
   const session = await getSession()
   const profile = session ? await getProfile(session.user.id) : null
+  // ¿La está mirando quien la escribió? Se usa para ofrecerle seguir
+  // editándola desde aquí mismo.
+  const esMia = !!(session && guide.author_id && guide.author_id === session.user.id)
   // `mostrarPro` manda sobre todo lo de esta guía: si los planes están
   // ocultos no hay pestaña, no hay muro y ni siquiera se pide el contenido
   // Pro a la base — una consulta menos por visita.
@@ -169,7 +176,16 @@ async function init() {
     <div class="article-header">
       ${
         guide.review_status === 'pending'
-          ? `<p class="subtext" style="background:var(--ice); padding:8px 12px; border-radius:var(--radius-sm); margin-bottom:10px; display:flex; align-items:center; gap:6px;">${icons.clock(14)} Guía de la comunidad pendiente de revisión — todavía no la ha comprobado el equipo de PokeDoc.</p>`
+          ? `<p class="subtext guia-aviso-pendiente">${icons.clock(14)} <span>Guía de la comunidad pendiente de revisión — todavía no la ha comprobado el equipo de PokeDoc.</span>${
+              // Si quien la está mirando es quien la escribió, el aviso
+              // deja de ser solo información y se convierte en el sitio
+              // desde el que seguir. Es la pantalla donde el autor
+              // relee lo que lleva escrito, así que es donde tiene que
+              // estar el botón — no escondido en su perfil.
+              esMia
+                ? `<a class="btn-secondary guia-seguir-editando" href="editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Seguir editando</a>`
+                : ''
+            }</p>`
           : ''
       }
       <span class="emoji-big">${contentIconHtml(guide.cover_emoji, 40, 'bookOpen')}</span>
