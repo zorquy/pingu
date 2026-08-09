@@ -7013,6 +7013,11 @@ En `terminos.html`: titular y contacto, **edad mínima**, **ley aplicable**
 orientativa hecha por aficionados, no un peritaje; si hay dinero de por
 medio, contrastar con un servicio de autentificación profesional.
 
-Queda un hueco que no se puede rellenar desde el código: el **nombre y
-apellidos** (o la denominación social y el NIF) de quien está al frente.
-Va marcado con un comentario en las dos páginas.
+El responsable es **Iker López**, persona física, en las dos páginas — si
+cambia una tiene que cambiar la otra, y va dicho en el comentario de
+ambas. No lleva NIF a propósito: eso lo pide el art. 10 de la LSSI para
+quien ejerce **actividad económica**, y PokeDoc no vende, no intermedia y
+no muestra publicidad. Lo que sí exige el RGPD (art. 13.1.a) es la
+identidad del responsable y una vía de contacto, y eso está. El día que
+haya una entidad detrás, ahí van la denominación social y el NIF en lugar
+de la persona física.
