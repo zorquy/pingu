@@ -18,6 +18,7 @@ import {
 } from './foro-comun.js'
 import { marcasDeLectura, estaSinLeer, marcarTodoLeido } from './foro-lecturas.js'
 import { plegarTexto } from './texto.js'
+import { formularioEncuestaHtml, engancharFormularioEncuesta, leerFormularioEncuesta, crearEncuesta } from './encuesta.js'
 
 // El foro. Esta página hace dos cosas según la URL:
 //
@@ -520,11 +521,18 @@ async function abrirFormularioTema(foro) {
         <div class="rte-toolbar" id="temaBarra"></div>
         <div class="rte-surface" id="temaCuerpo"></div>
       </div>
+      ${formularioEncuestaHtml()}
       <div class="foro-form-acciones">
         <button type="submit" class="btn-primary" id="btnPublicarTema">Publicar</button>
         <button type="button" class="btn-secondary" id="btnCancelarTema">Cancelar</button>
       </div>
     </form>`
+
+  // La encuesta solo se pone AL ABRIR el tema, no después: la política
+  // de la base solo la deja crear en los cinco primeros minutos.
+  // Colgarle una votación a un hilo que ya tiene conversación cambia de
+  // qué iba el hilo a mitad de camino.
+  engancharFormularioEncuesta(document)
 
   const barra = document.getElementById('temaBarra')
   barra.innerHTML = richTextToolbarHtml()
@@ -568,6 +576,15 @@ async function abrirFormularioTema(foro) {
       return
     }
 
+    // Se lee la encuesta ANTES de crear nada. Si le falta la pregunta o
+    // le sobran opciones repetidas, se avisa aquí y no se publica —
+    // mejor que dejar el tema abierto con media votación dentro.
+    const { encuesta, error: errorEncuestaForm } = leerFormularioEncuesta(document)
+    if (errorEncuestaForm) {
+      showToast(errorEncuestaForm)
+      return
+    }
+
     enviando = true
     const boton = document.getElementById('btnPublicarTema')
     boton.disabled = true
@@ -604,6 +621,15 @@ async function abrirFormularioTema(foro) {
       boton.disabled = false
       showToast('No se ha podido publicar: ' + errorMensaje.message)
       return
+    }
+
+    // La encuesta va DESPUÉS del mensaje y no se deshace nada si falla:
+    // el tema y su primer mensaje ya están publicados y son útiles por
+    // sí solos. Tirarlos porque no se pudo crear la votación sería
+    // perder lo que la persona acaba de escribir.
+    if (encuesta) {
+      const errorEncuesta = await crearEncuesta(tema.id, encuesta)
+      if (errorEncuesta) showToast('El tema se ha publicado, pero la encuesta no. Puedes preguntarlo en el mensaje.')
     }
 
     window.location.href = urlTema(tema.id)

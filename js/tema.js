@@ -25,6 +25,7 @@ import { calculateLevel } from './gamification.js'
 import { marcarLeido, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 import { engancharCompartir } from './compartir.js'
+import { cargarEncuesta, encuestaHtml, engancharEncuesta } from './encuesta.js'
 import { engancharAutocompletarMenciones } from './mencion-autocompletar.js'
 
 // Un tema del foro.
@@ -276,6 +277,31 @@ async function pintarMensajes() {
   enganchar(perfiles)
   pintarCabecera(perfiles[tema.author_id])
   wireReportButtons(elMensajes, sesion)
+  pintarEncuesta()
+}
+
+// La encuesta del tema, si la tiene.
+//
+// Va en su propio hueco encima de los mensajes: es lo primero que se
+// mira al entrar, y así se puede repintar sola al votar sin tocar la
+// lista de mensajes.
+//
+// Solo en la PRIMERA página: en la tercera página de un hilo largo, la
+// votación ya no es de lo que se está hablando.
+async function pintarEncuesta() {
+  const hueco = document.getElementById('temaEncuesta')
+  if (!hueco) return
+  if (pagina !== 1) {
+    hueco.innerHTML = ''
+    return
+  }
+  const datos = await cargarEncuesta(tema.id)
+  if (!datos) {
+    hueco.innerHTML = ''
+    return
+  }
+  hueco.innerHTML = encuestaHtml(datos)
+  engancharEncuesta(hueco, tema.id, pintarEncuesta)
 }
 
 function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, likes, mencionados) {

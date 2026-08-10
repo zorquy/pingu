@@ -7262,3 +7262,129 @@ de verdad, la rotura sale roja.
 
 Navegador: `test-aviso-guia-ui.mjs`, 7 comprobaciones sobre quién ve qué
 casilla.
+
+# Encuestas en el foro
+
+Abrir un tema con votación. `supabase-migration-encuestas-foro.sql`,
+`js/encuesta.js`, enganchado en `js/foro.js` (crear) y `js/tema.js`
+(pintar y votar).
+
+Es lo que más movimiento genera en un foro que arranca, y por una razón
+tonta: votar cuesta un clic y participar en un hilo cuesta escribir un
+párrafo.
+
+## Un voto por persona, impuesto donde no se puede esquivar
+
+Tres tablas: `forum_polls` (una por tema, `thread_id` es la clave
+primaria), `forum_poll_options` y `forum_poll_votes`.
+
+La regla la impone **un índice único parcial**, no el navegador:
+
+```sql
+create unique index forum_poll_votes_una_por_persona
+  on public.forum_poll_votes (thread_id, user_id)
+  where multiple = false;
+```
+
+Sin él, dos pestañas abiertas son dos votos y ninguna comprobación del
+cliente lo evita. Un disparador tampoco bastaría: dos inserciones a la
+vez podrían pasarlo las dos.
+
+## La trampa: el índice se esquiva mintiendo
+
+El índice necesita saber si la encuesta es de respuesta única, y eso vive
+en `forum_polls`. **Un índice parcial no puede llevar una subconsulta**
+—Postgres no lo permite—, así que la condición tiene que salir de una
+columna de la propia tabla de votos. De ahí `forum_poll_votes.multiple`,
+que es un dato copiado.
+
+Copiado y **clavado**: mandar `multiple = true` en una encuesta de
+respuesta única dejaría el índice fuera de juego y permitiría votar
+todas las opciones. Lo que lo impide es una clave ajena **compuesta**:
+
+```sql
+constraint forum_poll_votes_encuesta_fk
+  foreign key (thread_id, multiple)
+  references public.forum_polls (thread_id, multiple)
+```
+
+apuntando a un índice único `(thread_id, multiple)` de la encuesta. El
+valor tiene que coincidir con el de la encuesta o salta un error de
+integridad. Sin esta pieza, todo lo demás es decorado — y esa es
+exactamente la segunda rotura del rigor.
+
+## Los resultados no se ven antes de votar
+
+`verResultados = heVotado || cerrada`. Ver por dónde va la votación
+cambia lo que vota la gente, y en una comunidad pequeña se nota mucho.
+
+Lo que **sí** se enseña antes de votar es el total del pie («7 votos»):
+dice cuánta gente ha participado, no por dónde va la cosa. La distinción
+está probada por separado, porque es fácil taparlo de más al arreglar
+algo.
+
+El recuento es `forum_poll_resultados(p_thread)`, con **left join**: una
+opción con cero votos sigue en la lista. Con un join normal desaparece, y
+desaparece justo la información de que nadie la ha votado.
+
+## La encuesta se pone al abrir el tema, no después
+
+La política de creación exige ser el autor **y** que el tema se haya
+creado hace menos de 5 minutos. Colgarle una votación a un hilo que ya
+lleva media conversación cambia de qué iba el hilo a mitad de camino, y
+los que ya escribieron no contaban con ella.
+
+Por eso el formulario de la encuesta vive en el formulario de tema nuevo
+y en ningún otro sitio.
+
+## El orden de las tres escrituras
+
+Un tema con encuesta son tres filas en tres tablas, y el orden importa:
+
+1. **Validar la encuesta ANTES de crear nada.** Si le falta la pregunta o
+   tiene opciones repetidas, se avisa y no se publica. Al revés, quien se
+   dejara la pregunta se encontraría el tema publicado y la votación no.
+2. **Tema → primer mensaje.** Si el mensaje falla, el tema se borra: un
+   tema vacío no sirve de nada.
+3. **Encuesta al final, y si falla NO se deshace nada.** El tema y su
+   mensaje ya están publicados y valen por sí solos. Tirarlos porque no se
+   pudo crear la votación sería perder lo que la persona acaba de
+   escribir; se avisa y se sigue.
+
+## Solo en la primera página
+
+En la página 3 de un hilo largo la votación ya no es de lo que se está
+hablando, y repetirla arriba de cada página es ruido. `pintarEncuesta()`
+se sale si `pagina !== 1`.
+
+## Si la migración no está ejecutada
+
+`cargarEncuesta` devuelve `null` en cuanto la consulta da error, y el
+tema se pinta entero sin encuesta. Entre desplegar el código y ejecutar
+el SQL a mano en el editor de Supabase pasa un rato, y durante ese rato
+las tres tablas no existen. Un tema en blanco durante media hora es peor
+que un tema sin votación.
+
+## Cómo se ha probado
+
+**SQL contra un PostgreSQL de verdad** (`prueba-encuestas.sql`): 17
+comprobaciones. Rigor: **8 roturas, 8 pilladas**, incluidas las dos que
+sostienen todo lo demás — «se puede votar dos veces» y «el índice se
+esquiva mintiendo sobre el tipo de encuesta».
+
+**Navegador** (`test-encuestas.mjs`): 72 comprobaciones — el formulario y
+su tope de 8 opciones, las tres validaciones (y que el tema **no** llegue
+a la base cuando fallan), lo que se guarda y en qué orden, los resultados
+escondidos hasta votar, votar, cambiar el voto, las dos pestañas, sin
+cuenta, la página 2, un tema sin encuesta, y la migración sin ejecutar.
+
+Rigor: **18 roturas, 18 pilladas**. Dos que merecen quedarse escritas:
+
+- **«cambiar mi voto se lleva por delante el de los demás».** Quitar
+  `.eq('user_id', userId)` del borrado deja la pantalla igual de bien —
+  las opciones vuelven, todo parece correcto— y por debajo ha borrado la
+  votación entera. Lo pilla una comprobación aparte: tras retirar mi
+  voto, el de la otra persona sigue contando.
+- **«los votos de los demás salen marcados como míos».** El mismo `.eq`
+  que falta, esta vez al leer: la pantalla decide que ya has votado
+  porque ha votado alguien.

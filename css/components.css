@@ -5450,3 +5450,121 @@ a.reto-tarjeta:hover {
   padding: 6px 12px;
   font-size: 13px;
 }
+
+/* ── Encuestas del foro ──
+   Antes de votar son opciones marcables; después, barras con el
+   porcentaje. La tuya se distingue del resto. */
+.encuesta {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  padding: 16px 18px;
+  margin: 0 0 16px;
+}
+
+.encuesta h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.encuesta-opcion-voto {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 7px;
+  cursor: pointer;
+  font-size: 14.5px;
+}
+
+.encuesta-opcion-voto:hover {
+  border-color: var(--navy);
+  background: var(--bg);
+}
+
+.encuesta-resultado {
+  margin-bottom: 11px;
+}
+
+.encuesta-resultado-cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.encuesta-resultado-cab span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* La opción que has votado tú, marcada. Sin esto, al volver a un tema
+   no hay forma de recordar qué votaste. */
+.encuesta-mio .encuesta-resultado-cab {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.encuesta-barra {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.encuesta-barra span {
+  display: block;
+  height: 100%;
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+  transition: width 0.25s var(--ease);
+}
+
+.encuesta-mio .encuesta-barra span {
+  background: var(--navy);
+}
+
+.encuesta-resultado small {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.encuesta-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* El formulario, al abrir un tema */
+.encuesta-form {
+  margin: 12px 0 4px;
+}
+
+.encuesta-campos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.encuesta-campos input[type='text'] {
+  width: 100%;
+}
+
+#encuestaOpciones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
