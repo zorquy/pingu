@@ -24,6 +24,7 @@ import {
 import { calculateLevel } from './gamification.js'
 import { marcarLeido, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
+import { engancharCompartir } from './compartir.js'
 import { engancharAutocompletarMenciones } from './mencion-autocompletar.js'
 
 // Un tema del foro.
@@ -134,9 +135,16 @@ function pintarCabecera(perfilAutor) {
       · <span title="${escapeHtml(fechaLarga(tema.created_at))}">${escapeHtml(haceCuanto(tema.created_at))}</span>
       · ${icons.eye(13)} ${tema.view_count || 0}
       ${sesion ? '<button type="button" class="tema-seguir" id="btnSeguirTema" aria-pressed="false">…</button>' : ''}
+      ${
+        // Compartir SIN pedir cuenta, a diferencia de "Seguir": es la
+        // mitad de la gracia. Alguien llega a un hilo desde fuera, le
+        // resuelve la duda, y se lo pasa a otro que tiene la misma.
+        `<button type="button" class="tema-seguir" id="btnCompartirTema">${icons.share(13)} Compartir</button>`
+      }
     </p>
     ${soyStaff ? panelModeracionHtml() : ''}`
 
+  engancharCompartir(document.getElementById('btnCompartirTema'), { titulo: tema.title })
   if (sesion) engancharSeguir()
   if (soyStaff) {
     document.getElementById('btnFijar')?.addEventListener('click', () => moderar({ is_pinned: !tema.is_pinned }))

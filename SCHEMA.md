@@ -7135,3 +7135,130 @@ apagar `abrirSpoilers()`, y el motivo es el de arriba: la prueba miraba
 solo el spoiler recién puesto, que nace abierto solo. El caso que
 faltaba —volver a abrir una guía que ya tenía uno guardado— es
 precisamente el que deja al autor sin poder tocar su propio texto.
+
+# Compartir una guía o un tema
+
+Hasta ahora, pasarle una guía a alguien pedía ir a la barra del navegador
+y copiar la dirección a mano. En el móvil eso es bastante trabajo, y el
+móvil es donde está casi todo el mundo. Cada persona que comparte es
+alcance que no cuesta nada.
+
+Un botón en la guía (junto a Guardar) y otro en el tema del foro (junto a
+Seguir), los dos desde `js/compartir.js`.
+
+## Dos caminos, y el segundo no sobra
+
+- **Si el navegador tiene `navigator.share`** —el móvil, y algún
+  navegador de escritorio— se abre **la hoja de compartir del sistema**:
+  WhatsApp, Telegram, el correo, lo que tenga instalado. Es lo que la
+  gente espera al pulsar ese icono.
+- **Si no la tiene**, se copia el enlace al portapapeles y se avisa. Sin
+  ventanas propias que mantener.
+
+Y dentro del segundo camino hay **otro repuesto**:
+`navigator.clipboard` solo existe en contexto seguro (https o
+localhost). Quien entre por http o con un navegador viejo se quedaría
+con un botón que no hace nada, así que se cae a un `<textarea>` fuera de
+pantalla con `execCommand('copy')`.
+
+## Compartir NO pide cuenta
+
+A diferencia de «Seguir», el botón se le enseña también a quien no ha
+entrado. Es media gracia del asunto: alguien llega desde fuera, le
+resuelve la duda, y se lo pasa a otro que tiene la misma.
+
+## Cancelar no es fallar
+
+El detalle que se suele hacer mal: abrir la hoja del sistema y cerrarla
+sin elegir nada **lanza `AbortError`**. No es un error, es alguien que ha
+cambiado de opinión — enseñarle «no se ha podido compartir» sería
+mentirle. Se distingue por el nombre del error: `AbortError` se traga en
+silencio, y cualquier otro sí cae al camino de copiar, para que el botón
+nunca se quede sin hacer nada.
+
+## Cómo se ha probado
+
+`test-compartir.mjs`, 20 comprobaciones: el botón en las dos pantallas,
+también sin cuenta, que copia **la dirección de lo que se está mirando** y
+no otra, el repuesto sin portapapeles moderno, que con hoja del sistema
+la usa **y no copia además** (si no, saldría un aviso por encima de la
+hoja), que cancelar no dice nada, y que un fallo de verdad sí cae a
+copiar.
+
+Rigor: **8 roturas, 8 pilladas**.
+
+# Cuando alguien envía una guía a revisión, no se enteraba nadie
+
+El agujero, encontrado buscándolo: **no había ningún aviso**. La fila se
+quedaba en la cola de `/admin` esperando a que alguien del equipo entrara
+a mirar por su cuenta. Con veinte personas se aguanta; con el foro
+abierto, una guía puede pasarse días muerta mientras su autor piensa que
+le están ignorando — y escribir una guía cuesta días de trabajo.
+
+`supabase-migration-aviso-guia-revision.sql`.
+
+## Por qué un disparador y no el JavaScript del panel
+
+Porque salta **venga el cambio de donde venga**: el editor del autor, el
+panel de admin, o una consulta a mano en el editor SQL. Un aviso metido
+en el `click` de un botón concreto solo funciona desde ese botón.
+
+## El reparto con lo que ya había (para no duplicar)
+
+Esto es lo que hay que tener presente si se toca:
+
+| Qué pasa | Campanita | Correo |
+|---|---|---|
+| Enviada a revisión | **el disparador** (nadie lo hacía) | **el disparador** |
+| Aprobada | `admin/js/editor-guia.js`, ya existía | **el disparador** |
+| Rechazada | `admin/js/editor-guia.js`, ya existía | **el disparador** |
+
+Las campanitas de aprobado y rechazado se quedan en el JavaScript porque
+allí van acompañadas del XP y del aviso a los seguidores, que son cosa
+suya. Si algún día se mueven aquí, **hay que quitarlas de allí en el
+mismo cambio**, o llegarán dos.
+
+## Lo que no puede volver a avisar
+
+- **Cada guardado de una guía en revisión.** Desde que se puede seguir
+  editándolas, alguien puliendo su guía una tarde llenaría la campanita
+  de todo el equipo. Hay un guardián: si `review_status` no ha cambiado,
+  se sale.
+- **Una guía oficial**, sin autor: la escribe el propio equipo.
+- **El admin que escribe su propia guía**, a sí mismo: acaba de darle al
+  botón.
+
+## Los TRES sitios de un tipo de correo nuevo
+
+El propio `js/notifications.js` avisaba de esto, y aquí se ha cobrado la
+pieza. Un tipo nuevo hay que darlo de alta en:
+
+1. **La migración** que lo encola.
+2. **`EMAIL_TYPES`** en `js/notifications.js`, para la casilla del perfil.
+3. **`NOMBRES`** en `netlify/functions/baja-correo.mjs` — y este es el que
+   duele si se olvida: un tipo que esa lista no reconoce **apaga TODOS los
+   correos** de quien pulse «darse de baja». Un admin dándose de baja de
+   «guías para revisar» se habría quedado sin mensajes privados.
+
+`guide_submitted` va además en `EMAIL_TYPES_EQUIPO`, una lista aparte que
+solo se le pinta a quien tiene `is_admin`: enseñarle a un miembro normal
+una casilla para algo que no va a recibir nunca es ruido.
+
+## Cómo se ha probado
+
+**SQL contra un PostgreSQL de verdad**: 15 comprobaciones, incluida la
+puerta de atrás (la función es `SECURITY DEFINER`, así que sin el
+`revoke` PostgREST la expone como RPC y cualquiera con sesión podría
+colar avisos al equipo).
+
+Rigor: **10 roturas, 10 pilladas, a la segunda**. La que se escapó es
+instructiva y es la misma trampa de siempre: para probar «editar una guía
+en revisión no vuelve a avisar» hacía un `update ... set title = ...` a
+secas, y **el disparador ni siquiera saltaba** — está declarado `update of
+review_status`. Pero la app escribe `review_status` en **cada** guardado
+(lo mete `buildPayload`), así que en producción sí salta y lo único que
+para el aluvión es el guardián de dentro. Con el `update` que hace la app
+de verdad, la rotura sale roja.
+
+Navegador: `test-aviso-guia-ui.mjs`, 7 comprobaciones sobre quién ve qué
+casilla.

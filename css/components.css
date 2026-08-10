@@ -4373,6 +4373,12 @@ a.rater-name:hover {
   gap: 6px;
   margin: 0 0 14px;
   font-size: 12.5px;
+  /* Sin esto, la línea de la firma no cabe en un móvil estrecho: avatar,
+     nombre, fecha, vistas y DOS botones (Seguir y Compartir) suman más
+     de 360 px, y la página entera se arrastraba de lado. Con `wrap`, los
+     botones se caen a una segunda línea y ya está. */
+  flex-wrap: wrap;
+  row-gap: 8px;
 }
 
 .tema-moderacion {

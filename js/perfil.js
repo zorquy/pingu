@@ -4,7 +4,7 @@ import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
-import { NOTIFICATION_TYPES, EMAIL_TYPES } from './notifications.js'
+import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notifications.js'
 import { authorRatingSummary, starsHtml } from './guide-rating.js'
 import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
 import { renderWall } from './wall.js'
@@ -533,7 +533,12 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
     <div class="form-group">
       <label>Avisos por correo</label>
       <p class="subtext" style="margin:0 0 6px;">Solo te escribimos cuando alguien se dirige a ti directamente. Aunque lo desactives, lo seguirás viendo al entrar en la web.</p>
-      ${Object.entries(EMAIL_TYPES)
+      ${Object.entries({
+        ...EMAIL_TYPES,
+        // Los del equipo solo se le enseñan al equipo: al resto le
+        // saldría una casilla para algo que no va a recibir nunca.
+        ...(currentProfile?.is_admin ? EMAIL_TYPES_EQUIPO : {}),
+      })
         .map(([type, label]) => {
           const disabled = (currentProfile?.notification_email_disabled || []).includes(type)
           return `<label class="checkbox-row"><input type="checkbox" data-email-pref="${type}" ${disabled ? '' : 'checked'} /> ${escapeHtml(label)}</label>`

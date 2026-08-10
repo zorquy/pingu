@@ -58,6 +58,23 @@ export const EMAIL_TYPES = {
   forum_reply: 'Respuestas en temas que sigues',
   forum_mention: 'Cuando te mencionan con @tunombre',
   new_follower: 'Seguidores nuevos',
+  // Escribir una guía cuesta días, y hasta que el equipo la mira no hay
+  // ninguna señal. Estos dos son el final de esa espera: sin correo hay
+  // que entrar a la web a mirar por si acaso.
+  guide_approved: 'Cuando se aprueba tu guía',
+  guide_rejected: 'Cuando tu guía necesita cambios',
+}
+
+// Lo que solo le llega al equipo.
+//
+// Va en una lista aparte porque no tiene sentido enseñarle a un miembro
+// normal una casilla para algo que no va a recibir nunca. Pero el tipo
+// SÍ tiene que existir en la baja de un clic
+// (netlify/functions/baja-correo.mjs): si no lo reconociera, el enlace
+// de "darse de baja" de ese correo le apagaría al del equipo TODOS los
+// demás avisos de golpe.
+export const EMAIL_TYPES_EQUIPO = {
+  guide_submitted: 'Guías nuevas para revisar',
 }
 
 export async function createNotification({ recipientId, actorId, type, title, body = null, link = null }) {

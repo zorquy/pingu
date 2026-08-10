@@ -10,6 +10,7 @@ import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { montarBotonHelpful } from './guide-helpful.js'
+import { compartirHtml, engancharCompartir } from './compartir.js'
 import { contributorBadgeHtml } from './contributor-badge.js'
 import { montarSugerencia, creditosHtml } from './guide-suggestions.js'
 
@@ -200,6 +201,12 @@ async function init() {
         ${MOSTRAR_PLANES ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
         <button class="btn-secondary" id="btnSave" style="margin-left: auto; padding: 6px 12px; font-size: 13px;">${icons.bookmark(14)} Guardar</button>
         ${
+          // Compartir va aquí, junto a Guardar, y se le enseña también a
+          // quien no tiene cuenta: es justo quien acaba de llegar de
+          // fuera y quiere pasársela a alguien.
+          compartirHtml('btnCompartir', { clase: 'btn-secondary guia-compartir' })
+        }
+        ${
           // Arriba va DISCRETO, junto a Guardar: quien ya sabe que
           // quiere el curso lo encuentra sin leerse la teoría entera, y
           // a quien viene a leer no le tapa nada. La llamada de verdad
@@ -311,6 +318,8 @@ async function init() {
     if ((profile?.saved_guides || []).includes(guide.id)) btnSave.innerHTML = `${icons.bookmark(14, true)} Guardado`
     btnSave.addEventListener('click', () => toggleSave(session, guide.id, btnSave))
   }
+
+  engancharCompartir(document.getElementById('btnCompartir'), { titulo: guide.title })
 
   setupReadTracking(session, guide)
 

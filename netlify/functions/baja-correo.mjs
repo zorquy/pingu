@@ -35,6 +35,13 @@ const NOMBRES = {
   forum_reply: 'las respuestas en los temas que sigues',
   forum_mention: 'los avisos de cuando te mencionan',
   new_follower: 'los avisos de seguidores nuevos',
+  guide_approved: 'los avisos de cuando se aprueba tu guía',
+  guide_rejected: 'los avisos de cuando tu guía necesita cambios',
+  // Solo lo recibe el equipo, pero tiene que estar aquí igual: un tipo
+  // que esta lista no reconoce apaga TODOS los correos de esa persona
+  // (ver más abajo), y darse de baja de "guías para revisar" no puede
+  // dejar a un admin sin sus mensajes privados.
+  guide_submitted: 'los avisos de guías nuevas para revisar',
 }
 const TIPOS = Object.keys(NOMBRES)
 
