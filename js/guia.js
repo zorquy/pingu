@@ -199,22 +199,33 @@ async function init() {
         <span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
         <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
         ${MOSTRAR_PLANES ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
-        <button class="btn-secondary" id="btnSave" style="margin-left: auto; padding: 6px 12px; font-size: 13px;">${icons.bookmark(14)} Guardar</button>
-        ${
-          // Compartir va aquí, junto a Guardar, y se le enseña también a
-          // quien no tiene cuenta: es justo quien acaba de llegar de
-          // fuera y quiere pasársela a alguien.
-          compartirHtml('btnCompartir', { clase: 'btn-secondary guia-compartir' })
-        }
-        ${
-          // Arriba va DISCRETO, junto a Guardar: quien ya sabe que
-          // quiere el curso lo encuentra sin leerse la teoría entera, y
-          // a quien viene a leer no le tapa nada. La llamada de verdad
-          // va abajo, al terminar de leer.
-          hayCurso
-            ? `<a class="btn-secondary guia-ir-al-curso" href="curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(14)} Hacer el curso</a>`
-            : ''
-        }
+        <!-- Los botones van en su propio grupo, no sueltos entre las
+             etiquetas. Sueltos, el "margin-left: auto" lo llevaba solo
+             Guardar: en cuanto la línea no cabía, Compartir se caía a la
+             línea de abajo él solo y con el tamaño de botón grande. El
+             grupo se envuelve entero o no se envuelve. -->
+        <div class="guia-acciones">
+          <button class="btn-secondary" id="btnSave">${icons.bookmark(14)} Guardar</button>
+          ${
+            // Compartir va aquí, junto a Guardar, y se le enseña también
+            // a quien no tiene cuenta: es justo quien acaba de llegar de
+            // fuera y quiere pasársela a alguien.
+            compartirHtml('btnCompartir', { clase: 'btn-secondary' })
+          }
+          ${
+            // Arriba va DISCRETO, junto a Guardar: quien ya sabe que
+            // quiere el curso lo encuentra sin leerse la teoría entera, y
+            // a quien viene a leer no le tapa nada. La llamada de verdad
+            // va abajo, al terminar de leer.
+            //
+            // `guia-ir-al-curso` ya no lleva estilo propio —el tamaño lo
+            // da el grupo—, pero la clase se queda: es el asidero por el
+            // que encuentra este botón test-guia-curso.mjs.
+            hayCurso
+              ? `<a class="btn-secondary guia-ir-al-curso" href="curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(14)} Hacer el curso</a>`
+              : ''
+          }
+        </div>
       </div>
     </div>
     ${

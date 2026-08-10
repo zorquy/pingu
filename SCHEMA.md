@@ -7187,6 +7187,34 @@ copiar.
 
 Rigor: **8 roturas, 8 pilladas**.
 
+## El botón se veía mal en el móvil
+
+Lo cazó Iker en su teléfono, no la prueba. Compartir salía **en su propia
+línea, pegado a la izquierda y con el botón grande**, mientras Guardar se
+quedaba arriba a la derecha.
+
+Dos causas encadenadas:
+
+1. `#btnSave` llevaba su tamaño compacto en un `style=` **en línea**, y
+   `.guia-compartir` no tenía ninguna regla. Uno compacto, otro no.
+2. El `margin-left: auto` estaba en **Guardar**, no en un grupo. En cuanto
+   la línea no cabía, Compartir se envolvía él solo.
+
+Ahora los tres botones (Guardar, Compartir y, si la hay, ir al curso) van
+en un `.guia-acciones` que se envuelve entero o no se envuelve, con el
+tamaño en el CSS y no en un atributo. Debajo de 560 px baja completo y
+pegado a la izquierda.
+
+**La lección del rigor, otra vez la de siempre:** las dos primeras
+comprobaciones que escribí eran **relativas** —«Compartir mide lo mismo
+que Guardar»— y **pasaban con el fallo puesto**, porque al quitar la
+regla los dos se hacían grandes a la vez. Con una medida absoluta (el
+botón compacto mide 28 px, el grande 43) las tres roturas salen rojas.
+
+Y el arreglo trajo su propia regresión, que pilló la suite: quité la
+clase `guia-ir-al-curso` por redundante y `test-guia-curso.mjs` la usaba
+como asidero. La clase se queda aunque no pinte nada.
+
 # Cuando alguien envía una guía a revisión, no se enteraba nadie
 
 El agujero, encontrado buscándolo: **no había ningún aviso**. La fila se

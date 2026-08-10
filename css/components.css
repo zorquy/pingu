@@ -5445,10 +5445,34 @@ a.reto-tarjeta:hover {
   }
 }
 
-/* El botón de arriba, discreto y sin robarle sitio a Guardar. */
-.guia-ir-al-curso {
+/* Los botones de la cabecera de la guía: Guardar, Compartir y, si la hay,
+   ir al curso. Van juntos y son los tres del mismo tamaño discreto — el
+   protagonista de esa zona es el título, no ellos. */
+.guia-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  /* En una guía que además tiene curso son TRES botones, y a 360 px no
+     caben en una línea. Sin esto se salen por la derecha y la página
+     entera se arrastra de lado. */
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.guia-acciones .btn-secondary {
   padding: 6px 12px;
   font-size: 13px;
+}
+
+/* En el móvil no caben en la línea de las etiquetas. Bajan los tres
+   juntos y pegados a la izquierda: con el "margin-left: auto" puesto se
+   irían al lado derecho, lejos de todo lo demás. */
+@media (max-width: 560px) {
+  .guia-acciones {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 /* ── Encuestas del foro ──
