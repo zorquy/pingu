@@ -7488,10 +7488,38 @@ primera para comprobar idempotencia y deshacía la segunda en silencio.
 - **`js/guia.js`**: botón «Editar» en la propia guía si es tuya y está
   publicada. Es donde su autor la relee y donde ve la errata.
 
+## `upsert` no vale aquí, y las pruebas no lo vieron
+
+Lo destapó un usuario en producción, con el permiso ya abierto: guardar
+seguía muriendo con **«new row violates row-level security policy»**.
+
+El editor guardaba con `.upsert()`, que PostgREST manda como
+`INSERT ... ON CONFLICT DO UPDATE`. Postgres le aplica **también la
+política de INSERCIÓN** a la fila propuesta, y `guides_author_insert`
+sólo admite `draft` y `pending`. Así que el guardado moría ahí, **sin
+llegar nunca** a `guides_author_update`, que sí lo permite.
+
+Y no se arregla abriendo la política de inserción: eso dejaría **crear de
+cero** una guía ya publicada, que es el mismo agujero por otra puerta (el
+disparador es `before update`, no ve un insert nuevo). Hay una rotura del
+rigor puesta precisamente sobre ese arreglo tentador.
+
+El arreglo es que el editor haga **`update` si la guía existe** e
+**`insert` si es nueva**. Cada operación pasa por su política y la
+inserción se queda cerrada.
+
+**Por qué las pruebas no lo pillaron**: las de SQL usaban `update` a
+secas y la app usaba `upsert` — caminos distintos en Postgres. Es la misma
+trampa de siempre, la prueba no hacía lo que hace la app. Ahora se
+comprueban las tres sentencias, y en el navegador se comprueba **qué tipo
+de escritura manda el editor** (el doble de Supabase no aplica RLS, así
+que el error no se puede reproducir allí, pero la sentencia sí se puede
+mirar).
+
 ## Cómo se ha probado
 
-**SQL contra un PostgreSQL de verdad** (`prueba-editar-publicada.sql`): 24
-comprobaciones. Rigor: **11 roturas, 11 pilladas**, incluida «sin
+**SQL contra un PostgreSQL de verdad** (`prueba-editar-publicada.sql`): 27
+comprobaciones. Rigor: **12 roturas, 12 pilladas**, incluida «sin
 disparador, un borrador se publica solo».
 
 Una se escapó al principio y enseña algo: quitar `rejected` del permiso no
@@ -7499,8 +7527,8 @@ ponía nada en rojo, porque eso lo prueba **otro** fichero. Como esta
 migración reescribe la misma política, el runner pasa ahora **las dos**
 pruebas, cada una sobre una base recién sembrada.
 
-**Navegador** (`test-editar-publicada.mjs`): 24 comprobaciones. Rigor:
-**11 roturas, 11 pilladas**. Las dos que más importan son las que no dan
+**Navegador** (`test-editar-publicada.mjs`): 30 comprobaciones. Rigor:
+**13 roturas, 13 pilladas**. Las dos que más importan son las que no dan
 ningún error visible: guardar la publicada como `draft` (la saca de la
 web) o como `pending` (la mete en una cola que nadie pidió).
 

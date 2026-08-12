@@ -244,9 +244,23 @@ async function save(reviewStatus) {
   document.getElementById('btnSubmit').disabled = true
 
   const payload = buildPayload(reviewStatus)
-  if (existingGuide?.id) payload.id = existingGuide.id
 
-  const { error } = await supabase.from('guides').upsert(payload)
+  // Guía que ya existe: UPDATE. Guía nueva: INSERT. Nunca `upsert`.
+  //
+  // Esto no es cosmético, lo destapó un usuario en producción. `upsert`
+  // es `INSERT ... ON CONFLICT DO UPDATE`, y Postgres le aplica también
+  // la política de INSERCIÓN a la fila propuesta. Esa política sólo
+  // admite 'draft' y 'pending' — a propósito, porque si admitiera
+  // 'approved' cualquiera podría CREAR de cero una guía ya publicada,
+  // saltándose la revisión. Resultado: guardar una guía publicada moría
+  // con "new row violates row-level security policy" sin llegar siquiera
+  // a la política de actualización, que sí lo permite.
+  //
+  // Separando las dos operaciones, cada una pasa por la política que le
+  // toca y el agujero de la inserción se queda cerrado.
+  const { error } = existingGuide?.id
+    ? await supabase.from('guides').update(payload).eq('id', existingGuide.id)
+    : await supabase.from('guides').insert(payload)
   if (error) {
     showToast('No se pudo guardar la guía: ' + error.message)
     saving = false
