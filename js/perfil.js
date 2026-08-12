@@ -343,7 +343,13 @@ async function loadMyGuides(session) {
       // alguien, y que desaparezca mientras la están leyendo es peor que
       // tener que pedir que la quiten. La política de RLS dice lo mismo
       // (ver supabase-migration-editar-en-revision.sql).
-      const canEdit = ['draft', 'rejected', 'pending'].includes(g.review_status)
+      //
+      // Y una PUBLICADA también, desde el 10 de agosto: si no, su autor
+      // no puede ni corregir una errata, y tampoco puede sugerir una
+      // corrección (ese formulario se le esconde al autor). Borrarla
+      // sigue sin poder ser: la gente la tiene guardada y puede estar
+      // enlazada desde fuera.
+      const canEdit = ['draft', 'rejected', 'pending', 'approved'].includes(g.review_status)
       const canDelete = g.review_status === 'draft' || g.review_status === 'rejected'
       return `
       <div class="my-guide-row">

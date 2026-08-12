@@ -7416,3 +7416,97 @@ Rigor: **18 roturas, 18 pilladas**. Dos que merecen quedarse escritas:
 - **«los votos de los demás salen marcados como míos».** El mismo `.eq`
   que falta, esta vez al leer: la pantalla decide que ya has votado
   porque ha votado alguien.
+
+# El autor no podía editar su guía ya publicada
+
+Lo avisó un usuario al que le habíamos aprobado la guía. Y no era «no
+encuentro el botón»: **no había ningún camino**.
+
+- **Editar**: la política sólo admitía `draft`, `rejected` y `pending`.
+  `approved` estaba fuera, y lo había puesto yo así, razonando que
+  cambiar por detrás una guía revisada es publicar sin revisar.
+- **Sugerir una corrección**: `js/guide-suggestions.js:61` se sale si eres
+  el autor — lo cual es correcto *si puedes editar*.
+
+Las dos piezas por separado tenían sentido; juntas dejaban al autor sin
+poder arreglar ni una errata en su propia guía. El único camino era
+pedírselo al equipo.
+
+Decisión tomada por Iker: **el autor edita y punto**, sin aviso ni vuelta
+a revisión. `supabase-migration-editar-publicada.sql`.
+
+## Meter `approved` en el `with check` ABRE UN AGUJERO
+
+Esto es lo que hay que entender antes de tocar nada de esto.
+
+Una política de RLS **no puede comparar la fila vieja con la nueva**: el
+`using` ve cómo está y el `with check` ve cómo queda, pero nunca las dos.
+Así que en cuanto el `with check` admite `approved` —y tiene que
+admitirlo, porque el editor escribe `review_status` en cada guardado— el
+autor de un borrador puede mandar `review_status = 'approved'` y
+**publicarse la guía él mismo**, saltándose la revisión entera. No es
+teórico: es una llamada a la API.
+
+Se cierra donde sí existen las dos versiones de la fila: un disparador
+`before update`. Y ya puesto, clava lo que decide quien revisa y no el
+autor:
+
+| Campo | Por qué |
+|---|---|
+| `review_status` | El autor sólo mueve draft ↔ pending. Ni se publica ni se rechaza. |
+| `published_at` | Es lo que hace pública la guía (lo mira `guides_select`). Con fecha a mano, un borrador sale en la web sin tocar el estado. |
+| `xp_reward`, `guide_rarity`, `is_pro` | Con la guía ya aprobada, subírselos es repartirse XP y rareza a placer. |
+
+El disparador usa `is_admin()` y **no** `is_staff()`, a propósito: hoy las
+guías las lleva sólo la administración (`guides_admin_all` es
+`using (is_admin())`), y un moderador no las toca ni con el disparador
+quitado. Si algún día se abren al equipo entero hay que cambiar **las dos
+cosas a la vez**; hay una comprobación puesta para que salte.
+
+## El orden de las migraciones importa, y no avisa
+
+`editar-en-revision.sql` y `editar-publicada.sql` **reescriben la misma
+política**. Manda la última que se ejecute. Ejecutar la anterior después
+de esta —por repasar— deja la versión vieja y quita el permiso, mientras
+el disparador se queda puesto: **no salta ningún error**, simplemente el
+autor vuelve a no poder editar. Se arregla volviendo a ejecutar la
+segunda.
+
+Me pasó a mí en el propio banco de pruebas: el runner re-ejecutaba la
+primera para comprobar idempotencia y deshacía la segunda en silencio.
+
+## Lo que cambia en la pantalla
+
+- **`js/editor-guia.js`**: `approved` entra en `loadExistingGuide`, hay un
+  `marcarPublicada()` que esconde «Guardar borrador» —guardarla como
+  borrador la **despublicaría** por corregir una errata— y
+  `estadoDelBotonPrincipal()`, que escribe `approved` y no `pending`:
+  volver a mandarla a la cola la sacaría de la web hasta que alguien la
+  reaprobara.
+- **`js/perfil.js`**: «Editar» en la fila de una publicada. «Eliminar»
+  **no**: la gente la tiene guardada y puede estar enlazada desde fuera.
+- **`js/guia.js`**: botón «Editar» en la propia guía si es tuya y está
+  publicada. Es donde su autor la relee y donde ve la errata.
+
+## Cómo se ha probado
+
+**SQL contra un PostgreSQL de verdad** (`prueba-editar-publicada.sql`): 24
+comprobaciones. Rigor: **11 roturas, 11 pilladas**, incluida «sin
+disparador, un borrador se publica solo».
+
+Una se escapó al principio y enseña algo: quitar `rejected` del permiso no
+ponía nada en rojo, porque eso lo prueba **otro** fichero. Como esta
+migración reescribe la misma política, el runner pasa ahora **las dos**
+pruebas, cada una sobre una base recién sembrada.
+
+**Navegador** (`test-editar-publicada.mjs`): 24 comprobaciones. Rigor:
+**11 roturas, 11 pilladas**. Las dos que más importan son las que no dan
+ningún error visible: guardar la publicada como `draft` (la saca de la
+web) o como `pending` (la mete en una cola que nadie pidió).
+
+`prueba-editar-revision.sql` y `test-editar-en-revision.mjs` tenían cada
+uno una comprobación que afirmaba la regla vieja. Se han actualizado —el
+cambio de regla es deliberado— dejando escrito qué cambió y cuándo. En la
+de SQL cambió además el **código de error**: aprobarse la guía uno mismo
+lo paraba la política (42501) y ahora lo para el disparador (23514). La
+regla es la misma; el mecanismo, no.

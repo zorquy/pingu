@@ -213,6 +213,15 @@ async function init() {
             compartirHtml('btnCompartir', { clase: 'btn-secondary' })
           }
           ${
+            // Y si la guía es tuya y ya está publicada, a editarla desde
+            // aquí. Es donde su autor la relee y donde ve la errata, no
+            // en una lista de su perfil. La pendiente ya tiene su propio
+            // "Seguir editando" arriba, dentro del aviso de revisión.
+            esMia && guide.review_status === 'approved'
+              ? `<a class="btn-secondary guia-editar-mia" href="editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Editar</a>`
+              : ''
+          }
+          ${
             // Arriba va DISCRETO, junto a Guardar: quien ya sabe que
             // quiere el curso lo encuentra sin leerse la teoría entera, y
             // a quien viene a leer no le tapa nada. La llamada de verdad

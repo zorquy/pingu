@@ -109,6 +109,28 @@ function marcarEnRevision() {
   aviso.classList.remove('hidden')
 }
 
+// Y en una guía YA PUBLICADA, "Guardar borrador" sería una trampa: la
+// despublicaría de la web por querer corregir una errata. Se esconde, y
+// el botón que queda guarda dejándola publicada.
+function marcarPublicada() {
+  document.getElementById('btnSaveDraft').classList.add('hidden')
+  document.getElementById('btnSubmit').textContent = 'Guardar cambios'
+  const aviso = document.getElementById('editorAvisoRevision')
+  aviso.textContent =
+    'Esta guía está publicada. Lo que guardes aquí se ve en la web al momento, así que revísalo antes.'
+  aviso.classList.remove('hidden')
+}
+
+// Qué estado se escribe al pulsar el botón principal.
+//
+// En una guía publicada NO es 'pending': volver a mandarla a la cola por
+// una errata la sacaría de la web hasta que alguien la reaprobara. Se
+// queda como está. La base lo respalda — el disparador de
+// supabase-migration-editar-publicada.sql no deja que el autor mueva el
+// estado de una guía publicada ni aunque se lo pida a mano.
+const estadoDelBotonPrincipal = () =>
+  existingGuide?.review_status === 'approved' ? 'approved' : 'pending'
+
 function renderCourse() {
   renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks, (file) => uploadGuideImage(currentSession.user.id, file))
 }
@@ -124,16 +146,18 @@ async function loadExistingGuide(session) {
   // echaba a perfil.html: no podías tocarla ni para una errata. Quien la
   // mandó a medias se quedaba sin poder terminarla.
   //
-  // `approved` sigue fuera: esa ya la ha leído el equipo y la está
-  // leyendo la comunidad. Cambiarla por detrás sería publicar sin
-  // revisar.
-  if (!['draft', 'rejected', 'pending'].includes(data.review_status)) {
+  // Y `approved` desde el 10 de agosto, por lo mismo llevado al
+  // extremo: a quien se la aprobaban se quedaba sin poder corregir ni
+  // una errata. Tampoco podía sugerir una corrección, porque ese
+  // formulario se le esconde justo al autor. Callejón sin salida.
+  if (!['draft', 'rejected', 'pending', 'approved'].includes(data.review_status)) {
     window.location.href = 'perfil.html'
     return
   }
   existingGuide = data
   document.getElementById('editorTitle').textContent = 'Editar guía'
   if (data.review_status === 'pending') marcarEnRevision()
+  if (data.review_status === 'approved') marcarPublicada()
   document.getElementById('mgTitle').value = data.title || ''
   document.getElementById('mgCoverEmoji').value = data.cover_emoji || ''
   coverImageUrl = data.cover_image || ''
@@ -201,11 +225,16 @@ async function save(reviewStatus) {
   // en su cola y de repente no hay nada que leer. Pero el aviso no puede
   // ser el mismo, porque ya está enviada — decirle "antes de enviarla a
   // revisión" a quien solo está guardando no explica nada.
-  if (reviewStatus === 'pending' && refBlocks.length === 0) {
+  //
+  // Y una publicada, menos todavía: eso lo está leyendo gente ahora
+  // mismo. Sólo el borrador puede quedarse vacío, que es lo que es.
+  if (reviewStatus !== 'draft' && refBlocks.length === 0) {
     showToast(
-      existingGuide?.review_status === 'pending'
-        ? 'La guía no puede quedarse sin contenido mientras está en revisión.'
-        : 'Añade contenido en la Guía antes de enviarla a revisión.'
+      existingGuide?.review_status === 'approved'
+        ? 'La guía está publicada: no puedes dejarla sin contenido.'
+        : existingGuide?.review_status === 'pending'
+          ? 'La guía no puede quedarse sin contenido mientras está en revisión.'
+          : 'Añade contenido en la Guía antes de enviarla a revisión.'
     )
     return
   }
@@ -309,7 +338,7 @@ async function init() {
   })
 
   document.getElementById('btnSaveDraft').addEventListener('click', () => save('draft'))
-  document.getElementById('btnSubmit').addEventListener('click', () => save('pending'))
+  document.getElementById('btnSubmit').addEventListener('click', () => save(estadoDelBotonPrincipal()))
 }
 
 init()
