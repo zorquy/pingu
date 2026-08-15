@@ -1,4 +1,5 @@
 import DOMPurify from './vendor/dompurify.js'
+import { esIdYoutube } from './video-youtube.js'
 import { parseDeckIds } from './cards-block.js'
 
 // Qué formato se puede guardar dentro de una guía, y cómo se normaliza.
@@ -68,7 +69,7 @@ const PORHEX_FONDO = Object.fromEntries(COLORES_FONDO.map((c) => [c.hex, c.clase
 const ALLOWED_TAGS = [
   'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'del',
   'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'blockquote',
-  'span', 'font', 'div', 'figure', 'figcaption', 'tcg-deck',
+  'span', 'font', 'div', 'figure', 'figcaption', 'tcg-deck', 'yt-video',
   // El spoiler: <details> con su <summary>. Se pliega y se despliega
   // solo, sin una línea de JavaScript, y el teclado lo abre igual que el
   // ratón — por eso es esto y no un div con un `click`.
@@ -78,7 +79,7 @@ const ALLOWED_TAGS = [
 // spoiler llega SIEMPRE cerrado a quien lo lee, deje el autor el editor
 // como lo deje. Si no, se podría publicar un spoiler ya abierto, que es
 // lo contrario de lo que se pide al ponerlo.
-const ALLOWED_ATTR = ['href', 'src', 'alt', 'target', 'rel', 'data-cards', 'class', 'style', 'color', 'align', 'width', 'height']
+const ALLOWED_ATTR = ['href', 'src', 'alt', 'target', 'rel', 'data-cards', 'data-yt', 'class', 'style', 'color', 'align', 'width', 'height']
 
 // Los elementos a los que se les respeta una anchura. En el resto, el
 // `style` se tira entero.
@@ -302,6 +303,24 @@ export function sanitizeRichText(html) {
     el.textContent = ''
     if (ids.length === 0) el.remove()
     else el.setAttribute('data-cards', ids.join(','))
+  })
+
+  // Y un <yt-video> guarda SOLO el identificador del vídeo. Aquí está la
+  // puerta de este invento, así que conviene tener claro qué la cierra:
+  //
+  // El autor NUNCA escribe el iframe — lo monta js/video-youtube.js con
+  // una dirección nuestra, metiendo dentro este identificador. Por eso el
+  // identificador tiene que ser un identificador y nada más: si se colara
+  // cualquier otra cosa, acabaría dentro de un src.
+  //
+  // `esIdYoutube` sólo admite once caracteres de [A-Za-z0-9_-]. Lo que no
+  // pase, fuera. Y lo de dentro se tira siempre, igual que en la lista de
+  // cartas: en el editor se rellena con la portada para que el autor vea
+  // algo, y esa portada no tiene por qué acabar guardada en la guía.
+  doc.querySelectorAll('yt-video').forEach((el) => {
+    const id = el.getAttribute('data-yt')
+    el.textContent = ''
+    if (!esIdYoutube(id)) el.remove()
   })
 
   return doc.body.innerHTML

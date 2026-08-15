@@ -7538,3 +7538,68 @@ cambio de regla es deliberado— dejando escrito qué cambió y cuándo. En la
 de SQL cambió además el **código de error**: aprobarse la guía uno mismo
 lo paraba la política (42501) y ahora lo para el disparador (23514). La
 regla es la misma; el mecanismo, no.
+
+# Vídeos de YouTube dentro de una guía o de un mensaje
+
+Lo pidió Iker viendo una guía real: su autor había dejado el enlace a su
+vídeo, y pulsarlo te saca de la guía justo cuando la estabas leyendo.
+
+`js/video-youtube.js`, más un botón en la barra del editor. Funciona en
+las guías **y en el foro**, porque los dos usan el mismo editor.
+
+## El autor no escribe el iframe. Nunca
+
+Es lo único que hay que entender de este trozo.
+
+Dejar pasar un `<iframe>` del usuario en el saneador es abrir la puerta
+de par en par: puede apuntar donde quiera, cargar lo que quiera y tapar
+la página con algo transparente encima de un botón de verdad.
+
+Lo que se guarda es `<yt-video data-yt="ID">`: once caracteres y nada
+más. **El iframe lo monta nuestro código**, con una dirección que
+escribimos nosotros y el identificador metido dentro. Es el mismo patrón
+que `<tcg-deck>` — se guarda el dato, no el resultado.
+
+La puerta la cierra el saneador, y por eso el filtro es tan estrecho:
+
+```js
+const ID_VALIDO = /^[A-Za-z0-9_-]{11}$/
+```
+
+Lo que no pase, se cae la etiqueta entera. Sin eso, ese valor acabaría
+dentro de un `src` — que es exactamente cómo se cuela una inyección.
+
+`idDeYoutube()` entiende las formas en que la gente pega un enlace
+(`youtu.be/ID`, `watch?v=ID`, `/shorts/`, `/embed/`, `/live/`) y compara
+el **hostname exacto** contra una lista. Nada de `startsWith`:
+`youtube.com.malo.es` empieza por `youtube.com` y no es YouTube. Hay una
+rotura del rigor puesta justo sobre eso.
+
+## Nada sale hacia Google hasta que alguien lo pulsa
+
+Lo que se pinta de entrada es una portada **nuestra**, dibujada con un
+SVG propio. Ni el reproductor, ni la miniatura de Google —que también
+sería una visita contada—. Solo al pulsar se crea el iframe, contra
+`youtube-nocookie.com`.
+
+Son tres cosas a la vez, y la primera manda: la política de privacidad
+dice que la web no lleva nada de terceros, y un iframe de YouTube en cada
+visita la convertiría en mentira. Además una guía con cuatro vídeos
+pesaría varios megas antes de leer la primera línea.
+
+`privacidad.html` lo declara en el punto 6, incluida la parte buena: que
+mientras no lo reproduzcas no se le pide nada a YouTube.
+
+## Cómo se ha probado
+
+`test-video-youtube.mjs`: 33 comprobaciones. La prueba **cuenta las
+peticiones que salen del navegador** y comprueba que no hay ninguna a
+Google antes del clic — es la única forma de comprobar de verdad la parte
+de privacidad, porque el resto es mirar HTML.
+
+Rigor: **11 roturas, 11 pilladas, a la segunda**. La que se escapó es la
+misma trampa que ya salió con los spoilers: quitar el `contenteditable`
+de `hydrateVideos` no ponía nada en rojo, porque **el vídeo recién
+insertado lo trae puesto del propio editor**. Solo se nota al REABRIR una
+guía guardada, donde ese atributo ya no está (el saneador no lo admite).
+Con esa comprobación añadida, la rotura sale roja.

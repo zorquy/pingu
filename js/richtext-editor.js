@@ -1,6 +1,7 @@
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { deckAttrValue, hydrateDecks } from './cards-block.js'
+import { idDeYoutube, hydrateVideos } from './video-youtube.js'
 import { openCardPicker } from './card-picker.js'
 import { sanitizeRichText, COLORES_TEXTO, COLORES_FONDO, anchuraPorcentaje } from './richtext-format.js'
 
@@ -112,6 +113,7 @@ export function richTextToolbarHtml() {
     <span class="rte-sep" aria-hidden="true"></span>
     <button type="button" data-action="image" title="Insertar imagen">${icons.image(15)} Imagen</button>
     <button type="button" data-action="cards" title="Insertar cartas del catálogo">${icons.layers(15)} Cartas</button>
+    <button type="button" data-action="video" title="Insertar un vídeo de YouTube">${icons.gamepad(15)} Vídeo</button>
     <input type="file" accept="image/*" class="rte-image-input" hidden />
   </div>
   ${barraBloqueHtml()}`
@@ -177,7 +179,7 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   // arriba, o el <p><br></p> que deja el navegador al borrarlo todo,
   // parecen contenido: sin esto, una guía sin escribir nada contaría
   // como escrita y se podría enviar a revisión.
-  const superficieVacia = () => !surfaceEl.textContent.trim() && !surfaceEl.querySelector('img, tcg-deck')
+  const superficieVacia = () => !surfaceEl.textContent.trim() && !surfaceEl.querySelector('img, tcg-deck, yt-video')
 
   // El texto de ayuda de una superficie vacía.
   //
@@ -372,6 +374,37 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     }
   })
 
+  // ── Vídeo de YouTube ──
+  //
+  // Se pide el enlace y se guarda SOLO el identificador. El iframe no lo
+  // escribe el autor en ningún momento — ver js/video-youtube.js.
+  const btnVideo = toolbarEl.querySelector('[data-action="video"]')
+  if (btnVideo) {
+    btnVideo.addEventListener('click', () => {
+      const donde = bloqueDelCursor()
+      const pegado = window.prompt('Pega el enlace del vídeo de YouTube:')
+      if (pegado === null) return
+      const id = idDeYoutube(pegado)
+      if (!id) {
+        showToast('Ese enlace no parece de YouTube. Copia la dirección del vídeo y vuelve a intentarlo.')
+        return
+      }
+      const bloque = document.createElement('yt-video')
+      bloque.setAttribute('data-yt', id)
+      bloque.setAttribute('contenteditable', 'false')
+      if (donde) donde.after(bloque)
+      else surfaceEl.appendChild(bloque)
+
+      // Un párrafo detrás, o el cursor se queda atrapado debajo del
+      // vídeo y no hay forma de seguir escribiendo.
+      const p = document.createElement('p')
+      p.innerHTML = '<br>'
+      bloque.after(p)
+      hydrateVideos(surfaceEl)
+      emit()
+    })
+  }
+
   // ── Cartas ──
   // La lista se inserta como <tcg-deck data-cards="...">, y acto seguido
   // se rellena para que el autor la vea. Ese relleno NO se guarda: lo
@@ -401,6 +434,7 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
       bloque.after(p)
 
       await hydrateDecks(surfaceEl)
+      hydrateVideos(surfaceEl)
       seleccionar(bloque)
       emit()
     })
@@ -458,7 +492,7 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     if (bloque.parentNode === surfaceEl && bloque !== el) {
       bloque.after(fig)
       fig.appendChild(el)
-      if (!bloque.textContent.trim() && !bloque.querySelector('img, tcg-deck')) bloque.remove()
+      if (!bloque.textContent.trim() && !bloque.querySelector('img, tcg-deck, yt-video')) bloque.remove()
     } else {
       el.replaceWith(fig)
       fig.appendChild(el)
@@ -552,6 +586,7 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   // Al abrir el editor con una guía que ya tenía listas, hay que
   // pintarlas: en la fila guardada están vacías por definición.
   hydrateDecks(surfaceEl).catch(() => {})
+  hydrateVideos(surfaceEl)
 
   surfaceEl.addEventListener('input', emit)
   surfaceEl.addEventListener('blur', emit)

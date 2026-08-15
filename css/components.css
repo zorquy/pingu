@@ -5592,3 +5592,59 @@ a.reto-tarjeta:hover {
   flex-direction: column;
   gap: 6px;
 }
+
+/* ── Vídeos de YouTube ──
+   Lo que se ve de entrada es una portada NUESTRA, no el vídeo: hasta que
+   alguien la pulsa no se pide nada a Google. Ver js/video-youtube.js. */
+yt-video {
+  display: block;
+  margin: 20px 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #0d1b2a;
+  aspect-ratio: 16 / 9;
+  position: relative;
+}
+
+yt-video iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.yt-portada {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  color: #fff;
+  background: radial-gradient(120% 120% at 50% 40%, #24445c 0%, #0d1b2a 100%);
+  font: inherit;
+  transition: background 0.15s ease;
+}
+
+.yt-portada:hover { background: radial-gradient(120% 120% at 50% 40%, #2d5673 0%, #0d1b2a 100%); }
+.yt-play { display: flex; filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45)); }
+.yt-play svg { width: 68px; height: 48px; }
+.yt-texto { font-weight: 700; font-size: 16px; }
+.yt-nota { font-size: 12px; opacity: 0.7; }
+
+/* El enlace de repuesto: si alguien no quiere cargar el marco, o el
+   navegador lo bloquea, sigue habiendo forma de llegar al vídeo. */
+yt-video .yt-enlace {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: underline;
+}
+
+yt-video .yt-enlace:hover { color: #fff; }

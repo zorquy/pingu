@@ -4,6 +4,7 @@ import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { sanitizeRichText } from './richtext-format.js'
+import { hydrateVideos } from './video-youtube.js'
 import { createNotification } from './notifications.js'
 import {
   haceCuanto,
@@ -262,6 +263,10 @@ async function pintarMensajes() {
   elMensajes.innerHTML = lista
     .map((m, i) => mensajeHtml(m, desde + i + 1, perfiles, cuentas, citadoPorId, likesPorMensaje[m.id] || [], mencionados))
     .join('')
+
+  // Los vídeos de YouTube que haya en los mensajes. Pinta la portada; el
+  // iframe no se carga hasta que alguien lo pulsa (js/video-youtube.js).
+  hydrateVideos(elMensajes)
 
   elPaginacion.innerHTML = paginacionHtml(totalPaginas)
   elPaginacion.querySelectorAll('[data-pagina]').forEach((b) =>

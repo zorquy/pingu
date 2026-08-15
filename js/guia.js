@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, avatarStyle, guideHasCourse } from './app.js'
 import { renderReferenceBlocksHtml } from './block-editor.js'
 import { hydrateDecks } from './cards-block.js'
+import { hydrateVideos } from './video-youtube.js'
 import { renderRatingWidget } from './guide-rating.js'
 import { initGuideForum } from './guide-forum.js'
 import { markGuideRead, READ_XP } from './gamification.js'
@@ -286,6 +287,9 @@ async function init() {
   // rellenan con los datos de nuestra tabla. Va con .catch() porque una
   // lista que no cargue no puede tumbar el resto de la guía.
   hydrateDecks(main).catch(() => {})
+  // Los vídeos: pinta la portada, y el iframe no se carga hasta que
+  // alguien lo pulsa. Ver js/video-youtube.js.
+  hydrateVideos(main)
 
   // "Me ha servido" va ANTES de las estrellas, y es a propósito: es lo
   // que va a pulsar la mayoría. Pedir una nota de 1 a 5 nada más
