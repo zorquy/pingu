@@ -7,7 +7,7 @@ import { icons } from '../../js/icons.js'
 import { contentIconHtml, inlineIconHtml } from '../../js/content-icon.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
-import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto } from '../../js/tcgdex.js'
+import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR } from '../../js/tcgdex.js'
 import { checkSchema } from '../../js/schema-check.js'
 
 let categories = []
@@ -1659,18 +1659,22 @@ function renderCardsSets() {
         ${filas
           .map(
             (s) => `<tr>
-              <td>${escapeHtml(s.name)} <span class="admin-path">${escapeHtml(s.id)}${s.release_date ? ' · ' + s.release_date : ''}</span></td>
+              <td><span class="badge">${escapeHtml(s.market || 'WEST')}</span> ${escapeHtml(s.name)} <span class="admin-path">${escapeHtml(s.id)}${s.release_date ? ' · ' + s.release_date : ''}</span></td>
               <td>${s.imported_cards || 0}${s.card_count_total ? ` / ${s.card_count_total}` : ''}</td>
               <td>${s.imported_at ? '<span class="badge-ok">Importado</span>' : '<span class="badge-pending">Pendiente</span>'}</td>
-              <td><button class="btn-outline btn-small" data-import-set="${escapeHtml(s.id)}">${s.imported_at ? 'Reimportar' : 'Importar'}</button></td>
+              <td><button class="btn-outline btn-small" data-import-set="${escapeHtml(s.id)}" data-import-market="${escapeHtml(s.market || 'WEST')}">${s.imported_at ? 'Reimportar' : 'Importar'}</button></td>
             </tr>`
           )
           .join('')}
       </tbody>
     </table>`
 
+  // Se pasa el par (id, mercado): sólo con el id no se sabe cuál de los
+  // cuatro CS1a hay que importar.
   document.querySelectorAll('[data-import-set]').forEach((btn) =>
-    btn.addEventListener('click', () => importarSets([btn.dataset.importSet]))
+    btn.addEventListener('click', () =>
+      importarSets([{ id: btn.dataset.importSet, market: btn.dataset.importMarket }])
+    )
   )
 }
 
@@ -1680,12 +1684,20 @@ async function cargarSetsDeTcgdex() {
   btn.disabled = true
   cardsNota('Pidiendo la lista de sets a TCGdex…')
   try {
-    tcgSetsRemotos = await fetchSets()
-    const filas = tcgSetsRemotos.map(setToRow)
+    // Los cuatro mercados, uno detrás de otro. Cada set lleva el suyo
+    // dentro: sin eso, el CS1a chino pisaría al occidental — comparten
+    // identificador y son sets distintos.
+    tcgSetsRemotos = []
+    const filas = []
+    for (const market of MERCADOS_A_IMPORTAR) {
+      const sets = await fetchSets(market)
+      tcgSetsRemotos.push(...sets.map((x) => ({ ...x, market })))
+      filas.push(...sets.map((x) => setToRow(x, market)))
+    }
     // En trozos: PostgREST tiene un límite de tamaño de petición y 220
     // filas de una vez lo rozan.
     for (let i = 0; i < filas.length; i += 100) {
-      const { error } = await supabase.from('tcg_sets').upsert(filas.slice(i, i + 100), { onConflict: 'id' })
+      const { error } = await supabase.from('tcg_sets').upsert(filas.slice(i, i + 100), { onConflict: 'id,market' })
       if (error) throw error
     }
     cardsNota(`${filas.length} sets conocidos. Ahora "Importar los que faltan" trae las cartas.`)
@@ -1739,19 +1751,26 @@ async function importarSets(ids) {
   let cartasTotal = 0
   const fallos = []
 
-  for (const setId of ids) {
+  for (const par of ids) {
     if (importCancelado) break
+    // Un mismo identificador de set existe en varios mercados (CS1a está
+    // en occidental, chino tradicional, indonesio y tailandés), así que
+    // se importa por PAR (id, mercado). Pedirlo sólo con el id traería
+    // otro set y lo guardaría encima del que toca.
+    const setId = par.id
+    const market = par.market || 'WEST'
     try {
-      const set = await fetchSet(setId)
-      const filas = (set.cards || []).map((c) => cardToRow(c, setId))
+      const set = await fetchSet(setId, market)
+      const filas = (set.cards || []).map((c) => cardToRow(c, setId, market))
       for (let i = 0; i < filas.length; i += 200) {
-        const { error } = await supabase.from('tcg_cards').upsert(filas.slice(i, i + 200), { onConflict: 'id' })
+        const { error } = await supabase.from('tcg_cards').upsert(filas.slice(i, i + 200), { onConflict: 'id,market' })
         if (error) throw error
       }
       const { error: errSet } = await supabase
         .from('tcg_sets')
         .update({ imported_at: new Date().toISOString(), imported_cards: filas.length })
         .eq('id', setId)
+        .eq('market', market)
       if (errSet) throw errSet
       cartasTotal += filas.length
     } catch (err) {
@@ -1778,7 +1797,7 @@ function initCardsSection() {
   document.getElementById('btnLoadTcgSets')?.addEventListener('click', cargarSetsDeTcgdex)
   document.getElementById('btnDiagnosticar')?.addEventListener('click', diagnosticarCartas)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
-    importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => s.id))
+    importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )
   document.getElementById('btnCancelImport')?.addEventListener('click', () => {
     importCancelado = true

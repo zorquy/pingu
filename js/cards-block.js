@@ -1,5 +1,5 @@
 import { escapeHtml } from './app.js'
-import { cardsByIds, cardImageUrl } from './tcgdex.js'
+import { cardsByIds, cardImageUrl, refCarta, parseRefCarta, MERCADO_POR_DEFECTO } from './tcgdex.js'
 
 // Una lista de cartas dentro de una guía.
 //
@@ -23,7 +23,10 @@ export function parseDeckIds(valor) {
   return String(valor || '')
     .split(',')
     .map((s) => s.trim())
-    .filter((s) => /^[a-zA-Z0-9.]+-[a-zA-Z0-9.]+$/.test(s))
+    // "sv1-25" es una carta occidental; "CS1a-1@TW" la misma en chino
+    // tradicional. El sufijo es opcional para que las guías escritas
+    // antes de haber varios mercados sigan valiendo tal cual.
+    .filter((s) => /^[a-zA-Z0-9.]+-[a-zA-Z0-9.]+(@[A-Z]{2,4})?$/.test(s))
     .slice(0, MAX_CARTAS)
 }
 
@@ -32,7 +35,8 @@ export function deckAttrValue(ids) {
 }
 
 function cartaHtml(carta) {
-  const src = cardImageUrl(carta.image_path)
+  // El escaneo sale en el idioma del mercado de la carta.
+  const src = cardImageUrl(carta.image_path, 'low', carta.market)
   const setName = carta.tcg_sets?.name || carta.set_id
   const pie = `${carta.name} · ${setName} #${carta.local_id}`
   const img = src

@@ -263,7 +263,7 @@ function cartaJugableHtml(id, extraClass = '', extraAttrs = '') {
       <span class="carta-opcion-noimg">${escapeHtml(id)}</span>
     </button>`
   }
-  const src = cardImageUrl(carta.image_path, 'high')
+  const src = cardImageUrl(carta.image_path, 'high', carta.market)
   return `<button class="carta-opcion ${extraClass}" data-id="${escapeHtml(id)}" ${extraAttrs} aria-label="${escapeHtml(carta.name)}">
     ${
       src

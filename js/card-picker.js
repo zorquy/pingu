@@ -1,5 +1,5 @@
 import { escapeHtml } from './app.js'
-import { searchCards, cardImageUrl } from './tcgdex.js'
+import { searchCards, cardImageUrl, refCarta, MERCADOS_A_IMPORTAR, MERCADO_POR_DEFECTO } from './tcgdex.js'
 
 // Buscador de cartas del editor. Devuelve una promesa con la lista de
 // identificadores elegidos, o null si se cierra sin elegir.
@@ -12,7 +12,7 @@ const MAX = 60
 let contadorPeticion = 0
 
 function resultadoHtml(carta, elegida) {
-  const src = cardImageUrl(carta.image_path)
+  const src = cardImageUrl(carta.image_path, 'low', carta.market)
   const setName = carta.tcg_sets?.name || carta.set_id
   return `
     <li>

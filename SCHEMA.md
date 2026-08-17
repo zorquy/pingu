@@ -7685,3 +7685,95 @@ Rigor: **9 roturas, 9 pilladas**, entre ellas volver al español, volver a
 mezclar los dos idiomas, y que el diagnóstico deje de mirar los ids
 compartidos — que es la que dejaría tomar la decisión del esquema a
 ciegas.
+
+# Los mercados: japonés y los dos chinos
+
+Continuación de lo anterior, ya con los datos del diagnóstico en la mano.
+Y trajo una sorpresa que no buscaba nadie.
+
+## Lo que dijeron los datos
+
+**Los idiomas occidentales son UN catálogo traducido.** El español
+comparte sus 154 identificadores de set con el inglés. El alemán sus 153,
+el italiano sus 190, el portugués sus 123, el ruso sus 9 — **todos**. Sólo
+el francés tiene 3 sets propios (promos francesas). Así que importar el
+inglés (218 sets, 23.746 cartas) es importar el occidental entero: pedir
+los demás sería traer las mismas cartas con otro nombre.
+
+**Los asiáticos son catálogos propios**: japonés 177 sets, coreano 95,
+chino tradicional 98, chino simplificado 56, indonesio 70, tailandés 72.
+Y ojo — **el chino son dos catálogos, no dos traducciones**.
+
+## La sorpresa: los asiáticos se pisan ENTRE ELLOS
+
+El diagnóstico comparaba cada idioma contra el inglés, y ahí el japonés
+sólo comparte 4 ids. Parecía que no había problema.
+
+Pero en los ejemplos se veía otra cosa: **`CS1a`, `CS1b`, `CS2.5` y
+`CS4a` aparecen en chino tradicional, en indonesio Y en tailandés**, y
+`SVDs` en indonesio y tailandés. Son sets **distintos** con el mismo
+identificador.
+
+Con la clave siendo sólo `id`, importar dos de esos catálogos habría hecho
+que el segundo **pisara al primero sin dar ningún error**. Con colecciones
+de gente encima.
+
+**La limitación del diagnóstico queda escrita en el propio fichero**:
+compara contra el inglés, no todos contra todos. Se vio de refilón. Si
+hay que volver a decidir algo así, hay que mirar todos contra todos.
+
+## La clave pasa a (id, market)
+
+`supabase-migration-cartas-mercado.sql`. Las dos tablas, y la clave ajena
+de las cartas pasa a `(set_id, market) → (id, market)` — que además impide
+colgar una carta japonesa de un set occidental.
+
+Con eso, un choque entre mercados es **imposible por construcción**, y los
+4 ids que el japonés comparte con el inglés dejan de importar: son dos
+filas, una por mercado, que es justo lo que quiere quien colecciona.
+
+Mercados admitidos: `WEST JP KO CN TW ID TH`. Se importan cuatro
+(`MERCADOS_A_IMPORTAR` en `js/tcgdex.js`); coreano, indonesio y tailandés
+existen y están completos, y añadirlos es meterlos en esa lista.
+
+## Referenciar una carta desde una guía, sin romper las escritas
+
+Aquí había una trampa. Las guías guardan identificadores de carta en
+`data-cards`, y **el identificador ya no es único**.
+
+La referencia es **`id` a secas para el occidental** —igual que siempre, y
+por eso ninguna guía antigua se rompe— y **`id@MERCADO`** para el resto
+(`refCarta` / `parseRefCarta`). `parseDeckIds` acepta el sufijo opcional,
+y `cardsByIds` agrupa por mercado y hace una consulta por cada uno: sin
+eso, un `sv1-25` traería la carta cuatro veces.
+
+`searchCards` **exige mercado** (por defecto el occidental): sin filtrar,
+buscar «Charizard» devolvería la misma carta cuatro veces y quien monta
+una guía tendría que adivinar cuál es cuál.
+
+Y la imagen sale en el idioma **del mercado de la carta**, no en uno fijo:
+`cardImageUrl(path, calidad, market)`.
+
+## TCG Pocket, fuera
+
+Es la serie `tcgp`, presente en los siete catálogos occidentales. Es un
+juego de móvil: sus cartas no existen en papel, no se coleccionan y no se
+juegan en torneo. `SERIES_EXCLUIDAS` la quita en `fetchSets`.
+
+## Un detalle del panel que casi se cuela
+
+La tabla de sets tenía el botón de importar con `data-import-set="<id>"`.
+Con cuatro mercados, **un mismo id aparece hasta cuatro veces** y el botón
+habría importado siempre el primero que encontrara — trayendo el set
+equivocado y guardándolo encima del que toca. Ahora se importa por **par
+(id, mercado)**, y la fila enseña el mercado en una etiqueta.
+
+## Cómo se ha probado
+
+**SQL contra un PostgreSQL de verdad** (`prueba-cartas-mercado.sql`): 19
+comprobaciones, con el caso real como centro — meter el `CS1a` japonés y
+el chino tradicional al lado del occidental y comprobar que **ninguno
+pisa a los otros**. Rigor: **7 roturas, 7 pilladas**.
+
+**Cliente** (`test-tcgdex-idioma.mjs`): 43 comprobaciones con un `fetch`
+de mentira. Suite completa: **37/37 en verde**.
