@@ -3435,6 +3435,12 @@ tcg-deck {
   border-radius: 4px;
 }
 
+/* Cartas sin escaneo en el catálogo. Hay dos maneras de llegar aquí: que
+   la carta no tenga imagen guardada, o que la imagen dé error al cargarse
+   —y esa segunda antes dejaba un hueco invisible que parecía un fallo de
+   la web. El ancho lo pone el padre —.cp-result es una columna flex y
+   estira a sus hijos, comprobado rompiéndolo—; lo que hace falta aquí es
+   la proporción, que es lo que le da altura a un hueco sin imagen. */
 .cp-noimg {
   display: flex;
   align-items: center;
@@ -3442,8 +3448,61 @@ tcg-deck {
   aspect-ratio: 245 / 342;
   border-radius: 4px;
   background: var(--ice);
+  border: 1px dashed var(--border);
   color: var(--text-mid);
   font-size: 11px;
+  text-align: center;
+}
+
+/* Botones que se leen como un enlace: el "Ver más" de aquí, el "Editar" y
+   "Borrar" de un mensaje del foro, "Quitar la cita", "Cambiar mi voto".
+   La clase se usaba en cuatro sitios y NO ESTABA DEFINIDA en ninguno: con
+   el reset de `button` (sin borde, sin fondo y color heredado) salían
+   como texto normal, y nada indicaba que se podían pinchar. */
+.link-btn {
+  padding: 0;
+  font: inherit;
+  color: var(--navy);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link-btn:hover { color: var(--navy-dark); }
+
+.link-btn[disabled] {
+  color: var(--text-dim);
+  text-decoration: none;
+  cursor: default;
+}
+
+/* La caja de buscar y el selector de catálogo, en una fila. En el móvil
+   el selector baja debajo: los dos juntos no caben en 360 px. */
+.cp-buscar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cp-buscar .cp-input { flex: 1 1 200px; width: auto; }
+
+.cp-mercado {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-mid);
+}
+
+.cp-mercado select {
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  max-width: 100%;
 }
 
 .cp-name,

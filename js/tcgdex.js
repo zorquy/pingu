@@ -48,6 +48,19 @@ export const MERCADOS_A_IMPORTAR = ['WEST', 'JP', 'CN', 'TW']
 
 export const MERCADO_POR_DEFECTO = 'WEST'
 
+// Cómo se llama cada mercado en pantalla. El idioma va entre paréntesis
+// porque "occidental" no le dice nada a nadie: lo que se lee en la carta
+// es inglés.
+export const NOMBRE_MERCADO = {
+  WEST: 'Occidental (inglés)',
+  JP: 'Japonés',
+  CN: 'Chino simplificado',
+  TW: 'Chino tradicional',
+  KO: 'Coreano',
+  ID: 'Indonesio',
+  TH: 'Tailandés',
+}
+
 // Series que NO se importan. `tcgp` es Pokémon TCG Pocket: es un juego de
 // móvil, sus cartas no existen en papel y no se coleccionan ni se juegan
 // en torneo. Aparece en los siete catálogos occidentales.
@@ -201,25 +214,51 @@ export function normalizeSearch(texto) {
     .trim()
 }
 
-// Busca en NUESTRO espejo, no en TCGdex.
 // Busca en NUESTRO espejo, no en TCGdex, y SIEMPRE dentro de un mercado.
 //
 // El mercado no es opcional a propósito: sin filtrar, buscar "Charizard"
 // devolvería la misma carta cuatro veces —inglesa, japonesa y las dos
 // chinas— y quien monta una guía tendría que adivinar cuál es cuál.
-export async function searchCards(consulta, { limite = 24, setId = null, market = MERCADO_POR_DEFECTO } = {}) {
-  const termino = normalizeSearch(consulta)
-  if (termino.length < 2) return []
+//
+// ── Por palabras, no por la frase entera ──
+//
+// Antes se buscaba la cadena literal: "mewtwo ex" exigía esos ocho
+// caracteres SEGUIDOS. Así, "M Mewtwo EX" aparecía y "Mewtwo & Mew-GX"
+// no, sin ninguna razón que el que busca pueda entender. Ahora se parte
+// en palabras y se piden TODAS, en cualquier orden y en cualquier sitio
+// del nombre.
+//
+// ── Y devuelve el total ──
+//
+// Esto era lo que de verdad estaba mal. Devolvía 24 cartas y la pantalla
+// decía "24 resultados", así que parecía que sólo había 24. No: 24 era el
+// tope. Ahora se devuelve `total` (el de verdad, contado por Postgres) y
+// `desde` para pedir la página siguiente.
+export async function searchCards(
+  consulta,
+  { limite = 48, desde = 0, setId = null, market = MERCADO_POR_DEFECTO } = {}
+) {
+  const texto = normalizeSearch(consulta)
+  if (texto.length < 2) return { cartas: [], total: 0 }
+  // Las palabras de una letra se quedan: quien escribe "mewtwo x" está
+  // buscando la Mewtwo X, y tirar la "x" le devolvería las 80 Mewtwo.
+  const palabras = texto.split(/\s+/).filter(Boolean)
+
   let q = supabase
     .from('tcg_cards')
-    .select('id, market, set_id, local_id, name, image_path, tcg_sets(name)')
+    .select('id, market, set_id, local_id, name, image_path, tcg_sets(name)', { count: 'exact' })
     .eq('market', market)
-    .like('name_search', `%${termino.replace(/[%_]/g, '')}%`)
-    .limit(limite)
+  // Encadenar varios `like` los une con AND, que es lo que se quiere:
+  // todas las palabras presentes.
+  for (const palabra of palabras) q = q.like('name_search', `%${palabra.replace(/[%_]/g, '')}%`)
   if (setId) q = q.eq('set_id', setId)
-  const { data, error } = await q
+
+  // Alfabético: así las variantes de una misma carta salen juntas
+  // ("Mewtwo", "Mewtwo ex", "Mewtwo V"...) en vez de en orden aleatorio,
+  // que con 80 resultados es la diferencia entre buscar y rebuscar.
+  const { data, error, count } = await q.order('name_search').range(desde, desde + limite - 1)
   if (error) throw error
-  return data || []
+  return { cartas: data || [], total: count ?? 0 }
 }
 
 // ── Referenciar una carta desde una guía ──

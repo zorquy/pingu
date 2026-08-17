@@ -7805,3 +7805,109 @@ pisa a los otros**. Rigor: **7 roturas, 7 pilladas**.
 **Cliente** (`test-tcgdex-idioma.mjs`): 49 comprobaciones con un `fetch`
 de mentira. Rigor: **13 roturas, 13 pilladas**. Suite completa: **37/37 en
 verde**.
+
+# El buscador de cartas del editor
+
+Lo contó un usuario así: «busco mewtwo y sólo me salen 24 resultados. Y si
+busco mewtwo espacio x, salen 14. No salen todas, y alguna sale sin
+imagen». Tres fallos distintos con la misma cara.
+
+## 1. El tope se hacía pasar por el total
+
+`searchCards` traía 24 como máximo (su valor por defecto, y
+`card-picker.js` no pedía otro) y la pantalla ponía **«24 resultado(s)»**.
+Es decir: el número que se enseñaba era el tamaño de la página, presentado
+como si fuera cuántas cartas hay. Con 80 Mewtwo en el catálogo, la web
+decía 24 y no había nada que indicase que faltaban.
+
+Ahora la consulta lleva `count: 'exact'` y `searchCards` devuelve
+`{ cartas, total }` — el total lo cuenta Postgres, no nosotros. La
+pantalla dice **«Se ven 48 de 132»** y, mientras queden, un botón de **Ver
+más** que pide la página siguiente con `desde` y la **añade al final**
+(`insertAdjacentHTML`), sin repintar: quien está mirando la carta 40 no
+vuelve de golpe al principio.
+
+Dos detalles que costaron una rotura del rigor cada uno:
+
+- `desde: mas ? pintadas : 0`. Con `desde` fijo en 0, «Ver más» trae otra
+  vez las mismas 48 y la lista pasa a tener 96 filas duplicadas.
+- `if (btn.dataset.enganchado) return` al enganchar los resultados. Sin
+  esa marca, los botones que ya estaban reciben el oyente **otra vez**, y
+  pinchar una carta la añade y la quita en el mismo clic: no pasa nada, y
+  no hay ningún error que lo delate.
+
+## 2. Se buscaba la frase, no las palabras
+
+`.like('name_search', '%mewtwo ex%')` exige esos ocho caracteres
+**seguidos y en ese orden**. Así, «M Mewtwo EX» aparecía y «Mewtwo &
+Mew-GX» no; y dar la vuelta a las palabras no encontraba nada.
+
+Ahora se parte en palabras y se piden **todas**, en cualquier orden y en
+cualquier sitio del nombre — un `.like` por palabra, que en PostgREST se
+unen con AND. Las palabras de una letra **no se tiran**: quien escribe
+«mewtwo x» busca la Mewtwo X, y quitarle la «x» le devuelve las 80
+Mewtwo. Y el orden del resultado es `name_search`, para que las variantes
+de una carta salgan juntas en vez de en orden arbitrario.
+
+Aquí hubo que arreglar antes el **Supabase de mentira de las pruebas**:
+guardaba los `like` en un mapa por columna, así que el segundo pisaba al
+primero y buscar «mewtwo ex» valía por buscar «ex». La prueba habría dado
+por bueno cualquier resultado. Ahora se acumulan, como hace PostgREST.
+
+## 3. Las cartas sin escaneo dejaban un hueco invisible
+
+El `onerror` de la imagen hacía `this.style.visibility = 'hidden'`: la
+carta seguía ocupando su sitio, en blanco, sin decir nada. Ahora la
+imagen se sustituye por un recuadro con «sin imagen» (`.cp-noimg`, que ya
+existía para las cartas sin `image_path`).
+
+La proporción (`aspect-ratio: 245 / 342`) es lo que le da altura; el ancho
+lo estira `.cp-result`, que es una columna flex. Eso último **se comprobó
+rompiéndolo**: quitar el `width: 100%` no cambiaba nada, así que la
+declaración sobraba y se ha quitado en vez de dejarla ahí con un
+comentario que decía lo contrario.
+
+## De paso: elegir catálogo
+
+El buscador filtraba siempre por el mercado occidental, así que las
+japonesas y las chinas que se acaban de importar **no se podían meter en
+una guía**. Ahora hay un selector con los cuatro catálogos
+(`MERCADOS_A_IMPORTAR` + `NOMBRE_MERCADO`), y cambiarlo vuelve a buscar
+desde el principio: lo pintado era de otro mercado y no se puede mezclar.
+
+Lo que se guarda pasa a ser la **referencia** (`refCarta`), no el id: en el
+catálogo chino tradicional `mw1-1` es otra carta que la occidental, y
+`data-cards="mw1-1"` a secas significa la occidental. Con el selector
+puesto, guardar el id pelado habría metido en la guía una carta distinta
+de la que se eligió, sin error ninguno.
+
+## Y un botón que no se veía: `.link-btn`
+
+Al mirar la captura del buscador arreglado, el «Ver más» salía como texto
+normal. La causa: **`.link-btn` no estaba definida en ningún CSS**, y se
+usaba en cuatro sitios — aquí, «Editar» y «Borrar» de un mensaje del foro,
+«Quitar la cita» y «Cambiar mi voto» de una encuesta. Con el reset de
+`button` (sin borde, sin fondo, `color: inherit`) todos ellos se leían
+como texto corriente: la única pista de que se podían pulsar era el cursor.
+
+Ya está definida en `components.css`, como un enlace subrayado en el navy
+de la casa. Arregla los cuatro sitios de una vez, no sólo el «Ver más» —
+que era justo lo que hacía falta para que el arreglo del total sirviera de
+algo: si el botón no se ve, la web sigue pareciendo que sólo tiene 48
+cartas.
+
+## Cómo se ha probado
+
+`test-buscador-cartas.mjs` (ya en la suite; estaba fuera y se le habían
+quedado tres expectativas de antes del cambio de idioma). 71
+comprobaciones en el navegador, contra un catálogo de prueba grande
+(`window.__FAKE_TCG_MUCHAS__`: 52 Mewtwo, una sin escaneo, señuelos con
+«ex» que no son Mewtwo, y una del catálogo chino tradicional).
+
+Lo que se mide: que se pinten 48 y el total diga 52; que «Ver más» sume
+hasta 52 y desaparezca; que los resultados viejos sigan respondiendo
+después de traer más; que «mewtwo ex» y «ex mewtwo» den lo mismo; que el
+hueco sin imagen se vea y con qué tamaño; y que la referencia guardada de
+una carta china lleve `@TW`.
+
+Rigor: **13 roturas, 13 pilladas** (`rigor-buscador-cartas.py`).
