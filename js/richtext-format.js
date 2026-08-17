@@ -60,11 +60,43 @@ export const CLASES_ALINEACION = ['rt-al-i', 'rt-al-c', 'rt-al-d']
 // de acercar dos era flotarlas, que con pie de foto y tres imágenes es
 // imposible de predecir. Cuatro cartas en fila ahora es una fila de cuatro
 // columnas iguales, no cuatro imágenes peleándose.
-export const CLASES_FIGURA = ['rt-fig', 'rt-fig-i', 'rt-fig-c', 'rt-fig-d', 'rt-fila']
+// `rt-fig-carta` es una imagen CON FORMA DE CARTA. No la elige el autor: el
+// editor la pone al insertar una imagen más alta que ancha (ver
+// js/richtext-editor.js). Existe porque una carta a ancho de artículo mide
+// unos 950×1330 px, y cinco de esas seguidas son cinco pantallas de scroll:
+//
+//   "si meto cinco imágenes así y van en vertical una debajo de otra,
+//    quedará demasiado espaciado y no quedará bien"
+//
+// Con la clase, una carta suelta sale del tamaño de una carta, y varias
+// seguidas se agrupan en una fila.
+export const CLASES_FIGURA = ['rt-fig', 'rt-fig-i', 'rt-fig-c', 'rt-fig-d', 'rt-fila', 'rt-fig-carta']
 
 // Cuántas imágenes caben en una fila. Más de seis no es una fila, es una
 // tira de sellos: en el ancho de un artículo no se ve nada.
 export const COLUMNAS_MAX = 6
+
+// Cuántas columnas darle a una fila de N cartas.
+//
+// Hasta cuatro, una columna por carta: cuatro cartas en un artículo de 950
+// px salen a 215 px cada una, que es tamaño de carta de verdad. Con más de
+// cuatro, la rejilla parte en varias líneas sola, así que lo único que hay
+// que decidir es cuántas columnas dejan la ÚLTIMA línea más llena: cinco
+// cartas quedan mejor en 3+2 que en 4+1, y seis en 3+3 que en 4+2.
+export function columnasParaCartas(n) {
+  const cuantas = Math.max(1, Math.min(40, Math.floor(n) || 0))
+  if (cuantas <= 4) return cuantas
+  let mejor = 4
+  let mejorSobra = -1
+  for (const cols of [4, 3]) {
+    const sobra = cuantas % cols === 0 ? cols : cuantas % cols
+    if (sobra > mejorSobra) {
+      mejorSobra = sobra
+      mejor = cols
+    }
+  }
+  return mejor
+}
 
 export const CLASES_PERMITIDAS = new Set([
   ...COLORES_TEXTO.map((c) => c.clase),

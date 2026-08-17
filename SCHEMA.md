@@ -8184,3 +8184,103 @@ Tres roturas escaparon en la primera pasada y las tres enseñaron algo:
   crear la fila el editor ya les quita el ancho. Sólo se nota con HTML
   **pegado a mano**, que el saneador admite. Caso añadido con una fila cuyas
   figuras traen 40%, 100%, 25% y 60%: las cuatro tienen que salir iguales.
+
+# Una imagen de carta no es una imagen cualquiera
+
+La fila de arriba resolvía «cuatro cartas en la misma línea», pero **había
+que pedirla**. Y el caso que le importaba no era ese:
+
+> «Si meto cinco imágenes así y van en vertical una debajo de otra, quedará
+> demasiado espaciado y no quedará bien. (…) nadie va a querer leer una guía,
+> está leyendo una guía y de repente hay cinco imágenes en fila hacia abajo
+> en columna, no tiene sentido.»
+
+Y lo que lo hace inevitable:
+
+> «Estas cartas, intento insertarlas y no existen, no están. Entonces, es un
+> problema para mí, porque si la carta no existe, tengo que meter imágenes, y
+> si meto imágenes y pasa lo mismo, pues estamos en un problema.»
+
+O sea: el catálogo no le sirve para esas cartas, así que va a meter imágenes,
+y una imagen de carta a ancho de artículo mide **unos 950 × 1330 px**. Cinco
+así son cinco pantallas de scroll. Que exista un botón para agruparlas no
+arregla nada si el resultado por defecto ya es malo.
+
+## Se mira la FORMA de la imagen
+
+Al insertar, el editor mide la imagen y decide:
+
+```js
+const esFormaDeCarta = (m) => !!m && m.h >= m.w * 1.15 && m.h >= 200
+```
+
+Más alta que ancha **y** de al menos 200 px de alto. Las dos condiciones
+hacen falta:
+
+- Sin la proporción, una captura apaisada sería «carta» — y las genéricas
+  horizontales sí las quiere a ancho de línea.
+- Sin el mínimo de 200 px, un **icono** vertical de 24 × 32 (los que usan las
+  guías de rarezas dentro de una frase) se saldría del renglón.
+
+Si es carta, la imagen se envuelve en `<figure class="rt-fig rt-fig-c
+rt-fig-carta">`, y `rt-fig-carta` la deja a **230 px** (`min(230px, 42%)`, el
+tanto por ciento para el móvil): 320 px de alto en vez de 1330.
+
+**Se mide después de insertar, no antes.** Al revés, una imagen lenta dejaba
+al autor mirando una pantalla donde no pasaba nada. Y si no carga (o tarda
+más de 4 s), se queda como imagen normal: lo que no puede pasar es que una
+imagen que falla impida insertarla.
+
+## Y se juntan solas
+
+Si justo antes hay otra carta, se crea la fila; si ya hay una fila de cartas,
+la nueva entra en ella (hasta 8). Nadie pulsa nada. Dos detalles que no son
+obvios:
+
+- Los párrafos **vacíos** en medio no cuentan: son el hueco que el propio
+  editor deja detrás de cada imagen para poder seguir escribiendo. Un párrafo
+  **con texto** sí corta, porque entonces el autor ha seguido escribiendo y
+  la imagen nueva es otra cosa.
+- El diálogo de imagen admite **varias de una vez** (`multiple`), y se suben
+  y colocan de una en una: cuatro cartas son cuatro ficheros, y elegirlos de
+  uno en uno era abrir el diálogo cuatro veces para acabar con cuatro
+  imágenes en cuatro líneas.
+
+**Las columnas se reparten** (`columnasParaCartas`): hasta cuatro cartas, una
+columna cada una; con más, se eligen 3 o 4 según cuál deje la última línea
+más llena — cinco cartas quedan **3+2** y no 4+1, seis **3+3** y no 4+2.
+
+Dentro de la fila una carta tampoco crece sin límite (`max-width: 260px;
+justify-self: center`). Sin ese tope, una fila de dos en un artículo de 950 px
+daría dos columnas de 465, o sea dos cartas de 650 px de alto: el problema del
+principio otra vez, con dos imágenes en vez de una.
+
+## El interruptor de mano
+
+«Tamaño carta» en la barra del bloque, con su estado en `aria-pressed`. Hace
+falta para dos cosas: las guías **ya escritas** (sus imágenes no llevan la
+clase) y las veces que la detección se equivoque — un póster vertical no es
+una carta. Al activarlo se le **quita el ancho escrito a mano**; si no, un
+`width: 100%` anterior seguiría ganando y el botón no haría nada visible.
+
+La barra dice «Carta» en vez de «Imagen» cuando lo está: es la única pista de
+que la imagen mide lo que mide por eso.
+
+## Cómo se ha probado
+
+`test-cartas-verticales.mjs` (72 comprobaciones) en el navegador, subiendo
+ficheros **por el diálogo de verdad** y mirando también la guía publicada.
+Rigor: **21 roturas, 21 pilladas** (`rigor-cartas-verticales.py`).
+
+Dos cosas que hubo que arreglar del propio banco de pruebas:
+
+- **El Supabase de mentira devolvía `https://example.com/…` como URL de lo
+  subido**, y aquí eso no carga. Como el editor decide si algo es una carta
+  **midiéndolo**, la prueba habría salido verde sin probar nada. Ahora guarda
+  lo subido como `data:` URI y devuelve eso.
+- **Una rotura escapó**: quitar el «saltarse los párrafos vacíos» al agrupar
+  no rompía nada, porque en el camino normal ese párrafo lo borra
+  `asegurarFigura` al meter la imagen dentro. Pero basta **dar un Enter**
+  antes de poner la segunda carta para que queden dos huecos, y entonces sí
+  se notaba. Caso añadido, y la prueba comprueba primero que hay dos párrafos
+  vacíos — si no, no estaría probando lo que dice.

@@ -1633,6 +1633,28 @@ textarea.be-field {
   text-align: center;
 }
 
+/* ── Una imagen con forma de carta ─────────────────────────────────────
+   Una carta de Pokémon es más alta que ancha. A ancho de artículo mide
+   unos 950×1330 px, y eso significaba que UNA sola imagen se comía la
+   pantalla entera:
+
+     "si meto cinco imágenes así y van en vertical una debajo de otra,
+      quedará demasiado espaciado y no quedará bien"
+
+   Y no había forma de escaparse, porque las cartas que quería no están en
+   el catálogo y tenía que meterlas como imágenes.
+
+   Así que una carta sale del tamaño de una carta: 230 px de ancho es más o
+   menos lo que ocupa en la mano, se lee el nombre y el ataque, y ocupa 320
+   px de alto en vez de 1330. La clase la pone el editor al insertar una
+   imagen vertical (ver js/richtext-editor.js), y se puede quitar a mano.
+
+   `min()` con un tanto por ciento para que en el móvil no se coma media
+   pantalla: 42% de 350 px son 147 px, que sigue siendo una carta. */
+.rt-fig-carta {
+  width: min(230px, 42%);
+}
+
 /* ── Una fila de imágenes ──────────────────────────────────────────────
    El problema que resuelve: sólo se podía poner UNA imagen por línea. Una
    figura centrada es un bloque y se come la línea entera; y "hacerla
@@ -1676,6 +1698,16 @@ textarea.be-field {
   width: 100%;
   height: auto;
   object-fit: contain;
+}
+
+/* Una carta tampoco crece sin límite DENTRO de la fila. Dos cartas en un
+   artículo de 950 px tendrían 465 px de columna cada una, o sea 650 px de
+   alto: vuelta al problema del principio, con dos imágenes en vez de una.
+   Se queda a tamaño de carta y centrada en su columna, que es lo que hace
+   que una fila de dos y una de cuatro se lean igual. */
+.rt-fila > .rt-fig-carta {
+  max-width: 260px;
+  justify-self: center;
 }
 
 /* En el móvil, cuatro imágenes en 360 px son cuatro sellos. Tres o más

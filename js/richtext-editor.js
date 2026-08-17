@@ -3,7 +3,14 @@ import { icons } from './icons.js'
 import { deckAttrValue, hydrateDecks } from './cards-block.js'
 import { idDeYoutube, hydrateVideos } from './video-youtube.js'
 import { openCardPicker } from './card-picker.js'
-import { sanitizeRichText, COLORES_TEXTO, COLORES_FONDO, anchuraPorcentaje } from './richtext-format.js'
+import {
+  sanitizeRichText,
+  COLORES_TEXTO,
+  COLORES_FONDO,
+  anchuraPorcentaje,
+  columnasParaCartas,
+  COLUMNAS_MAX,
+} from './richtext-format.js'
 
 // El editor de la Documentación de una guía.
 //
@@ -78,6 +85,13 @@ function barraBloqueHtml() {
       ${b('ancho-50', '50%', 'Media anchura')}
       ${b('ancho-100', '100%', 'Ancho completo')}
     </span>
+    <!-- Interruptor de "esto es una carta". El editor lo pone solo al
+         insertar una imagen vertical, pero hace falta a mano para las
+         imágenes de las guías que ya estaban escritas, y para las veces que
+         se equivoque (un póster vertical no es una carta). -->
+    <span class="rte-blockbar-grupo" data-blockbar-carta>
+      ${b('carta', 'Tamaño carta', 'Tratarla como una carta: sale del tamaño de una carta y se junta con las de al lado')}
+    </span>
     <span class="rte-blockbar-grupo">
       ${b('al-i', icons.alignLeft(14), 'A la izquierda, con el texto alrededor')}
       ${b('al-c', icons.alignCenter(14), 'Centrada')}
@@ -119,10 +133,10 @@ export function richTextToolbarHtml() {
   return `<div class="rte-tools">
     ${botones}
     <span class="rte-sep" aria-hidden="true"></span>
-    <button type="button" data-action="image" title="Insertar imagen">${icons.image(15)} Imagen</button>
+    <button type="button" data-action="image" title="Insertar imágenes (puedes elegir varias de una vez)">${icons.image(15)} Imagen</button>
     <button type="button" data-action="cards" title="Insertar cartas del catálogo">${icons.layers(15)} Cartas</button>
     <button type="button" data-action="video" title="Insertar un vídeo de YouTube">${icons.gamepad(15)} Vídeo</button>
-    <input type="file" accept="image/*" class="rte-image-input" hidden />
+    <input type="file" accept="image/*" class="rte-image-input" multiple hidden />
   </div>
   ${barraBloqueHtml()}`
 }
@@ -366,21 +380,183 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   }
 
   // ── Imagen ──
+  //
+  // Se pueden elegir VARIAS de una vez, y se insertan una detrás de otra.
+  // Es lo que hacía falta para el caso de las cartas: cuatro cartas son
+  // cuatro ficheros, y elegirlos de uno en uno era abrir el diálogo cuatro
+  // veces para acabar con cuatro imágenes en cuatro líneas.
   const fileInput = toolbarEl.querySelector('.rte-image-input')
   toolbarEl.querySelector('[data-action="image"]').addEventListener('click', () => fileInput.click())
   fileInput.addEventListener('change', async () => {
-    const file = fileInput.files[0]
+    const ficheros = [...fileInput.files]
     fileInput.value = ''
-    if (!file || !uploadImage) return
-    try {
-      const url = await uploadImage(file)
-      devolverCursor()
-      ordenSilenciosa('insertImage', url)
-      emit()
-    } catch (err) {
-      showToast('No se pudo subir la imagen: ' + err.message)
+    if (ficheros.length === 0 || !uploadImage) return
+    const fallos = []
+    for (const file of ficheros) {
+      try {
+        // De una en una a propósito: cada imagen tiene que estar colocada
+        // antes de insertar la siguiente, porque la siguiente se agrupa con
+        // ella si las dos son cartas.
+        await insertarImagen(await uploadImage(file))
+      } catch (err) {
+        fallos.push(err.message)
+      }
     }
+    if (fallos.length === 1) showToast('No se pudo subir la imagen: ' + fallos[0])
+    else if (fallos.length > 1) showToast(`No se pudieron subir ${fallos.length} imágenes: ${fallos[0]}`)
   })
+
+  // ── Una imagen con forma de carta no es una imagen cualquiera ──
+  //
+  // Este es el problema que arregla todo lo que viene debajo:
+  //
+  //   "estas cartas, intento insertarlas y no existen, no están. Entonces,
+  //    es un problema para mí, porque si la carta no existe, tengo que
+  //    meter imágenes, y si meto imágenes y pasa lo mismo, pues estamos en
+  //    un problema"
+  //
+  // Una carta a ancho de artículo mide unos 950×1330: cinco seguidas son
+  // cinco pantallas de scroll y nadie se lee eso. Así que al insertar se
+  // mira la FORMA de la imagen y, si es más alta que ancha, se trata como
+  // carta: sale del tamaño de una carta y se junta con las de al lado.
+  //
+  // Se mira la forma y no el nombre del fichero ni un botón, porque el
+  // autor no tiene por qué saber nada de esto: sube sus cuatro cartas y
+  // salen bien.
+
+  // El alto tiene que ser al menos un 15% mayor que el ancho para contar
+  // como carta (una carta real es 1,4 veces más alta que ancha, así que
+  // sobra margen), y medir al menos 200 px: hay guías que usan iconos
+  // pequeños verticales dentro de una frase, y esos tienen que seguir
+  // fluyendo con el texto.
+  const esFormaDeCarta = (m) => !!m && m.h >= m.w * 1.15 && m.h >= 200
+
+  // Cuántas cartas se dejan juntar solas en una fila. Más de ocho ya no es
+  // una fila, es un álbum, y probablemente quiera una lista de cartas.
+  const CARTAS_POR_FILA_MAX = 8
+
+  // El tamaño real de una imagen ya metida en el documento. Si tarda o
+  // falla, se resuelve a null y la imagen se queda como imagen normal: lo
+  // que no puede pasar es que una imagen que no carga bloquee el insertarla.
+  function medida(img) {
+    if (img.complete && img.naturalWidth) return Promise.resolve({ w: img.naturalWidth, h: img.naturalHeight })
+    return new Promise((resolve) => {
+      let hecho = false
+      const acabar = () => {
+        if (hecho) return
+        hecho = true
+        resolve(img.naturalWidth ? { w: img.naturalWidth, h: img.naturalHeight } : null)
+      }
+      img.addEventListener('load', acabar, { once: true })
+      img.addEventListener('error', acabar, { once: true })
+      setTimeout(acabar, 4000)
+    })
+  }
+
+  const esParrafoVacio = (el) =>
+    !!el && el.tagName === 'P' && !el.textContent.trim() && !el.querySelector('img, tcg-deck, yt-video')
+
+  const esFiguraDeCarta = (el) => !!el && el.tagName === 'FIGURE' && el.classList.contains('rt-fig-carta')
+
+  // Una fila a la que se le puede añadir otra carta. Se pide que la última
+  // que hay dentro sea una carta: si es una fila de capturas apaisadas,
+  // meterle una carta la descuadra y nadie lo ha pedido.
+  function filaDeCartasAbierta(el) {
+    if (!el || !el.classList?.contains('rt-fila')) return null
+    const figuras = [...el.querySelectorAll(':scope > figure')]
+    if (figuras.length === 0 || figuras.length >= CARTAS_POR_FILA_MAX) return null
+    return esFiguraDeCarta(figuras[figuras.length - 1]) ? el : null
+  }
+
+  function insertarNodoEnCursor(nodo) {
+    devolverCursor()
+    const sel = document.getSelection()
+    const r = sel?.rangeCount ? sel.getRangeAt(0) : null
+    if (!r || !surfaceEl.contains(r.commonAncestorContainer)) {
+      surfaceEl.appendChild(nodo)
+      return
+    }
+    r.deleteContents()
+    r.insertNode(nodo)
+    r.setStartAfter(nodo)
+    r.collapse(true)
+    sel.removeAllRanges()
+    sel.addRange(r)
+    ultimoRango = r.cloneRange()
+  }
+
+  function ponerCursorEn(el) {
+    if (!el) return
+    const r = document.createRange()
+    r.selectNodeContents(el)
+    r.collapse(true)
+    const sel = document.getSelection()
+    sel?.removeAllRanges()
+    sel?.addRange(r)
+    ultimoRango = r.cloneRange()
+  }
+
+  // La imagen se mete PRIMERO y se decide después, cuando ya se sabe cómo
+  // es. Al revés (medir antes de insertar) una imagen lenta dejaba al autor
+  // mirando una pantalla en la que no pasaba nada.
+  async function insertarImagen(url) {
+    const img = document.createElement('img')
+    img.alt = ''
+    img.src = url
+    insertarNodoEnCursor(img)
+    emit()
+    const m = await medida(img)
+    // Puede haberla borrado mientras cargaba.
+    if (!img.isConnected || !surfaceEl.contains(img)) return
+    if (esFormaDeCarta(m)) convertirEnCarta(img)
+    emit()
+  }
+
+  function convertirEnCarta(img) {
+    const fig = asegurarFigura(img)
+    fig.classList.add('rt-fig-carta')
+    agruparConLaAnterior(fig)
+    // Un párrafo detrás: es donde sigue escribiendo, y es lo que hace que
+    // la siguiente imagen caiga pegada a esta y entre en la misma fila.
+    const caja = fig.closest('.rt-fila') || fig
+    if (!esParrafoVacio(caja.nextElementSibling)) {
+      const p = document.createElement('p')
+      p.innerHTML = '<br>'
+      caja.after(p)
+    }
+    ponerCursorEn(caja.nextElementSibling)
+    seleccionar(img)
+  }
+
+  // Si justo antes hay otra carta (o una fila de cartas), se juntan. Los
+  // párrafos vacíos que el propio editor deja detrás de cada imagen no
+  // cuentan como "algo en medio"; un párrafo CON texto sí, porque entonces
+  // el autor ha seguido escribiendo y la imagen nueva es otra cosa.
+  function agruparConLaAnterior(fig) {
+    let anterior = fig.previousElementSibling
+    while (esParrafoVacio(anterior)) anterior = anterior.previousElementSibling
+    if (!anterior) return
+
+    const fila = filaDeCartasAbierta(anterior)
+    if (fila) {
+      fila.appendChild(fig)
+      recolocarColumnas(fila)
+      return
+    }
+    if (!esFiguraDeCarta(anterior)) return
+
+    const nueva = document.createElement('div')
+    nueva.className = 'rt-fila'
+    anterior.before(nueva)
+    nueva.appendChild(anterior)
+    nueva.appendChild(fig)
+    recolocarColumnas(nueva)
+  }
+
+  function recolocarColumnas(fila) {
+    const cuantas = fila.querySelectorAll(':scope > figure').length
+    fila.setAttribute('data-cols', String(Math.min(COLUMNAS_MAX, columnasParaCartas(cuantas))))
+  }
 
   // ── Vídeo de YouTube ──
   //
@@ -454,6 +630,8 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   const grupoPie = toolbarEl.querySelector('[data-blockbar-pie]')
   const grupoFila = toolbarEl.querySelector('[data-blockbar-fila]')
   const grupoAncho = toolbarEl.querySelector('[data-blockbar-ancho]')
+  const grupoCarta = toolbarEl.querySelector('[data-blockbar-carta]')
+  const btnCarta = toolbarEl.querySelector('[data-bloque="carta"]')
   const rango = toolbarEl.querySelector('[data-bloque-ancho]')
   const valorRango = toolbarEl.querySelector('[data-bloque-valor]')
   let seleccionado = null
@@ -471,11 +649,18 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     el.classList.add('rt-sel')
     const esCartas = el.tagName === 'TCG-DECK'
     const fila = contenedor(el).closest?.('.rt-fila')
-    nombreBarra.textContent = esCartas ? 'Cartas' : fila ? `Imagen (en fila de ${fila.getAttribute('data-cols')})` : 'Imagen'
+    // "Carta" y no "Imagen" cuando se está tratando como carta: es la única
+    // pista de que la imagen mide lo que mide por eso, y de que el
+    // interruptor de al lado es el que lo cambia.
+    const esCarta = !esCartas && contenedor(el).classList?.contains('rt-fig-carta')
+    const que = esCartas ? 'Cartas' : esCarta ? 'Carta' : 'Imagen'
+    nombreBarra.textContent = fila && !esCartas ? `${que} (en fila de ${fila.getAttribute('data-cols')})` : que
     grupoPie.classList.toggle('hidden', esCartas)
     // Las filas son cosa de imágenes: una lista de cartas ya es su propia
     // rejilla.
     grupoFila?.classList.toggle('hidden', esCartas)
+    grupoCarta?.classList.toggle('hidden', esCartas)
+    btnCarta?.setAttribute('aria-pressed', String(!!esCarta))
     // Dentro de una fila el ancho lo pone la columna, así que el control de
     // anchura se apaga en vez de quedarse ahí sin hacer nada. Un mando que
     // no responde es peor que no tener mando.
@@ -541,9 +726,19 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     // Sólo se agrupan figuras que sean HERMANAS y estén seguidas. Un
     // párrafo de texto en medio corta: juntar dos imágenes separadas por
     // texto movería el texto de sitio sin que nadie lo haya pedido.
+    //
+    // Los párrafos VACÍOS sí se saltan. No son texto: son el hueco que el
+    // propio editor deja detrás de cada imagen para poder seguir
+    // escribiendo. Sin esto, dos imágenes que se ven pegadas no se podían
+    // juntar y el botón parecía roto.
     const aMeter = [fig]
     let siguiente = fig.nextElementSibling
-    while (aMeter.length < n && siguiente && siguiente.tagName === 'FIGURE') {
+    while (aMeter.length < n && siguiente) {
+      if (esParrafoVacio(siguiente)) {
+        siguiente = siguiente.nextElementSibling
+        continue
+      }
+      if (siguiente.tagName !== 'FIGURE') break
       const tras = siguiente.nextElementSibling
       aMeter.push(siguiente)
       siguiente = tras
@@ -614,6 +809,17 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
 
       if (accion === 'fila-no') return sacarDeLaFila()
       if (accion.startsWith('fila-')) return ponerEnFila(Number(accion.slice(5)))
+
+      if (accion === 'carta') {
+        const fig = asegurarFigura(seleccionado)
+        const esCarta = fig.classList.toggle('rt-fig-carta')
+        // Al dejar de ser carta dentro de una fila, la figura vuelve a
+        // llenar su columna; al pasar a serlo, se queda a tamaño de carta.
+        // En los dos casos el ancho a mano que hubiera ya no dice nada.
+        if (esCarta) fig.style.removeProperty('width')
+        seleccionar(seleccionado)
+        return emit()
+      }
 
       if (accion === 'pie') {
         const fig = asegurarFigura(seleccionado)
