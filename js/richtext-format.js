@@ -54,7 +54,17 @@ export const COLORES_FONDO = [
 // cartas respecto al texto (izquierda y derecha hacen que el texto la
 // rodee, como en Word).
 export const CLASES_ALINEACION = ['rt-al-i', 'rt-al-c', 'rt-al-d']
-export const CLASES_FIGURA = ['rt-fig', 'rt-fig-i', 'rt-fig-c', 'rt-fig-d']
+// `rt-fila` es una FILA de imágenes: varias figuras una al lado de otra.
+// Existe porque sin ella sólo se podía poner una imagen por línea. Una
+// figura centrada es un bloque y se come la línea entera, y la única forma
+// de acercar dos era flotarlas, que con pie de foto y tres imágenes es
+// imposible de predecir. Cuatro cartas en fila ahora es una fila de cuatro
+// columnas iguales, no cuatro imágenes peleándose.
+export const CLASES_FIGURA = ['rt-fig', 'rt-fig-i', 'rt-fig-c', 'rt-fig-d', 'rt-fila']
+
+// Cuántas imágenes caben en una fila. Más de seis no es una fila, es una
+// tira de sellos: en el ancho de un artículo no se ve nada.
+export const COLUMNAS_MAX = 6
 
 export const CLASES_PERMITIDAS = new Set([
   ...COLORES_TEXTO.map((c) => c.clase),
@@ -79,7 +89,7 @@ const ALLOWED_TAGS = [
 // spoiler llega SIEMPRE cerrado a quien lo lee, deje el autor el editor
 // como lo deje. Si no, se podría publicar un spoiler ya abierto, que es
 // lo contrario de lo que se pide al ponerlo.
-const ALLOWED_ATTR = ['href', 'src', 'alt', 'target', 'rel', 'data-cards', 'data-yt', 'class', 'style', 'color', 'align', 'width', 'height']
+const ALLOWED_ATTR = ['href', 'src', 'alt', 'target', 'rel', 'data-cards', 'data-yt', 'data-cols', 'class', 'style', 'color', 'align', 'width', 'height']
 
 // Los elementos a los que se les respeta una anchura. En el resto, el
 // `style` se tira entero.
@@ -250,7 +260,13 @@ export function sanitizeRichText(html) {
     // Un <div> NO se deshace: algunos navegadores lo usan como separador
     // de párrafo al pulsar Enter, y quitarlo pegaría todo el texto en un
     // solo bloque. Se convierte en <p>, que es lo que quería decir.
-    if (el.tagName === 'DIV') {
+    //
+    // Menos la FILA DE IMÁGENES, que se queda como <div>: un <p> no puede
+    // contener un <figure>. El HTML se guardaba tan campante y el navegador
+    // lo partía al volver a leerlo, así que las figuras se escapaban de la
+    // fila y salían otra vez una por línea. El fallo original de nuevo,
+    // pero en silencio y sólo al recargar.
+    if (el.tagName === 'DIV' && !el.classList.contains('rt-fila')) {
       const p = doc.createElement('p')
       if (clases.length) p.className = clases.join(' ')
       while (el.firstChild) p.appendChild(el.firstChild)
@@ -321,6 +337,25 @@ export function sanitizeRichText(html) {
     const id = el.getAttribute('data-yt')
     el.textContent = ''
     if (!esIdYoutube(id)) el.remove()
+  })
+
+  // Las filas de imágenes. `data-cols` sale del HTML que escribe el
+  // editor, o sea de algo que se puede pegar a mano: se fuerza a un número
+  // entre 2 y COLUMNAS_MAX en vez de confiar en él, porque va directo a
+  // una plantilla de rejilla de CSS.
+  //
+  // Y una fila sin ninguna figura dentro se deshace: quedaría un hueco
+  // vacío en el artículo, y lo que hubiera dentro no se pierde — se
+  // devuelve al sitio donde estaba la fila.
+  doc.querySelectorAll('.rt-fila').forEach((fila) => {
+    const figuras = fila.querySelectorAll(':scope > figure').length
+    if (figuras === 0) {
+      fila.replaceWith(...fila.childNodes)
+      return
+    }
+    const pedidas = parseInt(fila.getAttribute('data-cols'), 10)
+    const cols = Number.isFinite(pedidas) ? pedidas : figuras
+    fila.setAttribute('data-cols', String(Math.min(COLUMNAS_MAX, Math.max(2, cols))))
   })
 
   return doc.body.innerHTML

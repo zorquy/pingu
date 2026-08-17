@@ -9,17 +9,11 @@ import { authorRatingSummary, starsHtml } from './guide-rating.js'
 import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
+import { estadoDeGuia, ESTADOS } from './guia-estado.js'
 
 let currentSession = null
 let currentProfile = null
 let achievementsCache = []
-
-const REVIEW_STATUS_LABELS = {
-  draft: { text: 'Borrador', badgeClass: 'badge-progress' },
-  pending: { text: 'Pendiente de revisión', badgeClass: 'badge-pro' },
-  approved: { text: 'Publicada', badgeClass: 'badge-completed' },
-  rejected: { text: 'Rechazada', badgeClass: 'badge-danger' },
-}
 
 function displayName(profile, fallbackEmail) {
   return profile?.display_name || profile?.username || fallbackEmail || 'Usuario'
@@ -313,7 +307,9 @@ async function loadMyGuides(session) {
   const [{ data }, stats] = await Promise.all([
     supabase
       .from('guides')
-      .select('id, title, slug, cover_emoji, review_status, rejection_reason, categories(name)')
+      // `published_at` hace falta para no volver a decir "Publicada" de
+      // algo que no lo está: `review_status` solo no lo sabe.
+      .select('id, title, slug, cover_emoji, review_status, published_at, rejection_reason, categories(name)')
       .eq('author_id', session.user.id)
       .order('submitted_at', { ascending: false, nullsFirst: false }),
     loadGuideStats(session.user.id),
@@ -336,7 +332,7 @@ async function loadMyGuides(session) {
 
   container.innerHTML = myGuidesCache
     .map((g) => {
-      const status = REVIEW_STATUS_LABELS[g.review_status] || REVIEW_STATUS_LABELS.draft
+      const status = estadoDeGuia(g)
       // Editar y borrar dejaron de ir juntos. Una guía en revisión SÍ se
       // puede seguir editando —terminarla no puede depender de que el
       // equipo la rechace— pero no se puede borrar: está en la cola de
@@ -354,8 +350,16 @@ async function loadMyGuides(session) {
       return `
       <div class="my-guide-row">
         <span class="my-guide-title" title="${escapeHtml(g.title || 'Sin título')}">${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title || 'Sin título')}</span>
-        <span class="badge ${status.badgeClass}">${status.text}</span>
+        <span class="badge ${status.clase}">${escapeHtml(status.texto)}</span>
         <span class="my-guide-actions">
+          ${
+            // "Ver" para todas, publicadas o no. Una guía sin publicar no
+            // tiene tarjeta en ninguna parte de la web, así que sin este
+            // enlace no había forma de abrirla ni para releerla.
+            g.slug
+              ? `<a class="my-guide-ver" href="/guia?slug=${encodeURIComponent(g.slug)}">${status === ESTADOS.publicada ? 'Ver' : 'Vista previa'}</a>`
+              : ''
+          }
           ${canEdit ? `<button data-edit="${g.id}">Editar</button>` : ''}
           ${canDelete ? `<button class="danger" data-delete="${g.id}">Eliminar</button>` : ''}
         </span>

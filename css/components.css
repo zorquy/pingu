@@ -1326,7 +1326,8 @@ textarea.be-field {
    lleva dentro el botón de seguir editando, así que el texto tiene que
    poder encogerse y el botón quedarse entero — de ahí el `flex:1` en el
    texto y el `margin-left:auto` en el botón. En móvil se apila. */
-.guia-aviso-pendiente {
+.guia-aviso-pendiente,
+.guia-aviso-borrador {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1337,7 +1338,17 @@ textarea.be-field {
   margin-bottom: 10px;
 }
 
-.guia-aviso-pendiente > span {
+/* El de "no publicada" va en color de aviso, no en el azul de la casa: es
+   una advertencia —lo que estás mirando no lo ve nadie— y no una etiqueta
+   informativa más. */
+.guia-aviso-borrador {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+}
+
+.guia-aviso-pendiente > span,
+.guia-aviso-borrador > span {
   flex: 1;
   min-width: 200px;
 }
@@ -1620,6 +1631,64 @@ textarea.be-field {
   line-height: 1.5;
   color: var(--text-mid);
   text-align: center;
+}
+
+/* ── Una fila de imágenes ──────────────────────────────────────────────
+   El problema que resuelve: sólo se podía poner UNA imagen por línea. Una
+   figura centrada es un bloque y se come la línea entera; y "hacerla
+   pequeña" no ayudaba, porque la línea seguía siendo suya. Para cuatro
+   cartas seguidas no había manera.
+
+   Aquí las columnas son IGUALES (1fr cada una), así que las cuatro cartas
+   salen del mismo tamaño sin tener que ajustar el ancho de cada una a
+   mano. Y el `width` que lleve cada figura se ignora dentro de la fila: lo
+   que manda es en cuántas columnas la has puesto. */
+.rt-fila {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  align-items: start;
+  margin: 20px 0;
+  clear: both;
+}
+
+.rt-fila[data-cols='3'] { grid-template-columns: repeat(3, 1fr); }
+.rt-fila[data-cols='4'] { grid-template-columns: repeat(4, 1fr); }
+.rt-fila[data-cols='5'] { grid-template-columns: repeat(5, 1fr); }
+.rt-fila[data-cols='6'] { grid-template-columns: repeat(6, 1fr); }
+
+/* Dentro de la fila la figura no manda su tamaño: lo pone la columna. Sin
+   esto, una figura al 40% dejaría media columna vacía y la fila saldría
+   descuadrada. */
+.rt-fila > .rt-fig,
+.rt-fila > figure {
+  width: auto !important;
+  max-width: 100%;
+  margin: 0;
+  float: none;
+}
+
+/* Una carta es vertical y una imagen de ejemplo suele ser horizontal. En
+   una fila mezclada, sin esto, la carta estira la fila hasta su alto y las
+   horizontales quedan flotando arriba. Igualando el alto del hueco de la
+   imagen, la fila se lee como una fila. */
+.rt-fila > figure > img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* En el móvil, cuatro imágenes en 360 px son cuatro sellos. Tres o más
+   columnas bajan a dos, y las de dos se quedan como están: dos cartas
+   juntas en el móvil todavía se ven. */
+@media (max-width: 620px) {
+  .rt-fila[data-cols='3'],
+  .rt-fila[data-cols='4'],
+  .rt-fila[data-cols='5'],
+  .rt-fila[data-cols='6'] {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
 }
 
 /* Estas tres valen también para una lista de cartas (<tcg-deck>), que no
@@ -2293,6 +2362,18 @@ tcg-deck {
 }
 
 .my-guide-actions button {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  color: var(--navy);
+}
+
+/* "Ver" / "Vista previa" es un enlace, no un botón, porque lleva a otra
+   página — pero se viste igual que sus vecinos para que la fila no parezca
+   tener dos clases de cosas. */
+.my-guide-actions .my-guide-ver {
   font-size: 12px;
   font-weight: 700;
   padding: 5px 10px;

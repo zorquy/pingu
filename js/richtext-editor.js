@@ -71,11 +71,9 @@ function barraBloqueHtml() {
   const b = (accion, etiqueta, titulo) => `<button type="button" data-bloque="${accion}" title="${titulo}">${etiqueta}</button>`
   return `<div class="rte-blockbar hidden" data-blockbar>
     <span class="rte-blockbar-nombre" data-blockbar-nombre>Imagen</span>
-    <span class="rte-blockbar-grupo">
+    <span class="rte-blockbar-grupo" data-blockbar-ancho>
       <input type="range" min="10" max="100" step="5" value="100" data-bloque-ancho title="Anchura" />
       <span class="rte-blockbar-valor" data-bloque-valor>100%</span>
-    </span>
-    <span class="rte-blockbar-grupo">
       ${b('ancho-25', '25%', 'Un cuarto de ancho')}
       ${b('ancho-50', '50%', 'Media anchura')}
       ${b('ancho-100', '100%', 'Ancho completo')}
@@ -84,6 +82,16 @@ function barraBloqueHtml() {
       ${b('al-i', icons.alignLeft(14), 'A la izquierda, con el texto alrededor')}
       ${b('al-c', icons.alignCenter(14), 'Centrada')}
       ${b('al-d', icons.alignRight(14), 'A la derecha, con el texto alrededor')}
+    </span>
+    <!-- Poner varias imágenes en una FILA. Antes no se podía: una figura
+         centrada es un bloque y se queda con la línea entera, así que
+         cuatro cartas seguidas eran cuatro líneas aunque las hicieras
+         pequeñas. -->
+    <span class="rte-blockbar-grupo" data-blockbar-fila>
+      ${b('fila-2', 'Fila de 2', 'Poner esta imagen y la siguiente en una fila de 2')}
+      ${b('fila-3', '3', 'Esta y las 2 siguientes, en una fila de 3')}
+      ${b('fila-4', '4', 'Esta y las 3 siguientes, en una fila de 4')}
+      ${b('fila-no', 'Sacar de la fila', 'Deshacer la fila y dejar las imágenes sueltas')}
     </span>
     <span class="rte-blockbar-grupo" data-blockbar-pie>
       ${b('pie', 'Pie de foto', 'Añadir o editar el pie de foto')}
@@ -444,6 +452,8 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   const barra = toolbarEl.querySelector('[data-blockbar]')
   const nombreBarra = toolbarEl.querySelector('[data-blockbar-nombre]')
   const grupoPie = toolbarEl.querySelector('[data-blockbar-pie]')
+  const grupoFila = toolbarEl.querySelector('[data-blockbar-fila]')
+  const grupoAncho = toolbarEl.querySelector('[data-blockbar-ancho]')
   const rango = toolbarEl.querySelector('[data-bloque-ancho]')
   const valorRango = toolbarEl.querySelector('[data-bloque-valor]')
   let seleccionado = null
@@ -460,8 +470,16 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     seleccionado = el
     el.classList.add('rt-sel')
     const esCartas = el.tagName === 'TCG-DECK'
-    nombreBarra.textContent = esCartas ? 'Cartas' : 'Imagen'
+    const fila = contenedor(el).closest?.('.rt-fila')
+    nombreBarra.textContent = esCartas ? 'Cartas' : fila ? `Imagen (en fila de ${fila.getAttribute('data-cols')})` : 'Imagen'
     grupoPie.classList.toggle('hidden', esCartas)
+    // Las filas son cosa de imágenes: una lista de cartas ya es su propia
+    // rejilla.
+    grupoFila?.classList.toggle('hidden', esCartas)
+    // Dentro de una fila el ancho lo pone la columna, así que el control de
+    // anchura se apaga en vez de quedarse ahí sin hacer nada. Un mando que
+    // no responde es peor que no tener mando.
+    grupoAncho?.classList.toggle('hidden', !!fila)
     const ancho = anchuraPorcentaje(contenedor(el).style.width) || 100
     rango.value = String(ancho)
     valorRango.textContent = `${ancho}%`
@@ -501,6 +519,65 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     return fig
   }
 
+  // ── Filas de imágenes ──
+  //
+  // "Esta y las siguientes en una fila de N". Se coge la figura elegida y
+  // las figuras que vengan justo detrás, hasta N. Si sólo hay dos y pides
+  // cuatro, sale una fila de dos: es mejor que una fila de cuatro con dos
+  // huecos vacíos.
+  //
+  // Y si la imagen YA está en una fila, el botón cambia cuántas columnas
+  // tiene esa fila, que es lo que se espera al pulsar "3" estando dentro
+  // de una fila de dos.
+  function ponerEnFila(n) {
+    if (!seleccionado) return
+    const fig = asegurarFigura(seleccionado)
+    const filaExistente = fig.closest('.rt-fila')
+    if (filaExistente) {
+      filaExistente.setAttribute('data-cols', String(n))
+      return emit()
+    }
+
+    // Sólo se agrupan figuras que sean HERMANAS y estén seguidas. Un
+    // párrafo de texto en medio corta: juntar dos imágenes separadas por
+    // texto movería el texto de sitio sin que nadie lo haya pedido.
+    const aMeter = [fig]
+    let siguiente = fig.nextElementSibling
+    while (aMeter.length < n && siguiente && siguiente.tagName === 'FIGURE') {
+      const tras = siguiente.nextElementSibling
+      aMeter.push(siguiente)
+      siguiente = tras
+    }
+
+    const fila = document.createElement('div')
+    fila.className = 'rt-fila'
+    fila.setAttribute('data-cols', String(Math.max(2, aMeter.length)))
+    fig.before(fila)
+    aMeter.forEach((f) => {
+      // El ancho de cada figura deja de mandar dentro de la fila: lo pone
+      // la columna. Se quita para que al sacarla de la fila no reaparezca
+      // un 25% que ya no significa nada.
+      f.style.removeProperty('width')
+      f.classList.remove('rt-fig-i', 'rt-fig-d')
+      fila.appendChild(f)
+    })
+    seleccionar(seleccionado)
+    emit()
+  }
+
+  function sacarDeLaFila() {
+    if (!seleccionado) return
+    const fila = contenedor(seleccionado).closest('.rt-fila')
+    if (!fila) return
+    const figuras = [...fila.children]
+    figuras.forEach((f) => {
+      if (f.tagName === 'FIGURE') f.classList.add('rt-fig', 'rt-fig-c')
+    })
+    fila.replaceWith(...figuras)
+    seleccionar(seleccionado)
+    emit()
+  }
+
   const aplicarAncho = (n) => {
     if (!seleccionado) return
     const caja = asegurarFigura(seleccionado)
@@ -534,6 +611,9 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
         if (caja.tagName === 'FIGURE') caja.classList.add('rt-fig')
         return emit()
       }
+
+      if (accion === 'fila-no') return sacarDeLaFila()
+      if (accion.startsWith('fila-')) return ponerEnFila(Number(accion.slice(5)))
 
       if (accion === 'pie') {
         const fig = asegurarFigura(seleccionado)

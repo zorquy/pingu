@@ -14,6 +14,7 @@ import { montarBotonHelpful } from './guide-helpful.js'
 import { compartirHtml, engancharCompartir } from './compartir.js'
 import { contributorBadgeHtml } from './contributor-badge.js'
 import { montarSugerencia, creditosHtml } from './guide-suggestions.js'
+import { laVeLaGente, estadoDeGuia } from './guia-estado.js'
 
 const params = new URLSearchParams(window.location.search)
 const slug = params.get('slug')
@@ -176,6 +177,21 @@ async function init() {
       <span>›</span> <span>${escapeHtml(guide.title)}</span>
     </div>
     <div class="article-header">
+      ${
+        // Una guía sin publicar se veía EXACTAMENTE igual que una
+        // publicada, y de ahí venía el lío: creer que tienes una guía viva
+        // que no aparece en ningún sitio. Si lo que estás mirando no lo ve
+        // nadie más, la página lo dice.
+        !laVeLaGente(guide)
+          ? `<p class="subtext guia-aviso-borrador">${icons.clock(14)} <span>Vista previa · <strong>${escapeHtml(
+              estadoDeGuia(guide).texto
+            )}</strong> — esto no lo ve nadie más que tú y el equipo. No sale en la web ni en los buscadores.</span>${
+              esMia
+                ? `<a class="btn-secondary guia-seguir-editando" href="editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Seguir editando</a>`
+                : ''
+            }</p>`
+          : ''
+      }
       ${
         guide.review_status === 'pending'
           ? `<p class="subtext guia-aviso-pendiente">${icons.clock(14)} <span>Guía de la comunidad pendiente de revisión — todavía no la ha comprobado el equipo de PokeDoc.</span>${

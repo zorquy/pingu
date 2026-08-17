@@ -247,7 +247,7 @@ async function loadExistingGuide() {
   document.getElementById('gMins').value = data.estimated_mins || 5
   document.getElementById('gTags').value = (data.tags || []).join(', ')
   document.getElementById('gSearchContent').value = data.search_content || ''
-  document.getElementById('gPublished').checked = !!data.published_at
+  document.getElementById('gEstado').value = estadoDeLasColumnas(data)
   document.getElementById('gCollectionOrder').value = data.collection_order ?? 0
 
   courseBlocks = JSON.parse(JSON.stringify(data.blocks || []))
@@ -276,8 +276,45 @@ async function loadExistingGuide() {
   }
 }
 
+// El estado elegido en el desplegable, traducido a las DOS columnas que lo
+// representan. En la base están separadas a propósito —`review_status` es
+// por dónde va la revisión y `published_at` es si se ve— pero para quien
+// escribe son un solo estado, y tenerlas sueltas es lo que dejaba guías
+// "aprobadas" que no estaban en ninguna parte.
+export function columnasDelEstado(estado, previa) {
+  const ahora = new Date().toISOString()
+  switch (estado) {
+    case 'draft':
+      return { review_status: 'draft', published_at: null }
+    case 'pending':
+      return {
+        review_status: 'pending',
+        published_at: null,
+        // La fecha de envío es la del envío, no la del último guardado: el
+        // hilo de actividad ordena por ella y anuncia "ha enviado a
+        // revisión". Si se pisara en cada guardado, quien se pasa la tarde
+        // puliendo su guía volvería a la cabecera del hilo cada vez.
+        submitted_at: previa?.review_status === 'pending' ? previa?.submitted_at || ahora : ahora,
+      }
+    case 'aprobada_sin_publicar':
+      return { review_status: 'approved', published_at: null }
+    default:
+      // Publicada. La fecha original NO se pisa: volver a guardar no
+      // convierte una guía de julio en novedad de hoy.
+      return { review_status: 'approved', published_at: previa?.published_at || ahora }
+  }
+}
+
+// Y al revés, para dejar el desplegable puesto en lo que la guía es.
+export const estadoDeLasColumnas = (guia) => {
+  if (!guia) return 'publicada'
+  if (guia.review_status === 'draft' || guia.review_status === 'rejected') return 'draft'
+  if (guia.review_status === 'pending') return 'pending'
+  return guia.published_at ? 'publicada' : 'aprobada_sin_publicar'
+}
+
 function buildPayload() {
-  const published = document.getElementById('gPublished').checked
+  const estado = document.getElementById('gEstado').value
   const newCategoryId = document.getElementById('gCategory').value
   const collectionId = document.getElementById('gCollection').value || null
 
@@ -308,12 +345,12 @@ function buildPayload() {
     // y eso no es lo que espera nadie.
     search_content:
       document.getElementById('gSearchContent').value.trim() || flattenReferenceBlocksToText(refBlocks),
-    published_at: published ? existingGuide?.published_at || new Date().toISOString() : null,
     author_id: existingGuide?.author_id || currentSession.user.id,
     blocks: courseBlocks,
     reference_blocks: refBlocks,
     has_pro_content: !!proPublishedAt,
     route_ids: selectedRoutes.map((r) => r.routeId),
+    ...columnasDelEstado(estado, existingGuide),
   }
   if (existingGuide?.id) payload.id = existingGuide.id
   return { payload, newCategoryId, selectedRoutes }
@@ -364,7 +401,15 @@ async function persistGuide(extraFields = {}) {
   // Recompensa al autor de la comunidad la primera vez que se aprueba su
   // guía (no en cada guardado posterior) — mismo XP que ya se le da al
   // dar el curso, para que publicar también cuente como progreso.
-  if (extraFields.review_status === 'approved' && !wasApproved && authorId) {
+  // Se mira el payload FINAL y no `extraFields`: desde que el estado se
+  // elige en el desplegable, aprobar una guía de la comunidad ya no pasa
+  // sólo por el botón de Aprobar, y el XP y el aviso al autor tienen que
+  // salir igual por los dos caminos.
+  //
+  // Y no cuando el autor eres tú: un admin publicando su propia guía se
+  // estaría dando XP y mandándose un aviso a sí mismo. La recompensa
+  // existe para quien escribe desde la comunidad.
+  if (payload.review_status === 'approved' && !wasApproved && authorId && authorId !== currentSession.user.id) {
     await addXP(authorId, payload.xp_reward)
     await createNotification({
       recipientId: authorId,

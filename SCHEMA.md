@@ -8054,3 +8054,133 @@ Cobertura nueva: `test-cobertura-cartas.mjs`, 19 comprobaciones. Rigor:
 **12 roturas, 12 pilladas** (`rigor-cobertura-cartas.py`). Y el SQL del
 diagnóstico se ha probado contra un PostgreSQL de verdad con el caso
 montado a mano (`prueba-diagnostico-cartas.sql`).
+
+# El estado de una guía, dicho sin mentir
+
+Lo contó él usándolo:
+
+> «Tengo una guía escrita y pone que está aprobada, y no está aprobada, y no
+> sale en ningún sitio, entonces no puedo previsualizarla.»
+
+Las tres cosas eran ciertas a la vez, y salían de la misma grieta: **el
+estado de una guía vive en DOS columnas** y la web las leía por separado.
+
+- `review_status` — por dónde va la revisión. **Su valor por defecto es
+  `'approved'`** (`supabase-migration-social.sql`), porque las guías
+  oficiales del panel no pasan por revisión.
+- `published_at` — si se ve o no.
+
+El editor del panel sólo tenía una casilla de «Publicada», que escribía
+`published_at`. **`review_status` no lo tocaba nunca.** Así que una guía
+escrita ahí y no publicada nacía `approved` + `published_at` null:
+
+- «Mis guías» leía sólo `review_status` y ponía **«Publicada»**.
+- Toda la web filtra por `published_at`, así que no aparecía en ningún sitio.
+- Y como no aparecía en ningún sitio, **no había ningún enlace desde el que
+  abrirla** — de ahí el «no puedo previsualizarla».
+
+## Lo que se ha hecho
+
+**`js/guia-estado.js`**: el estado se calcula **en un solo sitio**, a partir
+de los dos campos, y aparece un estado que antes no se podía nombrar:
+`aprobada_sin_publicar` → **«Aprobada, sin publicar»**. Había dos tablas de
+etiquetas duplicadas (perfil y panel) que decían cosas distintas; ahora hay
+una. `laVeLaGente(guia)` es la otra pregunta, la de verdad: publicada, o
+pendiente de revisión (esas se ven en Comunidad a propósito).
+
+**El editor del panel** cambia la casilla por un **desplegable de estado**
+con los cuatro que existen, y de él salen las dos columnas a la vez
+(`columnasDelEstado`). Con eso él puede hacer lo que pedía: escribir una
+guía y **mandarla a revisión** como cualquier otra de la comunidad, para que
+se vea en Comunidad y se vaya construyendo, en vez de tener que elegir entre
+publicada o invisible.
+
+**La guía sin publicar avisa**: banda de aviso en color de advertencia con
+el estado y «esto no lo ve nadie más que tú y el equipo». Antes se veía
+idéntica a una publicada, que es lo que le hizo creer que tenía una guía
+viva.
+
+**Y «Mis guías» tiene enlace** («Ver» si está publicada, «Vista previa» si
+no). Sin él, una guía sin publicar era literalmente inalcanzable desde la
+web.
+
+Un detalle del XP que cambió de sitio: la recompensa al autor cuando su
+guía se aprueba se decidía mirando `extraFields` (o sea, sólo el botón de
+Aprobar). Ahora se mira el payload final, porque aprobar ya se puede hacer
+también desde el desplegable — y no se da cuando el autor eres tú, que
+sería darte XP y mandarte un aviso a ti mismo.
+
+# Imágenes en fila (cuatro cartas en la misma línea)
+
+> «Imagínate que quiero poner cuatro cartas en la misma línea y las pongo
+> pequeñas, pero no se puede porque salta a la siguiente línea.»
+
+Cierto, y no era un fallo suelto sino el modelo: una figura es un **bloque**.
+Centrada (`rt-fig-c`) se queda con la línea entera **midiera lo que
+midiera** — hacerla pequeña no la acompaña de nada, sólo deja hueco al lado.
+Lo único que juntaba dos imágenes era flotarlas (`rt-fig-i`/`rt-fig-d`), y
+con pie de foto y tres o cuatro imágenes eso no hay quien lo prediga.
+
+## La fila
+
+```html
+<div class="rt-fila" data-cols="4">
+  <figure class="rt-fig"><img …><figcaption>…</figcaption></figure>
+  …
+</div>
+```
+
+Rejilla de **columnas iguales**: cuatro cartas salen las cuatro del mismo
+tamaño sin tocar el ancho de ninguna. Dentro de la fila **el `width` de cada
+figura se ignora** (`width: auto !important`) — lo que manda es en cuántas
+columnas la has puesto; si no, una figura al 40% dejaba media columna vacía.
+Y en el editor el control de anchura **se esconde** dentro de una fila, en
+vez de quedarse ahí sin responder.
+
+En el móvil, las filas de 3 o más bajan a **2 columnas**: cuatro imágenes en
+360 px son cuatro sellos.
+
+**Los botones**: «Fila de 2 / 3 / 4» = *esta imagen y las siguientes*. Sólo
+agrupa figuras **hermanas y seguidas** — un párrafo en medio corta, porque
+juntar dos imágenes separadas por texto movería el texto de sitio sin que
+nadie lo haya pedido. Si ya estás dentro de una fila, el botón cambia sus
+columnas. Y «Sacar de la fila» la deshace.
+
+## El fallo que casi se cuela: `<p>` no puede contener `<figure>`
+
+El saneador convierte todos los `<div>` en `<p>` (los navegadores usan divs
+como separador de párrafo al pulsar Enter). Con la fila siendo un `div`, eso
+la convertía en `<p class="rt-fila">`… y **un `<p>` no puede contener un
+`<figure>`**: el HTML se guardaba tan campante y el navegador lo partía al
+volver a leerlo, así que las figuras se escapaban de la fila y salían otra
+vez una por línea. El fallo original de nuevo, en silencio y sólo al
+recargar. La prueba del navegador lo pilló porque **mira la guía publicada,
+no sólo lo que hace el editor**.
+
+`data-cols` se fuerza a un número entre 2 y 6 al sanear: va directo a una
+plantilla de rejilla de CSS y sale de algo que se puede pegar a mano.
+
+## Cómo se ha probado
+
+`test-estado-guia.mjs` (43 comprobaciones) y `test-filas-imagenes.mjs` (38),
+las dos en el navegador y las dos mirando también **la guía publicada**, no
+sólo el editor. Rigor de las dos juntas: **24 roturas, 24 pilladas**
+(`rigor-estado-y-filas.py`).
+
+Tres roturas escaparon en la primera pasada y las tres enseñaron algo:
+
+- **Quitar `published_at` del `select` del perfil no se puede detectar desde
+  el navegador**: el Supabase de mentira guarda la lista de columnas pero
+  **no proyecta**, devuelve la fila entera. En producción PostgREST sí
+  proyecta, y entonces el campo llegaría `undefined` — que es exactamente
+  cómo nació este fallo. Esa rotura se ha sacado de la lista, con el motivo
+  escrito, y en su lugar la prueba fija el contrato de `estadoDeGuia` a pelo,
+  incluido el caso «falta el campo» («no se dice que está publicada»).
+- **`laVeLaGente` sin el caso de las pendientes** no rompía nada porque no
+  había ninguna guía pendiente en la prueba de la página. Con una guía en
+  revisión saldrían LOS DOS avisos, y el de «esto no lo ve nadie» sería
+  mentira. Caso añadido.
+- **La regla `width: auto !important` de la fila** no la notaba nadie: al
+  crear la fila el editor ya les quita el ancho. Sólo se nota con HTML
+  **pegado a mano**, que el saneador admite. Caso añadido con una fila cuyas
+  figuras traen 40%, 100%, 25% y 60%: las cuatro tienen que salir iguales.

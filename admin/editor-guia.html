@@ -156,7 +156,20 @@
           <div class="form-group"><label>Tags (separados por coma)</label><input id="gTags" /></div>
         </div>
         <div class="form-group"><label><input type="checkbox" id="gIsPro" /> Contenido Pro</label></div>
-        <div class="form-group"><label><input type="checkbox" id="gPublished" /> Publicada</label></div>
+        <!-- Antes esto era una casilla de "Publicada" y nada más, así que
+             `review_status` se quedaba en el valor por defecto de la
+             columna ('approved'). Una guía sin publicar decía "aprobada" y
+             no aparecía en ningún sitio. Ahora se elige el estado, y de él
+             salen review_status Y published_at a la vez. -->
+        <div class="form-group">
+          <label for="gEstado">Estado</label>
+          <select id="gEstado">
+            <option value="draft">Borrador — solo la ves tú y el equipo</option>
+            <option value="pending">Pendiente de revisión — se ve en Comunidad, sin aprobar</option>
+            <option value="aprobada_sin_publicar">Aprobada, sin publicar — lista pero fuera de la web</option>
+            <option value="publicada">Publicada — visible en toda la web</option>
+          </select>
+        </div>
         <div class="form-group"><label>Contenido de búsqueda</label><textarea id="gSearchContent"></textarea></div>
       </section>
 
