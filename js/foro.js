@@ -16,7 +16,7 @@ import {
   esDelEquipo,
   faltaElForo,
 } from './foro-comun.js'
-import { marcasDeLectura, estaSinLeer, marcarTodoLeido } from './foro-lecturas.js'
+import { marcasDeLectura, estaSinLeer, marcarTodoLeido, sinLeerPorForo } from './foro-lecturas.js'
 import { plegarTexto } from './texto.js'
 import { formularioEncuestaHtml, engancharFormularioEncuesta, leerFormularioEncuesta, crearEncuesta } from './encuesta.js'
 
@@ -46,6 +46,10 @@ let soyStaff = false
 // Las marcas de lectura de quien mira. Se piden una vez al arrancar y se
 // usan en el índice y en la lista de temas.
 let marcas = null
+// Temas sin leer de cada foro, por su id. El índice lo necesita para poder
+// distinguir un foro con novedades de uno que ya te has leído: antes los
+// dos se veían igual y había que entrar en todos para saberlo.
+let nuevosPorForo = {}
 
 function migasHtml(trozos) {
   return trozos
@@ -86,6 +90,17 @@ function botonMarcarTodoHtml(hayAlgoSinLeer) {
   return `<button type="button" class="btn-secondary foro-btn-leido" id="btnMarcarLeido">${icons.checkCircle(15)} Marcar todo como leído</button>`
 }
 
+// La chapa de "3 nuevos" de un foro.
+//
+// No lleva comprobación de sesión, y no es un olvido: sin sesión no se
+// piden las marcas de lectura, así que `nuevosPorForo` está vacío y aquí
+// nunca llega un número. Se probó poniendo la comprobación y quitándola:
+// no cambia nada, o sea que era código que no se ejecutaba nunca.
+function chapaNuevosHtml(nuevos) {
+  if (!nuevos) return ''
+  return `<span class="foro-chapa foro-chapa-nuevos">${nuevos} nuevo${nuevos === 1 ? '' : 's'}</span>`
+}
+
 function engancharMarcarTodo() {
   document.getElementById('btnMarcarLeido')?.addEventListener('click', async (e) => {
     const boton = e.currentTarget
@@ -120,18 +135,35 @@ async function pintarIndice() {
 
   const hijosDe = (id) => foros.filter((f) => f.parent_id === id).sort((a, b) => a.position - b.position)
 
+  // Los nuevos de un foro CUENTAN los de sus subforos. Si no, un subforo
+  // con novedades se quedaba invisible desde el índice: el padre salía
+  // como leído y no había ninguna razón para entrar.
+  const nuevosDe = (f) =>
+    (nuevosPorForo[f.id] || 0) + hijosDe(f.id).reduce((t, s) => t + (nuevosPorForo[s.id] || 0), 0)
+
   const filaForo = (f) => {
     const subforos = hijosDe(f.id)
+    const nuevos = nuevosDe(f)
     return `
-    <div class="foro-fila">
-      <div class="foro-fila-icono" aria-hidden="true">${icons.messageSquare(18)}</div>
+    <div class="foro-fila ${nuevos ? 'foro-fila-nueva' : 'foro-fila-leida'}">
+      <div class="foro-fila-icono" aria-hidden="true">${
+        nuevos ? `<span class="foro-punto-nuevo" title="Con mensajes nuevos"></span>` : ''
+      }${icons.messageSquare(18)}</div>
       <div class="foro-fila-cuerpo">
-        <h3><a href="${urlForo(f.slug)}">${escapeHtml(f.name)}</a></h3>
+        <h3>
+          <a href="${urlForo(f.slug)}">${escapeHtml(f.name)}</a>
+          ${chapaNuevosHtml(nuevos)}
+        </h3>
         ${f.description ? `<p class="subtext">${escapeHtml(f.description)}</p>` : ''}
         ${
           subforos.length
             ? `<p class="foro-subforos">${subforos
-                .map((s) => `<a href="${urlForo(s.slug)}">${icons.messageSquare(12)} ${escapeHtml(s.name)}</a>`)
+                .map(
+                  (s) =>
+                    `<a class="${nuevosPorForo[s.id] ? 'foro-subforo-nuevo' : ''}" href="${urlForo(s.slug)}">${
+                      nuevosPorForo[s.id] ? `<span class="foro-punto-nuevo"></span>` : ''
+                    }${icons.messageSquare(12)} ${escapeHtml(s.name)}</a>`
+                )
                 .join('')}</p>`
             : ''
         }
@@ -166,6 +198,11 @@ async function pintarIndice() {
     `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
 
   migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/index.html' }, { texto: 'Foro' }])
+  // El botón faltaba justo donde más falta hace. Estaba sólo dentro de un
+  // foro, así que para quitarte el "todo sin leer" de encima tenías que
+  // entrar en uno cualquiera y buscarlo allí.
+  acciones.innerHTML = botonMarcarTodoHtml(foros.some((f) => nuevosPorForo[f.id]))
+  engancharMarcarTodo()
   await pintarLateral()
 }
 
@@ -423,10 +460,12 @@ async function pintarListaDeTemas(foro) {
          ${(subforos || [])
            .map(
              (s) => `
-         <div class="foro-fila">
-           <div class="foro-fila-icono" aria-hidden="true">${icons.messageSquare(18)}</div>
+         <div class="foro-fila ${nuevosPorForo[s.id] ? 'foro-fila-nueva' : 'foro-fila-leida'}">
+           <div class="foro-fila-icono" aria-hidden="true">${
+             nuevosPorForo[s.id] ? `<span class="foro-punto-nuevo" title="Con mensajes nuevos"></span>` : ''
+           }${icons.messageSquare(18)}</div>
            <div class="foro-fila-cuerpo">
-             <h3><a href="${urlForo(s.slug)}">${escapeHtml(s.name)}</a></h3>
+             <h3><a href="${urlForo(s.slug)}">${escapeHtml(s.name)}</a> ${chapaNuevosHtml(nuevosPorForo[s.id])}</h3>
              ${s.description ? `<p class="subtext">${escapeHtml(s.description)}</p>` : ''}
            </div>
            <div class="foro-fila-numeros">
@@ -781,6 +820,7 @@ async function init() {
   if (sesion) {
     soyStaff = await esDelEquipo(sesion)
     marcas = await marcasDeLectura(sesion.user.id)
+    nuevosPorForo = await sinLeerPorForo(marcas)
   }
   engancharBuscador()
   if (consulta) await pintarBusqueda()

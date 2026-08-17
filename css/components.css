@@ -5308,6 +5308,50 @@ a.reto-tarjeta:hover {
   font-size: 13.5px;
 }
 
+/* ── Un foro con novedades y un foro leído tienen que verse distintos ──
+   Antes eran idénticos: la única forma de saber si había algo nuevo era
+   entrar en los seis foros a mirarlo. Se usa el MISMO lenguaje que en la
+   lista de temas (punto + negrita), no un color nuevo: en una lista, el
+   peso de la letra se ve de un vistazo. */
+.foro-fila-nueva .foro-fila-cuerpo h3 a {
+  font-weight: 800;
+}
+
+.foro-fila-nueva .foro-fila-icono {
+  opacity: 1;
+}
+
+/* Y el estado leído se dice también en positivo, apagando el icono: si
+   sólo se marcara lo nuevo, un foro leído se leería como "no sé". */
+.foro-fila-leida .foro-fila-icono {
+  opacity: 0.3;
+}
+
+.foro-fila-leida .foro-fila-cuerpo h3 a {
+  color: var(--text-mid);
+}
+
+.foro-fila-leida .foro-fila-cuerpo h3 a:hover {
+  color: var(--navy);
+}
+
+.foro-chapa-nuevos {
+  background: var(--navy);
+  color: #fff;
+}
+
+/* Los subforos que cuelgan de una fila del índice: van como enlaces en
+   una línea, así que el punto es lo único que cabe. */
+.foro-subforo-nuevo {
+  font-weight: 800;
+}
+
+.foro-subforos .foro-punto-nuevo {
+  width: 6px;
+  height: 6px;
+  margin-right: 3px;
+}
+
 /* ── Seguir un tema ── */
 .tema-seguir {
   display: inline-flex;

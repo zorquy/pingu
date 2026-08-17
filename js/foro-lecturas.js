@@ -48,6 +48,44 @@ export function estaSinLeer(tema, marcas) {
   return new Date(tema.last_post_at) > new Date(referencia)
 }
 
+// Cuántos temas sin leer tiene cada foro: { board_id: 3, ... }
+//
+// El índice del foro no sabía nada de esto. Un foro con veinte mensajes
+// nuevos se veía EXACTAMENTE igual que uno que ya te habías leído entero,
+// así que había que entrar en los seis a ver si había algo.
+//
+// Se resuelve con UNA consulta, no una por foro: se piden los temas con
+// actividad y se cuentan por foro aquí. Con `todoHasta` puesto sólo se
+// piden los posteriores a esa fecha, que es donde está el ahorro de
+// verdad — quien acaba de marcar todo como leído no se trae nada.
+//
+// El tope existe para que esto no crezca sin límite: son los temas con
+// actividad MÁS RECIENTE, que es justo lo que interesa. Si algún día hay
+// más de mil temas nuevos a la vez, el contador se queda corto y el punto
+// de "hay algo nuevo" sigue siendo verdad, que es lo que importa.
+export async function sinLeerPorForo(marcas, { tope = 1000 } = {}) {
+  if (!marcas?.hayDatos) return {}
+  try {
+    let q = supabase
+      .from('forum_threads')
+      .select('id, board_id, last_post_at')
+      .not('last_post_at', 'is', null)
+      .order('last_post_at', { ascending: false })
+      .limit(tope)
+    if (marcas.todoHasta) q = q.gt('last_post_at', marcas.todoHasta)
+    const { data, error } = await q
+    if (error) return {}
+    const cuenta = {}
+    ;(data || []).forEach((t) => {
+      if (!estaSinLeer(t, marcas)) return
+      cuenta[t.board_id] = (cuenta[t.board_id] || 0) + 1
+    })
+    return cuenta
+  } catch {
+    return {}
+  }
+}
+
 export async function marcarLeido(userId, threadId) {
   if (!userId || !threadId) return
   try {

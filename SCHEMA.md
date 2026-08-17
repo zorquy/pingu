@@ -6159,6 +6159,65 @@ existe, no llega ni una marca… y con la primera versión el foro entero
 salía en negrita para siempre, sin forma de quitarlo. Ahora, mientras no
 se pueda saber, no se marca nada.
 
+### Lo que faltaba: el ÍNDICE no sabía nada de esto
+
+Lo contó él después de usarlo: «cuando entras al foro está todo como no
+leído, no hay un botón de leer todo, y no hay diferencia cuando ya tienes
+un foro o un subforo completamente leído».
+
+Las tres cosas eran verdad, y el motivo es el mismo: **todo lo de arriba
+existía sólo en la lista de temas de dentro de un foro.** El índice
+(`/foro`) pintaba nombre, descripción, dos contadores y el último mensaje.
+Nada más. Consecuencias:
+
+- Un foro con veinte mensajes nuevos se veía **exactamente igual** que uno
+  leído de arriba abajo. Para saber si había algo había que entrar en los
+  seis foros a mirar.
+- Un **subforo** con novedades era invisible desde el índice: la fila del
+  padre no contaba a sus hijos.
+- El botón de «marcar todo como leído» estaba **dentro** de un foro. Para
+  quitarte de encima el «todo sin leer» tenías que entrar en uno
+  cualquiera y encontrarlo allí.
+
+`sinLeerPorForo(marcas)` resuelve el dato con **una sola consulta** y no
+una por foro: pide los temas con actividad y los cuenta por `board_id`
+aquí. Cuando hay `forum_read_all_at`, la consulta lleva
+`.gt('last_post_at', todoHasta)`, así que quien acaba de marcar todo como
+leído no se trae ni una fila. Tiene tope (1.000, los de actividad más
+reciente): si algún día se pasa, el contador se queda corto pero el aviso
+de «aquí hay algo nuevo» sigue siendo cierto, que es lo que importa.
+
+En el índice, la fila de un foro lleva ahora el **mismo lenguaje visual
+que un tema** —punto delante, nombre en negrita— más una chapa con
+**cuántos temas nuevos** tiene, y los nuevos de un foro **suman los de sus
+subforos**. El botón de marcar todo pasa a estar también en el índice.
+
+Y el estado leído se dice **en positivo**: nombre en color apagado e icono
+al 30%. Si sólo se marcara lo nuevo, un foro leído se leería como «no sé»
+en vez de como «esto ya está».
+
+Dos cosas salieron de romper el código a propósito, y las dos cambiaron el
+código en vez de la prueba:
+
+- La chapa tenía un `if (!sesion)` que **no se ejecutaba nunca**: sin
+  sesión no se piden las marcas, así que nunca le llega un número.
+  Quitarlo no cambiaba ninguna comprobación. Fuera.
+- La comprobación del icono apagado era `leído < nuevo`, y eso **ya se
+  cumplía antes del arreglo** (0,55 contra 1). Una comparación relativa
+  que pasa con el fallo puesto no prueba nada: ahora se exige `≤ 0,4`, que
+  es la decisión de diseño de verdad.
+
+Probado en `test-foro-leidos.mjs`: 36 comprobaciones (recién llegado, foro
+leído contra foro con novedades, subforo que avisa al padre, la marca que
+se guarda al pulsar el botón, el foro entero leído, y sin sesión no se
+habla de lo leído). Rigor: **14 roturas, 14 pilladas**.
+
+Y una del Supabase de mentira: le faltaban `.gt()` y `.lt()`. `sinLeerPorForo`
+usa `.gt`, así que sin eso la prueba se caía con un TypeError en vez de
+probar nada. Son estrictas, como en PostgREST: con `>=`, un mensaje escrito
+en el mismo instante en que marcas todo como leído volvería a salir sin
+leer.
+
 ## Que te avisen donde estabas hablando
 
 ```sql
