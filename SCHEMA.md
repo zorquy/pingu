@@ -7911,3 +7911,87 @@ hueco sin imagen se vea y con qué tamaño; y que la referencia guardada de
 una carta china lleve `@TW`.
 
 Rigor: **13 roturas, 13 pilladas** (`rigor-buscador-cartas.py`).
+
+# ¿Faltan cartas? Medirlo antes de cambiar de API
+
+La pregunta llegó así: «faltan muchas cartas chinas y japonesas, algunas
+imágenes no cargan; estoy mirando otras APIs». Es una pregunta razonable y
+no se puede contestar de memoria, porque **"faltan cartas" son tres cosas
+distintas** y sólo una es motivo para cambiar de proveedor:
+
+1. **No se han traído.** La migración de mercados sin ejecutar, o el import
+   cortado a medias. No falta nada en TCGdex: falta darle al botón.
+2. **El set se quedó corto.** TCGdex declara 200 y guardamos 130.
+3. **Están todas, sin escaneo.** La carta existe; la imagen no.
+
+Y hay un cuarto caso que era **nuestro fallo y estaba escondido**: el botón
+«Importar los que faltan» sólo miraba los sets con `imported_at` a null. Un
+set que se quedó corto ya tiene fecha de importación, así que **no volvía a
+mirarse jamás** — y en la tabla se veía igual que uno completo, con su
+etiqueta verde de «Importado». Lo mismo pasa con un set al que TCGdex le
+añade cartas después: nunca llegaban.
+
+## Lo que se ha añadido para medirlo
+
+**`diagnostico-cartas.sql`** (solo SELECT, se pega en el SQL Editor):
+cobertura por mercado, sets sin importar, sets cortos ordenados por hueco,
+cartas sin escaneo por mercado y por set, y las referencias de cartas de
+las guías que ya no existen en el catálogo. La primera consulta dice si la
+migración de mercados está aplicada, porque si no lo está la respuesta a
+«faltan las japonesas» es simplemente que todavía no hay dónde ponerlas.
+
+**En el panel**: una tarjeta de **Cobertura** (`262 de 466 declaradas`,
+56%), un contador de **Sets cortos**, la etiqueta `Corto (faltan 81)` en la
+fila —que antes decía «Importado»— y un botón **«Reimportar los cortos»**
+que los pide del hueco más grande al más pequeño.
+
+## El dato que decide si hay que cambiar de API
+
+Al reimportar, el panel ahora dice **si ha servido de algo**:
+
+> Importación terminada. 4 cartas en 2 sets. De los 2 que ya estaban: 0 han
+> traído 0 cartas nuevas y 2 siguen igual (TCGdex declara más de lo que
+> publica).
+
+Eso es la prueba. Si al reimportar vienen cartas nuevas, el hueco era
+nuestro. Si no vienen, el hueco es de los datos de TCGdex y no lo cierra
+ningún botón: ahí es donde tiene sentido mirar otra fuente, y ya con un
+número delante en vez de una impresión.
+
+## Por qué no se cambia de API todavía
+
+Desde aquí no hay red hacia ninguna de ellas, así que cualquier cosa que
+dijera sobre su cobertura de hoy sería de oídas. Pero hay dos cosas que sí
+se pueden afirmar:
+
+- **La web no depende de TCGdex**, depende de `tcg_sets`/`tcg_cards`. Todo
+  lo que lee el sitio son esas dos tablas; el único sitio que habla con
+  TCGdex es `js/tcgdex.js` y el panel. Cambiar de fuente —o **combinar
+  dos**, rellenando los huecos de una con otra sobre la misma clave
+  `(id, market)`— es escribir otro importador, no rehacer nada.
+- El requisito real es **cobertura en japonés y chino**, y ése es justo el
+  punto donde las alternativas gratuitas flojean: las que van sobradas de
+  metadatos y precios son de catálogo occidental.
+
+## Y de paso: `test-cartas.mjs` vuelve a la suite
+
+Estaba fuera desde el cambio a varios mercados, y en realidad se caía por
+algo tonto: **el Supabase de mentira no tenía tabla `tcg_sets`**, y el
+panel la ESCRIBE (upsert al traer la lista, update al importar), así que la
+tabla salía siempre vacía y la prueba no podía comprobar nada del
+importador. Con una tabla de verdad en el falso, más quitarle las
+expectativas de cuando el catálogo era sólo occidental (nombres en español,
+3 sets en vez de 3×4), vuelve a estar en verde: **43 comprobaciones** que
+cubren el importador entero.
+
+Una de esas expectativas se ha sustituido por otra cosa a propósito:
+contaba el total de filas de `tcg_cards` después de importar. Ese número
+depende de cuántas cartas trae sembradas el catálogo de prueba y de si
+alguna coincide con las importadas, así que se rompía al tocar la semilla
+sin que nada estuviera mal. Ahora se cuenta **por set y mercado**, que es
+lo que la prueba quería decir.
+
+Cobertura nueva: `test-cobertura-cartas.mjs`, 19 comprobaciones. Rigor:
+**12 roturas, 12 pilladas** (`rigor-cobertura-cartas.py`). Y el SQL del
+diagnóstico se ha probado contra un PostgreSQL de verdad con el caso
+montado a mano (`prueba-diagnostico-cartas.sql`).

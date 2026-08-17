@@ -1631,14 +1631,42 @@ async function loadCards() {
 
   tcgSetsLocales = setsRes.data || []
   const importados = tcgSetsLocales.filter((s) => s.imported_at).length
+  const cortos = setsCortos()
+  // Lo que TCGdex dice que hay, contra lo que tenemos. Sin este número,
+  // "faltan cartas" es una sensación; con él es un porcentaje.
+  const declaradas = tcgSetsLocales.reduce((t, s) => t + (s.card_count_total || 0), 0)
+  const guardadas = tcgSetsLocales.reduce((t, s) => t + (s.imported_cards || 0), 0)
 
   document.getElementById('cardsSummary').innerHTML = [
     statCardHtml(cartasRes.count ?? 0, 'Cartas', 'en nuestra base'),
+    statCardHtml(
+      declaradas ? `${Math.round((guardadas / declaradas) * 100)}%` : '—',
+      'Cobertura',
+      declaradas ? `${guardadas} de ${declaradas} declaradas` : 'sin lista de sets'
+    ),
     statCardHtml(importados, 'Sets importados', tcgSetsRemotos.length ? `de ${tcgSetsRemotos.length} en TCGdex` : 'pulsa "Buscar sets"'),
     statCardHtml(tcgSetsLocales.length - importados, 'Sets pendientes', 'conocidos pero sin cartas'),
+    statCardHtml(cortos.length, 'Sets cortos', 'importados con menos de lo declarado'),
   ].join('')
 
+  const btnCortos = document.getElementById('btnImportShort')
+  if (btnCortos) btnCortos.disabled = cortos.length === 0
+
   renderCardsSets()
+}
+
+// Un set "corto" es uno que se importó y guardó MENOS cartas de las que
+// TCGdex declara en cardCount.total.
+//
+// Dos motivos posibles, y hay que distinguirlos porque llevan a decisiones
+// distintas: o la importación se quedó a medias (nuestro, se arregla
+// reimportando), o TCGdex declara cartas que no publica (suyo, no se
+// arregla con nada). Reimportar y ver si el número cambia es lo que lo
+// dice, y eso es lo que cuenta `importarSets` al terminar.
+function setsCortos() {
+  return tcgSetsLocales.filter(
+    (s) => s.imported_at && s.card_count_total && (s.imported_cards || 0) < s.card_count_total
+  )
 }
 
 function renderCardsSets() {
@@ -1661,7 +1689,18 @@ function renderCardsSets() {
             (s) => `<tr>
               <td><span class="badge">${escapeHtml(s.market || 'WEST')}</span> ${escapeHtml(s.name)} <span class="admin-path">${escapeHtml(s.id)}${s.release_date ? ' · ' + s.release_date : ''}</span></td>
               <td>${s.imported_cards || 0}${s.card_count_total ? ` / ${s.card_count_total}` : ''}</td>
-              <td>${s.imported_at ? '<span class="badge-ok">Importado</span>' : '<span class="badge-pending">Pendiente</span>'}</td>
+              <td>${
+                !s.imported_at
+                  ? '<span class="badge-pending">Pendiente</span>'
+                  : s.card_count_total && (s.imported_cards || 0) < s.card_count_total
+                    ? // Se marca aparte del "Importado" a propósito: antes un
+                      // set con 30 de 200 cartas se veía igual que uno
+                      // completo, y no había forma de dar con él.
+                      `<span class="badge-pending">Corto (falta${
+                        s.card_count_total - (s.imported_cards || 0) === 1 ? '' : 'n'
+                      } ${s.card_count_total - (s.imported_cards || 0)})</span>`
+                    : '<span class="badge-ok">Importado</span>'
+              }</td>
               <td><button class="btn-outline btn-small" data-import-set="${escapeHtml(s.id)}" data-import-market="${escapeHtml(s.market || 'WEST')}">${s.imported_at ? 'Reimportar' : 'Importar'}</button></td>
             </tr>`
           )
@@ -1757,6 +1796,11 @@ async function importarSets(ids) {
   let hechos = 0
   let cartasTotal = 0
   const fallos = []
+  // Para poder decir si reimportar ha servido de algo: cuántos sets han
+  // traído cartas que no teníamos, y cuántos se han quedado igual.
+  let conNuevas = 0
+  let nuevasTotal = 0
+  let igual = 0
 
   for (const par of ids) {
     if (importCancelado) break
@@ -1785,6 +1829,14 @@ async function importarSets(ids) {
         .eq('market', market)
       if (errSet) throw errSet
       cartasTotal += filas.length
+      const antes = tcgSetsLocales.find((s) => s.id === setId && (s.market || 'WEST') === market)
+      const ganadas = filas.length - (antes?.imported_cards || 0)
+      if (antes?.imported_at && ganadas > 0) {
+        conNuevas++
+        nuevasTotal += ganadas
+      } else if (antes?.imported_at) {
+        igual++
+      }
     } catch (err) {
       fallos.push(`${setId}: ${err.message}`)
     }
@@ -1801,7 +1853,19 @@ async function importarSets(ids) {
   // Un set que falle no debe parar los otros 219, pero tampoco puede
   // pasar desapercibido: se dicen cuáles y por qué.
   const resumen = importCancelado ? 'Importación cancelada.' : 'Importación terminada.'
-  cardsNota(`${resumen} ${cartasTotal} cartas en ${hechos - fallos.length} sets.${fallos.length ? ` Fallaron ${fallos.length}: ${fallos.slice(0, 3).join(' · ')}` : ''}`, fallos.length > 0)
+  // Si se han reimportado sets que ya estaban, lo que interesa no es el
+  // total: es si han venido cartas nuevas. Cuando no vienen, el hueco que
+  // queda es de los datos de TCGdex y no lo cierra volver a pedirlo.
+  const reimport =
+    conNuevas + igual > 0
+      ? ` De los ${conNuevas + igual} que ya estaban: ${conNuevas} han traído ${nuevasTotal} cartas nuevas` +
+        `${igual ? ` y ${igual} siguen igual (TCGdex declara más de lo que publica)` : ''}.`
+      : ''
+  cardsNota(
+    `${resumen} ${cartasTotal} cartas en ${hechos - fallos.length} sets.${reimport}` +
+      `${fallos.length ? ` Fallaron ${fallos.length}: ${fallos.slice(0, 3).join(' · ')}` : ''}`,
+    fallos.length > 0
+  )
   await loadCards()
 }
 
@@ -1810,6 +1874,15 @@ function initCardsSection() {
   document.getElementById('btnDiagnosticar')?.addEventListener('click', diagnosticarCartas)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
+  )
+  // Los cortos, del hueco más grande al más pequeño: si hay que cortar a
+  // medias, mejor haber arreglado los peores.
+  document.getElementById('btnImportShort')?.addEventListener('click', () =>
+    importarSets(
+      setsCortos()
+        .sort((a, b) => b.card_count_total - b.imported_cards - (a.card_count_total - a.imported_cards))
+        .map((s) => ({ id: s.id, market: s.market }))
+    )
   )
   document.getElementById('btnCancelImport')?.addEventListener('click', () => {
     importCancelado = true

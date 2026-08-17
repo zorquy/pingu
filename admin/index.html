@@ -248,6 +248,11 @@
         <div class="cards-import-bar">
           <button class="btn-primary" id="btnLoadTcgSets">Buscar sets en TCGdex</button>
           <button class="btn-secondary" id="btnImportPending" disabled>Importar los que faltan</button>
+          <!-- "Los que faltan" sólo mira los que NUNCA se han importado.
+               Un set que se quedó corto —o al que TCGdex le ha añadido
+               cartas después— ya tiene fecha de importación y no volvía a
+               mirarse jamás. Este botón es para esos. -->
+          <button class="btn-secondary" id="btnImportShort" disabled>Reimportar los cortos</button>
           <button class="btn-outline hidden" id="btnCancelImport">Cancelar</button>
           <!-- No importa nada: sólo pregunta a TCGdex qué catálogos hay.
                Hace falta para decidir cómo se meten las japonesas y las
