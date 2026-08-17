@@ -11,14 +11,29 @@ import { supabase } from './supabase.js'
 const API = 'https://api.tcgdex.net/v2'
 const ASSETS = 'https://assets.tcgdex.net'
 
-// El idioma que se pide al importar. Ojo: la cobertura del español está
-// partida por épocas — de Black & White (2011) en adelante está casi
-// completo, y de ahí para atrás (Base, Gym, Neo, E-Card, EX, Diamond &
-// Pearl, Platinum, HeartGold) no hay NADA traducido. La API devuelve el
-// nombre inglés en esos casos, que es lo que queremos: un Charizard se
-// llama Charizard en las dos.
-export const IDIOMA = 'es'
-export const IDIOMA_RESERVA = 'en'
+// El idioma del catálogo occidental: INGLÉS, y sólo inglés.
+//
+// Antes se pedía en español y se caía a inglés cuando no había
+// traducción. Parecía lo amable y era lo peor de los dos mundos: el
+// español sólo cubre de Black & White (2011) en adelante, así que el
+// catálogo salía MEZCLADO — las cartas modernas en español y las
+// antiguas en inglés, en la misma lista y en el mismo buscador. Quien
+// buscaba "Cerdytoso" no encontraba nada de antes de 2011, y quien
+// buscaba "Grumpig" no encontraba las de después.
+//
+// El inglés es el único catálogo COMPLETO, es como se nombran las cartas
+// en las listas de torneo y en las tiendas, y es el idioma en el que la
+// gente busca cuando busca una carta concreta. Un nombre por carta y se
+// acabó el problema.
+export const IDIOMA = 'en'
+
+// Idiomas candidatos para el diagnóstico. No es la lista de lo que hay:
+// es la lista de lo que se PREGUNTA, porque no sabemos de antemano qué
+// sirve TCGdex. El diagnóstico dice cuáles responden de verdad.
+export const IDIOMAS_CANDIDATOS = [
+  'en', 'es', 'fr', 'de', 'it', 'pt', 'pt-br', 'nl', 'pl', 'ru',
+  'ja', 'ko', 'zh-cn', 'zh-tw', 'id', 'th',
+]
 
 // Las imágenes llegan como URL completa y con el idioma dentro:
 //   https://assets.tcgdex.net/es/swsh/swsh3/136
@@ -33,16 +48,14 @@ export function imagePathFromUrl(url) {
 }
 
 // calidad: 'low' (miniatura, ~40 KB) o 'high' (lectura, ~400 KB).
+//
+// Ya no hay idioma de reserva: el catálogo inglés tiene escaneo de todas
+// las cartas, así que no hace falta reintentar en otro idioma. Antes sí,
+// porque las anteriores a 2011 no tienen escaneo en español y salían
+// todas roras.
 export function cardImageUrl(imagePath, calidad = 'low', idioma = IDIOMA) {
   if (!imagePath) return null
   return `${ASSETS}/${idioma}/${imagePath}/${calidad}.webp`
-}
-
-// Para el `onerror` de la etiqueta <img>: si no existe el escaneo en
-// español, se reintenta en inglés UNA vez. Sin esto, todas las cartas
-// anteriores a 2011 saldrían rotas.
-export function cardImageFallbackUrl(imagePath, calidad = 'low') {
-  return cardImageUrl(imagePath, calidad, IDIOMA_RESERVA)
 }
 
 async function pedir(ruta, idioma = IDIOMA) {
@@ -51,44 +64,17 @@ async function pedir(ruta, idioma = IDIOMA) {
   return res.json()
 }
 
-// La lista de sets se pide en INGLÉS a propósito. El catálogo español no
-// cubre las épocas antiguas (Base, Gym, Neo, EX, Diamond & Pearl...), y
-// pidiéndola en español se quedaban fuera sets enteros — con sus cartas.
-// Los identificadores de set no dependen del idioma, así que la lista
-// inglesa es la completa y sirve igual.
 export function fetchSets() {
-  return pedir('sets', IDIOMA_RESERVA)
+  return pedir('sets', IDIOMA)
 }
 
 // Devuelve el set CON todas sus cartas dentro: por eso importar el
 // catálogo entero son ~220 sets y no 23.000 peticiones sueltas.
 //
-// Se piden las DOS versiones y se mezclan:
-//   - el inglés manda la lista completa de cartas (no falta ninguna),
-//   - el español pisa el nombre y la imagen cuando existen.
-//
-// Así una carta sin traducir sale en inglés en vez de no salir.
-export async function fetchSet(setId) {
-  const ruta = `sets/${encodeURIComponent(setId)}`
-  const [en, es] = await Promise.all([
-    pedir(ruta, IDIOMA_RESERVA),
-    // Que el español falle no puede dejarnos sin set: hay sets que solo
-    // existen en inglés y ahí responde 404.
-    pedir(ruta, IDIOMA).catch(() => null),
-  ])
-
-  const esPorId = Object.fromEntries((es?.cards || []).map((c) => [c.id, c]))
-  return {
-    ...en,
-    // El nombre del set sí se prefiere en español cuando lo hay.
-    name: es?.name || en.name,
-    serie: es?.serie || en.serie,
-    logo: es?.logo || en.logo,
-    cards: (en.cards || []).map((c) => {
-      const t = esPorId[c.id]
-      return t ? { ...c, name: t.name || c.name, image: t.image || c.image } : c
-    }),
-  }
+// Una sola petición, en inglés. Antes se pedían las dos versiones y se
+// mezclaban; eso es justo lo que dejaba el catálogo a medio traducir.
+export function fetchSet(setId) {
+  return pedir(`sets/${encodeURIComponent(setId)}`)
 }
 
 function fecha(valor) {
@@ -177,4 +163,95 @@ export async function cardsByIds(ids) {
     .in('id', unicos)
   if (error) throw error
   return data || []
+}
+
+// ── Diagnóstico de catálogos ──
+//
+// Esto no importa nada: sólo PREGUNTA. Existe porque para meter las
+// cartas japonesas y chinas hay que decidir cómo queda la tabla, y esa
+// decisión depende de tres cosas que no se pueden adivinar:
+//
+//   1. Qué idiomas sirve TCGdex de verdad (¿hay chino? ¿simplificado o
+//      tradicional? ¿está completo o son cuatro sets?).
+//   2. Cómo se llama la serie de TCG Pocket, para dejarla fuera.
+//   3. Y la que de verdad manda: SI LOS IDENTIFICADORES DE SET CHOCAN
+//      entre catálogos.
+//
+// El punto 3 es el que decide la clave primaria de `tcg_cards`. Hoy la
+// clave es el id de la carta a secas. Si el catálogo japonés usa ids
+// propios, eso sigue valiendo y basta añadir una columna de mercado. Si
+// reutiliza los mismos ids con otras cartas dentro, entonces importar
+// japonés PISARÍA las occidentales en silencio, y la clave tiene que
+// pasar a ser (id, mercado) antes de importar nada.
+//
+// Se ejecuta desde el panel, en el navegador de Iker, porque es el que
+// tiene salida a internet.
+export async function diagnosticarCatalogos(alAvanzar = () => {}) {
+  const filas = []
+  for (const lang of IDIOMAS_CANDIDATOS) {
+    alAvanzar(`Preguntando por ${lang}…`)
+    const fila = { lang, sets: null, series: [], error: null, setIds: [] }
+    try {
+      const sets = await pedir('sets', lang)
+      fila.sets = Array.isArray(sets) ? sets.length : 0
+      fila.setIds = (sets || []).map((s) => s.id)
+      // El total de cartas que declara cada set, sin bajarlas: sirve para
+      // saber el tamaño real del catálogo antes de comprometerse.
+      fila.cartas = (sets || []).reduce((n, s) => n + (s.cardCount?.total || 0), 0)
+    } catch (err) {
+      fila.error = err.message
+      filas.push(fila)
+      continue
+    }
+    try {
+      const series = await pedir('series', lang)
+      fila.series = (series || []).map((s) => `${s.id}${s.name && s.name !== s.id ? ` (${s.name})` : ''}`)
+    } catch (err) {
+      fila.series = [`— no se pudo leer: ${err.message}`]
+    }
+    filas.push(fila)
+  }
+
+  // El choque de identificadores, que es la pregunta importante.
+  const porLang = Object.fromEntries(filas.filter((f) => f.sets).map((f) => [f.lang, new Set(f.setIds)]))
+  const base = porLang.en || new Set()
+  const choques = {}
+  for (const [lang, ids] of Object.entries(porLang)) {
+    if (lang === 'en') continue
+    const comunes = [...ids].filter((id) => base.has(id))
+    choques[lang] = {
+      total: ids.size,
+      compartidos: comunes.length,
+      propios: ids.size - comunes.length,
+      ejemplosPropios: [...ids].filter((id) => !base.has(id)).slice(0, 8),
+    }
+  }
+  return { filas, choques }
+}
+
+// Lo de arriba en texto plano, para pegarlo en el chat de una vez.
+export function diagnosticoComoTexto({ filas, choques }) {
+  const l = []
+  l.push('=== IDIOMAS ===')
+  for (const f of filas) {
+    l.push(
+      f.error
+        ? `${f.lang.padEnd(6)} —  NO responde (${f.error.slice(0, 60)})`
+        : `${f.lang.padEnd(6)} ${String(f.sets).padStart(4)} sets, ${String(f.cartas).padStart(6)} cartas declaradas`
+    )
+  }
+  l.push('')
+  l.push('=== SETS PROPIOS vs COMPARTIDOS CON EL CATÁLOGO INGLÉS ===')
+  l.push('(si "compartidos" es 0, los ids no chocan y la clave actual sirve)')
+  for (const [lang, c] of Object.entries(choques)) {
+    l.push(`${lang.padEnd(6)} ${String(c.total).padStart(4)} sets · ${String(c.compartidos).padStart(4)} compartidos · ${String(c.propios).padStart(4)} propios`)
+    if (c.ejemplosPropios.length) l.push(`       propios p.ej.: ${c.ejemplosPropios.join(', ')}`)
+  }
+  l.push('')
+  l.push('=== SERIES POR IDIOMA (para localizar TCG Pocket) ===')
+  for (const f of filas) {
+    if (f.error || !f.series.length) continue
+    l.push(`${f.lang}: ${f.series.join(' | ')}`)
+  }
+  return l.join('\n')
 }

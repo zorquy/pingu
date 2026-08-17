@@ -1,5 +1,5 @@
 import { escapeHtml } from './app.js'
-import { cardsByIds, cardImageUrl, cardImageFallbackUrl } from './tcgdex.js'
+import { cardsByIds, cardImageUrl } from './tcgdex.js'
 
 // Una lista de cartas dentro de una guía.
 //
@@ -33,15 +33,14 @@ export function deckAttrValue(ids) {
 
 function cartaHtml(carta) {
   const src = cardImageUrl(carta.image_path)
-  const reserva = cardImageFallbackUrl(carta.image_path)
   const setName = carta.tcg_sets?.name || carta.set_id
   const pie = `${carta.name} · ${setName} #${carta.local_id}`
   const img = src
-    ? // Si no existe el escaneo en español se reintenta en inglés UNA
-      // vez. El `onerror=null` antes de reasignar corta el bucle si la
-      // segunda tampoco existe.
+    ? // Ya no se reintenta en otro idioma: el catálogo es inglés y
+      // tiene escaneo de todas las cartas. Si aun así falta, se cambia
+      // la imagen por el nombre en texto para no dejar un hueco roto.
       `<img src="${escapeHtml(src)}" alt="${escapeHtml(carta.name)}" loading="lazy"
-         onerror="if(!this.dataset.r){this.dataset.r=1;this.src='${escapeHtml(reserva)}'}else{this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{className:'deck-card-noimg',textContent:this.alt}))}">`
+         onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{className:'deck-card-noimg',textContent:this.alt}))">`
     : `<span class="deck-card-noimg">${escapeHtml(carta.name)}</span>`
   return `<li class="deck-card" title="${escapeHtml(pie)}">
     ${img}

@@ -7,7 +7,7 @@ import { icons } from '../../js/icons.js'
 import { contentIconHtml, inlineIconHtml } from '../../js/content-icon.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
-import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch } from '../../js/tcgdex.js'
+import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto } from '../../js/tcgdex.js'
 import { checkSchema } from '../../js/schema-check.js'
 
 let categories = []
@@ -1698,6 +1698,31 @@ async function cargarSetsDeTcgdex() {
   }
 }
 
+// Pregunta a TCGdex qué catálogos hay y deja el resultado en un cuadro
+// de texto para copiarlo. No escribe NADA en la base.
+//
+// Se hace desde aquí y no desde el servidor por un motivo tonto y real:
+// este es el único sitio del proyecto con salida a internet hacia
+// TCGdex cuando hace falta mirar algo.
+async function diagnosticarCartas() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnDiagnosticar')
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = 'Preguntando a TCGdex… esto tarda un rato, son 16 idiomas.'
+  try {
+    const datos = await diagnosticarCatalogos((paso) => {
+      caja.value = `${paso}\n(no cierres la página)`
+    })
+    caja.value = diagnosticoComoTexto(datos)
+    cardsNota('Diagnóstico hecho. Copia el cuadro de texto entero.')
+  } catch (err) {
+    caja.value = `No se ha podido: ${err.message}`
+    cardsNota(`El diagnóstico ha fallado: ${err.message}`, true)
+  }
+  boton.disabled = false
+}
+
 async function importarSets(ids) {
   if (ids.length === 0) {
     cardsNota('No queda ningún set por importar.')
@@ -1751,6 +1776,7 @@ async function importarSets(ids) {
 
 function initCardsSection() {
   document.getElementById('btnLoadTcgSets')?.addEventListener('click', cargarSetsDeTcgdex)
+  document.getElementById('btnDiagnosticar')?.addEventListener('click', diagnosticarCartas)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => s.id))
   )

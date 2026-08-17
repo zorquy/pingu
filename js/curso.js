@@ -5,7 +5,7 @@ import { parseBBCode } from './bbcode.js'
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
-import { cardsByIds, cardImageUrl, cardImageFallbackUrl } from './tcgdex.js'
+import { cardsByIds, cardImageUrl } from './tcgdex.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import {
   esPractica,
@@ -264,14 +264,13 @@ function cartaJugableHtml(id, extraClass = '', extraAttrs = '') {
     </button>`
   }
   const src = cardImageUrl(carta.image_path, 'high')
-  const reserva = cardImageFallbackUrl(carta.image_path, 'high')
   return `<button class="carta-opcion ${extraClass}" data-id="${escapeHtml(id)}" ${extraAttrs} aria-label="${escapeHtml(carta.name)}">
     ${
       src
-        ? // Sin escaneo en español se reintenta en inglés UNA vez; el
-          // `onerror=null` corta el bucle si tampoco existe.
+        ? // Sin reintento en otro idioma: el catálogo es inglés y tiene
+          // escaneo de todas las cartas.
           `<img src="${escapeHtml(src)}" alt="${escapeHtml(carta.name)}" loading="lazy"
-             onerror="if(!this.dataset.r){this.dataset.r=1;this.src='${escapeHtml(reserva)}'}else{this.onerror=null;this.style.display='none'}">`
+             onerror="this.onerror=null;this.style.display='none'">`
         : `<span class="carta-opcion-noimg">${escapeHtml(carta.name)}</span>`
     }
   </button>`

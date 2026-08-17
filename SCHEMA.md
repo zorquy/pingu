@@ -7603,3 +7603,85 @@ de `hydrateVideos` no ponía nada en rojo, porque **el vídeo recién
 insertado lo trae puesto del propio editor**. Solo se nota al REABRIR una
 guía guardada, donde ese atributo ya no está (el saneador no lo admite).
 Con esa comprobación añadida, la rotura sale roja.
+
+# El catálogo de cartas pasa a inglés, y se prepara para el japonés
+
+Iker lo vio usándolo: «solo coge en español y lo coge mal», y las
+japonesas no salían. Las dos cosas tenían la misma raíz.
+
+## Por qué no salían las japonesas
+
+No es que TCGdex no las tenga: **no se las pedíamos**. `fetchSets()`
+pedía `/en/sets`, que es sólo el catálogo occidental. Los sets japoneses
+no entraban nunca en el sistema, así que sus cartas tampoco.
+
+## Por qué el catálogo estaba a medio traducir
+
+Esto sí era una decisión mía, y era mala. `fetchSet()` pedía **las dos
+versiones** del set y las mezclaba: el inglés daba la lista completa de
+cartas y el español le pisaba nombre e imagen cuando existían.
+
+Parecía lo amable. El resultado era un catálogo **partido por 2011**: el
+español sólo cubre de Black & White en adelante, así que las cartas
+modernas salían en español y las antiguas en inglés, en la misma lista y
+en el mismo buscador. Quien buscaba «Cerdytoso» no encontraba nada de
+antes de 2011; quien buscaba «Grumpig», nada de después.
+
+Ahora es **inglés y sólo inglés**: `IDIOMA = 'en'`, una sola petición por
+set, sin mezcla. Es el único catálogo completo, es como se nombran las
+cartas en listas de torneo y tiendas, y es como busca la gente. De paso
+desaparece `cardImageFallbackUrl` y el reintento de imagen en los tres
+sitios que lo usaban: con un catálogo que tiene escaneo de todo, no hay a
+qué caer.
+
+**Las guías no se rompen**: guardan el *identificador* de la carta, no el
+nombre. Un reimport cambia los nombres y las listas de cartas de las
+guías siguen apuntando a lo mismo.
+
+## Lo que decide el esquema del japonés, y por qué no se ha hecho todavía
+
+Una Charizard japonesa no es la misma carta que la inglesa: para quien
+colecciona son dos cosas, con precios distintos. Así que necesitan ser
+dos filas.
+
+`supabase-migration-cartas-mercado.sql` añade `market` ('WEST' | 'JP' |
+'CN') a las dos tablas y marca lo existente como occidental. **No cambia
+la clave primaria a propósito**, porque eso depende de una pregunta sin
+responder:
+
+> ¿Comparten los catálogos identificadores de set?
+
+Hoy la clave de `tcg_cards` es el id de la carta a secas. Si el catálogo
+japonés usa ids propios, la clave sigue valiendo. Si reutiliza los
+mismos ids con cartas distintas dentro, **importar japonés pisaría las
+occidentales en silencio** — sin error, sin aviso, y con la colección de
+la gente ya metida encima.
+
+No se puede averiguar desde el entorno de desarrollo: no hay salida a
+internet hacia TCGdex. Y adivinarlo es exactamente el tipo de decisión
+que no se adivina. De ahí el botón **«Diagnosticar catálogos»** del panel
+de cartas: corre en el navegador, pregunta por 16 idiomas candidatos y
+devuelve, en texto para pegar:
+
+- qué idiomas responden y con cuántos sets y cartas declaradas,
+- las **series** de cada uno (ahí se localiza TCG Pocket, que se queda
+  fuera por decisión de Iker),
+- y lo importante: **cuántos ids de set comparte cada catálogo con el
+  inglés**, con ejemplos de los propios.
+
+Si «compartidos» sale 0, la clave actual sirve y basta con importar
+marcando el mercado. Si no, hay que pasar a `(id, market)` **antes** de
+importar nada.
+
+## Cómo se ha probado
+
+`test-tcgdex-idioma.mjs`: 24 comprobaciones con un `fetch` de mentira —
+no hay red hacia TCGdex ni la va a haber en las pruebas, así que lo que
+se comprueba es **qué pide y cómo monta las URLs**, que es justo donde
+estaba el fallo. Incluye que un set se pida **una sola vez** (la mezcla
+eran dos) y que el diagnóstico detecte los ids compartidos.
+
+Rigor: **9 roturas, 9 pilladas**, entre ellas volver al español, volver a
+mezclar los dos idiomas, y que el diagnóstico deje de mirar los ids
+compartidos — que es la que dejaría tomar la decisión del esquema a
+ciegas.

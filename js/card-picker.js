@@ -1,5 +1,5 @@
 import { escapeHtml } from './app.js'
-import { searchCards, cardImageUrl, cardImageFallbackUrl } from './tcgdex.js'
+import { searchCards, cardImageUrl } from './tcgdex.js'
 
 // Buscador de cartas del editor. Devuelve una promesa con la lista de
 // identificadores elegidos, o null si se cierra sin elegir.
@@ -13,7 +13,6 @@ let contadorPeticion = 0
 
 function resultadoHtml(carta, elegida) {
   const src = cardImageUrl(carta.image_path)
-  const reserva = cardImageFallbackUrl(carta.image_path)
   const setName = carta.tcg_sets?.name || carta.set_id
   return `
     <li>
@@ -21,7 +20,7 @@ function resultadoHtml(carta, elegida) {
         ${
           src
             ? `<img src="${escapeHtml(src)}" alt="" loading="lazy"
-                 onerror="if(!this.dataset.r){this.dataset.r=1;this.src='${escapeHtml(reserva)}'}else{this.onerror=null;this.style.visibility='hidden'}">`
+                 onerror="this.onerror=null;this.style.visibility='hidden'">`
             : `<span class="cp-noimg">sin imagen</span>`
         }
         <span class="cp-name">${escapeHtml(carta.name)}</span>

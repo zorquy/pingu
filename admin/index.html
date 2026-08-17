@@ -249,9 +249,15 @@
           <button class="btn-primary" id="btnLoadTcgSets">Buscar sets en TCGdex</button>
           <button class="btn-secondary" id="btnImportPending" disabled>Importar los que faltan</button>
           <button class="btn-outline hidden" id="btnCancelImport">Cancelar</button>
+          <!-- No importa nada: sólo pregunta a TCGdex qué catálogos hay.
+               Hace falta para decidir cómo se meten las japonesas y las
+               chinas sin pisar las que ya están. -->
+          <button class="btn-outline" id="btnDiagnosticar">Diagnosticar catálogos</button>
         </div>
         <p class="admin-note" id="cardsImportNote"></p>
         <div class="cards-progress hidden" id="cardsProgress"><span class="fill" id="cardsProgressFill"></span></div>
+        <textarea id="cardsDiagnostico" class="admin-search hidden" rows="16" readonly
+          style="font-family: monospace; font-size: 12px; white-space: pre; width: 100%;"></textarea>
 
         <h2 class="admin-subtitle">Sets</h2>
         <input type="search" id="cardsSetFilter" class="admin-search" placeholder="Filtrar sets por nombre…" />
