@@ -387,9 +387,13 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   // veces para acabar con cuatro imágenes en cuatro líneas.
   const fileInput = toolbarEl.querySelector('.rte-image-input')
   toolbarEl.querySelector('[data-action="image"]').addEventListener('click', () => fileInput.click())
-  fileInput.addEventListener('change', async () => {
+  fileInput.addEventListener('change', () => {
     const ficheros = [...fileInput.files]
     fileInput.value = ''
+    subirYColocar(ficheros)
+  })
+
+  async function subirYColocar(ficheros) {
     if (ficheros.length === 0 || !uploadImage) return
     const fallos = []
     for (const file of ficheros) {
@@ -404,6 +408,44 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     }
     if (fallos.length === 1) showToast('No se pudo subir la imagen: ' + fallos[0])
     else if (fallos.length > 1) showToast(`No se pudieron subir ${fallos.length} imágenes: ${fallos[0]}`)
+  }
+
+  // ── Pegar imágenes ──
+  //
+  // Una imagen no siempre entra por el diálogo. Muchas veces se pega: desde
+  // otra página (viene como <img> apuntando a esa página) o desde el
+  // portapapeles (viene como fichero, de una captura). Las dos formas
+  // acababan en una imagen a pelo dentro de un párrafo, sin nada del
+  // tratamiento de carta — que es exactamente lo que le pasó con tres cartas
+  // chinas pegadas de un foro: salieron una debajo de otra.
+  //
+  // La forma de una imagen no depende de cómo llegó, así que el tratamiento
+  // tampoco.
+  surfaceEl.addEventListener('paste', (e) => {
+    const ficheros = [...(e.clipboardData?.files || [])].filter((f) => (f.type || '').startsWith('image/'))
+    if (ficheros.length > 0 && uploadImage) {
+      // Una captura pegada la mete el navegador como `blob:` o como base64
+      // gigante, y ninguna de las dos sobrevive a guardar: al recargar
+      // quedaría una imagen rota. Se sube igual que si la hubiera elegido en
+      // el diálogo.
+      e.preventDefault()
+      subirYColocar(ficheros)
+      return
+    }
+    // Si lo pegado trae <img> de otra página, se repasan en cuanto el
+    // navegador haya acabado de pegar.
+    setTimeout(repasarImagenesNuevas, 0)
+  })
+
+  // Arrastrar una imagen a la caja es el mismo caso que pegarla: el navegador
+  // la metería como `blob:`, que no sobrevive a guardar.
+  surfaceEl.addEventListener('drop', (e) => {
+    const ficheros = [...(e.dataTransfer?.files || [])].filter((f) => (f.type || '').startsWith('image/'))
+    // Sólo se interviene si lo que cae son imágenes: arrastrar texto dentro
+    // del propio editor tiene que seguir funcionando como siempre.
+    if (ficheros.length === 0 || !uploadImage) return
+    e.preventDefault()
+    subirYColocar(ficheros)
   })
 
   // ── Una imagen con forma de carta no es una imagen cualquiera ──
@@ -504,6 +546,9 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     img.alt = ''
     img.src = url
     insertarNodoEnCursor(img)
+    // Ya está atendida: el repaso de las pegadas no tiene que volver a
+    // mirarla.
+    imagenesVistas.add(img)
     emit()
     const m = await medida(img)
     // Puede haberla borrado mientras cargaba.
@@ -512,10 +557,21 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     emit()
   }
 
-  function convertirEnCarta(img) {
+  // Lo que hace que una imagen sea una carta. No toca el cursor a propósito:
+  // al insertarla hay que moverlo detrás, y al repasar lo que se acaba de
+  // pegar no, porque el cursor es de quien está escribiendo.
+  function hacerCarta(img) {
     const fig = asegurarFigura(img)
     fig.classList.add('rt-fig-carta')
+    // Un ancho escrito a mano ganaría a la clase, y entonces marcarla como
+    // carta no se notaría.
+    fig.style.removeProperty('width')
     agruparConLaAnterior(fig)
+    return fig
+  }
+
+  function convertirEnCarta(img) {
+    const fig = hacerCarta(img)
     // Un párrafo detrás: es donde sigue escribiendo, y es lo que hace que
     // la siguiente imagen caiga pegada a esta y entre en la misma fila.
     const caja = fig.closest('.rt-fila') || fig
@@ -526,6 +582,39 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     }
     ponerCursorEn(caja.nextElementSibling)
     seleccionar(img)
+  }
+
+  // ── Repasar las imágenes que han entrado por su cuenta ──
+  //
+  // Las que YA ESTABAN en la guía al abrirla se marcan como vistas: cambiarle
+  // la maquetación de golpe a un artículo ya escrito sería tocarlo sin que
+  // nadie lo haya pedido. Para esas está el botón "Tamaño carta".
+  const imagenesVistas = new WeakSet()
+  surfaceEl.querySelectorAll('img').forEach((img) => imagenesVistas.add(img))
+
+  let repasando = false
+  async function repasarImagenesNuevas() {
+    if (repasando) return
+    repasando = true
+    let algo = false
+    try {
+      for (const img of [...surfaceEl.querySelectorAll('img')]) {
+        if (imagenesVistas.has(img)) continue
+        imagenesVistas.add(img)
+        // Las imágenes de una lista de cartas o de la portada de un vídeo no
+        // son imágenes del artículo: las pinta el propio editor y se tiran al
+        // guardar. Envolverlas en una figura reventaría el bloque.
+        if (img.closest('tcg-deck, yt-video, figure')) continue
+        const m = await medida(img)
+        if (!img.isConnected || !surfaceEl.contains(img)) continue
+        if (!esFormaDeCarta(m)) continue
+        hacerCarta(img)
+        algo = true
+      }
+    } finally {
+      repasando = false
+    }
+    if (algo) emit()
   }
 
   // Si justo antes hay otra carta (o una fila de cartas), se juntan. Los
@@ -714,16 +803,42 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   // Y si la imagen YA está en una fila, el botón cambia cuántas columnas
   // tiene esa fila, que es lo que se espera al pulsar "3" estando dentro
   // de una fila de dos.
+  // Un párrafo cuyo único contenido es una imagen ES una imagen suelta,
+  // aunque todavía no sea una figura. Así llegan las imágenes PEGADAS de otra
+  // página, y así estaban las de las guías escritas antes de todo esto: sin
+  // esto, «Fila de 3» sobre tres cartas pegadas no encontraba nada que juntar
+  // y no pasaba nada al pulsarlo.
+  function imagenSuelta(el) {
+    if (!el || el.tagName !== 'P' || el.textContent.trim()) return null
+    if (el.querySelector('tcg-deck, yt-video')) return null
+    const imgs = el.querySelectorAll('img')
+    return imgs.length === 1 ? imgs[0] : null
+  }
+
+  // La figura de una imagen, marcándola como carta si tiene forma de carta.
+  // Aquí se puede medir sin esperar: la imagen ya está en pantalla, así que
+  // el navegador ya sabe cuánto mide.
+  function figuraDeImagen(img) {
+    if (img.tagName !== 'IMG') return asegurarFigura(img)
+    const esCarta = esFormaDeCarta({ w: img.naturalWidth, h: img.naturalHeight })
+    const fig = asegurarFigura(img)
+    if (esCarta) {
+      fig.classList.add('rt-fig-carta')
+      fig.style.removeProperty('width')
+    }
+    return fig
+  }
+
   function ponerEnFila(n) {
     if (!seleccionado) return
-    const fig = asegurarFigura(seleccionado)
+    const fig = figuraDeImagen(seleccionado)
     const filaExistente = fig.closest('.rt-fila')
     if (filaExistente) {
       filaExistente.setAttribute('data-cols', String(n))
       return emit()
     }
 
-    // Sólo se agrupan figuras que sean HERMANAS y estén seguidas. Un
+    // Sólo se agrupan imágenes que sean HERMANAS y estén seguidas. Un
     // párrafo de texto en medio corta: juntar dos imágenes separadas por
     // texto movería el texto de sitio sin que nadie lo haya pedido.
     //
@@ -738,9 +853,13 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
         siguiente = siguiente.nextElementSibling
         continue
       }
-      if (siguiente.tagName !== 'FIGURE') break
+      const suelta = siguiente.tagName === 'FIGURE' ? null : imagenSuelta(siguiente)
+      if (siguiente.tagName !== 'FIGURE' && !suelta) break
       const tras = siguiente.nextElementSibling
-      aMeter.push(siguiente)
+      // `figuraDeImagen` se lleva la imagen a su propia figura y deja vacío
+      // el párrafo donde estaba, que se borra. `tras` se ha guardado antes
+      // justamente por eso.
+      aMeter.push(suelta ? figuraDeImagen(suelta) : siguiente)
       siguiente = tras
     }
 
@@ -758,6 +877,23 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     })
     seleccionar(seleccionado)
     emit()
+  }
+
+  // Saca UNA figura de su fila y la deja justo detrás. Si la fila se queda
+  // con una sola, deja de ser una fila y se deshace: una rejilla de dos
+  // columnas con una figura dentro es un hueco vacío al lado.
+  function sacarUnaDeLaFila(fig) {
+    const fila = fig.closest('.rt-fila')
+    if (!fila) return
+    fig.classList.add('rt-fig', 'rt-fig-c')
+    fila.after(fig)
+    const quedan = [...fila.querySelectorAll(':scope > figure')]
+    if (quedan.length >= 2) {
+      recolocarColumnas(fila)
+      return
+    }
+    quedan.forEach((f) => f.classList.add('rt-fig', 'rt-fig-c'))
+    fila.replaceWith(...fila.childNodes)
   }
 
   function sacarDeLaFila() {
@@ -811,12 +947,20 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
       if (accion.startsWith('fila-')) return ponerEnFila(Number(accion.slice(5)))
 
       if (accion === 'carta') {
-        const fig = asegurarFigura(seleccionado)
-        const esCarta = fig.classList.toggle('rt-fig-carta')
-        // Al dejar de ser carta dentro de una fila, la figura vuelve a
-        // llenar su columna; al pasar a serlo, se queda a tamaño de carta.
-        // En los dos casos el ancho a mano que hubiera ya no dice nada.
-        if (esCarta) fig.style.removeProperty('width')
+        const yaEra = asegurarFigura(seleccionado).classList.contains('rt-fig-carta')
+        if (yaEra) {
+          const fig = asegurarFigura(seleccionado)
+          fig.classList.remove('rt-fig-carta')
+          // Dentro de una fila, una figura que ya no es carta llenaría su
+          // columna y saldría más grande que sus vecinas. Se sale de la fila,
+          // que es lo que se está pidiendo al quitarle el tamaño de carta.
+          sacarUnaDeLaFila(fig)
+        } else {
+          // Marcar una a mano hace lo MISMO que al insertarla, agrupar
+          // incluido: es lo que arregla una guía ya escrita en un clic por
+          // imagen, sin tener que acordarse de pulsar además "Fila de 3".
+          hacerCarta(seleccionado)
+        }
         seleccionar(seleccionado)
         return emit()
       }
@@ -876,4 +1020,10 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
 
   surfaceEl.addEventListener('input', emit)
   surfaceEl.addEventListener('blur', emit)
+
+  // El repaso va también aquí, y no sólo en el `paste`: una imagen puede
+  // aparecer por caminos que no controlamos (pegar con el menú del
+  // navegador, arrastrarla, deshacer y volver a hacer). `input` los cubre
+  // todos, y para las que ya estén vistas no hace nada.
+  surfaceEl.addEventListener('input', repasarImagenesNuevas)
 }

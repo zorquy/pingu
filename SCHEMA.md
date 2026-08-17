@@ -8284,3 +8284,46 @@ Dos cosas que hubo que arreglar del propio banco de pruebas:
   antes de poner la segunda carta para que queden dos huecos, y entonces sí
   se notaba. Caso añadido, y la prueba comprueba primero que hay dos párrafos
   vacíos — si no, no estaría probando lo que dice.
+
+## Lo que se me escapó: la imagen no siempre entra por el diálogo
+
+Con todo lo de arriba hecho, volvió con una captura de tres cartas chinas una
+debajo de otra: «¿he hecho algo mal? se insertan en fila y queda horrible».
+No había hecho nada mal — **las había pegado de un foro**, y todo el
+tratamiento vivía dentro del manejador del `<input type="file">`. Una imagen
+pegada llegaba como un `<img>` a pelo dentro de un párrafo y no pasaba por
+ninguna de las reglas nuevas.
+
+La forma de una imagen no depende de cómo llegó, así que el tratamiento
+tampoco puede depender de eso:
+
+- **Repaso de imágenes nuevas** (`repasarImagenesNuevas`), colgado de `paste`
+  y de `input`. Lleva un `WeakSet` de las que ya ha visto, así que sólo mira
+  las que acaban de aparecer, vengan de donde vengan (pegar con el menú del
+  navegador, arrastrar, deshacer y rehacer).
+- **Las que ya estaban en la guía al abrirla se marcan como vistas.**
+  Reestructurar de golpe un artículo ya escrito sería cambiárselo a alguien
+  sin que lo haya pedido.
+- **Las imágenes de un `<tcg-deck>` o de un `<yt-video>` están excluidas.**
+  Las pinta el propio editor y se tiran al guardar; envolverlas en una figura
+  reventaría el bloque. Sin esa exclusión, insertar una lista de cartas
+  convertía sus cartas en figuras.
+- **Pegar o arrastrar un FICHERO de imagen** (una captura del portapapeles) se
+  intercepta y se sube como si se hubiera elegido en el diálogo. El navegador
+  la metía como `blob:` o como base64 gigante, y ninguna de las dos sobrevive
+  a guardar: al recargar quedaba una imagen rota. Este era un fallo aparte, y
+  llevaba ahí desde que existe el editor.
+- **«Fila de N» ya cuenta las imágenes pegadas.** Sólo miraba figuras, y una
+  imagen pegada es un `<img>` dentro de un párrafo: pulsar el botón no hacía
+  nada. Ahora un párrafo cuyo único contenido es una imagen cuenta como
+  imagen suelta (y si tiene forma de carta, entra con tamaño de carta).
+- **«Tamaño carta» agrupa igual que al insertar.** Es lo que arregla una guía
+  ya escrita: un clic por imagen y se van montando en la misma fila, sin tener
+  que acordarse de pulsar además «Fila de 3». Y al quitárselo dentro de una
+  fila, la figura sale de la fila — si se quedara dentro llenaría su columna y
+  saldría más grande que sus vecinas.
+
+Total tras esta segunda vuelta: **97 comprobaciones y 32 roturas, 32
+pilladas**. Las dos de pegar y arrastrar un fichero se prueban lanzando un
+`ClipboardEvent`/`DragEvent` con un `DataTransfer` de verdad, así que el
+camino que corre es el mismo que con el ratón.
