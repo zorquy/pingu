@@ -7,7 +7,7 @@ import { icons } from '../../js/icons.js'
 import { contentIconHtml, inlineIconHtml } from '../../js/content-icon.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
-import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR } from '../../js/tcgdex.js'
+import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados } from '../../js/tcgdex.js'
 import { checkSchema } from '../../js/schema-check.js'
 
 let categories = []
@@ -1688,19 +1688,26 @@ async function cargarSetsDeTcgdex() {
     // dentro: sin eso, el CS1a chino pisaría al occidental — comparten
     // identificador y son sets distintos.
     tcgSetsRemotos = []
-    const filas = []
+    const crudas = []
     for (const market of MERCADOS_A_IMPORTAR) {
       const sets = await fetchSets(market)
       tcgSetsRemotos.push(...sets.map((x) => ({ ...x, market })))
-      filas.push(...sets.map((x) => setToRow(x, market)))
+      crudas.push(...sets.map((x) => setToRow(x, market)))
     }
+    // El catálogo trae repetidos: el chino simplificado devuelve 57 sets
+    // con 56 identificadores. Con los dos en la misma sentencia, Postgres
+    // corta con «cannot affect row a second time».
+    const { filas, repetidas } = sinDuplicados(crudas, ['id', 'market'])
     // En trozos: PostgREST tiene un límite de tamaño de petición y 220
     // filas de una vez lo rozan.
     for (let i = 0; i < filas.length; i += 100) {
       const { error } = await supabase.from('tcg_sets').upsert(filas.slice(i, i + 100), { onConflict: 'id,market' })
       if (error) throw error
     }
-    cardsNota(`${filas.length} sets conocidos. Ahora "Importar los que faltan" trae las cartas.`)
+    cardsNota(
+      `${filas.length} sets conocidos${repetidas ? ` (${repetidas} repetidos en el catálogo, descartados)` : ''}. ` +
+        'Ahora "Importar los que faltan" trae las cartas.'
+    )
     document.getElementById('btnImportPending').disabled = false
     await loadCards()
   } catch (err) {
@@ -1761,7 +1768,12 @@ async function importarSets(ids) {
     const market = par.market || 'WEST'
     try {
       const set = await fetchSet(setId, market)
-      const filas = (set.cards || []).map((c) => cardToRow(c, setId, market))
+      // Mismo cuidado que con los sets: un set puede traer la misma
+      // carta dos veces, y las dos en la misma sentencia la parten.
+      const { filas } = sinDuplicados(
+        (set.cards || []).map((c) => cardToRow(c, setId, market)),
+        ['id', 'market']
+      )
       for (let i = 0; i < filas.length; i += 200) {
         const { error } = await supabase.from('tcg_cards').upsert(filas.slice(i, i + 200), { onConflict: 'id,market' })
         if (error) throw error

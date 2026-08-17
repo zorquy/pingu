@@ -110,6 +110,33 @@ export function fetchSet(setId, market = MERCADO_POR_DEFECTO) {
   return pedir(`sets/${encodeURIComponent(setId)}`, idiomaDeMercado(market))
 }
 
+// Quita filas repetidas por su clave, dejando la PRIMERA.
+//
+// Hace falta porque el catálogo de TCGdex trae repetidos. El chino
+// simplificado devuelve 57 sets con 56 identificadores distintos: uno
+// viene dos veces. Con los dos en la misma sentencia, Postgres corta con
+// «ON CONFLICT DO UPDATE command cannot affect row a second time», que es
+// su forma de decir que no sabe cuál de los dos debe ganar.
+//
+// No se puede dar por hecho que sea sólo ese: el catálogo lo mantiene
+// gente y cambia. Así que se limpia siempre, y se dice cuántos se han
+// caído para que no pase desapercibido.
+export function sinDuplicados(filas, claves) {
+  const vistas = new Set()
+  const limpias = []
+  let repetidas = 0
+  for (const f of filas) {
+    const clave = claves.map((c) => f[c]).join('\u0000')
+    if (vistas.has(clave)) {
+      repetidas++
+      continue
+    }
+    vistas.add(clave)
+    limpias.push(f)
+  }
+  return { filas: limpias, repetidas }
+}
+
 function fecha(valor) {
   // TCGdex las da como "2020-08-14"; algunas antiguas vienen vacías o a
   // medias y Postgres rechazaría la fila entera.

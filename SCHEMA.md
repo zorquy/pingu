@@ -7768,6 +7768,33 @@ habría importado siempre el primero que encontrara — trayendo el set
 equivocado y guardándolo encima del que toca. Ahora se importa por **par
 (id, mercado)**, y la fila enseña el mercado en una etiqueta.
 
+## El catálogo de TCGdex trae repetidos
+
+Y esto reventó el import en producción, con el mensaje **«ON CONFLICT DO
+UPDATE command cannot affect row a second time»** — que es Postgres
+diciendo que una misma sentencia lleva dos filas con la misma clave y no
+sabe cuál debe ganar. Consecuencia: no se importaba **nada**.
+
+La causa estaba en los datos del diagnóstico y se me pasó por alto:
+
+```
+zh-cn    57 sets,   6962 cartas declaradas     ← sets.length
+zh-cn    56 sets ·    0 compartidos ·   56 propios   ← identificadores únicos
+```
+
+**57 contra 56.** El chino simplificado devuelve un set dos veces. Los
+otros quince idiomas cuadran; ése no. Los dos caían en el mismo lote de
+100 y la sentencia entera se venía abajo.
+
+`sinDuplicados(filas, claves)` limpia por clave dejando la primera, y
+**dice cuántas ha quitado** — el panel lo enseña, para que un repetido
+nuevo no pase desapercibido. Se aplica a los sets y a las cartas de cada
+set: no hay motivo para suponer que sólo pasa en un sitio, el catálogo lo
+mantiene gente y cambia.
+
+Lo que **no** puede hacer es descartar el mismo id de otro mercado: eso
+sería tirar catálogos enteros. Hay una rotura del rigor puesta ahí.
+
 ## Cómo se ha probado
 
 **SQL contra un PostgreSQL de verdad** (`prueba-cartas-mercado.sql`): 19
@@ -7775,5 +7802,6 @@ comprobaciones, con el caso real como centro — meter el `CS1a` japonés y
 el chino tradicional al lado del occidental y comprobar que **ninguno
 pisa a los otros**. Rigor: **7 roturas, 7 pilladas**.
 
-**Cliente** (`test-tcgdex-idioma.mjs`): 43 comprobaciones con un `fetch`
-de mentira. Suite completa: **37/37 en verde**.
+**Cliente** (`test-tcgdex-idioma.mjs`): 49 comprobaciones con un `fetch`
+de mentira. Rigor: **13 roturas, 13 pilladas**. Suite completa: **37/37 en
+verde**.
