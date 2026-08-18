@@ -121,6 +121,46 @@ function engancharMarcarTodo() {
 // ─────────────────────────────────────────────────────────────
 // 1. El índice
 // ─────────────────────────────────────────────────────────────
+// ── Los temas que nadie ha contestado ──
+//
+// Con una comunidad pequeña, un hilo sin respuesta el primer día es alguien
+// que no vuelve. Esta tira los pone donde todo el mundo los ve, para que a
+// nadie se le quede la pregunta colgada.
+//
+// Quedan fuera los cerrados (no se puede contestar) y los fijados (un
+// anuncio de la casa no pide respuestas). Y solo temas de los foros
+// VISIBLES: la política de lectura de forum_threads es abierta, así que sin
+// este filtro un tema de un foro oculto se colaría por aquí.
+async function sinResponderHtml(idsForosVisibles) {
+  if (!idsForosVisibles.length) return ''
+  const { data, error } = await supabase
+    .from('forum_threads')
+    .select('id, title, prefix, created_at, author_id')
+    .in('board_id', idsForosVisibles)
+    .eq('post_count', 1)
+    .eq('is_locked', false)
+    .eq('is_pinned', false)
+    .order('created_at', { ascending: false })
+    .limit(5)
+  if (error || !data || data.length === 0) return ''
+
+  const perfiles = await perfilesPorId(data.map((t) => t.author_id))
+  const filas = data
+    .map(
+      (t) => `<a class="foro-sr-fila" href="${urlTema(t.id)}">
+        <span class="foro-sr-titulo">${etiquetaHtml(t.prefix)} ${escapeHtml(t.title)}</span>
+        <small>${escapeHtml(nombreDe(perfiles[t.author_id]))} · ${escapeHtml(haceCuanto(t.created_at))}</small>
+      </a>`
+    )
+    .join('')
+
+  return `<section class="foro-sin-responder">
+    <h2>${icons.helpCircle(16)} Sin respuesta todavía</h2>
+    <p class="subtext">Nadie ha contestado a ${data.length === 1 ? 'este tema' : 'estos temas'}. Si sabes algo, dentro te esperan.</p>
+    <div class="foro-sr-lista">${filas}</div>
+  </section>`
+}
+
 async function pintarIndice() {
   const [seccionesRes, forosRes] = await Promise.all([
     supabase.from('forum_sections').select('*').order('position'),
@@ -193,9 +233,11 @@ async function pintarIndice() {
     })
     .join('')
 
-  principal.innerHTML =
-    bloques ||
-    `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
+  const sinResponder = await sinResponderHtml(foros.map((f) => f.id))
+
+  principal.innerHTML = bloques
+    ? sinResponder + bloques
+    : `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
 
   migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/index.html' }, { texto: 'Foro' }])
   // El botón faltaba justo donde más falta hace. Estaba sólo dentro de un
