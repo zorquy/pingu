@@ -23,6 +23,44 @@
   <meta name="twitter:description" content="Guías, curiosidades y cursos interactivos sobre Pokémon TCG para coleccionistas y jugadores, en español." />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
+  <!-- Datos estructurados del SITIO. Aquí van escritos a mano porque la
+       portada no cambia; los de cada guía, categoría, perfil y tema los
+       inyecta netlify/edge-functions/meta-social.js con los datos de la
+       base.
+
+       El SearchAction es lo que hace que Google pueda enseñar una caja de
+       búsqueda de PokeDoc dentro del propio resultado. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://pokedoc.es/#sitio",
+        "url": "https://pokedoc.es/",
+        "name": "PokeDoc",
+        "alternateName": "PokeDoc — cartas Pokémon en español",
+        "description": "La comunidad en español de cartas Pokémon: guías, cursos interactivos y foro. Gratis y sin anuncios.",
+        "inLanguage": "es-ES",
+        "publisher": { "@id": "https://pokedoc.es/#organizacion" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": { "@type": "EntryPoint", "urlTemplate": "https://pokedoc.es/buscar.html?q={search_term_string}" },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://pokedoc.es/#organizacion",
+        "name": "PokeDoc",
+        "url": "https://pokedoc.es/",
+        "logo": "https://pokedoc.es/assets/images/og-default.png",
+        "email": "info@pokedoc.es",
+        "description": "Proyecto hecho por y para aficionados a las cartas Pokémon. No está afiliado a Nintendo, Game Freak, Creatures ni The Pokémon Company."
+      }
+    ]
+  }
+  </script>
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <!-- Estos seis módulos los carga TODA página. Sin esto el navegador

@@ -68,6 +68,40 @@ export function urlAbsoluta(url) {
   return `${SITIO}${v.startsWith('/') ? '' : '/'}${v}`
 }
 
+// ── Datos estructurados (schema.org) ──
+//
+// Lo mismo que el Open Graph pero para BUSCADORES en vez de para redes
+// sociales: le dice a Google que esto es un artículo, de qué fecha, de quién
+// y dónde está dentro del sitio. Es lo que hace que una guía pueda salir con
+// su título, su fecha y sus migas de pan en los resultados, en vez de como
+// una URL suelta.
+//
+// Va aquí, en el servidor, y no en el JavaScript de la página: el robot que
+// indexa lee el HTML que sale del servidor.
+//
+// El `<` se escapa a \u003c en TODO el JSON. Es la única forma de que un
+// título que contenga "</script>" no cierre la etiqueta y se convierta en
+// HTML dentro de la página.
+export function bloqueDatos(datos) {
+  if (!datos) return ''
+  const json = JSON.stringify(datos).replace(/</g, '\\u003c')
+  return `  <script type="application/ld+json">${json}<\/script>`
+}
+
+// Las migas de pan: Inicio › Categoría › esto. Google las enseña debajo del
+// título del resultado en vez de la dirección en crudo.
+export function migas(pasos) {
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: pasos.map((paso, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: paso.nombre,
+      item: paso.url,
+    })),
+  }
+}
+
 export function bloqueMeta(meta) {
   const e = escaparAtributo
   const cuadrada = meta.imagenCuadrada === true
@@ -92,10 +126,11 @@ export function bloqueMeta(meta) {
     `<meta name="twitter:card" content="${cuadrada ? 'summary' : 'summary_large_image'}" />`,
     `<meta name="twitter:title" content="${e(meta.titulo)}" />`,
     `<meta name="twitter:description" content="${e(meta.descripcion)}" />`,
-    `<meta name="twitter:image" content="${e(meta.imagen)}" />`,
-    '<!-- meta-social:fin -->'
+    `<meta name="twitter:image" content="${e(meta.imagen)}" />`
   )
-  return lineas.map((l) => `  ${l}`).join('\n')
+  const salida = lineas.map((l) => `  ${l}`).join('\n')
+  const datos = bloqueDatos(meta.datos)
+  return `${salida}${datos ? `\n${datos}` : ''}\n  <!-- meta-social:fin -->`
 }
 
 // Sustituye el bloque que ya trae la página. También cambia <title> y la
@@ -142,8 +177,13 @@ function urlCanonica(url) {
 async function metaDeGuia(url, esCurso) {
   const slug = url.searchParams.get('slug')
   if (!slug) return null
+  // Las columnas que se piden están todas comprobadas: si se cuela una que
+  // no existe, PostgREST devuelve 400, `pedir` devuelve null y la página se
+  // quedaría SIN etiquetas sociales. Antes de añadir una aquí, hay que
+  // verla en la base.
   const guia = await pedir(
-    `guides?slug=eq.${encodeURIComponent(slug)}&published_at=not.is.null&select=title,description,cover_image,search_content&limit=1`
+    `guides?slug=eq.${encodeURIComponent(slug)}&published_at=not.is.null` +
+      `&select=title,description,cover_image,search_content,published_at,author_id,categories(name,slug)&limit=1`
   )
   if (!guia?.title) return null
 
@@ -152,12 +192,57 @@ async function metaDeGuia(url, esCurso) {
     recortar(guia.search_content) ||
     'Guía de la comunidad de PokeDoc sobre Pokémon TCG.'
 
+  const imagen = urlAbsoluta(guia.cover_image) || IMAGEN_POR_DEFECTO
+  const canonica = urlCanonica(url)
+  const categoria = guia.categories
+
+  const camino = [{ nombre: 'Inicio', url: `${SITIO}/` }]
+  if (categoria?.name && categoria?.slug) {
+    camino.push({ nombre: categoria.name, url: `${SITIO}/categoria.html?slug=${encodeURIComponent(categoria.slug)}` })
+  }
+  camino.push({ nombre: guia.title, url: canonica })
+
   return {
-    url: urlCanonica(url),
+    url: canonica,
     tipo: 'article',
     titulo: esCurso ? `Curso: ${guia.title} — PokeDoc` : `${guia.title} — PokeDoc`,
     descripcion: esCurso ? `Curso interactivo paso a paso. ${descripcion}` : descripcion,
-    imagen: urlAbsoluta(guia.cover_image) || IMAGEN_POR_DEFECTO,
+    imagen,
+    datos: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          // Un curso es otra cosa que un artículo, y schema.org lo sabe.
+          '@type': esCurso ? 'Course' : 'Article',
+          '@id': canonica,
+          mainEntityOfPage: canonica,
+          headline: guia.title,
+          name: guia.title,
+          description: descripcion,
+          image: imagen,
+          inLanguage: 'es-ES',
+          ...(guia.published_at ? { datePublished: guia.published_at } : {}),
+          // Sin autor concreto, la guía es de la casa. El autor de verdad se
+          // añadiría con otra consulta, y no vale la pena hacer esperar al
+          // robot por un campo opcional.
+          author: { '@type': 'Organization', name: 'PokeDoc', url: SITIO },
+          publisher: { '@type': 'Organization', name: 'PokeDoc', url: SITIO },
+          ...(esCurso
+            ? {
+                provider: { '@type': 'Organization', name: 'PokeDoc', url: SITIO },
+                // Google pide decir cómo se imparte; si no, se ignora la ficha.
+                hasCourseInstance: {
+                  '@type': 'CourseInstance',
+                  courseMode: 'online',
+                  courseWorkload: 'PT10M',
+                },
+                offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR', category: 'Free' },
+              }
+            : {}),
+        },
+        migas(camino),
+      ],
+    },
   }
 }
 
@@ -166,11 +251,31 @@ async function metaDeCategoria(url) {
   if (!slug) return null
   const cat = await pedir(`categories?slug=eq.${encodeURIComponent(slug)}&select=name,description&limit=1`)
   if (!cat?.name) return null
+  const canonica = urlCanonica(url)
+  const descripcion = recortar(cat.description) || `Guías y cursos de Pokémon TCG sobre ${cat.name}, en PokeDoc.`
   return {
-    url: urlCanonica(url),
+    url: canonica,
     titulo: `${cat.name} — PokeDoc`,
-    descripcion: recortar(cat.description) || `Guías y cursos de Pokémon TCG sobre ${cat.name}, en PokeDoc.`,
+    descripcion,
     imagen: IMAGEN_POR_DEFECTO,
+    datos: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'CollectionPage',
+          '@id': canonica,
+          name: `${cat.name} — PokeDoc`,
+          description: descripcion,
+          inLanguage: 'es-ES',
+          isPartOf: { '@type': 'WebSite', name: 'PokeDoc', url: SITIO },
+        },
+        migas([
+          { nombre: 'Inicio', url: `${SITIO}/` },
+          { nombre: 'Aprender', url: `${SITIO}/aprender.html` },
+          { nombre: cat.name, url: canonica },
+        ]),
+      ],
+    },
   }
 }
 
@@ -188,8 +293,23 @@ async function metaDePerfil(url) {
 
   const visible = perfil.display_name || perfil.username
   const avatar = urlAbsoluta(perfil.avatar_url)
+  const canonica = `${SITIO}/usuario/${encodeURIComponent(perfil.username)}`
   return {
-    url: `${SITIO}/usuario/${encodeURIComponent(perfil.username)}`,
+    url: canonica,
+    datos: {
+      '@context': 'https://schema.org',
+      '@type': 'ProfilePage',
+      '@id': canonica,
+      inLanguage: 'es-ES',
+      mainEntity: {
+        '@type': 'Person',
+        name: visible,
+        alternateName: perfil.username,
+        url: canonica,
+        ...(avatar ? { image: avatar } : {}),
+        ...(perfil.bio ? { description: recortar(perfil.bio) } : {}),
+      },
+    },
     tipo: 'profile',
     titulo: `${visible} — PokeDoc`,
     descripcion:
@@ -244,12 +364,38 @@ async function metaDeTema(url) {
     recortar(textoDeHtml(primero?.body_html)) ||
     `Un tema del foro de PokeDoc${respuestas ? ` con ${respuestas} ${respuestas === 1 ? 'respuesta' : 'respuestas'}` : ''}.`
 
+  const canonica = `${SITIO}/tema/${encodeURIComponent(id)}`
   return {
-    url: `${SITIO}/tema/${encodeURIComponent(id)}`,
+    url: canonica,
     tipo: 'article',
     titulo: `${tema.prefix ? `[${tema.prefix}] ` : ''}${tema.title} — Foro de PokeDoc`,
     descripcion,
     imagen: IMAGEN_POR_DEFECTO,
+    datos: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          // El tipo propio de un hilo de foro. Google lo distingue de un
+          // artículo y lo enseña con el número de respuestas.
+          '@type': 'DiscussionForumPosting',
+          '@id': canonica,
+          mainEntityOfPage: canonica,
+          headline: tema.title,
+          text: descripcion,
+          inLanguage: 'es-ES',
+          interactionStatistic: {
+            '@type': 'InteractionCounter',
+            interactionType: 'https://schema.org/ReplyAction',
+            userInteractionCount: respuestas,
+          },
+        },
+        migas([
+          { nombre: 'Inicio', url: `${SITIO}/` },
+          { nombre: 'Foro', url: `${SITIO}/foro.html` },
+          { nombre: tema.title, url: canonica },
+        ]),
+      ],
+    },
   }
 }
 
@@ -265,11 +411,31 @@ async function metaDeForo(url) {
   )
   if (!foro?.name) return null
 
+  const canonica = `${SITIO}/foro/${encodeURIComponent(slug)}`
+  const descripcion = recortar(foro.description) || `${foro.name}, en el foro de PokeDoc sobre Pokémon TCG.`
   return {
-    url: `${SITIO}/foro/${encodeURIComponent(slug)}`,
+    url: canonica,
     titulo: `${foro.name} — Foro de PokeDoc`,
-    descripcion: recortar(foro.description) || `${foro.name}, en el foro de PokeDoc sobre Pokémon TCG.`,
+    descripcion,
     imagen: IMAGEN_POR_DEFECTO,
+    datos: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'CollectionPage',
+          '@id': canonica,
+          name: `${foro.name} — Foro de PokeDoc`,
+          description: descripcion,
+          inLanguage: 'es-ES',
+          isPartOf: { '@type': 'WebSite', name: 'PokeDoc', url: SITIO },
+        },
+        migas([
+          { nombre: 'Inicio', url: `${SITIO}/` },
+          { nombre: 'Foro', url: `${SITIO}/foro.html` },
+          { nombre: foro.name, url: canonica },
+        ]),
+      ],
+    },
   }
 }
 
@@ -331,5 +497,16 @@ export const config = {
     '/tema/*',
     '/foro.html',
     '/foro/*',
+    // Y las direcciones SIN .html, que es como las escribe media web
+    // (/guia?slug=... sale de las tarjetas de guía) y como las deja Netlify
+    // al servir un fichero por su nombre limpio. Faltaban: quien compartía
+    // una guía por su dirección limpia enseñaba la vista previa genérica, y
+    // Google veía la página sin datos estructurados.
+    '/guia',
+    '/curso',
+    '/categoria',
+    '/usuario',
+    '/tema',
+    '/foro',
   ],
 }
