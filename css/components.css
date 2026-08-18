@@ -5864,3 +5864,54 @@ yt-video .yt-enlace {
 }
 
 yt-video .yt-enlace:hover { color: #fff; }
+
+/* ── Página 404 ──────────────────────────────────────────────────────────
+   Antes no había: Netlify mandaba cualquier dirección desconocida a la
+   portada con un 200, así que un enlace mal copiado enseñaba la home como
+   si no hubiera pasado nada — y los buscadores se creían que esa dirección
+   inventada era una página de verdad. */
+.pagina-404 {
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
+  padding: 26px 0 40px;
+}
+
+.pagina-404 h1 {
+  margin: 6px 0 10px;
+}
+
+.pagina-404 .subtext {
+  max-width: 46ch;
+}
+
+.buscador-404 {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  max-width: 420px;
+}
+
+.buscador-404 input {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .pagina-404 {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .pagina-404 .subtext {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .buscador-404 {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+}

@@ -108,7 +108,16 @@
   to = "/tema.html?t=:id"
   status = 200
 
+# Cualquier dirección que no exista termina en la 404 CON código 404.
+#
+# Antes esta regla mandaba todo a la portada con un 200: un enlace mal
+# copiado enseñaba la home como si no hubiera pasado nada, y para Google
+# cada dirección inventada era una página más con el contenido de la
+# portada. Va la última a propósito — Netlify aplica la primera regla que
+# coincide, y los ficheros que existen (incluidas las direcciones limpias
+# tipo /guia o /sobre) ganan a los redirects, así que esto solo atrapa lo
+# que de verdad no está.
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200
+  to = "/404.html"
+  status = 404
