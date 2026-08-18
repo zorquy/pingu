@@ -5915,3 +5915,126 @@ yt-video .yt-enlace:hover { color: #fff; }
     width: 100%;
   }
 }
+
+/* ── Primeros pasos del recién llegado ───────────────────────────────────
+   Tres acciones concretas para quien acaba de registrarse. Solo aparece
+   mientras quede alguna sin hacer (ver js/primeros-pasos.js), así que esto
+   no lo ve nadie pasada la primera semana. */
+.primeros-pasos {
+  background: var(--white);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+
+.primeros-pasos-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.primeros-pasos-cabecera h2 {
+  font-size: 19px;
+  margin: 2px 0 0;
+}
+
+.primeros-pasos-cuenta {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--navy);
+  background: var(--ice);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+.primeros-pasos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.paso {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+/* El siguiente paso es el único con botón y el único destacado: tres
+   llamadas a la vez son otra vez el problema de "por dónde empiezo". */
+.paso-siguiente {
+  border-color: var(--navy);
+  background: var(--white);
+}
+
+.paso-marca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  color: var(--white);
+}
+
+.paso-hecho .paso-marca {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.paso-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.paso-texto strong {
+  font-size: 14.5px;
+}
+
+.paso-texto small {
+  font-size: 12.5px;
+  color: var(--text-mid);
+}
+
+/* Un paso hecho se apaga, pero se sigue leyendo: es la prueba de lo que ya
+   has conseguido, no basura que tapar. */
+.paso-hecho .paso-texto strong {
+  color: var(--text-mid);
+}
+
+.paso-boton {
+  flex-shrink: 0;
+  font-size: 13px;
+  padding: 8px 14px;
+}
+
+.primeros-pasos-pie {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+}
+
+@media (max-width: 560px) {
+  .paso {
+    flex-wrap: wrap;
+  }
+
+  .paso-boton {
+    width: 100%;
+    text-align: center;
+    margin-left: 34px;
+  }
+}

@@ -5,6 +5,7 @@ import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
+import { montarPrimerosPasos } from './primeros-pasos.js'
 
 async function loadCategories() {
   const grid = document.getElementById('categoriesGrid')
@@ -123,7 +124,15 @@ async function init() {
     document.getElementById('signupBanner').style.display = 'block'
   }
 
-  await Promise.all([loadCategories(), loadRecent(), loadHeroGuideCount(), loadHomeActivity(session)])
+  await Promise.all([
+    loadCategories(),
+    loadRecent(),
+    loadHeroGuideCount(),
+    loadHomeActivity(session),
+    // Va dentro del mismo grupo: es una consulta corta y así no añade una
+    // espera más antes de que la portada esté entera.
+    montarPrimerosPasos(document.getElementById('primerosPasos'), session),
+  ])
   wireGuideCardClicks(document.getElementById('recentGrid'))
   await decorateGuideCards(document.getElementById('recentGrid'), session)
 }

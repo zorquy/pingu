@@ -255,6 +255,10 @@ function achievementValue(condition, stats) {
       return stats.quizCorrectCount
     case 'approved_guides_count':
       return stats.approvedGuidesCount
+    // Los tres primeros pasos: leer una guía, hacer un curso y escribir en
+    // el foro. El valor es cuántos lleva (0 a 3) — ver js/primeros-pasos.js.
+    case 'primeros_pasos':
+      return stats.primerosPasos
     case 'completed_guides_count':
     default:
       return stats.completedCount
@@ -262,7 +266,14 @@ function achievementValue(condition, stats) {
 }
 
 export async function checkAchievements(userId) {
-  const [{ count: completedCount }, { count: approvedGuidesCount }, { data: profile }, achievements] = await Promise.all([
+  const [
+    { count: completedCount },
+    { count: approvedGuidesCount },
+    { data: profile },
+    achievements,
+    { count: leidasCount },
+    { count: mensajesForoCount },
+  ] = await Promise.all([
     supabase
       .from('user_progress')
       .select('*', { count: 'exact', head: true })
@@ -279,6 +290,14 @@ export async function checkAchievements(userId) {
       .eq('id', userId)
       .single(),
     getAllAchievements(),
+    // Las dos que faltaban para los "primeros pasos". Son consultas de
+    // contar (head: true): no traen filas, solo el número.
+    supabase
+      .from('user_progress')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .not('read_at', 'is', null),
+    supabase.from('forum_posts').select('*', { count: 'exact', head: true }).eq('author_id', userId),
   ])
 
   if (!profile) return []
@@ -289,6 +308,10 @@ export async function checkAchievements(userId) {
     totalXp: profile.total_xp || 0,
     quizCorrectCount: profile.quiz_correct_count || 0,
     approvedGuidesCount: approvedGuidesCount || 0,
+    primerosPasos:
+      ((leidasCount || 0) > 0 ? 1 : 0) +
+      ((completedCount || 0) > 0 ? 1 : 0) +
+      ((mensajesForoCount || 0) > 0 ? 1 : 0),
   }
   const newlyUnlocked = []
 
