@@ -8327,3 +8327,112 @@ Total tras esta segunda vuelta: **97 comprobaciones y 32 roturas, 32
 pilladas**. Las dos de pegar y arrastrar un fichero se prueban lanzando un
 `ClipboardEvent`/`DragEvent` con un `DataTransfer` de verdad, así que el
 camino que corre es el mismo que con el ratón.
+
+# Aterrizaje, 404 y datos estructurados
+
+Tres cosas que hacían falta antes de abrir al público, y que van juntas
+porque las tres son "qué le pasa a alguien que llega de fuera".
+
+## /sobre — qué es PokeDoc
+
+No existía. Lo único que explicaba el proyecto era un **modal de la
+portada**, y un modal no tiene dirección propia: no se puede poner en la
+biografía de Instagram, no se puede enlazar desde un vídeo y Google no lo
+indexa. Ahora hay una página de verdad, en el pie de todas las páginas y en
+el sitemap, y el modal enlaza a ella.
+
+Dice lo que es, por qué existe, qué se puede hacer, que **cualquiera puede
+escribir**, y —importante— lo que **NO es**: ni tienda, ni peritaje, ni
+afiliada a Nintendo.
+
+## La 404
+
+La regla de Netlify mandaba **cualquier** dirección desconocida a la portada
+**con un 200**. Dos consecuencias: un enlace mal copiado enseñaba la home
+como si no hubiera pasado nada, y para Google cada dirección inventada era
+una página más con el contenido de la portada.
+
+Ahora hay una 404 con buscador y salidas, con `noindex` y **con su código
+404**.
+
+Lo delicado era que alguna dirección real dependiera de ese catch-all.
+`test-rutas-404.mjs` lee `netlify.toml` y el árbol de ficheros y **resuelve
+38 rutas como lo hace Netlify** —primero los ficheros, incluidas las
+direcciones limpias sin `.html`; después la primera regla que coincida—:
+las reales siguen dando 200 y solo lo inexistente cae en la 404. Y una
+rotura de la lista del rigor es precisamente la peligrosa: poner `force` en
+el catch-all se lleva por delante el sitio entero.
+
+## Datos estructurados (schema.org)
+
+El Open Graph que ya había es para WhatsApp; esto es para el buscador. La
+misma Edge Function inyecta ahora, con los datos de la base: **Article** en
+las guías (con fecha y migas Inicio › Categoría › Guía), **Course** en los
+cursos (gratis, y con la forma de impartirse que Google exige o ignora la
+ficha), **DiscussionForumPosting** con el número de respuestas en los temas,
+**ProfilePage** en los perfiles y **CollectionPage** en categorías y foros.
+La portada lleva escritos a mano **WebSite** (con el `SearchAction`, que es
+lo que permite que Google enseñe una caja de búsqueda de PokeDoc dentro del
+resultado) y **Organization**.
+
+Dos cosas que estaban mal de antes:
+
+- La función solo se registraba en `/guia.html`, `/curso.html`… y **media web
+  enlaza las direcciones limpias** (`/guia?slug=…` sale de las tarjetas). Quien
+  compartía una guía por ahí enseñaba la vista previa genérica.
+- El título de una guía va dentro de un `<script>`: se escapa el `<` a
+  `\u003c` en todo el JSON, o un título que contenga `</script>` cerraría la
+  etiqueta y lo de después sería HTML de verdad. Hay prueba con una guía
+  llamada literalmente así.
+
+**Y el Supabase de mentira ahora PROYECTA las columnas del `select`**, como
+PostgREST. Antes devolvía la fila entera: quitar una columna del `select` no
+se notaba en las pruebas y en producción habría llegado `undefined`. Es el
+mismo agujero que ya había mordido con `published_at`, ahora tapado para
+todas las pruebas.
+
+# Primeros pasos del recién llegado
+
+Quien se registra desde un vídeo aterriza en la portada y ve una web con
+muchas cosas y ninguna primera. La portada le pone delante **tres acciones**
+—leer una guía, hacer un curso, presentarse en el foro—, una de cada pata de
+PokeDoc: leer, jugar y hablar. Botón **solo en el siguiente**; al completar
+los tres, trofeo y el panel desaparece para siempre. A quien ya lo tiene no
+se le hace ni una consulta.
+
+Tres cosas que costó dejar bien probadas:
+
+- **La prueba miraba la portada a los 1,8 segundos**, que es una carrera:
+  "el panel no está" podía ser que aún no había llegado, y así tres roturas
+  pasaban por buenas. El panel marca `data-pasos="listo"` cuando ha decidido
+  —con panel, sin panel o habiendo fallado— y la prueba espera esa marca.
+- **El trofeo lo estaba concediendo la racha diaria.** `app.js` llama a
+  `checkDailyStreak` en cada carga, y eso encadena `addXP` →
+  `checkAchievements`, que llegaba antes que el panel. Con eso tapándolo,
+  romper el panel no se notaba. Las pruebas fijan ahora la racha ya cobrada
+  hoy.
+- **Que la condición del trofeo cuente mal no se ve en pantalla**, porque el
+  panel lleva su propia cuenta. Se comprueba llamando a `checkAchievements` a
+  pelo con dos pasos hechos y exigiendo que NO caiga.
+
+Fuera del rigor, con su motivo escrito: el guardia `!session`. Sin él la
+excepción la traga el `try/catch` que protege la portada y el resultado en
+pantalla es idéntico; se queda porque provocar una excepción en cada visita
+anónima para luego tragársela es peor que comprobarlo.
+
+# Copia de seguridad
+
+`herramientas/copia-seguridad.sh` y `copia-imagenes.sh`, con
+`COPIA-DE-SEGURIDAD.md`. Se ejecutan en su máquina y la contraseña de la base
+no toca ningún fichero del proyecto.
+
+El detalle que costó descubrir: **`--schema=public --table=auth.users` en la
+misma orden no hace lo que parece**. Con `--table`, `pg_dump` se olvida del
+esquema y copia solo esa tabla — la primera versión dejaba una copia con las
+cuentas y nada más. Van dos volcados seguidos en el mismo fichero.
+
+La copia se **comprueba a sí misma**: mira dentro qué tablas hay y cuántas
+filas trae cada una, y si falta alguna de las que importan sale con error en
+vez de dejar un fichero con pinta de copia. Probado contra un PostgreSQL 16
+de verdad: copia, restauración en una base vacía, y comprobación de que las
+guías y las cuentas llegan enteras.
