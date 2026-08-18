@@ -14,16 +14,22 @@
 -- condición `primeros_pasos` de js/gamification.js): esta migración solo
 -- da de alta la fila del trofeo.
 --
+-- La tabla es `achievement_definitions` — la misma que edita /admin. La
+-- primera versión de esta migración decía `achievements`, que no existe:
+-- ese nombre es el de la COLUMNA de user_profiles donde se guardan los
+-- ganados, no el de la tabla de definiciones.
+--
 -- Es idempotente: se puede ejecutar más de una vez.
 -- ============================================================
 
 begin;
 
-insert into public.achievements (id, title, description, emoji, rarity, xp_reward, is_active, condition)
+insert into public.achievement_definitions (id, title, description, emoji, rarity, xp_reward, is_active, condition)
 values (
   'primeros_pasos',
   'Primeros pasos',
   'Leíste una guía, hiciste un curso y te presentaste en el foro.',
+  -- Nombre de icono del juego de js/icons.js, como los demás logros.
   'sprout',
   'bronze',
   25,
@@ -46,7 +52,7 @@ commit;
 
 -- ── Comprobación ──
 --
--- select id, title, condition from public.achievements where id = 'primeros_pasos';
+-- select id, title, condition from public.achievement_definitions where id = 'primeros_pasos';
 --
 -- Y para ver a cuánta gente le falta poco (los tres pasos de un vistazo):
 --
