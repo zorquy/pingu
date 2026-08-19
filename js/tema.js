@@ -14,6 +14,7 @@ import {
   avatarHtml,
   enlacePerfil,
   etiquetaHtml,
+  ETIQUETAS,
   contributorCounts,
   badgeHtml,
   urlForo,
@@ -124,6 +125,14 @@ async function cargar() {
   return true
 }
 
+// Quien abrió el tema (o el equipo) puede corregir su título y su
+// etiqueta. Editar el primer mensaje no lo hace: el título es una columna
+// del tema, no del mensaje — y un título con una errata se queda en el
+// índice del foro para siempre si no hay forma de tocarlo.
+function puedoEditarTema() {
+  return !!sesion && (soyStaff || tema.author_id === sesion.user.id)
+}
+
 function pintarCabecera(perfilAutor) {
   elCabecera.innerHTML = `
     <h1>
@@ -143,15 +152,68 @@ function pintarCabecera(perfilAutor) {
         // resuelve la duda, y se lo pasa a otro que tiene la misma.
         `<button type="button" class="tema-seguir" id="btnCompartirTema">${icons.share(13)} Compartir</button>`
       }
+      ${puedoEditarTema() ? `<button type="button" class="tema-seguir" id="btnEditarTema">${icons.edit(13)} Editar título</button>` : ''}
     </p>
     ${soyStaff ? panelModeracionHtml() : ''}`
 
   engancharCompartir(document.getElementById('btnCompartirTema'), { titulo: tema.title })
   if (sesion) engancharSeguir()
+  document.getElementById('btnEditarTema')?.addEventListener('click', () => editarTitulo(perfilAutor))
   if (soyStaff) {
     document.getElementById('btnFijar')?.addEventListener('click', () => moderar({ is_pinned: !tema.is_pinned }))
     document.getElementById('btnCerrar')?.addEventListener('click', () => moderar({ is_locked: !tema.is_locked }))
   }
+}
+
+function editarTitulo(perfilAutor) {
+  // La etiqueta actual puede no estar en la lista (una vieja, o una
+  // puesta a mano): se añade como opción para no perderla al guardar.
+  const lista = ETIQUETAS.includes(tema.prefix) || !tema.prefix ? ETIQUETAS : [tema.prefix, ...ETIQUETAS]
+  elCabecera.innerHTML = `
+    <form class="foro-form tema-editar-titulo" id="formEditarTema">
+      <div class="foro-form-fila">
+        <select id="temaEtiqueta" aria-label="Etiqueta">
+          <option value="">Sin etiqueta</option>
+          ${lista
+            .map((e) => `<option value="${escapeHtml(e)}" ${e === tema.prefix ? 'selected' : ''}>${escapeHtml(e)}</option>`)
+            .join('')}
+        </select>
+        <input type="text" id="temaTitulo" maxlength="140" value="${escapeHtml(tema.title)}" aria-label="Título del tema" />
+      </div>
+      <div class="foro-form-acciones">
+        <button type="submit" class="btn-primary" id="btnGuardarTitulo">Guardar</button>
+        <button type="button" class="btn-secondary" id="btnCancelarTitulo">Cancelar</button>
+      </div>
+    </form>`
+
+  document.getElementById('temaTitulo').focus()
+  document.getElementById('btnCancelarTitulo').addEventListener('click', () => pintarCabecera(perfilAutor))
+
+  document.getElementById('formEditarTema').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const titulo = document.getElementById('temaTitulo').value.trim()
+    if (!titulo) {
+      showToast('El tema no puede quedarse sin título.')
+      return
+    }
+    const boton = document.getElementById('btnGuardarTitulo')
+    boton.disabled = true
+    const cambios = { title: titulo, prefix: document.getElementById('temaEtiqueta').value || null }
+    const { error } = await supabase.from('forum_threads').update(cambios).eq('id', tema.id)
+    boton.disabled = false
+    if (error) {
+      showToast('No se ha podido guardar: ' + error.message)
+      return
+    }
+    Object.assign(tema, cambios)
+    // El título vive en más sitios que la cabecera: la pestaña del
+    // navegador y la última miga de pan también lo dicen.
+    document.title = `${tema.title} — Foro de PokeDoc`
+    const miga = elMigas.querySelector('[aria-current="page"]')
+    if (miga) miga.textContent = tema.title
+    pintarCabecera(perfilAutor)
+    showToast('Título guardado.', 'success')
+  })
 }
 
 // Seguir un tema: te avisan cuando alguien responde.
@@ -305,8 +367,8 @@ async function pintarEncuesta() {
     hueco.innerHTML = ''
     return
   }
-  hueco.innerHTML = encuestaHtml(datos)
-  engancharEncuesta(hueco, tema.id, pintarEncuesta)
+  hueco.innerHTML = encuestaHtml(datos, puedoEditarTema())
+  engancharEncuesta(hueco, tema.id, pintarEncuesta, datos)
 }
 
 function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, likes, mencionados) {

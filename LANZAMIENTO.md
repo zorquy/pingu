@@ -7,6 +7,14 @@ móvil y sin un solo enlace interno roto.
 
 ## Bloqueante — sin esto no se anuncia
 
+- [ ] **Ejecutar en el SQL Editor las dos migraciones nuevas del foro**
+  (las dos son idempotentes):
+  - `supabase-migration-editar-encuestas.sql` — editar/quitar la encuesta
+    del propio tema. Sin ella, el botón "Editar encuesta" da error al
+    guardar.
+  - `supabase-migration-en-linea.sql` — el panel "En línea ahora" con
+    invitados. Sin ella, el panel simplemente no aparece (nada se rompe).
+
 - [ ] **La pantalla de consentimiento de Google** (Google Cloud Console →
   OAuth consent screen): logo, página de inicio, y los enlaces a
   `https://pokedoc.es/privacidad.html` y `https://pokedoc.es/terminos.html`.

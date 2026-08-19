@@ -126,7 +126,7 @@ export async function cargarEncuesta(threadId) {
   return { encuesta, resultados: resultados || [], mios, userId }
 }
 
-export function encuestaHtml({ encuesta, resultados, mios, userId }) {
+export function encuestaHtml({ encuesta, resultados, mios, userId }, puedeEditar = false) {
   const total = resultados.reduce((s, r) => s + Number(r.votos || 0), 0)
   const cerrada = encuesta.closes_at && new Date(encuesta.closes_at) <= new Date()
   const heVotado = mios.length > 0
@@ -175,13 +175,20 @@ export function encuestaHtml({ encuesta, resultados, mios, userId }) {
               ? `<button type="button" class="btn-secondary" id="btnVotar">Votar</button>`
               : `<span class="subtext">Entra con tu cuenta para votar.</span>`
         }
+        ${puedeEditar ? `<button type="button" class="link-btn" id="btnEditarEncuesta">Editar encuesta</button>` : ''}
       </div>
     </section>`
 }
 
-export function engancharEncuesta(raiz, threadId, alCambiar) {
+export function engancharEncuesta(raiz, threadId, alCambiar, datos = null) {
   const bloque = raiz.querySelector('#encuestaBloque')
   if (!bloque) return
+
+  // Editar la encuesta (quien abrió el tema, o el equipo). El botón solo
+  // existe si encuestaHtml() lo pintó con permiso.
+  raiz.querySelector('#btnEditarEncuesta')?.addEventListener('click', () => {
+    if (datos) pintarEditorDeEncuesta(raiz, threadId, alCambiar, datos)
+  })
 
   raiz.querySelector('#btnVotar')?.addEventListener('click', async () => {
     const marcadas = [...raiz.querySelectorAll('input[name="encuestaVoto"]:checked')].map((i) => i.value)
@@ -211,6 +218,101 @@ export function engancharEncuesta(raiz, threadId, alCambiar) {
     const userId = sesion?.session?.user?.id
     if (!userId) return
     await supabase.from('forum_poll_votes').delete().eq('thread_id', threadId).eq('user_id', userId)
+    await alCambiar()
+  })
+}
+
+// ── Editar ──
+//
+// La base (forum_editar_encuesta, security definer) es quien manda aquí:
+// impone quién puede, valida como al crear, y decide qué pasa con los
+// votos — si el cambio toca las opciones o el modo de voto, se borran y
+// la votación empieza de cero; si solo se corrige la pregunta, se
+// conservan. Esta pantalla lo dice ANTES de guardar, no después.
+function pintarEditorDeEncuesta(raiz, threadId, alCambiar, { encuesta, resultados }) {
+  const bloque = raiz.querySelector('#encuestaBloque')
+  if (!bloque) return
+
+  bloque.innerHTML = `
+    <h3>Editar la encuesta</h3>
+    <div class="encuesta-campos" id="encuestaEditar">
+      <input type="text" id="encuestaPregunta" maxlength="150" value="${escapeHtml(encuesta.question)}" aria-label="La pregunta" />
+      <div id="encuestaOpciones">
+        ${resultados
+          .map((r) => `<input type="text" class="encuesta-opcion" maxlength="80" value="${escapeHtml(r.label)}" />`)
+          .join('')}
+      </div>
+      <button type="button" class="link-btn" id="btnAnadirOpcion">+ Añadir opción</button>
+      <label class="checkbox-row"><input type="checkbox" id="encuestaMultiple" ${encuesta.multiple ? 'checked' : ''} /> Se pueden marcar varias</label>
+      <p class="subtext">Si cambias las opciones o el modo de voto, los votos ya emitidos se borran
+      y la votación empieza de cero (si solo corriges la pregunta, se conservan).</p>
+      <div class="foro-form-acciones">
+        <button type="button" class="btn-primary" id="btnGuardarEncuesta">Guardar</button>
+        <button type="button" class="btn-secondary" id="btnCancelarEncuesta">Cancelar</button>
+        <button type="button" class="link-btn" id="btnQuitarEncuesta">Quitar la encuesta</button>
+      </div>
+    </div>`
+
+  raiz.querySelector('#btnAnadirOpcion').addEventListener('click', () => {
+    const opciones = raiz.querySelector('#encuestaOpciones')
+    const cuantas = opciones.querySelectorAll('.encuesta-opcion').length
+    if (cuantas >= MAX_OPCIONES) {
+      showToast(`Como mucho ${MAX_OPCIONES} opciones.`)
+      return
+    }
+    opciones.insertAdjacentHTML('beforeend', filaOpcionHtml(cuantas))
+  })
+
+  raiz.querySelector('#btnCancelarEncuesta').addEventListener('click', alCambiar)
+
+  raiz.querySelector('#btnGuardarEncuesta').addEventListener('click', async (e) => {
+    const pregunta = raiz.querySelector('#encuestaPregunta').value.trim()
+    const etiquetas = [...raiz.querySelectorAll('.encuesta-opcion')].map((i) => i.value.trim()).filter(Boolean)
+
+    // Las mismas comprobaciones que al crear, para avisar aquí con una
+    // frase en vez de con el error de la base (que también las impone).
+    if (!pregunta) return showToast('Ponle una pregunta a la encuesta.')
+    if (etiquetas.length < MIN_OPCIONES) return showToast(`La encuesta necesita al menos ${MIN_OPCIONES} opciones.`)
+    if (new Set(etiquetas.map((t) => t.toLowerCase())).size !== etiquetas.length) {
+      return showToast('Hay dos opciones repetidas.')
+    }
+
+    e.target.disabled = true
+    const { data: borrados, error } = await supabase.rpc('forum_editar_encuesta', {
+      p_thread: threadId,
+      p_pregunta: pregunta,
+      p_multiple: raiz.querySelector('#encuestaMultiple').checked,
+      p_opciones: etiquetas,
+    })
+    e.target.disabled = false
+    if (error) {
+      showToast('No se ha podido guardar: ' + error.message)
+      return
+    }
+    showToast(
+      Number(borrados) > 0
+        ? `Encuesta guardada. Se han borrado ${borrados} ${Number(borrados) === 1 ? 'voto' : 'votos'} de la versión anterior.`
+        : 'Encuesta guardada.',
+      'success'
+    )
+    await alCambiar()
+  })
+
+  raiz.querySelector('#btnQuitarEncuesta').addEventListener('click', async (e) => {
+    if (!confirm('¿Quitar la encuesta de este tema? Los votos se pierden.')) return
+    e.target.disabled = true
+    const { error } = await supabase.rpc('forum_editar_encuesta', {
+      p_thread: threadId,
+      p_pregunta: null,
+      p_multiple: null,
+      p_opciones: null,
+    })
+    e.target.disabled = false
+    if (error) {
+      showToast('No se ha podido quitar: ' + error.message)
+      return
+    }
+    showToast('Encuesta retirada.', 'success')
     await alCambiar()
   })
 }

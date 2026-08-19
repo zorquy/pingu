@@ -8473,3 +8473,76 @@ Dos detalles que importan:
 - **Playwright también es un robot** (`navigator.webdriver` a `true`), así
   que la propia visita de la prueba queda marcada `is_bot: true` — y eso se
   usa como comprobación de que la detección real funciona, no un mock.
+
+# Tanda del foro: leídos, títulos, encuestas, etiquetas y en línea
+
+Cinco cosas pedidas mirando el foro en producción.
+
+## Los temas leídos se apagan
+
+En el índice, un foro leído ya se veía apagado (`.foro-fila-leida`), pero
+dentro de un foro los temas leídos solo perdían negrita: 700 frente a 800,
+invisible. Las filas leídas llevan ahora `.foro-tema-leido` con el mismo
+lenguaje del índice (título en `--text-mid`, icono tenue). La clase solo se
+pone cuando hay sesión Y las marcas de lectura han contestado
+(`marcas.hayDatos`): a quien llega sin cuenta no se le apaga la lista —
+no hay nada que él haya leído. De paso, el índice tenía ese fallo (a un
+anónimo se le apagaba TODO) y quedó igualado.
+
+## Editar el título y la etiqueta del tema
+
+Editar el primer mensaje no tocaba el título, que es columna del TEMA. La
+política RLS ya dejaba al autor (y al staff) actualizarlo desde el primer
+día — solo faltaba la pantalla: botón "Editar título" en la cabecera del
+tema (autor o equipo), que también actualiza la pestaña del navegador y la
+última miga de pan. `search_norm` es columna generada: se refresca sola.
+
+## Editar (y quitar) la encuesta del propio tema
+
+La migración original lo prohibía a propósito: cambiar una opción votada
+convierte los votos en votos a otra cosa. Pero el admin creó una encuesta
+de "varias respuestas" queriendo una, y no había vuelta atrás. La salida
+honrada (`supabase-migration-editar-encuestas.sql`,
+`forum_editar_encuesta` security definer): editar se puede, y **si el
+cambio toca las opciones o el modo de voto, los votos se borran** y la
+votación empieza de cero — la pantalla lo avisa antes y dice cuántos
+después. Corregir solo la pregunta los conserva. Con opciones NULL se
+retira la encuesta entera. Es función y no políticas porque borrar votos
+ajenos no debe permitirlo ninguna política: la función es la única puerta.
+
+El orden dentro de la función importa: los votos se borran ANTES de tocar
+`multiple`, porque la clave ajena compuesta de los votos copia esa columna
+con ON UPDATE CASCADE y pasar de "varias" a "una" con votos múltiples
+vivos chocaría con el índice de un-voto-por-persona.
+
+## Más etiquetas
+
+La lista vive en `ETIQUETAS` (js/foro-comun.js) porque ahora se elige en
+dos sitios: al abrir el tema y al editar su título. Se añadieron las de
+una comunidad de TCG: Opinión, Noticia, Guía, Colección, Intercambio,
+Compra/Venta, Mazo, Torneo, Encuesta y Off-topic. Al editar, una etiqueta
+vieja que no esté en la lista (p. ej. "Oficial") se añade como opción para
+no perderla al guardar.
+
+## Usuarios en línea, invitados incluidos
+
+El clásico "Total: 12 (miembros: 3, invitados: 9)" de los foros de
+siempre, en el lateral (`supabase-migration-en-linea.sql`, js/en-linea.js).
+Cómo funciona sin perfilar a nadie:
+
+- Cada pestaña genera un token aleatorio en **sessionStorage** (muere al
+  cerrar la pestaña — localStorage sería un rastreador que sobrevive días).
+- En cada carga, `latido_en_linea(token)` lo apunta con la hora (y quién,
+  si hay sesión). "En línea" = latido en los últimos 15 minutos.
+- **La tabla `online_now` no la escribe nadie directamente**: sin políticas
+  de insert/update/delete; la única puerta es la función, que valida la
+  forma del token, pone ella la hora y borra los latidos de más de un día.
+- **Los robots no laten**: el latido pasa por `pareceRobot()`. Sin eso,
+  los "invitados en línea" serían el rastreador de Google dando vueltas.
+  Y como Playwright también es webdriver, la propia visita de la prueba
+  queda fuera — lo que hace los recuentos de la prueba deterministas y
+  de paso comprueba el filtro con la detección real.
+- Un miembro con tres pestañas cuenta como UNA persona (se juntan por
+  user_id); un invitado no se puede juntar con nada, así que cada pestaña
+  suya cuenta — igual que en cualquier foro. Quien esconde su actividad
+  (`hide_activity`) se cuenta pero no se nombra.

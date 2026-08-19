@@ -5406,6 +5406,22 @@ a.reto-tarjeta:hover {
   font-weight: 800;
 }
 
+/* Y el leído se APAGA, con el mismo lenguaje que un foro leído en el
+   índice (.foro-fila-leida, más abajo): la negrita sola (700 frente a
+   800) apenas se distinguía dentro de un foro. La clase solo se pone
+   cuando hay sesión y las marcas de lectura han contestado. */
+.foro-tema-leido .foro-fila-icono {
+  opacity: 0.3;
+}
+
+.foro-tema-leido .foro-fila-cuerpo h3 a {
+  color: var(--text-mid);
+}
+
+.foro-tema-leido .foro-fila-cuerpo h3 a:hover {
+  color: var(--navy);
+}
+
 .foro-punto-nuevo {
   display: inline-block;
   width: 7px;

@@ -553,6 +553,9 @@ export async function initNavbar() {
     import('./gamification.js').then(({ checkDailyStreak }) => checkDailyStreak(session.user.id)).catch(() => {})
   }
   import('./page-views.js').then(({ logPageView }) => logPageView(session)).catch(() => {})
+  // El latido de "usuarios en línea" (js/en-linea.js). Igual que la
+  // visita: sin esperar, y si falla no toca nada.
+  import('./en-linea.js').then(({ latidoEnLinea }) => latidoEnLinea()).catch(() => {})
   renderNavUser(session).catch(() => {})
 
   // Los iconos de la barra: se DESCARGAN a la vez y se PINTAN en orden.

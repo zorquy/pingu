@@ -65,6 +65,31 @@ export function etiquetaHtml(prefix) {
   return `<span class="foro-etiqueta">${escapeHtml(prefix)}</span>`
 }
 
+// Las etiquetas que se pueden elegir al abrir un tema (y al editarlo).
+// Viven aquí y no en foro.js porque se eligen en dos pantallas: al crear
+// el tema (foro.js) y al editar su título (tema.js) — dos listas se
+// desincronizarían a la primera.
+//
+// Pensadas para lo que se habla en una comunidad de TCG: además de las
+// genéricas (duda, debate...), las de enseñar la colección, mover cartas
+// (intercambio y compraventa) y jugar (mazos, torneos).
+export const ETIQUETAS = [
+  'Duda',
+  'Ayuda',
+  'Debate',
+  'Opinión',
+  'Noticia',
+  'Guía',
+  'Muestra',
+  'Colección',
+  'Intercambio',
+  'Compra/Venta',
+  'Mazo',
+  'Torneo',
+  'Encuesta',
+  'Off-topic',
+]
+
 // Un tema y un foro se enlazan siempre igual. Las rutas bonitas
 // (/foro/<slug> y /tema/<id>) las resuelve netlify.toml.
 export const urlForo = (slug) => `/foro/${encodeURIComponent(slug)}`

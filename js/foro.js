@@ -10,6 +10,7 @@ import {
   enlacePerfil,
   nombreDe,
   etiquetaHtml,
+  ETIQUETAS,
   urlForo,
   urlTema,
   foroDeLaRuta,
@@ -185,7 +186,7 @@ async function pintarIndice() {
     const subforos = hijosDe(f.id)
     const nuevos = nuevosDe(f)
     return `
-    <div class="foro-fila ${nuevos ? 'foro-fila-nueva' : 'foro-fila-leida'}">
+    <div class="foro-fila ${nuevos ? 'foro-fila-nueva' : marcas?.hayDatos ? 'foro-fila-leida' : ''}">
       <div class="foro-fila-icono" aria-hidden="true">${
         nuevos ? `<span class="foro-punto-nuevo" title="Con mensajes nuevos"></span>` : ''
       }${icons.messageSquare(18)}</div>
@@ -381,7 +382,35 @@ async function panelDeNumerosHtml() {
     : ''
 
   const numeros = lineas ? `<div class="foro-panel"><h3>El foro en números</h3>${lineas}</div>` : ''
-  return gente + numeros
+  return (await panelEnLineaHtml()) + gente + numeros
+}
+
+// "En línea ahora", con invitados: los miembros por su nombre y los
+// visitantes sin cuenta contados. En una web recién anunciada casi todo
+// el mundo llega sin registrarse, y este es el único sitio donde se ve
+// que hay gente dentro. El total va en el formato clásico de los foros:
+// "Total: 12 (miembros: 3, invitados: 9)".
+async function panelEnLineaHtml() {
+  try {
+    const { quienEstaEnLinea, VENTANA_MINUTOS } = await import('./en-linea.js')
+    const enLinea = await quienEstaEnLinea()
+    // null = no se puede saber (migración sin ejecutar). No es un cero:
+    // el panel entero se calla en vez de decir "no hay nadie".
+    if (!enLinea || enLinea.total === 0) return ''
+
+    // A quien esconde su actividad no se le nombra, pero sí se le
+    // cuenta: está en línea de verdad, solo que sin decir quién es.
+    const perfiles = await perfilesPorId(enLinea.miembros)
+    const nombrados = enLinea.miembros.map((id) => perfiles[id]).filter((p) => p && !p.hide_activity)
+
+    return `<div class="foro-panel" id="foroEnLinea">
+      <h3>En línea ahora <span class="foro-panel-cuenta">${enLinea.total}</span></h3>
+      ${nombrados.length ? `<p class="foro-gente">${nombrados.map((p) => enlacePerfil(p)).join('<span aria-hidden="true">, </span>')}</p>` : ''}
+      <p class="subtext">Total: ${enLinea.total} (miembros: ${enLinea.miembros.length}, invitados: ${enLinea.invitados}) · últimos ${VENTANA_MINUTOS} min</p>
+    </div>`
+  } catch {
+    return ''
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -462,8 +491,13 @@ async function pintarListaDeTemas(foro) {
     // no con un color distinto: en una lista larga, el peso de la letra
     // se ve de un vistazo y el color no siempre.
     const sinLeer = estaSinLeer(t, marcas)
+    // Y el leído se APAGA, igual que un foro leído en el índice: la
+    // negrita sola (700 frente a 800) apenas se distinguía. Solo cuando
+    // las marcas de lectura han contestado: a quien llega sin cuenta no
+    // se le apaga la lista entera — no hay nada que él haya leído.
+    const leido = !sinLeer && marcas?.hayDatos
     return `
-    <div class="foro-tema-fila ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''}">
+    <div class="foro-tema-fila ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''} ${leido ? 'foro-tema-leido' : ''}">
       <div class="foro-fila-icono" aria-hidden="true">${
         sinLeer ? `<span class="foro-punto-nuevo" title="Con mensajes nuevos"></span>` : ''
       }${t.is_pinned ? icons.pin?.(18) || icons.star(18) : icons.messageSquare(18)}</div>
@@ -502,7 +536,7 @@ async function pintarListaDeTemas(foro) {
          ${(subforos || [])
            .map(
              (s) => `
-         <div class="foro-fila ${nuevosPorForo[s.id] ? 'foro-fila-nueva' : 'foro-fila-leida'}">
+         <div class="foro-fila ${nuevosPorForo[s.id] ? 'foro-fila-nueva' : marcas?.hayDatos ? 'foro-fila-leida' : ''}">
            <div class="foro-fila-icono" aria-hidden="true">${
              nuevosPorForo[s.id] ? `<span class="foro-punto-nuevo" title="Con mensajes nuevos"></span>` : ''
            }${icons.messageSquare(18)}</div>
@@ -588,10 +622,7 @@ async function abrirFormularioTema(foro) {
       <div class="foro-form-fila">
         <select id="temaEtiqueta" aria-label="Etiqueta">
           <option value="">Sin etiqueta</option>
-          <option value="Duda">Duda</option>
-          <option value="Ayuda">Ayuda</option>
-          <option value="Debate">Debate</option>
-          <option value="Muestra">Muestra</option>
+          ${ETIQUETAS.map((e) => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('')}
         </select>
         <!-- Sin el atributo required a propósito: la validación la hace
              el submit con un aviso del sitio. El globo del navegador se
