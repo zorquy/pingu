@@ -85,9 +85,13 @@ update public.user_profiles p
 -- ------------------------------------------------------------
 -- 3. Firma
 -- ------------------------------------------------------------
--- Texto plano y CORTA a propósito: las firmas de tres párrafos con
--- imágenes son lo que hizo ilegibles los foros de 2008. El límite lo
--- impone la base; la pantalla la enseña escapada y en pequeño.
+-- HTML del mismo editor que los mensajes (formato, enlaces, una imagen),
+-- guardado ya saneado y RE-saneado al pintarse. El tope de 1.000 es para
+-- el HTML entero (una imagen del editor ocupa ~150); el de las 240 letras
+-- visibles lo impone la pantalla, y el tamaño EN pantalla lo impone el
+-- CSS: la firma se recorta a su altura con scroll propio e imágenes a
+-- tamaño de firma — las firmas de tres párrafos con imágenes gigantes son
+-- lo que hizo ilegibles los foros de 2008.
 alter table public.user_profiles
   add column if not exists forum_signature text;
 
@@ -95,7 +99,7 @@ alter table public.user_profiles
   drop constraint if exists user_profiles_forum_signature_corta;
 alter table public.user_profiles
   add constraint user_profiles_forum_signature_corta
-  check (forum_signature is null or char_length(forum_signature) <= 240);
+  check (forum_signature is null or char_length(forum_signature) <= 1000);
 
 -- ------------------------------------------------------------
 -- 4. Reacciones

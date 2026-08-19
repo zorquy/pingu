@@ -512,8 +512,13 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
     <div class="form-group"><label>Sobre ti</label><textarea id="peBio" placeholder="Cuéntanos algo sobre ti...">${escapeHtml(currentProfile?.bio || '')}</textarea></div>
     <div class="form-group">
       <label>Firma del foro</label>
-      <p class="subtext" style="margin:0 0 6px;">Sale al pie de tus mensajes del foro. Corta a propósito (240 letras): una firma de tres párrafos entierra la conversación.</p>
-      <textarea id="peFirma" maxlength="240" rows="2" placeholder="Ej: Busco cartas de Lugia · Colecciono desde el 99">${escapeHtml(currentProfile?.forum_signature || '')}</textarea>
+      <p class="subtext" style="margin:0 0 6px;">Sale al pie de tus mensajes del foro. El mismo editor que los mensajes:
+      texto con formato, enlaces o una imagen — con límites: 240 letras, y en el foro la firma se recorta a su altura
+      (si pones más, dentro de la firma se hace scroll).</p>
+      <div class="rte-wrap rte-compacta">
+        <div class="rte-toolbar" id="firmaBarra"></div>
+        <div class="rte-surface" id="firmaCuerpo"></div>
+      </div>
     </div>
     ${
       // Este color es el de la CABECERA (el banner), no el del avatar. Si
@@ -567,6 +572,32 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
     </div>
     <button class="btn-primary btn-block" id="btnSaveProfileEdit">Guardar</button>`)
 
+  // La firma usa el MISMO editor que los mensajes del foro (a demanda:
+  // casi nadie que edita su perfil va a tocar la firma). Los límites de
+  // verdad no están aquí: el saneador al guardar, la restricción de la
+  // base y el recorte de altura del CSS en el foro.
+  let firmaHtml = currentProfile?.forum_signature || ''
+  ;(async () => {
+    try {
+      const { richTextToolbarHtml, initRichTextEditor } = await import('./richtext-editor.js')
+      const { uploadGuideImage } = await import('./app.js')
+      const barra = document.getElementById('firmaBarra')
+      const superficie = document.getElementById('firmaCuerpo')
+      if (!barra || !superficie) return
+      barra.innerHTML = richTextToolbarHtml()
+      initRichTextEditor({
+        toolbarEl: barra,
+        surfaceEl: superficie,
+        initialHtml: firmaHtml,
+        placeholder: 'Ej: Busco cartas de Lugia · Colecciono desde el 99',
+        onChange: (html) => {
+          firmaHtml = html
+        },
+        uploadImage: (file) => uploadGuideImage(currentSession.user.id, file),
+      })
+    } catch {}
+  })()
+
   let selectedBanner = currentProfile?.banner_color || 'var(--ice)'
   modalContent.querySelectorAll('.color-swatch').forEach((sw) =>
     sw.addEventListener('click', () => {
@@ -619,8 +650,25 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       notification_prefs_disabled: notificationPrefsDisabled,
       notification_email_disabled: notificationEmailDisabled,
       hide_activity: document.getElementById('peHideActivity').checked,
-      forum_signature: document.getElementById('peFirma').value.trim().slice(0, 240) || null,
     }
+
+    // La firma se guarda SANEADA, con el mismo saneador que los mensajes
+    // del foro: lo que entra aquí acaba pintado en cada mensaje de esa
+    // persona. Y con dos topes que avisan en vez de recortar en silencio:
+    // el texto visible (240 letras) y el HTML entero (1.000, que también
+    // impone la base) — una imagen del editor ya ocupa unos 150.
+    const { sanitizeRichText } = await import('./richtext-format.js')
+    const firmaLimpia = sanitizeRichText(firmaHtml || '')
+    const firmaTexto = firmaLimpia.replace(/<[^>]*>/g, '').trim()
+    if (firmaTexto.length > 240) {
+      showToast('La firma es demasiado larga: 240 letras como mucho.')
+      return
+    }
+    if (firmaLimpia.length > 1000) {
+      showToast('La firma es demasiado grande. Con una imagen y una línea de texto va sobrada.')
+      return
+    }
+    payload.forum_signature = firmaTexto || /<img|<tcg/.test(firmaLimpia) ? firmaLimpia : null
     let { error } = await supabase.from('user_profiles').update(payload).eq('id', currentSession.user.id)
     // Si la columna de la firma aún no existe (la web desplegada antes de
     // ejecutar supabase-migration-foro-extras.sql), el update falla

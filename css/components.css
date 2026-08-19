@@ -4680,15 +4680,41 @@ a.rater-name:hover {
   color: var(--success, #34d399);
 }
 
-/* ── Firma ── */
+/* ── Firma ──
+   Con el mismo formato que un mensaje pero contenida: altura máxima con
+   scroll propio (una firma enorme hace scroll DENTRO de su caja, nunca
+   entierra el hilo) e imágenes recortadas a tamaño de firma. Estos topes
+   van en CSS a propósito: son los únicos que nadie puede esquivar
+   escribiendo HTML raro. */
 .foro-firma {
   margin-top: 12px;
   padding-top: 8px;
   border-top: 1px dashed var(--border);
   font-size: 12px;
   color: var(--text-dim);
-  font-style: italic;
   overflow-wrap: anywhere;
+  max-height: 96px;
+  overflow-y: auto;
+}
+
+.foro-firma p {
+  margin: 0 0 4px;
+}
+
+.foro-firma img {
+  max-height: 64px;
+  max-width: 220px;
+  width: auto;
+  border-radius: var(--radius-sm);
+  vertical-align: middle;
+}
+
+/* Los títulos del editor, a tamaño de firma: un h2 de 24px al pie de
+   cada mensaje sería la anti-firma. */
+.foro-firma h2,
+.foro-firma h3 {
+  font-size: 13px;
+  margin: 0 0 4px;
 }
 
 /* ── Reacciones ── */

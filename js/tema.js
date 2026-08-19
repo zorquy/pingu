@@ -508,10 +508,13 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
         mencionados
       )}</div>
       ${
-        // La firma: texto plano ESCAPADO (nunca HTML de nadie), en
-        // pequeño y separada del mensaje por una línea.
+        // La firma: el mismo formato que un mensaje, pasado por el MISMO
+        // saneador (se guardó saneada, pero aquí se vuelve a sanear: lo
+        // que se pinta en cada mensaje no puede fiarse de lo que haya en
+        // la base). Los límites visuales los pone el CSS: altura recortada
+        // con scroll propio e imágenes a tamaño de firma.
         perfil?.forum_signature
-          ? `<div class="foro-firma">${escapeHtml(perfil.forum_signature).replace(/\n/g, '<br>')}</div>`
+          ? `<div class="foro-firma article-body">${sanitizeRichText(perfil.forum_signature)}</div>`
           : ''
       }
       <footer class="foro-mensaje-pie">

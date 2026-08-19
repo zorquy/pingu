@@ -8654,3 +8654,21 @@ Detalle de las pruebas: Playwright es un robot de verdad
 (navigator.webdriver + user agent Headless), así que para probar el
 latido las pruebas lo "humanizan" desactivando LAS DOS señales — con una
 sola no basta, que es justo lo que la detección promete.
+
+## La firma, con el editor de los mensajes (y sus tres límites)
+
+La primera versión era un textarea de texto plano y se quedó pocha: la
+firma usa ahora el MISMO editor richtext que los mensajes (formato,
+enlaces, imagen). Los límites, cada uno donde toca:
+
+- **240 letras visibles y 1.000 de HTML**: los avisa la pantalla al
+  guardar (sin recortar en silencio), y el de 1.000 lo impone también la
+  restricción de la base (que pasó de 240 de texto plano a 1.000 de HTML
+  — si ya ejecutaste foro-extras, re-ejecútala: es idempotente).
+- **El tamaño EN pantalla lo impone el CSS**, que es el único límite que
+  nadie esquiva escribiendo HTML raro: la caja de la firma tiene altura
+  máxima con scroll propio (una firma enorme hace scroll DENTRO de su
+  caja, nunca entierra el hilo) e imágenes a 64px de alto.
+- Se guarda SANEADA con el saneador de los mensajes y se RE-sanea al
+  pintarse: lo de la base no se pinta a ciegas. La semilla de las pruebas
+  lleva un <script> colado que tiene que desaparecer.
