@@ -505,6 +505,7 @@ async function pintarListaDeTemas(foro) {
         <h3>
           ${t.is_pinned ? '<span class="foro-chapa">Fijado</span>' : ''}
           ${t.is_locked ? '<span class="foro-chapa foro-chapa-cerrado">Cerrado</span>' : ''}
+          ${t.solved_post_id ? `<span class="foro-chapa foro-chapa-resuelto">${icons.checkCircle(12)} Resuelto</span>` : ''}
           ${etiquetaHtml(t.prefix)}
           <a href="${urlTema(t.id)}">${escapeHtml(t.title)}</a>
         </h3>

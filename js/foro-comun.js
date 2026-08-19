@@ -34,9 +34,11 @@ export function nombreDe(perfil) {
 export async function perfilesPorId(ids) {
   const unicos = [...new Set((ids || []).filter(Boolean))]
   if (unicos.length === 0) return {}
+  // hide_activity viene también: quien esconde su actividad se cuenta en
+  // los "en línea" y en "leyendo ahora", pero no se le nombra.
   const { data } = await supabase
     .from('user_profiles')
-    .select('id, username, display_name, avatar_url, level, total_xp')
+    .select('id, username, display_name, avatar_url, level, total_xp, hide_activity')
     .in('id', unicos)
   return Object.fromEntries((data || []).map((p) => [p.id, p]))
 }

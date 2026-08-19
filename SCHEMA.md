@@ -8596,3 +8596,61 @@ traduce a "Falta ejecutar supabase-migration-editar-encuestas.sql…". Las
 tres migraciones nuevas llevan además `notify pgrst, 'reload schema'` al
 final: Supabase suele recargar el esquema solo, pero a veces tarda, y
 mientras tanto la función existe pero PostgREST no la ve.
+
+# Extras del foro: resuelto, contador, firma, reacciones y quién lee
+
+Cinco cosas de foro de toda la vida, en una sola migración
+(`supabase-migration-foro-extras.sql`).
+
+## Resuelto
+
+`forum_threads.solved_post_id`. El autor del tema (o el equipo) marca la
+respuesta que lo resolvió desde el pie del mensaje — nunca el primero: la
+pregunta no puede ser su propia respuesta. La cabecera y las listas
+enseñan la chapa ✓ (la de la cabecera lleva al mensaje) y la respuesta
+queda enmarcada. La política de update ya dejaba al autor tocar su tema;
+lo que la política no puede comprobar —que el mensaje sea de ESE tema— lo
+impone un disparador (`forum_valida_resuelto`).
+
+## Contador de mensajes
+
+`user_profiles.forum_post_count`, mantenido por disparador en
+forum_posts (insert/delete) con relleno inicial. Es columna y no cuenta
+al vuelo porque sale en CADA mensaje de CADA tema: sería la consulta más
+repetida de la web.
+
+## Firma
+
+`user_profiles.forum_signature`: texto plano, máx. 240 (restricción CHECK
+— el límite del textarea es cortesía, el de la base es el de verdad). Se
+edita en Editar perfil y se pinta ESCAPADA al pie de cada mensaje: hay
+prueba con una firma sembrada con `<b>` comprobando que no se interpreta.
+El guardado del perfil reintenta sin la columna si aún no existe, para no
+bloquear el resto del formulario.
+
+## Reacciones (sustituyen al "me gusta")
+
+`forum_post_reactions`: (post_id, user_id) como clave — UNA reacción por
+persona y mensaje; cambiar de emoji es un update, repetir la tuya la
+quita. Sin esa clave, un mensaje se "auto-inflaría" reaccionando cuatro
+veces. `kind` en ('like','love','laugh','wow') por CHECK. Reaccionarse a
+uno mismo lo prohíbe la política (como el me gusta), y la pantalla ni
+enseña botones en el mensaje propio. **Los me gusta existentes se migran
+como 'like'**; la tabla vieja queda sin uso, no se borra.
+
+## Quién está leyendo este tema
+
+`online_now.thread_id`: el latido (js/en-linea.js) apunta en qué tema
+estás; en cualquier otra página lo SOBRESCRIBE a null — salir de un tema
+no puede dejarte "leyéndolo" un cuarto de hora. La función cambia de firma
+a `latido_en_linea(p_token, p_thread default null)` (se retira la vieja
+para que PostgREST no vea dos candidatas), y el cliente REINTENTA sin el
+tema si la base aún tiene la firma vieja: entre desplegar y migrar, el
+contador de en línea no se apaga. Un tema inexistente se ignora sin romper
+el latido. En el tema: "Leyendo ahora: Ash y 2 invitados" — quien esconde
+su actividad se cuenta pero no se nombra.
+
+Detalle de las pruebas: Playwright es un robot de verdad
+(navigator.webdriver + user agent Headless), así que para probar el
+latido las pruebas lo "humanizan" desactivando LAS DOS señales — con una
+sola no basta, que es justo lo que la detección promete.

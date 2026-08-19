@@ -4648,6 +4648,92 @@ a.rater-name:hover {
   color: var(--navy);
 }
 
+/* El clásico "Mensajes: 336" bajo el avatar. */
+.foro-autor-mensajes {
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+/* ── Resuelto ── */
+.foro-chapa-resuelto {
+  background: var(--success-bg, rgba(52, 211, 153, 0.15));
+  color: var(--success, #34d399);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* La respuesta que resolvió el tema, enmarcada en su color. */
+.foro-mensaje-solucion .foro-mensaje-cuerpo {
+  border: 1px solid var(--success, #34d399);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.foro-solucion-banda {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--success, #34d399);
+}
+
+/* ── Firma ── */
+.foro-firma {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+/* ── Reacciones ── */
+.foro-reacciones {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.foro-reaccion {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-mid);
+}
+
+.foro-reaccion:hover {
+  border-color: var(--navy);
+}
+
+.foro-reaccion-mia {
+  border-color: var(--navy);
+  background: var(--ice);
+  color: var(--navy);
+  font-weight: 700;
+}
+
+/* Los recuentos sin botón (mensaje propio o sin sesión). */
+.foro-reaccion-quieta {
+  cursor: default;
+}
+
+/* ── Quién está leyendo el tema ── */
+.tema-leyendo {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 2px 0 0;
+  font-size: 12.5px;
+}
+
 /* ── Actividad del foro en el perfil ── */
 .foro-act-columnas {
   display: grid;

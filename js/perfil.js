@@ -510,6 +510,11 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       <p class="subtext" id="peUsernameError" style="margin:0; color:#dc2626; display:none;">Ese nombre de usuario ya está en uso, prueba con otro.</p>
     </div>
     <div class="form-group"><label>Sobre ti</label><textarea id="peBio" placeholder="Cuéntanos algo sobre ti...">${escapeHtml(currentProfile?.bio || '')}</textarea></div>
+    <div class="form-group">
+      <label>Firma del foro</label>
+      <p class="subtext" style="margin:0 0 6px;">Sale al pie de tus mensajes del foro. Corta a propósito (240 letras): una firma de tres párrafos entierra la conversación.</p>
+      <textarea id="peFirma" maxlength="240" rows="2" placeholder="Ej: Busco cartas de Lugia · Colecciono desde el 99">${escapeHtml(currentProfile?.forum_signature || '')}</textarea>
+    </div>
     ${
       // Este color es el de la CABECERA (el banner), no el del avatar. Si
       // ya hay una imagen de banner subida no pinta nada, así que ni se
@@ -614,8 +619,16 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       notification_prefs_disabled: notificationPrefsDisabled,
       notification_email_disabled: notificationEmailDisabled,
       hide_activity: document.getElementById('peHideActivity').checked,
+      forum_signature: document.getElementById('peFirma').value.trim().slice(0, 240) || null,
     }
-    const { error } = await supabase.from('user_profiles').update(payload).eq('id', currentSession.user.id)
+    let { error } = await supabase.from('user_profiles').update(payload).eq('id', currentSession.user.id)
+    // Si la columna de la firma aún no existe (la web desplegada antes de
+    // ejecutar supabase-migration-foro-extras.sql), el update falla
+    // ENTERO: se reintenta sin ella para no bloquear el resto del perfil.
+    if (error && /forum_signature/.test(error.message || '')) {
+      const { forum_signature: _fuera, ...sinFirma } = payload
+      ;({ error } = await supabase.from('user_profiles').update(sinFirma).eq('id', currentSession.user.id))
+    }
     if (error) {
       showToast('No se pudo guardar el perfil: ' + error.message)
       return

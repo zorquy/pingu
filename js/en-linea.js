@@ -39,15 +39,58 @@ function tokenDePestana() {
   }
 }
 
+// En qué tema está esta pestaña, si está en alguno. Es la misma lectura
+// de ruta que hace temaDeLaRuta() en foro-comun.js; se repite aquí a
+// propósito para que el latido no arrastre el módulo del foro a TODAS las
+// páginas de la web.
+function temaActual() {
+  try {
+    const enLaRuta = window.location.pathname.match(/\/tema\/([^/?#]+)/)
+    if (enLaRuta) return decodeURIComponent(enLaRuta[1])
+    if (window.location.pathname.includes('/tema')) return new URLSearchParams(window.location.search).get('t')
+    return null
+  } catch {
+    return null
+  }
+}
+
 export async function latidoEnLinea() {
   if (pareceRobot()) return
   const token = tokenDePestana()
   if (!token) return
   try {
+    // El latido apunta también en qué tema estás (para el "leyendo ahora
+    // este tema"); en cualquier otra página va a null y la función lo
+    // SOBRESCRIBE — salir de un tema no puede dejarte "leyéndolo".
+    //
     // Si la migración no está ejecutada, la función no existe y esto
     // falla en silencio: la web entera no puede depender de un contador.
-    await supabase.rpc('latido_en_linea', { p_token: token })
+    const { error } = await supabase.rpc('latido_en_linea', { p_token: token, p_thread: temaActual() })
+    // Entre desplegar la web y ejecutar foro-extras, la función vieja
+    // solo acepta el token: se reintenta sin el tema para que el
+    // contador de en línea no se apague en ese rato.
+    if (error) await supabase.rpc('latido_en_linea', { p_token: token })
   } catch {}
+}
+
+// Quién está leyendo UN tema ahora: mismo criterio que quienEstaEnLinea,
+// filtrado por el tema. Devuelve null si no se puede saber.
+export async function quienLeeElTema(threadId) {
+  if (!threadId) return null
+  try {
+    const desde = new Date(Date.now() - VENTANA_MINUTOS * 60 * 1000).toISOString()
+    const { data, error } = await supabase
+      .from('online_now')
+      .select('token, user_id')
+      .eq('thread_id', threadId)
+      .gt('last_seen', desde)
+    if (error) return null
+    const miembros = [...new Set((data || []).map((f) => f.user_id).filter(Boolean))]
+    const invitados = (data || []).filter((f) => !f.user_id).length
+    return { miembros, invitados, total: miembros.length + invitados }
+  } catch {
+    return null
+  }
 }
 
 // Devuelve null si no se puede saber (migración sin ejecutar), que NO es

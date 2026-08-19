@@ -145,9 +145,17 @@ function pintarCabecera(perfilAutor) {
     <h1>
       ${tema.is_pinned ? '<span class="foro-chapa">Fijado</span>' : ''}
       ${tema.is_locked ? '<span class="foro-chapa foro-chapa-cerrado">Cerrado</span>' : ''}
+      ${
+        // La chapa lleva al mensaje que lo resolvió: es lo que busca quien
+        // llega con la misma duda desde un buscador.
+        tema.solved_post_id
+          ? `<a class="foro-chapa foro-chapa-resuelto" href="#mensaje-${tema.solved_post_id}">${icons.checkCircle(12)} Resuelto</a>`
+          : ''
+      }
       ${etiquetaHtml(tema.prefix)}
       ${escapeHtml(tema.title)}
     </h1>
+    <p class="subtext tema-leyendo hidden" id="temaLeyendo"></p>
     <p class="subtext tema-firma">
       ${avatarHtml(perfilAutor, 20)} ${enlacePerfil(perfilAutor)}
       · <span title="${escapeHtml(fechaLarga(tema.created_at))}">${escapeHtml(haceCuanto(tema.created_at))}</span>
@@ -165,6 +173,7 @@ function pintarCabecera(perfilAutor) {
 
   engancharCompartir(document.getElementById('btnCompartirTema'), { titulo: tema.title })
   if (sesion) engancharSeguir()
+  pintarQuienLee().catch(() => {})
   document.getElementById('btnEditarTema')?.addEventListener('click', () => editarTitulo(perfilAutor))
   if (soyStaff) {
     document.getElementById('btnFijar')?.addEventListener('click', () => moderar({ is_pinned: !tema.is_pinned }))
@@ -266,6 +275,31 @@ async function engancharSeguir() {
   })
 }
 
+// Quién está leyendo este tema ahora mismo, sobre los usuarios en línea:
+// el latido de cada visita apunta en qué tema está (js/en-linea.js). Los
+// miembros por su nombre —salvo quien esconde su actividad, que se cuenta
+// pero no se nombra— y los invitados contados. Si no se puede saber
+// (migración sin ejecutar), la línea no sale y no pasa nada más.
+async function pintarQuienLee() {
+  const linea = document.getElementById('temaLeyendo')
+  if (!linea) return
+  try {
+    const { quienLeeElTema } = await import('./en-linea.js')
+    const gente = await quienLeeElTema(tema.id)
+    if (!gente || gente.total === 0) return
+
+    const perfiles = await perfilesPorId(gente.miembros)
+    const nombrados = gente.miembros.map((id) => perfiles[id]).filter((p) => p && !p.hide_activity)
+    const trozos = []
+    if (nombrados.length) trozos.push(nombrados.map((p) => enlacePerfil(p)).join(', '))
+    const anonimos = gente.total - nombrados.length
+    if (anonimos > 0) trozos.push(`${anonimos} ${anonimos === 1 ? 'invitado' : 'invitados'}`)
+
+    linea.innerHTML = `${icons.eye(12)} Leyendo ahora: ${trozos.join(' y ')}`
+    linea.classList.remove('hidden')
+  } catch {}
+}
+
 function panelModeracionHtml() {
   return `
     <div class="tema-moderacion">
@@ -302,16 +336,20 @@ async function pintarMensajes() {
   // todo el HTML y se buscan los mencionados que existen de verdad.
   const mencionados = porNombre(await perfilesMencionados(lista.map((m) => m.body_html || '').join(' ')))
   const citados = [...new Set(lista.map((m) => m.reply_to_id).filter(Boolean))]
-  const [perfiles, cuentas, { data: citadosData }, { data: megustas }] = await Promise.all([
+  // Las reacciones sustituyen al "me gusta" (los que había se migraron
+  // como 👍). Si la tabla no existe todavía (migración sin ejecutar), la
+  // consulta falla y el tema se ve entero — sin reacciones, pero entero.
+  const [perfiles, cuentas, { data: citadosData }, reaccionesRes] = await Promise.all([
     perfilesPorId([...lista.map((m) => m.author_id), tema.author_id]),
     contributorCounts(lista.map((m) => m.author_id)),
     citados.length
       ? supabase.from('forum_posts').select('id, author_id, body_html').in('id', citados)
       : Promise.resolve({ data: [] }),
     lista.length
-      ? supabase.from('forum_post_likes').select('post_id, user_id').in('post_id', lista.map((m) => m.id))
+      ? supabase.from('forum_post_reactions').select('post_id, user_id, kind').in('post_id', lista.map((m) => m.id))
       : Promise.resolve({ data: [] }),
   ])
+  const hayReacciones = !reaccionesRes.error
 
   // Quién es del equipo y qué título le han puesto: hace falta para la
   // columna del autor. Va en dos escalones porque son DOS migraciones:
@@ -322,7 +360,7 @@ async function pintarMensajes() {
   if (autores.length) {
     let { data: extra, error: errorExtra } = await supabase
       .from('user_profiles')
-      .select('id, is_admin, is_moderator, forum_title, forum_title_color')
+      .select('id, is_admin, is_moderator, forum_title, forum_title_color, forum_post_count, forum_signature')
       .in('id', autores)
     if (errorExtra) {
       ;({ data: extra } = await supabase
@@ -334,11 +372,17 @@ async function pintarMensajes() {
   }
 
   const citadoPorId = Object.fromEntries((citadosData || []).map((c) => [c.id, c]))
-  const likesPorMensaje = {}
-  for (const l of megustas || []) (likesPorMensaje[l.post_id] ||= []).push(l.user_id)
+  const reaccionesPorMensaje = {}
+  for (const r of reaccionesRes.data || []) (reaccionesPorMensaje[r.post_id] ||= []).push(r)
 
   elMensajes.innerHTML = lista
-    .map((m, i) => mensajeHtml(m, desde + i + 1, perfiles, cuentas, citadoPorId, likesPorMensaje[m.id] || [], mencionados))
+    .map((m, i) =>
+      mensajeHtml(m, desde + i + 1, perfiles, cuentas, citadoPorId, {
+        reacciones: reaccionesPorMensaje[m.id] || [],
+        hayReacciones,
+        mencionados,
+      })
+    )
     .join('')
 
   // Los vídeos de YouTube que haya en los mensajes. Pinta la portada; el
@@ -386,20 +430,62 @@ async function pintarEncuesta() {
   engancharEncuesta(hueco, tema.id, pintarEncuesta, datos)
 }
 
-function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, likes, mencionados) {
+// Las reacciones que puede llevar un mensaje. El emoji es solo cómo se
+// pinta: en la base viven como 'like', 'love'..., que la restricción CHECK
+// conoce.
+const REACCIONES = [
+  ['like', '👍'],
+  ['love', '❤️'],
+  ['laugh', '😂'],
+  ['wow', '😮'],
+]
+
+// La fila de reacciones de un mensaje. En los ajenos son botones (la tuya
+// resaltada); en el propio, solo los recuentos — la base prohíbe
+// reaccionarse a uno mismo, y un botón que siempre da error es peor que no
+// enseñarlo. Una reacción por persona: pulsar otra te cambia, repetir la
+// tuya la quita.
+function reaccionesHtml(m, reacciones, esMio) {
+  const mia = sesion ? reacciones.find((r) => r.user_id === sesion.user.id)?.kind : null
+  return `<div class="foro-reacciones" data-reacciones="${m.id}">
+    ${REACCIONES.map(([kind, emoji]) => {
+      const cuenta = reacciones.filter((r) => r.kind === kind).length
+      if (esMio || !sesion) {
+        // Sin botón: o es tu mensaje, o no hay sesión. Los ceros no se
+        // enseñan — cuatro "0" por mensaje es ruido.
+        return cuenta ? `<span class="foro-reaccion foro-reaccion-quieta">${emoji} ${cuenta}</span>` : ''
+      }
+      return `<button type="button" class="foro-reaccion ${mia === kind ? 'foro-reaccion-mia' : ''}"
+        data-reaccion="${m.id}" data-kind="${kind}" aria-pressed="${mia === kind}"
+        title="${mia === kind ? 'Quitar mi reacción' : 'Reaccionar'}">${emoji}${cuenta ? ` ${cuenta}` : ''}</button>`
+    }).join('')}
+  </div>`
+}
+
+function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, hayReacciones, mencionados }) {
   const perfil = perfiles[m.author_id]
   const nombre = nombreDe(perfil)
   const citado = m.reply_to_id ? citadoPorId[m.reply_to_id] : null
-  const meGusta = sesion ? likes.includes(sesion.user.id) : false
   const esMio = sesion && m.author_id === sesion.user.id
+  const esLaSolucion = tema.solved_post_id && tema.solved_post_id === m.id
+  // Marcar la solución: quien abrió el tema (o el equipo), y nunca el
+  // primer mensaje — la pregunta no puede ser su propia respuesta.
+  const puedeResolver = puedoEditarTema() && numero > 1
 
   return `
-  <article class="foro-mensaje" id="mensaje-${m.id}" data-mensaje="${m.id}" data-autor="${escapeHtml(m.author_id || '')}">
+  <article class="foro-mensaje ${esLaSolucion ? 'foro-mensaje-solucion' : ''}" id="mensaje-${m.id}" data-mensaje="${m.id}" data-autor="${escapeHtml(m.author_id || '')}">
     <div class="foro-mensaje-autor">
       ${avatarHtml(perfil, 56)}
       <div class="foro-autor-nombre">${enlacePerfil(perfil)}</div>
       ${tituloDe(perfil, cuentas[m.author_id] || 0)}
       ${chapasDe(perfil, m.author_id && m.author_id === tema.author_id)}
+      ${
+        // El clásico "Mensajes: 336". Number.isFinite y no truthiness: el
+        // 0 de quien estrena cuenta también se dice.
+        Number.isFinite(perfil?.forum_post_count)
+          ? `<span class="foro-autor-mensajes">Mensajes: ${perfil.forum_post_count}</span>`
+          : ''
+      }
     </div>
     <div class="foro-mensaje-cuerpo">
       <header class="foro-mensaje-cabecera">
@@ -408,6 +494,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, likes, mencionad
         }</span>
         <a class="foro-mensaje-num" href="#mensaje-${m.id}" title="Enlace a este mensaje">#${numero}</a>
       </header>
+      ${esLaSolucion ? `<p class="foro-solucion-banda">${icons.checkCircle(14)} Esta respuesta resolvió el tema</p>` : ''}
       ${
         citado
           ? `<blockquote class="foro-cita">
@@ -420,32 +507,31 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, likes, mencionad
         sanitizeRichText(m.body_html || ''),
         mencionados
       )}</div>
+      ${
+        // La firma: texto plano ESCAPADO (nunca HTML de nadie), en
+        // pequeño y separada del mensaje por una línea.
+        perfil?.forum_signature
+          ? `<div class="foro-firma">${escapeHtml(perfil.forum_signature).replace(/\n/g, '<br>')}</div>`
+          : ''
+      }
       <footer class="foro-mensaje-pie">
         <div class="foro-mensaje-izq">
           ${reportButtonHtml('forum_post', m.id)}
           ${esMio || soyStaff ? `<button type="button" class="link-btn" data-editar="${m.id}">${icons.edit(13)} Editar</button>` : ''}
           ${esMio || soyStaff ? `<button type="button" class="link-btn" data-borrar="${m.id}">${icons.trash(13)} Borrar</button>` : ''}
+          ${
+            puedeResolver
+              ? `<button type="button" class="link-btn foro-btn-resolver" data-resolver="${m.id}">${icons.checkCircle(13)} ${
+                  esLaSolucion ? 'Quitar la marca de solución' : 'Marcar como solución'
+                }</button>`
+              : ''
+          }
         </div>
         <div class="foro-mensaje-der">
-          ${
-            // En tu propio mensaje no hay "Me gusta": la base lo prohíbe
-            // (aplaudirse solo no es una señal de nada), y enseñar un
-            // botón que siempre va a dar error es peor que no enseñarlo.
-            esMio
-              ? ''
-              : `<button type="button" class="foro-accion ${meGusta ? 'foro-accion-on' : ''}" data-megusta="${m.id}"
-                  aria-pressed="${meGusta}">${icons.thumbsUp(14, meGusta)} Me gusta${likes.length ? ` · ${likes.length}` : ''}</button>`
-          }
+          ${hayReacciones ? reaccionesHtml(m, reacciones, esMio) : ''}
           <button type="button" class="foro-accion" data-citar="${m.id}">${icons.quote(14)} Citar</button>
         </div>
       </footer>
-      ${
-        likes.length
-          ? `<div class="foro-megustas">${icons.thumbsUp(12, true)} Le gusta a ${likes.length} ${
-              likes.length === 1 ? 'persona' : 'personas'
-            }</div>`
-          : ''
-      }
     </div>
   </article>`
 }
@@ -470,8 +556,11 @@ function paginacionHtml(total) {
 let citandoA = null
 
 function enganchar(perfiles) {
-  elMensajes.querySelectorAll('[data-megusta]').forEach((b) =>
-    b.addEventListener('click', () => alternarMeGusta(b.dataset.megusta, b))
+  elMensajes.querySelectorAll('[data-reaccion]').forEach((b) =>
+    b.addEventListener('click', () => alternarReaccion(b.dataset.reaccion, b.dataset.kind, b))
+  )
+  elMensajes.querySelectorAll('[data-resolver]').forEach((b) =>
+    b.addEventListener('click', () => alternarSolucion(b.dataset.resolver))
   )
   elMensajes.querySelectorAll('[data-citar]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -576,28 +665,49 @@ function pintarAvisoDeCita(perfil, nombre) {
   if (quien) quien.textContent = nombre || (perfil ? nombreDe(perfil) : 'un mensaje')
 }
 
-async function alternarMeGusta(postId, boton) {
+async function alternarReaccion(postId, kind, boton) {
   if (!sesion) {
-    showToast('Entra con tu cuenta para dar las gracias por un mensaje.')
+    showToast('Entra con tu cuenta para reaccionar a un mensaje.')
     return
   }
-  const activo = boton.getAttribute('aria-pressed') === 'true'
-  const { error } = activo
-    ? await supabase.from('forum_post_likes').delete().eq('post_id', postId).eq('user_id', sesion.user.id)
-    : await supabase.from('forum_post_likes').insert({ post_id: postId, user_id: sesion.user.id })
+  // Repetir tu reacción la quita; cualquier otra te cambia a ella. El
+  // upsert apoya en la clave (post_id, user_id): una reacción por persona
+  // lo impone la base, no esta pantalla.
+  const laMia = boton.getAttribute('aria-pressed') === 'true'
+  const { error } = laMia
+    ? await supabase.from('forum_post_reactions').delete().eq('post_id', postId).eq('user_id', sesion.user.id)
+    : await supabase
+        .from('forum_post_reactions')
+        .upsert({ post_id: postId, user_id: sesion.user.id, kind }, { onConflict: 'post_id,user_id' })
 
   if (error) {
     // El caso típico es el mensaje propio, que la base no deja. No se
     // enseña el error de PostgreSQL en crudo: se dice lo que pasa.
     const propio = /row-level security/i.test(error.message || '')
-    showToast(
-      propio
-        ? 'No puedes darle a tu propio mensaje.'
-        : (activo ? 'No se ha podido quitar: ' : 'No se ha podido dar: ') + error.message
-    )
+    showToast(propio ? 'No puedes reaccionar a tu propio mensaje.' : 'No se ha podido: ' + error.message)
     return
   }
   await pintarMensajes()
+}
+
+// Marcar (o desmarcar) la respuesta que resolvió el tema. Solo el autor
+// del tema o el equipo; que el mensaje sea de ESTE tema lo comprueba un
+// disparador en la base — desde aquí no se puede mentir.
+async function alternarSolucion(postId) {
+  const cambios = { solved_post_id: tema.solved_post_id === postId ? null : postId }
+  const { error } = await supabase.from('forum_threads').update(cambios).eq('id', tema.id)
+  if (error) {
+    const faltaColumna = /solved_post_id/.test(error.message || '')
+    showToast(
+      faltaColumna
+        ? 'Falta ejecutar supabase-migration-foro-extras.sql en el SQL Editor de Supabase.'
+        : 'No se ha podido: ' + error.message
+    )
+    return
+  }
+  Object.assign(tema, cambios)
+  await pintarMensajes()
+  showToast(cambios.solved_post_id ? 'Marcado como la solución.' : 'Marca quitada.', 'success')
 }
 
 async function borrarMensaje(postId) {

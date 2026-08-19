@@ -16,6 +16,10 @@ móvil y sin un solo enlace interno roto.
     invitados. Sin ella, el panel simplemente no aparece (nada se rompe).
   - `supabase-migration-titulos-color.sql` — el color de los títulos de
     usuario. Sin ella, /admin enseña los títulos sin selector de color.
+  - `supabase-migration-foro-extras.sql` — resuelto, contador de
+    mensajes, firma, reacciones y "leyendo ahora" (necesita la de
+    en-linea). Sin ella, esas cinco cosas no aparecen y el foro sigue
+    como estaba; los me gusta existentes se migran a reacciones 👍.
 
 - [ ] **La pantalla de consentimiento de Google** (Google Cloud Console →
   OAuth consent screen): logo, página de inicio, y los enlaces a
