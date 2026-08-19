@@ -1350,8 +1350,31 @@ async function loadAnalytics() {
   const days = Number(document.getElementById('analyticsDays')?.value) || 7
   const since = new Date(Date.now() - days * 86400_000).toISOString()
 
+  // Las visitas se piden POR PÁGINAS. PostgREST corta cualquier consulta en
+  // 1.000 filas aunque no pongas límite: con tráfico de verdad, pedirlas de
+  // una vez enseñaría "1.000 visitas" para siempre, sin ningún aviso de que
+  // faltan las demás.
+  const todasLasVisitas = async () => {
+    const POR_PAGINA = 1000
+    const TOPE_PAGINAS = 50 // 50.000 visitas: de sobra, y sin bucles eternos
+    const filas = []
+    for (let pagina = 0; pagina < TOPE_PAGINAS; pagina++) {
+      const desde = pagina * POR_PAGINA
+      const res = await supabase
+        .from('page_views')
+        .select('path, user_id, created_at')
+        .gte('created_at', since)
+        .order('created_at', { ascending: true })
+        .range(desde, desde + POR_PAGINA - 1)
+      if (res.error) return { data: filas.length ? filas : null, error: res.error }
+      filas.push(...(res.data || []))
+      if ((res.data || []).length < POR_PAGINA) break
+    }
+    return { data: filas, error: null }
+  }
+
   const [viewsRes, profilesRes, guidesRes, progressRes, guideCommentsRes, wallCommentsRes] = await Promise.all([
-    supabase.from('page_views').select('path, user_id, created_at').gte('created_at', since),
+    todasLasVisitas(),
     supabase.from('user_profiles').select('id, created_at, current_streak'),
     supabase.from('guides').select('id, title, slug, view_count, blocks').not('published_at', 'is', null),
     supabase.from('user_progress').select('guide_id, user_id, status, read_at'),

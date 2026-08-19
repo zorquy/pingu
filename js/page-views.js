@@ -110,12 +110,25 @@ export function pageLabel(ruta) {
 
 export async function logPageView(session) {
   try {
-    await supabase.from('page_views').insert({
+    // supabase-js NO lanza excepciones: los fallos vienen en `error`, y
+    // aquí nunca se leía. Si el insert llevaba tiempo fallando en
+    // producción (permisos, política, tabla), no había NINGUNA forma de
+    // enterarse: ni en pantalla ni en el registro de errores — el panel
+    // solo enseñaba un tranquilo "0 visitas". Exactamente lo que pasó.
+    const { error } = await supabase.from('page_views').insert({
       path: normalizePath(window.location.pathname, window.location.search),
       user_id: session?.user?.id || null,
     })
+    if (error) {
+      // Al registro de errores del admin, que es donde se mira. Solo los
+      // errores DEL SERVIDOR (con código de PostgREST): un fallo de red es
+      // normalmente un bloqueador de anuncios cortando la petición, y
+      // apuntar uno por visitante con uBlock sería llenar el registro de
+      // ruido sin culpa de la web.
+      const { logClientError } = await import('./error-log.js')
+      logClientError(`No se pudo registrar la visita: ${error.message}`, error.code || error.details || null)
+    }
   } catch {
-    // Si falla el registro de la visita, no debe romper nada más de la
-    // página — no hay nada más que hacer aquí.
+    // Red caída o bloqueador: la visita se pierde y no pasa nada más.
   }
 }
