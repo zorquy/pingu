@@ -4446,9 +4446,13 @@ a.rater-name:hover {
 }
 
 /* Etiqueta del tema: [Duda], [Oficial]... */
+/* El color de cada etiqueta lo pone etiquetaHtml() en línea (texto,
+   fondo translúcido y borde); esto de aquí es la forma y el respaldo
+   por si llegara una sin estilo. */
 .foro-etiqueta {
   padding: 2px 8px;
   border-radius: var(--radius-sm);
+  border: 1px solid transparent;
   background: var(--ice);
   color: var(--navy);
   font-size: 11.5px;

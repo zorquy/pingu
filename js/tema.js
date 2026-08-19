@@ -77,7 +77,14 @@ function migasHtml(trozos) {
 //   3. El nivel, para que nadie se quede sin nada debajo del nombre.
 function tituloDe(perfil, guiasAprobadas) {
   if (perfil?.forum_title) {
-    return `<span class="foro-autor-titulo foro-autor-titulo-propio">${escapeHtml(perfil.forum_title)}</span>`
+    // El color lo elige un admin. Aun así se valida ANTES de meterlo en
+    // el style: este valor viene de la base, y en un atributo style no
+    // puede entrar nada que no sea exactamente un color hex. La base
+    // impone lo mismo con una restricción; cinturón y tirantes.
+    const color = /^#[0-9a-fA-F]{6}$/.test(perfil.forum_title_color || '') ? perfil.forum_title_color : null
+    return `<span class="foro-autor-titulo foro-autor-titulo-propio"${
+      color ? ` style="color:${color}"` : ''
+    }>${escapeHtml(perfil.forum_title)}</span>`
   }
   if (guiasAprobadas > 0) return badgeHtml(guiasAprobadas)
   const nivel = perfil?.level || calculateLevel(perfil?.total_xp || 0)
@@ -307,14 +314,22 @@ async function pintarMensajes() {
   ])
 
   // Quién es del equipo y qué título le han puesto: hace falta para la
-  // columna del autor. Si la migración de títulos todavía no está puesta,
-  // la consulta falla y se sigue sin ellos — el foro no depende de esto.
+  // columna del autor. Va en dos escalones porque son DOS migraciones:
+  // si falta la del color, se reintenta sin él (los títulos salen, sin
+  // color); si falta la de títulos entera, se sigue sin ellos — el foro
+  // no depende de esto.
   const autores = [...new Set(lista.map((m) => m.author_id).filter(Boolean))]
   if (autores.length) {
-    const { data: extra } = await supabase
+    let { data: extra, error: errorExtra } = await supabase
       .from('user_profiles')
-      .select('id, is_admin, is_moderator, forum_title')
+      .select('id, is_admin, is_moderator, forum_title, forum_title_color')
       .in('id', autores)
+    if (errorExtra) {
+      ;({ data: extra } = await supabase
+        .from('user_profiles')
+        .select('id, is_admin, is_moderator, forum_title')
+        .in('id', autores))
+    }
     for (const a of extra || []) if (perfiles[a.id]) Object.assign(perfiles[a.id], a)
   }
 

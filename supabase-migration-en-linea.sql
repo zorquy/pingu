@@ -83,6 +83,10 @@ grant execute on function public.latido_en_linea(text) to anon, authenticated;
 
 commit;
 
+-- Que PostgREST se entere de la tabla y la función nuevas sin esperar a
+-- que recargue el esquema por su cuenta.
+notify pgrst, 'reload schema';
+
 -- ── Comprobación ──
 -- select latido_en_linea('00000000-0000-4000-8000-000000000000');
 -- select count(*) filter (where user_id is null) as invitados,

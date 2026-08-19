@@ -59,10 +59,51 @@ export function enlacePerfil(perfil) {
 // sale.
 export { contributorCounts, badgeHtml }
 
+// Cada etiqueta con su color. Todas del mismo azul no se distinguían: el
+// color es justo lo que deja reconocer un [Torneo] de una [Duda] sin leer.
+//
+// Los colores son fijos por etiqueta (no aleatorios): la misma etiqueta
+// tiene que verse igual hoy y mañana, en el índice y en el buscador.
+// Elegidos claros a propósito — la chapa los usa como texto sobre su
+// propia versión translúcida, y sobre fondo oscuro un color oscuro no se
+// lee.
+const COLORES_ETIQUETA = {
+  Duda: '#5b9cf8',
+  Ayuda: '#2dd4bf',
+  Debate: '#a78bfa',
+  Opinión: '#f472b6',
+  Noticia: '#f87171',
+  Guía: '#34d399',
+  Muestra: '#fbbf24',
+  Colección: '#f59e0b',
+  Intercambio: '#22d3ee',
+  'Compra/Venta': '#fb923c',
+  Mazo: '#818cf8',
+  Torneo: '#eab308',
+  Encuesta: '#e879f9',
+  'Off-topic': '#9ca3af',
+  Oficial: '#60a5fa',
+}
+
+// Una etiqueta que no esté en la lista (una antigua, una puesta a mano)
+// también recibe color, elegido por su nombre: determinista, no aleatorio.
+export function colorDeEtiqueta(prefix) {
+  const directo = COLORES_ETIQUETA[prefix]
+  if (directo) return directo
+  const paleta = Object.values(COLORES_ETIQUETA)
+  let hash = 0
+  for (const c of String(prefix || '')) hash = (hash * 31 + c.charCodeAt(0)) % 997
+  return paleta[hash % paleta.length]
+}
+
 // La etiqueta que va delante del título del tema ([Duda], [Oficial]...).
+// El color va en línea y no en clases CSS porque las etiquetas
+// desconocidas también lo llevan; es seguro interpolarlo porque solo
+// salen hex de la lista de arriba, nunca texto de nadie.
 export function etiquetaHtml(prefix) {
   if (!prefix) return ''
-  return `<span class="foro-etiqueta">${escapeHtml(prefix)}</span>`
+  const color = colorDeEtiqueta(prefix)
+  return `<span class="foro-etiqueta" style="color:${color}; background:${color}24; border-color:${color}59">${escapeHtml(prefix)}</span>`
 }
 
 // Las etiquetas que se pueden elegir al abrir un tema (y al editarlo).

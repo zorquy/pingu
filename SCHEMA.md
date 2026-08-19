@@ -8546,3 +8546,53 @@ Cómo funciona sin perfilar a nadie:
   user_id); un invitado no se puede juntar con nada, así que cada pestaña
   suya cuenta — igual que en cualquier foro. Quien esconde su actividad
   (`hide_activity`) se cuenta pero no se nombra.
+
+# Colores en el foro: títulos de usuario y etiquetas de tema
+
+## El título de cada persona, con su color
+
+`supabase-migration-titulos-color.sql`: columna
+`user_profiles.forum_title_color`, elegida desde /admin junto al título
+(paleta cerrada con nombres: Dorado, Rojo, Verde…). El color pinta el
+título bajo el nombre en cada mensaje del foro.
+
+La parte que importa: **ese valor acaba dentro de un atributo `style`**,
+así que no puede ser texto libre de nadie. Tres vallas, en orden:
+
+1. `/admin` no deja escribir un color: se elige de la paleta.
+2. La base solo acepta `#rrggbb` (restricción CHECK) — el único sitio que
+   no se puede esquivar llamando a la API.
+3. La pantalla (js/tema.js) valida el hex OTRA VEZ antes de pintarlo: si
+   algún día se cuela un valor raro (dato de antes de la restricción, SQL
+   a mano), el título sale sin color en vez de inyectar el valor. Hay
+   prueba con un perfil sembrado con `red;} body{display:none`.
+
+Guardar un título vacío borra también su color: un color sin título es un
+dato huérfano esperando a confundir. Y /admin degrada por columnas: sin la
+migración del color enseña títulos sin selector; sin la de títulos, la
+tabla de usuarios básica — nunca en blanco.
+
+## Cada etiqueta de tema con su color
+
+Todas las etiquetas salían del mismo azul y no se distinguían. Ahora cada
+una tiene el suyo (`COLORES_ETIQUETA` + `colorDeEtiqueta()` en
+js/foro-comun.js): texto del color, fondo translúcido y borde, en las
+cinco pantallas que pintan etiquetas (índice, lista, tema, sin responder
+y buscador) porque todas pasan por `etiquetaHtml()`.
+
+- Fijos por etiqueta, no aleatorios: [Torneo] tiene que verse igual hoy y
+  mañana, en el índice y en el buscador.
+- Una etiqueta que no está en la lista (una antigua, "Oficial", una puesta
+  a mano) recibe color por un hash de su nombre: determinista.
+- Es seguro interpolar el color en el style porque solo salen hex de la
+  lista propia — nunca texto de un usuario.
+
+## Y el error de la función que falta, traducido
+
+"Could not find the function public.forum_editar_encuesta(...) in the
+schema cache" es lo que vio el admin al editar una encuesta con la web
+desplegada y el SQL sin ejecutar. Ahora ese error (PGRST202/42883) se
+traduce a "Falta ejecutar supabase-migration-editar-encuestas.sql…". Las
+tres migraciones nuevas llevan además `notify pgrst, 'reload schema'` al
+final: Supabase suele recargar el esquema solo, pero a veces tarda, y
+mientras tanto la función existe pero PostgREST no la ve.

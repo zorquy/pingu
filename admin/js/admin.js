@@ -609,14 +609,61 @@ function openAchievementModal(achievement) {
 document.getElementById('btnNewAchievement').addEventListener('click', () => openAchievementModal(null))
 
 // ── Users ──
+
+// La paleta de colores para los títulos. Cerrada a propósito: el valor
+// acaba en un atributo style de cada mensaje del foro, así que aquí no se
+// escribe un color a mano — se elige de una lista que ya se sabe legible
+// sobre el fondo del foro.
+const COLORES_TITULO = [
+  ['', 'Sin color'],
+  ['#eab308', 'Dorado'],
+  ['#f87171', 'Rojo'],
+  ['#34d399', 'Verde'],
+  ['#5b9cf8', 'Azul'],
+  ['#a78bfa', 'Violeta'],
+  ['#22d3ee', 'Cian'],
+  ['#f472b6', 'Rosa'],
+  ['#fb923c', 'Naranja'],
+]
+
+function selectorColorTituloHtml(u) {
+  // Un color puesto por SQL que no esté en la paleta se enseña como
+  // opción extra: si no, con solo abrir y guardar se perdería.
+  const actual = u.forum_title_color || ''
+  const opciones = COLORES_TITULO.some(([hex]) => hex === actual)
+    ? COLORES_TITULO
+    : [[actual, actual], ...COLORES_TITULO]
+  return `<select data-color-titulo="${u.id}" aria-label="Color del título" style="width:110px;${
+    actual ? ` color:${actual};` : ''
+  }">
+    ${opciones
+      .map(
+        ([hex, nombre]) =>
+          `<option value="${hex}" ${hex === actual ? 'selected' : ''}${hex ? ` style="color:${hex}"` : ''}>${escapeHtml(nombre)}</option>`
+      )
+      .join('')}
+  </select>`
+}
+
 async function loadUsers() {
-  // is_moderator y forum_title son de supabase-migration-foro-titulos.sql.
-  // Si todavía no está puesta, la consulta falla ENTERA y la tabla de
-  // usuarios se quedaría en blanco: por eso se reintenta sin ellas.
+  // is_moderator y forum_title son de supabase-migration-foro-titulos.sql,
+  // y forum_title_color de supabase-migration-titulos-color.sql. Son DOS
+  // migraciones: se pide primero todo, y se va degradando — sin color, y
+  // si tampoco, sin foro — para que la tabla de usuarios nunca quede en
+  // blanco por una columna que falta.
   let { data, error } = await supabase
     .from('user_profiles')
-    .select('id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted, is_moderator, forum_title')
+    .select(
+      'id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted, is_moderator, forum_title, forum_title_color'
+    )
     .order('total_xp', { ascending: false })
+  let conColor = !error
+  if (error) {
+    ;({ data, error } = await supabase
+      .from('user_profiles')
+      .select('id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted, is_moderator, forum_title')
+      .order('total_xp', { ascending: false }))
+  }
   let conForo = !error
   if (error) {
     const alterno = await supabase
@@ -632,7 +679,11 @@ async function loadUsers() {
       conForo
         ? `<p class="admin-note">El <strong>título de foro</strong> es lo que se lee bajo el nombre de esa persona en cada
              mensaje ("Miembro del equipo", "Perito de falsificaciones"…). Es solo reconocimiento: no da ningún permiso.
-             La <strong>moderación</strong> sí: puede fijar, cerrar, editar y borrar en el foro, pero no entra aquí.</p>`
+             La <strong>moderación</strong> sí: puede fijar, cerrar, editar y borrar en el foro, pero no entra aquí.${
+               conColor
+                 ? ' El color pinta el título en el foro — el dorado de un veterano se ve de lejos.'
+                 : ' Para poder darles color, falta ejecutar supabase-migration-titulos-color.sql.'
+             }</p>`
         : `<p class="admin-note">Para los títulos de foro y la moderación, falta ejecutar supabase-migration-foro-titulos.sql.</p>`
     }
     <table class="admin-table">
@@ -652,7 +703,7 @@ async function loadUsers() {
             ${
               conForo
                 ? `<td><input type="text" value="${escapeHtml(u.forum_title || '')}" data-titulo-foro="${u.id}"
-                       placeholder="Sin título" style="width:170px;" /></td>`
+                       placeholder="Sin título" style="width:170px;" />${conColor ? ' ' + selectorColorTituloHtml(u) : ''}</td>`
                 : ''
             }
             <td>${u.is_banned ? `${icons.ban(14)} Baneado` : u.is_muted ? `${icons.volumeX(14)} Silenciado` : ''}${
@@ -682,7 +733,14 @@ async function loadUsers() {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.guardarTitulo
       const valor = document.querySelector(`[data-titulo-foro="${id}"]`).value.trim()
-      const { error: err } = await supabase.from('user_profiles').update({ forum_title: valor || null }).eq('id', id)
+      const cambios = { forum_title: valor || null }
+      if (conColor) {
+        // El color solo tiene sentido CON título: guardar un color de un
+        // título vacío dejaría un dato huérfano esperando a confundir.
+        const color = document.querySelector(`[data-color-titulo="${id}"]`)?.value || null
+        cambios.forum_title_color = valor ? color : null
+      }
+      const { error: err } = await supabase.from('user_profiles').update(cambios).eq('id', id)
       showToast(err ? 'No se ha podido guardar: ' + err.message : 'Título guardado.', err ? 'error' : 'success')
     })
   )

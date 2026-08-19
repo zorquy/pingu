@@ -224,6 +224,21 @@ export function engancharEncuesta(raiz, threadId, alCambiar, datos = null) {
 
 // ── Editar ──
 //
+// Editar necesita su propia migración (supabase-migration-editar-encuestas.sql),
+// posterior a la de encuestas. Si la web se despliega antes de ejecutarla,
+// PostgREST contesta "Could not find the function ... in the schema cache" —
+// un error que no le dice nada a nadie. Se traduce. Le pasó al admin.
+const AVISO_MIGRACION =
+  'Falta ejecutar supabase-migration-editar-encuestas.sql en el SQL Editor de Supabase. Hasta entonces las encuestas no se pueden editar.'
+
+function faltaLaFuncion(error) {
+  return (
+    error?.code === 'PGRST202' ||
+    error?.code === '42883' ||
+    /forum_editar_encuesta/.test(String(error?.message || ''))
+  )
+}
+
 // La base (forum_editar_encuesta, security definer) es quien manda aquí:
 // impone quién puede, valida como al crear, y decide qué pasa con los
 // votos — si el cambio toca las opciones o el modo de voto, se borran y
@@ -286,7 +301,7 @@ function pintarEditorDeEncuesta(raiz, threadId, alCambiar, { encuesta, resultado
     })
     e.target.disabled = false
     if (error) {
-      showToast('No se ha podido guardar: ' + error.message)
+      showToast(faltaLaFuncion(error) ? AVISO_MIGRACION : 'No se ha podido guardar: ' + error.message)
       return
     }
     showToast(
@@ -309,7 +324,7 @@ function pintarEditorDeEncuesta(raiz, threadId, alCambiar, { encuesta, resultado
     })
     e.target.disabled = false
     if (error) {
-      showToast('No se ha podido quitar: ' + error.message)
+      showToast(faltaLaFuncion(error) ? AVISO_MIGRACION : 'No se ha podido quitar: ' + error.message)
       return
     }
     showToast('Encuesta retirada.', 'success')

@@ -7,13 +7,15 @@ móvil y sin un solo enlace interno roto.
 
 ## Bloqueante — sin esto no se anuncia
 
-- [ ] **Ejecutar en el SQL Editor las dos migraciones nuevas del foro**
-  (las dos son idempotentes):
+- [ ] **Ejecutar en el SQL Editor las tres migraciones nuevas del foro**
+  (todas idempotentes):
   - `supabase-migration-editar-encuestas.sql` — editar/quitar la encuesta
-    del propio tema. Sin ella, el botón "Editar encuesta" da error al
-    guardar.
+    del propio tema. Sin ella, el botón "Editar encuesta" avisa de que
+    falta esta migración.
   - `supabase-migration-en-linea.sql` — el panel "En línea ahora" con
     invitados. Sin ella, el panel simplemente no aparece (nada se rompe).
+  - `supabase-migration-titulos-color.sql` — el color de los títulos de
+    usuario. Sin ella, /admin enseña los títulos sin selector de color.
 
 - [ ] **La pantalla de consentimiento de Google** (Google Cloud Console →
   OAuth consent screen): logo, página de inicio, y los enlaces a

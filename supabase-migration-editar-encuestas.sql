@@ -129,5 +129,10 @@ grant execute on function public.forum_editar_encuesta(uuid, text, boolean, text
 
 commit;
 
+-- Que PostgREST se entere de la función nueva. Supabase suele recargar el
+-- esquema solo, pero a veces tarda — y mientras tanto el botón de editar
+-- contesta "Could not find the function ... in the schema cache".
+notify pgrst, 'reload schema';
+
 -- ── Comprobación ──
 -- select proname from pg_proc where proname = 'forum_editar_encuesta';
