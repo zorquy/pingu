@@ -1362,7 +1362,7 @@ async function loadAnalytics() {
       const desde = pagina * POR_PAGINA
       const res = await supabase
         .from('page_views')
-        .select('path, user_id, created_at')
+        .select('path, user_id, created_at, is_bot')
         .gte('created_at', since)
         .order('created_at', { ascending: true })
         .range(desde, desde + POR_PAGINA - 1)
@@ -1393,7 +1393,7 @@ async function loadAnalytics() {
   // `user_progress` ya se contaba aparte porque tiene su propia
   // migración; ahora se avisa de todas por el mismo sitio.
   const fallos = [
-    ['page_views', viewsRes.error, 'supabase-migration-page-views.sql'],
+    ['page_views', viewsRes.error, 'supabase-migration-page-views.sql (y supabase-migration-visitas-bots.sql)'],
     ['user_profiles', profilesRes.error, null],
     ['guides', guidesRes.error, null],
     ['user_progress', progressRes.error, 'supabase-migration-admin-analytics.sql'],
@@ -1423,19 +1423,36 @@ async function loadAnalytics() {
   const guides = guidesRes.data || []
   const progress = progressRes.data || []
 
+  // ── Personas y robots, por separado ──
+  //
+  // Google (y otros) ejecutan JavaScript al indexar, así que cada pasada
+  // suya dispara el registro de visitas igual que una persona. Al separar
+  // apareció la foto real: cientos de "visitas" al día que eran un
+  // rastreador yendo de guía en guía. La clasificación la hace el navegador
+  // al registrar (js/page-views.js); las filas de antes de la migración van
+  // sin clasificar (null) y se dicen tal cual, no se cuelan en ningún bando.
+  const personas = views.filter((v) => v.is_bot === false)
+  const robots = views.filter((v) => v.is_bot === true)
+  const sinClasificar = views.length - personas.length - robots.length
+
   // ── Resumen ──
-  const withSession = views.filter((v) => v.user_id)
+  const withSession = personas.filter((v) => v.user_id)
   const activeUsers = new Set(withSession.map((v) => v.user_id)).size
   const newUsers = profiles.filter((p) => p.created_at && p.created_at >= since).length
-  const pctLogged = views.length ? Math.round((withSession.length / views.length) * 100) : 0
+  const pctLogged = personas.length ? Math.round((withSession.length / personas.length) * 100) : 0
   const withStreak = profiles.filter((p) => (p.current_streak || 0) > 1).length
 
   document.getElementById('analyticsSummary').innerHTML = [
-    statCardHtml(views.length, 'Visitas', `en los últimos ${days} días`),
+    statCardHtml(personas.length, 'Visitas de personas', `en los últimos ${days} días`),
+    statCardHtml(
+      robots.length,
+      'De robots',
+      `buscadores indexando${sinClasificar ? ` · ${sinClasificar} antiguas sin clasificar` : ''}`
+    ),
     statCardHtml(activeUsers, 'Usuarios activos', 'con sesión iniciada'),
     statCardHtml(newUsers, 'Altas nuevas', `en los últimos ${days} días`),
     statCardHtml(profiles.length, 'Usuarios registrados', 'en total'),
-    statCardHtml(`${pctLogged}%`, 'Visitas con sesión', 'el resto son anónimas'),
+    statCardHtml(`${pctLogged}%`, 'Visitas con sesión', 'de las de personas'),
     statCardHtml(withStreak, 'Con racha viva', 'más de un día seguido'),
     statCardHtml(
       progressRes.error ? '—' : (progressRes.data || []).filter((p) => p.read_at).length,
@@ -1445,9 +1462,14 @@ async function loadAnalytics() {
   ].join('')
 
   // ── Visitas por día ──
+  // Sin los robots: una gráfica dominada por el rastreo no dice nada de la
+  // comunidad. Las antiguas sin clasificar SÍ entran — son mezcla, pero es
+  // la única historia que existe de antes de la migración, y dejarla fuera
+  // vaciaría la gráfica de golpe.
+  const paraGrafica = views.filter((v) => v.is_bot !== true)
   const byDay = new Map()
   for (let i = days - 1; i >= 0; i--) byDay.set(dayKey(Date.now() - i * 86400_000), 0)
-  for (const v of views) {
+  for (const v of paraGrafica) {
     const k = dayKey(v.created_at)
     if (byDay.has(k)) byDay.set(k, byDay.get(k) + 1)
   }
@@ -1470,7 +1492,7 @@ async function loadAnalytics() {
   // filas ya guardadas ("/index.html", "/aprender.html", "/usuario/pingu")
   // seguirían apareciendo sueltas durante meses, que es justo el problema
   // que se está arreglando.
-  const countByPath = views.reduce((acc, v) => {
+  const countByPath = paraGrafica.reduce((acc, v) => {
     const ruta = normalizePath(v.path)
     acc[ruta] = (acc[ruta] || 0) + 1
     return acc

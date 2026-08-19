@@ -8436,3 +8436,40 @@ filas trae cada una, y si falta alguna de las que importan sale con error en
 vez de dejar un fichero con pinta de copia. Probado contra un PostgreSQL 16
 de verdad: copia, restauración en una base vacía, y comprobación de que las
 guías y las cuentas llegan enteras.
+
+# Separar las visitas de personas y de robots
+
+Al arreglar el panel de visitas apareció el porqué de los números raros:
+cientos de visitas al día, todas anónimas, recorriendo las guías con
+segundos de diferencia. **Los buscadores ejecutan JavaScript al indexar**,
+así que también disparan el registro de visitas. Sin separarlos, la tarjeta
+de "Visitas" medía sobre todo cuánto te rastrean.
+
+Migración: `supabase-migration-visitas-bots.sql` — columna
+`page_views.is_bot boolean`, **nullable y sin default a propósito**: las
+filas de antes de la migración no se pueden clasificar a posteriori, y un
+`default false` las convertiría en "personas" mintiendo. `null` significa
+"antigua, sin clasificar", y el panel lo dice tal cual.
+
+Cómo se detecta (`pareceRobot()` en `js/page-views.js`): dos señales, las
+dos del lado del cliente. `navigator.webdriver` (lo pone a `true` cualquier
+navegador automatizado, los renderizadores de los buscadores incluidos) y el
+user agent (los rastreadores se identifican a propósito: Googlebot, bingbot,
+HeadlessChrome…). No es seguridad — quien quiera mentir, miente —, es
+limpiar la estadística del 99% de robots, que son los educados.
+
+En el panel: tarjetas separadas de "Visitas de personas" y "De robots" (con
+el número de antiguas sin clasificar al lado si las hay); las visitas con
+sesión y los usuarios activos se calculan solo sobre personas; la gráfica y
+el ranking excluyen a los robots pero **conservan las antiguas sin
+clasificar** — quitarlas vaciaría todo el histórico.
+
+Dos detalles que importan:
+
+- **Si la web se despliega antes de ejecutar la migración**, PostgREST
+  contesta PGRST204 (columna desconocida) y la visita NO se pierde: se
+  reintenta el insert sin `is_bot`, que la deja como quedaban todas hasta
+  ahora. Hay prueba con la columna quitada del doble.
+- **Playwright también es un robot** (`navigator.webdriver` a `true`), así
+  que la propia visita de la prueba queda marcada `is_bot: true` — y eso se
+  usa como comprobación de que la detección real funciona, no un mock.

@@ -108,6 +108,28 @@ export function pageLabel(ruta) {
   return ruta
 }
 
+// ¿Esta carga de página la está haciendo un robot?
+//
+// Existe porque al investigar las visitas aparecieron cientos al día que
+// iban de guía en guía con segundos de diferencia, todas anónimas: Google
+// (y otros) EJECUTAN JavaScript al indexar, así que también disparan este
+// registro. Sin separarlos, el número de visitas mide sobre todo cuánto te
+// rastrean.
+//
+// Un robot se delata por dos sitios, y se miran los dos:
+//   - navigator.webdriver: lo pone a true cualquier navegador automatizado
+//     (los renderizadores de los buscadores incluidos).
+//   - El user agent: los rastreadores se identifican en él a propósito
+//     (Googlebot, bingbot...), y las herramientas de captura también
+//     (HeadlessChrome, Lighthouse).
+//
+// Quien quiera mentir puede mentir — esto no es seguridad, es limpiar la
+// estadística del 99% de robots, que son los educados que se identifican.
+export function pareceRobot(ua = navigator.userAgent, webdriver = navigator.webdriver) {
+  if (webdriver) return true
+  return /bot|crawl|spider|slurp|preview|headless|lighthouse|scrap|python-requests|curl\//i.test(String(ua || ''))
+}
+
 export async function logPageView(session) {
   try {
     // supabase-js NO lanza excepciones: los fallos vienen en `error`, y
@@ -115,10 +137,19 @@ export async function logPageView(session) {
     // producción (permisos, política, tabla), no había NINGUNA forma de
     // enterarse: ni en pantalla ni en el registro de errores — el panel
     // solo enseñaba un tranquilo "0 visitas". Exactamente lo que pasó.
-    const { error } = await supabase.from('page_views').insert({
+    const fila = {
       path: normalizePath(window.location.pathname, window.location.search),
       user_id: session?.user?.id || null,
-    })
+      is_bot: pareceRobot(),
+    }
+    let { error } = await supabase.from('page_views').insert(fila)
+    // Si la base aún no tiene la columna (la web se despliega antes de
+    // ejecutar la migración), la visita NO se pierde: se registra sin
+    // clasificar, que es como quedaban todas hasta ahora.
+    if (error && /is_bot/.test(error.message || '')) {
+      const { is_bot: _fuera, ...sinColumna } = fila
+      ;({ error } = await supabase.from('page_views').insert(sinColumna))
+    }
     if (error) {
       // Al registro de errores del admin, que es donde se mira. Solo los
       // errores DEL SERVIDOR (con código de PostgREST): un fallo de red es
