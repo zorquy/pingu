@@ -8729,3 +8729,28 @@ texto".
   eso. El ✕ va en un ::before del CSS y NUNCA como texto del botón: el
   saneador tira los <button> pero CONSERVA su texto, y un aspa escrita
   dentro acabaría guardada en el título del spoiler.
+
+# Insertar cartas, imágenes y vídeos DENTRO de un spoiler
+
+La queja: «no puedo insertar cartas o imágenes dentro de spoilers, se va
+para abajo». La causa estaba en dos sitios que subían por el DOM «hasta el
+hijo directo de la superficie» para decidir dónde colgar un bloque: con el
+cursor dentro de un spoiler, ese hijo directo es el `<details>` ENTERO, y
+todo caía después de él — fuera.
+
+- **`esContenedorDeBloques`**: los bloques cuelgan de la superficie o, si
+  el cursor está en un spoiler, del `<details>`. `bloqueDelCursor` (listas
+  de cartas, vídeos, spoilers nuevos) y `asegurarFigura` (imágenes con
+  forma de carta, tamaño/colocación/pie) paran ahí en vez de seguir
+  subiendo. Un `<figure>` o un `<tcg-deck>` dentro de un `<details>` es
+  HTML válido y el saneador lo conserva tal cual.
+- **Las flechas de mover bloque** también paran en el spoiler: dentro lo
+  recorren, y en los bordes lo SACAN (subir con la pestaña justo encima lo
+  deja delante del spoiler; bajar al final lo deja detrás). Es la manera
+  de rescatar una imagen sin cortar y pegar. Desde fuera, subir/bajar
+  SALTAN el spoiler por encima — meterse dentro sin querer sería peor.
+- Detalles con dientes: la pestaña (`<summary>`) nunca se toca — al
+  envolver en figura una imagen cuyo bloque queda vacío, ese bloque se
+  quita, salvo si es la pestaña (un details sin summary deja de ser un
+  spoiler); y `agruparConLaAnterior` ya era seguro porque una pestaña ni
+  es figura de carta ni es fila.

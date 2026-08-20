@@ -343,16 +343,24 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     return true
   }
 
-  // El bloque de primer nivel donde está el cursor: el párrafo, el
-  // título o la figura que cuelga directamente de la superficie. Es
-  // dónde hay que meter una lista de cartas para que caiga "aquí" y no
-  // dentro de un párrafo (donde el HTML no la admite).
+  // Dónde viven los bloques: colgando de la superficie o, si el cursor
+  // está dentro de un spoiler, colgando del <details>. Sin esa segunda
+  // parada, todo lo que se insertara con el cursor dentro de un spoiler
+  // subía hasta el <details> entero y caía DESPUÉS de él — fuera.
+  const esContenedorDeBloques = (n) =>
+    n === surfaceEl || (n?.tagName === 'DETAILS' && surfaceEl.contains(n))
+
+  // El bloque donde está el cursor: el párrafo, el título o la figura
+  // que cuelga directamente de la superficie (o del spoiler en el que
+  // esté metido el cursor). Es dónde hay que meter una lista de cartas
+  // para que caiga "aquí" y no dentro de un párrafo (donde el HTML no
+  // la admite).
   const bloqueDelCursor = () => {
     let n = ultimoRango?.commonAncestorContainer
     if (!n || !surfaceEl.contains(n)) return null
     if (n.nodeType === 3) n = n.parentNode
-    while (n && n.parentNode && n.parentNode !== surfaceEl) n = n.parentNode
-    return n && n.parentNode === surfaceEl ? n : null
+    while (n && n.parentNode && !esContenedorDeBloques(n.parentNode)) n = n.parentNode
+    return n && esContenedorDeBloques(n.parentNode) ? n : null
   }
 
   // ── Barra principal ──
@@ -974,15 +982,20 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
 
     const fig = document.createElement('figure')
     fig.className = 'rt-fig rt-fig-c'
-    // La figura tiene que colgar de la superficie, no quedarse dentro
-    // del párrafo: el HTML no admite un <figure> dentro de un <p>, y el
-    // navegador acabaría partiendo el párrafo por su cuenta.
+    // La figura tiene que colgar de la superficie — o del spoiler, si la
+    // imagen está dentro de uno —, no quedarse dentro del párrafo: el
+    // HTML no admite un <figure> dentro de un <p>, y el navegador
+    // acabaría partiendo el párrafo por su cuenta. Subir siempre hasta
+    // la superficie era lo que SACABA del spoiler las imágenes con forma
+    // de carta nada más pegarlas.
     let bloque = el
-    while (bloque.parentNode && bloque.parentNode !== surfaceEl) bloque = bloque.parentNode
-    if (bloque.parentNode === surfaceEl && bloque !== el) {
+    while (bloque.parentNode && !esContenedorDeBloques(bloque.parentNode)) bloque = bloque.parentNode
+    if (esContenedorDeBloques(bloque.parentNode) && bloque !== el) {
       bloque.after(fig)
       fig.appendChild(el)
-      if (!bloque.textContent.trim() && !bloque.querySelector('img, tcg-deck, yt-video')) bloque.remove()
+      // La pestaña del spoiler nunca se quita, aunque quede sin texto:
+      // un <details> sin <summary> deja de ser un spoiler.
+      if (bloque.tagName !== 'SUMMARY' && !bloque.textContent.trim() && !bloque.querySelector('img, tcg-deck, yt-video')) bloque.remove()
     } else {
       el.replaceWith(fig)
       fig.appendChild(el)
@@ -1184,14 +1197,23 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
 
       const caja = contenedor(seleccionado)
       let bloque = caja
-      while (bloque.parentNode && bloque.parentNode !== surfaceEl) bloque = bloque.parentNode
+      while (bloque.parentNode && !esContenedorDeBloques(bloque.parentNode)) bloque = bloque.parentNode
+      // Dentro de un spoiler, subir y bajar mueven el bloque POR el
+      // spoiler; en los bordes, lo sacan: subir con la pestaña justo
+      // encima lo deja delante del spoiler, bajar al final lo deja
+      // detrás. Es la manera de sacar una imagen sin cortar y pegar.
+      const spoilerPadre = bloque.parentNode?.tagName === 'DETAILS' ? bloque.parentNode : null
 
-      if (accion === 'subir' && bloque.previousElementSibling) {
-        bloque.previousElementSibling.before(bloque)
+      if (accion === 'subir') {
+        const previo = bloque.previousElementSibling
+        if (spoilerPadre && (!previo || previo.tagName === 'SUMMARY')) spoilerPadre.before(bloque)
+        else if (previo) previo.before(bloque)
         return emit()
       }
-      if (accion === 'bajar' && bloque.nextElementSibling) {
-        bloque.nextElementSibling.after(bloque)
+      if (accion === 'bajar') {
+        const siguiente = bloque.nextElementSibling
+        if (spoilerPadre && !siguiente) spoilerPadre.after(bloque)
+        else if (siguiente) siguiente.after(bloque)
         return emit()
       }
       if (accion === 'borrar') {
