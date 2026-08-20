@@ -167,6 +167,9 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   // cursor en el título.
   const abrirSpoilers = () => surfaceEl.querySelectorAll('details').forEach((d) => (d.open = true))
   abrirSpoilers()
+  // El aspa de borrar de cada spoiler ya guardado (vestirSpoilers está
+  // más abajo, con el resto del spoiler; es declaración y ya existe aquí).
+  vestirSpoilers()
   const impedirPlegado = (e) => {
     if (e.target?.tagName === 'DETAILS' && !e.target.open) e.target.open = true
   }
@@ -224,8 +227,98 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
 
   const emit = () => {
     marcarVacia()
+    apuntarHistorial()
     onChange(superficieVacia() ? '' : sanitizeRichText(surfaceEl.innerHTML))
   }
+
+  // ── Deshacer y rehacer propios ──
+  //
+  // El Ctrl+Z del navegador solo sabe deshacer lo que entró por sus
+  // propias órdenes de edición (teclear, negrita...). Todo lo que este
+  // editor construye tocando el DOM —spoilers, imágenes convertidas en
+  // carta, filas, listas de cartas, vídeos, mover y borrar bloques— era
+  // invisible para esa pila: Ctrl+Z deshacía "solo el texto". No hay
+  // forma sana de mezclar las dos pilas, así que el editor lleva la suya:
+  // instantáneas del contenido en cada cambio, y Ctrl+Z/Ctrl+Y se
+  // interceptan y restauran. El tecleo seguido se fusiona en una sola
+  // entrada para no deshacer letra a letra.
+  let historial = [surfaceEl.innerHTML]
+  let indiceHist = 0
+  let ultimoApunte = 0
+  let tecleando = false
+  let cimaEsTecleo = false
+  let restaurando = false
+
+  const apuntarHistorial = () => {
+    if (restaurando) return
+    const html = surfaceEl.innerHTML
+    if (html === historial[indiceHist]) return
+    const ahora = Date.now()
+    // Rehacer muere en cuanto se escribe algo nuevo, como en cualquier
+    // editor.
+    historial = historial.slice(0, indiceHist + 1)
+    // Solo se fusiona tecleo CON tecleo: escribir justo después de poner
+    // un spoiler no puede fundirse con la entrada del spoiler, o Ctrl+Z
+    // se llevaría los dos de un golpe.
+    if (tecleando && cimaEsTecleo && ahora - ultimoApunte < 700) {
+      historial[indiceHist] = html
+    } else {
+      historial.push(html)
+      indiceHist++
+      if (historial.length > 100) {
+        historial.shift()
+        indiceHist--
+      }
+    }
+    cimaEsTecleo = tecleando
+    ultimoApunte = ahora
+  }
+
+  const restaurarHistorial = (paso) => {
+    const destino = indiceHist + paso
+    if (destino < 0 || destino >= historial.length) return
+    restaurando = true
+    indiceHist = destino
+    cimaEsTecleo = false
+    surfaceEl.innerHTML = historial[destino]
+    // Lo restaurado se deja como estaba: spoilers abiertos y vestidos,
+    // listas y vídeos pintados, imágenes marcadas como ya vistas (volver
+    // atrás no es volver a insertarlas).
+    abrirSpoilers()
+    vestirSpoilers()
+    surfaceEl.querySelectorAll('img').forEach((i) => imagenesVistas.add(i))
+    hydrateDecks(surfaceEl).catch(() => {})
+    hydrateVideos(surfaceEl)
+    deseleccionar()
+    const r = document.createRange()
+    r.selectNodeContents(surfaceEl)
+    r.collapse(false)
+    const sel = document.getSelection()
+    sel?.removeAllRanges()
+    sel?.addRange(r)
+    restaurando = false
+    marcarVacia()
+    onChange(superficieVacia() ? '' : sanitizeRichText(surfaceEl.innerHTML))
+  }
+
+  surfaceEl.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return
+    const tecla = (e.key || '').toLowerCase()
+    if (tecla !== 'z' && tecla !== 'y') return
+    e.preventDefault()
+    restaurarHistorial(tecla === 'y' || e.shiftKey ? 1 : -1)
+  })
+  // El "deshacer" del menú contextual y del móvil no pasa por el teclado:
+  // llega como beforeinput, y también se redirige a la pila propia.
+  surfaceEl.addEventListener('beforeinput', (e) => {
+    if (e.inputType === 'historyUndo') {
+      e.preventDefault()
+      restaurarHistorial(-1)
+    } else if (e.inputType === 'historyRedo') {
+      e.preventDefault()
+      restaurarHistorial(1)
+    }
+  })
 
   // ── Dónde estaba el cursor ──
   //
@@ -379,8 +472,13 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   // la lista del saneador, así que se cae al guardar (ver
   // js/richtext-format.js).
   function ponerSpoiler() {
+    // NOTA: nada de execCommand('insertHTML') aquí — se probó y Chrome
+    // destroza el <details>: le arranca el <summary>, lo convierte en un
+    // <span> con estilos y lo deja fuera. Se construye a mano; el
+    // deshacer no se pierde porque el editor lleva su propio historial.
     const sel = document.getSelection()
-    const dentro = sel && !sel.isCollapsed ? sel.getRangeAt(0).extractContents() : null
+    const r = sel && sel.rangeCount ? sel.getRangeAt(0) : null
+    const dentro = r && !sel.isCollapsed && surfaceEl.contains(r.commonAncestorContainer) ? r.extractContents() : null
 
     const det = document.createElement('details')
     det.open = true
@@ -395,25 +493,85 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     else cuerpo.innerHTML = '<br>'
     det.appendChild(cuerpo)
 
-    const donde = bloqueDelCursor()
-    if (donde) donde.after(det)
+    const bloque = bloqueDelCursor()
+    // El spoiler nace DONDE ESTÁ EL CURSOR: si el cursor va por la mitad
+    // de un párrafo (o un título), el bloque se parte por ahí — lo de
+    // antes queda arriba, lo de después queda debajo del spoiler. Antes
+    // caía entero debajo del bloque, que se leía como "se va para abajo".
+    let cola = null
+    const particionable = bloque && /^(P|H2|H3)$/.test(bloque.tagName)
+    if (particionable && r && bloque.contains(r.startContainer)) {
+      const resto = document.createRange()
+      resto.selectNodeContents(bloque)
+      resto.setStart(r.startContainer, r.startOffset)
+      const trozo = resto.extractContents()
+      if (trozo.textContent.trim() || trozo.querySelector('img, tcg-deck, yt-video')) {
+        cola = document.createElement(bloque.tagName.toLowerCase())
+        cola.appendChild(trozo)
+      }
+    }
+
+    if (bloque) bloque.after(det)
     else surfaceEl.appendChild(det)
+    if (cola) det.after(cola)
+    // Si el cursor estaba al principio, el bloque de arriba se ha quedado
+    // vacío: no se deja un párrafo fantasma delante del spoiler.
+    if (particionable && !bloque.textContent.trim() && !bloque.querySelector('img, tcg-deck, yt-video')) {
+      bloque.remove()
+    }
 
     // Un párrafo detrás: sin él, el cursor se queda atrapado dentro del
     // spoiler y no hay forma de seguir escribiendo debajo. Es el mismo
-    // problema que ya tenían las listas de cartas.
-    const p = document.createElement('p')
-    p.innerHTML = '<br>'
-    det.after(p)
+    // problema que ya tenían las listas de cartas. (Si la partición ha
+    // dejado la cola detrás, ella misma es ese sitio.)
+    if (!cola && !esParrafoVacio(det.nextElementSibling)) {
+      const p = document.createElement('p')
+      p.innerHTML = '<br>'
+      det.after(p)
+    }
 
+    vestirSpoilers()
     // El cursor va al cuerpo del spoiler, que es donde se quiere seguir
     // escribiendo — no al resumen.
-    const r = document.createRange()
-    r.selectNodeContents(cuerpo)
-    r.collapse(true)
-    sel?.removeAllRanges()
-    sel?.addRange(r)
+    ponerCursorEn(cuerpo)
   }
+
+  // El aspa de "borrar el spoiler" que lleva cada pestaña DENTRO DEL
+  // EDITOR. Sin ella no había forma humana de quitar un spoiler: el
+  // <details> no se deja seleccionar como un bloque. Borrarlo es seguro
+  // porque el historial propio lo recupera con Ctrl+Z.
+  //
+  // El aspa se pinta por CSS (::before), no como texto del botón, a
+  // propósito: el saneador tira los <button> pero CONSERVA su texto, y un
+  // aspa escrita dentro acabaría guardada en el título del spoiler.
+  function vestirSpoilers() {
+    surfaceEl.querySelectorAll('details > summary').forEach((sum) => {
+      if (sum.querySelector('.rte-sp-quitar')) return
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'rte-sp-quitar'
+      btn.setAttribute('contenteditable', 'false')
+      btn.title = 'Borrar el spoiler y su contenido (Ctrl+Z lo recupera)'
+      btn.setAttribute('aria-label', 'Borrar el spoiler')
+      sum.appendChild(btn)
+    })
+  }
+
+  surfaceEl.addEventListener('click', (e) => {
+    const btn = e.target.closest?.('.rte-sp-quitar')
+    if (!btn || !surfaceEl.contains(btn)) return
+    e.preventDefault()
+    const det = btn.closest('details')
+    if (!det) return
+    // El foco estaba en el aspa, que se va con el spoiler: se devuelve al
+    // editor y el cursor al hueco — sin esto, el Ctrl+Z de "uy, no quería
+    // borrarlo" ya no llegaba al editor.
+    const vecino = det.nextElementSibling || det.previousElementSibling
+    det.remove()
+    surfaceEl.focus()
+    if (vecino) ponerCursorEn(vecino)
+    emit()
+  })
 
   // ── Imagen ──
   //
@@ -469,8 +627,12 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
       return
     }
     // Si lo pegado trae <img> de otra página, se repasan en cuanto el
-    // navegador haya acabado de pegar.
-    setTimeout(repasarImagenesNuevas, 0)
+    // navegador haya acabado de pegar. Y si trae spoilers (pegar un
+    // trozo de otra guía), se les pone su aspa de borrar.
+    setTimeout(() => {
+      repasarImagenesNuevas()
+      vestirSpoilers()
+    }, 0)
   })
 
   // Arrastrar una imagen a la caja es el mismo caso que pegarla: el navegador
@@ -1054,7 +1216,14 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   hydrateDecks(surfaceEl).catch(() => {})
   hydrateVideos(surfaceEl)
 
-  surfaceEl.addEventListener('input', emit)
+  // El tecleo se marca para que el historial fusione las letras seguidas
+  // en una sola entrada; todo lo demás (spoilers, imágenes, bloques)
+  // apunta entrada propia y Ctrl+Z lo deshace de un golpe.
+  surfaceEl.addEventListener('input', () => {
+    tecleando = true
+    emit()
+    tecleando = false
+  })
   surfaceEl.addEventListener('blur', emit)
 
   // El repaso va también aquí, y no sólo en el `paste`: una imagen puede

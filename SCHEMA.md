@@ -8699,3 +8699,33 @@ usándolo:
   oculto (está en el DOM aunque no se vea): ahora se copia lo visible —
   de un spoiler cerrado, solo su pestaña. Con el spoiler abierto no se
   interviene la copia.
+
+# El editor: deshacer de verdad, spoiler en el cursor y aspa de borrar
+
+Tres quejas reales del admin, con una causa común: el editor construye
+cosas tocando el DOM (spoilers, imágenes-carta, filas, listas, bloques), y
+para el Ctrl+Z NATIVO del navegador todo eso no existe — solo deshacía "el
+texto".
+
+- **Historial de deshacer propio.** No hay forma sana de mezclar la pila
+  nativa con mutaciones de DOM, así que el editor lleva la suya:
+  instantáneas del contenido en cada cambio (con el tecleo seguido
+  fusionado en una entrada — y SOLO tecleo con tecleo: escribir justo
+  después de poner un spoiler no puede fundirse con la entrada del
+  spoiler). Ctrl+Z/Ctrl+Y/Ctrl+Shift+Z se interceptan, y también el
+  `beforeinput historyUndo/historyRedo` del menú contextual y el móvil.
+  Tope de 100 entradas. Tras deshacer, el cursor va al final (guardar la
+  posición exacta a través de innerHTML no compensa su complejidad).
+- **El spoiler nace donde está el cursor.** Antes caía debajo del bloque
+  entero ("se va para abajo"). Se probó execCommand('insertHTML') —
+  habría dado el punto exacto y la pila nativa a la vez — y NO VALE:
+  Chrome le arranca el <summary> al <details> y lo convierte en un span
+  con estilos. Así que el párrafo (o título) se parte a mano por el
+  cursor: lo de antes queda arriba, lo de después debajo del spoiler.
+- **Aspa de borrar en cada pestaña (solo en el editor).** No había forma
+  humana de quitar un spoiler: el <details> no se deja seleccionar como
+  bloque. El aspa borra el spoiler entero y, como pasa por el historial,
+  Ctrl+Z lo recupera — el foco vuelve al editor tras borrar justo para
+  eso. El ✕ va en un ::before del CSS y NUNCA como texto del botón: el
+  saneador tira los <button> pero CONSERVA su texto, y un aspa escrita
+  dentro acabaría guardada en el título del spoiler.

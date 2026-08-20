@@ -1573,6 +1573,33 @@ textarea.be-field {
   cursor: text;
 }
 
+/* El aspa de borrar el spoiler, solo en el editor. El aspa va en un
+   ::before y NUNCA como texto del botón: el saneador tira los <button>
+   pero conserva su texto, y acabaría guardada en el título. */
+.rte-sp-quitar {
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  line-height: 1;
+  user-select: none;
+}
+
+.rte-sp-quitar::before {
+  content: '✕';
+  font-size: 12px;
+}
+
+.rte-sp-quitar:hover {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
 .article-body summary::-webkit-details-marker,
 .rte-surface summary::-webkit-details-marker {
   display: none;
