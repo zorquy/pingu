@@ -1564,6 +1564,15 @@ textarea.be-field {
   user-select: none;
 }
 
+/* En el EDITOR el resumen es un título que se escribe, no un botón: con
+   user-select: none no se podía ni seleccionar para cambiarlo, y el
+   cursor de mano prometía "esto se pulsa" cuando lo que toca es "esto se
+   edita". El plegado dentro del editor lo anula el propio editor. */
+.rte-surface summary {
+  user-select: text;
+  cursor: text;
+}
+
 .article-body summary::-webkit-details-marker,
 .rte-surface summary::-webkit-details-marker {
   display: none;

@@ -306,6 +306,9 @@ async function init() {
   // Los vídeos: pinta la portada, y el iframe no se carga hasta que
   // alguien lo pulsa. Ver js/video-youtube.js.
   hydrateVideos(main)
+  // Los spoilers: que seleccionar sobre la pestaña no los pliegue y que
+  // copiar por encima de uno cerrado no se lleve lo oculto.
+  import('./spoilers.js').then((m) => m.engancharSpoilers(main)).catch(() => {})
 
   // "Me ha servido" va ANTES de las estrellas, y es a propósito: es lo
   // que va a pulsar la mayoría. Pedir una nota de 1 a 5 nada más

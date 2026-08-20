@@ -154,13 +154,23 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   surfaceEl.innerHTML = sanitizeRichText(initialHtml)
   surfaceEl.setAttribute('contenteditable', 'true')
 
-  // Dentro del editor los spoilers se abren todos. No es un capricho:
-  // dentro de un contenteditable, pulsar el resumen coloca el cursor en
-  // vez de plegar, así que un spoiler cerrado sería contenido que el
-  // autor no puede ni ver ni tocar. Publicados salen cerrados, porque
-  // `open` no sobrevive al saneador.
+  // Dentro del editor los spoilers están SIEMPRE abiertos: un spoiler
+  // cerrado sería contenido que el autor no puede ni ver ni tocar.
+  // Publicados salen cerrados, porque `open` no sobrevive al saneador.
+  //
+  // Y no basta con abrirlos al montar: en la práctica, pulsar el resumen
+  // para cambiarle el título SÍ pliega el details aunque esté en un
+  // contenteditable (al contrario de lo que prometía el comentario que
+  // había aquí — le pasó al admin). Se escucha el evento `toggle` (en
+  // captura, porque no burbujea) y cualquier intento de plegado se
+  // deshace en el acto: así el clic solo hace lo que debe, colocar el
+  // cursor en el título.
   const abrirSpoilers = () => surfaceEl.querySelectorAll('details').forEach((d) => (d.open = true))
   abrirSpoilers()
+  const impedirPlegado = (e) => {
+    if (e.target?.tagName === 'DETAILS' && !e.target.open) e.target.open = true
+  }
+  surfaceEl.addEventListener('toggle', impedirPlegado, true)
 
   // Una superficie vacía arranca con un párrafo de verdad.
   //
@@ -302,7 +312,33 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   surfaceEl.__rteSoltar = () => {
     document.removeEventListener('selectionchange', recordarCursor)
     document.removeEventListener('click', cerrarAlPincharFuera)
+    surfaceEl.removeEventListener('toggle', impedirPlegado, true)
   }
+
+  // Enter en el TÍTULO de un spoiler no puede partir el <summary> en dos
+  // (un details con dos resúmenes no es nada): terminar de escribir el
+  // título te baja al cuerpo, que es lo que cualquiera espera.
+  surfaceEl.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return
+    const sel = document.getSelection()
+    let n = sel?.anchorNode
+    if (n && n.nodeType === 3) n = n.parentNode
+    const resumen = n?.closest?.('summary')
+    if (!resumen || !surfaceEl.contains(resumen)) return
+    e.preventDefault()
+    const det = resumen.parentElement
+    let cuerpo = resumen.nextElementSibling
+    if (!cuerpo) {
+      cuerpo = document.createElement('p')
+      cuerpo.innerHTML = '<br>'
+      det.appendChild(cuerpo)
+    }
+    const r = document.createRange()
+    r.selectNodeContents(cuerpo)
+    r.collapse(true)
+    sel.removeAllRanges()
+    sel.addRange(r)
+  })
 
   function ponerEnlace() {
     const sel = document.getSelection()

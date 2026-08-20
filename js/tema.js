@@ -388,6 +388,10 @@ async function pintarMensajes() {
   // Los vídeos de YouTube que haya en los mensajes. Pinta la portada; el
   // iframe no se carga hasta que alguien lo pulsa (js/video-youtube.js).
   hydrateVideos(elMensajes)
+  // Los spoilers: que seleccionar sobre la pestaña no los pliegue y que
+  // copiar por encima de uno cerrado no se lleve lo oculto. La escucha es
+  // delegada y se engancha una sola vez aunque esto se repinte.
+  import('./spoilers.js').then((m) => m.engancharSpoilers(elMensajes)).catch(() => {})
 
   elPaginacion.innerHTML = paginacionHtml(totalPaginas)
   elPaginacion.querySelectorAll('[data-pagina]').forEach((b) =>

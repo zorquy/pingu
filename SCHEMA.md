@@ -8672,3 +8672,30 @@ enlaces, imagen). Los límites, cada uno donde toca:
 - Se guarda SANEADA con el saneador de los mensajes y se RE-sanea al
   pintarse: lo de la base no se pinta a ciegas. La semilla de las pruebas
   lleva un <script> colado que tiene que desaparecer.
+
+# El spoiler, pulido: editar el título, seleccionar y copiar
+
+Tres roces que tenía el spoiler por ser un <details> nativo, encontrados
+usándolo:
+
+- **En el editor, pulsar la pestaña para cambiar el título la plegaba.**
+  El comentario del código prometía que dentro de un contenteditable el
+  clic no pliega — mentira en la práctica. Ahora el editor escucha el
+  evento `toggle` (en captura: no burbujea) y deshace cualquier plegado
+  al instante: el clic solo coloca el cursor. Además `user-select: none`
+  y el cursor de mano del CSS aplicaban también al editor: el título ni
+  se podía seleccionar. En `.rte-surface` el resumen es texto
+  (`user-select: text; cursor: text`).
+- **Enter en el título partía el <summary> en dos.** Ahora baja el cursor
+  al cuerpo del spoiler, que es lo que espera cualquiera al terminar de
+  escribir un título.
+- **En el lector (js/spoilers.js, escuchas delegadas en guia y tema):**
+  (1) seleccionar texto que termina sobre la pestaña la plegaba — el
+  navegador dispara un clic al soltar; si hay una selección sin colapsar,
+  el clic no pliega. OJO: se mira `isCollapsed`, NO el texto de la
+  selección — la pestaña lleva user-select:none y una selección sobre
+  ella existe con toString() vacío (así se descubrió). (2) copiar una
+  selección que atraviesa un spoiler CERRADO se llevaba su contenido
+  oculto (está en el DOM aunque no se vea): ahora se copia lo visible —
+  de un spoiler cerrado, solo su pestaña. Con el spoiler abierto no se
+  interviene la copia.
