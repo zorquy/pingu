@@ -226,6 +226,7 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   marcarVacia()
 
   const emit = () => {
+    sanearEstructura()
     marcarVacia()
     apuntarHistorial()
     onChange(superficieVacia() ? '' : sanitizeRichText(surfaceEl.innerHTML))
@@ -441,6 +442,272 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     sel.addRange(r)
   })
 
+  // ── Red de seguridad estructural ──
+  //
+  // El contenteditable del navegador no sabe qué es un spoiler y lo
+  // rompe de formas que ninguna escucha puede cubrir del todo. La peor,
+  // vista en producción: Enter con el cursor "suelto" entre bloques de
+  // un <details> (justo después de una fila de cartas) hace que Chrome
+  // PARTA el details en dos — y la segunda mitad nace sin <summary>, así
+  // que el navegador le pinta su marcador por defecto ("Detalles"), un
+  // bloque fantasma que no se puede ni seleccionar ni borrar.
+  //
+  // Las escuchas de teclado de abajo evitan los caminos conocidos; esto
+  // repara CUALQUIER estado inválido en cuanto aparece, venga por donde
+  // venga (una tecla rara, un pegado, un arrastre). Se ejecuta en cada
+  // emit, así que un bloque fantasma no llega a verse.
+  function sanearEstructura() {
+    let toco = false
+    for (const det of [...surfaceEl.querySelectorAll('details')]) {
+      if (det.closest('tcg-deck, yt-video')) continue
+      // Un details sin pestaña no es un spoiler: es el fantasma de arriba.
+      // Su contenido (si lo tiene) se saca fuera, y él desaparece.
+      const pestañas = [...det.children].filter((c) => c.tagName === 'SUMMARY')
+      if (pestañas.length === 0) {
+        det.replaceWith(...det.childNodes)
+        toco = true
+        continue
+      }
+      // La pestaña va la primera; si un pegado o un borrado la descoloca,
+      // se recoloca.
+      if (det.firstElementChild !== pestañas[0]) {
+        det.prepend(pestañas[0])
+        toco = true
+      }
+      // Un details con dos pestañas no es nada: las de más se vuelven párrafos.
+      for (const extra of pestañas.slice(1)) {
+        extra.querySelector(':scope > .rte-sp-quitar')?.remove()
+        const p = document.createElement('p')
+        p.append(...extra.childNodes)
+        if (!p.textContent.trim() && !p.querySelector('img, tcg-deck, yt-video')) p.innerHTML = '<br>'
+        extra.replaceWith(p)
+        toco = true
+      }
+    }
+    // Una pestaña huérfana (fuera de un details) tampoco es nada.
+    for (const sum of [...surfaceEl.querySelectorAll('summary')]) {
+      if (sum.parentElement?.tagName === 'DETAILS' || sum.closest('tcg-deck, yt-video')) continue
+      sum.querySelector(':scope > .rte-sp-quitar')?.remove()
+      const p = document.createElement('p')
+      p.append(...sum.childNodes)
+      if (!p.textContent.trim() && !p.querySelector('img, tcg-deck, yt-video')) p.innerHTML = '<br>'
+      sum.replaceWith(p)
+      toco = true
+    }
+    // Una fila sin figuras es un hueco; con una sola, un hueco al lado.
+    for (const fila of [...surfaceEl.querySelectorAll('.rt-fila')]) {
+      if (fila.closest('tcg-deck, yt-video')) continue
+      const figs = fila.querySelectorAll(':scope > figure')
+      if (figs.length === 0) {
+        fila.remove()
+        toco = true
+      } else if (figs.length === 1) {
+        figs[0].classList.add('rt-fig', 'rt-fig-c')
+        fila.replaceWith(...fila.childNodes)
+        toco = true
+      }
+    }
+    // Borrarlo todo no puede dejar la superficie sin su párrafo semilla
+    // (pasaba al quitar con el aspa el único spoiler del texto).
+    if (!surfaceEl.firstElementChild && !surfaceEl.textContent.trim()) {
+      surfaceEl.innerHTML = '<p><br></p>'
+      toco = true
+    }
+    if (toco) vestirSpoilers()
+    return toco
+  }
+
+  // ── Las fronteras del spoiler son paredes, no membranas ──
+  //
+  // El borrado del navegador FUNDE bloques a través de cualquier borde:
+  // Backspace al principio del cuerpo metía el cuerpo EN la pestaña,
+  // Supr al final de la pestaña se tragaba el cuerpo, y Backspace justo
+  // debajo de un spoiler teletransportaba el párrafo adentro. Aquí el
+  // cursor CRUZA la frontera pero nunca arrastra contenido a través:
+  // para meter o sacar algo están las flechas de mover bloque y el
+  // cortar y pegar de siempre.
+  const esBloqueOpaco = (el) =>
+    !!el && (el.classList?.contains('rt-fila') || /^(FIGURE|TCG-DECK|YT-VIDEO|HR)$/.test(el.tagName))
+
+  const bloqueDe = (nodo) => {
+    let n = nodo
+    if (n.nodeType === 3) n = n.parentNode
+    if (!n || esContenedorDeBloques(n)) return null
+    while (n.parentNode && !esContenedorDeBloques(n.parentNode)) n = n.parentNode
+    return esContenedorDeBloques(n.parentNode) ? n : null
+  }
+
+  // ¿Está el cursor al principio (o al final) de este bloque? Se mira el
+  // CONTENIDO entre el borde y el cursor, no los offsets: un <br> inicial
+  // o el aspa de la pestaña (que no llevan texto) no cuentan.
+  const trozoVacio = (q) => q.toString() === '' && !q.cloneContents().querySelector('img, tcg-deck, yt-video, figure')
+  const alPrincipioDe = (el, r) => {
+    const q = document.createRange()
+    q.selectNodeContents(el)
+    q.setEnd(r.startContainer, r.startOffset)
+    return trozoVacio(q)
+  }
+  const alFinalDe = (el, r) => {
+    const q = document.createRange()
+    q.selectNodeContents(el)
+    q.setStart(r.startContainer, r.startOffset)
+    return trozoVacio(q)
+  }
+
+  const ponerCursorAlFinalDe = (el) => {
+    if (!el) return
+    const r = document.createRange()
+    const aspa = el.tagName === 'SUMMARY' ? el.querySelector(':scope > .rte-sp-quitar') : null
+    if (aspa) r.setEnd(el, [...el.childNodes].indexOf(aspa))
+    else {
+      r.selectNodeContents(el)
+    }
+    r.collapse(false)
+    const sel = document.getSelection()
+    sel?.removeAllRanges()
+    sel?.addRange(r)
+    ultimoRango = r.cloneRange()
+  }
+
+  surfaceEl.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== 'Backspace' && e.key !== 'Delete') return
+    if (e.isComposing || e.defaultPrevented) return
+    const sel = document.getSelection()
+    if (!sel || sel.rangeCount === 0) return
+    // Con algo seleccionado, borrar es borrar la selección (nativo y
+    // correcto). El Enter sí se mira: escribir un pie de foto lo deja
+    // seleccionado, y Enter sobre esa selección partía el pie en dos.
+    if (!sel.isCollapsed && e.key !== 'Enter') return
+    const r = sel.getRangeAt(0)
+    if (!surfaceEl.contains(r.startContainer)) return
+
+    let n = r.startContainer
+    if (n.nodeType === 3) n = n.parentNode
+    const sobreContenedor = esContenedorDeBloques(n) ? n : null
+    const bloque = sobreContenedor ? null : bloqueDe(n)
+    if (!sobreContenedor && !bloque) return
+    const padre = bloque?.parentNode
+
+    if (e.key === 'Enter') {
+      // El Enter en la pestaña ya lo lleva la escucha de arriba. Con
+      // Ctrl no es un salto de párrafo, y el Shift+Enter (salto de
+      // línea) solo se toca donde un <br> suelto haría daño: con el
+      // cursor directamente sobre el contenedor.
+      if (e.ctrlKey || e.metaKey) return
+      if (e.shiftKey && !sobreContenedor) return
+      if (n.closest?.('summary')) return
+
+      // Cursor "suelto" entre bloques, o dentro de un bloque que no es de
+      // texto (una fila, una figura — Enter en el pie de foto incluido):
+      // el Enter nativo aquí es el que parte el <details> en dos. Se
+      // inserta un párrafo a mano, donde está el cursor.
+      if (sobreContenedor || esBloqueOpaco(bloque)) {
+        e.preventDefault()
+        if (!sel.isCollapsed) r.deleteContents()
+        const p = document.createElement('p')
+        p.innerHTML = '<br>'
+        if (bloque) {
+          bloque.after(p)
+        } else if (r.startContainer === sobreContenedor) {
+          const hijos = sobreContenedor.childNodes
+          let antes = hijos[Math.min(r.startOffset, hijos.length) - 1] || null
+          // La pestaña siempre queda delante: en un spoiler, "al
+          // principio" es justo después de ella.
+          if (sobreContenedor.tagName === 'DETAILS' && !antes) antes = sobreContenedor.firstElementChild
+          if (antes) antes.after(p)
+          else sobreContenedor.appendChild(p)
+        } else if (r.startContainer.nodeType === 3 && r.startContainer.parentNode === sobreContenedor) {
+          // Texto suelto colgando directamente del contenedor: el
+          // párrafo nuevo va justo detrás de él.
+          r.startContainer.after(p)
+        } else {
+          sobreContenedor.appendChild(p)
+        }
+        ponerCursorEn(p)
+        emit()
+        return
+      }
+
+      // Enter en el párrafo vacío del FINAL del spoiler = salir de él,
+      // como el doble Enter que cierra una lista. Sin esto no había
+      // manera obvia de "terminar" el spoiler y seguir escribiendo debajo.
+      if (
+        padre?.tagName === 'DETAILS' &&
+        esParrafoVacio(bloque) &&
+        !bloque.nextElementSibling &&
+        bloque.previousElementSibling?.tagName !== 'SUMMARY'
+      ) {
+        e.preventDefault()
+        padre.after(bloque)
+        ponerCursorEn(bloque)
+        emit()
+        return
+      }
+      return
+    }
+
+    if (e.key === 'Backspace') {
+      if (!bloque || !alPrincipioDe(bloque, r)) return
+      // Al principio de la pestaña: no fundirla con lo de fuera.
+      if (bloque.tagName === 'SUMMARY') {
+        e.preventDefault()
+        ponerCursorAlFinalDe(padre.previousElementSibling)
+        return
+      }
+      // Al principio del primer bloque del cuerpo: no meterlo en la
+      // pestaña. Un párrafo vacío de más sí se quita, si no es el único.
+      if (padre?.tagName === 'DETAILS' && bloque.previousElementSibling?.tagName === 'SUMMARY') {
+        e.preventDefault()
+        const pestaña = bloque.previousElementSibling
+        if (esParrafoVacio(bloque) && bloque.nextElementSibling) {
+          bloque.remove()
+          emit()
+        }
+        ponerCursorAlFinalDe(pestaña)
+        return
+      }
+      // Justo debajo de un spoiler: el párrafo no se teletransporta adentro.
+      const previo = bloque.previousElementSibling
+      if (previo?.tagName === 'DETAILS') {
+        e.preventDefault()
+        if (esParrafoVacio(bloque) && bloque.nextElementSibling) {
+          bloque.remove()
+          emit()
+        }
+        const cuerpo = [...previo.children].filter((c) => c.tagName !== 'SUMMARY')
+        ponerCursorAlFinalDe(cuerpo[cuerpo.length - 1] || previo.firstElementChild)
+        return
+      }
+      return
+    }
+
+    // Supr: el espejo exacto del Backspace.
+    if (!bloque || !alFinalDe(bloque, r)) return
+    if (bloque.tagName === 'SUMMARY') {
+      e.preventDefault()
+      let cuerpo = bloque.nextElementSibling
+      if (!cuerpo) {
+        cuerpo = document.createElement('p')
+        cuerpo.innerHTML = '<br>'
+        padre.appendChild(cuerpo)
+      }
+      ponerCursorEn(cuerpo)
+      return
+    }
+    if (padre?.tagName === 'DETAILS' && !bloque.nextElementSibling) {
+      e.preventDefault()
+      const fuera = padre.nextElementSibling
+      if (fuera?.tagName === 'DETAILS') ponerCursorEn(fuera.querySelector(':scope > summary') || fuera)
+      else if (fuera) ponerCursorEn(fuera)
+      return
+    }
+    const siguiente = bloque.nextElementSibling
+    if (siguiente?.tagName === 'DETAILS') {
+      e.preventDefault()
+      ponerCursorEn(siguiente.querySelector(':scope > summary') || siguiente)
+    }
+  })
+
   function ponerEnlace() {
     const sel = document.getSelection()
     const texto = sel && !sel.isCollapsed ? sel.toString().trim() : ''
@@ -579,6 +846,9 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     surfaceEl.focus()
     if (vecino) ponerCursorEn(vecino)
     emit()
+    // Si era lo único que había, el saneo del emit acaba de reponer el
+    // párrafo semilla: el cursor va a él.
+    if (!vecino) ponerCursorEn(surfaceEl.firstElementChild)
   })
 
   // ── Imagen ──
@@ -1072,6 +1342,16 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
       // justamente por eso.
       aMeter.push(suelta ? figuraDeImagen(suelta) : siguiente)
       siguiente = tras
+    }
+
+    // Nada que juntar (un párrafo con texto en medio corta): una "fila"
+    // de una sola figura es una rejilla con un hueco vacío al lado. No
+    // se crea — la red de seguridad la desharía igualmente — y se
+    // explica por qué no ha pasado nada.
+    if (aMeter.length < 2) {
+      showToast('No hay otra imagen justo detrás que juntar en la fila.')
+      emit()
+      return
     }
 
     const fila = document.createElement('div')

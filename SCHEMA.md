@@ -8754,3 +8754,61 @@ todo caía después de él — fuera.
   quita, salvo si es la pestaña (un details sin summary deja de ser un
   spoiler); y `agruparConLaAnterior` ya era seguro porque una pestaña ni
   es figura de carta ni es fila.
+
+# Depuración a fondo del editor: las fronteras del spoiler son paredes
+
+La queja que lo destapó: «cuando doy Enter dentro del spoiler y después de
+una fila de 4 cartas se abre eso que pone Detalles y no puedo hacer nada».
+Lo que pasa por debajo: con el cursor "suelto" entre bloques de un
+`<details>` (justo después de una fila, que es contenteditable=false),
+el Enter nativo de Chrome PARTE el details en dos — y la segunda mitad
+nace sin `<summary>`, así que el navegador le pinta su marcador por
+defecto («Detalles»): un bloque fantasma imposible de seleccionar o
+borrar. El arreglo va en dos capas que se refuerzan.
+
+**Capa 1 — teclas en las fronteras** (una escucha de keydown para
+Enter/Backspace/Supr):
+
+- Enter con el cursor suelto sobre un contenedor (la superficie o un
+  details), o dentro de un bloque que no es de texto (fila, figura — el
+  pie de foto incluido): se inserta un `<p>` a mano donde está el cursor,
+  nunca el Enter nativo que parte contenedores. De paso arregla otro
+  latente: Enter en un pie de foto partía la figura en dos.
+- Enter en el párrafo vacío del FINAL del spoiler = SALIR de él (como el
+  doble Enter que cierra una lista). No había manera obvia de terminar
+  un spoiler y seguir escribiendo debajo.
+- El borrado nativo FUNDE bloques a través de cualquier borde. Ahora las
+  fronteras del spoiler son paredes: Backspace al principio del cuerpo
+  ya no mete el cuerpo en la pestaña; Supr al final de la pestaña ya no
+  se traga el cuerpo; Backspace justo debajo de un spoiler ya no
+  teletransporta el párrafo adentro (ni Supr justo encima saca la
+  pestaña). El CURSOR sí cruza — se coloca al otro lado — pero el
+  contenido no se arrastra. Ctrl+Enter y Shift+Enter se respetan.
+
+**Capa 2 — red de seguridad estructural** (`sanearEstructura`, en cada
+emit): venga por donde venga el estropicio (una tecla no prevista, un
+pegado, un arrastre), se repara en el siguiente cambio, antes de que
+entre al historial:
+
+- `<details>` sin pestaña → se deshace, sacando su contenido fuera.
+- Pestaña descolocada → vuelve la primera; pestañas de más o huérfanas
+  (fuera de un details) → se vuelven párrafos.
+- `.rt-fila` sin figuras → fuera; con una sola → se deshace la fila
+  (coherente con sacarUnaDeLaFila).
+- Superficie sin nada → repone el `<p><br></p>` semilla (pasaba al
+  borrar con el aspa el único spoiler del texto; el cursor va a él).
+- No toca nada dentro de `<tcg-deck>` ni `<yt-video>`: su interior es
+  del pintado, no del autor.
+
+Además, `bloqueDelCursor` entiende ahora el cursor suelto sobre un
+contenedor (usa el offset del rango para dar con el bloque de al lado),
+con lo que insertar cartas o vídeos con el cursor entre bloques cae en el
+sitio exacto y no al final.
+
+Nota de banco de pruebas: el Chromium del banco NO parte el details con
+el cursor suelto (mete un `<p>` él solo) — el Chrome del admin sí. Por
+eso la rotura de esa regla se comprueba con el pie de foto, que el Enter
+nativo sí parte en dos `<figcaption>` en cualquier Chromium. Y ojo con
+el pie recién creado: queda SELECCIONADO, y un Enter sobre esa selección
+también partía el pie — la regla cubre el Enter con selección dentro de
+bloques opacos (borra la selección y baja a un párrafo nuevo).
