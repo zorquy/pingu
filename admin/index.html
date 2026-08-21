@@ -75,6 +75,22 @@
             <button class="btn-primary" id="btnGuardarDestacada">Guardar</button>
           </div>
         </div>
+
+        <div class="admin-destacada" id="avisoGlobalPanel">
+          <h2>Aviso global</h2>
+          <p class="subtext">Una franja arriba de TODA la web («el sábado hay torneo», «mantenimiento a las 22h»).
+            Cada usuario puede cerrarla; si publicas un aviso nuevo, vuelve a salir.
+            Necesita supabase-migration-ajustes.sql.</p>
+          <div class="admin-destacada-campos">
+            <input type="text" id="avisoGlobalTexto" maxlength="200" placeholder="El texto del aviso" />
+            <select id="avisoGlobalTono">
+              <option value="info">Informativo</option>
+              <option value="aviso">Importante (rojo)</option>
+            </select>
+            <label class="checkbox-row"><input type="checkbox" id="avisoGlobalActivo" /> Activo</label>
+            <button class="btn-primary" id="btnGuardarAvisoGlobal">Guardar</button>
+          </div>
+        </div>
       </section>
 
       <section class="admin-section" id="section-pending">

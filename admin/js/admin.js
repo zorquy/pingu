@@ -99,8 +99,50 @@ async function loadDestacada() {
   })
 }
 
+// ── El aviso global (la franja de arriba de toda la web) ──
+//
+// Vive en site_settings, clave `aviso_global` (ver
+// supabase-migration-ajustes.sql). Si la tabla no existe todavía, el
+// panel lo dice al intentar guardar — leer en vacío no molesta.
+async function loadAvisoGlobal() {
+  const panel = document.getElementById('avisoGlobalPanel')
+  if (!panel) return
+  const texto = document.getElementById('avisoGlobalTexto')
+  const tono = document.getElementById('avisoGlobalTono')
+  const activo = document.getElementById('avisoGlobalActivo')
+
+  const { data } = await supabase.from('site_settings').select('value').eq('key', 'aviso_global').maybeSingle()
+  const actual = data?.value || {}
+  texto.value = actual.texto || ''
+  tono.value = actual.tono === 'aviso' ? 'aviso' : 'info'
+  activo.checked = !!actual.activo
+
+  document.getElementById('btnGuardarAvisoGlobal').addEventListener('click', async () => {
+    const { error } = await supabase.from('site_settings').upsert(
+      {
+        key: 'aviso_global',
+        value: { texto: texto.value.trim(), tono: tono.value, activo: activo.checked },
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'key' }
+    )
+    const faltaTabla = error && /site_settings/.test(error.message || '')
+    showToast(
+      error
+        ? faltaTabla
+          ? 'Falta ejecutar supabase-migration-ajustes.sql en el SQL Editor de Supabase.'
+          : 'No se ha podido guardar: ' + error.message
+        : activo.checked
+          ? 'Guardado. El aviso ya está en toda la web.'
+          : 'Guardado. El aviso queda apagado.',
+      error ? 'error' : 'success'
+    )
+  })
+}
+
 async function loadDashboard() {
   loadDestacada().catch(() => {})
+  loadAvisoGlobal().catch(() => {})
   const [{ count: userCount }, completedRes, { count: guideCount }] = await Promise.all([
     supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
     supabase.from('user_progress').select('*', { count: 'exact', head: true }).eq('status', 'completed'),

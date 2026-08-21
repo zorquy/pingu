@@ -8894,3 +8894,38 @@ listas — lo que le faltaba eran los TOTALES de verdad).
   reintento sin la columna si la web se despliega antes que el SQL), y
   «🎂 Hoy cumple años @tal» en El foro en números — tolerante: sin la
   migración, la línea no sale.
+
+# Tanda social: tarjetitas, avisos que faltaban, Gracias, aviso global, multicita y volver arriba
+
+Siete aprobadas; DOS resultaron estar ya hechas al verificar (costumbre
+que ya ha salvado cuatro duplicados): el Open Graph de los temas del
+foro ya lo pintaba meta-social.js, y el aviso a quien citas ya salía en
+avisar() — de ahí solo faltaba el matiz del título.
+
+- **Tarjetita al posar el ratón sobre un nombre** (js/hovercard.js):
+  avatar, chapa de nivel, XP, mensajes del foro, bio recortada y el
+  botón de Seguir/Siguiendo, sin ir al perfil. Escucha delegada global
+  (vale para todo lo que se pinte después), solo donde hay hover de
+  verdad (`(hover: hover)`), con 350 ms de intención y caché por nombre.
+- **Reaccionar avisa al autor** (tipo `forum_reaction`, con casilla
+  propia en las preferencias): UNA vez por persona y mensaje — cambiar
+  de 👍 a ❤️ no re-avisa (se mira si ya tenías `.foro-reaccion-mia`
+  antes de tocar). El aviso lleva el emoji y el enlace al mensaje.
+- **«Te han citado en el foro»**: el título del aviso ahora distingue
+  mención > cita > respuesta.
+- **«Gracias: N» bajo el avatar** en cada tema, pareja del clásico
+  «Mensajes: N»: las reacciones recibidas EN TOTAL por cada autor de la
+  página, en un solo viaje con el join embebido
+  (`in('post.author_id', autores)`). El 0 también se dice.
+- **Aviso global del admin** (supabase-migration-ajustes.sql, la única
+  migración: tabla site_settings clave→valor, lectura pública y
+  escritura solo admin): franja arriba de toda la web, escrita desde el
+  Dashboard de /admin (texto, tono informativo/importante, activo).
+  Cada cual la cierra, y el cierre se recuerda POR HUELLA del texto: un
+  aviso nuevo vuelve a salir aunque cerraras el anterior.
+- **Multicita**: con una cita ya anclada, «Citar» en otro mensaje lo
+  añade como blockquote en la caja (autor delante, 400 letras máx.) y
+  apunta a su autor para el aviso. El ancla (reply_to_id) sigue siendo
+  la primera.
+- **Volver arriba**: el botón flotante de toda la vida, global (app.js),
+  a partir de 600 px de scroll.

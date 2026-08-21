@@ -15,6 +15,7 @@ export const NOTIFICATION_TYPES = {
   guide_suggestion_accepted: 'Cuando aceptan tu corrección',
   guide_request_fulfilled: 'Cuando se escribe una guía que pediste',
   forum_reply: 'Respuestas en tus temas del foro',
+  forum_reaction: 'Reacciones a tus mensajes del foro',
   new_follower: 'Nuevos seguidores',
   wall_comment: 'Comentarios en tu muro',
   followed_guide_published: 'Guías nuevas de quien sigues',

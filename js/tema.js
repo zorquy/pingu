@@ -375,12 +375,33 @@ async function pintarMensajes() {
   const reaccionesPorMensaje = {}
   for (const r of reaccionesRes.data || []) (reaccionesPorMensaje[r.post_id] ||= []).push(r)
 
+  // El "Gracias: N" de la columna del autor: cuántas reacciones han
+  // recibido EN TOTAL los mensajes de cada autor de esta página. Un solo
+  // viaje con el join embebido (nunca un .in() con todos sus mensajes);
+  // si la tabla no existe (migración sin ejecutar), la línea no sale.
+  let graciasPorAutor = null
+  if (hayReacciones && autores.length) {
+    const { data: recibidas, error: errorGracias } = await supabase
+      .from('forum_post_reactions')
+      .select('post_id, post:forum_posts!inner(author_id)')
+      .in('post.author_id', autores)
+      .limit(1000)
+    if (!errorGracias && recibidas) {
+      graciasPorAutor = Object.fromEntries(autores.map((a) => [a, 0]))
+      for (const r of recibidas) {
+        const quien = r.post?.author_id
+        if (quien in graciasPorAutor) graciasPorAutor[quien]++
+      }
+    }
+  }
+
   elMensajes.innerHTML = lista
     .map((m, i) =>
       mensajeHtml(m, desde + i + 1, perfiles, cuentas, citadoPorId, {
         reacciones: reaccionesPorMensaje[m.id] || [],
         hayReacciones,
         mencionados,
+        gracias: graciasPorAutor,
       })
     )
     .join('')
@@ -490,7 +511,7 @@ async function marcarConectados(perfiles) {
   })
 }
 
-function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, hayReacciones, mencionados }) {
+function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, hayReacciones, mencionados, gracias }) {
   const perfil = perfiles[m.author_id]
   const nombre = nombreDe(perfil)
   const citado = m.reply_to_id ? citadoPorId[m.reply_to_id] : null
@@ -512,6 +533,13 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
         // 0 de quien estrena cuenta también se dice.
         Number.isFinite(perfil?.forum_post_count)
           ? `<span class="foro-autor-mensajes">Mensajes: ${perfil.forum_post_count}</span>`
+          : ''
+      }
+      ${
+        // Y su pareja de toda la vida: "Gracias: N", las reacciones que
+        // han recibido sus mensajes. El 0 también se dice.
+        gracias && m.author_id in gracias
+          ? `<span class="foro-autor-mensajes">Gracias: ${gracias[m.author_id]}</span>`
           : ''
       }
     </div>
@@ -585,6 +613,10 @@ function paginacionHtml(total) {
 
 // ─────────────────────────────────────────────────────────────
 let citandoA = null
+// La MULTICITA: la primera cita ancla la respuesta (reply_to_id); las
+// siguientes entran como blockquote en la caja, y aquí se apuntan sus
+// mensajes para que el aviso les llegue también a sus autores.
+let citadosExtra = new Set()
 
 function enganchar(perfiles) {
   elMensajes.querySelectorAll('[data-reaccion]').forEach((b) =>
@@ -595,8 +627,25 @@ function enganchar(perfiles) {
   )
   elMensajes.querySelectorAll('[data-citar]').forEach((b) =>
     b.addEventListener('click', () => {
-      citandoA = b.dataset.citar
-      const autorId = elMensajes.querySelector(`[data-mensaje="${citandoA}"]`)?.dataset.autor
+      const id = b.dataset.citar
+      const autorId = elMensajes.querySelector(`[data-mensaje="${id}"]`)?.dataset.autor
+      // MULTICITA: si ya se está citando OTRO mensaje, este segundo (y
+      // los que vengan) entran como blockquote en la caja, con el aviso
+      // apuntado. El primero sigue siendo el ancla de la respuesta.
+      if (citandoA && citandoA !== id && !citadosExtra.has(id)) {
+        const texto = elMensajes
+          .querySelector(`[data-mensaje="${id}"] .foro-mensaje-texto`)
+          ?.innerText.replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 400)
+        if (texto) {
+          citadosExtra.add(id)
+          citarTexto(`${nombreDe(perfiles[autorId])}: ${texto}`, null, null, { anclar: false })
+          showToast(`Cita añadida (${citadosExtra.size + 1} mensajes citados).`, 'success')
+          return
+        }
+      }
+      citandoA = id
       pintarAvisoDeCita(perfiles[autorId])
       document.getElementById('respuestaCuerpo')?.focus()
       document.getElementById('temaResponder')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -705,6 +754,9 @@ async function alternarReaccion(postId, kind, boton) {
   // upsert apoya en la clave (post_id, user_id): una reacción por persona
   // lo impone la base, no esta pantalla.
   const laMia = boton.getAttribute('aria-pressed') === 'true'
+  // ¿Es la PRIMERA reacción de esta persona a este mensaje? Cambiar de
+  // 👍 a ❤️ no vuelve a avisar: un solo aviso por persona y mensaje.
+  const yaTeniaAlguna = !!boton.closest('.foro-reacciones')?.querySelector('.foro-reaccion-mia')
   const { error } = laMia
     ? await supabase.from('forum_post_reactions').delete().eq('post_id', postId).eq('user_id', sesion.user.id)
     : await supabase
@@ -717,6 +769,19 @@ async function alternarReaccion(postId, kind, boton) {
     const propio = /row-level security/i.test(error.message || '')
     showToast(propio ? 'No puedes reaccionar a tu propio mensaje.' : 'No se ha podido: ' + error.message)
     return
+  }
+  // El aviso al autor del mensaje. Después de guardar y sin bloquear el
+  // repintado: una campanita que falle no puede estropear la reacción.
+  if (!laMia && !yaTeniaAlguna) {
+    const autor = boton.closest('article[data-mensaje]')?.dataset.autor
+    createNotification({
+      recipientId: autor,
+      actorId: sesion.user.id,
+      type: 'forum_reaction',
+      title: `Han reaccionado ${REACCIONES.find(([k]) => k === kind)?.[1] || ''} a tu mensaje`.trim(),
+      body: tema.title,
+      link: `${urlTema(tema.id)}#mensaje-${postId}`,
+    }).catch(() => {})
   }
   await pintarMensajes()
 }
@@ -855,6 +920,7 @@ async function montarRespuesta() {
 
     await avisar(cuerpo)
     citandoA = null
+    citadosExtra = new Set()
     borradoSalvado.borrar()
     document.getElementById('respuestaCuerpo').innerHTML = '<p><br></p>'
     cuerpoHtml = ''
@@ -988,22 +1054,26 @@ function engancharCitarSeleccion() {
   })
 }
 
-function citarTexto(texto, postId, quien) {
+function citarTexto(texto, postId, quien, { anclar = true } = {}) {
   const superficie = document.getElementById('respuestaCuerpo')
   if (!superficie) {
     showToast('Entra con tu cuenta para poder citar.')
     return
   }
-  citandoA = postId || null
-  pintarAvisoDeCita(null, quien)
+  if (anclar) {
+    citandoA = postId || null
+    pintarAvisoDeCita(null, quien)
+  }
 
-  // Se mete como <blockquote> delante de lo que ya hubiera escrito, y se
-  // deja el cursor debajo para seguir escribiendo.
+  // Se mete como <blockquote> delante de lo que ya hubiera escrito (las
+  // citas EXTRA de la multicita, detrás: en el orden en que se pulsan),
+  // y se deja el cursor debajo para seguir escribiendo.
   const cita = document.createElement('blockquote')
   cita.textContent = texto
   const hueco = document.createElement('p')
   hueco.innerHTML = '<br>'
-  superficie.prepend(cita, hueco)
+  if (anclar) superficie.prepend(cita, hueco)
+  else superficie.append(cita, hueco)
   superficie.dispatchEvent(new Event('input', { bubbles: true }))
   superficie.focus()
   hueco.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -1020,10 +1090,17 @@ function citarTexto(texto, postId, quien) {
 // tres.
 async function avisar(cuerpo) {
   const destinatarios = new Set()
+  const citados = new Set()
   if (tema.author_id && tema.author_id !== sesion.user.id) destinatarios.add(tema.author_id)
-  if (citandoA) {
-    const { data } = await supabase.from('forum_posts').select('author_id').eq('id', citandoA).maybeSingle()
-    if (data?.author_id && data.author_id !== sesion.user.id) destinatarios.add(data.author_id)
+  const idsCitados = [citandoA, ...citadosExtra].filter(Boolean)
+  if (idsCitados.length) {
+    const { data } = await supabase.from('forum_posts').select('author_id').in('id', idsCitados)
+    for (const fila of data || []) {
+      if (fila.author_id && fila.author_id !== sesion.user.id) {
+        destinatarios.add(fila.author_id)
+        citados.add(fila.author_id)
+      }
+    }
   }
 
   const mencionados = await perfilesMencionados(cuerpo || '')
@@ -1037,7 +1114,12 @@ async function avisar(cuerpo) {
         recipientId: uid,
         actorId: sesion.user.id,
         type: 'forum_reply',
-        title: mencionados.some((p) => p.id === uid) ? 'Te han mencionado en el foro' : 'Te han respondido en el foro',
+        // El aviso dice POR QUÉ te llega: mención > cita > respuesta.
+        title: mencionados.some((p) => p.id === uid)
+          ? 'Te han mencionado en el foro'
+          : citados.has(uid)
+            ? 'Te han citado en el foro'
+            : 'Te han respondido en el foro',
         body: tema.title,
         link: urlTema(tema.id),
       })

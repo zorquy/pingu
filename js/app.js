@@ -593,7 +593,39 @@ export async function initNavbar() {
     pintar(() => mensajes?.renderNavMessages(session))
     pintar(() => campana?.renderNotificationBell(session))
   }
+
+  // Las piezas globales que no corren prisa y no pueden tumbar nada: la
+  // tarjetita al posar el ratón sobre un nombre, la franja de aviso del
+  // admin y el botón de volver arriba.
+  import('./hovercard.js').then((m) => m.engancharTarjetasDeUsuario()).catch(() => {})
+  import('./aviso-global.js').then((m) => m.pintarAvisoGlobal()).catch(() => {})
+  try {
+    montarVolverArriba()
+  } catch {}
   return session
+}
+
+// El botón flotante de "volver arriba" de los hilos y guías largos.
+// Aparece pasadas unas pantallas de scroll; antes solo estorbaría.
+function montarVolverArriba() {
+  const btn = document.createElement('button')
+  btn.type = 'button'
+  btn.className = 'volver-arriba hidden'
+  btn.setAttribute('aria-label', 'Volver arriba')
+  btn.textContent = '↑'
+  btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }))
+  document.body.appendChild(btn)
+  let visible = false
+  window.addEventListener(
+    'scroll',
+    () => {
+      const debe = window.scrollY > 600
+      if (debe === visible) return
+      visible = debe
+      btn.classList.toggle('hidden', !visible)
+    },
+    { passive: true }
+  )
 }
 
 // Se ejecuta en cuanto se importa este módulo en cualquier página.
