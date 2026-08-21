@@ -602,10 +602,34 @@ export async function initNavbar() {
   // admin y el botón de volver arriba.
   import('./hovercard.js').then((m) => m.engancharTarjetasDeUsuario()).catch(() => {})
   import('./aviso-global.js').then((m) => m.pintarAvisoGlobal()).catch(() => {})
+  import('./lightbox.js').then((m) => m.engancharLightbox()).catch(() => {})
   try {
     montarVolverArriba()
+    montarProgresoLectura()
   } catch {}
   return session
+}
+
+// La barra finísima de progreso de lectura, pegada al borde de arriba.
+// Solo asoma en páginas largas (una guía, un hilo con chicha): en una
+// pantalla y media no dice nada que no diga la propia página.
+function montarProgresoLectura() {
+  const barra = document.createElement('div')
+  barra.className = 'progreso-lectura'
+  barra.setAttribute('aria-hidden', 'true')
+  document.body.appendChild(barra)
+  const pintar = () => {
+    const total = document.documentElement.scrollHeight - window.innerHeight
+    if (total < window.innerHeight * 1.5) {
+      barra.style.transform = 'scaleX(0)'
+      return
+    }
+    const parte = Math.min(1, Math.max(0, window.scrollY / total))
+    barra.style.transform = `scaleX(${parte})`
+  }
+  window.addEventListener('scroll', pintar, { passive: true })
+  window.addEventListener('resize', pintar, { passive: true })
+  pintar()
 }
 
 // La llamita de la racha diaria, a la vista en la barra — antes solo se

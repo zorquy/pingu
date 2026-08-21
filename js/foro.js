@@ -511,10 +511,15 @@ async function pintarListaDeTemas(foro) {
     // las marcas de lectura han contestado: a quien llega sin cuenta no
     // se le apaga la lista entera — no hay nada que él haya leído.
     const leido = !sinLeer && marcas?.hayDatos
+    // En un tema con novedades, el título Y el punto llevan directo al
+    // primer mensaje sin leer (?nuevo=1, lo resuelve tema.js). El clásico
+    // de los foros de toda la vida: no volver a bajar buscando dónde te
+    // quedaste. En uno ya leído, el título abre por el principio.
+    const destino = sinLeer ? `${urlTema(t.id)}?nuevo=1` : urlTema(t.id)
     return `
     <div class="foro-tema-fila ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''} ${leido ? 'foro-tema-leido' : ''}">
       <div class="foro-fila-icono" aria-hidden="true">${
-        sinLeer ? `<span class="foro-punto-nuevo" title="Con mensajes nuevos"></span>` : ''
+        sinLeer ? `<a class="foro-punto-nuevo" href="${destino}" title="Ir al primer mensaje sin leer" tabindex="-1"></a>` : ''
       }${t.is_pinned ? icons.pin?.(18) || icons.star(18) : icons.messageSquare(18)}</div>
       <div class="foro-fila-cuerpo">
         <h3>
@@ -522,7 +527,7 @@ async function pintarListaDeTemas(foro) {
           ${t.is_locked ? '<span class="foro-chapa foro-chapa-cerrado">Cerrado</span>' : ''}
           ${t.solved_post_id ? `<span class="foro-chapa foro-chapa-resuelto">${icons.checkCircle(12)} Resuelto</span>` : ''}
           ${etiquetaHtml(t.prefix)}
-          <a href="${urlTema(t.id)}">${escapeHtml(t.title)}</a>
+          <a href="${destino}">${escapeHtml(t.title)}</a>
         </h3>
         <p class="subtext">${avatarHtml(perfiles[t.author_id], 18)} ${enlacePerfil(perfiles[t.author_id])} · <span title="${escapeHtml(
           fechaLarga(t.created_at)

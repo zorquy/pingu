@@ -24,7 +24,7 @@ import {
   faltaElForo,
 } from './foro-comun.js'
 import { calculateLevel, levelBadgeHtml } from './gamification.js'
-import { marcarLeido, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
+import { marcarLeido, marcasDeLectura, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 import { engancharCompartir } from './compartir.js'
 import { cargarEncuesta, encuestaHtml, engancharEncuesta } from './encuesta.js'
@@ -548,6 +548,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
         <span class="subtext" title="${escapeHtml(fechaLarga(m.created_at))}">${escapeHtml(haceCuanto(m.created_at))}${
           m.edited_at ? ' · editado' : ''
         }</span>
+        <button type="button" class="foro-copiar-enlace" data-copiar-enlace="${m.id}" data-num="${numero}" title="Copiar el enlace a este mensaje" aria-label="Copiar el enlace a este mensaje">${icons.link(13)}</button>
         <a class="foro-mensaje-num" href="#mensaje-${m.id}" title="Enlace a este mensaje">#${numero}</a>
       </header>
       ${esLaSolucion ? `<p class="foro-solucion-banda">${icons.checkCircle(14)} Esta respuesta resolvió el tema</p>` : ''}
@@ -1148,6 +1149,89 @@ async function avisar(cuerpo) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Llegar al mensaje correcto. Dos maneras de entrar apuntando a un
+// mensaje concreto:
+//
+//   /tema/x?nuevo=1       → el primer mensaje que no habías leído
+//   /tema/x#mensaje-<id>  → uno concreto (un aviso, un enlace copiado)
+//
+// El hash a pelo solo funcionaba si el mensaje caía en la página que se
+// estaba pintando: un aviso que apuntaba a la página 3 te dejaba en la 1
+// sin decir nada. Aquí se calcula la página de verdad, se repinta y se
+// ilumina el mensaje.
+
+// ¿En qué página cae un mensaje? Contando cuántos hay antes que él.
+async function paginaDelMensaje(postId) {
+  const { data: post } = await supabase.from('forum_posts').select('created_at').eq('id', postId).maybeSingle()
+  if (!post) return null
+  const { count } = await supabase
+    .from('forum_posts')
+    .select('*', { count: 'exact', head: true })
+    .eq('thread_id', tema.id)
+    .lt('created_at', post.created_at)
+  return Math.floor((count || 0) / PAGINA) + 1
+}
+
+function destellar(postId) {
+  const el = document.getElementById(`mensaje-${postId}`)
+  if (!el) return false
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  // Quitar y volver a poner reinicia la animación si se llega dos veces
+  // al mismo mensaje.
+  el.classList.remove('foro-mensaje-destello')
+  void el.offsetWidth
+  el.classList.add('foro-mensaje-destello')
+  return true
+}
+
+async function irAlMensaje(postId) {
+  if (destellar(postId)) return
+  const destino = await paginaDelMensaje(postId)
+  if (!destino || destino === pagina) return
+  pagina = destino
+  const url = new URL(window.location.href)
+  url.searchParams.set('p', String(pagina))
+  window.history.replaceState({}, '', url)
+  await pintarMensajes()
+  destellar(postId)
+}
+
+// El primer mensaje POSTERIOR a tu última lectura. Sin referencia (nunca
+// habías entrado), lo nuevo empieza en el primer mensaje: no se salta.
+async function irAlPrimerNoLeido(referencia) {
+  let q = supabase
+    .from('forum_posts')
+    .select('id')
+    .eq('thread_id', tema.id)
+    .order('created_at', { ascending: true })
+    .limit(1)
+  if (referencia) q = q.gt('created_at', referencia)
+  const { data } = await q
+  if (data?.[0]?.id) await irAlMensaje(data[0].id)
+}
+
+// Copiar el enlace de un mensaje: la URL lleva su página (se calcula del
+// número, sin consultas) y su ancla, así que funciona para cualquiera.
+elMensajes.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-copiar-enlace]')
+  if (!btn) return
+  const p = Math.max(1, Math.ceil(Number(btn.dataset.num || 1) / PAGINA))
+  const url = new URL(urlTema(tema.id, p), window.location.origin)
+  url.hash = `mensaje-${btn.dataset.copiarEnlace}`
+  navigator.clipboard
+    .writeText(url.toString())
+    .then(() => showToast('Enlace copiado.', 'success'))
+    .catch(() => showToast('No se ha podido copiar el enlace.'))
+})
+
+// Pinchar un ancla de mensaje que no está en esta página (el «#12» de
+// otra página, la chapa de Resuelto…) también resuelve y destella.
+window.addEventListener('hashchange', () => {
+  const id = window.location.hash.match(/^#mensaje-(.+)$/)?.[1]
+  if (id && tema) irAlMensaje(decodeURIComponent(id))
+})
+
+// ─────────────────────────────────────────────────────────────
 async function init() {
   if (!temaId) {
     elMensajes.innerHTML = `<p class="empty-state">No se ha dicho qué tema abrir.</p>`
@@ -1158,9 +1242,22 @@ async function init() {
 
   if (!(await cargar())) return
 
+  // La marca de lectura VIEJA se lee antes de renovarla: es la que dice
+  // dónde empieza lo que no has visto.
+  const quiereNuevo = params.get('nuevo') === '1' && !!sesion
+  let referencia = null
+  if (quiereNuevo) {
+    const marcas = await marcasDeLectura(sesion.user.id)
+    referencia = [marcas.porTema[tema.id], marcas.todoHasta].filter(Boolean).sort().pop() || null
+  }
+
   await pintarMensajes()
   await montarRespuesta()
   engancharCitarSeleccion()
+
+  const enlazado = window.location.hash.match(/^#mensaje-(.+)$/)?.[1]
+  if (quiereNuevo) irAlPrimerNoLeido(referencia).catch(() => {})
+  else if (enlazado) irAlMensaje(decodeURIComponent(enlazado)).catch(() => {})
 
   // Entrar en un tema es haberlo leído. Va al final y sin `await`: es lo
   // último que importa de la carga, y si falla (migración sin ejecutar)

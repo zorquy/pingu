@@ -159,6 +159,13 @@ async function init() {
     ? renderReferenceBlocksHtml(guide.reference_blocks, headings)
     : `<p>${escapeHtml(guide.description || 'Esta guía todavía no tiene contenido de referencia.')}</p>`
 
+  // Los minutos de lectura se calculan del texto de verdad (unas 200
+  // palabras por minuto), no del numerito que puso el autor al crearla:
+  // ese se queda viejo en cuanto la guía crece o encoge. Sin contenido
+  // todavía, vale el del autor.
+  const palabras = hasContent ? bodyHtml.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length : 0
+  const minutosLectura = hasContent ? Math.max(1, Math.round(palabras / 200)) : guide.estimated_mins || 5
+
   const proBodyHtml = mostrarPro
     ? proContent
       ? renderReferenceBlocksHtml(proContent.blocks)
@@ -212,7 +219,7 @@ async function init() {
       <p class="lead">${escapeHtml(guide.description || '')}</p>
       ${opHeaderHtml}
       <div class="article-meta">
-        <span class="time-tag">${guide.estimated_mins || 5} min</span>
+        <span class="time-tag" title="Tiempo de lectura estimado">${minutosLectura} min de lectura</span>
         <span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
         <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
         ${MOSTRAR_PLANES ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
@@ -354,6 +361,23 @@ async function init() {
     document.getElementById('articleSidebar').innerHTML = `
       <h4>En esta guía</h4>
       ${headings.map((h) => `<a href="#${h.id}">${escapeHtml(h.text)}</a>`).join('')}`
+
+    // El índice marca por dónde vas: la última sección cuyo título ya
+    // pasó por debajo de la navbar es "la actual". Se mira en scroll y
+    // no con IntersectionObserver a propósito: con secciones más altas
+    // que la pantalla, el observador pierde el título de vista y el
+    // índice se quedaría sin sección marcada a mitad de lectura.
+    const enlaces = [...document.querySelectorAll('#articleSidebar a')]
+    const titulos = headings.map((h) => document.getElementById(h.id))
+    const marcarSeccion = () => {
+      let actual = 0
+      titulos.forEach((t, i) => {
+        if (t && t.getBoundingClientRect().top <= 140) actual = i
+      })
+      enlaces.forEach((a, i) => a.classList.toggle('activo', i === actual))
+    }
+    window.addEventListener('scroll', marcarSeccion, { passive: true })
+    marcarSeccion()
   }
 
   const btnSave = document.getElementById('btnSave')

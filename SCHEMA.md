@@ -8991,3 +8991,73 @@ del tema, sin pendientes no hay "(0)"), y la racha (se enseña la
 guardada, suma al volver un día después, 0 no pinta, oculta a 420 px).
 `rigor-183.py`: 11 roturas, todas detectadas. El stub emula ahora el
 disparador de `last_post_author_id` en `recontarTema`.
+
+## Tanda de pulido (agosto 2026): llegar al mensaje justo, visor de fotos y detalles modernos
+
+Sin SQL: todo es de cliente.
+
+### Ir al primer mensaje sin leer (`?nuevo=1`)
+
+En la lista de temas, el título de un tema CON novedades (y su punto
+azul, que ahora es un enlace con la zona de pulsado agrandada) apuntan a
+`/tema/<id>?nuevo=1`. tema.js lee la marca de lectura VIEJA (antes de
+renovarla al entrar), pide el primer mensaje posterior a ella, calcula
+su página contando cuántos mensajes hay antes, repinta y lo ilumina.
+Un tema ya leído sigue abriendo por el principio.
+
+### Enlaces a mensajes que funcionan (`#mensaje-<id>`)
+
+- **Botón de copiar enlace** junto al `#N` de cada mensaje: copia
+  `/tema/<id>?p=<página>#mensaje-<id>` — la página se calcula del número
+  del mensaje, sin consultas — y lo confirma con un toast.
+- **Al llegar** por un enlace o aviso con `#mensaje-x`: si el mensaje no
+  está en la página pintada, se calcula su página de verdad
+  (`paginaDelMensaje`: cuántos mensajes hay antes de su created_at), se
+  salta y se destella (`.foro-mensaje-destello`, animación de 2 s).
+  Antes los avisos de la campanita apuntaban al hash sin página y en
+  hilos largos te dejaban en la página 1 sin decir nada.
+- `hashchange` también resuelve: pinchar un ancla de otra página (la
+  chapa de Resuelto, el `#N`) salta y destella igual.
+
+### El visor de imágenes (js/lightbox.js)
+
+Clic en una foto del contenido (`.article-body`) → pantalla completa con
+fondo oscuro, flechas (y ←/→) para pasar entre las fotos DEL MISMO
+mensaje o guía, contador, pie (figcaption o alt), Escape/fondo para
+cerrar. Excluye editores (`[contenteditable]`), imágenes-enlace,
+`tcg-deck`/`yt-video` y firmas. Las fotos elegibles llevan cursor
+zoom-in. Montado global desde app.js con escucha delegada.
+
+### Transiciones de página y barra de progreso
+
+- `@view-transition { navigation: auto }` en style.css: fundido suave al
+  navegar en los navegadores que lo soportan; el resto lo ignora. Con
+  `prefers-reduced-motion`, animación fuera.
+- `.progreso-lectura`: línea de 3 px fija arriba que se llena con el
+  scroll (scaleX). app.js la deja a 0 en páginas de menos de 2,5
+  pantallas.
+
+### La guía: minutos de verdad e índice vivo
+
+- Los minutos de la etiqueta se calculan del texto real (~200 palabras
+  por minuto) en vez del `estimated_mins` que puso el autor (se queda
+  viejo). Sin contenido, vale el del autor.
+- El índice lateral («En esta guía», que ya existía) marca la sección
+  por la que vas: en scroll, el último título que pasó por debajo de la
+  navbar lleva `.activo` (borde y color encendidos). A mano y no con
+  IntersectionObserver: con secciones más altas que la pantalla el
+  observador pierde el título y el índice se quedaba sin marca.
+
+### Esqueletos de carga en el foro
+
+Resultó que YA existían: foro.html y tema.html traen un `.skeleton`
+estático dentro del contenedor, que el primer pintado sustituye (lo
+descubrió el rigor de esta tanda: el "esqueleto por JavaScript" que se
+añadió al principio era código muerto y se quitó). Lo que ganó la tanda
+es la PRUEBA de que se ven y se van, y para poder escribirla el doble de
+Supabase ganó `__FAKE_LENTO__` (ms de retardo en todas las respuestas) y
+`__FAKE_MENSAJES_EXTRA__` (inflar un hilo a dos páginas).
+
+### Cómo se probó
+
+`test-tanda-184.mjs` (39 comprobaciones) y `rigor-184.py` (14 roturas).

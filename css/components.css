@@ -6601,3 +6601,168 @@ yt-video .yt-enlace:hover { color: #fff; }
 .volver-arriba:hover {
   border-color: var(--navy);
 }
+
+/* ── Tanda pulido: enlaces a mensajes, lightbox e índice vivo ── */
+
+/* El destello del mensaje al que llegas por un enlace o un aviso: un
+   fondo azulado que se apaga solo. Sin él, aterrizas en mitad de un
+   hilo y no sabes cuál de los cinco mensajes de la pantalla era. */
+@keyframes foro-destello {
+  from {
+    background: rgba(56, 189, 248, 0.16);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+  }
+  to {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+.foro-mensaje-destello {
+  animation: foro-destello 2s var(--ease) 1;
+  border-radius: var(--radius-sm);
+}
+
+/* El botoncito de copiar el enlace de un mensaje, junto al #N. */
+.foro-copiar-enlace {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  color: var(--text-dim);
+  border-radius: 6px;
+}
+
+.foro-copiar-enlace:hover {
+  color: var(--navy);
+  background: var(--ice);
+}
+
+/* El punto de "sin leer" ahora es un enlace al primer mensaje nuevo:
+   7 px se quedan cortos para el dedo, así que la zona de pulsado se
+   agranda por debajo sin engordar el punto. */
+a.foro-punto-nuevo {
+  position: relative;
+}
+
+a.foro-punto-nuevo::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+}
+
+/* Las fotos del contenido invitan a ampliarse. En el editor no: ahí el
+   clic es para seleccionarlas. */
+.article-body img {
+  cursor: zoom-in;
+}
+
+[contenteditable='true'] img,
+.foro-firma img,
+.article-body a img {
+  cursor: default;
+}
+
+/* ── El visor de imágenes (lightbox) ── */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 12, 20, 0.92);
+  animation: lightbox-entra 0.18s var(--ease);
+}
+
+@keyframes lightbox-entra {
+  from {
+    opacity: 0;
+  }
+}
+
+.lightbox figure {
+  margin: 0;
+  max-width: min(92vw, 1200px);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.lightbox img {
+  max-width: 100%;
+  max-height: 84vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  cursor: default;
+}
+
+.lightbox-pie {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13.5px;
+  text-align: center;
+  max-width: 70ch;
+}
+
+.lightbox-cerrar {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-size: 22px;
+  line-height: 1;
+  padding: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+}
+
+.lightbox-cerrar:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.lightbox-flecha {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 40px;
+  line-height: 1;
+  padding: 14px 18px;
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  user-select: none;
+}
+
+.lightbox-flecha:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.lightbox-ant {
+  left: 10px;
+}
+
+.lightbox-sig {
+  right: 10px;
+}
+
+.lightbox-contador {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* ── El índice de la guía marca por dónde vas ── */
+/* El enlace normal ya trae un borde izquierdo gris: aquí solo se
+   enciende. */
+.article-sidebar a.activo {
+  color: var(--navy);
+  font-weight: 700;
+  border-left-color: var(--navy);
+}
