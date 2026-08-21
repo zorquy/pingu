@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { icons } from './icons.js'
+import { anotarEnPestania } from './pestania.js'
 
 // Crea una notificación para OTRA persona como efecto de una acción normal
 // (comentar, seguir, aprobar una guía...). No hace nada si no hay
@@ -207,6 +208,8 @@ export async function renderNotificationBell(session) {
     const badge = document.getElementById('navBellBadge')
     badge.textContent = unreadCount > 9 ? '9+' : String(unreadCount)
     badge.classList.toggle('hidden', unreadCount === 0)
+    // Y el mismo número, al título de la pestaña: se ve sin estar aquí.
+    anotarEnPestania('avisos', unreadCount)
   }
 
   async function refresh() {

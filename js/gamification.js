@@ -212,16 +212,19 @@ function yesterdayISO() {
 // bonus de XP y avanza el contador (o lo reinicia a 1 si dejó pasar un día
 // sin entrar). Idempotente dentro del mismo día — entrar varias veces el
 // mismo día no vuelve a sumar nada.
+// Devuelve la racha vigente de HOY (contando la visita de ahora mismo),
+// que es lo que enseña el chip de la navbar. Null si no hay perfil.
 export async function checkDailyStreak(userId) {
   const { data: profile } = await supabase.from('user_profiles').select('current_streak, last_active_date').eq('id', userId).single()
-  if (!profile) return
+  if (!profile) return null
 
   const today = todayISO()
-  if (profile.last_active_date === today) return
+  if (profile.last_active_date === today) return profile.current_streak || 0
 
   const newStreak = profile.last_active_date === yesterdayISO() ? (profile.current_streak || 0) + 1 : 1
   await supabase.from('user_profiles').update({ current_streak: newStreak, last_active_date: today }).eq('id', userId)
   await addXP(userId, STREAK_BONUS_XP)
+  return newStreak
 }
 
 // Estos dos escritos se hacían sin mirar el `{ error }` que devuelve

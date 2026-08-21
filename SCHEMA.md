@@ -8929,3 +8929,65 @@ avisar() — de ahí solo faltaba el matiz del título.
   la primera.
 - **Volver arriba**: el botón flotante de toda la vida, global (app.js),
   a partir de 600 px de scroll.
+
+## Tanda «al día» (agosto 2026): sin-leer honesto, contador en la pestaña y racha a la vista
+
+Sin SQL: los tres cambios son de cliente.
+
+### Tu propio mensaje ya no cuenta como "sin leer"
+
+El fallo: respondías en un tema y el tema se te ponía en negrita — la
+"novedad" era tu propio mensaje. Pasaba porque `marcarLeido` solo corría
+al ABRIR el tema, y tu mensaje es posterior a esa marca.
+
+Dos cinturones, en `js/foro-lecturas.js` y `js/tema.js`:
+
+- **La excepción**: `estaSinLeer` devuelve `false` cuando
+  `last_post_author_id` eres tú. Para escribir el último mensaje tuviste
+  que abrir el tema, así que lo anterior ya lo viste. `marcasDeLectura`
+  guarda ahora `mio` (el id de quien pregunta) dentro del objeto de
+  marcas para no cambiar la firma en todos los que llaman; y la consulta
+  de `sinLeerPorForo` pide también `last_post_author_id`, para que el
+  contador del índice cuente igual que la lista.
+- **La marca renovada**: al publicar una respuesta, `marcarLeido` se
+  llama otra vez. Cubre además la carrera de que alguien conteste justo
+  después de ti (ahí el último ya no eres tú y la excepción no vale).
+
+### El contador en la pestaña del navegador (`js/pestania.js`)
+
+`(3) PokeDoc — …` cuando hay avisos o mensajes privados sin leer. Cada
+fuente anota su número (`anotarEnPestania('avisos', n)` desde la
+campanita, `'mensajes'` desde el sobre) y el módulo suma: ninguna pisa a
+la otra y el total cuadra con las burbujitas.
+
+La trampa que hubo que sortear: tema.js, foro.js o guia.js reescriben
+`document.title` cuando les llegan los datos, DESPUÉS de que las
+burbujitas hayan puesto el `(N)` — y se lo comían. Hay un
+`MutationObserver` sobre el `<title>`: si el cambio no es nuestro, se
+toma como base nueva y se replanta el contador delante. Nuestro propio
+cambio también dispara el observador; se reconoce comparando con lo
+último que pusimos y se ignora.
+
+### La racha diaria, a la vista en la barra
+
+`checkDailyStreak` (que ya existía: +5 XP el primer login de cada día)
+ahora DEVUELVE la racha vigente — la guardada si ya entraste hoy, la
+recién avanzada si es tu primera visita del día — y `app.js` pinta con
+ella un chip `🔥 N` (`.nav-racha`, enlaza al perfil). Con racha 0 no se
+pinta nada: una llamita a cero desanima. Se PREPONE a `.nav-right`
+porque los demás iconos se insertan de forma asíncrona y cualquier otro
+sitio bailaría entre cargas; por debajo de 600 px se esconde (la barra
+del móvil ya va justa).
+
+### Cómo se probó
+
+`test-tanda-183.mjs` (23 comprobaciones): la excepción con el banco
+sembrado (t-1 acaba en mensaje de Ash → para Ash no está sin leer, para
+otros sí; el índice cuenta 1 y no 2), la marca renovada mirando la BD
+tras publicar (la marca tiene que quedar >= el created_at del mensaje
+nuevo — la de abrir la página no vale), el contador (3 = 2 avisos + 1
+conversación, baja a (1) al marcar leídos, sobrevive al título dinámico
+del tema, sin pendientes no hay "(0)"), y la racha (se enseña la
+guardada, suma al volver un día después, 0 no pinta, oculta a 420 px).
+`rigor-183.py`: 11 roturas, todas detectadas. El stub emula ahora el
+disparador de `last_post_author_id` en `recontarTema`.

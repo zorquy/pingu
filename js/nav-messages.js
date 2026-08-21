@@ -1,6 +1,7 @@
 import { escapeHtml } from './app.js'
 import { listConversations } from './messages.js'
 import { icons } from './icons.js'
+import { anotarEnPestania } from './pestania.js'
 
 function timeAgo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime()
@@ -58,6 +59,8 @@ export async function renderNavMessages(session) {
     const badge = document.getElementById('navMsgBadge')
     badge.textContent = unreadCount > 9 ? '9+' : String(unreadCount)
     badge.classList.toggle('hidden', unreadCount === 0)
+    // Y el mismo número, al título de la pestaña: se ve sin estar aquí.
+    anotarEnPestania('mensajes', unreadCount)
   }
 
   async function refresh() {

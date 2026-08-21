@@ -919,6 +919,12 @@ async function montarRespuesta() {
     }
 
     await avisar(cuerpo)
+    // La marca de lectura se renueva DESPUÉS de publicar. Al abrir el
+    // tema ya se marcó, pero tu mensaje es posterior a esa marca, así
+    // que el tema te salía como "sin leer" — con tu propio mensaje como
+    // novedad. `estaSinLeer` ya perdona cuando el último eres tú; esto
+    // cubre además la carrera de que alguien conteste justo detrás.
+    marcarLeido(sesion.user.id, tema.id)
     citandoA = null
     citadosExtra = new Set()
     borradoSalvado.borrar()

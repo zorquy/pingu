@@ -18,7 +18,7 @@ import { supabase } from './supabase.js'
 // hasta que alguien ejecute el SQL. Con esto, mientras no se pueda saber,
 // no se marca nada.
 export async function marcasDeLectura(userId) {
-  const vacio = { porTema: {}, todoHasta: null, hayDatos: false }
+  const vacio = { porTema: {}, todoHasta: null, hayDatos: false, mio: userId || null }
   if (!userId) return vacio
   try {
     const [lecturas, perfil] = await Promise.all([
@@ -30,7 +30,9 @@ export async function marcasDeLectura(userId) {
     ;(lecturas.data || []).forEach((f) => {
       porTema[f.thread_id] = f.last_read_at
     })
-    return { porTema, todoHasta: perfil.data?.forum_read_all_at || null, hayDatos: true }
+    // `mio` viaja con las marcas para que `estaSinLeer` sepa QUIÉN
+    // pregunta, sin cambiar la firma en todos los que la llaman.
+    return { porTema, todoHasta: perfil.data?.forum_read_all_at || null, hayDatos: true, mio: userId }
   } catch {
     return vacio
   }
@@ -42,6 +44,11 @@ export async function marcasDeLectura(userId) {
 // alguien que acaba de llegar no le dice nada.
 export function estaSinLeer(tema, marcas) {
   if (!marcas?.hayDatos || !tema?.last_post_at) return false
+  // Si el último mensaje es TUYO, no hay nada sin leer: para escribirlo
+  // tuviste que abrir el tema, así que lo anterior ya lo viste. Sin esta
+  // excepción, responder marcaba el tema en negrita — tu propio mensaje
+  // contando como "nuevo" para ti.
+  if (tema.last_post_author_id && marcas.mio && tema.last_post_author_id === marcas.mio) return false
   const propia = marcas.porTema[tema.id]
   const referencia = [propia, marcas.todoHasta].filter(Boolean).sort().pop()
   if (!referencia) return true
@@ -68,7 +75,7 @@ export async function sinLeerPorForo(marcas, { tope = 1000 } = {}) {
   try {
     let q = supabase
       .from('forum_threads')
-      .select('id, board_id, last_post_at')
+      .select('id, board_id, last_post_at, last_post_author_id')
       .not('last_post_at', 'is', null)
       .order('last_post_at', { ascending: false })
       .limit(tope)

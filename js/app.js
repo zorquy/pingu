@@ -549,8 +549,11 @@ export async function initNavbar() {
 
     // No se espera a que termine — en el 99% de las cargas de página no
     // hace nada (ya se contó hoy), así que no debería frenar el resto de
-    // la navbar.
-    import('./gamification.js').then(({ checkDailyStreak }) => checkDailyStreak(session.user.id)).catch(() => {})
+    // la navbar. Cuando conteste, la racha del día se cuelga en la barra.
+    import('./gamification.js')
+      .then(({ checkDailyStreak }) => checkDailyStreak(session.user.id))
+      .then((racha) => pintarRachaEnNavbar(racha))
+      .catch(() => {})
   }
   import('./page-views.js').then(({ logPageView }) => logPageView(session)).catch(() => {})
   // El latido de "usuarios en línea" (js/en-linea.js). Igual que la
@@ -603,6 +606,27 @@ export async function initNavbar() {
     montarVolverArriba()
   } catch {}
   return session
+}
+
+// La llamita de la racha diaria, a la vista en la barra — antes solo se
+// descubría abriendo el menú de la cuenta. Se PREPONE a .nav-right y no
+// se cuelga junto al avatar a propósito: la lupa, el tema, los mensajes
+// y la campana se insertan ahí de forma asíncrona, así que "antes del
+// avatar" sería un sitio distinto en cada carga; el primer hueco de la
+// derecha es siempre el mismo.
+function pintarRachaEnNavbar(racha) {
+  if (!racha || racha < 1) return
+  const barra = document.querySelector('.nav-right')
+  if (!barra || document.getElementById('navRacha')) return
+  const dias = racha === 1 ? '1 día seguido' : `${racha} días seguidos`
+  const chip = document.createElement('a')
+  chip.id = 'navRacha'
+  chip.className = 'nav-racha'
+  chip.href = '/perfil.html'
+  chip.title = `Racha diaria: llevas ${dias} entrando. Entra mañana para no perderla.`
+  chip.setAttribute('aria-label', `Racha diaria: ${dias}`)
+  chip.innerHTML = `${icons.flame(15)}<span>${racha}</span>`
+  barra.prepend(chip)
 }
 
 // El botón flotante de "volver arriba" de los hilos y guías largos.

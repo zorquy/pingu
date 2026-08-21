@@ -2969,6 +2969,38 @@ tcg-deck {
   color: var(--text-mid);
 }
 
+/* ── La llamita de la racha diaria en la barra ── */
+.nav-racha {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  transition: background 0.15s var(--ease);
+}
+
+.nav-racha:hover {
+  background: rgba(245, 158, 11, 0.22);
+}
+
+:root[data-theme='dark'] .nav-racha {
+  color: #fbbf24;
+}
+
+/* En pantallas estrechas la barra ya va justa de sitio (lupa + tema +
+   mensajes + campana + avatar + menú): la racha es un mimo, no
+   navegación, así que es lo primero que se sacrifica. */
+@media (max-width: 599px) {
+  .nav-racha {
+    display: none;
+  }
+}
+
 /* ── Campanita de notificaciones ── */
 .nav-bell-wrap {
   position: relative;
