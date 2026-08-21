@@ -57,6 +57,18 @@ const ACCIONES = [
 // Lo que pone en la pestaña del spoiler mientras el autor no lo cambie.
 export const SPOILER_RESUMEN = 'Spoiler'
 
+// La parrilla del botón de emojis. Son CONTENIDO (van al texto, como los
+// de las reacciones), no interfaz — la interfaz va con iconos SVG. Lista
+// corta y curada: caras, manos y el atrezzo del sitio; para todo lo demás
+// está el selector del sistema operativo.
+const EMOJIS = [
+  '😀', '😄', '😂', '🤣', '😊', '😉', '😍', '😎',
+  '🤔', '😅', '🙃', '😇', '😴', '😢', '😭', '😡',
+  '🤯', '😱', '🥳', '🤝', '👍', '👎', '👏', '🙏',
+  '💪', '👀', '❤️', '💙', '💛', '💔', '🔥', '✨',
+  '⭐', '⚡', '💧', '🌱', '🎉', '🏆', '🎯', '🎲',
+]
+
 function paletaHtml(tipo) {
   const colores = tipo === 'texto' ? COLORES_TEXTO : COLORES_FONDO
   const muestra = (c) =>
@@ -132,6 +144,12 @@ export function richTextToolbarHtml() {
 
   return `<div class="rte-tools">
     ${botones}
+    <span class="rte-color-wrap">
+      <button type="button" data-action="emoji" title="Insertar un emoji">${icons.smile(15)}</button>
+      <div class="rte-paleta rte-paleta-emojis hidden" data-paleta="emojis">
+        ${EMOJIS.map((e) => `<button type="button" data-emoji="${e}">${e}</button>`).join('')}
+      </div>
+    </span>
     <span class="rte-sep" aria-hidden="true"></span>
     <button type="button" data-action="image" title="Insertar imágenes (puedes elegir varias de una vez)">${icons.image(15)} Imagen</button>
     <button type="button" data-action="cards" title="Insertar cartas del catálogo">${icons.layers(15)} Cartas</button>
@@ -392,7 +410,9 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     })
   })
 
-  toolbarEl.querySelectorAll('.rte-paleta button').forEach((btn) => {
+  // Solo los botones CON color: la paleta de emojis comparte la clase
+  // rte-paleta (y el cierre al pinchar fuera), pero no es un color.
+  toolbarEl.querySelectorAll('.rte-paleta button[data-color]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.preventDefault()
       cerrarPaletas()
@@ -402,6 +422,35 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
       // hiliteColor es el nombre en casi todos los navegadores; backColor
       // es el de reserva.
       else if (!ordenSilenciosa('hiliteColor', btn.dataset.color)) ordenSilenciosa('backColor', btn.dataset.color)
+      emit()
+    })
+  })
+
+  // ── Emojis ──
+  //
+  // Se insertan como TEXTO con insertText: pasan por la pila de entrada
+  // normal, así que el historial los apunta y el saneador los deja pasar
+  // como cualquier otra letra. Valen también en el título de un spoiler.
+  const btnEmoji = toolbarEl.querySelector('[data-action="emoji"]')
+  if (btnEmoji) {
+    btnEmoji.addEventListener('click', (e) => {
+      e.preventDefault()
+      const paleta = btnEmoji.parentElement.querySelector('.rte-paleta-emojis')
+      const abierta = !paleta.classList.contains('hidden')
+      cerrarPaletas()
+      paleta.classList.toggle('hidden', abierta)
+    })
+  }
+  toolbarEl.querySelectorAll('.rte-paleta button[data-emoji]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault()
+      cerrarPaletas()
+      devolverCursor()
+      if (!ordenSilenciosa('insertText', btn.dataset.emoji)) {
+        // Reserva por si insertText no está: el mismo camino manual que
+        // usan las imágenes.
+        insertarNodoEnCursor(document.createTextNode(btn.dataset.emoji))
+      }
       emit()
     })
   })

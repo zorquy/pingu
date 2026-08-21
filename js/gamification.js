@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
-import { burstConfetti, achievementIconHtml } from './app.js'
+import { burstConfetti, achievementIconHtml, escapeHtml } from './app.js'
 import { icons } from './icons.js'
+import { showToast } from './toast.js'
 import { logClientError } from './error-log.js'
 
 // Los logros se gestionan desde /admin en la tabla `achievement_definitions`.
@@ -46,6 +47,42 @@ export function calculateLevel(xp) {
   return (match || LEVEL_THRESHOLDS[0]).level
 }
 
+// El color y el icono de cada nivel. El nivel era una palabra gris que
+// no decía nada de un vistazo; con su chapa de color se distingue al
+// veterano del recién llegado en el foro, los perfiles y la comunidad,
+// igual que ya pasa con las etiquetas de los temas.
+export const NIVEL_ESTILOS = {
+  Novato: { color: '#8a93a5', icono: 'sprout' },
+  Entrenador: { color: '#22a06b', icono: 'gamepad' },
+  Coleccionista: { color: '#38bdf8', icono: 'layers' },
+  Experto: { color: '#a78bfa', icono: 'star' },
+  Maestro: { color: '#f59e0b', icono: 'crown' },
+}
+
+// La chapa de un nivel. Los colores salen de la tabla de arriba (una
+// lista cerrada nuestra, no de la base), así que pueden ir al style con
+// tranquilidad; el nombre se escapa por costumbre.
+export function levelBadgeHtml(nivel, tamanoIcono = 12) {
+  const estilo = NIVEL_ESTILOS[nivel]
+  if (!estilo) return `<span class="nivel-chapa">${escapeHtml(nivel || '')}</span>`
+  const dibujo = icons[estilo.icono]
+  return `<span class="nivel-chapa" style="color:${estilo.color}; background:${estilo.color}24; border-color:${estilo.color}59">${
+    dibujo ? dibujo(tamanoIcono) : ''
+  }${escapeHtml(nivel)}</span>`
+}
+
+// La subida de nivel pasaba en silencio: el número cambiaba en el perfil
+// y nadie se enteraba. Confeti y un toast, como con los logros — y en un
+// try porque una celebración no puede tumbar jamás el guardado del XP.
+function celebrarSubidaDeNivel(nivel) {
+  try {
+    burstConfetti()
+    showToast(`¡Has subido de nivel! Ahora eres ${nivel}.`, 'success')
+  } catch {
+    /* nada: era solo la fiesta */
+  }
+}
+
 
 // Reputación de colaborador, basada en cuántas guías/cursos ha aprobado
 // la moderación (no en XP, que ya mide el progreso como estudiante).
@@ -65,17 +102,33 @@ export function contributorTier(approvedGuidesCount) {
 // clic en el nivel o en la tarjeta de Colaborador del perfil (propio o
 // público), para que cualquiera pueda ver hasta dónde puede llegar.
 export function levelLadderHtml(xp) {
+  const progreso = levelProgress(xp)
   return `
     <h3>Niveles</h3>
     <p class="subtext" style="margin-bottom:14px;">Subes de nivel automáticamente según tu XP total.</p>
     <div class="ladder-list">
-      ${LEVEL_THRESHOLDS.map((l) => {
+      ${LEVEL_THRESHOLDS.map((l, i) => {
         const isCurrent = xp >= l.min && (l.next === null || xp < l.next)
+        const siguiente = LEVEL_THRESHOLDS[i + 1]?.level
+        // En tu escalón, además de la chapa: cuánto llevas y cuánto te
+        // falta, con su barra. Antes el modal solo decía los umbrales y
+        // había que restar de cabeza.
+        const barra = isCurrent
+          ? `<div class="ladder-progreso">
+               <div class="progress-track"><div class="fill" style="width:${progreso.pct}%"></div></div>
+               <span class="subtext">${
+                 l.next === null
+                   ? `${xp} XP — nivel máximo`
+                   : `${xp} / ${l.next} XP — te faltan ${l.next - xp} para ${siguiente}`
+               }</span>
+             </div>`
+          : ''
         return `
         <div class="ladder-item ${isCurrent ? 'ladder-item-current' : ''}">
           <div class="ladder-item-main">
-            <strong>${l.level}</strong>
+            <strong>${levelBadgeHtml(l.level)}</strong>
             <span class="subtext">${l.min}+ XP</span>
+            ${barra}
           </div>
           ${isCurrent ? '<span class="badge badge-completed">Tu nivel</span>' : ''}
         </div>`
@@ -116,6 +169,7 @@ export async function addXP(userId, amount) {
   const { data } = await supabase.from('user_profiles').select('total_xp').eq('id', userId).single()
 
   const newXP = (data?.total_xp || 0) + amount
+  const nivelAntes = calculateLevel(data?.total_xp || 0)
   const newLevel = calculateLevel(newXP)
 
   const { error } = await supabase.from('user_profiles').update({ total_xp: newXP, level: newLevel }).eq('id', userId)
@@ -127,6 +181,9 @@ export async function addXP(userId, amount) {
     logClientError(`No se pudo guardar el XP: ${error.message}`, error.details || error.hint || null)
     throw new Error(error.message)
   }
+
+  // Ya está guardado: si con este XP se cruza un umbral, se celebra.
+  if (newLevel !== nivelAntes) celebrarSubidaDeNivel(newLevel)
 
   await checkAchievements(userId)
   return newXP

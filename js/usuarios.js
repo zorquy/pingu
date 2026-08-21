@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, getSession, profileUrl, guideHasReference, avatarStyle } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
-import { contributorTier, calculateLevel } from './gamification.js'
+import { contributorTier, calculateLevel, levelBadgeHtml } from './gamification.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
@@ -25,7 +25,7 @@ function userCardHtml(p) {
       <span class="user-card-avatar" style="${estiloAvatar}">${p.avatar_url ? '' : getInitial(name)}</span>
       <div class="user-card-info">
         <h3>${escapeHtml(name)}</h3>
-        <p>${escapeHtml(calculateLevel(p.total_xp))} · ${p.total_xp || 0} XP</p>
+        <p>${levelBadgeHtml(calculateLevel(p.total_xp), 11)} · ${p.total_xp || 0} XP</p>
         ${p.approvedGuidesCount > 0 ? `<p class="subtext" style="margin:2px 0 0; display:flex; align-items:center; gap:4px;">${tier.icon} ${escapeHtml(tier.title)}</p>` : ''}
       </div>
     </a>`

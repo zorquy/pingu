@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js'
 import { authorRatingSummary } from './guide-rating.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml, avatarStyle, applyAvatarTo } from './app.js'
-import { levelProgress, contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml } from './gamification.js'
+import { levelProgress, contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml, levelBadgeHtml } from './gamification.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 import { createNotification } from './notifications.js'
@@ -72,7 +72,7 @@ async function loadHeader() {
 
   document.getElementById('heroInfo').innerHTML = `
     <h2>${escapeHtml(name)}${MOSTRAR_PLANES && profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
-    <button type="button" class="profile-level" id="btnLevelInfo">${progress.level} · ${xp} XP</button>
+    <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
     ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
     ${showcase ? `<div class="achievement-tile" style="display:inline-flex; margin-top:8px; width:auto; flex-direction:row; gap:8px; align-items:center; padding:6px 12px;"><span class="icon rarity-${showcase.rarity || 'bronze'}" style="width:28px;height:28px;">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`
 

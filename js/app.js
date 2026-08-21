@@ -399,7 +399,7 @@ async function renderNavUser(session) {
     const tier = g.contributorTier(approvedGuidesCount || 0)
     return `
       <div><strong>${profile?.total_xp || 0}</strong><span>XP</span></div>
-      <div><strong>${escapeHtml(g.calculateLevel(profile?.total_xp))}</strong><span>Nivel</span></div>
+      <div><strong style="display:flex; justify-content:center;">${g.levelBadgeHtml(g.calculateLevel(profile?.total_xp), 11)}</strong><span>Nivel</span></div>
       ${(profile?.current_streak || 0) > 0 ? `<div><strong style="display:flex; align-items:center; justify-content:center; gap:3px;">${icons.flame(14)} ${profile.current_streak}</strong><span>Racha</span></div>` : ''}
       ${(approvedGuidesCount || 0) > 0 ? `<div><strong style="display:flex; justify-content:center;">${tier.icon}</strong><span>${escapeHtml(tier.title)}</span></div>` : ''}`
   }

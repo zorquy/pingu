@@ -8812,3 +8812,38 @@ nativo sí parte en dos `<figcaption>` en cualquier Chromium. Y ojo con
 el pie recién creado: queda SELECCIONADO, y un Enter sobre esa selección
 también partía el pie — la regla cubre el Enter con selección dentro de
 bloques opacos (borra la selección y baja a un párrafo nuevo).
+
+# Tanda visual: el nivel cobra vida y el editor gana emojis
+
+El admin pidió «cositas para hacerla más bonita o agradable». Antes de
+añadir nada se repasó lo que YA existía — y tres de las ideas propuestas
+resultaron estar hechas: los avatares por defecto llevan color
+determinista + inicial desde hace tiempo (avatarStyle), el hero del
+perfil ya tiene su barra de XP, y «El foro en números» (temas, mensajes,
+miembros, el último registrado, por aquí hoy, en línea) ya vive en la
+lateral del foro. Lo que faltaba de verdad:
+
+- **Chapa de nivel con color e icono** (`NIVEL_ESTILOS` +
+  `levelBadgeHtml` en gamification.js): gris Novato 🌱, verde Entrenador
+  🎮, azul Coleccionista 🃏, morado Experto ⭐, dorado Maestro 👑 —
+  iconos SVG del juego propio, no emojis. Se pinta en el foro (columna
+  del autor, donde SIGUE mandando el título del admin y el rango de
+  colaborador), el hero del perfil propio y público, el directorio de la
+  comunidad y el menú de cuenta. Colores de una lista cerrada del
+  código, así que van al style inline con tranquilidad.
+- **El modal de Niveles dice cuánto te falta**: en tu escalón, barra de
+  progreso y «340 / 1000 XP — te faltan 660 para Coleccionista». Los
+  umbrales ya estaban en LEVEL_THRESHOLDS; era solo pintarlos.
+- **Subir de nivel se celebra**: addXP compara el nivel antes y después
+  de guardar y, si se cruza un umbral, confeti + toast («¡Has subido de
+  nivel! Ahora eres X»). Dentro de un try: la fiesta no puede tumbar
+  jamás el guardado del XP.
+- **Botón de emojis en el editor** (parrilla de 40, curada): se insertan
+  como TEXTO con insertText — pasan por la pila de entrada normal, el
+  historial los apunta y el saneador los deja pasar como cualquier
+  letra. Vale en guías, foro y firma, y también en el título de un
+  spoiler. Ojo con la escucha de las paletas de color: ahora selecciona
+  `button[data-color]`, porque la parrilla de emojis comparte la clase
+  rte-paleta (y el cierre al pinchar fuera) pero no es un color.
+
+Sin ninguna migración: todo sale de columnas y tablas que ya existen.

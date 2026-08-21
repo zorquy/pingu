@@ -23,7 +23,7 @@ import {
   esDelEquipo,
   faltaElForo,
 } from './foro-comun.js'
-import { calculateLevel } from './gamification.js'
+import { calculateLevel, levelBadgeHtml } from './gamification.js'
 import { marcarLeido, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 import { engancharCompartir } from './compartir.js'
@@ -88,7 +88,7 @@ function tituloDe(perfil, guiasAprobadas) {
   }
   if (guiasAprobadas > 0) return badgeHtml(guiasAprobadas)
   const nivel = perfil?.level || calculateLevel(perfil?.total_xp || 0)
-  return `<span class="foro-autor-titulo">${escapeHtml(nivel)}</span>`
+  return `<span class="foro-autor-titulo">${levelBadgeHtml(nivel)}</span>`
 }
 
 function chapasDe(perfil, esAutorDelTema) {

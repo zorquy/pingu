@@ -3,7 +3,7 @@ import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugi
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
-import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
+import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml, levelBadgeHtml } from './gamification.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notifications.js'
 import { authorRatingSummary, starsHtml } from './guide-rating.js'
 import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
@@ -40,7 +40,7 @@ async function loadProfile(session) {
 
   document.getElementById('heroInfo').innerHTML = `
     <h2>${escapeHtml(name)}${MOSTRAR_PLANES && profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
-    <button type="button" class="profile-level" id="btnLevelInfo">${progress.level} · ${xp} XP</button>
+    <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
     <div class="profile-xp-bar">
       <div class="progress-track"><div class="fill" style="width: ${progress.pct}%"></div></div>
       <div class="xp-label">${progress.next ? `${progress.next - xp} XP para el siguiente nivel` : 'Nivel máximo'}</div>
