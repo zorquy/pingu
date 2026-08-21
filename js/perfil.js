@@ -566,6 +566,11 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
         .join('')}
     </div>
     <div class="form-group">
+      <label>Cumpleaños (opcional)</label>
+      <input type="date" id="peBirthday" value="${escapeHtml(currentProfile?.birthday || '')}" />
+      <p class="subtext" style="margin:2px 0 0;">Si lo pones, el día señalado el foro te felicita en «El foro en números». Bórralo cuando quieras.</p>
+    </div>
+    <div class="form-group">
       <label>Privacidad</label>
       <label class="checkbox-row"><input type="checkbox" id="peHideActivity" ${currentProfile?.hide_activity ? 'checked' : ''} /> No mostrar mi actividad en Comunidad</label>
       <p class="subtext" style="margin:2px 0 0;">Si lo activas, lo que leas y los cursos que hagas dejan de aparecer en el hilo de actividad y dejan de ser visibles para el resto.</p>
@@ -669,13 +674,19 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       return
     }
     payload.forum_signature = firmaTexto || /<img|<tcg/.test(firmaLimpia) ? firmaLimpia : null
-    let { error } = await supabase.from('user_profiles').update(payload).eq('id', currentSession.user.id)
-    // Si la columna de la firma aún no existe (la web desplegada antes de
-    // ejecutar supabase-migration-foro-extras.sql), el update falla
-    // ENTERO: se reintenta sin ella para no bloquear el resto del perfil.
-    if (error && /forum_signature/.test(error.message || '')) {
-      const { forum_signature: _fuera, ...sinFirma } = payload
-      ;({ error } = await supabase.from('user_profiles').update(sinFirma).eq('id', currentSession.user.id))
+    // El cumpleaños es opcional: vacío = quitarlo (null).
+    payload.birthday = document.getElementById('peBirthday')?.value || null
+    // Si una columna aún no existe (la web desplegada antes de ejecutar
+    // su migración — forum_signature o birthday), el update falla ENTERO:
+    // se reintenta quitando la columna que el error nombra, las veces
+    // que haga falta, para no bloquear el resto del perfil.
+    let intento = { ...payload }
+    let { error } = await supabase.from('user_profiles').update(intento).eq('id', currentSession.user.id)
+    for (const columna of ['forum_signature', 'birthday']) {
+      if (error && new RegExp(columna).test(error.message || '')) {
+        delete intento[columna]
+        ;({ error } = await supabase.from('user_profiles').update(intento).eq('id', currentSession.user.id))
+      }
     }
     if (error) {
       showToast('No se pudo guardar el perfil: ' + error.message)

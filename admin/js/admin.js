@@ -489,6 +489,9 @@ const CONDITION_LABELS = {
   total_xp: 'XP total',
   quiz_correct_count: 'Preguntas acertadas',
   approved_guides_count: 'Guías aprobadas (autor)',
+  forum_posts_count: 'Mensajes en el foro',
+  forum_threads_count: 'Temas abiertos en el foro',
+  forum_reactions_received: 'Reacciones recibidas en el foro',
 }
 
 async function loadAchievements() {
@@ -564,6 +567,9 @@ function openAchievementModal(achievement) {
         <option value="total_xp" ${a.condition?.type === 'total_xp' ? 'selected' : ''}>XP total</option>
         <option value="quiz_correct_count" ${a.condition?.type === 'quiz_correct_count' ? 'selected' : ''}>Preguntas acertadas</option>
         <option value="approved_guides_count" ${a.condition?.type === 'approved_guides_count' ? 'selected' : ''}>Guías aprobadas (autor)</option>
+        <option value="forum_posts_count" ${a.condition?.type === 'forum_posts_count' ? 'selected' : ''}>Mensajes en el foro</option>
+        <option value="forum_threads_count" ${a.condition?.type === 'forum_threads_count' ? 'selected' : ''}>Temas abiertos en el foro</option>
+        <option value="forum_reactions_received" ${a.condition?.type === 'forum_reactions_received' ? 'selected' : ''}>Reacciones recibidas en el foro</option>
       </select>
     </div>
     <div class="form-group"><label>Valor de la condición</label><input id="aConditionCount" type="number" value="${a.condition?.count ?? 1}" /></div>

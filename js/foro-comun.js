@@ -56,6 +56,22 @@ export function enlacePerfil(perfil) {
   return perfil ? `<a href="${profileUrl(perfil)}">${nombre}</a>` : `<span>${nombre}</span>`
 }
 
+// Cuántas reacciones han recibido los mensajes de alguien: los
+// "agradecimientos" clásicos de los foros. Cuenta con un join embebido
+// (¡nunca un .in() con todos sus mensajes!: a 300 mensajes la URL del
+// filtro revienta). null = no se pudo saber; que quien llama lo calle.
+export async function reaccionesRecibidas(userId) {
+  try {
+    const { count, error } = await supabase
+      .from('forum_post_reactions')
+      .select('post_id, post:forum_posts!inner(author_id)', { count: 'exact', head: true })
+      .eq('post.author_id', userId)
+    return error ? null : count || 0
+  } catch {
+    return null
+  }
+}
+
 // El rango de colaborador de varias personas de una vez. Se reexporta
 // desde aquí para que las pantallas del foro no tengan que saber de dónde
 // sale.

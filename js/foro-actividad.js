@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { icons } from './icons.js'
-import { haceCuanto, fechaLarga, etiquetaHtml, urlForo, urlTema, faltaElForo } from './foro-comun.js'
+import { haceCuanto, fechaLarga, etiquetaHtml, urlForo, urlTema, faltaElForo, reaccionesRecibidas } from './foro-comun.js'
 
 // Lo que alguien ha hecho en el foro, para su perfil: los temas que ha
 // abierto y los mensajes que ha escrito.
@@ -60,20 +60,28 @@ function filaMensaje(m, temaPorId) {
 export async function pintarActividadDelForo(contenedor, userId, { esMio = false } = {}) {
   if (!contenedor || !userId) return
 
-  const [{ data: temas, error }, { data: mensajes }] = await Promise.all([
-    supabase
-      .from('forum_threads')
-      .select('id, title, prefix, board_id, post_count, created_at')
-      .eq('author_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(CUANTOS),
-    supabase
-      .from('forum_posts')
-      .select('id, thread_id, body_html, created_at')
-      .eq('author_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(CUANTOS),
-  ])
+  // Los TOTALES van aparte de las listas: las listas se recortan a 20,
+  // y usar su length como número le ponía "Mensajes 20" a quien lleva
+  // trescientos. Consultas de solo contar, y las reacciones recibidas —
+  // los "agradecimientos" de toda la vida.
+  const [{ data: temas, error }, { data: mensajes }, { count: totalTemas }, { count: totalMensajes }, gracias] =
+    await Promise.all([
+      supabase
+        .from('forum_threads')
+        .select('id, title, prefix, board_id, post_count, created_at')
+        .eq('author_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(CUANTOS),
+      supabase
+        .from('forum_posts')
+        .select('id, thread_id, body_html, created_at')
+        .eq('author_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(CUANTOS),
+      supabase.from('forum_threads').select('id', { count: 'exact', head: true }).eq('author_id', userId),
+      supabase.from('forum_posts').select('id', { count: 'exact', head: true }).eq('author_id', userId),
+      reaccionesRecibidas(userId),
+    ])
 
   if (faltaElForo(error)) {
     contenedor.innerHTML = ''
@@ -112,21 +120,29 @@ export async function pintarActividadDelForo(contenedor, userId, { esMio = false
   const temaPorId = Object.fromEntries((temasDeMensajes || []).map((t) => [t.id, t]))
 
   const quien = esMio ? 'Todavía no has' : 'Todavía no ha'
+  const nTemas = totalTemas ?? listaTemas.length
+  const nMensajes = totalMensajes ?? listaMensajes.length
+  const recorte = (total) => (total > CUANTOS ? `<p class="subtext foro-act-recorte">Los últimos ${CUANTOS} de ${total}.</p>` : '')
   contenedor.innerHTML = `
+    <div class="foro-act-numeros">
+      <div><strong>${nMensajes}</strong><span>Mensajes</span></div>
+      <div><strong>${nTemas}</strong><span>Temas abiertos</span></div>
+      ${gracias === null ? '' : `<div><strong>${gracias}</strong><span>Reacciones recibidas</span></div>`}
+    </div>
     <div class="foro-act-columnas">
       <section>
-        <h3 class="foro-act-titular">${icons.messageSquare(15)} Temas abiertos <span>${listaTemas.length}</span></h3>
+        <h3 class="foro-act-titular">${icons.messageSquare(15)} Temas abiertos <span>${nTemas}</span></h3>
         ${
           listaTemas.length
-            ? `<ul class="foro-act-lista">${listaTemas.map((t) => filaTema(t, foroPorId)).join('')}</ul>`
+            ? `<ul class="foro-act-lista">${listaTemas.map((t) => filaTema(t, foroPorId)).join('')}</ul>${recorte(nTemas)}`
             : `<p class="empty-state">${quien} abierto ningún tema en el foro.</p>`
         }
       </section>
       <section>
-        <h3 class="foro-act-titular">${icons.quote(15)} Mensajes <span>${respuestas.length}</span></h3>
+        <h3 class="foro-act-titular">${icons.quote(15)} Mensajes <span>${nMensajes}</span></h3>
         ${
           respuestas.length
-            ? `<ul class="foro-act-lista">${respuestas.map((m) => filaMensaje(m, temaPorId)).join('')}</ul>`
+            ? `<ul class="foro-act-lista">${respuestas.map((m) => filaMensaje(m, temaPorId)).join('')}</ul>${recorte(nMensajes)}`
             : `<p class="empty-state">${quien} escrito ningún mensaje en el foro.</p>`
         }
       </section>

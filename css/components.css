@@ -6324,3 +6324,129 @@ yt-video .yt-enlace:hover { color: #fff; }
     gap: 2px;
   }
 }
+
+/* ── El puntito verde de "en línea ahora" (foro) ── */
+.mini-avatar.avatar-conectado {
+  position: relative;
+}
+
+.mini-avatar.avatar-conectado::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid var(--white);
+}
+
+/* ── Los números de la actividad del foro en el perfil ── */
+.foro-act-numeros {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.foro-act-numeros > div {
+  display: grid;
+  gap: 2px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.foro-act-numeros strong {
+  font-size: 18px;
+}
+
+.foro-act-numeros span {
+  font-size: 12px;
+  color: var(--slate);
+}
+
+.foro-act-recorte {
+  margin: 6px 0 0;
+}
+
+/* ── La tarjetita de un enlace interno pegado a pelo ── */
+.enlace-tarjeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 460px;
+  margin: 6px 0;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  text-decoration: none;
+}
+
+.enlace-tarjeta:hover {
+  border-color: var(--navy);
+}
+
+.enlace-tarjeta .et-icono {
+  flex: none;
+  display: flex;
+  color: var(--navy);
+}
+
+.enlace-tarjeta .et-textos {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.enlace-tarjeta .et-titulo {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.enlace-tarjeta .et-tipo {
+  font-size: 12px;
+  color: var(--slate);
+}
+
+/* ── Los resultados rápidos de la lupa ── */
+.nav-search-seccion {
+  margin: 8px 0 2px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--slate);
+}
+
+.nav-search-fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav-search-fila:hover {
+  background: var(--ice);
+}
+
+.nav-search-fila span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── El cumpleaños en "El foro en números" ── */
+.foro-cumple span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

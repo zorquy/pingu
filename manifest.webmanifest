@@ -1,0 +1,16 @@
+{
+  "name": "PokeDoc — Comunidad Pokémon TCG",
+  "short_name": "PokeDoc",
+  "description": "Guías, foro y comunidad en español sobre el JCC Pokémon: aprende a detectar falsificaciones, colecciona y juega.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0d1b2a",
+  "theme_color": "#1e5175",
+  "icons": [
+    { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -339,7 +339,8 @@ async function contar(tabla) {
 async function panelDeNumerosHtml() {
   const hoy = new Date().toISOString().slice(0, 10)
 
-  const [temas, mensajes, miembros, nuevo, porAqui] = await Promise.all([
+  const hoyMD = `${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
+  const [temas, mensajes, miembros, nuevo, porAqui, cumplen] = await Promise.all([
     contar('forum_threads'),
     contar('forum_posts'),
     contar('user_profiles'),
@@ -361,6 +362,15 @@ async function panelDeNumerosHtml() {
       .limit(40)
       .then(({ data, error }) => (error ? [] : (data || []).filter((p) => !p.hide_activity)))
       .catch(() => []),
+    // Quién cumple años hoy. La columna llega con la migración de
+    // cumples: mientras no esté, esta línea simplemente no sale.
+    supabase
+      .from('user_profiles')
+      .select('id, username, display_name')
+      .eq('birthday_md', hoyMD)
+      .limit(10)
+      .then(({ data, error }) => (error ? [] : data || []))
+      .catch(() => []),
   ])
 
   const lineas = [
@@ -369,6 +379,11 @@ async function panelDeNumerosHtml() {
     miembros === null ? '' : filaNumero('Miembros', miembros),
     nuevo
       ? `<div class="foro-numero"><span>El último</span><strong>${enlacePerfil(nuevo)}</strong></div>`
+      : '',
+    cumplen.length
+      ? `<div class="foro-numero foro-cumple"><span>${icons.cake(14)} Hoy cumple años</span><strong>${cumplen
+          .map((p) => enlacePerfil(p))
+          .join('<span aria-hidden="true">, </span>')}</strong></div>`
       : '',
   ]
     .filter(Boolean)

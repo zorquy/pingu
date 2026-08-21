@@ -392,6 +392,11 @@ async function pintarMensajes() {
   // copiar por encima de uno cerrado no se lleve lo oculto. La escucha es
   // delegada y se engancha una sola vez aunque esto se repinte.
   import('./spoilers.js').then((m) => m.engancharSpoilers(elMensajes)).catch(() => {})
+  // El puntito verde de "en línea ahora" junto al avatar. Va después y
+  // por su cuenta: si tarda o falla, el tema ya está en pantalla.
+  marcarConectados(perfiles).catch(() => {})
+  // Los enlaces internos pegados a pelo se convierten en tarjetitas.
+  import('./enlaces-internos.js').then((m) => m.enriquecerEnlacesInternos(elMensajes)).catch(() => {})
 
   elPaginacion.innerHTML = paginacionHtml(totalPaginas)
   elPaginacion.querySelectorAll('[data-pagina]').forEach((b) =>
@@ -464,6 +469,25 @@ function reaccionesHtml(m, reacciones, esMio) {
         title="${mia === kind ? 'Quitar mi reacción' : 'Reaccionar'}">${emoji}${cuenta ? ` ${cuenta}` : ''}</button>`
     }).join('')}
   </div>`
+}
+
+// El puntito verde: a los avatares de quien está EN LÍNEA ahora mismo se
+// les pone la marca. El dato ya lo mantiene el latido de en-linea.js;
+// quien esconde su actividad se cuenta en el total pero no se le señala.
+async function marcarConectados(perfiles) {
+  const { quienEstaEnLinea } = await import('./en-linea.js')
+  const enLinea = await quienEstaEnLinea()
+  if (!enLinea) return
+  const conectados = new Set(enLinea.miembros)
+  elMensajes.querySelectorAll('article[data-autor]').forEach((art) => {
+    const id = art.dataset.autor
+    if (!conectados.has(id) || perfiles[id]?.hide_activity) return
+    const avatar = art.querySelector('.mini-avatar')
+    if (avatar) {
+      avatar.classList.add('avatar-conectado')
+      avatar.title = 'En línea ahora'
+    }
+  })
 }
 
 function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, hayReacciones, mencionados }) {

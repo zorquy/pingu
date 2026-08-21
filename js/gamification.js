@@ -316,6 +316,15 @@ function achievementValue(condition, stats) {
     // el foro. El valor es cuántos lleva (0 a 3) — ver js/primeros-pasos.js.
     case 'primeros_pasos':
       return stats.primerosPasos
+    // Los trofeos del foro: mensajes escritos, temas abiertos y
+    // reacciones recibidas. Los define el admin desde /admin, como los
+    // demás — aquí solo se les da el número contra el que comparar.
+    case 'forum_posts_count':
+      return stats.mensajesForo
+    case 'forum_threads_count':
+      return stats.temasForo
+    case 'forum_reactions_received':
+      return stats.reaccionesRecibidas
     case 'completed_guides_count':
     default:
       return stats.completedCount
@@ -357,6 +366,28 @@ export async function checkAchievements(userId) {
     supabase.from('forum_posts').select('*', { count: 'exact', head: true }).eq('author_id', userId),
   ])
 
+  // Para los trofeos del foro: temas abiertos y reacciones recibidas.
+  // Solo se consultan si algún logro activo los usa — la mayoría de las
+  // veces esto no cuesta ni una petición.
+  const tiposActivos = new Set(achievements.map((a) => a.condition?.type))
+  let temasForo = 0
+  let reaccionesForo = 0
+  if (tiposActivos.has('forum_threads_count')) {
+    const { count } = await supabase.from('forum_threads').select('id', { count: 'exact', head: true }).eq('author_id', userId)
+    temasForo = count || 0
+  }
+  if (tiposActivos.has('forum_reactions_received')) {
+    // El mismo join embebido que usa el perfil (foro-comun tiene su
+    // gemela; importarla desde aquí cerraría un ciclo de módulos con
+    // contributor-badge). Nunca un .in() con todos sus mensajes: a 300
+    // mensajes, la URL del filtro revienta.
+    const { count } = await supabase
+      .from('forum_post_reactions')
+      .select('post_id, post:forum_posts!inner(author_id)', { count: 'exact', head: true })
+      .eq('post.author_id', userId)
+    reaccionesForo = count || 0
+  }
+
   if (!profile) return []
 
   const unlocked = profile.achievements || []
@@ -365,6 +396,9 @@ export async function checkAchievements(userId) {
     totalXp: profile.total_xp || 0,
     quizCorrectCount: profile.quiz_correct_count || 0,
     approvedGuidesCount: approvedGuidesCount || 0,
+    mensajesForo: mensajesForoCount || 0,
+    temasForo,
+    reaccionesRecibidas: reaccionesForo,
     primerosPasos:
       ((leidasCount || 0) > 0 ? 1 : 0) +
       ((completedCount || 0) > 0 ? 1 : 0) +

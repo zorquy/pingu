@@ -8847,3 +8847,50 @@ lateral del foro. Lo que faltaba de verdad:
   rte-paleta (y el cierre al pinchar fuera) pero no es un color.
 
 Sin ninguna migración: todo sale de columnas y tablas que ya existen.
+
+# Tanda de comunidad: en línea, agradecimientos, PWA, tarjetitas, trofeos del foro, «/» y cumpleaños
+
+Siete mejoras aprobadas de la segunda lista (dos de la lista resultaron
+estar ya hechas y se descartaron a tiempo: fijar temas con chincheta
+existía completo, y la actividad del foro del perfil ya tenía sus dos
+listas — lo que le faltaba eran los TOTALES de verdad).
+
+- **El puntito verde de «en línea ahora»** (tema.js `marcarConectados`):
+  a los avatares de quien está ahora en la web se les pone la marca. El
+  dato ya lo mantenía el latido de en-linea.js; quien esconde su
+  actividad se cuenta pero no se señala. Va después del pintado y por su
+  cuenta: si falla, el tema ya está en pantalla.
+- **Los números de verdad en la actividad del foro del perfil**
+  (foro-actividad.js): los contadores de cabecera eran el `length` de
+  listas recortadas a 20 — a quien lleva 300 mensajes le ponía «20».
+  Ahora son consultas de contar, más la tira nueva con las REACCIONES
+  RECIBIDAS (los «agradecimientos» de los foros de toda la vida). Ese
+  recuento va con un join embebido de PostgREST
+  (`post:forum_posts!inner(author_id)` + `eq('post.author_id', …)`) —
+  nunca un `.in()` con todos sus mensajes: a 300 mensajes la URL del
+  filtro revienta.
+- **PWA instalable**: manifest.webmanifest + iconos PNG (192/512,
+  rasterizados del favicon.svg) + `<link rel="manifest">`, theme-color y
+  apple-touch-icon en las 23 páginas. En el móvil, «Añadir a pantalla de
+  inicio» abre PokeDoc como una app.
+- **Tarjetitas de enlaces internos** (js/enlaces-internos.js): un enlace
+  a un tema o una guía de PokeDoc pegado «a pelo» (el texto ES la
+  dirección, o venía como texto plano) se pinta al LEER como tarjetita
+  con su título real. Decoración de lectura, como las listas de cartas:
+  lo guardado no cambia, y un enlace con texto puesto por el autor no se
+  toca jamás. Cuidado aprendido: comparar texto y href pasándolos por
+  `new URL` — uno puede venir relativo y el otro absoluto.
+- **Trofeos del foro**: los logros de /admin entienden tres condiciones
+  nuevas — mensajes escritos, temas abiertos y reacciones recibidas. Las
+  consultas extra solo se hacen si algún logro activo las usa.
+- **Buscador global**: la tecla «/» (fuera de un campo de texto) abre la
+  lupa de la navbar, y el popup enseña resultados rápidos de guías y
+  temas del foro (3 de cada, con la misma vuelta-atrás de acentos que
+  buscar.html y número de secuencia contra la carrera de respuestas).
+- **Cumpleaños** (supabase-migration-cumples.sql — LA ÚNICA MIGRACIÓN de
+  la tanda): columna opcional `birthday` + generada `birthday_md`
+  («08-21») con lpad/extract, porque una columna generada exige
+  expresión inmutable y to_char no lo es. Campo en Editar perfil (con
+  reintento sin la columna si la web se despliega antes que el SQL), y
+  «🎂 Hoy cumple años @tal» en El foro en números — tolerante: sin la
+  migración, la línea no sale.
