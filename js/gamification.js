@@ -101,11 +101,15 @@ export function contributorTier(approvedGuidesCount) {
 // Contenido del modal "ver todos los niveles/rangos" — se abre al hacer
 // clic en el nivel o en la tarjeta de Colaborador del perfil (propio o
 // público), para que cualquiera pueda ver hasta dónde puede llegar.
-export function levelLadderHtml(xp) {
+// `ajeno: true` cuando la escalera se abre sobre OTRA persona (desde el
+// foro): mismo contenido, pero hablando de ella y no de ti.
+export function levelLadderHtml(xp, { ajeno = false } = {}) {
   const progreso = levelProgress(xp)
   return `
     <h3>Niveles</h3>
-    <p class="subtext" style="margin-bottom:14px;">Subes de nivel automáticamente según tu XP total.</p>
+    <p class="subtext" style="margin-bottom:14px;">${
+      ajeno ? 'El nivel sube automáticamente según el XP total.' : 'Subes de nivel automáticamente según tu XP total.'
+    }</p>
     <div class="ladder-list">
       ${LEVEL_THRESHOLDS.map((l, i) => {
         const isCurrent = xp >= l.min && (l.next === null || xp < l.next)
@@ -119,7 +123,7 @@ export function levelLadderHtml(xp) {
                <span class="subtext">${
                  l.next === null
                    ? `${xp} XP — nivel máximo`
-                   : `${xp} / ${l.next} XP — te faltan ${l.next - xp} para ${siguiente}`
+                   : `${xp} / ${l.next} XP — ${ajeno ? 'le faltan' : 'te faltan'} ${l.next - xp} para ${siguiente}`
                }</span>
              </div>`
           : ''
@@ -130,16 +134,18 @@ export function levelLadderHtml(xp) {
             <span class="subtext">${l.min}+ XP</span>
             ${barra}
           </div>
-          ${isCurrent ? '<span class="badge badge-completed">Tu nivel</span>' : ''}
+          ${isCurrent ? `<span class="badge badge-completed">${ajeno ? 'Su nivel' : 'Tu nivel'}</span>` : ''}
         </div>`
       }).join('')}
     </div>`
 }
 
-export function tierLadderHtml(approvedGuidesCount) {
+export function tierLadderHtml(approvedGuidesCount, { ajeno = false } = {}) {
   return `
     <h3>Colaborador</h3>
-    <p class="subtext" style="margin-bottom:14px;">Depende de cuántas guías tuyas ha aprobado la moderación.</p>
+    <p class="subtext" style="margin-bottom:14px;">${
+      ajeno ? 'Depende de cuántas guías suyas ha aprobado la moderación.' : 'Depende de cuántas guías tuyas ha aprobado la moderación.'
+    }</p>
     <div class="ladder-list">
       ${CONTRIBUTOR_TIERS.map((t, i) => {
         const nextMin = CONTRIBUTOR_TIERS[i + 1]?.min
@@ -151,7 +157,7 @@ export function tierLadderHtml(approvedGuidesCount) {
             <strong>${t.title}</strong>
             <span class="subtext">${t.min === 0 ? 'Desde el principio' : `${t.min}+ guías aprobadas`}</span>
           </div>
-          ${isCurrent ? '<span class="badge badge-completed">Tu rango</span>' : ''}
+          ${isCurrent ? `<span class="badge badge-completed">${ajeno ? 'Su rango' : 'Tu rango'}</span>` : ''}
         </div>`
       }).join('')}
     </div>`

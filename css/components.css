@@ -6806,3 +6806,47 @@ a.foro-cita-quien:hover {
   color: var(--text-mid);
   margin: 0 0 10px;
 }
+
+/* ── La columna del autor: nivel + distinción apilados ── */
+.foro-autor-rangos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Las etiquetas clicables (nivel y colaborador): el botón desaparece y
+   queda la chapa, con una pista de que se puede pinchar. */
+.foro-chapa-rango {
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.foro-chapa-rango:hover {
+  filter: brightness(1.15);
+}
+
+.foro-chapa-rango:hover .nivel-chapa,
+.foro-chapa-rango:hover .contributor-badge {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* El título puesto por un admin, como ETIQUETA con su color (el mismo
+   truco de color+fondo+borde que las etiquetas de tema). Sin color
+   elegido, sale en el azul de la casa. */
+.foro-titulo-etiqueta {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(30, 81, 117, 0.35);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+  max-width: 100%;
+}

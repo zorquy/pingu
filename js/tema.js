@@ -23,7 +23,7 @@ import {
   esDelEquipo,
   faltaElForo,
 } from './foro-comun.js'
-import { calculateLevel, levelBadgeHtml } from './gamification.js'
+import { calculateLevel, levelBadgeHtml, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { marcarLeido, marcasDeLectura, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 import { engancharCompartir } from './compartir.js'
@@ -68,27 +68,41 @@ function migasHtml(trozos) {
     .join('<span class="foro-migas-sep" aria-hidden="true">›</span>')
 }
 
-// El título de debajo del nombre, por orden de mando:
+// Las etiquetas de debajo del nombre. Antes era UNA sola con un orden de
+// mando (título de admin > colaborador > nivel), y salía el efecto raro
+// de que a unos se les veía el nivel y a otros no — el rango de
+// colaborador te TAPABA el nivel. Ahora:
 //
-//   1. El que le haya puesto un admin a mano (forum_title). Manda sobre
-//      todo lo demás: si alguien es "Perito de falsificaciones", eso es
-//      lo que se lee, no su nivel.
-//   2. El rango de colaborador, que se gana escribiendo guías.
-//   3. El nivel, para que nadie se quede sin nada debajo del nombre.
+//   1. El NIVEL sale siempre, para todo el mundo: es la vara de medir
+//      común. Y es clicable — abre la escalera de niveles con el punto
+//      exacto en el que está esa persona.
+//   2. DEBAJO, una distinción como máximo: el título puesto a mano por
+//      un admin (como etiqueta con su color, no texto suelto) o, si no
+//      lo hay, el rango de colaborador (clicable: abre sus rangos).
 function tituloDe(perfil, guiasAprobadas) {
+  const nivel = perfil?.level || calculateLevel(perfil?.total_xp || 0)
+  const trozos = [
+    `<button type="button" class="foro-chapa-rango" data-ver-niveles="${perfil?.total_xp || 0}"
+       title="Ver todos los niveles">${levelBadgeHtml(nivel)}</button>`,
+  ]
   if (perfil?.forum_title) {
     // El color lo elige un admin. Aun así se valida ANTES de meterlo en
     // el style: este valor viene de la base, y en un atributo style no
     // puede entrar nada que no sea exactamente un color hex. La base
     // impone lo mismo con una restricción; cinturón y tirantes.
     const color = /^#[0-9a-fA-F]{6}$/.test(perfil.forum_title_color || '') ? perfil.forum_title_color : null
-    return `<span class="foro-autor-titulo foro-autor-titulo-propio"${
-      color ? ` style="color:${color}"` : ''
-    }>${escapeHtml(perfil.forum_title)}</span>`
+    trozos.push(
+      `<span class="foro-titulo-etiqueta"${
+        color ? ` style="color:${color}; background:${color}24; border-color:${color}59"` : ''
+      }>${escapeHtml(perfil.forum_title)}</span>`
+    )
+  } else if (guiasAprobadas > 0) {
+    trozos.push(
+      `<button type="button" class="foro-chapa-rango" data-ver-colaborador="${guiasAprobadas}"
+         title="Ver los rangos de colaborador">${badgeHtml(guiasAprobadas)}</button>`
+    )
   }
-  if (guiasAprobadas > 0) return badgeHtml(guiasAprobadas)
-  const nivel = perfil?.level || calculateLevel(perfil?.total_xp || 0)
-  return `<span class="foro-autor-titulo">${levelBadgeHtml(nivel)}</span>`
+  return `<span class="foro-autor-titulo foro-autor-rangos">${trozos.join('')}</span>`
 }
 
 function chapasDe(perfil, esAutorDelTema) {
@@ -1233,6 +1247,41 @@ async function irAlPrimerNoLeido(referencia) {
   const { data } = await q
   if (data?.[0]?.id) await irAlMensaje(data[0].id)
 }
+
+// La escalera de niveles (o de rangos de colaborador) de OTRA persona,
+// abierta desde su etiqueta en la columna del autor. El mismo contenido
+// que el modal del perfil, hablando en tercera persona.
+function abrirEscalera(html) {
+  document.querySelector('.foro-modal-escalera')?.remove()
+  const overlay = document.createElement('div')
+  overlay.className = 'modal-overlay foro-modal-escalera'
+  overlay.innerHTML = `
+    <div class="modal-box" role="dialog" aria-modal="true" aria-label="Niveles y rangos">
+      <button type="button" class="modal-close" aria-label="Cerrar">✕</button>
+      ${html}
+    </div>`
+  document.body.appendChild(overlay)
+  const cerrar = () => overlay.remove()
+  overlay.querySelector('.modal-close').addEventListener('click', cerrar)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) cerrar()
+  })
+  document.addEventListener(
+    'keydown',
+    function alEscape(e) {
+      if (e.key !== 'Escape') return
+      cerrar()
+      document.removeEventListener('keydown', alEscape)
+    }
+  )
+}
+
+elMensajes.addEventListener('click', (e) => {
+  const nivelBtn = e.target.closest('[data-ver-niveles]')
+  if (nivelBtn) return abrirEscalera(levelLadderHtml(Number(nivelBtn.dataset.verNiveles) || 0, { ajeno: true }))
+  const rangoBtn = e.target.closest('[data-ver-colaborador]')
+  if (rangoBtn) return abrirEscalera(tierLadderHtml(Number(rangoBtn.dataset.verColaborador) || 0, { ajeno: true }))
+})
 
 // Copiar el enlace de un mensaje: la URL lleva su página (se calcula del
 // número, sin consultas) y su ancla, así que funciona para cualquiera.

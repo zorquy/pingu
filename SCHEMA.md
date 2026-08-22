@@ -9143,3 +9143,32 @@ generateRequestDetails hace VAPID + aes128gcm sin tocar la red).
 y `__FAKE_CLAVE_PUSH__`. NOTA honesta: el autocompletado de @menciones
 que se vendió en la lista ya existía (js/mencion-autocompletar.js) y se
 descartó de la tanda.
+
+## La columna del autor, ordenada (agosto 2026)
+
+Lo destapó el propio admin: el foro enseñaba UNA sola etiqueta bajo el
+nombre con un orden de mando (título de admin > rango de colaborador >
+nivel), así que a quien tenía guías aprobadas el rango le TAPABA su
+nivel de XP — unos parecían tener nivel y otros no.
+
+Ahora (`tituloDe` en js/tema.js):
+
+1. **El nivel sale SIEMPRE**, para todo el mundo — es la vara de medir
+   común. Es un botón: al pincharlo se abre la escalera de niveles
+   entera con el punto exacto de ESA persona (su XP, cuánto le falta).
+2. **Debajo, UNA distinción como máximo**: el título puesto a mano por
+   un admin — ahora como ETIQUETA con el color elegido (mismo truco
+   color+fondo+borde que las etiquetas de tema; el hex se valida antes
+   de entrar en el style, como siempre) — o, si no hay título, el rango
+   de colaborador, también clicable (abre sus rangos).
+3. El título de admin NO es clicable (no hay escalera que enseñar).
+
+Las escaleras (`levelLadderHtml`/`tierLadderHtml` de gamification.js)
+ganaron `{ ajeno: true }`: abiertas desde el foro hablan en tercera
+persona («Su nivel», «le faltan…») en vez de tutear con datos de otro.
+El modal del foro es propio (`.foro-modal-escalera`), con Escape/fondo/✕.
+
+Probado con test-tanda-186.mjs (28 comprobaciones, incluida la de que un
+forum_title_color malicioso sembrado no cuela en el style) y rigor de 9
+roturas, todas detectadas. La prueba vieja de la precedencia
+(test-tanda-visual) se actualizó a la realidad nueva.
