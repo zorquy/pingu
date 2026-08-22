@@ -9061,3 +9061,85 @@ Supabase ganó `__FAKE_LENTO__` (ms de retardo en todas las respuestas) y
 ### Cómo se probó
 
 `test-tanda-184.mjs` (39 comprobaciones) y `rigor-184.py` (14 roturas).
+
+## Tanda foro fino + push (agosto 2026)
+
+### La cita enlaza al mensaje original
+
+La cabecera del blockquote («Misty escribió:») es ahora un enlace a
+`#mensaje-<id>`: el resolutor de páginas de la tanda anterior hace el
+salto (a otra página si hace falta) y el destello. Solo la cita ancla
+(reply_to_id) — las multicitas pegadas en el cuerpo no llevan id.
+
+### Las reacciones dicen quién
+
+`reaccionesHtml` recibe los perfiles y pone en el `title` de cada
+reacción los nombres (hasta 8, luego «y N más»). Los perfiles de
+reactores que no son autores de la página se piden en una segunda
+`perfilesPorId` solo si faltan.
+
+### Filtrar temas por etiqueta (`?et=`)
+
+La chapa de etiqueta en la lista de temas es un enlace a
+`?et=<etiqueta>`; con el filtro activo, la consulta (lista Y recuento de
+páginas) añade `.eq('prefix', …)`, sale una banda con «quitar el
+filtro», y el vacío tiene su propio mensaje.
+
+### Borrador al abrir tema nuevo
+
+Como el de la caja de responder: localStorage, por foro
+(`pokedoc-borrador-tema-nuevo-<board>`), guarda {titulo, html} en cada
+tecla, restaura al reabrir y se borra al publicar. Cancelar NO lo borra
+(el borrador es para el accidente).
+
+### Notificaciones push 🔔
+
+Los avisos de la campanita, en el escritorio/móvil con la web cerrada.
+
+- **supabase-migration-push.sql** (PENDIENTE de ejecutar):
+  `push_subscriptions` (endpoint pk, user_id, p256dh, auth) con RLS de
+  "solo lo mío", y `user_notifications.pushed_at` + índice parcial para
+  el escaneo de la función. Validada contra PostgreSQL real, idempotente.
+- **sw.js** (raíz): SOLO push y notificationclick — sin manejador de
+  fetch a propósito: cero caché, cero riesgo de servir ficheros viejos.
+  app.js lo registra en cada carga para que el navegador vea versiones
+  nuevas.
+- **js/push.js**: activar/desactivar ESTE navegador. La clave pública
+  VAPID se lee de site_settings (`push_vapid_public`); la suscripción se
+  guarda por endpoint (upsert). Sin migración ejecutada, deshace la
+  suscripción del navegador y lo dice.
+- **Perfil → Editar**: bloque «Avisos en este dispositivo» con el estado
+  real (sin soporte / bloqueado / activar / desactivar).
+- **/admin → Notificaciones push**: genera el par de claves VAPID con
+  WebCrypto EN el navegador del admin. La pública se guarda en
+  site_settings; la privada se enseña UNA vez para pegarla en Netlify
+  como `PUSH_VAPID_PRIVATE`. Regenerar invalida las suscripciones y el
+  panel lo avisa.
+- **netlify/functions/enviar-push.mjs** (programada cada 5 min, como la
+  de correo): lee los avisos con `pushed_at is null` de las últimas 24 h,
+  los empuja cifrados (librería web-push, dependencia nueva del
+  package.json) a las suscripciones de cada destinatario, borra las
+  suscripciones muertas (404/410) y marca TODOS los revisados — también
+  los de quien no tiene push, para no re-escanearlos eternamente. Sin
+  claves configuradas no falla: no hace nada y lo dice.
+- Enlaces del aviso SIEMPRE absolutos (SITE_URL); el clic en la
+  notificación reutiliza una pestaña de PokeDoc si la hay.
+
+Para encender el sistema, en orden: (1) ejecutar la migración, (2)
+generar claves en /admin, (3) pegar la privada en Netlify
+(PUSH_VAPID_PRIVATE) y redesplegar, (4) cada cual activa los suyos en
+su perfil.
+
+### Cómo se probó
+
+`test-tanda-185.mjs` (36 comprobaciones Playwright: cita, quién, filtro,
+borrador, interruptor con un navegador-doble de push, claves del admin
+con WebCrypto real, sw.js servido y registrado) y
+`test-push-funcion.mjs` (15 comprobaciones en node SIN red: la función
+con base y push dobles, y la validación de que las claves generadas como
+las genera /admin las acepta web-push y cifra de verdad —
+generateRequestDetails hace VAPID + aes128gcm sin tocar la red).
+`rigor-185.py`: 14 roturas. El doble de Supabase ganó push_subscriptions
+y `__FAKE_CLAVE_PUSH__`. NOTA honesta: el autocompletado de @menciones
+que se vendió en la lista ya existía (js/mencion-autocompletar.js) y se
+descartó de la tanda.

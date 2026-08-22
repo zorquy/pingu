@@ -36,6 +36,9 @@ const params = new URLSearchParams(window.location.search)
 const slugForo = foroDeLaRuta()
 const paginaActual = Math.max(1, Number(params.get('p') || 1))
 const consulta = (params.get('q') || '').trim()
+// El filtro por etiqueta (?et=Duda): pinchar la etiqueta de un tema
+// enseña solo los temas que la llevan.
+const etiquetaFiltro = (params.get('et') || '').trim()
 
 const principal = document.getElementById('foroPrincipal')
 const lateral = document.getElementById('foroLateral')
@@ -478,16 +481,24 @@ async function pintarListaDeTemas(foro) {
   const desde = (paginaActual - 1) * PAGINA
   const hasta = desde + PAGINA - 1
 
+  // Con filtro de etiqueta, tanto la lista como el recuento de páginas
+  // miran solo los temas que la llevan.
+  let qCuenta = supabase.from('forum_threads').select('*', { count: 'exact', head: true }).eq('board_id', foro.id)
+  let qTemas = supabase
+    .from('forum_threads')
+    .select('*')
+    .eq('board_id', foro.id)
+    .order('is_pinned', { ascending: false })
+    .order('last_post_at', { ascending: false })
+    .range(desde, hasta)
+  if (etiquetaFiltro) {
+    qCuenta = qCuenta.eq('prefix', etiquetaFiltro)
+    qTemas = qTemas.eq('prefix', etiquetaFiltro)
+  }
   const [{ data: subforos }, { count }, { data: temas }] = await Promise.all([
     supabase.from('forum_boards_resumen').select('*').eq('parent_id', foro.id).order('position'),
-    supabase.from('forum_threads').select('*', { count: 'exact', head: true }).eq('board_id', foro.id),
-    supabase
-      .from('forum_threads')
-      .select('*')
-      .eq('board_id', foro.id)
-      .order('is_pinned', { ascending: false })
-      .order('last_post_at', { ascending: false })
-      .range(desde, hasta),
+    qCuenta,
+    qTemas,
   ])
 
   const lista = temas || []
@@ -526,7 +537,13 @@ async function pintarListaDeTemas(foro) {
           ${t.is_pinned ? '<span class="foro-chapa">Fijado</span>' : ''}
           ${t.is_locked ? '<span class="foro-chapa foro-chapa-cerrado">Cerrado</span>' : ''}
           ${t.solved_post_id ? `<span class="foro-chapa foro-chapa-resuelto">${icons.checkCircle(12)} Resuelto</span>` : ''}
-          ${etiquetaHtml(t.prefix)}
+          ${
+            // La etiqueta es un enlace: pincharla filtra la lista a los
+            // temas que la llevan.
+            t.prefix
+              ? `<a class="foro-etiqueta-enlace" href="${urlForo(foro.slug)}?et=${encodeURIComponent(t.prefix)}" title="Ver solo los temas con la etiqueta ${escapeHtml(t.prefix)}">${etiquetaHtml(t.prefix)}</a>`
+              : ''
+          }
           <a href="${destino}">${escapeHtml(t.title)}</a>
         </h3>
         <p class="subtext">${avatarHtml(perfiles[t.author_id], 18)} ${enlacePerfil(perfiles[t.author_id])} · <span title="${escapeHtml(
@@ -575,13 +592,22 @@ async function pintarListaDeTemas(foro) {
        </section>`
     : ''
 
+  // La banda del filtro activo, con su salida bien a mano.
+  const filtroHtml = etiquetaFiltro
+    ? `<p class="foro-filtro-banda">Solo temas con la etiqueta ${etiquetaHtml(etiquetaFiltro)} —
+         <a href="${urlForo(foro.slug)}">quitar el filtro</a></p>`
+    : ''
+
   principal.innerHTML = `
     ${subforosHtml}
     <div id="formularioTema"></div>
+    ${filtroHtml}
     <section class="foro-seccion" id="foroTemas">
       ${
         lista.length === 0
-          ? `<p class="empty-state">Aquí no hay ningún tema todavía. Si tienes una duda o algo que enseñar, ábrelo tú — alguien lo leerá.</p>`
+          ? etiquetaFiltro
+            ? `<p class="empty-state">No hay ningún tema con esta etiqueta.</p>`
+            : `<p class="empty-state">Aquí no hay ningún tema todavía. Si tienes una duda o algo que enseñar, ábrelo tú — alguien lo leerá.</p>`
           : lista.map(filaTema).join('')
       }
     </section>
@@ -667,17 +693,49 @@ async function abrirFormularioTema(foro) {
   // qué iba el hilo a mitad de camino.
   engancharFormularioEncuesta(document)
 
+  // El borrador del tema a medio escribir, igual que el de la caja de
+  // responder: vive en el navegador, por foro, y es para el accidente de
+  // cerrar la pestaña o darle a atrás — donde más duele es aquí, que se
+  // pierde el título Y el mensaje largo de golpe. Se borra al publicar.
+  const claveBorrador = `pokedoc-borrador-tema-nuevo-${foro.id}`
+  const borradorTema = {
+    leer() {
+      try {
+        return JSON.parse(localStorage.getItem(claveBorrador)) || null
+      } catch {
+        return null
+      }
+    },
+    guardar(titulo, html) {
+      try {
+        if (!titulo && !html.replace(/<[^>]*>/g, '').trim()) return this.borrar()
+        localStorage.setItem(claveBorrador, JSON.stringify({ titulo, html }))
+      } catch {}
+    },
+    borrar() {
+      try {
+        localStorage.removeItem(claveBorrador)
+      } catch {}
+    },
+  }
+  const guardado = borradorTema.leer()
+
+  const campoTitulo = document.getElementById('temaTitulo')
+  if (guardado?.titulo) campoTitulo.value = guardado.titulo
+  campoTitulo.addEventListener('input', () => borradorTema.guardar(campoTitulo.value.trim(), cuerpoHtml))
+
   const barra = document.getElementById('temaBarra')
   barra.innerHTML = richTextToolbarHtml()
   const superficieTema = document.getElementById('temaCuerpo')
-  let cuerpoHtml = ''
+  let cuerpoHtml = guardado?.html || ''
   initRichTextEditor({
     toolbarEl: barra,
     surfaceEl: superficieTema,
-    initialHtml: '',
+    initialHtml: guardado?.html || '',
     placeholder: 'Cuenta de qué va…',
     onChange: (html) => {
       cuerpoHtml = html
+      borradorTema.guardar(campoTitulo.value.trim(), html)
     },
     uploadImage: (file) => uploadGuideImage(sesion.user.id, file),
   })
@@ -765,6 +823,7 @@ async function abrirFormularioTema(foro) {
       if (errorEncuesta) showToast('El tema se ha publicado, pero la encuesta no. Puedes preguntarlo en el mensaje.')
     }
 
+    borradorTema.borrar()
     window.location.href = urlTema(tema.id)
   })
 }

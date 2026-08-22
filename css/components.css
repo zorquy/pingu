@@ -6766,3 +6766,43 @@ a.foro-punto-nuevo::after {
   font-weight: 700;
   border-left-color: var(--navy);
 }
+
+/* ── Tanda foro fino: cita-enlace, filtro por etiqueta ── */
+
+/* La cabecera de la cita ahora es un enlace al mensaje original. El
+   color se queda apagado (es contexto, no un botón), pero al pasar por
+   encima se nota que lleva a algún sitio. */
+a.foro-cita-quien {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+a.foro-cita-quien:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.foro-cita-salto {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* La etiqueta-enlace no se subraya: la chapa de color ya es el botón. */
+.foro-etiqueta-enlace {
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.foro-etiqueta-enlace:hover .foro-etiqueta {
+  filter: brightness(1.12);
+}
+
+.foro-filtro-banda {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--text-mid);
+  margin: 0 0 10px;
+}

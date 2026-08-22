@@ -140,9 +140,65 @@ async function loadAvisoGlobal() {
   })
 }
 
+// ── Las claves de las notificaciones push (VAPID) ──
+//
+// Se generan AQUÍ, en el navegador del admin, con WebCrypto: así la
+// clave privada no pasa por ningún servidor nuestro ni queda en ningún
+// fichero. La pública (que no es secreta) se guarda en site_settings
+// para que js/push.js la lea; la privada se enseña una sola vez y su
+// sitio es la variable PUSH_VAPID_PRIVATE de Netlify.
+async function loadClavesPush() {
+  const panel = document.getElementById('pushClavesPanel')
+  if (!panel) return
+  const estado = document.getElementById('pushClavesEstado')
+  const boton = document.getElementById('btnGenerarClavesPush')
+
+  const { data } = await supabase.from('site_settings').select('value').eq('key', 'push_vapid_public').maybeSingle()
+  const hay = !!data?.value?.clave
+  estado.textContent = hay
+    ? 'Ya hay claves: la pública está en la base. Regenera SOLO si perdiste la privada — las suscripciones actuales dejarán de valer y cada cual tendrá que reactivar sus avisos.'
+    : 'Sin claves todavía. Genéralas para poder activar los avisos push.'
+  if (hay) boton.textContent = 'Regenerar claves (invalida las suscripciones actuales)'
+
+  boton.addEventListener('click', async () => {
+    boton.disabled = true
+    try {
+      const par = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign'])
+      // El formato del estándar VAPID: pública = punto sin comprimir de
+      // 65 bytes en base64url; privada = el escalar `d` del JWK, que ya
+      // viene en base64url.
+      const pubCruda = new Uint8Array(await crypto.subtle.exportKey('raw', par.publicKey))
+      const jwk = await crypto.subtle.exportKey('jwk', par.privateKey)
+      const aB64url = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+
+      const { error } = await supabase.from('site_settings').upsert(
+        { key: 'push_vapid_public', value: { clave: aB64url(pubCruda) }, updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      )
+      if (error) {
+        const faltaTabla = /site_settings/.test(error.message || '')
+        showToast(
+          faltaTabla
+            ? 'Falta ejecutar supabase-migration-ajustes.sql en el SQL Editor de Supabase.'
+            : 'No se ha podido guardar la clave pública: ' + error.message,
+          'error'
+        )
+        return
+      }
+      document.getElementById('pushClavePrivada').style.display = ''
+      document.getElementById('pushClavePrivadaTexto').value = jwk.d
+      estado.textContent = 'Clave pública guardada. Pega la privada de abajo en Netlify (PUSH_VAPID_PRIVATE) y redespliega.'
+      showToast('Claves generadas. La privada solo se enseña esta vez.', 'success')
+    } finally {
+      boton.disabled = false
+    }
+  })
+}
+
 async function loadDashboard() {
   loadDestacada().catch(() => {})
   loadAvisoGlobal().catch(() => {})
+  loadClavesPush().catch(() => {})
   const [{ count: userCount }, completedRes, { count: guideCount }] = await Promise.all([
     supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
     supabase.from('user_progress').select('*', { count: 'exact', head: true }).eq('status', 'completed'),

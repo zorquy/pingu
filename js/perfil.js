@@ -566,6 +566,11 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
         .join('')}
     </div>
     <div class="form-group">
+      <label>Avisos en este dispositivo (push)</label>
+      <p class="subtext" style="margin:0 0 6px;">Los avisos de la campanita, en el escritorio o el móvil aunque PokeDoc esté cerrado. Se activa POR dispositivo: este interruptor manda solo en el navegador donde lo toques.</p>
+      <div id="pePushZona"><p class="subtext">Comprobando este navegador…</p></div>
+    </div>
+    <div class="form-group">
       <label>Cumpleaños (opcional)</label>
       <input type="date" id="peBirthday" value="${escapeHtml(currentProfile?.birthday || '')}" />
       <p class="subtext" style="margin:2px 0 0;">Si lo pones, el día señalado el foro te felicita en «El foro en números». Bórralo cuando quieras.</p>
@@ -601,6 +606,40 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
         uploadImage: (file) => uploadGuideImage(currentSession.user.id, file),
       })
     } catch {}
+  })()
+
+  // El interruptor de push, con su estado real. Va aparte del Guardar
+  // del formulario: suscribirse pide permiso al navegador y escribe su
+  // propia fila — no es un campo del perfil.
+  ;(async () => {
+    const zona = document.getElementById('pePushZona')
+    if (!zona) return
+    try {
+      const push = await import('./push.js')
+      const pintarZona = async () => {
+        const { soportado, permiso, suscrito } = await push.estadoPush()
+        if (!soportado) {
+          zona.innerHTML = `<p class="subtext">Este navegador no soporta notificaciones push.</p>`
+          return
+        }
+        if (permiso === 'denied' && !suscrito) {
+          zona.innerHTML = `<p class="subtext">Las notificaciones están bloqueadas para PokeDoc en los ajustes del navegador. Desbloquéalas ahí y vuelve.</p>`
+          return
+        }
+        zona.innerHTML = `<button type="button" class="btn-secondary" id="btnPushToggle">${
+          suscrito ? 'Desactivar los avisos en este dispositivo' : 'Activar los avisos en este dispositivo'
+        }</button>`
+        document.getElementById('btnPushToggle').addEventListener('click', async () => {
+          const r = suscrito ? await push.desactivarPush() : await push.activarPush(currentSession.user.id)
+          if (r.ok) showToast(suscrito ? 'Avisos desactivados en este dispositivo.' : '¡Hecho! Te avisaremos por aquí.', 'success')
+          else showToast(r.motivo || 'No se ha podido cambiar.')
+          await pintarZona()
+        })
+      }
+      await pintarZona()
+    } catch {
+      zona.innerHTML = `<p class="subtext">No se ha podido comprobar el estado de los avisos.</p>`
+    }
   })()
 
   let selectedBanner = currentProfile?.banner_color || 'var(--ice)'

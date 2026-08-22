@@ -91,6 +91,21 @@
             <button class="btn-primary" id="btnGuardarAvisoGlobal">Guardar</button>
           </div>
         </div>
+
+        <div class="admin-destacada" id="pushClavesPanel">
+          <h2>Notificaciones push</h2>
+          <p class="subtext">Las claves que firman los avisos push (VAPID). La pública se guarda sola en la base;
+            la privada se enseña UNA sola vez y hay que pegarla en Netlify → Environment variables como
+            <code>PUSH_VAPID_PRIVATE</code> — nunca en ningún fichero. Necesita supabase-migration-push.sql.</p>
+          <div class="admin-destacada-campos">
+            <p class="subtext" id="pushClavesEstado">Comprobando…</p>
+            <button class="btn-primary" id="btnGenerarClavesPush">Generar claves push</button>
+            <div id="pushClavePrivada" style="display:none;">
+              <p class="subtext" style="font-weight:700;">Clave privada (cópiala AHORA — no se vuelve a enseñar):</p>
+              <textarea id="pushClavePrivadaTexto" readonly rows="2" style="width:100%; font-family:monospace; font-size:12px;"></textarea>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="admin-section" id="section-pending">

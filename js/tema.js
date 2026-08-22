@@ -375,6 +375,11 @@ async function pintarMensajes() {
   const reaccionesPorMensaje = {}
   for (const r of reaccionesRes.data || []) (reaccionesPorMensaje[r.post_id] ||= []).push(r)
 
+  // Los nombres de quienes reaccionaron (para el "quién" al posar el
+  // ratón). Solo se piden los que no estén ya cargados como autores.
+  const reactores = [...new Set((reaccionesRes.data || []).map((r) => r.user_id).filter((id) => id && !perfiles[id]))]
+  if (reactores.length) Object.assign(perfiles, await perfilesPorId(reactores))
+
   // El "Gracias: N" de la columna del autor: cuántas reacciones han
   // recibido EN TOTAL los mensajes de cada autor de esta página. Un solo
   // viaje con el join embebido (nunca un .in() con todos sus mensajes);
@@ -475,19 +480,33 @@ const REACCIONES = [
 // reaccionarse a uno mismo, y un botón que siempre da error es peor que no
 // enseñarlo. Una reacción por persona: pulsar otra te cambia, repetir la
 // tuya la quita.
-function reaccionesHtml(m, reacciones, esMio) {
+// El "quién": los nombres detrás del numerito, para el title del botón.
+// Hasta ocho; con más gente se resume, que un tooltip de treinta nombres
+// no se lee.
+function quienesReaccionaron(filas, perfiles) {
+  const nombres = filas.map((r) => nombreDe(perfiles[r.user_id]) || 'Alguien')
+  if (nombres.length > 8) return `${nombres.slice(0, 8).join(', ')} y ${nombres.length - 8} más`
+  return nombres.join(', ')
+}
+
+function reaccionesHtml(m, reacciones, esMio, perfiles) {
   const mia = sesion ? reacciones.find((r) => r.user_id === sesion.user.id)?.kind : null
   return `<div class="foro-reacciones" data-reacciones="${m.id}">
     ${REACCIONES.map(([kind, emoji]) => {
-      const cuenta = reacciones.filter((r) => r.kind === kind).length
+      const deEsta = reacciones.filter((r) => r.kind === kind)
+      const cuenta = deEsta.length
+      const quienes = cuenta ? quienesReaccionaron(deEsta, perfiles) : ''
       if (esMio || !sesion) {
         // Sin botón: o es tu mensaje, o no hay sesión. Los ceros no se
         // enseñan — cuatro "0" por mensaje es ruido.
-        return cuenta ? `<span class="foro-reaccion foro-reaccion-quieta">${emoji} ${cuenta}</span>` : ''
+        return cuenta
+          ? `<span class="foro-reaccion foro-reaccion-quieta" title="${escapeHtml(quienes)}">${emoji} ${cuenta}</span>`
+          : ''
       }
+      // Con gente detrás, el title dice QUIÉN; sin nadie, qué hace el botón.
       return `<button type="button" class="foro-reaccion ${mia === kind ? 'foro-reaccion-mia' : ''}"
         data-reaccion="${m.id}" data-kind="${kind}" aria-pressed="${mia === kind}"
-        title="${mia === kind ? 'Quitar mi reacción' : 'Reaccionar'}">${emoji}${cuenta ? ` ${cuenta}` : ''}</button>`
+        title="${cuenta ? escapeHtml(quienes) : mia === kind ? 'Quitar mi reacción' : 'Reaccionar'}">${emoji}${cuenta ? ` ${cuenta}` : ''}</button>`
     }).join('')}
   </div>`
 }
@@ -553,9 +572,14 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
       </header>
       ${esLaSolucion ? `<p class="foro-solucion-banda">${icons.checkCircle(14)} Esta respuesta resolvió el tema</p>` : ''}
       ${
+        // La cabecera de la cita es un enlace al mensaje citado: salta
+        // (resolviendo la página si hace falta) y lo destella. Antes la
+        // cita enseñaba un trozo y ahí se acababa el camino.
         citado
           ? `<blockquote class="foro-cita">
-               <span class="foro-cita-quien">${escapeHtml(nombreDe(perfiles[citado.author_id]))} escribió:</span>
+               <a class="foro-cita-quien" href="#mensaje-${citado.id}" title="Ver el mensaje completo en su sitio">${escapeHtml(
+                 nombreDe(perfiles[citado.author_id])
+               )} escribió: <span class="foro-cita-salto" aria-hidden="true">↩</span></a>
                <div class="article-body">${sanitizeRichText(recortar(citado.body_html))}</div>
              </blockquote>`
           : ''
@@ -588,7 +612,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
           }
         </div>
         <div class="foro-mensaje-der">
-          ${hayReacciones ? reaccionesHtml(m, reacciones, esMio) : ''}
+          ${hayReacciones ? reaccionesHtml(m, reacciones, esMio, perfiles) : ''}
           <button type="button" class="foro-accion" data-citar="${m.id}">${icons.quote(14)} Citar</button>
         </div>
       </footer>

@@ -603,6 +603,10 @@ export async function initNavbar() {
   import('./hovercard.js').then((m) => m.engancharTarjetasDeUsuario()).catch(() => {})
   import('./aviso-global.js').then((m) => m.pintarAvisoGlobal()).catch(() => {})
   import('./lightbox.js').then((m) => m.engancharLightbox()).catch(() => {})
+  // El service worker de los avisos push se (re)registra en cada carga:
+  // así el navegador comprueba si hay una versión nueva de sw.js. No
+  // cachea nada, así que registrarlo no cambia cómo se sirve la web.
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {})
   try {
     montarVolverArriba()
     montarProgresoLectura()
