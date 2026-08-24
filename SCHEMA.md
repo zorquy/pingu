@@ -9505,3 +9505,17 @@ Dos cosas cantaban en la web real:
 test-portada-panel sube a 28 comprobaciones (aire compacto del
 miembro, aire intacto del visitante, columnas alineadas por abajo) y
 el rigor a 8 roturas, todas detectadas.
+
+### Segundo retoque: equilibrio por contenido, no por estirar
+
+Estirar la última tarjeta de la principal (el primer intento) dejaba
+el foro vivo hinchado y medio vacío cuando la lateral era más alta.
+Fuera ese flex: el equilibrio ahora lo pone el reparto — los atajos
+se mudan a la columna principal (en fila de dos, debajo del foro) y
+la lateral queda con el top del mes. La principal pasa a ser casi
+siempre la columna alta, y una lateral que termina antes es lo normal
+en una barra lateral. Además, en móvil faltaba aire entre las dos
+columnas apiladas (los gaps vivían DENTRO de cada columna): el
+`.panel-portada` es ahora flex-column con gap 14 en base, y rejilla
+solo a partir de 960px. test-portada-panel: 30 comprobaciones; rigor:
+8 roturas, todas detectadas.

@@ -6969,6 +6969,15 @@ a.foro-cita-quien:hover {
   margin-top: 14px;
 }
 
+/* En móvil las dos columnas se apilan: el gap del propio panel es el
+   que separa la última sección de la principal del top del mes (los
+   gaps de dentro de cada columna no cubren esa frontera). */
+.panel-portada {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .portada-principal,
 .portada-lateral {
   display: flex;
@@ -7002,17 +7011,15 @@ body.portada-compacta .page-content {
     align-self: start;
   }
 
-  /* La principal sí se estira al alto de la rejilla (por eso la
-     rejilla ya no lleva align-items: start), y su última sección
-     absorbe la diferencia: las dos columnas terminan a la misma
-     altura y no queda un agujero antes de «Explora por tema» cuando
-     la lateral es más alta. */
-  .portada-principal > section:last-child {
-    flex: 1;
-  }
-  .portada-principal > section:last-child > :first-child {
-    height: 100%;
-    box-sizing: border-box;
+  /* Nada de estirar tarjetas para cuadrar las columnas: se probó con
+     flex en la última sección y dejaba la tarjeta del foro hinchada y
+     medio vacía. El equilibrio lo pone el reparto de contenido — los
+     atajos viven en la principal, así que la principal es casi
+     siempre la columna alta y la lateral puede terminar antes, que
+     en una barra lateral es lo natural. */
+  .portada-principal .reto-tarjetas:last-child,
+  #atajosSeccion .reto-tarjetas {
+    margin-bottom: 0;
   }
 }
 
