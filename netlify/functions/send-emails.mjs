@@ -1,4 +1,4 @@
-import { renderEmail, sendEmail, PROVEEDORES } from '../lib/email.mjs'
+import { renderFilaDeCola, sendEmail, PROVEEDORES } from '../lib/email.mjs'
 import { smtpConfigDesdeEntorno, sendViaSmtp, crearTransporteSmtp } from '../lib/email-smtp.mjs'
 
 // Vacía la cola de correo (`email_outbox`) y envía lo pendiente.
@@ -129,13 +129,10 @@ export default async () => {
         ? `${siteUrl}/baja-correo?t=${perfil.email_unsubscribe_token}&tipo=${encodeURIComponent(fila.type)}`
         : null
 
-      const { subject, html, text } = renderEmail({
-        subject: fila.subject,
-        preview: fila.preview,
-        link: fila.link,
-        siteUrl,
-        unsubscribeUrl,
-      })
+      // Cada tipo con su pintura (el resumen semanal es una lista con
+      // enlaces, no un aviso de una línea): la elección vive en
+      // email.mjs para poder probarse sin red.
+      const { subject, html, text } = renderFilaDeCola(fila, { siteUrl, unsubscribeUrl })
 
       const mensaje = { apiKey, from, to, subject, html, text, unsubscribeUrl, mailgunDomain: process.env.EMAIL_MAILGUN_DOMAIN }
       if (provider === 'smtp') {

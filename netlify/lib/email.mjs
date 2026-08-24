@@ -85,6 +85,83 @@ export function renderEmail({ subject, preview, link, siteUrl, unsubscribeUrl, c
 }
 
 // ────────────────────────────────────────────────────────────
+// El resumen semanal, con forma propia
+// ────────────────────────────────────────────────────────────
+//
+// La plantilla genérica de arriba está pensada para UN aviso: asunto,
+// una línea citada y un botón. El resumen semanal es una LISTA — varios
+// temas, cada uno con su enlace — y metido en la cita genérica salía
+// como un bloque de texto sin saltos ni enlaces. Aquí cada tema es un
+// enlace directo, la guía nueva va con el suyo, y el pie dice la verdad
+// («una vez por semana») en vez del genérico «alguien se ha dirigido a
+// ti».
+export function renderResumenSemanal({ temas = [], guia = null, siteUrl, unsubscribeUrl }) {
+  const asunto = sanitizeHeader('Lo mejor de PokeDoc esta semana')
+  const pie = 'Recibes este correo una vez por semana porque tienes activado el resumen semanal en tu perfil.'
+  const urlForo = absoluteUrl(siteUrl, '/foro')
+
+  const filas = temas.map((t) => ({
+    titulo: sanitizeHeader(t.titulo, 160),
+    url: absoluteUrl(siteUrl, `/tema/${encodeURIComponent(String(t.id ?? ''))}`),
+    mensajes: Number(t.mensajes) || 0,
+  }))
+  const filaGuia = guia
+    ? { titulo: sanitizeHeader(guia.titulo, 160), url: absoluteUrl(siteUrl, `/guia.html?slug=${encodeURIComponent(String(guia.slug ?? ''))}`) }
+    : null
+
+  const bajaTexto = unsubscribeUrl ? `\n\nPara dejar de recibir estos correos: ${unsubscribeUrl}` : ''
+  const text =
+    `${asunto}\n\n` +
+    filas.map((f) => `· ${f.titulo} (${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana)\n  ${f.url}`).join('\n') +
+    (filaGuia ? `\n· Guía nueva: ${filaGuia.titulo}\n  ${filaGuia.url}` : '') +
+    `\n\nVer el foro: ${urlForo}\n\n` +
+    pie +
+    bajaTexto
+
+  const filaHtml = (url, titulo, detalle) => `
+    <p style="margin:0 0 14px;">
+      <a href="${escapeHtml(url)}" style="color:#1e5175;font-weight:700;font-size:15px;line-height:1.4;text-decoration:none;">${escapeHtml(titulo)}</a><br />
+      <span style="font-size:13px;color:#6b7280;">${escapeHtml(detalle)}</span>
+    </p>`
+
+  const html = `<!doctype html>
+<html lang="es"><body style="margin:0;padding:24px;background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1f2937;">
+  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px;">
+    <p style="margin:0 0 4px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#1e5175;font-weight:600;">PokeDoc</p>
+    <h1 style="margin:0 0 6px;font-size:19px;line-height:1.35;color:#111827;">${escapeHtml(asunto)}</h1>
+    <p style="margin:0 0 20px;font-size:13.5px;color:#6b7280;">Lo que más se ha movido en el foro estos días.</p>
+    ${filas.map((f) => filaHtml(f.url, f.titulo, `${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana`)).join('')}
+    ${filaGuia ? filaHtml(filaGuia.url, filaGuia.titulo, 'Guía nueva de esta semana') : ''}
+    <p style="margin:10px 0 24px;"><a href="${escapeHtml(urlForo)}" style="display:inline-block;background:#1e5175;color:#ffffff;text-decoration:none;padding:11px 20px;border-radius:8px;font-weight:600;font-size:15px;">Ver el foro</a></p>
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 16px;" />
+    <p style="margin:0;font-size:12px;line-height:1.5;color:#6b7280;">
+      ${escapeHtml(pie)}
+      ${unsubscribeUrl ? `<br /><a href="${escapeHtml(unsubscribeUrl)}" style="color:#6b7280;">Dejar de recibir estos avisos por correo</a>` : ''}
+    </p>
+  </div>
+</body></html>`
+
+  return { subject: asunto, html, text }
+}
+
+// Cada fila de la cola con su pintura. El resumen semanal guarda en
+// `preview` un JSON con los temas y la guía (lo encola
+// resumen-semanal.mjs); si no parsea — filas antiguas de antes de este
+// cambio — cae a la plantilla genérica de siempre y el correo sale
+// igual que salía.
+export function renderFilaDeCola(fila, { siteUrl, unsubscribeUrl }) {
+  if (fila?.type === 'weekly_digest') {
+    try {
+      const carga = JSON.parse(fila.preview)
+      if (carga && Array.isArray(carga.temas)) {
+        return renderResumenSemanal({ temas: carga.temas, guia: carga.guia || null, siteUrl, unsubscribeUrl })
+      }
+    } catch {}
+  }
+  return renderEmail({ subject: fila.subject, preview: fila.preview, link: fila.link, siteUrl, unsubscribeUrl })
+}
+
+// ────────────────────────────────────────────────────────────
 // Proveedores
 // ────────────────────────────────────────────────────────────
 //

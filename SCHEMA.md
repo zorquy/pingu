@@ -9307,3 +9307,25 @@ miembro menos «de letra»: ahora hay CARAS — el avatar de quien habló
 último en cada fila de «Ahora en el foro» (con título y meta en dos
 líneas), el avatar de cada cual en el top del mes y el del propio
 usuario en su bienvenida. Todo con el avatarHtml de foro-comun.
+
+### El correo del resumen, con forma propia
+
+El primer resumen real salió feo: un bloque de texto sin saltos ni
+enlaces, con el pie genérico «alguien se ha dirigido a ti» (mentira
+para un resumen). La causa: se encolaba texto plano y lo pintaba la
+plantilla genérica de send-emails, que está pensada para UN aviso.
+
+Ahora resumen-semanal.mjs encola el cuerpo ESTRUCTURADO (JSON en
+`preview`: temas con id/título/conteo y la guía con su slug) y
+lib/email.mjs gana `renderResumenSemanal` — cada tema es un enlace a su
+hilo, la guía lleva el suyo, botón «Ver el foro» y un pie honesto («una
+vez por semana…») — más `renderFilaDeCola`, el cruce que usa
+send-emails: weekly_digest con JSON → plantilla propia; JSON que no
+parsea (filas antiguas) o cualquier otro tipo → la genérica de siempre.
+Sin migraciones ni columnas nuevas.
+
+Probado en test-crecimiento-funciones (sección 4 nueva: enlaces por
+tema, escapado de títulos, pie, baja de un clic con el & escapado en el
+href, y el cruce con fila antigua y aviso normal) + las 4 pruebas del
+sistema de correo de siempre en verde. rigor-187 subió a 20 roturas,
+todas detectadas.

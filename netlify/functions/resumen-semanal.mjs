@@ -77,11 +77,16 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
   // Semana sin vida = sin correo. Mejor callar que escribir para nada.
   if (temas.length === 0 && !guia) return { ok: true, saltado: 'semana sin contenido: no se manda nada' }
 
-  // El cuerpo (texto plano; el HTML lo pinta send-emails escapando).
-  const lineas = []
-  for (const t of temas) lineas.push(`· ${t.title} (${mensajesPorTema[t.id]} mensajes esta semana)`)
-  if (guia) lineas.push(`· Guía nueva: ${guia.title}`)
-  const preview = lineas.join('\n')
+  // El cuerpo va ESTRUCTURADO (JSON en `preview`): send-emails lo pinta
+  // con la plantilla propia del resumen (renderResumenSemanal, en
+  // lib/email.mjs) — cada tema con su enlace y la guía con el suyo. La
+  // primera versión encolaba texto plano y el correo salía como un
+  // bloque sin saltos ni enlaces, metido en la cita genérica de los
+  // avisos de una línea.
+  const preview = JSON.stringify({
+    temas: temas.map((t) => ({ id: t.id, titulo: t.title, mensajes: mensajesPorTema[t.id] || 0 })),
+    guia: guia ? { titulo: guia.title, slug: guia.slug } : null,
+  })
 
   // A quién: todos los perfiles con el resumen semanal encendido.
   const perfiles = await rest(`user_profiles?select=id,notification_email_disabled&limit=10000`, clave)
