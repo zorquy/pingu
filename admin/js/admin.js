@@ -7,6 +7,7 @@ import { icons } from '../../js/icons.js'
 import { contentIconHtml, inlineIconHtml } from '../../js/content-icon.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
+import { revisarBloques } from '../../js/curso-lint.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados } from '../../js/tcgdex.js'
 import { checkSchema } from '../../js/schema-check.js'
 
@@ -478,6 +479,52 @@ async function loadGuides() {
 }
 
 document.getElementById('btnNewGuide').addEventListener('click', () => (window.location.href = 'editor-guia.html'))
+
+// ── El chequeo de cursos ──
+// Repasa los bloques de todos los cursos publicados con js/curso-lint.js
+// y pinta la lista de lo que cojea. Un curso con un índice mal o un slug
+// roto no da error ruidoso en la web — la pregunta simplemente se
+// comporta raro — así que este repaso es la única forma de enterarse
+// antes de que le toque a alguien.
+document.getElementById('btnRevisarCursos').addEventListener('click', async (e) => {
+  const btn = e.currentTarget
+  const hueco = document.getElementById('revisionCursos')
+  btn.disabled = true
+  const etiquetaOriginal = btn.textContent
+  btn.textContent = 'Revisando…'
+  try {
+    const { data: guias } = await supabase
+      .from('guides')
+      .select('id, slug, title, blocks')
+      .not('published_at', 'is', null)
+    const lista = guias || []
+    const slugsPublicados = new Set(lista.map((g) => g.slug).filter(Boolean))
+    const conCurso = lista.filter((g) => Array.isArray(g.blocks) && g.blocks.length > 0)
+    const hallazgos = []
+    for (const g of conCurso) {
+      for (const aviso of revisarBloques(g.blocks, slugsPublicados)) {
+        hallazgos.push({ guia: g, aviso })
+      }
+    }
+    hueco.innerHTML = hallazgos.length
+      ? `<div class="admin-revision">
+           <p class="admin-revision-titulo">${hallazgos.length} ${hallazgos.length === 1 ? 'aviso' : 'avisos'} en ${new Set(hallazgos.map((h) => h.guia.id)).size} de ${conCurso.length} cursos:</p>
+           <ul>
+             ${hallazgos
+               .map(
+                 (h) => `<li><a href="editor-guia.html?id=${encodeURIComponent(h.guia.id)}">${escapeHtml(h.guia.title)}</a> — ${escapeHtml(h.aviso)}</li>`
+               )
+               .join('')}
+           </ul>
+         </div>`
+      : `<div class="admin-revision admin-revision-limpia"><p>${conCurso.length} cursos revisados y ni un solo aviso. Impecable.</p></div>`
+    hueco.classList.remove('hidden')
+  } catch (err) {
+    showToast('No se pudo revisar: ' + (err?.message || err), 'error')
+  }
+  btn.disabled = false
+  btn.textContent = etiquetaOriginal
+})
 
 document.getElementById('btnMigrateOldGuides').addEventListener('click', async (e) => {
   if (!confirm('Esto convierte las guías con el formato de bloques antiguo a un único bloque de texto enriquecido (lo mismo que pasaría si abrieras y guardases cada una en el editor nuevo). ¿Continuar?')) return

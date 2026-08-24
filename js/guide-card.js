@@ -15,6 +15,7 @@ import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { starsHtml as _stars } from './guide-rating.js'
+import { medallasPorCurso, chipMedallaHtml } from './medallero.js'
 
 export { starsHtml } from './guide-rating.js'
 
@@ -60,7 +61,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
     : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">${icons.bookOpen(15)} Guía</span>`
 
   return `
-  <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}" data-author-id="${escapeHtml(guide.author_id || '')}" data-slug="${escapeHtml(guide.slug || '')}" data-has-guide="${hasGuide ? '1' : ''}" tabindex="0" role="link">
+  <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}" data-author-id="${escapeHtml(guide.author_id || '')}" data-slug="${escapeHtml(guide.slug || '')}" data-has-guide="${hasGuide ? '1' : ''}" data-has-course="${hasCourse ? '1' : ''}" tabindex="0" role="link">
     <div class="guide-card-icon${guide.cover_image ? ' has-cover' : ''}"${
       guide.cover_image ? ` style="background-image:url('${guide.cover_image.replace(/'/g, '%27')}')"` : ''
     }>${guide.cover_image ? '' : contentIconHtml(guide.cover_emoji, 22, 'bookOpen')}</div>
@@ -76,6 +77,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
         ${hasCourse && statusBadge === 'started' ? '<span class="badge badge-progress">EN PROGRESO</span>' : ''}
         ${hasCourse && statusBadge === 'completed' ? '<span class="badge badge-completed">✓ COMPLETADO</span>' : ''}
         ${reviewBadge ? `<span class="badge ${guide.review_status === 'approved' ? 'badge-completed' : 'badge-pro'}">${escapeHtml(reviewBadge)}</span>` : ''}
+        <span data-card-medalla></span>
       </div>
       <div class="guide-card-author" data-card-author></div>
       <div class="guide-card-social">
@@ -116,7 +118,14 @@ export async function decorateGuideCards(containerEl, session) {
   if (ids.length === 0) return
 
   const autorIds = cards.map((c) => c.dataset.authorId).filter(Boolean)
-  const [stats, savedIds, autores] = await Promise.all([getRatingStats(ids), getSavedIds(session), autoresPorId(autorIds)])
+  const [stats, savedIds, autores, medallas] = await Promise.all([
+    getRatingStats(ids),
+    getSavedIds(session),
+    autoresPorId(autorIds),
+    // La mejor medalla del que mira en cada curso: convierte la lista
+    // de cursos en un álbum por completar. Sin sesión no hay álbum.
+    session ? medallasPorCurso(session.user.id) : {},
+  ])
 
   cards.forEach((card) => {
     const id = card.dataset.guideId
@@ -125,6 +134,12 @@ export async function decorateGuideCards(containerEl, session) {
       const s = stats[id]
       ratingEl.innerHTML = s ? `${_stars(s.sum / s.count, 12)} ${(s.sum / s.count).toFixed(1)}` : 'Sin valorar'
     }
+
+    // La medalla, solo en tarjetas CON curso y solo si la hay: una
+    // tarjeta sin medalla no necesita recordártelo — el hueco vacío ya
+    // invita a jugar.
+    const medallaEl = card.querySelector('[data-card-medalla]')
+    if (medallaEl && card.dataset.hasCourse && medallas[id]) medallaEl.innerHTML = chipMedallaHtml(medallas[id])
 
     const autorEl = card.querySelector('[data-card-author]')
     if (autorEl) autorEl.innerHTML = autorHtml(autores[card.dataset.authorId] || null)

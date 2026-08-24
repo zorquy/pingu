@@ -1,5 +1,31 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, categoryIconHtml, guideHasCourse } from './app.js'
+import { icons } from './icons.js'
+import { medallasPorCurso } from './medallero.js'
+
+// El medallero: convierte los cursos en un álbum por completar. Solo
+// con sesión y solo si hay cursos publicados; el que aún no ha jugado
+// ninguno también lo ve — «13 por jugar» es la invitación.
+function pintarMedallero(cursosConCurso, medallas) {
+  const hueco = document.getElementById('medallero')
+  if (!hueco || !cursosConCurso.length) return
+  const cuenta = { oro: 0, plata: 0, bronce: 0 }
+  let jugados = 0
+  for (const g of cursosConCurso) {
+    const m = medallas[g.id]
+    if (!m) continue
+    jugados++
+    if (m in cuenta) cuenta[m]++
+  }
+  const porJugar = cursosConCurso.length - jugados
+  hueco.innerHTML = `
+    <span class="medallero-titulo">${icons.trophy(16)} Tu medallero</span>
+    <span class="medalla-chip medalla-oro">${cuenta.oro} ${cuenta.oro === 1 ? 'oro' : 'oros'}</span>
+    <span class="medalla-chip medalla-plata">${cuenta.plata} ${cuenta.plata === 1 ? 'plata' : 'platas'}</span>
+    <span class="medalla-chip medalla-bronce">${cuenta.bronce} ${cuenta.bronce === 1 ? 'bronce' : 'bronces'}</span>
+    <span class="medallero-restante">${porJugar === 0 ? '¡Todos jugados! A por el pleno de oros' : `${porJugar} ${porJugar === 1 ? 'curso por jugar' : 'cursos por jugar'}`}</span>`
+  hueco.classList.remove('hidden')
+}
 
 async function loadCategories(session) {
   const list = document.getElementById('categoriesList')
@@ -19,6 +45,11 @@ async function loadCategories(session) {
 
   const guides = publishedGuides || []
   const categoryOfGuide = new Map(guides.map((g) => [g.id, g.category_id]))
+
+  if (session) {
+    const conCurso = guides.filter((g) => guideHasCourse(g))
+    medallasPorCurso(session.user.id).then((m) => pintarMedallero(conCurso, m)).catch(() => {})
+  }
 
   const totals = {}
   for (const g of guides) {

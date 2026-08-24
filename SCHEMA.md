@@ -9519,3 +9519,40 @@ columnas apiladas (los gaps vivían DENTRO de cada columna): el
 `.panel-portada` es ahora flex-column con gap 14 en base, y rejilla
 solo a partir de 960px. test-portada-panel: 30 comprobaciones; rigor:
 8 roturas, todas detectadas.
+
+## El medallero, los oros del foro y el chequeo de cursos (agosto 2026)
+
+Tres piezas que conectan el juego con el resto del sitio, sin tocar la
+base (las partidas de `course_attempts` ya son públicas salvo actividad
+oculta, y la medalla la pone el disparador de la base):
+
+- **`js/medallero.js`** — `medallasPorCurso(userId)` (la mejor medalla
+  por curso, reduciendo en cliente con `mejorMedalla`),
+  `orosPorUsuario(userIds)` (cursos DISTINTOS en oro por persona, un
+  solo viaje para toda la página) y `chipMedallaHtml`.
+- **La medalla en su tarjeta**: `renderGuideCardHtml` deja un hueco
+  `[data-card-medalla]` y `decorateGuideCards` lo rellena con la del
+  que mira. Solo tarjetas con curso y solo si hay medalla: el hueco
+  vacío ya invita a jugar. Sin sesión no hay álbum.
+- **La tira de /aprender** (`#medallero`): oros/platas/bronces y
+  cuántos cursos quedan por jugar. La pinta js/aprender.js aparte de la
+  carga de categorías (si falla, la página sigue).
+- **Los oros en el foro**: en la columna del autor, tras «Gracias:».
+  Aquí el 0 NO se dice (a diferencia de mensajes y gracias): la medalla
+  es un logro y «Oros: 0» en todo el mundo solo mete ruido.
+- **El chequeo de cursos** (/admin → Guías → «Revisar cursos»):
+  `js/curso-lint.js` repasa los bloques de todos los cursos publicados
+  — índices fuera de rango, respuestas del hueco que no están entre las
+  opciones, cartas correctas/intrusas fuera de la lista, montones
+  inexistentes, memoria fuera de 3–6, slugs de «siguiente curso» que no
+  existen, cursos sin Recompensa final — y pinta el informe con enlace
+  directo a editar cada guía. Nació justo después de meter a mano los
+  13 cursos: un despiste de esos no da error ruidoso en la web, la
+  pregunta simplemente se comporta raro.
+
+Banco de pruebas: el stub gana `window.__FAKE_PARTIDAS__` para sembrar
+course_attempts. Ojo con las URLs en las pruebas: `serve` redirige
+`categoria.html?slug=x` a `/categoria` PERDIENDO la query — hay que
+navegar sin extensión, como la web real.
+
+Probado con test-tanda-193 (26 comprobaciones) y rigor-193 (8 roturas).

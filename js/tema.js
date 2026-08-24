@@ -24,6 +24,7 @@ import {
   faltaElForo,
 } from './foro-comun.js'
 import { calculateLevel, levelBadgeHtml, levelLadderHtml, tierLadderHtml } from './gamification.js'
+import { orosPorUsuario } from './medallero.js'
 import { marcarLeido, marcasDeLectura, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 import { engancharCompartir } from './compartir.js'
@@ -414,6 +415,10 @@ async function pintarMensajes() {
     }
   }
 
+  // Los oros de cada autor de esta página, en un solo viaje. Como las
+  // gracias: si la tabla no existe o falla, la línea no sale y ya.
+  const orosPorAutor = autores.length ? await orosPorUsuario(autores) : {}
+
   elMensajes.innerHTML = lista
     .map((m, i) =>
       mensajeHtml(m, desde + i + 1, perfiles, cuentas, citadoPorId, {
@@ -421,6 +426,7 @@ async function pintarMensajes() {
         hayReacciones,
         mencionados,
         gracias: graciasPorAutor,
+        oros: orosPorAutor,
       })
     )
     .join('')
@@ -544,7 +550,7 @@ async function marcarConectados(perfiles) {
   })
 }
 
-function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, hayReacciones, mencionados, gracias }) {
+function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, hayReacciones, mencionados, gracias, oros }) {
   const perfil = perfiles[m.author_id]
   const nombre = nombreDe(perfil)
   const citado = m.reply_to_id ? citadoPorId[m.reply_to_id] : null
@@ -573,6 +579,14 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
         // han recibido sus mensajes. El 0 también se dice.
         gracias && m.author_id in gracias
           ? `<span class="foro-autor-mensajes">Gracias: ${gracias[m.author_id]}</span>`
+          : ''
+      }
+      ${
+        // Los oros de los cursos: aquí el 0 NO se dice — a diferencia de
+        // mensajes y gracias, que crecen solos con participar, la medalla
+        // es un logro y enseñar "Oros: 0" a todo el mundo solo mete ruido.
+        oros && oros[m.author_id] > 0
+          ? `<span class="foro-autor-mensajes foro-autor-oros" title="Cursos completados con medalla de oro">${icons.trophy(12)} Oros: ${oros[m.author_id]}</span>`
           : ''
       }
     </div>
