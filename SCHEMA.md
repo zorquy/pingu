@@ -9296,3 +9296,14 @@ Probado con test-tanda-188.mjs (27 comprobaciones: la portada del
 visitante y la del miembro por separado; ojo, «sin sesión» en el stub
 es `__FAKE_SESSION__ = 'none'` — sin sembrar nada da la sesión del
 admin) y rigor-188.py: 8 roturas, todas detectadas.
+
+### Retoque tras verla en producción
+
+El admin la vio desplegada y pidió dos cosas: aire entre los bloques
+(iban pegados: `.container` no trae margen vertical — ahora las
+secciones apiladas de la home llevan `margin-top`, en la SECCIÓN y no
+en la tarjeta para que las ocultas no dejen hueco) y una portada del
+miembro menos «de letra»: ahora hay CARAS — el avatar de quien habló
+último en cada fila de «Ahora en el foro» (con título y meta en dos
+líneas), el avatar de cada cual en el top del mes y el del propio
+usuario en su bienvenida. Todo con el avatarHtml de foro-comun.

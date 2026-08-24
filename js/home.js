@@ -6,7 +6,7 @@ import { contentIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 import { montarPrimerosPasos } from './primeros-pasos.js'
-import { haceCuanto, nombreDe, perfilesPorId, urlTema } from './foro-comun.js'
+import { haceCuanto, nombreDe, perfilesPorId, urlTema, avatarHtml } from './foro-comun.js'
 
 async function loadCategories() {
   const grid = document.getElementById('categoriesGrid')
@@ -151,14 +151,20 @@ async function cargarForoVivo() {
     <ul class="foro-vivo-lista">
       ${temas
         .map((t) => {
-          const quien = nombreDe(perfiles[t.last_post_author_id] || perfiles[t.author_id]) || 'Alguien'
+          // La cara de quien habló último: es lo que hace que la lista
+          // parezca gente y no un índice.
+          const perfil = perfiles[t.last_post_author_id] || perfiles[t.author_id]
+          const quien = nombreDe(perfil) || 'Alguien'
           const mensajes = t.post_count || 1
           return `
         <li class="foro-vivo-fila">
-          <a class="foro-vivo-titulo" href="${urlTema(t.id)}">${escapeHtml(t.title)}</a>
-          <span class="subtext foro-vivo-meta">${escapeHtml(quien)} · ${haceCuanto(t.last_post_at || t.created_at)} · ${mensajes} ${
-            mensajes === 1 ? 'mensaje' : 'mensajes'
-          }</span>
+          ${avatarHtml(perfil, 34)}
+          <div class="foro-vivo-texto">
+            <a class="foro-vivo-titulo" href="${urlTema(t.id)}">${escapeHtml(t.title)}</a>
+            <span class="subtext foro-vivo-meta">${escapeHtml(quien)} · ${haceCuanto(t.last_post_at || t.created_at)} · ${mensajes} ${
+              mensajes === 1 ? 'mensaje' : 'mensajes'
+            }</span>
+          </div>
         </li>`
         })
         .join('')}
@@ -181,7 +187,7 @@ async function cargarBienvenida(session) {
     const [{ data: profile }, { calculateLevel, levelBadgeHtml }] = await Promise.all([
       supabase
         .from('user_profiles')
-        .select('username, display_name, current_streak, total_xp')
+        .select('id, username, display_name, avatar_url, current_streak, total_xp')
         .eq('id', session.user.id)
         .maybeSingle(),
       import('./gamification.js'),
@@ -191,6 +197,7 @@ async function cargarBienvenida(session) {
     const nombre = profile.display_name || profile.username || ''
     const racha = profile.current_streak || 0
     hueco.innerHTML = `
+      ${avatarHtml(profile, 44)}
       <div class="bienvenida-texto">
         <strong>Hola${nombre ? `, ${escapeHtml(nombre)}` : ''}</strong>
         <span class="subtext">Tu reto y lo último de la comunidad, aquí abajo.</span>
@@ -416,6 +423,7 @@ async function cargarTopDelMes() {
           (f, i) => `
         <li class="top-mes-fila ${CLASES_PODIO[i] || ''}">
           <span class="top-mes-puesto">${MEDALLAS_PODIO[i] || `${i + 1}.`}</span>
+          ${avatarHtml(f.perfil, 26)}
           <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(f.perfil.username || '')}">${escapeHtml(
             f.perfil.display_name || f.perfil.username || 'Usuario'
           )}</a>

@@ -6960,6 +6960,20 @@ a.foro-cita-quien:hover {
   font-size: 13.5px;
 }
 
+/* ── El aire entre los bloques de la portada ──
+   .container no trae margen vertical, así que las secciones apiladas de
+   la home (reto, top del mes, foro, atajos…) salían pegadas unas a
+   otras. El margen va en la SECCIÓN y no en la tarjeta: las secciones
+   vacías van con display:none y no dejan hueco fantasma. */
+#bienvenidaSeccion,
+#destacadaSeccion,
+#retoSeccion,
+#topMesSeccion,
+#foroVivoSeccion,
+#atajosSeccion {
+  margin-top: 14px;
+}
+
 /* ── La bienvenida del miembro (sustituye al hero con sesión) ── */
 .bienvenida {
   display: flex;
@@ -6977,6 +6991,15 @@ a.foro-cita-quien:hover {
 .bienvenida-texto strong {
   display: block;
   font-size: 18px;
+}
+
+.bienvenida > .mini-avatar {
+  flex-shrink: 0;
+}
+
+.bienvenida-texto {
+  flex: 1;
+  min-width: 200px;
 }
 
 .bienvenida-chips {
@@ -7047,9 +7070,8 @@ a.foro-cita-quien:hover {
 
 .foro-vivo-fila {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
   padding: 7px 10px;
   border-radius: var(--radius-sm);
 }
@@ -7058,11 +7080,21 @@ a.foro-cita-quien:hover {
   background: var(--ice);
 }
 
+.foro-vivo-fila > .mini-avatar {
+  flex-shrink: 0;
+}
+
+.foro-vivo-texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
 .foro-vivo-titulo {
   font-weight: 700;
   color: var(--text);
-  flex: 1;
-  min-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
