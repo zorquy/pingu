@@ -165,59 +165,72 @@
          estorba (ver js/primeros-pasos.js). -->
     <section class="container hidden" id="primerosPasos"></section>
 
-    <section class="container" id="destacadaSeccion" style="display:none;">
-      <div class="destacada" id="destacada"></div>
-    </section>
+    <!-- El panel de la portada. En escritorio, dos columnas: lo ancho
+         (guía destacada, reto, foro vivo) a la izquierda y la barra
+         lateral (top del mes, atajos) a la derecha, para que todo se vea
+         de un vistazo en vez de en una torre de bloques a pantalla
+         completa. En móvil las dos columnas se apilan y el orden queda
+         prácticamente el de siempre. Las secciones conservan sus ids:
+         js/home.js las rellena y las enseña igual que antes. -->
+    <div class="container panel-portada" id="panelPortada">
+      <div class="portada-principal">
+        <section id="destacadaSeccion" style="display:none;">
+          <div class="destacada" id="destacada"></div>
+        </section>
 
-    <!-- El reto del día y el repaso: lo que da motivo para volver mañana. -->
-    <section class="container" id="retoSeccion" style="display:none;">
-      <div class="reto-tarjetas" id="retoTarjetas"></div>
-    </section>
+        <!-- El reto del día y el repaso: lo que da motivo para volver mañana. -->
+        <section id="retoSeccion" style="display:none;">
+          <div class="reto-tarjetas" id="retoTarjetas"></div>
+        </section>
 
-    <section class="container" id="topMesSeccion" style="display:none;">
-      <div class="top-mes" id="topMes"></div>
-    </section>
-
-    <!-- Lo último del foro, visible SIN sesión: los temas son públicos, y
-         enseñar que hay gente hablando hoy es la mejor prueba de que esto
-         es una comunidad y no una web de leer. La pinta js/home.js y se
-         calla si el foro está vacío o falla. -->
-    <section class="container" id="foroVivoSeccion" style="display:none;">
-      <div class="foro-vivo" id="foroVivo"></div>
-    </section>
-
-    <!-- Las dos cosas que la portada no enseñaba.
-         El foro y el editor de guías existían solo en el menú, y un menú
-         hay que abrirlo para saber lo que hay dentro: quien llegaba a
-         pokedoc.es no tenía forma de enterarse de que esto es una
-         comunidad donde se pregunta y se escribe, no una web de leer.
-         Van en HTML y no pintados por JavaScript a propósito: son
-         enlaces de navegación, así que tienen que existir desde el
-         primer instante y poder rastrearse.
-         "Escribir una guía" se le enseña también a quien no ha entrado:
-         es de las cosas que mejor explican qué es esto. Si pulsa sin
-         sesión, requireAuth() lo manda a registrarse, que es justo lo
-         que se busca. -->
-    <section class="container" id="atajosSeccion">
-      <div class="reto-tarjetas">
-        <a class="reto-tarjeta" href="foro.html">
-          <span class="reto-icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>
-          <div class="reto-texto">
-            <strong>Entra en el foro</strong>
-            <small>Pregunta, enseña tus cartas y habla con otros coleccionistas.</small>
-          </div>
-          <span class="reto-flecha">→</span>
-        </a>
-        <a class="reto-tarjeta" href="editor-guia.html">
-          <span class="reto-icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></span>
-          <div class="reto-texto">
-            <strong>Escribe una guía</strong>
-            <small>¿Sabes de algo? Compártelo y sal publicado con tu nombre.</small>
-          </div>
-          <span class="reto-flecha">→</span>
-        </a>
+        <!-- Lo último del foro, visible SIN sesión: los temas son públicos, y
+             enseñar que hay gente hablando hoy es la mejor prueba de que esto
+             es una comunidad y no una web de leer. La pinta js/home.js y se
+             calla si el foro está vacío o falla. -->
+        <section id="foroVivoSeccion" style="display:none;">
+          <div class="foro-vivo" id="foroVivo"></div>
+        </section>
       </div>
-    </section>
+
+      <aside class="portada-lateral">
+        <section id="topMesSeccion" style="display:none;">
+          <div class="top-mes" id="topMes"></div>
+        </section>
+
+        <!-- Las dos cosas que la portada no enseñaba.
+             El foro y el editor de guías existían solo en el menú, y un menú
+             hay que abrirlo para saber lo que hay dentro: quien llegaba a
+             pokedoc.es no tenía forma de enterarse de que esto es una
+             comunidad donde se pregunta y se escribe, no una web de leer.
+             Van en HTML y no pintados por JavaScript a propósito: son
+             enlaces de navegación, así que tienen que existir desde el
+             primer instante y poder rastrearse.
+             "Escribir una guía" se le enseña también a quien no ha entrado:
+             es de las cosas que mejor explican qué es esto. Si pulsa sin
+             sesión, requireAuth() lo manda a registrarse, que es justo lo
+             que se busca. -->
+        <section id="atajosSeccion">
+          <div class="reto-tarjetas">
+            <a class="reto-tarjeta" href="foro.html">
+              <span class="reto-icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>
+              <div class="reto-texto">
+                <strong>Entra en el foro</strong>
+                <small>Pregunta, enseña tus cartas y habla con otros coleccionistas.</small>
+              </div>
+              <span class="reto-flecha">→</span>
+            </a>
+            <a class="reto-tarjeta" href="editor-guia.html">
+              <span class="reto-icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></span>
+              <div class="reto-texto">
+                <strong>Escribe una guía</strong>
+                <small>¿Sabes de algo? Compártelo y sal publicado con tu nombre.</small>
+              </div>
+              <span class="reto-flecha">→</span>
+            </a>
+          </div>
+        </section>
+      </aside>
+    </div>
 
     <section class="section container">
       <h2 class="section-title">Explora por tema</h2>

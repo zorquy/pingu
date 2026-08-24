@@ -9441,3 +9441,46 @@ Probado con test-cursos-c.mjs (21 comprobaciones: tolerancia real con
 enteras con un fallo dentro del margen, la mascota en sus tres
 momentos y el editor con las etiquetas exactas) y rigor-cursos-c.py:
 9 roturas, todas detectadas.
+
+## La portada en panel (agosto 2026)
+
+La portada era una torre de secciones a ancho completo (destacada →
+reto → top del mes → foro vivo → atajos) y cada tanda la alargaba un
+poco más. Ahora, en escritorio (≥960px), es un panel de dos columnas:
+
+- **Columna principal** (ancha): guía destacada, el reto del día y
+  «Ahora en el foro».
+- **Barra lateral** (320px, sticky bajo la navbar): top del mes y los
+  atajos de foro/escribir guía. Es también la casa natural de lo que
+  venga (liga semanal, carta de la semana) sin alargar la página.
+
+En móvil las dos columnas se apilan y el orden queda prácticamente el
+de siempre. Decisiones que conviene recordar:
+
+- La estructura vive en `index.html` (`.panel-portada` >
+  `.portada-principal` + `aside.portada-lateral`). Las secciones
+  conservan sus ids y `js/home.js` no cambió: siguen apareciendo con
+  `style.display = ''`.
+- El aire entre bloques lo pone el `gap` de las columnas (flex), no un
+  margen por sección: así las secciones con `display:none` no dejan
+  hueco fantasma. La regla vieja de `margin-top` por id se retiró
+  (queda solo para `#bienvenidaSeccion`, que va fuera del panel), y el
+  `margin-top: 20px` propio de `#atajosSeccion` también.
+- `grid-template-columns: minmax(0, 1fr) 320px` — el `minmax(0, …)` es
+  obligatorio: con `1fr` a secas un contenido ancho no encogible
+  empujaría la rejilla.
+- La lateral es `position: sticky; top: 78px` (la navbar es sticky y
+  hay que dejarle sitio).
+
+### Cómo se probó
+
+test-portada-panel.mjs (21 comprobaciones: geometría real de las dos
+columnas con getBoundingClientRect, gap computado — la distancia a
+secas no vale porque el margin-bottom de `.reto-tarjetas` deja 8px
+residuales —, sticky, apilado en móvil sin desbordar, y el visitante).
+rigor-portada-panel.py: 5 roturas (sin columnas, sin gap, sin sticky,
+rejilla también en móvil, top del mes fugado de la lateral), todas
+detectadas. Lección de banco de pruebas: la primera mutación del gap
+«no se detectaba» porque el patrón `flex-direction: column; gap: 14px`
+aparece 4 veces en components.css y el replace rompía otra regla —
+las mutaciones de CSS deben llevar el selector en el patrón.

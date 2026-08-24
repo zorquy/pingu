@@ -5492,12 +5492,8 @@ a.reto-tarjeta:hover {
 }
 
 /* Los atajos de la portada (foro y escribir una guía) reutilizan la
-   tarjeta del reto. Separación arriba para que, cuando el reto del día
-   también esté visible, se lean como dos grupos y no como una fila de
-   cuatro tarjetas iguales. */
-#atajosSeccion {
-  margin-top: 20px;
-}
+   tarjeta del reto. La separación con lo de alrededor la pone el gap
+   del panel de la portada; aquí no hace falta margen propio. */
 
 /* ── Los números del foro, en la lateral ── */
 .foro-numero {
@@ -6960,18 +6956,41 @@ a.foro-cita-quien:hover {
   font-size: 13.5px;
 }
 
-/* ── El aire entre los bloques de la portada ──
-   .container no trae margen vertical, así que las secciones apiladas de
-   la home (reto, top del mes, foro, atajos…) salían pegadas unas a
-   otras. El margen va en la SECCIÓN y no en la tarjeta: las secciones
-   vacías van con display:none y no dejan hueco fantasma. */
+/* ── El panel de la portada ──
+   El aire entre bloques lo pone el gap de las columnas (así las
+   secciones con display:none no dejan hueco fantasma), y en escritorio
+   el panel se parte en dos: lo ancho a la izquierda y la barra lateral
+   (top del mes, atajos) a la derecha, en vez de una torre de bloques a
+   pantalla completa. minmax(0, 1fr) y no 1fr a secas: sin el mínimo a
+   cero, un contenido ancho (un título largo sin espacios, una tabla)
+   empujaría la rejilla en vez de encogerse. */
 #bienvenidaSeccion,
-#destacadaSeccion,
-#retoSeccion,
-#topMesSeccion,
-#foroVivoSeccion,
-#atajosSeccion {
+.panel-portada {
   margin-top: 14px;
+}
+
+.portada-principal,
+.portada-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+@media (min-width: 960px) {
+  .panel-portada {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* La lateral acompaña al hacer scroll mientras quepa; el tope deja
+     sitio a la navbar, que es sticky. */
+  .portada-lateral {
+    position: sticky;
+    top: 78px;
+  }
 }
 
 /* ── La bienvenida del miembro (sustituye al hero con sesión) ── */
