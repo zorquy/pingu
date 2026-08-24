@@ -9484,3 +9484,24 @@ detectadas. Lección de banco de pruebas: la primera mutación del gap
 «no se detectaba» porque el patrón `flex-direction: column; gap: 14px`
 aparece 4 veces en components.css y el replace rompía otra regla —
 las mutaciones de CSS deben llevar el selector en el patrón.
+
+### Retoque tras verla en producción (panel)
+
+Dos cosas cantaban en la web real:
+
+- **El aire de arriba con sesión.** `.page-content` trae 76px de
+  padding pensados para el hero de marketing; con la bienvenida como
+  primer bloque quedaba un hueco enorme (sobre todo en móvil). Ahora
+  `js/home.js` añade `body.portada-compacta` al enseñar la bienvenida
+  y el padding baja a 18px. El visitante conserva sus 76px.
+- **El agujero antes de «Explora por tema».** La lateral suele ser más
+  alta que la principal y el panel dejaba un vacío bajo el foro vivo.
+  La rejilla ya no lleva `align-items: start` (solo la lateral lleva
+  `align-self: start`, imprescindible para que el sticky tenga
+  recorrido) y la última sección de la principal lleva `flex: 1` con
+  su tarjeta a `height: 100%`: las dos columnas terminan a la misma
+  altura.
+
+test-portada-panel sube a 28 comprobaciones (aire compacto del
+miembro, aire intacto del visitante, columnas alineadas por abajo) y
+el rigor a 8 roturas, todas detectadas.

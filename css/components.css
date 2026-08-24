@@ -6977,19 +6977,42 @@ a.foro-cita-quien:hover {
   min-width: 0;
 }
 
+/* Con la bienvenida como primer bloque (sesión iniciada, el hero de
+   marketing escondido) los 76px de aire de .page-content sobran: esa
+   distancia estaba pensada para el hero. La clase la pone js/home.js
+   en el mismo momento en que enseña la bienvenida. */
+body.portada-compacta .page-content {
+  padding-top: 18px;
+}
+
 @media (min-width: 960px) {
   .panel-portada {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 320px;
     gap: 16px;
-    align-items: start;
   }
 
   /* La lateral acompaña al hacer scroll mientras quepa; el tope deja
-     sitio a la navbar, que es sticky. */
+     sitio a la navbar, que es sticky. El align-self es imprescindible:
+     si la lateral se estirara al alto de la rejilla, el sticky no
+     tendría recorrido. */
   .portada-lateral {
     position: sticky;
     top: 78px;
+    align-self: start;
+  }
+
+  /* La principal sí se estira al alto de la rejilla (por eso la
+     rejilla ya no lleva align-items: start), y su última sección
+     absorbe la diferencia: las dos columnas terminan a la misma
+     altura y no queda un agujero antes de «Explora por tema» cuando
+     la lateral es más alta. */
+  .portada-principal > section:last-child {
+    flex: 1;
+  }
+  .portada-principal > section:last-child > :first-child {
+    height: 100%;
+    box-sizing: border-box;
   }
 }
 

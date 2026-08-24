@@ -208,8 +208,12 @@ async function cargarBienvenida(session) {
         <a class="btn-secondary bienvenida-perfil" href="perfil.html">Tu perfil →</a>
       </div>`
     // El hero se esconde SOLO cuando la bienvenida está lista: si algo
-    // de arriba fallara, la portada de siempre sigue entera.
+    // de arriba fallara, la portada de siempre sigue entera. La clase
+    // del body compacta el aire de arriba: los 76px de .page-content
+    // están pensados para el hero de marketing, y con la bienvenida
+    // como primer bloque sobraban (se notaba sobre todo en móvil).
     document.querySelector('.hero')?.style.setProperty('display', 'none')
+    document.body.classList.add('portada-compacta')
     seccion.style.display = ''
   } catch {}
 }
