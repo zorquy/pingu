@@ -65,6 +65,7 @@ export const EMAIL_TYPES = {
   // que entrar a la web a mirar por si acaso.
   guide_approved: 'Cuando se aprueba tu guía',
   guide_rejected: 'Cuando tu guía necesita cambios',
+  weekly_digest: 'El resumen semanal de la comunidad',
 }
 
 // Lo que solo le llega al equipo.

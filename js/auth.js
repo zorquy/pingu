@@ -17,6 +17,15 @@ if (new URLSearchParams(window.location.search).get('banned') === '1') {
   setError(steps.login, 'Esta cuenta ha sido suspendida. Si crees que es un error, contáctanos.')
 }
 
+// El enlace de invitación (/r/<usuario> redirige aquí con ?r=). Se
+// apunta en el navegador y lo consume el onboarding al terminar: así
+// sobrevive al viaje por el registro, la confirmación de correo y el
+// OAuth de Google, que pierden la query por el camino.
+try {
+  const padrino = new URLSearchParams(window.location.search).get('r')
+  if (padrino && /^[a-z0-9_-]{1,40}$/i.test(padrino)) localStorage.setItem('pokedoc-referido', padrino)
+} catch {}
+
 function setError(stepEl, message) {
   const errorEl = stepEl.querySelector('.auth-error')
   if (errorEl) errorEl.textContent = message || ''

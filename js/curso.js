@@ -406,6 +406,14 @@ function renderReward(b) {
       <div class="reward-tabla" id="rewardTabla"></div>
       <div class="reward-actions">
         ${
+          // Presumir del reto del día: el bucle de Wordle. Un texto listo
+          // para pegar en WhatsApp o donde sea, con el enlace al reto —
+          // quien lo reciba puede intentar superarte hoy mismo.
+          modo === 'diario'
+            ? '<button class="btn-primary" id="btnPresumir">🎴 Presumir de resultado</button>'
+            : ''
+        }
+        ${
           // El reto del día se juega una vez y ya: ofrecer "repetir"
           // sería ofrecer algo que la base va a rechazar.
           modo === 'curso' && resumen.medal !== 'oro'
@@ -1063,6 +1071,32 @@ async function setupBlockLogic(block) {
 
     const btnRepetir = document.getElementById('btnRepetir')
     if (btnRepetir) btnRepetir.addEventListener('click', () => window.location.reload())
+
+    // El texto de presumir: resultado + enlace al reto. En móvil abre la
+    // hoja de compartir del sistema; sin ella, va al portapapeles.
+    const btnPresumir = document.getElementById('btnPresumir')
+    if (btnPresumir && ultimoResumen) {
+      const MEDALLA_EMOJI = { oro: '🥇', plata: '🥈', bronce: '🥉' }
+      const emoji = MEDALLA_EMOJI[ultimoResumen.medal] || '🎯'
+      const texto = `🎴 Reto Pokémon TCG de hoy en PokeDoc: ${ultimoResumen.correct}/${ultimoResumen.total} ${emoji}\n¿Puedes superarlo? ${window.location.origin}/curso.html?reto=hoy`
+      btnPresumir.addEventListener('click', async () => {
+        try {
+          if (navigator.share) {
+            await navigator.share({ text: texto })
+            return
+          }
+        } catch {
+          // Compartir cancelado: no es un error.
+          return
+        }
+        try {
+          await navigator.clipboard.writeText(texto)
+          showToast('Resultado copiado. ¡Pégalo donde quieras presumir!', 'success')
+        } catch {
+          showToast('No se ha podido copiar el resultado.')
+        }
+      })
+    }
 
     // Aquí NO se valora nada.
     //

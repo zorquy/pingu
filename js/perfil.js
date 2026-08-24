@@ -70,6 +70,8 @@ async function loadStats(session, profile) {
   const { media: avgRating, total: totalNotas } = await authorRatingSummary(session.user.id)
   const tier = contributorTier(approvedGuidesCount || 0)
 
+  montarInvitacion(profile).catch(() => {})
+
   document.getElementById('profileStats').innerHTML = `
     <div class="stat-card">
       <div class="value">${completedCount || 0}</div>
@@ -790,3 +792,52 @@ async function init() {
 }
 
 init()
+
+
+// ── Invita a un amigo ──
+//
+// Tu enlace personal (/r/<usuario>) y cuánta gente ha llegado con él.
+// Quien se registre con tu enlace te cuenta como invitado en cuanto
+// termina su onboarding, y los trofeos de Embajador llegan solos (los
+// comprueba tu propia sesión). Sin la migración de referidos, la
+// tarjeta sale igual — solo que el contador no puede contar.
+async function montarInvitacion(profile) {
+  if (!profile?.username) return
+  const stats = document.getElementById('profileStats')
+  if (!stats || document.getElementById('panelInvitar')) return
+
+  const enlace = `${window.location.origin}/r/${encodeURIComponent(profile.username)}`
+  let traidos = null
+  try {
+    const { count, error } = await supabase
+      .from('user_profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('referred_by', currentSession.user.id)
+    if (!error) traidos = count || 0
+  } catch {}
+
+  const panel = document.createElement('div')
+  panel.className = 'simple-card panel-invitar'
+  panel.id = 'panelInvitar'
+  panel.innerHTML = `
+    <div class="panel-invitar-texto">
+      <h3>${icons.users(18)} Invita a un amigo</h3>
+      <p class="subtext">Comparte tu enlace: quien se una con él y tú os lleváis trofeos y XP.${
+        traidos === null ? '' : ` Has traído a <strong>${traidos}</strong> ${traidos === 1 ? 'persona' : 'personas'}.`
+      }</p>
+    </div>
+    <div class="panel-invitar-enlace">
+      <code id="enlaceInvitar">${escapeHtml(enlace)}</code>
+      <button type="button" class="btn-secondary" id="btnCopiarInvitar">Copiar</button>
+    </div>`
+  stats.after(panel)
+
+  document.getElementById('btnCopiarInvitar').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(enlace)
+      showToast('Enlace copiado. ¡A repartirlo!', 'success')
+    } catch {
+      showToast('No se ha podido copiar. Selecciónalo a mano.')
+    }
+  })
+}

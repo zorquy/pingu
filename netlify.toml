@@ -87,6 +87,22 @@
   status = 200
   force = true
 
+# El enlace de invitación: /r/<usuario> lleva al registro con el padrino
+# en la query. auth.js lo apunta en el navegador y el onboarding lo hace
+# efectivo al terminar (ver supabase-migration-referidos.sql).
+[[redirects]]
+  from = "/r/:username"
+  to = "/auth.html?r=:username"
+  status = 302
+
+# La insignia dinámica para firmas de otros foros: una imagen SVG con el
+# nivel y el rango de cada cual (netlify/functions/insignia.mjs). URL
+# corta a propósito: se pega en firmas ajenas.
+[[redirects]]
+  from = "/insignia/:username"
+  to = "/.netlify/functions/insignia?u=:username"
+  status = 200
+
 # Enlaces de perfil legibles: /usuario/<nombre-de-usuario> en vez de
 # /usuario.html?u=<nombre-de-usuario>. Tiene que ir ANTES del catch-all de
 # abajo — Netlify aplica la primera regla que coincide.

@@ -6850,3 +6850,97 @@ a.foro-cita-quien:hover {
   line-height: 1.4;
   max-width: 100%;
 }
+
+/* ── Tanda crecimiento: invitar, top del mes ── */
+
+.panel-invitar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.panel-invitar h3 {
+  margin: 0 0 2px;
+  font-size: 15.5px;
+}
+
+.panel-invitar-enlace {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.panel-invitar-enlace code {
+  background: var(--ice);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 46vw;
+}
+
+.top-mes {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+
+.top-mes-cabecera h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.top-mes-lista {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.top-mes-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.top-mes-podio {
+  background: var(--ice);
+}
+
+.top-mes-puesto {
+  width: 28px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.top-mes-nombre {
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-mes-nombre:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.top-mes-xp {
+  color: #22a06b;
+  font-size: 13.5px;
+}

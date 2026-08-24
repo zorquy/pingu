@@ -334,6 +334,13 @@ function achievementValue(condition, stats) {
       return stats.temasForo
     case 'forum_reactions_received':
       return stats.reaccionesRecibidas
+    // Los de "invita a un amigo": cuántas cuentas te señalan como
+    // padrino, y si tú mismo llegaste invitado. Cada cual desbloquea el
+    // suyo en SU sesión — nada de escrituras cruzadas entre cuentas.
+    case 'referrals_count':
+      return stats.invitados
+    case 'was_referred':
+      return stats.invitado
     case 'completed_guides_count':
     default:
       return stats.completedCount
@@ -361,7 +368,7 @@ export async function checkAchievements(userId) {
       .eq('review_status', 'approved'),
     supabase
       .from('user_profiles')
-      .select('total_xp, achievements, quiz_correct_count')
+      .select('total_xp, achievements, quiz_correct_count, referred_by')
       .eq('id', userId)
       .single(),
     getAllAchievements(),
@@ -384,6 +391,14 @@ export async function checkAchievements(userId) {
   if (tiposActivos.has('forum_threads_count')) {
     const { count } = await supabase.from('forum_threads').select('id', { count: 'exact', head: true }).eq('author_id', userId)
     temasForo = count || 0
+  }
+  let invitados = 0
+  if (tiposActivos.has('referrals_count')) {
+    const { count } = await supabase
+      .from('user_profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('referred_by', userId)
+    invitados = count || 0
   }
   if (tiposActivos.has('forum_reactions_received')) {
     // El mismo join embebido que usa el perfil (foro-comun tiene su
@@ -408,6 +423,8 @@ export async function checkAchievements(userId) {
     mensajesForo: mensajesForoCount || 0,
     temasForo,
     reaccionesRecibidas: reaccionesForo,
+    invitados,
+    invitado: profile.referred_by ? 1 : 0,
     primerosPasos:
       ((leidasCount || 0) > 0 ? 1 : 0) +
       ((completedCount || 0) > 0 ? 1 : 0) +

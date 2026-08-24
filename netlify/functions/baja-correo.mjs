@@ -42,6 +42,7 @@ const NOMBRES = {
   // (ver más abajo), y darse de baja de "guías para revisar" no puede
   // dejar a un admin sin sus mensajes privados.
   guide_submitted: 'los avisos de guías nuevas para revisar',
+  weekly_digest: 'el resumen semanal de la comunidad',
 }
 const TIPOS = Object.keys(NOMBRES)
 

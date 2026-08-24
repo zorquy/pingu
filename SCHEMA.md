@@ -9172,3 +9172,93 @@ Probado con test-tanda-186.mjs (28 comprobaciones, incluida la de que un
 forum_title_color malicioso sembrado no cuela en el style) y rigor de 9
 roturas, todas detectadas. La prueba vieja de la precedencia
 (test-tanda-visual) se actualizó a la realidad nueva.
+
+## Tanda de crecimiento (agosto 2026): que la comunidad se traiga a la siguiente
+
+Cinco piezas pensadas para atraer gente nueva y retener a la que hay.
+Dos traen migración SQL (PENDIENTES de ejecutar en el SQL Editor):
+`supabase-migration-referidos.sql` y `supabase-migration-top-mes.sql`,
+ambas validadas dos pasadas (idempotencia) contra PostgreSQL real.
+
+### 1. Presumir del reto diario (el bucle de Wordle)
+
+En la pantalla final del reto (`?reto=hoy`, SOLO en modo diario) sale
+`#btnPresumir` (js/curso.js): un texto listo para pegar —
+«🎴 Reto Pokémon TCG de hoy en PokeDoc: 3/5 🥉 / ¿Puedes superarlo?» —
+con el enlace al reto. En móvil abre la hoja de compartir del sistema
+(navigator.share); sin ella, portapapeles + toast.
+
+### 2. Enlaces de invitación (referidos)
+
+- **supabase-migration-referidos.sql**: `user_profiles.referred_by uuid`
+  (referencia a auth.users, `on delete set null`), índice parcial, y
+  TRES trofeos nuevos en achievement_definitions: `embajador` (1 traído,
+  plata, 50 XP), `embajador-oro` (5, oro, 150 XP) e `invitado-de-honor`
+  (llegar invitado, bronce, 25 XP) — insertados con
+  `insert…select…where not exists` para poder re-ejecutar.
+- El flujo: la tarjeta «Invita a un amigo» del perfil (`#panelInvitar`,
+  js/perfil.js) da tu enlace `/r/<usuario>` y cuenta a cuántos has
+  traído. netlify.toml redirige `/r/:username` → `/auth.html?r=:username`
+  (302). js/auth.js valida el valor (`/^[a-z0-9_-]{1,40}$/i`) y lo apunta
+  en localStorage — así sobrevive al registro, la confirmación de correo
+  y el OAuth, que pierden la query. Al TERMINAR el onboarding,
+  `apuntarPadrino` (js/onboarding.js) lo consume (removeItem), resuelve
+  el username, y hace `update({referred_by}).is('referred_by', null)`
+  — una sola vez, nunca a uno mismo.
+- **Sin escrituras cruzadas entre cuentas**: los premios los reparte el
+  sistema de trofeos con su xp_reward. El invitado desbloquea el suyo en
+  esa misma sesión (checkAchievements tras apuntar) y el padrino los de
+  Embajador la próxima vez que entre (gamification.js ganó los tipos
+  `referrals_count` y `was_referred`, con la consulta de conteo gated
+  por tiposActivos: sin la migración no se consulta nada).
+
+### 3. La insignia SVG para firmas de otros foros
+
+`/insignia/<usuario>` (rewrite 200 en netlify.toml) →
+netlify/functions/insignia.mjs: SVG 340×84 con inicial, nombre, nivel
+con su color, XP, rango de colaborador si lo hay y pokedoc.es. Usa la
+clave ANÓNIMA pública (solo lee lo que ya es público), valida el nombre
+antes de consultar, escapa TODO lo que entra en el XML (`xml()`) y
+cachea una hora. Los umbrales/colores de nivel van duplicados a
+propósito (una función de Netlify no puede importar js/ del navegador);
+el comentario del fichero avisa de mantenerlos a mano.
+
+### 4. El top del mes en la portada
+
+- **supabase-migration-top-mes.sql**: tabla `xp_mes (user_id, mes
+  [día 1], xp_inicio, pk(user_id,mes))`, RLS de lectura pública y SIN
+  políticas de escritura: solo escribe el service role.
+- **netlify/functions/top-del-mes.mjs** (programada a diario, 03:43
+  UTC): a quien no tenga foto ESTE mes se la toma (xp_inicio = su
+  total_xp de ahora). Correr a diario mete a los recién registrados con
+  foto 0 y auto-repara pasadas fallidas; `on_conflict` +
+  `resolution=ignore-duplicates` la hace a prueba de carreras.
+- **js/home.js** (`cargarTopDelMes`): pinta en `#topMesSeccion` los 5
+  que más XP han ganado ESTE mes (total_xp − xp_inicio), con podio
+  🥇🥈🥉 y enlaces al perfil. Es la liga que un recién llegado puede
+  ganar. Sin migración o sin fotos, la sección ni sale.
+
+### 5. El resumen semanal por correo
+
+**netlify/functions/resumen-semanal.mjs** (lunes 08:10 UTC): junta los
+3 temas con más mensajes de los últimos 7 días + la guía aprobada de la
+semana y ENCOLA en email_outbox (tipo `weekly_digest`) — el envío real
+lo hace send-emails, como siempre. Detalles que importan: semana sin
+contenido = no se manda nada (ni se consultan destinatarios); respeta
+`notification_email_disabled` (casilla nueva en Editar perfil vía
+EMAIL_TYPES, y su nombre en baja-correo.mjs para la baja de un clic);
+dedupe por `thread_key = digest:AAAA-SS` (semana ISO): correr dos veces
+el mismo lunes no repite a nadie. Sin más variables de entorno que la
+SUPABASE_SERVICE_ROLE_KEY ya existente.
+
+### Cómo se probó
+
+`test-tanda-187.mjs` (27 comprobaciones Playwright: jugar el reto hasta
+el final y presumir, el apunte del padrino con basura rechazada, el
+onboarding entero consumiendo el apunte + el trofeo cayendo en la misma
+sesión, el top ordenado con el admin sin ganancia fuera, la casilla y
+los redirects) y `test-crecimiento-funciones.mjs` (27 en node SIN red:
+insignia con escape XML y validación, foto mensual solo-a-quien-falta y
+a prueba de carreras, resumen con dedupe/preferencias/semana-vacía).
+`rigor-187.py`: 16 roturas previstas, todas detectadas. El doble de
+Supabase ganó la tabla xp_mes y el gancho `__FAKE_XP_MES__`.

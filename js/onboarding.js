@@ -66,7 +66,43 @@ async function finishOnboarding(session, name) {
     return
   }
 
+  await apuntarPadrino(session)
   window.location.href = 'index.html'
+}
+
+// Si esta cuenta llegó por un enlace de invitación (/r/<usuario>, que
+// auth.js dejó apuntado en el navegador), aquí se hace efectivo: la
+// columna referred_by queda mirando al padrino, UNA sola vez. Los
+// premios los reparte el sistema de trofeos, cada cual en su sesión: el
+// invitado ya mismo (checkAchievements aquí) y el padrino la próxima
+// vez que entre. Sin la migración de referidos, no pasa nada.
+async function apuntarPadrino(session) {
+  let padrino = null
+  try {
+    padrino = localStorage.getItem('pokedoc-referido')
+  } catch {}
+  if (!padrino) return
+  try {
+    localStorage.removeItem('pokedoc-referido')
+    const { data: quien } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .ilike('username', padrino)
+      .neq('id', session.user.id)
+      .maybeSingle()
+    if (!quien?.id) return
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ referred_by: quien.id })
+      .eq('id', session.user.id)
+      .is('referred_by', null)
+    if (!error) {
+      const { checkAchievements } = await import('./gamification.js')
+      await checkAchievements(session.user.id).catch(() => {})
+    }
+  } catch {
+    // Sin migración de referidos, o sin red: el registro sigue igual.
+  }
 }
 
 async function init() {

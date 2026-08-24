@@ -242,3 +242,57 @@ async function cargarReto() {
   seccion.style.display = ''
 }
 cargarReto().catch(() => {})
+
+
+// ── El top del mes ──
+//
+// La clasificación por XP total la ganan siempre los veteranos; esta es
+// la liga que un recién llegado sí puede ganar: XP ganado DESDE el día 1
+// del mes (total_xp − la foto de xp_mes que toma la función programada
+// top-del-mes). Sin la migración o sin fotos todavía, la sección no sale.
+async function cargarTopDelMes() {
+  const seccion = document.getElementById('topMesSeccion')
+  const hueco = document.getElementById('topMes')
+  if (!seccion || !hueco) return
+
+  const mes = `${new Date().getUTCFullYear()}-${String(new Date().getUTCMonth() + 1).padStart(2, '0')}-01`
+  const { data: fotos, error } = await supabase.from('xp_mes').select('user_id, xp_inicio').eq('mes', mes).limit(2000)
+  if (error || !fotos || fotos.length === 0) return
+
+  const { data: perfiles } = await supabase
+    .from('user_profiles')
+    .select('id, username, display_name, avatar_url, banner_color, total_xp, level')
+    .limit(2000)
+  if (!perfiles) return
+
+  const inicioPorId = Object.fromEntries(fotos.map((f) => [f.user_id, f.xp_inicio || 0]))
+  const filas = perfiles
+    .map((p) => ({ perfil: p, ganado: Math.max(0, (p.total_xp || 0) - (inicioPorId[p.id] ?? 0)) }))
+    .filter((f) => f.ganado > 0)
+    .sort((a, b) => b.ganado - a.ganado)
+    .slice(0, 5)
+  if (filas.length === 0) return
+
+  const MEDALLAS_PODIO = ['🥇', '🥈', '🥉']
+  hueco.innerHTML = `
+    <div class="top-mes-cabecera">
+      <h2>Top del mes</h2>
+      <p class="subtext">Quien más XP ha ganado desde el día 1. Cada mes, borrón y cuenta nueva.</p>
+    </div>
+    <ol class="top-mes-lista">
+      ${filas
+        .map(
+          (f, i) => `
+        <li class="top-mes-fila ${i < 3 ? 'top-mes-podio' : ''}">
+          <span class="top-mes-puesto">${MEDALLAS_PODIO[i] || `${i + 1}.`}</span>
+          <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(f.perfil.username || '')}">${escapeHtml(
+            f.perfil.display_name || f.perfil.username || 'Usuario'
+          )}</a>
+          <strong class="top-mes-xp">+${f.ganado} XP</strong>
+        </li>`
+        )
+        .join('')}
+    </ol>`
+  seccion.style.display = ''
+}
+cargarTopDelMes().catch(() => {})
