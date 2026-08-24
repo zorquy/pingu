@@ -6,6 +6,7 @@ import { contentIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 import { montarPrimerosPasos } from './primeros-pasos.js'
+import { haceCuanto, nombreDe, perfilesPorId, urlTema } from './foro-comun.js'
 
 async function loadCategories() {
   const grid = document.getElementById('categoriesGrid')
@@ -44,6 +45,24 @@ async function loadHeroGuideCount() {
     .select('*', { count: 'exact', head: true })
     .not('published_at', 'is', null)
   el.textContent = count || 0
+}
+
+// Los números que hablan de personas: cuánta gente hay y cuánto se ha
+// hablado esta semana. Si algo falla se quedan los guiones del HTML —
+// mejor un guion que un cero mentiroso.
+async function cargarNumerosComunidad() {
+  const elMiembros = document.getElementById('heroStatMiembros')
+  const elMensajes = document.getElementById('heroStatMensajes')
+  if (!elMiembros && !elMensajes) return
+  try {
+    const desde = new Date(Date.now() - 7 * 86400e3).toISOString()
+    const [{ count: miembros }, { count: mensajes }] = await Promise.all([
+      supabase.from('user_profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('forum_posts').select('id', { count: 'exact', head: true }).gte('created_at', desde),
+    ])
+    if (elMiembros && miembros != null) elMiembros.textContent = miembros
+    if (elMensajes && mensajes != null) elMensajes.textContent = mensajes
+  } catch {}
 }
 
 async function loadRecent() {
@@ -101,6 +120,93 @@ async function loadHomeActivity(session) {
   }
 }
 
+// ── Lo último del foro, para TODO el mundo ──
+//
+// Es la prueba de vida de la portada: los temas son públicos, y un
+// visitante que ve «hace 20 min» entiende al momento que aquí hay gente
+// hablando hoy — que es justo lo que ninguna lista de guías puede
+// demostrar. Si el foro está vacío o algo falla, la sección no sale.
+async function cargarForoVivo() {
+  const seccion = document.getElementById('foroVivoSeccion')
+  const hueco = document.getElementById('foroVivo')
+  if (!seccion || !hueco) return
+
+  const { data: temas, error } = await supabase
+    .from('forum_threads')
+    .select('id, title, post_count, created_at, last_post_at, author_id, last_post_author_id')
+    .order('last_post_at', { ascending: false })
+    .limit(4)
+  if (error || !temas || temas.length === 0) return
+
+  const perfiles = await perfilesPorId(temas.flatMap((t) => [t.last_post_author_id, t.author_id]))
+
+  hueco.innerHTML = `
+    <div class="foro-vivo-cabecera">
+      <div>
+        <h2>Ahora en el foro</h2>
+        <p class="subtext">De lo que se está hablando hoy. Entra y participa.</p>
+      </div>
+      <a class="btn-secondary foro-vivo-boton" href="/foro">Ver el foro →</a>
+    </div>
+    <ul class="foro-vivo-lista">
+      ${temas
+        .map((t) => {
+          const quien = nombreDe(perfiles[t.last_post_author_id] || perfiles[t.author_id]) || 'Alguien'
+          const mensajes = t.post_count || 1
+          return `
+        <li class="foro-vivo-fila">
+          <a class="foro-vivo-titulo" href="${urlTema(t.id)}">${escapeHtml(t.title)}</a>
+          <span class="subtext foro-vivo-meta">${escapeHtml(quien)} · ${haceCuanto(t.last_post_at || t.created_at)} · ${mensajes} ${
+            mensajes === 1 ? 'mensaje' : 'mensajes'
+          }</span>
+        </li>`
+        })
+        .join('')}
+    </ul>`
+  seccion.style.display = ''
+}
+
+// ── La bienvenida del miembro ──
+//
+// Con sesión, el hero de marketing sobra: quien entra cada día no
+// necesita que le expliquen qué es PokeDoc. En su lugar, una barra
+// compacta con su nombre, su racha y su nivel — y la portada útil
+// (reto, top del mes, foro) queda una pantalla más arriba.
+async function cargarBienvenida(session) {
+  if (!session) return
+  const seccion = document.getElementById('bienvenidaSeccion')
+  const hueco = document.getElementById('bienvenida')
+  if (!seccion || !hueco) return
+  try {
+    const [{ data: profile }, { calculateLevel, levelBadgeHtml }] = await Promise.all([
+      supabase
+        .from('user_profiles')
+        .select('username, display_name, current_streak, total_xp')
+        .eq('id', session.user.id)
+        .maybeSingle(),
+      import('./gamification.js'),
+    ])
+    if (!profile) return
+
+    const nombre = profile.display_name || profile.username || ''
+    const racha = profile.current_streak || 0
+    hueco.innerHTML = `
+      <div class="bienvenida-texto">
+        <strong>Hola${nombre ? `, ${escapeHtml(nombre)}` : ''}</strong>
+        <span class="subtext">Tu reto y lo último de la comunidad, aquí abajo.</span>
+      </div>
+      <div class="bienvenida-chips">
+        ${racha > 0 ? `<span class="bienvenida-chip">${icons.flame(14)} ${racha} ${racha === 1 ? 'día' : 'días'}</span>` : ''}
+        ${levelBadgeHtml(calculateLevel(profile.total_xp || 0))}
+        <a class="btn-secondary bienvenida-perfil" href="perfil.html">Tu perfil →</a>
+      </div>`
+    // El hero se esconde SOLO cuando la bienvenida está lista: si algo
+    // de arriba fallara, la portada de siempre sigue entera.
+    document.querySelector('.hero')?.style.setProperty('display', 'none')
+    seccion.style.display = ''
+  } catch {}
+}
+
 function setupModals() {
   document.getElementById('btnWhatIsPokeDoc')?.addEventListener('click', () => {
     document.getElementById('whatIsModal').classList.remove('hidden')
@@ -128,6 +234,9 @@ async function init() {
     loadCategories(),
     loadRecent(),
     loadHeroGuideCount(),
+    cargarNumerosComunidad(),
+    cargarForoVivo(),
+    cargarBienvenida(session),
     loadHomeActivity(session),
     // Va dentro del mismo grupo: es una consulta corta y así no añade una
     // espera más antes de que la portada esté entera.
@@ -194,7 +303,28 @@ async function cargarReto() {
   if (!seccion) return
 
   const session = await getSession()
-  if (!session) return
+
+  // Al visitante también se le enseña el reto: es la mecánica más
+  // enganchosa de la web y estaba escondida detrás de la sesión. El clic
+  // lleva al registro — el gancho de volver mañana empieza a trabajar
+  // antes de que exista la cuenta.
+  if (!session) {
+    // El «5» es PREGUNTAS_POR_RETO (js/reto-diario.js), a mano a
+    // propósito: importar el módulo solo por un número le cargaría al
+    // visitante el motor del curso entero, y la portada tiene
+    // presupuesto de peso (test-carga).
+    document.getElementById('retoTarjetas').innerHTML = `
+      <a class="reto-tarjeta" href="auth.html">
+        <span class="reto-icono">${icons.flame(20)}</span>
+        <div class="reto-texto">
+          <strong>Reto de hoy</strong>
+          <small>5 preguntas diarias, las mismas para todos. Crea tu cuenta y juega.</small>
+        </div>
+        <span class="reto-flecha">→</span>
+      </a>`
+    seccion.style.display = ''
+    return
+  }
 
   const [{ yaJugadoHoy, PREGUNTAS_POR_RETO }, { cuantasParaRepasar }] = await Promise.all([
     import('./reto-diario.js'),

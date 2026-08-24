@@ -126,14 +126,21 @@
             <span class="tcg-card c3"></span>
           </div>
           <span class="eyebrow">Ahora mismo en PokeDoc</span>
+          <!-- Números que hablan de PERSONAS, no solo de contenido: "6
+               categorías" no crece nunca; "67 miembros y 200 mensajes esta
+               semana" es la prueba de que esto está vivo, y crece solo. -->
           <div class="hero-panel-stats">
             <div class="hero-panel-stat">
-              <div class="value" id="heroStatCategories">–</div>
-              <div class="label">categorías</div>
+              <div class="value" id="heroStatMiembros">–</div>
+              <div class="label">miembros</div>
             </div>
             <div class="hero-panel-stat">
               <div class="value" id="heroStatGuides">–</div>
               <div class="label">guías publicadas</div>
+            </div>
+            <div class="hero-panel-stat">
+              <div class="value" id="heroStatMensajes">–</div>
+              <div class="label">mensajes esta semana</div>
             </div>
           </div>
           <div class="hero-panel-divider"></div>
@@ -143,6 +150,14 @@
           </p>
         </div>
       </div>
+    </section>
+
+    <!-- La bienvenida del miembro. Con sesión, el hero de marketing de
+         arriba se oculta y en su lugar sale esta barra compacta: quien
+         entra cada día no necesita que le vendan la web — necesita su
+         racha y su reto. La pinta js/home.js. -->
+    <section class="container" id="bienvenidaSeccion" style="display:none;">
+      <div class="bienvenida" id="bienvenida"></div>
     </section>
 
     <!-- Los primeros pasos de quien acaba de registrarse. Empieza oculto y
@@ -161,6 +176,14 @@
 
     <section class="container" id="topMesSeccion" style="display:none;">
       <div class="top-mes" id="topMes"></div>
+    </section>
+
+    <!-- Lo último del foro, visible SIN sesión: los temas son públicos, y
+         enseñar que hay gente hablando hoy es la mejor prueba de que esto
+         es una comunidad y no una web de leer. La pinta js/home.js y se
+         calla si el foro está vacío o falla. -->
+    <section class="container" id="foroVivoSeccion" style="display:none;">
+      <div class="foro-vivo" id="foroVivo"></div>
     </section>
 
     <!-- Las dos cosas que la portada no enseñaba.

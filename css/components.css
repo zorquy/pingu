@@ -6959,3 +6959,121 @@ a.foro-cita-quien:hover {
   color: #22a06b;
   font-size: 13.5px;
 }
+
+/* ── La bienvenida del miembro (sustituye al hero con sesión) ── */
+.bienvenida {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
+  box-shadow: var(--shadow-xs);
+}
+
+.bienvenida-texto strong {
+  display: block;
+  font-size: 18px;
+}
+
+.bienvenida-chips {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* El mismo truco de tinte que el podio: rgba semitransparente para no
+   duplicar la regla por tema. El texto sí cambia en oscuro. */
+.bienvenida-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+:root[data-theme='dark'] .bienvenida-chip {
+  color: #fbbf24;
+}
+
+/* ── Lo último del foro, en la portada ── */
+.foro-vivo {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-xs);
+}
+
+.foro-vivo-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.foro-vivo-cabecera h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.foro-vivo-cabecera .subtext {
+  margin: 2px 0 0;
+}
+
+.foro-vivo-boton {
+  padding: 6px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.foro-vivo-lista {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.foro-vivo-fila {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.foro-vivo-fila:hover {
+  background: var(--ice);
+}
+
+.foro-vivo-titulo {
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+  min-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foro-vivo-titulo:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.foro-vivo-meta {
+  font-size: 12.5px;
+  white-space: nowrap;
+}

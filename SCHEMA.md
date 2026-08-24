@@ -9262,3 +9262,37 @@ insignia con escape XML y validación, foto mensual solo-a-quien-falta y
 a prueba de carreras, resumen con dedupe/preferencias/semana-vacía).
 `rigor-187.py`: 16 roturas previstas, todas detectadas. El doble de
 Supabase ganó la tabla xp_mes y el gancho `__FAKE_XP_MES__`.
+
+## La portada viva (agosto 2026)
+
+Un repaso a la home con una idea detrás: la portada enseñaba contenido
+(guías, categorías) pero ninguna PRUEBA de que dentro hay gente. Cuatro
+cambios, todos en index.html + js/home.js + CSS, sin migraciones:
+
+1. **«Ahora en el foro», para todo el mundo** (`#foroVivoSeccion`,
+   `cargarForoVivo`): los 4 temas con actividad más reciente
+   (forum_threads por last_post_at), con quién habló último, hace cuánto
+   y cuántos mensajes. Los temas son públicos, así que el visitante lo
+   ve — es la prueba de vida. Reutiliza foro-comun.js (haceCuanto,
+   nombreDe, perfilesPorId, urlTema). Foro vacío o error → no sale.
+2. **El reto del día, a la vista del visitante**: antes `cargarReto`
+   se iba sin sesión y la mecánica más enganchosa quedaba escondida.
+   Ahora al visitante le sale la tarjeta con el clic hacia auth.html
+   («Crea tu cuenta y juega») — el bucle de volver mañana empieza antes
+   de que exista la cuenta. Con sesión, todo como estaba.
+3. **Números de comunidad en el hero** (`cargarNumerosComunidad`):
+   miembros (count de user_profiles) y mensajes de los últimos 7 días
+   (count de forum_posts), junto a las guías. «6 categorías» no crece
+   nunca; «67 miembros» sí. Si la consulta falla se quedan los guiones
+   del HTML — mejor guion que cero mentiroso.
+4. **La bienvenida del miembro** (`#bienvenidaSeccion`,
+   `cargarBienvenida`): con sesión, el hero de marketing se oculta y en
+   su lugar sale una barra compacta: nombre, chip de racha (solo si >0
+   — nada de «0 días»), chapa de nivel (levelBadgeHtml) y enlace al
+   perfil. El hero solo se esconde cuando la bienvenida está LISTA: si
+   algo falla, la portada de siempre queda entera.
+
+Probado con test-tanda-188.mjs (27 comprobaciones: la portada del
+visitante y la del miembro por separado; ojo, «sin sesión» en el stub
+es `__FAKE_SESSION__ = 'none'` — sin sembrar nada da la sesión del
+admin) y rigor-188.py: 8 roturas, todas detectadas.
