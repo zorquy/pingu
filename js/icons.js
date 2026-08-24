@@ -80,6 +80,7 @@ export const icons = {
   volumeX: (size) => icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>', size),
   volume2: (size) => icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>', size),
   ban: (size) => icon('<circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>', size),
+  medal: (size) => icon('<path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"></path><path d="M11 12 5.12 2.2"></path><path d="m13 12 5.88-9.8"></path><path d="M8 7h8"></path><circle cx="12" cy="17" r="5"></circle><path d="M12 18v-2h-.5"></path>', size),
   crown: (size) => icon('<path d="M2 18h20l-2-8-5 4-3-7-3 7-5-4-2 8z"></path>', size),
   sprout: (size) => icon('<path d="M7 20h10"></path><path d="M10 20c0-4 2-6 2-6"></path><path d="M14 20c0-4-2-6-2-6"></path><path d="M12 14c-3 0-5-2-5-5 3 0 5 1 5 3"></path><path d="M12 14c3 0 5-2 5-5-3 0-5 1-5 3"></path>', size),
   trendingUp: (size) => icon('<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>', size),

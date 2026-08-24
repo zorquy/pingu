@@ -7229,3 +7229,30 @@ body.portada-compacta .page-content {
 .admin-revision li { margin: 4px 0; }
 .admin-revision-limpia p { margin: 0; color: #1f7a55; font-weight: 600; }
 :root[data-theme='dark'] .admin-revision-limpia p { color: #4ade9b; }
+
+/* ── La liga de la semana (reutiliza la tarjeta del top del mes) ── */
+.liga-yo {
+  outline: 2px solid var(--navy);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+.liga-mi-puesto {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.liga-ver-todos {
+  margin-top: 8px;
+  font-size: 12.5px;
+}
+
+
+/* El podio de medallas SVG (liga y top del mes): oro, plata y bronce
+   por el color del trazo; el fondo tintado lo pone la fila. */
+.top-mes-puesto.podio { display: inline-flex; align-items: center; }
+.podio-1 { color: #b45309; }
+.podio-2 { color: #64748b; }
+.podio-3 { color: #a05a2c; }
+:root[data-theme='dark'] .podio-1 { color: #fbbf24; }
+:root[data-theme='dark'] .podio-2 { color: #cbd5e1; }
+:root[data-theme='dark'] .podio-3 { color: #e8a869; }

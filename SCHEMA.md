@@ -9556,3 +9556,44 @@ course_attempts. Ojo con las URLs en las pruebas: `serve` redirige
 navegar sin extensión, como la web real.
 
 Probado con test-tanda-193 (26 comprobaciones) y rigor-193 (8 roturas).
+
+## La liga de la semana (agosto 2026)
+
+La clasificación del reto diario de lunes a domingo, en la lateral de
+la portada, encima del top del mes (se mueve más rápido: cada reto
+jugado la cambia). Decisiones:
+
+- **Sin tabla propia.** `js/liga.js` agrega `daily_challenge_results`
+  (pública salvo actividad oculta) en el navegador: a escala de esta
+  comunidad son unas pocas filas por día. Si algún día pesa, se cambia
+  por una RPC — la interfaz de `clasificacionSemanal()` no cambiaría.
+- **El lunes se calcula en UTC**, porque el `day` del reto se guarda en
+  UTC (js/reto-diario.js). Con el huso local, a medianoche se
+  mezclarían las semanas.
+- Desempate por días jugados: a igualdad de puntos gana la constancia.
+- La tarjeta enseña el top 5 (con el podio del top del mes: mismas
+  clases CSS) + «Tú vas N.º» si estás fuera + «ver todos» desplegable.
+  Quien no ha puntuado esta semana recibe la invitación al reto. El
+  visitante la ve entera (es la prueba de que aquí se juega), sin fila
+  propia. Sin resultados esta semana, la sección no sale.
+- El stub gana `window.__FAKE_RETO_SEMANA__` con días como
+  desplazamientos desde hoy (dia: 0 = hoy), para que las semillas no
+  caduquen. La prueba calcula la expectativa con getUTCDay, igual que
+  la web: los lunes, la semilla de «ayer» queda fuera y eso ejercita el
+  corte de semana de verdad.
+
+Probado con test-liga.mjs (20 comprobaciones) y rigor-liga.py (6
+roturas). Pendiente anotado: divisiones (bronce/plata/oro) cuando haya
+volumen de jugadores, y enseñar el salto de puestos al terminar el
+reto.
+
+### El podio pierde los emojis (consecuencia de la liga)
+
+Al aparecer la liga en la portada por defecto, test-iconos-contenido
+por fin «vio» los 🥇🥈🥉 del top del mes (antes esa sección solo salía
+con semillas y el vigilante nunca la pillaba). La norma de la casa es
+iconos SVG, así que el podio de las dos tarjetas pasa a `icons.medal`
+tintado (`.podio-1/2/3`, con su variante oscura). test-tanda-187
+comprueba ahora el icono y acota sus selectores a `#topMes`, porque
+`.top-mes-fila` ya no es único en la página (la liga reutiliza esas
+clases a propósito).

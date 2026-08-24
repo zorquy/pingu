@@ -7,6 +7,7 @@ import { MOSTRAR_PLANES } from './planes.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 import { montarPrimerosPasos } from './primeros-pasos.js'
 import { haceCuanto, nombreDe, perfilesPorId, urlTema, avatarHtml } from './foro-comun.js'
+import { clasificacionSemanal } from './liga.js'
 
 async function loadCategories() {
   const grid = document.getElementById('categoriesGrid')
@@ -385,6 +386,76 @@ async function cargarReto() {
 cargarReto().catch(() => {})
 
 
+// ── La liga de la semana ──
+//
+// La clasificación del reto diario de lunes a domingo (js/liga.js, sin
+// tabla propia: se agrega en el navegador). Se enseña a todo el mundo
+// —es la prueba de que aquí se juega— pero la línea de «tú vas N.º»
+// solo con sesión. Sin resultados esta semana, la sección no sale.
+async function cargarLiga(session) {
+  const seccion = document.getElementById('ligaSeccion')
+  const hueco = document.getElementById('liga')
+  if (!seccion || !hueco) return
+
+  const filas = await clasificacionSemanal()
+  if (!filas.length) return
+
+  const { data: perfiles } = await supabase
+    .from('user_profiles')
+    .select('id, username, display_name, avatar_url, banner_color')
+    .in('id', filas.slice(0, 30).map((f) => f.user_id))
+  const perfilPor = Object.fromEntries((perfiles || []).map((p) => [p.id, p]))
+
+  const CLASES_PODIO = ['top-mes-oro', 'top-mes-plata', 'top-mes-bronce']
+  // El podio va con el icono de medalla tintado, no con el emoji 🥇: la
+  // norma de la casa (iconos SVG en la UI, test-iconos-contenido vigila).
+  const puestoHtml = (i) =>
+    i < 3
+      ? `<span class="top-mes-puesto podio podio-${i + 1}">${icons.medal(15)}</span>`
+      : `<span class="top-mes-puesto">${i + 1}.</span>`
+  const filaHtml = (f, i) => {
+    const perfil = perfilPor[f.user_id]
+    const soyYo = session && f.user_id === session.user.id
+    return `
+      <li class="top-mes-fila ${CLASES_PODIO[i] || ''} ${soyYo ? 'liga-yo' : ''}">
+        ${puestoHtml(i)}
+        ${avatarHtml(perfil, 26)}
+        <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(perfil?.username || '')}">${escapeHtml(
+          perfil?.display_name || perfil?.username || 'Usuario'
+        )}</a>
+        <strong class="top-mes-xp">${f.puntos} pts</strong>
+      </li>`
+  }
+
+  const miPuesto = session ? filas.findIndex((f) => f.user_id === session.user.id) : -1
+  const pintar = (todas) => {
+    const visibles = todas ? filas : filas.slice(0, 5)
+    hueco.innerHTML = `
+      <div class="top-mes-cabecera">
+        <h2>Liga de la semana</h2>
+        <p class="subtext">Los puntos del reto diario, de lunes a domingo. El lunes, borrón y cuenta nueva.</p>
+      </div>
+      <ol class="top-mes-lista">${visibles.map(filaHtml).join('')}</ol>
+      ${
+        // Tu puesto, cuando no estás entre los visibles: para eso se
+        // mira la liga. Si aún no has jugado esta semana, la invitación.
+        session && miPuesto >= visibles.length
+          ? `<p class="liga-mi-puesto">Tú vas ${miPuesto + 1}.º con ${filas[miPuesto].puntos} pts</p>`
+          : session && miPuesto === -1
+            ? `<p class="liga-mi-puesto">Esta semana todavía no puntúas — <a href="/curso.html?reto=hoy">juega el reto de hoy</a></p>`
+            : ''
+      }
+      ${
+        filas.length > 5
+          ? `<button type="button" class="link-btn liga-ver-todos" id="ligaVerTodos">${todas ? 'Ver menos' : `Ver los ${filas.length} de la semana`}</button>`
+          : ''
+      }`
+    document.getElementById('ligaVerTodos')?.addEventListener('click', () => pintar(!todas))
+  }
+  pintar(false)
+  seccion.style.display = ''
+}
+
 // ── El top del mes ──
 //
 // La clasificación por XP total la ganan siempre los veteranos; esta es
@@ -414,8 +485,12 @@ async function cargarTopDelMes() {
     .slice(0, 5)
   if (filas.length === 0) return
 
-  const MEDALLAS_PODIO = ['🥇', '🥈', '🥉']
   const CLASES_PODIO = ['top-mes-oro', 'top-mes-plata', 'top-mes-bronce']
+  // Mismo podio de medalla SVG que la liga (la norma de los iconos).
+  const puestoHtml = (i) =>
+    i < 3
+      ? `<span class="top-mes-puesto podio podio-${i + 1}">${icons.medal(15)}</span>`
+      : `<span class="top-mes-puesto">${i + 1}.</span>`
   hueco.innerHTML = `
     <div class="top-mes-cabecera">
       <h2>Top del mes</h2>
@@ -426,7 +501,7 @@ async function cargarTopDelMes() {
         .map(
           (f, i) => `
         <li class="top-mes-fila ${CLASES_PODIO[i] || ''}">
-          <span class="top-mes-puesto">${MEDALLAS_PODIO[i] || `${i + 1}.`}</span>
+          ${puestoHtml(i)}
           ${avatarHtml(f.perfil, 26)}
           <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(f.perfil.username || '')}">${escapeHtml(
             f.perfil.display_name || f.perfil.username || 'Usuario'
@@ -439,3 +514,4 @@ async function cargarTopDelMes() {
   seccion.style.display = ''
 }
 cargarTopDelMes().catch(() => {})
+getSession().then((s) => cargarLiga(s)).catch(() => {})
