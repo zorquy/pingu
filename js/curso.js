@@ -308,6 +308,55 @@ function renderCartaQuiz(b) {
     </div>`
 }
 
+// "El intruso": cuatro cartas y una NO encaja. La pintura es la misma
+// rejilla de cartas del cartaquiz (mismas clases → mismos estímulos),
+// solo cambia la pregunta: aquí se busca la oveja negra.
+function renderIntruso(b) {
+  const ids = b.card_ids || []
+  return `
+    <div class="block block-quiz block-intruso">
+      ${cabeceraPractica('EL INTRUSO', b)}
+      <h2 class="block-question">${escapeHtml(b.question || '¿Cuál NO encaja con las demás?')}</h2>
+      <div class="cartas-opciones" id="intrusoOpciones">${ids.map((id) => cartaJugableHtml(id)).join('')}</div>
+      <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
+    </div>`
+}
+
+// "Desliza": afirmaciones de una en una, a la derecha si es verdad y a
+// la izquierda si es mentira — el gesto de siempre del móvil, con
+// botones para el ratón y el teclado. El bloque entero cuenta como UNA
+// pregunta: se acierta si no fallas ninguna.
+function renderDesliza(b) {
+  const total = (b.afirmaciones || []).length
+  return `
+    <div class="block block-quiz block-desliza">
+      ${cabeceraPractica('VERDADERO O FALSO, RÁPIDO', b)}
+      <h2 class="block-question">${escapeHtml(b.title || 'Desliza: ¿verdadero o falso?')}</h2>
+      <div class="desliza-zona" id="deslizaZona">
+        <div class="desliza-carta" id="deslizaCarta"></div>
+      </div>
+      <div class="desliza-botones">
+        <button type="button" class="desliza-btn desliza-btn-falso" id="deslizaFalso">${icons.xCircle(16)} Falso</button>
+        <button type="button" class="desliza-btn desliza-btn-verdad" id="deslizaVerdad">${icons.checkCircle(16)} Verdadero</button>
+      </div>
+      <p class="subtext desliza-progreso" id="deslizaProgreso">1 de ${total}</p>
+      <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
+    </div>`
+}
+
+// "Memoria": las cartas boca abajo, por parejas. Se acierta si terminas
+// sin pasarte del margen de fallos (tantos como parejas hay).
+function renderMemoria(b) {
+  return `
+    <div class="block block-quiz block-memoria">
+      ${cabeceraPractica('MEMORIA', b)}
+      <h2 class="block-question">${escapeHtml(b.title || 'Encuentra las parejas')}</h2>
+      <p class="subtext memoria-info" id="memoriaInfo"></p>
+      <div class="memoria-tablero" id="memoriaTablero"></div>
+      <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
+    </div>`
+}
+
 // "Encuentra el fallo": una imagen grande y tocas la zona. Las zonas se
 // guardan en tanto por ciento del ancho y del alto, no en píxeles, para
 // que valgan igual en el móvil y en una pantalla de 27 pulgadas.
@@ -488,6 +537,12 @@ function getBlockHTML(block) {
       return renderCartaQuiz(block)
     case 'zonas':
       return renderZonas(block)
+    case 'intruso':
+      return renderIntruso(block)
+    case 'desliza':
+      return renderDesliza(block)
+    case 'memoria':
+      return renderMemoria(block)
     case 'clasifica':
       return renderClasifica(block)
     case 'checklist':
@@ -797,6 +852,186 @@ function setupCartaQuiz(block) {
   cargarCartasDe(block.card_ids || [], pintar)
 }
 
+function setupIntruso(block) {
+  const pintar = () => {
+    const cont = document.getElementById('intrusoOpciones')
+    if (!cont) return
+    cont.innerHTML = (block.card_ids || []).map((id) => cartaJugableHtml(id)).join('')
+    cont.querySelectorAll('.carta-opcion').forEach((btn) => {
+      btn.addEventListener('click', function onClick() {
+        const acierto = this.dataset.id === block.intruso_id
+        cont.querySelectorAll('.carta-opcion').forEach((b) => {
+          b.disabled = true
+          if (b.dataset.id === block.intruso_id) b.classList.add('correct')
+          if (b === this && !acierto) b.classList.add('incorrect')
+        })
+        showExplanation(acierto, block)
+        resolver(block, acierto)
+      })
+    })
+  }
+  pintar()
+  cargarCartasDe(block.card_ids || [], pintar)
+}
+
+function setupDesliza(block) {
+  const items = block.afirmaciones || []
+  const carta = document.getElementById('deslizaCarta')
+  const progreso = document.getElementById('deslizaProgreso')
+  const btnFalso = document.getElementById('deslizaFalso')
+  const btnVerdad = document.getElementById('deslizaVerdad')
+  if (!carta || items.length === 0) {
+    // Un bloque sin afirmaciones no puede jugarse: se deja pasar para no
+    // atascar el curso entero por un bloque mal rellenado.
+    desbloquearContinuar()
+    return
+  }
+
+  let indice = 0
+  let fallos = 0
+  let terminado = false
+
+  const pintarItem = () => {
+    carta.textContent = items[indice].text
+    carta.style.transform = ''
+    carta.classList.remove('desliza-vuela-dcha', 'desliza-vuela-izda', 'desliza-bien', 'desliza-mal')
+    if (progreso) progreso.textContent = `${indice + 1} de ${items.length}`
+  }
+
+  const responder = (diceVerdad) => {
+    if (terminado) return
+    const ok = diceVerdad === !!items[indice].es_verdad
+    if (!ok) fallos++
+    // La tarjeta vuela hacia donde deslizaste, teñida según acertaras.
+    carta.classList.add(diceVerdad ? 'desliza-vuela-dcha' : 'desliza-vuela-izda', ok ? 'desliza-bien' : 'desliza-mal')
+    setTimeout(() => {
+      indice++
+      if (indice < items.length) {
+        pintarItem()
+        return
+      }
+      terminado = true
+      btnFalso.disabled = true
+      btnVerdad.disabled = true
+      carta.textContent = fallos === 0 ? '¡Todas!' : `${items.length - fallos} de ${items.length} bien`
+      carta.classList.remove('desliza-vuela-dcha', 'desliza-vuela-izda')
+      carta.style.transform = ''
+      // El bloque entero es UNA pregunta: perfecta o no.
+      const acierto = fallos === 0
+      showExplanation(acierto, block)
+      resolver(block, acierto)
+    }, 300)
+  }
+
+  btnFalso.addEventListener('click', () => responder(false))
+  btnVerdad.addEventListener('click', () => responder(true))
+
+  // El gesto de deslizar, con Pointer Events: vale para dedo y ratón.
+  let arrastre = null
+  carta.addEventListener('pointerdown', (e) => {
+    if (terminado) return
+    arrastre = { x0: e.clientX }
+    carta.setPointerCapture(e.pointerId)
+  })
+  carta.addEventListener('pointermove', (e) => {
+    if (!arrastre || terminado) return
+    const dx = e.clientX - arrastre.x0
+    carta.style.transform = `translateX(${dx}px) rotate(${dx * 0.06}deg)`
+  })
+  carta.addEventListener('pointerup', (e) => {
+    if (!arrastre || terminado) return
+    const dx = e.clientX - arrastre.x0
+    arrastre = null
+    if (Math.abs(dx) > 70) responder(dx > 0)
+    else carta.style.transform = ''
+  })
+
+  pintarItem()
+}
+
+function setupMemoria(block) {
+  const tablero = document.getElementById('memoriaTablero')
+  const info = document.getElementById('memoriaInfo')
+  const ids = [...new Set(block.card_ids || [])]
+  if (!tablero || ids.length === 0) {
+    desbloquearContinuar()
+    return
+  }
+
+  // Cada carta dos veces, barajadas. El margen de fallos es el número de
+  // parejas: lo bastante holgado para jugar tranquilo, lo bastante justo
+  // para que mirar sin pensar cueste la medalla.
+  const margen = ids.length
+  const mazo = shuffle([...ids, ...ids])
+  let fallos = 0
+  let resueltas = 0
+  let abierta = null
+  let bloqueado = false
+  let terminado = false
+
+  const pintarInfo = () => {
+    if (info) info.textContent = `Parejas: ${resueltas} de ${ids.length} · Fallos: ${fallos} (margen ${margen})`
+  }
+
+  const frenteDe = (id) => {
+    const c = cartasPorId[id]
+    const src = c ? cardImageUrl(c.image_path, 'high', c.market) : null
+    return src
+      ? `<img src="${escapeHtml(src)}" alt="" loading="lazy" onerror="this.onerror=null;this.style.display='none'">`
+      : `<span class="memoria-noimg">${escapeHtml(c?.name || id)}</span>`
+  }
+
+  const pintar = () => {
+    tablero.innerHTML = mazo
+      .map(
+        (id, i) => `
+      <button type="button" class="memoria-carta" data-id="${escapeHtml(id)}" data-n="${i}" aria-label="Carta boca abajo">
+        <span class="memoria-cara memoria-dorso">P</span>
+        <span class="memoria-cara memoria-frente">${frenteDe(id)}</span>
+      </button>`
+      )
+      .join('')
+    tablero.querySelectorAll('.memoria-carta').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (terminado || bloqueado || btn.classList.contains('volteada') || btn.classList.contains('resuelta')) return
+        btn.classList.add('volteada')
+        if (!abierta) {
+          abierta = btn
+          return
+        }
+        const pareja = abierta
+        abierta = null
+        if (pareja.dataset.id === btn.dataset.id) {
+          pareja.classList.add('resuelta')
+          btn.classList.add('resuelta')
+          resueltas++
+          estallido(btn)
+          pintarInfo()
+          if (resueltas === ids.length) {
+            terminado = true
+            const acierto = fallos <= margen
+            showExplanation(acierto, block)
+            resolver(block, acierto)
+          }
+          return
+        }
+        fallos++
+        pintarInfo()
+        bloqueado = true
+        setTimeout(() => {
+          pareja.classList.remove('volteada')
+          btn.classList.remove('volteada')
+          bloqueado = false
+        }, 700)
+      })
+    })
+    pintarInfo()
+  }
+
+  pintar()
+  cargarCartasDe(ids, pintar)
+}
+
 function setupZonas(block) {
   const lienzo = document.getElementById('zonasLienzo')
   const img = lienzo?.querySelector('img')
@@ -1063,6 +1298,12 @@ async function setupBlockLogic(block) {
     setupCartaQuiz(block)
   } else if (block.type === 'zonas') {
     setupZonas(block)
+  } else if (block.type === 'intruso') {
+    setupIntruso(block)
+  } else if (block.type === 'desliza') {
+    setupDesliza(block)
+  } else if (block.type === 'memoria') {
+    setupMemoria(block)
   } else if (block.type === 'clasifica') {
     setupClasifica(block)
   } else if (block.type === 'checklist') {

@@ -9366,3 +9366,41 @@ frecuencia en __NOTAS__, y la vibración anotando patrones en __VIBRA__;
 el curso semilla se responde a propósito bien-bien-bien/mal/bien, con
 su repesca). rigor-cursos-a.py: 10 roturas, todas detectadas. Las 5
 pruebas antiguas del curso siguen en verde.
+
+## Cursos B — la pantalla de juego y tres bloques nuevos (agosto 2026)
+
+Segunda tanda del plan A/B/C de los cursos.
+
+**La pantalla, con look de juego** (css/curso.css): la pregunta más
+grande, y botones «tecla» al estilo Duolingo — borde inferior gordo que
+se hunde al pulsar — en todas las respuestas de texto.
+
+**Tres tipos de bloque nuevos** (12 en total ya). Cada uno tocó los
+CUATRO sitios de siempre: PRACTICE_TYPES + PREFIJO + enunciadoDe en
+curso-juego.js (sin esto el reto diario y la repesca los ignorarían o
+colisionarían sus claves), render + setup en curso.js, plantilla +
+etiqueta + formulario en block-editor.js, y CSS en curso.css.
+
+1. **El intruso** (`intruso`): 4 cartas y una NO encaja
+   (`card_ids` + `intruso_id`). Misma rejilla y clases que el cartaquiz
+   → hereda estímulos y estilos gratis.
+2. **Desliza: ¿verdadero o falso?** (`desliza`): afirmaciones de una en
+   una (`afirmaciones: [{text, es_verdad}]`), deslizando con Pointer
+   Events (dedo y ratón) o con botones. El bloque entero cuenta como
+   UNA pregunta: se acierta con pleno. En el editor se escriben
+   `texto :: v` / `texto :: f` por línea.
+3. **Memoria** (`memoria`): `card_ids` por parejas, boca abajo, con
+   volteo 3D. Margen de fallos = nº de parejas; terminar dentro del
+   margen es acierto. Las parejas acertadas sueltan partículas.
+
+Ojo dos trampas descubiertas: el selector de tipos del editor sale de
+COURSE_BLOCK_DEFAULTS con la etiqueta de COURSE_BLOCK_LABELS y el
+nombre crudo como respaldo — la prueba exige la etiqueta EXACTA porque
+«intruso» a secas colaría; y los bloques sin contenido (desliza sin
+afirmaciones, memoria sin cartas) dejan pasar con desbloquearContinuar
+para no atascar un curso por un bloque mal rellenado.
+
+Probado con test-cursos-bloques.mjs (26 comprobaciones: los tres
+bloques jugados enteros — incluido el gesto de arrastre real con el
+ratón —, el camino del fallo del intruso, y el editor ofreciendo los
+tres con su etiqueta) y rigor-cursos-b.py: 8 roturas, todas detectadas.

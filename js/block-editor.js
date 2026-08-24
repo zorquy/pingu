@@ -66,6 +66,9 @@ export const COURSE_BLOCK_DEFAULTS = {
   cartaquiz: { type: 'cartaquiz', question: '', card_ids: [], correct_id: '', explanation: '' },
   zonas: { type: 'zonas', question: '', image_url: '', zones: [], explanation: '' },
   clasifica: { type: 'clasifica', title: '', buckets: ['', ''], cards: [], explanation: '' },
+  intruso: { type: 'intruso', question: '', card_ids: [], intruso_id: '', explanation: '' },
+  desliza: { type: 'desliza', title: '', afirmaciones: [{ text: '', es_verdad: true }], explanation: '' },
+  memoria: { type: 'memoria', title: '', card_ids: [], explanation: '' },
   checklist: { type: 'checklist', title: '', items: [''] },
   reward: { type: 'reward', next_guide_slug: '' },
 }
@@ -84,6 +87,9 @@ export const COURSE_BLOCK_LABELS = {
   cartaquiz: { icon: icons.cards(16), label: 'Elegir la carta' },
   zonas: { icon: icons.scan(16), label: 'Encontrar el fallo' },
   clasifica: { icon: icons.layers(16), label: 'Clasificar cartas' },
+  intruso: { icon: icons.eye(16), label: 'El intruso' },
+  desliza: { icon: icons.gamepad(16), label: 'Desliza: ¿verdadero o falso?' },
+  memoria: { icon: icons.target(16), label: 'Memoria (parejas)' },
   checklist: { icon: icons.checkSquare(16), label: 'Checklist' },
   reward: { icon: icons.trophy(16), label: 'Recompensa final' },
 }
@@ -181,6 +187,32 @@ export function fieldsForCourseBlock(block, i) {
           <button type="button" class="btn-outline be-buscar-cartas" data-i="${i}" data-campo="cards">${icons.search(15)} Buscar cartas</button>
         </div>
         <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
+    case 'intruso':
+      return `
+        <input class="be-field" data-i="${i}" data-f="question" placeholder="Pregunta (¿cuál NO encaja?)" value="${escapeHtml(block.question || '')}" />
+        <div class="be-cartas-row">
+          <textarea class="be-field" data-i="${i}" data-f="card_ids" placeholder="Identificadores de carta, uno por línea (swsh3-136)">${escapeHtml((block.card_ids || []).join('\n'))}</textarea>
+          <button type="button" class="btn-outline be-buscar-cartas" data-i="${i}" data-campo="card_ids">${icons.search(15)} Buscar cartas</button>
+        </div>
+        <input class="be-field" data-i="${i}" data-f="intruso_id" placeholder="Identificador de la carta INTRUSA" value="${escapeHtml(block.intruso_id || '')}" />
+        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación (por qué no encaja)">${escapeHtml(block.explanation || '')}</textarea>`
+    case 'desliza':
+      return `
+        <input class="be-field" data-i="${i}" data-f="title" placeholder="Enunciado (opcional)" value="${escapeHtml(block.title || '')}" />
+        <textarea class="be-field" data-i="${i}" data-f="afirmaciones" placeholder="Una afirmación por línea: texto :: v  (o :: f si es falsa)">${escapeHtml(
+          (block.afirmaciones || []).map((a) => `${a.text} :: ${a.es_verdad ? 'v' : 'f'}`).join('\n')
+        )}</textarea>
+        <p class="be-ayuda">Se juegan de una en una, deslizando. El bloque se acierta si no se falla ninguna.</p>
+        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
+    case 'memoria':
+      return `
+        <input class="be-field" data-i="${i}" data-f="title" placeholder="Enunciado (encuentra las parejas)" value="${escapeHtml(block.title || '')}" />
+        <div class="be-cartas-row">
+          <textarea class="be-field" data-i="${i}" data-f="card_ids" placeholder="De 3 a 6 identificadores de carta, uno por línea">${escapeHtml((block.card_ids || []).join('\n'))}</textarea>
+          <button type="button" class="btn-outline be-buscar-cartas" data-i="${i}" data-campo="card_ids">${icons.search(15)} Buscar cartas</button>
+        </div>
+        <p class="be-ayuda">Cada carta sale dos veces, boca abajo. Se acierta terminando sin pasarse del margen de fallos (uno por pareja).</p>
+        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación (opcional)">${escapeHtml(block.explanation || '')}</textarea>`
     case 'checklist':
       return `
         <input class="be-field" data-i="${i}" data-f="title" placeholder="Título" value="${escapeHtml(block.title || '')}" />
@@ -295,6 +327,16 @@ export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
         blocks[i][f] = Number(input.value) || 0
       } else if (f === 'is_true') {
         blocks[i][f] = input.value === 'true'
+      } else if (f === 'afirmaciones') {
+        // "texto :: v" o "texto :: f" por línea. Sin marca, verdadera:
+        // es lo que uno espera al teclear rápido.
+        blocks[i][f] = input.value
+          .split('\n')
+          .map((line) => {
+            const [text, marca] = line.split('::').map((s) => (s || '').trim())
+            return { text: text || '', es_verdad: !/^f/i.test(marca || 'v') }
+          })
+          .filter((a) => a.text)
       } else if (f === 'pairs') {
         blocks[i][f] = input.value
           .split('\n')

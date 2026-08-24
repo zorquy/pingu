@@ -6,7 +6,7 @@
 
 // Los bloques que se juegan. El resto (hook, concept, tip…) son teoría:
 // se leen y se pasa.
-export const PRACTICE_TYPES = ['quiz', 'truefalse', 'fillblank', 'match', 'order', 'cartaquiz', 'zonas', 'ordenprecio', 'clasifica']
+export const PRACTICE_TYPES = ['quiz', 'truefalse', 'fillblank', 'match', 'order', 'cartaquiz', 'zonas', 'ordenprecio', 'clasifica', 'intruso', 'desliza', 'memoria']
 
 export function esPractica(block) {
   return !!block && PRACTICE_TYPES.includes(block.type)
@@ -103,6 +103,9 @@ const PREFIJO = {
   zonas: 'z',
   ordenprecio: 'e',
   clasifica: 'k',
+  intruso: 'n',
+  desliza: 'd',
+  memoria: 'y',
 }
 
 function normaliza(texto) {
@@ -143,6 +146,12 @@ function enunciadoDe(block) {
       return (block.cards || []).map((c) => c.id).join(',')
     case 'clasifica':
       return `${block.title || ''}|${(block.buckets || []).join(',')}`
+    case 'intruso':
+      return `${block.question || ''}|${(block.card_ids || []).join(',')}`
+    case 'desliza':
+      return `${block.title || ''}|${(block.afirmaciones || []).map((a) => a.text).join(',')}`
+    case 'memoria':
+      return `${block.title || ''}|${(block.card_ids || []).join(',')}`
     default:
       return JSON.stringify(block)
   }

@@ -1265,3 +1265,173 @@
     animation: none;
   }
 }
+
+/* ══ La pantalla del juego, con look de juego (tanda Cursos B) ══ */
+
+/* La pregunta, en grande: es la protagonista de la pantalla. */
+.block-question {
+  font-size: 23px;
+  line-height: 1.3;
+}
+
+/* Botones "tecla" al estilo Duolingo: borde inferior gordo que se hunde
+   al pulsar. Vale para todos los tipos de respuesta de texto. */
+.quiz-option,
+.tf-option,
+.fillblank-option,
+.desliza-btn {
+  border-width: 1.5px 1.5px 4px;
+  border-bottom-color: var(--border);
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease), transform 0.08s var(--ease);
+}
+
+.quiz-option:active:not(:disabled),
+.tf-option:active:not(:disabled),
+.fillblank-option:active:not(:disabled),
+.desliza-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+  margin-bottom: 2px;
+}
+
+/* ── Desliza: ¿verdadero o falso? ── */
+.desliza-zona {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 6px;
+  min-height: 130px;
+}
+
+.desliza-carta {
+  max-width: 340px;
+  min-width: 240px;
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 18px 20px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 6px 18px rgba(15, 30, 50, 0.12);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition: border-color 0.15s var(--ease);
+}
+
+.desliza-carta:active {
+  cursor: grabbing;
+}
+
+@keyframes desliza-vuela-dcha {
+  to { transform: translateX(130%) rotate(14deg); opacity: 0; }
+}
+
+@keyframes desliza-vuela-izda {
+  to { transform: translateX(-130%) rotate(-14deg); opacity: 0; }
+}
+
+.desliza-carta.desliza-vuela-dcha { animation: desliza-vuela-dcha 0.3s ease-in forwards; }
+.desliza-carta.desliza-vuela-izda { animation: desliza-vuela-izda 0.3s ease-in forwards; }
+.desliza-carta.desliza-bien { border-color: var(--success); }
+.desliza-carta.desliza-mal { border-color: #dc2626; }
+
+.desliza-botones {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.desliza-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 20px;
+  border: 1.5px solid var(--border);
+  border-bottom-width: 4px;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.desliza-btn-verdad:hover:not(:disabled) { border-color: var(--success); color: var(--success); }
+.desliza-btn-falso:hover:not(:disabled) { border-color: #dc2626; color: #dc2626; }
+.desliza-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.desliza-progreso { text-align: center; margin: 8px 0 0; }
+
+/* ── Memoria: parejas boca abajo ── */
+.memoria-tablero {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(70px, 110px));
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+@media (max-width: 560px) {
+  .memoria-tablero { grid-template-columns: repeat(3, minmax(70px, 1fr)); }
+}
+
+.memoria-carta {
+  position: relative;
+  aspect-ratio: 63 / 88;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  perspective: 500px;
+}
+
+.memoria-cara {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  backface-visibility: hidden;
+  transition: transform 0.35s var(--ease);
+  overflow: hidden;
+}
+
+.memoria-dorso {
+  background: linear-gradient(135deg, var(--navy), #2b6a97);
+  color: var(--white);
+  font-family: var(--font-display, inherit);
+  font-size: 26px;
+  font-weight: 800;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.memoria-frente {
+  transform: rotateY(180deg);
+  background: var(--white);
+  border: 1.5px solid var(--border);
+}
+
+.memoria-frente img { width: 100%; height: 100%; object-fit: cover; }
+.memoria-noimg { font-size: 11px; padding: 4px; text-align: center; }
+
+.memoria-carta.volteada .memoria-dorso { transform: rotateY(180deg); }
+.memoria-carta.volteada .memoria-frente { transform: rotateY(0deg); }
+
+.memoria-carta.resuelta { cursor: default; }
+.memoria-carta.resuelta .memoria-frente { border-color: var(--success); box-shadow: 0 0 0 2px var(--success-bg); }
+
+.memoria-info { text-align: center; margin: 0 0 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .desliza-carta.desliza-vuela-dcha,
+  .desliza-carta.desliza-vuela-izda {
+    animation: none;
+    opacity: 0;
+  }
+  .memoria-cara { transition: none; }
+}
