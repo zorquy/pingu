@@ -6919,8 +6919,19 @@ a.foro-cita-quien:hover {
   border-radius: var(--radius-sm);
 }
 
-.top-mes-podio {
-  background: var(--ice);
+/* El podio, con el tinte de su metal. Van en rgba SEMITRANSPARENTE
+   sobre el fondo de la tarjeta a propósito: así el mismo valor funciona
+   en claro y en oscuro sin duplicar reglas por tema. */
+.top-mes-oro {
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.top-mes-plata {
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.top-mes-bronce {
+  background: rgba(205, 127, 50, 0.12);
 }
 
 .top-mes-puesto {

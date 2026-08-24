@@ -274,6 +274,7 @@ async function cargarTopDelMes() {
   if (filas.length === 0) return
 
   const MEDALLAS_PODIO = ['🥇', '🥈', '🥉']
+  const CLASES_PODIO = ['top-mes-oro', 'top-mes-plata', 'top-mes-bronce']
   hueco.innerHTML = `
     <div class="top-mes-cabecera">
       <h2>Top del mes</h2>
@@ -283,7 +284,7 @@ async function cargarTopDelMes() {
       ${filas
         .map(
           (f, i) => `
-        <li class="top-mes-fila ${i < 3 ? 'top-mes-podio' : ''}">
+        <li class="top-mes-fila ${CLASES_PODIO[i] || ''}">
           <span class="top-mes-puesto">${MEDALLAS_PODIO[i] || `${i + 1}.`}</span>
           <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(f.perfil.username || '')}">${escapeHtml(
             f.perfil.display_name || f.perfil.username || 'Usuario'
