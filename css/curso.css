@@ -1435,3 +1435,119 @@
   }
   .memoria-cara { transition: none; }
 }
+
+/* ══ Tanda Cursos C: escribe, las diferencias y la mascota ══ */
+
+/* ── Escribe la respuesta ── */
+.escribe-caja {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+
+.escribe-caja input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-bottom-width: 4px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--white);
+  color: var(--text);
+}
+
+.escribe-caja input:focus {
+  outline: none;
+  border-color: var(--navy);
+}
+
+.escribe-caja.correct input { border-color: var(--success); background: var(--success-bg); }
+.escribe-caja.incorrect input { border-color: #dc2626; background: #fee2e2; color: #7f1d1d; }
+.escribe-caja.correct { animation: curso-latido 0.35s var(--ease, ease); }
+.escribe-caja.incorrect { animation: curso-sacudida 0.4s ease; }
+
+/* ── Las diferencias ── */
+.diferencias-par {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+@media (max-width: 560px) {
+  .diferencias-par { grid-template-columns: 1fr; }
+}
+
+.diferencias-par figure {
+  margin: 0;
+  position: relative;
+}
+
+.diferencias-par figcaption {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-mid, inherit);
+  opacity: 0.75;
+  margin-bottom: 4px;
+}
+
+.diferencias-par img {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+}
+
+.diferencias-lienzo { cursor: crosshair; }
+.diferencias-info { text-align: center; margin: 0 0 4px; }
+
+/* ── La mascota que comenta ── */
+@keyframes curso-mascota-entra {
+  from { transform: translateY(60px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.curso-mascota {
+  position: fixed;
+  right: 14px;
+  bottom: 82px;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: none;
+  animation: curso-mascota-entra 0.35s var(--ease, ease);
+}
+
+.curso-mascota-burbuja {
+  max-width: 200px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 12px 12px 2px 12px;
+  padding: 8px 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(15, 30, 50, 0.16);
+}
+
+.curso-mascota img {
+  width: 72px;
+  height: auto;
+}
+
+.curso-mascota-se-va {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .escribe-caja.correct,
+  .escribe-caja.incorrect,
+  .curso-mascota {
+    animation: none;
+  }
+}

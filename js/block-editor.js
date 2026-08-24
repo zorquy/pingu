@@ -69,6 +69,8 @@ export const COURSE_BLOCK_DEFAULTS = {
   intruso: { type: 'intruso', question: '', card_ids: [], intruso_id: '', explanation: '' },
   desliza: { type: 'desliza', title: '', afirmaciones: [{ text: '', es_verdad: true }], explanation: '' },
   memoria: { type: 'memoria', title: '', card_ids: [], explanation: '' },
+  escribe: { type: 'escribe', question: '', answers: [''], explanation: '' },
+  diferencias: { type: 'diferencias', question: '', image_left_url: '', image_url: '', zones: [], explanation: '' },
   checklist: { type: 'checklist', title: '', items: [''] },
   reward: { type: 'reward', next_guide_slug: '' },
 }
@@ -90,6 +92,8 @@ export const COURSE_BLOCK_LABELS = {
   intruso: { icon: icons.eye(16), label: 'El intruso' },
   desliza: { icon: icons.gamepad(16), label: 'Desliza: ¿verdadero o falso?' },
   memoria: { icon: icons.target(16), label: 'Memoria (parejas)' },
+  escribe: { icon: icons.edit(16), label: 'Escribe la respuesta' },
+  diferencias: { icon: icons.image(16), label: 'Las diferencias (dos imágenes)' },
   checklist: { icon: icons.checkSquare(16), label: 'Checklist' },
   reward: { icon: icons.trophy(16), label: 'Recompensa final' },
 }
@@ -213,6 +217,42 @@ export function fieldsForCourseBlock(block, i) {
         </div>
         <p class="be-ayuda">Cada carta sale dos veces, boca abajo. Se acierta terminando sin pasarse del margen de fallos (uno por pareja).</p>
         <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación (opcional)">${escapeHtml(block.explanation || '')}</textarea>`
+    case 'escribe':
+      return `
+        <input class="be-field" data-i="${i}" data-f="question" placeholder="Pregunta (se responde escribiendo)" value="${escapeHtml(block.question || '')}" />
+        <textarea class="be-field" data-i="${i}" data-f="answers" placeholder="Respuestas aceptadas, una por línea (acentos y mayúsculas dan igual)">${escapeHtml(
+          (block.answers || []).join('\n')
+        )}</textarea>
+        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
+    case 'diferencias':
+      return `
+        <input class="be-field" data-i="${i}" data-f="question" placeholder="Enunciado (encuentra las diferencias)" value="${escapeHtml(block.question || '')}" />
+        <p class="be-ayuda">Imagen A: la original (por ejemplo, la carta auténtica).</p>
+        <div class="be-image-row">
+          <input class="be-field" data-i="${i}" data-f="image_left_url" placeholder="Sin imagen A" value="${escapeHtml(block.image_left_url || '')}" readonly />
+          <button type="button" class="btn-outline be-upload-image" data-i="${i}" data-campo="image_left_url">${icons.upload(15)} Subir imagen A</button>
+          <input type="file" accept="image/*" class="be-image-file" data-i="${i}" data-campo="image_left_url" hidden />
+        </div>
+        <p class="be-ayuda">Imagen B: la de las diferencias. Súbela y marca cada diferencia pinchando.</p>
+        <div class="be-image-row">
+          <input class="be-field" data-i="${i}" data-f="image_url" placeholder="Sin imagen B" value="${escapeHtml(block.image_url || '')}" readonly />
+          <button type="button" class="btn-outline be-upload-image" data-i="${i}" data-campo="image_url">${icons.upload(15)} Subir imagen B</button>
+          <input type="file" accept="image/*" class="be-image-file" data-i="${i}" data-campo="image_url" hidden />
+        </div>
+        ${
+          block.image_url
+            ? `<div class="be-zonas" data-i="${i}">
+                 <img src="${escapeHtml(block.image_url)}" alt="" draggable="false" />
+                 ${(block.zones || [])
+                   .map(
+                     (z, zi) =>
+                       `<span class="be-zona" data-i="${i}" data-z="${zi}" style="left:${z.x}%; top:${z.y}%; width:${(z.r || 10) * 2}%; height:${(z.r || 10) * 2}%"></span>`
+                   )
+                   .join('')}
+               </div>`
+            : ''
+        }
+        <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
     case 'checklist':
       return `
         <input class="be-field" data-i="${i}" data-f="title" placeholder="Título" value="${escapeHtml(block.title || '')}" />
@@ -311,7 +351,7 @@ export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
     input.addEventListener('input', () => {
       const i = Number(input.dataset.i)
       const f = input.dataset.f
-      if (f === 'options' || f === 'items' || f === 'buckets' || f === 'card_ids') {
+      if (f === 'options' || f === 'items' || f === 'buckets' || f === 'card_ids' || f === 'answers') {
         blocks[i][f] = input.value.split('\n').map((s) => s.trim()).filter(Boolean)
       } else if (f === 'cards') {
         // "swsh3-136 :: Rara" por línea. El montón se compara luego con
@@ -353,7 +393,14 @@ export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
   if (uploadImage) {
     containerEl.querySelectorAll('.be-upload-image').forEach((btn) => {
       const i = Number(btn.dataset.i)
-      const fileInput = containerEl.querySelector(`.be-image-file[data-i="${i}"]`)
+      // A qué campo va la imagen. Sin data-campo es `image_url`, como
+      // siempre; «las diferencias» tiene DOS imágenes y distingue la
+      // segunda con data-campo en el botón y en su input de fichero.
+      const campo = btn.dataset.campo || 'image_url'
+      const fileInput =
+        containerEl.querySelector(`.be-image-file[data-i="${i}"][data-campo="${campo}"]`) ||
+        containerEl.querySelector(`.be-image-file[data-i="${i}"]:not([data-campo])`)
+      if (!fileInput) return
       btn.addEventListener('click', () => fileInput.click())
       fileInput.addEventListener('change', async () => {
         const file = fileInput.files[0]
@@ -361,7 +408,7 @@ export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
         if (!file) return
         try {
           const url = await uploadImage(file)
-          blocks[i].image_url = url
+          blocks[i][campo] = url
           renderCourseBlockEditor(containerEl, blocks, uploadImage)
         } catch (err) {
           showToast('No se pudo subir la imagen: ' + err.message)

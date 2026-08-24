@@ -127,6 +127,29 @@ export function estallido(el, cuantas = 10) {
   } catch {}
 }
 
+// La mascota comenta los momentos grandes: asoma por la esquina con una
+// burbuja y se va sola. Aparece POCO a propósito — el búho de Duolingo
+// funciona porque no está siempre.
+let mascotaViva = null
+export function mascotaDice(texto) {
+  try {
+    if (movimientoReducido() || !texto) return
+    mascotaViva?.remove()
+    const caja = document.createElement('div')
+    caja.className = 'curso-mascota'
+    caja.innerHTML = `
+      <span class="curso-mascota-burbuja"></span>
+      <img src="/assets/images/mascota.webp" alt="" width="72" height="109" />`
+    caja.querySelector('.curso-mascota-burbuja').textContent = texto
+    document.body.appendChild(caja)
+    mascotaViva = caja
+    setTimeout(() => {
+      caja.classList.add('curso-mascota-se-va')
+      setTimeout(() => caja.remove(), 400)
+    }, 2400)
+  } catch {}
+}
+
 // El «×2» en grande cuando el multiplicador SUBE (no en cada acierto:
 // repetirlo lo gastaría). Aparece sobre el escenario y se va solo.
 export function comboGrande(stage, mult, racha) {

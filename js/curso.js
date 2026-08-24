@@ -26,7 +26,7 @@ import {
   XP_RETO_DIARIO,
   XP_POR_RECUPERADA,
 } from './reto-diario.js'
-import { sonar, vibrar, estallido, comboGrande, silenciado, alternarSilencio } from './curso-estimulos.js'
+import { sonar, vibrar, estallido, comboGrande, mascotaDice, silenciado, alternarSilencio } from './curso-estimulos.js'
 import {
   registrarRespuesta,
   estadisticasDelCurso,
@@ -357,6 +357,43 @@ function renderMemoria(b) {
     </div>`
 }
 
+// "Escribe la respuesta": recordar en vez de reconocer — el ejercicio
+// más difícil y el que más enseña. Acentos y mayúsculas dan igual.
+function renderEscribe(b) {
+  return `
+    <div class="block block-quiz block-escribe">
+      ${cabeceraPractica('ESCRIBE LA RESPUESTA', b)}
+      <h2 class="block-question">${escapeHtml(b.question || '')}</h2>
+      <div class="escribe-caja" id="escribeCaja">
+        <input type="text" id="escribeInput" placeholder="Escribe aquí tu respuesta…" autocomplete="off" autocapitalize="off" spellcheck="false" />
+        <button type="button" class="btn-primary" id="escribeComprobar">Comprobar</button>
+      </div>
+      <p class="subtext escribe-solucion hidden" id="escribeSolucion"></p>
+      <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
+    </div>`
+}
+
+// "Las diferencias": la imagen buena y la retocada, lado a lado, y hay
+// que tocar cada diferencia en la B. Las zonas van en porcentaje, como
+// en «encuentra el fallo».
+function renderDiferencias(b) {
+  return `
+    <div class="block block-quiz block-diferencias">
+      ${cabeceraPractica('LAS DIFERENCIAS', b)}
+      <h2 class="block-question">${escapeHtml(b.question || 'Toca las diferencias en la imagen B')}</h2>
+      <p class="subtext diferencias-info" id="diferenciasInfo"></p>
+      <div class="diferencias-par">
+        <figure><figcaption>A · Original</figcaption>${
+          b.image_left_url ? `<img src="${escapeHtml(b.image_left_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen A.</p>'
+        }</figure>
+        <figure class="diferencias-lienzo" id="diferenciasLienzo"><figcaption>B · Busca aquí</figcaption>${
+          b.image_url ? `<img src="${escapeHtml(b.image_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen B.</p>'
+        }</figure>
+      </div>
+      <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
+    </div>`
+}
+
 // "Encuentra el fallo": una imagen grande y tocas la zona. Las zonas se
 // guardan en tanto por ciento del ancho y del alto, no en píxeles, para
 // que valgan igual en el móvil y en una pantalla de 27 pulgadas.
@@ -543,6 +580,10 @@ function getBlockHTML(block) {
       return renderDesliza(block)
     case 'memoria':
       return renderMemoria(block)
+    case 'escribe':
+      return renderEscribe(block)
+    case 'diferencias':
+      return renderDiferencias(block)
     case 'clasifica':
       return renderClasifica(block)
     case 'checklist':
@@ -617,6 +658,9 @@ function resolver(block, acierto) {
   // Hay que mirarlo ANTES de anotar: `anotarRespuesta` apunta la clave.
   const yaRespondida = !repesca && !!clave && partida.respondidas.has(clave)
 
+  // La racha ANTES de anotar: para saber si un fallo acaba de romper
+  // una buena (la mascota consuela solo entonces).
+  const rachaAntes = partida.racha
   const ganados = anotarRespuesta(partida, { clave, acierto, esRepesca: repesca })
   pintarHud()
   celebrarPuntos(ganados)
@@ -636,7 +680,12 @@ function resolver(block, acierto) {
     if (mult > 1 && mult !== multiplicadorDe(partida.racha - 1)) {
       sonar('combo')
       comboGrande(stage, mult, partida.racha)
+      // La mascota solo asoma en el combo GORDO (×3): guardársela para
+      // los momentos grandes es lo que hace que signifique algo.
+      if (mult >= 3) mascotaDice('¡Imparable! Racha de ' + partida.racha)
     }
+  } else if (rachaAntes >= 3) {
+    mascotaDice(`¡Vaya, llevabas ${rachaAntes} seguidas! La siguiente es tuya.`)
   }
   // La barra de progreso se tiñe de dorado mientras hay multiplicador.
   progressFill?.classList.toggle('progress-racha', multiplicadorDe(partida.racha) > 1)
@@ -1032,6 +1081,105 @@ function setupMemoria(block) {
   cargarCartasDe(ids, pintar)
 }
 
+// Comparación tolerante: sin acentos, sin mayúsculas y sin espacios de
+// más. «Pikachu», «pikachu» y «PIKACHÚ» son la misma respuesta.
+function normalizaRespuesta(s) {
+  return String(s || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
+function setupEscribe(block) {
+  const caja = document.getElementById('escribeCaja')
+  const input = document.getElementById('escribeInput')
+  const boton = document.getElementById('escribeComprobar')
+  const solucion = document.getElementById('escribeSolucion')
+  const validas = (block.answers || []).map(normalizaRespuesta).filter(Boolean)
+  if (!caja || !input || validas.length === 0) {
+    desbloquearContinuar()
+    return
+  }
+
+  let respondido = false
+  const responder = () => {
+    if (respondido) return
+    const texto = input.value
+    if (!normalizaRespuesta(texto)) return
+    respondido = true
+    const acierto = validas.includes(normalizaRespuesta(texto))
+    input.disabled = true
+    boton.disabled = true
+    caja.classList.add(acierto ? 'correct' : 'incorrect')
+    if (!acierto && solucion) {
+      solucion.textContent = `La respuesta era: ${block.answers[0]}`
+      solucion.classList.remove('hidden')
+    }
+    showExplanation(acierto, block)
+    resolver(block, acierto)
+  }
+  boton.addEventListener('click', responder)
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') responder()
+  })
+  input.focus()
+}
+
+function setupDiferencias(block) {
+  const lienzo = document.getElementById('diferenciasLienzo')
+  const info = document.getElementById('diferenciasInfo')
+  const img = lienzo?.querySelector('img')
+  const zonas = block.zones || []
+  if (!img || zonas.length === 0) {
+    desbloquearContinuar()
+    return
+  }
+
+  // Como en la memoria: margen de fallos = número de diferencias.
+  const margen = zonas.length
+  const encontradas = new Set()
+  let fallos = 0
+  let terminado = false
+
+  const pintarInfo = () => {
+    if (info) info.textContent = `Encontradas: ${encontradas.size} de ${zonas.length} · Fallos: ${fallos} (margen ${margen})`
+  }
+
+  img.addEventListener('click', (e) => {
+    if (terminado) return
+    const caja = img.getBoundingClientRect()
+    const x = ((e.clientX - caja.left) / caja.width) * 100
+    const y = ((e.clientY - caja.top) / caja.height) * 100
+    const indice = zonas.findIndex((z, zi) => !encontradas.has(zi) && Math.hypot(x - z.x, y - z.y) <= (z.r || 10))
+
+    const marca = document.createElement('span')
+    marca.className = `zona-clic ${indice >= 0 ? 'zona-clic-bien' : 'zona-clic-mal'}`
+    marca.style.left = `${x}%`
+    marca.style.top = `${y}%`
+    lienzo.appendChild(marca)
+
+    if (indice >= 0) {
+      encontradas.add(indice)
+      estallido(marca)
+    } else {
+      fallos++
+      // La marca de fallo se va sola: dejarla taparía la búsqueda.
+      setTimeout(() => marca.remove(), 700)
+    }
+    pintarInfo()
+
+    if (encontradas.size === zonas.length) {
+      terminado = true
+      const acierto = fallos <= margen
+      showExplanation(acierto, block)
+      resolver(block, acierto)
+    }
+  })
+  pintarInfo()
+}
+
 function setupZonas(block) {
   const lienzo = document.getElementById('zonasLienzo')
   const img = lienzo?.querySelector('img')
@@ -1304,6 +1452,10 @@ async function setupBlockLogic(block) {
     setupDesliza(block)
   } else if (block.type === 'memoria') {
     setupMemoria(block)
+  } else if (block.type === 'escribe') {
+    setupEscribe(block)
+  } else if (block.type === 'diferencias') {
+    setupDiferencias(block)
   } else if (block.type === 'clasifica') {
     setupClasifica(block)
   } else if (block.type === 'checklist') {
@@ -1329,6 +1481,7 @@ async function setupBlockLogic(block) {
     if (resumen.medal) {
       burstConfetti()
       sonar('final')
+      if (resumen.medal === 'oro') mascotaDice('¡Pleno! Ni un fallo.')
     }
 
     const btnRepetir = document.getElementById('btnRepetir')

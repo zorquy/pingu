@@ -9404,3 +9404,40 @@ Probado con test-cursos-bloques.mjs (26 comprobaciones: los tres
 bloques jugados enteros — incluido el gesto de arrastre real con el
 ratón —, el camino del fallo del intruso, y el editor ofreciendo los
 tres con su etiqueta) y rigor-cursos-b.py: 8 roturas, todas detectadas.
+
+## Cursos C — escribe, las diferencias y la mascota (agosto 2026)
+
+Tercera y última tanda del plan A/B/C (14 tipos de bloque ya). Igual
+que la B: cada bloque tocó PRACTICE_TYPES + PREFIJO + enunciadoDe,
+motor, editor y CSS.
+
+1. **Escribe la respuesta** (`escribe`): campo libre contra una lista
+   de `answers` aceptadas. La comparación (normalizaRespuesta) perdona
+   acentos, mayúsculas y espacios de más. Al fallar se enseña la
+   respuesta buena. Enter responde. Recordar > reconocer: es el
+   ejercicio Duolingo que faltaba.
+2. **Las diferencias** (`diferencias`): imagen A (original) y B (con
+   las diferencias) lado a lado; se toca cada diferencia en la B. Las
+   zonas van en porcentaje (como «encuentra el fallo») y el margen de
+   fallos es el nº de diferencias. En el editor, la B reutiliza el
+   widget de marcar zonas; la subida de imágenes del editor se
+   generalizó con `data-campo` (retrocompatible: sin él sigue siendo
+   image_url) para poder subir DOS imágenes en el mismo bloque.
+3. **La mascota reactiva** (`mascotaDice` en curso-estimulos.js): asoma
+   por la esquina con una burbuja y se va sola. Aparece POCO a
+   propósito — solo en el combo gordo (×3), al romper una racha de ≥3
+   («¡Vaya, llevabas N!») y con el oro («¡Pleno!»). Respeta
+   prefers-reduced-motion no saliendo.
+
+Lección de prueba que costó una tarde: el bloque entra con su animación
+de deslizamiento, y medir el boundingBox de la imagen ANTES de que
+termine da coordenadas a mitad de viaje (encima variables entre
+corridas). Los tests de clics por coordenadas miden la caja justo antes
+de CADA clic y esperan a que dos medidas seguidas coincidan
+(estabiliza() en test-cursos-c.mjs).
+
+Probado con test-cursos-c.mjs (21 comprobaciones: tolerancia real con
+«NÉGRO», el camino del fallo con su solución, las diferencias jugadas
+enteras con un fallo dentro del margen, la mascota en sus tres
+momentos y el editor con las etiquetas exactas) y rigor-cursos-c.py:
+9 roturas, todas detectadas.
