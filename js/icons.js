@@ -78,6 +78,7 @@ export const icons = {
   package: (size) => icon('<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>', size),
   send: (size) => icon('<line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>', size),
   volumeX: (size) => icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>', size),
+  volume2: (size) => icon('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>', size),
   ban: (size) => icon('<circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>', size),
   crown: (size) => icon('<path d="M2 18h20l-2-8-5 4-3-7-3 7-5-4-2 8z"></path>', size),
   sprout: (size) => icon('<path d="M7 20h10"></path><path d="M10 20c0-4 2-6 2-6"></path><path d="M14 20c0-4-2-6-2-6"></path><path d="M12 14c-3 0-5-2-5-5 3 0 5 1 5 3"></path><path d="M12 14c3 0 5-2 5-5-3 0-5 1-5 3"></path>', size),

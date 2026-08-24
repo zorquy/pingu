@@ -9329,3 +9329,40 @@ tema, escapado de títulos, pie, baja de un clic con el & escapado en el
 href, y el cruce con fila antigua y aviso normal) + las 4 pruebas del
 sistema de correo de siempre en verde. rigor-187 subió a 20 roturas,
 todas detectadas.
+
+## Cursos A — los estímulos (agosto 2026)
+
+Primera de tres tandas para que el curso se SIENTA como un juego (el
+plan: A estímulos, B pantalla+bloques nuevos, C más bloques+mascota).
+La mecánica ya existía (racha, multiplicador, medallas); lo que faltaba
+era el feedback sensorial de cada respuesta — el 90 % de lo que hace
+adictivo a un Duolingo.
+
+- **js/curso-estimulos.js** (módulo nuevo, todo decorado y todo en
+  try/catch — jamás puede romper el guardado de una respuesta):
+  - Sonido SINTETIZADO con WebAudio (cero ficheros): nota doble de
+    acierto, tono grave de fallo, arpegio de combo y fanfarria final.
+    Botón de silencio en el marcador (icons.volume2/volumeX, icono
+    nuevo) con memoria en localStorage (`pokedoc-curso-silencio`).
+  - Vibración en móvil (corta al acertar, doble al fallar); se respeta
+    prefers-reduced-motion no vibrando.
+  - `estallido()`: partículas desde la respuesta buena (posicionadas en
+    fixed, se limpian solas con red de setTimeout).
+  - `comboGrande()`: el «×2/×3» en grande SOLO cuando el multiplicador
+    acaba de subir — no en cada acierto, que lo gastaría.
+- **js/curso.js**: todo engancha en `resolver()` (el corazón del juego,
+  un solo sitio) + la fanfarria junto al confetti del final. La barra
+  de progreso se tiñe de dorado mientras hay multiplicador.
+- **css/curso.css** (ojo: el curso NO usa components.css): latido de la
+  respuesta buena y sacudida de la mala colgados de las clases
+  .correct/.incorrect que ya ponía cada bloque — los bloques nuevos lo
+  heredarán gratis; partículas, combo, barra, entrada + barrido de
+  brillo de la medalla, y un bloque prefers-reduced-motion que apaga
+  TODO el movimiento.
+
+Probado con test-cursos-estimulos.mjs (22 comprobaciones: el audio se
+prueba sustituyendo AudioContext por un doble que apunta cada
+frecuencia en __NOTAS__, y la vibración anotando patrones en __VIBRA__;
+el curso semilla se responde a propósito bien-bien-bien/mal/bien, con
+su repesca). rigor-cursos-a.py: 10 roturas, todas detectadas. Las 5
+pruebas antiguas del curso siguen en verde.

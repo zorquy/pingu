@@ -26,6 +26,7 @@ import {
   XP_RETO_DIARIO,
   XP_POR_RECUPERADA,
 } from './reto-diario.js'
+import { sonar, vibrar, estallido, comboGrande, silenciado, alternarSilencio } from './curso-estimulos.js'
 import {
   registrarRespuesta,
   estadisticasDelCurso,
@@ -568,6 +569,23 @@ function resolver(block, acierto) {
   const caja = stage.querySelector('.block')
   if (caja) caja.classList.add(acierto ? 'block-acertado' : 'block-fallado')
 
+  // Los estímulos (curso-estimulos.js): sonido, vibración, partículas
+  // sobre la respuesta buena y el «×N» en grande cuando el multiplicador
+  // acaba de subir — no en cada acierto, que lo gastaría. Todo decorado:
+  // nada de esto toca el guardado.
+  sonar(acierto ? 'acierto' : 'fallo')
+  vibrar(acierto ? 'acierto' : 'fallo')
+  if (acierto) {
+    estallido(caja?.querySelector('.correct, .zona-clic-bien') || caja)
+    const mult = multiplicadorDe(partida.racha)
+    if (mult > 1 && mult !== multiplicadorDe(partida.racha - 1)) {
+      sonar('combo')
+      comboGrande(stage, mult, partida.racha)
+    }
+  }
+  // La barra de progreso se tiñe de dorado mientras hay multiplicador.
+  progressFill?.classList.toggle('progress-racha', multiplicadorDe(partida.racha) > 1)
+
   // Ojo con `incrementQuizCorrect`: alimenta el logro de "aciertos", así
   // que también se queda fuera al repetir. Si no, el logro se saca
   // rejugando el curso más corto veinte veces.
@@ -1067,7 +1085,10 @@ async function setupBlockLogic(block) {
     // El confeti solo si hay algo que celebrar. Lanzarlo también cuando
     // has fallado media docena de preguntas es lo que hace que deje de
     // significar nada.
-    if (resumen.medal) burstConfetti()
+    if (resumen.medal) {
+      burstConfetti()
+      sonar('final')
+    }
 
     const btnRepetir = document.getElementById('btnRepetir')
     if (btnRepetir) btnRepetir.addEventListener('click', () => window.location.reload())
@@ -1340,5 +1361,19 @@ btnBack.addEventListener('click', () => {
     window.location.href = categorySlug ? `categoria.html?slug=${encodeURIComponent(categorySlug)}` : 'aprender.html'
   }
 })
+
+// El botón del sonido en el marcador: pinta el estado guardado y lo
+// alterna. Al reactivarlo suena la nota de acierto — es la manera más
+// corta de confirmar «ya se oye» sin escribir nada.
+const btnSilencio = document.getElementById('btnSilencio')
+function pintarSilencio() {
+  if (btnSilencio) btnSilencio.innerHTML = silenciado() ? icons.volumeX(15) : icons.volume2(15)
+}
+btnSilencio?.addEventListener('click', () => {
+  alternarSilencio()
+  pintarSilencio()
+  if (!silenciado()) sonar('acierto')
+})
+pintarSilencio()
 
 loadCourse()

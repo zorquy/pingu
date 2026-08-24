@@ -1102,3 +1102,166 @@
   flex-wrap: wrap;
   gap: 5px;
 }
+
+/* ══ Los estímulos del juego (curso-estimulos.js) ══
+   Latido en la respuesta buena, sacudida en la mala, partículas, el
+   combo en grande, la barra dorada con racha y el brillo de la medalla.
+   Todo decorado: si las animaciones no corren, el juego funciona igual. */
+
+/* La respuesta buena late una vez; la mala se sacude. Las clases
+   .correct/.incorrect ya las pone cada tipo de bloque — aquí solo se
+   les da cuerpo, así los bloques nuevos lo heredan gratis. */
+@keyframes curso-latido {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@keyframes curso-sacudida {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+.quiz-option.correct,
+.tf-option.correct,
+.fillblank-option.correct,
+.carta-opcion.correct {
+  animation: curso-latido 0.35s var(--ease, ease);
+}
+
+.quiz-option.incorrect,
+.tf-option.incorrect,
+.fillblank-option.incorrect,
+.carta-opcion.incorrect,
+.zona-clic-mal {
+  animation: curso-sacudida 0.4s ease;
+}
+
+/* El chorro de partículas: cada una vuela hacia su --dx/--dy. */
+@keyframes curso-particula-vuela {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3); opacity: 0; }
+}
+
+.curso-particula {
+  position: fixed;
+  z-index: 60;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: curso-particula-vuela 0.65s ease-out forwards;
+}
+
+/* El «×2» en grande cuando sube el multiplicador. */
+@keyframes curso-combo-sube {
+  0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+  25% { transform: translate(-50%, -14px) scale(1.1); opacity: 1; }
+  70% { transform: translate(-50%, -26px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -46px) scale(0.95); opacity: 0; }
+}
+
+.curso-combo-grande {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  animation: curso-combo-sube 1.3s ease-out forwards;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.curso-combo-grande strong {
+  font-family: var(--font-display, inherit);
+  font-size: 44px;
+  line-height: 1;
+  color: #f59e0b;
+}
+
+.curso-combo-grande span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+/* La barra de progreso, dorada mientras hay multiplicador. */
+.curso-progress-fill {
+  transition: width 0.3s var(--ease, ease), background 0.3s var(--ease, ease);
+}
+
+.curso-progress-fill.progress-racha {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+/* La medalla entra con presencia y un barrido de brillo por encima. */
+@keyframes curso-medalla-entra {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes curso-medalla-brillo {
+  0% { transform: translateX(-120%) rotate(18deg); }
+  100% { transform: translateX(220%) rotate(18deg); }
+}
+
+.reward-medalla {
+  position: relative;
+  overflow: hidden;
+  animation: curso-medalla-entra 0.5s var(--ease, ease);
+}
+
+.reward-medalla::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: 0;
+  width: 34%;
+  height: 160%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: curso-medalla-brillo 1.1s ease-out 0.45s both;
+  pointer-events: none;
+}
+
+/* El botón del sonido, discreto en el marcador. */
+.hud-silencio {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: none;
+  padding: 3px;
+  margin-left: 2px;
+  color: inherit;
+  opacity: 0.65;
+  cursor: pointer;
+}
+
+.hud-silencio:hover {
+  opacity: 1;
+}
+
+/* Quien pide menos movimiento, lo tiene: el juego entero funciona sin
+   una sola animación (la vibración se corta en curso-estimulos.js). */
+@media (prefers-reduced-motion: reduce) {
+  .quiz-option.correct,
+  .tf-option.correct,
+  .fillblank-option.correct,
+  .carta-opcion.correct,
+  .quiz-option.incorrect,
+  .tf-option.incorrect,
+  .fillblank-option.incorrect,
+  .carta-opcion.incorrect,
+  .zona-clic-mal,
+  .curso-particula,
+  .curso-combo-grande,
+  .reward-medalla,
+  .reward-medalla::after {
+    animation: none;
+  }
+}
