@@ -9714,3 +9714,48 @@ pequeña.
 Probado con test-importar-sets.mjs (15 comprobaciones: relleno, orden,
 ventana, caída a inglés, exclusión de Pocket, notas, guardado y fallo)
 y rigor-importar-sets.py (6 roturas, todas detectadas).
+
+## El editor de lanzamientos, por filas (agosto 2026)
+
+La caja de texto «fecha | nombre | …» del panel de Lanzamientos se
+sustituye por FILAS — lo pidió el admin para meter la era actual a mano
+sin pelearse con las barras. Cada fila: fecha (input date), nombre,
+logo (URL pegada o botón de subir) y notas (opcional), con su botón de
+quitar; «Añadir set» abre una fila nueva y siempre queda al menos una
+vacía donde empezar.
+
+- **La subida del logo** reutiliza `uploadGuideImage` (bucket
+  guide-images, el de las imágenes de guías): ya existe, ya tiene la
+  política de subida para sesiones y no hace falta ni migración ni
+  bucket nuevo. La URL pública cae en el campo de la fila.
+- **La validación**: una fila con algo escrito pero sin fecha o sin
+  nombre FRENA el guardado entero con su aviso, como antes frenaba la
+  línea rota. Las filas del todo vacías simplemente se ignoran. Al
+  guardar, los sets se ordenan por fecha (las páginas ordenan igual,
+  pero así el admin los ve ordenados al recargar).
+- **Importar de TCGdex** ahora rellena las filas (mismas garantías:
+  solo rellena, notas conservadas por nombre, y si falla no toca nada).
+- Datos y páginas, sin cambios: el mismo { sets } en site_settings.
+- Criterio de alcance hablado con el admin: la era actual + lo que
+  venga; la página solo enseña los últimos 6 ya salidos, así que
+  rellenar eras viejas no aportaría nada visible.
+
+Probado con test-lanzamientos.mjs (sección 3 reescrita para filas:
+fila vacía de partida, fila a medias frena, guardado, quitar, y la
+subida de imagen de verdad vía filechooser contra el storage del stub)
+y test-importar-sets.mjs (adaptado a filas); rigor-lanzamientos.py y
+rigor-importar-sets.py al día (11 roturas, todas detectadas).
+
+### Retoque: la miniatura de la portada enseña el logo
+
+Pedido del admin: la tarjeta de la lateral era solo texto. Ahora, si el
+set tiene `imagen`, el logo HACE de título y el icono del calendario
+se retira — con logo sobra (máx. 44px de alto, PNG transparente que funciona sobre claro y oscuro) y el nombre se queda en
+el `alt` — con un `onerror` que, si la imagen no carga, vuelve a poner
+el nombre (`replaceWith` con string inserta un nodo de TEXTO, nunca
+HTML). Sin imagen, todo sigue como estaba. El retoque rozó el techo de
+peso: el CSS del editor de filas se movió a admin/css/admin.css (la
+portada baja components.css) y la tarjeta perdió un `loading="lazy"`
+que ahí era contraproducente — quedó 170 justo, sin subir el techo. La cuenta de días no se
+mueve. Cubierto en test-lanzamientos.mjs (logo visible, alt, nombre no
+duplicado, y el repuesto con URL rota).

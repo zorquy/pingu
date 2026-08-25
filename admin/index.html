@@ -94,15 +94,14 @@
 
         <div class="admin-destacada" id="lanzamientosPanel">
           <h2>Lanzamientos</h2>
-          <p class="subtext">Una línea por set: <code>AAAA-MM-DD | Nombre del set | url del logo (opcional) | notas (opcional)</code>.
-            Se enseñan en /lanzamientos con cuenta atrás, y el más cercano, en la portada. Necesita supabase-migration-ajustes.sql (la misma del aviso global).
-            «Importar de TCGdex» rellena la caja con los últimos sets, sus fechas y sus logos, en español (el mismo catálogo que usan las cartas); tus notas escritas a mano se conservan. Nada se guarda hasta que pulsas Guardar.</p>
-          <div class="admin-destacada-campos">
-            <textarea id="lanzamientosTexto" rows="6" placeholder="2026-09-26 | Mega Dream"></textarea>
-            <div class="admin-destacada-botones">
-              <button class="btn-secondary" id="btnImportarLanzamientos">Importar de TCGdex</button>
-              <button class="btn-primary" id="btnGuardarLanzamientos">Guardar</button>
-            </div>
+          <p class="subtext">Un set por fila: fecha, nombre y el logo (pega una URL o sube una imagen). Con la era actual y lo que venga alcanza — la página solo enseña los últimos 6 ya salidos.
+            Se ven en /lanzamientos con cuenta atrás, y el más cercano, en la portada. Necesita supabase-migration-ajustes.sql (la misma del aviso global).
+            «Importar de TCGdex» rellena las filas con los últimos sets en español; tus notas se conservan. Nada se guarda hasta que pulsas Guardar.</p>
+          <div id="lanzamientosFilas" class="lanz-filas"></div>
+          <div class="lanz-botones">
+            <button class="btn-secondary" id="btnAnadirLanzamiento">Añadir set</button>
+            <button class="btn-secondary" id="btnImportarLanzamientos">Importar de TCGdex</button>
+            <button class="btn-primary" id="btnGuardarLanzamientos">Guardar</button>
           </div>
         </div>
 

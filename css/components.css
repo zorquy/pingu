@@ -5389,15 +5389,8 @@ a.rater-name:hover {
   flex: 2 1 260px;
 }
 
-/* La columna de botones junto a la caja de lanzamientos: importar
-   arriba, guardar debajo, alineados al principio para no estirarse
-   con la textarea. */
-.admin-destacada-botones {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-self: flex-start;
-}
+/* El editor de lanzamientos (.lanz-*) vive en admin/css/admin.css:
+   esta hoja la baja también la portada y el presupuesto anda justo. */
 
 /* ── Editor: los bloques de curso con cartas ── */
 .be-cartas-row {
@@ -7342,3 +7335,6 @@ body.portada-compacta .page-content {
 .lanzamiento-portada-icono { color: var(--navy); display: inline-flex; }
 :root[data-theme='dark'] .lanzamiento-portada-icono { color: #7db6dd; }
 .lanzamiento-portada-texto { display: flex; flex-direction: column; min-width: 0; }
+/* El logo del set hace de título; los logos son PNG transparentes que
+   funcionan igual sobre claro y oscuro. */
+.lanzamiento-portada-logo { max-height: 44px; max-width: 100%; align-self: flex-start; object-fit: contain; margin-bottom: 3px; }

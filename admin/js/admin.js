@@ -1,5 +1,5 @@
 import { supabase } from '../../js/supabase.js'
-import { escapeHtml, getSession, validateImageFile, profileUrl, slugify } from '../../js/app.js'
+import { escapeHtml, getSession, validateImageFile, uploadGuideImage, profileUrl, slugify } from '../../js/app.js'
 import { invalidateAchievementsCache } from '../../js/gamification.js'
 import { showToast } from '../../js/toast.js'
 import { renderReferenceBlocksHtml } from '../../js/block-editor.js'
@@ -483,47 +483,92 @@ document.getElementById('btnNewGuide').addEventListener('click', () => (window.l
 
 // ── Los lanzamientos ──
 // La lista de sets con fecha, en site_settings (clave `lanzamientos`),
-// editada como texto plano: una línea por set, campos separados por |.
-// El formato de texto es a propósito — para 5-10 sets al año, una
-// tabla editable sería más aparato que ayuda.
-function parsearLanzamientos(texto) {
-  const sets = []
-  const malas = []
-  for (const linea of texto.split('\n')) {
-    const limpia = linea.trim()
-    if (!limpia) continue
-    const [fecha, nombre, imagen, notas] = limpia.split('|').map((t) => (t || '').trim())
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !nombre) {
-      malas.push(limpia)
-      continue
-    }
-    sets.push({ fecha, nombre, ...(imagen ? { imagen } : {}), ...(notas ? { notas } : {}) })
-  }
-  return { sets, malas }
-}
-
+// editada por FILAS: fecha, nombre, logo (URL o subida) y notas. Antes
+// era una caja de texto con líneas «fecha | nombre | …»; el formato por
+// filas lo pidió el admin para meter la era actual a mano sin pelearse
+// con las barras.
 async function loadLanzamientos() {
-  const caja = document.getElementById('lanzamientosTexto')
-  if (!caja) return
-  const { data } = await supabase.from('site_settings').select('value').eq('key', 'lanzamientos').maybeSingle()
-  caja.value = (data?.value?.sets || [])
-    .map((s) => {
-      // Los campos opcionales solo se escriben si hay algo que decir;
-      // si hay notas pero no logo, el hueco del logo se conserva para
-      // que las posiciones no bailen.
-      const campos = [s.fecha, s.nombre]
-      if (s.imagen || s.notas) campos.push(s.imagen || '')
-      if (s.notas) campos.push(s.notas)
-      return campos.join(' | ')
-    })
-    .join('\n')
+  const cont = document.getElementById('lanzamientosFilas')
+  if (!cont) return
 
-  document.getElementById('btnGuardarLanzamientos').addEventListener('click', async () => {
-    const { sets, malas } = parsearLanzamientos(caja.value)
-    if (malas.length) {
-      showToast(`Hay ${malas.length} ${malas.length === 1 ? 'línea' : 'líneas'} con mala pinta (la fecha va AAAA-MM-DD y el nombre no puede faltar): «${malas[0]}»`, 'error')
+  const filaHtml = (s = {}) => `
+    <div class="lanz-fila">
+      <input type="date" class="lanz-fecha" aria-label="Fecha de salida" value="${escapeHtml(s.fecha || '')}" />
+      <input type="text" class="lanz-nombre" placeholder="Nombre del set" value="${escapeHtml(s.nombre || '')}" />
+      <div class="lanz-imagen-campo">
+        <input type="url" class="lanz-imagen" placeholder="URL del logo (opcional)" value="${escapeHtml(s.imagen || '')}" />
+        <button type="button" class="btn-secondary lanz-subir" title="Subir una imagen">${icons.upload(15)}</button>
+      </div>
+      <input type="text" class="lanz-notas" placeholder="Notas (opcional)" value="${escapeHtml(s.notas || '')}" />
+      <button type="button" class="btn-secondary lanz-quitar" title="Quitar este set">${icons.trash(15)}</button>
+    </div>`
+
+  // Siempre queda al menos una fila vacía donde empezar a escribir.
+  const pintarFilas = (sets) => {
+    cont.innerHTML = (sets.length ? sets : [{}]).map(filaHtml).join('')
+  }
+
+  const leerFilas = () => {
+    const sets = []
+    const malas = []
+    for (const fila of cont.querySelectorAll('.lanz-fila')) {
+      const v = (sel) => fila.querySelector(sel).value.trim()
+      const [fecha, nombre, imagen, notas] = [v('.lanz-fecha'), v('.lanz-nombre'), v('.lanz-imagen'), v('.lanz-notas')]
+      if (!fecha && !nombre && !imagen && !notas) continue
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !nombre) {
+        malas.push(nombre || imagen || notas || fecha)
+        continue
+      }
+      sets.push({ fecha, nombre, ...(imagen ? { imagen } : {}), ...(notas ? { notas } : {}) })
+    }
+    return { sets, malas }
+  }
+
+  const { data } = await supabase.from('site_settings').select('value').eq('key', 'lanzamientos').maybeSingle()
+  pintarFilas(data?.value?.sets || [])
+
+  document.getElementById('btnAnadirLanzamiento').addEventListener('click', () => {
+    cont.insertAdjacentHTML('beforeend', filaHtml())
+    cont.lastElementChild.querySelector('.lanz-fecha').focus()
+  })
+
+  cont.addEventListener('click', async (e) => {
+    const quitar = e.target.closest('.lanz-quitar')
+    if (quitar) {
+      quitar.closest('.lanz-fila').remove()
+      if (!cont.querySelector('.lanz-fila')) pintarFilas([])
       return
     }
+    // Subir el logo: al mismo bucket que las imágenes de guías, que ya
+    // existe y ya tiene la política de subida para usuarios con sesión.
+    const subir = e.target.closest('.lanz-subir')
+    if (subir) {
+      const selector = document.createElement('input')
+      selector.type = 'file'
+      selector.accept = 'image/*'
+      selector.addEventListener('change', async () => {
+        const file = selector.files?.[0]
+        if (!file) return
+        try {
+          const session = await getSession()
+          const url = await uploadGuideImage(session.user.id, file)
+          subir.closest('.lanz-imagen-campo').querySelector('.lanz-imagen').value = url
+          showToast('Imagen subida. Recuerda pulsar Guardar.', 'success')
+        } catch (err) {
+          showToast('No se ha podido subir la imagen: ' + (err.message || err), 'error')
+        }
+      })
+      selector.click()
+    }
+  })
+
+  document.getElementById('btnGuardarLanzamientos').addEventListener('click', async () => {
+    const { sets, malas } = leerFilas()
+    if (malas.length) {
+      showToast(`Hay ${malas.length} ${malas.length === 1 ? 'fila a la que le falta' : 'filas a las que les falta'} la fecha o el nombre («${String(malas[0]).slice(0, 40)}…» sin completar)`, 'error')
+      return
+    }
+    sets.sort((a, b) => (a.fecha < b.fecha ? -1 : 1))
     const { error } = await supabase.from('site_settings').upsert(
       { key: 'lanzamientos', value: { sets }, updated_at: new Date().toISOString() },
       { onConflict: 'key' }
@@ -541,8 +586,8 @@ async function loadLanzamientos() {
   // «Importar de TCGdex»: el catálogo que ya usamos para las cartas
   // también sabe los sets con su fecha de salida y su logo, se llama
   // desde el navegador (sin clave y con CORS) y da los nombres EN
-  // ESPAÑOL. Aquí solo se RELLENA la caja — nada se guarda hasta que el
-  // admin revisa y pulsa Guardar; las notas escritas a mano se
+  // ESPAÑOL. Aquí solo se RELLENAN las filas — nada se guarda hasta que
+  // el admin revisa y pulsa Guardar; las notas escritas a mano se
   // conservan casando por nombre de set.
   //
   // (El primer intento leía Bulbapedia a través de una función de
@@ -572,19 +617,16 @@ async function loadLanzamientos() {
       if (!sets.length) throw new Error('TCGdex no devuelve ningún set con fecha reciente')
 
       const notasDeAntes = new Map()
-      for (const s of parsearLanzamientos(caja.value).sets) {
+      for (const s of leerFilas().sets) {
         if (s.notas) notasDeAntes.set(s.nombre.toLowerCase(), s.notas)
       }
-      caja.value = sets
-        .map((s) => {
+      pintarFilas(
+        sets.map((s) => {
           const notas = notasDeAntes.get(String(s.nombre).toLowerCase()) || ''
-          const campos = [s.fecha, s.nombre]
-          if (s.imagen || notas) campos.push(s.imagen || '')
-          if (notas) campos.push(notas)
-          return campos.join(' | ')
+          return { ...s, ...(notas ? { notas } : {}) }
         })
-        .join('\n')
-      showToast(`${sets.length} sets traídos de TCGdex. Revisa la lista y pulsa Guardar.`, 'success')
+      )
+      showToast(`${sets.length} sets traídos de TCGdex. Revisa las filas y pulsa Guardar.`, 'success')
     } catch (e) {
       showToast('No se ha podido importar de TCGdex: ' + (e.message || e), 'error')
     } finally {
