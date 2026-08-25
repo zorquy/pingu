@@ -94,23 +94,45 @@ export function parsearBulbapedia(html, hoy = new Date().toISOString().slice(0, 
   return sets
 }
 
+// Dos puertas, por orden: la API de MediaWiki (la vía pensada para leer
+// el contenido por programa — devuelve el MISMO HTML de las tablas,
+// dentro de un JSON — y no suele estar detrás del muro anti-bots que le
+// soltó un 403 a la página normal) y, si tampoco, la página con
+// cabeceras de navegador.
+const PUERTAS = [
+  {
+    nombre: 'API',
+    url: 'https://bulbapedia.bulbagarden.net/w/api.php?action=parse&page=List_of_Pok%C3%A9mon_Trading_Card_Game_expansions&prop=text&format=json&formatversion=2',
+    html: async (res) => (await res.json())?.parse?.text || '',
+  },
+  { nombre: 'página', url: PAGINA, html: (res) => res.text() },
+]
+
+const CABECERAS = {
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
+  accept: 'text/html,application/json;q=0.9,*/*;q=0.8',
+  'accept-language': 'en,es;q=0.8',
+}
+
 export default async function handler() {
-  try {
-    const res = await fetch(PAGINA, {
-      headers: { 'user-agent': 'PokeDoc/1.0 (https://pokedoc.es; importador de fechas de lanzamiento)' },
-    })
-    if (!res.ok) throw new Error(`Bulbapedia responde ${res.status}`)
-    const sets = parsearBulbapedia(await res.text())
-    if (!sets.length) throw new Error('la página ha llegado pero no se ha reconocido ningún set — habrá cambiado su estructura')
-    return new Response(JSON.stringify({ sets }), {
-      status: 200,
-      // Una hora de caché: las fechas de lanzamiento no cambian por minutos.
-      headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=3600' },
-    })
-  } catch (e) {
-    return new Response(JSON.stringify({ error: String(e.message || e) }), {
-      status: 502,
-      headers: { 'content-type': 'application/json' },
-    })
+  const tropiezos = []
+  for (const puerta of PUERTAS) {
+    try {
+      const res = await fetch(puerta.url, { headers: CABECERAS })
+      if (!res.ok) throw new Error(`responde ${res.status}`)
+      const sets = parsearBulbapedia(await puerta.html(res))
+      if (!sets.length) throw new Error('llega pero sin ningún set reconocible — habrá cambiado su estructura')
+      return new Response(JSON.stringify({ sets }), {
+        status: 200,
+        // Una hora de caché: las fechas de lanzamiento no cambian por minutos.
+        headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=3600' },
+      })
+    } catch (e) {
+      tropiezos.push(`${puerta.nombre}: ${String(e.message || e)}`)
+    }
   }
+  return new Response(JSON.stringify({ error: `Bulbapedia no se deja leer (${tropiezos.join('; ')})` }), {
+    status: 502,
+    headers: { 'content-type': 'application/json' },
+  })
 }
