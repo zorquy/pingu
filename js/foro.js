@@ -668,7 +668,7 @@ async function abrirFormularioTema(foro) {
       <h3>Abrir un tema en ${escapeHtml(foro.name)}</h3>
       <div class="foro-form-fila">
         <select id="temaEtiqueta" aria-label="Etiqueta">
-          <option value="">Sin etiqueta</option>
+          <option value="">Elige etiqueta…</option>
           ${ETIQUETAS.map((e) => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('')}
         </select>
         <!-- Sin el atributo required a propósito: la validación la hace
@@ -760,6 +760,13 @@ async function abrirFormularioTema(foro) {
     const cuerpo = sanitizeRichText(cuerpoHtml || document.getElementById('temaCuerpo').innerHTML)
     if (!titulo) {
       showToast('Ponle un título al tema.')
+      return
+    }
+    // La etiqueta es obligatoria desde la tanda 202: dice de qué va el
+    // hilo antes de abrirlo (los temas antiguos sin ella se quedan como
+    // están — se editan a mano si hace falta).
+    if (!document.getElementById('temaEtiqueta').value) {
+      showToast('Elige una etiqueta: dice de qué va el tema.')
       return
     }
     if (cuerpo.replace(/<[^>]*>/g, '').trim().length < 10) {

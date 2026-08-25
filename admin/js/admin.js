@@ -9,13 +9,11 @@ import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
-import { fetchSets, fetchSet, fetchSetEnIdioma, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados } from '../../js/tcgdex.js'
+import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados } from '../../js/tcgdex.js'
 import { checkSchema } from '../../js/schema-check.js'
 
 let categories = []
 let guidesCache = []
-let collectionsCache = []
-let pathsCache = []
 
 // ── Access gate ──
 async function checkAccess() {
@@ -311,83 +309,23 @@ function openCategoryModal(category) {
 
 document.getElementById('btnNewCategory').addEventListener('click', () => openCategoryModal(null))
 
-// ── Guide collections ──
-async function loadCollections() {
-  const { data } = await supabase.from('guide_collections').select('*, categories(name)').order('created_at')
-  collectionsCache = data || []
+// Las colecciones se gestionan ya solo desde la base: la comunidad no
+// las usa y su panel se retiró del admin (la página de categoría sigue
+// pintándolas si algún día vuelven a tener filas).
 
-  document.getElementById('collectionsTable').innerHTML = `
-    <table class="admin-table">
-      <thead><tr><th>Emoji</th><th>Título</th><th>Categoría</th><th>Slug</th><th></th></tr></thead>
-      <tbody>
-        ${collectionsCache
-          .map(
-            (col) => `
-          <tr>
-            <td>${contentIconHtml(col.emoji, 20, 'folder')}</td>
-            <td>${escapeHtml(col.title)}</td>
-            <td>${escapeHtml(col.categories?.name || '—')}</td>
-            <td>${escapeHtml(col.slug)}</td>
-            <td class="admin-row-actions">
-              <button data-edit="${col.id}">Editar</button>
-              <button class="danger" data-delete="${col.id}">Eliminar</button>
-            </td>
-          </tr>`
-          )
-          .join('')}
-      </tbody>
-    </table>`
-
-  document.querySelectorAll('#collectionsTable [data-edit]').forEach((btn) =>
-    btn.addEventListener('click', () => openCollectionModal(collectionsCache.find((c) => c.id === btn.dataset.edit)))
-  )
-  document.querySelectorAll('#collectionsTable [data-delete]').forEach((btn) =>
-    btn.addEventListener('click', async () => {
-      if (!confirm('¿Eliminar esta colección? Las guías dentro no se eliminan, solo quedan sin colección.')) return
-      await supabase.from('guide_collections').delete().eq('id', btn.dataset.delete)
-      loadCollections()
-    })
-  )
-}
-
-function openCollectionModal(collection) {
-  const col = collection || { title: '', slug: '', emoji: '', description: '', category_id: categories[0]?.id || '' }
-  openModal(`
-    <h3>${collection ? 'Editar' : 'Nueva'} colección</h3>
-    <div class="form-group"><label>Título</label><input id="colTitle" value="${escapeHtml(col.title)}" /></div>
-    <div class="form-group"><label>Slug</label><input id="colSlug" value="${escapeHtml(col.slug)}" /></div>
-    <div class="form-group"><label>Icono</label><input id="colEmoji" value="${escapeHtml(col.emoji || '')}" /></div>
-    <div class="form-group"><label>Descripción</label><textarea id="colDescription">${escapeHtml(col.description || '')}</textarea></div>
-    <div class="form-group"><label>Categoría</label>
-      <select id="colCategory">${categories.map((c) => `<option value="${c.id}" ${c.id === col.category_id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}</select>
-    </div>
-    <button class="btn-primary btn-block" id="btnSaveCollection">Guardar</button>`)
-
-  attachEmojiPicker(document.getElementById('colEmoji'))
-
-  document.getElementById('btnSaveCollection').addEventListener('click', async () => {
-    const payload = {
-      title: document.getElementById('colTitle').value.trim(),
-      slug: document.getElementById('colSlug').value.trim(),
-      emoji: document.getElementById('colEmoji').value.trim(),
-      description: document.getElementById('colDescription').value.trim(),
-      category_id: document.getElementById('colCategory').value,
-    }
-    if (col.id) payload.id = col.id
-    const { error } = await supabase.from('guide_collections').upsert(payload)
-    if (error) {
-      showToast('No se pudo guardar la colección: ' + error.message)
-      return
-    }
-    closeModal()
-    loadCollections()
-  })
-}
-
-document.getElementById('btnNewCollection').addEventListener('click', () => openCollectionModal(null))
 
 // ── Guías pendientes de revisión ──
 let pendingCache = []
+
+
+// El contador del nav: cuántas cosas esperan trabajo en una sección,
+// visibles sin entrar («Pendientes 3»). Con cero, ni se enseña.
+function ponerContadorNav(seccion, n) {
+  const boton = document.querySelector(`.admin-nav-item[data-section="${seccion}"]`)
+  if (!boton) return
+  boton.querySelector('.admin-nav-contador')?.remove()
+  if (n > 0) boton.insertAdjacentHTML('beforeend', `<span class="admin-nav-contador">${n}</span>`)
+}
 
 async function loadPending() {
   const { data } = await supabase
@@ -397,6 +335,7 @@ async function loadPending() {
     .order('submitted_at', { ascending: true })
 
   pendingCache = data || []
+  ponerContadorNav('pending', pendingCache.length)
   const authorIds = [...new Set(pendingCache.map((g) => g.author_id).filter(Boolean))]
   let authorsById = {}
   if (authorIds.length > 0) {
@@ -583,57 +522,6 @@ async function loadLanzamientos() {
     )
   })
 
-  // «Importar de TCGdex»: el catálogo que ya usamos para las cartas
-  // también sabe los sets con su fecha de salida y su logo, se llama
-  // desde el navegador (sin clave y con CORS) y da los nombres EN
-  // ESPAÑOL. Aquí solo se RELLENAN las filas — nada se guarda hasta que
-  // el admin revisa y pulsa Guardar; las notas escritas a mano se
-  // conservan casando por nombre de set.
-  //
-  // (El primer intento leía Bulbapedia a través de una función de
-  // Netlify: el muro anti-bots de su CDN respondía 403 a los servidores
-  // de Netlify, tanto a la página como a su API. TCGdex es la fuente
-  // pensada para leerse por programa.)
-  const btnImportar = document.getElementById('btnImportarLanzamientos')
-  btnImportar.addEventListener('click', async () => {
-    btnImportar.disabled = true
-    const rotulo = btnImportar.textContent
-    btnImportar.textContent = 'Importando…'
-    try {
-      // La lista breve no trae fechas: se piden los últimos sets en
-      // detalle, en español — y en inglés si alguno aún no está
-      // traducido. Quince cubren de sobra la ventana de tres meses.
-      const lista = await fetchSets()
-      const detalles = await Promise.all(
-        lista.slice(-15).map((s) => fetchSetEnIdioma(s.id, 'es').catch(() => fetchSet(s.id).catch(() => null)))
-      )
-      const hoy = new Date().toISOString().slice(0, 10)
-      const desde = new Date(Date.parse(`${hoy}T00:00:00Z`) - 90 * 86400_000).toISOString().slice(0, 10)
-      const sets = detalles
-        .filter((d) => d && d.name && /^\d{4}-\d{2}-\d{2}$/.test(d.releaseDate || '') && d.releaseDate >= desde)
-        // El logo de TCGdex llega sin extensión; .webp lo sirven todos.
-        .map((d) => ({ fecha: d.releaseDate, nombre: d.name, imagen: d.logo ? `${d.logo}.webp` : '' }))
-        .sort((a, b) => (a.fecha < b.fecha ? -1 : 1))
-      if (!sets.length) throw new Error('TCGdex no devuelve ningún set con fecha reciente')
-
-      const notasDeAntes = new Map()
-      for (const s of leerFilas().sets) {
-        if (s.notas) notasDeAntes.set(s.nombre.toLowerCase(), s.notas)
-      }
-      pintarFilas(
-        sets.map((s) => {
-          const notas = notasDeAntes.get(String(s.nombre).toLowerCase()) || ''
-          return { ...s, ...(notas ? { notas } : {}) }
-        })
-      )
-      showToast(`${sets.length} sets traídos de TCGdex. Revisa las filas y pulsa Guardar.`, 'success')
-    } catch (e) {
-      showToast('No se ha podido importar de TCGdex: ' + (e.message || e), 'error')
-    } finally {
-      btnImportar.disabled = false
-      btnImportar.textContent = rotulo
-    }
-  })
 }
 loadLanzamientos().catch(() => {})
 
@@ -785,82 +673,6 @@ document.getElementById('btnMigrateOldGuides').addEventListener('click', async (
   loadGuides()
 })
 
-// ── Learning paths ──
-async function loadPaths() {
-  const { data } = await supabase
-    .from('learning_paths')
-    .select('*')
-    .order('is_featured', { ascending: false })
-    .order('title')
-  pathsCache = data || []
-
-  document.getElementById('pathsTable').innerHTML = `
-    <table class="admin-table">
-      <thead><tr><th>Emoji</th><th>Título</th><th>Slug</th><th>Destacada</th><th></th></tr></thead>
-      <tbody>
-        ${pathsCache
-          .map(
-            (p) => `
-          <tr>
-            <td>${contentIconHtml(p.emoji, 20, 'bookOpen')}</td>
-            <td>${escapeHtml(p.title)}</td>
-            <td>${escapeHtml(p.slug)}</td>
-            <td>${p.is_featured ? '✓' : ''}</td>
-            <td class="admin-row-actions">
-              <button data-edit="${p.id}">Editar</button>
-              <button class="danger" data-delete="${p.id}">Eliminar</button>
-            </td>
-          </tr>`
-          )
-          .join('')}
-      </tbody>
-    </table>`
-
-  document.querySelectorAll('#pathsTable [data-edit]').forEach((btn) =>
-    btn.addEventListener('click', () => openPathModal(pathsCache.find((p) => p.id === btn.dataset.edit)))
-  )
-  document.querySelectorAll('#pathsTable [data-delete]').forEach((btn) =>
-    btn.addEventListener('click', async () => {
-      if (!confirm('¿Eliminar esta ruta?')) return
-      await supabase.from('learning_paths').delete().eq('id', btn.dataset.delete)
-      loadPaths()
-    })
-  )
-}
-
-function openPathModal(path) {
-  const p = path || { title: '', slug: '', description: '', emoji: '', is_featured: false }
-  openModal(`
-    <h3>${path ? 'Editar' : 'Nueva'} ruta</h3>
-    <div class="form-group"><label>Título</label><input id="pTitle" value="${escapeHtml(p.title || '')}" /></div>
-    <div class="form-group"><label>Slug</label><input id="pSlug" value="${escapeHtml(p.slug)}" /></div>
-    <div class="form-group"><label>Descripción</label><textarea id="pDescription">${escapeHtml(p.description || '')}</textarea></div>
-    <div class="form-group"><label>Icono</label><input id="pEmoji" value="${escapeHtml(p.emoji || '')}" /></div>
-    <div class="form-group"><label><input type="checkbox" id="pFeatured" ${p.is_featured ? 'checked' : ''} /> Destacada (se recomienda en el onboarding)</label></div>
-    <button class="btn-primary btn-block" id="btnSavePath">Guardar</button>`)
-
-  attachEmojiPicker(document.getElementById('pEmoji'))
-
-  document.getElementById('btnSavePath').addEventListener('click', async () => {
-    const payload = {
-      title: document.getElementById('pTitle').value.trim(),
-      slug: document.getElementById('pSlug').value.trim(),
-      description: document.getElementById('pDescription').value.trim(),
-      emoji: document.getElementById('pEmoji').value.trim(),
-      is_featured: document.getElementById('pFeatured').checked,
-    }
-    if (p.id) payload.id = p.id
-    const { error } = await supabase.from('learning_paths').upsert(payload)
-    if (error) {
-      showToast('No se pudo guardar la ruta: ' + error.message)
-      return
-    }
-    closeModal()
-    loadPaths()
-  })
-}
-
-document.getElementById('btnNewPath').addEventListener('click', () => openPathModal(null))
 
 // ── Achievements ──
 const CONDITION_LABELS = {
@@ -1185,56 +997,6 @@ async function loadUsers() {
   )
 }
 
-// ── Images (Supabase Storage) ──
-async function loadImages() {
-  const { data, error } = await supabase.storage.from('images').list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } })
-  const grid = document.getElementById('imagesGrid')
-
-  if (error || !data || data.length === 0) {
-    grid.innerHTML = `<p class="empty-state">No hay imágenes todavía.</p>`
-    return
-  }
-
-  grid.innerHTML = data
-    .filter((f) => f.name && !f.name.endsWith('/'))
-    .map((f) => {
-      const { data: pub } = supabase.storage.from('images').getPublicUrl(f.name)
-      return `
-      <div class="admin-image-tile" data-url="${pub.publicUrl}">
-        <img src="${pub.publicUrl}" loading="lazy" />
-        <div class="fname">${escapeHtml(f.name)}</div>
-      </div>`
-    })
-    .join('')
-
-  grid.querySelectorAll('.admin-image-tile').forEach((tile) =>
-    tile.addEventListener('click', () => {
-      navigator.clipboard?.writeText(tile.dataset.url)
-      showToast(`URL copiada: ${tile.dataset.url}`, 'success')
-    })
-  )
-}
-
-document.getElementById('imageUploadInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0]
-  if (!file) return
-  try {
-    validateImageFile(file)
-  } catch (err) {
-    showToast(err.message)
-    e.target.value = ''
-    return
-  }
-  const path = `${Date.now()}-${file.name}`
-  const { error } = await supabase.storage.from('images').upload(path, file)
-  if (error) {
-    showToast('Error al subir la imagen: ' + error.message)
-    return
-  }
-  e.target.value = ''
-  loadImages()
-})
-
 // ── Reportes de contenido ──
 const REPORT_TYPE_LABELS = {
   guide: `${icons.bookOpen(14)} Guía`,
@@ -1511,6 +1273,7 @@ async function loadReports() {
     .order('created_at', { ascending: true })
 
   const reports = data || []
+  ponerContadorNav('reports', reports.length)
   const reporterIds = [...new Set(reports.map((r) => r.reporter_id))]
   const [reportersData, previews] = await Promise.all([
     reporterIds.length > 0
@@ -1581,6 +1344,7 @@ async function loadFeedback() {
     .order('created_at', { ascending: true })
 
   const items = data || []
+  ponerContadorNav('feedback', items.length)
   const userIds = [...new Set(items.map((f) => f.user_id))]
   const { data: usersData } = userIds.length > 0 ? await supabase.from('user_profiles').select('id, display_name, username').in('id', userIds) : { data: [] }
   const userById = Object.fromEntries((usersData || []).map((u) => [u.id, u]))
@@ -1643,6 +1407,7 @@ async function loadAccountDeletionRequests() {
     .order('created_at', { ascending: true })
 
   const items = data || []
+  ponerContadorNav('account-deletions', items.length)
   const userIds = [...new Set(items.map((r) => r.user_id))]
   const { data: usersData } = userIds.length > 0 ? await supabase.from('user_profiles').select('id, display_name, username').in('id', userIds) : { data: [] }
   const userById = Object.fromEntries((usersData || []).map((u) => [u.id, u]))
@@ -1700,6 +1465,7 @@ async function loadClientErrors() {
     .limit(50)
 
   const items = data || []
+  ponerContadorNav('errors', items.length)
   const userIds = [...new Set(items.map((e) => e.user_id).filter(Boolean))]
   const { data: usersData } = userIds.length > 0 ? await supabase.from('user_profiles').select('id, display_name, username').in('id', userIds) : { data: [] }
   const userById = Object.fromEntries((usersData || []).map((u) => [u.id, u]))
@@ -2386,14 +2152,12 @@ async function init() {
 
   initSidebar()
   await loadCategories()
-  await Promise.all([loadCollections(), loadPaths()])
   await Promise.all([
     loadDashboard(),
     loadPending(),
     loadGuides(),
     loadAchievements(),
     loadUsers(),
-    loadImages(),
     loadReports(),
     loadFeedback(),
     loadClientErrors(),

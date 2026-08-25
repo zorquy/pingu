@@ -206,26 +206,6 @@
   opacity: 0.7;
 }
 
-.path-card.beginner_path::before {
-  background: #4c9a5b;
-}
-
-.path-card.anti_scam_path::before {
-  background: var(--warning);
-}
-
-.path-card.smart_buying_path::before {
-  background: var(--navy);
-}
-
-.path-card.card_value_path::before {
-  background: #8b5cf6;
-}
-
-.path-card.collecting_mastery_path::before {
-  background: #e0575c;
-}
-
 .path-card .emoji {
   font-size: 24px;
 }
@@ -239,12 +219,6 @@
   font-size: 13px;
   color: var(--text-mid);
   line-height: 1.45;
-}
-
-.path-card .path-meta {
-  font-size: 11.5px;
-  color: var(--text-dim);
-  font-weight: 600;
 }
 
 .path-card .btn-primary {
@@ -1997,55 +1971,11 @@ tcg-deck {
   font-weight: 800;
 }
 
-/* ── Profile ── */
-.profile-header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 22px 20px;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-}
-
-.profile-banner {
-  position: absolute;
-  inset: 0;
-  opacity: 0.16;
-  z-index: 0;
-}
-
-.profile-avatar {
-  position: relative;
-  z-index: 1;
-  width: 66px;
-  height: 66px;
-  border-radius: 16px;
-  background: var(--navy);
-  color: var(--white);
-  font-size: 24px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.profile-info {
-  position: relative;
-  z-index: 1;
-}
-
 .profile-bio {
   font-size: 13.5px;
   color: var(--text-mid);
   margin-top: 8px;
   max-width: 480px;
-}
-
-.profile-header h2 {
-  font-size: 19px;
-  font-weight: 800;
 }
 
 .profile-level {
@@ -2199,14 +2129,6 @@ tcg-deck {
   font-size: 20px;
   font-weight: 800;
   word-break: break-word;
-}
-
-.profile-hero-badges {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
 }
 
 .profile-hero-social {
@@ -2537,32 +2459,6 @@ tcg-deck {
   border-color: var(--navy);
 }
 
-/* ── Seguidores / seguidos ── */
-.follow-summary-row {
-  display: flex;
-  gap: 28px;
-  margin-bottom: 16px;
-}
-
-.follow-summary-item {
-  cursor: pointer;
-  background: none;
-  border: none;
-  text-align: left;
-}
-
-.follow-summary-item strong {
-  display: block;
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--navy);
-}
-
-.follow-summary-item span {
-  font-size: 12.5px;
-  color: var(--text-dim);
-}
-
 .follow-avatar-row {
   display: flex;
   flex-wrap: wrap;
@@ -2679,8 +2575,6 @@ tcg-deck {
 
 /* ── Modal ampliado de guía ── */
 
-
-
 /* La autoría en la página de la guía. Antes vivía en el pop-up; se
    quedó cuando este desapareció, pero el nombre ya no encajaba. */
 .guide-author {
@@ -2689,8 +2583,6 @@ tcg-deck {
   gap: 10px;
   margin-bottom: 14px;
 }
-
-
 
 .is-saved {
   background: var(--ice) !important;
@@ -5065,24 +4957,6 @@ a.rater-name:hover {
   color: var(--navy);
 }
 
-.foro-accion-on {
-  border-color: var(--navy);
-  background: var(--ice);
-  color: var(--navy);
-}
-
-.foro-megustas {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 5px 10px;
-  background: var(--ice);
-  border-radius: var(--radius-sm);
-  font-size: 12.5px;
-  color: var(--text-mid);
-}
-
 /* ── Formularios del foro ── */
 .foro-form {
   margin-bottom: 20px;
@@ -7248,7 +7122,6 @@ body.portada-compacta .page-content {
   margin-top: 8px;
   font-size: 12.5px;
 }
-
 
 /* El podio de medallas SVG (liga y top del mes): oro, plata y bronce
    por el color del trazo; el fondo tintado lo pone la fila. */

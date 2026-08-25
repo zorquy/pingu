@@ -9824,3 +9824,41 @@ Probado con test-tanda-201.mjs (23 comprobaciones: las dos funciones
 sin red con dobles, y el salto jugando el reto entero con dos rivales
 insalvables sembrados) y rigor-tanda-201.py (7 roturas, todas
 detectadas).
+
+## Tanda 202: la gran limpieza (agosto 2026)
+
+Repaso a fondo pedido por el admin: fuera lo que no se usa, más visual
+lo que queda, y dos mejoras del foro que entraron en la misma tanda.
+
+- **El /admin pierde peso muerto**: las secciones de Rutas (nada las
+  usaba fuera del panel — las rutas públicas se retiraron hace meses),
+  Colecciones (la gestión; la página de categoría las seguiría
+  pintando si algún día vuelven a tener filas — solo se quita el
+  panel) y el navegador de Imágenes (cada sitio que necesita imágenes
+  ya tiene su propia subida). También el botón «Importar de TCGdex» de
+  Lanzamientos: el admin los mete a mano y punto. Sus bloques de
+  admin.js, admin/index.html y CSS van fuera, y `fetchSetEnIdioma`
+  (tcgdex.js) con ellos.
+- **El /admin, más visual**: el nav pasa de 17 botones planos a tres
+  grupos rotulados (Contenido / Comunidad / Sistema), y las secciones
+  con cola ganan un contador rojo en el propio nav
+  (`ponerContadorNav`): Pendientes, Reportes, Feedback, Errores y
+  Bajas dicen cuánto espera sin tener que entrar.
+- **Código muerto de la web**: `medallaMejor` + `ORDEN_MEDALLA`
+  (curso-juego.js, sin ningún uso) y 22 bloques de CSS huérfanos
+  (perfil viejo pre-rediseño, follow-summary, learning paths,
+  foro-megustas pre-reacciones…) detectados cruzando cada clase del
+  CSS contra todo el html+js y verificando a mano los construidos
+  dinámicamente (`toast-${'{'}tipo{'}'}`, `podio-${'{'}n{'}'}`…). La
+  portada baja a 169 KB comprimidos: vuelve a haber margen bajo el
+  techo de 170.
+- **Foro**: «Ahora en el foro» (portada) enseña la etiqueta de color
+  de cada hilo (etiquetaHtml ya estaba en el grafo de la portada:
+  coste ~nada), y abrir un tema EXIGE etiqueta, igual que el título
+  (el selector dice «Elige etiqueta…» y el submit frena con aviso).
+  Los temas viejos sin etiqueta se quedan como están: el admin los
+  editará a mano si quiere.
+
+Probado con test-tanda-202.mjs (19 comprobaciones) y
+rigor-tanda-202.py (5 roturas, todas detectadas); test-importar-sets y
+su rigor se retiran con el botón que probaban.

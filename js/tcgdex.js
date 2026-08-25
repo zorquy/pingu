@@ -123,13 +123,6 @@ export function fetchSet(setId, market = MERCADO_POR_DEFECTO) {
   return pedir(`sets/${encodeURIComponent(setId)}`, idiomaDeMercado(market))
 }
 
-// Un set en un IDIOMA concreto, no en un mercado. Lo usa la importación
-// de lanzamientos del /admin: para enseñar el calendario en la portada
-// el nombre en español vale más que el catálogo completo en inglés.
-export function fetchSetEnIdioma(setId, idioma) {
-  return pedir(`sets/${encodeURIComponent(setId)}`, idioma)
-}
-
 // Quita filas repetidas por su clave, dejando la PRIMERA.
 //
 // Hace falta porque el catálogo de TCGdex trae repetidos. El chino

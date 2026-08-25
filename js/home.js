@@ -6,7 +6,7 @@ import { contentIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 import { montarPrimerosPasos } from './primeros-pasos.js'
-import { haceCuanto, nombreDe, perfilesPorId, urlTema, avatarHtml } from './foro-comun.js'
+import { haceCuanto, nombreDe, perfilesPorId, urlTema, avatarHtml, etiquetaHtml } from './foro-comun.js'
 import { clasificacionSemanal } from './liga.js'
 
 async function loadCategories() {
@@ -134,7 +134,7 @@ async function cargarForoVivo() {
 
   const { data: temas, error } = await supabase
     .from('forum_threads')
-    .select('id, title, post_count, created_at, last_post_at, author_id, last_post_author_id')
+    .select('id, title, prefix, post_count, created_at, last_post_at, author_id, last_post_author_id')
     .order('last_post_at', { ascending: false })
     .limit(4)
   if (error || !temas || temas.length === 0) return
@@ -161,7 +161,7 @@ async function cargarForoVivo() {
         <li class="foro-vivo-fila">
           ${avatarHtml(perfil, 34)}
           <div class="foro-vivo-texto">
-            <a class="foro-vivo-titulo" href="${urlTema(t.id)}">${escapeHtml(t.title)}</a>
+            <a class="foro-vivo-titulo" href="${urlTema(t.id)}">${etiquetaHtml(t.prefix)}${escapeHtml(t.title)}</a>
             <span class="subtext foro-vivo-meta">${escapeHtml(quien)} · ${haceCuanto(t.last_post_at || t.created_at)} · ${mensajes} ${
               mensajes === 1 ? 'mensaje' : 'mensajes'
             }</span>

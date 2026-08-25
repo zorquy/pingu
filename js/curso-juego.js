@@ -62,12 +62,6 @@ export function medallaDe(aciertos, total) {
   return null
 }
 
-const ORDEN_MEDALLA = { bronce: 1, plata: 2, oro: 3 }
-
-export function medallaMejor(a, b) {
-  return (ORDEN_MEDALLA[a] || 0) >= (ORDEN_MEDALLA[b] || 0) ? a : b
-}
-
 // XP por SUBIR de medalla, no por repetir el curso.
 //
 // Sin esto, repetir un curso fácil veinte veces sería la forma más
