@@ -1,0 +1,90 @@
+/* ── Torneos (sección «Jugar») ──
+   Hoja propia: solo la baja /torneos y las páginas del torneo, para no
+   cargar el presupuesto de peso de la portada (ver CLAUDE.md). */
+
+.torneos-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.torneos-en-pruebas {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(214, 69, 69, 0.12);
+  color: #d64545;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── El formulario de crear ── */
+.torneos-form { margin-bottom: 24px; }
+
+.torneos-form-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.torneos-form-rejilla label,
+.torneos-form-descripcion {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.torneos-form-descripcion { margin-bottom: 14px; }
+
+.torneos-form-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── La lista ── */
+.torneos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.torneo-tarjeta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  color: inherit;
+  text-decoration: none;
+}
+.torneo-tarjeta:hover { border-color: var(--navy); }
+
+.torneo-icono { color: var(--navy); display: inline-flex; flex-shrink: 0; }
+:root[data-theme='dark'] .torneo-icono { color: #7db6dd; }
+
+.torneo-texto { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+
+.torneo-estado {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+.torneo-estado-borrador { background: rgba(127, 127, 127, 0.12); color: var(--text-dim); }
+.torneo-estado-abierto { background: rgba(74, 158, 63, 0.14); color: #3d8434; }
+.torneo-estado-cerrado { background: rgba(232, 160, 32, 0.16); color: #a8720d; }
+.torneo-estado-jugando { background: rgba(30, 81, 117, 0.12); color: var(--navy); }
+.torneo-estado-fin { background: rgba(127, 127, 127, 0.12); color: var(--text-dim); }
+:root[data-theme='dark'] .torneo-estado-jugando { color: #7db6dd; }
+:root[data-theme='dark'] .torneo-estado-abierto { color: #7ec973; }
+:root[data-theme='dark'] .torneo-estado-cerrado { color: #e8b558; }

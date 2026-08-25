@@ -380,6 +380,12 @@ async function renderNavUser(session) {
   const name = profile?.display_name || profile?.username || session.user.email
   const estiloAvatar = avatarStyle(profile)
 
+  // La pestaña «Jugar» (torneos) está en pruebas: el enlace viene oculto
+  // en el HTML y solo se desvela a los admins.
+  if (profile?.is_admin) {
+    document.querySelectorAll('.nav-jugar').forEach((e) => e.classList.remove('hidden'))
+  }
+
   el.innerHTML = `
     <div class="nav-user-wrap" id="navUserWrap">
       <button type="button" class="nav-user-avatar" id="navUserBtn" style="${estiloAvatar}" aria-label="Tu cuenta" title="${escapeHtml(name)}">${profile?.avatar_url ? '' : getInitial(name)}</button>

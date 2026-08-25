@@ -9862,3 +9862,48 @@ lo que queda, y dos mejoras del foro que entraron en la misma tanda.
 Probado con test-tanda-202.mjs (19 comprobaciones) y
 rigor-tanda-202.py (5 roturas, todas detectadas); test-importar-sets y
 su rigor se retiran con el botón que probaban.
+
+## Tanda 203 — Torneos 1: arranca el porte de TrainerArena (agosto 2026)
+
+PokeDoc se convierte en proyecto A DOS MANOS: Ibai Manso (autor de
+TrainerArena) entra como colaborador y su plataforma de torneos se
+porta a nuestro stack. Cada uno trabaja desde su propia sesión de
+Claude; la coordinación vive en CLAUDE.md (normas, se carga sola en
+cualquier sesión del repo) y BITACORA.md (registro de cambios, entrada
+nueva ARRIBA antes de cada push — leerla es lo primero al empezar).
+
+- **El motor** (js/torneos/motor.js): traducción 1:1 a JS plano de
+  `libs/engine` de TrainerArena — azar sembrado xmur3/mulberry32,
+  tabla oficial de estructura, SHA-256 puro para la moneda de
+  desempate, puntuación 3/1/0 con byes y forfeits, OWP/OOWP, pareo de
+  ronda 1 por sorteo reproducible, Monrad con float-down y backtracking
+  8! (ManualPairingRequired con parciales cuando no sale), top cut con
+  siembra 1v(S+1−i) y avance «fold», y parser+validador de decklists de
+  TCG Live. Nombres de funciones en inglés A PROPÓSITO para cotejar con
+  el original. Adaptación única: los ids de jugador son uuid (texto) en
+  vez de enteros — comparadores genéricos donde su código restaba.
+- **La migración** (supabase-migration-torneos.sql, SIN EJECUTAR aún):
+  12 tablas del esquema de TrainerArena adaptadas — usuarios por uuid
+  de user_profiles, enums como checks de texto, FUERA todo lo de pagos
+  (decisión de los admins) y fuera email/teléfono de la inscripción (la
+  cuenta ya identifica). RLS: TODO solo-admins mientras dure la prueba;
+  abrir al público será otra migración.
+- **La pestaña «Jugar»**: enlace en las 14 navbars con clase
+  `.nav-jugar hidden`; app.js lo desvela solo si el perfil es admin.
+  /torneos (noindex) rebota a la portada a quien no sea admin, y para
+  el admin lista torneos y crea nuevos: el formulario rellena solo
+  rondas suizas y top cut con la tabla oficial al cambiar las plazas,
+  y cada torneo nace en borrador con su pairing_seed de 32 caracteres.
+  CSS en css/torneos.css (hoja propia: presupuesto de portada).
+- Decisiones del porte ya fijadas (ver CLAUDE.md): sin pagos, chat de
+  partida en desplegable, cuenta única de PokeDoc, sondeo en vez de
+  WebSockets, cierres automáticos con función programada por minuto.
+- El stub de pruebas gana la tabla `tournaments` (vacía, escribible).
+
+Plan de tandas del porte: 204 inscripciones+decklists · 205 ciclo de
+ronda (pareos, check-in, auto-reporte con confirmación, clasificación)
+· 206 top cut+timers+push · 207 jueces y disputas · 208 gamificación.
+
+Probado con test-torneos-1.mjs (30 comprobaciones: 21 del motor contra
+casos de las specs de TrainerArena + 9 de la puerta de admins y el
+crear/listar) y rigor-torneos-1.py (6 roturas, todas detectadas).
