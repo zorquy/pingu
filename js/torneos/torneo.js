@@ -10,8 +10,10 @@ import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { parseDecklist, validateDecklist, canEditDecklist } from './motor.js'
 import { ESTADOS, fechaBonita, textoFormato } from './comun.js'
-import { montarCiclo } from './ronda.js'
+import { montarCiclo, resumenDeGloria } from './ronda.js'
 import { montarJueces } from './jueces.js'
+import { getAllAchievements, addXP } from '../gamification.js'
+import { urlTema } from '../foro-comun.js'
 
 let session = null
 let perfil = null
@@ -109,6 +111,93 @@ function pintarFicha() {
   } else {
     acciones.innerHTML = ''
   }
+  if (perfil.is_admin && torneo.status !== 'draft') pintarAnuncioForo(acciones)
+}
+
+// ── El anuncio en el foro (tanda 208) ──
+// Si el hilo del torneo ya existe se enlaza; si no, el organizador elige
+// foro y lo publica de un botón: título fijo «Torneo: nombre» (así se
+// reencuentra), etiqueta Torneo y primer mensaje con los datos.
+async function pintarAnuncioForo(acciones) {
+  const titulo = `Torneo: ${torneo.name}`
+  const zona = document.createElement('span')
+  zona.className = 'torneo-anuncio-foro'
+  acciones.appendChild(zona)
+
+  const { data: hilo } = await supabase.from('forum_threads').select('id').eq('title', titulo).maybeSingle()
+  if (hilo) {
+    zona.innerHTML = `<a class="btn-secondary" href="${urlTema(hilo.id)}">Hilo en el foro</a>`
+    return
+  }
+  if (['finished', 'cancelled'].includes(torneo.status)) return
+
+  const { data: foros } = await supabase
+    .from('forum_boards')
+    .select('id, name')
+    .eq('is_hidden', false)
+    .order('position', { ascending: true })
+  if (!foros?.length) return
+  zona.innerHTML = `
+    <select id="anuncioForoDestino">${foros.map((f) => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)}</option>`).join('')}</select>
+    <button class="btn-secondary" id="btnAnunciarForo">Anunciar en el foro</button>`
+  $('btnAnunciarForo').addEventListener('click', () => anunciarEnForo($('anuncioForoDestino').value, titulo))
+}
+
+async function anunciarEnForo(boardId, titulo) {
+  const { data: hilo, error } = await supabase
+    .from('forum_threads')
+    .insert({ board_id: boardId, author_id: session.user.id, title: titulo, prefix: 'Torneo' })
+    .select('id')
+    .single()
+  if (error || !hilo) {
+    showToast('No se ha podido crear el hilo: ' + (error?.message || 'inténtalo otra vez'), 'error')
+    return
+  }
+  const cuerpo = `<p>¡Torneo a la vista! <strong>${escapeHtml(torneo.name)}</strong></p><ul><li>Fecha: ${escapeHtml(fechaBonita(torneo.start_at))}</li><li>Formato: ${escapeHtml(textoFormato(torneo))}</li><li>Plazas: ${torneo.max_players}</li></ul><p>Te apuntas en <a href="https://pokedoc.es/torneo?slug=${encodeURIComponent(torneo.slug)}">la página del torneo</a> y se juega en TCG Live. Las dudas, en este hilo.</p>`
+  const { error: errorMensaje } = await supabase.from('forum_posts').insert({
+    thread_id: hilo.id,
+    author_id: session.user.id,
+    body_html: cuerpo,
+  })
+  if (errorMensaje) {
+    // El mismo cuidado que foro.js: un hilo sin primer mensaje no sirve.
+    await supabase.from('forum_threads').delete().eq('id', hilo.id)
+    showToast('No se ha podido publicar el anuncio: ' + errorMensaje.message, 'error')
+    return
+  }
+  showToast('Anunciado: el hilo del torneo ya está en el foro.', 'success')
+  pintarFicha()
+}
+
+// ── La gloria (tanda 208): logros y XP al ver terminado tu torneo ──
+// Condición «manual» en la migración: los concede esta ficha, no el
+// comprobador automático. La pertenencia al array de logros los hace
+// idempotentes, se juegue o se recargue lo que se quiera.
+async function otorgarGloria() {
+  if (torneo.status !== 'finished' || !miInscripcion) return
+  // Quien se borró antes de empezar no jugó: sin ronda no hay medalla.
+  if (miInscripcion.status === 'dropped' && !miInscripcion.dropped_after_round_id) return
+  const gloria = resumenDeGloria()
+  if (!gloria) return
+
+  const merecidos = ['torneo_jugado']
+  if (gloria.pisaronElCut.has(session.user.id)) merecidos.push('torneo_top_cut')
+  if (gloria.campeonId === session.user.id) merecidos.push('torneo_campeon')
+
+  const definiciones = await getAllAchievements()
+  const tengo = new Set(perfil.achievements || [])
+  const nuevos = definiciones.filter((d) => merecidos.includes(d.id) && !tengo.has(d.id))
+  if (!nuevos.length) return
+
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ achievements: [...tengo, ...nuevos.map((d) => d.id)] })
+    .eq('id', session.user.id)
+  if (error) return
+  perfil.achievements = [...tengo, ...nuevos.map((d) => d.id)]
+  const premio = nuevos.reduce((suma, d) => suma + (d.xp_reward || 0), 0)
+  if (premio) await addXP(session.user.id, premio)
+  showToast(`Logro${nuevos.length > 1 ? 's' : ''} de torneo: ${nuevos.map((d) => d.title).join(' y ')} (+${premio} XP).`, 'success')
 }
 
 async function cambiarEstado(nuevo, mensaje) {
@@ -357,6 +446,7 @@ async function recargar() {
   }
   await montarCiclo(contexto)
   await montarJueces(contexto)
+  await otorgarGloria()
 }
 
 async function init() {

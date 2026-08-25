@@ -205,3 +205,15 @@ begin
     $pol$, t);
   end loop;
 end $$;
+
+
+-- ── Logros de torneos (tanda 208) ─────────────────────────────────
+-- Condición `manual`: no los concede el comprobador automático de
+-- gamification.js (no conoce ese tipo), sino la ficha del torneo al
+-- verlo terminado habiendo jugado. Idempotentes por el ON CONFLICT.
+insert into public.achievement_definitions (id, title, description, emoji, rarity, xp_reward, is_active, condition)
+values
+  ('torneo_jugado', 'Competidor', 'Jugaste un torneo de PokeDoc hasta el final.', 'medal', 'bronze', 30, true, '{"type":"manual"}'::jsonb),
+  ('torneo_top_cut', 'En el corte', 'Te metiste en el top cut de un torneo.', 'target', 'silver', 60, true, '{"type":"manual"}'::jsonb),
+  ('torneo_campeon', 'Campeón de torneo', 'Ganaste un torneo de PokeDoc.', 'crown', 'gold', 150, true, '{"type":"manual"}'::jsonb)
+on conflict (id) do nothing;

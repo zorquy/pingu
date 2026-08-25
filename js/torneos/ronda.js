@@ -346,12 +346,19 @@ async function avanzarBracket(rondaCerrada) {
   showToast('Bracket avanzado: siguiente ronda del cut lista.', 'success')
 }
 
-// El campeón se deduce del bracket, no se guarda: el ganador que deja
-// la final cerrada (misma cuenta que hace advanceTopCut con K=1).
+// El campeón se deduce, no se guarda: con top cut es quien deja la
+// final cerrada (misma cuenta que advanceTopCut con K=1); en un torneo
+// solo de suizas, el primero de la clasificación que no se retiró.
 function campeonDelTorneo() {
   if (ctx.torneo.status !== 'finished' || !rondas.length) return null
   const ultima = rondas[rondas.length - 1]
-  if (ultima.phase !== 'top_cut') return null
+  if (ultima.phase !== 'top_cut') {
+    const tabla = computeStandings(montarSnapshot(rondas.length))
+    const primero = tabla.find(
+      (e) => ctx.inscripciones.find((i) => i.user_id === e.playerId)?.status === 'active'
+    )
+    return primero?.playerId ?? null
+  }
   const cerradas = partidas
     .filter((m) => m.round_id === ultima.id)
     .map((m) => ({ bracketPosition: m.bracket_position, playerAId: m.player_a_id, playerBId: m.player_b_id, outcome: outcomeDe(m) }))
@@ -746,6 +753,20 @@ function pintarCiclo() {
 
 export async function recargarCiclo() {
   await cargarCiclo()
+}
+
+// Lo que hace falta para repartir la gloria (tanda 208): quién es el
+// campeón y quiénes pisaron el top cut. Solo con el torneo terminado.
+export function resumenDeGloria() {
+  if (ctx?.torneo?.status !== 'finished') return null
+  const rondasDeCut = new Set(rondas.filter((r) => r.phase === 'top_cut').map((r) => r.id))
+  const pisaronElCut = new Set(
+    partidas
+      .filter((m) => rondasDeCut.has(m.round_id))
+      .flatMap((m) => [m.player_a_id, m.player_b_id])
+      .filter(Boolean)
+  )
+  return { campeonId: campeonDelTorneo(), pisaronElCut }
 }
 
 // torneo.js llama a esto en cada recarga de la ficha, con el contexto

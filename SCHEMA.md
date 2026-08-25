@@ -10074,3 +10074,39 @@ sello, chat de mesa plegado/firmado/con respuesta del rival, llamada
 única con Atender/Resolver y chat cerrado al resolver, disputa que
 entra y sale de la cola, y solicitud propia sin doble botón) y
 rigor-torneos-5.py (7 roturas, todas detectadas).
+
+## Tanda 208 — Torneos 6: la gloria y el anuncio en el foro (agosto 2026)
+
+Cierre del porte de TrainerArena: lo que el original no tenía y aquí
+engancha los torneos con el resto de PokeDoc.
+
+- **Tres logros nuevos** en supabase-migration-torneos.sql (aún sin
+  ejecutar): Competidor (30 XP), En el corte (60) y Campeón de torneo
+  (150), con condición `{"type":"manual"}` — el comprobador automático
+  de gamification.js no conoce ese tipo y no los toca.
+- **La gloria** (torneo.js, otorgarGloria): al ver un torneo TERMINADO
+  en el que jugaste (inscripción activa, o baja con ronda jugada), la
+  ficha concede los que falten y suma su XP con addXP (que celebra
+  subida de nivel y repasa el resto de logros). La pertenencia al array
+  de logros lo hace idempotente. Quién pisó el cut y quién es campeón
+  lo dice ronda.js (resumenDeGloria); `campeonDelTorneo` ahora también
+  corona en torneos SOLO de suizas (primer clasificado no retirado), y
+  el banner de la clasificación sale igual en ambos formatos.
+- **Anunciar en el foro** (torneo.js): con el torneo publicado (no
+  borrador ni terminado) el organizador elige foro (los ocultos no
+  salen) y publica de un botón el hilo «Torneo: nombre» con etiqueta
+  Torneo y primer mensaje con fecha, formato, plazas y enlace; si el
+  primer mensaje falla, el hilo se retira (mismo cuidado que foro.js).
+  Con el hilo ya creado, la ficha lo ENLAZA en vez de repetir el botón
+  (el título fijo es la clave de reencuentro).
+- Pospuesto a cuando la sección se abra al público: la tarjeta del
+  torneo en la portada (el presupuesto de la portada está en 170/170
+  justos y la sección es solo-admins; no tiene sentido pagarlo aún).
+- El stub gana las tres definiciones de logro.
+
+Probado con test-torneos-6.mjs (19 comprobaciones: Competidor + En el
+corte sin campeonato ajeno, XP sumado e idempotente al refrescar,
+Campeón en el mano a mano con su banner sin cut, el anuncio con hilo
+etiquetado/enlazado y sin botón duplicado, y el mirón sin inscripción
+que no se lleva nada) y rigor-torneos-6.py (8 roturas, todas
+detectadas).

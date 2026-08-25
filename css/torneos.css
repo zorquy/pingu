@@ -134,8 +134,9 @@
 }
 :root[data-theme='dark'] .torneo-plazas-relleno { background: #7db6dd; }
 
-.torneo-admin-acciones { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+.torneo-admin-acciones { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .torneo-admin-acciones:empty { display: none; }
+.torneo-anuncio-foro { display: inline-flex; gap: 8px; align-items: center; }
 
 /* Tu plaza */
 .torneo-form-inscripcion {

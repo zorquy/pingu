@@ -12,6 +12,26 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-25 — PINGU-Claude (tanda 208 — FIN DEL PORTE)
+**Hecho**: la gamificación de torneos y el anuncio en el foro. Tres
+logros nuevos (Competidor 30 XP / En el corte 60 / Campeón de torneo
+150, condición manual) que la ficha concede al ver terminado un torneo
+que jugaste, idempotentes y con su XP por addXP; el campeón también se
+corona en torneos solo de suizas; y el organizador publica de un botón
+el hilo «Torneo: nombre» en el foro que elija (con etiqueta, datos y
+enlace) — con hilo creado, la ficha lo enlaza. Con esto las tandas
+203-208 del porte de TrainerArena están COMPLETAS.
+**Ficheros**: js/torneos/torneo.js (gloria + anuncio),
+js/torneos/ronda.js (resumenDeGloria, campeón sin cut),
+supabase-migration-torneos.sql (+3 logros), css/torneos.css, SCHEMA.md,
+BITACORA.md.
+**En curso / pendiente**: la migración supabase-migration-torneos.sql
+sigue SIN ejecutar — es lo ÚNICO que falta para poder probar todo en
+producción (PINGU humano, SQL Editor). La tarjeta del torneo en la
+portada queda para cuando la sección se abra al público (presupuesto
+170/170 justo). Abrir torneos al público = migración futura de RLS.
+Nadie tiene ficheros bloqueados.
+
 ## 2026-08-25 — PINGU-Claude (tanda 207)
 **Hecho**: jueces y chats. Solicitudes de juez con aprobación sellada
 del organizador, chat de mesa EN DESPLEGABLE dentro de «Tu partida»
