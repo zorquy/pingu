@@ -9680,44 +9680,37 @@ de peso (170/170 KB comprimidos). Lo siguiente que quiera entrar en la
 home tiene que aligerar algo antes, o subir el techo con justificación
 (precedentes: 150→160 en la tanda 183 y 160→170 en la 188).
 
-## Importar lanzamientos desde Bulbapedia (agosto 2026)
+## Importar lanzamientos desde TCGdex (agosto 2026)
 
-El botón «Importar de Bulbapedia» del panel de Lanzamientos del /admin
-rellena la caja solo, leyendo la lista de expansiones inglesa
-(bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_Trading_Card_Game_expansions).
-Se eligió Bulbapedia sobre WikiDex a petición del admin: su columna de
-fecha es una sola («Release date», que en la era actual coincide con la
-salida en España) y su tabla es más estable.
+El botón «Importar de TCGdex» del panel de Lanzamientos del /admin
+rellena la caja solo, con los últimos sets, sus fechas de salida y sus
+logos — en español. La fuente es el MISMO catálogo que ya usan las
+cartas (js/tcgdex.js): sin clave, con CORS, llamado desde el navegador.
 
-- **La función** (netlify/functions/lanzamientos-bulbapedia.mjs): un
-  proxy de LECTURA — Bulbapedia no manda CORS, así que el navegador no
-  puede leerla directo. Entra por la API de MediaWiki (action=parse:
-  el mismo HTML de las tablas dentro de un JSON — la página normal le
-  soltó un 403 del muro anti-bots del CDN) y, si tampoco, prueba la
-  página con cabeceras de navegador. Parte el HTML por `<tr` y de cada
-  fila saca la fecha («Month D, YYYY» → AAAA-MM-DD; sin fecha completa
-  —TBA— la fila se descarta), el nombre (el enlace no-File: más largo,
-  descartando «… Expansion»; con raya «Serie—Set» se queda el set) y el
-  logo (la columna del SÍMBOLO también es una imagen de archives y va
-  antes, así que se prefiere la que se llama *logo* y, si no, una de
-  ≥80 px — los símbolos rondan los 30; sin logo, mejor nada). Filtra a
-  fecha ≥ hoy−90 días (lo que /lanzamientos enseña), quita duplicados,
-  ordena y devuelve { sets }. Caché de una hora. Sin variables de
-  entorno: no toca Supabase. `parsearBulbapedia` y `fechaDeIngles` van
-  exportadas para probarlas sin red.
-- **El botón** (admin.js): pide la función, y solo RELLENA la caja —
-  nada llega a la base hasta que el admin revisa y pulsa Guardar. Las
-  notas escritas a mano sobreviven casando por nombre de set
-  (minúsculas); los nombres llegan en inglés y el aviso del panel
-  invita a traducirlos antes de guardar. Si la función falla, toast y
-  la caja NI SE TOCA.
-- Los logos de /lanzamientos llevan ahora `referrerpolicy="no-referrer"`
-  por si el CDN de archives mirase el referer al servir en caliente.
-- En local no hay red hacia Bulbapedia (la política del contenedor la
-  bloquea): el parser se prueba con un fixture que imita el HTML
-  MediaWiki real (símbolo antes que logo, entidades, TBA) y el botón,
-  interceptando la ruta de la función con Playwright.
+La historia de la fuente importa: el primer intento leía Bulbapedia a
+través de una función de Netlify (su lista de expansiones anuncia sets
+más lejanos), pero el muro anti-bots de su CDN respondió 403 a los
+servidores de Netlify — a la página Y a su API de MediaWiki — y no hay
+proxy que valga contra eso. WikiDex, igual. TCGdex es la fuente pensada
+para leerse por programa; su pega es que los sets muy lejanos aún no
+están (los añade según se acercan), que para una cuenta atrás es pega
+pequeña.
 
-Probado con test-bulbapedia.mjs (29 comprobaciones: 19 del parser +
-10 del botón con la función interceptada) y rigor-bulbapedia.py
-(6 roturas, todas detectadas).
+- **Cómo lee** (admin.js): la lista breve de sets no trae fechas, así
+  que pide los ÚLTIMOS 15 en detalle vía `fetchSetEnIdioma(id, 'es')`
+  (export nuevo de tcgdex.js: un set en un IDIOMA, no en un mercado —
+  para el calendario el nombre en español vale más que el catálogo
+  completo en inglés), con caída a inglés si un set aún no está
+  traducido. Filtra a releaseDate ≥ hoy−90 días, ordena por fecha y
+  monta las líneas. El logo de TCGdex llega sin extensión: se le añade
+  `.webp`. Pocket (serie tcgp) nunca entra — fetchSets ya lo excluye.
+- **Solo rellena**: nada llega a la base hasta que el admin revisa y
+  pulsa Guardar; las notas escritas a mano sobreviven casando por
+  nombre (minúsculas). Si TCGdex falla, toast y la caja NI SE TOCA.
+- Los logos de /lanzamientos llevan `referrerpolicy="no-referrer"`.
+- En local no hay red hacia TCGdex (política del contenedor): el test
+  intercepta `https://api.tcgdex.net/**` con Playwright.
+
+Probado con test-importar-sets.mjs (15 comprobaciones: relleno, orden,
+ventana, caída a inglés, exclusión de Pocket, notas, guardado y fallo)
+y rigor-importar-sets.py (6 roturas, todas detectadas).

@@ -9,7 +9,7 @@ import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
-import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados } from '../../js/tcgdex.js'
+import { fetchSets, fetchSet, fetchSetEnIdioma, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados } from '../../js/tcgdex.js'
 import { checkSchema } from '../../js/schema-check.js'
 
 let categories = []
@@ -538,25 +538,44 @@ async function loadLanzamientos() {
     )
   })
 
-  // «Importar de Bulbapedia»: la función de Netlify lee su lista de
-  // expansiones y aquí solo se RELLENA la caja — nada se guarda hasta
-  // que el admin revisa y pulsa Guardar. Las notas escritas a mano se
+  // «Importar de TCGdex»: el catálogo que ya usamos para las cartas
+  // también sabe los sets con su fecha de salida y su logo, se llama
+  // desde el navegador (sin clave y con CORS) y da los nombres EN
+  // ESPAÑOL. Aquí solo se RELLENA la caja — nada se guarda hasta que el
+  // admin revisa y pulsa Guardar; las notas escritas a mano se
   // conservan casando por nombre de set.
+  //
+  // (El primer intento leía Bulbapedia a través de una función de
+  // Netlify: el muro anti-bots de su CDN respondía 403 a los servidores
+  // de Netlify, tanto a la página como a su API. TCGdex es la fuente
+  // pensada para leerse por programa.)
   const btnImportar = document.getElementById('btnImportarLanzamientos')
   btnImportar.addEventListener('click', async () => {
     btnImportar.disabled = true
     const rotulo = btnImportar.textContent
     btnImportar.textContent = 'Importando…'
     try {
-      const res = await fetch('/.netlify/functions/lanzamientos-bulbapedia')
-      const json = await res.json().catch(() => ({}))
-      if (!res.ok || !json.sets?.length) throw new Error(json.error || `la función responde ${res.status}`)
+      // La lista breve no trae fechas: se piden los últimos sets en
+      // detalle, en español — y en inglés si alguno aún no está
+      // traducido. Quince cubren de sobra la ventana de tres meses.
+      const lista = await fetchSets()
+      const detalles = await Promise.all(
+        lista.slice(-15).map((s) => fetchSetEnIdioma(s.id, 'es').catch(() => fetchSet(s.id).catch(() => null)))
+      )
+      const hoy = new Date().toISOString().slice(0, 10)
+      const desde = new Date(Date.parse(`${hoy}T00:00:00Z`) - 90 * 86400_000).toISOString().slice(0, 10)
+      const sets = detalles
+        .filter((d) => d && d.name && /^\d{4}-\d{2}-\d{2}$/.test(d.releaseDate || '') && d.releaseDate >= desde)
+        // El logo de TCGdex llega sin extensión; .webp lo sirven todos.
+        .map((d) => ({ fecha: d.releaseDate, nombre: d.name, imagen: d.logo ? `${d.logo}.webp` : '' }))
+        .sort((a, b) => (a.fecha < b.fecha ? -1 : 1))
+      if (!sets.length) throw new Error('TCGdex no devuelve ningún set con fecha reciente')
 
       const notasDeAntes = new Map()
       for (const s of parsearLanzamientos(caja.value).sets) {
         if (s.notas) notasDeAntes.set(s.nombre.toLowerCase(), s.notas)
       }
-      caja.value = json.sets
+      caja.value = sets
         .map((s) => {
           const notas = notasDeAntes.get(String(s.nombre).toLowerCase()) || ''
           const campos = [s.fecha, s.nombre]
@@ -565,9 +584,9 @@ async function loadLanzamientos() {
           return campos.join(' | ')
         })
         .join('\n')
-      showToast(`${json.sets.length} sets traídos de Bulbapedia. Revisa la lista (los nombres llegan en inglés) y pulsa Guardar.`, 'success')
+      showToast(`${sets.length} sets traídos de TCGdex. Revisa la lista y pulsa Guardar.`, 'success')
     } catch (e) {
-      showToast('No se ha podido importar de Bulbapedia: ' + (e.message || e), 'error')
+      showToast('No se ha podido importar de TCGdex: ' + (e.message || e), 'error')
     } finally {
       btnImportar.disabled = false
       btnImportar.textContent = rotulo
