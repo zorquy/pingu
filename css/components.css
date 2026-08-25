@@ -7277,46 +7277,8 @@ body.portada-compacta .page-content {
 :root[data-theme='dark'] .falladas-critica { color: #f2b8b5; }
 
 /* ── El calendario de lanzamientos ── */
-.lanzamiento-destacado {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
-  padding: 18px 22px;
-  margin-bottom: 22px;
-}
-.lanzamiento-destacado h2 { margin: 2px 0; }
-.lanzamiento-logo-grande { width: 96px; height: 96px; object-fit: contain; }
-.lanzamiento-cuenta {
-  margin-left: auto;
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--navy);
-  background: rgba(30, 81, 117, 0.1);
-  border-radius: var(--radius-pill);
-  padding: 4px 12px;
-  white-space: nowrap;
-}
-:root[data-theme='dark'] .lanzamiento-cuenta { color: #7db6dd; }
-.lanzamiento-cuenta-grande { font-size: 15px; padding: 8px 16px; }
-.lanzamientos-lista { display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px; }
-.lanzamiento-tarjeta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 10px 14px;
-}
-.lanzamiento-pasado { opacity: 0.65; }
-.lanzamiento-logo { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
-.lanzamiento-logo-hueco { display: inline-flex; align-items: center; justify-content: center; color: var(--text-dim); }
-.lanzamiento-texto { display: flex; flex-direction: column; min-width: 0; }
+/* La página /lanzamientos tiene su hoja (css/lanzamientos.css): aquí
+   solo queda la miniatura de la portada. */
 
 /* La miniatura de la portada (misma familia que las tarjetas del reto). */
 .lanzamiento-portada {
@@ -7335,6 +7297,5 @@ body.portada-compacta .page-content {
 .lanzamiento-portada-icono { color: var(--navy); display: inline-flex; }
 :root[data-theme='dark'] .lanzamiento-portada-icono { color: #7db6dd; }
 .lanzamiento-portada-texto { display: flex; flex-direction: column; min-width: 0; }
-/* El logo del set hace de título; los logos son PNG transparentes que
-   funcionan igual sobre claro y oscuro. */
-.lanzamiento-portada-logo { max-height: 44px; max-width: 100%; align-self: flex-start; object-fit: contain; margin-bottom: 3px; }
+/* El logo del set va a la izquierda y el texto al lado, como el icono. */
+.lanzamiento-portada-logo { max-height: 42px; max-width: 108px; object-fit: contain; flex-shrink: 0; }

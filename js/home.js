@@ -494,15 +494,17 @@ async function cargarLanzamiento() {
     if (!proximo) return
     const dias = Math.round((Date.parse(`${proximo.fecha}T00:00:00Z`) - Date.parse(`${hoy}T00:00:00Z`)) / 86400_000)
     const cuenta = dias === 0 ? '¡Sale hoy!' : dias === 1 ? 'Sale mañana' : `Faltan ${dias} días`
-    // Con logo, el logo es el título; si no carga, el onerror deja el
-    // nombre (replaceWith con string inserta texto plano, es seguro).
-    const titulo = proximo.imagen
-      ? `<img class="lanzamiento-portada-logo" src="${escapeHtml(proximo.imagen)}" alt="${escapeHtml(proximo.nombre)}" decoding="async" referrerpolicy="no-referrer" onerror="this.replaceWith(this.alt)" />`
-      : `<strong>${escapeHtml(proximo.nombre)}</strong>`
+    // Con logo, el logo va a la IZQUIERDA (donde el icono) y el texto al
+    // lado; si no carga, el onerror deja el nombre (replaceWith con
+    // string inserta texto plano, es seguro).
     hueco.innerHTML = `
-      ${proximo.imagen ? '' : `<span class="lanzamiento-portada-icono">${icons.calendar(18)}</span>`}
+      ${
+        proximo.imagen
+          ? `<img class="lanzamiento-portada-logo" src="${escapeHtml(proximo.imagen)}" alt="${escapeHtml(proximo.nombre)}" decoding="async" referrerpolicy="no-referrer" onerror="this.replaceWith(this.alt)" />`
+          : `<span class="lanzamiento-portada-icono">${icons.calendar(18)}</span>`
+      }
       <span class="lanzamiento-portada-texto">
-        ${titulo}
+        ${proximo.imagen ? '' : `<strong>${escapeHtml(proximo.nombre)}</strong>`}
         <span class="subtext">${cuenta} · ver el calendario</span>
       </span>
       <span class="reto-flecha">→</span>`

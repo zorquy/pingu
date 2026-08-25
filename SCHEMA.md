@@ -9759,3 +9759,30 @@ portada baja components.css) y la tarjeta perdió un `loading="lazy"`
 que ahí era contraproducente — quedó 170 justo, sin subir el techo. La cuenta de días no se
 mueve. Cubierto en test-lanzamientos.mjs (logo visible, alt, nombre no
 duplicado, y el repuesto con URL rota).
+
+## /lanzamientos, en formato agenda (agosto 2026)
+
+Feedback del admin con una captura de otra web suya de eventos: la
+página quedaba «pocha». Rediseñada como agenda, ADAPTANDO ese diseño a
+los colores de la casa (no copiándolos): línea de tiempo vertical con
+puntos (azul marino los futuros, apagado los pasados), cada set con su
+BLOQUE DE FECHA a la izquierda (día en grande, mes corto, año) pegado a
+la tarjeta, la pastilla de cuenta atrás a la derecha («Ya salió» en
+gris para los pasados), títulos de sección en mayúsculas espaciadas y
+el destacado con una banda de tinte degradado.
+
+- **css/lanzamientos.css (hoja nueva, solo de esta página)**: los
+  estilos de la página se MUDARON ahí desde components.css, que también
+  la baja la portada — el rediseño cabía imposible en el presupuesto de
+  peso y además ahí nunca pintaron nada. En components.css solo queda
+  la miniatura (.lanzamiento-portada-*).
+- **La miniatura de la home**: el logo pasa de encima del texto a la
+  IZQUIERDA (donde iba el icono), con el texto al lado — feedback del
+  admin («el logo deberia estar en un lado y el texto en otro»). Máx.
+  42px de alto y 108px de ancho.
+- js/lanzamientos.js: tarjetaHtml pasa a eventoHtml (bloque de fecha +
+  tarjeta + pastilla). Clases lanzamiento-tarjeta/-pasado se conservan.
+
+Cubierto en test-lanzamientos.mjs (los textos y el orden no cambian; se
+añade la comprobación de que el logo queda a la izquierda del texto por
+geometría real).

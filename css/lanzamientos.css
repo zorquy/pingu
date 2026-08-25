@@ -1,0 +1,132 @@
+/* ── El calendario de lanzamientos ──
+   Hoja propia de /lanzamientos: separada de components.css para no
+   cargar a la portada (que baja components.css entera y anda al límite
+   del presupuesto de peso) con estilos que nunca pinta. El diseño es
+   de agenda: línea de tiempo con puntos, bloque de fecha a la
+   izquierda y la tarjeta del set al lado. */
+
+/* El siguiente set, con presencia: banda con el tinte de la casa. */
+.lanzamiento-destacado {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  background: linear-gradient(120deg, rgba(30, 81, 117, 0.09), rgba(30, 81, 117, 0.02) 60%), var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  padding: 24px 28px;
+  margin-bottom: 30px;
+}
+:root[data-theme='dark'] .lanzamiento-destacado {
+  background: linear-gradient(120deg, rgba(125, 182, 221, 0.1), rgba(125, 182, 221, 0.02) 60%), var(--white);
+}
+.lanzamiento-destacado h2 { margin: 2px 0; font-size: 26px; }
+.lanzamiento-logo-grande { width: 130px; max-height: 90px; object-fit: contain; }
+
+.lanzamiento-cuenta {
+  margin-left: auto;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--navy);
+  background: rgba(30, 81, 117, 0.1);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+:root[data-theme='dark'] .lanzamiento-cuenta { color: #7db6dd; background: rgba(125, 182, 221, 0.12); }
+.lanzamiento-cuenta-grande { font-size: 15px; padding: 8px 16px; }
+/* La de los ya salidos: apagada, que no compita con las cuentas atrás. */
+.lanzamiento-cuenta-gris { color: var(--text-dim); background: rgba(127, 127, 127, 0.12); }
+:root[data-theme='dark'] .lanzamiento-cuenta-gris { color: var(--text-dim); }
+
+/* Los títulos de sección, como etiquetas de agenda. */
+#seccionProximos .section-title,
+#seccionPasados .section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: var(--navy);
+  margin-bottom: 14px;
+}
+:root[data-theme='dark'] #seccionProximos .section-title,
+:root[data-theme='dark'] #seccionPasados .section-title { color: #7db6dd; }
+
+/* ── La línea de tiempo ── */
+.lanzamientos-lista {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 0 32px 6px;
+  padding-left: 20px;
+}
+.lanzamientos-lista::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--border);
+}
+.lanz-evento { position: relative; display: flex; align-items: stretch; }
+.lanz-evento::before {
+  content: '';
+  position: absolute;
+  left: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--navy);
+  box-shadow: 0 0 0 3px rgba(30, 81, 117, 0.15);
+}
+:root[data-theme='dark'] .lanz-evento::before { background: #7db6dd; box-shadow: 0 0 0 3px rgba(125, 182, 221, 0.16); }
+.lanz-evento.lanzamiento-pasado::before { background: var(--text-dim); box-shadow: none; }
+
+/* El bloque de la fecha, pegado a la tarjeta por la izquierda. */
+.lanz-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 66px;
+  flex-shrink: 0;
+  padding: 8px 6px;
+  background: rgba(30, 81, 117, 0.08);
+  border: 1px solid var(--border);
+  border-right: 0;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  color: var(--navy);
+  line-height: 1.2;
+}
+:root[data-theme='dark'] .lanz-dia { background: rgba(125, 182, 221, 0.1); color: #7db6dd; }
+.lanz-dia strong { font-size: 22px; }
+.lanz-dia span { font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+.lanz-dia .lanz-anno { color: var(--text-dim); font-weight: 600; letter-spacing: 0.4px; }
+
+.lanzamiento-tarjeta {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: 10px 16px;
+  min-width: 0;
+}
+.lanzamiento-pasado { opacity: 0.7; }
+.lanzamiento-logo { width: 56px; height: 44px; object-fit: contain; flex-shrink: 0; }
+.lanzamiento-logo-hueco { display: inline-flex; align-items: center; justify-content: center; color: var(--text-dim); }
+.lanzamiento-texto { display: flex; flex-direction: column; min-width: 0; }
+
+@media (max-width: 560px) {
+  .lanzamiento-logo { width: 44px; }
+  .lanzamiento-destacado { padding: 18px; gap: 14px; }
+  .lanzamiento-logo-grande { width: 96px; }
+}

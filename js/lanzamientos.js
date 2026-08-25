@@ -47,16 +47,28 @@ export async function cargarSets() {
   }
 }
 
-function tarjetaHtml(s, futuro) {
-  const dias = diasHasta(s.fecha)
+const MESES_CORTOS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
+
+// Cada set es un evento de agenda: el bloque de la fecha a la
+// izquierda, la tarjeta con el logo al lado, y la cuenta atrás (o «Ya
+// salió», apagado) de pastilla.
+function eventoHtml(s, futuro) {
+  const [a, m, d] = String(s.fecha).split('-').map(Number)
   return `
-    <div class="lanzamiento-tarjeta ${futuro ? '' : 'lanzamiento-pasado'}">
-      ${s.imagen ? `<img class="lanzamiento-logo" src="${escapeHtml(s.imagen)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />` : `<span class="lanzamiento-logo lanzamiento-logo-hueco">${icons.cards(22)}</span>`}
-      <div class="lanzamiento-texto">
-        <strong>${escapeHtml(s.nombre)}</strong>
-        <span class="subtext">${fechaBonita(s.fecha)}${s.notas ? ` · ${escapeHtml(s.notas)}` : ''}</span>
+    <div class="lanz-evento ${futuro ? '' : 'lanzamiento-pasado'}">
+      <div class="lanz-dia">
+        <strong>${d}</strong>
+        <span>${MESES_CORTOS[m - 1]}</span>
+        <span class="lanz-anno">${a}</span>
       </div>
-      ${futuro ? `<span class="lanzamiento-cuenta">${cuentaAtras(dias)}</span>` : ''}
+      <div class="lanzamiento-tarjeta">
+        ${s.imagen ? `<img class="lanzamiento-logo" src="${escapeHtml(s.imagen)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />` : `<span class="lanzamiento-logo lanzamiento-logo-hueco">${icons.cards(22)}</span>`}
+        <div class="lanzamiento-texto">
+          <strong>${escapeHtml(s.nombre)}</strong>
+          <span class="subtext">${fechaBonita(s.fecha)}${s.notas ? ` · ${escapeHtml(s.notas)}` : ''}</span>
+        </div>
+        ${futuro ? `<span class="lanzamiento-cuenta">${cuentaAtras(diasHasta(s.fecha))}</span>` : '<span class="lanzamiento-cuenta lanzamiento-cuenta-gris">Ya salió</span>'}
+      </div>
     </div>`
 }
 
@@ -85,14 +97,14 @@ async function init() {
     destacadoEl.classList.remove('hidden')
 
     if (resto.length) {
-      document.getElementById('listaProximos').innerHTML = resto.map((s) => tarjetaHtml(s, true)).join('')
+      document.getElementById('listaProximos').innerHTML = resto.map((s) => eventoHtml(s, true)).join('')
       document.getElementById('seccionProximos').classList.remove('hidden')
     }
   }
 
   if (pasados.length) {
     // Los recién salidos: los últimos 6, que es lo que aún interesa.
-    document.getElementById('listaPasados').innerHTML = pasados.slice(0, 6).map((s) => tarjetaHtml(s, false)).join('')
+    document.getElementById('listaPasados').innerHTML = pasados.slice(0, 6).map((s) => eventoHtml(s, false)).join('')
     document.getElementById('seccionPasados').classList.remove('hidden')
   }
 }
