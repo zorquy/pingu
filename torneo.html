@@ -72,10 +72,19 @@
       <div id="miPlazaContenido"></div>
     </div>
 
-    <!-- Tu partida de la ronda en curso: check-in y reporte. -->
+    <!-- Tu partida de la ronda en curso: check-in y reporte. Debajo,
+         el chat de la mesa (en desplegable) y llamar al juez. -->
     <div class="simple-card hidden" id="torneoMiPartida">
       <h3>Tu partida</h3>
       <div id="miPartidaContenido"></div>
+      <div id="miPartidaExtra"></div>
+    </div>
+
+    <!-- La cola del juez: llamadas abiertas con su chat y disputas.
+         Solo la ven jueces aprobados y el organizador. -->
+    <div class="simple-card hidden" id="torneoColaCaja">
+      <h3>Cola del juez</h3>
+      <div id="colaContenido"></div>
     </div>
 
     <!-- El ciclo de ronda: botones del organizador, pareo manual si el
@@ -90,6 +99,12 @@
     <div class="simple-card hidden" id="torneoClasificacionCaja">
       <h3>Clasificación</h3>
       <div id="clasificacionContenido"></div>
+    </div>
+
+    <!-- Jueces: solicitar serlo y, para el organizador, decidir. -->
+    <div class="simple-card hidden" id="torneoJuecesCaja">
+      <h3>Jueces</h3>
+      <div id="juecesContenido"></div>
     </div>
 
     <!-- Tu decklist: solo existe si estás (o estuviste) inscrito. Se

@@ -12,6 +12,23 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-25 — PINGU-Claude (tanda 207)
+**Hecho**: jueces y chats. Solicitudes de juez con aprobación sellada
+del organizador, chat de mesa EN DESPLEGABLE dentro de «Tu partida»
+(pedido expreso de PINGU), llamadas al juez idempotentes con su
+conversación, cola del juez (Atender bajo candado, Resolver deja el
+chat como registro) con las disputas señaladas, y los jueces aprobados
+resuelven mesas como el organizador.
+**Ficheros**: js/torneos/jueces.js (nuevo), torneo.html (cajas Cola del
+juez y Jueces + hueco en Tu partida), js/torneos/torneo.js (esJuez +
+monta jueces), js/torneos/ronda.js (resolutor para jueces; Actualizar y
+reportar/resolver refrescan la ficha entera), css/torneos.css,
+SCHEMA.md, BITACORA.md.
+**En curso / pendiente**: migración supabase-migration-torneos.sql aún
+SIN ejecutar. Última tanda del porte: (208) gamificación (XP por jugar,
+torneo en portada, hilo del foro por torneo). Nadie tiene ficheros
+bloqueados.
+
 ## 2026-08-25 — PINGU-Claude (tanda 206)
 **Hecho**: el top cut completo (siembra automática al cerrar la última
 suiza, avance «fold» del bracket, campeón con banner, sin empates en el

@@ -275,3 +275,59 @@
   font-size: 15px;
 }
 :root[data-theme='dark'] .torneo-campeon { color: #e8b558; }
+
+/* ── Chats en desplegable (mesa y llamadas al juez) ── */
+.torneo-chat-desplegable {
+  margin: 10px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.torneo-chat-desplegable summary {
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: revert;
+}
+.torneo-chat-cuerpo { padding: 0 12px 10px; }
+.torneo-chat-mensajes {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  padding: 4px 0 8px;
+}
+.torneo-chat-envio { display: flex; gap: 8px; }
+.torneo-chat-envio input { flex: 1; }
+
+.torneo-llamar-juez { margin-top: 10px; }
+
+/* ── Cola del juez y solicitudes ── */
+.torneo-llamada {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.torneo-llamada:last-child { border-bottom: none; }
+.torneo-llamada-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.torneo-disputa { font-size: 14px; padding: 6px 0; }
+
+.torneo-solicitud-juez {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.torneo-solicitud-juez:last-of-type { border-bottom: none; }

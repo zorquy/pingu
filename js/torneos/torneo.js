@@ -11,6 +11,7 @@ import { icons } from '../icons.js'
 import { parseDecklist, validateDecklist, canEditDecklist } from './motor.js'
 import { ESTADOS, fechaBonita, textoFormato } from './comun.js'
 import { montarCiclo } from './ronda.js'
+import { montarJueces } from './jueces.js'
 
 let session = null
 let perfil = null
@@ -339,7 +340,23 @@ async function recargar() {
   await cargarInscripciones()
   await cargarDecklists()
   pintarTodo()
-  await montarCiclo({ torneo, session, perfil, inscripciones, recargarFicha: recargar })
+  // Un juez aprobado resuelve mesas igual que el organizador (SPEC §6.7).
+  const { data: comoJuez } = await supabase
+    .from('judge_applications')
+    .select('status')
+    .eq('tournament_id', torneo.id)
+    .eq('user_id', session.user.id)
+    .maybeSingle()
+  const contexto = {
+    torneo,
+    session,
+    perfil,
+    inscripciones,
+    esJuez: comoJuez?.status === 'approved',
+    recargarFicha: recargar,
+  }
+  await montarCiclo(contexto)
+  await montarJueces(contexto)
 }
 
 async function init() {

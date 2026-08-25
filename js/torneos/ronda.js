@@ -398,8 +398,9 @@ async function reportar(partida, resultado) {
     const soyA = partida.player_a_id === ctx.session.user.id
     await conciliar(partida, soyA ? resultado : delRival.result, soyA ? delRival.result : resultado)
   }
-  await recargarCiclo()
-  pintarCiclo()
+  // Ficha entera: una disputa nueva tiene que asomar también en la cola
+  // del juez, que pinta otro módulo.
+  await ctx.recargarFicha()
 }
 
 // La conciliación del segundo reporte (SPEC §6.5): win+loss y draw+draw
@@ -463,8 +464,7 @@ async function resolverPartida(partida, resultado) {
     resolved_by: ctx.session.user.id,
   })
   showToast('Mesa resuelta.', 'success')
-  await recargarCiclo()
-  pintarCiclo()
+  await ctx.recargarFicha()
 }
 
 // ── Pareo manual (SPEC §6.2) ──
@@ -554,7 +554,7 @@ function pintarMesas(ronda) {
       const rival = m.player_b_id ? ` — ${escapeHtml(nombreDe(m.player_b_id))}${listoB}` : ' — bye'
       // El organizador puede resolver a mano cualquier mesa viva.
       const resolver =
-        !terminal && ctx.perfil.is_admin && ronda.status === 'active'
+        !terminal && (ctx.perfil.is_admin || ctx.esJuez) && ronda.status === 'active'
           ? `<span class="torneo-mesa-resolver">
               <select data-resolver="${m.id}">
                 <option value="">Resolver…</option>
@@ -603,10 +603,9 @@ function pintarRondas() {
       <span class="subtext">${rondas.length ? (rondas[rondas.length - 1].phase === 'top_cut' ? `Top cut — ronda ${rondas[rondas.length - 1].round_number}` : `Ronda ${rondas[rondas.length - 1].round_number} de ${ctx.torneo.swiss_rounds} suizas`) : `Sin rondas aún (${ctx.torneo.swiss_rounds} suizas previstas)`}</span>
       <span class="torneo-rondas-botones">${admin}<button class="btn-secondary" id="btnActualizarCiclo">Actualizar</button></span>
     </div>`
-  $('btnActualizarCiclo').addEventListener('click', async () => {
-    await recargarCiclo()
-    pintarCiclo()
-  })
+  // Actualizar refresca la ficha ENTERA (ciclo, chats y cola de jueces):
+  // es el botón de «a ver si mi rival ya ha hecho algo».
+  $('btnActualizarCiclo').addEventListener('click', () => ctx.recargarFicha())
   if ($('btnGenerarPareos')) $('btnGenerarPareos').addEventListener('click', generarPareos)
   if ($('btnIniciarRonda')) $('btnIniciarRonda').addEventListener('click', () => iniciarRonda(actual))
   if ($('btnCerrarRonda')) $('btnCerrarRonda').addEventListener('click', () => cerrarRonda(actual))

@@ -10040,3 +10040,37 @@ variantes, tiempo que respeta reportes, aviso único con limpieza de
 suscripciones muertas — y el cut en navegador: siembra según ranking,
 sin empate en el resolutor, final por «fold» y banner del campeón) y
 rigor-torneos-4.py (7 roturas, todas detectadas).
+
+## Tanda 207 — Torneos 5: jueces, llamadas y chats en desplegable (agosto 2026)
+
+js/torneos/jueces.js (nuevo, montado por torneo.js tras el ciclo) porta
+el §10 del SPEC. Todos los chats van EN DESPLEGABLE (`<details>`), no en
+el recuadro principal: decisión de los admins fijada en CLAUDE.md.
+
+- **Solicitudes de juez**: quien no organiza puede pedir serlo (una
+  vez; con solicitud, el botón desaparece y se ve el estado). El
+  organizador aprueba o rechaza con sello (`decided_at`/`decided_by`) y
+  la ficha lista los jueces aprobados. Un juez aprobado ve la cola y
+  puede resolver mesas igual que el organizador (ctx.esJuez llega desde
+  torneo.js al resolutor de ronda.js).
+- **Chat de la mesa** (match_messages): desplegable dentro de «Tu
+  partida», plegado por defecto; se carga al abrirse y tras cada envío
+  (Enter también envía). Sin mesa o con bye, no hay chat.
+- **Llamar al juez** (judge_calls): idempotente por jugador y mesa (una
+  llamada viva se reutiliza); el jugador queda «Esperando juez…» con la
+  conversación (judge_messages) en desplegable.
+- **La cola del juez**: llamadas con su estado (Atender bajo candado —
+  el update filtra por `status=open`, si otro juez ganó la carrera se
+  avisa —, Resolver deja el chat en solo lectura como registro) y las
+  mesas en disputa señaladas hasta que alguien las resuelve. Reportar o
+  resolver refresca la ficha ENTERA para que la disputa asome/desasome
+  de la cola al momento; el botón Actualizar ahora también refresca
+  todo.
+- El stub gana judge_applications (+semilla `__FAKE_JUECES__`),
+  judge_calls, judge_messages y match_messages.
+
+Probado con test-torneos-5.mjs (23 comprobaciones: aprobación con
+sello, chat de mesa plegado/firmado/con respuesta del rival, llamada
+única con Atender/Resolver y chat cerrado al resolver, disputa que
+entra y sale de la cola, y solicitud propia sin doble botón) y
+rigor-torneos-5.py (7 roturas, todas detectadas).
