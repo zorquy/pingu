@@ -9950,3 +9950,56 @@ plaza queda activa al momento.
 Probado con test-torneos-2.mjs (38 comprobaciones: 8 de la política en
 nodo + 30 de la ficha en navegador, incluido el ciclo entero en una
 sola página) y rigor-torneos-2.py (7 roturas, todas detectadas).
+
+## Tanda 205 — Torneos 3: el ciclo de ronda (agosto 2026)
+
+js/torneos/ronda.js (nuevo, montado por torneo.js) porta el §6 del SPEC
+de TrainerArena a la ficha del torneo. Sin colas ni WebSockets, como
+manda CLAUDE.md: los relojes automáticos llegan con la función
+programada (tanda 206) y el refresco es por sondeo (10 s con ronda viva
++ botón Actualizar).
+
+- **Generar pareos** (admin): la ronda nace `pending`; R1 por sorteo
+  sembrado y las demás por Monrad con el histórico de cruces
+  (pairing_history, clave menor:mayor). El bye nace terminal con su
+  resultado apuntado. Si el motor lanza ManualPairingRequired se
+  aplican los parciales y sale el **pareo manual**: el admin sienta
+  parejas (mesa siguiente + histórico; un recruce a sabiendas se admite
+  y el UNIQUE del histórico lo ignora) o da byes. Iniciar con gente sin
+  mesa se bloquea.
+- **Iniciar ronda**: `active`, `started_at`, `ends_at = ahora +
+  round_time_minutes` (null en top cut), mesas `pending → active`,
+  `tournaments.current_round_id`, y el torneo pasa a `in_progress`. La
+  R1 **sella todas las decklists** sin sellar (SPEC §6.3).
+- **Check-in**: botón «Estoy listo» → `check_in_a/b_at` idempotente; el
+  ✓ se ve en tu partida y en las mesas. Los forfeits por ventana
+  expirada llegan con el barredor de la tanda 206.
+- **Reportes** (SPEC §6.5): «He ganado / He perdido / Empate» (el
+  empate se oculta en BO1); el primer reporte deja la mesa
+  `awaiting_confirmation`; el reporte repetido igual es no-op y el
+  distinto avisa; el segundo se concilia con `reconcileReports`
+  (portada a motor.js): win+loss ⇒ a/b_wins, draw+draw ⇒ empate, y
+  cualquier otra pareja ⇒ `disputed`. Sin servidor, la conciliación la
+  hace el cliente del segundo reporte — y si el rival reportó desde su
+  sesión, el primer cliente que refresca concilia las mesas
+  `awaiting_confirmation` con dos reportes (el UNIQUE de match_results
+  corta el doble).
+- **Resolución del organizador** (SPEC §6.7): un select por mesa viva —
+  gana A/B, empate, incomparecencias — con `resolutionWinnerSide`
+  (motor.js) para el ganador y `resolved_by = admin`. Es también la
+  salida de las disputas hasta que lleguen los jueces (tanda 207).
+- **Cerrar ronda** (SPEC §6.8): solo con todas las mesas terminales.
+  Última suiza sin corte ⇒ torneo `finished`; con corte configurado, la
+  siembra queda para la tanda 206.
+- **Clasificación**: computeStandings del motor — puntos, V-D-E (+
+  byes), OWP y OOWP al 2 %, «(retirado)» marcado — en cuanto hay una
+  partida terminal.
+- El stub gana `rounds`, `tournament_matches`, `match_reports`,
+  `match_results` y `pairing_history` (escribibles, sin semillas: el
+  ciclo entero corre en una sola página).
+
+Probado con test-torneos-3.mjs (41 comprobaciones: 8 de conciliación en
+nodo + un torneo de 4 llevado por el organizador de punta a punta con
+mesas deterministas por la semilla, el flujo del jugador con check-in y
+confirmación del rival, la disputa con resolución firmada, y el atasco
+con pareo manual) y rigor-torneos-3.py (9 roturas, todas detectadas).

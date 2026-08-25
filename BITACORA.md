@@ -12,6 +12,23 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-25 — PINGU-Claude (tanda 205)
+**Hecho**: el ciclo de ronda entero en /torneo (SPEC §6): generar
+pareos (R1 sembrada + Monrad con histórico), pareo manual si el motor
+se atasca, iniciar ronda (sello de decklists en R1, in_progress,
+current_round_id), check-in, reportes con conciliación del rival
+(win+loss / draw+draw; choque ⇒ disputa), resolución a mano del
+organizador (también para disputas hasta que haya jueces), cierre con
+validación y clasificación con OWP/OOWP. Refresco por sondeo.
+**Ficheros**: js/torneos/ronda.js (nuevo), js/torneos/motor.js
+(+reconcileReports, +resolutionWinnerSide), torneo.html (secciones Tu
+partida/Rondas/Clasificación), js/torneos/torneo.js (monta el ciclo),
+css/torneos.css, SCHEMA.md, BITACORA.md.
+**En curso / pendiente**: migración supabase-migration-torneos.sql aún
+SIN ejecutar. Al cerrar la última suiza con corte configurado, la
+siembra del top cut queda pendiente de la tanda 206 (top cut + barredor
+de relojes + push). Nadie tiene ficheros bloqueados.
+
 ## 2026-08-25 — PINGU-Claude (tanda 204)
 **Hecho**: la ficha del torneo (/torneo?slug=…) con el ciclo de
 inscripción completo: abrir/cerrar inscripciones desde la ficha,

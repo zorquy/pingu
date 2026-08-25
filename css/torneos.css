@@ -207,3 +207,58 @@
 }
 .torneo-decklist-marca.entregada { background: rgba(74, 158, 63, 0.14); color: #3d8434; }
 :root[data-theme='dark'] .torneo-decklist-marca.entregada { color: #7ec973; }
+
+/* ── El ciclo de ronda ── */
+.torneo-rondas-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.torneo-rondas-botones { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.torneo-pareo-manual {
+  margin: 10px 0;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+}
+.torneo-pareo-manual-fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.torneo-mesas-titulo { margin: 12px 0 6px; font-size: 15px; }
+
+.torneo-mesa {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.torneo-mesa:last-child { border-bottom: none; }
+.torneo-mesa-numero { font-weight: 700; min-width: 64px; }
+.torneo-mesa-jugadores { flex: 1; min-width: 180px; }
+.torneo-mesa-resultado { font-weight: 600; color: var(--text-dim); }
+.torneo-mesa-resolver select { font-size: 13px; }
+
+.torneo-reportar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+.torneo-clasificacion-tabla { overflow-x: auto; }
+.torneo-clasificacion-tabla table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.torneo-clasificacion-tabla th,
+.torneo-clasificacion-tabla td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.torneo-clasificacion-tabla th { font-size: 12px; text-transform: uppercase; color: var(--text-dim); }

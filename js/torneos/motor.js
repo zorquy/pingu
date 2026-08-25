@@ -617,6 +617,26 @@ export function validateDecklist(decklist) {
   return errors
 }
 
+// ── Conciliación de reportes (apps/api, rounds.service — SPEC §6.5) ──
+// Cada reporte es relativo a quien lo firma: win+loss casan (gana quien
+// dijo win), draw+draw también; cualquier otra combinación es disputa
+// y se devuelve null.
+export function reconcileReports(aResult, bResult) {
+  if (aResult === 'win' && bResult === 'loss') return { result: 'a_wins', winnerSide: 'a' }
+  if (aResult === 'loss' && bResult === 'win') return { result: 'b_wins', winnerSide: 'b' }
+  if (aResult === 'draw' && bResult === 'draw') return { result: 'draw', winnerSide: null }
+  return null
+}
+
+// De qué lado cae el ganador al resolver a mano (SPEC §6.7): a_wins y la
+// incomparecencia de B dan a A; el espejo da a B; empate y doble
+// incomparecencia no tienen ganador.
+export function resolutionWinnerSide(result) {
+  if (result === 'a_wins' || result === 'forfeit_b') return 'a'
+  if (result === 'b_wins' || result === 'forfeit_a') return 'b'
+  return null
+}
+
 // ── Política de edición de la decklist (libs/shared, policies.ts) ──
 // Solo el dueño y con inscripción activa; una lista sellada no se toca.
 // Se edita libremente con las inscripciones abiertas o cerradas, y hay

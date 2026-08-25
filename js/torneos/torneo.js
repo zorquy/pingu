@@ -10,6 +10,7 @@ import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { parseDecklist, validateDecklist, canEditDecklist } from './motor.js'
 import { ESTADOS, fechaBonita, textoFormato } from './comun.js'
+import { montarCiclo } from './ronda.js'
 
 let session = null
 let perfil = null
@@ -338,6 +339,7 @@ async function recargar() {
   await cargarInscripciones()
   await cargarDecklists()
   pintarTodo()
+  await montarCiclo({ torneo, session, perfil, inscripciones, recargarFicha: recargar })
 }
 
 async function init() {
