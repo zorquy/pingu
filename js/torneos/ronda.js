@@ -8,6 +8,7 @@
 import { supabase } from '../supabase.js'
 import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
+import { icons } from '../icons.js'
 import {
   activePlayersForRound,
   pairRound1,
@@ -17,6 +18,8 @@ import {
   computeStandings,
   reconcileReports,
   resolutionWinnerSide,
+  seedTopCut,
+  advanceTopCut,
 } from './motor.js'
 
 let ctx = null // { torneo, session, perfil, inscripciones, recargarFicha }
@@ -43,6 +46,13 @@ function numeroDeRonda(roundId) {
 
 function resultadoDe(matchId) {
   return resultados.find((r) => r.match_id === matchId) || null
+}
+
+// El desenlace de una mesa terminal, con el resultado ya resuelto.
+function outcomeDe(m) {
+  if (m.status === 'finished') return resultadoDe(m.id)?.result || 'draw'
+  if (m.status === 'bye') return 'bye'
+  return m.status
 }
 
 // ── Cargar el estado del ciclo ──
@@ -99,7 +109,7 @@ function montarSnapshot(numeroRonda) {
         tableNumber: m.table_number,
         playerAId: m.player_a_id,
         playerBId: m.player_b_id,
-        outcome: m.status === 'finished' ? resultadoDe(m.id)?.result || 'draw' : m.status === 'bye' ? 'bye' : m.status,
+        outcome: outcomeDe(m),
         finishedAt: m.finished_at,
       })),
   }
@@ -116,7 +126,7 @@ function rondaActual() {
 
 // ── Generar pareos (SPEC §6.1) y aplicar el plan ──
 
-async function crearMesa(rondaId, mesa, aId, bId) {
+async function crearMesa(rondaId, mesa, aId, bId, { bracket = null, conHistorial = true } = {}) {
   await supabase.from('tournament_matches').insert({
     round_id: rondaId,
     table_number: mesa,
@@ -124,9 +134,12 @@ async function crearMesa(rondaId, mesa, aId, bId) {
     player_b_id: bId,
     status: 'pending',
     is_bye: false,
+    bracket_position: bracket,
   })
+  // El histórico solo cuenta para el suizo (el cut cruza por siembra).
   // En el pareo manual el admin puede repetir un cruce a sabiendas: el
   // UNIQUE del histórico lo rechaza en silencio, porque ya consta.
+  if (!conHistorial) return
   const [low, high] = aId < bId ? [aId, bId] : [bId, aId]
   await supabase.from('pairing_history').insert({
     tournament_id: ctx.torneo.id,
@@ -137,7 +150,7 @@ async function crearMesa(rondaId, mesa, aId, bId) {
 }
 
 // El bye es terminal desde que nace: mesa cerrada y resultado apuntado.
-async function crearBye(rondaId, mesa, jugadorId) {
+async function crearBye(rondaId, mesa, jugadorId, { bracket = null } = {}) {
   const { data: fila } = await supabase
     .from('tournament_matches')
     .insert({
@@ -148,6 +161,7 @@ async function crearBye(rondaId, mesa, jugadorId) {
       status: 'bye',
       is_bye: true,
       finished_at: ahora(),
+      bracket_position: bracket,
     })
     .select('id')
     .single()
@@ -205,7 +219,8 @@ async function generarPareos() {
 // ── Iniciar la ronda (SPEC §6.3) ──
 
 async function iniciarRonda(ronda) {
-  if (sinMesa(ronda).length) {
+  // Solo en el suizo: en el cut los eliminados no tienen mesa a posta.
+  if (ronda.phase === 'swiss' && sinMesa(ronda).length) {
     showToast('Aún quedan jugadores sin mesa: complétalo en el pareo manual.', 'error')
     return
   }
@@ -250,20 +265,98 @@ async function cerrarRonda(ronda) {
     showToast(`Quedan ${vivas.length} mesas sin resultado: resuélvelas antes de cerrar.`, 'error')
     return
   }
+  // En el cut no existe el empate (SPEC §6.8): alguien tiene que pasar.
+  if (ronda.phase === 'top_cut' && mesas.some((m) => outcomeDe(m) === 'draw')) {
+    showToast('En el top cut no puede haber empates: resuelve esa mesa con un ganador.', 'error')
+    return
+  }
   await supabase.from('rounds').update({ status: 'finished', closed_at: ahora() }).eq('id', ronda.id)
 
-  if (ronda.phase === 'swiss' && ronda.round_number >= ctx.torneo.swiss_rounds) {
+  if (ronda.phase === 'top_cut') {
+    await avanzarBracket(ronda)
+  } else if (ronda.round_number >= ctx.torneo.swiss_rounds) {
     if (ctx.torneo.top_cut_size === 0) {
-      await supabase.from('tournaments').update({ status: 'finished' }).eq('id', ctx.torneo.id)
-      ctx.torneo.status = 'finished'
-      showToast('¡Torneo terminado! La clasificación de abajo es la final.', 'success')
+      await terminarTorneo('¡Torneo terminado! La clasificación de abajo es la final.')
     } else {
-      showToast('Suizas completas. La siembra del top cut llega en la próxima tanda.', 'success')
+      await sembrarTopCut()
     }
   } else {
     showToast(`Ronda ${ronda.round_number} cerrada.`, 'success')
   }
   await ctx.recargarFicha()
+}
+
+async function terminarTorneo(mensaje) {
+  await supabase.from('tournaments').update({ status: 'finished' }).eq('id', ctx.torneo.id)
+  ctx.torneo.status = 'finished'
+  showToast(mensaje, 'success')
+}
+
+// ── Top cut: siembra al cerrar la última suiza y avance «fold» (SPEC §7) ──
+
+async function crearRondaDeCut(pareos) {
+  const { data: ronda, error } = await supabase
+    .from('rounds')
+    .insert({ tournament_id: ctx.torneo.id, round_number: rondas.length + 1, phase: 'top_cut', status: 'pending' })
+    .select('id')
+    .single()
+  if (error || !ronda) {
+    showToast('No se ha podido crear la ronda del cut: ' + (error?.message || 'inténtalo otra vez'), 'error')
+    return
+  }
+  for (const p of pareos) {
+    if (p.isBye) await crearBye(ronda.id, p.bracketPosition, p.playerAId, { bracket: p.bracketPosition })
+    else await crearMesa(ronda.id, p.bracketPosition, p.playerAId, p.playerBId, { bracket: p.bracketPosition, conHistorial: false })
+  }
+}
+
+async function sembrarTopCut() {
+  // Ranking final sin los retirados; tamaño efectivo = mayor potencia
+  // de 2 que quepa. Con menos de 2 vivos, el torneo acaba aquí.
+  const clasificacion = computeStandings(montarSnapshot(rondas.length))
+  const vivos = clasificacion.filter(
+    (e) => ctx.inscripciones.find((i) => i.user_id === e.playerId)?.status === 'active'
+  )
+  const siembra = seedTopCut(vivos.map((e) => e.playerId), ctx.torneo.top_cut_size)
+  if (!siembra) {
+    await terminarTorneo('Sin jugadores suficientes para el cut: el torneo termina con las suizas.')
+    return
+  }
+  await crearRondaDeCut(siembra)
+  showToast(`Suizas completas: top ${siembra.length * 2} sembrado. Inicia la ronda cuando estén listos.`, 'success')
+}
+
+async function avanzarBracket(rondaCerrada) {
+  const cerradas = partidas
+    .filter((m) => m.round_id === rondaCerrada.id)
+    .map((m) => ({
+      bracketPosition: m.bracket_position,
+      playerAId: m.player_a_id,
+      playerBId: m.player_b_id,
+      outcome: outcomeDe(m),
+    }))
+  const paso = advanceTopCut(cerradas)
+  if (paso.finished) {
+    await terminarTorneo(
+      paso.championId ? `¡Torneo terminado! El campeón es ${nombreDe(paso.championId)}.` : '¡Torneo terminado!'
+    )
+    return
+  }
+  await crearRondaDeCut(paso.pairings)
+  showToast('Bracket avanzado: siguiente ronda del cut lista.', 'success')
+}
+
+// El campeón se deduce del bracket, no se guarda: el ganador que deja
+// la final cerrada (misma cuenta que hace advanceTopCut con K=1).
+function campeonDelTorneo() {
+  if (ctx.torneo.status !== 'finished' || !rondas.length) return null
+  const ultima = rondas[rondas.length - 1]
+  if (ultima.phase !== 'top_cut') return null
+  const cerradas = partidas
+    .filter((m) => m.round_id === ultima.id)
+    .map((m) => ({ bracketPosition: m.bracket_position, playerAId: m.player_a_id, playerBId: m.player_b_id, outcome: outcomeDe(m) }))
+  const paso = advanceTopCut(cerradas)
+  return paso.finished ? paso.championId : null
 }
 
 // ── Check-in y reportes (SPEC §6.4 y §6.5) ──
@@ -387,6 +480,10 @@ function sinMesa(ronda) {
 
 function pintarPareoManual(ronda) {
   const caja = $('pareoManual')
+  if (ronda.phase === 'top_cut') {
+    caja.innerHTML = ''
+    return
+  }
   const sueltos = sinMesa(ronda)
   if (ronda.status !== 'pending' || !sueltos.length || !ctx.perfil.is_admin) {
     caja.innerHTML = ''
@@ -463,7 +560,7 @@ function pintarMesas(ronda) {
                 <option value="">Resolver…</option>
                 <option value="a_wins">Gana ${escapeHtml(nombreDe(m.player_a_id))}</option>
                 <option value="b_wins">Gana ${escapeHtml(nombreDe(m.player_b_id))}</option>
-                <option value="draw">Empate</option>
+                ${ronda.phase === 'top_cut' ? '' : '<option value="draw">Empate</option>'}
                 <option value="forfeit_a">No se presenta ${escapeHtml(nombreDe(m.player_a_id))}</option>
                 <option value="forfeit_b">No se presenta ${escapeHtml(nombreDe(m.player_b_id))}</option>
                 <option value="forfeit_both">No se presenta nadie</option>
@@ -503,7 +600,7 @@ function pintarRondas() {
   }
   $('rondasAdmin').innerHTML = `
     <div class="torneo-rondas-cabecera">
-      <span class="subtext">${rondas.length ? `Ronda ${rondas[rondas.length - 1].round_number} de ${ctx.torneo.swiss_rounds} suizas` : `Sin rondas aún (${ctx.torneo.swiss_rounds} suizas previstas)`}</span>
+      <span class="subtext">${rondas.length ? (rondas[rondas.length - 1].phase === 'top_cut' ? `Top cut — ronda ${rondas[rondas.length - 1].round_number}` : `Ronda ${rondas[rondas.length - 1].round_number} de ${ctx.torneo.swiss_rounds} suizas`) : `Sin rondas aún (${ctx.torneo.swiss_rounds} suizas previstas)`}</span>
       <span class="torneo-rondas-botones">${admin}<button class="btn-secondary" id="btnActualizarCiclo">Actualizar</button></span>
     </div>`
   $('btnActualizarCiclo').addEventListener('click', async () => {
@@ -519,7 +616,7 @@ function pintarRondas() {
 
   const paraMesas = actual || rondas[rondas.length - 1]
   $('mesasContenido').innerHTML = paraMesas
-    ? `<h4 class="torneo-mesas-titulo">Mesas de la ronda ${paraMesas.round_number}${paraMesas.status === 'finished' ? ' (cerrada)' : ''}</h4>${pintarMesas(paraMesas)}`
+    ? `<h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ronda ${paraMesas.round_number}`}${paraMesas.status === 'finished' ? ' (cerrada)' : ''}</h4>${pintarMesas(paraMesas)}`
     : ''
 
   document.querySelectorAll('[data-resolver]').forEach((sel) => {
@@ -577,7 +674,7 @@ function pintarMiPartida() {
     : `<div class="torneo-reportar">
         <button class="btn-primary" data-reporte="win">He ganado</button>
         <button class="btn-secondary" data-reporte="loss">He perdido</button>
-        ${actual.phase === 'swiss' && ctx.torneo.swiss_bo === 1 ? '' : '<button class="btn-secondary" data-reporte="draw">Empate</button>'}
+        ${actual.phase === 'swiss' && ctx.torneo.swiss_bo === 3 ? '<button class="btn-secondary" data-reporte="draw">Empate</button>' : ''}
       </div>`
   contenido.innerHTML = `
     <p>Mesa ${mia.table_number} contra <strong>${escapeHtml(rival?.perfil?.username || 'tu rival')}</strong>
@@ -614,7 +711,12 @@ function pintarClasificacion() {
       </tr>`
     })
     .join('')
+  const campeon = campeonDelTorneo()
+  const banner = campeon
+    ? `<div class="torneo-campeon">${icons.trophy(20)} Campeón del torneo: <strong>${escapeHtml(nombreDe(campeon))}</strong></div>`
+    : ''
   $('clasificacionContenido').innerHTML = `
+    ${banner}
     <div class="torneo-clasificacion-tabla">
       <table>
         <thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>V-D-E</th><th>OWP</th><th>OOWP</th></tr></thead>

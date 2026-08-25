@@ -262,3 +262,16 @@
   white-space: nowrap;
 }
 .torneo-clasificacion-tabla th { font-size: 12px; text-transform: uppercase; color: var(--text-dim); }
+
+.torneo-campeon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(232, 160, 32, 0.14);
+  color: #a8720d;
+  font-size: 15px;
+}
+:root[data-theme='dark'] .torneo-campeon { color: #e8b558; }

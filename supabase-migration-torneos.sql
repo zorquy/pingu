@@ -47,6 +47,9 @@ create table if not exists public.rounds (
   started_at timestamptz,
   ends_at timestamptz, -- siempre null en top cut
   closed_at timestamptz,
+  -- El barredor por minuto avisa por push cuando la ronda arranca y
+  -- apunta aquí que ya avisó, para no repetirse.
+  players_notified_at timestamptz,
   status text not null default 'pending' check (status in ('pending','active','finished')),
   created_at timestamptz not null default now(),
   unique (tournament_id, round_number)

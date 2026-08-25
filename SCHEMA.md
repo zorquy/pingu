@@ -10003,3 +10003,40 @@ nodo + un torneo de 4 llevado por el organizador de punta a punta con
 mesas deterministas por la semilla, el flujo del jugador con check-in y
 confirmación del rival, la disputa con resolución firmada, y el atasco
 con pareo manual) y rigor-torneos-3.py (9 roturas, todas detectadas).
+
+## Tanda 206 — Torneos 4: top cut, barredor y push de ronda (agosto 2026)
+
+- **Siembra automática** (SPEC §6.8 + §7): al cerrar la última suiza
+  con corte configurado, ronda.js calcula el ranking final sin
+  retirados, recorta a la mayor potencia de 2 que quepa (seedTopCut) y
+  crea la ronda `top_cut` con cruces 1º-4º / 2º-3º (bracket_position =
+  mesa). Con menos de 2 vivos, el torneo termina con las suizas.
+- **Avance del bracket**: cerrar una ronda del cut pasa las mesas
+  cerradas por advanceTopCut — cruce «fold» de ganadores, byes cuando
+  falta gente — y crea la siguiente; al quedar K=1 el torneo pasa a
+  `finished` y la clasificación luce el banner del campeón (deducido
+  del bracket, no se guarda). En el cut **no hay empates**: el
+  resolutor no lo ofrece y cerrar con un empate se bloquea; el botón de
+  empate del jugador solo existe en suizas BO3. Iniciar una ronda del
+  cut no exige mesa para todos (los eliminados no la tienen a posta) y
+  el cut no escribe en pairing_history.
+- **El barredor** (netlify/functions/torneos-barredor.mjs, cron
+  `* * * * *`): el relevo de los jobs de BullMQ del original.
+  Por cada ronda activa: (1) push «tu ronda ha empezado» a los
+  jugadores con mesa, UNA vez — lo apunta en
+  `rounds.players_notified_at`, columna añadida a la migración (aún sin
+  ejecutar, por eso se puede editar); (2) pasada la ventana de
+  `checkin_minutes`, las mesas activas con check-ins a medias caen en
+  forfeit_b / forfeit_a / forfeit_both con su resultado (SPEC §6.4,
+  motivo en `score`); (3) pasado `ends_at` (solo suizas), las mesas
+  activas SIN reportes caen en forfeit_both (SPEC §6.6) — con reporte o
+  esperando confirmación se respetan. `procesar({env, rest, enviar,
+  ahora})` inyectable, mismo patrón que racha-push; suscripciones
+  404/410 se borran.
+
+Probado con test-torneos-4.mjs (30 comprobaciones: el barredor entero
+contra un mundo en memoria con dos pasadas — forfeits de las tres
+variantes, tiempo que respeta reportes, aviso único con limpieza de
+suscripciones muertas — y el cut en navegador: siembra según ranking,
+sin empate en el resolutor, final por «fold» y banner del campeón) y
+rigor-torneos-4.py (7 roturas, todas detectadas).

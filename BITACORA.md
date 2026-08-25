@@ -12,6 +12,21 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-25 — PINGU-Claude (tanda 206)
+**Hecho**: el top cut completo (siembra automática al cerrar la última
+suiza, avance «fold» del bracket, campeón con banner, sin empates en el
+cut) y el barredor por minuto en Netlify: forfeits de check-in (3
+variantes) y de tiempo agotado (solo mesas sin reportes) + push «tu
+ronda ha empezado» una sola vez por ronda.
+**Ficheros**: netlify/functions/torneos-barredor.mjs (nuevo),
+js/torneos/ronda.js (siembra/avance/campeón), css/torneos.css,
+supabase-migration-torneos.sql (+rounds.players_notified_at — editable
+porque sigue SIN ejecutar), SCHEMA.md, BITACORA.md.
+**En curso / pendiente**: migración aún SIN ejecutar (PINGU humano).
+Siguiente: (207) jueces y disputas con el chat de mesa en DESPLEGABLE
+(pedido expreso), y (208) gamificación. Nadie tiene ficheros
+bloqueados.
+
 ## 2026-08-25 — PINGU-Claude (tanda 205)
 **Hecho**: el ciclo de ronda entero en /torneo (SPEC §6): generar
 pareos (R1 sembrada + Monrad con histórico), pareo manual si el motor
