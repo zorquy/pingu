@@ -92,6 +92,16 @@
           </div>
         </div>
 
+        <div class="admin-destacada" id="lanzamientosPanel">
+          <h2>Lanzamientos</h2>
+          <p class="subtext">Una línea por set: <code>AAAA-MM-DD | Nombre del set | url del logo (opcional) | notas (opcional)</code>.
+            Se enseñan en /lanzamientos con cuenta atrás, y el más cercano, en la portada. Necesita supabase-migration-ajustes.sql (la misma del aviso global).</p>
+          <div class="admin-destacada-campos">
+            <textarea id="lanzamientosTexto" rows="6" placeholder="2026-09-26 | Mega Dream"></textarea>
+            <button class="btn-primary" id="btnGuardarLanzamientos">Guardar</button>
+          </div>
+        </div>
+
         <div class="admin-destacada" id="pushClavesPanel">
           <h2>Notificaciones push</h2>
           <p class="subtext">Las claves que firman los avisos push (VAPID). La pública se guarda sola en la base;

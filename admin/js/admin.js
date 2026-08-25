@@ -481,6 +481,65 @@ async function loadGuides() {
 
 document.getElementById('btnNewGuide').addEventListener('click', () => (window.location.href = 'editor-guia.html'))
 
+// ── Los lanzamientos ──
+// La lista de sets con fecha, en site_settings (clave `lanzamientos`),
+// editada como texto plano: una línea por set, campos separados por |.
+// El formato de texto es a propósito — para 5-10 sets al año, una
+// tabla editable sería más aparato que ayuda.
+function parsearLanzamientos(texto) {
+  const sets = []
+  const malas = []
+  for (const linea of texto.split('\n')) {
+    const limpia = linea.trim()
+    if (!limpia) continue
+    const [fecha, nombre, imagen, notas] = limpia.split('|').map((t) => (t || '').trim())
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !nombre) {
+      malas.push(limpia)
+      continue
+    }
+    sets.push({ fecha, nombre, ...(imagen ? { imagen } : {}), ...(notas ? { notas } : {}) })
+  }
+  return { sets, malas }
+}
+
+async function loadLanzamientos() {
+  const caja = document.getElementById('lanzamientosTexto')
+  if (!caja) return
+  const { data } = await supabase.from('site_settings').select('value').eq('key', 'lanzamientos').maybeSingle()
+  caja.value = (data?.value?.sets || [])
+    .map((s) => {
+      // Los campos opcionales solo se escriben si hay algo que decir;
+      // si hay notas pero no logo, el hueco del logo se conserva para
+      // que las posiciones no bailen.
+      const campos = [s.fecha, s.nombre]
+      if (s.imagen || s.notas) campos.push(s.imagen || '')
+      if (s.notas) campos.push(s.notas)
+      return campos.join(' | ')
+    })
+    .join('\n')
+
+  document.getElementById('btnGuardarLanzamientos').addEventListener('click', async () => {
+    const { sets, malas } = parsearLanzamientos(caja.value)
+    if (malas.length) {
+      showToast(`Hay ${malas.length} ${malas.length === 1 ? 'línea' : 'líneas'} con mala pinta (la fecha va AAAA-MM-DD y el nombre no puede faltar): «${malas[0]}»`, 'error')
+      return
+    }
+    const { error } = await supabase.from('site_settings').upsert(
+      { key: 'lanzamientos', value: { sets }, updated_at: new Date().toISOString() },
+      { onConflict: 'key' }
+    )
+    showToast(
+      error
+        ? /site_settings/.test(error.message || '')
+          ? 'Falta ejecutar supabase-migration-ajustes.sql en el SQL Editor de Supabase.'
+          : 'No se ha podido guardar: ' + error.message
+        : `Guardados ${sets.length} sets. Ya están en /lanzamientos y en la portada.`,
+      error ? 'error' : 'success'
+    )
+  })
+}
+loadLanzamientos().catch(() => {})
+
 // ── Las preguntas más falladas ──
 // Cruza question_stats (el contador público de aciertos por pregunta)
 // con los bloques de cada curso publicado, casando por la MISMA clave

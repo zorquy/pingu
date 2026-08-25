@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calendario de lanzamientos de Pokémon TCG — PokeDoc</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e5175" />
+  <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+  <meta name="description" content="Las fechas de lanzamiento de los próximos sets de Pokémon TCG, con cuenta atrás. Mantenido por la comunidad de PokeDoc." />
+  <!-- meta-social:inicio -->
+  <link rel="canonical" href="https://pokedoc.es/lanzamientos.html" />
+  <meta property="og:url" content="https://pokedoc.es/lanzamientos.html" />
+  <meta property="og:site_name" content="PokeDoc" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:title" content="Calendario de lanzamientos de Pokémon TCG" />
+  <meta property="og:description" content="Las fechas de los próximos sets, con cuenta atrás. Mantenido por la comunidad de PokeDoc." />
+  <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Calendario de lanzamientos de Pokémon TCG" />
+  <meta name="twitter:description" content="Las fechas de los próximos sets, con cuenta atrás. Mantenido por la comunidad de PokeDoc." />
+  <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <!-- meta-social:fin -->
+  <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
+  <link rel="modulepreload" href="/js/supabase.js" />
+  <link rel="modulepreload" href="/js/app.js" />
+  <link rel="modulepreload" href="/js/icons.js" />
+  <link rel="modulepreload" href="/js/content-icon.js" />
+  <link rel="modulepreload" href="/js/html.js" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="index.html">Inicio</a>
+        <a href="aprender.html">Aprender</a>
+        <a href="foro.html">Foro</a>
+        <a href="usuarios.html">Comunidad</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="index.html">Inicio</a>
+      <a href="aprender.html">Aprender</a>
+      <a href="foro.html">Foro</a>
+      <a href="usuarios.html">Comunidad</a>
+    </div>
+  </nav>
+
+  <main class="page-content container">
+    <div class="page-header">
+      <h1>Calendario de lanzamientos</h1>
+      <p>Las fechas de los próximos sets de Pokémon TCG, con cuenta atrás. Lo mantenemos a mano: si falta alguno, dilo en el foro.</p>
+    </div>
+
+    <!-- El siguiente set, en grande y con su cuenta atrás. Lo pinta
+         js/lanzamientos.js; sin sets futuros, no sale. -->
+    <div id="proximoDestacado" class="hidden"></div>
+
+    <section id="seccionProximos" class="hidden">
+      <h2 class="section-title">Próximos sets</h2>
+      <div id="listaProximos" class="lanzamientos-lista"></div>
+    </section>
+
+    <section id="seccionPasados" class="hidden">
+      <h2 class="section-title">Ya en tiendas</h2>
+      <div id="listaPasados" class="lanzamientos-lista"></div>
+    </section>
+
+    <p id="lanzamientosVacio" class="empty-state hidden">Todavía no hay fechas anunciadas por aquí. En cuanto se anuncie el próximo set, saldrá con su cuenta atrás.</p>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
+    <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/lanzamientos.html">Lanzamientos</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/lanzamientos.js"></script>
+</body>
+</html>

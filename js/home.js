@@ -475,6 +475,37 @@ async function cargarLiga(session) {
   seccion.style.display = ''
 }
 
+// ── El próximo lanzamiento ──
+//
+// La miniatura de /lanzamientos: el siguiente set y cuántos días
+// faltan. La cuenta va EN LÍNEA a propósito: importar
+// js/lanzamientos.js metería el módulo entero en el grafo de la
+// portada, y el presupuesto de peso (test-carga) anda justo.
+async function cargarLanzamiento() {
+  const seccion = document.getElementById('lanzamientoSeccion')
+  const hueco = document.getElementById('lanzamientoPortada')
+  if (!seccion || !hueco) return
+  try {
+    const { data } = await supabase.from('site_settings').select('value').eq('key', 'lanzamientos').maybeSingle()
+    const hoy = new Date().toISOString().slice(0, 10)
+    const proximo = (data?.value?.sets || [])
+      .filter((s) => s && s.nombre && /^\d{4}-\d{2}-\d{2}$/.test(s.fecha || '') && s.fecha >= hoy)
+      .sort((a, b) => (a.fecha < b.fecha ? -1 : 1))[0]
+    if (!proximo) return
+    const dias = Math.round((Date.parse(`${proximo.fecha}T00:00:00Z`) - Date.parse(`${hoy}T00:00:00Z`)) / 86400_000)
+    const cuenta = dias === 0 ? '¡Sale hoy!' : dias === 1 ? 'Sale mañana' : `Faltan ${dias} días`
+    hueco.innerHTML = `
+      <span class="lanzamiento-portada-icono">${icons.calendar ? icons.calendar(18) : icons.cards(18)}</span>
+      <span class="lanzamiento-portada-texto">
+        <strong>${escapeHtml(proximo.nombre)}</strong>
+        <span class="subtext">${cuenta} · ver el calendario</span>
+      </span>
+      <span class="reto-flecha">→</span>`
+    seccion.style.display = ''
+  } catch {}
+}
+cargarLanzamiento().catch(() => {})
+
 // ── El top del mes ──
 //
 // La clasificación por XP total la ganan siempre los veteranos; esta es

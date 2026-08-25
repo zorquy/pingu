@@ -9645,3 +9645,37 @@ Cada fila enlaza a editar su guía.
 Probado con test-falladas.mjs (10 comprobaciones; la semilla calcula
 las claves DESDE la página con el módulo real del juego) y
 rigor-falladas.py (5 roturas).
+
+## El calendario de lanzamientos (agosto 2026)
+
+Página nueva /lanzamientos.html: el siguiente set en grande con su
+cuenta atrás («¡Sale hoy!», «Sale mañana», «Faltan N días»), el resto
+de futuros en lista, y los recién salidos (últimos 6) apagados debajo.
+Enlazada desde el pie y desde su miniatura en la lateral de la portada
+(el set más cercano con los días, pintado por js/home.js con la cuenta
+EN LÍNEA — importar js/lanzamientos.js metería el módulo en el grafo
+de la portada y el presupuesto de peso anda justo).
+
+- **Los datos**: site_settings, clave `lanzamientos`, valor
+  { sets: [{ nombre, fecha AAAA-MM-DD, imagen?, notas? }] }. Sin
+  migración nueva (la tabla es la de supabase-migration-ajustes.sql:
+  lectura pública, escritura de admin). Fechas comparadas como texto
+  contra hoy en UTC — el formato ordena solo.
+- **El editor** (/admin → Dashboard → Lanzamientos): texto plano, una
+  línea por set con campos separados por `|`. Para 5-10 sets al año,
+  una tabla editable sería más aparato que ayuda. Una línea con mala
+  fecha FRENA el guardado entero con su aviso: guardar «lo que se
+  pueda» en silencio es como se pierden sets.
+- El stub gana `window.__FAKE_LANZAMIENTOS__` con fechas como
+  desplazamientos desde hoy, y icons.js gana el icono `calendar`.
+
+Probado con test-lanzamientos.mjs (20 comprobaciones: página, vacío
+digno, miniatura de portada y editor con su línea rota) y
+rigor-lanzamientos.py (5 roturas).
+
+### Aviso de presupuesto
+
+Tras la tanda del calendario, la portada queda EXACTAMENTE en el techo
+de peso (170/170 KB comprimidos). Lo siguiente que quiera entrar en la
+home tiene que aligerar algo antes, o subir el techo con justificación
+(precedentes: 150→160 en la tanda 183 y 160→170 en la 188).
