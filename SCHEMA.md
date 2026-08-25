@@ -9691,7 +9691,10 @@ salida en España) y su tabla es más estable.
 
 - **La función** (netlify/functions/lanzamientos-bulbapedia.mjs): un
   proxy de LECTURA — Bulbapedia no manda CORS, así que el navegador no
-  puede leerla directo. Descarga la página, parte por `<tr` y de cada
+  puede leerla directo. Entra por la API de MediaWiki (action=parse:
+  el mismo HTML de las tablas dentro de un JSON — la página normal le
+  soltó un 403 del muro anti-bots del CDN) y, si tampoco, prueba la
+  página con cabeceras de navegador. Parte el HTML por `<tr` y de cada
   fila saca la fecha («Month D, YYYY» → AAAA-MM-DD; sin fecha completa
   —TBA— la fila se descarta), el nombre (el enlace no-File: más largo,
   descartando «… Expansion»; con raya «Serie—Set» se queda el set) y el
