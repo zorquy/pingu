@@ -9597,3 +9597,34 @@ tintado (`.podio-1/2/3`, con su variante oscura). test-tanda-187
 comprueba ahora el icono y acota sus selectores a `#topMes`, porque
 `.top-mes-fila` ya no es único en la página (la liga reutiliza esas
 clases a propósito).
+
+## El protector de racha (agosto 2026)
+
+Un comodín que salva la racha cuando se pierde UN día. Perder una
+racha de 20 días por un despiste duele tanto que la gente abandona —
+Duolingo lo tiene por eso mismo.
+
+- **`supabase-migration-protector.sql`** (ejecutar en el SQL Editor):
+  columna `streak_shields` en user_profiles, junto a current_streak.
+  Registrada en js/schema-check.js.
+- **Las reglas** (checkDailyStreak, js/gamification.js): se gana un
+  protector cada 7 días de racha, con tope de 2; si la última visita
+  fue anteayer y hay escudo, se gasta solo y la racha sigue (+1); dos
+  o más días perdidos ya no los salva nadie y los escudos se quedan
+  guardados. Todo en UTC, como la racha de siempre.
+- **Repliegue pre-migración**: si el select de streak_shields falla
+  (columna aún sin crear), se reintenta con las columnas de siempre y
+  la racha funciona como antes, sin escudos. Sin esto, el despliegue
+  rompería la racha hasta ejecutar la migración.
+- **El aviso**: al gastarse, checkDailyStreak deja
+  `pokedoc-racha-protegida` en sessionStorage; la bienvenida lo enseña
+  UNA vez («Tu protector salvó la racha») y limpia la marca. Los
+  escudos guardados se ven como chip junto a la llama, con consulta
+  aparte y silenciosa para no tumbar la bienvenida pre-migración.
+
+Probado con test-protector.mjs (18 comprobaciones: seis escenarios de
+fechas parcheando el perfil del stub) y rigor-protector.py (6
+roturas). Lección: en el stub no vale «recargar» para probar que el
+aviso sale una vez — el estado en memoria se resetea y vuelve a gastar
+el escudo; se comprueba la marca de sessionStorage, que es lo que de
+verdad implementa el «una vez».

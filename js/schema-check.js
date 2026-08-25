@@ -22,6 +22,7 @@ export const REQUISITOS = [
   { tabla: 'user_profiles', columna: 'hide_activity', fichero: 'supabase-migration-actividad.sql', rompe: 'El hilo de actividad no carga.' },
   { tabla: 'user_profiles', columna: 'username', fichero: 'supabase-migration-usernames.sql', rompe: 'Los perfiles públicos y el directorio no funcionan.' },
   { tabla: 'user_profiles', columna: 'current_streak', fichero: 'supabase-migration-streak.sql', rompe: 'La racha diaria no se guarda.' },
+  { tabla: 'user_profiles', columna: 'streak_shields', fichero: 'supabase-migration-protector.sql', rompe: 'El protector de racha no se guarda ni se gasta.' },
   { tabla: 'user_profiles', columna: 'notification_prefs_disabled', fichero: 'supabase-migration-notification-prefs.sql', rompe: 'No se pueden desactivar los avisos.' },
   { tabla: 'user_profiles', columna: 'is_banned', fichero: 'supabase-migration-user-moderation.sql', rompe: 'No se puede banear ni silenciar a nadie.' },
   { tabla: 'guides', columna: 'review_status', fichero: 'supabase-migration-community-guides.sql', rompe: 'Las guías de la comunidad y la cola de revisión no funcionan.' },

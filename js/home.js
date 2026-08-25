@@ -197,6 +197,23 @@ async function cargarBienvenida(session) {
 
     const nombre = profile.display_name || profile.username || ''
     const racha = profile.current_streak || 0
+
+    // El protector de racha: los escudos guardados van en consulta
+    // aparte y silenciosa — antes de la migración la columna no existe
+    // y meterla en el select principal tumbaría la bienvenida entera.
+    let escudos = 0
+    try {
+      const { data: p2 } = await supabase.from('user_profiles').select('streak_shields').eq('id', session.user.id).single()
+      escudos = p2?.streak_shields || 0
+    } catch {}
+    // Y el aviso de «te ha salvado»: lo deja checkDailyStreak en
+    // sessionStorage al gastarse el escudo; se enseña una vez y fuera.
+    let salvada = false
+    try {
+      salvada = sessionStorage.getItem('pokedoc-racha-protegida') === '1'
+      if (salvada) sessionStorage.removeItem('pokedoc-racha-protegida')
+    } catch {}
+
     hueco.innerHTML = `
       ${avatarHtml(profile, 44)}
       <div class="bienvenida-texto">
@@ -205,6 +222,8 @@ async function cargarBienvenida(session) {
       </div>
       <div class="bienvenida-chips">
         ${racha > 0 ? `<span class="bienvenida-chip">${icons.flame(14)} ${racha} ${racha === 1 ? 'día' : 'días'}</span>` : ''}
+        ${escudos > 0 ? `<span class="bienvenida-chip bienvenida-escudo" title="Protectores de racha: si un día no entras, uno se gasta solo y la racha sigue">${icons.shield(14)} ${escudos}</span>` : ''}
+        ${salvada ? `<span class="bienvenida-chip bienvenida-salvada">${icons.shield(14)} Tu protector salvó la racha</span>` : ''}
         ${levelBadgeHtml(calculateLevel(profile.total_xp || 0))}
         <a class="btn-secondary bienvenida-perfil" href="perfil.html">Tu perfil →</a>
       </div>`

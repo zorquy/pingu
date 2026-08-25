@@ -7256,3 +7256,15 @@ body.portada-compacta .page-content {
 :root[data-theme='dark'] .podio-1 { color: #fbbf24; }
 :root[data-theme='dark'] .podio-2 { color: #cbd5e1; }
 :root[data-theme='dark'] .podio-3 { color: #e8a869; }
+
+/* ── El protector de racha en la bienvenida ── */
+.bienvenida-escudo {
+  background: rgba(30, 81, 117, 0.12);
+  color: var(--navy);
+}
+.bienvenida-salvada {
+  background: rgba(34, 160, 107, 0.14);
+  color: #1f7a55;
+}
+:root[data-theme='dark'] .bienvenida-escudo { color: #7db6dd; }
+:root[data-theme='dark'] .bienvenida-salvada { color: #4ade9b; }

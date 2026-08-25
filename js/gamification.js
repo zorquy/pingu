@@ -214,6 +214,15 @@ function yesterdayISO() {
   return new Date(Date.now() - 86400_000).toISOString().slice(0, 10)
 }
 
+function anteayerISO() {
+  return new Date(Date.now() - 2 * 86400_000).toISOString().slice(0, 10)
+}
+
+// La bienvenida de la portada lee esta marca para avisar «tu protector
+// salvó la racha» UNA vez. sessionStorage a propósito: el aviso es de
+// esta visita, no un estado que arrastrar días.
+export const CLAVE_RACHA_PROTEGIDA = 'pokedoc-racha-protegida'
+
 // Racha diaria: la primera vez que alguien entra cada día suma un pequeño
 // bonus de XP y avanza el contador (o lo reinicia a 1 si dejó pasar un día
 // sin entrar). Idempotente dentro del mismo día — entrar varias veces el
@@ -221,14 +230,53 @@ function yesterdayISO() {
 // Devuelve la racha vigente de HOY (contando la visita de ahora mismo),
 // que es lo que enseña el chip de la navbar. Null si no hay perfil.
 export async function checkDailyStreak(userId) {
-  const { data: profile } = await supabase.from('user_profiles').select('current_streak, last_active_date').eq('id', userId).single()
+  // Entre el despliegue y la migración del protector, streak_shields no
+  // existe y el select entero fallaría — y con él, la racha. Si la
+  // columna falta, se repliega al camino de siempre, sin escudos.
+  let { data: profile, error } = await supabase
+    .from('user_profiles')
+    .select('current_streak, last_active_date, streak_shields')
+    .eq('id', userId)
+    .single()
+  let sinProtector = false
+  if (error) {
+    sinProtector = true
+    ;({ data: profile } = await supabase
+      .from('user_profiles')
+      .select('current_streak, last_active_date')
+      .eq('id', userId)
+      .single())
+  }
   if (!profile) return null
 
   const today = todayISO()
   if (profile.last_active_date === today) return profile.current_streak || 0
 
-  const newStreak = profile.last_active_date === yesterdayISO() ? (profile.current_streak || 0) + 1 : 1
-  await supabase.from('user_profiles').update({ current_streak: newStreak, last_active_date: today }).eq('id', userId)
+  // El protector: perder UN día (última visita anteayer) se perdona si
+  // hay un escudo guardado — se gasta solo y la racha sigue. Perder dos
+  // o más ya no es un despiste, y ahí no hay escudo que valga.
+  let escudos = sinProtector ? 0 : profile.streak_shields || 0
+  let newStreak
+  if (profile.last_active_date === yesterdayISO()) {
+    newStreak = (profile.current_streak || 0) + 1
+  } else if (profile.last_active_date === anteayerISO() && escudos > 0) {
+    escudos--
+    newStreak = (profile.current_streak || 0) + 1
+    try {
+      sessionStorage.setItem(CLAVE_RACHA_PROTEGIDA, '1')
+    } catch {}
+  } else {
+    newStreak = 1
+  }
+
+  // Cada semana completa de racha, un protector nuevo (tope 2: guardar
+  // un cajón de escudos convertiría la racha en algo sin riesgo).
+  if (!sinProtector && newStreak > 0 && newStreak % 7 === 0) escudos = Math.min(escudos + 1, 2)
+
+  const cambios = sinProtector
+    ? { current_streak: newStreak, last_active_date: today }
+    : { current_streak: newStreak, last_active_date: today, streak_shields: escudos }
+  await supabase.from('user_profiles').update(cambios).eq('id', userId)
   await addXP(userId, STREAK_BONUS_XP)
   return newStreak
 }
