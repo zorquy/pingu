@@ -873,6 +873,14 @@
   font-weight: 700;
 }
 
+/* El salto de puestos en la liga de la semana: dorado, como lo que
+   merece celebrarse en esta pantalla. */
+.reward-liga {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #f0cf7c;
+}
+
 .reward-xp {
   font-size: 13.5px;
   font-weight: 700;

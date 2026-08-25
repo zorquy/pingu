@@ -9786,3 +9786,41 @@ el destacado con una banda de tinte degradado.
 Cubierto en test-lanzamientos.mjs (los textos y el orden no cambian; se
 añade la comprobación de que el logo queda a la izquierda del texto por
 geometría real).
+
+## Tanda 201: el salto de liga y los pushes que traen de vuelta (agosto 2026)
+
+Tres piezas alrededor de jugar cada día, elegidas por el admin («dale
+3 4 1»):
+
+- **El salto de puestos al acabar el reto** (pantalla final del reto
+  diario): antes de guardar la partida se toma la foto de la liga
+  semanal, se guarda, se vuelve a calcular y se cuenta la diferencia —
+  «¡Subes del 8.º al 5.º!», «Entras: vas 3.º» o «Sigues 4.º». La frase
+  la fabrica `textoSaltoLiga(antes, despues)` (js/liga-salto.js, pura,
+  junto a `puestoDe` — módulo APARTE de liga.js a propósito: liga.js lo
+  baja la portada, que anda al límite del presupuesto, y esto solo lo
+  usa curso.js); bajar sumando puntos no puede pasar, y si pasara por
+  datos raros se calla. Todo el adorno es silencioso ante errores: no
+  puede romper el cierre del reto. Estilo `.reward-liga` en curso.css
+  (dorado, como lo que se celebra).
+- **El push de la racha en peligro** (netlify/functions/racha-push.mjs,
+  18:00 UTC): a quien tiene current_streak > 0 y last_active_date ==
+  AYER (jugó ayer, hoy aún no) y suscripción push. Quien jugó hoy está
+  a salvo y quien no jugó ayer ya la perdió: a esos no se les molesta.
+  Días en UTC como toda la racha.
+- **El push de «sale hoy»** (netlify/functions/lanzamiento-push.mjs,
+  7:15 UTC): si un set del calendario tiene fecha == hoy, aviso a todas
+  las suscripciones con el nombre (y las notas) y enlace a
+  /lanzamientos. Cada set se avisa UNA vez: los avisados quedan en
+  site_settings `lanzamientos_avisados` (últimos 20), así una doble
+  ejecución no duplica.
+
+Las dos funciones siguen el patrón inyectable de enviar-push.mjs
+(mismas variables de entorno, misma limpieza de suscripciones 404/410,
+mismo «sin claves no hago nada y lo digo») — YA CONFIGURADAS en
+Netlify, no hay que tocar nada.
+
+Probado con test-tanda-201.mjs (23 comprobaciones: las dos funciones
+sin red con dobles, y el salto jugando el reto entero con dos rivales
+insalvables sembrados) y rigor-tanda-201.py (7 roturas, todas
+detectadas).

@@ -27,6 +27,8 @@ import {
   XP_POR_RECUPERADA,
 } from './reto-diario.js'
 import { sonar, vibrar, estallido, comboGrande, mascotaDice, silenciado, alternarSilencio } from './curso-estimulos.js'
+import { clasificacionSemanal } from './liga.js'
+import { puestoDe, textoSaltoLiga } from './liga-salto.js'
 import {
   registrarRespuesta,
   estadisticasDelCurso,
@@ -488,6 +490,7 @@ function renderReward(b) {
       </ul>
       <p class="reward-record" id="rewardRecord"></p>
       <p class="reward-xp hidden" id="rewardXp"></p>
+      <p class="reward-liga hidden" id="rewardLiga"></p>
       ${!session ? '<p style="color: var(--ice); font-size: 13px;">Crea una cuenta para guardar tu marca y tu XP.</p>' : ''}
       <p class="reward-save-warning hidden" id="rewardSaveWarning"></p>
       <div class="reward-tabla" id="rewardTabla"></div>
@@ -1377,6 +1380,20 @@ async function cerrarYGuardar(resumen) {
   }
 }
 
+// El salto de puestos en la liga de la semana, en la pantalla final
+// del reto: se compara el puesto de antes de guardar con el de después
+// y se cuenta solo si hay algo que contar. Cualquier tropiezo, en
+// silencio — es un adorno, no puede romper el cierre del reto.
+async function pintarSaltoLiga(ligaAntes) {
+  const el = document.getElementById('rewardLiga')
+  if (!el || !session) return
+  const despues = await clasificacionSemanal()
+  const texto = textoSaltoLiga(puestoDe(ligaAntes, session.user.id), puestoDe(despues, session.user.id))
+  if (!texto) return
+  el.textContent = texto
+  el.classList.remove('hidden')
+}
+
 // Cerrar una partida del reto diario o del repaso.
 async function cerrarYGuardarReto(resumen) {
   const elXp = document.getElementById('rewardXp')
@@ -1387,8 +1404,16 @@ async function cerrarYGuardarReto(resumen) {
   }
 
   if (modo === 'diario') {
+    // La foto de la liga ANTES de guardar: para poder decir «subes del
+    // 8.º al 5.º» hay que saber dónde estabas cuando aún no contaban
+    // los puntos de hoy.
+    let ligaAntes = []
+    try {
+      ligaAntes = await clasificacionSemanal()
+    } catch {}
     const guardado = await guardarReto(session.user.id, resumen)
     if (guardado) {
+      pintarSaltoLiga(ligaAntes).catch(() => {})
       try {
         await addXP(session.user.id, XP_RETO_DIARIO)
         decir(`+${XP_RETO_DIARIO} XP por el reto de hoy`)
