@@ -7268,3 +7268,7 @@ body.portada-compacta .page-content {
 }
 :root[data-theme='dark'] .bienvenida-escudo { color: #7db6dd; }
 :root[data-theme='dark'] .bienvenida-salvada { color: #4ade9b; }
+
+/* El % crítico del panel de preguntas falladas. */
+.falladas-critica { color: #b3261e; }
+:root[data-theme='dark'] .falladas-critica { color: #f2b8b5; }

@@ -8,6 +8,7 @@ import { contentIconHtml, inlineIconHtml } from '../../js/content-icon.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
+import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados } from '../../js/tcgdex.js'
 import { checkSchema } from '../../js/schema-check.js'
 
@@ -479,6 +480,83 @@ async function loadGuides() {
 }
 
 document.getElementById('btnNewGuide').addEventListener('click', () => (window.location.href = 'editor-guia.html'))
+
+// ── Las preguntas más falladas ──
+// Cruza question_stats (el contador público de aciertos por pregunta)
+// con los bloques de cada curso publicado, casando por la MISMA clave
+// que usa el juego (claveDePregunta): si el autor cambia el enunciado,
+// la clave cambia y las estadísticas viejas quedan huérfanas — se
+// enseñan aparte, que también cuentan una historia.
+function resumenDePregunta(b) {
+  const texto =
+    b.question || b.statement || b.title ||
+    (b.before || b.after ? `${b.before || ''} ___ ${b.after || ''}` : '') ||
+    b.headline || ''
+  const t = String(texto).trim()
+  return t.length > 90 ? t.slice(0, 87) + '…' : t || `(${b.type})`
+}
+
+const MINIMO_RESPUESTAS = 3
+
+document.getElementById('btnPreguntasFalladas').addEventListener('click', async (e) => {
+  const btn = e.currentTarget
+  const hueco = document.getElementById('preguntasFalladas')
+  btn.disabled = true
+  const etiquetaOriginal = btn.textContent
+  btn.textContent = 'Cruzando datos…'
+  try {
+    const [{ data: stats }, { data: guias }] = await Promise.all([
+      supabase.from('question_stats').select('guide_id, question_key, times_answered, times_correct').limit(5000),
+      supabase.from('guides').select('id, slug, title, blocks').not('published_at', 'is', null),
+    ])
+
+    // El mapa clave → pregunta de cada curso, con la clave del juego.
+    const preguntaPor = {}
+    for (const g of guias || []) {
+      for (const b of g.blocks || []) {
+        if (!esPractica(b)) continue
+        const clave = claveDePregunta(b)
+        if (clave) preguntaPor[`${g.id}|${clave}`] = { guia: g, texto: resumenDePregunta(b) }
+      }
+    }
+
+    const filas = []
+    const huerfanas = []
+    for (const f of stats || []) {
+      if ((f.times_answered || 0) < MINIMO_RESPUESTAS) continue
+      const pct = Math.round(((f.times_correct || 0) / f.times_answered) * 100)
+      const pregunta = preguntaPor[`${f.guide_id}|${f.question_key}`]
+      if (pregunta) filas.push({ ...pregunta, veces: f.times_answered, pct })
+      else huerfanas.push({ guide_id: f.guide_id, veces: f.times_answered, pct })
+    }
+    filas.sort((a, b) => a.pct - b.pct)
+    const peores = filas.slice(0, 20)
+
+    hueco.innerHTML = `
+      <div class="admin-revision">
+        <p class="admin-revision-titulo">Las preguntas con peor acierto (mínimo ${MINIMO_RESPUESTAS} respuestas; un % muy bajo suele significar pregunta confusa o respuesta mal marcada):</p>
+        ${
+          peores.length
+            ? `<ul>${peores
+                .map(
+                  (f) => `<li><strong class="${f.pct < 40 ? 'falladas-critica' : ''}">${f.pct}%</strong> de acierto (${f.veces} respuestas) — «${escapeHtml(f.texto)}» · <a href="editor-guia.html?id=${encodeURIComponent(f.guia.id)}">${escapeHtml(f.guia.title)}</a></li>`
+                )
+                .join('')}</ul>`
+            : `<p>Todavía no hay preguntas con ${MINIMO_RESPUESTAS} o más respuestas. Volverá a haber chicha cuando la gente juegue.</p>`
+        }
+        ${
+          huerfanas.length
+            ? `<p class="subtext">Además hay ${huerfanas.length} ${huerfanas.length === 1 ? 'estadística huérfana' : 'estadísticas huérfanas'} de preguntas ya retiradas o reescritas (al cambiar el enunciado, la clave cambia y el contador empieza de cero).</p>`
+            : ''
+        }
+      </div>`
+    hueco.classList.remove('hidden')
+  } catch (err) {
+    showToast('No se pudo cruzar: ' + (err?.message || err), 'error')
+  }
+  btn.disabled = false
+  btn.textContent = etiquetaOriginal
+})
 
 // ── El chequeo de cursos ──
 // Repasa los bloques de todos los cursos publicados con js/curso-lint.js

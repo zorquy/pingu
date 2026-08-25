@@ -9628,3 +9628,20 @@ roturas). Lección: en el stub no vale «recargar» para probar que el
 aviso sale una vez — el estado en memoria se resetea y vuelve a gastar
 el escudo; se comprueba la marca de sessionStorage, que es lo que de
 verdad implementa el «una vez».
+
+## Las preguntas más falladas (agosto 2026)
+
+La herramienta de autor que faltaba con los 13 cursos recién metidos a
+mano: /admin → Guías → «Preguntas más falladas» cruza `question_stats`
+(el contador público de aciertos) con los bloques de los cursos
+publicados, casando por la MISMA clave que usa el juego
+(`claveDePregunta` de js/curso-juego.js — si la prueba o el panel
+calcularan el hash por su cuenta, se desincronizarían). Peor % de
+acierto primero, mínimo 3 respuestas para no enseñar ruido, el % por
+debajo de 40 en rojo, y las estadísticas huérfanas (de preguntas ya
+reescritas: al cambiar el enunciado cambia la clave) contadas aparte.
+Cada fila enlaza a editar su guía.
+
+Probado con test-falladas.mjs (10 comprobaciones; la semilla calcula
+las claves DESDE la página con el módulo real del juego) y
+rigor-falladas.py (5 roturas).

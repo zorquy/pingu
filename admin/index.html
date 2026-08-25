@@ -120,12 +120,14 @@
           <div style="display:flex; gap:8px;">
             <button class="btn-outline" id="btnMigrateOldGuides" title="Convierte las guías con el formato de bloques antiguo a un único bloque de texto enriquecido, igual que el editor nuevo"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Adaptar al editor nuevo</button>
             <button class="btn-outline" id="btnRevisarCursos" title="Repasa los bloques de todos los cursos publicados y avisa de lo que cojea: índices fuera de rango, respuestas que no cuadran, slugs de siguiente curso rotos…"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Revisar cursos</button>
+            <button class="btn-outline" id="btnPreguntasFalladas" title="Cruza las estadísticas de respuesta con los bloques de cada curso y lista las preguntas con peor porcentaje de acierto"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> Preguntas más falladas</button>
             <button class="btn-primary" id="btnNewGuide">+ Nueva guía</button>
           </div>
         </div>
-        <!-- El informe del chequeo de cursos. Empieza escondido; lo
-             rellena el botón de arriba. -->
+        <!-- Los informes de los dos botones de arriba. Empiezan
+             escondidos; los rellena cada botón. -->
         <div id="revisionCursos" class="hidden"></div>
+        <div id="preguntasFalladas" class="hidden"></div>
         <div id="guidesTable"></div>
       </section>
 
