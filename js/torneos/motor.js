@@ -616,3 +616,21 @@ export function validateDecklist(decklist) {
   }
   return errors
 }
+
+// ── Política de edición de la decklist (libs/shared, policies.ts) ──
+// Solo el dueño y con inscripción activa; una lista sellada no se toca.
+// Se edita libremente con las inscripciones abiertas o cerradas, y hay
+// UNA excepción: la PRIMERA entrega con el torneo ya en juego se admite
+// (el jugador pierde las rondas que empiecen sin lista) y quien la guarda
+// debe sellarla en ese mismo momento.
+export function canEditDecklist(userId, { tournament, registration, decklist }) {
+  if (decklist && decklist.userId !== userId) return false
+  if (decklist && decklist.lockedAt !== null) return false
+  if (!registration || registration.userId !== userId || registration.status !== 'active') {
+    return false
+  }
+  if (tournament.status === 'registration_open' || tournament.status === 'registration_closed') {
+    return true
+  }
+  return tournament.status === 'in_progress' && !decklist
+}

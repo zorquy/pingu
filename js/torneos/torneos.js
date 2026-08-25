@@ -9,20 +9,7 @@ import { escapeHtml, getSession, getProfile, slugify } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { officialStructure } from './motor.js'
-
-const ESTADOS = {
-  draft: { texto: 'Borrador', clase: 'torneo-estado-borrador' },
-  registration_open: { texto: 'Inscripciones abiertas', clase: 'torneo-estado-abierto' },
-  registration_closed: { texto: 'Inscripciones cerradas', clase: 'torneo-estado-cerrado' },
-  in_progress: { texto: 'En juego', clase: 'torneo-estado-jugando' },
-  finished: { texto: 'Terminado', clase: 'torneo-estado-fin' },
-  cancelled: { texto: 'Cancelado', clase: 'torneo-estado-fin' },
-}
-
-function fechaBonita(iso) {
-  const f = new Date(iso)
-  return f.toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-}
+import { ESTADOS, fechaBonita } from './comun.js'
 
 // 32 caracteres de azar del navegador: la semilla que hace reproducibles
 // el sorteo de ronda 1 y la moneda de los desempates.

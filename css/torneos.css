@@ -88,3 +88,122 @@
 :root[data-theme='dark'] .torneo-estado-jugando { color: #7db6dd; }
 :root[data-theme='dark'] .torneo-estado-abierto { color: #7ec973; }
 :root[data-theme='dark'] .torneo-estado-cerrado { color: #e8b558; }
+
+/* ── La ficha de un torneo (/torneo) ── */
+.torneo-volver {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.torneo-volver:hover { color: var(--navy); }
+:root[data-theme='dark'] .torneo-volver:hover { color: #7db6dd; }
+
+.torneo-ficha { margin-bottom: 16px; }
+#torneoContenido .simple-card { margin-bottom: 16px; }
+
+.torneo-ficha-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.torneo-ficha-cabecera h1 { margin: 0; }
+
+.torneo-plazas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.torneo-plazas-barra {
+  flex: 1;
+  max-width: 320px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(127, 127, 127, 0.18);
+  overflow: hidden;
+}
+.torneo-plazas-relleno {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+  transition: width 0.3s;
+}
+:root[data-theme='dark'] .torneo-plazas-relleno { background: #7db6dd; }
+
+.torneo-admin-acciones { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+.torneo-admin-acciones:empty { display: none; }
+
+/* Tu plaza */
+.torneo-form-inscripcion {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.torneo-form-inscripcion label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.torneo-form-inscripcion input { min-width: 220px; }
+
+/* Tu decklist */
+#decklistContenido textarea {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  margin: 8px 0;
+}
+.torneo-decklist-errores {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  color: #d64545;
+  font-size: 14px;
+}
+.torneo-decklist-sellada {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(232, 160, 32, 0.16);
+  color: #a8720d;
+  font-size: 12px;
+  font-weight: 700;
+}
+:root[data-theme='dark'] .torneo-decklist-sellada { color: #e8b558; }
+
+/* Los inscritos */
+.torneo-inscritos { display: flex; flex-direction: column; }
+.torneo-inscrito {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.torneo-inscrito:last-child { border-bottom: none; }
+.torneo-inscrito-nombre { font-weight: 600; min-width: 140px; }
+.torneo-inscrito-nombre a { color: inherit; text-decoration: none; }
+.torneo-inscrito-nombre a:hover { text-decoration: underline; }
+.torneo-retirado { color: var(--text-dim); font-weight: 400; font-size: 13px; }
+.torneo-decklist-marca {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(127, 127, 127, 0.12);
+  color: var(--text-dim);
+}
+.torneo-decklist-marca.entregada { background: rgba(74, 158, 63, 0.14); color: #3d8434; }
+:root[data-theme='dark'] .torneo-decklist-marca.entregada { color: #7ec973; }

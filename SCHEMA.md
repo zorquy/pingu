@@ -9907,3 +9907,46 @@ ronda (pareos, check-in, auto-reporte con confirmación, clasificación)
 Probado con test-torneos-1.mjs (30 comprobaciones: 21 del motor contra
 casos de las specs de TrainerArena + 9 de la puerta de admins y el
 crear/listar) y rigor-torneos-1.py (6 roturas, todas detectadas).
+
+## Tanda 204 — Torneos 2: inscripciones, bajas y decklists (agosto 2026)
+
+La ficha del torneo: torneo.html + js/torneos/torneo.js leen
+`/torneo?slug=…` (los enlaces de la lista ya apuntaban ahí) y montan el
+ciclo completo de inscripción del porte, sin pagos: todo es gratis y la
+plaza queda activa al momento.
+
+- **Estados desde la ficha**: el admin abre (`draft →
+  registration_open`) y cierra (`→ registration_closed`) las
+  inscripciones con un botón en la propia ficha; la barra de plazas
+  cuenta solo inscripciones `active` sobre `max_players`.
+- **Inscribirse** pide únicamente el usuario de Pokémon TCG Live (la
+  cuenta de PokeDoc ya identifica; sin full_name/email/teléfono).
+  Comprobaciones del original: solo con inscripciones abiertas, cupo
+  lleno ⇒ «Torneo lleno.», y una fila previa — aunque esté `dropped` —
+  bloquea la reinscripción (el UNIQUE de la tabla es el candado real;
+  el recuento fresco antes del insert es el amortiguador de la carrera,
+  que sin lock de fila no se puede cerrar del todo desde el navegador).
+- **La baja** (SPEC §6.9) confirma en el propio botón (dos toques):
+  `status=dropped`, `dropped_at` y `dropped_after_round_id =
+  current_round_id` — juega su ronda en curso y el pareo siguiente lo
+  excluye. La plaza NO se libera y en la lista sale «(retirado)».
+- **La decklist** usa el parser/validador ya portados y la política
+  `canEditDecklist` traducida 1:1 de libs/shared a motor.js: edita el
+  dueño con inscripción activa mientras las inscripciones estén
+  abiertas o cerradas y la lista no esté sellada; la PRIMERA entrega
+  con el torneo en juego se admite y se sella al guardarse (las demás
+  se sellarán al arrancar la R1, tanda 205). Inválida (≠60 cartas, sin
+  Pokémon) ⇒ errores en pantalla y no se guarda. Sellada ⇒ textarea en
+  solo lectura con su distintivo.
+- **Los inscritos**: nombre (enlazado al perfil), usuario de TCG Live y
+  — solo para el admin — si la decklist está entregada; el texto de las
+  listas ajenas no se pide nunca desde esta página (SPEC §9).
+- js/torneos/comun.js (nuevo) comparte ESTADOS/fechas entre /torneos y
+  /torneo. El stub gana `tournament_registrations` y
+  `tournament_decklists` más los ganchos `__FAKE_TORNEOS__`,
+  `__FAKE_INSCRIPCIONES__` y `__FAKE_DECKLISTS__` (cada navegación
+  resetea el módulo: la ficha necesita llegar con el torneo sembrado).
+
+Probado con test-torneos-2.mjs (38 comprobaciones: 8 de la política en
+nodo + 30 de la ficha en navegador, incluido el ciclo entero en una
+sola página) y rigor-torneos-2.py (7 roturas, todas detectadas).

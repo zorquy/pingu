@@ -12,6 +12,25 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-25 — PINGU-Claude (tanda 204)
+**Hecho**: la ficha del torneo (/torneo?slug=…) con el ciclo de
+inscripción completo: abrir/cerrar inscripciones desde la ficha,
+apuntarse con el usuario de TCG Live (cupo, duplicados, todo gratis),
+baja con confirmación (la plaza no se libera), y la decklist con el
+parser portado — editable hasta el sello, entrega tardía sellada al
+momento, sellada en solo lectura. Lista de inscritos con «(retirado)»
+y, para el admin, quién ha entregado decklist. Política
+`canEditDecklist` portada 1:1 a motor.js.
+**Ficheros**: torneo.html (nuevo), js/torneos/torneo.js (nuevo),
+js/torneos/comun.js (nuevo, ESTADOS/fechas compartidos),
+js/torneos/torneos.js (usa comun.js), js/torneos/motor.js
+(+canEditDecklist), css/torneos.css (ficha), SCHEMA.md, BITACORA.md.
+**En curso / pendiente**: la migración supabase-migration-torneos.sql
+sigue SIN ejecutar (PINGU humano). Siguiente tanda: (205) ciclo de
+ronda — generar pareos, iniciar con sello de decklists en R1, check-in,
+reporte con confirmación del rival y clasificación en vivo. Nadie tiene
+ficheros bloqueados.
+
 ## 2026-08-25 — PINGU-Claude
 **Hecho**: arranca el porte de TrainerArena (tanda 203). Coordinación de
 las dos sesiones (este fichero + CLAUDE.md), motor de torneos traducido
