@@ -537,6 +537,42 @@ async function loadLanzamientos() {
       error ? 'error' : 'success'
     )
   })
+
+  // «Importar de Bulbapedia»: la función de Netlify lee su lista de
+  // expansiones y aquí solo se RELLENA la caja — nada se guarda hasta
+  // que el admin revisa y pulsa Guardar. Las notas escritas a mano se
+  // conservan casando por nombre de set.
+  const btnImportar = document.getElementById('btnImportarLanzamientos')
+  btnImportar.addEventListener('click', async () => {
+    btnImportar.disabled = true
+    const rotulo = btnImportar.textContent
+    btnImportar.textContent = 'Importando…'
+    try {
+      const res = await fetch('/.netlify/functions/lanzamientos-bulbapedia')
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || !json.sets?.length) throw new Error(json.error || `la función responde ${res.status}`)
+
+      const notasDeAntes = new Map()
+      for (const s of parsearLanzamientos(caja.value).sets) {
+        if (s.notas) notasDeAntes.set(s.nombre.toLowerCase(), s.notas)
+      }
+      caja.value = json.sets
+        .map((s) => {
+          const notas = notasDeAntes.get(String(s.nombre).toLowerCase()) || ''
+          const campos = [s.fecha, s.nombre]
+          if (s.imagen || notas) campos.push(s.imagen || '')
+          if (notas) campos.push(notas)
+          return campos.join(' | ')
+        })
+        .join('\n')
+      showToast(`${json.sets.length} sets traídos de Bulbapedia. Revisa la lista (los nombres llegan en inglés) y pulsa Guardar.`, 'success')
+    } catch (e) {
+      showToast('No se ha podido importar de Bulbapedia: ' + (e.message || e), 'error')
+    } finally {
+      btnImportar.disabled = false
+      btnImportar.textContent = rotulo
+    }
+  })
 }
 loadLanzamientos().catch(() => {})
 

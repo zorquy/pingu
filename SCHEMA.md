@@ -9679,3 +9679,42 @@ Tras la tanda del calendario, la portada queda EXACTAMENTE en el techo
 de peso (170/170 KB comprimidos). Lo siguiente que quiera entrar en la
 home tiene que aligerar algo antes, o subir el techo con justificación
 (precedentes: 150→160 en la tanda 183 y 160→170 en la 188).
+
+## Importar lanzamientos desde Bulbapedia (agosto 2026)
+
+El botón «Importar de Bulbapedia» del panel de Lanzamientos del /admin
+rellena la caja solo, leyendo la lista de expansiones inglesa
+(bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_Trading_Card_Game_expansions).
+Se eligió Bulbapedia sobre WikiDex a petición del admin: su columna de
+fecha es una sola («Release date», que en la era actual coincide con la
+salida en España) y su tabla es más estable.
+
+- **La función** (netlify/functions/lanzamientos-bulbapedia.mjs): un
+  proxy de LECTURA — Bulbapedia no manda CORS, así que el navegador no
+  puede leerla directo. Descarga la página, parte por `<tr` y de cada
+  fila saca la fecha («Month D, YYYY» → AAAA-MM-DD; sin fecha completa
+  —TBA— la fila se descarta), el nombre (el enlace no-File: más largo,
+  descartando «… Expansion»; con raya «Serie—Set» se queda el set) y el
+  logo (la columna del SÍMBOLO también es una imagen de archives y va
+  antes, así que se prefiere la que se llama *logo* y, si no, una de
+  ≥80 px — los símbolos rondan los 30; sin logo, mejor nada). Filtra a
+  fecha ≥ hoy−90 días (lo que /lanzamientos enseña), quita duplicados,
+  ordena y devuelve { sets }. Caché de una hora. Sin variables de
+  entorno: no toca Supabase. `parsearBulbapedia` y `fechaDeIngles` van
+  exportadas para probarlas sin red.
+- **El botón** (admin.js): pide la función, y solo RELLENA la caja —
+  nada llega a la base hasta que el admin revisa y pulsa Guardar. Las
+  notas escritas a mano sobreviven casando por nombre de set
+  (minúsculas); los nombres llegan en inglés y el aviso del panel
+  invita a traducirlos antes de guardar. Si la función falla, toast y
+  la caja NI SE TOCA.
+- Los logos de /lanzamientos llevan ahora `referrerpolicy="no-referrer"`
+  por si el CDN de archives mirase el referer al servir en caliente.
+- En local no hay red hacia Bulbapedia (la política del contenedor la
+  bloquea): el parser se prueba con un fixture que imita el HTML
+  MediaWiki real (símbolo antes que logo, entidades, TBA) y el botón,
+  interceptando la ruta de la función con Playwright.
+
+Probado con test-bulbapedia.mjs (29 comprobaciones: 19 del parser +
+10 del botón con la función interceptada) y rigor-bulbapedia.py
+(6 roturas, todas detectadas).

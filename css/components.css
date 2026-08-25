@@ -5389,6 +5389,16 @@ a.rater-name:hover {
   flex: 2 1 260px;
 }
 
+/* La columna de botones junto a la caja de lanzamientos: importar
+   arriba, guardar debajo, alineados al principio para no estirarse
+   con la textarea. */
+.admin-destacada-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: flex-start;
+}
+
 /* ── Editor: los bloques de curso con cartas ── */
 .be-cartas-row {
   display: flex;

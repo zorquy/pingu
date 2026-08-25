@@ -51,7 +51,7 @@ function tarjetaHtml(s, futuro) {
   const dias = diasHasta(s.fecha)
   return `
     <div class="lanzamiento-tarjeta ${futuro ? '' : 'lanzamiento-pasado'}">
-      ${s.imagen ? `<img class="lanzamiento-logo" src="${escapeHtml(s.imagen)}" alt="" loading="lazy" decoding="async" />` : `<span class="lanzamiento-logo lanzamiento-logo-hueco">${icons.cards(22)}</span>`}
+      ${s.imagen ? `<img class="lanzamiento-logo" src="${escapeHtml(s.imagen)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />` : `<span class="lanzamiento-logo lanzamiento-logo-hueco">${icons.cards(22)}</span>`}
       <div class="lanzamiento-texto">
         <strong>${escapeHtml(s.nombre)}</strong>
         <span class="subtext">${fechaBonita(s.fecha)}${s.notas ? ` · ${escapeHtml(s.notas)}` : ''}</span>
@@ -74,7 +74,7 @@ async function init() {
     const [primero, ...resto] = proximos
     destacadoEl.innerHTML = `
       <div class="lanzamiento-destacado">
-        ${primero.imagen ? `<img class="lanzamiento-logo-grande" src="${escapeHtml(primero.imagen)}" alt="" decoding="async" />` : ''}
+        ${primero.imagen ? `<img class="lanzamiento-logo-grande" src="${escapeHtml(primero.imagen)}" alt="" decoding="async" referrerpolicy="no-referrer" />` : ''}
         <div>
           <span class="eyebrow">El siguiente set</span>
           <h2>${escapeHtml(primero.nombre)}</h2>
