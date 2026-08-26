@@ -605,6 +605,25 @@ export function parseDecklist(rawText) {
   return result
 }
 
+// Las líneas que el parser DESCARTA en silencio: estaban dentro de una
+// sección, no son comentario ni cabecera, y aun así no casan con el
+// formato «4 Nombre SET 123». Antes el jugador las perdía sin enterarse
+// (y el total ya no daba 60 sin pista de por qué); el editor las enseña.
+export function decklistUnparsed(rawText) {
+  const fuera = []
+  let dentro = false
+  for (const rawLine of String(rawText).split(/\r?\n/)) {
+    const line = rawLine.trim()
+    if (line === '' || line.startsWith('#') || line.startsWith('//')) continue
+    if (SECTION_HEADERS.some((h) => h.pattern.test(line))) {
+      dentro = true
+      continue
+    }
+    if (dentro && !CARD_LINE.test(line)) fuera.push(line)
+  }
+  return fuera
+}
+
 // Exactamente 60 cartas y al menos un Pokémon.
 export function validateDecklist(decklist) {
   const errors = []

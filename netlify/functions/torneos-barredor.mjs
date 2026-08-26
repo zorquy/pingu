@@ -68,6 +68,9 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   let avisados = 0
   let caducadas = 0
   let aperturas = 0
+  let avisosCheckin = 0
+  let avisosConfirmar = 0
+  let avisosResueltas = 0
 
   async function avisar(subs, cuerpo) {
     for (const s of subs || []) {
@@ -124,7 +127,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   }
 
   const rondas = await rest(
-    `rounds?status=eq.active&select=id,tournament_id,round_number,phase,started_at,ends_at,players_notified_at`,
+    `rounds?status=eq.active&select=id,tournament_id,round_number,phase,started_at,ends_at,players_notified_at,checkin_warned_at`,
     clave
   )
   if (!rondas || rondas.length === 0) return { ok: true, rondas: 0, aperturas, avisados, caducadas }
@@ -137,17 +140,23 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   const torneoDe = Object.fromEntries((torneos || []).map((t) => [t.id, t]))
 
   const partidas = await rest(
-    `tournament_matches?round_id=in.(${rondas.map((r) => r.id).join(',')})&select=id,round_id,player_a_id,player_b_id,status,check_in_a_at,check_in_b_at`,
+    `tournament_matches?round_id=in.(${rondas.map((r) => r.id).join(',')})&select=id,round_id,player_a_id,player_b_id,status,check_in_a_at,check_in_b_at,await_notified_at,resolved_notified_at`,
     clave
   )
   const activas = (partidas || []).filter((m) => m.status === 'active')
+  const esperando = (partidas || []).filter((m) => m.status === 'awaiting_confirmation')
   const conReporte = new Set()
-  if (activas.length) {
+  const reportesPorMesa = {}
+  const conReportes = [...activas, ...esperando]
+  if (conReportes.length) {
     const reportes = await rest(
-      `match_reports?match_id=in.(${activas.map((m) => m.id).join(',')})&select=match_id`,
+      `match_reports?match_id=in.(${conReportes.map((m) => m.id).join(',')})&select=match_id,reporter_id`,
       clave
     )
-    for (const r of reportes || []) conReporte.add(r.match_id)
+    for (const r of reportes || []) {
+      conReporte.add(r.match_id)
+      ;(reportesPorMesa[r.match_id] ||= []).push(r.reporter_id)
+    }
   }
 
   async function caer(partida, status, winner, motivo) {
@@ -159,6 +168,17 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       method: 'POST',
       body: JSON.stringify({ match_id: partida.id, result: status, winner_id: winner, resolved_by: null, score: motivo }),
     })
+  }
+
+  // Push a unos jugadores concretos (los avisos del ciclo de partida).
+  async function avisarJugadores(ids, cuerpo) {
+    const limpios = [...new Set(ids)].filter(Boolean)
+    if (!mandar || !limpios.length) return
+    const subs = await rest(
+      `push_subscriptions?user_id=in.(${limpios.join(',')})&select=endpoint,user_id,p256dh,auth`,
+      clave
+    )
+    await avisar(subs, cuerpo)
   }
 
   let forfeitsCheckin = 0
@@ -190,6 +210,57 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       })
     }
 
+    // 1b. CHECK-IN POR CADUCAR (tanda 216): quedan 5 minutos o menos de
+    //     ventana y hay quien no ha pulsado el botón — un toque, una vez
+    //     por ronda, SOLO a los que faltan.
+    const cierre = ronda.started_at ? new Date(ronda.started_at).getTime() + (torneo.checkin_minutes || 0) * 60000 : 0
+    if (
+      mandar &&
+      !ronda.checkin_warned_at &&
+      ronda.started_at &&
+      (torneo.checkin_minutes || 0) > 0 &&
+      ahora.getTime() >= cierre - 5 * 60000 &&
+      ahora.getTime() < cierre
+    ) {
+      const rezagados = mesasDeRonda.flatMap((m) => [
+        ...(!m.check_in_a_at ? [m.player_a_id] : []),
+        ...(!m.check_in_b_at && m.player_b_id ? [m.player_b_id] : []),
+      ])
+      if (rezagados.length) {
+        await avisarJugadores(rezagados, {
+          title: `El check-in se acaba — ${torneo.name}`,
+          body: 'Te quedan unos minutos para hacer check-in o tu mesa cae por incomparecencia.',
+          link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
+          tag: 'torneo-checkin',
+        })
+        avisosCheckin++
+      }
+      await rest(`rounds?id=eq.${ronda.id}`, clave, {
+        method: 'PATCH',
+        body: JSON.stringify({ checkin_warned_at: ahora.toISOString() }),
+      })
+    }
+
+    // 1c. TU RIVAL YA REPORTÓ (tanda 216): la mesa espera tu
+    //     confirmación — el aviso va SOLO a quien no ha reportado, una
+    //     vez por mesa.
+    for (const m of esperando.filter((m) => m.round_id === ronda.id)) {
+      if (m.await_notified_at) continue
+      const reporteros = reportesPorMesa[m.id] || []
+      const falta = [m.player_a_id, m.player_b_id].filter((j) => j && !reporteros.includes(j))
+      await avisarJugadores(falta, {
+        title: `Tu rival ha reportado — ${torneo.name}`,
+        body: 'Confirma el resultado de tu mesa para cerrar la ronda.',
+        link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
+        tag: 'torneo-confirmar',
+      })
+      avisosConfirmar++
+      await rest(`tournament_matches?id=eq.${m.id}`, clave, {
+        method: 'PATCH',
+        body: JSON.stringify({ await_notified_at: ahora.toISOString() }),
+      })
+    }
+
     // 2. La ventana de check-in.
     const cierreCheckin = new Date(ronda.started_at).getTime() + (torneo.checkin_minutes || 0) * 60000
     if (ronda.started_at && ahora.getTime() > cierreCheckin) {
@@ -215,7 +286,39 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     }
   }
 
-  return { ok: true, rondas: rondas.length, aperturas, avisados, caducadas, forfeitsCheckin, forfeitsTiempo }
+  // 4. MESA RESUELTA POR UN JUEZ (tanda 216): un resultado con
+  //    resolved_by (disputa o resolución a mano) avisa a los DOS
+  //    jugadores, una vez por mesa.
+  if (mandar) {
+    const terminales = (partidas || []).filter(
+      (m) => !['active', 'awaiting_confirmation', 'pending'].includes(m.status) && !m.resolved_notified_at
+    )
+    if (terminales.length) {
+      const resultados = await rest(
+        `match_results?match_id=in.(${terminales.map((m) => m.id).join(',')})&select=match_id,resolved_by`,
+        clave
+      )
+      const resueltas = new Set((resultados || []).filter((r) => r.resolved_by).map((r) => r.match_id))
+      for (const m of terminales) {
+        if (!resueltas.has(m.id)) continue
+        const ronda = rondas.find((r) => r.id === m.round_id)
+        const torneo = ronda ? torneoDe[ronda.tournament_id] : null
+        await avisarJugadores([m.player_a_id, m.player_b_id], {
+          title: `Vuestra mesa está resuelta${torneo ? ` — ${torneo.name}` : ''}`,
+          body: 'El organizador o un juez ha decidido el resultado. Entra a verlo.',
+          link: torneo ? new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href : new URL('/torneos', sitio).href,
+          tag: 'torneo-resuelta',
+        })
+        avisosResueltas++
+        await rest(`tournament_matches?id=eq.${m.id}`, clave, {
+          method: 'PATCH',
+          body: JSON.stringify({ resolved_notified_at: ahora.toISOString() }),
+        })
+      }
+    }
+  }
+
+  return { ok: true, rondas: rondas.length, aperturas, avisados, caducadas, forfeitsCheckin, forfeitsTiempo, avisosCheckin, avisosConfirmar, avisosResueltas }
 }
 
 export default async function handler() {

@@ -10369,3 +10369,69 @@ con el nombre, mini visible en móvil con «Jugar», el grande escondido,
 primero del bloque, enlace a la ficha, ni rastro sin torneo en juego y
 altura de barra idéntica) y rigor-torneos-10.py (5 roturas, todas
 detectadas).
+
+## Tanda 215 — la carta exacta, el contador del editor y el reglamento H/I/J (agosto 2026)
+
+Tres cosas que pidió PINGU sobre las decklists:
+
+- **Se acabaron las cartas «sin imagen»** (js/torneos/cartas-decklist.js):
+  la resolución dentro del set iba por NOMBRE, y el export de TCG Live
+  viene en el idioma del jugador mientras el espejo guarda el español
+  cuando existe — cruzar idiomas dejaba cartas sin casar. Ahora el tiro
+  exacto es `set_id + local_id` a secas (probando también la forma con
+  ceros delante, «070», que es como numeran los sets nuevos); el nombre
+  solo se usa en la caída global de siempre.
+- **El contador vivo del editor** (torneo.js + motor.js): bajo el
+  textarea, «N / 60 cartas» en rojo si no cuadra, más «N líneas que no
+  se entienden» — el parser descartaba en silencio las líneas mal
+  formateadas y el jugador solo veía que el total no daba 60 sin saber
+  por qué. Al guardar, cada línea rota sale con nombre y apellidos
+  (nuevo `decklistUnparsed` en motor.js; `parseDecklist` no cambia).
+- **El reglamento de Estándar** (supabase-migration-cartas-marcas.sql,
+  nuevo): la columna `regulation_mark` en `tcg_cards` y los valores de
+  las 8.288 cartas con marca (D…J), extraídos de la BASE DE DATOS de
+  TCGdex en GitHub (la API no los da en el listado de sets y aquí la
+  API ni siquiera es alcanzable; el repo sí). Las marcas legales de la
+  temporada viven en site_settings `torneos_reglas` (hoy H/I/J; rotan
+  cada abril y se cambian SIN desplegar). La rejilla de la decklist
+  señala las cartas fuera de reglamento con su letra y un aviso que
+  suma copias. Exenciones deliberadas: las energías básicas (regla del
+  juego real) y las cartas con la columna a NULL (sin dato no hay
+  acusación — el espejo viejo aún no distingue «antigua» de «sin
+  importar»). Cuando salga un set nuevo, PINGU-Claude regenera el
+  fichero de datos del clon de GitHub.
+
+Probado con test-torneos-11.mjs (17 comprobaciones) y
+rigor-torneos-11.py (7 roturas, todas detectadas).
+
+## Tanda 216 — el ciclo de partida avisa por push (agosto 2026)
+
+Los torneos avisaban al abrir inscripciones y al arrancar la ronda, y
+luego se callaban justo donde la gente se atasca. Tres avisos nuevos en
+el barredor (netlify/functions/torneos-barredor.mjs), cada uno UNA sola
+vez y solo a quien le toca:
+
+- **«El check-in se acaba»**: quedan 5 minutos o menos de ventana y
+  alguien no ha pulsado el botón — el toque va SOLO a los que faltan,
+  nunca a quien ya hizo check-in, y no se manda si la ventana ya
+  caducó (ahí lo que toca es el forfeit, que ya estaba). Marca:
+  `rounds.checkin_warned_at`.
+- **«Tu rival ha reportado»**: la mesa está en `awaiting_confirmation`
+  — el aviso va SOLO a quien no ha reportado (se cruza con
+  `match_reports.reporter_id`). Marca: `tournament_matches.await_notified_at`.
+- **«Vuestra mesa está resuelta»**: un resultado con `resolved_by`
+  (disputa resuelta o resolución a mano del organizador) avisa a los
+  DOS jugadores. La conciliación normal entre jugadores NO dispara este
+  aviso: ahí no hay nada que contar que no sepan ya. Marca:
+  `tournament_matches.resolved_notified_at`.
+
+Las tres columnas van en supabase-migration-torneos.sql, que sigue
+siendo re-ejecutable (validado en Postgres 16 con doble pasada; las de
+`tournament_matches` van DESPUÉS del create de esa tabla, que en una
+base fresca aún no existe donde estaban al principio). `procesar()`
+devuelve además `avisosCheckin`, `avisosConfirmar` y `avisosResueltas`.
+
+Probado con test-torneos-12.mjs (10 comprobaciones, con un mundo REST
+de mentira: los tres avisos a quien toca, ninguno repetido en la
+segunda pasada, y las ventanas respetadas) y rigor-torneos-12.py (6
+roturas, todas detectadas).

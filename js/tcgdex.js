@@ -246,7 +246,7 @@ export async function searchCards(
 
   let q = supabase
     .from('tcg_cards')
-    .select('id, market, set_id, local_id, name, image_path, tcg_sets(name)', { count: 'exact' })
+    .select('id, market, set_id, local_id, name, image_path, regulation_mark, tcg_sets(name)', { count: 'exact' })
     .eq('market', market)
   // Encadenar varios `like` los une con AND, que es lo que se quiere:
   // todas las palabras presentes.

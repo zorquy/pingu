@@ -896,3 +896,53 @@
   font-size: 14px;
 }
 .torneo-vacio svg { display: block; margin: 0 auto 8px; opacity: 0.5; }
+
+/* ── Tanda 215: contador del editor y cartas fuera de reglamento ── */
+.torneo-decklist-cuenta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.torneo-decklist-cuenta.torneo-cuenta-mal {
+  color: #b3261e;
+}
+
+:root[data-theme='dark'] .torneo-decklist-cuenta.torneo-cuenta-mal {
+  color: #f28b82;
+}
+
+.torneo-decklist-reglamento {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(179, 38, 30, 0.35);
+  background: rgba(179, 38, 30, 0.08);
+  color: #b3261e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+:root[data-theme='dark'] .torneo-decklist-reglamento {
+  color: #f28b82;
+}
+
+.torneo-carta-ilegal {
+  outline: 2px solid rgba(179, 38, 30, 0.65);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* La letra de la marca, en la esquina de la carta señalada. */
+.torneo-carta-marca {
+  position: absolute;
+  right: 4px;
+  bottom: 22px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #b3261e;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}

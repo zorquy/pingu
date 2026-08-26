@@ -8,7 +8,7 @@ import { supabase } from '../supabase.js'
 import { escapeHtml, getSession, getProfile } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
-import { parseDecklist, validateDecklist, canEditDecklist } from './motor.js'
+import { parseDecklist, validateDecklist, canEditDecklist, decklistUnparsed } from './motor.js'
 import { ESTADOS, fechaBonita, textoFormato } from './comun.js'
 import { montarCiclo, resumenDeGloria } from './ronda.js'
 import { montarJueces } from './jueces.js'
@@ -470,6 +470,7 @@ function pintarDecklist() {
     <details class="torneo-decklist-editor" ${(editorAbierto ?? !miDecklist) ? 'open' : ''}>
       <summary>${miDecklist ? (editable ? 'Editar la lista (texto)' : 'Ver la lista en texto') : 'Pegar la lista'}</summary>
       <textarea id="decklistTexto" rows="10" maxlength="20000" ${editable ? '' : 'readonly'} placeholder="Pokémon: 8&#10;4 Charizard ex OBF 125&#10;…">${escapeHtml(miDecklist?.raw_text || '')}</textarea>
+      <p class="torneo-decklist-cuenta" id="decklistCuenta"></p>
       <ul class="torneo-decklist-errores hidden" id="decklistErrores"></ul>
       ${editable ? '<button class="btn-primary" id="btnGuardarDecklist">Guardar decklist</button>' : ''}
     </details>`
@@ -477,13 +478,40 @@ function pintarDecklist() {
   if (miDecklist?.parsed_cards) pintarDecklistVisual($('decklistVisual'), miDecklist.parsed_cards)
 }
 
+// El contador vivo bajo el editor: cuántas cartas suma lo pegado (en
+// rojo si no son 60) y cuántas líneas no se entienden — antes el parser
+// las descartaba en silencio y el jugador solo veía que «no da 60» sin
+// pista de por qué.
+function pintarCuentaDecklist() {
+  const caja = $('decklistCuenta')
+  if (!caja) return
+  const texto = $('decklistTexto').value
+  if (!texto.trim()) {
+    caja.textContent = ''
+    return
+  }
+  const parsed = parseDecklist(texto)
+  const ilegibles = decklistUnparsed(texto)
+  caja.classList.toggle('torneo-cuenta-mal', parsed.total !== 60 || ilegibles.length > 0)
+  caja.textContent =
+    `${parsed.total} / 60 cartas` +
+    (ilegibles.length ? ` · ${ilegibles.length} ${ilegibles.length === 1 ? 'línea que no se entiende' : 'líneas que no se entienden'}` : '')
+}
+
 function engancharDecklist() {
   let guardando = false
+  $('decklistTexto').addEventListener('input', pintarCuentaDecklist)
+  pintarCuentaDecklist()
   $('btnGuardarDecklist').addEventListener('click', async () => {
     if (guardando) return
     const texto = $('decklistTexto').value
     const parsed = parseDecklist(texto)
     const errores = validateDecklist(parsed)
+    // Las líneas ilegibles se enseñan JUNTO a los errores: son casi
+    // siempre el motivo de que el total no dé 60.
+    for (const linea of decklistUnparsed(texto).slice(0, 6)) {
+      errores.push(`No se entiende la línea: «${linea}» (formato: 4 Nombre SET 123).`)
+    }
     const lista = $('decklistErrores')
     lista.classList.toggle('hidden', errores.length === 0)
     lista.innerHTML = errores.map((e) => `<li>${escapeHtml(e)}</li>`).join('')

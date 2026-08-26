@@ -74,6 +74,12 @@ alter table public.rounds
 alter table public.tournaments
   add column if not exists registration_notified_at timestamptz;
 
+-- Tanda 216 (parte 1) — la marca del toque de check-in por caducar (un
+-- push por ronda; sus hermanas de tournament_matches van tras el CREATE
+-- de esa tabla, que en una base fresca aún no existe aquí).
+alter table public.rounds
+  add column if not exists checkin_warned_at timestamptz;
+
 -- ── Inscripciones ──
 -- Sin email ni teléfono (la cuenta de PokeDoc ya identifica) y sin el
 -- estado pending_payment: los pagos quedaron fuera del porte.
@@ -131,6 +137,13 @@ create table if not exists public.tournament_matches (
   created_at timestamptz not null default now(),
   unique (round_id, table_number)
 );
+
+-- Tanda 216 (parte 2) — las marcas de «tu rival ya reportó» y «vuestra
+-- mesa está resuelta» (un push por mesa cada uno).
+alter table public.tournament_matches
+  add column if not exists await_notified_at timestamptz;
+alter table public.tournament_matches
+  add column if not exists resolved_notified_at timestamptz;
 create index if not exists partidas_ronda_estado on public.tournament_matches (round_id, status);
 
 -- ── Reportes (lo que dice cada jugador de su partida) ──

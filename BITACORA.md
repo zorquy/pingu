@@ -12,6 +12,46 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-26 — PINGU-Claude (tanda 216 — el ciclo de partida avisa por push)
+**Hecho**: tres avisos nuevos en el barredor, cada uno una sola vez y
+solo a quien le toca: «el check-in se acaba» (5 min antes del cierre,
+solo a los que faltan y nunca con la ventana ya caducada), «tu rival ha
+reportado» (solo a quien no reportó, cruzando match_reports) y «vuestra
+mesa está resuelta» (a los dos, solo cuando hay resolved_by — la
+conciliación normal entre jugadores no dispara nada). Las marcas
+(rounds.checkin_warned_at, tournament_matches.await_notified_at y
+resolved_notified_at) van en la migración de torneos, que sigue siendo
+re-ejecutable — validada en Postgres 16 con doble pasada.
+**Ficheros**: netlify/functions/torneos-barredor.mjs,
+supabase-migration-torneos.sql, SCHEMA.md.
+**En curso / pendiente**: PINGU re-ejecuta supabase-migration-torneos.sql
+(columnas nuevas). Encargadas y por hacer: final celebrado (podio +
+confeti + campeón anunciado en el foro + chapas de palmarés) y la tanda
+de lista de espera, desempates a la vista, duplicar torneo y .ics.
+
+## 2026-08-26 — PINGU-Claude (tanda 215 — carta exacta, contador y reglamento H/I/J)
+**Hecho**: la resolución de cartas de la decklist va por set+número sin
+pasar por el nombre (adiós a las cartas «sin imagen» por el cruce de
+idiomas, con la forma «070» de los sets nuevos incluida); contador vivo
+en el editor («N / 60» en rojo + «N líneas que no se entienden», y al
+guardar cada línea rota con nombre y apellidos); y el reglamento de
+Estándar: regulation_mark en tcg_cards con los datos de 8.288 cartas
+sacados del repo GitHub de TCGdex + marcas legales en site_settings
+('torneos_reglas', hoy H/I/J) + la rejilla señala lo fuera de
+reglamento (energías básicas exentas; sin marca no se acusa).
+**Ficheros**: supabase-migration-cartas-marcas.sql (nuevo, EJECUTAR),
+js/torneos/cartas-decklist.js, js/torneos/torneo.js,
+js/torneos/motor.js (decklistUnparsed nuevo; parseDecklist intacto),
+js/torneos/comun.js, js/tcgdex.js (regulation_mark en el select),
+css/torneos.css, SCHEMA.md.
+**En curso / pendiente**: PINGU tiene que EJECUTAR
+supabase-migration-cartas-marcas.sql (re-ejecutable; sin él las marcas
+quedan a NULL y simplemente no se señala nada). Al salir un set nuevo,
+regenerar el fichero desde el clon de github.com/tcgdex/cards-database.
+Siguientes tandas encargadas: push del ciclo de partida, final
+celebrado con podio y anuncio, palmarés con chapas, lista de espera,
+desempates a la vista, duplicar torneo y .ics.
+
 ## 2026-08-26 — PINGU-Claude (tanda 214 — el aviso de torneo, también en móvil)
 **Hecho**: la versión móvil del aviso ámbar de la tanda 213, pedida por
 PINGU: en pantallas estrechas ya no se esconde en el menú de hamburguesa
