@@ -48,11 +48,80 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: true, saltado: 'sin SUPABASE_SERVICE_ROLE_KEY: no se barre nada' }
 
+  // El push, con la misma fontanería que el resto de funciones de aviso.
+  const privada = env.PUSH_VAPID_PRIVATE
+  let mandar = null
+  if (privada) {
+    const ajustes = await rest(`site_settings?key=eq.push_vapid_public&select=value`, clave).catch(() => null)
+    const publica = ajustes?.[0]?.value?.clave
+    if (publica) {
+      mandar =
+        enviar ||
+        ((suscripcion, cuerpo) => {
+          webpush.setVapidDetails('mailto:avisos@pokedoc.es', publica, privada)
+          return webpush.sendNotification(suscripcion, cuerpo)
+        })
+    }
+  }
+  const sitio = env.SITE_URL || 'https://pokedoc.es'
+
+  let avisados = 0
+  let caducadas = 0
+  let aperturas = 0
+
+  async function avisar(subs, cuerpo) {
+    for (const s of subs || []) {
+      try {
+        await mandar({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(cuerpo))
+        avisados++
+      } catch (e) {
+        if (e?.statusCode === 404 || e?.statusCode === 410) {
+          await rest(`push_subscriptions?endpoint=eq.${encodeURIComponent(s.endpoint)}`, clave, {
+            method: 'DELETE',
+          }).catch(() => {})
+          caducadas++
+        }
+      }
+    }
+  }
+
+  // 0. AVISO DE APERTURA (tanda 211): un torneo que acaba de abrir
+  //    inscripciones se anuncia una sola vez. MIENTRAS DURE LA PRUEBA
+  //    solo a los admins — la sección no existe para nadie más; al
+  //    abrir los torneos al público, quitar el filtro de is_admin.
+  if (mandar) {
+    const recienAbiertos = await rest(
+      `tournaments?status=eq.registration_open&registration_notified_at=is.null&select=id,slug,name`,
+      clave
+    )
+    for (const t of recienAbiertos || []) {
+      const admins = await rest(`user_profiles?is_admin=eq.true&select=id`, clave)
+      const ids = (admins || []).map((a) => a.id)
+      if (ids.length) {
+        const subs = await rest(
+          `push_subscriptions?user_id=in.(${ids.join(',')})&select=endpoint,user_id,p256dh,auth`,
+          clave
+        )
+        await avisar(subs, {
+          title: `Inscripciones abiertas — ${t.name}`,
+          body: 'Apúntate antes de que se llene y deja lista tu decklist.',
+          link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
+          tag: 'torneo-apertura',
+        })
+      }
+      await rest(`tournaments?id=eq.${t.id}`, clave, {
+        method: 'PATCH',
+        body: JSON.stringify({ registration_notified_at: ahora.toISOString() }),
+      })
+      aperturas++
+    }
+  }
+
   const rondas = await rest(
     `rounds?status=eq.active&select=id,tournament_id,round_number,phase,started_at,ends_at,players_notified_at`,
     clave
   )
-  if (!rondas || rondas.length === 0) return { ok: true, rondas: 0 }
+  if (!rondas || rondas.length === 0) return { ok: true, rondas: 0, aperturas, avisados, caducadas }
 
   const idsTorneos = [...new Set(rondas.map((r) => r.tournament_id))]
   const torneos = await rest(
@@ -86,27 +155,8 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     })
   }
 
-  let avisados = 0
-  let caducadas = 0
   let forfeitsCheckin = 0
   let forfeitsTiempo = 0
-
-  // El push, con la misma fontanería que el resto de funciones de aviso.
-  const privada = env.PUSH_VAPID_PRIVATE
-  let mandar = null
-  if (privada) {
-    const ajustes = await rest(`site_settings?key=eq.push_vapid_public&select=value`, clave).catch(() => null)
-    const publica = ajustes?.[0]?.value?.clave
-    if (publica) {
-      mandar =
-        enviar ||
-        ((suscripcion, cuerpo) => {
-          webpush.setVapidDetails('mailto:avisos@pokedoc.es', publica, privada)
-          return webpush.sendNotification(suscripcion, cuerpo)
-        })
-    }
-  }
-  const sitio = env.SITE_URL || 'https://pokedoc.es'
 
   for (const ronda of rondas) {
     const torneo = torneoDe[ronda.tournament_id]
@@ -121,27 +171,12 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
           `push_subscriptions?user_id=in.(${jugadores.join(',')})&select=endpoint,user_id,p256dh,auth`,
           clave
         )
-        for (const s of subs || []) {
-          try {
-            await mandar(
-              { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-              JSON.stringify({
-                title: `Tu ronda ha empezado — ${torneo.name}`,
-                body: `Ronda ${ronda.round_number}: haz check-in y busca a tu rival en TCG Live.`,
-                link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
-                tag: 'torneo-ronda',
-              })
-            )
-            avisados++
-          } catch (e) {
-            if (e?.statusCode === 404 || e?.statusCode === 410) {
-              await rest(`push_subscriptions?endpoint=eq.${encodeURIComponent(s.endpoint)}`, clave, {
-                method: 'DELETE',
-              }).catch(() => {})
-              caducadas++
-            }
-          }
-        }
+        await avisar(subs, {
+          title: `Tu ronda ha empezado — ${torneo.name}`,
+          body: `Ronda ${ronda.round_number}: haz check-in y busca a tu rival en TCG Live.`,
+          link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
+          tag: 'torneo-ronda',
+        })
       }
       await rest(`rounds?id=eq.${ronda.id}`, clave, {
         method: 'PATCH',
@@ -174,7 +209,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     }
   }
 
-  return { ok: true, rondas: rondas.length, avisados, caducadas, forfeitsCheckin, forfeitsTiempo }
+  return { ok: true, rondas: rondas.length, aperturas, avisados, caducadas, forfeitsCheckin, forfeitsTiempo }
 }
 
 export default async function handler() {

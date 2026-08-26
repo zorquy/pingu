@@ -12,6 +12,33 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-26 — PINGU-Claude (tanda 211 — organizador, carta exacta y apertura preparada)
+**Hecho**: herramientas del organizador en la ficha (editar nombre /
+fecha / estructura — bloqueada con inscripciones cerradas y nunca menos
+plazas que inscritos —, cancelar en dos toques y expulsar inscritos sin
+liberar plaza ni poder expulsarse uno mismo); la decklist resuelve la
+carta EXACTA por código de set de TCG Live (tabla SETS_LIVE en comun.js,
+búsqueda dentro del set por número con caída al nombre); el barredor
+avisa por push de «inscripciones abiertas» una sola vez por torneo
+(columna `registration_notified_at`, la migración es re-ejecutable);
+y el perfil enseña «Torneos jugados» (solo terminados). TODO sigue
+siendo solo-admins mientras dure la prueba: el push filtra
+`is_admin=eq.true` y el palmarés lleva guarda `isViewerAdmin` (ambos
+con comentario de dónde quitarlo al abrir).
+**Ficheros**: js/torneos/torneo.js, js/torneos/comun.js,
+js/torneos/cartas-decklist.js, netlify/functions/torneos-barredor.mjs,
+js/usuario.js, supabase-migration-torneos.sql,
+supabase-migration-torneos-publico.sql (nuevo, ⚠️ NO EJECUTAR),
+SCHEMA.md.
+**En curso / pendiente**: PINGU tiene que RE-ejecutar
+supabase-migration-torneos.sql (añade `registration_notified_at`; el
+script se puede repetir sin miedo). supabase-migration-torneos-publico.sql
+queda PREPARADO y validado (RPCs de inscribirse / reportar / atender +
+RLS fino) pero NO se ejecuta hasta que PINGU dé la señal de lanzamiento;
+en esa tanda además: cliente a supabase.rpc, quitar el filtro de admins
+del barredor y la guarda del palmarés, enseñar «Jugar» a todos y la
+tarjeta de portada.
+
 ## 2026-08-26 — PINGU-Claude (tanda 210 — la cara nueva)
 **Hecho**: rediseño visual completo de los torneos por feedback de
 PINGU («todo en una misma pantalla no»). La ficha /torneo va ahora por

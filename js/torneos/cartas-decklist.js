@@ -4,22 +4,50 @@
 // imagen y su contador. Lo que el espejo no tenga se queda como línea de
 // texto, que una lista nunca debe perder cartas por culpa del catálogo.
 //
-// El código de set del export (OBF, SVI…) es el de TCG Live y nuestro
-// espejo no lo conoce: la carta se resuelve por NOMBRE, y entre las
-// homónimas se prefiere la que coincide en número de colección.
+// La tabla de códigos de set de TCG Live vive en comun.js (sin DOM):
+// con ella la carta se busca dentro de SU set y por su número — exacta,
+// edición incluida — y sin correspondencia se cae al nombre.
+import { supabase } from '../supabase.js'
 import { searchCards, cardImageUrl, normalizeSearch } from '../tcgdex.js'
 import { escapeHtml } from '../app.js'
+import { nombreDeSetLive } from './comun.js'
 
 const cache = new Map()
+const setsPorCodigo = new Map() // código Live → set_id del espejo (o null)
+
+async function setDeCodigo(codigo) {
+  const nombre = nombreDeSetLive(codigo)
+  if (!nombre) return null
+  if (setsPorCodigo.has(codigo)) return setsPorCodigo.get(codigo)
+  let setId = null
+  try {
+    const { data } = await supabase.from('tcg_sets').select('id').eq('market', 'WEST').eq('name', nombre).limit(1)
+    setId = data?.[0]?.id || null
+  } catch {
+    setId = null
+  }
+  setsPorCodigo.set(codigo, setId)
+  return setId
+}
 
 async function resolverCarta(linea) {
-  const clave = normalizeSearch(linea.name)
+  const clave = `${normalizeSearch(linea.name)}|${linea.set}|${linea.number}`
   if (cache.has(clave)) return cache.get(clave)
+  const nombreNorm = normalizeSearch(linea.name)
   let carta = null
   try {
-    const { cartas } = await searchCards(linea.name, { limite: 24 })
-    const gemelas = cartas.filter((c) => normalizeSearch(c.name) === clave)
-    carta = gemelas.find((c) => c.local_id === String(linea.number)) || gemelas[0] || cartas[0] || null
+    // Primero el tiro exacto: su set y su número de colección.
+    const setId = await setDeCodigo(linea.set)
+    if (setId) {
+      const { cartas } = await searchCards(linea.name, { limite: 24, setId })
+      carta = cartas.find((c) => c.local_id === String(linea.number)) || cartas[0] || null
+    }
+    // Sin set en el espejo (o carta que no aparece): por nombre, como antes.
+    if (!carta) {
+      const { cartas } = await searchCards(linea.name, { limite: 24 })
+      const gemelas = cartas.filter((c) => normalizeSearch(c.name) === nombreNorm)
+      carta = gemelas.find((c) => c.local_id === String(linea.number)) || gemelas[0] || cartas[0] || null
+    }
   } catch {
     carta = null
   }

@@ -10190,3 +10190,49 @@ imagen/contador/casilla de texto, editor plegado, la misma rejilla para
 el juez, y la lista con cuentas y cambio de grupo — con las imágenes de
 assets.tcgdex.net servidas de mentira por la prueba) y
 rigor-torneos-8.py (8 roturas, todas detectadas).
+
+## Tanda 211 — Torneos 9: organizador, carta exacta y apertura preparada (agosto 2026)
+
+«Haz todas las mejoras posibles» — pero TODO sigue siendo solo para
+admins mientras dure la prueba; PINGU avisará para lanzarlo al público.
+
+- **Herramientas del organizador** (torneo.js): botón «Editar» en la
+  ficha (borrador / inscripciones abiertas o cerradas) con un formulario
+  para nombre, fecha, plazas, rondas, corte y minutos — con las
+  inscripciones cerradas la ESTRUCTURA queda deshabilitada (solo nombre
+  y fecha), y nunca se aceptan menos plazas que inscritos activos.
+  Botón «Cancelar torneo» en dos toques (terminal). Y «Expulsar» junto
+  a cada inscrito activo (dos toques): misma mecánica que la baja — la
+  plaza NO se libera y consta desde qué ronda cayó. Uno no puede
+  expulsarse a sí mismo: para eso está «Darme de baja».
+- **La carta EXACTA por código de set** (comun.js + cartas-decklist.js):
+  tabla `SETS_LIVE` (código de TCG Live → nombre oficial del set, de
+  SVI a MEG más Sword & Shield) con `nombreDeSetLive()`. La línea del
+  export se busca primero DENTRO de su set (nombre del set → id del
+  espejo en `tcg_sets`, cacheado) y por su número de colección; sin
+  correspondencia se cae a la búsqueda global por nombre de siempre.
+- **Push «inscripciones abiertas»** (torneos-barredor.mjs, paso 0): un
+  torneo en `registration_open` con `registration_notified_at` a null
+  se anuncia UNA vez y queda marcado. Mientras dure la prueba solo a
+  los admins (filtro `is_admin=eq.true` con comentario de quitarlo al
+  abrir). La migración añade la columna a `tournaments` (re-ejecutable,
+  `add column if not exists`).
+- **Palmarés en el perfil** (usuario.js): «Torneos jugados: N» bajo el
+  hero — solo torneos TERMINADOS en los que estuvo inscrito. Con guarda
+  `isViewerAdmin` mientras dure la prueba (comentario de dónde quitarla).
+- **La apertura al público, PREPARADA pero sin ejecutar**
+  (supabase-migration-torneos-publico.sql, nuevo, con aviso NO EJECUTAR
+  en cabecera): RPCs con autoridad en el servidor —
+  `torneos_inscribirse` (bloqueo de fila + cupo + duplicado),
+  `torneos_reportar` (conciliación servidor: win+loss / draw+draw
+  cierran, distinto abre disputa) y `torneos_atender_llamada` — más el
+  recambio de la política `torneos_solo_admins` por RLS fino en las 12
+  tablas. Validado en Postgres 16 local (doble pasada limpia + smoke de
+  los RPC). El cliente NO llama aún a los RPC: ese cambio va en la
+  tanda de lanzamiento.
+
+Probado con test-torneos-9.mjs (23 comprobaciones: mapa de códigos,
+barredor que avisa una sola vez y solo a admins, editar con sus dos
+vallas, expulsar sin poder expulsarse, cancelar en dos toques, carta
+exacta DAA→swsh3 con caída a nombre, y palmarés que un usuario normal
+no ve) y rigor-torneos-9.py (8 roturas, todas detectadas).

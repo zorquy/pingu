@@ -307,7 +307,40 @@ async function init() {
   }
 
   loadMessageButton()
-  await Promise.all([loadReputationAndGuides(), loadComments(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid()])
+  await Promise.all([
+    loadReputationAndGuides(),
+    loadComments(),
+    loadFollowButton(),
+    loadFollowSummary(),
+    loadAchievementsGrid(),
+    loadPalmaresTorneos(),
+  ])
+}
+
+// El palmarés de torneos (tanda 211). MIENTRAS DURE LA PRUEBA solo lo
+// ven admins: la sección «Jugar» no existe para nadie más y la RLS de
+// torneos tampoco dejaría leer las inscripciones. Al abrir al público,
+// quitar la guarda de isViewerAdmin.
+async function loadPalmaresTorneos() {
+  if (!isViewerAdmin) return
+  const { data: inscripciones } = await supabase
+    .from('tournament_registrations')
+    .select('tournament_id')
+    .eq('user_id', profileId)
+  const ids = [...new Set((inscripciones || []).map((i) => i.tournament_id))]
+  if (!ids.length) return
+  const { count } = await supabase
+    .from('tournaments')
+    .select('id', { count: 'exact', head: true })
+    .in('id', ids)
+    .eq('status', 'finished')
+  if (!count) return
+  document
+    .getElementById('heroInfo')
+    .insertAdjacentHTML(
+      'beforeend',
+      `<p class="subtext torneo-palmares">Torneos jugados: <strong>${count}</strong></p>`
+    )
 }
 
 init()

@@ -69,6 +69,11 @@ alter table public.tournaments
 alter table public.rounds
   add column if not exists players_notified_at timestamptz;
 
+-- El barredor anuncia por push la apertura de inscripciones UNA vez y
+-- lo apunta aquí (tanda 211).
+alter table public.tournaments
+  add column if not exists registration_notified_at timestamptz;
+
 -- ── Inscripciones ──
 -- Sin email ni teléfono (la cuenta de PokeDoc ya identifica) y sin el
 -- estado pending_payment: los pagos quedaron fuera del porte.

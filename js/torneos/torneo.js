@@ -113,6 +113,108 @@ function pintarFicha() {
     acciones.innerHTML = ''
   }
   if (perfil.is_admin && torneo.status !== 'draft') pintarAnuncioForo(acciones)
+  // Herramientas del organizador (tanda 211): editar mientras tenga
+  // sentido, y cancelar mientras el torneo siga vivo.
+  if (perfil.is_admin && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status)) {
+    acciones.insertAdjacentHTML('beforeend', '<button class="btn-secondary" id="btnEditarTorneo">Editar</button>')
+    $('btnEditarTorneo').addEventListener('click', pintarEditor)
+  }
+  if (perfil.is_admin && !['finished', 'cancelled'].includes(torneo.status)) {
+    acciones.insertAdjacentHTML('beforeend', '<button class="btn-secondary" id="btnCancelarTorneo">Cancelar torneo</button>')
+    engancharCancelar()
+  }
+}
+
+// ── Editar el torneo (tanda 211) ──
+// Nombre, fecha y descripción se pueden retocar hasta el final de las
+// inscripciones; la ESTRUCTURA (plazas, rondas, corte, BO, minutos)
+// solo mientras las inscripciones no se hayan cerrado — cerrarlas es
+// el paso previo a generar pareos, y los pareos dependen de ella.
+function pintarEditor() {
+  const previo = $('torneoEditor')
+  if (previo) {
+    previo.remove()
+    return
+  }
+  const estructuraBloqueada = torneo.status === 'registration_closed'
+  const local = torneo.start_at ? new Date(torneo.start_at) : new Date()
+  const fechaLocal = new Date(local.getTime() - local.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+  const bloqueo = estructuraBloqueada ? 'disabled title="Con las inscripciones cerradas, la estructura ya no se toca"' : ''
+  document.querySelector('.torneo-ficha').insertAdjacentHTML(
+    'beforeend',
+    `
+    <div class="torneos-form torneo-editor" id="torneoEditor">
+      <div class="torneos-form-rejilla">
+        <label>Nombre<input type="text" id="editarNombre" maxlength="120" value="${escapeHtml(torneo.name)}" /></label>
+        <label>Fecha y hora<input type="datetime-local" id="editarFecha" value="${fechaLocal}" /></label>
+        <label>Plazas<input type="number" id="editarPlazas" min="4" max="256" value="${torneo.max_players}" ${bloqueo} /></label>
+        <label>Rondas suizas<input type="number" id="editarRondas" min="1" max="12" value="${torneo.swiss_rounds}" ${bloqueo} /></label>
+        <label>Top cut<select id="editarCorte" ${bloqueo}>${[0, 4, 8, 16].map((n) => `<option value="${n}" ${torneo.top_cut_size === n ? 'selected' : ''}>${n ? `Top ${n}` : 'Sin corte'}</option>`).join('')}</select></label>
+        <label>Minutos por ronda<input type="number" id="editarMinutos" min="5" max="120" value="${torneo.round_time_minutes}" ${bloqueo} /></label>
+      </div>
+      <label class="torneos-form-descripcion">Descripción<textarea id="editarDescripcion" rows="2" maxlength="600">${escapeHtml(torneo.description || '')}</textarea></label>
+      <div class="torneos-form-acciones">
+        <button class="btn-primary" id="btnGuardarEdicion">Guardar cambios</button>
+        <button class="btn-secondary" id="btnCerrarEdicion">Cerrar</button>
+      </div>
+    </div>`
+  )
+  $('btnCerrarEdicion').addEventListener('click', () => $('torneoEditor').remove())
+  $('btnGuardarEdicion').addEventListener('click', guardarEdicion)
+}
+
+async function guardarEdicion() {
+  const nombre = $('editarNombre').value.trim()
+  const fecha = $('editarFecha').value
+  if (!nombre || !fecha) {
+    showToast('El nombre y la fecha no pueden quedar vacíos.', 'error')
+    return
+  }
+  const plazas = Number($('editarPlazas').value)
+  if (plazas < activos()) {
+    showToast(`No puedes dejar ${plazas} plazas con ${activos()} inscritos activos.`, 'error')
+    return
+  }
+  const cambios = {
+    name: nombre,
+    start_at: new Date(fecha).toISOString(),
+    description: $('editarDescripcion').value.trim() || null,
+  }
+  if (torneo.status !== 'registration_closed') {
+    cambios.max_players = plazas
+    cambios.swiss_rounds = Number($('editarRondas').value)
+    cambios.top_cut_size = Number($('editarCorte').value)
+    cambios.round_time_minutes = Number($('editarMinutos').value)
+  }
+  const { error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id)
+  if (error) {
+    avisarError(error, 'No se ha podido guardar')
+    return
+  }
+  Object.assign(torneo, cambios)
+  showToast('Torneo actualizado.', 'success')
+  $('torneoEditor')?.remove()
+  await recargar()
+}
+
+// Cancelar en dos toques, como la baja: es terminal y no hay vuelta.
+function engancharCancelar() {
+  const btn = $('btnCancelarTorneo')
+  btn.addEventListener('click', async () => {
+    if (btn.dataset.confirmar !== '1') {
+      btn.dataset.confirmar = '1'
+      btn.textContent = '¿Seguro? Esto es definitivo'
+      return
+    }
+    const { error } = await supabase.from('tournaments').update({ status: 'cancelled' }).eq('id', torneo.id)
+    if (error) {
+      avisarError(error, 'No se ha podido cancelar')
+      return
+    }
+    torneo.status = 'cancelled'
+    showToast('Torneo cancelado.', 'success')
+    await recargar()
+  })
 }
 
 // ── El anuncio en el foro (tanda 208) ──
@@ -414,14 +516,44 @@ function pintarInscritos() {
       const decklist = perfil.is_admin
         ? `<span class="torneo-decklist-marca ${entregadaPor.has(i.user_id) ? 'entregada' : ''}">${entregadaPor.has(i.user_id) ? 'decklist entregada' : 'sin decklist'}</span>`
         : ''
+      // El organizador puede expulsar (misma mecánica que la baja: la
+      // plaza no se libera y su ronda en curso cuenta) — a cualquiera
+      // menos a sí mismo, que para eso está «Darme de baja».
+      const expulsar =
+        perfil.is_admin && i.status === 'active' && i.user_id !== session.user.id && !['finished', 'cancelled'].includes(torneo.status)
+          ? `<button class="btn-secondary torneo-expulsar" data-expulsar="${escapeHtml(i.id)}">Expulsar</button>`
+          : ''
       return `
       <div class="torneo-inscrito">
         <span class="torneo-inscrito-nombre"><a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(nombre)}</a>${retirado}</span>
         <span class="subtext">TCG Live: ${escapeHtml(i.tcg_live_username)}</span>
-        ${decklist}
+        ${decklist}${expulsar}
       </div>`
     })
     .join('')
+  document.querySelectorAll('[data-expulsar]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      if (b.dataset.confirmar !== '1') {
+        b.dataset.confirmar = '1'
+        b.textContent = '¿Seguro?'
+        return
+      }
+      const { error } = await supabase
+        .from('tournament_registrations')
+        .update({
+          status: 'dropped',
+          dropped_at: new Date().toISOString(),
+          dropped_after_round_id: torneo.current_round_id || null,
+        })
+        .eq('id', b.dataset.expulsar)
+      if (error) {
+        avisarError(error, 'No se ha podido expulsar')
+        return
+      }
+      showToast('Jugador retirado del torneo. Su plaza no se libera.', 'success')
+      await recargar()
+    })
+  )
 }
 
 // ── Las pestañas de la ficha ──
