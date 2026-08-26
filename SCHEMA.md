@@ -10347,3 +10347,25 @@ cotejado contra los .spec del TrainerArena real, barredor, y e2e de la
 interfaz nueva (wizard por pasos, reloj, disputa en tabla, bocadillos
 por ambos lados, refresco automático comprobado con un check-in del
 rival que aparece solo, aviso de navbar y Mis torneos).
+
+## Tanda 214 — el aviso de torneo en juego, también en móvil (agosto 2026)
+
+Pedido de PINGU sobre el aviso ámbar de la tanda 213 (IBAI-Claude): en
+escritorio, perfecto; en móvil se escondía en el menú de hamburguesa, y
+un torneo EN JUEGO tiene que verse siempre.
+
+- **Chip mini en la propia barra** (js/torneos/aviso-torneo.js): en
+  pantallas estrechas (≤859px) el chip del nombre se esconde y aparece
+  una versión mini en el bloque derecho de la barra, pegada al logo
+  (entre el logo y la lupa): pequeña (padding 4px 10px, 12px), con el
+  rayo y la palabra «Jugar» en vez del nombre del torneo, mismo pulso
+  ámbar y mismo destino (tu mesa). `order: -1` la mantiene la primera
+  del bloque gane quien gane la carrera de montarse con la llamita de
+  la racha. La copia del menú móvil desaparece (ya no hace falta).
+- La barra no crece: misma altura con y sin chip (lo vigila el test).
+
+Probado con test-torneos-10.mjs (13 comprobaciones: escritorio intacto
+con el nombre, mini visible en móvil con «Jugar», el grande escondido,
+primero del bloque, enlace a la ficha, ni rastro sin torneo en juego y
+altura de barra idéntica) y rigor-torneos-10.py (5 roturas, todas
+detectadas).

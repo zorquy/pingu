@@ -39,12 +39,20 @@ const ESTILOS = `
 @media (prefers-reduced-motion: reduce) {
   .nav-torneo-vivo { animation: none; }
 }
-.nav-right .nav-torneo-vivo { max-width: 190px; margin-right: 2px; }
-@media (max-width: 860px) {
-  /* En pantallas estrechas no cabe: queda la copia del menú móvil. */
+/* order -1: el chip va SIEMPRE el primero del bloque derecho (pegado al
+   logo), gane quien gane la carrera de montarse con la llamita de la
+   racha, que también se antepone. */
+.nav-right .nav-torneo-vivo { max-width: 190px; margin-right: 2px; order: -1; }
+/* La versión de móvil (pedida por PINGU): en pantallas estrechas el
+   chip con el nombre no cabe, pero esconderlo en el menú era perderlo —
+   un torneo EN JUEGO se tiene que ver siempre. Se queda en la propia
+   barra, primero del bloque de la derecha (entre el logo y la lupa),
+   pequeño y con la ACCIÓN en vez del nombre: «Jugar». */
+.nav-torneo-mini { display: none; padding: 4px 10px; font-size: 12px; gap: 4px; max-width: none; }
+@media (max-width: 859px) {
   .nav-right .nav-torneo-vivo { display: none; }
+  .nav-right .nav-torneo-mini { display: inline-flex; }
 }
-.nav-menu-mobile .nav-torneo-vivo { margin: 6px 0; max-width: none; }
 `
 
 export async function montarAvisoTorneo(session) {
@@ -71,16 +79,19 @@ export async function montarAvisoTorneo(session) {
   estilo.textContent = ESTILOS
   document.head.appendChild(estilo)
 
-  const enlace = `<a class="nav-torneo-vivo" href="/torneo?slug=${encodeURIComponent(torneo.slug)}"
-    title="Torneo en juego — ir a tu mesa">${icons.zap(14)} ${escapeHtml(torneo.name)}</a>`
-  // A la derecha de la barra, pegado a la llamita de la racha (que
-  // también se antepone a .nav-right: llegue quien llegue primero,
-  // quedan juntos). En el menú móvil, al final.
+  const destino = `href="/torneo?slug=${encodeURIComponent(torneo.slug)}" title="Torneo en juego — ir a tu mesa"`
+  // Dos chips, uno visible por tamaño de pantalla: en escritorio el
+  // nombre del torneo; en móvil la versión mini con «Jugar» (el CSS de
+  // arriba decide cuál se ve). Van a la derecha de la barra, pegados a
+  // la llamita de la racha (que también se antepone a .nav-right: llegue
+  // quien llegue primero, quedan juntos).
+  const enlace =
+    `<a class="nav-torneo-vivo" ${destino}>${icons.zap(14)} ${escapeHtml(torneo.name)}</a>` +
+    `<a class="nav-torneo-vivo nav-torneo-mini" ${destino}>${icons.zap(12)} Jugar</a>`
   const derecha = document.querySelector('.nav-right')
   if (derecha) {
     const racha = derecha.querySelector('.nav-racha')
     if (racha) racha.insertAdjacentHTML('beforebegin', enlace)
     else derecha.insertAdjacentHTML('afterbegin', enlace)
   }
-  document.querySelector('.nav-menu-mobile')?.insertAdjacentHTML('beforeend', enlace)
 }

@@ -12,6 +12,19 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-26 — PINGU-Claude (tanda 214 — el aviso de torneo, también en móvil)
+**Hecho**: la versión móvil del aviso ámbar de la tanda 213, pedida por
+PINGU: en pantallas estrechas ya no se esconde en el menú de hamburguesa
+— aparece un chip MINI en la propia barra, pegado al logo (entre el logo
+y la lupa), con el rayo y «Jugar» en vez del nombre del torneo, mismo
+pulso y mismo enlace a tu mesa. `order: -1` lo mantiene el primero del
+bloque derecho gane quien gane la carrera con la llamita de la racha, y
+la barra no crece ni un píxel (lo vigila el test). La copia del menú
+móvil desaparece.
+**Ficheros**: js/torneos/aviso-torneo.js, SCHEMA.md.
+**En curso / pendiente**: nada bloqueado. La suite de PINGU pasa a 83
+pruebas (test-torneos-10: 13 comprobaciones + rigor de 5 roturas).
+
 ## 2026-08-26 — PINGU-Claude (tanda 213 — Torneos 10: la cara del original)
 **Hecho**: la interfaz de torneos calcada de la app de TrainerArena
 (pedido de PINGU, revisado por él en el entorno de pruebas): crear
