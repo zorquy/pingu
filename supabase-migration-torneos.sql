@@ -56,9 +56,18 @@ create table if not exists public.rounds (
 );
 create index if not exists rounds_torneo_estado on public.rounds (tournament_id, status);
 
+-- Re-ejecutable: si el script se corrió a medias, la clave ya existe y
+-- un ADD a secas revienta con 42710. Se tira y se vuelve a crear.
+alter table public.tournaments
+  drop constraint if exists tournaments_current_round_fk;
 alter table public.tournaments
   add constraint tournaments_current_round_fk
   foreign key (current_round_id) references public.rounds(id) on delete set null;
+
+-- Para bases donde `rounds` nació con una versión anterior del script:
+-- CREATE TABLE IF NOT EXISTS no añade columnas nuevas, esto sí.
+alter table public.rounds
+  add column if not exists players_notified_at timestamptz;
 
 -- ── Inscripciones ──
 -- Sin email ni teléfono (la cuenta de PokeDoc ya identifica) y sin el

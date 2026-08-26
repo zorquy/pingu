@@ -12,6 +12,18 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-26 — PINGU-Claude (arreglo de la migración)
+**Hecho**: supabase-migration-torneos.sql es ahora RE-EJECUTABLE de
+verdad: la clave foránea de current_round_id se tira y se recrea (una
+ejecución a medias la dejaba puesta y el reintento reventaba con
+42710), y `rounds.players_notified_at` se añade con ALTER si la tabla
+nació con una versión anterior del script (CREATE TABLE IF NOT EXISTS
+no añade columnas). Probado contra Postgres 16 real: tres pasadas
+seguidas limpias, incluida una base vieja sin la columna.
+**Ficheros**: supabase-migration-torneos.sql, BITACORA.md.
+**En curso / pendiente**: PINGU humano puede relanzar el script entero
+tal cual en el SQL Editor. Nadie tiene ficheros bloqueados.
+
 ## 2026-08-25 — PINGU-Claude (tanda 208 — FIN DEL PORTE)
 **Hecho**: la gamificación de torneos y el anuncio en el foro. Tres
 logros nuevos (Competidor 30 XP / En el corte 60 / Campeón de torneo
