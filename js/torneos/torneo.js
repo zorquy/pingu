@@ -5,12 +5,12 @@
 //
 // MIENTRAS DURE LA PRUEBA es solo para admins, igual que /torneos.
 import { supabase } from '../supabase.js'
-import { escapeHtml, getSession, getProfile } from '../app.js'
+import { escapeHtml, getSession, getProfile, burstConfetti } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { parseDecklist, validateDecklist, canEditDecklist, decklistUnparsed } from './motor.js'
 import { ESTADOS, fechaBonita, textoFormato } from './comun.js'
-import { montarCiclo, resumenDeGloria } from './ronda.js'
+import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces } from './jueces.js'
 import { getAllAchievements, addXP } from '../gamification.js'
 import { urlTema } from '../foro-comun.js'
@@ -311,6 +311,68 @@ async function otorgarGloria() {
   const premio = nuevos.reduce((suma, d) => suma + (d.xp_reward || 0), 0)
   if (premio) await addXP(session.user.id, premio)
   showToast(`Logro${nuevos.length > 1 ? 's' : ''} de torneo: ${nuevos.map((d) => d.title).join(' y ')} (+${premio} XP).`, 'success')
+}
+
+// ── El final celebrado (tanda 217) ──
+//
+// Al terminar un torneo hay que dejar constancia de quién ganó: el
+// podio se CONGELA en la fila del torneo (champion_id + podium) para
+// que el palmarés de los perfiles no tenga que recalcular brackets, y
+// el resultado se anuncia UNA vez en el hilo del foro del torneo si lo
+// hubo. Lo sella el organizador al abrir la ficha (es quien tiene
+// permiso de escritura mientras los torneos son de admins).
+async function sellarResultado() {
+  if (torneo.status !== 'finished' || !perfil?.is_admin) return
+  const podio = podioDelTorneo()
+  if (!podio.length) return
+
+  if (!torneo.champion_id || !torneo.podium) {
+    const cambios = { champion_id: podio[0], podium: podio }
+    const { error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id)
+    if (error) return
+    Object.assign(torneo, cambios)
+  }
+
+  // El anuncio en el foro: solo si el torneo tiene hilo (lo abrió
+  // alguien al anunciarlo) y solo una vez.
+  if (torneo.result_announced_at) return
+  const { data: hilo } = await supabase.from('forum_threads').select('id').eq('title', `Torneo: ${torneo.name}`).maybeSingle()
+  if (!hilo) return
+
+  const PUESTOS = ['Campeón', 'Finalista', 'Semifinalista', 'Semifinalista']
+  const linea = (id, i) => `<li><strong>${escapeHtml(nombreDeInscrito(id))}</strong> — ${PUESTOS[i]}</li>`
+  const cuerpo = `<p>¡<strong>${escapeHtml(torneo.name)}</strong> ha terminado!</p><ul>${podio.map(linea).join('')}</ul><p>La clasificación completa, en <a href="https://pokedoc.es/torneo?slug=${encodeURIComponent(torneo.slug)}">la página del torneo</a>. ¡Enhorabuena a todos los que jugaron!</p>`
+  const { error } = await supabase.from('forum_posts').insert({
+    thread_id: hilo.id,
+    author_id: session.user.id,
+    body_html: cuerpo,
+  })
+  if (error) return
+  await supabase.from('tournaments').update({ result_announced_at: new Date().toISOString() }).eq('id', torneo.id)
+  torneo.result_announced_at = new Date().toISOString()
+  showToast('Resultado anunciado en el hilo del foro.', 'success')
+}
+
+// El nombre de un inscrito, para el anuncio (las inscripciones ya
+// vienen con su perfil en la ficha).
+function nombreDeInscrito(id) {
+  const i = inscripciones.find((x) => x.user_id === id)
+  return i?.perfil?.display_name || i?.perfil?.username || 'Jugador'
+}
+
+// Y la celebración de quien lo ganó: confeti una vez por torneo (la
+// marca en sessionStorage evita que salte en cada refresco de la ficha,
+// que se repinta sola cada 10 s).
+function celebrarSiGane() {
+  if (torneo.status !== 'finished') return
+  const podio = podioDelTorneo()
+  if (podio[0] !== session?.user?.id) return
+  const marca = `pokedoc-torneo-campeon-${torneo.id}`
+  try {
+    if (sessionStorage.getItem(marca)) return
+    sessionStorage.setItem(marca, '1')
+  } catch {}
+  burstConfetti(46)
 }
 
 async function cambiarEstado(nuevo, mensaje) {
@@ -674,6 +736,8 @@ async function recargar() {
   await montarCiclo(contexto)
   await montarJueces(contexto)
   await otorgarGloria()
+  await sellarResultado()
+  celebrarSiGane()
   pintarPestanas()
 }
 

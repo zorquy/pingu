@@ -10435,3 +10435,37 @@ Probado con test-torneos-12.mjs (10 comprobaciones, con un mundo REST
 de mentira: los tres avisos a quien toca, ninguno repetido en la
 segunda pasada, y las ventanas respetadas) y rigor-torneos-12.py (6
 roturas, todas detectadas).
+
+## Tanda 217 — el final celebrado (agosto 2026)
+
+Un torneo terminaba con una línea de texto y se acababa el mundo. Ahora:
+
+- **El podio preside la clasificación** (ronda.js `podioDelTorneo`): las
+  cuatro cajas — campeón en oro y más grande, finalista y los dos
+  semifinalistas — sacadas del bracket del cut (campeón y finalista de
+  la final; semifinalistas, los que cayeron en la ronda anterior). En un
+  torneo solo de suizas el podio son los cuatro primeros de la
+  clasificación, que es como se reparten los premios de verdad.
+- **El resultado se CONGELA** en la fila del torneo (`champion_id` y
+  `podium` jsonb, migración): así el palmarés de cada perfil no tiene
+  que recalcular brackets ajenos — le basta con mirar en qué puesto sale
+  su id. Lo sella el organizador al abrir la ficha (es quien tiene
+  permiso de escritura mientras los torneos son de admins).
+- **El campeón se anuncia en el foro** UNA vez: si el torneo tuvo hilo
+  (alguien lo anunció en su día), el sellado publica ahí el podio con
+  enlace a la clasificación. La marca `result_announced_at` evita que el
+  refresco automático de la ficha (cada 10 s) llene el hilo de mensajes
+  iguales.
+- **Confeti para quien gana**, una vez por torneo (marca en
+  sessionStorage, por el mismo refresco automático).
+- **Chapas de palmarés en el perfil** (usuario.js): «Campeón ×N» en oro
+  y «Podio ×N» junto a los torneos jugados, contadas desde el podio
+  congelado. Siguen tras la guarda de `isViewerAdmin` mientras los
+  torneos estén en pruebas.
+
+El stub de pruebas gana la semilla `__FAKE_RESULTADOS__` (resultados ya
+apuntados), que es lo que permite sembrar un torneo TERMINADO con su
+bracket resuelto sin jugarlo.
+
+Probado con test-torneos-13.mjs (13 comprobaciones) y
+rigor-torneos-13.py (6 roturas, todas detectadas).

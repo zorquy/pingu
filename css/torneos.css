@@ -946,3 +946,66 @@
   font-size: 11px;
   font-weight: 800;
 }
+
+/* ── Tanda 217: el podio del final y las chapas del palmarés ── */
+.torneo-podio {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.torneo-podio-puesto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 130px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  text-align: center;
+}
+
+/* El campeón, primero y más grande — también en móvil, donde la fila se
+   apila: el orden manda y el oro va arriba. */
+.torneo-podio-1 {
+  order: -1;
+  padding: 18px 20px;
+  border-color: #d9a406;
+  background: linear-gradient(180deg, rgba(217, 164, 6, 0.14), transparent);
+  font-size: 1.05em;
+}
+
+.torneo-podio-1 .torneo-podio-icono {
+  color: #b8860b;
+}
+
+.torneo-podio-icono {
+  color: var(--text-mid);
+}
+
+.torneo-chapa-palmares {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.torneo-palmares-oro {
+  border-color: rgba(217, 164, 6, 0.5);
+  background: rgba(217, 164, 6, 0.14);
+  color: #8a6a04;
+}
+
+:root[data-theme='dark'] .torneo-palmares-oro {
+  color: #e8c05a;
+}

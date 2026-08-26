@@ -329,17 +329,31 @@ async function loadPalmaresTorneos() {
     .eq('user_id', profileId)
   const ids = [...new Set((inscripciones || []).map((i) => i.tournament_id))]
   if (!ids.length) return
-  const { count } = await supabase
+  // El podio va CONGELADO en la fila del torneo (tanda 217): aquí solo
+  // se cuenta en qué puesto sale esta persona, sin recalcular brackets.
+  const { data: jugados } = await supabase
     .from('tournaments')
-    .select('id', { count: 'exact', head: true })
+    .select('id, podium')
     .in('id', ids)
     .eq('status', 'finished')
-  if (!count) return
+  if (!jugados?.length) return
+
+  let campeonatos = 0
+  let podios = 0
+  for (const t of jugados) {
+    const puesto = Array.isArray(t.podium) ? t.podium.indexOf(profileId) : -1
+    if (puesto === 0) campeonatos++
+    else if (puesto > 0) podios++
+  }
+  const chapas = [
+    campeonatos ? `<span class="torneo-chapa-palmares torneo-palmares-oro">${campeonatos === 1 ? 'Campeón' : `Campeón ×${campeonatos}`}</span>` : '',
+    podios ? `<span class="torneo-chapa-palmares">${podios === 1 ? 'Podio' : `Podio ×${podios}`}</span>` : '',
+  ].join('')
   document
     .getElementById('heroInfo')
     .insertAdjacentHTML(
       'beforeend',
-      `<p class="subtext torneo-palmares">Torneos jugados: <strong>${count}</strong></p>`
+      `<p class="subtext torneo-palmares">Torneos jugados: <strong>${jugados.length}</strong>${chapas}</p>`
     )
 }
 

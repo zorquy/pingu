@@ -906,9 +906,27 @@ function pintarClasificacion() {
     })
     .join('')
   const campeon = campeonDelTorneo()
-  const banner = campeon
-    ? `<div class="torneo-campeon">${icons.trophy(20)} Campeón del torneo: <strong>${escapeHtml(nombreDe(campeon))}</strong></div>`
-    : ''
+  // El podio del final (tanda 217): el campeón grande en el centro y a
+  // los lados quienes le acompañaron. Sustituye a la línea de texto de
+  // antes — un torneo se acaba con una foto, no con un aviso.
+  const podio = podioDelTorneo()
+  const PUESTOS = ['Campeón', 'Finalista', 'Semifinalista', 'Semifinalista']
+  const banner = podio.length
+    ? `<div class="torneo-podio">
+        ${podio
+          .map(
+            (id, i) => `
+          <div class="torneo-podio-puesto torneo-podio-${i + 1}">
+            <span class="torneo-podio-icono">${i === 0 ? icons.trophy(26) : icons.medal(20)}</span>
+            <strong>${escapeHtml(nombreDe(id))}</strong>
+            <span class="subtext">${PUESTOS[i]}</span>
+          </div>`
+          )
+          .join('')}
+      </div>`
+    : campeon
+      ? `<div class="torneo-campeon">${icons.trophy(20)} Campeón del torneo: <strong>${escapeHtml(nombreDe(campeon))}</strong></div>`
+      : ''
   $('clasificacionContenido').innerHTML = `
     ${banner}
     ${bracketHtml()}
@@ -966,6 +984,36 @@ function pintarCiclo() {
 
 export async function recargarCiclo() {
   await cargarCiclo()
+}
+
+// El PODIO (tanda 217): los cuatro primeros en orden, sacados del
+// bracket del cut — campeón y finalista de la final, semifinalistas de
+// la ronda anterior (los que perdieron). Sin cut (torneo solo de
+// suizas) el podio son los cuatro primeros de la clasificación, que es
+// exactamente como se reparten los premios de verdad.
+export function podioDelTorneo() {
+  if (ctx?.torneo?.status !== 'finished') return []
+  const rondasCut = rondas.filter((r) => r.phase === 'top_cut').sort((a, b) => a.round_number - b.round_number)
+  if (!rondasCut.length) {
+    return computeStandings(montarSnapshot(rondas.length))
+      .slice(0, 4)
+      .map((e) => e.playerId)
+  }
+  const final = rondasCut[rondasCut.length - 1]
+  const mesaFinal = partidas.filter((m) => m.round_id === final.id)[0]
+  if (!mesaFinal) return []
+  const campeon = mesaFinal.status === 'bye' ? mesaFinal.player_a_id : resultadoDe(mesaFinal.id)?.winner_id ?? null
+  if (!campeon) return []
+  const finalista = [mesaFinal.player_a_id, mesaFinal.player_b_id].find((j) => j && j !== campeon) ?? null
+  // Los semifinalistas: quienes jugaron la ronda anterior del cut y no
+  // llegaron a la final. Empatan en el tercer puesto (no se juega).
+  const semis = rondasCut.length > 1
+    ? partidas
+        .filter((m) => m.round_id === rondasCut[rondasCut.length - 2].id)
+        .flatMap((m) => [m.player_a_id, m.player_b_id])
+        .filter((j) => j && j !== campeon && j !== finalista)
+    : []
+  return [campeon, finalista, ...semis].filter(Boolean).slice(0, 4)
 }
 
 // Lo que hace falta para repartir la gloria (tanda 208): quién es el

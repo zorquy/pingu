@@ -74,6 +74,16 @@ alter table public.rounds
 alter table public.tournaments
   add column if not exists registration_notified_at timestamptz;
 
+-- Tanda 217 — el final celebrado: quién ganó, el podio congelado (los
+-- cuatro primeros en orden, para el palmarés del perfil sin recalcular
+-- nada) y la marca de que el resultado ya se anunció en el foro.
+alter table public.tournaments
+  add column if not exists champion_id uuid references public.user_profiles (id) on delete set null;
+alter table public.tournaments
+  add column if not exists podium jsonb;
+alter table public.tournaments
+  add column if not exists result_announced_at timestamptz;
+
 -- Tanda 216 (parte 1) — la marca del toque de check-in por caducar (un
 -- push por ronda; sus hermanas de tournament_matches van tras el CREATE
 -- de esa tabla, que en una base fresca aún no existe aquí).

@@ -12,6 +12,22 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-26 — PINGU-Claude (tanda 217 — el final celebrado)
+**Hecho**: el podio de cuatro cajas presidiendo la clasificación (oro
+para el campeón), el resultado CONGELADO en la fila del torneo
+(champion_id + podium jsonb) para que el palmarés de los perfiles no
+recalcule brackets, el campeón anunciado UNA vez en el hilo del foro
+del torneo (marca result_announced_at: la ficha se refresca sola cada
+10 s y si no llenaría el hilo), confeti para quien gana (una vez por
+torneo) y chapas «Campeón ×N» / «Podio ×N» en el perfil.
+**Ficheros**: js/torneos/ronda.js (podioDelTorneo), js/torneos/torneo.js
+(sellarResultado + celebrarSiGane), js/usuario.js, css/torneos.css,
+supabase-migration-torneos.sql, SCHEMA.md.
+**En curso / pendiente**: PINGU re-ejecuta supabase-migration-torneos.sql
+(champion_id, podium, result_announced_at). El stub de pruebas de PINGU
+gana la semilla __FAKE_RESULTADOS__. Queda la última tanda encargada:
+lista de espera, desempates a la vista, duplicar torneo y .ics.
+
 ## 2026-08-26 — PINGU-Claude (tanda 216 — el ciclo de partida avisa por push)
 **Hecho**: tres avisos nuevos en el barredor, cada uno una sola vez y
 solo a quien le toca: «el check-in se acaba» (5 min antes del cierre,
