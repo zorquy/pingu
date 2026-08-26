@@ -89,31 +89,37 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   //    inscripciones se anuncia una sola vez. MIENTRAS DURE LA PRUEBA
   //    solo a los admins — la sección no existe para nadie más; al
   //    abrir los torneos al público, quitar el filtro de is_admin.
+  //    Un tropiezo aquí (p. ej. la migración de la columna aún sin
+  //    pasar) no puede tumbar el barrido de relojes de más abajo.
   if (mandar) {
-    const recienAbiertos = await rest(
-      `tournaments?status=eq.registration_open&registration_notified_at=is.null&select=id,slug,name`,
-      clave
-    )
-    for (const t of recienAbiertos || []) {
-      const admins = await rest(`user_profiles?is_admin=eq.true&select=id`, clave)
-      const ids = (admins || []).map((a) => a.id)
-      if (ids.length) {
-        const subs = await rest(
-          `push_subscriptions?user_id=in.(${ids.join(',')})&select=endpoint,user_id,p256dh,auth`,
-          clave
-        )
-        await avisar(subs, {
-          title: `Inscripciones abiertas — ${t.name}`,
-          body: 'Apúntate antes de que se llene y deja lista tu decklist.',
-          link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
-          tag: 'torneo-apertura',
+    try {
+      const recienAbiertos = await rest(
+        `tournaments?status=eq.registration_open&registration_notified_at=is.null&select=id,slug,name`,
+        clave
+      )
+      for (const t of recienAbiertos || []) {
+        const admins = await rest(`user_profiles?is_admin=eq.true&select=id`, clave)
+        const ids = (admins || []).map((a) => a.id)
+        if (ids.length) {
+          const subs = await rest(
+            `push_subscriptions?user_id=in.(${ids.join(',')})&select=endpoint,user_id,p256dh,auth`,
+            clave
+          )
+          await avisar(subs, {
+            title: `Inscripciones abiertas — ${t.name}`,
+            body: 'Apúntate antes de que se llene y deja lista tu decklist.',
+            link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
+            tag: 'torneo-apertura',
+          })
+        }
+        await rest(`tournaments?id=eq.${t.id}`, clave, {
+          method: 'PATCH',
+          body: JSON.stringify({ registration_notified_at: ahora.toISOString() }),
         })
+        aperturas++
       }
-      await rest(`tournaments?id=eq.${t.id}`, clave, {
-        method: 'PATCH',
-        body: JSON.stringify({ registration_notified_at: ahora.toISOString() }),
-      })
-      aperturas++
+    } catch (e) {
+      console.error('aviso de apertura aparcado:', e?.message || e)
     }
   }
 
