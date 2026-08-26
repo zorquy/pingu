@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <script>/* Como el del tema: si hay sesión guardada (la clave sb-…-auth-token de Supabase), la portada del miembro se pinta YA — hero fuera y hueco de la bienvenida reservado — en vez de dar el salto cuando el JS confirma la sesión (era el mayor layout shift de la portada). */try{if(Object.keys(localStorage).some(function(k){return k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0}))document.documentElement.classList.add('con-sesion')}catch(e){}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PokeDoc — Todo sobre Pokémon TCG</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
@@ -158,8 +159,8 @@
          arriba se oculta y en su lugar sale esta barra compacta: quien
          entra cada día no necesita que le vendan la web — necesita su
          racha y su reto. La pinta js/home.js. -->
-    <section class="container" id="bienvenidaSeccion" style="display:none;">
-      <div class="bienvenida" id="bienvenida"></div>
+    <section class="container" id="bienvenidaSeccion">
+      <div class="bienvenida" id="bienvenida"><div class="skeleton" style="height: 48px; width: 100%;"></div></div>
     </section>
 
     <!-- Los primeros pasos de quien acaba de registrarse. Empieza oculto y
@@ -176,21 +177,26 @@
          js/home.js las rellena y las enseña igual que antes. -->
     <div class="container panel-portada" id="panelPortada">
       <div class="portada-principal">
-        <section id="destacadaSeccion" style="display:none;">
-          <div class="destacada" id="destacada"></div>
+        <!-- Los bloques que rellena js/home.js nacen VISIBLES con un
+             esqueleto de la altura aproximada del contenido: si nacieran
+             con display:none, al llegar los datos empujarían todo lo de
+             abajo (el layout shift que PageSpeed penalizaba). El camino
+             de «no hay datos» los recoge (recogerSeccion, js/home.js). -->
+        <section id="destacadaSeccion">
+          <div class="destacada" id="destacada"><div class="skeleton" style="height: 92px;"></div></div>
         </section>
 
         <!-- El reto del día y el repaso: lo que da motivo para volver mañana. -->
-        <section id="retoSeccion" style="display:none;">
-          <div class="reto-tarjetas" id="retoTarjetas"></div>
+        <section id="retoSeccion">
+          <div class="reto-tarjetas" id="retoTarjetas"><div class="skeleton" style="height: 84px;"></div></div>
         </section>
 
         <!-- Lo último del foro, visible SIN sesión: los temas son públicos, y
              enseñar que hay gente hablando hoy es la mejor prueba de que esto
              es una comunidad y no una web de leer. La pinta js/home.js y se
              calla si el foro está vacío o falla. -->
-        <section id="foroVivoSeccion" style="display:none;">
-          <div class="foro-vivo" id="foroVivo"></div>
+        <section id="foroVivoSeccion">
+          <div class="foro-vivo" id="foroVivo"><div class="skeleton" style="height: 310px;"></div></div>
         </section>
 
         <!-- Las dos cosas que la portada no enseñaba.
@@ -232,19 +238,19 @@
              lunes a domingo. Va encima del top del mes porque se mueve
              más rápido (cada reto jugado la cambia). La pinta
              js/home.js y sin resultados esta semana no sale. -->
-        <section id="ligaSeccion" style="display:none;">
-          <div class="top-mes" id="liga"></div>
+        <section id="ligaSeccion">
+          <div class="top-mes" id="liga"><div class="skeleton" style="height: 240px;"></div></div>
         </section>
 
-        <section id="topMesSeccion" style="display:none;">
-          <div class="top-mes" id="topMes"></div>
+        <section id="topMesSeccion">
+          <div class="top-mes" id="topMes"><div class="skeleton" style="height: 240px;"></div></div>
         </section>
 
         <!-- El próximo lanzamiento, con su cuenta atrás. Los datos los
              mantiene el admin en /admin (site_settings, clave
              lanzamientos); sin sets futuros, no sale. -->
-        <section id="lanzamientoSeccion" style="display:none;">
-          <a class="lanzamiento-portada" id="lanzamientoPortada" href="/lanzamientos.html"></a>
+        <section id="lanzamientoSeccion">
+          <a class="lanzamiento-portada" id="lanzamientoPortada" href="/lanzamientos.html"><span class="skeleton" style="height: 40px; width: 100%;"></span></a>
         </section>
       </aside>
     </div>

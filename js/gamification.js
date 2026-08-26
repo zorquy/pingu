@@ -66,7 +66,7 @@ export function levelBadgeHtml(nivel, tamanoIcono = 12) {
   const estilo = NIVEL_ESTILOS[nivel]
   if (!estilo) return `<span class="nivel-chapa">${escapeHtml(nivel || '')}</span>`
   const dibujo = icons[estilo.icono]
-  return `<span class="nivel-chapa" style="color:${estilo.color}; background:${estilo.color}24; border-color:${estilo.color}59">${
+  return `<span class="nivel-chapa" style="--chapa:${estilo.color}">${
     dibujo ? dibujo(tamanoIcono) : ''
   }${escapeHtml(nivel)}</span>`
 }

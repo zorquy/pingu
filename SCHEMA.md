@@ -10236,3 +10236,52 @@ barredor que avisa una sola vez y solo a admins, editar con sus dos
 vallas, expulsar sin poder expulsarse, cancelar en dos toques, carta
 exacta DAA→swsh3 con caída a nombre, y palmarés que un usuario normal
 no ve) y rigor-torneos-9.py (8 roturas, todas detectadas).
+
+## Tanda 212 — PageSpeed: la portada sin saltos y el contraste AA (agosto 2026)
+
+PINGU pasó el informe de PageSpeed (pokedoc.es, móvil). El diagnóstico
+con Lighthouse en local (mismo motor): rendimiento 74 con el CLS a
+0.571 como gran culpable, accesibilidad 92 por contrastes, y dos
+objetivos táctiles pequeños. Tras la tanda: **95 / 100 / 100 / 100 y
+CLS 0.065** (medido sin sesión, que es como mide Google).
+
+- **La portada ya no salta** (index.html + js/home.js): los bloques que
+  rellena JavaScript (destacada, reto, foro vivo, liga, top del mes,
+  lanzamiento) nacían con `display:none` y al llegar los datos empujaban
+  todo lo de abajo. Ahora nacen VISIBLES con un esqueleto de su altura
+  aproximada, y el camino de «no hay datos» los recoge
+  (`recogerSeccion`, con todas las retiradas y catch cubiertos).
+- **El intercambio hero↔bienvenida, decidido antes del primer pintado**:
+  un script en línea en el `<head>` (como el del tema oscuro) marca
+  `<html class="con-sesion">` si hay token de Supabase guardado
+  (`sb-…-auth-token` en localStorage); el CSS deja entonces la portada
+  del miembro ya colocada (hero fuera, hueco de la bienvenida reservado,
+  aire compacto). Si la sesión resulta no valer, cargarBienvenida retira
+  la clase y vuelve la portada del visitante.
+- **La navbar no crece**: `.nav-right` reserva con `min-height` la
+  altura de #nav-user ya relleno — al inyectar los botones/avatar la
+  barra crecía 15px y empujaba la página entera.
+- **Chips con contraste AA en los dos temas** (foro-comun.js,
+  gamification.js, tema.js + components.css): las etiquetas de tema, las
+  chapas de nivel y los títulos del admin pasan su color por la variable
+  `--chapa` y el CSS lo cocina con `color-mix`: en tema claro el texto
+  se oscurece (45% del color sobre #12303f — peor caso 4.59:1, validado
+  contra toda la paleta) y en el oscuro se usa tal cual (peor caso
+  4.75:1). Tres emisores, una sola regla.
+- **Contrastes sueltos**: `.time-tag`, `.activity-when` y el pie de
+  página pasan de text-dim (2.2:1) a text-mid; `.top-mes-xp` se oscurece
+  a #177a52 en claro (y #2fbf82 en oscuro).
+- **Zona táctil**: el enlace del autor en las tarjetas llega a 24px con
+  relleno + margen negativo (sin mover el diseño).
+
+El presupuesto de peso de la portada (test-carga) sube de 170 a 172 KB:
+los esqueletos, el marcador y el CSS de contraste son ~1 KB comprimido
+que compran el CLS — bytes propios, no una librería, que es lo que el
+cable trampa vigila.
+
+Lo que PageSpeed también dice y NO se toca, con motivo: la caché corta
+de /js y /css es deliberada (netlify.toml lo documenta — sin huella en
+el nombre, revalidar evita la mezcla de versiones que ya rompió la web
+una vez); fuentes y vendor ya van a un año. La minificación (~40 KB sin
+comprimir) exigiría un paso de build que el proyecto evita a propósito;
+con el brotli de Netlify el ahorro real es pequeño.

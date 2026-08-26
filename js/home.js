@@ -127,6 +127,17 @@ async function loadHomeActivity(session) {
 // visitante que ve «hace 20 min» entiende al momento que aquí hay gente
 // hablando hoy — que es justo lo que ninguna lista de guías puede
 // demostrar. Si el foro está vacío o algo falla, la sección no sale.
+// Los bloques de la portada nacen VISIBLES con un esqueleto dentro
+// (index.html) para que el hueco esté reservado desde el primer pintado:
+// antes nacían con display:none y al llegar los datos empujaban todo lo
+// de abajo — el «layout shift» que PageSpeed penalizaba. La contrapartida
+// es que ahora el camino de «no hay datos» tiene que RECOGER la sección,
+// que si no el esqueleto se queda ahí girando para siempre.
+function recogerSeccion(id) {
+  const s = document.getElementById(id)
+  if (s) s.style.display = 'none'
+}
+
 async function cargarForoVivo() {
   const seccion = document.getElementById('foroVivoSeccion')
   const hueco = document.getElementById('foroVivo')
@@ -137,7 +148,7 @@ async function cargarForoVivo() {
     .select('id, title, prefix, post_count, created_at, last_post_at, author_id, last_post_author_id')
     .order('last_post_at', { ascending: false })
     .limit(4)
-  if (error || !temas || temas.length === 0) return
+  if (error || !temas || temas.length === 0) return recogerSeccion('foroVivoSeccion')
 
   const perfiles = await perfilesPorId(temas.flatMap((t) => [t.last_post_author_id, t.author_id]))
 
@@ -180,7 +191,10 @@ async function cargarForoVivo() {
 // compacta con su nombre, su racha y su nivel — y la portada útil
 // (reto, top del mes, foro) queda una pantalla más arriba.
 async function cargarBienvenida(session) {
-  if (!session) return
+  // El script del <head> pudo dejar la portada del miembro pintada por
+  // un token guardado; si la sesión no vale (caducada, cerrada en otro
+  // sitio), se retira la clase y vuelve el hero del visitante.
+  if (!session) return document.documentElement.classList.remove('con-sesion')
   const seccion = document.getElementById('bienvenidaSeccion')
   const hueco = document.getElementById('bienvenida')
   if (!seccion || !hueco) return
@@ -193,7 +207,7 @@ async function cargarBienvenida(session) {
         .maybeSingle(),
       import('./gamification.js'),
     ])
-    if (!profile) return
+    if (!profile) return document.documentElement.classList.remove('con-sesion')
 
     const nombre = profile.display_name || profile.username || ''
     const racha = profile.current_streak || 0
@@ -234,6 +248,7 @@ async function cargarBienvenida(session) {
     // como primer bloque sobraban (se notaba sobre todo en móvil).
     document.querySelector('.hero')?.style.setProperty('display', 'none')
     document.body.classList.add('portada-compacta')
+    document.documentElement.classList.add('con-sesion')
     seccion.style.display = ''
   } catch {}
 }
@@ -293,7 +308,7 @@ async function cargarDestacada() {
 
   const { data: config } = await supabase.from('home_config').select('blocks').eq('id', 1).maybeSingle()
   const elegida = config?.blocks?.destacada
-  if (!elegida?.guide_id) return
+  if (!elegida?.guide_id) return recogerSeccion('destacadaSeccion')
 
   const { data: guia } = await supabase
     .from('guides')
@@ -301,7 +316,7 @@ async function cargarDestacada() {
     .eq('id', elegida.guide_id)
     .not('published_at', 'is', null)
     .maybeSingle()
-  if (!guia) return
+  if (!guia) return recogerSeccion('destacadaSeccion')
 
   let autor = null
   if (guia.author_id) {
@@ -318,7 +333,7 @@ async function cargarDestacada() {
     ${autor ? `<p class="destacada-autor">De <a href="${profileUrl(autor)}">${escapeHtml(autor.display_name || autor.username)}</a></p>` : ''}`
   seccion.style.display = ''
 }
-cargarDestacada().catch(() => {})
+cargarDestacada().catch(() => recogerSeccion('destacadaSeccion'))
 
 // ── El reto del día y el repaso ──
 //
@@ -402,7 +417,7 @@ async function cargarReto() {
   document.getElementById('retoTarjetas').innerHTML = tarjetas.join('')
   seccion.style.display = ''
 }
-cargarReto().catch(() => {})
+cargarReto().catch(() => recogerSeccion('retoSeccion'))
 
 
 // ── La liga de la semana ──
@@ -417,7 +432,7 @@ async function cargarLiga(session) {
   if (!seccion || !hueco) return
 
   const filas = await clasificacionSemanal()
-  if (!filas.length) return
+  if (!filas.length) return recogerSeccion('ligaSeccion')
 
   const { data: perfiles } = await supabase
     .from('user_profiles')
@@ -491,7 +506,7 @@ async function cargarLanzamiento() {
     const proximo = (data?.value?.sets || [])
       .filter((s) => s && s.nombre && /^\d{4}-\d{2}-\d{2}$/.test(s.fecha || '') && s.fecha >= hoy)
       .sort((a, b) => (a.fecha < b.fecha ? -1 : 1))[0]
-    if (!proximo) return
+    if (!proximo) return recogerSeccion('lanzamientoSeccion')
     const dias = Math.round((Date.parse(`${proximo.fecha}T00:00:00Z`) - Date.parse(`${hoy}T00:00:00Z`)) / 86400_000)
     const cuenta = dias === 0 ? '¡Sale hoy!' : dias === 1 ? 'Sale mañana' : `Faltan ${dias} días`
     // Con logo, el logo va a la IZQUIERDA (donde el icono) y el texto al
@@ -509,9 +524,11 @@ async function cargarLanzamiento() {
       </span>
       <span class="reto-flecha">→</span>`
     seccion.style.display = ''
-  } catch {}
+  } catch {
+    recogerSeccion('lanzamientoSeccion')
+  }
 }
-cargarLanzamiento().catch(() => {})
+cargarLanzamiento().catch(() => recogerSeccion('lanzamientoSeccion'))
 
 // ── El top del mes ──
 //
@@ -526,13 +543,13 @@ async function cargarTopDelMes() {
 
   const mes = `${new Date().getUTCFullYear()}-${String(new Date().getUTCMonth() + 1).padStart(2, '0')}-01`
   const { data: fotos, error } = await supabase.from('xp_mes').select('user_id, xp_inicio').eq('mes', mes).limit(2000)
-  if (error || !fotos || fotos.length === 0) return
+  if (error || !fotos || fotos.length === 0) return recogerSeccion('topMesSeccion')
 
   const { data: perfiles } = await supabase
     .from('user_profiles')
     .select('id, username, display_name, avatar_url, banner_color, total_xp, level')
     .limit(2000)
-  if (!perfiles) return
+  if (!perfiles) return recogerSeccion('topMesSeccion')
 
   const inicioPorId = Object.fromEntries(fotos.map((f) => [f.user_id, f.xp_inicio || 0]))
   const filas = perfiles
@@ -540,7 +557,7 @@ async function cargarTopDelMes() {
     .filter((f) => f.ganado > 0)
     .sort((a, b) => b.ganado - a.ganado)
     .slice(0, 5)
-  if (filas.length === 0) return
+  if (filas.length === 0) return recogerSeccion('topMesSeccion')
 
   const CLASES_PODIO = ['top-mes-oro', 'top-mes-plata', 'top-mes-bronce']
   // Mismo podio de medalla SVG que la liga (la norma de los iconos).
@@ -570,5 +587,5 @@ async function cargarTopDelMes() {
     </ol>`
   seccion.style.display = ''
 }
-cargarTopDelMes().catch(() => {})
-getSession().then((s) => cargarLiga(s)).catch(() => {})
+cargarTopDelMes().catch(() => recogerSeccion('topMesSeccion'))
+getSession().then((s) => cargarLiga(s)).catch(() => recogerSeccion('ligaSeccion'))

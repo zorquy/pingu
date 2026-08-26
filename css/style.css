@@ -371,6 +371,10 @@ textarea {
   display: flex;
   align-items: center;
   gap: 14px;
+  /* La altura de #nav-user YA RELLENO (botones o avatar): se reserva
+     para que la navbar no crezca cuando el JS los mete — empujaba la
+     página entera (layout shift, PageSpeed). */
+  min-height: 45px;
 }
 
 .nav-toggle {
@@ -897,7 +901,8 @@ button.btn-block {
 
 .time-tag {
   font-size: 12px;
-  color: var(--text-dim);
+  /* text-dim se quedaba en 2.35:1 a este cuerpo (PageSpeed, AA). */
+  color: var(--text-mid);
 }
 
 .progress-track {
@@ -1289,7 +1294,8 @@ button.stat-card:hover {
 .footer {
   text-align: center;
   padding: 36px 20px;
-  color: var(--text-dim);
+  /* text-dim se quedaba en 2.2:1 a este cuerpo (PageSpeed, AA). */
+  color: var(--text-mid);
   font-size: 13px;
   border-top: 1px solid var(--border);
   margin-top: 24px;

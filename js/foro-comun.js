@@ -115,13 +115,13 @@ export function colorDeEtiqueta(prefix) {
 }
 
 // La etiqueta que va delante del título del tema ([Duda], [Oficial]...).
-// El color va en línea y no en clases CSS porque las etiquetas
-// desconocidas también lo llevan; es seguro interpolarlo porque solo
-// salen hex de la lista de arriba, nunca texto de nadie.
+// El color viaja en línea como variable --chapa (seguro: solo salen hex
+// de la lista de arriba, nunca texto de nadie) y el CSS lo cocina: en
+// tema claro lo oscurece para que el texto contraste (AA, lo señalaba
+// PageSpeed) y en el oscuro lo usa tal cual, que para eso son claros.
 export function etiquetaHtml(prefix) {
   if (!prefix) return ''
-  const color = colorDeEtiqueta(prefix)
-  return `<span class="foro-etiqueta" style="color:${color}; background:${color}24; border-color:${color}59">${escapeHtml(prefix)}</span>`
+  return `<span class="foro-etiqueta" style="--chapa:${colorDeEtiqueta(prefix)}">${escapeHtml(prefix)}</span>`
 }
 
 // Las etiquetas que se pueden elegir al abrir un tema (y al editarlo).

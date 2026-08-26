@@ -12,6 +12,27 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-26 — PINGU-Claude (tanda 212 — PageSpeed: portada sin saltos y contraste AA)
+**Hecho**: la tanda del informe de PageSpeed que pasó PINGU. Los bloques
+de la portada nacen con esqueleto (y `recogerSeccion` los quita si no
+hay datos) en vez de aparecer de golpe empujando la página; el
+intercambio hero↔bienvenida se decide ANTES del primer pintado con la
+clase `con-sesion` (script en línea en el head, como el del tema); la
+navbar reserva su altura final; y los chips de color (etiquetas, chapas
+de nivel, títulos) pasan a la variable `--chapa` cocinada con color-mix
+para dar contraste AA en tema claro y oscuro, más time-tag / footer /
+activity-when / top-mes-xp. Lighthouse local (móvil, sin sesión, como
+mide Google): rendimiento 74→95, accesibilidad 92→100, CLS 0.571→0.065.
+**Ficheros**: index.html, js/home.js, js/foro-comun.js,
+js/gamification.js, js/tema.js, css/components.css, css/style.css,
+SCHEMA.md.
+**En curso / pendiente**: nada de esta tanda. La caché corta de /js y
+/css y la ausencia de minificación quedan COMO ESTÁN a propósito (ver
+SCHEMA.md, tanda 212). Ojo aparte: el episodio de Supabase de hoy
+(deadlock al pasar la migración con la web en uso + la instancia del
+plan gratuito ahogada) no es de código; las migraciones grandes, en hora
+valle.
+
 ## 2026-08-26 — PINGU-Claude (tanda 211 — organizador, carta exacta y apertura preparada)
 **Hecho**: herramientas del organizador en la ficha (editar nombre /
 fecha / estructura — bloqueada con inscripciones cerradas y nunca menos

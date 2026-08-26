@@ -94,7 +94,7 @@ function tituloDe(perfil, guiasAprobadas) {
     const color = /^#[0-9a-fA-F]{6}$/.test(perfil.forum_title_color || '') ? perfil.forum_title_color : null
     trozos.push(
       `<span class="foro-titulo-etiqueta"${
-        color ? ` style="color:${color}; background:${color}24; border-color:${color}59"` : ''
+        color ? ` style="--chapa:${color}"` : ''
       }>${escapeHtml(perfil.forum_title)}</span>`
     )
   } else if (guiasAprobadas > 0) {
