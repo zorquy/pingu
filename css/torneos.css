@@ -333,15 +333,103 @@
 }
 .torneo-solicitud-juez:last-of-type { border-bottom: none; }
 
-/* ── Interfaz fiel (tanda 209) ── */
-.torneos-grupo-titulo {
-  margin: 18px 0 4px;
-  font-size: 13px;
+/* ── Pestañas (tanda 210): la ficha y la lista respiran ── */
+.torneo-pestanas {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 4px 0 16px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
+}
+.torneo-pestana {
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+.torneo-pestana:hover { color: var(--navy); }
+.torneo-pestana.activa {
+  color: var(--navy);
+  border-bottom-color: var(--navy);
+}
+:root[data-theme='dark'] .torneo-pestana:hover,
+:root[data-theme='dark'] .torneo-pestana.activa { color: #7db6dd; }
+:root[data-theme='dark'] .torneo-pestana.activa { border-bottom-color: #7db6dd; }
+.torneo-pestana-cuenta {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(127, 127, 127, 0.14);
+  font-size: 12px;
+  text-align: center;
+}
+.torneo-panel > .simple-card { margin-bottom: 16px; }
+
+/* ── Decklists con cartas (tanda 210) ── */
+.torneo-cartas-titulo {
+  margin: 14px 0 8px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   color: var(--text-dim);
 }
+.torneo-cartas-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 10px;
+}
+.torneo-carta {
+  position: relative;
+  margin: 0;
+  text-align: center;
+}
+.torneo-carta img {
+  width: 100%;
+  border-radius: 6px;
+  display: block;
+}
+.torneo-carta-cuantas {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 1;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(20, 20, 25, 0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.torneo-carta figcaption {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* La línea sin carta en el espejo: caja de texto, que no se pierda. */
+.torneo-carta:not(:has(img)) {
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  padding: 24px 6px 6px;
+  min-height: 90px;
+}
+.torneo-decklist-editor summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 10px 0 6px;
+}
+.torneo-decklist-visual { margin-bottom: 6px; }
 .torneo-mio {
   font-size: 12px;
   font-weight: 700;

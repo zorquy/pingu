@@ -48,13 +48,15 @@
   <main class="page-content container" id="torneoContenido" style="display:none;">
     <a class="torneo-volver" href="/torneos.html">← Todos los torneos</a>
 
-    <!-- La ficha: nombre, estado, formato y las plazas ocupadas. Los
-         botones de abrir/cerrar inscripciones solo salen al admin y
-         según el estado. -->
+    <!-- La ficha: siempre a la vista, con el reloj de ronda al lado del
+         estado. Debajo, TODO va por pestañas (torneo.js las gobierna):
+         petición expresa de los admins tras probarlo — una pantalla
+         única era demasiado bloque. -->
     <div class="simple-card torneo-ficha">
       <div class="torneo-ficha-cabecera">
         <h1 id="torneoNombre"></h1>
         <span class="torneo-estado" id="torneoEstado"></span>
+        <span class="torneo-reloj hidden" id="torneoReloj"></span>
       </div>
       <p class="subtext" id="torneoMeta"></p>
       <p id="torneoDescripcion" class="hidden"></p>
@@ -65,68 +67,68 @@
       <div class="torneo-admin-acciones" id="torneoAdminAcciones"></div>
     </div>
 
-    <!-- Tu plaza: inscribirte, verte inscrito o darte de baja. El
-         contenido lo pinta torneo.js según tu situación. -->
-    <div class="simple-card" id="torneoMiPlaza">
-      <h3>Tu plaza</h3>
-      <div id="miPlazaContenido"></div>
-    </div>
+    <nav class="torneo-pestanas" id="torneoPestanas" aria-label="Secciones del torneo"></nav>
 
-    <!-- Tu partida de la ronda en curso: check-in y reporte. Debajo,
-         el chat de la mesa (en desplegable) y llamar al juez. -->
-    <div class="simple-card hidden" id="torneoMiPartida">
-      <h3>Tu partida</h3>
-      <div id="miPartidaContenido"></div>
-      <div id="miPartidaExtra"></div>
-    </div>
+    <!-- Pestaña TORNEO: tu plaza, los inscritos y lo de jueces. -->
+    <section class="torneo-panel" data-panel="torneo">
+      <div class="simple-card" id="torneoMiPlaza">
+        <h3>Tu plaza</h3>
+        <div id="miPlazaContenido"></div>
+      </div>
+      <div class="simple-card" id="torneoInscritosCaja">
+        <h3>Inscritos (<span id="inscritosNumero">0</span>)</h3>
+        <div class="torneo-inscritos" id="listaInscritos"></div>
+        <p id="inscritosVacio" class="empty-state hidden">Nadie apuntado todavía.</p>
+      </div>
+      <div class="simple-card hidden" id="torneoJuecesCaja">
+        <h3>Jueces</h3>
+        <div id="juecesContenido"></div>
+      </div>
+    </section>
 
-    <!-- La cola del juez: llamadas abiertas con su chat y disputas.
-         Solo la ven jueces aprobados y el organizador. -->
-    <div class="simple-card hidden" id="torneoColaCaja">
-      <h3>Cola del juez</h3>
-      <div id="colaContenido"></div>
-    </div>
+    <!-- Pestaña JUGAR: tu partida (con chat y juez) y tu decklist. -->
+    <section class="torneo-panel" data-panel="jugar">
+      <div class="simple-card hidden" id="torneoMiPartida">
+        <h3>Tu partida</h3>
+        <div id="miPartidaContenido"></div>
+        <div id="miPartidaExtra"></div>
+      </div>
+      <div class="simple-card hidden" id="torneoDecklistCaja">
+        <h3>Tu decklist</h3>
+        <p class="subtext">Pega el export de Pokémon TCG Live (secciones Pokémon / Trainer / Energy). Solo la ven los jueces y el organizador, nunca los demás jugadores.</p>
+        <div id="decklistContenido"></div>
+      </div>
+    </section>
 
-    <!-- Las decklists del torneo, para comprobar listas: solo jueces
-         aprobados y organizador (los jugadores no ven las ajenas). -->
-    <div class="simple-card hidden" id="torneoDecklistsJuezCaja">
-      <h3>Decklists del torneo</h3>
-      <div id="decklistsJuezContenido"></div>
-    </div>
+    <!-- Pestaña RONDAS: el ciclo entero, organizador y mesas. -->
+    <section class="torneo-panel" data-panel="rondas">
+      <div class="simple-card hidden" id="torneoRondasCaja">
+        <h3>Rondas</h3>
+        <div id="rondasAdmin"></div>
+        <div id="pareoManual"></div>
+        <div id="mesasContenido"></div>
+      </div>
+    </section>
 
-    <!-- El ciclo de ronda: botones del organizador, pareo manual si el
-         motor se atasca, y las mesas con su estado. Lo pinta ronda.js. -->
-    <div class="simple-card hidden" id="torneoRondasCaja">
-      <h3>Rondas</h3>
-      <div id="rondasAdmin"></div>
-      <div id="pareoManual"></div>
-      <div id="mesasContenido"></div>
-    </div>
+    <section class="torneo-panel" data-panel="clasificacion">
+      <div class="simple-card hidden" id="torneoClasificacionCaja">
+        <h3>Clasificación</h3>
+        <div id="clasificacionContenido"></div>
+      </div>
+    </section>
 
-    <div class="simple-card hidden" id="torneoClasificacionCaja">
-      <h3>Clasificación</h3>
-      <div id="clasificacionContenido"></div>
-    </div>
-
-    <!-- Jueces: solicitar serlo y, para el organizador, decidir. -->
-    <div class="simple-card hidden" id="torneoJuecesCaja">
-      <h3>Jueces</h3>
-      <div id="juecesContenido"></div>
-    </div>
-
-    <!-- Tu decklist: solo existe si estás (o estuviste) inscrito. Se
-         edita hasta que se sella al empezar la ronda 1. -->
-    <div class="simple-card hidden" id="torneoDecklistCaja">
-      <h3>Tu decklist</h3>
-      <p class="subtext">Pega el export de Pokémon TCG Live (secciones Pokémon / Trainer / Energy). Solo la ven los jueces y el organizador, nunca los demás jugadores.</p>
-      <div id="decklistContenido"></div>
-    </div>
-
-    <div class="simple-card">
-      <h3>Inscritos (<span id="inscritosNumero">0</span>)</h3>
-      <div class="torneo-inscritos" id="listaInscritos"></div>
-      <p id="inscritosVacio" class="empty-state hidden">Nadie apuntado todavía.</p>
-    </div>
+    <!-- Pestaña JUECES: la cola y las decklists del torneo. Solo para
+         jueces aprobados y el organizador. -->
+    <section class="torneo-panel" data-panel="jueces">
+      <div class="simple-card hidden" id="torneoColaCaja">
+        <h3>Cola del juez</h3>
+        <div id="colaContenido"></div>
+      </div>
+      <div class="simple-card hidden" id="torneoDecklistsJuezCaja">
+        <h3>Decklists del torneo</h3>
+        <div id="decklistsJuezContenido"></div>
+      </div>
+    </section>
   </main>
 
   <footer class="footer">

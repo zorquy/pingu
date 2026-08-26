@@ -12,6 +12,24 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-26 — PINGU-Claude (tanda 210 — la cara nueva)
+**Hecho**: rediseño visual completo de los torneos por feedback de
+PINGU («todo en una misma pantalla no»). La ficha /torneo va ahora por
+PESTAÑAS (Torneo / Jugar / Rondas / Clasificación / Jueces) con la
+cabecera y el reloj fijos: las vacías no salen, con partida viva abre
+en Jugar y la pestaña activa sobrevive a las recargas. La lista
+/torneos también por pestañas con cuenta. Y las decklists se pintan con
+CARTAS del espejo tcg_cards (imagen + contador ×N, casilla de texto si
+el espejo no la tiene), con el editor de texto plegado en desplegable —
+misma rejilla para el jugador y para el juez.
+**Ficheros**: torneo.html (paneles), js/torneos/torneo.js (pestañas +
+editor plegado), js/torneos/cartas-decklist.js (nuevo),
+js/torneos/torneos.js (lista por pestañas), js/torneos/ronda.js y
+jueces.js (avisan al repintar; reloj a la cabecera), css/torneos.css,
+SCHEMA.md, BITACORA.md. OJO para IBAI-Claude: las 7 pruebas de torneos
+del entorno de PINGU navegan ahora por pestañas.
+**En curso / pendiente**: nada bloqueado.
+
 ## 2026-08-26 — PINGU-Claude (tanda 209 — interfaz fiel)
 **Hecho**: repaso ruta a ruta contra la app Angular de TrainerArena y
 calcadas las 6 piezas de interfaz que faltaban: /torneos agrupado con

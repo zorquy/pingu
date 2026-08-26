@@ -10149,3 +10149,44 @@ chapa, decklists con detalle abrible por visibilidad real, reloj en
 rojo con ronda de 1 minuto, disputa con horas, pestañitas de historial,
 columna TCG Live, marcas Top N y bracket con negritas y campeón) y
 rigor-torneos-7.py (8 roturas, todas detectadas).
+
+## Tanda 210 — Torneos 8: la cara nueva (agosto 2026)
+
+Feedback de PINGU tras probarlo en producción: la mecánica genial, pero
+«todo en una misma pantalla no» — demasiado bloque, demasiada letra. La
+tanda es enteramente visual, sin tocar la mecánica:
+
+- **La ficha por PESTAÑAS** (torneo.html + torneo.js): la cabecera del
+  torneo queda fija (nombre, estado, reloj de ronda, plazas y acciones
+  del organizador) y debajo van cinco pestañas — Torneo (tu plaza,
+  inscritos, jueces), Jugar (tu partida con chat y tu decklist), Rondas
+  (ciclo y mesas), Clasificación (bracket y tabla) y Jueces (cola y
+  decklists del torneo). Las pestañas sin nada que enseñar NO aparecen;
+  con partida viva la ficha ABRE en Jugar; la pestaña activa sobrevive
+  a cualquier acción que recargue la ficha (los módulos avisan por
+  ctx.alRepintar). El reloj vive en la cabecera: se ve desde cualquier
+  pestaña.
+- **La lista /torneos por pestañas** con cuenta: Tus torneos, Abiertas,
+  En juego, Terminados y Borradores — las vacías no salen y solo se
+  pintan las tarjetas del grupo activo.
+- **La decklist con CARTAS** (js/torneos/cartas-decklist.js, nuevo):
+  cada línea del export se resuelve por nombre contra NUESTRO espejo
+  `tcg_cards` (searchCards de tcgdex.js; a TCGdex no se le llama) —
+  entre homónimas se prefiere la que coincide en número — y se pinta en
+  rejilla con imagen y contador «×N»; lo que el espejo no tenga queda
+  como casilla de texto, que una lista no pierde cartas por culpa del
+  catálogo. La misma rejilla en tu decklist (con el editor de texto
+  plegado en un desplegable una vez entregada) y en el detalle del
+  juez (bajo el texto crudo, que se conserva). Búsquedas cacheadas por
+  nombre.
+- El stub gana las semillas `__FAKE_RONDAS__` y `__FAKE_MESAS__` (para
+  arrancar la ficha con partida viva) y las seis pruebas de torneos se
+  adaptaron a navegar por pestañas.
+
+Probado con test-torneos-8.mjs (24 comprobaciones: pestañas con y sin
+contenido, panel único visible, pestaña pegajosa tras acciones, abre en
+Jugar con partida viva, reloj en la cabecera, rejilla de cartas con
+imagen/contador/casilla de texto, editor plegado, la misma rejilla para
+el juez, y la lista con cuentas y cambio de grupo — con las imágenes de
+assets.tcgdex.net servidas de mentira por la prueba) y
+rigor-torneos-8.py (8 roturas, todas detectadas).

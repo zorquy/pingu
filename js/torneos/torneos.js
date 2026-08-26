@@ -33,10 +33,38 @@ function tarjetaHtml(t, extra = '') {
   </a>`
 }
 
-// La lista agrupada como la portada del original: tus torneos primero,
-// luego inscripciones abiertas, en juego, los últimos terminados y —
-// como aquí todos somos organizadores mientras dure la prueba — los
-// borradores al final.
+// La lista por PESTAÑAS (petición de los admins): Tus torneos, Abiertas,
+// En juego, Terminados y — como aquí todos somos organizadores mientras
+// dure la prueba — Borradores. Las vacías ni aparecen.
+let pestanaLista = null
+
+function pintarGrupos(grupos) {
+  const lista = document.getElementById('listaTorneos')
+  const conAlgo = grupos.filter((g) => g.filas.length)
+  if (!conAlgo.length) {
+    lista.innerHTML = ''
+    return
+  }
+  if (!pestanaLista || !conAlgo.some((g) => g.id === pestanaLista)) pestanaLista = conAlgo[0].id
+  const activa = conAlgo.find((g) => g.id === pestanaLista)
+  lista.innerHTML = `
+    <nav class="torneo-pestanas" aria-label="Grupos de torneos">
+      ${conAlgo
+        .map(
+          (g) =>
+            `<button class="torneo-pestana ${g.id === pestanaLista ? 'activa' : ''}" data-grupo="${g.id}">${g.texto} <span class="torneo-pestana-cuenta">${g.filas.length}</span></button>`
+        )
+        .join('')}
+    </nav>
+    ${activa.filas.join('')}`
+  lista.querySelectorAll('[data-grupo]').forEach((b) =>
+    b.addEventListener('click', () => {
+      pestanaLista = b.dataset.grupo
+      pintarGrupos(grupos)
+    })
+  )
+}
+
 async function cargarLista(session) {
   const lista = document.getElementById('listaTorneos')
   const vacio = document.getElementById('torneosVacio')
@@ -53,9 +81,6 @@ async function cargarLista(session) {
   const miEstado = Object.fromEntries((inscripciones || []).map((i) => [i.tournament_id, i.status]))
 
   vacio.classList.toggle('hidden', torneos.length > 0)
-
-  const grupo = (titulo, filas) =>
-    filas.length ? `<h3 class="torneos-grupo-titulo">${titulo}</h3>${filas.join('')}` : ''
 
   const mios = torneos
     .filter((t) => miEstado[t.id] && t.status !== 'draft')
@@ -75,12 +100,13 @@ async function cargarLista(session) {
     .map((t) => tarjetaHtml(t))
   const borradores = torneos.filter((t) => t.status === 'draft').map((t) => tarjetaHtml(t))
 
-  lista.innerHTML =
-    grupo('Tus torneos', mios) +
-    grupo('Inscripciones abiertas', abiertas) +
-    grupo('En juego', enJuego) +
-    grupo('Terminados', terminados) +
-    grupo('Borradores', borradores)
+  pintarGrupos([
+    { id: 'mios', texto: 'Tus torneos', filas: mios },
+    { id: 'abiertas', texto: 'Abiertas', filas: abiertas },
+    { id: 'enjuego', texto: 'En juego', filas: enJuego },
+    { id: 'terminados', texto: 'Terminados', filas: terminados },
+    { id: 'borradores', texto: 'Borradores', filas: borradores },
+  ])
 }
 
 function engancharFormulario(session) {

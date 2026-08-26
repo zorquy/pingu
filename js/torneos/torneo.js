@@ -14,6 +14,7 @@ import { montarCiclo, resumenDeGloria } from './ronda.js'
 import { montarJueces } from './jueces.js'
 import { getAllAchievements, addXP } from '../gamification.js'
 import { urlTema } from '../foro-comun.js'
+import { pintarDecklistVisual } from './cartas-decklist.js'
 
 let session = null
 let perfil = null
@@ -346,12 +347,19 @@ function pintarDecklist() {
     ? `<p class="subtext">Entregada el ${fechaBonita(miDecklist.submitted_at)} · ${resumenDecklist(miDecklist.parsed_cards)} ${sellada}</p>`
     : '<p class="subtext">Todavía no has entregado ninguna lista.</p>'
 
+  // La lista entregada se ve con sus CARTAS; el texto queda debajo, en
+  // un desplegable, que es lo que se edita y se vuelve a guardar.
   $('decklistContenido').innerHTML = `
     ${estadoEntrega}
-    <textarea id="decklistTexto" rows="10" maxlength="20000" ${editable ? '' : 'readonly'} placeholder="Pokémon: 8&#10;4 Charizard ex OBF 125&#10;…">${escapeHtml(miDecklist?.raw_text || '')}</textarea>
-    <ul class="torneo-decklist-errores hidden" id="decklistErrores"></ul>
-    ${editable ? '<button class="btn-primary" id="btnGuardarDecklist">Guardar decklist</button>' : ''}`
+    <div class="torneo-decklist-visual" id="decklistVisual"></div>
+    <details class="torneo-decklist-editor" ${miDecklist ? '' : 'open'}>
+      <summary>${miDecklist ? (editable ? 'Editar la lista (texto)' : 'Ver la lista en texto') : 'Pegar la lista'}</summary>
+      <textarea id="decklistTexto" rows="10" maxlength="20000" ${editable ? '' : 'readonly'} placeholder="Pokémon: 8&#10;4 Charizard ex OBF 125&#10;…">${escapeHtml(miDecklist?.raw_text || '')}</textarea>
+      <ul class="torneo-decklist-errores hidden" id="decklistErrores"></ul>
+      ${editable ? '<button class="btn-primary" id="btnGuardarDecklist">Guardar decklist</button>' : ''}
+    </details>`
   if (editable) engancharDecklist()
+  if (miDecklist?.parsed_cards) pintarDecklistVisual($('decklistVisual'), miDecklist.parsed_cards)
 }
 
 function engancharDecklist() {
@@ -416,6 +424,49 @@ function pintarInscritos() {
     .join('')
 }
 
+// ── Las pestañas de la ficha ──
+// Una pantalla única era demasiado bloque (palabra de los admins): cada
+// zona vive en su pestaña, y las que no tienen nada que enseñar ni
+// siquiera aparecen. Si estás jugando, se abre directamente en Jugar.
+
+const PESTANAS = [
+  { id: 'torneo', texto: 'Torneo' },
+  { id: 'jugar', texto: 'Jugar' },
+  { id: 'rondas', texto: 'Rondas' },
+  { id: 'clasificacion', texto: 'Clasificación' },
+  { id: 'jueces', texto: 'Jueces' },
+]
+let pestanaActiva = null
+
+function pintarPestanas() {
+  const visibles = PESTANAS.filter((p) => {
+    const panel = document.querySelector(`[data-panel="${p.id}"]`)
+    return [...panel.children].some((caja) => !caja.classList.contains('hidden'))
+  })
+  if (!pestanaActiva) {
+    const jugando = !document.getElementById('torneoMiPartida').classList.contains('hidden')
+    pestanaActiva = jugando && visibles.some((p) => p.id === 'jugar') ? 'jugar' : 'torneo'
+  }
+  if (!visibles.some((p) => p.id === pestanaActiva)) pestanaActiva = visibles[0]?.id || 'torneo'
+
+  const nav = $('torneoPestanas')
+  nav.innerHTML = visibles
+    .map(
+      (p) =>
+        `<button class="torneo-pestana ${p.id === pestanaActiva ? 'activa' : ''}" data-pestana="${p.id}">${p.texto}</button>`
+    )
+    .join('')
+  document.querySelectorAll('.torneo-panel').forEach((s) => {
+    s.classList.toggle('hidden', s.dataset.panel !== pestanaActiva)
+  })
+  nav.querySelectorAll('[data-pestana]').forEach((b) =>
+    b.addEventListener('click', () => {
+      pestanaActiva = b.dataset.pestana
+      pintarPestanas()
+    })
+  )
+}
+
 // ── Arranque ──
 
 function pintarTodo() {
@@ -443,10 +494,14 @@ async function recargar() {
     inscripciones,
     esJuez: comoJuez?.status === 'approved',
     recargarFicha: recargar,
+    // Los módulos repintan cajas por su cuenta (sondeo, check-in…):
+    // que recoloquen también las pestañas al hacerlo.
+    alRepintar: pintarPestanas,
   }
   await montarCiclo(contexto)
   await montarJueces(contexto)
   await otorgarGloria()
+  pintarPestanas()
 }
 
 async function init() {

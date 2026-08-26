@@ -660,8 +660,7 @@ function pintarRondas() {
   }
   $('rondasAdmin').innerHTML = `
     <div class="torneo-rondas-cabecera">
-      <span class="subtext">${rondas.length ? (rondas[rondas.length - 1].phase === 'top_cut' ? `Top cut — ronda ${rondas[rondas.length - 1].round_number}` : `Ronda ${rondas[rondas.length - 1].round_number} de ${ctx.torneo.swiss_rounds} suizas`) : `Sin rondas aún (${ctx.torneo.swiss_rounds} suizas previstas)`}
-        <span class="torneo-reloj hidden" id="torneoReloj"></span></span>
+      <span class="subtext">${rondas.length ? (rondas[rondas.length - 1].phase === 'top_cut' ? `Top cut — ronda ${rondas[rondas.length - 1].round_number}` : `Ronda ${rondas[rondas.length - 1].round_number} de ${ctx.torneo.swiss_rounds} suizas`) : `Sin rondas aún (${ctx.torneo.swiss_rounds} suizas previstas)`}</span>
       <span class="torneo-rondas-botones">${admin}<button class="btn-secondary" id="btnActualizarCiclo">Actualizar</button></span>
     </div>`
   // Actualizar refresca la ficha ENTERA (ciclo, chats y cola de jueces):
@@ -850,6 +849,7 @@ function pintarCiclo() {
   pintarRondas()
   pintarMiPartida()
   pintarClasificacion()
+  ctx.alRepintar?.()
 
   // Sondeo suave mientras hay ronda viva: los reportes del rival llegan
   // de otra sesión y aquí no hay WebSockets a propósito.

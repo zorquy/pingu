@@ -10,6 +10,7 @@
 import { supabase } from '../supabase.js'
 import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
+import { pintarDecklistVisual } from './cartas-decklist.js'
 
 let ctx = null // { torneo, session, perfil, inscripciones, esJuez, recargarFicha }
 let solicitudes = []
@@ -105,6 +106,7 @@ function pintarDecklistsJuez() {
       const detalle = `
         <div class="torneo-decklist-detalle hidden" data-decklist-detalle="${escapeHtml(d.user_id)}">
           <p class="subtext">${p.pokemon?.length ?? 0} líneas de Pokémon · ${p.trainer?.length ?? 0} de Trainer · ${p.energy?.length ?? 0} de Energía — ${p.total ?? '?'} cartas</p>
+          <div class="torneo-decklist-visual" data-decklist-cartas="${escapeHtml(d.user_id)}"></div>
           <pre class="torneo-decklist-cruda">${escapeHtml(d.raw_text || '')}</pre>
         </div>`
       return `
@@ -129,6 +131,13 @@ function pintarDecklistsJuez() {
       const detalle = document.querySelector(`[data-decklist-detalle="${b.dataset.verDecklist}"]`)
       detalle.classList.toggle('hidden')
       b.textContent = detalle.classList.contains('hidden') ? 'Ver' : 'Cerrar'
+      // Las cartas se buscan la primera vez que se abre, no antes.
+      const cartas = detalle.querySelector('[data-decklist-cartas]')
+      if (!detalle.classList.contains('hidden') && cartas && !cartas.dataset.pintada) {
+        cartas.dataset.pintada = '1'
+        const lista = decklistsTorneo.find((d) => d.user_id === b.dataset.verDecklist)
+        if (lista?.parsed_cards) pintarDecklistVisual(cartas, lista.parsed_cards)
+      }
     })
   )
 }
@@ -431,6 +440,7 @@ function pintarJueces() {
   pintarCola()
   pintarDecklistsJuez()
   pintarMiPartidaExtra()
+  ctx.alRepintar?.()
 }
 
 async function recargarJueces() {
