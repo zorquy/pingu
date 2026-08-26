@@ -12,6 +12,21 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-26 — PINGU-Claude (tanda 209 — interfaz fiel)
+**Hecho**: repaso ruta a ruta contra la app Angular de TrainerArena y
+calcadas las 6 piezas de interfaz que faltaban: /torneos agrupado con
+«Tus torneos» y chapas, reloj de ronda con check-in y aviso en rojo,
+historial de rondas por pestañitas, disputas con los dos reportes y su
+hora a la vista, decklists del torneo para juez/organizador (listado +
+quién falta + detalle con texto crudo) y el bracket del cut por
+columnas en la clasificación con columna TCG Live y marcas «Top N».
+**Ficheros**: js/torneos/ronda.js, js/torneos/jueces.js,
+js/torneos/torneos.js, torneo.html (caja Decklists del torneo),
+css/torneos.css, SCHEMA.md, BITACORA.md.
+**En curso / pendiente**: fuera a propósito: wizard de crear en 4 pasos
+(el formulario único hace lo mismo), correos de inscripción y marcador
+libre en reportes. Nadie tiene ficheros bloqueados.
+
 ## 2026-08-26 — PINGU-Claude (arreglo de la migración)
 **Hecho**: supabase-migration-torneos.sql es ahora RE-EJECUTABLE de
 verdad: la clave foránea de current_round_id se tira y se recrea (una

@@ -10110,3 +10110,42 @@ Campeón en el mano a mano con su banner sin cut, el anuncio con hilo
 etiquetado/enlazado y sin botón duplicado, y el mirón sin inscripción
 que no se lleva nada) y rigor-torneos-6.py (8 roturas, todas
 detectadas).
+
+## Tanda 209 — Torneos 7: la interfaz fiel al original (agosto 2026)
+
+Repaso ruta a ruta contra la app Angular de TrainerArena: la mecánica
+estaba completa, pero seis piezas de su interfaz faltaban. Calcadas y
+adaptadas al estilo PokeDoc:
+
+- **/torneos agrupado** como su portada, con encabezados: Tus torneos
+  (tus inscripciones, con chapa Inscrito/Retirado), Inscripciones
+  abiertas, En juego, Terminados (los últimos 10) y Borradores (aquí
+  visibles porque la sección es de admins mientras dure la prueba).
+- **El reloj de la ronda** en la cabecera de Rondas: cuenta atrás de la
+  ventana de check-in y del tiempo de ronda («Check-in 4:58 · Ronda
+  27:40»), en rojo a menos de 2 minutos, «Tiempo cumplido» al agotarse.
+  El reloj del navegador es orientativo: la autoridad es el barredor.
+- **Historial de rondas**: pestañitas R1/R2/Cut R3 sobre las mesas para
+  repasar cualquier ronda cerrada (los /pareos/ronda/:n del original).
+- **La disputa con los dos reportes a la vista**: bajo la mesa
+  disputada, tarjetas con quién reportó qué y a qué hora (su pantalla
+  /juez/disputa). El reporte guarda ahora `reported_at` explícito.
+- **Decklists del torneo para juez y organizador** (SPEC §9): caja con
+  las entregadas (cartas, sellada o no, botón Ver con resumen por
+  secciones y el texto crudo) y «Sin entregar: …» con los que pierden
+  rondas. Las completas SOLO se piden si eres juez u organizador.
+- **El bracket del cut en la clasificación**: columnas por ronda
+  (Final/Semifinales/Cuartos/Top N), ganador en negrita, BYE a la
+  vista; la tabla gana la columna TCG Live y la marca «Top N» en las
+  plazas que clasifican, con su nota al pie.
+
+Fuera de alcance a propósito: el wizard de 4 pasos de crear (nuestro
+formulario único hace lo mismo), los correos de inscripción (PokeDoc ya
+tiene cola de correo si algún día se quieren) y el marcador libre en
+los reportes.
+
+Probado con test-torneos-7.mjs (24 comprobaciones: grupos en orden y
+chapa, decklists con detalle abrible por visibilidad real, reloj en
+rojo con ronda de 1 minuto, disputa con horas, pestañitas de historial,
+columna TCG Live, marcas Top N y bracket con negritas y campeón) y
+rigor-torneos-7.py (8 roturas, todas detectadas).

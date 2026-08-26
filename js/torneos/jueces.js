@@ -15,6 +15,7 @@ let ctx = null // { torneo, session, perfil, inscripciones, esJuez, recargarFich
 let solicitudes = []
 let miSolicitud = null
 let llamadas = []
+let decklistsTorneo = [] // completas, con texto: solo se piden si eres juez u organizador
 let mesasPorId = {}
 let miPartida = null
 let disputadas = []
@@ -67,10 +68,69 @@ async function cargar() {
       }) || null
     : null
 
+  // Las decklists completas SOLO para juez u organizador (SPEC §9: los
+  // jugadores nunca ven las ajenas — desde aquí ni se piden).
+  decklistsTorneo = []
+  if (ctx.perfil.is_admin || ctx.esJuez) {
+    const { data } = await supabase
+      .from('tournament_decklists')
+      .select('*')
+      .eq('tournament_id', ctx.torneo.id)
+      .order('submitted_at', { ascending: true })
+    decklistsTorneo = data || []
+  }
+
   await resolverNombres([
     ...solicitudes.map((s) => s.user_id),
     ...llamadas.flatMap((c) => [c.created_by, c.assigned_judge_id]),
   ])
+}
+
+// ── Las decklists del torneo (SPEC §9 y /juez/.../decklists) ──
+// Listado con quién falta y detalle abrible: resumen por secciones y el
+// texto crudo tal cual lo pegó el jugador.
+function pintarDecklistsJuez() {
+  const caja = $('torneoDecklistsJuezCaja')
+  const soyJuez = ctx.perfil.is_admin || ctx.esJuez
+  const activos = ctx.inscripciones.filter((i) => i.status === 'active')
+  if (!soyJuez || (!decklistsTorneo.length && !activos.length)) {
+    caja.classList.add('hidden')
+    return
+  }
+  caja.classList.remove('hidden')
+
+  const entregadas = decklistsTorneo
+    .map((d) => {
+      const p = d.parsed_cards || {}
+      const detalle = `
+        <div class="torneo-decklist-detalle hidden" data-decklist-detalle="${escapeHtml(d.user_id)}">
+          <p class="subtext">${p.pokemon?.length ?? 0} líneas de Pokémon · ${p.trainer?.length ?? 0} de Trainer · ${p.energy?.length ?? 0} de Energía — ${p.total ?? '?'} cartas</p>
+          <pre class="torneo-decklist-cruda">${escapeHtml(d.raw_text || '')}</pre>
+        </div>`
+      return `
+      <div class="torneo-decklist-fila">
+        <span><strong>${escapeHtml(nombreDe(d.user_id))}</strong> — ${p.total ?? '?'} cartas${d.locked_at ? ' · sellada' : ''}</span>
+        <button class="btn-secondary" data-ver-decklist="${escapeHtml(d.user_id)}">Ver</button>
+      </div>${detalle}`
+    })
+    .join('')
+
+  const conLista = new Set(decklistsTorneo.map((d) => d.user_id))
+  const faltan = activos.filter((i) => !conLista.has(i.user_id))
+  const sinEntregar = faltan.length
+    ? `<p class="torneo-decklists-faltan">Sin entregar: ${faltan.map((i) => escapeHtml(i.perfil?.username || 'Alguien')).join(', ')} — pierden las rondas que empiecen sin lista.</p>`
+    : ''
+
+  $('decklistsJuezContenido').innerHTML =
+    (entregadas || '<p class="subtext">Nadie ha entregado lista todavía.</p>') + sinEntregar
+
+  document.querySelectorAll('[data-ver-decklist]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const detalle = document.querySelector(`[data-decklist-detalle="${b.dataset.verDecklist}"]`)
+      detalle.classList.toggle('hidden')
+      b.textContent = detalle.classList.contains('hidden') ? 'Ver' : 'Cerrar'
+    })
+  )
 }
 
 // ── El chat desplegable, común a mesas y llamadas ──
@@ -369,6 +429,7 @@ async function decidirJuez(solicitudId, decision) {
 function pintarJueces() {
   pintarSolicitudes()
   pintarCola()
+  pintarDecklistsJuez()
   pintarMiPartidaExtra()
 }
 

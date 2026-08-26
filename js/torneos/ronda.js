@@ -29,6 +29,8 @@ let reportes = []
 let resultados = []
 let historial = []
 let sondeo = null
+let reloj = null
+let rondaVista = null // qué ronda se está mirando en «Mesas» (null = la viva)
 
 const $ = (id) => document.getElementById(id)
 const TERMINALES = new Set(['finished', 'bye', 'forfeit_a', 'forfeit_b', 'forfeit_both'])
@@ -391,7 +393,7 @@ async function reportar(partida, resultado) {
   }
   const { error } = await supabase
     .from('match_reports')
-    .insert({ match_id: partida.id, reporter_id: ctx.session.user.id, result: resultado })
+    .insert({ match_id: partida.id, reporter_id: ctx.session.user.id, result: resultado, reported_at: ahora() })
   if (error) {
     showToast('No se ha podido reportar: ' + error.message, 'error')
     return
@@ -548,6 +550,45 @@ const ESTADOS_MESA = {
   disputed: 'En disputa',
 }
 
+const ETIQUETA_REPORTE = { win: 'victoria', loss: 'derrota', draw: 'empate' }
+
+function hora(iso) {
+  return iso ? new Date(iso).toLocaleTimeString('es-ES') : '—'
+}
+
+// ── El reloj de la ronda (SPEC §11, sin server_now) ──
+// El reloj del navegador es ORIENTATIVO: las expiraciones de verdad las
+// aplica el barredor por minuto en el servidor. Aquí solo se pinta.
+function textoCuenta(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000))
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}
+
+function arrancarReloj(ronda) {
+  if (reloj) {
+    clearInterval(reloj)
+    reloj = null
+  }
+  const marcador = $('torneoReloj')
+  if (!marcador || ronda?.status !== 'active' || !ronda.started_at) return
+  const cierreCheckin = new Date(ronda.started_at).getTime() + (ctx.torneo.checkin_minutes || 0) * 60000
+  const fin = ronda.ends_at ? new Date(ronda.ends_at).getTime() : null
+
+  const pintarReloj = () => {
+    const ya = Date.now()
+    const trozos = []
+    if (ya < cierreCheckin) trozos.push(`Check-in ${textoCuenta(cierreCheckin - ya)}`)
+    if (fin) {
+      trozos.push(ya < fin ? `Ronda ${textoCuenta(fin - ya)}` : 'Tiempo cumplido')
+      marcador.classList.toggle('torneo-reloj-rojo', fin - ya < 120000)
+    }
+    marcador.textContent = trozos.join(' · ')
+    marcador.classList.toggle('hidden', trozos.length === 0)
+  }
+  pintarReloj()
+  reloj = setInterval(pintarReloj, 1000)
+}
+
 function pintarMesas(ronda) {
   const mesas = partidas.filter((m) => m.round_id === ronda.id).sort((a, b) => a.table_number - b.table_number)
   const filas = mesas
@@ -574,11 +615,23 @@ function pintarMesas(ronda) {
               </select>
             </span>`
           : ''
+      // En una disputa, quien resuelve ve los dos reportes con su hora
+      // (la pantalla /juez/disputa del original, aquí bajo la mesa).
+      const enfrentados =
+        m.status === 'disputed'
+          ? `<div class="torneo-disputa-reportes">${reportes
+              .filter((r) => r.match_id === m.id)
+              .map(
+                (r) =>
+                  `<span class="torneo-reporte-carta"><strong>${escapeHtml(nombreDe(r.reporter_id))}</strong> reportó ${ETIQUETA_REPORTE[r.result] || r.result} a las ${hora(r.reported_at || r.created_at)}</span>`
+              )
+              .join('')}</div>`
+          : ''
       return `
       <div class="torneo-mesa">
         <span class="torneo-mesa-numero">Mesa ${m.table_number}</span>
         <span class="torneo-mesa-jugadores">${escapeHtml(nombreDe(m.player_a_id))}${listoA}${rival}</span>
-        ${estado}${resolver}
+        ${estado}${resolver}${enfrentados}
       </div>`
     })
     .join('')
@@ -607,7 +660,8 @@ function pintarRondas() {
   }
   $('rondasAdmin').innerHTML = `
     <div class="torneo-rondas-cabecera">
-      <span class="subtext">${rondas.length ? (rondas[rondas.length - 1].phase === 'top_cut' ? `Top cut — ronda ${rondas[rondas.length - 1].round_number}` : `Ronda ${rondas[rondas.length - 1].round_number} de ${ctx.torneo.swiss_rounds} suizas`) : `Sin rondas aún (${ctx.torneo.swiss_rounds} suizas previstas)`}</span>
+      <span class="subtext">${rondas.length ? (rondas[rondas.length - 1].phase === 'top_cut' ? `Top cut — ronda ${rondas[rondas.length - 1].round_number}` : `Ronda ${rondas[rondas.length - 1].round_number} de ${ctx.torneo.swiss_rounds} suizas`) : `Sin rondas aún (${ctx.torneo.swiss_rounds} suizas previstas)`}
+        <span class="torneo-reloj hidden" id="torneoReloj"></span></span>
       <span class="torneo-rondas-botones">${admin}<button class="btn-secondary" id="btnActualizarCiclo">Actualizar</button></span>
     </div>`
   // Actualizar refresca la ficha ENTERA (ciclo, chats y cola de jueces):
@@ -620,10 +674,29 @@ function pintarRondas() {
   if (actual) pintarPareoManual(actual)
   else $('pareoManual').innerHTML = ''
 
-  const paraMesas = actual || rondas[rondas.length - 1]
+  // El historial: cualquier ronda pasada se puede repasar (los /pareos
+  // /ronda/:n del original, aquí como pestañitas). Sin elegir, la viva.
+  const elegida = rondas.find((r) => r.id === rondaVista) || null
+  const paraMesas = elegida || actual || rondas[rondas.length - 1]
+  const pestanas =
+    rondas.length > 1
+      ? `<div class="torneo-rondas-chips">${rondas
+          .map(
+            (r) =>
+              `<button class="torneo-ronda-chip ${paraMesas?.id === r.id ? 'activa' : ''}" data-ver-ronda="${r.id}">${r.phase === 'top_cut' ? `Cut R${r.round_number}` : `R${r.round_number}`}</button>`
+          )
+          .join('')}</div>`
+      : ''
   $('mesasContenido').innerHTML = paraMesas
-    ? `<h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ronda ${paraMesas.round_number}`}${paraMesas.status === 'finished' ? ' (cerrada)' : ''}</h4>${pintarMesas(paraMesas)}`
+    ? `<h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ronda ${paraMesas.round_number}`}${paraMesas.status === 'finished' ? ' (cerrada)' : ''}</h4>${pestanas}${pintarMesas(paraMesas)}`
     : ''
+  document.querySelectorAll('[data-ver-ronda]').forEach((b) =>
+    b.addEventListener('click', () => {
+      rondaVista = b.dataset.verRonda
+      pintarRondas()
+    })
+  )
+  arrancarReloj(actual)
 
   document.querySelectorAll('[data-resolver]').forEach((sel) => {
     sel.addEventListener('change', () => {
@@ -702,14 +775,22 @@ function pintarClasificacion() {
   }
   caja.classList.remove('hidden')
   const tabla = computeStandings(montarSnapshot(rondas.length))
+  const corte = ctx.torneo.top_cut_size || 0
   const filas = tabla
     .map((e, i) => {
       const insc = ctx.inscripciones.find((x) => x.user_id === e.playerId)
       const retirado = insc?.status === 'dropped' ? ' <span class="torneo-retirado">(retirado)</span>' : ''
+      // Como en el original: mientras hay corte configurado, las plazas
+      // que clasifican van marcadas.
+      const dentro =
+        corte > 0 && i + 1 <= corte && insc?.status !== 'dropped'
+          ? ` <span class="torneo-marca-top">Top ${corte}</span>`
+          : ''
       return `
       <tr>
         <td>${i + 1}</td>
-        <td>${escapeHtml(nombreDe(e.playerId))}${retirado}</td>
+        <td>${escapeHtml(nombreDe(e.playerId))}${retirado}${dentro}</td>
+        <td class="subtext">${escapeHtml(insc?.tcg_live_username || '—')}</td>
         <td><strong>${e.matchPoints}</strong></td>
         <td>${e.wins}-${e.losses}-${e.draws}${e.byesReceived ? ` (+${e.byesReceived} bye)` : ''}</td>
         <td>${(e.owp * 100).toFixed(2)} %</td>
@@ -723,12 +804,46 @@ function pintarClasificacion() {
     : ''
   $('clasificacionContenido').innerHTML = `
     ${banner}
+    ${bracketHtml()}
     <div class="torneo-clasificacion-tabla">
       <table>
-        <thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>V-D-E</th><th>OWP</th><th>OOWP</th></tr></thead>
+        <thead><tr><th>#</th><th>Jugador</th><th>TCG Live</th><th>Puntos</th><th>V-D-E</th><th>OWP</th><th>OOWP</th></tr></thead>
         <tbody>${filas}</tbody>
       </table>
-    </div>`
+    </div>
+    ${corte > 0 && !rondas.some((r) => r.phase === 'top_cut') ? `<p class="subtext torneo-nota-corte">Las plazas marcadas con «Top ${corte}» clasifican al corte.</p>` : ''}`
+}
+
+// El bracket del cut como en su clasificación: una columna por ronda
+// (Final / Semifinales / Cuartos / Top N), cada mesa con el ganador en
+// negrita y los byes a la vista.
+function etiquetaFaseCut(mesas) {
+  if (mesas === 1) return 'Final'
+  if (mesas === 2) return 'Semifinales'
+  if (mesas === 4) return 'Cuartos'
+  return `Top ${mesas * 2}`
+}
+
+function bracketHtml() {
+  const rondasCut = rondas.filter((r) => r.phase === 'top_cut')
+  if (!rondasCut.length) return ''
+  const columnas = rondasCut
+    .map((r) => {
+      const mesas = partidas.filter((m) => m.round_id === r.id).sort((a, b) => a.bracket_position - b.bracket_position)
+      const cajas = mesas
+        .map((m) => {
+          const ganador = m.status === 'bye' ? m.player_a_id : resultadoDe(m.id)?.winner_id ?? null
+          const linea = (id, esBye) => {
+            const texto = esBye ? 'BYE' : id ? escapeHtml(nombreDe(id)) : '—'
+            return `<p class="${ganador !== null && ganador === id ? 'torneo-bracket-gana' : ''}">${texto}</p>`
+          }
+          return `<div class="torneo-bracket-mesa">${linea(m.player_a_id, false)}${linea(m.player_b_id, m.is_bye || !m.player_b_id)}</div>`
+        })
+        .join('')
+      return `<div class="torneo-bracket-col"><h5>${etiquetaFaseCut(mesas.length)} (R${r.round_number})</h5>${cajas}</div>`
+    })
+    .join('')
+  return `<div class="torneo-bracket">${columnas}</div>`
 }
 
 function pintarCiclo() {

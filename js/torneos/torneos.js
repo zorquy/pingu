@@ -19,7 +19,25 @@ function semillaDePareo() {
   return [...valores].map((v) => abc[v % abc.length]).join('')
 }
 
-async function cargarLista() {
+function tarjetaHtml(t, extra = '') {
+  const estado = ESTADOS[t.status] || ESTADOS.draft
+  return `
+  <a class="torneo-tarjeta" href="/torneo?slug=${encodeURIComponent(t.slug)}">
+    <span class="torneo-icono">${icons.trophy(22)}</span>
+    <span class="torneo-texto">
+      <strong>${escapeHtml(t.name)}</strong>
+      <span class="subtext">${fechaBonita(t.start_at)} · ${t.max_players} plazas · ${t.swiss_rounds} suizas${t.top_cut_size ? ` + top ${t.top_cut_size}` : ''}</span>
+    </span>
+    ${extra}
+    <span class="torneo-estado ${estado.clase}">${estado.texto}</span>
+  </a>`
+}
+
+// La lista agrupada como la portada del original: tus torneos primero,
+// luego inscripciones abiertas, en juego, los últimos terminados y —
+// como aquí todos somos organizadores mientras dure la prueba — los
+// borradores al final.
+async function cargarLista(session) {
   const lista = document.getElementById('listaTorneos')
   const vacio = document.getElementById('torneosVacio')
   const { data } = await supabase
@@ -28,22 +46,41 @@ async function cargarLista() {
     .order('start_at', { ascending: false })
     .limit(50)
   const torneos = data || []
+  const { data: inscripciones } = await supabase
+    .from('tournament_registrations')
+    .select('tournament_id, status')
+    .eq('user_id', session.user.id)
+  const miEstado = Object.fromEntries((inscripciones || []).map((i) => [i.tournament_id, i.status]))
 
   vacio.classList.toggle('hidden', torneos.length > 0)
-  lista.innerHTML = torneos
-    .map((t) => {
-      const estado = ESTADOS[t.status] || ESTADOS.draft
-      return `
-      <a class="torneo-tarjeta" href="/torneo?slug=${encodeURIComponent(t.slug)}">
-        <span class="torneo-icono">${icons.trophy(22)}</span>
-        <span class="torneo-texto">
-          <strong>${escapeHtml(t.name)}</strong>
-          <span class="subtext">${fechaBonita(t.start_at)} · ${t.max_players} plazas · ${t.swiss_rounds} suizas${t.top_cut_size ? ` + top ${t.top_cut_size}` : ''}</span>
-        </span>
-        <span class="torneo-estado ${estado.clase}">${estado.texto}</span>
-      </a>`
-    })
-    .join('')
+
+  const grupo = (titulo, filas) =>
+    filas.length ? `<h3 class="torneos-grupo-titulo">${titulo}</h3>${filas.join('')}` : ''
+
+  const mios = torneos
+    .filter((t) => miEstado[t.id] && t.status !== 'draft')
+    .map((t) =>
+      tarjetaHtml(
+        t,
+        `<span class="torneo-mio ${miEstado[t.id] === 'dropped' ? 'retirado' : ''}">${miEstado[t.id] === 'dropped' ? 'Retirado' : 'Inscrito'}</span>`
+      )
+    )
+  const abiertas = torneos.filter((t) => t.status === 'registration_open').map((t) => tarjetaHtml(t))
+  const enJuego = torneos
+    .filter((t) => ['registration_closed', 'in_progress'].includes(t.status))
+    .map((t) => tarjetaHtml(t))
+  const terminados = torneos
+    .filter((t) => ['finished', 'cancelled'].includes(t.status))
+    .slice(0, 10)
+    .map((t) => tarjetaHtml(t))
+  const borradores = torneos.filter((t) => t.status === 'draft').map((t) => tarjetaHtml(t))
+
+  lista.innerHTML =
+    grupo('Tus torneos', mios) +
+    grupo('Inscripciones abiertas', abiertas) +
+    grupo('En juego', enJuego) +
+    grupo('Terminados', terminados) +
+    grupo('Borradores', borradores)
 }
 
 function engancharFormulario(session) {
@@ -110,7 +147,7 @@ function engancharFormulario(session) {
     form.classList.add('hidden')
     form.reset()
     showToast(`«${nombre}» creado como borrador. Abre las inscripciones cuando esté listo.`, 'success')
-    cargarLista()
+    cargarLista(session)
   })
 }
 
@@ -123,7 +160,7 @@ async function init() {
   }
   document.getElementById('torneosContenido').style.display = ''
   engancharFormulario(session)
-  await cargarLista()
+  await cargarLista(session)
 }
 
 init()
