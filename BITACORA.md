@@ -12,6 +12,33 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-26 — PINGU-Claude (tanda 213 — Torneos 10: la cara del original)
+**Hecho**: la interfaz de torneos calcada de la app de TrainerArena
+(pedido de PINGU, revisado por él en el entorno de pruebas): crear
+torneo por WIZARD de 3 pasos con resumen (sin el paso de pago; campo
+nuevo de ventana de check-in, centrado), reloj GIGANTE presidiendo
+Rondas (rojo bajo 2 min) y reloj en Tu partida, mesas en tabla con
+chapas de estado y los reportes de una disputa a la vista, Tu partida
+en columna centrada con check-in Tú/Rival + aviso ámbar con cuenta
+atrás y botón «Hacer check-in», chat de mesa A LA VISTA con BOCADILLOS
+(navy los tuyos; PINGU revirtió su decisión del desplegable — CLAUDE.md
+actualizado), ficha con caja «Formato» de iconos, tarjetas de la lista
+con bloque de fecha y barra de ocupación, y DOS piezas de navbar:
+«Mis torneos» en el menú de cuenta (/torneos#mios) y el aviso ámbar
+CON PULSO del torneo en juego junto a la racha, directo a tu mesa
+(js/torneos/aviso-torneo.js, en diferido y con estilos autoinyectados:
+la portada no lo paga). Y la ficha entera se REFRESCA SOLA cada 10 s
+(sin pisar escritura ni desplegables). Fix de regalo: el reloj de la
+cabecera ya no se queda congelado al terminar el torneo.
+**Ficheros**: js/torneos/aviso-torneo.js (nuevo), css/torneos.css,
+torneos.html, torneo.html, js/torneos/torneos.js, js/torneos/torneo.js,
+js/torneos/ronda.js, js/torneos/jueces.js, js/app.js, CLAUDE.md,
+SCHEMA.md, BITACORA.md. CERO cambios en motor, barredor y migraciones.
+**En curso / pendiente**: nada bloqueado. OJO para IBAI-Claude: las
+pruebas del entorno de PINGU (70, todas en verde contra esta tanda)
+cubren ya la interfaz nueva — botón de check-in es #btnCheckin, el chat
+de mesa no es <details> y el aviso vive en .nav-right.
+
 ## 2026-08-26 — PINGU-Claude (tanda 212 — PageSpeed: portada sin saltos y contraste AA)
 **Hecho**: la tanda del informe de PageSpeed que pasó PINGU. Los bloques
 de la portada nacen con esqueleto (y `recogerSeccion` los quita si no

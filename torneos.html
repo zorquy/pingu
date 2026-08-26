@@ -54,48 +54,77 @@
       <button class="btn-primary" id="btnNuevoTorneo">+ Nuevo torneo</button>
     </div>
 
-    <!-- El formulario de crear, plegado hasta que hace falta. La
-         estructura (rondas suizas y top cut) se rellena sola con la
+    <!-- Crear torneo: el wizard por pasos de TrainerArena, sin el paso
+         de pago (aquí todo es gratis). torneos.js gobierna los pasos;
+         la estructura (rondas suizas y top cut) se rellena sola con la
          tabla oficial según las plazas, y se puede retocar. -->
     <form class="simple-card torneos-form hidden" id="torneoForm">
-      <h3>Nuevo torneo</h3>
-      <div class="torneos-form-rejilla">
-        <label>Nombre
+      <h3 class="torneo-wizard-titulo">Nuevo torneo</h3>
+      <nav class="torneo-wizard-pasos" id="wizardPasos" aria-label="Pasos del formulario"></nav>
+
+      <!-- Paso 1: datos básicos -->
+      <section data-paso="0">
+        <p class="torneo-wizard-pista">Es lo primero que verán los jugadores.</p>
+        <label class="torneos-form-campo">Nombre del torneo
           <input type="text" id="torneoNombre" maxlength="120" placeholder="Liga PokeDoc — Agosto" />
         </label>
-        <label>Fecha y hora
+        <label class="torneos-form-campo">Fecha y hora de inicio
           <input type="datetime-local" id="torneoFecha" />
+          <span class="torneo-campo-pista">En tu zona horaria.</span>
         </label>
-        <label>Plazas
-          <input type="number" id="torneoPlazas" min="4" max="256" value="16" />
+        <label class="torneos-form-campo">Descripción (opcional)
+          <textarea id="torneoDescripcion" rows="3" maxlength="600" placeholder="Reglas de la casa, premios…"></textarea>
         </label>
-        <label>Rondas suizas
-          <input type="number" id="torneoRondas" min="1" max="12" value="4" />
-        </label>
-        <label>Top cut
-          <select id="torneoCorte">
-            <option value="0">Sin corte</option>
-            <option value="4" selected>Top 4</option>
-            <option value="8">Top 8</option>
-            <option value="16">Top 16</option>
-          </select>
-        </label>
-        <label>Suizas al mejor de
-          <select id="torneoSwissBo"><option value="1" selected>1</option><option value="3">3</option></select>
-        </label>
-        <label>Corte al mejor de
-          <select id="torneoCorteBo"><option value="1">1</option><option value="3" selected>3</option></select>
-        </label>
-        <label>Minutos por ronda
-          <input type="number" id="torneoMinutos" min="5" max="120" value="30" />
-        </label>
-      </div>
-      <label class="torneos-form-descripcion">Descripción (opcional)
-        <textarea id="torneoDescripcion" rows="2" maxlength="600" placeholder="Formato, premios, reglas de la casa…"></textarea>
-      </label>
+      </section>
+
+      <!-- Paso 2: capacidad y formato -->
+      <section data-paso="1" class="hidden">
+        <p class="torneo-wizard-pista">Las rondas y el top cut se rellenan según la tabla oficial al cambiar las plazas — puedes retocarlos.</p>
+        <div class="torneos-form-rejilla">
+          <label>Plazas
+            <input type="number" id="torneoPlazas" min="4" max="256" value="16" />
+          </label>
+          <label>Rondas suizas
+            <input type="number" id="torneoRondas" min="1" max="12" value="4" />
+          </label>
+          <label>Top cut
+            <select id="torneoCorte">
+              <option value="0">Sin corte</option>
+              <option value="4" selected>Top 4</option>
+              <option value="8">Top 8</option>
+              <option value="16">Top 16</option>
+            </select>
+          </label>
+          <label>Suizas al mejor de
+            <select id="torneoSwissBo"><option value="1" selected>1</option><option value="3">3</option></select>
+          </label>
+          <label>Corte al mejor de
+            <select id="torneoCorteBo"><option value="1">1</option><option value="3" selected>3</option></select>
+          </label>
+        </div>
+      </section>
+
+      <!-- Paso 3: tiempos + resumen -->
+      <section data-paso="2" class="hidden">
+        <p class="torneo-wizard-pista">El reloj solo corre en las suizas; el top cut se juega a acabar.</p>
+        <div class="torneos-form-rejilla">
+          <label>Minutos por ronda
+            <input type="number" id="torneoMinutos" min="5" max="120" value="30" />
+          </label>
+          <label>Ventana de check-in (min)
+            <input type="number" id="torneoCheckin" min="0" max="30" value="5" />
+          </label>
+        </div>
+        <dl class="torneo-wizard-resumen" id="wizardResumen"></dl>
+      </section>
+
       <div class="torneos-form-acciones">
-        <button type="submit" class="btn-primary" id="btnCrearTorneo">Crear torneo</button>
         <button type="button" class="btn-secondary" id="btnCancelarTorneo">Cancelar</button>
+        <span class="torneo-wizard-derecha">
+          <button type="button" class="btn-secondary hidden" id="btnPasoAtras">Anterior</button>
+          <button type="button" class="btn-primary" id="btnPasoSiguiente">Siguiente</button>
+          <button type="submit" class="btn-primary hidden" id="btnCrearTorneo">Crear torneo</button>
+        </span>
       </div>
     </form>
 

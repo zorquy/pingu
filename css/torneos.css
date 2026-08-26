@@ -21,8 +21,56 @@
   font-weight: 700;
 }
 
-/* ── El formulario de crear ── */
-.torneos-form { margin-bottom: 24px; }
+/* ── Crear torneo: el wizard por pasos (calcado de TrainerArena, sin
+   el paso de pago). Tres pasos + resumen, con su indicador arriba. ── */
+.torneos-form { margin: 0 auto 24px; max-width: 640px; }
+
+.torneo-wizard-pasos {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 18px;
+}
+.torneo-wizard-paso {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border-radius: var(--radius-md);
+  background: rgba(127, 127, 127, 0.08);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+.torneo-wizard-paso .torneo-wizard-numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(127, 127, 127, 0.16);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.torneo-wizard-paso.actual {
+  background: var(--navy);
+  color: #fff;
+}
+.torneo-wizard-paso.actual .torneo-wizard-numero { background: rgba(255, 255, 255, 0.22); }
+.torneo-wizard-paso.hecho {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.torneo-wizard-paso.hecho .torneo-wizard-numero { background: rgba(13, 158, 110, 0.18); }
+@media (max-width: 560px) {
+  .torneo-wizard-paso span:last-child { display: none; } /* solo el número */
+}
+
+.torneo-wizard-titulo { margin: 0 0 2px; }
+.torneo-wizard-pista { font-size: 13px; color: var(--text-mid); margin-bottom: 12px; }
 
 .torneos-form-rejilla {
   display: grid;
@@ -32,21 +80,38 @@
 }
 
 .torneos-form-rejilla label,
-.torneos-form-descripcion {
+.torneos-form-campo {
   display: flex;
   flex-direction: column;
   gap: 4px;
   font-size: 13px;
   font-weight: 600;
 }
+.torneos-form-campo { margin: 14px 0; }
+.torneo-campo-pista { font-size: 12px; font-weight: 400; color: var(--text-dim); }
 
-.torneos-form-descripcion { margin-bottom: 14px; }
+/* El resumen del último paso, como la caja pálida del original. */
+.torneo-wizard-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(127, 127, 127, 0.05);
+}
+.torneo-wizard-resumen dt { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
+.torneo-wizard-resumen dd { margin: 2px 0 0; font-weight: 600; font-size: 14px; }
 
 .torneos-form-acciones {
   display: flex;
+  justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
+  margin-top: 16px;
 }
+.torneos-form-acciones .torneo-wizard-derecha { display: flex; gap: 8px; margin-left: auto; }
 
 /* ── La lista ── */
 .torneos-lista {
@@ -65,13 +130,56 @@
   padding: 14px 16px;
   color: inherit;
   text-decoration: none;
+  transition: border-color 0.15s;
 }
 .torneo-tarjeta:hover { border-color: var(--navy); }
+.torneo-tarjeta:hover .torneo-texto strong { color: var(--navy); }
+:root[data-theme='dark'] .torneo-tarjeta:hover .torneo-texto strong { color: #7db6dd; }
 
-.torneo-icono { color: var(--navy); display: inline-flex; flex-shrink: 0; }
-:root[data-theme='dark'] .torneo-icono { color: #7db6dd; }
+/* El bloque de fecha de la tarjeta: día grande + mes, como el original. */
+.torneo-fecha-bloque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--navy);
+  color: #fff;
+  line-height: 1.1;
+}
+.torneo-fecha-bloque strong { font-size: 17px; font-family: var(--font-display); }
+.torneo-fecha-bloque span { font-size: 10px; text-transform: uppercase; opacity: 0.75; font-weight: 600; }
+:root[data-theme='dark'] .torneo-fecha-bloque { background: var(--navy-dark); }
 
-.torneo-texto { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.torneo-texto { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 2px; }
+.torneo-texto strong { transition: color 0.15s; }
+
+/* La barrita de ocupación dentro de la tarjeta. */
+.torneo-ocupacion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.torneo-ocupacion-barra {
+  display: inline-block;
+  width: 64px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(127, 127, 127, 0.18);
+  overflow: hidden;
+}
+.torneo-ocupacion-relleno {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+}
+:root[data-theme='dark'] .torneo-ocupacion-relleno { background: #7db6dd; }
 
 .torneo-estado {
   font-size: 12px;
@@ -236,22 +344,179 @@
 
 .torneo-mesas-titulo { margin: 12px 0 6px; font-size: 15px; }
 
-.torneo-mesa {
-  display: flex;
+/* ── Las chapas de estado y resultado (los «badges» del original) ── */
+.torneo-chapa {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
-.torneo-mesa:last-child { border-bottom: none; }
-.torneo-mesa-numero { font-weight: 700; min-width: 64px; }
-.torneo-mesa-jugadores { flex: 1; min-width: 180px; }
-.torneo-mesa-resultado { font-weight: 600; color: var(--text-dim); }
-.torneo-mesa-resolver select { font-size: 13px; }
+.torneo-chapa-exito { background: var(--success-bg); color: var(--success); }
+.torneo-chapa-aviso { background: var(--warning-bg); color: var(--warning); }
+.torneo-chapa-neutra { background: rgba(127, 127, 127, 0.12); color: var(--text-dim); }
+.torneo-chapa-marca { background: rgba(30, 81, 117, 0.12); color: var(--navy); }
+:root[data-theme='dark'] .torneo-chapa-marca { color: #7db6dd; }
 
-.torneo-reportar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+/* ── Las mesas, en tabla como los pareos del original ── */
+.torneo-mesas-tabla { overflow-x: auto; }
+.torneo-mesas-tabla table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.torneo-mesas-tabla th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+.torneo-mesas-tabla td {
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.torneo-mesas-tabla tbody tr:last-child td { border-bottom: none; }
+.torneo-mesas-tabla tbody tr:hover { background: rgba(127, 127, 127, 0.04); }
+.torneo-mesa-num { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600; }
+.torneo-mesa-jugador { font-weight: 600; }
+.torneo-mesa-bye { color: var(--text-dim); font-weight: 400; }
+.torneo-mesa-listo { color: var(--success); font-weight: 700; }
+.torneo-mesa-resolver select { font-size: 13px; max-width: 200px; }
+
+/* ── El reloj protagonista (pantalla «ronda actual» del original) ── */
+.torneo-ronda-hero {
+  text-align: center;
+  padding: 18px 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+  background: rgba(127, 127, 127, 0.03);
+}
+.torneo-ronda-hero-contexto {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+.torneo-cuenta-grande {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(44px, 9vw, 72px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -1px;
+  color: var(--text);
+}
+.torneo-cuenta-grande.agotandose { color: #d64545; }
+:root[data-theme='dark'] .torneo-cuenta-grande.agotandose { color: #e88; }
+.torneo-cuenta-etiqueta { font-size: 12px; color: var(--text-dim); }
+.torneo-cuenta-checkin {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(127, 127, 127, 0.08);
+  font-size: 13px;
+  color: var(--text-mid);
+  font-variant-numeric: tabular-nums;
+}
+.torneo-cuenta-checkin strong { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+/* ── Tu partida, al estilo «match actual» del original ──
+   Columna estrecha y centrada (el original era mobile-first max-w-md),
+   con el ritmo vertical medido: contexto → rival → TCG → reloj →
+   check-in → reporte → chat. */
+#miPartidaContenido,
+#miPartidaExtra {
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.torneo-partida-contexto {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  text-align: center;
+  margin: 0;
+}
+.torneo-partida-rival {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 2px 0 0;
+}
+.torneo-partida-rival-tcg { text-align: center; font-size: 13px; color: var(--text-mid); margin: 2px 0 0; }
+.torneo-partida-cuenta {
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 12px 0 0;
+}
+.torneo-partida-cuenta.agotandose { color: #d64545; }
+:root[data-theme='dark'] .torneo-partida-cuenta.agotandose { color: #e88; }
+.torneo-cuenta-etiqueta { text-align: center; margin: 0; }
+.torneo-partida-nota { text-align: center; margin: 12px 0 0; }
+.torneo-boton-checkin { width: 100%; }
+#miPartidaContenido .torneo-mesas-titulo { margin: 18px 0 8px; }
+
+.torneo-checkin-rejilla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 14px 0 10px;
+}
+.torneo-checkin-celda {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 13px;
+}
+.torneo-checkin-celda strong { display: block; font-size: 14px; }
+.torneo-checkin-celda .subtext { display: block; margin-top: 2px; }
+.torneo-checkin-celda.lista {
+  border-color: rgba(13, 158, 110, 0.45);
+  background: var(--success-bg);
+}
+.torneo-checkin-celda.lista .torneo-checkin-estado { color: var(--success); font-weight: 700; }
+.torneo-checkin-estado { display: block; margin-top: 4px; color: var(--text-dim); font-weight: 600; }
+
+/* Los botones de reporte, en rejilla como el original. */
+.torneo-reportar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.torneo-boton-resultado {
+  border: 2px solid var(--border-strong);
+  background: var(--white);
+  color: var(--text);
+  border-radius: var(--radius-md);
+  padding: 10px 8px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.torneo-boton-resultado.victoria:hover { border-color: var(--success); background: var(--success-bg); color: var(--success); }
+.torneo-boton-resultado.derrota:hover { border-color: #d64545; background: rgba(214, 69, 69, 0.08); color: #d64545; }
+.torneo-boton-resultado.empate:hover { border-color: var(--text-mid); background: rgba(127, 127, 127, 0.08); }
 
 .torneo-clasificacion-tabla { overflow-x: auto; }
 .torneo-clasificacion-tabla table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -277,7 +542,27 @@
 }
 :root[data-theme='dark'] .torneo-campeon { color: #e8b558; }
 
-/* ── Chats en desplegable (mesa y llamadas al juez) ── */
+/* El chat de la mesa, a la vista (los de juez siguen en desplegable). */
+.torneo-chat-abierto { margin: 16px 0 0; }
+.torneo-chat-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+/* El aviso de la ventana de check-in en «Tu partida». */
+.torneo-checkin-aviso {
+  text-align: center;
+  font-size: 13px;
+  margin: 0 0 10px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.torneo-checkin-aviso strong { font-variant-numeric: tabular-nums; }
+
+/* ── Chats en desplegable (llamadas al juez) ── */
 .torneo-chat-desplegable {
   margin: 10px 0;
   border: 1px solid var(--border);
@@ -291,15 +576,49 @@
   list-style: revert;
 }
 .torneo-chat-cuerpo { padding: 0 12px 10px; }
+.torneo-chat-abierto .torneo-chat-cuerpo { padding: 0; }
+
+/* Los mensajes, en bocadillos: los tuyos a la derecha en navy, los del
+   otro a la izquierda sobre tarjeta — como el chat del original. */
 .torneo-chat-mensajes {
-  max-height: 220px;
+  max-height: 260px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   font-size: 14px;
-  padding: 4px 0 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(127, 127, 127, 0.05);
 }
+.torneo-chat-linea { display: flex; }
+.torneo-chat-linea.mia { justify-content: flex-end; }
+.torneo-burbuja {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+  padding: 6px 12px 5px;
+  border-radius: 12px;
+  border-bottom-left-radius: 4px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
+}
+.torneo-chat-linea.mia .torneo-burbuja {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 4px;
+}
+:root[data-theme='dark'] .torneo-chat-linea.mia .torneo-burbuja { background: var(--navy-dark); border-color: var(--navy-dark); }
+.torneo-burbuja-quien { font-size: 11px; font-weight: 700; opacity: 0.72; }
+.torneo-burbuja-texto { white-space: pre-line; overflow-wrap: anywhere; }
+.torneo-burbuja-hora { font-size: 10px; opacity: 0.6; align-self: flex-end; margin-top: 1px; }
+.torneo-chat-mensajes > .subtext { text-align: center; padding: 8px 0; }
+
 .torneo-chat-envio { display: flex; gap: 8px; }
 .torneo-chat-envio input { flex: 1; }
 
@@ -535,3 +854,45 @@
 }
 .torneo-decklists-faltan { font-size: 14px; padding-top: 10px; color: #a8720d; }
 :root[data-theme='dark'] .torneo-decklists-faltan { color: #e8b558; }
+
+/* ── La caja «Formato» de la ficha (los datos con icono del original) ── */
+.torneo-formato {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.torneo-formato-dato {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(127, 127, 127, 0.06);
+}
+.torneo-formato-dato svg { flex-shrink: 0; color: var(--text-dim); margin-top: 2px; }
+.torneo-formato-dato dt { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
+.torneo-formato-dato dd { margin: 2px 0 0; font-weight: 600; font-size: 14px; }
+
+/* ── La barra resumen del organizador en Rondas ── */
+.torneo-rondas-resumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+/* ── Estados vacíos con su icono, como el original ── */
+.torneo-vacio {
+  text-align: center;
+  padding: 28px 12px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+.torneo-vacio svg { display: block; margin: 0 auto 8px; opacity: 0.5; }

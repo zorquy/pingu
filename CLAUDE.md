@@ -63,9 +63,11 @@ Manso) a este stack. Mientras esté en pruebas, TODO lo de torneos es
 visible SOLO para admins (`user_profiles.is_admin`): el enlace «Jugar»
 de la navbar va oculto y torneos.html expulsa a quien no sea admin.
 Decisiones ya tomadas: sin pagos (fuera del porte), el chat de partida
-va en desplegable (no en el recuadro principal), la cuenta de PokeDoc
-es la cuenta de torneos, tiempo real por sondeo y cierres automáticos
-con función programada por minuto. El motor puro (pareos suizos,
+va A LA VISTA en «Tu partida» (PINGU lo quiso primero en desplegable y
+lo cambió el 2026-08-26 al probarlo; los chats de juez sí van plegados),
+la cuenta de PokeDoc es la cuenta de torneos, tiempo real por sondeo
+(la ficha entera se refresca sola cada 10 s desde torneo.js) y cierres
+automáticos con función programada por minuto. El motor puro (pareos suizos,
 desempates, top cut, decklists) está en `js/torneos/motor.js`,
 traducido 1:1 de `libs/engine` de TrainerArena — si tocas su lógica,
 respeta la SPEC de TrainerArena y anótalo.

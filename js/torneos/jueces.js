@@ -1,10 +1,10 @@
 // Jueces y chats del torneo (SPEC §10 de TrainerArena, portado):
 // solicitudes de juez, llamadas al juez con su conversación, la cola del
-// juez con las disputas, y el chat de mesa entre jugadores — que aquí va
-// en DESPLEGABLE, no en el recuadro principal (decisión de los admins,
-// fijada en CLAUDE.md). Sin WebSockets: cada chat se carga al abrirse y
-// tras cada envío, y el botón Actualizar / el sondeo de ronda.js hacen
-// el resto.
+// juez con las disputas, y el chat de mesa entre jugadores — que va A LA
+// VISTA en «Tu partida» (PINGU lo quiso primero en desplegable y lo
+// cambió al probarlo; los chats de juez sí siguen plegados). Sin
+// WebSockets: los mensajes se recargan al abrir, tras cada envío y con
+// el refresco automático de la ficha (torneo.js, cada 10 s).
 //
 // torneo.js monta este módulo con montarJueces(ctx) en cada recarga.
 import { supabase } from '../supabase.js'
@@ -142,22 +142,32 @@ function pintarDecklistsJuez() {
   )
 }
 
-// ── El chat desplegable, común a mesas y llamadas ──
+// ── El chat, común a mesas y llamadas ──
+// El de la MESA va a la vista (pedido de PINGU: fuera el desplegable
+// entre jugadores); los de juez siguen plegados en <details>, y
+// `desplegado` conserva los que estaban abiertos cuando la ficha se
+// refresca sola.
 
-function montarChat(marcador, { tabla, columna, id, titulo, cerrado }) {
-  marcador.innerHTML = `
-    <details class="torneo-chat-desplegable">
-      <summary>${escapeHtml(titulo)}</summary>
+function montarChat(marcador, { tabla, columna, id, titulo, cerrado, abierto = false, desplegado = false }) {
+  const cuerpo = `
       <div class="torneo-chat-cuerpo">
         <div class="torneo-chat-mensajes"><p class="subtext">Cargando…</p></div>
         ${cerrado
           ? '<p class="subtext">Conversación cerrada: queda como registro.</p>'
           : '<div class="torneo-chat-envio"><input type="text" maxlength="2000" placeholder="Escribe…" /><button type="button" class="btn-secondary">Enviar</button></div>'}
-      </div>
-    </details>`
+      </div>`
+  marcador.innerHTML = abierto
+    ? `<div class="torneo-chat-abierto">
+        <p class="torneo-chat-titulo">${escapeHtml(titulo)}</p>${cuerpo}
+      </div>`
+    : `<details class="torneo-chat-desplegable" ${desplegado ? 'open' : ''}>
+        <summary>${escapeHtml(titulo)}</summary>${cuerpo}
+      </details>`
   const detalles = marcador.querySelector('details')
   const lista = marcador.querySelector('.torneo-chat-mensajes')
 
+  // Cada mensaje en su bocadillo: los tuyos a la derecha en navy, los
+  // del otro a la izquierda — con quién y a qué hora.
   async function pintarMensajes() {
     const { data } = await supabase
       .from(tabla)
@@ -169,17 +179,32 @@ function montarChat(marcador, { tabla, columna, id, titulo, cerrado }) {
     await resolverNombres(mensajes.map((m) => m.sender_id))
     lista.innerHTML =
       mensajes
-        .map(
-          (m) =>
-            `<div class="torneo-chat-linea"><strong>${escapeHtml(nombreDe(m.sender_id))}:</strong> ${escapeHtml(m.message)}</div>`
-        )
+        .map((m) => {
+          const mio = m.sender_id === yo()
+          const hora = m.sent_at
+            ? new Date(m.sent_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+            : ''
+          return `
+          <div class="torneo-chat-linea ${mio ? 'mia' : ''}">
+            <div class="torneo-burbuja">
+              ${mio ? '' : `<span class="torneo-burbuja-quien">${escapeHtml(nombreDe(m.sender_id))}</span>`}
+              <span class="torneo-burbuja-texto">${escapeHtml(m.message)}</span>
+              <span class="torneo-burbuja-hora">${hora}</span>
+            </div>
+          </div>`
+        })
         .join('') || '<p class="subtext">Sin mensajes todavía.</p>'
     lista.scrollTop = lista.scrollHeight
   }
 
-  detalles.addEventListener('toggle', () => {
-    if (detalles.open) pintarMensajes()
-  })
+  if (detalles) {
+    detalles.addEventListener('toggle', () => {
+      if (detalles.open) pintarMensajes()
+    })
+  }
+  // A la vista o ya desplegado: los mensajes se cargan al momento (y en
+  // cada refresco automático de la ficha, que remonta este chat).
+  if (abierto || desplegado) pintarMensajes()
   const boton = marcador.querySelector('.torneo-chat-envio button')
   if (boton) {
     const enviarMensaje = async () => {
@@ -210,6 +235,10 @@ function pintarMiPartidaExtra() {
     return
   }
 
+  // El refresco automático remonta esta zona: si el chat con el juez
+  // estaba abierto, que siga abierto.
+  const llamadaAbierta = Boolean($('chatDeLlamada')?.querySelector('details')?.open)
+
   zona.innerHTML = `
     <div id="chatDeMesa"></div>
     <div class="torneo-llamar-juez" id="zonaLlamarJuez"></div>`
@@ -219,6 +248,7 @@ function pintarMiPartidaExtra() {
     id: miPartida.id,
     titulo: 'Chat de la mesa',
     cerrado: false,
+    abierto: true, // entre jugadores, a la vista: fuera el desplegable
   })
 
   const zonaJuez = $('zonaLlamarJuez')
@@ -234,6 +264,7 @@ function pintarMiPartidaExtra() {
       id: miLlamada.id,
       titulo: 'Conversación con el juez',
       cerrado: false,
+      desplegado: llamadaAbierta,
     })
   } else if (puedeLlamar) {
     zonaJuez.innerHTML = '<button class="btn-secondary" id="btnLlamarJuez">Llamar al juez</button>'
@@ -277,6 +308,14 @@ function pintarCola() {
   }
   caja.classList.remove('hidden')
 
+  // El refresco automático repinta la cola: los chats que estaban
+  // abiertos se quedan abiertos.
+  const chatsAbiertos = new Set(
+    [...document.querySelectorAll('[data-chat-llamada]')]
+      .filter((el) => el.querySelector('details')?.open)
+      .map((el) => el.dataset.chatLlamada)
+  )
+
   const filasLlamadas = llamadas
     .map((c) => {
       const mesa = mesasPorId[c.match_id]
@@ -318,6 +357,7 @@ function pintarCola() {
         id: c.id,
         titulo: 'Conversación',
         cerrado: c.status === 'resolved',
+        desplegado: chatsAbiertos.has(c.id),
       })
     }
   }

@@ -381,9 +381,14 @@ async function renderNavUser(session) {
   const estiloAvatar = avatarStyle(profile)
 
   // La pestaña «Jugar» (torneos) está en pruebas: el enlace viene oculto
-  // en el HTML y solo se desvela a los admins.
+  // en el HTML y solo se desvela a los admins. El aviso de torneo EN
+  // JUEGO va en su propio módulo en diferido: solo lo baja un admin, la
+  // portada no lo paga (presupuesto de peso).
   if (profile?.is_admin) {
     document.querySelectorAll('.nav-jugar').forEach((e) => e.classList.remove('hidden'))
+    import('./torneos/aviso-torneo.js')
+      .then((m) => m.montarAvisoTorneo(session))
+      .catch(() => {})
   }
 
   el.innerHTML = `
@@ -440,6 +445,7 @@ async function renderNavUser(session) {
              leer, no a escribir. -->
         <a href="/editor-guia.html">${icons.edit(16)} Escribir una guía</a>
         <a href="/guardados.html">${icons.bookmark(16)} Guardados</a>
+        ${profile?.is_admin ? `<a href="/torneos.html#mios">${icons.trophy(16)} Mis torneos</a>` : ''}
         <button type="button" id="navFeedbackBtn">${icons.messageSquare(16)} Enviar feedback</button>
         <button type="button" id="navUserSignOut">${icons.logOut(16)} Cerrar sesión</button>
       </div>`

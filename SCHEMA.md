@@ -10285,3 +10285,65 @@ el nombre, revalidar evita la mezcla de versiones que ya rompió la web
 una vez); fuentes y vendor ya van a un año. La minificación (~40 KB sin
 comprimir) exigiría un paso de build que el proyecto evita a propósito;
 con el brotli de Netlify el ahorro real es pequeño.
+
+## Tanda 213 — Torneos 10: la cara del original (agosto 2026)
+
+La interfaz de torneos, calcada de la app Angular de TrainerArena
+(inventariada pantalla a pantalla) y traducida a los tokens de PokeDoc
+(navy/ice, Fredoka, chapas). Solo presentación: motor, barredor y
+migraciones intactos.
+
+- **El wizard de crear** (torneos.html + torneos.js): 3 pasos como el
+  original menos el de pago — Básicos / Formato (la tabla oficial
+  autorrellena al cambiar plazas) / Tiempos con el RESUMEN en caja
+  pálida. Indicador con check en lo completado, validación por paso, y
+  el campo de `checkin_minutes` que hasta ahora nadie podía configurar.
+  El formulario, centrado.
+- **El reloj protagonista** (ronda.js): la pantalla «ronda actual» del
+  original vive en la pestaña Rondas — cuenta atrás monoespaciada
+  gigante (clamp 44–72px), roja bajo 2 minutos, con el chip de check-in
+  debajo; en el cut, «se juega a acabar». Un solo tictac alimenta los
+  tres marcadores (cabecera, Rondas y Tu partida). Fix: al terminar el
+  torneo el reloj de cabecera se quedaba congelado con el último texto.
+- **Las mesas en tabla** (ronda.js): Mesa / Jugador A / Jugador B /
+  Resultado con chapas (.torneo-chapa-*), ✓ de check-in por jugador,
+  BYE atenuado, resolutor en su columna y los reportes enfrentados de
+  una disputa como fila extra bajo la mesa.
+- **Tu partida** (ronda.js): columna centrada de 560px (el original era
+  mobile-first), contexto en mayúsculas, «vs rival» en Fredoka, check-in
+  Tú/Rival en celdas que verdean, aviso ámbar con cuenta atrás de la
+  ventana («quien no lo haga pierde la ronda») y botón «Hacer check-in»
+  (#btnCheckin, antes #btnListo). Reporte Victoria/Derrota/Empate en
+  rejilla de botones con borde.
+- **El chat, en bocadillos y a la vista** (jueces.js): PINGU revirtió su
+  decisión del desplegable al probarlo — el chat de MESA va abierto
+  dentro de Tu partida (montarChat con `abierto`); los de juez siguen en
+  `<details>` y `desplegado` conserva los abiertos entre repintados. Cada
+  mensaje en su burbuja: las tuyas a la derecha en navy, las ajenas en
+  tarjeta con autor y hora HH:mm.
+- **El refresco automático** (torneo.js): la ficha ENTERA se recarga
+  cada 10 s — reportes del rival, disputas, chats, cola e inscritos —
+  saltándose el tic si la pestaña está oculta o si el foco está en un
+  campo de texto (para no pisar un mensaje o la decklist a medias). El
+  editor de decklist y los chats de juez conservan su estado abierto.
+  El sondeo que tenía ronda.js para sí desaparece.
+- **La navbar** (app.js + js/torneos/aviso-torneo.js NUEVO): «Mis
+  torneos» en el menú de cuenta lleva a /torneos.html#mios (torneos.js
+  preselecciona la pestaña «Tus torneos» por el hash); y si estás
+  inscrito en un torneo `in_progress`, un botón ámbar CON PULSO y el
+  nombre del torneo aparece pegado a la llamita de la racha (o en el
+  menú móvil bajo 860px) y lleva a la ficha, que ya abre sola en Jugar
+  con partida viva. El módulo entra por import() diferido SOLO para
+  admins y se inyecta sus propios estilos: la portada no paga ni un
+  byte del presupuesto. La animación respeta prefers-reduced-motion.
+- **La ficha y la lista** (torneo.html/torneo.js/torneos.js): caja
+  «Formato» con iconos (suizas, cut, tiempo, check-in) bajo la
+  cabecera; tarjetas con bloque de fecha (día/mes) y barrita de
+  ocupación — una consulta de inscripciones da la ocupación de todos y
+  «mi estado» a la vez.
+
+Probado con la suite del entorno de PINGU: 70 pruebas en verde — motor
+cotejado contra los .spec del TrainerArena real, barredor, y e2e de la
+interfaz nueva (wizard por pasos, reloj, disputa en tabla, bocadillos
+por ambos lados, refresco automático comprobado con un check-in del
+rival que aparece solo, aviso de navbar y Mis torneos).

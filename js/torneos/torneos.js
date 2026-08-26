@@ -1,5 +1,7 @@
 // La página de torneos (/torneos): listar y crear. Parte del porte de
-// TrainerArena (ver CLAUDE.md, sección «Jugar»).
+// TrainerArena (ver CLAUDE.md, sección «Jugar»). La creación va por el
+// wizard de pasos del original, sin el paso de pago: aquí todo es
+// gratis.
 //
 // MIENTRAS DURE LA PRUEBA es solo para admins: quien no lo sea sale
 // rebotado a la portada antes de ver nada (y las políticas RLS de
@@ -9,7 +11,9 @@ import { escapeHtml, getSession, getProfile, slugify } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { officialStructure } from './motor.js'
-import { ESTADOS, fechaBonita } from './comun.js'
+import { ESTADOS, fechaBonita, textoFormato } from './comun.js'
+
+const $ = (id) => document.getElementById(id)
 
 // 32 caracteres de azar del navegador: la semilla que hace reproducibles
 // el sorteo de ronda 1 y la moneda de los desempates.
@@ -19,14 +23,23 @@ function semillaDePareo() {
   return [...valores].map((v) => abc[v % abc.length]).join('')
 }
 
-function tarjetaHtml(t, extra = '') {
+// ── La lista ──
+
+function tarjetaHtml(t, ocupadas, extra = '') {
   const estado = ESTADOS[t.status] || ESTADOS.draft
+  const fecha = new Date(t.start_at)
+  const mes = fecha.toLocaleString('es-ES', { month: 'short' }).replace('.', '')
+  const porcentaje = Math.min(100, (ocupadas / t.max_players) * 100)
   return `
   <a class="torneo-tarjeta" href="/torneo?slug=${encodeURIComponent(t.slug)}">
-    <span class="torneo-icono">${icons.trophy(22)}</span>
+    <span class="torneo-fecha-bloque" aria-hidden="true"><strong>${fecha.getDate()}</strong><span>${escapeHtml(mes)}</span></span>
     <span class="torneo-texto">
       <strong>${escapeHtml(t.name)}</strong>
-      <span class="subtext">${fechaBonita(t.start_at)} · ${t.max_players} plazas · ${t.swiss_rounds} suizas${t.top_cut_size ? ` + top ${t.top_cut_size}` : ''}</span>
+      <span class="subtext">${fechaBonita(t.start_at)} · ${t.swiss_rounds} suizas${t.top_cut_size ? ` + top ${t.top_cut_size}` : ''}</span>
+      <span class="torneo-ocupacion">
+        <span class="torneo-ocupacion-barra"><span class="torneo-ocupacion-relleno" style="width:${porcentaje}%"></span></span>
+        ${ocupadas}/${t.max_players} plazas
+      </span>
     </span>
     ${extra}
     <span class="torneo-estado ${estado.clase}">${estado.texto}</span>
@@ -35,11 +48,12 @@ function tarjetaHtml(t, extra = '') {
 
 // La lista por PESTAÑAS (petición de los admins): Tus torneos, Abiertas,
 // En juego, Terminados y — como aquí todos somos organizadores mientras
-// dure la prueba — Borradores. Las vacías ni aparecen.
-let pestanaLista = null
+// dure la prueba — Borradores. Las vacías ni aparecen. El «Mis torneos»
+// del menú de cuenta llega con #mios para abrir directamente la tuya.
+let pestanaLista = window.location.hash === '#mios' ? 'mios' : null
 
 function pintarGrupos(grupos) {
-  const lista = document.getElementById('listaTorneos')
+  const lista = $('listaTorneos')
   const conAlgo = grupos.filter((g) => g.filas.length)
   if (!conAlgo.length) {
     lista.innerHTML = ''
@@ -66,39 +80,46 @@ function pintarGrupos(grupos) {
 }
 
 async function cargarLista(session) {
-  const lista = document.getElementById('listaTorneos')
-  const vacio = document.getElementById('torneosVacio')
+  const vacio = $('torneosVacio')
   const { data } = await supabase
     .from('tournaments')
     .select('id, slug, name, status, start_at, max_players, swiss_rounds, top_cut_size')
     .order('start_at', { ascending: false })
     .limit(50)
   const torneos = data || []
+
+  // Una sola consulta da la ocupación de cada torneo Y mi estado (la
+  // sección es solo-admins: la RLS deja leerlo todo).
   const { data: inscripciones } = await supabase
     .from('tournament_registrations')
-    .select('tournament_id, status')
-    .eq('user_id', session.user.id)
-  const miEstado = Object.fromEntries((inscripciones || []).map((i) => [i.tournament_id, i.status]))
+    .select('tournament_id, user_id, status')
+  const ocupadasDe = {}
+  const miEstado = {}
+  for (const i of inscripciones || []) {
+    if (i.status === 'active') ocupadasDe[i.tournament_id] = (ocupadasDe[i.tournament_id] || 0) + 1
+    if (i.user_id === session.user.id) miEstado[i.tournament_id] = i.status
+  }
 
   vacio.classList.toggle('hidden', torneos.length > 0)
 
+  const tarjeta = (t, extra = '') => tarjetaHtml(t, ocupadasDe[t.id] || 0, extra)
   const mios = torneos
     .filter((t) => miEstado[t.id] && t.status !== 'draft')
     .map((t) =>
-      tarjetaHtml(
+      tarjeta(
         t,
         `<span class="torneo-mio ${miEstado[t.id] === 'dropped' ? 'retirado' : ''}">${miEstado[t.id] === 'dropped' ? 'Retirado' : 'Inscrito'}</span>`
       )
     )
-  const abiertas = torneos.filter((t) => t.status === 'registration_open').map((t) => tarjetaHtml(t))
+  const abiertas = torneos.filter((t) => t.status === 'registration_open').map((t) => tarjeta(t))
   const enJuego = torneos
     .filter((t) => ['registration_closed', 'in_progress'].includes(t.status))
-    .map((t) => tarjetaHtml(t))
+    .map((t) => tarjeta(t))
   const terminados = torneos
     .filter((t) => ['finished', 'cancelled'].includes(t.status))
     .slice(0, 10)
-    .map((t) => tarjetaHtml(t))
-  const borradores = torneos.filter((t) => t.status === 'draft').map((t) => tarjetaHtml(t))
+    .map((t) => tarjeta(t))
+  const borradores = torneos.filter((t) => t.status === 'draft').map((t) => tarjeta(t))
 
   pintarGrupos([
     { id: 'mios', texto: 'Tus torneos', filas: mios },
@@ -109,15 +130,93 @@ async function cargarLista(session) {
   ])
 }
 
-function engancharFormulario(session) {
-  const form = document.getElementById('torneoForm')
-  const plazas = document.getElementById('torneoPlazas')
+// ── El wizard de crear (3 pasos, como el original sin el de pago) ──
 
-  document.getElementById('btnNuevoTorneo').addEventListener('click', () => {
-    form.classList.toggle('hidden')
-    if (!form.classList.contains('hidden')) document.getElementById('torneoNombre').focus()
+const PASOS_WIZARD = ['Básicos', 'Formato', 'Tiempos']
+let pasoActual = 0
+
+function pintarPasos() {
+  $('wizardPasos').innerHTML = PASOS_WIZARD.map((texto, i) => {
+    const clase = i < pasoActual ? 'hecho' : i === pasoActual ? 'actual' : ''
+    const numero = i < pasoActual ? icons.checkCircle(14) : `<span class="torneo-wizard-numero">${i + 1}</span>`
+    return `<span class="torneo-wizard-paso ${clase}">${numero}<span>${texto}</span></span>`
+  }).join('')
+}
+
+function irAPaso(n) {
+  pasoActual = n
+  document.querySelectorAll('#torneoForm [data-paso]').forEach((s) => {
+    s.classList.toggle('hidden', Number(s.dataset.paso) !== n)
   })
-  document.getElementById('btnCancelarTorneo').addEventListener('click', () => form.classList.add('hidden'))
+  pintarPasos()
+  $('btnPasoAtras').classList.toggle('hidden', n === 0)
+  $('btnPasoSiguiente').classList.toggle('hidden', n === PASOS_WIZARD.length - 1)
+  $('btnCrearTorneo').classList.toggle('hidden', n !== PASOS_WIZARD.length - 1)
+  if (n === PASOS_WIZARD.length - 1) pintarResumen()
+}
+
+// Valida lo que se ve antes de dejar avanzar, como el original.
+function pasoValido(n) {
+  if (n === 0) {
+    if (!$('torneoNombre').value.trim()) {
+      showToast('Ponle un nombre al torneo.')
+      return false
+    }
+    if (!$('torneoFecha').value) {
+      showToast('Ponle fecha y hora de inicio.')
+      return false
+    }
+    return true
+  }
+  if (n === 1) {
+    const plazas = Number($('torneoPlazas').value)
+    if (!plazas || plazas < 4 || plazas > 256) {
+      showToast('Las plazas deben estar entre 4 y 256.')
+      return false
+    }
+    const rondas = Number($('torneoRondas').value)
+    if (!rondas || rondas < 1 || rondas > 12) {
+      showToast('Las rondas suizas deben estar entre 1 y 12.')
+      return false
+    }
+    return true
+  }
+  return true
+}
+
+function pintarResumen() {
+  const corte = Number($('torneoCorte').value)
+  const datos = [
+    ['Nombre', $('torneoNombre').value.trim() || '—'],
+    ['Inicio', $('torneoFecha').value ? fechaBonita($('torneoFecha').value) : '—'],
+    ['Plazas', $('torneoPlazas').value],
+    ['Suizas', `${$('torneoRondas').value} · BO${$('torneoSwissBo').value}`],
+    ['Top cut', corte ? `Top ${corte} · BO${$('torneoCorteBo').value}` : 'Sin corte'],
+    ['Ronda', `${$('torneoMinutos').value} min`],
+    ['Check-in', `${$('torneoCheckin').value} min`],
+    ['Inscripción', 'Gratuita'],
+  ]
+  $('wizardResumen').innerHTML = datos
+    .map(([dt, dd]) => `<div><dt>${dt}</dt><dd>${escapeHtml(String(dd))}</dd></div>`)
+    .join('')
+}
+
+function engancharFormulario(session) {
+  const form = $('torneoForm')
+  const plazas = $('torneoPlazas')
+
+  $('btnNuevoTorneo').addEventListener('click', () => {
+    form.classList.toggle('hidden')
+    if (!form.classList.contains('hidden')) {
+      irAPaso(0)
+      $('torneoNombre').focus()
+    }
+  })
+  $('btnCancelarTorneo').addEventListener('click', () => form.classList.add('hidden'))
+  $('btnPasoAtras').addEventListener('click', () => irAPaso(pasoActual - 1))
+  $('btnPasoSiguiente').addEventListener('click', () => {
+    if (pasoValido(pasoActual)) irAPaso(pasoActual + 1)
+  })
 
   // Al cambiar las plazas, la tabla oficial rellena rondas y corte; el
   // admin puede retocarlos después si quiere otra cosa.
@@ -125,8 +224,8 @@ function engancharFormulario(session) {
     const n = Number(plazas.value)
     if (!n || n < 4) return
     const { swissRounds, topCutSize } = officialStructure(n)
-    document.getElementById('torneoRondas').value = swissRounds
-    const corte = document.getElementById('torneoCorte')
+    $('torneoRondas').value = swissRounds
+    const corte = $('torneoCorte')
     if ([...corte.options].some((o) => Number(o.value) === topCutSize)) corte.value = String(topCutSize)
   })
 
@@ -134,30 +233,23 @@ function engancharFormulario(session) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
     if (enviando) return
-    const nombre = document.getElementById('torneoNombre').value.trim()
-    const fecha = document.getElementById('torneoFecha').value
-    if (!nombre) {
-      showToast('Ponle un nombre al torneo.')
-      return
-    }
-    if (!fecha) {
-      showToast('Ponle fecha y hora de inicio.')
-      return
-    }
+    if (!pasoValido(0) || !pasoValido(1)) return
+    const nombre = $('torneoNombre').value.trim()
     enviando = true
     const { error } = await supabase.from('tournaments').insert({
       slug: `${slugify(nombre)}-${Date.now().toString(36)}`,
       admin_id: session.user.id,
       name: nombre,
-      description: document.getElementById('torneoDescripcion').value.trim() || null,
-      start_at: new Date(fecha).toISOString(),
+      description: $('torneoDescripcion').value.trim() || null,
+      start_at: new Date($('torneoFecha').value).toISOString(),
       status: 'draft',
-      max_players: Number(document.getElementById('torneoPlazas').value),
-      swiss_rounds: Number(document.getElementById('torneoRondas').value),
-      round_time_minutes: Number(document.getElementById('torneoMinutos').value),
-      swiss_bo: Number(document.getElementById('torneoSwissBo').value),
-      top_cut_bo: Number(document.getElementById('torneoCorteBo').value),
-      top_cut_size: Number(document.getElementById('torneoCorte').value),
+      max_players: Number($('torneoPlazas').value),
+      swiss_rounds: Number($('torneoRondas').value),
+      round_time_minutes: Number($('torneoMinutos').value),
+      checkin_minutes: Number($('torneoCheckin').value),
+      swiss_bo: Number($('torneoSwissBo').value),
+      top_cut_bo: Number($('torneoCorteBo').value),
+      top_cut_size: Number($('torneoCorte').value),
       pairing_seed: semillaDePareo(),
     })
     enviando = false
@@ -172,6 +264,7 @@ function engancharFormulario(session) {
     }
     form.classList.add('hidden')
     form.reset()
+    irAPaso(0)
     showToast(`«${nombre}» creado como borrador. Abre las inscripciones cuando esté listo.`, 'success')
     cargarLista(session)
   })

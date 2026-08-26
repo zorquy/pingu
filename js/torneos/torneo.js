@@ -91,10 +91,20 @@ function pintarFicha() {
   const pill = $('torneoEstado')
   pill.textContent = estado.texto
   pill.className = `torneo-estado ${estado.clase}`
-  $('torneoMeta').textContent = `${fechaBonita(torneo.start_at)} · ${textoFormato(torneo)}`
+  $('torneoMeta').textContent = fechaBonita(torneo.start_at)
   const desc = $('torneoDescripcion')
   desc.classList.toggle('hidden', !torneo.description)
   desc.textContent = torneo.description || ''
+
+  // La caja «Formato» del original: cada dato con su icono.
+  $('torneoFormato').innerHTML = [
+    [icons.layers(18), 'Rondas suizas', `${torneo.swiss_rounds} · BO${torneo.swiss_bo}`],
+    [icons.trophy(18), 'Top cut', torneo.top_cut_size ? `Top ${torneo.top_cut_size} · BO${torneo.top_cut_bo}` : 'Sin corte'],
+    [icons.clock(18), 'Tiempo por ronda', `${torneo.round_time_minutes} min`],
+    [icons.checkCircle(18), 'Check-in', `${torneo.checkin_minutes} min`],
+  ]
+    .map(([icono, dt, dd]) => `<div class="torneo-formato-dato">${icono}<div><dt>${dt}</dt><dd>${escapeHtml(dd)}</dd></div></div>`)
+    .join('')
 
   const ocupadas = activos()
   $('torneoPlazasTexto').textContent = `${ocupadas} de ${torneo.max_players} plazas`
@@ -451,10 +461,13 @@ function pintarDecklist() {
 
   // La lista entregada se ve con sus CARTAS; el texto queda debajo, en
   // un desplegable, que es lo que se edita y se vuelve a guardar.
+  // El refresco automático repinta esta caja: si el editor estaba
+  // abierto, se respeta.
+  const editorAbierto = document.querySelector('.torneo-decklist-editor')?.open
   $('decklistContenido').innerHTML = `
     ${estadoEntrega}
     <div class="torneo-decklist-visual" id="decklistVisual"></div>
-    <details class="torneo-decklist-editor" ${miDecklist ? '' : 'open'}>
+    <details class="torneo-decklist-editor" ${(editorAbierto ?? !miDecklist) ? 'open' : ''}>
       <summary>${miDecklist ? (editable ? 'Editar la lista (texto)' : 'Ver la lista en texto') : 'Pegar la lista'}</summary>
       <textarea id="decklistTexto" rows="10" maxlength="20000" ${editable ? '' : 'readonly'} placeholder="Pokémon: 8&#10;4 Charizard ex OBF 125&#10;…">${escapeHtml(miDecklist?.raw_text || '')}</textarea>
       <ul class="torneo-decklist-errores hidden" id="decklistErrores"></ul>
@@ -653,6 +666,23 @@ async function init() {
 
   document.getElementById('torneoContenido').style.display = ''
   await recargar()
+  arrancarSondeoFicha()
+}
+
+// ── El refresco automático (pedido de PINGU) ──
+// La ficha ENTERA se refresca sola cada 10 s: reportes del rival,
+// disputas, chats, la cola del juez… sin tocar el botón Actualizar.
+// Se salta el tic si la pestaña está en segundo plano o si estás
+// escribiendo (para no pisarte un chat o la decklist a medias).
+let sondeoFicha = null
+function arrancarSondeoFicha() {
+  if (sondeoFicha) return
+  sondeoFicha = setInterval(async () => {
+    if (document.hidden) return
+    const activo = document.activeElement
+    if (activo && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activo.tagName)) return
+    await recargar()
+  }, 10000)
 }
 
 init()
