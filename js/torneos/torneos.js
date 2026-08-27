@@ -429,6 +429,13 @@ async function init() {
     return
   }
   document.getElementById('torneosContenido').style.display = ''
+  // El aviso de «borrado» lo deja la ficha antes de traernos aquí: allí
+  // no se podía enseñar, porque la página que lo diría ya no existe.
+  const borrado = sessionStorage.getItem('torneo-borrado')
+  if (borrado) {
+    sessionStorage.removeItem('torneo-borrado')
+    showToast(`«${borrado}» borrado.`, 'success')
+  }
   engancharFormulario(session)
   await cargarLista(session)
 }

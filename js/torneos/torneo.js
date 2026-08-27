@@ -9,7 +9,7 @@ import { escapeHtml, getSession, getProfile, burstConfetti } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { parseDecklist, validateDecklist, canEditDecklist, decklistUnparsed } from './motor.js'
-import { ESTADOS, fechaBonita, textoFormato } from './comun.js'
+import { ESTADOS, fechaBonita, textoFormato, puedeBorrarTorneo } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces } from './jueces.js'
 import { getAllAchievements, addXP } from '../gamification.js'
@@ -160,6 +160,12 @@ function pintarFicha() {
   if (perfil.is_admin && !['finished', 'cancelled'].includes(torneo.status)) {
     acciones.insertAdjacentHTML('beforeend', '<button class="btn-secondary" id="btnCancelarTorneo">Cancelar torneo</button>')
     engancharCancelar()
+  }
+  // Borrar va SIEMPRE el último y separado del resto: no es un paso más
+  // del ciclo del torneo, es el que no tiene vuelta.
+  if (puedeBorrarTorneo(perfil, torneo, session?.user?.id)) {
+    acciones.insertAdjacentHTML('beforeend', '<button class="torneo-borrar" id="btnBorrarTorneo">Borrar torneo</button>')
+    engancharBorrar()
   }
 }
 
@@ -360,6 +366,41 @@ function engancharCancelar() {
     torneo.status = 'cancelled'
     showToast('Torneo cancelado.', 'success')
     await recargar()
+  })
+}
+
+// Borrar el torneo (tanda 222). En dos toques como cancelar, pero el
+// segundo dice lo que se lleva por delante y cuánta gente había dentro:
+// cancelar deja el torneo a la vista con su historia; borrar se lleva
+// inscripciones, decklists, rondas, mesas y resultados (van en cascada
+// desde la fila del torneo) y no hay manera de recuperarlo.
+//
+// El hilo del foro, si lo hubo, NO se borra: es de la comunidad y sigue
+// donde estaba.
+function engancharBorrar() {
+  const btn = $('btnBorrarTorneo')
+  btn.addEventListener('click', async () => {
+    if (btn.dataset.confirmar !== '1') {
+      btn.dataset.confirmar = '1'
+      const dentro = inscripciones.filter((i) => i.status !== 'waitlisted').length
+      btn.textContent = dentro
+        ? `¿Seguro? Se borra con sus ${dentro} inscrito${dentro === 1 ? '' : 's'}`
+        : '¿Seguro? No hay vuelta atrás'
+      return
+    }
+    btn.disabled = true
+    const { error } = await supabase.from('tournaments').delete().eq('id', torneo.id)
+    if (error) {
+      btn.disabled = false
+      btn.dataset.confirmar = ''
+      btn.textContent = 'Borrar torneo'
+      avisarError(error, 'No se ha podido borrar')
+      return
+    }
+    // El aviso se da en la lista, que es adonde va a parar: la ficha que
+    // lo mostraría ya no existe.
+    sessionStorage.setItem('torneo-borrado', torneo.name)
+    location.href = '/torneos'
   })
 }
 

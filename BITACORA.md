@@ -12,6 +12,29 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-27 — PINGU-Claude (tanda 222 — borrar un torneo)
+**Hecho**: lo pidió PINGU: se pueden borrar torneos, y solo pueden el
+admin del sitio o quien creó ese torneo. La regla vive en la BASE
+(política `torneos_borrar`), no en el botón. Con ella va la pieza que
+se olvida siempre: para borrar con un `where`, Postgres aplica también
+la política de SELECT al filtro, así que sin poder leer la fila el
+dueño no-admin se comía un `DELETE 0` mudo — de ahí
+`torneos_ver_los_mios`, y en la migración del lanzamiento `torneos_leer`
+pasa a incluir `admin_id = auth.uid()` (para que vea hasta su propio
+borrador). En la ficha, botón «Borrar torneo» el último y aparte, a dos
+toques, y el segundo dice a cuánta gente afecta. Al borrar te devuelve a
+/torneos, que es donde cabe el aviso. El hilo del foro NO se borra: es
+de la comunidad.
+**Ficheros**: supabase-migration-torneos.sql,
+supabase-migration-torneos-publico.sql, js/torneos/comun.js,
+js/torneos/torneo.js, js/torneos/torneos.js, css/torneos.css, SCHEMA.md.
+**En curso / pendiente**: PINGU tiene que re-ejecutar
+supabase-migration-torneos.sql para que las dos políticas nuevas
+existan — hasta entonces el botón sale pero la base lo rechazará para
+quien no sea admin. Probado contra Postgres 16 de verdad (los cuatro
+casos y la cascada, y repetido con la RLS del lanzamiento puesta), más
+test-torneos-16.mjs y rigor de 12 roturas, todas detectadas.
+
 ## 2026-08-27 — PINGU-Claude (tanda 221 — repaso de interfaz en móvil)
 **Hecho**: sobre las 219 y 220 de IBAI (fusionadas sin conflicto). PINGU
 abrió la ficha en su teléfono: botones que no entraban en el ancho, los

@@ -280,6 +280,36 @@ begin
   end loop;
 end $$;
 
+-- ── Borrar un torneo (tanda 222) ───────────────────────────────────
+-- Lo pidió PINGU: que se pueda borrar, pero SOLO el admin del sitio o
+-- quien creó ese torneo (`admin_id`). La regla vive aquí, en la base,
+-- y no solo en el botón: una política aparte para el DELETE que se
+-- suma a la de arriba. Hoy, con los torneos en pruebas, la de arriba
+-- ya deja a cualquier admin; ésta es la que sobrevive al lanzamiento y
+-- la que impide que un tercero borre el torneo de otro.
+--
+-- No hace falta borrar nada más a mano: inscripciones, rondas, mesas,
+-- resultados, decklists, jueces y mensajes cuelgan del torneo con
+-- `on delete cascade`, y `current_round_id` es `on delete set null`,
+-- así que no hay ciclo que trabe el borrado.
+drop policy if exists torneos_borrar on public.tournaments;
+create policy torneos_borrar on public.tournaments
+  for delete
+  using (
+    admin_id = auth.uid()
+    or exists (select 1 from public.user_profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+-- Y la pieza que se olvida siempre: para borrar con un `where`, Postgres
+-- exige además poder LEER la fila (la política de SELECT se aplica al
+-- filtro). Sin esto, quien creó el torneo sin ser admin del sitio se
+-- encontraba un `DELETE 0` sin error ninguno — lo peor de los dos
+-- mundos. Comprobado contra Postgres 16, no de memoria.
+drop policy if exists torneos_ver_los_mios on public.tournaments;
+create policy torneos_ver_los_mios on public.tournaments
+  for select
+  using (admin_id = auth.uid());
+
 
 -- ── Logros de torneos (tanda 208) ─────────────────────────────────
 -- Condición `manual`: no los concede el comprobador automático de

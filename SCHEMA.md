@@ -10636,3 +10636,43 @@ caza contando las líneas REALES del texto con `Range.getClientRects()`
 (la altura de la caja engaña: un botón con relleno parece tres líneas).
 Probado con test-torneos-15.mjs (50 comprobaciones) y
 rigor-torneos-15.py (12 roturas, todas detectadas).
+
+## Tanda 222 — borrar un torneo (agosto 2026)
+
+Lo pidió PINGU: que se pueda borrar un torneo, y que solo puedan el
+admin del sitio o quien lo creó.
+
+- **La regla vive en la base**, no en el botón: una política aparte,
+  `torneos_borrar` (`for delete using admin_id = auth.uid() or es
+  admin`), que se suma a la del candado de pruebas y sobrevive al
+  lanzamiento. Esconder un botón no protege nada.
+- **La pieza que se olvida siempre**: para borrar con un `where`,
+  Postgres aplica también la política de SELECT al filtro. Sin poder
+  LEER la fila, quien creó el torneo sin ser admin se encontraba un
+  `DELETE 0` sin error ninguno — lo peor de los dos mundos. Va con su
+  política `torneos_ver_los_mios` (y en la migración del lanzamiento,
+  `torneos_leer` incluye ahora `admin_id = auth.uid()`, para que el
+  dueño vea hasta su propio BORRADOR).
+- **En cascada, sin barrer a mano**: inscripciones, rondas, mesas,
+  resultados, decklists, jueces y mensajes cuelgan del torneo con `on
+  delete cascade`, y `current_round_id` es `on delete set null`, así
+  que no hay ciclo que trabe el borrado. Comprobado, no supuesto.
+- **En la interfaz**: botón «Borrar torneo», el último y aparte del
+  resto (no es un paso del ciclo, es el que no tiene vuelta). Dos
+  toques, y el segundo dice a cuánta gente afecta —«¿Seguro? Se borra
+  con sus 8 inscritos»—, que no es lo mismo borrar un torneo vacío. Al
+  borrar te devuelve a /torneos, que es donde se puede dar el aviso: la
+  página que lo diría ya no existe.
+- **Qué NO se borra**: el hilo del foro, si lo hubo. Es de la
+  comunidad y se queda donde estaba.
+
+`puedeBorrarTorneo(perfil, torneo, userId)` vive en comun.js (sin DOM)
+para poder probarse sola en Node y no a través de una pantalla.
+
+Probado con test-torneos-16.mjs (22 comprobaciones),
+rigor-torneos-16.py (12 roturas, todas detectadas) y —lo que de verdad
+importa aquí— las políticas contra un **Postgres 16 de verdad**: un
+tercero no puede, el dueño sí aunque no sea admin, el admin puede con
+el de cualquiera, sin sesión no se borra nada, y los hijos se van en
+cascada. Repetido con la RLS del lanzamiento puesta, incluido el caso
+del borrador propio.

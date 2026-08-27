@@ -210,6 +210,36 @@
 }
 :root[data-theme='dark'] .torneo-ocupacion-relleno { background: #7db6dd; }
 
+/* «Borrar torneo» (tanda 222): NO es un botón más de la fila. Se pinta
+   apagado y en rojo solo al pasar por encima o al pedir confirmación,
+   para que se distinga del resto del ciclo del torneo sin gritar. */
+.torneo-borrar {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.torneo-borrar:hover,
+.torneo-borrar[data-confirmar='1'] {
+  border-color: #c0392b;
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+}
+:root[data-theme='dark'] .torneo-borrar:hover,
+:root[data-theme='dark'] .torneo-borrar[data-confirmar='1'] {
+  border-color: #e07d72;
+  color: #e07d72;
+}
+.torneo-borrar[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .torneo-estado {
   font-size: 12px;
   font-weight: 700;

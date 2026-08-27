@@ -163,11 +163,21 @@ end $$;
 -- Lo público del torneo: cualquiera con sesión lo lee (los borradores,
 -- solo los admins); escribe solo el admin.
 drop policy if exists torneos_leer on public.tournaments;
+-- El `admin_id = auth.uid()` no es un adorno: quien creó el torneo tiene
+-- que ver hasta su propio BORRADOR (si no, no puede ni abrirlo ni
+-- borrarlo — para borrar con un `where`, Postgres pide poder leer la
+-- fila).
 create policy torneos_leer on public.tournaments for select
-  using (auth.uid() is not null and (status <> 'draft' or torneos_soy_admin()));
+  using (auth.uid() is not null and (status <> 'draft' or admin_id = auth.uid() or torneos_soy_admin()));
 drop policy if exists torneos_escribir on public.tournaments;
 create policy torneos_escribir on public.tournaments for all
   using (torneos_soy_admin()) with check (torneos_soy_admin());
+-- Borrar (tanda 222): además del admin del sitio, quien creó el torneo.
+-- Va aparte de `torneos_escribir` a propósito: el resto de escrituras
+-- (abrir inscripciones, generar pareos) siguen siendo del admin.
+drop policy if exists torneos_borrar on public.tournaments;
+create policy torneos_borrar on public.tournaments for delete
+  using (admin_id = auth.uid() or torneos_soy_admin());
 
 do $$
 declare t text;

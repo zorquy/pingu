@@ -73,3 +73,17 @@ export function nombreDeSetLive(codigo) {
 // siembra supabase-migration-cartas-marcas.sql) para poder cambiarlo
 // sin desplegar; esto es el respaldo si la clave no existe.
 export const MARCAS_LEGALES_DEFECTO = ['H', 'I', 'J']
+
+// ── Quién puede borrar un torneo (tanda 222, pedido por PINGU) ──
+// El admin del sitio o quien lo creó. Vive AQUÍ, en el módulo sin DOM,
+// por dos motivos: la usan la ficha y la lista, y así se puede probar
+// sola en Node en vez de a través de una pantalla.
+//
+// Ojo con lo que esta función es y lo que no: decide si se PINTA el
+// botón. Lo que de verdad impide borrar el torneo de otro es la
+// política `torneos_borrar` de la base — esconder un botón no protege
+// nada. Las dos dicen lo mismo a propósito.
+export function puedeBorrarTorneo(perfil, torneo, userId) {
+  if (perfil?.is_admin) return true
+  return Boolean(userId && torneo?.admin_id && torneo.admin_id === userId)
+}
