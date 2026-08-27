@@ -1065,3 +1065,110 @@
   padding: 4px 10px;
   font-size: 12px;
 }
+
+/* ── Tanda 219: liga por jornadas, dos pasos y listas a la vista ── */
+
+/* Las fechas de las jornadas en el wizard. */
+.torneo-jornadas-campos {
+  margin-top: 12px;
+  padding: 10px 14px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.torneo-jornadas-campos legend { font-weight: 700; font-size: 13.5px; padding: 0 6px; }
+.torneo-jornada-campo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.torneo-jornada-campo input { flex: 1; }
+
+/* El checkbox de listas visibles, con su letra pequeña al lado. */
+.torneo-check-campo {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 14px;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.torneo-check-campo input { margin-top: 3px; }
+
+/* El calendario de la liga en la ficha: una chapa por jornada. */
+.torneo-jornadas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 4px;
+}
+.torneo-jornada-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  font-size: 12.5px;
+  color: var(--text-mid);
+}
+
+/* Los dos pasos tras inscribirse: el aviso ámbar y la lista con marcas. */
+.torneo-pasos {
+  margin: 10px 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(242, 178, 62, 0.45);
+  background: rgba(242, 178, 62, 0.1);
+  border-radius: var(--radius-md);
+}
+.torneo-pasos-aviso { margin: 0 0 8px; font-size: 13.5px; }
+.torneo-pasos-aviso svg { vertical-align: -3px; }
+.torneo-pasos-lista {
+  margin: 0;
+  padding-left: 4px;
+  list-style: none;
+  counter-reset: paso;
+}
+.torneo-pasos-lista li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 13.5px;
+  counter-increment: paso;
+}
+.torneo-pasos-lista li .torneo-paso-marca::before { content: counter(paso) '.'; font-weight: 700; }
+.torneo-pasos-lista li.hecho .torneo-paso-marca::before { content: ''; }
+.torneo-pasos-lista li.hecho { color: var(--text-dim); }
+.torneo-pasos-lista li.hecho .torneo-paso-marca svg { color: #3d8434; vertical-align: -3px; }
+.torneo-boton-confirmar { margin-left: 6px; padding: 4px 12px; font-size: 13px; }
+.torneo-pasos-listo {
+  margin: 10px 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(74, 158, 63, 0.4);
+  background: rgba(74, 158, 63, 0.1);
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+}
+.torneo-pasos-listo svg { color: #3d8434; vertical-align: -3px; }
+
+/* Exportar una decklist: los dos botones en fila, discretos. */
+.torneo-exportar {
+  display: inline-flex;
+  gap: 8px;
+  margin: 6px 0 10px;
+}
+.torneo-exportar button { padding: 4px 12px; font-size: 12.5px; }
+
+/* La lista de un rival bajo la clasificación y sus botones «Ver lista». */
+.torneo-ver-lista { padding: 3px 10px; font-size: 12px; white-space: nowrap; }
+.torneo-clasif-chips { margin: 10px 0; }
+.torneo-lista-rival {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px 14px;
+}
+.torneo-lista-rival .torneo-decklist-fila { border-bottom: 0; padding-bottom: 0; }

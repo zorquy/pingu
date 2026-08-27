@@ -117,6 +117,32 @@ alter table public.tournament_registrations
   check (status in ('active', 'dropped', 'waitlisted'));
 
 
+-- Tanda 219 (IBAI) — tres cosas que viajan juntas:
+--  · formato LIGA: jornadas con fecha propia (matchday_dates, un array
+--    JSON de fechas ISO, índice = jornada − 1) además del suizo normal;
+--  · listas visibles: el organizador decide si los jugadores pueden ver
+--    las decklists de sus rivales desde la clasificación;
+--  · inscripción en DOS pasos: tras apuntarse hay que entregar la lista
+--    Y confirmar la participación — quien no complete ambos antes de
+--    generarse la R1 queda fuera del pareo (no juega el torneo).
+alter table public.tournaments
+  add column if not exists format text not null default 'standard';
+alter table public.tournaments
+  drop constraint if exists tournaments_format_check;
+alter table public.tournaments
+  add constraint tournaments_format_check check (format in ('standard', 'league'));
+alter table public.tournaments
+  add column if not exists matchday_dates jsonb;
+alter table public.tournaments
+  add column if not exists show_opponent_decklists boolean not null default false;
+alter table public.tournament_registrations
+  add column if not exists participation_confirmed_at timestamptz;
+-- Las inscripciones anteriores a la tanda no conocían el paso 2: se dan
+-- por confirmadas para no expulsar a nadie de un torneo ya en marcha.
+update public.tournament_registrations
+  set participation_confirmed_at = registered_at
+  where status = 'active' and participation_confirmed_at is null;
+
 -- ── Solicitudes de juez ──
 create table if not exists public.judge_applications (
   id uuid primary key default gen_random_uuid(),

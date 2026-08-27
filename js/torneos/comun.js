@@ -16,10 +16,12 @@ export function fechaBonita(iso) {
   return f.toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
-// «4 suizas BO1 + top 8 BO3 · 30 min/ronda», con el corte fuera si no hay.
+// «4 suizas BO1 + top 8 BO3 · 30 min/ronda», con el corte fuera si no
+// hay. Una liga (tanda 219) habla de jornadas, que es lo que son.
 export function textoFormato(t) {
   const corte = t.top_cut_size ? ` + top ${t.top_cut_size} BO${t.top_cut_bo}` : ''
-  return `${t.swiss_rounds} suizas BO${t.swiss_bo}${corte} · ${t.round_time_minutes} min/ronda`
+  const base = t.format === 'league' ? `liga de ${t.swiss_rounds} jornadas BO${t.swiss_bo}` : `${t.swiss_rounds} suizas BO${t.swiss_bo}`
+  return `${base}${corte} · ${t.round_time_minutes} min/ronda`
 }
 
 // El código de set del export (OBF, SVI…) es el de TCG Live; el espejo

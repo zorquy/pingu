@@ -15,6 +15,7 @@ import { montarJueces } from './jueces.js'
 import { getAllAchievements, addXP } from '../gamification.js'
 import { urlTema } from '../foro-comun.js'
 import { pintarDecklistVisual } from './cartas-decklist.js'
+import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 
 let session = null
 let perfil = null
@@ -96,15 +97,28 @@ function pintarFicha() {
   desc.classList.toggle('hidden', !torneo.description)
   desc.textContent = torneo.description || ''
 
-  // La caja «Formato» del original: cada dato con su icono.
+  // La caja «Formato» del original: cada dato con su icono. Una liga
+  // (tanda 219) habla de jornadas y enseña su calendario debajo.
+  const esLiga = torneo.format === 'league'
   $('torneoFormato').innerHTML = [
-    [icons.layers(18), 'Rondas suizas', `${torneo.swiss_rounds} · BO${torneo.swiss_bo}`],
+    [icons.layers(18), esLiga ? 'Jornadas' : 'Rondas suizas', `${torneo.swiss_rounds} · BO${torneo.swiss_bo}`],
     [icons.trophy(18), 'Top cut', torneo.top_cut_size ? `Top ${torneo.top_cut_size} · BO${torneo.top_cut_bo}` : 'Sin corte'],
     [icons.clock(18), 'Tiempo por ronda', `${torneo.round_time_minutes} min`],
     [icons.checkCircle(18), 'Check-in', `${torneo.checkin_minutes} min`],
   ]
     .map(([icono, dt, dd]) => `<div class="torneo-formato-dato">${icono}<div><dt>${dt}</dt><dd>${escapeHtml(dd)}</dd></div></div>`)
     .join('')
+  // El calendario de la liga: una chapa por jornada con su fecha.
+  document.getElementById('torneoJornadas')?.remove()
+  const jornadas = Array.isArray(torneo.matchday_dates) ? torneo.matchday_dates : []
+  if (esLiga && jornadas.length) {
+    $('torneoFormato').insertAdjacentHTML(
+      'afterend',
+      `<div class="torneo-jornadas" id="torneoJornadas">${jornadas
+        .map((f, i) => `<span class="torneo-jornada-chip">${icons.calendar(14)} J${i + 1} · ${escapeHtml(fechaBonita(f))}</span>`)
+        .join('')}</div>`
+    )
+  }
 
   const ocupadas = activos()
   $('torneoPlazasTexto').textContent = `${ocupadas} de ${torneo.max_players} plazas`
@@ -433,13 +447,77 @@ async function cambiarEstado(nuevo, mensaje) {
 
 // ── Tu plaza ──
 
+// ── La inscripción en dos pasos (tanda 219) ──
+// Apuntarse NO basta: hay que entregar la decklist Y confirmar la
+// participación. Quien no complete ambos antes de generarse la R1 se
+// queda fuera del pareo (lo aplica generarPareos en ronda.js). El campo
+// participation_confirmed_at puede no existir aún (migración pendiente):
+// en ese caso el checklist ni se enseña, para no prometer un botón que
+// fallaría al guardar.
+function hayColumnaConfirmacion() {
+  return miInscripcion !== null && 'participation_confirmed_at' in miInscripcion
+}
+
+function checklistDosPasos() {
+  if (!hayColumnaConfirmacion()) return ''
+  // Con la R1 ya generada el tren pasó: o estás dentro o estás fuera.
+  if (!['draft', 'registration_open', 'registration_closed'].includes(torneo.status)) return ''
+  const listaHecha = !!miDecklist
+  const confirmado = !!miInscripcion.participation_confirmed_at
+  if (listaHecha && confirmado) {
+    return `<p class="torneo-pasos-listo">${icons.checkCircle(16)} <strong>Todo listo:</strong> decklist entregada y participación confirmada. Entrarás en el pareo de la primera ronda.</p>`
+  }
+  const paso = (hecho, texto, extra = '') => `
+    <li class="${hecho ? 'hecho' : ''}">
+      <span class="torneo-paso-marca">${hecho ? icons.checkCircle(16) : ''}</span>
+      <span>${texto}${extra}</span>
+    </li>`
+  return `
+    <div class="torneo-pasos">
+      <p class="torneo-pasos-aviso">${icons.triangleAlert(16)} <strong>Te ${listaHecha || confirmado ? 'queda 1 paso' : 'quedan 2 pasos'}:</strong>
+      si no entregas tu decklist y confirmas tu participación antes de que se genere la
+      primera ronda, <strong>no serás emparejado y no jugarás el torneo</strong>.</p>
+      <ol class="torneo-pasos-lista">
+        ${paso(listaHecha, '<strong>Entrega tu decklist</strong>', listaHecha ? '' : ' — en la pestaña «Jugar», caja «Tu decklist».')}
+        ${paso(
+          confirmado,
+          '<strong>Confirma tu participación</strong>',
+          confirmado
+            ? ''
+            : listaHecha
+              ? ' <button class="btn-primary torneo-boton-confirmar" id="btnConfirmarParticipacion">Confirmar mi participación</button>'
+              : ' — se desbloquea al entregar la lista.'
+        )}
+      </ol>
+    </div>`
+}
+
+function engancharConfirmarParticipacion() {
+  const btn = $('btnConfirmarParticipacion')
+  if (!btn) return
+  btn.addEventListener('click', async () => {
+    const { error } = await supabase
+      .from('tournament_registrations')
+      .update({ participation_confirmed_at: new Date().toISOString() })
+      .eq('id', miInscripcion.id)
+    if (error) {
+      avisarError(error, 'No se ha podido confirmar')
+      return
+    }
+    showToast('Participación confirmada: entrarás en el pareo de la primera ronda.', 'success')
+    await recargar()
+  })
+}
+
 function pintarMiPlaza() {
   const caja = $('miPlazaContenido')
 
   if (miInscripcion?.status === 'active') {
     caja.innerHTML = `
       <p>Estás inscrito como <strong>${escapeHtml(miInscripcion.tcg_live_username)}</strong> (tu usuario de TCG Live).</p>
+      ${checklistDosPasos()}
       <button class="btn-secondary" id="btnBaja">Darme de baja</button>`
+    engancharConfirmarParticipacion()
     engancharBaja()
     return
   }
@@ -542,7 +620,7 @@ function engancharInscripcion(aLaCola = false) {
     showToast(
       estado === 'waitlisted'
         ? 'Estás en la lista de espera: si se libera una plaza, te avisamos.'
-        : '¡Inscrito! Recuerda entregar tu decklist antes de que empiece.',
+        : '¡Inscrito! Ahora te quedan 2 pasos: entrega tu decklist y confirma tu participación (mira «Tu plaza»).',
       'success'
     )
     await recargar()
@@ -601,8 +679,10 @@ function pintarDecklist() {
   const sellada = miDecklist?.locked_at
     ? `<span class="torneo-decklist-sellada">${icons.lock(14)} Sellada — ya no se puede cambiar</span>`
     : ''
+  // Con lista entregada, los botones de exportar (tanda 219): copiar el
+  // texto y bajarla como imagen.
   const estadoEntrega = miDecklist
-    ? `<p class="subtext">Entregada el ${fechaBonita(miDecklist.submitted_at)} · ${resumenDecklist(miDecklist.parsed_cards)} ${sellada}</p>`
+    ? `<p class="subtext">Entregada el ${fechaBonita(miDecklist.submitted_at)} · ${resumenDecklist(miDecklist.parsed_cards)} ${sellada}</p>${botonesExportarHtml()}`
     : '<p class="subtext">Todavía no has entregado ninguna lista.</p>'
 
   // La lista entregada se ve con sus CARTAS; el texto queda debajo, en
@@ -621,6 +701,13 @@ function pintarDecklist() {
       ${editable ? '<button class="btn-primary" id="btnGuardarDecklist">Guardar decklist</button>' : ''}
     </details>`
   if (editable) engancharDecklist()
+  if (miDecklist) {
+    engancharExportar($('decklistContenido'), {
+      nombre: perfil.username || 'Mi decklist',
+      rawText: miDecklist.raw_text,
+      parsed: miDecklist.parsed_cards,
+    })
+  }
   if (miDecklist?.parsed_cards) pintarDecklistVisual($('decklistVisual'), miDecklist.parsed_cards)
 }
 
@@ -683,7 +770,18 @@ function engancharDecklist() {
       avisarError(error, 'No se ha podido guardar la decklist')
       return
     }
-    showToast('Decklist guardada.', 'success')
+    // El recordatorio del paso 2 (tanda 219), justo cuando toca: la
+    // lista ya está y solo falta confirmar en «Tu plaza».
+    const faltaConfirmar =
+      hayColumnaConfirmacion() &&
+      !miInscripcion.participation_confirmed_at &&
+      ['draft', 'registration_open', 'registration_closed'].includes(torneo.status)
+    showToast(
+      faltaConfirmar
+        ? 'Decklist guardada. Paso 2: confirma tu participación en «Tu plaza» o no entrarás en el pareo.'
+        : 'Decklist guardada.',
+      'success'
+    )
     await recargar()
   })
 }
@@ -706,6 +804,12 @@ function pintarInscritos() {
       const decklist = perfil.is_admin
         ? `<span class="torneo-decklist-marca ${entregadaPor.has(i.user_id) ? 'entregada' : ''}">${entregadaPor.has(i.user_id) ? 'decklist entregada' : 'sin decklist'}</span>`
         : ''
+      // Y el paso 2 (tanda 219), también solo para el organizador: sin
+      // confirmar antes de la R1, ese jugador no entra en el pareo.
+      const confirmado =
+        perfil.is_admin && i.status === 'active' && 'participation_confirmed_at' in i && !['in_progress', 'finished', 'cancelled'].includes(torneo.status)
+          ? `<span class="torneo-decklist-marca ${i.participation_confirmed_at ? 'entregada' : ''}">${i.participation_confirmed_at ? 'confirmado' : 'sin confirmar'}</span>`
+          : ''
       // El organizador puede expulsar (misma mecánica que la baja: la
       // plaza no se libera y su ronda en curso cuenta) — a cualquiera
       // menos a sí mismo, que para eso está «Darme de baja».
@@ -717,7 +821,7 @@ function pintarInscritos() {
       <div class="torneo-inscrito">
         <span class="torneo-inscrito-nombre"><a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(nombre)}</a>${retirado}</span>
         <span class="subtext">TCG Live: ${escapeHtml(i.tcg_live_username)}</span>
-        ${decklist}${expulsar}
+        ${decklist}${confirmado}${expulsar}
       </div>`
     })
     .join('')

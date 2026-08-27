@@ -21,6 +21,8 @@ import {
   seedTopCut,
   advanceTopCut,
 } from './motor.js'
+import { pintarDecklistVisual } from './cartas-decklist.js'
+import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 
 let ctx = null // { torneo, session, perfil, inscripciones, recargarFicha }
 let rondas = []
@@ -171,6 +173,34 @@ async function crearBye(rondaId, mesa, jugadorId, { bracket = null } = {}) {
   }
 }
 
+// La inscripción en dos pasos (tanda 219): apuntarse no basta — hay que
+// entregar la decklist Y confirmar la participación. Al generar la R1,
+// quien no completó ambos queda retirado SIN ronda jugada (ni mesa ni
+// bye: directamente no juega el torneo). Se hace aquí y no antes para
+// que cualquier rezagado tenga hasta el último minuto.
+// Si la columna del paso 2 aún no existe (migración pendiente), no se
+// echa a nadie: sin regla anunciada no hay castigo.
+async function retirarNoConfirmados() {
+  const activos = ctx.inscripciones.filter((i) => i.status === 'active')
+  if (!activos.length || !('participation_confirmed_at' in activos[0])) return []
+  const { data: listas } = await supabase
+    .from('tournament_decklists')
+    .select('user_id')
+    .eq('tournament_id', ctx.torneo.id)
+  const conLista = new Set((listas || []).map((d) => d.user_id))
+  const fuera = activos.filter((i) => !conLista.has(i.user_id) || !i.participation_confirmed_at)
+  for (const i of fuera) {
+    const { error } = await supabase
+      .from('tournament_registrations')
+      .update({ status: 'dropped', dropped_at: ahora(), dropped_after_round_id: null })
+      .eq('id', i.id)
+    // El estado local se parchea a mano: el snapshot que se monta justo
+    // después ya no debe sentarlos.
+    if (!error) i.status = 'dropped'
+  }
+  return fuera
+}
+
 async function generarPareos() {
   if (rondaActual()) {
     showToast('Ya hay una ronda en marcha: ciérrala antes de generar la siguiente.', 'error')
@@ -180,6 +210,24 @@ async function generarPareos() {
   if (n > ctx.torneo.swiss_rounds) {
     showToast('Las suizas están completas. La siembra del top cut llega en la próxima tanda.', 'error')
     return
+  }
+
+  if (n === 1) {
+    const fuera = await retirarNoConfirmados()
+    if (fuera.length) {
+      showToast(
+        `Fuera de la R1 por no completar los dos pasos (decklist + confirmación): ${fuera
+          .map((i) => nombreDe(i.user_id))
+          .join(', ')}.`,
+        'info'
+      )
+    }
+    const sentables = ctx.inscripciones.filter((i) => i.status === 'active').length
+    if (sentables < 2) {
+      showToast('No quedan suficientes jugadores confirmados para parear la primera ronda.', 'error')
+      await ctx.recargarFicha()
+      return
+    }
   }
 
   const snapshot = montarSnapshot(n)
@@ -873,6 +921,64 @@ function pintarMiPartida() {
   })
 }
 
+// ── La clasificación por jornada y las listas de los rivales (tanda 219) ──
+// En una LIGA, además de la general, cada jornada tiene su propia tabla:
+// los mismos puntos y desempates, pero contando solo las mesas de esa
+// ronda. Y si el organizador activó «listas a la vista», cada fila lleva
+// un «Ver lista» que abre la decklist del rival — solo con el torneo ya
+// en juego, que las listas se sellan al arrancar la R1.
+let vistaClasificacion = 'general' // 'general' o el número de una jornada
+let listaRivalAbierta = null // user_id de la decklist desplegada bajo la tabla
+const listasRivales = new Map() // user_id → fila de tournament_decklists (o null)
+
+function jornadasConPuntos() {
+  return rondas
+    .filter((r) => r.phase === 'swiss' && partidas.some((m) => m.round_id === r.id && TERMINALES.has(m.status)))
+    .map((r) => r.round_number)
+}
+
+function puedenVerseLasListas() {
+  return ctx.torneo.show_opponent_decklists === true && ['in_progress', 'finished'].includes(ctx.torneo.status)
+}
+
+async function abrirListaRival(userId) {
+  const hueco = $('clasificacionListaRival')
+  if (!hueco) return
+  if (!listasRivales.has(userId)) {
+    const { data } = await supabase
+      .from('tournament_decklists')
+      .select('*')
+      .eq('tournament_id', ctx.torneo.id)
+      .eq('user_id', userId)
+      .maybeSingle()
+    listasRivales.set(userId, data || null)
+  }
+  const lista = listasRivales.get(userId)
+  if (!lista) {
+    listaRivalAbierta = null
+    hueco.innerHTML = ''
+    showToast('Ese jugador no tiene lista entregada.', 'info')
+    return
+  }
+  const p = lista.parsed_cards || {}
+  hueco.innerHTML = `
+    <div class="torneo-decklist-detalle torneo-lista-rival">
+      <div class="torneo-decklist-fila">
+        <span><strong>Lista de ${escapeHtml(nombreDe(userId))}</strong> — ${p.total ?? '?'} cartas</span>
+        <button class="btn-secondary" id="btnCerrarListaRival">Cerrar</button>
+      </div>
+      ${botonesExportarHtml()}
+      <div class="torneo-decklist-visual" id="listaRivalCartas"></div>
+      <pre class="torneo-decklist-cruda">${escapeHtml(lista.raw_text || '')}</pre>
+    </div>`
+  $('btnCerrarListaRival').addEventListener('click', () => {
+    listaRivalAbierta = null
+    hueco.innerHTML = ''
+  })
+  engancharExportar(hueco, { nombre: nombreDe(userId), rawText: lista.raw_text, parsed: p })
+  if (p.pokemon || p.trainer || p.energy) await pintarDecklistVisual($('listaRivalCartas'), p)
+}
+
 function pintarClasificacion() {
   const caja = $('torneoClasificacionCaja')
   const hayPuntos = partidas.some((m) => TERMINALES.has(m.status))
@@ -881,18 +987,45 @@ function pintarClasificacion() {
     return
   }
   caja.classList.remove('hidden')
-  const tabla = computeStandings(montarSnapshot(rondas.length))
+
+  // Las pestañitas de una liga: General + una por jornada con puntos.
+  const jornadas = ctx.torneo.format === 'league' ? jornadasConPuntos() : []
+  if (vistaClasificacion !== 'general' && !jornadas.includes(vistaClasificacion)) vistaClasificacion = 'general'
+  const chips = jornadas.length
+    ? `<div class="torneo-rondas-chips torneo-clasif-chips">
+        <button class="torneo-ronda-chip ${vistaClasificacion === 'general' ? 'activa' : ''}" data-ver-clasif="general">General</button>
+        ${jornadas
+          .map(
+            (n) =>
+              `<button class="torneo-ronda-chip ${vistaClasificacion === n ? 'activa' : ''}" data-ver-clasif="${n}">Jornada ${n}</button>`
+          )
+          .join('')}
+      </div>`
+    : ''
+
+  // La tabla de una jornada nace del MISMO snapshot, quedándose solo con
+  // las mesas de esa ronda; y solo lista a quien jugó en ella.
+  const general = vistaClasificacion === 'general'
+  const snapshot = montarSnapshot(rondas.length)
+  if (!general) snapshot.matches = snapshot.matches.filter((m) => m.roundNumber === vistaClasificacion)
+  let tabla = computeStandings(snapshot)
+  if (!general) tabla = tabla.filter((e) => e.gamesPlayed > 0)
+
+  const verListas = puedenVerseLasListas()
   const corte = ctx.torneo.top_cut_size || 0
   const filas = tabla
     .map((e, i) => {
       const insc = ctx.inscripciones.find((x) => x.user_id === e.playerId)
       const retirado = insc?.status === 'dropped' ? ' <span class="torneo-retirado">(retirado)</span>' : ''
       // Como en el original: mientras hay corte configurado, las plazas
-      // que clasifican van marcadas.
+      // que clasifican van marcadas (solo tiene sentido en la general).
       const dentro =
-        corte > 0 && i + 1 <= corte && insc?.status !== 'dropped'
+        general && corte > 0 && i + 1 <= corte && insc?.status !== 'dropped'
           ? ` <span class="torneo-marca-top">Top ${corte}</span>`
           : ''
+      const verLista = verListas
+        ? `<td><button class="btn-secondary torneo-ver-lista" data-ver-lista="${escapeHtml(e.playerId)}">Ver lista</button></td>`
+        : ''
       return `
       <tr>
         <td>${i + 1}</td>
@@ -902,16 +1035,20 @@ function pintarClasificacion() {
         <td>${e.wins}-${e.losses}-${e.draws}${e.byesReceived ? ` (+${e.byesReceived} bye)` : ''}</td>
         <td>${(e.owp * 100).toFixed(2)} %</td>
         <td>${(e.oowp * 100).toFixed(2)} %</td>
+        ${verLista}
       </tr>`
     })
     .join('')
   const campeon = campeonDelTorneo()
   // El podio del final (tanda 217): el campeón grande en el centro y a
   // los lados quienes le acompañaron. Sustituye a la línea de texto de
-  // antes — un torneo se acaba con una foto, no con un aviso.
+  // antes — un torneo se acaba con una foto, no con un aviso. En la
+  // vista de una jornada no pinta nada: esa foto es de la general.
   const podio = podioDelTorneo()
   const PUESTOS = ['Campeón', 'Finalista', 'Semifinalista', 'Semifinalista']
-  const banner = podio.length
+  const banner = !general
+    ? ''
+    : podio.length
     ? `<div class="torneo-podio">
         ${podio
           .map(
@@ -929,14 +1066,17 @@ function pintarClasificacion() {
       : ''
   $('clasificacionContenido').innerHTML = `
     ${banner}
-    ${bracketHtml()}
+    ${general ? bracketHtml() : ''}
+    ${chips}
+    ${general ? '' : `<p class="subtext">Solo cuentan las mesas de la jornada ${vistaClasificacion}.</p>`}
     <div class="torneo-clasificacion-tabla">
       <table>
-        <thead><tr><th>#</th><th>Jugador</th><th>TCG Live</th><th>Puntos</th><th>V-D-E</th><th>OWP</th><th>OOWP</th></tr></thead>
+        <thead><tr><th>#</th><th>Jugador</th><th>TCG Live</th><th>Puntos</th><th>V-D-E</th><th>OWP</th><th>OOWP</th>${verListas ? '<th></th>' : ''}</tr></thead>
         <tbody>${filas}</tbody>
       </table>
     </div>
-    ${corte > 0 && !rondas.some((r) => r.phase === 'top_cut') ? `<p class="subtext torneo-nota-corte">Las plazas marcadas con «Top ${corte}» clasifican al corte.</p>` : ''}
+    <div id="clasificacionListaRival"></div>
+    ${general && corte > 0 && !rondas.some((r) => r.phase === 'top_cut') ? `<p class="subtext torneo-nota-corte">Las plazas marcadas con «Top ${corte}» clasifican al corte.</p>` : ''}
     <details class="torneo-desempates">
       <summary>¿Cómo se desempata?</summary>
       <p>Con los mismos puntos, manda quién ha tenido rivales más duros —
@@ -951,6 +1091,24 @@ function pintarClasificacion() {
       <p class="subtext">Un jugador retirado sigue contando en el cálculo de
       quienes se enfrentaron a él, y los byes no cuentan como rival.</p>
     </details>`
+
+  // Las pestañitas y los «Ver lista», recién pintados: se enganchan aquí.
+  document.querySelectorAll('[data-ver-clasif]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const valor = b.dataset.verClasif
+      vistaClasificacion = valor === 'general' ? 'general' : Number(valor)
+      pintarClasificacion()
+    })
+  )
+  document.querySelectorAll('[data-ver-lista]').forEach((b) =>
+    b.addEventListener('click', () => {
+      listaRivalAbierta = b.dataset.verLista
+      void abrirListaRival(listaRivalAbierta)
+    })
+  )
+  // El refresco de cada 10 s repinta la caja entera: si había una lista
+  // de rival abierta, se vuelve a poner (la caché evita repedirla).
+  if (listaRivalAbierta && verListas) void abrirListaRival(listaRivalAbierta)
 }
 
 // El bracket del cut como en su clasificación: una columna por ronda

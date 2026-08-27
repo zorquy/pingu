@@ -80,11 +80,18 @@
       <!-- Paso 2: capacidad y formato -->
       <section data-paso="1" class="hidden">
         <p class="torneo-wizard-pista">Las rondas y el top cut se rellenan según la tabla oficial al cambiar las plazas — puedes retocarlos.</p>
+        <label class="torneos-form-campo">Tipo de torneo
+          <select id="torneoTipo">
+            <option value="standard" selected>Torneo de un día (suizas seguidas)</option>
+            <option value="league">Liga (una jornada por fecha)</option>
+          </select>
+          <span class="torneo-campo-pista">En la liga cada ronda es una jornada con su fecha, y la clasificación se puede ver en general o jornada a jornada.</span>
+        </label>
         <div class="torneos-form-rejilla">
           <label>Plazas
             <input type="number" id="torneoPlazas" min="4" max="256" value="16" />
           </label>
-          <label>Rondas suizas
+          <label id="torneoRondasEtiqueta">Rondas suizas
             <input type="number" id="torneoRondas" min="1" max="12" value="4" />
           </label>
           <label>Top cut
@@ -102,6 +109,17 @@
             <select id="torneoCorteBo"><option value="1">1</option><option value="3" selected>3</option></select>
           </label>
         </div>
+        <!-- Solo en formato liga: una fecha por jornada (torneos.js las
+             genera al cambiar el tipo o el número de rondas). -->
+        <fieldset class="torneo-jornadas-campos hidden" id="torneoJornadasCampos">
+          <legend>Fechas de las jornadas</legend>
+          <p class="torneo-campo-pista">Di qué día (y hora) se juega cada jornada, en orden.</p>
+          <div id="torneoJornadasLista"></div>
+        </fieldset>
+        <label class="torneo-check-campo">
+          <input type="checkbox" id="torneoListasRivales" />
+          <span><strong>Listas a la vista entre rivales.</strong> Los jugadores podrán ver las decklists de sus rivales desde la clasificación, una vez selladas al empezar la primera ronda.</span>
+        </label>
       </section>
 
       <!-- Paso 3: tiempos + resumen -->

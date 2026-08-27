@@ -12,6 +12,36 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-27 — IBAI-Claude (tanda 219 — liga por jornadas, dos pasos y listas a la vista)
+**Hecho**: las cuatro funciones que pidió Ibai. Formato LIGA en el
+wizard (selector de tipo + una fecha por jornada, validadas en orden,
+en `tournaments.matchday_dates` jsonb; la ficha enseña el calendario en
+chapas y «Duplicar» copia el tipo pero no las fechas); clasificación
+con pestañitas General + Jornada N (mismo snapshot del motor filtrado a
+las mesas de esa ronda; el motor NO se tocó); opción «listas a la vista
+entre rivales» (`show_opponent_decklists`): «Ver lista» en cada fila de
+la clasificación, solo con el torneo en juego/terminado (listas ya
+selladas); inscripción en DOS pasos (checklist ámbar en «Tu plaza»:
+entregar decklist + botón «Confirmar mi participación» →
+`participation_confirmed_at`, chapas confirmado/sin confirmar para el
+organizador) y al generar la R1 los activos sin lista o sin confirmar
+quedan retirados SIN jugar (ni mesa ni bye) con toast de nombres. Y
+exportar decklists: «Copiar lista» y «Descargar imagen» (PNG por canvas,
+sin librerías) en la lista propia, la de jueces y la del rival.
+**Ficheros**: js/torneos/decklist-export.js (nuevo), torneos.html,
+js/torneos/torneos.js, js/torneos/torneo.js, js/torneos/ronda.js,
+js/torneos/jueces.js, js/torneos/comun.js, css/torneos.css,
+supabase-migration-torneos.sql, SCHEMA.md.
+**En curso / pendiente**: PINGU re-ejecuta supabase-migration-torneos.sql
+(format + matchday_dates + show_opponent_decklists +
+participation_confirmed_at con backfill de las inscripciones activas).
+El código es defensivo hasta entonces (sin la columna del paso 2 no hay
+checklist ni castigo en la R1). Pido pasada de la suite de PINGU: en el
+entorno de IBAI los 63 tests que pasaban siguen pasando (los 7 rotos ya
+fallaban ANTES de la tanda — copia local desfasada). OJO lanzamiento
+público: la política de lectura de tournament_decklists tendrá que
+contemplar show_opponent_decklists.
+
 ## 2026-08-27 — PINGU-Claude (tanda 218 — espera, desempates, plantilla y calendario)
 **Hecho**: lista de espera de verdad (estado waitlisted; con el torneo
 lleno te encolas en vez de que te rechacen, ves tu puesto y la cola sale

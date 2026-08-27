@@ -10503,3 +10503,53 @@ en una base fresca todavía no existe donde estaba).
 
 Probado con test-torneos-14.mjs (18 comprobaciones) y
 rigor-torneos-14.py (8 roturas, todas detectadas).
+
+## Tanda 219 — liga por jornadas, dos pasos y listas a la vista (agosto 2026)
+
+Tanda de IBAI: cuatro funciones pedidas para la liga de la tienda.
+
+- **Formato LIGA**: el wizard estrena selector de tipo (torneo de un
+  día / liga). En una liga cada ronda suiza es una JORNADA con fecha
+  propia: los campos de fecha se generan según el número de rondas
+  (validadas en orden cronológico) y viajan en `tournaments.matchday_dates`
+  (jsonb, array de ISO, índice = jornada − 1 — sin tabla nueva: se
+  escriben una vez en el wizard y se leen enteras siempre). La ficha
+  enseña el calendario en chapas (J1 · fecha), la tarjeta y
+  `textoFormato()` hablan de jornadas, y «Duplicar» copia el tipo pero
+  NO las fechas (una liga nueva se juega en días nuevos).
+- **Clasificación por jornada**: en las ligas, la clasificación lleva
+  pestañitas General + Jornada N (solo jornadas con mesas terminadas).
+  La tabla de una jornada nace del MISMO snapshot del motor filtrado a
+  las mesas de esa ronda (mismos puntos y desempates) y solo lista a
+  quien jugó en ella; podio, bracket y marcas de top cut se quedan en
+  la general, que es de quien son. El motor no se tocó.
+- **Listas a la vista entre rivales** (`show_opponent_decklists`,
+  opción del wizard): si el organizador la marca, cada fila de la
+  clasificación lleva «Ver lista», que abre la decklist del rival bajo
+  la tabla (rejilla de cartas + texto + exportar). SOLO con el torneo
+  en juego o terminado: las listas se sellan al arrancar la R1 y nadie
+  espía una lista editable. OJO al abrir torneos al público: la
+  política de lectura de `tournament_decklists` del lanzamiento
+  (supabase-migration-torneos-publico.sql, de PINGU) tendrá que
+  contemplar este caso — hoy la RLS solo-admins ya lo cubre.
+- **Inscripción en DOS pasos**: apuntarse ya no basta. «Tu plaza»
+  enseña un checklist ámbar — paso 1 entregar la decklist, paso 2 el
+  botón «Confirmar mi participación» (`participation_confirmed_at`,
+  migración con backfill: las inscripciones de antes se dan por
+  confirmadas) — con el aviso en negrita de que sin ambos pasos NO
+  entras en el pareo. El toast de inscribirse y el de guardar la lista
+  lo recuerdan, y el organizador ve chapas «confirmado / sin
+  confirmar» en Inscritos. Al generar la R1, `generarPareos()` retira
+  (dropped, sin ronda jugada: ni mesa ni bye) a los activos sin lista
+  o sin confirmar y lo cuenta en un toast con nombres. DEFENSIVO: si la
+  columna del paso 2 no existe aún (migración sin pasar), ni checklist
+  ni castigo — sin regla anunciada no se echa a nadie.
+- **Exportar decklists** (js/torneos/decklist-export.js, nuevo):
+  «Copiar lista» (portapapeles, el texto tal cual para pegarlo en TCG
+  Live) y «Descargar imagen» (PNG dibujado a mano en un canvas a
+  escala 2, secciones y colores de la casa, sin librerías). Botones en
+  la decklist propia, en el detalle de jueces y en la lista del rival.
+
+La migración sigue re-ejecutable (el CHECK de `format` se tira y se
+vuelve a crear). El peso de la portada no se toca: todo vive en los
+ficheros de torneos.

@@ -35,7 +35,7 @@ function tarjetaHtml(t, ocupadas, extra = '') {
     <span class="torneo-fecha-bloque" aria-hidden="true"><strong>${fecha.getDate()}</strong><span>${escapeHtml(mes)}</span></span>
     <span class="torneo-texto">
       <strong>${escapeHtml(t.name)}</strong>
-      <span class="subtext">${fechaBonita(t.start_at)} · ${t.swiss_rounds} suizas${t.top_cut_size ? ` + top ${t.top_cut_size}` : ''}</span>
+      <span class="subtext">${fechaBonita(t.start_at)} · ${t.format === 'league' ? `liga de ${t.swiss_rounds} jornadas` : `${t.swiss_rounds} suizas`}${t.top_cut_size ? ` + top ${t.top_cut_size}` : ''}</span>
       <span class="torneo-ocupacion">
         <span class="torneo-ocupacion-barra"><span class="torneo-ocupacion-relleno" style="width:${porcentaje}%"></span></span>
         ${ocupadas}/${t.max_players} plazas
@@ -91,7 +91,7 @@ async function cargarLista(session) {
   const vacio = $('torneosVacio')
   const { data } = await supabase
     .from('tournaments')
-    .select('id, slug, name, status, start_at, max_players, swiss_rounds, top_cut_size')
+    .select('*')
     .order('start_at', { ascending: false })
     .limit(50)
   const torneos = data || []
@@ -163,6 +163,33 @@ function irAPaso(n) {
   if (n === PASOS_WIZARD.length - 1) pintarResumen()
 }
 
+// ── Las jornadas de una liga (tanda 219) ──
+// En formato liga cada ronda suiza es una JORNADA con fecha propia: los
+// campos se regeneran al cambiar el tipo o el número de rondas, sin
+// perder lo ya escrito.
+function esLigaElegida() {
+  return $('torneoTipo').value === 'league'
+}
+
+function pintarCamposJornadas() {
+  const caja = $('torneoJornadasCampos')
+  const liga = esLigaElegida()
+  caja.classList.toggle('hidden', !liga)
+  $('torneoRondasEtiqueta').firstChild.textContent = liga ? 'Jornadas' : 'Rondas suizas'
+  if (!liga) return
+  const cuantas = Math.min(12, Math.max(1, Number($('torneoRondas').value) || 1))
+  const lista = $('torneoJornadasLista')
+  const previas = [...lista.querySelectorAll('input')].map((i) => i.value)
+  lista.innerHTML = Array.from({ length: cuantas }, (_, i) => `
+    <label class="torneo-jornada-campo">Jornada ${i + 1}
+      <input type="datetime-local" data-jornada="${i}" value="${escapeHtml(previas[i] || '')}" />
+    </label>`).join('')
+}
+
+function fechasDeJornadas() {
+  return [...document.querySelectorAll('#torneoJornadasLista input')].map((i) => i.value)
+}
+
 // Valida lo que se ve antes de dejar avanzar, como el original.
 function pasoValido(n) {
   if (n === 0) {
@@ -187,6 +214,19 @@ function pasoValido(n) {
       showToast('Las rondas suizas deben estar entre 1 y 12.')
       return false
     }
+    if (esLigaElegida()) {
+      const fechas = fechasDeJornadas()
+      if (fechas.some((f) => !f)) {
+        showToast('Ponle fecha a todas las jornadas de la liga.')
+        return false
+      }
+      for (let i = 1; i < fechas.length; i++) {
+        if (new Date(fechas[i]) <= new Date(fechas[i - 1])) {
+          showToast(`La jornada ${i + 1} no puede ir antes que la ${i}.`)
+          return false
+        }
+      }
+    }
     return true
   }
   return true
@@ -194,16 +234,24 @@ function pasoValido(n) {
 
 function pintarResumen() {
   const corte = Number($('torneoCorte').value)
+  const liga = esLigaElegida()
   const datos = [
     ['Nombre', $('torneoNombre').value.trim() || '—'],
+    ['Tipo', liga ? 'Liga por jornadas' : 'Torneo de un día'],
     ['Inicio', $('torneoFecha').value ? fechaBonita($('torneoFecha').value) : '—'],
     ['Plazas', $('torneoPlazas').value],
-    ['Suizas', `${$('torneoRondas').value} · BO${$('torneoSwissBo').value}`],
+    [liga ? 'Jornadas' : 'Suizas', `${$('torneoRondas').value} · BO${$('torneoSwissBo').value}`],
     ['Top cut', corte ? `Top ${corte} · BO${$('torneoCorteBo').value}` : 'Sin corte'],
     ['Ronda', `${$('torneoMinutos').value} min`],
     ['Check-in', `${$('torneoCheckin').value} min`],
+    ['Listas rivales', $('torneoListasRivales').checked ? 'Visibles en la clasificación' : 'Solo jueces y organizador'],
     ['Inscripción', 'Gratuita'],
   ]
+  if (liga) {
+    fechasDeJornadas().forEach((f, i) => {
+      if (f) datos.splice(5 + i, 0, [`Jornada ${i + 1}`, fechaBonita(f)])
+    })
+  }
   $('wizardResumen').innerHTML = datos
     .map(([dt, dd]) => `<div><dt>${dt}</dt><dd>${escapeHtml(String(dd))}</dd></div>`)
     .join('')
@@ -229,13 +277,17 @@ function engancharFormulario(session) {
     e.preventDefault()
     const { data: viejo } = await supabase
       .from('tournaments')
-      .select('name, max_players, swiss_rounds, swiss_bo, top_cut_size, top_cut_bo, round_time_minutes, checkin_minutes, description')
+      .select('*')
       .eq('id', boton.dataset.duplicar)
       .maybeSingle()
     if (!viejo) return
     form.classList.remove('hidden')
     irAPaso(0)
     $('torneoNombre').value = viejo.name
+    // El tipo y la visibilidad de listas se copian; las fechas de las
+    // jornadas no (una liga nueva se juega en días nuevos).
+    $('torneoTipo').value = viejo.format === 'league' ? 'league' : 'standard'
+    $('torneoListasRivales').checked = viejo.show_opponent_decklists === true
     const semanaQueViene = new Date(Date.now() + 7 * 86400e3)
     semanaQueViene.setMinutes(semanaQueViene.getMinutes() - semanaQueViene.getTimezoneOffset())
     $('torneoFecha').value = semanaQueViene.toISOString().slice(0, 16)
@@ -245,6 +297,7 @@ function engancharFormulario(session) {
     if ($('torneoMinutos')) $('torneoMinutos').value = viejo.round_time_minutes
     if ($('torneoCheckin') && viejo.checkin_minutes != null) $('torneoCheckin').value = viejo.checkin_minutes
     if ($('torneoDescripcion')) $('torneoDescripcion').value = viejo.description || ''
+    pintarCamposJornadas()
     $('torneoNombre').focus()
     $('torneoNombre').select()
     showToast('Plantilla cargada: cambia lo que quieras y créalo.', 'success')
@@ -265,7 +318,11 @@ function engancharFormulario(session) {
     $('torneoRondas').value = swissRounds
     const corte = $('torneoCorte')
     if ([...corte.options].some((o) => Number(o.value) === topCutSize)) corte.value = String(topCutSize)
+    pintarCamposJornadas()
   })
+  // El tipo y el número de rondas gobiernan los campos de jornadas.
+  $('torneoTipo').addEventListener('change', pintarCamposJornadas)
+  $('torneoRondas').addEventListener('input', pintarCamposJornadas)
 
   let enviando = false
   form.addEventListener('submit', async (e) => {
@@ -273,6 +330,7 @@ function engancharFormulario(session) {
     if (enviando) return
     if (!pasoValido(0) || !pasoValido(1)) return
     const nombre = $('torneoNombre').value.trim()
+    const liga = esLigaElegida()
     enviando = true
     const { error } = await supabase.from('tournaments').insert({
       slug: `${slugify(nombre)}-${Date.now().toString(36)}`,
@@ -281,6 +339,9 @@ function engancharFormulario(session) {
       description: $('torneoDescripcion').value.trim() || null,
       start_at: new Date($('torneoFecha').value).toISOString(),
       status: 'draft',
+      format: liga ? 'league' : 'standard',
+      matchday_dates: liga ? fechasDeJornadas().map((f) => new Date(f).toISOString()) : null,
+      show_opponent_decklists: $('torneoListasRivales').checked,
       max_players: Number($('torneoPlazas').value),
       swiss_rounds: Number($('torneoRondas').value),
       round_time_minutes: Number($('torneoMinutos').value),
@@ -302,6 +363,7 @@ function engancharFormulario(session) {
     }
     form.classList.add('hidden')
     form.reset()
+    pintarCamposJornadas()
     irAPaso(0)
     showToast(`«${nombre}» creado como borrador. Abre las inscripciones cuando esté listo.`, 'success')
     cargarLista(session)
