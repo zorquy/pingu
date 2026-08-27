@@ -12,6 +12,31 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-27 — PINGU-Claude (tanda 221 — repaso de interfaz en móvil)
+**Hecho**: sobre las 219 y 220 de IBAI (fusionadas sin conflicto). PINGU
+abrió la ficha en su teléfono: botones que no entraban en el ancho, los
+inscritos con las chapas cada una a su altura y las mesas obligando a
+arrastrar de lado. Repaso a fondo, solo presentación (CSS + atributos
+`data-etiqueta`, cero comportamiento). Los INSCRITOS pasan a rejilla de
+cuatro columnas con las dos últimas de ancho fijo, y por debajo de 560px
+se apilan siempre en el mismo sitio (chapas al margen izquierdo, acción
+a la derecha). Las MESAS, bajo 620px, dejan de ser tabla y se pintan
+como tarjetas con la etiqueta delante de cada dato (en un PC no cambia
+nada). Y lo que se salía: la caja de anuncio del foro, el «Enviar» del
+chat, los usuarios de TCG Live largos, la barra de navegación bajo
+380px, la firma de «Ahora en el foro» en la portada y la caja del 404.
+De propina, una ficha ya no puede enseñar «undefined min»: los datos de
+formato caen a los valores por defecto de la tabla. Barrido automático
+de las 14 páginas del sitio × 4 anchos (320/360/390/430): ninguna
+desborda.
+**Ficheros**: css/torneos.css, css/style.css, css/components.css,
+js/torneos/ronda.js, js/torneos/torneo.js, SCHEMA.md.
+**En curso / pendiente**: nada bloqueado. Suite completa en verde y
+rigor de 10 roturas, todas detectadas. Sigue pendiente de PINGU
+re-ejecutar supabase-migration-torneos.sql (acumula 216/217/218 y las
+columnas de 219/220). Los torneos siguen siendo SOLO para admins hasta
+que PINGU dé la salida.
+
 ## 2026-08-27 — IBAI-Claude (tanda 220 — jornadas editables y descripción con formato)
 **Hecho**: sobre la 219. Las jornadas de una liga se AÑADEN y se QUITAN:
 en el wizard cada fila lleva su «✕» y hay «+ Añadir jornada» (el nº de

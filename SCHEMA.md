@@ -10586,3 +10586,38 @@ Segunda tanda de IBAI, sobre la 219:
 Sin cambios de esquema (description ya era text). Verificado a mano
 sobre la demo del entorno de pruebas (13/13) y suite local sin fallos
 nuevos.
+
+## Tanda 221 — el repaso de interfaz en móvil (agosto 2026)
+
+PINGU abrió la ficha de un torneo en su teléfono y encontró tres cosas:
+botones que no entraban en el ancho, la lista de inscritos con las
+chapas cada una a su altura, y la tabla de mesas obligando a arrastrar
+de lado. Repaso a fondo, sin tocar nada del comportamiento — es CSS y
+un puñado de atributos.
+
+- **Los inscritos son COLUMNAS**: la fila pasa de flex «donde quepa» a
+  una rejilla de cuatro columnas con las dos últimas de ancho FIJO
+  (quién · su usuario de TCG Live · chapas · acción). Con `auto` no
+  valía: cada fila es su propia rejilla (no hay subgrid), así que las
+  medía por su cuenta y un nombre largo desplazaba su chapa. Por debajo
+  de 560px se apilan en dos filas, pero SIEMPRE en el mismo sitio:
+  nombre y usuario arriba, las chapas pegadas al margen izquierdo
+  (`grid-column: 1`) y la acción del organizador a la derecha.
+- **Las mesas, tarjetas en móvil**: bajo 620px la tabla se convierte en
+  cajas apiladas — la cabecera se esconde y cada celda enseña su
+  etiqueta delante (`data-etiqueta` en el HTML, `td::before` en el
+  CSS). El HTML sigue siendo una `<table>`: en un PC no cambia nada.
+- **Nada se sale**: la caja de anuncio en el foro envuelve
+  (`flex-wrap`) y su desplegable cede (`min-width: 0`); el «Enviar» del
+  chat deja de empujar; los usuarios de TCG Live rompen por donde haga
+  falta (`overflow-wrap: anywhere`) en vez de sacar barra lateral; y la
+  barra de navegación aprieta sus huecos por debajo de 380px.
+- **Una ficha nunca enseña «undefined»**: los datos del formato caen a
+  los valores por defecto de la tabla (`?? 30`, `?? 5`) si a la fila le
+  falta la columna.
+
+La medida es objetiva y automática: `scrollWidth > clientWidth` del
+documento en 320, 360, 390 y 430px, pestaña por pestaña, con el
+culpable más externo en el mensaje de fallo. Probado con
+test-torneos-15.mjs (37 comprobaciones) y rigor-torneos-15.py (8
+roturas, todas detectadas).

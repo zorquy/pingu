@@ -6050,6 +6050,13 @@ yt-video .yt-enlace:hover { color: #fff; }
     text-align: center;
   }
 
+  /* En columna, la caja de texto medía lo que pedían sus topes (46ch de
+     párrafo, 420px de buscador) y se salía de una pantalla de 320px.
+     Los topes siguen mandando, pero nunca por encima del ancho que hay. */
+  .pagina-404 > div {
+    width: 100%;
+  }
+
   .pagina-404 .subtext {
     margin-left: auto;
     margin-right: auto;
@@ -7083,6 +7090,11 @@ body.portada-compacta .page-content {
 .foro-vivo-meta {
   font-size: 12.5px;
   white-space: nowrap;
+  /* Con nowrap y SIN recorte, «Fulanito de Tal · hace 30 minutos» se
+     salía de su columna y estiraba la portada entera en un móvil de
+     320px. Mismo trato que el título de al lado: se recorta con «…». */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── El medallero de los cursos ──

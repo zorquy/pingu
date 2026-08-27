@@ -463,6 +463,30 @@ textarea {
   }
 }
 
+/* Pantallas MUY estrechas (iPhone SE y compañía, 320-360px): con la
+   sesión abierta, la barra acumula chip de torneo + racha + búsqueda +
+   tema + mensajes + campana + avatar + menú, y a 320px se salía por la
+   derecha arrastrando la página entera. Se aprieta el hueco entre
+   iconos y el bloque derecho puede encogerse. */
+@media (max-width: 380px) {
+  .nav-inner {
+    gap: 6px;
+  }
+  .nav-right {
+    gap: 3px;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+  .nav-right .nav-racha {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .nav-torneo-mini {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+}
+
 /* ── Buttons ── */
 .btn-primary,
 .btn-secondary,

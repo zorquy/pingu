@@ -112,10 +112,12 @@ function pintarFicha() {
   // (tanda 219) habla de jornadas y enseña su calendario debajo.
   const esLiga = torneo.format === 'league'
   $('torneoFormato').innerHTML = [
-    [icons.layers(18), esLiga ? 'Jornadas' : 'Rondas suizas', `${torneo.swiss_rounds} · BO${torneo.swiss_bo}`],
-    [icons.trophy(18), 'Top cut', torneo.top_cut_size ? `Top ${torneo.top_cut_size} · BO${torneo.top_cut_bo}` : 'Sin corte'],
-    [icons.clock(18), 'Tiempo por ronda', `${torneo.round_time_minutes} min`],
-    [icons.checkCircle(18), 'Check-in', `${torneo.checkin_minutes} min`],
+    [icons.layers(18), esLiga ? 'Jornadas' : 'Rondas suizas', `${torneo.swiss_rounds} · BO${torneo.swiss_bo ?? 1}`],
+    [icons.trophy(18), 'Top cut', torneo.top_cut_size ? `Top ${torneo.top_cut_size} · BO${torneo.top_cut_bo ?? 3}` : 'Sin corte'],
+    // Los «?? por defecto» son los mismos de la tabla: una ficha nunca
+    // debe enseñar «undefined min» si a la fila le falta la columna.
+    [icons.clock(18), 'Tiempo por ronda', `${torneo.round_time_minutes ?? 30} min`],
+    [icons.checkCircle(18), 'Check-in', `${torneo.checkin_minutes ?? 5} min`],
   ]
     .map(([icono, dt, dd]) => `<div class="torneo-formato-dato">${icono}<div><dt>${dt}</dt><dd>${escapeHtml(dd)}</dd></div></div>`)
     .join('')
@@ -220,7 +222,7 @@ function pintarEditor() {
         ${esLiga ? '' : `<label>Rondas suizas<input type="number" id="editarRondas" min="1" max="12" value="${torneo.swiss_rounds}" ${bloqueo} /></label>`}
         <label>Top cut<select id="editarCorte" ${bloqueo}>${[0, 4, 8, 16].map((n) => `<option value="${n}" ${torneo.top_cut_size === n ? 'selected' : ''}>${n ? `Top ${n}` : 'Sin corte'}</option>`).join('')}</select></label>
         <label>Minutos por ronda<input type="number" id="editarMinutos" min="5" max="120" value="${torneo.round_time_minutes}" ${bloqueo} /></label>
-        <label>Check-in (min)<input type="number" id="editarCheckin" min="0" max="30" value="${torneo.checkin_minutes}" /></label>
+        <label>Check-in (min)<input type="number" id="editarCheckin" min="0" max="30" value="${torneo.checkin_minutes ?? 5}" /></label>
         <label>Suizas al mejor de<select id="editarSwissBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.swiss_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
         <label>Corte al mejor de<select id="editarCorteBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.top_cut_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       </div>

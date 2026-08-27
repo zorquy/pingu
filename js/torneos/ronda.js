@@ -732,13 +732,16 @@ function pintarMesas(ronda) {
               )
               .join('')}</div></td></tr>`
           : ''
+      // El data-etiqueta es para el MÓVIL: ahí la tabla se convierte en
+      // tarjetas apiladas (css/torneos.css) y cada dato necesita decir
+      // qué es, porque las cabeceras de la tabla ya no se ven.
       return `
       <tr>
-        <td class="torneo-mesa-num">${m.table_number}</td>
-        <td><span class="torneo-mesa-jugador">${escapeHtml(nombreDe(m.player_a_id))}</span>${listoA}</td>
-        <td>${jugadorB}</td>
-        <td>${chapaDeMesa(m)}</td>
-        ${puedeResolver ? `<td>${resolver}</td>` : ''}
+        <td class="torneo-mesa-num" data-etiqueta="Mesa">${m.table_number}</td>
+        <td data-etiqueta="Jugador A"><span class="torneo-mesa-jugador">${escapeHtml(nombreDe(m.player_a_id))}</span>${listoA}</td>
+        <td data-etiqueta="Jugador B">${jugadorB}</td>
+        <td data-etiqueta="Resultado">${chapaDeMesa(m)}</td>
+        ${puedeResolver ? `<td data-etiqueta="Resolver">${resolver}</td>` : ''}
       </tr>${enfrentados}`
     })
     .join('')

@@ -244,7 +244,22 @@
 
 .torneo-admin-acciones { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .torneo-admin-acciones:empty { display: none; }
-.torneo-anuncio-foro { display: inline-flex; gap: 8px; align-items: center; }
+/* El selector de foro + «Anunciar en el foro» no cabían en una línea de
+   móvil y empujaban la página entera hacia la derecha (scroll lateral).
+   Envuelven, y el select se queda con el ancho que haya. */
+.torneo-anuncio-foro {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.torneo-anuncio-foro select {
+  flex: 1 1 160px;
+  min-width: 0;
+  max-width: 100%;
+}
 
 /* Tu plaza */
 .torneo-form-inscripcion {
@@ -292,21 +307,66 @@
 
 /* Los inscritos */
 .torneo-inscritos { display: flex; flex-direction: column; }
+/* Las filas de inscritos son una REJILLA, no un flex «donde quepa»:
+   antes cada fila colocaba su chapa a una altura distinta según lo
+   largo que fuera el nombre (PINGU lo vio en el móvil), y una lista de
+   gente se lee en columnas o no se lee. Cuatro columnas: quién, su
+   usuario de TCG Live, las chapas y la acción del organizador. */
 .torneo-inscrito {
-  display: flex;
+  display: grid;
+  /* Anchos FIJOS en las dos últimas, no «auto»: cada fila es su propia
+     rejilla (no hay subgrid), así que con auto cada una medía sus
+     columnas por su cuenta y las chapas quedaban a distinta altura
+     según lo largo que fuera el nombre. */
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 108px 104px;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 6px 12px;
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
 }
+
+/* En móvil no caben cuatro columnas: se apilan en dos filas, pero
+   SIEMPRE en el mismo sitio — nombre y usuario arriba, chapas y acción
+   abajo alineadas a la izquierda. */
+@media (max-width: 560px) {
+  .torneo-inscrito {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .torneo-inscrito > .torneo-inscrito-nombre {
+    grid-column: 1 / -1;
+  }
+  .torneo-inscrito > .subtext {
+    grid-column: 1 / -1;
+  }
+  /* Las chapas, SIEMPRE pegadas al margen izquierdo (da igual cuántas
+     lleve la fila): así se leen en columna de arriba abajo. */
+  .torneo-inscrito > span:not(.torneo-inscrito-nombre):not(.subtext) {
+    grid-column: 1;
+    justify-self: start;
+  }
+  .torneo-inscrito > .btn-secondary,
+  .torneo-inscrito > button {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
 .torneo-inscrito:last-child { border-bottom: none; }
+/* Los usuarios de TCG Live vienen como cada cual los escribe: una sola
+   palabra de treinta letras cabe en un PC y empuja la página entera en
+   un móvil de 320px (PINGU lo vio en «Tu plaza»). Que rompa por donde
+   haga falta antes que sacar la barra de scroll lateral. */
+.torneo-inscrito-nombre,
+.torneo-inscrito .subtext,
+.torneo-decklist-marca,
+#miPlazaContenido {
+  overflow-wrap: anywhere;
+}
 .torneo-inscrito-nombre { font-weight: 600; min-width: 140px; }
 .torneo-inscrito-nombre a { color: inherit; text-decoration: none; }
 .torneo-inscrito-nombre a:hover { text-decoration: underline; }
 .torneo-retirado { color: var(--text-dim); font-weight: 400; font-size: 13px; }
 .torneo-decklist-marca {
-  margin-left: auto;
+  justify-self: end;
   font-size: 12px;
   font-weight: 700;
   padding: 2px 10px;
@@ -619,8 +679,23 @@
 .torneo-burbuja-hora { font-size: 10px; opacity: 0.6; align-self: flex-end; margin-top: 1px; }
 .torneo-chat-mensajes > .subtext { text-align: center; padding: 8px 0; }
 
-.torneo-chat-envio { display: flex; gap: 8px; }
-.torneo-chat-envio input { flex: 1; }
+/* El input del chat con su botón: `flex: 1` a secas no encoge por
+   debajo de su contenido y el «Enviar» se salía de la pantalla en
+   móviles estrechos. Con min-width: 0 el input cede lo que haga falta. */
+.torneo-chat-envio {
+  display: flex;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.torneo-chat-envio input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.torneo-chat-envio button {
+  flex: 0 0 auto;
+}
 
 .torneo-llamar-juez { margin-top: 10px; }
 
@@ -1204,3 +1279,84 @@
    texto plano: conservan sus saltos de línea. */
 .torneo-descripcion { margin: 10px 0 4px; font-size: 14.5px; }
 .torneo-descripcion-plana { white-space: pre-line; }
+
+/* ── Tanda 221: las mesas, en tarjetas cuando no caben ──
+   Una tabla de cinco columnas no entra en un móvil, y desplazarla a lo
+   ancho para leer quién juega contra quién es incomodísimo (lo sufrió
+   PINGU). Por debajo de 620px la tabla se convierte en tarjetas
+   apiladas: cada mesa una caja, cada dato con su etiqueta delante. El
+   HTML sigue siendo una tabla — esto es solo CSS. */
+@media (max-width: 620px) {
+  .torneo-mesas-tabla {
+    overflow-x: visible;
+  }
+
+  .torneo-mesas-tabla table,
+  .torneo-mesas-tabla tbody,
+  .torneo-mesas-tabla tr,
+  .torneo-mesas-tabla td {
+    display: block;
+    width: auto;
+  }
+
+  .torneo-mesas-tabla thead {
+    display: none;
+  }
+
+  .torneo-mesas-tabla tbody tr {
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--white);
+  }
+
+  .torneo-mesas-tabla tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .torneo-mesas-tabla td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: none;
+  }
+
+  .torneo-mesas-tabla td::before {
+    content: attr(data-etiqueta);
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-dim);
+  }
+
+  /* El número de mesa hace de título de la tarjeta. */
+  .torneo-mesas-tabla td.torneo-mesa-num {
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 800;
+  }
+
+  /* Los reportes de una disputa ocupan su propia tarjeta, sin la celda
+     vacía que en la tabla servía de sangrado. */
+  .torneo-mesas-tabla td:empty {
+    display: none;
+  }
+
+  /* El desplegable de resolver tiene opciones largas («Gana Fulano»),
+     así que su ancho natural se salía: aquí manda la pantalla. */
+  .torneo-mesas-tabla td .torneo-mesa-resolver {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .torneo-mesa-resolver select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
