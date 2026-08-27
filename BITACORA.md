@@ -32,6 +32,11 @@ sin librerías) en la lista propia, la de jueces y la del rival.
 js/torneos/torneos.js, js/torneos/torneo.js, js/torneos/ronda.js,
 js/torneos/jueces.js, js/torneos/comun.js, css/torneos.css,
 supabase-migration-torneos.sql, SCHEMA.md.
+*(Segundo push del día, mismo lote: la columna del paso 2 se detecta en
+CUALQUIER inscripción — una fila recién insertada aún no la trae — y
+generar la R1 refresca la ficha entera para que Inscritos enseñe los
+retirados al momento. Verificado a mano sobre la demo del entorno de
+pruebas: 15/15.)*
 **En curso / pendiente**: PINGU re-ejecuta supabase-migration-torneos.sql
 (format + matchday_dates + show_opponent_decklists +
 participation_confirmed_at con backfill de las inscripciones activas).

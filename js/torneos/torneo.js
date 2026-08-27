@@ -453,9 +453,10 @@ async function cambiarEstado(nuevo, mensaje) {
 // queda fuera del pareo (lo aplica generarPareos en ronda.js). El campo
 // participation_confirmed_at puede no existir aún (migración pendiente):
 // en ese caso el checklist ni se enseña, para no prometer un botón que
-// fallaría al guardar.
+// fallaría al guardar. Se mira en CUALQUIER inscripción, no solo la
+// propia: una fila recién insertada por la app aún no trae la columna.
 function hayColumnaConfirmacion() {
-  return miInscripcion !== null && 'participation_confirmed_at' in miInscripcion
+  return miInscripcion !== null && inscripciones.some((i) => 'participation_confirmed_at' in i)
 }
 
 function checklistDosPasos() {

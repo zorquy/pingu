@@ -182,7 +182,9 @@ async function crearBye(rondaId, mesa, jugadorId, { bracket = null } = {}) {
 // echa a nadie: sin regla anunciada no hay castigo.
 async function retirarNoConfirmados() {
   const activos = ctx.inscripciones.filter((i) => i.status === 'active')
-  if (!activos.length || !('participation_confirmed_at' in activos[0])) return []
+  // La columna se busca en CUALQUIER inscripción (una fila recién
+  // insertada por la app aún no la trae aunque la base ya la tenga).
+  if (!activos.length || !ctx.inscripciones.some((i) => 'participation_confirmed_at' in i)) return []
   const { data: listas } = await supabase
     .from('tournament_decklists')
     .select('user_id')
@@ -261,6 +263,13 @@ async function generarPareos() {
       : `Pareos de la ronda ${n} generados.`,
     sinParear.length ? 'error' : 'success'
   )
+  // La R1 puede haber retirado inscritos (los dos pasos): ficha entera,
+  // que la caja de Inscritos también les cambie la cara sin esperar al
+  // refresco de los 10 s.
+  if (n === 1) {
+    await ctx.recargarFicha()
+    return
+  }
   await recargarCiclo()
   pintarCiclo()
 }
