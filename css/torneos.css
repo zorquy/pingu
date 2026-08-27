@@ -1172,3 +1172,35 @@
   padding: 10px 14px 14px;
 }
 .torneo-lista-rival .torneo-decklist-fila { border-bottom: 0; padding-bottom: 0; }
+
+/* ── Tanda 220: jornadas editables y descripción con formato ── */
+
+.torneo-anadir-jornada {
+  margin-top: 10px;
+  padding: 4px 12px;
+  font-size: 13px;
+}
+.torneo-quitar-jornada {
+  padding: 2px 9px;
+  font-size: 12px;
+  line-height: 1.4;
+  flex: 0 0 auto;
+}
+.torneo-jornada-campo label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+.torneo-jornada-campo label input { flex: 1; }
+
+/* La caja del editor de la descripción, tanto en el wizard como en la
+   ficha: compacta, que una descripción no es una guía. */
+.torneo-desc-editor { margin-top: 6px; }
+.torneo-desc-editor .rte-surface { min-height: 90px; max-height: 320px; overflow-y: auto; }
+
+/* La descripción pintada en la ficha. Las de antes de la tanda eran
+   texto plano: conservan sus saltos de línea. */
+.torneo-descripcion { margin: 10px 0 4px; font-size: 14.5px; }
+.torneo-descripcion-plana { white-space: pre-line; }

@@ -12,6 +12,29 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-27 — IBAI-Claude (tanda 220 — jornadas editables y descripción con formato)
+**Hecho**: sobre la 219. Las jornadas de una liga se AÑADEN y se QUITAN:
+en el wizard cada fila lleva su «✕» y hay «+ Añadir jornada» (el nº de
+rondas les sigue, tope 12), y el editor del organizador aprende lo mismo
+— lista las jornadas con su fecha editable, añade y quita (con
+inscripciones cerradas las fechas sí, añadir/quitar no: es estructura).
+El editor gana además check-in, BO de suizas, BO del corte y el
+interruptor de listas a la vista. Y la descripción del torneo escribe
+con el EDITOR DEL FORO (negrita, colores, listas, spoilers, imágenes
+subidas, cartas, vídeo): richtext-editor.js montado a demanda en wizard
+y «Editar», description guarda HTML saneado por la lista cerrada de
+richtext-format.js y la ficha lo pinta con sanitizeRichText +
+article-body. Las descripciones viejas (texto plano) se pintan como
+texto con sus saltos — nada que migrar, sin cambios de esquema.
+**Ficheros**: torneos.html, torneo.html, js/torneos/torneos.js,
+js/torneos/torneo.js, css/torneos.css, SCHEMA.md.
+**En curso / pendiente**: nada bloqueado. Verificado a mano sobre la
+demo del entorno de IBAI (13/13: añadir/quitar en wizard y editor,
+formato en la descripción de punta a punta); suite local sin fallos
+nuevos (63 en verde, los 7 rotos venían de antes). Sigue pendiente de la
+219: PINGU re-ejecuta supabase-migration-torneos.sql y pasada de su
+suite canónica.
+
 ## 2026-08-27 — IBAI-Claude (tanda 219 — liga por jornadas, dos pasos y listas a la vista)
 **Hecho**: las cuatro funciones que pidió Ibai. Formato LIGA en el
 wizard (selector de tipo + una fecha por jornada, validadas en orden,

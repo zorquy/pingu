@@ -72,9 +72,16 @@
           <input type="datetime-local" id="torneoFecha" />
           <span class="torneo-campo-pista">En tu zona horaria.</span>
         </label>
-        <label class="torneos-form-campo">Descripción (opcional)
-          <textarea id="torneoDescripcion" rows="3" maxlength="600" placeholder="Reglas de la casa, premios…"></textarea>
-        </label>
+        <!-- La descripción escribe con el editor del foro (tanda 220):
+             negrita, listas, imágenes… torneos.js lo monta al abrir el
+             wizard, que el editor son dos módulos y no los paga quien
+             solo mira la lista. -->
+        <div class="torneos-form-campo">Descripción (opcional)
+          <div class="rte-wrap rte-compacta torneo-desc-editor">
+            <div class="rte-toolbar" id="torneoDescBarra"></div>
+            <div class="rte-surface" id="torneoDescCuerpo"></div>
+          </div>
+        </div>
       </section>
 
       <!-- Paso 2: capacidad y formato -->
@@ -113,8 +120,9 @@
              genera al cambiar el tipo o el número de rondas). -->
         <fieldset class="torneo-jornadas-campos hidden" id="torneoJornadasCampos">
           <legend>Fechas de las jornadas</legend>
-          <p class="torneo-campo-pista">Di qué día (y hora) se juega cada jornada, en orden.</p>
+          <p class="torneo-campo-pista">Di qué día (y hora) se juega cada jornada, en orden. Añade o quita jornadas a tu gusto.</p>
           <div id="torneoJornadasLista"></div>
+          <button type="button" class="btn-secondary torneo-anadir-jornada" id="btnAnadirJornada">+ Añadir jornada</button>
         </fieldset>
         <label class="torneo-check-campo">
           <input type="checkbox" id="torneoListasRivales" />

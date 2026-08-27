@@ -16,6 +16,7 @@ import { getAllAchievements, addXP } from '../gamification.js'
 import { urlTema } from '../foro-comun.js'
 import { pintarDecklistVisual } from './cartas-decklist.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
+import { sanitizeRichText } from '../richtext-format.js'
 
 let session = null
 let perfil = null
@@ -93,9 +94,19 @@ function pintarFicha() {
   pill.textContent = estado.texto
   pill.className = `torneo-estado ${estado.clase}`
   $('torneoMeta').textContent = fechaBonita(torneo.start_at)
+  // La descripción sale del editor con formato (tanda 220) y se pinta
+  // SANEADA por la misma lista cerrada del foro. Las descripciones de
+  // antes eran texto plano: sin etiquetas dentro, se pintan como texto
+  // para no perder sus saltos de línea.
   const desc = $('torneoDescripcion')
   desc.classList.toggle('hidden', !torneo.description)
-  desc.textContent = torneo.description || ''
+  if (/<[a-z][\s\S]*>/i.test(torneo.description || '')) {
+    desc.innerHTML = sanitizeRichText(torneo.description)
+    desc.classList.remove('torneo-descripcion-plana')
+  } else {
+    desc.textContent = torneo.description || ''
+    desc.classList.add('torneo-descripcion-plana')
+  }
 
   // La caja «Formato» del original: cada dato con su icono. Una liga
   // (tanda 219) habla de jornadas y enseña su calendario debajo.
@@ -150,11 +161,45 @@ function pintarFicha() {
   }
 }
 
-// ── Editar el torneo (tanda 211) ──
-// Nombre, fecha y descripción se pueden retocar hasta el final de las
-// inscripciones; la ESTRUCTURA (plazas, rondas, corte, BO, minutos)
-// solo mientras las inscripciones no se hayan cerrado — cerrarlas es
-// el paso previo a generar pareos, y los pareos dependen de ella.
+// ── Editar el torneo (tanda 211; ampliado en la 220) ──
+// Nombre, fecha, descripción, check-in y la visibilidad de listas se
+// pueden retocar hasta el final de las inscripciones; la ESTRUCTURA
+// (plazas, rondas/jornadas, corte, BO, minutos) solo mientras las
+// inscripciones no se hayan cerrado — cerrarlas es el paso previo a
+// generar pareos, y los pareos dependen de ella. En una liga las
+// jornadas se añaden, se quitan y se les cambia la fecha desde aquí
+// (las fechas se pueden retocar incluso cerradas: son informativas).
+const aFechaLocal = (iso) => {
+  const d = iso ? new Date(iso) : new Date()
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+}
+
+let editarDescripcionHtml = ''
+
+function pintarJornadasEditor(fechas, bloqueada) {
+  const lista = $('editarJornadasLista')
+  lista.innerHTML = fechas
+    .map(
+      (f, i) => `
+    <div class="torneo-jornada-campo">
+      <label>Jornada ${i + 1}
+        <input type="datetime-local" data-editar-jornada="${i}" value="${escapeHtml(f || '')}" />
+      </label>
+      ${!bloqueada && fechas.length > 1 ? `<button type="button" class="btn-secondary torneo-quitar-jornada" data-editar-quitar="${i}" title="Quitar esta jornada">✕</button>` : ''}
+    </div>`
+    )
+    .join('')
+  lista.querySelectorAll('[data-editar-quitar]').forEach((b) =>
+    b.addEventListener('click', () => {
+      pintarJornadasEditor(fechasDelEditor().filter((_, i) => i !== Number(b.dataset.editarQuitar)), bloqueada)
+    })
+  )
+}
+
+function fechasDelEditor() {
+  return [...document.querySelectorAll('#editarJornadasLista input')].map((i) => i.value)
+}
+
 function pintarEditor() {
   const previo = $('torneoEditor')
   if (previo) {
@@ -162,8 +207,7 @@ function pintarEditor() {
     return
   }
   const estructuraBloqueada = torneo.status === 'registration_closed'
-  const local = torneo.start_at ? new Date(torneo.start_at) : new Date()
-  const fechaLocal = new Date(local.getTime() - local.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+  const esLiga = torneo.format === 'league'
   const bloqueo = estructuraBloqueada ? 'disabled title="Con las inscripciones cerradas, la estructura ya no se toca"' : ''
   document.querySelector('.torneo-ficha').insertAdjacentHTML(
     'beforeend',
@@ -171,19 +215,72 @@ function pintarEditor() {
     <div class="torneos-form torneo-editor" id="torneoEditor">
       <div class="torneos-form-rejilla">
         <label>Nombre<input type="text" id="editarNombre" maxlength="120" value="${escapeHtml(torneo.name)}" /></label>
-        <label>Fecha y hora<input type="datetime-local" id="editarFecha" value="${fechaLocal}" /></label>
+        <label>Fecha y hora<input type="datetime-local" id="editarFecha" value="${aFechaLocal(torneo.start_at)}" /></label>
         <label>Plazas<input type="number" id="editarPlazas" min="4" max="256" value="${torneo.max_players}" ${bloqueo} /></label>
-        <label>Rondas suizas<input type="number" id="editarRondas" min="1" max="12" value="${torneo.swiss_rounds}" ${bloqueo} /></label>
+        ${esLiga ? '' : `<label>Rondas suizas<input type="number" id="editarRondas" min="1" max="12" value="${torneo.swiss_rounds}" ${bloqueo} /></label>`}
         <label>Top cut<select id="editarCorte" ${bloqueo}>${[0, 4, 8, 16].map((n) => `<option value="${n}" ${torneo.top_cut_size === n ? 'selected' : ''}>${n ? `Top ${n}` : 'Sin corte'}</option>`).join('')}</select></label>
         <label>Minutos por ronda<input type="number" id="editarMinutos" min="5" max="120" value="${torneo.round_time_minutes}" ${bloqueo} /></label>
+        <label>Check-in (min)<input type="number" id="editarCheckin" min="0" max="30" value="${torneo.checkin_minutes}" /></label>
+        <label>Suizas al mejor de<select id="editarSwissBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.swiss_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <label>Corte al mejor de<select id="editarCorteBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.top_cut_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       </div>
-      <label class="torneos-form-descripcion">Descripción<textarea id="editarDescripcion" rows="2" maxlength="600">${escapeHtml(torneo.description || '')}</textarea></label>
+      ${
+        esLiga
+          ? `<fieldset class="torneo-jornadas-campos">
+              <legend>Fechas de las jornadas</legend>
+              <div id="editarJornadasLista"></div>
+              ${estructuraBloqueada ? '<p class="torneo-campo-pista">Con las inscripciones cerradas puedes cambiar las fechas, pero no añadir ni quitar jornadas.</p>' : '<button type="button" class="btn-secondary torneo-anadir-jornada" id="btnEditarAnadirJornada">+ Añadir jornada</button>'}
+            </fieldset>`
+          : ''
+      }
+      <label class="torneo-check-campo">
+        <input type="checkbox" id="editarListasRivales" ${torneo.show_opponent_decklists ? 'checked' : ''} />
+        <span><strong>Listas a la vista entre rivales.</strong> Podrán ver las decklists de sus rivales desde la clasificación, una vez selladas.</span>
+      </label>
+      <div class="torneos-form-descripcion">Descripción
+        <div class="rte-wrap rte-compacta torneo-desc-editor">
+          <div class="rte-toolbar" id="editarDescBarra"></div>
+          <div class="rte-surface" id="editarDescCuerpo"></div>
+        </div>
+      </div>
       <div class="torneos-form-acciones">
         <button class="btn-primary" id="btnGuardarEdicion">Guardar cambios</button>
         <button class="btn-secondary" id="btnCerrarEdicion">Cerrar</button>
       </div>
     </div>`
   )
+  if (esLiga) {
+    const fechas = (Array.isArray(torneo.matchday_dates) ? torneo.matchday_dates : []).map(aFechaLocal)
+    pintarJornadasEditor(fechas.length ? fechas : [''], estructuraBloqueada)
+    $('btnEditarAnadirJornada')?.addEventListener('click', () => {
+      const actuales = fechasDelEditor()
+      if (actuales.length >= 12) {
+        showToast('Una liga puede tener 12 jornadas como máximo.')
+        return
+      }
+      pintarJornadasEditor([...actuales, ''], estructuraBloqueada)
+    })
+  }
+  // El editor de la descripción, con los módulos del foro cargados a
+  // demanda (tanda 220).
+  void (async () => {
+    const { richTextToolbarHtml, initRichTextEditor } = await import('../richtext-editor.js')
+    const { uploadGuideImage } = await import('../app.js')
+    editarDescripcionHtml = torneo.description || ''
+    const barra = $('editarDescBarra')
+    if (!barra) return // el editor pudo cerrarse mientras cargaban los módulos
+    barra.innerHTML = richTextToolbarHtml()
+    initRichTextEditor({
+      toolbarEl: barra,
+      surfaceEl: $('editarDescCuerpo'),
+      initialHtml: torneo.description || '',
+      placeholder: 'Reglas de la casa, premios…',
+      onChange: (html) => {
+        editarDescripcionHtml = html
+      },
+      uploadImage: (file) => uploadGuideImage(session.user.id, file),
+    })
+  })()
   $('btnCerrarEdicion').addEventListener('click', () => $('torneoEditor').remove())
   $('btnGuardarEdicion').addEventListener('click', guardarEdicion)
 }
@@ -200,16 +297,38 @@ async function guardarEdicion() {
     showToast(`No puedes dejar ${plazas} plazas con ${activos()} inscritos activos.`, 'error')
     return
   }
+  const esLiga = torneo.format === 'league'
+  let fechasJornadas = []
+  if (esLiga) {
+    fechasJornadas = fechasDelEditor()
+    if (fechasJornadas.some((f) => !f)) {
+      showToast('Ponle fecha a todas las jornadas.', 'error')
+      return
+    }
+    for (let i = 1; i < fechasJornadas.length; i++) {
+      if (new Date(fechasJornadas[i]) <= new Date(fechasJornadas[i - 1])) {
+        showToast(`La jornada ${i + 1} no puede ir antes que la ${i}.`, 'error')
+        return
+      }
+    }
+  }
   const cambios = {
     name: nombre,
     start_at: new Date(fecha).toISOString(),
-    description: $('editarDescripcion').value.trim() || null,
+    description: editarDescripcionHtml || null,
+    checkin_minutes: Number($('editarCheckin').value),
+    show_opponent_decklists: $('editarListasRivales').checked,
   }
+  // Las fechas de las jornadas se guardan siempre (son informativas);
+  // añadir o quitar jornadas cambia swiss_rounds y va con la estructura.
+  if (esLiga) cambios.matchday_dates = fechasJornadas.map((f) => new Date(f).toISOString())
   if (torneo.status !== 'registration_closed') {
     cambios.max_players = plazas
-    cambios.swiss_rounds = Number($('editarRondas').value)
+    cambios.swiss_rounds = esLiga ? fechasJornadas.length : Number($('editarRondas').value)
     cambios.top_cut_size = Number($('editarCorte').value)
     cambios.round_time_minutes = Number($('editarMinutos').value)
+    cambios.swiss_bo = Number($('editarSwissBo').value)
+    cambios.top_cut_bo = Number($('editarCorteBo').value)
   }
   const { error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id)
   if (error) {

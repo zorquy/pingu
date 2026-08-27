@@ -163,15 +163,17 @@ function irAPaso(n) {
   if (n === PASOS_WIZARD.length - 1) pintarResumen()
 }
 
-// ── Las jornadas de una liga (tanda 219) ──
+// ── Las jornadas de una liga (tanda 219; añadir/quitar en la 220) ──
 // En formato liga cada ronda suiza es una JORNADA con fecha propia: los
 // campos se regeneran al cambiar el tipo o el número de rondas, sin
-// perder lo ya escrito.
+// perder lo ya escrito, y cada fila lleva su «Quitar» (si queda más de
+// una) además del botón de añadir — el número de rondas y la lista de
+// jornadas son la misma cosa y se mantienen a la par.
 function esLigaElegida() {
   return $('torneoTipo').value === 'league'
 }
 
-function pintarCamposJornadas() {
+function pintarCamposJornadas(fechas = null) {
   const caja = $('torneoJornadasCampos')
   const liga = esLigaElegida()
   caja.classList.toggle('hidden', !liga)
@@ -179,11 +181,21 @@ function pintarCamposJornadas() {
   if (!liga) return
   const cuantas = Math.min(12, Math.max(1, Number($('torneoRondas').value) || 1))
   const lista = $('torneoJornadasLista')
-  const previas = [...lista.querySelectorAll('input')].map((i) => i.value)
+  const previas = fechas ?? [...lista.querySelectorAll('input')].map((i) => i.value)
   lista.innerHTML = Array.from({ length: cuantas }, (_, i) => `
-    <label class="torneo-jornada-campo">Jornada ${i + 1}
-      <input type="datetime-local" data-jornada="${i}" value="${escapeHtml(previas[i] || '')}" />
-    </label>`).join('')
+    <div class="torneo-jornada-campo">
+      <label>Jornada ${i + 1}
+        <input type="datetime-local" data-jornada="${i}" value="${escapeHtml(previas[i] || '')}" />
+      </label>
+      ${cuantas > 1 ? `<button type="button" class="btn-secondary torneo-quitar-jornada" data-quitar-jornada="${i}" title="Quitar esta jornada">✕</button>` : ''}
+    </div>`).join('')
+  lista.querySelectorAll('[data-quitar-jornada]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const sinEsa = fechasDeJornadas().filter((_, i) => i !== Number(b.dataset.quitarJornada))
+      $('torneoRondas').value = String(sinEsa.length)
+      pintarCamposJornadas(sinEsa)
+    })
+  )
 }
 
 function fechasDeJornadas() {
@@ -257,6 +269,30 @@ function pintarResumen() {
     .join('')
 }
 
+// ── La descripción con formato (tanda 220) ──
+// El mismo editor del foro: negrita, listas, colores, imágenes… Los dos
+// módulos del editor se cargan al ABRIR el wizard, no antes (quien solo
+// mira la lista de torneos no los paga). El HTML sale saneado por la
+// misma lista cerrada que las guías y el foro.
+let descripcionHtml = ''
+async function montarEditorDescripcion(session, htmlInicial = '') {
+  descripcionHtml = htmlInicial
+  const [{ richTextToolbarHtml, initRichTextEditor }] = await Promise.all([import('../richtext-editor.js')])
+  const { uploadGuideImage } = await import('../app.js')
+  const barra = $('torneoDescBarra')
+  barra.innerHTML = richTextToolbarHtml()
+  initRichTextEditor({
+    toolbarEl: barra,
+    surfaceEl: $('torneoDescCuerpo'),
+    initialHtml: htmlInicial,
+    placeholder: 'Reglas de la casa, premios…',
+    onChange: (html) => {
+      descripcionHtml = html
+    },
+    uploadImage: (file) => uploadGuideImage(session.user.id, file),
+  })
+}
+
 function engancharFormulario(session) {
   const form = $('torneoForm')
   const plazas = $('torneoPlazas')
@@ -265,6 +301,7 @@ function engancharFormulario(session) {
     form.classList.toggle('hidden')
     if (!form.classList.contains('hidden')) {
       irAPaso(0)
+      void montarEditorDescripcion(session, '')
       $('torneoNombre').focus()
     }
   })
@@ -296,7 +333,7 @@ function engancharFormulario(session) {
     $('torneoCorte').value = String(viejo.top_cut_size ?? 0)
     if ($('torneoMinutos')) $('torneoMinutos').value = viejo.round_time_minutes
     if ($('torneoCheckin') && viejo.checkin_minutes != null) $('torneoCheckin').value = viejo.checkin_minutes
-    if ($('torneoDescripcion')) $('torneoDescripcion').value = viejo.description || ''
+    void montarEditorDescripcion(session, viejo.description || '')
     pintarCamposJornadas()
     $('torneoNombre').focus()
     $('torneoNombre').select()
@@ -321,8 +358,17 @@ function engancharFormulario(session) {
     pintarCamposJornadas()
   })
   // El tipo y el número de rondas gobiernan los campos de jornadas.
-  $('torneoTipo').addEventListener('change', pintarCamposJornadas)
-  $('torneoRondas').addEventListener('input', pintarCamposJornadas)
+  $('torneoTipo').addEventListener('change', () => pintarCamposJornadas())
+  $('torneoRondas').addEventListener('input', () => pintarCamposJornadas())
+  $('btnAnadirJornada').addEventListener('click', () => {
+    const fechas = fechasDeJornadas()
+    if (fechas.length >= 12) {
+      showToast('Una liga puede tener 12 jornadas como máximo.')
+      return
+    }
+    $('torneoRondas').value = String(fechas.length + 1)
+    pintarCamposJornadas([...fechas, ''])
+  })
 
   let enviando = false
   form.addEventListener('submit', async (e) => {
@@ -336,7 +382,7 @@ function engancharFormulario(session) {
       slug: `${slugify(nombre)}-${Date.now().toString(36)}`,
       admin_id: session.user.id,
       name: nombre,
-      description: $('torneoDescripcion').value.trim() || null,
+      description: descripcionHtml || null,
       start_at: new Date($('torneoFecha').value).toISOString(),
       status: 'draft',
       format: liga ? 'league' : 'standard',
@@ -363,6 +409,9 @@ function engancharFormulario(session) {
     }
     form.classList.add('hidden')
     form.reset()
+    // El reset del formulario no llega al contenteditable del editor.
+    descripcionHtml = ''
+    $('torneoDescCuerpo').innerHTML = ''
     pintarCamposJornadas()
     irAPaso(0)
     showToast(`«${nombre}» creado como borrador. Abre las inscripciones cuando esté listo.`, 'success')

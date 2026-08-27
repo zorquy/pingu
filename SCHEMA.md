@@ -10553,3 +10553,36 @@ Tanda de IBAI: cuatro funciones pedidas para la liga de la tienda.
 La migración sigue re-ejecutable (el CHECK de `format` se tira y se
 vuelve a crear). El peso de la portada no se toca: todo vive en los
 ficheros de torneos.
+
+## Tanda 220 — jornadas editables y descripción con formato (agosto 2026)
+
+Segunda tanda de IBAI, sobre la 219:
+
+- **Jornadas que se añaden y se quitan**: en el wizard, cada fila de
+  jornada lleva su «✕ Quitar» (si queda más de una) y hay un «+ Añadir
+  jornada» — el número de rondas y la lista de jornadas son la misma
+  cosa y se mantienen a la par (tope 12). Y el editor del organizador
+  (tanda 211) aprende lo mismo: en una liga las jornadas se listan, se
+  les cambia la fecha, se añaden y se quitan desde «Editar». Con las
+  inscripciones CERRADAS las fechas siguen siendo editables (son
+  informativas) pero añadir/quitar no: eso es `swiss_rounds`, o sea
+  estructura, y la regla de la 211 manda. El campo «Rondas suizas» del
+  editor desaparece en las ligas — lo dicta la lista de jornadas.
+- **Más edición en general**: el editor gana check-in, BO de suizas,
+  BO del corte (estructura: bloqueados con inscripciones cerradas) y
+  el interruptor de «listas a la vista entre rivales» (editable
+  siempre que el editor esté disponible).
+- **La descripción escribe con el editor del foro**: negrita, cursiva,
+  colores, listas, spoilers, IMÁGENES (suben por `uploadGuideImage`,
+  como las del foro), cartas y vídeo — `richtext-editor.js` montado a
+  demanda en el wizard y en «Editar» (quien solo mira la lista no paga
+  los módulos). `tournaments.description` guarda ahora HTML SANEADO por
+  la lista cerrada de `richtext-format.js` (misma que guías y foro), y
+  la ficha lo pinta con `sanitizeRichText` + clase `article-body`. Las
+  descripciones de ANTES eran texto plano: si no traen etiquetas se
+  pintan como texto con sus saltos de línea (`torneo-descripcion-plana`)
+  — nada que migrar.
+
+Sin cambios de esquema (description ya era text). Verificado a mano
+sobre la demo del entorno de pruebas (13/13) y suite local sin fallos
+nuevos.
