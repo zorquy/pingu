@@ -106,6 +106,17 @@ create table if not exists public.tournament_registrations (
 );
 create index if not exists inscripciones_torneo_estado on public.tournament_registrations (tournament_id, status);
 
+-- Tanda 218 — la LISTA DE ESPERA: con el torneo lleno uno se apunta a
+-- la cola («waitlisted») y al liberarse una plaza el barredor promueve
+-- al primero que llegó. El CHECK viejo no conocía el estado, así que se
+-- rehace (idempotente: se tira y se vuelve a crear).
+alter table public.tournament_registrations
+  drop constraint if exists tournament_registrations_status_check;
+alter table public.tournament_registrations
+  add constraint tournament_registrations_status_check
+  check (status in ('active', 'dropped', 'waitlisted'));
+
+
 -- ── Solicitudes de juez ──
 create table if not exists public.judge_applications (
   id uuid primary key default gen_random_uuid(),

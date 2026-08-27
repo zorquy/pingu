@@ -68,6 +68,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   let avisados = 0
   let caducadas = 0
   let aperturas = 0
+  let promociones = 0
   let avisosCheckin = 0
   let avisosConfirmar = 0
   let avisosResueltas = 0
@@ -86,6 +87,18 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
         }
       }
     }
+  }
+
+  // Push a unos jugadores concretos por su id (lo usan la lista de
+  // espera y los avisos del ciclo de partida).
+  async function avisarJugadoresPorId(ids, cuerpo) {
+    const limpios = [...new Set(ids)].filter(Boolean)
+    if (!mandar || !limpios.length) return
+    const subs = await rest(
+      `push_subscriptions?user_id=in.(${limpios.join(',')})&select=endpoint,user_id,p256dh,auth`,
+      clave
+    )
+    await avisar(subs, cuerpo)
   }
 
   // 0. AVISO DE APERTURA (tanda 211): un torneo que acaba de abrir
@@ -126,11 +139,52 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     }
   }
 
+  // 0b. LISTA DE ESPERA (tanda 218): en los torneos que aún admiten
+  //     gente, cada plaza libre se la queda el PRIMERO de la cola (por
+  //     orden de llegada) y se le avisa. Va aquí y no en el navegador
+  //     para que la promoción ocurra aunque nadie tenga la ficha
+  //     abierta: quien se dio de baja a las 3 de la mañana no deja la
+  //     plaza muerta hasta que alguien entre. Con su red de seguridad,
+  //     como el aviso de apertura: un tropiezo no puede llevarse por
+  //     delante el barrido de relojes.
+  try {
+    const abiertos = await rest(
+      `tournaments?status=in.(registration_open,registration_closed)&select=id,slug,name,max_players`,
+      clave
+    )
+    for (const t of abiertos || []) {
+      const inscritos = await rest(
+        `tournament_registrations?tournament_id=eq.${t.id}&status=in.(active,waitlisted)&select=id,user_id,status,registered_at&order=registered_at.asc`,
+        clave
+      )
+      const activos = (inscritos || []).filter((i) => i.status === 'active').length
+      const cola = (inscritos || []).filter((i) => i.status === 'waitlisted')
+      let libres = (t.max_players || 0) - activos
+      for (const espera of cola) {
+        if (libres <= 0) break
+        await rest(`tournament_registrations?id=eq.${espera.id}`, clave, {
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'active' }),
+        })
+        libres--
+        promociones++
+        await avisarJugadoresPorId([espera.user_id], {
+          title: `¡Tienes plaza! — ${t.name}`,
+          body: 'Se ha liberado un hueco y la lista de espera te ha dado paso. Deja lista tu decklist.',
+          link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
+          tag: 'torneo-plaza',
+        })
+      }
+    }
+  } catch (e) {
+    console.error('lista de espera aparcada:', e?.message || e)
+  }
+
   const rondas = await rest(
     `rounds?status=eq.active&select=id,tournament_id,round_number,phase,started_at,ends_at,players_notified_at,checkin_warned_at`,
     clave
   )
-  if (!rondas || rondas.length === 0) return { ok: true, rondas: 0, aperturas, avisados, caducadas }
+  if (!rondas || rondas.length === 0) return { ok: true, rondas: 0, aperturas, promociones, avisados, caducadas }
 
   const idsTorneos = [...new Set(rondas.map((r) => r.tournament_id))]
   const torneos = await rest(
@@ -168,17 +222,6 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       method: 'POST',
       body: JSON.stringify({ match_id: partida.id, result: status, winner_id: winner, resolved_by: null, score: motivo }),
     })
-  }
-
-  // Push a unos jugadores concretos (los avisos del ciclo de partida).
-  async function avisarJugadores(ids, cuerpo) {
-    const limpios = [...new Set(ids)].filter(Boolean)
-    if (!mandar || !limpios.length) return
-    const subs = await rest(
-      `push_subscriptions?user_id=in.(${limpios.join(',')})&select=endpoint,user_id,p256dh,auth`,
-      clave
-    )
-    await avisar(subs, cuerpo)
   }
 
   let forfeitsCheckin = 0
@@ -227,7 +270,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
         ...(!m.check_in_b_at && m.player_b_id ? [m.player_b_id] : []),
       ])
       if (rezagados.length) {
-        await avisarJugadores(rezagados, {
+        await avisarJugadoresPorId(rezagados, {
           title: `El check-in se acaba — ${torneo.name}`,
           body: 'Te quedan unos minutos para hacer check-in o tu mesa cae por incomparecencia.',
           link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
@@ -248,7 +291,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       if (m.await_notified_at) continue
       const reporteros = reportesPorMesa[m.id] || []
       const falta = [m.player_a_id, m.player_b_id].filter((j) => j && !reporteros.includes(j))
-      await avisarJugadores(falta, {
+      await avisarJugadoresPorId(falta, {
         title: `Tu rival ha reportado — ${torneo.name}`,
         body: 'Confirma el resultado de tu mesa para cerrar la ronda.',
         link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
@@ -303,7 +346,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
         if (!resueltas.has(m.id)) continue
         const ronda = rondas.find((r) => r.id === m.round_id)
         const torneo = ronda ? torneoDe[ronda.tournament_id] : null
-        await avisarJugadores([m.player_a_id, m.player_b_id], {
+        await avisarJugadoresPorId([m.player_a_id, m.player_b_id], {
           title: `Vuestra mesa está resuelta${torneo ? ` — ${torneo.name}` : ''}`,
           body: 'El organizador o un juez ha decidido el resultado. Entra a verlo.',
           link: torneo ? new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href : new URL('/torneos', sitio).href,
@@ -318,7 +361,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     }
   }
 
-  return { ok: true, rondas: rondas.length, aperturas, avisados, caducadas, forfeitsCheckin, forfeitsTiempo, avisosCheckin, avisosConfirmar, avisosResueltas }
+  return { ok: true, rondas: rondas.length, aperturas, promociones, avisados, caducadas, forfeitsCheckin, forfeitsTiempo, avisosCheckin, avisosConfirmar, avisosResueltas }
 }
 
 export default async function handler() {

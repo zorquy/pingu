@@ -936,7 +936,21 @@ function pintarClasificacion() {
         <tbody>${filas}</tbody>
       </table>
     </div>
-    ${corte > 0 && !rondas.some((r) => r.phase === 'top_cut') ? `<p class="subtext torneo-nota-corte">Las plazas marcadas con «Top ${corte}» clasifican al corte.</p>` : ''}`
+    ${corte > 0 && !rondas.some((r) => r.phase === 'top_cut') ? `<p class="subtext torneo-nota-corte">Las plazas marcadas con «Top ${corte}» clasifican al corte.</p>` : ''}
+    <details class="torneo-desempates">
+      <summary>¿Cómo se desempata?</summary>
+      <p>Con los mismos puntos, manda quién ha tenido rivales más duros —
+      igual que en un torneo oficial:</p>
+      <ol>
+        <li><strong>Puntos</strong>: 3 por victoria, 1 por empate.</li>
+        <li><strong>OWP</strong> — el porcentaje de victorias de TUS rivales.
+        Si has ganado a gente que gana, subes.</li>
+        <li><strong>OOWP</strong> — el de los rivales de tus rivales, para
+        deshacer los empates que quedan.</li>
+      </ol>
+      <p class="subtext">Un jugador retirado sigue contando en el cálculo de
+      quienes se enfrentaron a él, y los byes no cuentan como rival.</p>
+    </details>`
 }
 
 // El bracket del cut como en su clasificación: una columna por ronda

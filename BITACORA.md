@@ -12,6 +12,25 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-27 — PINGU-Claude (tanda 218 — espera, desempates, plantilla y calendario)
+**Hecho**: lista de espera de verdad (estado waitlisted; con el torneo
+lleno te encolas en vez de que te rechacen, ves tu puesto y la cola sale
+aparte y numerada en Inscritos) con la PROMOCIÓN en el barredor — cada
+plaza libre se la queda el primero por orden de llegada y se le avisa
+por push, sin depender de que nadie abra la ficha; el desplegable que
+explica OWP/OOWP bajo la clasificación; «Duplicar» en las tarjetas de
+torneos terminados, que abre el wizard con su estructura y la fecha
+propuesta la semana que viene; y «Añadir al calendario» (.ics generado
+en el navegador, sin servicios de terceros).
+**Ficheros**: netlify/functions/torneos-barredor.mjs, js/torneos/torneo.js,
+js/torneos/torneos.js, js/torneos/ronda.js, css/torneos.css,
+supabase-migration-torneos.sql, SCHEMA.md.
+**En curso / pendiente**: PINGU re-ejecuta supabase-migration-torneos.sql
+(el CHECK de estados con «waitlisted»; sin él, apuntarse a la cola falla).
+Con esto quedan hechas las cuatro tandas de mejoras que encargó. Lo
+único que sigue esperando su señal es el LANZAMIENTO PÚBLICO
+(supabase-migration-torneos-publico.sql + quitar las guardas de admin).
+
 ## 2026-08-26 — PINGU-Claude (tanda 217 — el final celebrado)
 **Hecho**: el podio de cuatro cajas presidiendo la clasificación (oro
 para el campeón), el resultado CONGELADO en la fila del torneo

@@ -123,6 +123,7 @@ function pintarFicha() {
     acciones.innerHTML = ''
   }
   if (perfil.is_admin && torneo.status !== 'draft') pintarAnuncioForo(acciones)
+  ponerBotonCalendario(acciones)
   // Herramientas del organizador (tanda 211): editar mientras tenga
   // sentido, y cancelar mientras el torneo siga vivo.
   if (perfil.is_admin && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status)) {
@@ -231,6 +232,50 @@ function engancharCancelar() {
 // Si el hilo del torneo ya existe se enlaza; si no, el organizador elige
 // foro y lo publica de un botón: título fijo «Torneo: nombre» (así se
 // reencuentra), etiqueta Torneo y primer mensaje con los datos.
+// «Añadir al calendario» (tanda 218): un .ics generado en el momento,
+// sin servicio externo ni cuentas de nadie. Dos horas de duración por
+// defecto — lo que dura un torneo pequeño — y el enlace a la ficha en
+// la descripción, que es lo que uno busca cuando le salta el aviso.
+function ponerBotonCalendario(acciones) {
+  if (['finished', 'cancelled'].includes(torneo.status) || !torneo.start_at) return
+  const boton = document.createElement('button')
+  boton.className = 'btn-secondary'
+  boton.id = 'btnCalendario'
+  boton.textContent = 'Añadir al calendario'
+  boton.addEventListener('click', () => {
+    const sello = (fecha) => new Date(fecha).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+    const inicio = new Date(torneo.start_at)
+    const fin = new Date(inicio.getTime() + 2 * 3600 * 1000)
+    // En un .ics las comas, los puntos y coma y las barras van
+    // escapados, y las líneas se separan con CRLF: si no, el
+    // calendario lo parte donde no debe.
+    const limpio = (t) => String(t || '').replace(/([,;\\])/g, '\\$1').replace(/\r?\n/g, ' ')
+    const enlace = `https://pokedoc.es/torneo?slug=${encodeURIComponent(torneo.slug)}`
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//PokeDoc//Torneos//ES',
+      'BEGIN:VEVENT',
+      `UID:torneo-${torneo.id}@pokedoc.es`,
+      `DTSTAMP:${sello(Date.now())}`,
+      `DTSTART:${sello(inicio)}`,
+      `DTEND:${sello(fin)}`,
+      `SUMMARY:${limpio(torneo.name)}`,
+      `DESCRIPTION:${limpio(textoFormato(torneo))} - ${enlace}`,
+      `URL:${enlace}`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n')
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${torneo.slug || 'torneo'}.ics`
+    a.click()
+    URL.revokeObjectURL(url)
+  })
+  acciones.appendChild(boton)
+}
+
 async function pintarAnuncioForo(acciones) {
   const titulo = `Torneo: ${torneo.name}`
   const zona = document.createElement('span')
@@ -402,26 +447,62 @@ function pintarMiPlaza() {
     caja.innerHTML = '<p class="subtext">Te retiraste de este torneo. La plaza no se libera y no es posible reinscribirse.</p>'
     return
   }
+  // En la cola (tanda 218): se dice el puesto, que es lo único que
+  // importa cuando esperas.
+  if (miInscripcion?.status === 'waitlisted') {
+    caja.innerHTML = `
+      <p>Estás en la <strong>lista de espera</strong>, en el puesto ${miPuestoEnCola()}.</p>
+      <p class="subtext">Si alguien deja su plaza, la primera de la cola entra sola y te avisamos.</p>
+      <button class="btn-secondary" id="btnSalirCola">Salir de la lista</button>`
+    engancharSalirCola()
+    return
+  }
   if (torneo.status !== 'registration_open') {
     caja.innerHTML = `<p class="subtext">${torneo.status === 'draft' ? 'Las inscripciones aún no se han abierto.' : 'Las inscripciones no están abiertas.'}</p>`
     return
   }
-  if (activos() >= torneo.max_players) {
-    caja.innerHTML = '<p class="subtext">Torneo lleno.</p>'
-    return
-  }
+  const lleno = activos() >= torneo.max_players
   caja.innerHTML = `
+    ${lleno ? `<p class="torneo-lleno-aviso">Torneo lleno — puedes ponerte en la lista de espera (hay ${enCola()} esperando).</p>` : ''}
     <form id="formInscripcion" class="torneo-form-inscripcion">
       <label>Tu usuario de Pokémon TCG Live
         <input type="text" id="inscripcionTcgLive" maxlength="60" placeholder="AshKetchum99" />
       </label>
-      <button type="submit" class="btn-primary" id="btnInscribirme">Inscribirme</button>
+      <button type="submit" class="btn-primary" id="btnInscribirme">${lleno ? 'Apuntarme a la lista de espera' : 'Inscribirme'}</button>
     </form>
     <p class="subtext">Las partidas se juegan en TCG Live: tu rival te buscará por ese usuario.</p>`
-  engancharInscripcion()
+  engancharInscripcion(lleno)
 }
 
-function engancharInscripcion() {
+// Los que esperan, por orden de llegada (el mismo que sigue el barredor
+// al repartir las plazas que se liberan).
+function cola() {
+  return inscripciones
+    .filter((i) => i.status === 'waitlisted')
+    .sort((a, b) => String(a.registered_at).localeCompare(String(b.registered_at)))
+}
+
+function enCola() {
+  return cola().length
+}
+
+function miPuestoEnCola() {
+  return cola().findIndex((i) => i.user_id === session.user.id) + 1
+}
+
+function engancharSalirCola() {
+  $('btnSalirCola').addEventListener('click', async () => {
+    const { error } = await supabase.from('tournament_registrations').delete().eq('id', miInscripcion.id)
+    if (error) {
+      avisarError(error, 'No se ha podido salir de la lista')
+      return
+    }
+    showToast('Fuera de la lista de espera.', 'success')
+    await recargar()
+  })
+}
+
+function engancharInscripcion(aLaCola = false) {
   let enviando = false
   $('formInscripcion').addEventListener('submit', async (e) => {
     e.preventDefault()
@@ -441,16 +522,14 @@ function engancharInscripcion() {
       .select('id', { count: 'exact', head: true })
       .eq('tournament_id', torneo.id)
       .eq('status', 'active')
-    if ((count ?? 0) >= torneo.max_players) {
-      enviando = false
-      showToast('Torneo lleno.', 'error')
-      await recargar()
-      return
-    }
+    // Si se llenó mientras rellenaba el formulario, no se le echa: se
+    // le pone en la cola, que para eso está.
+    const cupoLleno = (count ?? 0) >= torneo.max_players
+    const estado = aLaCola || cupoLleno ? 'waitlisted' : 'active'
     const { error } = await supabase.from('tournament_registrations').insert({
       tournament_id: torneo.id,
       user_id: session.user.id,
-      status: 'active',
+      status: estado,
       tcg_live_username: tcgLive,
       registered_at: new Date().toISOString(),
     })
@@ -460,7 +539,12 @@ function engancharInscripcion() {
       else avisarError(error, 'No se ha podido inscribir')
       return
     }
-    showToast('¡Inscrito! Recuerda entregar tu decklist antes de que empiece.', 'success')
+    showToast(
+      estado === 'waitlisted'
+        ? 'Estás en la lista de espera: si se libera una plaza, te avisamos.'
+        : '¡Inscrito! Recuerda entregar tu decklist antes de que empiece.',
+      'success'
+    )
     await recargar()
   })
 }
@@ -610,7 +694,10 @@ function pintarInscritos() {
   $('inscritosNumero').textContent = String(activos())
   $('inscritosVacio').classList.toggle('hidden', inscripciones.length > 0)
   const entregadaPor = new Set(decklistsEntregadas.map((d) => d.user_id))
+  // Los que esperan van APARTE y numerados (tanda 218): mezclarlos con
+  // los inscritos haría creer que tienen plaza.
   $('listaInscritos').innerHTML = inscripciones
+    .filter((i) => i.status !== 'waitlisted')
     .map((i) => {
       const nombre = i.perfil?.username || 'Alguien'
       const retirado = i.status === 'dropped' ? ' <span class="torneo-retirado">(retirado)</span>' : ''
@@ -634,6 +721,22 @@ function pintarInscritos() {
       </div>`
     })
     .join('')
+  const esperando = cola()
+  if (esperando.length) {
+    $('listaInscritos').insertAdjacentHTML(
+      'beforeend',
+      `<h5 class="torneo-cola-titulo">Lista de espera (${esperando.length})</h5>` +
+        esperando
+          .map(
+            (i, n) => `
+      <div class="torneo-inscrito torneo-inscrito-cola">
+        <span class="torneo-inscrito-nombre"><span class="torneo-cola-puesto">${n + 1}.</span> <a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(i.perfil?.username || 'Alguien')}</a></span>
+        <span class="subtext">TCG Live: ${escapeHtml(i.tcg_live_username)}</span>
+      </div>`
+          )
+          .join('')
+    )
+  }
   document.querySelectorAll('[data-expulsar]').forEach((b) =>
     b.addEventListener('click', async () => {
       if (b.dataset.confirmar !== '1') {

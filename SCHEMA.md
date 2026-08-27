@@ -10469,3 +10469,37 @@ bracket resuelto sin jugarlo.
 
 Probado con test-torneos-13.mjs (13 comprobaciones) y
 rigor-torneos-13.py (6 roturas, todas detectadas).
+
+## Tanda 218 — espera, desempates, plantilla y calendario (agosto 2026)
+
+Las cuatro últimas piezas de la ronda de mejoras que pidió PINGU:
+
+- **Lista de espera**: con el torneo lleno, el formulario no rechaza —
+  ofrece la cola (estado `waitlisted`, migración). Quien espera ve su
+  puesto y puede salirse; en «Inscritos» la cola va APARTE y numerada,
+  que mezclarla con los que tienen plaza haría creer que la tienen. La
+  promoción la hace el BARREDOR (paso 0b) y no el navegador: cada plaza
+  libre se la queda el primero por orden de llegada y se le avisa por
+  push — quien se dio de baja de madrugada no deja la plaza muerta
+  hasta que alguien abra la ficha. Si el torneo se llena mientras
+  alguien rellenaba el formulario, entra en la cola en vez de perder el
+  viaje.
+- **Los desempates, explicados** donde se ven: un desplegable bajo la
+  clasificación cuenta en cristiano qué son OWP y OOWP y por qué dos
+  jugadores con los mismos puntos no están al mismo nivel. Evita la
+  pregunta de siempre.
+- **Duplicar un torneo**: los terminados o cancelados llevan botón
+  «Duplicar» en su tarjeta, que abre el wizard con su estructura y su
+  nombre listo para retocar. La fecha NO se copia (un torneo nuevo no
+  empieza en el pasado): se propone la semana que viene. Para la liga
+  semanal, que se monta igual cada vez.
+- **Añadir al calendario**: la ficha genera un `.ics` en el navegador
+  —sin servicio externo ni cuentas de nadie— con dos horas de duración
+  y el enlace al torneo en la descripción.
+
+La migración sigue siendo re-ejecutable (tres pasadas limpias en
+Postgres 16; el ALTER del CHECK va DESPUÉS del create de su tabla, que
+en una base fresca todavía no existe donde estaba).
+
+Probado con test-torneos-14.mjs (18 comprobaciones) y
+rigor-torneos-14.py (8 roturas, todas detectadas).

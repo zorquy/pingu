@@ -1009,3 +1009,59 @@
 :root[data-theme='dark'] .torneo-palmares-oro {
   color: #e8c05a;
 }
+
+/* ── Tanda 218: lista de espera, desempates y duplicar ── */
+.torneo-lleno-aviso {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(242, 178, 62, 0.45);
+  background: rgba(242, 178, 62, 0.12);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.torneo-cola-titulo {
+  margin: 16px 0 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+}
+
+/* Los de la cola, más apagados: todavía no tienen plaza. */
+.torneo-inscrito-cola {
+  opacity: 0.85;
+}
+
+.torneo-cola-puesto {
+  display: inline-block;
+  min-width: 20px;
+  color: var(--text-mid);
+  font-weight: 800;
+}
+
+.torneo-desempates {
+  margin-top: 14px;
+  font-size: 13.5px;
+}
+
+.torneo-desempates summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.torneo-desempates ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.torneo-desempates li {
+  margin-bottom: 4px;
+}
+
+/* El botón de duplicar vive dentro del enlace de la tarjeta. */
+.torneo-duplicar {
+  padding: 4px 10px;
+  font-size: 12px;
+}

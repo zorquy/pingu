@@ -43,6 +43,14 @@ function tarjetaHtml(t, ocupadas, extra = '') {
     </span>
     ${extra}
     <span class="torneo-estado ${estado.clase}">${estado.texto}</span>
+    ${
+      // Duplicar (tanda 218): la liga semanal se monta igual cada vez,
+      // así que un torneo pasado sirve de plantilla. Va dentro del
+      // enlace de la tarjeta, de ahí el preventDefault del manejador.
+      ['finished', 'cancelled'].includes(t.status)
+        ? `<button type="button" class="btn-secondary torneo-duplicar" data-duplicar="${escapeHtml(t.id)}">Duplicar</button>`
+        : ''
+    }
   </a>`
 }
 
@@ -212,6 +220,36 @@ function engancharFormulario(session) {
       $('torneoNombre').focus()
     }
   })
+  // Duplicar: abre el wizard con la estructura del torneo elegido y el
+  // nombre listo para retocar. La fecha NO se copia (un torneo nuevo
+  // nunca empieza en el pasado): se propone la semana que viene.
+  document.addEventListener('click', async (e) => {
+    const boton = e.target.closest('[data-duplicar]')
+    if (!boton) return
+    e.preventDefault()
+    const { data: viejo } = await supabase
+      .from('tournaments')
+      .select('name, max_players, swiss_rounds, swiss_bo, top_cut_size, top_cut_bo, round_time_minutes, checkin_minutes, description')
+      .eq('id', boton.dataset.duplicar)
+      .maybeSingle()
+    if (!viejo) return
+    form.classList.remove('hidden')
+    irAPaso(0)
+    $('torneoNombre').value = viejo.name
+    const semanaQueViene = new Date(Date.now() + 7 * 86400e3)
+    semanaQueViene.setMinutes(semanaQueViene.getMinutes() - semanaQueViene.getTimezoneOffset())
+    $('torneoFecha').value = semanaQueViene.toISOString().slice(0, 16)
+    $('torneoPlazas').value = viejo.max_players
+    $('torneoRondas').value = viejo.swiss_rounds
+    $('torneoCorte').value = String(viejo.top_cut_size ?? 0)
+    if ($('torneoMinutos')) $('torneoMinutos').value = viejo.round_time_minutes
+    if ($('torneoCheckin') && viejo.checkin_minutes != null) $('torneoCheckin').value = viejo.checkin_minutes
+    if ($('torneoDescripcion')) $('torneoDescripcion').value = viejo.description || ''
+    $('torneoNombre').focus()
+    $('torneoNombre').select()
+    showToast('Plantilla cargada: cambia lo que quieras y créalo.', 'success')
+  })
+
   $('btnCancelarTorneo').addEventListener('click', () => form.classList.add('hidden'))
   $('btnPasoAtras').addEventListener('click', () => irAPaso(pasoActual - 1))
   $('btnPasoSiguiente').addEventListener('click', () => {
