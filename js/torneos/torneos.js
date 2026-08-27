@@ -41,16 +41,18 @@ function tarjetaHtml(t, ocupadas, extra = '') {
         ${ocupadas}/${t.max_players} plazas
       </span>
     </span>
-    ${extra}
-    <span class="torneo-estado ${estado.clase}">${estado.texto}</span>
-    ${
-      // Duplicar (tanda 218): la liga semanal se monta igual cada vez,
-      // así que un torneo pasado sirve de plantilla. Va dentro del
-      // enlace de la tarjeta, de ahí el preventDefault del manejador.
-      ['finished', 'cancelled'].includes(t.status)
-        ? `<button type="button" class="btn-secondary torneo-duplicar" data-duplicar="${escapeHtml(t.id)}">Duplicar</button>`
-        : ''
-    }
+    <span class="torneo-tarjeta-chapas">
+      ${extra}
+      <span class="torneo-estado ${estado.clase}">${estado.texto}</span>
+      ${
+        // Duplicar (tanda 218): la liga semanal se monta igual cada vez,
+        // así que un torneo pasado sirve de plantilla. Va dentro del
+        // enlace de la tarjeta, de ahí el preventDefault del manejador.
+        ['finished', 'cancelled'].includes(t.status)
+          ? `<button type="button" class="btn-secondary torneo-duplicar" data-duplicar="${escapeHtml(t.id)}">Duplicar</button>`
+          : ''
+      }
+    </span>
   </a>`
 }
 

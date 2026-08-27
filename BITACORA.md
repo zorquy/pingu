@@ -29,10 +29,17 @@ De propina, una ficha ya no puede enseñar «undefined min»: los datos de
 formato caen a los valores por defecto de la tabla. Barrido automático
 de las 14 páginas del sitio × 4 anchos (320/360/390/430): ninguna
 desborda.
+Segunda pasada, con otra captura de PINGU: las TARJETAS de /torneos se
+estrujaban —las chapas con nowrap se quedaban el ancho y el título caía
+a una palabra por línea—. Las chapas pasan a un bloque propio y bajo
+560px la tarjeta es una rejilla `48px 1fr`. Es el fallo contrario al
+desborde (la página cabía), así que el barrido aprende a medirlo:
+cuenta las líneas reales del texto con Range.getClientRects().
 **Ficheros**: css/torneos.css, css/style.css, css/components.css,
-js/torneos/ronda.js, js/torneos/torneo.js, SCHEMA.md.
+js/torneos/ronda.js, js/torneos/torneo.js, js/torneos/torneos.js,
+SCHEMA.md.
 **En curso / pendiente**: nada bloqueado. Suite completa en verde y
-rigor de 10 roturas, todas detectadas. Sigue pendiente de PINGU
+rigor de 12 roturas, todas detectadas. Sigue pendiente de PINGU
 re-ejecutar supabase-migration-torneos.sql (acumula 216/217/218 y las
 columnas de 219/220). Los torneos siguen siendo SOLO para admins hasta
 que PINGU dé la salida.

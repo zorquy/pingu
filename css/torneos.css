@@ -157,6 +157,35 @@
 .torneo-texto { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 2px; }
 .torneo-texto strong { transition: color 0.15s; }
 
+/* Las chapas de la tarjeta (tu estado, el del torneo y «Duplicar») van
+   JUNTAS en su propio bloque. En un PC quedan igual que siempre, a la
+   derecha; lo que arregla es el móvil: antes eran tres hermanos sueltos
+   con nowrap que se quedaban con el ancho, y el título del torneo caía
+   a una letra por línea (PINGU lo vio en su teléfono). Debajo, en la
+   media query, este bloque baja a su propia fila. */
+.torneo-tarjeta-chapas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* En móvil la tarjeta es una rejilla: fecha y texto arriba (el texto
+   con TODO el ancho que sobra), chapas debajo alineadas con el texto. */
+@media (max-width: 560px) {
+  .torneo-tarjeta {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 10px 14px;
+    align-items: center;
+  }
+  .torneo-tarjeta-chapas {
+    grid-column: 2;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
 /* La barrita de ocupación dentro de la tarjeta. */
 .torneo-ocupacion {
   display: inline-flex;

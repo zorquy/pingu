@@ -10616,8 +10616,23 @@ un puñado de atributos.
   los valores por defecto de la tabla (`?? 30`, `?? 5`) si a la fila le
   falta la columna.
 
+- **Las tarjetas de /torneos no se estrujan**: este es el fallo
+  contrario al desborde, y por eso el primer barrido no lo vio. La
+  tarjeta era una fila de hermanos sueltos (fecha · texto · tu chapa ·
+  estado · «Duplicar») y las chapas, con `nowrap`, se quedaban con el
+  ancho: al título le sobraban cuatro píxeles y caía una palabra —o una
+  letra— por línea. Ahora las chapas viven en un bloque propio
+  (`.torneo-tarjeta-chapas`) que en un PC va a la derecha igual que
+  siempre, y por debajo de 560px la tarjeta pasa a rejilla `48px 1fr`:
+  fecha y texto arriba con todo el ancho, chapas debajo alineadas con
+  el texto y envolviendo si hacen falta dos filas.
+
 La medida es objetiva y automática: `scrollWidth > clientWidth` del
 documento en 320, 360, 390 y 430px, pestaña por pestaña, con el
-culpable más externo en el mensaje de fallo. Probado con
-test-torneos-15.mjs (37 comprobaciones) y rigor-torneos-15.py (8
-roturas, todas detectadas).
+culpable más externo en el mensaje de fallo. Lo estrujado se mide al
+revés —la columna del texto tiene que llevarse más de la mitad de su
+tarjeta y el título caber en dos líneas—, y el barrido del sitio lo
+caza contando las líneas REALES del texto con `Range.getClientRects()`
+(la altura de la caja engaña: un botón con relleno parece tres líneas).
+Probado con test-torneos-15.mjs (50 comprobaciones) y
+rigor-torneos-15.py (12 roturas, todas detectadas).
