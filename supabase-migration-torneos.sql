@@ -84,6 +84,30 @@ alter table public.tournaments
 alter table public.tournaments
   add column if not exists result_announced_at timestamptz;
 
+-- Tanda 223 — los dos avisos que faltaban.
+--
+--  · `cancel_notified_at`: cancelar un torneo no avisaba a NADIE. Ocho
+--    personas apuntadas y el torneo desaparecía en silencio. El
+--    barredor manda el aviso una vez y lo apunta aquí.
+--
+--  · `reminder_notified_at`: el recordatorio de «tu torneo empieza
+--    dentro de una hora». Había aviso cuando la ronda YA había
+--    empezado, que llega tarde para el que se apuntó el lunes.
+--
+--  · `delete_after_notice_at`: el borrado diferido. Borrar un torneo
+--    CON gente dentro no puede ser instantáneo, porque entonces no hay
+--    a quién avisar ni desde dónde: la fila con los inscritos se va en
+--    la misma operación. Así que la ficha lo cancela, marca esta fecha,
+--    y el barredor —que sí tiene clave de servicio para avisar por push
+--    y por correo— manda el aviso y DESPUÉS lo borra. Un torneo sin
+--    inscritos se borra en el acto, sin pasar por aquí.
+alter table public.tournaments
+  add column if not exists cancel_notified_at timestamptz;
+alter table public.tournaments
+  add column if not exists reminder_notified_at timestamptz;
+alter table public.tournaments
+  add column if not exists delete_after_notice_at timestamptz;
+
 -- Tanda 216 (parte 1) — la marca del toque de check-in por caducar (un
 -- push por ronda; sus hermanas de tournament_matches van tras el CREATE
 -- de esa tabla, que en una base fresca aún no existe aquí).

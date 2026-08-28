@@ -10676,3 +10676,53 @@ tercero no puede, el dueño sí aunque no sea admin, el admin puede con
 el de cualquiera, sin sesión no se borra nada, y los hijos se van en
 cascada. Repetido con la RLS del lanzamiento puesta, incluido el caso
 del borrador propio.
+
+## Tanda 223 — los avisos que faltaban (agosto 2026)
+
+PINGU preguntó qué faltaba. Mirando el código salieron tres agujeros,
+dos de ellos serios, y dos retoques menores. Todo en la misma tanda
+porque es la misma pieza: quién se entera de qué.
+
+- **Cancelar un torneo no avisaba a NADIE.** Ocho personas apuntadas y
+  el torneo desaparecía en silencio; se enteraban al abrir la web por
+  casualidad. Ahora es un paso del barredor: un torneo cancelado sin
+  `cancel_notified_at` avisa a los inscritos —y a la lista de espera,
+  que también estaba esperando algo que ya no va a pasar— una sola vez.
+  A quien se dio de baja, no: ya se había ido.
+- **Todo salía SOLO por push.** Los seis avisos que había
+  (inscripciones abiertas, tienes plaza, tu ronda empieza, se acaba el
+  check-in, tu rival ha reportado, mesa resuelta) usaban únicamente
+  `push_subscriptions`. En un iPhone sin la web instalada como app eso
+  no existe: quien se apuntaba a un torneo podía no enterarse ni de que
+  su ronda había empezado. Ahora el barredor encola además en
+  `email_outbox` —la cola que ya movía el foro— respetando
+  `notification_email_disabled`. Seis casillas nuevas en el perfil (no
+  una: el aviso de partida y el de torneos nuevos no molestan igual) y
+  sus nombres en la baja de un clic, que si no reconoce el tipo apaga
+  TODOS los correos de esa persona. El del check-in se queda solo en
+  push a propósito: quedan cinco minutos y un correo que sale cada
+  cinco no llega.
+- **Recordatorio antes de empezar**: había aviso de que la ronda YA
+  había empezado, que para quien se apuntó el lunes a un torneo del
+  sábado llega tarde. Un aviso en la hora anterior, una vez.
+- **El borrado, diferido cuando hay gente dentro.** Borrar en el acto
+  se lleva por delante la fila que dice quién estaba apuntado, y
+  entonces no hay a quién avisar ni desde dónde. La ficha lo deja
+  cancelado con `delete_after_notice_at`; el barredor —que sí tiene
+  clave de servicio para el push y el correo— avisa PRIMERO y borra
+  DESPUÉS, en la pasada siguiente. Un torneo vacío se borra en el acto:
+  no hay a quién avisar. La decisión vive en `js/torneos/borrar.js`,
+  compartido por la ficha y la lista para que no haya dos copias.
+- **Menores**: los terminados ya no se cortan en diez sin remedio (un
+  «Ver N más» levanta el corte), y el botón de borrar está también en
+  la tarjeta de la lista, con la misma regla y los mismos dos toques.
+
+Al meter «Borrar» en la tarjeta, las chapas pasaron a ser cuatro y se
+apilaban en tres filas en un móvil: ahora ocupan el ancho entero de la
+tarjeta en vez de solo la columna del texto.
+
+Probado con test-torneos-17.mjs (22 comprobaciones del barredor, sin
+navegador: la función recibe su `rest` por parámetro y el mundo se monta
+en el propio test) + rigor-torneos-17.py (11 roturas), y
+test-torneos-18.mjs (24 de pantalla) + rigor-torneos-18.py (12). La
+migración, tres pasadas limpias contra Postgres 16.

@@ -11,7 +11,8 @@ import { escapeHtml, getSession, getProfile, slugify } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { officialStructure } from './motor.js'
-import { ESTADOS, fechaBonita, textoFormato } from './comun.js'
+import { ESTADOS, fechaBonita, textoFormato, puedeBorrarTorneo } from './comun.js'
+import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -25,7 +26,7 @@ function semillaDePareo() {
 
 // ── La lista ──
 
-function tarjetaHtml(t, ocupadas, extra = '') {
+function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
   const estado = ESTADOS[t.status] || ESTADOS.draft
   const fecha = new Date(t.start_at)
   const mes = fecha.toLocaleString('es-ES', { month: 'short' }).replace('.', '')
@@ -50,6 +51,14 @@ function tarjetaHtml(t, ocupadas, extra = '') {
         // enlace de la tarjeta, de ahí el preventDefault del manejador.
         ['finished', 'cancelled'].includes(t.status)
           ? `<button type="button" class="btn-secondary torneo-duplicar" data-duplicar="${escapeHtml(t.id)}">Duplicar</button>`
+          : ''
+      }
+      ${
+        // Borrar desde la lista (tanda 223): antes había que entrar a la
+        // ficha para deshacerse de un torneo de prueba. Misma regla que
+        // allí — admin del sitio o quien lo creó — y mismos dos toques.
+        puedeBorrar
+          ? `<button type="button" class="torneo-borrar torneo-borrar-fila" data-borrar="${escapeHtml(t.id)}" data-nombre="${escapeHtml(t.name)}" data-dentro="${ocupadas}">Borrar</button>`
           : ''
       }
     </span>
@@ -80,16 +89,35 @@ function pintarGrupos(grupos) {
         )
         .join('')}
     </nav>
-    ${activa.filas.join('')}`
+    ${activa.filas.join('')}
+    ${activa.pie || ''}`
   lista.querySelectorAll('[data-grupo]').forEach((b) =>
     b.addEventListener('click', () => {
       pestanaLista = b.dataset.grupo
       pintarGrupos(grupos)
     })
   )
+  // «Ver N más» de los terminados: levanta el corte y vuelve a pedir la
+  // lista (no basta con repintar: las filas de más ni se construyeron).
+  document.getElementById('btnVerMasTerminados')?.addEventListener('click', () => {
+    verTodosLosTerminados = true
+    recargarLista()
+  })
 }
 
-async function cargarLista(session) {
+// Cuántos torneos terminados se enseñan de golpe. Antes se cortaba en
+// 10 y no había manera de ver el resto: el historial de la comunidad
+// se perdía por el borde. Ahora el corte lo levanta un botón.
+const TERMINADOS_DE_GOLPE = 10
+let verTodosLosTerminados = false
+// Quién está mirando, guardado para los repintados que nacen de un
+// clic suelto («ver más», borrar una fila) y no tienen a mano ni la
+// sesión ni el perfil.
+let quienMira = { session: null, perfil: null }
+const recargarLista = () => cargarLista(quienMira.session, quienMira.perfil)
+
+async function cargarLista(session, perfil = null) {
+  quienMira = { session, perfil }
   const vacio = $('torneosVacio')
   const { data } = await supabase
     .from('tournaments')
@@ -112,7 +140,8 @@ async function cargarLista(session) {
 
   vacio.classList.toggle('hidden', torneos.length > 0)
 
-  const tarjeta = (t, extra = '') => tarjetaHtml(t, ocupadasDe[t.id] || 0, extra)
+  const tarjeta = (t, extra = '') =>
+    tarjetaHtml(t, ocupadasDe[t.id] || 0, extra, puedeBorrarTorneo(perfil, t, session?.user?.id))
   const mios = torneos
     .filter((t) => miEstado[t.id] && t.status !== 'draft')
     .map((t) =>
@@ -125,17 +154,21 @@ async function cargarLista(session) {
   const enJuego = torneos
     .filter((t) => ['registration_closed', 'in_progress'].includes(t.status))
     .map((t) => tarjeta(t))
-  const terminados = torneos
-    .filter((t) => ['finished', 'cancelled'].includes(t.status))
-    .slice(0, 10)
-    .map((t) => tarjeta(t))
+  const acabados = torneos.filter((t) => ['finished', 'cancelled'].includes(t.status))
+  const terminados = (verTodosLosTerminados ? acabados : acabados.slice(0, TERMINADOS_DE_GOLPE)).map((t) => tarjeta(t))
+  const ocultos = acabados.length - terminados.length
   const borradores = torneos.filter((t) => t.status === 'draft').map((t) => tarjeta(t))
 
   pintarGrupos([
     { id: 'mios', texto: 'Tus torneos', filas: mios },
     { id: 'abiertas', texto: 'Abiertas', filas: abiertas },
     { id: 'enjuego', texto: 'En juego', filas: enJuego },
-    { id: 'terminados', texto: 'Terminados', filas: terminados },
+    {
+      id: 'terminados',
+      texto: 'Terminados',
+      filas: terminados,
+      pie: ocultos > 0 ? `<button type="button" class="btn-secondary torneo-ver-mas" id="btnVerMasTerminados">Ver ${ocultos} más</button>` : '',
+    },
     { id: 'borradores', texto: 'Borradores', filas: borradores },
   ])
 }
@@ -295,7 +328,7 @@ async function montarEditorDescripcion(session, htmlInicial = '') {
   })
 }
 
-function engancharFormulario(session) {
+function engancharFormulario(session, perfil) {
   const form = $('torneoForm')
   const plazas = $('torneoPlazas')
 
@@ -307,6 +340,37 @@ function engancharFormulario(session) {
       $('torneoNombre').focus()
     }
   })
+  // Borrar desde la tarjeta (tanda 223). Dos toques como en la ficha: el
+  // primero avisa —y dice a cuánta gente afecta—, el segundo va. La
+  // tarjeta es un enlace al torneo, de ahí el preventDefault.
+  document.addEventListener('click', async (e) => {
+    const boton = e.target.closest('[data-borrar]')
+    if (!boton) return
+    e.preventDefault()
+    const dentro = Number(boton.dataset.dentro || 0)
+    if (boton.dataset.confirmar !== '1') {
+      boton.dataset.confirmar = '1'
+      boton.textContent = textoConfirmarBorrado(dentro)
+      return
+    }
+    boton.disabled = true
+    const { error, diferido } = await borrarTorneo(boton.dataset.borrar, dentro)
+    if (error) {
+      boton.disabled = false
+      boton.dataset.confirmar = ''
+      boton.textContent = 'Borrar'
+      showToast(`No se ha podido borrar: ${error.message}`, 'error')
+      return
+    }
+    showToast(
+      diferido
+        ? `«${boton.dataset.nombre}» cancelado. Se avisa a ${dentro} inscrito${dentro === 1 ? '' : 's'} y desaparece en un minuto.`
+        : `«${boton.dataset.nombre}» borrado.`,
+      'success'
+    )
+    await recargarLista()
+  })
+
   // Duplicar: abre el wizard con la estructura del torneo elegido y el
   // nombre listo para retocar. La fecha NO se copia (un torneo nuevo
   // nunca empieza en el pasado): se propone la semana que viene.
@@ -417,7 +481,7 @@ function engancharFormulario(session) {
     pintarCamposJornadas()
     irAPaso(0)
     showToast(`«${nombre}» creado como borrador. Abre las inscripciones cuando esté listo.`, 'success')
-    cargarLista(session)
+    cargarLista(session, perfil)
   })
 }
 
@@ -433,11 +497,21 @@ async function init() {
   // no se podía enseñar, porque la página que lo diría ya no existe.
   const borrado = sessionStorage.getItem('torneo-borrado')
   if (borrado) {
+    const avisados = Number(sessionStorage.getItem('torneo-borrado-inscritos') || 0)
     sessionStorage.removeItem('torneo-borrado')
-    showToast(`«${borrado}» borrado.`, 'success')
+    sessionStorage.removeItem('torneo-borrado-inscritos')
+    // Con gente dentro el borrado es diferido (tanda 223): primero se
+    // les avisa y luego desaparece. Decirlo, para que no extrañe verlo
+    // todavía ahí un minuto más.
+    showToast(
+      avisados
+        ? `«${borrado}» cancelado. Se avisa a ${avisados} inscrito${avisados === 1 ? '' : 's'} y desaparece en un minuto.`
+        : `«${borrado}» borrado.`,
+      'success'
+    )
   }
-  engancharFormulario(session)
-  await cargarLista(session)
+  engancharFormulario(session, perfil)
+  await cargarLista(session, perfil)
 }
 
 init()

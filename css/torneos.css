@@ -179,8 +179,13 @@
     gap: 10px 14px;
     align-items: center;
   }
+  /* Las chapas ocupan el ANCHO ENTERO de la tarjeta, no solo la
+     columna del texto. Con tres cabían alineadas debajo del texto, pero
+     al añadir «Borrar» (tanda 223) se apilaban en tres filas en una
+     pantalla de 320px y la tarjeta se convertía en una torre. Bajo el
+     bloque de la fecha no hay nada que estorbe. */
   .torneo-tarjeta-chapas {
-    grid-column: 2;
+    grid-column: 1 / -1;
     flex-wrap: wrap;
     gap: 8px;
   }
@@ -238,6 +243,21 @@
 .torneo-borrar[disabled] {
   opacity: 0.6;
   cursor: default;
+}
+
+/* En la tarjeta de la lista el botón va más pequeño, a juego con las
+   chapas de al lado: ahí compite por el ancho con «Duplicar» y con el
+   estado, y en un móvil no caben tres botones de tamaño normal. */
+.torneo-borrar-fila {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+/* «Ver N más» de los terminados: centrado y despegado de la última
+   fila, para que se lea como el final de la lista y no como otra. */
+.torneo-ver-mas {
+  display: block;
+  margin: 12px auto 0;
 }
 
 .torneo-estado {

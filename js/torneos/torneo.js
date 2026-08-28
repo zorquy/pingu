@@ -17,6 +17,7 @@ import { urlTema } from '../foro-comun.js'
 import { pintarDecklistVisual } from './cartas-decklist.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { sanitizeRichText } from '../richtext-format.js'
+import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 
 let session = null
 let perfil = null
@@ -380,16 +381,14 @@ function engancharCancelar() {
 function engancharBorrar() {
   const btn = $('btnBorrarTorneo')
   btn.addEventListener('click', async () => {
+    const dentro = inscripciones.filter((i) => i.status !== 'waitlisted').length
     if (btn.dataset.confirmar !== '1') {
       btn.dataset.confirmar = '1'
-      const dentro = inscripciones.filter((i) => i.status !== 'waitlisted').length
-      btn.textContent = dentro
-        ? `¿Seguro? Se borra con sus ${dentro} inscrito${dentro === 1 ? '' : 's'}`
-        : '¿Seguro? No hay vuelta atrás'
+      btn.textContent = textoConfirmarBorrado(dentro)
       return
     }
     btn.disabled = true
-    const { error } = await supabase.from('tournaments').delete().eq('id', torneo.id)
+    const { error } = await borrarTorneo(torneo.id, dentro)
     if (error) {
       btn.disabled = false
       btn.dataset.confirmar = ''
@@ -397,9 +396,7 @@ function engancharBorrar() {
       avisarError(error, 'No se ha podido borrar')
       return
     }
-    // El aviso se da en la lista, que es adonde va a parar: la ficha que
-    // lo mostraría ya no existe.
-    sessionStorage.setItem('torneo-borrado', torneo.name)
+    anunciarBorrado(torneo.name, dentro)
     location.href = '/torneos'
   })
 }

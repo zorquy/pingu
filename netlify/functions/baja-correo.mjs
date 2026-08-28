@@ -26,9 +26,10 @@ const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 // baja. Se valida contra estas claves para que nadie pueda meter basura
 // en la columna a través del parámetro `tipo`.
 //
-// Tiene que ir a la par de EMAIL_TYPES (js/notifications.js) y de las
-// migraciones que encolan (supabase-migration-correo-avisos.sql y
-// supabase-migration-correo-foro.sql).
+// Tiene que ir a la par de EMAIL_TYPES (js/notifications.js) y de quien
+// encola: las migraciones (supabase-migration-correo-avisos.sql y
+// supabase-migration-correo-foro.sql) y, para los de torneo, el
+// barredor (netlify/functions/torneos-barredor.mjs).
 const NOMBRES = {
   private_message: 'los mensajes privados',
   comment_reply: 'las respuestas a tus comentarios',
@@ -43,6 +44,14 @@ const NOMBRES = {
   // dejar a un admin sin sus mensajes privados.
   guide_submitted: 'los avisos de guías nuevas para revisar',
   weekly_digest: 'el resumen semanal de la comunidad',
+  // Torneos (tanda 223). Sin estas claves aquí, el enlace de baja de un
+  // correo de torneo apagaría TODOS los correos de esa persona.
+  torneo_partida: 'los avisos de tu partida',
+  torneo_recordatorio: 'los avisos de que tu torneo va a empezar',
+  torneo_cancelado: 'los avisos de torneos cancelados',
+  torneo_plaza: 'los avisos de que la lista de espera te da plaza',
+  torneo_ronda: 'los avisos de que empieza tu ronda',
+  torneo_apertura: 'los avisos de torneos nuevos',
 }
 const TIPOS = Object.keys(NOMBRES)
 

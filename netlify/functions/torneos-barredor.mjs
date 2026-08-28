@@ -72,6 +72,10 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   let avisosCheckin = 0
   let avisosConfirmar = 0
   let avisosResueltas = 0
+  let correos = 0
+  let cancelaciones = 0
+  let recordatorios = 0
+  let borrados = 0
 
   async function avisar(subs, cuerpo) {
     for (const s of subs || []) {
@@ -101,6 +105,61 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     await avisar(subs, cuerpo)
   }
 
+  // ── El correo (tanda 223) ──
+  // Hasta ahora TODO aviso de torneo salía solo por push, y el push hay
+  // que conceder-lo: en un iPhone, si no has instalado PokeDoc como
+  // app, no lo tienes. Es decir, media comunidad no se enteraba de que
+  // su ronda había empezado. El sitio ya tenía cola de correo montada
+  // para el foro (`email_outbox`), así que se usa la misma: se encola y
+  // send-emails.mjs la vacía cada cinco minutos.
+  //
+  // Se respeta `notification_email_disabled`, que es la lista de tipos
+  // que cada cual ha apagado en su perfil. El push NO mira esa lista (es
+  // la preferencia del correo), igual que en el resto del sitio.
+  async function encolarCorreo(ids, { tipo, subject, preview, link, thread }) {
+    const limpios = [...new Set(ids)].filter(Boolean)
+    if (!limpios.length) return 0
+    const perfiles = await rest(
+      `user_profiles?id=in.(${limpios.join(',')})&select=id,notification_email_disabled`,
+      clave
+    ).catch(() => null)
+    if (!perfiles) return 0
+    const quieren = perfiles.filter((p) => !(p.notification_email_disabled || []).includes(tipo))
+    if (!quieren.length) return 0
+    await rest('email_outbox', clave, {
+      method: 'POST',
+      headers: { prefer: 'return=minimal' },
+      body: JSON.stringify(
+        quieren.map((p) => ({
+          recipient_id: p.id,
+          type: tipo,
+          subject,
+          preview,
+          link,
+          // Dos avisos del mismo torneo y del mismo tipo no mandan dos
+          // correos si el primero sigue en la cola sin salir.
+          thread_key: thread || null,
+        }))
+      ),
+    }).catch(() => {})
+    return quieren.length
+  }
+
+  // Avisar por los dos canales a la vez, que es lo que quiere casi todo
+  // el mundo que llama: push para quien lo tenga, correo para el resto
+  // (y para quien tenga los dos, los dos — es el mismo criterio que
+  // sigue el foro).
+  async function avisarPorTodo(ids, { title, body, tag, link, tipo, subject, preview, thread }) {
+    await avisarJugadoresPorId(ids, { title, body, link, tag })
+    correos += await encolarCorreo(ids, {
+      tipo,
+      subject: subject || title,
+      preview: preview || body,
+      link,
+      thread,
+    })
+  }
+
   // 0. AVISO DE APERTURA (tanda 211): un torneo que acaba de abrir
   //    inscripciones se anuncia una sola vez. MIENTRAS DURE LA PRUEBA
   //    solo a los admins — la sección no existe para nadie más; al
@@ -127,6 +186,13 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
             link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
             tag: 'torneo-apertura',
           })
+          correos += await encolarCorreo(ids, {
+            tipo: 'torneo_apertura',
+            subject: `Inscripciones abiertas — ${t.name}`,
+            preview: 'Apúntate antes de que se llene y deja lista tu decklist.',
+            link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
+            thread: `torneo-apertura-${t.id}`,
+          })
         }
         await rest(`tournaments?id=eq.${t.id}`, clave, {
           method: 'PATCH',
@@ -137,6 +203,100 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     } catch (e) {
       console.error('aviso de apertura aparcado:', e?.message || e)
     }
+  }
+
+  // 0a-bis. TORNEO CANCELADO (tanda 223). El agujero más gordo que
+  //     tenía esto: cancelabas un torneo con ocho personas dentro y no
+  //     se enteraba ninguna. Ahora se les avisa por push y por correo,
+  //     una sola vez (`cancel_notified_at`).
+  //
+  //     Y el BORRADO DIFERIDO: borrar un torneo con gente dentro no
+  //     puede ser instantáneo, porque la fila que dice quién estaba
+  //     apuntado se va en la misma operación y ya no hay a quién
+  //     avisar. La ficha lo deja cancelado con `delete_after_notice_at`
+  //     puesta; aquí se avisa PRIMERO y se borra DESPUÉS. Los inscritos
+  //     se enteran, y el torneo desaparece igual.
+  try {
+    const cancelados = await rest(
+      `tournaments?status=eq.cancelled&cancel_notified_at=is.null&select=id,slug,name,delete_after_notice_at`,
+      clave
+    )
+    for (const t of cancelados || []) {
+      const inscritos = await rest(
+        `tournament_registrations?tournament_id=eq.${t.id}&status=in.(active,waitlisted)&select=user_id`,
+        clave
+      )
+      const ids = (inscritos || []).map((i) => i.user_id)
+      if (ids.length) {
+        await avisarPorTodo(ids, {
+          title: `Torneo cancelado — ${t.name}`,
+          body: 'El organizador ha cancelado este torneo. No hace falta que hagas nada.',
+          tag: 'torneo-cancelado',
+          // Si el torneo se va a borrar, su ficha no existirá cuando
+          // abran el correo: se les manda a la lista.
+          link: new URL(
+            t.delete_after_notice_at ? '/torneos' : `/torneo?slug=${encodeURIComponent(t.slug)}`,
+            sitio
+          ).href,
+          tipo: 'torneo_cancelado',
+          subject: `Se ha cancelado «${t.name}»`,
+          preview: 'El organizador ha cancelado el torneo en el que te habías apuntado. No tienes que hacer nada.',
+          thread: `torneo-cancelado-${t.id}`,
+        })
+      }
+      // Marcar ANTES de borrar: si el borrado falla, el aviso no se
+      // repite en la pasada siguiente.
+      await rest(`tournaments?id=eq.${t.id}`, clave, {
+        method: 'PATCH',
+        body: JSON.stringify({ cancel_notified_at: ahora.toISOString() }),
+      })
+      cancelaciones++
+      if (t.delete_after_notice_at) {
+        await rest(`tournaments?id=eq.${t.id}`, clave, { method: 'DELETE' })
+        borrados++
+      }
+    }
+  } catch (e) {
+    console.error('aviso de cancelación aparcado:', e?.message || e)
+  }
+
+  // 0a-ter. RECORDATORIO (tanda 223): «tu torneo empieza dentro de un
+  //     rato». Había aviso de que la ronda YA había empezado, que para
+  //     quien se apuntó el lunes a un torneo del sábado llega tarde.
+  //     Se manda una vez, en la hora anterior al comienzo.
+  try {
+    const dentroDeUnaHora = new Date(ahora.getTime() + 60 * 60000).toISOString()
+    const proximos = await rest(
+      `tournaments?status=in.(registration_open,registration_closed)&reminder_notified_at=is.null` +
+        `&start_at=gte.${ahora.toISOString()}&start_at=lte.${dentroDeUnaHora}&select=id,slug,name,start_at`,
+      clave
+    )
+    for (const t of proximos || []) {
+      const inscritos = await rest(
+        `tournament_registrations?tournament_id=eq.${t.id}&status=eq.active&select=user_id`,
+        clave
+      )
+      const ids = (inscritos || []).map((i) => i.user_id)
+      if (ids.length) {
+        await avisarPorTodo(ids, {
+          title: `Empieza pronto — ${t.name}`,
+          body: 'Tu torneo empieza en menos de una hora. Ten TCG Live a mano.',
+          tag: 'torneo-recordatorio',
+          link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
+          tipo: 'torneo_recordatorio',
+          subject: `«${t.name}» empieza en menos de una hora`,
+          preview: 'Ten TCG Live abierto y tu decklist lista. Entra a la ficha cuando empiece para ver tu mesa.',
+          thread: `torneo-recordatorio-${t.id}`,
+        })
+      }
+      await rest(`tournaments?id=eq.${t.id}`, clave, {
+        method: 'PATCH',
+        body: JSON.stringify({ reminder_notified_at: ahora.toISOString() }),
+      })
+      recordatorios++
+    }
+  } catch (e) {
+    console.error('recordatorio aparcado:', e?.message || e)
   }
 
   // 0b. LISTA DE ESPERA (tanda 218): en los torneos que aún admiten
@@ -168,11 +328,14 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
         })
         libres--
         promociones++
-        await avisarJugadoresPorId([espera.user_id], {
+        await avisarPorTodo([espera.user_id], {
           title: `¡Tienes plaza! — ${t.name}`,
           body: 'Se ha liberado un hueco y la lista de espera te ha dado paso. Deja lista tu decklist.',
           link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
           tag: 'torneo-plaza',
+          tipo: 'torneo_plaza',
+          subject: `Tienes plaza en «${t.name}»`,
+          preview: 'Se ha liberado un hueco y la lista de espera te ha dado paso. Deja lista tu decklist.',
         })
       }
     }
@@ -184,7 +347,8 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     `rounds?status=eq.active&select=id,tournament_id,round_number,phase,started_at,ends_at,players_notified_at,checkin_warned_at`,
     clave
   )
-  if (!rondas || rondas.length === 0) return { ok: true, rondas: 0, aperturas, promociones, avisados, caducadas }
+  if (!rondas || rondas.length === 0)
+    return { ok: true, rondas: 0, aperturas, promociones, avisados, caducadas, correos, cancelaciones, recordatorios, borrados }
 
   const idsTorneos = [...new Set(rondas.map((r) => r.tournament_id))]
   const torneos = await rest(
@@ -246,6 +410,13 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
           link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
           tag: 'torneo-ronda',
         })
+        correos += await encolarCorreo(jugadores, {
+          tipo: 'torneo_ronda',
+          subject: `Ronda ${ronda.round_number} en marcha — ${torneo.name}`,
+          preview: 'Haz check-in y busca a tu rival en TCG Live. La ronda tiene tiempo contado.',
+          link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
+          thread: `torneo-ronda-${ronda.id}`,
+        })
       }
       await rest(`rounds?id=eq.${ronda.id}`, clave, {
         method: 'PATCH',
@@ -270,6 +441,8 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
         ...(!m.check_in_b_at && m.player_b_id ? [m.player_b_id] : []),
       ])
       if (rezagados.length) {
+        // Este se queda SOLO en push a propósito: quedan cinco minutos
+        // y un correo que se manda cada cinco no llega a tiempo.
         await avisarJugadoresPorId(rezagados, {
           title: `El check-in se acaba — ${torneo.name}`,
           body: 'Te quedan unos minutos para hacer check-in o tu mesa cae por incomparecencia.',
@@ -291,11 +464,14 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       if (m.await_notified_at) continue
       const reporteros = reportesPorMesa[m.id] || []
       const falta = [m.player_a_id, m.player_b_id].filter((j) => j && !reporteros.includes(j))
-      await avisarJugadoresPorId(falta, {
+      await avisarPorTodo(falta, {
         title: `Tu rival ha reportado — ${torneo.name}`,
         body: 'Confirma el resultado de tu mesa para cerrar la ronda.',
         link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
         tag: 'torneo-confirmar',
+        tipo: 'torneo_partida',
+        subject: `Confirma tu resultado — ${torneo.name}`,
+        preview: 'Tu rival ha reportado el resultado de vuestra mesa. Confírmalo para cerrar la ronda.',
       })
       avisosConfirmar++
       await rest(`tournament_matches?id=eq.${m.id}`, clave, {
@@ -346,11 +522,14 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
         if (!resueltas.has(m.id)) continue
         const ronda = rondas.find((r) => r.id === m.round_id)
         const torneo = ronda ? torneoDe[ronda.tournament_id] : null
-        await avisarJugadoresPorId([m.player_a_id, m.player_b_id], {
+        await avisarPorTodo([m.player_a_id, m.player_b_id], {
           title: `Vuestra mesa está resuelta${torneo ? ` — ${torneo.name}` : ''}`,
           body: 'El organizador o un juez ha decidido el resultado. Entra a verlo.',
           link: torneo ? new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href : new URL('/torneos', sitio).href,
           tag: 'torneo-resuelta',
+          tipo: 'torneo_partida',
+          subject: `Vuestra mesa está resuelta${torneo ? ` — ${torneo.name}` : ''}`,
+          preview: 'El organizador o un juez ha decidido el resultado de vuestra mesa.',
         })
         avisosResueltas++
         await rest(`tournament_matches?id=eq.${m.id}`, clave, {
@@ -361,7 +540,23 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     }
   }
 
-  return { ok: true, rondas: rondas.length, aperturas, promociones, avisados, caducadas, forfeitsCheckin, forfeitsTiempo, avisosCheckin, avisosConfirmar, avisosResueltas }
+  return {
+    ok: true,
+    rondas: rondas.length,
+    aperturas,
+    promociones,
+    avisados,
+    caducadas,
+    forfeitsCheckin,
+    forfeitsTiempo,
+    avisosCheckin,
+    avisosConfirmar,
+    avisosResueltas,
+    correos,
+    cancelaciones,
+    recordatorios,
+    borrados,
+  }
 }
 
 export default async function handler() {

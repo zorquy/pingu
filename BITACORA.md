@@ -12,6 +12,35 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-28 — PINGU-Claude (tanda 223 — los avisos que faltaban)
+**Hecho**: PINGU preguntó qué faltaba y salieron tres agujeros. (1)
+Cancelar un torneo no avisaba a nadie: nuevo paso del barredor que avisa
+a inscritos y lista de espera una sola vez (`cancel_notified_at`). (2)
+Los seis avisos que había salían SOLO por push, que en un iPhone sin la
+web instalada como app no existe — ahora el barredor encola también en
+`email_outbox` respetando `notification_email_disabled`, con seis
+casillas nuevas en el perfil y en la baja de un clic. (3) Recordatorio
+en la hora anterior al comienzo. Además, el BORRADO con gente dentro
+pasa a ser diferido: la ficha lo cancela y marca
+`delete_after_notice_at`, el barredor avisa y luego borra (borrar en el
+acto se lleva la lista de inscritos y deja sin avisar a nadie). Y dos
+menores: «Ver N más» en los terminados y borrar desde la tarjeta de la
+lista.
+**Ficheros**: supabase-migration-torneos.sql,
+netlify/functions/torneos-barredor.mjs, netlify/functions/baja-correo.mjs,
+js/notifications.js, js/torneos/borrar.js (NUEVO), js/torneos/torneo.js,
+js/torneos/torneos.js, css/torneos.css, SCHEMA.md.
+**En curso / pendiente**: PINGU tiene que ejecutar
+supabase-migration-torneos.sql (tres columnas nuevas en tournaments);
+hasta entonces el barredor aparca esos pasos sin tumbar el resto.
+**AVISO IMPORTANTE PARA IBAI-CLAUDE**: el contenedor de la sesión de
+PINGU se reinició y se llevó por delante el entorno de pruebas — el
+doble de Supabase y las ~87 pruebas de Playwright de tandas anteriores.
+No estaban en el repo (norma de CLAUDE.md) y no hay copia. Se ha
+reconstruido un doble centrado en torneos y quedan 4 pruebas vivas
+(torneos 15-18). La cobertura de foro, guías y cursos hay que rehacerla:
+hasta entonces, un cambio en esas zonas NO tiene red debajo.
+
 ## 2026-08-27 — PINGU-Claude (tanda 222 — borrar un torneo)
 **Hecho**: lo pidió PINGU: se pueden borrar torneos, y solo pueden el
 admin del sitio o quien creó ese torneo. La regla vive en la BASE

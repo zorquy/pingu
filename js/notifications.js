@@ -66,6 +66,21 @@ export const EMAIL_TYPES = {
   guide_approved: 'Cuando se aprueba tu guía',
   guide_rejected: 'Cuando tu guía necesita cambios',
   weekly_digest: 'El resumen semanal de la comunidad',
+  // Torneos (tanda 223). Hasta ahora estos avisos salían SOLO por push,
+  // que en un iPhone sin la web instalada como app no existe: quien se
+  // apuntaba a un torneo podía no enterarse ni de que su ronda había
+  // empezado. Van en seis casillas y no en una porque no molestan lo
+  // mismo — el de la partida llega en mitad del juego y el de la
+  // apertura es casi promoción — y quien quiera apagar solo ese puede.
+  // A estos NO los encola un disparador de la base sino el barredor
+  // (netlify/functions/torneos-barredor.mjs), que es quien se entera de
+  // que la ronda ha empezado o el torneo se ha cancelado.
+  torneo_partida: 'Tu partida: rival que reporta, mesa resuelta',
+  torneo_recordatorio: 'Aviso de que tu torneo va a empezar',
+  torneo_cancelado: 'Si se cancela un torneo en el que estás',
+  torneo_plaza: 'Cuando la lista de espera te da plaza',
+  torneo_ronda: 'Cuando empieza tu ronda',
+  torneo_apertura: 'Torneos nuevos con inscripciones abiertas',
 }
 
 // Lo que solo le llega al equipo.
