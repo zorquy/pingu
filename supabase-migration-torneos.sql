@@ -108,6 +108,13 @@ alter table public.tournaments
 alter table public.tournaments
   add column if not exists delete_after_notice_at timestamptz;
 
+-- Tanda 224 — el aviso que faltaba al final. El ciclo entero tenía
+-- avisos menos el momento en que la gente de verdad quiere mirar:
+-- juegas cinco rondas, se cierra la última, se calcula el podio y nadie
+-- te dice dónde has quedado. Se manda una vez.
+alter table public.tournaments
+  add column if not exists finish_notified_at timestamptz;
+
 -- Tanda 216 (parte 1) — la marca del toque de check-in por caducar (un
 -- push por ronda; sus hermanas de tournament_matches van tras el CREATE
 -- de esa tabla, que en una base fresca aún no existe aquí).

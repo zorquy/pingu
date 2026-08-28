@@ -12,6 +12,28 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-28 — PINGU-Claude (tanda 224 — la campanita y el final)
+**Hecho**: los torneos no dejaban NINGÚN rastro en la campanita
+(`js/torneos/` no llamaba a createNotification ni una vez): todo salía
+por push y correo, y la campanita es el único canal que le funciona a
+todo el mundo. Ahora el barredor escribe también en `user_notifications`
+con siete tipos apagables. Cuidado con el `pushed_at`: enviar-push.mjs
+recorre la campanita sin empujar cada 5 min, así que sin marcarlo cada
+aviso saldría DOS veces — se marca solo cuando el barredor ha empujado
+de verdad. Y aviso nuevo de TORNEO TERMINADO: el ciclo tenía avisos para
+todo menos para el final, que es cuando la gente quiere mirar; a quien
+ganó se le felicita, al resto se le manda a la clasificación, y a los de
+la lista de espera no se les dice nada (nunca llegaron a jugar).
+**Ficheros**: supabase-migration-torneos.sql,
+netlify/functions/torneos-barredor.mjs, netlify/functions/baja-correo.mjs,
+js/notifications.js, CLAUDE.md, SCHEMA.md.
+**En curso / pendiente**: PINGU re-ejecuta supabase-migration-torneos.sql
+(una columna nueva, `finish_notified_at`).
+**EL ENTORNO DE PRUEBAS YA TIENE COPIA**: vive en la rama `pruebas` de
+este repo (Netlify no la despliega). Ver CLAUDE.md, sección Pruebas. De
+lo perdido en el reinicio solo se ha podido reconstruir lo de torneos:
+foro, guías, cursos, perfiles y portada siguen SIN cobertura.
+
 ## 2026-08-28 — PINGU-Claude (tanda 223 — los avisos que faltaban)
 **Hecho**: PINGU preguntó qué faltaba y salieron tres agujeros. (1)
 Cancelar un torneo no avisaba a nadie: nuevo paso del barredor que avisa

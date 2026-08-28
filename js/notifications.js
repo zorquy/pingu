@@ -22,6 +22,17 @@ export const NOTIFICATION_TYPES = {
   followed_guide_published: 'Guías nuevas de quien sigues',
   guide_approved: 'Tu guía ha sido aprobada',
   guide_rejected: 'Tu guía ha sido rechazada',
+  // Torneos (tanda 224). Los avisos de torneo salían por push y por
+  // correo pero NO dejaban rastro aquí, que es el único canal que le
+  // funciona a todo el mundo: no hay que conceder permisos ni depende
+  // de que el correo esté bien configurado.
+  torneo_ronda: 'Cuando empieza tu ronda de torneo',
+  torneo_partida: 'Tu partida: check-in, rival que reporta, mesa resuelta',
+  torneo_final: 'Cuando termina un torneo que has jugado',
+  torneo_cancelado: 'Si se cancela un torneo en el que estás',
+  torneo_recordatorio: 'Aviso de que tu torneo va a empezar',
+  torneo_plaza: 'Cuando la lista de espera te da plaza',
+  torneo_apertura: 'Torneos nuevos con inscripciones abiertas',
 }
 
 // De qué se avisa TAMBIÉN por correo.
@@ -81,6 +92,7 @@ export const EMAIL_TYPES = {
   torneo_plaza: 'Cuando la lista de espera te da plaza',
   torneo_ronda: 'Cuando empieza tu ronda',
   torneo_apertura: 'Torneos nuevos con inscripciones abiertas',
+  torneo_final: 'Cuando termina un torneo que has jugado',
 }
 
 // Lo que solo le llega al equipo.

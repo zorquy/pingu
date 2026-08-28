@@ -73,6 +73,8 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   let avisosConfirmar = 0
   let avisosResueltas = 0
   let correos = 0
+  let campanas = 0
+  let finales = 0
   let cancelaciones = 0
   let recordatorios = 0
   let borrados = 0
@@ -145,12 +147,56 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     return quieren.length
   }
 
-  // Avisar por los dos canales a la vez, que es lo que quiere casi todo
-  // el mundo que llama: push para quien lo tenga, correo para el resto
-  // (y para quien tenga los dos, los dos — es el mismo criterio que
-  // sigue el foro).
-  async function avisarPorTodo(ids, { title, body, tag, link, tipo, subject, preview, thread }) {
+  // ── La campanita (tanda 224) ──
+  // El tercer canal, y el único que funciona para TODO el mundo: no hay
+  // que conceder permisos como con el push, ni depende de que el correo
+  // esté configurado ni de que no caiga en spam. Los torneos no dejaban
+  // rastro en ella: entrabas al día siguiente y no había ni señal de que
+  // tu ronda hubiera empezado.
+  //
+  // OJO con el `pushed_at`: enviar-push.mjs recorre cada cinco minutos
+  // los avisos de la campanita SIN empujar y los manda. Si se dejara a
+  // null, cada aviso de torneo saldría DOS veces — una por el push
+  // directo de aquí (que es inmediato, y para «se acaba el check-in» los
+  // cinco minutos de la otra función llegarían tarde) y otra por esa
+  // función. Se marca como ya empujado justo cuando de verdad se ha
+  // empujado; si aquí no hay push configurado, se deja a null para que
+  // lo recoja ella.
+  async function campanita(ids, { tipo, title, body, link }) {
+    const limpios = [...new Set(ids)].filter(Boolean)
+    if (!limpios.length) return 0
+    const perfiles = await rest(
+      `user_profiles?id=in.(${limpios.join(',')})&select=id,notification_prefs_disabled`,
+      clave
+    ).catch(() => null)
+    if (!perfiles) return 0
+    const quieren = perfiles.filter((p) => !(p.notification_prefs_disabled || []).includes(tipo))
+    if (!quieren.length) return 0
+    await rest('user_notifications', clave, {
+      method: 'POST',
+      headers: { prefer: 'return=minimal' },
+      body: JSON.stringify(
+        quieren.map((p) => ({
+          recipient_id: p.id,
+          type: tipo,
+          title,
+          body: body || null,
+          link: link || null,
+          pushed_at: mandar ? ahora.toISOString() : null,
+        }))
+      ),
+    }).catch(() => {})
+    return quieren.length
+  }
+
+  // Avisar por los TRES canales a la vez, que es lo que quiere casi todo
+  // el mundo que llama: campanita para todos, push para quien lo tenga,
+  // correo para quien no lo haya apagado. Cada canal tiene su lista de
+  // preferencias y son independientes a propósito — «quiero verlo al
+  // entrar pero que no me escriban» es lo que pide más gente.
+  async function avisarPorTodo(ids, { title, body, tag, link, tipo, subject, preview, thread, tipoCampana }) {
     await avisarJugadoresPorId(ids, { title, body, link, tag })
+    campanas += await campanita(ids, { tipo: tipoCampana || tipo, title, body, link })
     correos += await encolarCorreo(ids, {
       tipo,
       subject: subject || title,
@@ -185,6 +231,12 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
             body: 'Apúntate antes de que se llene y deja lista tu decklist.',
             link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
             tag: 'torneo-apertura',
+          })
+          campanas += await campanita(ids, {
+            tipo: 'torneo_apertura',
+            title: `Inscripciones abiertas — ${t.name}`,
+            body: 'Apúntate antes de que se llene y deja lista tu decklist.',
+            link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
           })
           correos += await encolarCorreo(ids, {
             tipo: 'torneo_apertura',
@@ -299,6 +351,61 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     console.error('recordatorio aparcado:', e?.message || e)
   }
 
+  // 0a-quater. TORNEO TERMINADO (tanda 224). El ciclo tenía aviso para
+  //     todo menos para el final, que es justo cuando la gente quiere
+  //     mirar: juegas cinco rondas, se cierra la última, se calcula el
+  //     podio y nadie te dice dónde has quedado. Se avisa una vez, a
+  //     quien jugó, y a quien ganó se le dice que ha ganado.
+  try {
+    const acabados = await rest(
+      `tournaments?status=eq.finished&finish_notified_at=is.null&select=id,slug,name,champion_id`,
+      clave
+    )
+    for (const t of acabados || []) {
+      const jugaron = await rest(
+        `tournament_registrations?tournament_id=eq.${t.id}&status=in.(active,dropped)&select=user_id`,
+        clave
+      )
+      const ids = (jugaron || []).map((i) => i.user_id)
+      const enlace = new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href
+      // Al campeón se le felicita aparte: recibir «mira dónde has
+      // quedado» cuando acabas de ganar es un aviso desaprovechado.
+      const campeon = t.champion_id && ids.includes(t.champion_id) ? t.champion_id : null
+      if (campeon) {
+        await avisarPorTodo([campeon], {
+          title: `¡Has ganado — ${t.name}!`,
+          body: 'Campeón. Tu palmarés ya lo luce en el perfil.',
+          tag: 'torneo-final',
+          link: enlace,
+          tipo: 'torneo_final',
+          subject: `Has ganado «${t.name}»`,
+          preview: 'Campeón del torneo. Tu palmarés ya lo luce en el perfil.',
+          thread: `torneo-final-${t.id}`,
+        })
+      }
+      const resto = ids.filter((id) => id !== campeon)
+      if (resto.length) {
+        await avisarPorTodo(resto, {
+          title: `Torneo terminado — ${t.name}`,
+          body: 'Ya está la clasificación final con el podio y tus desempates.',
+          tag: 'torneo-final',
+          link: enlace,
+          tipo: 'torneo_final',
+          subject: `«${t.name}» ha terminado`,
+          preview: 'Ya está la clasificación final, con el podio y tus desempates.',
+          thread: `torneo-final-${t.id}`,
+        })
+      }
+      await rest(`tournaments?id=eq.${t.id}`, clave, {
+        method: 'PATCH',
+        body: JSON.stringify({ finish_notified_at: ahora.toISOString() }),
+      })
+      finales++
+    }
+  } catch (e) {
+    console.error('aviso de final aparcado:', e?.message || e)
+  }
+
   // 0b. LISTA DE ESPERA (tanda 218): en los torneos que aún admiten
   //     gente, cada plaza libre se la queda el PRIMERO de la cola (por
   //     orden de llegada) y se le avisa. Va aquí y no en el navegador
@@ -348,7 +455,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     clave
   )
   if (!rondas || rondas.length === 0)
-    return { ok: true, rondas: 0, aperturas, promociones, avisados, caducadas, correos, cancelaciones, recordatorios, borrados }
+    return { ok: true, rondas: 0, aperturas, promociones, avisados, caducadas, correos, campanas, cancelaciones, recordatorios, borrados, finales }
 
   const idsTorneos = [...new Set(rondas.map((r) => r.tournament_id))]
   const torneos = await rest(
@@ -410,6 +517,12 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
           link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
           tag: 'torneo-ronda',
         })
+        campanas += await campanita(jugadores, {
+          tipo: 'torneo_ronda',
+          title: `Tu ronda ha empezado — ${torneo.name}`,
+          body: `Ronda ${ronda.round_number}: haz check-in y busca a tu rival en TCG Live.`,
+          link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
+        })
         correos += await encolarCorreo(jugadores, {
           tipo: 'torneo_ronda',
           subject: `Ronda ${ronda.round_number} en marcha — ${torneo.name}`,
@@ -448,6 +561,14 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
           body: 'Te quedan unos minutos para hacer check-in o tu mesa cae por incomparecencia.',
           link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
           tag: 'torneo-checkin',
+        })
+        // En la campanita SÍ, aunque no vaya por correo: si luego pierdes
+        // la mesa por no aparecer, al menos queda dicho que se avisó.
+        campanas += await campanita(rezagados, {
+          tipo: 'torneo_partida',
+          title: `El check-in se acaba — ${torneo.name}`,
+          body: 'Te quedaban unos minutos para hacer check-in.',
+          link: new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, sitio).href,
         })
         avisosCheckin++
       }
@@ -553,7 +674,9 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     avisosConfirmar,
     avisosResueltas,
     correos,
+    campanas,
     cancelaciones,
+    finales,
     recordatorios,
     borrados,
   }

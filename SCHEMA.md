@@ -10726,3 +10726,49 @@ navegador: la función recibe su `rest` por parámetro y el mundo se monta
 en el propio test) + rigor-torneos-17.py (11 roturas), y
 test-torneos-18.mjs (24 de pantalla) + rigor-torneos-18.py (12). La
 migración, tres pasadas limpias contra Postgres 16.
+
+## Tanda 224 — el tercer canal y el final (agosto 2026)
+
+La 223 tapó el agujero del push metiendo correo. Faltaba el canal más
+fiable de los tres, y faltaba el final del ciclo.
+
+- **La campanita no sabía NADA de torneos.** `js/torneos/` no llamaba a
+  `createNotification` ni una vez: todo salía por push y por correo,
+  pero al entrar a la web no había ni rastro de que tu ronda hubiera
+  empezado. Y la campanita es el único canal que le funciona a todo el
+  mundo — no hay que conceder permisos como con el push, ni depende de
+  que el correo esté configurado ni de que no caiga en spam. Ahora el
+  barredor escribe también en `user_notifications`, con siete tipos
+  nuevos que se pueden apagar uno a uno.
+- **El `pushed_at` que evita el aviso doble.** `enviar-push.mjs` recorre
+  cada cinco minutos los avisos de campanita SIN empujar y los manda.
+  Escribir ahí sin más habría hecho que cada aviso de torneo saliera dos
+  veces. Se marca como ya empujado justo cuando el barredor ha empujado
+  de verdad; si no hay push configurado se deja a null, para que lo
+  recoja esa función cuando lo esté. El barredor sigue empujando él
+  mismo porque corre cada minuto y para «se acaba el check-in» los cinco
+  de la otra función llegan tarde.
+- **Aviso de torneo terminado.** El ciclo tenía avisos para todo menos
+  para el final, que es justo cuando la gente quiere mirar: juegas cinco
+  rondas y nadie te dice dónde has quedado. Se avisa a quien jugó —
+  incluidos los que se retiraron a mitad, que también jugaron; a los de
+  la lista de espera no, que nunca llegaron a entrar. Y a quien ganó se
+  le felicita en vez de mandarle a mirar la tabla.
+
+Los tres canales tienen listas de preferencias INDEPENDIENTES a
+propósito: «quiero verlo al entrar pero que no me escriban» es lo que
+pide más gente, y con una sola lista no se puede decir.
+
+Probado con test-torneos-17.mjs (37 comprobaciones) y
+rigor-torneos-17.py (19 roturas, todas detectadas), incluidos los dos
+casos del `pushed_at` — el que provocaría el aviso doble y el que
+perdería el push. Migración: tres pasadas limpias contra Postgres 16.
+
+### El entorno de pruebas, a salvo
+
+Aparte de la tanda: el doble de Supabase y las pruebas viven ahora en la
+rama `pruebas` del repo, que Netlify NO despliega. Vivían solo en el
+contenedor de la sesión de Claude y un reinicio se los llevó — con unas
+87 pruebas de tandas anteriores que no se han podido recuperar. La
+norma de CLAUDE.md («el doble no va en el repo») sigue teniendo razón en
+el fondo, pero «fuera del repo» y «en ningún sitio» no son lo mismo.

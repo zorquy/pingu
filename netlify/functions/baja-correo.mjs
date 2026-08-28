@@ -52,6 +52,7 @@ const NOMBRES = {
   torneo_plaza: 'los avisos de que la lista de espera te da plaza',
   torneo_ronda: 'los avisos de que empieza tu ronda',
   torneo_apertura: 'los avisos de torneos nuevos',
+  torneo_final: 'los avisos de cuando termina un torneo',
 }
 const TIPOS = Object.keys(NOMBRES)
 

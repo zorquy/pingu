@@ -49,12 +49,21 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
 
 ## Pruebas
 
-La suite de regresión (73+ tests de Playwright con un doble de
-Supabase) vive FUERA del repo, en el entorno de la sesión de PINGU, y
-es esa sesión quien la corre. Si eres la sesión de IBAI: deja tu
-cambio bien anotado en la bitácora y pide en tu entrada una pasada de
-suite; la sesión de PINGU la pasará y anotará el resultado. No metas
-tests ni stubs de Supabase dentro del repo.
+La suite de Playwright con su doble de Supabase vive en la rama
+**`pruebas`** de este mismo repo — que Netlify NO despliega — y la corre
+la sesión de PINGU. Si eres la sesión de IBAI: deja tu cambio bien
+anotado en la bitácora y pide en tu entrada una pasada de suite; la
+sesión de PINGU la pasará y anotará el resultado.
+
+**Los tests y el doble NO van en la rama de trabajo**: ahí solo va la
+web, que es lo que sale a producción. Pero tampoco pueden vivir solo en
+el contenedor de una sesión — el 2026-08-28 uno se reinició y se llevó
+por delante el doble y unas 87 pruebas, sin copia en ninguna parte. De
+ahí la rama: fuera de lo que se despliega, pero en algún sitio.
+
+**Estado a 2026-08-28**: solo sobrevivieron las de torneos (4 pruebas).
+Foro, guías, cursos, perfiles y portada están SIN cobertura hasta que se
+rehagan: un cambio ahí sale a producción sin red debajo.
 
 ## Los torneos (sección «Jugar»)
 
