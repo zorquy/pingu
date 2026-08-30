@@ -25,9 +25,13 @@ const T = {
   judge_calls: [],
   judge_messages: [],
   match_messages: [],
-  forum_threads: [],
+  forum_sections: [],
   forum_boards: [],
+  forum_threads: [],
   forum_posts: [],
+  forum_post_reactions: [],
+  forum_thread_reads: [],
+  forum_subscriptions: [],
   user_notifications: [],
   tcg_cards: [],
   site_settings: [],
@@ -157,12 +161,73 @@ sembrar('__FAKE_RESULTADOS__', 'match_results', (i) => ({
   created_at: new Date().toISOString(),
 }))
 
+// ── El foro ──
+sembrar('__FAKE_SECCIONES__', 'forum_sections', (i) => ({
+  id: `seccion-${i + 1}`,
+  name: `Sección ${i + 1}`,
+  position: i,
+}))
+
+sembrar('__FAKE_FOROS__', 'forum_boards', (i) => ({
+  id: `foro-${i + 1}`,
+  section_id: 'seccion-1',
+  parent_id: null,
+  slug: `foro-${i + 1}`,
+  name: `Foro ${i + 1}`,
+  description: null,
+  position: i,
+  is_hidden: false,
+  min_role: null,
+}))
+
+sembrar('__FAKE_TEMAS__', 'forum_threads', (i) => ({
+  id: `tema-${i + 1}`,
+  board_id: 'foro-1',
+  author_id: 'user-1',
+  title: `Tema ${i + 1}`,
+  prefix: null,
+  is_pinned: false,
+  is_locked: false,
+  view_count: 0,
+  post_count: 1,
+  last_post_at: new Date(Date.now() - (20 - i) * 60000).toISOString(),
+  created_at: new Date(Date.now() - (20 - i) * 60000).toISOString(),
+}))
+
+sembrar('__FAKE_MENSAJES__', 'forum_posts', (i) => ({
+  id: `msg-${i + 1}`,
+  thread_id: 'tema-1',
+  author_id: 'user-1',
+  body_html: `<p>Mensaje ${i + 1}</p>`,
+  reply_to_id: null,
+  is_solution: false,
+  edited_at: null,
+  created_at: new Date(Date.now() - (20 - i) * 60000).toISOString(),
+}))
+
+sembrar('__FAKE_REACCIONES__', 'forum_post_reactions', (i) => ({
+  id: `reac-${i + 1}`,
+  post_id: 'msg-1',
+  user_id: 'user-2',
+  kind: 'like',
+}))
+
+sembrar('__FAKE_LECTURAS__', 'forum_thread_reads', (i) => ({
+  id: `lect-${i + 1}`,
+  thread_id: 'tema-1',
+  user_id: 'admin-1',
+  read_at: new Date().toISOString(),
+}))
+
 sembrar('__FAKE_JUECES__', 'judge_applications', (i) => ({
   id: `juez-${i + 1}`,
   tournament_id: 'torneo-1',
   user_id: 'user-2',
   status: 'pending',
 }))
+
+// Las llamadas a RPC, para que una prueba pueda comprobarlas.
+const RPCS = []
 
 // ── El registro de escrituras ──
 // En sessionStorage y no en una variable porque las páginas navegan
@@ -176,13 +241,43 @@ function anotarEscritura(tabla, filas, tipo = 'insert') {
   } catch {}
 }
 
+// ── forum_boards_resumen: una VISTA, no una tabla ──
+// El índice del foro no lee `forum_boards` sino esta vista, que le
+// añade a cada foro sus cuentas y su último mensaje. En la base es SQL
+// recursivo (un foro cuenta también lo de sus subforos); aquí se
+// recalcula a mano cada vez que se pide, que para el tamaño de una
+// prueba sobra y evita tener que mantener las cuentas al día.
+function resumenDeForos() {
+  const hijosDe = (id) => {
+    const directos = T.forum_boards.filter((b) => b.parent_id === id)
+    return [id, ...directos.flatMap((h) => hijosDe(h.id))]
+  }
+  return T.forum_boards.map((b) => {
+    const rama = new Set(hijosDe(b.id))
+    const temas = T.forum_threads.filter((t) => rama.has(t.board_id))
+    const mensajes = T.forum_posts.filter((m) => temas.some((t) => t.id === m.thread_id))
+    // El último mensaje de la rama: lo que el índice enseña en «Último».
+    const ultimo = [...mensajes].sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)))[0]
+    const suTema = ultimo ? temas.find((t) => t.id === ultimo.thread_id) : null
+    return {
+      ...b,
+      thread_count: temas.length,
+      post_count: mensajes.length,
+      last_thread_id: suTema?.id || null,
+      last_thread_title: suTema?.title || null,
+      last_post_at: ultimo?.created_at || null,
+      last_post_author_id: ultimo?.author_id || null,
+    }
+  })
+}
+
 // ── El encadenado ──
 // Un objeto «then-able»: se puede esperar en cualquier punto de la
 // cadena, igual que el cliente de verdad.
 function consulta(tabla, estado = {}) {
   const st = {
     filtros: [],
-    orden: null,
+    ordenes: [],
     limite: null,
     unico: null,
     op: null,
@@ -191,18 +286,32 @@ function consulta(tabla, estado = {}) {
   }
 
   const aplicar = () => {
-    let filas = (T[tabla] || []).slice()
+    let filas = tabla === 'forum_boards_resumen' ? resumenDeForos() : (T[tabla] || []).slice()
     for (const f of st.filtros) filas = filas.filter(f)
-    if (st.orden) {
-      const { col, asc } = st.orden
+    if (st.ordenes?.length) {
       filas.sort((a, b) => {
-        const x = a[col] ?? ''
-        const y = b[col] ?? ''
-        return (x < y ? -1 : x > y ? 1 : 0) * (asc ? 1 : -1)
+        for (const { col, asc } of st.ordenes) {
+          const x = a[col] ?? ''
+          const y = b[col] ?? ''
+          // Los booleanos se comparan como en SQL: false < true.
+          const cmp = x === y ? 0 : x < y ? -1 : 1
+          if (cmp) return cmp * (asc ? 1 : -1)
+        }
+        return 0
       })
     }
     if (st.limite != null) filas = filas.slice(0, st.limite)
+    if (st.rango) filas = filas.slice(st.rango[0], st.rango[1] + 1)
     return filas
+  }
+
+  // El contador va ANTES del recorte: `count: 'exact'` cuenta lo que hay,
+  // no lo que cabe en la página. Si contara después, el paginador del
+  // foro diría siempre que solo hay una página.
+  const contar = () => {
+    let filas = tabla === 'forum_boards_resumen' ? resumenDeForos() : (T[tabla] || []).slice()
+    for (const f of st.filtros) filas = filas.filter(f)
+    return filas.length
   }
 
   const resolver = () => {
@@ -231,6 +340,7 @@ function consulta(tabla, estado = {}) {
       return { data: null, error: null }
     }
     // Lecturas
+    if (st.soloCuenta) return { data: null, count: contar(), error: null }
     const filas = aplicar()
     if (st.unico === 'maybe') return { data: filas[0] || null, error: null }
     if (st.unico === 'one') {
@@ -238,11 +348,24 @@ function consulta(tabla, estado = {}) {
         ? { data: filas[0], error: null }
         : { data: null, error: { message: 'no rows', code: 'PGRST116' } }
     }
-    return { data: filas, error: null }
+    return { data: filas, count: st.pideCuenta ? contar() : null, error: null }
   }
 
   const api = {
-    select: (_cols) => consulta(tabla, st),
+    select: (_cols, opciones = {}) =>
+      consulta(tabla, {
+        ...st,
+        pideCuenta: opciones.count === 'exact' || st.pideCuenta,
+        soloCuenta: opciones.head === true || st.soloCuenta,
+      }),
+    range: (desde, hasta) => consulta(tabla, { ...st, rango: [desde, hasta] }),
+    // `ilike` de PostgREST: el comodín es % y no distingue mayúsculas.
+    ilike: (col, patron) => {
+      const re = new RegExp('^' + String(patron).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*') + '$', 'i')
+      return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => re.test(String(f[col] ?? ''))] })
+    },
+    gt: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] > val] }),
+    lt: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] < val] }),
     eq: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => String(f[col]) === String(val)] }),
     neq: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => String(f[col]) !== String(val)] }),
     in: (col, vals) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => vals.map(String).includes(String(f[col]))] }),
@@ -255,7 +378,7 @@ function consulta(tabla, estado = {}) {
       consulta(tabla, { ...st, filtros: [...st.filtros, (f) => (val === null ? f[col] !== null && f[col] !== undefined : f[col] !== val)] }),
     gte: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] >= val] }),
     lte: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] <= val] }),
-    order: (col, opts = {}) => consulta(tabla, { ...st, orden: { col, asc: opts.ascending !== false } }),
+    order: (col, opts = {}) => consulta(tabla, { ...st, ordenes: [...(st.ordenes || []), { col, asc: opts.ascending !== false }] }),
     limit: (n) => consulta(tabla, { ...st, limite: n }),
     maybeSingle: () => consulta(tabla, { ...st, unico: 'maybe' }),
     single: () => consulta(tabla, { ...st, unico: 'one' }),
@@ -273,7 +396,18 @@ export const supabase = {
     if (!T[tabla]) T[tabla] = []
     return consulta(tabla)
   },
-  rpc: async () => ({ data: null, error: { message: 'rpc sin doble' } }),
+  // Las RPC se apuntan en vez de ejecutarse: a una prueba le interesa
+  // QUE se llamaron y con qué, no lo que harían dentro de Postgres.
+  // `forum_ver_tema` suma la visita ahí mismo, que es barato y hace que
+  // el contador de la ficha se comporte como en la web de verdad.
+  rpc: async (nombre, args = {}) => {
+    RPCS.push({ nombre, args })
+    if (nombre === 'forum_ver_tema') {
+      const tema = T.forum_threads.find((t) => t.id === args.p_thread)
+      if (tema) tema.view_count = (tema.view_count || 0) + 1
+    }
+    return { data: null, error: null }
+  },
   auth: {
     getSession: async () => ({ data: { session: sesion } }),
     getUser: async () => ({ data: { user: sesion?.user || null } }),
@@ -291,4 +425,7 @@ export const supabase = {
 }
 
 // Para que una prueba pueda mirar el estado sin pasar por la API.
-if (typeof window !== 'undefined') window.__TABLAS__ = T
+if (typeof window !== 'undefined') {
+  window.__TABLAS__ = T
+  window.__RPCS__ = RPCS
+}

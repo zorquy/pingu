@@ -62,8 +62,25 @@ Las pruebas del barredor (`test-torneos-17`) no necesitan ni navegador
 ni doble: la función recibe su `rest` por parámetro y el mundo se monta
 dentro del propio test.
 
+## Lo que hay cubierto
+
+- **Torneos** (tandas 223-225): la ficha en móvil, borrar un torneo, el
+  barredor entero con sus avisos, y la lista del comprobador de
+  migraciones.
+- **Foro** (tanda 226, la primera de la reconstrucción):
+  - `test-foro-1` — el índice (secciones, foros, cuentas de la vista
+    con subforos incluidos) y la lista de temas de un foro (fijados
+    arriba, foro vacío, foro que no existe, y que la lista no se traiga
+    los temas de otros foros).
+  - `test-foro-2` — la vista de un tema: mensajes en orden, el contador
+    de visitas, responder, el candado (un miembro no escribe, el equipo
+    sí) y las reacciones (poner, quitar, y que en lo tuyo no haya botón).
+
 ## Lo que FALTA
 
-Solo están las de torneos. Las de foro, guías, cursos, perfiles y
-portada se perdieron y hay que rehacerlas. Mientras tanto, un cambio en
-esas zonas sale a producción sin nada que lo frene.
+**Guías, cursos, perfiles y portada.** Se perdieron y hay que
+rehacerlas. Mientras tanto, un cambio en esas zonas sale a producción
+sin nada que lo frene.
+
+Del foro quedan sin cubrir las piezas de alrededor: encuestas, no
+leídos, suscripciones, búsqueda, menciones, firmas y moderación.
