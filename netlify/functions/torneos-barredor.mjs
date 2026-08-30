@@ -75,6 +75,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   let correos = 0
   let campanas = 0
   let finales = 0
+  let llamadasAvisadas = 0
   let cancelaciones = 0
   let recordatorios = 0
   let borrados = 0
@@ -406,6 +407,60 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     console.error('aviso de final aparcado:', e?.message || e)
   }
 
+  // 0a-quinquies. LLAMADA A UN JUEZ (tanda 225). El aviso más urgente
+  //     de todos y el único que no salía: alguien tiene la partida
+  //     PARADA esperando a que alguien venga. Hasta ahora el juez se
+  //     enteraba solo si tenía la ficha abierta, porque se refresca
+  //     sola cada diez segundos.
+  //
+  //     Va al organizador y a los jueces aprobados de ESE torneo, nunca
+  //     a quien llamó. Y solo de las llamadas abiertas: una que ya
+  //     atiende alguien no necesita sacar a nadie más de lo que esté
+  //     haciendo.
+  try {
+    const llamadas = await rest(
+      `judge_calls?status=eq.open&notified_at=is.null&select=id,tournament_id,created_by`,
+      clave
+    )
+    for (const llamada of llamadas || []) {
+      const torneos = await rest(
+        `tournaments?id=eq.${llamada.tournament_id}&select=id,slug,name,admin_id`,
+        clave
+      )
+      const t = torneos?.[0]
+      if (t) {
+        const jueces = await rest(
+          `judge_applications?tournament_id=eq.${t.id}&status=eq.approved&select=user_id`,
+          clave
+        )
+        const aQuien = [t.admin_id, ...(jueces || []).map((j) => j.user_id)].filter(
+          (id) => id && id !== llamada.created_by
+        )
+        if (aQuien.length) {
+          await avisarPorTodo(aQuien, {
+            title: `Llaman a un juez — ${t.name}`,
+            body: 'Hay una mesa parada esperando. Entra a la pestaña de Jueces.',
+            tag: 'torneo-juez',
+            link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
+            tipo: 'torneo_juez',
+            subject: `Llaman a un juez en «${t.name}»`,
+            preview: 'Hay una mesa parada esperando a que un juez la atienda.',
+            // Sin agrupar por torneo a propósito: dos mesas paradas son
+            // dos avisos, no uno. Se agrupa por LLAMADA.
+            thread: `torneo-juez-${llamada.id}`,
+          })
+        }
+      }
+      await rest(`judge_calls?id=eq.${llamada.id}`, clave, {
+        method: 'PATCH',
+        body: JSON.stringify({ notified_at: ahora.toISOString() }),
+      })
+      llamadasAvisadas++
+    }
+  } catch (e) {
+    console.error('aviso de llamada a juez aparcado:', e?.message || e)
+  }
+
   // 0b. LISTA DE ESPERA (tanda 218): en los torneos que aún admiten
   //     gente, cada plaza libre se la queda el PRIMERO de la cola (por
   //     orden de llegada) y se le avisa. Va aquí y no en el navegador
@@ -455,7 +510,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     clave
   )
   if (!rondas || rondas.length === 0)
-    return { ok: true, rondas: 0, aperturas, promociones, avisados, caducadas, correos, campanas, cancelaciones, recordatorios, borrados, finales }
+    return { ok: true, rondas: 0, aperturas, promociones, avisados, caducadas, correos, campanas, cancelaciones, recordatorios, borrados, finales, llamadasAvisadas }
 
   const idsTorneos = [...new Set(rondas.map((r) => r.tournament_id))]
   const torneos = await rest(
@@ -677,6 +732,7 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     campanas,
     cancelaciones,
     finales,
+    llamadasAvisadas,
     recordatorios,
     borrados,
   }

@@ -33,6 +33,8 @@ export const NOTIFICATION_TYPES = {
   torneo_recordatorio: 'Aviso de que tu torneo va a empezar',
   torneo_plaza: 'Cuando la lista de espera te da plaza',
   torneo_apertura: 'Torneos nuevos con inscripciones abiertas',
+  // Solo le llega a quien organiza o arbitra un torneo.
+  torneo_juez: 'Cuando llaman a un juez en un torneo tuyo',
 }
 
 // De qué se avisa TAMBIÉN por correo.
@@ -93,6 +95,7 @@ export const EMAIL_TYPES = {
   torneo_ronda: 'Cuando empieza tu ronda',
   torneo_apertura: 'Torneos nuevos con inscripciones abiertas',
   torneo_final: 'Cuando termina un torneo que has jugado',
+  torneo_juez: 'Cuando llaman a un juez en un torneo tuyo',
 }
 
 // Lo que solo le llega al equipo.

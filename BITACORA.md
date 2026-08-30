@@ -12,6 +12,23 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-28 — PINGU-Claude (tanda 225 — el juez y el comprobador)
+**Hecho**: dos agujeros pequeños con consecuencias grandes. (1) Llamar a
+un juez no avisaba a NADIE: jueces.js metía la fila en judge_calls y ahí
+acababa, así que el juez se enteraba solo si tenía la ficha abierta —y
+es el aviso más urgente que hay, con una mesa parada esperando. Ahora
+sale por los tres canales al organizador y a los jueces aprobados, nunca
+a quien llamó, y solo de las llamadas abiertas. (2) El comprobador de
+migraciones de /admin (js/schema-check.js) tenía 23 entradas y ninguna
+de torneos: por eso una migración de torneos sin ejecutar no se notaba.
+Ahora vigila las columnas más nuevas de cada fichero de torneos.
+**Ficheros**: supabase-migration-torneos.sql,
+netlify/functions/torneos-barredor.mjs, netlify/functions/baja-correo.mjs,
+js/notifications.js, js/schema-check.js, SCHEMA.md.
+**En curso / pendiente**: PINGU re-ejecuta supabase-migration-torneos.sql
+(una columna nueva, judge_calls.notified_at). A partir de ahora, si se
+olvida, /admin lo dirá.
+
 ## 2026-08-28 — PINGU-Claude (tanda 224 — la campanita y el final)
 **Hecho**: los torneos no dejaban NINGÚN rastro en la campanita
 (`js/torneos/` no llamaba a createNotification ni una vez): todo salía

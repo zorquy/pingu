@@ -40,6 +40,16 @@ export const REQUISITOS = [
   { tabla: 'guide_pro_content', columna: 'blocks', fichero: 'supabase-migration-guide-pro-content.sql', rompe: 'El contenido Pro no se carga.' },
   { tabla: 'tcg_cards', columna: 'name_search', fichero: 'supabase-migration-cartas.sql', rompe: 'El buscador de cartas del editor no encuentra nada.' },
   { tabla: 'tcg_sets', columna: 'imported_at', fichero: 'supabase-migration-cartas.sql', rompe: 'No se pueden importar las cartas.' },
+  // Torneos (tanda 225). Faltaban TODAS, y por eso una migración de
+  // torneos sin ejecutar no se notaba: el barredor aparca el paso en
+  // silencio y los avisos simplemente no salen, sin que nadie lo diga.
+  // Se comprueba la columna MÁS NUEVA de cada fichero: si esa está, las
+  // anteriores también, porque la migración es un solo fichero que se
+  // ejecuta entero.
+  { tabla: 'tournaments', columna: 'finish_notified_at', fichero: 'supabase-migration-torneos.sql', rompe: 'Los avisos de torneo (ronda, cancelación, recordatorio, final) no salen.' },
+  { tabla: 'judge_calls', columna: 'notified_at', fichero: 'supabase-migration-torneos.sql', rompe: 'Llamar a un juez no le avisa.' },
+  { tabla: 'tournament_registrations', columna: 'participation_confirmed_at', fichero: 'supabase-migration-torneos.sql', rompe: 'La inscripción en dos pasos no funciona.' },
+  { tabla: 'tcg_cards', columna: 'regulation_mark', fichero: 'supabase-migration-cartas-marcas.sql', rompe: 'Las decklists no comprueban el reglamento (marcas H/I/J).' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

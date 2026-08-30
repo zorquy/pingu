@@ -53,6 +53,7 @@ const NOMBRES = {
   torneo_ronda: 'los avisos de que empieza tu ronda',
   torneo_apertura: 'los avisos de torneos nuevos',
   torneo_final: 'los avisos de cuando termina un torneo',
+  torneo_juez: 'los avisos de llamada a un juez',
 }
 const TIPOS = Object.keys(NOMBRES)
 

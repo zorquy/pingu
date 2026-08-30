@@ -10772,3 +10772,32 @@ contenedor de la sesión de Claude y un reinicio se los llevó — con unas
 87 pruebas de tandas anteriores que no se han podido recuperar. La
 norma de CLAUDE.md («el doble no va en el repo») sigue teniendo razón en
 el fondo, pero «fuera del repo» y «en ningún sitio» no son lo mismo.
+
+## Tanda 225 — el aviso urgente y el comprobador ciego (agosto 2026)
+
+Dos agujeros pequeños con consecuencias grandes.
+
+- **Llamar a un juez no avisaba al juez.** `jueces.js` metía la fila en
+  `judge_calls` y ahí acababa: ni push, ni correo, ni campanita. El juez
+  se enteraba SOLO si tenía la ficha abierta, porque se refresca sola
+  cada diez segundos. Y es el aviso más urgente que hay — alguien tiene
+  la partida PARADA esperando a que alguien venga. Va por los tres
+  canales al organizador y a los jueces APROBADOS de ese torneo, nunca a
+  quien llamó (en un torneo pequeño el organizador y los jueces también
+  juegan, así que ese caso pasa de verdad). Solo de las llamadas
+  abiertas: una que ya atiende alguien no saca a nadie más de lo que
+  esté haciendo. Y la clave de agrupación del correo es por LLAMADA, no
+  por torneo: dos mesas paradas son dos avisos.
+- **El comprobador de migraciones de /admin no sabía nada de torneos.**
+  `js/schema-check.js` existe justo para esto —te dice qué migración
+  falta y QUÉ SE ROMPE si no la ejecutas— y tenía 23 entradas, ninguna
+  de torneos. Por eso el olvido no se notaba: el barredor aparca el paso
+  en silencio y los avisos no salen, sin que nadie lo diga. Ahora vigila
+  la columna más nueva de cada fichero de torneos (si esa está, las
+  anteriores también: la migración se ejecuta entera).
+
+Probado con test-torneos-17.mjs (52 comprobaciones) + rigor de 26
+roturas, y test-torneos-19.mjs, que vigila la propia lista del
+comprobador: que cada columna vigilada EXISTA de verdad en su fichero
+—un nombre mal escrito diría «falta esta migración» para siempre y se
+dejaría de mirar— y que ninguna entrada se quede sin decir qué rompe.

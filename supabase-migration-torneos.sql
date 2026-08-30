@@ -270,6 +270,12 @@ create table if not exists public.judge_calls (
   created_at timestamptz not null default now()
 );
 create index if not exists llamadas_torneo_estado on public.judge_calls (tournament_id, status);
+-- Tanda 225 — la marca de «ya se ha avisado de esta llamada». Llamar a
+-- un juez no avisaba a nadie: el juez se enteraba SOLO si tenía la
+-- ficha abierta (se refresca cada 10 s). Y es el aviso más urgente que
+-- hay — alguien tiene la partida parada esperando.
+alter table public.judge_calls
+  add column if not exists notified_at timestamptz;
 
 create table if not exists public.judge_messages (
   id uuid primary key default gen_random_uuid(),
