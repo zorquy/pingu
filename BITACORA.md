@@ -12,6 +12,28 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-28 — PINGU-Claude (tanda 226 — vuelve la cobertura del foro)
+**Hecho**: primera tanda de la reconstrucción de las pruebas perdidas.
+Empieza por el FORO, que es lo más usado y lo que más ha cambiado. NO se
+ha tocado nada de la web: es todo entorno de pruebas, y vive en la rama
+`pruebas`. El doble de Supabase crece para servir el foro (las siete
+tablas, la vista forum_boards_resumen recalculada al vuelo, range(), el
+count exacto, ilike y las RPC). Dos arreglos del doble que salieron al
+escribirlas: los .order() encadenados se COMPONEN en PostgREST (se
+quedaba solo con el último, y por eso los fijados no subían arriba) y el
+count exacto tiene que contar antes del recorte de página. Cubierto:
+índice del foro (secciones, foros, cuentas con subforos), lista de temas
+(fijados, vacío, inexistente, y que no se cuelen los de otro foro) y
+vista de un tema (mensajes en orden, visitas, responder, candado con la
+excepción del equipo, reacciones incluido que en lo tuyo no haya botón).
+Rigor de 12 roturas, todas detectadas.
+**Ficheros**: CLAUDE.md, SCHEMA.md (la web NO se toca). En la rama
+`pruebas`: pruebas/test-foro-1.mjs, pruebas/test-foro-2.mjs,
+rigor/rigor-foro.py, herramientas/stub-supabase.js, correr-suite.sh.
+**En curso / pendiente**: siguen SIN cobertura guías, cursos, perfiles y
+portada; del foro faltan encuestas, no leídos, suscripciones, búsqueda,
+menciones y moderación. Suite: 7 en verde.
+
 ## 2026-08-28 — PINGU-Claude (tanda 225 — el juez y el comprobador)
 **Hecho**: dos agujeros pequeños con consecuencias grandes. (1) Llamar a
 un juez no avisaba a NADIE: jueces.js metía la fila en judge_calls y ahí

@@ -10801,3 +10801,43 @@ roturas, y test-torneos-19.mjs, que vigila la propia lista del
 comprobador: que cada columna vigilada EXISTA de verdad en su fichero
 —un nombre mal escrito diría «falta esta migración» para siempre y se
 dejaría de mirar— y que ninguna entrada se quede sin decir qué rompe.
+
+## Tanda 226 — vuelve la cobertura del foro (agosto 2026)
+
+Primera tanda de la reconstrucción de lo que se perdió con el
+contenedor. **La web no se toca**: todo esto es entorno de pruebas y
+vive en la rama `pruebas`. Se empieza por el foro, que es la parte más
+usada del sitio y la que más ha cambiado.
+
+El doble de Supabase crece para poder servirlo: las siete tablas del
+foro, la VISTA `forum_boards_resumen` —que en la base es SQL recursivo,
+porque un foro cuenta también lo de sus subforos, y aquí se recalcula al
+vuelo—, `range()`, el contador exacto de PostgREST, `ilike` y las RPC,
+que se apuntan para poder comprobarlas.
+
+Dos arreglos del doble que salieron al escribir las pruebas, y que
+valen para cualquier prueba futura:
+
+- Los `.order()` encadenados **se componen** en PostgREST: el primero
+  manda y los siguientes desempatan. El doble se quedaba solo con el
+  último, y por eso los temas fijados no subían arriba.
+- El contador de `count: 'exact'` cuenta **antes** del recorte de
+  página, no después. Contando después, el paginador diría siempre que
+  hay una sola página.
+
+Y tres cosas que destapó el rigor, que son la razón de que exista:
+
+- Una comprobación buscaba los títulos con selectores que no existen:
+  la lista salía VACÍA y la comprobación pasaba **sin mirar nada**. De
+  ahí que ahora se compruebe también CUÁNTAS filas hay.
+- Buscar texto en la página entera confundía la lista de temas con el
+  panel de actividad reciente, que enseña temas de todo el foro y con
+  razón. Las comprobaciones van acotadas a su trozo.
+- El orden de los foros está protegido por partida doble (la consulta y
+  el JS que agrupa por sección), así que quitar uno de los dos no rompe
+  nada — el otro lo salva. La rotura que sirve es INVERTIR el del
+  cliente, que es el que tiene la última palabra. Una rotura sobre
+  código que no hace nada no enseña nada.
+
+Cubierto: el índice, la lista de temas de un foro y la vista de un tema.
+Rigor de 12 roturas, todas detectadas. Suite: 7 en verde.

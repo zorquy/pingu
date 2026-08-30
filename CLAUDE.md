@@ -61,9 +61,11 @@ el contenedor de una sesión — el 2026-08-28 uno se reinició y se llevó
 por delante el doble y unas 87 pruebas, sin copia en ninguna parte. De
 ahí la rama: fuera de lo que se despliega, pero en algún sitio.
 
-**Estado a 2026-08-28**: solo sobrevivieron las de torneos (4 pruebas).
-Foro, guías, cursos, perfiles y portada están SIN cobertura hasta que se
-rehagan: un cambio ahí sale a producción sin red debajo.
+**Estado a 2026-08-28**: cubiertos torneos (5 pruebas) y el foro
+—índice, lista de temas y vista de un tema— (2). Guías, cursos, perfiles
+y portada están SIN cobertura hasta que se rehagan: un cambio ahí sale a
+producción sin red debajo. Del foro faltan las piezas de alrededor
+(encuestas, no leídos, suscripciones, búsqueda, menciones, moderación).
 
 ## Los torneos (sección «Jugar»)
 
