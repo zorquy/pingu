@@ -290,5 +290,105 @@ console.log('\n── 9. Cuando el torneo termina (tanda 224) ──')
   check('no se repite en la pasada siguiente', r2.finales === 0)
 }
 
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 10. Llamar a un juez avisa al juez (tanda 225) ──')
+{
+  const m = mundoFalso({
+    tournaments: [{ id: 't-9', slug: 'copa', name: 'Copa Cola', status: 'in_progress', admin_id: 'orga' }],
+    judge_calls: [{ id: 'll-1', tournament_id: 't-9', created_by: 'ash', status: 'open', notified_at: null }],
+    judge_applications: [
+      { id: 'j-1', tournament_id: 't-9', user_id: 'juez', status: 'approved' },
+      // Uno que se ofreció pero nadie ha aprobado: no le toca.
+      { id: 'j-2', tournament_id: 't-9', user_id: 'aspirante', status: 'pending' },
+    ],
+    tournament_registrations: [],
+    push_subscriptions: [{ endpoint: 'e-juez', user_id: 'juez', p256dh: 'p', auth: 'a' }],
+    user_profiles: ['orga', 'juez', 'ash', 'aspirante'].map((id) => ({ id, notification_email_disabled: [], notification_prefs_disabled: [] })),
+    site_settings: AJUSTES,
+    rounds: [],
+  })
+  const r = await correr(m)
+  check('cuenta una llamada avisada', r.llamadasAvisadas === 1, JSON.stringify(r.llamadasAvisadas))
+  const aQuien = m.campanas.map((c) => c.recipient_id).sort()
+  check('avisa al organizador y al juez aprobado', JSON.stringify(aQuien) === '["juez","orga"]', JSON.stringify(aQuien))
+  check('NO a quien llamó', !aQuien.includes('ash'))
+  check('ni al aspirante sin aprobar', !aQuien.includes('aspirante'))
+  check('el push le llega al juez', m.enviados.some((e) => e.endpoint === 'e-juez'))
+  check('y dice que hay una mesa parada', /parada/i.test(m.campanas[0]?.body || ''), m.campanas[0]?.body)
+
+  const r2 = await correr(m)
+  check('no se repite en la pasada siguiente', r2.llamadasAvisadas === 0)
+}
+
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 10b. Un juez que además juega no se avisa a sí mismo ──')
+{
+  // El caso que se cuela si no se filtra a quien llama: en un torneo
+  // pequeño el organizador y los jueces también juegan. Si uno de ellos
+  // llama a un juez desde su propia mesa, avisarle a él no sirve de
+  // nada — ya sabe que ha llamado.
+  const m = mundoFalso({
+    tournaments: [{ id: 't-12', slug: 'copa', name: 'Copa Cola', status: 'in_progress', admin_id: 'orga' }],
+    judge_calls: [{ id: 'll-1', tournament_id: 't-12', created_by: 'juez', status: 'open', notified_at: null }],
+    judge_applications: [
+      { id: 'j-1', tournament_id: 't-12', user_id: 'juez', status: 'approved' },
+      { id: 'j-2', tournament_id: 't-12', user_id: 'juez2', status: 'approved' },
+    ],
+    tournament_registrations: [],
+    push_subscriptions: [],
+    user_profiles: ['orga', 'juez', 'juez2'].map((id) => ({ id, notification_email_disabled: [], notification_prefs_disabled: [] })),
+    site_settings: AJUSTES,
+    rounds: [],
+  })
+  await correr(m)
+  const aQuien = m.campanas.map((c) => c.recipient_id).sort()
+  check('avisa al otro juez y al organizador', JSON.stringify(aQuien) === '["juez2","orga"]', JSON.stringify(aQuien))
+  check('y NO al juez que llamó', !aQuien.includes('juez'), JSON.stringify(aQuien))
+}
+
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 11. Una llamada ya atendida no saca a nadie ──')
+{
+  const m = mundoFalso({
+    tournaments: [{ id: 't-10', slug: 'copa', name: 'Copa Cola', status: 'in_progress', admin_id: 'orga' }],
+    judge_calls: [
+      { id: 'll-1', tournament_id: 't-10', created_by: 'ash', status: 'in_progress', notified_at: null },
+      { id: 'll-2', tournament_id: 't-10', created_by: 'ash', status: 'resolved', notified_at: null },
+    ],
+    judge_applications: [{ id: 'j-1', tournament_id: 't-10', user_id: 'juez', status: 'approved' }],
+    tournament_registrations: [],
+    push_subscriptions: [],
+    user_profiles: ['orga', 'juez', 'ash'].map((id) => ({ id, notification_email_disabled: [], notification_prefs_disabled: [] })),
+    site_settings: AJUSTES,
+    rounds: [],
+  })
+  const r = await correr(m)
+  check('ni la que ya atiende alguien ni la resuelta', r.llamadasAvisadas === 0 && m.campanas.length === 0, JSON.stringify({ n: r.llamadasAvisadas, c: m.campanas.length }))
+}
+
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 12. Dos mesas paradas son dos avisos, no uno ──')
+{
+  const m = mundoFalso({
+    tournaments: [{ id: 't-11', slug: 'copa', name: 'Copa Cola', status: 'in_progress', admin_id: 'orga' }],
+    judge_calls: [
+      { id: 'll-1', tournament_id: 't-11', created_by: 'ash', status: 'open', notified_at: null },
+      { id: 'll-2', tournament_id: 't-11', created_by: 'zoe', status: 'open', notified_at: null },
+    ],
+    judge_applications: [],
+    tournament_registrations: [],
+    push_subscriptions: [],
+    user_profiles: ['orga', 'ash', 'zoe'].map((id) => ({ id, notification_email_disabled: [], notification_prefs_disabled: [] })),
+    site_settings: AJUSTES,
+    rounds: [],
+  })
+  const r = await correr(m)
+  check('se avisa de las dos', r.llamadasAvisadas === 2, JSON.stringify(r.llamadasAvisadas))
+  // La clave de agrupación del correo es por LLAMADA, no por torneo: si
+  // fuera por torneo, la segunda mesa parada no mandaría correo.
+  const claves = new Set(m.correos.map((c) => c.thread_key))
+  check('y los correos no se agrupan entre sí', claves.size === 2, JSON.stringify([...claves]))
+}
+
 console.log(fails ? `\n✘ ${fails} fallos` : '\n✔ todo verde')
 process.exit(fails ? 1 : 0)

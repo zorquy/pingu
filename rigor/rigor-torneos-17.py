@@ -79,6 +79,28 @@ ROTURAS = [
     ('se avisa también a quien se quedó en la cola', B,
      "`tournament_registrations?tournament_id=eq.${t.id}&status=in.(active,dropped)&select=user_id`",
      "`tournament_registrations?tournament_id=eq.${t.id}&select=user_id`"),
+    # ── Tanda 225: la llamada a un juez ──
+    ('llamar a un juez no avisa a nadie', B,
+     "          await avisarPorTodo(aQuien, {\n            title: `Llaman a un juez",
+     "          await Promise.resolve(aQuien, {\n            title: `Llaman a un juez"),
+    ('el aviso de llamada se repite cada minuto', B,
+     "        body: JSON.stringify({ notified_at: ahora.toISOString() }),\n      })\n      llamadasAvisadas++",
+     "        body: JSON.stringify({}),\n      })\n      llamadasAvisadas++"),
+    ('se avisa a quien llamó (a sí mismo)', B,
+     "          (id) => id && id !== llamada.created_by",
+     "          (id) => Boolean(id)"),
+    ('se avisa a los jueces sin aprobar', B,
+     "`judge_applications?tournament_id=eq.${t.id}&status=eq.approved&select=user_id`",
+     "`judge_applications?tournament_id=eq.${t.id}&select=user_id`"),
+    ('se avisa de llamadas ya atendidas', B,
+     "`judge_calls?status=eq.open&notified_at=is.null&select=id,tournament_id,created_by`",
+     "`judge_calls?notified_at=is.null&select=id,tournament_id,created_by`"),
+    ('el organizador se queda sin enterarse', B,
+     "        const aQuien = [t.admin_id, ...(jueces || []).map((j) => j.user_id)].filter(",
+     "        const aQuien = [...(jueces || []).map((j) => j.user_id)].filter("),
+    ('dos mesas paradas mandan un solo correo', B,
+     "            thread: `torneo-juez-${llamada.id}`,",
+     "            thread: `torneo-juez-${t.id}`,"),
 ]
 
 
