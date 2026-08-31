@@ -34,6 +34,8 @@ const T = {
   forum_subscriptions: [],
   user_notifications: [],
   tcg_cards: [],
+  tcg_archetypes: [],
+  match_log: [],
   site_settings: [],
   push_subscriptions: [],
   achievement_definitions: [],
@@ -219,6 +221,28 @@ sembrar('__FAKE_LECTURAS__', 'forum_thread_reads', (i) => ({
   read_at: new Date().toISOString(),
 }))
 
+// El catálogo curado de arquetipos (tanda 230). Sin sembrar nada, la
+// tabla sale vacía y los mazos se deducen solos — que es exactamente lo
+// que pasa en producción hasta que un admin la llene.
+sembrar('__FAKE_PARTIDAS__', 'match_log', (i) => ({
+  id: `mlog-${i + 1}`,
+  user_id: 'user-1',
+  mi_mazo: 'd:mazo',
+  rival_mazo: 'd:rival',
+  mi_mazo_nombre: 'Mazo',
+  rival_mazo_nombre: 'Rival',
+  resultado: 'win',
+  jugada_el: new Date().toISOString().slice(0, 10),
+}))
+
+sembrar('__FAKE_ARQUETIPOS__', 'tcg_archetypes', (i) => ({
+  id: `arq-${i}`,
+  nombre: `Arquetipo ${i}`,
+  iconos: [],
+  requiere: [],
+  activo: true,
+}))
+
 sembrar('__FAKE_JUECES__', 'judge_applications', (i) => ({
   id: `juez-${i + 1}`,
   tournament_id: 'torneo-1',
@@ -372,6 +396,17 @@ function consulta(tabla, estado = {}) {
     gt: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] > val] }),
     lt: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] < val] }),
     eq: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => String(f[col]) === String(val)] }),
+    or: (expresion) => {
+      const trozos = String(expresion).split(',')
+      const pruebas = trozos.map((t) => {
+        const [col, op, ...resto] = t.split('.')
+        const valor = resto.join('.')
+        if (op === 'eq') return (f) => String(f[col]) === valor
+        if (op === 'is') return (f) => (valor === 'null' ? f[col] == null : String(f[col]) === valor)
+        throw new Error(`stub: .or() no entiende «${t}». Añádelo si el cliente lo usa.`)
+      })
+      return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => pruebas.some((p) => p(f))] })
+    },
     neq: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => String(f[col]) !== String(val)] }),
     in: (col, vals) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => vals.map(String).includes(String(f[col]))] }),
     is: (col, val) =>
@@ -408,6 +443,22 @@ export const CONSULTAS = { n: 0, porTabla: {}, columnas: {} }
 
 export const supabase = {
   from: (tabla) => {
+    // Fingir que una tabla NO existe (window.__SIN_TABLAS__): es el
+    // estado real de producción entre que se despliega el código y un
+    // humano ejecuta la migración, y el sitio tiene que aguantarlo.
+    const sinTabla = typeof window !== 'undefined' && (window.__SIN_TABLAS__ || []).includes(tabla)
+    if (sinTabla) {
+      const fallo = async () => ({
+        data: null,
+        error: { message: `relation "public.${tabla}" does not exist`, code: '42P01' },
+      })
+      const api = new Proxy(
+        { then: undefined },
+        { get: (_, prop) => (prop === 'then' ? undefined : prop === 'maybeSingle' || prop === 'single' ? fallo : () => api) }
+      )
+      // El await final: cualquier cadena termina resolviendo al error.
+      return Object.assign(fallo(), api, { select: () => api, insert: fallo, upsert: fallo, delete: () => api })
+    }
     CONSULTAS.n++
     CONSULTAS.porTabla[tabla] = (CONSULTAS.porTabla[tabla] || 0) + 1
     if (!T[tabla]) T[tabla] = []
