@@ -352,12 +352,17 @@ function consulta(tabla, estado = {}) {
   }
 
   const api = {
-    select: (_cols, opciones = {}) =>
-      consulta(tabla, {
+    select: (cols, opciones = {}) => {
+      // Se apunta tal cual llegó, sin proyectar nada (ver CONSULTAS).
+      ;(CONSULTAS.columnas[tabla] = CONSULTAS.columnas[tabla] || []).push(
+        cols === undefined ? '*' : String(cols)
+      )
+      return consulta(tabla, {
         ...st,
         pideCuenta: opciones.count === 'exact' || st.pideCuenta,
         soloCuenta: opciones.head === true || st.soloCuenta,
-      }),
+      })
+    },
     range: (desde, hasta) => consulta(tabla, { ...st, rango: [desde, hasta] }),
     // `ilike` de PostgREST: el comodín es % y no distingue mayúsculas.
     ilike: (col, patron) => {
@@ -393,7 +398,13 @@ function consulta(tabla, estado = {}) {
 
 // Cuántas consultas se piden, para poder MEDIR lo que le cuesta una
 // pantalla a la base en vez de estimarlo a ojo.
-export const CONSULTAS = { n: 0, porTabla: {} }
+// `columnas` REGISTRA lo que pidió cada consulta, tabla por tabla. Ojo
+// con lo que esto es: el doble sigue devolviendo la fila entera, NO
+// proyecta. Registrar no es fingir — sirve para poder exigir que el
+// cliente pida las columnas que debe (por ejemplo, que un visitante sin
+// cuenta NO pida `*` de las inscripciones, porque en la base real el
+// rol anon no tiene permiso sobre todas y la consulta fallaría entera).
+export const CONSULTAS = { n: 0, porTabla: {}, columnas: {} }
 
 export const supabase = {
   from: (tabla) => {

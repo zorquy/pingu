@@ -134,8 +134,11 @@ console.log('\n── 4. El recordatorio de «empieza pronto» ──')
   const ahora = new Date('2026-08-28T10:00:00Z')
   const m = mundoFalso({
     tournaments: [
-      // Dentro de media hora: le toca.
-      { id: 't-a', slug: 'ya', name: 'Copa Inminente', status: 'registration_closed', reminder_notified_at: null, start_at: '2026-08-28T10:30:00Z' },
+      // Dentro de media hora: le toca. Con el aforo LLENO a propósito
+      // (tanda 228 de IBAI): sin max_players el torneo pasa a ser de
+      // aforo ilimitado, el barredor asciende a la lista de espera y
+      // ese aviso se colaba aquí. Una cola solo existe si está lleno.
+      { id: 't-a', slug: 'ya', name: 'Copa Inminente', status: 'registration_closed', max_players: 1, reminder_notified_at: null, start_at: '2026-08-28T10:30:00Z' },
       // Mañana: todavía no.
       { id: 't-b', slug: 'luego', name: 'Copa de Mañana', status: 'registration_open', reminder_notified_at: null, start_at: '2026-08-29T10:00:00Z' },
       // Empezó hace un rato: ya no es un recordatorio.
