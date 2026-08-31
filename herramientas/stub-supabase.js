@@ -391,8 +391,14 @@ function consulta(tabla, estado = {}) {
   return api
 }
 
+// Cuántas consultas se piden, para poder MEDIR lo que le cuesta una
+// pantalla a la base en vez de estimarlo a ojo.
+export const CONSULTAS = { n: 0, porTabla: {} }
+
 export const supabase = {
   from: (tabla) => {
+    CONSULTAS.n++
+    CONSULTAS.porTabla[tabla] = (CONSULTAS.porTabla[tabla] || 0) + 1
     if (!T[tabla]) T[tabla] = []
     return consulta(tabla)
   },
@@ -428,4 +434,5 @@ export const supabase = {
 if (typeof window !== 'undefined') {
   window.__TABLAS__ = T
   window.__RPCS__ = RPCS
+  window.__CONSULTAS__ = CONSULTAS
 }

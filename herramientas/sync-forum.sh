@@ -10,3 +10,6 @@ rm -rf "$SC/test-forum"
 mkdir -p "$SC/test-forum"
 (cd "$REPO" && tar --exclude=node_modules --exclude=.git -cf - .) | tar -xf - -C "$SC/test-forum"
 cp "$SC/stub-supabase.js" "$SC/test-forum/js/supabase.js"
+# El vivo también se sustituye: el de verdad abre un websocket contra el
+# Supabase de PRODUCCIÓN, y eso una prueba no lo puede hacer.
+cp "$SC/stub-vivo.js" "$SC/test-forum/js/vivo.js"
