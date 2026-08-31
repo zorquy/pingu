@@ -17,7 +17,7 @@
 --      lo propio se escribe, y las decklists ajenas solo las ven
 --      organizador y jueces.
 --
---   3. (tanda 228) Lo que ve alguien SIN CUENTA al abrir un enlace
+--   3. (tanda 229) Lo que ve alguien SIN CUENTA al abrir un enlace
 --      compartido: el cartel del torneo, quién está inscrito, las mesas
 --      en juego y la clasificación. NO ve decklists, ni chats, ni
 --      jueces, ni el usuario de TCG Live de nadie — esto último por
@@ -68,7 +68,12 @@ begin
   select count(*) into v_ocupadas
     from tournament_registrations
     where tournament_id = p_torneo and status = 'active';
-  if v_ocupadas >= v_torneo.max_players then raise exception 'Torneo lleno.'; end if;
+  -- max_players NULL = aforo sin límite (tanda 229): no hay cupo que
+  -- comprobar. El IS NOT NULL va explícito, no fiado de que NULL >= n
+  -- «ya dé falso»: la intención tiene que leerse.
+  if v_torneo.max_players is not null and v_ocupadas >= v_torneo.max_players then
+    raise exception 'Torneo lleno.';
+  end if;
 
   insert into tournament_registrations (tournament_id, user_id, status, tcg_live_username)
     values (p_torneo, auth.uid(), 'active', trim(p_tcg_live))
@@ -173,7 +178,7 @@ drop policy if exists torneos_leer on public.tournaments;
 -- que ver hasta su propio BORRADOR (si no, no puede ni abrirlo ni
 -- borrarlo — para borrar con un `where`, Postgres pide poder leer la
 -- fila).
--- Sin `auth.uid() is not null` a propósito (tanda 228): un enlace
+-- Sin `auth.uid() is not null` a propósito (tanda 229): un enlace
 -- compartido tiene que enseñar el torneo a quien todavía no tiene
 -- cuenta, que es justo la persona a la que queremos convencer. El
 -- BORRADOR sigue siendo privado de su organizador.

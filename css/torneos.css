@@ -90,6 +90,51 @@
 .torneos-form-campo { margin: 14px 0; }
 .torneo-campo-pista { font-size: 12px; font-weight: 400; color: var(--text-dim); }
 
+/* El aforo sin límite (tanda 228): la celda de Plazas es un div (una
+   label no puede llevar dos controles dentro) con la casilla pegada
+   debajo, que al marcarse apaga el número. */
+.torneos-form-plazas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.torneo-sin-limite {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.torneos-form-plazas input[type='number']:disabled { opacity: 0.45; }
+
+/* El cuadro de «cerrar inscripciones con las rondas a la vista» (tanda
+   228): la sugerencia de la tabla oficial con los inscritos reales y el
+   número retocable antes de cerrar. */
+.torneo-cerrar-rondas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+}
+.torneo-cerrar-rondas p { margin: 0; flex-basis: 100%; }
+.torneo-cerrar-rondas label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+.torneo-cerrar-rondas input { width: 72px; }
+
 /* El resumen del último paso, como la caja pálida del original. */
 .torneo-wizard-resumen {
   display: grid;

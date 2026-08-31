@@ -481,7 +481,10 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       )
       const activos = (inscritos || []).filter((i) => i.status === 'active').length
       const cola = (inscritos || []).filter((i) => i.status === 'waitlisted')
-      let libres = (t.max_players || 0) - activos
+      // max_players NULL = aforo sin límite (tanda 228). Sin límite no
+      // debería haber cola, pero puede haberla si el torneo tenía
+      // límite y se lo quitaron desde el editor: entran todos.
+      let libres = t.max_players == null ? cola.length : (t.max_players || 0) - activos
       for (const espera of cola) {
         if (libres <= 0) break
         await rest(`tournament_registrations?id=eq.${espera.id}`, clave, {

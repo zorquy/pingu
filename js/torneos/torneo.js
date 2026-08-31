@@ -8,7 +8,7 @@ import { supabase } from '../supabase.js'
 import { escapeHtml, getSession, getProfile, burstConfetti } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
-import { parseDecklist, validateDecklist, canEditDecklist, decklistUnparsed } from './motor.js'
+import { parseDecklist, validateDecklist, canEditDecklist, decklistUnparsed, officialStructure } from './motor.js'
 import {
   ESTADOS,
   fechaBonita,
@@ -35,7 +35,7 @@ let decklistsEntregadas = [] // {user_id, submitted_at, locked_at}: el admin ve 
 let decklistsTorneo = null // las listas ENTERAS, solo si quien mira es juez u organizador
 let solicitudesJuez = [] // todas las solicitudes de juez del torneo (las usa jueces.js)
 let esJuez = false
-// MODO ESCAPARATE (tanda 228): la ficha se abre TAMBIÉN sin cuenta, para
+// MODO ESCAPARATE (tanda 229): la ficha se abre TAMBIÉN sin cuenta, para
 // que un enlace compartido enseñe algo en vez de rebotar. Quien mira sin
 // entrar ve el cartel, los inscritos, las mesas y la clasificación; no
 // ve decklists, ni chats, ni jueces, ni el usuario de TCG Live de nadie,
@@ -193,9 +193,21 @@ function pintarFicha() {
     )
   }
 
+  // max_players NULL = aforo sin límite (tanda 228): sin denominador la
+  // barra de ocupación no cuenta nada — se esconde y se dice la gente.
   const ocupadas = activos()
-  $('torneoPlazasTexto').textContent = `${ocupadas} de ${torneo.max_players} plazas`
-  $('torneoPlazasRelleno').style.width = `${Math.min(100, (ocupadas / torneo.max_players) * 100)}%`
+  const aforoSinLimite = torneo.max_players == null
+  $('torneoPlazasTexto').textContent = aforoSinLimite
+    ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'} · sin límite de plazas`
+    : `${ocupadas} de ${torneo.max_players} plazas`
+  document.querySelector('.torneo-plazas-barra')?.classList.toggle('hidden', aforoSinLimite)
+  if (!aforoSinLimite) $('torneoPlazasRelleno').style.width = `${Math.min(100, (ocupadas / torneo.max_players) * 100)}%`
+
+  // El cuadro de cierre con rondas (tanda 228) sobrevive a los
+  // repintados del sondeo mientras las inscripciones sigan abiertas —
+  // es hermano de las acciones, no hijo—; si el estado cambió por
+  // debajo, ya no pinta nada ahí.
+  if (torneo.status !== 'registration_open') document.getElementById('torneoCerrarRondas')?.remove()
 
   const acciones = $('torneoAdminAcciones')
   if (!perfil?.is_admin) {
@@ -205,7 +217,7 @@ function pintarFicha() {
     $('btnAbrirInscripciones').addEventListener('click', () => cambiarEstado('registration_open', 'Inscripciones abiertas. ¡A correr la voz!'))
   } else if (torneo.status === 'registration_open') {
     acciones.innerHTML = '<button class="btn-secondary" id="btnCerrarInscripciones">Cerrar inscripciones</button>'
-    $('btnCerrarInscripciones').addEventListener('click', () => cambiarEstado('registration_closed', 'Inscripciones cerradas.'))
+    $('btnCerrarInscripciones').addEventListener('click', cerrarInscripciones)
   } else {
     acciones.innerHTML = ''
   }
@@ -284,7 +296,10 @@ function pintarEditor() {
       <div class="torneos-form-rejilla">
         <label>Nombre<input type="text" id="editarNombre" maxlength="120" value="${escapeHtml(torneo.name)}" /></label>
         <label>Fecha y hora<input type="datetime-local" id="editarFecha" value="${aFechaLocal(torneo.start_at)}" /></label>
-        <label>Plazas<input type="number" id="editarPlazas" min="4" max="256" value="${torneo.max_players}" ${bloqueo} /></label>
+        <div class="torneos-form-plazas">Plazas
+          <input type="number" id="editarPlazas" min="4" max="256" value="${torneo.max_players ?? ''}" ${bloqueo} ${torneo.max_players == null ? 'disabled' : ''} />
+          <label class="torneo-sin-limite"><input type="checkbox" id="editarSinLimite" ${torneo.max_players == null ? 'checked' : ''} ${bloqueo} /> Sin límite</label>
+        </div>
         ${esLiga ? '' : `<label>Rondas suizas<input type="number" id="editarRondas" min="1" max="12" value="${torneo.swiss_rounds}" ${bloqueo} /></label>`}
         <label>Top cut<select id="editarCorte" ${bloqueo}>${[0, 4, 8, 16].map((n) => `<option value="${n}" ${torneo.top_cut_size === n ? 'selected' : ''}>${n ? `Top ${n}` : 'Sin corte'}</option>`).join('')}</select></label>
         <label>Minutos por ronda<input type="number" id="editarMinutos" min="5" max="120" value="${torneo.round_time_minutes}" ${bloqueo} /></label>
@@ -349,6 +364,11 @@ function pintarEditor() {
       uploadImage: (file) => uploadGuideImage(session.user.id, file),
     })
   })()
+  // «Sin límite» apaga el campo de plazas, como en el wizard (tanda
+  // 228). El disabled inicial ya va puesto en el HTML de arriba.
+  $('editarSinLimite').addEventListener('change', () => {
+    $('editarPlazas').disabled = estructuraBloqueada || $('editarSinLimite').checked
+  })
   $('btnCerrarEdicion').addEventListener('click', () => $('torneoEditor').remove())
   $('btnGuardarEdicion').addEventListener('click', guardarEdicion)
 }
@@ -360,8 +380,14 @@ async function guardarEdicion() {
     showToast('El nombre y la fecha no pueden quedar vacíos.', 'error')
     return
   }
-  const plazas = Number($('editarPlazas').value)
-  if (plazas < activos()) {
+  // NULL = sin límite (tanda 228): sin número no hay tope que validar
+  // ni contra el rango ni contra los inscritos que ya están dentro.
+  const plazas = $('editarSinLimite').checked ? null : Number($('editarPlazas').value)
+  if (plazas != null && (!plazas || plazas < 4 || plazas > 256)) {
+    showToast('Las plazas deben estar entre 4 y 256 (o marca «Sin límite»).', 'error')
+    return
+  }
+  if (plazas != null && plazas < activos()) {
     showToast(`No puedes dejar ${plazas} plazas con ${activos()} inscritos activos.`, 'error')
     return
   }
@@ -559,7 +585,7 @@ async function anunciarEnForo(boardId, titulo) {
     showToast('No se ha podido crear el hilo: ' + (error?.message || 'inténtalo otra vez'), 'error')
     return
   }
-  const cuerpo = `<p>¡Torneo a la vista! <strong>${escapeHtml(torneo.name)}</strong></p><ul><li>Fecha: ${escapeHtml(fechaBonita(torneo.start_at))}</li><li>Formato: ${escapeHtml(textoFormato(torneo))}</li><li>Plazas: ${torneo.max_players}</li></ul><p>Te apuntas en <a href="https://pokedoc.es/torneo?slug=${encodeURIComponent(torneo.slug)}">la página del torneo</a> y se juega en TCG Live. Las dudas, en este hilo.</p>`
+  const cuerpo = `<p>¡Torneo a la vista! <strong>${escapeHtml(torneo.name)}</strong></p><ul><li>Fecha: ${escapeHtml(fechaBonita(torneo.start_at))}</li><li>Formato: ${escapeHtml(textoFormato(torneo))}</li><li>Plazas: ${torneo.max_players ?? 'sin límite'}</li></ul><p>Te apuntas en <a href="https://pokedoc.es/torneo?slug=${encodeURIComponent(torneo.slug)}">la página del torneo</a> y se juega en TCG Live. Las dudas, en este hilo.</p>`
   const { error: errorMensaje } = await supabase.from('forum_posts').insert({
     thread_id: hilo.id,
     author_id: session.user.id,
@@ -682,6 +708,62 @@ async function cambiarEstado(nuevo, mensaje) {
   pintarTodo()
 }
 
+// ── Cerrar inscripciones con las rondas a la vista (tanda 228) ──
+// Al cerrar ya se sabe cuánta gente hay DE VERDAD, así que es el
+// momento de proponer las rondas de la tabla oficial (SPEC §5.1): con
+// aforo sin límite es la única propuesta posible, y con aforo normal
+// corrige el desfase entre plazas previstas e inscritos reales (16
+// plazas con 9 apuntados piden las rondas de 9, no las de 16). La
+// última palabra es del organizador: el número se retoca ahí mismo. En
+// una liga no se propone nada — sus rondas son las jornadas del
+// calendario, con sus fechas.
+function cerrarInscripciones() {
+  const sugeridas = officialStructure(activos()).swissRounds
+  if (torneo.format === 'league' || sugeridas === torneo.swiss_rounds) {
+    void cambiarEstado('registration_closed', 'Inscripciones cerradas.')
+    return
+  }
+  const previo = $('torneoCerrarRondas')
+  if (previo) {
+    previo.remove()
+    return
+  }
+  // Va como HERMANO de las acciones, no dentro: la ficha se repinta
+  // sola (sondeo/vivo) y acciones.innerHTML arrasaría lo que el
+  // organizador esté escribiendo. pintarFicha lo quita si el estado
+  // deja de ser «inscripciones abiertas».
+  $('torneoAdminAcciones').insertAdjacentHTML(
+    'afterend',
+    `
+    <div class="torneo-cerrar-rondas" id="torneoCerrarRondas">
+      <p>Con <strong>${activos()} jugador${activos() === 1 ? '' : 'es'}</strong>, la tabla oficial sugiere
+      <strong>${sugeridas} ronda${sugeridas === 1 ? '' : 's'} suiza${sugeridas === 1 ? '' : 's'}</strong>
+      (ahora hay ${torneo.swiss_rounds}). Puedes cambiar el número antes de cerrar.</p>
+      <label>Rondas suizas<input type="number" id="cerrarRondasNumero" min="1" max="12" value="${sugeridas}" /></label>
+      <button class="btn-primary" id="btnCerrarConRondas">Cerrar inscripciones</button>
+      <button class="btn-secondary" id="btnCerrarRondasVolver">Volver</button>
+    </div>`
+  )
+  $('btnCerrarRondasVolver').addEventListener('click', () => $('torneoCerrarRondas').remove())
+  $('btnCerrarConRondas').addEventListener('click', async () => {
+    const rondas = Number($('cerrarRondasNumero').value)
+    if (!rondas || rondas < 1 || rondas > 12) {
+      showToast('Las rondas suizas deben estar entre 1 y 12.', 'error')
+      return
+    }
+    const cambios = { swiss_rounds: rondas, status: 'registration_closed' }
+    const { error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id)
+    if (error) {
+      avisarError(error, 'No se ha podido cerrar')
+      return
+    }
+    Object.assign(torneo, cambios)
+    $('torneoCerrarRondas')?.remove()
+    showToast(`Inscripciones cerradas: ${rondas} ronda${rondas === 1 ? '' : 's'} suiza${rondas === 1 ? '' : 's'}.`, 'success')
+    pintarTodo()
+  })
+}
+
 // ── Tu plaza ──
 
 // ── La inscripción en dos pasos (tanda 219) ──
@@ -750,7 +832,7 @@ function engancharConfirmarParticipacion() {
 function pintarMiPlaza() {
   const caja = $('miPlazaContenido')
 
-  // El escaparate (tanda 228): quien mira sin cuenta no tiene plaza que
+  // El escaparate (tanda 229): quien mira sin cuenta no tiene plaza que
   // enseñar, tiene una razón para crearse una. El enlace vuelve AQUÍ
   // después de entrar, que es lo que uno espera al abrir un enlace
   // compartido.
@@ -758,7 +840,13 @@ function pintarMiPlaza() {
     const vuelta = encodeURIComponent(window.location.pathname + window.location.search)
     caja.innerHTML =
       torneo.status === 'registration_open'
-        ? `<p>Las inscripciones están abiertas: quedan ${Math.max(0, torneo.max_players - activos())} plazas.</p>
+        ? `<p>Las inscripciones están abiertas${
+            // Con aforo sin límite (tanda 228 de IBAI) no hay plazas que
+            // contar: restarle los inscritos a un null da NaN.
+            torneo.max_players == null
+              ? ' y no hay límite de plazas'
+              : `: quedan ${Math.max(0, torneo.max_players - activos())} plazas`
+          }.</p>
            <a class="btn-primary" href="/auth.html?volver=${vuelta}">Entra para inscribirte</a>
            <p class="subtext">Es gratis y se juega en Pokémon TCG Live.</p>`
         : `<p class="subtext">Estás viendo este torneo sin haber entrado.</p>
@@ -793,7 +881,8 @@ function pintarMiPlaza() {
     caja.innerHTML = `<p class="subtext">${torneo.status === 'draft' ? 'Las inscripciones aún no se han abierto.' : 'Las inscripciones no están abiertas.'}</p>`
     return
   }
-  const lleno = activos() >= torneo.max_players
+  // Sin límite (max_players NULL) nunca hay lleno ni lista de espera.
+  const lleno = torneo.max_players != null && activos() >= torneo.max_players
   caja.innerHTML = `
     ${lleno ? `<p class="torneo-lleno-aviso">Torneo lleno — puedes ponerte en la lista de espera (hay ${enCola()} esperando).</p>` : ''}
     <form id="formInscripcion" class="torneo-form-inscripcion">
@@ -856,7 +945,7 @@ function engancharInscripcion(aLaCola = false) {
       .eq('status', 'active')
     // Si se llenó mientras rellenaba el formulario, no se le echa: se
     // le pone en la cola, que para eso está.
-    const cupoLleno = (count ?? 0) >= torneo.max_players
+    const cupoLleno = torneo.max_players != null && (count ?? 0) >= torneo.max_players
     const estado = aLaCola || cupoLleno ? 'waitlisted' : 'active'
     const { error } = await supabase.from('tournament_registrations').insert({
       tournament_id: torneo.id,

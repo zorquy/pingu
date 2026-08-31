@@ -10905,7 +10905,7 @@ tres pasadas limpias contra Postgres 16.
 vivo de verdad abre un websocket contra el Supabase de PRODUCCIÓN, y
 una prueba no puede hacer eso.
 
-## Tanda 228 — el enlace que se puede enseñar (agosto 2026)
+## Tanda 229 — el enlace que se puede enseñar (agosto 2026)
 
 Tres cosas de la misma familia, todas pensadas para el día que los
 torneos se abran: que un enlace compartido enseñe algo, que enseñe algo
@@ -11047,3 +11047,69 @@ lo mismo: la prueba no medía lo que decía medir.
 - Y el memorizado del hilo del foro no se notaba porque en la semilla no
   había ningún hilo: sin hilo que memorizar, la consulta se repite igual
   esté el arreglo o no.
+
+## Tanda 228 — aforo sin límite y las rondas al cerrar (agosto 2026, IBAI)
+
+Dos peticiones de Ibai que se apoyan la una en la otra: que un torneo o
+liga pueda no tener límite de jugadores, y que el número de rondas se
+PROPONGA solo según los jugadores — pudiendo el organizador retocarlo.
+
+### `max_players` NULL = sin límite
+
+- **En la base**: `max_players` deja de ser `not null` y su CHECK se
+  rehace como `null or between 4 and 2048` (el nombre del CHECK era el
+  que Postgres puso solo a la restricción de columna,
+  `tournaments_max_players_check`; se tira y se recrea, idempotente).
+  NULL significa «sin límite», no «sin decidir»: el wizard siempre
+  guarda o un número o la marca explícita.
+- **Sin límite nunca hay «lleno»**: los tres sitios que comparaban
+  contra `max_players` llevan ahora el `!= null` delante — el `lleno`
+  de «Tu plaza», el `cupoLleno` del recuento fresco previo al insert, y
+  la RPC `torneos_inscribirse` del lanzamiento (`is not null and >=`,
+  explícito y no fiado de que `NULL >= n` «ya dé falso»). Sin lleno no
+  se encola a nadie: la lista de espera solo existe con aforo.
+- **El barredor promueve la cola entera si se quita el límite**: un
+  torneo que TENÍA límite y pasa a sin límite desde el editor puede
+  tener gente esperando una plaza que ya no escasea —
+  `libres = cola.length` cuando `max_players == null`.
+- **Lo que se pinta**: sin denominador, la barra de ocupación no cuenta
+  nada — en la tarjeta de /torneos y en la ficha se esconde y se dice
+  «N inscritos · sin límite». El anuncio del foro dice «Plazas: sin
+  límite».
+- **El formulario**: la celda de Plazas pasa de `<label>` a `<div>` con
+  la casilla «Sin límite» pegada debajo (una label no puede llevar dos
+  controles: el clic activaría siempre el primero). Marcarla apaga el
+  campo de número; en el editor de la ficha, igual, y con la
+  estructura bloqueada (inscripciones cerradas) la casilla se bloquea
+  con todo lo demás. «Duplicar» copia también la marca.
+- **Sin migración ejecutada**, crear un torneo sin límite revienta con
+  el `not-null constraint` de siempre — y ese error ya cae en el
+  traductor de «Falta ejecutar supabase-migration-torneos.sql». OJO: el
+  comprobador de /admin no puede vigilar esta tanda (mira columnas por
+  PostgREST y aquí no hay columna nueva, solo una restricción
+  aflojada), así que el error traducido es la única red.
+
+### Las rondas se proponen al CERRAR las inscripciones
+
+El wizard ya proponía rondas y corte con la tabla oficial (SPEC §5.1),
+pero según las PLAZAS — y las plazas son una promesa: 16 previstas con
+9 apuntados piden las rondas de 9, no las de 16. Y sin límite ni
+siquiera hay número del que tirar. El momento en que se sabe cuánta
+gente hay de verdad es el cierre de inscripciones, que además es la
+última puerta: con ellas cerradas la estructura ya no se toca.
+
+- Al pulsar «Cerrar inscripciones», si la sugerencia de
+  `officialStructure(activos())` difiere de las rondas configuradas,
+  sale un cuadro: «Con N jugadores, la tabla oficial sugiere X rondas
+  suizas (ahora hay Y)», con el número en un campo RETOCABLE y dos
+  botones (cerrar con ese número, o volver). Si coinciden — o es una
+  LIGA, cuyas rondas son las jornadas del calendario — se cierra sin
+  preguntar, como siempre.
+- El cuadro va como HERMANO de las acciones del admin, no dentro: la
+  ficha se repinta sola cada pocos segundos (sondeo/vivo) y un
+  `innerHTML` sobre las acciones arrasaría lo que el organizador esté
+  escribiendo. `pintarFicha` lo retira si el estado deja de ser
+  «inscripciones abiertas» por debajo (otro admin cerró, se canceló).
+- Solo se toca `swiss_rounds`; el top cut se queda como lo dejó el
+  organizador (se puede retocar en «Editar» hasta el cierre, como
+  siempre).

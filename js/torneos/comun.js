@@ -88,7 +88,7 @@ export function puedeBorrarTorneo(perfil, torneo, userId) {
   return Boolean(userId && torneo?.admin_id && torneo.admin_id === userId)
 }
 
-// ── Lo que ve un visitante SIN cuenta de una inscripción (tanda 228) ──
+// ── Lo que ve un visitante SIN cuenta de una inscripción (tanda 229) ──
 //
 // No es una lista de cortesía. En la base, el rol `anon` NO tiene
 // permiso sobre tcg_live_username (grant por columnas en

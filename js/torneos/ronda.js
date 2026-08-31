@@ -34,7 +34,7 @@ let reloj = null
 let rondaVista = null // qué ronda se está mirando en «Mesas» (null = la viva)
 
 const $ = (id) => document.getElementById(id)
-// Quién mira. Puede ser NULL: desde la tanda 228 la ficha se abre
+// Quién mira. Puede ser NULL: desde la tanda 229 la ficha se abre
 // también sin cuenta (modo escaparate). Sin identidad no hay «tu
 // partida» ni reportes — solo mesas, rondas y clasificación.
 const miId = () => ctx.session?.user?.id ?? null

@@ -541,12 +541,16 @@ async function metaDeTorneo(url) {
   )
 
   const cuando = fechaTorneo(torneo.start_at)
+  // max_players a null es aforo SIN LÍMITE (tanda 228 de IBAI), no «cero
+  // plazas»: entonces lo que dice algo es cuánta gente hay ya apuntada.
   const plazas =
-    torneo.max_players
+    torneo.max_players == null
       ? ocupadas === null
+        ? 'sin límite de plazas'
+        : `${ocupadas} inscritos · sin límite`
+      : ocupadas === null
         ? `${torneo.max_players} plazas`
         : `${ocupadas}/${torneo.max_players} plazas`
-      : ''
   const trozos = [cuando, formatoTorneo(torneo), plazas].filter(Boolean)
 
   // La descripción que escribió el organizador manda; si no hay, se

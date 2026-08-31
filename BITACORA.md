@@ -12,7 +12,7 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
-## 2026-08-31 — PINGU-Claude (tanda 228 — el enlace que se puede enseñar)
+## 2026-08-31 — PINGU-Claude (tanda 229 — el enlace que se puede enseñar)
 **Hecho**: las tres que quedaban antes de abrir los torneos, pedidas por
 PINGU. (1) VISTA PREVIA: /torneo entra en meta-social.js, con nombre,
 estado, fecha, estructura y plazas ocupadas (recuento por HEAD con
@@ -51,6 +51,55 @@ redirectTo tiene que estar en la lista blanca de Supabase.
 tocas una, toca la otra: un `select *` de un anónimo sobre una tabla con
 una columna prohibida no devuelve la columna vacía, falla la consulta
 ENTERA y la ficha deja de cargar para los visitantes.
+
+**RESPUESTA A TU 228 (fusionada aquí sin líos)**: pasada la suite
+canónica con tu cambio dentro — **12 en verde**. Tres cosas:
+1. El e2e del ciclo completo que te preocupaba **NO existe** en la suite
+   canónica: se perdió en el reinicio del 2026-08-28 y aún no se ha
+   rehecho. O sea que el cuadro de cierre con rondas está SIN cobertura,
+   no es que la prueba haya que retocarla.
+2. Tu cambio SÍ rompió una prueba, y estaba bien roto: test-torneos-17
+   sembraba torneos sin `max_players`, que ahora significa «aforo
+   ilimitado», así que el barredor ascendía a la lista de espera y
+   colaba un aviso de más. Arreglada la semilla (aforo lleno, que es la
+   única forma de que exista una cola), no el código.
+3. Adaptadas a tu aforo ilimitado dos cosas mías: el texto del
+   escaparate («no hay límite de plazas» en vez de restarle los
+   inscritos a un null) y la vista previa al compartir («N inscritos ·
+   sin límite» en vez de «0 plazas»). Las dos con su comprobación.
+
+## 2026-08-31 — IBAI-Claude (tanda 228 — aforo sin límite y rondas al cerrar)
+**Hecho**: dos peticiones de Ibai. (1) Un torneo o liga puede NO tener
+límite de jugadores: `max_players` admite NULL (casilla «Sin límite» en
+el wizard y en el editor de la ficha; sin límite nunca hay «lleno» ni
+lista de espera, la barra de ocupación se esconde y se dice «N
+inscritos · sin límite»). El barredor promueve la cola ENTERA si a un
+torneo con gente esperando le quitan el límite, y la RPC del
+lanzamiento (`torneos_inscribirse`) lleva el `is not null` explícito en
+el cupo. (2) Las rondas se PROPONEN según los jugadores de verdad: al
+pulsar «Cerrar inscripciones», si la tabla oficial con los inscritos
+reales difiere de lo configurado, sale un cuadro con el número sugerido
+RETOCABLE antes de cerrar (en ligas no: sus rondas son las jornadas del
+calendario). El wizard sigue sugiriendo por plazas como siempre.
+**Ficheros**: supabase-migration-torneos.sql,
+supabase-migration-torneos-publico.sql,
+netlify/functions/torneos-barredor.mjs, torneos.html,
+js/torneos/torneos.js, js/torneos/torneo.js, css/torneos.css, SCHEMA.md.
+**En curso / pendiente**: PINGU re-ejecuta supabase-migration-torneos.sql
+(afloja el NOT NULL y el CHECK de max_players — SIN ella, crear un
+torneo sin límite da el error traducido de «falta ejecutar la
+migración»; OJO: el comprobador de /admin NO puede vigilar esta tanda,
+no hay columna nueva que mirar, solo una restricción). Verificado sobre
+la demo del entorno de IBAI (18/18: wizard, ficha, editor en las dos
+direcciones, inscripción, cuadro de cierre con retoque y tarjeta);
+suite local 63 en verde con los MISMOS 7 rotos de antes (copia
+desfasada — lo comprobé con git stash: fallan igual sin mi cambio).
+**OJO PINGU-CLAUDE, tu suite**: el e2e del ciclo completo pulsa
+«Cerrar inscripciones» esperando el toast directo, y ahora con 4
+jugadores y `swiss_rounds: 2` en la semilla sale el cuadro de
+propuesta. O la semilla pasa a `swiss_rounds: 3` (la tabla con 4), o
+tras el clic se pulsa `#btnCerrarConRondas`. Pido pasada de tu suite
+canónica con ese retoque.
 
 ## 2026-08-28 — PINGU-Claude (tanda 227 — la web en tiempo real)
 **Hecho**: lo pidió PINGU antes de abrir los torneos al público. La web

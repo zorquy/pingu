@@ -24,7 +24,7 @@ let disputadas = []
 const perfiles = {} // id → username, para nombres que no están inscritos
 
 const $ = (id) => document.getElementById(id)
-// Puede ser null: desde la tanda 228 la ficha se abre también sin
+// Puede ser null: desde la tanda 229 la ficha se abre también sin
 // cuenta (modo escaparate), y entonces no hay «yo».
 const yo = () => ctx.session?.user?.id ?? null
 
@@ -424,7 +424,7 @@ async function resolverLlamada(llamadaId) {
 
 function pintarSolicitudes() {
   const caja = $('torneoJuecesCaja')
-  // El escaparate (tanda 228) no ve nada de jueces: quien mira sin
+  // El escaparate (tanda 229) no ve nada de jueces: quien mira sin
   // cuenta no puede solicitar serlo ni le incumbe quién lo es.
   if (!yo()) {
     caja.classList.add('hidden')
@@ -491,7 +491,7 @@ async function solicitarJuez() {
     return
   }
   showToast('Solicitud enviada al organizador.', 'success')
-  // Ficha ENTERA y no solo esta caja: desde la tanda 228 las solicitudes
+  // Ficha ENTERA y no solo esta caja: desde la tanda 229 las solicitudes
   // las carga torneo.js (para no pedirlas dos veces), así que un
   // recargarJueces() a secas repintaría la lista de antes. Y aprobar a
   // un juez cambia además lo que esa persona puede ver.

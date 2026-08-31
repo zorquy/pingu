@@ -61,7 +61,7 @@ function validEmail(value) {
 }
 
 // A dónde se vuelve tras entrar. Sirve para los enlaces compartidos
-// (tanda 228): quien abre un torneo sin cuenta y entra, vuelve AL
+// (tanda 229): quien abre un torneo sin cuenta y entra, vuelve AL
 // TORNEO y no a la portada.
 //
 // Solo se aceptan rutas de esta misma web: tiene que empezar por una

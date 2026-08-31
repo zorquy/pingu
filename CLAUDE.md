@@ -75,7 +75,7 @@ Manso) a este stack. Mientras esté en pruebas, TODO lo de torneos es
 visible SOLO para admins (`user_profiles.is_admin`): el enlace «Jugar»
 de la navbar va oculto y torneos.html expulsa a quien no sea admin.
 
-**Ojo con torneo.html (la FICHA), que desde la tanda 228 es distinto**:
+**Ojo con torneo.html (la FICHA), que desde la tanda 229 es distinto**:
 ya NO comprueba `is_admin` en el JavaScript, porque un enlace compartido
 tiene que poder enseñar el torneo el día que la sección se abra. Quien
 decide qué se ve es la POLÍTICA de la base: hoy, con la sección cerrada,
