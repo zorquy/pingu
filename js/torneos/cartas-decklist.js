@@ -95,6 +95,73 @@ async function resolverCarta(linea) {
   return carta
 }
 
+// ── Los dos iconos del arquetipo (tanda 230) ──
+//
+// Reutiliza resolverCarta() a propósito: misma caché, mismo camino de
+// respaldo por nombre y mismo comportamiento con las cartas que el
+// espejo no tiene. Un icono que no se resuelve no se pinta — antes eso
+// que un hueco roto.
+//
+// Se usan MINIATURAS DE LA CARTA y no sprites de Pokémon. Los sprites
+// quedan mejor (es lo que enseña Limitless), pero habría que traerlos de
+// un sitio de fuera, y además la mitad de los arquetipos se nombran por
+// un objeto («Martillos») que no tiene sprite. La miniatura de la carta
+// la tenemos ya, sirve igual para un Pokémon que para un Trainer, y no
+// añade ninguna dependencia.
+export async function resolverIconosDeArquetipo(iconos) {
+  const lineas = (iconos || []).slice(0, 2).map((i) => ({
+    name: i.nombre || '',
+    set: i.set,
+    // El catálogo dice `numero` y una línea de decklist dice `number`.
+    number: i.numero ?? i.number,
+  }))
+  const cartas = await Promise.all(lineas.map((l) => resolverCarta(l).catch(() => null)))
+  return cartas
+    .map((c, i) => (c ? { url: cardImageUrl(c.image_path, 'low'), nombre: c.name || lineas[i].name } : null))
+    .filter((x) => x && x.url)
+}
+
+// La chapa se pinta en DOS TIEMPOS, como la rejilla de la decklist: la
+// clasificación se construye como una cadena de HTML de una vez, y
+// resolver las cartas es ir a la base. Primero sale el hueco con el
+// nombre (que ya es útil por sí solo), y después se rellenan las
+// imágenes. Si no llegan, se queda el nombre: nunca un hueco roto.
+export function chapaArquetipoHtml(arq, { marcar = false } = {}) {
+  if (!arq) return ''
+  const sinCatalogar = marcar && !arq.curado ? ' torneo-arquetipo-sin-catalogar' : ''
+  return `<span class="torneo-arquetipo${sinCatalogar}" role="img" aria-label="${escapeHtml(arq.nombre)}"
+    title="${escapeHtml(arq.nombre)}${marcar && !arq.curado ? ' (sin catalogar)' : ''}"
+    data-arquetipo="${escapeHtml(JSON.stringify(arq.iconos || []))}"><span class="torneo-arquetipo-nombre">${escapeHtml(arq.nombre)}</span></span>`
+}
+
+// Rellena las chapas que haya dentro de `raiz`. Se llama tras pintar, y
+// es idempotente: una chapa ya rellenada no se vuelve a pedir (el
+// refresco de la ficha repinta la tabla entera cada pocos segundos).
+export async function rellenarChapasArquetipo(raiz) {
+  const chapas = [...(raiz || document).querySelectorAll('[data-arquetipo]')]
+  await Promise.all(
+    chapas.map(async (chapa) => {
+      let iconos = []
+      try {
+        iconos = JSON.parse(chapa.dataset.arquetipo || '[]')
+      } catch {
+        return
+      }
+      delete chapa.dataset.arquetipo // que un repintado no lo pida dos veces
+      if (!iconos.length) return
+      const resueltos = await resolverIconosDeArquetipo(iconos)
+      if (!resueltos.length) return
+      chapa.insertAdjacentHTML(
+        'afterbegin',
+        resueltos
+          .map((c) => `<img class="torneo-arquetipo-icono" src="${escapeHtml(c.url)}" alt="" loading="lazy" />`)
+          .join('')
+      )
+      chapa.classList.add('torneo-arquetipo-con-iconos')
+    })
+  )
+}
+
 const SECCIONES = [
   { campo: 'pokemon', titulo: 'Pokémon' },
   { campo: 'trainer', titulo: 'Trainer' },

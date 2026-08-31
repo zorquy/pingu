@@ -11113,3 +11113,152 @@ gente hay de verdad es el cierre de inscripciones, que además es la
 - Solo se toca `swiss_rounds`; el top cut se queda como lo dejó el
   organizador (se puede retocar en «Editar» hasta el cierre, como
   siempre).
+
+## Tanda 230 — a qué juega cada uno (agosto 2026)
+
+Lo pidió PINGU tras enseñarme cómo lo hace Limitless (dos iconos al lado
+de cada jugador que dicen su mazo, y un enlace a su lista) y
+trainingcourt.app (apuntar contra qué has jugado y cómo te fue). Tres
+piezas que se encadenan: sin arquetipos no hay matriz de
+enfrentamientos, y sin la regla de visibilidad no puede haber ninguna de
+las dos sin filtrar información.
+
+### 1. El arquetipo: dos iconos en vez de abrir la lista
+
+**Dónde vive, y por qué NO se guarda.** No hay tabla de «arquetipo de
+fulano en tal torneo». El arquetipo se DEDUCE de la decklist en el
+momento de pintarla, y eso hace que la regla de visibilidad salga gratis
+y no se pueda equivocar: **se ve el arquetipo exactamente cuando se
+puede ver la lista**, porque si la base no entrega la decklist no hay
+nada de lo que deducir nada. Guardarlo en una columna habría sido más
+rápido de leer y mucho más fácil de filtrar sin querer.
+
+Efecto secundario bueno: el histórico MEJORA solo. El día que un admin
+cataloga un mazo que antes salía deducido, todos los torneos pasados se
+reagrupan.
+
+Dos formas de acertar, en `js/torneos/arquetipos.js` (sin DOM ni red,
+para poder probarlo en Node):
+
+1. **El catálogo curado** (`tcg_archetypes`, migración nueva): nombre,
+   las dos cartas-icono y las cartas que identifican el mazo. De los que
+   casen gana **el más específico** — «Dragapult Dusknoir» pide dos
+   cartas y «Dragapult» una, así que un mazo con las dos sale como el
+   primero.
+2. **La deducción automática**, si no casa ninguno: las dos líneas de
+   Pokémon mejor puntuadas (un ex pesa, las copias pesan, y los básicos
+   de una línea de evolución se descartan). Nunca deja hueco, y marca el
+   mazo como «sin catalogar» — que es exactamente la lista de lo que
+   merece la pena añadir al catálogo.
+
+**La migración se entrega VACÍA.** No se siembra ningún arquetipo desde
+el SQL: los números de carta del meta de la temporada no me los puedo
+inventar, y una fila mal puesta identifica mazos mal para siempre. El
+catálogo se llena desde `/admin → Arquetipos` con lo que la gente juega
+de verdad.
+
+Un requisito puede pedir la carta **por número o por cualquiera de
+varios nombres**, y eso no es un cinturón de más: el número es exacto
+pero se rompe con cada reimpresión, y el nombre aguanta las
+reimpresiones pero el export de TCG Live viene **en el idioma del
+jugador** («Boss's Orders» y «Órdenes del jefe» son la misma carta).
+
+Los iconos son **miniaturas de la carta**, no sprites de Pokémon. Los
+sprites quedan mejor (es lo que enseña Limitless), pero habría que
+traerlos de fuera y además media docena de arquetipos se nombran por un
+objeto («Martillos»), que no tiene sprite. La miniatura la tenemos ya y
+sirve igual para un Pokémon que para un Trainer.
+
+### 2. Cuándo se ven las listas (y con ellas los arquetipos)
+
+`tournaments.show_opponent_decklists` ya existía desde la 219 con su
+casilla en el asistente y en el editor, por defecto en FALSO. Lo que
+faltaba: con la lista cerrada no se veía **nunca**, ni al terminar.
+
+La regla queda así, en `puedenVerseLasListas()` y —lo que de verdad
+manda— en la política `decklists_ver` de la migración de apertura:
+
+| | En juego | Terminado |
+| --- | --- | --- |
+| **Lista cerrada** (por defecto) | NO | **SÍ** |
+| **Lista abierta** (casilla marcada) | SÍ | SÍ |
+
+Enseñar el mazo del rival a mitad de torneo le regala la partida;
+enseñarlo cuando ya no se juega nada es lo que hace que el histórico y
+la matriz de enfrentamientos sirvan para algo.
+
+Comprobado contra PostgreSQL de verdad, los cinco casos.
+
+### 3. El registro de partidas (`/mis-partidas`)
+
+La matriz de enfrentamientos: «con Dragapult voy 4-1 contra Gardevoir y
+1-6 contra Raging Bolt». La cuenta vive en `js/matriz-partidas.js`, sin
+DOM ni red.
+
+**Las partidas de los torneos de PokeDoc NO se copian a ninguna tabla.**
+Se leen de `tournament_matches` cada vez. Copiarlas habría sido más
+cómodo de consultar y una fuente de verdad duplicada: el mismo resultado
+en dos sitios, y el día que se desincronicen no hay forma de saber cuál
+miente. Además lo copiado no se enteraría de que un arquetipo mejora.
+
+`match_log` (migración nueva) guarda SOLO lo de fuera: TCG Live, la
+tienda, un presencial. Es privada de cada uno — ni admins la leen: saber
+a qué está probando alguien antes de un torneo es justo lo que no se
+puede filtrar.
+
+Las dos fuentes se agrupan por la MISMA clave (`claveDeArquetipo`), así
+que una partida apuntada a mano cae en la misma casilla que las del
+torneo en vez de abrir una fila nueva.
+
+Detalles de la cuenta que costaron una prueba cada uno:
+
+- **El resultado se lee desde TU lado.** Una mesa se guarda como «gana
+  A», que no dice nada hasta saber de qué lado estabas; confundirlo
+  invierte la matriz entera sin que lo note nadie.
+- **El empate vale media victoria**, como en el juego real. Contarlo
+  como derrota castigaría de más a quien juega mazos de control.
+- **Sin partidas el porcentaje es `null`, no 0**: «no he jugado» y «he
+  perdido todas» no son lo mismo, y pintarlos igual es mentir.
+- **Un bye no es un enfrentamiento** y no entra.
+- **Una partida de la que no se conocen LOS DOS mazos se descarta**, en
+  vez de meterla en un cajón «desconocido» que ensuciaría los
+  porcentajes. Por eso un torneo de lista cerrada aún en juego no aporta
+  nada al registro: no se puede saber a qué jugaba el rival, y
+  adivinarlo sería inventar.
+- **El resumen exige 3 partidas** para llamar a algo «peor
+  enfrentamiento». Gritar «¡0% contra Charizard!» con una sola derrota
+  enseña a desconfiar de la tabla.
+
+### Comprobado
+
+- Migraciones `arquetipos` y `partidas` contra PostgreSQL 16, tres
+  pasadas cada una, más 7 comprobaciones de los checks y la RLS del
+  catálogo y 4 de la del registro (cada cual ve solo lo suyo).
+- La visibilidad de listas, 5 casos contra PostgreSQL de verdad.
+- `test-torneos-22.mjs` (36, sin pantalla), `test-torneos-23.mjs` (16 en
+  navegador), `test-partidas.mjs` (28, sin pantalla) y
+  `test-partidas-pagina.mjs` (16 en navegador).
+- Rigor de 24 roturas, todas detectadas. Seis NO lo estaban a la
+  primera, y las seis por lo mismo de siempre: la prueba no ejercía el
+  camino que la rotura tocaba. Un arquetipo sin requisitos solo es
+  peligroso cuando es el ÚNICO que casa; el peso del «ex» solo se nota
+  si el básico lleva más copias; el desempate por nombre solo si hay
+  empate; las energías solo pasando por `arquetipoDelCatalogo` y no por
+  una lista montada a mano; el orden de columnas solo si el más jugado
+  NO es además el primero alfabéticamente.
+- Y una que merece contarse aparte: el bye tiene DOS guardias (el filtro
+  de `mis-partidas.js` y el `null` de `miResultado`), y **cada uno tapa
+  la rotura del otro**. Rompiendo cualquiera, la prueba seguía en verde.
+  Se arregla probando el de dentro por separado: un bye contado como
+  victoria infla el porcentaje de todo el mundo sin que cambie el número
+  de partidas, así que no puede quedarse sin vigilar.
+- Con las tablas nuevas SIN crear (el estado real de producción entre el
+  despliegue y el SQL): `/mis-partidas` y la ficha de un torneo siguen
+  cargando. El doble aprendió `__SIN_TABLAS__` para poder probarlo.
+
+**El doble de Supabase gana dos cosas** y una de ellas hay que mirarla
+con cuidado: `.or()` (solo el subconjunto que usa la web, y REVIENTA con
+lo que no entiende — filtrar de menos en silencio convertiría un fallo
+del cliente en una prueba que pasa) y las tablas `tcg_archetypes` y
+`match_log`. Ojo: una tabla hay que declararla en `T` ANTES de
+sembrarla, o `sembrar()` revienta el doble entero al cargar.

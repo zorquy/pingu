@@ -558,3 +558,7 @@ body {
   font-weight: 700;
   text-align: center;
 }
+
+/* Un arquetipo desactivado sigue en la lista pero no identifica mazos:
+   se apaga para que se vea de un vistazo cuál está en uso (tanda 230). */
+.admin-fila-apagada { opacity: 0.55; }

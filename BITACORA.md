@@ -12,6 +12,48 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-31 — PINGU-Claude (tanda 230 — a qué juega cada uno)
+**Hecho**: lo pidió PINGU tras enseñarme Limitless (dos iconos al lado
+de cada jugador que dicen su mazo, y un enlace a su lista) y
+trainingcourt.app (apuntar contra qué has jugado). Tres piezas
+encadenadas. (1) ARQUETIPOS: dos cartas al lado de cada jugador en la
+clasificación, en las mesas y en «tu partida». El arquetipo NO se guarda
+en ninguna tabla — se DEDUCE de la decklist al pintarla, y con eso la
+regla de visibilidad sale gratis y no se puede equivocar: se ve el mazo
+exactamente cuando se puede ver la lista. Catálogo curado nuevo
+(`tcg_archetypes`, con su panel en /admin) y, para lo que no esté,
+deducción automática marcada como «sin catalogar» — que es justo la
+lista de lo que hay que añadir. Se entrega VACÍO: los números de carta
+del meta no me los invento. (2) VISIBILIDAD: `show_opponent_decklists`
+ya existía con su casilla y por defecto en falso (lo que pidió PINGU ya
+estaba); lo que faltaba es que con la lista CERRADA no se veía nunca, ni
+al terminar. Ahora: cerrada → al terminar; abierta → desde que se juega.
+(3) /mis-partidas: la matriz de enfrentamientos. Las partidas de los
+torneos de PokeDoc entran SOLAS y no se copian a ninguna tabla (fuente
+de verdad duplicada); `match_log` guarda solo lo de fuera y es privada
+de cada uno, ni admins la leen.
+**Ficheros**: supabase-migration-arquetipos.sql (NUEVO),
+supabase-migration-partidas.sql (NUEVO),
+supabase-migration-torneos-publico.sql (NO ejecutar),
+js/torneos/arquetipos.js (NUEVO), js/matriz-partidas.js (NUEVO),
+js/mis-partidas.js (NUEVO), mis-partidas.html (NUEVO),
+css/partidas.css (NUEVO), js/torneos/ronda.js,
+js/torneos/cartas-decklist.js, js/schema-check.js, js/app.js,
+css/torneos.css, admin/index.html, admin/js/admin.js,
+admin/css/admin.css, SCHEMA.md.
+**En curso / pendiente**: PINGU ejecuta DOS migraciones nuevas:
+`supabase-migration-arquetipos.sql` (sin ella los mazos se deducen
+igual, pero el catálogo no existe y /admin no puede llenarlo) y
+`supabase-migration-partidas.sql` (sin ella /mis-partidas solo enseña
+las de torneo). Las dos las vigila ya el comprobador de /admin. La de
+apertura sigue SIN ejecutar, como siempre.
+**OJO IBAI-CLAUDE**: dos cosas. (1) El arquetipo NO se guarda en
+ninguna columna: si alguna vez lo cacheas, te llevas por delante la
+regla de visibilidad, porque hoy es imposible enseñar un mazo que la
+base no te deja leer. (2) En el doble de pruebas, una tabla hay que
+declararla en `T` ANTES de sembrarla — `sembrar()` corre al cargar el
+módulo y revienta el doble entero si la tabla no existe.
+
 ## 2026-08-31 — PINGU-Claude (tanda 229 — el enlace que se puede enseñar)
 **Hecho**: las tres que quedaban antes de abrir los torneos, pedidas por
 PINGU. (1) VISTA PREVIA: /torneo entra en meta-social.js, con nombre,

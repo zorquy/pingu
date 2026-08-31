@@ -45,6 +45,7 @@
         <button class="admin-nav-item" data-section="categories"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Categorías</button>
         <button class="admin-nav-item" data-section="achievements"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg> Logros</button>
         <button class="admin-nav-item" data-section="cards"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="14" height="16" rx="2"></rect><path d="M8 2h12a2 2 0 0 1 2 2v12"></path></svg> Cartas</button>
+        <button class="admin-nav-item" data-section="archetypes"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="16" rx="1"></rect><rect x="14" y="4" width="7" height="16" rx="1"></rect></svg> Arquetipos</button>
         <span class="admin-nav-grupo">Comunidad</span>
         <button class="admin-nav-item" data-section="users"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Usuarios</button>
         <button class="admin-nav-item" data-section="foro"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="13" y2="13"></line></svg> Foro</button>
@@ -271,6 +272,61 @@
         </p>
         <div class="admin-stats-grid" id="schemaSummary"></div>
         <div id="schemaTable" style="margin-top:20px;"></div>
+      </section>
+
+      <section class="admin-section" id="section-archetypes">
+        <h1>Arquetipos</h1>
+        <p class="admin-note">
+          Los dos iconos que salen al lado de cada jugador en la clasificación y en las mesas de
+          un torneo, para saber a qué juega sin abrir su lista. Se ven cuando se pueden ver las
+          decklists: en un torneo de lista abierta, desde que empieza; en uno de lista cerrada,
+          al terminar.
+        </p>
+        <p class="admin-note">
+          <strong>No hace falta rellenar esto para que funcione.</strong> Lo que no esté aquí se
+          deduce solo (los dos Pokémon más definitorios del mazo) y sale marcado con el borde
+          discontinuo. Eso es justo la lista de lo que merece la pena catalogar: si un mazo se
+          deduce mal, o se llama por un objeto («Martillos»), se añade aquí y ya sale bien.
+        </p>
+
+        <div class="admin-card" style="margin-bottom: 20px;">
+          <h3 style="margin-top: 0;" id="arqFormTitulo">Nuevo arquetipo</h3>
+          <div class="foro-admin-fila">
+            <input type="text" id="arqId" placeholder="Identificador: dragapult-dusknoir" />
+            <input type="text" id="arqNombre" placeholder="Nombre: Dragapult Dusknoir" />
+          </div>
+          <p class="admin-note">
+            El identificador no se cambia después: es lo que agrupa los enfrentamientos del
+            histórico. El nombre sí.
+          </p>
+
+          <h4>Los dos iconos</h4>
+          <p class="admin-note">Set y número impresos en la carta, tal como salen en el export de TCG Live.</p>
+          <div class="foro-admin-fila">
+            <input type="text" id="arqIcono1Set" placeholder="Icono 1 — set (TWM)" />
+            <input type="text" id="arqIcono1Num" placeholder="Icono 1 — número (130)" />
+          </div>
+          <div class="foro-admin-fila">
+            <input type="text" id="arqIcono2Set" placeholder="Icono 2 — set (SFA)" />
+            <input type="text" id="arqIcono2Num" placeholder="Icono 2 — número (20)" />
+          </div>
+
+          <h4>Qué tiene que llevar el mazo</h4>
+          <p class="admin-note">
+            Una carta por línea. Vale el nombre («Dragapult ex») o el nombre con su carta exacta
+            («Dragapult ex | TWM | 130»). Si la carta se llama distinto en inglés y en español,
+            los dos separados por <code>/</code> — el export viene en el idioma de cada jugador.
+            Cuantas más líneas, más específico: de los arquetipos que casen, gana este.
+          </p>
+          <textarea id="arqRequiere" rows="4" placeholder="Dragapult ex | TWM | 130&#10;Dusknoir"></textarea>
+          <div class="foro-admin-fila">
+            <label><input type="checkbox" id="arqActivo" checked /> Activo</label>
+            <button class="btn-primary" id="btnGuardarArquetipo">Guardar</button>
+            <button class="btn-secondary hidden" id="btnCancelarArquetipo">Cancelar</button>
+          </div>
+        </div>
+
+        <div id="arquetiposLista"></div>
       </section>
 
       <section class="admin-section" id="section-cards">

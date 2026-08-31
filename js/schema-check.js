@@ -50,6 +50,11 @@ export const REQUISITOS = [
   { tabla: 'judge_calls', columna: 'notified_at', fichero: 'supabase-migration-torneos.sql', rompe: 'Llamar a un juez no le avisa.' },
   { tabla: 'tournament_registrations', columna: 'participation_confirmed_at', fichero: 'supabase-migration-torneos.sql', rompe: 'La inscripción en dos pasos no funciona.' },
   { tabla: 'tcg_cards', columna: 'regulation_mark', fichero: 'supabase-migration-cartas-marcas.sql', rompe: 'Las decklists no comprueban el reglamento (marcas H/I/J).' },
+  // Tabla entera, no columna: si falta, el select ya falla igual y el
+  // aviso sale. Sin ella los mazos NO dejan de identificarse (se deducen
+  // solos), pero el catálogo curado no existe y /admin no puede llenarlo.
+  { tabla: 'tcg_archetypes', columna: 'requiere', fichero: 'supabase-migration-arquetipos.sql', rompe: 'Los mazos salen siempre deducidos: el catálogo de arquetipos no existe.' },
+  { tabla: 'match_log', columna: 'rival_mazo', fichero: 'supabase-migration-partidas.sql', rompe: '/mis-partidas no deja apuntar partidas de fuera (las de torneo sí salen).' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

@@ -1484,3 +1484,59 @@
     min-width: 0;
   }
 }
+
+/* ── La chapa de arquetipo (tanda 230) ──
+   Los dos iconos que dicen a qué juega alguien sin abrir su lista, al
+   estilo de Limitless. Se pinta en dos tiempos: primero el nombre (que
+   ya sirve), y las cartas se meten delante cuando se resuelven — por eso
+   el nombre se esconde SOLO cuando hay iconos de verdad. */
+.torneo-arquetipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.torneo-arquetipo-nombre {
+  font-size: 12px;
+  color: var(--text-mid);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 14ch;
+}
+.torneo-arquetipo-con-iconos .torneo-arquetipo-nombre {
+  /* Con iconos el nombre sobra a la vista. Se quita entero y no se
+     esconde «para lectores de pantalla»: la chapa es role="img" con su
+     aria-label, así que el nombre accesible ya lo pone el aria-label y
+     el texto de dentro no lo lee nadie. Y el title sigue ahí para quien
+     no reconozca las cartas. */
+  display: none;
+}
+.torneo-arquetipo-icono {
+  /* Proporción de carta (5:7). A este tamaño no se lee el texto de la
+     carta, pero el color y el dibujo se reconocen de un vistazo, que es
+     justo para lo que están. */
+  width: 26px;
+  height: 36px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+/* Al organizador y a los jueces se les señala lo que el catálogo aún no
+   conoce: es la lista de arquetipos que falta por añadir. */
+.torneo-arquetipo-sin-catalogar .torneo-arquetipo-icono {
+  outline: 1px dashed var(--warning);
+  outline-offset: 1px;
+}
+.torneo-arquetipo-sin-catalogar .torneo-arquetipo-nombre {
+  font-style: italic;
+}
+
+@media (max-width: 560px) {
+  /* En móvil las tablas ya van justas: los iconos encogen antes que
+     obligar a arrastrar de lado. */
+  .torneo-arquetipo-icono { width: 20px; height: 28px; }
+  .torneo-arquetipo-nombre { max-width: 9ch; }
+}

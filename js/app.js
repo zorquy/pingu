@@ -446,6 +446,11 @@ async function renderNavUser(session) {
         <a href="/editor-guia.html">${icons.edit(16)} Escribir una guía</a>
         <a href="/guardados.html">${icons.bookmark(16)} Guardados</a>
         ${profile?.is_admin ? `<a href="/torneos.html#mios">${icons.trophy(16)} Mis torneos</a>` : ''}
+        <!-- «Mis partidas» va para TODO el mundo, no solo para admins:
+             el registro de enfrentamientos sirve igual jugando en TCG
+             Live que en un torneo de aquí, y de hecho es de lo poco de
+             la sección de juego que ya vale antes de abrirla. -->
+        <a href="/mis-partidas">${icons.layers(16)} Mis partidas</a>
         <button type="button" id="navFeedbackBtn">${icons.messageSquare(16)} Enviar feedback</button>
         <button type="button" id="navUserSignOut">${icons.logOut(16)} Cerrar sesión</button>
       </div>`

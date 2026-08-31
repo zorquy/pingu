@@ -61,9 +61,10 @@ el contenedor de una sesión — el 2026-08-28 uno se reinició y se llevó
 por delante el doble y unas 87 pruebas, sin copia en ninguna parte. De
 ahí la rama: fuera de lo que se despliega, pero en algún sitio.
 
-**Estado a 2026-08-31**: cubiertos torneos (6 pruebas, más la de la
-vista previa al compartir y la de permisos contra PostgreSQL de verdad)
-y el foro —índice, lista de temas y vista de un tema— (2). Guías, cursos, perfiles
+**Estado a 2026-08-31**: cubiertos torneos (8 pruebas, más la de la
+vista previa al compartir, las dos del registro de partidas y las de
+permisos contra PostgreSQL de verdad) y el foro —índice, lista de temas
+y vista de un tema— (2). Guías, cursos, perfiles
 y portada están SIN cobertura hasta que se rehagan: un cambio ahí sale a
 producción sin red debajo. Del foro faltan las piezas de alrededor
 (encuestas, no leídos, suscripciones, búsqueda, menciones, moderación).
@@ -89,7 +90,15 @@ lo cambió el 2026-08-26 al probarlo; los chats de juez sí van plegados),
 la cuenta de PokeDoc es la cuenta de torneos, tiempo real por websocket con
 el sondeo de respaldo detrás (la ficha entera se refresca sola desde
 torneo.js: cada 10 s, o cada minuto si el vivo está conectado) y cierres
-automáticos con función programada por minuto. El motor puro (pareos suizos,
+automáticos con función programada por minuto.
+
+**Los arquetipos (tanda 230) NO se guardan**: se deducen de la decklist
+al pintarla. Eso es lo que hace que la regla de visibilidad no se pueda
+equivocar — se ve el mazo de alguien exactamente cuando la base deja ver
+su lista (torneo terminado, o de lista abierta en juego). Si algún día
+lo cacheas en una columna, te llevas esa garantía por delante.
+
+El motor puro (pareos suizos,
 desempates, top cut, decklists) está en `js/torneos/motor.js`,
 traducido 1:1 de `libs/engine` de TrainerArena — si tocas su lógica,
 respeta la SPEC de TrainerArena y anótalo.

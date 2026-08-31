@@ -1,0 +1,144 @@
+/* /mis-partidas (tanda 230). Hoja propia de la página: components.css lo
+   baja TODO el mundo y la portada anda con el presupuesto justo, así que
+   lo que solo se usa aquí vive aquí (norma de CLAUDE.md). */
+
+.partidas-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.partidas-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.partidas-dato-titulo {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-mid);
+}
+
+.partidas-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.partidas-barra label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-mid);
+}
+
+.partidas-form-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 12px;
+}
+.partidas-form-fila label,
+.partidas-form-notas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-mid);
+  flex: 1 1 180px;
+}
+.partidas-form-notas { margin-bottom: 12px; }
+
+/* La matriz. Puede tener muchas columnas (un mazo rival por columna),
+   así que scrollea DENTRO de su caja: la página nunca se va de ancho. */
+.partidas-matriz-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+.partidas-matriz {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+.partidas-matriz th,
+.partidas-matriz td {
+  padding: 8px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.partidas-matriz thead th {
+  font-size: 12px;
+  color: var(--text-mid);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  background: var(--white);
+}
+/* La primera columna (mi mazo) se queda fija al arrastrar de lado: sin
+   ella, tres columnas a la derecha ya no sabes de qué fila es la
+   casilla que estás mirando. */
+.partidas-matriz tbody th[scope='row'],
+.partidas-matriz thead th:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--white);
+  text-align: left;
+  z-index: 1;
+}
+.partidas-matriz td strong { display: block; }
+.partidas-matriz td .subtext { font-size: 11px; }
+.partidas-vacia { color: var(--text-mid); opacity: 0.4; }
+.partidas-total { border-left: 1px solid var(--border); }
+
+/* El color de una casilla va en rgba sobre el fondo de la tabla: el
+   mismo valor vale en tema claro y oscuro, sin duplicar reglas. */
+.partidas-bien { background: rgba(46, 160, 67, 0.16); }
+.partidas-mal { background: rgba(214, 64, 64, 0.14); }
+.partidas-igualado { background: rgba(160, 160, 160, 0.12); }
+
+.partidas-titulo-lista { margin-top: 28px; }
+
+.partidas-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  background: var(--white);
+  /* La franja de la izquierda dice el resultado sin tener que leer. */
+  border-left-width: 4px;
+}
+.partidas-win { border-left-color: rgba(46, 160, 67, 0.8); }
+.partidas-loss { border-left-color: rgba(214, 64, 64, 0.8); }
+.partidas-draw { border-left-color: rgba(160, 160, 160, 0.8); }
+.partidas-fila-mazos { flex: 1 1 220px; }
+.partidas-fila-res { font-size: 13px; }
+.partidas-fila-donde { flex: 0 1 auto; }
+.partidas-fila-notas { flex: 1 1 100%; }
+.partidas-borrar { margin-left: auto; }
+
+@media (max-width: 560px) {
+  .partidas-barra { gap: 8px; }
+  .partidas-barra label,
+  .partidas-form-fila label { flex: 1 1 100%; }
+  .partidas-matriz th,
+  .partidas-matriz td { padding: 6px 8px; }
+  /* La fila del registro se apila: en vertical no caben cuatro cosas
+     en una línea sin partir palabras. */
+  .partidas-fila { flex-direction: column; align-items: flex-start; }
+  .partidas-borrar { margin-left: 0; }
+}

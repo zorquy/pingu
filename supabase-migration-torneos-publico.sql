@@ -261,7 +261,24 @@ create policy inscripciones_admin on public.tournament_registrations for delete
 -- la VEN el dueño, el admin y los jueces aprobados. Nadie más.
 drop policy if exists decklists_ver on public.tournament_decklists;
 create policy decklists_ver on public.tournament_decklists for select
-  using (user_id = auth.uid() or torneos_soy_admin() or torneos_soy_juez(tournament_id));
+  using (
+    user_id = auth.uid()
+    or torneos_soy_admin()
+    or torneos_soy_juez(tournament_id)
+    -- Y las de los demás cuando el torneo lo permite (tanda 230). La
+    -- misma regla que pinta la clasificación, aquí abajo, que es donde
+    -- de verdad se cumple:
+    --   · torneo TERMINADO: se ven, se jugara con lista abierta o
+    --     cerrada. Ya no hay partida que regalar, y es lo que hace útil
+    --     el histórico y el registro de enfrentamientos.
+    --   · torneo EN JUEGO: solo si el organizador marcó «listas a la
+    --     vista» al crearlo. Por defecto NO.
+    or exists (
+      select 1 from public.tournaments t
+      where t.id = tournament_id
+        and (t.status = 'finished' or (t.show_opponent_decklists and t.status = 'in_progress'))
+    )
+  );
 drop policy if exists decklists_crear on public.tournament_decklists;
 create policy decklists_crear on public.tournament_decklists for insert
   with check (user_id = auth.uid());

@@ -1867,6 +1867,176 @@ function cardsNota(texto, aviso = false) {
   el.textContent = texto
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// ARQUETIPOS (tanda 230)
+//
+// El catálogo curado que da nombre a los mazos. Lo que no esté aquí NO
+// se pierde: la web deduce el arquetipo sola y lo marca como «sin
+// catalogar», que es la lista de lo que merece la pena añadir.
+//
+// La regla de qué mazo es cuál vive en js/torneos/arquetipos.js, sin
+// DOM, para poder probarla sin pantalla. Esto es solo el formulario.
+// ═══════════════════════════════════════════════════════════════════
+
+let arquetiposCache = []
+let arquetipoEditando = null
+
+// Una línea de requisito: «Dragapult ex | TWM | 130» o «Boss's Orders /
+// Órdenes del jefe». El nombre puede llevar variantes separadas por
+// barra porque el export de TCG Live viene en el idioma del jugador.
+function parsearRequisito(linea) {
+  const trozos = String(linea).split('|').map((t) => t.trim())
+  const nombres = trozos[0].split('/').map((n) => n.trim()).filter(Boolean)
+  if (!nombres.length) return null
+  const req = { nombres }
+  if (trozos[1]) req.set = trozos[1].toUpperCase()
+  if (trozos[2]) req.numero = trozos[2]
+  return req
+}
+
+function requisitoATexto(req) {
+  const nombres = (req.nombres || []).join(' / ')
+  return [nombres, req.set, req.numero].filter(Boolean).join(' | ')
+}
+
+async function loadArquetipos() {
+  const { data, error } = await supabase.from('tcg_archetypes').select('*').order('nombre')
+  const caja = document.getElementById('arquetiposLista')
+  if (!caja) return
+  if (error) {
+    caja.innerHTML = `<p class="admin-note">${
+      /tcg_archetypes/.test(error.message || '')
+        ? 'Falta ejecutar <code>supabase-migration-arquetipos.sql</code> en el SQL Editor de Supabase.'
+        : escapeHtml(error.message)
+    }</p>`
+    return
+  }
+  arquetiposCache = data || []
+  if (!arquetiposCache.length) {
+    caja.innerHTML =
+      '<p class="admin-note">Todavía no hay ninguno. Mientras tanto, los mazos salen deducidos y marcados en las clasificaciones.</p>'
+    return
+  }
+  caja.innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Nombre</th><th>Identificador</th><th>Lleva</th><th>Iconos</th><th></th></tr></thead>
+      <tbody>${arquetiposCache
+        .map(
+          (a) => `
+        <tr${a.activo ? '' : ' class="admin-fila-apagada"'}>
+          <td>${escapeHtml(a.nombre)}${a.activo ? '' : ' <span class="subtext">(inactivo)</span>'}</td>
+          <td class="subtext">${escapeHtml(a.id)}</td>
+          <td class="subtext">${escapeHtml((a.requiere || []).map(requisitoATexto).join(' + '))}</td>
+          <td class="subtext">${escapeHtml((a.iconos || []).map((i) => `${i.set || '?'} ${i.numero || '?'}`).join(', '))}</td>
+          <td>
+            <button class="btn-secondary" data-editar-arq="${escapeHtml(a.id)}">Editar</button>
+            <button class="btn-outline" data-borrar-arq="${escapeHtml(a.id)}">Borrar</button>
+          </td>
+        </tr>`
+        )
+        .join('')}</tbody>
+    </table>`
+
+  caja.querySelectorAll('[data-editar-arq]').forEach((b) =>
+    b.addEventListener('click', () => editarArquetipo(b.dataset.editarArq))
+  )
+  caja.querySelectorAll('[data-borrar-arq]').forEach((b) =>
+    b.addEventListener('click', () => borrarArquetipo(b.dataset.borrarArq))
+  )
+}
+
+function limpiarFormularioArquetipo() {
+  arquetipoEditando = null
+  document.getElementById('arqFormTitulo').textContent = 'Nuevo arquetipo'
+  for (const id of ['arqId', 'arqNombre', 'arqIcono1Set', 'arqIcono1Num', 'arqIcono2Set', 'arqIcono2Num', 'arqRequiere']) {
+    const el = document.getElementById(id)
+    if (el) el.value = ''
+  }
+  document.getElementById('arqId').disabled = false
+  document.getElementById('arqActivo').checked = true
+  document.getElementById('btnCancelarArquetipo').classList.add('hidden')
+}
+
+function editarArquetipo(id) {
+  const a = arquetiposCache.find((x) => x.id === id)
+  if (!a) return
+  arquetipoEditando = id
+  document.getElementById('arqFormTitulo').textContent = `Editando «${a.nombre}»`
+  document.getElementById('arqId').value = a.id
+  // El identificador NO se toca al editar: es lo que agrupa los
+  // enfrentamientos del histórico, y cambiarlo los partiría en dos.
+  document.getElementById('arqId').disabled = true
+  document.getElementById('arqNombre').value = a.nombre
+  const [i1, i2] = a.iconos || []
+  document.getElementById('arqIcono1Set').value = i1?.set || ''
+  document.getElementById('arqIcono1Num').value = i1?.numero || ''
+  document.getElementById('arqIcono2Set').value = i2?.set || ''
+  document.getElementById('arqIcono2Num').value = i2?.numero || ''
+  document.getElementById('arqRequiere').value = (a.requiere || []).map(requisitoATexto).join('\n')
+  document.getElementById('arqActivo').checked = a.activo !== false
+  document.getElementById('btnCancelarArquetipo').classList.remove('hidden')
+  document.getElementById('arqFormTitulo').scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+async function guardarArquetipo() {
+  const id = slugify(document.getElementById('arqId').value.trim())
+  const nombre = document.getElementById('arqNombre').value.trim()
+  const requiere = document
+    .getElementById('arqRequiere')
+    .value.split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map(parsearRequisito)
+    .filter(Boolean)
+
+  if (!id || !nombre) {
+    showToast('Hacen falta el identificador y el nombre.', 'error')
+    return
+  }
+  // Sin requisitos el arquetipo casaría con TODOS los mazos. La base lo
+  // rechaza igualmente; esto es para decirlo en cristiano.
+  if (!requiere.length) {
+    showToast('Di al menos una carta que tenga que llevar el mazo, o casaría con todos.', 'error')
+    return
+  }
+
+  const iconos = [
+    { set: document.getElementById('arqIcono1Set').value.trim().toUpperCase(), numero: document.getElementById('arqIcono1Num').value.trim() },
+    { set: document.getElementById('arqIcono2Set').value.trim().toUpperCase(), numero: document.getElementById('arqIcono2Num').value.trim() },
+  ].filter((i) => i.set && i.numero)
+
+  const fila = { id, nombre, iconos, requiere, activo: document.getElementById('arqActivo').checked, updated_at: new Date().toISOString() }
+  const { error } = await supabase.from('tcg_archetypes').upsert(fila)
+  if (error) {
+    showToast('No se ha podido guardar: ' + error.message, 'error')
+    return
+  }
+  showToast(arquetipoEditando ? 'Arquetipo actualizado.' : 'Arquetipo creado.', 'success')
+  limpiarFormularioArquetipo()
+  await loadArquetipos()
+}
+
+async function borrarArquetipo(id) {
+  const a = arquetiposCache.find((x) => x.id === id)
+  // Borrar no rompe nada del histórico: los arquetipos no se guardan por
+  // torneo, se deducen al pintar. Lo que pasa es que esos mazos vuelven a
+  // salir deducidos, como antes de catalogarlos.
+  if (!confirm(`¿Borrar «${a?.nombre || id}»? Los mazos que lo usaban volverán a salir deducidos.`)) return
+  const { error } = await supabase.from('tcg_archetypes').delete().eq('id', id)
+  if (error) {
+    showToast('No se ha podido borrar: ' + error.message, 'error')
+    return
+  }
+  showToast('Arquetipo borrado.', 'success')
+  if (arquetipoEditando === id) limpiarFormularioArquetipo()
+  await loadArquetipos()
+}
+
+function initArquetiposSection() {
+  document.getElementById('btnGuardarArquetipo')?.addEventListener('click', guardarArquetipo)
+  document.getElementById('btnCancelarArquetipo')?.addEventListener('click', limpiarFormularioArquetipo)
+}
+
 async function loadCards() {
   const [setsRes, cartasRes] = await Promise.all([
     supabase.from('tcg_sets').select('*').order('release_date', { ascending: false, nullsFirst: false }),
@@ -2166,9 +2336,11 @@ async function init() {
     loadCards(),
     loadSchemaCheck(),
     loadForo(),
+    loadArquetipos(),
   ])
 
   initCardsSection()
+  initArquetiposSection()
 
   document.getElementById('analyticsDays')?.addEventListener('change', loadAnalytics)
 }

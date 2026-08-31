@@ -21,7 +21,8 @@ import {
   seedTopCut,
   advanceTopCut,
 } from './motor.js'
-import { pintarDecklistVisual } from './cartas-decklist.js'
+import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } from './cartas-decklist.js'
+import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 
 let ctx = null // { torneo, session, perfil, inscripciones, recargarFicha }
@@ -32,6 +33,12 @@ let resultados = []
 let historial = []
 let reloj = null
 let rondaVista = null // qué ronda se está mirando en «Mesas» (null = la viva)
+// Los arquetipos (tanda 230): userId → {id, nombre, iconos, curado}.
+// Se deducen de las decklists que la base nos deja leer, así que existen
+// exactamente cuando pueden verse las listas — ni antes, ni por otro
+// camino.
+let arquetipos = new Map()
+let catalogoArquetipos = null // el catálogo curado, una vez por página
 
 const $ = (id) => document.getElementById(id)
 // Quién mira. Puede ser NULL: desde la tanda 229 la ficha se abre
@@ -101,7 +108,58 @@ async function cargarCiclo() {
   // pedirlas a la base. Dos consultas menos por refresco.
   ctx.ciclo = { rondas, partidas }
 
+  await cargarArquetipos()
   await conciliarPendientes()
+}
+
+// ── Los arquetipos de la mesa (tanda 230) ──
+//
+// Se deducen de las decklists LEGIBLES. Cuando no pueden verse las
+// listas no se pide nada y el mapa se queda vacío: sin chapas, que es lo
+// correcto — enseñar a qué juega alguien a mitad de un torneo de lista
+// cerrada es regalarle la partida a su rival.
+//
+// Ojo con el coste: esto NO puede pedirse en cada refresco (la ficha se
+// repinta sola cada pocos segundos). Las listas se sellan al empezar la
+// ronda 1 y ya no cambian, así que se piden UNA vez y solo se vuelven a
+// pedir si aparece alguien de quien no sabemos nada.
+async function cargarArquetipos() {
+  if (!puedenVerseLasListas()) {
+    arquetipos = new Map()
+    return
+  }
+  if (catalogoArquetipos === null) {
+    const { data } = await supabase.from('tcg_archetypes').select('*').eq('activo', true)
+    catalogoArquetipos = data || []
+  }
+
+  // Quien es juez u organizador ya tiene las listas cargadas por la
+  // ficha: no se vuelven a pedir (ver el recorte de consultas de la 229).
+  let listas = ctx.decklistsTorneo
+  if (!listas) {
+    const faltan = ctx.inscripciones.some((i) => i.status !== 'waitlisted' && !arquetipos.has(i.user_id))
+    if (!faltan) return
+    const { data } = await supabase
+      .from('tournament_decklists')
+      .select('user_id, parsed_cards')
+      .eq('tournament_id', ctx.torneo.id)
+    listas = data || []
+  }
+
+  const nuevo = new Map()
+  for (const d of listas) {
+    if (!d?.parsed_cards) continue
+    nuevo.set(d.user_id, arquetipoDeMazo(d.parsed_cards, catalogoArquetipos))
+  }
+  arquetipos = nuevo
+}
+
+// La chapa de un jugador, si la hay. El «sin catalogar» solo se le marca
+// a quien puede hacer algo al respecto: al organizador y a los jueces.
+function chapaDe(userId) {
+  const arq = arquetipos.get(userId)
+  if (!arq) return ''
+  return chapaArquetipoHtml(arq, { marcar: Boolean(ctx.perfil?.is_admin || ctx.esJuez) })
 }
 
 // El historial de cruces, bajo demanda. Sin él, pairSwissRound repetiría
@@ -727,7 +785,7 @@ function pintarMesas(ronda) {
       const listoA = m.check_in_a_at ? ' <span class="torneo-mesa-listo" title="Check-in hecho">✓</span>' : ''
       const listoB = m.check_in_b_at ? ' <span class="torneo-mesa-listo" title="Check-in hecho">✓</span>' : ''
       const jugadorB = m.player_b_id
-        ? `<span class="torneo-mesa-jugador">${escapeHtml(nombreDe(m.player_b_id))}</span>${listoB}`
+        ? `<span class="torneo-mesa-jugador">${escapeHtml(nombreDe(m.player_b_id))}</span>${chapaDe(m.player_b_id)}${listoB}`
         : '<span class="torneo-mesa-bye">BYE</span>'
       // El organizador (o un juez) puede resolver a mano cualquier mesa viva.
       const resolver =
@@ -762,7 +820,7 @@ function pintarMesas(ronda) {
       return `
       <tr>
         <td class="torneo-mesa-num" data-etiqueta="Mesa">${m.table_number}</td>
-        <td data-etiqueta="Jugador A"><span class="torneo-mesa-jugador">${escapeHtml(nombreDe(m.player_a_id))}</span>${listoA}</td>
+        <td data-etiqueta="Jugador A"><span class="torneo-mesa-jugador">${escapeHtml(nombreDe(m.player_a_id))}</span>${chapaDe(m.player_a_id)}${listoA}</td>
         <td data-etiqueta="Jugador B">${jugadorB}</td>
         <td data-etiqueta="Resultado">${chapaDeMesa(m)}</td>
         ${puedeResolver ? `<td data-etiqueta="Resolver">${resolver}</td>` : ''}
@@ -862,6 +920,7 @@ function pintarRondas() {
       resolverPartida(partida, sel.value)
     })
   })
+  void rellenarChapasArquetipo(caja)
 }
 
 function pintarMiPartida() {
@@ -906,11 +965,12 @@ function pintarMiPartida() {
   const bo = actual.phase === 'top_cut' ? ctx.torneo.top_cut_bo : ctx.torneo.swiss_bo
   const cabecera = `
     <p class="torneo-partida-contexto">${actual.phase === 'top_cut' ? 'Top cut' : 'Ronda suiza'} ${actual.round_number} · Mesa ${mia.table_number} · BO${bo}</p>
-    <p class="torneo-partida-rival">vs ${escapeHtml(rival?.perfil?.username || 'tu rival')}</p>
+    <p class="torneo-partida-rival">vs ${escapeHtml(rival?.perfil?.username || 'tu rival')}${chapaDe(rivalId)}</p>
     <p class="torneo-partida-rival-tcg">En TCG Live: <strong>${escapeHtml(rival?.tcg_live_username || '—')}</strong></p>`
 
   if (mia.status === 'pending') {
     contenido.innerHTML = `${cabecera}<p class="subtext torneo-partida-nota">La ronda aún no ha empezado.</p>`
+    void rellenarChapasArquetipo(contenido)
     return
   }
 
@@ -953,6 +1013,7 @@ function pintarMiPartida() {
         ${actual.phase === 'swiss' && ctx.torneo.swiss_bo === 3 ? '<button class="torneo-boton-resultado empate" data-reporte="draw">Empate</button>' : ''}
       </div>`
   contenido.innerHTML = `${cabecera}${reloj}${checkin}${botones}`
+  void rellenarChapasArquetipo(contenido)
   if ($('btnCheckin')) $('btnCheckin').addEventListener('click', () => marcarListo(mia))
   contenido.querySelectorAll('[data-reporte]').forEach((b) => {
     b.addEventListener('click', () => reportar(mia, b.dataset.reporte))
@@ -975,8 +1036,24 @@ function jornadasConPuntos() {
     .map((r) => r.round_number)
 }
 
+// Cuándo se ven las listas de los demás — y con ellas los arquetipos,
+// que se deducen de ellas (tanda 230).
+//
+// Dos casos, y la diferencia importa:
+//
+//   · LISTA ABIERTA (casilla del organizador): desde que empieza a
+//     jugarse. Es parte del formato — todo el mundo sabe a qué juega
+//     todo el mundo y se prepara en consecuencia.
+//   · LISTA CERRADA (lo normal): al TERMINAR el torneo, y ni un minuto
+//     antes. Enseñar el mazo del rival a mitad de torneo le regala la
+//     partida; enseñarlo cuando ya no se juega nada es lo que hace que
+//     el histórico y el registro de enfrentamientos sirvan para algo.
+//
+// Esto decide lo que se PINTA. Lo que de verdad impide leer la lista de
+// otro es la política de la base, que dice lo mismo.
 function puedenVerseLasListas() {
-  return ctx.torneo.show_opponent_decklists === true && ['in_progress', 'finished'].includes(ctx.torneo.status)
+  if (ctx.torneo.status === 'finished') return true
+  return ctx.torneo.show_opponent_decklists === true && ctx.torneo.status === 'in_progress'
 }
 
 async function abrirListaRival(userId) {
@@ -1071,7 +1148,7 @@ function pintarClasificacion() {
       return `
       <tr>
         <td>${i + 1}</td>
-        <td>${escapeHtml(nombreDe(e.playerId))}${retirado}${dentro}</td>
+        <td>${escapeHtml(nombreDe(e.playerId))}${chapaDe(e.playerId)}${retirado}${dentro}</td>
         ${verTcgLive ? `<td class="subtext">${escapeHtml(insc?.tcg_live_username || '—')}</td>` : ''}
         <td><strong>${e.matchPoints}</strong></td>
         <td>${e.wins}-${e.losses}-${e.draws}${e.byesReceived ? ` (+${e.byesReceived} bye)` : ''}</td>
@@ -1151,6 +1228,9 @@ function pintarClasificacion() {
   // El refresco de cada 10 s repinta la caja entera: si había una lista
   // de rival abierta, se vuelve a poner (la caché evita repedirla).
   if (listaRivalAbierta && verListas) void abrirListaRival(listaRivalAbierta)
+  // Las cartas de las chapas llegan después: el HTML se construye de una
+  // vez y resolverlas es ir a la base.
+  void rellenarChapasArquetipo(caja)
 }
 
 // El bracket del cut como en su clasificación: una columna por ronda
