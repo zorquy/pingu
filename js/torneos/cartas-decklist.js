@@ -21,6 +21,7 @@ import { supabase } from '../supabase.js'
 import { searchCards, cardImageUrl, normalizeSearch } from '../tcgdex.js'
 import { escapeHtml } from '../app.js'
 import { nombreDeSetLive, MARCAS_LEGALES_DEFECTO } from './comun.js'
+import { spriteDeCarta } from './sprites-pokemon.js'
 
 const cache = new Map()
 const setsPorCodigo = new Map() // código Live → set_id del espejo (o null)
@@ -102,12 +103,24 @@ async function resolverCarta(linea) {
 // espejo no tiene. Un icono que no se resuelve no se pinta — antes eso
 // que un hueco roto.
 //
-// Se usan MINIATURAS DE LA CARTA y no sprites de Pokémon. Los sprites
-// quedan mejor (es lo que enseña Limitless), pero habría que traerlos de
-// un sitio de fuera, y además la mitad de los arquetipos se nombran por
-// un objeto («Martillos») que no tiene sprite. La miniatura de la carta
-// la tenemos ya, sirve igual para un Pokémon que para un Trainer, y no
-// añade ninguna dependencia.
+// MINISPRITE del Pokémon cuando lo hay, y miniatura de la carta cuando
+// no (tanda 231, pedido por PINGU: «como Limitless»). Los dos casos hacen
+// falta — un arquetipo se nombra por un Pokémon casi siempre, pero
+// también por un objeto («Martillos»), y un objeto no tiene sprite.
+//
+// Lo mejor de resolver el sprite por el NOMBRE: los iconos deducidos ya
+// traen el nombre de la carta, así que no cuestan NI UNA consulta. Solo
+// los del catálogo (que se guardan como set + número) hay que buscarlos
+// en el espejo, y solo para saber cómo se llama la carta.
+// Los sprites que YA se ha visto que no cargan. Sin esto, la ficha —que
+// se repinta sola cada pocos segundos— volvería a meter la misma imagen
+// rota una y otra vez, y el nombre del mazo aparecería y desaparecería
+// en bucle. Con la lista, el primer fallo es el último: a partir de ahí
+// se usa directamente la miniatura de la carta, o el nombre.
+//
+// Es por carga de página a propósito: si la CDN vuelve, basta recargar.
+const spritesRotos = new Set()
+
 export async function resolverIconosDeArquetipo(iconos) {
   const lineas = (iconos || []).slice(0, 2).map((i) => ({
     name: i.nombre || '',
@@ -115,10 +128,27 @@ export async function resolverIconosDeArquetipo(iconos) {
     // El catálogo dice `numero` y una línea de decklist dice `number`.
     number: i.numero ?? i.number,
   }))
-  const cartas = await Promise.all(lineas.map((l) => resolverCarta(l).catch(() => null)))
-  return cartas
-    .map((c, i) => (c ? { url: cardImageUrl(c.image_path, 'low'), nombre: c.name || lineas[i].name } : null))
-    .filter((x) => x && x.url)
+
+  const resueltos = await Promise.all(
+    lineas.map(async (l) => {
+      // 1. El sprite con lo que ya tenemos: cero consultas.
+      const directo = l.name ? spriteDeCarta(l.name) : null
+      if (directo && !spritesRotos.has(directo)) return { url: directo, nombre: l.name, sprite: true }
+
+      // 2. Sin sprite (o con uno que ya se sabe roto): al espejo de
+      //    cartas, que es de donde sale la miniatura de respaldo.
+      const carta = await resolverCarta(l).catch(() => null)
+      if (!carta) return null
+      const porNombre = spriteDeCarta(carta.name)
+      if (porNombre && !spritesRotos.has(porNombre)) return { url: porNombre, nombre: carta.name, sprite: true }
+
+      // 3. No es un Pokémon: la miniatura de la carta, que para un
+      //    objeto es justo lo que hay que enseñar.
+      const url = cardImageUrl(carta.image_path, 'low')
+      return url ? { url, nombre: carta.name || l.name, sprite: false } : null
+    })
+  )
+  return resueltos.filter(Boolean)
 }
 
 // La chapa se pinta en DOS TIEMPOS, como la rejilla de la decklist: la
@@ -154,10 +184,28 @@ export async function rellenarChapasArquetipo(raiz) {
       chapa.insertAdjacentHTML(
         'afterbegin',
         resueltos
-          .map((c) => `<img class="torneo-arquetipo-icono" src="${escapeHtml(c.url)}" alt="" loading="lazy" />`)
+          .map(
+            (c) =>
+              `<img class="torneo-arquetipo-icono ${c.sprite ? 'es-sprite' : 'es-carta'}" src="${escapeHtml(c.url)}" alt="" loading="lazy" />`
+          )
           .join('')
       )
       chapa.classList.add('torneo-arquetipo-con-iconos')
+
+      // Red debajo: las imágenes vienen de una CDN de fuera y una CDN de
+      // fuera se puede caer, cambiar de rutas o estar bloqueada por la
+      // red de quien mira. Si una no carga, se quita; y si no queda
+      // ninguna, vuelve el NOMBRE del arquetipo — que es lo que había
+      // antes de los iconos y dice lo mismo. Nunca un hueco roto.
+      for (const img of chapa.querySelectorAll('.torneo-arquetipo-icono')) {
+        img.addEventListener('error', () => {
+          if (img.classList.contains('es-sprite')) spritesRotos.add(img.src)
+          img.remove()
+          if (!chapa.querySelector('.torneo-arquetipo-icono')) {
+            chapa.classList.remove('torneo-arquetipo-con-iconos')
+          }
+        })
+      }
     })
   )
 }

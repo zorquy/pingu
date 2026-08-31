@@ -12,6 +12,35 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-31 — PINGU-Claude (tanda 231 — minisprites, como Limitless)
+**Hecho**: PINGU pidió los iconos «como Limitless y trainingcourt», con
+minisprites de Pokémon en vez de las miniaturas de carta de la 230. El
+problema era que NO teníamos el número de Pokédex: `tcg_cards.dex_ids`
+existe pero la importación nunca la rellena. Se resuelve con una tabla
+generada (`js/torneos/sprites-pokemon.js`): los 1025 nombres en orden de
+Pokédex, 13 KB y solo la bajan las páginas de torneos. Se genera con el
+paquete `pokemon` de npm usado SOLO para generar, sin quedarse como
+dependencia (guion en SCHEMA.md). Del nombre de la CARTA a la especie no
+va por lista de sufijos —que se queda corta cada temporada y no cubre
+«Iono's Bellibolt», con el entrenador delante— sino probando todos los
+trozos seguidos del más largo al más corto. Lo que no sea un Pokémon
+(un objeto, «Martillos») se queda con la miniatura de la carta, que es
+lo que hay que enseñar. Sprites desde jsDelivr, mismo trato que las
+imágenes de cartas desde TCGdex.
+**Ficheros**: js/torneos/sprites-pokemon.js (NUEVO, generado),
+js/torneos/cartas-decklist.js, css/torneos.css, SCHEMA.md.
+**En curso / pendiente**: NADA que ejecutar. ⚠️ Los sprites NO están
+comprobados contra la CDN de verdad: este contenedor no tiene salida a
+internet (la política solo deja npm), así que las URL están validadas de
+forma y no de que respondan. Si al abrir una clasificación no salen los
+iconos pero sí los nombres de los mazos, es eso: el respaldo funcionando.
+**Para quien toque esto**: dos trampas que costaron. (1) `innerText`
+devuelve el texto aunque esté en `display:none`, así que NO vale para
+comprobar si algo se ve — se mide con `getComputedStyle`. (2) Una imagen
+`loading="lazy"` dentro de un panel oculto no se pide y por tanto
+tampoco falla: la prueba tiene que abrir la pestaña de la clasificación
+antes de medir sus iconos.
+
 ## 2026-08-31 — PINGU-Claude (tanda 230 — a qué juega cada uno)
 **Hecho**: lo pidió PINGU tras enseñarme Limitless (dos iconos al lado
 de cada jugador que dicen su mazo, y un enlace a su lista) y

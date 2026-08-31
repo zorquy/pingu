@@ -11262,3 +11262,110 @@ lo que no entiende — filtrar de menos en silencio convertiría un fallo
 del cliente en una prueba que pasa) y las tablas `tcg_archetypes` y
 `match_log`. Ojo: una tabla hay que declararla en `T` ANTES de
 sembrarla, o `sembrar()` revienta el doble entero al cargar.
+
+## Tanda 231 — los iconos pasan a minisprites (agosto 2026)
+
+PINGU: «prefiero que lo hagas como Limitless y trainingcourt, que cogen
+los minisprites de los Pokémon». La 230 los pintaba con miniaturas de la
+carta; ahora sale el sprite del Pokémon, y la miniatura se queda solo
+para lo que no es un Pokémon (un objeto, «Martillos»).
+
+### El problema: no teníamos el número de Pokédex
+
+`tcg_cards` tiene columna `dex_ids`, pero **siempre está vacía**:
+`cardToRow()` solo escribe id, set, número, nombre e imagen. Y sin el
+número no hay sprite, porque todas las fuentes de sprites van por número.
+
+Se resuelve con una tabla generada, `js/torneos/sprites-pokemon.js`: los
+1025 nombres en orden de Pokédex, **con el número como posición**. Ocupa
+13 KB (unos 5 comprimidos) y solo la bajan las páginas de torneos, no la
+portada.
+
+Se genera con el paquete de npm `pokemon`, usado SOLO para eso y sin
+quedarse como dependencia — la norma de la casa es cero dependencias de
+npm en el cliente, y esto es un fichero de datos. El guion:
+
+```
+mkdir /tmp/gen && cd /tmp/gen && npm install pokemon --no-save
+node -e "
+const p = require('pokemon')
+const squash = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g,'')
+  .toLowerCase().replace(/[^a-z0-9]/g,'')
+const nombres = p.all('en')
+// COMPROBAR ANTES DE FIARSE: la posición tiene que SER el número.
+let mal = 0; nombres.forEach((n,i) => { if (p.getId(n) !== i+1) mal++ })
+if (mal) throw new Error('la tabla saldría desplazada')
+console.log(JSON.stringify(nombres.map(squash)))
+"
+```
+
+El comprobante importa: si la posición no fuera el número, **todos** los
+sprites serían el Pokémon de al lado, y eso no canta a simple vista.
+
+### De «Dragapult ex» a su especie
+
+Una carta no se llama como la especie. Lleva sufijos (`ex`, `V`,
+`VMAX`), formas regionales (`Alolan Ninetales`) y, desde la novena, el
+entrenador DELANTE (`Iono's Bellibolt`) — que es justo lo que rompe una
+lista de sufijos.
+
+En vez de esa lista, se prueban todos los trozos seguidos del nombre,
+del más largo al más corto, y gana el primero que sea una especie.
+`Iono's Bellibolt` → [ionos bellibolt] → [ionos] → [bellibolt] ✓.
+
+Lo que no case con ninguna especie no tiene sprite y se queda con la
+miniatura de la carta. Es lo correcto: un objeto no tiene sprite, y para
+un mazo de «Martillos» lo que hay que enseñar es la carta.
+
+**Las formas regionales caen en su especie base**: `Alolan Ninetales` da
+el Ninetales de Kanto. Especie correcta, forma equivocada. Los sprites
+de las formas viven en números >10000 que esta tabla no trae, y para
+reconocer un mazo de un vistazo sirve igual.
+
+### De dónde salen los sprites
+
+`cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/<n>.png`.
+jsDelivr es una CDN pública hecha para esto (a diferencia de
+raw.githubusercontent.com, que pide que no se enlace desde una web), y
+es el mismo trato que ya reciben las imágenes de las cartas, enlazadas a
+la CDN de TCGdex en vez de copiarlas.
+
+**No se usan los sprites en píxel de la quinta generación**, que son más
+bonitos: solo llegan hasta el 649, y media meta de hoy es de la octava y
+la novena. Un sprite que falta justo para los Pokémon que interesan no
+sirve de nada.
+
+⚠️ **Sin verificar contra la CDN de verdad**: el contenedor donde se
+programó esto no tiene salida a internet (la política de egreso solo
+deja npm). Las URL están comprobadas de forma, no de que respondan 200.
+
+### Y por eso hay red debajo
+
+Si una imagen no carga, se quita; si no queda ninguna, vuelve el NOMBRE
+del arquetipo, que es lo que había antes de los iconos y dice lo mismo.
+
+Los sprites que ya han fallado se APUNTAN (`spritesRotos`). Sin eso, la
+ficha —que se repinta sola cada pocos segundos— volvería a meter la
+misma imagen rota una y otra vez y el nombre del mazo **parpadearía en
+bucle**. Se descubrió porque la prueba del respaldo fallaba.
+
+### Dos cosas que la prueba enseñó, y que valen para el futuro
+
+- **`innerText` NO sirve para saber si algo se ve**: devuelve el texto
+  aunque el elemento esté en `display: none`. La primera versión de la
+  comprobación pasaba se viera o no se viera el nombre — o sea, no
+  probaba nada. Se mide con `getComputedStyle(...).display`.
+- **Una imagen `loading="lazy"` dentro de un panel oculto no se pide, y
+  por tanto tampoco falla.** La clasificación vive en una pestaña, así
+  que la prueba tiene que ABRIRLA antes de medir nada de sus iconos.
+- Y las pruebas ya no dependen de internet: el sprite se sirve desde la
+  propia prueba (`page.route` + un PNG de 1×1). La del respaldo hace lo
+  contrario y los corta.
+
+### Comprobado
+
+`test-sprites.mjs` (32, sin pantalla: la tabla alineada por los
+extremos y por en medio, los sufijos, el entrenador delante, la
+puntuación rara y las formas regionales) y dos bloques nuevos en
+`test-torneos-23.mjs`. Rigor de 6 roturas, todas detectadas. Suite
+entera (17) en verde. La portada sigue en 98 KB de 170.

@@ -1513,10 +1513,22 @@
      no reconozca las cartas. */
   display: none;
 }
-.torneo-arquetipo-icono {
-  /* Proporción de carta (5:7). A este tamaño no se lee el texto de la
-     carta, pero el color y el dibujo se reconocen de un vistazo, que es
-     justo para lo que están. */
+/* Dos formas, porque son dos cosas distintas (tanda 231):
+
+   · El MINISPRITE del Pokémon: cuadrado, sin fondo y sin bordes, como
+     en Limitless. Es lo que sale casi siempre.
+   · La MINIATURA DE LA CARTA: solo para lo que no es un Pokémon (un
+     objeto, «Martillos»). Va con proporción de carta y su recuadro,
+     para que se lea como lo que es y no como un sprite raro. */
+.torneo-arquetipo-icono.es-sprite {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  /* Los sprites vienen con mucho aire alrededor: este margen negativo
+     los junta sin que parezcan separados por un hueco. */
+  margin: -4px -3px;
+}
+.torneo-arquetipo-icono.es-carta {
   width: 26px;
   height: 36px;
   object-fit: cover;
@@ -1537,6 +1549,7 @@
 @media (max-width: 560px) {
   /* En móvil las tablas ya van justas: los iconos encogen antes que
      obligar a arrastrar de lado. */
-  .torneo-arquetipo-icono { width: 20px; height: 28px; }
+  .torneo-arquetipo-icono.es-sprite { width: 26px; height: 26px; }
+  .torneo-arquetipo-icono.es-carta { width: 20px; height: 28px; }
   .torneo-arquetipo-nombre { max-width: 9ch; }
 }
