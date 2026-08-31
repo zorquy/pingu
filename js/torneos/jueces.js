@@ -24,7 +24,9 @@ let disputadas = []
 const perfiles = {} // id → username, para nombres que no están inscritos
 
 const $ = (id) => document.getElementById(id)
-const yo = () => ctx.session.user.id
+// Puede ser null: desde la tanda 228 la ficha se abre también sin
+// cuenta (modo escaparate), y entonces no hay «yo».
+const yo = () => ctx.session?.user?.id ?? null
 
 function nombreDe(userId) {
   const inscrito = ctx.inscripciones.find((i) => i.user_id === userId)
@@ -41,8 +43,11 @@ async function resolverNombres(ids) {
 // ── Carga ──
 
 async function cargar() {
-  const { data: apps } = await supabase.from('judge_applications').select('*').eq('tournament_id', ctx.torneo.id)
-  solicitudes = apps || []
+  // Las solicitudes de juez las trae ya la ficha: las necesita ANTES que
+  // este módulo para saber si quien mira es juez aprobado (y con eso
+  // decide, entre otras cosas, si puede ver las decklists ajenas).
+  // Volver a pedirlas aquí era pedir dos veces lo mismo en cada refresco.
+  solicitudes = ctx.solicitudes || []
   miSolicitud = solicitudes.find((s) => s.user_id === yo()) || null
 
   const { data: calls } = await supabase
@@ -52,34 +57,49 @@ async function cargar() {
     .order('created_at', { ascending: true })
   llamadas = calls || []
 
-  const { data: rondas } = await supabase.from('rounds').select('id, status').eq('tournament_id', ctx.torneo.id)
-  const idsRondas = (rondas || []).map((r) => r.id)
-  let mesas = []
-  if (idsRondas.length) {
-    const { data } = await supabase.from('tournament_matches').select('*').in('round_id', idsRondas)
-    mesas = data || []
+  // Las rondas y las mesas las acaba de cargar el módulo del ciclo
+  // (montarCiclo corre antes que montarJueces y las deja en ctx.ciclo).
+  // Si por lo que sea no están, se piden: este módulo tiene que poder
+  // funcionar solo.
+  let rondas = ctx.ciclo?.rondas
+  let mesas = ctx.ciclo?.partidas
+  if (!rondas || !mesas) {
+    const { data: filas } = await supabase.from('rounds').select('id, status').eq('tournament_id', ctx.torneo.id)
+    rondas = filas || []
+    const idsRondas = rondas.map((r) => r.id)
+    mesas = []
+    if (idsRondas.length) {
+      const { data } = await supabase.from('tournament_matches').select('*').in('round_id', idsRondas)
+      mesas = data || []
+    }
   }
   mesasPorId = Object.fromEntries(mesas.map((m) => [m.id, m]))
   disputadas = mesas.filter((m) => m.status === 'disputed')
 
-  const rondaViva = (rondas || []).find((r) => r.status !== 'finished') || null
-  miPartida = rondaViva
-    ? mesas.find((m) => {
-        const r = m.round_id === rondaViva.id
-        return r && (m.player_a_id === yo() || m.player_b_id === yo())
-      }) || null
+  const rondaViva = rondas.find((r) => r.status !== 'finished') || null
+  // El `mi &&` importa: sin sesión yo() es null, y la mesa del bye tiene
+  // player_b_id a null — sin él, un visitante «tendría» esa partida.
+  const mi = yo()
+  miPartida = mi && rondaViva
+    ? mesas.find((m) => m.round_id === rondaViva.id && (m.player_a_id === mi || m.player_b_id === mi)) || null
     : null
 
   // Las decklists completas SOLO para juez u organizador (SPEC §9: los
   // jugadores nunca ven las ajenas — desde aquí ni se piden).
   decklistsTorneo = []
-  if (ctx.perfil.is_admin || ctx.esJuez) {
-    const { data } = await supabase
-      .from('tournament_decklists')
-      .select('*')
-      .eq('tournament_id', ctx.torneo.id)
-      .order('submitted_at', { ascending: true })
-    decklistsTorneo = data || []
+  if (ctx.perfil?.is_admin || ctx.esJuez) {
+    // Igual que arriba: quien es juez u organizador ya se las ha traído
+    // enteras en la ficha, y son la MISMA consulta.
+    if (ctx.decklistsTorneo) {
+      decklistsTorneo = ctx.decklistsTorneo
+    } else {
+      const { data } = await supabase
+        .from('tournament_decklists')
+        .select('*')
+        .eq('tournament_id', ctx.torneo.id)
+        .order('submitted_at', { ascending: true })
+      decklistsTorneo = data || []
+    }
   }
 
   await resolverNombres([
@@ -93,7 +113,7 @@ async function cargar() {
 // texto crudo tal cual lo pegó el jugador.
 function pintarDecklistsJuez() {
   const caja = $('torneoDecklistsJuezCaja')
-  const soyJuez = ctx.perfil.is_admin || ctx.esJuez
+  const soyJuez = ctx.perfil?.is_admin || ctx.esJuez
   const activos = ctx.inscripciones.filter((i) => i.status === 'active')
   if (!soyJuez || (!decklistsTorneo.length && !activos.length)) {
     caja.classList.add('hidden')
@@ -304,7 +324,7 @@ async function llamarJuez() {
 
 function pintarCola() {
   const caja = $('torneoColaCaja')
-  const soyJuez = ctx.perfil.is_admin || ctx.esJuez
+  const soyJuez = ctx.perfil?.is_admin || ctx.esJuez
   const vivas = llamadas.filter((c) => c.status !== 'resolved')
   if (!soyJuez || (!vivas.length && !disputadas.length && !llamadas.length)) {
     caja.classList.add('hidden')
@@ -404,6 +424,12 @@ async function resolverLlamada(llamadaId) {
 
 function pintarSolicitudes() {
   const caja = $('torneoJuecesCaja')
+  // El escaparate (tanda 228) no ve nada de jueces: quien mira sin
+  // cuenta no puede solicitar serlo ni le incumbe quién lo es.
+  if (!yo()) {
+    caja.classList.add('hidden')
+    return
+  }
   const soyOrganizador = ctx.torneo.admin_id === yo()
   const pendientes = solicitudes.filter((s) => s.status === 'pending')
   const aprobados = solicitudes.filter((s) => s.status === 'approved')
@@ -422,7 +448,7 @@ function pintarSolicitudes() {
   }
 
   let gestion = ''
-  if (ctx.perfil.is_admin) {
+  if (ctx.perfil?.is_admin) {
     const filas = pendientes
       .map(
         (s) => `
@@ -465,7 +491,11 @@ async function solicitarJuez() {
     return
   }
   showToast('Solicitud enviada al organizador.', 'success')
-  await recargarJueces()
+  // Ficha ENTERA y no solo esta caja: desde la tanda 228 las solicitudes
+  // las carga torneo.js (para no pedirlas dos veces), así que un
+  // recargarJueces() a secas repintaría la lista de antes. Y aprobar a
+  // un juez cambia además lo que esa persona puede ver.
+  await ctx.recargarFicha()
 }
 
 async function decidirJuez(solicitudId, decision) {
@@ -474,7 +504,7 @@ async function decidirJuez(solicitudId, decision) {
     .update({ status: decision, decided_at: new Date().toISOString(), decided_by: yo() })
     .eq('id', solicitudId)
   showToast(decision === 'approved' ? 'Juez aprobado.' : 'Solicitud rechazada.', 'success')
-  await recargarJueces()
+  await ctx.recargarFicha()
 }
 
 // ── Arranque ──

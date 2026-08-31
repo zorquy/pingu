@@ -60,6 +60,20 @@ function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
+// A dónde se vuelve tras entrar. Sirve para los enlaces compartidos
+// (tanda 228): quien abre un torneo sin cuenta y entra, vuelve AL
+// TORNEO y no a la portada.
+//
+// Solo se aceptan rutas de esta misma web: tiene que empezar por una
+// barra y NO por dos (ni por barra-contrabarra), que es como se cuela un
+// «//evil.com» que el navegador entiende como otro dominio. Cualquier
+// otra cosa se ignora y se va a la portada de siempre.
+export function destinoTrasEntrar(bruto) {
+  const v = String(bruto ?? '')
+  if (!v.startsWith('/') || v.startsWith('//') || v.startsWith('/\\')) return 'index.html'
+  return v
+}
+
 async function afterAuth(userId) {
   const { data: profile } = await supabase
     .from('user_profiles')
@@ -67,7 +81,13 @@ async function afterAuth(userId) {
     .eq('id', userId)
     .single()
 
-  window.location.href = profile?.onboarding_completed === false ? 'onboarding.html' : 'index.html'
+  // El onboarding manda sobre la vuelta: quien aún no lo ha hecho pasa
+  // por ahí igualmente.
+  if (profile?.onboarding_completed === false) {
+    window.location.href = 'onboarding.html'
+    return
+  }
+  window.location.href = destinoTrasEntrar(new URLSearchParams(window.location.search).get('volver'))
 }
 
 async function signInWithGoogle(e) {

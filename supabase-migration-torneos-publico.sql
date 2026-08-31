@@ -17,6 +17,12 @@
 --      lo propio se escribe, y las decklists ajenas solo las ven
 --      organizador y jueces.
 --
+--   3. (tanda 228) Lo que ve alguien SIN CUENTA al abrir un enlace
+--      compartido: el cartel del torneo, quién está inscrito, las mesas
+--      en juego y la clasificación. NO ve decklists, ni chats, ni
+--      jueces, ni el usuario de TCG Live de nadie — esto último por
+--      permisos de columna, no por la interfaz.
+--
 -- Es re-ejecutable (drop if exists + create or replace).
 -- ═══════════════════════════════════════════════════════════════════
 
@@ -167,8 +173,12 @@ drop policy if exists torneos_leer on public.tournaments;
 -- que ver hasta su propio BORRADOR (si no, no puede ni abrirlo ni
 -- borrarlo — para borrar con un `where`, Postgres pide poder leer la
 -- fila).
+-- Sin `auth.uid() is not null` a propósito (tanda 228): un enlace
+-- compartido tiene que enseñar el torneo a quien todavía no tiene
+-- cuenta, que es justo la persona a la que queremos convencer. El
+-- BORRADOR sigue siendo privado de su organizador.
 create policy torneos_leer on public.tournaments for select
-  using (auth.uid() is not null and (status <> 'draft' or admin_id = auth.uid() or torneos_soy_admin()));
+  using (status <> 'draft' or admin_id = auth.uid() or torneos_soy_admin());
 drop policy if exists torneos_escribir on public.tournaments;
 create policy torneos_escribir on public.tournaments for all
   using (torneos_soy_admin()) with check (torneos_soy_admin());
@@ -179,24 +189,61 @@ drop policy if exists torneos_borrar on public.tournaments;
 create policy torneos_borrar on public.tournaments for delete
   using (admin_id = auth.uid() or torneos_soy_admin());
 
+-- Lo que forma el DIRECTO del torneo (rondas, mesas y resultados) se
+-- lee sin cuenta: es lo que hace que un enlace compartido valga algo.
+-- pairing_history NO: son los cruces ya jugados, solo los usa el pareo
+-- suizo del organizador y no pinta nada en un escaparate.
 do $$
 declare t text;
 begin
-  foreach t in array array['rounds', 'tournament_matches', 'match_results', 'pairing_history'] loop
+  foreach t in array array['rounds', 'tournament_matches', 'match_results'] loop
     execute format('drop policy if exists torneos_leer on public.%I', t);
-    execute format('create policy torneos_leer on public.%I for select using (auth.uid() is not null)', t);
+    execute format('create policy torneos_leer on public.%I for select using (true)', t);
     execute format('drop policy if exists torneos_escribir on public.%I', t);
     execute format(
       'create policy torneos_escribir on public.%I for all using (torneos_soy_admin()) with check (torneos_soy_admin())', t);
   end loop;
 end $$;
 
+drop policy if exists torneos_leer on public.pairing_history;
+create policy torneos_leer on public.pairing_history for select using (auth.uid() is not null);
+drop policy if exists torneos_escribir on public.pairing_history;
+create policy torneos_escribir on public.pairing_history for all
+  using (torneos_soy_admin()) with check (torneos_soy_admin());
+
 -- Inscripciones: se leen (la lista de inscritos es pública dentro del
 -- torneo); se CREAN solo por la RPC (security definer, sin política de
 -- insert directa); la baja la firma el propio jugador o el admin.
 drop policy if exists inscripciones_leer on public.tournament_registrations;
 create policy inscripciones_leer on public.tournament_registrations for select
-  using (auth.uid() is not null);
+  using (true);
+
+-- EL USUARIO DE TCG LIVE NO SALE A INTERNET.
+--
+-- La RLS es por FILAS: si un anónimo puede leer la fila, la lee entera,
+-- con el nombre con el que esa persona juega dentro. Esconderlo en el
+-- JavaScript no esconde nada — la respuesta de la API lo trae igual.
+-- Lo que sí lo impide es un permiso por COLUMNA, que es esto:
+-- `anon` pierde el select sobre la tabla y lo recupera solo sobre las
+-- columnas que son cartel público.
+--
+-- OJO AL DESINCRONIZARLO: un `select *` de un anónimo sobre una tabla
+-- con una columna prohibida no devuelve esa columna vacía, FALLA ENTERO.
+-- Por eso js/torneos/torneo.js pide una lista explícita de columnas
+-- cuando no hay sesión (COLUMNAS_PUBLICAS_INSCRIPCION). Si aquí se
+-- añade o se quita una columna, allí también.
+-- El `if exists` es por si esto se ejecuta en una base que no sea la de
+-- Supabase (una copia local, una prueba): sin el rol `anon` la orden
+-- reventaría y se llevaría por delante la transacción entera.
+do $$
+begin
+  if exists (select 1 from pg_roles where rolname = 'anon') then
+    revoke select on public.tournament_registrations from anon;
+    grant select (
+      id, tournament_id, user_id, status, registered_at, dropped_at, dropped_after_round_id
+    ) on public.tournament_registrations to anon;
+  end if;
+end $$;
 drop policy if exists inscripciones_baja on public.tournament_registrations;
 create policy inscripciones_baja on public.tournament_registrations for update
   using (user_id = auth.uid() or torneos_soy_admin())

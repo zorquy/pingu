@@ -8,8 +8,28 @@
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
-  <!-- En pruebas y solo para admins: fuera de los buscadores a propósito. -->
+  <!-- Fuera de los buscadores a propósito, y así se queda al abrir la
+       sección: un torneo enseña quién juega, y eso no tiene por qué
+       quedarse en Google para siempre. Compartir el enlace sí funciona:
+       de eso se encarga la vista previa de meta-social.js. -->
   <meta name="robots" content="noindex" />
+  <meta name="description" content="Torneos de Pokémon TCG en PokeDoc: inscripción gratuita, rondas suizas y clasificación en directo." />
+  <!-- meta-social:inicio -->
+  <link rel="canonical" href="https://pokedoc.es/torneo" />
+  <meta property="og:url" content="https://pokedoc.es/torneo" />
+  <meta property="og:site_name" content="PokeDoc" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:title" content="Torneo — PokeDoc" />
+  <meta property="og:description" content="Torneos de Pokémon TCG en PokeDoc: inscripción gratuita, rondas suizas y clasificación en directo." />
+  <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Torneo — PokeDoc" />
+  <meta name="twitter:description" content="Torneos de Pokémon TCG en PokeDoc: inscripción gratuita, rondas suizas y clasificación en directo." />
+  <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <!-- meta-social:fin -->
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
@@ -44,6 +64,21 @@
       <a href="/torneos.html" class="nav-jugar hidden">Jugar</a>
     </div>
   </nav>
+
+  <!-- Cuando no hay torneo que enseñar. Se llega aquí por tres caminos
+       que a propósito NO se distinguen: el enlace está mal, el torneo se
+       ha borrado, o la sección todavía no está abierta. Decir «existe
+       pero no puedes verlo» ya es contar algo de quien lo organiza. -->
+  <main class="page-content container hidden" id="torneoNoDisponible">
+    <div class="pagina-404">
+      <div>
+        <h1>Este torneo no está disponible</h1>
+        <p>Puede que el enlace esté mal, que el torneo se haya borrado o que aún no sea público.</p>
+        <p id="torneoEntrar" class="hidden">Si tienes cuenta en PokeDoc, <a href="/auth.html">entra</a> y vuelve a abrir el enlace.</p>
+        <a class="btn-secondary" href="/index.html">Ir a la portada</a>
+      </div>
+    </div>
+  </main>
 
   <main class="page-content container" id="torneoContenido" style="display:none;">
     <a class="torneo-volver" href="/torneos.html">← Todos los torneos</a>

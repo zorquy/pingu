@@ -61,8 +61,9 @@ el contenedor de una sesión — el 2026-08-28 uno se reinició y se llevó
 por delante el doble y unas 87 pruebas, sin copia en ninguna parte. De
 ahí la rama: fuera de lo que se despliega, pero en algún sitio.
 
-**Estado a 2026-08-28**: cubiertos torneos (5 pruebas) y el foro
-—índice, lista de temas y vista de un tema— (2). Guías, cursos, perfiles
+**Estado a 2026-08-31**: cubiertos torneos (6 pruebas, más la de la
+vista previa al compartir y la de permisos contra PostgreSQL de verdad)
+y el foro —índice, lista de temas y vista de un tema— (2). Guías, cursos, perfiles
 y portada están SIN cobertura hasta que se rehagan: un cambio ahí sale a
 producción sin red debajo. Del foro faltan las piezas de alrededor
 (encuestas, no leídos, suscripciones, búsqueda, menciones, moderación).
@@ -73,11 +74,21 @@ Porte de TrainerArena (github.com/ibaimanso/TrainerArena, de Ibai
 Manso) a este stack. Mientras esté en pruebas, TODO lo de torneos es
 visible SOLO para admins (`user_profiles.is_admin`): el enlace «Jugar»
 de la navbar va oculto y torneos.html expulsa a quien no sea admin.
+
+**Ojo con torneo.html (la FICHA), que desde la tanda 228 es distinto**:
+ya NO comprueba `is_admin` en el JavaScript, porque un enlace compartido
+tiene que poder enseñar el torneo el día que la sección se abra. Quien
+decide qué se ve es la POLÍTICA de la base: hoy, con la sección cerrada,
+la consulta vuelve vacía para quien no sea admin y sale la pantalla de
+«este torneo no está disponible». No vuelvas a meter ahí un `if` de
+JavaScript: no protegería nada y rompería el escaparate.
+
 Decisiones ya tomadas: sin pagos (fuera del porte), el chat de partida
 va A LA VISTA en «Tu partida» (PINGU lo quiso primero en desplegable y
 lo cambió el 2026-08-26 al probarlo; los chats de juez sí van plegados),
-la cuenta de PokeDoc es la cuenta de torneos, tiempo real por sondeo
-(la ficha entera se refresca sola cada 10 s desde torneo.js) y cierres
+la cuenta de PokeDoc es la cuenta de torneos, tiempo real por websocket con
+el sondeo de respaldo detrás (la ficha entera se refresca sola desde
+torneo.js: cada 10 s, o cada minuto si el vivo está conectado) y cierres
 automáticos con función programada por minuto. El motor puro (pareos suizos,
 desempates, top cut, decklists) está en `js/torneos/motor.js`,
 traducido 1:1 de `libs/engine` de TrainerArena — si tocas su lógica,

@@ -34,6 +34,10 @@ let reloj = null
 let rondaVista = null // qué ronda se está mirando en «Mesas» (null = la viva)
 
 const $ = (id) => document.getElementById(id)
+// Quién mira. Puede ser NULL: desde la tanda 228 la ficha se abre
+// también sin cuenta (modo escaparate). Sin identidad no hay «tu
+// partida» ni reportes — solo mesas, rondas y clasificación.
+const miId = () => ctx.session?.user?.id ?? null
 const TERMINALES = new Set(['finished', 'bye', 'forfeit_a', 'forfeit_b', 'forfeit_both'])
 
 const ahora = () => new Date().toISOString()
@@ -85,13 +89,30 @@ async function cargarCiclo() {
     reportes = reps || []
     resultados = ress || []
   }
-  const { data: hist } = await supabase
+  // OJO: el historial de cruces (pairing_history) NO se pide aquí.
+  // Solo lo usa el pareo suizo, que es un botón del organizador, y
+  // pedirlo en cada refresco era una consulta cada diez segundos para
+  // todo el que mirase la ficha. Se carga en cargarHistorial(), justo
+  // antes de parear.
+
+  // Y lo que se acaba de cargar se deja a mano del módulo de jueces,
+  // que necesita las mismas rondas y las mismas mesas: montarJueces()
+  // corre después de este, así que las lee de aquí en vez de volver a
+  // pedirlas a la base. Dos consultas menos por refresco.
+  ctx.ciclo = { rondas, partidas }
+
+  await conciliarPendientes()
+}
+
+// El historial de cruces, bajo demanda. Sin él, pairSwissRound repetiría
+// emparejamientos ya jugados: no es opcional, es que no hace falta hasta
+// el momento de parear.
+async function cargarHistorial() {
+  const { data } = await supabase
     .from('pairing_history')
     .select('player_low_id, player_high_id')
     .eq('tournament_id', ctx.torneo.id)
-  historial = hist || []
-
-  await conciliarPendientes()
+  historial = data || []
 }
 
 // El snapshot inmutable que pide el motor (SPEC §5.1): jugadores con su
@@ -233,6 +254,9 @@ async function generarPareos() {
   }
 
   const snapshot = montarSnapshot(n)
+  // El historial solo se pide aquí, y solo si de verdad se va a usar:
+  // la ronda 1 no tiene cruces previos que respetar.
+  if (n > 1) await cargarHistorial()
   let plan
   let sinParear = []
   try {
@@ -427,7 +451,7 @@ function campeonDelTorneo() {
 // ── Check-in y reportes (SPEC §6.4 y §6.5) ──
 
 async function marcarListo(partida) {
-  const soyA = partida.player_a_id === ctx.session.user.id
+  const soyA = partida.player_a_id === miId()
   const columna = soyA ? 'check_in_a_at' : 'check_in_b_at'
   if (partida[columna]) return
   await supabase.from('tournament_matches').update({ [columna]: ahora() }).eq('id', partida.id)
@@ -439,7 +463,7 @@ async function reportar(partida, resultado) {
   // Lectura fresca: el rival puede haber reportado desde su sesión.
   const { data: previos } = await supabase.from('match_reports').select('*').eq('match_id', partida.id)
   const lista = previos || []
-  const mio = lista.find((r) => r.reporter_id === ctx.session.user.id)
+  const mio = lista.find((r) => r.reporter_id === miId())
   if (mio) {
     showToast(
       mio.result === resultado ? 'Ese resultado ya estaba reportado.' : 'Ya reportaste un resultado distinto: llama al organizador.',
@@ -449,18 +473,18 @@ async function reportar(partida, resultado) {
   }
   const { error } = await supabase
     .from('match_reports')
-    .insert({ match_id: partida.id, reporter_id: ctx.session.user.id, result: resultado, reported_at: ahora() })
+    .insert({ match_id: partida.id, reporter_id: miId(), result: resultado, reported_at: ahora() })
   if (error) {
     showToast('No se ha podido reportar: ' + error.message, 'error')
     return
   }
 
-  const delRival = lista.find((r) => r.reporter_id !== ctx.session.user.id)
+  const delRival = lista.find((r) => r.reporter_id !== miId())
   if (!delRival) {
     await supabase.from('tournament_matches').update({ status: 'awaiting_confirmation' }).eq('id', partida.id)
     showToast('Reportado. Falta que tu rival lo confirme.', 'success')
   } else {
-    const soyA = partida.player_a_id === ctx.session.user.id
+    const soyA = partida.player_a_id === miId()
     await conciliar(partida, soyA ? resultado : delRival.result, soyA ? delRival.result : resultado)
   }
   // Ficha entera: una disputa nueva tiene que asomar también en la cola
@@ -526,7 +550,7 @@ async function resolverPartida(partida, resultado) {
     match_id: partida.id,
     result: resultado,
     winner_id: lado === 'a' ? partida.player_a_id : lado === 'b' ? partida.player_b_id : null,
-    resolved_by: ctx.session.user.id,
+    resolved_by: miId(),
   })
   showToast('Mesa resuelta.', 'success')
   await ctx.recargarFicha()
@@ -550,7 +574,7 @@ function pintarPareoManual(ronda) {
     return
   }
   const sueltos = sinMesa(ronda)
-  if (ronda.status !== 'pending' || !sueltos.length || !ctx.perfil.is_admin) {
+  if (ronda.status !== 'pending' || !sueltos.length || !ctx.perfil?.is_admin) {
     caja.innerHTML = ''
     return
   }
@@ -696,7 +720,7 @@ function chapaDeMesa(m) {
 function pintarMesas(ronda) {
   const mesas = partidas.filter((m) => m.round_id === ronda.id).sort((a, b) => a.table_number - b.table_number)
   if (!mesas.length) return '<p class="subtext">Sin mesas todavía.</p>'
-  const puedeResolver = (ctx.perfil.is_admin || ctx.esJuez) && ronda.status === 'active'
+  const puedeResolver = (ctx.perfil?.is_admin || ctx.esJuez) && ronda.status === 'active'
   const filas = mesas
     .map((m) => {
       const terminal = TERMINALES.has(m.status)
@@ -765,7 +789,7 @@ function pintarRondas() {
 
   const actual = rondaActual()
   let admin = ''
-  if (ctx.perfil.is_admin && ctx.torneo.status !== 'finished') {
+  if (ctx.perfil?.is_admin && ctx.torneo.status !== 'finished') {
     if (!actual && rondas.length < ctx.torneo.swiss_rounds) {
       admin = `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la ronda ${rondas.length + 1}</button>`
     } else if (actual?.status === 'pending') {
@@ -843,10 +867,12 @@ function pintarRondas() {
 function pintarMiPartida() {
   const caja = $('torneoMiPartida')
   const actual = rondaActual()
-  const mia = actual
-    ? partidas.find(
-        (m) => m.round_id === actual.id && (m.player_a_id === ctx.session.user.id || m.player_b_id === ctx.session.user.id)
-      )
+  // El `yo &&` NO es un adorno: sin sesión miId() es null, y una mesa
+  // con bye tiene player_b_id a null — sin este guardia, «Tu partida»
+  // le saldría a cualquier visitante con la mesa del bye dentro.
+  const yo = miId()
+  const mia = yo && actual
+    ? partidas.find((m) => m.round_id === actual.id && (m.player_a_id === yo || m.player_b_id === yo))
     : null
   if (!mia) {
     caja.classList.add('hidden')
@@ -854,7 +880,7 @@ function pintarMiPartida() {
   }
   caja.classList.remove('hidden')
 
-  const soyA = mia.player_a_id === ctx.session.user.id
+  const soyA = mia.player_a_id === miId()
   const rivalId = soyA ? mia.player_b_id : mia.player_a_id
   const rival = rivalId ? ctx.inscripciones.find((i) => i.user_id === rivalId) : null
   const miListo = soyA ? mia.check_in_a_at : mia.check_in_b_at
@@ -867,7 +893,7 @@ function pintarMiPartida() {
   if (TERMINALES.has(mia.status)) {
     const r = resultadoDe(mia.id)
     const texto =
-      r?.winner_id === ctx.session.user.id ? '¡Ganaste esta ronda!' : r?.result === 'draw' ? 'Empate.' : 'Esta ronda no cayó de tu lado.'
+      r?.winner_id === miId() ? '¡Ganaste esta ronda!' : r?.result === 'draw' ? 'Empate.' : 'Esta ronda no cayó de tu lado.'
     contenido.innerHTML = `<p class="torneo-partida-nota">Mesa ${mia.table_number} — ${texto}</p>`
     return
   }
@@ -917,7 +943,7 @@ function pintarMiPartida() {
     }
     ${miListo ? '' : '<button class="btn-primary torneo-boton-checkin" id="btnCheckin">Hacer check-in</button>'}`
 
-  const miReporte = reportes.find((r) => r.match_id === mia.id && r.reporter_id === ctx.session.user.id)
+  const miReporte = reportes.find((r) => r.match_id === mia.id && r.reporter_id === miId())
   const botones = miReporte
     ? '<p class="subtext">Resultado reportado: falta que tu rival lo confirme (pulsa Actualizar si tarda).</p>'
     : `<h4 class="torneo-mesas-titulo">Reportar resultado</h4>
@@ -1024,6 +1050,10 @@ function pintarClasificacion() {
   if (!general) tabla = tabla.filter((e) => e.gamesPlayed > 0)
 
   const verListas = puedenVerseLasListas()
+  // El usuario de TCG Live solo para quien ha entrado. A un visitante
+  // sin cuenta la base ni se lo manda (grant por columnas), así que la
+  // columna se quita entera en vez de enseñar una fila de guiones.
+  const verTcgLive = Boolean(miId())
   const corte = ctx.torneo.top_cut_size || 0
   const filas = tabla
     .map((e, i) => {
@@ -1042,7 +1072,7 @@ function pintarClasificacion() {
       <tr>
         <td>${i + 1}</td>
         <td>${escapeHtml(nombreDe(e.playerId))}${retirado}${dentro}</td>
-        <td class="subtext">${escapeHtml(insc?.tcg_live_username || '—')}</td>
+        ${verTcgLive ? `<td class="subtext">${escapeHtml(insc?.tcg_live_username || '—')}</td>` : ''}
         <td><strong>${e.matchPoints}</strong></td>
         <td>${e.wins}-${e.losses}-${e.draws}${e.byesReceived ? ` (+${e.byesReceived} bye)` : ''}</td>
         <td>${(e.owp * 100).toFixed(2)} %</td>
@@ -1083,7 +1113,7 @@ function pintarClasificacion() {
     ${general ? '' : `<p class="subtext">Solo cuentan las mesas de la jornada ${vistaClasificacion}.</p>`}
     <div class="torneo-clasificacion-tabla">
       <table>
-        <thead><tr><th>#</th><th>Jugador</th><th>TCG Live</th><th>Puntos</th><th>V-D-E</th><th>OWP</th><th>OOWP</th>${verListas ? '<th></th>' : ''}</tr></thead>
+        <thead><tr><th>#</th><th>Jugador</th>${verTcgLive ? '<th>TCG Live</th>' : ''}<th>Puntos</th><th>V-D-E</th><th>OWP</th><th>OOWP</th>${verListas ? '<th></th>' : ''}</tr></thead>
         <tbody>${filas}</tbody>
       </table>
     </div>

@@ -9,7 +9,13 @@ import { escapeHtml, getSession, getProfile, burstConfetti } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { parseDecklist, validateDecklist, canEditDecklist, decklistUnparsed } from './motor.js'
-import { ESTADOS, fechaBonita, textoFormato, puedeBorrarTorneo } from './comun.js'
+import {
+  ESTADOS,
+  fechaBonita,
+  textoFormato,
+  puedeBorrarTorneo,
+  COLUMNAS_PUBLICAS_INSCRIPCION,
+} from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces } from './jueces.js'
 import { getAllAchievements, addXP } from '../gamification.js'
@@ -26,6 +32,19 @@ let inscripciones = [] // todas las del torneo, con perfil resuelto
 let miInscripcion = null
 let miDecklist = null
 let decklistsEntregadas = [] // {user_id, submitted_at, locked_at}: el admin ve quién ha entregado
+let decklistsTorneo = null // las listas ENTERAS, solo si quien mira es juez u organizador
+let solicitudesJuez = [] // todas las solicitudes de juez del torneo (las usa jueces.js)
+let esJuez = false
+// MODO ESCAPARATE (tanda 228): la ficha se abre TAMBIÉN sin cuenta, para
+// que un enlace compartido enseñe algo en vez de rebotar. Quien mira sin
+// entrar ve el cartel, los inscritos, las mesas y la clasificación; no
+// ve decklists, ni chats, ni jueces, ni el usuario de TCG Live de nadie,
+// y no puede tocar nada.
+//
+// Quien decide de verdad qué se puede leer es la RLS de la base, no
+// esto: aquí solo se evita pedir lo que se sabe que no toca y pintar
+// cajas que estarían vacías.
+let soloMirando = false
 
 const $ = (id) => document.getElementById(id)
 
@@ -48,11 +67,11 @@ async function cargarTorneo(slug) {
 async function cargarInscripciones() {
   const { data } = await supabase
     .from('tournament_registrations')
-    .select('*')
+    .select(soloMirando ? COLUMNAS_PUBLICAS_INSCRIPCION.join(', ') : '*')
     .eq('tournament_id', torneo.id)
     .order('registered_at', { ascending: true })
   inscripciones = data || []
-  miInscripcion = inscripciones.find((i) => i.user_id === session.user.id) || null
+  miInscripcion = session ? inscripciones.find((i) => i.user_id === session.user.id) || null : null
 
   // Los nombres de usuario, de una tacada.
   const ids = [...new Set(inscripciones.map((i) => i.user_id))]
@@ -63,7 +82,47 @@ async function cargarInscripciones() {
   }
 }
 
+// Quién es juez aprobado en este torneo, y de paso TODAS las solicitudes:
+// las necesita el módulo de jueces, que antes las volvía a pedir. Se
+// piden aquí porque la respuesta decide lo siguiente que se carga.
+async function cargarJueces() {
+  if (soloMirando) {
+    solicitudesJuez = []
+    esJuez = false
+    return
+  }
+  const { data } = await supabase.from('judge_applications').select('*').eq('tournament_id', torneo.id)
+  solicitudesJuez = data || []
+  esJuez = solicitudesJuez.some((s) => s.user_id === session.user.id && s.status === 'approved')
+}
+
 async function cargarDecklists() {
+  // Sin cuenta no hay decklist propia ni derecho a ver las ajenas: no se
+  // pide ninguna de las dos consultas.
+  if (soloMirando) {
+    decklistsTorneo = null
+    decklistsEntregadas = []
+    miDecklist = null
+    return
+  }
+
+  // Juez u organizador ven las listas enteras, así que UNA consulta les
+  // sirve para las tres cosas: la suya, quién ha entregado y el detalle
+  // de cada una. Antes se pedía tres veces (dos aquí y otra en
+  // jueces.js) en CADA refresco.
+  if (perfil?.is_admin || esJuez) {
+    const { data } = await supabase
+      .from('tournament_decklists')
+      .select('*')
+      .eq('tournament_id', torneo.id)
+      .order('submitted_at', { ascending: true })
+    decklistsTorneo = data || []
+    decklistsEntregadas = decklistsTorneo
+    miDecklist = decklistsTorneo.find((d) => d.user_id === session.user.id) || null
+    return
+  }
+
+  decklistsTorneo = null // señal para jueces.js: aquí no se han traído
   const { data: propia } = await supabase
     .from('tournament_decklists')
     .select('*')
@@ -139,7 +198,7 @@ function pintarFicha() {
   $('torneoPlazasRelleno').style.width = `${Math.min(100, (ocupadas / torneo.max_players) * 100)}%`
 
   const acciones = $('torneoAdminAcciones')
-  if (!perfil.is_admin) {
+  if (!perfil?.is_admin) {
     acciones.innerHTML = ''
   } else if (torneo.status === 'draft') {
     acciones.innerHTML = '<button class="btn-primary" id="btnAbrirInscripciones">Abrir inscripciones</button>'
@@ -150,15 +209,15 @@ function pintarFicha() {
   } else {
     acciones.innerHTML = ''
   }
-  if (perfil.is_admin && torneo.status !== 'draft') pintarAnuncioForo(acciones)
+  if (perfil?.is_admin && torneo.status !== 'draft') pintarAnuncioForo(acciones)
   ponerBotonCalendario(acciones)
   // Herramientas del organizador (tanda 211): editar mientras tenga
   // sentido, y cancelar mientras el torneo siga vivo.
-  if (perfil.is_admin && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status)) {
+  if (perfil?.is_admin && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status)) {
     acciones.insertAdjacentHTML('beforeend', '<button class="btn-secondary" id="btnEditarTorneo">Editar</button>')
     $('btnEditarTorneo').addEventListener('click', pintarEditor)
   }
-  if (perfil.is_admin && !['finished', 'cancelled'].includes(torneo.status)) {
+  if (perfil?.is_admin && !['finished', 'cancelled'].includes(torneo.status)) {
     acciones.insertAdjacentHTML('beforeend', '<button class="btn-secondary" id="btnCancelarTorneo">Cancelar torneo</button>')
     engancharCancelar()
   }
@@ -449,25 +508,41 @@ function ponerBotonCalendario(acciones) {
   acciones.appendChild(boton)
 }
 
+// Dos memorias para no repetir consultas en cada refresco (la ficha se
+// repinta sola cada pocos segundos y esto se repinta con ella):
+//   · el hilo del foro, una vez encontrado, ya no desaparece;
+//   · la lista de foros del desplegable no cambia mientras miras.
+// Mientras el hilo NO exista sí se sigue preguntando: lo puede haber
+// abierto el otro organizador desde su sesión.
+let hiloForoId = null
+let forosParaAnuncio = null
+
 async function pintarAnuncioForo(acciones) {
   const titulo = `Torneo: ${torneo.name}`
   const zona = document.createElement('span')
   zona.className = 'torneo-anuncio-foro'
   acciones.appendChild(zona)
 
-  const { data: hilo } = await supabase.from('forum_threads').select('id').eq('title', titulo).maybeSingle()
-  if (hilo) {
-    zona.innerHTML = `<a class="btn-secondary" href="${urlTema(hilo.id)}">Hilo en el foro</a>`
+  if (!hiloForoId) {
+    const { data: hilo } = await supabase.from('forum_threads').select('id').eq('title', titulo).maybeSingle()
+    hiloForoId = hilo?.id || null
+  }
+  if (hiloForoId) {
+    zona.innerHTML = `<a class="btn-secondary" href="${urlTema(hiloForoId)}">Hilo en el foro</a>`
     return
   }
   if (['finished', 'cancelled'].includes(torneo.status)) return
 
-  const { data: foros } = await supabase
-    .from('forum_boards')
-    .select('id, name')
-    .eq('is_hidden', false)
-    .order('position', { ascending: true })
-  if (!foros?.length) return
+  if (!forosParaAnuncio) {
+    const { data } = await supabase
+      .from('forum_boards')
+      .select('id, name')
+      .eq('is_hidden', false)
+      .order('position', { ascending: true })
+    forosParaAnuncio = data || []
+  }
+  const foros = forosParaAnuncio
+  if (!foros.length) return
   zona.innerHTML = `
     <select id="anuncioForoDestino">${foros.map((f) => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)}</option>`).join('')}</select>
     <button class="btn-secondary" id="btnAnunciarForo">Anunciar en el foro</button>`
@@ -496,6 +571,9 @@ async function anunciarEnForo(boardId, titulo) {
     showToast('No se ha podido publicar el anuncio: ' + errorMensaje.message, 'error')
     return
   }
+  // Ya sabemos cuál es: el repintado de después no tiene que ir a
+  // buscarlo, y ningún refresco posterior tampoco.
+  hiloForoId = hilo.id
   showToast('Anunciado: el hilo del torneo ya está en el foro.', 'success')
   pintarFicha()
 }
@@ -671,6 +749,22 @@ function engancharConfirmarParticipacion() {
 
 function pintarMiPlaza() {
   const caja = $('miPlazaContenido')
+
+  // El escaparate (tanda 228): quien mira sin cuenta no tiene plaza que
+  // enseñar, tiene una razón para crearse una. El enlace vuelve AQUÍ
+  // después de entrar, que es lo que uno espera al abrir un enlace
+  // compartido.
+  if (soloMirando) {
+    const vuelta = encodeURIComponent(window.location.pathname + window.location.search)
+    caja.innerHTML =
+      torneo.status === 'registration_open'
+        ? `<p>Las inscripciones están abiertas: quedan ${Math.max(0, torneo.max_players - activos())} plazas.</p>
+           <a class="btn-primary" href="/auth.html?volver=${vuelta}">Entra para inscribirte</a>
+           <p class="subtext">Es gratis y se juega en Pokémon TCG Live.</p>`
+        : `<p class="subtext">Estás viendo este torneo sin haber entrado.</p>
+           <a class="btn-secondary" href="/auth.html?volver=${vuelta}">Entrar en PokeDoc</a>`
+    return
+  }
 
   if (miInscripcion?.status === 'active') {
     caja.innerHTML = `
@@ -948,6 +1042,16 @@ function engancharDecklist() {
 
 // ── Los inscritos ──
 
+// El usuario de TCG Live es de la comunidad, no del internet entero: se
+// enseña a quien ha entrado y a nadie más. Que no se filtre NO depende
+// de esta línea — la base tampoco se lo entrega a un anónimo (grant por
+// columnas en la migración de apertura). Esto solo evita pintar «TCG
+// Live: undefined».
+function tcgLiveDe(i) {
+  if (soloMirando || !i.tcg_live_username) return ''
+  return `<span class="subtext">TCG Live: ${escapeHtml(i.tcg_live_username)}</span>`
+}
+
 function pintarInscritos() {
   $('inscritosNumero').textContent = String(activos())
   $('inscritosVacio').classList.toggle('hidden', inscripciones.length > 0)
@@ -961,26 +1065,26 @@ function pintarInscritos() {
       const retirado = i.status === 'dropped' ? ' <span class="torneo-retirado">(retirado)</span>' : ''
       // Quién ha entregado lista lo ve solo el organizador: a los demás
       // jugadores no les incumbe (SPEC §9, visibilidad).
-      const decklist = perfil.is_admin
+      const decklist = perfil?.is_admin
         ? `<span class="torneo-decklist-marca ${entregadaPor.has(i.user_id) ? 'entregada' : ''}">${entregadaPor.has(i.user_id) ? 'decklist entregada' : 'sin decklist'}</span>`
         : ''
       // Y el paso 2 (tanda 219), también solo para el organizador: sin
       // confirmar antes de la R1, ese jugador no entra en el pareo.
       const confirmado =
-        perfil.is_admin && i.status === 'active' && 'participation_confirmed_at' in i && !['in_progress', 'finished', 'cancelled'].includes(torneo.status)
+        perfil?.is_admin && i.status === 'active' && 'participation_confirmed_at' in i && !['in_progress', 'finished', 'cancelled'].includes(torneo.status)
           ? `<span class="torneo-decklist-marca ${i.participation_confirmed_at ? 'entregada' : ''}">${i.participation_confirmed_at ? 'confirmado' : 'sin confirmar'}</span>`
           : ''
       // El organizador puede expulsar (misma mecánica que la baja: la
       // plaza no se libera y su ronda en curso cuenta) — a cualquiera
       // menos a sí mismo, que para eso está «Darme de baja».
       const expulsar =
-        perfil.is_admin && i.status === 'active' && i.user_id !== session.user.id && !['finished', 'cancelled'].includes(torneo.status)
+        perfil?.is_admin && i.status === 'active' && i.user_id !== session.user.id && !['finished', 'cancelled'].includes(torneo.status)
           ? `<button class="btn-secondary torneo-expulsar" data-expulsar="${escapeHtml(i.id)}">Expulsar</button>`
           : ''
       return `
       <div class="torneo-inscrito">
         <span class="torneo-inscrito-nombre"><a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(nombre)}</a>${retirado}</span>
-        <span class="subtext">TCG Live: ${escapeHtml(i.tcg_live_username)}</span>
+        ${tcgLiveDe(i)}
         ${decklist}${confirmado}${expulsar}
       </div>`
     })
@@ -995,7 +1099,7 @@ function pintarInscritos() {
             (i, n) => `
       <div class="torneo-inscrito torneo-inscrito-cola">
         <span class="torneo-inscrito-nombre"><span class="torneo-cola-puesto">${n + 1}.</span> <a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(i.perfil?.username || 'Alguien')}</a></span>
-        <span class="subtext">TCG Live: ${escapeHtml(i.tcg_live_username)}</span>
+        ${tcgLiveDe(i)}
       </div>`
           )
           .join('')
@@ -1080,21 +1184,19 @@ function pintarTodo() {
 
 async function recargar() {
   await cargarInscripciones()
+  // Un juez aprobado resuelve mesas igual que el organizador (SPEC §6.7),
+  // y además ve las decklists ajenas: por eso esto va ANTES de cargarlas.
+  await cargarJueces()
   await cargarDecklists()
   pintarTodo()
-  // Un juez aprobado resuelve mesas igual que el organizador (SPEC §6.7).
-  const { data: comoJuez } = await supabase
-    .from('judge_applications')
-    .select('status')
-    .eq('tournament_id', torneo.id)
-    .eq('user_id', session.user.id)
-    .maybeSingle()
   const contexto = {
     torneo,
     session,
     perfil,
     inscripciones,
-    esJuez: comoJuez?.status === 'approved',
+    esJuez,
+    solicitudes: solicitudesJuez,
+    decklistsTorneo,
     recargarFicha: recargar,
     // Los módulos repintan cajas por su cuenta (sondeo, check-in…):
     // que recoloquen también las pestañas al hacerlo.
@@ -1102,30 +1204,51 @@ async function recargar() {
   }
   await montarCiclo(contexto)
   await montarJueces(contexto)
-  await otorgarGloria()
-  await sellarResultado()
-  celebrarSiGane()
+  // Las tres de abajo ESCRIBEN (logros, XP, el podio congelado, el
+  // anuncio en el foro) o celebran algo tuyo: nada que hacer si quien
+  // mira no tiene cuenta.
+  if (!soloMirando) {
+    await otorgarGloria()
+    await sellarResultado()
+    celebrarSiGane()
+  }
   pintarPestanas()
 }
 
 async function init() {
   session = await getSession()
   perfil = session ? await getProfile(session.user.id) : null
-  if (!perfil?.is_admin) {
-    window.location.href = '/index.html'
-    return
-  }
+  soloMirando = !session
 
+  // Aquí NO se comprueba is_admin. Quien decide si este torneo se puede
+  // ver es la POLÍTICA de la base: mientras la sección esté cerrada, la
+  // consulta vuelve vacía para todo el que no sea admin y se acaba en el
+  // mismo sitio que un torneo que no existe. Un `if` en el navegador no
+  // protegería nada y además impediría que un enlace compartido enseñe
+  // el torneo el día que la sección se abra.
   const slug = new URLSearchParams(window.location.search).get('slug')
   torneo = slug ? await cargarTorneo(slug) : null
   if (!torneo) {
-    window.location.href = '/torneos.html'
+    pintarNoDisponible()
     return
   }
 
   document.getElementById('torneoContenido').style.display = ''
   await recargar()
   arrancarSondeoFicha()
+}
+
+// Sin torneo que enseñar: puede que el enlace esté mal, que se haya
+// borrado o que la sección aún no esté abierta. No se distingue a
+// propósito — decir «existe pero no puedes verlo» ya es contar algo.
+function pintarNoDisponible() {
+  const caja = document.getElementById('torneoNoDisponible')
+  if (!caja) {
+    window.location.href = '/torneos.html'
+    return
+  }
+  caja.classList.remove('hidden')
+  document.getElementById('torneoEntrar')?.classList.toggle('hidden', Boolean(session))
 }
 
 // ── El refresco automático (pedido de PINGU) ──

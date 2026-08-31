@@ -167,6 +167,27 @@ async function pedir(ruta) {
   return Array.isArray(filas) && filas.length ? filas[0] : null
 }
 
+// Contar sin traerse las filas: PostgREST devuelve el total en la
+// cabecera content-range cuando se le pide `count=exact`, y con HEAD no
+// viaja ni un byte de cuerpo. Se usa para las plazas ocupadas de un
+// torneo, que es un número y no una lista.
+async function contar(ruta) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
+    method: 'HEAD',
+    headers: {
+      apikey: SUPABASE_KEY,
+      authorization: `Bearer ${SUPABASE_KEY}`,
+      prefer: 'count=exact',
+    },
+    signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS),
+  })
+  if (!res.ok) return null
+  // La cabecera viene como «0-23/24»; lo que interesa es lo de después
+  // de la barra. Un «*» significa que no lo sabe.
+  const total = (res.headers.get('content-range') || '').split('/')[1]
+  return /^\d+$/.test(total) ? Number(total) : null
+}
+
 function urlCanonica(url) {
   // Se reconstruye a partir del dominio bueno: si alguien llega por el
   // subdominio de Netlify, la canónica tiene que seguir apuntando a
@@ -342,6 +363,13 @@ export function textoDeHtml(html) {
     // convertido en "<" y se colaría una etiqueta que no estaba.
     .replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ')
+    // Las etiquetas se sustituyen por un espacio (arriba), así que un
+    // «<strong>jugar</strong>.» deja «jugar .». Ese espacio delante del
+    // signo se quita aquí, que es lo único que hay que deshacer del
+    // apaño: sale en la vista previa de cualquier mensaje con negrita
+    // antes de un punto.
+    .replace(/ +([,.;:!?%)\]}»…])/g, '$1')
+    .replace(/([(\[{«¿¡]) +/g, '$1')
     .trim()
 }
 
@@ -439,6 +467,134 @@ async function metaDeForo(url) {
   }
 }
 
+// ── Torneos ──
+//
+// OJO CON LO QUE ESTO PUEDE Y NO PUEDE ENSEÑAR: aquí se usa la clave
+// publicable, así que lo que devuelva Supabase es exactamente lo que ve
+// cualquiera sin sesión. Mientras los torneos estén cerrados por la RLS
+// de solo-admins, la consulta vuelve VACÍA y la página se sirve sin
+// personalizar — que es justo lo que queremos hasta el lanzamiento.
+// No hay que acordarse de quitar nada el día que se abra: se enciende
+// solo cuando la base lo permita.
+//
+// Y por eso mismo, de la ficha solo se pide lo que es cartel: nombre,
+// cuándo, estructura y cuántas plazas quedan. Ni un nombre de inscrito,
+// ni un usuario de TCG Live.
+
+// El estado en cristiano. Un borrador ni se anuncia.
+const ESTADO_TORNEO = {
+  registration_open: 'Inscripciones abiertas',
+  registration_closed: 'Inscripciones cerradas',
+  in_progress: 'En juego',
+  finished: 'Terminado',
+  cancelled: 'Cancelado',
+}
+
+// «sáb, 6 sept · 18:00». En hora de Madrid a propósito: el robot corre
+// en el borde, que puede estar en cualquier parte del mundo, y la hora
+// del torneo es la de aquí.
+function fechaTorneo(iso) {
+  if (!iso) return ''
+  try {
+    return new Date(iso).toLocaleString('es-ES', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Madrid',
+    })
+  } catch {
+    return ''
+  }
+}
+
+// La misma frase que textoFormato() de js/torneos/comun.js. Está
+// duplicada a propósito y no importada: esto corre en el borde, sin el
+// grafo de módulos de la web. Si allí cambia el vocabulario, aquí
+// también.
+function formatoTorneo(t) {
+  const corte = t.top_cut_size ? ` + top ${t.top_cut_size} BO${t.top_cut_bo ?? 3}` : ''
+  const base =
+    t.format === 'league'
+      ? `liga de ${t.swiss_rounds} jornadas BO${t.swiss_bo ?? 1}`
+      : `${t.swiss_rounds} rondas suizas BO${t.swiss_bo ?? 1}`
+  return `${base}${corte}`
+}
+
+async function metaDeTorneo(url) {
+  const slug = url.searchParams.get('slug')
+  if (!slug) return null
+
+  const torneo = await pedir(
+    `tournaments?slug=eq.${encodeURIComponent(slug)}&status=neq.draft` +
+      `&select=id,name,slug,description,start_at,status,format,max_players,` +
+      `swiss_rounds,swiss_bo,top_cut_size,top_cut_bo,round_time_minutes&limit=1`
+  )
+  if (!torneo?.name) return null
+
+  // Las plazas ocupadas van en una segunda petición porque son un
+  // recuento de otra tabla. Si falla, la frase se queda sin ellas: una
+  // vista previa a medias es mejor que ninguna.
+  const ocupadas = await contar(
+    `tournament_registrations?tournament_id=eq.${encodeURIComponent(torneo.id)}&status=eq.active&select=id`
+  )
+
+  const cuando = fechaTorneo(torneo.start_at)
+  const plazas =
+    torneo.max_players
+      ? ocupadas === null
+        ? `${torneo.max_players} plazas`
+        : `${ocupadas}/${torneo.max_players} plazas`
+      : ''
+  const trozos = [cuando, formatoTorneo(torneo), plazas].filter(Boolean)
+
+  // La descripción que escribió el organizador manda; si no hay, se
+  // fabrica una con los datos, que es lo que de verdad hace clicar.
+  const suya = recortar(textoDeHtml(torneo.description))
+  const descripcion = suya || `${trozos.join(' · ')}. Torneo de Pokémon TCG en PokeDoc.`
+
+  const estado = ESTADO_TORNEO[torneo.status] || ''
+  const canonica = `${SITIO}/torneo?slug=${encodeURIComponent(torneo.slug)}`
+
+  return {
+    url: canonica,
+    tipo: 'article',
+    titulo: `${torneo.name}${estado ? ` — ${estado}` : ''} · Torneos de PokeDoc`,
+    descripcion,
+    imagen: IMAGEN_POR_DEFECTO,
+    datos: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Event',
+          '@id': canonica,
+          name: torneo.name,
+          description: descripcion,
+          startDate: torneo.start_at || undefined,
+          inLanguage: 'es-ES',
+          eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+          eventStatus:
+            torneo.status === 'cancelled'
+              ? 'https://schema.org/EventCancelled'
+              : 'https://schema.org/EventScheduled',
+          // El torneo se juega en Pokémon TCG Live; el sitio es solo
+          // donde se organiza.
+          location: { '@type': 'VirtualLocation', url: canonica },
+          organizer: { '@type': 'Organization', name: 'PokeDoc', url: SITIO },
+          isAccessibleForFree: true,
+          maximumAttendeeCapacity: torneo.max_players || undefined,
+        },
+        migas([
+          { nombre: 'Inicio', url: `${SITIO}/` },
+          { nombre: 'Torneos', url: `${SITIO}/torneos` },
+          { nombre: torneo.name, url: canonica },
+        ]),
+      ],
+    },
+  }
+}
+
 async function calcularMeta(url) {
   const ruta = url.pathname
   if (ruta.startsWith('/guia')) return metaDeGuia(url, false)
@@ -447,6 +603,8 @@ async function calcularMeta(url) {
   if (ruta.startsWith('/usuario')) return metaDePerfil(url)
   if (ruta.startsWith('/tema')) return metaDeTema(url)
   if (ruta.startsWith('/foro')) return metaDeForo(url)
+  // Con cuidado: '/torneos' (la lista) también empieza por '/torneo'.
+  if (/^\/torneo(\.html)?$/.test(ruta)) return metaDeTorneo(url)
   return null
 }
 
@@ -497,6 +655,7 @@ export const config = {
     '/tema/*',
     '/foro.html',
     '/foro/*',
+    '/torneo.html',
     // Y las direcciones SIN .html, que es como las escribe media web
     // (/guia?slug=... sale de las tarjetas de guía) y como las deja Netlify
     // al servir un fichero por su nombre limpio. Faltaban: quien compartía
@@ -508,5 +667,8 @@ export const config = {
     '/usuario',
     '/tema',
     '/foro',
+    // La ficha de un torneo: /torneo?slug=… es como la enlazan las
+    // tarjetas y como se comparte por WhatsApp.
+    '/torneo',
   ],
 }

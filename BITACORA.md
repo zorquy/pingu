@@ -12,6 +12,46 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-31 — PINGU-Claude (tanda 228 — el enlace que se puede enseñar)
+**Hecho**: las tres que quedaban antes de abrir los torneos, pedidas por
+PINGU. (1) VISTA PREVIA: /torneo entra en meta-social.js, con nombre,
+estado, fecha, estructura y plazas ocupadas (recuento por HEAD con
+`Prefer: count=exact`, sin traerse filas) y datos `Event`. No hay que
+acordarse de encenderlo el día del lanzamiento: usa la clave publicable,
+así que HOY la consulta vuelve vacía por la RLS y la página sale sin
+personalizar. (2) MENOS CONSULTAS: la ficha pasa de 18 a 11 por refresco
+(38 → 32 al abrir), todo quitando lo que se pedía DOS veces porque cada
+módulo se lo pedía por su cuenta — solicitudes de juez, rondas, mesas y
+decklists van ahora por el contexto, el historial de cruces solo se pide
+al parear, y el hilo del foro se memoriza. (3) ESCAPARATE: torneo.html
+deja de exigir sesión y de mirar `is_admin` en JavaScript; manda la
+política de la base. Sin cuenta se ve el cartel, los inscritos, las
+mesas y la clasificación; NO las decklists, los chats, los jueces ni el
+usuario de TCG Live de nadie — esto último con permisos de COLUMNA en la
+migración de apertura, porque la RLS es por filas y esconderlo en la
+pantalla no esconde nada.
+**Ficheros**: netlify/edge-functions/meta-social.js, torneo.html,
+js/torneos/torneo.js, js/torneos/ronda.js, js/torneos/jueces.js,
+js/auth.js, js/torneos/comun.js,
+supabase-migration-torneos-publico.sql (NO ejecutar), CLAUDE.md,
+SCHEMA.md. En la rama `pruebas`: test-meta-torneo.mjs,
+test-torneos-20.mjs, test-torneos-21.mjs, sql-torneos-anon.sql,
+rigor-meta-torneo.py, rigor-torneos-20.py, medir-carga.mjs,
+stub-supabase.js, correr-suite.sh.
+**En curso / pendiente**: NADA que ejecutar hoy —
+supabase-migration-torneos-publico.sql sigue siendo del día del
+lanzamiento. Dos cosas apuntadas ahí para ese día: (a) con la RLS fina,
+un jugador normal solo lee SU decklist, así que la marca «decklist
+entregada» de la lista de inscritos dejará de ver las ajenas (hace falta
+una vista o una RPC); (b) el `?volver=` de auth.js solo funciona con
+correo y contraseña — el de Google aterriza en la portada, porque su
+redirectTo tiene que estar en la lista blanca de Supabase.
+**OJO IBAI-CLAUDE**: `COLUMNAS_PUBLICAS_INSCRIPCION` (comun.js) y el
+`grant select (...)` de la migración de apertura son la MISMA lista. Si
+tocas una, toca la otra: un `select *` de un anónimo sobre una tabla con
+una columna prohibida no devuelve la columna vacía, falla la consulta
+ENTERA y la ficha deja de cargar para los visitantes.
+
 ## 2026-08-28 — PINGU-Claude (tanda 227 — la web en tiempo real)
 **Hecho**: lo pidió PINGU antes de abrir los torneos al público. La web
 deja de preguntar cada pocos segundos y la base AVISA. En vivo: la

@@ -10904,3 +10904,146 @@ tres pasadas limpias contra Postgres 16.
 ⚠️ El doble de `js/vivo.js` del entorno de pruebas NO es comodidad: el
 vivo de verdad abre un websocket contra el Supabase de PRODUCCIÓN, y
 una prueba no puede hacer eso.
+
+## Tanda 228 — el enlace que se puede enseñar (agosto 2026)
+
+Tres cosas de la misma familia, todas pensadas para el día que los
+torneos se abran: que un enlace compartido enseñe algo, que enseñe algo
+también a quien no tiene cuenta, y que la ficha cueste menos.
+
+### 1. Vista previa al compartir un torneo
+
+`netlify/edge-functions/meta-social.js` gana `/torneo` (con y sin
+`.html`) y `metaDeTorneo()`: título con nombre y estado, descripción del
+organizador (o una fabricada con fecha, estructura y plazas
+ocupadas/totales) y datos estructurados `Event` con sus migas.
+
+Las plazas ocupadas salen de un **HEAD con `Prefer: count=exact`**
+(`contar()`, nuevo): PostgREST devuelve el total en `content-range` y no
+viaja ni una fila.
+
+Dos detalles que importan:
+
+- **No hay que acordarse de encenderlo.** La función usa la clave
+  publicable, así que lo que devuelve Supabase es lo que ve cualquiera.
+  Con la RLS de hoy (solo admins) la consulta vuelve VACÍA y la página
+  se sirve sin personalizar; el día que se abra la sección, empieza a
+  funcionar sola. Y por eso la consulta solo pide lo que es cartel: ni
+  un nombre de inscrito, ni un usuario de TCG Live.
+- **`/torneos` NO es `/torneo`.** El enrutador usa
+  `/^\/torneo(\.html)?$/` y no `startsWith`, que pillaría también la
+  lista.
+
+De paso, `textoDeHtml()` deja de dejar un espacio delante de los signos
+de puntuación: sustituye las etiquetas por un espacio (a propósito, para
+no pegar el final de un párrafo con el principio del siguiente), y eso
+convertía `<strong>jugar</strong>.` en `jugar .` en la vista previa de
+CUALQUIER mensaje del foro.
+
+### 2. Menos consultas en la ficha
+
+La ficha se refresca entera cada pocos segundos, así que una consulta de
+más se paga muchas veces. Medido con el doble instrumentado:
+**18 → 10 por refresco** y **38 → 31** en la carga inicial, con el
+torneo ya anunciado en el foro (el caso normal). Sin anunciar son 11 y
+32: la consulta del hilo solo se puede memorizar cuando el hilo existe.
+
+Todo era lo mismo pedido dos veces, porque cada módulo se lo pedía por
+su cuenta:
+
+| Lo que se pedía dos veces | Ahora |
+| --- | --- |
+| `judge_applications` (torneo.js + jueces.js) | torneo.js las carga TODAS una vez y las pasa en `ctx.solicitudes` |
+| `rounds` y `tournament_matches` (ronda.js + jueces.js) | `montarCiclo` las deja en `ctx.ciclo`; `montarJueces` corre después y las lee de ahí |
+| `tournament_decklists` ×3 para juez/organizador | una sola consulta entera en torneo.js, que sirve para la propia, para quién ha entregado y para el detalle |
+| `pairing_history` en cada refresco | `cargarHistorial()`, solo al PAREAR (y solo a partir de la ronda 2) |
+| `forum_threads` + `forum_boards` en cada repintado | memorizados (`hiloForoId`, `forosParaAnuncio`) |
+
+`jueces.js` conserva su consulta de respaldo por si `ctx.ciclo` no
+estuviera: el módulo tiene que poder funcionar solo.
+
+Lo que NO se ha hecho, y por qué: fundir la consulta de `user_profiles`
+en la de inscripciones con un join embebido de PostgREST. Se puede (hay
+FK de verdad), pero **el doble de Supabase ignora las columnas del
+`select`**, así que la prueba pasaría igual estuviera bien o mal el
+embebido. Sin forma de comprobarlo, no se sube.
+
+### 3. El escaparate: un torneo se ve sin cuenta
+
+`torneo.html` deja de exigir sesión y de comprobar `is_admin` en el
+JavaScript. **Quien decide qué se puede ver es la política de la base**,
+que es lo único que protege de verdad: hoy, con la sección cerrada, la
+consulta vuelve vacía para cualquiera que no sea admin y se acaba en la
+misma pantalla que un torneo inexistente (`#torneoNoDisponible`, que a
+propósito NO distingue «no existe» de «no puedes verlo»).
+
+Sin sesión (`soloMirando`) se ve: el cartel, los inscritos por su nombre
+de usuario, las mesas y rondas en juego y la clasificación. NO se ve:
+decklists, chats, la caja de jueces, ni el usuario de TCG Live de nadie.
+Y no se ejecuta nada que escriba (logros, XP, el podio congelado, el
+anuncio en el foro).
+
+**El usuario de TCG Live se protege con permisos de COLUMNA, no con la
+interfaz.** La RLS es por filas: si un anónimo puede leer la fila, la lee
+entera. En `supabase-migration-torneos-publico.sql`, `anon` pierde el
+`select` sobre `tournament_registrations` y lo recupera solo sobre las
+columnas que son cartel.
+
+⚠️ **Trampa que esto deja armada**: un `select *` de un anónimo sobre una
+tabla con una columna prohibida no devuelve esa columna vacía — **falla
+la consulta entera**. Por eso `torneo.js` pide una lista explícita
+(`COLUMNAS_PUBLICAS_INSCRIPCION`) cuando no hay sesión. Si se toca el
+`grant`, hay que tocar la constante, y al revés.
+
+⚠️ **Y otra, que hay que arreglar el día de la apertura**: con la RLS
+fina puesta, un jugador normal solo lee SU decklist, así que la marca
+«decklist entregada» de la lista de inscritos dejará de ver las ajenas.
+Hoy no se nota porque solo miran admins. Se arregla con una vista o una
+RPC que devuelva quién ha entregado sin el contenido.
+
+El guardia que costó encontrar: sin sesión el «yo» es `null`, y **la mesa
+de un bye tiene `player_b_id` a `null`** — sin comprobar antes que hay
+sesión, `null === null` le daba «Tu partida» (la del bye) a cualquier
+visitante. Está en `ronda.js` y en `jueces.js`, y tiene su prueba.
+
+`js/auth.js` gana `destinoTrasEntrar()`: `?volver=` para que quien abre
+un enlace compartido y entra vuelva AL TORNEO. Solo acepta rutas de esta
+misma web (empezar por una barra y no por dos, o un `//evil.com` se
+colaría como otro dominio). **Solo aplica al camino de correo y
+contraseña**: el de Google y el de confirmación por correo siguen
+aterrizando en la portada, porque su `redirectTo` tiene que estar en la
+lista blanca de Supabase.
+
+### Comprobado
+
+- `sql-torneos-anon.sql` contra PostgreSQL 16 de verdad, con roles `anon`
+  y `authenticated`: el torneo publicado se ve y el borrador no; los
+  inscritos se leen pero `tcg_live_username` da permiso denegado (y un
+  `select *` también); rondas y mesas sí, decklists, chats e historial de
+  cruces no; un anónimo no puede escribir; y un jugador con cuenta sigue
+  viendo lo suyo. La migración, tres pasadas limpias.
+- `test-meta-torneo.mjs` (21 comprobaciones, sin red),
+  `test-torneos-20.mjs` (36 en navegador) y `test-torneos-21.mjs` (12 en
+  Node, sin navegador).
+- Rigor: 13 roturas en la vista previa y 19 en el escaparate y el
+  recorte, todas detectadas. Las del recorte se miden con el contador de
+  consultas: si volver a pedir lo mismo no sube el número, es que el
+  recorte no recortaba nada.
+
+Cuatro de esas roturas NO se detectaron a la primera, y las cuatro por
+lo mismo: la prueba no medía lo que decía medir.
+
+- Pedir `*` en vez de la lista de columnas era invisible, porque **el
+  doble de Supabase ignora las columnas del `select`**. Arreglado por
+  los dos lados: la lista se muda a `comun.js` para poder compararla en
+  Node contra el `grant` del SQL (`test-torneos-21.mjs`), y el doble
+  pasa a REGISTRAR la cadena del select — registrar, no proyectar — para
+  poder exigir que un visitante nunca pida `*`.
+- La columna de TCG Live de la clasificación no se veía porque el caso
+  probado no tenía rondas ni mesas: sin ellas no hay tabla que mirar.
+- El guardia del bye en `jueces.js` no se notaba porque la mesa de un
+  bye no monta chat: hay que sembrar una mesa VIVA con el segundo
+  jugador a `null`, que es la forma exacta contra la que existe.
+- Y el memorizado del hilo del foro no se notaba porque en la semilla no
+  había ningún hilo: sin hilo que memorizar, la consulta se repite igual
+  esté el arreglo o no.

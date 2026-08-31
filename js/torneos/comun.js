@@ -87,3 +87,24 @@ export function puedeBorrarTorneo(perfil, torneo, userId) {
   if (perfil?.is_admin) return true
   return Boolean(userId && torneo?.admin_id && torneo.admin_id === userId)
 }
+
+// ── Lo que ve un visitante SIN cuenta de una inscripción (tanda 228) ──
+//
+// No es una lista de cortesía. En la base, el rol `anon` NO tiene
+// permiso sobre tcg_live_username (grant por columnas en
+// supabase-migration-torneos-publico.sql), y en Postgres un `select *`
+// que toca una columna prohibida no devuelve esa columna vacía: FALLA
+// LA CONSULTA ENTERA. Si esta lista se desincroniza del grant, la ficha
+// deja de cargar para cualquiera que no haya entrado.
+//
+// Vive aquí, en el módulo sin DOM, para poder compararla en Node contra
+// el SQL de verdad — que es lo único que impide que las dos se separen.
+export const COLUMNAS_PUBLICAS_INSCRIPCION = [
+  'id',
+  'tournament_id',
+  'user_id',
+  'status',
+  'registered_at',
+  'dropped_at',
+  'dropped_after_round_id',
+]
