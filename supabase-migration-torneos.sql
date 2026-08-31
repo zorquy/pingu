@@ -174,6 +174,21 @@ update public.tournament_registrations
   set participation_confirmed_at = registered_at
   where status = 'active' and participation_confirmed_at is null;
 
+-- Tanda 228 (IBAI) — aforo SIN LÍMITE: max_players admite NULL, que
+-- significa «sin límite de plazas». Con NULL nunca hay «lleno»: la web
+-- no encola a nadie y el barredor, si encuentra cola (un torneo que
+-- tenía límite y se lo quitaron desde el editor), la promueve entera.
+-- El CHECK original era de columna (nombre puesto por Postgres,
+-- tournaments_max_players_check); se rehace admitiendo el NULL
+-- (idempotente: se tira y se vuelve a crear).
+alter table public.tournaments
+  alter column max_players drop not null;
+alter table public.tournaments
+  drop constraint if exists tournaments_max_players_check;
+alter table public.tournaments
+  add constraint tournaments_max_players_check
+  check (max_players is null or max_players between 4 and 2048);
+
 -- ── Solicitudes de juez ──
 create table if not exists public.judge_applications (
   id uuid primary key default gen_random_uuid(),

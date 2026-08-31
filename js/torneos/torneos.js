@@ -30,7 +30,10 @@ function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
   const estado = ESTADOS[t.status] || ESTADOS.draft
   const fecha = new Date(t.start_at)
   const mes = fecha.toLocaleString('es-ES', { month: 'short' }).replace('.', '')
-  const porcentaje = Math.min(100, (ocupadas / t.max_players) * 100)
+  // max_players NULL = aforo sin límite (tanda 228): sin denominador no
+  // hay barra de ocupación que pintar — se dice cuánta gente hay y ya.
+  const sinLimite = t.max_players == null
+  const porcentaje = sinLimite ? 0 : Math.min(100, (ocupadas / t.max_players) * 100)
   return `
   <a class="torneo-tarjeta" href="/torneo?slug=${encodeURIComponent(t.slug)}">
     <span class="torneo-fecha-bloque" aria-hidden="true"><strong>${fecha.getDate()}</strong><span>${escapeHtml(mes)}</span></span>
@@ -38,8 +41,8 @@ function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
       <strong>${escapeHtml(t.name)}</strong>
       <span class="subtext">${fechaBonita(t.start_at)} · ${t.format === 'league' ? `liga de ${t.swiss_rounds} jornadas` : `${t.swiss_rounds} suizas`}${t.top_cut_size ? ` + top ${t.top_cut_size}` : ''}</span>
       <span class="torneo-ocupacion">
-        <span class="torneo-ocupacion-barra"><span class="torneo-ocupacion-relleno" style="width:${porcentaje}%"></span></span>
-        ${ocupadas}/${t.max_players} plazas
+        ${sinLimite ? '' : `<span class="torneo-ocupacion-barra"><span class="torneo-ocupacion-relleno" style="width:${porcentaje}%"></span></span>`}
+        ${sinLimite ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'} · sin límite` : `${ocupadas}/${t.max_players} plazas`}
       </span>
     </span>
     <span class="torneo-tarjeta-chapas">
@@ -208,6 +211,19 @@ function esLigaElegida() {
   return $('torneoTipo').value === 'league'
 }
 
+// ── El aforo sin límite (tanda 228) ──
+// Marcar «Sin límite» apaga el campo de plazas y guarda max_players a
+// NULL: nunca hay «lleno» ni lista de espera. La sugerencia de rondas
+// que aquí sale de las plazas llega entonces al CERRAR las
+// inscripciones (en la ficha), que es cuando se sabe cuánta gente hay.
+function sinLimiteElegido() {
+  return $('torneoSinLimite').checked
+}
+
+function pintarSinLimite() {
+  $('torneoPlazas').disabled = sinLimiteElegido()
+}
+
 function pintarCamposJornadas(fechas = null) {
   const caja = $('torneoJornadasCampos')
   const liga = esLigaElegida()
@@ -252,8 +268,8 @@ function pasoValido(n) {
   }
   if (n === 1) {
     const plazas = Number($('torneoPlazas').value)
-    if (!plazas || plazas < 4 || plazas > 256) {
-      showToast('Las plazas deben estar entre 4 y 256.')
+    if (!sinLimiteElegido() && (!plazas || plazas < 4 || plazas > 256)) {
+      showToast('Las plazas deben estar entre 4 y 256 (o marca «Sin límite»).')
       return false
     }
     const rondas = Number($('torneoRondas').value)
@@ -286,7 +302,7 @@ function pintarResumen() {
     ['Nombre', $('torneoNombre').value.trim() || '—'],
     ['Tipo', liga ? 'Liga por jornadas' : 'Torneo de un día'],
     ['Inicio', $('torneoFecha').value ? fechaBonita($('torneoFecha').value) : '—'],
-    ['Plazas', $('torneoPlazas').value],
+    ['Plazas', sinLimiteElegido() ? 'Sin límite' : $('torneoPlazas').value],
     [liga ? 'Jornadas' : 'Suizas', `${$('torneoRondas').value} · BO${$('torneoSwissBo').value}`],
     ['Top cut', corte ? `Top ${corte} · BO${$('torneoCorteBo').value}` : 'Sin corte'],
     ['Ronda', `${$('torneoMinutos').value} min`],
@@ -394,7 +410,9 @@ function engancharFormulario(session, perfil) {
     const semanaQueViene = new Date(Date.now() + 7 * 86400e3)
     semanaQueViene.setMinutes(semanaQueViene.getMinutes() - semanaQueViene.getTimezoneOffset())
     $('torneoFecha').value = semanaQueViene.toISOString().slice(0, 16)
-    $('torneoPlazas').value = viejo.max_players
+    $('torneoSinLimite').checked = viejo.max_players == null
+    $('torneoPlazas').value = viejo.max_players ?? 16
+    pintarSinLimite()
     $('torneoRondas').value = viejo.swiss_rounds
     $('torneoCorte').value = String(viejo.top_cut_size ?? 0)
     if ($('torneoMinutos')) $('torneoMinutos').value = viejo.round_time_minutes
@@ -423,6 +441,7 @@ function engancharFormulario(session, perfil) {
     if ([...corte.options].some((o) => Number(o.value) === topCutSize)) corte.value = String(topCutSize)
     pintarCamposJornadas()
   })
+  $('torneoSinLimite').addEventListener('change', pintarSinLimite)
   // El tipo y el número de rondas gobiernan los campos de jornadas.
   $('torneoTipo').addEventListener('change', () => pintarCamposJornadas())
   $('torneoRondas').addEventListener('input', () => pintarCamposJornadas())
@@ -454,7 +473,7 @@ function engancharFormulario(session, perfil) {
       format: liga ? 'league' : 'standard',
       matchday_dates: liga ? fechasDeJornadas().map((f) => new Date(f).toISOString()) : null,
       show_opponent_decklists: $('torneoListasRivales').checked,
-      max_players: Number($('torneoPlazas').value),
+      max_players: sinLimiteElegido() ? null : Number($('torneoPlazas').value),
       swiss_rounds: Number($('torneoRondas').value),
       round_time_minutes: Number($('torneoMinutos').value),
       checkin_minutes: Number($('torneoCheckin').value),
@@ -479,6 +498,7 @@ function engancharFormulario(session, perfil) {
     descripcionHtml = ''
     $('torneoDescCuerpo').innerHTML = ''
     pintarCamposJornadas()
+    pintarSinLimite()
     irAPaso(0)
     showToast(`«${nombre}» creado como borrador. Abre las inscripciones cuando esté listo.`, 'success')
     cargarLista(session, perfil)

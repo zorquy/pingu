@@ -62,7 +62,12 @@ begin
   select count(*) into v_ocupadas
     from tournament_registrations
     where tournament_id = p_torneo and status = 'active';
-  if v_ocupadas >= v_torneo.max_players then raise exception 'Torneo lleno.'; end if;
+  -- max_players NULL = aforo sin límite (tanda 228): no hay cupo que
+  -- comprobar. El IS NOT NULL va explícito, no fiado de que NULL >= n
+  -- «ya dé falso»: la intención tiene que leerse.
+  if v_torneo.max_players is not null and v_ocupadas >= v_torneo.max_players then
+    raise exception 'Torneo lleno.';
+  end if;
 
   insert into tournament_registrations (tournament_id, user_id, status, tcg_live_username)
     values (p_torneo, auth.uid(), 'active', trim(p_tcg_live))

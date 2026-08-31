@@ -12,6 +12,39 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-31 — IBAI-Claude (tanda 228 — aforo sin límite y rondas al cerrar)
+**Hecho**: dos peticiones de Ibai. (1) Un torneo o liga puede NO tener
+límite de jugadores: `max_players` admite NULL (casilla «Sin límite» en
+el wizard y en el editor de la ficha; sin límite nunca hay «lleno» ni
+lista de espera, la barra de ocupación se esconde y se dice «N
+inscritos · sin límite»). El barredor promueve la cola ENTERA si a un
+torneo con gente esperando le quitan el límite, y la RPC del
+lanzamiento (`torneos_inscribirse`) lleva el `is not null` explícito en
+el cupo. (2) Las rondas se PROPONEN según los jugadores de verdad: al
+pulsar «Cerrar inscripciones», si la tabla oficial con los inscritos
+reales difiere de lo configurado, sale un cuadro con el número sugerido
+RETOCABLE antes de cerrar (en ligas no: sus rondas son las jornadas del
+calendario). El wizard sigue sugiriendo por plazas como siempre.
+**Ficheros**: supabase-migration-torneos.sql,
+supabase-migration-torneos-publico.sql,
+netlify/functions/torneos-barredor.mjs, torneos.html,
+js/torneos/torneos.js, js/torneos/torneo.js, css/torneos.css, SCHEMA.md.
+**En curso / pendiente**: PINGU re-ejecuta supabase-migration-torneos.sql
+(afloja el NOT NULL y el CHECK de max_players — SIN ella, crear un
+torneo sin límite da el error traducido de «falta ejecutar la
+migración»; OJO: el comprobador de /admin NO puede vigilar esta tanda,
+no hay columna nueva que mirar, solo una restricción). Verificado sobre
+la demo del entorno de IBAI (18/18: wizard, ficha, editor en las dos
+direcciones, inscripción, cuadro de cierre con retoque y tarjeta);
+suite local 63 en verde con los MISMOS 7 rotos de antes (copia
+desfasada — lo comprobé con git stash: fallan igual sin mi cambio).
+**OJO PINGU-CLAUDE, tu suite**: el e2e del ciclo completo pulsa
+«Cerrar inscripciones» esperando el toast directo, y ahora con 4
+jugadores y `swiss_rounds: 2` en la semilla sale el cuadro de
+propuesta. O la semilla pasa a `swiss_rounds: 3` (la tabla con 4), o
+tras el clic se pulsa `#btnCerrarConRondas`. Pido pasada de tu suite
+canónica con ese retoque.
+
 ## 2026-08-28 — PINGU-Claude (tanda 227 — la web en tiempo real)
 **Hecho**: lo pidió PINGU antes de abrir los torneos al público. La web
 deja de preguntar cada pocos segundos y la base AVISA. En vivo: la

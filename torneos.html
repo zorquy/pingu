@@ -86,7 +86,7 @@
 
       <!-- Paso 2: capacidad y formato -->
       <section data-paso="1" class="hidden">
-        <p class="torneo-wizard-pista">Las rondas y el top cut se rellenan según la tabla oficial al cambiar las plazas — puedes retocarlos.</p>
+        <p class="torneo-wizard-pista">Las rondas y el top cut se rellenan según la tabla oficial al cambiar las plazas — puedes retocarlos. Sin límite de plazas, la sugerencia llega al cerrar las inscripciones, con los inscritos de verdad.</p>
         <label class="torneos-form-campo">Tipo de torneo
           <select id="torneoTipo">
             <option value="standard" selected>Torneo de un día (suizas seguidas)</option>
@@ -95,9 +95,14 @@
           <span class="torneo-campo-pista">En la liga cada ronda es una jornada con su fecha, y la clasificación se puede ver en general o jornada a jornada.</span>
         </label>
         <div class="torneos-form-rejilla">
-          <label>Plazas
+          <!-- «Sin límite» apaga el campo de plazas y guarda NULL
+               (tanda 228): sin aforo no hay lleno ni lista de espera. -->
+          <div class="torneos-form-plazas">Plazas
             <input type="number" id="torneoPlazas" min="4" max="256" value="16" />
-          </label>
+            <label class="torneo-sin-limite">
+              <input type="checkbox" id="torneoSinLimite" /> Sin límite
+            </label>
+          </div>
           <label id="torneoRondasEtiqueta">Rondas suizas
             <input type="number" id="torneoRondas" min="1" max="12" value="4" />
           </label>
