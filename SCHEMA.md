@@ -10841,3 +10841,66 @@ Y tres cosas que destapó el rigor, que son la razón de que exista:
 
 Cubierto: el índice, la lista de temas de un foro y la vista de un tema.
 Rigor de 12 roturas, todas detectadas. Suite: 7 en verde.
+
+## Tanda 227 — la web en tiempo real (agosto 2026)
+
+Lo pidió PINGU antes de abrir los torneos al público: que la web se
+entere sola de los cambios en vez de preguntar cada pocos segundos.
+Con el plan Pro los límites de Realtime sobran de largo (500 conexiones
+y 5 millones de mensajes al mes; un torneo de 32 personas gasta unos
+20.000, o sea del orden de 250 torneos antes de pagar de más).
+
+**Dónde sí y dónde no.** En vivo: la campanita, los mensajes privados,
+el ciclo del torneo (chat de partida, reportes, resultados, mesas,
+rondas, llamadas a juez) y el tema del foro. Las guías, los cursos y la
+portada NO: nadie mira una guía mientras cambia.
+
+### Las tres decisiones que explican el diseño
+
+- **El sondeo NO se quita.** Un websocket no siempre conecta —redes que
+  los bloquean, wifis de hotel, pestañas que el móvil congela— y una
+  página muda para siempre es peor que una con diez segundos de
+  retraso. Con el vivo conectado el sondeo baja a marcha larga (×6); si
+  se cae, vuelve solo a su ritmo. Un canal puede decir SUBSCRIBED y
+  luego dejar de recibir sin avisar: el sondeo lento de fondo es lo que
+  hace que eso se note en un minuto en vez de nunca.
+- **No se confía en el contenido de un DELETE.** En Supabase los INSERT
+  y UPDATE respetan la RLS (solo te llega lo que podrías leer con una
+  consulta), pero **los DELETE no**: no hay fila contra la que
+  comprobar el permiso, así que se emiten a todos los suscritos y solo
+  con la clave. Aquí un DELETE significa «algo ha cambiado, vuelve a
+  pedirlo». Por eso `tournament_decklists` se queda FUERA de la
+  publicación a propósito.
+- **El cliente se carga a demanda y va aparte.** El bundle de siempre
+  se generó sin Realtime (tanda 139) porque lo bajaban 19 páginas sin
+  usarlo. Eso sigue valiendo para la portada. Se empaqueta SOLO la
+  parte de Realtime en `js/vendor/supabase-realtime.js` (17,5 KB
+  comprimidos en vez de los 57 del cliente entero con Realtime dentro)
+  y se pide con `import()` después de pintar. **La portada no baja ni
+  un byte de esto**: sigue en 100,5 KB de los 170 de presupuesto.
+
+### Lo que enseñó el rigor
+
+Las 13 primeras roturas «se detectaban»… porque la prueba REVENTABA,
+no porque comprobara nada. Al hacerla fallar limpiamente aparecieron
+**cuatro que no se detectaban de verdad**:
+
+- El filtro de `rounds` se comprobaba con `.some()`, y `judge_calls`
+  lleva el mismo: quitárselo a rondas no se notaba. Ahora se mira tabla
+  por tabla.
+- El evento de prueba se emitía a TODOS los canales, así que la
+  campanita respondía por la ficha. Ahora se emite solo al canal del
+  torneo.
+- Y dos del engranaje del sondeo que eran **incomprobables por
+  construcción**: el entorno de pruebas sustituye `js/vivo.js` entero
+  por un doble, así que romperlo allí no lo notaba nadie. De ahí que el
+  sondeo saliera a `js/sondeo.js` — sin depender de Supabase ni del
+  navegador — y se pruebe en Node contra el código de verdad.
+
+Probado con test-vivo.mjs (navegador, 24 comprobaciones), test-sondeo.mjs
+(Node, 8) y rigor-vivo.py (15 roturas, todas detectadas). La migración,
+tres pasadas limpias contra Postgres 16.
+
+⚠️ El doble de `js/vivo.js` del entorno de pruebas NO es comodidad: el
+vivo de verdad abre un websocket contra el Supabase de PRODUCCIÓN, y
+una prueba no puede hacer eso.

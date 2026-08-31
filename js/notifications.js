@@ -286,4 +286,23 @@ export async function renderNotificationBell(session) {
   })
 
   updateBadge(await loadNotifications())
+
+  // ── En vivo (tanda 227) ──
+  // La campanita era el sitio donde más cantaba que la web no fuera en
+  // tiempo real: te escribían y no te enterabas hasta recargar. Ahora
+  // la base avisa. Se filtra por destinatario para no recibir los
+  // avisos de los demás — la RLS ya lo impediría, pero pedirlo así
+  // ahorra que el servidor evalúe y descarte cada uno.
+  //
+  // Sin sondeo de respaldo aquí a propósito: la campanita ya se refresca
+  // sola al abrirla, así que lo peor que puede pasar si el websocket no
+  // conecta es exactamente lo de antes de esta tanda.
+  const { escuchar } = await import('./vivo.js')
+  escuchar({
+    nombre: `campanita-${session.user.id}`,
+    tablas: [
+      { tabla: 'user_notifications', filtro: `recipient_id=eq.${session.user.id}`, evento: 'INSERT' },
+    ],
+    alCambiar: () => refresh(),
+  })
 }

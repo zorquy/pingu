@@ -12,6 +12,32 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-08-28 — PINGU-Claude (tanda 227 — la web en tiempo real)
+**Hecho**: lo pidió PINGU antes de abrir los torneos al público. La web
+deja de preguntar cada pocos segundos y la base AVISA. En vivo: la
+campanita, los mensajes privados, el ciclo del torneo (chat de partida,
+reportes, resultados, mesas, rondas, llamadas a juez) y el tema del
+foro. Guías, cursos y portada NO. Tres decisiones importantes: (1) el
+SONDEO NO SE QUITA — con el vivo conectado baja a marcha larga (×6) y si
+se cae vuelve solo, porque un canal puede decir SUBSCRIBED y luego
+callarse; (2) NO se confía en el contenido de un DELETE, que en Supabase
+NO respeta la RLS — se trata como «vuelve a pedirlo», y por eso
+tournament_decklists se queda fuera de la publicación; (3) el cliente de
+Realtime va APARTE (js/vendor/supabase-realtime.js, 17,5 KB comprimidos)
+y se carga con import() tras pintar: la portada no baja ni un byte y
+sigue en 100,5 KB de 170.
+**Ficheros**: js/vivo.js (NUEVO), js/sondeo.js (NUEVO),
+js/vendor/supabase-realtime.js (NUEVO, generado),
+supabase-migration-tiempo-real.sql (NUEVO), js/notifications.js,
+js/mensajes.js, js/tema.js, js/torneos/torneo.js, SCHEMA.md.
+**En curso / pendiente**: PINGU tiene que ejecutar
+supabase-migration-tiempo-real.sql — sin ella suscribirse NO da error,
+simplemente no llega nunca nada, que es peor. Hasta entonces todo sigue
+funcionando con el sondeo de siempre. Suite: 9 en verde.
+**OJO IBAI-CLAUDE**: si tocas una pantalla con tiempo real, el entorno
+de pruebas sustituye js/vivo.js por un doble — el de verdad abre un
+websocket contra PRODUCCIÓN y eso una prueba no lo puede hacer.
+
 ## 2026-08-28 — PINGU-Claude (tanda 226 — vuelve la cobertura del foro)
 **Hecho**: primera tanda de la reconstrucción de las pruebas perdidas.
 Empieza por el FORO, que es lo más usado y lo que más ha cambiado. NO se

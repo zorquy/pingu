@@ -1136,12 +1136,54 @@ async function init() {
 let sondeoFicha = null
 function arrancarSondeoFicha() {
   if (sondeoFicha) return
-  sondeoFicha = setInterval(async () => {
+  const tic = async () => {
     if (document.hidden) return
     const activo = document.activeElement
     if (activo && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activo.tagName)) return
     await recargar()
-  }, 10000)
+  }
+  sondeoFicha = setInterval(tic, 10000)
+
+  // ── En vivo (tanda 227) ──
+  // Lo que de verdad cambia mientras miras una ficha: el chat de tu
+  // mesa, lo que reporta tu rival, el resultado, el estado de las mesas,
+  // el paso de ronda y las llamadas a juez. Todo lo demás (inscritos,
+  // decklists, el hilo del foro) no se mueve, y por eso NO se escucha:
+  // suscribirse a algo que no cambia es pagar un canal para nada.
+  //
+  // Se filtra por torneo donde la tabla lo permite. Las de mesa
+  // (mensajes, reportes, resultados) cuelgan de match_id y no de
+  // tournament_id, así que llegan las de todos los torneos en juego —
+  // que a esta escala son uno o dos. Como la reacción es «vuelve a
+  // pedirlo», un evento de otro torneo solo cuesta un refresco de más;
+  // filtrarlo bien exigiría un canal por mesa.
+  //
+  // El sondeo se queda de fondo: con el vivo conectado pasa de 10 s a
+  // un minuto, que es justo lo que hace falta para enterarse si el
+  // websocket se muere en silencio.
+  import('../vivo.js')
+    .then(({ escuchar, sondeoAdaptable }) => {
+      const sondeo = sondeoAdaptable(tic, 10000)
+      clearInterval(sondeoFicha)
+      sondeoFicha = 'delegado'
+      escuchar({
+        nombre: `torneo-${torneo.id}`,
+        tablas: [
+          { tabla: 'rounds', filtro: `tournament_id=eq.${torneo.id}` },
+          { tabla: 'judge_calls', filtro: `tournament_id=eq.${torneo.id}` },
+          { tabla: 'tournament_matches' },
+          { tabla: 'match_messages' },
+          { tabla: 'match_reports' },
+          { tabla: 'match_results' },
+        ],
+        alCambiar: () => tic(),
+        alEstado: (vivo) => sondeo.conVivo(vivo),
+      })
+    })
+    .catch(() => {
+      // Sin tiempo real la ficha sigue exactamente como antes de la
+      // tanda 227: sondeo cada diez segundos.
+    })
 }
 
 init()

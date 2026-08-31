@@ -188,6 +188,24 @@ async function renderThread(session, conversationId) {
     sending = false
     btn.disabled = false
   })
+
+  // ── En vivo (tanda 227) ──
+  // Una conversación privada donde hay que recargar para ver lo que te
+  // contestan no es una conversación. El filtro es por conversación:
+  // así el servidor solo evalúa los mensajes de ESTE hilo en vez de
+  // todos los de la web.
+  //
+  // Aquí SÍ va sondeo de respaldo, porque una conversación muda por un
+  // websocket caído es de las cosas que más molestan. Cuando el vivo
+  // conecta, el sondeo baja a una vez por minuto.
+  const { escuchar, sondeoAdaptable } = await import('./vivo.js')
+  const sondeo = sondeoAdaptable(refreshMessages, 10000)
+  escuchar({
+    nombre: `mensajes-${conversationId}`,
+    tablas: [{ tabla: 'private_messages', filtro: `conversation_id=eq.${conversationId}` }],
+    alCambiar: () => refreshMessages(),
+    alEstado: (vivo) => sondeo.conVivo(vivo),
+  })
 }
 
 async function init() {

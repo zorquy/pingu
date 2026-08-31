@@ -1357,6 +1357,27 @@ async function init() {
     () => {},
     () => {}
   )
+
+  // ── En vivo (tanda 227) ──
+  // Un tema que se está moviendo se repinta solo cuando alguien
+  // responde. AQUÍ NO HAY SONDEO de respaldo, y es a propósito: el foro
+  // nunca lo tuvo, así que sin websocket se queda exactamente como
+  // estaba — hay que recargar, como toda la vida. Lo que no puede pasar
+  // es que la página empiece a consultar cada diez segundos por leer un
+  // tema, que sería gastar más que antes.
+  //
+  // Solo INSERT: una edición o un borrado repintando el tema mientras
+  // lees te movería el texto bajo el dedo. Y del DELETE no hay que
+  // fiarse (no respeta la RLS).
+  import('./vivo.js')
+    .then(({ escuchar }) => {
+      escuchar({
+        nombre: `tema-${tema.id}`,
+        tablas: [{ tabla: 'forum_posts', filtro: `thread_id=eq.${tema.id}`, evento: 'INSERT' }],
+        alCambiar: () => pintarMensajes(),
+      })
+    })
+    .catch(() => {})
 }
 
 init().catch(() => {
