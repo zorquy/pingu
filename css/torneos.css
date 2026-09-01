@@ -1609,10 +1609,45 @@
   left: -52%;
   top: -30%;
 }
-/* ── El historial de un jugador desde la clasificación (tanda 237) ──
+/* ── El historial de un jugador desde la clasificación (237-238) ──
    Su nombre es un botón (subrayado en puntitos para que se vea que se
-   puede pulsar) y debajo de la tabla se despliegan sus partidas: ronda,
-   letra de resultado y rival con la chapa de su mazo. */
+   puede pulsar) y se abre un MODAL centrado con sus partidas: ronda,
+   letra de resultado y rival con la chapa de su mazo. La caja es la
+   modal-box de components.css, aquí solo lo suyo. */
+.torneo-historial-modal .modal-box {
+  max-width: 460px;
+  max-height: 82vh;
+  overflow-y: auto;
+  gap: 6px;
+}
+.torneo-historial-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.torneo-historial-quien {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 17px;
+}
+.torneo-historial-record {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(160, 160, 160, 0.14);
+  color: var(--text-mid);
+}
+.torneo-historial-torneo { margin: 0; }
+.torneo-historial-modal .modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
 .torneo-jugador-historial {
   background: none;
   border: none;

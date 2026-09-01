@@ -361,11 +361,14 @@ export function urlDeSprite(dex) {
 // objeto-nombre-de-mazo, se añade su línea (y su png) y ya.
 //
 // El alias en español, por lo mismo que en FORMAS_TCG: el export de
-// TCG Live llega en el idioma del jugador.
-const SPRITES_OBJETOS = new Map([
-  ['crushinghammer', '/assets/sprites/crushing-hammer.png'],
-  ['martillodemoledor', '/assets/sprites/crushing-hammer.png'],
-])
+// TCG Live llega en el idioma del jugador. Los alias no se enseñan en
+// el buscador (sería el mismo objeto dos veces) pero sí casan.
+export const OBJETOS_TCG = [
+  { nombre: 'Crushing Hammer', sprite: '/assets/sprites/crushing-hammer.png' },
+  { nombre: 'Martillo Demoledor', sprite: '/assets/sprites/crushing-hammer.png', alias: true },
+]
+
+const SPRITES_OBJETOS = new Map(OBJETOS_TCG.map((o) => [aplastar(o.nombre), o.sprite]))
 
 export function spriteDeObjeto(nombreDeCarta) {
   return SPRITES_OBJETOS.get(aplastar(nombreDeCarta)) ?? null

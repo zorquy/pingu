@@ -1031,14 +1031,14 @@ let listaRivalAbierta = null // user_id de la decklist desplegada bajo la tabla
 let historialAbierto = null // user_id del historial de partidas desplegado
 const listasRivales = new Map() // user_id → fila de tournament_decklists (o null)
 
-// ── El historial de un jugador (tanda 237, pedido por Ibai) ──
+// ── El historial de un jugador (tandas 237-238, pedido por Ibai) ──
 //
-// Pulsar un nombre en la clasificación despliega SUS partidas del
-// torneo: ronda a ronda, contra quién jugó y con qué mazo — la ficha
-// del jugador que uno mira en Limitless al acabar un torneo. Los
-// resultados son los mismos que ya enseña la pestaña de rondas; los
-// MAZOS de los rivales salen solo cuando las listas pueden verse
-// (chapaDe devuelve vacío si no), así que no se filtra nada.
+// Pulsar un nombre en la clasificación abre un MODAL centrado con SUS
+// partidas del torneo: ronda a ronda, contra quién jugó y con qué mazo
+// — la ficha del jugador que uno mira en Limitless al acabar un
+// torneo. Los resultados son los mismos que ya enseña la pestaña de
+// rondas; los MAZOS de los rivales salen solo cuando las listas pueden
+// verse (chapaDe devuelve vacío si no), así que no se filtra nada.
 
 // El resultado de una mesa DESDE el lado de un jugador.
 function resultadoParaJugadorEn(m, userId) {
@@ -1051,15 +1051,41 @@ function resultadoParaJugadorEn(m, userId) {
   return gana ? { texto: 'V', clase: 'gana' } : { texto: 'D', clase: 'pierde' }
 }
 
+// El modal, creado una sola vez y colgado del body: así el repintado de
+// la clasificación (cada 10 s) no se lo lleva por delante mientras se
+// está mirando. Es el patrón modal-overlay/modal-box de components.css,
+// el mismo de los modales del perfil.
+function modalHistorial() {
+  let overlay = document.getElementById('torneoHistorialModal')
+  if (overlay) return overlay
+  overlay = document.createElement('div')
+  overlay.id = 'torneoHistorialModal'
+  overlay.className = 'modal-overlay hidden torneo-historial-modal'
+  overlay.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="Partidas del jugador">
+    <div id="torneoHistorialContenido"></div>
+  </div>`
+  // Se cierra pulsando fuera de la caja o con Escape, como se espera de
+  // cualquier modal.
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) cerrarHistorial()
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay.classList.contains('hidden')) cerrarHistorial()
+  })
+  document.body.appendChild(overlay)
+  return overlay
+}
+
+function cerrarHistorial() {
+  historialAbierto = null
+  document.getElementById('torneoHistorialModal')?.classList.add('hidden')
+}
+
 function abrirHistorialJugador(userId) {
-  const hueco = $('clasificacionHistorial')
-  if (!hueco) return
   const mias = partidas
     .filter((m) => TERMINALES.has(m.status) && (m.player_a_id === userId || m.player_b_id === userId))
     .sort((a, b) => (numeroDeRonda(a.round_id) ?? 0) - (numeroDeRonda(b.round_id) ?? 0))
   if (!mias.length) {
-    historialAbierto = null
-    hueco.innerHTML = ''
     showToast('Ese jugador no tiene partidas cerradas todavía.', 'info')
     return
   }
@@ -1086,21 +1112,22 @@ function abrirHistorialJugador(userId) {
       </li>`
     })
     .join('')
-  hueco.innerHTML = `
-    <div class="torneo-decklist-detalle torneo-historial">
-      <div class="torneo-decklist-fila">
-        <span><strong>Partidas de ${escapeHtml(nombreDe(userId))}</strong>${chapaDe(userId)}
-          <span class="subtext">· ${v}-${d}${e ? `-${e}` : ''}</span></span>
-        <button class="btn-secondary" id="btnCerrarHistorial">Cerrar</button>
+  historialAbierto = userId
+  const overlay = modalHistorial()
+  overlay.querySelector('#torneoHistorialContenido').innerHTML = `
+    <div class="torneo-historial-cabecera">
+      <div class="torneo-historial-quien">
+        <strong>${escapeHtml(nombreDe(userId))}</strong>${chapaDe(userId)}
+        <span class="torneo-historial-record">${v}-${d}${e ? `-${e}` : ''}</span>
       </div>
-      <ol class="torneo-historial-lista">${filas}</ol>
-    </div>`
-  $('btnCerrarHistorial').addEventListener('click', () => {
-    historialAbierto = null
-    hueco.innerHTML = ''
-  })
+      <button type="button" class="modal-close" id="btnCerrarHistorial" aria-label="Cerrar">×</button>
+    </div>
+    <p class="subtext torneo-historial-torneo">${escapeHtml(ctx.torneo.name)}</p>
+    <ol class="torneo-historial-lista">${filas}</ol>`
+  overlay.classList.remove('hidden')
+  overlay.querySelector('#btnCerrarHistorial').addEventListener('click', cerrarHistorial)
   // Las chapas de los mazos llegan después, como en la tabla.
-  void rellenarChapasArquetipo(hueco)
+  void rellenarChapasArquetipo(overlay)
 }
 
 function jornadasConPuntos() {
@@ -1268,7 +1295,6 @@ function pintarClasificacion() {
         <tbody>${filas}</tbody>
       </table>
     </div>
-    <div id="clasificacionHistorial"></div>
     <div id="clasificacionListaRival"></div>
     ${general && corte > 0 && !rondas.some((r) => r.phase === 'top_cut') ? `<p class="subtext torneo-nota-corte">Las plazas marcadas con «Top ${corte}» clasifican al corte.</p>` : ''}
     <details class="torneo-desempates">
@@ -1300,24 +1326,14 @@ function pintarClasificacion() {
       void abrirListaRival(listaRivalAbierta)
     })
   )
-  // El historial de un jugador: pulsar su nombre lo abre (o lo cambia
-  // de jugador); pulsar el del que ya está abierto, lo cierra.
+  // El historial de un jugador: pulsar su nombre abre el modal. Vive
+  // colgado del body, así que el repintado de la tabla no lo toca.
   document.querySelectorAll('[data-historial]').forEach((b) =>
-    b.addEventListener('click', () => {
-      if (historialAbierto === b.dataset.historial) {
-        historialAbierto = null
-        const hueco = $('clasificacionHistorial')
-        if (hueco) hueco.innerHTML = ''
-        return
-      }
-      historialAbierto = b.dataset.historial
-      abrirHistorialJugador(historialAbierto)
-    })
+    b.addEventListener('click', () => abrirHistorialJugador(b.dataset.historial))
   )
   // El refresco de cada 10 s repinta la caja entera: si había una lista
-  // de rival abierta (o un historial), se vuelven a poner.
+  // de rival abierta, se vuelve a poner (la caché evita repedirla).
   if (listaRivalAbierta && verListas) void abrirListaRival(listaRivalAbierta)
-  if (historialAbierto) abrirHistorialJugador(historialAbierto)
   // Las cartas de las chapas llegan después: el HTML se construye de una
   // vez y resolverlas es ir a la base.
   void rellenarChapasArquetipo(caja)

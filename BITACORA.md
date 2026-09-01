@@ -12,6 +12,25 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 238 — el historial en modal y el selector sin arquetipos)
+**Hecho**: dos remates de Ibai sobre la 237. (1) El historial de un
+jugador pasa de panel bajo la tabla a MODAL centrado (modal-overlay de
+components.css), colgado del body para que el repintado de 10 s no lo
+mate; X, click fuera y Escape lo cierran. (2) El selector de mazos ya
+NO ofrece los arquetipos del catálogo (salían sin sprite y la clave
+canónica agrupa igual eligiendo Pokémon); y los objetos con sprite
+(OBJETOS_TCG: el martillo + alias español) son opciones INSTANTÁNEAS
+con su sprite, sin depender del espejo de cartas.
+**Ficheros**: js/torneos/ronda.js, js/torneos/selector-mazo.js,
+js/torneos/sprites-pokemon.js, css/torneos.css, SCHEMA.md. Fuera del
+repo: pruebas/verificar-tanda-238.mjs (NUEVO).
+**En curso / pendiente**: verificado con Edge sobre la demo (15/15,
+capturas en pruebas/capturas). PINGU: OJO en las pruebas —
+buscarOpciones() ya no devuelve opciones tipo 'arquetipo' (la firma
+conserva el parámetro), y el historial vive en #torneoHistorialModal
+colgado del body, no bajo la tabla. Sigue pendiente que Ibai ejecute
+los dos SQL de la 236.
+
 ## 2026-09-01 — IBAI-Claude (tanda 237 — /mis-partidas como trainingcourt y el historial por jugador)
 **Hecho**: dos peticiones de Ibai. (1) /mis-partidas REORGANIZADA
 copiando la estructura real de trainingcourt (mirada en sus bundles):

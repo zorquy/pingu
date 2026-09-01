@@ -11892,3 +11892,44 @@ pestañas, tarjeta con sprites y récord, rondas con mazos del rival,
 matriz en su pestaña, 8 nombres pulsables, historial del campeón con
 3-0 y chapas, cambiar de jugador y cerrar. Capturas en `capturas/`.
 Mismo aviso que la 236: la carpeta pruebas local no es checkout git.
+
+## Tanda 238 — el historial en modal, y el selector sin arquetipos (sept. 2026)
+
+Dos remates de Ibai sobre la 237.
+
+### El historial de un jugador, en un modal de verdad
+
+El panel bajo la tabla pasa a MODAL centrado (patrón
+modal-overlay/modal-box de components.css, el de los modales del
+perfil): nombre + chapa + récord en píldora, el nombre del torneo, y
+las rondas con la letra de resultado y el rival con su mazo. Vive
+COLGADO DEL BODY a propósito: el repintado de la clasificación (cada
+10 s) arrasa su caja con innerHTML, y un modal dentro moriría a mitad
+de lectura — fuera de ella, el refresco ni lo toca y sobra el truco de
+reabrirlo tras cada repintado que necesitaba la versión anterior. Se
+cierra con la X, pulsando fuera o con Escape.
+
+### El selector de mazos: solo Pokémon y objetos
+
+Ibai: «que no salgan los arquetipos ya hechos porque no funciona».
+Tenía razón por partida doble: salían SIN sprite (el hueco en blanco
+de la tanda 233) y no aportaban nada — elegir sus Pokémon da lo mismo,
+porque la clave canónica (tanda 235) ya agrupa contra el catálogo al
+leer. Fuera el bloque de arquetipos de `buscarOpciones()` (la firma
+conserva el parámetro `catalogo` para no romper a quien llama, y las
+pruebas que esperen opciones tipo 'arquetipo' tendrán que quitarlas).
+
+Y los OBJETOS con sprite propio (`OBJETOS_TCG` en sprites-pokemon.js,
+hoy el martillo con su alias español) entran como opciones
+INSTANTÁNEAS del selector, con su sprite: antes el martillo dependía
+de la consulta al espejo de cartas — tardaba, y sin espejo (la demo)
+ni salía. Los objetos sin sprite propio siguen llegando por el espejo
+con su recorte de carta.
+
+### Comprobado
+
+`pruebas/verificar-tanda-238.mjs` con Edge sobre la demo: 15/15 — sin
+opciones de arquetipo, «hammer»/«martillo» instantáneos con su sprite
+también dentro del formulario de torneo, modal centrado (desvío 0 px)
+con sus 3 rondas y récord, cierre por X y por Escape. Capturas en
+`capturas/`.

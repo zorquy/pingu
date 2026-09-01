@@ -20,7 +20,7 @@
 //      tanda 234 eso no se podía elegir: PINGU lo vio enseguida, porque
 //      en trainingcourt escribes «hamm» y sale Crushing Hammer.
 //      Estas tardan lo que tarde la consulta y se añaden después.
-import { POKEMON_POR_DEX, POKEMON_APLASTADOS, FORMAS_TCG, urlDeSprite, dexDeCarta, spriteDeObjeto } from './sprites-pokemon.js'
+import { POKEMON_POR_DEX, POKEMON_APLASTADOS, FORMAS_TCG, OBJETOS_TCG, urlDeSprite, dexDeCarta, spriteDeObjeto } from './sprites-pokemon.js'
 import { searchCards, cardImageUrl } from '../tcgdex.js'
 
 // El escapado va aquí y NO se importa de app.js a propósito: app.js toca
@@ -35,6 +35,13 @@ function escapeHtml(texto) {
 // Las opciones que casan con lo tecleado. Se ordenan poniendo delante lo
 // que EMPIEZA por lo buscado: con «dr», «Dragapult» tiene que salir
 // antes que «Beedrill», que solo lo contiene.
+//
+// Los ARQUETIPOS del catálogo ya NO salen aquí (tanda 238, pedido por
+// Ibai: «que no salgan los arquetipos ya hechos porque no funciona» —
+// salían sin sprite y no aportaban nada que elegir los Pokémon no dé).
+// La agrupación con el catálogo no se pierde: claveCanonicaDeMazo la
+// hace al leer, a partir de los Pokémon elegidos. El parámetro
+// `catalogo` se conserva en la firma para no romper a quien llama.
 export function buscarOpciones(texto, catalogo = [], limite = 40) {
   const q = String(texto || '')
     .toLowerCase()
@@ -42,21 +49,6 @@ export function buscarOpciones(texto, catalogo = [], limite = 40) {
   if (!q) return []
 
   const opciones = []
-
-  for (const arq of catalogo) {
-    const norm = String(arq.nombre || '').toLowerCase().replace(/[^a-z0-9]/g, '')
-    if (norm.includes(q)) {
-      opciones.push({
-        tipo: 'arquetipo',
-        valor: `a:${arq.id}`,
-        nombre: arq.nombre,
-        // Un arquetipo del catálogo ya dice qué cartas lo representan;
-        // el sprite sale de la primera que sea un Pokémon.
-        sprite: null,
-        empieza: norm.startsWith(q),
-      })
-    }
-  }
 
   for (let i = 0; i < POKEMON_POR_DEX.length; i++) {
     const plano = POKEMON_APLASTADOS[i]
@@ -102,6 +94,29 @@ export function buscarOpciones(texto, catalogo = [], limite = 40) {
     })
   }
 
+  // Los OBJETOS con sprite propio (el martillo), al primer golpe de
+  // tecla y con su sprite — sin esperar al espejo de cartas, que es lo
+  // que hacía que el martillo tardara o no saliera. El alias en español
+  // casa con lo tecleado pero enseña el nombre del catálogo (inglés),
+  // que es como está en las decklists.
+  for (const o of OBJETOS_TCG) {
+    const plano = String(o.nombre)
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+    if (!plano.includes(q)) continue
+    const visible = o.alias ? OBJETOS_TCG.find((x) => !x.alias && x.sprite === o.sprite) : o
+    if (!visible || opciones.some((x) => x.nombre === visible.nombre)) continue
+    opciones.push({
+      tipo: 'carta',
+      valor: `d:${visible.nombre.toLowerCase()}`,
+      nombre: visible.nombre,
+      sprite: visible.sprite,
+      empieza: plano.startsWith(q),
+    })
+  }
+
   // Los que EMPIEZAN por lo tecleado, delante: con «dr» hay que ver
   // «Dragapult» antes que «Beedrill», que solo lo contiene. Y NO se
   // ordena por longitud —se probó y hundía a «Dragapult» debajo de
@@ -109,9 +124,6 @@ export function buscarOpciones(texto, catalogo = [], limite = 40) {
   opciones.sort(
     (a, b) =>
       Number(b.empieza) - Number(a.empieza) ||
-      // Los catalogados delante de los sueltos: si alguien ha puesto
-      // nombre a un mazo, ese nombre es mejor que el de una especie.
-      (a.tipo === b.tipo ? 0 : a.tipo === 'arquetipo' ? -1 : 1) ||
       a.nombre.localeCompare(b.nombre)
   )
   return opciones.slice(0, limite)
