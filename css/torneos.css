@@ -312,6 +312,25 @@
   .torneo-banner { height: 120px; }
 }
 
+/* La chapa «Oficial» (tanda 246): dorada con su estrella, para los
+   torneos organizados por el equipo de PokeDoc. Sale en la tarjeta del
+   listado y en el panel del día del calendario. */
+.torneo-oficial {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.torneo-oficial svg { flex: none; }
+
 /* ── El calendario (tandas 242-243) ──
    Doce meses seguidos desde el actual, la semana empezando en lunes y
    los días con torneo en navy (pulsables). Debajo, los torneos del día
@@ -416,16 +435,42 @@
   transition: background 0.15s var(--ease, ease), transform 0.15s var(--ease, ease), box-shadow 0.15s var(--ease, ease);
 }
 .torneo-cal-dia.hoy { box-shadow: inset 0 0 0 1px var(--border-strong); }
+/* Dos colores según quién organiza (tanda 246): navy los OFICIALES del
+   equipo, hielo los de la comunidad. */
 button.torneo-cal-dia.con-torneo {
-  background: var(--navy);
-  color: #fff;
+  background: var(--ice);
+  color: var(--navy);
   font-weight: 700;
   cursor: pointer;
 }
+button.torneo-cal-dia.con-torneo.oficial {
+  background: var(--navy);
+  color: #fff;
+}
 button.torneo-cal-dia.con-torneo:hover {
-  background: var(--navy-light);
+  background: var(--ice-dark);
   transform: scale(1.18);
 }
+button.torneo-cal-dia.con-torneo.oficial:hover { background: var(--navy-light); }
+
+/* La leyenda de esos dos colores, pequeña y al lado de la cabecera. */
+.torneo-cal-leyenda {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin: -6px 0 12px;
+  font-size: 12px;
+  color: var(--text-mid);
+}
+.torneo-cal-leyenda > span { display: inline-flex; align-items: center; gap: 6px; }
+.torneo-cal-punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.torneo-cal-punto.oficial { background: var(--navy); }
+.torneo-cal-punto.comunidad { background: var(--ice); border: 1px solid var(--ice-dark); }
 button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--navy); }
 /* El panel del día entra con el mismo gesto que los meses. */
 .torneo-cal-dia-panel { animation: torneo-cal-aparece 0.25s var(--ease, ease) both; }

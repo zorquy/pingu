@@ -12,6 +12,25 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 246 — Oficial PokeDoc vs comunidad)
+**Hecho**: pedido por Ibai — distinguir los torneos del EQUIPO de los
+de la comunidad, en lista y calendario. Un torneo es «Oficial» si su
+creador (admin_id) tiene user_profiles.is_admin AHORA: cero columnas
+nuevas y cero migraciones, la marca sigue sola a quien entra o sale
+del equipo (una consulta a user_profiles por carga de lista). En la
+TARJETA del listado y en el panel del día del calendario, chapa dorada
+«★ Oficial»; en el CALENDARIO, dos colores — navy los días con torneo
+oficial, hielo los de solo-comunidad (día mixto = navy) — con su
+leyenda bajo la cabecera y el «(oficial)» en el title del día.
+**Ficheros**: js/torneos/torneos.js, css/torneos.css, SCHEMA.md. Fuera
+del repo: pruebas/stub/demo.html (la Copa Abierta pasa a organizarla
+«visitante» para que la demo tenga un torneo de comunidad; semilla
+tanda-246), pruebas/verificar-tanda-246.mjs (NUEVO).
+**En curso / pendiente**: verificado con Edge (9/9, capturas en
+pruebas/capturas). OJO PINGU: hoy todos los creadores reales son
+admins — en producción TODO saldrá Oficial hasta que la sección se
+abra; es lo esperado. SQL pendientes: los mismos de la 242.
+
 ## 2026-09-01 — IBAI-Claude (tanda 245 — el calendario por páginas de seis)
 **Hecho**: Ibai sobre la 244: «demasiados meses». El calendario pasa a
 PÁGINAS de SEIS meses (tres por fila, dos filas; en tableta 2

@@ -12171,3 +12171,32 @@ pasan de página (±6, lo que se ve es lo que se salta) y los tamaños
 de letra/padding vuelven a los de la 243 — con tres por fila el sitio
 sobra. El rango de la cabecera nombra la página. verificar-tanda-243
 actualizado (16/16).
+
+## Tanda 246 — Oficial PokeDoc vs comunidad (sept. 2026)
+
+Pedido por Ibai: que se distinga qué torneos organiza el EQUIPO y
+cuáles la comunidad, en la lista y en el calendario.
+
+- **La regla**: un torneo es oficial si su creador (`admin_id`) tiene
+  `user_profiles.is_admin` EN ESTE MOMENTO. No se guarda en el torneo
+  a propósito: cero migraciones, y la marca sigue sola a quien entra o
+  sale del equipo — «oficial» significa «lo organiza el equipo», no
+  «lo organizó». Cuesta una consulta a user_profiles por carga de
+  lista (los creadores distintos de 50 torneos); si falla, nadie sale
+  marcado y la lista sigue.
+- **En la lista**: chapa dorada «★ Oficial» (tokens warning/warning-bg,
+  icons.star) en la tarjeta, junto al estado. La misma chapa sale en
+  el panel del día del calendario.
+- **En el calendario**: dos colores de día — NAVY los que tienen algún
+  torneo oficial, HIELO los de solo-comunidad (un día mixto pinta
+  navy: es el color que más importa no perder) — con leyenda bajo la
+  cabecera y «(oficial)» en el title de cada día.
+- La demo necesitaba un torneo de comunidad para ver la diferencia: la
+  Copa Abierta pasa a organizarla «visitante» (sin is_admin). En
+  PRODUCCIÓN, mientras la sección esté en pruebas todos los creadores
+  son admins y todo saldrá Oficial — esperado; la marca cobra sentido
+  al abrir la sección.
+
+Comprobado con `pruebas/verificar-tanda-246.mjs` (9/9): la Copa sin
+chapa, los del equipo con ella, leyenda, 3 días navy y 1 hielo, y los
+paneles con y sin chapa.

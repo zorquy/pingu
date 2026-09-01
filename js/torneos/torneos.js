@@ -26,6 +26,20 @@ function semillaDePareo() {
 
 // ── La lista ──
 
+// Qué torneos son OFICIALES de PokeDoc (tanda 246, pedido por Ibai):
+// los creados por un admin del sitio; el resto son «de la comunidad».
+// Se resuelve mirando el user_profiles.is_admin ACTUAL de cada creador
+// y no se guarda en el torneo a propósito: cero migraciones, y la
+// marca sigue sola a quien entra o sale del equipo — que es lo que
+// significa «oficial»: lo organiza el equipo, no lo organizó.
+let creadoresOficiales = new Set()
+
+function esOficial(t) {
+  return creadoresOficiales.has(t.admin_id)
+}
+
+const CHAPA_OFICIAL = () => `<span class="torneo-oficial" title="Torneo oficial, organizado por el equipo de PokeDoc">${icons.star(11)} Oficial</span>`
+
 function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
   const estado = ESTADOS[t.status] || ESTADOS.draft
   const fecha = new Date(t.start_at)
@@ -54,6 +68,7 @@ function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
       </span>
     </span>
     <span class="torneo-tarjeta-chapas">
+      ${esOficial(t) ? CHAPA_OFICIAL() : ''}
       ${extra}
       <span class="torneo-estado ${estado.clase}">${estado.texto}</span>
       ${
@@ -136,6 +151,13 @@ async function cargarLista(session, perfil = null) {
     .order('start_at', { ascending: false })
     .limit(50)
   const torneos = data || []
+  // Quién de los creadores es admin del sitio → torneos oficiales. Si
+  // la consulta falla, nadie queda marcado y la lista sigue.
+  const creadores = [...new Set(torneos.map((t) => t.admin_id).filter(Boolean))]
+  if (creadores.length) {
+    const { data: perfiles } = await supabase.from('user_profiles').select('id, is_admin').in('id', creadores)
+    creadoresOficiales = new Set((perfiles || []).filter((p) => p.is_admin).map((p) => p.id))
+  }
   // El calendario pinta sobre esta misma lista: se guarda y, si es la
   // vista activa, se repinta con lo recién traído.
   torneosCargados = torneos
@@ -252,9 +274,13 @@ function pintarCalendario(direccion = 0) {
       const clave = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
       const deEsteDia = porDia.get(clave)
       const esHoy = clave === hoy ? ' hoy' : ''
+      // El color distingue quién organiza: navy los oficiales, hielo
+      // los de la comunidad. Un día con de los dos cuenta como oficial
+      // (es el color que más importa no perder).
+      const conOficial = deEsteDia?.some(esOficial) ? ' oficial' : ''
       dias += deEsteDia
-        ? `<button type="button" class="torneo-cal-dia con-torneo${esHoy}" data-cal-dia="${clave}"
-            title="${escapeHtml(deEsteDia.map((t) => t.name).join(' · '))}">${dia}</button>`
+        ? `<button type="button" class="torneo-cal-dia con-torneo${conOficial}${esHoy}" data-cal-dia="${clave}"
+            title="${escapeHtml(deEsteDia.map((t) => `${t.name}${esOficial(t) ? ' (oficial)' : ''}`).join(' · '))}">${dia}</button>`
         : `<span class="torneo-cal-dia${esHoy}">${dia}</span>`
     }
     const esMesActual = `${anio}-${mes}` === mesDeHoy
@@ -275,6 +301,10 @@ function pintarCalendario(direccion = 0) {
       <button type="button" class="btn-secondary" data-cal-mes="-6" aria-label="Página anterior">←</button>
       <strong class="torneo-cal-rango">${escapeHtml(rango)}</strong>
       <button type="button" class="btn-secondary" data-cal-mes="6" aria-label="Página siguiente">→</button>
+    </div>
+    <div class="torneo-cal-leyenda">
+      <span><span class="torneo-cal-punto oficial"></span> Oficial PokeDoc</span>
+      <span><span class="torneo-cal-punto comunidad"></span> Comunidad</span>
     </div>
     <div class="torneo-cal-meses ${claseEntrada}">${meses.join('')}</div>
     <div id="torneoCalDia"></div>`
@@ -313,6 +343,7 @@ function pintarCalendario(direccion = 0) {
             }
             <span class="torneo-cal-torneo-nombre"><strong>${escapeHtml(t.name)}</strong>
               <span class="subtext">${escapeHtml(fechaBonita(t.start_at))}</span></span>
+            ${esOficial(t) ? CHAPA_OFICIAL() : ''}
             <span class="torneo-estado ${(ESTADOS[t.status] || ESTADOS.draft).clase}">${(ESTADOS[t.status] || ESTADOS.draft).texto}</span>
           </a>`
           )
