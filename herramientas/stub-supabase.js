@@ -262,6 +262,9 @@ sembrar('__FAKE_JUECES__', 'judge_applications', (i) => ({
   status: 'pending',
 }))
 
+// Las tablas cuya política de borrado dice que no (ver `aplicar`).
+const SIN_BORRAR = (typeof window !== 'undefined' && window.__RLS_SIN_BORRAR__) || []
+
 // Las llamadas a RPC, para que una prueba pueda comprobarlas.
 const RPCS = []
 
@@ -323,6 +326,12 @@ function consulta(tabla, estado = {}) {
 
   const aplicar = () => {
     let filas = tabla === 'forum_boards_resumen' ? resumenDeForos() : (T[tabla] || []).slice()
+    // Una política de borrado que dice que NO no da error: le añade a la
+    // sentencia un filtro que no casa con nada, y el DELETE se va sin
+    // haber tocado ninguna fila. Se simula igual, con un filtro, porque
+    // es literalmente lo que hace Postgres — y así una prueba puede
+    // comprobar que la página se entera de que no ha borrado nada.
+    if (st.op === 'delete' && SIN_BORRAR.includes(tabla)) filas = []
     for (const f of st.filtros) filas = filas.filter(f)
     if (st.ordenes?.length) {
       filas.sort((a, b) => {
@@ -373,7 +382,13 @@ function consulta(tabla, estado = {}) {
       // QUÉ se borró, solo que algo desapareció.
       anotarEscritura(tabla, afectadas.map((f) => ({ ...f })), 'delete')
       T[tabla] = (T[tabla] || []).filter((f) => !afectadas.includes(f))
-      return { data: null, error: null }
+      // Como PostgREST: un DELETE devuelve cuerpo SOLO si se pidió
+      // (supabase-js manda `Prefer: return=representation` al encadenar
+      // .select()). Sin eso, `data` es null aunque se haya borrado —
+      // y esa diferencia importa: es como se distingue «borrado» de
+      // «la política no dejó borrar nada», que no da error.
+      const copia = afectadas.map((f) => ({ ...f }))
+      return { data: st.devuelve ? copia : null, error: null }
     }
     // Lecturas
     if (st.soloCuenta) return { data: null, count: contar(), error: null }
@@ -395,6 +410,7 @@ function consulta(tabla, estado = {}) {
       )
       return consulta(tabla, {
         ...st,
+        devuelve: true,
         pideCuenta: opciones.count === 'exact' || st.pideCuenta,
         soloCuenta: opciones.head === true || st.soloCuenta,
       })

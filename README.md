@@ -22,7 +22,11 @@ rama que Netlify no despliega cumple las dos cosas.
   usan las páginas de torneos del cliente de verdad: el encadenado
   `select/eq/in/is/order/limit` con `maybeSingle`/`single`, y las
   escrituras, que se apuntan en `sessionStorage` para poder comprobar
-  QUÉ se guardó aunque la página navegue después.
+  QUÉ se guardó aunque la página navegue después. Desde la tanda 247 un
+  DELETE solo devuelve cuerpo si se encadenó `.select()` —como hace
+  PostgREST— y `window.__RLS_SIN_BORRAR__` simula una política de
+  borrado que dice que no: se va sin tocar nada y SIN dar error, que es
+  lo que hace Postgres de verdad.
 - `herramientas/sync-forum.sh` — copia el sitio al entorno de pruebas y
   vuelve a poner el doble en su sitio. **Hay que correrlo antes de cada
   prueba de navegador**: las pruebas leen de la copia, no del repo.
@@ -75,6 +79,13 @@ dentro del propio test.
   - `test-foro-2` — la vista de un tema: mensajes en orden, el contador
     de visitas, responder, el candado (un miembro no escribe, el equipo
     sí) y las reacciones (poner, quitar, y que en lo tuyo no haya botón).
+  - `test-tanda-247` — BORRAR UN TEMA (quién ve el botón: equipo, autor
+    sin respuestas, y nadie más; los dos toques de confirmación; que se
+    borre y vuelva al foro; y que si la política dice que no, la página
+    se entere en vez de mentir) y el ANUNCIO DEL TORNEO (que el
+    desplegable llegue con «Juego → Torneos» puesto, agrupado por
+    secciones, con los subforos detrás de su padre, y que el hilo se
+    abra ahí de verdad).
 
 ## Lo que FALTA
 
@@ -83,4 +94,6 @@ rehacerlas. Mientras tanto, un cambio en esas zonas sale a producción
 sin nada que lo frene.
 
 Del foro quedan sin cubrir las piezas de alrededor: encuestas, no
-leídos, suscripciones, búsqueda, menciones, firmas y moderación.
+leídos, suscripciones, búsqueda, menciones y firmas. De moderación solo
+está cubierto el borrado de un tema (tanda 247); fijar, cerrar, mover y
+marcar como resuelto siguen sin red.
