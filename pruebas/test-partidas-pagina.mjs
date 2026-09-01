@@ -17,8 +17,16 @@ const browser = await chromium.launch()
 const MAZO_MIO = { pokemon: [{ quantity: 3, name: 'Dragapult ex', set: 'TWM', number: '130' }], trainer: [], energy: [] }
 const MAZO_RIVAL = { pokemon: [{ quantity: 3, name: 'Gardevoir ex', set: 'SVI', number: '86' }], trainer: [], energy: [] }
 
+const PNG_1x1 = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+  'base64'
+)
+
 const abrir = async (semillas = {}) => {
   const page = await browser.newPage()
+  await page.route('**/cdn.jsdelivr.net/**', (r) =>
+    r.fulfill({ status: 200, contentType: 'image/png', body: PNG_1x1 })
+  )
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e)))
   await page.addInitScript((s) => {
@@ -130,20 +138,87 @@ console.log('\n── 4. Sin cuenta ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 5. Apuntar una a mano ──')
+// El mazo ya no se escribe: se ELIGE de una lista con sprites.
+const elegirMazo = async (page, caja, texto) => {
+  await page.fill(`#${caja} input`, texto)
+  await page.waitForTimeout(250)
+  await page.click(`#${caja} .selector-mazo-opcion`)
+  await page.waitForTimeout(120)
+}
+
+console.log('\n── 5. Apuntar una a mano, eligiendo de la lista ──')
 {
   const { page } = await abrir({ semillas: SEMILLA_TORNEO })
   await page.click('#btnApuntarPartida')
-  await page.fill('#partidaMio', 'Dragapult ex')
-  await page.fill('#partidaRival', 'Raging Bolt')
+  await elegirMazo(page, 'selMio1', 'dragapult')
+  await elegirMazo(page, 'selRival1', 'raging')
   await page.selectOption('#partidaResultado', 'loss')
   await page.click('#btnGuardarPartida')
   await page.waitForTimeout(1200)
   const matriz = await page.locator('.partidas-matriz').innerText()
   check('aparece en la matriz al momento', /Raging Bolt/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 100))
   const escrito = await page.evaluate(() => (window.__TABLAS__.match_log || []).at(-1))
-  check('se guarda con la clave, no solo el nombre', escrito?.mi_mazo === 'd:dragapult ex', JSON.stringify(escrito?.mi_mazo))
+  check('se guarda con la clave, no solo el nombre', escrito?.mi_mazo === 'd:dragapult', JSON.stringify(escrito?.mi_mazo))
   check('y con el resultado que se eligió', escrito?.resultado === 'loss', escrito?.resultado)
+  check('con el sitio del desplegable', escrito?.donde === 'TCG Live', String(escrito?.donde))
+  // Y el mazo TUYO se queda puesto: quien apunta una tanda juega el
+  // mismo mazo toda la tarde.
+  check('tu mazo se queda puesto', (await page.inputValue('#selMio1 input')) === 'Dragapult')
+  check('y el del rival se limpia', (await page.inputValue('#selRival1 input')) === '')
+  await page.close()
+}
+
+console.log('\n── 6. Un mazo de DOS Pokémon ──')
+{
+  const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('#btnApuntarPartida')
+  await elegirMazo(page, 'selMio1', 'dragapult')
+  await elegirMazo(page, 'selMio2', 'dusknoir')
+  await elegirMazo(page, 'selRival1', 'gardevoir')
+  await page.click('#btnGuardarPartida')
+  await page.waitForTimeout(900)
+  const escrito = await page.evaluate(() => (window.__TABLAS__.match_log || []).at(-1))
+  check('junta los dos en un mazo', escrito?.mi_mazo_nombre === 'Dragapult Dusknoir', String(escrito?.mi_mazo_nombre))
+  check('con su clave conjunta', escrito?.mi_mazo === 'd:dragapult dusknoir', String(escrito?.mi_mazo))
+  await page.close()
+}
+
+console.log('\n── 7. Lo que no se llegó a jugar ──')
+{
+  const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('#btnApuntarPartida')
+  await elegirMazo(page, 'selMio1', 'dragapult')
+  await page.click('[data-tipo="bye"]')
+  await page.waitForTimeout(150)
+  // Un bye no tiene rival ni resultado que elegir: pedirlos sería no
+  // dejar apuntarlo nunca.
+  check('con bye se esconde el resultado', await page.locator('#partidaResultado').isHidden())
+  await page.click('#btnGuardarPartida')
+  await page.waitForTimeout(900)
+  const escrito = await page.evaluate(() => (window.__TABLAS__.match_log || []).at(-1))
+  check('se guarda como bye', escrito?.tipo === 'bye', String(escrito?.tipo))
+  check('sin exigir mazo rival', escrito?.rival_mazo_nombre === 'Bye', String(escrito?.rival_mazo_nombre))
+
+  // Y lo importante: un bye NO puede ensuciar la matriz. Si contara,
+  // inflaría el porcentaje de un enfrentamiento que no se jugó.
+  const columnas = await page.locator('.partidas-matriz thead th').allInnerTexts()
+  check('y NO entra en la matriz', !columnas.some((c) => /Bye/i.test(c)), JSON.stringify(columnas))
+  await page.close()
+}
+
+console.log('\n── 8. Un ID sí cuenta, como empate ──')
+{
+  const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('#btnApuntarPartida')
+  await elegirMazo(page, 'selMio1', 'dragapult')
+  await elegirMazo(page, 'selRival1', 'gardevoir')
+  await page.click('[data-tipo="id"]')
+  await page.waitForTimeout(150)
+  await page.click('#btnGuardarPartida')
+  await page.waitForTimeout(900)
+  const escrito = await page.evaluate(() => (window.__TABLAS__.match_log || []).at(-1))
+  check('se guarda como ID', escrito?.tipo === 'id', String(escrito?.tipo))
+  check('y el resultado es empate, sin preguntarlo', escrito?.resultado === 'draw', String(escrito?.resultado))
   await page.close()
 }
 

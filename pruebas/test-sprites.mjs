@@ -1,4 +1,4 @@
-import { POKEMON_POR_DEX, dexDeCarta, urlDeSprite, spriteDeCarta } from '/home/user/pingu/js/torneos/sprites-pokemon.js'
+import { POKEMON_POR_DEX, POKEMON_APLASTADOS, dexDeCarta, urlDeSprite, spriteDeCarta } from '/home/user/pingu/js/torneos/sprites-pokemon.js'
 
 // Tanda 231: de «Dragapult ex» a su minisprite, como en Limitless.
 //
@@ -20,13 +20,18 @@ console.log('\n── 1. La tabla está entera y alineada ──')
   // Un desplazamiento de uno daría el Pokémon de al lado en TODOS los
   // sprites, y eso no canta a simple vista. Se ancla por los extremos y
   // por unos cuantos de en medio.
-  check('el 1 es Bulbasaur', POKEMON_POR_DEX[0] === 'bulbasaur', POKEMON_POR_DEX[0])
-  check('el 25 es Pikachu', POKEMON_POR_DEX[24] === 'pikachu', POKEMON_POR_DEX[24])
-  check('el 150 es Mewtwo', POKEMON_POR_DEX[149] === 'mewtwo', POKEMON_POR_DEX[149])
-  check('el 887 es Dragapult', POKEMON_POR_DEX[886] === 'dragapult', POKEMON_POR_DEX[886])
-  check('el 1025 es Pecharunt', POKEMON_POR_DEX[1024] === 'pecharunt', POKEMON_POR_DEX[1024])
-  check('están todos normalizados', POKEMON_POR_DEX.every((n) => /^[a-z0-9]+$/.test(n)),
-    POKEMON_POR_DEX.find((n) => !/^[a-z0-9]+$/.test(n)) || '')
+  check('el 1 es Bulbasaur', POKEMON_POR_DEX[0] === 'Bulbasaur', POKEMON_POR_DEX[0])
+  check('el 25 es Pikachu', POKEMON_POR_DEX[24] === 'Pikachu', POKEMON_POR_DEX[24])
+  check('el 150 es Mewtwo', POKEMON_POR_DEX[149] === 'Mewtwo', POKEMON_POR_DEX[149])
+  check('el 887 es Dragapult', POKEMON_POR_DEX[886] === 'Dragapult', POKEMON_POR_DEX[886])
+  check('el 1025 es Pecharunt', POKEMON_POR_DEX[1024] === 'Pecharunt', POKEMON_POR_DEX[1024])
+  // Los nombres se guardan COMO SE ESCRIBEN (tanda 233), para que el
+  // buscador de mazos enseñe «Iron Valiant» y no «Ironvaliant». La
+  // versión aplastada, que es con la que se busca, va aparte.
+  check('con su nombre de verdad', POKEMON_POR_DEX[1005] === 'Iron Valiant', POKEMON_POR_DEX[1005])
+  check('y la versión aplastada, alineada', POKEMON_APLASTADOS.length === POKEMON_POR_DEX.length)
+  check('están todas normalizadas', POKEMON_APLASTADOS.every((n) => /^[a-z0-9]+$/.test(n)),
+    POKEMON_APLASTADOS.find((n) => !/^[a-z0-9]+$/.test(n)) || '')
 }
 
 console.log('\n── 2. El nombre de la carta encuentra su especie ──')
