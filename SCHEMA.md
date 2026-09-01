@@ -11972,3 +11972,44 @@ fecha, y el ciclo elegir/vista previa/quitar en el wizard y en el
 editor. OJO: el doble de Supabase NO cubre `storage.upload`, así que
 crear un torneo con imagen en la demo falla en la subida; si la suite
 lo cubre algún día, el doble necesitará storage.
+
+## Tanda 240 — los sprites de las Megas, y la demo que se siembra sola (sept. 2026)
+
+### Las Megas
+
+El TCG de la era MEG juega cartas «Mega X ex» — en el Mundial 2026
+salieron doce distintas, algunas que ni existían como mega en el
+videojuego (Excadrill, Skarmory, Lopunny, Chandelure, Meganium,
+Froslass) — y todas caían en el sprite de su especie base. Limitless
+tiene el sprite de cada una como `<especie>-mega`.
+
+- **55 megas registradas** en `FORMAS_TCG`, generadas de una lista de
+  especies (más Charizard X/Y y Mewtwo X/Y con su letra): cada slug
+  COMPROBADO contra la CDN una a una — la única que no existe
+  (slowking-mega) no está en la lista.
+- El número de forma es SINTÉTICO (20000 + dex de la base; 21000 la
+  variante Y): desde la 236 el sprite sale del slug, y el número solo
+  es la clave interna. La `base` hace que «Mega Lucario» y «Lucario»
+  no cuenten como dos Pokémon al firmar un mazo.
+- En español la carta es «Mega-Lucario ex»: el guion se aplasta y casa
+  sin alias. La especie a secas sigue en su sprite base.
+- De regalo, el buscador de mazos ofrece cada mega como opción propia
+  («mega kanga» → Mega Kangaskhan con su sprite).
+
+### La demo se siembra sola (fuera del repo)
+
+La semilla de `/_demo` lleva VERSIÓN (`__SEMILLA_V__`): cuando una
+tanda cambia el mundo, la pestaña vieja se resiembra sola al pasar por
+/_demo y deja al usuario dentro como admin — se acabó acordarse de
+«Reiniciar el mundo». Dentro de la misma versión, lo jugado se
+respeta. Al tocar la semilla hay que subir `VERSION_SEMILLA` en
+demo.html.
+
+### Comprobado
+
+`pruebas/verificar-tanda-240.mjs` con Edge: 12/12 — resiembra
+automática con admin dentro, kangaskhan-mega / excadrill-mega /
+charizard-mega-x / «Mega-Lucario ex» en español, la especie base
+intacta, 55 formas mega, y la clasificación del Mundial pintando los
+sprites mega en las chapas (Crustle y Ogerpon Box llevan Mega
+Kangaskhan) sin ningún sprite roto.

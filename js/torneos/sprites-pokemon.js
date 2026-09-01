@@ -270,6 +270,48 @@ export const FORMAS_TCG = [
   { nombre: 'Luna Carmesí', dex: 10272, base: 901, alias: true },
 ]
 
+// ── Las MEGAS (tanda 240) ──
+//
+// El TCG de la era MEG trae cartas «Mega X ex» (Kangaskhan, Excadrill,
+// Skarmory…, algunas que ni existían como mega en el videojuego) y
+// todas caían en el sprite de la especie base. Limitless tiene el
+// sprite de CADA una como `<especie>-mega` — las 56 de esta lista
+// están comprobadas contra su CDN una a una (la única que no existe,
+// slowking-mega, no está).
+//
+// El número es SINTÉTICO (20000 + dex de la base; 21000 para la
+// variante Y): desde la tanda 236 el sprite sale del slug y el número
+// solo es la clave interna de forma, así que no hace falta que sea el
+// id de PokéAPI. La base va aparte para que «Mega Lucario» y «Lucario»
+// en el mismo nombre de mazo no cuenten como dos Pokémon.
+//
+// En español la carta es «Mega-Lucario ex»: el guion se aplasta y casa
+// solo, sin alias.
+const MEGAS = [
+  'Venusaur', 'Blastoise', 'Beedrill', 'Pidgeot', 'Alakazam', 'Slowbro',
+  'Gengar', 'Kangaskhan', 'Pinsir', 'Gyarados', 'Aerodactyl', 'Victreebel',
+  'Starmie', 'Dragonite', 'Ampharos', 'Steelix', 'Scizor', 'Heracross',
+  'Houndoom', 'Tyranitar', 'Meganium', 'Sceptile', 'Blaziken', 'Swampert',
+  'Gardevoir', 'Sableye', 'Mawile', 'Aggron', 'Medicham', 'Manectric',
+  'Banette', 'Absol', 'Glalie', 'Salamence', 'Metagross', 'Latias',
+  'Latios', 'Rayquaza', 'Lopunny', 'Garchomp', 'Lucario', 'Abomasnow',
+  'Gallade', 'Audino', 'Diancie', 'Camerupt', 'Skarmory', 'Excadrill',
+  'Chandelure', 'Froslass', 'Sharpedo',
+]
+for (const especie of MEGAS) {
+  const base = DEX_POR_NOMBRE.get(aplastar(especie))
+  if (!base) continue
+  FORMAS_TCG.push({ nombre: `Mega ${especie}`, dex: 20000 + base, base, slug: slugLimitless(especie) + '-mega' })
+}
+// Las que vienen en dos sabores llevan la letra en el nombre, como en
+// la carta («Mega Charizard X ex»).
+FORMAS_TCG.push(
+  { nombre: 'Mega Charizard X', dex: 20006, base: 6, slug: 'charizard-mega-x' },
+  { nombre: 'Mega Charizard Y', dex: 21006, base: 6, slug: 'charizard-mega-y' },
+  { nombre: 'Mega Mewtwo X', dex: 20150, base: 150, slug: 'mewtwo-mega-x' },
+  { nombre: 'Mega Mewtwo Y', dex: 21150, base: 150, slug: 'mewtwo-mega-y' }
+)
+
 // La especie de cada forma, para que «Ogerpon Máscara Fuente» (especie
 // + forma) no cuente como dos Pokémon distintos al agrupar mazos.
 export const BASE_DE_FORMA = new Map(FORMAS_TCG.map((f) => [f.dex, f.base]))

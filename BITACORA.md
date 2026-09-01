@@ -12,6 +12,23 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 240 — los sprites de las Megas y la demo que se siembra sola)
+**Hecho**: (1) MEGAS: 55 formas «Mega X» registradas en FORMAS_TCG
+(generadas de una lista de especies + Charizard/Mewtwo X e Y), cada
+slug `<especie>-mega` comprobado contra la CDN de Limitless; números
+sintéticos (20000+base) porque desde la 236 el sprite sale del slug.
+«Mega-Lucario ex» en español casa solo (el guion se aplasta). El
+buscador ofrece cada mega como opción. (2) La demo local se resiembra
+SOLA cuando la semilla cambia de versión (__SEMILLA_V__ en demo.html)
+y deja al usuario como admin — pedido por Ibai («lo típico de tener ya
+todo creado y dejarme acceder con admin»).
+**Ficheros**: js/torneos/sprites-pokemon.js, SCHEMA.md. Fuera del
+repo: pruebas/stub/demo.html, pruebas/verificar-tanda-240.mjs (NUEVO).
+**En curso / pendiente**: verificado con Edge (12/12). PINGU: al tocar
+la semilla de la demo, sube VERSION_SEMILLA en demo.html. Pendientes
+de Ibai los TRES SQL (236: partidas-torneos y seed del Mundial; 239:
+torneos-imagen).
+
 ## 2026-09-01 — IBAI-Claude (tanda 239 — la imagen del torneo)
 **Hecho**: pedido por Ibai — un torneo puede llevar icono/imagen y el
 listado la enseña. Columna nueva `tournaments.image_url`
