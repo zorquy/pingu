@@ -133,7 +133,9 @@
           <label>Suizas al mejor de
             <select id="torneoSwissBo"><option value="1" selected>1</option><option value="3">3</option></select>
           </label>
-          <label>Corte al mejor de
+          <!-- Sin corte no hay «al mejor de» que elegir: torneos.js lo
+               esconde cuando el corte es 0 (tanda 241). -->
+          <label id="torneoCorteBoCampo">Corte al mejor de
             <select id="torneoCorteBo"><option value="1">1</option><option value="3" selected>3</option></select>
           </label>
         </div>
@@ -145,9 +147,16 @@
           <div id="torneoJornadasLista"></div>
           <button type="button" class="btn-secondary torneo-anadir-jornada" id="btnAnadirJornada">+ Añadir jornada</button>
         </fieldset>
-        <label class="torneo-check-campo">
-          <input type="checkbox" id="torneoListasRivales" />
-          <span><strong>Listas a la vista entre rivales.</strong> Los jugadores podrán ver las decklists de sus rivales desde la clasificación, una vez selladas al empezar la primera ronda.</span>
+        <!-- Las listas de los rivales, en TRES modos (tanda 241): lo
+             normal es al terminar; «desde la ronda 1» es el formato de
+             lista abierta; «nunca» para quien no quiera enseñar nada. -->
+        <label class="torneos-form-campo">Listas de los rivales
+          <select id="torneoListasModo">
+            <option value="al_terminar" selected>Públicas cuando termine el torneo</option>
+            <option value="en_juego">Públicas desde la ronda 1 (lista abierta)</option>
+            <option value="nunca">Nunca públicas</option>
+          </select>
+          <span class="torneo-campo-pista">Decide cuándo pueden verse las decklists (y los mazos) de los demás en la clasificación. El organizador y los jueces las ven siempre.</span>
         </label>
       </section>
 

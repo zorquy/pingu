@@ -12013,3 +12013,55 @@ charizard-mega-x / «Mega-Lucario ex» en español, la especie base
 intacta, 55 formas mega, y la clasificación del Mundial pintando los
 sprites mega en las chapas (Crustle y Ogerpon Box llevan Mega
 Kangaskhan) sin ningún sprite roto.
+
+## Tanda 241 — el wizard más fino: el corte y los tres modos de listas (sept. 2026)
+
+Dos pulidos del crear/editar torneo, pedidos por Ibai.
+
+### Sin corte, sin «al mejor de»
+
+Elegir «Sin corte» dejaba a la vista el «Corte al mejor de», que ya no
+decide nada. Ahora el campo se esconde cuando el corte es 0 y vuelve
+al elegir un corte — en el wizard (también cuando la tabla oficial
+rellena el corte al cambiar las plazas, y tras crear un torneo, que el
+reset devuelve el Top 4 por defecto) y en el editor de la ficha.
+
+### Las listas de los rivales, en tres modos
+
+La casilla «listas a la vista» se queda corta: hay organizadores que
+no quieren enseñar las listas NI al terminar. Tres modos
+(`tournaments.decklist_visibility`,
+`supabase-migration-torneos-listas.sql`):
+
+- **al_terminar** (defecto, lo de siempre): visibles cuando el torneo
+  termina.
+- **en_juego** (la casilla vieja marcada): lista abierta, visibles
+  desde la ronda 1.
+- **nunca** (NUEVO): ni al terminar — solo dueño, organizador y
+  jueces. OJO: un torneo «nunca» tampoco alimenta los arquetipos de la
+  clasificación ni el historial de /mis-partidas de sus jugadores, que
+  se deducen de las listas; es el precio de la regla y es coherente
+  con ella.
+
+Decisiones dentro:
+
+- **La política RLS manda**: la migración REHACE `decklists_ver` (la
+  de torneos-publico) con los tres modos, porque el «nunca» tiene que
+  cumplirse en la base y no solo en lo que se pinta. Por eso debe
+  ejecutarse DESPUÉS de supabase-migration-torneos-publico.sql (usa
+  sus funciones torneos_soy_admin/juez).
+- **El booleano viejo no se borra**: el cliente escribe los dos campos
+  en sincronía (en_juego ⇄ true) y `puedenVerseLasListas()` usa el
+  modo nuevo con el booleano de respaldo. Código viejo y filas viejas
+  siguen entendiéndose; solo el «nunca» necesita la columna nueva.
+- **Crear/editar no se rompe sin la migración**: si el insert/update
+  falla por la columna desconocida, se reintenta sin ella (mismo truco
+  que con image_url). El comprobador de /admin avisa de lo que falta.
+
+### Comprobado
+
+`pruebas/verificar-tanda-241.mjs` con Edge: 11/11 — esconder/enseñar
+el BO del corte en wizard y editor, los tres modos en ambos
+formularios, la liga de la demo (booleano viejo marcado) hereda
+«en_juego» y enseña «Ver lista» en juego, y el Mundial terminado
+conserva sus chapas.

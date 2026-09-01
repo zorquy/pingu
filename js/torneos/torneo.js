@@ -310,7 +310,7 @@ function pintarEditor() {
         <label>Minutos por ronda<input type="number" id="editarMinutos" min="5" max="120" value="${torneo.round_time_minutes}" ${bloqueo} /></label>
         <label>Check-in (min)<input type="number" id="editarCheckin" min="0" max="30" value="${torneo.checkin_minutes ?? 5}" /></label>
         <label>Suizas al mejor de<select id="editarSwissBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.swiss_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
-        <label>Corte al mejor de<select id="editarCorteBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.top_cut_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <label id="editarCorteBoCampo" class="${torneo.top_cut_size ? '' : 'hidden'}">Corte al mejor de<select id="editarCorteBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.top_cut_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       </div>
       ${
         esLiga
@@ -321,9 +321,20 @@ function pintarEditor() {
             </fieldset>`
           : ''
       }
-      <label class="torneo-check-campo">
-        <input type="checkbox" id="editarListasRivales" ${torneo.show_opponent_decklists ? 'checked' : ''} />
-        <span><strong>Listas a la vista entre rivales.</strong> Podrán ver las decklists de sus rivales desde la clasificación, una vez selladas.</span>
+      <label class="torneos-form-campo">Listas de los rivales
+        <select id="editarListasModo">
+          ${[
+            ['al_terminar', 'Públicas cuando termine el torneo'],
+            ['en_juego', 'Públicas desde la ronda 1 (lista abierta)'],
+            ['nunca', 'Nunca públicas'],
+          ]
+            .map(
+              ([valor, texto]) =>
+                `<option value="${valor}" ${(torneo.decklist_visibility || (torneo.show_opponent_decklists ? 'en_juego' : 'al_terminar')) === valor ? 'selected' : ''}>${texto}</option>`
+            )
+            .join('')}
+        </select>
+        <span class="torneo-campo-pista">Cuándo pueden verse las decklists (y los mazos) de los demás. El organizador y los jueces las ven siempre.</span>
       </label>
       <div class="torneos-form-campo">Imagen del torneo
         <div class="torneo-imagen-campo">
@@ -383,6 +394,10 @@ function pintarEditor() {
   $('editarSinLimite').addEventListener('change', () => {
     $('editarPlazas').disabled = estructuraBloqueada || $('editarSinLimite').checked
   })
+  // Sin corte no hay «al mejor de» que elegir (tanda 241).
+  $('editarCorte').addEventListener('change', () => {
+    $('editarCorteBoCampo').classList.toggle('hidden', !Number($('editarCorte').value))
+  })
   // La imagen: elegir con vista previa, o quitar la que hay.
   editarImagenNueva = undefined
   $('btnEditarImagen').addEventListener('click', () => $('editarImagenInput').click())
@@ -440,12 +455,16 @@ async function guardarEdicion() {
       }
     }
   }
+  const modoListas = $('editarListasModo').value
   const cambios = {
     name: nombre,
     start_at: new Date(fecha).toISOString(),
     description: editarDescripcionHtml || null,
     checkin_minutes: Number($('editarCheckin').value),
-    show_opponent_decklists: $('editarListasRivales').checked,
+    // El modo nuevo manda; el booleano viejo se mantiene en sincronía
+    // porque la política RLS y el código pre-migración lo leen.
+    decklist_visibility: modoListas,
+    show_opponent_decklists: modoListas === 'en_juego',
   }
   // La imagen (tanda 239): solo si se tocó. Se sube aquí y no al
   // elegirla, para que cerrar el editor sin guardar no deje ficheros
@@ -474,7 +493,13 @@ async function guardarEdicion() {
     cambios.swiss_bo = Number($('editarSwissBo').value)
     cambios.top_cut_bo = Number($('editarCorteBo').value)
   }
-  const { error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id)
+  let { error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id)
+  // Si la migración de la columna nueva aún no se ejecutó, se guarda
+  // sin ella: el booleano viejo dice lo mismo salvo el «nunca».
+  if (error && (error.message || '').includes('decklist_visibility')) {
+    delete cambios.decklist_visibility
+    ;({ error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id))
+  }
   if (error) {
     avisarError(error, 'No se ha podido guardar')
     return

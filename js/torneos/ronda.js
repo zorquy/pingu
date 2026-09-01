@@ -1152,8 +1152,13 @@ function jornadasConPuntos() {
 // Esto decide lo que se PINTA. Lo que de verdad impide leer la lista de
 // otro es la política de la base, que dice lo mismo.
 function puedenVerseLasListas() {
+  // TRES modos desde la tanda 241 (antes era un booleano): el modo
+  // nuevo manda y el booleano viejo hace de respaldo para torneos de
+  // antes de la migración.
+  const modo = ctx.torneo.decklist_visibility || (ctx.torneo.show_opponent_decklists ? 'en_juego' : 'al_terminar')
+  if (modo === 'nunca') return false
   if (ctx.torneo.status === 'finished') return true
-  return ctx.torneo.show_opponent_decklists === true && ctx.torneo.status === 'in_progress'
+  return modo === 'en_juego' && ctx.torneo.status === 'in_progress'
 }
 
 async function abrirListaRival(userId) {

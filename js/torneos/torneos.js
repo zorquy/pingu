@@ -303,6 +303,20 @@ function pasoValido(n) {
   return true
 }
 
+// Los tres modos de las listas (tanda 241), con su texto para el
+// resumen del wizard.
+const TEXTO_MODO_LISTAS = {
+  al_terminar: 'Públicas al terminar',
+  en_juego: 'Públicas desde la ronda 1',
+  nunca: 'Nunca públicas',
+}
+
+// Sin corte no hay «al mejor de» que elegir: el campo se esconde
+// cuando el corte es 0 (lo pidió Ibai en la tanda 241).
+function pintarCorteBo() {
+  $('torneoCorteBoCampo').classList.toggle('hidden', !Number($('torneoCorte').value))
+}
+
 function pintarResumen() {
   const corte = Number($('torneoCorte').value)
   const liga = esLigaElegida()
@@ -315,7 +329,7 @@ function pintarResumen() {
     ['Top cut', corte ? `Top ${corte} · BO${$('torneoCorteBo').value}` : 'Sin corte'],
     ['Ronda', `${$('torneoMinutos').value} min`],
     ['Check-in', `${$('torneoCheckin').value} min`],
-    ['Listas rivales', $('torneoListasRivales').checked ? 'Visibles en la clasificación' : 'Solo jueces y organizador'],
+    ['Listas rivales', TEXTO_MODO_LISTAS[$('torneoListasModo').value] || '—'],
     ['Inscripción', 'Gratuita'],
   ]
   if (liga) {
@@ -414,7 +428,7 @@ function engancharFormulario(session, perfil) {
     // El tipo y la visibilidad de listas se copian; las fechas de las
     // jornadas no (una liga nueva se juega en días nuevos).
     $('torneoTipo').value = viejo.format === 'league' ? 'league' : 'standard'
-    $('torneoListasRivales').checked = viejo.show_opponent_decklists === true
+    $('torneoListasModo').value = viejo.decklist_visibility || (viejo.show_opponent_decklists ? 'en_juego' : 'al_terminar')
     const semanaQueViene = new Date(Date.now() + 7 * 86400e3)
     semanaQueViene.setMinutes(semanaQueViene.getMinutes() - semanaQueViene.getTimezoneOffset())
     $('torneoFecha').value = semanaQueViene.toISOString().slice(0, 16)
@@ -423,6 +437,7 @@ function engancharFormulario(session, perfil) {
     pintarSinLimite()
     $('torneoRondas').value = viejo.swiss_rounds
     $('torneoCorte').value = String(viejo.top_cut_size ?? 0)
+    pintarCorteBo()
     if ($('torneoMinutos')) $('torneoMinutos').value = viejo.round_time_minutes
     if ($('torneoCheckin') && viejo.checkin_minutes != null) $('torneoCheckin').value = viejo.checkin_minutes
     void montarEditorDescripcion(session, viejo.description || '')
@@ -447,8 +462,10 @@ function engancharFormulario(session, perfil) {
     $('torneoRondas').value = swissRounds
     const corte = $('torneoCorte')
     if ([...corte.options].some((o) => Number(o.value) === topCutSize)) corte.value = String(topCutSize)
+    pintarCorteBo()
     pintarCamposJornadas()
   })
+  $('torneoCorte').addEventListener('change', pintarCorteBo)
   $('torneoSinLimite').addEventListener('change', pintarSinLimite)
   // El tipo y el número de rondas gobiernan los campos de jornadas.
   $('torneoTipo').addEventListener('change', () => pintarCamposJornadas())
@@ -506,7 +523,12 @@ function engancharFormulario(session, perfil) {
         return
       }
     }
-    const { error } = await supabase.from('tournaments').insert({
+    // El modo de listas se guarda por partida doble: la columna nueva
+    // (la que manda) y el booleano viejo, que la política RLS y el
+    // código anterior a la migración siguen leyendo.
+    const modoListas = $('torneoListasModo').value
+    const fila = {
+      decklist_visibility: modoListas,
       image_url: imageUrl,
       slug: `${slugify(nombre)}-${Date.now().toString(36)}`,
       admin_id: session.user.id,
@@ -516,7 +538,7 @@ function engancharFormulario(session, perfil) {
       status: 'draft',
       format: liga ? 'league' : 'standard',
       matchday_dates: liga ? fechasDeJornadas().map((f) => new Date(f).toISOString()) : null,
-      show_opponent_decklists: $('torneoListasRivales').checked,
+      show_opponent_decklists: modoListas === 'en_juego',
       max_players: sinLimiteElegido() ? null : Number($('torneoPlazas').value),
       swiss_rounds: Number($('torneoRondas').value),
       round_time_minutes: Number($('torneoMinutos').value),
@@ -525,7 +547,19 @@ function engancharFormulario(session, perfil) {
       top_cut_bo: Number($('torneoCorteBo').value),
       top_cut_size: Number($('torneoCorte').value),
       pairing_seed: semillaDePareo(),
-    })
+    }
+    let { error } = await supabase.from('tournaments').insert(fila)
+    // Entre el despliegue y que un humano ejecute las migraciones de
+    // las columnas nuevas pueden pasar horas, y en ese rato crear
+    // torneos tiene que seguir funcionando: si la base no conoce una
+    // columna, se reintenta sin ella (del modo de listas queda el
+    // booleano viejo, que dice lo mismo salvo el «nunca»).
+    for (const columna of ['decklist_visibility', 'image_url']) {
+      if (error && (error.message || '').includes(columna)) {
+        delete fila[columna]
+        ;({ error } = await supabase.from('tournaments').insert(fila))
+      }
+    }
     enviando = false
     if (error) {
       showToast(
@@ -544,6 +578,7 @@ function engancharFormulario(session, perfil) {
     $('torneoDescCuerpo').innerHTML = ''
     imagenElegida = null
     pintarImagenElegida()
+    pintarCorteBo()
     pintarCamposJornadas()
     pintarSinLimite()
     irAPaso(0)

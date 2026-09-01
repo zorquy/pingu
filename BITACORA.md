@@ -12,6 +12,31 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 241 — el wizard más fino: corte y listas)
+**Hecho**: dos pulidos del crear/editar torneo pedidos por Ibai. (1)
+Con «Sin corte» el campo «Corte al mejor de» se ESCONDE (wizard y
+editor; reaparece al elegir un corte, también cuando lo rellena la
+tabla oficial al cambiar plazas). (2) Las listas de los rivales pasan
+de casilla a TRES MODOS: públicas al terminar (defecto, lo de
+siempre), públicas desde la R1 (la casilla vieja marcada) y NUNCA
+públicas (nuevo). Columna `tournaments.decklist_visibility`
+(supabase-migration-torneos-listas.sql, que además REHACE la política
+decklists_ver para que el «nunca» se cumpla en la base — ejecutar
+DESPUÉS de torneos-publico). El booleano viejo queda en sincronía como
+respaldo; el cliente reintenta sin la columna nueva si la migración no
+corrió, así que crear/editar no se rompe entre despliegue y SQL.
+**Ficheros**: torneos.html, js/torneos/torneos.js, js/torneos/torneo.js,
+js/torneos/ronda.js, js/schema-check.js,
+supabase-migration-torneos-listas.sql (NUEVO), SCHEMA.md. Fuera del
+repo: pruebas/verificar-tanda-241.mjs (NUEVO).
+**En curso / pendiente**: verificado con Edge (11/11: esconder/enseñar
+el BO del corte en wizard y editor, los 3 modos en ambos, la liga con
+el booleano viejo hereda «en_juego» y el Mundial terminado conserva
+chapas). PINGU: el DOM cambia — #torneoListasModo/#editarListasModo
+(select) sustituyen a los checkbox torneoListasRivales /
+editarListasRivales, y hay #torneoCorteBoCampo/#editarCorteBoCampo.
+SQL pendientes de Ibai: los tres de antes + torneos-listas.
+
 ## 2026-09-01 — IBAI-Claude (tanda 240 — los sprites de las Megas y la demo que se siembra sola)
 **Hecho**: (1) MEGAS: 55 formas «Mega X» registradas en FORMAS_TCG
 (generadas de una lista de especies + Charizard/Mewtwo X e Y), cada
