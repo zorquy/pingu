@@ -47,10 +47,45 @@ function esEnergiaBasica(linea) {
   return /^basic\b|b[áa]sica/i.test(linea.name)
 }
 
+// Los códigos que un admin ha asignado a mano desde /admin, en
+// site_settings. Existen porque la tabla de comun.js está escrita a mano
+// y se queda corta CADA VEZ que sale un set: el 2026-09-01 una lista
+// traía ASC, POR, CRI y MEE, y ninguno estaba — las cartas de esos
+// cuatro sets salían sin imagen y nadie podía arreglarlo sin desplegar.
+//
+// Con esto se arregla desde el panel en un minuto y sin tocar código.
+// Manda sobre la tabla del código: si algo está mal ahí, se corrige
+// aquí sin esperar a nadie.
+let codigosDeAdmin = null
+async function overridesDeSets() {
+  if (codigosDeAdmin) return codigosDeAdmin
+  try {
+    const { data } = await supabase.from('site_settings').select('value').eq('key', 'torneos_sets_live').maybeSingle()
+    codigosDeAdmin = data?.value?.codigos || {}
+  } catch {
+    codigosDeAdmin = {}
+  }
+  return codigosDeAdmin
+}
+
 async function setDeCodigo(codigo) {
-  const nombre = nombreDeSetLive(codigo)
-  if (!nombre) return null
   if (setsPorCodigo.has(codigo)) return setsPorCodigo.get(codigo)
+  const clave = String(codigo || '').toUpperCase()
+
+  // 1. Lo que haya dicho un admin, que va directo al identificador del
+  //    set y se salta la búsqueda por nombre.
+  const overrides = await overridesDeSets()
+  if (overrides[clave]) {
+    setsPorCodigo.set(codigo, overrides[clave])
+    return overrides[clave]
+  }
+
+  // 2. Y si no, la tabla del código, que busca por el nombre del set.
+  const nombre = nombreDeSetLive(clave)
+  if (!nombre) {
+    setsPorCodigo.set(codigo, null)
+    return null
+  }
   let setId = null
   try {
     const { data } = await supabase.from('tcg_sets').select('id').eq('market', 'WEST').eq('name', nombre).limit(1)
@@ -60,6 +95,20 @@ async function setDeCodigo(codigo) {
   }
   setsPorCodigo.set(codigo, setId)
   return setId
+}
+
+// Los códigos de set que aparecen en una lista y que NO sabemos
+// resolver. Es lo que el panel de /admin enseña para que se puedan
+// asignar: sin esto, un set nuevo se queda sin imágenes en silencio y
+// hay que descubrirlo mirando decklists a mano.
+export async function codigosSinResolver(parsed) {
+  const lineas = [...(parsed?.pokemon || []), ...(parsed?.trainer || []), ...(parsed?.energy || [])]
+  const codigos = [...new Set(lineas.map((l) => String(l.set || '').toUpperCase()).filter(Boolean))]
+  const sinResolver = []
+  for (const c of codigos) {
+    if (!(await setDeCodigo(c))) sinResolver.push(c)
+  }
+  return sinResolver
 }
 
 async function resolverCarta(linea) {

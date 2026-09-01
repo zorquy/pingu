@@ -27,6 +27,8 @@
 // El catálogo se llena así, con lo que la gente juega de verdad, en vez
 // de tener que sentarse a rellenar el meta entero de una vez.
 
+import { dexDeCarta } from './sprites-pokemon.js'
+
 // Nombres sin tildes, sin mayúsculas y sin dobles espacios. Vive aquí y
 // no se importa de tcgdex.js a propósito: este módulo NO toca la red ni
 // el DOM, y así se puede probar entero en Node.
@@ -125,8 +127,43 @@ export function deducirIconos(parsed) {
   // existen), se vuelve a la lista sin filtrar: mejor un nombre regular
   // que ninguno.
   const buenas = puntuadas.filter((x) => x.puntos > 0)
-  return (buenas.length ? buenas : puntuadas)
-    .slice(0, 2)
+  const candidatas = buenas.length ? buenas : puntuadas
+  const primera = candidatas[0]
+  if (!primera) return []
+
+  // ── El segundo icono es el que se equivoca ──
+  //
+  // Con una lista de verdad (la de PINGU del 2026-09-01) salía
+  // «Dragapult ex Meowth ex»: Meowth ex era UNA copia, una carta de
+  // tecnología que nadie usa para nombrar un mazo. Y quitándola salía
+  // «Dragapult ex Drakloak», que es peor: Drakloak es la evolución
+  // intermedia del mismo Pokémon.
+  //
+  // Dos reglas, y la segunda es la interesante:
+  //
+  //   1. Una sola copia es una carta suelta, no el nombre del mazo.
+  //   2. La PREEVOLUCIÓN de lo que ya hemos elegido tampoco: en la
+  //      Pokédex, una preevolución está justo debajo de su evolución
+  //      (Dreepy 885, Drakloak 886, Dragapult 887). Se descartan los
+  //      tres números anteriores al del primer icono.
+  //
+  // Es una regla aproximada —hay líneas que no van seguidas, como
+  // Dusclops y Dusknoir— pero se apoya en un dato de verdad en vez de
+  // en una lista de nombres escrita a mano, que habría que ampliar cada
+  // temporada.
+  //
+  // Si tras filtrar no queda ningún segundo digno, se enseña UN SOLO
+  // icono. Un mazo de un solo Pokémon se llama por ese Pokémon.
+  const dexPrimera = dexDeCarta(primera.linea.name)
+  const segunda = candidatas.slice(1).find((x) => {
+    if ((Number(x.linea.quantity) || 0) < 2) return false
+    const dex = dexDeCarta(x.linea.name)
+    if (dexPrimera && dex && dex < dexPrimera && dex >= dexPrimera - 3) return false
+    return true
+  })
+
+  return [primera, segunda]
+    .filter(Boolean)
     .map(({ linea }) => ({ set: linea.set, numero: linea.number, nombre: linea.name }))
 }
 

@@ -12,6 +12,37 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — PINGU-Claude (tanda 232 — la lista en español y los sets que faltaban)
+**Hecho**: PINGU pegó una decklist de verdad exportada en ESPAÑOL y
+salieron dos fallos. (1) El parser solo entendía cabeceras en inglés, y
+lo peor no era el error: como «Entrenador:» y «Energía:» no casaban, sus
+41 cartas se quedaban en la sección de POKÉMON y el total daba 60 — la
+lista parecía correcta y estaba mal por dentro, y eso se llevaba por
+delante el arquetipo. Ahora se normaliza la línea y se comparan palabras
+en los seis idiomas de TCG Live. DESVIACIÓN DE LA SPEC de TrainerArena,
+anotada: el motor original es solo inglés. (2) Los códigos de set ASC,
+POR, CRI y MEE no estaban en la tabla escrita a mano de comun.js, así
+que esas cartas salían sin imagen y no había forma de arreglarlo sin
+desplegar. Ahora se asignan desde /admin → Cartas, se guardan en
+site_settings y mandan sobre la tabla; y al buscar sets en TCGdex se
+intenta rellenarlos solos. (3) De propina, el segundo icono del
+arquetipo: con la lista de verdad salía «Dragapult ex Meowth ex» (una
+carta de tecnología de 1 copia) y quitando los 1-de salía «Dragapult ex
+Drakloak» (la evolución intermedia). Se descartan los 1-de y las
+preevoluciones —detectadas con la Pokédex, que están justo debajo— y si
+no queda un segundo digno se enseña UN solo icono. Esa lista pasa a
+salir como «Dragapult ex».
+**Ficheros**: js/torneos/motor.js, js/torneos/arquetipos.js,
+js/torneos/cartas-decklist.js, admin/index.html, admin/js/admin.js,
+SCHEMA.md.
+**En curso / pendiente**: PINGU tiene que entrar en /admin → Cartas y
+asignar ASC, POR, CRI y MEE a sus sets (los conoce él; yo no me los
+invento). Sin eso, esas cartas siguen sin imagen. NO hace falta ninguna
+migración. ⚠️ El relleno automático desde TCGdex NO está verificado: el
+contenedor no tiene salida a internet, así que se prueban cuatro nombres
+de campo candidatos y el panel dice cuántos códigos ha traído. Si dice
+0, hay que mirar cómo se llama el campo de verdad.
+
 ## 2026-08-31 — PINGU-Claude (tanda 231 — minisprites, como Limitless)
 **Hecho**: PINGU pidió los iconos «como Limitless y trainingcourt», con
 minisprites de Pokémon en vez de las miniaturas de carta de la 230. El

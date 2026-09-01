@@ -339,6 +339,31 @@
 
         <div class="admin-stats-grid" id="cardsSummary"></div>
 
+        <div class="admin-card" style="margin-bottom: 20px;">
+          <h3 style="margin-top: 0;">Códigos de set de TCG Live</h3>
+          <p class="admin-note">
+            Cuando alguien pega una decklist, cada línea trae el código del set tal como lo escribe
+            TCG Live («TWM 128»). Ese código se traduce a un set nuestro para poder enseñar la
+            imagen de la carta. La traducción va en el código de la web, y por eso <strong>se queda
+            corta cada vez que sale un set nuevo</strong>: hasta que alguien despliegue, esas cartas
+            salen sin imagen.
+          </p>
+          <p class="admin-note">
+            Aquí se arregla sin esperar a nadie. Lo que pongas manda sobre lo que traiga el código.
+            Si pulsas «Buscar sets en TCGdex» y su catálogo trae el código, se rellena solo.
+          </p>
+          <div id="setsLiveLista"></div>
+          <div class="foro-admin-fila">
+            <input type="text" id="setLiveCodigo" placeholder="Código (ASC)" style="max-width: 160px;" />
+            <select id="setLiveSet" aria-label="Set"></select>
+            <button class="btn-secondary" id="btnAnadirSetLive">Añadir</button>
+          </div>
+          <div class="foro-admin-fila">
+            <button class="btn-primary" id="btnGuardarSetsLive">Guardar códigos</button>
+            <span class="admin-note" id="setsLiveNota"></span>
+          </div>
+        </div>
+
         <div class="cards-import-bar">
           <button class="btn-primary" id="btnLoadTcgSets">Buscar sets en TCGdex</button>
           <button class="btn-secondary" id="btnImportPending" disabled>Importar los que faltan</button>

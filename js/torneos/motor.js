@@ -562,11 +562,45 @@ export function advanceTopCut(closedMatches) {
 
 // ── Decklists de Pokémon TCG Live (SPEC §9) ──
 
-const SECTION_HEADERS = [
-  { pattern: /^pok[eé]mon\s*:/i, section: 'pokemon' },
-  { pattern: /^trainer\s*:/i, section: 'trainer' },
-  { pattern: /^energy\s*:/i, section: 'energy' },
-]
+// Las cabeceras de sección, EN VARIOS IDIOMAS.
+//
+// DESVIACIÓN RESPECTO A LA SPEC DE TrainerArena (anotada como manda
+// CLAUDE.md): el motor original solo entiende el export en inglés,
+// porque su comunidad juega en inglés. Aquí no: PINGU exportó su lista
+// en español el 2026-09-01 y el resultado fue peor que un error — las 32
+// cartas de «Entrenador» y las 9 de «Energía» se colaban en la sección
+// de POKÉMON (la última cabecera reconocida), así que el total daba 60,
+// parecía correcto, y el mazo estaba mal clasificado por dentro.
+//
+// En vez de una lista de expresiones con tildes se normaliza la línea y
+// se comparan palabras sueltas: así «Energía», «Energia» y «ENERGÍA»
+// entran por el mismo sitio.
+const PALABRAS_DE_SECCION = {
+  pokemon: ['pokemon'],
+  // en / es / fr / de / it / pt
+  trainer: ['trainer', 'entrenador', 'dresseur', 'allenatore', 'treinador'],
+  energy: ['energy', 'energia', 'energie'],
+}
+
+// Sin tildes y en minúsculas, que es como se comparan las cabeceras.
+function sinTildes(texto) {
+  return String(texto)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
+// Una cabecera es «palabra:» y nada más (TCG Live escribe «Trainer: 32»,
+// con el recuento detrás). Se exige los dos puntos para no confundirla
+// con una carta que empiece por esa palabra.
+function seccionDeCabecera(linea) {
+  const m = sinTildes(linea).match(/^([a-z]+)\s*:/)
+  if (!m) return null
+  for (const [seccion, palabras] of Object.entries(PALABRAS_DE_SECCION)) {
+    if (palabras.includes(m[1])) return seccion
+  }
+  return null
+}
 
 const CARD_LINE = /^(\d+)\s+(.+?)\s+([A-Z]{2,6})\s+(\S+)$/
 
@@ -581,9 +615,9 @@ export function parseDecklist(rawText) {
     const line = rawLine.trim()
     if (line === '' || line.startsWith('#') || line.startsWith('//')) continue
 
-    const header = SECTION_HEADERS.find((h) => h.pattern.test(line))
+    const header = seccionDeCabecera(line)
     if (header) {
-      currentSection = header.section
+      currentSection = header
       continue
     }
     if (currentSection === null) continue
@@ -615,7 +649,7 @@ export function decklistUnparsed(rawText) {
   for (const rawLine of String(rawText).split(/\r?\n/)) {
     const line = rawLine.trim()
     if (line === '' || line.startsWith('#') || line.startsWith('//')) continue
-    if (SECTION_HEADERS.some((h) => h.pattern.test(line))) {
+    if (seccionDeCabecera(line)) {
       dentro = true
       continue
     }

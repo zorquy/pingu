@@ -11369,3 +11369,97 @@ extremos y por en medio, los sufijos, el entrenador delante, la
 puntuación rara y las formas regionales) y dos bloques nuevos en
 `test-torneos-23.mjs`. Rigor de 6 roturas, todas detectadas. Suite
 entera (17) en verde. La portada sigue en 98 KB de 170.
+
+## Tanda 232 — la decklist en español, y los sets que faltaban (sept. 2026)
+
+Dos fallos que salieron el mismo día, al pegar PINGU una lista de verdad
+exportada de TCG Live **en español**.
+
+### 1. El parser solo entendía inglés
+
+`SECTION_HEADERS` reconocía `Pokémon:`, `Trainer:` y `Energy:`. En una
+lista en español, `Entrenador:` y `Energía:` no casaban.
+
+Y el resultado era **peor que un error**: como no cambiaban de sección,
+las 32 cartas de Entrenador y las 9 de Energía se quedaban en la sección
+de POKÉMON —la última cabecera reconocida— y el total seguía dando 60.
+La lista parecía correcta y estaba mal clasificada por dentro, lo que se
+llevaba por delante la deducción del arquetipo. Lo único que cantaba
+eran las dos cabeceras, declaradas como «líneas que no se entienden».
+
+⚠️ **Desviación de la SPEC de TrainerArena**, anotada como manda
+CLAUDE.md: el motor original solo entiende inglés porque su comunidad
+juega en inglés.
+
+En vez de acumular expresiones con tildes, se normaliza la línea (sin
+tildes, minúsculas) y se compara la primera palabra contra una lista:
+`trainer / entrenador / dresseur / allenatore / treinador` y
+`energy / energia / energie`. Así entran los seis idiomas de TCG Live.
+
+**Los dos puntos son obligatorios** y no es un adorno: sin exigirlos,
+cualquier línea que empiece por «Trainer» (una nota que alguien pegue
+con la lista) cambiaría de sección.
+
+### 2. La tabla de códigos de set se queda corta cada temporada
+
+Una línea de decklist trae el código de TCG Live del set (`ASC 142`), y
+esa traducción a un set nuestro vive **escrita a mano** en `SETS_LIVE`
+(comun.js). La lista traía ASC, POR, CRI y MEE: ninguno estaba, esas
+cartas salían sin imagen, y no había forma de arreglarlo sin desplegar.
+
+Ahora los códigos se pueden asignar desde **/admin → Cartas → Códigos de
+set de TCG Live**, se guardan en `site_settings` (clave
+`torneos_sets_live`, sin migración: la tabla ya es lectura pública y
+escritura de admin) y **mandan sobre la tabla del código**. Un set nuevo
+deja de necesitar un despliegue.
+
+Y al pulsar «Buscar sets en TCGdex» se intenta rellenar solo leyendo el
+código del catálogo. ⚠️ **El nombre del campo NO está verificado contra
+la API** (este contenedor no tiene salida a internet): se prueban
+`tcgOnline`, `tcgoCode`, `ptcgoCode` y `abbreviation`, y el panel dice
+cuántos ha traído. Si dice 0, es que el campo se llama de otra forma —
+no que TCGdex no lo tenga.
+
+Nunca guarda solo: el admin repasa y pulsa Guardar. Asignar un set
+equivocado enseña la carta que no es, y eso es peor que no enseñar nada.
+
+### 3. De propina: el segundo icono se equivocaba
+
+Con la lista de verdad, el arquetipo deducido salía **«Dragapult ex
+Meowth ex»** — Meowth ex era UNA copia, una carta de tecnología que
+nadie usa para nombrar un mazo. Y quitando los 1-de salía «Dragapult ex
+Drakloak», que es peor: la evolución intermedia del mismo Pokémon.
+
+Dos reglas para el SEGUNDO icono (el primero no se toca):
+
+1. **Una sola copia no da nombre a un mazo.**
+2. **La preevolución de lo ya elegido, tampoco.** Se detecta con la
+   Pokédex: una preevolución está justo debajo de su evolución (Dreepy
+   885, Drakloak 886, Dragapult 887), así que se descartan los tres
+   números anteriores al del primer icono.
+
+La segunda es la que importa: se apoya en un dato de verdad en vez de en
+la lista de nombres penalizados escrita a mano, que hay que ampliar cada
+temporada. Es aproximada —hay líneas que no van seguidas, como Dusclops
+y Dusknoir, y para esas sigue estando la lista— pero cubre sola a los
+Pokémon que nadie ha apuntado.
+
+**Si no queda ningún segundo digno, se enseña UN SOLO icono**: un mazo de
+un solo Pokémon se llama por ese Pokémon. La lista de PINGU pasa a salir
+como «Dragapult ex», que es como se llama.
+
+### Comprobado
+
+`test-decklist-idiomas.mjs` (22, sin pantalla) con la lista de PINGU
+tal cual, exigiendo que el español dé EXACTAMENTE lo mismo que el
+inglés; `test-sets-live.mjs` (3, navegador); y tres casos nuevos en
+`test-torneos-22.mjs`. Rigor de 8 roturas, todas detectadas. Suite
+entera (19) en verde.
+
+Dos de esas ocho no se detectaban a la primera, otra vez por lo mismo:
+la rotura caía sobre código doblemente protegido. Drakloak está TAMBIÉN
+en la lista de nombres penalizados, así que para probar la regla de la
+Pokédex hace falta una preevolución que NO esté apuntada (Gimmighoul,
+999, debajo de Gholdengo, 1000). Y los dos puntos de la cabecera solo se
+notan con una línea que empiece por letra, no con una carta —que
+empieza por su cantidad.

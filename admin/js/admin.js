@@ -2037,6 +2037,128 @@ function initArquetiposSection() {
   document.getElementById('btnCancelarArquetipo')?.addEventListener('click', limpiarFormularioArquetipo)
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// CÓDIGOS DE SET DE TCG LIVE (tanda 232)
+//
+// El 2026-09-01 PINGU pegó una lista con ASC, POR, CRI y MEE, y ninguno
+// estaba en la tabla del código: esas cartas salían sin imagen y no
+// había forma de arreglarlo sin desplegar. Ahora se asignan desde aquí,
+// se guardan en site_settings y mandan sobre la tabla.
+//
+// Y si TCGdex trae el código en su catálogo, se rellena solo al pulsar
+// «Buscar sets en TCGdex».
+// ═══════════════════════════════════════════════════════════════════
+
+let setsLive = {} // CÓDIGO → id de set nuestro
+
+async function loadSetsLive() {
+  const { data } = await supabase.from('site_settings').select('value').eq('key', 'torneos_sets_live').maybeSingle()
+  setsLive = data?.value?.codigos || {}
+  pintarSetsLive()
+}
+
+function pintarSetsLive() {
+  const caja = document.getElementById('setsLiveLista')
+  if (!caja) return
+  const entradas = Object.entries(setsLive).sort(([a], [b]) => a.localeCompare(b))
+  caja.innerHTML = entradas.length
+    ? `<table class="admin-table">
+        <thead><tr><th>Código</th><th>Set</th><th></th></tr></thead>
+        <tbody>${entradas
+          .map(([codigo, setId]) => {
+            const set = tcgSetsLocales.find((s) => s.id === setId && (s.market || 'WEST') === 'WEST')
+            return `<tr>
+              <td><strong>${escapeHtml(codigo)}</strong></td>
+              <td>${escapeHtml(set?.name || setId)}${set ? '' : ' <span class="subtext">(no importado)</span>'}</td>
+              <td><button class="btn-outline" data-quitar-setlive="${escapeHtml(codigo)}">Quitar</button></td>
+            </tr>`
+          })
+          .join('')}</tbody>
+      </table>`
+    : '<p class="admin-note">Ninguno asignado a mano. Se usa la tabla del código.</p>'
+
+  caja.querySelectorAll('[data-quitar-setlive]').forEach((b) =>
+    b.addEventListener('click', () => {
+      delete setsLive[b.dataset.quitarSetlive]
+      pintarSetsLive()
+    })
+  )
+
+  // El desplegable: los sets occidentales, del más nuevo al más viejo,
+  // que es donde están los que faltan.
+  const sel = document.getElementById('setLiveSet')
+  if (sel) {
+    sel.innerHTML = tcgSetsLocales
+      .filter((s) => (s.market || 'WEST') === 'WEST')
+      .sort((a, b) => String(b.release_date || '').localeCompare(String(a.release_date || '')))
+      .map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}${s.release_date ? ` (${String(s.release_date).slice(0, 4)})` : ''}</option>`)
+      .join('')
+  }
+}
+
+async function guardarSetsLive() {
+  const { error } = await supabase
+    .from('site_settings')
+    .upsert({ key: 'torneos_sets_live', value: { codigos: setsLive } }, { onConflict: 'key' })
+  const nota = document.getElementById('setsLiveNota')
+  if (error) {
+    showToast('No se ha podido guardar: ' + error.message, 'error')
+    return
+  }
+  if (nota) nota.textContent = `Guardado: ${Object.keys(setsLive).length} códigos.`
+  showToast('Códigos guardados. Las decklists ya los usan.', 'success')
+}
+
+// Lo que TCGdex sepa del código de TCG Live. El nombre del campo NO está
+// verificado contra la API (el contenedor donde se programó esto no
+// tiene salida a internet), así que se prueban los candidatos
+// razonables y se dice cuántos han salido: si sale 0, es que el campo se
+// llama de otra forma y hay que mirarlo — no que TCGdex no lo tenga.
+function codigoLiveDeSet(set) {
+  const candidatos = [set?.tcgOnline, set?.tcgoCode, set?.ptcgoCode, set?.abbreviation]
+  const codigo = candidatos.find((c) => typeof c === 'string' && /^[A-Z0-9]{2,6}$/.test(c.toUpperCase()))
+  return codigo ? codigo.toUpperCase() : null
+}
+
+// Se llama tras traer el catálogo de TCGdex. Solo AÑADE lo que falta:
+// nunca pisa lo que un admin haya puesto a mano.
+function rellenarSetsLiveDesdeTcgdex(remotos) {
+  let nuevos = 0
+  for (const set of remotos || []) {
+    const codigo = codigoLiveDeSet(set)
+    if (!codigo || setsLive[codigo]) continue
+    setsLive[codigo] = set.id
+    nuevos++
+  }
+  const nota = document.getElementById('setsLiveNota')
+  if (nota) {
+    nota.textContent = nuevos
+      ? `TCGdex ha traído ${nuevos} códigos nuevos. Repásalos y pulsa «Guardar códigos».`
+      : 'TCGdex no ha traído ningún código de TCG Live: hay que asignarlos a mano.'
+  }
+  if (nuevos) pintarSetsLive()
+  return nuevos
+}
+
+function initSetsLiveSection() {
+  document.getElementById('btnAnadirSetLive')?.addEventListener('click', () => {
+    const codigo = document.getElementById('setLiveCodigo').value.trim().toUpperCase()
+    const setId = document.getElementById('setLiveSet').value
+    if (!/^[A-Z0-9]{2,6}$/.test(codigo)) {
+      showToast('El código es el que sale en la decklist: dos a seis letras o números (ASC, POR…).', 'error')
+      return
+    }
+    if (!setId) {
+      showToast('Elige a qué set corresponde.', 'error')
+      return
+    }
+    setsLive[codigo] = setId
+    document.getElementById('setLiveCodigo').value = ''
+    pintarSetsLive()
+  })
+  document.getElementById('btnGuardarSetsLive')?.addEventListener('click', guardarSetsLive)
+}
+
 async function loadCards() {
   const [setsRes, cartasRes] = await Promise.all([
     supabase.from('tcg_sets').select('*').order('release_date', { ascending: false, nullsFirst: false }),
@@ -2167,8 +2289,14 @@ async function cargarSetsDeTcgdex() {
       const { error } = await supabase.from('tcg_sets').upsert(filas.slice(i, i + 100), { onConflict: 'id,market' })
       if (error) throw error
     }
+    // De paso, el código de TCG Live de cada set si TCGdex lo trae: es
+    // lo que traduce «ASC 142» a una carta con imagen. Solo AÑADE lo que
+    // falta y no guarda nada solo — el admin repasa y pulsa «Guardar
+    // códigos», que asignar un set equivocado enseña la carta que no es.
+    const codigosNuevos = rellenarSetsLiveDesdeTcgdex(tcgSetsRemotos.filter((x) => x.market === 'WEST'))
     cardsNota(
       `${filas.length} sets conocidos${repetidas ? ` (${repetidas} repetidos en el catálogo, descartados)` : ''}. ` +
+        (codigosNuevos ? `${codigosNuevos} códigos de TCG Live nuevos, repásalos abajo. ` : '') +
         'Ahora "Importar los que faltan" trae las cartas.'
     )
     document.getElementById('btnImportPending').disabled = false
@@ -2339,8 +2467,13 @@ async function init() {
     loadArquetipos(),
   ])
 
+  // Después de loadCards(): necesita tcgSetsLocales para poder enseñar
+  // el nombre de cada set en vez de su identificador.
+  await loadSetsLive()
+
   initCardsSection()
   initArquetiposSection()
+  initSetsLiveSection()
 
   document.getElementById('analyticsDays')?.addEventListener('change', loadAnalytics)
 }
