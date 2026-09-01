@@ -33,6 +33,9 @@ rama que Netlify no despliega cumple las dos cosas.
 - `herramientas/correr-suite.sh` — la suite entera.
 - `herramientas/auditoria-general.mjs` — barrido de todas las páginas a
   320/360/390/430 px buscando desbordes.
+- `herramientas/vista-correos.mjs` — pinta cada tipo de correo a PNG con
+  Chromium. Un correo no se puede «probar» solo con asserts: hay que
+  mirarlo.
 - `pruebas/` — las pruebas de Playwright.
 - `rigor/` — por cada prueba, un script que ROMPE el código a propósito
   de N maneras y comprueba que la prueba se entera de todas. Una prueba
@@ -91,6 +94,15 @@ dentro del propio test.
     perfil. OJO en esta: los títulos de grupo del perfil llevan
     text-transform: uppercase, y `innerText` devuelve el texto TAL COMO
     SE PINTA — buscar «Jugando ahora» tal cual no encuentra nada.
+- **Correos** (tanda 249): `test-correos` — SIN navegador y sin red, que
+  todo lo que se pinta vive en `netlify/lib/`. Cubre que el enlace lleve
+  a la cosa y no a la portada, que un dominio de fuera se rechace, el
+  verbo y el motivo de cada tipo, el preheader, el escapado, que la
+  maquetación aguante Outlook, el texto plano, el resumen semanal y las
+  fechas en hora de España. Y compara las TRES listas de tipos (perfil,
+  baja de un clic y textos): si una se queda atrás no se nota hasta que
+  alguien se da de baja, porque un tipo que `baja-correo` no reconoce le
+  apaga TODOS los correos.
 
 ## Lo que FALTA
 
