@@ -109,6 +109,50 @@
 
 .partidas-titulo-lista { margin-top: 28px; }
 
+/* ── Las tarjetas de «Tus torneos» (tanda 236) ──
+   Un torneo con sus rondas dentro, como trainingcourt: la cabecera con
+   el récord a la derecha, las rondas en lista y las acciones abajo. */
+.partidas-torneo {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.partidas-torneo-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.partidas-torneo-record {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-mid);
+}
+.partidas-torneo-rondas {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 13px;
+}
+.partidas-torneo-rondas li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+  border-top: 1px solid var(--border);
+}
+.partidas-ronda-res { font-weight: 600; }
+.partidas-ronda-win { color: var(--success); }
+.partidas-ronda-loss { color: #d64545; }
+.partidas-ronda-draw { color: var(--text-mid); }
+.partidas-torneo-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .partidas-fila {
   display: flex;
   flex-wrap: wrap;
@@ -205,6 +249,12 @@
 }
 .selector-mazo-opcion.resaltada { background: var(--ice); }
 .selector-mazo-opcion img { width: 30px; height: 30px; object-fit: contain; flex: none; }
+/* Solo los minisprites (hijos directos o en el marco sin recorte): las
+   fotos de carta recortadas NO van en píxel, que son fotos. */
+.selector-mazo-opcion > img,
+.selector-mazo-sprite:not(.es-carta) img {
+  image-rendering: pixelated;
+}
 /* El hueco mantiene alineados los nombres cuando una opción no tiene
    sprite (un arquetipo que se nombra por un objeto). */
 .selector-mazo-hueco { width: 30px; flex: none; }

@@ -27,6 +27,8 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <!-- CSS propio de la página (norma de CLAUDE.md): hoy, «Mis torneos». -->
+  <link rel="stylesheet" href="css/perfil.css" />
 </head>
 <body>
   <nav class="navbar" id="navbar">
@@ -82,7 +84,19 @@
       <button class="tab-btn active" data-ptab="wall">Muro</button>
       <button class="tab-btn" data-ptab="guides">Guías</button>
       <button class="tab-btn" data-ptab="foro">Foro</button>
+      <!-- La clase nav-jugar es la misma de la navbar a propósito:
+           app.js la desvela a los admins y esta pestaña va con ella
+           mientras los torneos estén en pruebas. -->
+      <button class="tab-btn nav-jugar hidden" data-ptab="torneos">Torneos</button>
       <button class="tab-btn" data-ptab="about">Acerca</button>
+    </div>
+
+    <!-- Mis torneos (tanda 236, pedido por Ibai): los que estás jugando,
+         a los que estás apuntado y los que ya jugaste, con tu puesto.
+         El «Mis torneos» del menú de cuenta llega aquí con #torneos. -->
+    <div class="tab-panel" id="ptab-torneos">
+      <h2 class="section-title">Mis torneos</h2>
+      <div id="misTorneos"><div class="skeleton" style="height: 90px;"></div></div>
     </div>
 
     <div class="tab-panel" id="ptab-foro">

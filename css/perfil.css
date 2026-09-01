@@ -1,0 +1,31 @@
+/* Perfil propio — solo lo que no cabe en components.css sin engordarlo
+   para todo el mundo (norma de CLAUDE.md). Hoy: la pestaña «Mis
+   torneos» (tanda 236). */
+
+.mis-torneos-grupo {
+  margin: 18px 0 8px;
+  font-size: 14px;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.mis-torneos-grupo:first-child { margin-top: 0; }
+
+.mis-torneos-fila {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  text-decoration: none;
+}
+.mis-torneos-fila:hover { border-color: var(--border-strong); }
+.mis-torneos-nombre { flex: 1; font-weight: 600; }
+
+.mis-torneos-puesto { font-size: 13px; font-weight: 600; }
+.mis-torneos-puesto.oro { color: var(--warning); }
+.mis-torneos-puesto.vivo { color: var(--success); }

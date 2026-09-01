@@ -26,10 +26,15 @@ const $ = (id) => document.getElementById(id)
 let session = null
 let todas = [] // el registro entero, ya normalizado
 let catalogo = []
-// Los cuatro buscadores del formulario: dos para tu mazo y dos para el
-// del rival, porque un arquetipo se nombra por una o dos cartas.
+// Los torneos apuntados a mano (tanda 236): cada uno agrupa sus rondas.
+let torneosLog = []
+// Los buscadores de los formularios: dos por mazo, porque un arquetipo
+// se nombra por una o dos cartas.
 let selectores = {}
 let tipoElegido = 'normal'
+// El torneo al que se está añadiendo una ronda, o null si la partida
+// que se apunta es suelta. Lo pone «+ Añadir ronda» y lo limpia cerrar.
+let rondaPara = null
 
 // ── Las partidas de los torneos de PokeDoc ──
 //
@@ -104,6 +109,8 @@ async function partidasDeTorneos() {
       donde: t?.name || 'Torneo de PokeDoc',
       enlace: t?.slug ? `/torneo?slug=${encodeURIComponent(t.slug)}` : null,
       deTorneo: true,
+      // Para agruparlas en su tarjeta de «Tus torneos».
+      torneoId: `pd-${torneoId}`,
     })
   }
   return salida
@@ -137,7 +144,25 @@ async function partidasApuntadas() {
     notas: p.notas,
     tipo: p.tipo || 'normal',
     deTorneo: false,
+    // La ronda de un torneo apuntado lleva el id de su torneo; una
+    // partida suelta (o una fila de antes de la migración), null. La
+    // hora de creación ordena las rondas DENTRO de su tarjeta (todas
+    // comparten fecha de juego: la del torneo).
+    torneoId: p.torneo_id || null,
+    creada: p.created_at,
   }))
+}
+
+// Los torneos apuntados a mano. Falla EN SILENCIO como match_log, y por
+// lo mismo: entre el despliegue y que un humano ejecute la migración la
+// página tiene que seguir sirviendo (sin la sección de torneos a mano).
+async function torneosApuntados() {
+  const { data, error } = await supabase
+    .from('match_log_torneos')
+    .select('*')
+    .order('jugado_el', { ascending: false })
+  if (error) return []
+  return data || []
 }
 
 // ── Pintar ──
@@ -242,6 +267,113 @@ function pintarLista(partidas) {
   )
 }
 
+// ── Las tarjetas de «Tus torneos» ──
+//
+// Cada torneo con sus rondas dentro, como trainingcourt: los de PokeDoc
+// (solo lectura, con enlace a la ficha) y los apuntados a mano (con
+// añadir ronda y borrar). NO se filtran con la barra de arriba a
+// propósito: un torneo es una unidad — esconderle rondas según el
+// filtro sería enseñar un 1-0 que en realidad fue un 1-3.
+function recordDe(rondas) {
+  const r = { win: 0, loss: 0, draw: 0 }
+  for (const p of rondas) r[p.resultado] = (r[p.resultado] || 0) + 1
+  return `${r.win}-${r.loss}${r.draw ? `-${r.draw}` : ''}`
+}
+
+const TEXTO_TIPO = { id: ' (ID)', no_show: ' (no se presentó)', bye: '' }
+
+function tarjetaTorneoHtml(t) {
+  const rondas = t.rondas
+    .slice()
+    .sort((a, b) => String(a.creada || '').localeCompare(String(b.creada || '')))
+  const filas = rondas
+    .map((p) =>
+      p.tipo === 'bye'
+        ? '<li><span>Bye</span><span class="partidas-ronda-res partidas-ronda-win">Ganada</span></li>'
+        : `<li><span>vs ${escapeHtml(p.rivalNombre)}${TEXTO_TIPO[p.tipo] || ''}</span>
+            <span class="partidas-ronda-res partidas-ronda-${p.resultado}">${TEXTO_RESULTADO[p.resultado] || p.resultado}</span></li>`
+    )
+    .join('')
+  return `
+    <div class="partidas-torneo">
+      <div class="partidas-torneo-cabecera">
+        <strong>${t.enlace ? `<a href="${escapeHtml(t.enlace)}">${escapeHtml(t.nombre)}</a>` : escapeHtml(t.nombre)}</strong>
+        <span class="partidas-torneo-record">${recordDe(t.rondas)}</span>
+      </div>
+      <p class="subtext">${[t.donde, t.fecha, t.mazo ? `con ${t.mazo}` : null].filter(Boolean).map(escapeHtml).join(' · ')}</p>
+      ${rondas.length ? `<ol class="partidas-torneo-rondas">${filas}</ol>` : '<p class="subtext">Sin rondas todavía.</p>'}
+      ${
+        t.aMano
+          ? `<div class="partidas-torneo-acciones">
+              <button class="btn-secondary" data-anadir-ronda="${escapeHtml(t.id)}">+ Añadir ronda</button>
+              <button class="btn-outline" data-borrar-torneo="${escapeHtml(t.id)}">Borrar</button>
+            </div>`
+          : ''
+      }
+    </div>`
+}
+
+function pintarTorneos() {
+  const caja = $('partidasTorneos')
+  const tarjetas = []
+
+  // Los de PokeDoc, agrupados por torneo a partir de sus partidas.
+  const dePokedoc = new Map()
+  for (const p of todas) {
+    if (!p.deTorneo) continue
+    if (!dePokedoc.has(p.torneoId)) {
+      dePokedoc.set(p.torneoId, { nombre: p.donde, enlace: p.enlace, fecha: p.fecha, donde: 'Torneo de PokeDoc', mazo: p.mioNombre, rondas: [], aMano: false })
+    }
+    dePokedoc.get(p.torneoId).rondas.push(p)
+  }
+  tarjetas.push(...dePokedoc.values())
+
+  for (const t of torneosLog) {
+    tarjetas.push({
+      id: t.id,
+      nombre: t.nombre,
+      enlace: null,
+      fecha: t.jugado_el,
+      donde: t.donde,
+      mazo: t.mi_mazo_nombre,
+      rondas: todas.filter((p) => p.torneoId === t.id),
+      aMano: true,
+    })
+  }
+
+  if (!tarjetas.length) {
+    caja.innerHTML = `<p class="subtext">Aquí saldrán tus torneos: los de PokeDoc entran solos y los de fuera se apuntan con «Apuntar un torneo».</p>`
+    return
+  }
+  tarjetas.sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))
+  caja.innerHTML = tarjetas.map(tarjetaTorneoHtml).join('')
+
+  caja.querySelectorAll('[data-anadir-ronda]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const t = torneosLog.find((x) => x.id === b.dataset.anadirRonda)
+      if (t) abrirFormPartida(t)
+    })
+  )
+  // Borrar con dos toques, como los torneos de verdad: el primero arma y
+  // el segundo ejecuta. Sin ventana del navegador.
+  caja.querySelectorAll('[data-borrar-torneo]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      if (!b.dataset.armado) {
+        b.dataset.armado = '1'
+        b.textContent = '¿Seguro? Borra sus rondas'
+        return
+      }
+      const { error } = await supabase.from('match_log_torneos').delete().eq('id', b.dataset.borrarTorneo)
+      if (error) {
+        showToast('No se ha podido borrar: ' + error.message, 'error')
+        return
+      }
+      if (rondaPara?.id === b.dataset.borrarTorneo) cerrarFormPartida()
+      await cargar()
+    })
+  )
+}
+
 // El filtro de arriba. Se aplica sobre lo ya cargado, sin volver a
 // pedir nada: son unas pocas decenas de filas y la respuesta es
 // instantánea.
@@ -261,6 +393,7 @@ function repintar() {
   const m = construirMatriz(partidas.filter((p) => !['bye', 'no_show'].includes(p.tipo)))
   pintarResumen(m)
   pintarMatriz(m)
+  pintarTorneos()
   pintarLista(partidas)
 }
 
@@ -305,12 +438,17 @@ function dondeElegido() {
 }
 
 async function guardarPartida() {
-  const mio = mazoDe('mio1', 'mio2')
+  // En modo ronda el mazo, la fecha y el dónde vienen del TORNEO: se
+  // eligieron una vez al crearlo y repetirlos en cada ronda solo daba
+  // ocasión de contradecirse.
+  const mio = rondaPara
+    ? { clave: rondaPara.mi_mazo, nombre: rondaPara.mi_mazo_nombre }
+    : mazoDe('mio1', 'mio2')
   const rival = mazoDe('rival1', 'rival2')
 
   // Un bye no tiene rival: exigirlo sería no dejar apuntarlo nunca.
   const necesitaRival = tipoElegido !== 'bye'
-  if (!mio || (necesitaRival && !rival)) {
+  if (!mio?.clave || (necesitaRival && !rival)) {
     showToast(
       necesitaRival ? 'Elige los dos mazos: el tuyo y el del rival.' : 'Elige al menos tu mazo.',
       'error'
@@ -329,24 +467,95 @@ async function guardarPartida() {
     // mano solo daba ocasión de apuntarlo mal.
     resultado: tipoElegido === 'id' ? 'draw' : tipoElegido === 'normal' ? $('partidaResultado').value : 'win',
     tipo: tipoElegido,
-    donde: dondeElegido(),
+    donde: rondaPara ? rondaPara.nombre : dondeElegido(),
     notas: $('partidaNotas').value.trim() || null,
   }
-  const fecha = $('partidaFecha').value
-  if (fecha) fila.jugada_el = fecha
+  if (rondaPara) {
+    fila.torneo_id = rondaPara.id
+    fila.jugada_el = rondaPara.jugado_el
+  } else {
+    const fecha = $('partidaFecha').value
+    if (fecha) fila.jugada_el = fecha
+  }
 
   const { error } = await supabase.from('match_log').insert(fila)
   if (error) {
     showToast('No se ha podido guardar: ' + error.message, 'error')
     return
   }
-  showToast('Partida apuntada.', 'success')
+  showToast(rondaPara ? 'Ronda apuntada.' : 'Partida apuntada.', 'success')
   // El mazo TUYO se queda puesto: quien apunta una tanda de partidas
-  // suele jugar el mismo mazo toda la tarde.
+  // suele jugar el mismo mazo toda la tarde. Y en modo ronda el
+  // formulario se queda ABIERTO, que lo normal es apuntar varias
+  // rondas seguidas.
   selectores.rival1?.limpiar()
   selectores.rival2?.limpiar()
   $('partidaNotas').value = ''
   await cargar()
+}
+
+// ── El formulario de partida, en sus dos modos ──
+//
+// El mismo formulario apunta una partida SUELTA (todo a la vista) o una
+// RONDA de un torneo apuntado (el mazo, la fecha y el dónde se esconden
+// porque vienen del torneo).
+function abrirFormPartida(torneo = null) {
+  rondaPara = torneo
+  const esRonda = Boolean(torneo)
+  $('partidaFormTitulo').textContent = esRonda ? `Añadir ronda — ${torneo.nombre}` : 'Apuntar una partida suelta'
+  $('partidaFormPista').classList.toggle('hidden', esRonda)
+  $('partidaCamposMios').classList.toggle('hidden', esRonda)
+  $('partidaCampoFecha').classList.toggle('hidden', esRonda)
+  $('partidaCampoDonde').classList.toggle('hidden', esRonda)
+  $('partidaDondeOtroCampo').classList.toggle('hidden', esRonda || $('partidaDonde').value !== '__otro')
+  $('torneoLogForm').classList.add('hidden')
+  $('partidaForm').classList.remove('hidden')
+  $('partidaForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  ;$(esRonda ? 'selRival1' : 'selMio1').querySelector('input')?.focus()
+}
+
+function cerrarFormPartida() {
+  rondaPara = null
+  $('partidaForm').classList.add('hidden')
+}
+
+// ── Apuntar un torneo ──
+
+function dondeTorneoElegido() {
+  const sel = $('torneoLogDonde').value
+  if (sel !== '__otro') return sel
+  return $('torneoLogDondeOtro').value.trim() || null
+}
+
+async function guardarTorneoLog() {
+  const nombre = $('torneoLogNombre').value.trim()
+  const mazo = mazoDe('tmio1', 'tmio2')
+  if (!nombre || !mazo) {
+    showToast(nombre ? 'Elige el mazo que jugaste.' : 'Ponle nombre al torneo.', 'error')
+    return
+  }
+  const fila = {
+    user_id: session.user.id,
+    nombre,
+    donde: dondeTorneoElegido(),
+    mi_mazo: mazo.clave,
+    mi_mazo_nombre: mazo.nombre,
+  }
+  const fecha = $('torneoLogFecha').value
+  if (fecha) fila.jugado_el = fecha
+
+  // El insert devuelve la fila para abrir «añadir ronda» al momento:
+  // quien crea el torneo viene a apuntar sus rondas, no a mirar.
+  const { data, error } = await supabase.from('match_log_torneos').insert(fila).select().single()
+  if (error) {
+    showToast('No se ha podido crear: ' + error.message, 'error')
+    return
+  }
+  showToast('Torneo creado: ahora sus rondas.', 'success')
+  $('torneoLogForm').classList.add('hidden')
+  $('torneoLogNombre').value = ''
+  await cargar()
+  abrirFormPartida(data)
 }
 
 async function borrarPartida(id) {
@@ -361,8 +570,13 @@ async function borrarPartida(id) {
 // ── Arranque ──
 
 async function cargar() {
-  const [deTorneos, apuntadas] = await Promise.all([partidasDeTorneos(), partidasApuntadas()])
+  const [deTorneos, apuntadas, torneos] = await Promise.all([
+    partidasDeTorneos(),
+    partidasApuntadas(),
+    torneosApuntados(),
+  ])
   todas = [...deTorneos, ...apuntadas]
+  torneosLog = torneos
   rellenarFiltroYSugerencias()
   repintar()
 }
@@ -388,6 +602,8 @@ async function init() {
     ['mio2', 'selMio2', 'Y el segundo (opcional)…'],
     ['rival1', 'selRival1', 'Su Pokémon principal…'],
     ['rival2', 'selRival2', 'Y el segundo (opcional)…'],
+    ['tmio1', 'selTorneoMio1', 'Tu Pokémon principal…'],
+    ['tmio2', 'selTorneoMio2', 'Y el segundo (opcional)…'],
   ]) {
     selectores[clave] = montarSelectorMazo($(caja), { catalogo, marcador })
   }
@@ -418,11 +634,27 @@ async function init() {
   )
 
   $('btnApuntarPartida').addEventListener('click', () => {
-    $('partidaForm').classList.toggle('hidden')
-    if (!$('partidaForm').classList.contains('hidden')) $('selMio1').querySelector('input')?.focus()
+    // Si ya está abierto en modo suelto, el botón lo cierra; si está en
+    // modo ronda, lo pasa a suelto.
+    if (!$('partidaForm').classList.contains('hidden') && !rondaPara) cerrarFormPartida()
+    else abrirFormPartida(null)
   })
-  $('btnCancelarPartida').addEventListener('click', () => $('partidaForm').classList.add('hidden'))
+  $('btnCancelarPartida').addEventListener('click', cerrarFormPartida)
   $('btnGuardarPartida').addEventListener('click', guardarPartida)
+
+  // El formulario de torneo.
+  $('torneoLogFecha').value = new Date().toISOString().slice(0, 10)
+  $('btnApuntarTorneo').addEventListener('click', () => {
+    cerrarFormPartida()
+    $('torneoLogForm').classList.toggle('hidden')
+    if (!$('torneoLogForm').classList.contains('hidden')) $('torneoLogNombre').focus()
+  })
+  $('btnCancelarTorneoLog').addEventListener('click', () => $('torneoLogForm').classList.add('hidden'))
+  $('btnGuardarTorneoLog').addEventListener('click', guardarTorneoLog)
+  $('torneoLogDonde').addEventListener('change', () => {
+    $('torneoLogDondeOtroCampo').classList.toggle('hidden', $('torneoLogDonde').value !== '__otro')
+    if ($('torneoLogDonde').value === '__otro') $('torneoLogDondeOtro').focus()
+  })
   $('filtroMazo').addEventListener('change', repintar)
   $('filtroDesde').addEventListener('change', repintar)
 

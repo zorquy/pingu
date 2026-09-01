@@ -11718,3 +11718,98 @@ a mano / al revés / con catálogo / objetos / sin-mazo) y deducirIconos
 (dos máscaras vecinas no se comen; Drakloak sigue fuera). Todas en
 verde. Los cinco sprites nuevos comprobados contra jsDelivr (200).
 Pendiente pedir a PINGU una pasada de la suite Playwright.
+
+## Tanda 236 — los sprites de Limitless, los torneos apuntados y «Mis torneos» (sept. 2026)
+
+Ibai probó la 235 y pidió cuatro cosas. Las cuatro van juntas porque
+las cuatro giran sobre lo mismo: que el registro de partidas se parezca
+a trainingcourt de verdad.
+
+### Los sprites, los MISMOS que trainingcourt
+
+Los de PokéAPI por número no le valían («fíjate cómo lo hacen en
+trainingcourt, usan unos sprites en concreto que son todos iguales»).
+Se miró el código de trainingcourt.app (los bundles de su Next.js, a
+mano) y lo que hace es: nombre en minúsculas con guiones contra
+`https://r2.limitlesstcg.net/pokemon/gen9/<nombre>.png` — la CDN de
+Limitless, minisprites de píxel de estilo uniforme. Eso es EXACTAMENTE
+lo que hace ahora `sprites-pokemon.js`:
+
+- `urlDeSprite(dex)` conserva su firma: por debajo pasa por
+  `SLUG_POR_DEX` (nombre-guión por especie, generado con
+  `slugLimitless()`: «Mr. Mime» → mr-mime, «Nidoran♀» → nidoran-f,
+  «Farfetch'd» → farfetchd, «Type: Null» → type-null).
+- Las FORMAS ponen su slug a mano, porque Limitless las nombra al
+  revés: `ogerpon-wellspring`, no «wellspring-mask-ogerpon». Y
+  `ursaluna-bloodmoon`.
+- **Comprobado contra la CDN de verdad: las 1025 especies + 5 formas,
+  1030 URLs, 0 fallos.** No es una suposición de nomenclatura.
+- CSS: fuera el margen negativo (estos sprites no traen aire) y
+  `image-rendering: pixelated` SOLO en sprites — las fotos de carta
+  recortadas siguen suavizadas.
+
+trainingcourt tiene además UN sprite local para Crushing Hammer; aquí
+los objetos siguen con el recorte de ilustración de la 235, que cubre
+cualquier carta sin mantener assets.
+
+### Los torneos apuntados a mano (migración partidas-torneos)
+
+«Lo de mis partidas debería funcionar por torneos: creas un torneo y
+apuntas cómo te ha ido.» Nueva tabla `match_log_torneos` (nombre,
+dónde, fecha, TU mazo — el mismo todo el torneo) y columna
+`match_log.torneo_id` (cascade): una ronda es una fila normal de
+match_log colgada de su torneo. La matriz no distingue ronda de
+partida suelta a propósito — sigue leyendo match_log y ya.
+
+En /mis-partidas: botón principal «Apuntar un torneo» (nombre, dónde,
+fecha, mazo con el selector de siempre), sección «Tus torneos» con una
+tarjeta por torneo — los de PokeDoc agrupados con enlace a su ficha, y
+los a mano con récord, rondas dentro, «+ Añadir ronda» y borrar a dos
+toques. El formulario de partida tiene dos modos: suelto (todo a la
+vista) y ronda (mazo, fecha y dónde vienen del torneo y se esconden).
+Al crear un torneo se abre «añadir ronda» directamente: quien lo crea
+viene a apuntar rondas. La migración falla en silencio como match_log
+(la vigila el comprobador de /admin: match_log.torneo_id).
+
+### El torneo de prueba (supabase-seed-torneo-demo.sql)
+
+Un torneo TERMINADO de 8 jugadores para probar el historial sin
+esperar a jugar uno: las 8 decklists REALES del top del World
+Championships 2026 (limitlesstcg.com/tournaments/515, el torneo más
+reciente de Limitless a día de hoy), un arquetipo distinto por jugador
+(Dragapult, Alakazam Dudunsparce, Dragapult Dusknoir, Crustle,
+Alakazam Dusknoir, Ogerpon Box, N's Zoroark, Dragapult Dudunsparce).
+El seed se GENERÓ con un guion de Node que parsea el HTML de Limitless
+y pasa cada lista por `parseDecklist()` del motor de verdad — los
+`parsed_cards` son idénticos a los que produciría la web, y las 8
+listas dan 60/60.
+
+- 7 cuentas de mentira (`demo-worlds-1..7@pokedoc.invalid`, contraseña
+  imposible) con el nombre del jugador real «(demo)», e IBAI
+  (admin@cardzone.es, por subconsulta) como octavo jugador con 2-1:
+  pierde la «final» contra la lista campeona de Andrew Hedrick.
+- 3 rondas suizas coherentes (los ganadores se cruzan entre sí), 12
+  mesas, 12 resultados con un empate, podio congelado
+  [P1, Ibai, P3, P2] y campeón.
+- **Siembra también el catálogo** `tcg_archetypes` con los 8
+  arquetipos y sus números REALES de esas listas (la migración de la
+  230 se entregó vacía porque los números no se podían inventar —
+  estos no lo son). Comprobado con el matcher real: las 8 listas casan
+  con su arquetipo, ninguna «sin catalogar». OJO
+  dragapult-dudunsparce pide Dudunsparce EX y no Dudunsparce a secas:
+  la lista campeona de Dragapult lleva UN Dudunsparce de tecnología y
+  no es ese mazo.
+- Re-ejecutable, y con el bloque de deshacer comentado al final.
+
+### «Mis torneos» en el perfil
+
+El «Mis torneos» del menú de cuenta iba a la pestaña de la lista
+(#mios en /torneos); ahora va a `/perfil.html#torneos`: pestaña nueva
+«Torneos» del perfil propio (con la clase `nav-jugar`, así app.js la
+desvela a admins con la misma regla que la navbar) con tres grupos —
+Jugando ahora, Apuntado (con lista de espera marcada) y Jugados con tu
+puesto (Campeón/2º/3º/4º del podio congelado, «Jugado» si no). Carga
+perezosa como la pestaña del foro, y `#torneos` en la URL la abre
+directamente (si llega antes que la sesión, init() la relanza).
+Cancelados y bajas no salen: un torneo que no se jugó no es historial.
+CSS nuevo `css/perfil.css` (primera hoja propia de perfil.html).

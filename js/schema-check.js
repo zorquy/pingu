@@ -56,6 +56,9 @@ export const REQUISITOS = [
   { tabla: 'tcg_archetypes', columna: 'requiere', fichero: 'supabase-migration-arquetipos.sql', rompe: 'Los mazos salen siempre deducidos: el catálogo de arquetipos no existe.' },
   { tabla: 'match_log', columna: 'rival_mazo', fichero: 'supabase-migration-partidas.sql', rompe: '/mis-partidas no deja apuntar partidas de fuera (las de torneo sí salen).' },
   { tabla: 'tcg_sets', columna: 'tcg_online_code', fichero: 'supabase-migration-sets-live.sql', rompe: 'Los sets nuevos no traen su código de TCG Live: sus cartas salen sin imagen en las decklists.' },
+  // Se comprueba la columna nueva de match_log y no solo la tabla: la
+  // migración crea las dos cosas en el mismo fichero.
+  { tabla: 'match_log', columna: 'torneo_id', fichero: 'supabase-migration-partidas-torneos.sql', rompe: '/mis-partidas no deja apuntar torneos (las partidas sueltas sí funcionan).' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

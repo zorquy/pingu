@@ -12,7 +12,41 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
-## 2026-09-01 — IBAI-Claude (tanda 235 — héroe, máscaras de Ogerpon y el histórico junto)
+## 2026-09-01 — IBAI-Claude (tanda 236 — sprites de Limitless, torneos apuntados y «Mis torneos»)
+**Hecho**: cuatro peticiones de Ibai sobre la 235. (1) SPRITES: los de
+PokéAPI no le valían; se miró el código de trainingcourt.app y usa la
+CDN de Limitless (r2.limitlesstcg.net/pokemon/gen9/<nombre-guión>.png)
+— ahora nosotros también, con tabla de slugs por dex, slugs a mano
+para las formas (ogerpon-wellspring…) y las 1030 URLs comprobadas
+contra la CDN (0 fallos); pixelated solo en sprites. (2) /mis-partidas
+FUNCIONA POR TORNEOS: nueva migración
+`supabase-migration-partidas-torneos.sql` (match_log_torneos +
+match_log.torneo_id), botón «Apuntar un torneo», tarjetas «Tus
+torneos» con récord y rondas (las de PokeDoc con enlace), y el
+formulario de partida con modo ronda (mazo/fecha/dónde vienen del
+torneo). (3) TORNEO DE PRUEBA: `supabase-seed-torneo-demo.sql` — 8
+jugadores (7 falsos + IBAI con 2-1), 3 rondas suizas coherentes y las
+8 decklists REALES del top del Mundial 2026 de Limitless pasadas por
+el parseDecklist de verdad; siembra también tcg_archetypes con los 8
+arquetipos y números reales (las 8 listas casan, comprobado con el
+matcher). (4) «MIS TORNEOS»: pestaña nueva en el perfil propio
+(jugando / apuntado / jugados con puesto del podio), el enlace del
+menú de cuenta va ahora a /perfil.html#torneos.
+**Ficheros**: js/torneos/sprites-pokemon.js, js/torneos/selector-mazo.js,
+css/torneos.css, css/partidas.css, css/perfil.css (NUEVO),
+supabase-migration-partidas-torneos.sql (NUEVO),
+supabase-seed-torneo-demo.sql (NUEVO), mis-partidas.html,
+js/mis-partidas.js, js/schema-check.js, perfil.html, js/perfil.js,
+js/app.js, SCHEMA.md.
+**En curso / pendiente**: IBAI ejecuta DOS SQL en este orden:
+`supabase-migration-partidas-torneos.sql` (migración) y
+`supabase-seed-torneo-demo.sql` (torneo de prueba; borra con el bloque
+comentado del final cuando ya no haga falta). PINGU: pasada de suite
+cuando puedas — cambian los sprites (URL nueva de CDN en TODOS los
+iconos), el DOM del selector (marco alrededor del sprite del campo) y
+/mis-partidas entera; si el doble stubea los sprites de jsDelivr,
+ahora hay que stubear r2.limitlesstcg.net. Siguen pendientes las dos
+migraciones de la 233.
 **Hecho**: cinco peticiones de Ibai. (1) /torneos gana un HÉROE (panel
 navy con título, píldora de «en pruebas» y las acciones; el
 #btnNuevoTorneo es el mismo). (2) El icono de un mazo-objeto ya no es

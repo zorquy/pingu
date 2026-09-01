@@ -1588,9 +1588,10 @@
   width: 32px;
   height: 32px;
   object-fit: contain;
-  /* Los sprites vienen con mucho aire alrededor: este margen negativo
-     los junta sin que parezcan separados por un hueco. */
-  margin: -4px -3px;
+  /* Los minisprites de Limitless (tanda 236) son píxel art pequeño y
+     recortado al hueso: sin margen negativo (ya no traen aire) y en
+     píxel nítido, que difuminado parecen borrosos. */
+  image-rendering: pixelated;
 }
 .torneo-arquetipo-marco {
   position: relative;

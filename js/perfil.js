@@ -137,6 +137,65 @@ async function cargarForoUnaVez() {
   await pintarActividadDelForo(document.getElementById('foroActividad'), currentSession.user.id, { esMio: true })
 }
 
+// «Mis torneos» (tanda 236): en qué torneos de PokeDoc estás — jugando,
+// apuntado o ya jugados con tu puesto. Se carga la primera vez que se
+// abre la pestaña, como el foro: son dos consultas que la mayoría de
+// visitas al perfil no necesita.
+let torneosCargado = false
+async function cargarMisTorneosUnaVez() {
+  if (torneosCargado || !currentSession) return
+  torneosCargado = true
+  const caja = document.getElementById('misTorneos')
+
+  const { data: inscripciones, error } = await supabase
+    .from('tournament_registrations')
+    .select('tournament_id, status')
+    .eq('user_id', currentSession.user.id)
+  if (error || !inscripciones?.length) {
+    caja.innerHTML = `<p class="subtext">Todavía no estás en ningún torneo. Pásate por <a href="/torneos.html">Jugar</a> para apuntarte al próximo.</p>`
+    return
+  }
+  const estadoInscripcion = new Map(inscripciones.map((i) => [i.tournament_id, i.status]))
+  const { data: torneos } = await supabase
+    .from('tournaments')
+    .select('id, slug, name, status, start_at, champion_id, podium')
+    .in('id', inscripciones.map((i) => i.tournament_id))
+    .order('start_at', { ascending: false })
+
+  const jugando = []
+  const apuntado = []
+  const jugados = []
+  for (const t of torneos || []) {
+    const inscrito = estadoInscripcion.get(t.id)
+    if (t.status === 'finished') jugados.push(t)
+    else if (['registration_closed', 'in_progress'].includes(t.status) && inscrito !== 'dropped') jugando.push(t)
+    else if (t.status === 'registration_open' && inscrito !== 'dropped') apuntado.push(t)
+    // Cancelados y bajas: fuera. Un torneo que no se jugó no es
+    // historial de nadie.
+  }
+
+  const fila = (t, detalle) => `
+    <a class="mis-torneos-fila" href="/torneo?slug=${encodeURIComponent(t.slug)}">
+      <span class="mis-torneos-nombre">${escapeHtml(t.name)}</span>
+      <span class="subtext">${escapeHtml(String(t.start_at || '').slice(0, 10))}</span>
+      ${detalle}
+    </a>`
+  const puestoDe = (t) => {
+    if (t.champion_id === currentSession.user.id) return '<span class="mis-torneos-puesto oro">Campeón</span>'
+    const p = Array.isArray(t.podium) ? t.podium.indexOf(currentSession.user.id) : -1
+    if (p > 0) return `<span class="mis-torneos-puesto">${p + 1}º</span>`
+    return '<span class="mis-torneos-puesto subtext">Jugado</span>'
+  }
+  const grupo = (titulo, filas) =>
+    filas.length ? `<h3 class="mis-torneos-grupo">${titulo}</h3>${filas.join('')}` : ''
+
+  caja.innerHTML =
+    grupo('Jugando ahora', jugando.map((t) => fila(t, '<span class="mis-torneos-puesto vivo">En juego</span>'))) +
+      grupo('Apuntado', apuntado.map((t) => fila(t, `<span class="mis-torneos-puesto subtext">${estadoInscripcion.get(t.id) === 'waitlisted' ? 'En lista de espera' : 'Inscrito'}</span>`))) +
+      grupo('Jugados', jugados.map((t) => fila(t, puestoDe(t)))) ||
+    `<p class="subtext">Todavía no estás en ningún torneo. Pásate por <a href="/torneos.html">Jugar</a> para apuntarte al próximo.</p>`
+}
+
 // ── Pestañas del perfil ──
 document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -145,8 +204,16 @@ document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((bt
     btn.classList.add('active')
     document.getElementById(`ptab-${btn.dataset.ptab}`).classList.add('active')
     if (btn.dataset.ptab === 'foro') cargarForoUnaVez()
+    if (btn.dataset.ptab === 'torneos') cargarMisTorneosUnaVez()
   })
 })
+
+// El «Mis torneos» del menú de cuenta llega con #torneos: se abre esa
+// pestaña directamente. Espera al DOM listo igual que el resto del
+// módulo (esto corre al cargar, con el DOM ya parseado).
+if (window.location.hash === '#torneos') {
+  document.querySelector('[data-ptab="torneos"]')?.click()
+}
 
 // ── Siguiendo / Seguidores ──
 function followChipHtml(p) {
@@ -771,6 +838,10 @@ async function init() {
   const session = await requireAuth()
   if (!session) return
   currentSession = session
+
+  // Si se llegó con #torneos, el click de abajo corrió ANTES de tener
+  // sesión y la carga se quedó esperando: ahora que la hay, va.
+  if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarMisTorneosUnaVez()
 
   const profile = await loadProfile(session)
   await Promise.all([loadStats(session, profile), loadCompletedCourses(session), loadMyGuides(session), loadWall(session), loadFollowSummary(session)])

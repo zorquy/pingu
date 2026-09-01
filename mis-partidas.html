@@ -83,18 +83,59 @@
             <option value="90">Últimos 3 meses</option>
           </select>
         </label>
-        <button class="btn-secondary" id="btnApuntarPartida">Apuntar una partida</button>
+        <button class="btn-primary" id="btnApuntarTorneo">Apuntar un torneo</button>
+        <button class="btn-secondary" id="btnApuntarPartida">Partida suelta</button>
+      </div>
+
+      <!-- Apuntar un torneo (tanda 236, pedido por Ibai): el torneo de
+           la tienda es UNA cosa con sus rondas dentro, como en
+           trainingcourt — no cinco partidas sueltas con la misma fecha.
+           Se crea aquí y las rondas se añaden desde su tarjeta. -->
+      <div class="simple-card hidden" id="torneoLogForm">
+        <h3>Apuntar un torneo de fuera</h3>
+        <p class="subtext">Los de PokeDoc ya están: esto es para el presencial o el de TCG Live. Primero el torneo, luego sus rondas desde la tarjeta.</p>
+        <div class="partidas-form-fila">
+          <label>Nombre del torneo
+            <input type="text" id="torneoLogNombre" maxlength="120" placeholder="Liga del jueves — Semana 3" />
+          </label>
+          <label>Fecha <input type="date" id="torneoLogFecha" /></label>
+          <label>Dónde
+            <select id="torneoLogDonde">
+              <option value="Torneo local">Torneo local</option>
+              <option value="Liga de tienda">Liga de tienda</option>
+              <option value="Regional">Regional</option>
+              <option value="TCG Live">TCG Live</option>
+              <option value="__otro">Otro…</option>
+            </select>
+          </label>
+          <label class="hidden" id="torneoLogDondeOtroCampo">Escríbelo
+            <input type="text" id="torneoLogDondeOtro" placeholder="Dónde se jugó" />
+          </label>
+        </div>
+        <p class="subtext">Tu mazo (el mismo todo el torneo)</p>
+        <div class="partidas-form-fila partidas-mazo-fila">
+          <div id="selTorneoMio1"></div>
+          <div id="selTorneoMio2"></div>
+        </div>
+        <div class="partidas-form-fila">
+          <button class="btn-primary" id="btnGuardarTorneoLog">Crear torneo</button>
+          <button class="btn-secondary" id="btnCancelarTorneoLog">Cancelar</button>
+        </div>
       </div>
 
       <!-- El formulario de apuntar a mano: plegado hasta que hace falta,
            que lo normal es venir a MIRAR la tabla, no a escribir. -->
       <div class="simple-card hidden" id="partidaForm">
-        <h3>Apuntar una partida de fuera</h3>
-        <p class="subtext">Las de los torneos de PokeDoc ya están: esto es para TCG Live, tu tienda o un presencial.</p>
+        <h3 id="partidaFormTitulo">Apuntar una partida suelta</h3>
+        <p class="subtext" id="partidaFormPista">Las de los torneos de PokeDoc ya están: esto es para una partida de escalera o una amistosa. Si fue un torneo, mejor «Apuntar un torneo».</p>
+        <!-- En modo «ronda de un torneo» el mazo, la fecha y el dónde
+             vienen del torneo: esos campos se esconden enteros. -->
+        <div id="partidaCamposMios">
         <p class="subtext">Tu mazo</p>
         <div class="partidas-form-fila partidas-mazo-fila">
           <div id="selMio1"></div>
           <div id="selMio2"></div>
+        </div>
         </div>
 
         <p class="subtext">Mazo del rival</p>
@@ -111,8 +152,8 @@
               <option value="draw">Empate</option>
             </select>
           </label>
-          <label>Fecha <input type="date" id="partidaFecha" /></label>
-          <label>Dónde
+          <label id="partidaCampoFecha">Fecha <input type="date" id="partidaFecha" /></label>
+          <label id="partidaCampoDonde">Dónde
             <select id="partidaDonde">
               <option value="TCG Live">TCG Live</option>
               <option value="Torneo local">Torneo local</option>
@@ -151,6 +192,12 @@
         <div class="skeleton" style="height: 70px; margin-bottom: 12px;"></div>
         <div class="skeleton" style="height: 200px;"></div>
       </div>
+
+      <!-- Los torneos, cada uno con sus rondas dentro: los de PokeDoc
+           (solo lectura, con enlace a su ficha) y los apuntados a mano
+           (con «añadir ronda» y «borrar»). -->
+      <h2 class="partidas-titulo-lista">Tus torneos</h2>
+      <div id="partidasTorneos"></div>
 
       <h2 class="partidas-titulo-lista">Las últimas</h2>
       <div id="partidasLista"></div>

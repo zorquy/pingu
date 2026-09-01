@@ -258,11 +258,11 @@ for (let i = 0; i < POKEMON_POR_DEX.length; i++) {
 // misma forma que «Cornerstone Mask Ogerpon ex». No salen en el
 // buscador para no enseñar el mismo Pokémon dos veces.
 export const FORMAS_TCG = [
-  { nombre: 'Teal Mask Ogerpon', dex: 1017, base: 1017 },
-  { nombre: 'Wellspring Mask Ogerpon', dex: 10273, base: 1017 },
-  { nombre: 'Hearthflame Mask Ogerpon', dex: 10274, base: 1017 },
-  { nombre: 'Cornerstone Mask Ogerpon', dex: 10275, base: 1017 },
-  { nombre: 'Bloodmoon Ursaluna', dex: 10272, base: 901 },
+  { nombre: 'Teal Mask Ogerpon', dex: 1017, base: 1017, slug: 'ogerpon' },
+  { nombre: 'Wellspring Mask Ogerpon', dex: 10273, base: 1017, slug: 'ogerpon-wellspring' },
+  { nombre: 'Hearthflame Mask Ogerpon', dex: 10274, base: 1017, slug: 'ogerpon-hearthflame' },
+  { nombre: 'Cornerstone Mask Ogerpon', dex: 10275, base: 1017, slug: 'ogerpon-cornerstone' },
+  { nombre: 'Bloodmoon Ursaluna', dex: 10272, base: 901, slug: 'ursaluna-bloodmoon' },
   { nombre: 'Máscara Turquesa', dex: 1017, base: 1017, alias: true },
   { nombre: 'Máscara Fuente', dex: 10273, base: 1017, alias: true },
   { nombre: 'Máscara Horno', dex: 10274, base: 1017, alias: true },
@@ -310,20 +310,45 @@ export function dexDeCarta(nombreDeCarta) {
   return null
 }
 
-// De dónde salen los sprites: el repositorio de PokéAPI servido por
-// jsDelivr, que es una CDN pública hecha precisamente para esto (a
-// diferencia de raw.githubusercontent.com, que pide que no se enlace
-// desde una web). Mismo trato que las imágenes de las cartas, que
-// también se enlazan a la CDN de TCGdex en vez de copiarlas.
+// De dónde salen los sprites (tanda 236): la CDN de Limitless, que es
+// EXACTAMENTE la que usa trainingcourt.app — Ibai pidió «los mismos
+// sprites que trainingcourt, que son todos iguales», se miró su código
+// y esto es lo que hace: nombre en minúsculas con guiones contra
+// r2.limitlesstcg.net. Son minisprites de píxel, todos del mismo
+// estilo y con las formas del TCG incluidas (ogerpon-wellspring,
+// ursaluna-bloodmoon…), que era justo lo que a PokéAPI le fallaba: sus
+// sprites por número mezclan generaciones y estilos.
 //
-// Se usa `sprites/pokemon/<n>.png` y NO los de la quinta generación
-// (más bonitos, en píxel): esos solo llegan hasta el 649, y la mitad de
-// los mazos de hoy son de la octava y la novena. Un sprite que falta
-// para justo los Pokémon que interesan no sirve de nada.
-const CDN_SPRITES = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon'
+// La URL se monta por NOMBRE y no por número, así que del número de
+// Pokédex se pasa por una tabla de nombres-guión («Mr. Mime» →
+// mr-mime, «Nidoran♀» → nidoran-f, «Farfetch'd» → farfetchd) y las
+// formas ponen el suyo a mano (Limitless dice «ogerpon-wellspring», no
+// «wellspring-mask-ogerpon»). Comprobado contra la CDN de verdad.
+const CDN_SPRITES = 'https://r2.limitlesstcg.net/pokemon/gen9'
+
+// El nombre como lo escribe Limitless: minúsculas, sin tildes ni
+// puntuación, espacios a guiones y los símbolos de género a letra.
+function slugLimitless(nombre) {
+  return String(nombre ?? '')
+    .replace(/♀/g, ' f')
+    .replace(/♂/g, ' m')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/['.:]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+const SLUG_POR_DEX = new Map()
+for (let i = 0; i < POKEMON_POR_DEX.length; i++) SLUG_POR_DEX.set(i + 1, slugLimitless(POKEMON_POR_DEX[i]))
+// Después de las especies a propósito: la forma manda sobre la base
+// cuando comparten número (la Máscara Turquesa ES el 1017).
+for (const f of FORMAS_TCG) if (f.slug) SLUG_POR_DEX.set(f.dex, f.slug)
 
 export function urlDeSprite(dex) {
-  return dex ? `${CDN_SPRITES}/${dex}.png` : null
+  const slug = SLUG_POR_DEX.get(dex)
+  return slug ? `${CDN_SPRITES}/${slug}.png` : null
 }
 
 // El atajo: nombre de carta → URL del sprite, o null si no es un Pokémon.
