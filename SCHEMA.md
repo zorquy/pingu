@@ -12145,3 +12145,19 @@ derecha, ← hasta agosto desde la izquierda con el Mundial marcado y
 su panel animado, y «Hoy» de vuelta a septiembre. OJO:
 verificar-tanda-242 tiene dos comprobaciones obsoletas (las flechas de
 año ya no existen).
+
+### Tanda 244 — retoques al probarlo
+
+Ibai, con la 243 delante: saltos más largos, meses más pequeños y
+fuera el «Hoy». Hecho tal cual:
+
+- Las flechas saltan **±6 meses**; el rango de la cabecera sigue
+  diciendo dónde estás.
+- Meses **compactos**: `minmax(164px, 1fr)` (antes 215), padding
+  8/10, títulos a 12.5px y días a 10.5px — el año entero en dos filas
+  de seis en un monitor normal.
+- **Sin botón «Hoy»**: con saltos de medio año el presente queda a un
+  toque y el botón solo ensuciaba la cabecera. Si algún día vuelve,
+  que no sea ahí (palabra de Ibai).
+
+verificar-tanda-243.mjs actualizado a este comportamiento (16/16).

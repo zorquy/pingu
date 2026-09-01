@@ -266,14 +266,15 @@ function pintarCalendario(direccion = 0) {
 
   const fin = new Date(inicioCalendario.anio, inicioCalendario.mes + 11, 1)
   const rango = `${new Date(inicioCalendario.anio, inicioCalendario.mes, 1).toLocaleString('es-ES', { month: 'long' })} ${inicioCalendario.anio} — ${fin.toLocaleString('es-ES', { month: 'long' })} ${fin.getFullYear()}`
-  const enHoy = inicioCalendario.anio === hoyCal.getFullYear() && inicioCalendario.mes === hoyCal.getMonth()
   const claseEntrada = direccion > 0 ? 'cal-entra-der' : direccion < 0 ? 'cal-entra-izq' : 'cal-entra'
+  // Las flechas saltan MEDIO AÑO (lo pidió Ibai: de mes en mes era un
+  // paseo). Sin botón «Hoy»: con saltos de 6, volver al presente son
+  // uno o dos toques y el botón solo estorbaba en la cabecera.
   caja.innerHTML = `
     <div class="torneo-cal-cabecera">
-      <button type="button" class="btn-secondary" data-cal-mes="-1" aria-label="Mes anterior">←</button>
+      <button type="button" class="btn-secondary" data-cal-mes="-6" aria-label="Seis meses atrás">←</button>
       <strong class="torneo-cal-rango">${escapeHtml(rango)}</strong>
-      <button type="button" class="btn-secondary ${enHoy ? 'hidden' : ''}" data-cal-hoy>Hoy</button>
-      <button type="button" class="btn-secondary" data-cal-mes="1" aria-label="Mes siguiente">→</button>
+      <button type="button" class="btn-secondary" data-cal-mes="6" aria-label="Seis meses adelante">→</button>
     </div>
     <div class="torneo-cal-meses ${claseEntrada}">${meses.join('')}</div>
     <div id="torneoCalDia"></div>`
@@ -286,11 +287,6 @@ function pintarCalendario(direccion = 0) {
       pintarCalendario(paso)
     })
   )
-  caja.querySelector('[data-cal-hoy]')?.addEventListener('click', () => {
-    const atras = inicioCalendario.anio * 12 + inicioCalendario.mes > hoyCal.getFullYear() * 12 + hoyCal.getMonth()
-    inicioCalendario = { anio: hoyCal.getFullYear(), mes: hoyCal.getMonth() }
-    pintarCalendario(atras ? -1 : 1)
-  })
   caja.querySelectorAll('[data-cal-dia]').forEach((b) =>
     b.addEventListener('click', () => {
       const clave = b.dataset.calDia

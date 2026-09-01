@@ -12,6 +12,19 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 244 — el calendario, a gusto de Ibai)
+**Hecho**: tres retoques sobre la 243, pedidos al probarla. (1) Las
+flechas saltan MEDIO AÑO (±6) en vez de mes a mes. (2) Los meses,
+compactos: minmax 164px (antes 215), padding y letras más pequeñas —
+el año entero cabe en dos filas de seis en un monitor normal. (3)
+FUERA el botón «Hoy»: con saltos de 6, volver al presente es un toque
+y en la cabecera solo estorbaba.
+**Ficheros**: js/torneos/torneos.js, css/torneos.css, SCHEMA.md. Fuera
+del repo: pruebas/verificar-tanda-243.mjs (actualizado a los saltos de
+6 y sin «Hoy»).
+**En curso / pendiente**: verificado con Edge (16/16, captura nueva en
+pruebas/capturas). Lo demás, como la 243.
+
 ## 2026-09-01 — IBAI-Claude (tanda 243 — el calendario, profesional)
 **Hecho**: pulido del calendario pedido por Ibai. La ventana EMPIEZA
 en el mes actual (12 meses seguidos, cruzando el cambio de año) con el
