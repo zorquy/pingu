@@ -12161,3 +12161,13 @@ fuera el «Hoy». Hecho tal cual:
   que no sea ahí (palabra de Ibai).
 
 verificar-tanda-243.mjs actualizado a este comportamiento (16/16).
+
+### Tanda 245 — páginas de seis
+
+Con la 244 delante, Ibai: «demasiados meses; 3 por fila en 2 filas y
+siguiente página». El calendario enseña SEIS meses por página
+(`repeat(3, 1fr)`; 2 columnas bajo 860px, 1 bajo 560px), las flechas
+pasan de página (±6, lo que se ve es lo que se salta) y los tamaños
+de letra/padding vuelven a los de la 243 — con tres por fila el sitio
+sobra. El rango de la cabecera nombra la página. verificar-tanda-243
+actualizado (16/16).

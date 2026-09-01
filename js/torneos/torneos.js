@@ -231,11 +231,11 @@ function pintarCalendario(direccion = 0) {
   const hoy = claveDeDia(new Date())
   const mesDeHoy = `${hoyCal.getFullYear()}-${hoyCal.getMonth()}`
 
-  // Doce meses SEGUIDOS desde la ventana actual: el primero es el mes
-  // en el que estamos (o donde hayan llevado las flechas), y la ventana
-  // cruza el cambio de año sin cortarse.
+  // SEIS meses por página (tanda 245: doce eran demasiados) — tres por
+  // fila, dos filas —, empezando por el mes en el que estamos (o donde
+  // hayan llevado las flechas), cruzando el cambio de año sin cortarse.
   const meses = []
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 6; i++) {
     const primero = new Date(inicioCalendario.anio, inicioCalendario.mes + i, 1)
     const anio = primero.getFullYear()
     const mes = primero.getMonth()
@@ -264,17 +264,17 @@ function pintarCalendario(direccion = 0) {
       <div class="torneo-cal-dias">${celdas}${dias}</div></div>`)
   }
 
-  const fin = new Date(inicioCalendario.anio, inicioCalendario.mes + 11, 1)
+  const fin = new Date(inicioCalendario.anio, inicioCalendario.mes + 5, 1)
   const rango = `${new Date(inicioCalendario.anio, inicioCalendario.mes, 1).toLocaleString('es-ES', { month: 'long' })} ${inicioCalendario.anio} — ${fin.toLocaleString('es-ES', { month: 'long' })} ${fin.getFullYear()}`
   const claseEntrada = direccion > 0 ? 'cal-entra-der' : direccion < 0 ? 'cal-entra-izq' : 'cal-entra'
-  // Las flechas saltan MEDIO AÑO (lo pidió Ibai: de mes en mes era un
-  // paseo). Sin botón «Hoy»: con saltos de 6, volver al presente son
-  // uno o dos toques y el botón solo estorbaba en la cabecera.
+  // Las flechas pasan de PÁGINA en página (los mismos 6 meses que se
+  // ven). Sin botón «Hoy»: el presente queda a un toque y el botón
+  // solo estorbaba en la cabecera.
   caja.innerHTML = `
     <div class="torneo-cal-cabecera">
-      <button type="button" class="btn-secondary" data-cal-mes="-6" aria-label="Seis meses atrás">←</button>
+      <button type="button" class="btn-secondary" data-cal-mes="-6" aria-label="Página anterior">←</button>
       <strong class="torneo-cal-rango">${escapeHtml(rango)}</strong>
-      <button type="button" class="btn-secondary" data-cal-mes="6" aria-label="Seis meses adelante">→</button>
+      <button type="button" class="btn-secondary" data-cal-mes="6" aria-label="Página siguiente">→</button>
     </div>
     <div class="torneo-cal-meses ${claseEntrada}">${meses.join('')}</div>
     <div id="torneoCalDia"></div>`

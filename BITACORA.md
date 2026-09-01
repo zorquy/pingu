@@ -12,6 +12,18 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 245 — el calendario por páginas de seis)
+**Hecho**: Ibai sobre la 244: «demasiados meses». El calendario pasa a
+PÁGINAS de SEIS meses (tres por fila, dos filas; en tableta 2
+columnas, en móvil 1), las flechas pasan de página (±6, como ya iban)
+y los tamaños vuelven a cómodos (los de la 243) porque con tres por
+fila hay sitio de sobra. El rango de la cabecera dice la página
+(«septiembre 2026 — febrero 2027»).
+**Ficheros**: js/torneos/torneos.js, css/torneos.css, SCHEMA.md. Fuera
+del repo: pruebas/verificar-tanda-243.mjs (6 meses y rango nuevos).
+**En curso / pendiente**: verificado con Edge (16/16). Lo demás, como
+la 244.
+
 ## 2026-09-01 — IBAI-Claude (tanda 244 — el calendario, a gusto de Ibai)
 **Hecho**: tres retoques sobre la 243, pedidos al probarla. (1) Las
 flechas saltan MEDIO AÑO (±6) en vez de mes a mes. (2) Los meses,
