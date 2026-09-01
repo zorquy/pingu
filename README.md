@@ -86,6 +86,11 @@ dentro del propio test.
     desplegable llegue con «Juego → Torneos» puesto, agrupado por
     secciones, con los subforos detrás de su padre, y que el hilo se
     abra ahí de verdad).
+  - `test-tanda-248` — que «En juego» sea solo lo que se está jugando:
+    la pestaña «Por empezar» de /torneos y el grupo «Apuntado» del
+    perfil. OJO en esta: los títulos de grupo del perfil llevan
+    text-transform: uppercase, y `innerText` devuelve el texto TAL COMO
+    SE PINTA — buscar «Jugando ahora» tal cual no encuentra nada.
 
 ## Lo que FALTA
 
