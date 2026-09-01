@@ -61,6 +61,7 @@ export const REQUISITOS = [
   { tabla: 'match_log', columna: 'torneo_id', fichero: 'supabase-migration-partidas-torneos.sql', rompe: '/mis-partidas no deja apuntar torneos (las partidas sueltas sí funcionan).' },
   { tabla: 'tournaments', columna: 'image_url', fichero: 'supabase-migration-torneos-imagen.sql', rompe: 'No se puede poner imagen a un torneo (crear y editar torneos sí funciona).' },
   { tabla: 'tournaments', columna: 'decklist_visibility', fichero: 'supabase-migration-torneos-listas.sql', rompe: 'El modo «listas nunca públicas» no se guarda (los otros dos modos van por el booleano viejo).' },
+  { tabla: 'tournaments', columna: 'banner_url', fichero: 'supabase-migration-torneos-banner.sql', rompe: 'No se puede poner banner a un torneo (todo lo demás funciona).' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

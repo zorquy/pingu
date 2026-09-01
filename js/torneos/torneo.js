@@ -149,6 +149,16 @@ function activos() {
 function pintarFicha() {
   const estado = ESTADOS[torneo.status] || ESTADOS.draft
   document.title = `${torneo.name} — PokeDoc`
+  // El banner (tanda 242): solo si lo hay; si no carga, se esconde —
+  // nunca el icono roto del navegador presidiendo la ficha.
+  const banner = $('torneoBanner')
+  if (banner) {
+    banner.classList.toggle('hidden', !torneo.banner_url)
+    if (torneo.banner_url && banner.src !== torneo.banner_url) {
+      banner.src = torneo.banner_url
+      banner.onerror = () => banner.classList.add('hidden')
+    }
+  }
   $('torneoNombre').textContent = torneo.name
   const pill = $('torneoEstado')
   pill.textContent = estado.texto
@@ -260,6 +270,8 @@ let editarDescripcionHtml = ''
 // La subida se hace SOLO al guardar, para no dejar ficheros huérfanos
 // en Storage si se cierra el editor sin más.
 let editarImagenNueva = undefined
+// Y el banner (tanda 242), con el mismo triestado.
+let editarBannerNuevo = undefined
 
 function pintarJornadasEditor(fechas, bloqueada) {
   const lista = $('editarJornadasLista')
@@ -345,6 +357,15 @@ function pintarEditor() {
         </div>
         <span class="torneo-campo-pista">Se enseña como icono en el listado de torneos.</span>
       </div>
+      <div class="torneos-form-campo">Banner del torneo
+        <div class="torneo-imagen-campo">
+          <img id="editarBannerPreview" class="torneo-banner-preview ${torneo.banner_url ? '' : 'hidden'}" src="${escapeHtml(torneo.banner_url || '')}" alt="" />
+          <button type="button" class="btn-secondary" id="btnEditarBanner">${torneo.banner_url ? 'Cambiar banner' : 'Elegir banner'}</button>
+          <button type="button" class="btn-outline ${torneo.banner_url ? '' : 'hidden'}" id="btnEditarBannerQuitar">Quitar</button>
+          <input type="file" id="editarBannerInput" accept="image/*" class="hidden" />
+        </div>
+        <span class="torneo-campo-pista">Se enseña arriba del todo en la ficha. Apaisado queda mejor.</span>
+      </div>
       <div class="torneos-form-descripcion">Descripción
         <div class="rte-wrap rte-compacta torneo-desc-editor">
           <div class="rte-toolbar" id="editarDescBarra"></div>
@@ -418,6 +439,26 @@ function pintarEditor() {
     $('btnEditarImagenQuitar').classList.add('hidden')
     $('btnEditarImagen').textContent = 'Elegir imagen'
   })
+  // El banner, con el mismo baile.
+  editarBannerNuevo = undefined
+  $('btnEditarBanner').addEventListener('click', () => $('editarBannerInput').click())
+  $('editarBannerInput').addEventListener('change', () => {
+    const fichero = $('editarBannerInput').files?.[0]
+    if (!fichero) return
+    editarBannerNuevo = fichero
+    const preview = $('editarBannerPreview')
+    preview.src = URL.createObjectURL(fichero)
+    preview.classList.remove('hidden')
+    $('btnEditarBannerQuitar').classList.remove('hidden')
+    $('btnEditarBanner').textContent = 'Cambiar banner'
+  })
+  $('btnEditarBannerQuitar').addEventListener('click', () => {
+    editarBannerNuevo = null
+    $('editarBannerInput').value = ''
+    $('editarBannerPreview').classList.add('hidden')
+    $('btnEditarBannerQuitar').classList.add('hidden')
+    $('btnEditarBanner').textContent = 'Elegir banner'
+  })
   $('btnCerrarEdicion').addEventListener('click', () => $('torneoEditor').remove())
   $('btnGuardarEdicion').addEventListener('click', guardarEdicion)
 }
@@ -469,17 +510,20 @@ async function guardarEdicion() {
   // La imagen (tanda 239): solo si se tocó. Se sube aquí y no al
   // elegirla, para que cerrar el editor sin guardar no deje ficheros
   // huérfanos en Storage.
-  if (editarImagenNueva !== undefined) {
-    if (editarImagenNueva === null) {
-      cambios.image_url = null
-    } else {
-      try {
-        const { uploadProfileImage } = await import('../app.js')
-        cambios.image_url = await uploadProfileImage(session.user.id, editarImagenNueva, 'torneo')
-      } catch (err) {
-        showToast('No se ha podido subir la imagen: ' + (err?.message || err), 'error')
-        return
+  if (editarImagenNueva !== undefined || editarBannerNuevo !== undefined) {
+    try {
+      const { uploadProfileImage } = await import('../app.js')
+      if (editarImagenNueva !== undefined) {
+        cambios.image_url =
+          editarImagenNueva === null ? null : await uploadProfileImage(session.user.id, editarImagenNueva, 'torneo')
       }
+      if (editarBannerNuevo !== undefined) {
+        cambios.banner_url =
+          editarBannerNuevo === null ? null : await uploadProfileImage(session.user.id, editarBannerNuevo, 'torneo-banner')
+      }
+    } catch (err) {
+      showToast('No se ha podido subir la imagen: ' + (err?.message || err), 'error')
+      return
     }
   }
   // Las fechas de las jornadas se guardan siempre (son informativas);
@@ -494,11 +538,14 @@ async function guardarEdicion() {
     cambios.top_cut_bo = Number($('editarCorteBo').value)
   }
   let { error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id)
-  // Si la migración de la columna nueva aún no se ejecutó, se guarda
-  // sin ella: el booleano viejo dice lo mismo salvo el «nunca».
-  if (error && (error.message || '').includes('decklist_visibility')) {
-    delete cambios.decklist_visibility
-    ;({ error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id))
+  // Si alguna migración de columna nueva aún no se ejecutó, se guarda
+  // sin esa columna (del modo de listas queda el booleano viejo). El
+  // comprobador de /admin ya avisa de lo que falta.
+  for (const columna of ['decklist_visibility', 'image_url', 'banner_url']) {
+    if (error && (error.message || '').includes(columna)) {
+      delete cambios[columna]
+      ;({ error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id))
+    }
   }
   if (error) {
     avisarError(error, 'No se ha podido guardar')

@@ -84,6 +84,16 @@
           </div>
           <span class="torneo-campo-pista">Se enseña como icono en el listado. Cuadrada queda mejor.</span>
         </div>
+        <!-- Y el banner (tanda 242): ancho, preside la ficha. -->
+        <div class="torneos-form-campo">Banner del torneo (opcional)
+          <div class="torneo-imagen-campo">
+            <img id="torneoBannerPreview" class="torneo-banner-preview hidden" alt="" />
+            <button type="button" class="btn-secondary" id="btnTorneoBanner">Elegir banner</button>
+            <button type="button" class="btn-outline hidden" id="btnTorneoBannerQuitar">Quitar</button>
+            <input type="file" id="torneoBannerInput" accept="image/*" class="hidden" />
+          </div>
+          <span class="torneo-campo-pista">Se enseña arriba del todo en la ficha del torneo. Apaisado queda mejor.</span>
+        </div>
         <label class="torneos-form-campo">Fecha y hora de inicio
           <input type="datetime-local" id="torneoFecha" />
           <span class="torneo-campo-pista">En tu zona horaria.</span>
@@ -184,6 +194,14 @@
       </div>
     </form>
 
+    <!-- Lista o calendario (tanda 242, pedido por Ibai): el calendario
+         pinta el año entero, mes a mes, con los días de torneo
+         marcados en navy; pulsar un día enseña sus torneos debajo. -->
+    <nav class="torneo-pestanas torneo-vista-conmutador" aria-label="Cómo ver los torneos">
+      <button type="button" class="torneo-pestana activa" data-vista-torneos="lista">Lista</button>
+      <button type="button" class="torneo-pestana" data-vista-torneos="calendario">Calendario</button>
+    </nav>
+    <div id="torneosCalendario" class="hidden"></div>
     <div id="listaTorneos" class="torneos-lista"></div>
     <p id="torneosVacio" class="empty-state hidden">Todavía no hay ningún torneo. Crea el primero con el botón de arriba.</p>
   </main>

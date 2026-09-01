@@ -12065,3 +12065,44 @@ el BO del corte en wizard y editor, los tres modos en ambos
 formularios, la liga de la demo (booleano viejo marcado) hereda
 «en_juego» y enseña «Ver lista» en juego, y el Mundial terminado
 conserva sus chapas.
+
+## Tanda 242 — el banner del torneo y el calendario anual (sept. 2026)
+
+### El banner
+
+Además del icono del listado (239), un banner ANCHO que preside la
+ficha. Misma receta: columna `tournaments.banner_url`
+(`supabase-migration-torneos-banner.sql`), subida al bucket avatars
+(`torneo-banner-<ts>.<ext>`), y triestado en el editor. En la ficha va
+A SANGRE: márgenes negativos del padding del simple-card (16px) y las
+esquinas de arriba acompañando a la tarjeta; 180px de alto (120 en
+móvil), object-fit cover, y si no carga se esconde. En el wizard, el
+icono y el banner comparten montador (`montarCampoImagen`), que es el
+mismo trío previa/elegir/quitar dos veces. Los reintentos
+sin-columna-nueva del insert/update cubren image_url, banner_url y
+decklist_visibility.
+
+### El calendario anual
+
+/torneos gana un conmutador Lista/Calendario (pestañas de siempre,
+elección recordada en localStorage `pokedoc-torneos-vista`):
+
+- El AÑO ENTERO, 12 meses en rejilla, semana empezando en LUNES.
+- Los días con torneo van en navy y son botones; el title lista los
+  nombres. En una LIGA cuentan también sus `matchday_dates` — son días
+  de juego de verdad.
+- Pulsar un día pinta debajo sus torneos (icono si lo tienen, nombre,
+  fecha y chapa de estado) enlazados a la ficha. La clave del día se
+  convierte a fecha LOCAL a mano — parsear 'AAAA-MM-DD' a secas es UTC
+  y pintaba una hora fantasma en el título.
+- Flechas ← año → sin límite, y todo se pinta de la MISMA lista ya
+  cargada (50 torneos): cero consultas nuevas. Los cancelados no
+  salen.
+
+### Comprobado
+
+`pruebas/verificar-tanda-242.mjs` con Edge: 16/16 — banner en la ficha
+del Mundial (ancho completo, 180 de alto), escondido donde no lo hay,
+campo en wizard y editor con vista previa, calendario con 12 meses y 6
+días marcados, el 30 de agosto enseña el Mundial al pulsarlo, la vista
+sobrevive a recargar y las flechas cambian de año.

@@ -285,6 +285,100 @@
   background: var(--bg);
   flex: none;
 }
+/* La vista previa del banner: mismo trato, forma apaisada. */
+.torneo-banner-preview {
+  width: 144px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  flex: none;
+}
+
+/* El banner en la ficha (tanda 242): ancho completo, por encima de la
+   cabecera. La ficha es un simple-card con padding de 16px: los
+   márgenes negativos lo llevan hasta los bordes y las esquinas de
+   arriba acompañan a las de la tarjeta. */
+.torneo-banner {
+  display: block;
+  width: calc(100% + 32px);
+  margin: -16px -16px 14px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+@media (max-width: 560px) {
+  .torneo-banner { height: 120px; }
+}
+
+/* ── El calendario anual (tanda 242) ──
+   Doce meses en rejilla, la semana empezando en lunes y los días con
+   torneo en navy (pulsables). Debajo, los torneos del día elegido. */
+.torneo-vista-conmutador { margin-bottom: 14px; }
+.torneo-cal-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.torneo-cal-cabecera strong { font-size: 18px; }
+.torneo-cal-meses {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 12px;
+}
+.torneo-cal-mes {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+.torneo-cal-mes h5 { margin: 0 0 8px; text-transform: capitalize; font-size: 14px; }
+.torneo-cal-dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+.torneo-cal-diasemana { color: var(--text-dim); font-size: 10px; font-weight: 600; }
+.torneo-cal-dia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: 12px;
+  padding: 0;
+}
+.torneo-cal-dia.hoy { box-shadow: inset 0 0 0 1px var(--border-strong); }
+button.torneo-cal-dia.con-torneo {
+  background: var(--navy);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+button.torneo-cal-dia.con-torneo:hover { background: var(--navy-light); }
+.torneo-cal-dia-titulo { margin: 16px 0 8px; }
+.torneo-cal-torneo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  text-decoration: none;
+}
+.torneo-cal-torneo:hover { border-color: var(--navy); }
+.torneo-cal-torneo-nombre { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 
 .torneo-texto { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 2px; }
 .torneo-texto strong { transition: color 0.15s; }

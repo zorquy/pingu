@@ -12,6 +12,31 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 242 — el banner del torneo y el calendario anual)
+**Hecho**: dos peticiones de Ibai. (1) BANNER: además del icono de la
+239, un banner ANCHO que preside la ficha (columna
+`tournaments.banner_url`, supabase-migration-torneos-banner.sql, mismo
+bucket avatars con `torneo-banner-<ts>`); se elige con vista previa en
+el wizard (montador compartido con el icono) y en el editor
+(triestado); en la ficha va a sangre con márgenes negativos y se
+esconde si no carga. Los reintentos sin-columna cubren también
+banner_url. (2) CALENDARIO: /torneos gana el conmutador
+Lista/Calendario (se recuerda en localStorage) — el año entero, 12
+meses con semana en lunes, los días con torneo en navy y pulsables
+(las jornadas de una liga también cuentan), panel del día con sus
+torneos enlazados, y flechas de año. Todo de la lista ya cargada, sin
+consultas nuevas.
+**Ficheros**: torneo.html, torneos.html, js/torneos/torneo.js,
+js/torneos/torneos.js, css/torneos.css, js/schema-check.js,
+supabase-migration-torneos-banner.sql (NUEVO), SCHEMA.md. Fuera del
+repo: pruebas/stub/mundo-mundial.mjs (el Mundial con banner),
+pruebas/stub/demo.html (semilla tanda-242),
+pruebas/verificar-tanda-242.mjs (NUEVO).
+**En curso / pendiente**: verificado con Edge (16/16, capturas en
+pruebas/capturas). PINGU: DOM nuevo en /torneos (conmutador
+[data-vista-torneos], #torneosCalendario) y #torneoBanner en la ficha.
+SQL pendientes de Ibai: los cuatro de antes + torneos-banner.
+
 ## 2026-09-01 — IBAI-Claude (tanda 241 — el wizard más fino: corte y listas)
 **Hecho**: dos pulidos del crear/editar torneo pedidos por Ibai. (1)
 Con «Sin corte» el campo «Corte al mejor de» se ESCONDE (wizard y

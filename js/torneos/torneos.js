@@ -136,6 +136,10 @@ async function cargarLista(session, perfil = null) {
     .order('start_at', { ascending: false })
     .limit(50)
   const torneos = data || []
+  // El calendario pinta sobre esta misma lista: se guarda y, si es la
+  // vista activa, se repinta con lo recién traído.
+  torneosCargados = torneos
+  pintarCalendario()
 
   // Una sola consulta da la ocupación de cada torneo Y mi estado (la
   // sección es solo-admins: la RLS deja leerlo todo).
@@ -182,6 +186,135 @@ async function cargarLista(session, perfil = null) {
     },
     { id: 'borradores', texto: 'Borradores', filas: borradores },
   ])
+}
+
+// ── El calendario anual (tanda 242, pedido por Ibai) ──
+//
+// El año entero, mes a mes, con los días de torneo en navy: la vista
+// de «¿cuándo se juega?» que una lista ordenada no da. Se pinta de la
+// MISMA lista ya cargada (nada de consultas nuevas); en una liga
+// cuentan también sus jornadas, que son días de juego de verdad.
+let torneosCargados = []
+let vistaTorneos = localStorage.getItem('pokedoc-torneos-vista') === 'calendario' ? 'calendario' : 'lista'
+let anioCalendario = new Date().getFullYear()
+
+function claveDeDia(fecha) {
+  const d = new Date(fecha)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function torneosPorDia() {
+  const porDia = new Map()
+  for (const t of torneosCargados) {
+    if (t.status === 'cancelled') continue
+    const fechas = [t.start_at]
+    if (t.format === 'league' && Array.isArray(t.matchday_dates)) fechas.push(...t.matchday_dates)
+    for (const f of fechas) {
+      if (!f) continue
+      const clave = claveDeDia(f)
+      if (!porDia.has(clave)) porDia.set(clave, [])
+      if (!porDia.get(clave).some((x) => x.id === t.id)) porDia.get(clave).push(t)
+    }
+  }
+  return porDia
+}
+
+function pintarCalendario() {
+  const caja = $('torneosCalendario')
+  if (!caja || vistaTorneos !== 'calendario') return
+  const porDia = torneosPorDia()
+  const hoy = claveDeDia(new Date())
+
+  const meses = []
+  for (let mes = 0; mes < 12; mes++) {
+    const nombreMes = new Date(anioCalendario, mes, 1).toLocaleString('es-ES', { month: 'long' })
+    const diasEnMes = new Date(anioCalendario, mes + 1, 0).getDate()
+    // La semana empieza en lunes, como los calendarios de aquí.
+    const hueco = (new Date(anioCalendario, mes, 1).getDay() + 6) % 7
+    const celdas = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+      .map((d) => `<span class="torneo-cal-diasemana">${d}</span>`)
+      .join('')
+      .concat('<span></span>'.repeat(hueco))
+    let dias = ''
+    for (let dia = 1; dia <= diasEnMes; dia++) {
+      const clave = `${anioCalendario}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
+      const deEsteDia = porDia.get(clave)
+      const esHoy = clave === hoy ? ' hoy' : ''
+      dias += deEsteDia
+        ? `<button type="button" class="torneo-cal-dia con-torneo${esHoy}" data-cal-dia="${clave}"
+            title="${escapeHtml(deEsteDia.map((t) => t.name).join(' · '))}">${dia}</button>`
+        : `<span class="torneo-cal-dia${esHoy}">${dia}</span>`
+    }
+    meses.push(`<div class="torneo-cal-mes"><h5>${escapeHtml(nombreMes)}</h5><div class="torneo-cal-dias">${celdas}${dias}</div></div>`)
+  }
+
+  caja.innerHTML = `
+    <div class="torneo-cal-cabecera">
+      <button type="button" class="btn-secondary" data-cal-anio="-1" aria-label="Año anterior">←</button>
+      <strong>${anioCalendario}</strong>
+      <button type="button" class="btn-secondary" data-cal-anio="1" aria-label="Año siguiente">→</button>
+    </div>
+    <div class="torneo-cal-meses">${meses.join('')}</div>
+    <div id="torneoCalDia"></div>`
+
+  caja.querySelectorAll('[data-cal-anio]').forEach((b) =>
+    b.addEventListener('click', () => {
+      anioCalendario += Number(b.dataset.calAnio)
+      pintarCalendario()
+    })
+  )
+  caja.querySelectorAll('[data-cal-dia]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const clave = b.dataset.calDia
+      const lista = porDia.get(clave) || []
+      // La clave es un día, no un instante: se construye la fecha LOCAL
+      // a mano (parsear '2026-08-30' a secas la haría UTC y saldría una
+      // hora fantasma en el título).
+      const [a, m, d] = clave.split('-').map(Number)
+      const titulo = new Date(a, m - 1, d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+      $('torneoCalDia').innerHTML = `
+        <h4 class="torneo-cal-dia-titulo">${escapeHtml(titulo[0].toUpperCase() + titulo.slice(1))}</h4>
+        ${lista
+          .map(
+            (t) => `
+          <a class="torneo-cal-torneo" href="/torneo?slug=${encodeURIComponent(t.slug)}">
+            ${
+              t.image_url
+                ? `<img class="torneo-tarjeta-imagen" src="${escapeHtml(t.image_url)}" alt="" loading="lazy" onerror="this.style.display='none'" />`
+                : ''
+            }
+            <span class="torneo-cal-torneo-nombre"><strong>${escapeHtml(t.name)}</strong>
+              <span class="subtext">${escapeHtml(fechaBonita(t.start_at))}</span></span>
+            <span class="torneo-estado ${(ESTADOS[t.status] || ESTADOS.draft).clase}">${(ESTADOS[t.status] || ESTADOS.draft).texto}</span>
+          </a>`
+          )
+          .join('')}`
+      $('torneoCalDia').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    })
+  )
+}
+
+// El conmutador Lista/Calendario. La elección se recuerda por
+// navegador: quien piensa en fechas vuelve a encontrarse su calendario.
+function engancharVistas() {
+  const aplicar = () => {
+    document.querySelectorAll('[data-vista-torneos]').forEach((b) =>
+      b.classList.toggle('activa', b.dataset.vistaTorneos === vistaTorneos)
+    )
+    const calendario = vistaTorneos === 'calendario'
+    $('torneosCalendario').classList.toggle('hidden', !calendario)
+    $('listaTorneos').classList.toggle('hidden', calendario)
+    if (calendario) $('torneosVacio').classList.add('hidden')
+    pintarCalendario()
+  }
+  document.querySelectorAll('[data-vista-torneos]').forEach((b) =>
+    b.addEventListener('click', () => {
+      vistaTorneos = b.dataset.vistaTorneos
+      localStorage.setItem('pokedoc-torneos-vista', vistaTorneos)
+      aplicar()
+    })
+  )
+  aplicar()
 }
 
 // ── El wizard de crear (3 pasos, como el original sin el de pago) ──
@@ -485,23 +618,36 @@ function engancharFormulario(session, perfil) {
   // perfil) SOLO al crear — elegir y arrepentirse no debe dejar
   // ficheros huérfanos en Storage.
   let imagenElegida = null
-  function pintarImagenElegida() {
-    const preview = $('torneoImagenPreview')
-    if (imagenElegida) preview.src = URL.createObjectURL(imagenElegida)
-    preview.classList.toggle('hidden', !imagenElegida)
-    $('btnTorneoImagenQuitar').classList.toggle('hidden', !imagenElegida)
-    $('btnTorneoImagen').textContent = imagenElegida ? 'Cambiar imagen' : 'Elegir imagen'
+  let bannerElegido = null
+  // El icono y el banner comparten el mismo trío de piezas
+  // (previa/elegir/quitar): un solo montador para los dos.
+  function montarCampoImagen(prefijo, alCambiar) {
+    const preview = $(`${prefijo}Preview`)
+    const input = $(`${prefijo}Input`)
+    const boton = $(`btn${prefijo[0].toUpperCase()}${prefijo.slice(1)}`)
+    const quitar = $(`btn${prefijo[0].toUpperCase()}${prefijo.slice(1)}Quitar`)
+    const esBanner = /Banner/.test(prefijo)
+    const pintar = (fichero) => {
+      if (fichero) preview.src = URL.createObjectURL(fichero)
+      preview.classList.toggle('hidden', !fichero)
+      quitar.classList.toggle('hidden', !fichero)
+      boton.textContent = fichero ? (esBanner ? 'Cambiar banner' : 'Cambiar imagen') : esBanner ? 'Elegir banner' : 'Elegir imagen'
+    }
+    boton.addEventListener('click', () => input.click())
+    input.addEventListener('change', () => {
+      const f = input.files?.[0] || null
+      alCambiar(f)
+      pintar(f)
+    })
+    quitar.addEventListener('click', () => {
+      input.value = ''
+      alCambiar(null)
+      pintar(null)
+    })
+    return pintar
   }
-  $('btnTorneoImagen').addEventListener('click', () => $('torneoImagenInput').click())
-  $('torneoImagenInput').addEventListener('change', () => {
-    imagenElegida = $('torneoImagenInput').files?.[0] || null
-    pintarImagenElegida()
-  })
-  $('btnTorneoImagenQuitar').addEventListener('click', () => {
-    imagenElegida = null
-    $('torneoImagenInput').value = ''
-    pintarImagenElegida()
-  })
+  const pintarImagenElegida = montarCampoImagen('torneoImagen', (f) => (imagenElegida = f))
+  const pintarBannerElegido = montarCampoImagen('torneoBanner', (f) => (bannerElegido = f))
 
   let enviando = false
   form.addEventListener('submit', async (e) => {
@@ -514,14 +660,14 @@ function engancharFormulario(session, perfil) {
     // Primero la imagen: si la subida falla, el torneo NO se crea a
     // medias — se avisa y se deja reintentar con todo lo escrito.
     let imageUrl = null
-    if (imagenElegida) {
-      try {
-        imageUrl = await uploadProfileImage(session.user.id, imagenElegida, 'torneo')
-      } catch (err) {
-        enviando = false
-        showToast('No se ha podido subir la imagen: ' + (err?.message || err), 'error')
-        return
-      }
+    let bannerUrl = null
+    try {
+      if (imagenElegida) imageUrl = await uploadProfileImage(session.user.id, imagenElegida, 'torneo')
+      if (bannerElegido) bannerUrl = await uploadProfileImage(session.user.id, bannerElegido, 'torneo-banner')
+    } catch (err) {
+      enviando = false
+      showToast('No se ha podido subir la imagen: ' + (err?.message || err), 'error')
+      return
     }
     // El modo de listas se guarda por partida doble: la columna nueva
     // (la que manda) y el booleano viejo, que la política RLS y el
@@ -530,6 +676,7 @@ function engancharFormulario(session, perfil) {
     const fila = {
       decklist_visibility: modoListas,
       image_url: imageUrl,
+      banner_url: bannerUrl,
       slug: `${slugify(nombre)}-${Date.now().toString(36)}`,
       admin_id: session.user.id,
       name: nombre,
@@ -554,7 +701,7 @@ function engancharFormulario(session, perfil) {
     // torneos tiene que seguir funcionando: si la base no conoce una
     // columna, se reintenta sin ella (del modo de listas queda el
     // booleano viejo, que dice lo mismo salvo el «nunca»).
-    for (const columna of ['decklist_visibility', 'image_url']) {
+    for (const columna of ['decklist_visibility', 'image_url', 'banner_url']) {
       if (error && (error.message || '').includes(columna)) {
         delete fila[columna]
         ;({ error } = await supabase.from('tournaments').insert(fila))
@@ -577,7 +724,9 @@ function engancharFormulario(session, perfil) {
     descripcionHtml = ''
     $('torneoDescCuerpo').innerHTML = ''
     imagenElegida = null
-    pintarImagenElegida()
+    bannerElegido = null
+    pintarImagenElegida(null)
+    pintarBannerElegido(null)
     pintarCorteBo()
     pintarCamposJornadas()
     pintarSinLimite()
@@ -613,6 +762,7 @@ async function init() {
     )
   }
   engancharFormulario(session, perfil)
+  engancharVistas()
   await cargarLista(session, perfil)
 }
 
