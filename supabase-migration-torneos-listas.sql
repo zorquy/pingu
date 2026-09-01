@@ -15,11 +15,14 @@
 -- lo mantiene en sincronía al crear/editar (true = 'en_juego') y hace
 -- de respaldo para código desplegado antes que esta migración.
 --
--- OJO: ejecutar DESPUÉS de supabase-migration-torneos-publico.sql —
--- esta migración REHACE su política decklists_ver (usa sus funciones
--- torneos_soy_admin / torneos_soy_juez).
+-- La política decklists_ver de torneos-publico.sql se rehace con los
+-- tres modos SOLO SI esa migración ya corrió (sus funciones
+-- torneos_soy_admin/juez existen). Si no —hoy la sección está en
+-- pruebas y manda torneos_solo_admins—, se salta con un NOTICE:
+-- torneos-publico.sql ya trae la regla de los tres modos incorporada
+-- para cuando se ejecute.
 --
--- Es re-ejecutable.
+-- Es re-ejecutable, en cualquier orden respecto a torneos-publico.
 -- ═══════════════════════════════════════════════════════════════════
 
 begin;
@@ -47,23 +50,36 @@ alter table public.tournaments
 -- ── La política que de verdad manda ──
 -- La regla de la tanda 230 (torneos-publico) rehecha con los tres
 -- modos: el «nunca» tiene que cumplirse EN LA BASE, no solo en lo que
--- se pinta. Mismo esqueleto que la original.
-drop policy if exists decklists_ver on public.tournament_decklists;
-create policy decklists_ver on public.tournament_decklists for select
-  using (
-    user_id = auth.uid()
-    or torneos_soy_admin()
-    or torneos_soy_juez(tournament_id)
-    or exists (
-      select 1 from public.tournaments t
-      where t.id = tournament_id
-        and coalesce(t.decklist_visibility, 'al_terminar') <> 'nunca'
-        and (
-          t.status = 'finished'
-          or (coalesce(t.decklist_visibility, 'al_terminar') = 'en_juego' and t.status = 'in_progress')
-        )
-    )
-  );
+-- se pinta. Pero SOLO si torneos-publico ya corrió: sus funciones
+-- torneos_soy_admin/juez son parte de la política, y sin ellas el
+-- CREATE POLICY revienta (fue el fallo que Ibai se encontró el
+-- 2026-09-01). Mientras la sección esté en pruebas, la política
+-- torneos_solo_admins ya cierra las decklists a los admins, así que no
+-- hay agujero por saltarse este paso.
+do $$
+begin
+  if to_regprocedure('public.torneos_soy_admin()') is null
+     or to_regprocedure('public.torneos_soy_juez(uuid)') is null then
+    raise notice 'torneos-publico.sql aún no se ha ejecutado: la política decklists_ver se queda como está (ya trae los tres modos incorporados para cuando corra).';
+    return;
+  end if;
+  drop policy if exists decklists_ver on public.tournament_decklists;
+  create policy decklists_ver on public.tournament_decklists for select
+    using (
+      user_id = auth.uid()
+      or torneos_soy_admin()
+      or torneos_soy_juez(tournament_id)
+      or exists (
+        select 1 from public.tournaments t
+        where t.id = tournament_id
+          and coalesce(t.decklist_visibility, 'al_terminar') <> 'nunca'
+          and (
+            t.status = 'finished'
+            or (coalesce(t.decklist_visibility, 'al_terminar') = 'en_juego' and t.status = 'in_progress')
+          )
+      )
+    );
+end $$;
 
 commit;
 

@@ -12047,9 +12047,15 @@ Decisiones dentro:
 
 - **La política RLS manda**: la migración REHACE `decklists_ver` (la
   de torneos-publico) con los tres modos, porque el «nunca» tiene que
-  cumplirse en la base y no solo en lo que se pinta. Por eso debe
-  ejecutarse DESPUÉS de supabase-migration-torneos-publico.sql (usa
-  sus funciones torneos_soy_admin/juez).
+  cumplirse en la base y no solo en lo que se pinta. ⚠️ CORREGIDO en
+  la 242b: la primera versión exigía torneos-publico ejecutada (sus
+  funciones torneos_soy_admin/juez) y a Ibai le reventó — la apertura
+  al público NO está ejecutada en la base real. Ahora la política va
+  en un DO condicional (si las funciones no existen, NOTICE y sigue;
+  la política de solo-admins ya cierra las decklists mientras tanto) y
+  torneos-publico.sql trae la regla de tres modos incorporada,
+  eligiendo según exista la columna. Los dos ficheros corren en
+  cualquier orden.
 - **El booleano viejo no se borra**: el cliente escribe los dos campos
   en sincronía (en_juego ⇄ true) y `puedenVerseLasListas()` usa el
   modo nuevo con el booleano de respaldo. Código viejo y filas viejas

@@ -259,26 +259,54 @@ create policy inscripciones_admin on public.tournament_registrations for delete
 
 -- Decklists: el dueño la lleva (y solo mientras no esté sellada);
 -- la VEN el dueño, el admin y los jueces aprobados. Nadie más.
-drop policy if exists decklists_ver on public.tournament_decklists;
-create policy decklists_ver on public.tournament_decklists for select
-  using (
-    user_id = auth.uid()
-    or torneos_soy_admin()
-    or torneos_soy_juez(tournament_id)
-    -- Y las de los demás cuando el torneo lo permite (tanda 230). La
-    -- misma regla que pinta la clasificación, aquí abajo, que es donde
-    -- de verdad se cumple:
-    --   · torneo TERMINADO: se ven, se jugara con lista abierta o
-    --     cerrada. Ya no hay partida que regalar, y es lo que hace útil
-    --     el histórico y el registro de enfrentamientos.
-    --   · torneo EN JUEGO: solo si el organizador marcó «listas a la
-    --     vista» al crearlo. Por defecto NO.
-    or exists (
-      select 1 from public.tournaments t
-      where t.id = tournament_id
-        and (t.status = 'finished' or (t.show_opponent_decklists and t.status = 'in_progress'))
-    )
-  );
+--
+-- Y las de los demás cuando el torneo lo permite. Desde la tanda 241
+-- son TRES modos (tournaments.decklist_visibility, migración
+-- torneos-listas): 'al_terminar' (al acabar el torneo), 'en_juego'
+-- (desde la R1) y 'nunca'. Como esta migración puede correr ANTES o
+-- DESPUÉS que aquella, la política se elige según exista la columna:
+-- con ella, la regla de tres modos; sin ella, la del booleano de la
+-- tanda 230 (que torneos-listas rehará al llegar).
+do $$
+begin
+  execute 'drop policy if exists decklists_ver on public.tournament_decklists';
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'tournaments' and column_name = 'decklist_visibility'
+  ) then
+    execute $pol$
+      create policy decklists_ver on public.tournament_decklists for select
+        using (
+          user_id = auth.uid()
+          or torneos_soy_admin()
+          or torneos_soy_juez(tournament_id)
+          or exists (
+            select 1 from public.tournaments t
+            where t.id = tournament_id
+              and coalesce(t.decklist_visibility, 'al_terminar') <> 'nunca'
+              and (
+                t.status = 'finished'
+                or (coalesce(t.decklist_visibility, 'al_terminar') = 'en_juego' and t.status = 'in_progress')
+              )
+          )
+        )
+    $pol$;
+  else
+    execute $pol$
+      create policy decklists_ver on public.tournament_decklists for select
+        using (
+          user_id = auth.uid()
+          or torneos_soy_admin()
+          or torneos_soy_juez(tournament_id)
+          or exists (
+            select 1 from public.tournaments t
+            where t.id = tournament_id
+              and (t.status = 'finished' or (t.show_opponent_decklists and t.status = 'in_progress'))
+          )
+        )
+    $pol$;
+  end if;
+end $$;
 drop policy if exists decklists_crear on public.tournament_decklists;
 create policy decklists_crear on public.tournament_decklists for insert
   with check (user_id = auth.uid());

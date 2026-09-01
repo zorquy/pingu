@@ -12,6 +12,24 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 242b — arreglo de la migración de listas)
+**Hecho**: a Ibai le falló `supabase-migration-torneos-listas.sql`: su
+CREATE POLICY usa torneos_soy_admin/juez, que nacen en
+torneos-publico.sql — y esa migración de apertura NO está ejecutada en
+la base (la sección sigue en pruebas con torneos_solo_admins). El
+fallo dejaba TODO sin aplicar (un solo begin/commit), así que
+re-ejecutar el fichero arreglado es limpio. Dos cambios: (1)
+torneos-listas ahora hace la parte de la política en un DO condicional
+— si las funciones no existen, NOTICE y sigue (sin agujero: la
+política de solo-admins ya cierra las decklists); (2)
+torneos-publico.sql trae la regla de los TRES MODOS incorporada, y
+elige política según exista la columna decklist_visibility — los dos
+ficheros funcionan ya en cualquier orden.
+**Ficheros**: supabase-migration-torneos-listas.sql,
+supabase-migration-torneos-publico.sql, SCHEMA.md.
+**En curso / pendiente**: Ibai re-ejecuta torneos-listas (la versión
+nueva). Lo demás, como la 242.
+
 ## 2026-09-01 — IBAI-Claude (tanda 242 — el banner del torneo y el calendario anual)
 **Hecho**: dos peticiones de Ibai. (1) BANNER: además del icono de la
 239, un banner ANCHO que preside la ficha (columna
