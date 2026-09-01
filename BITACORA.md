@@ -12,6 +12,32 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 237 — /mis-partidas como trainingcourt y el historial por jugador)
+**Hecho**: dos peticiones de Ibai. (1) /mis-partidas REORGANIZADA
+copiando la estructura real de trainingcourt (mirada en sus bundles):
+tres pestañas (Torneos / Partidas sueltas / Estadísticas), tarjetas de
+torneo tipo fila con sprites de tu mazo + récord en píldora coloreada,
+rondas al desplegar con los sprites del mazo rival y letra V/D/E, y el
+formulario de ronda que se MUDA dentro de la tarjeta (mismo nodo; ojo:
+pintarTorneos lo saca antes de arrasar el innerHTML y lo devuelve al
+hueco después). Sprites en todas partes vía spritesDeMazoHtml (catálogo
+→ iconos; deducido → especies del nombre). (2) HISTORIAL POR JUGADOR:
+en la clasificación de un torneo los nombres son botones; pulsar uno
+despliega sus partidas del torneo (ronda, resultado desde su lado,
+rival con la chapa de su mazo), con el mismo ciclo de repintado que la
+lista de rival. Los mazos salen por chapaDe(), que ya calla cuando las
+listas no pueden verse.
+**Ficheros**: mis-partidas.html, js/mis-partidas.js, css/partidas.css,
+js/torneos/ronda.js, css/torneos.css, SCHEMA.md. Fuera del repo:
+pruebas/verificar-tanda-237.mjs (NUEVO).
+**En curso / pendiente**: verificado con Edge sobre la demo (19/19,
+capturas en pruebas/capturas). PINGU: pasada de suite cuando puedas —
+cambia el DOM de /mis-partidas ENTERO (pestañas nuevas) y la celda de
+jugador de la clasificación (el nombre ahora es <button
+class="torneo-jugador-historial">); las pruebas que miren esos
+selectores tendrán que actualizarse. Sigue pendiente que Ibai ejecute
+los dos SQL de la 236.
+
 ## 2026-09-01 — IBAI-Claude (tanda 236b — el sprite del martillo y el Mundial de la demo)
 **Hecho**: dos remates de Ibai sobre la 236. (1) Crushing Hammer ya no
 sale como carta recortada: `assets/sprites/crushing-hammer.png` (el

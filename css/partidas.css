@@ -109,27 +109,62 @@
 
 .partidas-titulo-lista { margin-top: 28px; }
 
-/* ── Las tarjetas de «Tus torneos» (tanda 236) ──
-   Un torneo con sus rondas dentro, como trainingcourt: la cabecera con
-   el récord a la derecha, las rondas en lista y las acciones abajo. */
+/* ── Las tarjetas de torneos (tandas 236-237) ──
+   Como la lista de trainingcourt: cada torneo es una fila con los
+   sprites de TU mazo, el nombre, y el récord coloreado a la derecha;
+   al pulsarla se despliegan las rondas, cada una con el mazo del rival
+   en sprites y su letra de resultado. */
 .partidas-torneo {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 14px 16px;
   margin-bottom: 10px;
+  overflow: hidden;
 }
-.partidas-torneo-cabecera {
+.partidas-torneo-cab {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+  font: inherit;
+}
+.partidas-torneo-cab:hover { background: var(--bg); }
+.partidas-torneo-sprites { display: flex; align-items: center; flex: none; min-width: 34px; }
+.partidas-sprite {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex: none;
+}
+.partidas-sprite-hueco { width: 34px; height: 34px; flex: none; }
+.partidas-torneo-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 .partidas-torneo-record {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(160, 160, 160, 0.14);
   color: var(--text-mid);
+  flex: none;
 }
+.partidas-torneo-record.bien { background: rgba(46, 160, 67, 0.16); color: var(--success); }
+.partidas-torneo-record.mal { background: rgba(214, 64, 64, 0.14); color: #d64545; }
+
+.partidas-torneo-detalle { padding: 0 16px 12px; border-top: 1px solid var(--border); }
+.partidas-torneo-detalle > .subtext { margin: 10px 0 0; }
 .partidas-torneo-rondas {
   list-style: none;
   margin: 8px 0 0;
@@ -138,20 +173,39 @@
 }
 .partidas-torneo-rondas li {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: 10px;
-  padding: 4px 0;
+  padding: 5px 0;
   border-top: 1px solid var(--border);
 }
-.partidas-ronda-res { font-weight: 600; }
-.partidas-ronda-win { color: var(--success); }
-.partidas-ronda-loss { color: #d64545; }
-.partidas-ronda-draw { color: var(--text-mid); }
+.partidas-torneo-rondas li:first-child { border-top: none; }
+.partidas-ronda-num { color: var(--text-dim); font-weight: 600; min-width: 2.4ch; }
+.partidas-ronda-rival { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.partidas-torneo-rondas .partidas-sprite,
+.partidas-fila .partidas-sprite { width: 26px; height: 26px; }
+/* La letra del resultado, V/D/E, como el badge de trainingcourt. */
+.partidas-ronda-res {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  flex: none;
+}
+.partidas-ronda-win { background: rgba(46, 160, 67, 0.16); color: var(--success); }
+.partidas-ronda-loss { background: rgba(214, 64, 64, 0.14); color: #d64545; }
+.partidas-ronda-draw { background: rgba(160, 160, 160, 0.14); color: var(--text-mid); }
 .partidas-torneo-acciones {
   display: flex;
   gap: 8px;
   margin-top: 10px;
 }
+/* El formulario de ronda, mudado dentro de la tarjeta. */
+[data-hueco-form] .simple-card { margin: 10px 0 0; }
+.partidas-fila-mazos { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
 .partidas-fila {
   display: flex;

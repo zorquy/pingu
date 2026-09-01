@@ -1609,6 +1609,54 @@
   left: -52%;
   top: -30%;
 }
+/* ── El historial de un jugador desde la clasificación (tanda 237) ──
+   Su nombre es un botón (subrayado en puntitos para que se vea que se
+   puede pulsar) y debajo de la tabla se despliegan sus partidas: ronda,
+   letra de resultado y rival con la chapa de su mazo. */
+.torneo-jugador-historial {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline dotted var(--text-dim);
+  text-underline-offset: 3px;
+}
+.torneo-jugador-historial:hover { color: var(--navy); }
+
+.torneo-historial-lista {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  font-size: 13px;
+}
+.torneo-historial-lista li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+.torneo-historial-ronda { color: var(--text-dim); font-weight: 600; min-width: 4ch; }
+.torneo-historial-rival { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.torneo-historial-res {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 700;
+  flex: none;
+}
+.torneo-historial-gana { background: rgba(46, 160, 67, 0.16); color: var(--success); }
+.torneo-historial-pierde { background: rgba(214, 64, 64, 0.14); color: #d64545; }
+.torneo-historial-empata { background: rgba(160, 160, 160, 0.14); color: var(--text-mid); }
+
 /* Al organizador y a los jueces se les señala lo que el catálogo aún no
    conoce: es la lista de arquetipos que falta por añadir. */
 .torneo-arquetipo-sin-catalogar .torneo-arquetipo-icono,

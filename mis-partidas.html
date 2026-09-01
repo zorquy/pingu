@@ -70,21 +70,19 @@
     </div>
 
     <div id="partidasContenido">
-      <div id="partidasResumen" class="partidas-resumen"></div>
+      <!-- La página se organiza como trainingcourt (tanda 237): tres
+           vistas — Torneos (la principal), Partidas sueltas (su
+           «Battle Logs») y Estadísticas (su «Stats»). Mismas pestañas
+           que el perfil (components.css). -->
+      <div class="tabs" id="partidasTabs">
+        <button class="tab-btn active" data-vista="torneos">Torneos</button>
+        <button class="tab-btn" data-vista="sueltas">Partidas sueltas</button>
+        <button class="tab-btn" data-vista="stats">Estadísticas</button>
+      </div>
 
+      <div class="tab-panel active" id="vista-torneos">
       <div class="partidas-barra">
-        <label>Mazo
-          <select id="filtroMazo"><option value="">Todos los míos</option></select>
-        </label>
-        <label>Desde
-          <select id="filtroDesde">
-            <option value="0">Siempre</option>
-            <option value="30">Último mes</option>
-            <option value="90">Últimos 3 meses</option>
-          </select>
-        </label>
-        <button class="btn-primary" id="btnApuntarTorneo">Apuntar un torneo</button>
-        <button class="btn-secondary" id="btnApuntarPartida">Partida suelta</button>
+        <button class="btn-primary" id="btnApuntarTorneo">+ Apuntar un torneo</button>
       </div>
 
       <!-- Apuntar un torneo (tanda 236, pedido por Ibai): el torneo de
@@ -123,8 +121,20 @@
         </div>
       </div>
 
-      <!-- El formulario de apuntar a mano: plegado hasta que hace falta,
-           que lo normal es venir a MIRAR la tabla, no a escribir. -->
+      <!-- Las tarjetas: los de PokeDoc y los apuntados, con sus rondas
+           al desplegar. -->
+      <div id="partidasTorneos"></div>
+      </div>
+
+      <div class="tab-panel" id="vista-sueltas">
+      <div class="partidas-barra">
+        <button class="btn-primary" id="btnApuntarPartida">+ Apuntar una partida</button>
+      </div>
+
+      <!-- El formulario de apuntar a mano: plegado hasta que hace falta.
+           En modo «ronda» este MISMO nodo se muda dentro de la tarjeta
+           del torneo (mis-partidas.js lo mueve), como el inline de
+           trainingcourt. -->
       <div class="simple-card hidden" id="partidaForm">
         <h3 id="partidaFormTitulo">Apuntar una partida suelta</h3>
         <p class="subtext" id="partidaFormPista">Las de los torneos de PokeDoc ya están: esto es para una partida de escalera o una amistosa. Si fue un torneo, mejor «Apuntar un torneo».</p>
@@ -188,19 +198,29 @@
         </div>
       </div>
 
+      <!-- Las sueltas, con sus mazos en sprites. -->
+      <div id="partidasLista"></div>
+      </div>
+
+      <div class="tab-panel" id="vista-stats">
+      <div id="partidasResumen" class="partidas-resumen"></div>
+      <div class="partidas-barra">
+        <label>Mazo
+          <select id="filtroMazo"><option value="">Todos los míos</option></select>
+        </label>
+        <label>Desde
+          <select id="filtroDesde">
+            <option value="0">Siempre</option>
+            <option value="30">Último mes</option>
+            <option value="90">Últimos 3 meses</option>
+          </select>
+        </label>
+      </div>
       <div id="partidasMatriz">
         <div class="skeleton" style="height: 70px; margin-bottom: 12px;"></div>
         <div class="skeleton" style="height: 200px;"></div>
       </div>
-
-      <!-- Los torneos, cada uno con sus rondas dentro: los de PokeDoc
-           (solo lectura, con enlace a su ficha) y los apuntados a mano
-           (con «añadir ronda» y «borrar»). -->
-      <h2 class="partidas-titulo-lista">Tus torneos</h2>
-      <div id="partidasTorneos"></div>
-
-      <h2 class="partidas-titulo-lista">Las últimas</h2>
-      <div id="partidasLista"></div>
+      </div>
     </div>
   </main>
 

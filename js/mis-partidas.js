@@ -17,7 +17,8 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession } from './app.js'
 import { showToast } from './toast.js'
-import { arquetipoDeMazo, claveDeArquetipo, claveCanonicaDeMazo } from './torneos/arquetipos.js'
+import { arquetipoDeMazo, claveDeArquetipo, claveCanonicaDeMazo, dexesDeNombre } from './torneos/arquetipos.js'
+import { urlDeSprite, spriteDeCarta, spriteDeObjeto } from './torneos/sprites-pokemon.js'
 import { construirMatriz, resumen, porcentaje, miResultado } from './matriz-partidas.js'
 import { montarSelectorMazo } from './torneos/selector-mazo.js'
 
@@ -245,15 +246,16 @@ function pintarLista(partidas) {
     .sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))
     .slice(0, 30)
   if (!ultimas.length) {
-    caja.innerHTML = ''
+    caja.innerHTML = `<p class="subtext">Aquí saldrán tus partidas de escalera y amistosas. Las de un torneo van en su pestaña, cada una con el suyo.</p>`
     return
   }
   caja.innerHTML = ultimas
     .map(
       (p) => `
     <div class="partidas-fila partidas-${p.resultado}">
-      <span class="partidas-fila-mazos"><strong>${escapeHtml(p.mioNombre)}</strong> vs ${escapeHtml(p.rivalNombre)}</span>
-      <span class="partidas-fila-res">${TEXTO_RESULTADO[p.resultado] || p.resultado}</span>
+      <span class="partidas-fila-mazos">${spritesDeMazoHtml(p.mioNombre, p.mio)}<strong>${escapeHtml(p.mioNombre)}</strong>
+        <span class="subtext">vs</span> ${spritesDeMazoHtml(p.rivalNombre, p.rival)}${escapeHtml(p.rivalNombre)}</span>
+      <span class="partidas-ronda-res partidas-ronda-${p.resultado}">${LETRA_RESULTADO[p.resultado] || '?'}</span>
       <span class="subtext partidas-fila-donde">${
         p.enlace ? `<a href="${escapeHtml(p.enlace)}">${escapeHtml(p.donde)}</a>` : escapeHtml(p.donde)
       }${p.fecha ? ` · ${escapeHtml(p.fecha)}` : ''}</span>
@@ -267,6 +269,27 @@ function pintarLista(partidas) {
   )
 }
 
+// ── Los minisprites de un mazo, como los pinta trainingcourt ──
+//
+// Un mazo se enseña por sus (hasta dos) sprites: los iconos del
+// catálogo si está catalogado, y si no, las especies sacadas del propio
+// nombre. Un mazo-objeto (Martillos) usa el sprite del objeto si lo
+// hay. Sin nada que enseñar devuelve cadena vacía y el nombre carga con
+// todo el peso, que ya lo hacía antes.
+function spritesDeMazoHtml(nombre, clave) {
+  let urls = []
+  if (String(clave || '').startsWith('a:')) {
+    const arq = catalogo.find((a) => `a:${a.id}` === clave)
+    urls = (arq?.iconos || []).map((i) => spriteDeCarta(i.nombre ?? i.name)).filter(Boolean)
+  }
+  if (!urls.length) urls = dexesDeNombre(nombre).slice(0, 2).map(urlDeSprite).filter(Boolean)
+  if (!urls.length) {
+    const objeto = spriteDeObjeto(nombre)
+    if (objeto) urls = [objeto]
+  }
+  return urls.map((u) => `<img class="partidas-sprite" src="${escapeHtml(u)}" alt="" loading="lazy" />`).join('')
+}
+
 // ── Las tarjetas de «Tus torneos» ──
 //
 // Cada torneo con sus rondas dentro, como trainingcourt: los de PokeDoc
@@ -277,44 +300,83 @@ function pintarLista(partidas) {
 function recordDe(rondas) {
   const r = { win: 0, loss: 0, draw: 0 }
   for (const p of rondas) r[p.resultado] = (r[p.resultado] || 0) + 1
+  // Como trainingcourt: los empates solo salen si los hay.
   return `${r.win}-${r.loss}${r.draw ? `-${r.draw}` : ''}`
 }
 
-const TEXTO_TIPO = { id: ' (ID)', no_show: ' (no se presentó)', bye: '' }
+// El color del récord, de un vistazo: verde ganando, rojo perdiendo.
+function claseDeRecord(rondas) {
+  const r = porcentaje(
+    rondas.reduce(
+      (c, p) => {
+        if (p.resultado === 'win') c.ganadas++
+        else if (p.resultado === 'loss') c.perdidas++
+        else c.empatadas++
+        c.total++
+        return c
+      },
+      { ganadas: 0, perdidas: 0, empatadas: 0, total: 0 }
+    )
+  )
+  if (r === null) return ''
+  return r >= 0.6 ? ' bien' : r <= 0.4 ? ' mal' : ''
+}
+
+const TEXTO_TIPO = { id: ' · ID', no_show: ' · no se presentó', bye: '' }
+const LETRA_RESULTADO = { win: 'V', loss: 'D', draw: 'E' }
+
+// Qué torneos están desplegados: sobrevive a los repintados.
+const torneosAbiertos = new Set()
 
 function tarjetaTorneoHtml(t) {
   const rondas = t.rondas
     .slice()
     .sort((a, b) => String(a.creada || '').localeCompare(String(b.creada || '')))
   const filas = rondas
-    .map((p) =>
-      p.tipo === 'bye'
-        ? '<li><span>Bye</span><span class="partidas-ronda-res partidas-ronda-win">Ganada</span></li>'
-        : `<li><span>vs ${escapeHtml(p.rivalNombre)}${TEXTO_TIPO[p.tipo] || ''}</span>
-            <span class="partidas-ronda-res partidas-ronda-${p.resultado}">${TEXTO_RESULTADO[p.resultado] || p.resultado}</span></li>`
-    )
+    .map((p, i) => {
+      const res = `<span class="partidas-ronda-res partidas-ronda-${p.resultado}">${LETRA_RESULTADO[p.resultado] || '?'}</span>`
+      const rival =
+        p.tipo === 'bye'
+          ? '<span class="partidas-ronda-rival">Bye</span>'
+          : `<span class="partidas-ronda-rival">${spritesDeMazoHtml(p.rivalNombre, p.rival)}<span>${escapeHtml(p.rivalNombre)}${TEXTO_TIPO[p.tipo] || ''}</span></span>`
+      return `<li><span class="partidas-ronda-num">R${i + 1}</span>${rival}${res}</li>`
+    })
     .join('')
+  const abierto = torneosAbiertos.has(t.id)
   return `
     <div class="partidas-torneo">
-      <div class="partidas-torneo-cabecera">
-        <strong>${t.enlace ? `<a href="${escapeHtml(t.enlace)}">${escapeHtml(t.nombre)}</a>` : escapeHtml(t.nombre)}</strong>
-        <span class="partidas-torneo-record">${recordDe(t.rondas)}</span>
+      <button type="button" class="partidas-torneo-cab" data-abrir-torneo="${escapeHtml(t.id)}" aria-expanded="${abierto}">
+        <span class="partidas-torneo-sprites">${spritesDeMazoHtml(t.mazo, t.mazoClave) || '<span class="partidas-sprite-hueco"></span>'}</span>
+        <span class="partidas-torneo-titulo">
+          <strong>${escapeHtml(t.nombre)}</strong>
+          <span class="subtext">${[t.donde, t.fecha].filter(Boolean).map(escapeHtml).join(' · ')}</span>
+        </span>
+        <span class="partidas-torneo-record${claseDeRecord(t.rondas)}">${recordDe(t.rondas)}</span>
+      </button>
+      <div class="partidas-torneo-detalle ${abierto ? '' : 'hidden'}">
+        ${t.mazo ? `<p class="subtext">Jugaste <strong>${escapeHtml(t.mazo)}</strong></p>` : ''}
+        ${rondas.length ? `<ol class="partidas-torneo-rondas">${filas}</ol>` : '<p class="subtext">Sin rondas todavía.</p>'}
+        ${t.aMano ? `<div data-hueco-form="${escapeHtml(t.id)}"></div>` : ''}
+        <div class="partidas-torneo-acciones">
+          ${
+            t.aMano
+              ? `<button class="btn-secondary" data-anadir-ronda="${escapeHtml(t.id)}">+ Añadir ronda</button>
+                <button class="btn-outline" data-borrar-torneo="${escapeHtml(t.id)}">Borrar</button>`
+              : `<a class="btn-secondary" href="${escapeHtml(t.enlace || '/torneos.html')}">Ver el torneo</a>`
+          }
+        </div>
       </div>
-      <p class="subtext">${[t.donde, t.fecha, t.mazo ? `con ${t.mazo}` : null].filter(Boolean).map(escapeHtml).join(' · ')}</p>
-      ${rondas.length ? `<ol class="partidas-torneo-rondas">${filas}</ol>` : '<p class="subtext">Sin rondas todavía.</p>'}
-      ${
-        t.aMano
-          ? `<div class="partidas-torneo-acciones">
-              <button class="btn-secondary" data-anadir-ronda="${escapeHtml(t.id)}">+ Añadir ronda</button>
-              <button class="btn-outline" data-borrar-torneo="${escapeHtml(t.id)}">Borrar</button>
-            </div>`
-          : ''
-      }
     </div>`
 }
 
 function pintarTorneos() {
   const caja = $('partidasTorneos')
+  // El formulario de ronda vive DENTRO de una tarjeta cuando está en
+  // ese modo: antes de arrasar el HTML hay que sacarlo, o el nodo se
+  // pierde con el repintado.
+  const form = $('partidaForm')
+  if (caja.contains(form)) $('vista-sueltas').insertBefore(form, $('partidasLista'))
+
   const tarjetas = []
 
   // Los de PokeDoc, agrupados por torneo a partir de sus partidas.
@@ -322,7 +384,17 @@ function pintarTorneos() {
   for (const p of todas) {
     if (!p.deTorneo) continue
     if (!dePokedoc.has(p.torneoId)) {
-      dePokedoc.set(p.torneoId, { nombre: p.donde, enlace: p.enlace, fecha: p.fecha, donde: 'Torneo de PokeDoc', mazo: p.mioNombre, rondas: [], aMano: false })
+      dePokedoc.set(p.torneoId, {
+        id: p.torneoId,
+        nombre: p.donde,
+        enlace: p.enlace,
+        fecha: p.fecha,
+        donde: 'Torneo de PokeDoc',
+        mazo: p.mioNombre,
+        mazoClave: p.mio,
+        rondas: [],
+        aMano: false,
+      })
     }
     dePokedoc.get(p.torneoId).rondas.push(p)
   }
@@ -336,18 +408,27 @@ function pintarTorneos() {
       fecha: t.jugado_el,
       donde: t.donde,
       mazo: t.mi_mazo_nombre,
+      mazoClave: t.mi_mazo,
       rondas: todas.filter((p) => p.torneoId === t.id),
       aMano: true,
     })
   }
 
   if (!tarjetas.length) {
-    caja.innerHTML = `<p class="subtext">Aquí saldrán tus torneos: los de PokeDoc entran solos y los de fuera se apuntan con «Apuntar un torneo».</p>`
+    caja.innerHTML = `<p class="subtext">Aquí saldrán tus torneos: los de PokeDoc entran solos y los de fuera se apuntan con «+ Apuntar un torneo».</p>`
     return
   }
   tarjetas.sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))
   caja.innerHTML = tarjetas.map(tarjetaTorneoHtml).join('')
 
+  caja.querySelectorAll('[data-abrir-torneo]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const id = b.dataset.abrirTorneo
+      if (torneosAbiertos.has(id)) torneosAbiertos.delete(id)
+      else torneosAbiertos.add(id)
+      pintarTorneos()
+    })
+  )
   caja.querySelectorAll('[data-anadir-ronda]').forEach((b) =>
     b.addEventListener('click', () => {
       const t = torneosLog.find((x) => x.id === b.dataset.anadirRonda)
@@ -372,6 +453,14 @@ function pintarTorneos() {
       await cargar()
     })
   )
+
+  // Si hay una ronda a medias de apuntar, el formulario vuelve a SU
+  // tarjeta tras el repintado (guardar una ronda recarga y repinta).
+  if (rondaPara) {
+    const hueco = caja.querySelector(`[data-hueco-form="${rondaPara.id}"]`)
+    if (hueco) hueco.appendChild(form)
+    else cerrarFormPartida()
+  }
 }
 
 // El filtro de arriba. Se aplica sobre lo ya cargado, sin volver a
@@ -394,7 +483,10 @@ function repintar() {
   pintarResumen(m)
   pintarMatriz(m)
   pintarTorneos()
-  pintarLista(partidas)
+  // La lista de la pestaña de sueltas: SOLO las sueltas (las rondas de
+  // torneo ya viven en su tarjeta) y sin el filtro de arriba, que es de
+  // la pestaña de estadísticas.
+  pintarLista(todas.filter((p) => !p.deTorneo && !p.torneoId))
 }
 
 function rellenarFiltroYSugerencias() {
@@ -502,7 +594,7 @@ async function guardarPartida() {
 function abrirFormPartida(torneo = null) {
   rondaPara = torneo
   const esRonda = Boolean(torneo)
-  $('partidaFormTitulo').textContent = esRonda ? `Añadir ronda — ${torneo.nombre}` : 'Apuntar una partida suelta'
+  $('partidaFormTitulo').textContent = esRonda ? 'Añadir ronda' : 'Apuntar una partida suelta'
   $('partidaFormPista').classList.toggle('hidden', esRonda)
   $('partidaCamposMios').classList.toggle('hidden', esRonda)
   $('partidaCampoFecha').classList.toggle('hidden', esRonda)
@@ -510,13 +602,22 @@ function abrirFormPartida(torneo = null) {
   $('partidaDondeOtroCampo').classList.toggle('hidden', esRonda || $('partidaDonde').value !== '__otro')
   $('torneoLogForm').classList.add('hidden')
   $('partidaForm').classList.remove('hidden')
+  if (esRonda) {
+    // El formulario se MUDA dentro de la tarjeta del torneo, como el
+    // inline de trainingcourt: repintar crea el hueco y lo mete.
+    torneosAbiertos.add(torneo.id)
+    pintarTorneos()
+  }
   $('partidaForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   ;$(esRonda ? 'selRival1' : 'selMio1').querySelector('input')?.focus()
 }
 
 function cerrarFormPartida() {
   rondaPara = null
-  $('partidaForm').classList.add('hidden')
+  const form = $('partidaForm')
+  form.classList.add('hidden')
+  // De vuelta a su sitio de la pestaña de sueltas si estaba de mudanza.
+  if (!$('vista-sueltas').contains(form)) $('vista-sueltas').insertBefore(form, $('partidasLista'))
 }
 
 // ── Apuntar un torneo ──
@@ -630,6 +731,16 @@ async function init() {
       const nota = $('partidaTipoNota')
       nota.textContent = NOTA_TIPO[tipoElegido] || ''
       nota.classList.toggle('hidden', !NOTA_TIPO[tipoElegido])
+    })
+  )
+
+  // Las tres vistas, como las pestañas del perfil.
+  document.querySelectorAll('#partidasTabs .tab-btn').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#partidasTabs .tab-btn').forEach((b) => b.classList.toggle('active', b === btn))
+      for (const v of ['torneos', 'sueltas', 'stats']) {
+        $(`vista-${v}`).classList.toggle('active', v === btn.dataset.vista)
+      }
     })
   )
 

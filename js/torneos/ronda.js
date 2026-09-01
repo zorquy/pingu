@@ -1028,7 +1028,80 @@ function pintarMiPartida() {
 // en juego, que las listas se sellan al arrancar la R1.
 let vistaClasificacion = 'general' // 'general' o el número de una jornada
 let listaRivalAbierta = null // user_id de la decklist desplegada bajo la tabla
+let historialAbierto = null // user_id del historial de partidas desplegado
 const listasRivales = new Map() // user_id → fila de tournament_decklists (o null)
+
+// ── El historial de un jugador (tanda 237, pedido por Ibai) ──
+//
+// Pulsar un nombre en la clasificación despliega SUS partidas del
+// torneo: ronda a ronda, contra quién jugó y con qué mazo — la ficha
+// del jugador que uno mira en Limitless al acabar un torneo. Los
+// resultados son los mismos que ya enseña la pestaña de rondas; los
+// MAZOS de los rivales salen solo cuando las listas pueden verse
+// (chapaDe devuelve vacío si no), así que no se filtra nada.
+
+// El resultado de una mesa DESDE el lado de un jugador.
+function resultadoParaJugadorEn(m, userId) {
+  if (m.status === 'bye') return { texto: 'Bye', clase: 'gana' }
+  const o = outcomeDe(m)
+  const soyA = m.player_a_id === userId
+  if (o === 'draw') return { texto: 'E', clase: 'empata' }
+  if (o === 'forfeit_both') return { texto: 'D', clase: 'pierde' }
+  const gana = o === 'a_wins' || o === 'forfeit_b' ? soyA : !soyA
+  return gana ? { texto: 'V', clase: 'gana' } : { texto: 'D', clase: 'pierde' }
+}
+
+function abrirHistorialJugador(userId) {
+  const hueco = $('clasificacionHistorial')
+  if (!hueco) return
+  const mias = partidas
+    .filter((m) => TERMINALES.has(m.status) && (m.player_a_id === userId || m.player_b_id === userId))
+    .sort((a, b) => (numeroDeRonda(a.round_id) ?? 0) - (numeroDeRonda(b.round_id) ?? 0))
+  if (!mias.length) {
+    historialAbierto = null
+    hueco.innerHTML = ''
+    showToast('Ese jugador no tiene partidas cerradas todavía.', 'info')
+    return
+  }
+  let v = 0
+  let d = 0
+  let e = 0
+  const filas = mias
+    .map((m) => {
+      const r = resultadoParaJugadorEn(m, userId)
+      if (r.clase === 'gana') v++
+      else if (r.clase === 'pierde') d++
+      else e++
+      const n = numeroDeRonda(m.round_id)
+      const esCut = rondas.find((x) => x.id === m.round_id)?.phase === 'top_cut'
+      const rival = m.player_a_id === userId ? m.player_b_id : m.player_a_id
+      const contra =
+        m.status === 'bye' || !rival
+          ? '<span class="torneo-historial-rival subtext">Bye — sin rival</span>'
+          : `<span class="torneo-historial-rival">vs <strong>${escapeHtml(nombreDe(rival))}</strong>${chapaDe(rival)}</span>`
+      return `<li>
+        <span class="torneo-historial-ronda">${esCut ? 'Cut·' : ''}R${n ?? '?'}</span>
+        <span class="torneo-historial-res torneo-historial-${r.clase}">${r.texto}</span>
+        ${contra}
+      </li>`
+    })
+    .join('')
+  hueco.innerHTML = `
+    <div class="torneo-decklist-detalle torneo-historial">
+      <div class="torneo-decklist-fila">
+        <span><strong>Partidas de ${escapeHtml(nombreDe(userId))}</strong>${chapaDe(userId)}
+          <span class="subtext">· ${v}-${d}${e ? `-${e}` : ''}</span></span>
+        <button class="btn-secondary" id="btnCerrarHistorial">Cerrar</button>
+      </div>
+      <ol class="torneo-historial-lista">${filas}</ol>
+    </div>`
+  $('btnCerrarHistorial').addEventListener('click', () => {
+    historialAbierto = null
+    hueco.innerHTML = ''
+  })
+  // Las chapas de los mazos llegan después, como en la tabla.
+  void rellenarChapasArquetipo(hueco)
+}
 
 function jornadasConPuntos() {
   return rondas
@@ -1148,7 +1221,8 @@ function pintarClasificacion() {
       return `
       <tr>
         <td>${i + 1}</td>
-        <td>${escapeHtml(nombreDe(e.playerId))}${chapaDe(e.playerId)}${retirado}${dentro}</td>
+        <td><button type="button" class="torneo-jugador-historial" data-historial="${escapeHtml(e.playerId)}"
+          title="Ver sus partidas del torneo">${escapeHtml(nombreDe(e.playerId))}</button>${chapaDe(e.playerId)}${retirado}${dentro}</td>
         ${verTcgLive ? `<td class="subtext">${escapeHtml(insc?.tcg_live_username || '—')}</td>` : ''}
         <td><strong>${e.matchPoints}</strong></td>
         <td>${e.wins}-${e.losses}-${e.draws}${e.byesReceived ? ` (+${e.byesReceived} bye)` : ''}</td>
@@ -1194,6 +1268,7 @@ function pintarClasificacion() {
         <tbody>${filas}</tbody>
       </table>
     </div>
+    <div id="clasificacionHistorial"></div>
     <div id="clasificacionListaRival"></div>
     ${general && corte > 0 && !rondas.some((r) => r.phase === 'top_cut') ? `<p class="subtext torneo-nota-corte">Las plazas marcadas con «Top ${corte}» clasifican al corte.</p>` : ''}
     <details class="torneo-desempates">
@@ -1225,9 +1300,24 @@ function pintarClasificacion() {
       void abrirListaRival(listaRivalAbierta)
     })
   )
+  // El historial de un jugador: pulsar su nombre lo abre (o lo cambia
+  // de jugador); pulsar el del que ya está abierto, lo cierra.
+  document.querySelectorAll('[data-historial]').forEach((b) =>
+    b.addEventListener('click', () => {
+      if (historialAbierto === b.dataset.historial) {
+        historialAbierto = null
+        const hueco = $('clasificacionHistorial')
+        if (hueco) hueco.innerHTML = ''
+        return
+      }
+      historialAbierto = b.dataset.historial
+      abrirHistorialJugador(historialAbierto)
+    })
+  )
   // El refresco de cada 10 s repinta la caja entera: si había una lista
-  // de rival abierta, se vuelve a poner (la caché evita repedirla).
+  // de rival abierta (o un historial), se vuelven a poner.
   if (listaRivalAbierta && verListas) void abrirListaRival(listaRivalAbierta)
+  if (historialAbierto) abrirHistorialJugador(historialAbierto)
   // Las cartas de las chapas llegan después: el HTML se construye de una
   // vez y resolverlas es ir a la base.
   void rellenarChapasArquetipo(caja)

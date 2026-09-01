@@ -11834,3 +11834,61 @@ perezosa como la pestaña del foro, y `#torneos` en la URL la abre
 directamente (si llega antes que la sesión, init() la relanza).
 Cancelados y bajas no salen: un torneo que no se jugó no es historial.
 CSS nuevo `css/perfil.css` (primera hoja propia de perfil.html).
+
+## Tanda 237 — /mis-partidas como trainingcourt, y el historial por jugador (sept. 2026)
+
+Ibai, sobre la 236: «lo de mis partidas no está muy bien montado, se
+tiene que parecer lo máximo posible a trainingcourt.app». Se volvió a
+mirar su código (los bundles) para copiar la estructura de verdad, no
+la impresión: su barra lateral son TRES secciones (Tournaments, Battle
+Logs, Stats), su récord es `V-D` omitiendo empates a cero, sus rondas
+llevan «Add round» con los extra ID / No show / BYE, y los mazos se
+enseñan SIEMPRE por sprites.
+
+### /mis-partidas, reorganizada
+
+- **Tres pestañas** (las mismas clases .tabs del perfil): «Torneos» (la
+  principal), «Partidas sueltas» (su Battle Logs) y «Estadísticas»
+  (resumen + filtros + matriz, que antes estaban arriba del todo).
+- **La tarjeta de torneo es una fila como las suyas**: sprites de TU
+  mazo, nombre + dónde/fecha, y el récord coloreado en píldora (verde
+  ganando, rojo perdiendo) a la derecha. Pulsarla despliega las rondas:
+  `R1 · [sprites del rival] Nombre del rival · V/D/E` en su circulito.
+  Qué tarjetas están desplegadas sobrevive a los repintados
+  (`torneosAbiertos`).
+- **El formulario de ronda se MUDA dentro de la tarjeta** (appendChild
+  del mismo nodo, sin duplicar formularios), como el inline de
+  trainingcourt. OJO al truco: pintarTorneos() arrasa la caja con
+  innerHTML, así que ANTES saca el formulario a su sitio de la pestaña
+  de sueltas y DESPUÉS lo devuelve al hueco `data-hueco-form` de su
+  tarjeta si hay una ronda a medias.
+- **Sprites por todas partes**: `spritesDeMazoHtml(nombre, clave)` —
+  iconos del catálogo si el mazo está catalogado (vía spriteDeCarta,
+  que ya sabe de formas y del martillo), y si no las especies sacadas
+  del propio nombre con dexesDeNombre. También en la lista de sueltas.
+- La lista de «Las últimas» vive en la pestaña de sueltas y SOLO lista
+  sueltas: las rondas de torneo ya se ven en su tarjeta, repetirlas era
+  ruido. El filtro de mazo/fecha se queda en Estadísticas, que es donde
+  filtra algo.
+
+### El historial de un jugador desde la clasificación
+
+Pedido por Ibai: pulsar un nombre en la clasificación despliega SUS
+partidas del torneo — la ficha que uno mira en Limitless al acabar.
+En ronda.js: los nombres de la tabla son botones (subrayado de
+puntitos), `abrirHistorialJugador()` pinta bajo la tabla «Partidas de
+X · V-D-E» con una fila por mesa terminal (ronda o Cut·R, letra de
+resultado desde SU lado — incluidas las incomparecencias — y el rival
+con su chapa de arquetipo). Pulsar otro nombre lo cambia; repulsar el
+mismo lo cierra; el refresco de 10 s lo repinta como ya hacía con la
+lista de rival. Los MAZOS de los rivales salen por chapaDe(), que
+devuelve vacío cuando las listas no pueden verse: no se filtra nada
+que la pestaña de rondas no enseñe ya.
+
+### Comprobado
+
+`pruebas/verificar-tanda-237.mjs` con Edge sobre la demo: 19/19 —
+pestañas, tarjeta con sprites y récord, rondas con mazos del rival,
+matriz en su pestaña, 8 nombres pulsables, historial del campeón con
+3-0 y chapas, cambiar de jugador y cerrar. Capturas en `capturas/`.
+Mismo aviso que la 236: la carpeta pruebas local no es checkout git.
