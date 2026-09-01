@@ -59,6 +59,7 @@ export const REQUISITOS = [
   // Se comprueba la columna nueva de match_log y no solo la tabla: la
   // migración crea las dos cosas en el mismo fichero.
   { tabla: 'match_log', columna: 'torneo_id', fichero: 'supabase-migration-partidas-torneos.sql', rompe: '/mis-partidas no deja apuntar torneos (las partidas sueltas sí funcionan).' },
+  { tabla: 'tournaments', columna: 'image_url', fichero: 'supabase-migration-torneos-imagen.sql', rompe: 'No se puede poner imagen a un torneo (crear y editar torneos sí funciona).' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

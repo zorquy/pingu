@@ -11933,3 +11933,42 @@ opciones de arquetipo, «hammer»/«martillo» instantáneos con su sprite
 también dentro del formulario de torneo, modal centrado (desvío 0 px)
 con sus 3 rondas y récord, cierre por X y por Escape. Capturas en
 `capturas/`.
+
+## Tanda 239 — la imagen del torneo (sept. 2026)
+
+Pedido por Ibai: poder ponerle un icono o imagen a un torneo, y que el
+listado la enseñe.
+
+- **Una columna y ya**: `tournaments.image_url`
+  (`supabase-migration-torneos-imagen.sql`, vigilada por el comprobador
+  de /admin). La imagen se sube al bucket `avatars` QUE YA EXISTE, en
+  la carpeta del usuario (`avatars/<user-id>/torneo-<ts>.<ext>`) con
+  `uploadProfileImage(userId, file, 'torneo')` — sus políticas (cada
+  uno escribe en su carpeta, lectura pública) valen tal cual, así que
+  cero buckets y cero políticas nuevas que mantener.
+- **En la tarjeta del listado**, la imagen ocupa el HUECO del bloque de
+  fecha (48px, mismas esquinas): la fecha ya se repite en texto justo
+  debajo, así que no se pierde nada. Sin imagen, el bloque de fecha de
+  siempre; si la imagen no carga, se esconde (onerror) — mejor sin
+  icono que con el icono roto del navegador.
+- **Se elige con vista previa** en el paso 1 del wizard y en el editor
+  de la ficha (elegir / cambiar / quitar). La subida ocurre SOLO al
+  crear o guardar, nunca al elegir: cerrar sin guardar no debe dejar
+  ficheros huérfanos en Storage. Si la subida falla, el torneo no se
+  crea/guarda a medias — se avisa y se reintenta con todo lo escrito.
+  En el editor, `editarImagenNueva` es un triestado: undefined (sin
+  tocar), File (subir esta) o null (quitar).
+- El editor conserva su regla de la tanda 211: un torneo terminado o
+  en juego no se edita — tampoco su imagen. Y «Duplicar» no copia la
+  imagen: abre el wizard, y una imagen es del evento, no de la
+  plantilla.
+
+### Comprobado
+
+`pruebas/verificar-tanda-239.mjs` con Edge sobre la demo (el Mundial
+lleva `/assets/icon-192.png` de imagen): 13/13 — la tarjeta con su
+imagen en el hueco de 48px, los torneos sin imagen con su bloque de
+fecha, y el ciclo elegir/vista previa/quitar en el wizard y en el
+editor. OJO: el doble de Supabase NO cubre `storage.upload`, así que
+crear un torneo con imagen en la demo falla en la subida; si la suite
+lo cubre algún día, el doble necesitará storage.

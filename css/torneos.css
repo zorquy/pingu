@@ -259,6 +259,33 @@
 .torneo-fecha-bloque span { font-size: 10px; text-transform: uppercase; opacity: 0.75; font-weight: 600; }
 :root[data-theme='dark'] .torneo-fecha-bloque { background: var(--navy-dark); }
 
+/* La imagen del torneo (tanda 239): mismo hueco y esquinas que el
+   bloque de fecha al que sustituye. */
+.torneo-tarjeta-imagen {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  background: var(--bg);
+}
+/* Y el campo de elegirla en el wizard y el editor. */
+.torneo-imagen-campo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.torneo-imagen-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  flex: none;
+}
+
 .torneo-texto { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 2px; }
 .torneo-texto strong { transition: color 0.15s; }
 

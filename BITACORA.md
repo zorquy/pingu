@@ -12,6 +12,30 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 239 — la imagen del torneo)
+**Hecho**: pedido por Ibai — un torneo puede llevar icono/imagen y el
+listado la enseña. Columna nueva `tournaments.image_url`
+(supabase-migration-torneos-imagen.sql, la vigila el comprobador); la
+imagen se sube al bucket `avatars` que YA existe (carpeta del usuario,
+`torneo-<ts>.<ext>`), así que sin bucket ni política nueva. En la
+tarjeta del listado la imagen ocupa el hueco del bloque de fecha (la
+fecha ya va en texto debajo); si no carga, se esconde. Se elige con
+vista previa en el paso 1 del wizard y en el editor de la ficha
+(elegir/cambiar/quitar); la subida ocurre SOLO al crear/guardar, para
+no dejar huérfanos en Storage. El editor sigue su regla de la 211:
+un torneo terminado no se edita (tampoco su imagen).
+**Ficheros**: supabase-migration-torneos-imagen.sql (NUEVO),
+torneos.html, js/torneos/torneos.js, js/torneos/torneo.js,
+css/torneos.css, js/schema-check.js, SCHEMA.md. Fuera del repo:
+pruebas/stub/mundo-mundial.mjs (el Mundial de la demo con imagen),
+pruebas/verificar-tanda-239.mjs (NUEVO).
+**En curso / pendiente**: IBAI ejecuta
+`supabase-migration-torneos-imagen.sql` (además de los dos SQL de la
+236 si aún no). PINGU: el doble no cubre storage.upload — crear un
+torneo CON imagen en la demo fallará en la subida; si la suite lo
+toca, habrá que darle un doble a supabase.storage. Verificado con Edge
+(13/13, captura en pruebas/capturas).
+
 ## 2026-09-01 — IBAI-Claude (tanda 238 — el historial en modal y el selector sin arquetipos)
 **Hecho**: dos remates de Ibai sobre la 237. (1) El historial de un
 jugador pasa de panel bajo la tabla a MODAL centrado (modal-overlay de

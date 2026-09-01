@@ -7,7 +7,7 @@
 // rebotado a la portada antes de ver nada (y las políticas RLS de
 // supabase-migration-torneos.sql cierran los datos por si acaso).
 import { supabase } from '../supabase.js'
-import { escapeHtml, getSession, getProfile, slugify } from '../app.js'
+import { escapeHtml, getSession, getProfile, slugify, uploadProfileImage } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { officialStructure } from './motor.js'
@@ -36,7 +36,15 @@ function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
   const porcentaje = sinLimite ? 0 : Math.min(100, (ocupadas / t.max_players) * 100)
   return `
   <a class="torneo-tarjeta" href="/torneo?slug=${encodeURIComponent(t.slug)}">
-    <span class="torneo-fecha-bloque" aria-hidden="true"><strong>${fecha.getDate()}</strong><span>${escapeHtml(mes)}</span></span>
+    ${
+      // La imagen del torneo (tanda 239) ocupa el hueco del bloque de
+      // fecha: la fecha ya se repite en texto justo debajo, así que no
+      // se pierde nada. Si la imagen no carga se esconde — mejor sin
+      // icono que con el icono roto del navegador.
+      t.image_url
+        ? `<img class="torneo-tarjeta-imagen" src="${escapeHtml(t.image_url)}" alt="" loading="lazy" onerror="this.style.display='none'" />`
+        : `<span class="torneo-fecha-bloque" aria-hidden="true"><strong>${fecha.getDate()}</strong><span>${escapeHtml(mes)}</span></span>`
+    }
     <span class="torneo-texto">
       <strong>${escapeHtml(t.name)}</strong>
       <span class="subtext">${fechaBonita(t.start_at)} · ${t.format === 'league' ? `liga de ${t.swiss_rounds} jornadas` : `${t.swiss_rounds} suizas`}${t.top_cut_size ? ` + top ${t.top_cut_size}` : ''}</span>
@@ -455,6 +463,29 @@ function engancharFormulario(session, perfil) {
     pintarCamposJornadas([...fechas, ''])
   })
 
+  // La imagen del torneo (tanda 239): se elige con vista previa y se
+  // sube al bucket de avatares (carpeta del usuario, como la foto de
+  // perfil) SOLO al crear — elegir y arrepentirse no debe dejar
+  // ficheros huérfanos en Storage.
+  let imagenElegida = null
+  function pintarImagenElegida() {
+    const preview = $('torneoImagenPreview')
+    if (imagenElegida) preview.src = URL.createObjectURL(imagenElegida)
+    preview.classList.toggle('hidden', !imagenElegida)
+    $('btnTorneoImagenQuitar').classList.toggle('hidden', !imagenElegida)
+    $('btnTorneoImagen').textContent = imagenElegida ? 'Cambiar imagen' : 'Elegir imagen'
+  }
+  $('btnTorneoImagen').addEventListener('click', () => $('torneoImagenInput').click())
+  $('torneoImagenInput').addEventListener('change', () => {
+    imagenElegida = $('torneoImagenInput').files?.[0] || null
+    pintarImagenElegida()
+  })
+  $('btnTorneoImagenQuitar').addEventListener('click', () => {
+    imagenElegida = null
+    $('torneoImagenInput').value = ''
+    pintarImagenElegida()
+  })
+
   let enviando = false
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
@@ -463,7 +494,20 @@ function engancharFormulario(session, perfil) {
     const nombre = $('torneoNombre').value.trim()
     const liga = esLigaElegida()
     enviando = true
+    // Primero la imagen: si la subida falla, el torneo NO se crea a
+    // medias — se avisa y se deja reintentar con todo lo escrito.
+    let imageUrl = null
+    if (imagenElegida) {
+      try {
+        imageUrl = await uploadProfileImage(session.user.id, imagenElegida, 'torneo')
+      } catch (err) {
+        enviando = false
+        showToast('No se ha podido subir la imagen: ' + (err?.message || err), 'error')
+        return
+      }
+    }
     const { error } = await supabase.from('tournaments').insert({
+      image_url: imageUrl,
       slug: `${slugify(nombre)}-${Date.now().toString(36)}`,
       admin_id: session.user.id,
       name: nombre,
@@ -494,9 +538,12 @@ function engancharFormulario(session, perfil) {
     }
     form.classList.add('hidden')
     form.reset()
-    // El reset del formulario no llega al contenteditable del editor.
+    // El reset del formulario no llega al contenteditable del editor,
+    // ni a la imagen elegida (vive en una variable, no en el input).
     descripcionHtml = ''
     $('torneoDescCuerpo').innerHTML = ''
+    imagenElegida = null
+    pintarImagenElegida()
     pintarCamposJornadas()
     pintarSinLimite()
     irAPaso(0)

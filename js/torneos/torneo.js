@@ -255,6 +255,11 @@ const aFechaLocal = (iso) => {
 }
 
 let editarDescripcionHtml = ''
+// La imagen del torneo en el editor (tanda 239): `undefined` = sin
+// tocar, un File = subir esta al guardar, `null` = quitar la que hay.
+// La subida se hace SOLO al guardar, para no dejar ficheros huérfanos
+// en Storage si se cierra el editor sin más.
+let editarImagenNueva = undefined
 
 function pintarJornadasEditor(fechas, bloqueada) {
   const lista = $('editarJornadasLista')
@@ -320,6 +325,15 @@ function pintarEditor() {
         <input type="checkbox" id="editarListasRivales" ${torneo.show_opponent_decklists ? 'checked' : ''} />
         <span><strong>Listas a la vista entre rivales.</strong> Podrán ver las decklists de sus rivales desde la clasificación, una vez selladas.</span>
       </label>
+      <div class="torneos-form-campo">Imagen del torneo
+        <div class="torneo-imagen-campo">
+          <img id="editarImagenPreview" class="torneo-imagen-preview ${torneo.image_url ? '' : 'hidden'}" src="${escapeHtml(torneo.image_url || '')}" alt="" />
+          <button type="button" class="btn-secondary" id="btnEditarImagen">${torneo.image_url ? 'Cambiar imagen' : 'Elegir imagen'}</button>
+          <button type="button" class="btn-outline ${torneo.image_url ? '' : 'hidden'}" id="btnEditarImagenQuitar">Quitar</button>
+          <input type="file" id="editarImagenInput" accept="image/*" class="hidden" />
+        </div>
+        <span class="torneo-campo-pista">Se enseña como icono en el listado de torneos.</span>
+      </div>
       <div class="torneos-form-descripcion">Descripción
         <div class="rte-wrap rte-compacta torneo-desc-editor">
           <div class="rte-toolbar" id="editarDescBarra"></div>
@@ -369,6 +383,26 @@ function pintarEditor() {
   $('editarSinLimite').addEventListener('change', () => {
     $('editarPlazas').disabled = estructuraBloqueada || $('editarSinLimite').checked
   })
+  // La imagen: elegir con vista previa, o quitar la que hay.
+  editarImagenNueva = undefined
+  $('btnEditarImagen').addEventListener('click', () => $('editarImagenInput').click())
+  $('editarImagenInput').addEventListener('change', () => {
+    const fichero = $('editarImagenInput').files?.[0]
+    if (!fichero) return
+    editarImagenNueva = fichero
+    const preview = $('editarImagenPreview')
+    preview.src = URL.createObjectURL(fichero)
+    preview.classList.remove('hidden')
+    $('btnEditarImagenQuitar').classList.remove('hidden')
+    $('btnEditarImagen').textContent = 'Cambiar imagen'
+  })
+  $('btnEditarImagenQuitar').addEventListener('click', () => {
+    editarImagenNueva = null
+    $('editarImagenInput').value = ''
+    $('editarImagenPreview').classList.add('hidden')
+    $('btnEditarImagenQuitar').classList.add('hidden')
+    $('btnEditarImagen').textContent = 'Elegir imagen'
+  })
   $('btnCerrarEdicion').addEventListener('click', () => $('torneoEditor').remove())
   $('btnGuardarEdicion').addEventListener('click', guardarEdicion)
 }
@@ -412,6 +446,22 @@ async function guardarEdicion() {
     description: editarDescripcionHtml || null,
     checkin_minutes: Number($('editarCheckin').value),
     show_opponent_decklists: $('editarListasRivales').checked,
+  }
+  // La imagen (tanda 239): solo si se tocó. Se sube aquí y no al
+  // elegirla, para que cerrar el editor sin guardar no deje ficheros
+  // huérfanos en Storage.
+  if (editarImagenNueva !== undefined) {
+    if (editarImagenNueva === null) {
+      cambios.image_url = null
+    } else {
+      try {
+        const { uploadProfileImage } = await import('../app.js')
+        cambios.image_url = await uploadProfileImage(session.user.id, editarImagenNueva, 'torneo')
+      } catch (err) {
+        showToast('No se ha podido subir la imagen: ' + (err?.message || err), 'error')
+        return
+      }
+    }
   }
   // Las fechas de las jornadas se guardan siempre (son informativas);
   // añadir o quitar jornadas cambia swiss_rounds y va con la estructura.

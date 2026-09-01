@@ -73,6 +73,17 @@
         <label class="torneos-form-campo">Nombre del torneo
           <input type="text" id="torneoNombre" maxlength="120" placeholder="Liga PokeDoc — Agosto" />
         </label>
+        <!-- El icono del torneo (tanda 239): opcional, se enseña en el
+             listado en el hueco del bloque de fecha. -->
+        <div class="torneos-form-campo">Imagen del torneo (opcional)
+          <div class="torneo-imagen-campo">
+            <img id="torneoImagenPreview" class="torneo-imagen-preview hidden" alt="" />
+            <button type="button" class="btn-secondary" id="btnTorneoImagen">Elegir imagen</button>
+            <button type="button" class="btn-outline hidden" id="btnTorneoImagenQuitar">Quitar</button>
+            <input type="file" id="torneoImagenInput" accept="image/*" class="hidden" />
+          </div>
+          <span class="torneo-campo-pista">Se enseña como icono en el listado. Cuadrada queda mejor.</span>
+        </div>
         <label class="torneos-form-campo">Fecha y hora de inicio
           <input type="datetime-local" id="torneoFecha" />
           <span class="torneo-campo-pista">En tu zona horaria.</span>
