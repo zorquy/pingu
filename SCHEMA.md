@@ -11620,3 +11620,101 @@ primer plano, se pasó de tiempo, la mataron A MITAD DE UNA MUTACIÓN y
 dejó el fichero sin la deduplicación. Es la segunda vez que pasa. **El
 rigor va SIEMPRE en segundo plano**, porque restaura en un `finally` que
 no llega a ejecutarse si lo matan.
+
+## Tanda 235 — el héroe, las máscaras de Ogerpon y el histórico que cae junto (sept. 2026)
+
+Cinco peticiones de Ibai en una tanda, todas de la sección de torneos y
+sus alrededores.
+
+### El héroe de /torneos
+
+La lista de torneos entraba a pelo, sin un título que dijera dónde
+estás. Ahora hay un héroe (`.torneos-heroe` en css/torneos.css): panel
+navy con degradado, píldora de «en pruebas», título grande y las dos
+acciones (crear torneo y /mis-partidas). Los colores van FIJOS y no con
+`var(--navy)`: el panel es oscuro en los dos temas y las variables, que
+cambian con el tema, solo podrían romperlo. El `#btnNuevoTorneo` sigue
+siendo el mismo botón que gobierna torneos.js.
+
+### El icono de un objeto ya no es «la carta en pequeñito»
+
+DESVIACIÓN de la decisión de la tanda 234 («una carta se pinta con
+forma de carta»), pedida por Ibai al verla en producción: la carta
+entera a tamaño de icono no se lee. Ahora lo que no es un Pokémon sale
+como el RECORTE cuadrado de su ilustración, con el mismo peso a la
+vista que un minisprite — que es lo que hace Limitless.
+
+El recorte es puro CSS con un MARCO: un contenedor cuadrado con
+`overflow: hidden` y dentro la imagen de la carta al 205% de ancho,
+colocada de forma que el centro de la ilustración (que en una carta
+moderna vive entre el 11% y el 46% de la altura) caiga en el centro del
+cuadrado. Dos sitios, mismo truco: `.torneo-arquetipo-marco`
+(torneos.css, las chapas) y `.selector-mazo-marco` (partidas.css, el
+buscador). Si la imagen no carga, se quita el marco entero — un
+cuadrado vacío también es un hueco roto.
+
+### Las máscaras de Ogerpon (y Bloodmoon Ursaluna)
+
+`sprites-pokemon.js` traía una entrada por ESPECIE, y a Ogerpon eso se
+le queda corto: sus cuatro máscaras son cuatro cartas ex distintas que
+definen mazos distintos, y todas caían en el sprite 1017 y la misma
+casilla. Nueva tabla curada `FORMAS_TCG`: las formas con carta propia
+en el TCG, con su sprite de PokéAPI (>10000: Wellspring 10273,
+Hearthflame 10274, Cornerstone 10275, Bloodmoon Ursaluna 10272; la
+Turquesa ES el 1017 base). Cada una lleva su `base` para que forma y
+especie no cuenten como dos Pokémon al agrupar.
+
+- **En el buscador de mazos** salen como opciones propias («oger» lista
+  la base y las cuatro máscaras, cada una con su sprite).
+- **Alias en ESPAÑOL** («Máscara Cimiento», «Luna Carmesí»): el export
+  de TCG Live llega en el idioma del jugador (tanda 232) y esos nombres
+  tienen que caer en la misma forma. No se enseñan en el buscador (el
+  mismo Pokémon dos veces), pero sí casan con lo tecleado.
+- **La regla de preevolución de la 232** (descartar los tres números
+  anteriores) se limita a números de especie (≤1025): en los números
+  altos de las formas, ser vecinos no significa nada — dos máscaras van
+  seguidas y ninguna es preevolución de la otra.
+- La lista NO intenta traer todas las formas del juego: solo las que
+  son una carta jugable distinta de su base. Una nueva = una línea.
+
+### La clave canónica: el histórico cae junto
+
+El mismo enfrentamiento llegaba partido en varias casillas de
+/mis-partidas y ninguna juntaba las 3 partidas que piden «Mejor/Peor
+enfrentamiento»: un mazo de torneo se deduce como «Dragapult ex
+Dusknoir», uno a mano se elige como «Dragapult» + «Dusknoir», y si el
+catálogo conocía el arquetipo, las curadas iban además por su id.
+Mismas especies, tres claves.
+
+La cura vive en arquetipos.js: `claveCanonicaDeMazo(clave, nombre,
+catálogo)`. Del NOMBRE del mazo se sacan TODOS sus Pokémon
+(`dexesDeNombre`, trozo a trozo con `dexExacto`), y esa lista ordenada
+es la FIRMA del mazo («Dusknoir Dragapult» y «Dragapult ex Dusknoir»
+firman igual: 477-887). Con la firma se recorre el catálogo ENTERO: si
+algún arquetipo tiene exactamente esos Pokémon en sus iconos, manda su
+`a:<id>`; si no, la firma es la clave (`e:477-887`). Una clave `a:` ya
+puesta no se toca, y un mazo sin especies (un objeto, «Martillos») se
+queda con la clave que tenía.
+
+**Se aplica AL AGRUPAR, no al guardar**: match_log guarda lo de
+siempre y mis-partidas.js traduce TODAS las claves (viejas incluidas)
+al leer. Cambiar el formato guardado habría dejado las filas viejas
+huérfanas; traducir al leer las junta gratis, igual que la relectura
+de decklists mejora los arquetipos sola.
+
+### El menú del foro sin «Jugar»
+
+A foro.html, tema.html, usuario.html y 404.html les faltaba el enlace
+«Jugar» de la navbar (las otras 17 páginas lo tenían de la tanda 203).
+Mismo patrón: `class="nav-jugar hidden"`, y app.js lo desvela a los
+admins. Nada más que añadir dos líneas por página.
+
+### Comprobado
+
+Verificación en Node sobre los módulos puros (patrón
+`verificar-tanda-NNN.mjs`): 24 comprobaciones de dexDeCarta con las
+formas (inglés y español), dexesDeNombre, claveCanonicaDeMazo (torneo /
+a mano / al revés / con catálogo / objetos / sin-mazo) y deducirIconos
+(dos máscaras vecinas no se comen; Drakloak sigue fuera). Todas en
+verde. Los cinco sprites nuevos comprobados contra jsDelivr (200).
+Pendiente pedir a PINGU una pasada de la suite Playwright.

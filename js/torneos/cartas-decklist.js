@@ -257,9 +257,15 @@ export async function rellenarChapasArquetipo(raiz) {
       chapa.insertAdjacentHTML(
         'afterbegin',
         resueltos
-          .map(
-            (c) =>
-              `<img class="torneo-arquetipo-icono ${c.sprite ? 'es-sprite' : 'es-carta'}" src="${escapeHtml(c.url)}" alt="" loading="lazy" />`
+          .map((c) =>
+            c.sprite
+              ? `<img class="torneo-arquetipo-icono es-sprite" src="${escapeHtml(c.url)}" alt="" loading="lazy" />`
+              : // Una carta entera a tamaño de icono no se lee: el marco
+                // recorta su ILUSTRACIÓN en un cuadrado, y el icono de un
+                // objeto pesa lo mismo a la vista que el minisprite de un
+                // Pokémon (lo pidió Ibai en la tanda 235; hasta ahora
+                // salía la carta en pequeñito).
+                `<span class="torneo-arquetipo-marco"><img class="torneo-arquetipo-icono es-carta" src="${escapeHtml(c.url)}" alt="" loading="lazy" /></span>`
           )
           .join('')
       )
@@ -273,7 +279,10 @@ export async function rellenarChapasArquetipo(raiz) {
       for (const img of chapa.querySelectorAll('.torneo-arquetipo-icono')) {
         img.addEventListener('error', () => {
           if (img.classList.contains('es-sprite')) spritesRotos.add(img.src)
-          img.remove()
+          // El icono de una carta va dentro de su marco de recorte: se
+          // quita el marco entero, que un cuadrado vacío también es un
+          // hueco roto.
+          ;(img.closest('.torneo-arquetipo-marco') || img).remove()
           if (!chapa.querySelector('.torneo-arquetipo-icono')) {
             chapa.classList.remove('torneo-arquetipo-con-iconos')
           }

@@ -46,13 +46,18 @@
   </nav>
 
   <main class="page-content container" id="torneosContenido" style="display:none;">
-    <div class="page-header torneos-cabecera">
-      <div>
-        <h1>Torneos</h1>
-        <p>Torneos online de Pokémon TCG: te apuntas aquí, juegas en TCG Live y reportas el resultado. <span class="torneos-en-pruebas">En pruebas — solo lo veis los admins</span></p>
+    <!-- El héroe de la sección (tanda 235, pedido por Ibai): la lista de
+         torneos entraba a pelo y faltaba un título que dijera dónde
+         estás. Mismo tono que los paneles navy de la portada. -->
+    <header class="torneos-heroe">
+      <span class="torneos-heroe-pill">Pokémon TCG · <strong>En pruebas — solo lo veis los admins</strong></span>
+      <h1>Torneos de PokeDoc</h1>
+      <p>Te apuntas aquí, juegas en TCG Live y reportas el resultado: pareos suizos, top cut y clasificación en vivo, con tu cuenta de PokeDoc.</p>
+      <div class="torneos-heroe-acciones">
+        <button class="btn-primary" id="btnNuevoTorneo">+ Nuevo torneo</button>
+        <a class="btn-secondary" href="/mis-partidas.html">Mis partidas</a>
       </div>
-      <button class="btn-primary" id="btnNuevoTorneo">+ Nuevo torneo</button>
-    </div>
+    </header>
 
     <!-- Crear torneo: el wizard por pasos de TrainerArena, sin el paso
          de pago (aquí todo es gratis). torneos.js gobierna los pasos;

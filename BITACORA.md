@@ -12,7 +12,39 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
-## 2026-09-01 — PINGU-Claude (tanda 234 — el buscador encuentra objetos)
+## 2026-09-01 — IBAI-Claude (tanda 235 — héroe, máscaras de Ogerpon y el histórico junto)
+**Hecho**: cinco peticiones de Ibai. (1) /torneos gana un HÉROE (panel
+navy con título, píldora de «en pruebas» y las acciones; el
+#btnNuevoTorneo es el mismo). (2) El icono de un mazo-objeto ya no es
+«la carta en pequeñito»: un marco CSS recorta la ILUSTRACIÓN en un
+cuadrado con el mismo peso que un minisprite (desviación anotada de la
+decisión de la 234, en chapas y buscador). (3) Ogerpon: nueva tabla
+curada FORMAS_TCG en sprites-pokemon.js — las cuatro máscaras y
+Bloodmoon Ursaluna, con sprite propio (>10000), opciones propias en el
+buscador y alias en español para los exports de TCG Live; la regla de
+preevolución se limita a dex ≤1025 para no comerse una máscara vecina.
+(4) El resumen de /mis-partidas agrupa por clave CANÓNICA
+(claveCanonicaDeMazo): del nombre se sacan TODAS las especies y con esa
+firma se busca en el catálogo entero — «Dragapult ex Dusknoir» de
+torneo, «Dragapult»+«Dusknoir» a mano y el arquetipo curado caen POR
+FIN en la misma casilla, y «Mejor/Peor enfrentamiento» llega a sus 3
+partidas. Se traduce AL LEER; match_log no cambia (sin migración).
+(5) El enlace «Jugar» faltaba en las navbars de foro.html, tema.html,
+usuario.html y 404.html — añadido (por eso Ibai no lo veía desde el
+foro).
+**Ficheros**: torneos.html, css/torneos.css, css/partidas.css,
+js/torneos/sprites-pokemon.js, js/torneos/arquetipos.js,
+js/torneos/selector-mazo.js, js/torneos/cartas-decklist.js,
+js/mis-partidas.js, foro.html, tema.html, usuario.html, 404.html,
+SCHEMA.md.
+**En curso / pendiente**: nada a medias y sin migraciones. PINGU: te
+pido una pasada de la suite (tocan selector-mazo, arquetipos y las
+chapas; las 24 comprobaciones de lógica pura en Node están en verde y
+los 5 sprites nuevos responden 200 en jsDelivr). OJO: el HTML de una
+opción-carta del selector y de la chapa de un objeto cambia (ahora hay
+un <span> de marco alrededor del <img>) — si alguna prueba mira ese
+DOM, es cambio esperado. Siguen pendientes las dos migraciones de la
+233 y el botón «Traer códigos de TCG Live».
 **Hecho**: PINGU lo vio enseguida: «se juega dragapult con martillo, el
 martillo no está en la lista de búsqueda». El buscador de mazos solo
 miraba las especies y el catálogo, así que un mazo que se nombra por un

@@ -20,7 +20,7 @@
 //      tanda 234 eso no se podía elegir: PINGU lo vio enseguida, porque
 //      en trainingcourt escribes «hamm» y sale Crushing Hammer.
 //      Estas tardan lo que tarde la consulta y se añaden después.
-import { POKEMON_POR_DEX, POKEMON_APLASTADOS, urlDeSprite, dexDeCarta } from './sprites-pokemon.js'
+import { POKEMON_POR_DEX, POKEMON_APLASTADOS, FORMAS_TCG, urlDeSprite, dexDeCarta } from './sprites-pokemon.js'
 import { searchCards, cardImageUrl } from '../tcgdex.js'
 
 // El escapado va aquí y NO se importa de app.js a propósito: app.js toca
@@ -70,6 +70,35 @@ export function buscarOpciones(texto, catalogo = [], limite = 40) {
       nombre: POKEMON_POR_DEX[i],
       sprite: urlDeSprite(i + 1),
       empieza: plano.startsWith(q),
+    })
+  }
+
+  // Las FORMAS con carta propia (las máscaras de Ogerpon, Bloodmoon
+  // Ursaluna): antes solo salía la especie base y las cuatro máscaras
+  // eran indistinguibles. Los alias en español no se enseñan — serían
+  // el mismo Pokémon dos veces — pero sí casan con lo tecleado, para
+  // que «cimiento» encuentre su máscara.
+  for (const f of FORMAS_TCG) {
+    const plano = f.nombre.toLowerCase().replace(/[^a-z0-9]/g, '')
+    const enEspanol = f.alias
+      ? String(f.nombre)
+          .normalize('NFD')
+          .replace(/[̀-ͯ]/g, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '')
+      : plano
+    if (!enEspanol.includes(q)) continue
+    const visible = f.alias ? FORMAS_TCG.find((x) => !x.alias && x.dex === f.dex) : f
+    if (!visible) continue
+    // Si su versión visible ya está en la lista (casó por su propio
+    // nombre), el alias no añade nada.
+    if (opciones.some((o) => o.nombre === visible.nombre)) continue
+    opciones.push({
+      tipo: 'pokemon',
+      valor: `d:${visible.nombre.toLowerCase()}`,
+      nombre: visible.nombre,
+      sprite: urlDeSprite(visible.dex),
+      empieza: enEspanol.startsWith(q),
     })
   }
 
@@ -143,7 +172,7 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
   contenedor.classList.add('selector-mazo')
   contenedor.innerHTML = `
     <div class="selector-mazo-campo">
-      <img class="selector-mazo-sprite hidden" alt="" />
+      <span class="selector-mazo-marco selector-mazo-sprite hidden"><img alt="" /></span>
       <input type="text" class="selector-mazo-texto" placeholder="${escapeHtml(marcador)}" autocomplete="off"
              role="combobox" aria-expanded="false" aria-autocomplete="list" />
       <button type="button" class="selector-mazo-limpiar hidden" aria-label="Quitar">×</button>
@@ -153,6 +182,7 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
   const campo = contenedor.querySelector('.selector-mazo-texto')
   const lista = contenedor.querySelector('.selector-mazo-lista')
   const sprite = contenedor.querySelector('.selector-mazo-sprite')
+  const spriteImg = sprite.querySelector('img')
   const limpiar = contenedor.querySelector('.selector-mazo-limpiar')
 
   function cerrar() {
@@ -168,8 +198,13 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
       <li class="selector-mazo-opcion ${i === resaltado ? 'resaltada' : ''}" role="option"
           aria-selected="${i === resaltado}" data-i="${i}">
         ${
+          // Una carta no se enseña entera (a este tamaño no se lee):
+          // se recorta su ilustración en un cuadrado, como el
+          // minisprite de un Pokémon. El marco es quien recorta.
           o.sprite
-            ? `<img class="${o.esCarta ? 'es-carta' : ''}" src="${escapeHtml(o.sprite)}" alt="" loading="lazy" />`
+            ? o.esCarta
+              ? `<span class="selector-mazo-marco es-carta"><img src="${escapeHtml(o.sprite)}" alt="" loading="lazy" /></span>`
+              : `<img src="${escapeHtml(o.sprite)}" alt="" loading="lazy" />`
             : '<span class="selector-mazo-hueco"></span>'
         }
         <span>${escapeHtml(o.nombre)}</span>
@@ -186,7 +221,7 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
     campo.value = o ? o.nombre : ''
     sprite.classList.toggle('hidden', !o?.sprite)
     sprite.classList.toggle('es-carta', Boolean(o?.esCarta))
-    if (o?.sprite) sprite.src = o.sprite
+    if (o?.sprite) spriteImg.src = o.sprite
     limpiar.classList.toggle('hidden', !o)
     cerrar()
     alElegir?.(o)

@@ -238,9 +238,58 @@ for (let i = 0; i < POKEMON_POR_DEX.length; i++) {
   if (!DEX_POR_NOMBRE.has(clave)) DEX_POR_NOMBRE.set(clave, i + 1)
 }
 
+// ── Formas con carta PROPIA en el TCG ──
+//
+// La tabla de arriba trae una entrada por especie, y a Ogerpon eso se le
+// queda corto: sus cuatro máscaras son CUATRO cartas ex distintas que
+// definen mazos distintos, y todas caían en el mismo sprite y la misma
+// casilla. Los sprites de las formas viven en números altos de PokéAPI
+// (>10000), que el generador de la tabla no recorre — así que las que
+// importan al TCG van aquí, curadas a mano.
+//
+// Esta lista NO intenta traer todas las formas del juego (las
+// regionales de un Vulpix de relleno no nombran mazos): solo las que
+// son una carta jugable distinta de su especie base. Si sale otra en
+// una temporada futura, se añade su línea y ya está.
+//
+// Los `alias` son el mismo Pokémon con el nombre de la carta en
+// ESPAÑOL: el export de TCG Live llega en el idioma del jugador
+// (tanda 232) y «Ogerpon Máscara Cimiento ex» tiene que caer en la
+// misma forma que «Cornerstone Mask Ogerpon ex». No salen en el
+// buscador para no enseñar el mismo Pokémon dos veces.
+export const FORMAS_TCG = [
+  { nombre: 'Teal Mask Ogerpon', dex: 1017, base: 1017 },
+  { nombre: 'Wellspring Mask Ogerpon', dex: 10273, base: 1017 },
+  { nombre: 'Hearthflame Mask Ogerpon', dex: 10274, base: 1017 },
+  { nombre: 'Cornerstone Mask Ogerpon', dex: 10275, base: 1017 },
+  { nombre: 'Bloodmoon Ursaluna', dex: 10272, base: 901 },
+  { nombre: 'Máscara Turquesa', dex: 1017, base: 1017, alias: true },
+  { nombre: 'Máscara Fuente', dex: 10273, base: 1017, alias: true },
+  { nombre: 'Máscara Horno', dex: 10274, base: 1017, alias: true },
+  { nombre: 'Máscara Cimiento', dex: 10275, base: 1017, alias: true },
+  { nombre: 'Luna Carmesí', dex: 10272, base: 901, alias: true },
+]
+
+// La especie de cada forma, para que «Ogerpon Máscara Fuente» (especie
+// + forma) no cuente como dos Pokémon distintos al agrupar mazos.
+export const BASE_DE_FORMA = new Map(FORMAS_TCG.map((f) => [f.dex, f.base]))
+
+for (const f of FORMAS_TCG) {
+  const clave = aplastar(f.nombre)
+  if (!DEX_POR_NOMBRE.has(clave)) DEX_POR_NOMBRE.set(clave, f.dex)
+}
+
 // El nombre aplastado de cada uno, para buscar sin recalcularlo en cada
 // tecla del buscador de mazos.
 export const POKEMON_APLASTADOS = POKEMON_POR_DEX.map(aplastar)
+
+// El número de EXACTAMENTE este texto, o null. A diferencia de
+// dexDeCarta no prueba trozos: es la pieza con la que arquetipos.js
+// recorre un nombre de mazo sacando TODOS sus Pokémon, no solo el
+// primero.
+export function dexExacto(texto) {
+  return DEX_POR_NOMBRE.get(aplastar(texto)) ?? null
+}
 
 // El número de Pokédex de la especie que nombra esta carta, o null.
 export function dexDeCarta(nombreDeCarta) {

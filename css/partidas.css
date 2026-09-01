@@ -223,16 +223,32 @@
   .selector-mazo { flex: 1 1 100%; }
 }
 
-/* Una CARTA en el buscador no tiene la forma de un sprite: va con
-   proporción de carta (5:7) y su recuadro, para que se lea como lo que
-   es. Los mazos que se nombran por un objeto —«Martillos»— salen así
-   (tanda 234). */
-.selector-mazo-opcion img.es-carta,
-.selector-mazo-sprite.es-carta {
-  width: 22px;
+/* Una CARTA en el buscador ya no sale entera —a este tamaño no se
+   leía— sino con su ILUSTRACIÓN recortada en un cuadrado, con el mismo
+   peso a la vista que el minisprite de un Pokémon (tanda 235; antes,
+   tanda 234, iba con proporción de carta). El marco recorta y la
+   imagen, más grande que él, se coloca con el dibujo centrado — en una
+   carta moderna vive entre el 11% y el 46% de la altura. */
+.selector-mazo-marco {
+  position: relative;
+  width: 30px;
   height: 30px;
-  object-fit: cover;
-  object-position: top center;
+  flex: none;
+}
+.selector-mazo-marco img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.selector-mazo-marco.es-carta {
+  overflow: hidden;
   border-radius: var(--radius-sm);
   background: var(--bg);
+}
+.selector-mazo-marco.es-carta img {
+  position: absolute;
+  width: 205%;
+  height: auto;
+  left: -52%;
+  top: -30%;
 }

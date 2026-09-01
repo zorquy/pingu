@@ -17,7 +17,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession } from './app.js'
 import { showToast } from './toast.js'
-import { arquetipoDeMazo, claveDeArquetipo } from './torneos/arquetipos.js'
+import { arquetipoDeMazo, claveDeArquetipo, claveCanonicaDeMazo } from './torneos/arquetipos.js'
 import { construirMatriz, resumen, porcentaje, miResultado } from './matriz-partidas.js'
 import { montarSelectorMazo } from './torneos/selector-mazo.js'
 
@@ -92,9 +92,12 @@ async function partidasDeTorneos() {
     const t = torneoPorId.get(torneoId)
     salida.push({
       id: `t-${m.id}`,
-      mio: claveDeArquetipo(mio),
+      // La clave CANÓNICA (por especies, contra el catálogo entero):
+      // es lo que junta estas partidas con las apuntadas a mano aunque
+      // el nombre deducido lleve un «ex» de más o el orden cambiado.
+      mio: claveCanonicaDeMazo(claveDeArquetipo(mio), mio.nombre, catalogo),
       mioNombre: mio.nombre,
-      rival: claveDeArquetipo(rival),
+      rival: claveCanonicaDeMazo(claveDeArquetipo(rival), rival.nombre, catalogo),
       rivalNombre: rival.nombre,
       resultado,
       fecha: t?.start_at ? String(t.start_at).slice(0, 10) : null,
@@ -121,9 +124,12 @@ async function partidasApuntadas() {
   if (error) return []
   return (data || []).map((p) => ({
     id: p.id,
-    mio: p.mi_mazo,
+    // Las claves guardadas se quedan como están en la base; aquí se
+    // traducen a la canónica al leer, que es lo que hace que las filas
+    // viejas se junten con las nuevas y con las de torneo.
+    mio: claveCanonicaDeMazo(p.mi_mazo, p.mi_mazo_nombre, catalogo),
     mioNombre: p.mi_mazo_nombre,
-    rival: p.rival_mazo,
+    rival: claveCanonicaDeMazo(p.rival_mazo, p.rival_mazo_nombre, catalogo),
     rivalNombre: p.rival_mazo_nombre,
     resultado: p.resultado,
     fecha: p.jugada_el,

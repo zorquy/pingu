@@ -27,7 +27,7 @@
 // El catálogo se llena así, con lo que la gente juega de verdad, en vez
 // de tener que sentarse a rellenar el meta entero de una vez.
 
-import { dexDeCarta } from './sprites-pokemon.js'
+import { dexDeCarta, dexExacto, BASE_DE_FORMA } from './sprites-pokemon.js'
 
 // Nombres sin tildes, sin mayúsculas y sin dobles espacios. Vive aquí y
 // no se importa de tcgdex.js a propósito: este módulo NO toca la red ni
@@ -158,7 +158,11 @@ export function deducirIconos(parsed) {
   const segunda = candidatas.slice(1).find((x) => {
     if ((Number(x.linea.quantity) || 0) < 2) return false
     const dex = dexDeCarta(x.linea.name)
-    if (dexPrimera && dex && dex < dexPrimera && dex >= dexPrimera - 3) return false
+    // Solo con números de especie (≤1025): las FORMAS viven en números
+    // altos de PokéAPI donde ser vecinos no significa nada — dos
+    // máscaras de Ogerpon van seguidas y ninguna es preevolución de la
+    // otra.
+    if (dexPrimera && dex && dexPrimera <= 1025 && dex < dexPrimera && dex >= dexPrimera - 3) return false
     return true
   })
 
@@ -198,4 +202,74 @@ export function arquetipoDeMazo(parsed, catalogo) {
 export function claveDeArquetipo(arq) {
   if (!arq) return 'sin-mazo'
   return arq.id ? `a:${arq.id}` : `d:${normalizarNombre(arq.nombre)}`
+}
+
+// ── La clave CANÓNICA, para que el histórico caiga junto ──
+//
+// El mismo enfrentamiento llegaba partido en varias casillas y ninguna
+// juntaba las 3 partidas que piden «Mejor/Peor enfrentamiento»:
+//
+//   · Un mazo de torneo se deduce como «Dragapult ex Dusknoir» y uno
+//     apuntado a mano se elige como «Dragapult» + «Dusknoir» — mismas
+//     especies, claves distintas por culpa del «ex».
+//   · Y si además el catálogo tiene un arquetipo con esos dos Pokémon,
+//     las partidas curadas iban por su id y las demás por el nombre.
+//
+// La cura: del NOMBRE del mazo se sacan TODOS sus Pokémon (con
+// dexExacto, trozo a trozo) y esa lista de especies —ordenada, para que
+// «Dusknoir Dragapult» sea lo mismo— es la firma del mazo. Con la firma
+// se busca en el catálogo ENTERO: si algún arquetipo tiene exactamente
+// esos Pokémon, manda su id; si no, la firma misma es la clave.
+//
+// Se aplica AL AGRUPAR, no al guardar: las claves ya escritas en
+// match_log se quedan como están y aquí se traducen todas al mismo
+// idioma, las viejas incluidas.
+export function dexesDeNombre(nombre) {
+  const palabras = String(nombre ?? '').split(/\s+/).filter(Boolean)
+  const dexes = []
+  let i = 0
+  while (i < palabras.length) {
+    let casado = 0
+    // Del trozo más largo al más corto, como dexDeCarta: «Teal Mask
+    // Ogerpon» tiene que caer entero en su forma antes de que «Ogerpon»
+    // a secas se lleve el trozo.
+    for (let largo = Math.min(4, palabras.length - i); largo >= 1; largo--) {
+      const dex = dexExacto(palabras.slice(i, i + largo).join(' '))
+      if (dex) {
+        dexes.push(dex)
+        casado = largo
+        break
+      }
+    }
+    i += casado || 1
+  }
+  // «Ogerpon Máscara Fuente» son dos trozos —la especie y la forma— del
+  // MISMO Pokémon: cuando hay una forma, su especie base sobra. Así el
+  // export en español da la misma firma que el nombre en inglés.
+  const basesConForma = new Set(
+    dexes.filter((d) => BASE_DE_FORMA.has(d) && BASE_DE_FORMA.get(d) !== d).map((d) => BASE_DE_FORMA.get(d))
+  )
+  return [...new Set(dexes)].filter((d) => !basesConForma.has(d) || BASE_DE_FORMA.get(d) !== d)
+}
+
+// La firma de un arquetipo del catálogo: los Pokémon de sus iconos. Un
+// arquetipo que se nombra por objetos («Martillos») no tiene firma y no
+// entra en este juego — a ese solo se llega eligiéndolo por nombre.
+function firmaDeIconos(iconos) {
+  const dexes = (iconos || []).flatMap((i) => dexesDeNombre(i?.nombre ?? i?.name))
+  return dexes.length ? [...new Set(dexes)].sort((a, b) => a - b).join('-') : null
+}
+
+export function claveCanonicaDeMazo(clave, nombre, catalogo) {
+  const c = String(clave ?? '')
+  if (c.startsWith('a:')) return c
+  const dexes = dexesDeNombre(nombre)
+  if (!dexes.length) return c || `d:${normalizarNombre(nombre)}`
+  const firma = [...dexes].sort((a, b) => a - b).join('-')
+  const candidatos = (catalogo || [])
+    .filter((a) => a?.activo !== false && firmaDeIconos(a.iconos) === firma)
+    // El mismo desempate estable que en arquetipoDelCatalogo: sin él,
+    // dos arquetipos con los mismos iconos agruparían al azar.
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)))
+  return candidatos.length ? `a:${candidatos[0].id}` : `e:${firma}`
 }

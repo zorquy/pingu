@@ -2,23 +2,83 @@
    Hoja propia: solo la baja /torneos y las páginas del torneo, para no
    cargar el presupuesto de peso de la portada (ver CLAUDE.md). */
 
-.torneos-cabecera {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+/* ── El héroe de la sección (tanda 235) ──
+   Panel navy con degradado, como los de la portada. Los colores van
+   FIJOS y no con var(--navy): el panel es oscuro en los dos temas, y
+   los textos de dentro también, así que las variables (que cambian con
+   el tema) aquí solo podrían romperlo. */
+.torneos-heroe {
+  background: linear-gradient(135deg, #163d59 0%, #1e5175 55%, #2a6b96 100%);
+  color: #fff;
+  border-radius: var(--radius-xl);
+  padding: 40px 32px;
+  margin-bottom: 26px;
+  text-align: center;
 }
-
-.torneos-en-pruebas {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 2px 10px;
+.torneos-heroe-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.14);
+  color: #e1f0f4;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 14px;
   border-radius: var(--radius-pill);
-  background: rgba(214, 69, 69, 0.12);
-  color: #d64545;
-  font-size: 12px;
+  margin-bottom: 16px;
+}
+.torneos-heroe-pill strong {
+  color: #ffd6d6;
   font-weight: 700;
+}
+.torneos-heroe h1 {
+  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.8rem);
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin: 0 0 12px;
+  color: #fff;
+}
+.torneos-heroe p {
+  font-size: 16px;
+  line-height: 1.55;
+  color: #c2dde6;
+  max-width: 560px;
+  margin: 0 auto 24px;
+}
+.torneos-heroe-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+/* Sobre navy, el botón principal se invierte (blanco con texto navy),
+   el mismo truco que .banner-signup de la portada; el secundario pasa
+   a «fantasma» para no pelearse con el fondo. */
+.torneos-heroe .btn-primary {
+  background: #fff;
+  color: #1e5175;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.25);
+}
+.torneos-heroe .btn-primary:hover {
+  background: #e1f0f4;
+}
+.torneos-heroe .btn-secondary {
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.25);
+}
+.torneos-heroe .btn-secondary:hover {
+  border-color: #fff;
+  color: #fff;
+}
+@media (max-width: 560px) {
+  .torneos-heroe {
+    padding: 28px 18px;
+  }
 }
 
 /* ── Crear torneo: el wizard por pasos (calcado de TrainerArena, sin
@@ -1513,13 +1573,17 @@
      no reconozca las cartas. */
   display: none;
 }
-/* Dos formas, porque son dos cosas distintas (tanda 231):
+/* Dos formas, porque son dos cosas distintas (tanda 231, recorte en la
+   235):
 
    · El MINISPRITE del Pokémon: cuadrado, sin fondo y sin bordes, como
      en Limitless. Es lo que sale casi siempre.
-   · La MINIATURA DE LA CARTA: solo para lo que no es un Pokémon (un
-     objeto, «Martillos»). Va con proporción de carta y su recuadro,
-     para que se lea como lo que es y no como un sprite raro. */
+   · Para lo que no es un Pokémon (un objeto, «Martillos»), el RECORTE
+     de la ilustración de su carta: la carta entera a este tamaño no se
+     leía («sale la carta en pequeñito»), y su dibujo en un cuadrado
+     pesa a la vista lo mismo que un sprite. El marco recorta y la
+     imagen, más grande que él, se coloca con la ilustración centrada
+     (en una carta moderna vive entre el 11% y el 46% de la altura). */
 .torneo-arquetipo-icono.es-sprite {
   width: 32px;
   height: 32px;
@@ -1528,19 +1592,33 @@
      los junta sin que parezcan separados por un hueco. */
   margin: -4px -3px;
 }
-.torneo-arquetipo-icono.es-carta {
-  width: 26px;
-  height: 36px;
-  object-fit: cover;
-  object-position: top center;
+.torneo-arquetipo-marco {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  overflow: hidden;
   border-radius: var(--radius-sm);
   background: var(--bg);
+  flex: none;
+}
+.torneo-arquetipo-marco .torneo-arquetipo-icono.es-carta {
+  position: absolute;
+  width: 205%;
+  height: auto;
+  left: -52%;
+  top: -30%;
 }
 /* Al organizador y a los jueces se les señala lo que el catálogo aún no
    conoce: es la lista de arquetipos que falta por añadir. */
-.torneo-arquetipo-sin-catalogar .torneo-arquetipo-icono {
+.torneo-arquetipo-sin-catalogar .torneo-arquetipo-icono,
+.torneo-arquetipo-sin-catalogar .torneo-arquetipo-marco {
   outline: 1px dashed var(--warning);
   outline-offset: 1px;
+}
+/* El recuadro ya lo pone el marco: repetirlo en la imagen de dentro
+   pintaría una raya cortada por el recorte. */
+.torneo-arquetipo-sin-catalogar .torneo-arquetipo-marco .torneo-arquetipo-icono {
+  outline: none;
 }
 .torneo-arquetipo-sin-catalogar .torneo-arquetipo-nombre {
   font-style: italic;
@@ -1550,6 +1628,6 @@
   /* En móvil las tablas ya van justas: los iconos encogen antes que
      obligar a arrastrar de lado. */
   .torneo-arquetipo-icono.es-sprite { width: 26px; height: 26px; }
-  .torneo-arquetipo-icono.es-carta { width: 20px; height: 28px; }
+  .torneo-arquetipo-marco { width: 22px; height: 22px; }
   .torneo-arquetipo-nombre { max-width: 9ch; }
 }
