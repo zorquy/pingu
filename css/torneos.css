@@ -312,30 +312,80 @@
   .torneo-banner { height: 120px; }
 }
 
-/* ── El calendario anual (tanda 242) ──
-   Doce meses en rejilla, la semana empezando en lunes y los días con
-   torneo en navy (pulsables). Debajo, los torneos del día elegido. */
+/* ── El calendario (tandas 242-243) ──
+   Doce meses seguidos desde el actual, la semana empezando en lunes y
+   los días con torneo en navy (pulsables). Debajo, los torneos del día
+   elegido. Las flechas pasan de mes con un deslizamiento en la
+   dirección del viaje, y las tarjetas de mes entran escalonadas. */
 .torneo-vista-conmutador { margin-bottom: 14px; }
 .torneo-cal-cabecera {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 14px;
+  flex-wrap: wrap;
 }
-.torneo-cal-cabecera strong { font-size: 18px; }
+.torneo-cal-rango { font-size: 17px; text-transform: capitalize; }
 .torneo-cal-meses {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
   gap: 12px;
 }
+/* La entrada del pintado: recta la primera vez, y deslizando desde el
+   lado del viaje al usar las flechas. */
+@keyframes torneo-cal-aparece {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes torneo-cal-desde-der {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes torneo-cal-desde-izq {
+  from { opacity: 0; transform: translateX(-28px); }
+  to { opacity: 1; transform: none; }
+}
+.torneo-cal-meses.cal-entra .torneo-cal-mes { animation: torneo-cal-aparece 0.3s var(--ease, ease) both; }
+.torneo-cal-meses.cal-entra-der .torneo-cal-mes { animation: torneo-cal-desde-der 0.28s var(--ease, ease) both; }
+.torneo-cal-meses.cal-entra-izq .torneo-cal-mes { animation: torneo-cal-desde-izq 0.28s var(--ease, ease) both; }
+/* Escalonadas: cada mes espera 22 ms más que el anterior (--i lo pone
+   torneos.js). */
+.torneo-cal-meses .torneo-cal-mes { animation-delay: calc(var(--i, 0) * 22ms); }
 .torneo-cal-mes {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 10px 12px;
+  transition: border-color 0.18s var(--ease, ease), box-shadow 0.18s var(--ease, ease), transform 0.18s var(--ease, ease);
 }
-.torneo-cal-mes h5 { margin: 0 0 8px; text-transform: capitalize; font-size: 14px; }
+.torneo-cal-mes:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+/* El mes en el que estamos, señalado. */
+.torneo-cal-mes.actual { border-color: var(--navy); box-shadow: var(--shadow-ring); }
+.torneo-cal-mes h5 {
+  margin: 0 0 8px;
+  text-transform: capitalize;
+  font-size: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.torneo-cal-anio { color: var(--text-dim); font-weight: 600; font-size: 12px; }
+.torneo-cal-chapa-hoy {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--navy);
+  background: var(--ice);
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+}
 .torneo-cal-dias {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -355,6 +405,7 @@
   font: inherit;
   font-size: 12px;
   padding: 0;
+  transition: background 0.15s var(--ease, ease), transform 0.15s var(--ease, ease), box-shadow 0.15s var(--ease, ease);
 }
 .torneo-cal-dia.hoy { box-shadow: inset 0 0 0 1px var(--border-strong); }
 button.torneo-cal-dia.con-torneo {
@@ -363,8 +414,22 @@ button.torneo-cal-dia.con-torneo {
   font-weight: 700;
   cursor: pointer;
 }
-button.torneo-cal-dia.con-torneo:hover { background: var(--navy-light); }
+button.torneo-cal-dia.con-torneo:hover {
+  background: var(--navy-light);
+  transform: scale(1.18);
+}
+button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--navy); }
+/* El panel del día entra con el mismo gesto que los meses. */
+.torneo-cal-dia-panel { animation: torneo-cal-aparece 0.25s var(--ease, ease) both; }
 .torneo-cal-dia-titulo { margin: 16px 0 8px; }
+/* Quien pidió menos movimiento, lo tiene: todo aparece en el sitio. */
+@media (prefers-reduced-motion: reduce) {
+  .torneo-cal-meses .torneo-cal-mes,
+  .torneo-cal-dia-panel { animation: none; }
+  .torneo-cal-mes,
+  .torneo-cal-dia { transition: none; }
+  button.torneo-cal-dia.con-torneo:hover { transform: none; }
+}
 .torneo-cal-torneo {
   display: flex;
   align-items: center;

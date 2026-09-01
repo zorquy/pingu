@@ -196,7 +196,10 @@ async function cargarLista(session, perfil = null) {
 // cuentan también sus jornadas, que son días de juego de verdad.
 let torneosCargados = []
 let vistaTorneos = localStorage.getItem('pokedoc-torneos-vista') === 'calendario' ? 'calendario' : 'lista'
-let anioCalendario = new Date().getFullYear()
+// La ventana del calendario EMPIEZA en el mes actual (tanda 243): lo
+// que importa es lo que viene, y lo pasado se alcanza con la flecha.
+const hoyCal = new Date()
+let inicioCalendario = { anio: hoyCal.getFullYear(), mes: hoyCal.getMonth() }
 
 function claveDeDia(fecha) {
   const d = new Date(fecha)
@@ -219,25 +222,34 @@ function torneosPorDia() {
   return porDia
 }
 
-function pintarCalendario() {
+// `direccion` dice de dónde viene el cambio (−1 atrás, 1 adelante, 0
+// primer pintado) y decide hacia dónde desliza la animación de entrada.
+function pintarCalendario(direccion = 0) {
   const caja = $('torneosCalendario')
   if (!caja || vistaTorneos !== 'calendario') return
   const porDia = torneosPorDia()
   const hoy = claveDeDia(new Date())
+  const mesDeHoy = `${hoyCal.getFullYear()}-${hoyCal.getMonth()}`
 
+  // Doce meses SEGUIDOS desde la ventana actual: el primero es el mes
+  // en el que estamos (o donde hayan llevado las flechas), y la ventana
+  // cruza el cambio de año sin cortarse.
   const meses = []
-  for (let mes = 0; mes < 12; mes++) {
-    const nombreMes = new Date(anioCalendario, mes, 1).toLocaleString('es-ES', { month: 'long' })
-    const diasEnMes = new Date(anioCalendario, mes + 1, 0).getDate()
+  for (let i = 0; i < 12; i++) {
+    const primero = new Date(inicioCalendario.anio, inicioCalendario.mes + i, 1)
+    const anio = primero.getFullYear()
+    const mes = primero.getMonth()
+    const nombreMes = primero.toLocaleString('es-ES', { month: 'long' })
+    const diasEnMes = new Date(anio, mes + 1, 0).getDate()
     // La semana empieza en lunes, como los calendarios de aquí.
-    const hueco = (new Date(anioCalendario, mes, 1).getDay() + 6) % 7
+    const hueco = (primero.getDay() + 6) % 7
     const celdas = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
       .map((d) => `<span class="torneo-cal-diasemana">${d}</span>`)
       .join('')
       .concat('<span></span>'.repeat(hueco))
     let dias = ''
     for (let dia = 1; dia <= diasEnMes; dia++) {
-      const clave = `${anioCalendario}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
+      const clave = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
       const deEsteDia = porDia.get(clave)
       const esHoy = clave === hoy ? ' hoy' : ''
       dias += deEsteDia
@@ -245,24 +257,40 @@ function pintarCalendario() {
             title="${escapeHtml(deEsteDia.map((t) => t.name).join(' · '))}">${dia}</button>`
         : `<span class="torneo-cal-dia${esHoy}">${dia}</span>`
     }
-    meses.push(`<div class="torneo-cal-mes"><h5>${escapeHtml(nombreMes)}</h5><div class="torneo-cal-dias">${celdas}${dias}</div></div>`)
+    const esMesActual = `${anio}-${mes}` === mesDeHoy
+    // El --i escalona la entrada de las tarjetas (25 ms por mes).
+    meses.push(`<div class="torneo-cal-mes ${esMesActual ? 'actual' : ''}" style="--i:${i}">
+      <h5>${escapeHtml(nombreMes)} <span class="torneo-cal-anio">${anio}</span>${esMesActual ? '<span class="torneo-cal-chapa-hoy">hoy</span>' : ''}</h5>
+      <div class="torneo-cal-dias">${celdas}${dias}</div></div>`)
   }
 
+  const fin = new Date(inicioCalendario.anio, inicioCalendario.mes + 11, 1)
+  const rango = `${new Date(inicioCalendario.anio, inicioCalendario.mes, 1).toLocaleString('es-ES', { month: 'long' })} ${inicioCalendario.anio} — ${fin.toLocaleString('es-ES', { month: 'long' })} ${fin.getFullYear()}`
+  const enHoy = inicioCalendario.anio === hoyCal.getFullYear() && inicioCalendario.mes === hoyCal.getMonth()
+  const claseEntrada = direccion > 0 ? 'cal-entra-der' : direccion < 0 ? 'cal-entra-izq' : 'cal-entra'
   caja.innerHTML = `
     <div class="torneo-cal-cabecera">
-      <button type="button" class="btn-secondary" data-cal-anio="-1" aria-label="Año anterior">←</button>
-      <strong>${anioCalendario}</strong>
-      <button type="button" class="btn-secondary" data-cal-anio="1" aria-label="Año siguiente">→</button>
+      <button type="button" class="btn-secondary" data-cal-mes="-1" aria-label="Mes anterior">←</button>
+      <strong class="torneo-cal-rango">${escapeHtml(rango)}</strong>
+      <button type="button" class="btn-secondary ${enHoy ? 'hidden' : ''}" data-cal-hoy>Hoy</button>
+      <button type="button" class="btn-secondary" data-cal-mes="1" aria-label="Mes siguiente">→</button>
     </div>
-    <div class="torneo-cal-meses">${meses.join('')}</div>
+    <div class="torneo-cal-meses ${claseEntrada}">${meses.join('')}</div>
     <div id="torneoCalDia"></div>`
 
-  caja.querySelectorAll('[data-cal-anio]').forEach((b) =>
+  caja.querySelectorAll('[data-cal-mes]').forEach((b) =>
     b.addEventListener('click', () => {
-      anioCalendario += Number(b.dataset.calAnio)
-      pintarCalendario()
+      const paso = Number(b.dataset.calMes)
+      const d = new Date(inicioCalendario.anio, inicioCalendario.mes + paso, 1)
+      inicioCalendario = { anio: d.getFullYear(), mes: d.getMonth() }
+      pintarCalendario(paso)
     })
   )
+  caja.querySelector('[data-cal-hoy]')?.addEventListener('click', () => {
+    const atras = inicioCalendario.anio * 12 + inicioCalendario.mes > hoyCal.getFullYear() * 12 + hoyCal.getMonth()
+    inicioCalendario = { anio: hoyCal.getFullYear(), mes: hoyCal.getMonth() }
+    pintarCalendario(atras ? -1 : 1)
+  })
   caja.querySelectorAll('[data-cal-dia]').forEach((b) =>
     b.addEventListener('click', () => {
       const clave = b.dataset.calDia
@@ -272,7 +300,11 @@ function pintarCalendario() {
       // hora fantasma en el título).
       const [a, m, d] = clave.split('-').map(Number)
       const titulo = new Date(a, m - 1, d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+      // El día elegido se marca en la rejilla y el panel entra animado.
+      caja.querySelectorAll('.torneo-cal-dia.elegido').forEach((x) => x.classList.remove('elegido'))
+      b.classList.add('elegido')
       $('torneoCalDia').innerHTML = `
+        <div class="torneo-cal-dia-panel">
         <h4 class="torneo-cal-dia-titulo">${escapeHtml(titulo[0].toUpperCase() + titulo.slice(1))}</h4>
         ${lista
           .map(
@@ -288,7 +320,8 @@ function pintarCalendario() {
             <span class="torneo-estado ${(ESTADOS[t.status] || ESTADOS.draft).clase}">${(ESTADOS[t.status] || ESTADOS.draft).texto}</span>
           </a>`
           )
-          .join('')}`
+          .join('')}
+        </div>`
       $('torneoCalDia').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     })
   )

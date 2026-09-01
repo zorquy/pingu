@@ -12,6 +12,25 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 243 — el calendario, profesional)
+**Hecho**: pulido del calendario pedido por Ibai. La ventana EMPIEZA
+en el mes actual (12 meses seguidos, cruzando el cambio de año) con el
+mes de hoy señalado (borde navy + chapa «hoy»); las flechas pasan de
+mes a mes con deslizamiento en la dirección del viaje y las tarjetas
+entran escalonadas (--i, 22 ms por mes); botón «Hoy» que solo sale
+fuera del mes actual; el día pulsado queda anillado y su panel entra
+animado; hovers con elevación en meses y escala en días; y todo
+respeta prefers-reduced-motion. La cabecera dice el rango
+(«septiembre 2026 — agosto 2027»).
+**Ficheros**: js/torneos/torneos.js, css/torneos.css, SCHEMA.md. Fuera
+del repo: pruebas/verificar-tanda-243.mjs (NUEVO).
+**En curso / pendiente**: verificado con Edge (17/17, captura en
+pruebas/capturas). PINGU: el DOM del calendario cambia — [data-cal-mes]
+y [data-cal-hoy] sustituyen a [data-cal-anio], y la cabecera es
+.torneo-cal-rango (verificar-tanda-242 tiene dos checks obsoletos de
+eso). SQL pendientes de Ibai: los de la 242 menos torneos-listas si ya
+re-ejecutó la versión buena.
+
 ## 2026-09-01 — IBAI-Claude (tanda 242b — arreglo de la migración de listas)
 **Hecho**: a Ibai le falló `supabase-migration-torneos-listas.sql`: su
 CREATE POLICY usa torneos_soy_admin/juez, que nacen en

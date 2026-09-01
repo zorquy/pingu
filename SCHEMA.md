@@ -12112,3 +12112,36 @@ del Mundial (ancho completo, 180 de alto), escondido donde no lo hay,
 campo en wizard y editor con vista previa, calendario con 12 meses y 6
 días marcados, el 30 de agosto enseña el Mundial al pulsarlo, la vista
 sobrevive a recargar y las flechas cambian de año.
+
+## Tanda 243 — el calendario, profesional (sept. 2026)
+
+Pulido del calendario de la 242, pedido por Ibai: «que el primer mes
+sea el actual, hacia delante lo de delante y hacia atrás los meses
+anteriores», con animaciones y transiciones.
+
+- **La ventana empieza HOY**: 12 meses seguidos desde el mes actual
+  (`inicioCalendario`), cruzando el cambio de año sin cortarse; cada
+  mes lleva su año al lado y el actual va señalado (borde navy +
+  chapa «hoy»). La cabecera dice el rango entero.
+- **Las flechas van de mes en mes** y la rejilla entra DESLIZANDO en
+  la dirección del viaje (`cal-entra-der` / `cal-entra-izq`; el primer
+  pintado, `cal-entra` recto), con las tarjetas escalonadas — cada mes
+  espera 22 ms más que el anterior vía `--i` en línea y
+  `animation-delay: calc(var(--i) * 22ms)`.
+- **Botón «Hoy»** que solo aparece fuera del mes actual y vuelve
+  deslizando hacia el lado que toca.
+- **Microinteracciones**: los meses se elevan al pasar el ratón, los
+  días con torneo escalan (1.18), el día pulsado queda anillado
+  (`elegido`) y el panel del día entra animado.
+- Todo bajo `prefers-reduced-motion: reduce` se queda quieto: la
+  animación es cortesía, no requisito.
+
+### Comprobado
+
+`pruebas/verificar-tanda-243.mjs` con Edge: 17/17 — septiembre 2026
+primero con su chapa, rango en la cabecera, «Hoy» oculto en el
+presente y visible al moverse, → a octubre deslizando desde la
+derecha, ← hasta agosto desde la izquierda con el Mundial marcado y
+su panel animado, y «Hoy» de vuelta a septiembre. OJO:
+verificar-tanda-242 tiene dos comprobaciones obsoletas (las flechas de
+año ya no existen).
