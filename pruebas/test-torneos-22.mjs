@@ -146,6 +146,63 @@ console.log('\n── 5. La deducción, para lo que el catálogo no conoce ─�
     deducirIconos(conMotor)[0]?.nombre === 'Charizard ex',
     JSON.stringify(deducirIconos(conMotor).map((i) => i.nombre)))
 
+  // ── El segundo icono, que es el que se equivoca (tanda 232) ──
+  // Con la lista de verdad de PINGU salía «Dragapult ex Meowth ex»:
+  // Meowth ex era UNA copia, una carta de tecnología.
+  const conTecnologia = {
+    pokemon: [
+      { quantity: 3, name: 'Dragapult ex', set: 'TWM', number: '130' },
+      { quantity: 1, name: 'Meowth ex', set: 'POR', number: '62' },
+    ],
+    trainer: [],
+  }
+  check('una sola copia no da nombre al mazo',
+    deducirIconos(conTecnologia).length === 1,
+    JSON.stringify(deducirIconos(conTecnologia).map((i) => i.nombre)))
+
+  // Y quitando esa salía «Dragapult ex Drakloak», que es peor: la
+  // evolución intermedia del mismo Pokémon.
+  const conLinea = {
+    pokemon: [
+      { quantity: 3, name: 'Dragapult ex', set: 'TWM', number: '130' },
+      { quantity: 4, name: 'Drakloak', set: 'TWM', number: '129' },
+    ],
+    trainer: [],
+  }
+  check('ni la evolución intermedia del mismo Pokémon',
+    deducirIconos(conLinea).length === 1,
+    JSON.stringify(deducirIconos(conLinea).map((i) => i.nombre)))
+
+  // Ese caso lo tapan DOS cosas a la vez: Drakloak está además en la
+  // lista de nombres penalizados. Para que la regla de la Pokédex —que
+  // es la que aguanta los Pokémon que nadie ha apuntado a mano— tenga
+  // que trabajar, hace falta una preevolución que NO esté en esa lista.
+  // Gimmighoul (999) está justo debajo de Gholdengo (1000).
+  const lineaSinApuntar = {
+    pokemon: [
+      { quantity: 3, name: 'Gholdengo ex', set: 'PAR', number: '139' },
+      { quantity: 4, name: 'Gimmighoul', set: 'PAR', number: '87' },
+    ],
+    trainer: [],
+  }
+  check('la Pokédex descarta preevoluciones que nadie apuntó',
+    deducirIconos(lineaSinApuntar).length === 1,
+    JSON.stringify(deducirIconos(lineaSinApuntar).map((i) => i.nombre)))
+
+  // Pero un SEGUNDO Pokémon de verdad sí entra: es la diferencia entre
+  // «Dragapult» y «Dragapult Dusknoir».
+  const dosDeVerdad = {
+    pokemon: [
+      { quantity: 3, name: 'Dragapult ex', set: 'TWM', number: '130' },
+      { quantity: 4, name: 'Dreepy', set: 'TWM', number: '128' },
+      { quantity: 2, name: 'Dusknoir', set: 'SFA', number: '20' },
+    ],
+    trainer: [],
+  }
+  check('un segundo Pokémon de verdad sí',
+    deducirIconos(dosDeVerdad).map((i) => i.nombre).join(' ') === 'Dragapult ex Dusknoir',
+    JSON.stringify(deducirIconos(dosDeVerdad).map((i) => i.nombre)))
+
   // Dos líneas con la MISMA puntuación: sin desempate estable, el orden
   // lo decidiría el del export y dos refrescos pintarían distinto.
   const empatadas = {

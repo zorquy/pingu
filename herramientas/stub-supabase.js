@@ -35,6 +35,8 @@ const T = {
   user_notifications: [],
   tcg_cards: [],
   tcg_archetypes: [],
+  tcg_sets: [],
+  tcg_cards: [],
   match_log: [],
   site_settings: [],
   push_subscriptions: [],
@@ -224,6 +226,16 @@ sembrar('__FAKE_LECTURAS__', 'forum_thread_reads', (i) => ({
 // El catálogo curado de arquetipos (tanda 230). Sin sembrar nada, la
 // tabla sale vacía y los mazos se deducen solos — que es exactamente lo
 // que pasa en producción hasta que un admin la llene.
+// El catálogo de cartas y sus sets (tanda 232): hacen falta para probar
+// que un código de TCG Live resuelve a una carta con imagen.
+sembrar('__FAKE_SETS__', 'tcg_sets', (i) => ({
+  id: `set-${i}`, name: `Set ${i}`, market: 'WEST',
+}))
+sembrar('__FAKE_CARTAS__', 'tcg_cards', (i) => ({
+  id: `carta-${i}`, set_id: 'set-0', market: 'WEST', local_id: String(i), name: `Carta ${i}`, image_path: `x/y/${i}`,
+}))
+sembrar('__FAKE_AJUSTES__', 'site_settings', (i) => ({ key: `clave-${i}`, value: {} }))
+
 sembrar('__FAKE_PARTIDAS__', 'match_log', (i) => ({
   id: `mlog-${i + 1}`,
   user_id: 'user-1',
