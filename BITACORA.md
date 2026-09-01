@@ -12,6 +12,33 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — PINGU-Claude (tanda 249 — los correos, de verdad)
+**Hecho**: PINGU pidió mirar todos los correos y que los enlaces
+llevaran a cada cosa. Había un fallo gordo: `absoluteUrl()` solo
+aceptaba rutas, el barredor encola URLs enteras (las necesita así para
+el push), y el `?:` se caía a `base` — LOS OCHO TIPOS DE AVISO DE
+TORNEO llevaban a la portada de pokedoc.es. Arreglado aceptando también
+URLs absolutas, pero SOLO del propio dominio; y si el enlace no vale, el
+correo sale sin botón en vez de con uno a la portada. Plantilla rehecha:
+verbo y motivo por tipo (adiós al «Verlo en PokeDoc» y al «alguien se ha
+dirigido a ti» para los diecisiete), preheader, maquetación con tablas
+para que Outlook no la estire, colores declarados para el modo oscuro,
+cabecera con la marca y pie con enlace a preferencias. Y los avisos de
+torneo dicen ya los datos: la apertura, cuándo se juega y con qué
+formato; el recordatorio, la hora exacta.
+**Ficheros**: netlify/lib/email.mjs, netlify/lib/fechas.mjs (NUEVO),
+netlify/functions/torneos-barredor.mjs, SCHEMA.md. Fuera del repo:
+test-correos.mjs (NUEVA), rigor-tanda-249.py (NUEVO),
+correos/vista.mjs (NUEVO: pinta los correos a PNG para poder mirarlos).
+**En curso / pendiente**: verificado — 50 comprobaciones en verde y las
+14 mutaciones pilladas; test-tanda-247, test-tanda-248, test-foro-2 y
+test-torneos-20 siguen verdes. Cero migraciones. NO se ha tocado nada de
+la apertura de la sección: PINGU dijo expresamente que todavía no.
+SIN HACER, dicho y ofrecido: un panel en /admin para ver los correos
+que fallan (hoy `email_outbox.status='failed'` no lo mira nadie), y
+comprobar que las variables de correo de Netlify están puestas — eso no
+se ve desde aquí.
+
 ## 2026-09-01 — PINGU-Claude (tanda 248 — «En juego» solo si se juega)
 **Hecho**: PINGU vio su Copa Inaugural marcada como «En juego» días
 antes. No era la base —el torneo está en `registration_closed` y nada

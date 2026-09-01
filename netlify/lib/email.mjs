@@ -29,10 +29,10 @@ export function sanitizeHeader(texto, maxLargo = 200) {
   return limpio.replace(/\s+/g, ' ').trim().slice(0, maxLargo)
 }
 
-// El enlace que se guarda en la cola es una ruta del propio sitio. Se
-// comprueba que lo siga siendo antes de convertirla en una URL absoluta:
-// sin esto, un `//evil.example` o un `javascript:` acabarían en un correo
-// firmado con tu dominio, que es phishing con tu propia reputación.
+// El enlace que se guarda en la cola es del propio sitio. Se comprueba
+// que lo siga siendo antes de convertirlo en URL: sin esto, un
+// `//evil.example` o un `javascript:` acabarían en un correo firmado con
+// tu dominio, que es phishing con tu propia reputación.
 export function safePath(link) {
   const s = String(link ?? '')
   if (!s.startsWith('/')) return null
@@ -42,46 +42,215 @@ export function safePath(link) {
   return s
 }
 
+// El enlace del correo, ya absoluto — o null si no se puede usar.
+//
+// ── El fallo que arregla (tanda 249) ──
+//
+// Aquí solo se aceptaban RUTAS («/tema/12»), y quien encola los avisos de
+// torneo —el barredor— guarda URLs ENTERAS, porque la misma cadena le
+// sirve para el push, que las necesita así. safePath decía que no, y el
+// `?:` de debajo se caía a `base`: TODOS los correos de torneo llevaban
+// a la portada de pokedoc.es. Ocho tipos de aviso, meses, y el correo
+// parecía correcto — el botón estaba, solo que iba a otro sitio.
+//
+// Ahora se aceptan las dos formas, y una URL absoluta SOLO si es de
+// nuestro propio dominio: una de fuera es exactamente lo que safePath
+// existe para frenar.
+//
+// Y cuando el enlace no vale, se devuelve null y el correo sale SIN
+// botón. Mandar a la portada era peor que no mandar a ningún sitio: se
+// leía como si funcionara.
 export function absoluteUrl(siteUrl, path) {
   const base = String(siteUrl || '').replace(/\/+$/, '')
-  const ruta = safePath(path)
-  return ruta ? `${base}${ruta}` : base || null
+  const s = String(path ?? '').trim()
+  if (!s) return null
+
+  const ruta = safePath(s)
+  if (ruta) return base ? `${base}${ruta}` : null
+
+  // ¿Una URL absoluta nuestra?
+  if (!base) return null
+  try {
+    const suya = new URL(s)
+    if (suya.protocol !== 'http:' && suya.protocol !== 'https:') return null
+    if (suya.origin !== new URL(base).origin) return null
+    return suya.href
+  } catch {
+    return null
+  }
 }
 
-const PIE = 'Recibes este correo porque alguien se ha dirigido a ti en PokeDoc.'
+// ────────────────────────────────────────────────────────────
+// Qué dice cada tipo de correo
+// ────────────────────────────────────────────────────────────
+//
+// Hasta la tanda 249 todos los correos acababan igual: un botón que
+// ponía «Verlo en PokeDoc» y un pie que decía «alguien se ha dirigido a
+// ti». En un aviso de que empieza tu ronda no se ha dirigido a ti nadie,
+// y «verlo» no dice qué vas a ver.
+//
+// Cada tipo trae ahora su verbo y su motivo. El motivo importa más de lo
+// que parece: un correo que explica POR QUÉ te ha llegado se denuncia
+// como spam mucho menos que uno que no lo explica.
+//
+// Las claves son las mismas de EMAIL_TYPES (js/notifications.js) y de
+// baja-correo.mjs. Un tipo que falte aquí no rompe nada — cae al
+// genérico de abajo — pero sale más soso de lo que podría.
+export const TEXTOS_POR_TIPO = {
+  private_message: { cta: 'Leer el mensaje', pie: 'Recibes este correo porque alguien te ha escrito por privado en PokeDoc.' },
+  comment_reply: { cta: 'Ver la respuesta', pie: 'Recibes este correo porque han respondido a un comentario tuyo.' },
+  forum_reply: { cta: 'Leer el tema', pie: 'Recibes este correo porque sigues este tema del foro.' },
+  forum_mention: { cta: 'Ver la mención', pie: 'Recibes este correo porque te han mencionado en el foro.' },
+  new_follower: { cta: 'Ver su perfil', pie: 'Recibes este correo porque alguien ha empezado a seguirte.' },
+  guide_submitted: { cta: 'Revisar la guía', pie: 'Recibes este correo porque eres del equipo de PokeDoc.' },
+  guide_approved: { cta: 'Ver tu guía publicada', pie: 'Recibes este correo porque escribiste esta guía.' },
+  guide_rejected: { cta: 'Ver qué hay que cambiar', pie: 'Recibes este correo porque escribiste esta guía.' },
 
-export function renderEmail({ subject, preview, link, siteUrl, unsubscribeUrl, cta = 'Verlo en PokeDoc' }) {
+  // Torneos. El verbo cambia bastante entre unos y otros y eso es la
+  // gracia: «ir a tu mesa» cuando estás jugando no es lo mismo que «ver
+  // el torneo» cuando aún falta.
+  torneo_apertura: { cta: 'Ver el torneo', pie: 'Recibes este correo porque avisamos de los torneos nuevos de PokeDoc.' },
+  torneo_recordatorio: { cta: 'Ir al torneo', pie: 'Recibes este correo porque estás inscrito en este torneo.' },
+  torneo_cancelado: { cta: 'Ver los torneos', pie: 'Recibes este correo porque estabas inscrito en este torneo.' },
+  torneo_plaza: { cta: 'Confirmar tu plaza', pie: 'Recibes este correo porque estabas en la lista de espera de este torneo.' },
+  torneo_ronda: { cta: 'Ir a tu mesa', pie: 'Recibes este correo porque estás jugando este torneo.' },
+  torneo_partida: { cta: 'Ir a tu mesa', pie: 'Recibes este correo porque estás jugando este torneo.' },
+  torneo_final: { cta: 'Ver la clasificación', pie: 'Recibes este correo porque has jugado este torneo.' },
+  torneo_juez: { cta: 'Atender la llamada', pie: 'Recibes este correo porque eres juez u organizador de este torneo.' },
+}
+
+const CTA_GENERICO = 'Verlo en PokeDoc'
+const PIE_GENERICO = 'Recibes este correo porque alguien se ha dirigido a ti en PokeDoc.'
+
+export function textosDeTipo(tipo) {
+  const t = TEXTOS_POR_TIPO[tipo] || {}
+  return { cta: t.cta || CTA_GENERICO, pie: t.pie || PIE_GENERICO }
+}
+
+// ────────────────────────────────────────────────────────────
+// La plantilla
+// ────────────────────────────────────────────────────────────
+//
+// Tres cosas que no son capricho y que la versión anterior no tenía:
+//
+//  · TABLAS, no divs. El Outlook de Windows pinta con el motor de Word,
+//    que se salta `max-width`: la tarjeta de 520 px salía a pantalla
+//    completa y el correo se leía como un documento, no como un aviso.
+//  · PREHEADER. La línea que la bandeja enseña al lado del asunto. Sin
+//    él, Gmail la rellenaba con lo primero del cuerpo — que era la
+//    palabra «PokeDoc» — y se desperdiciaba el único trozo de texto que
+//    decide si alguien abre el correo o no.
+//  · Colores declarados en TODO. Los clientes en modo oscuro invierten lo
+//    que no tiene fondo puesto, y una cabecera navy con el texto también
+//    invertido se queda ilegible.
+//
+// Sin imágenes, y no por ahorrar: los clientes de correo las bloquean por
+// defecto, así que un logotipo en <img> es un hueco roto en la mitad de
+// las bandejas. La marca se pinta con texto y color.
+const FUENTE = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+
+function cabeceraHtml() {
+  return `<tr>
+        <td style="background:#1e5175;padding:18px 28px;border-radius:12px 12px 0 0;">
+          <span style="font-family:${FUENTE};font-size:18px;font-weight:700;color:#ffffff;letter-spacing:-0.2px;">Poke</span><span style="font-family:${FUENTE};font-size:18px;font-weight:700;color:#8fc4e0;letter-spacing:-0.2px;">Doc</span>
+        </td>
+      </tr>`
+}
+
+function pieHtml(pie, unsubscribeUrl, siteUrl) {
+  const ajustes = absoluteUrl(siteUrl, '/perfil.html')
+  return `<tr>
+        <td style="padding:0 28px 26px;">
+          <div style="border-top:1px solid #e5e7eb;padding-top:16px;font-family:${FUENTE};font-size:12px;line-height:1.6;color:#6b7280;">
+            ${escapeHtml(pie)}<br />
+            ${ajustes ? `<a href="${escapeHtml(ajustes)}" style="color:#6b7280;text-decoration:underline;">Elegir qué avisos quieres</a>` : ''}${ajustes && unsubscribeUrl ? ' · ' : ''}${unsubscribeUrl ? `<a href="${escapeHtml(unsubscribeUrl)}" style="color:#6b7280;text-decoration:underline;">Dejar de recibir estos</a>` : ''}
+          </div>
+        </td>
+      </tr>`
+}
+
+// El preheader va oculto y seguido de espacios invisibles: sin ellos, el
+// cliente sigue rellenando con lo que venga detrás hasta completar su
+// línea, y se cuela el principio del cuerpo.
+function preheaderHtml(texto) {
+  if (!texto) return ''
+  return `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;color:transparent;height:0;width:0;">${escapeHtml(texto)}${'&#8199;&#65279;&#847; '.repeat(30)}</div>`
+}
+
+function envoltorio({ preheader, contenido }) {
+  return `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<meta name="supported-color-schemes" content="light" />
+<title>PokeDoc</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f6f8;">
+${preheaderHtml(preheader)}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f6f8;">
+  <tr>
+    <td align="center" style="padding:24px 12px;">
+      <table role="presentation" width="520" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:520px;background-color:#ffffff;border-radius:12px;">
+${contenido}
+      </table>
+    </td>
+  </tr>
+</table>
+</body></html>`
+}
+
+// UN aviso: de qué va, qué se ha dicho, y un botón para ir a ello.
+//
+// `tipo` es lo que elige el verbo del botón y el motivo del pie. `cta`
+// permite forzar el verbo desde fuera (lo usa el resumen semanal).
+export function renderEmail({ subject, preview, link, siteUrl, unsubscribeUrl, tipo = null, cta = null }) {
   const asunto = sanitizeHeader(subject)
   const url = absoluteUrl(siteUrl, link)
-  const bajaTexto = unsubscribeUrl ? `\n\nPara dejar de recibir estos correos: ${unsubscribeUrl}` : ''
+  const { cta: verbo, pie } = textosDeTipo(tipo)
+  const boton = cta || verbo
+  const cita = preview ? String(preview).replace(/\s+/g, ' ').trim() : ''
 
+  const bajaTexto = unsubscribeUrl ? `\n\nPara dejar de recibir estos correos: ${unsubscribeUrl}` : ''
   const text =
     `${asunto}\n\n` +
-    (preview ? `«${String(preview).replace(/\s+/g, ' ').trim()}»\n\n` : '') +
-    (url ? `${cta}: ${url}\n\n` : '') +
-    PIE +
+    (cita ? `«${cita}»\n\n` : '') +
+    (url ? `${boton}: ${url}\n\n` : '') +
+    pie +
     bajaTexto
 
-  // Estilos en línea y sin imágenes externas: los clientes de correo no
-  // aplican hojas de estilo y bloquean imágenes remotas por defecto, así
-  // que una plantilla "bonita" con CSS externo se ve rota en la mitad de
-  // las bandejas.
-  const html = `<!doctype html>
-<html lang="es"><body style="margin:0;padding:24px;background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1f2937;">
-  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px;">
-    <p style="margin:0 0 4px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#1e5175;font-weight:600;">PokeDoc</p>
-    <h1 style="margin:0 0 16px;font-size:19px;line-height:1.35;color:#111827;">${escapeHtml(asunto)}</h1>
-    ${preview ? `<blockquote style="margin:0 0 20px;padding:12px 16px;background:#f4f6f8;border-left:3px solid #1e5175;border-radius:4px;font-size:15px;line-height:1.5;color:#374151;">${escapeHtml(preview)}</blockquote>` : ''}
-    ${url ? `<p style="margin:0 0 24px;"><a href="${escapeHtml(url)}" style="display:inline-block;background:#1e5175;color:#ffffff;text-decoration:none;padding:11px 20px;border-radius:8px;font-weight:600;font-size:15px;">${escapeHtml(cta)}</a></p>` : ''}
-    <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 16px;" />
-    <p style="margin:0;font-size:12px;line-height:1.5;color:#6b7280;">
-      ${escapeHtml(PIE)}
-      ${unsubscribeUrl ? `<br /><a href="${escapeHtml(unsubscribeUrl)}" style="color:#6b7280;">Dejar de recibir estos avisos por correo</a>` : ''}
-    </p>
-  </div>
-</body></html>`
+  const contenido = `${cabeceraHtml()}
+      <tr>
+        <td style="padding:26px 28px 0;">
+          <h1 style="margin:0 0 14px;font-family:${FUENTE};font-size:20px;line-height:1.35;font-weight:700;color:#111827;">${escapeHtml(asunto)}</h1>
+        </td>
+      </tr>
+      ${
+        cita
+          ? `<tr>
+        <td style="padding:0 28px 20px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f6f8;border-radius:8px;">
+            <tr><td style="padding:14px 16px;border-left:3px solid #1e5175;border-radius:8px;font-family:${FUENTE};font-size:15px;line-height:1.55;color:#374151;">${escapeHtml(cita)}</td></tr>
+          </table>
+        </td>
+      </tr>`
+          : ''
+      }
+      ${
+        url
+          ? `<tr>
+        <td style="padding:0 28px 24px;">
+          <a href="${escapeHtml(url)}" style="display:inline-block;background-color:#1e5175;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-family:${FUENTE};font-weight:600;font-size:15px;">${escapeHtml(boton)}</a>
+        </td>
+      </tr>`
+          : ''
+      }
+      ${pieHtml(pie, unsubscribeUrl, siteUrl)}`
 
-  return { subject: asunto, html, text }
+  // El preheader es la cita si la hay; si no, el verbo del botón, que al
+  // menos dice qué se puede hacer.
+  return { subject: asunto, html: envoltorio({ preheader: cita || boton, contenido }), text }
 }
 
 // ────────────────────────────────────────────────────────────
@@ -114,34 +283,48 @@ export function renderResumenSemanal({ temas = [], guia = null, siteUrl, unsubsc
     `${asunto}\n\n` +
     filas.map((f) => `· ${f.titulo} (${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana)\n  ${f.url}`).join('\n') +
     (filaGuia ? `\n· Guía nueva: ${filaGuia.titulo}\n  ${filaGuia.url}` : '') +
-    `\n\nVer el foro: ${urlForo}\n\n` +
+    (urlForo ? `\n\nVer el foro: ${urlForo}\n\n` : '\n\n') +
     pie +
     bajaTexto
 
+  // Cada tema, su enlace y cuánto se ha movido. Sin la cita genérica de
+  // un aviso: esto es una lista, y metida en un blockquote salía como un
+  // bloque de texto sin saltos ni enlaces.
   const filaHtml = (url, titulo, detalle) => `
-    <p style="margin:0 0 14px;">
-      <a href="${escapeHtml(url)}" style="color:#1e5175;font-weight:700;font-size:15px;line-height:1.4;text-decoration:none;">${escapeHtml(titulo)}</a><br />
-      <span style="font-size:13px;color:#6b7280;">${escapeHtml(detalle)}</span>
-    </p>`
+            <tr>
+              <td style="padding:0 0 14px;font-family:${FUENTE};">
+                ${url ? `<a href="${escapeHtml(url)}" style="color:#1e5175;font-weight:700;font-size:15px;line-height:1.45;text-decoration:none;">${escapeHtml(titulo)}</a>` : `<span style="color:#111827;font-weight:700;font-size:15px;">${escapeHtml(titulo)}</span>`}<br />
+                <span style="font-size:13px;color:#6b7280;">${escapeHtml(detalle)}</span>
+              </td>
+            </tr>`
 
-  const html = `<!doctype html>
-<html lang="es"><body style="margin:0;padding:24px;background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1f2937;">
-  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px;">
-    <p style="margin:0 0 4px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#1e5175;font-weight:600;">PokeDoc</p>
-    <h1 style="margin:0 0 6px;font-size:19px;line-height:1.35;color:#111827;">${escapeHtml(asunto)}</h1>
-    <p style="margin:0 0 20px;font-size:13.5px;color:#6b7280;">Lo que más se ha movido en el foro estos días.</p>
-    ${filas.map((f) => filaHtml(f.url, f.titulo, `${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana`)).join('')}
-    ${filaGuia ? filaHtml(filaGuia.url, filaGuia.titulo, 'Guía nueva de esta semana') : ''}
-    <p style="margin:10px 0 24px;"><a href="${escapeHtml(urlForo)}" style="display:inline-block;background:#1e5175;color:#ffffff;text-decoration:none;padding:11px 20px;border-radius:8px;font-weight:600;font-size:15px;">Ver el foro</a></p>
-    <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 16px;" />
-    <p style="margin:0;font-size:12px;line-height:1.5;color:#6b7280;">
-      ${escapeHtml(pie)}
-      ${unsubscribeUrl ? `<br /><a href="${escapeHtml(unsubscribeUrl)}" style="color:#6b7280;">Dejar de recibir estos avisos por correo</a>` : ''}
-    </p>
-  </div>
-</body></html>`
+  const contenido = `${cabeceraHtml()}
+      <tr>
+        <td style="padding:26px 28px 0;">
+          <h1 style="margin:0 0 4px;font-family:${FUENTE};font-size:20px;line-height:1.35;font-weight:700;color:#111827;">${escapeHtml(asunto)}</h1>
+          <p style="margin:0 0 20px;font-family:${FUENTE};font-size:13.5px;line-height:1.5;color:#6b7280;">Lo que más se ha movido en el foro estos días.</p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            ${filas.map((f) => filaHtml(f.url, f.titulo, `${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana`)).join('')}
+            ${filaGuia ? filaHtml(filaGuia.url, filaGuia.titulo, 'Guía nueva de esta semana') : ''}
+          </table>
+        </td>
+      </tr>
+      ${
+        urlForo
+          ? `<tr>
+        <td style="padding:10px 28px 24px;">
+          <a href="${escapeHtml(urlForo)}" style="display:inline-block;background-color:#1e5175;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-family:${FUENTE};font-weight:600;font-size:15px;">Ver el foro</a>
+        </td>
+      </tr>`
+          : ''
+      }
+      ${pieHtml(pie, unsubscribeUrl, siteUrl)}`
 
-  return { subject: asunto, html, text }
+  const preheader = filas.length
+    ? `${filas[0].titulo}${filas.length > 1 ? ` y ${filas.length - 1} más` : ''}`
+    : 'El resumen de la semana en el foro.'
+
+  return { subject: asunto, html: envoltorio({ preheader, contenido }), text }
 }
 
 // Cada fila de la cola con su pintura. El resumen semanal guarda en
@@ -158,7 +341,7 @@ export function renderFilaDeCola(fila, { siteUrl, unsubscribeUrl }) {
       }
     } catch {}
   }
-  return renderEmail({ subject: fila.subject, preview: fila.preview, link: fila.link, siteUrl, unsubscribeUrl })
+  return renderEmail({ subject: fila.subject, preview: fila.preview, link: fila.link, siteUrl, unsubscribeUrl, tipo: fila.type })
 }
 
 // ────────────────────────────────────────────────────────────

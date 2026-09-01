@@ -12287,3 +12287,70 @@ cómo se agrupan al pintarlos.
 
 Comprobado con `test-tanda-248.mjs` (18/18) y `rigor-tanda-248.py`
 (9 mutaciones, todas pilladas).
+
+## Tanda 249 — los correos: enlaces que llevan a su sitio (sept. 2026)
+
+PINGU: «los enlaces no deberían llevar a pokedoc genérico sino al enlace
+de cada cosa, y cúrrate más los correos».
+
+### El fallo: todos los correos de torneo iban a la portada
+
+`absoluteUrl()` solo aceptaba RUTAS (`/tema/12`). El barredor —que es
+quien encola los avisos de torneo— guarda URLs ENTERAS, porque la misma
+cadena le sirve para el push, que las necesita así. `safePath()` decía
+que no, y el `?:` de debajo se caía a `base`: **los ocho tipos de aviso
+de torneo llevaban a `https://pokedoc.es` y nada más**. El botón estaba,
+el correo parecía correcto, solo que iba a otro sitio.
+
+Ahora se aceptan las dos formas, y una URL absoluta **solo si es de
+nuestro dominio** — una de fuera es exactamente lo que `safePath` existe
+para frenar (phishing firmado con tu propia reputación). Y cuando el
+enlace no vale se devuelve `null` y el correo sale **sin botón**: mandar
+a la portada era peor que no mandar a ningún sitio, porque se leía como
+si funcionara.
+
+### La plantilla, rehecha
+
+- **Un verbo por tipo** (`TEXTOS_POR_TIPO`): «Ir a tu mesa», «Leer el
+  tema», «Ver la clasificación»… en vez de «Verlo en PokeDoc» para los
+  diecisiete.
+- **Un motivo por tipo**: el pie decía siempre «alguien se ha dirigido a
+  ti», y en un «empieza tu ronda» no se ha dirigido a ti nadie. Un correo
+  que explica por qué te llega se denuncia como spam mucho menos.
+- **Preheader**: la línea que la bandeja enseña junto al asunto. Sin él,
+  Gmail la rellenaba con lo primero del cuerpo — la palabra «PokeDoc».
+- **Tablas, no divs**: el Outlook de Windows pinta con el motor de Word,
+  que se salta `max-width`; la tarjeta de 520 px salía a pantalla
+  completa.
+- **Colores declarados en todo**, para que el modo oscuro de los clientes
+  no invierta la cabecera navy hasta dejarla ilegible.
+- Cabecera con la marca y pie con enlace a las preferencias. Sin
+  imágenes: los clientes las bloquean, así que un logotipo en `<img>` es
+  un hueco roto en media bandeja.
+
+### Los avisos de torneo dicen los datos
+
+- `torneo_apertura` no decía **cuándo** se jugaba. Ahora: «Se juega el
+  viernes 4 de septiembre a las 19:00 · 3 rondas suizas BO1 · 16 plazas».
+- `torneo_recordatorio` decía «en menos de una hora», que deja de ser
+  verdad en cuanto el correo se lee veinte minutos tarde. Ahora dice la
+  hora exacta.
+
+### `netlify/lib/fechas.mjs` (NUEVO)
+
+Fechas en español y en hora de España sin depender de que el runtime
+traiga ICU completo: la **zona horaria** se le pide a `Intl` (eso lo trae
+cualquier compilación) y los **nombres** los ponemos nosotros. Con
+`toLocaleString('es-ES')` a secas, un Node con ICU pequeño habría escrito
+«Friday, September 4» en un correo en español sin avisar.
+
+Dos trampas resueltas: `new Date(null)` **no** es una fecha inválida (es
+el 1 de enero de 1970, y un torneo sin fecha se anunciaba para 1970), y
+el ciclo h24 de `Intl` escribe la medianoche como «24».
+
+Comprobado con `test-correos.mjs` (50/50, sin navegador ni red) y
+`rigor-tanda-249.py` (14 mutaciones, todas pilladas). Incluye una prueba
+que compara las TRES listas de tipos —la UI del perfil, la de la baja de
+un clic y la de textos— porque si una se queda atrás no se nota hasta que
+alguien se da de baja: un tipo que `baja-correo` no reconoce apaga TODOS
+los correos de esa persona.

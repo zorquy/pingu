@@ -1,4 +1,5 @@
 import webpush from 'web-push'
+import { fechaLargaEs, horaEs } from '../lib/fechas.mjs'
 
 // El barredor de torneos: pasa cada minuto por las rondas activas y hace
 // lo que en TrainerArena hacían los jobs de BullMQ (decisión de
@@ -216,7 +217,8 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   if (mandar) {
     try {
       const recienAbiertos = await rest(
-        `tournaments?status=eq.registration_open&registration_notified_at=is.null&select=id,slug,name`,
+        `tournaments?status=eq.registration_open&registration_notified_at=is.null` +
+          `&select=id,slug,name,start_at,swiss_rounds,swiss_bo,top_cut_size,max_players`,
         clave
       )
       for (const t of recienAbiertos || []) {
@@ -227,23 +229,38 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
             `push_subscriptions?user_id=in.(${ids.join(',')})&select=endpoint,user_id,p256dh,auth`,
             clave
           )
+          const cuando = fechaLargaEs(t.start_at)
+          const enlaceApertura = new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href
+          // Un anuncio que no dice CUÁNDO se juega no sirve: lo abres y
+          // sigues sin saber si es mañana o dentro de un mes. Va la
+          // fecha, el formato y las plazas, que es lo que decide si te
+          // apuntas (tanda 249).
+          const corte = t.top_cut_size ? ` + top ${t.top_cut_size}` : ''
+          const ficha = [
+            cuando ? `Se juega el ${cuando}` : null,
+            `${t.swiss_rounds} rondas suizas BO${t.swiss_bo}${corte}`,
+            t.max_players ? `${t.max_players} plazas` : 'plazas sin límite',
+          ]
+            .filter(Boolean)
+            .join(' · ')
+          const cortoApertura = cuando ? `Se juega el ${cuando}. Apúntate y deja lista tu decklist.` : 'Apúntate antes de que se llene y deja lista tu decklist.'
           await avisar(subs, {
             title: `Inscripciones abiertas — ${t.name}`,
-            body: 'Apúntate antes de que se llene y deja lista tu decklist.',
-            link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
+            body: cortoApertura,
+            link: enlaceApertura,
             tag: 'torneo-apertura',
           })
           campanas += await campanita(ids, {
             tipo: 'torneo_apertura',
             title: `Inscripciones abiertas — ${t.name}`,
-            body: 'Apúntate antes de que se llene y deja lista tu decklist.',
-            link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
+            body: cortoApertura,
+            link: enlaceApertura,
           })
           correos += await encolarCorreo(ids, {
             tipo: 'torneo_apertura',
             subject: `Inscripciones abiertas — ${t.name}`,
-            preview: 'Apúntate antes de que se llene y deja lista tu decklist.',
-            link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
+            preview: `${ficha}. Apúntate y deja lista tu decklist antes de que empiece.`,
+            link: enlaceApertura,
             thread: `torneo-apertura-${t.id}`,
           })
         }
@@ -331,14 +348,18 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       )
       const ids = (inscritos || []).map((i) => i.user_id)
       if (ids.length) {
+        // La hora EXACTA y no solo «en menos de una hora»: el correo
+        // puede leerse veinte minutos después de salir, y entonces «en
+        // menos de una hora» ya no quiere decir nada (tanda 249).
+        const aLas = horaEs(t.start_at)
         await avisarPorTodo(ids, {
           title: `Empieza pronto — ${t.name}`,
-          body: 'Tu torneo empieza en menos de una hora. Ten TCG Live a mano.',
+          body: aLas ? `Empieza a las ${aLas}. Ten TCG Live a mano.` : 'Tu torneo empieza en menos de una hora. Ten TCG Live a mano.',
           tag: 'torneo-recordatorio',
           link: new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href,
           tipo: 'torneo_recordatorio',
-          subject: `«${t.name}» empieza en menos de una hora`,
-          preview: 'Ten TCG Live abierto y tu decklist lista. Entra a la ficha cuando empiece para ver tu mesa.',
+          subject: aLas ? `«${t.name}» empieza a las ${aLas}` : `«${t.name}» empieza en menos de una hora`,
+          preview: `${aLas ? `Empieza a las ${aLas}. ` : ''}Ten TCG Live abierto y tu decklist lista. Entra a la ficha cuando empiece para ver tu mesa.`,
           thread: `torneo-recordatorio-${t.id}`,
         })
       }
