@@ -92,7 +92,7 @@ function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
 }
 
 // La lista por PESTAÑAS (petición de los admins): Tus torneos, Abiertas,
-// En juego, Terminados y — como aquí todos somos organizadores mientras
+// Por empezar, En juego, Terminados y — como aquí todos somos organizadores mientras
 // dure la prueba — Borradores. Las vacías ni aparecen. El «Mis torneos»
 // del menú de cuenta llega con #mios para abrir directamente la tuya.
 let pestanaLista = window.location.hash === '#mios' ? 'mios' : null
@@ -188,9 +188,13 @@ async function cargarLista(session, perfil = null) {
       )
     )
   const abiertas = torneos.filter((t) => t.status === 'registration_open').map((t) => tarjeta(t))
-  const enJuego = torneos
-    .filter((t) => ['registration_closed', 'in_progress'].includes(t.status))
-    .map((t) => tarjeta(t))
+  // «Por empezar» y «En juego» son cosas DISTINTAS, y hasta la tanda 248
+  // iban en el mismo montón: un torneo con las inscripciones cerradas
+  // salía bajo la pestaña «En juego» días antes de jugarse, mientras su
+  // propia chapa decía «Inscripciones cerradas». La misma pantalla se
+  // contradecía. En juego es lo que tiene la R1 arrancada, y nada más.
+  const porEmpezar = torneos.filter((t) => t.status === 'registration_closed').map((t) => tarjeta(t))
+  const enJuego = torneos.filter((t) => t.status === 'in_progress').map((t) => tarjeta(t))
   const acabados = torneos.filter((t) => ['finished', 'cancelled'].includes(t.status))
   const terminados = (verTodosLosTerminados ? acabados : acabados.slice(0, TERMINADOS_DE_GOLPE)).map((t) => tarjeta(t))
   const ocultos = acabados.length - terminados.length
@@ -199,6 +203,7 @@ async function cargarLista(session, perfil = null) {
   pintarGrupos([
     { id: 'mios', texto: 'Tus torneos', filas: mios },
     { id: 'abiertas', texto: 'Abiertas', filas: abiertas },
+    { id: 'porempezar', texto: 'Por empezar', filas: porEmpezar },
     { id: 'enjuego', texto: 'En juego', filas: enJuego },
     {
       id: 'terminados',

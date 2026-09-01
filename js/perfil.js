@@ -168,8 +168,11 @@ async function cargarMisTorneosUnaVez() {
   for (const t of torneos || []) {
     const inscrito = estadoInscripcion.get(t.id)
     if (t.status === 'finished') jugados.push(t)
-    else if (['registration_closed', 'in_progress'].includes(t.status) && inscrito !== 'dropped') jugando.push(t)
-    else if (t.status === 'registration_open' && inscrito !== 'dropped') apuntado.push(t)
+    // «Jugando ahora» es solo lo que se está jugando de verdad (tanda
+    // 248). Un torneo con las inscripciones cerradas todavía no ha
+    // empezado: sigues APUNTADO a él, aunque ya no se pueda entrar.
+    else if (t.status === 'in_progress' && inscrito !== 'dropped') jugando.push(t)
+    else if (['registration_open', 'registration_closed'].includes(t.status) && inscrito !== 'dropped') apuntado.push(t)
     // Cancelados y bajas: fuera. Un torneo que no se jugó no es
     // historial de nadie.
   }

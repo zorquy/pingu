@@ -12260,3 +12260,30 @@ nadie.
   paralelas, una sola vez por carga.
 
 Comprobado con `test-tanda-247.mjs` (31/31) y `rigor-tanda-247.py`.
+
+## Tanda 248 — «En juego» quiere decir que se está jugando (sept. 2026)
+
+PINGU, con la Copa Inaugural ya creada: «pone en juego y no debería
+ponerse en juego hasta que llegue la hora del torneo».
+
+No era la base. El torneo estaba en `registration_closed` y ningún
+proceso lo mueve solo — el barredor por minuto no toca nunca el estado
+del torneo, y lo único que lo pasa a `in_progress` es el botón
+«Iniciar ronda 1» de la ficha. Lo que fallaba era la PANTALLA: dos
+sitios metían `registration_closed` en el mismo saco que `in_progress`.
+
+- **`js/torneos/torneos.js`**: la pestaña «En juego» se llevaba las
+  cerradas. Ahora hay una pestaña **«Por empezar»** entre «Abiertas» y
+  «En juego», y «En juego» es solo `in_progress`. Lo llamativo del
+  fallo es que la chapa de la propia tarjeta SÍ decía la verdad
+  («Inscripciones cerradas», de `ESTADOS` en comun.js) debajo de una
+  pestaña que decía lo contrario: la misma pantalla contradiciéndose.
+- **`js/perfil.js`**: «Mis torneos» ponía las cerradas en «Jugando
+  ahora» con chapa «En juego». Pasan a «Apuntado», que es lo que eres
+  hasta que empiece.
+
+Cero migraciones: los estados de `tournaments.status` no cambian, solo
+cómo se agrupan al pintarlos.
+
+Comprobado con `test-tanda-248.mjs` (18/18) y `rigor-tanda-248.py`
+(9 mutaciones, todas pilladas).

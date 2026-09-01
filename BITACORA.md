@@ -12,6 +12,25 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — PINGU-Claude (tanda 248 — «En juego» solo si se juega)
+**Hecho**: PINGU vio su Copa Inaugural marcada como «En juego» días
+antes. No era la base —el torneo está en `registration_closed` y nada
+lo mueve solo: el barredor no toca el estado y solo «Iniciar ronda 1»
+pasa a `in_progress`— sino la pantalla, que metía las cerradas en el
+mismo saco que las que se están jugando. En /torneos hay ahora una
+pestaña «Por empezar» entre «Abiertas» y «En juego», y «En juego» es
+solo `in_progress`; en el perfil, un torneo con las inscripciones
+cerradas pasa de «Jugando ahora» a «Apuntado». La chapa de la tarjeta
+ya decía la verdad («Inscripciones cerradas») debajo de una pestaña que
+decía lo contrario.
+**Ficheros**: js/torneos/torneos.js, js/perfil.js, SCHEMA.md. Fuera del
+repo: test-tanda-248.mjs (NUEVA), rigor-tanda-248.py (NUEVO).
+**En curso / pendiente**: verificado — 18 comprobaciones en verde y las
+9 mutaciones del rigor pilladas; test-tanda-247, test-torneos-18 y
+test-torneos-20 siguen verdes. Cero migraciones. SIN HACER, porque no
+se ha pedido: que «Iniciar ronda 1» avise si se pulsa mucho antes de la
+hora del torneo (PINGU lo insinuó; se le ha ofrecido).
+
 ## 2026-09-01 — PINGU-Claude (tanda 247 — borrar temas y el anuncio en su foro)
 **Hecho**: dos cosas que pidió PINGU. (1) BORRAR UN TEMA del foro: no
 faltaba nada en la base —la política `forum_threads_delete` lo permite
