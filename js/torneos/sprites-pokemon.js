@@ -351,7 +351,28 @@ export function urlDeSprite(dex) {
   return slug ? `${CDN_SPRITES}/${slug}.png` : null
 }
 
-// El atajo: nombre de carta → URL del sprite, o null si no es un Pokémon.
+// ── Objetos con sprite propio ──
+//
+// trainingcourt hace exactamente esto: su ÚNICO sprite local es el
+// martillo (assets/sprites/crushing-hammer.png en su repo), y todo lo
+// demás va a la CDN de Limitless. El nuestro es SU mismo fichero,
+// servido desde nuestros assets — un objeto que da nombre a un mazo se
+// merece icono, no la carta en pequeñito. Si otra temporada trae otro
+// objeto-nombre-de-mazo, se añade su línea (y su png) y ya.
+//
+// El alias en español, por lo mismo que en FORMAS_TCG: el export de
+// TCG Live llega en el idioma del jugador.
+const SPRITES_OBJETOS = new Map([
+  ['crushinghammer', '/assets/sprites/crushing-hammer.png'],
+  ['martillodemoledor', '/assets/sprites/crushing-hammer.png'],
+])
+
+export function spriteDeObjeto(nombreDeCarta) {
+  return SPRITES_OBJETOS.get(aplastar(nombreDeCarta)) ?? null
+}
+
+// El atajo: nombre de carta → URL del sprite, o null si no es ni un
+// Pokémon ni un objeto con sprite propio.
 export function spriteDeCarta(nombreDeCarta) {
-  return urlDeSprite(dexDeCarta(nombreDeCarta))
+  return urlDeSprite(dexDeCarta(nombreDeCarta)) || spriteDeObjeto(nombreDeCarta)
 }

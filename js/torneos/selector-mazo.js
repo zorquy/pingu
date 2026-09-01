@@ -20,7 +20,7 @@
 //      tanda 234 eso no se podía elegir: PINGU lo vio enseguida, porque
 //      en trainingcourt escribes «hamm» y sale Crushing Hammer.
 //      Estas tardan lo que tarde la consulta y se añaden después.
-import { POKEMON_POR_DEX, POKEMON_APLASTADOS, FORMAS_TCG, urlDeSprite, dexDeCarta } from './sprites-pokemon.js'
+import { POKEMON_POR_DEX, POKEMON_APLASTADOS, FORMAS_TCG, urlDeSprite, dexDeCarta, spriteDeObjeto } from './sprites-pokemon.js'
 import { searchCards, cardImageUrl } from '../tcgdex.js'
 
 // El escapado va aquí y NO se importa de app.js a propósito: app.js toca
@@ -144,12 +144,15 @@ export async function buscarCartas(texto, limite = 10) {
     // La misma carta está impresa en varios sets: una vez basta.
     if (vistos.has(clave)) continue
     vistos.add(clave)
+    // Un objeto con sprite propio (el martillo) sale como sprite, no
+    // como recorte de carta: mismo trato que le da trainingcourt.
+    const deObjeto = spriteDeObjeto(c.name)
     salida.push({
       tipo: 'carta',
       valor: `d:${clave}`,
       nombre: c.name,
-      sprite: cardImageUrl(c.image_path, 'low'),
-      esCarta: true,
+      sprite: deObjeto || cardImageUrl(c.image_path, 'low'),
+      esCarta: !deObjeto,
     })
     if (salida.length >= limite) break
   }

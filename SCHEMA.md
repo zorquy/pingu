@@ -11748,9 +11748,30 @@ lo que hace ahora `sprites-pokemon.js`:
   `image-rendering: pixelated` SOLO en sprites — las fotos de carta
   recortadas siguen suavizadas.
 
-trainingcourt tiene además UN sprite local para Crushing Hammer; aquí
-los objetos siguen con el recorte de ilustración de la 235, que cubre
-cualquier carta sin mantener assets.
+Y el MARTILLO: trainingcourt tiene un único sprite local
+(`assets/sprites/crushing-hammer.png`) para el mazo que se nombra por
+un objeto, y a Ibai el recorte de carta de la 235 no le valía («sigue
+saliendo la carta en vez del sprite»). Ahora tenemos ese MISMO fichero
+en `assets/sprites/` y `SPRITES_OBJETOS` en sprites-pokemon.js lo
+sirve por nombre (con «Martillo Demoledor» de alias en español):
+`spriteDeCarta()` lo devuelve como un sprite más, así que chapas y
+buscador lo pintan igual que a un Pokémon, sin tocar nada. Los demás
+objetos siguen con el recorte de ilustración de la 235, que cubre
+cualquier carta sin mantener assets; si otra temporada trae otro
+objeto-nombre-de-mazo, una línea y su png.
+
+### La demo local del Mundial (fuera del repo)
+
+Para VER el torneo terminado sin ejecutar nada en la base real:
+`Desktop/Pokedoc/pruebas/stub/mundo-mundial.mjs` (GENERADO, mismas 8
+listas y cruces que el seed SQL pero sobre el doble de Supabase),
+fundido en la semilla de `/_demo` y con su ruta en servidor.mjs.
+`pruebas/verificar-tanda-236.mjs` lo comprueba con Edge de verdad: la
+ficha, la clasificación con las chapas (30 sprites, 0 rotos, todos de
+Limitless o assets propios), /mis-partidas con el 2-1 de admin y el
+martillo con sprite — 15/15 en verde, capturas en `capturas/`. OJO:
+la carpeta pruebas local NO es un checkout git; estos tres ficheros
+hay que portarlos a la rama `pruebas` a mano.
 
 ### Los torneos apuntados a mano (migración partidas-torneos)
 

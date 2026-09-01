@@ -12,6 +12,28 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — IBAI-Claude (tanda 236b — el sprite del martillo y el Mundial de la demo)
+**Hecho**: dos remates de Ibai sobre la 236. (1) Crushing Hammer ya no
+sale como carta recortada: `assets/sprites/crushing-hammer.png` (el
+MISMO asset local que usa trainingcourt) + `SPRITES_OBJETOS` en
+sprites-pokemon.js (con alias «Martillo Demoledor»); spriteDeCarta()
+lo devuelve como sprite y chapas + buscador lo pintan solos. (2) El
+Mundial terminado se puede VER EN LOCAL sin tocar la base:
+`pruebas/stub/mundo-mundial.mjs` (generado: mismas 8 listas y cruces
+que supabase-seed-torneo-demo.sql, sobre el doble), fundido en /_demo
+con su botón, y `pruebas/verificar-tanda-236.mjs` lo verifica con Edge
+— 15/15: clasificación con 30 chapas-sprite (0 rotas), /mis-partidas
+con el 2-1 de admin y su arquetipo del catálogo, martillo con sprite.
+**Ficheros**: js/torneos/sprites-pokemon.js, js/torneos/selector-mazo.js,
+assets/sprites/crushing-hammer.png (NUEVO), SCHEMA.md. Fuera del repo
+(carpeta local pruebas/): stub/mundo-mundial.mjs (NUEVO), stub/demo.html,
+servidor.mjs, verificar-tanda-236.mjs (NUEVO).
+**En curso / pendiente**: OJO PINGU — la carpeta pruebas de esta
+máquina NO es checkout git: si quieres el Mundial en la rama
+`pruebas`, hay que portar esos cuatro ficheros a mano. Y si el doble
+stubea imágenes, ahora también /assets/sprites/. Lo demás de la 236
+sigue igual (dos SQL pendientes de ejecutar por Ibai).
+
 ## 2026-09-01 — IBAI-Claude (tanda 236 — sprites de Limitless, torneos apuntados y «Mis torneos»)
 **Hecho**: cuatro peticiones de Ibai sobre la 235. (1) SPRITES: los de
 PokéAPI no le valían; se miró el código de trainingcourt.app y usa la
