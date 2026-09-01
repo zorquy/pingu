@@ -12,6 +12,39 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — PINGU-Claude (tanda 247 — borrar temas y el anuncio en su foro)
+**Hecho**: dos cosas que pidió PINGU. (1) BORRAR UN TEMA del foro: no
+faltaba nada en la base —la política `forum_threads_delete` lo permite
+desde la tanda de títulos— sino el BOTÓN, que nunca se puso. Sale en el
+panel de moderación de la ficha para el equipo y también para el autor
+mientras nadie le haya contestado (misma condición exacta que la
+política, para que el botón no prometa lo que la base va a negar).
+Confirmación en dos toques, y el segundo dice qué se pierde («¿Seguro?
+Se van también 2 respuestas»). El DELETE va con `.select('id')`: un
+borrado que la RLS rechaza NO da error, y sin pedir de vuelta lo
+borrado la página diría «hecho» y te mandaría a un foro donde el tema
+sigue. (2) EL ANUNCIO DEL TORNEO cae ahora en «Juego → Torneos» y no en
+el primer foro por posición («Anuncios»); el desplegable va agrupado
+por secciones y con los subforos detrás de su padre y marcados con «—».
+El foro se busca POR NOMBRE, no por un id escrito en el código: la
+estructura del foro vive en la base y se cambia desde /admin sin
+desplegar. Si ese foro no existe, se cae al primero como hasta ahora.
+**Ficheros**: js/tema.js, js/torneos/torneo.js, js/torneos/anuncio-foro.js
+(NUEVO), css/components.css, supabase-migration-foro-torneos.sql
+(NUEVO), SCHEMA.md. Fuera del repo: pruebas test-tanda-247.mjs (NUEVA),
+rigor-tanda-247.py (NUEVO), stub-supabase.js (el DELETE ahora solo
+devuelve cuerpo si se encadenó .select(), como PostgREST, y hay un
+`__RLS_SIN_BORRAR__` para simular una política que dice que no).
+**En curso / pendiente**: verificado: 32 comprobaciones de Playwright en verde y las 14
+mutaciones del rigor pilladas. test-foro-1, test-foro-2 y
+test-torneos-20 siguen verdes. La migración del foro de
+torneos es OPCIONAL y está guardada: si «Juego → Torneos» ya existe (o
+existe con otro nombre que empiece por «torneo»), no hace nada.
+Validada contra PostgreSQL 16 local en sus dos ramas. Siguen pendientes
+los SQL de la tanda 233 (sets-live y partidas-tipo) y el botón «Traer
+códigos de TCG Live». Borrar temas desde la LISTA del foro (no solo
+desde la ficha) queda sin hacer: no se ha pedido.
+
 ## 2026-09-01 — IBAI-Claude (tanda 246 — Oficial PokeDoc vs comunidad)
 **Hecho**: pedido por Ibai — distinguir los torneos del EQUIPO de los
 de la comunidad, en lista y calendario. Un torneo es «Oficial» si su

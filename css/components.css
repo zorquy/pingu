@@ -4596,12 +4596,51 @@ a.rater-name:hover {
   margin: 0 0 14px;
 }
 
+.tema-moderacion {
+  flex-wrap: wrap;
+}
+
 .tema-moderacion button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 5px 12px;
   font-size: 12.5px;
+}
+
+/* «Borrar tema» no es un botón más del panel: se lleva el hilo entero y
+   sus respuestas. Va apagado y solo se pone rojo al pasar por encima o
+   al pedir confirmación, el mismo criterio que «Borrar torneo» — que
+   avise sin gritar desde el primer momento.
+
+   Se separa del resto SOLO cuando hay resto: al autor, que únicamente ve
+   este botón, un margen automático lo mandaría solo al otro extremo. */
+.tema-moderacion button + .tema-borrar {
+  margin-left: auto;
+}
+.tema-borrar {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.tema-borrar:hover,
+.tema-borrar[data-confirmar='1'] {
+  border-color: #c0392b;
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+}
+:root[data-theme='dark'] .tema-borrar:hover,
+:root[data-theme='dark'] .tema-borrar[data-confirmar='1'] {
+  border-color: #e07d72;
+  color: #e07d72;
+}
+.tema-borrar[disabled] {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* Un mensaje: columna del autor a la izquierda, contenido a la derecha.

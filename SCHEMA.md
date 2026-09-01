@@ -12200,3 +12200,63 @@ cuáles la comunidad, en la lista y en el calendario.
 Comprobado con `pruebas/verificar-tanda-246.mjs` (9/9): la Copa sin
 chapa, los del equipo con ella, leyenda, 3 días navy y 1 hielo, y los
 paneles con y sin chapa.
+
+## Tanda 247 — borrar un tema, y el anuncio del torneo en su sitio (sept. 2026)
+
+Dos cosas que pidió PINGU el mismo día: «no puedo borrar temas del
+foro» y «cuando se crea un tema desde el botón del torneo, debería
+crearse debajo de *Juego → Torneos*».
+
+### Borrar un tema (`js/tema.js`, `css/components.css`)
+
+No faltaba nada en la base: la política `forum_threads_delete` (de
+`supabase-migration-foro-titulos.sql`) deja borrar a `is_staff()` y al
+autor mientras `post_count <= 1`. **Lo que faltaba era el botón** — el
+panel de moderación de la ficha solo tenía «Fijar arriba» y «Cerrar».
+Cero migraciones.
+
+- `puedoBorrarTema()` es la traducción EXACTA de esa política, y eso es
+  deliberado: un botón que sale cuando la base va a decir que no deja a
+  la persona dando clics sin entender por qué no pasa nada.
+- El panel se pinta ahora si `soyStaff || puedoBorrarTema()`. Antes solo
+  para staff, y así el autor —que sí puede borrar su tema recién
+  abierto— se quedaba sin panel y sin botón.
+- Confirmación en DOS TOQUES sobre el propio botón (el patrón de
+  «Borrar torneo», tanda 222), y el segundo dice qué se pierde: «¿Seguro?
+  Se van también 2 respuestas». Un `confirm()` seco no informa de nada.
+- **`.delete().select('id')`, no `.delete()` a secas.** Un DELETE que la
+  RLS rechaza NO da error: Postgres le añade a la sentencia un filtro
+  que no casa con nada y vuelve como si todo hubiera ido bien. Sin
+  pedir de vuelta lo borrado, la página diría «hecho» y te mandaría a
+  un foro donde el tema sigue estando. Comprobar `!data?.length` es lo
+  que convierte ese silencio en un aviso.
+- Todo lo que cuelga del tema se va en cascada desde su fila (mensajes,
+  reacciones, encuesta, marcas de lectura y suscripciones): todas las
+  FK a `forum_threads` son `on delete cascade`.
+
+### El anuncio del torneo (`js/torneos/anuncio-foro.js` NUEVO, `js/torneos/torneo.js`)
+
+El desplegable de «Anunciar en el foro» llegaba con el PRIMER foro por
+`position` marcado — «Anuncios» — y el hilo acababa donde no lo busca
+nadie.
+
+- `foroDeTorneos(foros)` elige por NOMBRE y no por un id escrito en el
+  código: la estructura del foro vive en la base y se abre y se reordena
+  desde `/admin` sin desplegar, así que un id fijo se rompería solo.
+  Cuatro reglas de la más precisa a la más resignada — sección «Juego» +
+  nombre que empieza por «torneo», luego solo el nombre, luego solo la
+  sección, y por último el primero de la lista. **Nunca se queda sin
+  destino**: si ese foro todavía no existe, se comporta como antes.
+- `ordenarForos()` pone cada foro seguido de sus subforos, por secciones.
+  La consulta los devuelve por `position` a secas y un subforo de
+  posición 1 se colaba DELANTE de su padre.
+- `opcionesDeForos()` agrupa en `<optgroup>` por sección y marca los
+  subforos con «— »: en un desplegable no hay sangrado, y hay nombres
+  («General») que sin su sección no significan nada.
+- Las tres funciones viven en su propio módulo, sin DOM ni red, para
+  poder abrirlas en Node: `torneo.js` toca el DOM al cargarse y lo que no
+  se puede abrir no se puede poner a prueba salvo por la página entera.
+- `cargarForos()` (en torneo.js) pide secciones y foros en dos consultas
+  paralelas, una sola vez por carga.
+
+Comprobado con `test-tanda-247.mjs` (31/31) y `rigor-tanda-247.py`.

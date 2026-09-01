@@ -20,6 +20,7 @@ import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces } from './jueces.js'
 import { getAllAchievements, addXP } from '../gamification.js'
 import { urlTema } from '../foro-comun.js'
+import { foroDeTorneos, opcionesDeForos, ordenarForos } from './anuncio-foro.js'
 import { pintarDecklistVisual } from './cartas-decklist.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { sanitizeRichText } from '../richtext-format.js'
@@ -681,20 +682,29 @@ async function pintarAnuncioForo(acciones) {
   }
   if (['finished', 'cancelled'].includes(torneo.status)) return
 
-  if (!forosParaAnuncio) {
-    const { data } = await supabase
-      .from('forum_boards')
-      .select('id, name')
-      .eq('is_hidden', false)
-      .order('position', { ascending: true })
-    forosParaAnuncio = data || []
-  }
+  if (!forosParaAnuncio) forosParaAnuncio = await cargarForos()
   const foros = forosParaAnuncio
   if (!foros.length) return
+
+  const porDefecto = foroDeTorneos(foros)
   zona.innerHTML = `
-    <select id="anuncioForoDestino">${foros.map((f) => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)}</option>`).join('')}</select>
+    <select id="anuncioForoDestino">${opcionesDeForos(foros, porDefecto)}</select>
     <button class="btn-secondary" id="btnAnunciarForo">Anunciar en el foro</button>`
   $('btnAnunciarForo').addEventListener('click', () => anunciarEnForo($('anuncioForoDestino').value, titulo))
+}
+
+// Los foros del desplegable, con la sección a la que pertenece cada uno.
+// Van en dos consultas y no en una con `select` anidado porque el
+// desplegable se arma UNA vez por carga (queda en memoria) y así el
+// listado no depende de cómo PostgREST decida nombrar la relación.
+async function cargarForos() {
+  const [{ data: secciones }, { data: foros }] = await Promise.all([
+    supabase.from('forum_sections').select('id, name, position').order('position', { ascending: true }),
+    supabase.from('forum_boards').select('id, name, section_id, parent_id, position').eq('is_hidden', false).order('position', { ascending: true }),
+  ])
+  const nombreSeccion = new Map((secciones || []).map((s) => [s.id, s.name]))
+  const conSeccion = (foros || []).map((f) => ({ ...f, seccion: nombreSeccion.get(f.section_id) || 'Foro' }))
+  return ordenarForos(conSeccion, secciones)
 }
 
 async function anunciarEnForo(boardId, titulo) {

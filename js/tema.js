@@ -184,7 +184,7 @@ function pintarCabecera(perfilAutor) {
       }
       ${puedoEditarTema() ? `<button type="button" class="tema-seguir" id="btnEditarTema">${icons.edit(13)} Editar título</button>` : ''}
     </p>
-    ${soyStaff ? panelModeracionHtml() : ''}`
+    ${soyStaff || puedoBorrarTema() ? panelModeracionHtml() : ''}`
 
   engancharCompartir(document.getElementById('btnCompartirTema'), { titulo: tema.title })
   if (sesion) engancharSeguir()
@@ -194,6 +194,7 @@ function pintarCabecera(perfilAutor) {
     document.getElementById('btnFijar')?.addEventListener('click', () => moderar({ is_pinned: !tema.is_pinned }))
     document.getElementById('btnCerrar')?.addEventListener('click', () => moderar({ is_locked: !tema.is_locked }))
   }
+  document.getElementById('btnBorrarTema')?.addEventListener('click', borrarTema)
 }
 
 function editarTitulo(perfilAutor) {
@@ -315,12 +316,70 @@ async function pintarQuienLee() {
   } catch {}
 }
 
+// Quién puede borrar el tema ENTERO. Es la traducción exacta de la
+// política de la base (`forum_threads_delete`), y eso es a propósito: si
+// el botón saliera cuando la base va a decir que no, el clic se quedaría
+// en nada y la persona no sabría por qué. Del equipo, cualquiera; el
+// autor, solo mientras nadie le haya contestado — un hilo con respuestas
+// ya no es suyo del todo, es de quien participó.
+function puedoBorrarTema() {
+  if (!sesion || !tema) return false
+  if (soyStaff) return true
+  return tema.author_id === sesion.user.id && (tema.post_count || 0) <= 1
+}
+
 function panelModeracionHtml() {
+  const borrar = puedoBorrarTema()
+    ? `<button type="button" class="tema-borrar" id="btnBorrarTema">${icons.trash(13)} Borrar tema</button>`
+    : ''
+  // El panel también sale para el autor que solo puede borrar: sin esto,
+  // fijar y cerrar (que son del equipo) se llevaban por delante al botón
+  // de borrar, que no lo es.
   return `
     <div class="tema-moderacion">
-      <button type="button" class="btn-secondary" id="btnFijar">${icons.pin(13)} ${tema.is_pinned ? 'Quitar de arriba' : 'Fijar arriba'}</button>
-      <button type="button" class="btn-secondary" id="btnCerrar">${icons.lock(13)} ${tema.is_locked ? 'Reabrir' : 'Cerrar'}</button>
+      ${
+        soyStaff
+          ? `<button type="button" class="btn-secondary" id="btnFijar">${icons.pin(13)} ${tema.is_pinned ? 'Quitar de arriba' : 'Fijar arriba'}</button>
+      <button type="button" class="btn-secondary" id="btnCerrar">${icons.lock(13)} ${tema.is_locked ? 'Reabrir' : 'Cerrar'}</button>`
+          : ''
+      }
+      ${borrar}
     </div>`
+}
+
+// Borrar el tema se lleva por delante TODAS sus respuestas (van en
+// cascada desde la fila del tema, igual que la encuesta, las marcas de
+// lectura y las suscripciones). Por eso va en dos toques como el borrado
+// de un torneo, y el segundo dice cuánto se pierde en vez de un «¿estás
+// seguro?» que no informa de nada.
+async function borrarTema() {
+  const btn = document.getElementById('btnBorrarTema')
+  if (!btn) return
+  const respuestas = Math.max(0, (tema.post_count || 1) - 1)
+
+  if (btn.dataset.confirmar !== '1') {
+    btn.dataset.confirmar = '1'
+    btn.textContent = respuestas
+      ? `¿Seguro? Se van también ${respuestas} respuesta${respuestas === 1 ? '' : 's'}`
+      : '¿Seguro? No hay vuelta atrás'
+    return
+  }
+
+  btn.disabled = true
+  // El `.select()` NO es un adorno: cuando la política de la base dice
+  // que no, un DELETE no da error — no encuentra fila que borrar y vuelve
+  // como si todo hubiera ido bien. Sin pedir de vuelta lo borrado, el
+  // tema seguiría ahí y nosotros diríamos que se ha borrado.
+  const { data, error } = await supabase.from('forum_threads').delete().eq('id', tema.id).select('id')
+
+  if (error || !data?.length) {
+    btn.disabled = false
+    btn.dataset.confirmar = ''
+    btn.innerHTML = `${icons.trash(13)} Borrar tema`
+    showToast(error ? 'No se ha podido borrar: ' + error.message : 'No se ha podido borrar este tema.')
+    return
+  }
+  window.location.href = foro ? urlForo(foro.slug) : '/foro.html'
 }
 
 async function moderar(cambios) {
