@@ -222,3 +222,17 @@
 @media (max-width: 560px) {
   .selector-mazo { flex: 1 1 100%; }
 }
+
+/* Una CARTA en el buscador no tiene la forma de un sprite: va con
+   proporción de carta (5:7) y su recuadro, para que se lea como lo que
+   es. Los mazos que se nombran por un objeto —«Martillos»— salen así
+   (tanda 234). */
+.selector-mazo-opcion img.es-carta,
+.selector-mazo-sprite.es-carta {
+  width: 22px;
+  height: 30px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}

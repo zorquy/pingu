@@ -12,6 +12,30 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — PINGU-Claude (tanda 234 — el buscador encuentra objetos)
+**Hecho**: PINGU lo vio enseguida: «se juega dragapult con martillo, el
+martillo no está en la lista de búsqueda». El buscador de mazos solo
+miraba las especies y el catálogo, así que un mazo que se nombra por un
+OBJETO no se podía elegir. Ahora busca también en el espejo de cartas:
+«hamm» saca Crushing Hammer, «stretch» Night Stretcher, cualquier carta.
+Las que son un Pokémon se quitan de esa vía (ya salen arriba con su
+sprite y si no saldrían repetidas por cada set), y una carta se pinta
+con forma de carta y no de sprite. OJO: el catálogo está en INGLÉS, así
+que se busca «hammer» y no «martillo»; para tenerlo en español se añade
+una vez al catálogo de arquetipos de /admin.
+**Ficheros**: js/torneos/selector-mazo.js, css/partidas.css, SCHEMA.md.
+**En curso / pendiente**: nada nuevo que ejecutar. Siguen pendientes las
+dos migraciones de la 233 (sets-live y partidas-tipo) y el botón «Traer
+códigos de TCG Live».
+**Para quien toque las pruebas**: el doble gana `__FAKE_RETRASO__` para
+poder ir lento. Hay fallos que SOLO existen cuando una respuesta tarda
+—una búsqueda vieja pisando a una nueva— y con un doble instantáneo esa
+rotura no se detecta nunca, así que el arreglo estaba sin probar.
+**Y un recordatorio**: el rigor va SIEMPRE en segundo plano. Esta tanda
+lo corrí en primer plano, se pasó de tiempo, lo mataron a mitad de una
+mutación y dejó el fichero roto. Restaura en un `finally` que no se
+ejecuta si lo matan. Es la segunda vez que me pasa.
+
 ## 2026-09-01 — PINGU-Claude (tanda 233 — los códigos, automáticos)
 **Hecho**: PINGU sobre el panel de la 232: «los códigos deberían ser
 automáticos, no manuales, ¿qué pasará entonces con nuevos sets?».

@@ -11565,3 +11565,58 @@ Las dos migraciones contra PostgreSQL 16, tres pasadas cada una, más el
 check del tipo. `test-tcgdex-codigo.mjs` (11), `test-selector-mazo.mjs`
 (14), `test-sets-live.mjs` (5) y cuatro bloques nuevos en
 `test-partidas-pagina.mjs`. Suite entera (20) en verde.
+
+## Tanda 234 — buscar también lo que no es un Pokémon (sept. 2026)
+
+PINGU, mirando el buscador de mazos: «por ejemplo se juega dragapult con
+martillo, el martillo no está en la lista de búsqueda». Y tenía razón: el
+buscador solo miraba las 1025 especies y el catálogo de arquetipos, así
+que un mazo que se nombra por un OBJETO no se podía elegir.
+
+Ahora busca una tercera cosa: las CARTAS de nuestro espejo. «hamm» saca
+Crushing Hammer, «stretch» Night Stretcher, «ruins» Risky Ruins.
+Cualquier carta con la que se nombre un mazo, no solo el martillo.
+
+Tres decisiones dentro:
+
+- **Va aparte de `buscarOpciones()`**, en `buscarCartas()`, porque esto
+  SÍ va a la base y aquello no. La lista aparece al primer golpe de
+  tecla con los Pokémon y las cartas se cuelan detrás cuando llegan.
+- **Se quitan las cartas que son un Pokémon.** Ya salen arriba con su
+  sprite, que se reconoce mejor que una miniatura, y si no saldrían
+  repetidas una vez por cada set en que se han impreso.
+- **Una carta se pinta con forma de carta** (5:7 y su recuadro), no con
+  la del sprite: no son la misma cosa y no deben parecerlo.
+
+⚠️ **El catálogo está en INGLÉS** (decisión vieja: mezclar idiomas dejaba
+el catálogo partido por 2011), así que se busca «hammer» y no
+«martillo». Para tener «Martillos» en español, se añade una vez al
+catálogo de arquetipos y a partir de ahí sale con su nombre y sus dos
+iconos — que además es lo que hace que agrupe con las partidas de
+torneo.
+
+### La carrera que no se veía
+
+Las cartas van a la base y se escribe más rápido de lo que responde. Sin
+guardia, la respuesta de «hamm» llega DESPUÉS de la de «dragap» y se
+cuela en su lista: buscando Dragapult verías Crushing Hammer. Cada
+búsqueda lleva su número y las viejas se descartan.
+
+**Con el doble esto no pasaba nunca**, porque responde al instante, así
+que la rotura no se detectaba y el arreglo no estaba probado. El doble
+gana `__FAKE_RETRASO__ = { tabla: ms }` para poder ir lento a propósito.
+Hay fallos que solo existen cuando algo tarda; sin poder simular la
+tardanza, no se pueden probar.
+
+### Comprobado
+
+Tres bloques nuevos en `test-partidas-pagina.mjs`, con la MISMA carta
+sembrada en dos sets (como Crushing Hammer en la realidad) para que la
+deduplicación tenga algo que hacer. Rigor de 5 roturas, todas
+detectadas. Suite entera (21) en verde.
+
+⚠️ **Y un aviso para mí mismo**: la primera pasada del rigor se corrió en
+primer plano, se pasó de tiempo, la mataron A MITAD DE UNA MUTACIÓN y
+dejó el fichero sin la deduplicación. Es la segunda vez que pasa. **El
+rigor va SIEMPRE en segundo plano**, porque restaura en un `finally` que
+no llega a ejecutarse si lo matan.

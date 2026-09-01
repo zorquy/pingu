@@ -11,12 +11,17 @@
 // Un mazo son DOS selectores, porque un arquetipo se nombra por una o
 // dos cartas: «Gardevoir» o «Dragapult Dusknoir».
 //
-// Se busca sobre dos cosas:
-//   1. Las 1025 especies, con su sprite. Instantáneo y sin ir a la base
-//      — la tabla ya está cargada.
-//   2. El catálogo de arquetipos, para los que se nombran por un objeto
-//      («Martillos»), que no tienen especie ni sprite.
-import { POKEMON_POR_DEX, POKEMON_APLASTADOS, urlDeSprite } from './sprites-pokemon.js'
+// Se busca sobre tres cosas, y las dos primeras son instantáneas porque
+// no van a la base:
+//   1. Las 1025 especies, con su minisprite.
+//   2. El catálogo de arquetipos curado por los admins.
+//   3. Las CARTAS de nuestro espejo, para lo que no es un Pokémon. Un
+//      mazo se puede llamar por un objeto —«Martillos»— y hasta la
+//      tanda 234 eso no se podía elegir: PINGU lo vio enseguida, porque
+//      en trainingcourt escribes «hamm» y sale Crushing Hammer.
+//      Estas tardan lo que tarde la consulta y se añaden después.
+import { POKEMON_POR_DEX, POKEMON_APLASTADOS, urlDeSprite, dexDeCarta } from './sprites-pokemon.js'
+import { searchCards, cardImageUrl } from '../tcgdex.js'
 
 // El escapado va aquí y NO se importa de app.js a propósito: app.js toca
 // el DOM al cargarse, y con ese import este módulo no se podría abrir en
@@ -83,6 +88,45 @@ export function buscarOpciones(texto, catalogo = [], limite = 40) {
   return opciones.slice(0, limite)
 }
 
+// ── Las cartas que NO son Pokémon ──
+//
+// Van aparte de buscarOpciones() porque esto SÍ va a la base y aquello
+// no: la lista tiene que aparecer al primer golpe de tecla, y las cartas
+// se cuelan detrás cuando llegan.
+//
+// Se quitan las que son un Pokémon: esas ya salen arriba con su sprite,
+// que se reconoce mejor que una miniatura de carta, y si no saldrían
+// repetidas una vez por cada set en el que se han impreso.
+export async function buscarCartas(texto, limite = 10) {
+  const q = String(texto || '').trim()
+  if (q.length < 3) return [] // con menos de tres letras devuelve media base
+  let cartas = []
+  try {
+    ;({ cartas } = await searchCards(q, { limite: 40 }))
+  } catch {
+    return []
+  }
+
+  const vistos = new Set()
+  const salida = []
+  for (const c of cartas) {
+    if (dexDeCarta(c.name)) continue
+    const clave = String(c.name).toLowerCase()
+    // La misma carta está impresa en varios sets: una vez basta.
+    if (vistos.has(clave)) continue
+    vistos.add(clave)
+    salida.push({
+      tipo: 'carta',
+      valor: `d:${clave}`,
+      nombre: c.name,
+      sprite: cardImageUrl(c.image_path, 'low'),
+      esCarta: true,
+    })
+    if (salida.length >= limite) break
+  }
+  return salida
+}
+
 // ── El trozo de pantalla ──
 //
 // No usa <select>: un desplegable nativo no lleva imágenes ni se puede
@@ -123,7 +167,11 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
         (o, i) => `
       <li class="selector-mazo-opcion ${i === resaltado ? 'resaltada' : ''}" role="option"
           aria-selected="${i === resaltado}" data-i="${i}">
-        ${o.sprite ? `<img src="${escapeHtml(o.sprite)}" alt="" loading="lazy" />` : '<span class="selector-mazo-hueco"></span>'}
+        ${
+          o.sprite
+            ? `<img class="${o.esCarta ? 'es-carta' : ''}" src="${escapeHtml(o.sprite)}" alt="" loading="lazy" />`
+            : '<span class="selector-mazo-hueco"></span>'
+        }
         <span>${escapeHtml(o.nombre)}</span>
       </li>`
       )
@@ -137,11 +185,18 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
     elegido = o
     campo.value = o ? o.nombre : ''
     sprite.classList.toggle('hidden', !o?.sprite)
+    sprite.classList.toggle('es-carta', Boolean(o?.esCarta))
     if (o?.sprite) sprite.src = o.sprite
     limpiar.classList.toggle('hidden', !o)
     cerrar()
     alElegir?.(o)
   }
+
+  // Cada búsqueda lleva su número. Las cartas tardan lo que tarde la
+  // base, y sin esto la respuesta de una búsqueda vieja podría llegar
+  // DESPUÉS de otra más nueva y pisarla: escribes «martillo», llega lo
+  // de «mar» y se queda ahí.
+  let busqueda = 0
 
   campo.addEventListener('input', () => {
     // Al escribir se deshace la elección: si no, el campo diría una cosa
@@ -152,9 +207,24 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
       limpiar.classList.add('hidden')
       alElegir?.(null)
     }
-    opciones = buscarOpciones(campo.value, catalogo)
+    const mia = ++busqueda
+    const texto = campo.value
+    opciones = buscarOpciones(texto, catalogo)
     resaltado = 0
     pintarLista()
+
+    // Y detrás, lo que no es un Pokémon. Va después a propósito: la
+    // lista tiene que responder a la primera tecla, y esto va a la base.
+    buscarCartas(texto).then((cartas) => {
+      if (mia !== busqueda || !cartas.length) return
+      // Las que ya estén (un arquetipo catalogado con ese nombre) no se
+      // repiten.
+      const yaEstan = new Set(opciones.map((o) => o.nombre.toLowerCase()))
+      const nuevas = cartas.filter((c) => !yaEstan.has(c.nombre.toLowerCase()))
+      if (!nuevas.length) return
+      opciones = [...opciones, ...nuevas]
+      pintarLista()
+    })
   })
 
   campo.addEventListener('keydown', (e) => {
