@@ -405,6 +405,27 @@ function consulta(tabla, estado = {}) {
       const re = new RegExp('^' + String(patron).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*') + '$', 'i')
       return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => re.test(String(f[col] ?? ''))] })
     },
+    // `like` de PostgREST: como ilike pero distinguiendo mayúsculas. Lo
+    // usa la búsqueda de cartas contra `name_search`, que en la base es
+    // una columna GENERADA (minúsculas y sin tildes). Aquí se calcula al
+    // vuelo si la fila no la trae, que es como se siembran las cartas.
+    like: (col, patron) => {
+      const re = new RegExp('^' + String(patron).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*') + '$')
+      return consulta(tabla, {
+        ...st,
+        filtros: [
+          ...st.filtros,
+          (f) => {
+            const valor =
+              f[col] ??
+              (col === 'name_search'
+                ? String(f.name ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+                : '')
+            return re.test(String(valor))
+          },
+        ],
+      })
+    },
     gt: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] > val] }),
     lt: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] < val] }),
     eq: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => String(f[col]) === String(val)] }),
@@ -438,7 +459,17 @@ function consulta(tabla, estado = {}) {
     upsert: (cuerpo) => consulta(tabla, { ...st, op: 'upsert', cuerpo }),
     update: (cuerpo) => consulta(tabla, { ...st, op: 'update', cuerpo }),
     delete: () => consulta(tabla, { ...st, op: 'delete' }),
-    then: (ok, mal) => Promise.resolve(resolver()).then(ok, mal),
+    // `window.__FAKE_RETRASO__ = { tcg_cards: 400 }` hace que esa tabla
+    // tarde. El doble responde al instante, y hay fallos que SOLO
+    // existen cuando una respuesta llega tarde: una búsqueda vieja
+    // pisando a una nueva, por ejemplo. Sin poder ir lento, esos
+    // arreglos no se pueden probar.
+    then: (ok, mal) => {
+      const ms = (typeof window !== 'undefined' && window.__FAKE_RETRASO__?.[tabla]) || 0
+      const valor = resolver()
+      const p = ms ? new Promise((r) => setTimeout(() => r(valor), ms)) : Promise.resolve(valor)
+      return p.then(ok, mal)
+    },
   }
   return api
 }

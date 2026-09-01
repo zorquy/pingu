@@ -49,7 +49,23 @@ const MESAS = [
   // Un bye NO es un enfrentamiento y no puede contar.
   { id: 'mesa-3', round_id: 'ronda-1', table_number: 3, player_a_id: 'user-1', player_b_id: null, status: 'bye' },
 ]
+const CARTAS = [
+  // La MISMA carta en dos sets, como en la realidad: Crushing Hammer
+  // lleva reimpresa desde hace años. En la lista tiene que salir UNA
+  // vez, o buscar «hamm» devolvería la misma carta seis veces.
+  { id: 'c1', set_id: 'sv01', market: 'WEST', local_id: '168', name: 'Crushing Hammer', image_path: 'sv/sv01/168' },
+  { id: 'c1b', set_id: 'sv02', market: 'WEST', local_id: '71', name: 'Crushing Hammer', image_path: 'sv/sv02/71' },
+  // Un Pokémon COMO CARTA: no puede salir por la vía de cartas, que ya
+  // sale arriba con su sprite y si no saldría repetido por cada set.
+  { id: 'c2', set_id: 'sv01', market: 'WEST', local_id: '130', name: 'Dragapult ex', image_path: 'sv/sv01/130' },
+]
+
 const SEMILLA_TORNEO = {
+  __FAKE_SETS__: [
+    { id: 'sv01', name: 'Scarlet & Violet', market: 'WEST' },
+    { id: 'sv02', name: 'Paldea Evolved', market: 'WEST' },
+  ],
+  __FAKE_CARTAS__: CARTAS,
   __FAKE_TORNEOS__: [TORNEO_FIN],
   __FAKE_RONDAS__: [{ id: 'ronda-1', tournament_id: 'torneo-1', round_number: 1, phase: 'swiss', status: 'finished' }],
   __FAKE_MESAS__: MESAS,
@@ -219,6 +235,82 @@ console.log('\n── 8. Un ID sí cuenta, como empate ──')
   const escrito = await page.evaluate(() => (window.__TABLAS__.match_log || []).at(-1))
   check('se guarda como ID', escrito?.tipo === 'id', String(escrito?.tipo))
   check('y el resultado es empate, sin preguntarlo', escrito?.resultado === 'draw', String(escrito?.resultado))
+  await page.close()
+}
+
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 9. Un mazo que se llama por un OBJETO (tanda 234) ──')
+{
+  // Lo vio PINGU: «se juega dragapult con martillo, el martillo no está
+  // en la lista de búsqueda». Un arquetipo no siempre se nombra por un
+  // Pokémon, y hasta ahora eso no se podía elegir.
+  const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('#btnApuntarPartida')
+  await page.fill('#selMio1 input', 'hamm')
+  await page.waitForTimeout(700)
+  const ops = await page.locator('#selMio1 .selector-mazo-opcion').allInnerTexts()
+  check('encuentra la carta', ops.some((o) => /Crushing Hammer/.test(o)), JSON.stringify(ops))
+  // Y una sola vez, aunque esté impresa en dos sets.
+  check('sin repetirla por cada set',
+    ops.filter((o) => /Crushing Hammer/.test(o)).length === 1, JSON.stringify(ops))
+
+  // Y se pinta como CARTA, no como sprite: no tienen la misma forma.
+  const clases = await page.locator('#selMio1 .selector-mazo-opcion img').evaluateAll((els) => els.map((e) => e.className))
+  check('con forma de carta', clases.some((c) => /es-carta/.test(c)), JSON.stringify(clases))
+
+  await page.click('#selMio1 .selector-mazo-opcion')
+  await elegirMazo(page, 'selRival1', 'gardevoir')
+  await page.click('#btnGuardarPartida')
+  await page.waitForTimeout(900)
+  const escrito = await page.evaluate(() => (window.__TABLAS__.match_log || []).at(-1))
+  check('y se puede apuntar el mazo', escrito?.mi_mazo_nombre === 'Crushing Hammer', String(escrito?.mi_mazo_nombre))
+  await page.close()
+}
+
+console.log('\n── 10. Un Pokémon no sale dos veces ──')
+{
+  // Está en las dos fuentes: como especie (con sprite) y como carta.
+  // Si saliera por las dos, la lista tendría un duplicado por cada set
+  // en el que se ha impreso.
+  const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('#btnApuntarPartida')
+  await page.fill('#selMio1 input', 'dragapult')
+  await page.waitForTimeout(700)
+  const ops = await page.locator('#selMio1 .selector-mazo-opcion').allInnerTexts()
+  check('sale una sola vez', ops.filter((o) => /Dragapult/.test(o)).length === 1, JSON.stringify(ops))
+  check('y como especie, no como carta', ops.some((o) => o.trim() === 'Dragapult'), JSON.stringify(ops))
+  await page.close()
+}
+
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 11. Una búsqueda vieja no pisa a la nueva ──')
+{
+  // Las cartas van a la base y se escribe más rápido de lo que responde.
+  // Sin el guardia, la respuesta de «hamm» llegaría DESPUÉS de la de
+  // «dragap» y se colaría en su lista: verías Crushing Hammer buscando
+  // Dragapult. Con el doble respondiendo al instante esto no pasa nunca,
+  // así que se le pide que vaya lento a propósito.
+  const page = await browser.newPage()
+  await page.route('**/cdn.jsdelivr.net/**', (r) =>
+    r.fulfill({ status: 200, contentType: 'image/png', body: PNG_1x1 })
+  )
+  await page.addInitScript((s) => {
+    window.__FAKE_SESSION__ = 'user-1'
+    window.__FAKE_RETRASO__ = { tcg_cards: 500 }
+    for (const [k, v] of Object.entries(s)) window[k] = v
+  }, SEMILLA_TORNEO)
+  await page.goto(`${BASE}/mis-partidas`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2600)
+  await page.click('#btnApuntarPartida')
+
+  await page.fill('#selMio1 input', 'hamm')
+  await page.waitForTimeout(80) // menos de lo que tarda la respuesta
+  await page.fill('#selMio1 input', 'dragap')
+  await page.waitForTimeout(1400) // tiempo de sobra para que lleguen las dos
+
+  const ops = await page.locator('#selMio1 .selector-mazo-opcion').allInnerTexts()
+  check('no se cuela el resultado de lo anterior', !ops.some((o) => /Hammer/.test(o)), JSON.stringify(ops))
+  check('y sí está lo que se buscaba', ops.some((o) => /Dragapult/.test(o)), JSON.stringify(ops))
   await page.close()
 }
 
