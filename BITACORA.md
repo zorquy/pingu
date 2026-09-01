@@ -12,6 +12,42 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-01 — PINGU-Claude (tanda 233 — los códigos, automáticos)
+**Hecho**: PINGU sobre el panel de la 232: «los códigos deberían ser
+automáticos, no manuales, ¿qué pasará entonces con nuevos sets?».
+Tenía razón. (1) CÓDIGOS DE SET: `Set.tcgOnline` SÍ existe en TCGdex,
+pero solo en el objeto COMPLETO (`sets/<id>`), no en el listado — y ese
+objeto ya se pide en cada importación, así que el dato lo teníamos
+delante y lo tirábamos. Nueva columna `tcg_sets.tcg_online_code`, que se
+rellena sola al importar, y la resolución va contra la base. Un set
+nuevo funciona sin tocar nada. El nombre del campo está comprobado
+contra los TIPOS DEL SDK oficial (npm install @tcgdex/sdk), no
+adivinado: es la forma de verificar una API sin poder llamarla, porque
+el contenedor llega a npm pero no a internet abierto. (2) El mazo de
+/mis-partidas se ELIGE de un buscador con minisprites, como
+trainingcourt: escribirlo a pelo partía el histórico en dos
+(«Dragapult» y «dragapul» son dos casillas distintas). (3) «Dónde» pasa
+a desplegable y hay botones para lo que no se jugó: ID, no se presentó y
+bye, con su columna `match_log.tipo`.
+**Ficheros**: supabase-migration-sets-live.sql (NUEVO),
+supabase-migration-partidas-tipo.sql (NUEVO),
+js/torneos/selector-mazo.js (NUEVO), js/torneos/sprites-pokemon.js
+(regenerado con los nombres como se escriben), js/tcgdex.js,
+js/torneos/cartas-decklist.js, js/mis-partidas.js, mis-partidas.html,
+css/partidas.css, js/schema-check.js, admin/index.html,
+admin/js/admin.js, admin/css/admin.css, SCHEMA.md.
+**En curso / pendiente**: PINGU ejecuta DOS migraciones
+(`supabase-migration-sets-live.sql` y
+`supabase-migration-partidas-tipo.sql`) y después entra en /admin →
+Cartas → «Traer códigos de TCG Live». Con eso, ASC/POR/CRI/MEE y todo lo
+demás se resuelven solos y ya no hay que asignar nada a mano nunca más.
+Las dos las vigila el comprobador de /admin.
+**OJO IBAI-CLAUDE**: `setToRow()` solo escribe `tcg_online_code` SI
+LLEGA. No lo pongas a null cuando falte: el listado de sets no trae ese
+campo, y guardar el listado borraría el código que la importación de
+cartas acababa de guardar — las imágenes de las decklists se caerían
+solas al refrescar el catálogo.
+
 ## 2026-09-01 — PINGU-Claude (tanda 232 — la lista en español y los sets que faltaban)
 **Hecho**: PINGU pegó una decklist de verdad exportada en ESPAÑOL y
 salieron dos fallos. (1) El parser solo entendía cabeceras en inglés, y

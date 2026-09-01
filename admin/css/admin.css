@@ -562,3 +562,8 @@ body {
 /* Un arquetipo desactivado sigue en la lista pero no identifica mazos:
    se apaga para que se vea de un vistazo cuál está en uso (tanda 230). */
 .admin-fila-apagada { opacity: 0.55; }
+
+/* Lo que casi nunca hace falta, plegado: asignar un código de set a mano
+   solo es para cuando TCGdex se equivoca (tanda 233). */
+.admin-detalle-avanzado { margin-top: 14px; }
+.admin-detalle-avanzado > summary { cursor: pointer; color: var(--text-mid); font-size: 14px; }

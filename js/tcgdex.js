@@ -157,7 +157,7 @@ function fecha(valor) {
 }
 
 export function setToRow(set, market = MERCADO_POR_DEFECTO) {
-  return {
+  const fila = {
     id: set.id,
     market,
     name: set.name || set.id,
@@ -169,6 +169,31 @@ export function setToRow(set, market = MERCADO_POR_DEFECTO) {
     card_count_total: set.cardCount?.total ?? null,
     card_count_official: set.cardCount?.official ?? null,
   }
+  // El código de TCG Live («TWM»), que es lo que traduce una línea de
+  // decklist a una carta con imagen (tanda 233).
+  //
+  // OJO: solo viene en el Set COMPLETO (`sets/<id>`), no en el listado
+  // — el listado devuelve un SetResume y ese campo no lo tiene. Por eso
+  // se pone solo si llega: escribir `null` desde el listado borraría el
+  // código que la importación de cartas acababa de guardar.
+  const codigo = codigoLiveDeSet(set)
+  if (codigo) fila.tcg_online_code = codigo
+  return fila
+}
+
+// El código de TCG Live de un set, normalizado. Vive aquí (y no en el
+// panel) porque lo usan la importación y la pantalla de códigos.
+//
+// Comprobado contra los tipos del SDK oficial de TCGdex (@tcgdex/sdk):
+// `Set.tcgOnline?: string`. Está en el Set completo, no en SetResume.
+export function codigoLiveDeSet(set) {
+  const bruto = set?.tcgOnline
+  if (typeof bruto !== 'string') return null
+  const limpio = bruto.trim().toUpperCase()
+  // Los códigos son de dos a seis letras o números. Cualquier otra cosa
+  // no es un código y no se guarda: un valor raro aquí traduce una
+  // decklist a la carta equivocada.
+  return /^[A-Z0-9]{2,6}$/.test(limpio) ? limpio : null
 }
 
 // El listado de cartas de un set trae poco: id, localId, name e image.

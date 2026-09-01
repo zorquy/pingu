@@ -17,14 +17,19 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession } from './app.js'
 import { showToast } from './toast.js'
-import { arquetipoDeMazo, claveDeArquetipo, normalizarNombre } from './torneos/arquetipos.js'
+import { arquetipoDeMazo, claveDeArquetipo } from './torneos/arquetipos.js'
 import { construirMatriz, resumen, porcentaje, miResultado } from './matriz-partidas.js'
+import { montarSelectorMazo } from './torneos/selector-mazo.js'
 
 const $ = (id) => document.getElementById(id)
 
 let session = null
 let todas = [] // el registro entero, ya normalizado
 let catalogo = []
+// Los cuatro buscadores del formulario: dos para tu mazo y dos para el
+// del rival, porque un arquetipo se nombra por una o dos cartas.
+let selectores = {}
+let tipoElegido = 'normal'
 
 // ── Las partidas de los torneos de PokeDoc ──
 //
@@ -124,6 +129,7 @@ async function partidasApuntadas() {
     fecha: p.jugada_el,
     donde: p.donde || 'Fuera de PokeDoc',
     notas: p.notas,
+    tipo: p.tipo || 'normal',
     deTorneo: false,
   }))
 }
@@ -242,7 +248,11 @@ function filtrar() {
 
 function repintar() {
   const partidas = filtrar()
-  const m = construirMatriz(partidas)
+  // Un bye no es un enfrentamiento y un «no se presentó» no dice nada
+  // del mazo rival: cuentan en la lista de abajo (pasaron) pero NO en la
+  // matriz, que es para saber cómo se te da cada emparejamiento. Un ID
+  // sí entra: se jugó lo justo para pactar, y cuenta como empate.
+  const m = construirMatriz(partidas.filter((p) => !['bye', 'no_show'].includes(p.tipo)))
   pintarResumen(m)
   pintarMatriz(m)
   pintarLista(partidas)
@@ -250,54 +260,70 @@ function repintar() {
 
 function rellenarFiltroYSugerencias() {
   const mios = new Map()
-  const todosLosMazos = new Set()
-  for (const p of todas) {
-    mios.set(p.mio, p.mioNombre)
-    todosLosMazos.add(p.mioNombre)
-    todosLosMazos.add(p.rivalNombre)
-  }
+  for (const p of todas) mios.set(p.mio, p.mioNombre)
   const sel = $('filtroMazo')
   const elegido = sel.value
   sel.innerHTML =
     '<option value="">Todos los míos</option>' +
     [...mios.entries()].map(([c, n]) => `<option value="${escapeHtml(c)}">${escapeHtml(n)}</option>`).join('')
   sel.value = elegido
-  // Autocompletado del formulario con lo que ya se ha visto: escribir
-  // «Gardevoir» dos veces distinto partiría el enfrentamiento en dos.
-  $('listaMazos').innerHTML = [...todosLosMazos]
-    .filter(Boolean)
-    .sort()
-    .map((n) => `<option value="${escapeHtml(n)}"></option>`)
-    .join('')
+  // Ya no hace falta autocompletar a mano: el mazo se ELIGE de una lista
+  // con sprites (tanda 233), así que dos personas no pueden escribir el
+  // mismo mazo de dos formas y partir el enfrentamiento en dos.
 }
 
 // ── Apuntar y borrar ──
 
-// La clave de un mazo escrito a mano. Se busca primero en el catálogo:
-// si escribes «Dragapult Dusknoir» y ese arquetipo existe, la partida
-// cae en la MISMA casilla que las de los torneos. Si no, se agrupa por
-// el nombre normalizado, igual que un mazo deducido.
-function claveDeNombre(nombre) {
-  const norm = normalizarNombre(nombre)
-  const enCatalogo = catalogo.find((a) => normalizarNombre(a.nombre) === norm)
-  return enCatalogo ? `a:${enCatalogo.id}` : `d:${norm}`
+// Un mazo son sus dos selectores juntos: «Dragapult» + «Dusknoir» es un
+// mazo, «Gardevoir» a secas también. Devuelve la clave con la que se
+// agrupa en la matriz y el nombre que se enseña.
+function mazoDe(sel1, sel2) {
+  const a = selectores[sel1]?.valor()
+  const b = selectores[sel2]?.valor()
+  const partes = [a, b].filter(Boolean)
+  if (!partes.length) return null
+  // Si el primero es un arquetipo del catálogo, manda él: su clave es la
+  // que agrupa con las partidas de torneo aunque le cambien el nombre.
+  const catalogado = partes.find((p) => p.valor.startsWith('a:'))
+  return {
+    clave: catalogado ? catalogado.valor : `d:${partes.map((p) => p.nombre).join(' ').toLowerCase()}`,
+    nombre: catalogado ? catalogado.nombre : partes.map((p) => p.nombre).join(' '),
+  }
+}
+
+// El sitio elegido, contando la casilla de «Otro…».
+function dondeElegido() {
+  const sel = $('partidaDonde').value
+  if (sel !== '__otro') return sel
+  return $('partidaDondeOtro').value.trim() || null
 }
 
 async function guardarPartida() {
-  const mio = $('partidaMio').value.trim()
-  const rival = $('partidaRival').value.trim()
-  if (!mio || !rival) {
-    showToast('Di los dos mazos: el tuyo y el del rival.', 'error')
+  const mio = mazoDe('mio1', 'mio2')
+  const rival = mazoDe('rival1', 'rival2')
+
+  // Un bye no tiene rival: exigirlo sería no dejar apuntarlo nunca.
+  const necesitaRival = tipoElegido !== 'bye'
+  if (!mio || (necesitaRival && !rival)) {
+    showToast(
+      necesitaRival ? 'Elige los dos mazos: el tuyo y el del rival.' : 'Elige al menos tu mazo.',
+      'error'
+    )
     return
   }
+
   const fila = {
     user_id: session.user.id,
-    mi_mazo: claveDeNombre(mio),
-    rival_mazo: claveDeNombre(rival),
-    mi_mazo_nombre: mio,
-    rival_mazo_nombre: rival,
-    resultado: $('partidaResultado').value,
-    donde: $('partidaDonde').value.trim() || null,
+    mi_mazo: mio.clave,
+    rival_mazo: rival?.clave || 'sin-mazo',
+    mi_mazo_nombre: mio.nombre,
+    rival_mazo_nombre: rival?.nombre || (tipoElegido === 'bye' ? 'Bye' : 'Sin rival'),
+    // El resultado de lo que no se jugó no lo elige nadie: un bye y un
+    // «no se presentó» son victorias, y un ID es un empate. Dejarlo a
+    // mano solo daba ocasión de apuntarlo mal.
+    resultado: tipoElegido === 'id' ? 'draw' : tipoElegido === 'normal' ? $('partidaResultado').value : 'win',
+    tipo: tipoElegido,
+    donde: dondeElegido(),
     notas: $('partidaNotas').value.trim() || null,
   }
   const fecha = $('partidaFecha').value
@@ -309,7 +335,11 @@ async function guardarPartida() {
     return
   }
   showToast('Partida apuntada.', 'success')
-  for (const id of ['partidaRival', 'partidaNotas']) $(id).value = ''
+  // El mazo TUYO se queda puesto: quien apunta una tanda de partidas
+  // suele jugar el mismo mazo toda la tarde.
+  selectores.rival1?.limpiar()
+  selectores.rival2?.limpiar()
+  $('partidaNotas').value = ''
   await cargar()
 }
 
@@ -346,9 +376,44 @@ async function init() {
   catalogo = data || []
 
   $('partidaFecha').value = new Date().toISOString().slice(0, 10)
+
+  for (const [clave, caja, marcador] of [
+    ['mio1', 'selMio1', 'Tu Pokémon principal…'],
+    ['mio2', 'selMio2', 'Y el segundo (opcional)…'],
+    ['rival1', 'selRival1', 'Su Pokémon principal…'],
+    ['rival2', 'selRival2', 'Y el segundo (opcional)…'],
+  ]) {
+    selectores[clave] = montarSelectorMazo($(caja), { catalogo, marcador })
+  }
+
+  // «Otro…» abre su campo de texto; el resto lo esconde.
+  $('partidaDonde').addEventListener('change', () => {
+    $('partidaDondeOtroCampo').classList.toggle('hidden', $('partidaDonde').value !== '__otro')
+    if ($('partidaDonde').value === '__otro') $('partidaDondeOtro').focus()
+  })
+
+  const NOTA_TIPO = {
+    id: 'Cuenta como empate en la matriz: se llegó a jugar lo justo para pactarlo.',
+    no_show: 'Cuenta como victoria, pero NO entra en la matriz: no llegaste a jugar contra ese mazo.',
+    bye: 'No entra en la matriz ni hace falta decir el mazo rival: no hubo enfrentamiento.',
+  }
+  document.querySelectorAll('.partidas-tipo').forEach((b) =>
+    b.addEventListener('click', () => {
+      tipoElegido = b.dataset.tipo
+      document.querySelectorAll('.partidas-tipo').forEach((x) => x.classList.toggle('activo', x === b))
+      // El resultado solo se elige cuando se jugó de verdad: en los
+      // demás casos lo decide el tipo, y enseñarlo invitaría a
+      // contradecirse.
+      $('partidaResultado').closest('label').classList.toggle('hidden', tipoElegido !== 'normal')
+      const nota = $('partidaTipoNota')
+      nota.textContent = NOTA_TIPO[tipoElegido] || ''
+      nota.classList.toggle('hidden', !NOTA_TIPO[tipoElegido])
+    })
+  )
+
   $('btnApuntarPartida').addEventListener('click', () => {
     $('partidaForm').classList.toggle('hidden')
-    if (!$('partidaForm').classList.contains('hidden')) $('partidaMio').focus()
+    if (!$('partidaForm').classList.contains('hidden')) $('selMio1').querySelector('input')?.focus()
   })
   $('btnCancelarPartida').addEventListener('click', () => $('partidaForm').classList.add('hidden'))
   $('btnGuardarPartida').addEventListener('click', guardarPartida)

@@ -11463,3 +11463,105 @@ Pokédex hace falta una preevolución que NO esté apuntada (Gimmighoul,
 999, debajo de Gholdengo, 1000). Y los dos puntos de la cabecera solo se
 notan con una línea que empiece por letra, no con una carta —que
 empieza por su cantidad.
+
+## Tanda 233 — los códigos, automáticos (sept. 2026)
+
+PINGU, sobre el panel de la 232: «los códigos deberían ser automáticos,
+no manuales, ¿qué pasará entonces con nuevos sets?». Tenía razón: dejar
+la asignación a mano es cargarle a un humano un problema que se resuelve
+solo. Y de paso, dos cosas más de trainingcourt.
+
+### 1. El código de set lo trae TCGdex
+
+**Dónde estaba el dato, y por qué no lo veíamos**: `Set.tcgOnline` existe
+en TCGdex, pero solo en el objeto Set **completo** (`sets/<id>`), no en
+el del listado (`sets` devuelve un `SetResume`, que no lo tiene). Y el
+objeto completo YA se pide en cada importación de cartas — el dato lo
+teníamos delante y lo estábamos tirando.
+
+⚠️ El nombre del campo está comprobado **contra los tipos del SDK
+oficial** (`npm install @tcgdex/sdk`, `Set.tcgOnline?: string`), no
+adivinado. Es la forma de verificar una API sin poder llamarla: este
+contenedor no tiene salida a internet, pero sí a npm.
+
+Ahora `tcg_sets.tcg_online_code` (migración nueva) se rellena solo al
+importar un set, y la resolución de una línea de decklist va contra la
+base. **Un set nuevo funciona sin que nadie toque nada.**
+
+Tres intentos, en este orden:
+
+1. Lo asignado a mano en `site_settings` — para poder corregir un error
+   de TCGdex sin esperar a un despliegue. Casi siempre vacío.
+2. **`tcg_sets.tcg_online_code`** ← el camino normal.
+3. La tabla escrita a mano de `comun.js`, ya solo como red para los sets
+   importados antes de que existiera la columna. **No hay que ampliarla
+   cuando salga un set nuevo.**
+
+Para lo ya importado hay un botón, «Traer códigos de TCG Live», que pide
+el detalle de cada set y se queda solo con el código, **de los más nuevos
+a los más viejos** — los de la rotación son los que salen en las
+decklists, así que en un minuto ya está lo que hace falta y se puede
+cancelar el resto.
+
+⚠️ **Trampa con la que casi tropiezo**: `setToRow()` solo escribe
+`tcg_online_code` **si llega**. Si pusiera `null` cuando no viene,
+guardar el LISTADO de sets borraría el código que la importación de
+cartas acababa de guardar, y las imágenes se caerían solas al refrescar
+el catálogo. Tiene su prueba.
+
+### 2. El mazo se elige, no se escribe
+
+Como trainingcourt: escribes «dragap» y sale Dragapult con su
+minisprite. Antes se escribía a pelo, y eso tiene un problema que no se
+ve hasta que es tarde — «Dragapult» y «dragapul» son **dos casillas
+distintas** en la matriz de enfrentamientos, y parten el histórico en dos
+sin que nadie se entere.
+
+`js/torneos/selector-mazo.js`, sin DOM en su parte de búsqueda para
+poder probarla en Node. No usa `<select>`: un desplegable nativo no
+lleva imágenes ni se filtra escribiendo.
+
+Busca sobre las 1025 especies (instantáneo, sin ir a la base) y sobre el
+catálogo de arquetipos, que es de donde salen los mazos que se nombran
+por un objeto («Martillos») y no tienen especie ni sprite.
+
+**El orden importa y costó**: primero lo que EMPIEZA por lo tecleado. La
+primera versión ordenaba además por longitud y hundía «Dragapult»
+debajo de «Drampa» y «Dreepy» — justo lo contrario de lo que hace falta.
+
+Un mazo son DOS selectores, porque un arquetipo se nombra por una o dos
+cartas. Al guardar, el mazo TUYO se queda puesto: quien apunta una tanda
+de partidas juega el mismo mazo toda la tarde.
+
+De paso, la tabla de Pokémon pasa a guardar los nombres **como se
+escriben** («Iron Valiant», «Mr. Mime») en vez de aplastados: aplastados
+no se pueden deshacer —no sabemos dónde iban los espacios— y el buscador
+enseñaría «Ironvaliant». La versión aplastada se calcula al cargar.
+
+### 3. Lo que no se llegó a jugar
+
+`match_log.tipo` (migración nueva): `normal`, `id`, `no_show`, `bye`.
+
+No son resultados, son MOTIVOS, y por eso van en su propia columna:
+
+- **ID** (empate pactado): cuenta como empate y **sí** entra en la
+  matriz — se jugó lo justo para pactarlo.
+- **No se presentó**: victoria, pero **no** entra en la matriz. No
+  llegaste a jugar contra ese mazo, y contarlo inflaría el porcentaje de
+  un enfrentamiento que no existió.
+- **Bye**: ni entra en la matriz ni pide mazo rival. Exigirlo sería no
+  dejar apuntarlo nunca.
+
+El resultado de lo que no se jugó **no lo elige nadie**: lo decide el
+tipo, y el desplegable se esconde. Dejarlo a mano solo daba ocasión de
+contradecirse.
+
+Y «dónde» pasa a desplegable (TCG Live, torneo local, liga de tienda,
+regional, amistosa) con «Otro…» para lo que no encaje.
+
+### Comprobado
+
+Las dos migraciones contra PostgreSQL 16, tres pasadas cada una, más el
+check del tipo. `test-tcgdex-codigo.mjs` (11), `test-selector-mazo.mjs`
+(14), `test-sets-live.mjs` (5) y cuatro bloques nuevos en
+`test-partidas-pagina.mjs`. Suite entera (20) en verde.

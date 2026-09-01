@@ -91,11 +91,18 @@
       <div class="simple-card hidden" id="partidaForm">
         <h3>Apuntar una partida de fuera</h3>
         <p class="subtext">Las de los torneos de PokeDoc ya están: esto es para TCG Live, tu tienda o un presencial.</p>
-        <div class="partidas-form-fila">
-          <label>Tu mazo <input type="text" id="partidaMio" placeholder="Dragapult Dusknoir" list="listaMazos" /></label>
-          <label>Mazo rival <input type="text" id="partidaRival" placeholder="Gardevoir" list="listaMazos" /></label>
+        <p class="subtext">Tu mazo</p>
+        <div class="partidas-form-fila partidas-mazo-fila">
+          <div id="selMio1"></div>
+          <div id="selMio2"></div>
         </div>
-        <datalist id="listaMazos"></datalist>
+
+        <p class="subtext">Mazo del rival</p>
+        <div class="partidas-form-fila partidas-mazo-fila">
+          <div id="selRival1"></div>
+          <div id="selRival2"></div>
+        </div>
+
         <div class="partidas-form-fila">
           <label>Resultado
             <select id="partidaResultado">
@@ -105,8 +112,34 @@
             </select>
           </label>
           <label>Fecha <input type="date" id="partidaFecha" /></label>
-          <label>Dónde <input type="text" id="partidaDonde" placeholder="TCG Live" /></label>
+          <label>Dónde
+            <select id="partidaDonde">
+              <option value="TCG Live">TCG Live</option>
+              <option value="Torneo local">Torneo local</option>
+              <option value="Liga de tienda">Liga de tienda</option>
+              <option value="Regional">Regional</option>
+              <option value="Amistosa">Amistosa</option>
+              <option value="__otro">Otro…</option>
+            </select>
+          </label>
+          <label class="hidden" id="partidaDondeOtroCampo">Escríbelo
+            <input type="text" id="partidaDondeOtro" placeholder="Dónde se jugó" />
+          </label>
         </div>
+
+        <!-- Lo que no es una partida normal. Un ID es un empate pactado,
+             un «no se presentó» es una victoria sin jugar y un bye no es
+             ni siquiera un enfrentamiento: por eso van aparte del
+             resultado y no como una opción más del desplegable. -->
+        <p class="subtext">¿No se llegó a jugar?</p>
+        <div class="partidas-form-fila partidas-tipos">
+          <button type="button" class="btn-secondary partidas-tipo activo" data-tipo="normal">Se jugó</button>
+          <button type="button" class="btn-secondary partidas-tipo" data-tipo="id">Empate pactado (ID)</button>
+          <button type="button" class="btn-secondary partidas-tipo" data-tipo="no_show">No se presentó</button>
+          <button type="button" class="btn-secondary partidas-tipo" data-tipo="bye">Bye</button>
+        </div>
+        <p class="subtext hidden" id="partidaTipoNota"></p>
+
         <label class="partidas-form-notas">Notas <input type="text" id="partidaNotas" placeholder="Opcional: qué salió mal, qué cambiarías…" /></label>
         <div class="partidas-form-fila">
           <button class="btn-primary" id="btnGuardarPartida">Guardar</button>

@@ -68,31 +68,55 @@ async function overridesDeSets() {
   return codigosDeAdmin
 }
 
+// De «TWM» al identificador de nuestro set. Tres intentos, en este
+// orden y por este motivo:
+//
+//   1. Lo que un admin haya dicho a mano. Va primero para poder corregir
+//      un error de TCGdex sin esperar a nadie. Casi siempre está vacío.
+//   2. LA BASE: `tcg_sets.tcg_online_code`, que lo rellena la
+//      importación con lo que dice TCGdex (tanda 233). Este es el camino
+//      normal, y el que hace que un set nuevo funcione SOLO.
+//   3. La tabla escrita a mano de comun.js, que busca por el nombre del
+//      set. Se queda como red para los sets importados antes de que
+//      existiera la columna, y para nada más: NO hay que ampliarla al
+//      salir un set nuevo — de eso se encarga el paso 2.
 async function setDeCodigo(codigo) {
   if (setsPorCodigo.has(codigo)) return setsPorCodigo.get(codigo)
   const clave = String(codigo || '').toUpperCase()
 
-  // 1. Lo que haya dicho un admin, que va directo al identificador del
-  //    set y se salta la búsqueda por nombre.
   const overrides = await overridesDeSets()
   if (overrides[clave]) {
     setsPorCodigo.set(codigo, overrides[clave])
     return overrides[clave]
   }
 
-  // 2. Y si no, la tabla del código, que busca por el nombre del set.
-  const nombre = nombreDeSetLive(clave)
-  if (!nombre) {
-    setsPorCodigo.set(codigo, null)
-    return null
-  }
   let setId = null
   try {
-    const { data } = await supabase.from('tcg_sets').select('id').eq('market', 'WEST').eq('name', nombre).limit(1)
+    const { data } = await supabase
+      .from('tcg_sets')
+      .select('id')
+      .eq('market', 'WEST')
+      .eq('tcg_online_code', clave)
+      .limit(1)
     setId = data?.[0]?.id || null
   } catch {
+    // Sin la columna (migración sin ejecutar) esto falla y se sigue por
+    // la tabla de siempre, que es exactamente lo que hacía antes.
     setId = null
   }
+
+  if (!setId) {
+    const nombre = nombreDeSetLive(clave)
+    if (nombre) {
+      try {
+        const { data } = await supabase.from('tcg_sets').select('id').eq('market', 'WEST').eq('name', nombre).limit(1)
+        setId = data?.[0]?.id || null
+      } catch {
+        setId = null
+      }
+    }
+  }
+
   setsPorCodigo.set(codigo, setId)
   return setId
 }

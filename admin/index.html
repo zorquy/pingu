@@ -344,24 +344,39 @@
           <p class="admin-note">
             Cuando alguien pega una decklist, cada línea trae el código del set tal como lo escribe
             TCG Live («TWM 128»). Ese código se traduce a un set nuestro para poder enseñar la
-            imagen de la carta. La traducción va en el código de la web, y por eso <strong>se queda
-            corta cada vez que sale un set nuevo</strong>: hasta que alguien despliegue, esas cartas
-            salen sin imagen.
+            imagen de la carta, y <strong>lo trae TCGdex</strong>: cada set nuevo que importes
+            guarda su código solo, sin que nadie tenga que apuntar nada.
           </p>
           <p class="admin-note">
-            Aquí se arregla sin esperar a nadie. Lo que pongas manda sobre lo que traiga el código.
-            Si pulsas «Buscar sets en TCGdex» y su catálogo trae el código, se rellena solo.
+            Los sets importados <em>antes</em> de que esto existiera no lo tienen. El botón de abajo
+            los rellena sin volver a bajar las cartas, de los más nuevos a los más viejos — que son
+            los que salen en las decklists. Los sets anteriores a TCG Live no tienen código, y eso
+            es normal.
           </p>
-          <div id="setsLiveLista"></div>
           <div class="foro-admin-fila">
-            <input type="text" id="setLiveCodigo" placeholder="Código (ASC)" style="max-width: 160px;" />
-            <select id="setLiveSet" aria-label="Set"></select>
-            <button class="btn-secondary" id="btnAnadirSetLive">Añadir</button>
-          </div>
-          <div class="foro-admin-fila">
-            <button class="btn-primary" id="btnGuardarSetsLive">Guardar códigos</button>
+            <button class="btn-primary" id="btnTraerCodigos">Traer códigos de TCG Live</button>
+            <button class="btn-outline hidden" id="btnCancelarCodigos">Cancelar</button>
             <span class="admin-note" id="setsLiveNota"></span>
           </div>
+
+          <div id="setsLiveResumen"></div>
+          <div id="setsLiveLista"></div>
+
+          <details class="admin-detalle-avanzado">
+            <summary>Asignar un código a mano</summary>
+            <p class="admin-note">
+              Solo hace falta si TCGdex se equivoca o si un set no trae código. Lo que pongas aquí
+              manda sobre lo que diga TCGdex.
+            </p>
+            <div class="foro-admin-fila">
+              <input type="text" id="setLiveCodigo" placeholder="Código (ASC)" style="max-width: 160px;" />
+              <select id="setLiveSet" aria-label="Set"></select>
+              <button class="btn-secondary" id="btnAnadirSetLive">Añadir</button>
+            </div>
+            <div class="foro-admin-fila">
+              <button class="btn-secondary" id="btnGuardarSetsLive">Guardar los de mano</button>
+            </div>
+          </details>
         </div>
 
         <div class="cards-import-bar">

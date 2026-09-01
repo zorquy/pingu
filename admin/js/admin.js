@@ -9,7 +9,7 @@ import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
-import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados } from '../../js/tcgdex.js'
+import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet } from '../../js/tcgdex.js'
 import { checkSchema } from '../../js/schema-check.js'
 
 let categories = []
@@ -2060,6 +2060,26 @@ async function loadSetsLive() {
 function pintarSetsLive() {
   const caja = document.getElementById('setsLiveLista')
   if (!caja) return
+
+  // Lo primero, el estado de lo AUTOMÁTICO: cuántos sets tienen ya su
+  // código. Es lo que responde «¿me falta algo?» sin leer una tabla.
+  const oeste = tcgSetsLocales.filter((x) => (x.market || 'WEST') === 'WEST')
+  const conCodigo = oeste.filter((x) => x.tcg_online_code)
+  const recientes = [...oeste]
+    .sort((a, b) => String(b.release_date || '').localeCompare(String(a.release_date || '')))
+    .slice(0, 20)
+  const recientesSinCodigo = recientes.filter((x) => !x.tcg_online_code)
+  const resumen = document.getElementById('setsLiveResumen')
+  if (resumen) {
+    resumen.innerHTML = `<p class="admin-note"><strong>${conCodigo.length}</strong> de ${oeste.length} sets tienen su código de TCG Live.` +
+      (recientesSinCodigo.length
+        ? ` <strong>Faltan ${recientesSinCodigo.length} de los 20 más nuevos</strong>, que son los que salen en las decklists: ${recientesSinCodigo
+            .map((x) => escapeHtml(x.name))
+            .join(', ')}.`
+        : ' Los 20 más nuevos están todos.') +
+      '</p>'
+  }
+
   const entradas = Object.entries(setsLive).sort(([a], [b]) => a.localeCompare(b))
   caja.innerHTML = entradas.length
     ? `<table class="admin-table">
@@ -2075,7 +2095,7 @@ function pintarSetsLive() {
           })
           .join('')}</tbody>
       </table>`
-    : '<p class="admin-note">Ninguno asignado a mano. Se usa la tabla del código.</p>'
+    : '<p class="admin-note">Ninguno asignado a mano: todos vienen de TCGdex.</p>'
 
   caja.querySelectorAll('[data-quitar-setlive]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -2109,35 +2129,71 @@ async function guardarSetsLive() {
   showToast('Códigos guardados. Las decklists ya los usan.', 'success')
 }
 
-// Lo que TCGdex sepa del código de TCG Live. El nombre del campo NO está
-// verificado contra la API (el contenedor donde se programó esto no
-// tiene salida a internet), así que se prueban los candidatos
-// razonables y se dice cuántos han salido: si sale 0, es que el campo se
-// llama de otra forma y hay que mirarlo — no que TCGdex no lo tenga.
-function codigoLiveDeSet(set) {
-  const candidatos = [set?.tcgOnline, set?.tcgoCode, set?.ptcgoCode, set?.abbreviation]
-  const codigo = candidatos.find((c) => typeof c === 'string' && /^[A-Z0-9]{2,6}$/.test(c.toUpperCase()))
-  return codigo ? codigo.toUpperCase() : null
-}
+// ── Traer los códigos de lo YA importado (tanda 233) ──
+//
+// La importación de cartas guarda el código de cada set según lo trae,
+// pero los sets importados ANTES de la 233 no lo tienen. Esto los
+// rellena sin volver a bajar las cartas: pide el detalle de cada set y
+// se queda solo con el código.
+//
+// De los más NUEVOS a los más viejos a propósito: los que salen en las
+// decklists son los de la rotación, así que en un minuto ya está lo que
+// hace falta y se puede cancelar el resto.
+let codigosCancelado = false
 
-// Se llama tras traer el catálogo de TCGdex. Solo AÑADE lo que falta:
-// nunca pisa lo que un admin haya puesto a mano.
-function rellenarSetsLiveDesdeTcgdex(remotos) {
-  let nuevos = 0
-  for (const set of remotos || []) {
-    const codigo = codigoLiveDeSet(set)
-    if (!codigo || setsLive[codigo]) continue
-    setsLive[codigo] = set.id
-    nuevos++
-  }
+async function traerCodigosLive() {
+  const btn = document.getElementById('btnTraerCodigos')
   const nota = document.getElementById('setsLiveNota')
-  if (nota) {
-    nota.textContent = nuevos
-      ? `TCGdex ha traído ${nuevos} códigos nuevos. Repásalos y pulsa «Guardar códigos».`
-      : 'TCGdex no ha traído ningún código de TCG Live: hay que asignarlos a mano.'
+  codigosCancelado = false
+  btn.disabled = true
+  document.getElementById('btnCancelarCodigos')?.classList.remove('hidden')
+
+  const pendientes = tcgSetsLocales
+    .filter((x) => (x.market || 'WEST') === 'WEST' && !x.tcg_online_code)
+    .sort((a, b) => String(b.release_date || '').localeCompare(String(a.release_date || '')))
+
+  let traidos = 0
+  let sinCodigo = 0
+  try {
+    for (let i = 0; i < pendientes.length; i++) {
+      if (codigosCancelado) break
+      const fila = pendientes[i]
+      if (nota) nota.textContent = `Pidiendo ${i + 1} de ${pendientes.length}: ${fila.name}…`
+      let codigo = null
+      try {
+        codigo = codigoLiveDeSet(await fetchSet(fila.id, 'WEST'))
+      } catch {
+        // Un set que falle no puede parar la tanda entera: se salta.
+        continue
+      }
+      if (!codigo) {
+        // Los sets anteriores a TCG Live no tienen código, y eso es
+        // normal: no es un error que haya que enseñar.
+        sinCodigo++
+        continue
+      }
+      const { error } = await supabase
+        .from('tcg_sets')
+        .update({ tcg_online_code: codigo })
+        .eq('id', fila.id)
+        .eq('market', 'WEST')
+      if (!error) {
+        fila.tcg_online_code = codigo
+        traidos++
+      }
+    }
+  } finally {
+    btn.disabled = false
+    document.getElementById('btnCancelarCodigos')?.classList.add('hidden')
   }
-  if (nuevos) pintarSetsLive()
-  return nuevos
+
+  if (nota) {
+    nota.textContent = traidos
+      ? `${traidos} códigos guardados${sinCodigo ? ` (${sinCodigo} sets sin código, normal en los antiguos)` : ''}.` +
+        ' Las decklists ya los usan.'
+      : 'Ningún código nuevo. Los sets antiguos no tienen: TCG Live no existía.'
+  }
+  pintarSetsLive()
 }
 
 function initSetsLiveSection() {
@@ -2157,6 +2213,10 @@ function initSetsLiveSection() {
     pintarSetsLive()
   })
   document.getElementById('btnGuardarSetsLive')?.addEventListener('click', guardarSetsLive)
+  document.getElementById('btnTraerCodigos')?.addEventListener('click', traerCodigosLive)
+  document.getElementById('btnCancelarCodigos')?.addEventListener('click', () => {
+    codigosCancelado = true
+  })
 }
 
 async function loadCards() {
@@ -2289,14 +2349,11 @@ async function cargarSetsDeTcgdex() {
       const { error } = await supabase.from('tcg_sets').upsert(filas.slice(i, i + 100), { onConflict: 'id,market' })
       if (error) throw error
     }
-    // De paso, el código de TCG Live de cada set si TCGdex lo trae: es
-    // lo que traduce «ASC 142» a una carta con imagen. Solo AÑADE lo que
-    // falta y no guarda nada solo — el admin repasa y pulsa «Guardar
-    // códigos», que asignar un set equivocado enseña la carta que no es.
-    const codigosNuevos = rellenarSetsLiveDesdeTcgdex(tcgSetsRemotos.filter((x) => x.market === 'WEST'))
+    // El código de TCG Live NO se puede sacar de aquí: el listado
+    // devuelve un SetResume y ese campo solo está en el Set completo.
+    // Lo trae «Traer códigos de TCG Live», que pide los detalles.
     cardsNota(
       `${filas.length} sets conocidos${repetidas ? ` (${repetidas} repetidos en el catálogo, descartados)` : ''}. ` +
-        (codigosNuevos ? `${codigosNuevos} códigos de TCG Live nuevos, repásalos abajo. ` : '') +
         'Ahora "Importar los que faltan" trae las cartas.'
     )
     document.getElementById('btnImportPending').disabled = false
@@ -2374,9 +2431,15 @@ async function importarSets(ids) {
         const { error } = await supabase.from('tcg_cards').upsert(filas.slice(i, i + 200), { onConflict: 'id,market' })
         if (error) throw error
       }
+      // El código de TCG Live viene en el set COMPLETO (este `set`), no
+      // en el listado. Se guarda aquí, que es el único sitio donde lo
+      // tenemos sin pedir nada de más (tanda 233).
+      const cambiosSet = { imported_at: new Date().toISOString(), imported_cards: filas.length }
+      const codigoLive = codigoLiveDeSet(set)
+      if (codigoLive) cambiosSet.tcg_online_code = codigoLive
       const { error: errSet } = await supabase
         .from('tcg_sets')
-        .update({ imported_at: new Date().toISOString(), imported_cards: filas.length })
+        .update(cambiosSet)
         .eq('id', setId)
         .eq('market', market)
       if (errSet) throw errSet
