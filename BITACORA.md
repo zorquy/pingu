@@ -12,6 +12,30 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-02 — PINGU-Claude (tanda 250 — que PostgREST se entere)
+**Hecho**: PINGU no podía guardar una ronda en /mis-partidas: «Could not
+find the 'tipo' column of 'match_log' in the schema cache». La migración
+SÍ estaba ejecutada — lo que pasa es que PostgREST guarda el esquema en
+memoria y no se entera de una columna nueva hasta que a Supabase le da
+por recargar. La receta es `notify pgrst, 'reload schema'` al final del
+fichero, y solo la tenían 15 de las 72 migraciones. Añadido a las 39 que
+cambian esquema (create table / add column / create view) y no lo
+tenían. Validado contra PostgreSQL 16 local: partidas-tipo y sets-live,
+tres pasadas cada una, sin errores.
+**Ficheros**: 39 supabase-migration-*.sql (solo se les añade el aviso al
+final; ninguna cambia lo que hace).
+**En curso / pendiente**: PINGU tiene que RE-EJECUTAR
+supabase-migration-partidas-tipo.sql (y sets-live si le pasa lo mismo
+con los códigos de TCG Live). Son re-ejecutables: lo único nuevo es el
+aviso a PostgREST, que es lo que hace falta.
+AVISO GORDO para la apertura de hoy, en el mensaje al usuario: el
+cliente NO llama a ninguna de las tres RPC de
+supabase-migration-torneos-publico.sql, y esa migración deja
+tournament_registrations SIN política de INSERT y match_reports SIN
+política de INSERT. Ejecutarla hoy tal cual deja a todo el que no sea
+admin sin poder apuntarse, sin poder borrarse y sin poder reportar
+resultados.
+
 ## 2026-09-01 — PINGU-Claude (tanda 249 — los correos, de verdad)
 **Hecho**: PINGU pidió mirar todos los correos y que los enlaces
 llevaran a cada cosa. Había un fallo gordo: `absoluteUrl()` solo

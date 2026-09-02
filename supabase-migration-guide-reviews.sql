@@ -31,3 +31,10 @@ create policy "guide_reviews_update" on guide_reviews
 drop policy if exists "guide_reviews_delete" on guide_reviews;
 create policy "guide_reviews_delete" on guide_reviews
   for delete using (auth.uid() = reviewer_id or is_admin());
+
+-- PostgREST guarda en memoria el esquema que conoce. Sin este aviso, una
+-- columna recién creada NO existe para la API hasta que a Supabase le da
+-- por recargar: el cliente recibe «Could not find the 'x' column of 'y'
+-- in the schema cache» y parece que la migración no se ha ejecutado.
+-- Pasó el 2026-09-02 con match_log.tipo, ya ejecutada (tanda 250).
+notify pgrst, 'reload schema';

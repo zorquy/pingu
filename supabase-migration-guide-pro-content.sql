@@ -33,3 +33,10 @@ create policy "guide_pro_content_select_pro" on guide_pro_content
 drop policy if exists "guide_pro_content_admin_all" on guide_pro_content;
 create policy "guide_pro_content_admin_all" on guide_pro_content
   for all using (is_admin()) with check (is_admin());
+
+-- PostgREST guarda en memoria el esquema que conoce. Sin este aviso, una
+-- columna recién creada NO existe para la API hasta que a Supabase le da
+-- por recargar: el cliente recibe «Could not find the 'x' column of 'y'
+-- in the schema cache» y parece que la migración no se ha ejecutado.
+-- Pasó el 2026-09-02 con match_log.tipo, ya ejecutada (tanda 250).
+notify pgrst, 'reload schema';

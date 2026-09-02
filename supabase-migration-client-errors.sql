@@ -33,3 +33,10 @@ create policy "client_errors_admin_select" on client_errors
 drop policy if exists "client_errors_admin_update" on client_errors;
 create policy "client_errors_admin_update" on client_errors
   for update using (is_admin());
+
+-- PostgREST guarda en memoria el esquema que conoce. Sin este aviso, una
+-- columna recién creada NO existe para la API hasta que a Supabase le da
+-- por recargar: el cliente recibe «Could not find the 'x' column of 'y'
+-- in the schema cache» y parece que la migración no se ha ejecutado.
+-- Pasó el 2026-09-02 con match_log.tipo, ya ejecutada (tanda 250).
+notify pgrst, 'reload schema';

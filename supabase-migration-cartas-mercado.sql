@@ -129,3 +129,10 @@ create index if not exists tcg_sets_market_idx on tcg_sets (market);
 create index if not exists tcg_cards_market_name_idx on tcg_cards (market, name_search);
 
 commit;
+
+-- PostgREST guarda en memoria el esquema que conoce. Sin este aviso, una
+-- columna recién creada NO existe para la API hasta que a Supabase le da
+-- por recargar: el cliente recibe «Could not find the 'x' column of 'y'
+-- in the schema cache» y parece que la migración no se ha ejecutado.
+-- Pasó el 2026-09-02 con match_log.tipo, ya ejecutada (tanda 250).
+notify pgrst, 'reload schema';
