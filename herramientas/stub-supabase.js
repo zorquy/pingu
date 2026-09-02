@@ -38,6 +38,7 @@ const T = {
   tcg_sets: [],
   tcg_cards: [],
   match_log: [],
+  match_log_torneos: [],
   site_settings: [],
   push_subscriptions: [],
   achievement_definitions: [],
@@ -245,6 +246,20 @@ sembrar('__FAKE_PARTIDAS__', 'match_log', (i) => ({
   rival_mazo_nombre: 'Rival',
   resultado: 'win',
   jugada_el: new Date().toISOString().slice(0, 10),
+}))
+
+// Los torneos APUNTADOS A MANO de /mis-partidas (tanda 236), con su
+// cierre (tanda 251): cerrado_el null = abierto, que es como nacen.
+sembrar('__FAKE_LOG_TORNEOS__', 'match_log_torneos', (i) => ({
+  id: `logt-${i + 1}`,
+  user_id: 'admin-1',
+  nombre: `Torneo apuntado ${i + 1}`,
+  donde: 'Torneo local',
+  mi_mazo: 'd:mazo',
+  mi_mazo_nombre: 'Mazo',
+  jugado_el: '2026-08-30',
+  cerrado_el: null,
+  notas: null,
 }))
 
 sembrar('__FAKE_ARQUETIPOS__', 'tcg_archetypes', (i) => ({

@@ -94,6 +94,18 @@ dentro del propio test.
     perfil. OJO en esta: los títulos de grupo del perfil llevan
     text-transform: uppercase, y `innerText` devuelve el texto TAL COMO
     SE PINTA — buscar «Jugando ahora» tal cual no encuentra nada.
+- **/mis-partidas** (tanda 251): `test-tanda-251` — cerrar y reabrir un
+  torneo apuntado, editar una ronda y el torneo entero, el buscador con
+  y SIN tilde escrita, el corte de las dos listas, y que los
+  enfrentamientos no desborden a lo ancho (se mide `scrollWidth` de
+  verdad, a 900 y a 360 px). `herramientas/vista-stats.mjs` los pinta a
+  PNG en claro, oscuro y móvil.
+
+  AVISO que salió de aquí: tres comprobaciones de `test-partidas-pagina`
+  llevaban ROTAS desde la tanda 236 —la página tiene pestañas y el panel
+  de sueltas no está a la vista al entrar— y nadie lo había notado.
+  Conviene pasar la suite ENTERA de vez en cuando, no solo la prueba de
+  la tanda que se está haciendo.
 - **Correos** (tanda 249): `test-correos` — SIN navegador y sin red, que
   todo lo que se pinta vive en `netlify/lib/`. Cubre que el enlace lleve
   a la cosa y no a la portada, que un dominio de fuera se rechace, el

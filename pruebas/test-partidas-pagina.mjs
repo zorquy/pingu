@@ -93,9 +93,11 @@ console.log('\n── 1. Las de torneo entran solas ──')
   // Y el porcentaje tiene que ser 50%, no 67%: si el bye entrase como
   // victoria nadie lo notaría mirando el número de partidas.
   check('y el bye no infla el porcentaje', /50%/.test(resumen) && !/67%/.test(resumen), resumen.replace(/\n/g, ' | '))
-  const matriz = await page.locator('.partidas-matriz').innerText()
-  check('la fila es mi mazo', /Dragapult ex/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 90))
-  check('la columna es el del rival', /Gardevoir ex/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 90))
+  // Desde la tanda 251 esto ya no es una tabla que hay que arrastrar de
+  // lado: es un bloque por mazo mío con sus rivales en lista.
+  const matriz = await page.locator('#partidasMatriz').innerText()
+  check('el bloque es mi mazo', /Dragapult ex/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 90))
+  check('y dentro está el del rival', /Gardevoir ex/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 90))
   check('1-1 son el 50%', /50%/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 90))
   await page.close()
 }
@@ -131,15 +133,22 @@ console.log('\n── 3. Las apuntadas a mano se suman a las de torneo ──')
   })
   const resumen = await page.locator('#partidasResumen').innerText()
   check('ahora son 3 partidas', /\b3\b/.test(resumen), resumen.replace(/\n/g, ' | '))
-  const matriz = await page.locator('.partidas-matriz').innerText()
-  check('con su columna nueva', /Charizard/.test(matriz))
+  const matriz = await page.locator('#partidasMatriz').innerText()
+  check('con su enfrentamiento nuevo', /Charizard/.test(matriz))
   // La clave es la misma («d:dragapult ex»), así que la apuntada a mano
-  // tiene que caer en la MISMA fila, no abrir una segunda.
-  const filas = await page.locator('.partidas-matriz tbody tr').count()
-  check('y en la MISMA fila, no en una nueva', filas === 1, String(filas))
+  // tiene que caer en el MISMO bloque, no abrir un segundo.
+  const bloques = await page.locator('.partidas-mazo-bloque').count()
+  check('y en el MISMO bloque, no en uno nuevo', bloques === 1, String(bloques))
   const lista = await page.locator('#partidasLista').innerText()
   check('sale en «las últimas» con su sitio', /TCG Live/.test(lista))
-  check('y las de torneo enlazan al torneo', (await page.locator('#partidasLista a[href*="/torneo?slug="]').count()) > 0)
+  // Las rondas de un torneo NO salen aquí desde la tanda 236: viven en
+  // su tarjeta, y es allí donde está el enlace al torneo.
+  check('la lista de sueltas no se trae las de torneo', !/Copa/.test(lista), lista.slice(0, 80))
+  await page.click('[data-vista="torneos"]')
+  await page.waitForTimeout(300)
+  await page.locator('[data-abrir-torneo]').first().click()
+  await page.waitForTimeout(300)
+  check('y el torneo enlaza a su ficha', (await page.locator('#partidasTorneos a[href*="/torneo?slug="]').count()) > 0)
   await page.close()
 }
 
@@ -165,14 +174,18 @@ const elegirMazo = async (page, caja, texto) => {
 console.log('\n── 5. Apuntar una a mano, eligiendo de la lista ──')
 {
   const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('[data-vista="sueltas"]')
+  await page.waitForTimeout(250)
   await page.click('#btnApuntarPartida')
   await elegirMazo(page, 'selMio1', 'dragapult')
   await elegirMazo(page, 'selRival1', 'raging')
   await page.selectOption('#partidaResultado', 'loss')
   await page.click('#btnGuardarPartida')
   await page.waitForTimeout(1200)
-  const matriz = await page.locator('.partidas-matriz').innerText()
-  check('aparece en la matriz al momento', /Raging Bolt/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 100))
+  await page.click('[data-vista="stats"]')
+  await page.waitForTimeout(300)
+  const matriz = await page.locator('#partidasMatriz').innerText()
+  check('aparece en los enfrentamientos al momento', /Raging Bolt/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 100))
   const escrito = await page.evaluate(() => (window.__TABLAS__.match_log || []).at(-1))
   check('se guarda con la clave, no solo el nombre', escrito?.mi_mazo === 'd:dragapult', JSON.stringify(escrito?.mi_mazo))
   check('y con el resultado que se eligió', escrito?.resultado === 'loss', escrito?.resultado)
@@ -187,6 +200,8 @@ console.log('\n── 5. Apuntar una a mano, eligiendo de la lista ──')
 console.log('\n── 6. Un mazo de DOS Pokémon ──')
 {
   const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('[data-vista="sueltas"]')
+  await page.waitForTimeout(250)
   await page.click('#btnApuntarPartida')
   await elegirMazo(page, 'selMio1', 'dragapult')
   await elegirMazo(page, 'selMio2', 'dusknoir')
@@ -202,6 +217,8 @@ console.log('\n── 6. Un mazo de DOS Pokémon ──')
 console.log('\n── 7. Lo que no se llegó a jugar ──')
 {
   const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('[data-vista="sueltas"]')
+  await page.waitForTimeout(250)
   await page.click('#btnApuntarPartida')
   await elegirMazo(page, 'selMio1', 'dragapult')
   await page.click('[data-tipo="bye"]')
@@ -217,14 +234,18 @@ console.log('\n── 7. Lo que no se llegó a jugar ──')
 
   // Y lo importante: un bye NO puede ensuciar la matriz. Si contara,
   // inflaría el porcentaje de un enfrentamiento que no se jugó.
-  const columnas = await page.locator('.partidas-matriz thead th').allInnerTexts()
-  check('y NO entra en la matriz', !columnas.some((c) => /Bye/i.test(c)), JSON.stringify(columnas))
+  await page.click('[data-vista="stats"]')
+  await page.waitForTimeout(300)
+  const rivales = await page.locator('.partidas-enf-rival').allInnerTexts()
+  check('y NO entra en los enfrentamientos', !rivales.some((c) => /Bye/i.test(c)), JSON.stringify(rivales))
   await page.close()
 }
 
 console.log('\n── 8. Un ID sí cuenta, como empate ──')
 {
   const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('[data-vista="sueltas"]')
+  await page.waitForTimeout(250)
   await page.click('#btnApuntarPartida')
   await elegirMazo(page, 'selMio1', 'dragapult')
   await elegirMazo(page, 'selRival1', 'gardevoir')
@@ -245,6 +266,8 @@ console.log('\n── 9. Un mazo que se llama por un OBJETO (tanda 234) ──')
   // en la lista de búsqueda». Un arquetipo no siempre se nombra por un
   // Pokémon, y hasta ahora eso no se podía elegir.
   const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('[data-vista="sueltas"]')
+  await page.waitForTimeout(250)
   await page.click('#btnApuntarPartida')
   await page.fill('#selMio1 input', 'hamm')
   await page.waitForTimeout(700)
@@ -254,9 +277,11 @@ console.log('\n── 9. Un mazo que se llama por un OBJETO (tanda 234) ──')
   check('sin repetirla por cada set',
     ops.filter((o) => /Crushing Hammer/.test(o)).length === 1, JSON.stringify(ops))
 
-  // Y se pinta como CARTA, no como sprite: no tienen la misma forma.
-  const clases = await page.locator('#selMio1 .selector-mazo-opcion img').evaluateAll((els) => els.map((e) => e.className))
-  check('con forma de carta', clases.some((c) => /es-carta/.test(c)), JSON.stringify(clases))
+  // Y con su dibujo: el martillo tiene sprite de OBJETO propio, que se
+  // reconoce mejor que una miniatura de carta y además sale al primer
+  // golpe de tecla porque no hay que ir a la base a por él.
+  const fuentes = await page.locator('#selMio1 .selector-mazo-opcion img').evaluateAll((els) => els.map((e) => e.getAttribute('src')))
+  check('y con su dibujo, no con un hueco', fuentes.some((f) => /hammer/i.test(f || '')), JSON.stringify(fuentes))
 
   await page.click('#selMio1 .selector-mazo-opcion')
   await elegirMazo(page, 'selRival1', 'gardevoir')
@@ -273,6 +298,8 @@ console.log('\n── 10. Un Pokémon no sale dos veces ──')
   // Si saliera por las dos, la lista tendría un duplicado por cada set
   // en el que se ha impreso.
   const { page } = await abrir({ semillas: SEMILLA_TORNEO })
+  await page.click('[data-vista="sueltas"]')
+  await page.waitForTimeout(250)
   await page.click('#btnApuntarPartida')
   await page.fill('#selMio1 input', 'dragapult')
   await page.waitForTimeout(700)
@@ -301,6 +328,8 @@ console.log('\n── 11. Una búsqueda vieja no pisa a la nueva ──')
   }, SEMILLA_TORNEO)
   await page.goto(`${BASE}/mis-partidas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
+  await page.click('[data-vista="sueltas"]')
+  await page.waitForTimeout(250)
   await page.click('#btnApuntarPartida')
 
   await page.fill('#selMio1 input', 'hamm')
