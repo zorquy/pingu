@@ -152,6 +152,36 @@ function activos() {
   return inscripciones.filter((i) => i.status === 'active').length
 }
 
+// ── Compartir el torneo (pedido de Ibai, 2026-09-02) ──
+// Se engancha UNA vez desde init(): la cabecera no se repinta, así que
+// no hay listeners duplicados. En móvil sale la hoja de compartir del
+// sistema; donde no la haya, el enlace va al portapapeles. La vista
+// previa del enlace ya la pone meta-social.js al compartirse.
+function montarCompartir() {
+  const boton = $('btnCompartirTorneo')
+  if (!boton) return
+  boton.innerHTML = `${icons.share(14)} Compartir`
+  boton.addEventListener('click', async () => {
+    const url = new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, window.location.origin).href
+    if (navigator.share) {
+      // Cancelar la hoja del sistema llega como excepción: no es un
+      // fallo y no hay nada que avisar.
+      try {
+        await navigator.share({ title: `${torneo.name} — PokeDoc`, url })
+      } catch {}
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      showToast('Enlace del torneo copiado. Pégalo donde quieras.', 'success')
+    } catch {
+      // Sin portapapeles (permiso denegado, http plano): al menos que
+      // el enlace se vea para copiarlo a mano.
+      window.prompt('Copia el enlace del torneo:', url)
+    }
+  })
+}
+
 function pintarFicha() {
   const estado = ESTADOS[torneo.status] || ESTADOS.draft
   document.title = `${torneo.name} — PokeDoc`
@@ -1506,6 +1536,7 @@ async function init() {
   }
 
   document.getElementById('torneoContenido').style.display = ''
+  montarCompartir()
   await recargar()
   arrancarSondeoFicha()
 }

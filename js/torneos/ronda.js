@@ -433,6 +433,58 @@ async function terminarTorneo(mensaje) {
   showToast(mensaje, 'success')
 }
 
+// ── Deshacer la última ronda (pedido de Ibai, 2026-09-02) ──
+//
+// Para cuando se generó la siguiente ronda sin querer o hay que
+// corregir algo de la actual: borra la ronda ENTERA. Es UN solo DELETE
+// a `rounds` — mesas, reportes, resultados, historial de cruces y
+// chats de mesa cuelgan con `on delete cascade`, y `current_round_id`
+// es `on delete set null`: la base lo limpia todo o no toca nada.
+//
+// Solo la ÚLTIMA ronda a propósito: quitar una del medio dejaría los
+// pareos de las siguientes apoyados en resultados que ya no existen.
+// Lo que NO deshace: los avisos ya enviados (push/correo de «tu ronda
+// ha empezado») y los retirados de la R1 por los dos pasos, que siguen
+// retirados — no se distinguen de quien se retiró él solo.
+async function deshacerRonda() {
+  const ultima = rondas[rondas.length - 1]
+  if (!ultima) return
+  const mesas = partidas.filter((m) => m.round_id === ultima.id)
+  const conResultado = mesas.filter((m) => TERMINALES.has(m.status)).length
+  const aviso =
+    ultima.status === 'pending'
+      ? `Vas a deshacer los pareos de la ronda ${ultima.round_number}. Podrás volver a generarlos cuando quieras.`
+      : `Vas a borrar la ronda ${ultima.round_number} ENTERA: sus ${mesas.length} mesas${
+          conResultado ? ` (${conResultado} con resultado)` : ''
+        } y sus reportes se pierden y no se pueden recuperar. ¿Seguro?`
+  if (!window.confirm(aviso)) return
+
+  // El .select() no es un adorno: un DELETE que la RLS rechaza NO da
+  // error — vuelve sin filas y sin tocar nada (aviso de CLAUDE.md).
+  // Así se distingue «deshecho» de «la base no ha borrado nada».
+  const { data, error } = await supabase.from('rounds').delete().eq('id', ultima.id).select('id')
+  if (error || !data?.length) {
+    showToast('No se ha podido deshacer la ronda: ' + (error?.message || 'la base no la ha borrado'), 'error')
+    return
+  }
+
+  // Deshacer la R1 devuelve el torneo a «inscripciones cerradas», y si
+  // la ronda llegó a iniciarse, des-sella las decklists (las selló
+  // iniciarRonda; sin R1 en marcha la gente debe poder retocarlas).
+  if (rondas.length === 1) {
+    if (ultima.started_at) {
+      await supabase.from('tournament_decklists').update({ locked_at: null }).eq('tournament_id', ctx.torneo.id)
+    }
+    await supabase.from('tournaments').update({ status: 'registration_closed' }).eq('id', ctx.torneo.id)
+    ctx.torneo.status = 'registration_closed'
+  }
+  showToast(
+    ultima.status === 'pending' ? `Pareos de la ronda ${ultima.round_number} deshechos.` : `Ronda ${ultima.round_number} borrada.`,
+    'success'
+  )
+  await ctx.recargarFicha()
+}
+
 // ── Top cut: siembra al cerrar la última suiza y avance «fold» (SPEC §7) ──
 
 async function crearRondaDeCut(pareos) {
@@ -639,12 +691,27 @@ async function resolverPartida(partida, resultado) {
     .from('tournament_matches')
     .update({ status: resultado.startsWith('forfeit') ? resultado : 'finished', finished_at: ahora() })
     .eq('id', partida.id)
-  await supabase.from('match_results').insert({
-    match_id: partida.id,
-    result: resultado,
-    winner_id: lado === 'a' ? partida.player_a_id : lado === 'b' ? partida.player_b_id : null,
-    resolved_by: miId(),
-  })
+  // upsert y no insert: CORREGIR una mesa ya resuelta pisa su fila de
+  // match_results (match_id es UNIQUE) en vez de chocar con ella. Para
+  // una mesa nueva se comporta como el insert de siempre.
+  await supabase.from('match_results').upsert(
+    {
+      match_id: partida.id,
+      result: resultado,
+      winner_id: lado === 'a' ? partida.player_a_id : lado === 'b' ? partida.player_b_id : null,
+      resolved_by: miId(),
+    },
+    { onConflict: 'match_id' }
+  )
+  // Si el torneo ya estaba terminado, el podio congelado deja de valer
+  // con el resultado nuevo: se descongela y sellarResultado lo vuelve a
+  // escribir recalculado en la próxima carga. El anuncio del foro ya
+  // publicado no se retira — eso queda en manos del organizador.
+  if (ctx.torneo.status === 'finished' && TERMINALES.has(partida.status)) {
+    await supabase.from('tournaments').update({ champion_id: null, podium: null }).eq('id', ctx.torneo.id)
+    ctx.torneo.champion_id = null
+    ctx.torneo.podium = null
+  }
   showToast('Mesa resuelta.', 'success')
   await ctx.recargarFicha()
 }
@@ -814,6 +881,14 @@ function pintarMesas(ronda) {
   const mesas = partidas.filter((m) => m.round_id === ronda.id).sort((a, b) => a.table_number - b.table_number)
   if (!mesas.length) return '<p class="subtext">Sin mesas todavía.</p>'
   const puedeResolver = (ctx.perfil?.is_admin || ctx.esJuez) && ronda.status === 'active'
+  // Corregir (pedido de Ibai, 2026-09-02): el organizador puede CAMBIAR
+  // el resultado de una mesa ya cerrada, pero solo en la ÚLTIMA ronda —
+  // tocar una anterior dejaría los pareos posteriores apoyados en
+  // resultados que ya no cuentan (para eso está deshacerRonda). Solo el
+  // admin, no los jueces: pisar un resultado firme es del organizador.
+  const esUltima = rondas.length > 0 && ronda.id === rondas[rondas.length - 1].id
+  const puedeCorregir = Boolean(ctx.perfil?.is_admin) && esUltima && ctx.torneo.status !== 'cancelled'
+  const conAcciones = puedeResolver || puedeCorregir
   const filas = mesas
     .map((m) => {
       const terminal = TERMINALES.has(m.status)
@@ -822,12 +897,14 @@ function pintarMesas(ronda) {
       const jugadorB = m.player_b_id
         ? `<span class="torneo-mesa-jugador">${escapeHtml(nombreDe(m.player_b_id))}</span>${chapaDe(m.player_b_id)}${listoB}`
         : '<span class="torneo-mesa-bye">BYE</span>'
-      // El organizador (o un juez) puede resolver a mano cualquier mesa viva.
+      // El organizador (o un juez) puede resolver a mano cualquier mesa
+      // viva; y el organizador, CORREGIR una ya cerrada de la última
+      // ronda (un bye no: no hay resultado que cambiar, solo jugador).
       const resolver =
-        puedeResolver && !terminal
+        (puedeResolver && !terminal) || (puedeCorregir && terminal && m.status !== 'bye')
           ? `<span class="torneo-mesa-resolver">
               <select data-resolver="${m.id}">
-                <option value="">Resolver…</option>
+                <option value="">${terminal ? 'Corregir…' : 'Resolver…'}</option>
                 <option value="a_wins">Gana ${escapeHtml(nombreDe(m.player_a_id))}</option>
                 <option value="b_wins">Gana ${escapeHtml(nombreDe(m.player_b_id))}</option>
                 ${ronda.phase === 'top_cut' ? '' : '<option value="draw">Empate</option>'}
@@ -841,7 +918,7 @@ function pintarMesas(ronda) {
       // (la pantalla /juez/disputa del original, aquí bajo la mesa).
       const enfrentados =
         m.status === 'disputed'
-          ? `<tr><td></td><td colspan="${puedeResolver ? 4 : 3}"><div class="torneo-disputa-reportes">${reportes
+          ? `<tr><td></td><td colspan="${conAcciones ? 4 : 3}"><div class="torneo-disputa-reportes">${reportes
               .filter((r) => r.match_id === m.id)
               .map(
                 (r) =>
@@ -858,14 +935,14 @@ function pintarMesas(ronda) {
         <td data-etiqueta="Jugador A"><span class="torneo-mesa-jugador">${escapeHtml(nombreDe(m.player_a_id))}</span>${chapaDe(m.player_a_id)}${listoA}</td>
         <td data-etiqueta="Jugador B">${jugadorB}</td>
         <td data-etiqueta="Resultado">${chapaDeMesa(m)}</td>
-        ${puedeResolver ? `<td data-etiqueta="Resolver">${resolver}</td>` : ''}
+        ${conAcciones ? `<td data-etiqueta="Resolver">${resolver}</td>` : ''}
       </tr>${enfrentados}`
     })
     .join('')
   return `
   <div class="torneo-mesas-tabla">
     <table>
-      <thead><tr><th>Mesa</th><th>Jugador A</th><th>Jugador B</th><th>Resultado</th>${puedeResolver ? '<th></th>' : ''}</tr></thead>
+      <thead><tr><th>Mesa</th><th>Jugador A</th><th>Jugador B</th><th>Resultado</th>${conAcciones ? '<th></th>' : ''}</tr></thead>
       <tbody>${filas}</tbody>
     </table>
   </div>`
@@ -889,6 +966,29 @@ function pintarRondas() {
       admin = `<button class="btn-primary" id="btnIniciarRonda">Iniciar ronda ${actual.round_number}</button>`
     } else if (actual?.status === 'active') {
       admin = `<button class="btn-secondary" id="btnCerrarRonda">Cerrar ronda ${actual.round_number}</button>`
+    } else if (!actual && rondas.length && ctx.torneo.status === 'in_progress') {
+      // Todas las rondas cerradas y sin camino adelante: el estado en
+      // el que te deja DESHACER una ronda del cut (o la siembra) tras
+      // corregir algo. El ciclo normal nunca pasa por aquí — cerrar la
+      // última suiza siembra el cut en el mismo acto —, así que estos
+      // botones son el «continuar» de esa vuelta atrás, con los mismos
+      // pasos que dio cerrarRonda en su día.
+      const ultima = rondas[rondas.length - 1]
+      if (ultima.phase === 'top_cut') {
+        admin = `<button class="btn-primary" id="btnContinuarBracket">Continuar el bracket</button>`
+      } else if (ctx.torneo.top_cut_size > 0) {
+        admin = `<button class="btn-primary" id="btnSembrarCut">Sembrar el top cut</button>`
+      } else {
+        admin = `<button class="btn-primary" id="btnTerminarTorneo">Terminar el torneo</button>`
+      }
+    }
+    // Deshacer la última ronda (pedido de Ibai, 2026-09-02): al lado
+    // del paso normal del ciclo, siempre que haya algo que deshacer.
+    if (rondas.length) {
+      const ultima = rondas[rondas.length - 1]
+      admin += `<button class="btn-secondary torneo-deshacer" id="btnDeshacerRonda">Deshacer ${
+        ultima.status === 'pending' ? `los pareos (R${ultima.round_number})` : `la ronda ${ultima.round_number}`
+      }</button>`
     }
   }
   // El reloj protagonista, como la pantalla «ronda actual» del original:
@@ -920,6 +1020,24 @@ function pintarRondas() {
   if ($('btnGenerarPareos')) $('btnGenerarPareos').addEventListener('click', generarPareos)
   if ($('btnIniciarRonda')) $('btnIniciarRonda').addEventListener('click', () => iniciarRonda(actual))
   if ($('btnCerrarRonda')) $('btnCerrarRonda').addEventListener('click', () => cerrarRonda(actual))
+  if ($('btnDeshacerRonda')) $('btnDeshacerRonda').addEventListener('click', deshacerRonda)
+  // Los tres «continuar» de la vuelta atrás: repiten el paso que dio
+  // cerrarRonda en su día, ahora con los resultados ya corregidos.
+  if ($('btnContinuarBracket'))
+    $('btnContinuarBracket').addEventListener('click', async () => {
+      await avanzarBracket(rondas[rondas.length - 1])
+      await ctx.recargarFicha()
+    })
+  if ($('btnSembrarCut'))
+    $('btnSembrarCut').addEventListener('click', async () => {
+      await sembrarTopCut()
+      await ctx.recargarFicha()
+    })
+  if ($('btnTerminarTorneo'))
+    $('btnTerminarTorneo').addEventListener('click', async () => {
+      await terminarTorneo('¡Torneo terminado! La clasificación de abajo es la final.')
+      await ctx.recargarFicha()
+    })
 
   if (actual) pintarPareoManual(actual)
   else $('pareoManual').innerHTML = ''
@@ -952,6 +1070,15 @@ function pintarRondas() {
     sel.addEventListener('change', () => {
       if (!sel.value) return
       const partida = partidas.find((m) => m.id === sel.dataset.resolver)
+      // Corregir una mesa ya firme pide confirmación: un select se
+      // cambia con un mal toque y esto pisa un resultado de verdad.
+      if (
+        TERMINALES.has(partida.status) &&
+        !window.confirm(`Vas a CAMBIAR el resultado ya cerrado de la mesa ${partida.table_number}. ¿Seguro?`)
+      ) {
+        sel.value = ''
+        return
+      }
       resolverPartida(partida, sel.value)
     })
   })

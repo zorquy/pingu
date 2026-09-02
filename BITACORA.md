@@ -12,6 +12,42 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-02 14:55 — IBAI-Claude (compartir + deshacer rondas)
+**Hecho**: dos pedidos de Ibai. (1) COMPARTIR: botón en la cabecera de
+la ficha del torneo, para todo el mundo (sin cuenta incluso): hoja de
+compartir del sistema donde la haya, y si no, el enlace al
+portapapeles. (2) DESHACER Y CORREGIR: «Deshacer la última ronda» para
+el organizador — borra la ronda entera con UN delete a `rounds` (mesas,
+reportes, resultados, historial de cruces y chats caen por `on delete
+cascade`; `current_round_id` es `set null`); con confirmación, y el
+`.select()` del delete distingue «hecho» de «la RLS no ha borrado
+nada». Deshacer la R1 devuelve el torneo a inscripciones cerradas y
+DES-SELLA las decklists. Además el organizador puede CORREGIR el
+resultado de una mesa ya cerrada de la ÚLTIMA ronda (select
+«Corregir…», con confirmación; `match_results` pasa a upsert porque
+match_id es UNIQUE); en un torneo terminado descongela champion_id y
+podium para que sellarResultado los recalcule. Y los botones de
+«continuar» del limbo que deja la vuelta atrás (todas las rondas
+cerradas, torneo en juego): Continuar el bracket / Sembrar el top cut /
+Terminar el torneo — repiten el paso que dio cerrarRonda en su día.
+LÍMITES asumidos: los avisos ya enviados no se des-envían; los
+retirados de la R1 por los dos pasos siguen retirados (no se
+distinguen de una baja voluntaria); el anuncio del podio en el foro no
+se retira al corregir; deshacer no se ofrece en un torneo terminado
+(ahí se corrige la mesa, que recalcula el podio solo).
+**Ficheros**: torneo.html, css/torneos.css, js/torneos/torneo.js,
+js/torneos/ronda.js. Fuera del repo: pruebas\verificar-deshacer.mjs
+(NUEVA, 16 en verde sobre la demo con tres escenarios sembrados:
+deshacer pareos, corregir y re-parear; terminar sin corte; sembrar el
+cut).
+**En curso / pendiente**: pedir a PINGU pasada de suite (ronda.js ha
+cambiado en pintarMesas/resolverPartida — si el e2e cuenta columnas de
+la tabla de mesas, ahora hay columna de acciones también para el admin
+con ronda cerrada). El stub local no emula cascadas: si la suite
+canónica prueba deshacerRonda contra el doble, las mesas huérfanas se
+quedan en su base en memoria (en PostgreSQL de verdad caen, esquema
+comprobado).
+
 ## 2026-09-02 14:05 — IBAI-Claude (reabrir inscripciones)
 **Hecho**: pedido de Ibai — cerrar inscripciones era un viaje sin
 vuelta (con el torneo en `registration_closed` la ficha no pintaba
