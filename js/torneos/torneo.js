@@ -1519,15 +1519,21 @@ async function recargar() {
 
 async function init() {
   session = await getSession()
-  perfil = session ? await getProfile(session.user.id) : null
-  soloMirando = !session
 
-  // Aquí NO se comprueba is_admin. Quien decide si este torneo se puede
-  // ver es la POLÍTICA de la base: mientras la sección esté cerrada, la
-  // consulta vuelve vacía para todo el que no sea admin y se acaba en el
-  // mismo sitio que un torneo que no existe. Un `if` en el navegador no
-  // protegería nada y además impediría que un enlace compartido enseñe
-  // el torneo el día que la sección se abra.
+  // Solo con cuenta (pedido de Ibai, 2026-09-02): quien llega por un
+  // enlace compartido sin sesión va a entrar Y VUELVE AQUÍ tras el
+  // login (`volver`, tanda 229) — la pared amable. Los datos los cierra
+  // de verdad la política de la base (torneos-solo-cuentas); esto solo
+  // evita enseñar una ficha vacía. Aquí sigue SIN comprobarse is_admin:
+  // la sección es de cualquier cuenta desde la tanda 252.
+  if (!session) {
+    const volver = window.location.pathname + window.location.search
+    window.location.href = '/auth.html?volver=' + encodeURIComponent(volver)
+    return
+  }
+  perfil = await getProfile(session.user.id)
+  soloMirando = false
+
   const slug = new URLSearchParams(window.location.search).get('slug')
   torneo = slug ? await cargarTorneo(slug) : null
   if (!torneo) {

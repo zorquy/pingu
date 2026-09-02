@@ -12,6 +12,36 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-02 15:30 — IBAI-Claude (Jugar solo con cuenta)
+**Hecho**: pedido de Ibai — la sección «Jugar» deja de verse sin
+cuenta (sigue siendo de CUALQUIER cuenta: esto NO devuelve el candado
+de admins de antes de la tanda 252). Cliente: /torneos y la ficha
+redirigen sin sesión a /auth.html con `volver` (tras entrar vuelves al
+torneo — el mecanismo de la tanda 229); el enlace «Jugar» del menú ya
+solo salía con sesión, sin cambios ahí. torneos.html recupera su
+`noindex` (a un buscador solo le saldría el login). Base:
+supabase-migration-torneos-solo-cuentas.sql (NUEVA) cierra las
+lecturas anónimas que abrió torneos-publico — tournaments, rounds,
+mesas, resultados, inscripciones (con el revoke del permiso por
+columnas de `anon`) y la rama pública de decklists_ver. CLAUDE.md
+puesto al día. EFECTOS asumidos: la vista previa personalizada de un
+enlace de torneo pasa a la genérica cuando la migración corra
+(meta-social usa la clave publicable y degrada solo, está escrito para
+eso); el palmarés en un perfil visto SIN sesión saldrá vacío por la
+misma RLS.
+**Ficheros**: js/torneos/torneos.js, js/torneos/torneo.js,
+torneos.html, CLAUDE.md, supabase-migration-torneos-solo-cuentas.sql
+(NUEVA). Fuera del repo: pruebas\verificar-solo-cuentas.mjs (NUEVA, 8
+en verde: sin sesión redirige con volver; con cuenta normal todo
+sigue).
+**En curso / pendiente**: PINGU tiene que VALIDAR contra PostgreSQL y
+EJECUTAR supabase-migration-torneos-solo-cuentas.sql (en esta máquina
+no hay psql ni docker; la sintaxis sigue el patrón de torneos-publico
+y las funciones torneos_soy_admin/juez ya existen). Hasta que corra,
+la redirección del cliente ya da el comportamiento visible; los datos
+siguen legibles por API para un anónimo. Ejecutarla DESPUÉS de
+torneos-publico.sql si esa aún no ha corrido.
+
 ## 2026-09-02 14:55 — IBAI-Claude (compartir + deshacer rondas)
 **Hecho**: dos pedidos de Ibai. (1) COMPARTIR: botón en la cabecera de
 la ficha del torneo, para todo el mundo (sin cuenta incluso): hoja de
