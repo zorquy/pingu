@@ -234,6 +234,14 @@ function pintarFicha() {
   } else if (torneo.status === 'registration_open') {
     acciones.innerHTML = '<button class="btn-secondary" id="btnCerrarInscripciones">Cerrar inscripciones</button>'
     $('btnCerrarInscripciones').addEventListener('click', cerrarInscripciones)
+  } else if (torneo.status === 'registration_closed') {
+    // Cerrar no es un viaje sin vuelta (pedido de Ibai, 2026-09-02):
+    // abrir y cerrar se alternan las veces que haga falta — cerrar solo
+    // deja de admitir gente, no genera nada. El único punto sin retorno
+    // de verdad es la R1: con pareos ya generados no hay deshacer, y un
+    // recién llegado no entraría en ellos (lo comprueba el manejador).
+    acciones.innerHTML = '<button class="btn-secondary" id="btnReabrirInscripciones">Reabrir inscripciones</button>'
+    $('btnReabrirInscripciones').addEventListener('click', reabrirInscripciones)
   } else {
     acciones.innerHTML = ''
   }
@@ -843,6 +851,24 @@ async function cambiarEstado(nuevo, mensaje) {
   torneo.status = nuevo
   showToast(mensaje, 'success')
   pintarTodo()
+}
+
+// ── Reabrir inscripciones ──
+// La comprobación de rondas va AL PULSAR y contra la base, no con lo
+// que la ficha tenga en memoria: las rondas las carga ronda.js y este
+// módulo no las ve. Una consulta por clic no le duele a nadie, y evita
+// reabrir un torneo cuya R1 se acaba de parear desde otra pestaña.
+async function reabrirInscripciones() {
+  const { data, error } = await supabase.from('rounds').select('id').eq('tournament_id', torneo.id).limit(1)
+  if (error) {
+    avisarError(error, 'No se ha podido comprobar el torneo')
+    return
+  }
+  if (data?.length) {
+    showToast('La ronda 1 ya está pareada: con pareos hechos no se puede reabrir.', 'error')
+    return
+  }
+  await cambiarEstado('registration_open', 'Inscripciones reabiertas. Puedes volver a cerrarlas cuando quieras.')
 }
 
 // ── Cerrar inscripciones con las rondas a la vista (tanda 228) ──

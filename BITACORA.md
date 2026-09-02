@@ -12,6 +12,27 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-02 14:05 — IBAI-Claude (reabrir inscripciones)
+**Hecho**: pedido de Ibai — cerrar inscripciones era un viaje sin
+vuelta (con el torneo en `registration_closed` la ficha no pintaba
+ningún botón de estado). Ahora abrir y cerrar se alternan las veces que
+haga falta: botón «Reabrir inscripciones» que vuelve a
+`registration_open`. El ÚNICO candado es la R1 ya pareada: no hay
+deshacer pareos y un recién llegado no entraría en ellos, así que el
+manejador consulta `rounds` AL PULSAR (este módulo no las tiene en
+memoria, las carga ronda.js) y avisa en vez de reabrir. Sin tocar la
+base: no hay restricción de transición en las políticas y el RPC de
+inscribirse ya exige `registration_open`. Reabrir NO reanuncia nada
+(`registration_notified_at` queda puesto del primer anuncio, a
+propósito).
+**Ficheros**: js/torneos/torneo.js. Fuera del repo:
+pruebas\verificar-reabrir.mjs (NUEVA, 9 en verde sobre la demo: dos
+vueltas completas de cerrar/reabrir y el bloqueo con una R1 plantada
+en la base falsa).
+**En curso / pendiente**: nada a medias. Para PINGU: si la suite
+canónica cubre el ciclo de estados del torneo, añadid el vaivén
+cerrar→reabrir (verificar-reabrir.mjs sirve de patrón).
+
 ## 2026-09-02 13:35 — IBAI-Claude (remates de la apertura)
 **Hecho**: cuatro peticiones de Ibai. (1) AUTH: el título del
 formulario salía pegado a su subtexto (el reset global lo deja a margen
