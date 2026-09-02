@@ -12,6 +12,34 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-02 — PINGU-Claude (tanda 251 — /mis-partidas de arriba abajo)
+**Hecho**: tres peticiones de PINGU sobre /mis-partidas. (1) CERRAR y
+REABRIR un torneo apuntado (columna `cerrado_el`): cerrar no toca datos,
+solo deja de pedir rondas. (2) EDITAR TODO — cada ronda y el torneo
+entero, mazo incluido. El mazo va denormalizado en cada ronda, así que
+cambiarlo son dos escrituras: lo hace un DISPARADOR de la base, no el
+cliente, para que vayan en la misma transacción. (3) Los
+ENFRENTAMIENTOS dejan de ser una tabla con scroll lateral y pasan a ser
+un bloque por mazo mío con sus rivales en lista, con barra, récord y
+porcentaje. Extras: buscador + estado + corte en torneos, las sueltas ya
+no se cortan a 30 en silencio, y editar una suelta.
+**Ficheros**: js/mis-partidas.js, js/matriz-partidas.js,
+js/torneos/selector-mazo.js, css/partidas.css, mis-partidas.html,
+supabase-migration-partidas-cerrar.sql (NUEVO),
+supabase-migration-partidas-editar.sql (NUEVO), SCHEMA.md. Fuera del
+repo: test-tanda-251.mjs (NUEVA), rigor-tanda-251.py (NUEVO),
+test-partidas-pagina.mjs (arregladas 3 comprobaciones obsoletas),
+stub-supabase.js (tabla match_log_torneos), vista-stats.mjs (NUEVO).
+**En curso / pendiente**: PINGU tiene que EJECUTAR las dos migraciones
+nuevas. Verificado: 61 comprobaciones en verde y las 20 mutaciones del
+rigor pilladas; las dos migraciones validadas contra PostgreSQL 16 en
+sus dos ramas. OJO: tres comprobaciones de test-partidas-pagina
+llevaban ROTAS desde la tanda 236 (la página tiene pestañas y el panel
+de sueltas no está a la vista al entrar) y nadie lo había notado —
+conviene pasar la suite entera de vez en cuando, no solo la de la tanda.
+SIGUE EN PIE lo del torneo: NO ejecutar torneos-publico.sql hasta
+enganchar las RPC, o nadie que no sea admin podrá apuntarse ni reportar.
+
 ## 2026-09-02 — PINGU-Claude (tanda 250 — que PostgREST se entere)
 **Hecho**: PINGU no podía guardar una ronda en /mis-partidas: «Could not
 find the 'tipo' column of 'match_log' in the schema cache». La migración

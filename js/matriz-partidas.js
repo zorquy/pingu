@@ -125,3 +125,72 @@ export function resumen(matriz, minimo = 3) {
     peor: enfrentamientos.length > 1 ? enfrentamientos[enfrentamientos.length - 1] : null,
   }
 }
+
+// Los enfrentamientos de UNO de mis mazos, en lista y ordenados por lo
+// que más me cruzo (tanda 251).
+//
+// ── POR QUÉ SE DEJÓ LA TABLA ──
+//
+// La matriz de verdad es de dos dimensiones (mi mazo × mazo rival) y se
+// pintaba como tal: una columna por rival. Con cuatro rivales se leía
+// bien; con quince era una tabla que había que ARRASTRAR DE LADO, y
+// PINGU lo dijo enseguida — «se ve raro con un scroll lateral».
+//
+// Una tabla ancha no se arregla estrechándola: se arregla no siendo una
+// tabla. Cada mazo mío pasa a ser un bloque con SU lista de rivales, y
+// la segunda dimensión desaparece porque ya la lleva el título del
+// bloque. Se lee de arriba abajo, que es como se lee todo lo demás.
+//
+// Ordenados por partidas jugadas y no por porcentaje: lo que más te
+// cruzas es lo que más te importa preparar, aunque se te dé bien.
+export function enfrentamientosDe(fila, columnas = []) {
+  const nombres = new Map((columnas || []).map((c) => [c.clave, c.nombre]))
+  return [...(fila?.contra || new Map()).entries()]
+    .map(([clave, casilla]) => ({
+      clave,
+      nombre: nombres.get(clave) || clave,
+      casilla,
+      ratio: porcentaje(casilla),
+    }))
+    .sort(
+      (a, b) =>
+        b.casilla.total - a.casilla.total ||
+        (b.ratio ?? 0) - (a.ratio ?? 0) ||
+        String(a.nombre).localeCompare(String(b.nombre))
+    )
+}
+
+// ── El filtro de la pestaña de torneos (tanda 251) ──
+//
+// PINGU, con su primer torneo apuntado: «debería haber algún filtro,
+// para que según vaya metiendo partidas no sea un scroll infinito».
+//
+// Busca en el NOMBRE y en el DÓNDE, que es por lo que uno reconoce su
+// torneo («la liga del jueves», «el de Sevilla»). Sin tildes y sin
+// mayúsculas: quien busca «cadiz» tiene que encontrar «Cádiz».
+//
+// Va aquí y no en mis-partidas.js porque mis-partidas.js toca el DOM al
+// cargarse y no se puede abrir en Node.
+export function filtrarTorneos(torneos, texto = '', estado = '') {
+  const q = String(texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+
+  return (torneos || []).filter((t) => {
+    // Los de PokeDoc no se cierran a mano —los cierra su propio torneo—
+    // así que no entran ni en «sin cerrar» ni en «cerrados»: filtrar por
+    // un estado que no tienen los escondería sin explicación.
+    if (estado === 'abiertos' && (!t.aMano || t.cerrado)) return false
+    if (estado === 'cerrados' && (!t.aMano || !t.cerrado)) return false
+    if (!q) return true
+    const donde = [t.nombre, t.donde]
+      .filter(Boolean)
+      .join(' ')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+    return donde.includes(q)
+  })
+}

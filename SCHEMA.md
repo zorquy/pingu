@@ -12354,3 +12354,69 @@ que compara las TRES listas de tipos —la UI del perfil, la de la baja de
 un clic y la de textos— porque si una se queda atrás no se nota hasta que
 alguien se da de baja: un tipo que `baja-correo` no reconoce apaga TODOS
 los correos de esa persona.
+
+## Tanda 251 — /mis-partidas: cerrar, editar todo y quitar el scroll lateral (sept. 2026)
+
+PINGU, tras apuntar su primer torneo a mano, en tres tandas de peticiones.
+
+### Cerrar y reabrir un torneo apuntado
+
+`match_log_torneos.cerrado_el` (NULL = abierto), en
+`supabase-migration-partidas-cerrar.sql`. Una FECHA y no un booleano: dice
+además cuándo se cerró, y ampliar un booleano pide otra migración.
+
+Cerrar **no cambia ningún dato**: solo deja de ofrecer «+ Añadir ronda» y
+los botones de editar. Por eso reabrir es gratis y no pide confirmación —
+no se pierde nada en ninguna de las dos direcciones. Editar una ronda solo
+se ofrece con el torneo abierto, que es lo que le da sentido a «Reabrir».
+
+### Editar el torneo entero, y el disparador que lo hace seguro
+
+El mazo del torneo va DENORMALIZADO en cada ronda (se copia al guardarla).
+Eso convierte «cambiar el mazo» en dos escrituras, y si solo se hace la
+primera **el histórico miente sin avisar**: la tarjeta dice Gardevoir y la
+matriz sigue contando esas rondas como Dragapult.
+
+`supabase-migration-partidas-editar.sql` pone un disparador `after update`
+en `match_log_torneos` que arrastra a sus rondas el mazo, su nombre, el
+nombre del torneo (que en la ronda vive en `donde`) y la fecha. **Un
+disparador no se puede olvidar**: las dos escrituras van en la misma
+transacción. Con dos peticiones desde el navegador, fallar la segunda
+dejaría el histórico a medias.
+
+`is distinct from` y no `<>` en la guarda: estas columnas admiten NULL y
+`null <> null` no es cierto sino desconocido, así que con `<>` un cambio
+desde o hacia NULL se colaría sin arrastrar nada. Comprobado.
+
+### Los enfrentamientos, sin tabla
+
+PINGU: «se ve raro con un scroll lateral». Era una tabla de mi mazo ×
+mazo rival con `overflow-x`, y con quince rivales había que arrastrarla.
+
+**Una tabla ancha no se arregla estrechándola: se arregla no siendo una
+tabla.** Cada mazo mío pasa a ser un bloque con SU lista de rivales
+(`enfrentamientosDe` en matriz-partidas.js), ordenados por partidas
+jugadas — lo que más te cruzas es lo que más te toca preparar, aunque se
+te dé bien. Cada fila con su barra proporcional, su récord y su
+porcentaje; la barra se esconde por debajo de 480 px. La segunda
+dimensión no se pierde: la lleva el título del bloque.
+
+### Lo demás
+
+- Editar y borrar una ronda suelta dentro de su torneo (antes, una errata
+  obligaba a borrar el torneo entero). El mazo guardado vuelve ENTERO al
+  primer selector: partirlo otra vez sería adivinar, y así `mazoDe()`
+  reconstruye la misma clave y la partida no se cambia de casilla.
+- `montarSelectorMazo` gana `poner()`, que hacía falta para eso.
+- Buscador (sin tildes), filtro de estado y corte a 8 con «ver N más» en
+  la pestaña de torneos.
+- Las partidas sueltas se cortaban a 30 **en silencio**: ahora el corte se
+  anuncia y se levanta. Y se pueden editar.
+- Un sprite que no cargue se esconde en vez de dejar el icono de imagen
+  rota.
+
+Comprobado con `test-tanda-251.mjs` (61/61) y `rigor-tanda-251.py` (20
+mutaciones, todas pilladas). De paso se arreglaron TRES comprobaciones de
+`test-partidas-pagina` que llevaban rotas desde la tanda 236 sin que nadie
+lo notara: la página tiene pestañas y el panel de sueltas no está a la
+vista al entrar.

@@ -19,7 +19,7 @@ import { escapeHtml, getSession } from './app.js'
 import { showToast } from './toast.js'
 import { arquetipoDeMazo, claveDeArquetipo, claveCanonicaDeMazo, dexesDeNombre } from './torneos/arquetipos.js'
 import { urlDeSprite, spriteDeCarta, spriteDeObjeto } from './torneos/sprites-pokemon.js'
-import { construirMatriz, resumen, porcentaje, miResultado } from './matriz-partidas.js'
+import { construirMatriz, resumen, porcentaje, miResultado, filtrarTorneos, enfrentamientosDe } from './matriz-partidas.js'
 import { montarSelectorMazo } from './torneos/selector-mazo.js'
 
 const $ = (id) => document.getElementById(id)
@@ -205,6 +205,29 @@ function pintarResumen(m) {
     ${linea('Peor enfrentamiento', r.peor)}`
 }
 
+// Los enfrentamientos, en bloques: uno por mazo mío, con su lista de
+// rivales dentro. Sustituye a la tabla ancha que había que arrastrar de
+// lado (ver enfrentamientosDe en matriz-partidas.js).
+//
+// Cada fila lleva una barra proporcional al porcentaje: es lo que hace
+// que se lea de un vistazo sin tener que comparar números. Y el récord
+// al lado, porque un 100% de una partida y un 100% de doce no son lo
+// mismo — la barra sola mentiría.
+function filaEnfrentamientoHtml(e) {
+  const c = e.casilla
+  const pctNum = e.ratio === null ? null : Math.round(e.ratio * 100)
+  const record = `${c.ganadas}-${c.perdidas}${c.empatadas ? `-${c.empatadas}` : ''}`
+  return `
+    <li class="partidas-enf">
+      <span class="partidas-enf-rival">${spritesDeMazoHtml(e.nombre, e.clave)}<span>${escapeHtml(e.nombre)}</span></span>
+      <span class="partidas-enf-barra${claseDeCasilla(c)}" role="img" aria-label="${pctNum ?? 0}% de victorias">
+        <span style="width:${pctNum ?? 0}%"></span>
+      </span>
+      <span class="partidas-enf-record">${record}</span>
+      <span class="partidas-enf-pct">${pctNum === null ? '—' : pctNum + '%'}</span>
+    </li>`
+}
+
 function pintarMatriz(m) {
   const caja = $('partidasMatriz')
   if (!m.filas.length) {
@@ -212,39 +235,42 @@ function pintarMatriz(m) {
       <p class="subtext">Las de los torneos de PokeDoc entran solas cuando el torneo termina. Las de fuera, con «Apuntar una partida».</p></div>`
     return
   }
-  caja.innerHTML = `
-    <div class="partidas-matriz-scroll">
-      <table class="partidas-matriz">
-        <thead><tr><th></th>${m.columnas
-          .map((c) => `<th><span>${escapeHtml(c.nombre)}</span></th>`)
-          .join('')}<th>Total</th></tr></thead>
-        <tbody>${m.filas
-          .map(
-            (f) => `<tr>
-              <th scope="row">${escapeHtml(f.nombre)}</th>
-              ${m.columnas
-                .map((c) => {
-                  const casilla = f.contra.get(c.clave)
-                  if (!casilla) return '<td class="partidas-vacia">·</td>'
-                  return `<td class="${claseDeCasilla(casilla).trim()}" title="${casilla.ganadas}-${casilla.perdidas}${casilla.empatadas ? `-${casilla.empatadas}` : ''} contra ${escapeHtml(c.nombre)}">
-                    <strong>${pct(casilla)}</strong><span class="subtext">${casilla.ganadas}-${casilla.perdidas}${casilla.empatadas ? `-${casilla.empatadas}` : ''}</span></td>`
-                })
-                .join('')}
-              <td class="partidas-total"><strong>${pct(f.total)}</strong><span class="subtext">${f.total.total}</span></td>
-            </tr>`
-          )
-          .join('')}</tbody>
-      </table>
-    </div>`
+  caja.innerHTML = m.filas
+    .map((f) => {
+      const enfrentamientos = enfrentamientosDe(f, m.columnas)
+      const total = f.total
+      const pctTotal = pct(total)
+      return `
+        <section class="partidas-mazo-bloque">
+          <header class="partidas-mazo-cab">
+            <span class="partidas-mazo-nombre">${spritesDeMazoHtml(f.nombre, f.clave)}<strong>${escapeHtml(f.nombre)}</strong></span>
+            <span class="partidas-mazo-total${claseDeCasilla(total)}">
+              ${total.ganadas}-${total.perdidas}${total.empatadas ? `-${total.empatadas}` : ''}
+              <span class="subtext">${pctTotal}</span>
+            </span>
+          </header>
+          <ul class="partidas-enfrentamientos">${enfrentamientos.map(filaEnfrentamientoHtml).join('')}</ul>
+        </section>`
+    })
+    .join('')
 }
 
 const TEXTO_RESULTADO = { win: 'Ganada', loss: 'Perdida', draw: 'Empate' }
 
+// Cuántas partidas sueltas se enseñan de golpe.
+//
+// Antes se cortaba en 30 EN SILENCIO: la 31 y las siguientes
+// desaparecían sin que nada lo dijera, que es peor que un scroll largo
+// — parecía que se habían perdido. Ahora el corte se anuncia y se
+// levanta (tanda 251).
+const SUELTAS_DE_GOLPE = 30
+let verTodasLasSueltas = false
+
 function pintarLista(partidas) {
   const caja = $('partidasLista')
-  const ultimas = [...partidas]
-    .sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))
-    .slice(0, 30)
+  const ordenadas = [...partidas].sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))
+  const ultimas = verTodasLasSueltas ? ordenadas : ordenadas.slice(0, SUELTAS_DE_GOLPE)
+  const ocultas = ordenadas.length - ultimas.length
   if (!ultimas.length) {
     caja.innerHTML = `<p class="subtext">Aquí saldrán tus partidas de escalera y amistosas. Las de un torneo van en su pestaña, cada una con el suyo.</p>`
     return
@@ -260,13 +286,41 @@ function pintarLista(partidas) {
         p.enlace ? `<a href="${escapeHtml(p.enlace)}">${escapeHtml(p.donde)}</a>` : escapeHtml(p.donde)
       }${p.fecha ? ` · ${escapeHtml(p.fecha)}` : ''}</span>
       ${p.notas ? `<span class="subtext partidas-fila-notas">${escapeHtml(p.notas)}</span>` : ''}
-      ${p.deTorneo ? '' : `<button class="btn-outline partidas-borrar" data-borrar="${escapeHtml(p.id)}">Borrar</button>`}
+      ${
+        p.deTorneo
+          ? ''
+          : `<span class="partidas-fila-acciones">
+              <button class="btn-outline" data-editar="${escapeHtml(p.id)}">Editar</button>
+              <button class="btn-outline partidas-borrar" data-borrar="${escapeHtml(p.id)}">Borrar</button>
+            </span>`
+      }
     </div>`
     )
-    .join('')
+    .join('') +
+    (ocultas > 0
+      ? `<button type="button" class="btn-secondary torneo-ver-mas" id="btnVerMasSueltas">Ver ${ocultas} más</button>`
+      : '')
   caja.querySelectorAll('[data-borrar]').forEach((b) =>
-    b.addEventListener('click', () => borrarPartida(b.dataset.borrar))
+    b.addEventListener('click', async () => {
+      if (!b.dataset.armado) {
+        b.dataset.armado = '1'
+        b.textContent = '¿Seguro?'
+        return
+      }
+      if (editando?.id === b.dataset.borrar) cerrarFormPartida()
+      await borrarPartida(b.dataset.borrar)
+    })
   )
+  caja.querySelectorAll('[data-editar]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const partida = todas.find((x) => x.id === b.dataset.editar)
+      if (partida) abrirFormPartida(null, partida)
+    })
+  )
+  caja.querySelector('#btnVerMasSueltas')?.addEventListener('click', () => {
+    verTodasLasSueltas = true
+    repintar()
+  })
 }
 
 // ── Los minisprites de un mazo, como los pinta trainingcourt ──
@@ -287,7 +341,12 @@ function spritesDeMazoHtml(nombre, clave) {
     const objeto = spriteDeObjeto(nombre)
     if (objeto) urls = [objeto]
   }
-  return urls.map((u) => `<img class="partidas-sprite" src="${escapeHtml(u)}" alt="" loading="lazy" />`).join('')
+  // Si un sprite no llega (un mazo que no es un Pokémon, un nombre que
+  // el CDN no conoce), la imagen se ESCONDE. Un icono de imagen rota es
+  // peor que no enseñar nada: parece que la página está estropeada.
+  return urls
+    .map((u) => `<img class="partidas-sprite" src="${escapeHtml(u)}" alt="" loading="lazy" onerror="this.style.display='none'" />`)
+    .join('')
 }
 
 // ── Las tarjetas de «Tus torneos» ──
@@ -328,10 +387,28 @@ const LETRA_RESULTADO = { win: 'V', loss: 'D', draw: 'E' }
 // Qué torneos están desplegados: sobrevive a los repintados.
 const torneosAbiertos = new Set()
 
+// Cuántos torneos se enseñan de golpe, y si ya se ha pedido verlos
+// todos. El corte es lo que evita el scroll sin fin.
+const TORNEOS_DE_GOLPE = 8
+let verTodosLosTorneos = false
+
+// La ronda o partida que se está EDITANDO (null = se está apuntando una
+// nueva). Es lo que decide si al guardar se hace insert o update.
+let editando = null
+
+// Y lo mismo para el TORNEO apuntado: null = se está creando uno nuevo.
+let editandoTorneo = null
+
+// Un torneo CERRADO no pide más rondas: se acabó y la tarjeta deja de
+// ofrecer campos para seguir metiendo (tanda 251). No cambia ningún
+// dato — solo esconde los botones —, y por eso reabrirlo es gratis.
+// Editar una ronda solo se ofrece con el torneo ABIERTO: eso es lo que
+// le da sentido a «Reabrir», que si no sería un botón sin consecuencia.
 function tarjetaTorneoHtml(t) {
   const rondas = t.rondas
     .slice()
     .sort((a, b) => String(a.creada || '').localeCompare(String(b.creada || '')))
+  const editable = t.aMano && !t.cerrado
   const filas = rondas
     .map((p, i) => {
       const res = `<span class="partidas-ronda-res partidas-ronda-${p.resultado}">${LETRA_RESULTADO[p.resultado] || '?'}</span>`
@@ -339,34 +416,50 @@ function tarjetaTorneoHtml(t) {
         p.tipo === 'bye'
           ? '<span class="partidas-ronda-rival">Bye</span>'
           : `<span class="partidas-ronda-rival">${spritesDeMazoHtml(p.rivalNombre, p.rival)}<span>${escapeHtml(p.rivalNombre)}${TEXTO_TIPO[p.tipo] || ''}</span></span>`
-      return `<li><span class="partidas-ronda-num">R${i + 1}</span>${rival}${res}</li>`
+      const acciones = editable
+        ? `<span class="partidas-ronda-acciones">
+             <button type="button" class="link-btn" data-editar-ronda="${escapeHtml(p.id)}" title="Editar esta ronda">Editar</button>
+             <button type="button" class="link-btn" data-borrar-ronda="${escapeHtml(p.id)}" title="Borrar esta ronda">Borrar</button>
+           </span>`
+        : ''
+      return `<li><span class="partidas-ronda-num">R${i + 1}</span>${rival}${res}${acciones}</li>`
     })
     .join('')
   const abierto = torneosAbiertos.has(t.id)
   return `
-    <div class="partidas-torneo">
+    <div class="partidas-torneo${t.cerrado ? ' cerrado' : ''}">
       <button type="button" class="partidas-torneo-cab" data-abrir-torneo="${escapeHtml(t.id)}" aria-expanded="${abierto}">
         <span class="partidas-torneo-sprites">${spritesDeMazoHtml(t.mazo, t.mazoClave) || '<span class="partidas-sprite-hueco"></span>'}</span>
         <span class="partidas-torneo-titulo">
           <strong>${escapeHtml(t.nombre)}</strong>
           <span class="subtext">${[t.donde, t.fecha].filter(Boolean).map(escapeHtml).join(' · ')}</span>
         </span>
+        ${t.cerrado ? '<span class="partidas-chapa-cerrado">Cerrado</span>' : ''}
         <span class="partidas-torneo-record${claseDeRecord(t.rondas)}">${recordDe(t.rondas)}</span>
       </button>
       <div class="partidas-torneo-detalle ${abierto ? '' : 'hidden'}">
         ${t.mazo ? `<p class="subtext">Jugaste <strong>${escapeHtml(t.mazo)}</strong></p>` : ''}
         ${rondas.length ? `<ol class="partidas-torneo-rondas">${filas}</ol>` : '<p class="subtext">Sin rondas todavía.</p>'}
-        ${t.aMano ? `<div data-hueco-form="${escapeHtml(t.id)}"></div>` : ''}
+        ${editable ? `<div data-hueco-form="${escapeHtml(t.id)}"></div>` : ''}
         <div class="partidas-torneo-acciones">
-          ${
-            t.aMano
-              ? `<button class="btn-secondary" data-anadir-ronda="${escapeHtml(t.id)}">+ Añadir ronda</button>
-                <button class="btn-outline" data-borrar-torneo="${escapeHtml(t.id)}">Borrar</button>`
-              : `<a class="btn-secondary" href="${escapeHtml(t.enlace || '/torneos.html')}">Ver el torneo</a>`
-          }
+          ${accionesDeTorneoHtml(t)}
         </div>
       </div>
     </div>`
+}
+
+function accionesDeTorneoHtml(t) {
+  if (!t.aMano) return `<a class="btn-secondary" href="${escapeHtml(t.enlace || '/torneos.html')}">Ver el torneo</a>`
+  const id = escapeHtml(t.id)
+  if (t.cerrado) {
+    return `<span class="subtext partidas-cerrado-nota">Cerrado. Reábrelo si tienes que arreglar algo.</span>
+      <button class="btn-secondary" data-reabrir-torneo="${id}">Reabrir</button>
+      <button class="btn-outline" data-borrar-torneo="${id}">Borrar</button>`
+  }
+  return `<button class="btn-secondary" data-anadir-ronda="${id}">+ Añadir ronda</button>
+      <button class="btn-secondary" data-editar-torneo="${id}">Editar torneo</button>
+      <button class="btn-secondary" data-cerrar-torneo="${id}">Cerrar torneo</button>
+      <button class="btn-outline" data-borrar-torneo="${id}">Borrar</button>`
 }
 
 function pintarTorneos() {
@@ -411,6 +504,7 @@ function pintarTorneos() {
       mazoClave: t.mi_mazo,
       rondas: todas.filter((p) => p.torneoId === t.id),
       aMano: true,
+      cerrado: Boolean(t.cerrado_el),
     })
   }
 
@@ -419,7 +513,29 @@ function pintarTorneos() {
     return
   }
   tarjetas.sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))
-  caja.innerHTML = tarjetas.map(tarjetaTorneoHtml).join('')
+
+  const casan = filtrarTorneos(tarjetas, $('torneoBuscar')?.value, $('torneoEstado')?.value)
+  if (!casan.length) {
+    caja.innerHTML = `<p class="subtext">Ningún torneo casa con lo que buscas. Prueba a vaciar el buscador o a cambiar el estado.</p>`
+    return
+  }
+  // El corte: la lista crece para siempre y el scroll infinito era la
+  // queja de PINGU. Un torneo abierto con el formulario dentro NO se
+  // puede quedar fuera del corte, o el formulario se iría con él.
+  const forzados = rondaPara ? casan.filter((t) => t.id === rondaPara.id) : []
+  const visibles = verTodosLosTorneos ? casan : casan.slice(0, TORNEOS_DE_GOLPE)
+  for (const t of forzados) if (!visibles.includes(t)) visibles.push(t)
+  const ocultos = casan.length - visibles.length
+
+  caja.innerHTML =
+    visibles.map(tarjetaTorneoHtml).join('') +
+    (ocultos > 0
+      ? `<button type="button" class="btn-secondary torneo-ver-mas" id="btnVerMasTorneosLog">Ver ${ocultos} más</button>`
+      : '')
+  caja.querySelector('#btnVerMasTorneosLog')?.addEventListener('click', () => {
+    verTodosLosTorneos = true
+    pintarTorneos()
+  })
 
   caja.querySelectorAll('[data-abrir-torneo]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -451,6 +567,38 @@ function pintarTorneos() {
       }
       if (rondaPara?.id === b.dataset.borrarTorneo) cerrarFormPartida()
       await cargar()
+    })
+  )
+
+  caja.querySelectorAll('[data-editar-torneo]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const t = torneosLog.find((x) => x.id === b.dataset.editarTorneo)
+      if (t) abrirFormTorneo(t)
+    })
+  )
+  caja.querySelectorAll('[data-cerrar-torneo]').forEach((b) =>
+    b.addEventListener('click', () => cambiarCierre(b.dataset.cerrarTorneo, true))
+  )
+  caja.querySelectorAll('[data-reabrir-torneo]').forEach((b) =>
+    b.addEventListener('click', () => cambiarCierre(b.dataset.reabrirTorneo, false))
+  )
+  caja.querySelectorAll('[data-editar-ronda]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const ronda = todas.find((p) => p.id === b.dataset.editarRonda)
+      const torneo = torneosLog.find((x) => x.id === ronda?.torneoId)
+      if (ronda && torneo) abrirFormPartida(torneo, ronda)
+    })
+  )
+  // Borrar UNA ronda, en dos toques como todo lo que no tiene vuelta.
+  caja.querySelectorAll('[data-borrar-ronda]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      if (!b.dataset.armado) {
+        b.dataset.armado = '1'
+        b.textContent = '¿Seguro?'
+        return
+      }
+      if (editando?.id === b.dataset.borrarRonda) cerrarFormPartida()
+      await borrarPartida(b.dataset.borrarRonda)
     })
   )
 
@@ -565,16 +713,37 @@ async function guardarPartida() {
   if (rondaPara) {
     fila.torneo_id = rondaPara.id
     fila.jugada_el = rondaPara.jugado_el
+  } else if (editando) {
+    // Una suelta editada conserva SU fecha si el campo viene vacío: no
+    // se le pone la de hoy por haberla abierto para cambiar una nota.
+    const fecha = $('partidaFecha').value || editando.fecha
+    if (fecha) fila.jugada_el = fecha
   } else {
     const fecha = $('partidaFecha').value
     if (fecha) fila.jugada_el = fecha
   }
 
-  const { error } = await supabase.from('match_log').insert(fila)
+  // Editando se ACTUALIZA la fila; apuntando se inserta. El user_id no
+  // se toca al actualizar: es de quien era, y la política de la base
+  // solo deja tocar lo propio de todas formas.
+  const { user_id, ...cambios } = fila
+  const { error } = editando
+    ? await supabase.from('match_log').update(cambios).eq('id', editando.id)
+    : await supabase.from('match_log').insert(fila)
   if (error) {
     showToast('No se ha podido guardar: ' + error.message, 'error')
     return
   }
+
+  if (editando) {
+    // Al editar, el formulario se CIERRA: se vino a arreglar una cosa
+    // concreta, no a seguir metiendo.
+    showToast('Cambios guardados.', 'success')
+    cerrarFormPartida()
+    await cargar()
+    return
+  }
+
   showToast(rondaPara ? 'Ronda apuntada.' : 'Partida apuntada.', 'success')
   // El mazo TUYO se queda puesto: quien apunta una tanda de partidas
   // suele jugar el mismo mazo toda la tarde. Y en modo ronda el
@@ -591,10 +760,17 @@ async function guardarPartida() {
 // El mismo formulario apunta una partida SUELTA (todo a la vista) o una
 // RONDA de un torneo apuntado (el mazo, la fecha y el dónde se esconden
 // porque vienen del torneo).
-function abrirFormPartida(torneo = null) {
+function abrirFormPartida(torneo = null, partida = null) {
   rondaPara = torneo
+  editando = partida
   const esRonda = Boolean(torneo)
-  $('partidaFormTitulo').textContent = esRonda ? 'Añadir ronda' : 'Apuntar una partida suelta'
+  $('partidaFormTitulo').textContent = partida
+    ? esRonda
+      ? 'Editar ronda'
+      : 'Editar partida'
+    : esRonda
+      ? 'Añadir ronda'
+      : 'Apuntar una partida suelta'
   $('partidaFormPista').classList.toggle('hidden', esRonda)
   $('partidaCamposMios').classList.toggle('hidden', esRonda)
   $('partidaCampoFecha').classList.toggle('hidden', esRonda)
@@ -608,12 +784,91 @@ function abrirFormPartida(torneo = null) {
     torneosAbiertos.add(torneo.id)
     pintarTorneos()
   }
+  $('btnGuardarPartida').textContent = partida ? 'Guardar cambios' : 'Guardar'
+  if (partida) rellenarFormConPartida(partida, esRonda)
+  else limpiarFormPartida(esRonda)
+
   $('partidaForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   ;$(esRonda ? 'selRival1' : 'selMio1').querySelector('input')?.focus()
 }
 
+// Un mazo guardado vuelve al selector ENTERO en el primero de los dos
+// campos, no repartido entre los dos.
+//
+// Se guarda el nombre ya junto («Dragapult Dusknoir») y partirlo otra
+// vez sería adivinar por dónde. Puesto entero, `mazoDe()` reconstruye
+// EXACTAMENTE la misma clave (`d:dragapult dusknoir`), así que la
+// partida no se cambia de casilla en la matriz por haberla editado —
+// que es justo lo que no puede pasar.
+function ponerMazoEnSelector(sel1, sel2, clave, nombre) {
+  const primero = selectores[sel1]
+  const segundo = selectores[sel2]
+  segundo?.limpiar()
+  if (!primero) return
+  if (!nombre) {
+    primero.limpiar()
+    return
+  }
+  const dex = dexesDeNombre(nombre)[0]
+  primero.poner({
+    valor: clave,
+    nombre,
+    sprite: dex ? urlDeSprite(dex) : spriteDeCarta(nombre) || spriteDeObjeto(nombre) || null,
+  })
+}
+
+function rellenarFormConPartida(p, esRonda) {
+  if (!esRonda) {
+    ponerMazoEnSelector('mio1', 'mio2', p.mio, p.mioNombre)
+    $('partidaFecha').value = p.fecha || ''
+    // El «dónde» guardado puede no estar en la lista (se escribió a
+    // mano): se cae a «Otro…» con el texto puesto, que es donde estaba.
+    const sel = $('partidaDonde')
+    const hay = [...sel.options].some((o) => o.value === p.donde)
+    sel.value = hay ? p.donde : '__otro'
+    $('partidaDondeOtro').value = hay ? '' : p.donde || ''
+    $('partidaDondeOtroCampo').classList.toggle('hidden', hay)
+  }
+  ponerMazoEnSelector('rival1', 'rival2', p.rival, p.tipo === 'bye' ? '' : p.rivalNombre)
+  $('partidaResultado').value = p.resultado || 'win'
+  $('partidaNotas').value = p.notas || ''
+  marcarTipo(p.tipo || 'normal')
+}
+
+const NOTA_TIPO = {
+  id: 'Cuenta como empate en la matriz: se llegó a jugar lo justo para pactarlo.',
+  no_show: 'Cuenta como victoria, pero NO entra en la matriz: no llegaste a jugar contra ese mazo.',
+  bye: 'No entra en la matriz ni hace falta decir el mazo rival: no hubo enfrentamiento.',
+}
+
+// Marcar el tipo de ronda. Sale de los botones a una función propia
+// (tanda 251) porque al EDITAR hay que dejar el formulario como estaba,
+// y eso es exactamente lo mismo que hace un clic.
+function marcarTipo(tipo) {
+  tipoElegido = tipo || 'normal'
+  document.querySelectorAll('.partidas-tipo').forEach((x) => x.classList.toggle('activo', x.dataset.tipo === tipoElegido))
+  // El resultado solo se elige cuando se jugó de verdad: en los demás
+  // casos lo decide el tipo, y enseñarlo invitaría a contradecirse.
+  $('partidaResultado').closest('label').classList.toggle('hidden', tipoElegido !== 'normal')
+  const nota = $('partidaTipoNota')
+  nota.textContent = NOTA_TIPO[tipoElegido] || ''
+  nota.classList.toggle('hidden', !NOTA_TIPO[tipoElegido])
+}
+
+function limpiarFormPartida(esRonda) {
+  selectores.rival1?.limpiar()
+  selectores.rival2?.limpiar()
+  if (!esRonda) {
+    selectores.mio1?.limpiar()
+    selectores.mio2?.limpiar()
+  }
+  $('partidaNotas').value = ''
+  marcarTipo('normal')
+}
+
 function cerrarFormPartida() {
   rondaPara = null
+  editando = null
   const form = $('partidaForm')
   form.classList.add('hidden')
   // De vuelta a su sitio de la pestaña de sueltas si estaba de mudanza.
@@ -628,6 +883,33 @@ function dondeTorneoElegido() {
   return $('torneoLogDondeOtro').value.trim() || null
 }
 
+// El formulario del torneo, en sus dos modos: crear uno nuevo o EDITAR
+// uno ya apuntado (tanda 251, pedido por PINGU: «debería poder editar
+// cada ronda e incluso mi mazo, por si no lo he puesto bien»).
+function abrirFormTorneo(torneo = null) {
+  editandoTorneo = torneo
+  cerrarFormPartida()
+  const caja = $('torneoLogForm')
+  caja.classList.remove('hidden')
+  $('torneoLogTitulo').textContent = torneo ? 'Editar el torneo' : 'Apuntar un torneo de fuera'
+  $('torneoLogPista').classList.toggle('hidden', Boolean(torneo))
+  $('torneoLogAviso').classList.toggle('hidden', !torneo)
+  $('btnGuardarTorneoLog').textContent = torneo ? 'Guardar cambios' : 'Crear torneo'
+
+  $('torneoLogNombre').value = torneo?.nombre || ''
+  $('torneoLogFecha').value = torneo?.jugado_el || new Date().toISOString().slice(0, 10)
+  // El «dónde» guardado puede no estar en la lista (se escribió a mano).
+  const sel = $('torneoLogDonde')
+  const hay = [...sel.options].some((o) => o.value === torneo?.donde)
+  sel.value = torneo ? (hay ? torneo.donde : '__otro') : sel.options[0].value
+  $('torneoLogDondeOtro').value = torneo && !hay ? torneo.donde || '' : ''
+  $('torneoLogDondeOtroCampo').classList.toggle('hidden', sel.value !== '__otro')
+  ponerMazoEnSelector('tmio1', 'tmio2', torneo?.mi_mazo, torneo?.mi_mazo_nombre)
+
+  caja.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  $('torneoLogNombre').focus()
+}
+
 async function guardarTorneoLog() {
   const nombre = $('torneoLogNombre').value.trim()
   const mazo = mazoDe('tmio1', 'tmio2')
@@ -635,28 +917,79 @@ async function guardarTorneoLog() {
     showToast(nombre ? 'Elige el mazo que jugaste.' : 'Ponle nombre al torneo.', 'error')
     return
   }
-  const fila = {
-    user_id: session.user.id,
+  const campos = {
     nombre,
     donde: dondeTorneoElegido(),
     mi_mazo: mazo.clave,
     mi_mazo_nombre: mazo.nombre,
   }
   const fecha = $('torneoLogFecha').value
-  if (fecha) fila.jugado_el = fecha
+  if (fecha) campos.jugado_el = fecha
+
+  if (editandoTorneo) {
+    // Las RONDAS no se tocan desde aquí a propósito: de arrastrarles el
+    // mazo, el nombre y la fecha se encarga un disparador de la base
+    // (supabase-migration-partidas-editar.sql), y así las dos escrituras
+    // pasan juntas o no pasa ninguna. Hacerlo con dos peticiones desde
+    // el navegador dejaría el histórico a medias si fallara la segunda.
+    const { error } = await supabase.from('match_log_torneos').update(campos).eq('id', editandoTorneo.id)
+    if (error) {
+      showToast('No se ha podido guardar: ' + error.message, 'error')
+      return
+    }
+    showToast('Torneo actualizado. Sus rondas se han puesto al día solas.', 'success')
+    cerrarFormTorneo()
+    await cargar()
+    return
+  }
 
   // El insert devuelve la fila para abrir «añadir ronda» al momento:
   // quien crea el torneo viene a apuntar sus rondas, no a mirar.
-  const { data, error } = await supabase.from('match_log_torneos').insert(fila).select().single()
+  const { data, error } = await supabase
+    .from('match_log_torneos')
+    .insert({ user_id: session.user.id, ...campos })
+    .select()
+    .single()
   if (error) {
     showToast('No se ha podido crear: ' + error.message, 'error')
     return
   }
   showToast('Torneo creado: ahora sus rondas.', 'success')
-  $('torneoLogForm').classList.add('hidden')
-  $('torneoLogNombre').value = ''
+  cerrarFormTorneo()
   await cargar()
   abrirFormPartida(data)
+}
+
+function cerrarFormTorneo() {
+  editandoTorneo = null
+  $('torneoLogForm').classList.add('hidden')
+  $('torneoLogNombre').value = ''
+  selectores.tmio1?.limpiar()
+  selectores.tmio2?.limpiar()
+}
+
+// Cerrar o reabrir un torneo apuntado. Cerrar no toca ningún dato: solo
+// deja de ofrecer «añadir ronda» y «editar». Por eso reabrir es gratis y
+// no hay que confirmar nada — no se pierde nada en ninguna de las dos
+// direcciones.
+async function cambiarCierre(id, cerrar) {
+  const { error } = await supabase
+    .from('match_log_torneos')
+    .update({ cerrado_el: cerrar ? new Date().toISOString() : null })
+    .eq('id', id)
+  if (error) {
+    showToast('No se ha podido: ' + error.message, 'error')
+    return
+  }
+  // Si se estaba apuntando o editando una ronda de ESE torneo, el
+  // formulario se va con él: al cerrarlo ya no tiene dónde vivir.
+  if (cerrar && (rondaPara?.id === id || editando?.torneoId === id)) cerrarFormPartida()
+  // Al cerrarlo se pliega, que es lo que uno quiere después de decir
+  // «ya está»; al reabrirlo se deja abierto para poder arreglar.
+  if (cerrar) torneosAbiertos.delete(id)
+  else torneosAbiertos.add(id)
+  showToast(cerrar ? 'Torneo cerrado.' : 'Torneo reabierto: ya puedes arreglar lo que haga falta.', 'success')
+  await cargar()
 }
 
 async function borrarPartida(id) {
@@ -715,23 +1048,8 @@ async function init() {
     if ($('partidaDonde').value === '__otro') $('partidaDondeOtro').focus()
   })
 
-  const NOTA_TIPO = {
-    id: 'Cuenta como empate en la matriz: se llegó a jugar lo justo para pactarlo.',
-    no_show: 'Cuenta como victoria, pero NO entra en la matriz: no llegaste a jugar contra ese mazo.',
-    bye: 'No entra en la matriz ni hace falta decir el mazo rival: no hubo enfrentamiento.',
-  }
   document.querySelectorAll('.partidas-tipo').forEach((b) =>
-    b.addEventListener('click', () => {
-      tipoElegido = b.dataset.tipo
-      document.querySelectorAll('.partidas-tipo').forEach((x) => x.classList.toggle('activo', x === b))
-      // El resultado solo se elige cuando se jugó de verdad: en los
-      // demás casos lo decide el tipo, y enseñarlo invitaría a
-      // contradecirse.
-      $('partidaResultado').closest('label').classList.toggle('hidden', tipoElegido !== 'normal')
-      const nota = $('partidaTipoNota')
-      nota.textContent = NOTA_TIPO[tipoElegido] || ''
-      nota.classList.toggle('hidden', !NOTA_TIPO[tipoElegido])
-    })
+    b.addEventListener('click', () => marcarTipo(b.dataset.tipo))
   )
 
   // Las tres vistas, como las pestañas del perfil.
@@ -751,16 +1069,25 @@ async function init() {
     else abrirFormPartida(null)
   })
   $('btnCancelarPartida').addEventListener('click', cerrarFormPartida)
+  for (const id of ['torneoBuscar', 'torneoEstado']) {
+    $(id)?.addEventListener('input', () => {
+      verTodosLosTorneos = false
+      pintarTorneos()
+    })
+  }
+
   $('btnGuardarPartida').addEventListener('click', guardarPartida)
 
   // El formulario de torneo.
   $('torneoLogFecha').value = new Date().toISOString().slice(0, 10)
   $('btnApuntarTorneo').addEventListener('click', () => {
-    cerrarFormPartida()
-    $('torneoLogForm').classList.toggle('hidden')
-    if (!$('torneoLogForm').classList.contains('hidden')) $('torneoLogNombre').focus()
+    // Si estaba abierto EDITANDO, este botón lo devuelve a «crear uno
+    // nuevo» en vez de cerrarlo: si no, había que cerrarlo y volver a
+    // abrirlo para entender qué estaba pasando.
+    if (!$('torneoLogForm').classList.contains('hidden') && !editandoTorneo) cerrarFormTorneo()
+    else abrirFormTorneo(null)
   })
-  $('btnCancelarTorneoLog').addEventListener('click', () => $('torneoLogForm').classList.add('hidden'))
+  $('btnCancelarTorneoLog').addEventListener('click', cerrarFormTorneo)
   $('btnGuardarTorneoLog').addEventListener('click', guardarTorneoLog)
   $('torneoLogDonde').addEventListener('change', () => {
     $('torneoLogDondeOtroCampo').classList.toggle('hidden', $('torneoLogDonde').value !== '__otro')

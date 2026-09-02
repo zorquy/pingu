@@ -83,6 +83,19 @@
       <div class="tab-panel active" id="vista-torneos">
       <div class="partidas-barra">
         <button class="btn-primary" id="btnApuntarTorneo">+ Apuntar un torneo</button>
+        <!-- Buscar y filtrar (tanda 251). Con quince torneos apuntados
+             la lista era un scroll sin fin y encontrar el de la semana
+             pasada costaba más que apuntarlo. -->
+        <label id="torneoBuscarCampo">Buscar
+          <input type="search" id="torneoBuscar" placeholder="Nombre o dónde se jugó…" autocomplete="off" />
+        </label>
+        <label>Estado
+          <select id="torneoEstado">
+            <option value="">Todos</option>
+            <option value="abiertos">Sin cerrar</option>
+            <option value="cerrados">Cerrados</option>
+          </select>
+        </label>
       </div>
 
       <!-- Apuntar un torneo (tanda 236, pedido por Ibai): el torneo de
@@ -90,8 +103,11 @@
            trainingcourt — no cinco partidas sueltas con la misma fecha.
            Se crea aquí y las rondas se añaden desde su tarjeta. -->
       <div class="simple-card hidden" id="torneoLogForm">
-        <h3>Apuntar un torneo de fuera</h3>
-        <p class="subtext">Los de PokeDoc ya están: esto es para el presencial o el de TCG Live. Primero el torneo, luego sus rondas desde la tarjeta.</p>
+        <h3 id="torneoLogTitulo">Apuntar un torneo de fuera</h3>
+        <p class="subtext" id="torneoLogPista">Los de PokeDoc ya están: esto es para el presencial o el de TCG Live. Primero el torneo, luego sus rondas desde la tarjeta.</p>
+        <!-- Al editar, decir qué se lleva por delante el cambio: el mazo
+             está copiado en cada ronda y cambiarlo las mueve todas. -->
+        <p class="subtext hidden" id="torneoLogAviso">Si cambias el mazo, la fecha o el nombre, sus rondas se actualizan solas — el histórico no se queda con lo viejo.</p>
         <div class="partidas-form-fila">
           <label>Nombre del torneo
             <input type="text" id="torneoLogNombre" maxlength="120" placeholder="Liga del jueves — Semana 3" />

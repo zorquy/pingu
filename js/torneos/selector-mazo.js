@@ -310,5 +310,21 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
   return {
     valor: () => elegido,
     limpiar: () => elegir(null),
+    // Poner un valor DESDE FUERA, sin pasar por la lista (tanda 251).
+    // Lo necesita editar una ronda ya apuntada: el mazo del rival hay
+    // que devolverlo al campo tal y como se guardó.
+    //
+    // No avisa con `alElegir`: quien llama ya sabe lo que ha puesto, y
+    // avisarle de su propio cambio le haría creer que ha sido la
+    // persona quien lo ha tocado.
+    poner: (opcion) => {
+      elegido = opcion || null
+      campo.value = elegido ? elegido.nombre : ''
+      sprite.classList.toggle('hidden', !elegido?.sprite)
+      sprite.classList.toggle('es-carta', Boolean(elegido?.esCarta))
+      if (elegido?.sprite) sprite.src = elegido.sprite
+      limpiar.classList.toggle('hidden', !elegido)
+      cerrar()
+    },
   }
 }
