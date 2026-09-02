@@ -138,7 +138,40 @@ begin
   return 'conciliado';
 end $$;
 
--- ── RPC 3: atender una llamada bajo candado (SPEC §10.2) ───────────
+-- ── RPC 3: marcarse listo en tu mesa (SPEC §6.4) ───────────────────
+--
+-- El check-in escribe en `tournament_matches`, y esa tabla es de
+-- ESCRITURA SOLO ADMIN (la política de abajo, en el bucle). Sin esta
+-- función, al abrir la sección un jugador normal no podría marcarse
+-- listo: pulsaría el botón y no pasaría nada.
+--
+-- No vale con una política de update sobre la tabla: dejaría al jugador
+-- tocar CUALQUIER columna de su mesa —el estado, el resultado— y no
+-- solo su check-in. Aquí solo se puede escribir la columna que toca, y
+-- la elige el servidor a partir de quién llama.
+create or replace function public.torneos_checkin(p_partida uuid)
+returns boolean language plpgsql security definer set search_path = public as $$
+declare
+  v_m tournament_matches%rowtype;
+begin
+  select * into v_m from tournament_matches where id = p_partida;
+  if not found then raise exception 'Mesa no encontrada.'; end if;
+  if auth.uid() not in (v_m.player_a_id, v_m.player_b_id) then
+    raise exception 'Solo los jugadores de la mesa se marcan listos.';
+  end if;
+  if v_m.status not in ('pending', 'active') then
+    raise exception 'Esta mesa ya no admite check-in.';
+  end if;
+
+  if auth.uid() = v_m.player_a_id then
+    update tournament_matches set check_in_a_at = coalesce(check_in_a_at, now()) where id = p_partida;
+  else
+    update tournament_matches set check_in_b_at = coalesce(check_in_b_at, now()) where id = p_partida;
+  end if;
+  return true;
+end $$;
+
+-- ── RPC 4: atender una llamada bajo candado (SPEC §10.2) ───────────
 
 create or replace function public.torneos_atender_llamada(p_llamada uuid)
 returns boolean language plpgsql security definer set search_path = public as $$
@@ -256,6 +289,31 @@ create policy inscripciones_baja on public.tournament_registrations for update
 drop policy if exists inscripciones_admin on public.tournament_registrations;
 create policy inscripciones_admin on public.tournament_registrations for delete
   using (torneos_soy_admin());
+
+-- SALIR DE LA LISTA DE ESPERA, o desapuntarse antes de que empiece.
+--
+-- Sin esto, «Salir de la lista» no hacía nada para quien no fuese admin:
+-- el DELETE no encontraba fila que borrar y volvía sin error.
+--
+-- Y tiene que ser un DELETE de verdad, no marcar la fila como
+-- «dropped»: hay un UNIQUE por (torneo, usuario), así que una fila
+-- dejada ahí impediría volver a apuntarse —`torneos_inscribirse` avisa
+-- de «ya estás inscrito»— y salirse de la cola sería una puerta de solo
+-- ida.
+--
+-- Solo ANTES de empezar: una vez el torneo está en juego, irse es una
+-- BAJA (status 'dropped', la política de arriba), que deja rastro
+-- porque las rondas ya jugadas cuentan.
+drop policy if exists inscripciones_salir on public.tournament_registrations;
+create policy inscripciones_salir on public.tournament_registrations for delete
+  using (
+    user_id = auth.uid()
+    and exists (
+      select 1 from tournaments t
+      where t.id = tournament_id
+        and t.status in ('draft', 'registration_open', 'registration_closed')
+    )
+  );
 
 -- Decklists: el dueño la lleva (y solo mientras no esté sellada);
 -- la VEN el dueño, el admin y los jueces aprobados. Nadie más.

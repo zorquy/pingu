@@ -72,17 +72,29 @@ producción sin red debajo. Del foro faltan las piezas de alrededor
 ## Los torneos (sección «Jugar»)
 
 Porte de TrainerArena (github.com/ibaimanso/TrainerArena, de Ibai
-Manso) a este stack. Mientras esté en pruebas, TODO lo de torneos es
-visible SOLO para admins (`user_profiles.is_admin`): el enlace «Jugar»
-de la navbar va oculto y torneos.html expulsa a quien no sea admin.
+Manso) a este stack.
 
-**Ojo con torneo.html (la FICHA), que desde la tanda 229 es distinto**:
-ya NO comprueba `is_admin` en el JavaScript, porque un enlace compartido
-tiene que poder enseñar el torneo el día que la sección se abra. Quien
-decide qué se ve es la POLÍTICA de la base: hoy, con la sección cerrada,
-la consulta vuelve vacía para quien no sea admin y sale la pantalla de
-«este torneo no está disponible». No vuelvas a meter ahí un `if` de
-JavaScript: no protegería nada y rompería el escaparate.
+**ABIERTA AL PÚBLICO desde el 2026-09-02 (tanda 252).** Ya no hay
+candado de `is_admin` en el JavaScript: el enlace «Jugar» sale para
+todo el mundo, /torneos no echa a nadie y la ficha se ve sin cuenta.
+Quien decide qué se ve es la POLÍTICA de la base
+(supabase-migration-torneos-publico.sql). **No metas un `if` de
+`is_admin` para «proteger» nada de torneos**: no protegería —la
+respuesta de la API llega igual— y rompería el escaparate. Lo que sí
+sigue siendo del equipo: CREAR, editar y llevar un torneo.
+
+**Y con la sección abierta, un jugador normal NO escribe directo en las
+tablas del torneo.** La RLS fina se lo impide y lo hacen tres funciones
+del servidor: `torneos_inscribirse`, `torneos_reportar` y
+`torneos_checkin`. Si añades una acción de jugador que escriba en
+`tournament_registrations`, `match_reports` o `tournament_matches`,
+necesita su RPC — un INSERT que la política rechaza **no da error**: no
+toca nada y vuelve como si todo hubiera ido bien, así que la persona
+pulsa el botón y no pasa nada.
+
+En js/torneos/comun.js hay un PUENTE (`faltaLaRpc`) que deja usar el
+camino viejo mientras la migración no esté puesta. Es temporal: cuando
+lleve un tiempo, quítalo.
 
 Decisiones ya tomadas: sin pagos (fuera del porte), el chat de partida
 va A LA VISTA en «Tu partida» (PINGU lo quiso primero en desplegable y

@@ -172,7 +172,10 @@ async function cargarLista(session, perfil = null) {
   const miEstado = {}
   for (const i of inscripciones || []) {
     if (i.status === 'active') ocupadasDe[i.tournament_id] = (ocupadasDe[i.tournament_id] || 0) + 1
-    if (i.user_id === session.user.id) miEstado[i.tournament_id] = i.status
+    // `session?.user` y no `session.user`: sin cuenta esto reventaba, y
+    // hasta la 252 daba igual porque la página echaba a quien no fuese
+    // admin. Ahora entra cualquiera.
+    if (session?.user && i.user_id === session.user.id) miEstado[i.tournament_id] = i.status
   }
 
   vacio.classList.toggle('hidden', torneos.length > 0)
@@ -804,10 +807,15 @@ function engancharFormulario(session, perfil) {
 async function init() {
   const session = await getSession()
   const perfil = session ? await getProfile(session.user.id) : null
-  if (!perfil?.is_admin) {
-    window.location.href = '/index.html'
-    return
-  }
+  // Desde la tanda 252 esta página NO echa a nadie: la sección de
+  // torneos es pública. Quien no tenga cuenta ve la lista y el
+  // calendario; apuntarse ya se lo pide la ficha.
+  //
+  // CREAR un torneo sigue siendo del equipo, y el botón se esconde para
+  // los demás: la base lo rechazaría igual (`torneos_escribir` pide
+  // admin), pero enseñar un formulario de cinco pasos que va a acabar en
+  // un error es hacerle perder el rato a la gente.
+  document.getElementById('btnNuevoTorneo')?.classList.toggle('hidden', !perfil?.is_admin)
   document.getElementById('torneosContenido').style.display = ''
   // El aviso de «borrado» lo deja la ficha antes de traernos aquí: allí
   // no se podía enseñar, porque la página que lo diría ya no existe.

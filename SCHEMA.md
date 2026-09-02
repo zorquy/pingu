@@ -12420,3 +12420,64 @@ mutaciones, todas pilladas). De paso se arreglaron TRES comprobaciones de
 `test-partidas-pagina` que llevaban rotas desde la tanda 236 sin que nadie
 lo notara: la página tiene pestañas y el panel de sueltas no está a la
 vista al entrar.
+
+## Tanda 252 — la apertura: torneos para todo el mundo (sept. 2026)
+
+PINGU: «publica ya la parte de torneos, que lo vea quien quiera».
+
+### Lo que faltaba, y que habría salido el viernes
+
+Antes de quitar ningún candado hice la revisión con PostgreSQL de verdad
+(`pruebas/sql-apertura.sql`), haciéndome pasar por un jugador normal.
+Aparecieron **dos huecos en la migración de apertura**:
+
+- **Salir de la lista de espera** no funcionaba para quien no fuese
+  admin: `inscripciones_admin` solo daba DELETE al equipo, así que el
+  borrado no encontraba fila y volvía **sin error**. Política nueva
+  `inscripciones_salir`, y tiene que ser un borrado de verdad: hay un
+  UNIQUE por (torneo, usuario), así que dejar la fila marcada convertiría
+  salirse de la cola en una puerta de solo ida. Solo antes de empezar;
+  una vez en juego, irse es una baja y deja rastro.
+- **El check-in no tenía RPC.** `tournament_matches` es de escritura
+  solo-admin, así que marcarse listo no habría hecho nada. RPC
+  `torneos_checkin`, y no una política de update sobre la tabla: eso
+  dejaría al jugador tocar cualquier columna de su mesa. Aquí la columna
+  la elige el servidor a partir de quién llama.
+
+Comprobado que un jugador no puede cambiar el estado de una mesa, ni
+renombrar el torneo, ni borrar la inscripción de otro.
+
+### El cliente pasa por las RPC
+
+`torneos_inscribirse`, `torneos_reportar` y `torneos_checkin`. Además de
+ser lo único que la RLS deja, cierran carreras que desde el navegador no
+se pueden cerrar: el cupo bajo candado y la conciliación de dos reportes.
+
+**El puente** (`faltaLaRpc` en comun.js): este código sale ANTES de que
+se ejecute el SQL, así que se intenta la RPC y solo se usa el camino
+viejo cuando la base contesta que **no conoce la función** (PGRST202,
+42883, o el mensaje). Cualquier otro error —«Torneo lleno.»— se enseña
+tal cual: caerse al insert directo ahí se saltaría justo la comprobación
+que la RPC existe para hacer. Es temporal.
+
+### Los candados que se quitan
+
+- `js/app.js`: «Jugar» sale para todo el que tenga sesión.
+- `js/torneos/torneos.js`: la página no echa a nadie. Y aguanta SIN
+  sesión — `session.user.id` reventaba, y daba igual porque antes echaba
+  a quien no fuese admin. Crear un torneo sigue siendo del equipo y el
+  botón se esconde para los demás.
+- `js/usuario.js`: el palmarés de un perfil se ve siempre.
+- `torneos-barredor.mjs`: el correo de «inscripciones abiertas» va a toda
+  la comunidad, no solo a los admins.
+
+### Una consulta que sobraba
+
+`cargarDecklists` pedía «quién ha entregado» para toda la lista de
+inscritos en cada refresco (cada 10 s) aunque esa marca **solo la pinta
+el organizador**. Con la RLS fina habría sido además engañosa: a un
+jugador solo le entrega su propia lista, así que la respuesta diría que
+nadie ha entregado menos él. Fuera.
+
+Comprobado con `test-tanda-252.mjs` (24/24), `rigor-tanda-252.py` (9
+mutaciones) y `sql-apertura.sql` contra PostgreSQL 16.

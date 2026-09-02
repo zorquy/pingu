@@ -12,6 +12,41 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-02 — PINGU-Claude (tanda 252 — LA APERTURA)
+**Hecho**: PINGU: «publica ya la parte de torneos». La sección deja de
+ser solo para admins. ANTES de quitar candados verifiqué las políticas
+contra PostgreSQL de verdad haciéndome pasar por un jugador normal, y
+salieron DOS HUECOS que habrían salido el viernes: (a) salir de la
+lista de espera no funcionaba para nadie que no fuese admin —el DELETE
+no encontraba fila y volvía sin error—, política `inscripciones_salir`
+nueva; (b) el check-in no tenía RPC y `tournament_matches` es de
+escritura solo-admin, así que marcarse listo no habría hecho nada: RPC
+`torneos_checkin`. El cliente pasa ya por las tres RPC
+(inscribirse/reportar/checkin) con un PUENTE que usa el camino viejo
+solo mientras la base no conozca la función. Quitados los cuatro
+candados (enlace «Jugar», /torneos, palmarés, correo de apertura), y
+/torneos aguanta ya SIN sesión. Crear torneos sigue siendo del equipo.
+**Ficheros**: js/app.js, js/torneos/torneos.js, js/torneos/torneo.js,
+js/torneos/ronda.js, js/torneos/comun.js, js/usuario.js,
+netlify/functions/torneos-barredor.mjs,
+supabase-migration-torneos-publico.sql, CLAUDE.md, SCHEMA.md. Fuera del
+repo: test-tanda-252.mjs (NUEVA), rigor-tanda-252.py (NUEVO),
+sql-apertura.sql (NUEVO), stub-supabase.js (RPC que no existen y RPC
+que contestan), test-torneos-23.mjs (arreglada, ver abajo).
+**En curso / pendiente**: PINGU tiene que EJECUTAR
+supabase-migration-torneos-publico.sql (ya con los dos huecos tapados).
+Hasta que la ejecute, el puente hace que todo siga funcionando.
+AVISO: el correo de «inscripciones abiertas» va ya a los 96 miembros;
+si queda algún torneo abierto sin anunciar, le llega a todos en cuanto
+despliegue. PENDIENTE de quitar cuando la migración lleve un tiempo: el
+puente `faltaLaRpc` de comun.js. Verificado: 24 comprobaciones en verde
+y las 9 mutaciones del rigor pilladas (dos se escaparon a la primera y
+eran huecos de mis pruebas, tapados). OJO: `test-torneos-23` llevaba
+ROTA desde que los sprites se mudaron a r2.limitlesstcg.net —seguía
+pidiendo las URLs de PokeAPI e interceptando jsDelivr—. Van CINCO
+comprobaciones obsoletas encontradas hoy solo por pasar la suite
+entera.
+
 ## 2026-09-02 — PINGU-Claude (tanda 251 — /mis-partidas de arriba abajo)
 **Hecho**: tres peticiones de PINGU sobre /mis-partidas. (1) CERRAR y
 REABRIR un torneo apuntado (columna `cerrado_el`): cerrar no toca datos,

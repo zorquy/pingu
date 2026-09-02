@@ -380,16 +380,18 @@ async function renderNavUser(session) {
   const name = profile?.display_name || profile?.username || session.user.email
   const estiloAvatar = avatarStyle(profile)
 
-  // La pestaña «Jugar» (torneos) está en pruebas: el enlace viene oculto
-  // en el HTML y solo se desvela a los admins. El aviso de torneo EN
-  // JUEGO va en su propio módulo en diferido: solo lo baja un admin, la
-  // portada no lo paga (presupuesto de peso).
-  if (profile?.is_admin) {
-    document.querySelectorAll('.nav-jugar').forEach((e) => e.classList.remove('hidden'))
-    import('./torneos/aviso-torneo.js')
-      .then((m) => m.montarAvisoTorneo(session))
-      .catch(() => {})
-  }
+  // «Jugar» ya es de todos (tanda 252): la sección se abrió el
+  // 2026-09-02. El enlace sigue naciendo oculto en el HTML y se desvela
+  // aquí porque solo tiene sentido con sesión — sin cuenta no hay
+  // torneo al que apuntarse.
+  //
+  // El aviso de torneo EN JUEGO va en su propio módulo y en diferido:
+  // la portada no puede pagar ese peso por algo que la mayoría de las
+  // visitas no necesita (presupuesto de 170 KB).
+  document.querySelectorAll('.nav-jugar').forEach((e) => e.classList.remove('hidden'))
+  import('./torneos/aviso-torneo.js')
+    .then((m) => m.montarAvisoTorneo(session))
+    .catch(() => {})
 
   el.innerHTML = `
     <div class="nav-user-wrap" id="navUserWrap">

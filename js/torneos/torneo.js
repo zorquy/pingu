@@ -15,6 +15,7 @@ import {
   textoFormato,
   puedeBorrarTorneo,
   COLUMNAS_PUBLICAS_INSCRIPCION,
+  faltaLaRpc,
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces } from './jueces.js'
@@ -132,13 +133,16 @@ async function cargarDecklists() {
     .maybeSingle()
   miDecklist = propia || null
 
-  // Para la lista de inscritos: quién ha entregado ya (solo metadatos, el
-  // texto de las listas ajenas no se pide nunca desde aquí).
-  const { data: entregadas } = await supabase
-    .from('tournament_decklists')
-    .select('user_id, submitted_at, locked_at')
-    .eq('tournament_id', torneo.id)
-  decklistsEntregadas = entregadas || []
+  // Y NADA MÁS. Antes se pedía aquí «quién ha entregado» para toda la
+  // lista de inscritos, pero esa marca solo la pinta el organizador
+  // (ver pintarInscritos), así que a un jugador normal esa consulta no
+  // le servía de nada — y se repetía en cada refresco de la ficha, que
+  // son cada diez segundos.
+  //
+  // Con la sección abierta habría sido además engañosa: la RLS fina
+  // solo le entrega SU lista, así que la respuesta habría dicho que
+  // nadie ha entregado menos él.
+  decklistsEntregadas = []
 }
 
 // ── La ficha ──
@@ -1079,16 +1083,36 @@ function engancharInscripcion(aLaCola = false) {
     // le pone en la cola, que para eso está.
     const cupoLleno = torneo.max_players != null && (count ?? 0) >= torneo.max_players
     const estado = aLaCola || cupoLleno ? 'waitlisted' : 'active'
-    const { error } = await supabase.from('tournament_registrations').insert({
-      tournament_id: torneo.id,
-      user_id: session.user.id,
-      status: estado,
-      tcg_live_username: tcgLive,
-      registered_at: new Date().toISOString(),
-    })
+    // La RPC hace el recuento BAJO CANDADO y decide ella si hay plaza:
+    // dos inscripciones a la vez ya no pueden rebasar el cupo, que es la
+    // carrera que desde el navegador no se puede cerrar. Solo se usa el
+    // camino viejo si la base todavía no la conoce (ver faltaLaRpc).
+    let error = null
+    let porLaRpc = false
+    if (!aLaCola) {
+      const res = await supabase.rpc('torneos_inscribirse', { p_torneo: torneo.id, p_tcg_live: tcgLive })
+      if (!faltaLaRpc(res.error)) {
+        porLaRpc = true
+        error = res.error
+      }
+    }
+    if (!porLaRpc) {
+      ;({ error } = await supabase.from('tournament_registrations').insert({
+        tournament_id: torneo.id,
+        user_id: session.user.id,
+        status: estado,
+        tcg_live_username: tcgLive,
+        registered_at: new Date().toISOString(),
+      }))
+    }
     enviando = false
     if (error) {
-      if (/duplicate|unique/i.test(error.message || '')) showToast('Ya estás inscrito en este torneo.', 'error')
+      const texto = String(error.message || '')
+      // La RPC habla en cristiano («Torneo lleno.», «Ya estás
+      // inscrito.»): eso se enseña tal cual, que ya está escrito para
+      // que lo lea una persona.
+      if (/duplicate|unique/i.test(texto)) showToast('Ya estás inscrito en este torneo.', 'error')
+      else if (/^[A-ZÁÉÍÓÚ¿¡]/.test(texto) && texto.length < 120) showToast(texto, 'error')
       else avisarError(error, 'No se ha podido inscribir')
       return
     }

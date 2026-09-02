@@ -222,8 +222,13 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
         clave
       )
       for (const t of recienAbiertos || []) {
-        const admins = await rest(`user_profiles?is_admin=eq.true&select=id`, clave)
-        const ids = (admins || []).map((a) => a.id)
+        // A TODA la comunidad desde la tanda 252 (antes solo a los
+        // admins, mientras la sección estuvo en pruebas). Se respeta la
+        // preferencia de cada cual: encolarCorreo y campanita miran su
+        // lista de tipos apagados, y el push solo llega a quien lo tenga
+        // concedido.
+        const gente = await rest(`user_profiles?select=id`, clave)
+        const ids = (gente || []).map((a) => a.id)
         if (ids.length) {
           const subs = await rest(
             `push_subscriptions?user_id=in.(${ids.join(',')})&select=endpoint,user_id,p256dh,auth`,

@@ -320,9 +320,9 @@ async function init() {
 // El palmarés de torneos (tanda 211). MIENTRAS DURE LA PRUEBA solo lo
 // ven admins: la sección «Jugar» no existe para nadie más y la RLS de
 // torneos tampoco dejaría leer las inscripciones. Al abrir al público,
-// quitar la guarda de isViewerAdmin.
+// Sin guarda desde la tanda 252: la sección de torneos es pública y
+// el palmarés de alguien es parte de su perfil.
 async function loadPalmaresTorneos() {
-  if (!isViewerAdmin) return
   const { data: inscripciones } = await supabase
     .from('tournament_registrations')
     .select('tournament_id')

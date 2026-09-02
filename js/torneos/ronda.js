@@ -5,6 +5,7 @@
 // el refresco es por sondeo — decisiones fijadas en CLAUDE.md.
 //
 // torneo.js monta este módulo con montarCiclo(ctx) en cada recarga.
+import { faltaLaRpc } from './comun.js'
 import { supabase } from '../supabase.js'
 import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
@@ -512,7 +513,17 @@ async function marcarListo(partida) {
   const soyA = partida.player_a_id === miId()
   const columna = soyA ? 'check_in_a_at' : 'check_in_b_at'
   if (partida[columna]) return
-  await supabase.from('tournament_matches').update({ [columna]: ahora() }).eq('id', partida.id)
+  // Por la RPC: con la sección abierta, `tournament_matches` es de
+  // escritura solo-admin y un update directo del jugador no tocaría
+  // nada — sin dar error. La RPC además solo deja escribir TU columna
+  // de check-in, no el resto de la fila.
+  const res = await supabase.rpc('torneos_checkin', { p_partida: partida.id })
+  if (faltaLaRpc(res.error)) {
+    await supabase.from('tournament_matches').update({ [columna]: ahora() }).eq('id', partida.id)
+  } else if (res.error) {
+    showToast('No se ha podido marcar listo: ' + res.error.message, 'error')
+    return
+  }
   await recargarCiclo()
   pintarCiclo()
 }
@@ -529,6 +540,30 @@ async function reportar(partida, resultado) {
     )
     return
   }
+  // Por la RPC: reporta, concilia con lo del rival y cierra la mesa, todo
+  // en el servidor y con la fila bajo candado. Desde el navegador eran
+  // tres escrituras seguidas, y dos rivales reportando a la vez podían
+  // pisarse. Además `match_reports` es de escritura solo por RPC con la
+  // sección abierta.
+  const res = await supabase.rpc('torneos_reportar', { p_partida: partida.id, p_resultado: resultado })
+  if (!faltaLaRpc(res.error)) {
+    if (res.error) {
+      const texto = String(res.error.message || '')
+      showToast(texto.length < 120 ? texto : 'No se ha podido reportar.', 'error')
+      return
+    }
+    const AVISOS = {
+      esperando: ['Reportado. Falta que tu rival lo confirme.', 'success'],
+      conciliado: ['Resultado confirmado por los dos.', 'success'],
+      disputa: ['Los reportes no coinciden: la mesa queda en disputa.', 'error'],
+      repetido: ['Ese resultado ya estaba reportado.', 'info'],
+    }
+    const [texto, tono] = AVISOS[res.data] || ['Reportado.', 'success']
+    showToast(texto, tono)
+    await ctx.recargarFicha()
+    return
+  }
+
   const { error } = await supabase
     .from('match_reports')
     .insert({ match_id: partida.id, reporter_id: miId(), result: resultado, reported_at: ahora() })

@@ -11,6 +11,37 @@ export const ESTADOS = {
   cancelled: { texto: 'Cancelado', clase: 'torneo-estado-fin' },
 }
 
+// ── El puente a las RPC (tanda 252) ──
+//
+// Con la sección abierta, un jugador normal NO escribe directamente en
+// `tournament_registrations`, `match_reports` ni `tournament_matches`:
+// la RLS fina se lo impide y lo hacen tres funciones del servidor
+// (`torneos_inscribirse`, `torneos_reportar`, `torneos_checkin`), que
+// además cierran carreras que desde el navegador no se pueden cerrar —
+// el cupo, la conciliación de dos reportes.
+//
+// PERO este código sale a producción ANTES de que se ejecute la
+// migración que las crea. En ese rato la RPC no existe y la base
+// contesta que no la conoce; entonces se hace lo de siempre, que hoy
+// funciona porque quien entra es admin.
+//
+// Solo se cae al camino viejo cuando la función NO EXISTE. Cualquier
+// otro error —«torneo lleno», «ya estás inscrito»— se devuelve tal
+// cual: caerse al insert directo ahí se saltaría justo la comprobación
+// que la RPC existe para hacer.
+//
+// QUITAR este puente cuando la migración lleve un tiempo puesta.
+export function faltaLaRpc(error) {
+  if (!error) return false
+  // PGRST202 es «no existe esa función» de PostgREST; 42883 es el
+  // mismo error visto desde PostgreSQL.
+  return (
+    error.code === 'PGRST202' ||
+    error.code === '42883' ||
+    /could not find the function|does not exist/i.test(String(error.message || ''))
+  )
+}
+
 export function fechaBonita(iso) {
   const f = new Date(iso)
   return f.toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
