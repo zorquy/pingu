@@ -3,11 +3,12 @@
 // wizard de pasos del original, sin el paso de pago: aquí todo es
 // gratis.
 //
-// Para CUALQUIER CUENTA desde la tanda 252 (antes solo admins), pero
-// SOLO con cuenta desde el 2026-09-02 (pedido de Ibai): sin sesión se
-// redirige a entrar, con vuelta aquí. Lo respalda la política de la
-// base (supabase-migration-torneos-solo-cuentas.sql): un `if` en el
-// navegador solo es cortesía. Crear sigue siendo del equipo.
+// ABIERTA A TODO EL MUNDO (tanda 252 + pedido de Ibai del 2026-09-02):
+// la lista se ve con y sin cuenta, como las demás secciones — es el
+// escaparate. Apuntarse sí pide cuenta: la ficha manda al REGISTRO a
+// quien no la tenga. Quien decide qué datos salen es la política de la
+// base (supabase-migration-torneos-publico.sql). Crear sigue siendo
+// del equipo.
 import { supabase } from '../supabase.js'
 import { escapeHtml, getSession, getProfile, slugify, uploadProfileImage } from '../app.js'
 import { showToast } from '../toast.js'
@@ -808,15 +809,11 @@ function engancharFormulario(session, perfil) {
 
 async function init() {
   const session = await getSession()
-  // Solo con cuenta (pedido de Ibai, 2026-09-02): sin sesión, a entrar
-  // — y el `volver` trae de vuelta aquí tras el login. La política de
-  // la base (torneos-solo-cuentas) es quien cierra los datos de verdad;
-  // esta redirección es la cara amable.
-  if (!session) {
-    window.location.href = '/auth.html?volver=' + encodeURIComponent('/torneos.html')
-    return
-  }
-  const perfil = await getProfile(session.user.id)
+  const perfil = session ? await getProfile(session.user.id) : null
+  // Esta página NO echa a nadie: la lista y el calendario se ven sin
+  // cuenta (escaparate). Apuntarse ya se lo pide la ficha, que a quien
+  // no tenga cuenta lo manda al registro.
+  //
   // CREAR un torneo sigue siendo del equipo, y el botón se esconde para
   // los demás: la base lo rechazaría igual (`torneos_escribir` pide
   // admin), pero enseñar un formulario de cinco pasos que va a acabar en

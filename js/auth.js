@@ -17,6 +17,14 @@ if (new URLSearchParams(window.location.search).get('banned') === '1') {
   setError(steps.login, 'Esta cuenta ha sido suspendida. Si crees que es un error, contáctanos.')
 }
 
+// Llegar DIRECTO al registro (?registro=1): lo usa el escaparate de
+// torneos — a quien quiere apuntarse sin cuenta se le trae al
+// formulario de crearla, no al login (pedido de Ibai, 2026-09-02). El
+// `volver` de la URL sigue funcionando igual al terminar.
+if (new URLSearchParams(window.location.search).get('registro') === '1') {
+  showStep('register')
+}
+
 // El enlace de invitación (/r/<usuario> redirige aquí con ?r=). Se
 // apunta en el navegador y lo consume el onboarding al terminar: así
 // sobrevive al viaje por el registro, la confirmación de correo y el

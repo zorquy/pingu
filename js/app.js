@@ -360,6 +360,13 @@ async function renderNavUser(session) {
   const el = document.getElementById('nav-user')
   if (!el) return
 
+  // «Jugar» sale para TODO el mundo, con y sin sesión, como las demás
+  // secciones (pedido de Ibai, 2026-09-02): los torneos son el
+  // escaparate, y a quien quiera apuntarse sin cuenta la ficha ya lo
+  // manda al registro. El enlace nace oculto en el HTML y se desvela
+  // aquí, no en el HTML, para poder volver a cerrarlo con una línea.
+  document.querySelectorAll('.nav-jugar').forEach((e) => e.classList.remove('hidden'))
+
   if (!session) {
     el.innerHTML = `<a href="/auth.html" class="btn-primary">Entrar</a>`
     return
@@ -380,15 +387,10 @@ async function renderNavUser(session) {
   const name = profile?.display_name || profile?.username || session.user.email
   const estiloAvatar = avatarStyle(profile)
 
-  // «Jugar» ya es de todos (tanda 252): la sección se abrió el
-  // 2026-09-02. El enlace sigue naciendo oculto en el HTML y se desvela
-  // aquí porque solo tiene sentido con sesión — sin cuenta no hay
-  // torneo al que apuntarse.
-  //
   // El aviso de torneo EN JUEGO va en su propio módulo y en diferido:
   // la portada no puede pagar ese peso por algo que la mayoría de las
-  // visitas no necesita (presupuesto de 170 KB).
-  document.querySelectorAll('.nav-jugar').forEach((e) => e.classList.remove('hidden'))
+  // visitas no necesita (presupuesto de 170 KB). Solo con sesión: sin
+  // cuenta no hay torneo tuyo del que avisar.
   import('./torneos/aviso-torneo.js')
     .then((m) => m.montarAvisoTorneo(session))
     .catch(() => {})

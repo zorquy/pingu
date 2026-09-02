@@ -74,16 +74,17 @@ producción sin red debajo. Del foro faltan las piezas de alrededor
 Porte de TrainerArena (github.com/ibaimanso/TrainerArena, de Ibai
 Manso) a este stack.
 
-**Para CUALQUIER CUENTA desde el 2026-09-02 (tanda 252), y SOLO CON
-CUENTA desde ese mismo día (pedido de Ibai).** Ya no hay candado de
-`is_admin` en el JavaScript, pero sin sesión no se ve: /torneos y la
-ficha redirigen a /auth.html con `volver` (se vuelve al torneo tras
-entrar). Quien cierra los datos de verdad es la POLÍTICA de la base
-(supabase-migration-torneos-solo-cuentas.sql, que pisa las lecturas
-anónimas de torneos-publico.sql). **No metas un `if` de `is_admin`
-para «proteger» nada de torneos**: no protegería —la respuesta de la
-API llega igual. Lo que sí sigue siendo del equipo: CREAR, editar y
-llevar un torneo.
+**ABIERTA A TODO EL MUNDO desde el 2026-09-02 (tanda 252).** Ya no hay
+candado de `is_admin` en el JavaScript: el enlace «Jugar» sale para
+todo el mundo (con y sin sesión, como las demás secciones), /torneos
+no echa a nadie y la ficha se ve sin cuenta — es el escaparate. Lo que
+sí pide cuenta es ACTUAR: a quien quiere inscribirse sin cuenta la
+ficha lo manda al formulario de REGISTRO (/auth.html?registro=1, con
+`volver` de vuelta al torneo). Quien decide qué se ve es la POLÍTICA
+de la base (supabase-migration-torneos-publico.sql). **No metas un
+`if` de `is_admin` para «proteger» nada de torneos**: no protegería
+—la respuesta de la API llega igual— y rompería el escaparate. Lo que
+sí sigue siendo del equipo: CREAR, editar y llevar un torneo.
 
 **Y con la sección abierta, un jugador normal NO escribe directo en las
 tablas del torneo.** La RLS fina se lo impide y lo hacen tres funciones

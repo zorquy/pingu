@@ -12,6 +12,35 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-02 16:00 — IBAI-Claude (Jugar a la vista, registro al unirse)
+**Hecho**: Ibai afinó el tiro de la entrada anterior — la pestaña
+«Jugar» y la sección enteras SE VEN SIN SESIÓN, como las demás
+secciones (vuelve el escaparate); lo que pide cuenta es UNIRSE. Tres
+piezas: (1) el enlace «Jugar» del menú se desvela para todo el mundo
+(antes solo con sesión, app.js); (2) fuera las redirecciones a
+/auth.html de /torneos y la ficha (vuelven el modo escaparate de la
+229 y el noindex de torneos.html se quita otra vez); (3) el CTA del
+escaparate con inscripciones abiertas pasa de «Entra para inscribirte»
+a «Crea tu cuenta para inscribirte» y lleva DIRECTO al formulario de
+REGISTRO — auth.js entiende ahora `?registro=1` y abre ese paso; el
+`volver` sigue trayendo de vuelta al torneo. Quien ya tiene cuenta
+tiene su «¿Ya tienes cuenta? Entra» al lado.
+**RETIRADA supabase-migration-torneos-solo-cuentas.sql** (de la
+entrada de las 15:30, nunca ejecutada según esta bitácora): NO
+ejecutarla. Si por lo que fuera ya corrió, re-ejecutar
+supabase-migration-torneos-publico.sql, que restaura las lecturas
+anónimas (sus drop/create pisan las de solo-cuentas). CLAUDE.md
+puesto al día otra vez.
+**Ficheros**: js/app.js, js/auth.js, js/torneos/torneos.js,
+js/torneos/torneo.js, torneos.html, CLAUDE.md,
+supabase-migration-torneos-solo-cuentas.sql (BORRADA). Fuera del repo:
+pruebas\verificar-escaparate.mjs (NUEVA, 10 en verde: menú y sección
+sin sesión, CTA con registro=1 y volver, auth abre en crear cuenta;
+con sesión, flujo normal) — sustituye a verificar-solo-cuentas.mjs
+(borrada, probaba el muro que ya no existe).
+**En curso / pendiente**: nada a medias. La pasada de suite pedida en
+las entradas anteriores sigue en pie (ronda.js, torneo.js).
+
 ## 2026-09-02 15:30 — IBAI-Claude (Jugar solo con cuenta)
 **Hecho**: pedido de Ibai — la sección «Jugar» deja de verse sin
 cuenta (sigue siendo de CUALQUIER cuenta: esto NO devuelve el candado

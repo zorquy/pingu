@@ -1026,9 +1026,11 @@ function pintarMiPlaza() {
   const caja = $('miPlazaContenido')
 
   // El escaparate (tanda 229): quien mira sin cuenta no tiene plaza que
-  // enseñar, tiene una razón para crearse una. El enlace vuelve AQUÍ
-  // después de entrar, que es lo que uno espera al abrir un enlace
-  // compartido.
+  // enseñar, tiene una razón para crearse una. El botón lleva DIRECTO
+  // al formulario de registro (?registro=1, pedido de Ibai) — quien ya
+  // tiene cuenta usa el enlace pequeño de al lado. En los dos casos el
+  // `volver` te trae de vuelta AQUÍ, que es lo que uno espera al abrir
+  // un enlace compartido.
   if (soloMirando) {
     const vuelta = encodeURIComponent(window.location.pathname + window.location.search)
     caja.innerHTML =
@@ -1040,8 +1042,8 @@ function pintarMiPlaza() {
               ? ' y no hay límite de plazas'
               : `: quedan ${Math.max(0, torneo.max_players - activos())} plazas`
           }.</p>
-           <a class="btn-primary" href="/auth.html?volver=${vuelta}">Entra para inscribirte</a>
-           <p class="subtext">Es gratis y se juega en Pokémon TCG Live.</p>`
+           <a class="btn-primary" href="/auth.html?registro=1&volver=${vuelta}">Crea tu cuenta para inscribirte</a>
+           <p class="subtext">Es gratis y se juega en Pokémon TCG Live. ¿Ya tienes cuenta? <a href="/auth.html?volver=${vuelta}">Entra</a>.</p>`
         : `<p class="subtext">Estás viendo este torneo sin haber entrado.</p>
            <a class="btn-secondary" href="/auth.html?volver=${vuelta}">Entrar en PokeDoc</a>`
     return
@@ -1519,21 +1521,15 @@ async function recargar() {
 
 async function init() {
   session = await getSession()
+  perfil = session ? await getProfile(session.user.id) : null
+  soloMirando = !session
 
-  // Solo con cuenta (pedido de Ibai, 2026-09-02): quien llega por un
-  // enlace compartido sin sesión va a entrar Y VUELVE AQUÍ tras el
-  // login (`volver`, tanda 229) — la pared amable. Los datos los cierra
-  // de verdad la política de la base (torneos-solo-cuentas); esto solo
-  // evita enseñar una ficha vacía. Aquí sigue SIN comprobarse is_admin:
-  // la sección es de cualquier cuenta desde la tanda 252.
-  if (!session) {
-    const volver = window.location.pathname + window.location.search
-    window.location.href = '/auth.html?volver=' + encodeURIComponent(volver)
-    return
-  }
-  perfil = await getProfile(session.user.id)
-  soloMirando = false
-
+  // Aquí NO se comprueba sesión ni is_admin: la ficha se ve sin cuenta
+  // (el escaparate de la tanda 229) — un enlace compartido tiene que
+  // enseñar el torneo a quien todavía no tiene cuenta, que es justo la
+  // persona a la que queremos convencer. Lo único que pide cuenta es
+  // ACTUAR: apuntarse manda al registro (pintarInscripcion) y la RLS de
+  // la base cierra las escrituras de verdad.
   const slug = new URLSearchParams(window.location.search).get('slug')
   torneo = slug ? await cargarTorneo(slug) : null
   if (!torneo) {
