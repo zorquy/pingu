@@ -70,7 +70,7 @@ const nombreSeVe = (page) =>
 
 // Un PNG de 1×1 transparente. Los sprites vienen de una CDN de fuera y
 // esto se ejecuta sin internet, así que se sirven desde aquí: la prueba
-// no puede depender de que jsDelivr esté en pie ni de tener red. La
+// no puede depender de que la CDN de sprites (r2.limitlesstcg.net desde la tanda 240) esté en pie ni de tener red. La
 // prueba 7 hace lo contrario a propósito (los corta) para comprobar el
 // respaldo.
 const PNG_1x1 = Buffer.from(
@@ -80,7 +80,7 @@ const PNG_1x1 = Buffer.from(
 
 const abrir = async (semillas) => {
   const page = await browser.newPage()
-  await page.route('**/cdn.jsdelivr.net/**', (r) =>
+  await page.route('**/r2.limitlesstcg.net/**', (r) =>
     r.fulfill({ status: 200, contentType: 'image/png', body: PNG_1x1 })
   )
   const errores = []
@@ -208,14 +208,17 @@ console.log('\n── 6. Los iconos son MINISPRITES (tanda 231) ──')
     els.map((e) => ({ src: e.getAttribute('src'), clases: e.className }))
   )
   check('hay iconos pintados', iconos.length >= 2, String(iconos.length))
+  // Los sprites se mudaron a limitlesstcg y van por NOMBRE, no por
+  // número de Pokédex (tandas 240 y siguientes, de Ibai). Esta prueba se
+  // quedó pidiendo las URLs viejas de PokeAPI y nadie lo notó.
   check('son sprites de Pokémon, no cartas',
-    iconos.every((i) => /PokeAPI\/sprites/.test(i.src || '')),
+    iconos.every((i) => /limitlesstcg\.net\/pokemon\//.test(i.src || '')),
     JSON.stringify(iconos.map((i) => i.src)))
   check('con su clase de sprite', iconos.every((i) => /es-sprite/.test(i.clases || '')), JSON.stringify(iconos.map((i) => i.clases)))
-  // Dragapult es el 887 y Gardevoir el 282: si la tabla se desplazara,
-  // saldría el Pokémon de al lado y no lo notaría nadie mirando.
-  check('Dragapult es el 887', iconos.some((i) => /\/887\.png$/.test(i.src || '')), JSON.stringify(iconos.map((i) => i.src)))
-  check('Gardevoir es el 282', iconos.some((i) => /\/282\.png$/.test(i.src || '')), JSON.stringify(iconos.map((i) => i.src)))
+  // Y son LOS de este mazo: si la correspondencia nombre → sprite se
+  // torciera, saldría otro Pokémon y no lo notaría nadie mirando.
+  check('sale Dragapult', iconos.some((i) => /\/dragapult\.png$/.test(i.src || '')), JSON.stringify(iconos.map((i) => i.src)))
+  check('y Gardevoir', iconos.some((i) => /\/gardevoir\.png$/.test(i.src || '')), JSON.stringify(iconos.map((i) => i.src)))
   // Y con los iconos puestos el nombre se esconde: esa es la gracia de
   // la chapa. Sigue en el aria-label para quien no reconozca el sprite.
   check('con iconos, el nombre se esconde', (await nombreSeVe(page)) === false)
@@ -228,7 +231,7 @@ console.log('\n── 7. Si la CDN de sprites falla, vuelve el nombre ──')
   // No es un caso raro: las imágenes vienen de fuera, y de fuera se cae
   // todo tarde o temprano. Aquí se cortan a propósito.
   const page = await browser.newPage()
-  await page.route('**/cdn.jsdelivr.net/**', (r) => r.abort())
+  await page.route('**/r2.limitlesstcg.net/**', (r) => r.abort())
   await page.addInitScript((s) => {
     window.__FAKE_SESSION__ = 'user-1'
     window.__FAKE_TORNEOS__ = [{ ...s.t, status: 'finished', show_opponent_decklists: false }]

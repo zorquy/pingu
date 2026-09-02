@@ -277,6 +277,10 @@ sembrar('__FAKE_JUECES__', 'judge_applications', (i) => ({
   status: 'pending',
 }))
 
+// Las RPC que la base todavía no conoce (una base sin la migración de
+// apertura puesta).
+const SIN_RPC = (typeof window !== 'undefined' && window.__SIN_RPC__) || []
+
 // Las tablas cuya política de borrado dice que no (ver `aplicar`).
 const SIN_BORRAR = (typeof window !== 'undefined' && window.__RLS_SIN_BORRAR__) || []
 
@@ -548,6 +552,34 @@ export const supabase = {
       const tema = T.forum_threads.find((t) => t.id === args.p_thread)
       if (tema) tema.view_count = (tema.view_count || 0) + 1
     }
+    // Una base que todavía NO tiene la migración de apertura contesta
+    // que no conoce la función. Es el caso que hace falta para probar el
+    // puente del cliente (faltaLaRpc en js/torneos/comun.js): hasta que
+    // se ejecute el SQL, apuntarse y reportar tienen que seguir yendo
+    // por el camino de siempre.
+    if ((SIN_RPC || []).includes(nombre)) {
+      return {
+        data: null,
+        error: { code: 'PGRST202', message: `Could not find the function public.${nombre} in the schema cache` },
+      }
+    }
+    // Un error de la RPC que NO es «no existe»: «Torneo lleno.», «Ya
+    // estás inscrito.». El cliente NO puede caerse al camino viejo con
+    // estos, porque se saltaría justo lo que la RPC comprueba.
+    const errores = (typeof window !== 'undefined' && window.__RPC_ERROR__) || {}
+    if (nombre in errores) {
+      // Una cadena es un error normal de la función; un objeto permite
+      // elegir el código, que hace falta para probar por separado las
+      // dos formas de reconocer «esa función no existe».
+      const e = errores[nombre]
+      return { data: null, error: typeof e === 'string' ? { code: 'P0001', message: e } : e }
+    }
+
+    // Y si la prueba dice qué tiene que devolver, se devuelve: la RPC de
+    // reportar contesta 'esperando' o 'conciliado' y el cliente pinta
+    // cosas distintas.
+    const respuesta = (typeof window !== 'undefined' && window.__RPC_RESPUESTAS__) || {}
+    if (nombre in respuesta) return { data: respuesta[nombre], error: null }
     return { data: null, error: null }
   },
   auth: {
