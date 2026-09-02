@@ -21,7 +21,7 @@ import { supabase } from '../supabase.js'
 import { searchCards, cardImageUrl, normalizeSearch } from '../tcgdex.js'
 import { escapeHtml } from '../app.js'
 import { nombreDeSetLive, MARCAS_LEGALES_DEFECTO } from './comun.js'
-import { spriteDeCarta } from './sprites-pokemon.js'
+import { spriteDeCarta, respaldoDeSprite } from './sprites-pokemon.js'
 
 const cache = new Map()
 const setsPorCodigo = new Map() // código Live → set_id del espejo (o null)
@@ -278,7 +278,18 @@ export async function rellenarChapasArquetipo(raiz) {
       // antes de los iconos y dice lo mismo. Nunca un hueco roto.
       for (const img of chapa.querySelectorAll('.torneo-arquetipo-icono')) {
         img.addEventListener('error', () => {
-          if (img.classList.contains('es-sprite')) spritesRotos.add(img.src)
+          if (img.classList.contains('es-sprite')) {
+            spritesRotos.add(img.src)
+            // Antes de rendirse: el sprite de una forma que la CDN no
+            // tenga cae al de su ESPECIE BASE (una mega recién salida
+            // enseña el Pokémon a secas). Si el respaldo tampoco carga,
+            // este mismo manejador vuelve a saltar y ya no hay más caída.
+            const respaldo = respaldoDeSprite(img.src)
+            if (respaldo && !spritesRotos.has(respaldo)) {
+              img.src = respaldo
+              return
+            }
+          }
           // El icono de una carta va dentro de su marco de recorte: se
           // quita el marco entero, que un cuadrado vacío también es un
           // hueco roto.

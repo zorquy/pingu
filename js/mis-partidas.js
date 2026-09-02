@@ -18,7 +18,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getSession } from './app.js'
 import { showToast } from './toast.js'
 import { arquetipoDeMazo, claveDeArquetipo, claveCanonicaDeMazo, dexesDeNombre } from './torneos/arquetipos.js'
-import { urlDeSprite, spriteDeCarta, spriteDeObjeto } from './torneos/sprites-pokemon.js'
+import { urlDeSprite, spriteDeCarta, spriteDeObjeto, atributosDeRespaldo } from './torneos/sprites-pokemon.js'
 import { construirMatriz, resumen, porcentaje, miResultado, filtrarTorneos, enfrentamientosDe } from './matriz-partidas.js'
 import { montarSelectorMazo } from './torneos/selector-mazo.js'
 
@@ -341,11 +341,12 @@ function spritesDeMazoHtml(nombre, clave) {
     const objeto = spriteDeObjeto(nombre)
     if (objeto) urls = [objeto]
   }
-  // Si un sprite no llega (un mazo que no es un Pokémon, un nombre que
-  // el CDN no conoce), la imagen se ESCONDE. Un icono de imagen rota es
-  // peor que no enseñar nada: parece que la página está estropeada.
+  // Si un sprite no llega, atributosDeRespaldo prueba primero el de la
+  // especie base (una mega que la CDN aún no tiene) y, si tampoco, la
+  // imagen se ESCONDE. Un icono de imagen rota es peor que no enseñar
+  // nada: parece que la página está estropeada.
   return urls
-    .map((u) => `<img class="partidas-sprite" src="${escapeHtml(u)}" alt="" loading="lazy" onerror="this.style.display='none'" />`)
+    .map((u) => `<img class="partidas-sprite" src="${escapeHtml(u)}" alt="" loading="lazy"${atributosDeRespaldo(u)} />`)
     .join('')
 }
 

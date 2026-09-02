@@ -20,7 +20,7 @@
 //      tanda 234 eso no se podía elegir: PINGU lo vio enseguida, porque
 //      en trainingcourt escribes «hamm» y sale Crushing Hammer.
 //      Estas tardan lo que tarde la consulta y se añaden después.
-import { POKEMON_POR_DEX, POKEMON_APLASTADOS, FORMAS_TCG, OBJETOS_TCG, urlDeSprite, dexDeCarta, spriteDeObjeto } from './sprites-pokemon.js'
+import { POKEMON_POR_DEX, POKEMON_APLASTADOS, FORMAS_TCG, OBJETOS_TCG, urlDeSprite, dexDeCarta, spriteDeObjeto, respaldoDeSprite, atributosDeRespaldo } from './sprites-pokemon.js'
 import { searchCards, cardImageUrl } from '../tcgdex.js'
 
 // El escapado va aquí y NO se importa de app.js a propósito: app.js toca
@@ -200,6 +200,15 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
   const spriteImg = sprite.querySelector('img')
   const limpiar = contenedor.querySelector('.selector-mazo-limpiar')
 
+  // El sprite del campo, con la misma red que la lista: si el de la
+  // forma no está en la CDN se prueba el de su especie base, y si
+  // tampoco llega se esconde el marco — nunca el icono roto.
+  spriteImg.addEventListener('error', () => {
+    const respaldo = respaldoDeSprite(spriteImg.src)
+    if (respaldo && spriteImg.src !== respaldo) spriteImg.src = respaldo
+    else sprite.classList.add('hidden')
+  })
+
   function cerrar() {
     abierto = false
     lista.classList.add('hidden')
@@ -216,10 +225,12 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
           // Una carta no se enseña entera (a este tamaño no se lee):
           // se recorta su ilustración en un cuadrado, como el
           // minisprite de un Pokémon. El marco es quien recorta.
+          // Un sprite de forma que la CDN no tenga cae al de su especie
+          // base (atributosDeRespaldo) en vez de al icono roto.
           o.sprite
             ? o.esCarta
               ? `<span class="selector-mazo-marco es-carta"><img src="${escapeHtml(o.sprite)}" alt="" loading="lazy" /></span>`
-              : `<img src="${escapeHtml(o.sprite)}" alt="" loading="lazy" />`
+              : `<img src="${escapeHtml(o.sprite)}" alt="" loading="lazy"${atributosDeRespaldo(o.sprite)} />`
             : '<span class="selector-mazo-hueco"></span>'
         }
         <span>${escapeHtml(o.nombre)}</span>
@@ -322,7 +333,9 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
       campo.value = elegido ? elegido.nombre : ''
       sprite.classList.toggle('hidden', !elegido?.sprite)
       sprite.classList.toggle('es-carta', Boolean(elegido?.esCarta))
-      if (elegido?.sprite) sprite.src = elegido.sprite
+      // `spriteImg`, no `sprite`: el src va en el <img>, no en su marco
+      // (aquí se ponía en el span y el sprite no salía al editar).
+      if (elegido?.sprite) spriteImg.src = elegido.sprite
       limpiar.classList.toggle('hidden', !elegido)
       cerrar()
     },

@@ -3,9 +3,9 @@
 // wizard de pasos del original, sin el paso de pago: aquí todo es
 // gratis.
 //
-// MIENTRAS DURE LA PRUEBA es solo para admins: quien no lo sea sale
-// rebotado a la portada antes de ver nada (y las políticas RLS de
-// supabase-migration-torneos.sql cierran los datos por si acaso).
+// ABIERTA AL PÚBLICO desde la tanda 252: la lista se ve sin cuenta y
+// quien decide qué datos salen es la política de la base
+// (supabase-migration-torneos-publico.sql). Crear sigue siendo del equipo.
 import { supabase } from '../supabase.js'
 import { escapeHtml, getSession, getProfile, slugify, uploadProfileImage } from '../app.js'
 import { showToast } from '../toast.js'

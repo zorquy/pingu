@@ -209,11 +209,10 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   }
 
   // 0. AVISO DE APERTURA (tanda 211): un torneo que acaba de abrir
-  //    inscripciones se anuncia una sola vez. MIENTRAS DURE LA PRUEBA
-  //    solo a los admins — la sección no existe para nadie más; al
-  //    abrir los torneos al público, quitar el filtro de is_admin.
-  //    Un tropiezo aquí (p. ej. la migración de la columna aún sin
-  //    pasar) no puede tumbar el barrido de relojes de más abajo.
+  //    inscripciones se anuncia una sola vez — por campanita y push,
+  //    NUNCA por correo (ver dentro). Un tropiezo aquí (p. ej. la
+  //    migración de la columna aún sin pasar) no puede tumbar el
+  //    barrido de relojes de más abajo.
   if (mandar) {
     try {
       const recienAbiertos = await rest(
@@ -222,11 +221,14 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
         clave
       )
       for (const t of recienAbiertos || []) {
-        // A TODA la comunidad desde la tanda 252 (antes solo a los
-        // admins, mientras la sección estuvo en pruebas). Se respeta la
-        // preferencia de cada cual: encolarCorreo y campanita miran su
-        // lista de tipos apagados, y el push solo llega a quien lo tenga
-        // concedido.
+        // A TODA la comunidad desde la tanda 252, pero SIN CORREO desde
+        // el 2026-09-02 (pedido de Ibai): un email a los 96 miembros por
+        // cada torneo que abre es spam — los correos de torneos son solo
+        // para quien está APUNTADO a ese torneo (cancelación,
+        // recordatorio, ronda, final…). El anuncio de apertura queda en
+        // la campanita y el push, que ya son opt-out/opt-in de cada uno:
+        // la campanita mira la lista de tipos apagados y el push solo
+        // llega a quien lo tenga concedido.
         const gente = await rest(`user_profiles?select=id`, clave)
         const ids = (gente || []).map((a) => a.id)
         if (ids.length) {
@@ -236,18 +238,6 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
           )
           const cuando = fechaLargaEs(t.start_at)
           const enlaceApertura = new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href
-          // Un anuncio que no dice CUÁNDO se juega no sirve: lo abres y
-          // sigues sin saber si es mañana o dentro de un mes. Va la
-          // fecha, el formato y las plazas, que es lo que decide si te
-          // apuntas (tanda 249).
-          const corte = t.top_cut_size ? ` + top ${t.top_cut_size}` : ''
-          const ficha = [
-            cuando ? `Se juega el ${cuando}` : null,
-            `${t.swiss_rounds} rondas suizas BO${t.swiss_bo}${corte}`,
-            t.max_players ? `${t.max_players} plazas` : 'plazas sin límite',
-          ]
-            .filter(Boolean)
-            .join(' · ')
           const cortoApertura = cuando ? `Se juega el ${cuando}. Apúntate y deja lista tu decklist.` : 'Apúntate antes de que se llene y deja lista tu decklist.'
           await avisar(subs, {
             title: `Inscripciones abiertas — ${t.name}`,
@@ -260,13 +250,6 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
             title: `Inscripciones abiertas — ${t.name}`,
             body: cortoApertura,
             link: enlaceApertura,
-          })
-          correos += await encolarCorreo(ids, {
-            tipo: 'torneo_apertura',
-            subject: `Inscripciones abiertas — ${t.name}`,
-            preview: `${ficha}. Apúntate y deja lista tu decklist antes de que empiece.`,
-            link: enlaceApertura,
-            thread: `torneo-apertura-${t.id}`,
           })
         }
         await rest(`tournaments?id=eq.${t.id}`, clave, {

@@ -275,9 +275,15 @@ export const FORMAS_TCG = [
 // El TCG de la era MEG trae cartas «Mega X ex» (Kangaskhan, Excadrill,
 // Skarmory…, algunas que ni existían como mega en el videojuego) y
 // todas caían en el sprite de la especie base. Limitless tiene el
-// sprite de CADA una como `<especie>-mega` — las 56 de esta lista
+// sprite de CADA una como `<especie>-mega` — TODAS las de esta lista
 // están comprobadas contra su CDN una a una (la única que no existe,
-// slowking-mega, no está).
+// slowking-mega, no está). El 2026-09-02 se volvió a sondear la CDN
+// entera (las 1025 especies con «-mega») y salieron 20 nuevas que nos
+// faltaban — Mega Darkrai la primera, que ya se jugaba y caía en el
+// sprite de Darkrai a secas. Son las del segundo bloque. Y como la CDN
+// seguirá añadiendo, lo que no esté aquí se monta solo (ver
+// dexDeClave): esta lista es lo que sale en el BUSCADOR del selector,
+// no el único camino al sprite.
 //
 // El número es SINTÉTICO (20000 + dex de la base; 21000 para la
 // variante Y): desde la tanda 236 el sprite sale del slug y el número
@@ -297,6 +303,11 @@ const MEGAS = [
   'Latios', 'Rayquaza', 'Lopunny', 'Garchomp', 'Lucario', 'Abomasnow',
   'Gallade', 'Audino', 'Diancie', 'Camerupt', 'Skarmory', 'Excadrill',
   'Chandelure', 'Froslass', 'Sharpedo',
+  // Las 20 de la sonda del 2026-09-02, en orden de Pokédex.
+  'Clefable', 'Feraligatr', 'Altaria', 'Darkrai', 'Emboar', 'Scolipede',
+  'Scrafty', 'Eelektross', 'Chesnaught', 'Delphox', 'Greninja', 'Pyroar',
+  'Floette', 'Malamar', 'Barbaracle', 'Dragalge', 'Hawlucha', 'Zygarde',
+  'Drampa', 'Falinks',
 ]
 for (const especie of MEGAS) {
   const base = DEX_POR_NOMBRE.get(aplastar(especie))
@@ -325,12 +336,40 @@ for (const f of FORMAS_TCG) {
 // tecla del buscador de mazos.
 export const POKEMON_APLASTADOS = POKEMON_POR_DEX.map(aplastar)
 
+// ── Megas que la lista curada no conoce (todavía) ──
+//
+// La CDN de Limitless añade sprites «-mega» según salen cartas: la
+// sonda del 2026-09-02 encontró 20 que nos faltaban, y volverá a
+// pasar. Para que la próxima no caiga otra vez en el sprite de la
+// base, cualquier «Mega X» cuya X sea una especie se registra sola al
+// buscarla: mismo número sintético (20000 + dex) y slug `x-mega`. Si
+// la CDN aún no tiene ese sprite, el respaldo (respaldoDeSprite) da el
+// de la especie base — mejor el Pokémon sustituto que un hueco.
+function dexDeClave(clave) {
+  const directo = DEX_POR_NOMBRE.get(clave)
+  if (directo) return directo
+  if (!clave.startsWith('mega') || clave.length <= 4) return undefined
+  const base = DEX_POR_NOMBRE.get(clave.slice(4))
+  // Solo especies (≤1025): la «mega de una forma» no existe en el TCG.
+  if (!base || base > 1025) return undefined
+  const dex = 20000 + base
+  const especie = POKEMON_POR_DEX[base - 1]
+  DEX_POR_NOMBRE.set(clave, dex)
+  BASE_DE_FORMA.set(dex, base)
+  SLUG_POR_DEX.set(dex, slugLimitless(especie) + '-mega')
+  RESPALDO_POR_URL.set(
+    `${CDN_SPRITES}/${slugLimitless(especie)}-mega.png`,
+    `${CDN_SPRITES}/${slugLimitless(especie)}.png`
+  )
+  return dex
+}
+
 // El número de EXACTAMENTE este texto, o null. A diferencia de
 // dexDeCarta no prueba trozos: es la pieza con la que arquetipos.js
 // recorre un nombre de mazo sacando TODOS sus Pokémon, no solo el
 // primero.
 export function dexExacto(texto) {
-  return DEX_POR_NOMBRE.get(aplastar(texto)) ?? null
+  return dexDeClave(aplastar(texto)) ?? null
 }
 
 // El número de Pokédex de la especie que nombra esta carta, o null.
@@ -345,7 +384,7 @@ export function dexDeCarta(nombreDeCarta) {
   // Valiant a secas (si existiera).
   for (let largo = palabras.length; largo >= 1; largo--) {
     for (let desde = 0; desde + largo <= palabras.length; desde++) {
-      const dex = DEX_POR_NOMBRE.get(aplastar(palabras.slice(desde, desde + largo).join('')))
+      const dex = dexDeClave(aplastar(palabras.slice(desde, desde + largo).join('')))
       if (dex) return dex
     }
   }
@@ -391,6 +430,40 @@ for (const f of FORMAS_TCG) if (f.slug) SLUG_POR_DEX.set(f.dex, f.slug)
 export function urlDeSprite(dex) {
   const slug = SLUG_POR_DEX.get(dex)
   return slug ? `${CDN_SPRITES}/${slug}.png` : null
+}
+
+// ── El respaldo: la especie base cuando el sprite de la forma no está ──
+//
+// El sprite de una forma o una mega puede no existir en la CDN (pasó
+// con slowking-mega, y pasará con la primera mega de cada temporada
+// hasta que Limitless la suba). En vez de un hueco o un icono roto, se
+// enseña el sprite de la ESPECIE BASE — el Pokémon sustituto — que
+// para reconocer un mazo de un vistazo sirve igual.
+const RESPALDO_POR_URL = new Map()
+for (const f of FORMAS_TCG) {
+  if (!f.slug || !f.base || f.dex === f.base) continue
+  const slugBase = slugLimitless(POKEMON_POR_DEX[f.base - 1])
+  if (slugBase && slugBase !== f.slug) {
+    RESPALDO_POR_URL.set(`${CDN_SPRITES}/${f.slug}.png`, `${CDN_SPRITES}/${slugBase}.png`)
+  }
+}
+
+// La URL del sprite de la especie base de esta URL de forma, o null si
+// no es una forma (o ya es la base y no hay a qué caer).
+export function respaldoDeSprite(url) {
+  return RESPALDO_POR_URL.get(String(url ?? '')) ?? null
+}
+
+// Los atributos de <img> que aplican ese respaldo. Va como onerror en
+// línea porque estos sprites nacen de cadenas de HTML (innerHTML), no
+// de createElement: primero se prueba la especie base y, si tampoco
+// llega, la imagen se esconde — nunca el icono roto del navegador. Las
+// URLs las montamos nosotros de slugs (letras, números y guiones), así
+// que van sin escapar sin peligro.
+export function atributosDeRespaldo(url) {
+  const respaldo = respaldoDeSprite(url)
+  const datos = respaldo ? ` data-respaldo="${respaldo}"` : ''
+  return `${datos} onerror="if(this.dataset.respaldo){this.src=this.dataset.respaldo;this.removeAttribute('data-respaldo')}else{this.style.display='none'}"`
 }
 
 // ── Objetos con sprite propio ──

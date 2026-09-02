@@ -1897,20 +1897,21 @@ tcg-deck {
   color: var(--navy);
 }
 
+/* El título y su subtexto viven DENTRO de cada paso (#stepLogin…), no
+   como hijos directos de .auth-box: el gap del flex no llega ahí y el
+   reset global deja el h2 a margen cero. Sin estos márgenes el título
+   salía pegado al subtexto (y un -8px viejo aún los solapaba). */
 .auth-box h2 {
   font-size: 21px;
   font-weight: 800;
   letter-spacing: -0.3px;
+  margin-bottom: 8px;
 }
 
 .subtext {
   color: var(--text-mid);
   font-size: 13.5px;
   line-height: 1.5;
-}
-
-.auth-box .subtext {
-  margin-top: -8px;
 }
 
 .auth-input {

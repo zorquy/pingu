@@ -12,7 +12,46 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
-## 2026-09-02 — PINGU-Claude (tanda 252 — LA APERTURA)
+## 2026-09-02 13:35 — IBAI-Claude (remates de la apertura)
+**Hecho**: cuatro peticiones de Ibai. (1) AUTH: el título del
+formulario salía pegado a su subtexto (el reset global lo deja a margen
+cero y un `margin-top: -8px` viejo los solapaba — era de cuando el
+subtexto era hijo directo del flex con gap): ahora el h2 lleva 8px de
+margen y el -8px está fuera. Medido en navegador de verdad: 8px de
+hueco. (2) JUGAR: fuera la píldora «En pruebas — solo lo veis los
+admins» de /torneos y su `noindex` (puesta una meta description); el
+noindex de torneo.html (la ficha) SE QUEDA a propósito — protege
+nombres de jugadores, está comentado ahí. Comentarios desfasados de
+torneos.js/torneo.js («solo para admins») puestos al día. (3) SPRITES:
+sondeada la CDN de Limitless ENTERA (las 1025 especies con «-mega») y
+salieron 20 megas que faltaban en la lista — Mega Darkrai la primera,
+que caía en el Darkrai a secas. Además: cualquier «Mega X» futura que
+no esté en la lista se monta sola (slug `x-mega`), y TODO sprite de
+forma que la CDN no tenga cae al de su ESPECIE BASE en vez de a un
+hueco (`respaldoDeSprite`/`atributosDeRespaldo`, enganchado en
+mis-partidas, selector de mazo y chapas de arquetipo). De paso, bug de
+la tanda 251: `poner()` del selector escribía `sprite.src` en el SPAN
+del marco, no en el img — al editar una ronda el sprite no salía.
+(4) CORREO: la APERTURA de un torneo ya NO manda email a los 96
+miembros (era el único aviso-bombardeo; los demás ya iban solo a
+inscritos). Queda en campanita y push. Casilla `torneo_apertura` fuera
+de EMAIL_TYPES; baja-correo.mjs sigue reconociendo el tipo para los
+enlaces de baja de correos ya enviados.
+**Ficheros**: css/components.css, torneos.html, js/torneos/torneos.js,
+js/torneos/torneo.js, js/torneos/sprites-pokemon.js,
+js/torneos/selector-mazo.js, js/torneos/cartas-decklist.js,
+js/mis-partidas.js, js/notifications.js,
+netlify/functions/torneos-barredor.mjs. Fuera del repo (en
+Desktop\Pokedoc): sonda-megas.mjs (NUEVA — la sonda de la CDN, para
+repetirla otra temporada), verificar-sprites.mjs (NUEVA, 25 en verde),
+verificar-apertura.mjs (NUEVA, barredor con doble: 0 correos en la
+apertura, campanita y push intactos), verificar-auth-css.mjs (NUEVA,
+mide el hueco en navegador).
+**En curso / pendiente**: pedir a PINGU una pasada de la suite (torneos
+y mis-partidas tocan sprites). OJO: los torneos que ya tengan
+`registration_notified_at` no reanuncian nada; si había alguno abierto
+SIN anunciar, con este despliegue ya no manda correo (solo campanita y
+push) — que era justo el aviso de la tanda 252.
 **Hecho**: PINGU: «publica ya la parte de torneos». La sección deja de
 ser solo para admins. ANTES de quitar candados verifiqué las políticas
 contra PostgreSQL de verdad haciéndome pasar por un jugador normal, y

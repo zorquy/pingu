@@ -93,7 +93,12 @@ export const EMAIL_TYPES = {
   torneo_cancelado: 'Si se cancela un torneo en el que estás',
   torneo_plaza: 'Cuando la lista de espera te da plaza',
   torneo_ronda: 'Cuando empieza tu ronda',
-  torneo_apertura: 'Torneos nuevos con inscripciones abiertas',
+  // `torneo_apertura` ya no está: desde el 2026-09-02 la apertura de un
+  // torneo NO manda correo a nadie (era un email a toda la comunidad
+  // por cada torneo que abría — spam). El anuncio queda en campanita y
+  // push; los correos de torneos son solo para quien está apuntado. El
+  // tipo sigue existiendo en baja-correo.mjs para que el enlace de baja
+  // de los correos ya enviados no apague todo lo demás.
   torneo_final: 'Cuando termina un torneo que has jugado',
   torneo_juez: 'Cuando llaman a un juez en un torneo tuyo',
 }

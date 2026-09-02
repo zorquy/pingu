@@ -3,7 +3,8 @@
 // Es el porte de la página pública de TrainerArena (SPEC §8 y §9) sin
 // pagos: la inscripción es siempre gratuita y activa al momento.
 //
-// MIENTRAS DURE LA PRUEBA es solo para admins, igual que /torneos.
+// ABIERTA AL PÚBLICO desde la tanda 252, igual que /torneos: la ficha
+// se ve sin cuenta y la visibilidad fina la decide la política de la base.
 import { supabase } from '../supabase.js'
 import { escapeHtml, getSession, getProfile, burstConfetti } from '../app.js'
 import { showToast } from '../toast.js'
