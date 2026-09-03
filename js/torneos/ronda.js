@@ -90,8 +90,23 @@ async function cargarCiclo() {
   }
   const idsPartidas = partidas.map((m) => m.id)
   if (idsPartidas.length) {
+    // Los RESULTADOS los necesita todo el mundo: son la clasificación y
+    // el marcador de cada mesa, que es lo que viene a ver un espectador.
+    //
+    // Los REPORTES no. Son el paso intermedio —«fulano ya ha dicho lo
+    // suyo, falta el rival»— y solo le sirven a quien juega esa mesa, al
+    // organizador y a los jueces, que son quienes pueden hacer algo con
+    // ellos. Con la sección ya pública, pedirlos en cada refresco para
+    // todo el que mire era una consulta cada diez segundos por persona
+    // para pintar algo que esa persona no ve (tanda 255).
+    const mi = miId()
+    const necesitaReportes = Boolean(
+      ctx.perfil?.is_admin || ctx.esJuez || (mi && partidas.some((m) => m.player_a_id === mi || m.player_b_id === mi))
+    )
     const [{ data: reps }, { data: ress }] = await Promise.all([
-      supabase.from('match_reports').select('*').in('match_id', idsPartidas),
+      necesitaReportes
+        ? supabase.from('match_reports').select('*').in('match_id', idsPartidas)
+        : Promise.resolve({ data: [] }),
       supabase.from('match_results').select('*').in('match_id', idsPartidas),
     ])
     reportes = reps || []

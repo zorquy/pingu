@@ -191,6 +191,17 @@
           <div class="reto-tarjetas" id="retoTarjetas"><div class="skeleton" style="height: 84px;"></div></div>
         </section>
 
+        <!-- El próximo torneo (tanda 255). La sección «Jugar» se abrió el
+             2026-09-02 y la portada no la mencionaba: el único camino
+             era el enlace del menú, y un menú hay que abrirlo para
+             saber lo que hay dentro. Lo pinta js/home.js reutilizando
+             la pinta de las tarjetas del reto (cero CSS nuevo, que el
+             presupuesto de la portada anda justo) y se recoge sola si
+             no hay ningún torneo con las inscripciones abiertas. -->
+        <section id="torneoPortadaSeccion">
+          <div class="reto-tarjetas" id="torneoPortada"><div class="skeleton" style="height: 84px;"></div></div>
+        </section>
+
         <!-- Lo último del foro, visible SIN sesión: los temas son públicos, y
              enseñar que hay gente hablando hoy es la mejor prueba de que esto
              es una comunidad y no una web de leer. La pinta js/home.js y se

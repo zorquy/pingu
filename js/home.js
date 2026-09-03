@@ -138,6 +138,79 @@ function recogerSeccion(id) {
   if (s) s.style.display = 'none'
 }
 
+// ── El próximo torneo, en la portada (tanda 255) ──
+//
+// La sección «Jugar» se abrió a todo el mundo el 2026-09-02 y la portada
+// no decía ni una palabra de ella: quien entraba en pokedoc.es solo se
+// enteraba de que hay torneos si abría el menú. Es la novedad más grande
+// de la web y estaba escondida detrás de un clic.
+//
+// Se enseña UNO: el que antes se juega de los que tienen las
+// inscripciones abiertas. Dos torneos en la portada ya es una lista, y
+// una lista pide una página — que es /torneos, y está a un clic.
+//
+// Si no hay ninguno abierto, la sección se recoge y la portada queda
+// exactamente como estaba. Sin torneos que ofrecer, un hueco que diga
+// «no hay torneos» solo ocupa sitio.
+async function cargarTorneoPortada() {
+  const seccion = document.getElementById('torneoPortadaSeccion')
+  const hueco = document.getElementById('torneoPortada')
+  if (!seccion || !hueco) return
+  try {
+    const { data } = await supabase
+      .from('tournaments')
+      .select('id, slug, name, start_at, max_players')
+      .eq('status', 'registration_open')
+      .gte('start_at', new Date().toISOString())
+      .order('start_at', { ascending: true })
+      .limit(1)
+    const torneo = (data || [])[0]
+    if (!torneo) return recogerSeccion('torneoPortadaSeccion')
+
+    // Las plazas, solo si hay aforo. Es una consulta de CUENTA (head),
+    // así que no se trae ninguna fila — y solo se hace cuando hay un
+    // torneo que enseñar.
+    let plazas = ''
+    if (torneo.max_players != null) {
+      const { count } = await supabase
+        .from('tournament_registrations')
+        .select('id', { count: 'exact', head: true })
+        .eq('tournament_id', torneo.id)
+        .eq('status', 'active')
+      const libres = Math.max(0, torneo.max_players - (count ?? 0))
+      plazas = libres === 0 ? ' · sin plazas libres' : libres === 1 ? ' · queda 1 plaza' : ` · quedan ${libres} plazas`
+    }
+
+    hueco.innerHTML = `
+      <a class="reto-tarjeta" href="/torneo?slug=${encodeURIComponent(torneo.slug)}">
+        <span class="reto-icono">${icons.trophy(20)}</span>
+        <div class="reto-texto">
+          <strong>${escapeHtml(torneo.name)}</strong>
+          <small>${escapeHtml(cuandoSeJuega(torneo.start_at))}${escapeHtml(plazas)}. Inscripciones abiertas.</small>
+        </div>
+        <span class="reto-flecha">→</span>
+      </a>`
+    seccion.style.display = ''
+  } catch {
+    recogerSeccion('torneoPortadaSeccion')
+  }
+}
+
+// «hoy a las 19:00», «mañana a las 19:00», «el viernes 4 de septiembre».
+// Lo cercano se dice en relativo porque es lo que uno necesita saber
+// —¿me da tiempo?—; a partir de una semana, la fecha a secas.
+function cuandoSeJuega(iso) {
+  const cuando = new Date(iso)
+  if (Number.isNaN(cuando.getTime())) return 'Próximamente'
+  const hora = cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  const dia = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const dias = Math.round((dia(cuando) - dia(new Date())) / 86400_000)
+  if (dias <= 0) return `Hoy a las ${hora}`
+  if (dias === 1) return `Mañana a las ${hora}`
+  if (dias < 7) return `El ${cuando.toLocaleDateString('es-ES', { weekday: 'long' })} a las ${hora}`
+  return cuando.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
+}
+
 async function cargarForoVivo() {
   const seccion = document.getElementById('foroVivoSeccion')
   const hueco = document.getElementById('foroVivo')
@@ -282,6 +355,7 @@ async function init() {
     loadHeroGuideCount(),
     cargarNumerosComunidad(),
     cargarForoVivo(),
+    cargarTorneoPortada(),
     cargarBienvenida(session),
     loadHomeActivity(session),
     // Va dentro del mismo grupo: es una consulta corta y así no añade una

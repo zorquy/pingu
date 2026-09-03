@@ -126,6 +126,18 @@ async function cargarDecklists() {
   }
 
   decklistsTorneo = null // señal para jueces.js: aquí no se han traído
+
+  // Tu decklist, solo si estás INSCRITO (tanda 255). Quien no juega no
+  // tiene lista que traer, y preguntarlo en cada refresco era una
+  // consulta cada diez segundos para que la base contestara «nada» —
+  // por cada espectador, que desde que la sección es pública son
+  // muchos más que jugadores.
+  if (!miInscripcion) {
+    miDecklist = null
+    decklistsEntregadas = []
+    return
+  }
+
   const { data: propia } = await supabase
     .from('tournament_decklists')
     .select('*')

@@ -50,13 +50,6 @@ async function cargar() {
   solicitudes = ctx.solicitudes || []
   miSolicitud = solicitudes.find((s) => s.user_id === yo()) || null
 
-  const { data: calls } = await supabase
-    .from('judge_calls')
-    .select('*')
-    .eq('tournament_id', ctx.torneo.id)
-    .order('created_at', { ascending: true })
-  llamadas = calls || []
-
   // Las rondas y las mesas las acaba de cargar el módulo del ciclo
   // (montarCiclo corre antes que montarJueces y las deja en ctx.ciclo).
   // Si por lo que sea no están, se piden: este módulo tiene que poder
@@ -75,6 +68,27 @@ async function cargar() {
   }
   mesasPorId = Object.fromEntries(mesas.map((m) => [m.id, m]))
   disputadas = mesas.filter((m) => m.status === 'disputed')
+
+  // ── Las llamadas al juez, solo a quien le incumben (tanda 255) ──
+  //
+  // Antes se pedían en CADA refresco para todo el que tuviera la ficha
+  // abierta. Con la sección ya pública eso son decenas de espectadores
+  // preguntando cada diez segundos por una cola que no van a ver nunca.
+  //
+  // Quien las atiende (organizador y jueces aprobados) se las lleva
+  // enteras. Quien está JUGANDO se lleva solo las suyas, que las
+  // necesita para saber si su llamada sigue abierta. Quien solo mira no
+  // pide nada: una consulta menos por refresco y por persona.
+  const puedeAtender = Boolean(ctx.perfil?.is_admin || ctx.esJuez)
+  const tengoMesa = Boolean(yo() && mesas.some((m) => m.player_a_id === yo() || m.player_b_id === yo()))
+  if (puedeAtender || tengoMesa) {
+    let q = supabase.from('judge_calls').select('*').eq('tournament_id', ctx.torneo.id)
+    if (!puedeAtender) q = q.eq('created_by', yo())
+    const { data: calls } = await q.order('created_at', { ascending: true })
+    llamadas = calls || []
+  } else {
+    llamadas = []
+  }
 
   const rondaViva = rondas.find((r) => r.status !== 'finished') || null
   // El `mi &&` importa: sin sesión yo() es null, y la mesa del bye tiene

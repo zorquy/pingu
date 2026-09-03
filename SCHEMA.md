@@ -12566,3 +12566,82 @@ Comprobado con `test-tanda-254.mjs` (21/21) y `rigor-tanda-254.py` (8
 mutaciones, todas pilladas a la primera). **Es la primera prueba que
 tiene un curso**: hasta hoy el motor de cursos no tenía ninguna, y este
 fallo llevaba ahí desde que existe el bloque.
+
+---
+
+## Tanda 255 — la portada cuenta que hay torneos, y el sondeo adelgaza (sept. 2026)
+
+Las dos mitades de terminar la apertura del 2026-09-02.
+
+### 1. La tarjeta del próximo torneo en la portada
+
+La sección «Jugar» se abrió a todo el mundo y **la portada no decía ni
+una palabra de ella**: quien entraba en pokedoc.es solo se enteraba de
+que hay torneos si abría el menú. Es la novedad más grande de la web y
+estaba detrás de un clic que nadie tiene por qué dar.
+
+`cargarTorneoPortada()` (js/home.js) pinta **uno**: el que antes se
+juega de los que tienen las inscripciones abiertas.
+
+```js
+.eq('status', 'registration_open')
+.gte('start_at', new Date().toISOString())
+.order('start_at', { ascending: true })
+.limit(1)
+```
+
+- **Uno, no una lista.** Dos torneos en la portada ya son una lista, y
+  una lista pide una página — que es /torneos, y está a un clic.
+- **Sin torneo abierto, la sección se recoge** y la portada queda
+  exactamente como estaba. Un hueco que diga «no hay torneos» solo ocupa
+  sitio.
+- **Las plazas solo si hay aforo**: `max_players` puede ser null (torneo
+  sin límite) y entonces no se habla de plazas. La cuenta es
+  `count: 'exact', head: true` sobre las inscripciones `active`, así que
+  no baja ni una fila, y solo se pide cuando hay torneo que enseñar.
+- **Cero CSS nuevo**: reutiliza `.reto-tarjeta` del reto diario. El
+  presupuesto anda justo: la portada pasa de 148,8 a 149,9 KB gzip de
+  los 170 que tiene.
+
+`cuandoSeJuega(iso)` dice «Hoy a las 19:00», «Mañana a las 19:00», «El
+viernes a las 19:00» y, a partir de una semana, «4 de septiembre». Lo
+cercano en relativo porque es lo que hace falta saber —¿me da tiempo?—;
+lo lejano, la fecha a secas.
+
+### 2. El sondeo de la ficha, solo lo que cada uno puede ver
+
+La ficha del torneo se refresca sola cada 10 s (cada minuto si el vivo
+está conectado). Eso se diseñó cuando la sección era del equipo. Con la
+sección pública son decenas de personas mirando, y cada refresco pedía
+para TODAS cosas que solo sirven a quien juega o a quien arbitra.
+
+| Consulta | Antes | Ahora |
+|---|---|---|
+| `judge_calls` | todo el mundo, cada refresco | organizador y jueces, la cola entera; **quien juega, solo las suyas** (`created_by`); quien mira, nada |
+| `match_reports` | todo el mundo | organizador, jueces y quien juega esa ronda |
+| `tournament_decklists` (la propia) | todo el mundo | solo si estás inscrito |
+| `match_results` | todo el mundo | **igual**: es la clasificación y el marcador, o sea lo que un espectador viene a ver |
+
+Medido con el doble, consultas por refresco:
+
+```
+organizador que juega    inicial: 33 | refresco: 11   (sin cambios)
+espectador con cuenta    inicial: 25 | refresco:  6   (era 29 / 9)
+sin cuenta               inicial:  8 | refresco:  5   (era 10 / 7)
+```
+
+Un tercio menos de consultas por espectador y por refresco, y ninguna
+de las que desaparecen pintaba nada en su pantalla.
+
+**Lo que NO se ha tocado**: nada de esto es una protección. La regla de
+quién ve qué sigue siendo la POLÍTICA de la base
+(supabase-migration-torneos-publico.sql) — esto es solo dejar de pedir
+lo que no se va a usar. Si algún día hace falta que un espectador vea
+los reportes, se quita la condición y ya; la base seguirá diciendo lo
+mismo.
+
+Comprobado con `test-tanda-255.mjs` (39/39) y `rigor-tanda-255.py` (17
+mutaciones). El doble de Supabase aprendió a apuntar **por qué columna**
+se filtró cada consulta (`CONSULTAS.igualdades`), que es lo que permite
+exigir que la cola del juez le llegue ACOTADA a un jugador y entera al
+organizador.

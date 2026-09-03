@@ -12,6 +12,45 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-03 — PINGU-Claude (tanda 255 — la portada cuenta que hay torneos, y el sondeo adelgaza)
+**Hecho**: dos remates de la apertura del 2026-09-02. (1) La PORTADA no
+decía ni una palabra de la sección «Jugar»: ahora enseña el próximo
+torneo con inscripciones abiertas (uno, el que antes se juega), con
+cuándo se juega en relativo —«Mañana a las 19:00»— y las plazas libres
+si hay aforo. Sin torneo abierto la sección se recoge y la portada
+queda igual que estaba. Cero CSS nuevo: reutiliza `.reto-tarjeta` del
+reto (la portada pasa de 148,8 a 149,9 KB gzip de los 170).
+(2) El SONDEO de la ficha pedía en cada refresco, para TODO el que
+mirase, cosas que solo sirven a quien juega o arbitra. Ahora
+`judge_calls` va solo a organizador y jueces (la cola entera) y a quien
+juega (solo las SUYAS, por `created_by`); `match_reports` solo a quien
+puede hacer algo con ellos; y la decklist propia solo si estás
+inscrito. `match_results` NO se toca: es el marcador y la
+clasificación, o sea lo que un espectador viene a ver. Medido:
+espectador con cuenta 9 → 6 consultas por refresco, sin cuenta 7 → 5;
+el organizador, igual que antes.
+**Ficheros**: index.html, js/home.js, js/torneos/jueces.js,
+js/torneos/ronda.js, js/torneos/torneo.js, SCHEMA.md. Fuera del repo:
+test-tanda-255.mjs (NUEVO), rigor-tanda-255.py (NUEVO), el doble
+(stub-supabase.js) aprende a apuntar por qué columna se filtró cada
+consulta, y correr-suite.sh incorpora las pruebas de las tandas 247 a
+255, que estaban escritas pero no en la lista.
+**En curso / pendiente**: verificado — 39 comprobaciones en verde y las
+17 mutaciones del rigor pilladas. Al pasar la suite entera aparecieron
+TRES pruebas viejas en rojo que NO son regresiones: probaban cosas
+cambiadas a propósito después (la CDN de sprites, que pasó de PokeAPI a
+Limitless en la 236; los arquetipos de catálogo, que Ibai quitó del
+buscador en la 238; y el texto de quien mira sin cuenta, que desde la
+252 invita a REGISTRARSE y no a entrar). Comprobado que ya estaban
+rojas SIN mis cambios y puestas al día. **Nada de esto es una
+protección**: quién ve qué lo sigue diciendo la política de la base.
+Sigue sin ejecutar `supabase-migration-torneos-publico.sql`,
+`supabase-migration-partidas-cerrar.sql` y
+`supabase-migration-partidas-editar.sql` — los tres esperan a un
+humano en el SQL Editor. Y el puente `faltaLaRpc` de
+js/torneos/comun.js sigue siendo temporal: cuando la migración de
+apertura lleve un tiempo puesta, fuera.
+
 ## 2026-09-03 — PINGU-Claude (tanda 254 — parejas con respuestas repetidas)
 **Hecho**: un alumno reportó que en un curso de cartas falsas, con dos
 señales que responden «Original» y dos «Falsa», unir una señal con «la
