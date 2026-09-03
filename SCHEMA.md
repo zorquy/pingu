@@ -12518,3 +12518,51 @@ he arreglado», y acredita a quien avisó.
 
 Comprobado con `test-tanda-253.mjs` (23/23) y `rigor-tanda-253.py` (6
 mutaciones, todas pilladas).
+
+## Tanda 254 — «Relacionar parejas» con respuestas repetidas (sept. 2026)
+
+Lo reportó un alumno en un curso de cartas falsas: cuatro señales, dos
+que responden «Original» y dos «Falsa».
+
+### El fallo
+
+`renderMatch` pintaba **un botón por PAREJA** y `setupMatch` comparaba
+por número de pareja:
+
+```js
+const isCorrect = selectedLeft.dataset.pair === this.dataset.pair
+```
+
+Así que a la derecha salían cuatro botones, **dos de ellos idénticos**
+(«Original» dos veces), y solo uno valía para cada señal. Unir con el
+otro —el que dice exactamente lo mismo— se marcaba como fallo, ponía
+`huboFallo` y el bloque contaba como fallado aunque se terminase.
+
+Y lo de fondo: **el ejercicio dejaba de poder resolverse sabiéndoselo**.
+Con dos botones iguales, saber la respuesta no basta; hay que adivinar
+cuál de los dos es «el bueno». Era fuerza bruta.
+
+### El arreglo
+
+- Se compara la RESPUESTA (normalizada), no el número de pareja.
+- Las respuestas iguales se juntan en **un solo botón** que recibe tantos
+  términos como le correspondan (`data-usos`). No se apaga al primer
+  acierto —da un destello verde (`.acierto`) y sigue disponible—, porque
+  apagarlo dejaría al segundo término sin sitio.
+- `normaliza` se exporta desde `curso-juego.js` en vez de duplicarla:
+  «Original» y « original » son la misma respuesta, así que un espacio de
+  más al escribir el curso no puede partir un botón en dos.
+
+Para un ejercicio con respuestas todas distintas —la mayoría— **no cambia
+nada**: cada botón se apaga al acertarlo, igual que antes.
+
+### Nota de producto
+
+Lo que ese curso hace es en realidad una CLASIFICACIÓN, y existe el
+bloque `clasifica` para eso. Con parejas ya funciona bien, así que no hay
+que rehacer nada; queda dicho por si se rehace algún día.
+
+Comprobado con `test-tanda-254.mjs` (21/21) y `rigor-tanda-254.py` (8
+mutaciones, todas pilladas a la primera). **Es la primera prueba que
+tiene un curso**: hasta hoy el motor de cursos no tenía ninguna, y este
+fallo llevaba ahí desde que existe el bloque.

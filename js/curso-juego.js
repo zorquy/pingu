@@ -104,7 +104,10 @@ const PREFIJO = {
   diferencias: 'g',
 }
 
-function normaliza(texto) {
+// Exportada porque la usa también el bloque de parejas (curso.js) para
+// saber si dos respuestas son la misma: dos definiciones que solo se
+// diferencian en un espacio o en una mayúscula son la misma respuesta.
+export function normaliza(texto) {
   return String(texto || '').replace(/\s+/g, ' ').trim().toLowerCase()
 }
 

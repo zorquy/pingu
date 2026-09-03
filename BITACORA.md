@@ -12,6 +12,32 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-03 — PINGU-Claude (tanda 254 — parejas con respuestas repetidas)
+**Hecho**: un alumno reportó que en un curso de cartas falsas, con dos
+señales que responden «Original» y dos «Falsa», unir una señal con «la
+otra» respuesta idéntica se marcaba como fallo. La causa:
+`renderMatch` pintaba un botón por PAREJA y `setupMatch` comparaba por
+número de pareja (`dataset.pair`), así que salían dos botones iguales y
+solo uno valía. Además de injusto, hacía el bloque irresoluble
+sabiéndoselo: había que adivinar cuál de los dos idénticos era el
+bueno. Ahora se compara por RESPUESTA normalizada y las respuestas
+repetidas son UN botón que recibe tantos términos como le toquen (no se
+apaga hasta gastarse; mientras tanto da un destello verde). Con
+respuestas todas distintas no cambia nada.
+**Ficheros**: js/curso.js, js/curso-juego.js (`normaliza` pasa a
+exportarse), css/curso.css, SCHEMA.md. Fuera del repo:
+test-tanda-254.mjs (NUEVA), rigor-tanda-254.py (NUEVO).
+**En curso / pendiente**: verificado — 21 comprobaciones en verde y las
+8 mutaciones del rigor pilladas a la primera. OJO: es la PRIMERA prueba
+que tiene un curso. CLAUDE.md lleva avisando desde agosto de que
+guías, cursos, perfiles y portada están sin cobertura, y este fallo lo
+ha encontrado un alumno, no nosotros — el resto del motor de cursos
+(quiz, ordenar, clasifica, zonas, memoria…) sigue sin nada.
+PENDIENTE de PINGU, de tandas anteriores: ejecutar
+supabase-migration-partidas-cerrar.sql y
+supabase-migration-partidas-editar.sql (tanda 251).
+IBAI: sigue pendiente tu pasada de suite sobre ronda.js y torneo.js.
+
 ## 2026-09-03 — PINGU-Claude (tanda 253 — el aviso de corrección)
 **Hecho**: PINGU recibió un aviso de «te sugieren una corrección» y al
 pulsarlo acabó en su perfil sin ver nada. El aviso enlazaba a

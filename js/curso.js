@@ -17,6 +17,7 @@ import {
   xpPorMejoraDeMedalla,
   MEDALLAS,
   BONUS_PERFECTO,
+  normaliza,
 } from './curso-juego.js'
 import {
   preguntasDelDia,
@@ -215,12 +216,46 @@ function renderFillBlank(b) {
     </div>`
 }
 
+// Une cada término con su pareja.
+//
+// ── LAS RESPUESTAS QUE SE REPITEN ──
+//
+// Un curso puede tener varias parejas con la MISMA respuesta: «Negro
+// profundo :: Original», «Remolino centrado :: Original»… Eso no es un
+// error del autor, es una clasificación de toda la vida.
+//
+// Antes se pintaba un botón por PAREJA y se comparaba por número de
+// pareja, así que salían dos botones idénticos que ponían «Original» y
+// solo UNO valía para cada término. Unir con el otro —el que dice
+// exactamente lo mismo— se marcaba como fallo, y el bloque dejaba de
+// poder resolverse sabiéndoselo: había que adivinar cuál de los dos
+// botones iguales era «el bueno». Lo reportó un alumno de PINGU.
+//
+// Ahora las respuestas iguales son UN SOLO botón, que sirve para tantos
+// términos como le correspondan. Para un ejercicio con respuestas
+// distintas —la mayoría— no cambia absolutamente nada.
 function renderMatch(b) {
   const pairs = b.pairs || []
-  const lefts = pairs.map((p, i) => ({ text: p.left, i }))
-  const rights = shuffle(pairs.map((p, i) => ({ text: p.right, i })))
-  const leftHtml = lefts.map((l) => `<button class="match-item" data-side="left" data-pair="${l.i}">${escapeHtml(l.text)}</button>`).join('')
-  const rightHtml = rights.map((r) => `<button class="match-item" data-side="right" data-pair="${r.i}">${escapeHtml(r.text)}</button>`).join('')
+  const lefts = pairs.map((p) => ({ text: p.left, clave: normaliza(p.right) }))
+
+  // Una entrada por respuesta DISTINTA, con cuántos términos le tocan.
+  const porRespuesta = new Map()
+  for (const p of pairs) {
+    const clave = normaliza(p.right)
+    if (!porRespuesta.has(clave)) porRespuesta.set(clave, { text: p.right, clave, usos: 0 })
+    porRespuesta.get(clave).usos++
+  }
+  const rights = shuffle([...porRespuesta.values()])
+
+  const leftHtml = lefts
+    .map((l) => `<button class="match-item" data-side="left" data-clave="${escapeHtml(l.clave)}">${escapeHtml(l.text)}</button>`)
+    .join('')
+  const rightHtml = rights
+    .map(
+      (r) =>
+        `<button class="match-item" data-side="right" data-clave="${escapeHtml(r.clave)}" data-usos="${r.usos}">${escapeHtml(r.text)}</button>`
+    )
+    .join('')
   return `
     <div class="block block-quiz block-match">
       ${cabeceraPractica('RELACIONA LAS PAREJAS', b)}
@@ -800,11 +835,27 @@ function setupMatch(block) {
 
       if (!selectedLeft) return
 
-      const isCorrect = selectedLeft.dataset.pair === this.dataset.pair
+      // Por la RESPUESTA y no por el número de pareja: si dos términos
+      // tienen la misma respuesta, el botón es el mismo y vale para los
+      // dos. Comparando índices, unir con la respuesta correcta se
+      // marcaba como fallo solo por ser «la otra» de dos idénticas.
+      const isCorrect = selectedLeft.dataset.clave === this.dataset.clave
       if (isCorrect) {
         selectedLeft.classList.remove('selected')
         selectedLeft.classList.add('matched')
-        this.classList.add('matched')
+        // El botón de la respuesta se gasta por USOS: se apaga cuando ya
+        // no le queda ningún término por recibir. Mientras le queden,
+        // sigue disponible y solo da un destello de acierto — si se
+        // apagara al primero, el segundo término se quedaría sin sitio.
+        const quedan = Number(this.dataset.usos || 1) - 1
+        this.dataset.usos = String(quedan)
+        if (quedan <= 0) {
+          this.classList.add('matched')
+        } else {
+          const chip = this
+          chip.classList.add('acierto')
+          setTimeout(() => chip.classList.remove('acierto'), 400)
+        }
         selectedLeft = null
         matchedCount++
         if (matchedCount === total) {

@@ -493,6 +493,17 @@
   cursor: default;
 }
 
+/* Un botón de respuesta que aún tiene términos por recibir (dos parejas
+   con la misma respuesta) NO se apaga al primer acierto: daría un
+   destello verde y se queda disponible para el siguiente. Sin esto, la
+   pareja acertada no se vería por ninguna parte y parecería que no ha
+   pasado nada. */
+.match-item.acierto {
+  border-color: var(--success);
+  background: var(--success-bg);
+  color: var(--success);
+}
+
 .match-item.wrong {
   border-color: #dc2626;
   background: #fee2e2;
