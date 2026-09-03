@@ -38,15 +38,25 @@ console.log('\n── 2. El orden ──')
     dr.indexOf('Dragapult') < dr.indexOf('Drampa'), JSON.stringify(dr.slice(0, 6)))
 }
 
-console.log('\n── 3. Los arquetipos catalogados mandan ──')
+console.log('\n── 3. Los arquetipos catalogados NO salen (tanda 238) ──')
 {
-  // Un mazo que se nombra por un OBJETO no tiene especie ni sprite: solo
-  // puede salir del catálogo.
+  // Lo pidió Ibai: los arquetipos ya hechos salían sin sprite y no
+  // aportaban nada que elegir los Pokémon no diera. El parámetro sigue
+  // en la firma para no romper a quien llama, pero se ignora, y la
+  // agrupación la hace claveCanonicaDeMazo al leer.
   const cat = [{ id: 'martillos', nombre: 'Martillos' }, { id: 'pult-noir', nombre: 'Dragapult Dusknoir' }]
-  check('encuentra uno que no es un Pokémon', nombres('martil', cat).includes('Martillos'))
-  const conDrag = buscarOpciones('dragapult', cat)
-  check('el catalogado va antes que la especie suelta',
-    conDrag[0]?.tipo === 'arquetipo', JSON.stringify(conDrag.slice(0, 2).map((o) => o.nombre)))
+  check('el catálogo no cuela nada en la lista',
+    !buscarOpciones('dragapult', cat).some((o) => o.tipo === 'arquetipo'),
+    JSON.stringify(buscarOpciones('dragapult', cat).slice(0, 2).map((o) => o.nombre)))
+  check('y pasarlo no cambia el resultado',
+    JSON.stringify(nombres('dragapult', cat)) === JSON.stringify(nombres('dragapult')),
+    JSON.stringify(nombres('dragapult', cat)))
+  // Lo que SÍ sale sin ser un Pokémon es el martillo: es un objeto con
+  // sprite propio (OBJETOS_TCG), y sale del código, no del catálogo.
+  const martillo = buscarOpciones('martil')[0]
+  check('el martillo sale igual, y con su sprite',
+    martillo?.nombre === 'Crushing Hammer' && martillo?.sprite === '/assets/sprites/crushing-hammer.png',
+    JSON.stringify(martillo || null))
 }
 
 console.log('\n── 4. Lo que se guarda ──')
@@ -56,11 +66,20 @@ console.log('\n── 4. Lo que se guarda ──')
   // mazo deducido, o una partida a mano no caería en la casilla de las
   // de torneo.
   check('un Pokémon se guarda como mazo deducido', uno.valor === 'd:gardevoir', uno.valor)
-  check('y trae su sprite', /PokeAPI\/sprites.*\/282\.png$/.test(uno.sprite || ''), uno.sprite)
+  // La CDN cambió en la tanda 236 (PokeAPI → Limitless) y la URL pasó a
+  // montarse por nombre en vez de por número de Pokédex.
+  check('y trae su sprite', /r2\.limitlesstcg\.net\/pokemon\/gen9\/gardevoir\.png$/.test(uno.sprite || ''), uno.sprite)
 
+  // Desde la tanda 238 no hay opciones de catálogo, así que tampoco hay
+  // valores `a:<id>`: TODO lo que se elige aquí se guarda como mazo
+  // deducido, y agrupar con el catálogo es cosa de claveCanonicaDeMazo.
   const cat = [{ id: 'martillos', nombre: 'Martillos' }]
-  const arq = buscarOpciones('martillos', cat)[0]
-  check('un catalogado se guarda por su id', arq.valor === 'a:martillos', arq.valor)
+  check('ya no se guarda nada por id de catálogo',
+    !buscarOpciones('martillos', cat).some((o) => String(o.valor).startsWith('a:')),
+    JSON.stringify(buscarOpciones('martillos', cat).map((o) => o.valor)))
+  check('el martillo se guarda como mazo deducido',
+    buscarOpciones('crushing')[0]?.valor === 'd:crushing hammer',
+    String(buscarOpciones('crushing')[0]?.valor))
 }
 
 console.log('\n── 5. No se atraganta ──')

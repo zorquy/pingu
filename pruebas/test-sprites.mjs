@@ -77,15 +77,18 @@ console.log('\n── 4. La forma regional cae en su especie ──')
 
 console.log('\n── 5. La URL ──')
 {
+  // La CDN cambió en la tanda 236: se dejó PokeAPI por la de Limitless,
+  // que es la que usa trainingcourt y trae las formas del TCG. La URL se
+  // monta por NOMBRE, no por número de Pokédex.
   const url = spriteDeCarta('Dragapult ex')
-  check('apunta a la CDN de jsDelivr', url?.startsWith('https://cdn.jsdelivr.net/gh/PokeAPI/sprites'), url)
-  check('con el número correcto', url?.endsWith('/887.png'), url)
-  // Los sprites de la quinta generación (en píxel) solo llegan al 649, y
-  // media meta de hoy es de la octava y la novena: usarlos dejaría sin
-  // icono justo a los Pokémon que interesan.
-  check('NO usa los de la quinta generación', !url?.includes('generation-v'), url)
+  check('apunta a la CDN de Limitless', url?.startsWith('https://r2.limitlesstcg.net/pokemon/gen9/'), url)
+  check('con el nombre de la especie', url?.endsWith('/dragapult.png'), url)
   check('sin número no hay URL', urlDeSprite(null) === null)
-  check('y un Trainer tampoco', spriteDeCarta('Crushing Hammer') === null)
+  // Un Trainer cualquiera no tiene sprite... salvo el martillo, que es
+  // el único objeto con icono propio (OBJETOS_TCG) porque da nombre a un
+  // mazo. Ese sprite es NUESTRO, no de la CDN.
+  check('un Trainer cualquiera no tiene sprite', spriteDeCarta('Boss\u2019s Orders') === null, String(spriteDeCarta('Boss\u2019s Orders')))
+  check('el martillo sí, y servido de casa', spriteDeCarta('Crushing Hammer') === '/assets/sprites/crushing-hammer.png', String(spriteDeCarta('Crushing Hammer')))
 }
 
 console.log(fails ? `\n${fails} FALLOS\n` : '\nTodo en verde\n')

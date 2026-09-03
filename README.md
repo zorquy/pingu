@@ -116,11 +116,40 @@ dentro del propio test.
   alguien se da de baja, porque un tipo que `baja-correo` no reconoce le
   apaga TODOS los correos.
 
+- **La portada y el sondeo de la ficha** (tanda 255): `test-tanda-255` —
+  la tarjeta del próximo torneo en la portada (que salga la del torneo
+  con inscripciones abiertas que antes se juega, que la sección se
+  recoja cuando no hay ninguno, que no se inventen plazas sin aforo, y
+  que se vea SIN cuenta) y el recorte del sondeo, contando las tablas
+  que se piden en UN refresco por tipo de visitante: quien solo mira no
+  pide `judge_calls`, `match_reports` ni decklists; quien juega sí, y
+  sus llamadas le llegan ACOTADAS a las suyas; al organizador no se le
+  ha quitado nada.
+
+  Para eso el doble aprendió a apuntar **por qué columna** se filtró
+  cada consulta (`CONSULTAS.igualdades`, en `eq`): sin eso no se puede
+  distinguir «pide la cola del juez» de «pide SU sitio en la cola», que
+  es justo la diferencia que se buscaba.
+
+  AVISO que salió de aquí, y es el mismo de antes: al pasar la suite
+  entera aparecieron CUATRO pruebas en rojo que no eran regresiones
+  sino pruebas viejas que exigían cosas cambiadas a propósito después
+  —la CDN de sprites (PokeAPI → Limitless, tanda 236), los arquetipos
+  de catálogo que Ibai quitó del buscador (238), el texto de quien mira
+  sin cuenta, que desde la 252 invita a REGISTRARSE y no a entrar, y el
+  tipo de correo `torneo_apertura`, retirado en la 252 pero que sigue a
+  propósito en la baja—. Están puestas al día. Y `correr-suite.sh` no
+  las llamaba a todas: las pruebas de las tandas 247 a 255 estaban
+  escritas pero fuera de la lista, así que la suite decía «todo verde»
+  sin pasarlas.
+
 ## Lo que FALTA
 
 **Guías, cursos, perfiles y portada.** Se perdieron y hay que
 rehacerlas. Mientras tanto, un cambio en esas zonas sale a producción
-sin nada que lo frene.
+sin nada que lo frene. (De la PORTADA hay ya una primera prueba, la de
+la tarjeta de torneo de la tanda 255; el reto, el foro en vivo y los
+números de la comunidad siguen sin cubrir.)
 
 De CURSOS hay ya una primera prueba (`test-tanda-254`, el bloque de
 «Relacionar parejas»), y llegó como llegan estas cosas: un ALUMNO

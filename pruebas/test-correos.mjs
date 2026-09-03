@@ -169,11 +169,20 @@ console.log('\n── 11. Las listas de tipos siguen cuadrando ──')
   const baja = claves(readFileSync('/home/user/pingu/netlify/functions/baja-correo.mjs', 'utf8'), 'NOMBRES')
   const conTexto = new Set(Object.keys(TEXTOS_POR_TIPO))
 
+  // `torneo_apertura` es la excepción a propósito (tanda 252): dejó de
+  // mandar correo —era un email a TODA la comunidad por cada torneo que
+  // abría— pero el tipo SIGUE en la baja, para que el enlace de un
+  // correo ya enviado no apague todo lo demás de esa persona.
+  const YA_NO_SE_MANDAN = new Set(['torneo_apertura'])
   const faltanEnBaja = [...ui].filter((t) => !baja.has(t))
-  const sobranEnBaja = [...baja].filter((t) => !ui.has(t))
+  const sobranEnBaja = [...baja].filter((t) => !ui.has(t) && !YA_NO_SE_MANDAN.has(t))
   const sinTexto = [...ui].filter((t) => t !== 'weekly_digest' && !conTexto.has(t))
   check('la baja conoce todos los tipos de la web', faltanEnBaja.length === 0, faltanEnBaja.join(','))
   check('y no conoce ninguno de más', sobranEnBaja.length === 0, sobranEnBaja.join(','))
+  check('el tipo retirado sigue en la baja (por los correos ya enviados)',
+    [...YA_NO_SE_MANDAN].every((t) => baja.has(t)), [...YA_NO_SE_MANDAN].filter((t) => !baja.has(t)).join(','))
+  check('pero la web ya no ofrece su casilla',
+    [...YA_NO_SE_MANDAN].every((t) => !ui.has(t)), [...YA_NO_SE_MANDAN].filter((t) => ui.has(t)).join(','))
   check('todos los tipos tienen su verbo y su pie', sinTexto.length === 0, sinTexto.join(','))
 }
 

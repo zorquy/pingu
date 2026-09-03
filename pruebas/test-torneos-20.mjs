@@ -92,9 +92,12 @@ console.log('\n── 3. La invitación a entrar ──')
     sesion: 'none', torneos: [TORNEO], inscripciones: INSCRIPCIONES,
   })
   const plaza = await page.locator('#miPlazaContenido').innerText()
-  check('invita a entrar para inscribirse', /Entra para inscribirte/i.test(plaza), plaza.slice(0, 80))
+  // Desde la tanda 252 no invita a ENTRAR sino a REGISTRARSE: quien mira
+  // el escaparate sin cuenta no la tiene, y mandarlo al formulario de
+  // acceso era pedirle que se busque solo el enlace de crearla.
+  check('invita a crearse una cuenta', /Crea tu cuenta para inscribirte/i.test(plaza), plaza.slice(0, 90))
   const href = await page.locator('#miPlazaContenido a').first().getAttribute('href')
-  check('el enlace lleva a auth', (href || '').startsWith('/auth.html'), href || '')
+  check('el enlace lleva al REGISTRO', (href || '').startsWith('/auth.html?registro=1'), href || '')
   check('y vuelve al torneo después', (href || '').includes('volver=') && decodeURIComponent(href || '').includes('/torneo'), href || '')
   check('dice cuántas plazas quedan', /6 plazas/.test(plaza), plaza.slice(0, 80))
   await page.close()
@@ -109,7 +112,7 @@ console.log('\n── 3b. Y con aforo sin límite (tanda 228 de IBAI) ──')
   const plaza = await page.locator('#miPlazaContenido').innerText()
   check('no intenta restar plazas a un null', !/NaN|null|undefined/.test(plaza), plaza.slice(0, 90))
   check('dice que no hay límite', /no hay límite/i.test(plaza), plaza.slice(0, 90))
-  check('y sigue invitando a entrar', /Entra para inscribirte/i.test(plaza))
+  check('y sigue invitando a crearse una cuenta', /Crea tu cuenta para inscribirte/i.test(plaza))
   await page.close()
 }
 

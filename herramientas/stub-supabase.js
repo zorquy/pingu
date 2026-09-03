@@ -303,6 +303,16 @@ sembrar('__FAKE_JUECES__', 'judge_applications', (i) => ({
   status: 'pending',
 }))
 
+sembrar('__FAKE_LLAMADAS__', 'judge_calls', (i) => ({
+  id: `llamada-${i + 1}`,
+  tournament_id: 'torneo-1',
+  match_id: null,
+  created_by: 'user-1',
+  assigned_judge_id: null,
+  status: 'open',
+  created_at: new Date().toISOString(),
+}))
+
 // Las RPC que la base todavía no conoce (una base sin la migración de
 // apertura puesta).
 const SIN_RPC = (typeof window !== 'undefined' && window.__SIN_RPC__) || []
@@ -489,7 +499,15 @@ function consulta(tabla, estado = {}) {
     },
     gt: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] > val] }),
     lt: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] < val] }),
-    eq: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => String(f[col]) === String(val)] }),
+    eq: (col, val) => {
+      // Se apunta POR QUÉ columna se filtró (ver CONSULTAS.igualdades).
+      // No cambia lo que devuelve el doble: sirve para poder exigir que
+      // una consulta venga ACOTADA — «tráete solo las llamadas de este
+      // jugador», que en la web de verdad es la diferencia entre pedir
+      // una fila o pedir la cola entera del torneo.
+      ;(CONSULTAS.igualdades[tabla] = CONSULTAS.igualdades[tabla] || []).push(`${col}=${val}`)
+      return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => String(f[col]) === String(val)] })
+    },
     or: (expresion) => {
       const trozos = String(expresion).split(',')
       const pruebas = trozos.map((t) => {
@@ -543,7 +561,7 @@ function consulta(tabla, estado = {}) {
 // cliente pida las columnas que debe (por ejemplo, que un visitante sin
 // cuenta NO pida `*` de las inscripciones, porque en la base real el
 // rol anon no tiene permiso sobre todas y la consulta fallaría entera).
-export const CONSULTAS = { n: 0, porTabla: {}, columnas: {} }
+export const CONSULTAS = { n: 0, porTabla: {}, columnas: {}, igualdades: {} }
 
 export const supabase = {
   from: (tabla) => {
