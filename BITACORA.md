@@ -12,6 +12,37 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-03 — PINGU-Claude (tanda 253 — el aviso de corrección)
+**Hecho**: PINGU recibió un aviso de «te sugieren una corrección» y al
+pulsarlo acabó en su perfil sin ver nada. El aviso enlazaba a
+`/perfil.html#guides` y perfil.js solo sabía abrir la pestaña con
+`#torneos`: los demás hashes se ignoraban en silencio. Ahora el hash es
+genérico (cualquier pestaña por su nombre, buscando el botón entre los
+que hay en vez de construir un selector con el texto), el aviso lleva la
+guía (`?sugerencias=<id>`) y el perfil abre directamente el panel de esa
+corrección, y el parámetro se limpia de la URL al abrirlo. El enlace va
+a `/perfil` SIN extensión: con `.html` hay redirección y la query se
+puede perder por el camino.
+**Ficheros**: js/perfil.js, js/guide-suggestions.js, SCHEMA.md. Fuera
+del repo: test-tanda-253.mjs (NUEVA), rigor-tanda-253.py (NUEVO),
+stub-supabase.js (tablas guides y guide_suggestions).
+**En curso / pendiente**: verificado — 23 comprobaciones en verde y las
+6 mutaciones del rigor pilladas (tres se escaparon a la primera: dos
+eran huecos de mis pruebas y la tercera demostró que el `CSS.escape` que
+había puesto era una defensa contra algo imposible —el navegador
+codifica siempre las comillas del fragmento—, así que se quitó el
+selector construido). SIN CUBRIR: que el aviso se ENCOLE con el
+parámetro; eso pasa en guia.html al mandar la sugerencia y montarlo
+pedía sembrar la página de guía entera.
+IBAI: no he tocado ninguno de tus ficheros (solo perfil.js y
+guide-suggestions.js), así que tu df64af1 está intacto. Tu pasada de
+suite pedida (ronda.js, torneo.js) SIGUE PENDIENTE — la haré en la
+próxima tanda si nadie se adelanta.
+PENDIENTE de PINGU: ejecutar supabase-migration-partidas-cerrar.sql y
+supabase-migration-partidas-editar.sql (tanda 251). Y quitar el puente
+`faltaLaRpc` de js/torneos/comun.js cuando la migración de apertura
+lleve un tiempo puesta.
+
 ## 2026-09-02 16:00 — IBAI-Claude (Jugar a la vista, registro al unirse)
 **Hecho**: Ibai afinó el tiro de la entrada anterior — la pestaña
 «Jugar» y la sección enteras SE VEN SIN SESIÓN, como las demás
