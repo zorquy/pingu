@@ -39,6 +39,8 @@ const T = {
   tcg_cards: [],
   match_log: [],
   match_log_torneos: [],
+  guides: [],
+  guide_suggestions: [],
   site_settings: [],
   push_subscriptions: [],
   achievement_definitions: [],
@@ -246,6 +248,30 @@ sembrar('__FAKE_PARTIDAS__', 'match_log', (i) => ({
   rival_mazo_nombre: 'Rival',
   resultado: 'win',
   jugada_el: new Date().toISOString().slice(0, 10),
+}))
+
+// Las guías de uno y las correcciones que le sugieren (tanda 253).
+sembrar('__FAKE_GUIAS__', 'guides', (i) => ({
+  id: `guia-${i + 1}`,
+  slug: `guia-${i + 1}`,
+  title: `Guía ${i + 1}`,
+  author_id: 'admin-1',
+  review_status: 'published',
+  published_at: '2026-08-01T10:00:00Z',
+  created_at: '2026-08-01T10:00:00Z',
+  submitted_at: '2026-08-01T10:00:00Z',
+  category_id: null,
+  blocks: [],
+}))
+
+sembrar('__FAKE_SUGERENCIAS__', 'guide_suggestions', (i) => ({
+  id: `sug-${i + 1}`,
+  guide_id: 'guia-1',
+  author_id: 'user-1',
+  quote: 'Un trozo de la guía',
+  body: 'Esto ya no es así desde el último set.',
+  status: 'pending',
+  created_at: '2026-09-01T10:00:00Z',
 }))
 
 // Los torneos APUNTADOS A MANO de /mis-partidas (tanda 236), con su
