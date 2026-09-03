@@ -122,6 +122,17 @@ dentro del propio test.
 rehacerlas. Mientras tanto, un cambio en esas zonas sale a producción
 sin nada que lo frene.
 
+De CURSOS hay ya una primera prueba (`test-tanda-254`, el bloque de
+«Relacionar parejas»), y llegó como llegan estas cosas: un ALUMNO
+reportó que el bloque marcaba como fallo una respuesta correcta. Llevaba
+roto desde que existe. Del motor de cursos siguen sin cubrir el quiz,
+verdadero/falso, rellenar el hueco, ordenar, clasifica, zonas, memoria,
+intruso, desliza, escribe y diferencias.
+
+Montar una prueba de curso es más fácil de lo que parece, por si anima:
+basta sembrar `__FAKE_GUIAS__` con un `blocks: [ ... ]` y abrir
+`/curso?slug=...`.
+
 Del foro quedan sin cubrir las piezas de alrededor: encuestas, no
 leídos, suscripciones, búsqueda, menciones y firmas. De moderación solo
 está cubierto el borrado de un tema (tanda 247); fijar, cerrar, mover y
