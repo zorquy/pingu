@@ -12481,3 +12481,40 @@ nadie ha entregado menos él. Fuera.
 
 Comprobado con `test-tanda-252.mjs` (24/24), `rigor-tanda-252.py` (9
 mutaciones) y `sql-apertura.sql` contra PostgreSQL 16.
+
+## Tanda 253 — el aviso de corrección lleva a la corrección (sept. 2026)
+
+PINGU: «me ha llegado el aviso a la campanita pero al clicarle me ha
+llevado a mi perfil y ya, no sé dónde se miran las correcciones».
+
+**El aviso enlazaba a `/perfil.html#guides` y `perfil.js` solo sabía
+abrir la pestaña con `#torneos`.** Cualquier otro hash se ignoraba EN
+SILENCIO, así que caías en «Muro» y no había ni rastro de la corrección.
+
+- El hash pasa a ser **genérico**: cualquier pestaña que exista se abre
+  por su nombre, así que el siguiente aviso que enlace aquí funciona sin
+  tocar nada. Se busca el botón entre los que hay y NO se construye un
+  selector con el texto del hash — con selector habría que escaparlo, y
+  escapar es defenderse de algo que puede colarse; así no hay dónde colar
+  nada. (Se probó `CSS.escape` primero y el rigor demostró que ninguna
+  entrada podía romperlo: el navegador codifica siempre las comillas del
+  fragmento. Era una defensa contra algo imposible.)
+- El aviso lleva ahora **la guía** (`?sugerencias=<id>`) y el perfil abre
+  directamente el panel de esa corrección: el aviso era de una concreta
+  y hacerte buscarla entre tus guías dejaba el trabajo a medias. Los
+  avisos viejos siguen valiendo — sin el parámetro, se abre la pestaña.
+- El parámetro se limpia de la URL al abrir: recargar no puede reabrir
+  algo que ya has resuelto.
+- El enlace va a **`/perfil` y no `/perfil.html`**: con la extensión hay
+  una redirección a la URL limpia, y una redirección de más es una
+  ocasión de perder la query — el servidor de las pruebas se la come, sin
+  ir más lejos, y costó un rato darse cuenta de que el fallo era ese y no
+  el código.
+
+Dónde se ven, para el registro: perfil → pestaña Guías → botón «N
+correcciones sugeridas» en la tarjeta de la guía → panel con Aceptar /
+Descartar. Aceptar NO cambia el texto: quiere decir «tienes razón, ya lo
+he arreglado», y acredita a quien avisó.
+
+Comprobado con `test-tanda-253.mjs` (23/23) y `rigor-tanda-253.py` (6
+mutaciones, todas pilladas).

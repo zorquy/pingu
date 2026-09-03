@@ -211,11 +211,28 @@ document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((bt
   })
 })
 
-// El «Mis torneos» del menú de cuenta llega con #torneos: se abre esa
-// pestaña directamente. Espera al DOM listo igual que el resto del
-// módulo (esto corre al cargar, con el DOM ya parseado).
-if (window.location.hash === '#torneos') {
-  document.querySelector('[data-ptab="torneos"]')?.click()
+// Llegar con la pestaña puesta: /perfil.html#torneos, #guides, #foro…
+//
+// Antes esto solo entendía `#torneos` y cualquier otro hash se ignoraba
+// en silencio. Se notó con el aviso de «te sugieren una corrección»
+// (tanda 253), que enlaza a `#guides`: pulsabas la campanita, caías en
+// el Muro y no había ni rastro de la corrección — PINGU: «me ha llevado
+// a mi perfil y ya».
+//
+// Genérico y no una lista de casos: cualquier pestaña que exista se abre
+// por su nombre, así que el siguiente aviso que enlace aquí ya funciona
+// sin tocar nada. Se comprueba contra los botones que HAY, que además es
+// lo que impide que un hash inventado deje la página sin ninguna
+// pestaña activa.
+const pestanaDelHash = window.location.hash.replace('#', '')
+if (pestanaDelHash) {
+  // Se BUSCA entre los botones que hay en vez de meter el texto del
+  // hash dentro de un selector. Con un selector habría que escaparlo, y
+  // escapar es defenderse de algo que puede colarse; aquí directamente
+  // no hay dónde colar nada, que es más barato de leer y no se puede
+  // olvidar el día que alguien toque esta línea.
+  const boton = [...document.querySelectorAll('#profileTabs .tab-btn')].find((b) => b.dataset.ptab === pestanaDelHash)
+  boton?.click()
 }
 
 // ── Siguiendo / Seguidores ──
@@ -454,6 +471,24 @@ async function loadMyGuides(session) {
       abrirSugerencias(guia, sugerencias[btn.dataset.sugerencias] || [], session)
     })
   )
+
+  // Si has llegado desde la campanita, el panel se abre solo: el aviso
+  // era de UNA corrección concreta y hacerte buscarla entre tus guías es
+  // dejar el trabajo a medias (tanda 253).
+  //
+  // Va aquí, al final de pintar, porque necesita la guía ya cargada. Y
+  // se limpia el parámetro de la URL: si no, recargar volvería a abrir
+  // el panel de algo que a lo mejor ya has resuelto.
+  const pedida = new URLSearchParams(window.location.search).get('sugerencias')
+  if (pedida && (sugerencias[pedida] || []).length) {
+    const guia = myGuidesCache.find((g) => g.id === pedida)
+    if (guia) {
+      abrirSugerencias(guia, sugerencias[pedida], session)
+      const limpia = new URL(window.location.href)
+      limpia.searchParams.delete('sugerencias')
+      window.history.replaceState({}, '', limpia)
+    }
+  }
 
   container.querySelectorAll('[data-edit]').forEach((btn) =>
     btn.addEventListener('click', () => (window.location.href = `editor-guia.html?id=${btn.dataset.edit}`))

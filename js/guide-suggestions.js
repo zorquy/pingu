@@ -120,7 +120,17 @@ export async function montarSugerencia(contenedor, guide, session) {
       type: 'guide_suggestion',
       title: 'Te sugieren una corrección',
       body: guide.title,
-      link: '/perfil.html#guides',
+      // Con la guía en el enlace, la campanita no te deja en la
+      // pestaña y ya: el perfil abre directamente el panel de ESA guía
+      // (tanda 253). Los avisos viejos siguen valiendo — sin el
+      // parámetro, se abre la pestaña y se busca a mano.
+      //
+      // `/perfil` y NO `/perfil.html`: con la extensión hay una
+      // redirección a la URL limpia, y una redirección de más es una
+      // ocasión de perder la query por el camino (el servidor de las
+      // pruebas se la come, sin ir más lejos). El parámetro es justo lo
+      // que hace útil este enlace.
+      link: `/perfil?sugerencias=${encodeURIComponent(guide.id)}#guides`,
     })
 
     form.classList.add('hidden')
