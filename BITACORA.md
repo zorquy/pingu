@@ -12,6 +12,35 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-04 — PINGU-Claude (tanda 262 — medallas de torneo y vitrina en el perfil)
+**Hecho**: PINGU vio «Torneos jugados: 1Podio» en su perfil. Eran DOS
+cosas: faltaba el separador, y —la de fondo— las reglas de esas chapas
+vivían en css/torneos.css, que usuario.html NO carga: la clase estaba
+puesta y no llegaba ningún estilo. Mudadas a css/perfil.css, que ahora
+sí carga usuario.html. Y lo pedido: MEDALLAS. Decisión suya: por HITOS
+acumulados, no una por torneo (con veinte al año no distinguiría a
+nadie). Cuatro logros nuevos —Al podio, Veterano (5), De la casa (10),
+Tricampeón (3)— junto a los tres de la tanda 208, todos con condición
+`manual` y concedidos por la ficha del torneo. Ganar NO cuenta además
+como podio. En el perfil, la línea de texto se sustituye por una
+VITRINA: las medallas con su color de rareza y su explicación al pasar
+el ratón, y debajo el resumen («2 torneos jugados · 1 campeonato · 1
+podio · a 3 de Veterano»).
+**Ficheros**: js/torneos/palmares.js (NUEVO, puro),
+supabase-migration-torneos-medallas.sql (NUEVO), js/torneos/torneo.js,
+js/usuario.js, usuario.html, css/perfil.css, css/torneos.css,
+SCHEMA.md. Fuera del repo: test-tanda-262.mjs (NUEVO),
+rigor-tanda-262.py (NUEVO), y el doble aprende logros
+(`__FAKE_LOGROS__` y `achievements` por persona).
+**En curso / pendiente**: verificado — 35 comprobaciones en verde, 15
+mutaciones del rigor pilladas y la suite entera (32) en verde. **FALTA
+EJECUTAR supabase-migration-torneos-medallas.sql**: hasta entonces los
+cuatro logros nuevos no existen y solo se conceden los tres de siempre
+(no rompe nada, simplemente no aparecen). LECCIÓN de esta tanda, que va
+para la próxima que toque CSS: una regla escrita no es una regla
+aplicada — la prueba mira `getComputedStyle`, porque comprobando solo
+la clase pasaba en verde sin que se viera nada.
+
 ## 2026-09-04 — PINGU-Claude (tanda 261 — los arquetipos, con datos de evolución de verdad)
 **Hecho**: PINGU vio en el torneo inaugural que un mazo de Mega Lucario
 y Mega Zygarde salía como «Mega Zygarde Riolu» y un Latias/Slowking

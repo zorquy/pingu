@@ -12804,3 +12804,78 @@ Comprobado con `test-tanda-261.mjs` (32/32, sin navegador — el módulo es
 puro) y `rigor-tanda-261.py` (11 mutaciones). Del rigor salió además una
 guarda muerta en `esAntepasadoDe` (`dex === otro`) que ninguna prueba
 podía exigir porque ningún Pokémon evoluciona en sí mismo: fuera.
+
+---
+
+## Tanda 262 — medallas de torneo por hitos, y la vitrina del perfil (sept. 2026)
+
+PINGU vio en su perfil «Torneos jugados: **1Podio**» — pegado, sin
+espacio y sin forma de chapa.
+
+### El fallo, que eran dos
+
+El separador faltaba (`join('')` sin nada en medio), sí. Pero debajo
+había algo peor: las reglas de `.torneo-chapa-palmares` **vivían en
+`css/torneos.css`, que `usuario.html` no carga**. La clase estaba
+puesta y no llegaba ni el `margin-left`, ni la píldora, ni el color.
+Se veía como texto pelado porque *era* texto pelado.
+
+Se han mudado a `css/perfil.css` —que ahora sí carga `usuario.html`— y
+`css/torneos.css` se queda con una nota diciendo dónde fueron.
+
+**La lección**: una regla escrita no es una regla aplicada. Por eso la
+prueba de esta tanda mira el **estilo calculado** (`getComputedStyle`) y
+no que la clase esté puesta: con la clase bastaba para pasar sin que se
+viera nada.
+
+### Las medallas
+
+Decisión de PINGU (2026-09-04): **por hitos acumulados, no una por cada
+torneo**. Una medalla por torneo llena el perfil de iconos idénticos y
+con veinte al año no distingue a nadie.
+
+`js/torneos/palmares.js` (NUEVO, puro — ni red ni DOM):
+
+| Medalla | Se gana con | Rareza |
+|---|---|---|
+| Competidor | 1 torneo terminado | bronce |
+| Al podio | terminar 2.º o 3.º | plata |
+| En el corte | pisar un top cut | plata |
+| Veterano | 5 torneos | plata |
+| De la casa | 10 torneos | oro |
+| Campeón de torneo | ganar uno | oro |
+| Tricampeón | ganar tres | oro |
+
+Los tres primeros ya existían (tanda 208); los cuatro nuevos van en
+`supabase-migration-torneos-medallas.sql`, con la misma condición
+`manual` — los concede la ficha del torneo al verlo terminado, no el
+comprobador de `gamification.js`, que no sabe nada de torneos.
+
+**Ganar NO cuenta además como podio**: si no, un campeón se llevaría las
+dos medallas por lo mismo y las dos dirían lo mismo.
+
+Los acumulados **no sustituyen** a los anteriores: quien llega a diez
+conserva Competidor y Veterano, que es lo que hace que la vitrina cuente
+una historia en vez de enseñar un solo icono.
+
+### La vitrina
+
+En la ficha de una persona, donde estaba la línea de texto: una fila de
+medallas con su color de rareza y, al pasar el ratón, qué es y cómo se
+gana. Debajo, el resumen — «2 torneos jugados · 1 campeonato · 1 podio
+· a 3 de Veterano».
+
+Las medallas se leen de los **logros que la persona tiene**, no se
+recalculan: la concede la ficha del torneo y aquí solo se enseña lo
+ganado, así el perfil no puede decir una cosa y el apartado de trofeos
+otra.
+
+`siguienteHito` mira **solo los de participación**. Se probó con todos y
+salían cosas como «te falta 1 podio», que ni es comparable con «te
+faltan 2 torneos» —un podio no depende solo de ti— ni se puede
+prometer. Jugar sí.
+
+Comprobado con `test-tanda-262.mjs` (35/35) y `rigor-tanda-262.py` (15
+mutaciones). Dos huecos salieron del rigor y los dos eran de CSS: la
+prueba miraba clases y no estilos, que es exactamente el fallo que
+motivó la tanda.

@@ -1515,27 +1515,10 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   color: var(--text-mid);
 }
 
-.torneo-chapa-palmares {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 1px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--ice);
-  color: var(--navy);
-  font-size: 11.5px;
-  font-weight: 800;
-}
-
-.torneo-palmares-oro {
-  border-color: rgba(217, 164, 6, 0.5);
-  background: rgba(217, 164, 6, 0.14);
-  color: #8a6a04;
-}
-
-:root[data-theme='dark'] .torneo-palmares-oro {
-  color: #e8c05a;
-}
+/* Las chapas del palmarés se mudaron a css/perfil.css en la tanda 262:
+   solo salen en la ficha de una persona, y esa página NO carga este
+   fichero — por eso «Torneos jugados: 1Podio» salía pegado y sin forma
+   de chapa: las reglas estaban escritas pero no llegaban. */
 
 /* ── Tanda 218: lista de espera, desempates y duplicar ── */
 .torneo-lleno-aviso {

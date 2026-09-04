@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { authorRatingSummary } from './guide-rating.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml, avatarStyle, applyAvatarTo } from './app.js'
 import { levelProgress, contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml, levelBadgeHtml } from './gamification.js'
+import { esLogroDeTorneo, siguienteHito } from './torneos/palmares.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
 import { createNotification } from './notifications.js'
@@ -345,16 +346,50 @@ async function loadPalmaresTorneos() {
     if (puesto === 0) campeonatos++
     else if (puesto > 0) podios++
   }
-  const chapas = [
-    campeonatos ? `<span class="torneo-chapa-palmares torneo-palmares-oro">${campeonatos === 1 ? 'Campeón' : `Campeón ×${campeonatos}`}</span>` : '',
-    podios ? `<span class="torneo-chapa-palmares">${podios === 1 ? 'Podio' : `Podio ×${podios}`}</span>` : '',
-  ].join('')
+  // Con `join('')` y sin separador salía «Torneos jugados: 1Podio»
+  // pegado. Van con espacio Y con margen en el CSS: el espacio solo se
+  // lo come el navegador al partir la línea.
+  // ── La vitrina (tanda 262) ──
+  //
+  // Antes esto era una línea de texto —«Torneos jugados: 1 Podio»— que
+  // ni decía mucho ni se veía bien (las chapas ni siquiera tenían
+  // estilo: vivían en css/torneos.css, que esta página no carga).
+  //
+  // Ahora se enseñan las MEDALLAS que tiene la persona, con su color de
+  // rareza, y el resumen debajo en pequeño. Se leen de sus logros y no
+  // se recalculan: la medalla la concede la ficha del torneo, y aquí
+  // solo se enseña lo que ya se ganó — así el perfil no puede decir una
+  // cosa y el apartado de trofeos otra.
+  const definiciones = await getAllAchievements()
+  const suyos = new Set(profile?.achievements || [])
+  const medallas = definiciones.filter((d) => esLogroDeTorneo(d.id) && suyos.has(d.id))
+
+  // Y qué falta para la siguiente medalla de participación: un número a
+  // secas no invita a nada, «a 3 de Veterano» sí.
+  const falta = siguienteHito({ jugados: jugados.length })
+  const nombreHito = definiciones.find((d) => d.id === falta?.id)?.title
+  const resumen = [
+    `${jugados.length} ${jugados.length === 1 ? 'torneo jugado' : 'torneos jugados'}`,
+    campeonatos ? `${campeonatos} ${campeonatos === 1 ? 'campeonato' : 'campeonatos'}` : '',
+    podios ? `${podios} ${podios === 1 ? 'podio' : 'podios'}` : '',
+    falta && nombreHito ? `a ${falta.faltan} de ${nombreHito}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+  const vitrina = medallas.length
+    ? `<div class="palmares-vitrina">${medallas
+        .map(
+          (m) => `<span class="palmares-medalla rarity-${escapeHtml(m.rarity || 'bronze')}" title="${escapeHtml(m.title)} — ${escapeHtml(
+            m.description || ''
+          )}" aria-label="${escapeHtml(m.title)}">${achievementIconHtml(m, 20)}</span>`
+        )
+        .join('')}</div>`
+    : ''
+
   document
     .getElementById('heroInfo')
-    .insertAdjacentHTML(
-      'beforeend',
-      `<p class="subtext torneo-palmares">Torneos jugados: <strong>${jugados.length}</strong>${chapas}</p>`
-    )
+    .insertAdjacentHTML('beforeend', `${vitrina}<p class="subtext torneo-palmares">${escapeHtml(resumen)}</p>`)
 }
 
 init()

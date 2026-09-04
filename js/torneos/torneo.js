@@ -20,6 +20,7 @@ import {
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces } from './jueces.js'
+import { contarPalmares, hitosMerecidos } from './palmares.js'
 import { getAllAchievements, addXP } from '../gamification.js'
 import { urlTema } from '../foro-comun.js'
 import { foroDeTorneos, opcionesDeForos, ordenarForos } from './anuncio-foro.js'
@@ -828,6 +829,24 @@ async function anunciarEnForo(boardId, titulo) {
 // Condición «manual» en la migración: los concede esta ficha, no el
 // comprobador automático. La pertenencia al array de logros los hace
 // idempotentes, se juegue o se recargue lo que se quiera.
+// Los torneos TERMINADOS que ha jugado quien mira, para contar hitos.
+// Dos consultas y no un join: es el mismo camino que usa la ficha de una
+// persona (js/usuario.js), y así las dos cuentan igual.
+async function contarMiPalmares() {
+  const { data: inscripciones } = await supabase
+    .from('tournament_registrations')
+    .select('tournament_id')
+    .eq('user_id', session.user.id)
+  const ids = [...new Set((inscripciones || []).map((i) => i.tournament_id))]
+  if (!ids.length) return { jugados: 0, podios: 0, campeonatos: 0 }
+  const { data: terminados } = await supabase
+    .from('tournaments')
+    .select('id, podium')
+    .in('id', ids)
+    .eq('status', 'finished')
+  return contarPalmares(terminados || [], session.user.id)
+}
+
 async function otorgarGloria() {
   if (torneo.status !== 'finished' || !miInscripcion) return
   // Quien se borró antes de empezar no jugó: sin ronda no hay medalla.
@@ -835,9 +854,20 @@ async function otorgarGloria() {
   const gloria = resumenDeGloria()
   if (!gloria) return
 
-  const merecidos = ['torneo_jugado']
-  if (gloria.pisaronElCut.has(session.user.id)) merecidos.push('torneo_top_cut')
-  if (gloria.campeonId === session.user.id) merecidos.push('torneo_campeon')
+  // Los hitos se cuentan sobre TODO el palmarés, no sobre este torneo
+  // (tanda 262): «Veterano» son cinco torneos, y eso no se sabe mirando
+  // solo el que se acaba de terminar. Se piden los terminados de esta
+  // persona y se cuentan aquí — es una consulta, y solo la primera vez
+  // que ve terminado un torneo suyo.
+  const palmares = await contarMiPalmares()
+  const merecidos = hitosMerecidos({
+    ...palmares,
+    topCut: gloria.pisaronElCut.has(session.user.id),
+  })
+  // El campeonato de ESTE torneo puede no estar todavía en el podio
+  // congelado si se acaba de cerrar, así que se añade a mano: es la
+  // diferencia entre llevarse la corona hoy o al siguiente refresco.
+  if (gloria.campeonId === session.user.id && !merecidos.includes('torneo_campeon')) merecidos.push('torneo_campeon')
 
   const definiciones = await getAllAchievements()
   const tengo = new Set(perfil.achievements || [])

@@ -29,3 +29,75 @@
 .mis-torneos-puesto { font-size: 13px; font-weight: 600; }
 .mis-torneos-puesto.oro { color: var(--warning); }
 .mis-torneos-puesto.vivo { color: var(--success); }
+
+/* ── El palmarés de torneos en la ficha de alguien (tanda 262) ──
+   Vivían en css/torneos.css, que /usuario NO carga: la chapa salía sin
+   estilo ninguno y pegada al número. */
+.torneo-palmares {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.torneo-chapa-palmares {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.torneo-palmares-oro {
+  border-color: rgba(217, 164, 6, 0.5);
+  background: rgba(217, 164, 6, 0.14);
+  color: #8a6a04;
+}
+
+:root[data-theme='dark'] .torneo-palmares-oro {
+  color: #e8c05a;
+}
+
+/* ── La vitrina de medallas de torneo (tanda 262) ──
+   Una fila de iconos con el color de su rareza. Centrada como el resto
+   de la cabecera y con `flex-wrap`, que con diez medallas y un móvil
+   estrecho la fila tiene que poder partirse. */
+.palmares-vitrina {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.palmares-medalla {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  /* `cursor: help` porque el título de la medalla y lo que hay que hacer
+     para ganarla van en el `title`: sin la pista, nadie descubre que se
+     puede pasar el ratón por encima. */
+  cursor: help;
+}
+
+/* Los colores de rareza son los mismos que usa la rejilla de trofeos
+   (rarity-bronze / silver / gold en components.css): aquí solo se
+   ajusta el borde, para que el oro se distinga del bronce de un vistazo
+   y sin tener que leer nada. */
+.palmares-medalla.rarity-silver {
+  border-color: var(--border-strong);
+}
+
+.palmares-medalla.rarity-gold {
+  border-color: rgba(217, 164, 6, 0.55);
+  background: rgba(217, 164, 6, 0.1);
+}
