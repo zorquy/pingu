@@ -1070,16 +1070,24 @@ function pintarRondas() {
           )
           .join('')}</div>`
       : ''
-  $('mesasContenido').innerHTML = paraMesas
+  // Igual que «Tu partida»: la tabla de mesas se vuelve a montar con cada
+  // evento en vivo del torneo, y ahí dentro están los botones del juez.
+  // Si sale el mismo HTML, no se toca (y así los escuchas de abajo tampoco
+  // hacen falta: sus botones siguen siendo los mismos nodos de antes).
+  const htmlMesas = paraMesas
     ? `<h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ronda ${paraMesas.round_number}`}${paraMesas.status === 'finished' ? ' (cerrada)' : ''}</h4>${pestanas}${pintarMesas(paraMesas)}`
     : ''
+  // El reloj se rearma SIEMPRE, antes de la guarda: se apaga y se vuelve
+  // a poner en cada pasada, y saltárselo lo dejaría parado.
+  arrancarReloj(actual)
+  if (yaEstaPintado('mesas', htmlMesas)) return
+  $('mesasContenido').innerHTML = htmlMesas
   document.querySelectorAll('[data-ver-ronda]').forEach((b) =>
     b.addEventListener('click', () => {
       rondaVista = b.dataset.verRonda
       pintarRondas()
     })
   )
-  arrancarReloj(actual)
 
   document.querySelectorAll('[data-resolver]').forEach((sel) => {
     sel.addEventListener('change', () => {
@@ -1112,6 +1120,7 @@ function pintarMiPartida() {
     : null
   if (!mia) {
     caja.classList.add('hidden')
+    olvidarPintado('miPartida')
     return
   }
   caja.classList.remove('hidden')
@@ -1123,18 +1132,21 @@ function pintarMiPartida() {
   const contenido = $('miPartidaContenido')
 
   if (mia.status === 'bye') {
-    contenido.innerHTML = '<p class="torneo-partida-nota">Tienes <strong>bye</strong> esta ronda: 3 puntos y a descansar.</p>'
+    const html = '<p class="torneo-partida-nota">Tienes <strong>bye</strong> esta ronda: 3 puntos y a descansar.</p>'
+    if (!yaEstaPintado('miPartida', html)) contenido.innerHTML = html
     return
   }
   if (TERMINALES.has(mia.status)) {
     const r = resultadoDe(mia.id)
     const texto =
       r?.winner_id === miId() ? '¡Ganaste esta ronda!' : r?.result === 'draw' ? 'Empate.' : 'Esta ronda no cayó de tu lado.'
-    contenido.innerHTML = `<p class="torneo-partida-nota">Mesa ${mia.table_number} — ${texto}</p>`
+    const html = `<p class="torneo-partida-nota">Mesa ${mia.table_number} — ${texto}</p>`
+    if (!yaEstaPintado('miPartida', html)) contenido.innerHTML = html
     return
   }
   if (mia.status === 'disputed') {
-    contenido.innerHTML = '<p class="torneo-partida-nota">Los reportes no coinciden: lo revisará el organizador o un juez.</p>'
+    const html = '<p class="torneo-partida-nota">Los reportes no coinciden: lo revisará el organizador o un juez.</p>'
+    if (!yaEstaPintado('miPartida', html)) contenido.innerHTML = html
     return
   }
   // La cabecera al estilo «match actual» del original: contexto en
@@ -1146,7 +1158,9 @@ function pintarMiPartida() {
     <p class="torneo-partida-rival-tcg">En TCG Live: <strong>${escapeHtml(rival?.tcg_live_username || '—')}</strong></p>`
 
   if (mia.status === 'pending') {
-    contenido.innerHTML = `${cabecera}<p class="subtext torneo-partida-nota">La ronda aún no ha empezado.</p>`
+    const html = `${cabecera}<p class="subtext torneo-partida-nota">La ronda aún no ha empezado.</p>`
+    if (yaEstaPintado('miPartida', html)) return
+    contenido.innerHTML = html
     void rellenarChapasArquetipo(contenido)
     return
   }
@@ -1189,7 +1203,11 @@ function pintarMiPartida() {
         <button class="torneo-boton-resultado derrota" data-reporte="loss">Derrota</button>
         ${actual.phase === 'swiss' && ctx.torneo.swiss_bo === 3 ? '<button class="torneo-boton-resultado empate" data-reporte="draw">Empate</button>' : ''}
       </div>`
-  contenido.innerHTML = `${cabecera}${reloj}${checkin}${botones}`
+  // Aquí es donde más duele repintar de más: debajo están los botones de
+  // Victoria y Derrota. Si el HTML es el mismo, no se toca nada.
+  const html = `${cabecera}${reloj}${checkin}${botones}`
+  if (yaEstaPintado('miPartida', html)) return
+  contenido.innerHTML = html
   void rellenarChapasArquetipo(contenido)
   if ($('btnCheckin')) $('btnCheckin').addEventListener('click', () => marcarListo(mia))
   contenido.querySelectorAll('[data-reporte]').forEach((b) => {
@@ -1466,7 +1484,7 @@ function pintarClasificacion() {
     : campeon
       ? `<div class="torneo-campeon">${icons.trophy(20)} Campeón del torneo: <strong>${escapeHtml(nombreDe(campeon))}</strong></div>`
       : ''
-  $('clasificacionContenido').innerHTML = `
+  const htmlClasif = `
     ${banner}
     ${general ? bracketHtml() : ''}
     ${chips}
@@ -1493,6 +1511,12 @@ function pintarClasificacion() {
       <p class="subtext">Un jugador retirado sigue contando en el cálculo de
       quienes se enfrentaron a él, y los byes no cuentan como rival.</p>
     </details>`
+
+  // La tabla entera se rehace en cada refresco. Si no ha cambiado nada,
+  // no se toca: repintarla con la página desplazada da un salto y, si
+  // alguien tenía abierta la lista de un rival, se le cerraba sola.
+  if (yaEstaPintado('clasificacion', htmlClasif)) return
+  $('clasificacionContenido').innerHTML = htmlClasif
 
   // Las pestañitas y los «Ver lista», recién pintados: se enganchan aquí.
   document.querySelectorAll('[data-ver-clasif]').forEach((b) =>
@@ -1551,6 +1575,39 @@ function bracketHtml() {
     })
     .join('')
   return `<div class="torneo-bracket">${columnas}</div>`
+}
+
+// ── No repintar lo que no ha cambiado (tanda 258) ──
+//
+// La ficha se refresca sola cada 10 s, Y ADEMÁS con cada evento en vivo
+// (mensajes de chat, reportes, resultados de CUALQUIER mesa). Con un
+// torneo de verdad en marcha eso son varios repintados por segundo, y
+// cada uno tira el HTML de «Tu partida» y lo vuelve a poner: la pantalla
+// parpadea y, lo grave, los botones de Victoria/Derrota desaparecen y
+// vuelven bajo el dedo — se pulsa uno y el clic se pierde, o cae en el
+// que no era.
+//
+// La mayoría de esos repintados producen EXACTAMENTE el mismo HTML. Así
+// que se guarda lo último que se pintó en cada caja y, si sale igual, no
+// se toca el DOM: sin tocarlo no hay parpadeo, los botones no se mueven
+// y los escuchas siguen enganchados donde estaban.
+//
+// Se compara el HTML que se va a PINTAR, no el que hay en la caja: hay
+// piezas que se rellenan después (los sprites de los arquetipos), y
+// leyendo el DOM de vuelta nunca coincidiría nada.
+const ultimoPintado = new Map()
+
+function yaEstaPintado(clave, html) {
+  if (ultimoPintado.get(clave) === html) return true
+  ultimoPintado.set(clave, html)
+  return false
+}
+
+// Al salir de una caja por un camino que no pinta (mesa sin encontrar,
+// panel escondido) hay que olvidar su firma: si no, al volver a ese
+// mismo contenido se creería ya pintado y la caja se quedaría vacía.
+function olvidarPintado(clave) {
+  ultimoPintado.delete(clave)
 }
 
 function pintarCiclo() {

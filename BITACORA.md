@@ -12,6 +12,37 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-04 — PINGU-Claude (tanda 258 — la ficha dejaba de parpadear)
+
+**Hecho**: URGENTE, en mitad del torneo inaugural. La pantalla de la
+ronda parpadeaba y se perdían clics en los botones de Victoria y
+Derrota. Dos causas sumadas: (1) cada refresco tiraba el `innerHTML` de
+«Tu partida», «Mesas» y la clasificación y lo volvía a poner IDÉNTICO,
+o sea que los botones eran nodos nuevos cada vez y un clic a destiempo
+se perdía o caía en el que no era; y (2) no se refresca cada 10 s como
+parecía, sino con CADA evento en vivo de `tournament_matches`,
+`match_messages`, `match_reports` y `match_results` —sin filtrar por
+torneo—, de forma inmediata y encima solapada (`recargar()` es
+asíncrona y nada impedía que arrancase otra antes de acabar). Con gente
+chateando y reportando, varios repintados por segundo. Arreglado: se
+guarda lo último pintado en cada caja y si el HTML sale igual NO se
+toca el DOM (se compara lo que se va a pintar, no lo que hay en la
+caja: los sprites de arquetipo se rellenan después y leyendo el DOM de
+vuelta nunca coincidiría); y los refrescos van de uno en uno, juntando
+las ráfagas en uno solo al final —sin perder avisos, que el último trae
+el estado de todos—. De regalo, el reloj de ronda ya no se resetea a
+«–:––» en cada repintado.
+**Ficheros**: js/torneos/ronda.js, js/torneos/torneo.js.
+**En curso / pendiente**: comprobado con el doble ANTES y DESPUÉS: sin
+el cambio el botón de Victoria se destruía en cada refresco, con él el
+MISMO nodo sobrevive a cinco seguidos (y verificado que los refrescos
+ocurren de verdad, 50 consultas). Cuando sí cambia algo —entra tu
+reporte— el bloque se repinta igual que antes. 13 pruebas de torneos,
+sondeo y tiempo real en verde. PINGU dice que en el móvil no se
+notaba, solo en PC. Sin prueba propia de esto todavía: hay que añadir
+una que exija que un refresco sin cambios NO toque el DOM, que es la
+garantía que se acaba de ganar.
+
 ## 2026-09-04 — PINGU-Claude (tanda 257 — corregir tu usuario de TCG Live)
 
 **Hecho**: urgente, lo reportó un usuario. El usuario de TCG Live se

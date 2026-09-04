@@ -1648,13 +1648,42 @@ function pintarNoDisponible() {
 // Se salta el tic si la pestaña está en segundo plano o si estás
 // escribiendo (para no pisarte un chat o la decklist a medias).
 let sondeoFicha = null
+// Refrescos en curso y pendientes (tanda 258).
+//
+// El problema que arreglan: los eventos en vivo llegan a RÁFAGAS. Un
+// mensaje de chat, un reporte y un resultado en el mismo segundo eran
+// tres `recargar()` seguidos —cada uno con sus consultas y su repintado—
+// y encima solapados, porque `recargar` es asíncrono y nadie impedía que
+// arrancase otro antes de terminar el anterior. Con un torneo de verdad
+// en marcha eso es la ficha temblando.
+//
+// Ahora: uno cada vez, y si llegan más mientras tanto se juntan en UNO
+// solo al final. No se pierde ningún aviso —el último refresco trae el
+// estado de todos— y se pasa de varios repintados por segundo a uno.
+let refrescando = false
+let refrescoPendiente = false
+
 function arrancarSondeoFicha() {
   if (sondeoFicha) return
   const tic = async () => {
     if (document.hidden) return
     const activo = document.activeElement
     if (activo && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activo.tagName)) return
-    await recargar()
+    if (refrescando) {
+      refrescoPendiente = true
+      return
+    }
+    refrescando = true
+    try {
+      await recargar()
+    } finally {
+      refrescando = false
+    }
+    // Lo que llegó mientras se refrescaba, en una sola pasada más.
+    if (refrescoPendiente) {
+      refrescoPendiente = false
+      await tic()
+    }
   }
   sondeoFicha = setInterval(tic, 10000)
 
