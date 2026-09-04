@@ -1205,6 +1205,15 @@ function engancharInscripcion(aLaCola = false) {
 }
 
 // Baja en dos pulsaciones: la primera pide confirmar en el propio botón.
+// Hasta que EMPIEZA el torneo, y no después: el mismo criterio que
+// canEditDecklist. Con el torneo en juego el nombre ya está en los
+// pareos y en las mesas, y cambiarlo ahí sería quitarle a tu rival la
+// forma de encontrarte a mitad de partida. Si a alguien se le cuela una
+// errata hasta la primera ronda, lo arregla un juez.
+function seDejaCambiarElTcg() {
+  return ['draft', 'registration_open', 'registration_closed'].includes(torneo?.status)
+}
+
 // ── Corregir el usuario de TCG Live ──
 //
 // Se escribe UNA vez al inscribirse y hasta hoy no había forma de
@@ -1220,6 +1229,10 @@ function engancharEditarTcgLive() {
   const boton = $('btnEditarTcg')
   const caja = $('cajaEditarTcg')
   if (!boton || !caja) return
+  if (!seDejaCambiarElTcg()) {
+    boton.remove()
+    return
+  }
   boton.addEventListener('click', () => {
     if (caja.innerHTML) return void (caja.innerHTML = '')
     caja.innerHTML = `
@@ -1235,6 +1248,14 @@ function engancharEditarTcgLive() {
       e.preventDefault()
       const nuevo = $('nuevoTcgLive').value.trim()
       if (!nuevo) return showToast('Escribe tu usuario de TCG Live.')
+      // Se vuelve a mirar aquí: la ficha se refresca sola cada pocos
+      // segundos, así que el torneo puede haber empezado con el
+      // formulario abierto delante.
+      if (!seDejaCambiarElTcg()) {
+        showToast('El torneo ya ha empezado: pídeselo a un juez.')
+        caja.innerHTML = ''
+        return
+      }
       const { data, error } = await supabase
         .from('tournament_registrations')
         .update({ tcg_live_username: nuevo })

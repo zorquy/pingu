@@ -23,10 +23,21 @@ que abre el campo con el valor actual, tanto si estás inscrito como si
 estás en la lista de espera. Es un update normal (la política ya deja a
 cada cual editar SU inscripción, la misma con la que uno se da de baja)
 y pide de vuelta la fila, que un update rechazado no da error.
+Y se cierra al EMPEZAR el torneo (mismo criterio que
+`canEditDecklist`): con el torneo en juego el nombre ya está en los
+pareos y en las mesas, y cambiarlo sería quitarle al rival la forma de
+encontrarte a mitad de partida. El candado está en los dos sitios —el
+botón no sale, y antes de escribir se vuelve a comprobar, porque la
+ficha se refresca sola y el torneo puede empezar con el formulario
+abierto delante—. Las decklists ya lo tenían contemplado de antes.
 **Ficheros**: js/torneos/torneo.js.
 **En curso / pendiente**: probado a mano con el doble en los dos
-estados (inscrito y en cola), y las cinco pruebas de torneos siguen en
-verde. Sin prueba propia todavía: entra en la próxima pasada.
+estados (inscrito y en cola) y en los cuatro del torneo (abierto y
+cerrado sí, en juego y terminado no), y las cinco pruebas de torneos
+siguen en verde. Sin prueba propia todavía: entra en la próxima
+pasada. Queda un hueco de verdad: si a alguien se le cuela la errata
+hasta la primera ronda, hoy NO hay forma de arreglárselo — el juez
+tampoco puede editar el usuario de TCG Live de un inscrito.
 
 ## 2026-09-04 — PINGU-Claude (tanda 256 — moderar desde la lista de temas)
 **Hecho**: PINGU va a nombrar moderadores para el foro y la web no
