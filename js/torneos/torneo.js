@@ -295,20 +295,39 @@ function pintarFicha() {
   ponerBotonCalendario(acciones)
   // Herramientas del organizador (tanda 211): editar mientras tenga
   // sentido, y cancelar mientras el torneo siga vivo.
-  if (perfil?.is_admin && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status)) {
-    acciones.insertAdjacentHTML('beforeend', '<button class="btn-secondary" id="btnEditarTorneo">Editar</button>')
-    $('btnEditarTorneo').addEventListener('click', pintarEditor)
-  }
-  if (perfil?.is_admin && !['finished', 'cancelled'].includes(torneo.status)) {
-    acciones.insertAdjacentHTML('beforeend', '<button class="btn-secondary" id="btnCancelarTorneo">Cancelar torneo</button>')
-    engancharCancelar()
-  }
+  anadirAccion(acciones, perfil?.is_admin && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status),
+    'btnEditarTorneo', '<button class="btn-secondary" id="btnEditarTorneo">Editar</button>',
+    () => $('btnEditarTorneo').addEventListener('click', pintarEditor))
+  anadirAccion(acciones, perfil?.is_admin && !['finished', 'cancelled'].includes(torneo.status),
+    'btnCancelarTorneo', '<button class="btn-secondary" id="btnCancelarTorneo">Cancelar torneo</button>',
+    engancharCancelar)
   // Borrar va SIEMPRE el último y separado del resto: no es un paso más
   // del ciclo del torneo, es el que no tiene vuelta.
-  if (puedeBorrarTorneo(perfil, torneo, session?.user?.id)) {
-    acciones.insertAdjacentHTML('beforeend', '<button class="torneo-borrar" id="btnBorrarTorneo">Borrar torneo</button>')
-    engancharBorrar()
+  anadirAccion(acciones, puedeBorrarTorneo(perfil, torneo, session?.user?.id),
+    'btnBorrarTorneo', '<button class="torneo-borrar" id="btnBorrarTorneo">Borrar torneo</button>',
+    engancharBorrar)
+}
+
+// Un botón de la caja de acciones del organizador, puesto UNA sola vez.
+//
+// Desde la tanda 259 esa caja ya no se vacía en cada refresco —
+// rehacerla movía media página y hacía perder clics—, así que todo lo
+// que se le añade tiene que mirar antes si ya está. Sin esto salían
+// cuatro «Cancelar torneo» y cuatro «Borrar torneo» en fila, uno por
+// cada vez que la ficha se había refrescado.
+//
+// Y si la condición deja de cumplirse (el torneo se cancela, se
+// termina), el botón se quita: antes desaparecía solo porque la caja se
+// vaciaba entera.
+function anadirAccion(acciones, procede, id, html, enganchar) {
+  const puesto = acciones.querySelector(`#${id}`)
+  if (!procede) {
+    puesto?.remove()
+    return
   }
+  if (puesto) return
+  acciones.insertAdjacentHTML('beforeend', html)
+  enganchar()
 }
 
 // ── Editar el torneo (tanda 211; ampliado en la 220) ──

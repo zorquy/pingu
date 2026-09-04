@@ -12,6 +12,28 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-04 — PINGU-Claude (tanda 260 — los botones del organizador, una sola vez)
+
+**Hecho**: culpa mía, secuela directa de la 259. Al dejar de vaciar
+`#torneoAdminAcciones` en cada refresco, TODO lo que se le añade con
+`insertAdjacentHTML` se acumulaba. En la 259 arreglé dos casos
+(«Añadir al calendario» y la zona del anuncio) pero se me pasaron tres:
+**Editar**, **Cancelar torneo** y **Borrar torneo** — PINGU mandó
+captura con cuatro «Cancelar torneo» y cuatro «Borrar torneo» en fila.
+Ahora los tres pasan por `anadirAccion(acciones, procede, id, html,
+enganchar)`, que pone el botón solo si no está Y lo QUITA si deja de
+proceder (antes desaparecía porque la caja se vaciaba entera).
+**Ficheros**: js/torneos/torneo.js.
+**En curso / pendiente**: comprobado que no se duplican tras cuatro
+refrescos (como organizador y como jugador) y que salen solo cuando
+toca: con inscripciones abiertas sí, con el torneo cancelado o
+terminado no. 15 pruebas de torneos, sondeo y tiempo real en verde.
+**NORMA para el que venga**: cualquier cosa que se añada a
+`#torneoAdminAcciones` tiene que ir por `anadirAccion` — esa caja ya no
+se limpia sola. Y sigue faltando la prueba que exija «un refresco sin
+cambios no toca el DOM ni añade nada», que es lo que habría cazado esto
+sin que lo viera un humano en producción.
+
 ## 2026-09-04 — PINGU-Claude (tanda 259 — el parpadeo, ahora de raíz)
 
 **Hecho**: la 258 no bastó, PINGU seguía perdiendo clics. En vez de
