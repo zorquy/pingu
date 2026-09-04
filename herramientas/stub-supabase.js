@@ -55,7 +55,9 @@ const PERSONAS = {
   // cierra secciones. Hace falta como persona propia para poder exigir
   // la diferencia (tanda 256).
   'mod-1': { username: 'Brock', is_admin: false, is_moderator: true },
-  'user-1': { username: 'Ash', is_admin: false },
+  // Ash llega con medallas de torneo ya ganadas: hace falta para probar
+  // la vitrina del perfil sin tener que jugarse un torneo entero.
+  'user-1': { username: 'Ash', is_admin: false, achievements: ['torneo_jugado', 'torneo_podio', 'torneo_campeon'] },
   'user-2': { username: 'Misty', is_admin: false },
   'user-3': { username: 'jesus', is_admin: false },
 }
@@ -66,6 +68,7 @@ for (const [id, p] of Object.entries(PERSONAS)) {
     display_name: p.username,
     is_admin: p.is_admin,
     is_moderator: !!p.is_moderator,
+    achievements: p.achievements || [],
     avatar_url: null,
     xp: 0,
     notification_prefs_disabled: [],
@@ -306,6 +309,17 @@ sembrar('__FAKE_JUECES__', 'judge_applications', (i) => ({
   tournament_id: 'torneo-1',
   user_id: 'user-2',
   status: 'pending',
+}))
+
+sembrar('__FAKE_LOGROS__', 'achievement_definitions', (i) => ({
+  id: `logro-${i + 1}`,
+  title: `Logro ${i + 1}`,
+  description: '',
+  emoji: 'trophy',
+  rarity: 'bronze',
+  xp_reward: 10,
+  is_active: true,
+  condition: { type: 'manual' },
 }))
 
 sembrar('__FAKE_LLAMADAS__', 'judge_calls', (i) => ({

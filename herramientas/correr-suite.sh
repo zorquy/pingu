@@ -4,7 +4,7 @@
 # foro, guías y cursos se perdieron con el contenedor y NO están aquí.
 SC=/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad
 cd "$SC"
-PRUEBAS="test-tcgdex-codigo.mjs test-selector-mazo.mjs test-sets-live.mjs test-decklist-idiomas.mjs test-sprites.mjs test-partidas.mjs test-partidas-pagina.mjs test-torneos-22.mjs test-torneos-23.mjs test-meta-torneo.mjs test-torneos-21.mjs test-torneos-20.mjs test-vivo.mjs test-sondeo.mjs test-foro-1.mjs test-foro-2.mjs test-torneos-19.mjs test-torneos-18.mjs test-torneos-17.mjs test-torneos-16.mjs test-torneos-15.mjs test-tanda-247.mjs test-tanda-248.mjs test-correos.mjs test-tanda-251.mjs test-tanda-252.mjs test-tanda-253.mjs test-tanda-254.mjs test-tanda-255.mjs test-tanda-256.mjs test-tanda-261.mjs"
+PRUEBAS="test-tcgdex-codigo.mjs test-selector-mazo.mjs test-sets-live.mjs test-decklist-idiomas.mjs test-sprites.mjs test-partidas.mjs test-partidas-pagina.mjs test-torneos-22.mjs test-torneos-23.mjs test-meta-torneo.mjs test-torneos-21.mjs test-torneos-20.mjs test-vivo.mjs test-sondeo.mjs test-foro-1.mjs test-foro-2.mjs test-torneos-19.mjs test-torneos-18.mjs test-torneos-17.mjs test-torneos-16.mjs test-torneos-15.mjs test-tanda-247.mjs test-tanda-248.mjs test-correos.mjs test-tanda-251.mjs test-tanda-252.mjs test-tanda-253.mjs test-tanda-254.mjs test-tanda-255.mjs test-tanda-256.mjs test-tanda-261.mjs test-tanda-262.mjs"
 > suite.log
 for p in $PRUEBAS; do
   [ -f "$p" ] || { echo "AUSENTE $p" >> suite.log; continue; }
