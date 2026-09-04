@@ -12,6 +12,7 @@ import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
 import { pintarDecklistVisual } from './cartas-decklist.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
+import { pintarSiCambia } from './pintar.js'
 
 let ctx = null // { torneo, session, perfil, inscripciones, esJuez, recargarFicha }
 let solicitudes = []
@@ -215,7 +216,7 @@ function montarChat(marcador, { tabla, columna, id, titulo, cerrado, abierto = f
       .limit(200)
     const mensajes = data || []
     await resolverNombres(mensajes.map((m) => m.sender_id))
-    lista.innerHTML =
+    const html =
       mensajes
         .map((m) => {
           const mio = m.sender_id === yo()
@@ -232,6 +233,9 @@ function montarChat(marcador, { tabla, columna, id, titulo, cerrado, abierto = f
           </div>`
         })
         .join('') || '<p class="subtext">Sin mensajes todavía.</p>'
+    // Sin mensajes nuevos no se toca la lista: repintarla la manda al
+    // final de golpe (y si estabas leyendo hacia arriba, te saca de ahí).
+    if (!pintarSiCambia(lista, html)) return
     lista.scrollTop = lista.scrollHeight
   }
 
@@ -240,8 +244,13 @@ function montarChat(marcador, { tabla, columna, id, titulo, cerrado, abierto = f
       if (detalles.open) pintarMensajes()
     })
   }
-  // A la vista o ya desplegado: los mensajes se cargan al momento (y en
-  // cada refresco automático de la ficha, que remonta este chat).
+  // Desde la tanda 259 la ficha ya NO remonta este chat en cada refresco
+  // —remontarlo era lo que movía los botones de debajo—, así que el chat
+  // deja aquí su propia forma de ponerse al día y quien refresca la
+  // llama. Sin esto, no volver a montarlo sería no volver a ver un
+  // mensaje nuevo.
+  marcador.refrescarMensajes = pintarMensajes
+  // A la vista o ya desplegado: los mensajes se cargan al momento.
   if (abierto || desplegado) pintarMensajes()
   const boton = marcador.querySelector('.torneo-chat-envio button')
   if (boton) {
@@ -269,7 +278,7 @@ function montarChat(marcador, { tabla, columna, id, titulo, cerrado, abierto = f
 function pintarMiPartidaExtra() {
   const zona = $('miPartidaExtra')
   if (!miPartida || miPartida.status === 'bye') {
-    zona.innerHTML = ''
+    pintarSiCambia(zona, '')
     return
   }
 
@@ -277,38 +286,52 @@ function pintarMiPartidaExtra() {
   // estaba abierto, que siga abierto.
   const llamadaAbierta = Boolean($('chatDeLlamada')?.querySelector('details')?.open)
 
-  zona.innerHTML = `
-    <div id="chatDeMesa"></div>
-    <div class="torneo-llamar-juez" id="zonaLlamarJuez"></div>`
-  montarChat($('chatDeMesa'), {
-    tabla: 'match_messages',
-    columna: 'match_id',
-    id: miPartida.id,
-    titulo: 'Chat de la mesa',
-    cerrado: false,
-    abierto: true, // entre jugadores, a la vista: fuera el desplegable
-  })
+  // El armazón (chat de mesa + zona de juez) se monta UNA vez por mesa.
+  // Antes se rehacía en cada refresco, y con él el chat entero: es la
+  // caja que está justo debajo de los botones de Victoria y Derrota, así
+  // que al regenerarse con otra altura los movía de sitio en el momento
+  // exacto en que ibas a pulsarlos (tanda 259).
+  if (pintarSiCambia(zona, `
+    <div id="chatDeMesa" data-mesa="${escapeHtml(miPartida.id)}"></div>
+    <div class="torneo-llamar-juez" id="zonaLlamarJuez"></div>`)) {
+    montarChat($('chatDeMesa'), {
+      tabla: 'match_messages',
+      columna: 'match_id',
+      id: miPartida.id,
+      titulo: 'Chat de la mesa',
+      cerrado: false,
+      abierto: true, // entre jugadores, a la vista: fuera el desplegable
+    })
+  } else {
+    // Ya estaba montado: solo se le piden los mensajes nuevos.
+    void $('chatDeMesa')?.refrescarMensajes?.()
+  }
 
   const zonaJuez = $('zonaLlamarJuez')
   const puedeLlamar = ['active', 'awaiting_confirmation', 'disputed'].includes(miPartida.status)
   const miLlamada = llamadas.find((c) => c.match_id === miPartida.id && c.created_by === yo() && c.status !== 'resolved')
   if (miLlamada) {
-    zonaJuez.innerHTML = `
+    const html = `
       <p class="subtext">${miLlamada.status === 'open' ? 'Esperando juez…' : `Un juez la está atendiendo (${escapeHtml(nombreDe(miLlamada.assigned_judge_id))}).`}</p>
-      <div id="chatDeLlamada"></div>`
-    montarChat($('chatDeLlamada'), {
-      tabla: 'judge_messages',
-      columna: 'judge_call_id',
-      id: miLlamada.id,
-      titulo: 'Conversación con el juez',
-      cerrado: false,
-      desplegado: llamadaAbierta,
-    })
+      <div id="chatDeLlamada" data-llamada="${escapeHtml(miLlamada.id)}"></div>`
+    if (pintarSiCambia(zonaJuez, html)) {
+      montarChat($('chatDeLlamada'), {
+        tabla: 'judge_messages',
+        columna: 'judge_call_id',
+        id: miLlamada.id,
+        titulo: 'Conversación con el juez',
+        cerrado: false,
+        desplegado: llamadaAbierta,
+      })
+    } else {
+      void $('chatDeLlamada')?.refrescarMensajes?.()
+    }
   } else if (puedeLlamar) {
-    zonaJuez.innerHTML = '<button class="btn-secondary" id="btnLlamarJuez">Llamar al juez</button>'
-    $('btnLlamarJuez').addEventListener('click', llamarJuez)
+    if (pintarSiCambia(zonaJuez, '<button class="btn-secondary" id="btnLlamarJuez">Llamar al juez</button>')) {
+      $('btnLlamarJuez').addEventListener('click', llamarJuez)
+    }
   } else {
-    zonaJuez.innerHTML = ''
+    pintarSiCambia(zonaJuez, '')
   }
 }
 
@@ -486,7 +509,7 @@ function pintarSolicitudes() {
     return
   }
   caja.classList.remove('hidden')
-  $('juecesContenido').innerHTML = propio + gestion
+  if (!pintarSiCambia($('juecesContenido'), propio + gestion)) return
 
   if ($('btnSolicitarJuez')) $('btnSolicitarJuez').addEventListener('click', solicitarJuez)
   document.querySelectorAll('[data-decidir-juez]').forEach((b) =>

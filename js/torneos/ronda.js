@@ -7,6 +7,7 @@
 // torneo.js monta este módulo con montarCiclo(ctx) en cada recarga.
 import { faltaLaRpc } from './comun.js'
 import { supabase } from '../supabase.js'
+import { pintarSiCambia } from './pintar.js'
 import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
@@ -1023,12 +1024,17 @@ function pintarRondas() {
           <span class="torneo-cuenta-checkin hidden" id="cuentaCheckin"></span>
         </div>`
       : ''
-  $('rondasAdmin').innerHTML = `
+  // Esta caja es la cabecera del panel de rondas: el reloj grande, el
+  // aviso de check-in y los botones del organizador. Rehacerla en cada
+  // refresco movía TODO lo que hay debajo — «Tu partida» incluida — y es
+  // media explicación de los clics perdidos (tanda 259).
+  const htmlRondas = `
     ${hero}
     <div class="torneo-rondas-cabecera">
       <span class="subtext">${rondas.length ? (rondas[rondas.length - 1].phase === 'top_cut' ? `Top cut — ronda ${rondas[rondas.length - 1].round_number}` : `Ronda ${rondas[rondas.length - 1].round_number} de ${ctx.torneo.swiss_rounds} suizas`) : `Sin rondas aún (${ctx.torneo.swiss_rounds} suizas previstas)`}</span>
       <span class="torneo-rondas-botones">${admin}<button class="btn-secondary" id="btnActualizarCiclo">Actualizar</button></span>
     </div>`
+  if (!pintarSiCambia($('rondasAdmin'), htmlRondas)) return pintarRondasResto(actual)
   // Actualizar refresca la ficha ENTERA (ciclo, chats y cola de jueces):
   // es el botón de «a ver si mi rival ya ha hecho algo».
   $('btnActualizarCiclo').addEventListener('click', () => ctx.recargarFicha())
@@ -1054,6 +1060,13 @@ function pintarRondas() {
       await ctx.recargarFicha()
     })
 
+  pintarRondasResto(actual)
+}
+
+// Lo que va DEBAJO de la cabecera de rondas. Vive aparte para poder
+// pintarlo aunque la cabecera no haya cambiado (ver pintarRondas).
+function pintarRondasResto(actual) {
+  const caja = $('torneoRondasCaja')
   if (actual) pintarPareoManual(actual)
   else $('pareoManual').innerHTML = ''
 

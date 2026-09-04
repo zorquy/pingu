@@ -12,6 +12,38 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-04 — PINGU-Claude (tanda 259 — el parpadeo, ahora de raíz)
+
+**Hecho**: la 258 no bastó, PINGU seguía perdiendo clics. En vez de
+seguir adivinando, se MIDIÓ con un MutationObserver: un refresco sin
+ningún cambio de datos destruía y regeneraba **25 trozos de página**.
+La 258 solo había tapado tres de ellos. Los gordos que faltaban:
+`#miPartidaExtra` —el chat de la mesa y «Llamar al juez», que están
+JUSTO debajo de los botones de Victoria y Derrota, así que al
+regenerarse con otra altura los movían de sitio—, `#torneoPestanas`
+(lo primero de la página), `#rondasAdmin` (el reloj y los botones del
+organizador, encima de todo), `#listaInscritos`, `#miPlazaContenido`,
+`#decklistContenido` y `#juecesContenido`. Ahora hay un ayudante común
+(js/torneos/pintar.js, `pintarSiCambia`/`textoSiCambia`) y lo usan
+todas: si el HTML sale igual, NO se toca el DOM. **De 25 mutaciones a
+4**, y las 4 que quedan son los dos relojes, que cambian de verdad cada
+segundo y no mueven nada (ancho fijo).
+**Ficheros**: js/torneos/pintar.js (NUEVO), js/torneos/torneo.js,
+js/torneos/ronda.js, js/torneos/jueces.js.
+**En curso / pendiente**: OJO al efecto secundario, que la medición
+cazó: al dejar de vaciar `#torneoAdminAcciones` en cada pasada, el
+botón «Añadir al calendario» se duplicaba (1 → 5 en cuatro refrescos)
+porque se añadía con `insertAdjacentHTML` confiando en que la caja se
+limpiaba sola. Arreglado haciéndolo idempotente, y lo mismo con la zona
+de «Anunciar en el foro». **Si se añade algo más a esa caja, tiene que
+mirar si ya está.** El chat tampoco se remonta ya: deja su
+`refrescarMensajes` en el propio nodo y quien refresca lo llama — sin
+eso, no remontarlo sería no volver a ver un mensaje nuevo. Comprobado:
+15 pruebas de torneos, sondeo y tiempo real en verde; sin duplicados
+tras cuatro refrescos como jugador y como organizador; y cuando SÍ
+cambia algo (entra tu reporte) el bloque se repinta igual que antes.
+Falta prueba propia que exija «un refresco sin cambios no toca el DOM».
+
 ## 2026-09-04 — PINGU-Claude (tanda 258 — la ficha dejaba de parpadear)
 
 **Hecho**: URGENTE, en mitad del torneo inaugural. La pantalla de la

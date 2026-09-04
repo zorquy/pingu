@@ -27,6 +27,7 @@ import { pintarDecklistVisual } from './cartas-decklist.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { sanitizeRichText } from '../richtext-format.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
+import { pintarSiCambia, textoSiCambia } from './pintar.js'
 
 let session = null
 let perfil = null
@@ -207,11 +208,11 @@ function pintarFicha() {
       banner.onerror = () => banner.classList.add('hidden')
     }
   }
-  $('torneoNombre').textContent = torneo.name
+  textoSiCambia($('torneoNombre'), torneo.name)
   const pill = $('torneoEstado')
-  pill.textContent = estado.texto
+  textoSiCambia(pill, estado.texto)
   pill.className = `torneo-estado ${estado.clase}`
-  $('torneoMeta').textContent = fechaBonita(torneo.start_at)
+  textoSiCambia($('torneoMeta'), fechaBonita(torneo.start_at))
   // La descripción sale del editor con formato (tanda 220) y se pinta
   // SANEADA por la misma lista cerrada del foro. Las descripciones de
   // antes eran texto plano: sin etiquetas dentro, se pintan como texto
@@ -219,17 +220,17 @@ function pintarFicha() {
   const desc = $('torneoDescripcion')
   desc.classList.toggle('hidden', !torneo.description)
   if (/<[a-z][\s\S]*>/i.test(torneo.description || '')) {
-    desc.innerHTML = sanitizeRichText(torneo.description)
+    pintarSiCambia(desc, sanitizeRichText(torneo.description))
     desc.classList.remove('torneo-descripcion-plana')
   } else {
-    desc.textContent = torneo.description || ''
+    textoSiCambia(desc, torneo.description || '')
     desc.classList.add('torneo-descripcion-plana')
   }
 
   // La caja «Formato» del original: cada dato con su icono. Una liga
   // (tanda 219) habla de jornadas y enseña su calendario debajo.
   const esLiga = torneo.format === 'league'
-  $('torneoFormato').innerHTML = [
+  pintarSiCambia($('torneoFormato'), [
     [icons.layers(18), esLiga ? 'Jornadas' : 'Rondas suizas', `${torneo.swiss_rounds} · BO${torneo.swiss_bo ?? 1}`],
     [icons.trophy(18), 'Top cut', torneo.top_cut_size ? `Top ${torneo.top_cut_size} · BO${torneo.top_cut_bo ?? 3}` : 'Sin corte'],
     // Los «?? por defecto» son los mismos de la tabla: una ficha nunca
@@ -238,7 +239,7 @@ function pintarFicha() {
     [icons.checkCircle(18), 'Check-in', `${torneo.checkin_minutes ?? 5} min`],
   ]
     .map(([icono, dt, dd]) => `<div class="torneo-formato-dato">${icono}<div><dt>${dt}</dt><dd>${escapeHtml(dd)}</dd></div></div>`)
-    .join('')
+    .join(''))
   // El calendario de la liga: una chapa por jornada con su fecha.
   document.getElementById('torneoJornadas')?.remove()
   const jornadas = Array.isArray(torneo.matchday_dates) ? torneo.matchday_dates : []
@@ -255,9 +256,12 @@ function pintarFicha() {
   // barra de ocupación no cuenta nada — se esconde y se dice la gente.
   const ocupadas = activos()
   const aforoSinLimite = torneo.max_players == null
-  $('torneoPlazasTexto').textContent = aforoSinLimite
-    ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'} · sin límite de plazas`
-    : `${ocupadas} de ${torneo.max_players} plazas`
+  textoSiCambia(
+    $('torneoPlazasTexto'),
+    aforoSinLimite
+      ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'} · sin límite de plazas`
+      : `${ocupadas} de ${torneo.max_players} plazas`
+  )
   document.querySelector('.torneo-plazas-barra')?.classList.toggle('hidden', aforoSinLimite)
   if (!aforoSinLimite) $('torneoPlazasRelleno').style.width = `${Math.min(100, (ocupadas / torneo.max_players) * 100)}%`
 
@@ -269,23 +273,23 @@ function pintarFicha() {
 
   const acciones = $('torneoAdminAcciones')
   if (!perfil?.is_admin) {
-    acciones.innerHTML = ''
+    pintarSiCambia(acciones, '')
   } else if (torneo.status === 'draft') {
-    acciones.innerHTML = '<button class="btn-primary" id="btnAbrirInscripciones">Abrir inscripciones</button>'
-    $('btnAbrirInscripciones').addEventListener('click', () => cambiarEstado('registration_open', 'Inscripciones abiertas. ¡A correr la voz!'))
+    if (pintarSiCambia(acciones, '<button class="btn-primary" id="btnAbrirInscripciones">Abrir inscripciones</button>'))
+      $('btnAbrirInscripciones').addEventListener('click', () => cambiarEstado('registration_open', 'Inscripciones abiertas. ¡A correr la voz!'))
   } else if (torneo.status === 'registration_open') {
-    acciones.innerHTML = '<button class="btn-secondary" id="btnCerrarInscripciones">Cerrar inscripciones</button>'
-    $('btnCerrarInscripciones').addEventListener('click', cerrarInscripciones)
+    if (pintarSiCambia(acciones, '<button class="btn-secondary" id="btnCerrarInscripciones">Cerrar inscripciones</button>'))
+      $('btnCerrarInscripciones').addEventListener('click', cerrarInscripciones)
   } else if (torneo.status === 'registration_closed') {
     // Cerrar no es un viaje sin vuelta (pedido de Ibai, 2026-09-02):
     // abrir y cerrar se alternan las veces que haga falta — cerrar solo
     // deja de admitir gente, no genera nada. El único punto sin retorno
     // de verdad es la R1: con pareos ya generados no hay deshacer, y un
     // recién llegado no entraría en ellos (lo comprueba el manejador).
-    acciones.innerHTML = '<button class="btn-secondary" id="btnReabrirInscripciones">Reabrir inscripciones</button>'
-    $('btnReabrirInscripciones').addEventListener('click', reabrirInscripciones)
+    if (pintarSiCambia(acciones, '<button class="btn-secondary" id="btnReabrirInscripciones">Reabrir inscripciones</button>'))
+      $('btnReabrirInscripciones').addEventListener('click', reabrirInscripciones)
   } else {
-    acciones.innerHTML = ''
+    pintarSiCambia(acciones, '')
   }
   if (perfil?.is_admin && torneo.status !== 'draft') pintarAnuncioForo(acciones)
   ponerBotonCalendario(acciones)
@@ -674,6 +678,11 @@ function engancharBorrar() {
 // la descripción, que es lo que uno busca cuando le salta el aviso.
 function ponerBotonCalendario(acciones) {
   if (['finished', 'cancelled'].includes(torneo.status) || !torneo.start_at) return
+  // Desde la tanda 259 la caja de acciones ya no se vacía en cada
+  // refresco (rehacerla movía la página), así que este botón tiene que
+  // mirar si ya está puesto: si no, se añadía uno nuevo cada diez
+  // segundos hasta tener cinco «Añadir al calendario» en fila.
+  if (acciones.querySelector('#btnCalendario')) return
   const boton = document.createElement('button')
   boton.className = 'btn-secondary'
   boton.id = 'btnCalendario'
@@ -723,9 +732,14 @@ let forosParaAnuncio = null
 
 async function pintarAnuncioForo(acciones) {
   const titulo = `Torneo: ${torneo.name}`
-  const zona = document.createElement('span')
-  zona.className = 'torneo-anuncio-foro'
-  acciones.appendChild(zona)
+  // Por lo mismo que el botón del calendario: la caja de acciones ya no
+  // se vacía en cada refresco, así que se REUTILIZA la zona si ya está.
+  let zona = acciones.querySelector('.torneo-anuncio-foro')
+  if (!zona) {
+    zona = document.createElement('span')
+    zona.className = 'torneo-anuncio-foro'
+    acciones.appendChild(zona)
+  }
 
   if (!hiloForoId) {
     const { data: hilo } = await supabase.from('forum_threads').select('id').eq('title', titulo).maybeSingle()
@@ -1045,7 +1059,8 @@ function pintarMiPlaza() {
   // un enlace compartido.
   if (soloMirando) {
     const vuelta = encodeURIComponent(window.location.pathname + window.location.search)
-    caja.innerHTML =
+    pintarSiCambia(
+      caja,
       torneo.status === 'registration_open'
         ? `<p>Las inscripciones están abiertas${
             // Con aforo sin límite (tanda 228 de IBAI) no hay plazas que
@@ -1058,46 +1073,47 @@ function pintarMiPlaza() {
            <p class="subtext">Es gratis y se juega en Pokémon TCG Live. ¿Ya tienes cuenta? <a href="/auth.html?volver=${vuelta}">Entra</a>.</p>`
         : `<p class="subtext">Estás viendo este torneo sin haber entrado.</p>
            <a class="btn-secondary" href="/auth.html?volver=${vuelta}">Entrar en PokeDoc</a>`
+    )
     return
   }
 
   if (miInscripcion?.status === 'active') {
-    caja.innerHTML = `
+    if (!pintarSiCambia(caja, `
       <p>Estás inscrito como <strong>${escapeHtml(miInscripcion.tcg_live_username || '—')}</strong> (tu usuario de TCG Live).
         <button type="button" class="link-btn" id="btnEditarTcg">${icons.edit(13)} Cambiarlo</button></p>
       <div id="cajaEditarTcg"></div>
       ${checklistDosPasos()}
-      <button class="btn-secondary" id="btnBaja">Darme de baja</button>`
+      <button class="btn-secondary" id="btnBaja">Darme de baja</button>`)) return
     engancharConfirmarParticipacion()
     engancharEditarTcgLive()
     engancharBaja()
     return
   }
   if (miInscripcion?.status === 'dropped') {
-    caja.innerHTML = '<p class="subtext">Te retiraste de este torneo. La plaza no se libera y no es posible reinscribirse.</p>'
+    pintarSiCambia(caja, '<p class="subtext">Te retiraste de este torneo. La plaza no se libera y no es posible reinscribirse.</p>')
     return
   }
   // En la cola (tanda 218): se dice el puesto, que es lo único que
   // importa cuando esperas.
   if (miInscripcion?.status === 'waitlisted') {
-    caja.innerHTML = `
+    if (!pintarSiCambia(caja, `
       <p>Estás en la <strong>lista de espera</strong>, en el puesto ${miPuestoEnCola()}.</p>
       <p>Apuntado como <strong>${escapeHtml(miInscripcion.tcg_live_username || '—')}</strong> en TCG Live.
         <button type="button" class="link-btn" id="btnEditarTcg">${icons.edit(13)} Cambiarlo</button></p>
       <div id="cajaEditarTcg"></div>
       <p class="subtext">Si alguien deja su plaza, la primera de la cola entra sola y te avisamos.</p>
-      <button class="btn-secondary" id="btnSalirCola">Salir de la lista</button>`
+      <button class="btn-secondary" id="btnSalirCola">Salir de la lista</button>`)) return
     engancharEditarTcgLive()
     engancharSalirCola()
     return
   }
   if (torneo.status !== 'registration_open') {
-    caja.innerHTML = `<p class="subtext">${torneo.status === 'draft' ? 'Las inscripciones aún no se han abierto.' : 'Las inscripciones no están abiertas.'}</p>`
+    pintarSiCambia(caja, `<p class="subtext">${torneo.status === 'draft' ? 'Las inscripciones aún no se han abierto.' : 'Las inscripciones no están abiertas.'}</p>`)
     return
   }
   // Sin límite (max_players NULL) nunca hay lleno ni lista de espera.
   const lleno = torneo.max_players != null && activos() >= torneo.max_players
-  caja.innerHTML = `
+  if (!pintarSiCambia(caja, `
     ${lleno ? `<p class="torneo-lleno-aviso">Torneo lleno — puedes ponerte en la lista de espera (hay ${enCola()} esperando).</p>` : ''}
     <form id="formInscripcion" class="torneo-form-inscripcion">
       <label>Tu usuario de Pokémon TCG Live
@@ -1105,7 +1121,7 @@ function pintarMiPlaza() {
       </label>
       <button type="submit" class="btn-primary" id="btnInscribirme">${lleno ? 'Apuntarme a la lista de espera' : 'Inscribirme'}</button>
     </form>
-    <p class="subtext">Las partidas se juegan en TCG Live: tu rival te buscará por ese usuario.</p>`
+    <p class="subtext">Las partidas se juegan en TCG Live: tu rival te buscará por ese usuario.</p>`)) return
   engancharInscripcion(lleno)
 }
 
@@ -1334,7 +1350,7 @@ function pintarDecklist() {
   // El refresco automático repinta esta caja: si el editor estaba
   // abierto, se respeta.
   const editorAbierto = document.querySelector('.torneo-decklist-editor')?.open
-  $('decklistContenido').innerHTML = `
+  if (!pintarSiCambia($('decklistContenido'), `
     ${estadoEntrega}
     <div class="torneo-decklist-visual" id="decklistVisual"></div>
     <details class="torneo-decklist-editor" ${(editorAbierto ?? !miDecklist) ? 'open' : ''}>
@@ -1343,7 +1359,7 @@ function pintarDecklist() {
       <p class="torneo-decklist-cuenta" id="decklistCuenta"></p>
       <ul class="torneo-decklist-errores hidden" id="decklistErrores"></ul>
       ${editable ? '<button class="btn-primary" id="btnGuardarDecklist">Guardar decklist</button>' : ''}
-    </details>`
+    </details>`)) return
   if (editable) engancharDecklist()
   if (miDecklist) {
     engancharExportar($('decklistContenido'), {
@@ -1443,12 +1459,12 @@ function tcgLiveDe(i) {
 }
 
 function pintarInscritos() {
-  $('inscritosNumero').textContent = String(activos())
+  textoSiCambia($('inscritosNumero'), String(activos()))
   $('inscritosVacio').classList.toggle('hidden', inscripciones.length > 0)
   const entregadaPor = new Set(decklistsEntregadas.map((d) => d.user_id))
   // Los que esperan van APARTE y numerados (tanda 218): mezclarlos con
   // los inscritos haría creer que tienen plaza.
-  $('listaInscritos').innerHTML = inscripciones
+  const htmlInscritos = inscripciones
     .filter((i) => i.status !== 'waitlisted')
     .map((i) => {
       const nombre = i.perfil?.username || 'Alguien'
@@ -1480,10 +1496,8 @@ function pintarInscritos() {
     })
     .join('')
   const esperando = cola()
-  if (esperando.length) {
-    $('listaInscritos').insertAdjacentHTML(
-      'beforeend',
-      `<h5 class="torneo-cola-titulo">Lista de espera (${esperando.length})</h5>` +
+  const htmlCola = esperando.length
+    ? `<h5 class="torneo-cola-titulo">Lista de espera (${esperando.length})</h5>` +
         esperando
           .map(
             (i, n) => `
@@ -1493,8 +1507,11 @@ function pintarInscritos() {
       </div>`
           )
           .join('')
-    )
-  }
+    : ''
+  // La lista entera de una vez, y solo si ha cambiado: se repintaba en
+  // cada refresco y con veinte inscritos es un buen trozo de página
+  // moviéndose (tanda 259).
+  if (!pintarSiCambia($('listaInscritos'), htmlInscritos + htmlCola)) return
   document.querySelectorAll('[data-expulsar]').forEach((b) =>
     b.addEventListener('click', async () => {
       if (b.dataset.confirmar !== '1') {
@@ -1546,15 +1563,20 @@ function pintarPestanas() {
   if (!visibles.some((p) => p.id === pestanaActiva)) pestanaActiva = visibles[0]?.id || 'torneo'
 
   const nav = $('torneoPestanas')
-  nav.innerHTML = visibles
+  const html = visibles
     .map(
       (p) =>
         `<button class="torneo-pestana ${p.id === pestanaActiva ? 'activa' : ''}" data-pestana="${p.id}">${p.texto}</button>`
     )
     .join('')
+  // Las pestañas son lo PRIMERO de la página: rehacerlas mueve todo lo
+  // que hay debajo. Se repintan solo si cambian de verdad (una pestaña
+  // nueva, u otra activa); esconder y enseñar paneles no las toca.
+  const cambiaron = pintarSiCambia(nav, html)
   document.querySelectorAll('.torneo-panel').forEach((s) => {
     s.classList.toggle('hidden', s.dataset.panel !== pestanaActiva)
   })
+  if (!cambiaron) return
   nav.querySelectorAll('[data-pestana]').forEach((b) =>
     b.addEventListener('click', () => {
       pestanaActiva = b.dataset.pestana
