@@ -12,6 +12,37 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-04 — PINGU-Claude (tanda 261 — los arquetipos, con datos de evolución de verdad)
+**Hecho**: PINGU vio en el torneo inaugural que un mazo de Mega Lucario
+y Mega Zygarde salía como «Mega Zygarde Riolu» y un Latias/Slowking
+como «Latias ex Slowpoke»: las dos veces ganaba la PREEVOLUCIÓN, que
+lleva más copias. La causa eran dos adivinanzas —una lista de nombres
+penalizados a mano (sin «riolu» ni «slowpoke», y no podía tenerlos
+todos) y la regla de «una preevolución está en los tres números
+anteriores de la Pokédex», que falla con Slowpoke 79 → Slowking 199—.
+Ahora hay DATO: js/torneos/evoluciones.js con 456 preevoluciones
+sacadas de los datos de especies de Pokémon Showdown, por número de
+Pokédex. Y el criterio pasa a ser el de Limitless: las cartas se
+agrupan por LÍNEA evolutiva, cada línea vale sus copias más un
+suplemento por el nombre (ex +5, Mega +8), se llama por su carta más
+evolucionada, y se enseñan las dos mayores. Los motores (Bibarel,
+Lumineon, Squawkabilly, Fezandipiti, Rotom…) se apartan aparte.
+**Ficheros**: js/torneos/evoluciones.js (NUEVO), js/torneos/arquetipos.js,
+SCHEMA.md. Fuera del repo: test-tanda-261.mjs (NUEVO),
+rigor-tanda-261.py (NUEVO).
+**En curso / pendiente**: verificado — 32 comprobaciones en verde, las
+11 mutaciones del rigor pilladas y la suite entera (31) en verde. OJO
+con la lista de MOTORES: es la única a mano que queda y tiene que
+seguir siendo corta — con una más larga se colaron Pidgeot («Charizard
+Pidgeot») y Munkidori («Gardevoir Munkidori»), que SÍ nombran mazos.
+El catálogo curado sigue mandando y la clave canónica del histórico no
+cambia, así que las partidas ya apuntadas se quedan donde están.
+**NO se ha podido sacar nada de Limitless directamente**: desde este
+contenedor no hay salida a internet salvo npm y pypi, así que lo que se
+ha replicado es su CRITERIO, no su lista de arquetipos. Si PINGU quiere
+sus nombres exactos, hay que meterlos en el catálogo (tcg_archetypes) a
+mano o por migración.
+
 ## 2026-09-04 — PINGU-Claude (tanda 260 — los botones del organizador, una sola vez)
 
 **Hecho**: culpa mía, secuela directa de la 259. Al dejar de vaciar

@@ -12729,3 +12729,78 @@ mutaciones). El doble de Supabase aprendió a **rechazar un UPDATE en
 silencio** (`__RLS_SIN_TOCAR__`, hermano del `__RLS_SIN_BORRAR__` que ya
 tenía) y a tener una persona que es moderadora sin ser administradora,
 que son las dos cosas que hacían falta para poder exigir todo esto.
+
+---
+
+## Tanda 261 — los arquetipos deducidos, con datos de verdad (sept. 2026)
+
+Lo reportó PINGU con dos mazos del torneo inaugural:
+
+| Mazo de verdad | Salía como |
+|---|---|
+| Mega Lucario / Mega Zygarde | **Mega Zygarde Riolu** |
+| Latias / Slowking | **Latias ex Slowpoke** |
+
+Las dos veces ganaba la **preevolución**, que lleva más copias que la
+carta que da nombre al mazo (4 Riolu contra 2 Mega Lucario ex).
+
+### Por qué fallaba
+
+La deducción tenía dos adivinanzas:
+
+1. Una **lista de nombres penalizados** escrita a mano (`ralts|kirlia|
+   dreepy|...`). No tenía `riolu` ni `slowpoke`, y no podía tenerlos
+   todos: son cientos y cada set trae más.
+2. Una regla que suponía que una preevolución cae en **los tres números
+   anteriores de la Pokédex**. Solo funciona con líneas seguidas: Riolu
+   447 → Lucario 448 sí, pero Slowpoke 79 → Slowking 199 no, ni Duskull
+   355 → Dusknoir 477.
+
+Y una tercera, de otro tipo: se exigían **2 copias** al segundo icono,
+lo que deja fuera precisamente a los Mega ex, que van de 1 o 2.
+
+### El dato en vez de la adivinanza
+
+`js/torneos/evoluciones.js` (NUEVO): **456 preevoluciones con su
+evolución**, sacadas de los datos de especies de Pokémon Showdown
+(`@pkmn/dex`) y guardadas por NÚMERO de Pokédex, que no depende del
+idioma del export de TCG Live. 3,5 KB gzip, y solo lo bajan las páginas
+que deducen mazos.
+
+### El criterio nuevo, que es el de Limitless
+
+Un mazo no se nombra por cartas sueltas sino por **líneas**:
+
+1. Las cartas se agrupan por **familia evolutiva** — Riolu, Lucario y
+   Mega Lucario ex son una sola cosa. Una Mega es una FORMA (el 20448
+   en la tabla de sprites) y se reduce a su especie, o salía «Lucario
+   Mega Lucario ex», el mismo Pokémon dos veces.
+2. Cada línea vale **sus copias más un suplemento por el nombre**
+   (ex/V/VSTAR +5, Mega +8). Los dos criterios por separado se
+   equivocan: solo copias hace que cuatro Bibarel le ganen a dos
+   Charizard ex; solo el «ex» hace que un Meowth ex de tecnología le
+   gane a la línea entera de Dusknoir.
+3. Cada línea se llama por su **carta más evolucionada**.
+4. Se enseñan las dos líneas mayores, y la segunda solo si llega a dos
+   cartas.
+5. Los **motores** (Bibarel, Lumineon, Squawkabilly, Fezandipiti,
+   Rotom…) se apartan: están en medio meta y no dicen a qué juega
+   nadie. Es la única lista a mano que queda, y a propósito es corta —
+   se probó con una más larga y se coló Pidgeot, que da nombre a
+   «Charizard Pidgeot», y Munkidori, que se lo da a «Gardevoir
+   Munkidori». Ante la duda, fuera: un nombre regular es menos malo que
+   borrar del mapa un arquetipo de verdad.
+
+Resultado con los mazos de PINGU: **Mega Lucario ex + Mega Zygarde ex**
+y **Latias ex + Slowking**.
+
+### Lo que NO se ha tocado
+
+El **catálogo curado sigue mandando** sobre la deducción, y la clave
+canónica del histórico sigue agrupando igual: las partidas ya apuntadas
+no se mueven de sitio.
+
+Comprobado con `test-tanda-261.mjs` (32/32, sin navegador — el módulo es
+puro) y `rigor-tanda-261.py` (11 mutaciones). Del rigor salió además una
+guarda muerta en `esAntepasadoDe` (`dex === otro`) que ninguna prueba
+podía exigir porque ningún Pokémon evoluciona en sí mismo: fuera.

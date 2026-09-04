@@ -28,6 +28,7 @@
 // de tener que sentarse a rellenar el meta entero de una vez.
 
 import { dexDeCarta, dexExacto, BASE_DE_FORMA } from './sprites-pokemon.js'
+import { esAntepasadoDe } from './evoluciones.js'
 
 // Nombres sin tildes, sin mayúsculas y sin dobles espacios. Vive aquí y
 // no se importa de tcgdex.js a propósito: este módulo NO toca la red ni
@@ -98,77 +99,162 @@ export function arquetipoDelCatalogo(parsed, catalogo) {
 //   · Las líneas de evolución básicas (Ralts, Kirlia) NO dan nombre al
 //     mazo: se llama Gardevoir, no Ralts. Se penalizan por nombre,
 //     porque el espejo de cartas no siempre sabe la fase.
-const PENALIZADOS = /^(ralts|kirlia|dreepy|drakloak|duskull|dusclops|charmander|charmeleon|applin|dipplin|budew|fezandipiti|munkidori|squawkabilly|lumineon|bloodmoon)$/i
+// ── Deducir el mazo cuando no hay arquetipo catalogado ──
+//
+// Reescrito en la tanda 261, después de que PINGU viera en el torneo
+// inaugural dos nombres que no se sostenían: un mazo de Mega Lucario y
+// Mega Zygarde salió como «Mega Zygarde Riolu», y un Latias/Slowking
+// como «Latias ex Slowpoke». Los dos por lo mismo — la preevolución
+// llevaba más copias que la carta que da nombre al mazo.
+//
+// Lo que había eran dos adivinanzas: una lista de nombres penalizados
+// escrita a mano (que no tenía «riolu» ni «slowpoke», ni podía tenerlos
+// todos) y una regla que suponía que una preevolución cae en los tres
+// números anteriores de la Pokédex (Slowpoke es el 79 y Slowking el
+// 199). Ahora se usa el dato de verdad, en js/torneos/evoluciones.js.
+//
+// ── El criterio, que es el de Limitless ──
+//
+// Un mazo NO se nombra por cartas sueltas sino por LÍNEAS: la línea
+// Riolu → Lucario → Mega Lucario ex es una sola cosa, pesa lo que suman
+// sus tres cartas y se llama por la de arriba. Así:
+//
+//   1. Las cartas se agrupan por línea evolutiva.
+//   2. Cada línea pesa la suma de copias de sus cartas. Es lo que
+//      distingue el mazo de su carta de tecnología: un Meowth ex suelto
+//      pesa 1, la línea de Dragapult pesa nueve.
+//   3. Cada línea se nombra por su carta MÁS EVOLUCIONADA (y, entre
+//      iguales, por la que lleva ex/Mega y por la de más copias).
+//   4. Se enseñan las dos líneas más pesadas. La segunda solo si llega a
+//      dos cartas: por debajo de eso es tecnología, no el mazo.
+function pesoDeNombre(nombre) {
+  const n = String(nombre ?? '')
+  if (/\bmega\b/i.test(n)) return 3
+  if (/\bex\b|\bV\b|\bVMAX\b|\bVSTAR\b|\bGX\b/i.test(n)) return 2
+  return 1
+}
 
-function puntuarLinea(l) {
-  const nombre = String(l.name ?? '')
-  let puntos = Number(l.quantity) || 0
-  if (/\bex\b|\bV\b|\bVMAX\b|\bVSTAR\b|\bGX\b/i.test(nombre)) puntos += 10
-  if (PENALIZADOS.test(normalizarNombre(nombre).split(' ')[0])) puntos -= 12
-  return puntos
+// Las líneas de Pokémon del mazo, agrupadas por familia evolutiva.
+// Se agrupan por PARENTESCO y no por nombre: «Riolu», «Lucario» y «Mega
+// Lucario ex» son tres nombres distintos y una sola línea.
+export function agruparPorLinea(pokemon) {
+  // La ESPECIE, no la forma: «Mega Lucario ex» es el 20448 en la tabla de
+  // sprites (las formas viven en números altos) y Lucario es el 448. Sin
+  // esto no se reconocían como la misma línea y el mazo salía como
+  // «Lucario Mega Lucario ex», que es el mismo Pokémon dos veces.
+  const especie = (nombre) => {
+    const dex = dexDeCarta(nombre) || null
+    return dex && BASE_DE_FORMA.has(dex) ? BASE_DE_FORMA.get(dex) : dex
+  }
+  const conDex = (pokemon || []).map((l) => ({ linea: l, dex: especie(l.name) }))
+  const grupos = []
+  for (const carta of conDex) {
+    const suyo = grupos.find((g) =>
+      g.cartas.some(
+        (c) =>
+          (c.dex && carta.dex && c.dex === carta.dex) ||
+          esAntepasadoDe(c.dex, carta.dex) ||
+          esAntepasadoDe(carta.dex, c.dex)
+      )
+    )
+    if (suyo) suyo.cartas.push(carta)
+    else grupos.push({ cartas: [carta] })
+  }
+  for (const g of grupos) {
+    g.copias = g.cartas.reduce((n, c) => n + (Number(c.linea.quantity) || 0), 0)
+    // La cabeza de la línea: la que no es antepasada de ninguna otra del
+    // grupo. Entre varias (Gardevoir y Gallade salen de Kirlia), la de
+    // más peso de nombre y más copias.
+    const cabezas = g.cartas.filter((c) => !g.cartas.some((o) => esAntepasadoDe(c.dex, o.dex)))
+    g.cabeza = (cabezas.length ? cabezas : g.cartas).sort(
+      (a, b) =>
+        pesoDeNombre(b.linea.name) - pesoDeNombre(a.linea.name) ||
+        (Number(b.linea.quantity) || 0) - (Number(a.linea.quantity) || 0) ||
+        String(a.linea.name).localeCompare(String(b.linea.name))
+    )[0]
+    g.peso = pesoDeNombre(g.cabeza.linea.name)
+  }
+  return grupos
+}
+
+// Lo que vale una línea para dar nombre al mazo: sus copias más un
+// suplemento por ser una carta de las que nombran mazos. Los números
+// están elegidos para que un ex de dos copias (2 + 5 = 7) aguante a un
+// motor de seis cartas, y para que una línea de ocho no la adelante
+// ningún ex suelto.
+// ── Las cartas que NUNCA dan nombre a un mazo ──
+//
+// No son preevoluciones —eso ya lo resuelve el dato de evoluciones— sino
+// MOTORES y utilidad: cartas de robo y de búsqueda que están en medio
+// meta y no dicen a qué juega nadie. Un mazo con cuatro Bibarel no es
+// «un mazo de Bibarel».
+//
+// Aquí sí hay una lista a mano, y a diferencia de la que había antes
+// está acotada: son las cartas de UTILIDAD del formato, una docena, y no
+// «todas las preevoluciones del juego», que era imposible de mantener.
+// Se comparan por nombre normalizado y sin el sufijo ex/V, para que
+// valga igual «Squawkabilly ex» que «Squawkabilly».
+//
+// Si un mazo fuera SOLO motores (no existe, pero podría llegar una lista
+// a medias), se usan igualmente: mejor un nombre regular que ninguno.
+// Corta a propósito: solo lo que NADIE usa para nombrar un mazo. Se
+// probó con una lista más larga y se coló Pidgeot, que da nombre a
+// «Charizard Pidgeot», y Munkidori, que se lo da a «Gardevoir
+// Munkidori». Ante la duda, fuera de aquí: dejar un nombre regular es
+// mucho menos malo que borrar del mapa un arquetipo de verdad.
+const MOTORES = new Set([
+  'bidoof', 'bibarel', 'lumineon', 'radiant greninja', 'squawkabilly',
+  'fezandipiti', 'rotom', 'jirachi', 'lillie s clefairy',
+])
+
+function esMotor(nombre) {
+  const n = normalizarNombre(nombre)
+    .replace(/\b(ex|v|vmax|vstar|gx)\b/g, '')
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return MOTORES.has(n)
+}
+
+function puntosDeLinea(g) {
+  return g.copias + [0, 0, 5, 8][g.peso]
 }
 
 export function deducirIconos(parsed) {
-  const pokemon = [...(parsed?.pokemon || [])]
-  if (!pokemon.length) return []
-  const puntuadas = pokemon
-    .map((l) => ({ linea: l, puntos: puntuarLinea(l) }))
-    // El desempate por nombre es lo que hace que dos refrescos pinten lo
-    // mismo: sin él, el orden lo decidiría el del export.
-    .sort((a, b) => b.puntos - a.puntos || String(a.linea.name).localeCompare(String(b.linea.name)))
+  const grupos = agruparPorLinea(parsed?.pokemon || [])
+  if (!grupos.length) return []
 
-  // Los básicos de una línea de evolución NO dan nombre a un mazo, así
-  // que se descartan del todo en vez de conformarse con que queden los
-  // últimos. Un mazo de Gardevoir se llama «Gardevoir», no «Gardevoir
-  // Ralts» — y eso es lo que salía cuando la lista solo tenía dos
-  // líneas de Pokémon y entraban las dos por narices.
+  // Las copias de la línea SUMADAS a lo que pesa su nombre, en vez de
+  // uno u otro por separado. Los dos criterios solos se equivocan:
   //
-  // Si al filtrar no queda NADA (un mazo entero de básicos, que
-  // existen), se vuelve a la lista sin filtrar: mejor un nombre regular
-  // que ninguno.
-  const buenas = puntuadas.filter((x) => x.puntos > 0)
-  const candidatas = buenas.length ? buenas : puntuadas
-  const primera = candidatas[0]
-  if (!primera) return []
+  //   · Solo copias: cuatro Bibarel —un motor de robo que está en medio
+  //     meta— le ganaban a dos Charizard ex.
+  //   · Solo el «ex»: un Meowth ex de tecnología le ganaba a la línea
+  //     entera de Dusknoir, que es media mitad del mazo.
+  //
+  // Sumando, una línea de ocho cartas aguanta a cualquier ex suelto y un
+  // ex aguanta a cualquier motor. El desempate por nombre es lo que hace
+  // que dos refrescos seguidos pinten lo mismo.
+  const orden = [...grupos].sort(
+    (a, b) =>
+      puntosDeLinea(b) - puntosDeLinea(a) ||
+      String(a.cabeza.linea.name).localeCompare(String(b.cabeza.linea.name))
+  )
 
-  // ── El segundo icono es el que se equivoca ──
-  //
-  // Con una lista de verdad (la de PINGU del 2026-09-01) salía
-  // «Dragapult ex Meowth ex»: Meowth ex era UNA copia, una carta de
-  // tecnología que nadie usa para nombrar un mazo. Y quitándola salía
-  // «Dragapult ex Drakloak», que es peor: Drakloak es la evolución
-  // intermedia del mismo Pokémon.
-  //
-  // Dos reglas, y la segunda es la interesante:
-  //
-  //   1. Una sola copia es una carta suelta, no el nombre del mazo.
-  //   2. La PREEVOLUCIÓN de lo que ya hemos elegido tampoco: en la
-  //      Pokédex, una preevolución está justo debajo de su evolución
-  //      (Dreepy 885, Drakloak 886, Dragapult 887). Se descartan los
-  //      tres números anteriores al del primer icono.
-  //
-  // Es una regla aproximada —hay líneas que no van seguidas, como
-  // Dusclops y Dusknoir— pero se apoya en un dato de verdad en vez de
-  // en una lista de nombres escrita a mano, que habría que ampliar cada
-  // temporada.
-  //
-  // Si tras filtrar no queda ningún segundo digno, se enseña UN SOLO
-  // icono. Un mazo de un solo Pokémon se llama por ese Pokémon.
-  const dexPrimera = dexDeCarta(primera.linea.name)
-  const segunda = candidatas.slice(1).find((x) => {
-    if ((Number(x.linea.quantity) || 0) < 2) return false
-    const dex = dexDeCarta(x.linea.name)
-    // Solo con números de especie (≤1025): las FORMAS viven en números
-    // altos de PokéAPI donde ser vecinos no significa nada — dos
-    // máscaras de Ogerpon van seguidas y ninguna es preevolución de la
-    // otra.
-    if (dexPrimera && dex && dexPrimera <= 1025 && dex < dexPrimera && dex >= dexPrimera - 3) return false
-    return true
-  })
+  // Los motores se apartan, pero no se tiran: si un mazo no tuviera otra
+  // cosa, se vuelve a la lista entera.
+  const sinMotores = orden.filter((g) => !esMotor(g.cabeza.linea.name))
+  const buenas = sinMotores.length ? sinMotores : orden
+
+  const primera = buenas[0]
+  // Dos cartas mínimo para el segundo icono: una sola copia de algo es
+  // una carta suelta, y nombrar el mazo por ella es justo el error de
+  // «Dragapult ex Meowth ex».
+  const segunda = buenas.slice(1).find((g) => g.copias >= 2)
 
   return [primera, segunda]
     .filter(Boolean)
-    .map(({ linea }) => ({ set: linea.set, numero: linea.number, nombre: linea.name }))
+    .map((g) => ({ set: g.cabeza.linea.set, numero: g.cabeza.linea.number, nombre: g.cabeza.linea.name }))
 }
 
 // El nombre que se enseña cuando no hay arquetipo catalogado: los dos
