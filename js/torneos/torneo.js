@@ -1063,10 +1063,13 @@ function pintarMiPlaza() {
 
   if (miInscripcion?.status === 'active') {
     caja.innerHTML = `
-      <p>Estás inscrito como <strong>${escapeHtml(miInscripcion.tcg_live_username)}</strong> (tu usuario de TCG Live).</p>
+      <p>Estás inscrito como <strong>${escapeHtml(miInscripcion.tcg_live_username || '—')}</strong> (tu usuario de TCG Live).
+        <button type="button" class="link-btn" id="btnEditarTcg">${icons.edit(13)} Cambiarlo</button></p>
+      <div id="cajaEditarTcg"></div>
       ${checklistDosPasos()}
       <button class="btn-secondary" id="btnBaja">Darme de baja</button>`
     engancharConfirmarParticipacion()
+    engancharEditarTcgLive()
     engancharBaja()
     return
   }
@@ -1079,8 +1082,12 @@ function pintarMiPlaza() {
   if (miInscripcion?.status === 'waitlisted') {
     caja.innerHTML = `
       <p>Estás en la <strong>lista de espera</strong>, en el puesto ${miPuestoEnCola()}.</p>
+      <p>Apuntado como <strong>${escapeHtml(miInscripcion.tcg_live_username || '—')}</strong> en TCG Live.
+        <button type="button" class="link-btn" id="btnEditarTcg">${icons.edit(13)} Cambiarlo</button></p>
+      <div id="cajaEditarTcg"></div>
       <p class="subtext">Si alguien deja su plaza, la primera de la cola entra sola y te avisamos.</p>
       <button class="btn-secondary" id="btnSalirCola">Salir de la lista</button>`
+    engancharEditarTcgLive()
     engancharSalirCola()
     return
   }
@@ -1198,6 +1205,52 @@ function engancharInscripcion(aLaCola = false) {
 }
 
 // Baja en dos pulsaciones: la primera pide confirmar en el propio botón.
+// ── Corregir el usuario de TCG Live ──
+//
+// Se escribe UNA vez al inscribirse y hasta hoy no había forma de
+// tocarlo: quien se equivocaba de letra se quedaba con el nombre malo
+// para siempre, y con ese nombre es con el que su rival lo busca dentro
+// del juego. O sea que una errata aquí es no poder jugar la partida.
+//
+// La política de la base ya deja a cada cual editar SU inscripción (la
+// misma con la que uno se da de baja), así que es un update normal —
+// pero se pide de vuelta la fila: un update que la política rechaza no
+// da error, simplemente no toca nada.
+function engancharEditarTcgLive() {
+  const boton = $('btnEditarTcg')
+  const caja = $('cajaEditarTcg')
+  if (!boton || !caja) return
+  boton.addEventListener('click', () => {
+    if (caja.innerHTML) return void (caja.innerHTML = '')
+    caja.innerHTML = `
+      <form class="torneo-form-inscripcion" id="formTcgLive">
+        <label>Tu usuario de Pokémon TCG Live
+          <input type="text" id="nuevoTcgLive" maxlength="60" placeholder="AshKetchum99"
+            value="${escapeHtml(miInscripcion.tcg_live_username || '')}" />
+        </label>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </form>`
+    $('nuevoTcgLive').focus()
+    $('formTcgLive').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const nuevo = $('nuevoTcgLive').value.trim()
+      if (!nuevo) return showToast('Escribe tu usuario de TCG Live.')
+      const { data, error } = await supabase
+        .from('tournament_registrations')
+        .update({ tcg_live_username: nuevo })
+        .eq('id', miInscripcion.id)
+        .select('id')
+      if (error || !data?.length) {
+        showToast(error ? `No se ha podido guardar: ${error.message}` : 'No se ha podido guardar: la base no te deja cambiarlo.')
+        return
+      }
+      miInscripcion.tcg_live_username = nuevo
+      showToast('Usuario de TCG Live actualizado.', 'success')
+      await recargar()
+    })
+  })
+}
+
 function engancharBaja() {
   const btn = $('btnBaja')
   btn.addEventListener('click', async () => {

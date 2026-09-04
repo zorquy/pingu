@@ -12,6 +12,22 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-04 — PINGU-Claude (tanda 257 — corregir tu usuario de TCG Live)
+
+**Hecho**: urgente, lo reportó un usuario. El usuario de TCG Live se
+escribía UNA vez al inscribirse y no había forma de tocarlo: quien se
+equivocaba de letra se quedaba con el nombre malo, y con ese nombre es
+con el que su rival lo busca dentro del juego — o sea que una errata
+era no poder jugar la partida. Ahora en «Tu plaza» hay un «Cambiarlo»
+que abre el campo con el valor actual, tanto si estás inscrito como si
+estás en la lista de espera. Es un update normal (la política ya deja a
+cada cual editar SU inscripción, la misma con la que uno se da de baja)
+y pide de vuelta la fila, que un update rechazado no da error.
+**Ficheros**: js/torneos/torneo.js.
+**En curso / pendiente**: probado a mano con el doble en los dos
+estados (inscrito y en cola), y las cinco pruebas de torneos siguen en
+verde. Sin prueba propia todavía: entra en la próxima pasada.
+
 ## 2026-09-04 — PINGU-Claude (tanda 256 — moderar desde la lista de temas)
 **Hecho**: PINGU va a nombrar moderadores para el foro y la web no
 estaba preparada para que trabajaran: el rol `is_moderator` existía y
