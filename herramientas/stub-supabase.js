@@ -51,6 +51,10 @@ const T = {
 // Por defecto un admin, que es quien puede entrar hoy en torneos.
 const PERSONAS = {
   'admin-1': { username: 'Admin', is_admin: true },
+  // Moderación NO es administración: ordena el foro pero no abre ni
+  // cierra secciones. Hace falta como persona propia para poder exigir
+  // la diferencia (tanda 256).
+  'mod-1': { username: 'Brock', is_admin: false, is_moderator: true },
   'user-1': { username: 'Ash', is_admin: false },
   'user-2': { username: 'Misty', is_admin: false },
   'user-3': { username: 'jesus', is_admin: false },
@@ -61,6 +65,7 @@ for (const [id, p] of Object.entries(PERSONAS)) {
     username: p.username,
     display_name: p.username,
     is_admin: p.is_admin,
+    is_moderator: !!p.is_moderator,
     avatar_url: null,
     xp: 0,
     notification_prefs_disabled: [],
@@ -320,6 +325,13 @@ const SIN_RPC = (typeof window !== 'undefined' && window.__SIN_RPC__) || []
 // Las tablas cuya política de borrado dice que no (ver `aplicar`).
 const SIN_BORRAR = (typeof window !== 'undefined' && window.__RLS_SIN_BORRAR__) || []
 
+// Y las tablas cuya política de ACTUALIZACIÓN dice que no. Es el mismo
+// silencio del borrado y pasa igual de a menudo: un UPDATE que la
+// política rechaza no da error, simplemente no toca ninguna fila. Hacía
+// falta para poder exigir que una pantalla que mueve o etiqueta temas se
+// entere de que no ha movido nada (tanda 256).
+const SIN_TOCAR = (typeof window !== 'undefined' && window.__RLS_SIN_TOCAR__) || []
+
 // Las llamadas a RPC, para que una prueba pueda comprobarlas.
 const RPCS = []
 
@@ -387,6 +399,7 @@ function consulta(tabla, estado = {}) {
     // es literalmente lo que hace Postgres — y así una prueba puede
     // comprobar que la página se entera de que no ha borrado nada.
     if (st.op === 'delete' && SIN_BORRAR.includes(tabla)) filas = []
+    if (st.op === 'update' && SIN_TOCAR.includes(tabla)) filas = []
     for (const f of st.filtros) filas = filas.filter(f)
     if (st.ordenes?.length) {
       filas.sort((a, b) => {

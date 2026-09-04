@@ -143,6 +143,23 @@ dentro del propio test.
   escritas pero fuera de la lista, así que la suite decía «todo verde»
   sin pasarlas.
 
+- **Moderar el foro desde la lista** (tanda 256): `test-tanda-256` —
+  que las herramientas salgan SOLO para el equipo (y que a los demás ni
+  se les cree la barra en el DOM), que mover mueva LO marcado y a donde
+  se dijo, que la etiqueta en lote no se pierda por el camino, que fijar
+  ALTERNE en vez de fijar siempre, que borrar pida dos toques diciendo
+  cuántas respuestas se pierden, que un moderador no vea los foros
+  escondidos y administración sí (marcados), y que `?editar=primero`
+  abra el editor del mensaje que abre el hilo — solo en la página 1.
+
+  Para poder exigir lo importante, el doble aprendió dos cosas:
+  **rechazar un UPDATE en silencio** (`__RLS_SIN_TOCAR__`, hermano del
+  `__RLS_SIN_BORRAR__` que ya tenía) y una persona **moderadora que no
+  es administradora** (`mod-1`). Sin lo primero no hay forma de probar
+  lo único que de verdad puede salir mal en esa pantalla: que la
+  política diga que no —sin error, sin tocar nada— y la web cante
+  «movido».
+
 ## Lo que FALTA
 
 **Guías, cursos, perfiles y portada.** Se perdieron y hay que
