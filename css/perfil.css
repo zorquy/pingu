@@ -33,14 +33,6 @@
 /* ── El palmarés de torneos en la ficha de alguien (tanda 262) ──
    Vivían en css/torneos.css, que /usuario NO carga: la chapa salía sin
    estilo ninguno y pegada al número. */
-.torneo-palmares {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-}
-
 .torneo-chapa-palmares {
   display: inline-block;
   padding: 1px 8px;
@@ -66,12 +58,36 @@
    Una fila de iconos con el color de su rareza. Centrada como el resto
    de la cabecera y con `flex-wrap`, que con diez medallas y un móvil
    estrecho la fila tiene que poder partirse. */
+/* La fila del palmarés va DEBAJO del bloque de avatar y nombre, a todo
+   el ancho de la tarjeta: dentro de la columna del nombre no cabe (en
+   móvil son unos 200 px) y dentro de .profile-hero-body aplastaba esa
+   columna en escritorio, donde ese contenedor no hace wrap.
+   El padding repite el del body para que las medallas queden alineadas
+   con el avatar. */
+.palmares-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 0 24px 16px;
+}
+
+@media (max-width: 420px) {
+  .palmares-fila {
+    padding: 0 16px 14px;
+  }
+}
+
 .palmares-vitrina {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  justify-content: center;
-  margin-top: 8px;
+}
+
+/* Al lado de las medallas y sin margen de párrafo: es un pie de foto,
+   no un párrafo suelto. */
+.palmares-fila .torneo-palmares {
+  margin: 0;
 }
 
 .palmares-medalla {
@@ -100,4 +116,11 @@
 .palmares-medalla.rarity-gold {
   border-color: rgba(217, 164, 6, 0.55);
   background: rgba(217, 164, 6, 0.1);
+}
+
+/* Un banner sin foto es un rectángulo de color liso: 160 px de alto son
+   160 px de nada, y dejaban la cabecera medio vacía con todo lo demás
+   empezando muy abajo (tanda 263). Con foto se quedan los 160. */
+.profile-hero-banner-vacio {
+  height: 96px;
 }

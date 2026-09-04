@@ -65,6 +65,10 @@ async function loadHeader() {
   banner.style.background = profile.banner_url
     ? `url('${profile.banner_url.replace(/'/g, '%27')}') center/cover`
     : profile.banner_color || 'var(--ice)'
+  // Sin imagen, 160 px de color liso son 160 px de nada: la cabecera se
+  // veía medio vacía y todo lo de debajo empezaba muy abajo. Con foto se
+  // quedan los 160 —ahí sí hay algo que enseñar—; sin ella baja a 96.
+  banner.classList.toggle('profile-hero-banner-vacio', !profile.banner_url)
 
   applyAvatarTo(document.getElementById('heroAvatar'), profile, getInitial(name))
 
@@ -369,7 +373,10 @@ async function loadPalmaresTorneos() {
   const falta = siguienteHito({ jugados: jugados.length })
   const nombreHito = definiciones.find((d) => d.id === falta?.id)?.title
   const resumen = [
-    `${jugados.length} ${jugados.length === 1 ? 'torneo jugado' : 'torneos jugados'}`,
+    // Corto a propósito: es una línea que convive con las medallas y con
+    // el resto de la cabecera, y «torneos jugados» ya se entiende con
+    // «torneos» al lado de un trofeo.
+    `${jugados.length} ${jugados.length === 1 ? 'torneo' : 'torneos'}`,
     campeonatos ? `${campeonatos} ${campeonatos === 1 ? 'campeonato' : 'campeonatos'}` : '',
     podios ? `${podios} ${podios === 1 ? 'podio' : 'podios'}` : '',
     falta && nombreHito ? `a ${falta.faltan} de ${nombreHito}` : '',
@@ -387,9 +394,27 @@ async function loadPalmaresTorneos() {
         .join('')}</div>`
     : ''
 
+  // El palmarés va en su PROPIA FILA, DESPUÉS del bloque de avatar y
+  // nombre. Dos intentos antes de dar con esto:
+  //
+  //   · Dentro de la columna del nombre: en móvil esa columna comparte
+  //     sitio con el avatar de 96 px y se queda en unos 200, así que las
+  //     medallas salían descolgadas en el centro y el resumen se partía
+  //     en tres renglones.
+  //   · Como último hijo de .profile-hero-body con `flex-basis: 100%`:
+  //     ese contenedor solo hace `wrap` por debajo de 640 px, así que en
+  //     escritorio se metía en la MISMA línea y aplastaba la columna del
+  //     nombre hasta dejar «Ash» en vertical, una letra por renglón.
+  //
+  // Fuera del body y antes de la barra de seguidores es una fila de
+  // verdad, a todo el ancho, y no depende de cómo esté configurado el
+  // flex de nadie.
   document
-    .getElementById('heroInfo')
-    .insertAdjacentHTML('beforeend', `${vitrina}<p class="subtext torneo-palmares">${escapeHtml(resumen)}</p>`)
+    .querySelector('.profile-hero-body')
+    .insertAdjacentHTML(
+      'afterend',
+      `<div class="palmares-fila">${vitrina}<p class="subtext torneo-palmares">${escapeHtml(resumen)}</p></div>`
+    )
 }
 
 init()

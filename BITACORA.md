@@ -12,6 +12,31 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-04 — PINGU-Claude (tanda 263 — la cabecera del perfil, colocada)
+**Hecho**: la vitrina de la 262 quedaba descolocada en el móvil. Estaba
+DENTRO de la columna del nombre, que comparte sitio con el avatar de
+96 px y se queda en unos 200: las medallas salían centradas mientras
+todo lo demás iba a la izquierda, y el resumen se partía en TRES
+renglones. Se probó a meterla en .profile-hero-body con
+`flex-basis: 100%` y salió peor: ese contenedor solo hace `wrap` por
+debajo de 640 px, así que en ESCRITORIO se metía en la misma línea y
+aplastaba la columna del nombre hasta dejar «Ash» en vertical, una
+letra por renglón. Al final va como fila hermana, DESPUÉS del bloque
+del avatar y antes de la barra de seguidores: a todo el ancho y sin
+depender del flex de nadie. Además el resumen se acorta («1 torneo» en
+vez de «1 torneo jugado») y —lo que más desequilibraba la captura de
+PINGU— el BANNER VACÍO baja de 160 px a 96: sin foto eran 160 px de
+nada que dejaban la cabecera medio vacía. Con foto se quedan los 160.
+**Ficheros**: js/usuario.js, css/perfil.css.
+**En curso / pendiente**: verificado a 393 px y a 1100 px, y la suite
+entera (32) en verde. La prueba ahora EXIGE la colocación: que el
+resumen no pase de dos renglones, que el nombre no se ponga en
+vertical y que la fila esté fuera del bloque del avatar — las dos
+formas de romperlo que ya han pasado. AVISO aparte: test-tanda-255
+llevaba un fallo dependiente de la hora del día (sembraba el torneo a
+«+30 horas» y esperaba «Mañana»; a las 00:15 eso cae en pasado
+mañana). Corregido a «mañana a mediodía» de calendario.
+
 ## 2026-09-04 — PINGU-Claude (tanda 262 — medallas de torneo y vitrina en el perfil)
 **Hecho**: PINGU vio «Torneos jugados: 1Podio» en su perfil. Eran DOS
 cosas: faltaba el separador, y —la de fondo— las reglas de esas chapas
