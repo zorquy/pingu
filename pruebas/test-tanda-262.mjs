@@ -163,10 +163,40 @@ console.log('\n── 6. El resumen de debajo ──')
   })
   const texto = await page.locator('.torneo-palmares').innerText()
   // El fallo que lo empezó todo: «Torneos jugados: 1Podio», pegado.
-  check('se lee con separadores', /2 torneos jugados · 1 campeonato · 1 podio/.test(texto), JSON.stringify(texto))
+  check('se lee con separadores', /2 torneos · 1 campeonato · 1 podio/.test(texto), JSON.stringify(texto))
   check('y dice qué falta para la siguiente', /a 3 de Veterano/.test(texto), JSON.stringify(texto))
   check('y no hay nada pegado', !/\d[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(texto), JSON.stringify(texto))
   await page.close()
+}
+
+console.log('\n── 6b. Y cabe en una línea, también en el móvil ──')
+{
+  // Estuvo dentro de la columna del nombre, que en un móvil comparte
+  // sitio con el avatar de 96 px: el resumen se partía en TRES renglones
+  // y las medallas salían descolgadas en el centro. Y estuvo dentro de
+  // .profile-hero-body, que en escritorio no hace wrap: ahí aplastaba la
+  // columna del nombre hasta dejarlo en vertical, una letra por línea.
+  for (const [donde, ancho] of [['móvil', 393], ['escritorio', 1100]]) {
+    const page = await browser.newPage({ viewport: { width: ancho, height: 900 } })
+    await page.addInitScript((s) => {
+      for (const [k, v] of Object.entries(s)) window[k] = v
+    }, { __FAKE_SESSION__: 'user-2', __FAKE_LOGROS__: LOGROS, __FAKE_TORNEOS__: TORNEOS, __FAKE_INSCRIPCIONES__: INSC })
+    await page.goto(`${BASE}/usuario?u=Ash`, { waitUntil: 'domcontentloaded' })
+    await page.waitForTimeout(2200)
+    const alto = (sel) => page.locator(sel).first().evaluate((n) => n.getBoundingClientRect().height)
+    // Una línea de texto de 13-14 px mide unos 20. Se admiten DOS en un
+    // móvil de 393 px —con cuatro datos y ese ancho, partir una vez es
+    // razonable—; lo que no se admite es lo de antes: tres renglones
+    // rompiendo «campeonato» y dejando «Veterano» solo en el último.
+    check(`${donde}: el resumen no pasa de dos renglones`, (await alto('.torneo-palmares')) < 50, String(await alto('.torneo-palmares')))
+    // Y el nombre sigue siendo un nombre y no una columna de letras: con
+    // «Ash» en vertical el <h2> medía más de 100 px de alto.
+    check(`${donde}: el nombre no se pone en vertical`, (await alto('.profile-hero-info h2')) < 40, String(await alto('.profile-hero-info h2')))
+    // La fila del palmarés va DEBAJO del bloque del avatar, no dentro.
+    const fuera = await page.evaluate(() => !document.querySelector('.profile-hero-body .palmares-fila'))
+    check(`${donde}: la fila va fuera del bloque del avatar`, fuera)
+    await page.close()
+  }
 }
 
 console.log('\n── 7. Quien no ha jugado ningún torneo ──')

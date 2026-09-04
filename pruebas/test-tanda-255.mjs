@@ -19,9 +19,20 @@ const BASE = 'http://localhost:8892'
 const browser = await chromium.launch()
 
 const enHoras = (h) => new Date(Date.now() + h * 3600e3).toISOString()
+
+// «Mañana a mediodía», calculado sobre el calendario y NO como «dentro
+// de 30 horas»: con esto último la prueba dependía de la hora a la que
+// se corriera —a las 00:15, treinta horas caen en PASADO mañana— y
+// fallaba de madrugada diciendo «El domingo» donde esperaba «Mañana».
+const manana = () => {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  d.setHours(12, 0, 0, 0)
+  return d.toISOString()
+}
 const torneo = (extra = {}) => ({
   id: 't1', slug: 'copa', name: 'Copa Inaugural PokeDoc', admin_id: 'admin-1',
-  status: 'registration_open', max_players: 16, swiss_rounds: 3, start_at: enHoras(30), ...extra,
+  status: 'registration_open', max_players: 16, swiss_rounds: 3, start_at: manana(), ...extra,
 })
 
 const abrir = async (ruta, semillas = {}) => {
@@ -82,7 +93,7 @@ console.log('\n── 3. Se enseña el que antes se juega ──')
     __FAKE_SESSION__: 'admin-1',
     __FAKE_TORNEOS__: [
       torneo({ id: 't2', slug: 'tarde', name: 'Copa de Octubre', start_at: enHoras(700) }),
-      torneo({ id: 't1', slug: 'pronto', name: 'Copa de Mañana', start_at: enHoras(30) }),
+      torneo({ id: 't1', slug: 'pronto', name: 'Copa de Mañana', start_at: manana() }),
     ],
   })
   const texto = await page.locator('#torneoPortada').innerText()
