@@ -769,6 +769,33 @@ function enganchar(perfiles) {
   elMensajes.querySelectorAll('[data-editar]').forEach((b) =>
     b.addEventListener('click', () => editarMensaje(b.dataset.editar))
   )
+  abrirEditorSiLoPideLaUrl()
+}
+
+// ── Llegar con el editor ya abierto (?editar=primero, tanda 256) ──
+//
+// El menú de moderación de la LISTA de temas ofrece «editar el primer
+// mensaje», y de ahí se llega aquí. El editor no se lleva a la lista
+// porque pesa —barra de BBCode, subida de imágenes, emojis— y la lista la
+// abre todo el mundo; se viene al tema, que es donde ya vive.
+//
+// Solo `primero`: es el mensaje que abre el hilo, el único que se puede
+// nombrar desde fuera sin conocer su id. Se hace una vez y se limpia de
+// la URL, para que recargar no vuelva a abrirlo.
+function abrirEditorSiLoPideLaUrl() {
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('editar') !== 'primero') return
+  // El mensaje que abre el hilo solo está en la PRIMERA página. En la
+  // tercera, «el primero de la lista» es otro cualquiera, y abrirle el
+  // editor a quien pidió el de arriba es peor que no abrir nada.
+  if (Number(params.get('p') || 1) !== 1) return
+  const primero = elMensajes.querySelector('[data-editar]')
+  if (!primero) return
+  params.delete('editar')
+  const limpia = window.location.pathname + (params.toString() ? `?${params}` : '')
+  window.history.replaceState(null, '', limpia)
+  primero.click()
+  primero.closest('article')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
 // ─────────────────────────────────────────────────────────────

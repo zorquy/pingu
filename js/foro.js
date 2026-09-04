@@ -14,9 +14,10 @@ import {
   urlForo,
   urlTema,
   foroDeLaRuta,
-  esDelEquipo,
+  rolEnElEquipo,
   faltaElForo,
 } from './foro-comun.js'
+import { casillaHtml, botonMenuHtml, engancharModeracion } from './foro-moderar.js'
 import { marcasDeLectura, estaSinLeer, marcarTodoLeido, sinLeerPorForo } from './foro-lecturas.js'
 import { plegarTexto } from './texto.js'
 import { formularioEncuestaHtml, engancharFormularioEncuesta, leerFormularioEncuesta, crearEncuesta } from './encuesta.js'
@@ -47,6 +48,9 @@ const acciones = document.getElementById('foroAcciones')
 
 let sesion = null
 let soyStaff = false
+// Administración es más que moderación: solo ella puede mandar un tema a
+// un foro escondido (ver js/foro-moderar.js).
+let soyAdmin = false
 // Las marcas de lectura de quien mira. Se piden una vez al arrancar y se
 // usan en el índice y en la lista de temas.
 let marcas = null
@@ -529,6 +533,7 @@ async function pintarListaDeTemas(foro) {
     const destino = sinLeer ? `${urlTema(t.id)}?nuevo=1` : urlTema(t.id)
     return `
     <div class="foro-tema-fila ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''} ${leido ? 'foro-tema-leido' : ''}">
+      ${soyStaff ? casillaHtml(t) : ''}
       <div class="foro-fila-icono" aria-hidden="true">${
         sinLeer ? `<a class="foro-punto-nuevo" href="${destino}" title="Ir al primer mensaje sin leer" tabindex="-1"></a>` : ''
       }${t.is_pinned ? icons.pin?.(18) || icons.star(18) : icons.messageSquare(18)}</div>
@@ -565,6 +570,7 @@ async function pintarListaDeTemas(foro) {
         // "Alguien" que salía antes.
         perfil: perfiles[t.last_post_author_id] || perfiles[t.author_id],
       })}
+      ${soyStaff ? botonMenuHtml(t) : ''}
     </div>`
   }
 
@@ -602,7 +608,7 @@ async function pintarListaDeTemas(foro) {
     ${subforosHtml}
     <div id="formularioTema"></div>
     ${filtroHtml}
-    <section class="foro-seccion" id="foroTemas">
+    <section class="foro-seccion${soyStaff ? ' foro-lista-moderable' : ''}" id="foroTemas">
       ${
         lista.length === 0
           ? etiquetaFiltro
@@ -620,6 +626,11 @@ async function pintarListaDeTemas(foro) {
       window.location.href = url.toString()
     })
   )
+
+  // Moderar desde aquí (tanda 256): casillas, barra de acciones en lote y
+  // el menú de cada tema. Solo se engancha para el equipo; para el resto
+  // ni siquiera se ha pintado nada que enganchar.
+  if (soyStaff) engancharModeracion({ foro, temas: lista, soyAdmin })
 
   // Se devuelve si hay algo sin leer para que la cabecera decida si
   // enseña el botón de "marcar todo como leído".
@@ -978,7 +989,7 @@ function engancharBuscador() {
 async function init() {
   sesion = await getSession()
   if (sesion) {
-    soyStaff = await esDelEquipo(sesion)
+    ;({ staff: soyStaff, admin: soyAdmin } = await rolEnElEquipo(sesion))
     marcas = await marcasDeLectura(sesion.user.id)
     nuevosPorForo = await sinLeerPorForo(marcas)
   }

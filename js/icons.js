@@ -110,6 +110,10 @@ export const icons = {
   hash: (size) => icon('<line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line>', size),
   scan: (size) => icon('<path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><circle cx="12" cy="12" r="3.5"></circle>', size),
   leaf: (size) => icon('<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"></path><path d="M2 21c0-3 1.9-5.7 4.5-7.5"></path>', size),
+  // Los tres puntos de «aquí hay más cosas». Es el gesto que todo el
+  // mundo ya conoce, y así el menú de moderación no necesita una palabra
+  // que ocupe sitio en cada fila de la lista.
+  moreHorizontal: (size) => icon('<circle cx="5" cy="12" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="19" cy="12" r="1.4"></circle>', size),
 }
 
 // Los nombres válidos, sacados del propio objeto: si se añade un icono

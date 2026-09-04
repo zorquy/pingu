@@ -12645,3 +12645,87 @@ mutaciones). El doble de Supabase aprendió a apuntar **por qué columna**
 se filtró cada consulta (`CONSULTAS.igualdades`), que es lo que permite
 exigir que la cola del juez le llegue ACOTADA a un jugador y entera al
 organizador.
+
+---
+
+## Tanda 256 — moderar desde la lista de temas (sept. 2026)
+
+Van a entrar moderadores en el foro y la web no estaba preparada para
+que trabajaran. El rol `is_moderator` existía desde la tanda de títulos,
+y las políticas ya decían «el equipo» en vez de «administración», pero
+**todas las herramientas vivían DENTRO de cada tema**: para etiquetar
+diez hilos había que abrir diez hilos, y mover uno de foro no se podía
+hacer de ninguna manera. Ordenar un foro así no lo hace nadie.
+
+### Lo que hay ahora en /foro/&lt;slug&gt;
+
+Como en los foros de siempre (phpBB, XenForo), y **solo para el equipo**:
+
+- **Una casilla por tema** y una barra pegada abajo con lo que se puede
+  hacer con lo marcado. A la vista van **Mover** y **Etiqueta**, que es
+  el trabajo del día a día; **Fijar, Quitar de arriba, Cerrar, Reabrir y
+  Borrar** se despliegan con «Más» (con los siete a la vista, la barra
+  ocupaba media pantalla en el móvil).
+- **Un menú «⋯» por tema**: editar título y etiqueta, mover, editar el
+  primer mensaje, fijar/cerrar —que dicen lo que van a HACER, no el
+  estado— y borrar.
+- **Mover a otro foro o subforo**, suelto o en lote, con el destino
+  agrupado por secciones. Reutiliza `opcionesDeForos` y `ordenarForos`
+  de `js/torneos/anuncio-foro.js`: son puras, ya estaban probadas y
+  hacen exactamente esto.
+
+**Sin migración.** `forum_threads_update` ya permite `auth.uid() =
+author_id or public.is_staff()`, y el disparador
+`forum_solo_staff_modera` ya revierte `is_pinned`, `is_locked` y
+**`board_id`** a quien no es del equipo. O sea: la base llevaba desde la
+tanda de títulos permitiendo mover un tema; lo que faltaba era el botón.
+
+### Dos decisiones
+
+**Los foros ESCONDIDOS solo se le ofrecen a administración.** Un foro
+sin abrir es una decisión de producto, no de moderación — el mismo
+criterio que ya usan las políticas. Y cuando salen, salen marcados
+«(oculto)»: un foro escondido en el desplegable parece uno normal, y el
+tema desaparecería de la vista sin que quien lo movió sepa por qué.
+
+**El editor de mensajes NO se trae a la lista.** Pesa lo suyo (barra de
+BBCode, subida de imágenes, emojis) y la lista la abre todo el mundo.
+«Editar el primer mensaje» lleva al tema con `?editar=primero`, que
+`tema.js` reconoce, abre el editor del mensaje que abre el hilo y limpia
+el parámetro de la URL para que recargar no lo vuelva a abrir. Solo en
+la **página 1**: en la 3, «el primero de la lista» es otro cualquiera.
+
+### El peligro de esta pantalla
+
+Un UPDATE o un DELETE que la política **rechaza no da error**: no toca
+nada y vuelve como si todo hubiera ido bien. Con un botón que dice
+«Mover», eso es que la persona lo pulsa, no pasa nada, y nada se lo
+dice. El caso no es hipotético: a un moderador se le quita el rol y su
+lista sigue abierta.
+
+Por eso las tres escrituras pasan por el mismo sitio:
+
+```js
+const { data, error } = await supabase.from('forum_threads').update(cambios).in('id', ids).select('id')
+if (!seHizo(data, error, ids.length, 'No se ha podido cambiar')) return
+```
+
+`seHizo` compara **cuántas filas se esperaban con cuántas volvieron**:
+cero es «la base no te deja»; menos de las pedidas es «alguien borró un
+tema mientras mirabas», y se dice en cuántos se hizo en vez de recargar
+y que la persona los cuente.
+
+### Ficheros
+
+`js/foro-moderar.js` (NUEVO) y `css/foro.css` (NUEVO — aparte de
+`components.css` a propósito: eso lo baja todo el mundo y esto solo lo
+ve el equipo). `js/foro.js` intercala las dos piezas y engancha;
+`js/foro-comun.js` gana `rolEnElEquipo` (staff y admin en la MISMA
+consulta que ya se hacía); `js/tema.js`, el `?editar=primero`;
+`js/icons.js`, el icono `moreHorizontal`; `foro.html`, la hoja nueva.
+
+Comprobado con `test-tanda-256.mjs` (58/58) y `rigor-tanda-256.py` (24
+mutaciones). El doble de Supabase aprendió a **rechazar un UPDATE en
+silencio** (`__RLS_SIN_TOCAR__`, hermano del `__RLS_SIN_BORRAR__` que ya
+tenía) y a tener una persona que es moderadora sin ser administradora,
+que son las dos cosas que hacían falta para poder exigir todo esto.

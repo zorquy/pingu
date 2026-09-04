@@ -1,0 +1,240 @@
+/* Moderar desde la lista de temas (tanda 256).
+
+   Va en su propio fichero y NO en components.css porque esto solo lo ve
+   el equipo, y components.css lo baja todo el mundo: no tiene sentido
+   que 150 personas se descarguen los estilos de una barra que nunca les
+   va a salir. Lo carga foro.html, que es la única página con lista de
+   temas. */
+
+/* ── La fila, con dos huecos más ──
+   La fila normal es una rejilla de cuatro columnas. Con moderación
+   aparecen dos hijos más —la casilla delante y el botón «⋯» detrás—, así
+   que la rejilla se declara entera otra vez; si no, los dos nuevos se
+   meterían en las columnas de los números y del último mensaje. */
+.foro-lista-moderable .foro-tema-fila {
+  grid-template-columns: 22px 26px minmax(0, 1fr) 120px 210px 34px;
+  position: relative;
+}
+
+.foro-mod-casilla {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.foro-mod-casilla input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--navy);
+}
+
+/* Lo marcado se ve marcado. Una banda a la izquierda y un fondo suave:
+   con diez temas seleccionados y la página desplazada, la cuenta de la
+   barra dice cuántos hay pero no CUÁLES. */
+.foro-tema-fila.foro-tema-marcado {
+  background: color-mix(in srgb, var(--navy) 7%, transparent);
+  box-shadow: inset 3px 0 0 var(--navy);
+}
+
+/* ── El botón de los tres puntos ── */
+.foro-mod-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.foro-mod-menu-btn:hover,
+.foro-mod-menu-btn[aria-expanded='true'] {
+  border-color: var(--border);
+  background: var(--white);
+  color: var(--navy);
+}
+
+/* ── El menú de un tema ──
+   Alineado a la derecha del botón para que no se salga por el borde de
+   la página, y encima del botón si abajo no cabe. */
+.foro-mod-menu {
+  /* Colocado a mano desde el JavaScript, en coordenadas de página. Cuelga
+     del <body> para que no lo recorte la sección de la lista. */
+  position: absolute;
+  z-index: 40;
+  min-width: 232px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--white);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 14%);
+  color: var(--text);
+}
+
+.foro-mod-menu button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.foro-mod-menu button:hover {
+  background: color-mix(in srgb, var(--navy) 9%, transparent);
+}
+
+.foro-mod-menu hr {
+  margin: 5px 8px;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+/* El rojo de borrar es el mismo que ya usa el botón de la ficha de un
+   tema, con su versión clara para el modo oscuro: no hay variable para
+   esto en style.css y no la voy a inventar para dos reglas. */
+.foro-mod-peligro {
+  color: #c0392b;
+}
+
+:root[data-theme='dark'] .foro-mod-peligro {
+  color: #e07d72;
+}
+
+/* ── La barra de abajo ──
+   Pegada al borde inferior mientras haya algo marcado. Ancho limitado y
+   centrada, para que en una pantalla grande no se convierta en una franja
+   de lado a lado con tres botones perdidos en medio. */
+/* `display: flex` gana a la regla de [hidden] del navegador, así que sin
+   esto la barra se queda a la vista sin nada marcado. */
+.foro-mod-barra[hidden] {
+  display: none;
+}
+
+.foro-mod-barra {
+  position: fixed;
+  z-index: 60;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 18%);
+  color: var(--text);
+}
+
+.foro-mod-cuenta {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.foro-mod-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.foro-mod-acciones .btn-secondary {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 0.88rem;
+}
+
+/* El segundo grupo de botones (fijar, cerrar, borrar) va en su propia
+   línea cuando se despliega. */
+.foro-mod-mas {
+  flex-basis: 100%;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.foro-mod-mas[hidden] {
+  display: none;
+}
+
+/* El panel que se abre dentro de la barra (mover, etiqueta). Ocupa toda
+   la anchura para no empujar los botones a otra línea al aparecer. */
+.foro-mod-panel {
+  flex-basis: 100%;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Los formularios de moderación ──
+   Los mismos dentro de una fila y dentro de la barra. En línea y con el
+   título creciendo: es una corrección rápida, no un formulario de alta. */
+.foro-mod-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding-top: 8px;
+}
+
+.foro-lista-moderable .foro-mod-form {
+  grid-column: 1 / -1;
+}
+
+.foro-mod-form input[type='text'] {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.foro-mod-form label {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  /* En móvil la fila se queda en dos columnas (components.css) y los
+     números y el último mensaje bajan a la segunda, la ancha. Aquí hay
+     una columna MÁS delante —la casilla—, así que la ancha pasa a ser la
+     tercera: sin esto los dos bloques caían en la columna del icono, de
+     28 px, y salían en tiras de una palabra. */
+  .foro-lista-moderable .foro-tema-fila {
+    grid-template-columns: 22px 28px minmax(0, 1fr) 34px;
+  }
+
+  .foro-lista-moderable .foro-fila-numeros,
+  .foro-lista-moderable .foro-ultimo {
+    grid-column: 3 / -1;
+  }
+
+  /* Y el botón «⋯» se queda arriba a la derecha, en la fila del título.
+     Sin decírselo, la colocación automática lo mandaba a una línea suya
+     debajo de todo, pegado al margen izquierdo. */
+  .foro-lista-moderable .foro-mod-menu-btn {
+    grid-row: 1;
+    grid-column: 4;
+  }
+
+  .foro-mod-barra {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    padding: 10px 12px;
+  }
+}

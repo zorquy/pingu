@@ -12,6 +12,47 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-04 — PINGU-Claude (tanda 256 — moderar desde la lista de temas)
+**Hecho**: PINGU va a nombrar moderadores para el foro y la web no
+estaba preparada para que trabajaran: el rol `is_moderator` existía y
+las políticas ya decían «el equipo», pero TODAS las herramientas
+vivían dentro de cada tema (para etiquetar diez hilos había que abrir
+diez hilos) y mover un tema de foro no se podía hacer de ninguna
+manera. Ahora, en la lista de temas y solo para el equipo: una CASILLA
+por tema con barra de acciones en lote (a la vista Mover y Etiqueta,
+que es el trabajo diario; fijar/cerrar/borrar detrás de «Más», que con
+los siete botones la barra ocupaba media pantalla en el móvil), un
+MENÚ «⋯» por tema (editar título y etiqueta, mover, editar el primer
+mensaje, fijar, cerrar, borrar) y MOVER a otro foro o subforo, suelto
+o en lote, con el destino agrupado por secciones —reutilizando
+`opcionesDeForos`/`ordenarForos` de js/torneos/anuncio-foro.js, que ya
+estaban probadas—. **Sin migración**: `forum_threads_update` ya deja al
+equipo, y el disparador `forum_solo_staff_modera` ya contemplaba
+`board_id`; lo que faltaba era el botón. Los foros ESCONDIDOS solo se
+le ofrecen a administración (y marcados «(oculto)»): un foro sin abrir
+es decisión de producto, no de moderación. El editor de mensajes NO se
+trae a la lista —pesa y la lista la abre todo el mundo—: «editar el
+primer mensaje» lleva al tema con `?editar=primero`, que tema.js
+reconoce y limpia de la URL.
+**Ficheros**: js/foro-moderar.js (NUEVO), css/foro.css (NUEVO, aparte
+de components.css a propósito), js/foro.js, js/foro-comun.js (gana
+`rolEnElEquipo`: staff y admin en la MISMA consulta que ya se hacía),
+js/tema.js, js/icons.js (icono `moreHorizontal`), foro.html, SCHEMA.md.
+Fuera del repo: test-tanda-256.mjs (NUEVO), rigor-tanda-256.py (NUEVO),
+y el doble aprende dos cosas —rechazar un UPDATE en silencio
+(`__RLS_SIN_TOCAR__`) y tener una persona moderadora que no es
+administradora—.
+**En curso / pendiente**: verificado — 60 comprobaciones en verde y las
+24 mutaciones del rigor pilladas. OJO con lo de siempre: un UPDATE que
+la política rechaza NO da error, así que las tres escrituras piden de
+vuelta las filas y comparan la cuenta; si no cuadra se dice, en vez de
+cantar «movido» sin haber movido nada. Sigue SIN haber botón para
+nombrar moderador: hoy es un `update` a mano en el SQL Editor
+(`update public.user_profiles set is_moderator = true where username =
+'...'`). Y siguen sin ejecutar
+supabase-migration-torneos-publico.sql, -partidas-cerrar.sql y
+-partidas-editar.sql.
+
 ## 2026-09-03 — PINGU-Claude (tanda 255 — la portada cuenta que hay torneos, y el sondeo adelgaza)
 **Hecho**: dos remates de la apertura del 2026-09-02. (1) La PORTADA no
 decía ni una palabra de la sección «Jugar»: ahora enseña el próximo

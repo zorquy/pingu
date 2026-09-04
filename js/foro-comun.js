@@ -185,16 +185,24 @@ export function temaDeLaRuta() {
 // existe y la consulta falla entera: se reintenta con lo que sí hay, para
 // que el foro siga funcionando mientras tanto.
 export async function esDelEquipo(sesion) {
-  if (!sesion) return false
+  return (await rolEnElEquipo(sesion)).staff
+}
+
+// Lo mismo, pero diciendo TAMBIÉN si es administración. Hay cosas que un
+// moderador no decide: mover un tema a un foro escondido, por ejemplo,
+// que es abrir o cerrar una sección de la web. Va en la misma consulta
+// que `esDelEquipo` para no pedir el perfil dos veces.
+export async function rolEnElEquipo(sesion) {
+  if (!sesion) return { staff: false, admin: false }
   const { data, error } = await supabase
     .from('user_profiles')
     .select('is_admin, is_moderator')
     .eq('id', sesion.user.id)
     .maybeSingle()
-  if (!error) return !!(data?.is_admin || data?.is_moderator)
+  if (!error) return { staff: !!(data?.is_admin || data?.is_moderator), admin: !!data?.is_admin }
 
   const { data: solo } = await supabase.from('user_profiles').select('is_admin').eq('id', sesion.user.id).maybeSingle()
-  return !!solo?.is_admin
+  return { staff: !!solo?.is_admin, admin: !!solo?.is_admin }
 }
 
 // Cuando falta la migración no se enseña un error de base de datos: se
