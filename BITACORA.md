@@ -12,6 +12,24 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-07 — PINGU-Claude (tanda 264 — abrir el foro de Intercambios)
+**Hecho**: alguien abrió un tema de intercambio y PINGU preguntó si
+hacía falta un subforo nuevo y cómo llamarlo. NO hacía falta: el foro
+«Intercambios» EXISTE desde supabase-migration-foro.sql, en la sección
+«Colección», con `is_hidden = true` — se dejó preparado a propósito
+para abrirlo el día que hiciera falta. Solo hay que quitarle el
+candado: supabase-migration-abrir-intercambios.sql (un update de una
+línea, reversible). Las etiquetas «Intercambio» y «Compra/Venta» ya
+están en ETIQUETAS de js/foro-comun.js, así que tampoco hay que tocar
+nada de código.
+**Ficheros**: supabase-migration-abrir-intercambios.sql (NUEVO).
+**En curso / pendiente**: PENDIENTE DE EJECUTAR por PINGU. Recomendado
+NO crear subforos todavía (un tema no da para dividir) y usar las
+etiquetas; los subforos, si algún día hay volumen. Y queda dicho lo
+importante: un foro de intercambios trae estafas tarde o temprano, así
+que conviene abrirlo con dos o tres normas escritas y fijadas arriba
+—cómo se envía, qué se hace si alguien no cumple— antes que después.
+
 ## 2026-09-04 — PINGU-Claude (tanda 263 — la cabecera del perfil, colocada)
 **Hecho**: la vitrina de la 262 quedaba descolocada en el móvil. Estaba
 DENTRO de la columna del nombre, que comparte sitio con el avatar de
