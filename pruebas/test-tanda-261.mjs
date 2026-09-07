@@ -80,6 +80,13 @@ console.log('\n── 4b. Y da igual el orden en que venga el export ──')
   // saldrían dos líneas donde solo hay una.
   const alReves = nombres(mazo(['Mega Lucario ex', 2], ['Lucario', 3], ['Riolu', 4], ['Mega Zygarde ex', 2]))
   check('la línea se junta igual', JSON.stringify(alReves) === JSON.stringify(['Mega Lucario ex', 'Mega Zygarde ex']), alReves.join(' + '))
+  // Y el caso que de verdad lo exige: la evolución antes que su
+  // preevolución y con DISTINTO número de Pokédex. Con Mega Lucario y
+  // Lucario el 448 los emparejaba por ser el mismo número; aquí no hay
+  // atajo, y si el parentesco solo se mirara hacia delante Dreepy
+  // saldría como una segunda línea de cuatro cartas.
+  const evoPrimero = nombres(mazo(['Dragapult ex', 3], ['Dreepy', 4], ['Drakloak', 2]))
+  check('la evolución primero y la base después', JSON.stringify(evoPrimero) === JSON.stringify(['Dragapult ex']), evoPrimero.join(' + '))
 }
 
 console.log('\n── 5. Dos líneas de verdad salen las dos ──')
@@ -103,6 +110,44 @@ console.log('\n── 5b. Pesa la LÍNEA entera, no el «ex» ──')
   // Munkidori, aunque su primera carta lleve una sola copia.
   const sumada = nombres(mazo(['Ralts', 1], ['Kirlia', 1], ['Gardevoir ex', 3], ['Munkidori', 2]))
   check('cuentan las tres cartas de la línea', sumada[0] === 'Gardevoir ex', sumada.join(' + '))
+}
+
+console.log('\n── 5c. Un mazo se puede llamar por un OBJETO (tanda 265) ──')
+{
+  // Lo reportó PINGU: jugó «Dragapult Hammer» y salió «Dragapult
+  // Budew». El nombre venía de un TRAINER (el Crushing Hammer) y la
+  // deducción solo miraba Pokémon, así que el segundo icono se lo
+  // llevaba el mejor Pokémon suelto que quedara — Budew, una carta de
+  // estorbo que no es el mazo de nadie.
+  const conObjeto = (t) => ({
+    pokemon: [['Dreepy', 4], ['Drakloak', 2], ['Dragapult ex', 3], ['Budew', 2]].map(([name, quantity]) => ({ name, quantity })),
+    trainer: t.map(([name, quantity]) => ({ name, quantity })),
+  })
+  const hammer = deducirIconos(conObjeto([['Crushing Hammer', 4], ['Ultra Ball', 4]])).map((i) => i.nombre)
+  check('Dragapult Hammer', JSON.stringify(hammer) === JSON.stringify(['Dragapult ex', 'Crushing Hammer']), hammer.join(' + '))
+  check('y Budew no da nombre a nada', !hammer.includes('Budew'), hammer.join(' + '))
+  // Solo los objetos de la lista corta: cuatro Ultra Ball no son un mazo.
+  const sinObjeto = deducirIconos(conObjeto([['Ultra Ball', 4], ['Nest Ball', 4]])).map((i) => i.nombre)
+  check('un Trainer cualquiera NO nombra el mazo', JSON.stringify(sinObjeto) === JSON.stringify(['Dragapult ex']), sinObjeto.join(' + '))
+  // Y el nombre es el mismo se juegue en el idioma que se juegue: si no,
+  // el histórico partiría el mismo mazo en dos casillas.
+  const espanol = deducirIconos(conObjeto([['Martillo Demoledor', 4]])).map((i) => i.nombre)
+  check('el export en español da el mismo nombre', JSON.stringify(espanol) === JSON.stringify(hammer), espanol.join(' + '))
+  // Las copias del MISMO objeto se suman aunque vengan en dos idiomas o
+  // en dos líneas: si no, dos martillos y dos martillos son dos, y no
+  // llegan al mínimo para ser el segundo icono.
+  const partido = deducirIconos({
+    pokemon: [{ name: 'Dragapult ex', quantity: 3 }],
+    trainer: [{ name: 'Crushing Hammer', quantity: 1 }, { name: 'Martillo Demoledor', quantity: 1 }],
+  }).map((i) => i.nombre)
+  check('las copias del mismo objeto se suman', partido.includes('Crushing Hammer'), partido.join(' + '))
+
+  // Una línea de verdad sigue pesando más que el objeto.
+  const conDusknoir = deducirIconos({
+    pokemon: [['Dreepy', 4], ['Drakloak', 2], ['Dragapult ex', 3], ['Duskull', 3], ['Dusclops', 3], ['Dusknoir', 2]].map(([name, quantity]) => ({ name, quantity })),
+    trainer: [{ name: 'Crushing Hammer', quantity: 2 }],
+  }).map((i) => i.nombre)
+  check('pero Dusknoir sigue por delante de dos martillos', JSON.stringify(conDusknoir) === JSON.stringify(['Dragapult ex', 'Dusknoir']), conDusknoir.join(' + '))
 }
 
 console.log('\n── 6. Un mazo de un solo Pokémon se llama por él ──')

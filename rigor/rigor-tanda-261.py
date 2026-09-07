@@ -24,12 +24,12 @@ MUTACIONES = [
      "    return dex"),
 
     ('manda el «ex» y no el peso de la línea', ARQ,
-     "      b.copias - a.copias ||\n      b.peso - a.peso ||",
-     "      b.peso - a.peso ||\n      b.copias - a.copias ||"),
+     "      puntosDeLinea(b) - puntosDeLinea(a) ||",
+     "      b.peso - a.peso ||"),
 
     ('una carta suelta puede ser el segundo icono', ARQ,
-     "  const segunda = orden.slice(1).find((g) => g.copias >= 2)",
-     "  const segunda = orden.slice(1)[0]"),
+     "  const segunda = buenas.slice(1).find((g) => g.copias >= 2)",
+     "  const segunda = buenas.slice(1)[0]"),
 
     ('la Mega no pesa más que un ex al nombrar la línea', ARQ,
      "  if (/\\bmega\\b/i.test(n)) return 3",
@@ -46,6 +46,26 @@ MUTACIONES = [
     ('el parentesco no sigue la cadena (Ralts deja de ser Gardevoir)', EVO,
      "    frente = frente.flatMap((d) => EVOLUCIONA_A.get(d) || [])",
      "    frente = []"),
+
+    ('los objetos no entran: vuelve «Dragapult Budew»', ARQ,
+     "  const grupos = [...agruparPorLinea(parsed?.pokemon || []), ...gruposDeObjetos(parsed?.trainer)]",
+     "  const grupos = agruparPorLinea(parsed?.pokemon || [])"),
+
+    ('cualquier Trainer puede nombrar el mazo', ARQ,
+     "    if (!spriteDeObjeto(l.name)) continue",
+     ""),
+
+    ('el objeto se enseña en el idioma del export', ARQ,
+     "    const canonico = OBJETOS_TCG.find((o) => !o.alias && o.sprite === clave)?.nombre || l.name",
+     "    const canonico = l.name"),
+
+    ('las copias del mismo objeto no se juntan', ARQ,
+     "    if (ya) {\n      ya.copias += copias\n      continue\n    }",
+     "    if (ya) continue"),
+
+    ('Budew vuelve a poder dar nombre a un mazo', ARQ,
+     "  'budew', 'manaphy', 'cleffa', 'mimikyu', 'klefki',",
+     ""),
 
     ('la tabla de evoluciones se queda a medias', EVO,
      "  CRUDO.split(' ').map((par) => {",
