@@ -27,7 +27,7 @@
 // El catálogo se llena así, con lo que la gente juega de verdad, en vez
 // de tener que sentarse a rellenar el meta entero de una vez.
 
-import { dexDeCarta, dexExacto, BASE_DE_FORMA } from './sprites-pokemon.js'
+import { dexDeCarta, dexExacto, BASE_DE_FORMA, spriteDeObjeto, OBJETOS_TCG } from './sprites-pokemon.js'
 import { esAntepasadoDe } from './evoluciones.js'
 
 // Nombres sin tildes, sin mayúsculas y sin dobles espacios. Vive aquí y
@@ -205,6 +205,11 @@ export function agruparPorLinea(pokemon) {
 const MOTORES = new Set([
   'bidoof', 'bibarel', 'lumineon', 'radiant greninja', 'squawkabilly',
   'fezandipiti', 'rotom', 'jirachi', 'lillie s clefairy',
+  // Añadidos en la tanda 265: cartas de estorbo y de arranque que van
+  // en medio meta y no son el mazo de nadie. Budew entró porque a
+  // PINGU le salió «Dragapult Budew» donde tenía que poner «Dragapult
+  // Hammer» — Budew ganó por descarte, al no mirarse los Trainers.
+  'budew', 'manaphy', 'cleffa', 'mimikyu', 'klefki',
 ])
 
 function esMotor(nombre) {
@@ -220,8 +225,43 @@ function puntosDeLinea(g) {
   return g.copias + [0, 0, 5, 8][g.peso]
 }
 
+// ── Los OBJETOS que dan nombre a un mazo (tanda 265) ──
+//
+// Un mazo no siempre se llama por sus Pokémon. «Dragapult Hammer» se
+// llama así por el Crushing Hammer, que es un Trainer, y aquí solo se
+// miraban los Pokémon: el segundo icono se lo llevaba el mejor Pokémon
+// que quedara suelto —Budew, una carta de estorbo— y el nombre salía
+// «Dragapult Budew», que no es ningún mazo.
+//
+// Solo entran los objetos de OBJETOS_TCG, que es la lista corta de
+// cartas con sprite propio (hoy, el martillo). No cualquier Trainer:
+// un mazo con cuatro Ultra Ball no es «un mazo de Ultra Ball», y esa
+// lista tiene que seguir siendo de las que dan nombre de verdad.
+function gruposDeObjetos(trainer) {
+  const vistos = new Map()
+  for (const l of trainer || []) {
+    if (!spriteDeObjeto(l.name)) continue
+    // Por sprite y no por nombre: el export puede venir en español
+    // («Martillo Demoledor») y es la misma carta.
+    const clave = spriteDeObjeto(l.name)
+    const copias = Number(l.quantity) || 0
+    const ya = vistos.get(clave)
+    if (ya) {
+      ya.copias += copias
+      continue
+    }
+    // Se enseña el nombre CANÓNICO (el inglés del catálogo), no el que
+    // trajo el export: si no, el mismo mazo saldría «Crushing Hammer» o
+    // «Martillo Demoledor» según el idioma en que juegue cada uno.
+    const canonico = OBJETOS_TCG.find((o) => !o.alias && o.sprite === clave)?.nombre || l.name
+    const linea = { ...l, name: canonico }
+    vistos.set(clave, { cartas: [{ linea, dex: null }], cabeza: { linea, dex: null }, copias, peso: 1 })
+  }
+  return [...vistos.values()]
+}
+
 export function deducirIconos(parsed) {
-  const grupos = agruparPorLinea(parsed?.pokemon || [])
+  const grupos = [...agruparPorLinea(parsed?.pokemon || []), ...gruposDeObjetos(parsed?.trainer)]
   if (!grupos.length) return []
 
   // Las copias de la línea SUMADAS a lo que pesa su nombre, en vez de

@@ -12,6 +12,31 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-07 — PINGU-Claude (tanda 265 — un mazo también se llama por un objeto)
+**Hecho**: PINGU jugó «Dragapult Hammer» y el arquetipo salió
+«Dragapult Budew». Causa de raíz: `deducirIconos` miraba SOLO
+`parsed.pokemon`, y el nombre de ese mazo viene de un TRAINER (el
+Crushing Hammer). Al no poder verlo, el segundo icono se lo llevaba el
+mejor Pokémon suelto que quedara — Budew, una carta de estorbo que no
+es el mazo de nadie. Dos arreglos: (1) los objetos de OBJETOS_TCG —la
+lista corta de cartas con sprite propio— entran como candidatos, con
+sus copias sumadas y enseñando el nombre CANÓNICO (el inglés), para que
+un export en español no parta el mismo mazo en dos casillas; (2) Budew,
+Manaphy, Cleffa, Mimikyu y Klefki se van a MOTORES. Un Trainer
+cualquiera sigue sin nombrar nada: cuatro Ultra Ball no son un mazo.
+**Ficheros**: js/torneos/arquetipos.js. Fuera del repo: test-tanda-261
+y rigor-tanda-261 ampliados.
+**En curso / pendiente**: verificado — 16 mutaciones del rigor pilladas
+(dos anclas se habían quedado obsoletas al reescribir la puntuación en
+la 261, y una mutación —el parentesco en un solo sentido— no se
+detectaba porque el caso de la prueba se salvaba por otro camino: hacía
+falta una evolución ANTES que su base y con distinto número de
+Pokédex) y la suite entera (32) en verde. **Queda un hueco conocido**:
+`claveCanonicaDeMazo` saca la firma solo de los Pokémon del nombre, así
+que en el histórico «Dragapult Hammer» y «Dragapult» a secas caen en la
+misma casilla. Se puede arreglar metiendo los objetos en la firma, pero
+eso mueve partidas ya apuntadas de sitio y hay que decidirlo aparte.
+
 ## 2026-09-07 — PINGU-Claude (tanda 264 — abrir el foro de Intercambios)
 **Hecho**: alguien abrió un tema de intercambio y PINGU preguntó si
 hacía falta un subforo nuevo y cómo llamarlo. NO hacía falta: el foro
