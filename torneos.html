@@ -167,6 +167,17 @@
           </select>
           <span class="torneo-campo-pista">Decide cuándo pueden verse las decklists (y los mazos) de los demás en la clasificación. El organizador y los jueces las ven siempre.</span>
         </label>
+
+        <!-- El sello de OFICIAL (tanda 266). Solo lo ve administración:
+             torneos.js le quita el `hidden` a quien puede marcarlo. Va
+             escondido en el HTML y no pintado desde JavaScript para que
+             quien mire el código no lo vea como un candado de verdad —
+             el candado está en la base (un disparador revierte el valor
+             a quien no es admin). -->
+        <label class="torneos-form-campo hidden" id="torneoOficialCampo">
+          <span><input type="checkbox" id="torneoOficial" /> Torneo oficial de PokeDoc</span>
+          <span class="torneo-campo-pista">Márcalo solo si lo organiza el equipo. Sin marcar sale como torneo de la comunidad — que es lo que quieres para una pachanga tuya.</span>
+        </label>
       </section>
 
       <!-- Paso 3: tiempos + resumen -->

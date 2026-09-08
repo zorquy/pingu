@@ -12,6 +12,37 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-08 — PINGU-Claude (tanda 266 — crear torneos, abierto a todos)
+**Hecho**: a un usuario no le salía la opción de crear torneo. NO era
+solo el botón: `torneos_escribir` pedía ser admin del SITIO en
+`tournaments` Y en las tablas del ciclo, así que quitar el `if` habría
+enseñado un formulario de cinco pasos que acaba en un INSERT rechazado
+EN SILENCIO. Hace falta migración:
+supabase-migration-torneos-abiertos.sql. (1) Las políticas de escritura
+pasan a «admin del sitio O dueño del torneo» en tournaments, rounds,
+tournament_matches, match_results y pairing_history, con una función
+`torneos_es_mio(uuid)` para no repetirlo cinco veces; el organizador de
+su torneo también puede expulsar inscritos. (2) Columna `is_official`:
+«oficial» ya no se deduce de si el creador es admin —con torneos de
+cualquiera eso deja de valer, y además un admin quiere poder montarse
+una pachanga SIN el sello—. Es una casilla que solo ve administración,
+con disparador que revierte el valor a quien no es admin (el mismo
+patrón que `is_moderator`). Los torneos ya creados por un admin se
+quedan oficiales con un update, para que la Copa Inaugural no pierda
+la chapa.
+**Ficheros**: supabase-migration-torneos-abiertos.sql (NUEVO),
+js/torneos/torneos.js, js/torneos/torneo.js, torneos.html. Fuera del
+repo: test-tanda-266.mjs (NUEVO).
+**En curso / pendiente**: **FALTA EJECUTAR LA MIGRACIÓN.** Hasta
+entonces el botón sale para todos pero un usuario normal NO podrá crear
+—la base lo rechaza en silencio—, así que conviene ejecutarla ANTES de
+anunciarlo. El cliente aguanta el rato intermedio: si `is_official` no
+existe todavía, `esOficial` se cae al criterio viejo (lo creó un admin)
+y la chapa no se mueve. Verificado: 14 comprobaciones en verde y la
+suite entera (33) en verde. Actualizada test-tanda-252, que exigía que
+un usuario normal NO pudiera crear: esa regla ha cambiado a propósito.
+Sin rigor todavía en esta tanda: entra en la próxima pasada.
+
 ## 2026-09-07 — PINGU-Claude (tanda 265 — un mazo también se llama por un objeto)
 **Hecho**: PINGU jugó «Dragapult Hammer» y el arquetipo salió
 «Dragapult Budew». Causa de raíz: `deducirIconos` miraba SOLO

@@ -29,15 +29,22 @@ function semillaDePareo() {
 
 // ── La lista ──
 
-// Qué torneos son OFICIALES de PokeDoc (tanda 246, pedido por Ibai):
-// los creados por un admin del sitio; el resto son «de la comunidad».
-// Se resuelve mirando el user_profiles.is_admin ACTUAL de cada creador
-// y no se guarda en el torneo a propósito: cero migraciones, y la
-// marca sigue sola a quien entra o sale del equipo — que es lo que
-// significa «oficial»: lo organiza el equipo, no lo organizó.
+// Qué torneos son OFICIALES de PokeDoc.
+//
+// Nació en la tanda 246 deduciéndolo del creador: oficial = lo hizo un
+// admin. Con la creación abierta a todo el mundo (tanda 266) eso ya no
+// vale, y por dos motivos: hay torneos de gente que no es del equipo, y
+// un admin también quiere poder montarse una pachanga suya SIN el sello
+// de PokeDoc. Así que ahora es una casilla, `is_official`, que solo
+// administración puede marcar.
+//
+// El respaldo por creador se queda para el rato que va entre desplegar
+// esto y ejecutar la migración: sin la columna, `is_official` llega
+// `undefined` y la Copa Inaugural perdería su sello hasta entonces.
 let creadoresOficiales = new Set()
 
 function esOficial(t) {
+  if (t?.is_official !== undefined && t?.is_official !== null) return Boolean(t.is_official)
   return creadoresOficiales.has(t.admin_id)
 }
 
@@ -765,6 +772,9 @@ function engancharFormulario(session, perfil) {
       top_cut_bo: Number($('torneoCorteBo').value),
       top_cut_size: Number($('torneoCorte').value),
       pairing_seed: semillaDePareo(),
+      // Se manda siempre. Si quien crea no es admin, el disparador de la
+      // base lo pone a false pase lo que pase aquí.
+      is_official: Boolean($('torneoOficial')?.checked),
     }
     let { error } = await supabase.from('tournaments').insert(fila)
     // Entre el despliegue y que un humano ejecute las migraciones de
@@ -814,11 +824,15 @@ async function init() {
   // cuenta (escaparate). Apuntarse ya se lo pide la ficha, que a quien
   // no tenga cuenta lo manda al registro.
   //
-  // CREAR un torneo sigue siendo del equipo, y el botón se esconde para
-  // los demás: la base lo rechazaría igual (`torneos_escribir` pide
-  // admin), pero enseñar un formulario de cinco pasos que va a acabar en
-  // un error es hacerle perder el rato a la gente.
-  document.getElementById('btnNuevoTorneo')?.classList.toggle('hidden', !perfil?.is_admin)
+  // CREAR un torneo lo puede hacer cualquiera con cuenta (tanda 266).
+  // Antes era del equipo, y a un usuario normal ni le salía el botón.
+  // Quien no ha entrado sí lo tiene escondido: el formulario acabaría en
+  // un INSERT sin dueño, y la base lo rechazaría en silencio.
+  document.getElementById('btnNuevoTorneo')?.classList.toggle('hidden', !session)
+  // La casilla de OFICIAL, solo para administración. El candado de
+  // verdad está en la base (trg_torneos_solo_admin_marca_oficial): esto
+  // es no enseñar una opción que no se puede usar.
+  document.getElementById('torneoOficialCampo')?.classList.toggle('hidden', !perfil?.is_admin)
   document.getElementById('torneosContenido').style.display = ''
   // El aviso de «borrado» lo deja la ficha antes de traernos aquí: allí
   // no se podía enseñar, porque la página que lo diría ya no existe.

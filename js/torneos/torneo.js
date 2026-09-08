@@ -428,6 +428,17 @@ function pintarEditor() {
         </select>
         <span class="torneo-campo-pista">Cuándo pueden verse las decklists (y los mazos) de los demás. El organizador y los jueces las ven siempre.</span>
       </label>
+      ${
+        // El sello de OFICIAL, solo para administración (tanda 266). Un
+        // organizador normal ni lo ve; y si lo mandara por la API, el
+        // disparador de la base se lo revierte.
+        perfil?.is_admin
+          ? `<label class="torneos-form-campo">
+        <span><input type="checkbox" id="editarOficial" ${torneo.is_official ? 'checked' : ''} /> Torneo oficial de PokeDoc</span>
+        <span class="torneo-campo-pista">Sin marcar sale como torneo de la comunidad.</span>
+      </label>`
+          : ''
+      }
       <div class="torneos-form-campo">Imagen del torneo
         <div class="torneo-imagen-campo">
           <img id="editarImagenPreview" class="torneo-imagen-preview ${torneo.image_url ? '' : 'hidden'}" src="${escapeHtml(torneo.image_url || '')}" alt="" />
@@ -587,6 +598,10 @@ async function guardarEdicion() {
     decklist_visibility: modoListas,
     show_opponent_decklists: modoListas === 'en_juego',
   }
+  // Solo si el campo está en pantalla: si no, un organizador normal
+  // guardaría `false` cada vez que edita y le quitaría el sello a un
+  // torneo oficial que lleve él.
+  if ($('editarOficial')) cambios.is_official = $('editarOficial').checked
   // La imagen (tanda 239): solo si se tocó. Se sube aquí y no al
   // elegirla, para que cerrar el editor sin guardar no deje ficheros
   // huérfanos en Storage.
