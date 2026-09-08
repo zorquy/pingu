@@ -49,7 +49,11 @@ console.log('\n── 1. La sección ya no echa a nadie ──')
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
   check('un miembro normal se queda en /torneos', page.url().includes('/torneos'), page.url())
   check('y ve el torneo', /Copa Inaugural/.test(await page.locator('#listaTorneos').innerText()))
-  check('pero NO puede crear uno', await page.locator('#btnNuevoTorneo').isHidden())
+  // Crear era del equipo cuando se escribió esto. Desde la tanda 266 lo
+  // puede hacer cualquiera con cuenta, y lo que ahora distingue a un
+  // torneo del equipo es la casilla de «oficial» — que sigue siendo de
+  // administración (eso lo prueba test-tanda-266).
+  check('y ahora también puede crear el suyo', await page.locator('#btnNuevoTorneo').isVisible())
   await page.close()
 }
 {
