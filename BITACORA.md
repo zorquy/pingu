@@ -12,6 +12,42 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-09 (2) — PINGU-Claude (tanda 268 — la imagen, una pieza)
+
+**Hecho**: PINGU volvió con «sigue yendo fatal» después de la 267, y
+tenía razón: el botón de la fila ya iba, pero el fallo gordo estaba
+debajo. Una `<figure>` editable es, para el navegador, un párrafo más.
+Con la fila ya hecha: Backspace al principio del párrafo de debajo se
+llevaba EL PÁRRAFO ENTERO; Ctrl+A y escribir encima metía la guía dentro
+de una figura con las letras desordenadas; pinchar entre dos cartas y
+escribir perdía lo escrito; las flechas con una carta elegida no hacían
+nada; y quitar una carta dejaba el hueco. Se reprodujo conduciendo el
+editor como una persona, no mirando el HTML.
+
+Arreglo: las imágenes y las filas pasan a ser PIEZAS
+(`contenteditable="false"`), igual que las listas de cartas y los vídeos,
+que ya lo eran desde el principio y por eso se portaban bien. Es lo que
+hacen Medium, Notion y WordPress. Alrededor hizo falta: Backspace/Supr
+en dos pasos junto a una pieza (elige, y luego quita), Ctrl+A propio (el
+del navegador no selecciona NADA si lo primero del artículo no es
+editable), borrado a mano de una selección que abarque piezas (ahí el
+navegador se queda quieto y parece colgado), y el cursor colocado en el
+`mousedown` y arriba o abajo según dónde pinches. Y de paso: ↑↓ dentro de
+una fila mueven la carta (y se llaman ←→), quitar una carta ajusta las
+columnas, y un artículo nunca termina en pieza.
+
+**Ficheros**: js/richtext-editor.js. Nada de CSS ni de base.
+
+**Pruebas**: test-tanda-268.mjs (44) y rigor-tanda-268.py (15
+mutaciones). Suite entera verde (35). El mismo editor lo usa el foro, así
+que esto toca también temas y respuestas.
+
+**En curso / pendiente**: nada de esta tanda. Siguen esperando las cinco
+migraciones de la raíz, sobre todo
+supabase-migration-torneos-abiertos.sql.
+
+---
+
 ## 2026-09-09 — PINGU-Claude (tanda 267 — imágenes en fila en el editor)
 
 **Hecho**: «el editor se vuelve loco, quiero hacer algo tan sencillo como

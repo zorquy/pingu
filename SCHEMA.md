@@ -12973,3 +12973,96 @@ frase. Contra el editor de antes da **23 fallos**.
 `rigor-tanda-267.py`, 12 mutaciones. La primera pasada dejó una sin
 detectar —quitar la condición de «sin texto» de `imagenesDeBloque`, que
 borraría el texto del párrafo— y de ahí salió la comprobación 11.
+
+## Tanda 268 — una imagen es una PIEZA, no un párrafo (sept. 2026)
+
+La 267 arregló el botón de la fila. PINGU volvió: **«sigue yendo fatal»**.
+Y tenía razón. El botón ya hacía su trabajo, pero el fallo gordo estaba
+debajo, y no se veía mirando sólo el momento de crear la fila: **para el
+navegador, una `<figure>` editable es un bloque de texto más**, y hacía
+con ella lo que hace con un párrafo.
+
+Se reprodujo conduciendo el editor como lo conduce una persona —escribir,
+borrar, pinchar entre dos cartas— en vez de mirar sólo el HTML resultante.
+Con la fila ya hecha y correcta:
+
+| Lo que haces | Lo que pasaba |
+| --- | --- |
+| Backspace al principio del párrafo de debajo | **el párrafo entero desaparecía**, con su texto |
+| Ctrl+A y escribir encima | la guía entera acababa DENTRO de una `<figure>`, con letras perdidas y cambiadas de orden (`todo fuera` → `odo fuerat`) |
+| Pinchar en el hueco entre dos cartas y escribir | lo escrito se perdía sin dejar rastro |
+| ↑ o ↓ con una carta de la fila elegida | nada: ordenar las cartas de una fila era imposible |
+| Quitar una carta de una fila de tres | quedaba el hueco |
+| Empezar el artículo por una imagen | no había forma de poner el cursor por encima |
+
+### La decisión
+
+Las listas de cartas (`<tcg-deck>`) y los vídeos (`<yt-video>`) ya eran
+`contenteditable="false"` desde el día que se hicieron, y por eso se
+portaban bien. **Esto trata las imágenes igual**: es lo que hacen Medium,
+Notion y el editor de WordPress —el bloque de imagen es una pieza que el
+cursor no puede pisar, y lo único que se escribe dentro es el pie de
+foto—, así que no es un invento, es ponerse al día con la propia casa.
+
+`vestirPiezas()` marca cada `<figure>` y cada `.rt-fila` como no editable
+y reabre los `<figcaption>`. Corre en `sanearEstructura`, o sea en cada
+cambio, **y también al abrir**: sin eso, una guía recién abierta seguía
+en el estado malo hasta que tocabas una tecla.
+
+El atributo **no se guarda**: no está en la lista blanca del saneador, así
+que se cae solo al salir. Vive únicamente mientras editas.
+
+### Lo que hubo que añadir alrededor
+
+Una pieza atómica arregla el desastre, pero deja tres huecos que hay que
+tapar a mano — los mismos que tapan los editores de verdad:
+
+- **Backspace / Supr pegados a una pieza.** El navegador ya no se come el
+  párrafo, pero tampoco hace nada útil. Ahora la primera pulsación
+  **elige** la pieza (sale su barra, con su aspa) y la segunda la quita.
+  Dos pasos, como en Notion: el primero te enseña qué vas a borrar.
+- **Ctrl+A.** Con la primera cosa del artículo no editable, el
+  «seleccionar todo» del navegador **no selecciona nada**: se planta en el
+  primer sitio donde no puede escribir y se rinde. Se hace a mano.
+- **Borrar o escribir encima de una selección que abarca piezas.** Ahí el
+  navegador se queda quieto del todo, y parecía que el editor se había
+  colgado. `borrarSeleccionAMano()` usa `Range.deleteContents()`, que es
+  una operación del DOM y no de edición: no le importa quién es editable.
+  Sólo entra cuando la selección toca una pieza — si no hay ninguna, el
+  navegador lo hace mejor (respeta formatos, listas y su propio
+  historial).
+- **Dónde cae el cursor al pinchar una pieza.** Se coloca en el
+  `mousedown` y no en el `click`: para cuando llega el click, el navegador
+  ya ha tratado la pulsación sobre algo no editable y ha dejado la
+  selección vacía. Y va ARRIBA o ABAJO según por dónde hayas pinchado
+  (comparando con la mitad de la pieza), que es lo que resuelve el
+  callejón sin salida de un artículo que empieza por una imagen. Pinchando
+  en la imagen misma no se inventa ningún párrafo: ahí lo que quieres es
+  elegirla.
+
+### Y tres cosas más de la misma queja
+
+- **↑ y ↓ dentro de una fila mueven la CARTA**, no la fila: se convierten
+  en ← y → y lo dicen en su rótulo. En los extremos la carta sale de la
+  fila, delante o detrás — es la manera de sacar una sola sin deshacerla
+  entera.
+- **Quitar una carta ajusta las columnas** (`encogerColumnas`) para no
+  dejar el hueco. Sólo hacia abajo: quitar una de una fila de 3 que tenía
+  cuatro dentro no cambia nada.
+- **Red de seguridad**: una `<figure>` sin imagen dentro deja de ser
+  figura y pasa a párrafo, conservando lo que hubiera. Y un artículo nunca
+  termina en pieza: siempre queda un párrafo detrás donde seguir
+  escribiendo.
+
+### Comprobado
+
+`test-tanda-268.mjs` (44 comprobaciones) conduce el editor como una
+persona: teclas, clics en el hueco entre dos cartas, pinchar por la mitad
+de arriba de una imagen. `rigor-tanda-268.py`, 15 mutaciones. La primera
+pasada dejó sin detectar la red de seguridad de la figura vacía —con las
+piezas atómicas ya no se llega a ella por los caminos normales— y de ahí
+salió la comprobación 13, que la ataca por donde sí se llega: una guía
+vieja que ya venía con una `<figure>` de texto.
+
+La suite entera sigue verde, foro incluido: el mismo editor lo usan los
+temas y las respuestas del foro.

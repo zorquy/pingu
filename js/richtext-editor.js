@@ -556,12 +556,45 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
         toco = true
       }
     }
+    // Una figura sin imagen dentro no es una figura: es texto metido en
+    // una caja que no le corresponde. Pasaba al seleccionar toda la guía y
+    // escribir encima: el navegador vaciaba la figura pero la dejaba ahí, y
+    // lo tecleado acababa DENTRO de ella. Lo que hubiera se conserva como
+    // párrafo — borrar lo escrito por alguien, nunca.
+    for (const fig of [...surfaceEl.querySelectorAll('figure')]) {
+      if (fig.closest('tcg-deck, yt-video')) continue
+      if (fig.querySelector('img, tcg-deck, yt-video')) continue
+      const p = document.createElement('p')
+      const texto = fig.textContent.trim()
+      if (texto) p.textContent = texto
+      else p.innerHTML = '<br>'
+      // Si el cursor estaba dentro —y lo está, porque esto pasa MIENTRAS
+      // escribes—, se lleva al párrafo nuevo. Sin esto las letras salían
+      // desordenadas: la primera se quedaba en su sitio y las siguientes
+      // se escribían delante.
+      const sel = document.getSelection()
+      const teniaElCursor = sel?.rangeCount ? fig.contains(sel.getRangeAt(0).startContainer) : false
+      fig.replaceWith(p)
+      if (teniaElCursor) ponerCursorAlFinalDe(p)
+      toco = true
+    }
     // Borrarlo todo no puede dejar la superficie sin su párrafo semilla
     // (pasaba al quitar con el aspa el único spoiler del texto).
     if (!surfaceEl.firstElementChild && !surfaceEl.textContent.trim()) {
       surfaceEl.innerHTML = '<p><br></p>'
       toco = true
     }
+    // Si el artículo TERMINA en una pieza, no hay dónde poner el cursor
+    // para seguir escribiendo: se deja un párrafo detrás. Es lo mismo que
+    // hacen los editores de Medium o WordPress por la misma razón.
+    const ultimo = surfaceEl.lastElementChild
+    if (ultimo && esBloqueOpaco(ultimo)) {
+      const p = document.createElement('p')
+      p.innerHTML = '<br>'
+      surfaceEl.appendChild(p)
+      toco = true
+    }
+    vestirPiezas()
     if (toco) vestirSpoilers()
     return toco
   }
@@ -577,6 +610,62 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   // cortar y pegar de siempre.
   const esBloqueOpaco = (el) =>
     !!el && (el.classList?.contains('rt-fila') || /^(FIGURE|TCG-DECK|YT-VIDEO|HR)$/.test(el.tagName))
+
+  // ── Una imagen es una PIEZA, no un párrafo (tanda 268) ──
+  //
+  // Las listas de cartas y los vídeos ya eran `contenteditable="false"`
+  // desde que se hicieron. Las imágenes no, y por eso se portaban tan
+  // mal: para el navegador una <figure> editable es un bloque de texto
+  // más, y hacía con ella lo que hace con un párrafo.
+  //
+  //   - Backspace al principio del párrafo de debajo se llevaba por
+  //     delante EL PÁRRAFO ENTERO. Escribías un texto debajo de tus
+  //     cartas, tocabas Backspace en el sitio equivocado y desaparecía.
+  //   - Seleccionar todo y escribir encima dejaba la guía entera DENTRO
+  //     de una <figure>, con letras perdidas y cambiadas de orden.
+  //   - Pinchar entre dos cartas de una fila y escribir: lo escrito se
+  //     perdía sin dejar rastro.
+  //
+  // Eso no se arregla caso por caso: la pieza tiene que ser una pieza.
+  // Es lo que hacen Medium, Notion y el editor de WordPress —el bloque
+  // de imagen no se puede pisar con el cursor, y lo único que se escribe
+  // dentro es el pie de foto—, y aquí ya estaba hecho para las cartas y
+  // los vídeos: esto lo único que hace es tratar las imágenes igual.
+  //
+  // El atributo NO se guarda con la guía: no está en la lista blanca del
+  // saneador, así que se cae al salir. Vive sólo mientras editas.
+  function vestirPiezas() {
+    for (const pieza of surfaceEl.querySelectorAll('figure, .rt-fila')) {
+      if (pieza.closest('tcg-deck, yt-video')) continue
+      if (pieza.getAttribute('contenteditable') !== 'false') pieza.setAttribute('contenteditable', 'false')
+    }
+    // El pie de foto es la excepción: es lo único de dentro que se
+    // escribe, así que se vuelve a abrir a mano.
+    for (const pie of surfaceEl.querySelectorAll('figure > figcaption')) {
+      if (pie.getAttribute('contenteditable') !== 'true') pie.setAttribute('contenteditable', 'true')
+    }
+  }
+
+  // La imagen que representa a una pieza, para poder elegirla con la
+  // barra de bloque. De una fila, la de un extremo: al llegar por arriba
+  // interesa la última, y al llegar por abajo la primera.
+  const imagenDeLaPieza = (pieza, cual = 'primera') => {
+    if (!pieza) return null
+    if (pieza.tagName === 'TCG-DECK') return pieza
+    const imgs = [...pieza.querySelectorAll('img')]
+    if (imgs.length === 0) return null
+    return cual === 'ultima' ? imgs[imgs.length - 1] : imgs[0]
+  }
+
+  // Una fila con un hueco menos. Si el número de columnas que se eligió
+  // ya no cabe, se ajusta; al revés no se toca — quitar una carta de una
+  // fila de 3 que tenía cuatro dentro no tiene por qué cambiar nada.
+  const encogerColumnas = (fila) => {
+    if (!fila) return
+    const figs = fila.querySelectorAll(':scope > figure').length
+    const cols = parseInt(fila.getAttribute('data-cols'), 10) || figs
+    if (figs >= 2 && cols > figs) fila.setAttribute('data-cols', String(figs))
+  }
 
   const bloqueDe = (nodo) => {
     let n = nodo
@@ -618,7 +707,68 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     ultimoRango = r.cloneRange()
   }
 
+  // ── Borrar lo que abarca la selección cuando el navegador no quiere ──
+  //
+  // En cuanto la selección toca una pieza que no es editable, el navegador
+  // se planta: ni borra ni escribe encima. Se queda TODO como estaba y
+  // parece que el editor se ha colgado (seleccionar el artículo entero y
+  // teclear encima no hacía nada).
+  //
+  // `deleteContents` de un rango es una operación del DOM, no de edición:
+  // no le importa quién es editable y quién no, así que sí se lleva la
+  // fila. Devuelve `true` si ha tenido que encargarse él.
+  function borrarSeleccionAMano() {
+    const sel = document.getSelection()
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return false
+    const r = sel.getRangeAt(0)
+    if (!surfaceEl.contains(r.commonAncestorContainer)) return false
+    const piezas = [...surfaceEl.querySelectorAll('.rt-fila, figure, tcg-deck, yt-video')]
+    // Si no hay ninguna pieza por medio, el navegador ya sabe hacerlo solo
+    // y lo hace mejor (respeta formatos, listas, el historial nativo).
+    if (!piezas.some((pieza) => r.intersectsNode(pieza))) return false
+    r.deleteContents()
+    r.collapse(true)
+    sel.removeAllRanges()
+    sel.addRange(r)
+    sanearEstructura()
+    // Si no ha quedado sitio donde escribir, el saneo ha repuesto el
+    // párrafo semilla: el cursor va a él.
+    if (!surfaceEl.contains(document.getSelection()?.anchorNode || null)) {
+      ponerCursorEn(surfaceEl.querySelector('p') || surfaceEl.firstElementChild)
+    }
+    return true
+  }
+
+  // Escribir encima de una selección así: primero se quita a mano lo
+  // seleccionado y luego el navegador escribe donde queda el cursor.
+  surfaceEl.addEventListener('beforeinput', (e) => {
+    if (!e.inputType?.startsWith('insert')) return
+    borrarSeleccionAMano()
+  })
+
   surfaceEl.addEventListener('keydown', (e) => {
+    // ── Ctrl+A ──
+    //
+    // Con la primera cosa del artículo no editable —una imagen, una fila
+    // de cartas—, el «seleccionar todo» del navegador no selecciona NADA:
+    // se planta en el primer sitio donde no puede escribir y se rinde. Así
+    // que se hace a mano, que además es exacto: de la primera letra a la
+    // última.
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'a' || e.key === 'A')) {
+      const s = document.getSelection()
+      if (!s) return
+      // Dentro de un pie de foto, «seleccionar todo» es el pie, no el
+      // artículo entero: ahí el navegador ya acierta.
+      let donde = s.anchorNode
+      if (donde?.nodeType === 3) donde = donde.parentNode
+      if (donde?.closest?.('figcaption')) return
+      e.preventDefault()
+      const todo = document.createRange()
+      todo.selectNodeContents(surfaceEl)
+      s.removeAllRanges()
+      s.addRange(todo)
+      return
+    }
     if (e.key !== 'Enter' && e.key !== 'Backspace' && e.key !== 'Delete') return
     if (e.isComposing || e.defaultPrevented) return
     const sel = document.getSelection()
@@ -626,6 +776,11 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     // Con algo seleccionado, borrar es borrar la selección (nativo y
     // correcto). El Enter sí se mira: escribir un pie de foto lo deja
     // seleccionado, y Enter sobre esa selección partía el pie en dos.
+    if (!sel.isCollapsed && (e.key === 'Backspace' || e.key === 'Delete') && borrarSeleccionAMano()) {
+      e.preventDefault()
+      emit()
+      return
+    }
     if (!sel.isCollapsed && e.key !== 'Enter') return
     const r = sel.getRangeAt(0)
     if (!surfaceEl.contains(r.startContainer)) return
@@ -715,8 +870,33 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
         ponerCursorAlFinalDe(pestaña)
         return
       }
-      // Justo debajo de un spoiler: el párrafo no se teletransporta adentro.
+      // Justo debajo de una imagen o de una fila de cartas.
+      //
+      // Aquí el navegador se comía el PÁRRAFO ENTERO —el texto que
+      // hubieras escrito debajo de las cartas, desaparecido de un
+      // Backspace—. Ahora la primera pulsación ELIGE la pieza de arriba
+      // (sale su barra, con su aspa) y no borra nada; la segunda, ya con
+      // la pieza elegida, sí la quita. Dos pasos, como en Notion: la
+      // primera te enseña qué vas a borrar.
       const previo = bloque.previousElementSibling
+      if (esBloqueOpaco(previo)) {
+        e.preventDefault()
+        const yaElegida = seleccionado && previo.contains(contenedor(seleccionado))
+        if (yaElegida) {
+          previo.remove()
+          deseleccionar()
+          emit()
+          return
+        }
+        // El párrafo vacío sí se va: es lo que estás pidiendo al borrar
+        // hacia atrás desde una línea en blanco.
+        if (esParrafoVacio(bloque) && (bloque.nextElementSibling || bloque.previousElementSibling)) {
+          bloque.remove()
+          emit()
+        }
+        seleccionar(imagenDeLaPieza(previo, 'ultima') || previo)
+        return
+      }
       if (previo?.tagName === 'DETAILS') {
         e.preventDefault()
         if (esParrafoVacio(bloque) && bloque.nextElementSibling) {
@@ -751,6 +931,20 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
       return
     }
     const siguiente = bloque.nextElementSibling
+    // El espejo del Backspace: Supr al final del párrafo que va justo
+    // encima de una imagen la elige, y la segunda vez la quita.
+    if (esBloqueOpaco(siguiente)) {
+      e.preventDefault()
+      const yaElegida = seleccionado && siguiente.contains(contenedor(seleccionado))
+      if (yaElegida) {
+        siguiente.remove()
+        deseleccionar()
+        emit()
+        return
+      }
+      seleccionar(imagenDeLaPieza(siguiente) || siguiente)
+      return
+    }
     if (siguiente?.tagName === 'DETAILS') {
       e.preventDefault()
       ponerCursorEn(siguiente.querySelector(':scope > summary') || siguiente)
@@ -1293,6 +1487,8 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   const grupoAncho = toolbarEl.querySelector('[data-blockbar-ancho]')
   const grupoCarta = toolbarEl.querySelector('[data-blockbar-carta]')
   const btnCarta = toolbarEl.querySelector('[data-bloque="carta"]')
+  const btnSubir = toolbarEl.querySelector('[data-bloque="subir"]')
+  const btnBajar = toolbarEl.querySelector('[data-bloque="bajar"]')
   const rango = toolbarEl.querySelector('[data-bloque-ancho]')
   const valorRango = toolbarEl.querySelector('[data-bloque-valor]')
   let seleccionado = null
@@ -1316,6 +1512,18 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     const esCarta = !esCartas && contenedor(el).classList?.contains('rt-fig-carta')
     const que = esCartas ? 'Cartas' : esCarta ? 'Carta' : 'Imagen'
     nombreBarra.textContent = fila && !esCartas ? `${que} (en fila de ${fila.getAttribute('data-cols')})` : que
+    // Dentro de una fila, «arriba» y «abajo» son «antes» y «después» EN LA
+    // FILA: las flechas mueven la carta de sitio entre sus compañeras, así
+    // que dicen lo que hacen en vez de apuntar a un sitio que no existe.
+    const enFila = !!fila && !esCartas
+    if (btnSubir) {
+      btnSubir.textContent = enFila ? '←' : '↑'
+      btnSubir.title = enFila ? 'Mover una posición antes en la fila (en el borde, sacarla de la fila)' : 'Mover arriba'
+    }
+    if (btnBajar) {
+      btnBajar.textContent = enFila ? '→' : '↓'
+      btnBajar.title = enFila ? 'Mover una posición después en la fila (en el borde, sacarla de la fila)' : 'Mover abajo'
+    }
     grupoPie.classList.toggle('hidden', esCartas)
     // Las filas son cosa de imágenes: una lista de cartas ya es su propia
     // rejilla.
@@ -1596,20 +1804,58 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
         if (!pie) {
           pie = document.createElement('figcaption')
           pie.textContent = 'Pie de foto'
+          // Editable YA, antes de enfocarlo: el repaso que se lo pone a
+          // todos corre al final del `emit`, y para entonces ya se habría
+          // intentado escribir en algo que no admitía cursor.
+          pie.setAttribute('contenteditable', 'true')
           fig.appendChild(pie)
         }
         // Se deja el texto seleccionado para poder escribir encima sin
         // tener que borrarlo antes.
+        // La figura es una pieza no editable y el pie es la única isla
+        // que sí lo es: hay que enfocar EL PIE. Enfocando la superficie,
+        // el cursor no llegaba a entrar y lo que escribías se perdía.
+        pie.focus()
         const r = document.createRange()
         r.selectNodeContents(pie)
         const sel = document.getSelection()
         sel.removeAllRanges()
         sel.addRange(r)
-        surfaceEl.focus()
         return emit()
       }
 
       const caja = contenedor(seleccionado)
+
+      // ── Dentro de una fila, ↑ y ↓ mueven la CARTA, no la fila ──
+      //
+      // Antes subían hasta el bloque de arriba del todo, que dentro de una
+      // fila es la fila entera: pulsabas la flecha con una carta elegida y
+      // no pasaba nada, o se movía la fila completa. Ordenar las cartas de
+      // una fila era imposible.
+      //
+      // En los extremos la carta SALE de la fila, delante o detrás. Es la
+      // manera de sacar una sola sin deshacerla entera, y sigue leyéndose
+      // como «muévela una posición antes / después».
+      const filaDeLaCaja = caja.tagName === 'FIGURE' ? caja.parentElement?.closest?.('.rt-fila') : null
+      if (filaDeLaCaja && (accion === 'subir' || accion === 'bajar')) {
+        const hermanas = [...filaDeLaCaja.querySelectorAll(':scope > figure')]
+        const i = hermanas.indexOf(caja)
+        const alPrincipio = accion === 'subir' && i <= 0
+        const alFinal = accion === 'bajar' && i >= hermanas.length - 1
+        if (alPrincipio || alFinal) {
+          caja.classList.add('rt-fig', 'rt-fig-c')
+          if (alPrincipio) filaDeLaCaja.before(caja)
+          else filaDeLaCaja.after(caja)
+          encogerColumnas(filaDeLaCaja)
+        } else if (accion === 'subir') {
+          hermanas[i - 1].before(caja)
+        } else {
+          hermanas[i + 1].after(caja)
+        }
+        seleccionar(seleccionado)
+        return emit()
+      }
+
       let bloque = caja
       while (bloque.parentNode && !esContenedorDeBloques(bloque.parentNode)) bloque = bloque.parentNode
       // Dentro de un spoiler, subir y bajar mueven el bloque POR el
@@ -1631,21 +1877,104 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
         return emit()
       }
       if (accion === 'borrar') {
+        // La fila de la que sale se queda con un hueco: si el número de
+        // columnas ya no cabe, se ajusta. Sin esto, quitar una carta de
+        // una fila de tres dejaba un vacío en su sitio.
+        const suFila = caja.parentElement?.closest?.('.rt-fila')
         caja.remove()
+        encogerColumnas(suFila)
         deseleccionar()
         return emit()
       }
     })
   })
 
+  // El cursor a un sitio donde de verdad se pueda escribir, el más cercano
+  // a esta pieza. Hace falta porque una pieza no es editable: pinchar en
+  // el hueco que queda entre dos cartas de una fila dejaba el cursor en
+  // tierra de nadie y lo que escribías DESAPARECÍA.
+  //
+  // Y va ARRIBA o ABAJO según por dónde hayas pinchado, comparando con la
+  // mitad de la pieza. Es lo que resuelve el callejón sin salida de un
+  // artículo que EMPIEZA por una imagen: sin esto no había manera de
+  // poner el cursor por encima para escribir la entradilla.
+  function cursorJuntoA(pieza, arriba, crear = true) {
+    // Pinchar en una pieza no da el foco a la superficie —la pieza no es
+    // editable—, y sin foco el cursor que se coloque aquí no vale para
+    // nada: el Ctrl+A siguiente selecciona la página entera y lo que
+    // escribas no llega. Se lo damos a mano.
+    surfaceEl.focus()
+    const vecino = arriba ? pieza.previousElementSibling : pieza.nextElementSibling
+    if (vecino && !esBloqueOpaco(vecino)) {
+      return arriba ? ponerCursorAlFinalDe(vecino) : ponerCursorEn(vecino)
+    }
+    // Sin sitio al lado, se hace uno... salvo cuando esto viene de pinchar
+    // en la propia imagen: ahí lo que quieres es elegirla, y aparecerte un
+    // párrafo en blanco de la nada sería el editor haciendo cosas raras
+    // otra vez. Se busca entonces por el otro lado, y si tampoco, nada.
+    if (!crear) {
+      const otro = arriba ? pieza.nextElementSibling : pieza.previousElementSibling
+      if (otro && !esBloqueOpaco(otro)) return arriba ? ponerCursorEn(otro) : ponerCursorAlFinalDe(otro)
+      return
+    }
+    const p = document.createElement('p')
+    p.innerHTML = '<br>'
+    if (arriba) pieza.before(p)
+    else pieza.after(p)
+    ponerCursorEn(p)
+    emit()
+  }
+
   surfaceEl.addEventListener('click', (e) => {
     // Pinchar en el pie de foto también cuenta como seleccionar la
     // imagen: si no, la barra desaparecía justo al ir a escribir el pie.
+    if (e.target.closest?.('figcaption')) return
     const figura = e.target.closest?.('figure')
     const el = e.target.closest?.('img, tcg-deck') || figura?.querySelector('img')
-    if (el && surfaceEl.contains(el)) seleccionar(el)
-    else deseleccionar()
+    if (el && surfaceEl.contains(el)) {
+      seleccionar(el)
+      return
+    }
+    deseleccionar()
   })
+
+  // La pieza de bloque a la que pertenece un nodo: la de ARRIBA DEL TODO,
+  // no la figura suelta. Dentro de una fila la figura es hija de la fila,
+  // y meter un párrafo detrás de ella lo metería DENTRO de la rejilla.
+  const piezaDeBloque = (nodo) => {
+    const b = bloqueDe(nodo)
+    return b && esBloqueOpaco(b) && surfaceEl.contains(b) ? b : null
+  }
+
+  // El cursor se coloca en el MOUSEDOWN, no en el click.
+  //
+  // Esperando al click ya es tarde: el navegador ha tratado la pulsación
+  // sobre algo que no es editable y ha dejado la selección VACÍA, así que
+  // colocarlo después no servía de nada — y el Ctrl+A siguiente
+  // seleccionaba la página entera, botones de la barra incluidos.
+  surfaceEl.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return
+    // El pie de foto sí es editable: ahí manda el navegador.
+    if (e.target.closest?.('figcaption')) return
+    const pieza = piezaDeBloque(e.target)
+    if (!pieza) return
+    e.preventDefault()
+    const caja = pieza.getBoundingClientRect()
+    // Pinchando en la IMAGEN lo que se quiere es elegirla (de eso se
+    // encarga el `click`); aquí sólo se deja el cursor en un sitio válido
+    // para que el teclado siga funcionando, sin inventarse párrafos.
+    const enLaImagen = !!e.target.closest?.('img, tcg-deck')
+    cursorJuntoA(pieza, e.clientY < caja.top + caja.height / 2, !enLaImagen)
+  })
+
+  // El repaso de estructura, también AL ABRIR y no sólo al escribir.
+  //
+  // Una guía guardada llega con sus figuras y sus filas tal cual, y hasta
+  // que no tocabas una tecla no eran piezas: el primer Backspace sobre una
+  // guía recién abierta seguía comiéndose el párrafo. Va aquí abajo, con
+  // todo ya definido, y sin `emit` a propósito — abrir una guía no es
+  // cambiarla.
+  sanearEstructura()
 
   // Al abrir el editor con una guía que ya tenía listas, hay que
   // pintarlas: en la fila guardada están vacías por definición.
