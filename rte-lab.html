@@ -1,0 +1,23 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Laboratorio del editor</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/components.css">
+</head><body>
+<div id="tb"></div>
+<div id="sf" style="min-height:400px;border:1px solid #ccc;padding:10px"></div>
+<pre id="out" style="font-size:11px"></pre>
+<script type="module">
+import { initRichTextEditor, richTextToolbarHtml } from '/js/richtext-editor.js'
+const tb = document.getElementById('tb')
+tb.innerHTML = richTextToolbarHtml()
+window.__html__ = ''
+initRichTextEditor({
+  toolbarEl: tb,
+  surfaceEl: document.getElementById('sf'),
+  initialHtml: window.__INICIAL__ || '',
+  onChange: (h) => { window.__html__ = h; document.getElementById('out').textContent = h },
+  uploadImage: async (f) => (window.__URLS__ && window.__URLS__.length ? window.__URLS__.shift() : window.__CARTA__),
+  placeholder: 'Escribe',
+})
+window.__listo__ = true
+</script>
+</body></html>
