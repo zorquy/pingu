@@ -12,6 +12,41 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-09 — PINGU-Claude (tanda 267 — imágenes en fila en el editor)
+
+**Hecho**: «el editor se vuelve loco, quiero hacer algo tan sencillo como
+poner cartas en fila de 3 y se vuelve loco, me dice que no se puede o se
+pone abajo en vez de en la fila». Las dos frases eran el MISMO fallo, y
+se reprodujo antes de tocar nada: varias imágenes pueden acabar dentro
+del mismo `<p>` (pegadas de otra web, o subidas de golpe), y el editor
+solo sabía tratar «un párrafo con UNA imagen». Con tres dentro,
+«Fila de 3» no encontraba nada que juntar, pero antes de avisar ya había
+sacado la elegida del párrafo dejándola DEBAJO de las otras dos: de ahí
+las dos quejas a la vez. Y pegar tres cartas las sacaba de una en una,
+así que salían del revés (3, 2, 1), cada una en su línea y sin juntarse.
+
+Ahora un párrafo que solo lleva imágenes se trata como lo que es —una
+pila de imágenes, cada una un bloque— y se desmonta entero y en orden
+antes de tocar ninguna. «Fila de N» cuenta las candidatas ANTES de mover
+nada: si de verdad no hay nada que juntar, avisa y no toca el documento
+(antes movía la imagen y encima avisaba). De propina: el cursor se queda
+detrás de la fila recién hecha (se caía al principio del artículo, así
+que lo siguiente que escribías salía arriba del todo) y añadir una carta
+a una fila de 3 ya no la devuelve sola a 4 columnas.
+
+**Ficheros**: js/richtext-editor.js. Nada de CSS ni de base.
+
+**Pruebas**: test-tanda-267.mjs (37/37, contra el editor montado a pelo
+en una página de laboratorio nueva, rte-lab.html) y rigor-tanda-267.py
+(12 mutaciones). La suite entera, 34 verdes. Con el código de antes esa
+prueba da 23 fallos.
+
+**En curso / pendiente**: nada de esta tanda. Sigue pendiente que PINGU
+ejecute supabase-migration-torneos-abiertos.sql (y las otras cuatro que
+esperan en la raíz).
+
+---
+
 ## 2026-09-08 — PINGU-Claude (tanda 266 — crear torneos, abierto a todos)
 **Hecho**: a un usuario no le salía la opción de crear torneo. NO era
 solo el botón: `torneos_escribir` pedía ser admin del SITIO en

@@ -12879,3 +12879,97 @@ Comprobado con `test-tanda-262.mjs` (35/35) y `rigor-tanda-262.py` (15
 mutaciones). Dos huecos salieron del rigor y los dos eran de CSS: la
 prueba miraba clases y no estilos, que es exactamente el fallo que
 motivó la tanda.
+
+## Tanda 267 — poner imágenes en fila, en el editor de artículos (sept. 2026)
+
+Lo contó PINGU así: *«el editor se vuelve loco, quiero hacer algo tan
+sencillo como poner cartas en fila de 3 y se vuelve loco, me dice que no
+se puede o se pone abajo en vez de en la fila»*.
+
+Las dos quejas son el mismo fallo, y se reprodujo antes de tocar nada.
+
+### De dónde salía
+
+Varias imágenes pueden acabar dentro del **mismo párrafo**. Pasa siempre
+que no entran de una en una y espaciadas:
+
+- pegadas de otra web, que llegan como `<img><img><img>` seguidas;
+- subidas de golpe desde el diálogo, si no tienen forma de carta (las que
+  sí la tienen se sacaban solas a su figura y por eso el caso de las
+  cartas subidas sí funcionaba);
+- escritas así en una guía vieja.
+
+Y el editor solo sabía tratar «un párrafo con UNA imagen» (`imagenSuelta`
+pedía exactamente una). Con tres dentro:
+
+1. `ponerEnFila` no encontraba **ninguna** candidata detrás → el aviso de
+   que no hay nada que juntar, con las otras dos imágenes ahí mismo;
+2. pero antes de avisar ya había llamado a `figuraDeImagen`, que sacaba
+   la elegida del párrafo y la dejaba **detrás** de él, o sea DEBAJO de
+   sus compañeras. De ahí «se pone abajo en vez de en la fila»;
+3. y `agruparConLaAnterior` no ve a través de un párrafo que todavía
+   tiene imágenes dentro, así que tampoco se juntaban solas.
+
+Pegar tres cartas era el mismo mecanismo, una a una: cada `hacerCarta`
+sacaba la suya y la dejaba justo detrás del párrafo, delante de la
+anterior. Salían **del revés** (3, 2, 1), en tres líneas y sin fila.
+
+### Lo que hace ahora
+
+La idea, y es una sola: **un párrafo que solo lleva imágenes no es un
+párrafo con texto, es una pila de imágenes**, y cada una de ellas es un
+bloque. Dos funciones nuevas en `js/richtext-editor.js`:
+
+- `imagenesDeBloque(el)` — las imágenes de ese bloque si el bloque es de
+  esos, y nada si lleva texto. Sustituye a `imagenSuelta`, que pedía
+  exactamente una.
+- `desmontarParrafoDeImagenes(p)` — lo cambia por una figura por imagen,
+  **en orden y de una vez**. Es lo que arregla el revés: sacándolas una a
+  una cada figura adelantaba a la anterior.
+
+Con eso, tres sitios dejan de equivocarse:
+
+- **`asegurarFigura`**: si la imagen está en un párrafo con más
+  compañeras, desmonta el párrafo entero en vez de sacar solo la suya.
+- **`repasarImagenesNuevas`** (lo pegado): recoge las imágenes nuevas
+  **antes** de tocar ninguna. Tratándolas sobre la marcha, convertir la
+  primera cambiaba de sitio a las demás y el recorrido se perdía.
+- **`ponerEnFila`**: cuenta las candidatas **sin mover nada**
+  (`candidatasParaFila`) y solo entonces decide. Si de verdad no hay dos,
+  avisa y **deja el documento como estaba** — antes movía la imagen y
+  encima avisaba. Y si las hay, la fila se planta donde estaba la primera
+  elegida, no antes del párrafo: pulsar «Fila de 2» sobre la segunda de
+  tres deja la primera fuera y por delante, no al revés.
+
+Un párrafo CON texto sigue cortando: juntar dos imágenes separadas por
+texto movería el texto de sitio sin que nadie lo haya pedido. Una imagen
+metida en una frase entra en la fila ella sola y la frase se queda donde
+estaba.
+
+### Dos arreglos de propina, del mismo «se vuelve loco»
+
+- **El cursor se queda detrás de la fila recién hecha.** El párrafo en el
+  que estabas se va con las imágenes, y la selección se caía al principio
+  de la superficie: lo siguiente que escribías o insertabas aparecía
+  ARRIBA DEL TODO del artículo.
+- **Las columnas elegidas a mano no se cambian solas.** Añadir una cuarta
+  carta a una fila de 3 la devolvía a 4 columnas, porque
+  `recolocarColumnas` recalcula. Ahora las filas hechas con los botones
+  van en un `WeakSet` (`columnasAMano`) y se respetan. No se guarda en el
+  HTML a propósito: `data-cols` ya lleva el número, y es una preferencia
+  de mientras escribes.
+
+### Comprobado
+
+`test-tanda-267.mjs` (37/37) trabaja contra `rte-lab.html`, una página de
+laboratorio nueva del entorno de pruebas que monta `initRichTextEditor` a
+pelo, sin guía ni foro alrededor: lo que se prueba es el editor. Cubre los
+tres caminos de entrada (mismo párrafo, subida de golpe, pegado), la
+negativa que no toca nada, elegir la de en medio, el cursor, la cuarta
+carta, la ida y vuelta por el saneador, dentro de un spoiler, sacar de la
+fila con su Ctrl+Z, y que una imagen dentro de una frase no se lleve la
+frase. Contra el editor de antes da **23 fallos**.
+
+`rigor-tanda-267.py`, 12 mutaciones. La primera pasada dejó una sin
+detectar —quitar la condición de «sin texto» de `imagenesDeBloque`, que
+borraría el texto del párrafo— y de ahí salió la comprobación 11.

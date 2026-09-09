@@ -1025,6 +1025,40 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
 
   const esFiguraDeCarta = (el) => !!el && el.tagName === 'FIGURE' && el.classList.contains('rt-fig-carta')
 
+  // Un párrafo que sólo lleva imágenes NO es un párrafo con texto: es una
+  // pila de imágenes, y cada una de ellas es un bloque. Así llegan las que
+  // se pegan de otra web —tres cartas seguidas caen dentro del MISMO <p>—
+  // y las que se suben de golpe. Devuelve sus imágenes en orden, o nada si
+  // el bloque no es de esos.
+  function imagenesDeBloque(el) {
+    if (!el || el.tagName !== 'P' || el.textContent.trim()) return []
+    if (el.querySelector('tcg-deck, yt-video, figure')) return []
+    return [...el.querySelectorAll('img')]
+  }
+
+  // Desmonta ese párrafo: una figura por imagen, EN ORDEN, y el párrafo
+  // fuera. Hay que hacerlo ANTES de tocar cualquiera de esas imágenes.
+  // Sacándolas de una en una —que es lo que hacía `asegurarFigura`— la
+  // figura nueva caía DETRÁS del párrafo, con las otras todavía dentro:
+  // tres cartas pegadas de una web salían del revés (3, 2, 1), cada una en
+  // su línea, y ninguna se juntaba con la de al lado.
+  function desmontarParrafoDeImagenes(p) {
+    const imgs = imagenesDeBloque(p)
+    if (imgs.length === 0) return []
+    const figuras = imgs.map((img) => {
+      const fig = document.createElement('figure')
+      fig.className = 'rt-fig rt-fig-c'
+      // Sólo se marca como carta lo que ya se puede medir. Una imagen que
+      // aún no ha cargado se queda como figura normal y el repaso de
+      // imágenes nuevas la marcará cuando sepa cuánto mide.
+      if (esFormaDeCarta({ w: img.naturalWidth, h: img.naturalHeight })) fig.classList.add('rt-fig-carta')
+      fig.appendChild(img)
+      return fig
+    })
+    p.replaceWith(...figuras)
+    return figuras
+  }
+
   // Una fila a la que se le puede añadir otra carta. Se pide que la última
   // que hay dentro sea una carta: si es una fila de capturas apaisadas,
   // meterle una carta la descuadra y nadie lo ha pedido.
@@ -1123,13 +1157,18 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     repasando = true
     let algo = false
     try {
-      for (const img of [...surfaceEl.querySelectorAll('img')]) {
-        if (imagenesVistas.has(img)) continue
+      // Se recogen TODAS antes de tocar ninguna. Tratándolas sobre la
+      // marcha, convertir la primera desmonta su párrafo y mueve de sitio a
+      // las que venían detrás: el recorrido se perdía y salían del revés.
+      const nuevas = [...surfaceEl.querySelectorAll('img')].filter((img) => {
+        if (imagenesVistas.has(img)) return false
         imagenesVistas.add(img)
         // Las imágenes de una lista de cartas o de la portada de un vídeo no
         // son imágenes del artículo: las pinta el propio editor y se tiran al
         // guardar. Envolverlas en una figura reventaría el bloque.
-        if (img.closest('tcg-deck, yt-video, figure')) continue
+        return !img.closest('tcg-deck, yt-video, figure')
+      })
+      for (const img of nuevas) {
         const m = await medida(img)
         if (!img.isConnected || !surfaceEl.contains(img)) continue
         if (!esFormaDeCarta(m)) continue
@@ -1167,7 +1206,15 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     recolocarColumnas(nueva)
   }
 
+  // Las filas cuyas columnas ha elegido una persona con los botones. No se
+  // guarda en el HTML a propósito —`data-cols` ya lleva el número—: es para
+  // que añadir otra carta a una fila de 3 no la devuelva sola a 4 columnas,
+  // que era otra de las veces en que el editor «hacía lo que le daba la
+  // gana» después de haberle dicho lo que se quería.
+  const columnasAMano = new WeakSet()
+
   function recolocarColumnas(fila) {
+    if (columnasAMano.has(fila)) return
     const cuantas = fila.querySelectorAll(':scope > figure').length
     fila.setAttribute('data-cols', String(Math.min(COLUMNAS_MAX, columnasParaCartas(cuantas))))
   }
@@ -1299,6 +1346,14 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     const yaEsta = el.closest('figure')
     if (yaEsta) return yaEsta
 
+    // Varias imágenes en el mismo párrafo: se desmonta ENTERO y en orden.
+    // Sacar sólo la que se ha tocado la dejaba debajo de sus compañeras.
+    if (el.tagName === 'IMG' && imagenesDeBloque(bloqueDe(el)).length > 1) {
+      desmontarParrafoDeImagenes(bloqueDe(el))
+      seleccionado = el
+      return el.closest('figure')
+    }
+
     const fig = document.createElement('figure')
     fig.className = 'rt-fig rt-fig-c'
     // La figura tiene que colgar de la superficie — o del spoiler, si la
@@ -1333,18 +1388,6 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   // Y si la imagen YA está en una fila, el botón cambia cuántas columnas
   // tiene esa fila, que es lo que se espera al pulsar "3" estando dentro
   // de una fila de dos.
-  // Un párrafo cuyo único contenido es una imagen ES una imagen suelta,
-  // aunque todavía no sea una figura. Así llegan las imágenes PEGADAS de otra
-  // página, y así estaban las de las guías escritas antes de todo esto: sin
-  // esto, «Fila de 3» sobre tres cartas pegadas no encontraba nada que juntar
-  // y no pasaba nada al pulsarlo.
-  function imagenSuelta(el) {
-    if (!el || el.tagName !== 'P' || el.textContent.trim()) return null
-    if (el.querySelector('tcg-deck, yt-video')) return null
-    const imgs = el.querySelectorAll('img')
-    return imgs.length === 1 ? imgs[0] : null
-  }
-
   // La figura de una imagen, marcándola como carta si tiene forma de carta.
   // Aquí se puede medir sin esperar: la imagen ya está en pantalla, así que
   // el navegador ya sabe cuánto mide.
@@ -1359,55 +1402,86 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     return fig
   }
 
+  // Las imágenes que entrarían en la fila, en orden y SIN tocar nada
+  // todavía. Se cuentan antes de mover nada a propósito: con menos de dos
+  // no hay fila, y lo que NO puede pasar es dejar el documento a medias.
+  // Era justo lo que hacía antes: sacaba la imagen elegida de su párrafo,
+  // la dejaba caer DEBAJO de las demás y encima avisaba de que no había
+  // nada que juntar —«se pone abajo en vez de en la fila»—.
+  //
+  // Cuenta como «seguida» lo que de verdad se ve seguido: una figura, un
+  // párrafo de sólo imágenes (aunque lleve varias dentro) y los párrafos
+  // vacíos que el propio editor deja de hueco. Un párrafo CON texto corta:
+  // juntar dos imágenes separadas por texto movería el texto de sitio sin
+  // que nadie lo haya pedido.
+  function candidatasParaFila(n) {
+    const lista = []
+    const fig = seleccionado.closest?.('figure')
+    const bloque = fig || bloqueDe(seleccionado)
+    if (!bloque) return lista
+
+    if (fig) lista.push(fig)
+    else {
+      const hermanas = imagenesDeBloque(bloque)
+      const desde = hermanas.indexOf(seleccionado)
+      // Una imagen metida en un párrafo con texto va sola: la fila empieza
+      // en ella, pero sus vecinas de línea son texto, no imágenes.
+      if (desde < 0) lista.push(seleccionado)
+      else for (const img of hermanas.slice(desde)) if (lista.length < n) lista.push(img)
+    }
+
+    let sig = bloque.nextElementSibling
+    while (lista.length < n && sig) {
+      if (esParrafoVacio(sig)) {
+        sig = sig.nextElementSibling
+        continue
+      }
+      if (sig.tagName === 'FIGURE') {
+        lista.push(sig)
+        sig = sig.nextElementSibling
+        continue
+      }
+      const imgs = imagenesDeBloque(sig)
+      if (imgs.length === 0) break
+      for (const img of imgs) if (lista.length < n) lista.push(img)
+      sig = sig.nextElementSibling
+    }
+    return lista
+  }
+
   function ponerEnFila(n) {
     if (!seleccionado) return
-    const fig = figuraDeImagen(seleccionado)
-    const filaExistente = fig.closest('.rt-fila')
+
+    // Si ya está en una fila, el botón cambia cuántas columnas tiene esa
+    // fila: es lo que se espera al pulsar «3» estando dentro de una de dos.
+    const filaExistente = contenedor(seleccionado).closest('.rt-fila')
     if (filaExistente) {
       filaExistente.setAttribute('data-cols', String(n))
+      columnasAMano.add(filaExistente)
       return emit()
     }
 
-    // Sólo se agrupan imágenes que sean HERMANAS y estén seguidas. Un
-    // párrafo de texto en medio corta: juntar dos imágenes separadas por
-    // texto movería el texto de sitio sin que nadie lo haya pedido.
-    //
-    // Los párrafos VACÍOS sí se saltan. No son texto: son el hueco que el
-    // propio editor deja detrás de cada imagen para poder seguir
-    // escribiendo. Sin esto, dos imágenes que se ven pegadas no se podían
-    // juntar y el botón parecía roto.
-    const aMeter = [fig]
-    let siguiente = fig.nextElementSibling
-    while (aMeter.length < n && siguiente) {
-      if (esParrafoVacio(siguiente)) {
-        siguiente = siguiente.nextElementSibling
-        continue
-      }
-      const suelta = siguiente.tagName === 'FIGURE' ? null : imagenSuelta(siguiente)
-      if (siguiente.tagName !== 'FIGURE' && !suelta) break
-      const tras = siguiente.nextElementSibling
-      // `figuraDeImagen` se lleva la imagen a su propia figura y deja vacío
-      // el párrafo donde estaba, que se borra. `tras` se ha guardado antes
-      // justamente por eso.
-      aMeter.push(suelta ? figuraDeImagen(suelta) : siguiente)
-      siguiente = tras
-    }
-
-    // Nada que juntar (un párrafo con texto en medio corta): una "fila"
-    // de una sola figura es una rejilla con un hueco vacío al lado. No
-    // se crea — la red de seguridad la desharía igualmente — y se
-    // explica por qué no ha pasado nada.
-    if (aMeter.length < 2) {
-      showToast('No hay otra imagen justo detrás que juntar en la fila.')
-      emit()
+    // Si sólo hay dos y pides cuatro, sale una fila de dos: es mejor que
+    // una fila de cuatro con dos huecos vacíos.
+    const elegidas = candidatasParaFila(n)
+    if (elegidas.length < 2) {
+      showToast('Para hacer una fila hace falta otra imagen justo detrás, sin texto en medio.')
       return
     }
 
+    // Primero se desmontan los párrafos de sólo imágenes: al acabar, cada
+    // elegida está en su propia figura y en su sitio, que es lo que hace
+    // falta para tener DÓNDE plantar la fila.
+    const parrafos = new Set(elegidas.filter((e) => e.tagName === 'IMG').map((img) => bloqueDe(img)))
+    parrafos.forEach(desmontarParrafoDeImagenes)
+    const figuras = elegidas.map((e) => (e.tagName === 'FIGURE' ? e : e.closest('figure') || figuraDeImagen(e)))
+
     const fila = document.createElement('div')
     fila.className = 'rt-fila'
-    fila.setAttribute('data-cols', String(Math.max(2, aMeter.length)))
-    fig.before(fila)
-    aMeter.forEach((f) => {
+    fila.setAttribute('data-cols', String(Math.max(2, figuras.length)))
+    columnasAMano.add(fila)
+    figuras[0].before(fila)
+    figuras.forEach((f) => {
       // El ancho de cada figura deja de mandar dentro de la fila: lo pone
       // la columna. Se quita para que al sacarla de la fila no reaparezca
       // un 25% que ya no significa nada.
@@ -1415,6 +1489,17 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
       f.classList.remove('rt-fig-i', 'rt-fig-d')
       fila.appendChild(f)
     })
+
+    // Un párrafo detrás de la fila, y el cursor dentro. El párrafo en el que
+    // estaba escribiendo se ha ido con las imágenes, y sin esto la selección
+    // se cae al principio de la superficie: lo siguiente que escribes o
+    // insertas aparece ARRIBA DEL TODO en vez de debajo de la fila.
+    if (!esParrafoVacio(fila.nextElementSibling)) {
+      const p = document.createElement('p')
+      p.innerHTML = '<br>'
+      fila.after(p)
+    }
+    ponerCursorEn(fila.nextElementSibling)
     seleccionar(seleccionado)
     emit()
   }
