@@ -12,6 +12,57 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-10 — PINGU-Claude (tanda 269 — la sección de Noticias)
+
+**Hecho**: PokeDoc empieza a publicar noticias en español. Decisión de
+fondo (de PINGU, y es exacta): **un artículo es una guía**, así que no
+hay tabla nueva — una noticia es una fila de `guides` con
+`kind = 'news'`. Mismo editor, misma página de lectura, mismo índice.
+Cambia el traje: vive en `/noticias/<slug>`, se lista por fecha en
+`/noticias`, las migas pasan por Noticias, lleva `NewsArticle` con
+fecha en vez de `Article`, y publicar es **solo de administración** (con
+disparador en la base, no un `if` en el navegador).
+
+El listado: la última grande a todo el ancho y el resto en rejilla de
+tres columnas (dos en tablet, una en móvil). La portada grande aquí sí y
+en las guías no, porque todas las noticias llevan imagen.
+
+**Lo que más cuidado tiene**: el puente de la migración. Netlify publica
+al empujar y el SQL lo ejecuta una persona después; en ese hueco `kind`
+no existe y una consulta que la filtre DA ERROR, no cero filas. Sin red,
+ese despliegue deja la portada, /aprender y las categorías en blanco.
+`conVueltaAtrasDeTipo` en js/articulos.js repite sin filtro si la columna
+no está, y el sitemap lleva lo mismo.
+
+**Migración**: supabase-migration-noticias.sql — columna `kind` con su
+check y sus índices parciales, disparador de «solo admin publica
+noticias», y `updated_at` con disparador (para `dateModified`, que se
+enchufa en la siguiente).
+
+**Ficheros**: nuevos js/noticias.js, js/articulos.js, css/noticias.css,
+noticias.html, supabase-migration-noticias.sql. Tocados: js/home.js,
+js/aprender.js, js/categoria.js, js/guia.js, js/editor-guia.js,
+js/icons.js (icono `newspaper`), editor-guia.html, netlify.toml,
+netlify/functions/sitemap.mjs, netlify/edge-functions/meta-social.js, y
+la barra de navegación de las 22 páginas. **guia.html pasa a enlaces
+absolutos** — servida en /noticias/algo, una ruta relativa se buscaría
+en /noticias/css/.
+
+**Pruebas**: test-tanda-269.mjs (33) y rigor-tanda-269.py (17
+mutaciones). Suite entera verde (36). Portada en 152,3 KB gzip de 170.
+El doble aprendió a fingir que una columna no existe
+(`__COLUMNAS_QUE_FALTAN__`), que es lo único que prueba el puente de
+verdad.
+
+**En curso / pendiente**: (1) PINGU tiene que ejecutar
+supabase-migration-noticias.sql — hasta entonces el puente aguanta pero
+no hay noticias; (2) el cuerpo del artículo servido desde el servidor,
+que es lo que de verdad decide si esto funciona para SEO; (3) RSS; (4)
+`dateModified`; (5) aviso por campanita y correo de cada noticia. Y
+siguen esperando las cinco migraciones anteriores de la raíz.
+
+---
+
 ## 2026-09-09 (2) — PINGU-Claude (tanda 268 — la imagen, una pieza)
 
 **Hecho**: PINGU volvió con «sigue yendo fatal» después de la 267, y

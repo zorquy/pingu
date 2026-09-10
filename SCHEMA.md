@@ -13066,3 +13066,123 @@ vieja que ya venía con una `<figure>` de texto.
 
 La suite entera sigue verde, foro incluido: el mismo editor lo usan los
 temas y las respuestas del foro.
+
+## Tanda 269 — Noticias (sept. 2026)
+
+PokeDoc empieza a publicar **noticias** en español: cartas reveladas,
+sets, torneos, cambios de formato. Es el hueco que no cubre nadie —
+PokeBeach y compañía están en inglés— y es la puerta de entrada de
+buscador que le faltaba al sitio.
+
+### La decisión de fondo: no hay tabla nueva
+
+Lo dijo PINGU y es exacto: **un artículo es una guía**. Mismo editor,
+misma página de lectura, mismo índice, mismas imágenes en fila. Lo único
+que hay que resolver es cómo distinguirlas.
+
+Así que una noticia es una fila de `guides` con **`kind = 'news'`**. Con
+eso, desde el primer día funcionan sin tocar nada: el editor, la
+búsqueda, los guardados, la campanita, el correo, la vista previa al
+compartir y el sitemap.
+
+Lo que cambia es el traje:
+
+| | Guía | Noticia |
+| --- | --- | --- |
+| Dirección | `/guia.html?slug=…` | **`/noticias/<slug>`** |
+| Se lista en | su categoría, `/aprender` | **`/noticias`**, por fecha |
+| Migas | Inicio › Categoría › … | Inicio › **Noticias** › … |
+| Datos | `Article` | **`NewsArticle`** con `datePublished` |
+| Chapas | nivel y rareza | **la fecha** |
+| Quién publica | la comunidad, con revisión | **solo administración** |
+
+### La columna, y por qué el candado está en la base
+
+`kind` lleva `default 'guide'`: nada de lo ya publicado hay que tocarlo,
+y cualquier inserción que no la mande sigue creando una guía.
+
+Publicar una noticia es **firmar en nombre de PokeDoc**, así que solo
+administración. Y eso va en la BASE, con un disparador que devuelve la
+fila a `guide` si quien escribe no es del equipo — el mismo patrón que
+`is_official` de los torneos (tanda 266). Un `if` en el navegador no
+protegería nada: la petición a la API llega igual. En el editor, el
+desplegable «Tipo de artículo» solo se le enseña a administración, pero
+eso es para no enseñar un mando que no se puede usar, no es la
+protección.
+
+### El puente, que es lo que evita apagar el sitio
+
+**Este es el detalle que más importa de la tanda.** Netlify publica al
+empujar; la migración la ejecuta una persona a mano, después. En ese
+hueco la columna `kind` NO EXISTE — y una consulta que la filtre no
+devuelve cero filas: devuelve un error 42703. Sin red, ese despliegue
+deja la portada, `/aprender` y las páginas de categoría **vacías** hasta
+que alguien se acuerde del SQL.
+
+`js/articulos.js` tiene `conVueltaAtrasDeTipo(conFiltro, sinFiltro)`:
+intenta la consulta filtrada y, si la columna no está, repite sin filtro
+y avisa por consola. Todo sigue exactamente como antes hasta que la
+migración aparece. El sitemap lleva el mismo puente. Es temporal, como el
+`faltaLaRpc` de los torneos: cuando la migración lleve un tiempo, se
+quita.
+
+### Que las noticias no tapen las guías
+
+Una noticia se publica mucho más a menudo que una guía. Sin filtro, tres
+noticias de una tarde barren de la portada guías que han costado una
+semana. Llevan `kind = 'guide'` ahora: la portada (las tres recientes y
+el contador), `/aprender` y la página de categoría. La **búsqueda no**, a
+propósito: quien busca «30 aniversario» quiere encontrar la noticia.
+
+### Una dirección por artículo
+
+A una noticia se llega por dos caminos —`/noticias/<slug>` y el de guía,
+desde la búsqueda o un enlace viejo— y dos direcciones con el mismo texto
+reparten entre las dos lo que debería ir a una. Se cierra por los dos
+lados: `guia.js` corrige la barra de direcciones con `replaceState` y
+apunta ahí la canónica, y la edge function `meta-social` pone esa misma
+canónica en el servidor, que es la que ve el robot.
+
+Para que `guia.html` se pueda servir en `/noticias/algo` hubo que pasar
+sus enlaces a **rutas absolutas**: servida ahí, un `css/style.css`
+relativo se buscaría en `/noticias/css/`. De paso, eso deja el camino
+hecho para darle a las guías su propia dirección limpia.
+
+### El listado
+
+La última noticia va **grande y a todo el ancho** (portada 16:9, fecha,
+titular y entradilla) y el resto en una **rejilla de tres columnas** (dos
+en tablet, una en móvil), con «Ver más» paginando por fecha.
+
+La portada grande aquí, y pequeña en las guías, no es un capricho: en
+`components.css` está escrito por qué se descartó para las guías —«la
+mayoría no tienen portada, quedaba una rejilla a parches»—. En noticias
+se da la vuelta, porque **todas** llevan imagen: la carta revelada, el
+logo del set, el sobre.
+
+El CSS va en `css/noticias.css`, no en `components.css`, que lo descarga
+todo el mundo. La portada del sitio sigue en **152,3 KB gzip** de 170.
+
+### Comprobado
+
+`test-tanda-269.mjs` (33 comprobaciones) y `rigor-tanda-269.py` (17
+mutaciones). El doble de Supabase aprendió dos cosas nuevas: sembrar
+noticias en la misma tabla que las guías, y **fingir que una columna
+todavía no existe** (`__COLUMNAS_QUE_FALTAN__`), que es lo único que
+permite probar de verdad el puente de la migración — el fallo que se
+llevaría por delante el sitio entero.
+
+### Lo que queda para la siguiente
+
+- **El cuerpo del artículo servido desde el servidor.** Hoy `guia.html`
+  llega vacío y el texto lo pinta el JavaScript. Google lo ejecuta, pero
+  en una segunda cola que tarda de horas a días: para una guía eterna da
+  igual, para una noticia es la diferencia entre existir y no existir. La
+  edge function ya se descarga el artículo para las etiquetas, así que es
+  el mismo viaje.
+- **RSS**, que es de donde le entra a PokeBeach buena parte del tráfico.
+- **`dateModified`**: la columna `updated_at` la crea esta migración, pero
+  pedirla en la edge function antes de que esté ejecutada devolvería 400
+  y dejaría al sitio entero sin etiquetas sociales. Se enchufa después.
+- Avisar por campanita y correo de cada noticia nueva, y el hilo de foro
+  automático para comentarlas.

@@ -1,0 +1,206 @@
+/* La portada de noticias (tanda 269).
+ *
+ * Fichero propio y no components.css: esto solo lo usa /noticias, y
+ * components.css lo descarga TODO el mundo (presupuesto de la portada,
+ * ver CLAUDE.md).
+ *
+ * La idea del diseño: la imagen manda. En las tarjetas de guía la
+ * portada va pequeña a un lado porque la mayoría de las guías no tienen
+ * —está razonado en components.css—, pero una noticia sin imagen no
+ * existe: es la carta revelada, el logo del set, el sobre. Aquí la
+ * imagen es media noticia, así que va grande. */
+
+.noticias-cabecera {
+  margin-bottom: 22px;
+}
+
+.noticias-cabecera h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.noticias-cabecera p {
+  color: var(--text-mid);
+  margin-top: 6px;
+  max-width: 60ch;
+}
+
+/* ── La portada de cada noticia ── */
+
+.noticia-portada {
+  background-size: cover;
+  background-position: center;
+  background-color: var(--ice);
+  border-radius: var(--radius-lg);
+  /* 16:9 con `aspect-ratio` y no con el truco del padding: así la caja
+     reserva su altura antes de que cargue la imagen y la página no pega
+     el salto al llegar cada portada. */
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+.noticia-portada-vacia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--navy);
+  opacity: 0.45;
+}
+
+/* ── El titular: la última noticia, a todo el ancho ── */
+
+.noticia-titular {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 26px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.noticia-titular:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.noticia-titular h2 {
+  font-size: 26px;
+  line-height: 1.2;
+  margin-top: 6px;
+}
+
+.noticia-titular p {
+  color: var(--text-mid);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+/* La chapa de «Lo último». Es la única pista de que esa noticia grande es
+   la más reciente y no una destacada a mano. */
+.noticia-ultima {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--white);
+  background: var(--navy);
+  border-radius: 999px;
+  padding: 3px 9px;
+  margin-right: 8px;
+}
+
+/* ── La rejilla ── */
+
+.noticias-rejilla {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.noticia-tarjeta {
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.15s var(--ease);
+}
+
+.noticia-tarjeta:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+
+.noticia-tarjeta h3 {
+  font-size: 16px;
+  line-height: 1.3;
+  margin-top: 5px;
+  /* Tres líneas y puntos suspensivos, pero reservando SIEMPRE el alto de
+     las tres: si no, un titular corto y uno largo dejan las tarjetas de
+     la misma fila descuadradas. */
+  height: 3.9em;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.noticia-tarjeta p {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.45;
+  margin-top: 6px;
+  height: 2.9em;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.noticia-cuerpo {
+  padding: 10px 4px 2px;
+  min-width: 0;
+}
+
+.noticia-titular .noticia-cuerpo {
+  padding: 4px 8px;
+}
+
+.noticia-fecha {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.noticias-mas {
+  display: flex;
+  justify-content: center;
+  margin-top: 26px;
+}
+
+/* ── Pantallas medianas y móvil ──
+ *
+ * Tres columnas en una tablet dejan portadas de 200 px, que para una
+ * carta revelada es no verla. Bajan a dos, y el titular deja de ser dos
+ * columnas para que la imagen grande siga siendo grande. */
+@media (max-width: 900px) {
+  .noticias-rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .noticia-titular {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .noticia-titular h2 {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 560px) {
+  .noticias-rejilla {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  /* En una columna, el alto reservado para cuadrar la fila ya no cuadra
+     nada: sobra hueco debajo de cada titular corto. */
+  .noticia-tarjeta h3,
+  .noticia-tarjeta p {
+    height: auto;
+  }
+}

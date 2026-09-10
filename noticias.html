@@ -4,37 +4,31 @@
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Buscar — PokeDoc</title>
+  <title>Noticias de Pokémon TCG en español — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
   <link rel="apple-touch-icon" href="/assets/icon-192.png" />
-  <meta name="description" content="Busca guías y cursos de Pokémon TCG por palabra clave o categoría." />
+  <meta name="description" content="Las novedades del juego de cartas Pokémon en español: cartas reveladas, sets, torneos y cambios de formato. Al día y sin tener que leer en inglés." />
   <!-- meta-social:inicio -->
-  <link rel="canonical" href="https://pokedoc.es/buscar.html" />
-  <meta property="og:url" content="https://pokedoc.es/buscar.html" />
+  <link rel="canonical" href="https://pokedoc.es/noticias" />
+  <meta property="og:url" content="https://pokedoc.es/noticias" />
   <meta property="og:site_name" content="PokeDoc" />
   <meta property="og:type" content="website" />
+  <meta name="robots" content="max-image-preview:large" />
   <meta property="og:locale" content="es_ES" />
-  <meta property="og:title" content="Buscar — PokeDoc" />
-  <meta property="og:description" content="Busca guías y cursos de Pokémon TCG por palabra clave o categoría." />
+  <meta property="og:title" content="Noticias de Pokémon TCG en español" />
+  <meta property="og:description" content="Cartas reveladas, sets, torneos y cambios de formato. En español y al día." />
   <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Buscar — PokeDoc" />
-  <meta name="twitter:description" content="Busca guías y cursos de Pokémon TCG por palabra clave o categoría." />
+  <meta name="twitter:title" content="Noticias de Pokémon TCG en español" />
+  <meta name="twitter:description" content="Cartas reveladas, sets, torneos y cambios de formato. En español y al día." />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <!-- Estos seis módulos los carga TODA página. Sin esto el navegador
-       los descubre en cascada —la página pide su .js, ese pide app.js,
-       app.js pide supabase.js y ese el bundle de 152 KB—, y cada salto
-       es un viaje de ida y vuelta más antes de poder pintar. Con
-       modulepreload se piden los seis a la vez, desde el primer momento.
-       Van estos y no todo el grafo a propósito: son los que no cambian
-       de página a página, así que no se quedan obsoletos solos. -->
   <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
   <link rel="modulepreload" href="/js/supabase.js" />
   <link rel="modulepreload" href="/js/app.js" />
@@ -43,6 +37,7 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/noticias.css" />
 </head>
 <body>
   <nav class="navbar" id="navbar">
@@ -71,31 +66,27 @@
     </div>
   </nav>
 
-  <main class="page-content container-narrow">
-    <div class="page-header" style="padding-top: 8px;">
-      <h1>Buscar</h1>
-    </div>
+  <main class="page-content container">
+    <header class="noticias-cabecera">
+      <h1>Noticias</h1>
+      <p>Lo que va pasando en el juego de cartas Pokémon, contado en español: cartas reveladas, sets, torneos y cambios de formato.</p>
+    </header>
 
-    <div class="search-input-wrap">
-      <input type="text" id="searchInput" class="search-input" placeholder="Cartas falsas, PSA, rarezas…" autofocus />
+    <!-- La última noticia, grande. La rellena js/noticias.js: aquí se
+         queda el hueco para que la página no dé el salto al cargar. -->
+    <div id="noticiaTitular"></div>
+    <div class="noticias-rejilla" id="noticiasRejilla">
+      <p class="empty-state">Cargando noticias…</p>
     </div>
-
-    <div class="form-group" style="max-width: 280px; margin-bottom: 20px;">
-      <label>Categoría</label>
-      <select id="categorySelect">
-        <option value="">Todas las categorías</option>
-      </select>
-    </div>
-
-    <div id="searchResults"></div>
+    <div class="noticias-mas" id="noticiasMasCaja"></div>
   </main>
 
   <footer class="footer">
     <p>© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
-    <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
+    <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/lanzamientos.html">Lanzamientos</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
   </footer>
 
   <script type="module" src="js/app.js"></script>
-  <script type="module" src="js/search.js"></script>
+  <script type="module" src="js/noticias.js"></script>
 </body>
 </html>

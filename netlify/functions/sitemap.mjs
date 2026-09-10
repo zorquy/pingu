@@ -23,6 +23,9 @@ const SITIO = 'https://pokedoc.es'
 // ya llevan <meta name="robots" content="noindex">.
 const ESTATICAS = [
   ['/', '1.0'],
+  // La portada de noticias se actualiza a diario: es la que más interesa
+  // que un buscador vuelva a mirar.
+  ['/noticias', '0.9'],
   ['/aprender.html', '0.9'],
   ['/buscar.html', '0.6'],
   ['/usuarios.html', '0.6'],
@@ -83,7 +86,12 @@ export default async () => {
       // seguridad: el formato admite 50.000 URLs por fichero y no vamos a
       // acercarnos, pero una consulta sin límite es una consulta que
       // algún día devuelve toda la tabla.
-      consultar('guides?published_at=not.is.null&select=slug,published_at&order=published_at.desc&limit=5000'),
+      // `kind` con vuelta atrás: mientras la migración de noticias no
+      // esté puesta, la columna no existe y pedirla tumbaría el sitemap
+      // ENTERO. Sin ella todo se trata como guía, que es lo que era.
+      consultar('guides?published_at=not.is.null&select=slug,published_at,kind&order=published_at.desc&limit=5000').catch(
+        () => consultar('guides?published_at=not.is.null&select=slug,published_at&order=published_at.desc&limit=5000')
+      ),
       consultar('categories?select=slug&order=order_pos'),
       // El foro va con su propio `catch`: si todavía no está migrado, la
       // consulta falla y el resto del sitemap tiene que salir igual.
@@ -104,15 +112,20 @@ export default async () => {
       }
     }
 
+    // Una noticia va con SU dirección (/noticias/<slug>) y con otra
+    // prioridad: lo que le interesa a un buscador de una noticia es
+    // encontrarla el mismo día, no revisarla cada mes.
     for (const g of guias) {
-      if (g.slug) {
-        urls.push({
-          loc: `${SITIO}/guia.html?slug=${encodeURIComponent(g.slug)}`,
-          lastmod: soloFecha(g.published_at),
-          priority: '0.8',
-          changefreq: 'monthly',
-        })
-      }
+      if (!g.slug) continue
+      const esNoticia = g.kind === 'news'
+      urls.push({
+        loc: esNoticia
+          ? `${SITIO}/noticias/${encodeURIComponent(g.slug)}`
+          : `${SITIO}/guia.html?slug=${encodeURIComponent(g.slug)}`,
+        lastmod: soloFecha(g.published_at),
+        priority: esNoticia ? '0.9' : '0.8',
+        changefreq: esNoticia ? 'daily' : 'monthly',
+      })
     }
     for (const f of foros) {
       if (f.slug) {

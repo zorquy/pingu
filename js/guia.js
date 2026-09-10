@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { rutaDeArticulo, fechaLarga, fechaMaquina } from './articulos.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, avatarStyle, guideHasCourse } from './app.js'
 import { renderReferenceBlocksHtml } from './block-editor.js'
 import { hydrateDecks } from './cards-block.js'
@@ -95,6 +96,30 @@ async function init() {
     return
   }
 
+  // Una noticia es este mismo artículo con otro traje: otra sección, otra
+  // dirección y otros datos estructurados. El texto, el índice y el
+  // editor son los mismos — porque es lo mismo.
+  const esNoticia = guide.kind === 'news'
+
+  // UNA dirección por artículo. Se puede llegar a una noticia por
+  // /guia.html?slug=… (desde la búsqueda, o desde un enlace viejo), pero
+  // la buena es /noticias/<slug>: se corrige la barra de direcciones sin
+  // recargar y se apunta ahí la canónica, que es lo que evita que Google
+  // vea dos páginas con el mismo texto.
+  if (esNoticia) {
+    const buena = rutaDeArticulo('news', guide.slug)
+    if (window.location.pathname + window.location.search !== buena) {
+      history.replaceState(null, '', buena)
+    }
+    let canonica = document.querySelector('link[rel="canonical"]')
+    if (!canonica) {
+      canonica = document.createElement('link')
+      canonica.rel = 'canonical'
+      document.head.appendChild(canonica)
+    }
+    canonica.href = `https://pokedoc.es${buena}`
+  }
+
   document.title = `${guide.title} — PokeDoc`
   supabase.from('guides').update({ view_count: (guide.view_count || 0) + 1 }).eq('id', guide.id)
 
@@ -179,8 +204,12 @@ async function init() {
 
   main.innerHTML = `
     <div class="breadcrumb">
-      <a href="index.html">Inicio</a> <span>›</span>
-      <a href="categoria.html?slug=${encodeURIComponent(guide.categories?.slug || '')}">${escapeHtml(guide.categories?.name || '')}</a>
+      <a href="/index.html">Inicio</a> <span>›</span>
+      ${
+        esNoticia
+          ? `<a href="/noticias">Noticias</a>`
+          : `<a href="/categoria.html?slug=${encodeURIComponent(guide.categories?.slug || '')}">${escapeHtml(guide.categories?.name || '')}</a>`
+      }
       <span>›</span> <span>${escapeHtml(guide.title)}</span>
     </div>
     <div class="article-header">
@@ -214,15 +243,28 @@ async function init() {
           : ''
       }
       <span class="emoji-big">${contentIconHtml(guide.cover_emoji, 40, 'bookOpen')}</span>
-      <span class="guide-label">${escapeHtml(guide.categories?.name || '')}</span>
+      <span class="guide-label">${esNoticia ? 'Noticia' : escapeHtml(guide.categories?.name || '')}</span>
       <h1>${escapeHtml(guide.title)}</h1>
       <p class="lead">${escapeHtml(guide.description || '')}</p>
       ${opHeaderHtml}
       <div class="article-meta">
+        ${
+          // En una noticia lo primero que se mira es CUÁNDO. El <time>
+          // con `datetime` no es decoración: es de donde Google saca la
+          // fecha de publicación.
+          esNoticia
+            ? `<time class="time-tag" datetime="${escapeHtml(fechaMaquina(guide.published_at))}">${escapeHtml(fechaLarga(guide.published_at))}</time>`
+            : ''
+        }
         <span class="time-tag" title="Tiempo de lectura estimado">${minutosLectura} min de lectura</span>
-        <span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
-        <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>
-        ${MOSTRAR_PLANES ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
+        ${
+          // El nivel y la rareza son de las guías: una noticia no es
+          // «básica» ni «de bronce», y ponerle esas chapas la hace
+          // parecer lo que no es.
+          esNoticia ? '' : `<span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
+        <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>`
+        }
+        ${MOSTRAR_PLANES && !esNoticia ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
         <!-- Los botones van en su propio grupo, no sueltos entre las
              etiquetas. Sueltos, el "margin-left: auto" lo llevaba solo
              Guardar: en cuanto la línea no cabía, Compartir se caía a la

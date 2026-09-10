@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { conVueltaAtrasDeTipo } from './articulos.js'
 import { escapeHtml, getSession, profileUrl, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml, guideHasReference } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { icons } from './icons.js'
@@ -41,10 +42,15 @@ async function loadCategories() {
 async function loadHeroGuideCount() {
   const el = document.getElementById('heroStatGuides')
   if (!el) return
-  const { count } = await supabase
-    .from('guides')
-    .select('*', { count: 'exact', head: true })
-    .not('published_at', 'is', null)
+  // El contador dice «N guías», así que cuenta guías: una noticia no es
+  // una guía por mucho que comparta tabla. Con vuelta atrás, porque si la
+  // consulta falla el contador enseña un 0 —y un «0 guías» en la portada
+  // es peor que un número un poco de más.
+  const contar = (filtrar) => {
+    let q = supabase.from('guides').select('*', { count: 'exact', head: true }).not('published_at', 'is', null)
+    return filtrar ? q.eq('kind', 'guide') : q
+  }
+  const { count } = await conVueltaAtrasDeTipo(() => contar(true), () => contar(false))
   el.textContent = count || 0
 }
 
@@ -68,12 +74,19 @@ async function cargarNumerosComunidad() {
 
 async function loadRecent() {
   const grid = document.getElementById('recentGrid')
-  const { data, error } = await supabase
-    .from('guides')
-    .select('*, categories(name)')
-    .not('published_at', 'is', null)
-    .order('published_at', { ascending: false })
-    .limit(3)
+  // Solo GUÍAS. Las noticias son mucho más frecuentes que las guías: sin
+  // este filtro, tres noticias de la misma tarde tapan en la portada las
+  // guías que le han costado a alguien una semana.
+  const consulta = (filtrar) => {
+    let q = supabase
+      .from('guides')
+      .select('*, categories(name)')
+      .not('published_at', 'is', null)
+      .order('published_at', { ascending: false })
+      .limit(3)
+    return filtrar ? q.eq('kind', 'guide') : q
+  }
+  const { data, error } = await conVueltaAtrasDeTipo(() => consulta(true), () => consulta(false))
 
   if (error || !data || data.length === 0) {
     grid.innerHTML = `<p class="empty-state">Todavía no hay guías publicadas.</p>`

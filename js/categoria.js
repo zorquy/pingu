@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { conVueltaAtrasDeTipo } from './articulos.js'
 import { escapeHtml, getSession, tintClassForKey, categoryIconHtml, guideHasCourse } from './app.js'
 import { renderGuideCardHtml, decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { inlineIconHtml } from './content-icon.js'
@@ -37,13 +38,20 @@ async function initCategoryMode() {
       <p>${escapeHtml(category.description || '')}</p>
     </div>`
 
-  const [{ data: guides }, { data: collections }] = await Promise.all([
-    supabase
+  // Una noticia puede llevar categoría (para la búsqueda y los datos),
+  // pero no se lista aquí: esta página es el temario de la categoría, y
+  // una noticia de hace tres meses no lo es.
+  const pedirGuias = (filtrar) => {
+    let q = supabase
       .from('guides')
       .select('*')
       .eq('category_id', category.id)
       .not('published_at', 'is', null)
-      .order('collection_order', { ascending: true }),
+    if (filtrar) q = q.eq('kind', 'guide')
+    return q.order('collection_order', { ascending: true })
+  }
+  const [{ data: guides }, { data: collections }] = await Promise.all([
+    conVueltaAtrasDeTipo(() => pedirGuias(true), () => pedirGuias(false)),
     supabase.from('guide_collections').select('*').eq('category_id', category.id),
   ])
 

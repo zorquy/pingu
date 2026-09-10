@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { conVueltaAtrasDeTipo } from './articulos.js'
 import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, categoryIconHtml, guideHasCourse } from './app.js'
 import { icons } from './icons.js'
 import { medallasPorCurso } from './medallero.js'
@@ -38,10 +39,15 @@ async function loadCategories(session) {
 
   // Se cuenta a partir de las guías publicadas y no de `guide_count`,
   // que es un contador cacheado y además no distingue qué tiene curso.
-  const { data: publishedGuides } = await supabase
-    .from('guides')
-    .select('id, category_id, blocks')
-    .not('published_at', 'is', null)
+  //
+  // «Aprender» es de guías y cursos: las noticias tienen su sección. Con
+  // vuelta atrás mientras la migración de noticias no esté puesta — sin
+  // ella la consulta falla y esta página se queda a cero.
+  const pedirGuias = (filtrar) => {
+    let q = supabase.from('guides').select('id, category_id, blocks').not('published_at', 'is', null)
+    return filtrar ? q.eq('kind', 'guide') : q
+  }
+  const { data: publishedGuides } = await conVueltaAtrasDeTipo(() => pedirGuias(true), () => pedirGuias(false))
 
   const guides = publishedGuides || []
   const categoryOfGuide = new Map(guides.map((g) => [g.id, g.category_id]))

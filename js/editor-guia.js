@@ -21,6 +21,9 @@ let refBlocks = []
 let coverImageUrl = ''
 let draftScope = null
 let stopAutosave = () => {}
+// Si quien edita es del equipo. Decide si se enseña —y se manda— el tipo
+// de artículo; el candado de verdad está en la base.
+let soyAdmin = false
 
 function updateCoverImagePreview() {
   document.getElementById('mgCoverImagePreview').src = coverImageUrl
@@ -178,6 +181,9 @@ function buildPayload(reviewStatus) {
     cover_image: coverImageUrl || null,
     description: document.getElementById('mgDescription').value.trim(),
     level: document.getElementById('mgLevel').value,
+    // Solo se manda si quien edita es del equipo: para todos los demás la
+    // fila se queda como está y no se pisa el valor que ya tuviera.
+    ...(soyAdmin ? { kind: document.getElementById('mgKind').value } : {}),
     blocks: courseBlocks,
     reference_blocks: refBlocks,
     // El buscador busca en `search_content`, no dentro de
@@ -292,6 +298,23 @@ async function init() {
   attachEmojiPicker(document.getElementById('mgCoverEmoji'))
 
   if (guideId) await loadExistingGuide(currentSession)
+
+  // El interruptor de «esto es una noticia», solo para administración.
+  //
+  // El candado de verdad NO está aquí: lo pone la base, con un disparador
+  // que devuelve la fila a guía si quien la escribe no es del equipo (ver
+  // supabase-migration-noticias.sql). Esto es para no enseñar un mando
+  // que no se puede usar — un `if` en el navegador no protege nada.
+  const { data: miPerfil } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', currentSession.user.id)
+    .maybeSingle()
+  soyAdmin = !!miPerfil?.is_admin
+  if (soyAdmin) {
+    document.getElementById('mgKindCampo').classList.remove('hidden')
+    document.getElementById('mgKind').value = existingGuide?.kind || 'guide'
+  }
 
   // Se llega aquí desde una petición de guía ("Escribir esta guía"): el
   // título viene puesto para no arrancar con la página en blanco, que es

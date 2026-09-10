@@ -195,8 +195,12 @@ function urlCanonica(url) {
   return `${SITIO}${url.pathname}${url.search}`
 }
 
-async function metaDeGuia(url, esCurso) {
-  const slug = url.searchParams.get('slug')
+async function metaDeGuia(url, esCurso, esNoticia = false) {
+  // Una noticia llega por /noticias/<slug>, no por ?slug=. Lo reescribe
+  // Netlify a guia.html DESPUÉS de esto, así que aquí la dirección todavía
+  // es la que ha pedido el robot.
+  const enRuta = url.pathname.match(/^\/noticias\/([^/?#]+)/)
+  const slug = enRuta ? decodeURIComponent(enRuta[1]) : url.searchParams.get('slug')
   if (!slug) return null
   // Las columnas que se piden están todas comprobadas: si se cuela una que
   // no existe, PostgREST devuelve 400, `pedir` devuelve null y la página se
@@ -211,14 +215,20 @@ async function metaDeGuia(url, esCurso) {
   const descripcion =
     recortar(guia.description) ||
     recortar(guia.search_content) ||
-    'Guía de la comunidad de PokeDoc sobre Pokémon TCG.'
+    (esNoticia ? 'Noticia de Pokémon TCG en español.' : 'Guía de la comunidad de PokeDoc sobre Pokémon TCG.')
 
   const imagen = urlAbsoluta(guia.cover_image) || IMAGEN_POR_DEFECTO
-  const canonica = urlCanonica(url)
+  // A una noticia se puede llegar por dos direcciones (la limpia y la de
+  // guía, desde un enlace viejo o desde la búsqueda). La canónica es
+  // SIEMPRE la limpia: si no, Google ve dos páginas con el mismo texto y
+  // reparte entre las dos lo que debería ir a una.
+  const canonica = esNoticia ? `${SITIO}/noticias/${encodeURIComponent(slug)}` : urlCanonica(url)
   const categoria = guia.categories
 
   const camino = [{ nombre: 'Inicio', url: `${SITIO}/` }]
-  if (categoria?.name && categoria?.slug) {
+  if (esNoticia) {
+    camino.push({ nombre: 'Noticias', url: `${SITIO}/noticias` })
+  } else if (categoria?.name && categoria?.slug) {
     camino.push({ nombre: categoria.name, url: `${SITIO}/categoria.html?slug=${encodeURIComponent(categoria.slug)}` })
   }
   camino.push({ nombre: guia.title, url: canonica })
@@ -233,8 +243,11 @@ async function metaDeGuia(url, esCurso) {
       '@context': 'https://schema.org',
       '@graph': [
         {
-          // Un curso es otra cosa que un artículo, y schema.org lo sabe.
-          '@type': esCurso ? 'Course' : 'Article',
+          // Un curso es otra cosa que un artículo, y una noticia otra: es
+          // `NewsArticle` lo que hace que Google la trate como noticia
+          // (fecha visible en el resultado, opción de Google News) y no
+          // como una página más que se escribió un día.
+          '@type': esCurso ? 'Course' : esNoticia ? 'NewsArticle' : 'Article',
           '@id': canonica,
           mainEntityOfPage: canonica,
           headline: guia.title,
@@ -243,6 +256,12 @@ async function metaDeGuia(url, esCurso) {
           image: imagen,
           inLanguage: 'es-ES',
           ...(guia.published_at ? { datePublished: guia.published_at } : {}),
+          // Falta `dateModified`, que en una noticia importa —una
+          // revelación se corrige y se amplía durante el día—. La columna
+          // `updated_at` la crea la migración de esta tanda, y pedir aquí
+          // una columna que todavía no existe devuelve 400 y deja SIN
+          // etiquetas sociales a todo el sitio. Se enchufa cuando la
+          // migración lleve puesta un tiempo.
           // Sin autor concreto, la guía es de la casa. El autor de verdad se
           // añadiría con otra consulta, y no vale la pena hacer esperar al
           // robot por un campo opcional.
@@ -601,6 +620,9 @@ async function metaDeTorneo(url) {
 
 async function calcularMeta(url) {
   const ruta = url.pathname
+  // Antes que /guia: una noticia se sirve DESDE guia.html, pero se pide
+  // por /noticias/<slug> y es lo que hay que mirar.
+  if (ruta.startsWith('/noticias/')) return metaDeGuia(url, false, true)
   if (ruta.startsWith('/guia')) return metaDeGuia(url, false)
   if (ruta.startsWith('/curso')) return metaDeGuia(url, true)
   if (ruta.startsWith('/categoria')) return metaDeCategoria(url)
@@ -650,6 +672,7 @@ export default async (request, context) => {
 // eso es justo lo que veníamos a arreglar.
 export const config = {
   path: [
+    '/noticias/*',
     '/guia.html',
     '/curso.html',
     '/categoria.html',

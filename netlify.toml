@@ -124,6 +124,27 @@
   to = "/tema.html?t=:id"
   status = 200
 
+# Las noticias (tanda 269): /noticias y /noticias/<slug>.
+#
+# `/noticias` necesita su regla —no hay ningún fichero con ese nombre—, y
+# se sirve con 200 para que la dirección que ve la gente y la que indexa
+# Google sea la corta, sin el `.html`.
+#
+# La noticia se pinta con la MISMA página que una guía: un artículo es un
+# artículo. Lo que cambia es la dirección, y de la dirección salen las
+# migas de pan y los datos estructurados de noticia. Por eso guia.html
+# pasó a enlazar todo con rutas absolutas: servida en /noticias/algo, una
+# ruta relativa como `css/style.css` se buscaría en /noticias/css/.
+[[redirects]]
+  from = "/noticias"
+  to = "/noticias.html"
+  status = 200
+
+[[redirects]]
+  from = "/noticias/:slug"
+  to = "/guia.html?slug=:slug"
+  status = 200
+
 # Cualquier dirección que no exista termina en la 404 CON código 404.
 #
 # Antes esta regla mandaba todo a la portada con un 200: un enlace mal

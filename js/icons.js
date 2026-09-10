@@ -38,6 +38,7 @@ export const icons = {
   bookmark: (size, filled = false) =>
     `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`,
   flag: (size) => icon('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line>', size),
+  newspaper: (size) => icon('<path d="M4 4h13a1 1 0 0 1 1 1v14a2 2 0 0 0 2 2H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1z"></path><path d="M18 8h2a1 1 0 0 1 1 1v10a2 2 0 0 1-2 2"></path><line x1="7" y1="8" x2="14" y2="8"></line><line x1="7" y1="12" x2="14" y2="12"></line><line x1="7" y1="16" x2="11" y2="16"></line>', size),
   bookOpen: (size) => icon('<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>', size),
   graduationCap: (size) => icon('<path d="M22 10 12 5 2 10l10 5 10-5Z"></path><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"></path>', size),
   clock: (size) => icon('<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>', size),
