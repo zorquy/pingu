@@ -10,6 +10,7 @@
   <meta name="theme-color" content="#1e5175" />
   <link rel="apple-touch-icon" href="/assets/icon-192.png" />
   <meta name="description" content="Guía de referencia sobre Pokémon TCG." />
+  <link rel="alternate" type="application/rss+xml" title="PokeDoc — Pokémon TCG en español" href="/rss.xml" />
   <!-- meta-social:inicio -->
   <meta property="og:site_name" content="PokeDoc" />
   <meta property="og:type" content="website" />
@@ -71,8 +72,13 @@
 
   <main class="page-content container">
     <div class="article-layout">
+      <!-- El texto del artículo lo pinta js/guia.js... y también, ANTES,
+           la edge function meta-social: entre estos dos marcadores mete el
+           artículo ya hecho, para que esté en el HTML sin tener que
+           ejecutar JavaScript (ver tanda 270). Quien llega con navegador
+           ve exactamente lo mismo, solo que un poco antes. -->
       <article class="article-main" id="articleMain">
-        <p class="empty-state">Cargando guía…</p>
+        <!-- articulo:inicio --><p class="empty-state">Cargando guía…</p><!-- articulo:fin -->
       </article>
       <aside class="article-sidebar" id="articleSidebar"></aside>
     </div>

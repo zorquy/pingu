@@ -64,7 +64,29 @@ export async function contenidoSemanal(rest, clave) {
     clave
   )
 
-  return { temas: temasOrdenados, mensajesPorTema: cuenta, guia: guias?.[0] || null }
+  // Las noticias de la semana (tanda 272).
+  //
+  // POR QUÉ AQUÍ Y NO UN CORREO POR NOTICIA: con tres o cuatro noticias
+  // por semana, avisar de cada una es la forma más rápida de que 150
+  // personas se den de baja. El resumen ya existe, ya tiene su baja de un
+  // clic y su dedupe, y una vez por semana sí se lee. Quien las quiera al
+  // momento tiene el canal RSS (/rss.xml, tanda 271).
+  //
+  // Con vuelta atrás: mientras la migración de noticias no esté puesta la
+  // columna `kind` no existe, y pedirla tumbaría el resumen ENTERO —
+  // incluida la parte del foro, que no tiene nada que ver.
+  let noticias = []
+  try {
+    noticias =
+      (await rest(
+        `guides?kind=eq.news&published_at=gte.${encodeURIComponent(desde)}&select=title,slug,published_at&order=published_at.desc&limit=4`,
+        clave
+      )) || []
+  } catch {
+    noticias = []
+  }
+
+  return { temas: temasOrdenados, mensajesPorTema: cuenta, guia: guias?.[0] || null, noticias }
 }
 
 export async function procesar({ env = process.env, rest = restReal, ahora = new Date() } = {}) {
@@ -72,10 +94,14 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
   if (!clave) return { ok: true, saltado: 'sin SUPABASE_SERVICE_ROLE_KEY: no se encola nada' }
 
   const semana = claveSemana(ahora)
-  const { temas, mensajesPorTema, guia } = await contenidoSemanal(rest, clave)
+  const { temas, mensajesPorTema, guia, noticias } = await contenidoSemanal(rest, clave)
 
   // Semana sin vida = sin correo. Mejor callar que escribir para nada.
-  if (temas.length === 0 && !guia) return { ok: true, saltado: 'semana sin contenido: no se manda nada' }
+  // Una semana con noticias SÍ tiene algo que contar aunque el foro haya
+  // estado tranquilo.
+  if (temas.length === 0 && !guia && (noticias || []).length === 0) {
+    return { ok: true, saltado: 'semana sin contenido: no se manda nada' }
+  }
 
   // El cuerpo va ESTRUCTURADO (JSON en `preview`): send-emails lo pinta
   // con la plantilla propia del resumen (renderResumenSemanal, en
@@ -86,6 +112,7 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
   const preview = JSON.stringify({
     temas: temas.map((t) => ({ id: t.id, titulo: t.title, mensajes: mensajesPorTema[t.id] || 0 })),
     guia: guia ? { titulo: guia.title, slug: guia.slug } : null,
+    noticias: (noticias || []).map((n) => ({ titulo: n.title, slug: n.slug })),
   })
 
   // A quién: todos los perfiles con el resumen semanal encendido.

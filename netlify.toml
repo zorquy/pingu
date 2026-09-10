@@ -124,6 +124,13 @@
   to = "/tema.html?t=:id"
   status = 200
 
+# El canal RSS (tanda 271). Igual que el sitemap: se genera en la
+# petición, porque las direcciones salen de Supabase.
+[[redirects]]
+  from = "/rss.xml"
+  to = "/.netlify/functions/rss"
+  status = 200
+
 # Las noticias (tanda 269): /noticias y /noticias/<slug>.
 #
 # `/noticias` necesita su regla —no hay ningún fichero con ese nombre—, y

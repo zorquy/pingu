@@ -149,13 +149,182 @@ export function inyectarMeta(html, meta) {
 
   const bloque = bloqueMeta(meta)
   const marcadores = /[ \t]*<!-- meta-social:inicio -->[\s\S]*?<!-- meta-social:fin -->/
-  if (marcadores.test(salida)) return salida.replace(marcadores, bloque)
+  if (marcadores.test(salida)) salida = salida.replace(marcadores, bloque)
   // Si algún día una página se queda sin marcadores, se añade igualmente
   // en vez de servirla sin nada.
-  return salida.replace(/<\/head>/i, `${bloque}\n</head>`)
+  else salida = salida.replace(/<\/head>/i, `${bloque}\n</head>`)
+
+  return inyectarCuerpo(salida, meta.cuerpo)
+}
+
+// El texto del artículo, dentro del <article> que hoy llega vacío.
+//
+// Se sustituye SOLO entre marcadores: no se toca ninguna otra parte del
+// documento, y una página sin marcadores sale exactamente como venía.
+// Nada de esto puede tumbar el sitio — es la regla de este fichero.
+export function inyectarCuerpo(html, cuerpo) {
+  if (!cuerpo) return html
+  const marcadores = /<!-- articulo:inicio -->[\s\S]*?<!-- articulo:fin -->/
+  if (!marcadores.test(html)) return html
+  return html.replace(marcadores, `<!-- articulo:inicio -->${cuerpo}<!-- articulo:fin -->`)
+}
+
+// ════════════════════════════════════════════════════════════════════
+// El CUERPO del artículo, servido desde el servidor (tanda 270)
+// ════════════════════════════════════════════════════════════════════
+//
+// EL PROBLEMA. `guia.html` llega vacío: el texto lo pinta js/guia.js en
+// el navegador, después de preguntarle a Supabase. Google ejecuta
+// JavaScript, sí, pero lo mete en una SEGUNDA COLA que puede tardar de
+// horas a días. Para una guía eterna da igual. Para una noticia, donde
+// toda la ventaja es llegar el primero en español, es la diferencia
+// entre existir y no existir.
+//
+// Y no solo Google: cualquier robot que no ejecuta JS —muchos
+// buscadores pequeños, agregadores, lectores de accesibilidad, la vista
+// «sin conexión» de algunos navegadores— veía una página en blanco.
+//
+// LA SOLUCIÓN. Esta función ya se descarga el artículo para hacer las
+// etiquetas sociales. Pintar además el texto dentro del <article> es el
+// MISMO viaje: no cuesta ni una consulta más.
+//
+// Lo que se inyecta lo pisa js/guia.js en cuanto carga, con la versión
+// completa (índice, botones, valoraciones). O sea que a una persona esto
+// no le cambia nada... salvo que ve el texto ANTES, que también está
+// bien.
+
+// Qué se deja pasar. Es la misma lista que usa el saneador del editor al
+// GUARDAR (js/richtext-format.js), o sea que esto no recorta nada de lo
+// que se puede escribir: es una segunda vuelta sobre algo ya limpio.
+const ETIQUETAS_BUENAS = new Set([
+  'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'del',
+  'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'blockquote',
+  'span', 'div', 'figure', 'figcaption', 'details', 'summary',
+  'table', 'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'code', 'pre',
+])
+
+// Lo que se tira ENTERO, con su contenido dentro. `script` y `style` son
+// los obvios; los demás son las formas de meter algo que se ejecuta o que
+// carga de fuera.
+const ETIQUETAS_MALAS = /<(script|style|iframe|object|embed|svg|math|form|template|noscript|link|meta|base)\b[\s\S]*?(?:<\/\1\s*>|$)/gi
+
+// El repaso del servidor.
+//
+// Lo que llega ya pasó por DOMPurify al guardarse, con una lista blanca
+// que NO incluye script ni los manejadores de eventos: por construcción
+// está limpio. Esto es la segunda cerradura, y hace falta porque aquí no
+// hay DOMPurify —esto corre en el borde, sin navegador— y porque un
+// <img onerror> inyectado se ejecutaría al PARSEAR la página, antes de
+// que el JavaScript de la guía tuviera tiempo de sustituirlo.
+//
+// Es a propósito una lista blanca y no una lista de cosas prohibidas: lo
+// que no se reconoce, fuera.
+export function limpiarParaElServidor(html) {
+  let limpio = String(html ?? '')
+    // Los comentarios pueden esconder etiquetas a medio cerrar.
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(ETIQUETAS_MALAS, '')
+
+  limpio = limpio.replace(/<\/?([a-zA-Z][a-zA-Z0-9-]*)((?:"[^"]*"|'[^']*'|[^>"'])*)>/g, (entera, etiqueta, atributos) => {
+    const nombre = etiqueta.toLowerCase()
+    if (!ETIQUETAS_BUENAS.has(nombre)) return ''
+    if (entera.startsWith('</')) return `</${nombre}>`
+
+    // Los atributos, uno a uno y con lista blanca. Aquí es donde se caen
+    // los `onerror`, `onload` y compañía: no están en la lista.
+    const buenos = []
+    const re = /([a-zA-Z][a-zA-Z0-9:-]*)\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'>]+))/g
+    let m
+    while ((m = re.exec(atributos)) !== null) {
+      const clave = m[1].toLowerCase()
+      const valor = m[3] ?? m[4] ?? m[5] ?? ''
+      if (!['href', 'src', 'alt', 'title', 'class', 'colspan', 'rowspan', 'data-cols', 'open'].includes(clave)) continue
+      // Una dirección solo puede apuntar a la web o a este sitio. Se cae
+      // `javascript:`, y también `data:`, que sirve para colar un
+      // documento entero dentro de un enlace.
+      if ((clave === 'href' || clave === 'src') && !/^(https?:\/\/|\/|#|mailto:)/i.test(valor.trim())) continue
+      buenos.push(`${clave}="${escaparAtributo(valor)}"`)
+    }
+    return `<${nombre}${buenos.length ? ' ' + buenos.join(' ') : ''}>`
+  })
+
+  return limpio
+}
+
+// De los bloques guardados al HTML del artículo.
+//
+// `richtext` es el formato de ahora: un solo bloque con el artículo
+// entero. Los demás son de guías escritas con el editor de bloques viejo
+// y se siguen pintando — es la misma traducción que hace
+// js/block-editor.js en el navegador, para que el robot y la persona
+// lean lo mismo.
+export function cuerpoDeBloques(bloques) {
+  if (!Array.isArray(bloques)) return ''
+  const texto = (t) => escaparAtributo(t ?? '').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+  return bloques
+    .map((b) => {
+      switch (b?.type) {
+        case 'richtext':
+          return limpiarParaElServidor(b.html || '')
+        case 'heading':
+          return `<h2>${texto(b.text)}</h2>`
+        case 'paragraph':
+          return `<p>${texto(b.text)}</p>`
+        case 'image':
+          return b.url && /^(https?:\/\/|\/)/i.test(b.url)
+            ? `<img src="${escaparAtributo(b.url)}" alt="${escaparAtributo(b.caption || '')}">`
+            : ''
+        case 'list':
+          return `<ul>${(b.items || []).map((i) => `<li>${texto(i)}</li>`).join('')}</ul>`
+        case 'highlight':
+          return `<div class="block-highlight">${texto(b.text)}</div>`
+        default:
+          return ''
+      }
+    })
+    .join('')
+}
+
+// Un tope de tamaño. Un artículo enorme haría crecer la respuesta de cada
+// visita, y para que un buscador entienda de qué va una página no hace
+// falta el texto entero: con los primeros 60 KB va sobrado, y el
+// JavaScript pinta el resto en cuanto carga.
+const CUERPO_MAXIMO = 60000
+
+export function cuerpoDeArticulo({ titulo, entradilla, bloques }) {
+  const dentro = cuerpoDeBloques(bloques)
+  if (!dentro) return ''
+  // Se corta por el final de una etiqueta, no por donde caiga: partir un
+  // `<p class="` por la mitad deja al navegador adivinando.
+  let recortado = dentro
+  if (dentro.length > CUERPO_MAXIMO) {
+    const trozo = dentro.slice(0, CUERPO_MAXIMO)
+    const cierre = trozo.lastIndexOf('>')
+    recortado = cierre > 0 ? trozo.slice(0, cierre + 1) : trozo
+  }
+  return (
+    `<h1>${escaparAtributo(titulo)}</h1>` +
+    (entradilla ? `<p class="lead">${escaparAtributo(entradilla)}</p>` : '') +
+    recortado
+  )
 }
 
 // ── Consulta a Supabase ──
+
+// Una consulta que pide una columna que quizá TODAVÍA NO EXISTE.
+//
+// Las migraciones las ejecuta una persona a mano, después de desplegar.
+// Pedir aquí una columna que no está devuelve 400, `pedir` devuelve null
+// y la página se queda SIN etiquetas sociales — el sitio entero, no solo
+// la noticia. Así que se pide con la columna y, si falla, sin ella.
+//
+// Cuesta una consulta de más solo en ese hueco, y solo cuando la primera
+// falla. Cuando la migración lleve tiempo puesta, esto se quita.
+async function pedirConVueltaAtras(rutaNueva, rutaVieja) {
+  const conColumna = await pedir(rutaNueva)
+  if (conColumna) return conColumna
+  return pedir(rutaVieja)
+}
 
 async function pedir(ruta) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -206,9 +375,11 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
   // no existe, PostgREST devuelve 400, `pedir` devuelve null y la página se
   // quedaría SIN etiquetas sociales. Antes de añadir una aquí, hay que
   // verla en la base.
-  const guia = await pedir(
-    `guides?slug=eq.${encodeURIComponent(slug)}&published_at=not.is.null` +
-      `&select=title,description,cover_image,search_content,published_at,author_id,categories(name,slug)&limit=1`
+  const base = `guides?slug=eq.${encodeURIComponent(slug)}&published_at=not.is.null&select=`
+  const columnas = 'title,description,cover_image,search_content,published_at,author_id,reference_blocks,categories(name,slug)'
+  const guia = await pedirConVueltaAtras(
+    `${base}${columnas},updated_at&limit=1`,
+    `${base}${columnas}&limit=1`
   )
   if (!guia?.title) return null
 
@@ -236,6 +407,10 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
   return {
     url: canonica,
     tipo: 'article',
+    // El texto del artículo, para que esté en el HTML sin tener que
+    // ejecutar JavaScript. En un curso no: ahí el artículo de referencia
+    // puede estar bajo llave, y lo que se juega es otra cosa.
+    cuerpo: esCurso ? '' : cuerpoDeArticulo({ titulo: guia.title, entradilla: guia.description, bloques: guia.reference_blocks }),
     titulo: esCurso ? `Curso: ${guia.title} — PokeDoc` : `${guia.title} — PokeDoc`,
     descripcion: esCurso ? `Curso interactivo paso a paso. ${descripcion}` : descripcion,
     imagen,
@@ -256,12 +431,14 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
           image: imagen,
           inLanguage: 'es-ES',
           ...(guia.published_at ? { datePublished: guia.published_at } : {}),
-          // Falta `dateModified`, que en una noticia importa —una
-          // revelación se corrige y se amplía durante el día—. La columna
-          // `updated_at` la crea la migración de esta tanda, y pedir aquí
-          // una columna que todavía no existe devuelve 400 y deja SIN
-          // etiquetas sociales a todo el sitio. Se enchufa cuando la
-          // migración lleve puesta un tiempo.
+          // `dateModified` importa sobre todo en una noticia: una
+          // revelación de cartas se corrige y se amplía durante el día, y
+          // esto es lo que dice que lo de ahora no es lo de esta mañana.
+          // Solo si de verdad se tocó DESPUÉS de publicarla — si no, una
+          // fecha de modificación igual a la de publicación es ruido.
+          ...(guia.updated_at && guia.updated_at > guia.published_at
+            ? { dateModified: guia.updated_at }
+            : {}),
           // Sin autor concreto, la guía es de la casa. El autor de verdad se
           // añadiría con otra consulta, y no vale la pena hacer esperar al
           // robot por un campo opcional.

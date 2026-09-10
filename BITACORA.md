@@ -12,6 +12,60 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-10 (2) — PINGU-Claude (tandas 270-272 — que las noticias existan)
+
+**Hecho**: las tres piezas que quedaban de la sección de Noticias. PINGU
+se fue a dormir pidiendo que estuviera hecho al despertar.
+
+**270 — el cuerpo del artículo servido desde el servidor.** Era lo que
+de verdad decidía si el plan funciona: `guia.html` llegaba vacía y el
+texto lo pintaba el JavaScript, así que Google lo metía en su segunda
+cola (de horas a días). La edge function `meta-social` ya se descargaba
+el artículo para las etiquetas: ahora pinta también el texto, entre dos
+marcadores nuevos de guia.html. Cero consultas de más. Con repaso propio
+del servidor (`limpiarParaElServidor`, lista blanca) porque aquí no hay
+DOMPurify y un `<img onerror>` se ejecutaría al parsear, antes de que el
+JS lo sustituyera. Los cursos no se sirven —su teoría puede estar bajo
+llave— y un artículo enorme se recorta a 60 KB por el final de una
+etiqueta.
+
+**271 — el canal RSS** (`/rss.xml`, netlify/functions/rss.mjs). Las 30
+últimas, noticias y guías, con fecha en formato de correo (RSS 2.0 no
+entiende ISO) y `guid` estable. Si Supabase se cae devuelve canal vacío
+con 200: un 500 hace que algunos lectores se den de baja solos. Anunciado
+con `<link rel="alternate">` en portada, /noticias, /aprender y artículo.
+
+**272 — las noticias en el resumen semanal, y `dateModified`.** NO hay
+correo por noticia a propósito: con tres o cuatro por semana, eso es la
+vía rápida a que 150 personas se den de baja. El resumen semanal ya
+tiene baja de un clic y dedupe; ahora lleva las noticias y van las
+PRIMERAS, que son lo más perecedero. Una semana con noticias y foro
+tranquilo ya sí manda correo. Y `dateModified` solo si de verdad se tocó
+después de publicar.
+
+**Ficheros**: nuevo netlify/functions/rss.mjs. Tocados:
+netlify/edge-functions/meta-social.js, netlify/functions/resumen-semanal.mjs,
+netlify/lib/email.mjs, netlify.toml, guia.html (marcadores del artículo),
+index.html, noticias.html y aprender.html (el `<link>` del canal).
+
+**Pruebas**: test-tanda-270.mjs (39, con once vectores de ataque contra
+el repaso del servidor), test-tanda-271.mjs (20) y test-tanda-272.mjs
+(22). Suite entera verde.
+
+**El puente, en los cuatro sitios**: portada/aprender/categorías,
+sitemap, meta-social (`updated_at`) y RSS y resumen tienen vuelta atrás.
+Sin ellos, desplegar antes del SQL dejaba respectivamente: páginas
+vacías, sitemap caído, TODO el sitio sin etiquetas sociales, canal vacío
+y resumen semanal sin salir.
+
+**En curso / pendiente**: PINGU tiene que ejecutar
+supabase-migration-noticias.sql (y las cinco anteriores). Hasta entonces
+todo aguanta pero no hay noticias. Queda, si se quiere: botón de
+«anunciar en el foro» por noticia (hoy existe para torneos), y quitar los
+puentes cuando la migración lleve tiempo puesta.
+
+---
+
 ## 2026-09-10 — PINGU-Claude (tanda 269 — la sección de Noticias)
 
 **Hecho**: PokeDoc empieza a publicar noticias en español. Decisión de

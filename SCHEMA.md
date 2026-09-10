@@ -13186,3 +13186,103 @@ llevaría por delante el sitio entero.
   y dejaría al sitio entero sin etiquetas sociales. Se enchufa después.
 - Avisar por campanita y correo de cada noticia nueva, y el hilo de foro
   automático para comentarlas.
+
+## Tandas 270-272 — que las noticias existan de verdad (sept. 2026)
+
+La 269 montó la sección. Estas tres son lo que hace que sirva de algo: que
+un buscador vea el texto, que haya canal para los agregadores, y que la
+gente se entere sin acabar harta de correos.
+
+### 270 — el cuerpo del artículo, servido desde el servidor
+
+**El problema.** `guia.html` llegaba VACÍA: el texto lo pintaba
+`js/guia.js` en el navegador, después de preguntarle a Supabase. Google
+ejecuta JavaScript, pero lo mete en una **segunda cola** que puede tardar
+de horas a días. Para una guía eterna da igual. Para una noticia, donde
+toda la ventaja es llegar el primero en español, es la diferencia entre
+existir y no existir. Y hay muchos robots que directamente no ejecutan
+nada: buscadores pequeños, agregadores, lectores de accesibilidad.
+
+**La solución, que no cuesta ni una consulta más.** La edge function
+`meta-social` YA se descargaba el artículo para hacer las etiquetas
+sociales. Ahora, con lo mismo, pinta también el texto dentro del
+`<article>`, entre dos marcadores nuevos de `guia.html`. Lo que inyecta lo
+pisa `js/guia.js` en cuanto carga, con la versión completa (índice,
+botones, valoraciones): a una persona no le cambia nada, salvo que ve el
+texto **antes**.
+
+**El repaso del servidor** (`limpiarParaElServidor`). Lo que llega de la
+base ya pasó por DOMPurify al guardarse, con una lista blanca que no
+incluye `script` ni los manejadores de eventos: por construcción está
+limpio. Pero aquí no hay DOMPurify —esto corre en el borde, sin
+navegador— y un `<img onerror>` inyectado **se ejecutaría al parsear**,
+antes de que el JavaScript de la guía tuviera tiempo de sustituirlo. Así
+que hay segunda cerradura: lista blanca de etiquetas y de atributos (lo
+que no se reconoce, fuera), las direcciones solo pueden apuntar a la web
+o a este sitio (se caen `javascript:` y `data:`), y `script`, `style`,
+`iframe`, `svg`, `form` y compañía se tiran enteros con su contenido.
+
+Un curso NO se sirve: su artículo de referencia puede estar bajo llave.
+Un artículo enorme se recorta a 60 KB, y **por el final de una etiqueta**
+— partir un `<p class="` por la mitad deja al navegador adivinando.
+
+### 271 — el canal RSS
+
+`/rss.xml`, generado en la petición como el sitemap. Buena parte del
+tráfico de las webs de noticias de TCG no entra por Google: entra por
+agregadores, lectores de feeds y bots de Discord que reenvían cada
+entrada a un canal. Todo eso habla RSS y nada más.
+
+Lleva las 30 últimas publicaciones, noticias y guías, cada una con su
+dirección (`/noticias/<slug>` o la de guía), su `guid` estable —que es lo
+que usa el lector para saber si ya la enseñó—, y la fecha en formato de
+correo, que es lo que pide RSS 2.0: con una fecha ISO, algunos lectores
+ordenan las entradas como les parece.
+
+Si Supabase se cae devuelve un **canal vacío con un 200**, no un error:
+un 500 hace que algunos lectores se den de baja solos. Se anuncia con
+`<link rel="alternate">` en la portada, en /noticias, en /aprender y en
+cada artículo.
+
+### 272 — las noticias en el resumen semanal, y `dateModified`
+
+**La decisión: no hay correo por noticia.** Con tres o cuatro noticias por
+semana, avisar de cada una es la forma más rápida de que 150 personas se
+den de baja. El resumen semanal ya existe, ya tiene su baja de un clic,
+su dedupe por semana y su plantilla; ahora lleva también las noticias, y
+**van las primeras**, porque son lo más perecedero de todo lo que hay
+dentro — un hilo del foro sigue ahí la semana que viene, «han revelado las
+cartas del 30 aniversario» no. Quien las quiera al momento tiene el RSS.
+
+Una semana con noticias y el foro tranquilo **sí** manda correo (antes
+hacía falta foro movido o guía nueva); una semana sin nada de nada sigue
+sin mandarlo.
+
+**`dateModified`**: una noticia se corrige y se amplía durante el día, y
+esto es lo que le dice a Google que lo de ahora no es lo de esta mañana.
+Solo si de verdad se tocó *después* de publicarla — una fecha de
+modificación igual a la de publicación es ruido.
+
+### El puente, en los cuatro sitios
+
+Las migraciones las ejecuta una persona a mano, **después** de desplegar.
+Pedir una columna que todavía no existe devuelve 400, y cada sitio se cae
+de una forma distinta y silenciosa. Así que todos tienen vuelta atrás:
+
+| Dónde | Qué pasaría sin puente |
+| --- | --- |
+| Portada, /aprender, categorías | se quedan **vacías** |
+| Sitemap | se cae **entero** |
+| `meta-social` (`updated_at`) | **todo el sitio** sin etiquetas sociales |
+| RSS | canal **vacío** |
+| Resumen semanal | **no sale** el correo, foro incluido |
+
+### Comprobado
+
+`test-tanda-270.mjs` (39), `test-tanda-271.mjs` (20) y
+`test-tanda-272.mjs` (22). Las del 270 incluyen **once vectores de
+ataque** contra el repaso del servidor (script suelto, `onerror` con y
+sin comillas, `javascript:`, `data:`, iframe, svg, style, comentario que
+esconde una etiqueta, formulario) y la comprobación de que lo que sí debe
+pasar —encabezados, negritas, filas de imágenes con sus columnas, pies de
+foto, spoilers— pasa entero.

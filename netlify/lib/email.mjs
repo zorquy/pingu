@@ -264,7 +264,7 @@ export function renderEmail({ subject, preview, link, siteUrl, unsubscribeUrl, t
 // enlace directo, la guía nueva va con el suyo, y el pie dice la verdad
 // («una vez por semana») en vez del genérico «alguien se ha dirigido a
 // ti».
-export function renderResumenSemanal({ temas = [], guia = null, siteUrl, unsubscribeUrl }) {
+export function renderResumenSemanal({ temas = [], guia = null, noticias = [], siteUrl, unsubscribeUrl }) {
   const asunto = sanitizeHeader('Lo mejor de PokeDoc esta semana')
   const pie = 'Recibes este correo una vez por semana porque tienes activado el resumen semanal en tu perfil.'
   const urlForo = absoluteUrl(siteUrl, '/foro')
@@ -277,10 +277,18 @@ export function renderResumenSemanal({ temas = [], guia = null, siteUrl, unsubsc
   const filaGuia = guia
     ? { titulo: sanitizeHeader(guia.titulo, 160), url: absoluteUrl(siteUrl, `/guia.html?slug=${encodeURIComponent(String(guia.slug ?? ''))}`) }
     : null
+  // Las noticias van PRIMERO en el correo: es lo más perecedero de todo
+  // lo que lleva dentro. Un hilo del foro sigue ahí la semana que viene;
+  // «han revelado las cartas del 30 aniversario», no.
+  const filasNoticias = (noticias || []).map((n) => ({
+    titulo: sanitizeHeader(n.titulo, 160),
+    url: absoluteUrl(siteUrl, `/noticias/${encodeURIComponent(String(n.slug ?? ''))}`),
+  }))
 
   const bajaTexto = unsubscribeUrl ? `\n\nPara dejar de recibir estos correos: ${unsubscribeUrl}` : ''
   const text =
     `${asunto}\n\n` +
+    (filasNoticias.length ? filasNoticias.map((n) => `· Noticia: ${n.titulo}\n  ${n.url}`).join('\n') + '\n' : '') +
     filas.map((f) => `· ${f.titulo} (${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana)\n  ${f.url}`).join('\n') +
     (filaGuia ? `\n· Guía nueva: ${filaGuia.titulo}\n  ${filaGuia.url}` : '') +
     (urlForo ? `\n\nVer el foro: ${urlForo}\n\n` : '\n\n') +
@@ -302,8 +310,9 @@ export function renderResumenSemanal({ temas = [], guia = null, siteUrl, unsubsc
       <tr>
         <td style="padding:26px 28px 0;">
           <h1 style="margin:0 0 4px;font-family:${FUENTE};font-size:20px;line-height:1.35;font-weight:700;color:#111827;">${escapeHtml(asunto)}</h1>
-          <p style="margin:0 0 20px;font-family:${FUENTE};font-size:13.5px;line-height:1.5;color:#6b7280;">Lo que más se ha movido en el foro estos días.</p>
+          <p style="margin:0 0 20px;font-family:${FUENTE};font-size:13.5px;line-height:1.5;color:#6b7280;">${escapeHtml(filasNoticias.length ? 'Las noticias de la semana y lo que más se ha movido en el foro.' : 'Lo que más se ha movido en el foro estos días.')}</p>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            ${filasNoticias.map((n) => filaHtml(n.url, n.titulo, 'Noticia de esta semana')).join('')}
             ${filas.map((f) => filaHtml(f.url, f.titulo, `${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana`)).join('')}
             ${filaGuia ? filaHtml(filaGuia.url, filaGuia.titulo, 'Guía nueva de esta semana') : ''}
           </table>
@@ -320,8 +329,11 @@ export function renderResumenSemanal({ temas = [], guia = null, siteUrl, unsubsc
       }
       ${pieHtml(pie, unsubscribeUrl, siteUrl)}`
 
-  const preheader = filas.length
-    ? `${filas[0].titulo}${filas.length > 1 ? ` y ${filas.length - 1} más` : ''}`
+  // El preheader es lo que se lee en la bandeja de entrada, antes de
+  // abrir: si hay noticia, manda la noticia.
+  const cabezas = [...filasNoticias, ...filas]
+  const preheader = cabezas.length
+    ? `${cabezas[0].titulo}${cabezas.length > 1 ? ` y ${cabezas.length - 1} más` : ''}`
     : 'El resumen de la semana en el foro.'
 
   return { subject: asunto, html: envoltorio({ preheader, contenido }), text }
@@ -337,7 +349,7 @@ export function renderFilaDeCola(fila, { siteUrl, unsubscribeUrl }) {
     try {
       const carga = JSON.parse(fila.preview)
       if (carga && Array.isArray(carga.temas)) {
-        return renderResumenSemanal({ temas: carga.temas, guia: carga.guia || null, siteUrl, unsubscribeUrl })
+        return renderResumenSemanal({ temas: carga.temas, guia: carga.guia || null, noticias: carga.noticias || [], siteUrl, unsubscribeUrl })
       }
     } catch {}
   }
