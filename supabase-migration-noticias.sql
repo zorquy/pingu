@@ -86,8 +86,13 @@ begin
     return new;
   end if;
 
+  -- `user_profiles`, no `profiles`: es como se llama la tabla en esta
+  -- base. Escrito mal, este disparador reventaba al guardar una noticia
+  -- con «relation "public.profiles" does not exist» — y solo al guardar
+  -- una NOTICIA, porque con una guía la función se sale antes. Lo
+  -- arregla supabase-migration-noticias-arreglo.sql.
   select coalesce(p.is_admin, false) into soy_admin
-  from public.profiles p
+  from public.user_profiles p
   where p.id = auth.uid();
 
   if coalesce(soy_admin, false) then

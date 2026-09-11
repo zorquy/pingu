@@ -12,6 +12,52 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 (2) — PINGU-Claude (tanda 274 — arreglo: `public.profiles` no existe)
+
+**Hecho**: PINGU fue a publicar la primera noticia y le saltó
+«No se pudo guardar la guía: relation "public.profiles" does not exist».
+Fallo mío en supabase-migration-noticias.sql: el disparador que impide
+que alguien de fuera del equipo marque un artículo como noticia buscaba
+el perfil en `public.profiles`, y aquí la tabla se llama
+**`public.user_profiles`** — como en las otras 17 migraciones que la
+usan.
+
+**Alcance**: solo crear o marcar una NOTICIA. Las guías normales no se
+enteraban: la función se sale antes de llegar a la consulta cuando
+`kind` es 'guide' o no cambia.
+
+**Por qué pasó desapercibido**: el cuerpo de una función plpgsql NO se
+comprueba al crearla. Postgres aceptó la migración sin una queja y el
+fallo esperó hasta la primera ejecución, o sea hasta producción.
+
+**Arreglo**: supabase-migration-noticias-arreglo.sql (solo redefine la
+función; no toca datos). Y el fichero original corregido, para que
+reejecutarlo no vuelva a meterlo.
+
+**Y la red para que no se repita**: test-migraciones.mjs. Lee las 80
+migraciones y comprueba que cada tabla que nombran la crea alguna de
+ellas o está en la lista del esquema original (el que se montó a mano en
+el panel antes de que hubiera migraciones: user_profiles, guides,
+categories, achievement_definitions, user_notifications,
+content_reports, page_views, tcg_cards, tcg_sets). No hace falta base de
+datos para esto. Comprobado volviendo a meter el fallo a mano: lo canta
+con fichero y línea.
+
+Dos trampas al escribirla, anotadas en el propio fichero: hay que quitar
+los comentarios antes de mirar nada (media migración de esta casa es
+comentario y ahí se nombran tablas), y NO se puede usar un lookahead
+para descartar funciones — con él, `references public.guides (id)` hacía
+retroceder al motor hasta `public.guide` sin la s, y salían tablas
+fantasma por todas partes.
+
+**Ficheros**: nuevo supabase-migration-noticias-arreglo.sql; corregido
+supabase-migration-noticias.sql.
+
+**En curso / pendiente**: PINGU tiene que ejecutar el arreglo. Hasta
+entonces no se puede publicar ninguna noticia.
+
+---
+
 ## 2026-09-11 — PINGU-Claude (tanda 273 — el foro de Noticias y el hilo automático)
 
 **Hecho**: PINGU ejecutó las migraciones y preguntó dos cosas: dónde se
