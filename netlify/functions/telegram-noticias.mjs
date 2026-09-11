@@ -32,9 +32,15 @@
 //
 // SUPABASE_SERVICE_ROLE_KEY hace falta para marcar la noticia como
 // mandada: la clave pública puede leer, pero no escribir esa columna.
+//
+// El envío en sí (el texto, la foto, el tema) vive en
+// netlify/lib/telegram.mjs: lo comparte con telegram-mandar, que es el
+// botón del panel para empujar una noticia a mano. Por los dos caminos
+// tiene que salir exactamente el mismo mensaje.
+
+import { mandarATelegram, llavesQueFaltan } from '../lib/telegram.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
-const SITIO = 'https://pokedoc.es'
 
 // Cada cuánto mira. Cinco minutos es el equilibrio: una noticia sale casi
 // al momento y no son 1.440 consultas al día por nada.
@@ -65,80 +71,17 @@ async function rest(ruta, clave, opciones = {}) {
   return res.status === 204 ? null : res.json()
 }
 
-// Telegram admite un HTML muy corto, y lo que NO se escape le rompe el
-// mensaje entero: un «&» o un «<» en un titular y el envío falla con
-// «can't parse entities». Se escapan los tres que pide su documentación.
-export const escaparTelegram = (t) =>
-  String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-
-// El texto del mensaje.
-//
-// El pie de una foto en Telegram son 1024 caracteres como MUCHO, y si te
-// pasas no recorta: rechaza el mensaje entero. Por eso se recorta aquí, y
-// por un espacio, para no partir una palabra.
-export function mensajeDeNoticia({ title, description, slug }, { limite = 1024 } = {}) {
-  const url = `${SITIO}/noticias/${encodeURIComponent(slug || '')}`
-  const titular = `<b>${escaparTelegram(title)}</b>`
-  const enlace = `\n\n<a href="${escaparTelegram(url)}">Leer la noticia completa</a>`
-  const sitio = Math.max(0, limite - titular.length - enlace.length - 2)
-  let resumen = escaparTelegram(description || '')
-  if (resumen.length > sitio) {
-    const trozo = resumen.slice(0, sitio - 1)
-    const espacio = trozo.lastIndexOf(' ')
-    resumen = `${espacio > sitio * 0.5 ? trozo.slice(0, espacio) : trozo}…`
-  }
-  return `${titular}${resumen ? `\n\n${resumen}` : ''}${enlace}`
-}
-
-// Con portada va como FOTO con pie: en Telegram una foto ocupa media
-// pantalla y es lo que hace que se pare el dedo. Sin portada, mensaje
-// normal — una foto rota es peor que ninguna.
-export async function mandarATelegram(noticia, { token, canal, tema = null, fetchImpl = fetch }) {
-  const texto = mensajeDeNoticia(noticia)
-  const conFoto = !!noticia.cover_image
-  const metodo = conFoto ? 'sendPhoto' : 'sendMessage'
-  // Un TEMA de un grupo (los «canales» de dentro de una comunidad) no es
-  // un chat distinto: es el mismo grupo con `message_thread_id`. Sin él,
-  // el mensaje cae en el tema General y no donde toca.
-  const dentroDelTema = tema ? { message_thread_id: Number(tema) } : {}
-  const cuerpo = conFoto
-    ? { chat_id: canal, ...dentroDelTema, photo: noticia.cover_image, caption: texto, parse_mode: 'HTML' }
-    : { chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML', link_preview_options: { prefer_large_media: true } }
-
-  const res = await fetchImpl(`https://api.telegram.org/bot${token}/${metodo}`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(cuerpo),
-    signal: AbortSignal.timeout(10000),
-  })
-  const datos = await res.json().catch(() => ({}))
-  if (datos?.ok) return { ok: true }
-
-  // Si la foto no le gusta a Telegram —el enlace no le responde, pesa
-  // demasiado, no es una imagen— se reintenta SIN ella antes de rendirse.
-  // La noticia importa más que la foto.
-  if (conFoto) {
-    const res2 = await fetchImpl(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML' }),
-      signal: AbortSignal.timeout(10000),
-    })
-    const datos2 = await res2.json().catch(() => ({}))
-    if (datos2?.ok) return { ok: true, sinFoto: true }
-    return { ok: false, error: datos2?.description || datos?.description || 'Telegram no ha aceptado el mensaje' }
-  }
-  return { ok: false, error: datos?.description || 'Telegram no ha aceptado el mensaje' }
-}
-
 export async function procesar({ env = process.env, restImpl = rest, fetchImpl = fetch, ahora = new Date() } = {}) {
   const token = env.TELEGRAM_BOT_TOKEN
   const canal = env.TELEGRAM_CANAL_NOTICIAS
   // Opcional: solo si el destino es un TEMA dentro de un grupo.
   const tema = env.TELEGRAM_TEMA_NOTICIAS || null
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
-  if (!token || !canal) return { ok: true, saltado: 'sin TELEGRAM_BOT_TOKEN o TELEGRAM_CANAL_NOTICIAS: no se manda nada' }
-  if (!clave) return { ok: true, saltado: 'sin SUPABASE_SERVICE_ROLE_KEY: no se podría marcar como mandada' }
+  // Faltando una variable esto no manda nada, y antes se iba en silencio:
+  // se publicaba una noticia, no salía por el canal y no había forma de
+  // saber por qué. Ahora se dicen los nombres de las que faltan.
+  const faltan = llavesQueFaltan(env)
+  if (faltan.length) return { ok: true, saltado: `faltan variables de entorno en Netlify: ${faltan.join(', ')}`, faltan }
 
   const desde = new Date(ahora.getTime() - DEMASIADO_VIEJA_HORAS * 3600e3).toISOString()
   let pendientes
@@ -185,6 +128,7 @@ export async function procesar({ env = process.env, restImpl = rest, fetchImpl =
 
 export default async function handler() {
   const resultado = await procesar()
+  if (resultado.saltado) console.warn('telegram-noticias:', resultado.saltado)
   if (resultado.fallos?.length) console.warn('telegram-noticias:', JSON.stringify(resultado.fallos))
   return new Response(JSON.stringify(resultado), { status: 200, headers: { 'content-type': 'application/json' } })
 }

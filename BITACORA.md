@@ -12,6 +12,48 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 (10) — PINGU-Claude (tanda 282 — mandar una noticia a Telegram a mano)
+
+**Hecho**: PINGU publicó una noticia y no salió por el canal de Telegram.
+La causa es de configuración (una variable de entorno sin poner en
+Netlify), pero lo que había que arreglar era otra cosa: **el fallo era
+invisible**. La función programada se iba en silencio, sin decir cuál de
+las variables faltaba y sin escribir nada en el registro, y en el panel
+una noticia que salió por el canal se veía igual que una que no.
+
+Tres cosas:
+
+1. `llavesQueFaltan()` (nuevo, en netlify/lib/telegram.mjs) devuelve los
+   NOMBRES de las que faltan, y la programada los escribe con
+   `console.warn` para que salgan en el registro de Netlify.
+2. Columna **Telegram** en la tabla de noticias del panel: «Mandada» o
+   «Sin mandar».
+3. Botón **«Telegram»** por noticia publicada →
+   netlify/functions/telegram-mandar.mjs. Manda esa noticia en el
+   momento, saltándose las dos redes de la automática (48 horas y «ya
+   mandada»), que juntas hacían imposible recuperar una noticia atrasada.
+   Pide confirmación para repetir una ya mandada, y el error de Telegram
+   («chat not found», «bot is not a member») sale TAL CUAL en el aviso.
+
+El envío (texto, recorte a 1024, foto, tema del grupo) se ha movido a
+netlify/lib/telegram.mjs porque ahora lo comparten los dos caminos.
+
+**Ficheros**: netlify/lib/telegram.mjs (NUEVO),
+netlify/functions/telegram-mandar.mjs (NUEVO),
+netlify/functions/telegram-noticias.mjs, admin/js/admin.js, SCHEMA.md.
+
+**Pruebas**: test-tanda-282.mjs (NUEVA, 32) en la rama `pruebas`, con
+rigor-tanda-282.py: 19 mutaciones, las 19 detectadas a la primera. Suite
+al completo en verde. test-tanda-280.mjs ajustada al import nuevo.
+
+**PENDIENTE**: esto NO arregla la configuración. Falta que PINGU ponga
+`TELEGRAM_CANAL_NOTICIAS` en Netlify (el grupo es público:
+`@pingucollects`, y `TELEGRAM_TEMA_NOTICIAS` ya está a 51511), meta el
+bot en el grupo como administrador y vuelva a desplegar. A partir de ahí
+el botón dice en pantalla qué falla, si falla.
+
+---
+
 ## 2026-09-11 (9) — PINGU-Claude (tanda 281 — la extensión de una imagen pegada)
 
 **Hecho**: PINGU dice que no le deja pegar imágenes en la noticia. NO

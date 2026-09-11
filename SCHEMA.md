@@ -13417,3 +13417,79 @@ identificadores largos y cortos) comprobando además que en ninguno de
 ellos se pide nada a la red, y una prueba que vigila que nadie vuelva a
 meter `i.ytimg.com` en el cliente: si alguien lo hace, la política deja
 de ser cierta y salta.
+
+---
+
+## Tanda 282 — mandar una noticia a Telegram a mano (sept. 2026)
+
+PINGU publicó una noticia y **no salió por el canal**. Ni mensaje, ni
+error, ni rastro en ninguna parte. El fallo era una variable de entorno
+sin poner en Netlify — pero lo grave no era eso: era que **no había
+manera de enterarse**.
+
+### Por qué se pudo esconder
+
+La función programada de la tanda 280 empezaba así:
+
+```js
+if (!token || !canal) return { ok: true, saltado: 'sin TELEGRAM_BOT_TOKEN o TELEGRAM_CANAL_NOTICIAS: …' }
+```
+
+Tres cosas mal a la vez:
+
+1. **No decía cuál de las dos faltaba.** Con dos nombres en un mensaje no
+   sabes cuál mirar.
+2. **Ese mensaje no salía a ningún sitio.** Una función programada no la
+   invoca nadie: nadie lee su respuesta. Solo el registro de Netlify, y
+   ahí no se escribía nada.
+3. **En el panel, una noticia publicada que salió por el canal se veía
+   exactamente igual que una que no.** Sin esa diferencia, el fallo
+   puede estar semanas ahí.
+
+### Lo que se hace ahora
+
+- `llavesQueFaltan(env)` devuelve **los nombres** de las que faltan, y el
+  mensaje los dice: «faltan variables de entorno en Netlify:
+  TELEGRAM_CANAL_NOTICIAS».
+- La programada lo escribe con `console.warn`, así que **sale en el
+  registro** de Netlify aunque no lo lea nadie.
+- La tabla de noticias del panel tiene columna **Telegram**: «Mandada» o
+  «Sin mandar». El fallo se ve de un vistazo.
+- Y hay un botón **«Telegram»** por noticia publicada →
+  `netlify/functions/telegram-mandar.mjs`.
+
+### El botón no es un atajo: es el camino que faltaba
+
+La programada tiene dos redes deliberadas —**solo mira las últimas 48
+horas** y **salta las que ya tienen `telegram_sent_at`**— y las dos
+existen para que el canal no escupa el archivo entero de golpe. Las dos
+juntas hacen que una noticia que se quedó atrás **no se recupere jamás
+sola**. Eso es exactamente lo que le pasó a PINGU.
+
+Al botón no le aplican, porque hay una persona decidiendo sobre una
+noticia concreta. Lo que sí conserva:
+
+- **Un borrador no sale** — el enlace del mensaje llevaría a una página
+  que no existe.
+- **Una guía tampoco** — el canal es de noticias.
+- **Repetir una ya mandada pide confirmación** (409 → `confirm` →
+  `forzar`). Mandar dos veces lo mismo a un canal es de las cosas que
+  hacen que la gente lo silencie: tiene que ser una decisión, no un
+  descuido.
+- **El error de Telegram se pasa TAL CUAL**: «chat not found», «bot is
+  not a member of the supergroup chat». Eso dice exactamente qué
+  arreglar; traducirlo a un «no se ha podido» sería tirar la única pista.
+- **Solo admin**, comprobado contra `/auth/v1/user` + `user_profiles.is_admin`,
+  igual que `generate-course`.
+
+### El envío se comparte
+
+`netlify/lib/telegram.mjs`: el texto, el recorte a 1024, la foto, el
+tema del grupo. Lo usan la programada y el botón, porque por los dos
+caminos tiene que salir **el mismo mensaje**. Si el formato viviera dos
+veces, una noticia mandada a mano se vería distinta de una automática.
+
+### Comprobado
+
+`test-tanda-282.mjs` (32) y `test-tanda-280.mjs` (24, ya existente).
+Rigor: **19 mutaciones, las 19 detectadas** a la primera.

@@ -444,11 +444,13 @@ let noticiasCache = []
 async function loadNoticias() {
   const caja = document.getElementById('noticiasTable')
   if (!caja) return
-  const { data, error } = await supabase
-    .from('guides')
-    .select('id, title, slug, published_at, created_at, forum_thread_id')
-    .eq('kind', 'news')
-    .order('created_at', { ascending: false })
+  // `telegram_sent_at` la trae la migración de la tanda 280, y las
+  // migraciones se ejecutan a mano DESPUÉS de desplegar: si todavía no
+  // está, se pide la lista sin ella en vez de dejar el panel en blanco.
+  const columnas = 'id, title, slug, published_at, created_at, forum_thread_id'
+  const pedir = (sel) => supabase.from('guides').select(sel).eq('kind', 'news').order('created_at', { ascending: false })
+  let { data, error } = await pedir(`${columnas}, telegram_sent_at`)
+  if (error?.code === '42703') ({ data, error } = await pedir(columnas))
   if (error) {
     caja.innerHTML = `<p class="empty-state">No se han podido cargar las noticias: ${escapeHtml(error.message)}</p>`
     return
@@ -462,7 +464,7 @@ async function loadNoticias() {
 
   caja.innerHTML = `
     <table class="admin-table">
-      <thead><tr><th>Titular</th><th>Publicada</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Titular</th><th>Publicada</th><th>Estado</th><th>Telegram</th><th></th></tr></thead>
       <tbody>
         ${noticiasCache
           .map(
@@ -475,8 +477,20 @@ async function loadNoticias() {
             }</td>
             <td>${n.published_at ? escapeHtml(new Date(n.published_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })) : '—'}</td>
             <td>${n.published_at ? '<span class="badge badge-completed">Publicada</span>' : '<span class="badge badge-progress">Borrador</span>'}</td>
+            <td>${
+              // Esta columna es la que faltaba: una noticia publicada que
+              // NO ha salido por el canal no se distinguía de una que sí,
+              // y por eso un fallo de configuración podía pasar semanas
+              // sin que nadie se enterara.
+              !n.published_at
+                ? '—'
+                : n.telegram_sent_at
+                  ? `<span class="badge badge-completed">Mandada</span>`
+                  : `<span class="badge badge-progress">Sin mandar</span>`
+            }</td>
             <td class="admin-row-actions">
               ${n.published_at ? `<a class="btn-outline" href="/noticias/${encodeURIComponent(n.slug)}" target="_blank" rel="noopener">Ver</a>` : ''}
+              ${n.published_at ? `<button class="btn-secondary" data-telegram-noticia="${n.id}" title="Mandar esta noticia al canal de Telegram">${icons.send(15)} Telegram</button>` : ''}
               <button data-editar-noticia="${n.id}">Editar</button>
               <button class="danger" data-borrar-noticia="${n.id}">Eliminar</button>
             </td>
@@ -486,6 +500,9 @@ async function loadNoticias() {
       </tbody>
     </table>`
 
+  caja.querySelectorAll('[data-telegram-noticia]').forEach((btn) =>
+    btn.addEventListener('click', () => mandarNoticiaATelegram(btn.dataset.telegramNoticia, btn))
+  )
   caja.querySelectorAll('[data-editar-noticia]').forEach((btn) =>
     btn.addEventListener('click', () => (window.location.href = `editor-guia.html?id=${btn.dataset.editarNoticia}`))
   )
@@ -501,6 +518,46 @@ async function loadNoticias() {
       loadNoticias()
     })
   )
+}
+
+// Empujar una noticia al canal de Telegram desde el panel.
+//
+// El envío automático (netlify/functions/telegram-noticias.mjs) solo
+// mira las noticias de las últimas 48 horas y salta las ya mandadas, así
+// que con él no hay manera de recuperar una que se quedó atrás. Esto sí.
+//
+// Y sobre todo: aquí el fallo SE VE. Lo que la función programada se
+// calla —«falta TELEGRAM_CANAL_NOTICIAS», «chat not found», «bot is not
+// a member»— sale en un aviso, que es lo que permite arreglarlo.
+async function mandarNoticiaATelegram(id, btn, forzar = false) {
+  const n = noticiasCache.find((x) => x.id === id)
+  if (forzar && !confirm(`«${n?.title || 'Esta noticia'}» ya se mandó al canal. ¿Mandarla otra vez?`)) return
+
+  const session = await getSession()
+  const original = btn.innerHTML
+  btn.disabled = true
+  btn.textContent = 'Mandando…'
+  try {
+    const res = await fetch('/.netlify/functions/telegram-mandar', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ id, forzar }),
+    })
+    const r = await res.json().catch(() => ({}))
+    // 409 es «ya mandada»: no es un fallo, es que hay que confirmarlo.
+    if (res.status === 409) {
+      btn.disabled = false
+      btn.innerHTML = original
+      return mandarNoticiaATelegram(id, btn, true)
+    }
+    if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
+    showToast(r.aviso || (r.sinFoto ? 'Mandada al canal (sin la portada: Telegram no la ha aceptado).' : 'Mandada al canal.'), r.aviso ? 'error' : 'success')
+    loadNoticias()
+  } catch (err) {
+    btn.disabled = false
+    btn.innerHTML = original
+    showToast(String(err.message || err), 'error')
+  }
 }
 
 document.getElementById('btnNuevaNoticia')?.addEventListener('click', () => {
