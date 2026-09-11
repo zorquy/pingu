@@ -648,8 +648,22 @@ export function parseDecklist(rawText) {
 // empieza por su cantidad y no lleva dos puntos— así que no hay que
 // enseñarla como línea ilegible, que el editor la convertía en un
 // error y bloqueaba el guardado de un export intacto.
+//
+// Pero la forma «palabras: número» NO basta para reconocerlo: es la
+// misma forma que tiene una CABECERA de sección, y hay una que el motor
+// no entiende por cada idioma que no está en PALABRAS_DE_SECCION. Con la
+// regla genérica, «Sección Rara: 1» se tragaba en silencio — y eso es lo
+// que la tanda 232 se propuso que no volviera a pasar: una lista a la
+// que le faltan cartas sin decir por qué es peor que un error.
+//
+// Se exige, entonces, que alguna palabra de la etiqueta sea la del
+// TOTAL. Por prefijo, porque se declina: «totales», «totali», «totale».
+const RAICES_DE_TOTAL = ['total', 'gesamt', 'insgesamt']
+
 function esLineaDeRecuento(linea) {
-  return /^[a-z][a-z\s]*:\s*\d+$/.test(sinTildes(linea))
+  const m = sinTildes(linea).match(/^([a-z][a-z\s]*?)\s*:\s*\d+$/)
+  if (!m) return false
+  return m[1].split(/\s+/).some((palabra) => RAICES_DE_TOTAL.some((raiz) => palabra.startsWith(raiz)))
 }
 
 // Las líneas que el parser DESCARTA en silencio: estaban dentro de una

@@ -45,6 +45,76 @@ tocar código.
 
 ---
 
+## 2026-09-11 (13) — PINGU-Claude (suite: rojo del cambio de IBAI en el parser)
+
+**Hecho**: al pasar la suite después de mi tanda 284 salió en ROJO
+`test-decklist-idiomas.mjs`, y el rojo NO era mío: venía de `db01230`
+(«Decklist: aceptar el export de TCG Live entero», de la sesión de
+IBAI), que entró con mi `git pull`. Esa es la pasada de suite que pide
+CLAUDE.md, así que va anotada aquí.
+
+**Qué pasaba**: el arreglo es correcto en su intención —el recuento con
+el que acaba el export («Total Cards: 60») no es una carta y el editor lo
+enseñaba como línea ilegible, lo que bloqueaba guardar un export
+intacto—, pero la regla era `^palabras: número$`, que es EXACTAMENTE la
+forma de una cabecera de sección. Con ella, una cabecera de un idioma que
+el motor no entiende («Sección Rara: 1», neerlandés, polaco…) se tragaba
+en silencio. Eso es justo lo que la tanda 232 se propuso que no volviera
+a pasar: una lista a la que le faltan cartas sin decir por qué es peor
+que un error.
+
+**Arreglo**: `esLineaDeRecuento` sigue aceptando el recuento, pero exige
+que alguna palabra de la etiqueta sea la del TOTAL, por prefijo porque se
+declina (`total`, `totales`, `totale`, `totali`, `gesamt`). Siguen
+pasando «Total Cards: 60», «Cartas totales: 60», «Nombre total de
+cartes: 60» y «Karten gesamt: 60»; vuelve a declararse «Sección Rara: 1».
+
+**Ficheros**: js/torneos/motor.js.
+
+**Pruebas**: test-decklist-idiomas.mjs, con los cuatro recuentos y la
+cabecera desconocida. En verde.
+
+**IBAI**: tu cambio se queda, solo se ha estrechado la regla. Si el
+export trae algún recuento SIN palabra de total, dímelo y lo añado a
+`RAICES_DE_TOTAL` en vez de volver a la regla ancha.
+
+---
+
+## 2026-09-11 (12) — PINGU-Claude (tanda 284 — la portada la subimos nosotros)
+
+**Hecho**: con el canal ya funcionando, la primera noticia salió sin
+portada: «Bad Request: failed to get HTTP URL content». Eso quiere decir
+que TELEGRAM no ha podido descargarse la imagen — la baja él, desde sus
+servidores, y hay sitios que a él le dicen que no aunque a un navegador
+le digan que sí.
+
+Ahora son tres intentos: sendPhoto con el enlace (lo más barato, y
+Telegram se la cachea); si no, nos la traemos nosotros y se la SUBIMOS
+como fichero; y si tampoco, mensaje con vista previa grande, que saca la
+portada del og:image.
+
+Subirla arregla dos casos de golpe: la web que le dice que no a Telegram
+pero a nosotros no, y la portada servida con un tipo que no es de imagen.
+Y el límite por subida son 10 MB, el doble que por enlace.
+
+Cuando no se puede ni traer, `traerLaPortada()` dice el motivo concreto
+(«responde 404», «no es una imagen (application/octet-stream)», «pesa
+11.0 MB», «viene vacía») Y la dirección de la portada, que es lo único
+con lo que se puede hacer algo.
+
+Mismo camino que yt-portada.mjs con las miniaturas de YouTube.
+
+**Ficheros**: netlify/lib/telegram.mjs.
+
+**Pruebas**: test-tanda-282.mjs (66). Rigor: 37 mutaciones, las 37
+detectadas. test-tanda-280.mjs: su doble ahora responde 404 a la descarga
+de la portada, para seguir cubriendo el recorrido de la programada.
+
+**PENDIENTE**: falta saber si con esto la portada de PINGU entra. Si no,
+el aviso del panel dirá qué le pasa a esa imagen en concreto.
+
+---
+
 ## 2026-09-11 (11) — PINGU-Claude (tanda 283 — la portada, a Telegram)
 
 **Hecho**: PINGU pide que la noticia salga en Telegram con su portada.
