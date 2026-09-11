@@ -12,6 +12,48 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 (8) — PINGU-Claude (tanda 280 — las noticias al canal de Telegram)
+
+**Hecho**: PINGU tiene una comunidad de Telegram con varios canales
+(torneos lo anuncia a mano) y quiere uno de noticias que se escriba solo.
+Preguntó si se podía con el RSS.
+
+**Se puede, pero NO conviene**, y está razonado en la cabecera del
+fichero: los bots de RSS SONDEAN (de quince minutos a una hora, y en una
+noticia llegar el primero es toda la gracia), la imagen casi nunca sale
+—va en `enclosure` y la mitad la ignoran—, el formato lo decide el bot, y
+mete a un tercero entre PokeDoc y el canal para leer algo que está en
+NUESTRA base. El RSS se queda, que es lo correcto para quien nos lea
+desde fuera; para el canal propio se lee la base y se manda directo.
+
+**netlify/functions/telegram-noticias.mjs**, programada cada 5 minutos.
+Con portada va como FOTO con pie (en Telegram una foto para el dedo); sin
+portada, mensaje normal, que una foto rota es peor que ninguna. Si
+Telegram rechaza la foto, reintenta sin ella: la noticia importa más.
+
+**Lo que más cuidado lleva**:
+- **El estreno del canal.** Sin protección, al encender las variables
+  soltaría de golpe TODAS las noticias del archivo. Dos redes: la
+  migración marca como mandado todo lo ya publicado, y la función manda
+  cinco por pasada como mucho y solo lo de las últimas 48 h.
+- **Ni repetir ni perder.** Si falla el envío no se marca y se reintenta;
+  si se manda pero no se puede apuntar —el único caso que duplicaría— se
+  canta con «MANDADA PERO NO APUNTADA».
+- **Escapar el HTML.** Telegram rechaza el mensaje ENTERO si un «&» o un
+  «<» del titular le rompe el parseo.
+- **El pie de una foto son 1024 caracteres y pasarse no recorta:
+  rechaza.** Se recorta aquí, y por un espacio.
+
+**Migración**: supabase-migration-telegram-noticias.sql.
+
+**Variables de entorno de Netlify** (las pone PINGU, NO van al repo):
+TELEGRAM_BOT_TOKEN y TELEGRAM_CANAL_NOTICIAS. Sin ellas la función no
+hace nada y lo dice.
+
+**Pruebas**: test-tanda-280.mjs (26).
+
+---
+
 ## 2026-09-11 (7) — PINGU-Claude (tanda 279 — las imágenes del artículo, en diferido)
 
 **Hecho**: PINGU avisó de que la noticia del set del 30 aniversario lleva
