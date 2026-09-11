@@ -602,7 +602,11 @@ function seccionDeCabecera(linea) {
   return null
 }
 
-const CARD_LINE = /^(\d+)\s+(.+?)\s+([A-Z]{2,6})\s+(\S+)$/
+// El código de set son 2–6 mayúsculas… salvo las energías básicas, que
+// TCG Live exporta con el set literal «Energy» («3 Basic {F} Energy
+// Energy 50»). Sin esa alternativa las cuatro líneas de energía se
+// descartaban, el total daba 49 y el jugador no podía guardar su lista.
+const CARD_LINE = /^(\d+)\s+(.+?)\s+([A-Z]{2,6}|Energy)\s+(\S+)$/
 
 // Parsea un export de TCG Live: líneas vacías y comentarios (#, //) se
 // ignoran; las cabeceras de sección (con o sin tilde) cambian la sección
@@ -639,6 +643,15 @@ export function parseDecklist(rawText) {
   return result
 }
 
+// El export de TCG Live acaba en un recuento («Cartas totales: 60»,
+// «Total Cards: 60»…): «palabras: número» no es una carta —una carta
+// empieza por su cantidad y no lleva dos puntos— así que no hay que
+// enseñarla como línea ilegible, que el editor la convertía en un
+// error y bloqueaba el guardado de un export intacto.
+function esLineaDeRecuento(linea) {
+  return /^[a-z][a-z\s]*:\s*\d+$/.test(sinTildes(linea))
+}
+
 // Las líneas que el parser DESCARTA en silencio: estaban dentro de una
 // sección, no son comentario ni cabecera, y aun así no casan con el
 // formato «4 Nombre SET 123». Antes el jugador las perdía sin enterarse
@@ -653,7 +666,7 @@ export function decklistUnparsed(rawText) {
       dentro = true
       continue
     }
-    if (dentro && !CARD_LINE.test(line)) fuera.push(line)
+    if (dentro && !CARD_LINE.test(line) && !esLineaDeRecuento(line)) fuera.push(line)
   }
   return fuera
 }

@@ -12,6 +12,39 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 13:25 — IBAI-Claude (un jugador no podía guardar su decklist)
+
+**Hecho**: un jugador pegaba su export de TCG Live tal cual y el editor
+no le dejaba guardar. Dos causas, las dos en el parser de motor.js:
+
+1. Las energías básicas salen con el set literal «Energy» («3 Basic {F}
+   Energy Energy 50») y `CARD_LINE` solo admitía 2–6 MAYÚSCULAS: las
+   cuatro líneas de energía se descartaban, el total daba 49 y la
+   validación de 60 bloqueaba. Ahora la regex admite «Energy» como
+   código de set (y el backtracking deja el nombre en «Basic {F}
+   Energy», comprobado).
+2. La última línea del export («Cartas totales: 60») salía como «línea
+   que no se entiende», y torneo.js convierte cada ilegible en un error
+   que también bloquea. `decklistUnparsed` ahora ignora las líneas de
+   recuento («palabras: número» — una carta empieza por cifra y no lleva
+   dos puntos), en cualquier idioma («Total Cards: 60» incluido).
+
+Verificado con la lista real del jugador pasada por el parser en Node:
+60/60, cero ilegibles, cero errores. Toco la lógica de motor.js (porte
+1:1 de libs/engine de TrainerArena): es una AMPLIACIÓN del formato
+aceptado, no cambia nada de lo que ya parseaba.
+
+**Ficheros**: js/torneos/motor.js.
+
+**En curso / pendiente**: nada a medias. Pido pasada de la suite de la
+rama `pruebas` cuando puedas (parseDecklist/decklistUnparsed). El set
+«Energy» no está en la tabla de comun.js ni seguramente en
+`tcg_online_code`: las energías básicas pueden salir sin imagen en la
+vista visual — si pasa, se asigna desde /admin (torneos_sets_live) sin
+tocar código.
+
+---
+
 ## 2026-09-11 (11) — PINGU-Claude (tanda 283 — la portada, a Telegram)
 
 **Hecho**: PINGU pide que la noticia salga en Telegram con su portada.
