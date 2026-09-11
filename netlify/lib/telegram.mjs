@@ -77,10 +77,22 @@ const MAXIMO_FOTO = 10 * 1024 * 1024
 // Pidiéndola nosotros se sabe qué pasa Y, si nosotros sí podemos, se le
 // sube a Telegram en vez de pasarle el enlace. Es el mismo camino que
 // yt-portada.mjs con las miniaturas de YouTube.
+// Sin estas cabeceras, muchos sitios que alojan imágenes contestan 403 a
+// secas: una petición sin `user-agent` tiene toda la pinta de un robot
+// raspando, y la bloquean antes de mirar nada más. El nuestro dice quién
+// es y a dónde escribir — no se disfraza de navegador.
+//
+// Lo que NO se manda es `referer`: es justo lo que miran las webs con
+// protección contra enlazado externo, y mandarlo sería pedir el rechazo.
+const CABECERAS_DE_IMAGEN = {
+  accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+  'user-agent': 'PokeDocBot/1.0 (+https://pokedoc.es)',
+}
+
 export async function traerLaPortada(url, fetchImpl = fetch) {
   let res
   try {
-    res = await fetchImpl(url, { redirect: 'follow', signal: AbortSignal.timeout(15000) })
+    res = await fetchImpl(url, { redirect: 'follow', headers: CABECERAS_DE_IMAGEN, signal: AbortSignal.timeout(15000) })
   } catch (e) {
     return { error: `no responde (${e?.message || e})` }
   }

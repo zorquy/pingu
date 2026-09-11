@@ -45,6 +45,35 @@ tocar código.
 
 ---
 
+## 2026-09-11 (14) — PINGU-Claude (la portada, seguía sin salir)
+
+**Hecho**: la noticia de prueba salió por el canal, pero la vista previa
+del enlace apareció CON título y descripción y SIN imagen. Eso es un dato:
+el og:image de una noticia es su propia portada, así que si la vista
+previa no tiene imagen es porque Telegram tampoco puede bajarse esa
+portada — el mismo fallo por otra puerta.
+
+Añadido: al traérnosla, se mandan cabeceras. Sin `user-agent` muchos
+sitios que alojan imágenes contestan 403 a secas, porque una petición
+pelada parece un robot raspando. El nuestro dice quién es
+(`PokeDocBot/1.0 (+https://pokedoc.es)`), no se disfraza de navegador. Y
+NO se manda `referer`, que es justo lo que miran las webs con protección
+contra enlazado externo.
+
+**Ficheros**: netlify/lib/telegram.mjs, SCHEMA.md.
+
+**Pruebas**: test-tanda-282.mjs (71). Rigor: 39 mutaciones, las 39
+detectadas.
+
+**PENDIENTE / lo que hay que mirar**: si la portada de esa noticia apunta
+a OTRA web (pokebeach, por ejemplo) y esa web no nos la da, no hay nada
+que hacer desde el código: la imagen no es nuestra. Lo que toca entonces
+es SUBIR la portada a PokeDoc —que además arregla la vista previa en el
+resto de redes y en Google—. El aviso del botón «Telegram» del panel ya
+dice la dirección de la portada y qué responde; falta que PINGU lo mire.
+
+---
+
 ## 2026-09-11 (13) — PINGU-Claude (suite: rojo del cambio de IBAI en el parser)
 
 **Hecho**: al pasar la suite después de mi tanda 284 salió en ROJO

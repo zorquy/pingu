@@ -13572,6 +13572,27 @@ mirar; con ella, se arregla esa portada en dos minutos.
 Es el mismo camino que `yt-portada.mjs` con las miniaturas de YouTube:
 cuando un tercero no colabora, la pieza la sirve nuestro servidor.
 
+### Las cabeceras con las que se pide
+
+Sin `user-agent`, muchos sitios que alojan imágenes contestan **403 a
+secas**: una petición pelada tiene toda la pinta de un robot raspando. Se
+manda uno que dice quién es (`PokeDocBot/1.0 (+https://pokedoc.es)`) — no
+se disfraza de navegador — y un `accept` de imagen.
+
+Lo que **no** se manda es `referer`: es justo lo que miran las webs con
+protección contra enlazado externo, así que mandarlo sería pedir el
+rechazo.
+
+### Lo que esto NO arregla
+
+Si la portada de una noticia apunta a **otra web**, y esa web no se la da
+ni a Telegram ni a nosotros, no hay nada que hacer desde aquí: la imagen
+no es nuestra y su servidor decide. Se ve enseguida porque la vista
+previa del enlace sale **sin imagen** — el `og:image` es esa misma
+portada, así que falla por el mismo motivo. La solución es que la portada
+esté **subida a PokeDoc**, que además es lo correcto para el resto de
+redes y para Google.
+
 ### Comprobado
 
-`test-tanda-282.mjs` (66). Rigor: **37 mutaciones, las 37 detectadas.**
+`test-tanda-282.mjs` (71). Rigor: **39 mutaciones, las 39 detectadas.**
