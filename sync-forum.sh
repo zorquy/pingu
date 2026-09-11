@@ -18,3 +18,5 @@ cp "$SC/stub-vivo.js" "$SC/test-forum/js/vivo.js"
 # así que entra aquí después de cada copia, igual que los dobles.
 cp "$SC/rte-lab.html" "$SC/test-forum/rte-lab.html"
 cp -r "$SC/fotos" "$SC/test-forum/fotos"
+# La página para mirar cómo queda la portada de un vídeo.
+cp "$SC/yt-lab.html" "$SC/test-forum/yt-lab.html"
