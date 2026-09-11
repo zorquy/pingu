@@ -12,6 +12,7 @@ import { icons } from '../../js/icons.js'
 import { loadDraft, clearDraft, startAutosave } from '../../js/editor-autosave.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { inlineIconHtml } from '../../js/content-icon.js'
+import { abrirHiloDeNoticia } from '../../js/noticias-foro.js'
 import { addXP } from '../../js/gamification.js'
 import { createNotification } from '../../js/notifications.js'
 
@@ -333,6 +334,7 @@ function buildPayload() {
     cover_image: coverImageUrl || null,
     description: document.getElementById('gDescription').value.trim(),
     level: document.getElementById('gLevel').value,
+    kind: document.getElementById('gKind').value,
     guide_rarity: document.getElementById('gRarity').value,
     is_pro: document.getElementById('gIsPro').checked,
     xp_reward: Number(document.getElementById('gXpReward').value) || 20,
@@ -394,6 +396,22 @@ async function persistGuide(extraFields = {}) {
   }
   const id = saved?.id || existingGuide?.id
   if (id) await saveGuideRoutes(id, selectedRoutes)
+
+  // El hilo del foro de la noticia, si toca. Va DESPUÉS de guardar y sin
+  // poder tumbar nada: `abrirHiloDeNoticia` no lanza nunca, porque si
+  // fallara el foro justo después de guardar parecería que no se ha
+  // guardado la noticia. Y es idempotente —mira `forum_thread_id`—, así
+  // que guardar diez veces no abre diez hilos.
+  if (id && payload.kind === 'news' && payload.published_at) {
+    const hilo = await abrirHiloDeNoticia(supabase, {
+      guia: { ...payload, id, forum_thread_id: existingGuide?.forum_thread_id || null },
+      autorId: currentSession.user.id,
+    })
+    if (hilo) {
+      existingGuide = { ...(existingGuide || {}), forum_thread_id: hilo }
+      showToast('Noticia publicada, y su hilo abierto en el foro.', 'success')
+    }
+  }
   if (id && proActive) {
     await supabase.from('guide_pro_content').upsert({ guide_id: id, blocks: proBlocks, published_at: proPublishedAt }, { onConflict: 'guide_id' })
   }
@@ -439,6 +457,12 @@ async function init() {
   attachEmojiPicker(document.getElementById('gCoverEmoji'))
 
   if (guideId) await loadExistingGuide()
+  // Guía o noticia. Al abrir una que ya existe manda lo que sea; al
+  // crear una nueva desde «Escribir noticia» (/noticias), el enlace trae
+  // `?tipo=noticia` y llega con el desplegable ya puesto — que es la
+  // diferencia entre escribir una noticia y acordarse de marcarla.
+  document.getElementById('gKind').value =
+    existingGuide?.kind || (new URLSearchParams(location.search).get('tipo') === 'noticia' ? 'news' : 'guide')
   await loadCategoriesAndCollections(existingGuide?.category_id)
   renderCollectionOptions(existingGuide?.category_id || categories[0]?.id, existingGuide?.collection_id)
   await loadPaths(existingGuide)

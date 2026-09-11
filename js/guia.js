@@ -279,6 +279,15 @@ async function init() {
             compartirHtml('btnCompartir', { clase: 'btn-secondary' })
           }
           ${
+            // El hilo del foro de la noticia, que se abre solo al
+            // publicarla (tanda 273). Aquí arriba y no al final del
+            // artículo: quien ya sabe de qué va y quiere decir algo no
+            // tiene por qué bajar dos pantallas para encontrar dónde.
+            esNoticia && guide.forum_thread_id
+              ? `<a class="btn-secondary" href="/tema/${encodeURIComponent(guide.forum_thread_id)}">${icons.messageSquare(14)} Comentar en el foro</a>`
+              : ''
+          }
+          ${
             // Y si la guía es tuya y ya está publicada, a editarla desde
             // aquí. Es donde su autor la relee y donde ve la errata, no
             // en una lista de su perfil. La pendiente ya tiene su propio

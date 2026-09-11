@@ -69,8 +69,15 @@
 
   <main class="page-content container">
     <header class="noticias-cabecera">
-      <h1>Noticias</h1>
-      <p>Lo que va pasando en el juego de cartas Pokémon, contado en español: cartas reveladas, sets, torneos y cambios de formato.</p>
+      <div class="noticias-cabecera-fila">
+        <div>
+          <h1>Noticias</h1>
+          <p>Lo que va pasando en el juego de cartas Pokémon, contado en español: cartas reveladas, sets, torneos y cambios de formato.</p>
+        </div>
+        <!-- «Escribir noticia» lo rellena js/noticias.js, y solo para
+             administración. Se queda vacío para todos los demás. -->
+        <div id="noticiasEscribir"></div>
+      </div>
     </header>
 
     <!-- La última noticia, grande. La rellena js/noticias.js: aquí se

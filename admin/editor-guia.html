@@ -164,6 +164,19 @@
              columna ('approved'). Una guía sin publicar decía "aprobada" y
              no aparecía en ningún sitio. Ahora se elige el estado, y de él
              salen review_status Y published_at a la vez. -->
+        <!-- Guía o noticia (tanda 269). Aquí se elige, y no en un sitio
+             aparte, porque una noticia ES un artículo: mismo editor,
+             mismo cuerpo, mismas imágenes en fila. Lo que cambia es dónde
+             se lista, con qué dirección y qué le cuenta a Google.
+             El candado de verdad está en la base: un disparador devuelve
+             la fila a «guía» si quien la escribe no es del equipo. -->
+        <div class="form-group">
+          <label for="gKind">Tipo de artículo</label>
+          <select id="gKind">
+            <option value="guide">Guía</option>
+            <option value="news">Noticia — sale en /noticias y abre su hilo en el foro</option>
+          </select>
+        </div>
         <div class="form-group">
           <label for="gEstado">Estado</label>
           <select id="gEstado">

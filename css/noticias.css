@@ -204,3 +204,18 @@
     height: auto;
   }
 }
+
+/* La cabecera con su botón de escribir a la derecha (tanda 273). En el
+   móvil el botón baja: a 380 px, un título y un botón en la misma línea
+   dejan el título en tres renglones de dos palabras. */
+.noticias-cabecera-fila {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.noticias-cabecera-fila > div:first-child {
+  min-width: 0;
+}

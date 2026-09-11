@@ -11,7 +11,7 @@
 // revelada, el logo del set, el sobre: TODAS llevan imagen, y la imagen
 // es media noticia. Así que aquí sí.
 import { supabase } from './supabase.js'
-import { escapeHtml } from './app.js'
+import { escapeHtml, getSession, getProfile } from './app.js'
 import { icons } from './icons.js'
 import { faltaElTipo, rutaDeArticulo, cuandoFue, fechaMaquina } from './articulos.js'
 
@@ -78,6 +78,26 @@ async function pedir(desde) {
   return { noticias: (data || []).slice(0, POR_TANDA), hayMas, error: null }
 }
 
+// El botón de escribir, solo para administración.
+//
+// Va AQUÍ y no escondido en /admin porque es donde se está cuando se te
+// ocurre que algo es noticia: mirando las de hoy. Lleva `?tipo=noticia`,
+// así que el editor abre ya puesto en noticia — la diferencia entre
+// escribir una noticia y acordarse de marcarla.
+//
+// El candado de verdad está en la base (un disparador devuelve la fila a
+// «guía» si quien escribe no es del equipo). Esto es no enseñar un botón
+// que no lleva a ninguna parte.
+async function pintarBotonEscribir() {
+  const caja = document.getElementById('noticiasEscribir')
+  if (!caja) return
+  const sesion = await getSession()
+  if (!sesion) return
+  const perfil = await getProfile(sesion.user.id)
+  if (!perfil?.is_admin) return
+  caja.innerHTML = `<a class="btn-primary" href="/admin/editor-guia.html?tipo=noticia">${icons.edit(15)} Escribir noticia</a>`
+}
+
 export async function pintarNoticias() {
   const titular = document.getElementById('noticiaTitular')
   const rejilla = document.getElementById('noticiasRejilla')
@@ -120,3 +140,4 @@ export async function pintarNoticias() {
 }
 
 pintarNoticias()
+pintarBotonEscribir()

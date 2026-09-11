@@ -13286,3 +13286,77 @@ sin comillas, `javascript:`, `data:`, iframe, svg, style, comentario que
 esconde una etiqueta, formulario) y la comprobación de que lo que sí debe
 pasar —encabezados, negritas, filas de imágenes con sus columnas, pies de
 foto, spoilers— pasa entero.
+
+## Tanda 273 — el foro de Noticias, y el hilo de cada noticia (sept. 2026)
+
+Dos cosas que faltaban para poder trabajar: **dónde se crea una noticia**
+y **dónde se comenta**.
+
+### Dónde se escribe
+
+Hay **dos editores** en el repo y es fácil confundirlos: `/editor-guia.html`
+es el de la comunidad (guarda borradores y manda a revisión, nunca
+publica) y **`/admin/editor-guia.html`** es el del equipo, que es el único
+que pone `published_at`. Una noticia se escribe en el segundo.
+
+El desplegable **«Tipo de artículo»** está ahí, junto a «Estado». Y el
+camino corto: en **/noticias**, administración ve un botón **«Escribir
+noticia»** que abre el editor con `?tipo=noticia` — o sea, ya puesto en
+noticia. Es la diferencia entre escribir una noticia y acordarse de
+marcarla.
+
+### El subforo
+
+`Comunidad › Noticias`, el **primero** del índice (posición 0, por delante
+de Anuncios). «Anuncios» se queda para las novedades DE LA WEB, que es
+otra cosa: ahí no encajan las cartas del 30 aniversario.
+
+`post_policy = 'staff'`, y conviene saber qué significa exactamente: en
+`forum_threads_insert` esa política decide **quién abre temas**;
+`forum_posts_insert` **no la mira** — solo mira que el hilo no esté
+cerrado y el foro no escondido. O sea que sale justo lo que hace falta:
+**nadie abre un hilo suelto, pero todo el mundo comenta**.
+
+### El hilo automático
+
+Al guardar una noticia **publicada**, `js/noticias-foro.js` abre su hilo
+en ese foro, con etiqueta «Noticia», la portada, el resumen
+(`description`) y el enlace a la noticia completa.
+
+**Es un resumen a propósito, no la noticia copiada.** Con el texto entero
+en el foro, dos páginas tuyas competirían por la misma búsqueda en
+Google. El hilo es para comentar; el artículo, para leer.
+
+Dos diferencias con el anuncio de los torneos, sacadas de verlo funcionar:
+
+1. **Automático, no un botón.** Si hay que acordarse de pulsar
+   «anunciar», la mitad se quedan sin hilo.
+2. **Se guarda cuál es**, en `guides.forum_thread_id`. El torneo busca el
+   suyo por el título (`where title = 'Torneo: X'`): en cuanto alguien lo
+   renombra desde la moderación, el torneo cree que no tiene hilo y
+   ofrece abrir otro. Y es lo que hace que **guardar la noticia diez veces
+   abra un hilo, no diez** — que es el caso de verdad, porque una noticia
+   se corrige tres o cuatro veces el día que sale.
+
+**No puede tumbar nada.** Corre justo después de guardar, así que si
+fallara parecería que la noticia no se ha guardado: `abrirHiloDeNoticia`
+no lanza nunca y devuelve `null`. Si falla el primer mensaje, **se
+deshace el hilo** — un hilo vacío sale en el índice como si tuviera algo
+y al entrar no hay nada.
+
+En la noticia publicada sale **«Comentar en el foro»** arriba, junto a
+Guardar y Compartir: quien ya sabe de qué va y quiere decir algo no tiene
+por qué bajar dos pantallas.
+
+### Comprobado
+
+`test-tanda-273.mjs` (32). Lo que más importa: que guardar dos veces abra
+un solo hilo, que no se abra para una guía ni para una noticia sin
+publicar, y las cuatro formas de fallar sin romper nada (sin el foro
+creado, sin poder abrir el hilo, sin poder publicar el mensaje —que
+deshace el hilo— y con la red caída). Más que nada de lo que se escriba
+se cuele como HTML en el mensaje.
+
+De paso salió un olor: `mensajeDelHilo` traducía `title`→`titulo`,
+`description`→`descripcion`… y esa traducción solo servía para poder
+equivocarse al hacerla. Ahora recibe la fila tal cual está en la base.

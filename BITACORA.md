@@ -12,6 +12,54 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 — PINGU-Claude (tanda 273 — el foro de Noticias y el hilo automático)
+
+**Hecho**: PINGU ejecutó las migraciones y preguntó dos cosas: dónde se
+crean las noticias (no encontraba el botón) y si convenía un subforo de
+noticias con hilo automático por noticia, como los torneos.
+
+**Dónde se escribe**: OJO, hay DOS editores y se confunden. El de la
+comunidad (/editor-guia.html) no publica nunca; el que publica es
+**/admin/editor-guia.html**. El desplegable «Tipo de artículo» estaba
+puesto solo en el de la comunidad — ahora está en el de admin, que es el
+que hace falta. Y en /noticias hay botón **«Escribir noticia»** para
+administración, que abre el editor con `?tipo=noticia` ya puesto.
+
+**El subforo**: `Comunidad › Noticias`, el primero del índice, con
+`post_policy = 'staff'`. Importante entender qué hace esa política: en
+`forum_threads_insert` decide quién ABRE temas, pero
+`forum_posts_insert` NO la mira. O sea: nadie abre un hilo suelto y todo
+el mundo comenta, que es exactamente lo que queremos.
+
+**El hilo automático** (js/noticias-foro.js): al guardar una noticia
+publicada se abre su hilo con portada, resumen y enlace al artículo. Es
+RESUMEN a propósito — con el texto entero, dos páginas nuestras
+competirían por la misma búsqueda. Dos diferencias con los torneos:
+automático (si hay que pulsar un botón, la mitad se quedan sin hilo) y
+guardando cuál es en `guides.forum_thread_id` (el torneo busca el suyo
+por el título y se pierde si alguien lo renombra). Eso es además lo que
+hace que guardar diez veces abra UN hilo. No lanza nunca: corre justo
+después de guardar y un fallo ahí parecería que no se ha guardado la
+noticia. Si falla el primer mensaje, deshace el hilo.
+
+En la noticia sale «Comentar en el foro» junto a Guardar y Compartir.
+
+**Migración**: supabase-migration-noticias-foro.sql —
+`guides.forum_thread_id` (con `on delete set null`) y el foro «noticias».
+
+**Ficheros**: nuevos js/noticias-foro.js y la migración. Tocados:
+admin/editor-guia.html, admin/js/editor-guia.js, js/noticias.js,
+noticias.html, css/noticias.css, js/guia.js.
+
+**Pruebas**: test-tanda-273.mjs (32). Suite entera verde.
+
+**En curso / pendiente**: PINGU tiene que ejecutar
+supabase-migration-noticias-foro.sql. Sin ella la noticia se publica
+igual, pero no se le abre hilo (queda avisado en consola). Y sigue
+pendiente quitar los puentes de `kind` cuando la migración lleve tiempo.
+
+---
+
 ## 2026-09-10 (2) — PINGU-Claude (tandas 270-272 — que las noticias existan)
 
 **Hecho**: las tres piezas que quedaban de la sección de Noticias. PINGU
