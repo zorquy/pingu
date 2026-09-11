@@ -6033,6 +6033,71 @@ yt-video iframe {
 }
 
 .yt-portada:hover { background: radial-gradient(120% 120% at 50% 40%, #2d5673 0%, #0d1b2a 100%); }
+
+/* ── La miniatura de verdad (tanda 276) ──
+ *
+ * Va DEBAJO del botón, ocupando la caja entera. La sirve /yt-portada, que
+ * es nuestro: el navegador de quien lee no habla con Google (ver
+ * netlify/functions/yt-portada.mjs y la política de privacidad).
+ *
+ * `object-fit: cover` no es un adorno: `hqdefault.jpg` —la que existe
+ * para TODOS los vídeos— viene en 4:3 con bandas negras arriba y abajo, y
+ * recortarla es lo que hace que se vea igual que la de alta resolución. */
+.yt-miniatura {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Fuera del flujo del botón, que es un flex en columna: si contara,
+     empujaría el play y el texto fuera de sitio. */
+  z-index: 0;
+}
+
+/* Con foto detrás, el degradado de la caja sobra y el texto necesita algo
+   que lo separe: una cortina oscura, más densa abajo, que deja ver la
+   portada y mantiene legible lo de encima. Sin esto, un vídeo con la
+   portada clara dejaba «Ver el vídeo» en blanco sobre blanco. */
+.yt-con-miniatura .yt-portada {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0.72) 100%);
+}
+
+.yt-con-miniatura .yt-portada:hover {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.25) 55%, rgba(0, 0, 0, 0.65) 100%);
+}
+
+/* El play y los textos, por encima de la foto. */
+.yt-con-miniatura .yt-play,
+.yt-con-miniatura .yt-texto,
+.yt-con-miniatura .yt-nota {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* Con la portada delante, «Ver el vídeo» ya lo dice el triángulo rojo:
+   el texto grande estorba y tapa la imagen. Se queda la nota pequeña, que
+   es la que explica que no se ha cargado nada todavía. */
+.yt-con-miniatura .yt-texto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.yt-con-miniatura .yt-nota {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  opacity: 0.9;
+}
+
+/* El play, más grande cuando hay foto: compite con una imagen, no con un
+   fondo liso. */
+.yt-con-miniatura .yt-play { transform: scale(1.15); transition: transform 0.15s ease; }
+.yt-con-miniatura .yt-portada:hover .yt-play { transform: scale(1.28); }
 .yt-play { display: flex; filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45)); }
 .yt-play svg { width: 68px; height: 48px; }
 .yt-texto { font-weight: 700; font-size: 16px; }

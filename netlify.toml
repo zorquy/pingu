@@ -124,6 +124,15 @@
   to = "/tema.html?t=:id"
   status = 200
 
+# La miniatura de un vídeo de YouTube, servida por nosotros (tanda 276).
+# La pide el servidor y se la damos ya hecha, para que el navegador de
+# quien lee no tenga que hablar con Google — que es lo que promete la
+# política de privacidad.
+[[redirects]]
+  from = "/yt-portada"
+  to = "/.netlify/functions/yt-portada"
+  status = 200
+
 # El canal RSS (tanda 271). Igual que el sitemap: se genera en la
 # petición, porque las direcciones salen de Supabase.
 [[redirects]]

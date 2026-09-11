@@ -13360,3 +13360,60 @@ se cuele como HTML en el mensaje.
 De paso salió un olor: `mensajeDelHilo` traducía `title`→`titulo`,
 `description`→`descripcion`… y esa traducción solo servía para poder
 equivocarse al hacerla. Ahora recibe la fila tal cual está en la base.
+
+## Tanda 276 — la portada de verdad del vídeo, sin romper la promesa (sept. 2026)
+
+El vídeo de YouTube se pintaba como un cuadro azul con un botón de play.
+PINGU quería la portada del vídeo, y tenía razón: un cuadro liso no dice
+de qué va y es justo lo que hace que apetezca pulsar.
+
+### Por qué no se hizo lo obvio
+
+Porque `privacidad.html` promete, en negrita, que *«mientras no lo
+reproduzcas, a YouTube no se le pide absolutamente nada… sin la miniatura
+de Google»*. Un `<img src="https://i.ytimg.com/…">` en cada guía con
+vídeo habría convertido esa frase en mentira: el navegador de cada
+visitante le daría a Google su IP y la página desde la que mira **sin
+haber pulsado nada**.
+
+### Lo que se hace
+
+La imagen la pide **nuestro servidor**: `/yt-portada?v=ID` →
+`netlify/functions/yt-portada.mjs`, que la trae de i.ytimg.com y la
+sirve desde pokedoc.es con caché de un año. Google ve una petición
+nuestra **por vídeo y por caché**, no una por visitante.
+
+Tres ventajas de paso: al ser del mismo dominio no la bloquea ningún
+bloqueador de rastreadores; la caché del borde hace que Google
+prácticamente no se entere; y la política se puede contar **mejor** que
+antes, no peor — «tu navegador no habla con YouTube en ningún momento».
+
+### Los detalles que costarían un fallo
+
+- **`maxresdefault.jpg` no existe para todos los vídeos.** Solo para los
+  subidos en alta; para el resto YouTube devuelve 404. Se cae a
+  `hqdefault.jpg`, que existe **siempre**, y por eso no hace falta nada
+  detrás.
+- **`hqdefault` viene en 4:3, con bandas negras.** `object-fit: cover`
+  las recorta: es lo que hace que las dos calidades se vean igual de bien
+  en una caja 16:9.
+- **YouTube devuelve 200 con una imagen gris diminuta** cuando no tiene
+  la que le pides. Se cuela por el `res.ok`, así que se descarta por peso
+  (menos de 2 KB no es una portada).
+- **El identificador se comprueba carácter a carácter ANTES de meterlo en
+  una dirección.** Sin eso, esto sería un **proxy abierto**: cualquiera
+  podría pedirle a nuestro servidor que se descargara lo que quisiera, la
+  red interna de la nube incluida.
+- **Si la miniatura no llega, no pasa nada**: el `<img>` se quita solo y
+  queda la portada dibujada de siempre. La clase `yt-con-miniatura` solo
+  se pone cuando la imagen ha cargado **de verdad**, para que el texto no
+  se quede blanco sobre un fondo que no está.
+
+### Comprobado
+
+`test-tanda-276.mjs` (24). Incluye **siete intentos de usar la función
+como proxy abierto** (`../../etc/passwd`, la IP de metadatos de la nube,
+identificadores largos y cortos) comprobando además que en ninguno de
+ellos se pide nada a la red, y una prueba que vigila que nadie vuelva a
+meter `i.ytimg.com` en el cliente: si alguien lo hace, la política deja
+de ser cierta y salta.

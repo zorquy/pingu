@@ -67,9 +67,18 @@ export const urlDeYoutube = (id) => `https://www.youtube.com/watch?v=${id}`
 // privacidad dice que la web no lleva nada de terceros, y un iframe de
 // YouTube en cada visita lo convertiría en mentira. Así, mientras nadie
 // pulse, a Google no le llega absolutamente nada. Además una guía con
-// cuatro vídeos pesaría varios megas antes de leer la primera línea, y
-// la portada la dibujamos nosotros, sin pedirle la miniatura a Google —
-// que también sería una visita contada.
+// cuatro vídeos pesaría varios megas antes de leer la primera línea.
+//
+// LA MINIATURA SÍ SE VE, desde la tanda 276 — un cuadro azul no dice de
+// qué va el vídeo, y es lo que hace que apetezca pulsar. Pero NO se pide
+// a Google desde el navegador de quien lee: se pide a `/yt-portada`, que
+// es nuestro, y que la trae por detrás (netlify/functions/yt-portada.mjs).
+// Google ve una petición nuestra por vídeo y por caché, no una por
+// visitante, y la promesa de la política se mantiene entera.
+//
+// Si la miniatura no llega —vídeo sin portada, Google caído, la imagen
+// bloqueada— no pasa nada: se esconde sola y debajo queda la portada
+// dibujada de siempre.
 export function hydrateVideos(raiz) {
   const bloques = [...(raiz?.querySelectorAll?.('yt-video') || [])]
   for (const el of bloques) {
@@ -84,6 +93,15 @@ export function hydrateVideos(raiz) {
     // escribir dentro del bloque y romperlo con el cursor.
     el.setAttribute('contenteditable', 'false')
     el.innerHTML = portadaHtml(id)
+
+    // Si la miniatura no llega, fuera: debajo está la portada de siempre
+    // y no se queda el hueco roto de una imagen que no carga.
+    const mini = el.querySelector('.yt-miniatura')
+    mini?.addEventListener('error', () => mini.remove(), { once: true })
+    // Y solo se le da el aspecto de «con foto» cuando la foto está de
+    // verdad: así el texto no se pone blanco sobre un fondo que no ha
+    // llegado.
+    mini?.addEventListener('load', () => el.classList.add('yt-con-miniatura'), { once: true })
 
     el.querySelector('.yt-portada')?.addEventListener('click', () => {
       const marco = document.createElement('iframe')
@@ -104,6 +122,10 @@ export function hydrateVideos(raiz) {
 function portadaHtml(id) {
   return `
     <button type="button" class="yt-portada" aria-label="Reproducir el vídeo de YouTube">
+      <!-- alt vacío a propósito: la miniatura no aporta nada que no diga
+           ya el botón, y leerle «miniatura del vídeo» a quien usa un
+           lector de pantalla es ruido. -->
+      <img class="yt-miniatura" src="/yt-portada?v=${encodeURIComponent(id)}" alt="" loading="lazy" decoding="async" />
       <span class="yt-play" aria-hidden="true">
         <svg viewBox="0 0 68 48" width="68" height="48">
           <path d="M66.5 7.7c-.8-2.9-2.5-5.2-5.4-6C55.8.2 34 .2 34 .2s-21.8 0-27.1 1.5c-2.9.8-4.6 3.1-5.4 6C0 13 0 24 0 24s0 11 1.5 16.3c.8 2.9 2.5 5.2 5.4 6C12.2 47.8 34 47.8 34 47.8s21.8 0 27.1-1.5c2.9-.8 4.6-3.1 5.4-6C68 35 68 24 68 24s0-11-1.5-16.3z" fill="#ff0000"/>

@@ -12,6 +12,50 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 (4) — PINGU-Claude (tanda 276 — la portada de verdad del vídeo)
+
+**Hecho**: PINGU quería que el vídeo de YouTube enseñara su portada en
+vez del cuadro azul con el play. Tenía razón: un cuadro liso no dice de
+qué va el vídeo y es lo que hace que apetezca pulsar.
+
+**El conflicto, y por qué no se hizo lo obvio**: la política de
+privacidad promete EN NEGRITA que «mientras no lo reproduzcas, a YouTube
+no se le pide absolutamente nada… sin la miniatura de Google». Un
+`<img src="https://i.ytimg.com/…">` habría convertido esa frase en
+mentira: cada visitante le daría a Google su IP y la página desde la que
+mira, sin haber pulsado nada.
+
+**Lo que se ha hecho**: la imagen la pide NUESTRO servidor
+(netlify/functions/yt-portada.mjs, ruta /yt-portada?v=ID) y se sirve
+desde pokedoc.es con caché de un año. Google ve una petición nuestra por
+vídeo y por caché, no una por visitante. La promesa se mantiene, y de
+paso la miniatura ya no depende de que nadie tenga bloqueado
+i.ytimg.com, que hoy es media internet con bloqueador.
+
+La política se ha reescrito para contarlo bien: «tu navegador no habla
+con YouTube en ningún momento… te la servimos nosotros».
+
+**Detalles que importan**: `maxresdefault` no existe para todos los
+vídeos, así que se cae a `hqdefault`, que existe siempre (y viene en 4:3
+con bandas negras, recortadas con object-fit: cover). YouTube devuelve
+200 con una imagen gris diminuta cuando no tiene la que le pides, así que
+se descarta por peso. Y el identificador se comprueba carácter a carácter
+ANTES de meterlo en una dirección: sin eso esto sería un proxy abierto.
+
+Si la miniatura no llega, el `<img>` se quita solo y queda la portada
+dibujada de siempre — o sea, exactamente lo de antes.
+
+**Ficheros**: nuevo netlify/functions/yt-portada.mjs. Tocados:
+js/video-youtube.js, css/components.css, netlify.toml, privacidad.html.
+
+**Pruebas**: test-tanda-276.mjs (24), con siete intentos de usar la
+función como proxy abierto (../../etc/passwd, la IP de metadatos de la
+nube, identificadores largos y cortos) y una que vigila que nadie vuelva
+a meter i.ytimg.com en el cliente — si alguien lo hace, la política deja
+de ser cierta y la prueba lo canta.
+
+---
+
 ## 2026-09-11 (3) — PINGU-Claude (tanda 275 — «Guía no encontrada» al entrar en una noticia)
 
 **Hecho**: PINGU publicó la primera noticia, el listado salió perfecto, y
