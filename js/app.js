@@ -336,8 +336,83 @@ export function extensionDeImagen(file) {
   return /^[a-z0-9]{2,5}$/.test(delNombre || '') ? delNombre : 'png'
 }
 
+// ── Los formatos que se ven en el navegador pero no fuera de él ──
+//
+// El 2026-09-11 una portada subida como AVIF llegó a Telegram y la
+// rechazó: «IMAGE_PROCESS_FAILED». AVIF y WebP son imágenes perfectamente
+// válidas —las sirve media web y cualquier navegador moderno las pinta—,
+// pero fuera del navegador hay mucho que no las entiende: Telegram no las
+// acepta como foto, y varios lectores de RSS y rastreadores de vista
+// previa tampoco.
+//
+// Y pasa sin querer: quien copia una imagen de una web moderna copia un
+// AVIF sin saberlo, porque en pantalla se ve igual.
+//
+// Así que se convierten AL SUBIR, que es el único momento en el que hay
+// un navegador delante capaz de descodificarlas. Después ya no: en el
+// servidor haría falta una librería de imagen, y aquí no entran
+// dependencias nuevas.
+const FORMATOS_A_CONVERTIR = ['image/avif', 'image/webp', 'image/heic', 'image/heif']
+
+export function hayQueConvertir(tipo) {
+  return FORMATOS_A_CONVERTIR.includes(String(tipo || '').toLowerCase())
+}
+
+// ¿Tiene zonas transparentes?
+//
+// Se mira sobre una copia PEQUEÑA: al encoger, una zona transparente tiñe
+// de transparencia a sus vecinas, así que es MÁS fácil de detectar que
+// mirando píxel a píxel — y cuesta lo mismo sea cual sea el tamaño de la
+// imagen. Equivocarse hacia el «sí» solo cuesta unos KB (sale PNG en vez
+// de JPEG); equivocarse hacia el «no» le pone un fondo negro a un logo.
+function tieneTransparencia(bitmap) {
+  const lado = 128
+  const escala = Math.min(1, lado / Math.max(bitmap.width, bitmap.height))
+  const lienzo = document.createElement('canvas')
+  lienzo.width = Math.max(1, Math.round(bitmap.width * escala))
+  lienzo.height = Math.max(1, Math.round(bitmap.height * escala))
+  const pincel = lienzo.getContext('2d', { willReadFrequently: true })
+  pincel.drawImage(bitmap, 0, 0, lienzo.width, lienzo.height)
+  const { data } = pincel.getImageData(0, 0, lienzo.width, lienzo.height)
+  for (let i = 3; i < data.length; i += 4) if (data[i] < 255) return true
+  return false
+}
+
+// Devuelve el fichero convertido, o el MISMO fichero si no hace falta o
+// si el navegador no puede con él. Nunca tira: una conversión que falla
+// no puede impedir subir una imagen.
+export async function convertirImagenRara(file) {
+  if (!hayQueConvertir(file?.type)) return file
+  if (typeof createImageBitmap !== 'function' || typeof document === 'undefined') return file
+
+  let bitmap
+  try {
+    bitmap = await createImageBitmap(file)
+  } catch {
+    // El navegador no sabe descodificarlo. Se sube tal cual: mejor una
+    // imagen que Telegram no quiera que ninguna imagen.
+    return file
+  }
+  try {
+    const salida = tieneTransparencia(bitmap) ? 'image/png' : 'image/jpeg'
+    const lienzo = document.createElement('canvas')
+    lienzo.width = bitmap.width
+    lienzo.height = bitmap.height
+    lienzo.getContext('2d').drawImage(bitmap, 0, 0)
+    const blob = await new Promise((listo) => lienzo.toBlob(listo, salida, 0.9))
+    if (!blob) return file
+    const nombre = `${String(file.name || 'imagen').replace(/\.[^.]+$/, '')}.${salida === 'image/png' ? 'png' : 'jpg'}`
+    return new File([blob], nombre, { type: salida })
+  } catch {
+    return file
+  } finally {
+    bitmap.close?.()
+  }
+}
+
 export async function uploadGuideImage(userId, file) {
   validateImageFile(file)
+  file = await convertirImagenRara(file)
   const ext = extensionDeImagen(file)
   const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
   const { error } = await supabase.storage

@@ -13645,3 +13645,64 @@ mirar.
 ### Comprobado
 
 `test-tanda-282.mjs` (96). Rigor: **51 mutaciones, las 51 detectadas.**
+
+---
+
+## Tanda 286 — un AVIF no es una imagen «normal» (sept. 2026)
+
+El aviso del panel, ya con todo el diagnóstico:
+
+```
+la portada es un AVIF (AVIF, 50 KB) y Telegram no acepta ese formato como foto
+— https://…supabase.co/storage/v1/object/public/guide-images/…/…-3mspdq.avif
+```
+
+Dos cosas quedaron claras de golpe:
+
+1. **La portada estaba en PokeDoc**, no enlazada de otra web. La teoría
+   del enlazado externo era falsa.
+2. Era un **AVIF**. Y AVIF —igual que WebP— es una imagen válida que
+   cualquier navegador moderno pinta sin pestañear, pero **fuera** del
+   navegador hay mucho que no la entiende: Telegram no la toma como foto,
+   y varios lectores de RSS y rastreadores de vista previa tampoco.
+
+### Por qué pasa sin querer
+
+Media web sirve ya AVIF y WebP. Quien **copia una imagen** de una página
+moderna está copiando un AVIF **sin saberlo**, porque en pantalla se ve
+exactamente igual. Y lo sube igual de tranquilo: `validateImageFile` lo
+acepta —es `image/…`, y lo es— y desde la tanda 281 la extensión sale del
+tipo MIME, así que se guarda como `.avif`. Todo correcto, y el resultado
+no sirve.
+
+### Dónde se arregla: al subir
+
+Se convierte en el navegador, con `createImageBitmap` + un `<canvas>`,
+porque **ese es el único momento en el que hay algo capaz de descodificar
+un AVIF**. Después ya no: en el servidor haría falta una librería de
+imagen, y aquí no entran dependencias nuevas.
+
+- Solo se tocan **AVIF, WebP, HEIC y HEIF**. Un JPEG o un PNG se dejan en
+  paz: recodificarlos solo los empeoraría.
+- **Con transparencia sale PNG; sin ella, JPEG** al 90%. Se mira sobre
+  una copia de 128 px: al encoger, una zona transparente tiñe a sus
+  vecinas, así que es más fácil de detectar que píxel a píxel y cuesta lo
+  mismo sea cual sea el tamaño. Equivocarse hacia el «sí» cuesta unos KB;
+  hacia el «no», un logo con fondo negro.
+- **Nunca tira.** Si el navegador no sabe descodificarla, o `toBlob`
+  devuelve `null`, vuelve el fichero original: perder la imagen de
+  alguien por una conversión sería mucho peor que subir un AVIF.
+- Y se convierte **antes** de sacar la extensión, o se guardaría un JPEG
+  llamado `.avif` — el fallo de la tanda 281 otra vez, por la puerta de
+  al lado.
+
+### Lo que NO arregla
+
+Las imágenes **ya subidas** siguen siendo lo que son. Una portada AVIF
+anterior a esto hay que volver a subirla.
+
+### Comprobado
+
+`test-tanda-286.mjs` (24), en un Chromium de verdad: la conversión usa
+canvas, así que doblarla no probaría nada. Rigor: **12 mutaciones, las 12
+detectadas.**

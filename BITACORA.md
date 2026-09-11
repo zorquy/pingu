@@ -45,6 +45,37 @@ tocar código.
 
 ---
 
+## 2026-09-11 (16) — PINGU-Claude (tanda 286 — AVIF y WebP se convierten al subir)
+
+**Hecho**: cerrado el caso de la portada que no salía en Telegram. El
+aviso del panel dio el diagnóstico completo: era un **AVIF**, y estaba
+en NUESTRO almacenamiento (o sea que mi teoría del enlazado externo era
+falsa; queda corregida aquí para que no despiste a nadie).
+
+AVIF y WebP son imágenes válidas que cualquier navegador pinta, pero
+fuera del navegador hay mucho que no las entiende. Y se cuelan sin
+querer: quien copia una imagen de una web moderna copia un AVIF sin
+saberlo, porque en pantalla se ve igual.
+
+Ahora `uploadGuideImage` convierte AVIF/WebP/HEIC/HEIF antes de subir,
+con createImageBitmap + canvas — el navegador es el único sitio donde hay
+con qué descodificarlos; en el servidor haría falta una librería y aquí
+no entran dependencias nuevas. Con transparencia sale PNG, sin ella JPEG
+al 90%. JPEG y PNG no se tocan. Y si algo falla, vuelve el fichero
+original: perder la imagen de alguien sería peor que subir un AVIF.
+
+**Ficheros**: js/app.js, SCHEMA.md.
+
+**Pruebas**: test-tanda-286.mjs (NUEVA, 24) en un Chromium de verdad —
+doblar un canvas no probaría nada. Rigor: 12 mutaciones, las 12
+detectadas.
+
+**PENDIENTE**: las imágenes YA subidas siguen siendo lo que son. PINGU
+tiene que volver a subir la portada de la noticia del Wild Card para que
+salga con foto en Telegram.
+
+---
+
 ## 2026-09-11 (15) — PINGU-Claude (tanda 285 — qué ES esa portada)
 
 **Hecho**: el aviso del panel dio por fin el dato bueno: «failed to get
