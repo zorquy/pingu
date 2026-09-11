@@ -13535,3 +13535,43 @@ big», «failed to get HTTP URL content») sale en el aviso del panel. Es lo
 ### Comprobado
 
 `test-tanda-282.mjs` (48). Rigor: **27 mutaciones, las 27 detectadas.**
+
+---
+
+## Tanda 284 — la portada la subimos nosotros (sept. 2026)
+
+Con el canal ya funcionando, la primera noticia salió **sin portada**:
+`Bad Request: failed to get HTTP URL content`.
+
+Ese mensaje quiere decir que **Telegram no ha podido descargarse la
+imagen**. Y es que a `sendPhoto` se le pasa una URL: la foto la baja
+Telegram, desde **sus** servidores. Hay sitios que a él le dicen que no
+aunque a un navegador le digan que sí. El mensaje no distingue un 404 de
+un 403 ni de una portada servida con un tipo que no es de imagen.
+
+### Tres intentos, de más barato a más caro
+
+1. **`sendPhoto` con el enlace.** Cuando funciona es lo mejor: no pasa un
+   solo byte por nuestro servidor y Telegram se la cachea.
+2. **Nos la traemos y se la subimos.** Si nosotros sí podemos bajarla, va
+   como fichero (`multipart/form-data`). Aquí se arregla el caso de la
+   web que le dice que no a Telegram pero a nosotros no, y el de la
+   portada servida con el tipo equivocado. De paso, el límite por subida
+   son **10 MB** y por enlace la mitad: caben portadas que por URL no
+   cabrían.
+3. **Mensaje con vista previa grande.** La portada entra por el
+   `og:image` de la noticia. Nunca se pierde del todo.
+
+### Y si tampoco podemos traerla, se dice qué le pasa
+
+`traerLaPortada()` devuelve el motivo concreto —«responde 404», «no es
+una imagen (application/octet-stream)», «pesa 11.0 MB (el máximo son
+10)», «viene vacía»— **y la dirección**. Sin la dirección no hay nada que
+mirar; con ella, se arregla esa portada en dos minutos.
+
+Es el mismo camino que `yt-portada.mjs` con las miniaturas de YouTube:
+cuando un tercero no colabora, la pieza la sirve nuestro servidor.
+
+### Comprobado
+
+`test-tanda-282.mjs` (66). Rigor: **37 mutaciones, las 37 detectadas.**
