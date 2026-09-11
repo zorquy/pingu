@@ -82,12 +82,12 @@ MUTACIONES += [
      "  if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return ''", "  if (false) return ''"),
 
     ('netlify/lib/telegram.mjs', 'el envío usa la portada sin completar',
-     "    ? { chat_id: canal, ...dentroDelTema, photo: portada, caption: texto, parse_mode: 'HTML' }",
-     "    ? { chat_id: canal, ...dentroDelTema, photo: noticia.cover_image, caption: texto, parse_mode: 'HTML' }"),
+     "await aTelegram('sendPhoto', { chat_id: canal, ...dentroDelTema, photo: portada, caption: texto, parse_mode: 'HTML' })",
+     "await aTelegram('sendPhoto', { chat_id: canal, ...dentroDelTema, photo: noticia.cover_image, caption: texto, parse_mode: 'HTML' })"),
 
     ('netlify/lib/telegram.mjs', 'el reintento vuelve a perder la portada del todo',
-     "      body: JSON.stringify({ chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML', link_preview_options: VISTA_PREVIA }),",
-     "      body: JSON.stringify({ chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML' }),"),
+     "await aTelegram('sendMessage', { chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML', link_preview_options: VISTA_PREVIA })",
+     "await aTelegram('sendMessage', { chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML' })"),
 
     ('netlify/lib/telegram.mjs', 'la vista previa deja de ser grande',
      "const VISTA_PREVIA = { prefer_large_media: true, show_above_text: true }",
@@ -98,12 +98,48 @@ MUTACIONES += [
      "const VISTA_PREVIA = { prefer_large_media: true }"),
 
     ('netlify/lib/telegram.mjs', 'no se cuenta por qué la foto no entró',
-     "    if (datos2?.ok) return { ok: true, sinFoto: true, motivo: datos?.description || 'Telegram no ha aceptado la portada' }",
-     "    if (datos2?.ok) return { ok: true, sinFoto: true }"),
+     "    if (datos.ok) return { ok: true, sinFoto: true, motivo }",
+     "    if (datos.ok) return { ok: true, sinFoto: true }"),
 
     ('admin/js/admin.js', 'el panel se calla que la portada no entró',
      "    const sinPortada = r.sinFoto ? `Mandada al canal, pero la portada no ha entrado como foto: ${r.motivo || 'Telegram no la ha aceptado'}. Sale en la vista previa del enlace.` : 'Mandada al canal.'",
      "    const sinPortada = 'Mandada al canal.'"),
+]
+
+
+MUTACIONES += [
+    ('netlify/lib/telegram.mjs', 'ya no nos traemos la portada para subirla',
+     "  const traida = await traerLaPortada(portada, fetchImpl)", "  const traida = { error: 'nada' }"),
+
+    ('netlify/lib/telegram.mjs', 'la subida pierde el tema del grupo',
+     "    if (tema) form.set('message_thread_id', String(tema))", "    if (false) form.set('message_thread_id', String(tema))"),
+
+    ('netlify/lib/telegram.mjs', 'la foto subida se queda sin pie',
+     "    form.set('caption', texto)", "    form.set('caption', '')"),
+
+    ('netlify/lib/telegram.mjs', 'se sube lo que sea, aunque no sea una imagen',
+     "  if (!/^image\\//i.test(tipo)) return { error: `no es una imagen (${tipo || 'sin tipo'})` }",
+     "  if (false) return { error: `no es una imagen (${tipo || 'sin tipo'})` }"),
+
+    ('netlify/lib/telegram.mjs', 'una portada que no existe se da por buena',
+     "  if (!res.ok) return { error: `responde ${res.status}` }", "  if (false) return { error: `responde ${res.status}` }"),
+
+    ('netlify/lib/telegram.mjs', 'se sube una portada de cualquier tamaño',
+     "  if (datos.byteLength > MAXIMO_FOTO) {", "  if (false) {"),
+
+    ('netlify/lib/telegram.mjs', 'una portada vacía cuela',
+     "  if (!datos.byteLength) return { error: 'viene vacía' }", "  if (false) return { error: 'viene vacía' }"),
+
+    ('netlify/lib/telegram.mjs', 'no se dice CUÁL es la portada que falla',
+     "  return sinFoto(`la portada ${traida.error} — ${portada}`)", "  return sinFoto(`la portada ${traida.error}`)"),
+
+    ('netlify/lib/telegram.mjs', 'se pierde el motivo del primer intento',
+     "    return sinFoto(`${porEnlace.description || 'Telegram no ha aceptado el enlace'}; y subiéndola: ${subida.description || 'tampoco'}`)",
+     "    return sinFoto('no ha entrado')"),
+
+    ('netlify/lib/telegram.mjs', 'una portada incrustada se intenta pedir igual',
+     "  if (!portada) return sinFoto(noticia.cover_image ? 'la portada no es una dirección que Telegram pueda pedir' : undefined)",
+     "  if (!portada) return sinFoto(undefined)"),
 ]
 
 originales = {}

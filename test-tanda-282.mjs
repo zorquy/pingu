@@ -31,9 +31,10 @@ const NOTICIA = {
   telegram_sent_at: null,
 }
 
-function doblar({ fila = NOTICIA, telegramOk = true, patchFalla = false } = {}) {
+function doblar({ fila = NOTICIA, telegramOk = true, patchFalla = false, enlaceFalla = false, subidaOk = true, portada = {} } = {}) {
   const enviado = []
   const marcado = []
+  const pedido = []
   const restImpl = async (ruta, _clave, opciones = {}) => {
     if (opciones.method === 'PATCH') {
       if (patchFalla) throw new Error('sin permiso')
@@ -42,11 +43,32 @@ function doblar({ fila = NOTICIA, telegramOk = true, patchFalla = false } = {}) 
     }
     return fila ? [fila] : []
   }
-  const fetchImpl = async (url, opciones) => {
-    enviado.push({ metodo: String(url).split('/').pop(), ...JSON.parse(opciones.body) })
+  const fetchImpl = async (url, opciones = {}) => {
+    // Lo que no va a api.telegram.org es la DESCARGA de la portada: la
+    // lib se la trae para subirla cuando el enlace no le vale a Telegram.
+    if (!String(url).startsWith('https://api.telegram.org/')) {
+      pedido.push(String(url))
+      if (!portada) return new Response('', { status: 404 })
+      return new Response(new Uint8Array(portada.bytes ?? 1000), { status: portada.estado ?? 200, headers: { 'content-type': portada.tipo ?? 'image/png' } })
+    }
+    const metodo = String(url).split('/').pop()
+    // Subida: el cuerpo es un formulario, no JSON.
+    if (opciones.body instanceof FormData) {
+      const f = opciones.body
+      enviado.push({ metodo, subida: true, chat_id: f.get('chat_id'), caption: f.get('caption'), message_thread_id: f.get('message_thread_id'), foto: f.get('photo') })
+      // `telegramOk: false` es «el canal no existe»: eso tumba TODO, la
+      // subida incluida. No respetarlo aquí dejaría pasar por buena una
+      // noticia que en realidad no ha llegado a ninguna parte.
+      const vale = subidaOk && telegramOk
+      return new Response(JSON.stringify({ ok: vale, description: vale ? '' : telegramOk ? 'PHOTO_INVALID_DIMENSIONS' : 'chat not found' }), { status: 200 })
+    }
+    enviado.push({ metodo, ...JSON.parse(opciones.body) })
+    if (metodo === 'sendPhoto' && enlaceFalla) {
+      return new Response(JSON.stringify({ ok: false, description: 'failed to get HTTP URL content' }), { status: 400 })
+    }
     return new Response(JSON.stringify({ ok: telegramOk, description: telegramOk ? '' : 'chat not found' }), { status: 200 })
   }
-  return { restImpl, fetchImpl, enviado, marcado }
+  return { restImpl, fetchImpl, enviado, marcado, pedido }
 }
 
 console.log('\n── 1. EL FALLO: sin la variable, decir CUÁL falta ──')
@@ -193,34 +215,61 @@ console.log('\n── 9. La portada tiene que LLEGAR (tanda 283) ──')
   check('una incrustada no rompe el envío: va como mensaje', d2.enviado[0]?.metodo === 'sendMessage', d2.enviado[0]?.metodo)
 }
 
-console.log('\n── 10. Si la foto no entra, la portada sale igual ──')
+console.log('\n── 10. Si el enlace no le sirve a Telegram, la subimos nosotros (tanda 284) ──')
 {
-  // Antes el reintento mandaba un mensaje PELADO y la portada se perdía
-  // del todo. Ahora va con la vista previa grande: Telegram saca el
-  // og:image de la noticia, que es esa misma portada.
-  const enviado = []
-  const fetchImpl = async (url, opciones) => {
-    const metodo = String(url).split('/').pop()
-    enviado.push({ metodo, ...JSON.parse(opciones.body) })
-    if (metodo === 'sendPhoto') return new Response(JSON.stringify({ ok: false, description: 'file is too big' }), { status: 400 })
-    return new Response(JSON.stringify({ ok: true }), { status: 200 })
-  }
-  const base = doblar()
-  const r = await mandarUna({ id: 'n1', env: ENV, restImpl: base.restImpl, fetchImpl })
-  check('se reintenta como mensaje', enviado.map((e) => e.metodo).join('→') === 'sendPhoto→sendMessage')
-  check('con la vista previa grande', enviado[1]?.link_preview_options?.prefer_large_media === true, JSON.stringify(enviado[1]?.link_preview_options))
-  check('y encima del texto', enviado[1]?.link_preview_options?.show_above_text === true)
-  check('la noticia sale', r.estado === 200 && r.cuerpo.ok)
-  // Y se cuenta POR QUÉ no entró la foto: eso es lo que se puede arreglar.
-  check('diciendo por qué no entró la foto', /file is too big/.test(r.cuerpo.motivo || ''), JSON.stringify(r.cuerpo))
-
-  // El mensaje sin portada también lleva la vista previa grande.
-  const d2 = doblar({ fila: { ...NOTICIA, cover_image: null } })
-  await mandarUna({ id: 'n1', env: ENV, ...d2 })
-  check('y un mensaje sin portada, también', d2.enviado[0]?.link_preview_options?.prefer_large_media === true)
+  // «failed to get HTTP URL content»: Telegram descarga la foto desde SUS
+  // servidores, y hay sitios que a él le dicen que no aunque a un
+  // navegador le digan que sí. Si nosotros sí podemos traérnosla, se le
+  // sube — y la portada sale igual.
+  const d = doblar({ enlaceFalla: true })
+  const r = await mandarUna({ id: 'n1', env: ENV, ...d })
+  check('primero se prueba por enlace', d.enviado[0]?.metodo === 'sendPhoto' && d.enviado[0]?.photo === NOTICIA.cover_image)
+  check('luego se pide la portada', d.pedido[0] === NOTICIA.cover_image, JSON.stringify(d.pedido))
+  check('y se sube como fichero', d.enviado[1]?.subida === true && d.enviado[1]?.metodo === 'sendPhoto', JSON.stringify(d.enviado[1]?.metodo))
+  check('con el mismo pie', d.enviado[1]?.caption === mensajeDeNoticia(NOTICIA))
+  check('y al mismo tema', d.enviado[1]?.message_thread_id === '51511', d.enviado[1]?.message_thread_id)
+  check('la noticia sale CON la portada', r.estado === 200 && r.cuerpo.ok && !r.cuerpo.sinFoto, JSON.stringify(r.cuerpo))
+  check('y no se manda dos veces', d.enviado.filter((e) => e.metodo === 'sendMessage').length === 0)
 }
 
-console.log('\n── 11. El panel cuenta lo de la portada ──')
+console.log('\n── 11. Y si tampoco la podemos traer, se dice QUÉ le pasa ──')
+{
+  // El mensaje de Telegram no distingue un 404 de un 403 ni de una
+  // portada servida con el tipo equivocado. Pidiéndola nosotros, sí.
+  for (const [que, portada, espera] of [
+    ['que no existe', null, /responde 404/],
+    ['que no es una imagen', { tipo: 'application/octet-stream' }, /no es una imagen/],
+    ['que pesa demasiado', { bytes: 11 * 1024 * 1024 }, /pesa 11\.0 MB/],
+    ['que viene vacía', { bytes: 0 }, /vacía/],
+  ]) {
+    const d = doblar({ enlaceFalla: true, portada })
+    const r = await mandarUna({ id: 'n1', env: ENV, ...d })
+    check(`una portada ${que}: se cuenta`, espera.test(r.cuerpo.motivo || ''), r.cuerpo.motivo)
+    check(`  …y la noticia sale igual`, r.estado === 200 && r.cuerpo.ok && r.cuerpo.sinFoto === true)
+    check('  …con la vista previa grande', d.enviado.at(-1)?.link_preview_options?.prefer_large_media === true)
+    // Y ENCIMA del texto: es lo que hace que parezca una noticia y no un
+    // enlace suelto al final del mensaje.
+    check('  …y encima del texto', d.enviado.at(-1)?.link_preview_options?.show_above_text === true)
+  }
+  // Y se dice CUÁL es la portada: sin la dirección no hay nada que mirar.
+  const d = doblar({ enlaceFalla: true, portada: null })
+  const r = await mandarUna({ id: 'n1', env: ENV, ...d })
+  check('y se dice cuál es', (r.cuerpo.motivo || '').includes(NOTICIA.cover_image), r.cuerpo.motivo)
+
+  // Si la subida tampoco le gusta, la noticia sale igual y se cuentan las dos.
+  const d2 = doblar({ enlaceFalla: true, subidaOk: false })
+  const r2 = await mandarUna({ id: 'n1', env: ENV, ...d2 })
+  check('si la subida tampoco vale, sale sin foto', r2.estado === 200 && r2.cuerpo.sinFoto === true)
+  check('contando los dos intentos', /failed to get HTTP URL content[\s\S]*PHOTO_INVALID_DIMENSIONS/.test(r2.cuerpo.motivo || ''), r2.cuerpo.motivo)
+
+  // Una portada incrustada ni se intenta: se dice y se manda el mensaje.
+  const d3 = doblar({ fila: { ...NOTICIA, cover_image: 'data:image/png;base64,AAA' } })
+  const r3 = await mandarUna({ id: 'n1', env: ENV, ...d3 })
+  check('una incrustada se explica', /Telegram pueda pedir/.test(r3.cuerpo.motivo || ''), r3.cuerpo.motivo)
+  check('y no se pide nada a la red', d3.pedido.length === 0)
+}
+
+console.log('\n── 12. El panel cuenta lo de la portada ──')
 {
   const admin = (await import('node:fs')).readFileSync('/home/user/pingu/admin/js/admin.js', 'utf8')
   check('se avisa de que la portada no entró como foto', /la portada no ha entrado como foto/.test(admin))

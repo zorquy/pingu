@@ -33,6 +33,11 @@ function doblar({ pendientes = [NOTICIA], telegramOk = true, fotoFalla = false, 
     return pendientes
   }
   const fetchImpl = async (url, opciones) => {
+    // Cuando el enlace de la foto no le sirve a Telegram, la lib se la
+    // intenta traer para subirla ella (tanda 284). Aquí esa descarga se
+    // dobla como que no se puede: lo que interesa en esta prueba es el
+    // recorrido de la función programada, y la subida la cubre la 282.
+    if (!String(url).startsWith('https://api.telegram.org/')) return new Response('', { status: 404 })
     const cuerpo = JSON.parse(opciones.body)
     const metodo = String(url).split('/').pop()
     enviado.push({ metodo, ...cuerpo })
