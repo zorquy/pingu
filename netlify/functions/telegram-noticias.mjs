@@ -26,6 +26,10 @@
 // de Netlify. NO van en el repo, nunca. Sin ellas esta función no hace
 // nada y lo dice — igual que resumen-semanal con su clave de servicio.
 //
+// TELEGRAM_TEMA_NOTICIAS es opcional y solo hace falta si el destino es
+// un TEMA dentro de un grupo (lo que en una comunidad parecen «canales»
+// pero no lo son). Sin él, el mensaje cae en el tema General.
+//
 // SUPABASE_SERVICE_ROLE_KEY hace falta para marcar la noticia como
 // mandada: la clave pública puede leer, pero no escribir esa columna.
 
@@ -89,13 +93,17 @@ export function mensajeDeNoticia({ title, description, slug }, { limite = 1024 }
 // Con portada va como FOTO con pie: en Telegram una foto ocupa media
 // pantalla y es lo que hace que se pare el dedo. Sin portada, mensaje
 // normal — una foto rota es peor que ninguna.
-export async function mandarATelegram(noticia, { token, canal, fetchImpl = fetch }) {
+export async function mandarATelegram(noticia, { token, canal, tema = null, fetchImpl = fetch }) {
   const texto = mensajeDeNoticia(noticia)
   const conFoto = !!noticia.cover_image
   const metodo = conFoto ? 'sendPhoto' : 'sendMessage'
+  // Un TEMA de un grupo (los «canales» de dentro de una comunidad) no es
+  // un chat distinto: es el mismo grupo con `message_thread_id`. Sin él,
+  // el mensaje cae en el tema General y no donde toca.
+  const dentroDelTema = tema ? { message_thread_id: Number(tema) } : {}
   const cuerpo = conFoto
-    ? { chat_id: canal, photo: noticia.cover_image, caption: texto, parse_mode: 'HTML' }
-    : { chat_id: canal, text: texto, parse_mode: 'HTML', link_preview_options: { prefer_large_media: true } }
+    ? { chat_id: canal, ...dentroDelTema, photo: noticia.cover_image, caption: texto, parse_mode: 'HTML' }
+    : { chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML', link_preview_options: { prefer_large_media: true } }
 
   const res = await fetchImpl(`https://api.telegram.org/bot${token}/${metodo}`, {
     method: 'POST',
@@ -113,7 +121,7 @@ export async function mandarATelegram(noticia, { token, canal, fetchImpl = fetch
     const res2 = await fetchImpl(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ chat_id: canal, text: texto, parse_mode: 'HTML' }),
+      body: JSON.stringify({ chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML' }),
       signal: AbortSignal.timeout(10000),
     })
     const datos2 = await res2.json().catch(() => ({}))
@@ -126,6 +134,8 @@ export async function mandarATelegram(noticia, { token, canal, fetchImpl = fetch
 export async function procesar({ env = process.env, restImpl = rest, fetchImpl = fetch, ahora = new Date() } = {}) {
   const token = env.TELEGRAM_BOT_TOKEN
   const canal = env.TELEGRAM_CANAL_NOTICIAS
+  // Opcional: solo si el destino es un TEMA dentro de un grupo.
+  const tema = env.TELEGRAM_TEMA_NOTICIAS || null
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!token || !canal) return { ok: true, saltado: 'sin TELEGRAM_BOT_TOKEN o TELEGRAM_CANAL_NOTICIAS: no se manda nada' }
   if (!clave) return { ok: true, saltado: 'sin SUPABASE_SERVICE_ROLE_KEY: no se podría marcar como mandada' }
@@ -147,7 +157,7 @@ export async function procesar({ env = process.env, restImpl = rest, fetchImpl =
   const mandadas = []
   const fallos = []
   for (const noticia of pendientes) {
-    const r = await mandarATelegram(noticia, { token, canal, fetchImpl })
+    const r = await mandarATelegram(noticia, { token, canal, tema, fetchImpl })
     if (!r.ok) {
       // No se marca: se volverá a intentar en la siguiente pasada. Si el
       // fallo es permanente se verá en el registro, pero una caída de red

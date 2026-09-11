@@ -47,8 +47,14 @@ Telegram rechaza la foto, reintenta sin ella: la noticia importa más.
 **Migración**: supabase-migration-telegram-noticias.sql.
 
 **Variables de entorno de Netlify** (las pone PINGU, NO van al repo):
-TELEGRAM_BOT_TOKEN y TELEGRAM_CANAL_NOTICIAS. Sin ellas la función no
+TELEGRAM_BOT_TOKEN y TELEGRAM_CANAL_NOTICIAS, y TELEGRAM_TEMA_NOTICIAS
+si el destino es un TEMA de un grupo. Sin las dos primeras la función no
 hace nada y lo dice.
+
+**Ojo con los «canales» de una comunidad**: normalmente NO son canales,
+son TEMAS de un grupo, y eso no es un chat distinto — es el mismo grupo
+con `message_thread_id`. Sin él el mensaje cae en el tema General. El
+reintento sin foto también lo lleva, que si no se iría al General.
 
 **Pruebas**: test-tanda-280.mjs (26).
 
