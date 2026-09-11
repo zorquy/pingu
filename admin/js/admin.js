@@ -379,8 +379,18 @@ async function loadPending() {
 
 // ── Guides ──
 async function loadGuides() {
-  const { data } = await supabase.from('guides').select('*, categories(name)').order('created_at', { ascending: false })
-  guidesCache = data || []
+  // Solo GUÍAS: las noticias tienen su propio apartado desde la tanda
+  // 278. Mezcladas, una noticia salía en esta tabla con una categoría
+  // que no significa nada, y escribir una obligaba a entrar en «Guías».
+  const { data, error } = await supabase
+    .from('guides')
+    .select('*, categories(name)')
+    .eq('kind', 'guide')
+    .order('created_at', { ascending: false })
+  guidesCache =
+    (error
+      ? (await supabase.from('guides').select('*, categories(name)').order('created_at', { ascending: false })).data
+      : data) || []
 
   document.getElementById('guidesTable').innerHTML = `
     <table class="admin-table">
@@ -419,6 +429,83 @@ async function loadGuides() {
 }
 
 document.getElementById('btnNewGuide').addEventListener('click', () => (window.location.href = 'editor-guia.html'))
+
+// ── Noticias (tanda 278) ──
+//
+// Su propia pantalla, aunque compartan tabla con las guías en la base.
+// Son dos trabajos distintos: una guía se escribe en una semana y una
+// noticia en veinte minutos, y tener que buscarla entre treinta guías
+// era justo lo que sobraba.
+//
+// Las columnas también son otras: aquí no pinta la categoría (una
+// noticia no tiene) y sí la fecha, que es lo que ordena una noticia.
+let noticiasCache = []
+
+async function loadNoticias() {
+  const caja = document.getElementById('noticiasTable')
+  if (!caja) return
+  const { data, error } = await supabase
+    .from('guides')
+    .select('id, title, slug, published_at, created_at, forum_thread_id')
+    .eq('kind', 'news')
+    .order('created_at', { ascending: false })
+  if (error) {
+    caja.innerHTML = `<p class="empty-state">No se han podido cargar las noticias: ${escapeHtml(error.message)}</p>`
+    return
+  }
+  noticiasCache = data || []
+
+  if (noticiasCache.length === 0) {
+    caja.innerHTML = `<p class="empty-state">Todavía no hay ninguna noticia. Con «+ Nueva noticia» se escribe la primera.</p>`
+    return
+  }
+
+  caja.innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Titular</th><th>Publicada</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        ${noticiasCache
+          .map(
+            (n) => `
+          <tr>
+            <td>${escapeHtml(n.title)}${
+              // Si tiene hilo en el foro, se dice: es la señal de que la
+              // noticia salió de verdad y la gente puede comentarla.
+              n.forum_thread_id ? ` <a class="badge" href="/tema/${encodeURIComponent(n.forum_thread_id)}" target="_blank" rel="noopener">hilo</a>` : ''
+            }</td>
+            <td>${n.published_at ? escapeHtml(new Date(n.published_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })) : '—'}</td>
+            <td>${n.published_at ? '<span class="badge badge-completed">Publicada</span>' : '<span class="badge badge-progress">Borrador</span>'}</td>
+            <td class="admin-row-actions">
+              ${n.published_at ? `<a class="btn-outline" href="/noticias/${encodeURIComponent(n.slug)}" target="_blank" rel="noopener">Ver</a>` : ''}
+              <button data-editar-noticia="${n.id}">Editar</button>
+              <button class="danger" data-borrar-noticia="${n.id}">Eliminar</button>
+            </td>
+          </tr>`
+          )
+          .join('')}
+      </tbody>
+    </table>`
+
+  caja.querySelectorAll('[data-editar-noticia]').forEach((btn) =>
+    btn.addEventListener('click', () => (window.location.href = `editor-guia.html?id=${btn.dataset.editarNoticia}`))
+  )
+  caja.querySelectorAll('[data-borrar-noticia]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const n = noticiasCache.find((x) => x.id === btn.dataset.borrarNoticia)
+      if (!confirm(`¿Eliminar la noticia «${n?.title || ''}»?`)) return
+      // El hilo del foro NO se borra con ella: ahí puede haber una
+      // conversación de otra gente, y llevársela por delante porque el
+      // artículo se retira sería borrar lo que han escrito. La columna
+      // del hilo apunta a la noticia, no al revés.
+      await supabase.from('guides').delete().eq('id', btn.dataset.borrarNoticia)
+      loadNoticias()
+    })
+  )
+}
+
+document.getElementById('btnNuevaNoticia')?.addEventListener('click', () => {
+  window.location.href = 'editor-guia.html?tipo=noticia'
+})
 
 // ── Los lanzamientos ──
 // La lista de sets con fecha, en site_settings (clave `lanzamientos`),
@@ -2517,6 +2604,7 @@ async function init() {
     loadDashboard(),
     loadPending(),
     loadGuides(),
+    loadNoticias(),
     loadAchievements(),
     loadUsers(),
     loadReports(),

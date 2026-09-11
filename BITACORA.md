@@ -12,6 +12,38 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 (6) — PINGU-Claude (tanda 278 — Noticias, su propio apartado en el panel)
+
+**Hecho**: PINGU: «necesito un apartado nuevo para las noticias, para no
+liar la marrana, porque ahora si quiero escribir una noticia tengo que ir
+al apartado de guía». Y en la tabla de Guías la noticia salía con una
+categoría («Primeros pasos») que no significa nada.
+
+Comparten tabla en la base —una noticia ES un artículo, esa decisión
+sigue siendo la buena— pero son dos trabajos distintos: una guía se
+escribe en una semana, una noticia en veinte minutos. Cada uno con su
+pantalla.
+
+**Panel → Noticias**, justo debajo de Guías. Tabla propia con las
+columnas que importan de una noticia: titular, fecha de publicación y
+estado — **sin categoría**, que aquí es ruido. Con «Ver» para abrirla
+(solo si está publicada: un borrador no tiene dónde llevarte), enlace a
+su hilo del foro cuando lo tiene, y «+ Nueva noticia» que abre el editor
+ya puesto en noticia.
+
+**Y la tabla de Guías se queda limpia**: filtra `kind = 'guide'`, con
+vuelta atrás por si acaso.
+
+Al borrar una noticia **no se borra su hilo del foro**: ahí puede haber
+una conversación de otra gente, y llevársela por delante porque se
+retira el artículo sería borrar lo que han escrito.
+
+**Ficheros**: admin/index.html, admin/js/admin.js.
+
+**Pruebas**: test-tanda-278.mjs (16).
+
+---
+
 ## 2026-09-11 (5) — PINGU-Claude (tanda 277 — una noticia deja de disfrazarse de guía)
 
 **Hecho**: PINGU entró en la primera noticia publicada y vio lo que
