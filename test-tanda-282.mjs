@@ -35,6 +35,7 @@ function doblar({ fila = NOTICIA, telegramOk = true, patchFalla = false, enlaceF
   const enviado = []
   const marcado = []
   const pedido = []
+  const cabeceras = []
   const restImpl = async (ruta, _clave, opciones = {}) => {
     if (opciones.method === 'PATCH') {
       if (patchFalla) throw new Error('sin permiso')
@@ -48,6 +49,7 @@ function doblar({ fila = NOTICIA, telegramOk = true, patchFalla = false, enlaceF
     // lib se la trae para subirla cuando el enlace no le vale a Telegram.
     if (!String(url).startsWith('https://api.telegram.org/')) {
       pedido.push(String(url))
+      cabeceras.push(opciones.headers || {})
       if (!portada) return new Response('', { status: 404 })
       return new Response(new Uint8Array(portada.bytes ?? 1000), { status: portada.estado ?? 200, headers: { 'content-type': portada.tipo ?? 'image/png' } })
     }
@@ -68,7 +70,7 @@ function doblar({ fila = NOTICIA, telegramOk = true, patchFalla = false, enlaceF
     }
     return new Response(JSON.stringify({ ok: telegramOk, description: telegramOk ? '' : 'chat not found' }), { status: 200 })
   }
-  return { restImpl, fetchImpl, enviado, marcado, pedido }
+  return { restImpl, fetchImpl, enviado, marcado, pedido, cabeceras }
 }
 
 console.log('\n── 1. EL FALLO: sin la variable, decir CUÁL falta ──')
@@ -225,6 +227,13 @@ console.log('\n── 10. Si el enlace no le sirve a Telegram, la subimos nosotr
   const r = await mandarUna({ id: 'n1', env: ENV, ...d })
   check('primero se prueba por enlace', d.enviado[0]?.metodo === 'sendPhoto' && d.enviado[0]?.photo === NOTICIA.cover_image)
   check('luego se pide la portada', d.pedido[0] === NOTICIA.cover_image, JSON.stringify(d.pedido))
+  // Sin user-agent, muchos sitios que alojan imágenes contestan 403 a
+  // secas: una petición pelada tiene pinta de robot raspando.
+  check('diciendo quién la pide', /PokeDocBot/.test(d.cabeceras[0]?.['user-agent'] || ''), JSON.stringify(d.cabeceras[0]))
+  check('y que lo que quiere es una imagen', /^image\//.test(d.cabeceras[0]?.accept || ''), d.cabeceras[0]?.accept)
+  // El referer es justo lo que miran las webs con protección contra
+  // enlazado externo: mandarlo sería pedir el rechazo.
+  check('y sin referer', !('referer' in (d.cabeceras[0] || {})))
   check('y se sube como fichero', d.enviado[1]?.subida === true && d.enviado[1]?.metodo === 'sendPhoto', JSON.stringify(d.enviado[1]?.metodo))
   check('con el mismo pie', d.enviado[1]?.caption === mensajeDeNoticia(NOTICIA))
   check('y al mismo tema', d.enviado[1]?.message_thread_id === '51511', d.enviado[1]?.message_thread_id)

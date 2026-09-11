@@ -142,6 +142,17 @@ MUTACIONES += [
      "  if (!portada) return sinFoto(undefined)"),
 ]
 
+
+MUTACIONES += [
+    ('netlify/lib/telegram.mjs', 'la portada se pide sin decir quién la pide',
+     "    res = await fetchImpl(url, { redirect: 'follow', headers: CABECERAS_DE_IMAGEN, signal: AbortSignal.timeout(15000) })",
+     "    res = await fetchImpl(url, { redirect: 'follow', signal: AbortSignal.timeout(15000) })"),
+
+    ('netlify/lib/telegram.mjs', 'se manda referer, que es lo que dispara el bloqueo',
+     "  'user-agent': 'PokeDocBot/1.0 (+https://pokedoc.es)',",
+     "  'user-agent': 'PokeDocBot/1.0 (+https://pokedoc.es)',\n  referer: 'https://pokedoc.es/',"),
+]
+
 originales = {}
 sin_detectar = []
 try:
