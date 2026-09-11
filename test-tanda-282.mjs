@@ -5,7 +5,7 @@
 // entorno, y no había ni forma de enterarse ni forma de recuperarla.
 import { mandarUna } from '/home/user/pingu/netlify/functions/telegram-mandar.mjs'
 import { procesar } from '/home/user/pingu/netlify/functions/telegram-noticias.mjs'
-import { llavesQueFaltan, mensajeDeNoticia, portadaAbsoluta } from '/home/user/pingu/netlify/lib/telegram.mjs'
+import { llavesQueFaltan, mensajeDeNoticia, portadaAbsoluta, describirImagen, comoEsLaPortada } from '/home/user/pingu/netlify/lib/telegram.mjs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -51,7 +51,7 @@ function doblar({ fila = NOTICIA, telegramOk = true, patchFalla = false, enlaceF
       pedido.push(String(url))
       cabeceras.push(opciones.headers || {})
       if (!portada) return new Response('', { status: 404 })
-      return new Response(new Uint8Array(portada.bytes ?? 1000), { status: portada.estado ?? 200, headers: { 'content-type': portada.tipo ?? 'image/png' } })
+      return new Response(portada.cuerpo ?? new Uint8Array(portada.bytes ?? 1000), { status: portada.estado ?? 200, headers: { 'content-type': portada.tipo ?? 'image/png' } })
     }
     const metodo = String(url).split('/').pop()
     // Subida: el cuerpo es un formulario, no JSON.
@@ -283,6 +283,56 @@ console.log('\n── 12. El panel cuenta lo de la portada ──')
   const admin = (await import('node:fs')).readFileSync('/home/user/pingu/admin/js/admin.js', 'utf8')
   check('se avisa de que la portada no entró como foto', /la portada no ha entrado como foto/.test(admin))
   check('con el motivo de Telegram', /\$\{r\.motivo/.test(admin))
+}
+
+console.log('\n── 13. Qué ES esa portada (tanda 285) ──')
+{
+  // «IMAGE_PROCESS_FAILED»: nos la bajamos bien y aun así Telegram no la
+  // quiere. Sin saber qué es, ese mensaje no se puede ni empezar a mirar.
+  const png = (a, al) => { const b = Buffer.alloc(40); b.write('\x89PNG\r\n\x1a\n', 'binary'); b.writeUInt32BE(a, 16); b.writeUInt32BE(al, 20); return b }
+  const webp = () => { const b = Buffer.alloc(40); b.write('RIFF'); b.write('WEBP', 8); b.write('VP8X', 12); b[24] = 0x4f; b[25] = 0x04; b[27] = 0x75; b[28] = 0x02; return b }
+  const avif = () => { const b = Buffer.alloc(20); b.write('ftyp', 4); b.write('avif', 8); return b }
+  const jpeg = () => Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 4, 0, 0, 0xff, 0xc0, 0, 17, 8]), Buffer.from([0x03, 0x84, 0x06, 0x40]), Buffer.alloc(10)])
+
+  check('un PNG se reconoce con sus medidas', JSON.stringify(describirImagen(png(1200, 630))) === '{"formato":"png","ancho":1200,"alto":630}')
+  check('un JPEG también', describirImagen(jpeg()).ancho === 1600 && describirImagen(jpeg()).alto === 900)
+  check('un WebP también', describirImagen(webp()).formato === 'webp' && describirImagen(webp()).ancho === 1104)
+  check('y un AVIF se reconoce aunque no se midan', describirImagen(avif()).formato === 'avif')
+  // El content-type MIENTE: lo pone quien sirve el fichero.
+  check('lo que no es una imagen no se inventa', describirImagen(Buffer.from('<html>no soy una imagen</html>')).formato === '')
+  check('y se cuenta en cristiano', comoEsLaPortada(describirImagen(png(1200, 630)), 250000) === 'PNG 1200×630 px, 244 KB')
+  // Una portada de 300 bytes es una imagen rota; «0 KB» no lo contaría.
+  check('y una imagen rota no se queda en «0 KB»', comoEsLaPortada({ formato: 'png' }, 300) === 'PNG, 300 B')
+
+  // Lo que Telegram NO acepta como foto, aunque sea una imagen válida
+  // que se ve en cualquier navegador.
+  for (const [que, bytes, espera] of [
+    ['un WebP', webp(), /WEBP.*no acepta ese formato como foto/s],
+    ['un AVIF', avif(), /AVIF.*no acepta ese formato como foto/s],
+    ['una imagen gigante', png(9000, 9000), /demasiado grande.*9000×9000/s],
+    ['una tira alargada', png(6000, 100), /demasiado alargada/],
+  ]) {
+    const d = doblar({ enlaceFalla: true, portada: { cuerpo: bytes } })
+    const r = await mandarUna({ id: 'n1', env: ENV, ...d })
+    check(`${que}: se dice qué le pasa`, espera.test(r.cuerpo.motivo || ''), r.cuerpo.motivo)
+    // Y ni se intenta subirla: se sabe de antemano que la va a rechazar.
+    check(`  …y no se sube para nada`, !d.enviado.some((e) => e.subida))
+    check(`  …pero la noticia sale igual`, r.estado === 200 && r.cuerpo.ok)
+  }
+  // Y se dice cómo arreglarlo, que es lo único accionable.
+  const d = doblar({ enlaceFalla: true, portada: { cuerpo: webp() } })
+  const r = await mandarUna({ id: 'n1', env: ENV, ...d })
+  check('diciendo qué hacer', /vuelve a subirla en JPG o PNG/.test(r.cuerpo.motivo || ''), r.cuerpo.motivo)
+
+  // Un PNG normal sí se sube.
+  const d2 = doblar({ enlaceFalla: true, portada: { cuerpo: png(1200, 630) } })
+  await mandarUna({ id: 'n1', env: ENV, ...d2 })
+  check('un PNG en condiciones sí se sube', d2.enviado.some((e) => e.subida))
+
+  // Y si aun así Telegram la rechaza, se dice EN QUÉ CONSISTE.
+  const d3 = doblar({ enlaceFalla: true, subidaOk: false, portada: { cuerpo: png(1200, 630) } })
+  const r3 = await mandarUna({ id: 'n1', env: ENV, ...d3 })
+  check('y si la rechaza igual, se describe', /la portada es PNG 1200×630 px/.test(r3.cuerpo.motivo || ''), r3.cuerpo.motivo)
 }
 
 console.log(`\n${fails === 0 ? '✅ TODO BIEN' : `❌ ${fails} FALLOS`}`)

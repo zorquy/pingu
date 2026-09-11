@@ -134,8 +134,8 @@ MUTACIONES += [
      "  return sinFoto(`la portada ${traida.error} — ${portada}`)", "  return sinFoto(`la portada ${traida.error}`)"),
 
     ('netlify/lib/telegram.mjs', 'se pierde el motivo del primer intento',
-     "    return sinFoto(`${porEnlace.description || 'Telegram no ha aceptado el enlace'}; y subiéndola: ${subida.description || 'tampoco'}`)",
-     "    return sinFoto('no ha entrado')"),
+     "; y subiéndola: ${subida.description || 'tampoco'} (la portada es ${traida.como})`)",
+     "`)"),
 
     ('netlify/lib/telegram.mjs', 'una portada incrustada se intenta pedir igual',
      "  if (!portada) return sinFoto(noticia.cover_image ? 'la portada no es una dirección que Telegram pueda pedir' : undefined)",
@@ -151,6 +151,49 @@ MUTACIONES += [
     ('netlify/lib/telegram.mjs', 'se manda referer, que es lo que dispara el bloqueo',
      "  'user-agent': 'PokeDocBot/1.0 (+https://pokedoc.es)',",
      "  'user-agent': 'PokeDocBot/1.0 (+https://pokedoc.es)',\n  referer: 'https://pokedoc.es/',"),
+]
+
+
+MUTACIONES += [
+    ('netlify/lib/telegram.mjs', 'un WebP se intenta subir igual y falla sin explicar nada',
+     "  if (info.formato && !FORMATOS_DE_FOTO.includes(info.formato)) {", "  if (false) {"),
+
+    ('netlify/lib/telegram.mjs', 'el WebP pasa por bueno como foto',
+     "const FORMATOS_DE_FOTO = ['jpeg', 'png', 'gif', 'bmp']", "const FORMATOS_DE_FOTO = ['jpeg', 'png', 'gif', 'bmp', 'webp', 'avif']"),
+
+    ('netlify/lib/telegram.mjs', 'no se mira si la imagen es gigante',
+     "    if (info.ancho + info.alto > SUMA_MAXIMA) {", "    if (false) {"),
+
+    ('netlify/lib/telegram.mjs', 'una tira alargada pasa',
+     "    if (proporcion > PROPORCION_MAXIMA) return { error: `es demasiado alargada (${como})`, como }",
+     "    if (false) return { error: `es demasiado alargada (${como})`, como }"),
+
+    ('netlify/lib/telegram.mjs', 'no se dice cómo arreglar el formato',
+     "vuelve a subirla en JPG o PNG`, como }", "`, como }"),
+
+    ('netlify/lib/telegram.mjs', 'un PNG se lee mal y se queda sin medidas',
+     "  if (texto(1, 3) === 'PNG') return { formato: 'png', ancho: u32(16), alto: u32(20) }",
+     "  if (texto(1, 3) === 'PNG') return { formato: 'png' }"),
+
+    ('netlify/lib/telegram.mjs', 'un JPEG deja de medirse',
+     "        return { formato: 'jpeg', alto: u16(i + 5), ancho: u16(i + 7) }", "        return { formato: 'jpeg' }"),
+
+    ('netlify/lib/telegram.mjs', 'un WebP deja de reconocerse',
+     "  if (texto(0, 4) === 'RIFF' && texto(8, 4) === 'WEBP') {", "  if (false) {"),
+
+    ('netlify/lib/telegram.mjs', 'un AVIF deja de reconocerse',
+     "    if (marca.startsWith('avi')) return { formato: 'avif' }", "    if (false) return { formato: 'avif' }"),
+
+    ('netlify/lib/telegram.mjs', 'cualquier cosa se da por imagen',
+     "  return { formato: '' }\n}\n\n// Lo que Telegram acepta como FOTO",
+     "  return { formato: 'png' }\n}\n\n// Lo que Telegram acepta como FOTO"),
+
+    ('netlify/lib/telegram.mjs', 'una portada rechazada ya no se describe',
+     "(la portada es ${traida.como})`)", "`)"),
+
+    ('netlify/lib/telegram.mjs', 'una imagen rota se cuenta como 0 KB',
+     "  const peso = bytes ? `, ${bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1048576).toFixed(1)} MB`}` : ''",
+     "  const peso = bytes ? `, ${bytes < 1048576 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1048576).toFixed(1)} MB`}` : ''"),
 ]
 
 originales = {}
