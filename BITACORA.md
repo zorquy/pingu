@@ -12,6 +12,30 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 (9) — PINGU-Claude (tanda 281 — la extensión de una imagen pegada)
+
+**Hecho**: PINGU dice que no le deja pegar imágenes en la noticia. NO
+reproducido todavía —los dos caminos de pegado (HTML de una web y
+fichero del portapapeles) funcionan en el laboratorio—, pero mirando la
+subida salió un fallo de verdad:
+
+`uploadGuideImage` sacaba la extensión del NOMBRE del fichero. Una imagen
+PEGADA no tiene nombre de verdad: el navegador la deja como «image.png»,
+«blob» o sin nada. De ahí salían rutas como `1757…-a1b2c3.blob`, y con
+esa extensión Supabase la guarda con un tipo que no es de imagen: la
+subida «va bien» y luego el navegador no la pinta, o se la descarga.
+
+Ahora la extensión sale del TIPO MIME (que `validateImageFile` acaba de
+comprobar que empieza por `image/`), y la subida manda `contentType`
+explícito en vez de dejar que Supabase adivine.
+
+**Ficheros**: js/app.js.
+
+**PENDIENTE**: falta saber qué ve PINGU exactamente al pegar (nada / un
+aviso / la imagen rota). Esto puede ser su fallo o no serlo.
+
+---
+
 ## 2026-09-11 (8) — PINGU-Claude (tanda 280 — las noticias al canal de Telegram)
 
 **Hecho**: PINGU tiene una comunidad de Telegram con varios canales

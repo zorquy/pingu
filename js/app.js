@@ -306,11 +306,43 @@ export async function uploadProfileImage(userId, file, kind) {
   return data.publicUrl
 }
 
+// La extensión sale del TIPO del fichero, no de su nombre.
+//
+// Una imagen PEGADA no tiene nombre de verdad: el navegador la deja como
+// «image.png», «blob» o directamente sin nada. Con `file.name` se sacaban
+// perlas como `1757…-a1b2c3.blob`, y ahí Supabase la guarda con un tipo
+// que no es de imagen: la subida «va bien» y luego el navegador no la
+// pinta, o se la descarga en vez de enseñarla.
+//
+// El tipo MIME sí viene siempre —`validateImageFile` acaba de comprobar
+// que empieza por `image/`—, así que es de donde hay que sacarla.
+const EXTENSION_POR_TIPO = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'image/avif': 'avif',
+  'image/svg+xml': 'svg',
+  'image/bmp': 'bmp',
+}
+
+export function extensionDeImagen(file) {
+  const porTipo = EXTENSION_POR_TIPO[String(file?.type || '').toLowerCase()]
+  if (porTipo) return porTipo
+  // Un tipo que no conocemos: se prueba con el nombre, y solo si lo que
+  // saca parece una extensión de verdad (letras y números, corta).
+  const delNombre = String(file?.name || '').split('.').pop()?.toLowerCase()
+  return /^[a-z0-9]{2,5}$/.test(delNombre || '') ? delNombre : 'png'
+}
+
 export async function uploadGuideImage(userId, file) {
   validateImageFile(file)
-  const ext = (file.name.split('.').pop() || 'png').toLowerCase()
+  const ext = extensionDeImagen(file)
   const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-  const { error } = await supabase.storage.from('guide-images').upload(path, file)
+  const { error } = await supabase.storage
+    .from('guide-images')
+    .upload(path, file, { contentType: file.type || 'image/png', upsert: false })
   if (error) throw error
   const { data } = supabase.storage.from('guide-images').getPublicUrl(path)
   return data.publicUrl
