@@ -72,6 +72,40 @@ MUTACIONES = [
      "${icons.send(15)} Telegram</button>", "✈️ Telegram</button>"),
 ]
 
+
+MUTACIONES += [
+    ('netlify/lib/telegram.mjs', 'la portada vuelve a mandarse tal cual, sin completar',
+     "  return `${SITIO}${v.startsWith('/') ? '' : '/'}${v}`\n}\n\n// Con portada va como FOTO",
+     "  return v\n}\n\n// Con portada va como FOTO"),
+
+    ('netlify/lib/telegram.mjs', 'una imagen incrustada se cuela y revienta el envío',
+     "  if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return ''", "  if (false) return ''"),
+
+    ('netlify/lib/telegram.mjs', 'el envío usa la portada sin completar',
+     "    ? { chat_id: canal, ...dentroDelTema, photo: portada, caption: texto, parse_mode: 'HTML' }",
+     "    ? { chat_id: canal, ...dentroDelTema, photo: noticia.cover_image, caption: texto, parse_mode: 'HTML' }"),
+
+    ('netlify/lib/telegram.mjs', 'el reintento vuelve a perder la portada del todo',
+     "      body: JSON.stringify({ chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML', link_preview_options: VISTA_PREVIA }),",
+     "      body: JSON.stringify({ chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML' }),"),
+
+    ('netlify/lib/telegram.mjs', 'la vista previa deja de ser grande',
+     "const VISTA_PREVIA = { prefer_large_media: true, show_above_text: true }",
+     "const VISTA_PREVIA = { show_above_text: true }"),
+
+    ('netlify/lib/telegram.mjs', 'la portada deja de ir encima del texto',
+     "const VISTA_PREVIA = { prefer_large_media: true, show_above_text: true }",
+     "const VISTA_PREVIA = { prefer_large_media: true }"),
+
+    ('netlify/lib/telegram.mjs', 'no se cuenta por qué la foto no entró',
+     "    if (datos2?.ok) return { ok: true, sinFoto: true, motivo: datos?.description || 'Telegram no ha aceptado la portada' }",
+     "    if (datos2?.ok) return { ok: true, sinFoto: true }"),
+
+    ('admin/js/admin.js', 'el panel se calla que la portada no entró',
+     "    const sinPortada = r.sinFoto ? `Mandada al canal, pero la portada no ha entrado como foto: ${r.motivo || 'Telegram no la ha aceptado'}. Sale en la vista previa del enlace.` : 'Mandada al canal.'",
+     "    const sinPortada = 'Mandada al canal.'"),
+]
+
 originales = {}
 sin_detectar = []
 try:

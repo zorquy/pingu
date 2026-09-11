@@ -5,7 +5,7 @@
 // entorno, y no había ni forma de enterarse ni forma de recuperarla.
 import { mandarUna } from '/home/user/pingu/netlify/functions/telegram-mandar.mjs'
 import { procesar } from '/home/user/pingu/netlify/functions/telegram-noticias.mjs'
-import { llavesQueFaltan, mensajeDeNoticia } from '/home/user/pingu/netlify/lib/telegram.mjs'
+import { llavesQueFaltan, mensajeDeNoticia, portadaAbsoluta } from '/home/user/pingu/netlify/lib/telegram.mjs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -168,6 +168,63 @@ console.log('\n── 8. El botón está en el panel, y se ve el estado ──')
   check('solo en las publicadas', /n\.published_at \? `<button class="btn-secondary" data-telegram-noticia/.test(admin))
   // Icono de js/icons.js, nunca un emoji suelto (normas de la casa).
   check('con icono, no emoji', /icons\.send\(15\)\} Telegram/.test(admin))
+}
+
+console.log('\n── 9. La portada tiene que LLEGAR (tanda 283) ──')
+{
+  // A la foto no la sube PokeDoc: se le pasa la URL y va Telegram a
+  // buscarla desde SUS servidores. Una ruta del sitio, que dentro de la
+  // web funciona, ahí no se puede resolver.
+  check('una ruta del sitio se completa', portadaAbsoluta('/fotos/p.png') === 'https://pokedoc.es/fotos/p.png')
+  check('sin barra, también', portadaAbsoluta('fotos/p.png') === 'https://pokedoc.es/fotos/p.png')
+  check('una absoluta se deja en paz', portadaAbsoluta('https://sb.co/a.png') === 'https://sb.co/a.png')
+  // data:/blob: no son direcciones que nadie pueda ir a buscar: mandarlas
+  // es un envío rechazado. Mejor sin foto.
+  check('una imagen incrustada no se manda como foto', portadaAbsoluta('data:image/png;base64,AAA') === '')
+  check('ni un esquema raro', portadaAbsoluta('javascript:alert(1)') === '')
+  check('sin portada, nada', portadaAbsoluta(null) === '' && portadaAbsoluta('  ') === '')
+
+  const d = doblar({ fila: { ...NOTICIA, cover_image: '/fotos/p.png' } })
+  await mandarUna({ id: 'n1', env: ENV, ...d })
+  check('y el envío usa la completa', d.enviado[0]?.photo === 'https://pokedoc.es/fotos/p.png', d.enviado[0]?.photo)
+
+  const d2 = doblar({ fila: { ...NOTICIA, cover_image: 'data:image/png;base64,AAA' } })
+  await mandarUna({ id: 'n1', env: ENV, ...d2 })
+  check('una incrustada no rompe el envío: va como mensaje', d2.enviado[0]?.metodo === 'sendMessage', d2.enviado[0]?.metodo)
+}
+
+console.log('\n── 10. Si la foto no entra, la portada sale igual ──')
+{
+  // Antes el reintento mandaba un mensaje PELADO y la portada se perdía
+  // del todo. Ahora va con la vista previa grande: Telegram saca el
+  // og:image de la noticia, que es esa misma portada.
+  const enviado = []
+  const fetchImpl = async (url, opciones) => {
+    const metodo = String(url).split('/').pop()
+    enviado.push({ metodo, ...JSON.parse(opciones.body) })
+    if (metodo === 'sendPhoto') return new Response(JSON.stringify({ ok: false, description: 'file is too big' }), { status: 400 })
+    return new Response(JSON.stringify({ ok: true }), { status: 200 })
+  }
+  const base = doblar()
+  const r = await mandarUna({ id: 'n1', env: ENV, restImpl: base.restImpl, fetchImpl })
+  check('se reintenta como mensaje', enviado.map((e) => e.metodo).join('→') === 'sendPhoto→sendMessage')
+  check('con la vista previa grande', enviado[1]?.link_preview_options?.prefer_large_media === true, JSON.stringify(enviado[1]?.link_preview_options))
+  check('y encima del texto', enviado[1]?.link_preview_options?.show_above_text === true)
+  check('la noticia sale', r.estado === 200 && r.cuerpo.ok)
+  // Y se cuenta POR QUÉ no entró la foto: eso es lo que se puede arreglar.
+  check('diciendo por qué no entró la foto', /file is too big/.test(r.cuerpo.motivo || ''), JSON.stringify(r.cuerpo))
+
+  // El mensaje sin portada también lleva la vista previa grande.
+  const d2 = doblar({ fila: { ...NOTICIA, cover_image: null } })
+  await mandarUna({ id: 'n1', env: ENV, ...d2 })
+  check('y un mensaje sin portada, también', d2.enviado[0]?.link_preview_options?.prefer_large_media === true)
+}
+
+console.log('\n── 11. El panel cuenta lo de la portada ──')
+{
+  const admin = (await import('node:fs')).readFileSync('/home/user/pingu/admin/js/admin.js', 'utf8')
+  check('se avisa de que la portada no entró como foto', /la portada no ha entrado como foto/.test(admin))
+  check('con el motivo de Telegram', /\$\{r\.motivo/.test(admin))
 }
 
 console.log(`\n${fails === 0 ? '✅ TODO BIEN' : `❌ ${fails} FALLOS`}`)
