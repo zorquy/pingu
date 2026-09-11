@@ -551,7 +551,11 @@ async function mandarNoticiaATelegram(id, btn, forzar = false) {
       return mandarNoticiaATelegram(id, btn, true)
     }
     if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
-    showToast(r.aviso || (r.sinFoto ? 'Mandada al canal (sin la portada: Telegram no la ha aceptado).' : 'Mandada al canal.'), r.aviso ? 'error' : 'success')
+    // Si la portada no ha entrado como foto se dice POR QUÉ: «file is
+    // too big», «failed to get HTTP URL content»… eso es lo que se puede
+    // arreglar. La noticia sí ha salido, con la portada en la vista previa.
+    const sinPortada = r.sinFoto ? `Mandada al canal, pero la portada no ha entrado como foto: ${r.motivo || 'Telegram no la ha aceptado'}. Sale en la vista previa del enlace.` : 'Mandada al canal.'
+    showToast(r.aviso || sinPortada, r.aviso || r.sinFoto ? 'error' : 'success')
     loadNoticias()
   } catch (err) {
     btn.disabled = false

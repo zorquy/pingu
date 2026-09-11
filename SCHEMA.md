@@ -13493,3 +13493,45 @@ veces, una noticia mandada a mano se vería distinta de una automática.
 
 `test-tanda-282.mjs` (32) y `test-tanda-280.mjs` (24, ya existente).
 Rigor: **19 mutaciones, las 19 detectadas** a la primera.
+
+---
+
+## Tanda 283 — que la portada de la noticia llegue a Telegram (sept. 2026)
+
+La foto **no la sube PokeDoc**: a `sendPhoto` se le pasa una URL y va
+Telegram, **desde sus servidores**, a buscarla. Eso descarta cosas que
+dentro de la web funcionan perfectamente:
+
+- **Una ruta del propio sitio** (`/fotos/portada.png`). En la página se
+  resuelve sola; Telegram no tiene contra qué resolverla. Ahora se le
+  pone `pokedoc.es` delante — exactamente lo que ya hacía `urlAbsoluta()`
+  con el `og:image` de las redes, que es el mismo problema resuelto en
+  otro sitio.
+- **Una imagen incrustada** (`data:`, `blob:`). No es una dirección a la
+  que nadie pueda ir: mandarla es un envío rechazado. Se descarta antes,
+  y la noticia sale como mensaje.
+
+### Y si la foto sigue sin entrar
+
+`sendPhoto` por URL tiene límites propios (peso, medidas) que no se
+pueden comprobar desde aquí sin descargarse la imagen. Antes, cuando
+Telegram la rechazaba, el reintento mandaba un mensaje **pelado**: la
+portada se perdía del todo.
+
+Ahora el reintento lleva `link_preview_options: { prefer_large_media,
+show_above_text }`. Telegram abre el enlace de la noticia y saca su
+`og:image` —**que es esa misma portada**, puesta por la edge function— y
+lo hace con los límites de la vista previa, que son más anchos que los de
+`sendPhoto`. Una portada demasiado pesada para mandarla como foto se
+sigue viendo, y encima del texto, que es lo que hace que parezca una
+noticia y no un enlace suelto.
+
+### Y se cuenta por qué
+
+Cuando la portada no entra como foto, el motivo de Telegram («file is too
+big», «failed to get HTTP URL content») sale en el aviso del panel. Es lo
+único que dice qué portada hay que arreglar.
+
+### Comprobado
+
+`test-tanda-282.mjs` (48). Rigor: **27 mutaciones, las 27 detectadas.**

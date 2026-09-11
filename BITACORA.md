@@ -12,6 +12,39 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 (11) — PINGU-Claude (tanda 283 — la portada, a Telegram)
+
+**Hecho**: PINGU pide que la noticia salga en Telegram con su portada.
+Ya iba como `sendPhoto`, pero había un caso en el que no podía llegar
+nunca: a la foto no la sube PokeDoc, se le pasa la URL y va Telegram
+desde SUS servidores a buscarla. Una ruta del propio sitio
+(«/fotos/x.png») ahí no se resuelve, y una imagen incrustada (data:,
+blob:) no es una dirección que nadie pueda pedir.
+
+`portadaAbsoluta()` completa la ruta con pokedoc.es —lo mismo que ya
+hacía urlAbsoluta() con el og:image— y descarta los esquemas que no se
+pueden ir a buscar.
+
+Y el reintento sin foto ya no manda un mensaje pelado: lleva la vista
+previa grande y encima del texto, así que Telegram saca el og:image de la
+noticia, que es esa misma portada, con los límites de la vista previa
+(más anchos que los de sendPhoto). Una portada demasiado pesada para
+mandarla como foto se sigue viendo.
+
+Cuando la foto no entra, el motivo de Telegram («file is too big»,
+«failed to get HTTP URL content») sale en el aviso del panel.
+
+**Ficheros**: netlify/lib/telegram.mjs,
+netlify/functions/telegram-mandar.mjs, admin/js/admin.js, SCHEMA.md.
+
+**Pruebas**: test-tanda-282.mjs ampliada (48). Rigor: 27 mutaciones,
+las 27 detectadas.
+
+**PENDIENTE**: sigue faltando `TELEGRAM_CANAL_NOTICIAS` en Netlify y
+meter el bot en el grupo — sin eso no sale nada, con portada o sin ella.
+
+---
+
 ## 2026-09-11 (10) — PINGU-Claude (tanda 282 — mandar una noticia a Telegram a mano)
 
 **Hecho**: PINGU publicó una noticia y no salió por el canal de Telegram.

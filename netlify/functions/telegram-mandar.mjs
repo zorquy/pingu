@@ -116,9 +116,11 @@ export async function mandarUna({ id, forzar = false, env = process.env, restImp
     // Mandada pero sin apuntar. NO es un error para quien mira —la
     // noticia ya está en el canal—, pero hay que decirlo: si no, la
     // función programada la volvería a mandar dentro de cinco minutos.
-    return { estado: 200, cuerpo: { ok: true, sinFoto: !!r.sinFoto, aviso: `Mandada, pero no se ha podido apuntar (${e?.message || e}). Podría repetirse.` } }
+    return { estado: 200, cuerpo: { ok: true, sinFoto: !!r.sinFoto, motivo: r.motivo, aviso: `Mandada, pero no se ha podido apuntar (${e?.message || e}). Podría repetirse.` } }
   }
-  return { estado: 200, cuerpo: { ok: true, sinFoto: !!r.sinFoto, cuando } }
+  // `motivo` solo viene cuando la portada no ha entrado como foto: es lo
+  // que se le enseña a quien ha pulsado, para que sepa qué arreglar.
+  return { estado: 200, cuerpo: { ok: true, sinFoto: !!r.sinFoto, motivo: r.motivo, cuando } }
 }
 
 export default async (req) => {

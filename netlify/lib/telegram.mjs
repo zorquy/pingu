@@ -7,6 +7,11 @@
 
 export const SITIO = 'https://pokedoc.es'
 
+// Cuando el mensaje va sin foto, la portada tiene que entrar igual por la
+// vista previa del enlace: grande, y ENCIMA del texto, que es lo que lo
+// hace parecer una noticia y no un enlace suelto.
+const VISTA_PREVIA = { prefer_large_media: true, show_above_text: true }
+
 // Telegram admite un HTML muy corto, y lo que NO se escape le rompe el
 // mensaje entero: un «&» o un «<» en un titular y el envío falla con
 // «can't parse entities». Se escapan los tres que pide su documentación.
@@ -32,20 +37,42 @@ export function mensajeDeNoticia({ title, description, slug }, { limite = 1024 }
   return `${titular}${resumen ? `\n\n${resumen}` : ''}${enlace}`
 }
 
+// La portada, en una dirección que Telegram pueda abrir.
+//
+// A la foto no la sube PokeDoc: se le pasa la URL y va Telegram, desde
+// SUS servidores, a buscarla. Eso descarta dos cosas que sí valen dentro
+// de la web y aquí no llegarían nunca:
+//
+//   · una ruta del propio sitio («/fotos/portada.png»), porque Telegram
+//     no tiene contra qué resolverla — se le pone pokedoc.es delante,
+//     igual que hace urlAbsoluta() con el og:image de las redes;
+//   · una imagen incrustada en el propio texto (data:, blob:), que no
+//     es una dirección que nadie pueda ir a buscar.
+export function portadaAbsoluta(url) {
+  const v = String(url ?? '').trim()
+  if (!v) return ''
+  if (/^https?:\/\//i.test(v)) return v
+  // Cualquier otro esquema (data:, blob:, javascript:) no es algo que
+  // Telegram pueda pedir: mejor sin foto que con un envío rechazado.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return ''
+  return `${SITIO}${v.startsWith('/') ? '' : '/'}${v}`
+}
+
 // Con portada va como FOTO con pie: en Telegram una foto ocupa media
 // pantalla y es lo que hace que se pare el dedo. Sin portada, mensaje
 // normal — una foto rota es peor que ninguna.
 export async function mandarATelegram(noticia, { token, canal, tema = null, fetchImpl = fetch }) {
   const texto = mensajeDeNoticia(noticia)
-  const conFoto = !!noticia.cover_image
+  const portada = portadaAbsoluta(noticia.cover_image)
+  const conFoto = !!portada
   const metodo = conFoto ? 'sendPhoto' : 'sendMessage'
   // Un TEMA de un grupo (los «canales» de dentro de una comunidad) no es
   // un chat distinto: es el mismo grupo con `message_thread_id`. Sin él,
   // el mensaje cae en el tema General y no donde toca.
   const dentroDelTema = tema ? { message_thread_id: Number(tema) } : {}
   const cuerpo = conFoto
-    ? { chat_id: canal, ...dentroDelTema, photo: noticia.cover_image, caption: texto, parse_mode: 'HTML' }
-    : { chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML', link_preview_options: { prefer_large_media: true } }
+    ? { chat_id: canal, ...dentroDelTema, photo: portada, caption: texto, parse_mode: 'HTML' }
+    : { chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML', link_preview_options: VISTA_PREVIA }
 
   const res = await fetchImpl(`https://api.telegram.org/bot${token}/${metodo}`, {
     method: 'POST',
@@ -60,14 +87,23 @@ export async function mandarATelegram(noticia, { token, canal, tema = null, fetc
   // demasiado, no es una imagen— se reintenta SIN ella antes de rendirse.
   // La noticia importa más que la foto.
   if (conFoto) {
+    // Antes este reintento mandaba un mensaje PELADO, y ahí se perdía la
+    // portada del todo. Va con la vista previa grande: Telegram abre el
+    // enlace de la noticia y saca su og:image —que es esa misma portada,
+    // puesta por la edge function— con sus propios límites, que son más
+    // anchos que los de sendPhoto. Así una portada demasiado pesada para
+    // mandarla como foto se sigue viendo.
     const res2 = await fetchImpl(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML' }),
+      body: JSON.stringify({ chat_id: canal, ...dentroDelTema, text: texto, parse_mode: 'HTML', link_preview_options: VISTA_PREVIA }),
       signal: AbortSignal.timeout(10000),
     })
     const datos2 = await res2.json().catch(() => ({}))
-    if (datos2?.ok) return { ok: true, sinFoto: true }
+    // El motivo del rechazo se devuelve para poder contarlo: «file is too
+    // big», «wrong file identifier» o «failed to get HTTP URL content»
+    // dicen exactamente qué le pasa a esa portada.
+    if (datos2?.ok) return { ok: true, sinFoto: true, motivo: datos?.description || 'Telegram no ha aceptado la portada' }
     return { ok: false, error: datos2?.description || datos?.description || 'Telegram no ha aceptado el mensaje' }
   }
   return { ok: false, error: datos?.description || 'Telegram no ha aceptado el mensaje' }
