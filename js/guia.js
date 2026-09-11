@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { rutaDeArticulo, fechaLarga, fechaMaquina } from './articulos.js'
+import { rutaDeArticulo, fechaLarga, fechaMaquina, slugDeArticuloEnLaUrl } from './articulos.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, avatarStyle, guideHasCourse } from './app.js'
 import { renderReferenceBlocksHtml } from './block-editor.js'
 import { hydrateDecks } from './cards-block.js'
@@ -17,8 +17,7 @@ import { contributorBadgeHtml } from './contributor-badge.js'
 import { montarSugerencia, creditosHtml } from './guide-suggestions.js'
 import { laVeLaGente, estadoDeGuia } from './guia-estado.js'
 
-const params = new URLSearchParams(window.location.search)
-const slug = params.get('slug')
+const slug = slugDeArticuloEnLaUrl()
 
 const LEVEL_LABELS = { beginner: 'Básico', intermediate: 'Intermedio', advanced: 'Avanzado' }
 
@@ -80,8 +79,24 @@ function setupReadTracking(session, guide) {
 
 async function init() {
   const main = document.getElementById('articleMain')
-  if (!slug) {
+
+  // Si el servidor ya dejó el artículo pintado (tanda 270), no se pisa
+  // con un error.
+  //
+  // Es lo que pasó al estrenar las noticias: el servidor puso el texto
+  // bien y el JavaScript, que no encontraba el slug, lo sustituyó por
+  // «Guía no encontrada». O sea que el fallo del cliente se llevó por
+  // delante una página que YA ESTABA BIEN. Con Supabase caído pasaría
+  // igual. Mejor un artículo sin sus botones que un artículo que no
+  // está.
+  const loPintoElServidor = () => !!main.querySelector('h1')
+  const noEncontrada = () => {
+    if (loPintoElServidor()) return
     main.innerHTML = `<p class="empty-state">Guía no encontrada.</p>`
+  }
+
+  if (!slug) {
+    noEncontrada()
     return
   }
 
@@ -92,7 +107,7 @@ async function init() {
     .single()
 
   if (error || !guide) {
-    main.innerHTML = `<p class="empty-state">Guía no encontrada.</p>`
+    noEncontrada()
     return
   }
 

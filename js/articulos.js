@@ -13,6 +13,33 @@ export function rutaDeArticulo(kind, slug) {
   return kind === 'news' ? `/noticias/${limpio}` : `/guia.html?slug=${limpio}`
 }
 
+// El slug del artículo que se está mirando, venga por donde venga.
+//
+// EN /noticias/<slug> LA DIRECCIÓN DEL NAVEGADOR NO LLEVA `?slug=`. La
+// reescritura a guia.html la hace Netlify EN EL SERVIDOR, y el navegador
+// no se entera de nada: sigue viendo /noticias/<slug>, con la query
+// vacía. Leyendo solo la query, una noticia se abría en «Guía no
+// encontrada» — y encima pisando el texto que el servidor ya había
+// pintado bien (tanda 270).
+//
+// Es el mismo patrón que `profileParamsFromLocation` de app.js para
+// /usuario/<nombre>, que lleva funcionando desde que existe. Se mira
+// primero la ruta y se cae a la query, que es por donde llegan los
+// enlaces viejos y la búsqueda.
+export function slugDeArticuloEnLaUrl(ubicacion = window.location) {
+  const enRuta = String(ubicacion.pathname || '').match(/\/noticias\/([^/?#]+)/)
+  if (enRuta) {
+    try {
+      return decodeURIComponent(enRuta[1])
+    } catch {
+      // Un %  suelto en la dirección rompe decodeURIComponent. Vale más
+      // el slug a medias que una página en blanco.
+      return enRuta[1]
+    }
+  }
+  return new URLSearchParams(ubicacion.search || '').get('slug')
+}
+
 // ── El puente mientras la migración no esté puesta ──
 //
 // `kind` la crea supabase-migration-noticias.sql, y las migraciones las

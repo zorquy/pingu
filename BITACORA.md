@@ -12,6 +12,38 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 (3) — PINGU-Claude (tanda 275 — «Guía no encontrada» al entrar en una noticia)
+
+**Hecho**: PINGU publicó la primera noticia, el listado salió perfecto, y
+al pinchar: «Guía no encontrada».
+
+**La causa**: en `/noticias/<slug>` la dirección del NAVEGADOR no lleva
+`?slug=`. La reescritura a guia.html la hace Netlify EN EL SERVIDOR y el
+navegador no se entera — sigue viendo `/noticias/<slug>`, con la query
+vacía. `js/guia.js` leía solo `window.location.search`.
+
+Lo rabioso: la casa YA tenía esto resuelto para `/usuario/<nombre>`, con
+`profileParamsFromLocation` en app.js, que mira primero la ruta y cae a
+la query. Solo había que hacer lo mismo. Ahora está en
+`slugDeArticuloEnLaUrl` (js/articulos.js), al lado del resto del
+enrutado de noticias.
+
+**El daño doble, y el segundo arreglo**: el servidor YA había pintado el
+artículo bien (tanda 270) y el JavaScript lo sustituyó por el mensaje de
+error. O sea que un fallo del cliente se cargó una página que estaba
+bien. Ahora `guia.js` no pisa con «Guía no encontrada» si ya hay un
+artículo pintado — vale más un artículo sin sus botones que un artículo
+que no está. Eso cubre también el día que Supabase vaya lento.
+
+**Ficheros**: js/articulos.js (helper nuevo), js/guia.js.
+
+**Pruebas**: test-tanda-275.mjs (15). La que importa reproduce la
+reescritura de Netlify tal cual —intercepta `/noticias/**` y responde
+guia.html dejando la dirección intacta—, que es lo único que enseña el
+fallo. Comprobado volviendo a poner el código viejo: falla.
+
+---
+
 ## 2026-09-11 (2) — PINGU-Claude (tanda 274 — arreglo: `public.profiles` no existe)
 
 **Hecho**: PINGU fue a publicar la primera noticia y le saltó
