@@ -238,7 +238,7 @@ export function limpiarParaElServidor(html) {
     while ((m = re.exec(atributos)) !== null) {
       const clave = m[1].toLowerCase()
       const valor = m[3] ?? m[4] ?? m[5] ?? ''
-      if (!['href', 'src', 'alt', 'title', 'class', 'colspan', 'rowspan', 'data-cols', 'open'].includes(clave)) continue
+      if (!['href', 'src', 'alt', 'title', 'class', 'colspan', 'rowspan', 'data-cols', 'open', 'loading', 'decoding'].includes(clave)) continue
       // Una dirección solo puede apuntar a la web o a este sitio. Se cae
       // `javascript:`, y también `data:`, que sirve para colar un
       // documento entero dentro de un enlace.

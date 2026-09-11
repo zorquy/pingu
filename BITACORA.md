@@ -12,6 +12,31 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 (7) — PINGU-Claude (tanda 279 — las imágenes del artículo, en diferido)
+
+**Hecho**: PINGU avisó de que la noticia del set del 30 aniversario lleva
+«muchísimas imágenes» — son 128 cartas. Se comprobó antes de que la
+escribiera: las imágenes de los artículos NO llevaban `loading="lazy"`,
+así que el navegador se las habría pedido las 128 de golpe al abrir. En
+un móvil con datos, eso es la página parada, y se carga el trabajo de
+las tandas 270-272 de servir el artículo rápido.
+
+Ahora el saneador se las pone a todas MENOS a la primera. Esa no, a
+propósito: suele ser la que se ve al entrar, y una imagen en diferido que
+se ve de entrada tarda MÁS (el navegador no la empieza hasta saber dónde
+cae). Es justo la que mide Google para el LCP.
+
+`loading` y `decoding` entran en la lista blanca del saneador y en la del
+repaso del servidor (meta-social), que si no los quitaba al servir.
+
+**Ficheros**: js/richtext-format.js, netlify/edge-functions/meta-social.js.
+
+**Comprobado**: con un artículo de 128 cartas — 127 en diferido, 1 a
+plena carga. Las pruebas del editor (267, 268) y la del servidor (270),
+verdes.
+
+---
+
 ## 2026-09-11 (6) — PINGU-Claude (tanda 278 — Noticias, su propio apartado en el panel)
 
 **Hecho**: PINGU: «necesito un apartado nuevo para las noticias, para no

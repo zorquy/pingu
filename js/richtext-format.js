@@ -121,7 +121,7 @@ const ALLOWED_TAGS = [
 // spoiler llega SIEMPRE cerrado a quien lo lee, deje el autor el editor
 // como lo deje. Si no, se podría publicar un spoiler ya abierto, que es
 // lo contrario de lo que se pide al ponerlo.
-const ALLOWED_ATTR = ['href', 'src', 'alt', 'target', 'rel', 'data-cards', 'data-yt', 'data-cols', 'class', 'style', 'color', 'align', 'width', 'height']
+const ALLOWED_ATTR = ['href', 'src', 'alt', 'target', 'rel', 'data-cards', 'data-yt', 'data-cols', 'class', 'style', 'color', 'align', 'width', 'height', 'loading', 'decoding']
 
 // Los elementos a los que se les respeta una anchura. En el resto, el
 // `style` se tira entero.
@@ -369,6 +369,25 @@ export function sanitizeRichText(html) {
     const id = el.getAttribute('data-yt')
     el.textContent = ''
     if (!esIdYoutube(id)) el.remove()
+  })
+
+  // Las imágenes, en diferido — menos la primera (tanda 279).
+  //
+  // Una noticia de un set entero lleva CIENTO VEINTIOCHO cartas. Sin
+  // esto, el navegador se las pide todas a la vez al abrir: en un móvil
+  // con datos eso es la página parada un minuto, y de paso se carga el
+  // trabajo de servir el artículo rápido.
+  //
+  // La primera NO, a propósito: suele ser la que se ve al entrar, y una
+  // imagen en diferido que se ve de entrada tarda MÁS que una normal
+  // (el navegador no la empieza hasta saber dónde cae). Es justo la que
+  // mide Google para el LCP.
+  const imagenes = [...doc.querySelectorAll('img')]
+  imagenes.forEach((img, i) => {
+    if (img.closest('tcg-deck, yt-video')) return
+    img.setAttribute('decoding', 'async')
+    if (i === 0) img.removeAttribute('loading')
+    else img.setAttribute('loading', 'lazy')
   })
 
   // Las filas de imágenes. `data-cols` sale del HTML que escribe el
