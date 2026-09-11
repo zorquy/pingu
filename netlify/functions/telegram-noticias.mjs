@@ -38,7 +38,7 @@
 // botón del panel para empujar una noticia a mano. Por los dos caminos
 // tiene que salir exactamente el mismo mensaje.
 
-import { mandarATelegram, llavesQueFaltan } from '../lib/telegram.mjs'
+import { mandarATelegram, mensajeDeNoticia, llavesQueFaltan } from '../lib/telegram.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
@@ -100,7 +100,7 @@ export async function procesar({ env = process.env, restImpl = rest, fetchImpl =
   const mandadas = []
   const fallos = []
   for (const noticia of pendientes) {
-    const r = await mandarATelegram(noticia, { token, canal, tema, fetchImpl })
+    const r = await mandarATelegram({ texto: mensajeDeNoticia(noticia), portada: noticia.cover_image }, { token, canal, tema, fetchImpl })
     if (!r.ok) {
       // No se marca: se volverá a intentar en la siguiente pasada. Si el
       // fallo es permanente se verá en el registro, pero una caída de red

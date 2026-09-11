@@ -16,7 +16,7 @@
 // si falla, el fallo se queda en el registro de Netlify. Aquí hay alguien
 // esperando delante de la pantalla, así que el error de Telegram —o el
 // nombre de la variable que falta— sale tal cual en el panel.
-import { mandarATelegram, llavesQueFaltan } from '../lib/telegram.mjs'
+import { mandarATelegram, mensajeDeNoticia, llavesQueFaltan } from '../lib/telegram.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ'
@@ -94,7 +94,7 @@ export async function mandarUna({ id, forzar = false, env = process.env, restImp
     return { estado: 409, cuerpo: { error: 'Esta noticia ya se mandó al canal.', yaMandada: noticia.telegram_sent_at } }
   }
 
-  const r = await mandarATelegram(noticia, {
+  const r = await mandarATelegram({ texto: mensajeDeNoticia(noticia), portada: noticia.cover_image }, {
     token: env.TELEGRAM_BOT_TOKEN,
     canal: env.TELEGRAM_CANAL_NOTICIAS,
     tema: env.TELEGRAM_TEMA_NOTICIAS || null,

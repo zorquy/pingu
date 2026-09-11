@@ -45,6 +45,45 @@ tocar código.
 
 ---
 
+## 2026-09-11 (17) — PINGU-Claude (tandas 287 y 288 — torneos a Telegram, y el banner de la portada)
+
+**Hecho**, dos cosas que pidió PINGU:
+
+**287. Los torneos, al canal de Telegram.** Porte de telegram-noticias.
+Se manda cuando ABREN LAS INSCRIPCIONES, no al crear el torneo (un
+`draft` no lo ve nadie y puede cambiar de fecha tres veces). La red aquí
+no son 48 horas sino la fecha real: un torneo que ya ha empezado no se
+anuncia. El mensaje lleva la ficha —cuándo, cómo se juega, plazas— entre
+el nombre y el resumen, la descripción sin etiquetas, y como foto el
+BANNER del torneo. `mandarATelegram` ya no sabe de noticias: recibe
+`{ texto, portada }` y lo comparten los dos.
+
+**288. El banner de noticias de la portada.** Antes era la fila fina con
+el titular; ahora va con la IMAGEN de portada, la etiqueta «NOTICIAS» y
+un «Ver todas las noticias» FUERA del banner (dentro sería un enlace
+dentro de otro, y llevaría al artículo). Sin portada se cae a la fila
+fina de siempre. El CSS va en components.css a propósito, saltándose la
+norma: quien entra a pokedoc.es no descarga noticias.css y una hoja más
+sería un viaje extra en la primera pantalla. Portada en 156,8 KB de 170.
+
+**Ficheros**: netlify/lib/telegram.mjs,
+netlify/functions/telegram-torneos.mjs (NUEVO),
+netlify/functions/telegram-noticias.mjs,
+netlify/functions/telegram-mandar.mjs,
+supabase-migration-telegram-torneos.sql (NUEVO), js/home.js, index.html,
+css/components.css, SCHEMA.md.
+
+**Pruebas**: test-tanda-287.mjs (NUEVA, 38) y test-tanda-288.mjs (NUEVA,
+21, en Chromium). Rigor: 25 mutaciones, las 25 detectadas.
+
+**PENDIENTE para PINGU**: ejecutar
+`supabase-migration-telegram-torneos.sql`, y poner
+`TELEGRAM_TEMA_TORNEOS` en Netlify con el número del tema de torneos (el
+de la URL `t.me/pingucollects/<número>`). Sin eso los anuncios de torneo
+caerían en el tema General del grupo.
+
+---
+
 ## 2026-09-11 (16) — PINGU-Claude (tanda 286 — AVIF y WebP se convierten al subir)
 
 **Hecho**: cerrado el caso de la portada que no salía en Telegram. El

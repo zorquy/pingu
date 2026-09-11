@@ -13706,3 +13706,78 @@ anterior a esto hay que volver a subirla.
 `test-tanda-286.mjs` (24), en un Chromium de verdad: la conversión usa
 canvas, así que doblarla no probaría nada. Rigor: **12 mutaciones, las 12
 detectadas.**
+
+---
+
+## Tandas 287 y 288 — los torneos al canal, y el banner de la portada (sept. 2026)
+
+### 287 — los torneos, a Telegram
+
+El porte de `telegram-noticias` a la sección «Jugar». Misma pieza, mismo
+grupo, misma forma de mensaje. Lo que cambia es **el tema y cuándo se
+dispara**.
+
+**Cuándo.** No al crear el torneo: uno recién creado está en `draft`, no
+lo ve nadie y puede cambiar de fecha tres veces antes de salir —
+anunciarlo sería anunciar algo que no existe. Se manda cuando **abren las
+inscripciones** (`registration_open`), que es el momento en el que hay
+algo que hacer. Es el mismo momento en el que `torneos-barredor` manda la
+campanita y el push, así que el canal cuenta lo mismo que la web, a la
+vez.
+
+**La red.** En las noticias era «nada de más de 48 horas». Aquí hay una
+fecha de verdad con la que medir: **un torneo que ya ha empezado no se
+anuncia** aunque esté pendiente. Anunciar un torneo al que ya no te
+puedes apuntar es peor que no anunciarlo.
+
+**El mensaje** lleva la ficha entre el nombre y el resumen: cuándo se
+juega, cómo (`5 rondas suizas + top 8`, `liga de 8 jornadas`) y cuántas
+plazas. Eso es lo que decide si alguien se apunta, y si hay que abrir la
+web para saberlo, no se abre. La descripción va sin etiquetas
+(`soloTexto`), porque de HTML Telegram entiende cuatro cosas. Y la foto
+es el **banner del torneo**.
+
+**Las llaves.** `TELEGRAM_TEMA_TORNEOS` es el tema. `TELEGRAM_CANAL_TORNEOS`
+es opcional: en una comunidad de Telegram los «canales» son temas de un
+solo grupo, así que sin él se usa `TELEGRAM_CANAL_NOTICIAS` — el chat es
+el mismo y lo que cambia de verdad es el tema.
+
+`mandarATelegram` ya no sabe de noticias: recibe `{ texto, portada }`. El
+envío es uno solo para los dos, que es lo que hace que un anuncio de
+torneo y una noticia se lean igual en el canal.
+
+### 288 — el banner de noticias de la portada
+
+Antes era la fila fina del reto y del torneo, con el titular de la última
+noticia. Iba bien, pero decía «hay este artículo» y no «hay una sección
+de noticias».
+
+Ahora, **con la imagen de portada**. Es el mismo razonamiento de
+`css/noticias.css`: una guía sin imagen sigue siendo una guía, pero una
+noticia sin imagen es un enlace. Y encima va la etiqueta **NOTICIAS** y
+debajo un **«Ver todas las noticias»**, que es lo que convierte el bloque
+en una puerta a la sección.
+
+Los detalles que costarían un fallo:
+
+- **«Ver todas» va FUERA del banner.** Dentro sería un enlace metido en
+  otro —ni es HTML válido ni se puede pulsar— y llevaría al artículo, que
+  es justo lo contrario de lo que promete.
+- **Sin portada, la fila fina de siempre.** Una caja de imagen vacía en la
+  primera pantalla es peor que no tener imagen. Y si la imagen no carga,
+  el `<img>` se quita solo.
+- **`aspect-ratio` en la imagen**: la caja reserva su altura antes de que
+  cargue, o la portada pega un salto justo cuando la persona va a pulsar.
+- **`loading="lazy"`**: la imagen no entra en la primera pantalla. No toca
+  el presupuesto de peso —no es CSS ni JS— pero sí el tiempo de carga.
+- El CSS va en `components.css` y no en `css/noticias.css`, saltándose la
+  norma de la casa a propósito: quien entra a pokedoc.es **no descarga**
+  noticias.css, y una hoja más sería un viaje de ida y vuelta extra en la
+  primera pantalla — que es justo lo que la norma quiere evitar. Son ~20
+  líneas, y la portada se queda en **156,8 KB** de los 170.
+
+### Comprobado
+
+`test-tanda-287.mjs` (38, sin red) y `test-tanda-288.mjs` (21, en un
+Chromium de verdad, con la comprobación de que en móvil no coge scroll
+lateral). Rigor: **25 mutaciones, las 25 detectadas.**

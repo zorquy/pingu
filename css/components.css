@@ -5372,6 +5372,82 @@ a.rater-name:hover {
 }
 
 /* ── El reto del día en la home ── */
+/* ── El banner de noticias de la portada (tanda 288) ── */
+
+/* Vive AQUÍ y no en css/noticias.css, que sería lo suyo por la norma de
+ * la casa, porque quien entra a pokedoc.es no descarga noticias.css: una
+ * hoja más sería un viaje de ida y vuelta extra en la primera pantalla,
+ * que es justo lo que la norma quiere evitar. Son ~20 líneas.
+ *
+ * Y va con imagen, a diferencia de la fila fina del reto y del torneo,
+ * porque una noticia sin foto es un enlace y con foto es una noticia —el
+ * mismo razonamiento de css/noticias.css. La imagen no toca el
+ * presupuesto de peso: va en diferido y no es CSS ni JS. */
+
+.noticia-banner {
+  display: block;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+  transition: border-color 0.15s var(--ease), transform 0.1s var(--ease);
+}
+
+a.noticia-banner:hover {
+  border-color: var(--navy);
+  transform: translateY(-1px);
+}
+
+.noticia-banner-foto {
+  display: block;
+  width: 100%;
+  /* La caja reserva su altura ANTES de que cargue la imagen: sin esto la
+     portada pega un salto justo cuando la persona va a pulsar algo. */
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  background: var(--ice);
+}
+
+.noticia-banner-texto {
+  padding: 13px 16px;
+}
+
+.noticia-banner-etiqueta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--navy);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.noticia-banner-texto strong {
+  display: block;
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+.noticia-banner-texto small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-mid);
+}
+
+/* Va FUERA del banner, y no dentro como un renglón más: dentro sería un
+ * enlace metido en otro enlace —que ni es HTML válido ni se puede
+ * pulsar— y llevaría al artículo, que es justo lo contrario de lo que
+ * promete. Esto es lo que convierte el banner en «hay una sección de
+ * noticias» en vez de «hay este artículo». */
+.noticia-banner-todas {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
 .reto-tarjetas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

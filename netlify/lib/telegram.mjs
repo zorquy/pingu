@@ -5,6 +5,8 @@
 // botón del panel, cuando PINGU la empuja a mano). El texto y la forma
 // del mensaje tienen que ser los mismos por los dos caminos.
 
+import { fechaLargaEs } from './fechas.mjs'
+
 export const SITIO = 'https://pokedoc.es'
 
 // Cuando el mensaje va sin foto, la portada tiene que entrar igual por la
@@ -23,18 +25,62 @@ export const escaparTelegram = (t) =>
 // El pie de una foto en Telegram son 1024 caracteres como MUCHO, y si te
 // pasas no recorta: rechaza el mensaje entero. Por eso se recorta aquí, y
 // por un espacio, para no partir una palabra.
+function recortarA(texto, sitio) {
+  if (texto.length <= sitio) return texto
+  const trozo = texto.slice(0, Math.max(0, sitio - 1))
+  const espacio = trozo.lastIndexOf(' ')
+  return `${espacio > sitio * 0.5 ? trozo.slice(0, espacio) : trozo}…`
+}
+
 export function mensajeDeNoticia({ title, description, slug }, { limite = 1024 } = {}) {
   const url = `${SITIO}/noticias/${encodeURIComponent(slug || '')}`
   const titular = `<b>${escaparTelegram(title)}</b>`
   const enlace = `\n\n<a href="${escaparTelegram(url)}">Leer la noticia completa</a>`
   const sitio = Math.max(0, limite - titular.length - enlace.length - 2)
-  let resumen = escaparTelegram(description || '')
-  if (resumen.length > sitio) {
-    const trozo = resumen.slice(0, sitio - 1)
-    const espacio = trozo.lastIndexOf(' ')
-    resumen = `${espacio > sitio * 0.5 ? trozo.slice(0, espacio) : trozo}…`
-  }
+  const resumen = recortarA(escaparTelegram(description || ''), sitio)
   return `${titular}${resumen ? `\n\n${resumen}` : ''}${enlace}`
+}
+
+// La descripción de un torneo puede venir con formato (tanda 220), y
+// Telegram solo entiende cuatro etiquetas: se deja el texto pelado.
+export function soloTexto(html) {
+  return String(html ?? '')
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<\/(p|div|li|h[1-6])>/gi, ' ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+// Cómo se juega, en una línea: «5 rondas suizas + top 8», «liga de 8
+// jornadas». Es lo primero que mira quien decide si se apunta.
+export function comoSeJuega({ format, swiss_rounds: rondas, top_cut_size: top }) {
+  if (!rondas) return ''
+  const base = format === 'league' ? `liga de ${rondas} ${rondas === 1 ? 'jornada' : 'jornadas'}` : `${rondas} ${rondas === 1 ? 'ronda suiza' : 'rondas suizas'}`
+  return top ? `${base} + top ${top}` : base
+}
+
+// El anuncio de un torneo.
+//
+// Misma forma que el de una noticia —titular, resumen, enlace— porque
+// salen por el mismo canal y tienen que leerse igual. Lo que cambia es
+// que en medio va la FICHA: cuándo se juega, cómo y cuántas plazas. Eso
+// es lo que decide si alguien se apunta, y si hay que abrir la web para
+// saberlo, no se abre.
+export function mensajeDeTorneo(torneo, { limite = 1024, ahora = new Date() } = {}) {
+  const url = `${SITIO}/torneo?slug=${encodeURIComponent(torneo.slug || '')}`
+  const titulo = `<b>${escaparTelegram(torneo.name)}</b>`
+  const enlace = `\n\n<a href="${escaparTelegram(url)}">Apúntate</a>`
+
+  const cuando = fechaLargaEs(torneo.start_at, { ahora })
+  const plazas = torneo.max_players == null ? 'plazas sin límite' : `${torneo.max_players} plazas`
+  const ficha = escaparTelegram([cuando, comoSeJuega(torneo), plazas].filter(Boolean).join(' · '))
+
+  const sitio = Math.max(0, limite - titulo.length - enlace.length - ficha.length - 4)
+  const resumen = recortarA(escaparTelegram(soloTexto(torneo.description)), sitio)
+  return `${titulo}${ficha ? `\n\n${ficha}` : ''}${resumen ? `\n\n${resumen}` : ''}${enlace}`
 }
 
 // La portada, en una dirección que Telegram pueda abrir.
@@ -229,9 +275,9 @@ export async function traerLaPortada(url, fetchImpl = fetch) {
 //      tipo que no es de imagen.
 //   3. Y si ni eso, mensaje con vista previa grande: la portada entra
 //      por el og:image de la noticia. Nunca se pierde del todo.
-export async function mandarATelegram(noticia, { token, canal, tema = null, fetchImpl = fetch }) {
-  const texto = mensajeDeNoticia(noticia)
-  const portada = portadaAbsoluta(noticia.cover_image)
+export async function mandarATelegram(anuncio, { token, canal, tema = null, fetchImpl = fetch }) {
+  const texto = anuncio.texto
+  const portada = portadaAbsoluta(anuncio.portada)
   // Un TEMA de un grupo (los «canales» de dentro de una comunidad) no es
   // un chat distinto: es el mismo grupo con `message_thread_id`. Sin él,
   // el mensaje cae en el tema General y no donde toca.
@@ -253,7 +299,7 @@ export async function mandarATelegram(noticia, { token, canal, tema = null, fetc
     return { ok: false, error: datos.description || motivo || 'Telegram no ha aceptado el mensaje' }
   }
 
-  if (!portada) return sinFoto(noticia.cover_image ? 'la portada no es una dirección que Telegram pueda pedir' : undefined)
+  if (!portada) return sinFoto(anuncio.portada ? 'la imagen no es una dirección que Telegram pueda pedir' : undefined)
 
   // 1. Por enlace.
   const porEnlace = await respuesta(await aTelegram('sendPhoto', { chat_id: canal, ...dentroDelTema, photo: portada, caption: texto, parse_mode: 'HTML' }))
@@ -295,10 +341,19 @@ export async function mandarATelegram(noticia, { token, canal, tema = null, fetc
 // programada: si faltaba una variable, PINGU publicaba y no pasaba NADA
 // —ni mensaje, ni error, ni rastro en el registro— y no había manera de
 // saber cuál era. Ahora se devuelve el nombre exacto para poder decirlo.
-export function llavesQueFaltan(env) {
+export function llavesQueFaltan(env, { canal = 'TELEGRAM_CANAL_NOTICIAS' } = {}) {
   const faltan = []
   if (!env.TELEGRAM_BOT_TOKEN) faltan.push('TELEGRAM_BOT_TOKEN')
-  if (!env.TELEGRAM_CANAL_NOTICIAS) faltan.push('TELEGRAM_CANAL_NOTICIAS')
+  // Los «canales» de una comunidad de Telegram son TEMAS de un mismo
+  // grupo, así que el de torneos suele ser el mismo chat que el de
+  // noticias con otro `message_thread_id`. Se deja poner uno propio, y
+  // si no está se usa el de noticias: lo que cambia de verdad es el tema.
+  if (!env[canal] && !env.TELEGRAM_CANAL_NOTICIAS) faltan.push(canal)
   if (!env.SUPABASE_SERVICE_ROLE_KEY) faltan.push('SUPABASE_SERVICE_ROLE_KEY')
   return faltan
+}
+
+// El chat al que mandar, con esa misma regla.
+export function canalDe(env, nombre = 'TELEGRAM_CANAL_NOTICIAS') {
+  return env[nombre] || env.TELEGRAM_CANAL_NOTICIAS || ''
 }

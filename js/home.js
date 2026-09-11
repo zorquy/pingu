@@ -181,7 +181,7 @@ async function cargarNoticiaPortada() {
   try {
     const { data, error } = await supabase
       .from('guides')
-      .select('slug, title, published_at')
+      .select('slug, title, published_at, cover_image')
       .eq('kind', 'news')
       .not('published_at', 'is', null)
       .order('published_at', { ascending: false })
@@ -189,15 +189,37 @@ async function cargarNoticiaPortada() {
     const noticia = !error && data?.[0]
     if (!noticia) return recogerSeccion('noticiaPortadaSeccion')
 
-    hueco.innerHTML = `
-      <a class="reto-tarjeta" href="${rutaDeArticulo('news', noticia.slug)}">
-        <span class="reto-icono">${icons.newspaper(20)}</span>
-        <div class="reto-texto">
+    // Con portada va el banner; sin ella, la fila fina de siempre. Una
+    // caja de imagen vacía en la primera pantalla es peor que no tener
+    // imagen, y hay noticias que no llevan.
+    const enlace = rutaDeArticulo('news', noticia.slug)
+    const cuando = escapeHtml(cuandoFue(noticia.published_at))
+    hueco.innerHTML = noticia.cover_image
+      ? `
+      <a class="noticia-banner" href="${enlace}">
+        <img class="noticia-banner-foto" src="${escapeHtml(noticia.cover_image)}" alt="" loading="lazy" decoding="async" />
+        <div class="noticia-banner-texto">
+          <span class="noticia-banner-etiqueta">${icons.newspaper(15)} Noticias</span>
           <strong>${escapeHtml(noticia.title)}</strong>
-          <small>Lo último en noticias · ${escapeHtml(cuandoFue(noticia.published_at))}</small>
+          <small>${cuando}</small>
         </div>
-        <span class="reto-flecha">→</span>
-      </a>`
+      </a>
+      <a class="noticia-banner-todas" href="/noticias">Ver todas las noticias →</a>`
+      : `
+      <div class="reto-tarjetas">
+        <a class="reto-tarjeta" href="${enlace}">
+          <span class="reto-icono">${icons.newspaper(20)}</span>
+          <div class="reto-texto">
+            <strong>${escapeHtml(noticia.title)}</strong>
+            <small>Lo último en noticias · ${cuando}</small>
+          </div>
+          <span class="reto-flecha">→</span>
+        </a>
+      </div>`
+    // Si la portada no carga, el banner se quedaría con un hueco gris en
+    // la primera pantalla: se cae a la fila fina antes de que se vea.
+    const foto = hueco.querySelector('.noticia-banner-foto')
+    if (foto) foto.onerror = () => foto.remove()
     seccion.style.display = ''
   } catch {
     recogerSeccion('noticiaPortadaSeccion')
