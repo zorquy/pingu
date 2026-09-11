@@ -36,7 +36,7 @@ async function toggleSave(session, guideId, btn) {
 // los comentarios.
 const MIN_READ_SECONDS = 15
 
-function setupReadTracking(session, guide) {
+function setupReadTracking(session, guide, esNoticia = false) {
   if (!session) return
   const sentinel = document.getElementById('articleEndSentinel')
   if (!sentinel || typeof IntersectionObserver === 'undefined') return
@@ -52,7 +52,9 @@ function setupReadTracking(session, guide) {
     if (timer) clearTimeout(timer)
     try {
       const esNueva = await markGuideRead(session.user.id, guide.id)
-      if (esNueva) showToast(`Guía leída · +${READ_XP} XP`, 'success')
+      // El XP se da igual —leer es leer—, pero el aviso no puede
+      // llamarle «guía» a una noticia.
+      if (esNueva) showToast(`${esNoticia ? 'Noticia leída' : 'Guía leída'} · +${READ_XP} XP`, 'success')
     } catch {
       // Ya queda registrado en client_errors. No se avisa al usuario:
       // ha venido a leer, no a que le demos la turra con el XP.
@@ -397,11 +399,17 @@ async function init() {
 
   // La valoración va al FINAL, después de haber leído. Antes solo se
   // podía valorar desde el pop-up de la tarjeta, o sea sin leer nada.
-  renderRatingWidget(document.getElementById('guideRating'), {
-    guideId: guide.id,
-    session,
-    guide,
-  }).catch(() => {})
+  // En una noticia NO. «¿Te ha servido esta guía?» no tiene sentido
+  // debajo de que han anunciado una película: una guía se valora porque
+  // te ha enseñado algo o no, y una noticia solo cuenta lo que ha
+  // pasado. Para opinar está el hilo del foro.
+  if (!esNoticia) {
+    renderRatingWidget(document.getElementById('guideRating'), {
+      guideId: guide.id,
+      session,
+      guide,
+    }).catch(() => {})
+  }
 
   // Invitación a escribir, al terminar de leer.
   //
@@ -413,8 +421,12 @@ async function init() {
   // Se le enseña solo a quien ha iniciado sesión: a quien está de paso,
   // pedirle que escriba una guía antes de tener cuenta es pedirle dos
   // cosas a la vez, y no hace ninguna.
+  //
+  // Tampoco en una noticia: quien acaba de leer que sale una película no
+  // está pensando en escribir una guía, y encima da a entender que lo
+  // que acaba de leer era una.
   const invitacion = document.getElementById('guideWriteInvite')
-  if (invitacion && session) {
+  if (invitacion && session && !esNoticia) {
     invitacion.innerHTML = `
       <p class="write-invite">
         ${icons.edit(14)} ¿Sabes algo que no está en PokeDoc?
@@ -456,7 +468,7 @@ async function init() {
 
   engancharCompartir(document.getElementById('btnCompartir'), { titulo: guide.title })
 
-  setupReadTracking(session, guide)
+  setupReadTracking(session, guide, esNoticia)
 
   initGuideForum({
     containerEl: document.getElementById('forumContainer'),

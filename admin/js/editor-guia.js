@@ -463,6 +463,35 @@ async function init() {
   // diferencia entre escribir una noticia y acordarse de marcarla.
   document.getElementById('gKind').value =
     existingGuide?.kind || (new URLSearchParams(location.search).get('tipo') === 'noticia' ? 'news' : 'guide')
+
+  // ── El editor, vestido de lo que se está escribiendo (tanda 277) ──
+  //
+  // Lo pidió PINGU: «si no hay categoría porque es una noticia, no me
+  // enseñes ese campo». Tiene razón — media pantalla de campos que no
+  // pintan nada es media pantalla en la que equivocarse, y encima le
+  // dice a quien escribe que eso es una guía.
+  //
+  // Se ESCONDEN, no se duplica el editor. Un segundo editor con el 80%
+  // copiado es dos sitios donde arreglar cada cosa, y el día que se
+  // toque uno el otro se queda atrás. Los campos siguen en la página con
+  // su valor por defecto, así que lo que se guarda no cambia: una
+  // noticia se queda con su nivel y su rareza a lo que había, que no se
+  // miran en ninguna parte.
+  const vestirSegunElTipo = () => {
+    const esNoticia = document.getElementById('gKind').value === 'news'
+    document.querySelectorAll('[data-solo-guia]').forEach((el) => el.classList.toggle('hidden', esNoticia))
+    document.querySelector('[data-etiqueta-articulo]').textContent = esNoticia ? 'La noticia' : 'General y Guía'
+    document.getElementById('gTitle').placeholder = esNoticia ? 'Titular de la noticia' : 'Título de la guía'
+    document.getElementById('gSlug').placeholder = esNoticia ? 'slug-de-la-noticia' : 'slug-de-la-guia'
+    // Si estabas en una pestaña que acaba de desaparecer, no puedes
+    // quedarte mirando una pantalla en blanco.
+    const activa = document.querySelector('.tab-btn.active')
+    if (esNoticia && activa?.hasAttribute('data-solo-guia')) {
+      document.querySelector('.tab-btn[data-etab="general"]')?.click()
+    }
+  }
+  document.getElementById('gKind').addEventListener('change', vestirSegunElTipo)
+  vestirSegunElTipo()
   await loadCategoriesAndCollections(existingGuide?.category_id)
   renderCollectionOptions(existingGuide?.category_id || categories[0]?.id, existingGuide?.collection_id)
   await loadPaths(existingGuide)

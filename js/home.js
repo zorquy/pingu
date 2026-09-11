@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { conVueltaAtrasDeTipo } from './articulos.js'
+import { conVueltaAtrasDeTipo, rutaDeArticulo, cuandoFue } from './articulos.js'
 import { escapeHtml, getSession, profileUrl, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml, guideHasReference } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { icons } from './icons.js'
@@ -165,6 +165,45 @@ function recogerSeccion(id) {
 // Si no hay ninguno abierto, la sección se recoge y la portada queda
 // exactamente como estaba. Sin torneos que ofrecer, un hueco que diga
 // «no hay torneos» solo ocupa sitio.
+
+// La última noticia, en la portada (tanda 277).
+//
+// Una sola, la más reciente, con la misma pinta que la tarjeta del reto
+// y la del torneo: es la forma de añadir algo a la portada sin gastar ni
+// un byte de CSS ni tocar el presupuesto de peso.
+//
+// Se recoge sola si no hay noticias —o si la migración de `kind` no está
+// puesta— en vez de dejar un hueco que no explica nada.
+async function cargarNoticiaPortada() {
+  const seccion = document.getElementById('noticiaPortadaSeccion')
+  const hueco = document.getElementById('noticiaPortada')
+  if (!seccion || !hueco) return
+  try {
+    const { data, error } = await supabase
+      .from('guides')
+      .select('slug, title, published_at')
+      .eq('kind', 'news')
+      .not('published_at', 'is', null)
+      .order('published_at', { ascending: false })
+      .limit(1)
+    const noticia = !error && data?.[0]
+    if (!noticia) return recogerSeccion('noticiaPortadaSeccion')
+
+    hueco.innerHTML = `
+      <a class="reto-tarjeta" href="${rutaDeArticulo('news', noticia.slug)}">
+        <span class="reto-icono">${icons.newspaper(20)}</span>
+        <div class="reto-texto">
+          <strong>${escapeHtml(noticia.title)}</strong>
+          <small>Lo último en noticias · ${escapeHtml(cuandoFue(noticia.published_at))}</small>
+        </div>
+        <span class="reto-flecha">→</span>
+      </a>`
+    seccion.style.display = ''
+  } catch {
+    recogerSeccion('noticiaPortadaSeccion')
+  }
+}
+
 async function cargarTorneoPortada() {
   const seccion = document.getElementById('torneoPortadaSeccion')
   const hueco = document.getElementById('torneoPortada')
@@ -368,6 +407,7 @@ async function init() {
     loadHeroGuideCount(),
     cargarNumerosComunidad(),
     cargarForoVivo(),
+    cargarNoticiaPortada(),
     cargarTorneoPortada(),
     cargarBienvenida(session),
     loadHomeActivity(session),

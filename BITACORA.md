@@ -12,6 +12,43 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-11 (5) — PINGU-Claude (tanda 277 — una noticia deja de disfrazarse de guía)
+
+**Hecho**: PINGU entró en la primera noticia publicada y vio lo que
+sobraba. Tres cosas, más el editor y la portada.
+
+**En la noticia**: fuera «¿Te ha servido esta guía?» (una guía se valora
+porque te ha enseñado algo; una noticia solo cuenta lo que ha pasado —
+para opinar está el hilo del foro) y fuera la invitación a «Escribe tu
+propia guía». El XP se sigue dando —leer es leer— pero el aviso ya no
+dice «Guía leída» sino «Noticia leída». En una guía siguen estando las
+tres, claro.
+
+**El editor**: PINGU pidió uno igual pero solo con los campos que una
+noticia tiene. NO se ha duplicado el editor: se esconden los campos que
+no aplican (`data-solo-guia` + un repaso al cambiar el desplegable). Un
+segundo editor con el 80% copiado son dos sitios donde arreglar cada
+cosa y uno que se queda atrás. Queda: título, slug, portada,
+descripción, tipo, estado y el cuerpo. Los campos escondidos siguen en
+la página con su valor, así que lo que se guarda no cambia.
+
+**Y de paso**: «Estado» y «Tipo de artículo» estaban enterrados en la
+pestaña «Avanzado». Publicar no es una acción avanzada — suben al panel
+General, detrás de la descripción. Mejora también el editor de guías.
+
+**La portada**: tarjeta de la última noticia, con la misma pinta que la
+del reto y la del torneo — cero CSS nuevo, que el presupuesto anda
+justo. Se recoge sola si no hay ninguna. Portada en 154,0 KB de 170.
+
+**Ficheros**: js/guia.js, admin/editor-guia.html, admin/js/editor-guia.js,
+js/home.js, index.html.
+
+**Pruebas**: test-tanda-277.mjs (25), incluida la de que una GUÍA
+conserva lo que se le ha quitado a la noticia, y que al cambiar el
+desplegable a guía vuelven todos los campos (se esconden, no se borran).
+
+---
+
 ## 2026-09-11 (4) — PINGU-Claude (tanda 276 — la portada de verdad del vídeo)
 
 **Hecho**: PINGU quería que el vídeo de YouTube enseñara su portada en
