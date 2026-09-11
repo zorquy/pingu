@@ -89,6 +89,93 @@ const CABECERAS_DE_IMAGEN = {
   'user-agent': 'PokeDocBot/1.0 (+https://pokedoc.es)',
 }
 
+// Qué es esta imagen, mirándole los primeros bytes.
+//
+// Hace falta porque el `content-type` MIENTE: lo pone quien sirve el
+// fichero, y una portada guardada con la extensión equivocada sale como
+// «image/png» siendo otra cosa. Y porque Telegram rechaza como FOTO
+// formatos que son imágenes perfectamente válidas —WebP, AVIF, HEIC, los
+// que gasta media web hoy— con un «IMAGE_PROCESS_FAILED» que no dice
+// cuál de todos los motivos posibles es.
+//
+// Sin librerías: son cuatro cabeceras y se leen a mano.
+export function describirImagen(datos) {
+  const b = new Uint8Array(datos)
+  const texto = (i, n) => String.fromCharCode(...b.slice(i, i + n))
+  const u16 = (i, pequeno) => (pequeno ? b[i] | (b[i + 1] << 8) : (b[i] << 8) | b[i + 1])
+  const u32 = (i, pequeno) =>
+    (pequeno ? b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24) : (b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]) >>> 0
+
+  if (b.length < 16) return { formato: '' }
+
+  if (texto(1, 3) === 'PNG') return { formato: 'png', ancho: u32(16), alto: u32(20) }
+  if (texto(0, 3) === 'GIF') return { formato: 'gif', ancho: u16(6, true), alto: u16(8, true) }
+  if (texto(0, 2) === 'BM') return { formato: 'bmp', ancho: u32(18, true), alto: u32(22, true) }
+
+  if (texto(0, 4) === 'RIFF' && texto(8, 4) === 'WEBP') {
+    const clase = texto(12, 4)
+    // VP8X lleva las medidas menos uno, en tres bytes cada una.
+    if (clase === 'VP8X' && b.length > 30) {
+      return { formato: 'webp', ancho: 1 + (b[24] | (b[25] << 8) | (b[26] << 16)), alto: 1 + (b[27] | (b[28] << 8) | (b[29] << 16)) }
+    }
+    if (clase === 'VP8 ' && b.length > 30) return { formato: 'webp', ancho: u16(26, true) & 0x3fff, alto: u16(28, true) & 0x3fff }
+    return { formato: 'webp' }
+  }
+
+  // AVIF y HEIC se declaran en la caja «ftyp» del principio.
+  if (texto(4, 4) === 'ftyp') {
+    const marca = texto(8, 4)
+    if (marca.startsWith('avi')) return { formato: 'avif' }
+    if (marca.startsWith('hei') || marca.startsWith('mif')) return { formato: 'heic' }
+  }
+
+  if (b[0] === 0xff && b[1] === 0xd8) {
+    // Las medidas de un JPEG están en el marcador SOF, que hay que ir a
+    // buscar saltando de segmento en segmento.
+    let i = 2
+    while (i + 9 < b.length) {
+      if (b[i] !== 0xff) {
+        i++
+        continue
+      }
+      const marcador = b[i + 1]
+      if (marcador === 0xd8 || marcador === 0x01 || (marcador >= 0xd0 && marcador <= 0xd7)) {
+        i += 2
+        continue
+      }
+      const largo = u16(i + 2)
+      if (marcador >= 0xc0 && marcador <= 0xcf && marcador !== 0xc4 && marcador !== 0xc8 && marcador !== 0xcc) {
+        return { formato: 'jpeg', alto: u16(i + 5), ancho: u16(i + 7) }
+      }
+      if (largo < 2) break
+      i += 2 + largo
+    }
+    return { formato: 'jpeg' }
+  }
+
+  return { formato: '' }
+}
+
+// Lo que Telegram acepta como FOTO. Un WebP o un AVIF son imágenes
+// válidas y se ven en cualquier navegador, pero como foto las rechaza.
+const FORMATOS_DE_FOTO = ['jpeg', 'png', 'gif', 'bmp']
+
+// Y sus límites: la suma de ancho y alto no puede pasar de 10000, y una
+// tira muy alargada tampoco la traga.
+const SUMA_MAXIMA = 10000
+const PROPORCION_MAXIMA = 20
+
+// En qué se queda una portada, para poder contarlo: «JPEG 1200×630,
+// 245 KB». Sin esto, «IMAGE_PROCESS_FAILED» no se puede ni empezar a
+// mirar.
+export function comoEsLaPortada(info, bytes) {
+  const medidas = info.ancho && info.alto ? ` ${info.ancho}×${info.alto} px` : ''
+  // Los bytes sueltos se dicen tal cual: una portada de 300 bytes es una
+  // imagen rota, y «0 KB» no lo contaría.
+  const peso = bytes ? `, ${bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1048576).toFixed(1)} MB`}` : ''
+  return `${(info.formato || 'formato desconocido').toUpperCase()}${medidas}${peso}`
+}
+
 export async function traerLaPortada(url, fetchImpl = fetch) {
   let res
   try {
@@ -111,7 +198,21 @@ export async function traerLaPortada(url, fetchImpl = fetch) {
     return { error: `pesa ${(datos.byteLength / 1048576).toFixed(1)} MB (el máximo son 10)` }
   }
   if (!datos.byteLength) return { error: 'viene vacía' }
-  return { blob: new Blob([datos], { type: tipo }) }
+
+  // Y ahora lo que de verdad importa, que el content-type no cuenta.
+  const info = describirImagen(datos)
+  const como = comoEsLaPortada(info, datos.byteLength)
+  if (info.formato && !FORMATOS_DE_FOTO.includes(info.formato)) {
+    return { error: `es un ${info.formato.toUpperCase()} (${como}) y Telegram no acepta ese formato como foto: vuelve a subirla en JPG o PNG`, como }
+  }
+  if (info.ancho && info.alto) {
+    if (info.ancho + info.alto > SUMA_MAXIMA) {
+      return { error: `es demasiado grande (${como}): Telegram no pasa de ${SUMA_MAXIMA} sumando ancho y alto`, como }
+    }
+    const proporcion = Math.max(info.ancho / info.alto, info.alto / info.ancho)
+    if (proporcion > PROPORCION_MAXIMA) return { error: `es demasiado alargada (${como})`, como }
+  }
+  return { blob: new Blob([datos], { type: tipo }), como }
 }
 
 // Con portada va como FOTO con pie: en Telegram una foto ocupa media
@@ -177,7 +278,10 @@ export async function mandarATelegram(noticia, { token, canal, tema = null, fetc
       subida = { description: `no se ha podido subir (${e?.message || e})` }
     }
     if (subida.ok) return { ok: true, subida: true }
-    return sinFoto(`${porEnlace.description || 'Telegram no ha aceptado el enlace'}; y subiéndola: ${subida.description || 'tampoco'}`)
+    // Si llega aquí, la portada pasó todas nuestras comprobaciones y aun
+    // así Telegram no la quiere. Se dice EN QUÉ CONSISTE: sin eso, un
+    // «IMAGE_PROCESS_FAILED» no se puede ni empezar a mirar.
+    return sinFoto(`${porEnlace.description || 'Telegram no ha aceptado el enlace'}; y subiéndola: ${subida.description || 'tampoco'} (la portada es ${traida.como})`)
   }
 
   // 3. Ni por enlace ni subiéndola. Se dice qué le pasa a ESA portada,

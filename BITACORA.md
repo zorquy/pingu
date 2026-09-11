@@ -45,6 +45,41 @@ tocar código.
 
 ---
 
+## 2026-09-11 (15) — PINGU-Claude (tanda 285 — qué ES esa portada)
+
+**Hecho**: el aviso del panel dio por fin el dato bueno: «failed to get
+HTTP URL content; y subiéndola: IMAGE_PROCESS_FAILED». O sea que la web
+que aloja la portada no se la da a Telegram (de ahí también la vista
+previa sin imagen: el og:image es esa misma portada), pero NOSOTROS sí
+nos la bajamos — y aun así Telegram no la procesa. Ya no es acceso: es la
+imagen.
+
+`describirImagen()` le lee los primeros bytes (PNG, JPEG, GIF, BMP, WebP,
+AVIF/HEIC) y saca formato y medidas, sin librerías. Hace falta porque el
+content-type lo pone quien sirve el fichero y miente.
+
+Con eso, antes de subir nada se sabe si la va a rechazar y por qué: un
+formato que no acepta como foto (WebP y AVIF son imágenes válidas que se
+ven en cualquier navegador, pero sendPhoto no las traga), más de 10000
+sumando ancho y alto, o más de 20 a 1 de proporción. Y se dice qué hacer:
+«vuelve a subirla en JPG o PNG».
+
+Si pasa todas las comprobaciones y Telegram la rechaza igual, el aviso
+acaba con en qué consiste: «la portada es PNG 1200×630 px, 244 KB».
+
+**Ficheros**: netlify/lib/telegram.mjs, SCHEMA.md.
+
+**Pruebas**: test-tanda-282.mjs (96). Rigor: 51 mutaciones, las 51
+detectadas.
+
+**PENDIENTE**: con esto el aviso ya dirá el formato exacto de la portada
+de PINGU. Si sale WebP/AVIF, la salida es volver a subirla en JPG —y
+sigue pendiente lo de que PokeDoc se guarde sola las imágenes pegadas de
+otras webs, que es lo que arregla el caso de raíz (y la vista previa en
+el resto de redes y en Google).
+
+---
+
 ## 2026-09-11 (14) — PINGU-Claude (la portada, seguía sin salir)
 
 **Hecho**: la noticia de prueba salió por el canal, pero la vista previa

@@ -13596,3 +13596,52 @@ redes y para Google.
 ### Comprobado
 
 `test-tanda-282.mjs` (71). Rigor: **39 mutaciones, las 39 detectadas.**
+
+---
+
+## Tanda 285 — qué ES esa portada (sept. 2026)
+
+El aviso del panel, con la portada de la primera noticia:
+
+```
+Bad Request: failed to get HTTP URL content; y subiéndola: Bad Request: IMAGE_PROCESS_FAILED
+```
+
+Las dos mitades dicen cosas distintas, y juntas cierran el caso:
+
+- **Por enlace**: Telegram no consigue descargarla. La web que la aloja
+  no se la da (y por eso la vista previa del enlace salía **sin imagen**:
+  el `og:image` es esa misma portada).
+- **Subiéndola**: nosotros **sí** nos la bajamos —pasó el `res.ok`, el
+  `content-type` de imagen, el peso— y aun así Telegram no la procesa.
+
+O sea: ya no es un problema de acceso. Es **la imagen**.
+
+### Por qué «IMAGE_PROCESS_FAILED» no se podía mirar
+
+Ese mensaje tapa al menos tres causas distintas, y el `content-type` no
+ayuda a distinguirlas porque **lo pone quien sirve el fichero**: una
+portada guardada con la extensión equivocada sale como `image/png`
+siendo otra cosa.
+
+`describirImagen()` le lee los primeros bytes —PNG, JPEG, GIF, BMP,
+WebP, AVIF/HEIC— y saca formato y medidas. Sin librerías: son cuatro
+cabeceras.
+
+Con eso, antes de subir nada se sabe si la va a rechazar y **por qué**:
+
+- **Formato que no acepta como foto.** WebP y AVIF son imágenes
+  perfectamente válidas que se ven en cualquier navegador, y las gasta
+  media web hoy — pero `sendPhoto` no las traga. Se dice, y se dice qué
+  hacer: «vuelve a subirla en JPG o PNG».
+- **Demasiado grande**: más de 10000 sumando ancho y alto.
+- **Demasiado alargada**: más de 20 a 1.
+
+Y si pasa todas las comprobaciones y Telegram la rechaza igual, el aviso
+termina con **en qué consiste**: «la portada es PNG 1200×630 px, 244
+KB». Eso es lo que convierte un mensaje opaco en algo que se puede
+mirar.
+
+### Comprobado
+
+`test-tanda-282.mjs` (96). Rigor: **51 mutaciones, las 51 detectadas.**
