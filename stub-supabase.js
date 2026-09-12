@@ -584,6 +584,14 @@ function consulta(tabla, estado = {}) {
         const valor = resto.join('.')
         if (op === 'eq') return (f) => String(f[col]) === valor
         if (op === 'is') return (f) => (valor === 'null' ? f[col] == null : String(f[col]) === valor)
+        // Las comparaciones de fecha del hilo de actividad
+        // («completed_at.gte.…,read_at.gte.…»). Una columna vacía NO
+        // cumple: en PostgREST un null no entra en un >=, y sin esto el
+        // doble daría por buena media tabla.
+        if (op === 'gte') return (f) => f[col] != null && f[col] >= valor
+        if (op === 'lte') return (f) => f[col] != null && f[col] <= valor
+        if (op === 'gt') return (f) => f[col] != null && f[col] > valor
+        if (op === 'lt') return (f) => f[col] != null && f[col] < valor
         throw new Error(`stub: .or() no entiende «${t}». Añádelo si el cliente lo usa.`)
       })
       return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => pruebas.some((p) => p(f))] })

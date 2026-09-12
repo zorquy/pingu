@@ -40,6 +40,7 @@ const T = {
   match_log: [],
   match_log_torneos: [],
   guides: [],
+  categories: [],
   guide_suggestions: [],
   site_settings: [],
   push_subscriptions: [],
@@ -263,11 +264,40 @@ sembrar('__FAKE_GUIAS__', 'guides', (i) => ({
   id: `guia-${i + 1}`,
   slug: `guia-${i + 1}`,
   title: `Guía ${i + 1}`,
+  // En la base la columna tiene valor por defecto: NINGUNA fila real la
+  // tiene vacía. Sembrarla aquí es lo que hace que el doble se parezca a
+  // la base y no a un caso que no existe.
+  kind: 'guide',
   author_id: 'admin-1',
   review_status: 'published',
   published_at: '2026-08-01T10:00:00Z',
   created_at: '2026-08-01T10:00:00Z',
   submitted_at: '2026-08-01T10:00:00Z',
+  category_id: null,
+  blocks: [],
+}))
+
+sembrar('__FAKE_CATEGORIAS__', 'categories', (i) => ({
+  id: `cat-${i + 1}`,
+  slug: `categoria-${i + 1}`,
+  name: `Categoría ${i + 1}`,
+  description: '',
+  order_pos: i,
+}))
+
+// Las noticias (tanda 269). Van a la MISMA tabla que las guías, que es
+// justo lo que hay que poder probar: que los listados de guías no se
+// llenan de noticias y que /noticias no se llena de guías.
+sembrar('__FAKE_NOTICIAS__', 'guides', (i) => ({
+  id: `noticia-${i + 1}`,
+  slug: `noticia-${i + 1}`,
+  title: `Noticia ${i + 1}`,
+  description: `Lo que ha pasado hoy, número ${i + 1}.`,
+  kind: 'news',
+  author_id: 'admin-1',
+  review_status: 'published',
+  published_at: new Date(Date.now() - (i + 1) * 3600e3).toISOString(),
+  created_at: new Date(Date.now() - (i + 1) * 3600e3).toISOString(),
   category_id: null,
   blocks: [],
 }))
@@ -402,6 +432,8 @@ function consulta(tabla, estado = {}) {
     unico: null,
     op: null,
     cuerpo: null,
+    // Cuando se ha filtrado por una columna que «todavía no existe».
+    columnaQueFalta: null,
     ...estado,
   }
 
@@ -533,6 +565,16 @@ function consulta(tabla, estado = {}) {
       // jugador», que en la web de verdad es la diferencia entre pedir
       // una fila o pedir la cola entera del torneo.
       ;(CONSULTAS.igualdades[tabla] = CONSULTAS.igualdades[tabla] || []).push(`${col}=${val}`)
+      // «Esa columna todavía no existe»: es lo que devuelve PostgREST
+      // entre que se despliega el código y una persona ejecuta el SQL, y
+      // es el hueco en el que el sitio se puede quedar a oscuras. Se
+      // simula para poder probar los puentes de vuelta atrás.
+      if (typeof window !== 'undefined' && (window.__COLUMNAS_QUE_FALTAN__ || []).includes(col)) {
+        // Va en el ESTADO y no como respuesta inmediata: detrás del .eq()
+        // vienen .order() y .limit(), y cada uno devuelve una consulta
+        // nueva. Un error devuelto aquí se perdería en el primer eslabón.
+        return consulta(tabla, { ...st, columnaQueFalta: col })
+      }
       return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => String(f[col]) === String(val)] })
     },
     or: (expresion) => {
@@ -542,6 +584,14 @@ function consulta(tabla, estado = {}) {
         const valor = resto.join('.')
         if (op === 'eq') return (f) => String(f[col]) === valor
         if (op === 'is') return (f) => (valor === 'null' ? f[col] == null : String(f[col]) === valor)
+        // Las comparaciones de fecha del hilo de actividad
+        // («completed_at.gte.…,read_at.gte.…»). Una columna vacía NO
+        // cumple: en PostgREST un null no entra en un >=, y sin esto el
+        // doble daría por buena media tabla.
+        if (op === 'gte') return (f) => f[col] != null && f[col] >= valor
+        if (op === 'lte') return (f) => f[col] != null && f[col] <= valor
+        if (op === 'gt') return (f) => f[col] != null && f[col] > valor
+        if (op === 'lt') return (f) => f[col] != null && f[col] < valor
         throw new Error(`stub: .or() no entiende «${t}». Añádelo si el cliente lo usa.`)
       })
       return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => pruebas.some((p) => p(f))] })
@@ -572,7 +622,9 @@ function consulta(tabla, estado = {}) {
     // arreglos no se pueden probar.
     then: (ok, mal) => {
       const ms = (typeof window !== 'undefined' && window.__FAKE_RETRASO__?.[tabla]) || 0
-      const valor = resolver()
+      const valor = st.columnaQueFalta
+        ? { data: null, error: { code: '42703', message: `column ${tabla}.${st.columnaQueFalta} does not exist` } }
+        : resolver()
       const p = ms ? new Promise((r) => setTimeout(() => r(valor), ms)) : Promise.resolve(valor)
       return p.then(ok, mal)
     },
