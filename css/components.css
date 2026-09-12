@@ -3386,6 +3386,14 @@ tcg-deck {
   flex-shrink: 0;
 }
 
+/* Lo que publica la casa —una noticia— no lleva avatar de nadie: lleva
+ * la marca del sitio. Es la diferencia entre «PINGU ha publicado», que
+ * suena a opinión suya, y «Nueva noticia», que es lo que ha pasado. */
+.activity-avatar-casa {
+  background-color: var(--navy);
+  color: var(--white);
+}
+
 .activity-body {
   flex: 1;
   /* Sin esto, un título de guía largo empuja la fila y se sale por la

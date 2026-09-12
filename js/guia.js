@@ -140,8 +140,18 @@ async function init() {
   document.title = `${guide.title} — PokeDoc`
   supabase.from('guides').update({ view_count: (guide.view_count || 0) + 1 }).eq('id', guide.id)
 
+  // Una NOTICIA no la firma nadie (tanda 289).
+  //
+  // La guía la escribe una persona y ponerle su nombre es el pago: sale
+  // en la portada de quien la lee y le cuenta como colaboración. Una
+  // noticia no — es del sitio. Que ponga «Publicada por PINGU» hace que
+  // parezca la opinión de alguien en vez de lo que ha pasado, y encima
+  // deja la sección atada a una persona el día que la escriba otra.
+  //
+  // `author_id` se sigue guardando: hace falta para los permisos de
+  // edición. Lo que cambia es lo que se ENSEÑA.
   let author = null
-  if (guide.author_id) {
+  if (guide.author_id && !esNoticia) {
     const { data } = await supabase
       .from('user_profiles')
       .select('id, display_name, username, avatar_url')
@@ -164,13 +174,13 @@ async function init() {
       ${
         author
           ? `<a class="mini-avatar" href="${profileUrl(author)}" style="width:36px; height:36px; font-size:14px; ${authorAvatarStyle}">${author.avatar_url ? '' : getInitial(authorName)}</a>`
-          : `<span class="mini-avatar" style="width:36px; height:36px; background-color:var(--navy); color:var(--white); display:flex; align-items:center; justify-content:center;">${icons.shield(18)}</span>`
+          : `<span class="mini-avatar" style="width:36px; height:36px; background-color:var(--navy); color:var(--white); display:flex; align-items:center; justify-content:center;">${esNoticia ? icons.newspaper(18) : icons.shield(18)}</span>`
       }
       <div>
         <span class="subtext" style="margin:0; display:block;">${
           // "Publicada por" es falso mientras está en revisión: no está
           // publicada. Se dice lo que sí es cierto — que la ha escrito.
-          author ? (guide.review_status === 'pending' ? 'Escrita por' : 'Publicada por') : 'Guía oficial de'
+          author ? (guide.review_status === 'pending' ? 'Escrita por' : 'Publicada por') : esNoticia ? 'Noticia de' : 'Guía oficial de'
         }</span>
         ${author ? `<a href="${profileUrl(author)}" style="font-weight:700; color:var(--navy);">${escapeHtml(authorName)}</a>${authorBadge}` : `<strong>${escapeHtml(authorName)}</strong>`}
       </div>

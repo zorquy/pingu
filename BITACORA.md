@@ -45,6 +45,40 @@ tocar código.
 
 ---
 
+## 2026-09-12 (1) — PINGU-Claude (tanda 289 — una noticia no es una guía, y no la firma nadie)
+
+**Hecho**: el hilo de actividad decía «PINGU ha publicado la guía …» de
+una NOTICIA, y justo debajo repetía la misma noticia como «ha abierto un
+tema en el foro» —que es el hilo que abre sola al publicarla—.
+
+Tres cosas:
+
+1. Tipo de evento `noticia`, con su icono y su enlace a /noticias/<slug>
+   (antes iba al de guía, que para una noticia es la dirección vieja).
+2. El hilo que abre sola una noticia ya no se cuenta como tema aparte.
+3. **Una noticia no la firma nadie.** Decisión de PINGU y es la correcta:
+   firmar una guía es el pago de escribirla, pero una noticia es del
+   sitio — que ponga «PINGU ha publicado» la hace parecer opinión de
+   alguien y ata la sección a una persona. En el hilo va con la marca de
+   la casa y «Nueva noticia: …»; en la ficha, «Noticia de PokeDoc». Y no
+   la esconde el `hide_activity` de quien la teclee ni le gasta su cupo.
+   `author_id` se sigue guardando: hace falta para los permisos.
+
+**OJO, hallazgo de paso**: al ir a probarlo salió que `loadActivity`
+REVENTABA en el doble desde siempre —su `.or()` solo entendía `eq` e
+`is`, y el hilo usa `completed_at.gte.…`—. O sea que el hilo de actividad
+no tenía ni una prueba y nadie lo sabía. El doble ya entiende
+gte/lte/gt/lt en `.or()`, con el cuidado de que una columna vacía NO
+cumpla (en PostgREST un null no entra en un >=).
+
+**Ficheros**: js/activity.js, js/guia.js, css/components.css, SCHEMA.md.
+En la rama `pruebas`: stub-supabase.js.
+
+**Pruebas**: test-tanda-289.mjs (NUEVA, 22, en Chromium). Rigor: 10
+mutaciones, las 10 detectadas.
+
+---
+
 ## 2026-09-11 (17) — PINGU-Claude (tandas 287 y 288 — torneos a Telegram, y el banner de la portada)
 
 **Hecho**, dos cosas que pidió PINGU:

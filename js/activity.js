@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 import { icons } from './icons.js'
+import { rutaDeArticulo, conVueltaAtrasDeTipo } from './articulos.js'
 import { logClientError } from './error-log.js'
 
 // Hilo de actividad reciente. No hay tabla de eventos: se arma leyendo
@@ -29,6 +30,15 @@ function haceCuanto(iso) {
   return meses === 1 ? 'hace un mes' : `hace ${meses} meses`
 }
 
+const publicadas = (columnas) =>
+  supabase
+    .from('guides')
+    .select(columnas)
+    .not('published_at', 'is', null)
+    .not('author_id', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(POR_FUENTE)
+
 export async function loadActivity(limite = 20) {
   const desde = new Date(Date.now() - 60 * 86400_000).toISOString()
 
@@ -38,13 +48,13 @@ export async function loadActivity(limite = 20) {
       .select('user_id, guide_id, status, completed_at, read_at')
       .or(`completed_at.gte.${desde},read_at.gte.${desde}`)
       .limit(POR_FUENTE * 2),
-    supabase
-      .from('guides')
-      .select('id, title, slug, author_id, published_at')
-      .not('published_at', 'is', null)
-      .not('author_id', 'is', null)
-      .order('published_at', { ascending: false })
-      .limit(POR_FUENTE),
+    // `kind` y `forum_thread_id` son de la tanda 289: hace falta saber si
+    // lo publicado es una guía o una NOTICIA, y cuál es el hilo que la
+    // noticia abrió sola para no contar dos veces lo mismo.
+    conVueltaAtrasDeTipo(
+      () => publicadas('id, title, slug, author_id, published_at, kind, forum_thread_id'),
+      () => publicadas('id, title, slug, author_id, published_at')
+    ),
     // Las que están EN CAMINO, no solo las publicadas.
     //
     // Escribir una guía lleva días y hasta ahora no se veía por ninguna
@@ -136,8 +146,14 @@ export async function loadActivity(limite = 20) {
       eventos.push({ tipo: 'lectura', userId: p.user_id, guideId: p.guide_id, fecha: p.read_at })
     }
   }
+  // El hilo del foro que abre sola una noticia (tanda 273) NO es un tema
+  // que haya abierto nadie: sale del mismo botón de publicar. Contarlo
+  // aparte llenaba el hilo con la misma noticia dos veces seguidas.
+  const hilosDeNoticia = new Set(
+    (guiasNuevas.data || []).filter((g) => g.kind === 'news' && g.forum_thread_id).map((g) => String(g.forum_thread_id))
+  )
   for (const g of guiasNuevas.data || []) {
-    eventos.push({ tipo: 'guia', userId: g.author_id, guideId: g.id, fecha: g.published_at })
+    eventos.push({ tipo: g.kind === 'news' ? 'noticia' : 'guia', userId: g.author_id, guideId: g.id, fecha: g.published_at })
   }
   for (const g of guiasEnCamino.data || []) {
     eventos.push({ tipo: 'guia_enviada', userId: g.author_id, guideId: g.id, fecha: g.submitted_at })
@@ -152,6 +168,7 @@ export async function loadActivity(limite = 20) {
     eventos.push({ tipo: 'peticion', userId: r.requester_id, texto: r.title, fecha: r.created_at })
   }
   for (const t of temas.data || []) {
+    if (hilosDeNoticia.has(String(t.id))) continue
     eventos.push({ tipo: 'tema', userId: t.author_id, texto: t.title, enlace: `/tema/${t.id}`, fecha: t.created_at })
   }
 
@@ -168,7 +185,10 @@ export async function loadActivity(limite = 20) {
       ? supabase.from('user_profiles').select('id, username, display_name, avatar_url, hide_activity').in('id', userIds)
       : Promise.resolve({ data: [] }),
     guideIds.length
-      ? supabase.from('guides').select('id, title, slug').in('id', guideIds)
+      ? conVueltaAtrasDeTipo(
+          () => supabase.from('guides').select('id, title, slug, kind').in('id', guideIds),
+          () => supabase.from('guides').select('id, title, slug').in('id', guideIds)
+        )
       : Promise.resolve({ data: [] }),
   ])
 
@@ -183,6 +203,10 @@ export async function loadActivity(limite = 20) {
 
   const lista = candidatos
     .filter((e) => {
+      // Una noticia es del sitio: no es la actividad de nadie. Ni la
+      // esconde `hide_activity` de quien la teclee, ni le gasta a esa
+      // persona su cupo del hilo.
+      if (e.tipo === 'noticia') return !!guiaPorId[e.guideId]
       const perfil = perfilPorId[e.userId]
       if (!perfil || perfil.hide_activity) return false
       // Una guía borrada o despublicada deja eventos huérfanos que no se
@@ -205,6 +229,8 @@ const TEXTOS = {
   curso: { icono: 'graduationCap', verbo: 'ha completado el curso' },
   lectura: { icono: 'bookOpen', verbo: 'se ha leído' },
   guia: { icono: 'sparkles', verbo: 'ha publicado la guía' },
+  // Sin verbo y sin nombre: lo pinta la rama impersonal de eventoHtml.
+  noticia: { icono: 'newspaper', verbo: 'Nueva noticia:', deLaCasa: true },
   guia_enviada: { icono: 'edit', verbo: 'ha enviado a revisión la guía' },
   comentario: { icono: 'messageSquare', verbo: 'ha comentado en' },
   alta: { icono: 'user', verbo: 'se ha unido a PokeDoc' },
@@ -220,19 +246,29 @@ function eventoHtml(e) {
   // `enlace` propio (un tema del foro) va a lo suyo; y lo que solo tiene
   // texto es una petición, que vive en la pestaña de la comunidad.
   const destino = e.guia
-    ? ` <a href="/guia.html?slug=${encodeURIComponent(e.guia.slug)}">${escapeHtml(e.guia.title)}</a>`
+    ? ` <a href="${rutaDeArticulo(e.guia.kind, e.guia.slug)}">${escapeHtml(e.guia.title)}</a>`
     : e.enlace && e.texto
       ? ` <a href="${e.enlace}">${escapeHtml(e.texto)}</a>`
       : e.texto
         ? ` <a href="/usuarios.html#peticiones">${escapeHtml(e.texto)}</a>`
         : ''
+  // Lo de la casa no lo firma nadie: en vez del avatar y el nombre de
+  // una persona va la marca del sitio. Es la diferencia entre «PINGU ha
+  // publicado» —que suena a opinión suya— y «Nueva noticia», que es lo
+  // que de verdad ha pasado.
+  const cabeza = t.deLaCasa
+    ? `<span class="mini-avatar activity-avatar activity-avatar-casa" aria-hidden="true">${icons[t.icono](16)}</span>`
+    : `<a class="mini-avatar activity-avatar" href="${profileUrl(e.perfil)}" style="${estiloAvatar}">${
+        e.perfil?.avatar_url ? '' : getInitial(nombre)
+      }</a>`
+  const quien = t.deLaCasa
+    ? `<strong>${escapeHtml(t.verbo)}</strong>`
+    : `<a href="${profileUrl(e.perfil)}" class="activity-name">${escapeHtml(nombre)}</a> ${t.verbo}`
   return `
     <li class="activity-item">
-      <a class="mini-avatar activity-avatar" href="${profileUrl(e.perfil)}" style="${estiloAvatar}">${
-        e.perfil?.avatar_url ? '' : getInitial(nombre)
-      }</a>
+      ${cabeza}
       <div class="activity-body">
-        <p><a href="${profileUrl(e.perfil)}" class="activity-name">${escapeHtml(nombre)}</a> ${t.verbo}${destino}</p>
+        <p>${quien}${destino}</p>
         <span class="activity-when">${haceCuanto(e.fecha)}</span>
       </div>
       <span class="activity-icon" aria-hidden="true">${icons[t.icono](15)}</span>

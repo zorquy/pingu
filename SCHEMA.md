@@ -13781,3 +13781,67 @@ Los detalles que costarían un fallo:
 `test-tanda-287.mjs` (38, sin red) y `test-tanda-288.mjs` (21, en un
 Chromium de verdad, con la comprobación de que en móvil no coge scroll
 lateral). Rigor: **25 mutaciones, las 25 detectadas.**
+
+---
+
+## Tanda 289 — una noticia no es una guía, y no la firma nadie (sept. 2026)
+
+PINGU, mirando el hilo de actividad:
+
+```
+PINGU ha publicado la guía  El Binder Collection del 30 aniversario se retrasa hasta diciembre
+PINGU ha abierto un tema en el foro:  El Binder Collection del 30 aniversario se retrasa hasta diciembre
+```
+
+Tres cosas mal en dos líneas.
+
+### 1. Llamarle guía a una noticia
+
+El hilo se arma leyendo `guides`, y no miraba `kind`: cualquier cosa
+publicada ahí era «la guía». Ahora hay un tipo de evento `noticia`, con
+su icono y su enlace a `/noticias/<slug>` — antes apuntaba a
+`/guia.html?slug=`, que para una noticia es la dirección vieja.
+
+### 2. La misma noticia, dos veces
+
+El hilo del foro de una noticia (tanda 273) **lo abre el mismo botón de
+publicar**: no es un tema que haya abierto nadie. Contarlo aparte llenaba
+el hilo con la misma noticia repetida. Se recogen los `forum_thread_id`
+de las noticias y esos temas no se cuentan.
+
+### 3. La firma
+
+Decisión de PINGU, y es la correcta: **una noticia es del sitio, no de
+quien la teclea.**
+
+Firmar una guía es el pago de escribirla — sale en el hilo, cuenta como
+colaboración y se enseña el rango del autor. Una noticia no: que ponga
+«PINGU ha publicado» hace que lo que ha pasado parezca la opinión de
+alguien, y ata la sección a una persona el día que la escriba otra.
+
+Así que una noticia va **impersonal**, en los dos sitios:
+
+- **En el hilo**: sin avatar ni nombre. En su lugar, la marca de la casa
+  y «**Nueva noticia:** …». Y como no es la actividad de nadie, ni la
+  esconde el `hide_activity` de quien la teclee ni le gasta su cupo del
+  hilo (`MAX_POR_PERSONA`).
+- **En la ficha**: «Noticia de **PokeDoc**», por el mismo camino que ya
+  usaban las guías sin autor. Ni se pide el perfil — una consulta menos.
+
+`author_id` **se sigue guardando**: hace falta para los permisos de
+edición. Lo que cambia es lo que se enseña.
+
+### El doble no sabía leer el hilo de actividad
+
+Al ir a probarlo salió que `loadActivity` **reventaba en el doble** desde
+siempre: su `.or()` solo entendía `eq` e `is`, y el hilo usa
+`completed_at.gte.…,read_at.gte.…`. O sea que el hilo de actividad no
+tenía ni una prueba, y nadie lo sabía. El doble aprende `gte/lte/gt/lt`
+en `.or()`, con el detalle que importa: **una columna vacía no cumple**
+—en PostgREST un `null` no entra en un `>=`— o el doble daría por buena
+media tabla.
+
+### Comprobado
+
+`test-tanda-289.mjs` (22, en Chromium). Rigor: **10 mutaciones, las 10
+detectadas.**
