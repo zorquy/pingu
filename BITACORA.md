@@ -45,6 +45,48 @@ tocar código.
 
 ---
 
+## 2026-09-13 (3) — PINGU-Claude (tanda 292 — torneos privados con código)
+
+**Hecho**: lo tercero y último del feedback del torneo. Un torneo se
+puede marcar como PRIVADO con un código: no sale en la lista y solo lo
+ven su organizador, los admins y quien ya está inscrito. El resto no lo
+ve ni por su enlace ni por la API — decide la POLÍTICA, no el
+JavaScript (CLAUDE.md).
+
+Como sin poder leer la fila tampoco se puede uno inscribir por el camino
+normal (pide el id), hay una RPC nueva `torneos_entrar_con_codigo` que va
+por el SLUG del enlace. «No existe» y «código incorrecto» dan el mismo
+mensaje a posta, y el formulario del código se ofrece siempre que haya
+sesión: si solo saliera cuando el torneo existe, el propio formulario
+estaría confirmando que está ahí.
+
+La comprobación de «¿estoy inscrito?» va en una función SECURITY DEFINER
+porque puesta a pelo en la política de `tournaments` monta una recursión
+infinita con la política de `tournament_registrations`.
+
+**DOS TRAMPAS que casi me como y quedan anotadas en SCHEMA**: (1) esconder
+`join_code` con un grant por columnas habría roto la sección entera —un
+`select *` de un rol sin permiso sobre una columna falla la consulta
+completa, y el cliente pide `tournaments` con `*`—; y (2) el canal de
+Telegram usa la clave de SERVICIO, que se salta la RLS, así que el filtro
+de privados hay que escribirlo a mano o el canal anunciaría justo lo que
+alguien quiso esconder.
+
+**Ficheros**: supabase-migration-torneos-privados.sql (NUEVO),
+js/torneos/torneo.js, js/torneos/torneos.js, torneo.html, torneos.html,
+css/torneos.css, netlify/functions/telegram-torneos.mjs, SCHEMA.md.
+
+**Pruebas**: test-tanda-292.mjs (NUEVA, 36). Rigor: 18 mutaciones, las 18
+detectadas.
+
+**PENDIENTE para PINGU**: ejecutar `supabase-migration-torneos-privados.sql`
+(y la de BO3, `supabase-migration-torneos-bo3.sql`, si todavía no).
+
+Con esto queda cerrado el feedback del torneo del 2026-09-13: pareos,
+BO3 partida a partida y torneos privados.
+
+---
+
 ## 2026-09-13 (2) — PINGU-Claude (tanda 291 — BO3 partida a partida)
 
 **Hecho**: lo segundo del feedback del torneo. En un BO3 ahora se marca

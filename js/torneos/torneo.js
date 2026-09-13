@@ -233,6 +233,7 @@ function pintarFicha() {
   const esLiga = torneo.format === 'league'
   pintarSiCambia($('torneoFormato'), [
     [icons.layers(18), esLiga ? 'Jornadas' : 'Rondas suizas', `${torneo.swiss_rounds} · BO${torneo.swiss_bo ?? 1}`],
+    ...(torneo.is_private ? [[icons.lock(18), 'Acceso', 'Privado, con código']] : []),
     [icons.trophy(18), 'Top cut', torneo.top_cut_size ? `Top ${torneo.top_cut_size} · BO${torneo.top_cut_bo ?? 3}` : 'Sin corte'],
     // Los «?? por defecto» son los mismos de la tabla: una ficha nunca
     // debe enseñar «undefined min» si a la fila le falta la columna.
@@ -413,6 +414,14 @@ function pintarEditor() {
             </fieldset>`
           : ''
       }
+      <label class="torneos-form-campo">
+        <span><input type="checkbox" id="editarPrivado" ${torneo.is_private ? 'checked' : ''} /> Torneo privado</span>
+        <span class="torneo-campo-pista">No sale en la lista. Solo entra quien tenga el enlace y el código.</span>
+      </label>
+      <label class="torneos-form-campo">
+        <span>Código para entrar</span>
+        <input type="text" id="editarCodigo" autocomplete="off" maxlength="40" value="${escapeHtml(torneo.join_code || '')}" />
+      </label>
       <label class="torneos-form-campo">Listas de los rivales
         <select id="editarListasModo">
           ${[
@@ -602,6 +611,12 @@ async function guardarEdicion() {
   // guardaría `false` cada vez que edita y le quitaría el sello a un
   // torneo oficial que lleve él.
   if ($('editarOficial')) cambios.is_official = $('editarOficial').checked
+  if ($('editarPrivado')) {
+    cambios.is_private = $('editarPrivado').checked
+    // Sin marcar privado, el código se borra: dejarlo guardado sería
+    // tener una llave suelta de una puerta que ya no existe.
+    cambios.join_code = $('editarPrivado').checked ? $('editarCodigo').value.trim() || null : null
+  }
   // La imagen (tanda 239): solo si se tocó. Se sube aquí y no al
   // elegirla, para que cerrar el editor sin guardar no deje ficheros
   // huérfanos en Storage.
@@ -636,7 +651,7 @@ async function guardarEdicion() {
   // Si alguna migración de columna nueva aún no se ejecutó, se guarda
   // sin esa columna (del modo de listas queda el booleano viejo). El
   // comprobador de /admin ya avisa de lo que falta.
-  for (const columna of ['decklist_visibility', 'image_url', 'banner_url']) {
+  for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'join_code']) {
     if (error && (error.message || '').includes(columna)) {
       delete cambios[columna]
       ;({ error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id))
@@ -1726,6 +1741,45 @@ function pintarNoDisponible() {
   }
   caja.classList.remove('hidden')
   document.getElementById('torneoEntrar')?.classList.toggle('hidden', Boolean(session))
+
+  // El formulario del código (tanda 292). Solo con sesión: entrar a un
+  // torneo te inscribe, y para eso hace falta cuenta.
+  //
+  // Se ofrece SIEMPRE que haya sesión, exista el torneo o no: si solo
+  // apareciera cuando el torneo existe de verdad, el propio formulario
+  // estaría confirmando que ese torneo está ahí — y eso es lo que un
+  // torneo privado no quiere contar.
+  const form = document.getElementById('torneoCodigo')
+  if (!form || !session) return
+  form.classList.remove('hidden')
+  if (form.dataset.enganchado) return
+  form.dataset.enganchado = '1'
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const boton = form.querySelector('button[type="submit"]')
+    const codigo = document.getElementById('torneoCodigoValor').value.trim()
+    const tcg = document.getElementById('torneoCodigoTcg').value.trim()
+    if (!codigo || !tcg) return
+    boton.disabled = true
+    const res = await supabase.rpc('torneos_entrar_con_codigo', {
+      p_slug: new URLSearchParams(window.location.search).get('slug'),
+      p_codigo: codigo,
+      p_tcg_live: tcg,
+    })
+    boton.disabled = false
+    if (faltaLaRpc(res.error)) {
+      showToast('Falta ejecutar supabase-migration-torneos-privados.sql en Supabase.', 'error')
+      return
+    }
+    if (res.error) {
+      const texto = String(res.error.message || '')
+      showToast(texto.length < 140 ? texto : 'No se ha podido entrar al torneo.', 'error')
+      return
+    }
+    // Ya estás dentro: la política deja leerlo, así que basta con volver
+    // a cargar la página.
+    window.location.reload()
+  })
 }
 
 // ── El refresco automático (pedido de PINGU) ──

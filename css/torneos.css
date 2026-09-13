@@ -1008,6 +1008,54 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-checkin-estado { display: block; margin-top: 4px; color: var(--text-dim); font-weight: 600; }
 
 /* Los botones de reporte, en rejilla como el original. */
+/* ── Torneos privados (tanda 292) ── */
+
+.torneo-privado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--ice);
+  color: var(--navy);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* El formulario del código va en la pantalla de «torneo no disponible»,
+   que es una 404: se le pone caja propia para que no parezca parte del
+   mensaje de error. */
+.torneo-codigo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 360px;
+  margin: 22px auto;
+  padding: 18px;
+  text-align: left;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.torneo-codigo label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.torneo-codigo input {
+  padding: 9px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  font: inherit;
+  background: var(--bg);
+  color: var(--text);
+}
+
 /* ── El mejor de tres, partida a partida (tanda 291) ── */
 
 /* Una fila por partida. La clave del diseño es que la fila diga en qué

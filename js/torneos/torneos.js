@@ -48,6 +48,11 @@ function esOficial(t) {
   return creadoresOficiales.has(t.admin_id)
 }
 
+// Un torneo privado no sale en la lista para casi nadie, pero SÍ para
+// quien está dentro y para quien lo organiza: a ellos hay que decirles
+// que no lo va a ver el resto.
+const CHAPA_PRIVADO = () =>
+  `<span class="torneo-privado" title="Privado: no sale en la lista, se entra con código">${icons.lock(11)} Privado</span>`
 const CHAPA_OFICIAL = () => `<span class="torneo-oficial" title="Torneo oficial, organizado por el equipo de PokeDoc">${icons.star(11)} Oficial</span>`
 
 function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
@@ -78,6 +83,7 @@ function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
       </span>
     </span>
     <span class="torneo-tarjeta-chapas">
+      ${t.is_private ? CHAPA_PRIVADO() : ''}
       ${esOficial(t) ? CHAPA_OFICIAL() : ''}
       ${extra}
       <span class="torneo-estado ${estado.clase}">${estado.texto}</span>
@@ -361,6 +367,7 @@ function pintarCalendario(direccion = 0) {
             }
             <span class="torneo-cal-torneo-nombre"><strong>${escapeHtml(t.name)}</strong>
               <span class="subtext">${escapeHtml(fechaBonita(t.start_at))}</span></span>
+            ${t.is_private ? CHAPA_PRIVADO() : ''}
             ${esOficial(t) ? CHAPA_OFICIAL() : ''}
             <span class="torneo-estado ${(ESTADOS[t.status] || ESTADOS.draft).clase}">${(ESTADOS[t.status] || ESTADOS.draft).texto}</span>
           </a>`
@@ -696,6 +703,11 @@ function engancharFormulario(session, perfil) {
   // perfil) SOLO al crear — elegir y arrepentirse no debe dejar
   // ficheros huérfanos en Storage.
   let imagenElegida = null
+  // El código solo tiene sentido si el torneo es privado.
+  document.getElementById('torneoPrivado')?.addEventListener('change', (e) => {
+    document.getElementById('torneoCodigoCampo')?.classList.toggle('hidden', !e.target.checked)
+  })
+
   let bannerElegido = null
   // El icono y el banner comparten el mismo trío de piezas
   // (previa/elegir/quitar): un solo montador para los dos.
@@ -775,6 +787,8 @@ function engancharFormulario(session, perfil) {
       // Se manda siempre. Si quien crea no es admin, el disparador de la
       // base lo pone a false pase lo que pase aquí.
       is_official: Boolean($('torneoOficial')?.checked),
+      is_private: Boolean($('torneoPrivado')?.checked),
+      join_code: $('torneoPrivado')?.checked ? $('torneoCodigoNuevo').value.trim() || null : null,
     }
     let { error } = await supabase.from('tournaments').insert(fila)
     // Entre el despliegue y que un humano ejecute las migraciones de
@@ -782,7 +796,7 @@ function engancharFormulario(session, perfil) {
     // torneos tiene que seguir funcionando: si la base no conoce una
     // columna, se reintenta sin ella (del modo de listas queda el
     // booleano viejo, que dice lo mismo salvo el «nunca»).
-    for (const columna of ['decklist_visibility', 'image_url', 'banner_url']) {
+    for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'join_code']) {
       if (error && (error.message || '').includes(columna)) {
         delete fila[columna]
         ;({ error } = await supabase.from('tournaments').insert(fila))

@@ -77,6 +77,20 @@
         <h1>Este torneo no está disponible</h1>
         <p>Puede que el enlace esté mal, que el torneo se haya borrado o que aún no sea público.</p>
         <p id="torneoEntrar" class="hidden">Si tienes cuenta en PokeDoc, <a href="/auth.html">entra</a> y vuelve a abrir el enlace.</p>
+
+        <!-- Torneos privados (tanda 292). Un torneo privado y uno que no
+             existe se ven IGUAL a propósito: decir «existe pero te falta
+             el código» ya confirmaría que ese torneo está ahí, que es
+             justo lo que un torneo privado no quiere contar. Por eso el
+             formulario se ofrece siempre, sin prometer nada. -->
+        <form id="torneoCodigo" class="torneo-codigo hidden">
+          <h2>¿Tienes un código?</h2>
+          <p class="subtext">Los torneos privados no salen en la lista: se entra con el código que da quien lo organiza.</p>
+          <label>Código<input type="text" id="torneoCodigoValor" autocomplete="off" required /></label>
+          <label>Tu usuario de TCG Live<input type="text" id="torneoCodigoTcg" autocomplete="off" required /></label>
+          <button type="submit" class="btn-primary">Entrar al torneo</button>
+        </form>
+
         <a class="btn-secondary" href="/index.html">Ir a la portada</a>
       </div>
     </div>

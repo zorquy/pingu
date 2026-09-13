@@ -13965,3 +13965,65 @@ Por eso la migración lleva un `drop function` explícito.
 `test-tanda-291.mjs` (40; el motor sin navegador y la pantalla en
 Chromium). Rigor: **15 mutaciones, las 15 detectadas** — y destapó una
 guarda redundante en `juegoAbierto`, que se ha quitado.
+
+---
+
+## Tanda 292 — torneos privados, con código (sept. 2026)
+
+Lo pidió PINGU: hay gente que quiere montar una pachanga **sin que salga
+en la lista**, y que solo entre quien tenga el código.
+
+### Quién decide: la política, no la pantalla
+
+Está en CLAUDE.md y aquí se ve por qué. Si esto fuese un `if` en el
+cliente, la respuesta de la API llegaría igual y el torneo «privado» lo
+leería cualquiera abriendo las herramientas del navegador.
+
+Un torneo privado lo ven **su organizador, los admins del sitio y quien
+ya está inscrito**. Nadie más: ni en la lista, ni por su enlace, ni por
+la API.
+
+### La recursión que había que esquivar
+
+Para saber si estás inscrito hay que mirar `tournament_registrations`
+desde la política de `tournaments`. Puesto a pelo, eso dispara la
+política de ESA tabla, que a su vez mira `tournaments`: **recursión
+infinita**, y las dos tablas dejan de leerse. Por eso la comprobación
+vive en `torneos_estoy_inscrito()`, una función `security definer`.
+
+### Cómo entra quien tiene el código
+
+No puede inscribirse por el camino normal: ese pide el **id** del
+torneo, y sin poder leer la fila no hay forma de saberlo. De ahí
+`torneos_entrar_con_codigo(slug, código, usuario de TCG Live)`, que va
+por el slug del enlace, comprueba el código e inscribe. A partir de ahí
+la política ya deja ver el torneo, porque estás dentro.
+
+Dos detalles que importan:
+
+- **«No existe» y «código incorrecto» dan el MISMO mensaje.** Distinguir-
+  los ya confirmaría que ese torneo está ahí, que es justo lo que un
+  torneo privado no quiere contar. Por lo mismo, el formulario del código
+  se ofrece siempre que haya sesión, exista el torneo o no.
+- **El código no distingue mayúsculas ni espacios de los lados**: se
+  copia y se pega, y se pega mal.
+
+### Dos trampas que casi caen
+
+- **Esconder `join_code` con un grant por columnas.** Era la tentación
+  —se hizo así con `tournament_registrations` en la apertura— y aquí
+  habría **roto la sección entera**: en Postgres un `select *` de un rol
+  sin permiso sobre una columna no la devuelve vacía, **falla la consulta
+  completa**, y el cliente pide `tournaments` con `*`. Además no protege
+  de nada: la fila de un torneo privado solo la lee quien ya está dentro.
+- **El canal de Telegram.** `telegram-torneos` usa la clave de
+  **servicio**, que se salta la RLS: lo que hace invisible a un torneo
+  privado en la web no lo protege ahí. El filtro va escrito a mano, o el
+  canal anunciaría con nombre, fecha y enlace justo lo que alguien quiso
+  esconder.
+
+### Comprobado
+
+`test-tanda-292.mjs` (36). Rigor: **18 mutaciones, las 18 detectadas** —
+incluida la que vuelve a meter el grant por columnas y la que deja al
+canal cantar un torneo privado.

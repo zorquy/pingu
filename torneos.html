@@ -180,6 +180,20 @@
           <span><input type="checkbox" id="torneoOficial" /> Torneo oficial de PokeDoc</span>
           <span class="torneo-campo-pista">Márcalo solo si lo organiza el equipo. Sin marcar sale como torneo de la comunidad — que es lo que quieres para una pachanga tuya.</span>
         </label>
+
+        <!-- Torneo privado (tanda 292). Lo pidió PINGU: hay gente que
+             quiere montar una pachanga sin que salga en la lista. Quien
+             decide de verdad es la POLÍTICA de la base, no esta casilla
+             — un torneo privado es invisible también por la API. -->
+        <label class="torneos-form-campo">
+          <span><input type="checkbox" id="torneoPrivado" /> Torneo privado</span>
+          <span class="torneo-campo-pista">No sale en la lista de torneos. Solo entra quien tenga el enlace Y el código.</span>
+        </label>
+        <label class="torneos-form-campo hidden" id="torneoCodigoCampo">
+          <span>Código para entrar</span>
+          <input type="text" id="torneoCodigoNuevo" autocomplete="off" maxlength="40" />
+          <span class="torneo-campo-pista">Lo repartes tú con el enlace. No distingue mayúsculas.</span>
+        </label>
       </section>
 
       <!-- Paso 3: tiempos + resumen -->

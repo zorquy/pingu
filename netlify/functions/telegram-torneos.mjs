@@ -61,7 +61,15 @@ export async function procesar({ env = process.env, restImpl = rest, fetchImpl =
   let pendientes
   try {
     pendientes = await restImpl(
+      // `is_private` NO se puede dar por supuesto aquí: esta función usa
+      // la clave de servicio, que se salta la RLS. Lo que en la web hace
+      // invisible a un torneo privado no lo protege de esto — el filtro
+      // tiene que ir escrito. Sin él, el canal anunciaría con nombre,
+      // fecha y enlace justo lo que alguien quiso que no se viera.
+      // El `or` cubre las filas anteriores a la migración, que lo tienen
+      // a null en vez de a false.
       `tournaments?status=eq.registration_open&telegram_sent_at=is.null` +
+        `&or=(is_private.is.null,is_private.is.false)` +
         `&start_at=gte.${encodeURIComponent(ahora.toISOString())}` +
         `&select=id,slug,name,description,banner_url,start_at,format,swiss_rounds,top_cut_size,max_players` +
         `&order=start_at.asc&limit=${POR_PASADA}`,
