@@ -403,8 +403,104 @@ function pairGroup(group, history) {
   return upper.map((playerA, i) => [playerA, lower[assignment[i]]])
 }
 
+// ── El rescate (tanda 290) ──
+//
+// DESVIACIÓN RESPECTO A LA SPEC DE TrainerArena, anotada como manda
+// CLAUDE.md. La SPEC parea GRUPO A GRUPO y, si un grupo no sale, se
+// rinde con lo que lleve hecho. El problema es que decide sin mirar
+// atrás: el 2026-09-13, en un torneo de PINGU a tres rondas, los dos
+// últimos jugadores del ranking ya se habían cruzado en la R1 y el
+// motor abandonó — habiendo un pareo completo perfectamente válido si
+// hubiera deshecho una mesa anterior. PINGU tuvo que sentar a mano.
+//
+// Esto NO cambia el pareo de un torneo normal: primero se intenta el
+// camino de la SPEC tal cual, y solo si falla entra este rescate. Un
+// torneo que hoy parea bien seguirá dando exactamente las mismas mesas.
+//
+// El orden de preferencia imita al de la SPEC: primero el rival del
+// mismo grupo de puntos que le tocaría por el «fold» (el 1º contra el
+// que abre la mitad de abajo), luego el resto de su grupo de dentro
+// afuera, y por último los grupos vecinos.
+function emparejarTodo(orden, puntosDe, grupoDe, history, { permitirRepetir = false } = {}) {
+  const n = orden.length
+  if (n % 2 === 1) return null
+  const posEnGrupo = new Map()
+  const tamGrupo = new Map()
+  for (let i = 0; i < n; i++) {
+    const g = grupoDe.get(orden[i])
+    const cuantos = tamGrupo.get(g) || 0
+    posEnGrupo.set(orden[i], cuantos)
+    tamGrupo.set(g, cuantos + 1)
+  }
+
+  // Lo que cuesta sentar juntos a dos jugadores: primero mandan los
+  // puntos (cruzar grupos es lo caro), y dentro de un grupo se prefiere
+  // la distancia del «fold».
+  //
+  // Honestamente: el término de los puntos casi nunca DECIDE. El pool
+  // llega ya ordenado por ranking, así que la gente con los mismos
+  // puntos está junta y la cercanía de índice sola hace casi todo el
+  // trabajo — quitándolo, mil torneos al azar dan prácticamente el mismo
+  // reparto. Se deja porque es la regla correcta y el día que el
+  // historial apriete de otra forma sí mandará, no porque se haya medido
+  // que cambie nada hoy.
+  const coste = (i, j) => {
+    const a = orden[i]
+    const b = orden[j]
+    const dif = Math.abs(puntosDe.get(a) - puntosDe.get(b))
+    if (grupoDe.get(a) !== grupoDe.get(b)) return dif * 1000 + 500 + Math.abs(i - j)
+    const mitad = Math.floor(tamGrupo.get(grupoDe.get(a)) / 2)
+    return Math.abs(Math.abs(posEnGrupo.get(b) - posEnGrupo.get(a)) - mitad)
+  }
+
+  // En la pasada permisiva, repetir cruce es carísimo pero no imposible:
+  // en cada paso se prueban antes todos los rivales nuevos.
+  //
+  // Ojo con lo que esto NO es: no garantiza el mínimo de repeticiones.
+  // La búsqueda es en profundidad y se queda con el primer pareo completo
+  // que encuentra. Medido sobre mil torneos al azar, el sesgo no cambia
+  // el número de mesas repetidas — cuando esta pasada entra, los repes
+  // suelen estar forzados por la forma del historial y no hay margen. Se
+  // deja porque es la preferencia correcta y no cuesta nada, no porque
+  // se haya demostrado que ahorre mesas.
+  const penalizacion = (i, j) =>
+    permitirRepetir && history.has(pairKey(orden[i], orden[j])) ? 10_000_000 : 0
+  const total = (i, j) => coste(i, j) + penalizacion(i, j)
+
+  const candidatos = []
+  for (let i = 0; i < n; i++) {
+    candidatos.push([...Array(n).keys()].filter((j) => j !== i).sort((x, y) => total(i, x) - total(i, y) || x - y))
+  }
+
+  const usados = new Array(n).fill(false)
+  const mesas = []
+  let intentos = 0
+  const LIMITE = 200000
+
+  const busca = () => {
+    if (intentos++ > LIMITE) return false
+    const i = usados.indexOf(false)
+    if (i === -1) return true
+    usados[i] = true
+    for (const j of candidatos[i]) {
+      if (usados[j]) continue
+      const repetido = history.has(pairKey(orden[i], orden[j]))
+      if (repetido && !permitirRepetir) continue
+      usados[j] = true
+      mesas.push({ playerAId: orden[i], playerBId: orden[j], repetido })
+      if (busca()) return true
+      mesas.pop()
+      usados[j] = false
+    }
+    usados[i] = false
+    return false
+  }
+
+  return busca() ? mesas : null
+}
+
 // Pareo Monrad para rondas 2+. Lanza ManualPairingRequired con los pareos
-// parciales válidos cuando un grupo no sale sin repetir cruces.
+// parciales válidos cuando NI SIQUIERA repitiendo cruces sale un pareo.
 export function pairSwissRound({ snapshot, roundNumber, history }) {
   const activePlayers = activePlayersForRound(snapshot.players, roundNumber)
   const ranking = computeStandings(snapshot, activePlayers)
@@ -438,32 +534,78 @@ export function pairSwissRound({ snapshot, roundNumber, history }) {
 
   // Float-down: un grupo impar (que no sea el último) baja a su peor
   // jugador a encabezar el siguiente.
-  for (let g = 0; g < groups.length; g++) {
+  // El orden del ranking y a qué grupo pertenece cada uno: lo necesita el
+  // rescate, y hay que guardarlo ANTES de que el float-down los mueva.
+  const ordenDelPool = pool.map((e) => e.playerId)
+  const puntosDe = new Map(pool.map((e) => [e.playerId, e.matchPoints]))
+  const grupoDe = new Map()
+  for (let g = 0; g < groups.length; g++) for (const id of groups[g]) grupoDe.set(id, g)
+
+  // Float-down: un grupo impar baja a su peor jugador a encabezar el
+  // siguiente.
+  //
+  // El ÚLTIMO grupo nunca puede quedar impar: el pool ya es par (el bye
+  // se ha sacado antes) y este bucle va dejando pares todos los
+  // anteriores, así que lo que queda al final también lo es. La SPEC
+  // tenía aquí un `throw` para ese caso; era código muerto, y el rigor
+  // de la tanda 290 lo destapó al no poder provocarlo ni con mil
+  // torneos al azar.
+  for (let g = 0; g < groups.length - 1; g++) {
     if (groups[g].length % 2 === 1) {
-      if (g === groups.length - 1) {
-        throw new ManualPairingRequired([], groups.flat(), byePlayerId)
-      }
       const floated = groups[g].pop()
       if (floated !== undefined) groups[g + 1].unshift(floated)
     }
   }
 
-  // Parear cada grupo; mesas numeradas seguidas en orden de grupo.
-  const pairings = []
-  for (let g = 0; g < groups.length; g++) {
-    const group = groups[g]
-    if (group.length === 0) continue
-    const pairs = pairGroup(group, history)
-    if (pairs === null) {
-      const unpaired = groups.slice(g).flat()
-      throw new ManualPairingRequired([...pairings], unpaired, byePlayerId)
+  // 1. El camino de la SPEC: cada grupo con su «fold». Si sale, se usa —
+  //    un torneo que hoy parea bien tiene que seguir dando las mismas
+  //    mesas exactamente.
+  {
+    const pairings = []
+    let completo = true
+    for (let g = 0; g < groups.length && completo; g++) {
+      const group = groups[g]
+      if (group.length === 0) continue
+      const pairs = pairGroup(group, history)
+      if (pairs === null) {
+        completo = false
+        break
+      }
+      for (const [playerAId, playerBId] of pairs) {
+        pairings.push({ tableNumber: pairings.length + 1, playerAId, playerBId })
+      }
     }
-    for (const [playerAId, playerBId] of pairs) {
-      pairings.push({ tableNumber: pairings.length + 1, playerAId, playerBId })
+    if (completo) return { pairings, byePlayerId }
+  }
+
+  // 2. El rescate: la misma preferencia, pero mirando el pool ENTERO y
+  //    pudiendo deshacer una mesa ya puesta. Aquí es donde se salvan los
+  //    casos que antes acababan en pareo manual.
+  const numerar = (mesas) =>
+    mesas.map((m, i) => ({ tableNumber: i + 1, playerAId: m.playerAId, playerBId: m.playerBId }))
+
+  const rescate = emparejarTodo(ordenDelPool, puntosDe, grupoDe, history)
+  if (rescate) return { pairings: numerar(rescate), byePlayerId, rescatado: true }
+
+  // 3. Último recurso: REPETIR algún cruce. Es peor pareo, pero es que la
+  //    alternativa —lo de antes— era que la ronda no se pudiera echar a
+  //    andar y el juez sentara a la gente a mano. Se devuelve cuáles
+  //    repiten para poder avisarlo en pantalla: un cruce repetido que
+  //    nadie sabe que se repite sí sería un problema.
+  const conRepes = emparejarTodo(ordenDelPool, puntosDe, grupoDe, history, { permitirRepetir: true })
+  if (conRepes) {
+    return {
+      pairings: numerar(conRepes),
+      byePlayerId,
+      rescatado: true,
+      repetidos: conRepes
+        .map((m, i) => (m.repetido ? { tableNumber: i + 1, playerAId: m.playerAId, playerBId: m.playerBId } : null))
+        .filter(Boolean),
     }
   }
 
-  return { pairings, byePlayerId }
+  // 4. Ni así. Ahora sí toca el pareo manual.
+  throw new ManualPairingRequired([], ordenDelPool, byePlayerId)
 }
 
 // ── Top cut: siembra y avance «fold» (SPEC §7) ──

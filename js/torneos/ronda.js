@@ -356,11 +356,19 @@ async function generarPareos() {
   for (const p of plan.pairings) await crearMesa(ronda.id, p.tableNumber, p.playerAId, p.playerBId)
   if (plan.byePlayerId) await crearBye(ronda.id, plan.pairings.length + 1, plan.byePlayerId)
 
+  // Un cruce repetido que nadie sabe que se repite sí sería un problema:
+  // se canta, y con los nombres, porque es lo que el juez tiene que poder
+  // explicarle a la mesa si alguien pregunta (tanda 290).
+  const repes = plan.repetidos || []
   showToast(
     sinParear.length
       ? `Pareo incompleto: quedan ${sinParear.length} jugadores por sentar a mano.`
-      : `Pareos de la ronda ${n} generados.`,
-    sinParear.length ? 'error' : 'success'
+      : repes.length
+        ? `Ronda ${n} pareada, pero ${repes.length === 1 ? 'una mesa repite cruce' : `${repes.length} mesas repiten cruce`}: ${repes
+            .map((m) => `mesa ${m.tableNumber} (${nombreDe(m.playerAId)} vs ${nombreDe(m.playerBId)})`)
+            .join(', ')}. No había forma de evitarlo sin dejar a nadie sin sentar.`
+        : `Pareos de la ronda ${n} generados.`,
+    sinParear.length || repes.length ? 'error' : 'success'
   )
   // La R1 puede haber retirado inscritos (los dos pasos): ficha entera,
   // que la caja de Inscritos también les cambie la cara sin esperar al

@@ -13845,3 +13845,68 @@ media tabla.
 
 `test-tanda-289.mjs` (22, en Chromium). Rigor: **10 mutaciones, las 10
 detectadas.**
+
+---
+
+## Tanda 290 — el motor de pareos deja de rendirse (sept. 2026)
+
+El 2026-09-13 PINGU echó un torneo a tres rondas, dio a generar los
+pareos de la R3 y **solo salieron algunas mesas**. Tuvo que sentar a la
+gente a mano en mitad del torneo.
+
+### Lo que pasaba
+
+La SPEC de TrainerArena parea **grupo a grupo**: se ordena por puntos, y
+cada grupo se cruza por «fold» (el 1º contra el que abre la mitad de
+abajo). Si un grupo no sale sin repetir cruces, se rinde con lo que
+lleve.
+
+El problema es que **decide sin mirar atrás**. En el torneo de PINGU los
+dos últimos del ranking ya se habían cruzado en la R1, así que el último
+grupo era imposible — pero había un pareo completo perfectamente válido
+si se hubiera deshecho una mesa anterior. El motor no lo intentaba.
+
+Y no era mala suerte. Sobre **mil torneos al azar** (4–16 jugadores, 1–4
+rondas jugadas), el motor viejo se rendía en **421**. Cuatro de cada
+diez.
+
+### Lo que se hace ahora
+
+Tres intentos, en este orden:
+
+1. **El camino de la SPEC, intacto.** Si sale, se usa. Comprobado sobre
+   esos mil torneos: en los 579 que el motor viejo pareaba bien, el nuevo
+   da **exactamente las mismas mesas**. Cero diferencias. Esto era la
+   condición para tocar el motor — arreglar un caso raro no puede cambiar
+   el pareo de todo el mundo.
+2. **El rescate**: la misma preferencia (mismo grupo de puntos, y dentro
+   la distancia del «fold»), pero mirando el **pool entero** y pudiendo
+   deshacer una mesa ya puesta. Rescata los **421**.
+3. **Último recurso: repetir un cruce.** Peor pareo, sí — pero la
+   alternativa era que la ronda no arrancara. Pasa en el 2,8% de los
+   casos, y **se canta en pantalla con la mesa y los nombres**: un cruce
+   repetido que nadie sabe que se repite sí sería un problema, porque el
+   juez tiene que poder explicárselo a la mesa.
+
+Es una **desviación respecto a la SPEC de TrainerArena**, anotada aquí
+como manda CLAUDE.md: la SPEC se rinde, esto rescata.
+
+### Lo que el rigor destapó de paso
+
+- **Un `throw` que era código muerto.** La SPEC se rendía si el último
+  grupo de puntos quedaba impar. Ese caso **no existe**: el pool ya es par
+  (el bye se saca antes) y el float-down deja pares todos los grupos
+  anteriores, así que el último también lo es. No se pudo provocar ni con
+  mil torneos. Se ha quitado en vez de fingir que se prueba.
+- **El término de los puntos del coste casi nunca decide.** Quitándolo, el
+  reparto de mil torneos apenas se mueve (4249 → 4367 de salto acumulado):
+  el pool llega ordenado por ranking, así que la cercanía de índice hace
+  ese trabajo sola. Se deja porque es la regla correcta, pero está dicho
+  en el código que no se ha medido que cambie nada — y en el rigor no hay
+  una mutación que finja lo contrario.
+
+### Comprobado
+
+`test-tanda-290.mjs` (34, motor puro), con los mil torneos al azar dentro:
+**los mil se parean enteros y ninguno se rinde**. Rigor: **8 mutaciones,
+las 8 detectadas.**

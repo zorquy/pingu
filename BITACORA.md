@@ -45,6 +45,43 @@ tocar código.
 
 ---
 
+## 2026-09-13 (1) — PINGU-Claude (tanda 290 — el motor de pareos deja de rendirse)
+
+**Hecho**: PINGU echó hoy un torneo a 3 rondas y al generar los pareos de
+la R3 solo salieron algunas mesas; tuvo que sentar a mano.
+
+La SPEC parea grupo a grupo y, si un grupo no sale sin repetir cruces, se
+rinde con lo que lleve — sin volver atrás a deshacer una mesa anterior.
+En su torneo los dos últimos ya se habían cruzado en la R1 y el motor
+abandonó, habiendo pareo completo posible. Y NO es mala suerte: sobre mil
+torneos al azar el motor viejo se rendía en **421**.
+
+Ahora: (1) el camino de la SPEC intacto —en los 579 que el viejo pareaba
+bien, el nuevo da EXACTAMENTE las mismas mesas, cero diferencias—; (2) si
+falla, un rescate que mira el pool entero y puede deshacer mesas, que
+salva los 421; (3) y de último recurso, repetir un cruce antes que dejar
+la ronda sin arrancar, avisando en pantalla de qué mesa repite y entre
+quiénes. DESVIACIÓN RESPECTO A LA SPEC, anotada en SCHEMA.
+
+**De paso, el rigor destapó dos cosas**: un `throw` de la SPEC que era
+código muerto (el último grupo de puntos no puede quedar impar: el pool
+es par y el float-down deja pares los anteriores) — quitado; y que el
+término de los puntos del coste del rescate casi nunca decide, porque el
+pool ya llega ordenado por ranking. Se deja, pero dicho en el código y
+sin una mutación que finja que se prueba.
+
+**Ficheros**: js/torneos/motor.js, js/torneos/ronda.js, SCHEMA.md.
+
+**Pruebas**: test-tanda-290.mjs (NUEVA, 34), con mil torneos al azar
+dentro: los mil pareados enteros, ninguno se rinde. Rigor: 8 mutaciones,
+las 8 detectadas.
+
+**PENDIENTE (lo que queda del feedback de PINGU)**: resultados partida a
+partida en BO3 (que se pueda marcar cada juego y que al 2-0 se cierre), y
+torneos privados con código y etiqueta.
+
+---
+
 ## 2026-09-12 (1) — PINGU-Claude (tanda 289 — una noticia no es una guía, y no la firma nadie)
 
 **Hecho**: el hilo de actividad decía «PINGU ha publicado la guía …» de
