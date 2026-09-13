@@ -166,6 +166,18 @@ sembrar('__FAKE_MESAS__', 'tournament_matches', (i) => ({
   resolved_notified_at: null,
 }))
 
+// Los partes de resultado. `game_number` es de la tanda 291: 0 es el
+// match entero (BO1) y 1-3 cada partida de un BO3 — igual que en la base.
+sembrar('__FAKE_REPORTES__', 'match_reports', (i) => ({
+  id: `rep-${i + 1}`,
+  match_id: 'mesa-1',
+  reporter_id: 'user-1',
+  result: 'win',
+  game_number: 0,
+  score: null,
+  reported_at: new Date().toISOString(),
+}))
+
 sembrar('__FAKE_RESULTADOS__', 'match_results', (i) => ({
   id: `res-${i + 1}`,
   match_id: `mesa-${i + 1}`,
