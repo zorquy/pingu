@@ -45,6 +45,45 @@ tocar código.
 
 ---
 
+## 2026-09-13 (2) — PINGU-Claude (tanda 291 — BO3 partida a partida)
+
+**Hecho**: lo segundo del feedback del torneo. En un BO3 ahora se marca
+CADA partida, y con dos ganadas la tercera se cierra sola y no se puede
+votar.
+
+`match_reports` gana `game_number` (0 = match entero para BO1, 1-3 cada
+partida) y el candado pasa a ser por partida. El resultado del match NO
+se guarda: se deduce de las partidas confirmadas —`serieBo3()` en el
+motor—, igual que los arquetipos se deducen de la decklist.
+
+Sobre deshacer, que PINGU dejó a mi criterio: se puede CORREGIR el propio
+parte mientras el rival no haya contestado esa partida (no es deshacer,
+es enmendarlo antes de que valga); en cuanto los dos coinciden queda
+cerrada y la toca un juez. Sale del diseño que ya había, donde un
+resultado lo reportan los dos y se concilia. Y el 2-0 se resuelve solo:
+retirando una, la serie deja de estar decidida y la tercera se reabre.
+
+OJO con la migración: la RPC vieja `torneos_reportar(uuid, text)` se
+QUITA con un `drop function`. `create or replace` con otra firma crea una
+SOBRECARGA, y con `p_juego` por defecto la llamada de dos argumentos
+quedaría ambigua («function is not unique») y rompería el reporte entero.
+
+**Ficheros**: js/torneos/motor.js, js/torneos/ronda.js, css/torneos.css,
+supabase-migration-torneos-bo3.sql (NUEVO), SCHEMA.md. En `pruebas`:
+stub-supabase.js (semilla `__FAKE_REPORTES__`).
+
+**Pruebas**: test-tanda-291.mjs (NUEVA, 40). Rigor: 15 mutaciones, las 15
+detectadas; destapó una guarda redundante en `juegoAbierto`, quitada.
+
+**PENDIENTE para PINGU**: ejecutar `supabase-migration-torneos-bo3.sql`.
+Hasta que lo haga, marcar una partida suelta avisa de que falta — no
+apunta el resultado en el sitio equivocado.
+
+**PENDIENTE (lo que queda del feedback)**: torneos privados con código y
+etiqueta.
+
+---
+
 ## 2026-09-13 (1) — PINGU-Claude (tanda 290 — el motor de pareos deja de rendirse)
 
 **Hecho**: PINGU echó hoy un torneo a 3 rondas y al generar los pareos de

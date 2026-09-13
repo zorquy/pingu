@@ -13910,3 +13910,58 @@ como manda CLAUDE.md: la SPEC se rinde, esto rescata.
 `test-tanda-290.mjs` (34, motor puro), con los mil torneos al azar dentro:
 **los mil se parean enteros y ninguno se rinde**. Rigor: **8 mutaciones,
 las 8 detectadas.**
+
+---
+
+## Tanda 291 — el mejor de tres, partida a partida (sept. 2026)
+
+Lo pidió PINGU tras arbitrar un BO3 a tres rondas: jugando al mejor de
+tres, lo que la gente tiene delante es **la partida que acaba de
+terminar**, no el resultado final echando la cuenta de cabeza. Y con dos
+ganadas, la tercera no se juega — así que no se debería poder votar.
+
+### El modelo: una columna, no una tabla
+
+`match_reports` gana `game_number`: **0** es el match entero (lo de
+siempre, y lo que usa un BO1) y **1-3** cada partida de la serie. El
+candado pasa de «un parte por persona y mesa» a «uno por persona, mesa y
+**partida**» — sin eso, la 2.ª partida de un BO3 chocaría con la 1.ª.
+
+Y el resultado del match **no se guarda**: se **deduce** de las partidas
+confirmadas, igual que los arquetipos se deducen de la decklist (tanda
+230). Es lo que hace que no pueda desincronizarse — no hay dos sitios que
+puedan decir cosas distintas.
+
+`serieBo3(juegos)` es esa deducción, y vive en el motor: con dos ganadas
+hay ganador; con las tres jugadas y nadie a dos, empate; y **`siguiente`
+vale `null` en cuanto la serie está decidida**, que es lo que cierra la
+tercera.
+
+### Corregir no es deshacer
+
+La pregunta era si se podía echar atrás un resultado. La respuesta sale
+sola del diseño que ya había, porque un resultado **no lo pone una
+persona: lo reportan las dos y se concilia**.
+
+- **Mientras solo lo hayas dicho tú**, cambiarlo no deshace nada: enmienda
+  tu parte antes de que valga. Se puede, y sin preguntar.
+- **En cuanto los dos coincidís**, esa partida queda cerrada y solo la
+  toca un juez — igual que hoy con el resultado de una mesa.
+
+Y el 2-0 se resuelve solo: si alguien retira una de las dos primeras, la
+serie deja de estar decidida y la tercera se reabre. No hay una regla
+aparte para eso.
+
+### La RPC vieja se QUITA, no se deja al lado
+
+`create or replace` con una firma distinta **no reemplaza: crea una
+sobrecarga**. Y con `p_juego` teniendo valor por defecto, una llamada de
+dos argumentos encajaría en las dos y Postgres respondería «function is
+not unique» — o sea que dejar la vieja habría roto el reporte entero.
+Por eso la migración lleva un `drop function` explícito.
+
+### Comprobado
+
+`test-tanda-291.mjs` (40; el motor sin navegador y la pantalla en
+Chromium). Rigor: **15 mutaciones, las 15 detectadas** — y destapó una
+guarda redundante en `juegoAbierto`, que se ha quitado.

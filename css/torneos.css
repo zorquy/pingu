@@ -1008,6 +1008,84 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-checkin-estado { display: block; margin-top: 4px; color: var(--text-dim); font-weight: 600; }
 
 /* Los botones de reporte, en rejilla como el original. */
+/* ── El mejor de tres, partida a partida (tanda 291) ── */
+
+/* Una fila por partida. La clave del diseño es que la fila diga en qué
+ * estado está SIN tener que leerla: cerrada se apaga, abierta enseña los
+ * botones, y la que no se juega se queda en gris. */
+.torneo-bo3 {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.torneo-bo3-juego {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.torneo-bo3-juego.cerrada {
+  background: var(--bg);
+  border-style: dashed;
+}
+
+.torneo-bo3-n {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--text-mid);
+  flex-shrink: 0;
+  min-width: 2.4em;
+}
+
+/* Los botones de dentro de una fila no llevan el margen de arriba del
+   bloque suelto, o la fila crecería de más. */
+.torneo-bo3-juego .torneo-reportar {
+  margin-top: 0;
+  flex: 1;
+}
+
+.torneo-bo3-cerrada {
+  font-weight: 700;
+}
+
+.torneo-bo3-esperando {
+  flex: 1;
+  color: var(--text-mid);
+  font-size: 14px;
+}
+
+.torneo-bo3-nojuega {
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.torneo-bo3-quitar {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.torneo-bo3-marcador {
+  margin-top: 8px;
+}
+
+/* En móvil los tres botones de una fila no caben al lado del número: la
+   fila se parte en dos líneas antes que salirse por la derecha. */
+@media (max-width: 480px) {
+  .torneo-bo3-juego {
+    flex-wrap: wrap;
+  }
+  .torneo-bo3-juego .torneo-reportar {
+    flex-basis: 100%;
+  }
+}
+
 .torneo-reportar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));

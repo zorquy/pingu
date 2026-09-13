@@ -850,6 +850,77 @@ export function reconcileReports(aResult, bResult) {
   return null
 }
 
+// ── La serie al mejor de 3 (tanda 291) ──
+//
+// AÑADIDO DE LA CASA, no está en la SPEC de TrainerArena: allí una mesa
+// tiene UN resultado y punto. PINGU lo pidió después de arbitrar un BO3
+// a tres rondas — jugando al mejor de tres, lo que la gente quiere
+// marcar es cada partida, no el resultado final calculado de cabeza.
+//
+// El resultado del match NO se guarda: se DEDUCE de los juegos, igual
+// que los arquetipos se deducen de la decklist (tanda 230). Eso es lo
+// que hace que no se pueda desincronizar: no hay dos sitios que puedan
+// decir cosas distintas.
+//
+// `juegos` es un objeto { 1: 'a_wins'|'b_wins'|'draw', 2: …, 3: … } con
+// SOLO los juegos ya confirmados por los dos.
+export function serieBo3(juegos = {}) {
+  let ganadasA = 0
+  let ganadasB = 0
+  let jugados = 0
+  for (const n of [1, 2, 3]) {
+    const r = juegos[n]
+    if (!r) continue
+    jugados++
+    if (r === 'a_wins') ganadasA++
+    else if (r === 'b_wins') ganadasB++
+  }
+
+  // Al mejor de tres: con dos ganadas se acabó.
+  let result = null
+  let winnerSide = null
+  if (ganadasA >= 2) {
+    result = 'a_wins'
+    winnerSide = 'a'
+  } else if (ganadasB >= 2) {
+    result = 'b_wins'
+    winnerSide = 'b'
+  } else if (jugados === 3) {
+    // Tres jugados y nadie con dos: solo puede ser por empates de por
+    // medio (1-1-tablas, o las tres en tablas). La serie queda empatada.
+    result = 'draw'
+  }
+
+  // Qué juego toca ahora. Si la serie ya está decidida NO hay siguiente:
+  // esto es lo que cierra la tercera cuando alguien gana 2-0, que es lo
+  // que PINGU pidió — que no se pueda votar una partida que no se juega.
+  let siguiente = null
+  if (!result) {
+    for (const n of [1, 2, 3]) {
+      if (!juegos[n]) {
+        siguiente = n
+        break
+      }
+    }
+  }
+
+  return { decidida: !!result, result, winnerSide, ganadasA, ganadasB, jugados, siguiente }
+}
+
+// ¿Se puede tocar este juego?
+//
+// Un juego está ABIERTO si la serie no está decidida y no le tocan
+// juegos posteriores por delante: no tiene sentido marcar la tercera
+// antes que la segunda.
+export function juegoAbierto(juegos, n) {
+  // `siguiente` ya dice todo lo que hace falta: es la primera partida sin
+  // jugar, y vale null si la serie está decidida. Comprobar aparte que la
+  // partida no esté jugada o que el número esté entre 1 y 3 sería repetir
+  // lo mismo — el rigor de la tanda 291 destapó que esas guardas no
+  // podían fallar nunca.
+  return serieBo3(juegos).siguiente === n
+}
+
 // De qué lado cae el ganador al resolver a mano (SPEC §6.7): a_wins y la
 // incomparecencia de B dan a A; el espejo da a B; empate y doble
 // incomparecencia no tienen ganador.

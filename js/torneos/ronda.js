@@ -20,6 +20,8 @@ import {
   computeStandings,
   reconcileReports,
   resolutionWinnerSide,
+  serieBo3,
+  juegoAbierto,
   seedTopCut,
   advanceTopCut,
 } from './motor.js'
@@ -604,12 +606,102 @@ async function marcarListo(partida) {
   pintarCiclo()
 }
 
-async function reportar(partida, resultado) {
+// ── El mejor de tres, partida a partida (tanda 291) ──
+//
+// De los reportes en crudo salen dos cosas: lo que he dicho YO de cada
+// partida (aunque el rival no haya contestado) y lo que ya está
+// CONFIRMADO por los dos. El resultado de la serie no se guarda: se
+// deduce de lo confirmado, que es lo que hace que no pueda
+// desincronizarse.
+function juegosDeMesa(partida) {
+  const suyos = reportes.filter((r) => r.match_id === partida.id)
+  const nDe = (r) => r.game_number ?? 0
+  const mios = {}
+  for (const r of suyos) if (r.reporter_id === miId()) mios[nDe(r)] = r.result
+
+  const confirmados = {}
+  for (const n of [1, 2, 3]) {
+    const a = suyos.find((r) => nDe(r) === n && r.reporter_id === partida.player_a_id)
+    const b = suyos.find((r) => nDe(r) === n && r.reporter_id === partida.player_b_id)
+    if (!a || !b) continue
+    const casan = reconcileReports(a.result, b.result)
+    if (casan) confirmados[n] = casan.result
+  }
+  return { mios, confirmados }
+}
+
+// Un resultado de partida, contado desde MI lado.
+function comoMeFue(resultado, soyA) {
+  if (resultado === 'draw') return 'Tablas'
+  const gane = (resultado === 'a_wins') === soyA
+  return gane ? 'La ganaste' : 'La perdiste'
+}
+
+const NOMBRE_DE_REPORTE = { win: 'Victoria', loss: 'Derrota', draw: 'Tablas' }
+
+function filaDeJuego(partida, n, { mios, confirmados }, soyA) {
+  const abierta = juegoAbierto(confirmados, n)
+  const serie = serieBo3(confirmados)
+  let cuerpo
+  if (confirmados[n]) {
+    cuerpo = `<span class="torneo-bo3-cerrada">${comoMeFue(confirmados[n], soyA)}</span>`
+  } else if (mios[n]) {
+    // Tu parte puesta y el rival sin contestar: se puede cambiar, que no
+    // es deshacer nada — es enmendarlo antes de que valga.
+    cuerpo = `<span class="torneo-bo3-esperando">Has dicho <strong>${NOMBRE_DE_REPORTE[mios[n]] || mios[n]}</strong> · falta tu rival</span>
+      <button class="btn-outline torneo-bo3-quitar" data-quitar="${n}">Cambiar</button>`
+  } else if (abierta) {
+    cuerpo = `<div class="torneo-reportar">
+        <button class="torneo-boton-resultado victoria" data-reporte="win" data-juego="${n}">Victoria</button>
+        <button class="torneo-boton-resultado derrota" data-reporte="loss" data-juego="${n}">Derrota</button>
+        <button class="torneo-boton-resultado empate" data-reporte="draw" data-juego="${n}">Tablas</button>
+      </div>`
+  } else if (serie.decidida) {
+    // Lo que pidió PINGU: ganadas dos, la tercera no se juega y no se
+    // puede votar.
+    cuerpo = '<span class="torneo-bo3-nojuega">No se juega</span>'
+  } else {
+    cuerpo = '<span class="torneo-bo3-nojuega">Pendiente</span>'
+  }
+  return `<div class="torneo-bo3-juego ${confirmados[n] ? 'cerrada' : ''}"><span class="torneo-bo3-n">${n}.ª</span>${cuerpo}</div>`
+}
+
+function panelBo3(partida, soyA) {
+  const estado = juegosDeMesa(partida)
+  const serie = serieBo3(estado.confirmados)
+  const mias = soyA ? serie.ganadasA : serie.ganadasB
+  const suyas = soyA ? serie.ganadasB : serie.ganadasA
+  const marcador = serie.decidida
+    ? `Serie terminada: ${mias}-${suyas}.`
+    : `Vas ${mias}-${suyas}. Marca cada partida en cuanto acabe.`
+  return `<h4 class="torneo-mesas-titulo">Resultado, partida a partida</h4>
+    <div class="torneo-bo3">${[1, 2, 3].map((n) => filaDeJuego(partida, n, estado, soyA)).join('')}</div>
+    <p class="subtext torneo-bo3-marcador">${marcador}</p>`
+}
+
+async function desreportar(partida, juego) {
+  const res = await supabase.rpc('torneos_desreportar', { p_partida: partida.id, p_juego: juego })
+  if (faltaLaRpc(res.error)) {
+    showToast('Falta ejecutar supabase-migration-torneos-bo3.sql en Supabase.', 'error')
+    return
+  }
+  if (res.error) {
+    const texto = String(res.error.message || '')
+    showToast(texto.length < 120 ? texto : 'No se ha podido quitar el reporte.', 'error')
+    return
+  }
+  await ctx.recargarFicha()
+}
+
+async function reportar(partida, resultado, juego = 0) {
   // Lectura fresca: el rival puede haber reportado desde su sesión.
   const { data: previos } = await supabase.from('match_reports').select('*').eq('match_id', partida.id)
-  const lista = previos || []
+  const lista = (previos || []).filter((r) => (r.game_number ?? 0) === juego)
   const mio = lista.find((r) => r.reporter_id === miId())
-  if (mio) {
+  // Con el rival ya pronunciado, un reporte distinto es una disputa y lo
+  // dice la RPC. Sin él, cambiar el propio parte es legítimo: se deja
+  // pasar a la RPC, que es quien sabe si el rival ha contestado.
+  if (mio && (mio.result === resultado || lista.some((r) => r.reporter_id !== miId()))) {
     showToast(
       mio.result === resultado ? 'Ese resultado ya estaba reportado.' : 'Ya reportaste un resultado distinto: llama al organizador.',
       mio.result === resultado ? 'info' : 'error'
@@ -621,7 +713,7 @@ async function reportar(partida, resultado) {
   // tres escrituras seguidas, y dos rivales reportando a la vez podían
   // pisarse. Además `match_reports` es de escritura solo por RPC con la
   // sección abierta.
-  const res = await supabase.rpc('torneos_reportar', { p_partida: partida.id, p_resultado: resultado })
+  const res = await supabase.rpc('torneos_reportar', { p_partida: partida.id, p_resultado: resultado, p_juego: juego })
   if (!faltaLaRpc(res.error)) {
     if (res.error) {
       const texto = String(res.error.message || '')
@@ -631,6 +723,8 @@ async function reportar(partida, resultado) {
     const AVISOS = {
       esperando: ['Reportado. Falta que tu rival lo confirme.', 'success'],
       conciliado: ['Resultado confirmado por los dos.', 'success'],
+      juego: ['Partida confirmada por los dos. La serie sigue.', 'success'],
+      corregido: ['Cambiado. Falta que tu rival lo confirme.', 'success'],
       disputa: ['Los reportes no coinciden: la mesa queda en disputa.', 'error'],
       repetido: ['Ese resultado ya estaba reportado.', 'info'],
     }
@@ -640,6 +734,13 @@ async function reportar(partida, resultado) {
     return
   }
 
+  if (juego > 0) {
+    // El camino de respaldo escribe a pelo en la tabla y no sabe de
+    // partidas sueltas: mejor decir qué falta que apuntar el resultado
+    // en el sitio equivocado.
+    showToast('Falta ejecutar supabase-migration-torneos-bo3.sql en Supabase.', 'error')
+    return
+  }
   const { error } = await supabase
     .from('match_reports')
     .insert({ match_id: partida.id, reporter_id: miId(), result: resultado, reported_at: ahora() })
@@ -1215,14 +1316,19 @@ function pintarMiPartida() {
     }
     ${miListo ? '' : '<button class="btn-primary torneo-boton-checkin" id="btnCheckin">Hacer check-in</button>'}`
 
-  const miReporte = reportes.find((r) => r.match_id === mia.id && r.reporter_id === miId())
-  const botones = miReporte
-    ? '<p class="subtext">Resultado reportado: falta que tu rival lo confirme (pulsa Actualizar si tarda).</p>'
-    : `<h4 class="torneo-mesas-titulo">Reportar resultado</h4>
+  // Al mejor de tres, cada partida se marca por separado (tanda 291):
+  // jugando un BO3 lo que la gente tiene delante es la partida que acaba
+  // de terminar, no el resultado final echando la cuenta de cabeza.
+  const miReporte = reportes.find((r) => r.match_id === mia.id && r.reporter_id === miId() && (r.game_number ?? 0) === 0)
+  const botones =
+    bo === 3
+      ? panelBo3(mia, soyA)
+      : miReporte
+        ? '<p class="subtext">Resultado reportado: falta que tu rival lo confirme (pulsa Actualizar si tarda).</p>'
+        : `<h4 class="torneo-mesas-titulo">Reportar resultado</h4>
       <div class="torneo-reportar">
         <button class="torneo-boton-resultado victoria" data-reporte="win">Victoria</button>
         <button class="torneo-boton-resultado derrota" data-reporte="loss">Derrota</button>
-        ${actual.phase === 'swiss' && ctx.torneo.swiss_bo === 3 ? '<button class="torneo-boton-resultado empate" data-reporte="draw">Empate</button>' : ''}
       </div>`
   // Aquí es donde más duele repintar de más: debajo están los botones de
   // Victoria y Derrota. Si el HTML es el mismo, no se toca nada.
@@ -1232,7 +1338,10 @@ function pintarMiPartida() {
   void rellenarChapasArquetipo(contenido)
   if ($('btnCheckin')) $('btnCheckin').addEventListener('click', () => marcarListo(mia))
   contenido.querySelectorAll('[data-reporte]').forEach((b) => {
-    b.addEventListener('click', () => reportar(mia, b.dataset.reporte))
+    b.addEventListener('click', () => reportar(mia, b.dataset.reporte, Number(b.dataset.juego || 0)))
+  })
+  contenido.querySelectorAll('[data-quitar]').forEach((b) => {
+    b.addEventListener('click', () => desreportar(mia, Number(b.dataset.quitar)))
   })
 }
 
