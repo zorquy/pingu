@@ -86,9 +86,11 @@ async function overridesDeSets() {
 //      importación con lo que dice TCGdex (tanda 233). Este es el camino
 //      normal, y el que hace que un set nuevo funcione SOLO.
 //   3. La tabla escrita a mano de comun.js, que busca por el nombre del
-//      set. Se queda como red para los sets importados antes de que
-//      existiera la columna, y para nada más: NO hay que ampliarla al
-//      salir un set nuevo — de eso se encarga el paso 2.
+//      set. Iba a quedarse como red para los sets viejos y nada más,
+//      pero TCGdex dejó de traer `tcgOnline` en la era ME (comprobado
+//      el 2026-09-14: vacío en todos los sets me*), así que el paso 2
+//      no tiene con qué trabajar y la tabla vuelve a ampliarse a mano
+//      set a set. Si TCGdex retoma el campo, el paso 2 manda otra vez.
 async function setDeCodigo(codigo) {
   if (setsPorCodigo.has(codigo)) return setsPorCodigo.get(codigo)
   const clave = String(codigo || '').toUpperCase()
@@ -170,20 +172,33 @@ async function resolverCarta(linea) {
       const { cartas } = await searchCards(linea.name, { limite: 24 })
       const gemelas = cartas.filter((c) => normalizeSearch(c.name) === nombreNorm)
       // Si el número de colección coincide, esa ES la impresión que el
-      // jugador escribió. Si no, la MÁS NUEVA con marca legal, y luego la
-      // más nueva a secas — antes se cogía la primera por orden
-      // alfabético, que entre diez gemelas era casi siempre una impresión
-      // ANTIGUA: imagen vieja y marca fuera de reglamento para una carta
-      // que el jugador puso bien.
+      // jugador escribió. Si no, la MÁS NUEVA — antes se cogía la primera
+      // por orden alfabético, que entre diez gemelas era casi siempre una
+      // impresión ANTIGUA: imagen vieja y marca fuera de reglamento para
+      // una carta que el jugador puso bien.
+      //
+      // «Más nueva» se decide así: marca legal primero, luego marca más
+      // alta (la marca ES cronológica: D 2019 … J 2026), luego la fecha
+      // del set. Las SIN marca van al final a propósito: una gemela sin
+      // marca es una carta anterior a 2019 o un promo raro (hay hasta
+      // promos de Pocket en el espejo) — no es la que se está jugando.
+      // La fecha del set va de último desempate porque HOY está a NULL en
+      // todo el espejo (la importación de sets no la ha rellenado aún);
+      // cuando se rellene, afinará sola.
       const legales = await marcasLegales()
       const fecha = (c) => String(c.tcg_sets?.release_date || '')
+      const marca = (c) => String(c.regulation_mark || '')
       const mejor = [...gemelas].sort((a, b) => {
         const va = legales.includes(a.regulation_mark) ? 1 : 0
         const vb = legales.includes(b.regulation_mark) ? 1 : 0
         if (va !== vb) return vb - va
+        if (marca(a) !== marca(b)) return marca(b).localeCompare(marca(a))
         return fecha(b).localeCompare(fecha(a))
       })
-      carta = gemelas.find((c) => c.local_id === String(linea.number)) || mejor[0] || cartas[0] || null
+      // El número se busca sobre la lista YA ordenada: si dos sets
+      // distintos coinciden en el número (pasa, con miles de cartas),
+      // que gane la impresión nueva, no la primera del alfabeto.
+      carta = mejor.find((c) => c.local_id === String(linea.number)) || mejor[0] || cartas[0] || null
     }
   } catch {
     carta = null

@@ -115,6 +115,23 @@ const SETS_LIVE = {
   LOR: 'Lost Origin',
   SIT: 'Silver Tempest',
   CRZ: 'Crown Zenith',
+  // La era ME (2025-26): TCGdex dejó de traer `tcgOnline` para estos
+  // sets, así que el paso 2 (tcg_online_code, tanda 233) no puede
+  // funcionar y la tabla vuelve a ser el camino. ASC, POR, CRI y MEE
+  // salieron en una lista real el 2026-09-01 (quedaron anotados sin
+  // resolver); BLK y WHT son los códigos conocidos de Black Bolt y
+  // White Flare; PFL y PIT están deducidos del nombre — si el código
+  // real fuera otro, este no le quita el sitio a nadie: simplemente no
+  // aparecerá y esa lista caerá al respaldo por nombre.
+  BLK: 'Black Bolt',
+  WHT: 'White Flare',
+  MEE: 'Mega Evolution Energy',
+  PFL: 'Phantasmal Flames',
+  ASC: 'Ascended Heroes',
+  POR: 'Perfect Order',
+  CRI: 'Chaos Rising',
+  PIT: 'Pitch Black',
+  SVE: 'Scarlet & Violet Energy',
 }
 
 export function nombreDeSetLive(codigo) {

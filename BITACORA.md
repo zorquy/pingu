@@ -12,6 +12,54 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-14 (6) — IBAI-Claude (los códigos de la era ME, y «más nueva» = marca más alta)
+
+**Hecho**: verificando la entrada (5) contra la base real salió la causa
+raíz de las «cartas antiguas»: NINGÚN set moderno tiene
+`tcg_online_code` — TCGdex dejó de traer `tcgOnline` en la era ME
+(comprobado contra su API: vacío en todos los me*) — los overrides del
+admin están vacíos, y la tabla a mano de comun.js se quedaba en MEG.
+Toda línea con código moderno caía al respaldo por nombre. Tres arreglos:
+
+1. **Nueve códigos nuevos en SETS_LIVE**: los cuatro anotados sin
+   resolver el 2026-09-01 ya tienen dueño — ASC = Ascended Heroes
+   (me02.5), POR = Perfect Order (me03), CRI = Chaos Rising (me04),
+   MEE = Mega Evolution Energy (mee) — más BLK/WHT (Black Bolt / White
+   Flare), SVE, y PFL/PIT deducidos del nombre (si el código real fuera
+   otro, no le quitan el sitio a nadie). El comentario de
+   cartas-decklist.js que decía «NO ampliar la tabla, del set nuevo se
+   encarga el paso 2» ya no era verdad y está corregido.
+
+2. **«Más nueva» = marca más alta**: el desempate por `release_date`
+   de la entrada (5) no ordenaba nada — la columna está a NULL en TODOS
+   los sets del espejo. La marca de regulación ES cronológica (D 2019 …
+   J 2026), así que ordena ella: legal primero, marca más alta después,
+   fecha de último desempate (afinará sola cuando se rellene). Las
+   gemelas SIN marca al final: son pre-2019 o promos raros (hay promos
+   de Pocket en el espejo).
+
+3. Si dos sets coinciden en número de colección, gana la impresión
+   nueva (el find del número va sobre la lista ya ordenada).
+
+**Verificado contra la base real**: «Ultra Ball ASC 213» resuelve
+exacto (Ascended Heroes #213, marca I); el respaldo por nombre de
+«Ultra Ball» y «Cambio» elige la impresión I; la regla de la
+reimpresión responde SÍ para ambas (la impresión vieja ya no se marca
+en rojo). Probado también en local (http.server) contra la base real.
+
+**Ficheros**: js/torneos/comun.js, js/torneos/cartas-decklist.js.
+
+**En curso / pendiente**: dos cosas de DATOS, no de código —
+`tcg_sets.release_date` está a NULL en todo el espejo (una reimportación
+del catálogo desde /admin lo rellenaría, setToRow ya lo mapea); y las
+marcas de algunos sets de 2025 parecen dudosas (la Investigación de
+Profesores de Black Bolt figura como G — sin reimpresión H/I/J en el
+espejo se marcará en rojo; si en el juego real es I, la tabla de
+cartas-marcas necesita un repaso de 2025-26). PINGU: pasada de suite
+cuando puedas; sigo sin tocar torneo.js ni ronda.js.
+
+---
+
 ## 2026-09-14 (5) — IBAI-Claude (la decklist: la regla de la reimpresión, y la gemela más nueva)
 
 **Hecho**: dos arreglos en la rejilla de la decklist, mirando cómo lo
