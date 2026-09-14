@@ -5,7 +5,7 @@
 // el refresco es por sondeo — decisiones fijadas en CLAUDE.md.
 //
 // torneo.js monta este módulo con montarCiclo(ctx) en cada recarga.
-import { faltaLaRpc } from './comun.js'
+import { faltaLaRpc, avisoDeMigracion } from './comun.js'
 import { supabase } from '../supabase.js'
 import { pintarSiCambia } from './pintar.js'
 import { escapeHtml } from '../app.js'
@@ -597,8 +597,13 @@ async function marcarListo(partida) {
   // de check-in, no el resto de la fila.
   const res = await supabase.rpc('torneos_checkin', { p_partida: partida.id })
   if (faltaLaRpc(res.error)) {
-    await supabase.from('tournament_matches').update({ [columna]: ahora() }).eq('id', partida.id)
-  } else if (res.error) {
+    // Antes aquí se hacía el update a pelo. No escribía nada —la tabla es
+    // de admins— y encima no daba error: el jugador se quedaba sin
+    // check-in creyendo que lo tenía (tanda 293).
+    showToast(avisoDeMigracion('supabase-migration-torneos-publico.sql'), 'error')
+    return
+  }
+  if (res.error) {
     showToast('No se ha podido marcar listo: ' + res.error.message, 'error')
     return
   }
@@ -714,49 +719,29 @@ async function reportar(partida, resultado, juego = 0) {
   // pisarse. Además `match_reports` es de escritura solo por RPC con la
   // sección abierta.
   const res = await supabase.rpc('torneos_reportar', { p_partida: partida.id, p_resultado: resultado, p_juego: juego })
-  if (!faltaLaRpc(res.error)) {
-    if (res.error) {
-      const texto = String(res.error.message || '')
-      showToast(texto.length < 120 ? texto : 'No se ha podido reportar.', 'error')
-      return
-    }
-    const AVISOS = {
-      esperando: ['Reportado. Falta que tu rival lo confirme.', 'success'],
-      conciliado: ['Resultado confirmado por los dos.', 'success'],
-      juego: ['Partida confirmada por los dos. La serie sigue.', 'success'],
-      corregido: ['Cambiado. Falta que tu rival lo confirme.', 'success'],
-      disputa: ['Los reportes no coinciden: la mesa queda en disputa.', 'error'],
-      repetido: ['Ese resultado ya estaba reportado.', 'info'],
-    }
-    const [texto, tono] = AVISOS[res.data] || ['Reportado.', 'success']
-    showToast(texto, tono)
-    await ctx.recargarFicha()
+  if (faltaLaRpc(res.error)) {
+    // `match_reports` solo se escribe por RPC desde la apertura (tanda
+    // 252): el camino viejo de aquí abajo no apuntaba nada y lo hacía EN
+    // SILENCIO, con un «Reportado» en verde. Se dice lo que falta.
+    showToast(avisoDeMigracion('supabase-migration-torneos-bo3.sql'), 'error')
+    return
+  }
+  if (res.error) {
+    const texto = String(res.error.message || '')
+    showToast(texto.length < 120 ? texto : 'No se ha podido reportar.', 'error')
     return
   }
 
-  if (juego > 0) {
-    // El camino de respaldo escribe a pelo en la tabla y no sabe de
-    // partidas sueltas: mejor decir qué falta que apuntar el resultado
-    // en el sitio equivocado.
-    showToast('Falta ejecutar supabase-migration-torneos-bo3.sql en Supabase.', 'error')
-    return
+  const AVISOS = {
+    esperando: ['Reportado. Falta que tu rival lo confirme.', 'success'],
+    conciliado: ['Resultado confirmado por los dos.', 'success'],
+    juego: ['Partida confirmada por los dos. La serie sigue.', 'success'],
+    corregido: ['Cambiado. Falta que tu rival lo confirme.', 'success'],
+    disputa: ['Los reportes no coinciden: la mesa queda en disputa.', 'error'],
+    repetido: ['Ese resultado ya estaba reportado.', 'info'],
   }
-  const { error } = await supabase
-    .from('match_reports')
-    .insert({ match_id: partida.id, reporter_id: miId(), result: resultado, reported_at: ahora() })
-  if (error) {
-    showToast('No se ha podido reportar: ' + error.message, 'error')
-    return
-  }
-
-  const delRival = lista.find((r) => r.reporter_id !== miId())
-  if (!delRival) {
-    await supabase.from('tournament_matches').update({ status: 'awaiting_confirmation' }).eq('id', partida.id)
-    showToast('Reportado. Falta que tu rival lo confirme.', 'success')
-  } else {
-    const soyA = partida.player_a_id === miId()
-    await conciliar(partida, soyA ? resultado : delRival.result, soyA ? delRival.result : resultado)
-  }
+  const [texto, tono] = AVISOS[res.data] || ['Reportado.', 'success']
+  showToast(texto, tono)
   // Ficha entera: una disputa nueva tiene que asomar también en la cola
   // del juez, que pinta otro módulo.
   await ctx.recargarFicha()

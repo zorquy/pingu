@@ -14027,3 +14027,62 @@ Dos detalles que importan:
 `test-tanda-292.mjs` (36). Rigor: **18 mutaciones, las 18 detectadas** —
 incluida la que vuelve a meter el grant por columnas y la que deja al
 canal cantar un torneo privado.
+
+---
+
+## Tanda 293 — el puente que mentía (sept. 2026)
+
+PINGU preguntó qué más podía fallar en un torneo, porque lo de los
+pareos lo descubrieron **jugando**. Buscando salió esto, y es peor que lo
+de los pareos: **no se ve**.
+
+### El fallo
+
+Desde la apertura (tanda 252), un jugador **no escribe** en las tablas
+del torneo: `tournament_registrations`, `match_reports` y
+`tournament_matches` solo se tocan por RPC. Pero el cliente guardaba un
+«camino viejo» para cuando la RPC no estuviera puesta todavía — y ese
+camino escribe a pelo.
+
+Y aquí está lo malo, que ya avisa CLAUDE.md: **un INSERT que la política
+rechaza NO DA ERROR.** No toca nada y vuelve como si todo hubiera ido
+bien. Así que la pantalla decía «Reportado» en verde y no se había
+reportado nada.
+
+Dos casos que estaban vivos:
+
+1. **Nadie podía reportar un resultado.** La migración del BO3 (tanda
+   291) quita la RPC vieja de reportar. Entre desplegar aquello y
+   ejecutar el SQL, toda llamada caía al camino viejo — que no escribe —
+   y le daba la enhorabuena al jugador.
+2. **Nadie podía apuntarse a la cola de espera.** Ese caso iba SIEMPRE
+   por el camino viejo, porque la RPC no sabía de colas. O sea que desde
+   que un torneo se llenaba, apuntarse a la cola no hacía nada — y eso
+   llevaba así desde la apertura.
+
+### El arreglo
+
+- **Se va el camino viejo** de reportar, de hacer check-in y de
+  inscribirse. Si falta la RPC, se dice **qué fichero hay que ejecutar** y
+  no se hace nada más. Mentir es peor que no funcionar.
+- **La RPC aprende la cola** (`p_cola`), que pasa a ser el único camino.
+  De paso se va el recuento que hacía el navegador para elegir el estado:
+  lo hace la RPC bajo candado, que además cierra la carrera de dos
+  inscripciones a la vez.
+- Y la vieja **se quita con un `drop function`**, por la misma trampa de
+  la 291: `create or replace` con otra firma crea una sobrecarga, y con
+  el parámetro por defecto la llamada de dos argumentos quedaría ambigua
+  y rompería **todas** las inscripciones.
+
+### La regla que queda
+
+**Ninguna acción de jugador escribe directamente en esas tres tablas.**
+La prueba lo vigila leyendo el cuerpo de cada función: si alguien vuelve
+a meter un `.insert` o un `.update` en el camino de reportar, del
+check-in o de la inscripción, salta.
+
+### Comprobado
+
+`test-tanda-293.mjs` (27), con la comprobación que importa: con la RPC
+ausente, **no se escribe ni una fila** y el aviso dice qué falta. Rigor:
+**10 mutaciones, las 10 detectadas.**

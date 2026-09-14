@@ -17,6 +17,7 @@ import {
   puedeBorrarTorneo,
   COLUMNAS_PUBLICAS_INSCRIPCION,
   faltaLaRpc,
+  avisoDeMigracion,
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces } from './jueces.js'
@@ -1243,42 +1244,29 @@ function engancharInscripcion(aLaCola = false) {
       return
     }
     enviando = true
-    // Recuento fresco justo antes de insertar. La carrera entre dos
-    // inscripciones a la vez no se puede cerrar del todo desde el
-    // navegador (TrainerArena usaba un lock de fila); con el aforo de
-    // pruebas basta, y el duplicado sí lo corta el UNIQUE de la tabla.
-    const { count } = await supabase
-      .from('tournament_registrations')
-      .select('id', { count: 'exact', head: true })
-      .eq('tournament_id', torneo.id)
-      .eq('status', 'active')
-    // Si se llenó mientras rellenaba el formulario, no se le echa: se
-    // le pone en la cola, que para eso está.
-    const cupoLleno = torneo.max_players != null && (count ?? 0) >= torneo.max_players
-    const estado = aLaCola || cupoLleno ? 'waitlisted' : 'active'
-    // La RPC hace el recuento BAJO CANDADO y decide ella si hay plaza:
-    // dos inscripciones a la vez ya no pueden rebasar el cupo, que es la
-    // carrera que desde el navegador no se puede cerrar. Solo se usa el
-    // camino viejo si la base todavía no la conoce (ver faltaLaRpc).
-    let error = null
-    let porLaRpc = false
-    if (!aLaCola) {
-      const res = await supabase.rpc('torneos_inscribirse', { p_torneo: torneo.id, p_tcg_live: tcgLive })
-      if (!faltaLaRpc(res.error)) {
-        porLaRpc = true
-        error = res.error
-      }
-    }
-    if (!porLaRpc) {
-      ;({ error } = await supabase.from('tournament_registrations').insert({
-        tournament_id: torneo.id,
-        user_id: session.user.id,
-        status: estado,
-        tcg_live_username: tcgLive,
-        registered_at: new Date().toISOString(),
-      }))
-    }
+    // Todo por la RPC, cola incluida (tanda 293).
+    //
+    // Antes, apuntarse a la COLA se hacía escribiendo a pelo en la
+    // tabla, porque la RPC no sabía de colas. Y esa escritura la rechaza
+    // la política desde la apertura… SIN DAR ERROR: no tocaba nada y la
+    // web decía que sí. O sea que desde que un torneo se llenaba, nadie
+    // podía apuntarse a la cola y no había manera de enterarse.
+    //
+    // De paso se va el recuento que hacía el navegador para elegir el
+    // estado: lo hace la RPC bajo candado, que además cierra la carrera
+    // de dos inscripciones a la vez — la que desde aquí no se podía
+    // cerrar. Una consulta menos por inscripción.
+    const res = await supabase.rpc('torneos_inscribirse', {
+      p_torneo: torneo.id,
+      p_tcg_live: tcgLive,
+      p_cola: Boolean(aLaCola),
+    })
     enviando = false
+    if (faltaLaRpc(res.error)) {
+      showToast(avisoDeMigracion('supabase-migration-torneos-cola.sql'), 'error')
+      return
+    }
+    const error = res.error
     if (error) {
       const texto = String(error.message || '')
       // La RPC habla en cristiano («Torneo lleno.», «Ya estás

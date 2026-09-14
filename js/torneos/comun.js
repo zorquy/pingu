@@ -31,6 +31,28 @@ export const ESTADOS = {
 // que la RPC existe para hacer.
 //
 // QUITAR este puente cuando la migración lleve un tiempo puesta.
+// Y lo que hay que HACER cuando falta: decirlo, no seguir por el camino
+// viejo (tanda 293).
+//
+// El puente se montó en la tanda 252 para que inscribirse, reportar y
+// hacer check-in siguieran funcionando entre el despliegue y el momento
+// en que un humano ejecutaba el SQL. Pero ESA MISMA migración cerró la
+// escritura de `tournament_registrations`, `match_reports` y
+// `tournament_matches` a los jugadores: ahora solo se escribe por RPC.
+//
+// O sea que el camino viejo ya no escribe nada. Y lo peor es CÓMO no
+// escribe: un INSERT que la política rechaza NO da error —vuelve como si
+// todo hubiera ido bien—, así que la pantalla decía «Reportado» en verde
+// y no había pasado nada. En mitad de un torneo eso es el peor fallo
+// posible: el que no se ve.
+//
+// Se cambió el 2026-09-13, al encontrar que la migración del BO3 quita
+// la RPC vieja de reportar: entre el despliegue y el SQL, NADIE podía
+// reportar y la web les daba la enhorabuena.
+export function avisoDeMigracion(fichero) {
+  return `Falta ejecutar ${fichero} en el SQL Editor de Supabase. Hasta entonces esto no se puede hacer.`
+}
+
 export function faltaLaRpc(error) {
   if (!error) return false
   // PGRST202 es «no existe esa función» de PostgREST; 42883 es el

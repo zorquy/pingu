@@ -45,6 +45,48 @@ tocar código.
 
 ---
 
+## 2026-09-13 (4) — PINGU-Claude (tanda 293 — el puente que mentía)
+
+**Hecho**: PINGU preguntó qué más podía fallar en un torneo. Buscando
+salió algo peor que lo de los pareos, porque no se ve.
+
+Desde la apertura, un jugador no escribe en `tournament_registrations`,
+`match_reports` ni `tournament_matches`: solo por RPC. Pero el cliente
+guardaba el «camino viejo» por si la RPC no estaba, y ese camino escribe
+a pelo. Y un INSERT que la RLS rechaza NO DA ERROR: no toca nada y vuelve
+como si hubiera ido bien. La web decía «Reportado» en verde sin haber
+reportado nada.
+
+DOS CASOS QUE ESTABAN VIVOS:
+
+1. Entre desplegar la tanda 291 y ejecutar su SQL, NADIE podía reportar
+   un resultado (esa migración quita la RPC vieja de reportar).
+2. Desde que un torneo se llena, nadie podía apuntarse a la COLA: ese
+   caso iba siempre por el camino viejo porque la RPC no sabía de colas.
+   Eso llevaba roto desde la apertura.
+
+Arreglo: fuera el camino viejo de reportar, del check-in y de
+inscribirse — si falta la RPC se dice QUÉ FICHERO ejecutar y no se hace
+nada más. Y la RPC de inscribirse aprende `p_cola`, con su `drop
+function` de la firma vieja (misma trampa de la 291). De paso se va el
+recuento que hacía el navegador: lo hace la RPC bajo candado.
+
+**Ficheros**: js/torneos/comun.js, js/torneos/ronda.js,
+js/torneos/torneo.js, supabase-migration-torneos-cola.sql (NUEVO),
+SCHEMA.md.
+
+**Pruebas**: test-tanda-293.mjs (NUEVA, 27). Rigor: 10 mutaciones, las 10
+detectadas. La prueba vigila leyendo el cuerpo de cada función que ningún
+camino de jugador vuelva a escribir directo en esas tres tablas.
+
+**PENDIENTE para PINGU — TRES SQL, y el orden da igual**:
+supabase-migration-torneos-bo3.sql, supabase-migration-torneos-privados.sql
+y supabase-migration-torneos-cola.sql. Hasta que estén, reportar,
+inscribirse y entrar con código avisan de lo que falta en vez de fallar
+en silencio.
+
+---
+
 ## 2026-09-13 (3) — PINGU-Claude (tanda 292 — torneos privados con código)
 
 **Hecho**: lo tercero y último del feedback del torneo. Un torneo se
