@@ -45,6 +45,48 @@ tocar código.
 
 ---
 
+## 2026-09-14 (1) — PINGU-Claude (tanda 294 — la puerta de atrás de los chats)
+
+**Hecho**: PINGU pidió seguir buscando por decklists, jueces y chats de
+mesa. Salió un agujero, y del tipo contrario al de ayer: no es que no se
+escriba, es que escribía quien no debía.
+
+En PostgreSQL un INSERT NO mira el `using` de la política: solo el
+`with check`. Las dos políticas de chat pedían pertenecer a la mesa para
+LEER y solo firmar con tu nombre para ESCRIBIR. Como los ids de las mesas
+son de lectura pública, cualquiera con cuenta podía meter mensajes en la
+partida de dos desconocidos, y en el chat de una llamada al juez.
+
+Arreglado en supabase-migration-torneos-chats.sql: el `with check` lleva
+ahora la MISMA condición que el `using`, además de la firma.
+
+PROBADO CONTRA POSTGRESQL DE VERDAD (sql-chats.sql, en `pruebas`): antes
+el desconocido entra; después le salta la RLS en los dos chats, y Ash
+—que sí juega esa mesa— sigue escribiendo. La prueba aplica el FICHERO DE
+MIGRACIÓN, no una copia.
+
+Y queda de guardia `barrido-politicas.py`: recorre todas las migraciones
+buscando políticas `for all` con un `with check` más flojo que su
+`using`. En todo el proyecto había exactamente esas dos.
+
+**Lo que se miró y estaba bien**: decklists (el motor y la política dicen
+lo mismo), solicitudes de juez (el cliente manda status 'pending', que es
+lo que pide el with check) y llamadas al juez (created_by correcto, y
+atender/resolver son de juez o admin).
+
+**Ficheros**: supabase-migration-torneos-chats.sql (NUEVO), SCHEMA.md.
+
+**Pruebas**: test-tanda-294.mjs (NUEVA, 21), barrido-politicas.py y
+sql-chats.sql. Rigor: 6 mutaciones, las 6 detectadas — una de ellas pilló
+que la prueba del barrido no demostraba que el barrido DETECTARA nada; se
+le añadió un control positivo.
+
+**PENDIENTE para PINGU — CUATRO SQL ya**: torneos-bo3, torneos-privados,
+torneos-cola y torneos-chats. Este último es el que más corre: hasta que
+esté, el chat de cualquier mesa lo puede escribir cualquiera con cuenta.
+
+---
+
 ## 2026-09-13 (4) — PINGU-Claude (tanda 293 — el puente que mentía)
 
 **Hecho**: PINGU preguntó qué más podía fallar en un torneo. Buscando

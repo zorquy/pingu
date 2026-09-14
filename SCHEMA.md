@@ -14086,3 +14086,77 @@ check-in o de la inscripción, salta.
 `test-tanda-293.mjs` (27), con la comprobación que importa: con la RPC
 ausente, **no se escribe ni una fila** y el aviso dice qué falta. Rigor:
 **10 mutaciones, las 10 detectadas.**
+
+---
+
+## Tanda 294 — la puerta de atrás de los chats (sept. 2026)
+
+PINGU pidió seguir buscando por decklists, jueces y chats de mesa. Ahí
+estaba, y no es del tipo «no escribe»: es del tipo **escribe quien no
+debería**.
+
+### El agujero
+
+En PostgreSQL, un INSERT **no mira el `using`** de la política: solo el
+`with check`. Y las dos políticas de chat estaban así:
+
+```sql
+create policy mensajes_mesa on public.match_messages for all
+  using ( ...eres de la mesa, o juez, o admin... )
+  with check (sender_id = auth.uid());
+```
+
+Para **leer** había que ser de la mesa. Para **escribir**, bastaba con
+firmar con tu propio nombre. Y los ids de las mesas son de lectura
+pública —es lo que hace que un enlace de torneo enseñe el directo—, así
+que **cualquiera con cuenta podía meter mensajes en la partida de dos
+desconocidos**, y en el chat de una llamada al juez.
+
+No es un fallo que se encuentre mirando: la mitad de leer estaba bien.
+Se encontró **barriendo todas las políticas `for all`** en busca de un
+`with check` más flojo que su `using`. En todo el proyecto había
+exactamente estas dos.
+
+### Probado, no argumentado
+
+`sql-chats.sql` (rama de pruebas) lo demuestra contra **PostgreSQL de
+verdad**: monta el esquema mínimo, pone las políticas como estaban,
+mete a un desconocido en la mesa de Ash y Misty —**entra**—, aplica el
+**fichero de migración de verdad** (no una copia a mano) y lo vuelve a
+intentar:
+
+```
+ERROR: new row violates row-level security policy for table "match_messages"
+ERROR: new row violates row-level security policy for table "judge_messages"
+```
+
+Y comprueba las dos mitades que importan: que Ash, que **sí** juega esa
+mesa, sigue escribiendo; y que firmar con el nombre de Misty tampoco
+cuela.
+
+### El barrido se queda de guardia
+
+`barrido-politicas.py` recorre todas las migraciones con un parser de
+paréntesis equilibrados (un regex no vale: las condiciones anidan), se
+queda con la **última** definición de cada política —que es la que acaba
+aplicada— e ignora los comentarios, porque las cabeceras llevan ejemplos
+del código viejo.
+
+Y la prueba le da **un control positivo**: una política mala a posta en
+un directorio temporal, que el barrido tiene que cantar. Sin eso, la
+comprobación la pasaría también un barrido que no mirase nada — que es
+exactamente lo que pilló el rigor.
+
+### Lo que se miró y estaba bien
+
+- **Decklists**: `canEditDecklist` del motor y la política dicen lo
+  mismo (tuya, y sin sellar).
+- **Solicitudes de juez**: el cliente inserta con `status: 'pending'`,
+  que es lo que pide el `with check`.
+- **Llamadas al juez**: el cliente pone `created_by`, y atender/resolver
+  son de juez o admin — con el «otro juez se ha adelantado» ya resuelto.
+
+### Comprobado
+
+`test-tanda-294.mjs` (21) y `sql-chats.sql` contra PostgreSQL. Rigor:
+**6 mutaciones, las 6 detectadas.**
