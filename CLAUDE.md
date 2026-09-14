@@ -83,8 +83,18 @@ ficha lo manda al formulario de REGISTRO (/auth.html?registro=1, con
 `volver` de vuelta al torneo). Quien decide qué se ve es la POLÍTICA
 de la base (supabase-migration-torneos-publico.sql). **No metas un
 `if` de `is_admin` para «proteger» nada de torneos**: no protegería
-—la respuesta de la API llega igual— y rompería el escaparate. Lo que
-sí sigue siendo del equipo: CREAR, editar y llevar un torneo.
+—la respuesta de la API llega igual— y rompería el escaparate.
+
+**Quién lleva un torneo (tandas 295 y 296)**: hay UN criterio y tiene
+nombre — `torneos_mando(p_torneo)` en la base, `puedeLlevar(perfil,
+torneo, userId)` en el cliente. Es el admin del sitio, o alguien con el
+rol `is_tournament_admin` (una comunidad de fuera lleva los torneos de
+PokeDoc y se reparte desde /admin → Usuarios), o quien creó ESE torneo
+—crear está abierto a todo el mundo desde la tanda 266—. Si añades una
+puerta de torneos, pásala por ahí: no repartas `is_admin` a mano. Lo
+único que NO entra en el mando y sigue siendo del admin del SITIO es el
+sello de OFICIAL de PokeDoc (`torneos_soy_admin_del_sitio()`) y repartir
+el propio rol.
 
 **Y con la sección abierta, un jugador normal NO escribe directo en las
 tablas del torneo.** La RLS fina se lo impide y lo hacen tres funciones

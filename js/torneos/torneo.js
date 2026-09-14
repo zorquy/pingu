@@ -17,7 +17,7 @@ import {
   puedeBorrarTorneo,
   COLUMNAS_PUBLICAS_INSCRIPCION,
   faltaLaRpc,
-  puedeOrganizar,
+  puedeLlevar,
   avisoDeMigracion,
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
@@ -42,6 +42,9 @@ let decklistsEntregadas = [] // {user_id, submitted_at, locked_at}: el admin ve 
 let decklistsTorneo = null // las listas ENTERAS, solo si quien mira es juez u organizador
 let solicitudesJuez = [] // todas las solicitudes de juez del torneo (las usa jueces.js)
 let esJuez = false
+// Quién LLEVA este torneo: el equipo, o quien lo creó (tanda 296). Se
+// lee de las tres variables de arriba, así que cambia sola al recargar.
+const mando = () => puedeLlevar(perfil, torneo, session?.user?.id)
 // MODO ESCAPARATE (tanda 229): la ficha se abre TAMBIÉN sin cuenta, para
 // que un enlace compartido enseñe algo en vez de rebotar. Quien mira sin
 // entrar ve el cartel, los inscritos, las mesas y la clasificación; no
@@ -117,7 +120,7 @@ async function cargarDecklists() {
   // sirve para las tres cosas: la suya, quién ha entregado y el detalle
   // de cada una. Antes se pedía tres veces (dos aquí y otra en
   // jueces.js) en CADA refresco.
-  if (puedeOrganizar(perfil) || esJuez) {
+  if (mando() || esJuez) {
     const { data } = await supabase
       .from('tournament_decklists')
       .select('*')
@@ -276,7 +279,7 @@ function pintarFicha() {
   if (torneo.status !== 'registration_open') document.getElementById('torneoCerrarRondas')?.remove()
 
   const acciones = $('torneoAdminAcciones')
-  if (!puedeOrganizar(perfil)) {
+  if (!mando()) {
     pintarSiCambia(acciones, '')
   } else if (torneo.status === 'draft') {
     if (pintarSiCambia(acciones, '<button class="btn-primary" id="btnAbrirInscripciones">Abrir inscripciones</button>'))
@@ -295,14 +298,14 @@ function pintarFicha() {
   } else {
     pintarSiCambia(acciones, '')
   }
-  if (puedeOrganizar(perfil) && torneo.status !== 'draft') pintarAnuncioForo(acciones)
+  if (mando() && torneo.status !== 'draft') pintarAnuncioForo(acciones)
   ponerBotonCalendario(acciones)
   // Herramientas del organizador (tanda 211): editar mientras tenga
   // sentido, y cancelar mientras el torneo siga vivo.
-  anadirAccion(acciones, puedeOrganizar(perfil) && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status),
+  anadirAccion(acciones, mando() && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status),
     'btnEditarTorneo', '<button class="btn-secondary" id="btnEditarTorneo">Editar</button>',
     () => $('btnEditarTorneo').addEventListener('click', pintarEditor))
-  anadirAccion(acciones, puedeOrganizar(perfil) && !['finished', 'cancelled'].includes(torneo.status),
+  anadirAccion(acciones, mando() && !['finished', 'cancelled'].includes(torneo.status),
     'btnCancelarTorneo', '<button class="btn-secondary" id="btnCancelarTorneo">Cancelar torneo</button>',
     engancharCancelar)
   // Borrar va SIEMPRE el último y separado del resto: no es un paso más
@@ -928,7 +931,7 @@ async function otorgarGloria() {
 // hubo. Lo sella el organizador al abrir la ficha (es quien tiene
 // permiso de escritura mientras los torneos son de admins).
 async function sellarResultado() {
-  if (torneo.status !== 'finished' || !puedeOrganizar(perfil)) return
+  if (torneo.status !== 'finished' || !mando()) return
   const podio = podioDelTorneo()
   if (!podio.length) return
 
@@ -1541,20 +1544,20 @@ function pintarInscritos() {
       const retirado = i.status === 'dropped' ? ' <span class="torneo-retirado">(retirado)</span>' : ''
       // Quién ha entregado lista lo ve solo el organizador: a los demás
       // jugadores no les incumbe (SPEC §9, visibilidad).
-      const decklist = puedeOrganizar(perfil)
+      const decklist = mando()
         ? `<span class="torneo-decklist-marca ${entregadaPor.has(i.user_id) ? 'entregada' : ''}">${entregadaPor.has(i.user_id) ? 'decklist entregada' : 'sin decklist'}</span>`
         : ''
       // Y el paso 2 (tanda 219), también solo para el organizador: sin
       // confirmar antes de la R1, ese jugador no entra en el pareo.
       const confirmado =
-        puedeOrganizar(perfil) && i.status === 'active' && 'participation_confirmed_at' in i && !['in_progress', 'finished', 'cancelled'].includes(torneo.status)
+        mando() && i.status === 'active' && 'participation_confirmed_at' in i && !['in_progress', 'finished', 'cancelled'].includes(torneo.status)
           ? `<span class="torneo-decklist-marca ${i.participation_confirmed_at ? 'entregada' : ''}">${i.participation_confirmed_at ? 'confirmado' : 'sin confirmar'}</span>`
           : ''
       // El organizador puede expulsar (misma mecánica que la baja: la
       // plaza no se libera y su ronda en curso cuenta) — a cualquiera
       // menos a sí mismo, que para eso está «Darme de baja».
       const expulsar =
-        puedeOrganizar(perfil) && i.status === 'active' && i.user_id !== session.user.id && !['finished', 'cancelled'].includes(torneo.status)
+        mando() && i.status === 'active' && i.user_id !== session.user.id && !['finished', 'cancelled'].includes(torneo.status)
           ? `<button class="btn-secondary torneo-expulsar" data-expulsar="${escapeHtml(i.id)}">Expulsar</button>`
           : ''
       return `
@@ -1589,7 +1592,11 @@ function pintarInscritos() {
         b.textContent = '¿Seguro?'
         return
       }
-      const { error } = await supabase
+      // Con `.select('id')` por lo mismo que en «Guardar TCG Live»: un
+      // UPDATE que la política rechaza no da error, devuelve cero filas.
+      // Sin esto el aviso diría «jugador retirado» y el jugador seguiría
+      // dentro.
+      const { data, error } = await supabase
         .from('tournament_registrations')
         .update({
           status: 'dropped',
@@ -1597,8 +1604,10 @@ function pintarInscritos() {
           dropped_after_round_id: torneo.current_round_id || null,
         })
         .eq('id', b.dataset.expulsar)
-      if (error) {
-        avisarError(error, 'No se ha podido expulsar')
+        .select('id')
+      if (error || !data?.length) {
+        if (error) avisarError(error, 'No se ha podido expulsar')
+        else showToast(avisoDeMigracion('supabase-migration-torneos-dueno.sql'), 'error')
         return
       }
       showToast('Jugador retirado del torneo. Su plaza no se libera.', 'success')

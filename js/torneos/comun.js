@@ -145,6 +145,22 @@ export function puedeOrganizar(perfil) {
   return Boolean(perfil?.is_admin || perfil?.is_tournament_admin)
 }
 
+// ── Y quién manda en ESTE torneo (tanda 296) ──
+//
+// Los de arriba, y además quien lo creó: si montas un torneo, lo llevas.
+// Crear está abierto a todo el mundo desde la tanda 266, pero hasta hoy
+// el que lo montaba se quedaba mirando — la pantalla solo daba las
+// herramientas a los admin, aunque la base ya le dejara.
+//
+// Esto es el espejo de `torneos_mando(uuid)` en la base
+// (supabase-migration-torneos-dueno.sql). Que digan lo mismo NO es
+// opcional aquí: si la pantalla enseña de más, el botón no da error —
+// la política rechaza en silencio y la persona se queda pulsando.
+export function puedeLlevar(perfil, torneo, userId) {
+  if (puedeOrganizar(perfil)) return true
+  return Boolean(userId && torneo?.admin_id && torneo.admin_id === userId)
+}
+
 // ── Quién puede borrar un torneo (tanda 222, pedido por PINGU) ──
 // Quien manda en los torneos, o quien lo creó. Vive AQUÍ, en el módulo
 // sin DOM, por dos motivos: la usan la ficha y la lista, y así se puede
@@ -155,8 +171,7 @@ export function puedeOrganizar(perfil) {
 // política `torneos_borrar` de la base — esconder un botón no protege
 // nada. Las dos dicen lo mismo a propósito.
 export function puedeBorrarTorneo(perfil, torneo, userId) {
-  if (puedeOrganizar(perfil)) return true
-  return Boolean(userId && torneo?.admin_id && torneo.admin_id === userId)
+  return puedeLlevar(perfil, torneo, userId)
 }
 
 // ── Lo que ve un visitante SIN cuenta de una inscripción (tanda 229) ──

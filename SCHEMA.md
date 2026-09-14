@@ -14267,3 +14267,109 @@ comunidad se llevan solos, y eso es de producto. Queda anotado.
 
 `test-tanda-295.mjs` (7 bloques) y `sql-organizadores.sql` contra
 PostgreSQL. Rigor: **14 mutaciones, las 14 detectadas.**
+
+---
+
+## Tanda 296 — quien crea un torneo, lo lleva (sept. 2026)
+
+El hueco que la 295 dejó anotado, cerrado. PINGU: «sí, que quien crea un
+torneo pueda llevarlo, es lo suyo».
+
+Desde la tanda 266 **cualquiera con cuenta puede crear un torneo**, y las
+políticas del ciclo ya le dejaban llevarlo. Pero la pantalla solo daba
+esas herramientas a los admin, así que quien montaba su pachanga no
+podía ni abrir sus propias inscripciones. Y al mirarlo de cerca, el
+problema era más grande que la pantalla.
+
+### Lo que faltaba de verdad
+
+El ciclo (rondas, mesas, resultados) sí estaba abierto al creador desde
+la 266. Lo de **alrededor**, no:
+
+| qué | política | quién podía |
+|---|---|---|
+| dar de baja o confirmar a un inscrito | `inscripciones_baja` | solo admin |
+| ver las decklists (deck check) | `decklists_ver` | solo admin y jueces |
+| corregir una decklist | `decklists_editar` | solo admin |
+| nombrar jueces | `jueces_decidir` | solo admin |
+| ver y resolver llamadas | `llamadas_*` | admin y jueces |
+| los dos chats | `mensajes_*` | admin y jueces |
+| leer los reportes de una disputa | `reportes_ver` | admin, jueces y los de la mesa |
+
+Es decir: podía montar el torneo y parear, pero el día de jugarlo se
+quedaba sin las herramientas. Y **en silencio**, que es lo peor: un
+UPDATE que la política rechaza no da error, devuelve cero filas.
+
+### Un solo nombre para el criterio
+
+```sql
+torneos_mando(p_torneo) = admin del sitio
+                        O organizador (is_tournament_admin)
+                        O quien creó ESE torneo
+```
+
+`security definer`, porque mira `tournaments` y `user_profiles`, que
+tienen su propia RLS. Todas las políticas de la tabla de arriba pasan por
+ella, y en el cliente `puedeLlevar(perfil, torneo, userId)` de
+`js/torneos/comun.js` dice exactamente lo mismo. Las tres fichas
+(`torneo.js`, `ronda.js`, `jueces.js`) tienen su `mando()` y ya no
+queda ni un `puedeOrganizar(` suelto: el rol de la 295 se sigue usando,
+pero por dentro de `puedeLlevar`.
+
+`puedeBorrarTorneo` (tanda 222) resultó ser este mismo criterio escrito
+antes y con otro nombre: ahora delega.
+
+### Lo que NO se abre
+
+- **El sello de OFICIAL de PokeDoc.** Sigue en `is_admin` a secas, en la
+  casilla y en el disparador de la 266. Montar tu torneo no es llevar el
+  sello de la casa.
+- **Repartir el rol de organizador**, que sigue en `solo_admin_da_titulos`.
+- **El panel de administración.**
+- **La puerta de atrás de los chats (tanda 294).** Esta migración vuelve
+  a escribir esas dos políticas, así que lleva el arreglo INCORPORADO: el
+  `with check` repite la misma condición que el `using`. Si se copian a
+  otro sitio, se copian con las dos mitades.
+- **La regla de visibilidad de decklists para todos los demás**, que se
+  copia de `torneos-listas.sql` carácter a carácter. Quien lleva el
+  torneo entra por su propia puerta; el resto sigue viendo un mazo ajeno
+  exactamente cuando el torneo lo permite. La prueba lo compara.
+
+### Dos rechazos en silencio, a la vista
+
+Al abrir estas acciones a más gente, dos sitios se quedaban mintiendo:
+
+- **Expulsar** decía «jugador retirado» aunque la política hubiera
+  rechazado el UPDATE. Ahora va con `.select('id')` y mira cuántas filas
+  volvieron.
+- **Retirar a los no confirmados** antes de la R1 era peor: con
+  `if (!error) i.status = 'dropped'` marcaba la baja en memoria aunque en
+  la base siguiera activo, **y la ronda se pareaba sin él**. Divergir así
+  no se ve hasta que alguien pregunta por qué no juega. Ahora solo cuenta
+  a quien de verdad se retiró, y eso es lo que devuelve.
+
+### Probado, no argumentado
+
+`sql-dueno.sql` (rama de pruebas), contra **PostgreSQL de verdad**,
+aplicando el fichero de migración real. Ash monta «La pachanga»; Misty y
+Brock juegan; Gary no pinta nada:
+
+| caso | resultado |
+|---|---|
+| Ash da de baja a Misty en SU torneo | `UPDATE 1` |
+| Ash ve la decklist de Misty (deck check) | `4 Pikachu` |
+| Ash aprueba a Brock como juez | `approved` |
+| Ash toca el torneo de PINGU | `UPDATE 0` ×2 |
+| Ash se sella su torneo como oficial | sigue en `f` |
+| Gary escribe en la mesa de Misty y Brock | RLS ×2 |
+| Ash escribe en esa mesa (la lleva él) | `INSERT 0 1` |
+
+### Comprobado
+
+`test-tanda-296.mjs` (8 bloques) y `sql-dueno.sql` contra PostgreSQL.
+Rigor: **15 mutaciones, las 15 detectadas** — cuatro pillaron pruebas
+flojas mías: tres miraban la política entera, así que devolver el `using`
+a «solo admin» pasaba desapercibido mientras el `with check` siguiera
+bien; y la del chat contaba las condiciones sin mirar si las unía un
+`and` o un `or`, que es la diferencia exacta entre el agujero de la tanda
+294 y su arreglo.

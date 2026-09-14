@@ -5,7 +5,7 @@
 // el refresco es por sondeo — decisiones fijadas en CLAUDE.md.
 //
 // torneo.js monta este módulo con montarCiclo(ctx) en cada recarga.
-import { faltaLaRpc, avisoDeMigracion, puedeOrganizar } from './comun.js'
+import { faltaLaRpc, avisoDeMigracion, puedeLlevar } from './comun.js'
 import { supabase } from '../supabase.js'
 import { pintarSiCambia } from './pintar.js'
 import { escapeHtml } from '../app.js'
@@ -49,6 +49,8 @@ const $ = (id) => document.getElementById(id)
 // también sin cuenta (modo escaparate). Sin identidad no hay «tu
 // partida» ni reportes — solo mesas, rondas y clasificación.
 const miId = () => ctx.session?.user?.id ?? null
+// Quién LLEVA este torneo: el equipo, o quien lo creó (tanda 296).
+const mando = () => puedeLlevar(ctx.perfil, ctx.torneo, miId())
 const TERMINALES = new Set(['finished', 'bye', 'forfeit_a', 'forfeit_b', 'forfeit_both'])
 
 const ahora = () => new Date().toISOString()
@@ -104,7 +106,7 @@ async function cargarCiclo() {
     // para pintar algo que esa persona no ve (tanda 255).
     const mi = miId()
     const necesitaReportes = Boolean(
-      puedeOrganizar(ctx.perfil) || ctx.esJuez || (mi && partidas.some((m) => m.player_a_id === mi || m.player_b_id === mi))
+      mando() || ctx.esJuez || (mi && partidas.some((m) => m.player_a_id === mi || m.player_b_id === mi))
     )
     const [{ data: reps }, { data: ress }] = await Promise.all([
       necesitaReportes
@@ -178,7 +180,7 @@ async function cargarArquetipos() {
 function chapaDe(userId) {
   const arq = arquetipos.get(userId)
   if (!arq) return ''
-  return chapaArquetipoHtml(arq, { marcar: Boolean(puedeOrganizar(ctx.perfil) || ctx.esJuez) })
+  return chapaArquetipoHtml(arq, { marcar: Boolean(mando() || ctx.esJuez) })
 }
 
 // El historial de cruces, bajo demanda. Sin él, pairSwissRound repetiría
@@ -289,16 +291,25 @@ async function retirarNoConfirmados() {
     .eq('tournament_id', ctx.torneo.id)
   const conLista = new Set((listas || []).map((d) => d.user_id))
   const fuera = activos.filter((i) => !conLista.has(i.user_id) || !i.participation_confirmed_at)
+  const retirados = []
   for (const i of fuera) {
-    const { error } = await supabase
+    // El `.select('id')` no es de adorno: un UPDATE que la política
+    // rechaza NO da error, devuelve CERO filas. Sin mirar cuántas
+    // volvieron, aquí se daba por retirado a alguien que sigue activo en
+    // la base — y la ronda se pareaba sin él. Divergir así es peor que
+    // fallar: no se ve hasta que alguien pregunta por qué no juega.
+    const { data, error } = await supabase
       .from('tournament_registrations')
       .update({ status: 'dropped', dropped_at: ahora(), dropped_after_round_id: null })
       .eq('id', i.id)
+      .select('id')
+    if (error || !data?.length) continue
     // El estado local se parchea a mano: el snapshot que se monta justo
     // después ya no debe sentarlos.
-    if (!error) i.status = 'dropped'
+    i.status = 'dropped'
+    retirados.push(i)
   }
-  return fuera
+  return retirados
 }
 
 async function generarPareos() {
@@ -844,7 +855,7 @@ function pintarPareoManual(ronda) {
     return
   }
   const sueltos = sinMesa(ronda)
-  if (ronda.status !== 'pending' || !sueltos.length || !puedeOrganizar(ctx.perfil)) {
+  if (ronda.status !== 'pending' || !sueltos.length || !mando()) {
     caja.innerHTML = ''
     return
   }
@@ -990,14 +1001,14 @@ function chapaDeMesa(m) {
 function pintarMesas(ronda) {
   const mesas = partidas.filter((m) => m.round_id === ronda.id).sort((a, b) => a.table_number - b.table_number)
   if (!mesas.length) return '<p class="subtext">Sin mesas todavía.</p>'
-  const puedeResolver = (puedeOrganizar(ctx.perfil) || ctx.esJuez) && ronda.status === 'active'
+  const puedeResolver = (mando() || ctx.esJuez) && ronda.status === 'active'
   // Corregir (pedido de Ibai, 2026-09-02): el organizador puede CAMBIAR
   // el resultado de una mesa ya cerrada, pero solo en la ÚLTIMA ronda —
   // tocar una anterior dejaría los pareos posteriores apoyados en
   // resultados que ya no cuentan (para eso está deshacerRonda). Solo el
   // admin, no los jueces: pisar un resultado firme es del organizador.
   const esUltima = rondas.length > 0 && ronda.id === rondas[rondas.length - 1].id
-  const puedeCorregir = Boolean(puedeOrganizar(ctx.perfil)) && esUltima && ctx.torneo.status !== 'cancelled'
+  const puedeCorregir = Boolean(mando()) && esUltima && ctx.torneo.status !== 'cancelled'
   const conAcciones = puedeResolver || puedeCorregir
   const filas = mesas
     .map((m) => {
@@ -1069,7 +1080,7 @@ function pintarRondas() {
 
   const actual = rondaActual()
   let admin = ''
-  if (puedeOrganizar(ctx.perfil) && ctx.torneo.status !== 'finished') {
+  if (mando() && ctx.torneo.status !== 'finished') {
     if (!actual && rondas.length < ctx.torneo.swiss_rounds) {
       admin = `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la ronda ${rondas.length + 1}</button>`
     } else if (actual?.status === 'pending') {

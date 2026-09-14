@@ -12,6 +12,62 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-14 (3) — PINGU-Claude (tanda 296 — quien crea un torneo, lo lleva)
+
+**Hecho**: el hueco que dejé anotado en la 295, cerrado. PINGU: «sí, que
+quien crea un torneo pueda llevarlo, es lo suyo».
+
+Y al mirarlo de cerca era más grande que la pantalla. El CICLO (rondas,
+mesas, resultados) ya estaba abierto al creador desde la tanda 266. Lo de
+ALREDEDOR no: dar de baja o confirmar a un inscrito, ver las decklists
+para el deck check, corregir una, nombrar jueces, ver y resolver
+llamadas, los dos chats y leer los reportes de una disputa seguían siendo
+del admin del sitio. O sea: montaba el torneo, pero el día de jugarlo se
+quedaba sin herramientas — y en silencio, que es lo peor.
+
+Se unifica en un nombre, `torneos_mando(p_torneo)` = admin del sitio, u
+organizador, o quien creó ESE torneo. Todas esas políticas pasan por ahí,
+y en el cliente `puedeLlevar(perfil, torneo, userId)` dice lo mismo. Las
+tres fichas tienen su `mando()` y ya no queda ni un `puedeOrganizar(`
+suelto. `puedeBorrarTorneo` era este mismo criterio con otro nombre:
+ahora delega.
+
+**Lo que NO se abre**: el sello de OFICIAL (sigue en `is_admin` a secas),
+repartir el rol, el panel, la puerta de atrás de los chats de la 294 (va
+INCORPORADA en la migración, que reescribe esas dos políticas) y la regla
+de visibilidad de decklists para todos los demás, que se copia de
+torneos-listas.sql carácter a carácter — la prueba lo compara.
+
+**Dos sitios que mentían**, y que al abrir esto a más gente había que
+arreglar: «Expulsar» decía «jugador retirado» aunque la política hubiera
+rechazado el UPDATE (cero filas, sin error); y retirar a los no
+confirmados antes de la R1 era peor — marcaba la baja en memoria aunque
+en la base siguiera activo, y la ronda se pareaba sin él. Los dos van ya
+con `.select('id')` y miran cuántas filas volvieron.
+
+PROBADO CONTRA POSTGRESQL DE VERDAD (sql-dueno.sql, en `pruebas`),
+aplicando el FICHERO de migración: Ash da de baja a Misty en su torneo
+(UPDATE 1), ve su decklist, aprueba a Brock de juez; no toca el torneo de
+PINGU (UPDATE 0), no se sella como oficial (sigue en `f`), Gary sigue sin
+poder escribir en la mesa de otros (RLS ×2) y Ash, que lleva el torneo,
+sí.
+
+**Ficheros**: supabase-migration-torneos-dueno.sql (NUEVO),
+js/torneos/comun.js, js/torneos/torneo.js, js/torneos/torneos.js,
+js/torneos/ronda.js, js/torneos/jueces.js, SCHEMA.md.
+
+**Pruebas**: test-tanda-296.mjs (NUEVA, 8 bloques) y sql-dueno.sql.
+Rigor: 15 mutaciones, las 15 detectadas — cuatro pillaron pruebas flojas
+mías (tres miraban la política entera en vez de sus dos mitades, y la del
+chat contaba condiciones sin mirar si las unía un `and` o un `or`).
+
+**PENDIENTE para PINGU — SEIS SQL, y esta va la ÚLTIMA**: chats,
+cola, bo3, privados, organizadores y, al final, dueno. El orden importa
+en la última: vuelve a escribir políticas que chats y organizadores
+también definen.
+
+---
+
 ## 2026-09-14 (2) — PINGU-Claude (tanda 295 — el rol de organizador de torneos)
 
 **Hecho**: hay una comunidad que quiere llevar los torneos de PokeDoc y
