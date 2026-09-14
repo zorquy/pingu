@@ -49,16 +49,26 @@
   <main class="page-content container" id="torneosContenido" style="display:none;">
     <!-- El héroe de la sección (tanda 235, pedido por Ibai): la lista de
          torneos entraba a pelo y faltaba un título que dijera dónde
-         estás. Mismo tono que los paneles navy de la portada. -->
+         estás.
+
+         Desde la tanda 297 es una FRANJA, no un panel: el bloque navy
+         se comía un tercio de la pantalla antes de enseñar un solo
+         torneo, y lo que la gente viene a ver son los torneos. El sitio
+         que deja libre lo ocupa la barra del que estás jugando. -->
     <header class="torneos-heroe">
-      <span class="torneos-heroe-pill">Pokémon TCG</span>
-      <h1>Torneos de PokeDoc</h1>
-      <p>Te apuntas aquí, juegas en TCG Live y reportas el resultado: pareos suizos, top cut y clasificación en vivo, con tu cuenta de PokeDoc.</p>
+      <div class="torneos-heroe-texto">
+        <h1>Torneos</h1>
+        <p>Te apuntas aquí, juegas en TCG Live y reportas el resultado: pareos suizos, top cut y clasificación en vivo.</p>
+      </div>
       <div class="torneos-heroe-acciones">
-        <button class="btn-primary" id="btnNuevoTorneo">+ Nuevo torneo</button>
         <a class="btn-secondary" href="/mis-partidas.html">Mis partidas</a>
+        <button class="btn-primary" id="btnNuevoTorneo">Crear torneo</button>
       </div>
     </header>
+
+    <!-- La barra del torneo que estás jugando ahora mismo (tanda 297).
+         La rellena torneos.js solo si lo hay; si no, ni ocupa. -->
+    <div id="torneoVivo" class="torneo-vivo hidden"></div>
 
     <!-- Crear torneo: el wizard por pasos de TrainerArena, sin el paso
          de pago (aquí todo es gratis). torneos.js gobierna los pasos;

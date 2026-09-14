@@ -14,7 +14,7 @@ import { escapeHtml, getSession, getProfile, slugify, uploadProfileImage } from 
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { officialStructure } from './motor.js'
-import { ESTADOS, fechaBonita, textoFormato, puedeBorrarTorneo } from './comun.js'
+import { ESTADOS, fechaBonita, puedeBorrarTorneo } from './comun.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 
 const $ = (id) => document.getElementById(id)
@@ -55,42 +55,141 @@ const CHAPA_PRIVADO = () =>
   `<span class="torneo-privado" title="Privado: no sale en la lista, se entra con código">${icons.lock(11)} Privado</span>`
 const CHAPA_OFICIAL = () => `<span class="torneo-oficial" title="Torneo oficial, organizado por el equipo de PokeDoc">${icons.star(11)} Oficial</span>`
 
-function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
+// ── La tarjeta de un torneo (tanda 297) ──
+//
+// Hasta hoy cada torneo era UNA LÍNEA de texto: no se veía quién iba
+// apuntado, la imagen del torneo cabía en 48 px y un torneo EN JUEGO
+// ahora mismo pesaba lo mismo que uno terminado hace un mes. PINGU:
+// «la web está muy chula y todo está bien pensado, pero necesitamos
+// modernizar las interfaces».
+//
+// Lo que decide el diseño: la tarjeta tiene que responder de un vistazo
+// a «¿me apunto?» o «¿qué está pasando?», y el resto es decoración.
+// Por eso hay UNA acción por tarjeta, y el estado manda sobre todo lo
+// demás.
+
+// Seis degradados para los torneos que no traen imagen. Se elige por el
+// slug, no al azar: así un torneo se ve SIEMPRE igual, en cada recarga
+// y en el móvil de cada uno. Si cambiara en cada pintada, la lista
+// parpadearía de colores en cada refresco.
+// Cuántas caras caben en una tarjeta antes del «+N».
+const CARAS_POR_TARJETA = 4
+
+const ARTES = 6
+function arteDe(t) {
+  const clave = String(t.slug || t.id || '')
+  let suma = 0
+  for (let i = 0; i < clave.length; i++) suma = (suma * 31 + clave.charCodeAt(i)) % 100000
+  return (suma % ARTES) + 1
+}
+
+// Las caras de quien va apuntado. Un avatar de verdad si lo tiene, y si
+// no la inicial sobre un color sacado del mismo nombre (mismo truco que
+// el arte: estable, no aleatorio).
+const COLORES_CARA = ['#2a6b96', '#be185d', '#0d9e6e', '#4f46e5', '#c8720a', '#0891b2', '#7c3aed']
+function colorDeNombre(nombre) {
+  let suma = 0
+  for (let i = 0; i < String(nombre).length; i++) suma = (suma * 17 + String(nombre).charCodeAt(i)) % 100000
+  return COLORES_CARA[suma % COLORES_CARA.length]
+}
+function caraHtml(perfil) {
+  const nombre = perfil?.username || '?'
+  if (perfil?.avatar_url) {
+    return `<span class="torneo-cara"><img src="${escapeHtml(perfil.avatar_url)}" alt="${escapeHtml(nombre)}" loading="lazy" onerror="this.remove()" /></span>`
+  }
+  return `<span class="torneo-cara" style="background:${colorDeNombre(nombre)}" title="${escapeHtml(nombre)}">${escapeHtml(nombre.slice(0, 1).toUpperCase())}</span>`
+}
+
+// Qué dice el botón, que es la única acción de la tarjeta. Apuntarse de
+// verdad se hace en la FICHA (ahí está el aviso de decklist, el código
+// del torneo privado y la lista de espera): esto lleva allí, no hace el
+// trabajo. Un botón que promete más de lo que hace es peor que ninguno.
+function accionDe(t, miEstado) {
+  if (t.status === 'draft') return { texto: 'Seguir editando', clase: 'btn-secondary' }
+  if (t.status === 'registration_open') {
+    return miEstado === 'active'
+      ? { texto: 'Ver el torneo', clase: 'btn-secondary' }
+      : { texto: 'Apuntarme', clase: 'torneo-btn-apuntarse' }
+  }
+  if (t.status === 'in_progress') {
+    return { texto: 'Ver el directo', clase: miEstado === 'active' ? 'btn-primary' : 'btn-secondary' }
+  }
+  if (t.status === 'finished') return { texto: 'Resultados y mazos', clase: 'btn-secondary' }
+  return { texto: 'Ver el torneo', clase: 'btn-secondary' }
+}
+
+// La estructura en dos palabras. `textoFormato` de comun.js es la frase
+// larga de la ficha («3 suizas BO3 + top 4 BO3 · 30 min/ronda»): en una
+// tarjeta se lee como un trabalenguas, así que aquí va troceada en
+// etiquetas sueltas y esta es la primera.
+function estructuraCorta(t) {
+  return t.format === 'league' ? `Liga de ${t.swiss_rounds} jornadas` : `${t.swiss_rounds} rondas suizas`
+}
+
+function tarjetaHtml(t, datos) {
+  const { ocupadas = 0, miEstado = null, caras = [], organiza = null, campeon = null, puedeBorrar = false } = datos || {}
   const estado = ESTADOS[t.status] || ESTADOS.draft
   const fecha = new Date(t.start_at)
   const mes = fecha.toLocaleString('es-ES', { month: 'short' }).replace('.', '')
+  const hora = fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
   // max_players NULL = aforo sin límite (tanda 228): sin denominador no
   // hay barra de ocupación que pintar — se dice cuánta gente hay y ya.
   const sinLimite = t.max_players == null
   const porcentaje = sinLimite ? 0 : Math.min(100, (ocupadas / t.max_players) * 100)
+  // La barra se pone naranja cuando quedan pocas plazas: es lo que
+  // convierte «12/32» en «corre, que se llena».
+  const apurado = !sinLimite && porcentaje >= 80
+  const accion = accionDe(t, miEstado)
+  const sobran = Math.max(0, ocupadas - caras.length)
+  const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
   return `
-  <a class="torneo-tarjeta" href="/torneo?slug=${encodeURIComponent(t.slug)}">
-    ${
-      // La imagen del torneo (tanda 239) ocupa el hueco del bloque de
-      // fecha: la fecha ya se repite en texto justo debajo, así que no
-      // se pierde nada. Si la imagen no carga se esconde — mejor sin
-      // icono que con el icono roto del navegador.
-      t.image_url
-        ? `<img class="torneo-tarjeta-imagen" src="${escapeHtml(t.image_url)}" alt="" loading="lazy" onerror="this.style.display='none'" />`
-        : `<span class="torneo-fecha-bloque" aria-hidden="true"><strong>${fecha.getDate()}</strong><span>${escapeHtml(mes)}</span></span>`
-    }
-    <span class="torneo-texto">
-      <strong>${escapeHtml(t.name)}</strong>
-      <span class="subtext">${fechaBonita(t.start_at)} · ${t.format === 'league' ? `liga de ${t.swiss_rounds} jornadas` : `${t.swiss_rounds} suizas`}${t.top_cut_size ? ` + top ${t.top_cut_size}` : ''}</span>
-      <span class="torneo-ocupacion">
-        ${sinLimite ? '' : `<span class="torneo-ocupacion-barra"><span class="torneo-ocupacion-relleno" style="width:${porcentaje}%"></span></span>`}
-        ${sinLimite ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'} · sin límite` : `${ocupadas}/${t.max_players} plazas`}
+  <article class="torneo-tarjeta torneo-tarjeta-${t.status === 'in_progress' ? 'viva' : 'normal'}">
+    <a class="torneo-tarjeta-enlace" href="${url}">
+      <span class="torneo-arte torneo-arte-${arteDe(t)}">
+        ${
+          // La imagen del torneo (tanda 239) pasa de un cuadradito de
+          // 48 px a ser la portada entera de la tarjeta. Si no carga se
+          // esconde y queda el degradado debajo — nunca el icono roto.
+          t.image_url
+            ? `<img class="torneo-arte-imagen" src="${escapeHtml(t.image_url)}" alt="" loading="lazy" onerror="this.style.display='none'" />`
+            : ''
+        }
+        <span class="torneo-arte-chapas">
+          <span class="torneo-estado ${estado.clase}">${t.status === 'in_progress' ? `<span class="torneo-punto"></span>` : ''}${estado.texto}</span>
+          <span class="torneo-arte-chapas-der">
+            ${t.is_private ? CHAPA_PRIVADO() : ''}
+            ${esOficial(t) ? CHAPA_OFICIAL() : ''}
+          </span>
+        </span>
+        <span class="torneo-fecha-bloque" aria-hidden="true"><strong>${fecha.getDate()}</strong><span>${escapeHtml(mes)}</span></span>
       </span>
-    </span>
-    <span class="torneo-tarjeta-chapas">
-      ${t.is_private ? CHAPA_PRIVADO() : ''}
-      ${esOficial(t) ? CHAPA_OFICIAL() : ''}
-      ${extra}
-      <span class="torneo-estado ${estado.clase}">${estado.texto}</span>
+      <span class="torneo-cuerpo">
+        <strong class="torneo-nombre">${escapeHtml(t.name)}</strong>
+        <span class="torneo-etiquetas">
+          <span class="torneo-etiqueta">${escapeHtml(estructuraCorta(t))}</span>
+          ${t.swiss_bo === 3 ? '<span class="torneo-etiqueta">BO3</span>' : ''}
+          ${t.top_cut_size ? `<span class="torneo-etiqueta">Top ${t.top_cut_size}</span>` : ''}
+          <span class="torneo-etiqueta">${escapeHtml(hora)}</span>
+        </span>
+        ${
+          campeon
+            ? `<span class="torneo-campeon">${icons.trophy(15)} Campeón: <b>${escapeHtml(campeon)}</b></span>`
+            : `<span class="torneo-ocupacion">
+                 ${caras.length ? `<span class="torneo-caras">${caras.map(caraHtml).join('')}${sobran ? `<span class="torneo-cara torneo-cara-mas">+${sobran}</span>` : ''}</span>` : ''}
+                 ${sinLimite ? '' : `<span class="torneo-ocupacion-barra ${apurado ? 'apurada' : ''}"><span class="torneo-ocupacion-relleno" style="width:${porcentaje}%"></span></span>`}
+                 <span class="torneo-ocupacion-cifra">${sinLimite ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'}` : `${ocupadas}/${t.max_players}`}</span>
+               </span>`
+        }
+      </span>
+    </a>
+    <div class="torneo-pie">
+      <span class="torneo-pie-quien">
+        ${miEstado ? `<span class="torneo-mio ${miEstado === 'dropped' ? 'retirado' : ''}">${miEstado === 'dropped' ? 'Retirado' : 'Inscrito'}</span>` : ''}
+        ${organiza ? `<span class="torneo-pie-organiza">${escapeHtml(organiza)}</span>` : ''}
+      </span>
       ${
         // Duplicar (tanda 218): la liga semanal se monta igual cada vez,
-        // así que un torneo pasado sirve de plantilla. Va dentro del
-        // enlace de la tarjeta, de ahí el preventDefault del manejador.
+        // así que un torneo pasado sirve de plantilla.
         ['finished', 'cancelled'].includes(t.status)
           ? `<button type="button" class="btn-secondary torneo-duplicar" data-duplicar="${escapeHtml(t.id)}">Duplicar</button>`
           : ''
@@ -98,13 +197,72 @@ function tarjetaHtml(t, ocupadas, extra = '', puedeBorrar = false) {
       ${
         // Borrar desde la lista (tanda 223): antes había que entrar a la
         // ficha para deshacerse de un torneo de prueba. Misma regla que
-        // allí — admin del sitio o quien lo creó — y mismos dos toques.
+        // allí — quien lleva los torneos o quien lo creó — y dos toques.
         puedeBorrar
           ? `<button type="button" class="torneo-borrar torneo-borrar-fila" data-borrar="${escapeHtml(t.id)}" data-nombre="${escapeHtml(t.name)}" data-dentro="${ocupadas}">Borrar</button>`
           : ''
       }
+      <a class="${accion.clase} torneo-pie-accion" href="${url}">${accion.texto}</a>
+    </div>
+  </article>`
+}
+
+// ── La barra del torneo que estás jugando AHORA (tanda 297) ──
+//
+// Es lo primero que quiere quien entra a /torneos un domingo por la
+// tarde: cuánto queda de ronda y por dónde se vuelve a su mesa. Antes
+// había que encontrar tu torneo entre los demás, entrar y buscar.
+//
+// Solo se pide la ronda cuando HAY un torneo tuyo en juego: quien no
+// esté jugando nada no paga ninguna consulta de más.
+let relojVivo = null
+
+function textoCuenta(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000))
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}
+
+async function pintarVivo(torneo) {
+  const caja = $('torneoVivo')
+  if (!caja) return
+  if (relojVivo) {
+    clearInterval(relojVivo)
+    relojVivo = null
+  }
+  if (!torneo) {
+    caja.classList.add('hidden')
+    caja.innerHTML = ''
+    return
+  }
+  const { data: rondas } = await supabase
+    .from('rounds')
+    .select('round_number, status, ends_at')
+    .eq('tournament_id', torneo.id)
+    .eq('status', 'active')
+    .limit(1)
+  const ronda = (rondas || [])[0] || null
+  const total = torneo.swiss_rounds || 0
+  caja.classList.remove('hidden')
+  caja.innerHTML = `
+    <span class="torneo-vivo-texto">
+      <span class="torneo-vivo-chapa"><span class="torneo-punto"></span>En juego</span>
+      <strong>${escapeHtml(torneo.name)}</strong>
+      <span class="torneo-vivo-sub">${ronda ? `Ronda ${ronda.round_number}${total ? ` de ${total}` : ''}` : 'Entre rondas'}</span>
     </span>
-  </a>`
+    <span class="torneo-vivo-der">
+      ${ronda?.ends_at ? '<span class="torneo-vivo-reloj"><span class="torneo-vivo-rotulo">Queda de ronda</span><b id="torneoVivoReloj">—</b></span>' : ''}
+      <a class="btn-primary" href="/torneo?slug=${encodeURIComponent(torneo.slug)}">Ir a tu mesa</a>
+    </span>`
+  if (!ronda?.ends_at) return
+  // El reloj del navegador es ORIENTATIVO, igual que en la ficha: quien
+  // cierra la ronda de verdad es el barredor por minuto del servidor.
+  const fin = new Date(ronda.ends_at).getTime()
+  const marcador = $('torneoVivoReloj')
+  const tic = () => {
+    marcador.textContent = textoCuenta(fin - Date.now())
+  }
+  tic()
+  relojVivo = setInterval(tic, 1000)
 }
 
 // La lista por PESTAÑAS (petición de los admins): Tus torneos, Abiertas,
@@ -123,7 +281,7 @@ function pintarGrupos(grupos) {
   if (!pestanaLista || !conAlgo.some((g) => g.id === pestanaLista)) pestanaLista = conAlgo[0].id
   const activa = conAlgo.find((g) => g.id === pestanaLista)
   lista.innerHTML = `
-    <nav class="torneo-pestanas" aria-label="Grupos de torneos">
+    <nav class="torneo-pestanas torneo-pestanas-chips" aria-label="Grupos de torneos">
       ${conAlgo
         .map(
           (g) =>
@@ -167,13 +325,6 @@ async function cargarLista(session, perfil = null) {
     .order('start_at', { ascending: false })
     .limit(50)
   const torneos = data || []
-  // Quién de los creadores es admin del sitio → torneos oficiales. Si
-  // la consulta falla, nadie queda marcado y la lista sigue.
-  const creadores = [...new Set(torneos.map((t) => t.admin_id).filter(Boolean))]
-  if (creadores.length) {
-    const { data: perfiles } = await supabase.from('user_profiles').select('id, is_admin').in('id', creadores)
-    creadoresOficiales = new Set((perfiles || []).filter((p) => p.is_admin).map((p) => p.id))
-  }
   // El calendario pinta sobre esta misma lista: se guarda y, si es la
   // vista activa, se repinta con lo recién traído.
   torneosCargados = torneos
@@ -186,26 +337,66 @@ async function cargarLista(session, perfil = null) {
     .select('tournament_id, user_id, status')
   const ocupadasDe = {}
   const miEstado = {}
+  // Los primeros inscritos de cada torneo, para las caras de la tarjeta
+  // (tanda 297). Se corta en CARAS_POR_TARJETA: pedir el perfil de los
+  // 32 de cada uno de 50 torneos por enseñar cuatro es tirar la consulta
+  // a la basura.
+  const primerosDe = {}
   for (const i of inscripciones || []) {
-    if (i.status === 'active') ocupadasDe[i.tournament_id] = (ocupadasDe[i.tournament_id] || 0) + 1
+    if (i.status === 'active') {
+      ocupadasDe[i.tournament_id] = (ocupadasDe[i.tournament_id] || 0) + 1
+      const ya = (primerosDe[i.tournament_id] ||= [])
+      if (ya.length < CARAS_POR_TARJETA) ya.push(i.user_id)
+    }
     // `session?.user` y no `session.user`: sin cuenta esto reventaba, y
     // hasta la 252 daba igual porque la página echaba a quien no fuese
     // admin. Ahora entra cualquiera.
     if (session?.user && i.user_id === session.user.id) miEstado[i.tournament_id] = i.status
   }
 
+  // UNA consulta de perfiles para tres cosas: quién de los creadores es
+  // admin del sitio (→ torneos oficiales), cómo se llama quien organiza
+  // y quién ganó, y las caras de los inscritos. Antes era una consulta
+  // solo para lo primero; pedir las otras dos por separado serían tres
+  // viajes para lo mismo. Si falla, la lista sigue sin caras ni nombres.
+  const quienes = new Set()
+  for (const t of torneos) {
+    if (t.admin_id) quienes.add(t.admin_id)
+    if (t.champion_id) quienes.add(t.champion_id)
+    for (const u of primerosDe[t.id] || []) quienes.add(u)
+  }
+  const gente = {}
+  if (quienes.size) {
+    const { data: perfiles } = await supabase
+      .from('user_profiles')
+      .select('id, username, avatar_url, is_admin')
+      .in('id', [...quienes])
+    for (const p of perfiles || []) gente[p.id] = p
+    creadoresOficiales = new Set((perfiles || []).filter((p) => p.is_admin).map((p) => p.id))
+  }
+
   vacio.classList.toggle('hidden', torneos.length > 0)
 
-  const tarjeta = (t, extra = '') =>
-    tarjetaHtml(t, ocupadasDe[t.id] || 0, extra, puedeBorrarTorneo(perfil, t, session?.user?.id))
-  const mios = torneos
-    .filter((t) => miEstado[t.id] && t.status !== 'draft')
-    .map((t) =>
-      tarjeta(
-        t,
-        `<span class="torneo-mio ${miEstado[t.id] === 'dropped' ? 'retirado' : ''}">${miEstado[t.id] === 'dropped' ? 'Retirado' : 'Inscrito'}</span>`
-      )
-    )
+  const tarjeta = (t) =>
+    tarjetaHtml(t, {
+      ocupadas: ocupadasDe[t.id] || 0,
+      miEstado: miEstado[t.id] || null,
+      caras: (primerosDe[t.id] || []).map((u) => gente[u]).filter(Boolean),
+      // «Organiza el equipo» y no el nombre del admin: un torneo oficial
+      // lo firma PokeDoc, no la persona que le dio al botón.
+      organiza: esOficial(t) ? 'Organiza el equipo' : gente[t.admin_id]?.username ? `Organiza ${gente[t.admin_id].username}` : '',
+      campeon: t.status === 'finished' ? gente[t.champion_id]?.username || null : null,
+      puedeBorrar: puedeBorrarTorneo(perfil, t, session?.user?.id),
+    })
+  // El tuyo en juego: el que manda la barra de arriba. Si hubiera dos
+  // (raro pero posible), el que empezó antes — es el que lleva prisa.
+  pintarVivo(
+    torneos
+      .filter((t) => t.status === 'in_progress' && miEstado[t.id] === 'active')
+      .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))[0] || null
+  )
+
+  const mios = torneos.filter((t) => miEstado[t.id] && t.status !== 'draft').map((t) => tarjeta(t))
   const abiertas = torneos.filter((t) => t.status === 'registration_open').map((t) => tarjeta(t))
   // «Por empezar» y «En juego» son cosas DISTINTAS, y hasta la tanda 248
   // iban en el mismo montón: un torneo con las inscripciones cerradas

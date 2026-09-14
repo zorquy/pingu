@@ -2,83 +2,147 @@
    Hoja propia: solo la baja /torneos y las páginas del torneo, para no
    cargar el presupuesto de peso de la portada (ver CLAUDE.md). */
 
-/* ── El héroe de la sección (tanda 235) ──
-   Panel navy con degradado, como los de la portada. Los colores van
-   FIJOS y no con var(--navy): el panel es oscuro en los dos temas, y
-   los textos de dentro también, así que las variables (que cambian con
-   el tema) aquí solo podrían romperlo. */
+/* ── El héroe de la sección (tandas 235 y 297) ──
+   Nació como panel navy con degradado, igual que los de la portada. En
+   la 297 se queda en FRANJA: ocupaba 40 px de aire arriba y abajo más
+   un párrafo centrado antes de enseñar un solo torneo, y a /torneos se
+   viene a ver torneos. Ahora es título a la izquierda, acciones a la
+   derecha, y lo que sobra se lo queda la barra del torneo en juego. */
 .torneos-heroe {
-  background: linear-gradient(135deg, #163d59 0%, #1e5175 55%, #2a6b96 100%);
-  color: #fff;
-  border-radius: var(--radius-xl);
-  padding: 40px 32px;
-  margin-bottom: 26px;
-  text-align: center;
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  padding: 26px 0 20px;
 }
-.torneos-heroe-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.14);
-  color: #e1f0f4;
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  margin-bottom: 16px;
-}
-.torneos-heroe-pill strong {
-  color: #ffd6d6;
-  font-weight: 700;
-}
+.torneos-heroe-texto { min-width: 0; }
 .torneos-heroe h1 {
-  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.8rem);
+  font-size: clamp(1.7rem, 1.3rem + 1.6vw, 2.4rem);
   font-weight: 800;
-  letter-spacing: -1px;
+  letter-spacing: -0.02em;
   line-height: 1.1;
-  margin: 0 0 12px;
-  color: #fff;
+  margin: 0;
 }
 .torneos-heroe p {
-  font-size: 16px;
-  line-height: 1.55;
-  color: #c2dde6;
-  max-width: 560px;
-  margin: 0 auto 24px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-mid);
+  max-width: 520px;
+  margin: 7px 0 0;
 }
 .torneos-heroe-acciones {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
+  gap: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
 }
-/* Sobre navy, el botón principal se invierte (blanco con texto navy),
-   el mismo truco que .banner-signup de la portada; el secundario pasa
-   a «fantasma» para no pelearse con el fondo. */
-.torneos-heroe .btn-primary {
+@media (max-width: 640px) {
+  .torneos-heroe {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 20px 0 16px;
+  }
+  .torneos-heroe-acciones { margin-left: 0; }
+  /* Los dos botones a mitad y mitad: en un móvil estrecho, si no, el
+     segundo cae solo a una línea y queda huérfano. */
+  .torneos-heroe-acciones > * { flex: 1; text-align: center; }
+}
+
+/* ── La barra del torneo que estás jugando AHORA (tanda 297) ──
+   Lo primero que quiere quien entra un domingo por la tarde: cuánto
+   queda de ronda y por dónde se vuelve a su mesa. Va en navy fijo (no
+   con var(--navy)) porque es oscura en los dos temas, como el héroe de
+   antes: las variables cambian con el tema y aquí solo romperían. */
+.torneo-vivo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: linear-gradient(115deg, #163d59, #2a6b96 62%, #347fae);
+  color: #fff;
+  border-radius: var(--radius-xl);
+  padding: 18px 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+}
+.torneo-vivo-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.torneo-vivo-texto strong {
+  font-family: var(--font-display);
+  font-size: 21px;
+  line-height: 1.2;
+}
+.torneo-vivo-sub { font-size: 14px; color: #bfdcec; }
+.torneo-vivo-chapa {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e8342e;
+  color: #fff;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+}
+.torneo-vivo-der {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-left: auto;
+}
+.torneo-vivo-reloj { text-align: right; }
+.torneo-vivo-rotulo {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #a9cee3;
+  font-weight: 600;
+}
+.torneo-vivo-reloj b {
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+/* Sobre navy el botón se invierte, el mismo truco que tenía el héroe. */
+.torneo-vivo .btn-primary {
   background: #fff;
   color: #1e5175;
   box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.25);
 }
-.torneos-heroe .btn-primary:hover {
-  background: #e1f0f4;
+.torneo-vivo .btn-primary:hover { background: #e1f0f4; }
+@media (max-width: 640px) {
+  .torneo-vivo { padding: 16px 18px; gap: 14px; }
+  .torneo-vivo-der { margin-left: 0; width: 100%; justify-content: space-between; }
+  .torneo-vivo-reloj { text-align: left; }
+  .torneo-vivo-reloj b { font-size: 27px; }
 }
-.torneos-heroe .btn-secondary {
-  background: transparent;
-  color: #fff;
-  border: 1.5px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.25);
+
+/* El puntito rojo que late en «En juego». Marca la diferencia entre un
+   estado que es una etiqueta y uno que está pasando ahora mismo. */
+.torneo-punto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+  animation: torneo-latido 2s var(--ease) infinite;
 }
-.torneos-heroe .btn-secondary:hover {
-  border-color: #fff;
-  color: #fff;
+@keyframes torneo-latido {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }
-@media (max-width: 560px) {
-  .torneos-heroe {
-    padding: 28px 18px;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .torneo-punto { animation: none; }
 }
 
 /* ── Crear torneo: el wizard por pasos (calcado de TrainerArena, sin
@@ -219,56 +283,285 @@
 .torneos-form-acciones .torneo-wizard-derecha { display: flex; gap: 8px; margin-left: auto; }
 
 /* ── La lista ── */
+/* La lista es una REJILLA desde la tanda 297: cada torneo era una línea
+   de texto y el ancho sobrante no lo aprovechaba nadie. `auto-fill` con
+   un mínimo y no dos columnas fijas, para que en una pantalla ancha
+   entren tres y en una tableta dos, sin media queries. */
 .torneos-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 18px;
+}
+/* Sin `align-items:start` a propósito: así las tarjetas de una misma
+   fila miden lo mismo y sus pies quedan alineados. Con start, una a la
+   que el pie se le va a dos líneas deja a su vecina flotando a media
+   altura, y la rejilla se ve descuadrada. */
+/* Las pestañas cruzan la rejilla entera: son de la lista, no una
+   tarjeta más. Igual el pie de «ver N más». */
+.torneos-lista > .torneo-pestanas,
+.torneos-lista > .torneo-ver-mas { grid-column: 1 / -1; }
+@media (max-width: 420px) {
+  /* Por debajo de 420 px el mínimo de la rejilla desbordaría: una sola
+     columna y que la tarjeta mande. */
+  .torneos-lista { grid-template-columns: 1fr; gap: 14px; }
 }
 
+/* ── La tarjeta de un torneo (tanda 297) ──
+   Antes era una fila: fecha en 48 px, nombre, chapas a la derecha.
+   Ahora es una tarjeta con portada, y el orden de lectura va de lo que
+   más pesa a lo que menos: estado → qué es → cuándo → quién va → una
+   sola acción. */
 .torneo-tarjeta {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s var(--ease), border-color 0.15s, transform 0.15s var(--ease);
+}
+.torneo-tarjeta:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .torneo-tarjeta:hover { transform: none; }
+}
+/* El que está EN JUEGO lleva un filo navy: en una rejilla de seis
+   tarjetas iguales, el que está pasando ahora tiene que cantar. */
+.torneo-tarjeta-viva { border-color: var(--navy); box-shadow: 0 0 0 1px var(--navy), var(--shadow-sm); }
+
+/* El enlace cubre portada y cuerpo; el pie queda FUERA, porque ahí hay
+   botones de verdad (duplicar, borrar) y un <button> dentro de un <a>
+   no es HTML válido — hasta la 297 lo era y se apañaba a base de
+   preventDefault. */
+.torneo-tarjeta-enlace {
+  display: flex;
+  flex-direction: column;
   color: inherit;
   text-decoration: none;
-  transition: border-color 0.15s;
+  flex: 1;
 }
-.torneo-tarjeta:hover { border-color: var(--navy); }
-.torneo-tarjeta:hover .torneo-texto strong { color: var(--navy); }
-:root[data-theme='dark'] .torneo-tarjeta:hover .torneo-texto strong { color: #7db6dd; }
+.torneo-tarjeta:hover .torneo-nombre { color: var(--navy); }
+:root[data-theme='dark'] .torneo-tarjeta:hover .torneo-nombre { color: #7db6dd; }
 
-/* El bloque de fecha de la tarjeta: día grande + mes, como el original. */
+/* ── La portada ── */
+.torneo-arte {
+  position: relative;
+  display: block;
+  height: 112px;
+  padding: 12px;
+}
+/* Seis degradados, elegidos por el slug en torneos.js: un torneo sin
+   imagen se ve siempre igual en vez de cambiar de color en cada
+   recarga. */
+.torneo-arte-1 { background: linear-gradient(135deg, #2a6b96, #7cc6d8 120%); }
+.torneo-arte-2 { background: linear-gradient(135deg, #4f46e5, #be185d 130%); }
+.torneo-arte-3 { background: linear-gradient(135deg, #0d9e6e, #7cc6d8 130%); }
+.torneo-arte-4 { background: linear-gradient(135deg, #c8720a, #e0b252 130%); }
+.torneo-arte-5 { background: linear-gradient(135deg, #7c3aed, #4f46e5 130%); }
+.torneo-arte-6 { background: linear-gradient(135deg, #0891b2, #2a6b96 130%); }
+/* La trama de puntos: sin ella, un degradado a pantalla completa se ve
+   plano y barato. Va detrás de todo y no intercepta clics. */
+.torneo-arte::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.22) 1.2px, transparent 1.3px);
+  background-size: 15px 15px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+/* La imagen del torneo (tanda 239) pasa de un cuadradito de 48 px a ser
+   la portada entera. Si no carga se esconde y queda el degradado. */
+.torneo-arte-imagen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.torneo-arte-chapas {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.torneo-arte-chapas-der { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+/* El bloque de fecha: día grande + mes, como el original, pero ahora
+   montado sobre el filo de la portada — es lo que ata la imagen al
+   texto de abajo. */
 .torneo-fecha-bloque {
+  position: absolute;
+  left: 14px;
+  bottom: -20px;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
+  width: 54px;
+  height: 54px;
   border-radius: var(--radius-md);
-  background: var(--navy);
-  color: #fff;
+  background: var(--white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  color: var(--navy);
   line-height: 1.1;
 }
-.torneo-fecha-bloque strong { font-size: 17px; font-family: var(--font-display); }
-.torneo-fecha-bloque span { font-size: 10px; text-transform: uppercase; opacity: 0.75; font-weight: 600; }
-:root[data-theme='dark'] .torneo-fecha-bloque { background: var(--navy-dark); }
-
-/* La imagen del torneo (tanda 239): mismo hueco y esquinas que el
-   bloque de fecha al que sustituye. */
-.torneo-tarjeta-imagen {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  border-radius: var(--radius-md);
-  object-fit: cover;
-  background: var(--bg);
+.torneo-fecha-bloque strong { font-size: 20px; font-family: var(--font-display); }
+.torneo-fecha-bloque span {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-top: 1px;
 }
+:root[data-theme='dark'] .torneo-fecha-bloque { background: var(--white); color: #7db6dd; }
+
+/* ── El cuerpo ── */
+.torneo-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 28px 16px 16px;
+  flex: 1;
+}
+.torneo-nombre {
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.25;
+  transition: color 0.15s;
+}
+.torneo-etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+.torneo-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 12px;
+  color: var(--text-mid);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.torneo-campeon {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  font-size: 13.5px;
+  color: var(--text-mid);
+}
+.torneo-campeon b { color: var(--text); }
+.torneo-campeon svg { color: var(--rarity-gold); flex-shrink: 0; }
+
+/* ── Quién va apuntado ── */
+.torneo-caras { display: flex; flex-shrink: 0; }
+.torneo-cara {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--white);
+  margin-left: -8px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.torneo-cara:first-child { margin-left: 0; }
+.torneo-cara img { width: 100%; height: 100%; object-fit: cover; }
+.torneo-cara-mas { background: var(--ice-dark); color: var(--navy); }
+
+/* ── El pie: quién organiza y LA acción ── */
+/* El pie va en UNA línea (`nowrap`) y lo que cede es el texto de quién
+   organiza, no los botones. Con `wrap`, una tarjeta con «Borrar» partía
+   el pie en dos, crecía, y como las de una misma fila miden lo mismo, a
+   la vecina se le abría un hueco enorme entre las etiquetas y las
+   plazas. Se ve como un fallo aunque sea la rejilla haciendo su trabajo. */
+.torneo-pie {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--bg) 55%, var(--white));
+}
+.torneo-pie-quien {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  /* `flex: 1 1 0` + `min-width: 0`: es lo único que puede encogerse del
+     pie, así que «Organiza Fulanito de Tal» se corta antes de empujar a
+     nadie. */
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+/* El nombre va en su propio span y no suelto dentro del flex: los
+   puntos suspensivos de `text-overflow` no salen en un hijo anónimo de
+   un contenedor flex, así que el texto se cortaba a hachazos. */
+.torneo-pie-organiza {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* La chapa de «Inscrito» no se encoge: o cabe entera o no se entiende. */
+.torneo-pie-quien .torneo-mio { flex-shrink: 0; }
+.torneo-pie .torneo-duplicar,
+.torneo-pie .torneo-borrar { flex-shrink: 0; }
+.torneo-pie-accion { margin-left: auto; flex-shrink: 0; }
+/* «Apuntarme» en verde: es la única acción de toda la sección que suma
+   gente, y tiene que distinguirse de «ver» a un metro de distancia. */
+.torneo-btn-apuntarse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--success);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 9px 16px;
+  text-decoration: none;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.18);
+}
+.torneo-btn-apuntarse:hover { background: color-mix(in srgb, var(--success) 88%, #000); color: #fff; }
+/* Los botones del pie, todos a la misma altura y sin el tamaño de
+   formulario que traen por defecto. */
+.torneo-pie .btn-primary,
+.torneo-pie .btn-secondary,
+.torneo-pie .torneo-duplicar {
+  font-size: 14px;
+  padding: 9px 16px;
+}
+
+/* En un móvil el pie SÍ vuelve a partirse. El `nowrap` de arriba está
+   para que dos tarjetas de la misma fila midan lo mismo, y en una sola
+   columna no hay fila que cuadrar: lo que importa es que con las cuatro
+   piezas del peor caso —«Retirado», Duplicar, Borrar y la acción— no se
+   salga nada de la tarjeta. A 320 px se salía. */
+@media (max-width: 640px) {
+  .torneo-pie { flex-wrap: wrap; }
+  .torneo-pie-quien { flex: 1 1 100%; }
+}
+
 /* Y el campo de elegirla en el wizard y el editor. */
 .torneo-imagen-campo {
   display: flex;
@@ -498,57 +791,24 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-cal-torneo:hover { border-color: var(--navy); }
 .torneo-cal-torneo-nombre { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 
-.torneo-texto { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 2px; }
-.torneo-texto strong { transition: color 0.15s; }
-
-/* Las chapas de la tarjeta (tu estado, el del torneo y «Duplicar») van
-   JUNTAS en su propio bloque. En un PC quedan igual que siempre, a la
-   derecha; lo que arregla es el móvil: antes eran tres hermanos sueltos
-   con nowrap que se quedaban con el ancho, y el título del torneo caía
-   a una letra por línea (PINGU lo vio en su teléfono). Debajo, en la
-   media query, este bloque baja a su propia fila. */
-.torneo-tarjeta-chapas {
+/* La ocupación: caras + barra + cifra, todo en una línea al pie del
+   cuerpo de la tarjeta. `margin-top:auto` la empuja abajo para que dos
+   tarjetas vecinas con títulos de distinto largo la tengan a la misma
+   altura. */
+.torneo-ocupacion {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0;
-}
-
-/* En móvil la tarjeta es una rejilla: fecha y texto arriba (el texto
-   con TODO el ancho que sobra), chapas debajo alineadas con el texto. */
-@media (max-width: 560px) {
-  .torneo-tarjeta {
-    display: grid;
-    grid-template-columns: 48px minmax(0, 1fr);
-    gap: 10px 14px;
-    align-items: center;
-  }
-  /* Las chapas ocupan el ANCHO ENTERO de la tarjeta, no solo la
-     columna del texto. Con tres cabían alineadas debajo del texto, pero
-     al añadir «Borrar» (tanda 223) se apilaban en tres filas en una
-     pantalla de 320px y la tarjeta se convertía en una torre. Bajo el
-     bloque de la fecha no hay nada que estorbe. */
-  .torneo-tarjeta-chapas {
-    grid-column: 1 / -1;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-}
-
-/* La barrita de ocupación dentro de la tarjeta. */
-.torneo-ocupacion {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  margin-top: auto;
   font-size: 12px;
   color: var(--text-dim);
 }
 .torneo-ocupacion-barra {
-  display: inline-block;
-  width: 64px;
+  flex: 1;
+  min-width: 30px;
   height: 6px;
   border-radius: var(--radius-pill);
-  background: rgba(127, 127, 127, 0.18);
+  background: var(--ice);
   overflow: hidden;
 }
 .torneo-ocupacion-relleno {
@@ -556,8 +816,43 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   height: 100%;
   border-radius: var(--radius-pill);
   background: var(--navy);
+  transition: width 0.3s var(--ease);
 }
+/* Naranja a partir del 80%: es lo que convierte «12/32» en «corre, que
+   se llena». */
+.torneo-ocupacion-barra.apurada .torneo-ocupacion-relleno { background: var(--warning); }
+.torneo-ocupacion-cifra { font-weight: 600; color: var(--text-mid); white-space: nowrap; }
 :root[data-theme='dark'] .torneo-ocupacion-relleno { background: #7db6dd; }
+:root[data-theme='dark'] .torneo-ocupacion-barra { background: var(--ice-dark); }
+
+/* ── Las chapas, cuando van SOBRE la portada (tanda 297) ──
+   Las de siempre (estado, oficial, privado) se pintan con fondos casi
+   transparentes: encima de un degradado de color se volvían ilegibles.
+   Aquí, y solo aquí, pasan a fondos sólidos. En la ficha y en el
+   calendario siguen exactamente igual que antes. */
+.torneo-arte .torneo-estado,
+.torneo-arte .torneo-oficial,
+.torneo-arte .torneo-privado {
+  background: var(--white);
+  box-shadow: var(--shadow-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.torneo-arte .torneo-estado-abierto { color: var(--success); }
+.torneo-arte .torneo-estado-cerrado { color: var(--warning); }
+.torneo-arte .torneo-estado-fin,
+.torneo-arte .torneo-estado-borrador { color: var(--text-mid); }
+.torneo-arte .torneo-oficial { color: #a06008; }
+:root[data-theme='dark'] .torneo-arte .torneo-oficial { color: var(--warning); }
+/* «En juego» es el único que se sale del blanco: es rojo sólido porque
+   no es una etiqueta, es algo que está pasando ahora. */
+.torneo-arte .torneo-estado-jugando {
+  background: #e8342e;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 
 /* «Borrar torneo» (tanda 222): NO es un botón más de la fila. Se pinta
    apagado y en rojo solo al pasar por encima o al pedir confirmación,
@@ -1342,6 +1637,39 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   font-size: 12px;
   text-align: center;
 }
+
+/* ── Las pestañas de la LISTA, como chips (tanda 297) ──
+   Las de la ficha se quedan como estaban —subrayado— porque allí son
+   navegación de una cosa sola. Aquí son FILTROS de una rejilla, y un
+   filtro se lee mejor como algo que se pulsa y se queda pulsado. */
+.torneo-pestanas-chips {
+  border-bottom: none;
+  gap: 8px;
+  margin: 0 0 20px;
+  flex-wrap: wrap;
+}
+.torneo-pestanas-chips .torneo-pestana {
+  border: 1px solid var(--border-strong);
+  background: var(--white);
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-mid);
+  margin-bottom: 0;
+}
+.torneo-pestanas-chips .torneo-pestana:hover { border-color: var(--navy); color: var(--navy); }
+.torneo-pestanas-chips .torneo-pestana.activa {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+:root[data-theme='dark'] .torneo-pestanas-chips .torneo-pestana.activa { color: #fff; }
+.torneo-pestanas-chips .torneo-pestana.activa .torneo-pestana-cuenta {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
 .torneo-panel > .simple-card { margin-bottom: 16px; }
 
 /* ── Decklists con cartas (tanda 210) ── */

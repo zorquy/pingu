@@ -14373,3 +14373,118 @@ a «solo admin» pasaba desapercibido mientras el `with check` siguiera
 bien; y la del chat contaba las condiciones sin mirar si las unía un
 `and` o un `or`, que es la diferencia exacta entre el agujero de la tanda
 294 y su arreglo.
+
+---
+
+## Tanda 297 (A) — la lista de torneos, en tarjetas (sept. 2026)
+
+PINGU, después de ver las maquetas: «me encanta el concepto, es una
+mejoría gigante y muy necesaria». Primera de tres tandas de rediseño de
+la sección «Jugar»: **la lista**. Ni una política ni una RPC ni el motor
+se tocan — esto es HTML y CSS.
+
+### Qué estaba mal
+
+Capturando /torneos de verdad para poder mirarlo:
+
+- Cada torneo era **una línea de texto**. La imagen del torneo (tanda
+  239) cabía en 48 px y no se veía; quién iba apuntado, tampoco.
+- El héroe navy ocupaba **un tercio de la pantalla** antes de enseñar un
+  solo torneo.
+- Un torneo **EN JUEGO ahora mismo** pesaba visualmente lo mismo que uno
+  terminado hace un mes.
+- Y estaba lo de siempre: **todo pesaba igual**, así que nada destacaba.
+
+### La tarjeta
+
+El orden de lectura va de lo que más pesa a lo que menos: **estado → qué
+es → cuándo → quién va → una sola acción**.
+
+- **Portada**: la `image_url` del torneo a todo lo ancho. Si no la hay,
+  uno de seis degradados elegido **por el slug** — no al azar: si fuera
+  aleatorio la lista parpadearía de colores en cada refresco del sondeo.
+  La prueba carga dos veces y exige la misma clase.
+- **Las chapas** (estado, oficial, privado) pasan a fondo sólido **solo
+  encima de la portada**: sobre un degradado, los fondos casi
+  transparentes de siempre se volvían ilegibles. En la ficha y en el
+  calendario siguen exactamente igual.
+- **«En juego»** es lo único que no va en blanco: rojo sólido con un
+  punto que late (y que se para con `prefers-reduced-motion`). No es una
+  etiqueta, es algo que está pasando.
+- **Las caras** de los primeros cuatro inscritos, con el `+N` del resto.
+  El corte no es estético: pedir el perfil de los 32 de cada uno de 50
+  torneos para enseñar cuatro sería tirar la consulta.
+- **La barra de plazas** se pone naranja pasando del 80%. Es lo que
+  convierte «12/32» en «corre, que se llena».
+- **Un torneo terminado** cambia las plazas por **quién ganó**, que es
+  lo que se quiere saber de algo que ya pasó.
+
+### Una acción, y que diga la verdad
+
+| estado | botón |
+|---|---|
+| abierto, no estás dentro | **Apuntarme** (verde) |
+| abierto, ya estás dentro | Ver el torneo |
+| en juego | Ver el directo |
+| terminado | Resultados y mazos |
+| borrador | Seguir editando |
+
+«Apuntarme» **lleva a la ficha, no inscribe**: ahí están el aviso de
+decklist, el código del torneo privado y la lista de espera. Un botón
+que promete más de lo que hace es peor que ninguno.
+
+### Un `<button>` dentro de un `<a>` deja de existir
+
+Hasta hoy la tarjeta era un `<a>` con los botones de duplicar y borrar
+**dentro**, que no es HTML válido, y se sostenía a base de
+`preventDefault`. Ahora el enlace cubre portada y cuerpo, y el pie queda
+fuera con botones de verdad. La prueba cuenta cuántos elementos
+interactivos hay dentro del enlace y exige **cero**.
+
+### La barra del torneo que estás jugando
+
+Lo primero que quiere quien entra a /torneos un domingo por la tarde:
+**cuánto queda de ronda y por dónde se vuelve a su mesa**. Antes había
+que encontrar tu torneo entre los demás, entrar y buscar.
+
+Solo se pide la ronda **cuando hay un torneo tuyo en juego**: quien no
+esté jugando nada no paga ninguna consulta de más, y no ve una barra
+vacía ocupando el sitio del primer torneo. El reloj del navegador es
+orientativo, igual que en la ficha: quien cierra la ronda de verdad es
+el barredor por minuto del servidor.
+
+### Una consulta menos, no una más
+
+Las caras y el «organiza Fulano» necesitaban perfiles. En vez de
+añadir una consulta, la que ya existía —«¿cuál de los creadores es admin
+del sitio?»— pasa a traer `username` y `avatar_url` y a cubrir los tres
+usos. **Sigue habiendo tres viajes**: torneos, inscripciones, perfiles.
+
+### Lo que no se toca
+
+- La **ficha** y el **calendario**: sus pestañas siguen siendo
+  subrayado, porque allí son navegación. Las de la lista pasan a chips
+  porque son **filtros**, y por eso el estilo va en una clase aparte
+  (`.torneo-pestanas-chips`) en vez de reescribir la compartida.
+- El **presupuesto de la portada**: `css/torneos.css` no lo carga
+  index.html — solo quien entra a Jugar.
+- Modo **oscuro**: todo sale de los tokens, comprobado en los dos temas.
+
+### Comprobado
+
+`test-tanda-297.mjs` (9 bloques) contra la lista de verdad en Chromium:
+las acciones por estado, las caras y el `+N`, la barra naranja, el arte
+estable entre dos cargas, la barra del torneo en juego (y que no salga
+si no juegas nada), la lista **sin cuenta**, cero interactivos dentro del
+enlace, que la rejilla dé tres columnas a 1280 px y no desborde a 320, y
+que la **ficha** siga con sus pestañas de subrayado. Rigor: **18
+mutaciones, las 18 detectadas.**
+
+Y `test-torneos-15.mjs` (el que guarda el fallo de la tanda 233: el
+título estrujado a una palabra por línea en un móvil) **se reescribió**
+contra la estructura nueva en vez de borrarlo — y pilló un fallo de
+verdad: a 320 px, con las cuatro piezas del peor caso en el pie
+(«Retirado», Duplicar, Borrar y la acción), el botón se salía de la
+tarjeta. El `nowrap` del pie está para que dos tarjetas de una misma
+fila midan lo mismo; en una sola columna no hay fila que cuadrar, así
+que en móvil vuelve a partirse.

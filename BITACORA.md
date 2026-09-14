@@ -12,6 +12,67 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-14 (4) — PINGU-Claude (tanda 297-A — la lista de torneos, en tarjetas)
+
+**Hecho**: PINGU quiere modernizar las interfaces, empezando por
+torneos. Le pasé maquetas antes de tocar nada («me encanta el concepto,
+es una mejoría gigante y muy necesaria») y van tres tandas: A la lista,
+B la ficha, C rondas y clasificación. Esta es la A.
+
+**Ni una política, ni una RPC, ni el motor.** Solo HTML y CSS.
+
+Cada torneo era UNA LÍNEA de texto: la imagen del torneo (tanda 239)
+cabía en 48 px, quién iba apuntado no se veía, y un torneo EN JUEGO
+ahora mismo pesaba lo mismo que uno terminado hace un mes. Ahora es una
+tarjeta en rejilla: portada, bloque de fecha montado sobre ella,
+etiquetas de estructura, las caras de los cuatro primeros inscritos con
+su «+N», barra de plazas que se pone NARANJA pasando del 80%, y UNA
+acción por tarjeta que dice la verdad según el estado (Apuntarme en
+verde / Ver el torneo / Ver el directo / Resultados y mazos). Un torneo
+terminado cambia las plazas por quién ganó.
+
+«Apuntarme» LLEVA a la ficha, no inscribe: ahí están el aviso de
+decklist, el código del torneo privado y la lista de espera.
+
+**La barra del torneo que estás jugando**, arriba del todo: cuánto queda
+de ronda y «Ir a tu mesa». Solo se pide la ronda si HAY un torneo tuyo
+en juego — quien no juega nada no paga consulta ni ve una barra vacía.
+
+**Dos cosas que se arreglan de paso**: los botones de duplicar y borrar
+vivían DENTRO del `<a>` de la tarjeta (HTML inválido sostenido con
+preventDefault) y ahora el pie queda fuera del enlace; y el héroe navy,
+que se comía un tercio de la pantalla antes de enseñar un torneo, pasa a
+franja.
+
+**Una consulta menos, no una más**: las caras y el «organiza Fulano»
+necesitaban perfiles, así que la consulta que ya había («¿cuál de los
+creadores es admin?») pasa a traer username y avatar_url y cubre los
+tres usos. Siguen siendo tres viajes.
+
+**Lo que NO se toca**: las pestañas de la FICHA y del calendario siguen
+siendo subrayado —allí son navegación—; las de la lista pasan a chips
+porque son filtros, y por eso van en una clase aparte en vez de
+reescribir la compartida. Y el presupuesto de la portada ni se roza:
+css/torneos.css no lo carga index.html.
+
+Comprobado en claro, en oscuro y a 320 px.
+
+**Ficheros**: torneos.html, js/torneos/torneos.js, css/torneos.css,
+SCHEMA.md.
+
+**Pruebas**: test-tanda-297.mjs (NUEVA, 9 bloques). Rigor: 18
+mutaciones, las 18 detectadas. Y test-torneos-15.mjs REESCRITO: guardaba
+el fallo de la tanda 233 (el título estrujado a una palabra por línea en
+un móvil) contra una estructura que ya no existe; reescrito contra la
+nueva pilló un fallo de verdad —a 320 px, con «Retirado» + Duplicar +
+Borrar + la acción, el botón se salía de la tarjeta—.
+
+**En curso / pendiente**: las tandas B (la ficha: cabecera, barra viva y
+el tablero de tu partida) y C (rondas, mesas y clasificación). Si tocas
+torneo.js o ronda.js, avísame antes.
+
+---
+
 ## 2026-09-14 (3) — PINGU-Claude (tanda 296 — quien crea un torneo, lo lleva)
 
 **Hecho**: el hueco que dejé anotado en la 295, cerrado. PINGU: «sí, que
