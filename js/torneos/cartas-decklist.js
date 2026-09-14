@@ -17,6 +17,15 @@
 // energías básicas están exentas, como en el juego real. Una carta que
 // el espejo aún no tenga marcada (columna a NULL) no se señala: sin
 // dato no hay acusación.
+//
+// Y la REGLA DE LA REIMPRESIÓN, que es como lo hace el juego oficial (y
+// Limitless): una impresión antigua VALE si existe una carta con el
+// MISMO NOMBRE y una marca legal. Quien pega su lista con la
+// «Investigación de Profesores» de hace tres temporadas no está haciendo
+// trampas — está jugando la versión moderna con otra ilustración. Antes de acusar a una
+// carta de marca vieja, se mira si tiene reimpresión legal; solo si NO
+// la tiene se señala. Y señalar es AVISAR: el reglamento nunca impide
+// guardar la lista — de eso se encarga el juez, no el formulario.
 import { supabase } from '../supabase.js'
 import { searchCards, cardImageUrl, normalizeSearch } from '../tcgdex.js'
 import { escapeHtml } from '../app.js'
@@ -160,7 +169,21 @@ async function resolverCarta(linea) {
     if (!carta) {
       const { cartas } = await searchCards(linea.name, { limite: 24 })
       const gemelas = cartas.filter((c) => normalizeSearch(c.name) === nombreNorm)
-      carta = gemelas.find((c) => c.local_id === String(linea.number)) || gemelas[0] || cartas[0] || null
+      // Si el número de colección coincide, esa ES la impresión que el
+      // jugador escribió. Si no, la MÁS NUEVA con marca legal, y luego la
+      // más nueva a secas — antes se cogía la primera por orden
+      // alfabético, que entre diez gemelas era casi siempre una impresión
+      // ANTIGUA: imagen vieja y marca fuera de reglamento para una carta
+      // que el jugador puso bien.
+      const legales = await marcasLegales()
+      const fecha = (c) => String(c.tcg_sets?.release_date || '')
+      const mejor = [...gemelas].sort((a, b) => {
+        const va = legales.includes(a.regulation_mark) ? 1 : 0
+        const vb = legales.includes(b.regulation_mark) ? 1 : 0
+        if (va !== vb) return vb - va
+        return fecha(b).localeCompare(fecha(a))
+      })
+      carta = gemelas.find((c) => c.local_id === String(linea.number)) || mejor[0] || cartas[0] || null
     }
   } catch {
     carta = null
@@ -303,6 +326,32 @@ export async function rellenarChapasArquetipo(raiz) {
   )
 }
 
+// La regla de la reimpresión: ¿existe una carta con este MISMO nombre y
+// marca legal? Se pregunta por el nombre del ESPEJO (el de la carta ya
+// resuelta), que es el idioma en el que el espejo guarda sus gemelas —
+// el de la línea pegada viene en el idioma del jugador y no casaría.
+// Se guarda la PROMESA, no el resultado: las cuatro copias de una carta
+// se resuelven a la vez y con el resultado a secas saldrían cuatro
+// consultas idénticas antes de que la primera vuelva.
+const reimpresiones = new Map()
+function hayReimpresionLegal(nombre, legales) {
+  if (!reimpresiones.has(nombre)) {
+    reimpresiones.set(
+      nombre,
+      supabase
+        .from('tcg_cards')
+        .select('id')
+        .eq('market', 'WEST')
+        .eq('name', nombre)
+        .in('regulation_mark', legales)
+        .limit(1)
+        .then(({ data }) => !!data?.length)
+        .catch(() => false)
+    )
+  }
+  return reimpresiones.get(nombre)
+}
+
 const SECCIONES = [
   { campo: 'pokemon', titulo: 'Pokémon' },
   { campo: 'trainer', titulo: 'Trainer' },
@@ -348,12 +397,19 @@ export async function pintarDecklistVisual(contenedor, parsed) {
           'afterbegin',
           `<img src="${cardImageUrl(carta.image_path, 'low')}" alt="${escapeHtml(linea.name)}" loading="lazy" onerror="this.remove()" />`
         )
-        if (carta.regulation_mark && !legales.includes(carta.regulation_mark) && !esEnergiaBasica(linea)) {
+        if (
+          carta.regulation_mark &&
+          !legales.includes(carta.regulation_mark) &&
+          !esEnergiaBasica(linea) &&
+          // La regla de la reimpresión: una impresión vieja con versión
+          // moderna legal se juega — no se acusa.
+          !(await hayReimpresionLegal(carta.name, legales))
+        ) {
           fuera += linea.quantity
           hueco.classList.add('torneo-carta-ilegal')
           hueco.insertAdjacentHTML(
             'beforeend',
-            `<span class="torneo-carta-marca" title="Marca de regulación ${escapeHtml(carta.regulation_mark)}: fuera del reglamento (legales: ${legales.join(', ')})">${escapeHtml(carta.regulation_mark)}</span>`
+            `<span class="torneo-carta-marca" title="Marca de regulación ${escapeHtml(carta.regulation_mark)}: fuera del reglamento y sin reimpresión legal (legales: ${legales.join(', ')})">${escapeHtml(carta.regulation_mark)}</span>`
           )
         }
       })
@@ -361,7 +417,7 @@ export async function pintarDecklistVisual(contenedor, parsed) {
   )
   const aviso = contenedor.querySelector('[data-reglamento]')
   if (aviso && fuera > 0) {
-    aviso.textContent = `Fuera del reglamento: ${fuera} ${fuera === 1 ? 'carta' : 'cartas'} — esta temporada solo valen las marcas ${legales.join(', ')} (la letra pequeña de la esquina de la carta).`
+    aviso.textContent = `Fuera del reglamento: ${fuera} ${fuera === 1 ? 'carta' : 'cartas'} — esta temporada solo valen las marcas ${legales.join(', ')} (la letra pequeña de la esquina), y estas no tienen reimpresión legal. Es un aviso: la lista se puede entregar igual, lo revisará la organización.`
     aviso.classList.remove('hidden')
   }
 }

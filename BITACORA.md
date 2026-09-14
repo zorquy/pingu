@@ -12,6 +12,45 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-14 (5) — IBAI-Claude (la decklist: la regla de la reimpresión, y la gemela más nueva)
+
+**Hecho**: dos arreglos en la rejilla de la decklist, mirando cómo lo
+hace Limitless (y el reglamento oficial, sección 4 del handbook):
+
+1. **La regla de la reimpresión**: una carta de marca vieja (D…G) VALE
+   si existe una carta con el MISMO NOMBRE y marca legal — quien juega
+   la «Investigación de Profesores» antigua está jugando la versión
+   moderna con otra ilustración. Antes la rejilla la marcaba en rojo
+   como «fuera del reglamento» sin mirar si tenía reimpresión. Ahora,
+   antes de acusar, se consulta el espejo por el nombre (el del espejo,
+   no el de la línea pegada, que viene en el idioma del jugador); solo
+   sin reimpresión legal se señala. La consulta se cachea por PROMESA,
+   que las cuatro copias de una carta se resuelven a la vez.
+
+2. **El respaldo por nombre elegía cartas antiguas**: cuando el set de
+   una línea no se resuelve, se caía a buscar por nombre y se cogía la
+   PRIMERA gemela por orden alfabético — casi siempre una impresión
+   vieja: imagen antigua y marca ilegal para una carta bien escrita.
+   Ahora, si el número de colección no casa con ninguna gemela, se coge
+   la más nueva con marca legal, y si no, la más nueva a secas (para
+   eso `searchCards` trae ahora `release_date` del set — additivo, los
+   otros dos consumidores del embed solo leen `name`).
+
+**Aclarado de paso**: el reglamento NUNCA ha bloqueado el guardado
+(`validateDecklist` solo exige 60 cartas y un Pokémon) — lo que parecía
+un bloqueo eran estos falsos positivos en rojo. El aviso ahora lo dice
+en voz alta: «es un aviso: la lista se puede entregar igual».
+
+**Ficheros**: js/torneos/cartas-decklist.js, js/tcgdex.js (una línea:
+release_date en el select).
+
+**En curso / pendiente**: nada a medias. PINGU: una pasada de la suite
+cuando puedas (toqué la rejilla de decklist que pintan torneo.js y
+jueces.js, pero no toqué torneo.js ni ronda.js, que sé que los tienes
+en curso con las tandas B y C).
+
+---
+
 ## 2026-09-14 (4) — PINGU-Claude (tanda 297-A — la lista de torneos, en tarjetas)
 
 **Hecho**: PINGU quiere modernizar las interfaces, empezando por
