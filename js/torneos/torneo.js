@@ -17,6 +17,7 @@ import {
   puedeBorrarTorneo,
   COLUMNAS_PUBLICAS_INSCRIPCION,
   faltaLaRpc,
+  puedeOrganizar,
   avisoDeMigracion,
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
@@ -116,7 +117,7 @@ async function cargarDecklists() {
   // sirve para las tres cosas: la suya, quién ha entregado y el detalle
   // de cada una. Antes se pedía tres veces (dos aquí y otra en
   // jueces.js) en CADA refresco.
-  if (perfil?.is_admin || esJuez) {
+  if (puedeOrganizar(perfil) || esJuez) {
     const { data } = await supabase
       .from('tournament_decklists')
       .select('*')
@@ -275,7 +276,7 @@ function pintarFicha() {
   if (torneo.status !== 'registration_open') document.getElementById('torneoCerrarRondas')?.remove()
 
   const acciones = $('torneoAdminAcciones')
-  if (!perfil?.is_admin) {
+  if (!puedeOrganizar(perfil)) {
     pintarSiCambia(acciones, '')
   } else if (torneo.status === 'draft') {
     if (pintarSiCambia(acciones, '<button class="btn-primary" id="btnAbrirInscripciones">Abrir inscripciones</button>'))
@@ -294,14 +295,14 @@ function pintarFicha() {
   } else {
     pintarSiCambia(acciones, '')
   }
-  if (perfil?.is_admin && torneo.status !== 'draft') pintarAnuncioForo(acciones)
+  if (puedeOrganizar(perfil) && torneo.status !== 'draft') pintarAnuncioForo(acciones)
   ponerBotonCalendario(acciones)
   // Herramientas del organizador (tanda 211): editar mientras tenga
   // sentido, y cancelar mientras el torneo siga vivo.
-  anadirAccion(acciones, perfil?.is_admin && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status),
+  anadirAccion(acciones, puedeOrganizar(perfil) && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status),
     'btnEditarTorneo', '<button class="btn-secondary" id="btnEditarTorneo">Editar</button>',
     () => $('btnEditarTorneo').addEventListener('click', pintarEditor))
-  anadirAccion(acciones, perfil?.is_admin && !['finished', 'cancelled'].includes(torneo.status),
+  anadirAccion(acciones, puedeOrganizar(perfil) && !['finished', 'cancelled'].includes(torneo.status),
     'btnCancelarTorneo', '<button class="btn-secondary" id="btnCancelarTorneo">Cancelar torneo</button>',
     engancharCancelar)
   // Borrar va SIEMPRE el último y separado del resto: no es un paso más
@@ -442,6 +443,8 @@ function pintarEditor() {
         // El sello de OFICIAL, solo para administración (tanda 266). Un
         // organizador normal ni lo ve; y si lo mandara por la API, el
         // disparador de la base se lo revierte.
+        // Solo el admin del SITIO: un organizador manda en el torneo, pero
+        // no en la chapa que dice quién lo organiza (tanda 295).
         perfil?.is_admin
           ? `<label class="torneos-form-campo">
         <span><input type="checkbox" id="editarOficial" ${torneo.is_official ? 'checked' : ''} /> Torneo oficial de PokeDoc</span>
@@ -925,7 +928,7 @@ async function otorgarGloria() {
 // hubo. Lo sella el organizador al abrir la ficha (es quien tiene
 // permiso de escritura mientras los torneos son de admins).
 async function sellarResultado() {
-  if (torneo.status !== 'finished' || !perfil?.is_admin) return
+  if (torneo.status !== 'finished' || !puedeOrganizar(perfil)) return
   const podio = podioDelTorneo()
   if (!podio.length) return
 
@@ -1538,20 +1541,20 @@ function pintarInscritos() {
       const retirado = i.status === 'dropped' ? ' <span class="torneo-retirado">(retirado)</span>' : ''
       // Quién ha entregado lista lo ve solo el organizador: a los demás
       // jugadores no les incumbe (SPEC §9, visibilidad).
-      const decklist = perfil?.is_admin
+      const decklist = puedeOrganizar(perfil)
         ? `<span class="torneo-decklist-marca ${entregadaPor.has(i.user_id) ? 'entregada' : ''}">${entregadaPor.has(i.user_id) ? 'decklist entregada' : 'sin decklist'}</span>`
         : ''
       // Y el paso 2 (tanda 219), también solo para el organizador: sin
       // confirmar antes de la R1, ese jugador no entra en el pareo.
       const confirmado =
-        perfil?.is_admin && i.status === 'active' && 'participation_confirmed_at' in i && !['in_progress', 'finished', 'cancelled'].includes(torneo.status)
+        puedeOrganizar(perfil) && i.status === 'active' && 'participation_confirmed_at' in i && !['in_progress', 'finished', 'cancelled'].includes(torneo.status)
           ? `<span class="torneo-decklist-marca ${i.participation_confirmed_at ? 'entregada' : ''}">${i.participation_confirmed_at ? 'confirmado' : 'sin confirmar'}</span>`
           : ''
       // El organizador puede expulsar (misma mecánica que la baja: la
       // plaza no se libera y su ronda en curso cuenta) — a cualquiera
       // menos a sí mismo, que para eso está «Darme de baja».
       const expulsar =
-        perfil?.is_admin && i.status === 'active' && i.user_id !== session.user.id && !['finished', 'cancelled'].includes(torneo.status)
+        puedeOrganizar(perfil) && i.status === 'active' && i.user_id !== session.user.id && !['finished', 'cancelled'].includes(torneo.status)
           ? `<button class="btn-secondary torneo-expulsar" data-expulsar="${escapeHtml(i.id)}">Expulsar</button>`
           : ''
       return `

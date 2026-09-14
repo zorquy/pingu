@@ -12,6 +12,75 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-14 (2) — PINGU-Claude (tanda 295 — el rol de organizador de torneos)
+
+**Hecho**: hay una comunidad que quiere llevar los torneos de PokeDoc y
+PINGU no tiene tiempo de estar encima. Así que un rol nuevo:
+`user_profiles.is_tournament_admin`, que da el mando de la sección
+«Jugar» ENTERA (crear, editar, abrir y cerrar inscripciones, pareos,
+resolver disputas, cancelar, borrar, jueces) y de NADA más: ni el panel
+de administración, ni foro, ni guías.
+
+Se reparte desde /admin → Usuarios, con un interruptor por persona al
+lado del de Admin, y con el alcance explicado ahí mismo para que nadie
+lo dé a ciegas. De paso se arregla una trampa que me comí escribiéndolo:
+en Postgres pedir una columna que no existe tumba la consulta ENTERA, y
+`loadUsers()` metía la columna nueva en el primer escalón — faltando esta
+migración, la tabla de usuarios se caía al escalón de «sin color» y
+decía que faltaba la migración de los colores, que sí está puesta. Ahora
+la escalera son seis combinaciones explícitas y se apunta cuál entró.
+
+Tres piezas, y las tres hacen falta:
+
+1. **La base manda**: `torneos_soy_admin()` pasa a mirar las DOS
+   columnas, así que las políticas de las seis tablas del ciclo y las
+   RPC reconocen al organizador sin tocarlas una por una.
+2. **El sello de OFICIAL se queda en casa**: se parte una función nueva,
+   `torneos_soy_admin_del_sitio()` (solo `is_admin`), y el disparador de
+   `is_official` pasa a usarla. Un organizador monta y lleva torneos,
+   pero no le pone el sello de PokeDoc a lo suyo.
+3. **Nadie se da el rol a sí mismo**: `solo_admin_da_titulos()` ya
+   revertía `is_admin`; ahora revierte también `is_tournament_admin`.
+   Sin esto el rol se lo pone cualquiera con una llamada a la API.
+
+En el cliente, las ~22 puertas de `perfil?.is_admin` de torneos pasan por
+un solo sitio, `puedeOrganizar(perfil)` en comun.js. Las dos de «oficial»
+se quedan a propósito en `is_admin`, y `checkAccess()` del panel también:
+ahí el organizador no entra.
+
+PROBADO CONTRA POSTGRESQL DE VERDAD (sql-organizadores.sql, en
+`pruebas`): el organizador edita el torneo de PINGU (UPDATE 1), un
+jugador normal no (UPDATE 0), el `is_official` que se pone el organizador
+vuelve a `false`, el de PINGU se queda, y ni Ash se asciende solo ni el
+organizador asciende a Ash.
+
+**OJO, un hueco que NO he tocado y es decisión tuya**: desde la tanda 266
+CUALQUIERA puede crear un torneo, y la política de la base le deja
+llevarlo (`admin_id = auth.uid()`). Pero el JavaScript solo enseñaba esas
+herramientas a `is_admin`, así que quien crea un torneo hoy no puede
+abrir sus propias inscripciones desde la web. Esta tanda no lo arregla
+(lo suyo sería `puedeOrganizar(perfil) || torneo.admin_id === userId`),
+porque es decidir si los torneos de la comunidad se llevan solos o no.
+Dilo y lo hago.
+
+**Ficheros**: supabase-migration-torneos-organizadores.sql (NUEVO),
+js/torneos/comun.js, js/torneos/torneo.js, js/torneos/torneos.js,
+js/torneos/ronda.js, js/torneos/jueces.js, admin/js/admin.js, SCHEMA.md.
+
+**Pruebas**: test-tanda-295.mjs (NUEVA, 7 bloques) y
+sql-organizadores.sql. Rigor: 14 mutaciones, las 14 detectadas — dos de
+ellas pillaron pruebas flojas mías: una miraba solo la mitad del texto
+del panel (la que dice lo que el rol NO da), y otra daba por buena la
+escalera de columnas mirando las banderas sin comprobar que cada escalón
+pida de verdad lo que dice que trae.
+
+**PENDIENTE para PINGU — CINCO SQL**: torneos-chats (la más urgente),
+torneos-cola, torneos-bo3, torneos-privados y torneos-organizadores.
+Hasta que esta última esté puesta, el interruptor del panel avisa de que
+falta en vez de quedarse mudo.
+
+---
+
 ## 2026-09-11 13:25 — IBAI-Claude (un jugador no podía guardar su decklist)
 
 **Hecho**: un jugador pegaba su export de TCG Live tal cual y el editor

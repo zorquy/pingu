@@ -991,32 +991,41 @@ function selectorColorTituloHtml(u) {
 }
 
 async function loadUsers() {
-  // is_moderator y forum_title son de supabase-migration-foro-titulos.sql,
-  // y forum_title_color de supabase-migration-titulos-color.sql. Son DOS
-  // migraciones: se pide primero todo, y se va degradando — sin color, y
-  // si tampoco, sin foro — para que la tabla de usuarios nunca quede en
-  // blanco por una columna que falta.
-  let { data, error } = await supabase
-    .from('user_profiles')
-    .select(
-      'id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted, is_moderator, forum_title, forum_title_color'
-    )
-    .order('total_xp', { ascending: false })
-  let conColor = !error
-  if (error) {
-    ;({ data, error } = await supabase
-      .from('user_profiles')
-      .select('id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted, is_moderator, forum_title')
-      .order('total_xp', { ascending: false }))
+  // Aquí confluyen TRES migraciones distintas: foro-titulos
+  // (is_moderator, forum_title), titulos-color (forum_title_color) y
+  // torneos-organizadores (is_tournament_admin). Pueden estar puestas en
+  // cualquier combinación, y en Postgres pedir UNA columna que no existe
+  // tumba la consulta ENTERA — la tabla de usuarios se quedaría en
+  // blanco.
+  //
+  // Por eso se baja escalón a escalón hasta que una entra, y se apunta
+  // CUÁL entró. Lo de apuntarlo no es cosmético: la escalera de antes
+  // metía el rol de torneos en el primer escalón, así que faltando ESA
+  // columna el panel se caía al de «sin color» y decía que faltaba la
+  // migración de los colores, que sí estaba puesta.
+  const BASE = 'id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted'
+  const FORO = `${BASE}, is_moderator, forum_title`
+  const ESCALONES = [
+    { campos: `${FORO}, forum_title_color, is_tournament_admin`, foro: true, color: true, torneos: true },
+    { campos: `${FORO}, forum_title_color`, foro: true, color: true, torneos: false },
+    { campos: `${FORO}, is_tournament_admin`, foro: true, color: false, torneos: true },
+    { campos: FORO, foro: true, color: false, torneos: false },
+    { campos: `${BASE}, is_tournament_admin`, foro: false, color: false, torneos: true },
+    { campos: BASE, foro: false, color: false, torneos: false },
+  ]
+  let data = []
+  let escalon = ESCALONES[ESCALONES.length - 1]
+  for (const e of ESCALONES) {
+    const r = await supabase.from('user_profiles').select(e.campos).order('total_xp', { ascending: false })
+    if (!r.error) {
+      data = r.data
+      escalon = e
+      break
+    }
   }
-  let conForo = !error
-  if (error) {
-    const alterno = await supabase
-      .from('user_profiles')
-      .select('id, username, display_name, total_xp, level, is_admin, is_pro, is_banned, is_muted')
-      .order('total_xp', { ascending: false })
-    data = alterno.data
-  }
+  const conColor = escalon.color
+  const conForo = escalon.foro
+  const conTorneos = escalon.torneos
   const users = data || []
 
   document.getElementById('usersTable').innerHTML = `
@@ -1025,6 +1034,12 @@ async function loadUsers() {
         ? `<p class="admin-note">El <strong>título de foro</strong> es lo que se lee bajo el nombre de esa persona en cada
              mensaje ("Miembro del equipo", "Perito de falsificaciones"…). Es solo reconocimiento: no da ningún permiso.
              La <strong>moderación</strong> sí: puede fijar, cerrar, editar y borrar en el foro, pero no entra aquí.${
+               conTorneos
+                 ? ` <strong>Torneos</strong> da el mando de la sección «Jugar» —crear y llevar cualquier torneo, resolver
+             disputas, cancelar— y de nada más: ni este panel, ni foro, ni guías. Lo único que no puede es marcar
+             un torneo como oficial de PokeDoc.`
+                 : ' Para dar el rol de organizador de torneos, falta ejecutar supabase-migration-torneos-organizadores.sql.'
+             }${
                conColor
                  ? ' El color pinta el título en el foro — el dorado de un veterano se ve de lejos.'
                  : ' Para poder darles color, falta ejecutar supabase-migration-titulos-color.sql.'
@@ -1032,7 +1047,7 @@ async function loadUsers() {
         : `<p class="admin-note">Para los títulos de foro y la moderación, falta ejecutar supabase-migration-foro-titulos.sql.</p>`
     }
     <table class="admin-table">
-      <thead><tr><th>Nombre</th><th>Nivel</th><th>XP</th><th>Admin</th><th>Pro</th>${
+      <thead><tr><th>Nombre</th><th>Nivel</th><th>XP</th><th>Admin</th>${conTorneos ? '<th>Torneos</th>' : ''}<th>Pro</th>${
         conForo ? '<th>Título de foro</th>' : ''
       }<th>Estado</th><th></th></tr></thead>
       <tbody>
@@ -1044,6 +1059,7 @@ async function loadUsers() {
             <td>${escapeHtml(u.level || 'Novato')}</td>
             <td>${u.total_xp || 0}</td>
             <td>${u.is_admin ? '✓' : ''}</td>
+            ${conTorneos ? `<td>${u.is_tournament_admin ? '✓' : ''}</td>` : ''}
             <td>${u.is_pro ? '✓' : ''}</td>
             ${
               conForo
@@ -1064,6 +1080,13 @@ async function loadUsers() {
                   : ''
               }
               <button data-toggle-admin="${u.id}" data-current="${u.is_admin ? '1' : '0'}">${u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
+              ${
+                conTorneos
+                  ? `<button data-toggle-torneos="${u.id}" data-current="${u.is_tournament_admin ? '1' : '0'}" title="Manda en la sección Jugar y en nada más. No da acceso a este panel.">${
+                      u.is_tournament_admin ? 'Quitar torneos' : 'Hacer organizador/a'
+                    }</button>`
+                  : ''
+              }
               <button data-toggle-pro="${u.id}" data-current="${u.is_pro ? '1' : '0'}">${u.is_pro ? 'Quitar Pro' : 'Hacer Pro'}</button>
               <button data-toggle-muted="${u.id}" data-current="${u.is_muted ? '1' : '0'}">${u.is_muted ? 'Quitar silencio' : 'Silenciar'}</button>
               <button data-toggle-banned="${u.id}" data-current="${u.is_banned ? '1' : '0'}">${u.is_banned ? 'Quitar baneo' : 'Banear'}</button>
@@ -1115,6 +1138,34 @@ async function loadUsers() {
         : '¿Quitarle el acceso de admin a esta persona?'
       if (!confirm(confirmMsg)) return
       await supabase.from('user_profiles').update({ is_admin: makeAdmin }).eq('id', btn.dataset.toggleAdmin)
+      loadUsers()
+    })
+  )
+
+  // El rol de organizador de torneos (tanda 295): manda en la sección
+  // «Jugar» y en nada más — ni este panel, ni foro, ni guías. Quien
+  // decide de verdad es `torneos_soy_admin()` en la base, que mira las
+  // dos columnas; esto solo la pone.
+  document.querySelectorAll('[data-toggle-torneos]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const dar = btn.dataset.current !== '1'
+      const aviso = dar
+        ? 'Podrá crear y llevar CUALQUIER torneo del sitio: abrir inscripciones, generar pareos, resolver disputas y cancelarlos. No entra a este panel ni toca el resto de la web. ¿Continuar?'
+        : '¿Le quitas la organización de torneos?'
+      if (!confirm(aviso)) return
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ is_tournament_admin: dar })
+        .eq('id', btn.dataset.toggleTorneos)
+      if (error) {
+        showToast(
+          /column|schema cache/i.test(error.message || '')
+            ? 'Falta ejecutar supabase-migration-torneos-organizadores.sql en Supabase.'
+            : 'No se ha podido cambiar: ' + error.message,
+          'error'
+        )
+        return
+      }
       loadUsers()
     })
   )

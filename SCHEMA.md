@@ -14160,3 +14160,110 @@ exactamente lo que pilló el rigor.
 
 `test-tanda-294.mjs` (21) y `sql-chats.sql` contra PostgreSQL. Rigor:
 **6 mutaciones, las 6 detectadas.**
+
+---
+
+## Tanda 295 — el rol de organizador de torneos (sept. 2026)
+
+Hay una comunidad de fuera que quiere llevar los torneos de PokeDoc, y
+PINGU no tiene tiempo de estar encima de cada uno. Hacía falta un rol que
+diera **el mando de «Jugar» entera y de nada más**: ni panel de
+administración, ni foro, ni guías.
+
+### La columna y las dos funciones
+
+`user_profiles.is_tournament_admin` (boolean, `default false`).
+
+Lo que hace que esto no sea tocar veinte políticas es que ya había **una
+sola función** por la que pasaban todas: `torneos_soy_admin()`. Se
+amplía ahí y listo — políticas de las seis tablas del ciclo y RPC
+incluidas:
+
+```sql
+select exists (
+  select 1 from public.user_profiles p
+   where p.id = auth.uid()
+     and (p.is_admin or coalesce(p.is_tournament_admin, false))
+);
+```
+
+Pero hay una cosa que **no** debía ampliarse: el sello de **oficial de
+PokeDoc**. Un organizador monta y lleva torneos; decidir cuáles llevan el
+sello de la casa sigue siendo de administración. Así que se parte una
+función hermana, `torneos_soy_admin_del_sitio()` (solo `is_admin`), y el
+disparador `torneos_solo_admin_marca_oficial` de la tanda 266 pasa a
+usar ESA. Es el único sitio del proyecto que distingue las dos.
+
+### Nadie se da el rol a sí mismo
+
+`solo_admin_da_titulos()` ya revertía `is_admin` cuando el que escribe no
+es admin. Ahora revierte también `is_tournament_admin`:
+
+```sql
+new.is_admin := old.is_admin;
+new.is_tournament_admin := coalesce(old.is_tournament_admin, false);
+```
+
+Sin esto el rol se lo pone cualquiera con una llamada a la API — el
+formulario no enseña la casilla, pero eso nunca ha protegido nada. Y
+ojo: el organizador tampoco puede repartirlo, porque la función mira
+`is_admin`, no la ampliada.
+
+### En el cliente, una sola puerta
+
+Las ~22 comprobaciones de `perfil?.is_admin` repartidas por torneo.js,
+torneos.js, ronda.js y jueces.js pasan por `puedeOrganizar(perfil)` en
+`js/torneos/comun.js`. Dos se quedan a propósito como estaban:
+
+- `torneoOficialCampo` (la casilla de oficial) → `is_admin`.
+- `checkAccess()` de `admin/js/admin.js` → `is_admin`. El organizador no
+  entra al panel, que es literalmente lo que se pidió.
+
+Esto es **pintar**, no proteger: quien decide sigue siendo la política.
+La regla de la casa —«no metas un `if` de `is_admin` para proteger
+torneos»— sigue en pie.
+
+### Repartirlo
+
+/admin → Usuarios: columna «Torneos» al lado de «Admin», un interruptor
+por persona, y el alcance escrito ahí mismo («da el mando de la sección
+Jugar… y de nada más: ni este panel, ni foro, ni guías»).
+
+Y una trampa que salió al escribirlo: en Postgres, pedir **una** columna
+que no existe tumba la consulta **entera**. `loadUsers()` ya bajaba
+escalones por las columnas del foro, pero meter `is_tournament_admin` en
+el primero hacía que, faltando ESA migración, la tabla se cayera al
+escalón de «sin color» — se perdían los colores del foro, que sí estaban
+puestos, y el panel acusaba a la migración equivocada. Ahora la escalera
+es una lista explícita de seis combinaciones y **se apunta cuál entró**,
+así que sin la columna simplemente no se pinta ni la casilla ni el botón,
+y la nota dice exactamente qué SQL falta.
+
+### Probado, no argumentado
+
+`sql-organizadores.sql` (rama de pruebas), contra **PostgreSQL de
+verdad**, aplicando el fichero de migración real:
+
+| caso | resultado |
+|---|---|
+| organizador edita el torneo de PINGU | `UPDATE 1` |
+| jugador normal lo intenta | `UPDATE 0` |
+| organizador se marca `is_official` | vuelve a `f` |
+| PINGU marca `is_official` | se queda `t` |
+| Ash se asciende solo | las dos columnas siguen en `f` |
+| organizador asciende a Ash | `UPDATE 0` |
+
+### El hueco que NO se cierra aquí
+
+Desde la tanda 266 **cualquiera** puede crear un torneo, y la política le
+deja llevarlo (`torneos_soy_admin() or admin_id = auth.uid()`). Pero el
+JavaScript solo enseñaba esas herramientas a admin, así que **quien crea
+un torneo hoy no puede abrir sus propias inscripciones desde la web**.
+Esta tanda no lo toca: el arreglo sería `puedeOrganizar(perfil) ||
+torneo.admin_id === userId`, pero es decidir si los torneos de la
+comunidad se llevan solos, y eso es de producto. Queda anotado.
+
+### Comprobado
+
+`test-tanda-295.mjs` (7 bloques) y `sql-organizadores.sql` contra
+PostgreSQL. Rigor: **14 mutaciones, las 14 detectadas.**

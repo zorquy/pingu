@@ -127,17 +127,35 @@ export function nombreDeSetLive(codigo) {
 // sin desplegar; esto es el respaldo si la clave no existe.
 export const MARCAS_LEGALES_DEFECTO = ['H', 'I', 'J']
 
+// ── Quién manda en los torneos (tanda 295) ──
+//
+// PINGU le dio las llaves de la sección «Jugar» a la gente que se ha
+// organizado para llevarla: mandan en los torneos y en nada más. Ni
+// panel de administración, ni foro, ni guías.
+//
+// Ojo con lo que esta función es y lo que no, igual que con
+// `puedeBorrarTorneo`: decide qué se PINTA. Lo que de verdad decide es
+// `torneos_soy_admin()` en la base, que mira las dos columnas. Las dos
+// dicen lo mismo a propósito — esconder un botón no protege nada.
+//
+// Y lo que NO entra aquí: marcar un torneo como OFICIAL de PokeDoc.
+// Esa chapa dice «esto lo organiza el equipo de la casa», así que sigue
+// siendo de `is_admin` a secas, en la pantalla y en el disparador.
+export function puedeOrganizar(perfil) {
+  return Boolean(perfil?.is_admin || perfil?.is_tournament_admin)
+}
+
 // ── Quién puede borrar un torneo (tanda 222, pedido por PINGU) ──
-// El admin del sitio o quien lo creó. Vive AQUÍ, en el módulo sin DOM,
-// por dos motivos: la usan la ficha y la lista, y así se puede probar
-// sola en Node en vez de a través de una pantalla.
+// Quien manda en los torneos, o quien lo creó. Vive AQUÍ, en el módulo
+// sin DOM, por dos motivos: la usan la ficha y la lista, y así se puede
+// probar sola en Node en vez de a través de una pantalla.
 //
 // Ojo con lo que esta función es y lo que no: decide si se PINTA el
 // botón. Lo que de verdad impide borrar el torneo de otro es la
 // política `torneos_borrar` de la base — esconder un botón no protege
 // nada. Las dos dicen lo mismo a propósito.
 export function puedeBorrarTorneo(perfil, torneo, userId) {
-  if (perfil?.is_admin) return true
+  if (puedeOrganizar(perfil)) return true
   return Boolean(userId && torneo?.admin_id && torneo.admin_id === userId)
 }
 

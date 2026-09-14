@@ -10,6 +10,7 @@
 import { supabase } from '../supabase.js'
 import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
+import { puedeOrganizar } from './comun.js'
 import { pintarDecklistVisual } from './cartas-decklist.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { pintarSiCambia } from './pintar.js'
@@ -80,7 +81,7 @@ async function cargar() {
   // enteras. Quien está JUGANDO se lleva solo las suyas, que las
   // necesita para saber si su llamada sigue abierta. Quien solo mira no
   // pide nada: una consulta menos por refresco y por persona.
-  const puedeAtender = Boolean(ctx.perfil?.is_admin || ctx.esJuez)
+  const puedeAtender = Boolean(puedeOrganizar(ctx.perfil) || ctx.esJuez)
   const tengoMesa = Boolean(yo() && mesas.some((m) => m.player_a_id === yo() || m.player_b_id === yo()))
   if (puedeAtender || tengoMesa) {
     let q = supabase.from('judge_calls').select('*').eq('tournament_id', ctx.torneo.id)
@@ -102,7 +103,7 @@ async function cargar() {
   // Las decklists completas SOLO para juez u organizador (SPEC §9: los
   // jugadores nunca ven las ajenas — desde aquí ni se piden).
   decklistsTorneo = []
-  if (ctx.perfil?.is_admin || ctx.esJuez) {
+  if (puedeOrganizar(ctx.perfil) || ctx.esJuez) {
     // Igual que arriba: quien es juez u organizador ya se las ha traído
     // enteras en la ficha, y son la MISMA consulta.
     if (ctx.decklistsTorneo) {
@@ -128,7 +129,7 @@ async function cargar() {
 // texto crudo tal cual lo pegó el jugador.
 function pintarDecklistsJuez() {
   const caja = $('torneoDecklistsJuezCaja')
-  const soyJuez = ctx.perfil?.is_admin || ctx.esJuez
+  const soyJuez = puedeOrganizar(ctx.perfil) || ctx.esJuez
   const activos = ctx.inscripciones.filter((i) => i.status === 'active')
   if (!soyJuez || (!decklistsTorneo.length && !activos.length)) {
     caja.classList.add('hidden')
@@ -361,7 +362,7 @@ async function llamarJuez() {
 
 function pintarCola() {
   const caja = $('torneoColaCaja')
-  const soyJuez = ctx.perfil?.is_admin || ctx.esJuez
+  const soyJuez = puedeOrganizar(ctx.perfil) || ctx.esJuez
   const vivas = llamadas.filter((c) => c.status !== 'resolved')
   if (!soyJuez || (!vivas.length && !disputadas.length && !llamadas.length)) {
     caja.classList.add('hidden')
@@ -485,7 +486,7 @@ function pintarSolicitudes() {
   }
 
   let gestion = ''
-  if (ctx.perfil?.is_admin) {
+  if (puedeOrganizar(ctx.perfil)) {
     const filas = pendientes
       .map(
         (s) => `

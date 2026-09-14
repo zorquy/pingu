@@ -14,7 +14,7 @@ import { escapeHtml, getSession, getProfile, slugify, uploadProfileImage } from 
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { officialStructure } from './motor.js'
-import { ESTADOS, fechaBonita, textoFormato, puedeBorrarTorneo } from './comun.js'
+import { ESTADOS, fechaBonita, textoFormato, puedeBorrarTorneo, puedeOrganizar } from './comun.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 
 const $ = (id) => document.getElementById(id)
@@ -846,6 +846,9 @@ async function init() {
   // La casilla de OFICIAL, solo para administración. El candado de
   // verdad está en la base (trg_torneos_solo_admin_marca_oficial): esto
   // es no enseñar una opción que no se puede usar.
+  // La casilla de OFICIAL no: esa chapa dice «lo organiza el equipo de la
+  // casa», así que sigue siendo de `is_admin` a secas — igual que el
+  // disparador que la defiende en la base (tanda 295).
   document.getElementById('torneoOficialCampo')?.classList.toggle('hidden', !perfil?.is_admin)
   document.getElementById('torneosContenido').style.display = ''
   // El aviso de «borrado» lo deja la ficha antes de traernos aquí: allí

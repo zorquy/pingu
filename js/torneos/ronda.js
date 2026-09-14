@@ -5,7 +5,7 @@
 // el refresco es por sondeo — decisiones fijadas en CLAUDE.md.
 //
 // torneo.js monta este módulo con montarCiclo(ctx) en cada recarga.
-import { faltaLaRpc, avisoDeMigracion } from './comun.js'
+import { faltaLaRpc, avisoDeMigracion, puedeOrganizar } from './comun.js'
 import { supabase } from '../supabase.js'
 import { pintarSiCambia } from './pintar.js'
 import { escapeHtml } from '../app.js'
@@ -104,7 +104,7 @@ async function cargarCiclo() {
     // para pintar algo que esa persona no ve (tanda 255).
     const mi = miId()
     const necesitaReportes = Boolean(
-      ctx.perfil?.is_admin || ctx.esJuez || (mi && partidas.some((m) => m.player_a_id === mi || m.player_b_id === mi))
+      puedeOrganizar(ctx.perfil) || ctx.esJuez || (mi && partidas.some((m) => m.player_a_id === mi || m.player_b_id === mi))
     )
     const [{ data: reps }, { data: ress }] = await Promise.all([
       necesitaReportes
@@ -178,7 +178,7 @@ async function cargarArquetipos() {
 function chapaDe(userId) {
   const arq = arquetipos.get(userId)
   if (!arq) return ''
-  return chapaArquetipoHtml(arq, { marcar: Boolean(ctx.perfil?.is_admin || ctx.esJuez) })
+  return chapaArquetipoHtml(arq, { marcar: Boolean(puedeOrganizar(ctx.perfil) || ctx.esJuez) })
 }
 
 // El historial de cruces, bajo demanda. Sin él, pairSwissRound repetiría
@@ -844,7 +844,7 @@ function pintarPareoManual(ronda) {
     return
   }
   const sueltos = sinMesa(ronda)
-  if (ronda.status !== 'pending' || !sueltos.length || !ctx.perfil?.is_admin) {
+  if (ronda.status !== 'pending' || !sueltos.length || !puedeOrganizar(ctx.perfil)) {
     caja.innerHTML = ''
     return
   }
@@ -990,14 +990,14 @@ function chapaDeMesa(m) {
 function pintarMesas(ronda) {
   const mesas = partidas.filter((m) => m.round_id === ronda.id).sort((a, b) => a.table_number - b.table_number)
   if (!mesas.length) return '<p class="subtext">Sin mesas todavía.</p>'
-  const puedeResolver = (ctx.perfil?.is_admin || ctx.esJuez) && ronda.status === 'active'
+  const puedeResolver = (puedeOrganizar(ctx.perfil) || ctx.esJuez) && ronda.status === 'active'
   // Corregir (pedido de Ibai, 2026-09-02): el organizador puede CAMBIAR
   // el resultado de una mesa ya cerrada, pero solo en la ÚLTIMA ronda —
   // tocar una anterior dejaría los pareos posteriores apoyados en
   // resultados que ya no cuentan (para eso está deshacerRonda). Solo el
   // admin, no los jueces: pisar un resultado firme es del organizador.
   const esUltima = rondas.length > 0 && ronda.id === rondas[rondas.length - 1].id
-  const puedeCorregir = Boolean(ctx.perfil?.is_admin) && esUltima && ctx.torneo.status !== 'cancelled'
+  const puedeCorregir = Boolean(puedeOrganizar(ctx.perfil)) && esUltima && ctx.torneo.status !== 'cancelled'
   const conAcciones = puedeResolver || puedeCorregir
   const filas = mesas
     .map((m) => {
@@ -1069,7 +1069,7 @@ function pintarRondas() {
 
   const actual = rondaActual()
   let admin = ''
-  if (ctx.perfil?.is_admin && ctx.torneo.status !== 'finished') {
+  if (puedeOrganizar(ctx.perfil) && ctx.torneo.status !== 'finished') {
     if (!actual && rondas.length < ctx.torneo.swiss_rounds) {
       admin = `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la ronda ${rondas.length + 1}</button>`
     } else if (actual?.status === 'pending') {
