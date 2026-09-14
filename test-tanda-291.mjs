@@ -88,7 +88,7 @@ console.log('\n── 2. En BO3 hay TRES partidas que marcar ──')
   // antes que la segunda.
   check('solo la 1.ª tiene botones', (await filas.nth(0).locator('[data-reporte]').count()) === 3 && (await filas.nth(1).locator('[data-reporte]').count()) === 0)
   check('las otras esperan', (await filas.nth(1).textContent())?.includes('Pendiente'))
-  check('y se ve el marcador', (await page.locator('.torneo-bo3-marcador').textContent())?.includes('0-0'))
+  check('y se ve el marcador', (await page.locator('.torneo-bo3-cab .torneo-chapa').textContent())?.includes('0-0'))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }
@@ -119,7 +119,7 @@ console.log('\n── 4. Con 2-0, la tercera NO se juega ──')
   check('la tercera dice que no se juega', (await filas.nth(2).textContent())?.includes('No se juega'), await filas.nth(2).textContent())
   // Esto es lo que pidió PINGU: que no se pueda votar la tercera.
   check('y no tiene botones', (await filas.nth(2).locator('[data-reporte]').count()) === 0)
-  check('el marcador dice 2-0', (await page.locator('.torneo-bo3-marcador').textContent())?.includes('2-0'))
+  check('el marcador dice 2-0', (await page.locator('.torneo-bo3-cab .torneo-chapa').textContent())?.includes('2-0'))
   await page.close()
 }
 
@@ -137,7 +137,7 @@ console.log('\n── 4b. El 1-1: la tercera SÍ se juega ──')
   check('la 1.ª, ganada', (await filas.nth(0).textContent())?.includes('La ganaste'), await filas.nth(0).textContent())
   check('la 2.ª, perdida', (await filas.nth(1).textContent())?.includes('La perdiste'), await filas.nth(1).textContent())
   check('y la 3.ª abierta', (await filas.nth(2).locator('[data-reporte]').count()) === 3)
-  check('con el marcador a 1-1', (await page.locator('.torneo-bo3-marcador').textContent())?.includes('1-1'))
+  check('con el marcador a 1-1', (await page.locator('.torneo-bo3-cab .torneo-chapa').textContent())?.includes('1-1'))
   await page.close()
 }
 

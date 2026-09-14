@@ -165,36 +165,47 @@ console.log('\n── 2. Inscritos: columnas de verdad, no cada fila a su aire �
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 3. Mesas: tarjetas con etiqueta en móvil, tabla en PC ──')
+console.log('\n── 3. Las mesas se leen igual en un móvil que en un PC ──')
 {
-  const page = await abrir('/torneo?slug=movil', 390, SEMILLA)
-  await ir(page, 'rondas')
-  const movil = await page.evaluate(() => {
-    const td = document.querySelector('.torneo-mesa-num')
-    if (!td) return null
-    const tabla = td.closest('table')
-    return {
-      etiquetas: [...td.closest('tr').querySelectorAll('td')].map((c) => c.dataset.etiqueta || ''),
-      apilado: getComputedStyle(td).display !== 'table-cell',
-      cabeceraOculta: getComputedStyle(tabla.querySelector('thead')).display === 'none',
-      tablaCabe: tabla.scrollWidth <= tabla.clientWidth + 1,
-    }
-  })
-  check('las mesas se pintan', movil !== null)
-  check('cada dato lleva su etiqueta', movil && movil.etiquetas.filter(Boolean).length >= 4, JSON.stringify(movil?.etiquetas))
-  check('las celdas se apilan', movil && movil.apilado)
-  check('la cabecera de la tabla se esconde', movil && movil.cabeceraOculta)
-  check('la tabla no pide arrastrar de lado', movil && movil.tablaCabe)
-  await page.close()
-
-  const pc = await abrir('/torneo?slug=movil', 1200, SEMILLA)
-  await ir(pc, 'rondas')
-  const escritorio = await pc.evaluate(() => {
-    const td = document.querySelector('.torneo-mesa-num')
-    return td ? { celda: getComputedStyle(td).display, cabecera: getComputedStyle(td.closest('table').querySelector('thead')).display } : null
-  })
-  check('en escritorio sigue siendo una tabla', escritorio && escritorio.celda === 'table-cell' && escritorio.cabecera !== 'none', JSON.stringify(escritorio))
-  await pc.close()
+  // Lo que este bloque guardaba (tanda 221): una TABLA de mesas no cabe
+  // en un móvil, y arrastrarla de lado para leer quién juega contra
+  // quién es incomodísimo —lo sufrió PINGU—. Se resolvía convirtiéndola
+  // en tarjetas por CSS, con un `data-etiqueta` delante de cada celda.
+  //
+  // La tanda 298 quitó la tabla: ahora son enfrentamientos que se leen
+  // igual en los dos sitios, así que el apaño sobra. Lo que NO sobra es
+  // la garantía, y eso es lo que se comprueba aquí contra la estructura
+  // nueva: que se lea, y que no haya que arrastrar nada.
+  for (const ancho of [390, 1200]) {
+    const page = await abrir('/torneo?slug=movil', ancho, SEMILLA)
+    await ir(page, 'rondas')
+    const m = await page.evaluate(() => {
+      const mesa = document.querySelector('.torneo-mesa')
+      if (!mesa) return null
+      const caja = mesa.getBoundingClientRect()
+      const lados = [...mesa.querySelectorAll('.torneo-mesa-lado')]
+      return {
+        mesas: document.querySelectorAll('.torneo-mesa').length,
+        dosLados: lados.length,
+        // Los dos jugadores y el resultado, cada uno con su sitio.
+        conNumero: Boolean(mesa.querySelector('.torneo-mesa-num')),
+        conResultado: Boolean(mesa.querySelector('.torneo-mesa-centro')),
+        // Nada asomando por los bordes de su propia mesa.
+        seSalen: [...mesa.querySelectorAll('*')].filter((e) => {
+          const r = e.getBoundingClientRect()
+          return r.width > 0 && (r.right > caja.right + 1 || r.left < caja.left - 1)
+        }).length,
+        arrastrar: document.querySelector('.torneo-mesas').scrollWidth > document.querySelector('.torneo-mesas').clientWidth + 1,
+      }
+    })
+    check(`${ancho}px · las mesas se pintan`, m !== null)
+    check(`${ancho}px · las dos mesas de la ronda`, m && m.mesas === 2, JSON.stringify(m))
+    check(`${ancho}px · con sus dos lados`, m && m.dosLados === 2, JSON.stringify(m))
+    check(`${ancho}px · el número y el resultado en su sitio`, m && m.conNumero && m.conResultado, JSON.stringify(m))
+    check(`${ancho}px · nada se sale de su mesa`, m && m.seSalen === 0, JSON.stringify(m))
+    check(`${ancho}px · y no hay que arrastrar de lado`, m && !m.arrastrar, JSON.stringify(m))
+    await page.close()
+  }
 }
 
 // ═════════════════════════════════════════════════════════════════════
@@ -207,7 +218,11 @@ console.log('\n── 4. La ficha nunca enseña «undefined» ──')
   })
   const formato = await page.locator('#torneoFormato').innerText()
   check('sin «undefined» en la caja de formato', !/undefined/i.test(formato), formato.replace(/\n/g, ' · '))
-  check('el check-in cae al valor por defecto', /Check-in\s*5 min/i.test(formato), formato.replace(/\n/g, ' · '))
+  // La chapa dice «5 min de check-in» desde la tanda 298; antes era un
+  // «Check-in / 5 min» en dos renglones. Lo que se guarda es el VALOR
+  // POR DEFECTO, no la redacción.
+  check('el check-in cae al valor por defecto', /5 min de check-in/i.test(formato), formato.replace(/\n/g, ' · '))
+  check('y el tiempo de ronda también', /30 min por ronda/i.test(formato), formato.replace(/\n/g, ' · '))
   await page.close()
 }
 

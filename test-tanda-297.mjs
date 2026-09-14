@@ -152,17 +152,27 @@ console.log('\n── 4. La portada no cambia de color en cada recarga ──')
 {
   // Se elige por el slug y no al azar. Si fuera aleatorio, la lista
   // parpadearía de colores en cada refresco del sondeo.
-  const clase = async () => {
+  // Se comparan TODAS las tarjetas de dos cargas, no una. Con una sola,
+  // un arte echado a suertes acierta una de cada seis veces y la prueba
+  // pasaría a ratos — que es peor que no tenerla.
+  const artes = async () => {
     const { page } = await abrir()
     await abrirGrupo(page, 'Abiert')
-    const c = await tarjetaDe(page, 'Copa de Invierno').locator('.torneo-arte').getAttribute('class')
+    const cs = await page.locator('.torneo-arte').evaluateAll((ns) =>
+      ns.map((n) => (n.className.match(/torneo-arte-\d/) || [''])[0]))
     await page.close()
-    return c
+    return cs
   }
-  const a = await clase()
-  const b = await clase()
-  check('el mismo torneo, el mismo arte en dos cargas', a === b, `${a} / ${b}`)
-  check('  …y es uno de los seis', /torneo-arte-[1-6]\b/.test(a), a)
+  const a = await artes()
+  const b = await artes()
+  check('hay tarjetas que comparar', a.length >= 2, a.join(', '))
+  check('los mismos torneos, el mismo arte en dos cargas', a.join('|') === b.join('|'), `${a.join(',')} / ${b.join(',')}`)
+  check('  …y todos son uno de los seis', a.every((c) => /^torneo-arte-[1-6]$/.test(c)), a.join(', '))
+  // Y que salga del SLUG y no de la suerte, dicho en el código: es lo
+  // único que lo deja demostrado en vez de probable.
+  const fn = JS_LISTA.match(/function arteDe\(t\) \{[\s\S]*?\n\}/)?.[0] || ''
+  check('  …porque se calcula del slug, no al azar',
+    /t\.slug/.test(fn) && !/Math\.random/.test(fn), fn.slice(0, 120))
 }
 
 console.log('\n── 5. La barra del torneo que estás jugando ──')
@@ -272,15 +282,16 @@ console.log('\n── 9. Y la FICHA se queda como estaba ──')
   await page.goto(`${BASE}/torneo?slug=copa-invierno`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
   const nav = await page.evaluate(() => {
-    const n = document.querySelector('.torneo-pestanas')
-    if (!n) return null
-    const b = n.querySelector('.torneo-pestana')
-    const e = getComputedStyle(n)
-    return { anchoDelSubrayado: parseFloat(e.borderBottomWidth), radioDeLaPestana: b ? getComputedStyle(b).borderRadius : '' }
+    const n = document.querySelector('#torneoPestanas')
+    return n ? { clases: n.className } : null
   })
   check('la ficha sigue teniendo sus pestañas', nav !== null)
-  check('  …con el subrayado de siempre', (nav?.anchoDelSubrayado || 0) >= 2, JSON.stringify(nav))
-  check('  …y no convertidas en píldoras', !/999px/.test(nav?.radioDeLaPestana || ''), JSON.stringify(nav))
+  // La tanda 298 le dio a la ficha SU propio estilo (pastillas). Lo que
+  // esta comprobación guarda sigue siendo lo mismo: que cada pantalla
+  // tenga el suyo y que el de la lista no se cuele aquí. Si las chips se
+  // escribieran sobre la clase compartida, esto lo cantaría.
+  check('  …con el suyo, el de pastillas', /torneo-pestanas-pastillas/.test(nav?.clases || ''), nav?.clases)
+  check('  …y no con las chips de la lista', !/torneo-pestanas-chips/.test(nav?.clases || ''), nav?.clases)
   await page.close()
 }
 
