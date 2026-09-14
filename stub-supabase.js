@@ -46,6 +46,8 @@ const T = {
   push_subscriptions: [],
   achievement_definitions: [],
   user_achievements: [],
+  daily_challenge_results: [],
+  user_progress: [],
 }
 
 // ── Quién eres ──
@@ -324,6 +326,29 @@ sembrar('__FAKE_NOTICIAS__', 'guides', (i) => ({
   created_at: new Date(Date.now() - (i + 1) * 3600e3).toISOString(),
   category_id: null,
   blocks: [],
+}))
+
+// El reto diario ya jugado y el progreso de los cursos (tanda 299). Sin
+// estas dos tablas la portada no puede enseñar el reto HECHO ni /aprender
+// la franja de «sigue donde lo dejaste»: las consultas volvían vacías y
+// las dos pantallas se probaban siempre en su estado de recién llegado.
+sembrar('__FAKE_RETOS__', 'daily_challenge_results', (i) => ({
+  id: `reto-${i + 1}`,
+  user_id: 'user-1',
+  day: new Date().toISOString().slice(0, 10),
+  correct: 3,
+  total: 5,
+  score: 30,
+}))
+
+sembrar('__FAKE_PROGRESO__', 'user_progress', (i) => ({
+  id: `prog-${i + 1}`,
+  user_id: 'user-1',
+  guide_id: `guia-${i + 1}`,
+  status: 'in_progress',
+  current_block: 1,
+  read_at: null,
+  started_at: new Date(Date.now() - (i + 1) * 3600e3).toISOString(),
 }))
 
 sembrar('__FAKE_SUGERENCIAS__', 'guide_suggestions', (i) => ({

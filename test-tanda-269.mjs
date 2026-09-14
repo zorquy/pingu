@@ -119,15 +119,23 @@ console.log('\n── 4. El puente: desplegar ANTES de ejecutar el SQL ──')
   check('el contador no se queda en cero', (await page.locator('#heroStatGuides').textContent()) !== '0')
   await page.close()
 
+  // /aprender dejó de ser una pantalla de categorías en la tanda 299:
+  // ahora las guías se ven directamente y las categorías son chips de
+  // filtro con su cuenta. Lo que se vigila aquí NO cambia — que una
+  // noticia no se cuele en el temario—, solo dónde se lee: antes en la
+  // etiqueta de la fila de categoría, ahora en la cuenta del chip.
   const conMigracion = await abrir('/aprender')
-  const etiqueta = await conMigracion.page.locator('.category-row .progress-label').first().textContent()
+  const todas = await conMigracion.page.locator('[data-cat="todas"] .aprender-chip-n').textContent()
   // Dos guías y tres noticias en la misma categoría: el temario cuenta 2.
-  check('«Aprender» cuenta guías, no filas', /^2 guías/.test(etiqueta.trim()), etiqueta.trim())
+  check('«Aprender» cuenta guías, no filas', todas.trim() === '2', todas.trim())
+  const tarjetas = await conMigracion.page.locator('.guia-tarjeta h3, .guia-titulo').allTextContents()
+  check('  …y ninguna noticia se cuela en la rejilla',
+    !tarjetas.some((t) => NOTICIAS.some((n) => n.title === t)), tarjetas.join(' | '))
   await conMigracion.page.close()
 
   const r = await abrir('/aprender', { __COLUMNAS_QUE_FALTAN__: ['kind'] })
   check('«Aprender» tampoco', r.errores.length === 0, r.errores[0] || '')
-  check('y no se queda sin categorías', (await r.page.locator('.category-row').count()) > 0)
+  check('y no se queda sin guías', (await r.page.locator('.guia-tarjeta').count()) > 0)
   await r.page.close()
 
   // Y /noticias, sin columna, no puede enseñar un error: es que todavía
