@@ -83,13 +83,24 @@ async function cargarInscripciones() {
   inscripciones = data || []
   miInscripcion = session ? inscripciones.find((i) => i.user_id === session.user.id) || null : null
 
-  // Los nombres de usuario, de una tacada.
-  const ids = [...new Set(inscripciones.map((i) => i.user_id))]
+  // Los nombres de usuario, de una tacada. Se cuela también el de quien
+  // ORGANIZA (tanda 298): la ficha no lo decía en ningún sitio, y suele
+  // no estar inscrito en su propio torneo, así que se añade al lote en
+  // vez de pedirlo aparte.
+  const ids = [...new Set([...inscripciones.map((i) => i.user_id), torneo.admin_id].filter(Boolean))]
   if (ids.length) {
     const { data: perfiles } = await supabase.from('user_profiles').select('id, username').in('id', ids)
     const porId = Object.fromEntries((perfiles || []).map((p) => [p.id, p]))
     for (const i of inscripciones) i.perfil = porId[i.user_id] || null
+    organizador = porId[torneo.admin_id] || null
   }
+}
+
+// Quién organiza, para la cabecera. Mientras no se sepa, se calla: es
+// preferible una línea vacía a «Organiza undefined».
+let organizador = null
+function organizadorTexto() {
+  return organizador?.username ? `Organiza ${organizador.username}` : ''
 }
 
 // Quién es juez aprobado en este torneo, y de paso TODAS las solicitudes:
@@ -216,9 +227,23 @@ function pintarFicha() {
   }
   textoSiCambia($('torneoNombre'), torneo.name)
   const pill = $('torneoEstado')
-  textoSiCambia(pill, estado.texto)
+  // El punto que late solo en «En juego»: lo mismo que en la lista
+  // (tanda 297). No es una etiqueta más, es algo que está pasando.
+  pintarSiCambia(pill, `${torneo.status === 'in_progress' ? '<span class="torneo-punto"></span>' : ''}${escapeHtml(estado.texto)}`)
   pill.className = `torneo-estado ${estado.clase}`
-  textoSiCambia($('torneoMeta'), fechaBonita(torneo.start_at))
+  // El sello de OFICIAL, al lado del estado. Se pinta aquí y no en el
+  // HTML porque depende del torneo.
+  document.getElementById('torneoChapaOficial')?.remove()
+  if (torneo.is_official) {
+    pill.insertAdjacentHTML(
+      'afterend',
+      `<span class="torneo-oficial" id="torneoChapaOficial" title="Torneo oficial, organizado por el equipo de PokeDoc">${icons.star(11)} Oficial</span>`
+    )
+  }
+  // La fecha ya va en las chapas de abajo (tanda 298): aquí, en su
+  // lugar, quién lo organiza — que es lo que no se decía en ningún
+  // sitio de la ficha.
+  textoSiCambia($('torneoMeta'), torneo.is_official ? 'Organiza el equipo de PokeDoc' : organizadorTexto())
   // La descripción sale del editor con formato (tanda 220) y se pinta
   // SANEADA por la misma lista cerrada del foro. Las descripciones de
   // antes eran texto plano: sin etiquetas dentro, se pintan como texto
@@ -236,16 +261,21 @@ function pintarFicha() {
   // La caja «Formato» del original: cada dato con su icono. Una liga
   // (tanda 219) habla de jornadas y enseña su calendario debajo.
   const esLiga = torneo.format === 'league'
+  // Los datos del formato (tanda 298): CHAPAS en una línea, no cuatro
+  // cajas grises del mismo tamaño. Con cuatro cajas iguales no destacaba
+  // ninguna, y la que de verdad se mira —cuántas rondas y a cuántas
+  // partidas— tenía el mismo peso que los minutos de check-in.
   pintarSiCambia($('torneoFormato'), [
-    [icons.layers(18), esLiga ? 'Jornadas' : 'Rondas suizas', `${torneo.swiss_rounds} · BO${torneo.swiss_bo ?? 1}`],
-    ...(torneo.is_private ? [[icons.lock(18), 'Acceso', 'Privado, con código']] : []),
-    [icons.trophy(18), 'Top cut', torneo.top_cut_size ? `Top ${torneo.top_cut_size} · BO${torneo.top_cut_bo ?? 3}` : 'Sin corte'],
+    [icons.calendar(15), fechaBonita(torneo.start_at)],
+    [icons.layers(15), esLiga ? `Liga de ${torneo.swiss_rounds} jornadas · BO${torneo.swiss_bo ?? 1}` : `${torneo.swiss_rounds} rondas suizas · BO${torneo.swiss_bo ?? 1}`],
+    ...(torneo.top_cut_size ? [[icons.trophy(15), `Top ${torneo.top_cut_size} · BO${torneo.top_cut_bo ?? 3}`]] : []),
     // Los «?? por defecto» son los mismos de la tabla: una ficha nunca
     // debe enseñar «undefined min» si a la fila le falta la columna.
-    [icons.clock(18), 'Tiempo por ronda', `${torneo.round_time_minutes ?? 30} min`],
-    [icons.checkCircle(18), 'Check-in', `${torneo.checkin_minutes ?? 5} min`],
+    [icons.clock(15), `${torneo.round_time_minutes ?? 30} min por ronda`],
+    [icons.checkCircle(15), `${torneo.checkin_minutes ?? 5} min de check-in`],
+    ...(torneo.is_private ? [[icons.lock(15), 'Privado, con código']] : []),
   ]
-    .map(([icono, dt, dd]) => `<div class="torneo-formato-dato">${icono}<div><dt>${dt}</dt><dd>${escapeHtml(dd)}</dd></div></div>`)
+    .map(([icono, texto]) => `<div class="torneo-dato">${icono}<span>${escapeHtml(texto)}</span></div>`)
     .join(''))
   // El calendario de la liga: una chapa por jornada con su fecha.
   document.getElementById('torneoJornadas')?.remove()

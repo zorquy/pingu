@@ -103,34 +103,53 @@
          estado. Debajo, TODO va por pestañas (torneo.js las gobierna):
          petición expresa de los admins tras probarlo — una pantalla
          única era demasiado bloque. -->
-    <div class="simple-card torneo-ficha">
-      <!-- El banner del torneo (tanda 242): ancho, arriba del todo.
-           torneo.js lo enseña solo si el torneo tiene banner_url. -->
+    <!-- La cabecera (tanda 298): un panel navy con el banner de fondo,
+         en vez de una tarjeta blanca con cuatro cajitas grises todas del
+         mismo peso. El banner del torneo (tanda 242) deja de ser una
+         franja suelta y pasa a ser EL fondo. -->
+    <header class="torneo-cabecera" id="torneoCabecera">
       <img id="torneoBanner" class="torneo-banner hidden" alt="" />
-      <div class="torneo-ficha-cabecera">
+      <div class="torneo-cabecera-dentro">
+        <div class="torneo-ficha-cabecera">
+          <span class="torneo-estado" id="torneoEstado"></span>
+          <!-- Compartir: para TODO el mundo, sin cuenta incluso — el
+               enlace es el escaparate del torneo. torneo.js le pone el
+               icono y lo engancha (el HTML no puede importar icons.js). -->
+          <button type="button" class="torneo-compartir" id="btnCompartirTorneo" aria-label="Compartir el torneo"></button>
+        </div>
         <h1 id="torneoNombre"></h1>
-        <span class="torneo-estado" id="torneoEstado"></span>
-        <span class="torneo-reloj hidden" id="torneoReloj"></span>
-        <!-- Compartir: para TODO el mundo, sin cuenta incluso — el
-             enlace es el escaparate del torneo. torneo.js le pone el
-             icono y lo engancha (el HTML no puede importar icons.js). -->
-        <button type="button" class="torneo-compartir" id="btnCompartirTorneo" aria-label="Compartir el torneo"></button>
+        <p class="torneo-meta" id="torneoMeta"></p>
+        <!-- La descripción viene del editor con formato (tanda 220):
+             negrita, listas, imágenes… Se pinta saneada, como el foro. -->
+        <div id="torneoDescripcion" class="article-body torneo-descripcion hidden"></div>
+        <!-- Los datos del formato, en chapas. Los pinta torneo.js. -->
+        <dl class="torneo-formato" id="torneoFormato"></dl>
+        <div class="torneo-plazas">
+          <div class="torneo-plazas-barra"><div class="torneo-plazas-relleno" id="torneoPlazasRelleno"></div></div>
+          <span class="torneo-plazas-texto" id="torneoPlazasTexto"></span>
+        </div>
       </div>
-      <p class="subtext" id="torneoMeta"></p>
-      <!-- La descripción viene del editor con formato (tanda 220):
-           negrita, listas, imágenes… Se pinta saneada, como el foro. -->
-      <div id="torneoDescripcion" class="article-body torneo-descripcion hidden"></div>
-      <!-- Los datos del formato con su icono, como la caja «Formato»
-           del original. Los pinta torneo.js. -->
-      <dl class="torneo-formato" id="torneoFormato"></dl>
-      <div class="torneo-plazas">
-        <div class="torneo-plazas-barra"><div class="torneo-plazas-relleno" id="torneoPlazasRelleno"></div></div>
-        <span class="subtext" id="torneoPlazasTexto"></span>
+    </header>
+
+    <!-- La barra viva (tanda 298): mientras se juega, lo único que
+         importa —cuánto queda de ronda, contra quién y qué falta— va
+         pegado arriba y no se pierde con el scroll. La rellena ronda.js;
+         sin ronda en marcha, ni ocupa. -->
+    <div class="torneo-viva hidden" id="torneoBarraViva">
+      <div class="torneo-viva-anillo" id="torneoVivaAnillo"></div>
+      <div class="torneo-viva-texto">
+        <span class="torneo-viva-rotulo" id="torneoVivaRotulo"></span>
+        <span class="torneo-viva-titular" id="torneoVivaTitular"></span>
       </div>
-      <div class="torneo-admin-acciones" id="torneoAdminAcciones"></div>
+      <div class="torneo-viva-der" id="torneoVivaDer"></div>
+      <!-- El reloj de siempre: lo escribe arrancarReloj() y aquí es lo
+           que se lee dentro del anillo. -->
+      <span class="torneo-reloj hidden" id="torneoReloj"></span>
     </div>
 
-    <nav class="torneo-pestanas" id="torneoPestanas" aria-label="Secciones del torneo"></nav>
+    <div class="torneo-admin-acciones" id="torneoAdminAcciones"></div>
+
+    <nav class="torneo-pestanas torneo-pestanas-pastillas" id="torneoPestanas" aria-label="Secciones del torneo"></nav>
 
     <!-- Pestaña TORNEO: tu plaza, los inscritos y lo de jueces. -->
     <section class="torneo-panel" data-panel="torneo">

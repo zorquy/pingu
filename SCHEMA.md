@@ -14488,3 +14488,134 @@ verdad: a 320 px, con las cuatro piezas del peor caso en el pie
 tarjeta. El `nowrap` del pie está para que dos tarjetas de una misma
 fila midan lo mismo; en una sola columna no hay fila que cuadrar, así
 que en móvil vuelve a partirse.
+
+---
+
+## Tanda 298 (B y C) — la ficha del torneo, y las rondas (sept. 2026)
+
+Las dos últimas del rediseño de «Jugar», hechas a la vez porque PINGU
+quería «acabar con torneos para luego seguir con la web». Ni una
+política, ni una RPC, ni el motor.
+
+### La cabecera (B)
+
+Era una tarjeta blanca con el nombre, **cuatro cajitas grises del mismo
+tamaño** (rondas, top cut, tiempo, check-in) y una barra. Con cuatro
+cajas iguales no destacaba ninguna, y la que de verdad se mira —cuántas
+rondas y a cuántas partidas— pesaba lo mismo que los minutos de
+check-in. El banner del torneo (tanda 242) era además una franja suelta
+encima que no ataba con nada.
+
+Ahora el **banner ES el fondo** del panel, con un velo oscuro encima
+para que el texto blanco se lea sobre cualquier imagen, y los datos son
+**chapas en una línea**. Y se dice por fin **quién organiza**, que no
+aparecía en ningún sitio de la ficha: el nombre del creador se cuela en
+el lote de perfiles que ya se pedía para los inscritos, así que no
+cuesta una consulta.
+
+### La barra viva (B)
+
+Mientras se juega, lo único que importa es **cuánto queda, contra quién
+juegas y qué falta por hacer**. Eso estaba a media pantalla de scroll,
+dentro de «Tu partida», entre cajas del mismo color.
+
+Ahora va **pegada arriba** (`position: sticky`) y no se pierde. Lleva un
+**anillo** que se vacía según avanza la ronda —`--vuelta` va de 1 a 0 y
+lo mueve el mismo tictac de `arrancarReloj`—, y a la derecha **solo lo
+que falta**: si ya hiciste check-in y tu rival también, no te pide nada.
+Quien solo mira —sin cuenta, o inscrito sin mesa— ve el marcador de la
+ronda («2 mesas sin resultado»), no «tu partida».
+
+### El tablero (B)
+
+«Tu partida» era una columna de párrafos —contexto, «vs rival», TCG
+Live, reloj, check-in, botones— **todos del mismo peso**, dentro de una
+columna de 560 px centrada (herencia mobile-first de TrainerArena) que
+en un PC dejaba medio panel en blanco.
+
+Ahora es un **duelo**: tú a un lado, tu rival al otro, el marcador de la
+serie en medio y el check-in de cada uno **bajo su cara** — es un estado
+de esa persona, no una tabla aparte.
+
+### El BO3, en tres casillas (B)
+
+Tres renglones pasan a **tres casillas en fila**: verde la ganada, roja
+la perdida, con filo navy la que toca marcar. En un BO3 lo que se mira
+de reojo mientras se juega es cómo va la serie, y eso se lee de
+izquierda a derecha.
+
+El color sale del **resultado**, no de la frase: `comoFue()` devuelve
+`ganada` / `perdida` / `tablas` y `comoMeFue()` traduce eso a texto.
+Pintar la casilla mirando si el texto «pone ganaste» se rompe el día que
+alguien cambie la frase, y no se nota hasta producción.
+
+### Las mesas, como enfrentamientos (C)
+
+Eran una **tabla de cuatro columnas** que en el móvil se convertía en
+tarjetas por CSS, con un `data-etiqueta` delante de cada celda porque
+sin las cabeceras no se sabía qué era cada dato. Ahora la forma lo dice
+sola —**número, uno, resultado, otro**— y se lee igual en un móvil que
+en un PC: el apaño entero se pudo borrar. La tuya va marcada y el
+ganador en negrita.
+
+### Una línea de tiempo, y un reloj en vez de tres (C)
+
+La pestaña de rondas decía por dónde iba el torneo en **una línea de
+texto** («Ronda 2 de 3 suizas»), que contesta a la mitad de la pregunta:
+no dice qué se ha jugado ni cuánto queda. Ahora hay un **paso por ronda
+prevista** más el top cut, y el que se está jugando lleva **el reloj
+dentro**.
+
+Eso resolvió de paso una duplicación que el rediseño hizo evidente: con
+la barra viva pegada arriba había **tres relojes** en pantalla diciendo
+lo mismo —el anillo, el gigante de la pestaña Rondas y el de «Tu
+partida»—. Quedan dos, y cada uno dice algo distinto: el de arriba,
+cuánto queda; el de la línea, **dónde** está ese tiempo.
+
+### La clasificación (C)
+
+Oro, plata y bronce en los tres primeros, y **tu fila marcada**. En una
+tabla de dieciséis filas iguales lo primero que busca cualquiera es
+dónde está él y quién va ganando. La tabla se queda como tabla: tiene
+puntos, V-D-E, OWP y OOWP, y convertirla en tarjetas sería perder
+columnas que se comparan de un vistazo.
+
+### Un fallo que salió al reescribir
+
+El CSS traía un `flex-wrap: wrap` de cuando las partidas del BO3 eran
+una fila, para que los tres botones bajaran de línea en un móvil. Con
+las casillas nuevas hace **lo contrario** de lo que se quería: en un
+flex de columna, `wrap` no baja nada — abre una **segunda columna**, y
+los botones salían disparados fuera de su casilla. Se fue con la fila
+que lo necesitaba, y la prueba mide ahora que nada asome por los bordes
+de su casilla a 1280 y a 420 px.
+
+### Comprobado
+
+`test-tanda-298.mjs` (9 bloques) contra la ficha de verdad en Chromium.
+Rigor: **24 mutaciones, las 24 detectadas** — una de ellas, «la barra
+viva se queda aunque no haya ronda», no la veía nadie: con la página
+recién cargada la barra nace escondida, así que quitar el guardia no
+cambiaba nada. Se prueba ahora el caso de verdad — la barra puesta y la
+ronda que se cierra debajo.
+Además de lo nuevo, comprueba a propósito **lo que ya funcionaba**:
+reportar, cambiar lo reportado, el botón de check-in, que el organizador
+siga pudiendo resolver una mesa y llevar el ciclo, el historial de un
+jugador y la explicación de los desempates. Un rediseño que se lleve eso
+por delante no es un rediseño, es una avería. Y la ficha sin cuenta, y
+sin desbordes a 320 y 420 px.
+
+Y **tres pruebas viejas se reescribieron** en vez de borrarlas, porque
+cada una guarda un fallo que ya pasó:
+
+- `test-torneos-15` (el título estrujado y las mesas que no caben en un
+  móvil, tandas 221 y 233) — y **pilló un fallo de verdad**: un usuario
+  de TCG Live como «NombreDeTCGLiveLargisimo_user-1» es una palabra sola
+  y, sin `min-width: 0` en las columnas del duelo, sacaba la página de
+  la pantalla a 320 px.
+- `test-tanda-291` (el BO3 partida a partida): el marcador de la serie
+  se mudó del párrafo de debajo a la chapa de la cabecera. Lo que se
+  comprueba —que la serie se diga por escrito— no cambia.
+- `test-tanda-297` (que las chips de la lista no se cuelen en la ficha):
+  la ficha tiene ahora su propio estilo, así que la comprobación pasa a
+  ser que cada pantalla lleve el suyo.

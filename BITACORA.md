@@ -12,6 +12,75 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-14 (7) — PINGU-Claude (tanda 298 — B y C: la ficha y las rondas)
+
+**Hecho**: las dos últimas del rediseño de «Jugar», juntas porque PINGU
+quería acabar con torneos para seguir con el resto de la web. Ni una
+política, ni una RPC, ni el motor: HTML y CSS.
+
+**La cabecera** deja de ser una tarjeta blanca con cuatro cajitas grises
+del mismo tamaño. El banner del torneo (tanda 242) pasa de franja suelta
+a SER el fondo, con velo oscuro para que el texto se lea sobre cualquier
+imagen, y los datos son chapas. Y se dice quién organiza, que no
+aparecía en ningún sitio de la ficha (el nombre del creador se cuela en
+el lote de perfiles que ya se pedía: cero consultas nuevas).
+
+**La barra viva**, pegada arriba: cuánto queda de ronda —con un anillo
+que se vacía—, contra quién juegas y SOLO lo que falta. Si ya hiciste
+check-in y tu rival también, no te pide nada. Quien solo mira ve el
+marcador de la ronda, no «tu partida».
+
+**«Tu partida» pasa a ser un TABLERO**: tú a un lado, tu rival al otro,
+el marcador de la serie en medio y el check-in de cada uno bajo su cara.
+Se le quita la columna de 560 px centrada que venía del original
+mobile-first y dejaba medio panel en blanco en un PC.
+
+**El BO3, en tres casillas** en vez de tres renglones: verde la ganada,
+roja la perdida, filo navy la que toca marcar. El color sale del
+RESULTADO, no de la frase — pintar mirando si el texto «pone ganaste» se
+rompe el día que alguien cambie el texto.
+
+**Las mesas dejan de ser una tabla** y pasan a enfrentamientos (número,
+uno, resultado, otro). Con eso se pudo borrar entero el apaño de la
+tanda 221, que convertía la tabla en tarjetas por CSS con un
+`data-etiqueta` por celda. La tuya va marcada y el ganador en negrita.
+
+**Línea de tiempo de rondas** con el reloj DENTRO del paso que se juega.
+Eso destapó una duplicación: con la barra viva había TRES relojes en
+pantalla diciendo lo mismo. Quedan dos, y cada uno dice algo distinto.
+
+**Clasificación**: oro/plata/bronce y tu fila marcada. La tabla se queda
+como tabla — tiene puntos, V-D-E, OWP y OOWP, y en tarjetas se perdería
+la comparación de un vistazo.
+
+**Un fallo que salió al reescribir**: el CSS traía un `flex-wrap: wrap`
+de cuando el BO3 era una fila. Con las casillas nuevas hace lo contrario
+de lo que se quería — en un flex de COLUMNA, `wrap` abre una segunda
+COLUMNA — y los botones salían disparados fuera de su casilla en el
+móvil. Fuera.
+
+**Ficheros**: torneo.html, js/torneos/ronda.js, js/torneos/torneo.js,
+js/torneos/comun.js (colorDeNombre se comparte con la lista),
+js/torneos/torneos.js, css/torneos.css, SCHEMA.md.
+
+**Pruebas**: test-tanda-298.mjs (NUEVA, 9 bloques). Comprueba a propósito
+LO QUE YA FUNCIONABA —reportar, cambiar lo reportado, check-in, resolver
+una mesa, llevar el ciclo, el historial, los desempates—: un rediseño
+que se lleve eso por delante no es un rediseño, es una avería. Rigor: 24
+mutaciones, las 24 detectadas.
+
+Y TRES pruebas viejas reescritas en vez de borradas, porque cada una
+guarda un fallo que ya pasó: test-torneos-15 (que además pilló uno de
+verdad — un usuario de TCG Live largo sacaba la página de la pantalla a
+320 px por falta de `min-width: 0` en el duelo), test-tanda-291 (el
+marcador de la serie se mudó a la cabecera) y test-tanda-297 (la ficha
+tiene ahora su propio estilo de pestañas).
+
+**En curso / pendiente**: torneos queda terminado. Lo siguiente es el
+resto de la web (foro, guías, portada), aún sin empezar.
+
+---
+
 ## 2026-09-14 (6) — IBAI-Claude (los códigos de la era ME, y «más nueva» = marca más alta)
 
 **Hecho**: verificando la entrada (5) contra la base real salió la causa

@@ -144,6 +144,21 @@ export function nombreDeSetLive(codigo) {
 // sin desplegar; esto es el respaldo si la clave no existe.
 export const MARCAS_LEGALES_DEFECTO = ['H', 'I', 'J']
 
+// ── El color de una cara (tandas 297 y 298) ──
+//
+// Las iniciales de la lista y las del tablero de «Tu partida» tienen que
+// salir del MISMO sitio: si cada pantalla se inventara su color, la
+// misma persona cambiaría de color al entrar al torneo.
+//
+// Sale del nombre, no al azar: así es estable en cada recarga y en el
+// móvil de cada uno.
+const COLORES_CARA = ['#2a6b96', '#be185d', '#0d9e6e', '#4f46e5', '#c8720a', '#0891b2', '#7c3aed']
+export function colorDeNombre(nombre) {
+  let suma = 0
+  for (let i = 0; i < String(nombre).length; i++) suma = (suma * 17 + String(nombre).charCodeAt(i)) % 100000
+  return COLORES_CARA[suma % COLORES_CARA.length]
+}
+
 // ── Quién manda en los torneos (tanda 295) ──
 //
 // PINGU le dio las llaves de la sección «Jugar» a la gente que se ha

@@ -5,7 +5,7 @@
 // el refresco es por sondeo — decisiones fijadas en CLAUDE.md.
 //
 // torneo.js monta este módulo con montarCiclo(ctx) en cada recarga.
-import { faltaLaRpc, avisoDeMigracion, puedeLlevar } from './comun.js'
+import { faltaLaRpc, avisoDeMigracion, puedeLlevar, colorDeNombre } from './comun.js'
 import { supabase } from '../supabase.js'
 import { pintarSiCambia } from './pintar.js'
 import { escapeHtml } from '../app.js'
@@ -647,10 +647,17 @@ function juegosDeMesa(partida) {
 }
 
 // Un resultado de partida, contado desde MI lado.
+// Cómo fue una partida desde mi lado, en una palabra que vale como
+// clase de CSS. Va aparte del texto a propósito: pintar la casilla de
+// verde o rojo mirando la FRASE («¿pone "ganaste"?») se rompe el día que
+// alguien cambie el texto, y no se nota hasta que está en producción.
+function comoFue(resultado, soyA) {
+  if (resultado === 'draw') return 'tablas'
+  return (resultado === 'a_wins') === soyA ? 'ganada' : 'perdida'
+}
+
 function comoMeFue(resultado, soyA) {
-  if (resultado === 'draw') return 'Tablas'
-  const gane = (resultado === 'a_wins') === soyA
-  return gane ? 'La ganaste' : 'La perdiste'
+  return { ganada: 'La ganaste', perdida: 'La perdiste', tablas: 'Tablas' }[comoFue(resultado, soyA)]
 }
 
 const NOMBRE_DE_REPORTE = { win: 'Victoria', loss: 'Derrota', draw: 'Tablas' }
@@ -679,7 +686,11 @@ function filaDeJuego(partida, n, { mios, confirmados }, soyA) {
   } else {
     cuerpo = '<span class="torneo-bo3-nojuega">Pendiente</span>'
   }
-  return `<div class="torneo-bo3-juego ${confirmados[n] ? 'cerrada' : ''}"><span class="torneo-bo3-n">${n}.ª</span>${cuerpo}</div>`
+  // La casilla dice por el COLOR cómo fue, no solo por el texto: verde
+  // la ganada, roja la perdida, con filo navy la que toca marcar. En un
+  // BO3 eso es lo que se mira de reojo mientras se juega.
+  const clase = confirmados[n] ? `cerrada ${comoFue(confirmados[n], soyA)}` : abierta ? 'activa' : ''
+  return `<div class="torneo-bo3-juego ${clase}"><span class="torneo-bo3-n">${n}.ª partida</span>${cuerpo}</div>`
 }
 
 function panelBo3(partida, soyA) {
@@ -690,9 +701,11 @@ function panelBo3(partida, soyA) {
   const marcador = serie.decidida
     ? `Serie terminada: ${mias}-${suyas}.`
     : `Vas ${mias}-${suyas}. Marca cada partida en cuanto acabe.`
-  return `<h4 class="torneo-mesas-titulo">Resultado, partida a partida</h4>
-    <div class="torneo-bo3">${[1, 2, 3].map((n) => filaDeJuego(partida, n, estado, soyA)).join('')}</div>
-    <p class="subtext torneo-bo3-marcador">${marcador}</p>`
+  return `<div class="torneo-bo3-cab">
+      <h4 class="torneo-mesas-titulo">Resultado, partida a partida</h4>
+      <span class="torneo-chapa torneo-chapa-neutra">${escapeHtml(marcador.split('.')[0])}</span>
+    </div>
+    <div class="torneo-bo3">${[1, 2, 3].map((n) => filaDeJuego(partida, n, estado, soyA)).join('')}</div>`
 }
 
 async function desreportar(partida, juego) {
@@ -925,6 +938,58 @@ function textoCuenta(ms) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
 
+// ── La barra viva (tanda 298) ──
+//
+// Mientras se juega, lo único que importa es cuánto queda, contra quién
+// juegas y qué falta por hacer. Eso estaba a media pantalla de scroll,
+// dentro de «Tu partida», entre cajas del mismo color. Ahora va pegado
+// arriba y no se pierde.
+//
+// Quien solo mira —sin cuenta, o inscrito pero sin mesa— también la ve:
+// para él es el marcador de la ronda, sin la parte de «tu partida».
+function pintarBarraViva(ronda) {
+  const caja = $('torneoBarraViva')
+  if (!caja) return
+  const yo = miId()
+  const mia = yo
+    ? partidas.find((m) => m.round_id === ronda.id && (m.player_a_id === yo || m.player_b_id === yo))
+    : null
+  const fase = ronda.phase === 'top_cut' ? 'Top cut' : 'Ronda suiza'
+  const total = ctx.torneo.swiss_rounds || 0
+  const rotulo = `${fase} ${ronda.round_number}${ronda.phase === 'top_cut' || !total ? '' : ` de ${total}`}`
+
+  let titular = 'Ronda en marcha'
+  let der = ''
+  if (mia && mia.status === 'bye') {
+    titular = 'Tienes bye esta ronda'
+  } else if (mia) {
+    const soyA = mia.player_a_id === yo
+    const rivalId = soyA ? mia.player_b_id : mia.player_a_id
+    titular = `Tu partida contra ${nombreDe(rivalId)}`
+    const miListo = soyA ? mia.check_in_a_at : mia.check_in_b_at
+    const rivalListo = soyA ? mia.check_in_b_at : mia.check_in_a_at
+    // Lo que FALTA, y solo eso: si ya has hecho check-in y tu rival
+    // también, la barra no tiene nada que pedirte.
+    if (!miListo) der = '<span class="torneo-viva-pide">Te falta el check-in</span>'
+    else if (!rivalListo) der = `<span class="torneo-viva-espera">${escapeHtml(nombreDe(rivalId))} aún no ha hecho check-in</span>`
+    der += '<a class="btn-primary torneo-viva-boton" href="#torneoMiPartida">Ir a tu mesa</a>'
+  } else {
+    const sinCerrar = partidas.filter((m) => m.round_id === ronda.id && !TERMINALES.has(m.status)).length
+    titular = sinCerrar ? `${sinCerrar} mesa${sinCerrar === 1 ? '' : 's'} sin resultado` : 'Todas las mesas cerradas'
+  }
+
+  const html = `${rotulo}|${titular}|${der}`
+  caja.classList.remove('hidden')
+  if (yaEstaPintado('barraViva', html)) return
+  $('torneoVivaRotulo').textContent = rotulo
+  $('torneoVivaTitular').textContent = titular
+  $('torneoVivaDer').innerHTML = der
+  // El anillo se monta una vez; el tictac solo le cambia la cifra y la
+  // vuelta. Repintarlo cada segundo sería rehacer un SVG por segundo.
+  const anillo = $('torneoVivaAnillo')
+  if (anillo && !anillo.querySelector('b')) anillo.innerHTML = '<b>–:––</b>'
+}
+
 function arrancarReloj(ronda) {
   if (reloj) {
     clearInterval(reloj)
@@ -934,10 +999,14 @@ function arrancarReloj(ronda) {
   if (!marcador) return
   if (ronda?.status !== 'active' || !ronda.started_at) {
     // Sin ronda viva no hay reloj: si no, el último texto se queda
-    // congelado en la cabecera con el torneo ya cerrado.
+    // congelado en la cabecera con el torneo ya cerrado. Y la barra
+    // viva (tanda 298) se va con él: una barra vacía pegada arriba
+    // ocuparía sitio sin decir nada.
     marcador.classList.add('hidden')
+    $('torneoBarraViva')?.classList.add('hidden')
     return
   }
+  pintarBarraViva(ronda)
   const cierreCheckin = new Date(ronda.started_at).getTime() + (ctx.torneo.checkin_minutes || 0) * 60000
   const fin = ronda.ends_at ? new Date(ronda.ends_at).getTime() : null
 
@@ -957,17 +1026,27 @@ function arrancarReloj(ronda) {
 
     const textoRonda = fin ? (ya < fin ? textoCuenta(fin - ya) : '0:00') : null
     const seAgota = fin !== null && fin - ya < 120000
-    for (const id of ['cuentaGrande', 'cuentaPartida']) {
-      const hueco = $(id)
-      if (hueco && textoRonda !== null) {
-        hueco.textContent = textoRonda
-        hueco.classList.toggle('agotandose', seAgota)
-      }
+    const grande = $('cuentaGrande')
+    if (grande && textoRonda !== null) {
+      grande.textContent = textoRonda
+      grande.classList.toggle('agotandose', seAgota)
     }
     const chip = $('cuentaCheckin')
     if (chip) {
       chip.innerHTML = ya < cierreCheckin ? `Check-in: <strong>${textoCuenta(cierreCheckin - ya)}</strong>` : ''
       chip.classList.toggle('hidden', ya >= cierreCheckin)
+    }
+    // El anillo de la barra viva (tanda 298): el mismo tiempo, pero
+    // dibujado. Se vacía según avanza la ronda, así que de un vistazo
+    // se sabe si queda mucho sin leer los números.
+    const anillo = $('torneoVivaAnillo')
+    if (anillo && textoRonda !== null) {
+      const total = ronda.started_at && fin ? fin - new Date(ronda.started_at).getTime() : 0
+      const queda = total > 0 ? Math.max(0, Math.min(1, (fin - ya) / total)) : 0
+      anillo.style.setProperty('--vuelta', String(queda))
+      anillo.classList.toggle('agotandose', seAgota)
+      const cifra = anillo.querySelector('b')
+      if (cifra) cifra.textContent = textoRonda
     }
     // El aviso de «Tu partida»: la ventana de check-in con su cuenta.
     const aviso = $('avisoCheckin')
@@ -1009,15 +1088,25 @@ function pintarMesas(ronda) {
   // admin, no los jueces: pisar un resultado firme es del organizador.
   const esUltima = rondas.length > 0 && ronda.id === rondas[rondas.length - 1].id
   const puedeCorregir = Boolean(mando()) && esUltima && ctx.torneo.status !== 'cancelled'
-  const conAcciones = puedeResolver || puedeCorregir
+  const yo = miId()
   const filas = mesas
     .map((m) => {
       const terminal = TERMINALES.has(m.status)
-      const listoA = m.check_in_a_at ? ' <span class="torneo-mesa-listo" title="Check-in hecho">✓</span>' : ''
-      const listoB = m.check_in_b_at ? ' <span class="torneo-mesa-listo" title="Check-in hecho">✓</span>' : ''
-      const jugadorB = m.player_b_id
-        ? `<span class="torneo-mesa-jugador">${escapeHtml(nombreDe(m.player_b_id))}</span>${chapaDe(m.player_b_id)}${listoB}`
-        : '<span class="torneo-mesa-bye">BYE</span>'
+      const esMia = Boolean(yo && (m.player_a_id === yo || m.player_b_id === yo))
+      const res = resultadoDe(m.id)
+      // Quién ganó, para poner su nombre en negrita: es lo primero que
+      // se busca al mirar una mesa cerrada.
+      const ganaA = terminal && (res?.winner_id === m.player_a_id || m.status === 'bye' || m.status === 'forfeit_b')
+      const ganaB = terminal && res?.winner_id === m.player_b_id
+      const lado = (id, gana, listo, derecha) =>
+        id
+          ? `<span class="torneo-mesa-lado ${gana ? 'gana' : ''} ${derecha ? 'der' : ''}">
+              <span class="torneo-mesa-cara" style="background:${colorDeNombre(nombreDe(id))}">${escapeHtml(nombreDe(id).slice(0, 1).toUpperCase())}</span>
+              <span class="torneo-mesa-jugador">${escapeHtml(nombreDe(id))}${yo === id ? ' <em>(tú)</em>' : ''}</span>
+              ${chapaDe(id)}
+              ${listo ? '<span class="torneo-mesa-listo" title="Check-in hecho">✓</span>' : ''}
+            </span>`
+          : '<span class="torneo-mesa-lado der"><span class="torneo-mesa-bye">BYE</span></span>'
       // El organizador (o un juez) puede resolver a mano cualquier mesa
       // viva; y el organizador, CORREGIR una ya cerrada de la última
       // ronda (un bye no: no hay resultado que cambiar, solo jugador).
@@ -1039,34 +1128,31 @@ function pintarMesas(ronda) {
       // (la pantalla /juez/disputa del original, aquí bajo la mesa).
       const enfrentados =
         m.status === 'disputed'
-          ? `<tr><td></td><td colspan="${conAcciones ? 4 : 3}"><div class="torneo-disputa-reportes">${reportes
+          ? `<div class="torneo-disputa-reportes">${reportes
               .filter((r) => r.match_id === m.id)
               .map(
                 (r) =>
                   `<span class="torneo-reporte-carta"><strong>${escapeHtml(nombreDe(r.reporter_id))}</strong> reportó ${ETIQUETA_REPORTE[r.result] || r.result} a las ${hora(r.reported_at || r.created_at)}</span>`
               )
-              .join('')}</div></td></tr>`
+              .join('')}</div>`
           : ''
-      // El data-etiqueta es para el MÓVIL: ahí la tabla se convierte en
-      // tarjetas apiladas (css/torneos.css) y cada dato necesita decir
-      // qué es, porque las cabeceras de la tabla ya no se ven.
       return `
-      <tr>
-        <td class="torneo-mesa-num" data-etiqueta="Mesa">${m.table_number}</td>
-        <td data-etiqueta="Jugador A"><span class="torneo-mesa-jugador">${escapeHtml(nombreDe(m.player_a_id))}</span>${chapaDe(m.player_a_id)}${listoA}</td>
-        <td data-etiqueta="Jugador B">${jugadorB}</td>
-        <td data-etiqueta="Resultado">${chapaDeMesa(m)}</td>
-        ${conAcciones ? `<td data-etiqueta="Resolver">${resolver}</td>` : ''}
-      </tr>${enfrentados}`
+      <div class="torneo-mesa ${esMia ? 'mia' : ''}">
+        <span class="torneo-mesa-num">${m.table_number}</span>
+        ${lado(m.player_a_id, ganaA, m.check_in_a_at, false)}
+        <span class="torneo-mesa-centro">${chapaDeMesa(m)}</span>
+        ${lado(m.player_b_id, ganaB, m.check_in_b_at, true)}
+        ${resolver}
+        ${enfrentados}
+      </div>`
     })
     .join('')
-  return `
-  <div class="torneo-mesas-tabla">
-    <table>
-      <thead><tr><th>Mesa</th><th>Jugador A</th><th>Jugador B</th><th>Resultado</th>${conAcciones ? '<th></th>' : ''}</tr></thead>
-      <tbody>${filas}</tbody>
-    </table>
-  </div>`
+  // Se cambia la tabla por una LISTA de enfrentamientos (tanda 298). Una
+  // tabla de cuatro columnas obliga a leer las cabeceras para saber qué
+  // es cada cosa; aquí la forma lo dice sola: número, uno, resultado,
+  // otro. Y en el móvil ya no hace falta convertirla en tarjetas con
+  // `data-etiqueta`, porque nunca fue una tabla.
+  return `<div class="torneo-mesas">${filas}</div>`
 }
 
 function pintarRondas() {
@@ -1115,28 +1201,52 @@ function pintarRondas() {
   // El reloj protagonista, como la pantalla «ronda actual» del original:
   // con ronda viva, la cuenta atrás preside la pestaña (en el cut, el
   // recordatorio de que se juega a acabar). Lo alimenta arrancarReloj.
-  const hero =
-    actual?.status === 'active'
-      ? `<div class="torneo-ronda-hero">
-          <p class="torneo-ronda-hero-contexto">${actual.phase === 'top_cut' ? `Top cut — ronda ${actual.round_number}` : `Ronda suiza ${actual.round_number} de ${ctx.torneo.swiss_rounds}`} · En curso</p>
-          ${
-            actual.ends_at
-              ? `<div class="torneo-cuenta-grande" id="cuentaGrande" role="timer" aria-label="Tiempo restante de la ronda">–:––</div>
-                 <p class="torneo-cuenta-etiqueta">Tiempo restante</p>`
-              : `<div class="torneo-cuenta-grande">Sin límite</div>
-                 <p class="torneo-cuenta-etiqueta">El top cut se juega a acabar.</p>`
-          }
-          <span class="torneo-cuenta-checkin hidden" id="cuentaCheckin"></span>
-        </div>`
-      : ''
+  // El reloj GIGANTE de esta pestaña se va (tanda 298). Con la barra
+  // viva pegada arriba, que ya lleva el anillo, aquí había tres relojes
+  // a la vez diciendo lo mismo. El que queda es el de la línea de
+  // tiempo, dentro del paso que se está jugando — que además dice DÓNDE
+  // está ese tiempo, cosa que un número suelto no hacía.
+  //
+  // La LÍNEA DE TIEMPO del torneo (tanda 298): un paso por ronda
+  // prevista, más el top cut si lo hay. De un vistazo se ve por dónde va
+  // todo, no solo el número de la ronda de turno — que es lo único que
+  // decía la línea de texto de antes.
+  // Un paso de la línea. Una ronda viva CON límite enseña su cuenta
+  // atrás; una sin límite (el top cut se juega a acabar) lo dice.
+  const pasoDe = (rotulo, r) => ({
+    rotulo,
+    estado: !r ? 'Por jugar' : r.status === 'active' ? (r.ends_at ? '–:––' : 'Sin límite') : r.status === 'finished' ? 'Terminada' : 'Pareada',
+    clase: !r ? '' : r.status === 'active' ? 'viva' : r.status === 'finished' ? 'fin' : 'lista',
+    reloj: Boolean(r && r.status === 'active' && r.ends_at),
+  })
+  const previstas = ctx.torneo.swiss_rounds || 0
+  const pasos = []
+  for (let n = 1; n <= previstas; n++) {
+    pasos.push(pasoDe(`Ronda ${n}`, rondas.find((x) => x.phase !== 'top_cut' && x.round_number === n)))
+  }
+  for (const r of rondas.filter((x) => x.phase === 'top_cut')) pasos.push(pasoDe(`Top cut R${r.round_number}`, r))
+  if (ctx.torneo.top_cut_size && !rondas.some((r) => r.phase === 'top_cut')) {
+    pasos.push({ rotulo: `Top ${ctx.torneo.top_cut_size}`, estado: 'Por jugar', clase: '' })
+  }
+  const linea = pasos.length
+    ? `<div class="torneo-linea">${pasos
+        .map(
+          (p) =>
+            `<div class="torneo-paso ${p.clase}"><span class="torneo-paso-r">${escapeHtml(p.rotulo)}</span>` +
+            // El paso que se juega lleva el RELOJ dentro: lo rellena el
+            // tictac de arrancarReloj, igual que hacía el reloj gigante.
+            `<span class="torneo-paso-e"${p.reloj ? ' id="cuentaGrande" role="timer" aria-label="Tiempo restante de la ronda"' : ''}>${escapeHtml(p.estado)}</span></div>`
+        )
+        .join('')}</div>
+      <span class="torneo-cuenta-checkin hidden" id="cuentaCheckin"></span>`
+    : ''
   // Esta caja es la cabecera del panel de rondas: el reloj grande, el
   // aviso de check-in y los botones del organizador. Rehacerla en cada
   // refresco movía TODO lo que hay debajo — «Tu partida» incluida — y es
   // media explicación de los clics perdidos (tanda 259).
   const htmlRondas = `
-    ${hero}
+    ${linea}
     <div class="torneo-rondas-cabecera">
-      <span class="subtext">${rondas.length ? (rondas[rondas.length - 1].phase === 'top_cut' ? `Top cut — ronda ${rondas[rondas.length - 1].round_number}` : `Ronda ${rondas[rondas.length - 1].round_number} de ${ctx.torneo.swiss_rounds} suizas`) : `Sin rondas aún (${ctx.torneo.swiss_rounds} suizas previstas)`}</span>
       <span class="torneo-rondas-botones">${admin}<button class="btn-secondary" id="btnActualizarCiclo">Actualizar</button></span>
     </div>`
   if (!pintarSiCambia($('rondasAdmin'), htmlRondas)) return pintarRondasResto(actual)
@@ -1267,13 +1377,18 @@ function pintarMiPartida() {
     if (!yaEstaPintado('miPartida', html)) contenido.innerHTML = html
     return
   }
-  // La cabecera al estilo «match actual» del original: contexto en
-  // mayúsculas, el «vs rival» grande y el reloj de la ronda debajo.
+  // El TABLERO (tanda 298): tú a un lado, tu rival al otro y el marcador
+  // en medio. Antes era una columna de párrafos —contexto, «vs rival»,
+  // TCG Live, reloj, check-in, botones— todos del mismo peso, y en un
+  // BO3 había que echar la cuenta de cabeza para saber por dónde ibas.
   const bo = actual.phase === 'top_cut' ? ctx.torneo.top_cut_bo : ctx.torneo.swiss_bo
   const cabecera = `
-    <p class="torneo-partida-contexto">${actual.phase === 'top_cut' ? 'Top cut' : 'Ronda suiza'} ${actual.round_number} · Mesa ${mia.table_number} · BO${bo}</p>
-    <p class="torneo-partida-rival">vs ${escapeHtml(rival?.perfil?.username || 'tu rival')}${chapaDe(rivalId)}</p>
-    <p class="torneo-partida-rival-tcg">En TCG Live: <strong>${escapeHtml(rival?.tcg_live_username || '—')}</strong></p>`
+    <div class="torneo-mesa-cab">
+      <span class="torneo-mesa-cab-t">Mesa ${mia.table_number}</span>
+      <span class="torneo-chapa torneo-chapa-neutra">${actual.phase === 'top_cut' ? 'Top cut' : 'Ronda suiza'} ${actual.round_number}</span>
+      <span class="torneo-chapa torneo-chapa-neutra">${bo === 3 ? 'Al mejor de 3' : 'A una partida'}</span>
+      <span class="torneo-mesa-cab-tcg">TCG Live: <strong>${escapeHtml(rival?.tcg_live_username || '—')}</strong></span>
+    </div>`
 
   if (mia.status === 'pending') {
     const html = `${cabecera}<p class="subtext torneo-partida-nota">La ronda aún no ha empezado.</p>`
@@ -1284,26 +1399,42 @@ function pintarMiPartida() {
   }
 
   const rivalListo = soyA ? mia.check_in_b_at : mia.check_in_a_at
+  // El reloj gigante se fue a la barra viva (tanda 298), que va pegada
+  // arriba y no se pierde con el scroll. Aquí solo queda el aviso del
+  // top cut, que no es un reloj sino lo contrario: que no lo hay.
   const reloj =
-    actual.status === 'active' && actual.ends_at
-      ? '<div class="torneo-partida-cuenta" id="cuentaPartida" role="timer" aria-label="Tiempo restante de la ronda">–:––</div><p class="torneo-cuenta-etiqueta">tiempo restante de ronda</p>'
-      : actual.phase === 'top_cut'
-        ? '<p class="torneo-cuenta-etiqueta torneo-partida-nota">Sin límite de tiempo — se juega a acabar.</p>'
-        : ''
+    actual.status !== 'active' && actual.phase === 'top_cut'
+      ? '<p class="torneo-cuenta-etiqueta torneo-partida-nota">Sin límite de tiempo — se juega a acabar.</p>'
+      : ''
 
-  // El check-in a dos columnas (Tú / Rival), como el original — con el
-  // aviso claro de la ventana: hay N minutos y quien no lo haga pierde.
+  // El check-in va DENTRO del duelo, bajo cada jugador: es un estado de
+  // esa persona, no una tabla aparte. El aviso de la ventana sigue
+  // suelto, porque afecta a los dos.
   const faltaCheckin = actual.status === 'active' && (!miListo || !rivalListo)
+  const serie = bo === 3 ? serieBo3(juegosDeMesa(mia).confirmados) : null
+  const mias = serie ? (soyA ? serie.ganadasA : serie.ganadasB) : 0
+  const suyas = serie ? (soyA ? serie.ganadasB : serie.ganadasA) : 0
+  const jugador = (nombre, sub, listo, inicial, color) => `
+    <div class="torneo-duelo-jugador">
+      <span class="torneo-duelo-cara" style="background:${color}">${escapeHtml(inicial)}</span>
+      <span class="torneo-duelo-nombre">${escapeHtml(nombre)}</span>
+      <span class="torneo-duelo-sub">${sub}</span>
+      <span class="torneo-duelo-checkin ${listo ? 'lista' : ''}">${listo ? '✓ Check-in hecho' : 'Check-in pendiente'}</span>
+    </div>`
+  const miNombre = ctx.inscripciones.find((i) => i.user_id === miId())?.perfil?.username || 'Tú'
+  const rivalNombre = rival?.perfil?.username || 'Rival'
   const checkin = `
-    <div class="torneo-checkin-rejilla">
-      <div class="torneo-checkin-celda ${miListo ? 'lista' : ''}">
-        <strong>Tú</strong>
-        <span class="torneo-checkin-estado">${miListo ? '✓ Check-in hecho' : 'Check-in pendiente'}</span>
+    <div class="torneo-duelo">
+      ${jugador('Tú', escapeHtml(miNombre), miListo, miNombre.slice(0, 1), colorDeNombre(miNombre))}
+      <div class="torneo-duelo-medio">
+        ${
+          serie
+            ? `<div class="torneo-duelo-marcador"><b class="${mias > suyas ? 'gana' : ''}">${mias}</b><i>—</i><b class="${suyas > mias ? 'gana' : ''}">${suyas}</b></div>
+               <span class="torneo-duelo-vs">AL MEJOR DE 3</span>`
+            : '<span class="torneo-duelo-vs">VS</span>'
+        }
       </div>
-      <div class="torneo-checkin-celda ${rivalListo ? 'lista' : ''}">
-        <strong>${escapeHtml(rival?.perfil?.username || 'Rival')}</strong>
-        <span class="torneo-checkin-estado">${rivalListo ? '✓ Check-in hecho' : 'Check-in pendiente'}</span>
-      </div>
+      ${jugador(rivalNombre, chapaDe(rivalId) || `<span class="subtext">${escapeHtml(rival?.tcg_live_username || '—')}</span>`, rivalListo, rivalNombre.slice(0, 1), colorDeNombre(rivalNombre))}
     </div>
     ${
       faltaCheckin
@@ -1571,9 +1702,13 @@ function pintarClasificacion() {
       const verLista = verListas
         ? `<td><button class="btn-secondary torneo-ver-lista" data-ver-lista="${escapeHtml(e.playerId)}">Ver lista</button></td>`
         : ''
+      // El puesto como MEDALLA en los tres primeros, y tu fila marcada
+      // (tanda 298): en una tabla de dieciséis filas iguales, lo primero
+      // que busca cualquiera es dónde está él y quién va ganando.
+      const medalla = i < 3 ? ` torneo-pos-${i + 1}` : ''
       return `
-      <tr>
-        <td>${i + 1}</td>
+      <tr class="${e.playerId === miId() ? 'torneo-fila-yo' : ''}">
+        <td><span class="torneo-pos${medalla}">${i + 1}</span></td>
         <td><button type="button" class="torneo-jugador-historial" data-historial="${escapeHtml(e.playerId)}"
           title="Ver sus partidas del torneo">${escapeHtml(nombreDe(e.playerId))}</button>${chapaDe(e.playerId)}${retirado}${dentro}</td>
         ${verTcgLive ? `<td class="subtext">${escapeHtml(insc?.tcg_live_username || '—')}</td>` : ''}

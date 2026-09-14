@@ -14,7 +14,7 @@ import { escapeHtml, getSession, getProfile, slugify, uploadProfileImage } from 
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { officialStructure } from './motor.js'
-import { ESTADOS, fechaBonita, puedeBorrarTorneo } from './comun.js'
+import { ESTADOS, fechaBonita, puedeBorrarTorneo, colorDeNombre } from './comun.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 
 const $ = (id) => document.getElementById(id)
@@ -86,12 +86,6 @@ function arteDe(t) {
 // Las caras de quien va apuntado. Un avatar de verdad si lo tiene, y si
 // no la inicial sobre un color sacado del mismo nombre (mismo truco que
 // el arte: estable, no aleatorio).
-const COLORES_CARA = ['#2a6b96', '#be185d', '#0d9e6e', '#4f46e5', '#c8720a', '#0891b2', '#7c3aed']
-function colorDeNombre(nombre) {
-  let suma = 0
-  for (let i = 0; i < String(nombre).length; i++) suma = (suma * 17 + String(nombre).charCodeAt(i)) % 100000
-  return COLORES_CARA[suma % COLORES_CARA.length]
-}
 function caraHtml(perfil) {
   const nombre = perfil?.username || '?'
   if (perfil?.avatar_url) {
