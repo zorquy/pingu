@@ -61,13 +61,25 @@ el contenedor de una sesión — el 2026-08-28 uno se reinició y se llevó
 por delante el doble y unas 87 pruebas, sin copia en ninguna parte. De
 ahí la rama: fuera de lo que se despliega, pero en algún sitio.
 
-**Estado a 2026-08-31**: cubiertos torneos (8 pruebas, más la de la
+**Estado a 2026-09-14**: cubiertos torneos (8 pruebas, más la de la
 vista previa al compartir, las dos del registro de partidas y las de
-permisos contra PostgreSQL de verdad) y el foro —índice, lista de temas
-y vista de un tema— (2). Guías, cursos, perfiles
-y portada están SIN cobertura hasta que se rehagan: un cambio ahí sale a
-producción sin red debajo. Del foro faltan las piezas de alrededor
-(encuestas, no leídos, suscripciones, búsqueda, menciones, moderación).
+permisos contra PostgreSQL de verdad), el foro —índice, lista de temas y
+vista de un tema— (2) y, desde la tanda 299, la PORTADA y /aprender.
+Las fichas de guía y de curso, los perfiles y /noticias siguen SIN
+cobertura: un cambio ahí sale a producción sin red debajo. Del foro
+faltan las piezas de alrededor (encuestas, no leídos, suscripciones,
+búsqueda, menciones, moderación).
+
+**Dónde va cada hoja de CSS** (tanda 299, y el fallo que costó
+aprenderlo): `components.css` y `style.css` los baja TODO el mundo; lo
+de una sola pantalla va en su hoja (`foro.css`, `portada.css`,
+`aprender.css`, `torneos.css`, `curso.css`…). Al mover reglas de una a
+otra hay DOS trampas: que una pantalla que NO carga la hoja de destino
+use esa clase (le pasó a «Ahora en el foro», que es de la portada), y
+que un `@media` se quede en `components.css` con su base ya mudada — un
+`@media` no suma especificidad y `components.css` carga primero, así que
+la base gana y el móvil se rompe. `test-tanda-299.mjs` comprueba las
+dos cosas; si mueves CSS de hoja, pásala.
 
 ## Los torneos (sección «Jugar»)
 

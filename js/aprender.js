@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
-import { escapeHtml, getSession, tintClassForKey, borderTintClassForKey, categoryIconHtml, guideHasCourse } from './app.js'
+import { escapeHtml, getSession, guideHasCourse } from './app.js'
 import { icons } from './icons.js'
 import { medallasPorCurso } from './medallero.js'
 
@@ -28,95 +28,194 @@ function pintarMedallero(cursosConCurso, medallas) {
   hueco.classList.remove('hidden')
 }
 
+// ── Las guías, a la vista (tanda 299) ──
+//
+// /aprender era una pantalla de TRES CAJAS que solo servían para llevarte
+// a otra pantalla: las guías no se veían hasta el segundo clic, y lo
+// único que se leía de cada categoría era una barra vacía de «0 de 2
+// guías leídas», que no invita a nada.
+//
+// Ahora las guías se ven YA y las categorías son FILTROS. Todo el
+// filtrado es en el navegador: las guías publicadas se traen de una vez
+// (son decenas, no miles) y cambiar de filtro no vuelve a la base.
+
+const NIVELES = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' }
+const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino' }
+
+// El estado de la pantalla: qué filtro está puesto. Vive fuera de la
+// función de pintar para que un repintado no lo pierda.
+let filtroCategoria = 'todas'
+let filtroNivel = null
+let soloSinLeer = false
+
+// Seis degradados para la portada de una guía que no trae imagen. Se
+// elige por el slug, no al azar: igual que en las tarjetas de torneo, si
+// cambiara en cada pintada la rejilla parpadearía al filtrar.
+const ARTES = 6
+function arteDe(g) {
+  const clave = String(g.slug || g.id || '')
+  let suma = 0
+  for (let i = 0; i < clave.length; i++) suma = (suma * 31 + clave.charCodeAt(i)) % 100000
+  return (suma % ARTES) + 1
+}
+
+function tarjetaDeGuia(g, progreso) {
+  const p = progreso[g.id] || null
+  const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
+  const hechoPct = p?.status === 'completed' ? 100 : p && bloques ? Math.round((Math.min(p.current_block || 0, bloques) / bloques) * 100) : 0
+  const leida = Boolean(p?.read_at) || p?.status === 'completed'
+  const nivel = NIVELES[g.level] || null
+  return `
+  <article class="guia-tarjeta">
+    <a class="guia-tarjeta-enlace" href="/guia.html?slug=${encodeURIComponent(g.slug)}">
+      <span class="guia-arte guia-arte-${arteDe(g)}">
+        ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" onerror="this.style.display='none'" />` : ''}
+        ${g.guide_rarity && RAREZAS[g.guide_rarity] ? `<span class="guia-rareza rareza-${escapeHtml(g.guide_rarity)}">${RAREZAS[g.guide_rarity]}</span>` : ''}
+      </span>
+      <span class="guia-cuerpo">
+        <strong class="guia-titulo">${escapeHtml(g.title)}</strong>
+        ${g.description ? `<span class="guia-desc">${escapeHtml(g.description)}</span>` : ''}
+        <span class="guia-etiquetas">
+          ${nivel ? `<span class="guia-etiqueta">${nivel}</span>` : ''}
+          ${g.estimated_mins ? `<span class="guia-etiqueta">${g.estimated_mins} min</span>` : ''}
+          ${guideHasCourse(g) ? '<span class="guia-etiqueta">Con curso</span>' : ''}
+        </span>
+        <span class="guia-progreso">
+          ${hechoPct > 0 || leida ? `<span class="guia-barra"><i style="width:${leida && hechoPct === 0 ? 100 : hechoPct}%"></i></span>` : ''}
+          <span class="guia-progreso-texto">${
+            p?.status === 'completed'
+              ? '<span class="guia-hecha">✓ Curso hecho</span>'
+              : leida
+                ? '<span class="guia-hecha">✓ Leída</span>'
+                : hechoPct > 0
+                  ? `Vas por el ${hechoPct}%`
+                  : 'Sin empezar'
+          }</span>
+        </span>
+      </span>
+    </a>
+  </article>`
+}
+
+// La franja de «sigue donde lo dejaste»: el curso empezado y sin
+// terminar más reciente. Es lo que hace volver — sin ella, quien dejó un
+// curso a medias tiene que acordarse de cuál era y buscarlo.
+function seguirHtml(guias, progreso) {
+  const empezados = guias
+    .map((g) => ({ g, p: progreso[g.id] }))
+    .filter(({ g, p }) => p && p.status !== 'completed' && (p.current_block || 0) > 0 && guideHasCourse(g))
+    .sort((a, b) => new Date(b.p.started_at || 0) - new Date(a.p.started_at || 0))
+  if (!empezados.length) return ''
+  const { g, p } = empezados[0]
+  const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
+  const pct = bloques ? Math.round((Math.min(p.current_block, bloques) / bloques) * 100) : 0
+  return `
+  <a class="aprender-seguir" href="/curso.html?slug=${encodeURIComponent(g.slug)}">
+    <span class="aprender-aro" style="--vuelta:${pct / 100}"><b>${pct}%</b></span>
+    <span class="aprender-seguir-texto">
+      <span class="aprender-seguir-rotulo">Sigue donde lo dejaste</span>
+      <strong>${escapeHtml(g.title)}</strong>
+      <span class="aprender-seguir-sub">Bloque ${Math.min(p.current_block, bloques)} de ${bloques}</span>
+    </span>
+    <span class="btn-primary aprender-seguir-boton">Continuar →</span>
+  </a>`
+}
+
+function chipsHtml(categorias, guias, porCategoria) {
+  const chip = (activo, texto, datos, cuenta) =>
+    `<button type="button" class="aprender-chip ${activo ? 'activa' : ''}" ${datos}>${escapeHtml(texto)}${
+      cuenta !== undefined ? `<span class="aprender-chip-n">${cuenta}</span>` : ''
+    }</button>`
+  return `
+  <div class="aprender-filtros">
+    ${chip(filtroCategoria === 'todas', 'Todas', 'data-cat="todas"', guias.length)}
+    ${categorias
+      .filter((c) => porCategoria[c.id])
+      .map((c) => chip(filtroCategoria === c.id, c.name, `data-cat="${escapeHtml(c.id)}"`, porCategoria[c.id]))
+      .join('')}
+    <span class="aprender-filtros-sep"></span>
+    ${Object.entries(NIVELES)
+      .map(([clave, texto]) => chip(filtroNivel === clave, texto, `data-nivel="${clave}"`))
+      .join('')}
+    ${chip(soloSinLeer, 'Sin leer', 'data-sinleer="1"')}
+  </div>`
+}
+
 async function loadCategories(session) {
   const list = document.getElementById('categoriesList')
-  const { data: categories, error } = await supabase.from('categories').select('*').order('order_pos')
+  const { data: categories } = await supabase.from('categories').select('*').order('order_pos')
 
-  if (error || !categories || categories.length === 0) {
-    list.innerHTML = `<p class="empty-state">No hay categorías disponibles todavía.</p>`
-    return
-  }
-
-  // Se cuenta a partir de las guías publicadas y no de `guide_count`,
-  // que es un contador cacheado y además no distingue qué tiene curso.
-  //
   // «Aprender» es de guías y cursos: las noticias tienen su sección. Con
   // vuelta atrás mientras la migración de noticias no esté puesta — sin
   // ella la consulta falla y esta página se queda a cero.
+  const COLUMNAS = 'id, slug, title, description, category_id, blocks, level, estimated_mins, cover_image, guide_rarity, published_at'
   const pedirGuias = (filtrar) => {
-    let q = supabase.from('guides').select('id, category_id, blocks').not('published_at', 'is', null)
+    const q = supabase.from('guides').select(COLUMNAS).not('published_at', 'is', null).order('published_at', { ascending: false })
     return filtrar ? q.eq('kind', 'guide') : q
   }
-  const { data: publishedGuides } = await conVueltaAtrasDeTipo(() => pedirGuias(true), () => pedirGuias(false))
+  const { data: publicadas } = await conVueltaAtrasDeTipo(() => pedirGuias(true), () => pedirGuias(false))
+  const guias = publicadas || []
 
-  const guides = publishedGuides || []
-  const categoryOfGuide = new Map(guides.map((g) => [g.id, g.category_id]))
+  if (!guias.length) {
+    list.innerHTML = `<p class="empty-state">Todavía no hay ninguna guía publicada.</p>`
+    return
+  }
 
   if (session) {
-    const conCurso = guides.filter((g) => guideHasCourse(g))
+    const conCurso = guias.filter((g) => guideHasCourse(g))
     medallasPorCurso(session.user.id).then((m) => pintarMedallero(conCurso, m)).catch(() => {})
   }
 
-  const totals = {}
-  for (const g of guides) {
-    const t = (totals[g.category_id] = totals[g.category_id] || { guias: 0, cursos: 0, leidas: 0, hechos: 0 })
-    t.guias++
-    if (guideHasCourse(g)) t.cursos++
-  }
-
+  const progreso = {}
   if (session) {
-    // Se mapea por guide_id en vez de pedir `guides(category_id)` anidado:
-    // una consulta plana es más predecible y no depende de cómo resuelva
-    // PostgREST la relación.
-    const { data: progress } = await supabase
+    const { data: filas } = await supabase
       .from('user_progress')
-      .select('guide_id, status, read_at')
+      .select('guide_id, status, read_at, current_block, started_at')
       .eq('user_id', session.user.id)
-
-    for (const p of progress || []) {
-      const catId = categoryOfGuide.get(p.guide_id)
-      if (!catId || !totals[catId]) continue
-      if (p.read_at) totals[catId].leidas++
-      if (p.status === 'completed') totals[catId].hechos++
-    }
+    for (const f of filas || []) progreso[f.guide_id] = f
   }
 
-  list.innerHTML = categories
-    .map((cat) => {
-      const t = totals[cat.id] || { guias: 0, cursos: 0, leidas: 0, hechos: 0 }
-      // Si una guía se despublica después de leerla, el progreso guardado
-      // sigue ahí: se limita para no enseñar "4 de 3".
-      const leidas = Math.min(t.leidas, t.guias)
-      const hechos = Math.min(t.hechos, t.cursos)
-      const pct = t.guias > 0 ? Math.round((leidas / t.guias) * 100) : 0
+  const porCategoria = {}
+  for (const g of guias) if (g.category_id) porCategoria[g.category_id] = (porCategoria[g.category_id] || 0) + 1
 
-      // La barra mide lectura, que es la acción principal de la web y la
-      // única que existe en TODAS las categorías. Los cursos, cuando los
-      // hay, van como línea secundaria.
-      const cursosHtml =
-        t.cursos > 0
-          ? `<div class="progress-label subtle">${hechos} de ${t.cursos} ${t.cursos === 1 ? 'curso hecho' : 'cursos hechos'}</div>`
-          : ''
-
-      const progressHtml = !session
-        ? `<div class="progress-label">${t.guias} ${t.guias === 1 ? 'guía para leer' : 'guías para leer'}</div>`
-        : t.guias === 0
-          ? `<div class="progress-label">Todavía sin guías</div>`
-          : `<div class="progress-track"><div class="fill" style="width: ${pct}%"></div></div>
-          <div class="progress-label">${leidas} de ${t.guias} ${t.guias === 1 ? 'guía leída' : 'guías leídas'}</div>
-          ${cursosHtml}`
-      return `
-      <div class="category-row ${borderTintClassForKey(cat.id)}">
-        <div class="category-icon ${tintClassForKey(cat.id)}">${categoryIconHtml(cat, 26)}</div>
-        <div class="row-info">
-          <h2>${escapeHtml(cat.name)}</h2>
-          <p>${escapeHtml(cat.description || '')}</p>
-          ${progressHtml}
-          <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="btn-guide">Ver guías →</a>
-        </div>
-      </div>`
+  const pintar = () => {
+    const visibles = guias.filter((g) => {
+      if (filtroCategoria !== 'todas' && g.category_id !== filtroCategoria) return false
+      if (filtroNivel && g.level !== filtroNivel) return false
+      if (soloSinLeer && (progreso[g.id]?.read_at || progreso[g.id]?.status === 'completed')) return false
+      return true
     })
-    .join('')
+    list.innerHTML = `
+      ${seguirHtml(guias, progreso)}
+      ${chipsHtml(categories || [], guias, porCategoria)}
+      ${
+        visibles.length
+          ? `<div class="guia-rejilla">${visibles.map((g) => tarjetaDeGuia(g, progreso)).join('')}</div>`
+          : '<p class="empty-state">No hay ninguna guía con esos filtros. Prueba a quitar alguno.</p>'
+      }`
+    list.querySelectorAll('[data-cat]').forEach((b) =>
+      b.addEventListener('click', () => {
+        filtroCategoria = b.dataset.cat
+        pintar()
+      })
+    )
+    // Los de nivel y «sin leer» son INTERRUPTORES: volver a pulsarlos los
+    // quita. Si no, una vez puesto un nivel no habría forma de volver a
+    // verlas todas sin recargar.
+    list.querySelectorAll('[data-nivel]').forEach((b) =>
+      b.addEventListener('click', () => {
+        filtroNivel = filtroNivel === b.dataset.nivel ? null : b.dataset.nivel
+        pintar()
+      })
+    )
+    list.querySelectorAll('[data-sinleer]').forEach((b) =>
+      b.addEventListener('click', () => {
+        soloSinLeer = !soloSinLeer
+        pintar()
+      })
+    )
+  }
+  pintar()
 }
 
 async function init() {

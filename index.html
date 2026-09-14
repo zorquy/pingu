@@ -83,6 +83,7 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/portada.css" />
 </head>
 <body>
   <nav class="navbar" id="navbar">
@@ -171,8 +172,35 @@
          estorba (ver js/primeros-pasos.js). -->
     <section class="container hidden" id="primerosPasos"></section>
 
+    <!-- Lo que te trae hoy (tanda 299). El reto del día y la última
+         noticia estaban dentro de la columna principal del panel, debajo
+         de la guía destacada: lo que más cambia de la portada —y lo
+         único que da motivo para volver mañana— salía en tercer lugar y
+         a media anchura. Ahora abren la portada, a lo ancho y en dos
+         cajas grandes. Los ids son los de siempre: js/home.js las
+         rellena igual, y si no hay noticia (o no hay reto) la sección se
+         recoge sola y la otra se queda con toda la fila — de ahí el flex
+         en vez de una rejilla de dos columnas fijas. -->
+    <div class="container portada-hoy" id="portadaHoy">
+      <section id="retoSeccion">
+        <div class="reto-tarjetas" id="retoTarjetas"><div class="skeleton" style="height: 168px;"></div></div>
+      </section>
+
+      <!-- La última noticia (tanda 277, con banner desde la 288). La
+           sección se estrenó el 2026-09-10 y la portada no la
+           mencionaba: quien entra a pokedoc.es no tiene por qué abrir
+           el menú para enterarse de que hay noticias.
+           Desde la 288 va con la IMAGEN de portada, que es lo que
+           distingue una noticia de un enlace, y con «Ver todas» para
+           que se entienda que Noticias es una sección y no un
+           artículo suelto. Se recoge sola si no hay ninguna. -->
+      <section id="noticiaPortadaSeccion">
+        <div id="noticiaPortada"><div class="skeleton" style="height: 84px;"></div></div>
+      </section>
+    </div>
+
     <!-- El panel de la portada. En escritorio, dos columnas: lo ancho
-         (guía destacada, reto, foro vivo) a la izquierda y la barra
+         (guía destacada, torneo, foro vivo) a la izquierda y la barra
          lateral (top del mes, atajos) a la derecha, para que todo se vea
          de un vistazo en vez de en una torre de bloques a pantalla
          completa. En móvil las dos columnas se apilan y el orden queda
@@ -187,23 +215,6 @@
              de «no hay datos» los recoge (recogerSeccion, js/home.js). -->
         <section id="destacadaSeccion">
           <div class="destacada" id="destacada"><div class="skeleton" style="height: 92px;"></div></div>
-        </section>
-
-        <!-- El reto del día y el repaso: lo que da motivo para volver mañana. -->
-        <section id="retoSeccion">
-          <div class="reto-tarjetas" id="retoTarjetas"><div class="skeleton" style="height: 84px;"></div></div>
-        </section>
-
-        <!-- La última noticia (tanda 277, con banner desde la 288). La
-             sección se estrenó el 2026-09-10 y la portada no la
-             mencionaba: quien entra a pokedoc.es no tiene por qué abrir
-             el menú para enterarse de que hay noticias.
-             Desde la 288 va con la IMAGEN de portada, que es lo que
-             distingue una noticia de un enlace, y con «Ver todas» para
-             que se entienda que Noticias es una sección y no un
-             artículo suelto. Se recoge sola si no hay ninguna. -->
-        <section id="noticiaPortadaSeccion">
-          <div id="noticiaPortada"><div class="skeleton" style="height: 84px;"></div></div>
         </section>
 
         <!-- El próximo torneo (tanda 255). La sección «Jugar» se abrió el

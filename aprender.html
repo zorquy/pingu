@@ -44,6 +44,11 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <!-- Propio de esta página (tanda 299): las tarjetas de guía, los
+       filtros y la franja de «sigue donde lo dejaste». Fuera de
+       components.css a propósito — eso lo baja TODO el mundo, y la
+       portada tiene un tope de 170 KB (ver CLAUDE.md). -->
+  <link rel="stylesheet" href="css/aprender.css" />
 </head>
 <body>
   <nav class="navbar" id="navbar">
@@ -75,7 +80,7 @@
   <main class="page-content container">
     <div class="page-header">
       <h1>Aprender</h1>
-      <p>Explora las categorías y descubre nuevas guías.</p>
+      <p>Guías para leer y cursos para practicar. Todo gratis, escrito por la comunidad.</p>
     </div>
 
     <!-- Tu medallero: cuántos cursos tienes en oro/plata/bronce y
@@ -83,7 +88,11 @@
          sesión y solo si hay cursos; sin eso, ni aparece. -->
     <div class="medallero hidden" id="medallero"></div>
 
-    <div class="path-list" id="categoriesList">
+    <!-- Ya no es una rejilla de categorías (tanda 299): dentro van la
+         franja de «sigue donde lo dejaste», los filtros y la rejilla de
+         guías, cada uno con su propia disposición. `path-list` los
+         colocaba como si fueran tres categorías. -->
+    <div id="categoriesList">
       <div class="skeleton" style="height: 110px;"></div>
       <div class="skeleton" style="height: 110px;"></div>
     </div>

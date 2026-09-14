@@ -238,3 +238,1371 @@
     padding: 10px 12px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   Lo que venía de components.css (tanda 299)
+   ══════════════════════════════════════════════════════════════════
+   Estas reglas estaban en components.css, que lo baja TODO el mundo:
+   7 KB gzip de foro viajando en la portada, que tiene un tope de 170 KB
+   (ver CLAUDE.md). Solo las usa foro.html, así que aquí es donde van.
+   Se mudan TAL CUAL, sin tocar una coma: si algo se ve distinto después
+   de esto, es que el traslado se hizo mal, no que el diseño cambió. */
+
+
+/* ══════════════════════════════════════════════════════════════
+   El foro
+   ══════════════════════════════════════════════════════════════ */
+
+/* Panel del foro en /admin */
+.foro-admin-fila {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.foro-admin-fila input[type='text'] {
+  flex: 1;
+  min-width: 180px;
+}
+
+.foro-admin-hijo td:first-child {
+  padding-left: 18px;
+}
+
+.foro-admin-rama {
+  color: var(--text-dim);
+}
+
+.foro-admin-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* Migas de pan: en un foro no son adorno. Son la única forma de saber
+   dónde estás cuando llegas a un tema desde fuera. */
+.foro-migas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin: 4px 0 14px;
+  font-size: 13px;
+  color: var(--text-mid);
+}
+
+.foro-migas a {
+  color: var(--text-mid);
+  font-weight: 600;
+}
+
+.foro-migas a:hover {
+  color: var(--navy);
+}
+
+.foro-migas-sep {
+  color: var(--text-dim);
+}
+
+.foro-cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+}
+
+.foro-cabecera h1 {
+  font-size: 24px;
+}
+
+.foro-cabecera p {
+  font-size: 13.5px;
+}
+
+.foro-cabecera-acciones .btn-primary {
+  padding: 9px 18px;
+  font-size: 14px;
+}
+
+.foro-columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Los paneles de la lateral, separados.
+   Sin esto se apilaban pegados —solo los separaba el borde de 1 px— y
+   los tres se leían como un único bloque largo en vez de como tres
+   cosas distintas. El hueco es algo menor que el de las columnas: son
+   hermanos dentro de la misma columna, no dos zonas de la página. */
+.foro-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── La escala del foro ──
+   Un foro no se lee como un artículo: se BARRE. Cuantas más filas entran
+   sin hacer scroll, mejor se ve de un vistazo dónde hay conversación. Por
+   eso aquí todo va un punto más apretado que en el resto de la web —
+   filas más bajas, tipografías algo menores y avatares más pequeños. */
+.foro-seccion {
+  margin-bottom: 18px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.foro-seccion-titulo {
+  margin: 0;
+  padding: 9px 16px;
+  background: var(--ice);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: var(--text);
+}
+
+/* Una fila de foro o de tema: icono, cuerpo, números y último mensaje. */
+/* El reparto del ancho (tanda 299): el ÚLTIMO TEMA pasa de 210 px a
+   llevarse tanto como el nombre del foro, y los números bajan de 120 a
+   96. Antes era al revés, y el resultado era que «¡Hola! Vengo de
+   Sevilla y llevo jugando desde EX» salía como «¡Hola! Vengo de Sevilla
+   y ll…» al lado de un «Mensajes 1» enorme: el dato que decide si entras
+   cortado, y el que no decide nada a tamaño de titular. */
+.foro-fila,
+.foro-tema-fila {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 96px minmax(0, 1.15fr);
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.foro-seccion > .foro-fila:first-of-type,
+.foro-seccion > .foro-tema-fila:first-of-type {
+  border-top: none;
+}
+
+.foro-fila-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--navy);
+  opacity: 0.55;
+}
+
+.foro-tema-fijado .foro-fila-icono {
+  opacity: 1;
+  color: var(--warning);
+}
+
+.foro-fila-cuerpo h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 1px;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.foro-fila-cuerpo h3 a {
+  color: var(--text);
+}
+
+.foro-fila-cuerpo h3 a:hover {
+  color: var(--navy);
+}
+
+.foro-fila-cuerpo .subtext {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.foro-subforos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 4px 0 0;
+}
+
+.foro-subforos a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.foro-fila-numeros {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.foro-fila-numeros span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.foro-fila-numeros small {
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+.foro-fila-numeros strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.foro-ultimo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.foro-ultimo-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.foro-ultimo-titulo {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foro-ultimo-titulo:hover {
+  color: var(--navy);
+}
+
+.foro-ultimo-texto .subtext {
+  font-size: 11.5px;
+}
+
+.foro-ultimo-vacio {
+  justify-content: flex-start;
+  font-size: 12.5px;
+}
+
+/* La etiqueta del tema ([Duda], [Oficial]...) está en
+ * css/components.css: la lleva también la portada (js/home.js la pinta
+ * en «Ahora en el foro») y la portada no baja esta hoja. */
+
+.foro-chapa {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.foro-chapa-cerrado {
+  background: var(--border);
+  color: var(--text-mid);
+}
+
+.foro-chapa-equipo {
+  background: var(--indigo-bg);
+  color: var(--indigo);
+}
+
+/* Barra lateral: lo último escrito. */
+.foro-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+}
+
+.foro-panel h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* Un mensaje: columna del autor a la izquierda, contenido a la derecha.
+   Es la disposición clásica de foro, y se mantiene porque hace que se vea
+   de un golpe QUIÉN dice cada cosa — que en un foro pesa tanto como lo
+   que se dice. */
+.foro-mensaje {
+  display: grid;
+  grid-template-columns: 146px minmax(0, 1fr);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.foro-mensaje-autor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+
+.foro-mensaje-autor .mini-avatar {
+  border-radius: 50%;
+}
+
+.foro-autor-nombre a {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.foro-autor-titulo {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--text-mid);
+}
+
+/* La columna del autor mide 146 px, y ahí dentro no cabe entera una
+   chapa como "Colaborador destacado".
+   `.contributor-badge` nace para ir EN LÍNEA, al lado de un nombre en un
+   comentario: por eso lleva `white-space: nowrap` y un margen a la
+   izquierda. Metida en una columna estrecha y centrada, ese nowrap la
+   sacaba del cuadro por la derecha. Aquí se le quita el margen y se le
+   deja partir en dos líneas. */
+.foro-mensaje-autor .contributor-badge {
+  margin-left: 0;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  padding: 3px 9px;
+}
+
+.foro-mensaje-autor .contributor-badge svg {
+  flex-shrink: 0;
+}
+
+/* Lo mismo para las chapas de equipo y "Abrió el tema": son cortas hoy,
+   pero un título puesto a mano desde /admin puede ser cualquier cosa. */
+.foro-mensaje-autor .foro-chapa,
+.foro-mensaje-autor .foro-autor-titulo {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* El título puesto a mano por un admin pesa más que el nivel: se
+   distingue para que se lea como lo que es, un reconocimiento. */
+.foro-autor-titulo-propio {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+/* El clásico "Mensajes: 336" bajo el avatar. */
+.foro-autor-mensajes {
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+/* ── Resuelto ── */
+.foro-chapa-resuelto {
+  background: var(--success-bg, rgba(52, 211, 153, 0.15));
+  color: var(--success, #34d399);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* La respuesta que resolvió el tema, enmarcada en su color. */
+.foro-mensaje-solucion .foro-mensaje-cuerpo {
+  border: 1px solid var(--success, #34d399);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.foro-solucion-banda {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--success, #34d399);
+}
+
+/* ── Firma ──
+   Con el mismo formato que un mensaje pero contenida: altura máxima con
+   scroll propio (una firma enorme hace scroll DENTRO de su caja, nunca
+   entierra el hilo) e imágenes recortadas a tamaño de firma. Estos topes
+   van en CSS a propósito: son los únicos que nadie puede esquivar
+   escribiendo HTML raro. */
+.foro-firma {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+  max-height: 96px;
+  overflow-y: auto;
+}
+
+.foro-firma p {
+  margin: 0 0 4px;
+}
+
+.foro-firma img {
+  max-height: 64px;
+  max-width: 220px;
+  width: auto;
+  border-radius: var(--radius-sm);
+  vertical-align: middle;
+}
+
+/* Los títulos del editor, a tamaño de firma: un h2 de 24px al pie de
+   cada mensaje sería la anti-firma. */
+.foro-firma h2,
+.foro-firma h3 {
+  font-size: 13px;
+  margin: 0 0 4px;
+}
+
+/* ── Reacciones ── */
+.foro-reacciones {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.foro-reaccion {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-mid);
+}
+
+.foro-reaccion:hover {
+  border-color: var(--navy);
+}
+
+.foro-reaccion-mia {
+  border-color: var(--navy);
+  background: var(--ice);
+  color: var(--navy);
+  font-weight: 700;
+}
+
+/* Los recuentos sin botón (mensaje propio o sin sesión). */
+.foro-reaccion-quieta {
+  cursor: default;
+}
+
+/* ── Actividad del foro en el perfil ── */
+.foro-act-columnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+.foro-act-titular {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.foro-act-titular span {
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 12px;
+}
+
+.foro-act-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.foro-act-fila {
+  display: flex;
+  gap: 9px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.foro-act-fila:first-child {
+  border-top: none;
+}
+
+.foro-act-icono {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.foro-act-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.foro-act-titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.foro-act-titulo:hover {
+  color: var(--navy);
+}
+
+.foro-act-trozo {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.5;
+}
+
+.foro-act-cuerpo small {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.foro-mensaje-autor .contributor-badge {
+  font-size: 11px;
+}
+
+.foro-mensaje-cuerpo {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px 10px;
+  min-width: 0;
+}
+
+.foro-mensaje-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.foro-mensaje-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+/* El mensaje de un foro no es un artículo: se escribe corto y se lee
+   seguido. Con el tamaño de guía (16px/1.75) tres líneas ocupaban media
+   pantalla. */
+.foro-mensaje-texto {
+  flex: 1;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.foro-mensaje-texto p {
+  margin-bottom: 10px;
+}
+
+.foro-mensaje-texto p:last-child {
+  margin-bottom: 0;
+}
+
+.foro-cita {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.foro-cita-quien {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.foro-cita .article-body {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-mid);
+}
+
+.foro-cita .article-body p:last-child {
+  margin-bottom: 0;
+}
+
+.foro-mensaje-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.foro-mensaje-izq,
+.foro-mensaje-der {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.foro-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-mid);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.foro-accion:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+/* ── Formularios del foro ── */
+.foro-form {
+  margin-bottom: 20px;
+}
+
+.foro-form h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.foro-form-fila {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.foro-form-fila select {
+  flex: 0 0 150px;
+}
+
+.foro-form-fila input {
+  flex: 1;
+}
+
+.foro-form-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Responder no es "empezar a coleccionar": es el botón de todos los días
+   y no tiene por qué pesar como una llamada a la acción de portada. */
+.foro-form-acciones .btn-primary,
+.foro-form-acciones .btn-secondary {
+  padding: 8px 18px;
+  font-size: 14px;
+}
+
+.foro-respondiendo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  background: var(--ice);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+/* Los atajos de la portada (foro y escribir una guía) reutilizan la
+   tarjeta del reto. La separación con lo de alrededor la pone el gap
+   del panel de la portada; aquí no hace falta margen propio. */
+
+/* ── Los números del foro, en la lateral ── */
+.foro-numero {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 13px;
+  color: var(--text-mid);
+  border-bottom: 1px solid var(--border);
+}
+
+.foro-numero:last-child {
+  border-bottom: none;
+}
+
+.foro-numero strong {
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.foro-numero strong a {
+  color: var(--navy);
+}
+
+/* El contador que va al lado del título del panel. */
+.foro-panel-cuenta {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.foro-gente {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-mid);
+}
+
+.foro-gente a {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   El foro, para usarlo a diario
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── El buscador ──
+   Discreto y arriba del todo: quien viene a leer no lo necesita, y quien
+   viene a buscar algo concreto lo encuentra donde lo espera. */
+.foro-buscador {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 300px;
+  margin: 0 0 10px auto;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 3px 5px 3px 12px;
+  transition: border-color 0.15s var(--ease);
+}
+
+.foro-buscador:focus-within {
+  border-color: var(--navy);
+}
+
+.foro-buscador input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  padding: 5px 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.foro-buscador input:focus {
+  outline: none;
+}
+
+/* El botón es la lupa, dibujada con CSS para no meter otro SVG: la
+   barra de arriba ya trae el suyo. */
+.foro-buscador-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--navy);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.foro-buscador-btn::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border: 1.8px solid currentColor;
+  border-radius: 50%;
+}
+
+.foro-buscador-btn::after {
+  content: '';
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 6px;
+  height: 1.8px;
+  background: currentColor;
+  transform: rotate(45deg);
+}
+
+.foro-buscador-btn:hover {
+  background: var(--navy);
+  color: var(--white);
+}
+
+/* ── Resultados ── */
+.foro-resultado .foro-fila-cuerpo h3 {
+  margin-bottom: 2px;
+}
+
+.foro-resultado-trozo {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.5;
+  margin: 2px 0 3px;
+}
+
+/* ── Lo que no has leído ──
+   El peso de la letra se ve de un vistazo en una lista larga; un color
+   distinto, no siempre. */
+.foro-tema-nuevo .foro-fila-cuerpo h3 a {
+  font-weight: 800;
+}
+
+/* Y el leído se APAGA, con el mismo lenguaje que un foro leído en el
+   índice (.foro-fila-leida, más abajo): la negrita sola (700 frente a
+   800) apenas se distinguía dentro de un foro. La clase solo se pone
+   cuando hay sesión y las marcas de lectura han contestado. */
+.foro-tema-leido .foro-fila-icono {
+  opacity: 0.3;
+}
+
+.foro-tema-leido .foro-fila-cuerpo h3 a {
+  color: var(--text-mid);
+}
+
+.foro-tema-leido .foro-fila-cuerpo h3 a:hover {
+  color: var(--navy);
+}
+
+.foro-punto-nuevo {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--navy);
+  vertical-align: middle;
+}
+
+.foro-btn-leido {
+  padding: 8px 14px;
+  font-size: 13.5px;
+}
+
+/* ── Un foro con novedades y un foro leído tienen que verse distintos ──
+   Antes eran idénticos: la única forma de saber si había algo nuevo era
+   entrar en los seis foros a mirarlo. Se usa el MISMO lenguaje que en la
+   lista de temas (punto + negrita), no un color nuevo: en una lista, el
+   peso de la letra se ve de un vistazo. */
+.foro-fila-nueva .foro-fila-cuerpo h3 a {
+  font-weight: 800;
+}
+
+.foro-fila-nueva .foro-fila-icono {
+  opacity: 1;
+}
+
+/* Y el estado leído se dice también en positivo, apagando el icono: si
+   sólo se marcara lo nuevo, un foro leído se leería como "no sé". */
+.foro-fila-leida .foro-fila-icono {
+  opacity: 0.3;
+}
+
+.foro-fila-leida .foro-fila-cuerpo h3 a {
+  color: var(--text-mid);
+}
+
+.foro-fila-leida .foro-fila-cuerpo h3 a:hover {
+  color: var(--navy);
+}
+
+.foro-chapa-nuevos {
+  background: var(--navy);
+  color: #fff;
+}
+
+/* Los subforos que cuelgan de una fila del índice: van como enlaces en
+   una línea, así que el punto es lo único que cabe. */
+.foro-subforo-nuevo {
+  font-weight: 800;
+}
+
+.foro-subforos .foro-punto-nuevo {
+  width: 6px;
+  height: 6px;
+  margin-right: 3px;
+}
+
+/* ── Citar lo seleccionado ──
+   Sale flotando junto al ratón al soltar sobre un texto seleccionado. */
+.foro-citar-flotante {
+  position: absolute;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+  color: var(--white);
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: var(--shadow-md, 0 6px 20px rgba(13, 27, 42, 0.18));
+  transform: translateX(-50%);
+}
+
+.foro-citar-flotante:hover {
+  background: var(--navy-dark);
+}
+
+/* ── Vista previa de la respuesta ── */
+.foro-previa {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.foro-previa.hidden {
+  display: none;
+}
+
+.foro-previa-eti {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.foro-form-acciones .btn-secondary.activo {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+@media (max-width: 700px) {
+  .foro-buscador {
+    max-width: none;
+    margin-left: 0;
+  }
+}
+
+/* ── Sin respuesta todavía ───────────────────────────────────────────────
+   La tira del índice del foro con los temas que nadie ha contestado. Con
+   una comunidad pequeña, un hilo sin respuesta el primer día es alguien que
+   no vuelve: esto los pone donde todo el mundo los ve. */
+.foro-sin-responder {
+  background: var(--white);
+  border: 1.5px solid var(--warning);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.foro-sin-responder h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  margin: 0 0 2px;
+  color: var(--warning);
+}
+
+.foro-sin-responder > .subtext {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+}
+
+.foro-sr-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.foro-sr-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.foro-sr-fila:hover {
+  background: var(--ice);
+}
+
+.foro-sr-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.foro-sr-fila small {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-mid);
+}
+
+@media (max-width: 560px) {
+  .foro-sr-fila {
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+
+/* ── Los números de la actividad del foro en el perfil ── */
+.foro-act-numeros {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.foro-act-numeros > div {
+  display: grid;
+  gap: 2px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.foro-act-numeros strong {
+  font-size: 18px;
+}
+
+.foro-act-numeros span {
+  font-size: 12px;
+  color: var(--slate);
+}
+
+.foro-act-recorte {
+  margin: 6px 0 0;
+}
+
+/* ── El cumpleaños en "El foro en números" ── */
+.foro-cumple span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.foro-mensaje-destello {
+  animation: foro-destello 2s var(--ease) 1;
+  border-radius: var(--radius-sm);
+}
+
+/* El botoncito de copiar el enlace de un mensaje, junto al #N. */
+.foro-copiar-enlace {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  color: var(--text-dim);
+  border-radius: 6px;
+}
+
+.foro-copiar-enlace:hover {
+  color: var(--navy);
+  background: var(--ice);
+}
+
+/* El punto de "sin leer" ahora es un enlace al primer mensaje nuevo:
+   7 px se quedan cortos para el dedo, así que la zona de pulsado se
+   agranda por debajo sin engordar el punto. */
+a.foro-punto-nuevo {
+  position: relative;
+}
+
+a.foro-punto-nuevo::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+}
+
+/* ── Tanda foro fino: cita-enlace, filtro por etiqueta ── */
+
+/* La cabecera de la cita ahora es un enlace al mensaje original. El
+   color se queda apagado (es contexto, no un botón), pero al pasar por
+   encima se nota que lleva a algún sitio. */
+a.foro-cita-quien {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+a.foro-cita-quien:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.foro-cita-salto {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* La etiqueta-enlace no se subraya: la chapa de color ya es el botón. */
+.foro-etiqueta-enlace {
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.foro-etiqueta-enlace:hover .foro-etiqueta {
+  filter: brightness(1.12);
+}
+
+.foro-filtro-banda {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--text-mid);
+  margin: 0 0 10px;
+}
+
+/* ── La columna del autor: nivel + distinción apilados ── */
+.foro-autor-rangos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Las etiquetas clicables (nivel y colaborador): el botón desaparece y
+   queda la chapa, con una pista de que se puede pinchar. */
+.foro-chapa-rango {
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.foro-chapa-rango:hover {
+  filter: brightness(1.15);
+}
+
+.foro-chapa-rango:hover .nivel-chapa,
+.foro-chapa-rango:hover .contributor-badge {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* El título puesto por un admin, como ETIQUETA con su color (el mismo
+   truco de color+fondo+borde que las etiquetas de tema). Sin color
+   elegido, sale en el azul de la casa. */
+.foro-titulo-etiqueta {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(30, 81, 117, 0.35);
+  background: color-mix(in srgb, var(--chapa, var(--navy)) 14%, transparent);
+  border-color: color-mix(in srgb, var(--chapa, var(--navy)) 35%, transparent);
+  color: color-mix(in srgb, var(--chapa, var(--navy)) 45%, #12303f);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+  max-width: 100%;
+}
+
+/* Lo último del foro EN LA PORTADA (.foro-vivo*) vive en
+ * css/portada.css desde la tanda 299: la portada no baja esta hoja, así
+ * que tenerlo aquí dejaba la sección «Ahora en el foro» sin estilo. Lo
+ * pinta js/home.js y no se ve en ninguna otra pantalla. */
+
+/* Los oros en la columna del autor del foro: mismo formato que
+   «Mensajes:» y «Gracias:», con su tinte de oro. */
+.foro-autor-oros {
+  color: #b45309;
+}
+.foro-autor-oros svg { vertical-align: -2px; }
+:root[data-theme='dark'] .foro-autor-oros { color: #fbbf24; }
+
+/* ── Lo que se está hablando (tanda 299) ──
+   La franja de arriba del índice. Es la misma información que tenía el
+   lateral, pero a lo ancho: aquí un título de tema cabe entero, que es
+   lo único que hace que sirva para algo. */
+.foro-calientes {
+  margin-bottom: 22px;
+}
+.foro-calientes > h2 {
+  font-size: 17px;
+  margin: 0 0 12px;
+}
+.foro-calientes-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+.foro-caliente {
+  display: flex;
+  gap: 11px;
+  padding: 14px 15px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s var(--ease), transform 0.15s var(--ease);
+}
+.foro-caliente:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .foro-caliente:hover { transform: none; }
+}
+.foro-caliente-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.foro-caliente-titulo {
+  font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.35;
+  color: inherit;
+  text-decoration: none;
+  /* Dos líneas y corta: un título de foro puede ser largo, pero tres
+     líneas ya desequilibran la franja entera. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.foro-caliente:hover .foro-caliente-titulo { color: var(--navy); }
+:root[data-theme='dark'] .foro-caliente:hover .foro-caliente-titulo { color: #7db6dd; }
+.foro-caliente-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.foro-caliente-meta small { color: var(--text-dim); font-size: 12.5px; }
+.foro-caliente-pref {
+  background: var(--ice);
+  color: var(--navy);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+:root[data-theme='dark'] .foro-caliente-pref { color: #7db6dd; }
+
+/* En móvil se cae todo a una columna: las cuatro columnas de un índice de
+   foro no caben en 360 px ni forzándolas, y lo que se pierde (números y
+   último mensaje al lado) es justo lo prescindible. */
+@media (max-width: 900px) {
+  .foro-columnas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .foro-fila,
+  .foro-tema-fila {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .foro-fila-numeros {
+    grid-column: 2;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  .foro-fila-numeros span {
+    flex-direction: row;
+    gap: 5px;
+    align-items: baseline;
+  }
+
+  .foro-ultimo {
+    grid-column: 2;
+  }
+
+  .foro-mensaje {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* En móvil la columna del autor se convierte en una línea encima del
+     mensaje, como una firma normal. */
+  .foro-mensaje-autor {
+    flex-direction: row;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .foro-mensaje-autor .mini-avatar {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 15px !important;
+  }
+
+  .foro-form-fila {
+    flex-direction: column;
+  }
+
+  .foro-form-fila select {
+    flex: 1;
+  }
+}

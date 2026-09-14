@@ -1,0 +1,218 @@
+/* ── Aprender (tanda 299) ──
+   Hoja propia: solo la baja /aprender. Antes esta pantalla eran tres
+   cajas con borde de color que únicamente servían para llevarte a otra
+   pantalla; ahora las guías se ven aquí y las categorías son filtros. */
+
+/* ── Sigue donde lo dejaste ──
+   Lo que hace volver. Sin esto, quien dejó un curso a medias tiene que
+   acordarse de cuál era y buscarlo. Colores fijos y no var(--navy): el
+   panel es oscuro en los dos temas. */
+.aprender-seguir {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  background: linear-gradient(115deg, #163d59, #2a6b96 62%, #347fae);
+  color: #fff;
+  border-radius: var(--radius-xl);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+.aprender-seguir::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.2px, transparent 1.3px);
+  background-size: 16px 16px;
+  opacity: 0.55;
+}
+.aprender-seguir > * { position: relative; z-index: 1; }
+/* El aro de progreso: el mismo truco que el reloj de un torneo en
+   marcha — `--vuelta` va de 0 a 1 y lo pone el JavaScript. */
+.aprender-aro {
+  --vuelta: 0;
+  width: 62px;
+  height: 62px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(#fff calc(var(--vuelta) * 360deg), rgba(255, 255, 255, 0.25) 0);
+}
+.aprender-aro b {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #1e5175;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 14px;
+}
+.aprender-seguir-texto { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.aprender-seguir-rotulo {
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #a9cee3;
+  font-weight: 700;
+}
+.aprender-seguir-texto strong { font-family: var(--font-display); font-size: 20px; line-height: 1.2; }
+.aprender-seguir-sub { font-size: 13.5px; color: #bfdcec; }
+.aprender-seguir-boton { margin-left: auto; background: #fff; color: #163d59; flex: none; }
+.aprender-seguir-boton:hover { background: #e1f0f4; color: #163d59; }
+
+/* ── Los filtros ──
+   Las categorías dejan de ser una pantalla intermedia y pasan a ser
+   chips. El separador marca que lo de la derecha es otra cosa: la
+   categoría es UNA (excluyente) y el nivel es un interruptor. */
+.aprender-filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 22px;
+}
+.aprender-chip {
+  border: 1px solid var(--border-strong);
+  background: var(--white);
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-mid);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.aprender-chip:hover { border-color: var(--navy); color: var(--navy); }
+.aprender-chip.activa { background: var(--navy); border-color: var(--navy); color: #fff; }
+.aprender-chip-n {
+  background: var(--ice);
+  color: var(--navy);
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 1px 7px;
+}
+.aprender-chip.activa .aprender-chip-n { background: rgba(255, 255, 255, 0.22); color: #fff; }
+.aprender-filtros-sep { width: 1px; align-self: stretch; background: var(--border); margin: 2px 4px; }
+
+/* ── La rejilla de guías ── */
+.guia-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+@media (max-width: 380px) {
+  /* Por debajo del mínimo la pista desbordaría: una sola columna. */
+  .guia-rejilla { grid-template-columns: 1fr; }
+}
+.guia-tarjeta {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s var(--ease), border-color 0.15s, transform 0.15s var(--ease);
+}
+.guia-tarjeta:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .guia-tarjeta:hover { transform: none; }
+}
+.guia-tarjeta-enlace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+.guia-arte {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 100px;
+  padding: 11px;
+}
+/* Seis degradados, elegidos por el slug en aprender.js: una guía sin
+   imagen se ve siempre igual en vez de cambiar de color al filtrar. */
+.guia-arte-1 { background: linear-gradient(135deg, #0d9e6e, #7cc6d8 130%); }
+.guia-arte-2 { background: linear-gradient(135deg, #2a6b96, #7cc6d8 130%); }
+.guia-arte-3 { background: linear-gradient(135deg, #c8720a, #e0b252 130%); }
+.guia-arte-4 { background: linear-gradient(135deg, #0891b2, #2a6b96 130%); }
+.guia-arte-5 { background: linear-gradient(135deg, #7c3aed, #4f46e5 130%); }
+.guia-arte-6 { background: linear-gradient(135deg, #be185d, #7c3aed 130%); }
+.guia-arte::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1.1px, transparent 1.2px);
+  background-size: 14px 14px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.guia-arte img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.guia-rareza {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.rareza-bronze { color: var(--rarity-bronze); }
+.rareza-silver { color: var(--rarity-silver); }
+.rareza-gold { color: var(--rarity-gold); }
+.rareza-platinum { color: var(--rarity-platinum); }
+
+.guia-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 16px 17px 17px;
+  flex: 1;
+}
+.guia-titulo { font-family: var(--font-display); font-size: 18px; line-height: 1.28; transition: color 0.15s; }
+.guia-tarjeta:hover .guia-titulo { color: var(--navy); }
+:root[data-theme='dark'] .guia-tarjeta:hover .guia-titulo { color: #7db6dd; }
+.guia-desc { color: var(--text-mid); font-size: 13.5px; line-height: 1.5; }
+.guia-etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+.guia-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 12px;
+  color: var(--text-mid);
+  font-weight: 500;
+  white-space: nowrap;
+}
+/* El progreso abajo del todo y con `margin-top:auto`: así dos tarjetas
+   vecinas lo tienen a la misma altura aunque sus títulos midan distinto. */
+.guia-progreso { margin-top: auto; display: flex; flex-direction: column; gap: 5px; }
+.guia-barra { height: 5px; border-radius: var(--radius-pill); background: var(--ice); overflow: hidden; }
+.guia-barra i { display: block; height: 100%; border-radius: var(--radius-pill); background: var(--success); }
+.guia-progreso-texto { font-size: 12.5px; color: var(--text-dim); }
+.guia-hecha { color: var(--success); font-weight: 700; }
+:root[data-theme='dark'] .guia-barra { background: var(--ice-dark); }

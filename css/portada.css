@@ -1,0 +1,408 @@
+/* ── La portada: lo que solo gasta la portada (tanda 299) ──
+ *
+ * La norma de la casa dice que el CSS de una sola página va en su propio
+ * fichero, y la portada era la excepción: como es la página del
+ * presupuesto de peso, se venía metiendo todo en components.css para no
+ * pedirle una hoja más. El razonamiento ya no se sostiene —el rediseño
+ * de la 299 trae bastante CSS propio como para que esa hoja exista de
+ * todas formas—, así que aquí se junta lo que solo se ve en /:
+ * la fila de «hoy», el héroe del reto, el banner de noticias (que se
+ * trae de components.css) y el galón de rareza de las guías recientes.
+ *
+ * Lo que sale de components.css lo deja de bajar TODO EL MUNDO: el
+ * banner de noticias eran ~60 líneas que solo pinta la portada. */
+
+/* ── Lo que te trae hoy: el reto y la última noticia ── */
+
+/* Flex y no una rejilla de dos columnas: cualquiera de las dos secciones
+   se puede recoger sola (js/home.js: recogerSeccion) y con flex la que
+   queda se lleva la fila entera en vez de dejar media portada vacía.
+   La base de 300px es la que las apila en el móvil sin media query. */
+.portada-hoy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.portada-hoy > section {
+  flex: 1 1 300px;
+  min-width: 0;
+}
+
+/* El reto manda un poco más que la noticia: es lo único de la portada
+   que cambia por lo que TÚ haces. */
+@media (min-width: 900px) {
+  .portada-hoy > #retoSeccion {
+    flex-grow: 1.2;
+  }
+}
+
+/* La cadena de alturas hasta el héroe: la sección y el hueco que rellena
+   js/home.js (#retoTarjetas, que es una rejilla de tarjetas en el resto
+   de la portada) se hacen flex para que el estirón de la fila llegue
+   hasta el héroe y éste mida lo mismo que la noticia de al lado. Nada de
+   `height: 100%` por el camino: un alto explícito en un hijo de flex
+   ANULA el estirón, y como el padre no tiene alto definido se queda en
+   el alto del contenido — el héroe salía corto y debajo quedaba un claro
+   blanco. Y sin el margen de las tarjetas, que aquí deja un escalón. */
+.portada-hoy #retoSeccion,
+.portada-hoy #retoTarjetas {
+  display: flex;
+  margin-bottom: 0;
+}
+
+/* Y que cada eslabón OCUPE su sitio: un hijo de flex sin esto se encoge
+   a lo que mide su contenido, y el héroe salía a media columna con un
+   claro de 200px al lado. */
+.portada-hoy #retoSeccion > *,
+.portada-hoy #retoTarjetas > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── El héroe del reto ── */
+.reto-hoy {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* El contenido va CENTRADO en vertical, no pegado arriba con el botón
+     abajo del todo: la fila mide lo que mida la noticia de al lado (que
+     lleva foto y puede ser bastante más alta), y con el botón anclado al
+     suelo quedaba medio héroe de azul vacío en medio. Centrado, el hueco
+     se reparte arriba y abajo y se lee como aire, no como un fallo. */
+  justify-content: center;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 26px 24px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(120deg, var(--navy-dark), var(--navy) 55%, #3d8ab8);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+/* La trama de puntos, la misma que la cabecera de un torneo: sin ella el
+   degradado se ve plano. */
+.reto-hoy::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.2px, transparent 1.3px);
+  background-size: 16px 16px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.reto-hoy > * {
+  position: relative;
+  z-index: 1;
+}
+
+.reto-hoy-rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.reto-hoy-titular {
+  font-family: 'Fredoka', 'Inter', sans-serif;
+  font-size: 1.75rem;
+  line-height: 1.1;
+  font-weight: 600;
+}
+
+.reto-hoy-sub {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Los cinco puntos del reto. Vacíos son una invitación —se ve de un
+   vistazo que son cinco preguntas y no diez— y llenos, el resultado de
+   hoy sin tener que leer el número. */
+.reto-puntos {
+  display: flex;
+  gap: 7px;
+  margin: 2px 0;
+}
+
+.reto-punto {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+}
+
+.reto-punto.acertado {
+  background: #ffd166;
+  border-color: #ffd166;
+  box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.22);
+}
+
+.reto-hoy-boton {
+  margin-top: 8px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-weight: 700;
+}
+
+/* El botón blanco sobre azul: el .btn-primary de la casa es azul y sobre
+   el degradado desaparecería. */
+.reto-hoy .btn-primary.reto-hoy-boton {
+  background: #fff;
+  color: var(--navy-dark);
+  border-color: #fff;
+}
+
+.reto-hoy .btn-primary.reto-hoy-boton:hover {
+  background: var(--ice);
+  border-color: var(--ice);
+}
+
+/* El día que ya has jugado no hay nada que pulsar con urgencia: el
+   enlace a la liga va de contorno, para que no compita con el resto de
+   la portada. */
+.reto-hoy-boton-flojo {
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-pill);
+  padding: 9px 16px;
+  color: #fff;
+  font-size: 13.5px;
+}
+
+.reto-hoy-boton-flojo:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.reto-hoy-repaso {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  width: 100%;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.reto-hoy-repaso:hover {
+  color: #fff;
+}
+
+/* Jugado: mismo sitio y mismo tamaño, pero apagado. Si el de hoy hecho
+   se viera igual de encendido que el de hoy pendiente, la portada
+   perdería la única señal que distingue «te toca» de «ya está». */
+.reto-hoy-hecha {
+  background: linear-gradient(120deg, #24404f, #2f5468 60%, #3f6b80);
+}
+
+/* ── El banner de la última noticia (tanda 288, aquí desde la 299) ──
+ *
+ * Va con imagen, a diferencia de la fila fina del torneo, porque una
+ * noticia sin foto es un enlace y con foto es una noticia —el mismo
+ * razonamiento de css/noticias.css—. La imagen no toca el presupuesto
+ * de peso: va en diferido y no es CSS ni JS. */
+
+.noticia-banner {
+  display: block;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+  transition: border-color 0.15s var(--ease), transform 0.1s var(--ease);
+}
+
+a.noticia-banner:hover {
+  border-color: var(--navy);
+  transform: translateY(-1px);
+}
+
+.noticia-banner-foto {
+  display: block;
+  width: 100%;
+  /* La caja reserva su altura ANTES de que cargue la imagen: sin esto la
+     portada pega un salto justo cuando la persona va a pulsar algo. */
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  background: var(--ice);
+}
+
+.noticia-banner-texto {
+  padding: 13px 16px;
+}
+
+.noticia-banner-etiqueta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--navy);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.noticia-banner-texto strong {
+  display: block;
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+.noticia-banner-texto small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-mid);
+}
+
+/* Va FUERA del banner, y no dentro como un renglón más: dentro sería un
+ * enlace metido en otro enlace —que ni es HTML válido ni se puede
+ * pulsar— y llevaría al artículo, que es justo lo contrario de lo que
+ * promete. Esto es lo que convierte el banner en «hay una sección de
+ * noticias» en vez de «hay este artículo». */
+.noticia-banner-todas {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* ── El galón de rareza de las guías recientes ──
+ *
+ * Antes la rareza pintaba el MARCO entero, 2px y en su color: tres
+ * marcos dorados en fila pesaban más que las portadas de las guías, que
+ * es lo que hay que mirar. Ahora es una línea de 3px arriba, y la
+ * rareza se sigue leyendo además en su pastilla de abajo. */
+#recentGrid .recent-card {
+  position: relative;
+  border-width: 1px;
+  border-color: var(--border);
+  padding-top: 20px;
+}
+
+#recentGrid .recent-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--galon, var(--border-strong));
+}
+
+#recentGrid .recent-card:hover {
+  border-color: var(--border-strong);
+}
+
+.galon-bronze { --galon: var(--rarity-bronze); }
+.galon-silver { --galon: var(--rarity-silver); }
+.galon-gold { --galon: var(--rarity-gold); }
+.galon-platinum { --galon: var(--rarity-platinum); }
+
+/* ── Las tarjetas de categoría, sin marco de color ──
+ *
+ * El borde de 2px se lo daba `.category-card` para que se viera el color
+ * del hash; sin color, 2px de gris solo es una caja más gorda. */
+#categoriesGrid .category-card {
+  border-width: 1px;
+}
+
+#categoriesGrid .category-card:hover {
+  border-color: var(--navy);
+}
+
+/* ── Lo último del foro, en la portada ── */
+.foro-vivo {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-xs);
+}
+
+.foro-vivo-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.foro-vivo-cabecera h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.foro-vivo-cabecera .subtext {
+  margin: 2px 0 0;
+}
+
+.foro-vivo-boton {
+  padding: 6px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.foro-vivo-lista {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.foro-vivo-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.foro-vivo-fila:hover {
+  background: var(--ice);
+}
+
+.foro-vivo-fila > .mini-avatar {
+  flex-shrink: 0;
+}
+
+.foro-vivo-texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.foro-vivo-titulo {
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foro-vivo-titulo:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.foro-vivo-meta {
+  font-size: 12.5px;
+  white-space: nowrap;
+  /* Con nowrap y SIN recorte, «Fulanito de Tal · hace 30 minutos» se
+     salía de su columna y estiraba la portada entera en un móvil de
+     320px. Mismo trato que el título de al lado: se recorta con «…». */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

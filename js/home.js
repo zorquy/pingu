@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo, rutaDeArticulo, cuandoFue } from './articulos.js'
-import { escapeHtml, getSession, profileUrl, tintClassForKey, borderTintClassForKey, borderRarityClass, cardMediaHtml, categoryIconHtml, guideHasReference } from './app.js'
+import { escapeHtml, getSession, profileUrl, tintClassForKey, cardMediaHtml, categoryIconHtml, guideHasReference } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
@@ -10,6 +10,11 @@ import { montarPrimerosPasos } from './primeros-pasos.js'
 import { haceCuanto, nombreDe, perfilesPorId, urlTema, avatarHtml, etiquetaHtml } from './foro-comun.js'
 import { clasificacionSemanal } from './liga.js'
 
+// Las tarjetas de categoría ya no llevan marco de color (tanda 299).
+// Seis tarjetas seguidas con seis bordes de 2 px en seis colores
+// distintos no ordenaban nada: el color no quería decir nada —salía de
+// un hash del id— y competía con el de la rejilla de guías de abajo. El
+// color se queda donde sí significa: la pastilla del icono.
 async function loadCategories() {
   const grid = document.getElementById('categoriesGrid')
   const { data, error } = await supabase.from('categories').select('*').order('order_pos')
@@ -26,7 +31,7 @@ async function loadCategories() {
           ? cardMediaHtml(cat.cover_image, cat.emoji)
           : `<div class="category-icon ${tintClassForKey(cat.id)}">${categoryIconHtml(cat, 22)}</div>`
       return `
-    <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="category-card ${borderTintClassForKey(cat.id)}">
+    <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="category-card">
       ${icon}
       <h3>${escapeHtml(cat.name)}</h3>
       <p>${escapeHtml(cat.description || '')}</p>
@@ -72,6 +77,10 @@ async function cargarNumerosComunidad() {
   } catch {}
 }
 
+// La rareza sigue diciéndose —en la pastilla de abajo y ahora también
+// en un galón fino arriba (tanda 299)—, pero deja de pintar el marco
+// entero: tres marcos dorados en fila pesaban más que las portadas de
+// las guías, que es lo que se tiene que mirar.
 async function loadRecent() {
   const grid = document.getElementById('recentGrid')
   // Solo GUÍAS. Las noticias son mucho más frecuentes que las guías: sin
@@ -96,7 +105,7 @@ async function loadRecent() {
   grid.innerHTML = data
     .map(
       (g) => `
-    <div class="recent-card ${borderRarityClass(g.guide_rarity)}" data-guide-id="${g.id}" data-author-id="${escapeHtml(g.author_id || '')}" data-slug="${escapeHtml(g.slug || '')}" data-has-guide="${guideHasReference(g) ? '1' : ''}" tabindex="0" role="link">
+    <div class="recent-card galon-${escapeHtml(g.guide_rarity || 'bronze')}" data-guide-id="${g.id}" data-author-id="${escapeHtml(g.author_id || '')}" data-slug="${escapeHtml(g.slug || '')}" data-has-guide="${guideHasReference(g) ? '1' : ''}" tabindex="0" role="link">
       ${g.cover_image ? cardMediaHtml(g.cover_image, g.cover_emoji) : `<span class="emoji">${contentIconHtml(g.cover_emoji, 32, 'bookOpen')}</span>`}
       <h3>${escapeHtml(g.title)}</h3>
       <p>${escapeHtml(g.description || '')}</p>
@@ -493,6 +502,40 @@ cargarDestacada().catch(() => recogerSeccion('destacadaSeccion'))
 // Se pinta sin bloquear el resto de la home y se calla si algo falla:
 // mientras la migración de los cursos no esté aplicada, estas dos
 // tarjetas simplemente no aparecen.
+// El reto, de fila a HÉROE (tanda 299)
+//
+// Era una fila fina más entre otras cuatro iguales: mismo alto, mismo
+// icono a la izquierda, misma flechita. Lo que más engancha de la web
+// tenía exactamente el mismo peso visual que un atajo al editor de
+// guías. Ahora abre la portada, en grande, con los cinco puntos del reto
+// de hoy a la vista: cinco huecos vacíos se leen como una invitación, y
+// tres de cinco encendidos, como algo que mejorar mañana.
+//
+// Los puntos se pintan con <span> y no con un icono: son un contador,
+// no un dibujo, y así el que no ha jugado ve la forma del reto —cinco,
+// ni tres ni diez— antes de pulsar.
+function puntosHtml(aciertos, total) {
+  let html = ''
+  for (let i = 0; i < total; i++) html += `<span class="reto-punto${i < aciertos ? ' acertado' : ''}"></span>`
+  return `<span class="reto-puntos" aria-hidden="true">${html}</span>`
+}
+
+// Las tres caras del héroe comparten molde. Va de <div> y con el botón
+// dentro, nunca de <a> envolviéndolo todo: la línea del repaso es OTRO
+// enlace, y un enlace dentro de otro ni es HTML válido ni se puede
+// pulsar (el navegador cierra el de fuera y la caja se descoloca).
+function heroeReto({ rotulo, titular, sub, puntos, boton, repaso, hecho }) {
+  return `
+  <div class="reto-hoy${hecho ? ' reto-hoy-hecha' : ''}">
+    <span class="reto-hoy-rotulo">${icons.flame(16)} ${rotulo}</span>
+    <strong class="reto-hoy-titular">${titular}</strong>
+    ${puntos}
+    <small class="reto-hoy-sub">${sub}</small>
+    ${boton || ''}
+    ${repaso || ''}
+  </div>`
+}
+
 async function cargarReto() {
   const seccion = document.getElementById('retoSeccion')
   if (!seccion) return
@@ -508,15 +551,13 @@ async function cargarReto() {
     // propósito: importar el módulo solo por un número le cargaría al
     // visitante el motor del curso entero, y la portada tiene
     // presupuesto de peso (test-carga).
-    document.getElementById('retoTarjetas').innerHTML = `
-      <a class="reto-tarjeta" href="auth.html">
-        <span class="reto-icono">${icons.flame(20)}</span>
-        <div class="reto-texto">
-          <strong>Reto de hoy</strong>
-          <small>5 preguntas diarias, las mismas para todos. Crea tu cuenta y juega.</small>
-        </div>
-        <span class="reto-flecha">→</span>
-      </a>`
+    document.getElementById('retoTarjetas').innerHTML = heroeReto({
+      rotulo: 'Reto de hoy',
+      titular: 'Cinco preguntas al día',
+      puntos: puntosHtml(0, 5),
+      sub: 'Las mismas para todo el mundo. Se juega en un minuto y suma XP.',
+      boton: '<a class="btn-primary reto-hoy-boton" href="auth.html">Crear cuenta y jugar →</a>',
+    })
     seccion.style.display = ''
     return
   }
@@ -531,39 +572,34 @@ async function cargarReto() {
     cuantasParaRepasar(session.user.id),
   ])
 
-  const tarjetas = []
-  tarjetas.push(
-    jugado
-      ? `<div class="reto-tarjeta reto-tarjeta-hecha">
-           <span class="reto-icono">${icons.flame(20)}</span>
-           <div class="reto-texto">
-             <strong>Reto de hoy: ${jugado.correct} de ${jugado.total}</strong>
-             <small>Mañana hay cinco preguntas nuevas.</small>
-           </div>
-         </div>`
-      : `<a class="reto-tarjeta" href="/curso.html?reto=hoy">
-           <span class="reto-icono">${icons.flame(20)}</span>
-           <div class="reto-texto">
-             <strong>Reto de hoy</strong>
-             <small>${PREGUNTAS_POR_RETO} preguntas, las mismas para todos.</small>
-           </div>
-           <span class="reto-flecha">→</span>
+  // El repaso deja de ser una tarjeta hermana y pasa a ser la segunda
+  // línea del héroe: es lo mismo —preguntas del reto— y como tarjeta
+  // aparte duplicaba el bloque los días que había algo que repasar.
+  const repaso =
+    porRepasar > 0
+      ? `<a class="reto-hoy-repaso" href="/curso.html?reto=repaso">
+           ${icons.refreshCw(15)} ${porRepasar} ${porRepasar === 1 ? 'pregunta' : 'preguntas'} por repasar
          </a>`
-  )
+      : ''
 
-  if (porRepasar > 0) {
-    tarjetas.push(`
-      <a class="reto-tarjeta" href="/curso.html?reto=repaso">
-        <span class="reto-icono">${icons.refreshCw(20)}</span>
-        <div class="reto-texto">
-          <strong>${porRepasar} ${porRepasar === 1 ? 'pregunta' : 'preguntas'} por repasar</strong>
-          <small>De lo que fallaste hace unos días.</small>
-        </div>
-        <span class="reto-flecha">→</span>
-      </a>`)
-  }
-
-  document.getElementById('retoTarjetas').innerHTML = tarjetas.join('')
+  document.getElementById('retoTarjetas').innerHTML = jugado
+    ? heroeReto({
+        hecho: true,
+        rotulo: 'Reto de hoy',
+        titular: `${jugado.correct} de ${jugado.total}`,
+        puntos: puntosHtml(jugado.correct, jugado.total),
+        sub: 'Ya está el de hoy. Mañana hay cinco preguntas nuevas.',
+        boton: '<a class="reto-hoy-boton reto-hoy-boton-flojo" href="/usuarios.html">Ver la liga de la semana →</a>',
+        repaso,
+      })
+    : heroeReto({
+        rotulo: 'Reto de hoy',
+        titular: 'Te toca jugar',
+        puntos: puntosHtml(0, PREGUNTAS_POR_RETO),
+        sub: `${PREGUNTAS_POR_RETO} preguntas, las mismas para todos. Un minuto.`,
+        boton: '<a class="btn-primary reto-hoy-boton" href="/curso.html?reto=hoy">Jugar el reto →</a>',
+        repaso,
+      })
   seccion.style.display = ''
 }
 cargarReto().catch(() => recogerSeccion('retoSeccion'))

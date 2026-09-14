@@ -1271,25 +1271,11 @@ button.stat-card:hover {
 }
 
 /* ── Chunky colored card borders ── */
-.border-tint-0 {
-  border-color: var(--navy) !important;
-}
-
-.border-tint-1 {
-  border-color: var(--indigo) !important;
-}
-
-.border-tint-2 {
-  border-color: var(--warning) !important;
-}
-
-.border-tint-3 {
-  border-color: var(--success) !important;
-}
-
-.border-tint-4 {
-  border-color: var(--pink) !important;
-}
+/* Las .border-tint-* murieron en la tanda 299: solo las gastaban las
+ * tarjetas de categoría de la portada, y allí el marco de color salía de
+ * un hash del id —no quería decir nada— y competía con la rejilla de
+ * guías de abajo. Las de rareza siguen, que ahí el color SÍ significa
+ * algo y las llevan las .guide-card de las listas de categoría. */
 
 .border-rarity-bronze {
   border-color: var(--rarity-bronze) !important;

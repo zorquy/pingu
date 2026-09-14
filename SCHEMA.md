@@ -14619,3 +14619,153 @@ cada una guarda un fallo que ya pasó:
 - `test-tanda-297` (que las chips de la lista no se cuelen en la ficha):
   la ficha tiene ahora su propio estilo, así que la comprobación pasa a
   ser que cada pantalla lleve el suyo.
+
+---
+
+## Tanda 299 (D, E y F) — el foro, /aprender y la portada (sept. 2026)
+
+Lo que quedaba del rediseño, después de torneos. PINGU, sobre las
+maquetas: «me convence, todo perfecto, dale con todo a la vez». Sin
+tocar la base: ni una tabla, ni una política, ni una RPC. HTML, CSS y
+JavaScript.
+
+### D — el foro dice de qué se está hablando
+
+El índice abría con la lista de subforos: nombres y descripciones, que
+son lo mismo todos los días. De qué se está hablando HOY solo se veía en
+el lateral, en una columna de 280 px donde los títulos salían cortados a
+media palabra.
+
+Ahora arriba, a ancho completo, va **«Lo que se está hablando»**: los
+tres temas con mensaje más reciente, uno por tema (si alguien contesta
+cinco veces seguidas no llena él solo la franja). Y el «Lo último» del
+lateral se va: era la misma información, peor contada. El lateral se
+queda con los números.
+
+La fila de subforo reparte distinto el ancho: el ÚLTIMO TEMA pasa de
+210 px a llevarse tanto como el nombre del foro, y los números bajan de
+120 a 96. Antes el dato que decide si entras salía cortado al lado de un
+«Mensajes 1» a tamaño de titular.
+
+**Y el CSS del foro deja de bajarlo todo el mundo.** 191 bloques de
+`components.css` —que lo descarga hasta quien solo entra a la portada—
+se mudan a `css/foro.css`, que ya existía y solo cargan las páginas de
+foro: de 36,1 a 30,2 KB gzip, **5,9 KB menos en CADA página del sitio**.
+Se comprobó pixel a pixel (captura antes / captura después,
+`ImageChops.difference` → sin diferencia).
+
+Esa mudanza tuvo **dos fallos**, los dos cazados por las pruebas antes
+de subir nada:
+
+1. `.foro-vivo*` —«Ahora en el foro»— lo pinta la PORTADA, y la portada
+   no carga `foro.css`. La sección se quedó sin estilo. Se fue a
+   `css/portada.css`. `.foro-etiqueta` es del mismo tipo (la gasta el
+   foro y la portada): esa se queda en `components.css`, con el resto de
+   lo compartido.
+2. El `@media (max-width: 900px)` del foro se quedó en `components.css`
+   mientras su base se mudaba a `foro.css`. Un `@media` **no suma
+   especificidad**, y `components.css` carga primero: la base ganaba al
+   `@media`, el índice del foro dejó de apilarse en el móvil y la
+   lateral de 280 px se salía de la pantalla a 320 px.
+
+De ahí dos pruebas nuevas que no miran una pantalla sino la ESTRUCTURA:
+una recorre todas las clases que pinta la portada y comprueba que cada
+una tenga regla en una hoja que la portada carga de verdad; la otra,
+que no quede ningún `@media` del foro en `components.css`.
+
+### E — las guías, a la vista
+
+`/aprender` era una pantalla de TRES CAJAS que solo servían para llevarte
+a otra pantalla. Las guías no se veían hasta el segundo clic, y lo único
+que se leía de cada categoría era una barra vacía de «0 de 2 guías
+leídas», que no invita a nada.
+
+Ahora las guías se ven YA, en rejilla con portada (o un degradado
+elegido por el slug, no al azar: si cambiara en cada pintada la rejilla
+parpadearía al filtrar), nivel, minutos, «Con curso» y por dónde vas. Y
+las categorías son **filtros**, junto a los de nivel y «Sin leer».
+
+Todo el filtrado es **en el navegador**: las guías publicadas se traen
+de una vez (son decenas, no miles) y cambiar de filtro no vuelve a la
+base. Los chips de nivel y «Sin leer» son interruptores — volver a
+pulsarlos los quita, que si no una vez puesto un nivel no habría forma
+de verlas todas sin recargar.
+
+Arriba, **«Sigue donde lo dejaste»**: el curso empezado y sin terminar
+más reciente, con su aro de progreso. Es lo que hace volver — sin ella,
+quien dejó un curso a medias tiene que acordarse de cuál era.
+
+CSS propio en `css/aprender.css` (solo lo carga /aprender), y se borran
+`.path-list`, `.category-row*` y `.row-info` de `components.css`, que ya
+no los usa nadie.
+
+### F — la portada abre con lo de hoy
+
+El reto del día era una fila fina entre otras cuatro iguales: mismo
+alto, mismo icono a la izquierda, misma flechita. Lo que más engancha de
+la web tenía el mismo peso visual que un atajo al editor de guías, y
+salía en tercer lugar dentro de la columna izquierda del panel.
+
+Ahora el reto y la última noticia abren la portada, a ancho completo,
+por encima del panel de dos columnas (`.portada-hoy`, `index.html`). El
+reto es un **héroe** azul con los **cinco puntos** del reto de hoy:
+vacíos son una invitación —se ve que son cinco preguntas y no diez—; con
+el reto jugado, encendidos los que acertaste, el héroe apagado y el
+botón cambiado por «Ver la liga», que el de hoy ya no se juega otra vez.
+Al visitante se le enseña igual, con «Crear cuenta y jugar». El repaso
+deja de ser una tarjeta hermana y pasa a ser la segunda línea del héroe.
+
+Es flex y no una rejilla de dos columnas fijas porque cualquiera de las
+dos secciones se recoge sola (`recogerSeccion`, `js/home.js`): sin
+noticia, el héroe se lleva la fila entera en vez de dejar media portada
+en blanco. El contenido del héroe va **centrado en vertical**: la fila
+mide lo que mida la noticia de al lado, que lleva foto, y con el botón
+anclado al suelo quedaba medio héroe de azul vacío en medio.
+
+**Y el color deja de gritar en las rejillas.** Las tarjetas de «Explora
+por tema» llevaban un marco de 2 px de color sacado de un hash del id —
+no quería decir nada y competía con la rejilla de guías de abajo: fuera,
+y con él las `.border-tint-*` de `css/style.css`, que solo las usaba
+esto. En «Añadidas recientemente» la rareza sí significa algo, así que
+se queda, pero de **galón de 3 px arriba** en vez de marco entero (y en
+su pastilla de siempre): tres marcos dorados en fila pesaban más que las
+portadas de las guías.
+
+La portada estrena `css/portada.css`. La regla de la casa dice que el
+CSS de una sola página va en su propio fichero, y la portada era la
+excepción por ser la página del presupuesto de peso; con el rediseño ya
+trae CSS propio suficiente como para que esa hoja exista de todas
+formas, así que se le suma el banner de noticias (tanda 288), que solo
+pinta ella y estaba en `components.css`.
+
+**Peso**: 156,9 KB gzip de los 170 del presupuesto.
+
+### Comprobado
+
+`test-tanda-299.mjs` (10 bloques, 59 comprobaciones) contra las tres
+pantallas en Chromium. Rigor: **30 mutaciones, las 30 detectadas** — en
+la primera pasada se escaparon TRES, y las tres eran pruebas mías
+demasiado flojas:
+
+- contaba las consultas con `page.on('request')`, y el doble de Supabase
+  no hace ni una petición de red: ese contador daba cero pasara lo que
+  pasara. Ahora lee `window.__CONSULTAS__`, el contador del propio doble;
+- la guía terminada del fixture era la más antigua, así que «sigue donde
+  lo dejaste» la descartaba por fecha y no por estar terminada. Ahora es
+  la empezada más reciente;
+- el galón de rareza solo se comprobaba «que no fuera transparente», y
+  sin `--galon` la regla cae a un gris de respaldo que tampoco lo es.
+  Ahora se comprueba que sea EL COLOR DE SU RAREZA y que dos rarezas se
+  vean distintas.
+
+Además de lo nuevo comprueba lo que la mudanza de CSS podía romper —de
+ahí las dos pruebas de estructura de arriba—, que el filtrado de
+/aprender no vuelve a la base (se cuentan las peticiones), que la
+portada sigue cabiendo en 170 KB **con `css/portada.css` enlazada** (si
+no lo estuviera, la cuenta saldría bien por el motivo malo), y que nada
+se sale de la pantalla a 320 px en las tres.
+
+El doble de Supabase gana dos tablas, `daily_challenge_results` y
+`user_progress`: sin ellas no se podía probar ni el reto YA JUGADO ni
+«Sigue donde lo dejaste» — las dos pantallas se probaban siempre en su
+estado de recién llegado.

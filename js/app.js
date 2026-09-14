@@ -25,10 +25,6 @@ export function tintClassForKey(key) {
   return `icon-tint-${tintIndexForKey(key)}`
 }
 
-export function borderTintClassForKey(key) {
-  return `border-tint-${tintIndexForKey(key)}`
-}
-
 export function borderRarityClass(rarity) {
   return `border-rarity-${rarity || 'bronze'}`
 }

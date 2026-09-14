@@ -12,6 +12,75 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-14 (8) — PINGU-Claude (tanda 299 — D, E y F: foro, aprender y portada)
+
+**Hecho**: lo que quedaba del rediseño después de torneos, las tres a la
+vez («me convence, todo perfecto, dale con todo a la vez»). Sin tocar la
+base: ni una tabla, ni una política, ni una RPC.
+
+**D — el foro** abre con «Lo que se está hablando»: los tres temas con
+mensaje más reciente, a ancho completo, uno por tema. El «Lo último» del
+lateral se va (era lo mismo, en 280 px y con los títulos cortados a
+media palabra) y el lateral se queda con los números. La fila de subforo
+reparte distinto: el último tema pasa de 210 px a llevarse tanto como el
+nombre del foro, y los números bajan de 120 a 96.
+
+**Y 191 bloques de CSS del foro salen de `components.css`** —que lo baja
+todo el mundo, hasta quien solo entra a la portada— a `css/foro.css`: de
+36,1 a 30,2 KB gzip, **5,9 KB menos en CADA página**. Comprobado pixel a
+pixel antes y después.
+
+Esa mudanza me salió mal DOS veces, las dos cazadas por las pruebas:
+`.foro-vivo*` («Ahora en el foro») lo pinta la PORTADA, que no carga
+`foro.css` — la sección se quedó sin estilo; y el `@media` de móvil del
+foro se quedó en `components.css` mientras su base se mudaba, y como un
+`@media` no suma especificidad y `components.css` carga primero, el
+índice del foro dejó de apilarse en el móvil y la lateral se salía de la
+pantalla a 320 px. De ahí dos pruebas nuevas que no miran una pantalla
+sino la ESTRUCTURA: que ninguna clase de la portada se quede en una hoja
+que la portada no carga, y que no quede ningún `@media` del foro en
+`components.css`.
+
+**E — /aprender** era tres cajas que solo servían para llevarte a otra
+pantalla: las guías no se veían hasta el segundo clic. Ahora se ven YA,
+en rejilla, y las categorías son FILTROS (con nivel y «Sin leer»), todo
+en el navegador — cambiar de filtro no vuelve a la base. Arriba, «Sigue
+donde lo dejaste» con el curso a medias más reciente y su aro.
+
+**F — la portada** abre con el reto del día en GRANDE y la última
+noticia al lado, por encima del panel de dos columnas. El reto lleva los
+cinco puntos: vacíos son una invitación, y con el reto jugado los que
+acertaste, el héroe apagado y el botón cambiado por «Ver la liga» — el
+de hoy no se juega dos veces. Y el color deja de gritar en las rejillas:
+las tarjetas de categoría pierden el marco de 2 px de color (salía de un
+hash del id, no quería decir nada) y la rareza de las guías recientes
+pasa de marco entero a galón fino arriba.
+
+La portada estrena `css/portada.css` (y se lleva el banner de noticias
+de la 288, que solo pinta ella). Peso: **156,9 KB gzip** de los 170.
+
+**Ficheros**: index.html, foro.html, aprender.html, js/home.js,
+js/foro.js, js/aprender.js, js/app.js (muere `borderTintClassForKey`),
+css/portada.css (NUEVO), css/aprender.css (NUEVO), css/foro.css,
+css/components.css, css/style.css, SCHEMA.md.
+
+**Pruebas**: test-tanda-299.mjs (NUEVA, 10 bloques, 59 comprobaciones).
+Rigor: 30 mutaciones, las 30 detectadas — pero en la primera pasada se
+escaparon TRES, y las tres eran pruebas mías flojas, no código malo
+(contaba consultas por la red, que el doble no usa; el fixture descartaba
+la guía terminada por fecha en vez de por terminada; y al galón le valía
+cualquier color, incluido el gris de respaldo). Corregidas las tres. El doble gana dos tablas
+(`daily_challenge_results` y `user_progress`): sin ellas no se podía
+probar el reto YA JUGADO ni «Sigue donde lo dejaste».
+
+**En curso / pendiente**: el rediseño queda terminado (torneos 297-298,
+foro/aprender/portada 299). Sin cobertura siguen las fichas de guía y
+curso, los perfiles y /noticias. Y PINGU confirma que **las seis SQL
+pendientes están ejecutadas** (chats, cola, bo3, privados, organizadores
+y dueño): no queda nada por poner en la base.
+
+---
+
 ## 2026-09-14 (7) — PINGU-Claude (tanda 298 — B y C: la ficha y las rondas)
 
 **Hecho**: las dos últimas del rediseño de «Jugar», juntas porque PINGU

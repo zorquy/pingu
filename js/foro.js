@@ -169,6 +169,63 @@ async function sinResponderHtml(idsForosVisibles) {
   </section>`
 }
 
+// ── Lo que se está hablando (tanda 299) ──
+//
+// Un índice de foros contesta a «qué hay aquí», pero la pregunta de
+// quien entra es otra: «¿de qué se habla AHORA?». Eso estaba en la
+// columna lateral, en 280 px, con los títulos cortados a media palabra
+// («¡Hola! Vengo de Sevilla y ll…»): lo más informativo de la página
+// tenía el sitio más estrecho.
+//
+// Sube arriba y a lo ancho. NO es información nueva: es la misma que
+// tenía el lateral, movida a donde se lee. Por eso el lateral la suelta
+// —tenerla dos veces sería peor que no tenerla.
+const CALIENTES = 3
+
+async function calientesHtml() {
+  const { data: mensajes, error } = await supabase
+    .from('forum_posts')
+    .select('id, thread_id, author_id, created_at')
+    .order('created_at', { ascending: false })
+    .limit(12)
+  if (error || !mensajes?.length) return ''
+
+  // Un tema por fila: si alguien contesta cinco veces seguidas, no llena
+  // él solo la franja entera.
+  const vistos = new Set()
+  const elegidos = mensajes.filter((m) => !vistos.has(m.thread_id) && vistos.add(m.thread_id)).slice(0, CALIENTES)
+  const { data: temas } = await supabase
+    .from('forum_threads')
+    .select('id, title, prefix, post_count')
+    .in('id', elegidos.map((m) => m.thread_id))
+  const temaPorId = Object.fromEntries((temas || []).map((t) => [t.id, t]))
+  const perfiles = await perfilesPorId(elegidos.map((m) => m.author_id))
+
+  const filas = elegidos
+    .map((m) => {
+      const t = temaPorId[m.thread_id]
+      if (!t) return ''
+      // Dos enlaces HERMANOS, nunca uno dentro de otro: `avatarHtml` ya
+      // devuelve un <a> al perfil, y un <a> dentro de otro <a> no existe
+      // en HTML — el navegador cierra el de fuera al toparse con el de
+      // dentro, y la tarjeta se parte en pedazos sueltos. Es el mismo
+      // aviso que dejó escrito el lateral en su día; me lo comí igual.
+      return `
+      <div class="foro-caliente">
+        ${avatarHtml(perfiles[m.author_id], 30)}
+        <span class="foro-caliente-texto">
+          <a class="foro-caliente-titulo" href="${urlTema(m.thread_id)}">${escapeHtml(t.title)}</a>
+          <span class="foro-caliente-meta">
+            ${t.prefix ? `<span class="foro-caliente-pref">${escapeHtml(t.prefix)}</span>` : ''}
+            <small>${t.post_count || 1} mensaje${(t.post_count || 1) === 1 ? '' : 's'} · ${escapeHtml(haceCuanto(m.created_at))}</small>
+          </span>
+        </span>
+      </div>`
+    })
+    .join('')
+  return filas ? `<section class="foro-calientes"><h2>Lo que se está hablando</h2><div class="foro-calientes-rejilla">${filas}</div></section>` : ''
+}
+
 async function pintarIndice() {
   const [seccionesRes, forosRes] = await Promise.all([
     supabase.from('forum_sections').select('*').order('position'),
@@ -241,7 +298,16 @@ async function pintarIndice() {
     })
     .join('')
 
-  const sinResponder = await sinResponderHtml(foros.map((f) => f.id))
+  const [sinResponder, calientes] = await Promise.all([
+    sinResponderHtml(foros.map((f) => f.id)),
+    calientesHtml(),
+  ])
+
+  // La franja va en su propio hueco, ancho completo: dentro de la
+  // columna principal los títulos se volvían a cortar, que es el fallo
+  // del que venimos.
+  const destacado = document.getElementById('foroDestacado')
+  if (destacado) destacado.innerHTML = calientes
 
   principal.innerHTML = bloques
     ? sinResponder + bloques
@@ -269,58 +335,12 @@ async function pintarIndice() {
 // hay tal cosa. Lo que sí hay es "por aquí hoy", que con poca gente
 // sigue siendo un número honesto y agradable de ver.
 async function pintarLateral() {
-  const { data: mensajes, error } = await supabase
-    .from('forum_posts')
-    .select('id, thread_id, author_id, created_at, body_html')
-    .order('created_at', { ascending: false })
-    .limit(8)
-  if (error || !mensajes || mensajes.length === 0) {
-    lateral.innerHTML = ''
-    return
-  }
-
-  const { data: temas } = await supabase
-    .from('forum_threads')
-    .select('id, title, board_id')
-    .in('id', [...new Set(mensajes.map((m) => m.thread_id))])
-  const temaPorId = Object.fromEntries((temas || []).map((t) => [t.id, t]))
-  const perfiles = await perfilesPorId(mensajes.map((m) => m.author_id))
-
-  // Un mensaje por tema: si alguien contesta cinco veces seguidas, no
-  // llena él solo toda la columna.
-  const vistos = new Set()
-  const filas = mensajes
-    .filter((m) => {
-      if (vistos.has(m.thread_id)) return false
-      vistos.add(m.thread_id)
-      return true
-    })
-    .slice(0, 6)
-    .map((m) => {
-      const tema = temaPorId[m.thread_id]
-      if (!tema) return ''
-      // Dos enlaces HERMANOS, nunca uno dentro de otro: el avatar ya es un
-      // <a> al perfil, y un <a> dentro de otro <a> no existe en HTML — el
-      // navegador cierra el de fuera al toparse con el de dentro, y el
-      // título se quedaba sin enlace (no se podía entrar en el tema).
-      return `
-      <div class="foro-reciente">
-        ${avatarHtml(perfiles[m.author_id], 26)}
-        <span class="foro-reciente-texto">
-          <a class="foro-reciente-titulo" href="${urlTema(m.thread_id)}">${escapeHtml(tema.title)}</a>
-          <small>${escapeHtml(haceCuanto(m.created_at))} · ${escapeHtml(nombreDe(perfiles[m.author_id]))}</small>
-        </span>
-      </div>`
-    })
-    .join('')
-
-  const ultimo = filas ? `<div class="foro-panel"><h3>Lo último</h3>${filas}</div>` : ''
-  lateral.innerHTML = ultimo
-
-  // Los números van después y por separado: si tardan o fallan, "Lo
-  // último" ya está en pantalla.
+  // «Lo último» se fue arriba, a la franja de «lo que se está hablando»
+  // (tanda 299): en 280 px los títulos se cortaban a media palabra, que
+  // es justo lo que no se puede cortar de un tema. Aquí se queda lo que
+  // SÍ cabe en una columna estrecha, que son cifras y nombres.
   const numeros = await panelDeNumerosHtml()
-  lateral.innerHTML = ultimo + numeros
+  lateral.innerHTML = numeros
 }
 
 // ─────────────────────────────────────────────────────────────
