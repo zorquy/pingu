@@ -68,6 +68,9 @@ for (const [id, p] of Object.entries(PERSONAS)) {
     username: p.username,
     display_name: p.username,
     is_admin: p.is_admin,
+    // El rol de organizador de torneos (tanda 295): en la base la columna
+    // tiene valor por defecto, así que aquí NINGUNA fila la tiene vacía.
+    is_tournament_admin: !!p.is_tournament_admin,
     is_moderator: !!p.is_moderator,
     achievements: p.achievements || [],
     avatar_url: null,
@@ -78,6 +81,15 @@ for (const [id, p] of Object.entries(PERSONAS)) {
 }
 
 const quienSoy = typeof window !== 'undefined' ? window.__FAKE_SESSION__ || 'admin-1' : 'admin-1'
+
+// Retoques sobre el perfil de QUIEN MIRA (tanda 295). Así una prueba
+// puede darle el rol de organizador de torneos sin inventarse una
+// persona nueva ni reescribir la tabla entera.
+const retoqueDePerfil = typeof window !== 'undefined' ? window.__FAKE_PERFIL__ : null
+if (retoqueDePerfil && typeof retoqueDePerfil === 'object') {
+  const fila = T.user_profiles.find((p) => p.id === quienSoy)
+  if (fila) Object.assign(fila, retoqueDePerfil)
+}
 const sesion = quienSoy === 'none' ? null : { user: { id: quienSoy, email: `${quienSoy}@pruebas.test` } }
 
 // ── Las semillas ──
