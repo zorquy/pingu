@@ -189,9 +189,13 @@ export function inyectarCuerpo(html, cuerpo) {
 // MISMO viaje: no cuesta ni una consulta más.
 //
 // Lo que se inyecta lo pisa js/guia.js en cuanto carga, con la versión
-// completa (índice, botones, valoraciones). O sea que a una persona esto
-// no le cambia nada... salvo que ve el texto ANTES, que también está
-// bien.
+// completa (índice, botones, valoraciones).
+//
+// OJO con lo que decía aquí antes: «a una persona esto no le cambia
+// nada». Sí le cambia — es LO PRIMERO QUE VE, y durante todo el viaje a
+// Supabase. Por eso el cuerpo sale con los mismos envoltorios que usa
+// guia.js (ver cuerpoDeArticulo): si no, el primer pintado es un texto
+// sin formato que después pega un salto.
 
 // Qué se deja pasar. Es la misma lista que usa el saneador del editor al
 // GUARDAR (js/richtext-format.js), o sea que esto no recorta nada de lo
@@ -302,10 +306,28 @@ export function cuerpoDeArticulo({ titulo, entradilla, bloques }) {
     const cierre = trozo.lastIndexOf('>')
     recortado = cierre > 0 ? trozo.slice(0, cierre + 1) : trozo
   }
+  // ── Con los MISMOS envoltorios que usa js/guia.js (tanda 309) ──
+  //
+  // Antes esto salía suelto dentro de `<article>`: un `<h1>`, la
+  // entradilla y los bloques a pelo. Y toda la tipografía del artículo
+  // —interlineado, márgenes, viñetas de las listas, ancho de línea—
+  // cuelga de `.article-body`. O sea que el primer pintado salía SIN
+  // FORMATO: el texto amontonado y las listas sin viñetas. Luego llegaba
+  // el JavaScript, sustituía `#articleMain` entero y todo daba un salto.
+  //
+  // El comentario de aquí arriba decía que «a una persona esto no le
+  // cambia nada». Sí le cambiaba, y era lo primero que veía. Lo cazó
+  // PINGU: «primero carga el texto sin formato y de repente ¡pum!».
+  //
+  // Con los envoltorios puestos, el primer pintado YA es el bueno y el
+  // relevo del cliente no se nota. Si estas clases cambian en guia.js,
+  // tienen que cambiar aquí: las dos mitades pintan lo mismo.
   return (
+    '<div class="article-header">' +
     `<h1>${escaparAtributo(titulo)}</h1>` +
     (entradilla ? `<p class="lead">${escaparAtributo(entradilla)}</p>` : '') +
-    recortado
+    '</div>' +
+    `<div class="article-body">${recortado}</div>`
   )
 }
 

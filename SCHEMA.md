@@ -15518,3 +15518,119 @@ siempre el formulario—, así que probarla era imposible y su «sin
 detectar» permanente habría tapado las demás. El `return` se queda (es
 correcto y barato), pero el comentario del código ya no dice que las tres
 salidas hagan falta: dice la verdad.
+
+---
+
+## Tanda 309 — el destello de la guía, el menú y la escala de bordes (sept. 2026)
+
+PINGU, en una tanda de ideas: el destello al abrir una guía, si el menú
+debería llevar los apartados «diferenciados» y no solo texto con hover, y
+que el desplegable del perfil es demasiado largo. **Dos de las tres no
+eran decisiones de diseño: eran fallos disfrazados de decisión.**
+
+### El destello al abrir una guía
+
+«Primero carga el texto sin formato y de repente ¡pum!». No es lentitud:
+**se pinta dos veces y la primera sale sin estilo.**
+
+`guia.html` la pre-rellena la función de servidor `meta-social.js` (tanda
+270) para que Google y quien comparte el enlace vean el texto sin esperar
+al JavaScript. Inyectaba esto dentro de `<article>`:
+
+```html
+<h1>Título</h1><p class="lead">…</p><h2>…</h2><p>…</p><ul>…</ul>
+```
+
+…**suelto**. Y toda la tipografía del artículo —interlineado, márgenes,
+viñetas, ancho de línea— cuelga de `.article-body`. O sea que lo primero
+que veías era el texto amontonado y las listas sin viñetas, durante todo
+el viaje a Supabase; y cuando llegaba `guia.js` sustituía `#articleMain`
+entero. Ese era el «pum».
+
+El comentario del propio fichero decía: *«a una persona esto no le cambia
+nada… salvo que ve el texto ANTES, que también está bien»*. La suposición
+era falsa, y era **lo primero que ve todo el mundo**.
+
+El arreglo no es tapar el hueco con un esqueleto: es que **el primer
+pintado ya sea el bueno**. El servidor emite ahora los mismos envoltorios
+que usa el cliente (`.article-header` + `.article-body`), así que el
+relevo no se nota. Si esas clases cambian en `guia.js`, tienen que
+cambiar aquí: las dos mitades pintan lo mismo.
+
+**La prueba no comprueba «lleva tal clase»: MIDE** que un párrafo tenga
+el mismo interlineado, el mismo margen y el mismo tamaño pintado por uno
+que por el otro. Así da igual cómo se arregle mientras coincidan, que es
+lo único que importa.
+
+### El menú: estaba roto, no soso
+
+El menú **ya tenía** marca de sección activa —una línea bajo el apartado
+en el que estás— y **solo se encendía en la portada**. Comparaba el
+último trozo de la URL con el `href` tal cual, y desde que hay
+direcciones limpias `'noticias' === '/noticias'` es falso. En /noticias,
+/aprender, /foro, /usuarios y /torneos no se marcaba nada.
+
+Por eso parecía «texto plano con un hover»: **el estado que lo
+diferenciaba no llegaba a existir**. Se compara por clave (sin barras,
+sin `.html`, sin parámetros) y con el PRIMER trozo de la ruta, así que
+`/noticias/una-noticia` también marca Noticias. Y un mapa pequeño hace
+que leer sea estar en su sección: una guía o un curso marcan Aprender, un
+tema marca Foro, la ficha de alguien marca Comunidad.
+
+Ya encendida, se sube el contraste a **pastilla rellena — solo en el
+apartado donde estás**. No los seis: con seis pastillas ninguna destaca,
+que es justo lo que hay que ver, y compiten con el logo y con los cuatro
+iconos de la derecha.
+
+### El desplegable del perfil
+
+De ocho cosas a cinco, en tres grupos separados por una raya.
+
+- **«Mis torneos» fuera**: llevaba a `/perfil#torneos`, que desde la 308
+  es una pestaña con su contador, y se llega antes desde «Jugar». Encima
+  solo salía a admins, así que ocupaba sitio para casi nadie.
+- **«Enviar feedback» al PIE**, no borrado. Quitar el botón del menú es
+  gratis; quitar la vía de que alguien te cuente algo, no. Se engancha
+  desde el JavaScript (`montarFeedbackEnElPie`) y no se escribe en las 26
+  páginas: una línea en un sitio en vez de veintiséis que se
+  desincronizan.
+- **«Cerrar sesión» separado por una raya**, que es lo que evita pulsarlo
+  yendo a por «Mis partidas».
+
+### La escala de bordes y radios
+
+Como los tamaños de letra de la tanda 305, pero con los bordes: **nueve
+grosores distintos** haciendo el trabajo de dos — 180 reglas a 1px, 46 a
+1,5, 25 a 2, y sueltas a 1,8, 2,5, 3, 4, 4,5 y 6.
+
+La regla: **un CONTORNO es de 1px o de 2px.** 54 sustituciones.
+
+Y dos cosas que NO son contornos y quedan fuera a propósito, o el criterio
+se vuelve ruido:
+
+- Un **lado suelto** (`border-left: 3px`) es una barra de cita, no un
+  contorno.
+- Un `border` que **dibuja una figura**: la lupa del buscador (1,8px sobre
+  un cuadrado de 8px) y el canto blanco de una carta Pokémon (3px). Van
+  declarados en la prueba como excepciones, para que se vea que son
+  decisiones y no despistes.
+
+Las **tarjetas** bajan de 2px a 1px: la de guía llevaba 2 y la ficha de
+persona 1, y juntas se veían de dos épocas distintas. Ahora todas iguales.
+
+De los radios se sustituyen **los 15 que ya valían exactamente lo que vale
+un token** (7, 10, 14, 18, 999) — cero cambio visual, quince números
+menos repetidos. Los demás se quedan: 6px en `.deck-card img`, 9px en
+`.tcg-card`, 5px en `.carta-opcion img`… son **esquinas de carta Pokémon
+y formas de icono**, donde un token de interfaz diría algo falso.
+
+Cubierto en `test-tanda-309.mjs` (5 bloques) + `rigor-tanda-309.py`.
+
+### Y una idea que retiré
+
+De las cinco mejoras que propuse, **una era falsa**: dije que el foro
+seguía siendo «una tarjeta por tema». No lo es — la tanda 299 ya lo pasó
+a filas con separador. Lo dije de memoria sin abrir el CSS. Queda escrito
+porque el error de método importa más que el dato: **proponer trabajo
+sobre un recuerdo en vez de sobre el código es como se inventan tandas
+que no hacen falta.**

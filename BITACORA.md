@@ -12,6 +12,46 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-15 (8) — PINGU-Claude (tanda 309 — el destello de la guía, el menú y la escala de bordes)
+
+**Hecho**: cuatro cosas que salieron de una tanda de ideas de PINGU. Dos
+de ellas **no eran decisiones de diseño, eran fallos**:
+
+- **El destello al abrir una guía.** No es lentitud: se pinta dos veces y
+  la primera sale SIN ESTILO. La función de servidor (`meta-social.js`)
+  inyectaba el `<h1>` y los bloques sueltos dentro de `<article>`, y toda
+  la tipografía del artículo cuelga de `.article-body`. Ahora el servidor
+  emite los MISMOS envoltorios que el cliente, así que el primer pintado
+  ya es el bueno. **Si cambias esas clases en `js/guia.js`, cámbialas
+  también en el edge function: las dos mitades pintan lo mismo.**
+- **El menú.** Ya tenía marca de sección… que solo se encendía en la
+  portada: comparaba el último trozo de la URL con el `href` tal cual, y
+  con direcciones limpias `'noticias' === '/noticias'` es falso. Por eso
+  parecía texto plano con hover. Arreglado y subido a pastilla rellena,
+  solo en el apartado activo.
+- **El desplegable del perfil**: de ocho cosas a cinco. «Mis torneos»
+  fuera (ya es una pestaña con contador, y se llega desde «Jugar»);
+  «Enviar feedback» AL PIE, no borrado — se monta desde el JS en un solo
+  sitio, no en las 26 páginas.
+- **La escala de bordes**: nueve grosores haciendo el trabajo de dos. Un
+  contorno es de 1px o de 2px, y 54 sustituciones. Las barras de cita
+  (`border-left`) y los bordes que DIBUJAN algo (la lupa, el canto de una
+  carta) quedan fuera a propósito. Y 15 radios que ya valían lo que un
+  token pasan al token.
+
+**Retiré una idea mía**: dije que el foro seguía siendo «una tarjeta por
+tema» y es falso — la 299 ya lo pasó a filas. Lo dije de memoria sin
+mirar el CSS.
+
+**Ficheros**: `netlify/edge-functions/meta-social.js`, `js/app.js`,
+`css/style.css`, `css/components.css`, y las otras nueve hojas (bordes y
+radios), `SCHEMA.md`.
+En la rama `pruebas`: `test-tanda-309.mjs` y `rigor-tanda-309.py` (NUEVOS).
+
+**En curso / pendiente**: nada a medias.
+
+---
+
 ## 2026-09-15 (7) — PINGU-Claude (tanda 308 — pestañas con cuenta, esqueletos de lista y el hueco de pruebas)
 
 **Hecho**: cuatro mejoras de las cinco que propuse. La quinta la retiré:

@@ -46,6 +46,24 @@
    saber dónde está lo que buscas, y en la mayoría de los perfiles casi
    todas están vacías. Va en components.css y no en perfil.css porque
    `.tab-btn` ya vive aquí: la chapa es parte de la pestaña. */
+/* El enlace del pie que es un botón (tanda 309): «Enviar feedback» abre
+   un modal, así que tiene que ser <button> por accesibilidad, pero en el
+   pie va en la misma fila que «Términos de uso» y tiene que leerse
+   igual. */
+.pie-enlace {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.pie-enlace:hover {
+  text-decoration: underline;
+}
+
 .pest-cuenta {
   display: inline-flex;
   align-items: center;
@@ -203,7 +221,7 @@
 
 .guide-card {
   background: var(--white);
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 16px;
   display: flex;
@@ -477,7 +495,7 @@
   width: 100%;
   box-sizing: border-box;
   padding: 10px 12px;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--t-md);
   font-family: inherit;
@@ -496,7 +514,7 @@
   padding: 32px 20px;
   color: var(--text-dim);
   font-size: var(--t-md);
-  border: 1.5px dashed var(--border);
+  border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
 }
 
@@ -635,7 +653,7 @@
   box-sizing: border-box;
   padding: 10px 12px;
   margin-bottom: 8px;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--t-md);
   font-family: inherit;
@@ -679,7 +697,7 @@ textarea.be-field {
   gap: 2px;
   padding: 6px;
   background: var(--bg);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-bottom: none;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
@@ -720,7 +738,7 @@ textarea.be-field {
 
 /* ── Editor WYSIWYG de Documentación (tipo Word) ── */
 .rte-wrap {
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   /* Ojo: nada de overflow:hidden aquí — convertiría a este contenedor en
      el "scrollport" de la toolbar sticky de abajo (al no poder desplazarse
@@ -804,7 +822,7 @@ textarea.be-field {
   gap: 4px;
   padding: 7px;
   background: var(--white);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
 }
@@ -858,7 +876,7 @@ textarea.be-field {
   gap: 8px;
   padding: 6px 8px;
   background: var(--ice);
-  border: 1.5px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
 }
 
@@ -1010,7 +1028,7 @@ textarea.be-field {
   height: 64px;
   object-fit: cover;
   border-radius: var(--radius-sm);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
 }
 
 /* ── Editor de guías a página completa ── */
@@ -1077,7 +1095,7 @@ textarea.be-field {
 }
 
 .editor-ref-preview {
-  border: 1.5px dashed var(--border);
+  border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
   padding: 18px;
   margin-bottom: 16px;
@@ -1213,7 +1231,7 @@ textarea.be-field {
   width: 100%;
   padding: 15px 18px;
   font-size: var(--t-xl);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
   color: var(--text);
@@ -1874,7 +1892,7 @@ tcg-deck {
 .auth-input {
   width: 100%;
   padding: 13px 16px;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-size: var(--t-lg);
   outline: none;
@@ -1942,7 +1960,7 @@ tcg-deck {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 
@@ -1991,7 +2009,7 @@ tcg-deck {
   background: color-mix(in srgb, var(--chapa, var(--border)) 14%, transparent);
   border-color: color-mix(in srgb, var(--chapa, var(--border)) 35%, transparent);
   color: color-mix(in srgb, var(--chapa, var(--text-mid)) 45%, #12303f);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 0.82em;
   font-weight: 700;
   line-height: 1.6;
@@ -2172,7 +2190,7 @@ tcg-deck {
   align-items: center;
   gap: 12px;
   background: var(--white);
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 14px;
   text-decoration: none;
@@ -2309,7 +2327,7 @@ tcg-deck {
 .form-group textarea,
 .form-group select {
   padding: 10px 12px;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--t-md);
   outline: none;
@@ -2409,7 +2427,7 @@ tcg-deck {
 
 /* ── Guía Pro (paywall) ── */
 .pro-paywall {
-  border: 1.5px dashed #f2b705;
+  border: 1px dashed #f2b705;
   background: linear-gradient(180deg, rgba(242, 183, 5, 0.08), transparent 60%);
   border-radius: var(--radius-lg);
 }
@@ -2527,7 +2545,7 @@ tcg-deck {
   align-items: center;
   gap: 3px;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(245, 158, 11, 0.12);
   color: #b45309;
   font-size: var(--t-xs);
@@ -2580,7 +2598,7 @@ tcg-deck {
   right: -2px;
   background: #dc2626;
   color: var(--white);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: var(--t-2xs);
   font-weight: 700;
   min-width: 16px;
@@ -2757,7 +2775,7 @@ tcg-deck {
 .nav-user-avatar-lg {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background-color: var(--navy);
   background-position: center;
   background-size: cover;
@@ -2820,6 +2838,15 @@ tcg-deck {
 .nav-user-links a:hover,
 .nav-user-links button:hover {
   background: var(--ice);
+}
+
+/* La raya que separa los grupos del menú (tanda 309): «lo tuyo», luego
+   escribir, y «Cerrar sesión» al final. La raya es lo que hace que no se
+   pulse «Cerrar sesión» yendo a por «Mis partidas». */
+.nav-user-links .nav-user-grupo {
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 /* ── Desplegables de la navbar en móvil ──
@@ -2915,7 +2942,7 @@ tcg-deck {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--white);
   font-size: var(--t-xl);
@@ -3214,7 +3241,7 @@ tcg-deck {
   min-width: 0;
   padding: 6px;
   text-align: left;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: var(--bg);
 }
@@ -3342,7 +3369,7 @@ tcg-deck {
 
 .cp-chosen-list button {
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--ice);
   color: var(--navy);
   font-size: var(--t-2xs);
@@ -3640,7 +3667,7 @@ a.rater-name:hover {
   align-items: center;
   gap: 7px;
   padding: 9px 16px;
-  border: 1.5px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
   background: var(--white);
   color: var(--text-mid);
@@ -3769,7 +3796,7 @@ a.rater-name:hover {
   width: 48px;
   flex-shrink: 0;
   padding: 6px 0;
-  border: 1.5px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   background: var(--white);
   color: var(--text-mid);
@@ -4118,7 +4145,7 @@ a.rater-name:hover {
   margin: 26px 0 6px;
   padding: 20px 22px;
   background: var(--ice);
-  border: 1.5px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-xl);
 }
 
@@ -4236,7 +4263,7 @@ a.rater-name:hover {
   position: absolute;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  border: 2.5px dashed var(--success);
+  border: 2px dashed var(--success);
   background: rgba(13, 158, 110, 0.16);
   cursor: pointer;
 }
@@ -4820,7 +4847,7 @@ yt-video .yt-enlace:hover { color: #fff; }
    no lo ve nadie pasada la primera semana. */
 .primeros-pasos {
   background: var(--white);
-  border: 1.5px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   padding: 18px 20px;
 }
@@ -4844,7 +4871,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   font-weight: 800;
   color: var(--navy);
   background: var(--ice);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 5px 12px;
 }
 
@@ -4882,7 +4909,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   height: 22px;
   flex-shrink: 0;
   border-radius: 50%;
-  border: 1.5px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   color: var(--white);
 }
 
@@ -4962,7 +4989,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   max-width: 460px;
   margin: 6px 0;
   padding: 8px 12px;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--white);
   text-decoration: none;
@@ -5035,7 +5062,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   width: 280px;
   padding: 12px;
   background: var(--white);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
 }
@@ -5133,7 +5160,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   background: var(--white);
   box-shadow: var(--shadow-md);
   font-size: var(--t-xl);
@@ -5225,7 +5252,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   line-height: 1;
   padding: 10px;
   color: rgba(255, 255, 255, 0.85);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 .lightbox-cerrar:hover {
@@ -5775,7 +5802,7 @@ body.portada-compacta .page-content {
   gap: 14px;
   align-items: flex-start;
   padding: 16px;
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
 }

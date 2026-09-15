@@ -50,6 +50,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   es que el sitio pide otro paso: mételo en `:root`. La única excepción
   es un avatar pintado a un tamaño concreto, donde la inicial crece con
   el diámetro del círculo y no con la escala.
+- **Los bordes también tienen escala** (tanda 309): un CONTORNO es de
+  `1px` o de `2px`, y nada más. Un lado suelto (`border-left: 3px`) es una
+  barra de cita, no un contorno; y hay dos sitios donde un `border` dibuja
+  una figura (la lupa del buscador, el canto de una carta) que van
+  declarados como excepción en la prueba. Las tarjetas, todas a 1px.
+- **El texto del artículo lo pintan DOS mitades** y tienen que coincidir:
+  `js/guia.js` en el navegador y `netlify/edge-functions/meta-social.js`
+  en el servidor. Si cambias los envoltorios (`.article-header`,
+  `.article-body`) en una, cámbialos en la otra — si no, lo primero que
+  ve la gente es el texto sin formato y luego pega un salto.
 - Comentarios del código en español, contando el porqué, no el qué.
 - Textos de la web en español, tono cercano («tú»).
 

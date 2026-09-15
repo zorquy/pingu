@@ -1232,7 +1232,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-duelo-cara {
   width: 58px;
   height: 58px;
-  border-radius: 18px;
+  border-radius: var(--radius-xl);
   display: grid;
   place-items: center;
   font-family: var(--font-display);
@@ -1678,7 +1678,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   gap: 4px;
   background: var(--ice);
   color: var(--navy);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 2px 8px;
   font-size: var(--t-2xs);
   font-weight: 800;
@@ -2302,7 +2302,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   right: 4px;
   bottom: 22px;
   padding: 1px 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: #b3261e;
   color: #fff;
   font-size: var(--t-2xs);

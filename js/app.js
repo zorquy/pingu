@@ -553,8 +553,27 @@ async function renderNavUser(session) {
         </div>
       </div>
       <div class="nav-user-stats" id="navUserStats">${statsHtml(g, null)}</div>
+      <!-- Ocho cosas era demasiado para un menú que se abre de paso
+           (tanda 309). Ahora son cinco, en dos grupos: LO TUYO y lo de
+           ESCRIBIR, con «Cerrar sesión» separado por una raya para que
+           no se pulse sin querer.
+
+           Dos que salieron:
+            · «Mis torneos» llevaba a /perfil#torneos, que desde la
+              tanda 308 es una pestaña con su contador, y además se llega
+              antes desde «Jugar». Encima solo salía a admins, así que
+              ocupaba sitio para casi nadie.
+            · «Enviar feedback» se va AL PIE (ver montarFeedbackEnElPie).
+              Quitar el botón del menú es gratis; quitar la vía de que
+              alguien te cuente algo, no. -->
       <div class="nav-user-links">
         <a href="/perfil.html">${icons.user(16)} Mi perfil</a>
+        <a href="/guardados.html">${icons.bookmark(16)} Guardados</a>
+        <!-- «Mis partidas» va para TODO el mundo, no solo para admins:
+             el registro de enfrentamientos sirve igual jugando en TCG
+             Live que en un torneo de aquí, y de hecho es de lo poco de
+             la sección de juego que ya vale antes de abrirla. -->
+        <a href="/mis-partidas">${icons.layers(16)} Mis partidas</a>
         <!-- Escribir una guía estaba SOLO dentro de una pestaña de
              Comunidad y de otra del perfil: había que saber que existía
              para encontrarlo. Aquí está en todas las páginas, en el menú
@@ -562,16 +581,8 @@ async function renderNavUser(session) {
              propósito — se dejó en tres enlaces justamente para que no
              se llenara, y la inmensa mayoría de las visitas vienen a
              leer, no a escribir. -->
-        <a href="/editor-guia.html">${icons.edit(16)} Escribir una guía</a>
-        <a href="/guardados.html">${icons.bookmark(16)} Guardados</a>
-        ${profile?.is_admin ? `<a href="/perfil.html#torneos">${icons.trophy(16)} Mis torneos</a>` : ''}
-        <!-- «Mis partidas» va para TODO el mundo, no solo para admins:
-             el registro de enfrentamientos sirve igual jugando en TCG
-             Live que en un torneo de aquí, y de hecho es de lo poco de
-             la sección de juego que ya vale antes de abrirla. -->
-        <a href="/mis-partidas">${icons.layers(16)} Mis partidas</a>
-        <button type="button" id="navFeedbackBtn">${icons.messageSquare(16)} Enviar feedback</button>
-        <button type="button" id="navUserSignOut">${icons.logOut(16)} Cerrar sesión</button>
+        <a class="nav-user-grupo" href="/editor-guia.html">${icons.edit(16)} Escribir una guía</a>
+        <button type="button" class="nav-user-grupo" id="navUserSignOut">${icons.logOut(16)} Cerrar sesión</button>
       </div>`
 
     // El recuento, cuando llegue. Solo repinta la fila de estadísticas,
@@ -588,11 +599,6 @@ async function renderNavUser(session) {
       .catch(() => {})
 
     document.getElementById('navUserSignOut').addEventListener('click', signOut)
-    document.getElementById('navFeedbackBtn').addEventListener('click', async () => {
-      dropdown.classList.add('hidden')
-      const { openFeedbackModal } = await import('./feedback.js')
-      openFeedbackModal()
-    })
   }
 
   document.getElementById('navUserBtn').addEventListener('click', async () => {
@@ -634,11 +640,66 @@ function initMobileMenu() {
   })
 }
 
+// Qué apartado del menú se marca (tanda 309).
+//
+// Antes esto comparaba el último trozo de la URL con el `href` TAL CUAL:
+// `'noticias' === '/noticias'` es falso, así que desde que hay
+// direcciones limpias la marca **solo se encendía en la portada**. En
+// /noticias, /aprender, /foro, /usuarios y /torneos no se marcaba nada —
+// y por eso el menú parecía texto plano con un hover: el estado que lo
+// diferenciaba no llegaba a existir.
+//
+// Se compara por CLAVE, no por texto: sin barras, sin `.html`, sin
+// parámetros. Así da igual cómo esté escrito el enlace en cada página
+// (`aprender.html` en la portada, `/aprender.html` en las demás).
+const claveDeRuta = (x) =>
+  (x || '')
+    .split(/[?#]/)[0]
+    .replace(/^\/+|\/+$/g, '')
+    .replace(/\.html$/, '')
+    .toLowerCase() || 'index'
+
+// Y a qué apartado pertenece cada pantalla. Leer un tema es estar en el
+// foro, y leer una guía es estar en Aprender: marcarlo es lo que
+// convierte el menú en un mapa en vez de en cinco enlaces.
+const APARTADO_DE = {
+  tema: 'foro',
+  guia: 'aprender',
+  curso: 'aprender',
+  categoria: 'aprender',
+  guardados: 'aprender',
+  usuario: 'usuarios',
+  torneo: 'torneos',
+}
+
 function markActiveLink() {
-  const page = window.location.pathname.split('/').pop() || 'index.html'
+  // El PRIMER trozo, no el último: /noticias/una-noticia es Noticias.
+  const primero = claveDeRuta(window.location.pathname.split('/').filter(Boolean)[0] || '')
+  const actual = APARTADO_DE[primero] || primero
   document.querySelectorAll('.nav-links a, .nav-menu-mobile a').forEach((a) => {
-    const href = a.getAttribute('href')
-    if (href === page) a.classList.add('active')
+    if (claveDeRuta(a.getAttribute('href')) === actual) a.classList.add('active')
+  })
+}
+
+// «Enviar feedback» vive AQUÍ desde la tanda 309, y no en el desplegable
+// del perfil: ese menú se abre de paso, para ir a tu perfil o cerrar
+// sesión, y ocho cosas eran demasiadas. Contarnos algo no es una prisa —
+// es lo que haces al terminar de leer, que es cuando estás mirando el
+// pie.
+//
+// Se engancha desde el JavaScript y no se escribe en las 26 páginas: es
+// una línea en un sitio en vez de veintiséis que se desincronizan. Y
+// solo con sesión, porque el formulario la necesita.
+function montarFeedbackEnElPie() {
+  const pie = document.querySelector('.footer-links')
+  if (!pie || document.getElementById('pieFeedbackBtn')) return
+  pie.insertAdjacentHTML(
+    'beforeend',
+    ' · <button type="button" class="pie-enlace" id="pieFeedbackBtn">Enviar feedback</button>'
+  )
+  document.getElementById('pieFeedbackBtn').addEventListener('click', async () => {
+    const { openFeedbackModal } = await import('./feedback.js')
+    openFeedbackModal()
   })
 }
 
@@ -655,6 +716,7 @@ export async function initNavbar() {
   markActiveLink()
   const session = await getSession()
   if (session) {
+    montarFeedbackEnElPie()
     const profile = await getProfile(session.user.id)
     if (profile?.is_banned) {
       await supabase.auth.signOut()
