@@ -45,7 +45,7 @@ async function renderInbox(session) {
           <strong style="${c.unread ? 'color:var(--navy);' : ''}">${escapeHtml(name)}</strong>
           <p class="subtext" style="margin:2px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.lastMessage ? escapeHtml(c.lastMessage.body) : ''}</p>
         </div>
-        ${c.lastMessage ? `<span class="date" style="color:var(--text-dim); font-size:12px; flex-shrink:0;">${timeAgo(c.lastMessage.created_at)}</span>` : ''}
+        ${c.lastMessage ? `<span class="date" style="color:var(--text-dim); font-size: var(--t-xs); flex-shrink:0;">${timeAgo(c.lastMessage.created_at)}</span>` : ''}
       </a>`
           })
           .join('')
@@ -120,7 +120,7 @@ async function renderThread(session, conversationId) {
     <div class="page-header" style="padding-top: 8px; display:flex; align-items:center; gap:12px;">
       <a href="/mensajes.html" style="font-weight:700; color:var(--text-dim);">←</a>
       <a class="mini-avatar" href="${profileUrl(otherProfile)}" style="width:40px; height:40px; font-size:15px; ${avatarStyle(otherProfile)}">${otherProfile.avatar_url ? '' : getInitial(name)}</a>
-      <h1 style="margin:0; font-size:20px;"><a href="${profileUrl(otherProfile)}" style="color:var(--text);">${escapeHtml(name)}</a></h1>
+      <h1 style="margin:0; font-size: var(--t-xl);"><a href="${profileUrl(otherProfile)}" style="color:var(--text);">${escapeHtml(name)}</a></h1>
     </div>
     <div id="threadMessages" style="display:flex; flex-direction:column; gap:8px; margin:16px 0;"></div>
     <div class="simple-card">
@@ -151,10 +151,10 @@ async function renderThread(session, conversationId) {
               const mine = m.sender_id === session.user.id
               return `
         <div style="align-self:${mine ? 'flex-end' : 'flex-start'}; max-width:75%; background:${mine ? 'var(--navy)' : 'var(--ice)'}; color:${mine ? 'var(--white)' : 'var(--text)'}; padding:8px 12px; border-radius:var(--radius-md);">
-          <p style="margin:0; font-size:13.5px; white-space:pre-wrap;">${enlazarMenciones(escapeHtml(m.body), mencionados)}</p>
+          <p style="margin:0; font-size: var(--t-sm); white-space:pre-wrap;">${enlazarMenciones(escapeHtml(m.body), mencionados)}</p>
           <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
-            <span style="font-size:10.5px; opacity:0.7;">${timeAgo(m.created_at)}</span>
-            ${mine ? `<button type="button" data-delete-msg="${m.id}" style="font-size:10.5px; opacity:0.7; text-decoration:underline;">Eliminar</button>` : reportButtonHtml('private_message', m.id)}
+            <span style="font-size: var(--t-2xs); opacity:0.7;">${timeAgo(m.created_at)}</span>
+            ${mine ? `<button type="button" data-delete-msg="${m.id}" style="font-size: var(--t-2xs); opacity:0.7; text-decoration:underline;">Eliminar</button>` : reportButtonHtml('private_message', m.id)}
           </div>
         </div>`
             })

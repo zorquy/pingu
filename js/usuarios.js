@@ -9,6 +9,9 @@ import { plegarTexto, contienePlegado } from './texto.js'
 import { initPeticiones } from './peticiones.js'
 
 let allUsers = []
+// Si hay algo escrito en el buscador: manda el resultado entero, sin
+// recortar a diez.
+let buscando = false
 let allCommunityGuides = []
 let communityGuidesPage = 1
 
@@ -43,16 +46,48 @@ function userCardHtml(p) {
     </div>`
 }
 
+// Cuántas caras se enseñan de entrada (tanda 304).
+//
+// PINGU: «los usuarios, como ya son 200, hay que scrollear demasiado».
+// Y tiene razón: 200 tarjetas son 100 filas de scroll para llegar al pie
+// de la página, y las 190 de abajo no las mira nadie — están ordenadas
+// por XP, así que quien busca a alguien concreto usa el buscador.
+//
+// Diez es lo que cabe en una pantalla sin bajar. El resto está a un
+// clic y la cuenta va en el botón, para que se vea que hay más y
+// cuántos: «Ver los 190 restantes» dice algo, «Ver más» no.
+const GENTE_DE_ENTRADA = 10
+
+let genteDesplegada = false
+
 function render(list) {
   const grid = document.getElementById('userDirectoryGrid')
   const empty = document.getElementById('userDirectoryEmpty')
+  const pie = document.getElementById('userDirectoryPie')
+  if (pie) pie.innerHTML = ''
   if (list.length === 0) {
     grid.innerHTML = ''
     empty.innerHTML = `<p class="empty-state">No hay usuarios que coincidan con tu búsqueda.</p>`
     return
   }
   empty.innerHTML = ''
-  grid.innerHTML = list.map(userCardHtml).join('')
+
+  // Buscando se ven TODOS los que coinciden: si has escrito un nombre,
+  // recortar el resultado a diez y pedirte otro clic es absurdo.
+  const recorta = !buscando && !genteDesplegada && list.length > GENTE_DE_ENTRADA
+  const visibles = recorta ? list.slice(0, GENTE_DE_ENTRADA) : list
+  grid.innerHTML = visibles.map(userCardHtml).join('')
+
+  if (recorta && pie) {
+    const faltan = list.length - GENTE_DE_ENTRADA
+    pie.innerHTML = `<button type="button" class="btn-secondary com-ver-todos" id="btnVerTodaLaGente">Ver ${faltan} ${
+      faltan === 1 ? 'persona más' : 'personas más'
+    }</button>`
+    document.getElementById('btnVerTodaLaGente').addEventListener('click', () => {
+      genteDesplegada = true
+      render(list)
+    })
+  }
 }
 
 // ── Los números de la comunidad (tanda 301) ──
@@ -229,6 +264,7 @@ async function loadUsers() {
     // Se filtra sobre la lista ya cargada, así que el plegado de acentos
     // se hace aquí en el navegador: "jesus" encuentra a "Jesús".
     const q = plegarTexto(e.target.value.trim())
+    buscando = Boolean(q)
     if (!q) {
       render(allUsers)
       return

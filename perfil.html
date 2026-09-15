@@ -27,7 +27,10 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
-  <!-- CSS propio de la página (norma de CLAUDE.md): hoy, «Mis torneos». -->
+  <!-- TODA la ficha de una persona vive aquí desde la tanda 306
+       (cabecera, tira de cifras, trofeos, palmarés, «Mis torneos»):
+       solo la usan esta pantalla y /usuario, así que no tiene por qué
+       ir en components.css, que lo baja todo el mundo. -->
   <link rel="stylesheet" href="css/perfil.css" />
 </head>
 <body>
@@ -71,16 +74,22 @@
         </div>
         <div class="profile-hero-info" id="heroInfo"></div>
         <div class="profile-hero-row-break" aria-hidden="true"></div>
-        <button class="profile-hero-edit-btn profile-hero-edit-inline" id="btnEditProfile" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Editar perfil</button>
+        <div class="perfil-acciones">
+          <button class="profile-hero-edit-btn" id="btnEditProfile" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Editar perfil</button>
+        </div>
       </div>
-      <div class="profile-hero-social">
-        <button class="hero-social-item" id="btnShowFollowing" type="button"><strong id="followingCount">0</strong> Siguiendo</button>
-        <button class="hero-social-item" id="btnShowFollowers" type="button"><strong id="followersCount">0</strong> Seguidores</button>
-        <button class="hero-social-item" id="btnShowTrophies" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg> <strong id="heroTrophyCount">0</strong> Trofeos</button>
+      <!-- La tira de cifras (tanda 306). #profileStats es el LOTE que
+           pinta el JS; los tres contadores de abajo ya vienen puestos
+           para que nadie se encuentre un hueco mientras carga. Los
+           cuatro son hermanos en la misma fila: ver .perfil-cifras-lote
+           en css/perfil.css. -->
+      <div class="perfil-cifras">
+        <div class="perfil-cifras-lote" id="profileStats"></div>
+        <button class="perfil-cifra" id="btnShowFollowers" type="button"><span class="valor" id="followersCount">0</span><span class="rotulo">Seguidores</span></button>
+        <button class="perfil-cifra" id="btnShowFollowing" type="button"><span class="valor" id="followingCount">0</span><span class="rotulo">Siguiendo</span></button>
+        <button class="perfil-cifra" id="btnShowTrophies" type="button"><span class="valor" id="heroTrophyCount">0</span><span class="rotulo">Trofeos</span></button>
       </div>
     </div>
-
-    <div class="stats-row stats-row-single" style="margin-bottom: 20px;" id="profileStats"></div>
 
     <div class="tabs" id="profileTabs">
       <button class="tab-btn active" data-ptab="wall">Muro</button>

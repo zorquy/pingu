@@ -21,13 +21,13 @@
 :root[data-theme='dark'] .lanzamiento-destacado {
   background: linear-gradient(120deg, rgba(125, 182, 221, 0.1), rgba(125, 182, 221, 0.02) 60%), var(--white);
 }
-.lanzamiento-destacado h2 { margin: 2px 0; font-size: 26px; }
+.lanzamiento-destacado h2 { margin: 2px 0; font-size: var(--t-2xl); }
 .lanzamiento-logo-grande { width: 130px; max-height: 90px; object-fit: contain; }
 
 .lanzamiento-cuenta {
   margin-left: auto;
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--navy);
   background: rgba(30, 81, 117, 0.1);
   border-radius: var(--radius-pill);
@@ -35,7 +35,7 @@
   white-space: nowrap;
 }
 :root[data-theme='dark'] .lanzamiento-cuenta { color: #7db6dd; background: rgba(125, 182, 221, 0.12); }
-.lanzamiento-cuenta-grande { font-size: 15px; padding: 8px 16px; }
+.lanzamiento-cuenta-grande { font-size: var(--t-lg); padding: 8px 16px; }
 /* La de los ya salidos: apagada, que no compita con las cuentas atrás. */
 .lanzamiento-cuenta-gris { color: var(--text-dim); background: rgba(127, 127, 127, 0.12); }
 :root[data-theme='dark'] .lanzamiento-cuenta-gris { color: var(--text-dim); }
@@ -43,7 +43,7 @@
 /* Los títulos de sección, como etiquetas de agenda. */
 #seccionProximos .section-title,
 #seccionPasados .section-title {
-  font-size: 13px;
+  font-size: var(--t-sm);
   text-transform: uppercase;
   letter-spacing: 1.6px;
   color: var(--navy);
@@ -104,8 +104,8 @@
   line-height: 1.2;
 }
 :root[data-theme='dark'] .lanz-dia { background: rgba(125, 182, 221, 0.1); color: #7db6dd; }
-.lanz-dia strong { font-size: 22px; }
-.lanz-dia span { font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+.lanz-dia strong { font-size: var(--t-2xl); }
+.lanz-dia span { font-size: var(--t-2xs); font-weight: 700; letter-spacing: 1px; }
 .lanz-dia .lanz-anno { color: var(--text-dim); font-weight: 600; letter-spacing: 0.4px; }
 
 .lanzamiento-tarjeta {

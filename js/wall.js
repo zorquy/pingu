@@ -59,12 +59,12 @@ export async function renderWall({
     <div class="my-guide-row" style="flex-direction:column; align-items:flex-start;">
       <div style="display:flex; justify-content:space-between; width:100%;">
         <strong>${escapeHtml(authorName)}</strong>
-        <span class="date" style="color:var(--text-dim); font-size:12px;">${new Date(c.created_at).toLocaleDateString('es-ES')}</span>
+        <span class="date" style="color:var(--text-dim); font-size: var(--t-xs);">${new Date(c.created_at).toLocaleDateString('es-ES')}</span>
       </div>
-      <p style="margin:6px 0 0; font-size:13.5px;">${enlazarMenciones(escapeHtml(c.body), mencionados)}</p>
+      <p style="margin:6px 0 0; font-size: var(--t-sm);">${enlazarMenciones(escapeHtml(c.body), mencionados)}</p>
       <div style="display:flex; gap:10px; margin-top:6px;">
-        ${currentSession && (currentSession.user.id === c.author_id || currentSession.user.id === profileId || isAdmin) ? `<button data-delete-comment="${c.id}" style="font-size:11px; color:#dc2626; font-weight:700;">Eliminar</button>` : ''}
-        ${canReply ? `<a href="${replyHref}" style="font-size:11px; color:var(--text-dim); font-weight:700;">Responder</a>` : ''}
+        ${currentSession && (currentSession.user.id === c.author_id || currentSession.user.id === profileId || isAdmin) ? `<button data-delete-comment="${c.id}" style="font-size: var(--t-2xs); color:#dc2626; font-weight:700;">Eliminar</button>` : ''}
+        ${canReply ? `<a href="${replyHref}" style="font-size: var(--t-2xs); color:var(--text-dim); font-weight:700;">Responder</a>` : ''}
         ${currentSession && currentSession.user.id !== c.author_id ? reportButtonHtml(REPORT_TYPE_BY_TABLE[table] || 'profile_comment', c.id) : ''}
       </div>
     </div>`

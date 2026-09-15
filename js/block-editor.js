@@ -259,7 +259,7 @@ export function fieldsForCourseBlock(block, i) {
         <textarea class="be-field" data-i="${i}" data-f="items" placeholder="Items (uno por línea)">${escapeHtml((block.items || []).join('\n'))}</textarea>`
     case 'reward':
       return `
-        <p style="font-size:12px; color:var(--text-mid); margin: -4px 0 4px;">El XP de este curso se controla con el campo "XP de recompensa" de arriba, no aquí.</p>
+        <p style="font-size: var(--t-xs); color:var(--text-mid); margin: -4px 0 4px;">El XP de este curso se controla con el campo "XP de recompensa" de arriba, no aquí.</p>
         <input class="be-field" data-i="${i}" data-f="next_guide_slug" placeholder="Slug del siguiente curso (opcional)" value="${escapeHtml(block.next_guide_slug || '')}" />`
     default:
       return ''

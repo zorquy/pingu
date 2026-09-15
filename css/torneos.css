@@ -23,7 +23,7 @@
   margin: 0;
 }
 .torneos-heroe p {
-  font-size: 15px;
+  font-size: var(--t-lg);
   line-height: 1.5;
   color: var(--text-mid);
   max-width: 520px;
@@ -74,10 +74,10 @@
 }
 .torneo-vivo-texto strong {
   font-family: var(--font-display);
-  font-size: 21px;
+  font-size: var(--t-2xl);
   line-height: 1.2;
 }
-.torneo-vivo-sub { font-size: 14px; color: #bfdcec; }
+.torneo-vivo-sub { font-size: var(--t-md); color: #bfdcec; }
 .torneo-vivo-chapa {
   align-self: flex-start;
   display: inline-flex;
@@ -86,7 +86,7 @@
   background: #e8342e;
   color: #fff;
   border-radius: var(--radius-pill);
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -101,7 +101,7 @@
 .torneo-vivo-reloj { text-align: right; }
 .torneo-vivo-rotulo {
   display: block;
-  font-size: 10.5px;
+  font-size: var(--t-2xs);
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #a9cee3;
@@ -109,7 +109,7 @@
 }
 .torneo-vivo-reloj b {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: var(--t-3xl);
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
 }
@@ -124,7 +124,7 @@
   .torneo-vivo { padding: 16px 18px; gap: 14px; }
   .torneo-vivo-der { margin-left: 0; width: 100%; justify-content: space-between; }
   .torneo-vivo-reloj { text-align: left; }
-  .torneo-vivo-reloj b { font-size: 27px; }
+  .torneo-vivo-reloj b { font-size: var(--t-2xl); }
 }
 
 /* El puntito rojo que late en «En juego». Marca la diferencia entre un
@@ -164,7 +164,7 @@
   border-radius: var(--radius-md);
   background: rgba(127, 127, 127, 0.08);
   color: var(--text-dim);
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
   text-align: center;
 }
@@ -176,7 +176,7 @@
   height: 20px;
   border-radius: 50%;
   background: rgba(127, 127, 127, 0.16);
-  font-size: 12px;
+  font-size: var(--t-xs);
   flex-shrink: 0;
 }
 .torneo-wizard-paso.actual {
@@ -194,7 +194,7 @@
 }
 
 .torneo-wizard-titulo { margin: 0 0 2px; }
-.torneo-wizard-pista { font-size: 13px; color: var(--text-mid); margin-bottom: 12px; }
+.torneo-wizard-pista { font-size: var(--t-sm); color: var(--text-mid); margin-bottom: 12px; }
 
 .torneos-form-rejilla {
   display: grid;
@@ -208,11 +208,11 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 .torneos-form-campo { margin: 14px 0; }
-.torneo-campo-pista { font-size: 12px; font-weight: 400; color: var(--text-dim); }
+.torneo-campo-pista { font-size: var(--t-xs); font-weight: 400; color: var(--text-dim); }
 
 /* El aforo sin límite (tanda 228): la celda de Plazas es un div (una
    label no puede llevar dos controles dentro) con la casilla pegada
@@ -221,14 +221,14 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 .torneo-sin-limite {
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 400;
   color: var(--text-dim);
   cursor: pointer;
@@ -247,14 +247,14 @@
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 13.5px;
+  font-size: var(--t-sm);
 }
 .torneo-cerrar-rondas p { margin: 0; flex-basis: 100%; }
 .torneo-cerrar-rondas label {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 .torneo-cerrar-rondas input { width: 72px; }
@@ -270,8 +270,8 @@
   border-radius: var(--radius-md);
   background: rgba(127, 127, 127, 0.05);
 }
-.torneo-wizard-resumen dt { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
-.torneo-wizard-resumen dd { margin: 2px 0 0; font-weight: 600; font-size: 14px; }
+.torneo-wizard-resumen dt { font-size: var(--t-2xs); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
+.torneo-wizard-resumen dd { margin: 2px 0 0; font-weight: 600; font-size: var(--t-md); }
 
 .torneos-form-acciones {
   display: flex;
@@ -414,9 +414,9 @@
   color: var(--navy);
   line-height: 1.1;
 }
-.torneo-fecha-bloque strong { font-size: 20px; font-family: var(--font-display); }
+.torneo-fecha-bloque strong { font-size: var(--t-xl); font-family: var(--font-display); }
 .torneo-fecha-bloque span {
-  font-size: 9.5px;
+  font-size: var(--t-2xs);
   text-transform: uppercase;
   color: var(--text-dim);
   font-weight: 700;
@@ -435,7 +435,7 @@
 }
 .torneo-nombre {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: var(--t-xl);
   line-height: 1.25;
   transition: color 0.15s;
 }
@@ -447,7 +447,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 3px 8px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   font-weight: 500;
   white-space: nowrap;
@@ -457,7 +457,7 @@
   align-items: center;
   gap: 7px;
   margin-top: auto;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
 }
 .torneo-campeon b { color: var(--text); }
@@ -473,7 +473,7 @@
   margin-left: -8px;
   display: grid;
   place-items: center;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 600;
   color: #fff;
   overflow: hidden;
@@ -502,7 +502,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-dim);
   /* `flex: 1 1 0` + `min-width: 0`: es lo único que puede encogerse del
      pie, así que «Organiza Fulanito de Tal» se corta antes de empujar a
@@ -537,7 +537,7 @@
   border-radius: var(--radius-md);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--t-md);
   padding: 9px 16px;
   text-decoration: none;
   box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.18);
@@ -548,7 +548,7 @@
 .torneo-pie .btn-primary,
 .torneo-pie .btn-secondary,
 .torneo-pie .torneo-duplicar {
-  font-size: 14px;
+  font-size: var(--t-md);
   padding: 9px 16px;
 }
 
@@ -616,7 +616,7 @@
   border-radius: var(--radius-pill);
   background: var(--warning-bg);
   color: var(--warning);
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -638,7 +638,7 @@
   margin-bottom: 14px;
   flex-wrap: wrap;
 }
-.torneo-cal-rango { font-size: 17px; text-transform: capitalize; }
+.torneo-cal-rango { font-size: var(--t-xl); text-transform: capitalize; }
 /* Seis meses por página, TRES por fila (tanda 245): en tableta caben
    dos y en móvil uno, sin apretujar. */
 .torneo-cal-meses {
@@ -689,15 +689,15 @@
 .torneo-cal-mes h5 {
   margin: 0 0 8px;
   text-transform: capitalize;
-  font-size: 14px;
+  font-size: var(--t-md);
   display: flex;
   align-items: baseline;
   gap: 6px;
 }
-.torneo-cal-anio { color: var(--text-dim); font-weight: 600; font-size: 12px; }
+.torneo-cal-anio { color: var(--text-dim); font-weight: 600; font-size: var(--t-xs); }
 .torneo-cal-chapa-hoy {
   margin-left: auto;
-  font-size: 10px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -712,7 +712,7 @@
   gap: 2px;
   text-align: center;
 }
-.torneo-cal-diasemana { color: var(--text-dim); font-size: 10px; font-weight: 600; }
+.torneo-cal-diasemana { color: var(--text-dim); font-size: var(--t-2xs); font-weight: 600; }
 .torneo-cal-dia {
   display: flex;
   align-items: center;
@@ -723,7 +723,7 @@
   background: none;
   color: var(--text-mid);
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   padding: 0;
   transition: background 0.15s var(--ease, ease), transform 0.15s var(--ease, ease), box-shadow 0.15s var(--ease, ease);
 }
@@ -752,7 +752,7 @@ button.torneo-cal-dia.con-torneo.oficial:hover { background: var(--navy-light); 
   justify-content: center;
   gap: 18px;
   margin: -6px 0 12px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
 }
 .torneo-cal-leyenda > span { display: inline-flex; align-items: center; gap: 6px; }
@@ -800,7 +800,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   align-items: center;
   gap: 10px;
   margin-top: auto;
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-dim);
 }
 .torneo-ocupacion-barra {
@@ -863,7 +863,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-dim);
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
@@ -889,7 +889,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
    estado, y en un móvil no caben tres botones de tamaño normal. */
 .torneo-borrar-fila {
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: var(--t-xs);
 }
 
 /* «Ver N más» de los terminados: centrado y despegado de la última
@@ -900,7 +900,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 
 .torneo-estado {
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
@@ -919,7 +919,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-volver {
   display: inline-block;
   margin-bottom: 12px;
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 600;
   color: var(--text-dim);
   text-decoration: none;
@@ -988,7 +988,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   letter-spacing: -0.01em;
   color: #fff;
 }
-.torneo-meta { margin: 6px 0 0; font-size: 14px; color: #bfdcec; }
+.torneo-meta { margin: 6px 0 0; font-size: var(--t-md); color: #bfdcec; }
 .torneo-cabecera .torneo-descripcion { color: #d6e8f2; margin-top: 12px; max-width: 70ch; }
 .torneo-cabecera .torneo-descripcion a { color: #fff; }
 
@@ -1035,7 +1035,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--radius-pill);
   padding: 6px 13px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 500;
 }
 .torneo-dato svg { flex-shrink: 0; opacity: 0.85; }
@@ -1052,7 +1052,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   color: #fff;
   border-radius: var(--radius-pill);
   padding: 5px 14px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
@@ -1065,7 +1065,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 
 @media (max-width: 640px) {
   .torneo-cabecera-dentro { padding: 18px; }
-  .torneo-dato { font-size: 12px; padding: 5px 10px; }
+  .torneo-dato { font-size: var(--t-xs); padding: 5px 10px; }
 }
 
 /* ── La barra viva (tanda 298) ──
@@ -1111,7 +1111,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-viva-anillo b {
   position: relative;
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: var(--t-md);
   font-variant-numeric: tabular-nums;
   color: var(--navy);
 }
@@ -1122,13 +1122,13 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 
 .torneo-viva-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .torneo-viva-rotulo {
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-dim);
   font-weight: 700;
 }
-.torneo-viva-titular { font-family: var(--font-display); font-size: 18px; }
+.torneo-viva-titular { font-family: var(--font-display); font-size: var(--t-xl); }
 .torneo-viva-der {
   display: flex;
   align-items: center;
@@ -1145,7 +1145,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   align-items: center;
   border-radius: var(--radius-md);
   padding: 7px 12px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 .torneo-viva-pide { background: var(--warning-bg); color: var(--warning); }
@@ -1158,7 +1158,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   .torneo-viva { margin-top: -14px; padding: 10px 14px; gap: 12px; }
   .torneo-viva-der { margin-left: 0; width: 100%; }
   .torneo-viva-der > * { flex: 1; justify-content: center; }
-  .torneo-viva-titular { font-size: 16px; }
+  .torneo-viva-titular { font-size: var(--t-lg); }
 }
 
 /* ── Las pestañas de la FICHA, en pastillas (tanda 298) ──
@@ -1203,8 +1203,8 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-bottom: 1px solid var(--border);
   margin-bottom: 4px;
 }
-.torneo-mesa-cab-t { font-family: var(--font-display); font-size: 16px; }
-.torneo-mesa-cab-tcg { margin-left: auto; font-size: 12.5px; color: var(--text-dim); }
+.torneo-mesa-cab-t { font-family: var(--font-display); font-size: var(--t-lg); }
+.torneo-mesa-cab-tcg { margin-left: auto; font-size: var(--t-xs); color: var(--text-dim); }
 
 .torneo-duelo {
   display: grid;
@@ -1236,19 +1236,19 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   display: grid;
   place-items: center;
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: var(--t-2xl);
   color: #fff;
   margin-bottom: 6px;
 }
-.torneo-duelo-nombre { font-family: var(--font-display); font-size: 19px; }
-.torneo-duelo-sub { font-size: 12.5px; color: var(--text-dim); }
+.torneo-duelo-nombre { font-family: var(--font-display); font-size: var(--t-xl); }
+.torneo-duelo-sub { font-size: var(--t-xs); color: var(--text-dim); }
 .torneo-duelo-checkin {
   display: inline-flex;
   align-items: center;
   text-align: center;
   border-radius: var(--radius-pill);
   padding: 4px 11px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 600;
   margin-top: 5px;
   background: var(--warning-bg);
@@ -1257,14 +1257,14 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-duelo-checkin.lista { background: var(--success-bg); color: var(--success); }
 .torneo-duelo-medio { text-align: center; }
 .torneo-duelo-marcador { display: flex; align-items: center; justify-content: center; gap: 8px; }
-.torneo-duelo-marcador b { font-family: var(--font-display); font-size: 32px; line-height: 1; color: var(--text-dim); }
+.torneo-duelo-marcador b { font-family: var(--font-display); font-size: var(--t-3xl); line-height: 1; color: var(--text-dim); }
 .torneo-duelo-marcador b.gana { color: var(--success); }
-.torneo-duelo-marcador i { font-style: normal; color: var(--text-dim); font-size: 18px; }
+.torneo-duelo-marcador i { font-style: normal; color: var(--text-dim); font-size: var(--t-xl); }
 .torneo-duelo-vs {
   display: block;
   margin-top: 6px;
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: var(--t-xs);
   letter-spacing: 0.07em;
   color: var(--text-dim);
 }
@@ -1273,8 +1273,8 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
      apilados en tres filas, el duelo dejaba de leerse como un duelo. */
   .torneo-duelo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
   .torneo-duelo-medio { grid-column: 1 / -1; order: -1; }
-  .torneo-duelo-cara { width: 48px; height: 48px; border-radius: 15px; font-size: 20px; }
-  .torneo-duelo-nombre { font-size: 17px; }
+  .torneo-duelo-cara { width: 48px; height: 48px; border-radius: 15px; font-size: var(--t-xl); }
+  .torneo-duelo-nombre { font-size: var(--t-xl); }
   .torneo-mesa-cab-tcg { margin-left: 0; width: 100%; }
 }
 
@@ -1305,7 +1305,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: #fff;
   transition: width 0.3s;
 }
-.torneo-plazas-texto { font-size: 13px; color: #bfdcec; font-weight: 600; }
+.torneo-plazas-texto { font-size: var(--t-sm); color: #bfdcec; font-weight: 600; }
 
 .torneo-admin-acciones { margin: 16px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .torneo-admin-acciones:empty { display: none; }
@@ -1338,7 +1338,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 .torneo-form-inscripcion input { min-width: 220px; }
@@ -1347,14 +1347,14 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 #decklistContenido textarea {
   width: 100%;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 13px;
+  font-size: var(--t-sm);
   margin: 8px 0;
 }
 .torneo-decklist-errores {
   margin: 0 0 10px;
   padding-left: 20px;
   color: #d64545;
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 .torneo-decklist-sellada {
   display: inline-flex;
@@ -1365,7 +1365,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-radius: var(--radius-pill);
   background: rgba(232, 160, 32, 0.16);
   color: #a8720d;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
 }
 :root[data-theme='dark'] .torneo-decklist-sellada { color: #e8b558; }
@@ -1383,7 +1383,12 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
      rejilla (no hay subgrid), así que con auto cada una medía sus
      columnas por su cuenta y las chapas quedaban a distinta altura
      según lo largo que fuera el nombre. */
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 108px 104px;
+  /* CINCO columnas y no cuatro (tanda 306): quien organiza ve DOS
+     chapas —«sin decklist» y «sin confirmar»— más el botón de expulsar,
+     o sea cinco celdas. Con cuatro columnas el botón se caía a una
+     segunda fila y ahí, al ser la única celda, se estiraba a lo ancho
+     de media lista. */
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 108px 108px 104px;
   align-items: center;
   gap: 6px 12px;
   padding: 8px 0;
@@ -1426,13 +1431,24 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 #miPlazaContenido {
   overflow-wrap: anywhere;
 }
-.torneo-inscrito-nombre { font-weight: 600; min-width: 140px; }
+/* Flex desde la tanda 306: ahora la celda lleva la cara y el nombre, y
+   tienen que ir en la misma línea y centrados entre sí. `min-width: 0`
+   en el nombre para que un usuario de treinta letras se parta dentro de
+   la celda en vez de estirarla. */
+.torneo-inscrito-nombre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  min-width: 140px;
+}
+.torneo-inscrito-nombre a { min-width: 0; }
 .torneo-inscrito-nombre a { color: inherit; text-decoration: none; }
 .torneo-inscrito-nombre a:hover { text-decoration: underline; }
-.torneo-retirado { color: var(--text-dim); font-weight: 400; font-size: 13px; }
+.torneo-retirado { color: var(--text-dim); font-weight: 400; font-size: var(--t-sm); }
 .torneo-decklist-marca {
   justify-self: end;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   padding: 2px 10px;
   border-radius: var(--radius-pill);
@@ -1467,7 +1483,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   margin-top: 8px;
 }
 
-.torneo-mesas-titulo { margin: 12px 0 6px; font-size: 15px; }
+.torneo-mesas-titulo { margin: 12px 0 6px; font-size: var(--t-lg); }
 
 /* ── Las chapas de estado y resultado (los «badges» del original) ── */
 .torneo-chapa {
@@ -1476,7 +1492,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   gap: 4px;
   padding: 2px 10px;
   border-radius: var(--radius-pill);
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1523,7 +1539,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: var(--bg);
   border: 1px solid var(--border);
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
 }
 .torneo-mesa.mia .torneo-mesa-num { background: var(--navy); border-color: var(--navy); color: #fff; }
@@ -1537,7 +1553,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   display: grid;
   place-items: center;
   color: #fff;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 600;
 }
 .torneo-mesa-jugador { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1548,7 +1564,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-mesa-bye { color: var(--text-dim); }
 .torneo-mesa-listo { color: var(--success); font-weight: 700; }
 .torneo-mesa-resolver { grid-column: 2 / -1; }
-.torneo-mesa-resolver select { font-size: 13px; max-width: 220px; }
+.torneo-mesa-resolver select { font-size: var(--t-sm); max-width: 220px; }
 .torneo-mesa .torneo-disputa-reportes { grid-column: 1 / -1; }
 @media (max-width: 560px) {
   .torneo-mesa { grid-template-columns: 30px 1fr auto; gap: 9px; padding: 10px 8px; }
@@ -1578,13 +1594,13 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 .torneo-paso-r {
   display: block;
-  font-size: 10.5px;
+  font-size: var(--t-2xs);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--text-dim);
   font-weight: 700;
 }
-.torneo-paso-e { display: block; font-family: var(--font-display); font-size: 14px; margin-top: 3px; }
+.torneo-paso-e { display: block; font-family: var(--font-display); font-size: var(--t-md); margin-top: 3px; }
 .torneo-paso.fin { background: var(--ice); border-color: transparent; }
 .torneo-paso.fin .torneo-paso-e { color: var(--navy); }
 .torneo-paso.lista { border-color: var(--border-strong); }
@@ -1608,7 +1624,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: var(--bg);
   border: 1px solid var(--border);
   font-family: var(--font-display);
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
 }
 .torneo-pos-1 { background: var(--rarity-gold-bg); color: #7a5905; border-color: transparent; }
@@ -1622,7 +1638,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
    que queda vive dentro del paso vivo de la línea de tiempo. */
 .torneo-paso.viva .torneo-paso-e {
   font-variant-numeric: tabular-nums;
-  font-size: 16px;
+  font-size: var(--t-lg);
 }
 .torneo-paso.viva .torneo-paso-e.agotandose { color: #ffc9c9; }
 
@@ -1632,7 +1648,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   padding: 4px 14px;
   border-radius: var(--radius-md);
   background: rgba(127, 127, 127, 0.08);
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   font-variant-numeric: tabular-nums;
 }
@@ -1664,7 +1680,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   color: var(--navy);
   border-radius: 999px;
   padding: 2px 8px;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -1743,7 +1759,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-bo3-juego.activa { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(30, 81, 117, 0.12); }
 
 .torneo-bo3-n {
-  font-size: 10.5px;
+  font-size: var(--t-2xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 700;
@@ -1774,18 +1790,18 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-bo3-esperando {
   flex: 1;
   color: var(--text-mid);
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 
 .torneo-bo3-nojuega {
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 
 .torneo-bo3-quitar {
   flex-shrink: 0;
   padding: 4px 10px;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 /* Aquí vivía un `flex-wrap: wrap` para que los tres botones bajaran de
@@ -1806,7 +1822,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   color: var(--text);
   border-radius: var(--radius-md);
   padding: 10px 8px;
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 700;
   font-family: var(--font-display);
   cursor: pointer;
@@ -1817,7 +1833,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-boton-resultado.empate:hover { border-color: var(--text-mid); background: rgba(127, 127, 127, 0.08); }
 
 .torneo-clasificacion-tabla { overflow-x: auto; }
-.torneo-clasificacion-tabla table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.torneo-clasificacion-tabla table { width: 100%; border-collapse: collapse; font-size: var(--t-md); }
 .torneo-clasificacion-tabla th,
 .torneo-clasificacion-tabla td {
   text-align: left;
@@ -1825,7 +1841,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
-.torneo-clasificacion-tabla th { font-size: 12px; text-transform: uppercase; color: var(--text-dim); }
+.torneo-clasificacion-tabla th { font-size: var(--t-xs); text-transform: uppercase; color: var(--text-dim); }
 
 .torneo-campeon {
   display: flex;
@@ -1836,14 +1852,14 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-radius: var(--radius-md);
   background: rgba(232, 160, 32, 0.14);
   color: #a8720d;
-  font-size: 15px;
+  font-size: var(--t-lg);
 }
 :root[data-theme='dark'] .torneo-campeon { color: #e8b558; }
 
 /* El chat de la mesa, a la vista (los de juez siguen en desplegable). */
 .torneo-chat-abierto { margin: 16px 0 0; }
 .torneo-chat-titulo {
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 600;
   margin: 0 0 6px;
 }
@@ -1851,7 +1867,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 /* El aviso de la ventana de check-in en «Tu partida». */
 .torneo-checkin-aviso {
   text-align: center;
-  font-size: 13px;
+  font-size: var(--t-sm);
   margin: 0 0 10px;
   padding: 6px 12px;
   border-radius: var(--radius-md);
@@ -1868,7 +1884,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 .torneo-chat-desplegable summary {
   padding: 8px 12px;
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 600;
   cursor: pointer;
   list-style: revert;
@@ -1884,7 +1900,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 14px;
+  font-size: var(--t-md);
   padding: 10px;
   margin-bottom: 8px;
   border: 1px solid var(--border);
@@ -1912,9 +1928,9 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-bottom-right-radius: 4px;
 }
 :root[data-theme='dark'] .torneo-chat-linea.mia .torneo-burbuja { background: var(--navy-dark); border-color: var(--navy-dark); }
-.torneo-burbuja-quien { font-size: 11px; font-weight: 700; opacity: 0.72; }
+.torneo-burbuja-quien { font-size: var(--t-2xs); font-weight: 700; opacity: 0.72; }
 .torneo-burbuja-texto { white-space: pre-line; overflow-wrap: anywhere; }
-.torneo-burbuja-hora { font-size: 10px; opacity: 0.6; align-self: flex-end; margin-top: 1px; }
+.torneo-burbuja-hora { font-size: var(--t-2xs); opacity: 0.6; align-self: flex-end; margin-top: 1px; }
 .torneo-chat-mensajes > .subtext { text-align: center; padding: 8px 0; }
 
 /* El input del chat con su botón: `flex: 1` a secas no encoge por
@@ -1949,9 +1965,9 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
-  font-size: 14px;
+  font-size: var(--t-md);
 }
-.torneo-disputa { font-size: 14px; padding: 6px 0; }
+.torneo-disputa { font-size: var(--t-md); padding: 6px 0; }
 
 .torneo-solicitud-juez {
   display: flex;
@@ -1961,7 +1977,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   flex-wrap: wrap;
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 .torneo-solicitud-juez:last-of-type { border-bottom: none; }
 
@@ -1978,7 +1994,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border: none;
   background: none;
   color: var(--text-dim);
-  font-size: 15px;
+  font-size: var(--t-lg);
   font-weight: 600;
   padding: 8px 14px;
   cursor: pointer;
@@ -1999,7 +2015,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   padding: 1px 6px;
   border-radius: var(--radius-pill);
   background: rgba(127, 127, 127, 0.14);
-  font-size: 12px;
+  font-size: var(--t-xs);
   text-align: center;
 }
 
@@ -2018,7 +2034,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: var(--white);
   border-radius: var(--radius-pill);
   padding: 7px 14px;
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 500;
   color: var(--text-mid);
   margin-bottom: 0;
@@ -2040,7 +2056,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 /* ── Decklists con cartas (tanda 210) ── */
 .torneo-cartas-titulo {
   margin: 14px 0 8px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -2070,11 +2086,11 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-radius: var(--radius-pill);
   background: rgba(20, 20, 25, 0.82);
   color: #fff;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
 }
 .torneo-carta figcaption {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-dim);
   margin-top: 3px;
   overflow: hidden;
@@ -2090,13 +2106,13 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 .torneo-decklist-editor summary {
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 600;
   margin: 10px 0 6px;
 }
 .torneo-decklist-visual { margin-bottom: 6px; }
 .torneo-mio {
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
@@ -2124,7 +2140,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   color: var(--text-dim);
   border-radius: var(--radius-pill);
   padding: 3px 12px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
   cursor: pointer;
 }
@@ -2139,7 +2155,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   margin-top: 6px;
 }
 .torneo-reporte-carta {
-  font-size: 13px;
+  font-size: var(--t-sm);
   padding: 4px 10px;
   border-left: 3px solid #e8a020;
   background: rgba(232, 160, 32, 0.08);
@@ -2147,7 +2163,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 
 .torneo-marca-top {
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   padding: 1px 8px;
   border-radius: var(--radius-pill);
@@ -2155,13 +2171,13 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   color: var(--navy);
 }
 :root[data-theme='dark'] .torneo-marca-top { color: #7db6dd; }
-.torneo-nota-corte { margin-top: 8px; font-size: 12px; }
+.torneo-nota-corte { margin-top: 8px; font-size: var(--t-xs); }
 
 .torneo-bracket { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 14px; }
 .torneo-bracket-col { min-width: 170px; }
 .torneo-bracket-col h5 {
   margin: 0 0 8px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -2172,7 +2188,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-radius: var(--radius-md);
   overflow: hidden;
   margin-bottom: 8px;
-  font-size: 14px;
+  font-size: var(--t-md);
   background: var(--white);
 }
 .torneo-bracket-mesa p { margin: 0; padding: 6px 10px; }
@@ -2186,7 +2202,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   gap: 10px;
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 .torneo-decklist-detalle { padding: 8px 0 12px; border-bottom: 1px solid var(--border); }
 .torneo-decklist-cruda {
@@ -2195,10 +2211,10 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: rgba(127, 127, 127, 0.07);
   border-radius: var(--radius-md);
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   white-space: pre-wrap;
 }
-.torneo-decklists-faltan { font-size: 14px; padding-top: 10px; color: #a8720d; }
+.torneo-decklists-faltan { font-size: var(--t-md); padding-top: 10px; color: #a8720d; }
 :root[data-theme='dark'] .torneo-decklists-faltan { color: #e8b558; }
 
 /* ── La caja «Formato» de la ficha (los datos con icono del original) ── */
@@ -2217,8 +2233,8 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: rgba(127, 127, 127, 0.06);
 }
 .torneo-formato-dato svg { flex-shrink: 0; color: var(--text-dim); margin-top: 2px; }
-.torneo-formato-dato dt { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
-.torneo-formato-dato dd { margin: 2px 0 0; font-weight: 600; font-size: 14px; }
+.torneo-formato-dato dt { font-size: var(--t-2xs); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
+.torneo-formato-dato dd { margin: 2px 0 0; font-weight: 600; font-size: var(--t-md); }
 
 /* ── La barra resumen del organizador en Rondas ── */
 .torneo-rondas-resumen {
@@ -2231,7 +2247,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   margin-bottom: 12px;
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 
 /* ── Estados vacíos con su icono, como el original ── */
@@ -2239,14 +2255,14 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   text-align: center;
   padding: 28px 12px;
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 .torneo-vacio svg { display: block; margin: 0 auto 8px; opacity: 0.5; }
 
 /* ── Tanda 215: contador del editor y cartas fuera de reglamento ── */
 .torneo-decklist-cuenta {
   margin: 6px 0 0;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 700;
   color: var(--text-mid);
 }
@@ -2266,7 +2282,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border: 1px solid rgba(179, 38, 30, 0.35);
   background: rgba(179, 38, 30, 0.08);
   color: #b3261e;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 
@@ -2289,7 +2305,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-radius: 999px;
   background: #b3261e;
   color: #fff;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 800;
 }
 
@@ -2346,7 +2362,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-radius: var(--radius-sm);
   border: 1px solid rgba(242, 178, 62, 0.45);
   background: rgba(242, 178, 62, 0.12);
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 
@@ -2354,7 +2370,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   margin: 16px 0 8px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 
 /* Los de la cola, más apagados: todavía no tienen plaza. */
@@ -2371,7 +2387,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 
 .torneo-desempates {
   margin-top: 14px;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
 }
 
 .torneo-desempates summary {
@@ -2392,7 +2408,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 /* El botón de duplicar vive dentro del enlace de la tarjeta. */
 .torneo-duplicar {
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: var(--t-xs);
 }
 
 /* ── Tanda 219: liga por jornadas, dos pasos y listas a la vista ── */
@@ -2404,13 +2420,13 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
-.torneo-jornadas-campos legend { font-weight: 700; font-size: 13.5px; padding: 0 6px; }
+.torneo-jornadas-campos legend { font-weight: 700; font-size: var(--t-sm); padding: 0 6px; }
 .torneo-jornada-campo {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 8px;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 .torneo-jornada-campo input { flex: 1; }
@@ -2421,7 +2437,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   gap: 8px;
   align-items: flex-start;
   margin-top: 14px;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   cursor: pointer;
 }
 .torneo-check-campo input { margin-top: 3px; }
@@ -2440,7 +2456,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   padding: 3px 10px;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
 }
 
@@ -2452,7 +2468,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: rgba(242, 178, 62, 0.1);
   border-radius: var(--radius-md);
 }
-.torneo-pasos-aviso { margin: 0 0 8px; font-size: 13.5px; }
+.torneo-pasos-aviso { margin: 0 0 8px; font-size: var(--t-sm); }
 .torneo-pasos-aviso svg { vertical-align: -3px; }
 .torneo-pasos-lista {
   margin: 0;
@@ -2465,21 +2481,21 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   align-items: baseline;
   gap: 8px;
   margin-top: 6px;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   counter-increment: paso;
 }
 .torneo-pasos-lista li .torneo-paso-marca::before { content: counter(paso) '.'; font-weight: 700; }
 .torneo-pasos-lista li.hecho .torneo-paso-marca::before { content: ''; }
 .torneo-pasos-lista li.hecho { color: var(--text-dim); }
 .torneo-pasos-lista li.hecho .torneo-paso-marca svg { color: #3d8434; vertical-align: -3px; }
-.torneo-boton-confirmar { margin-left: 6px; padding: 4px 12px; font-size: 13px; }
+.torneo-boton-confirmar { margin-left: 6px; padding: 4px 12px; font-size: var(--t-sm); }
 .torneo-pasos-listo {
   margin: 10px 0;
   padding: 8px 12px;
   border: 1px solid rgba(74, 158, 63, 0.4);
   background: rgba(74, 158, 63, 0.1);
   border-radius: var(--radius-md);
-  font-size: 13.5px;
+  font-size: var(--t-sm);
 }
 .torneo-pasos-listo svg { color: #3d8434; vertical-align: -3px; }
 
@@ -2489,10 +2505,10 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   gap: 8px;
   margin: 6px 0 10px;
 }
-.torneo-exportar button { padding: 4px 12px; font-size: 12.5px; }
+.torneo-exportar button { padding: 4px 12px; font-size: var(--t-xs); }
 
 /* La lista de un rival bajo la clasificación y sus botones «Ver lista». */
-.torneo-ver-lista { padding: 3px 10px; font-size: 12px; white-space: nowrap; }
+.torneo-ver-lista { padding: 3px 10px; font-size: var(--t-xs); white-space: nowrap; }
 .torneo-clasif-chips { margin: 10px 0; }
 .torneo-lista-rival {
   margin-top: 12px;
@@ -2507,11 +2523,11 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-anadir-jornada {
   margin-top: 10px;
   padding: 4px 12px;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 .torneo-quitar-jornada {
   padding: 2px 9px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   line-height: 1.4;
   flex: 0 0 auto;
 }
@@ -2531,7 +2547,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 
 /* La descripción pintada en la ficha. Las de antes de la tanda eran
    texto plano: conservan sus saltos de línea. */
-.torneo-descripcion { margin: 10px 0 4px; font-size: 14.5px; }
+.torneo-descripcion { margin: 10px 0 4px; font-size: var(--t-md); }
 .torneo-descripcion-plana { white-space: pre-line; }
 
 /* ── Las mesas en un móvil ──
@@ -2563,7 +2579,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   vertical-align: middle;
 }
 .torneo-arquetipo-nombre {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   white-space: nowrap;
   overflow: hidden;
@@ -2636,10 +2652,10 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  font-size: 17px;
+  font-size: var(--t-xl);
 }
 .torneo-historial-record {
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   padding: 3px 10px;
@@ -2670,7 +2686,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   list-style: none;
   margin: 10px 0 0;
   padding: 0;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 .torneo-historial-lista li {
   display: flex;
@@ -2689,7 +2705,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   height: 24px;
   padding: 0 6px;
   border-radius: var(--radius-pill);
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   flex: none;
 }

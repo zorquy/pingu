@@ -4,7 +4,7 @@
 
 .mis-torneos-grupo {
   margin: 18px 0 8px;
-  font-size: 14px;
+  font-size: var(--t-md);
   color: var(--text-mid);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -26,7 +26,7 @@
 .mis-torneos-fila:hover { border-color: var(--border-strong); }
 .mis-torneos-nombre { flex: 1; font-weight: 600; }
 
-.mis-torneos-puesto { font-size: 13px; font-weight: 600; }
+.mis-torneos-puesto { font-size: var(--t-sm); font-weight: 600; }
 .mis-torneos-puesto.oro { color: var(--warning); }
 .mis-torneos-puesto.vivo { color: var(--success); }
 
@@ -40,7 +40,7 @@
   border: 1px solid var(--border);
   background: var(--ice);
   color: var(--navy);
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   font-weight: 800;
 }
 
@@ -118,9 +118,408 @@
   background: rgba(217, 164, 6, 0.1);
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   LA FICHA DE UNA PERSONA (tanda 306)
+
+   Todo lo de aquí abajo vivía en components.css —que baja TODO el
+   mundo— y solo lo usan dos pantallas: /perfil (la tuya) y /usuario
+   (la de otro). Las dos cargan esta hoja, así que aquí es donde toca.
+   Son ~300 líneas que ya no viajan con la portada.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.profile-bio {
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+  margin-top: 8px;
+  max-width: 480px;
+}
+
+/* Va dentro de .perfil-chapas (tanda 306): la separación y el salto de
+   línea los pone la fila, no la chapa. */
+.profile-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-sm);
+  color: var(--navy);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-level:hover {
+  text-decoration: underline;
+}
+
+.profile-xp-bar {
+  width: 100%;
+  max-width: 280px;
+}
+
+/* ── Profile hero (perfil.html propio) ── */
+.profile-hero {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+  background: var(--white);
+}
+
+.profile-hero-banner {
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
 /* Un banner sin foto es un rectángulo de color liso: 160 px de alto son
    160 px de nada, y dejaban la cabecera medio vacía con todo lo demás
-   empezando muy abajo (tanda 263). Con foto se quedan los 160. */
+   empezando muy abajo (tanda 263). Con foto se quedan los 160.
+   Va JUSTO DESPUÉS de la regla de arriba a propósito: tienen la misma
+   especificidad, así que la que gana es la última que se lee. */
 .profile-hero-banner-vacio {
   height: 96px;
+}
+
+/* Sin `position`: este botón sale en dos sitios —encima del banner
+   (posicionado, ver la regla de abajo) y dentro de .perfil-acciones,
+   donde va en el flujo como un botón más. */
+.profile-hero-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(13, 27, 42, 0.55);
+  /* Blanco fijo (no var(--white), que en modo oscuro pasa a ser el
+     color de superficie/tarjeta oscuro): este botón siempre va sobre
+     un fondo oscuro traslúcido, en cualquier tema. */
+  color: #fff;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  backdrop-filter: blur(2px);
+}
+
+.profile-hero-banner .profile-hero-edit-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.profile-hero-row-break {
+  display: none;
+}
+
+.profile-hero-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 12px 24px 20px;
+  position: relative;
+}
+
+@media (max-width: 640px) {
+  .profile-hero-body {
+    flex-wrap: wrap;
+  }
+
+  /* Fuerza que el botón caiga en su propia línea en vez de robarle
+     ancho a la columna de nombre/bio (que en móvil apenas tiene
+     sitio junto al avatar de 96px). Un elemento con flex-basis:100%
+     siempre inicia una línea nueva; el botón que va después se sitúa
+     ahí sin tener que estirarse él mismo a lo ancho. */
+  .profile-hero-row-break {
+    display: block;
+    flex-basis: 100%;
+    height: 0;
+  }
+}
+
+.profile-hero-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  margin-top: -48px;
+}
+
+.profile-hero-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  /* Sin aro. Llevaba un borde de 4px que en modo oscuro se leía como un
+     círculo raro alrededor de la foto, sobre todo desde que el color de
+     fondo ya no se pinta debajo. La separación con el banner la da el
+     propio recorte redondo. */
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--t-3xl);
+  font-weight: 800;
+  color: var(--white);
+  background-color: var(--navy);
+}
+
+.profile-hero-avatar-edit {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--t-sm);
+  cursor: pointer;
+  border: 2px solid var(--white);
+}
+
+.profile-hero-info {
+  padding-top: 22px;
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-hero-info h2 {
+  font-size: var(--t-xl);
+  font-weight: 800;
+  word-break: break-word;
+}
+
+/* ── Acordeón (Logros, Reseñas...) ── */
+.accordion {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  overflow: hidden;
+  background: var(--white);
+}
+
+.accordion-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  font-weight: 700;
+  font-size: var(--t-lg);
+  color: var(--navy);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.accordion-header .chevron {
+  transition: transform 0.2s var(--ease);
+  font-size: var(--t-sm);
+}
+
+.accordion.open .accordion-header .chevron {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  display: none;
+  padding: 0 18px 18px;
+}
+
+.accordion.open .accordion-body {
+  display: block;
+}
+
+.profile-xp-bar .xp-label {
+  font-size: var(--t-2xs);
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .achievements-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.achievement-tile {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.15s var(--ease), transform 0.15s var(--ease);
+}
+
+.achievement-tile:not(.locked):hover {
+  transform: translateY(-2px);
+}
+
+.achievement-tile.locked {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.achievement-tile .icon {
+  font-size: var(--t-2xl);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(13, 27, 42, 0.08);
+}
+
+.achievement-tile.locked .icon {
+  background: var(--bg);
+}
+
+.achievement-tile .name {
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+
+/* ── La caja de acciones de la cabecera (tanda 306) ──
+   Seguir / Mensaje (ficha de otro) y Editar perfil (la tuya) estaban
+   SUELTOS debajo de la tarjeta, en un div con estilos en línea: una
+   fila de botones flotando en medio de la página, sin nada que los
+   atara a la persona de la que hablan. Ahora van dentro de la
+   cabecera, a la derecha del nombre.
+
+   El `margin-top` iguala el `padding-top` de .profile-hero-info para
+   que los botones salgan a la altura del nombre y no del avatar, que
+   sobresale 48 px hacia arriba. */
+.perfil-acciones {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-top: 22px;
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  /* Debajo, en su propia línea: junto al avatar de 96 px no le queda
+     ancho a la columna del nombre. Quien la baja es
+     .profile-hero-row-break. */
+  .perfil-acciones {
+    margin-top: 12px;
+  }
+}
+
+/* ── Las chapas que van bajo el nombre (tanda 306) ──
+   Nivel y rango de colaborador. El rango era una TARJETA más de la
+   rejilla de estadísticas, y desentonaba: las otras cuatro eran
+   números y esa un icono con un título. No es una cifra, es parte de
+   quién es la persona — así que sube al lado del nivel. */
+.perfil-chapas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 8px;
+}
+
+.perfil-rango {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.perfil-rango:hover {
+  border-color: var(--border-strong);
+}
+
+/* ── La tira de cifras (tanda 306) ──
+   Antes esto eran DOS bloques separados: la barra de seguidores dentro
+   de la tarjeta y, debajo y fuera, una rejilla de tres a cinco
+   TARJETAS con borde, cada una con un número. Ocho cifras de la misma
+   persona repartidas en dos sitios y nueve bordes por medio.
+
+   Ahora es una sola tira al pie de la tarjeta. Sin bordes entre
+   cifras: las separa el espacio, que es lo que las separa de verdad. */
+.perfil-cifras {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+}
+
+/* El lote que pinta el JS no puede ser una caja propia: sus cifras
+   tienen que repartirse en la MISMA fila que los contadores que ya
+   vienen en el HTML. `display: contents` lo saca del árbol de cajas y
+   deja a sus hijos como hijos directos de la tira. */
+.perfil-cifras-lote {
+  display: contents;
+}
+
+.perfil-cifra {
+  /* 84 px de base y no 96: con las SIETE cifras de tu propio perfil y
+     una tarjeta de 670 px, con 96 entraban seis y «Trofeos» se quedaba
+     sola en una segunda fila, centrada. Con 84 caben las siete. */
+  flex: 1 1 84px;
+  /* Un hijo de flex tiene min-width:auto y se niega a encoger por
+     debajo de su contenido: sin esto, con siete cifras, la última se
+     salía por la derecha en un móvil de 360 px. */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 14px 8px;
+  background: none;
+  border: none;
+  color: inherit;
+  text-align: center;
+}
+
+.perfil-cifra .valor {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-xl);
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+
+.perfil-cifra .rotulo {
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.25;
+}
+
+button.perfil-cifra {
+  cursor: pointer;
+}
+
+button.perfil-cifra:hover .rotulo {
+  color: var(--navy);
 }

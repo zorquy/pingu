@@ -526,7 +526,7 @@ function renderReward(b) {
       <p class="reward-record" id="rewardRecord"></p>
       <p class="reward-xp hidden" id="rewardXp"></p>
       <p class="reward-liga hidden" id="rewardLiga"></p>
-      ${!session ? '<p style="color: var(--ice); font-size: 13px;">Crea una cuenta para guardar tu marca y tu XP.</p>' : ''}
+      ${!session ? '<p style="color: var(--ice); font-size: var(--t-sm);">Crea una cuenta para guardar tu marca y tu XP.</p>' : ''}
       <p class="reward-save-warning hidden" id="rewardSaveWarning"></p>
       <div class="reward-tabla" id="rewardTabla"></div>
       <div class="reward-actions">

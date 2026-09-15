@@ -26,7 +26,7 @@
   padding: 11px 4px;
   margin-right: 20px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--t-md);
   color: var(--text-mid);
   border-bottom: 2px solid transparent;
   transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
@@ -55,7 +55,7 @@
 }
 
 .page-header h1 {
-  font-size: 28px;
+  font-size: var(--t-2xl);
   font-weight: 800;
   letter-spacing: -0.6px;
 }
@@ -63,7 +63,7 @@
 .page-header p {
   color: var(--text-mid);
   margin-top: 6px;
-  font-size: 14.5px;
+  font-size: var(--t-md);
 }
 
 .category-header {
@@ -74,7 +74,7 @@
 }
 
 .category-header .emoji-big {
-  font-size: 38px;
+  font-size: var(--t-3xl);
   width: 64px;
   height: 64px;
   border-radius: var(--radius-lg);
@@ -85,7 +85,7 @@
 }
 
 .category-header h1 {
-  font-size: 24px;
+  font-size: var(--t-2xl);
   font-weight: 800;
   letter-spacing: -0.4px;
 }
@@ -93,7 +93,7 @@
 .category-header p {
   color: var(--text-mid);
   margin-top: 4px;
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 
 /* ── Breadcrumb ── */
@@ -102,7 +102,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-dim);
   margin-bottom: 16px;
 }
@@ -140,16 +140,16 @@
 }
 
 .path-card .emoji {
-  font-size: 24px;
+  font-size: var(--t-2xl);
 }
 
 .path-card h3 {
-  font-size: 16px;
+  font-size: var(--t-lg);
   font-weight: 800;
 }
 
 .path-card p {
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   line-height: 1.45;
 }
@@ -219,7 +219,7 @@
    guías de un vistazo a ver 2. Así se gana la referencia visual sin
    perder densidad, y el que no tenga portada no desentona. */
 .guide-card-icon {
-  font-size: 26px;
+  font-size: var(--t-2xl);
   width: 46px;
   height: 46px;
   border-radius: var(--radius-md);
@@ -245,7 +245,7 @@
 }
 
 .guide-label {
-  font-size: 10.5px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   color: var(--navy);
   text-transform: uppercase;
@@ -253,7 +253,7 @@
 }
 
 .guide-card-info h3 {
-  font-size: 15px;
+  font-size: var(--t-lg);
   font-weight: 700;
   margin-top: 4px;
   overflow: hidden;
@@ -266,7 +266,7 @@
    descripción de una sola línea ocupaba menos que una de dos y las
    tarjetas seguían sin medir lo mismo. */
 .guide-card-info p {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   margin-top: 4px;
   line-height: 1.4;
@@ -299,7 +299,7 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   font-weight: 700;
   padding: 8px 13px;
   border-radius: var(--radius-sm);
@@ -318,7 +318,7 @@
   padding: 13px 20px;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
-  font-size: 14.5px;
+  font-size: var(--t-md);
   line-height: 1;
   gap: 8px;
 }
@@ -385,7 +385,7 @@
 }
 
 .community-guide-row-icon {
-  font-size: 16px;
+  font-size: var(--t-lg);
   width: 32px;
   height: 32px;
   border-radius: var(--radius-sm);
@@ -402,7 +402,7 @@
 }
 
 .community-guide-row-info h3 {
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -410,7 +410,7 @@
 }
 
 .community-guide-row-info p {
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   color: var(--text-mid);
   white-space: nowrap;
   overflow: hidden;
@@ -419,7 +419,7 @@
 }
 
 .community-guide-row-badge {
-  font-size: 9.5px;
+  font-size: var(--t-2xs);
   padding: 2px 6px;
   margin-left: 6px;
   vertical-align: middle;
@@ -430,7 +430,7 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   color: var(--text-dim);
   white-space: nowrap;
 }
@@ -455,7 +455,7 @@
   padding: 10px 12px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: var(--t-md);
   font-family: inherit;
   resize: vertical;
   min-height: 70px;
@@ -471,7 +471,7 @@
   text-align: center;
   padding: 32px 20px;
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: var(--t-md);
   border: 1.5px dashed var(--border);
   border-radius: var(--radius-lg);
 }
@@ -479,7 +479,7 @@
 .star-picker {
   display: flex;
   gap: 4px;
-  font-size: 24px;
+  font-size: var(--t-2xl);
   margin-bottom: 10px;
 }
 
@@ -536,7 +536,7 @@
 }
 
 .modal-box h3 {
-  font-size: 18px;
+  font-size: var(--t-xl);
   font-weight: 800;
 }
 
@@ -554,7 +554,7 @@
 }
 
 .modal-box-wide h3 {
-  font-size: 18px;
+  font-size: var(--t-xl);
   font-weight: 800;
   margin-bottom: 16px;
 }
@@ -582,12 +582,12 @@
 
 .block-editor-item-header select {
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--t-sm);
   flex: 1;
 }
 
 .block-type-icon {
-  font-size: 18px;
+  font-size: var(--t-xl);
   width: 30px;
   height: 30px;
   border-radius: var(--radius-sm);
@@ -600,7 +600,7 @@
 
 .block-editor-item-header .remove-block {
   color: #dc2626;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
 }
 
@@ -613,7 +613,7 @@
   margin-bottom: 8px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: var(--t-md);
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s var(--ease);
@@ -646,7 +646,7 @@ textarea.be-field {
 .be-image-row .btn-outline {
   flex-shrink: 0;
   padding: 8px 14px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   white-space: nowrap;
 }
 
@@ -667,7 +667,7 @@ textarea.be-field {
   border-radius: var(--radius-sm);
   background: none;
   color: var(--text-mid);
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 800;
 }
 
@@ -689,7 +689,7 @@ textarea.be-field {
   border-top: none;
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
   min-height: 260px;
-  font-size: 15px;
+  font-size: var(--t-lg);
   line-height: 1.7;
   padding: 16px;
 }
@@ -736,7 +736,7 @@ textarea.be-field {
   border-radius: var(--radius-sm);
   background: none;
   color: var(--text-mid);
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 800;
   display: inline-flex;
   align-items: center;
@@ -760,7 +760,7 @@ textarea.be-field {
 }
 
 .rte-tachadura {
-  font-size: 10px;
+  font-size: var(--t-2xs);
   font-weight: 800;
   margin-left: -3px;
 }
@@ -801,7 +801,7 @@ textarea.be-field {
 }
 
 .rte-paleta-emojis button {
-  font-size: 17px;
+  font-size: var(--t-xl);
   line-height: 1;
   border: none;
   background: transparent;
@@ -813,7 +813,7 @@ textarea.be-field {
 }
 
 .rte-swatch-letra {
-  font-size: 15px;
+  font-size: var(--t-lg);
   font-weight: 800;
   line-height: 1;
 }
@@ -839,7 +839,7 @@ textarea.be-field {
 }
 
 .rte-blockbar-nombre {
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -858,7 +858,7 @@ textarea.be-field {
 }
 
 .rte-blockbar-valor {
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   color: var(--text-mid);
   min-width: 36px;
@@ -867,7 +867,7 @@ textarea.be-field {
 .rte-blockbar button {
   height: 28px;
   min-width: 30px;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   background: var(--white);
   border: 1px solid var(--border);
 }
@@ -882,7 +882,7 @@ textarea.be-field {
   padding: var(--rte-pad-y) var(--rte-pad-x);
   background: var(--white);
   outline: none;
-  font-size: 15px;
+  font-size: var(--t-lg);
   line-height: 1.75;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
@@ -908,7 +908,7 @@ textarea.be-field {
   --rte-pad-x: 14px;
   min-height: 110px;
   max-height: 55vh;
-  font-size: 14.5px;
+  font-size: var(--t-md);
   line-height: 1.6;
 }
 
@@ -944,7 +944,7 @@ textarea.be-field {
   min-width: 30px;
   height: 30px;
   padding: 0 9px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   /* Transparente y no ausente: si el borde apareciera solo al pasar por
      encima, los botones se moverían un píxel. */
   border: 1px solid transparent;
@@ -995,7 +995,7 @@ textarea.be-field {
 }
 
 .editor-back {
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 700;
   color: var(--text-mid);
 }
@@ -1011,7 +1011,7 @@ textarea.be-field {
   padding: 9px 13px;
   background: var(--ice);
   border-radius: var(--radius-sm);
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   max-width: 720px;
 }
@@ -1049,7 +1049,7 @@ textarea.be-field {
 }
 
 .editor-block-list .block-editor-item-header select {
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .editor-ref-preview {
@@ -1059,7 +1059,7 @@ textarea.be-field {
   margin-bottom: 16px;
   max-height: 300px;
   overflow-y: auto;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   line-height: 1.6;
   color: var(--text-mid);
   white-space: pre-wrap;
@@ -1100,7 +1100,7 @@ textarea.be-field {
 
 .modal-close {
   align-self: flex-end;
-  font-size: 20px;
+  font-size: var(--t-xl);
   color: var(--text-dim);
   line-height: 1;
   padding: 0;
@@ -1165,19 +1165,19 @@ textarea.be-field {
 }
 
 .achievement-card h3 {
-  font-size: 19px;
+  font-size: var(--t-xl);
   font-weight: 800;
 }
 
 .achievement-card p {
   color: var(--text-mid);
-  font-size: 13.5px;
+  font-size: var(--t-sm);
 }
 
 .achievement-xp {
   font-weight: 800;
   color: var(--navy);
-  font-size: 14.5px;
+  font-size: var(--t-md);
 }
 
 /* ── Search ── */
@@ -1188,7 +1188,7 @@ textarea.be-field {
 .search-input {
   width: 100%;
   padding: 15px 18px;
-  font-size: 17px;
+  font-size: var(--t-xl);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
@@ -1208,12 +1208,12 @@ textarea.be-field {
 }
 
 .search-result h3 {
-  font-size: 15.5px;
+  font-size: var(--t-lg);
   font-weight: 700;
 }
 
 .search-result .snippet {
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   margin-top: 4px;
   line-height: 1.45;
@@ -1283,7 +1283,7 @@ textarea.be-field {
 .guia-seguir-editando {
   margin-left: auto;
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   white-space: nowrap;
 }
 
@@ -1302,18 +1302,18 @@ textarea.be-field {
 }
 
 .article-header .emoji-big {
-  font-size: 36px;
+  font-size: var(--t-3xl);
 }
 
 .article-header h1 {
-  font-size: 28px;
+  font-size: var(--t-2xl);
   font-weight: 800;
   margin: 12px 0 8px;
   letter-spacing: -0.6px;
 }
 
 .article-header .lead {
-  font-size: 15.5px;
+  font-size: var(--t-lg);
   color: var(--text-mid);
   line-height: 1.5;
 }
@@ -1327,13 +1327,13 @@ textarea.be-field {
 }
 
 .article-body {
-  font-size: 16px;
+  font-size: var(--t-lg);
   line-height: 1.75;
   color: var(--text);
 }
 
 .article-body h2 {
-  font-size: 21px;
+  font-size: var(--t-2xl);
   font-weight: 800;
   margin: 32px 0 12px;
   letter-spacing: -0.3px;
@@ -1482,7 +1482,7 @@ textarea.be-field {
   gap: 8px;
   padding: 10px 14px;
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: var(--t-md);
   color: var(--text-mid);
   cursor: pointer;
   /* El triángulo de serie se pinta a mano abajo, para que gire igual en
@@ -1519,7 +1519,7 @@ textarea.be-field {
 
 .rte-sp-quitar::before {
   content: '✕';
-  font-size: 12px;
+  font-size: var(--t-xs);
 }
 
 .rte-sp-quitar:hover {
@@ -1590,7 +1590,7 @@ textarea.be-field {
 
 .rt-fig figcaption {
   margin-top: 7px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   line-height: 1.5;
   color: var(--text-mid);
   text-align: center;
@@ -1736,7 +1736,7 @@ tcg-deck {
   border-left: 3px solid var(--navy);
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 
@@ -1755,7 +1755,7 @@ tcg-deck {
 }
 
 .article-sidebar h4 {
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   text-transform: uppercase;
   color: var(--text-dim);
   font-weight: 700;
@@ -1765,7 +1765,7 @@ tcg-deck {
 
 .article-sidebar a {
   display: block;
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   padding: 6px 0;
   border-left: 2px solid var(--border);
@@ -1808,7 +1808,7 @@ tcg-deck {
   justify-content: center;
   gap: 9px;
   font-weight: 800;
-  font-size: 20px;
+  font-size: var(--t-xl);
 }
 
 .auth-logo::before {
@@ -1821,7 +1821,7 @@ tcg-deck {
   border-radius: 8px;
   background: var(--navy);
   color: var(--white);
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 800;
   transform: rotate(-6deg);
 }
@@ -1835,7 +1835,7 @@ tcg-deck {
    reset global deja el h2 a margen cero. Sin estos márgenes el título
    salía pegado al subtexto (y un -8px viejo aún los solapaba). */
 .auth-box h2 {
-  font-size: 21px;
+  font-size: var(--t-2xl);
   font-weight: 800;
   letter-spacing: -0.3px;
   margin-bottom: 8px;
@@ -1843,7 +1843,7 @@ tcg-deck {
 
 .subtext {
   color: var(--text-mid);
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   line-height: 1.5;
 }
 
@@ -1852,7 +1852,7 @@ tcg-deck {
   padding: 13px 16px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 16px;
+  font-size: var(--t-lg);
   outline: none;
   transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
@@ -1864,12 +1864,12 @@ tcg-deck {
 
 .auth-error {
   color: #dc2626;
-  font-size: 13px;
+  font-size: var(--t-sm);
   min-height: 18px;
 }
 
 .auth-switch {
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   margin-top: 4px;
 }
@@ -1881,7 +1881,7 @@ tcg-deck {
 
 .auth-success {
   color: var(--success);
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .auth-google-btn {
@@ -1901,311 +1901,10 @@ tcg-deck {
   border-radius: 50%;
   background: var(--navy);
   color: var(--white);
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 800;
 }
 
-.profile-bio {
-  font-size: 13.5px;
-  color: var(--text-mid);
-  margin-top: 8px;
-  max-width: 480px;
-}
-
-.profile-level {
-  display: block;
-  font-size: 13px;
-  color: var(--navy);
-  font-weight: 700;
-  margin: 4px 0 8px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.profile-level:hover {
-  text-decoration: underline;
-}
-
-.profile-xp-bar {
-  width: 100%;
-  max-width: 280px;
-}
-
-/* ── Profile hero (perfil.html propio) ── */
-.profile-hero {
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  margin-bottom: 20px;
-  background: var(--white);
-}
-
-.profile-hero-banner {
-  height: 160px;
-  background-size: cover;
-  background-position: center;
-  position: relative;
-}
-
-.profile-hero-edit-btn {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: var(--radius-pill);
-  background: rgba(13, 27, 42, 0.55);
-  /* Blanco fijo (no var(--white), que en modo oscuro pasa a ser el
-     color de superficie/tarjeta oscuro): este botón siempre va sobre
-     un fondo oscuro traslúcido, en cualquier tema. */
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-  backdrop-filter: blur(2px);
-}
-
-.profile-hero-banner .profile-hero-edit-btn {
-  top: 12px;
-  right: 12px;
-}
-
-.profile-hero-edit-inline {
-  position: static;
-  flex-shrink: 0;
-  margin-top: 22px;
-}
-
-.profile-hero-row-break {
-  display: none;
-}
-
-.profile-hero-body {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 12px 24px 20px;
-  position: relative;
-}
-
-@media (max-width: 640px) {
-  .profile-hero-body {
-    flex-wrap: wrap;
-  }
-
-  /* Fuerza que el botón caiga en su propia línea en vez de robarle
-     ancho a la columna de nombre/bio (que en móvil apenas tiene
-     sitio junto al avatar de 96px). Un elemento con flex-basis:100%
-     siempre inicia una línea nueva; el botón que va después se sitúa
-     ahí sin tener que estirarse él mismo a lo ancho. */
-  .profile-hero-row-break {
-    display: block;
-    flex-basis: 100%;
-    height: 0;
-  }
-
-  .profile-hero-edit-inline {
-    margin-top: 12px;
-    margin-left: auto;
-  }
-}
-
-.profile-hero-avatar-wrap {
-  position: relative;
-  flex-shrink: 0;
-  margin-top: -48px;
-}
-
-.profile-hero-avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  /* Sin aro. Llevaba un borde de 4px que en modo oscuro se leía como un
-     círculo raro alrededor de la foto, sobre todo desde que el color de
-     fondo ya no se pinta debajo. La separación con el banner la da el
-     propio recorte redondo. */
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 34px;
-  font-weight: 800;
-  color: var(--white);
-  background-color: var(--navy);
-}
-
-.profile-hero-avatar-edit {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--navy);
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  cursor: pointer;
-  border: 2px solid var(--white);
-}
-
-.profile-hero-info {
-  padding-top: 22px;
-  flex: 1;
-  min-width: 0;
-}
-
-.profile-hero-info h2 {
-  font-size: 20px;
-  font-weight: 800;
-  word-break: break-word;
-}
-
-.profile-hero-social {
-  display: flex;
-  /* Sin envolver, los tres contadores (seguidores, siguiendo, trofeos)
-     no caben en un móvil de 360px y el último se salía del recuadro. */
-  flex-wrap: wrap;
-  gap: 10px 22px;
-  padding: 14px 24px;
-  border-top: 1px solid var(--border);
-}
-
-@media (max-width: 420px) {
-  .profile-hero-social {
-    gap: 10px 16px;
-    padding: 14px 16px;
-  }
-}
-
-.hero-social-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: none;
-  border: none;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-mid);
-  cursor: pointer;
-}
-
-.hero-social-item strong {
-  color: var(--navy);
-  font-size: 15px;
-  margin-right: 4px;
-}
-
-.hero-social-item:hover {
-  color: var(--navy);
-}
-
-/* ── Acordeón (Logros, Reseñas...) ── */
-.accordion {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  margin-bottom: 20px;
-  overflow: hidden;
-  background: var(--white);
-}
-
-.accordion-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 18px;
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--navy);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-}
-
-.accordion-header .chevron {
-  transition: transform 0.2s var(--ease);
-  font-size: 13px;
-}
-
-.accordion.open .accordion-header .chevron {
-  transform: rotate(180deg);
-}
-
-.accordion-body {
-  display: none;
-  padding: 0 18px 18px;
-}
-
-.accordion.open .accordion-body {
-  display: block;
-}
-
-.profile-xp-bar .xp-label {
-  font-size: 11px;
-  color: var(--text-dim);
-  margin-top: 4px;
-}
-
-.achievements-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-@media (min-width: 600px) {
-  .achievements-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.achievement-tile {
-  background: var(--white);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 16px 10px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  transition: border-color 0.15s var(--ease), transform 0.15s var(--ease);
-}
-
-.achievement-tile:not(.locked):hover {
-  transform: translateY(-2px);
-}
-
-.achievement-tile.locked {
-  filter: grayscale(1);
-  opacity: 0.5;
-}
-
-.achievement-tile .icon {
-  font-size: 22px;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 0 0 0 1px rgba(13, 27, 42, 0.08);
-}
-
-.achievement-tile.locked .icon {
-  background: var(--bg);
-}
-
-.achievement-tile .name {
-  font-size: 11.5px;
-  font-weight: 700;
-  line-height: 1.3;
-}
 
 /* ── Modal "ver todos los niveles/rangos" ── */
 .ladder-list {
@@ -2241,7 +1940,7 @@ tcg-deck {
 }
 
 .ladder-item-main strong {
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 
 /* La barra de "cuánto te falta" del escalón actual. */
@@ -2286,12 +1985,12 @@ tcg-deck {
   align-items: center;
   padding: 14px 0;
   border-bottom: 1px solid var(--border);
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 
 .completed-course-row .date {
   color: var(--text-dim);
-  font-size: 12px;
+  font-size: var(--t-xs);
 }
 
 .my-guide-row {
@@ -2304,7 +2003,7 @@ tcg-deck {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   margin-bottom: 10px;
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 
 /* El título se recorta con "…" en vez de partirse en varias líneas,
@@ -2342,7 +2041,7 @@ tcg-deck {
 }
 
 .my-guide-actions button {
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   padding: 5px 10px;
   border-radius: var(--radius-sm);
@@ -2354,7 +2053,7 @@ tcg-deck {
    página — pero se viste igual que sus vecinos para que la fila no parezca
    tener dos clases de cosas. */
 .my-guide-actions .my-guide-ver {
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   padding: 5px 10px;
   border-radius: var(--radius-sm);
@@ -2369,7 +2068,7 @@ tcg-deck {
 
 .my-guide-reason {
   width: 100%;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: #dc2626;
   margin: 0;
 }
@@ -2412,7 +2111,7 @@ tcg-deck {
   border-radius: var(--radius-pill);
   text-decoration: none;
   color: var(--text);
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 
@@ -2427,7 +2126,7 @@ tcg-deck {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 800;
   flex-shrink: 0;
 }
@@ -2471,7 +2170,7 @@ tcg-deck {
   width: 26px;
   flex-shrink: 0;
   text-align: center;
-  font-size: 15px;
+  font-size: var(--t-lg);
   font-weight: 800;
   color: var(--text-dim);
 }
@@ -2487,7 +2186,7 @@ tcg-deck {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: var(--t-lg);
   font-weight: 800;
   flex-shrink: 0;
 }
@@ -2497,7 +2196,7 @@ tcg-deck {
 }
 
 .user-card-info h3 {
-  font-size: 14.5px;
+  font-size: var(--t-md);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -2505,7 +2204,7 @@ tcg-deck {
 }
 
 .user-card-info p {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   margin-top: 2px;
 }
@@ -2546,7 +2245,7 @@ tcg-deck {
 }
 
 .card-rating {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   display: inline-flex;
   align-items: center;
@@ -2562,7 +2261,7 @@ tcg-deck {
 }
 
 .form-group label {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   font-weight: 700;
   color: var(--text-mid);
 }
@@ -2571,7 +2270,7 @@ tcg-deck {
   display: flex !important;
   align-items: center;
   gap: 8px;
-  font-size: 13.5px !important;
+  font-size: var(--t-sm) !important;
   font-weight: 600 !important;
   color: var(--text) !important;
   text-transform: none;
@@ -2588,7 +2287,7 @@ tcg-deck {
   padding: 10px 12px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: var(--t-md);
   outline: none;
   font-family: inherit;
   transition: border-color 0.15s var(--ease);
@@ -2627,13 +2326,13 @@ tcg-deck {
 }
 
 .saved-guide-row h3 {
-  font-size: 14.5px;
+  font-size: var(--t-md);
   font-weight: 700;
 }
 
 .saved-guide-row .unsave-btn {
   color: var(--text-dim);
-  font-size: 19px;
+  font-size: var(--t-xl);
 }
 
 /* ── Toasts ── */
@@ -2651,7 +2350,7 @@ tcg-deck {
 .toast {
   padding: 12px 16px;
   border-radius: var(--radius-md);
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
   color: var(--white);
   box-shadow: var(--shadow-md);
@@ -2723,13 +2422,13 @@ tcg-deck {
 }
 
 .forum-post-date {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-dim);
 }
 
 .forum-post-text {
   margin-top: 6px;
-  font-size: 14px;
+  font-size: var(--t-md);
   line-height: 1.55;
   white-space: pre-wrap;
 }
@@ -2740,7 +2439,7 @@ tcg-deck {
   background: var(--bg);
   border-left: 3px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
 }
 
@@ -2752,7 +2451,7 @@ tcg-deck {
 }
 
 .forum-reply-btn {
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   color: var(--text-dim);
 }
@@ -2762,7 +2461,7 @@ tcg-deck {
 }
 
 .forum-delete-btn {
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   color: var(--text-dim);
 }
@@ -2779,7 +2478,7 @@ tcg-deck {
   padding: 8px 12px;
   background: var(--ice);
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .forum-reply-banner button {
@@ -2794,7 +2493,7 @@ tcg-deck {
   justify-content: center;
   gap: 16px;
   margin-top: 16px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
 }
 
@@ -2807,7 +2506,7 @@ tcg-deck {
   border-radius: 999px;
   background: rgba(245, 158, 11, 0.12);
   color: #b45309;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 800;
   line-height: 1;
   transition: background 0.15s var(--ease);
@@ -2858,7 +2557,7 @@ tcg-deck {
   background: #dc2626;
   color: var(--white);
   border-radius: 999px;
-  font-size: 10px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   min-width: 16px;
   height: 16px;
@@ -2889,13 +2588,13 @@ tcg-deck {
   justify-content: space-between;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .nav-bell-header button {
   color: var(--navy);
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--t-xs);
 }
 
 .nav-bell-item {
@@ -2916,17 +2615,17 @@ tcg-deck {
 
 .nav-bell-item-title {
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text);
 }
 
 .nav-bell-item-body {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
 }
 
 .nav-bell-item-date {
-  font-size: 11px;
+  font-size: var(--t-2xs);
   color: var(--text-dim);
 }
 
@@ -2972,18 +2671,18 @@ tcg-deck {
 .nav-search-dropdown .search-input {
   flex: 1;
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .nav-search-dropdown form button {
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .nav-search-dropdown a#navSearchAdvanced {
   display: block;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   color: var(--navy);
   text-align: center;
@@ -3024,11 +2723,11 @@ tcg-deck {
 
 .nav-user-header strong {
   display: block;
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 
 .nav-user-header .subtext {
-  font-size: 12px;
+  font-size: var(--t-xs);
 }
 
 .nav-user-avatar-lg {
@@ -3043,7 +2742,7 @@ tcg-deck {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--t-lg);
   flex-shrink: 0;
 }
 
@@ -3062,7 +2761,7 @@ tcg-deck {
 
 .nav-user-stats strong {
   display: block;
-  font-size: 14px;
+  font-size: var(--t-md);
   color: var(--navy);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3070,7 +2769,7 @@ tcg-deck {
 }
 
 .nav-user-stats span {
-  font-size: 10.5px;
+  font-size: var(--t-2xs);
   color: var(--text-dim);
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -3089,7 +2788,7 @@ tcg-deck {
   gap: 10px;
   padding: 10px 16px;
   text-align: left;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
   color: var(--text);
 }
@@ -3122,7 +2821,7 @@ tcg-deck {
 /* ── Páginas legales (Términos, Privacidad) ── */
 .legal-page h2 {
   margin: 32px 0 10px;
-  font-size: 18px;
+  font-size: var(--t-xl);
 }
 
 .legal-page h2:first-of-type {
@@ -3133,7 +2832,7 @@ tcg-deck {
 .legal-page li {
   color: var(--text-mid);
   line-height: 1.65;
-  font-size: 14.5px;
+  font-size: var(--t-md);
 }
 
 .legal-page ul {
@@ -3181,6 +2880,11 @@ tcg-deck {
 
 .emoji-picker-wrap input {
   flex: 1;
+  /* Un hijo de flex tiene min-width:auto y se niega a encoger por debajo
+     de su ancho intrínseco: en un móvil de 320 px el campo empujaba al
+     botón del emoji 41 px fuera de la pantalla. Venía de antes de la
+     tanda 306; salió en el barrido de las 26 páginas. */
+  min-width: 0;
 }
 
 .emoji-picker-btn {
@@ -3190,7 +2894,7 @@ tcg-deck {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--white);
-  font-size: 18px;
+  font-size: var(--t-xl);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -3241,7 +2945,7 @@ tcg-deck {
   border: none;
   background: transparent;
   border-radius: var(--radius-sm);
-  font-size: 18px;
+  font-size: var(--t-xl);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -3315,7 +3019,7 @@ tcg-deck {
 .activity-avatar {
   width: 34px;
   height: 34px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   flex-shrink: 0;
 }
 
@@ -3335,7 +3039,7 @@ tcg-deck {
 }
 
 .activity-body p {
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   line-height: 1.4;
   margin: 0;
 }
@@ -3350,7 +3054,7 @@ tcg-deck {
 }
 
 .activity-when {
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   /* text-dim se queda en 2.1:1 sobre blanco a este cuerpo (PageSpeed). */
   color: var(--text-mid);
 }
@@ -3408,12 +3112,12 @@ tcg-deck {
   border-radius: 6px;
   background: var(--ice);
   color: var(--text-mid);
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
 }
 
 .deck-card-name {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   font-weight: 700;
   line-height: 1.3;
   overflow: hidden;
@@ -3422,7 +3126,7 @@ tcg-deck {
 }
 
 .deck-card-set {
-  font-size: 11px;
+  font-size: var(--t-2xs);
   color: var(--text-mid);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3431,7 +3135,7 @@ tcg-deck {
 
 .deck-empty,
 .deck-note {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   margin: 8px 0 0;
 }
@@ -3443,7 +3147,7 @@ tcg-deck {
 }
 
 .cp-help {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   margin-bottom: 12px;
 }
@@ -3453,12 +3157,12 @@ tcg-deck {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 15px;
+  font-size: var(--t-lg);
   font-family: inherit;
 }
 
 .cp-status {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   margin: 8px 0;
 }
@@ -3522,7 +3226,7 @@ tcg-deck {
   background: var(--ice);
   border: 1px dashed var(--border);
   color: var(--text-mid);
-  font-size: 11px;
+  font-size: var(--t-2xs);
   text-align: center;
 }
 
@@ -3562,7 +3266,7 @@ tcg-deck {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
 }
 
@@ -3573,7 +3277,7 @@ tcg-deck {
   background: var(--white);
   color: var(--text);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--t-sm);
   max-width: 100%;
 }
 
@@ -3585,17 +3289,17 @@ tcg-deck {
 }
 
 .cp-name {
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
 }
 
 .cp-set {
-  font-size: 10.5px;
+  font-size: var(--t-2xs);
   color: var(--text-mid);
 }
 
 .cp-chosen-title {
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   margin: 12px 0 6px;
 }
@@ -3617,7 +3321,7 @@ tcg-deck {
   border-radius: 999px;
   background: var(--ice);
   color: var(--navy);
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   font-weight: 700;
 }
 
@@ -3633,7 +3337,7 @@ tcg-deck {
 }
 
 .rating-box h3 {
-  font-size: 16px;
+  font-size: var(--t-lg);
   font-weight: 800;
   margin: 0 0 10px;
 }
@@ -3646,7 +3350,7 @@ tcg-deck {
 }
 
 .rating-box .star-pick {
-  font-size: 30px;
+  font-size: var(--t-3xl);
   line-height: 1;
   color: var(--border);
   background: none;
@@ -3668,7 +3372,7 @@ tcg-deck {
 .rating-summary {
   display: block;
   width: 100%;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   background: none;
   border: none;
@@ -3687,7 +3391,7 @@ button.rating-summary:hover {
 
 .rating-summary-caret {
   display: inline-block;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   margin-left: 2px;
   transition: transform 0.15s var(--ease);
 }
@@ -3706,7 +3410,7 @@ button.rating-summary[aria-expanded='true'] .rating-summary-caret {
  * cansa a la décima que lees. */
 .write-invite {
   margin: 14px 0 0;
-  font-size: 13px;
+  font-size: var(--t-sm);
   line-height: 1.6;
   color: var(--text-mid);
   text-align: center;
@@ -3742,7 +3446,7 @@ button.rating-summary[aria-expanded='true'] .rating-summary-caret {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .rater-avatar {
@@ -3754,7 +3458,7 @@ button.rating-summary[aria-expanded='true'] .rating-summary-caret {
   background-size: cover;
   background-position: center;
   color: var(--white);
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -3784,7 +3488,7 @@ a.rater-name:hover {
 
 .rater-date {
   color: var(--text-dim);
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   flex-shrink: 0;
 }
 
@@ -3796,7 +3500,7 @@ a.rater-name:hover {
 }
 
 .rating-hint {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   margin: 6px 0 0;
   min-height: 1em;
@@ -3821,7 +3525,7 @@ a.rater-name:hover {
   align-items: center;
   gap: 5px;
   margin-top: 6px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   min-width: 0;
 }
 
@@ -3870,7 +3574,7 @@ a.rater-name:hover {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-size: 14px;
+  font-size: var(--t-md);
   color: var(--text-mid);
 }
 
@@ -3917,7 +3621,7 @@ a.rater-name:hover {
   background: var(--white);
   color: var(--text-mid);
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--t-md);
   cursor: pointer;
 }
 
@@ -3934,7 +3638,7 @@ a.rater-name:hover {
 
 .helpful-count,
 .helpful-solo-contador {
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   margin: 22px 0 6px;
 }
@@ -3953,7 +3657,7 @@ a.rater-name:hover {
   border-radius: var(--radius-pill);
   background: var(--ice);
   color: var(--navy);
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   vertical-align: middle;
   white-space: nowrap;
@@ -3971,7 +3675,7 @@ a.rater-name:hover {
   flex-wrap: wrap;
   gap: 4px 16px;
   margin: 6px 0 0;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
 }
 
@@ -4066,12 +3770,12 @@ a.rater-name:hover {
 }
 
 .peticion-voto-flecha {
-  font-size: 10px;
+  font-size: var(--t-2xs);
   line-height: 1;
 }
 
 .peticion-voto-num {
-  font-size: 15px;
+  font-size: var(--t-lg);
   font-weight: 800;
   line-height: 1.1;
 }
@@ -4082,14 +3786,14 @@ a.rater-name:hover {
 }
 
 .peticion-cuerpo h3 {
-  font-size: 15.5px;
+  font-size: var(--t-lg);
   font-weight: 700;
   margin: 0 0 3px;
 }
 
 .peticion-detalle {
   margin: 0 0 6px;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   line-height: 1.55;
 }
@@ -4099,7 +3803,7 @@ a.rater-name:hover {
   align-items: center;
   gap: 6px;
   margin: 0;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-dim);
 }
 
@@ -4117,14 +3821,14 @@ a.rater-name:hover {
 
 .peticion-acciones .btn-secondary {
   padding: 5px 11px;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
 
 .peticion-borrar {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-dim);
   text-decoration: underline;
 }
@@ -4134,14 +3838,14 @@ a.rater-name:hover {
   align-items: center;
   gap: 6px;
   margin: 9px 0 0;
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--success);
   font-weight: 600;
 }
 
 .peticiones-sub {
   margin: 26px 0 4px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4166,7 +3870,7 @@ a.rater-name:hover {
   background: color-mix(in srgb, var(--chapa, var(--navy)) 14%, transparent);
   border-color: color-mix(in srgb, var(--chapa, var(--navy)) 35%, transparent);
   color: color-mix(in srgb, var(--chapa, var(--navy)) 45%, #12303f);
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   font-weight: 800;
 }
 
@@ -4188,7 +3892,7 @@ a.rater-name:hover {
   flex-wrap: wrap;
   gap: 8px;
   margin: 0 0 4px;
-  font-size: 22px;
+  font-size: var(--t-2xl);
   line-height: 1.25;
 }
 
@@ -4197,7 +3901,7 @@ a.rater-name:hover {
   align-items: center;
   gap: 6px;
   margin: 0 0 14px;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   /* Sin esto, la línea de la firma no cabe en un móvil estrecho: avatar,
      nombre, fecha, vistas y DOS botones (Seguir y Compartir) suman más
      de 360 px, y la página entera se arrastraba de lado. Con `wrap`, los
@@ -4221,7 +3925,7 @@ a.rater-name:hover {
   align-items: center;
   gap: 5px;
   padding: 5px 12px;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
 }
 
 /* «Borrar tema» no es un botón más del panel: se lleva el hilo entero y
@@ -4265,7 +3969,7 @@ a.rater-name:hover {
   align-items: center;
   gap: 5px;
   margin: 2px 0 0;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
 }
 
 /* El bloque de móvil del foro (@media max-width 900px) se fue a
@@ -4284,7 +3988,7 @@ a.rater-name:hover {
   padding: 6px 0;
   background: none;
   color: var(--text-dim);
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
@@ -4328,7 +4032,7 @@ a.rater-name:hover {
   align-items: center;
   gap: 6px;
   margin: 8px 0 0;
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
 }
 
@@ -4349,7 +4053,7 @@ a.rater-name:hover {
   border-radius: var(--radius-pill);
   background: var(--warning-bg);
   color: var(--warning);
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   font-weight: 700;
   cursor: pointer;
   width: fit-content;
@@ -4364,14 +4068,14 @@ a.rater-name:hover {
   margin: 0 0 6px;
   padding-left: 10px;
   border-left: 3px solid var(--border-strong);
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   font-style: italic;
 }
 
 .sugerencia-cuerpo {
   margin: 0 0 10px;
-  font-size: 14px;
+  font-size: var(--t-md);
   line-height: 1.6;
 }
 
@@ -4382,7 +4086,7 @@ a.rater-name:hover {
 
 .sugerencia-item-acciones button {
   padding: 5px 14px;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 /* ── Guía destacada de la portada ── */
@@ -4403,7 +4107,7 @@ a.rater-name:hover {
   border-radius: var(--radius-pill);
   background: var(--navy);
   color: var(--white);
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4413,7 +4117,7 @@ a.rater-name:hover {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 21px;
+  font-size: var(--t-2xl);
   font-weight: 800;
   letter-spacing: -0.3px;
   color: var(--text);
@@ -4425,14 +4129,14 @@ a.rater-name:hover {
 
 .destacada-nota {
   margin: 7px 0 0;
-  font-size: 14.5px;
+  font-size: var(--t-md);
   line-height: 1.6;
   color: var(--text-mid);
 }
 
 .destacada-autor {
   margin: 8px 0 0;
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-dim);
 }
 
@@ -4452,7 +4156,7 @@ a.rater-name:hover {
 
 .admin-destacada h2 {
   margin: 0 0 4px;
-  font-size: 17px;
+  font-size: var(--t-xl);
 }
 
 .admin-destacada-campos {
@@ -4483,7 +4187,7 @@ a.rater-name:hover {
 .be-cartas-row textarea { flex: 1; }
 
 .be-ayuda {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   margin: -2px 0 2px;
 }
@@ -4567,10 +4271,10 @@ a.reto-tarjeta:hover {
   flex-direction: column;
 }
 
-.reto-texto strong { font-size: 14.5px; }
+.reto-texto strong { font-size: var(--t-md); }
 
 .reto-texto small {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
 }
 
@@ -4604,20 +4308,20 @@ a.reto-tarjeta:hover {
 
 .seccion-cabecera a {
   color: var(--navy);
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .seccion-cabecera-sm h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--t-lg);
   font-family: var(--font-display, 'Fredoka', 'Inter', sans-serif);
   font-weight: 600;
 }
 
 .seccion-cabecera-sm a {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
 }
 
 /* ── Seguir un tema ── */
@@ -4631,7 +4335,7 @@ a.reto-tarjeta:hover {
   border-radius: var(--radius-pill);
   background: var(--white);
   color: var(--text-mid);
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   vertical-align: middle;
 }
@@ -4706,11 +4410,11 @@ a.reto-tarjeta:hover {
 }
 
 .mencion-opcion-texto b {
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .mencion-opcion-texto .subtext {
-  font-size: 11px;
+  font-size: var(--t-2xs);
 }
 
 /* ── El puente entre la guía y su curso ──
@@ -4733,7 +4437,7 @@ a.reto-tarjeta:hover {
 
 .guia-cta-curso h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--t-xl);
   color: var(--white);
 }
 
@@ -4776,7 +4480,7 @@ a.reto-tarjeta:hover {
 
 .guia-acciones .btn-secondary {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 /* En el móvil no caben en la línea de las etiquetas. Bajan los tres
@@ -4802,7 +4506,7 @@ a.reto-tarjeta:hover {
 
 .encuesta h3 {
   margin: 0 0 12px;
-  font-size: 16px;
+  font-size: var(--t-lg);
 }
 
 .encuesta-opcion-voto {
@@ -4814,7 +4518,7 @@ a.reto-tarjeta:hover {
   border-radius: var(--radius-md);
   margin-bottom: 7px;
   cursor: pointer;
-  font-size: 14.5px;
+  font-size: var(--t-md);
 }
 
 .encuesta-opcion-voto:hover {
@@ -4831,7 +4535,7 @@ a.reto-tarjeta:hover {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: var(--t-md);
   margin-bottom: 4px;
 }
 
@@ -4869,7 +4573,7 @@ a.reto-tarjeta:hover {
 }
 
 .encuesta-resultado small {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--text-dim);
 }
 
@@ -5012,8 +4716,8 @@ yt-video iframe {
 .yt-con-miniatura .yt-portada:hover .yt-play { transform: scale(1.28); }
 .yt-play { display: flex; filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45)); }
 .yt-play svg { width: 68px; height: 48px; }
-.yt-texto { font-weight: 700; font-size: 16px; }
-.yt-nota { font-size: 12px; opacity: 0.7; }
+.yt-texto { font-weight: 700; font-size: var(--t-lg); }
+.yt-nota { font-size: var(--t-xs); opacity: 0.7; }
 
 /* El enlace de repuesto: si alguien no quiere cargar el marco, o el
    navegador lo bloquea, sigue habiendo forma de llegar al vídeo. */
@@ -5021,7 +4725,7 @@ yt-video .yt-enlace {
   position: absolute;
   right: 10px;
   bottom: 10px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: rgba(255, 255, 255, 0.75);
   text-decoration: underline;
 }
@@ -5106,13 +4810,13 @@ yt-video .yt-enlace:hover { color: #fff; }
 }
 
 .primeros-pasos-cabecera h2 {
-  font-size: 19px;
+  font-size: var(--t-xl);
   margin: 2px 0 0;
 }
 
 .primeros-pasos-cuenta {
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 800;
   color: var(--navy);
   background: var(--ice);
@@ -5172,11 +4876,11 @@ yt-video .yt-enlace:hover { color: #fff; }
 }
 
 .paso-texto strong {
-  font-size: 14.5px;
+  font-size: var(--t-md);
 }
 
 .paso-texto small {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
 }
 
@@ -5188,13 +4892,13 @@ yt-video .yt-enlace:hover { color: #fff; }
 
 .paso-boton {
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: var(--t-sm);
   padding: 8px 14px;
 }
 
 .primeros-pasos-pie {
   margin: 12px 0 0;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
 }
 
 @media (max-width: 560px) {
@@ -5264,14 +4968,14 @@ yt-video .yt-enlace:hover { color: #fff; }
 }
 
 .enlace-tarjeta .et-tipo {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--slate);
 }
 
 /* ── Los resultados rápidos de la lupa ── */
 .nav-search-seccion {
   margin: 8px 0 2px;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -5342,11 +5046,11 @@ yt-video .yt-enlace:hover { color: #fff; }
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .hovercard-bio {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--slate);
 }
 
@@ -5354,7 +5058,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   margin-top: 4px;
   justify-self: start;
   padding: 3px 12px;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 /* ── La franja del aviso global del admin ── */
@@ -5367,7 +5071,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   position: relative;
   background: var(--ice);
   border-bottom: 1.5px solid var(--border);
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 600;
   text-align: center;
 }
@@ -5387,7 +5091,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--t-md);
   line-height: 1;
   border-radius: 6px;
 }
@@ -5408,7 +5112,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   border: 1.5px solid var(--border);
   background: var(--white);
   box-shadow: var(--shadow-md);
-  font-size: 18px;
+  font-size: var(--t-xl);
   font-weight: 800;
   cursor: pointer;
 }
@@ -5484,7 +5188,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 
 .lightbox-pie {
   color: rgba(255, 255, 255, 0.85);
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   text-align: center;
   max-width: 70ch;
 }
@@ -5493,7 +5197,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   position: absolute;
   top: 14px;
   right: 16px;
-  font-size: 22px;
+  font-size: var(--t-2xl);
   line-height: 1;
   padding: 10px;
   color: rgba(255, 255, 255, 0.85);
@@ -5536,7 +5240,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   left: 50%;
   transform: translateX(-50%);
   color: rgba(255, 255, 255, 0.75);
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -5563,7 +5267,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 
 .panel-invitar h3 {
   margin: 0 0 2px;
-  font-size: 15.5px;
+  font-size: var(--t-lg);
 }
 
 .panel-invitar-enlace {
@@ -5578,7 +5282,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 7px 10px;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -5598,7 +5302,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 
 .top-mes-cabecera h2 {
   margin: 0;
-  font-size: 19px;
+  font-size: var(--t-xl);
 }
 
 .top-mes-lista {
@@ -5658,7 +5362,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   /* El verde de siempre oscurecido un punto: 13.5px en negrita no es
      «texto grande» para WCAG y el #22a06b se quedaba en 3.4:1. */
   color: #177a52;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
 }
 
 :root[data-theme='dark'] .top-mes-xp {
@@ -5770,7 +5474,7 @@ body.portada-compacta .page-content {
 
 .bienvenida-texto strong {
   display: block;
-  font-size: 18px;
+  font-size: var(--t-xl);
 }
 
 .bienvenida > .mini-avatar {
@@ -5800,7 +5504,7 @@ body.portada-compacta .page-content {
   background: rgba(245, 158, 11, 0.14);
   color: #b45309;
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 :root[data-theme='dark'] .bienvenida-chip {
@@ -5815,7 +5519,7 @@ body.portada-compacta .page-content {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   padding: 2px 8px;
   border-radius: var(--radius-pill);
@@ -5846,12 +5550,12 @@ body.portada-compacta .page-content {
   align-items: center;
   gap: 6px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--t-md);
   margin-right: 4px;
 }
 .medallero-restante {
   margin-left: auto;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
 }
 
@@ -5862,7 +5566,7 @@ body.portada-compacta .page-content {
   border-radius: var(--radius-lg);
   padding: 14px 18px;
   margin-bottom: 14px;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
 }
 .admin-revision-titulo { font-weight: 700; margin: 0 0 8px; }
 .admin-revision ul { margin: 0; padding-left: 18px; }
@@ -5878,12 +5582,12 @@ body.portada-compacta .page-content {
 }
 .liga-mi-puesto {
   margin: 10px 0 0;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 .liga-ver-todos {
   margin-top: 8px;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
 }
 
 /* El podio de medallas SVG (liga y top del mes): oro, plata y bronce
@@ -5946,3 +5650,82 @@ body.portada-compacta .page-content {
 /* `.path-list`, `.category-row` y `.row-info` se fueron en la tanda 299:
    eran la pantalla de categorías de /aprender, que ya no existe — ahora
    las guías se ven directamente y las categorías son filtros. */
+
+/* ── Esqueletos con la FORMA de lo que viene (tanda 305) ──
+ *
+ * Un artículo abría con «Cargando guía…» centrado en una página vacía y
+ * luego aparecía todo de golpe. Dos problemas: la frase no dice cuánto
+ * falta ni qué viene, y el salto de vacío a lleno mueve la página entera
+ * justo cuando ya ibas a leer.
+ *
+ * Un esqueleto con la forma del contenido reserva el sitio —así no hay
+ * salto— y hace que la espera se lea como «esto está llegando» en vez de
+ * como «aquí no hay nada». Se usan las mismas piezas en la guía, la
+ * noticia y el curso, que es el mismo tipo de página. */
+.esq-articulo {
+  max-width: 100%;
+}
+
+.esq-linea,
+.esq-titular,
+.esq-bloque {
+  background: linear-gradient(90deg, var(--border) 25%, var(--ice) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-sm);
+}
+
+.esq-titular {
+  height: 30px;
+  width: 72%;
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+}
+
+/* La firma: una carita redonda y un nombre corto. */
+.esq-firma {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.esq-firma i {
+  display: block;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, var(--border) 25%, var(--ice) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.esq-linea {
+  height: 13px;
+  margin-bottom: 11px;
+}
+
+/* La última línea de un párrafo nunca llega al margen: sin esto el
+   esqueleto parece un bloque de color y no un texto. */
+.esq-parrafo .esq-linea:last-child {
+  width: 62%;
+  margin-bottom: 26px;
+}
+
+.esq-bloque {
+  height: 180px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 26px;
+}
+
+/* Se apaga poco a poco hacia abajo: lo de arriba es lo que vas a leer
+   primero, y dar a entender que la página sigue sin pintarla entera es
+   más honesto que rellenarla de gris hasta el pie. */
+.esq-articulo > *:nth-child(n + 5) {
+  opacity: 0.55;
+}
+
+.esq-articulo > *:nth-child(n + 8) {
+  opacity: 0.3;
+}

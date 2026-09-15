@@ -15088,3 +15088,212 @@ sustituyó (las categorías pasaron a chips, la rareza del galón a la
 pastilla sobre la portada). Quitadas: **una mutación cuya ancla ya no
 existe se cuenta como «sin detectar» y tapa las de verdad**. Lo que
 vigilaban lo cubre el rigor de la 300, contra el código que sí existe.
+
+---
+
+## Tanda 304 — la lista de gente, de 200 a 10 (sept. 2026)
+
+PINGU: «los usuarios, la lista de usuarios, como ya son 200, hay que
+scrollear demasiado. Yo pondría a ver todos o algo así… que solo salgan
+los primeros 10 o algo así».
+
+`/usuarios` pintaba **una tarjeta por persona** y las pintaba todas. Con
+doscientas, la sección de gente se comía la página entera y lo de debajo
+—peticiones, tabla del mes— no lo veía nadie.
+
+Ahora salen **diez** y debajo un botón **«Ver N personas más»** que
+despliega el resto sin ir a la base: la lista ya estaba descargada, lo
+único que cambiaba era cuánto se pinta.
+
+Tres detalles que importan:
+
+- **Al buscar NO se recorta.** Si escribes un nombre y sale el décimo
+  primero, el recorte escondería justo lo que has buscado. `buscando`
+  desactiva el corte.
+- **El botón desaparece cuando ya se ha desplegado** (`genteDesplegada`),
+  no se queda ahí diciendo «ver 190 más» con las 200 delante.
+- **Con diez o menos no hay botón.** Un «Ver 0 personas más» es peor que
+  nada.
+
+### Y un fallo que salió de camino
+
+El recuento de mensajes por autor hacía `(filas || []).reduce(...)`. Si
+la tabla `forum_posts` no responde, lo que llega **no es `null`**: es un
+objeto de error, y `||` lo da por bueno. `reduce` no existe ahí y se caía
+**la lista de gente entera** por un contador de mensajes. Ahora es
+`Array.isArray(filas) ? filas : []`: la lista se pinta sin el contador en
+vez de no pintarse.
+
+Cubierto en `test-tanda-301.mjs` (bloque 6, seis comprobaciones).
+
+---
+
+## Tanda 305 — la escala tipográfica, y los esqueletos con forma (sept. 2026)
+
+PINGU: «alguno me ha preguntado, oye, ¿esto está hecho con IA?… quiero
+una interfaz más moderna, que no se vea tan pocho» y «la manera que
+cargan los artículos, noticias y guías se puede mejorar».
+
+### El diagnóstico: 36 tamaños de letra
+
+Las hojas declaraban **596 tamaños de letra distribuidos en 36 valores**,
+con pasos de MEDIO PÍXEL entre 10,5 y 16 px: 13 px salía 105 veces,
+12,5 px 55, 13,5 px 48, 14,5 px 27. Elegidos uno a uno, componente a
+componente, en vez de salir de una escala.
+
+El efecto no es que una pantalla concreta se vea mal: es que **el ojo no
+distingue jerarquía** y todo se lee como «texto mediano». Buena parte de
+por qué la web parecía hecha con una plantilla estaba ahí, y no en
+ninguna pieza en particular.
+
+### Ocho pasos
+
+```
+--t-2xs: 11px   chapas diminutas y rótulos en versalitas
+--t-xs:  12px   metadatos: fechas, cuentas, «hace 20 min»
+--t-sm:  13px   texto secundario
+--t-md:  14px   el texto normal de la interfaz
+--t-lg:  16px   nombres y títulos de fila
+--t-xl:  20px   títulos de sección
+--t-2xl: 26px   título de página
+--t-3xl: 34px   héroe
+```
+
+**592 de las 596 declaraciones** pasan a la escala (cada valor al paso
+más cercano). Se quedan cuatro: 40, 42, 44 y 52 px, que no son texto de
+interfaz sino números gigantes de display.
+
+Y **23 más colándose por `style="font-size:…"`** en plantillas de
+JavaScript y en `<style>` de página. También a la escala. La excepción
+deliberada: un avatar pintado a un tamaño concreto lleva su `width` al
+lado y la inicial tiene que crecer CON el círculo — eso sale del
+diámetro, no de la escala.
+
+**Si necesitas un tamaño que no está, casi siempre es que el sitio pide
+otro paso, no un tamaño nuevo**: mételo en `:root` antes de escribir un
+número suelto.
+
+### Los esqueletos con forma
+
+Una guía y un curso decían «Cargando guía…» en gris y luego aparecía todo
+de golpe. Ahora, mientras llega, se ve **la silueta de un artículo**:
+titular, firma con su círculo de avatar, párrafos de tres renglones y un
+bloque de imagen, con los hijos más lejanos desvaneciéndose (`.esq-*`).
+
+Dos cosas que no se ven y hacen falta:
+
+- El esqueleto es `aria-hidden`, así que **un lector de pantalla no se
+  entera de nada**. Al lado va un `<p class="sr-only">Cargando la
+  guía…</p>` — y `.sr-only` no existía en el proyecto.
+- El esqueleto de `guia.html` va **DENTRO de los marcadores
+  `<!-- articulo:inicio -->` / `<!-- articulo:fin -->`** que rellena la
+  función de meta-social. Fuera de ellos, los enlaces compartidos vuelven
+  a salir sin título ni foto, y eso no se nota hasta que alguien comparte
+  uno.
+
+Cubierto en `test-tanda-305.mjs` (6 bloques) + `rigor-tanda-305.py`. La
+prueba mira **la forma**: no «este 13 px», sino «no hay ningún tamaño
+fuera de la escala, en ninguna hoja ni en ningún módulo».
+
+Un detalle de la propia prueba: hubo que **quitar los comentarios de CSS
+antes de barrer**, porque varios EXPLICAN el problema citando un tamaño
+(«reglas como `.auth-input { font-size: 14px }` tienen más
+especificidad…») y un comentario no es una declaración.
+
+Y los dos bloques del esqueleto se miran **con el JavaScript apagado**, no
+con una carrera contra `waitUntil`: con el JS puesto, el esqueleto dura
+lo que tarde el módulo en pintar, que a veces es menos de lo que tarda la
+prueba en mirar. Apagándolo, lo que queda en pantalla es exactamente el
+primer fotograma que ve una persona.
+
+---
+
+## Tanda 306 — la ficha de una persona, y quién se ha inscrito (sept. 2026)
+
+PINGU, en la misma lista que la 305: «además ibas a mejorar los perfiles,
+¿verdad?» y «la lista de inscritos y cosas así».
+
+### Un perfil eran TRES cajas
+
+- la cabecera (banner, avatar, nombre) con una barra de seguidores,
+- debajo y FUERA, un `<div>` con estilos **en línea** con los botones de
+  Seguir y Mensaje flotando en medio de la página,
+- y debajo, una rejilla de **tres a cinco tarjetas con borde**, una por
+  número.
+
+Ocho cifras de la misma persona repartidas en dos sitios y nueve bordes
+por medio. Ahora es **una tarjeta**:
+
+1. Las acciones (Seguir / Mensaje, o Editar perfil en la tuya) suben
+   DENTRO de la cabecera, a la derecha del nombre. En móvil caen a su
+   línea con el `.profile-hero-row-break` que ya existía.
+2. El **rango de colaborador** deja de ser una tarjeta de la rejilla y
+   sube a una fila de chapas junto al nivel: no es una cifra, es un
+   título con su icono, y desentonaba entre números.
+3. Todo lo demás se funde en **una tira de cifras** al pie de la tarjeta
+   (`.perfil-cifras`), sin bordes entre ellas: las separa el espacio.
+   Cinco en la ficha de otro (Guías, Nota, Seguidores, Siguiendo,
+   Trofeos) y siete en la tuya (Cursos, Aciertos, Nota, Racha, y las tres
+   mismas).
+
+`.stats-row` y `.stat-card` **desaparecen del proyecto**.
+
+**`display: contents` y su trampa.** La tira mezcla lo que pinta el JS
+(`#profileStats`) con los tres contadores que ya vienen en el HTML —así
+nadie se encuentra un hueco mientras carga—. Para que las cifras se
+repartan una sola fila, el lote del JS lleva `display: contents`: se
+queda sin caja y sus hijos pasan a ser hijos directos de la tira.
+
+El precio es que **cualquier vecino del lote se convierte en una celda
+más de la fila**. El panel de «Invita a un amigo» se colgaba de
+`#profileStats` con `.after()` y aterrizaba en medio de los números como
+si fuera una cifra: ahora se cuelga de la tarjeta entera. La prueba no
+comprueba «el panel de invitar va fuera», comprueba **«dentro de la tira
+solo hay cifras»** — que es lo que caza al siguiente.
+
+### Y el CSS de los perfiles deja de bajarlo todo el mundo
+
+Unas **300 líneas** (cabecera, trofeos, acordeón, nivel, biografía) vivían
+en `components.css`, que descarga cualquier visita a cualquier página, y
+solo las usan `/perfil` y `/usuario` — que ya cargan `perfil.css`. Se
+mudan.
+
+`components.css` pasa de 30,5 a **30,1 KB gzip**: menos de lo que
+parecería por 300 líneas, porque la escala de la tanda 305 engordó la
+hoja por otro lado (`var(--t-sm)` ocupa más que `13px`, y hay 589). Sin
+la mudanza habría subido.
+
+**Y la mudanza costó un fallo, el mismo de siempre con otra cara.**
+`.profile-hero-banner-vacio { height: 96px }` ya vivía en `perfil.css`;
+`.profile-hero-banner { height: 160px }` llegó DESPUÉS desde
+`components.css`. Misma especificidad, gana la última, y el banner sin
+foto volvió a los 160 px de nada — sin que nada diera error. No es el
+truco del `@media` de la tanda 299, es el mismo principio: **al mudar una
+hoja no basta con mirar qué clases quedan huérfanas, hay que mirar
+también contra qué chocan al llegar.**
+
+La prueba mide **el resultado** y no el orden de las reglas: el banner
+vacío mide 96 y el que tiene foto mide 160, se arregle como se arregle.
+
+De paso: `/perfil` era la única ficha que NO hacía lo de la tanda 263 —
+la tuya seguía con los 160 px de color liso. Ahora también los baja.
+
+### Los inscritos tienen cara
+
+La lista de inscritos de un torneo era **una columna de nombres**. Ahora
+cada persona lleva su avatar (foto o inicial sobre su color), lista de
+espera incluida. Es **una columna más de la consulta que ya se hacía**
+(`id, username, avatar_url`): ni una petición extra.
+
+Y salió un fallo de rejilla que estaba desde siempre: la fila tenía
+**cuatro columnas** y quien organiza mete **cinco celdas** —nombre, TCG
+Live, «sin decklist», «sin confirmar» y el botón de expulsar—, así que el
+botón se caía a un segundo renglón y allí, al ser la única celda, se
+estiraba a lo ancho de media lista. Cinco columnas.
+
+La prueba tampoco cuenta columnas: mira si **la fila cabe en un renglón**,
+comparando los CENTROS de las celdas (van centradas entre sí y miden
+distinto, así que sus bordes de arriba no coinciden aunque estén en la
+misma línea).
+
+Cubierto en `test-tanda-306.mjs` (8 bloques) + `rigor-tanda-306.py`.

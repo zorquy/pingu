@@ -20,7 +20,7 @@ const ESTILOS = `
   border-radius: 999px;
   background: #f2b23e;
   color: #4a3305;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
@@ -48,7 +48,7 @@ const ESTILOS = `
    un torneo EN JUEGO se tiene que ver siempre. Se queda en la propia
    barra, primero del bloque de la derecha (entre el logo y la lupa),
    pequeño y con la ACCIÓN en vez del nombre: «Jugar». */
-.nav-torneo-mini { display: none; padding: 4px 10px; font-size: 12px; gap: 4px; max-width: none; }
+.nav-torneo-mini { display: none; padding: 4px 10px; font-size: var(--t-xs); gap: 4px; max-width: none; }
 @media (max-width: 859px) {
   .nav-right .nav-torneo-vivo { display: none; }
   .nav-right .nav-torneo-mini { display: inline-flex; }

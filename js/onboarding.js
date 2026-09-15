@@ -40,7 +40,7 @@ function showRecommendedCategory() {
 
   document.getElementById('onbRecommendedCategory').innerHTML = category
     ? `
-      <p style="opacity:.85; font-size: 13px; margin-bottom: 4px;">${LEVEL_INTRO[state.level] || ''}</p>
+      <p style="opacity:.85; font-size: var(--t-sm); margin-bottom: 4px;">${LEVEL_INTRO[state.level] || ''}</p>
       ${categoryIconHtml(category, 30)}
       <h3>${escapeHtml(category.name)}</h3>
       <p>${escapeHtml(category.description || '')}</p>`

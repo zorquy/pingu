@@ -130,7 +130,7 @@
 }
 
 .reto-hoy-sub {
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   line-height: 1.45;
   color: rgba(255, 255, 255, 0.85);
 }
@@ -186,7 +186,7 @@
   border-radius: var(--radius-pill);
   padding: 9px 16px;
   color: #fff;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
 }
 
 .reto-hoy-boton-flojo:hover {
@@ -203,7 +203,7 @@
   border-top: 1px solid rgba(255, 255, 255, 0.22);
   width: 100%;
   color: rgba(255, 255, 255, 0.9);
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
 }
 
@@ -350,7 +350,7 @@ a.noticia-banner:hover {
 
 .foro-vivo-cabecera h2 {
   margin: 0;
-  font-size: 19px;
+  font-size: var(--t-xl);
 }
 
 .foro-vivo-cabecera .subtext {
@@ -359,7 +359,7 @@ a.noticia-banner:hover {
 
 .foro-vivo-boton {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   white-space: nowrap;
 }
 
@@ -410,7 +410,7 @@ a.noticia-banner:hover {
 }
 
 .foro-vivo-meta {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   white-space: nowrap;
   /* Con nowrap y SIN recorte, «Fulanito de Tal · hace 30 minutos» se
      salía de su columna y estiraba la portada entera en un móvil de
@@ -475,12 +475,12 @@ a.noticia-banner:hover {
 
 .portada-torneo-fecha b {
   font-family: var(--font-display, 'Fredoka', 'Inter', sans-serif);
-  font-size: 19px;
+  font-size: var(--t-xl);
 }
 
 .portada-torneo-fecha span {
   margin-top: 3px;
-  font-size: 9.5px;
+  font-size: var(--t-2xs);
   letter-spacing: 0.07em;
   color: rgba(255, 255, 255, 0.75);
   font-weight: 700;
@@ -495,12 +495,12 @@ a.noticia-banner:hover {
 }
 
 .portada-torneo-cuerpo strong {
-  font-size: 14.5px;
+  font-size: var(--t-md);
   line-height: 1.25;
 }
 
 .portada-torneo-cuerpo small {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: rgba(255, 255, 255, 0.82);
 }
 
@@ -510,7 +510,7 @@ a.noticia-banner:hover {
   color: var(--navy-dark);
   border-radius: var(--radius-pill);
   padding: 7px 14px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 700;
 }
 
@@ -524,7 +524,7 @@ a.noticia-banner:hover {
 
 .portada-temas-rotulo {
   color: var(--text-mid);
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
   margin-right: 2px;
 }
@@ -537,7 +537,7 @@ a.noticia-banner:hover {
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   padding: 6px 13px;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
   color: var(--text);
   transition: border-color 0.15s var(--ease);
@@ -559,7 +559,7 @@ a.noticia-banner:hover {
   color: var(--navy);
   border-radius: var(--radius-pill);
   padding: 1px 7px;
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   font-weight: 700;
 }
 
@@ -573,7 +573,7 @@ a.noticia-banner:hover {
 .foro-vivo-cuenta b {
   display: block;
   font-family: var(--font-display, 'Fredoka', 'Inter', sans-serif);
-  font-size: 17px;
+  font-size: var(--t-xl);
   font-weight: 600;
 }
 
@@ -581,7 +581,7 @@ a.noticia-banner:hover {
   display: block;
   margin-top: 3px;
   color: var(--text-dim);
-  font-size: 11px;
+  font-size: var(--t-2xs);
 }
 
 /* ── Las guías nuevas, con su portada ── */

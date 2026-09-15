@@ -77,7 +77,13 @@ async function loadHeader() {
 
   document.getElementById('heroInfo').innerHTML = `
     <h2>${escapeHtml(name)}${MOSTRAR_PLANES && profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
-    <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
+    <div class="perfil-chapas">
+      <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
+      <!-- El rango lo rellena loadReputationAndGuides(): depende de
+           cuántas guías tiene aprobadas, y eso se cuenta después. El
+           hueco va aquí para no tener que recomponer la cabecera. -->
+      <span id="rangoHueco"></span>
+    </div>
     ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
     ${showcase ? `<div class="achievement-tile" style="display:inline-flex; margin-top:8px; width:auto; flex-direction:row; gap:8px; align-items:center; padding:6px 12px;"><span class="icon rarity-${showcase.rarity || 'bronze'}" style="width:28px;height:28px;">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`
 
@@ -99,21 +105,26 @@ async function loadReputationAndGuides() {
 
   const tier = contributorTier(approvedCount || 0)
 
+  // Dos cifras nada más: las otras tres (seguidores, siguiendo,
+  // trofeos) ya vienen en el HTML y se reparten la misma fila.
   document.getElementById('profileStats').innerHTML = `
-    <button type="button" class="stat-card" id="btnTierInfo">
-      <div class="value" style="display:flex; justify-content:center;">${tier.icon}</div>
-      <div class="label">${tier.title}</div>
-    </button>
-    <div class="stat-card">
-      <div class="value">${approvedCount || 0}</div>
-      <div class="label">Guías aprobadas</div>
+    <div class="perfil-cifra">
+      <span class="valor">${approvedCount || 0}</span>
+      <span class="rotulo">Guías</span>
     </div>
-    <div class="stat-card">
-      <div class="value">${avgRating ? avgRating.toFixed(1) : '—'}</div>
-      <div class="label">Nota de sus guías (${totalNotas})</div>
+    <div class="perfil-cifra" title="${totalNotas} ${totalNotas === 1 ? 'voto' : 'votos'}">
+      <span class="valor">${avgRating ? avgRating.toFixed(1) : '—'}</span>
+      <span class="rotulo">Nota</span>
     </div>`
 
-  document.getElementById('btnTierInfo').addEventListener('click', () => openModal(tierLadderHtml(approvedCount || 0)))
+  // El rango NO es una cifra —es un título, con su icono— así que sube
+  // a la fila de chapas, junto al nivel, en vez de desentonar entre
+  // números.
+  const hueco = document.getElementById('rangoHueco')
+  if (hueco) {
+    hueco.outerHTML = `<button type="button" class="perfil-rango" id="btnTierInfo">${tier.icon}${escapeHtml(tier.title)}</button>`
+    document.getElementById('btnTierInfo').addEventListener('click', () => openModal(tierLadderHtml(approvedCount || 0)))
+  }
 
   const { data: guides } = await supabase
     .from('guides')

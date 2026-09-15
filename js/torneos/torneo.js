@@ -6,7 +6,7 @@
 // ABIERTA AL PÚBLICO desde la tanda 252, igual que /torneos: la ficha
 // se ve sin cuenta y la visibilidad fina la decide la política de la base.
 import { supabase } from '../supabase.js'
-import { escapeHtml, getSession, getProfile, burstConfetti } from '../app.js'
+import { escapeHtml, getSession, getProfile, burstConfetti, avatarStyle, getInitial } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { parseDecklist, validateDecklist, canEditDecklist, decklistUnparsed, officialStructure } from './motor.js'
@@ -89,7 +89,10 @@ async function cargarInscripciones() {
   // vez de pedirlo aparte.
   const ids = [...new Set([...inscripciones.map((i) => i.user_id), torneo.admin_id].filter(Boolean))]
   if (ids.length) {
-    const { data: perfiles } = await supabase.from('user_profiles').select('id, username').in('id', ids)
+    // Con avatar desde la tanda 306: la lista de inscritos era una
+    // columna de nombres y no se distinguía a nadie de un vistazo. Es
+    // una columna más de la misma consulta — ni una petición extra.
+    const { data: perfiles } = await supabase.from('user_profiles').select('id, username, avatar_url').in('id', ids)
     const porId = Object.fromEntries((perfiles || []).map((p) => [p.id, p]))
     for (const i of inscripciones) i.perfil = porId[i.user_id] || null
     organizador = porId[torneo.admin_id] || null
@@ -1634,6 +1637,14 @@ function tcgLiveDe(i) {
   return `<span class="subtext">TCG Live: ${escapeHtml(i.tcg_live_username)}</span>`
 }
 
+// La cara de quien se inscribe (tanda 306). Con foto se ve la foto; sin
+// ella, la inicial sobre el color de siempre — nunca un hueco gris.
+function caraDe(perfil, nombre) {
+  return `<span class="mini-avatar" style="${avatarStyle(perfil || {})}" aria-hidden="true">${
+    perfil?.avatar_url ? '' : escapeHtml(getInitial(nombre))
+  }</span>`
+}
+
 function pintarInscritos() {
   textoSiCambia($('inscritosNumero'), String(activos()))
   $('inscritosVacio').classList.toggle('hidden', inscripciones.length > 0)
@@ -1665,7 +1676,7 @@ function pintarInscritos() {
           : ''
       return `
       <div class="torneo-inscrito">
-        <span class="torneo-inscrito-nombre"><a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(nombre)}</a>${retirado}</span>
+        <span class="torneo-inscrito-nombre">${caraDe(i.perfil, nombre)}<a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(nombre)}</a>${retirado}</span>
         ${tcgLiveDe(i)}
         ${decklist}${confirmado}${expulsar}
       </div>`
@@ -1678,7 +1689,7 @@ function pintarInscritos() {
           .map(
             (i, n) => `
       <div class="torneo-inscrito torneo-inscrito-cola">
-        <span class="torneo-inscrito-nombre"><span class="torneo-cola-puesto">${n + 1}.</span> <a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(i.perfil?.username || 'Alguien')}</a></span>
+        <span class="torneo-inscrito-nombre"><span class="torneo-cola-puesto">${n + 1}.</span>${caraDe(i.perfil, i.perfil?.username || 'Alguien')}<a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(i.perfil?.username || 'Alguien')}</a></span>
         ${tcgLiveDe(i)}
       </div>`
           )

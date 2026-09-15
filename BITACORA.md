@@ -12,6 +12,62 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-15 (5) — PINGU-Claude (tandas 304, 305 y 306 — la tanda visual)
+
+**Hecho**: el encargo era «quiero una interfaz más moderna, que no se vea
+tan pocho» + «la lista de usuarios, como ya son 200, hay que scrollear
+demasiado» + «además ibas a mejorar los perfiles, ¿verdad?». Tres tandas:
+
+- **304 — /usuarios**: salen 10 personas y un botón «Ver N personas más»
+  que despliega el resto sin ir a la base. Al BUSCAR no se recorta (si no,
+  el recorte esconde justo lo que has buscado). Y de camino, un fallo
+  gordo: `(filas || [])` daba por bueno un objeto de error, así que si
+  `forum_posts` no respondía se caía la lista de gente ENTERA por un
+  contador de mensajes. Ahora `Array.isArray`.
+- **305 — la escala tipográfica**: había 36 tamaños de letra en 596
+  declaraciones, con pasos de MEDIO píxel. Ocho pasos (`--t-2xs`…`--t-3xl`)
+  y 592 sustituciones, más 23 que se colaban por `style="font-size:…"`.
+  **Si te hace falta un tamaño que no está, casi siempre es que el sitio
+  pide otro paso: mételo en `:root`, no escribas un número suelto.** Y las
+  guías y cursos cargan con un ESQUELETO CON FORMA de artículo (titular,
+  firma, párrafos) en vez de un «Cargando guía…» en gris.
+- **306 — los perfiles y los inscritos**: la ficha de una persona era
+  tres cajas (cabecera + botones flotando con estilos en línea + rejilla
+  de tarjetas de estadística); ahora es UNA tarjeta con una tira de cifras
+  al pie. `.stats-row` y `.stat-card` ya no existen. Y la lista de
+  inscritos de un torneo tiene avatares, en la misma consulta que ya se
+  hacía.
+
+**Dos cosas que conviene saber si tocas esto**:
+
+1. **~300 líneas de CSS de perfil se han mudado** de `components.css` a
+   `perfil.css`. Al mudarlas, `.profile-hero-banner { height: 160px }` llegó
+   DESPUÉS de `.profile-hero-banner-vacio { height: 96px }` y le ganó por
+   orden de cascada: el banner vacío volvió a los 160 px sin dar error.
+   **Mudar una hoja no es solo mirar qué clases quedan huérfanas: hay que
+   mirar contra qué chocan al llegar.**
+2. La tira de cifras usa **`display: contents`** en `#profileStats`. Eso
+   convierte a cualquier vecino suyo en una celda más de la fila — el
+   panel de «Invita a un amigo» aterrizó en medio de los números. **No
+   cuelgues nada de `#profileStats`**; cuelga de `#profileHero`.
+
+**Ficheros**: `css/style.css`, `css/components.css`, `css/perfil.css`,
+`css/torneos.css`, `css/comunidad.css` y las otras siete hojas (escala),
+`usuario.html`, `perfil.html`, `usuarios.html`, `guia.html`, `curso.html`,
+`index.html`, `onboarding.html`, `sobre.html`, `js/usuario.js`,
+`js/perfil.js`, `js/usuarios.js`, `js/torneos/torneo.js`, `js/wall.js`,
+`js/mensajes.js`, `js/curso.js`, `js/categoria.js`, `js/onboarding.js`,
+`js/block-editor.js`, `js/torneos/aviso-torneo.js`.
+En la rama `pruebas`: `test-tanda-305.mjs` (NUEVO), `test-tanda-306.mjs`
+(NUEVO), `rigor-tanda-305.py` (NUEVO), `rigor-tanda-306.py` (NUEVO),
+`test-tanda-301.mjs` (bloque 6 nuevo).
+
+**En curso / pendiente**: nada a medias. Siguen SIN cobertura de pruebas
+las fichas de guía y de curso (más allá de su esqueleto), los perfiles
+más allá de la tanda 306 y `/noticias`.
+
+---
+
 ## 2026-09-15 (4) — PINGU-Claude (tanda 303 — el foro roto, y la prueba que miraba a otro lado)
 
 **Hecho**: PINGU mandó una captura — «importante, el foro esta roto» — y

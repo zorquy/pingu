@@ -44,6 +44,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
+- **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en
+  `:root`, tanda 305), nunca un número suelto — ni en las hojas ni en un
+  `style="font-size:…"`. Si te hace falta uno que no está, casi siempre
+  es que el sitio pide otro paso: mételo en `:root`. La única excepción
+  es un avatar pintado a un tamaño concreto, donde la inicial crece con
+  el diámetro del círculo y no con la escala.
 - Comentarios del código en español, contando el porqué, no el qué.
 - Textos de la web en español, tono cercano («tú»).
 
@@ -61,14 +67,16 @@ el contenedor de una sesión — el 2026-08-28 uno se reinició y se llevó
 por delante el doble y unas 87 pruebas, sin copia en ninguna parte. De
 ahí la rama: fuera de lo que se despliega, pero en algún sitio.
 
-**Estado a 2026-09-14**: cubiertos torneos (8 pruebas, más la de la
+**Estado a 2026-09-15**: cubiertos torneos (8 pruebas, más la de la
 vista previa al compartir, las dos del registro de partidas y las de
 permisos contra PostgreSQL de verdad), el foro —índice, lista de temas y
-vista de un tema— (2) y, desde la tanda 299, la PORTADA y /aprender.
-Las fichas de guía y de curso, los perfiles y /noticias siguen SIN
-cobertura: un cambio ahí sale a producción sin red debajo. Del foro
-faltan las piezas de alrededor (encuestas, no leídos, suscripciones,
-búsqueda, menciones, moderación).
+vista de un tema— (2), la PORTADA y /aprender (tanda 299), /usuarios
+(301), la escala tipográfica y los esqueletos de artículo (305) y las
+dos fichas de persona —/perfil y /usuario— con la lista de inscritos de
+un torneo (306). El CONTENIDO de una guía y de un curso (más allá de su
+esqueleto) y /noticias siguen SIN cobertura: un cambio ahí sale a
+producción sin red debajo. Del foro faltan las piezas de alrededor
+(encuestas, no leídos, suscripciones, búsqueda, menciones, moderación).
 
 **El rigor rompe el repo a propósito: no commitees mientras corre.**
 Un script de rigor muta un fichero de verdad, pasa las pruebas y lo
@@ -96,6 +104,13 @@ prueba existía desde la 299 y **miraba solo la portada**, así que no vio
 que `tema.html` se había quedado sin `foro.css`. Una prueba escrita
 contra el caso que acabas de arreglar no vale — escríbela contra **la
 forma** del fallo.
+
+Y la TERCERA trampa, de la tanda 306: al mudar reglas a una hoja, las que
+llegan se colocan DESPUÉS de las que ya estaban. `.profile-hero-banner`
+(160 px) aterrizó detrás de `.profile-hero-banner-vacio` (96 px), misma
+especificidad, y le ganó por orden: el banner sin foto volvió a los 160
+sin que nada diera error. **Mudar una hoja no es solo mirar qué clases
+quedan huérfanas: hay que mirar contra qué chocan al llegar.**
 
 ## Los torneos (sección «Jugar»)
 

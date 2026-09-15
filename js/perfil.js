@@ -25,6 +25,10 @@ function applyHeroVisuals(profile, name) {
   banner.style.background = bannerUrl
     ? `url('${bannerUrl.replace(/'/g, '%27')}') center/cover`
     : profile?.banner_color || 'var(--ice)'
+  // Igual que en la ficha de otro (tanda 263): sin foto, 160 px de color
+  // liso son 160 px de nada y empujan todo lo demás hacia abajo. Aquí
+  // faltaba — la tuya era la única que seguía con el hueco entero.
+  banner.classList.toggle('profile-hero-banner-vacio', !bannerUrl)
 
   applyAvatarTo(document.getElementById('heroAvatar'), profile, getInitial(name))
 }
@@ -40,7 +44,13 @@ async function loadProfile(session) {
 
   document.getElementById('heroInfo').innerHTML = `
     <h2>${escapeHtml(name)}${MOSTRAR_PLANES && profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
-    <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
+    <div class="perfil-chapas">
+      <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
+      <!-- El rango lo rellena loadStats(): depende de cuántas guías
+           tienes aprobadas, y eso se cuenta después. El hueco va aquí
+           para no tener que recomponer la cabecera. -->
+      <span id="rangoHueco"></span>
+    </div>
     <div class="profile-xp-bar">
       <div class="progress-track"><div class="fill" style="width: ${progress.pct}%"></div></div>
       <div class="xp-label">${progress.next ? `${progress.next - xp} XP para el siguiente nivel` : 'Nivel máximo'}</div>
@@ -72,29 +82,34 @@ async function loadStats(session, profile) {
 
   montarInvitacion(profile).catch(() => {})
 
+  // Cuatro cifras: las otras tres (seguidores, siguiendo, trofeos) ya
+  // vienen en el HTML y se reparten la misma fila.
   document.getElementById('profileStats').innerHTML = `
-    <div class="stat-card">
-      <div class="value">${completedCount || 0}</div>
-      <div class="label">Cursos completados</div>
+    <div class="perfil-cifra">
+      <span class="valor">${completedCount || 0}</span>
+      <span class="rotulo">Cursos</span>
     </div>
-    <div class="stat-card">
-      <div class="value">${profile?.quiz_correct_count || 0}</div>
-      <div class="label">Preguntas acertadas</div>
+    <div class="perfil-cifra">
+      <span class="valor">${profile?.quiz_correct_count || 0}</span>
+      <span class="rotulo">Aciertos</span>
     </div>
-    <div class="stat-card">
-      <div class="value" style="display:flex; align-items:center; justify-content:center; gap:5px;">${avgRating ? `${icons.star(18)} ${avgRating.toFixed(1)}` : '—'}</div>
-      <div class="label">Nota de tus guías (${totalNotas})</div>
+    <div class="perfil-cifra" title="${totalNotas} ${totalNotas === 1 ? 'voto' : 'votos'}">
+      <span class="valor">${avgRating ? `${icons.star(16)} ${avgRating.toFixed(1)}` : '—'}</span>
+      <span class="rotulo">Nota</span>
     </div>
-    <button type="button" class="stat-card" id="btnTierInfo">
-      <div class="value" style="display:flex; justify-content:center;">${tier.icon}</div>
-      <div class="label">${tier.title}</div>
-    </button>
-    <div class="stat-card">
-      <div class="value" style="display:flex; align-items:center; justify-content:center; gap:5px;">${icons.flame(18)} ${profile?.current_streak || 0}</div>
-      <div class="label">Racha (días)</div>
+    <div class="perfil-cifra">
+      <span class="valor">${icons.flame(16)} ${profile?.current_streak || 0}</span>
+      <span class="rotulo">Racha</span>
     </div>`
 
-  document.getElementById('btnTierInfo').addEventListener('click', () => openModal(tierLadderHtml(approvedGuidesCount || 0)))
+  // El rango NO es una cifra —es un título, con su icono— así que sube
+  // a la fila de chapas, junto al nivel, en vez de desentonar entre
+  // números.
+  const hueco = document.getElementById('rangoHueco')
+  if (hueco) {
+    hueco.outerHTML = `<button type="button" class="perfil-rango" id="btnTierInfo">${tier.icon}${escapeHtml(tier.title)}</button>`
+    document.getElementById('btnTierInfo').addEventListener('click', () => openModal(tierLadderHtml(approvedGuidesCount || 0)))
+  }
 }
 
 function achievementTileHtml(a, unlocked) {
@@ -912,8 +927,12 @@ init()
 // tarjeta sale igual — solo que el contador no puede contar.
 async function montarInvitacion(profile) {
   if (!profile?.username) return
-  const stats = document.getElementById('profileStats')
-  if (!stats || document.getElementById('panelInvitar')) return
+  // Va justo DEBAJO de la tarjeta de perfil. Antes se colgaba de
+  // #profileStats, pero desde la tanda 306 ese lote vive DENTRO de la
+  // tira de cifras y con `display: contents`: colgarle nada ahí mete el
+  // panel en la fila de números como si fuera una cifra más.
+  const tarjeta = document.getElementById('profileHero')
+  if (!tarjeta || document.getElementById('panelInvitar')) return
 
   const enlace = `${window.location.origin}/r/${encodeURIComponent(profile.username)}`
   let traidos = null
@@ -939,7 +958,7 @@ async function montarInvitacion(profile) {
       <code id="enlaceInvitar">${escapeHtml(enlace)}</code>
       <button type="button" class="btn-secondary" id="btnCopiarInvitar">Copiar</button>
     </div>`
-  stats.after(panel)
+  tarjeta.after(panel)
 
   document.getElementById('btnCopiarInvitar').addEventListener('click', async () => {
     try {

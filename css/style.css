@@ -68,6 +68,30 @@
   --rarity-platinum: #2a7ba6;
   --rarity-platinum-bg: linear-gradient(155deg, #e4f4fb, #bfe3f2);
 
+
+  /* ── La escala tipográfica (tanda 305) ──
+   *
+   * Antes había 36 tamaños distintos y 596 declaraciones, con pasos de
+   * MEDIO PÍXEL entre 10,5 y 16 px: 13 px salía 105 veces, 12,5 px 55,
+   * 13,5 px 48, 14,5 px 27... elegidos uno a uno, componente a
+   * componente, en vez de salir de una escala.
+   *
+   * El efecto era que el ojo no distinguía jerarquía y TODO se leía como
+   * «texto mediano» — que es buena parte de por qué la web parecía hecha
+   * con una plantilla aunque cada pieza estuviera bien.
+   *
+   * Ocho pasos, y cada uno claramente otro. Si necesitas un tamaño que
+   * no está, casi siempre es que el sitio pide otro paso, no un tamaño
+   * nuevo: mételo aquí antes de escribir un número suelto. */
+  --t-2xs: 11px;   /* chapas diminutas y rótulos en versalitas */
+  --t-xs: 12px;   /* metadatos: fechas, cuentas, «hace 20 min» */
+  --t-sm: 13px;   /* texto secundario */
+  --t-md: 14px;   /* el texto normal de la interfaz */
+  --t-lg: 16px;   /* nombres y títulos de fila */
+  --t-xl: 20px;   /* títulos de sección */
+  --t-2xl: 26px;   /* título de página */
+  --t-3xl: 34px;   /* héroe */
+
   --radius-sm: 7px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -126,6 +150,22 @@
   display: none !important;
 }
 
+/* Para quien usa lector de pantalla y no ve el esqueleto (tanda 305).
+   Un esqueleto es un dibujo: `aria-hidden` lo saca del árbol y esta
+   frase ocupa su sitio, para que «cargando» se siga oyendo. No vale
+   `display: none` — eso lo esconde también del lector. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -143,7 +183,7 @@ h1, h2, h3,
 .btn-primary, .btn-secondary, .btn-outline,
 .nav-logo, .auth-logo,
 .hero-pill, .badge, .pill, .rarity-chip,
-.stat-card .value, .hero-panel-stat .value, .xp-display, .achievement-xp,
+.perfil-cifra .valor, .hero-panel-stat .value, .xp-display, .achievement-xp,
 .eyebrow {
   font-family: var(--font-display);
   font-weight: 600;
@@ -209,7 +249,7 @@ select {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: var(--t-md);
   outline: none;
   transition: border-color 0.15s var(--ease);
 }
@@ -302,7 +342,7 @@ textarea {
   align-items: center;
   gap: 9px;
   font-weight: 800;
-  font-size: 17px;
+  font-size: var(--t-xl);
   color: var(--text);
   white-space: nowrap;
   letter-spacing: -0.2px;
@@ -318,7 +358,7 @@ textarea {
   border-radius: 8px;
   background: var(--navy);
   color: var(--white);
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 800;
   transform: rotate(-6deg);
 }
@@ -332,7 +372,7 @@ textarea {
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--t-md);
   color: var(--text-mid);
 }
 
@@ -405,7 +445,7 @@ textarea {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .nav-menu-mobile {
@@ -424,7 +464,7 @@ textarea {
 .nav-menu-mobile a {
   padding: 11px 0;
   font-weight: 600;
-  font-size: 15px;
+  font-size: var(--t-lg);
   color: var(--text-mid);
   border-bottom: 1px solid var(--border);
 }
@@ -498,7 +538,7 @@ textarea {
   padding: 13px 24px;
   border-radius: var(--radius-md);
   font-weight: 600;
-  font-size: 14.5px;
+  font-size: var(--t-md);
   line-height: 1;
   transition: transform 0.1s var(--ease), box-shadow 0.1s var(--ease), background 0.15s var(--ease), border-color 0.15s var(--ease);
   white-space: nowrap;
@@ -576,7 +616,7 @@ button.btn-block {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 22px;
+  font-size: var(--t-2xl);
   font-weight: 800;
   margin-bottom: 20px;
   letter-spacing: -0.3px;
@@ -596,7 +636,7 @@ button.btn-block {
   background: var(--ice);
   color: var(--navy);
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   padding: 6px 13px;
   border-radius: var(--radius-pill);
   margin-bottom: 22px;
@@ -612,7 +652,7 @@ button.btn-block {
 }
 
 .hero p {
-  font-size: 17px;
+  font-size: var(--t-xl);
   color: var(--text-mid);
   max-width: 500px;
   margin: 0 auto 30px;
@@ -681,7 +721,7 @@ button.btn-block {
 }
 
 .hero-panel .eyebrow {
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   letter-spacing: 0.6px;
   text-transform: uppercase;
@@ -699,13 +739,13 @@ button.btn-block {
 }
 
 .hero-panel-stat .value {
-  font-size: 26px;
+  font-size: var(--t-2xl);
   font-weight: 800;
   letter-spacing: -0.5px;
 }
 
 .hero-panel-stat .label {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--ice);
   opacity: 0.85;
   margin-top: 2px;
@@ -793,13 +833,13 @@ button.btn-block {
 }
 
 .category-card h3 {
-  font-size: 15px;
+  font-size: var(--t-lg);
   font-weight: 700;
   color: var(--text);
 }
 
 .category-card p {
-  font-size: 12.5px;
+  font-size: var(--t-xs);
   color: var(--text-mid);
   flex: 1;
   line-height: 1.45;
@@ -811,7 +851,7 @@ button.btn-block {
   gap: 4px;
   background: var(--ice);
   color: var(--navy);
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   padding: 4px 10px;
   border-radius: var(--radius-pill);
@@ -839,7 +879,7 @@ button.btn-block {
 }
 
 .recent-card .emoji {
-  font-size: 26px;
+  font-size: var(--t-2xl);
   height: 34px;
   display: flex;
   align-items: center;
@@ -855,7 +895,7 @@ button.btn-block {
 }
 
 .recent-card h3 {
-  font-size: 15.5px;
+  font-size: var(--t-lg);
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -863,7 +903,7 @@ button.btn-block {
 }
 
 .recent-card p {
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--text-mid);
   line-height: 1.45;
   height: 2.9em;
@@ -885,7 +925,7 @@ button.btn-block {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   padding: 3px 9px;
   border-radius: var(--radius-pill);
@@ -924,7 +964,7 @@ button.btn-block {
 }
 
 .time-tag {
-  font-size: 12px;
+  font-size: var(--t-xs);
   /* text-dim se quedaba en 2.35:1 a este cuerpo (PageSpeed, AA). */
   color: var(--text-mid);
 }
@@ -944,78 +984,6 @@ button.btn-block {
   transition: width 0.4s var(--ease);
 }
 
-
-/* ── Stats row ── */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 12px;
-}
-
-/* Perfil propio: 5 tarjetas fijas en una sola fila (en vez de que
-   auto-fit las reparta en 2 filas en pantallas estrechas) — las
-   etiquetas se encogen si hace falta en vez de saltar de fila. */
-.stats-row-single {
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-}
-
-.stats-row-single .stat-card {
-  padding: 14px 6px;
-  /* Un hijo de grid tiene min-width:auto, así que se niega a encogerse por
-     debajo de su contenido: con 5 columnas y una etiqueta larga
-     ("Colaborador"), la última se salía por la derecha en móviles de
-     360px. Con min-width:0 la columna sí puede encoger y la etiqueta se
-     recorta dentro de su sitio. */
-  min-width: 0;
-  overflow: hidden;
-}
-
-.stats-row-single .stat-card .value,
-.stats-row-single .stat-card .label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.stats-row-single .stat-card .value {
-  font-size: 18px;
-}
-
-.stats-row-single .stat-card .label {
-  font-size: 10px;
-}
-
-.stat-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px 12px;
-  text-align: center;
-}
-
-button.stat-card {
-  width: 100%;
-  cursor: pointer;
-  transition: border-color 0.15s var(--ease);
-}
-
-button.stat-card:hover {
-  border-color: var(--navy);
-}
-
-.stat-card .value {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--navy);
-  letter-spacing: -0.3px;
-}
-
-.stat-card .label {
-  font-size: 11.5px;
-  color: var(--text-mid);
-  margin-top: 4px;
-}
 
 /* ── Banner ── */
 .banner-signup {
@@ -1041,7 +1009,7 @@ button.stat-card:hover {
 }
 
 .banner-signup h2 {
-  font-size: 21px;
+  font-size: var(--t-2xl);
   font-weight: 800;
   letter-spacing: -0.3px;
 }
@@ -1065,7 +1033,7 @@ button.stat-card:hover {
   text-align: center;
   padding: 40px 20px;
   color: var(--text-mid);
-  font-size: 14px;
+  font-size: var(--t-md);
 }
 
 .skeleton {
@@ -1199,7 +1167,7 @@ button.stat-card:hover {
 .card-media-badge {
   position: relative;
   z-index: 1;
-  font-size: 19px;
+  font-size: var(--t-xl);
   background: rgba(255, 255, 255, 0.95);
   width: 32px;
   height: 32px;
@@ -1215,7 +1183,7 @@ button.stat-card:hover {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 700;
   padding: 3px 9px 3px 6px;
   border-radius: var(--radius-pill);
@@ -1306,7 +1274,7 @@ button.stat-card:hover {
   padding: 36px 20px;
   /* text-dim se quedaba en 2.2:1 a este cuerpo (PageSpeed, AA). */
   color: var(--text-mid);
-  font-size: 13px;
+  font-size: var(--t-sm);
   border-top: 1px solid var(--border);
   margin-top: 24px;
 }
@@ -1315,7 +1283,7 @@ button.stat-card:hover {
    cursos), para que no compita con el dato principal, que es la lectura. */
 .progress-label.subtle {
   opacity: 0.7;
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   margin-top: 1px;
 }
 
