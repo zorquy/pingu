@@ -165,36 +165,47 @@ console.log('\n── 2. Inscritos: columnas de verdad, no cada fila a su aire �
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 3. Mesas: tarjetas con etiqueta en móvil, tabla en PC ──')
+console.log('\n── 3. Las mesas se leen igual en un móvil que en un PC ──')
 {
-  const page = await abrir('/torneo?slug=movil', 390, SEMILLA)
-  await ir(page, 'rondas')
-  const movil = await page.evaluate(() => {
-    const td = document.querySelector('.torneo-mesa-num')
-    if (!td) return null
-    const tabla = td.closest('table')
-    return {
-      etiquetas: [...td.closest('tr').querySelectorAll('td')].map((c) => c.dataset.etiqueta || ''),
-      apilado: getComputedStyle(td).display !== 'table-cell',
-      cabeceraOculta: getComputedStyle(tabla.querySelector('thead')).display === 'none',
-      tablaCabe: tabla.scrollWidth <= tabla.clientWidth + 1,
-    }
-  })
-  check('las mesas se pintan', movil !== null)
-  check('cada dato lleva su etiqueta', movil && movil.etiquetas.filter(Boolean).length >= 4, JSON.stringify(movil?.etiquetas))
-  check('las celdas se apilan', movil && movil.apilado)
-  check('la cabecera de la tabla se esconde', movil && movil.cabeceraOculta)
-  check('la tabla no pide arrastrar de lado', movil && movil.tablaCabe)
-  await page.close()
-
-  const pc = await abrir('/torneo?slug=movil', 1200, SEMILLA)
-  await ir(pc, 'rondas')
-  const escritorio = await pc.evaluate(() => {
-    const td = document.querySelector('.torneo-mesa-num')
-    return td ? { celda: getComputedStyle(td).display, cabecera: getComputedStyle(td.closest('table').querySelector('thead')).display } : null
-  })
-  check('en escritorio sigue siendo una tabla', escritorio && escritorio.celda === 'table-cell' && escritorio.cabecera !== 'none', JSON.stringify(escritorio))
-  await pc.close()
+  // Lo que este bloque guardaba (tanda 221): una TABLA de mesas no cabe
+  // en un móvil, y arrastrarla de lado para leer quién juega contra
+  // quién es incomodísimo —lo sufrió PINGU—. Se resolvía convirtiéndola
+  // en tarjetas por CSS, con un `data-etiqueta` delante de cada celda.
+  //
+  // La tanda 298 quitó la tabla: ahora son enfrentamientos que se leen
+  // igual en los dos sitios, así que el apaño sobra. Lo que NO sobra es
+  // la garantía, y eso es lo que se comprueba aquí contra la estructura
+  // nueva: que se lea, y que no haya que arrastrar nada.
+  for (const ancho of [390, 1200]) {
+    const page = await abrir('/torneo?slug=movil', ancho, SEMILLA)
+    await ir(page, 'rondas')
+    const m = await page.evaluate(() => {
+      const mesa = document.querySelector('.torneo-mesa')
+      if (!mesa) return null
+      const caja = mesa.getBoundingClientRect()
+      const lados = [...mesa.querySelectorAll('.torneo-mesa-lado')]
+      return {
+        mesas: document.querySelectorAll('.torneo-mesa').length,
+        dosLados: lados.length,
+        // Los dos jugadores y el resultado, cada uno con su sitio.
+        conNumero: Boolean(mesa.querySelector('.torneo-mesa-num')),
+        conResultado: Boolean(mesa.querySelector('.torneo-mesa-centro')),
+        // Nada asomando por los bordes de su propia mesa.
+        seSalen: [...mesa.querySelectorAll('*')].filter((e) => {
+          const r = e.getBoundingClientRect()
+          return r.width > 0 && (r.right > caja.right + 1 || r.left < caja.left - 1)
+        }).length,
+        arrastrar: document.querySelector('.torneo-mesas').scrollWidth > document.querySelector('.torneo-mesas').clientWidth + 1,
+      }
+    })
+    check(`${ancho}px · las mesas se pintan`, m !== null)
+    check(`${ancho}px · las dos mesas de la ronda`, m && m.mesas === 2, JSON.stringify(m))
+    check(`${ancho}px · con sus dos lados`, m && m.dosLados === 2, JSON.stringify(m))
+    check(`${ancho}px · el número y el resultado en su sitio`, m && m.conNumero && m.conResultado, JSON.stringify(m))
+    check(`${ancho}px · nada se sale de su mesa`, m && m.seSalen === 0, JSON.stringify(m))
+    check(`${ancho}px · y no hay que arrastrar de lado`, m && !m.arrastrar, JSON.stringify(m))
+    await page.close()
+  }
 }
 
 // ═════════════════════════════════════════════════════════════════════
@@ -207,7 +218,11 @@ console.log('\n── 4. La ficha nunca enseña «undefined» ──')
   })
   const formato = await page.locator('#torneoFormato').innerText()
   check('sin «undefined» en la caja de formato', !/undefined/i.test(formato), formato.replace(/\n/g, ' · '))
-  check('el check-in cae al valor por defecto', /Check-in\s*5 min/i.test(formato), formato.replace(/\n/g, ' · '))
+  // La chapa dice «5 min de check-in» desde la tanda 298; antes era un
+  // «Check-in / 5 min» en dos renglones. Lo que se guarda es el VALOR
+  // POR DEFECTO, no la redacción.
+  check('el check-in cae al valor por defecto', /5 min de check-in/i.test(formato), formato.replace(/\n/g, ' · '))
+  check('y el tiempo de ronda también', /30 min por ronda/i.test(formato), formato.replace(/\n/g, ' · '))
   await page.close()
 }
 
@@ -230,12 +245,19 @@ console.log('\n── 5. El repaso no es solo de torneos ──')
 // ═════════════════════════════════════════════════════════════════════
 console.log('\n── 6. Las tarjetas de /torneos no se estrujan ──')
 {
-  // Este fallo NO es un desborde —la página cabía— sino lo contrario:
-  // las chapas, con nowrap, se quedaban con el ancho y al título le
-  // dejaban cuatro píxeles, así que caía una palabra por línea.
+  // El fallo original (tanda 233) NO era un desborde —la página cabía—
+  // sino lo contrario: las chapas, con nowrap, se quedaban con el ancho
+  // y al título le dejaban cuatro píxeles, así que caía una palabra por
+  // línea. PINGU lo vio en su teléfono.
+  //
+  // La tanda 297 rehízo la tarjeta: ya no hay `.torneo-texto` ni un
+  // bloque de chapas al lado, sino portada + cuerpo + pie. Lo que se
+  // comprueba sigue siendo lo MISMO —que el título no se estruje y que
+  // nada se salga—, contra la estructura nueva. Reescribirlo es lo
+  // honesto; borrarlo sería perder la red que pilló aquel fallo.
   const SEMILLA_LISTA = {
     torneos: [
-      { id: 'torneo-1', slug: 'api', name: 'torneo api', status: 'cancelled', max_players: 16, swiss_rounds: 4, top_cut_size: 4, start_at: '2026-08-30T22:19:00Z' },
+      { id: 'torneo-1', slug: 'api', name: 'torneo api con un nombre larguísimo', status: 'cancelled', max_players: 16, swiss_rounds: 4, top_cut_size: 4, start_at: '2026-08-30T22:19:00Z' },
     ],
     inscripciones: [{ id: 'i-1', tournament_id: 'torneo-1', user_id: 'admin-1', status: 'dropped', tcg_live_username: 'TCG' }],
   }
@@ -244,49 +266,51 @@ console.log('\n── 6. Las tarjetas de /torneos no se estrujan ──')
     const t = await page.evaluate(() => {
       const tarjeta = document.querySelector('.torneo-tarjeta')
       if (!tarjeta) return null
-      const texto = tarjeta.querySelector('.torneo-texto')
-      const titulo = tarjeta.querySelector('.torneo-texto strong')
-      const chapas = tarjeta.querySelector('.torneo-tarjeta-chapas')
+      const caja = tarjeta.getBoundingClientRect()
+      const titulo = tarjeta.querySelector('.torneo-nombre')
+      const pie = tarjeta.querySelector('.torneo-pie')
+      const accion = tarjeta.querySelector('.torneo-pie-accion')
       const alturaLinea = parseFloat(getComputedStyle(titulo).lineHeight) || 20
+      const dentro = (r) => r.left >= caja.left - 1 && r.right <= caja.right + 1
       return {
-        anchoTarjeta: Math.round(tarjeta.getBoundingClientRect().width),
-        anchoTexto: Math.round(texto.getBoundingClientRect().width),
+        anchoTarjeta: Math.round(caja.width),
+        anchoTitulo: Math.round(titulo.getBoundingClientRect().width),
         lineasTitulo: Math.round(titulo.getBoundingClientRect().height / alturaLinea),
-        chapasDebajo: chapas ? chapas.getBoundingClientRect().top >= texto.getBoundingClientRect().bottom - 1 : false,
-        chapasDentro: chapas ? chapas.getBoundingClientRect().right <= tarjeta.getBoundingClientRect().right + 1 : false,
-        // Contar filas por el `top` EXACTO no vale: una chapa y un botón
-        // de la misma fila se alinean al centro y difieren dos o tres
-        // píxeles, y una sola fila parecía tres. Se agrupa con
-        // tolerancia de media chapa.
-        filasDeChapas: chapas
-          ? [...chapas.children]
-              .map((c) => c.getBoundingClientRect())
-              .sort((a, b) => a.top - b.top)
-              .reduce((filas, r) => {
-                const ultima = filas[filas.length - 1]
-                if (!ultima || r.top - ultima > r.height / 2) filas.push(r.top)
-                return filas
-              }, []).length
-          : 0,
+        // Nada de lo de dentro puede asomar por los lados de la tarjeta.
+        seSalen: [...tarjeta.querySelectorAll('.torneo-etiqueta, .torneo-estado, .torneo-cara, .torneo-pie > *')]
+          .filter((e) => !dentro(e.getBoundingClientRect()))
+          .map((e) => e.className),
+        // Y la acción, que es lo único que la tarjeta promete, tiene que
+        // caber entera en el pie sin partirse ni desaparecer.
+        accionVisible: accion ? accion.getBoundingClientRect().width > 40 : false,
+        accionEnElPie: accion && pie ? Math.abs(accion.getBoundingClientRect().bottom - pie.getBoundingClientRect().bottom) < 20 : false,
       }
     })
     check(`${ancho}px · la tarjeta se pinta`, t !== null)
-    check(`${ancho}px · el texto se lleva más de la mitad`, t && t.anchoTexto > t.anchoTarjeta * 0.55, JSON.stringify(t))
-    check(`${ancho}px · el título cabe en dos líneas`, t && t.lineasTitulo <= 2, `${t?.lineasTitulo} líneas`)
-    check(`${ancho}px · las chapas bajan a su propia fila`, t && t.chapasDebajo, JSON.stringify(t))
-    check(`${ancho}px · las chapas no se salen de la tarjeta`, t && t.chapasDentro, JSON.stringify(t))
-    check(`${ancho}px · y no se desparraman en más de dos filas`, t && t.filasDeChapas >= 1 && t.filasDeChapas <= 2, `${t?.filasDeChapas} filas`)
+    check(`${ancho}px · el título se lleva casi todo el ancho`, t && t.anchoTitulo > t.anchoTarjeta * 0.7, JSON.stringify(t))
+    check(`${ancho}px · y cabe en dos líneas`, t && t.lineasTitulo <= 2, `${t?.lineasTitulo} líneas`)
+    check(`${ancho}px · nada se sale de la tarjeta`, t && t.seSalen.length === 0, t?.seSalen.join(' | '))
+    check(`${ancho}px · la acción se ve entera`, t && t.accionVisible, JSON.stringify(t))
+    check(`${ancho}px · y está en el pie`, t && t.accionEnElPie, JSON.stringify(t))
     await page.close()
   }
 
+  // En PC la tarjeta no se estira a lo ancho de la página: la rejilla la
+  // corta en columnas. Sin esto, una sola tarjeta ocupaba 1200 px de
+  // ancho y 90 px de alto, que es la fila de antes con otro nombre.
   const pc = await abrir('/torneos', 1200, SEMILLA_LISTA)
-  const fila = await pc.evaluate(() => {
+  const rejilla = await pc.evaluate(() => {
     const tarjeta = document.querySelector('.torneo-tarjeta')
-    const texto = tarjeta.querySelector('.torneo-texto').getBoundingClientRect()
-    const chapas = tarjeta.querySelector('.torneo-tarjeta-chapas').getBoundingClientRect()
-    return { alado: chapas.left >= texto.right - 1 }
+    const lista = document.querySelector('.torneos-lista')
+    return {
+      anchoTarjeta: Math.round(tarjeta.getBoundingClientRect().width),
+      anchoLista: Math.round(lista.getBoundingClientRect().width),
+      columnas: getComputedStyle(lista).gridTemplateColumns.split(' ').length,
+    }
   })
-  check('en PC las chapas siguen al lado del texto', fila.alado, JSON.stringify(fila))
+  check('en PC la tarjeta no se estira a toda la página',
+    rejilla.anchoTarjeta < rejilla.anchoLista * 0.6, JSON.stringify(rejilla))
+  check('  …porque la lista va en columnas', rejilla.columnas >= 3, JSON.stringify(rejilla))
   await pc.close()
 }
 

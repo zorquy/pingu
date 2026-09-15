@@ -13,3 +13,10 @@ cp "$SC/stub-supabase.js" "$SC/test-forum/js/supabase.js"
 # El vivo también se sustituye: el de verdad abre un websocket contra el
 # Supabase de PRODUCCIÓN, y eso una prueba no lo puede hacer.
 cp "$SC/stub-vivo.js" "$SC/test-forum/js/vivo.js"
+# La página del laboratorio del editor de texto: monta initRichTextEditor a
+# pelo, sin guía ni foro alrededor. No puede vivir en el repo (es prueba),
+# así que entra aquí después de cada copia, igual que los dobles.
+cp "$SC/rte-lab.html" "$SC/test-forum/rte-lab.html"
+cp -r "$SC/fotos" "$SC/test-forum/fotos"
+# La página para mirar cómo queda la portada de un vídeo.
+cp "$SC/yt-lab.html" "$SC/test-forum/yt-lab.html"

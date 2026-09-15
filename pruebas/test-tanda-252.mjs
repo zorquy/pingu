@@ -104,10 +104,19 @@ console.log('\n── 3. Apuntarse va por la RPC ──')
   await page.close()
 }
 
-console.log('\n── 4. Pero si la migración aún no está, se hace lo de siempre ──')
+console.log('\n── 4. Si la migración aún no está, se DICE (cambiado en la tanda 293) ──')
 {
-  // El rato entre que sale este código y se ejecuta el SQL: la RPC no
-  // existe y hay que seguir funcionando.
+  // ESTA PRUEBA DECÍA LO CONTRARIO, y estaba mal.
+  //
+  // El puente se montó para que inscribirse siguiera funcionando entre
+  // el despliegue y el SQL. Pero esta MISMA migración cierra la
+  // escritura de `tournament_registrations` a los jugadores: el «camino
+  // viejo» ya no escribe nada. Y no da error — un INSERT rechazado por
+  // RLS vuelve como si hubiera ido bien.
+  //
+  // O sea que lo que esta prueba daba por bueno era la web diciéndole a
+  // alguien que se había inscrito sin haberlo hecho. Ahora se avisa de
+  // qué SQL falta y no se toca nada.
   const { page } = await abrir('/torneo?slug=copa', {
     __FAKE_SESSION__: 'user-1', __FAKE_TORNEOS__: [TORNEO], __SIN_RPC__: ['torneos_inscribirse'],
   })
@@ -115,8 +124,10 @@ console.log('\n── 4. Pero si la migración aún no está, se hace lo de siem
   await page.click('#formInscripcion button[type="submit"]')
   await page.waitForTimeout(1200)
   const ins = await escrituras(page, 'tournament_registrations', 'insert')
-  check('se cae al insert de siempre', ins.length === 1, JSON.stringify(ins).slice(0, 110))
-  check('con su usuario de TCG Live', ins[0]?.filas[0]?.tcg_live_username === 'AshKetchum')
+  check('NO se escribe nada a pelo', ins.length === 0, JSON.stringify(ins).slice(0, 110))
+  const texto = await page.locator('body').innerText()
+  check('se dice qué migración falta', /supabase-migration-torneos-cola\.sql/.test(texto), texto.slice(0, 160))
+  check('y NO se le dice que está inscrito', !/Te has inscrito|Inscripción/.test(texto.split('Falta ejecutar')[0].slice(-120) || ''))
   await page.close()
 }
 
@@ -154,7 +165,10 @@ console.log('\n── 6. Las DOS formas de reconocer «no existe esa función» 
     await page.click('#formInscripcion button[type="submit"]')
     await page.waitForTimeout(1100)
     const ins = await escrituras(page, 'tournament_registrations', 'insert')
-    check(`se cae al camino viejo ${etiqueta}`, ins.length === 1, JSON.stringify(ins).slice(0, 90))
+    // Reconocerlo sigue importando, pero ahora para AVISAR, no para
+    // caerse al camino viejo (tanda 293).
+    check(`se reconoce «no existe» ${etiqueta}`, /supabase-migration-torneos-cola\.sql/.test(await page.locator('body').innerText()))
+    check(`  …y no se escribe a pelo ${etiqueta}`, ins.length === 0, JSON.stringify(ins).slice(0, 90))
     await page.close()
   }
 }

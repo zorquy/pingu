@@ -40,8 +40,32 @@ rama que Netlify no despliega cumple las dos cosas.
 - `rigor/` — por cada prueba, un script que ROMPE el código a propósito
   de N maneras y comprueba que la prueba se entera de todas. Una prueba
   que no falla cuando el código está roto no está probando nada.
+- `rigor/rigor_comun.py` — el andamio común de los rigores, **con red
+  bajo la mutación** (tanda 301). El `finally` cubre las excepciones,
+  pero NO cubre que el contenedor se muera: el 2026-09-15 se reinició a
+  mitad de una pasada y dejó `usuarios.html` ROTO en disco, con el árbol
+  con pinta de estar listo para commitear — y esa rama sale a producción
+  en directo. Ahora el original se guarda en un fichero aparte ANTES de
+  tocar nada, y lo primero que hace cualquier rigor al arrancar es
+  deshacer lo que quedara de la vez anterior.
+- `herramientas/comprobar-arbol.sh` — **pásalo antes de cada commit**:
+  canta si quedó una mutación a medias, y dice qué ficheros.
 - `sql/` — el andamio para levantar la base en un Postgres local y los
   casos de las políticas de RLS.
+
+## Todo va en su carpeta (y por qué importa)
+
+Entre las tandas 267 y 302 las pruebas nuevas se fueron dejando **en la
+raíz** en vez de en `pruebas/` y `rigor/`. Parecía inofensivo y no lo
+era: la receta de aquí abajo copia `herramientas/* pruebas/* rigor/*` y
+**no toca la raíz**, así que quien reconstruyera el entorno desde esta
+rama se quedaba sin las pruebas de las tandas 299 a 302 — sin que nada
+avisara. Justo el fallo que esta rama existe para evitar.
+
+En la tanda 306 se han movido los 50 ficheros sueltos a su sitio. Donde
+había copia en los dos lados ha ganado la de la raíz, que era la que
+coincidía con lo que acababa de correr en verde. **Si añades una prueba,
+va en `pruebas/`; su rigor, en `rigor/`.**
 
 ## Cómo se usa
 

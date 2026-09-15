@@ -226,7 +226,48 @@ console.log('\n── 5. Lo que ya funcionaba sigue funcionando ──')
   await page.close()
 }
 
-console.log('\n── 6. Quién anda por aquí hoy ──')
+console.log('\n── 6. Con 200 personas no se scrollea hasta el infinito ──')
+{
+  // PINGU: «los usuarios, como ya son 200, hay que scrollear demasiado».
+  // 200 tarjetas son 100 filas hasta el pie de la página, y las 190 de
+  // abajo no las mira nadie: la lista va por XP, así que a alguien
+  // concreto se llega por el buscador.
+  const muchos = Array.from({ length: 24 }, (_, i) => ({
+    id: `p${i}`, username: `persona${i}`, display_name: `Persona ${i}`,
+    total_xp: 2400 - i * 50, current_streak: 0, last_active_date: HOY,
+  }))
+  const { page } = await abrir('/usuarios.html', { gente: muchos })
+  const cuantas = () => page.locator('.com-persona').count()
+  check('de entrada salen diez', (await cuantas()) === 10, String(await cuantas()))
+  const btn = page.locator('#btnVerTodaLaGente')
+  // La cuenta va EN el botón: «Ver más» no dice nada, «Ver 19 personas
+  // más» dice que hay más y cuántas.
+  check('  …y el botón dice cuántas faltan', /Ver \d+ personas más/.test((await btn.textContent()) || ''),
+    await btn.textContent())
+  await btn.click()
+  await page.waitForTimeout(400)
+  check('  …y al pulsarlo salen todas', (await cuantas()) > 10, String(await cuantas()))
+  check('  …y el botón se va', (await page.locator('#btnVerTodaLaGente').count()) === 0)
+  await page.close()
+}
+{
+  // Buscando NO se recorta: si has escrito un nombre, pedirte otro clic
+  // para ver el resultado es absurdo.
+  const muchos = Array.from({ length: 24 }, (_, i) => ({
+    id: `p${i}`, username: `persona${i}`, display_name: `Persona ${i}`,
+    total_xp: 2400 - i * 50, current_streak: 0, last_active_date: HOY,
+  }))
+  const { page } = await abrir('/usuarios.html', { gente: muchos })
+  await page.fill('#userSearchInput', 'Persona 1')
+  await page.waitForTimeout(400)
+  // Persona 1 y Persona 10..19: once, y las once tienen que verse.
+  check('buscando se ven todas las que coinciden', (await page.locator('.com-persona').count()) === 11,
+    String(await page.locator('.com-persona').count()))
+  check('  …y no sale el botón de ver más', (await page.locator('#btnVerTodaLaGente').count()) === 0)
+  await page.close()
+}
+
+console.log('\n── 7. Quién anda por aquí hoy ──')
 {
   const { page } = await abrir()
   const caja = page.locator('#comHoy')
@@ -252,7 +293,7 @@ console.log('\n── 6. Quién anda por aquí hoy ──')
   await page.close()
 }
 
-console.log('\n── 7. El CSS de la comunidad no lo baja todo el mundo ──')
+console.log('\n── 8. El CSS de la comunidad no lo baja todo el mundo ──')
 {
   check('/usuarios trae su propia hoja', /css\/comunidad\.css/.test(leer('usuarios.html')))
   // Y no puede colarse en components.css, que lo descarga hasta quien
@@ -261,7 +302,7 @@ console.log('\n── 7. El CSS de la comunidad no lo baja todo el mundo ──'
   check('  …ni la portada la carga', !/comunidad\.css/.test(leer('index.html')))
 }
 
-console.log('\n── 8. Nada se sale de la pantalla ──')
+console.log('\n── 9. Nada se sale de la pantalla ──')
 {
   for (const ancho of [320, 400, 768, 1280]) {
     const { page } = await abrir('/usuarios.html', { ancho })
