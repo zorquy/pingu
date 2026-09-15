@@ -283,7 +283,9 @@ console.log('\n── 7. El CSS de los perfiles deja de bajarlo todo el mundo �
       const txt = leer(js)
       usadas = new Set([...usadas, ...clasesDeTexto(txt)])
       const dir = js.slice(0, js.lastIndexOf('/') + 1)
-      for (const imp of txt.matchAll(/from\s+'([^']+\.js)'/g)) {
+      // `from './x.js'` E `import('./x.js')`: foro-actividad.js entra por
+      // el dinámico y por eso se escapó (tanda 307).
+      for (const imp of txt.matchAll(/(?:from|import)\s*\(?\s*'([^']+\.js)'/g)) {
         const destino = new URL(imp[1], `file:///${dir}`).pathname.replace(/^\//, '')
         pendientes.push(destino)
       }

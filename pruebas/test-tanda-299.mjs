@@ -201,20 +201,96 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
   const todasLasHojas = readdirSync(`${RAIZ}/css`).filter((f) => f.endsWith('.css')).map((f) => `css/${f}`)
   const paginas = readdirSync(RAIZ).filter((f) => f.endsWith('.html'))
   const rotas = []
+  const recogidas = {}
   for (const pagina of paginas) {
     const fuente = leer(pagina)
     const hojas = [...fuente.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g)].map((m) => m[1].replace(/^\//, ''))
     let usadas = clasesDeTexto(fuente)
-    for (const m of fuente.matchAll(/<script[^>]+src="([^"]+)"/g)) {
-      const js = m[1].replace(/^\//, '')
-      if (existsSync(`${RAIZ}/${js}`)) usadas = new Set([...usadas, ...clasesDeTexto(leer(js))])
+    // El JS de la página Y TODO lo que ese JS arrastra, recursivamente.
+    //
+    // Mirar solo el `<script src>` no basta: .foro-act-* lo pinta
+    // js/foro-actividad.js, al que se llega desde js/perfil.js. Y seguir
+    // solo `from '…'` tampoco: ese módulo entra por un `import()`
+    // DINÁMICO —para no descargarlo hasta que alguien abre la pestaña—,
+    // así que con el regex de los import estáticos seguía sin verse. La
+    // pestaña «Foro» de los dos perfiles llevaba desde la tanda 299 sin
+    // una sola regla y lo vio PINGU en una captura, no esta prueba.
+    const pendientes = [...fuente.matchAll(/<script[^>]+src="([^"]+)"/g)].map((m) => m[1].replace(/^\//, ''))
+    const vistos = new Set()
+    while (pendientes.length) {
+      const js = pendientes.shift()
+      if (vistos.has(js) || !existsSync(`${RAIZ}/${js}`)) continue
+      vistos.add(js)
+      const txt = leer(js)
+      usadas = new Set([...usadas, ...clasesDeTexto(txt)])
+      const dir = js.slice(0, js.lastIndexOf('/') + 1)
+      // Las dos formas: `from './x.js'` e `import('./x.js')`.
+      for (const imp of txt.matchAll(/(?:from|import)\s*\(?\s*'([^']+\.js)'/g)) {
+        pendientes.push(new URL(imp[1], `file:///${dir}`).pathname.replace(/^\//, ''))
+      }
     }
+    // Se apunta lo que el barrido logró recoger de cada página, para
+    // poder comprobar después que llegó hasta el final (ver más abajo).
+    recogidas[pagina] = usadas
     const tiene = reglasDe(hojas)
     const enOtra = reglasDe(todasLasHojas.filter((h) => !hojas.includes(h)))
     const huerfanas = [...usadas].filter((c) => !tiene.has(c) && enOtra.has(c))
     if (huerfanas.length) rotas.push(`${pagina}: ${huerfanas.slice(0, 6).join(', ')}`)
   }
   check(`ninguna de las ${paginas.length} páginas usa clases de una hoja que no carga`, rotas.length === 0, rotas.join(' | '))
+
+  // Y que el barrido LLEGUE hasta el final, que es lo que falló.
+  //
+  // Todo lo de arriba sale en verde tanto si el barrido recorre la web
+  // entera como si se queda a medio camino: una página de la que no se
+  // recoge ninguna clase no tiene ninguna huérfana. Así que se comprueba
+  // que llega a un módulo que está a DOS saltos y entra por un
+  // `import()` dinámico: perfil.html → js/perfil.js → js/foro-actividad.js,
+  // que es de donde salió `.foro-act-columnas`.
+  //
+  // Sin esto, volver el regex a `from '…'` deja la prueba en verde y la
+  // pestaña «Foro» de los perfiles se va a producción sin CSS otra vez.
+  check('el barrido sigue los import() dinámicos, no solo los estáticos',
+    recogidas['perfil.html']?.has('foro-act-columnas') === true,
+    'no llegó a js/foro-actividad.js desde perfil.html')
+  check('  …y lo mismo en la ficha de otra persona',
+    recogidas['usuario.html']?.has('foro-act-columnas') === true,
+    'no llegó a js/foro-actividad.js desde usuario.html')
+
+  // ── Y ninguna hoja puede usar una variable que no existe ──
+  //
+  // `.foro-act-numeros span` pedía `var(--slate)`, un color que NO se
+  // define en ninguna parte. Eso no da error: la declaración es
+  // inválida y la propiedad se queda sin poner, así que el texto hereda
+  // el color del padre y parece que va bien. Había cuatro.
+  //
+  // Dos excepciones, las dos legítimas:
+  //
+  //  · Las que pone el JavaScript o el HTML a mano —`style="--i:3"`,
+  //    `setProperty('--dx', …)`— existen aunque no estén en ninguna
+  //    hoja. Se miran también los módulos de las subcarpetas (js/torneos/),
+  //    que es donde vive `--i`.
+  //  · Las que se piden CON RESPALDO: `var(--shadow-lg, 0 12px 32px …)`
+  //    está bien escrito, el respaldo es el valor. Solo canta el `var()`
+  //    a pelo, que es lo que hacía `--slate`: sin respaldo, la propiedad
+  //    entera se cae y el texto hereda el color del padre — parece que
+  //    funciona y no funciona.
+  const modulos = []
+  for (const dir of ['js', 'js/torneos']) {
+    for (const x of readdirSync(`${RAIZ}/${dir}`)) if (x.endsWith('.js')) modulos.push(`${dir}/${x}`)
+  }
+  const definidas = new Set()
+  for (const f of [...todasLasHojas, ...paginas, ...modulos]) {
+    for (const m of leer(f).matchAll(/(--[a-z0-9-]+)\s*['"`]?\s*[:,]/gi)) definidas.add(m[1])
+  }
+  const fantasmas = []
+  for (const hoja of todasLasHojas) {
+    // `var(--x)` sin coma: sin respaldo.
+    for (const m of leer(hoja).matchAll(/var\(\s*(--[a-z0-9-]+)\s*\)/gi)) {
+      if (!definidas.has(m[1])) fantasmas.push(`${hoja}: ${m[1]}`)
+    }
+  }
+  check('ninguna hoja usa una variable CSS que no se define', fantasmas.length === 0, [...new Set(fantasmas)].slice(0, 6).join(', '))
 }
 
 console.log('\n── 3. E · Las guías se ven al entrar en /aprender ──')
