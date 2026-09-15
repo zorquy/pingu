@@ -1,5 +1,8 @@
 """Rigor de la tanda 299 (foro, /aprender y portada). En segundo plano SIEMPRE."""
-import subprocess, sys, os
+import sys
+
+sys.path.insert(0, '/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad')
+from rigor_comun import correr
 
 SC = '/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad'
 REPO = '/home/user/pingu'
@@ -12,7 +15,16 @@ COMP = 'css/components.css'
 INDEX = 'index.html'
 FOROHTML = 'foro.html'
 
+TEMA = 'tema.html'
+
 MUTACIONES = [
+    # ESTA es la que se escapó a producción: la vista de un tema se quedó
+    # sin la hoja del foro y salió con el mensaje, la columna del autor,
+    # las citas y las reacciones sin una sola regla. La prueba de
+    # estructura miraba SOLO la portada.
+    (TEMA, 'la vista de un tema se queda sin la hoja del foro',
+     '  <link rel="stylesheet" href="/css/foro.css" />', '  <!-- sin hoja -->'),
+
     # ── D · el foro ──
     (FORO, 'la franja de lo caliente desaparece',
      "  if (destacado) destacado.innerHTML = calientes",
@@ -112,17 +124,14 @@ MUTACIONES = [
      "      boton: '<a class=\"btn-primary reto-hoy-boton\" href=\"auth.html\">Crear cuenta y jugar →</a>',",
      "      boton: '',"),
 
-    (HOME, 'la tarjeta de categoría recupera el marco de color del hash',
-     '    <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="category-card">',
-     '    <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="category-card border-tint-2">'),
-
-    (HOME, 'la guía reciente recupera el marco de rareza',
-     '    <div class="recent-card galon-${escapeHtml(g.guide_rarity || \'bronze\')}"',
-     '    <div class="recent-card border-rarity-${escapeHtml(g.guide_rarity || \'bronze\')}"'),
-
-    (PORT, 'el galón de rareza se queda sin color: la rareza deja de verse',
-     '.galon-bronze { --galon: var(--rarity-bronze); }',
-     '.galon-bronze { }'),
+    # Aquí había TRES mutaciones sobre las tarjetas de categoría, el
+    # galón de rareza y su color. La tanda 300 se llevó ese código por
+    # delante: las categorías son chips, la rareza se muda a una pastilla
+    # sobre la portada de la guía y el galón desaparece. Lo que vigilaban
+    # —que ningún color salga de un hash ni pinte el marco entero— lo
+    # vigila ahora el rigor de la 300, contra el código que existe.
+    # Dejarlas aquí con el ancla rota es peor que quitarlas: una mutación
+    # que no se aplica se cuenta como «sin detectar» y tapa las de verdad.
 
     (PORT, 'el héroe se queda a media columna y deja un claro al lado',
      '.portada-hoy #retoSeccion > *,\n.portada-hoy #retoTarjetas > * {\n  flex: 1;',
@@ -133,35 +142,4 @@ MUTACIONES = [
      '  <!-- sin la hoja de la portada -->'),
 ]
 
-originales = {}
-sin_detectar = []
-try:
-    for fichero, nombre, viejo, nuevo in MUTACIONES:
-        ruta = os.path.join(REPO, fichero)
-        if ruta not in originales:
-            originales[ruta] = open(ruta).read()
-        base = originales[ruta]
-        if base.count(viejo) != 1:
-            print(f'⚠️  ANCLA MALA ({base.count(viejo)} veces) en {fichero}: {nombre}', flush=True)
-            sin_detectar.append(f'{nombre} (ancla mala)')
-            continue
-        open(ruta, 'w').write(base.replace(viejo, nuevo))
-        subprocess.run([os.path.join(SC, 'sync-forum.sh')], capture_output=True)
-        r = subprocess.run(['/opt/node22/bin/node', os.path.join(SC, 'test-tanda-299.mjs')], capture_output=True, text=True, cwd=SC)
-        open(ruta, 'w').write(base)
-        if r.returncode == 0:
-            print(f'❌ SIN DETECTAR: {nombre}', flush=True)
-            sin_detectar.append(nombre)
-        else:
-            print(f'✅ detectada: {nombre}', flush=True)
-finally:
-    for ruta, contenido in originales.items():
-        open(ruta, 'w').write(contenido)
-    subprocess.run([os.path.join(SC, 'sync-forum.sh')], capture_output=True)
-
-if sin_detectar:
-    print(f'\n❌ {len(sin_detectar)} sin detectar:')
-    for n in sin_detectar:
-        print('  -', n)
-    sys.exit(1)
-print(f'\n✅ Las {len(MUTACIONES)} mutaciones detectadas')
+correr(MUTACIONES, 'test-tanda-299.mjs')

@@ -16,7 +16,7 @@
 //  · F — el reto abre la portada, en grande y con sus cinco puntos, y
 //    la noticia va al lado; y el peso de la portada sigue cabiendo.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 import { resolve, dirname } from 'node:path'
 
@@ -168,26 +168,53 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
   const gz = (t) => gzipSync(Buffer.from(t)).length
   check('  …y components.css baja de 32 KB gzip', gz(comp) < 32 * 1024, `${(gz(comp) / 1024).toFixed(1)} KB`)
 
-  // LA PRUEBA QUE HABRÍA CAZADO EL FALLO: .foro-vivo se llevó a foro.css
-  // y la portada no baja esa hoja — «Ahora en el foro» se quedó sin
-  // estilo. Así que se recorren TODAS las clases que pinta la portada y
-  // se comprueba que cada una tiene regla en alguna hoja que la portada
-  // carga de verdad.
-  const html = leer('index.html')
-  const hojas = [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g)].map((m) => m[1].replace(/^\//, ''))
-  const cargado = hojas.map(leer).join('\n')
-  const conRegla = new Set([...cargado.matchAll(/\.([a-zA-Z][\w-]*)/g)].map((m) => m[1]))
-  const fuentes = ['index.html', 'js/home.js', 'js/foro-comun.js', 'js/activity.js', 'js/primeros-pasos.js', 'js/guide-card.js', 'js/liga.js']
-  const usadas = new Set()
-  for (const f of fuentes) {
-    for (const m of leer(f).matchAll(/class="([^"$]*)"/g)) {
-      for (const c of m[1].split(/\s+/)) if (/^[a-zA-Z][\w-]*$/.test(c)) usadas.add(c)
+  // LA PRUEBA QUE HABRÍA CAZADO EL FALLO, y que en su primera versión
+  // NO LO CAZÓ ENTERO.
+  //
+  // La 299 movió 191 bloques de foro de components.css a foro.css.
+  // Comprobé la portada («Ahora en el foro» se había quedado sin estilo)
+  // y foro.html, escribí esta prueba... mirando SOLO LA PORTADA. Y la
+  // vista de un tema —tema.html— no carga foro.css: el mensaje, la
+  // columna del autor, las citas y las reacciones salieron a producción
+  // sin una sola regla. Lo vio PINGU, no la prueba.
+  //
+  // Así que ahora se recorre LA WEB ENTERA: para cada página, qué clases
+  // pintan su HTML y su JavaScript, y si cada una tiene regla en alguna
+  // de las hojas QUE ESA PÁGINA CARGA. Se cuentan solo las que sí existen
+  // en otra hoja — una clase sin regla en ninguna parte es otra cosa
+  // (puede ser un gancho de JavaScript) y no un estilo perdido.
+  const clasesDeTexto = (txt) => {
+    const fuera = new Set()
+    for (const m of txt.matchAll(/class="([^"$]*)"/g)) {
+      for (const c of m[1].split(/\s+/)) if (/^[a-zA-Z][\w-]*$/.test(c)) fuera.add(c)
     }
+    return fuera
   }
-  const otras = ['css/foro.css', 'css/torneos.css', 'css/curso.css', 'css/aprender.css'].filter((f) => existsSync(`${RAIZ}/${f}`))
-  const enOtraHoja = new Set(otras.flatMap((f) => [...leer(f).matchAll(/\.([a-zA-Z][\w-]*)/g)].map((m) => m[1])))
-  const huerfanas = [...usadas].filter((c) => !conRegla.has(c) && enOtraHoja.has(c))
-  check('ninguna clase de la portada se quedó en una hoja que no carga', huerfanas.length === 0, huerfanas.join(', '))
+  const reglasDe = (rutas) => {
+    const fuera = new Set()
+    for (const r of rutas) {
+      if (!existsSync(`${RAIZ}/${r}`)) continue
+      for (const m of leer(r).matchAll(/\.([a-zA-Z][\w-]*)/g)) fuera.add(m[1])
+    }
+    return fuera
+  }
+  const todasLasHojas = readdirSync(`${RAIZ}/css`).filter((f) => f.endsWith('.css')).map((f) => `css/${f}`)
+  const paginas = readdirSync(RAIZ).filter((f) => f.endsWith('.html'))
+  const rotas = []
+  for (const pagina of paginas) {
+    const fuente = leer(pagina)
+    const hojas = [...fuente.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g)].map((m) => m[1].replace(/^\//, ''))
+    let usadas = clasesDeTexto(fuente)
+    for (const m of fuente.matchAll(/<script[^>]+src="([^"]+)"/g)) {
+      const js = m[1].replace(/^\//, '')
+      if (existsSync(`${RAIZ}/${js}`)) usadas = new Set([...usadas, ...clasesDeTexto(leer(js))])
+    }
+    const tiene = reglasDe(hojas)
+    const enOtra = reglasDe(todasLasHojas.filter((h) => !hojas.includes(h)))
+    const huerfanas = [...usadas].filter((c) => !tiene.has(c) && enOtra.has(c))
+    if (huerfanas.length) rotas.push(`${pagina}: ${huerfanas.slice(0, 6).join(', ')}`)
+  }
+  check(`ninguna de las ${paginas.length} páginas usa clases de una hoja que no carga`, rotas.length === 0, rotas.join(' | '))
 }
 
 console.log('\n── 3. E · Las guías se ven al entrar en /aprender ──')
