@@ -37,7 +37,10 @@ function plantilla() {
     <button type="button" class="lightbox-cerrar" aria-label="Cerrar">✕</button>
     <button type="button" class="lightbox-flecha lightbox-ant" aria-label="Imagen anterior">‹</button>
     <figure>
-      <img loading="lazy" alt="">
+      <!-- Sin carga diferida a propósito: esta es la imagen que
+           acabas de pulsar. Diferirla es retrasar lo único que
+           has pedido. -->
+      <img alt="">
       <figcaption class="lightbox-pie"></figcaption>
     </figure>
     <button type="button" class="lightbox-flecha lightbox-sig" aria-label="Imagen siguiente">›</button>

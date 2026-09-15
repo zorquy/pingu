@@ -27,11 +27,15 @@ export const FORO_NOTICIAS = 'noticias'
 // Recibe la fila de la noticia TAL CUAL está en la base (`title`,
 // `description`, `cover_image`) y no un objeto traducido: la traducción
 // intermedia solo servía para poder equivocarse al hacerla.
+// OJO: lo que devuelve esto se GUARDA en `forum_posts.body_html`. No es
+// markup de una página, es contenido de la base, así que aquí no van
+// atributos de pintado — el barrido de carga diferida de la tanda 310
+// metió un `loading="lazy"` y se coló en el cuerpo del anuncio.
 export function mensajeDelHilo({ title, description, slug, cover_image: portada }) {
   const url = `https://pokedoc.es/noticias/${encodeURIComponent(slug || '')}`
   const partes = []
   if (portada) {
-    partes.push(`<p><img loading="lazy" src="${escapeHtml(portada)}" alt="${escapeHtml(title || '')}"></p>`)
+    partes.push(`<p><img src="${escapeHtml(portada)}" alt="${escapeHtml(title || '')}"></p>`)
   }
   if (description) partes.push(`<p>${escapeHtml(description)}</p>`)
   partes.push(
