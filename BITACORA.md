@@ -12,6 +12,59 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-15 (3) — PINGU-Claude (tanda 302 — el torneo al canal, a mano)
+
+**Hecho**: PINGU preguntó por qué la Pachanga inaugural no había salido
+por el canal de Telegram, y la causa no era la que parecía.
+
+**No faltaba la función**: `telegram-torneos.mjs` existe desde la 287 y
+corre cada cinco minutos. El fallo estaba en SU MIGRACIÓN, que copió de
+las noticias la «red del estreno» — `update tournaments set
+telegram_sent_at = now() where telegram_sent_at is null`. En noticias esa
+línea es correcta: una noticia publicada está en el PASADO y soltar el
+archivo el día del estreno hace que la gente silencie el canal. **Un
+torneo apunta al FUTURO**: el que tiene las inscripciones abiertas y
+fecha por delante es justo el que hay que anunciar, y quedó marcado como
+mandado sin haberlo estado. Le pasó a la Pachanga — no era privada, se
+veía, tenía cinco inscritos, y no salió.
+
+Migración corregida: la red del estreno solo marca lo que YA NO se puede
+anunciar. Y con eso deja de ser una trampa: decía «se puede volver a
+ejecutar sin romper nada» cuando volver a pasarla silenciaba de golpe
+todo lo pendiente.
+
+**Y el agujero de debajo**: las noticias tienen botón de «mandar a mano»
+desde la 282, hecho por este mismo motivo. A los torneos se les puso el
+envío automático y NO esa red, así que cuando falla no hay ni segunda vía
+ni forma de enterarse — el error de una función programada se queda en el
+registro de Netlify. Ahora `telegram-mandar` atiende a los dos y la ficha
+tiene su botón, para el admin del SITIO (no para quien lleva el torneo:
+escribir en el canal oficial es del mismo tipo que el sello de OFICIAL).
+Un torneo privado no sale ni forzando.
+
+**El diagnóstico** va en el propio botón: dice si ya consta mandado,
+cuándo, y avisa de que los torneos que ya existían al poner el canal
+constan mandados sin haberlo estado. Es lo que contesta la pregunta de
+PINGU sin abrir Netlify.
+
+**Ficheros**: netlify/functions/telegram-mandar.mjs, js/torneos/torneo.js,
+supabase-migration-telegram-torneos.sql, SCHEMA.md.
+
+**PINGU**: la Pachanga sigue marcada como mandada por la migración vieja.
+Para anunciarla, entra en su ficha y pulsa **«Mandar al canal otra vez»**.
+
+**Pruebas**: test-tanda-302.mjs (NUEVA, 7 bloques, 38 comprobaciones). El
+rigor pilló que el bloque del botón LEÍA EL CÓDIGO en vez de abrir la
+página: con la llamada a `pintarTelegram` borrada pasaba igual, porque el
+texto seguía dentro de una función que ya no llamaba nadie. Reescrito con
+navegador.
+
+**En curso / pendiente**: sigue pendiente el perfil de una persona (es
+adonde lleva todo lo de Comunidad) y la cobertura de /noticias y la ficha
+de guía.
+
+---
+
 ## 2026-09-15 (2) — PINGU-Claude (tanda 301 — la comunidad)
 
 **Hecho**: /usuarios, que PINGU dijo que «no se usa demasiado». Y no se

@@ -1,4 +1,4 @@
-// Mandar UNA noticia al canal de Telegram, a mano (tanda 282).
+// Mandar UNA cosa al canal de Telegram, a mano (tanda 282; torneos, 302).
 //
 // La función programada (telegram-noticias) manda sola lo que se publica,
 // pero tiene dos redes que le impiden llegar a todo: solo mira las
@@ -16,7 +16,21 @@
 // si falla, el fallo se queda en el registro de Netlify. Aquí hay alguien
 // esperando delante de la pantalla, así que el error de Telegram —o el
 // nombre de la variable que falta— sale tal cual en el panel.
-import { mandarATelegram, mensajeDeNoticia, llavesQueFaltan } from '../lib/telegram.mjs'
+//
+// ── Y LOS TORNEOS (tanda 302) ──
+//
+// Esto nació solo para noticias y los torneos se quedaron con el envío
+// automático y SIN red debajo. Se vio en vivo: la Pachanga inaugural
+// nunca salió por el canal y no había ni forma de mandarla ni forma de
+// saber por qué — el error de una función programada se queda en el
+// registro de Netlify, que no lee nadie.
+//
+// La causa resultó ser la migración de la 287, que copió de las noticias
+// la «red del estreno»: marcar todo lo que ya existía como mandado. En
+// noticias vale, porque una noticia publicada está en el pasado. Un
+// torneo apunta al FUTURO: el que tiene las inscripciones abiertas y
+// fecha por delante es justo el que hay que anunciar, y quedó silenciado.
+import { mandarATelegram, mensajeDeNoticia, mensajeDeTorneo, llavesQueFaltan, canalDe } from '../lib/telegram.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ'
@@ -57,7 +71,8 @@ async function rest(ruta, clave, opciones = {}) {
 
 // El trabajo, sin nada de HTTP alrededor, para poder probarlo entero.
 // Devuelve { estado, cuerpo }: el estado es el código que se responderá.
-export async function mandarUna({ id, forzar = false, env = process.env, restImpl = rest, fetchImpl = fetch } = {}) {
+export async function mandarUna({ id, tipo = 'noticia', forzar = false, env = process.env, restImpl = rest, fetchImpl = fetch, ahora = new Date() } = {}) {
+  if (tipo === 'torneo') return mandarUnTorneo({ id, forzar, env, restImpl, fetchImpl, ahora })
   if (!id) return { estado: 400, cuerpo: { error: 'Falta la noticia que hay que mandar.' } }
 
   const faltan = llavesQueFaltan(env)
@@ -123,6 +138,81 @@ export async function mandarUna({ id, forzar = false, env = process.env, restImp
   return { estado: 200, cuerpo: { ok: true, sinFoto: !!r.sinFoto, motivo: r.motivo, cuando } }
 }
 
+// ── Un torneo, al canal ──
+//
+// Mismas reglas que la noticia y una más: un torneo PRIVADO no sale
+// nunca, ni a mano. La función programada ya lo filtra, pero aquí hay una
+// persona pulsando un botón y una persona se equivoca — y lo que se
+// escapa por el canal no se recoge. El nombre, la fecha y el enlace de
+// algo que alguien quiso que no se viera son justo lo que no puede salir.
+export async function mandarUnTorneo({ id, forzar = false, env = process.env, restImpl = rest, fetchImpl = fetch, ahora = new Date() } = {}) {
+  if (!id) return { estado: 400, cuerpo: { error: 'Falta el torneo que hay que mandar.' } }
+
+  const faltan = llavesQueFaltan(env, { canal: 'TELEGRAM_CANAL_TORNEOS' })
+  if (faltan.length) {
+    return {
+      estado: 503,
+      cuerpo: {
+        error: `Falta configurar en Netlify: ${faltan.join(', ')}. Se ponen en Site configuration → Environment variables, y hay que volver a desplegar para que la función las vea.`,
+        faltan,
+      },
+    }
+  }
+
+  let torneo
+  try {
+    const filas = await restImpl(
+      `tournaments?id=eq.${encodeURIComponent(id)}` +
+        `&select=id,slug,name,description,banner_url,start_at,status,format,swiss_rounds,top_cut_size,max_players,is_private,telegram_sent_at&limit=1`,
+      env.SUPABASE_SERVICE_ROLE_KEY
+    )
+    torneo = filas?.[0]
+  } catch (e) {
+    return { estado: 502, cuerpo: { error: `No se ha podido leer el torneo: ${e?.message || e}` } }
+  }
+  if (!torneo) return { estado: 404, cuerpo: { error: 'Ese torneo ya no existe.' } }
+
+  // El candado que no se puede saltar ni forzando.
+  if (torneo.is_private) {
+    return { estado: 400, cuerpo: { error: 'Este torneo es privado: no puede salir por el canal.' } }
+  }
+  if (torneo.status !== 'registration_open') {
+    return {
+      estado: 400,
+      cuerpo: { error: 'Solo se anuncia un torneo con las inscripciones abiertas: ahora mismo no lo están.' },
+    }
+  }
+  // Anunciar un torneo al que ya no te puedes apuntar es peor que no
+  // anunciarlo. Esta sí se puede forzar: puede interesar avisar de uno
+  // que empieza en un rato.
+  if (new Date(torneo.start_at) < ahora && !forzar) {
+    return { estado: 409, cuerpo: { error: 'Este torneo ya ha empezado.', yaEmpezado: torneo.start_at } }
+  }
+  if (torneo.telegram_sent_at && !forzar) {
+    return { estado: 409, cuerpo: { error: 'Este torneo ya consta como mandado al canal.', yaMandada: torneo.telegram_sent_at } }
+  }
+
+  const r = await mandarATelegram({ texto: mensajeDeTorneo(torneo, { ahora }), portada: torneo.banner_url }, {
+    token: env.TELEGRAM_BOT_TOKEN,
+    canal: canalDe(env, 'TELEGRAM_CANAL_TORNEOS'),
+    tema: env.TELEGRAM_TEMA_TORNEOS || null,
+    fetchImpl,
+  })
+  if (!r.ok) return { estado: 502, cuerpo: { error: `Telegram no lo ha aceptado: ${r.error}` } }
+
+  const cuando = new Date().toISOString()
+  try {
+    await restImpl(`tournaments?id=eq.${encodeURIComponent(torneo.id)}`, env.SUPABASE_SERVICE_ROLE_KEY, {
+      method: 'PATCH',
+      headers: { prefer: 'return=minimal' },
+      body: JSON.stringify({ telegram_sent_at: cuando }),
+    })
+  } catch (e) {
+    return { estado: 200, cuerpo: { ok: true, sinFoto: !!r.sinFoto, motivo: r.motivo, aviso: `Mandado, pero no se ha podido apuntar (${e?.message || e}). Podría repetirse.` } }
+  }
+  return { estado: 200, cuerpo: { ok: true, sinFoto: !!r.sinFoto, motivo: r.motivo, cuando } }
+}
+
 export default async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Método no permitido' }), { status: 405, headers: { 'content-type': 'application/json' } })
@@ -137,6 +227,6 @@ export default async (req) => {
   } catch {
     return new Response(JSON.stringify({ error: 'JSON inválido.' }), { status: 400, headers: { 'content-type': 'application/json' } })
   }
-  const { estado, cuerpo: salida } = await mandarUna({ id: cuerpo.id, forzar: !!cuerpo.forzar })
+  const { estado, cuerpo: salida } = await mandarUna({ id: cuerpo.id, tipo: cuerpo.tipo || 'noticia', forzar: !!cuerpo.forzar })
   return new Response(JSON.stringify(salida), { status: estado, headers: { 'content-type': 'application/json' } })
 }

@@ -338,11 +338,84 @@ function pintarFicha() {
   anadirAccion(acciones, mando() && !['finished', 'cancelled'].includes(torneo.status),
     'btnCancelarTorneo', '<button class="btn-secondary" id="btnCancelarTorneo">Cancelar torneo</button>',
     engancharCancelar)
+  pintarTelegram(acciones)
   // Borrar va SIEMPRE el último y separado del resto: no es un paso más
   // del ciclo del torneo, es el que no tiene vuelta.
   anadirAccion(acciones, puedeBorrarTorneo(perfil, torneo, session?.user?.id),
     'btnBorrarTorneo', '<button class="torneo-borrar" id="btnBorrarTorneo">Borrar torneo</button>',
     engancharBorrar)
+}
+
+// ── Mandar el torneo al canal de Telegram (tanda 302) ──
+//
+// El envío automático (netlify/functions/telegram-torneos.mjs) corre cada
+// cinco minutos, pero tiene cinco condiciones y cuando alguna no se
+// cumple NO LO DICE: el error de una función programada se queda en el
+// registro de Netlify, que no lee nadie. La Pachanga inaugural nunca
+// salió por el canal y no había ni forma de mandarla ni forma de saber
+// por qué.
+//
+// La causa fue la migración de la 287, que copió de las noticias la «red
+// del estreno» —marcar como mandado todo lo que ya existía—. En noticias
+// vale: una noticia publicada está en el pasado. Un torneo apunta al
+// FUTURO, así que el que tenía las inscripciones abiertas y fecha por
+// delante, que es justo el que hay que anunciar, quedó silenciado.
+//
+// Quién lo ve: el admin del SITIO, no quien LLEVA el torneo. Escribir en
+// el canal oficial de PokeDoc es un acto del sitio, del mismo tipo que el
+// sello de OFICIAL — `torneos_mando` no llega hasta ahí (ver CLAUDE.md).
+function pintarTelegram(acciones) {
+  const procede = Boolean(perfil?.is_admin) && !torneo.is_private && torneo.status === 'registration_open'
+  const yaConsta = Boolean(torneo.telegram_sent_at)
+  const html = `<button class="btn-secondary" id="btnTelegramTorneo">${
+    yaConsta ? 'Mandar al canal otra vez' : 'Mandar al canal'
+  }</button>`
+  // El id lleva el estado: así `anadirAccion` lo rehace cuando cambia de
+  // «mandar» a «mandar otra vez» en vez de dejar el texto viejo puesto.
+  for (const viejo of acciones.querySelectorAll('[id^="btnTelegramTorneo"]')) {
+    if (!procede || viejo.id !== `btnTelegramTorneo${yaConsta ? '-otra' : ''}`) viejo.remove()
+  }
+  if (!procede) return
+  if (acciones.querySelector(`#btnTelegramTorneo${yaConsta ? '-otra' : ''}`)) return
+  acciones.insertAdjacentHTML('beforeend', html.replace('id="btnTelegramTorneo"', `id="btnTelegramTorneo${yaConsta ? '-otra' : ''}"`))
+  const btn = acciones.querySelector(`#btnTelegramTorneo${yaConsta ? '-otra' : ''}`)
+  // El PORQUÉ, ahí mismo. Es lo que contesta «¿por qué no salió?» sin
+  // tener que abrir el registro de Netlify.
+  btn.title = yaConsta
+    ? `Ya consta como mandado el ${new Date(torneo.telegram_sent_at).toLocaleString('es-ES')}. Si nunca llegó a salir (pasó con los torneos que ya existían al poner el canal), mándalo otra vez.`
+    : 'Todavía no se ha anunciado en el canal de Telegram.'
+  btn.addEventListener('click', () => mandarTorneoATelegram(btn, yaConsta))
+}
+
+async function mandarTorneoATelegram(btn, forzar) {
+  if (forzar && !confirm('Este torneo ya consta como mandado. ¿Mandarlo otra vez al canal?')) return
+  const texto = btn.textContent
+  btn.disabled = true
+  btn.textContent = 'Mandando…'
+  try {
+    const { data: s } = await supabase.auth.getSession()
+    const res = await fetch('/.netlify/functions/telegram-mandar', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${s?.session?.access_token || ''}` },
+      body: JSON.stringify({ id: torneo.id, tipo: 'torneo', forzar }),
+    })
+    const cuerpo = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      // El error de Telegram se enseña TAL CUAL: «chat not found» o «bot
+      // is not a member» dicen exactamente qué arreglar, y traducirlos a
+      // un «no se ha podido» sería tirar esa pista a la basura.
+      showToast(cuerpo.error || 'No se ha podido mandar.', 'error')
+      return
+    }
+    torneo.telegram_sent_at = cuerpo.cuando || new Date().toISOString()
+    showToast(cuerpo.aviso || (cuerpo.sinFoto ? `Mandado, pero sin la imagen (${cuerpo.motivo || 'no la ha aceptado'}).` : 'Mandado al canal.'), cuerpo.aviso ? 'error' : 'success')
+    pintarFicha()
+  } catch (e) {
+    showToast(`No se ha podido mandar: ${e?.message || e}`, 'error')
+  } finally {
+    btn.disabled = false
+    btn.textContent = texto
+  }
 }
 
 // Un botón de la caja de acciones del organizador, puesto UNA sola vez.

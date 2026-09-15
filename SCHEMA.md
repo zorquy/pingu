@@ -14951,3 +14951,79 @@ sin la cual no se puede probar ningún podio.
 
 `css/comunidad.css` es nueva y **solo la carga /usuarios**, como manda la
 norma de la casa.
+
+---
+
+## Tanda 302 — el torneo al canal, a mano (sept. 2026)
+
+PINGU, sobre la Pachanga inaugural: «creía que se enviaría solo al canal
+pero parece que no».
+
+### La causa, que no era la que parecía
+
+No faltaba la función: `telegram-torneos.mjs` existe desde la 287 y corre
+cada cinco minutos. El fallo estaba en **su migración**, que copió de las
+noticias la «red del estreno»:
+
+```sql
+update public.tournaments set telegram_sent_at = now()
+ where telegram_sent_at is null;
+```
+
+En noticias esa línea es correcta: una noticia publicada está en el
+**pasado**, y soltar el archivo entero en el canal el día del estreno es
+la forma más rápida de que la gente lo silencie.
+
+**Un torneo apunta al futuro.** El que tiene las inscripciones abiertas y
+fecha por delante es exactamente el que hay que anunciar — y esa línea lo
+marcó como mandado sin haberlo mandado nunca. Cualquier torneo que ya
+estuviera abierto el día que se ejecutó la migración quedó silenciado
+para siempre. Le pasó a la Pachanga: no era privada, se veía, tenía cinco
+inscritos, y no salió.
+
+La migración queda corregida: la red del estreno ahora solo marca lo que
+**ya no se puede anunciar** (sin inscripciones abiertas, o ya empezado).
+Y con eso deja de ser una trampa: decía «se puede volver a ejecutar
+entera sin romper nada» cuando volver a pasarla silenciaba de golpe todo
+lo pendiente.
+
+### Y el agujero de debajo
+
+Las **noticias** tienen botón de «mandar a mano» en /admin desde la tanda
+282, hecho por este mismo motivo — está escrito en el propio fichero:
+*«noticias ya publicadas que nunca salieron porque faltaba una variable
+de entorno»*. A los **torneos** se les puso el envío automático y no esa
+red. Así que cuando falla no hay ni segunda vía ni forma de enterarse: el
+error de una función programada se queda en el registro de Netlify, que
+no lee nadie.
+
+Ahora `telegram-mandar.mjs` atiende a los dos (`tipo: 'noticia' |
+'torneo'`) y la ficha del torneo tiene su botón.
+
+**Quién lo ve: el admin del SITIO**, no quien lleva el torneo. Escribir
+en el canal oficial de PokeDoc es un acto del sitio, del mismo tipo que
+el sello de OFICIAL; `torneos_mando` no llega hasta ahí (CLAUDE.md).
+
+**Qué no puede salir**, ni forzando: un torneo **privado**. La función
+programada ya lo filtra, pero aquí hay una persona pulsando un botón, y
+lo que se escapa por el canal no se recoge — nombre, fecha y enlace de
+algo que alguien quiso que no se viera. Un borrador tampoco (el enlace
+llevaría a una página que no existe). Uno ya empezado avisa pero **se
+puede forzar**: avisar de uno que empieza en un rato es legítimo.
+
+**El diagnóstico**: el botón dice en su título si el torneo ya consta
+mandado, cuándo, y avisa de que **los torneos que ya existían al poner el
+canal constan mandados sin haberlo estado**. Eso es lo que contesta «¿por
+qué no salió?» sin abrir el registro de Netlify — que es la pregunta que
+originó la tanda.
+
+### Comprobado
+
+`test-tanda-302.mjs` (7 bloques, 38 comprobaciones), sin red: se doblan
+Supabase y la API de Telegram.
+
+El bloque del botón **abre la página**. La primera versión leía el código
+fuente buscando `btnTelegramTorneo`, y el rigor lo cazó: con la llamada a
+`pintarTelegram` borrada la prueba pasaba igual, porque el texto seguía
+dentro de una función que ya no llamaba nadie. Un botón que no se pinta
+es justo el fallo que hay que poder ver.
