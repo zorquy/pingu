@@ -15315,3 +15315,75 @@ distinto, así que sus bordes de arriba no coinciden aunque estén en la
 misma línea).
 
 Cubierto en `test-tanda-306.mjs` (8 bloques) + `rigor-tanda-306.py`.
+
+---
+
+## Tanda 307 — la pestaña «Foro» del perfil, sin CSS desde la 299 (sept. 2026)
+
+PINGU, con una captura: «el perfil se ve mucho más moderno pero mira
+esto, se ha roto». Los números de «Mi actividad en el foro» pegados a su
+rótulo —«58Mensajes», «19Temas abiertos»— y las listas en crudo.
+
+**No lo rompió la 306: llevaba roto desde la tanda 299.** `.foro-act-*`
+se mudó entonces de `components.css` a `foro.css`, y lo pinta
+`js/foro-actividad.js`, que solo usan `/perfil` y `/usuario` — dos
+páginas que **no cargan `foro.css`**. Es la TERCERA víctima de aquella
+mudanza, después de «Ahora en el foro» de la portada y de `tema.html`.
+
+### Por qué el barrido no lo vio
+
+El barrido de la 299 recorre, por cada página, las clases que pinta su
+HTML y su JavaScript. Desde la 303 son las 26 páginas. Desde la 306
+sigue además lo que ese JavaScript importa. Y aun así se le escapó:
+buscaba `from '…'`, y **`foro-actividad.js` entra por un `import()`
+DINÁMICO** — a propósito, para no descargarlo hasta que alguien abre la
+pestaña.
+
+O sea: la prueba se paraba justo antes del módulo que tenía el fallo.
+
+### El arreglo
+
+1. `.foro-act-*` se muda a `perfil.css`. No a cargar `foro.css` en los
+   perfiles: son 30 KB por una pestaña, y esas reglas **solo** las usan
+   estas dos pantallas.
+2. **El barrido sigue las dos formas de import**, estático y dinámico, y
+   recursivamente.
+3. Y —lo que faltaba de verdad— **una comprobación de que el barrido
+   llega**. Todo lo anterior sale verde tanto si recorre la web entera
+   como si se queda a medio camino: de una página de la que no se recoge
+   ninguna clase no se puede decir que tenga ninguna huérfana. Ahora se
+   exige que `.foro-act-columnas` aparezca entre lo recogido de
+   `perfil.html` y de `usuario.html` — dos saltos y un `import()`
+   dinámico de por medio. Sin eso, volver el regex a `from '…'` deja la
+   prueba en verde y la pestaña se va a producción sin CSS otra vez.
+
+### Y un fallo invisible que salió de camino
+
+`.foro-act-numeros span` pedía `color: var(--slate)`. **`--slate` no se
+define en ninguna parte.** Eso no da error ni se ve en rojo: la
+declaración es inválida, la propiedad se queda sin poner y el texto
+hereda el color del padre — parece que funciona. Había cuatro usos
+(`.enlace-tarjeta .et-tipo`, `.nav-search-seccion`, `.hovercard-bio` y
+este), todos queriendo decir «texto secundario». Pasan a `--text-mid`.
+
+La prueba nueva: **ninguna hoja usa un `var()` de una variable que no se
+define**. Con dos excepciones que sí son legítimas y hay que distinguir,
+o el check se vuelve ruido:
+
+- las que pone el JavaScript a mano (`style="--i:3"`,
+  `setProperty('--dx', …)`) existen aunque no estén en ninguna hoja — y
+  hay que mirar también `js/torneos/`, que es donde vive `--i`;
+- las que se piden CON respaldo: `var(--shadow-lg, 0 12px 32px …)` está
+  bien escrito, el respaldo **es** el valor. Solo canta el `var()` a
+  pelo, que es lo que hacía `--slate`.
+
+### De paso
+
+Los tres contadores de la actividad del foro eran tres cajitas con
+borde, a una pestaña de distancia de la tira de cifras de la cabecera —
+lo mismo contado de dos maneras. Ahora usan la misma tipografía y no
+llevan borde.
+
+Cubierto en `test-tanda-299.mjs` (bloques nuevos) + `rigor-tanda-307.py`
+(4 mutaciones, la principal contra la propia prueba: devolverle el regex
+viejo tiene que ponerla roja).

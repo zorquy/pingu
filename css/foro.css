@@ -726,80 +726,7 @@
   cursor: default;
 }
 
-/* ── Actividad del foro en el perfil ── */
-.foro-act-columnas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 22px;
-}
 
-.foro-act-titular {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 0 0 10px;
-  font-size: var(--t-md);
-  font-weight: 800;
-}
-
-.foro-act-titular span {
-  padding: 1px 8px;
-  border-radius: var(--radius-pill);
-  background: var(--ice);
-  color: var(--navy);
-  font-size: var(--t-xs);
-}
-
-.foro-act-lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.foro-act-fila {
-  display: flex;
-  gap: 9px;
-  padding: 10px 0;
-  border-top: 1px solid var(--border);
-}
-
-.foro-act-fila:first-child {
-  border-top: none;
-}
-
-.foro-act-icono {
-  color: var(--text-dim);
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.foro-act-cuerpo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.foro-act-titulo {
-  font-size: var(--t-md);
-  font-weight: 700;
-  color: var(--text);
-}
-
-.foro-act-titulo:hover {
-  color: var(--navy);
-}
-
-.foro-act-trozo {
-  font-size: var(--t-sm);
-  color: var(--text-mid);
-  line-height: 1.5;
-}
-
-.foro-act-cuerpo small {
-  font-size: var(--t-xs);
-  color: var(--text-dim);
-}
 
 .foro-mensaje-autor .contributor-badge {
   font-size: var(--t-2xs);
@@ -1302,36 +1229,6 @@
     flex-direction: column;
     gap: 2px;
   }
-}
-
-/* ── Los números de la actividad del foro en el perfil ── */
-.foro-act-numeros {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-
-.foro-act-numeros > div {
-  display: grid;
-  gap: 2px;
-  padding: 8px 14px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  text-align: center;
-}
-
-.foro-act-numeros strong {
-  font-size: var(--t-xl);
-}
-
-.foro-act-numeros span {
-  font-size: var(--t-xs);
-  color: var(--slate);
-}
-
-.foro-act-recorte {
-  margin: 6px 0 0;
 }
 
 /* ── El cumpleaños en "El foro en números" ── */

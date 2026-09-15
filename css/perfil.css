@@ -523,3 +523,136 @@ button.perfil-cifra {
 button.perfil-cifra:hover .rotulo {
   color: var(--navy);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   LA ACTIVIDAD DEL FORO EN LA FICHA DE UNA PERSONA (tanda 307)
+
+   Esto vivía en foro.css desde la tanda 299 y lo pinta SOLO
+   js/foro-actividad.js, que importan js/perfil.js y js/usuario.js — dos
+   páginas que NO cargan foro.css. O sea que la pestaña «Foro» de los
+   dos perfiles llevaba desde entonces sin una sola regla: los números
+   pegados a su rótulo («58Mensajes») y las listas en crudo. Lo vio
+   PINGU en una captura, no la prueba.
+
+   Por qué no lo vio la prueba: el barrido de la tanda 299 sigue el JS
+   de cada página y lo que ese JS importa, pero buscaba `from '…'` — y
+   foro-actividad.js entra por un `import()` DINÁMICO, para no cargarlo
+   hasta que alguien abre la pestaña. Desde la 307 el barrido sigue las
+   dos formas.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Actividad del foro en el perfil ── */
+.foro-act-columnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+.foro-act-titular {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  font-size: var(--t-md);
+  font-weight: 800;
+}
+
+.foro-act-titular span {
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-xs);
+}
+
+.foro-act-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.foro-act-fila {
+  display: flex;
+  gap: 9px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.foro-act-fila:first-child {
+  border-top: none;
+}
+
+.foro-act-icono {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.foro-act-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.foro-act-titulo {
+  font-size: var(--t-md);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.foro-act-titulo:hover {
+  color: var(--navy);
+}
+
+.foro-act-trozo {
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+  line-height: 1.5;
+}
+
+.foro-act-cuerpo small {
+  font-size: var(--t-xs);
+  color: var(--text-dim);
+}
+
+/* ── Los números de la actividad del foro en el perfil ── */
+.foro-act-numeros {
+  display: flex;
+  flex-wrap: wrap;
+  /* El hueco es lo que las separa ahora que no hay borde: más ancho que
+     los 10 px de antes, o se leerían como una sola cifra larga. */
+  gap: 10px 30px;
+  margin-bottom: 18px;
+}
+
+/* Sin borde y con la misma tipografía que la tira de cifras de la
+   cabecera (tanda 307): son lo mismo —un número y lo que cuenta— y
+   estaban a una pestaña de distancia contándose de dos maneras, una en
+   tira limpia y la otra en tres cajitas con borde. */
+.foro-act-numeros > div {
+  display: grid;
+  gap: 3px;
+  text-align: center;
+}
+
+.foro-act-numeros strong {
+  font-size: var(--t-xl);
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+
+.foro-act-numeros span {
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.foro-act-recorte {
+  margin: 6px 0 0;
+}

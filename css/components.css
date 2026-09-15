@@ -4969,7 +4969,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 
 .enlace-tarjeta .et-tipo {
   font-size: var(--t-xs);
-  color: var(--slate);
+  color: var(--text-mid);
 }
 
 /* ── Los resultados rápidos de la lupa ── */
@@ -4979,7 +4979,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--slate);
+  color: var(--text-mid);
 }
 
 .nav-search-fila {
@@ -5051,7 +5051,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 
 .hovercard-bio {
   font-size: var(--t-xs);
-  color: var(--slate);
+  color: var(--text-mid);
 }
 
 .hovercard-seguir {

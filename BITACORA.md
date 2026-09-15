@@ -12,6 +12,41 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-15 (6) — PINGU-Claude (tanda 307 — la pestaña «Foro» del perfil, rota desde la 299)
+
+**Hecho**: PINGU mandó una captura del perfil nuevo: «se ha roto». La
+pestaña «Foro» salía sin una sola regla de CSS — «58Mensajes» pegado, las
+listas en crudo.
+
+**No fue la 306: llevaba roto desde la tanda 299.** `.foro-act-*` se mudó
+entonces a `foro.css` y lo pinta `js/foro-actividad.js`, que solo usan
+`/perfil` y `/usuario`, que NO cargan esa hoja. Tercera víctima de aquella
+mudanza, después de la portada y de `tema.html`.
+
+**Por qué no lo cazó el barrido de las 26 páginas**: seguía `from '…'`, y
+`foro-actividad.js` entra por un **`import()` dinámico**. La prueba se
+paraba justo antes del módulo que tenía el fallo.
+
+**Lo importante del arreglo no es mover el CSS**, es que ahora la prueba
+comprueba que **el barrido LLEGA**: todo lo demás sale verde igual si se
+queda a medio camino, porque de una página de la que no recoges ninguna
+clase no puedes decir que tenga ninguna huérfana. El rigor lo confirma
+devolviéndole el regex viejo a la propia prueba.
+
+**Y un fallo invisible**: `var(--slate)` — una variable que NO se define
+en ninguna parte, en cuatro sitios. No da error: la propiedad se cae y el
+texto hereda el color del padre. Pasan a `--text-mid`, y hay prueba nueva
+para que no vuelva a colarse una.
+
+**Ficheros**: `css/foro.css`, `css/perfil.css`, `css/components.css`,
+`SCHEMA.md`. En la rama `pruebas`: `test-tanda-299.mjs` (barrido
+recursivo + dinámico, comprobación de alcance, variables fantasma),
+`test-tanda-306.mjs` (mismo regex), `rigor-tanda-307.py` (NUEVO).
+
+**En curso / pendiente**: nada a medias.
+
+---
+
 ## 2026-09-15 (5) — PINGU-Claude (tandas 304, 305 y 306 — la tanda visual)
 
 **Hecho**: el encargo era «quiero una interfaz más moderna, que no se vea

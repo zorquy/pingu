@@ -105,6 +105,14 @@ que `tema.html` se había quedado sin `foro.css`. Una prueba escrita
 contra el caso que acabas de arreglar no vale — escríbela contra **la
 forma** del fallo.
 
+Y la CUARTA, de la tanda 307, que es sobre la prueba y no sobre el CSS:
+el barrido tiene que seguir **los `import()` dinámicos**, no solo
+`from '…'`. `foro-actividad.js` entra por uno —para no bajarlo hasta que
+abres la pestaña— y por eso la pestaña «Foro» de los dos perfiles estuvo
+sin CSS desde la 299 con la prueba en verde. Y hace falta comprobar que
+el barrido **llega**: de una página de la que no recoges ninguna clase
+no puedes decir que tenga ninguna huérfana, así que sale verde igual.
+
 Y la TERCERA trampa, de la tanda 306: al mudar reglas a una hoja, las que
 llegan se colocan DESPUÉS de las que ya estaban. `.profile-hero-banner`
 (160 px) aterrizó detrás de `.profile-hero-banner-vacio` (96 px), misma
