@@ -15751,3 +15751,35 @@ sobran.
   visto todavía.
 
 Cubierto en `test-tanda-310.mjs` (6 bloques) + `rigor-tanda-310.py`.
+
+### Lo que sacó la verificación
+
+**La suite cazó un fallo de bulto.** El barrido de carga diferida metió
+`loading="lazy"` en TODOS los `<img>` del JavaScript, y en dos no
+pintaba nada:
+
+- `js/noticias-foro.js` arma el cuerpo del mensaje que anuncia una
+  noticia en el foro, y eso **se guarda en `forum_posts.body_html`**. No
+  es markup de una página: es contenido de la base, y el atributo se lo
+  llevaría puesto cada anuncio futuro. Lo cazó `test-tanda-273`.
+- `js/lightbox.js` pinta la imagen que **acabas de pulsar**. Diferir eso
+  es retrasar lo único que has pedido.
+
+La lección: una transformación en bloque sobre «todos los `<img>` del
+JavaScript» da por hecho que todo lo que parece markup **es** markup de
+una página. Dos no lo eran. Quedan declaradas en la prueba —no
+silenciadas— y con un comentario en el propio fichero para el siguiente
+que pase por ahí.
+
+**Y el rigor cazó un regex codicioso.** La comprobación de «los paneles
+que flotan comparten sombra» usaba `\{[^}]*box-shadow:`, y `[^}]*` es
+codicioso: encontraba la ÚLTIMA sombra del bloque —la buena— así que una
+sombra a pelo añadida delante pasaba desapercibida. Ahora se miran
+todas las del bloque.
+
+**Y por tercera vez en esta sesión, un comentario que cita el problema
+puso una prueba en rojo.** `sinComentarios` solo quitaba los comentarios
+de bloque `/* … */`; el JavaScript usa `//`, y el comentario que explica
+este fallo cita `loading=`. Ahora quita los dos estilos. Es un patrón
+que conviene recordar: **al barrer código en busca de una cadena, los
+comentarios que la explican cuentan como código si no los quitas.**

@@ -45,6 +45,15 @@ proponerlas.
 de `js/` (lazy). En la rama `pruebas`: `test-tanda-310.mjs` y
 `rigor-tanda-310.py` (NUEVOS).
 
+**Suite 71/71, rigor 11/11** — las dos encontraron algo:
+- La suite: el barrido de carga diferida metió `loading="lazy"` en el
+  cuerpo de un mensaje de foro, **que se guarda en la base**, y en la
+  imagen del lightbox, que es la que acabas de pulsar. Una
+  transformación en bloque sobre «todos los `<img>`» da por hecho que
+  todo lo que parece markup lo es.
+- El rigor: un regex codicioso (`[^}]*box-shadow`) encontraba la ÚLTIMA
+  sombra del bloque, así que una a pelo añadida delante pasaba.
+
 **En curso / pendiente**: la segunda mitad de la escala de espaciado (ver
 arriba). Nada a medias.
 
