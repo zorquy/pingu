@@ -15206,6 +15206,24 @@ lo que tarde el módulo en pintar, que a veces es menos de lo que tarda la
 prueba en mirar. Apagándolo, lo que queda en pantalla es exactamente el
 primer fotograma que ve una persona.
 
+### Y lo que sacó el rigor, que es la parte que importa
+
+De las diez mutaciones, **dos pasaron sin que la prueba se enterara**. Las
+dos por lo mismo: un listón puesto a ojo.
+
+1. **Comentar `--t-lg: 16px`** dejaba la prueba en verde, porque leía los
+   pasos de la escala con un regex **sin quitar los comentarios**: el
+   paso seguía ahí, dentro de `/* … */`. Se lee el `:root` ya limpio.
+2. **Quitarle un párrafo entero al esqueleto del curso** también pasaba,
+   porque el check era «al menos cuatro `.esq-linea`» y quedaban cuatro
+   (la firma y tres renglones). Ahora se comprueba la SILUETA: dos
+   párrafos, de tres renglones cada uno. Una mutación más —un párrafo al
+   que le falta un renglón— confirma que el listón nuevo aprieta por los
+   dos lados.
+
+Es la misma lección de la tanda 303 con otra cara: **un check que pasa no
+prueba nada hasta que lo ves fallar.**
+
 ---
 
 ## Tanda 306 — la ficha de una persona, y quién se ha inscrito (sept. 2026)

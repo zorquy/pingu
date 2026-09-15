@@ -62,6 +62,11 @@ En la rama `pruebas`: `test-tanda-305.mjs` (NUEVO), `test-tanda-306.mjs`
 (NUEVO), `rigor-tanda-305.py` (NUEVO), `rigor-tanda-306.py` (NUEVO),
 `test-tanda-301.mjs` (bloque 6 nuevo).
 
+**Rigor**: 11/11 en la 306 y 10/10 en la 305 — pero la 305 necesitó dos
+pasadas: dos mutaciones pasaron a la primera porque el listón estaba
+puesto a ojo (leer la escala sin quitar los comentarios, y «al menos
+cuatro renglones» cuando había que comprobar dos párrafos de tres).
+
 **En curso / pendiente**: nada a medias. Siguen SIN cobertura de pruebas
 las fichas de guía y de curso (más allá de su esqueleto), los perfiles
 más allá de la tanda 306 y `/noticias`.
@@ -499,6 +504,11 @@ en voz alta: «es un aviso: la lista se puede entregar igual».
 **Ficheros**: js/torneos/cartas-decklist.js, js/tcgdex.js (una línea:
 release_date en el select).
 
+**Rigor**: 11/11 en la 306 y 10/10 en la 305 — pero la 305 necesitó dos
+pasadas: dos mutaciones pasaron a la primera porque el listón estaba
+puesto a ojo (leer la escala sin quitar los comentarios, y «al menos
+cuatro renglones» cuando había que comprobar dos párrafos de tres).
+
 **En curso / pendiente**: nada a medias. PINGU: una pasada de la suite
 cuando puedas (toqué la rejilla de decklist que pintan torneo.js y
 jueces.js, pero no toqué torneo.js ni ronda.js, que sé que los tienes
@@ -715,6 +725,11 @@ Verificado con la lista real del jugador pasada por el parser en Node:
 aceptado, no cambia nada de lo que ya parseaba.
 
 **Ficheros**: js/torneos/motor.js.
+
+**Rigor**: 11/11 en la 306 y 10/10 en la 305 — pero la 305 necesitó dos
+pasadas: dos mutaciones pasaron a la primera porque el listón estaba
+puesto a ojo (leer la escala sin quitar los comentarios, y «al menos
+cuatro renglones» cuando había que comprobar dos párrafos de tres).
 
 **En curso / pendiente**: nada a medias. Pido pasada de la suite de la
 rama `pruebas` cuando puedas (parseDecklist/decklistUnparsed). El set
@@ -2186,6 +2201,11 @@ pruebas\verificar-escaparate.mjs (NUEVA, 10 en verde: menú y sección
 sin sesión, CTA con registro=1 y volver, auth abre en crear cuenta;
 con sesión, flujo normal) — sustituye a verificar-solo-cuentas.mjs
 (borrada, probaba el muro que ya no existe).
+**Rigor**: 11/11 en la 306 y 10/10 en la 305 — pero la 305 necesitó dos
+pasadas: dos mutaciones pasaron a la primera porque el listón estaba
+puesto a ojo (leer la escala sin quitar los comentarios, y «al menos
+cuatro renglones» cuando había que comprobar dos párrafos de tres).
+
 **En curso / pendiente**: nada a medias. La pasada de suite pedida en
 las entradas anteriores sigue en pie (ronda.js, torneo.js).
 
@@ -2272,6 +2292,11 @@ propósito).
 pruebas\verificar-reabrir.mjs (NUEVA, 9 en verde sobre la demo: dos
 vueltas completas de cerrar/reabrir y el bloqueo con una R1 plantada
 en la base falsa).
+**Rigor**: 11/11 en la 306 y 10/10 en la 305 — pero la 305 necesitó dos
+pasadas: dos mutaciones pasaron a la primera porque el listón estaba
+puesto a ojo (leer la escala sin quitar los comentarios, y «al menos
+cuatro renglones» cuando había que comprobar dos párrafos de tres).
+
 **En curso / pendiente**: nada a medias. Para PINGU: si la suite
 canónica cubre el ciclo de estados del torneo, añadid el vaivén
 cerrar→reabrir (verificar-reabrir.mjs sirve de patrón).
