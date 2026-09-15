@@ -49,6 +49,12 @@ En la rama `pruebas`: `test-tanda-308.mjs`, `test-noticias.mjs`,
 `test-ficha-guia.mjs`, `rigor-tanda-308.py` (los cuatro NUEVOS) y el
 doble (`stub-supabase.js`).
 
+**Suite 69/69. Rigor 11/11**, pero a la segunda: tres comprobaciones
+pasaban con el código roto porque medían algo distinto de lo que creían
+—una carrera que iba al revés de lo que supuse, y un icono de ancho cero
+que está «a la izquierda» de todo—, y dos mutaciones tenían el ancla
+repetida. Está contado en SCHEMA.md.
+
 **En curso / pendiente**: nada a medias.
 
 ---

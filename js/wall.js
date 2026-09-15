@@ -81,9 +81,14 @@ export async function renderWall({
   wireReportButtons(listEl, currentSession)
 
   // Devuelve CUÁNTOS hay. Lo usa la chapa de la pestaña del perfil
-  // (tanda 308), y por eso lo devuelven las TRES salidas de la función:
-  // si una se dejara sin devolver, la chapa diría 0 justo en los casos
-  // en que no hay formulario o no hay sesión.
+  // (tanda 308).
+  //
+  // Lo devuelven las tres salidas, pero hoy solo se recorren dos: las
+  // dos páginas que lo piden pasan siempre `formEl`. La tercera está por
+  // si alguien llama sin formulario —un muro de solo lectura— y no
+  // porque haga falta ahora; el rigor de la 308 la llevaba como mutación
+  // y la quité: una mutación que ningún camino ejecuta se cuenta como
+  // «sin detectar» y tapa las de verdad.
   if (!formEl) return comments.length
 
   if (!currentSession) {

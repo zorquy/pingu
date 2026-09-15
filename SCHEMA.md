@@ -15488,3 +15488,33 @@ dos hacían que **la prueba viera un sitio que no existe**:
 
 Cubierto en `test-tanda-308.mjs` (5 bloques), `test-noticias.mjs` (6),
 `test-ficha-guia.mjs` (8) + `rigor-tanda-308.py`.
+
+### Y lo que sacó el rigor
+
+Tres comprobaciones pasaban con el código roto, y las tres por el mismo
+motivo: **medían algo distinto de lo que creían medir.**
+
+1. **«Si ya has pulsado tú, la página no te mueve.»** La prueba pulsaba
+   «pronto» esperando ganarle la carrera a las cuentas. **No la ganaba**:
+   con el doble las cuentas llegan en unos 80 ms y el clic caía después,
+   así que la página abría el foro, el clic lo cambiaba a «Acerca» y el
+   resultado era el mismo con la guarda puesta y quitada. Ahora no hay
+   carrera: se deja que la página se asiente, se pulsa, y se le vuelve a
+   pedir la apertura automática importando el módulo **desde la propia
+   página** — misma instancia, mismo estado.
+2. **«El icono va a la izquierda del texto.»** Con `display: block` en la
+   tarjeta, la `<i>` vuelve a ser un elemento en línea y **el ancho no se
+   le aplica**: se queda de tamaño cero. Y un icono de ancho cero está a
+   la izquierda de todo, así que el check daba verde con la tarjeta rota.
+   Ahora se exige además que tenga tamaño de verdad y que esté en la
+   MISMA LÍNEA que el texto.
+3. Dos mutaciones más resultaron tener **el ancla repetida** (la silueta
+   va seis y cuatro veces en el HTML). Una mutación con ancla ambigua no
+   se aplica, se cuenta como «sin detectar» y **tapa las de verdad**.
+
+Y una mutación se quitó: `renderWall` tiene una salida `if (!formEl)` que
+**ningún camino recorre hoy** —las dos páginas que lo llaman pasan
+siempre el formulario—, así que probarla era imposible y su «sin
+detectar» permanente habría tapado las demás. El `return` se queda (es
+correcto y barato), pero el comentario del código ya no dice que las tres
+salidas hagan falta: dice la verdad.
