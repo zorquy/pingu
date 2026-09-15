@@ -606,7 +606,7 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       <label>Nombre de usuario (para tu enlace público)</label>
       <input id="peUsername" value="${escapeHtml(currentProfile?.username || '')}" placeholder="tu-nombre-de-usuario" />
       <p class="subtext" id="peUsernamePreview" style="margin:0;"></p>
-      <p class="subtext" id="peUsernameError" style="margin:0; color:#dc2626; display:none;">Ese nombre de usuario ya está en uso, prueba con otro.</p>
+      <p class="subtext" id="peUsernameError" style="margin:0; color:var(--danger); display:none;">Ese nombre de usuario ya está en uso, prueba con otro.</p>
     </div>
     <div class="form-group"><label>Sobre ti</label><textarea id="peBio" placeholder="Cuéntanos algo sobre ti...">${escapeHtml(currentProfile?.bio || '')}</textarea></div>
     <div class="form-group">

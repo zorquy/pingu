@@ -15783,3 +15783,143 @@ de bloque `/* … */`; el JavaScript usa `//`, y el comentario que explica
 este fallo cita `loading=`. Ahora quita los dos estilos. Es un patrón
 que conviene recordar: **al barrer código en busca de una cadena, los
 comentarios que la explican cuentan como código si no los quitas.**
+
+---
+
+## Tanda 311 — que todo se lea
+
+De PINGU: «sigue con todas las mejoras pendientes». Tres cosas, y las
+tres se quedaron fuera de la 310 justamente por ser las que podían
+romper algo.
+
+### El contraste, medido
+
+No estimado: medido. Un barrido abre ocho páginas en los DOS temas, mira
+cada texto, busca el fondo que de verdad tiene detrás —el primer
+antepasado que pinte algo, y si lo que pinta es un degradado, su primera
+parada— y calcula el contraste. Salieron tres familias de fallo:
+
+- **El azul del tema oscuro se quedaba corto.** 45 reglas ponen texto
+  `--navy` sobre fondo `--ice`, y en oscuro las 45 daban **4,17**, por
+  debajo del 4,5 legible. `--navy` pasa de `#4a90c2` a `#6fb0dc`: 6,14.
+
+  Antes de tocarlo hubo que comprobar que **nada empeora**, porque
+  `--navy` también hace de FONDO en 32 reglas. En el tema oscuro el
+  texto que lleva encima es `--white`, que ahí es la superficie oscura
+  (`#182430`) — o sea texto oscuro sobre azul, que con el azul nuevo
+  pasa de 4,54 a **7,20**. Y no hay ni una regla que ponga texto CLARO
+  sobre fondo `--navy`, que es el único caso al que aclarar el azul le
+  habría hecho daño.
+
+- **Doce controles iban pintados con el gris de los apuntes.**
+  `--text-dim` da 2,35 de contraste y está bien para un metadato de
+  refilón —una fecha, un «hace 2 h»—; no para «Eliminar», «Responder»,
+  «Denunciar», las flechas del reto o las pestañas del torneo, que son
+  cosas que se pulsan. A `--text-mid`: 4,84. La excepción, declarada en
+  la prueba, es un control DESACTIVADO: ahí el gris apagado es el
+  mensaje.
+
+- **El mensaje de un muro vacío** estaba en ese mismo gris (2,21) y es
+  justo lo único que hay en la pantalla.
+
+### El rojo tiene nombre
+
+Había `--success`, `--warning`, `--indigo` y `--pink`, pero **no
+`--danger`**: el rojo iba a mano **61 veces** en tres tonos distintos,
+incluso dentro de estilos EN LÍNEA del JavaScript. Eso significaba que
+el rojo de «Eliminar» del muro y el de borrar un tema del foro podían no
+ser el mismo y, sobre todo, que **ninguno se adaptaba al tema**: el rojo
+del tema claro sobre la superficie oscura daba 3,26.
+
+Ahora son **tres tokens**, y la división importa:
+
+| token | qué es | claro | oscuro |
+|---|---|---|---|
+| `--danger` | el rojo que es TEXTO o borde | `#dc2626` | `#f87171` (5,69) |
+| `--danger-bg` | el fondo suave de un aviso de error | `#fee2e2` | rojo al 14% |
+| `--danger-solid` | el rojo que va de FONDO **con texto blanco encima** | `#dc2626` | **el mismo** |
+
+`--danger-solid` **no tiene versión clara para el tema oscuro, y es a
+propósito**: al revés que `--danger`, que es texto y ahí necesita
+aclararse, este lleva blanco encima. Si se aclarara, el blanco se
+quedaría en 2,4. Se queda quieto y lo que cambia a su alrededor es el
+fondo de la página. Lo usan la chapa de «EN JUEGO» y la marca de una
+carta ilegal.
+
+De paso desaparecieron **seis bloques `:root[data-theme='dark']`
+escritos a mano** que existían solo para dar la versión clara de un rojo
+—la cuenta de cartas que no cuadra, el aviso de reglamento, el % crítico
+de preguntas falladas, los dos botones de borrar, el reloj en rojo—. El
+token ya trae las dos.
+
+Quedan DOS paletas con rojo a mano, y son excepciones declaradas en la
+prueba porque no son peligro sino **identidad**: los `--rt-*` (los
+colores que elige quien escribe una guía, con su lista espejo en
+`js/richtext-format.js`) y `COLORES_AVATAR` en `js/app.js`.
+
+### El espaciado, la otra mitad
+
+La 310 quitó los 226 impares y dejó dicho que los pares intermedios
+—10 px ×267, 6 ×209, 14 ×137, 18 ×71…— iban aparte porque son ±2 px en
+cientos de declaraciones y eso sí puede apretar una caja. Esta tanda los
+lleva: **792 cambios**, más nueve valores grandes elegidos a ojo (34 y
+52) que se cuadran.
+
+La regla tiene **dos tramos a propósito**: hasta 32 px un número es un
+PASO de la escala y tiene que ser uno de los seis; por encima ya no es
+un paso, es una MEDIDA —el hueco de un avatar, el sitio de la flecha de
+un desplegable— y solo se le pide que siga en la retícula de 4.
+
+### Y lo que salió de tirar del hilo del azul
+
+Al aclarar `--navy` en el tema oscuro aparecieron **24 bloques
+`:root[data-theme='dark'] X { color: #7db6dd }`** repartidos por cinco
+hojas. Los 24 existían por una sola razón: aclarar a mano un `var(--navy)`
+que la regla base ya pedía. Con el token aclarándose solo, lo único que
+aportaban era un SEGUNDO azul claro, distinto del suyo por unos puntos.
+Fuera: **19 bloques enteros** y cinco que se quedan porque además cambian
+otra cosa (un tinte `rgba` propio, la pista de un anillo). Sobrevive uno
+solo con su comentario puesto: el del anillo de «tu partida», que cambia
+la pista de `--ice` a `--ice-dark`.
+
+Y ahí estaba escondido **un fallo que llevaba tiempo en producción**: la
+chapa de «EN JUEGO» de un torneo es blanco sobre rojo, pero
+`:root[data-theme='dark'] .torneo-estado-jugando { color: … }` tiene
+**tres** componentes de especificidad y `.torneo-arte
+.torneo-estado-jugando { color: #fff }` solo tiene dos. En el tema
+oscuro la chapa salía con el texto AZUL sobre el rojo: **2,2**. Medido,
+no razonado — y arreglado al quitar el bloque.
+
+Es la trampa de la tanda 306 por otra cara: **un bloque de tema no es
+«lo mismo, más claro»; es una regla que compite, y el prefijo del tema le
+regala especificidad.** La comprobación que queda no mira ese hex: mide
+que el texto de la chapa se lea sobre su fondo en los dos temas.
+
+Cubierto en `test-tanda-311.mjs` (6 bloques) + `rigor-tanda-311.py`
+(14 mutaciones).
+
+### Lo que sacó la verificación
+
+**El barrido de los rojos pasó también por `style.css` y dejó
+`--danger: var(--danger)`.** Un token definido en términos de sí mismo
+queda SIN definir, y no da error: el botón «Eliminar» se pintó del color
+del texto de al lado y ya está. Ahora hay una comprobación general —
+**ningún token puede nombrarse a sí mismo**— que no sabe nada de rojos.
+
+**Y el mismo barrido metió `var(--danger)` en `COLORES_AVATAR`.** Esa
+lista no es semántica: es la paleta de identidad de la que sale el color
+del avatar de cada persona, deducido de su identificador para que sea
+siempre el mismo. Con el token, el avatar de una de cada diez personas
+cambiaba de color al cambiar de tema — y en oscuro la inicial blanca
+encima del rojo aclarado se quedaba en 2,4. Es el mismo error que el
+`loading="lazy"` de la 310, en otra cara: **una transformación en bloque
+da por hecho que todo lo que se parece al caso ES el caso.**
+
+**Y el espaciado rompió una caja, que era exactamente el riesgo
+anunciado.** La tarjeta del próximo torneo de la portada iba justa: al
+subir el `gap` de 10 a 12 y el `padding` de 10 a 12, el nombre del
+torneo se partió en dos renglones dentro de una columna de 105 px. Se
+queda en 12 —que también es un paso— pero repartido de otra forma. Por
+eso la prueba mide además que **la portada no se salga de ancho a 320 y
+a 1280**: lo que rompe un cambio de espaciado no es un color, es una
+caja que deja de caber.

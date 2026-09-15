@@ -7,7 +7,7 @@
   display: flex;
   gap: 4px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 26px;
+  margin-bottom: 24px;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -20,11 +20,11 @@
 .tab-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex: 0 0 auto;
   white-space: nowrap;
   padding: 12px 4px;
-  margin-right: 20px;
+  margin-right: 24px;
   font-weight: 700;
   font-size: var(--t-md);
   color: var(--text-mid);
@@ -69,7 +69,7 @@
   align-items: center;
   justify-content: center;
   min-width: 18px;
-  padding: 0 6px;
+  padding: 0 8px;
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--navy) 10%, transparent);
   color: var(--text-mid);
@@ -93,7 +93,7 @@
 
 /* ── Page header ── */
 .page-header {
-  padding: 30px 0 18px;
+  padding: 32px 0 16px;
 }
 
 .page-header h1 {
@@ -104,7 +104,7 @@
 
 .page-header p {
   color: var(--text-mid);
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: var(--t-md);
 }
 
@@ -112,7 +112,7 @@
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  padding: 22px 0;
+  padding: 24px 0;
 }
 
 .category-header .emoji-big {
@@ -143,7 +143,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--t-xs);
   color: var(--text-dim);
   margin-bottom: 16px;
@@ -162,10 +162,10 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--white);
-  padding: 20px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   position: relative;
   overflow: hidden;
 }
@@ -212,7 +212,7 @@
   #guidesList {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    gap: 16px;
   }
   #guidesList > h2 {
     grid-column: 1 / -1;
@@ -225,7 +225,7 @@
   border-radius: var(--radius-lg);
   padding: 16px;
   display: flex;
-  gap: 14px;
+  gap: 16px;
   align-items: flex-start;
   transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
@@ -324,7 +324,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
   flex-wrap: wrap;
 }
 
@@ -340,10 +340,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--t-xs);
   font-weight: 700;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: var(--radius-sm);
   white-space: nowrap;
   text-align: center;
@@ -357,7 +357,7 @@
    compactos, que es lo que corresponde a ese espacio. */
 .modal-actions .btn-guide,
 .modal-actions .btn-course {
-  padding: 14px 20px;
+  padding: 16px 24px;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   font-size: var(--t-md);
@@ -416,7 +416,7 @@
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
+  padding: 12px 16px;
   cursor: pointer;
   transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
@@ -462,15 +462,15 @@
 
 .community-guide-row-badge {
   font-size: var(--t-2xs);
-  padding: 2px 6px;
-  margin-left: 6px;
+  padding: 2px 8px;
+  margin-left: 8px;
   vertical-align: middle;
 }
 
 .community-guide-row-meta {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-shrink: 0;
   font-size: var(--t-2xs);
   color: var(--text-dim);
@@ -494,7 +494,7 @@
   display: block;
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 12px;
+  padding: 12px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--t-md);
@@ -511,8 +511,10 @@
 
 .wall-empty {
   text-align: center;
-  padding: 32px 20px;
-  color: var(--text-dim);
+  padding: 32px 24px;
+  /* --text-dim daba 2,21 de contraste aquí (tanda 311). Es un mensaje
+     que hay que poder leer, no un metadato de refilón. */
+  color: var(--text-mid);
   font-size: var(--t-md);
   border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
@@ -522,7 +524,7 @@
   display: flex;
   gap: 4px;
   font-size: var(--t-2xl);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .star-pick {
@@ -557,7 +559,7 @@
   align-items: center;
   justify-content: center;
   z-index: 200;
-  padding: 20px;
+  padding: 24px;
 }
 
 .modal-overlay.hidden {
@@ -572,7 +574,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   text-align: center;
   box-shadow: var(--shadow-md);
 }
@@ -605,7 +607,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   background: var(--bg);
   cursor: grab;
 }
@@ -618,7 +620,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 8px;
 }
 
@@ -641,7 +643,7 @@
 }
 
 .block-editor-item-header .remove-block {
-  color: #dc2626;
+  color: var(--danger);
   font-size: var(--t-xs);
   font-weight: 700;
 }
@@ -651,7 +653,7 @@
   display: block;
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 12px;
+  padding: 12px 12px;
   margin-bottom: 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -687,7 +689,7 @@ textarea.be-field {
 
 .be-image-row .btn-outline {
   flex-shrink: 0;
-  padding: 8px 14px;
+  padding: 8px 16px;
   font-size: var(--t-sm);
   white-space: nowrap;
 }
@@ -695,7 +697,7 @@ textarea.be-field {
 .bbcode-toolbar {
   display: flex;
   gap: 2px;
-  padding: 6px;
+  padding: 8px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-bottom: none;
@@ -751,7 +753,7 @@ textarea.be-field {
   /* Dos filas: los botones de siempre y, debajo, la barra que sale al
      seleccionar una imagen o una lista de cartas. */
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   padding: 8px;
   background: var(--bg);
   border-bottom: 1.5px solid var(--border);
@@ -774,7 +776,7 @@ textarea.be-field {
 .rte-toolbar button {
   min-width: 34px;
   height: 34px;
-  padding: 0 10px;
+  padding: 0 12px;
   border-radius: var(--radius-sm);
   background: none;
   color: var(--text-mid);
@@ -796,7 +798,7 @@ textarea.be-field {
 .rte-sep {
   width: 1px;
   height: 20px;
-  margin: 0 6px;
+  margin: 0 8px;
   background: var(--border-strong);
   flex-shrink: 0;
 }
@@ -874,7 +876,7 @@ textarea.be-field {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
+  padding: 8px 8px;
   background: var(--ice);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
@@ -979,13 +981,13 @@ textarea.be-field {
    cada botón se vea como un botón. */
 .rte-compacta .rte-tools {
   gap: 4px;
-  row-gap: 6px;
+  row-gap: 8px;
 }
 
 .rte-compacta .rte-toolbar button {
   min-width: 30px;
   height: 30px;
-  padding: 0 10px;
+  padding: 0 12px;
   font-size: var(--t-sm);
   /* Transparente y no ausente: si el borde apareciera solo al pasar por
      encima, los botones se moverían un píxel. */
@@ -998,7 +1000,7 @@ textarea.be-field {
 
 .rte-compacta .rte-sep {
   height: 18px;
-  margin: 0 6px;
+  margin: 0 8px;
 }
 
 .rte-surface img {
@@ -1019,7 +1021,7 @@ textarea.be-field {
 .cover-image-upload {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -1049,8 +1051,8 @@ textarea.be-field {
 /* El aviso de "esta guía está en revisión". Mismo tono que el banner de
    la guía pendiente en guia.html: es información, no una advertencia. */
 .editor-aviso-revision {
-  margin: 10px 0 0;
-  padding: 10px 14px;
+  margin: 12px 0 0;
+  padding: 12px 16px;
   background: var(--ice);
   border-radius: var(--radius-sm);
   font-size: var(--t-sm);
@@ -1062,8 +1064,8 @@ textarea.be-field {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 28px;
-  margin-bottom: 20px;
+  padding: 32px;
+  margin-bottom: 24px;
 }
 
 .editor-general-grid {
@@ -1079,8 +1081,8 @@ textarea.be-field {
 }
 
 .editor-block-list .block-editor-item {
-  padding: 20px;
-  margin-bottom: 14px;
+  padding: 24px;
+  margin-bottom: 16px;
   border-radius: var(--radius-lg);
   transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
@@ -1097,7 +1099,7 @@ textarea.be-field {
 .editor-ref-preview {
   border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: 16px;
   margin-bottom: 16px;
   max-height: 300px;
   overflow-y: auto;
@@ -1123,7 +1125,7 @@ textarea.be-field {
 .modal-box .modal-actions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 /* Variante en fila (el modal de guía: Guardar / Guía / Curso / reportar).
@@ -1167,14 +1169,14 @@ textarea.be-field {
 .achievement-card {
   background: var(--white);
   border-radius: 20px 20px 0 0;
-  padding: 34px 24px 30px;
+  padding: 32px 24px;
   max-width: 400px;
   width: 100%;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   animation: slideUpModal 0.35s var(--ease);
   box-shadow: var(--shadow-md);
 }
@@ -1224,12 +1226,12 @@ textarea.be-field {
 
 /* ── Search ── */
 .search-input-wrap {
-  margin: 18px 0;
+  margin: 16px 0;
 }
 
 .search-input {
   width: 100%;
-  padding: 16px 18px;
+  padding: 16px 16px;
   font-size: var(--t-xl);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1288,7 +1290,7 @@ textarea.be-field {
 }
 
 .article-header {
-  padding: 8px 0 22px;
+  padding: 8px 0 24px;
 }
 
 /* El aviso de "pendiente de revisión". Cuando quien mira es el autor
@@ -1304,7 +1306,7 @@ textarea.be-field {
   background: var(--ice);
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 /* El de "no publicada" va en color de aviso, no en el azul de la casa: es
@@ -1324,7 +1326,7 @@ textarea.be-field {
 
 .guia-seguir-editando {
   margin-left: auto;
-  padding: 6px 12px;
+  padding: 8px 12px;
   font-size: var(--t-sm);
   white-space: nowrap;
 }
@@ -1362,9 +1364,9 @@ textarea.be-field {
 
 .article-meta {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
-  margin-top: 14px;
+  margin-top: 16px;
   flex-wrap: wrap;
 }
 
@@ -1415,7 +1417,7 @@ textarea.be-field {
 
 .article-body ul,
 .article-body ol {
-  margin: 0 0 16px 20px;
+  margin: 0 0 16px 24px;
   list-style: revert;
 }
 
@@ -1510,7 +1512,7 @@ textarea.be-field {
    elemento del navegador. */
 .article-body details,
 .rte-surface details {
-  margin: 18px 0;
+  margin: 16px 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--bg);
@@ -1522,7 +1524,7 @@ textarea.be-field {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   font-weight: 700;
   font-size: var(--t-md);
   color: var(--text-mid);
@@ -1565,8 +1567,8 @@ textarea.be-field {
 }
 
 .rte-sp-quitar:hover {
-  color: #dc2626;
-  border-color: #dc2626;
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .article-body summary::-webkit-details-marker,
@@ -1601,14 +1603,14 @@ textarea.be-field {
    dónde empieza lo que estaba plegado. */
 .article-body details[open] > :not(summary),
 .rte-surface details[open] > :not(summary) {
-  margin-left: 14px;
-  margin-right: 14px;
+  margin-left: 16px;
+  margin-right: 16px;
 }
 
 .article-body details[open] > summary,
 .rte-surface details[open] > summary {
   border-bottom: 1px solid var(--border);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .article-body details > :last-child,
@@ -1618,7 +1620,7 @@ textarea.be-field {
 
 /* ── Figuras: imagen con tamaño, colocación y pie ── */
 .rt-fig {
-  margin: 20px 0;
+  margin: 24px 0;
   max-width: 100%;
 }
 
@@ -1675,7 +1677,7 @@ textarea.be-field {
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   align-items: start;
-  margin: 20px 0;
+  margin: 24px 0;
   clear: both;
 }
 
@@ -1737,12 +1739,12 @@ textarea.be-field {
 
 .rt-fig-i {
   float: left;
-  margin: 6px 22px 14px 0;
+  margin: 8px 24px 16px 0;
 }
 
 .rt-fig-d {
   float: right;
-  margin: 6px 0 14px 22px;
+  margin: 8px 0 16px 24px;
 }
 
 /* Un float que nadie limpia se sale del artículo y se mete en lo que
@@ -1757,7 +1759,7 @@ textarea.be-field {
 tcg-deck {
   display: block;
   max-width: 100%;
-  margin: 20px 0;
+  margin: 24px 0;
 }
 
 /* En una pantalla estrecha no hay sitio para que el texto rodee nada:
@@ -1769,14 +1771,14 @@ tcg-deck {
   .rt-fig-d {
     float: none;
     width: 100% !important;
-    margin: 20px 0;
+    margin: 24px 0;
   }
 }
 
 .block-highlight {
   background: rgba(30, 81, 117, 0.07);
   border-left: 3px solid var(--navy);
-  padding: 12px 14px;
+  padding: 12px 16px;
   border-radius: var(--radius-sm);
   font-size: var(--t-sm);
   font-weight: 600;
@@ -1801,7 +1803,7 @@ tcg-deck {
   text-transform: uppercase;
   color: var(--text-dim);
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   letter-spacing: 0.4px;
 }
 
@@ -1809,7 +1811,7 @@ tcg-deck {
   display: block;
   font-size: var(--t-sm);
   color: var(--text-mid);
-  padding: 6px 0;
+  padding: 8px 0;
   border-left: 2px solid var(--border);
   padding-left: 12px;
   transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
@@ -1826,7 +1828,7 @@ tcg-deck {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
   background: var(--bg);
 }
 
@@ -1835,12 +1837,12 @@ tcg-deck {
   max-width: 380px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   text-align: center;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 36px 30px;
+  padding: 36px 32px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -1848,7 +1850,7 @@ tcg-deck {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   font-weight: 800;
   font-size: var(--t-xl);
 }
@@ -1891,7 +1893,7 @@ tcg-deck {
 
 .auth-input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 16px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-size: var(--t-lg);
@@ -1905,7 +1907,7 @@ tcg-deck {
 }
 
 .auth-error {
-  color: #dc2626;
+  color: var(--danger);
   font-size: var(--t-sm);
   min-height: 18px;
 }
@@ -1958,8 +1960,8 @@ tcg-deck {
 .ladder-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 12px;
+  padding: 12px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
@@ -2025,7 +2027,7 @@ tcg-deck {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 0;
+  padding: 16px 0;
   border-bottom: 1px solid var(--border);
   font-size: var(--t-md);
 }
@@ -2040,11 +2042,11 @@ tcg-deck {
   flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  padding: 14px;
+  gap: 12px;
+  padding: 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-size: var(--t-md);
 }
 
@@ -2085,7 +2087,7 @@ tcg-deck {
 .my-guide-actions button {
   font-size: var(--t-xs);
   font-weight: 700;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   background: var(--ice);
   color: var(--navy);
@@ -2097,27 +2099,27 @@ tcg-deck {
 .my-guide-actions .my-guide-ver {
   font-size: var(--t-xs);
   font-weight: 700;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   background: var(--ice);
   color: var(--navy);
 }
 
 .my-guide-actions button.danger {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .my-guide-reason {
   width: 100%;
   font-size: var(--t-xs);
-  color: #dc2626;
+  color: var(--danger);
   margin: 0;
 }
 
 .color-swatch-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .color-swatch {
@@ -2140,15 +2142,15 @@ tcg-deck {
 .follow-avatar-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .follow-avatar-chip {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px 6px 6px;
+  padding: 8px 12px 8px 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   text-decoration: none;
@@ -2181,8 +2183,8 @@ tcg-deck {
 .user-directory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 14px;
-  margin-top: 20px;
+  gap: 16px;
+  margin-top: 24px;
 }
 
 /* ── Modal ampliado de guía ── */
@@ -2192,8 +2194,8 @@ tcg-deck {
 .guide-author {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .is-saved {
@@ -2206,7 +2208,7 @@ tcg-deck {
 .guide-card-social {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-top: 8px;
 }
 
@@ -2214,7 +2216,7 @@ tcg-deck {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 8px;
+  padding: 8px 8px;
   border-radius: var(--radius-sm);
   background: var(--ice);
   color: var(--navy);
@@ -2232,7 +2234,7 @@ tcg-deck {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 16px;
 }
 
@@ -2260,7 +2262,7 @@ tcg-deck {
 .form-group input,
 .form-group textarea,
 .form-group select {
-  padding: 10px 12px;
+  padding: 12px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--t-md);
@@ -2284,11 +2286,11 @@ tcg-deck {
 .saved-guide-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
+  padding: 16px 16px;
   transition: border-color 0.15s var(--ease);
 }
 
@@ -2307,7 +2309,7 @@ tcg-deck {
 }
 
 .saved-guide-row .unsave-btn {
-  color: var(--text-dim);
+  color: var(--text-mid);
   font-size: var(--t-xl);
 }
 
@@ -2341,7 +2343,7 @@ tcg-deck {
 }
 
 .toast-error {
-  background: #dc2626;
+  background: var(--danger);
 }
 
 .toast-success {
@@ -2352,11 +2354,11 @@ tcg-deck {
 .report-btn {
   display: inline-flex;
   align-items: center;
-  color: var(--text-dim);
+  color: var(--text-mid);
 }
 
 .report-btn:hover {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 /* ── Guía Pro (paywall) ── */
@@ -2403,14 +2405,14 @@ tcg-deck {
 }
 
 .forum-post-text {
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: var(--t-md);
   line-height: 1.55;
   white-space: pre-wrap;
 }
 
 .forum-quote {
-  margin-top: 6px;
+  margin-top: 8px;
   padding: 8px 12px;
   background: var(--bg);
   border-left: 3px solid var(--border-strong);
@@ -2422,14 +2424,14 @@ tcg-deck {
 .forum-post-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   margin-top: 8px;
 }
 
 .forum-reply-btn {
   font-size: var(--t-xs);
   font-weight: 700;
-  color: var(--text-dim);
+  color: var(--text-mid);
 }
 
 .forum-reply-btn:hover {
@@ -2439,17 +2441,17 @@ tcg-deck {
 .forum-delete-btn {
   font-size: var(--t-xs);
   font-weight: 700;
-  color: var(--text-dim);
+  color: var(--text-mid);
 }
 
 .forum-delete-btn:hover {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .forum-reply-banner {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin: 12px 0;
   padding: 8px 12px;
   background: var(--ice);
@@ -2530,7 +2532,7 @@ tcg-deck {
   position: absolute;
   top: -2px;
   right: -2px;
-  background: #dc2626;
+  background: var(--danger);
   color: var(--white);
   border-radius: var(--radius-pill);
   font-size: var(--t-2xs);
@@ -2577,7 +2579,7 @@ tcg-deck {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -2635,18 +2637,18 @@ tcg-deck {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  padding: 14px;
+  padding: 16px;
   z-index: 50;
 }
 
 .nav-search-dropdown form {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .nav-search-dropdown .search-input {
   flex: 1;
-  padding: 8px 10px;
+  padding: 8px 12px;
   font-size: var(--t-sm);
 }
 
@@ -2657,7 +2659,7 @@ tcg-deck {
 
 .nav-search-dropdown a#navSearchAdvanced {
   display: block;
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: var(--t-xs);
   font-weight: 700;
   color: var(--navy);
@@ -2692,8 +2694,8 @@ tcg-deck {
 .nav-user-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: 16px 16px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -2725,7 +2727,7 @@ tcg-deck {
 .nav-user-stats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px 8px;
+  gap: 12px 8px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
 }
@@ -2754,15 +2756,15 @@ tcg-deck {
 .nav-user-links {
   display: flex;
   flex-direction: column;
-  padding: 6px 0;
+  padding: 8px 0;
 }
 
 .nav-user-links a,
 .nav-user-links button {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
+  gap: 12px;
+  padding: 12px 16px;
   text-align: left;
   font-size: var(--t-sm);
   font-weight: 600;
@@ -2778,7 +2780,7 @@ tcg-deck {
    escribir, y «Cerrar sesión» al final. La raya es lo que hace que no se
    pulse «Cerrar sesión» yendo a por «Mis partidas». */
 .nav-user-links .nav-user-grupo {
-  margin-top: 6px;
+  margin-top: 8px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
 }
@@ -2805,7 +2807,7 @@ tcg-deck {
 
 /* ── Páginas legales (Términos, Privacidad) ── */
 .legal-page h2 {
-  margin: 32px 0 10px;
+  margin: 32px 0 12px;
   font-size: var(--t-xl);
 }
 
@@ -2826,7 +2828,7 @@ tcg-deck {
 
 .legal-page li {
   margin: 4px 0;
-  padding-left: 18px;
+  padding-left: 16px;
   position: relative;
 }
 
@@ -2920,7 +2922,7 @@ tcg-deck {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  padding: 10px;
+  padding: 12px;
   z-index: 50;
 }
 
@@ -2957,7 +2959,7 @@ tcg-deck {
   display: inline-flex;
   align-items: center;
   vertical-align: -0.15em;
-  margin-right: 6px;
+  margin-right: 8px;
   flex-shrink: 0;
 }
 
@@ -3056,7 +3058,7 @@ tcg-deck {
 
 tcg-deck {
   display: block;
-  margin: 20px 0;
+  margin: 24px 0;
 }
 
 .deck-grid,
@@ -3128,7 +3130,7 @@ tcg-deck {
 /* ── Buscador de cartas del editor ── */
 
 .card-picker h3 {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .cp-help {
@@ -3139,7 +3141,7 @@ tcg-deck {
 
 .cp-input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 12px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--t-lg);
@@ -3155,7 +3157,7 @@ tcg-deck {
 .cp-results {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 10px;
+  gap: 12px;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -3173,7 +3175,7 @@ tcg-deck {
   gap: 4px;
   width: 100%;
   min-width: 0;
-  padding: 6px;
+  padding: 8px;
   text-align: left;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
@@ -3250,13 +3252,13 @@ tcg-deck {
 .cp-mercado {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--t-xs);
   color: var(--text-mid);
 }
 
 .cp-mercado select {
-  padding: 10px 10px;
+  padding: 12px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--white);
@@ -3286,13 +3288,13 @@ tcg-deck {
 .cp-chosen-title {
   font-size: var(--t-xs);
   font-weight: 700;
-  margin: 12px 0 6px;
+  margin: 12px 0 8px;
 }
 
 .cp-chosen-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   list-style: none;
   padding: 0;
   margin: 0 0 4px;
@@ -3302,7 +3304,7 @@ tcg-deck {
 }
 
 .cp-chosen-list button {
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: var(--radius-pill);
   background: var(--ice);
   color: var(--navy);
@@ -3314,7 +3316,7 @@ tcg-deck {
 
 .rating-box {
   margin: 32px 0 8px;
-  padding: 18px 20px;
+  padding: 16px 24px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -3324,13 +3326,13 @@ tcg-deck {
 .rating-box h3 {
   font-size: var(--t-lg);
   font-weight: 800;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
 }
 
 .rating-box .star-picker {
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 8px;
 }
 
@@ -3394,7 +3396,7 @@ button.rating-summary[aria-expanded='true'] .rating-summary-caret {
  * que se ve si la buscas. Un banner de colores al final de CADA guía
  * cansa a la décima que lees. */
 .write-invite {
-  margin: 14px 0 0;
+  margin: 16px 0 0;
   font-size: var(--t-sm);
   line-height: 1.6;
   color: var(--text-mid);
@@ -3412,8 +3414,8 @@ button.rating-summary[aria-expanded='true'] .rating-summary-caret {
 }
 
 .rater-panel {
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid var(--border);
   text-align: left;
 }
@@ -3487,7 +3489,7 @@ a.rater-name:hover {
 .rating-hint {
   font-size: var(--t-xs);
   color: var(--text-mid);
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   min-height: 1em;
 }
 
@@ -3508,8 +3510,8 @@ a.rater-name:hover {
 .guide-card-author {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 8px;
+  margin-top: 8px;
   font-size: var(--t-xs);
   min-width: 0;
 }
@@ -3521,8 +3523,8 @@ a.rater-name:hover {
   gap: 4px;
   /* Zona de toque de 24px sin mover el diseño: el relleno agranda el
      objetivo y el margen negativo lo descuenta del hueco que ocupa. */
-  padding: 6px 4px;
-  margin: -6px -4px;
+  padding: 8px 4px;
+  margin: -8px -4px;
   color: var(--text-mid);
   font-weight: 600;
   overflow: hidden;
@@ -3552,13 +3554,13 @@ a.rater-name:hover {
 .mascota-fila {
   display: flex;
   align-items: flex-start;
-  gap: 18px;
+  gap: 16px;
 }
 
 .mascota-texto {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   font-size: var(--t-md);
   color: var(--text-mid);
 }
@@ -3593,14 +3595,14 @@ a.rater-name:hover {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin: 22px 0 6px;
+  margin: 24px 0 8px;
 }
 
 .helpful-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
+  padding: 12px 16px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
   background: var(--white);
@@ -3625,7 +3627,7 @@ a.rater-name:hover {
 .helpful-solo-contador {
   font-size: var(--t-sm);
   color: var(--text-mid);
-  margin: 22px 0 6px;
+  margin: 24px 0 8px;
 }
 
 .helpful-count {
@@ -3638,7 +3640,7 @@ a.rater-name:hover {
   align-items: center;
   gap: 4px;
   margin-left: 8px;
-  padding: 1px 8px 1px 6px;
+  padding: 1px 8px 1px 8px;
   border-radius: var(--radius-pill);
   background: var(--ice);
   color: var(--navy);
@@ -3659,7 +3661,7 @@ a.rater-name:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   font-size: var(--t-xs);
   color: var(--text-mid);
 }
@@ -3681,7 +3683,7 @@ a.rater-name:hover {
 .peticion-form {
   display: grid;
   gap: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .peticion-form input,
@@ -3699,10 +3701,10 @@ a.rater-name:hover {
 }
 
 .peticiones-aviso {
-  padding: 12px 14px;
+  padding: 12px 16px;
   background: var(--ice);
   border-radius: var(--radius-md);
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -3710,8 +3712,8 @@ a.rater-name:hover {
 
 .peticion {
   display: flex;
-  gap: 14px;
-  padding: 14px 0;
+  gap: 16px;
+  padding: 16px 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -3729,7 +3731,7 @@ a.rater-name:hover {
   gap: 1px;
   width: 48px;
   flex-shrink: 0;
-  padding: 6px 0;
+  padding: 8px 0;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   background: var(--white);
@@ -3777,7 +3779,7 @@ a.rater-name:hover {
 }
 
 .peticion-detalle {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: var(--t-sm);
   color: var(--text-mid);
   line-height: 1.55;
@@ -3786,7 +3788,7 @@ a.rater-name:hover {
 .peticion-pie {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin: 0;
   font-size: var(--t-xs);
   color: var(--text-dim);
@@ -3794,42 +3796,42 @@ a.rater-name:hover {
 
 .peticion-fecha::before {
   content: '·';
-  margin-right: 6px;
+  margin-right: 8px;
 }
 
 .peticion-acciones {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .peticion-acciones .btn-secondary {
-  padding: 6px 12px;
+  padding: 8px 12px;
   font-size: var(--t-xs);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .peticion-borrar {
   font-size: var(--t-xs);
-  color: var(--text-dim);
+  color: var(--text-mid);
   text-decoration: underline;
 }
 
 .peticion-hecha {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 10px 0 0;
+  gap: 8px;
+  margin: 12px 0 0;
   font-size: var(--t-sm);
   color: var(--success);
   font-weight: 600;
 }
 
 .peticiones-sub {
-  margin: 26px 0 4px;
+  margin: 24px 0 4px;
   font-size: var(--t-sm);
   font-weight: 800;
   text-transform: uppercase;
@@ -3838,8 +3840,8 @@ a.rater-name:hover {
 }
 
 .editor-desde-peticion {
-  margin: -8px 0 14px;
-  padding: 10px 12px;
+  margin: -8px 0 16px;
+  padding: 12px 12px;
   background: var(--ice);
   border-radius: var(--radius-sm);
 }
@@ -3884,8 +3886,8 @@ a.rater-name:hover {
 .tema-firma {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 0 0 14px;
+  gap: 8px;
+  margin: 0 0 16px;
   font-size: var(--t-xs);
   /* Sin esto, la línea de la firma no cabe en un móvil estrecho: avatar,
      nombre, fecha, vistas y DOS botones (Seguir y Compartir) suman más
@@ -3898,7 +3900,7 @@ a.rater-name:hover {
 .tema-moderacion {
   display: flex;
   gap: 8px;
-  margin: 0 0 14px;
+  margin: 0 0 16px;
 }
 
 .tema-moderacion {
@@ -3908,8 +3910,8 @@ a.rater-name:hover {
 .tema-moderacion button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 8px;
+  padding: 8px 12px;
   font-size: var(--t-xs);
 }
 
@@ -3927,21 +3929,21 @@ a.rater-name:hover {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--text-dim);
+  color: var(--text-mid);
   font-weight: 600;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 .tema-borrar:hover,
 .tema-borrar[data-confirmar='1'] {
-  border-color: #c0392b;
-  background: rgba(192, 57, 43, 0.08);
-  color: #c0392b;
-}
-:root[data-theme='dark'] .tema-borrar:hover,
-:root[data-theme='dark'] .tema-borrar[data-confirmar='1'] {
-  border-color: #e07d72;
-  color: #e07d72;
+  /* Del token desde la tanda 311. Antes eran dos rojos escritos a mano:
+     uno aquí y su copia clara para el oscuro en un bloque aparte. El
+     token ya trae los dos, así que el override sobraba. (Y los tonos no
+     se citan: un comentario que nombra el valor prohibido pone en rojo
+     la prueba que lo busca — van tres veces.) */
+  border-color: var(--danger);
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 .tema-borrar[disabled] {
   opacity: 0.6;
@@ -3952,7 +3954,7 @@ a.rater-name:hover {
 .tema-leyendo {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin: 2px 0 0;
   font-size: var(--t-xs);
 }
@@ -3968,11 +3970,11 @@ a.rater-name:hover {
 .sugerencia-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin: 4px 0 0;
-  padding: 6px 0;
+  padding: 8px 0;
   background: none;
-  color: var(--text-dim);
+  color: var(--text-mid);
   font-size: var(--t-sm);
   font-weight: 600;
   cursor: pointer;
@@ -3993,8 +3995,8 @@ a.rater-name:hover {
 .sugerencia-form {
   display: grid;
   gap: 8px;
-  margin: 10px 0 4px;
-  padding: 14px;
+  margin: 12px 0 4px;
+  padding: 16px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -4015,7 +4017,7 @@ a.rater-name:hover {
 .guide-creditos {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin: 8px 0 0;
   font-size: var(--t-sm);
   color: var(--text-mid);
@@ -4031,9 +4033,9 @@ a.rater-name:hover {
   flex-basis: 100%;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  padding: 4px 10px;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 4px 12px;
   align-self: flex-start;
   border-radius: var(--radius-pill);
   background: var(--warning-bg);
@@ -4045,13 +4047,13 @@ a.rater-name:hover {
 }
 
 .sugerencia-item {
-  padding: 14px 0;
+  padding: 16px 0;
   border-bottom: 1px solid var(--border);
 }
 
 .sugerencia-cita {
-  margin: 0 0 6px;
-  padding-left: 10px;
+  margin: 0 0 8px;
+  padding-left: 12px;
   border-left: 3px solid var(--border-strong);
   font-size: var(--t-sm);
   color: var(--text-mid);
@@ -4059,7 +4061,7 @@ a.rater-name:hover {
 }
 
 .sugerencia-cuerpo {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   font-size: var(--t-md);
   line-height: 1.6;
 }
@@ -4070,14 +4072,14 @@ a.rater-name:hover {
 }
 
 .sugerencia-item-acciones button {
-  padding: 6px 14px;
+  padding: 8px 16px;
   font-size: var(--t-sm);
 }
 
 /* ── Guía destacada de la portada ── */
 .destacada {
-  margin: 26px 0 6px;
-  padding: 20px 22px;
+  margin: 24px 0 8px;
+  padding: 24px 24px;
   background: var(--ice);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-xl);
@@ -4086,9 +4088,9 @@ a.rater-name:hover {
 .destacada-sello {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 8px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: var(--radius-pill);
   background: var(--navy);
   color: var(--white);
@@ -4101,7 +4103,7 @@ a.rater-name:hover {
 .destacada-titulo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-size: var(--t-2xl);
   font-weight: 800;
   letter-spacing: -0.3px;
@@ -4132,8 +4134,8 @@ a.rater-name:hover {
 
 /* Panel de admin */
 .admin-destacada {
-  margin-top: 28px;
-  padding: 18px;
+  margin-top: 32px;
+  padding: 16px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -4203,7 +4205,7 @@ a.rater-name:hover {
 }
 
 .be-zona:hover {
-  border-color: #dc2626;
+  border-color: var(--danger);
   background: rgba(220, 38, 38, 0.16);
 }
 
@@ -4215,7 +4217,7 @@ a.rater-name:hover {
 .reto-tarjetas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 8px;
 }
 
@@ -4223,7 +4225,7 @@ a.rater-name:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 16px 16px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -4259,7 +4261,7 @@ a.reto-tarjeta:hover {
 }
 
 .reto-flecha {
-  color: var(--text-dim);
+  color: var(--text-mid);
   font-weight: 700;
 }
 
@@ -4310,7 +4312,7 @@ a.reto-tarjeta:hover {
   align-items: center;
   gap: 4px;
   margin-left: 8px;
-  padding: 2px 10px;
+  padding: 2px 12px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
   background: var(--white);
@@ -4364,7 +4366,7 @@ a.reto-tarjeta:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
+  padding: 8px 8px;
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
@@ -4409,7 +4411,7 @@ a.reto-tarjeta:hover {
   gap: 16px;
   flex-wrap: wrap;
   margin: 24px 0 4px;
-  padding: 18px 20px;
+  padding: 16px 24px;
   background: linear-gradient(135deg, var(--navy), var(--indigo, var(--navy)));
   color: var(--white);
   border-radius: var(--radius-lg);
@@ -4459,7 +4461,7 @@ a.reto-tarjeta:hover {
 }
 
 .guia-acciones .btn-secondary {
-  padding: 6px 12px;
+  padding: 8px 12px;
   font-size: var(--t-sm);
 }
 
@@ -4480,7 +4482,7 @@ a.reto-tarjeta:hover {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
-  padding: 16px 18px;
+  padding: 16px 16px;
   margin: 0 0 16px;
 }
 
@@ -4492,8 +4494,8 @@ a.reto-tarjeta:hover {
 .encuesta-opcion-voto {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 12px;
+  padding: 12px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   margin-bottom: 8px;
@@ -4514,7 +4516,7 @@ a.reto-tarjeta:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-size: var(--t-md);
   margin-bottom: 4px;
 }
@@ -4522,7 +4524,7 @@ a.reto-tarjeta:hover {
 .encuesta-resultado-cab span {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -4561,7 +4563,7 @@ a.reto-tarjeta:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
   margin-top: 12px;
 }
@@ -4575,7 +4577,7 @@ a.reto-tarjeta:hover {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
   padding: 12px;
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-md);
@@ -4588,7 +4590,7 @@ a.reto-tarjeta:hover {
 #encuestaOpciones {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 /* ── Vídeos de YouTube ──
@@ -4596,7 +4598,7 @@ a.reto-tarjeta:hover {
    alguien la pulsa no se pide nada a Google. Ver js/video-youtube.js. */
 yt-video {
   display: block;
-  margin: 20px 0;
+  margin: 24px 0;
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: #0d1b2a;
@@ -4620,8 +4622,8 @@ yt-video iframe {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 20px;
+  gap: 12px;
+  padding: 24px;
   color: #fff;
   background: radial-gradient(120% 120% at 50% 40%, #24445c 0%, #0d1b2a 100%);
   font: inherit;
@@ -4720,12 +4722,12 @@ yt-video .yt-enlace:hover { color: #fff; }
 .pagina-404 {
   display: flex;
   align-items: flex-start;
-  gap: 26px;
-  padding: 26px 0 40px;
+  gap: 24px;
+  padding: 24px 0 40px;
 }
 
 .pagina-404 h1 {
-  margin: 6px 0 10px;
+  margin: 8px 0 12px;
 }
 
 .pagina-404 .subtext {
@@ -4735,7 +4737,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 .buscador-404 {
   display: flex;
   gap: 8px;
-  margin-top: 18px;
+  margin-top: 16px;
   max-width: 420px;
 }
 
@@ -4778,7 +4780,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   background: var(--white);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
-  padding: 18px 20px;
+  padding: 16px 24px;
 }
 
 .primeros-pasos-cabecera {
@@ -4786,7 +4788,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .primeros-pasos-cabecera h2 {
@@ -4801,7 +4803,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   color: var(--navy);
   background: var(--ice);
   border-radius: var(--radius-pill);
-  padding: 6px 12px;
+  padding: 8px 12px;
 }
 
 .primeros-pasos-lista {
@@ -4817,7 +4819,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 12px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--bg);
@@ -4873,7 +4875,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 .paso-boton {
   flex-shrink: 0;
   font-size: var(--t-sm);
-  padding: 8px 14px;
+  padding: 8px 16px;
 }
 
 .primeros-pasos-pie {
@@ -4889,7 +4891,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   .paso-boton {
     width: 100%;
     text-align: center;
-    margin-left: 34px;
+    margin-left: 32px;
   }
 }
 
@@ -4914,9 +4916,9 @@ yt-video .yt-enlace:hover { color: #fff; }
 .enlace-tarjeta {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   max-width: 460px;
-  margin: 6px 0;
+  margin: 8px 0;
   padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -4966,7 +4968,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
+  padding: 8px 8px;
   border-radius: 8px;
   text-decoration: none;
   color: inherit;
@@ -4987,7 +4989,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   position: absolute;
   z-index: 60;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   width: 280px;
   padding: 12px;
   background: var(--white);
@@ -5025,7 +5027,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 .hovercard-linea {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--t-sm);
 }
 
@@ -5046,8 +5048,8 @@ yt-video .yt-enlace:hover { color: #fff; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 8px 40px 8px 14px;
+  gap: 12px;
+  padding: 8px 40px 8px 16px;
   position: relative;
   background: var(--ice);
   border-bottom: 1.5px solid var(--border);
@@ -5154,7 +5156,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .lightbox img {
@@ -5179,7 +5181,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   right: 16px;
   font-size: var(--t-2xl);
   line-height: 1;
-  padding: 10px;
+  padding: 12px;
   color: rgba(255, 255, 255, 0.85);
   border-radius: var(--radius-md);
 }
@@ -5195,7 +5197,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   transform: translateY(-50%);
   font-size: 40px;
   line-height: 1;
-  padding: 14px 18px;
+  padding: 16px 16px;
   color: rgba(255, 255, 255, 0.8);
   border-radius: 12px;
   user-select: none;
@@ -5242,7 +5244,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .panel-invitar h3 {
@@ -5261,7 +5263,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   background: var(--ice);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
+  padding: 8px 12px;
   font-size: var(--t-xs);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5277,7 +5279,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xs);
-  padding: 18px 20px;
+  padding: 16px 24px;
 }
 
 .top-mes-cabecera h2 {
@@ -5291,14 +5293,14 @@ yt-video .yt-enlace:hover { color: #fff; }
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .top-mes-fila {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: 12px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
 }
 
@@ -5359,7 +5361,7 @@ yt-video .yt-enlace:hover { color: #fff; }
    empujaría la rejilla en vez de encogerse. */
 #bienvenidaSeccion,
 .panel-portada {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 /* En móvil las dos columnas se apilan: el gap del propio panel es el
@@ -5368,14 +5370,14 @@ yt-video .yt-enlace:hover { color: #fff; }
 .panel-portada {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .portada-principal,
 .portada-lateral {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   min-width: 0;
 }
 
@@ -5384,7 +5386,7 @@ yt-video .yt-enlace:hover { color: #fff; }
    distancia estaba pensada para el hero. La clase la pone js/home.js
    en el mismo momento en que enseña la bienvenida. */
 body.portada-compacta .page-content {
-  padding-top: 18px;
+  padding-top: 16px;
 }
 
 /* La versión sin salto de lo de arriba: el script en línea del <head>
@@ -5406,7 +5408,7 @@ body.portada-compacta .page-content {
 }
 
 :root.con-sesion .page-content {
-  padding-top: 18px;
+  padding-top: 16px;
 }
 
 @media (min-width: 960px) {
@@ -5443,12 +5445,12 @@ body.portada-compacta .page-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px 20px;
+  padding: 16px 24px;
   box-shadow: var(--shadow-xs);
 }
 
@@ -5469,7 +5471,7 @@ body.portada-compacta .page-content {
 .bienvenida-chips {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -5478,8 +5480,8 @@ body.portada-compacta .page-content {
 .bienvenida-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 8px;
+  padding: 4px 12px;
   border-radius: var(--radius-pill);
   background: rgba(245, 158, 11, 0.14);
   color: #b45309;
@@ -5528,7 +5530,7 @@ body.portada-compacta .page-content {
 .medallero-titulo {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-weight: 700;
   font-size: var(--t-md);
   margin-right: 4px;
@@ -5544,12 +5546,12 @@ body.portada-compacta .page-content {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px 18px;
-  margin-bottom: 14px;
+  padding: 16px 16px;
+  margin-bottom: 16px;
   font-size: var(--t-sm);
 }
 .admin-revision-titulo { font-weight: 700; margin: 0 0 8px; }
-.admin-revision ul { margin: 0; padding-left: 18px; }
+.admin-revision ul { margin: 0; padding-left: 16px; }
 .admin-revision li { margin: 4px 0; }
 .admin-revision-limpia p { margin: 0; color: #1f7a55; font-weight: 600; }
 :root[data-theme='dark'] .admin-revision-limpia p { color: #4ade9b; }
@@ -5561,7 +5563,7 @@ body.portada-compacta .page-content {
   border-radius: var(--radius-sm);
 }
 .liga-mi-puesto {
-  margin: 10px 0 0;
+  margin: 12px 0 0;
   font-size: var(--t-sm);
   font-weight: 600;
 }
@@ -5589,12 +5591,11 @@ body.portada-compacta .page-content {
   background: rgba(34, 160, 107, 0.14);
   color: #1f7a55;
 }
-:root[data-theme='dark'] .bienvenida-escudo { color: #7db6dd; }
 :root[data-theme='dark'] .bienvenida-salvada { color: #4ade9b; }
 
-/* El % crítico del panel de preguntas falladas. */
-.falladas-critica { color: #b3261e; }
-:root[data-theme='dark'] .falladas-critica { color: #f2b8b5; }
+/* El % crítico del panel de preguntas falladas. Del token desde la
+   tanda 311: era otro rojo a mano con su copia clara al lado. */
+.falladas-critica { color: var(--danger); }
 
 /* ── El calendario de lanzamientos ── */
 /* La página /lanzamientos tiene su hoja (css/lanzamientos.css): aquí
@@ -5604,18 +5605,17 @@ body.portada-compacta .page-content {
 .lanzamiento-portada {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xs);
-  padding: 12px 14px;
+  padding: 12px 16px;
   color: inherit;
   text-decoration: none;
 }
 .lanzamiento-portada:hover { border-color: var(--navy); }
 .lanzamiento-portada-icono { color: var(--navy); display: inline-flex; }
-:root[data-theme='dark'] .lanzamiento-portada-icono { color: #7db6dd; }
 .lanzamiento-portada-texto { display: flex; flex-direction: column; min-width: 0; }
 /* El logo del set va a la izquierda y el texto al lado, como el icono. */
 .lanzamiento-portada-logo { max-height: 42px; max-width: 108px; object-fit: contain; flex-shrink: 0; }
@@ -5659,15 +5659,15 @@ body.portada-compacta .page-content {
   height: 30px;
   width: 72%;
   border-radius: var(--radius-md);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 /* La firma: una carita redonda y un nombre corto. */
 .esq-firma {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 22px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .esq-firma i {
@@ -5690,13 +5690,13 @@ body.portada-compacta .page-content {
    esqueleto parece un bloque de color y no un texto. */
 .esq-parrafo .esq-linea:last-child {
   width: 62%;
-  margin-bottom: 26px;
+  margin-bottom: 24px;
 }
 
 .esq-bloque {
   height: 180px;
   border-radius: var(--radius-lg);
-  margin-bottom: 26px;
+  margin-bottom: 24px;
 }
 
 /* Se apaga poco a poco hacia abajo: lo de arriba es lo que vas a leer
@@ -5715,7 +5715,7 @@ body.portada-compacta .page-content {
 .esq-tarjeta {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .esq-tarjeta .esq-bloque {
@@ -5728,7 +5728,7 @@ body.portada-compacta .page-content {
 
 .esq-guia {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   align-items: flex-start;
   padding: 16px;
   border: 1px solid var(--border);

@@ -52,6 +52,21 @@
   --border-strong: #c9dbe2;
   --success: #0d9e6e;
   --success-bg: #e6f7f2;
+  /* PELIGRO: borrar, un error, una derrota (tanda 311). No existía —
+     había --success, --warning, --indigo y --pink, pero el rojo iba a
+     mano 61 veces en tres tonos distintos, incluso dentro de estilos EN
+     LÍNEA del JavaScript. Eso significaba que el rojo de «Eliminar» del
+     muro y el de otra pantalla podían no ser el mismo y, sobre todo,
+     que NINGUNO se adaptaba al tema. */
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  /* El rojo que va de FONDO con texto blanco encima: la chapa de «en
+     juego», la marca de una carta ilegal. Es otro token a propósito y
+     NO tiene versión clara para el tema oscuro — al revés que --danger,
+     que es texto y ahí necesita aclararse. Si se aclarara, el blanco de
+     encima se quedaría en 2,4 de contraste. Este se queda quieto y lo
+     que cambia alrededor es el fondo de la página. */
+  --danger-solid: #dc2626;
   --warning: #c8720a;
   --warning-bg: #fdf1de;
   --indigo: #4f46e5;
@@ -142,7 +157,18 @@
    <head> de cada página, antes de pintar nada, para no dar un parpadeo de
    tema claro al cargar con el oscuro ya guardado. */
 :root[data-theme='dark'] {
-  --navy: #4a90c2;
+  /* Aclarado en la tanda 311 (era #4a90c2). El azul del tema oscuro se
+     quedaba corto contra las superficies oscuras: 45 reglas ponen texto
+     --navy sobre fondo --ice y las 45 daban 4,17 de contraste, por
+     debajo del 4,5 legible. Con este sube a 6,14.
+
+     Se comprobó que NADA empeora antes de tocarlo: --navy también hace
+     de FONDO en 32 reglas, pero en oscuro el texto que lleva encima es
+     --white, que aquí es la superficie oscura (#182430) — o sea texto
+     oscuro sobre azul, que con este azul pasa de 4,54 a 7,20. Y no hay
+     ni una regla que ponga texto CLARO sobre fondo --navy, que es el
+     único caso al que este cambio le haría daño. */
+  --navy: #6fb0dc;
   --navy-light: #63a8d6;
   --navy-dark: #3a76a3;
   --ice: #1c2b38;
@@ -156,6 +182,10 @@
   --border-strong: #34434f;
   --success: #34d399;
   --success-bg: #11312a;
+  /* El rojo del tema claro sobre la superficie oscura daba 3,26 de
+     contraste: ilegible. Este da 5,69. */
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.14);
   --warning: #f0a940;
   --warning-bg: #3a2a11;
   --indigo: #818cf8;
@@ -273,7 +303,7 @@ select {
   color: #0d1b2a;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  padding: 12px 12px;
   font-size: var(--t-md);
   outline: none;
   transition: border-color 0.15s var(--ease);
@@ -306,7 +336,7 @@ select {
   -webkit-appearance: none;
   /* Sitio a la derecha para la flecha, o el texto largo se le mete
      debajo. */
-  padding-right: 34px;
+  padding-right: 36px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%2352717f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
@@ -393,7 +423,7 @@ textarea {
 .nav-logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-weight: 800;
   font-size: var(--t-xl);
   color: var(--text);
@@ -460,7 +490,7 @@ textarea {
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   /* La altura de #nav-user YA RELLENO (botones o avatar): se reserva
      para que la navbar no crezca cuando el JS los mete — empujaba la
      página entera (layout shift, PageSpeed). */
@@ -502,7 +532,7 @@ textarea {
   display: none;
   flex-direction: column;
   gap: 2px;
-  padding: 6px 24px 18px;
+  padding: 8px 24px 16px;
   border-top: 1px solid var(--border);
   background: var(--white);
 }
@@ -542,7 +572,7 @@ textarea {
      quedaba fuera de la pantalla). Se reduce el hueco entre iconos y, por
      debajo de 480px, se colapsa el texto del logo a solo el icono. */
   .nav-right {
-    gap: 6px;
+    gap: 8px;
   }
 }
 
@@ -560,7 +590,7 @@ textarea {
    iconos y el bloque derecho puede encogerse. */
 @media (max-width: 380px) {
   .nav-inner {
-    gap: 6px;
+    gap: 8px;
   }
   .nav-right {
     gap: 4px;
@@ -585,7 +615,7 @@ textarea {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 24px;
+  padding: 16px 24px;
   border-radius: var(--radius-md);
   font-weight: 600;
   font-size: var(--t-md);
@@ -668,7 +698,7 @@ button.btn-block {
   gap: 8px;
   font-size: var(--t-2xl);
   font-weight: 800;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   letter-spacing: -0.3px;
 }
 
@@ -682,14 +712,14 @@ button.btn-block {
 .hero-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--ice);
   color: var(--navy);
   font-weight: 700;
   font-size: var(--t-xs);
-  padding: 6px 14px;
+  padding: 8px 16px;
   border-radius: var(--radius-pill);
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .hero h1 {
@@ -698,14 +728,14 @@ button.btn-block {
   letter-spacing: -1.4px;
   line-height: 1.08;
   max-width: 760px;
-  margin: 0 auto 18px;
+  margin: 0 auto 16px;
 }
 
 .hero p {
   font-size: var(--t-xl);
   color: var(--text-mid);
   max-width: 500px;
-  margin: 0 auto 30px;
+  margin: 0 auto 32px;
   line-height: 1.55;
 }
 
@@ -757,7 +787,7 @@ button.btn-block {
   background: var(--navy);
   color: var(--white);
   border-radius: var(--radius-xl);
-  padding: 30px;
+  padding: 32px;
   position: relative;
   overflow: hidden;
 }
@@ -784,8 +814,8 @@ button.btn-block {
   /* Tres números desde que el panel habla de la comunidad (miembros,
      guías, mensajes de la semana), no solo del contenido. */
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 18px;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .hero-panel-stat .value {
@@ -804,7 +834,7 @@ button.btn-block {
 .hero-panel-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.16);
-  margin: 20px 0;
+  margin: 24px 0;
 }
 
 @media (min-width: 900px) {
@@ -817,7 +847,7 @@ button.btn-block {
 .grid-categories {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  gap: 16px;
 }
 
 @media (min-width: 640px) {
@@ -856,10 +886,10 @@ button.btn-block {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   overflow: hidden;
   transition: transform 0.15s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
@@ -903,7 +933,7 @@ button.btn-block {
   color: var(--navy);
   font-size: var(--t-2xs);
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: var(--radius-pill);
   width: fit-content;
 }
@@ -913,7 +943,7 @@ button.btn-block {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -977,7 +1007,7 @@ button.btn-block {
   gap: 4px;
   font-size: var(--t-2xs);
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: var(--radius-pill);
 }
 
@@ -1009,8 +1039,8 @@ button.btn-block {
 }
 
 .badge-danger {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .time-tag {
@@ -1040,7 +1070,7 @@ button.btn-block {
   background: var(--navy);
   color: var(--white);
   border-radius: var(--radius-xl);
-  padding: 34px 24px;
+  padding: 32px 24px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -1092,7 +1122,7 @@ button.btn-block {
    su propio bloque con icono y botón. */
 .empty-state {
   text-align: center;
-  padding: 32px 20px;
+  padding: 32px 24px;
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--navy) 2%, transparent);
@@ -1219,14 +1249,14 @@ button.btn-block {
 /* ── Card media (imagen de portada, si existe) ── */
 .card-media {
   height: 108px;
-  margin: -18px -18px 12px;
+  margin: -16px -16px 12px;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   background-size: cover;
   background-position: center;
   position: relative;
   display: flex;
   align-items: flex-end;
-  padding: 10px;
+  padding: 12px;
 }
 
 .card-media::after {
@@ -1258,7 +1288,7 @@ button.btn-block {
   gap: 4px;
   font-size: var(--t-2xs);
   font-weight: 700;
-  padding: 4px 10px 4px 6px;
+  padding: 4px 12px 4px 8px;
   border-radius: var(--radius-pill);
   text-transform: capitalize;
 }
@@ -1344,7 +1374,7 @@ button.btn-block {
 /* ── Footer ── */
 .footer {
   text-align: center;
-  padding: 36px 20px;
+  padding: 36px 24px;
   /* text-dim se quedaba en 2.2:1 a este cuerpo (PageSpeed, AA). */
   color: var(--text-mid);
   font-size: var(--t-sm);

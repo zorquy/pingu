@@ -10,12 +10,12 @@
 .aprender-seguir {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
   flex-wrap: wrap;
   background: linear-gradient(115deg, #163d59, #2a6b96 62%, #347fae);
   color: #fff;
   border-radius: var(--radius-xl);
-  padding: 20px 24px;
+  padding: 24px 24px;
   margin-bottom: 24px;
   box-shadow: var(--shadow-md);
   text-decoration: none;
@@ -75,13 +75,13 @@
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 .aprender-chip {
   border: 1px solid var(--border-strong);
   background: var(--white);
   border-radius: var(--radius-pill);
-  padding: 8px 14px;
+  padding: 8px 16px;
   font-size: var(--t-md);
   font-weight: 500;
   font-family: inherit;
@@ -109,7 +109,7 @@
 .guia-rejilla {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 18px;
+  gap: 16px;
 }
 @media (max-width: 380px) {
   /* Por debajo del mínimo la pista desbordaría: una sola columna. */
@@ -170,7 +170,7 @@
   z-index: 1;
   background: rgba(255, 255, 255, 0.92);
   border-radius: var(--radius-pill);
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: var(--t-2xs);
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -183,15 +183,14 @@
 .guia-cuerpo {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px 18px 18px;
+  gap: 12px;
+  padding: 16px 16px 16px;
   flex: 1;
 }
 .guia-titulo { font-family: var(--font-display); font-size: var(--t-xl); line-height: 1.28; transition: color 0.15s; }
 .guia-tarjeta:hover .guia-titulo { color: var(--navy); }
-:root[data-theme='dark'] .guia-tarjeta:hover .guia-titulo { color: #7db6dd; }
 .guia-desc { color: var(--text-mid); font-size: var(--t-sm); line-height: 1.5; }
-.guia-etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+.guia-etiquetas { display: flex; flex-wrap: wrap; gap: 8px; }
 .guia-etiqueta {
   display: inline-flex;
   align-items: center;
@@ -206,7 +205,7 @@
 }
 /* El progreso abajo del todo y con `margin-top:auto`: así dos tarjetas
    vecinas lo tienen a la misma altura aunque sus títulos midan distinto. */
-.guia-progreso { margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
+.guia-progreso { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
 .guia-barra { height: 5px; border-radius: var(--radius-pill); background: var(--ice); overflow: hidden; }
 .guia-barra i { display: block; height: 100%; border-radius: var(--radius-pill); background: var(--success); }
 .guia-progreso-texto { font-size: var(--t-xs); color: var(--text-dim); }

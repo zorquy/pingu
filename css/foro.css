@@ -49,7 +49,7 @@
   border: 1px solid transparent;
   border-radius: 8px;
   background: none;
-  color: var(--text-dim);
+  color: var(--text-mid);
   cursor: pointer;
 }
 
@@ -69,7 +69,7 @@
   position: absolute;
   z-index: 40;
   min-width: 232px;
-  padding: 6px;
+  padding: 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--white);
@@ -82,7 +82,7 @@
   gap: 8px;
   align-items: center;
   width: 100%;
-  padding: 8px 10px;
+  padding: 8px 12px;
   border: 0;
   border-radius: var(--radius-sm);
   background: none;
@@ -97,20 +97,17 @@
 }
 
 .foro-mod-menu hr {
-  margin: 6px 8px;
+  margin: 8px 8px;
   border: 0;
   border-top: 1px solid var(--border);
 }
 
-/* El rojo de borrar es el mismo que ya usa el botón de la ficha de un
-   tema, con su versión clara para el modo oscuro: no hay variable para
-   esto en style.css y no la voy a inventar para dos reglas. */
+/* El rojo de borrar. Ya SÍ hay variable: la tanda 311 la creó
+   (`--danger`) porque este mismo apaño —un rojo a mano aquí y su copia
+   clara para el oscuro en otro bloque— estaba repetido en cuatro sitios,
+   y cada copia se había ido a un tono distinto. */
 .foro-mod-peligro {
-  color: #c0392b;
-}
-
-:root[data-theme='dark'] .foro-mod-peligro {
-  color: #e07d72;
+  color: var(--danger);
 }
 
 /* ── La barra de abajo ──
@@ -131,7 +128,7 @@
   left: 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 14px;
+  gap: 12px 16px;
   align-items: center;
   max-width: 940px;
   margin: 0 auto;
@@ -157,9 +154,9 @@
 
 .foro-mod-acciones .btn-secondary {
   display: inline-flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
-  padding: 6px 10px;
+  padding: 8px 12px;
   font-size: 0.88rem;
 }
 
@@ -235,7 +232,7 @@
     right: 8px;
     bottom: 8px;
     left: 8px;
-    padding: 10px 12px;
+    padding: 12px 12px;
   }
 }
 
@@ -256,9 +253,9 @@
 /* Panel del foro en /admin */
 .foro-admin-fila {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
@@ -268,7 +265,7 @@
 }
 
 .foro-admin-hijo td:first-child {
-  padding-left: 18px;
+  padding-left: 16px;
 }
 
 .foro-admin-rama {
@@ -278,7 +275,7 @@
 .foro-admin-check {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--t-xs);
   white-space: nowrap;
 }
@@ -290,7 +287,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin: 4px 0 14px;
+  margin: 4px 0 16px;
   font-size: var(--t-sm);
   color: var(--text-mid);
 }
@@ -326,7 +323,7 @@
 }
 
 .foro-cabecera-acciones .btn-primary {
-  padding: 10px 18px;
+  padding: 12px 16px;
   font-size: var(--t-md);
 }
 
@@ -345,7 +342,7 @@
 .foro-lateral {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 /* ── La escala del foro ──
@@ -354,7 +351,7 @@
    eso aquí todo va un punto más apretado que en el resto de la web —
    filas más bajas, tipografías algo menores y avatares más pequeños. */
 .foro-seccion {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -363,7 +360,7 @@
 
 .foro-seccion-titulo {
   margin: 0;
-  padding: 10px 16px;
+  padding: 12px 16px;
   background: var(--ice);
   font-size: var(--t-sm);
   font-weight: 800;
@@ -410,7 +407,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   margin: 0 0 1px;
   font-size: var(--t-md);
   font-weight: 700;
@@ -428,7 +425,7 @@
 .foro-fila-cuerpo .subtext {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin: 0;
   font-size: var(--t-xs);
   line-height: 1.45;
@@ -452,7 +449,7 @@
 
 .foro-fila-numeros {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   justify-content: center;
 }
 
@@ -537,7 +534,7 @@
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 12px 14px;
+  padding: 12px 16px;
 }
 
 .foro-panel h3 {
@@ -556,7 +553,7 @@
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   overflow: hidden;
 }
 
@@ -565,7 +562,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 14px 10px;
+  padding: 16px 12px;
   background: var(--bg);
   border-right: 1px solid var(--border);
   text-align: center;
@@ -600,7 +597,7 @@
   white-space: normal;
   text-align: center;
   line-height: 1.3;
-  padding: 4px 10px;
+  padding: 4px 12px;
 }
 
 .foro-mensaje-autor .contributor-badge svg {
@@ -642,13 +639,13 @@
 .foro-mensaje-solucion .foro-mensaje-cuerpo {
   border: 1px solid var(--success, #34d399);
   border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  padding: 12px 12px;
 }
 
 .foro-solucion-banda {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin: 0 0 8px;
   font-size: var(--t-xs);
   font-weight: 700;
@@ -735,7 +732,7 @@
 .foro-mensaje-cuerpo {
   display: flex;
   flex-direction: column;
-  padding: 10px 16px 10px;
+  padding: 12px 16px 12px;
   min-width: 0;
 }
 
@@ -743,10 +740,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-size: var(--t-xs);
 }
 
@@ -766,7 +763,7 @@
 }
 
 .foro-mensaje-texto p {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .foro-mensaje-texto p:last-child {
@@ -805,7 +802,7 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 10px;
+  margin-top: 12px;
   padding-top: 8px;
   border-top: 1px solid var(--border);
 }
@@ -814,14 +811,14 @@
 .foro-mensaje-der {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .foro-accion {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 8px;
+  padding: 4px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   background: none;
@@ -839,7 +836,7 @@
 
 /* ── Formularios del foro ── */
 .foro-form {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .foro-form h3 {
@@ -849,7 +846,7 @@
 
 .foro-form-fila {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
@@ -863,23 +860,23 @@
 
 .foro-form-acciones {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 /* Responder no es "empezar a coleccionar": es el botón de todos los días
    y no tiene por qué pesar como una llamada a la acción de portada. */
 .foro-form-acciones .btn-primary,
 .foro-form-acciones .btn-secondary {
-  padding: 8px 18px;
+  padding: 8px 16px;
   font-size: var(--t-md);
 }
 
 .foro-respondiendo {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 0 0 10px;
+  gap: 8px;
+  margin: 0 0 12px;
   padding: 8px 12px;
   background: var(--ice);
   border-radius: var(--radius-sm);
@@ -895,8 +892,8 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 10px;
-  padding: 6px 0;
+  gap: 12px;
+  padding: 8px 0;
   font-size: var(--t-sm);
   color: var(--text-mid);
   border-bottom: 1px solid var(--border);
@@ -918,7 +915,7 @@
 
 /* El contador que va al lado del título del panel. */
 .foro-panel-cuenta {
-  margin-left: 6px;
+  margin-left: 8px;
   padding: 1px 8px;
   border-radius: var(--radius-pill);
   background: var(--ice);
@@ -948,13 +945,13 @@
 .foro-buscador {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   max-width: 300px;
-  margin: 0 0 10px auto;
+  margin: 0 0 12px auto;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  padding: 4px 6px 4px 12px;
+  padding: 4px 8px 4px 12px;
   transition: border-color 0.15s var(--ease);
 }
 
@@ -967,7 +964,7 @@
   min-width: 0;
   border: none;
   background: none;
-  padding: 6px 0;
+  padding: 8px 0;
   font-size: var(--t-sm);
   color: var(--text);
 }
@@ -1054,14 +1051,14 @@
   display: inline-block;
   width: 7px;
   height: 7px;
-  margin-right: 6px;
+  margin-right: 8px;
   border-radius: 50%;
   background: var(--navy);
   vertical-align: middle;
 }
 
 .foro-btn-leido {
-  padding: 8px 14px;
+  padding: 8px 16px;
   font-size: var(--t-sm);
 }
 
@@ -1116,8 +1113,8 @@
   z-index: 60;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 8px;
+  padding: 8px 12px;
   border-radius: var(--radius-pill);
   background: var(--navy);
   color: var(--white);
@@ -1133,8 +1130,8 @@
 
 /* ── Vista previa de la respuesta ── */
 .foro-previa {
-  margin-top: 10px;
-  padding: 12px 14px;
+  margin-top: 12px;
+  padding: 12px 16px;
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-md);
   background: var(--bg);
@@ -1146,7 +1143,7 @@
 
 .foro-previa-eti {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-size: var(--t-2xs);
   font-weight: 800;
   letter-spacing: 0.5px;
@@ -1174,8 +1171,8 @@
   background: var(--white);
   border: 1px solid var(--warning);
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
-  margin-bottom: 18px;
+  padding: 16px 16px;
+  margin-bottom: 16px;
 }
 
 .foro-sin-responder h2 {
@@ -1188,7 +1185,7 @@
 }
 
 .foro-sin-responder > .subtext {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   font-size: var(--t-xs);
 }
 
@@ -1203,7 +1200,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   background: var(--bg);
 }
@@ -1248,7 +1245,7 @@
   display: inline-flex;
   align-items: center;
   padding: 4px;
-  color: var(--text-dim);
+  color: var(--text-mid);
   border-radius: 6px;
 }
 
@@ -1304,10 +1301,10 @@ a.foro-cita-quien:hover {
 .foro-filtro-banda {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--t-sm);
   color: var(--text-mid);
-  margin: 0 0 10px;
+  margin: 0 0 12px;
 }
 
 /* ── La columna del autor: nivel + distinción apilados ── */
@@ -1373,7 +1370,7 @@ a.foro-cita-quien:hover {
    lateral, pero a lo ancho: aquí un título de tema cabe entero, que es
    lo único que hace que sirva para algo. */
 .foro-calientes {
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 .foro-calientes > h2 {
   font-size: var(--t-xl);
@@ -1387,7 +1384,7 @@ a.foro-cita-quien:hover {
 .foro-caliente {
   display: flex;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 16px 16px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1407,7 +1404,7 @@ a.foro-cita-quien:hover {
 .foro-caliente-texto {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 .foro-caliente-titulo {
@@ -1424,7 +1421,6 @@ a.foro-cita-quien:hover {
   overflow: hidden;
 }
 .foro-caliente:hover .foro-caliente-titulo { color: var(--navy); }
-:root[data-theme='dark'] .foro-caliente:hover .foro-caliente-titulo { color: #7db6dd; }
 .foro-caliente-meta {
   display: flex;
   align-items: center;
@@ -1440,7 +1436,6 @@ a.foro-cita-quien:hover {
   font-size: var(--t-2xs);
   font-weight: 700;
 }
-:root[data-theme='dark'] .foro-caliente-pref { color: #7db6dd; }
 
 /* En móvil se cae todo a una columna: las cuatro columnas de un índice de
    foro no caben en 360 px ni forzándolas, y lo que se pierde (números y
@@ -1453,7 +1448,7 @@ a.foro-cita-quien:hover {
   .foro-fila,
   .foro-tema-fila {
     grid-template-columns: 28px minmax(0, 1fr);
-    gap: 10px;
+    gap: 12px;
   }
 
   .foro-fila-numeros {
@@ -1464,7 +1459,7 @@ a.foro-cita-quien:hover {
 
   .foro-fila-numeros span {
     flex-direction: row;
-    gap: 6px;
+    gap: 8px;
     align-items: baseline;
   }
 
@@ -1483,7 +1478,7 @@ a.foro-cita-quien:hover {
     justify-content: flex-start;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 12px 14px;
+    padding: 12px 16px;
     border-right: none;
     border-bottom: 1px solid var(--border);
     text-align: left;

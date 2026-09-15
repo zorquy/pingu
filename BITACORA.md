@@ -12,6 +12,74 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-15 (10) — PINGU-Claude (tanda 311 — que todo se lea)
+
+**Hecho**: las tres mejoras que la 310 dejó pendientes a propósito, que
+eran justo las que podían romper algo.
+
+- **El contraste, medido en las dos pantallas.** Un barrido abre ocho
+  páginas en claro y en oscuro, busca el fondo REAL de cada texto
+  (degradados incluidos) y calcula el ratio. Tres familias de fallo: el
+  azul del tema oscuro se quedaba en 4,17 en 45 reglas (`--navy` de
+  `#4a90c2` a `#6fb0dc` → 6,14, comprobando antes que las 32 reglas donde
+  hace de FONDO mejoran también, de 4,54 a 7,20); doce controles que se
+  pulsan —«Eliminar», «Responder», «Denunciar», las flechas del reto,
+  las pestañas del torneo— iban con el gris de los apuntes, 2,35 → 4,84;
+  y el mensaje de un muro vacío, 2,21. Ahora el barrido da **0 en los dos
+  temas**.
+- **El rojo tiene nombre.** No existía `--danger`: iba a mano 61 veces,
+  en tres tonos, hasta en estilos en línea del JavaScript, y ninguno se
+  adaptaba al tema (3,26 en oscuro). Tres tokens: `--danger` (texto y
+  bordes), `--danger-bg` (fondo de aviso) y `--danger-solid` (el rojo que
+  va de fondo CON TEXTO BLANCO encima, que a propósito **no** se aclara
+  en oscuro). De paso caen seis bloques `[data-theme='dark']` que
+  existían solo para dar la versión clara de un rojo.
+- **El espaciado, la otra mitad.** Los pares intermedios que la 310 dejó
+  fuera: **792 cambios** (10→12 ×267, 6→8 ×209, 14→16 ×137, 18→16 ×71,
+  20→24 ×51…) más nueve valores grandes elegidos a ojo. La regla que
+  queda: hasta 32 px es un PASO de la escala y tiene que ser uno de los
+  seis; por encima es una MEDIDA y solo se le pide la retícula de 4.
+
+**Lo que sacó la verificación** (los tres en SCHEMA.md con detalle):
+
+1. El barrido de rojos pasó por `style.css` y dejó
+   `--danger: var(--danger)` — un token que se nombra a sí mismo queda
+   SIN definir y no da error. Hay comprobación general nueva.
+2. El mismo barrido metió `var(--danger)` en `COLORES_AVATAR`, que no es
+   semántica sino la paleta de IDENTIDAD del avatar: el color de una de
+   cada diez personas cambiaba al cambiar de tema, con la inicial blanca
+   encima en 2,4.
+3. El espaciado rompió una caja, que era el riesgo anunciado: el nombre
+   del próximo torneo de la portada se partió en dos renglones. La prueba
+   mide ahora que la portada no se salga de ancho a 320 y a 1280.
+4. Al aclarar el azul aparecieron **24 bloques `[data-theme='dark']` que
+   existían solo para aclarar `--navy` a mano**. Fuera 19 enteros (y de
+   cinco se quita solo el azul). Ahí estaba escondido un fallo que
+   llevaba tiempo en producción: la chapa de «EN JUEGO» salía con el
+   texto AZUL sobre el rojo en el tema oscuro —**2,2**— porque el bloque
+   del tema tiene tres componentes de especificidad y la regla que ponía
+   el blanco solo dos. **Un bloque de tema no es «lo mismo más claro»:
+   es una regla que compite.**
+
+**Ficheros**: `css/style.css`, `css/components.css`, `css/torneos.css`,
+`css/curso.css`, `css/foro.css`, `css/perfil.css`, `css/portada.css`,
+`css/partidas.css`, `css/aprender.css`, `css/comunidad.css`,
+`css/noticias.css`, `css/lanzamientos.css`, `js/perfil.js`,
+`js/wall.js`, `SCHEMA.md`, `CLAUDE.md`. (`js/app.js` NO: el barrido de
+rojos le metió `var(--danger)` en `COLORES_AVATAR` y se deshizo.) En la rama `pruebas`:
+`test-tanda-311.mjs` (NUEVO), `rigor-tanda-311.py` (NUEVO),
+`correr-suite.sh`, `aud-contraste.mjs`.
+
+**Suite**: 72 pruebas en verde. **Rigor**: 14 mutaciones, todas
+detectadas. **Peso de la portada**: 164,0 KB gzip de 170.
+
+**En curso / pendiente**: nada a medias. Sigue abierto de tandas
+anteriores: el resto de la escala de color (quedan ~500 colores a mano
+en 219 valores distintos; **ojo con `#fff`, que aparece 59 veces y NO se
+puede sustituir en bloque** porque en oscuro `--white` es la superficie
+oscura `#182430`) y las piezas del foro sin cobertura de pruebas
+(encuestas, no leídos, suscripciones, búsqueda, menciones, moderación).
+
 ## 2026-09-15 (9) — PINGU-Claude (tanda 310 — espaciado, desplegables y estados vacíos)
 
 **Hecho**: seis mejoras visuales, todas medidas sobre el código antes de

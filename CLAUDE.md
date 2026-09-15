@@ -52,7 +52,25 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   el diámetro del círculo y no con la escala.
 - **El espaciado sale de la escala** (`--e-xs`…`--e-2xl` en `:root`,
   tanda 310) y **nunca es impar**: los 3, 5, 7 y 9 px eran «medio pasos»
-  elegidos a ojo, igual que lo eran los tamaños de letra.
+  elegidos a ojo, igual que lo eran los tamaños de letra. Desde la 311 la
+  regla tiene dos tramos: **hasta 32 px un número es un PASO** y tiene
+  que ser uno de los seis (4, 8, 12, 16, 24, 32 — más 1 y 2 para un
+  borde); **por encima ya no es un paso, es una MEDIDA** (el hueco de un
+  avatar, el sitio de la flecha de un desplegable) y solo se le pide que
+  siga en la retícula de 4.
+- **El rojo de peligro sale de un token** (tanda 311) y hay TRES, porque
+  no es lo mismo un rojo que se lee que un rojo que lleva texto encima:
+  `--danger` para texto y bordes, `--danger-bg` para el fondo suave de un
+  aviso, y `--danger-solid` para el rojo que va de FONDO con blanco
+  encima. Este último **no se aclara en el tema oscuro a propósito**: si
+  se aclarara, el blanco de encima se quedaría en 2,4 de contraste. Las
+  únicas paletas con rojo a mano son las dos de IDENTIDAD —los `--rt-*`
+  del editor y `COLORES_AVATAR`— y están declaradas como excepción en
+  `test-tanda-311.mjs`.
+- **Un control que se pulsa no se pinta con `--text-dim`** (tanda 311).
+  Ese gris da 2,35 y es para un metadato de refilón: una fecha, un «hace
+  2 h». Un botón hay que poder leerlo — `--text-mid`. La excepción es un
+  control DESACTIVADO, donde el gris apagado es justo el mensaje.
 - **Los bordes también tienen escala** (tanda 309): un CONTORNO es de
   `1px` o de `2px`, y nada más. Un lado suelto (`border-left: 3px`) es una
   barra de cita, no un contorno; y hay dos sitios donde un `border` dibuja
@@ -80,15 +98,17 @@ el contenedor de una sesión — el 2026-08-28 uno se reinició y se llevó
 por delante el doble y unas 87 pruebas, sin copia en ninguna parte. De
 ahí la rama: fuera de lo que se despliega, pero en algún sitio.
 
-**Estado a 2026-09-15 (tanda 308)**: cubiertos torneos (8 pruebas, más la de la
+**Estado a 2026-09-15 (tanda 311)**: cubiertos torneos (8 pruebas, más la de la
 vista previa al compartir, las dos del registro de partidas y las de
 permisos contra PostgreSQL de verdad), el foro —índice, lista de temas y
 vista de un tema— (2), la PORTADA y /aprender (tanda 299), /usuarios
 (301), la escala tipográfica y los esqueletos de artículo (305) y las
 dos fichas de persona —/perfil y /usuario— con la lista de inscritos de
 un torneo (306). Desde la 308, también **/noticias y las fichas de guía
-y de curso**, que era el hueco grande. Del foro faltan las piezas de alrededor
-(encuestas, no leídos, suscripciones, búsqueda, menciones, moderación).
+y de curso**, que era el hueco grande; y desde la 311 el **contraste
+medido** en ocho páginas por los dos temas. Del foro faltan las piezas de
+alrededor (encuestas, no leídos, suscripciones, búsqueda, menciones,
+moderación).
 
 **El rigor rompe el repo a propósito: no commitees mientras corre.**
 Un script de rigor muta un fichero de verdad, pasa las pruebas y lo
@@ -124,6 +144,17 @@ abres la pestaña— y por eso la pestaña «Foro» de los dos perfiles estuvo
 sin CSS desde la 299 con la prueba en verde. Y hace falta comprobar que
 el barrido **llega**: de una página de la que no recoges ninguna clase
 no puedes decir que tenga ninguna huérfana, así que sale verde igual.
+
+Y la lección que ya va por la SEGUNDA vez (tandas 310 y 311), que no es
+de CSS sino de cómo se cambian 800 sitios a la vez: **una transformación
+en bloque da por hecho que todo lo que se PARECE al caso ES el caso.**
+El barrido de carga diferida metió `loading="lazy"` en el cuerpo de un
+mensaje de foro que se GUARDA en la base; el de los rojos metió
+`var(--danger)` en la paleta de identidad del avatar (que no puede
+cambiar con el tema) y dejó `--danger: var(--danger)` en la propia
+definición del token —que queda SIN definir y **no da error**—. Antes de
+lanzar un barrido: mira a mano una muestra de lo que va a tocar, y
+después pasa la suite entera, que es quien cazó los tres.
 
 Y la TERCERA trampa, de la tanda 306: al mudar reglas a una hoja, las que
 llegan se colocan DESPUÉS de las que ya estaban. `.profile-hero-banner`

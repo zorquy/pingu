@@ -13,7 +13,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin: 18px 0 22px;
+  margin: 16px 0 24px;
 }
 
 @media (min-width: 760px) {
@@ -26,7 +26,7 @@
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
+  padding: 16px 16px;
   box-shadow: var(--shadow-xs);
   min-width: 0;
 }
@@ -53,8 +53,8 @@
 .com-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 22px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .com-chip {
@@ -106,7 +106,7 @@
 .com-dos {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .com-principal {
@@ -116,7 +116,7 @@
 .com-lateral {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   min-width: 0;
 }
 
@@ -124,7 +124,7 @@
   .com-dos {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 320px;
-    gap: 22px;
+    gap: 24px;
     align-items: start;
   }
 
@@ -142,7 +142,7 @@
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 16px 18px;
+  padding: 16px 16px;
   box-shadow: var(--shadow-xs);
 }
 
@@ -164,7 +164,7 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-xl, 18px);
-  padding: 20px 22px 22px;
+  padding: 24px 24px 24px;
   margin-bottom: 24px;
   color: #fff;
   background: linear-gradient(120deg, var(--navy-dark), var(--navy) 55%, #3d8ab8);
@@ -191,7 +191,7 @@
 .com-podio-rotulo {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--t-2xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -215,7 +215,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 16px 10px;
+  padding: 16px 12px;
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -241,7 +241,7 @@
 .com-puesto-medalla {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--t-2xs);
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -328,7 +328,7 @@
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
+  padding: 16px 16px;
   box-shadow: var(--shadow-xs);
   min-width: 0;
   transition: border-color 0.15s var(--ease);
@@ -387,12 +387,12 @@
 .com-persona-racha {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
   background: var(--warning-bg);
   color: #a06008;
   border-radius: var(--radius-pill);
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: var(--t-2xs);
   font-weight: 700;
 }
@@ -404,7 +404,7 @@
 /* ── El montón de caras de «por aquí hoy» ── */
 .com-monton {
   display: flex;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   padding-left: 2px;
 }
 
