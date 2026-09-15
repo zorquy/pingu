@@ -48,6 +48,14 @@ mirar el CSS.
 radios), `SCHEMA.md`.
 En la rama `pruebas`: `test-tanda-309.mjs` y `rigor-tanda-309.py` (NUEVOS).
 
+**Dos cosas de la verificación**: el guardián de peso saltó
+(`components.css` se pasó de 31 KB). En vez de subir el número, que es lo
+que convierte un presupuesto en un adorno, se buscó grasa y la había:
+**CSS muerto** — la tarjeta de persona vieja que sustituyó la tanda 301 y
+nadie borró, nueve reglas que bajaba todo el mundo sin usarlas. Y el
+rigor cazó un hueco en la prueba nueva: medía solo el párrafo, así que
+quitar el envoltorio de la CABECERA pasaba desapercibido.
+
 **En curso / pendiente**: nada a medias.
 
 ---

@@ -15626,6 +15626,29 @@ y formas de icono**, donde un token de interfaz diría algo falso.
 
 Cubierto en `test-tanda-309.mjs` (5 bloques) + `rigor-tanda-309.py`.
 
+### Dos cosas que saltaron al pasar la suite
+
+**1. El guardián de peso hizo su trabajo.** `components.css` se pasó de
+los 31 KB gzip que fijó la tanda 306: la escala de radios engorda
+(`var(--radius-pill)` ocupa más que `999px`) y encima se le sumó el CSS
+nuevo de las tandas 308 y 309.
+
+Lo fácil habría sido **subir el número**, que es justo lo que convierte
+un presupuesto en un adorno. En vez de eso se buscó grasa de verdad, y
+la había: **CSS MUERTO**. La tarjeta de persona vieja —`.user-card`,
+`.user-card-top`, `.user-card-rank`, `.user-card-avatar`,
+`.user-card-info`— la sustituyeron las clases `.com-*` en la tanda 301 y
+nadie la borró; y `.reto-tarjeta-hecha` quedó del rediseño del reto.
+Nueve reglas que bajaba TODO el mundo sin que ninguna página las usara.
+Fuera, y por debajo del límite otra vez sin tocarlo.
+
+**2. El rigor encontró un hueco en la prueba nueva.** La comprobación de
+que «el servidor pinta igual que el cliente» medía solo un PÁRRAFO — y el
+cuerpo lleva dos envoltorios, `.article-header` y `.article-body`.
+Quitando el primero, los párrafos seguían midiendo igual y la prueba
+pasaba con el título roto. Ahora se miden los dos.
+
+
 ### Y una idea que retiré
 
 De las cinco mejoras que propuse, **una era falsa**: dije que el foro

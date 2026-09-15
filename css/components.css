@@ -2185,72 +2185,6 @@ tcg-deck {
   margin-top: 20px;
 }
 
-.user-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  text-decoration: none;
-  color: inherit;
-  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
-}
-
-.user-card:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
-}
-
-.user-card-top {
-  border-color: #f2b705;
-  background: linear-gradient(180deg, rgba(242, 183, 5, 0.08), transparent 60%);
-}
-
-.user-card-rank {
-  width: 26px;
-  flex-shrink: 0;
-  text-align: center;
-  font-size: var(--t-lg);
-  font-weight: 800;
-  color: var(--text-dim);
-}
-
-.user-card-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background-size: cover;
-  background-position: center;
-  background-color: var(--navy);
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--t-lg);
-  font-weight: 800;
-  flex-shrink: 0;
-}
-
-.user-card-info {
-  min-width: 0;
-}
-
-.user-card-info h3 {
-  font-size: var(--t-md);
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-card-info p {
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-  margin-top: 2px;
-}
-
 /* ── Modal ampliado de guía ── */
 
 /* La autoría en la página de la guía. Antes vivía en el pop-up; se
@@ -4300,11 +4234,6 @@ a.rater-name:hover {
 a.reto-tarjeta:hover {
   border-color: var(--navy);
   transform: translateY(-1px);
-}
-
-.reto-tarjeta-hecha {
-  background: var(--bg);
-  color: var(--text-mid);
 }
 
 .reto-icono {
