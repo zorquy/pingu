@@ -48,6 +48,7 @@ const T = {
   user_achievements: [],
   daily_challenge_results: [],
   user_progress: [],
+  profile_comments: [],
   xp_mes: [],
 }
 
@@ -329,6 +330,18 @@ sembrar('__FAKE_GUIAS__', 'guides', (i) => ({
   blocks: [],
 }))
 
+// El muro de un perfil (tanda 308). Hacía falta para poder probar la
+// pestaña que se abre: sin esta tabla el muro estaba SIEMPRE vacío en el
+// doble, así que «se queda en el muro cuando tiene algo» no se podía
+// comprobar — y ese es justo el caso en que la página NO debe moverte.
+sembrar('__FAKE_MURO__', 'profile_comments', (i) => ({
+  id: `muro-${i + 1}`,
+  profile_id: 'user-1',
+  author_id: 'user-2',
+  body: `Comentario ${i + 1}`,
+  created_at: new Date(Date.now() - (i + 1) * 60000).toISOString(),
+}))
+
 sembrar('__FAKE_CATEGORIAS__', 'categories', (i) => ({
   id: `cat-${i + 1}`,
   slug: `categoria-${i + 1}`,
@@ -520,6 +533,58 @@ function consulta(tabla, estado = {}) {
     ...estado,
   }
 
+  // ── Los `select` embebidos de PostgREST (tanda 308) ──
+  //
+  // `.select('*, categories(name, slug)')` trae la fila relacionada
+  // DENTRO de cada resultado: `fila.categories.name`. El doble no lo
+  // hacía, así que devolvía las filas sin la relación y la página se
+  // comportaba como si esa guía no tuviera categoría — sin dar error.
+  // Lo notó la prueba de la ficha: la miga de pan salía apuntando a
+  // `?slug=` vacío y parecía un fallo de la web.
+  //
+  // No se adivina la relación por el nombre: `categories` se enlaza por
+  // `category_id`, y de «categories» a «category» no se llega con una
+  // regla. Van declaradas, que además documenta cuáles usa el sitio.
+  const EMBEBIDOS = {
+    categories: 'category_id',
+    guides: 'guide_id',
+    tcg_sets: 'set_id',
+    forum_posts: 'post_id',
+  }
+
+  const embebidosDe = (cols) => {
+    const fuera = []
+    // `alias:tabla!inner(campos)` — el alias y el `!inner` son opcionales.
+    for (const m of String(cols || '').matchAll(/(?:(\w+):)?(\w+)(?:!\w+)?\(([^)]*)\)/g)) {
+      const [, alias, nombre, campos] = m
+      if (!EMBEBIDOS[nombre]) continue
+      fuera.push({
+        clave: alias || nombre,
+        tabla: nombre,
+        fk: EMBEBIDOS[nombre],
+        campos: campos.split(',').map((c) => c.trim()).filter(Boolean),
+      })
+    }
+    return fuera
+  }
+
+  const conEmbebidos = (filas) => {
+    const embebidos = embebidosDe(st.columnas)
+    if (!embebidos.length) return filas
+    return filas.map((fila) => {
+      const copia = { ...fila }
+      for (const e of embebidos) {
+        const relacionada = (T[e.tabla] || []).find((r) => r.id === fila[e.fk])
+        // Sin relación, `null` — que es lo que devuelve PostgREST, y lo
+        // que las páginas ya saben manejar con `?.`.
+        copia[e.clave] = relacionada
+          ? Object.fromEntries(e.campos.map((c) => [c, relacionada[c]]))
+          : null
+      }
+      return copia
+    })
+  }
+
   const aplicar = () => {
     let filas = tabla === 'forum_boards_resumen' ? resumenDeForos() : (T[tabla] || []).slice()
     // Una política de borrado que dice que NO no da error: le añade a la
@@ -589,7 +654,7 @@ function consulta(tabla, estado = {}) {
     }
     // Lecturas
     if (st.soloCuenta) return { data: null, count: contar(), error: null }
-    const filas = aplicar()
+    const filas = conEmbebidos(aplicar())
     if (st.unico === 'maybe') return { data: filas[0] || null, error: null }
     if (st.unico === 'one') {
       return filas.length === 1
@@ -607,6 +672,7 @@ function consulta(tabla, estado = {}) {
       )
       return consulta(tabla, {
         ...st,
+        columnas: cols === undefined ? '*' : String(cols),
         devuelve: true,
         pideCuenta: opciones.count === 'exact' || st.pideCuenta,
         soloCuenta: opciones.head === true || st.soloCuenta,
