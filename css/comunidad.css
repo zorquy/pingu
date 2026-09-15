@@ -41,7 +41,7 @@
 
 .com-cifra span {
   display: block;
-  margin-top: 3px;
+  margin-top: 4px;
   color: var(--text-mid);
   font-size: var(--t-xs);
   line-height: 1.35;
@@ -53,18 +53,18 @@
 .com-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 9px;
+  gap: 10px;
   margin-bottom: 22px;
 }
 
 .com-chip {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  padding: 8px 15px;
+  padding: 8px 16px;
   font-size: var(--t-md);
   font-weight: 600;
   color: var(--text-mid);
@@ -200,7 +200,7 @@
 }
 
 .com-podio h2 {
-  margin: 7px 0 16px;
+  margin: 8px 0 16px;
   font-size: var(--t-xl);
 }
 
@@ -214,8 +214,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  padding: 15px 10px;
+  gap: 8px;
+  padding: 16px 10px;
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -241,7 +241,7 @@
 .com-puesto-medalla {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-size: var(--t-2xs);
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -312,7 +312,7 @@
 .user-directory-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 11px;
+  gap: 12px;
 }
 
 @media (min-width: 620px) {
@@ -328,7 +328,7 @@
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 13px 15px;
+  padding: 14px 16px;
   box-shadow: var(--shadow-xs);
   min-width: 0;
   transition: border-color 0.15s var(--ease);
@@ -356,7 +356,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 7px;
+  gap: 4px 8px;
   min-width: 0;
   flex: 1;
 }
@@ -387,12 +387,12 @@
 .com-persona-racha {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex-shrink: 0;
   background: var(--warning-bg);
   color: #a06008;
   border-radius: var(--radius-pill);
-  padding: 3px 9px;
+  padding: 4px 10px;
   font-size: var(--t-2xs);
   font-weight: 700;
 }
@@ -404,7 +404,7 @@
 /* ── El montón de caras de «por aquí hoy» ── */
 .com-monton {
   display: flex;
-  margin-bottom: 13px;
+  margin-bottom: 14px;
   padding-left: 2px;
 }
 

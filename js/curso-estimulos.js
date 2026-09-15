@@ -139,7 +139,7 @@ export function mascotaDice(texto) {
     caja.className = 'curso-mascota'
     caja.innerHTML = `
       <span class="curso-mascota-burbuja"></span>
-      <img src="/assets/images/mascota.webp" alt="" width="72" height="109" />`
+      <img loading="lazy" src="/assets/images/mascota.webp" alt="" width="72" height="109" />`
     caja.querySelector('.curso-mascota-burbuja').textContent = texto
     document.body.appendChild(caja)
     mascotaViva = caja

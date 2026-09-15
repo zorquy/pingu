@@ -187,7 +187,7 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
   contenedor.classList.add('selector-mazo')
   contenedor.innerHTML = `
     <div class="selector-mazo-campo">
-      <span class="selector-mazo-marco selector-mazo-sprite hidden"><img alt="" /></span>
+      <span class="selector-mazo-marco selector-mazo-sprite hidden"><img loading="lazy" alt="" /></span>
       <input type="text" class="selector-mazo-texto" placeholder="${escapeHtml(marcador)}" autocomplete="off"
              role="combobox" aria-expanded="false" aria-autocomplete="list" />
       <button type="button" class="selector-mazo-limpiar hidden" aria-label="Quitar">×</button>

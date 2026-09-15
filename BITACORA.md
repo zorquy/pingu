@@ -12,6 +12,44 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-15 (9) — PINGU-Claude (tanda 310 — espaciado, desplegables y estados vacíos)
+
+**Hecho**: seis mejoras visuales, todas medidas sobre el código antes de
+proponerlas.
+
+- **La escala de espaciado**: había 31 valores distintos y **226
+  IMPARES** (3, 5, 7, 9, 11, 13…), los mismos «medio pasos» que tenían
+  los tamaños de letra antes de la 305. Redondeados al par siguiente
+  (+1 px no se ve y nunca aprieta nada) y **seis pasos como tokens**
+  (`--e-xs`…`--e-2xl`) para lo que se escriba a partir de ahora.
+  **PENDIENTE a propósito**: llevar también los pares intermedios (10 px
+  ×132, 6 ×103, 14 ×51) a la escala son ±2 px en 400 declaraciones, y eso
+  sí puede romper una caja justa. Con capturas de antes y después
+  delante.
+- **Los desplegables**: 34 `<select>` y ni un `appearance: none`, o sea
+  que el navegador ponía su flecha y su altura. Ahora son del sitio, con
+  DOS flechas (una por tema: el color va dentro del SVG).
+- **Los estados vacíos**: `.empty-state` era una frase gris centrada en
+  58 sitios. Ahora tienen cuerpo — caja punteada, que dice «vacío» y no
+  «a medio cargar».
+- **Transiciones**: de nueve duraciones a dos. **Sombras**: los cuatro
+  paneles flotantes compartían cuatro sombras casi iguales; ahora usan
+  `--shadow-lg`, un token que `components.css` YA pedía con respaldo y
+  que nadie había definido.
+- **La ficha de torneo** pintaba una barra de UNA sola pestaña. Se
+  esconde por debajo de dos.
+- **17 imágenes** que pinta el JS no pedían carga diferida.
+
+**Ficheros**: las once hojas de `css/` (espaciado), `css/style.css`
+(selects, estados vacíos, tokens), `js/torneos/torneo.js`, y 17 módulos
+de `js/` (lazy). En la rama `pruebas`: `test-tanda-310.mjs` y
+`rigor-tanda-310.py` (NUEVOS).
+
+**En curso / pendiente**: la segunda mitad de la escala de espaciado (ver
+arriba). Nada a medias.
+
+---
+
 ## 2026-09-15 (8) — PINGU-Claude (tanda 309 — el destello de la guía, el menú y la escala de bordes)
 
 **Hecho**: cuatro cosas que salieron de una tanda de ideas de PINGU. Dos

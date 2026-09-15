@@ -30,7 +30,7 @@ export function renderReferenceBlock(block, headings = []) {
     case 'paragraph':
       return `<p>${parseBBCode(block.text || '')}</p>`
     case 'image':
-      return block.url ? `<img src="${block.url}" alt="${escapeHtml(block.caption || '')}" onerror="this.style.display='none'">` : ''
+      return block.url ? `<img loading="lazy" src="${block.url}" alt="${escapeHtml(block.caption || '')}" onerror="this.style.display='none'">` : ''
     case 'list':
       return `<ul>${(block.items || []).map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`
     case 'highlight':
@@ -171,7 +171,7 @@ export function fieldsForCourseBlock(block, i) {
           block.image_url
             ? `<p class="be-ayuda">Pincha en la imagen para marcar la zona buena. Vuelve a pinchar en una marca para quitarla.</p>
                <div class="be-zonas" data-i="${i}">
-                 <img src="${escapeHtml(block.image_url)}" alt="" draggable="false" />
+                 <img loading="lazy" src="${escapeHtml(block.image_url)}" alt="" draggable="false" />
                  ${(block.zones || [])
                    .map(
                      (z, zi) =>
@@ -242,7 +242,7 @@ export function fieldsForCourseBlock(block, i) {
         ${
           block.image_url
             ? `<div class="be-zonas" data-i="${i}">
-                 <img src="${escapeHtml(block.image_url)}" alt="" draggable="false" />
+                 <img loading="lazy" src="${escapeHtml(block.image_url)}" alt="" draggable="false" />
                  ${(block.zones || [])
                    .map(
                      (z, zi) =>

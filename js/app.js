@@ -166,7 +166,7 @@ export function cardMediaHtml(imageUrl, emoji) {
 // parecido elijas lo que elijas.
 export function categoryIconHtml(category, size = 24) {
   if (category?.icon_image) {
-    return `<img src="${category.icon_image.replace(/'/g, '%27')}" alt="" class="category-icon-img" style="width:${size}px; height:${size}px;" />`
+    return `<img loading="lazy" src="${category.icon_image.replace(/'/g, '%27')}" alt="" class="category-icon-img" style="width:${size}px; height:${size}px;" />`
   }
   return contentIconHtml(category?.emoji, size, 'bookOpen')
 }
@@ -177,7 +177,7 @@ export function categoryIconHtml(category, size = 24) {
 // el emoji siempre. El dibujo tiene prioridad si existe; si no, el emoji.
 export function achievementIconHtml(achievement, size = 24) {
   if (achievement?.icon_url) {
-    return `<img src="${achievement.icon_url.replace(/'/g, '%27')}" alt="" class="category-icon-img" style="width:${size}px; height:${size}px;" />`
+    return `<img loading="lazy" src="${achievement.icon_url.replace(/'/g, '%27')}" alt="" class="category-icon-img" style="width:${size}px; height:${size}px;" />`
   }
   return contentIconHtml(achievement?.emoji, size, 'trophy')
 }

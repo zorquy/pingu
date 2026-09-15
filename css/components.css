@@ -23,7 +23,7 @@
   gap: 6px;
   flex: 0 0 auto;
   white-space: nowrap;
-  padding: 11px 4px;
+  padding: 12px 4px;
   margin-right: 20px;
   font-weight: 700;
   font-size: var(--t-md);
@@ -69,7 +69,7 @@
   align-items: center;
   justify-content: center;
   min-width: 18px;
-  padding: 0 5px;
+  padding: 0 6px;
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--navy) 10%, transparent);
   color: var(--text-mid);
@@ -165,7 +165,7 @@
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 10px;
   position: relative;
   overflow: hidden;
 }
@@ -323,7 +323,7 @@
 .guide-meta {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   margin-top: 10px;
   flex-wrap: wrap;
 }
@@ -340,10 +340,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   font-size: var(--t-xs);
   font-weight: 700;
-  padding: 8px 13px;
+  padding: 8px 14px;
   border-radius: var(--radius-sm);
   white-space: nowrap;
   text-align: center;
@@ -357,7 +357,7 @@
    compactos, que es lo que corresponde a ese espacio. */
 .modal-actions .btn-guide,
 .modal-actions .btn-course {
-  padding: 13px 20px;
+  padding: 14px 20px;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   font-size: var(--t-md);
@@ -528,7 +528,7 @@
 .star-pick {
   color: var(--border);
   cursor: pointer;
-  transition: color 0.1s var(--ease);
+  transition: color 0.15s var(--ease);
 }
 
 .star-pick.selected {
@@ -796,7 +796,7 @@ textarea.be-field {
 .rte-sep {
   width: 1px;
   height: 20px;
-  margin: 0 5px;
+  margin: 0 6px;
   background: var(--border-strong);
   flex-shrink: 0;
 }
@@ -804,7 +804,7 @@ textarea.be-field {
 .rte-tachadura {
   font-size: var(--t-2xs);
   font-weight: 800;
-  margin-left: -3px;
+  margin-left: -4px;
 }
 
 /* ── Paletas de color ── */
@@ -820,7 +820,7 @@ textarea.be-field {
   z-index: 5;
   display: flex;
   gap: 4px;
-  padding: 7px;
+  padding: 8px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -891,7 +891,7 @@ textarea.be-field {
 .rte-blockbar-grupo {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
 }
 
 .rte-blockbar-grupo input[type='range'] {
@@ -956,7 +956,7 @@ textarea.be-field {
 
 .rte-compacta .rte-toolbar {
   gap: 4px;
-  padding: 7px 8px;
+  padding: 8px 8px;
   /* En una caja baja, una barra pegajosa se despega de su propia caja al
      hacer scroll y se queda flotando sobre el mensaje de al lado. */
   position: static;
@@ -978,14 +978,14 @@ textarea.be-field {
    separadores) y un borde que aparece al pasar por encima, para que
    cada botón se vea como un botón. */
 .rte-compacta .rte-tools {
-  gap: 3px;
-  row-gap: 5px;
+  gap: 4px;
+  row-gap: 6px;
 }
 
 .rte-compacta .rte-toolbar button {
   min-width: 30px;
   height: 30px;
-  padding: 0 9px;
+  padding: 0 10px;
   font-size: var(--t-sm);
   /* Transparente y no ausente: si el borde apareciera solo al pasar por
      encima, los botones se moverían un píxel. */
@@ -1050,7 +1050,7 @@ textarea.be-field {
    la guía pendiente en guia.html: es información, no una advertencia. */
 .editor-aviso-revision {
   margin: 10px 0 0;
-  padding: 9px 13px;
+  padding: 10px 14px;
   background: var(--ice);
   border-radius: var(--radius-sm);
   font-size: var(--t-sm);
@@ -1229,7 +1229,7 @@ textarea.be-field {
 
 .search-input {
   width: 100%;
-  padding: 15px 18px;
+  padding: 16px 18px;
   font-size: var(--t-xl);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1631,7 +1631,7 @@ textarea.be-field {
 }
 
 .rt-fig figcaption {
-  margin-top: 7px;
+  margin-top: 8px;
   font-size: var(--t-sm);
   line-height: 1.5;
   color: var(--text-mid);
@@ -1848,7 +1848,7 @@ tcg-deck {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 10px;
   font-weight: 800;
   font-size: var(--t-xl);
 }
@@ -1891,7 +1891,7 @@ tcg-deck {
 
 .auth-input {
   width: 100%;
-  padding: 13px 16px;
+  padding: 14px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-size: var(--t-lg);
@@ -2085,7 +2085,7 @@ tcg-deck {
 .my-guide-actions button {
   font-size: var(--t-xs);
   font-weight: 700;
-  padding: 5px 10px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
   background: var(--ice);
   color: var(--navy);
@@ -2097,7 +2097,7 @@ tcg-deck {
 .my-guide-actions .my-guide-ver {
   font-size: var(--t-xs);
   font-weight: 700;
-  padding: 5px 10px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
   background: var(--ice);
   color: var(--navy);
@@ -2214,7 +2214,7 @@ tcg-deck {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 8px;
+  padding: 6px 8px;
   border-radius: var(--radius-sm);
   background: var(--ice);
   color: var(--navy);
@@ -2225,7 +2225,7 @@ tcg-deck {
   color: var(--text-mid);
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
 }
 
 /* ── Forms (generic, admin) ── */
@@ -2332,7 +2332,7 @@ tcg-deck {
   box-shadow: var(--shadow-md);
   opacity: 0;
   transform: translateY(-8px);
-  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+  transition: opacity 0.15s var(--ease), transform 0.2s var(--ease);
 }
 
 .toast-visible {
@@ -2477,7 +2477,7 @@ tcg-deck {
 .nav-racha {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   padding: 4px 8px;
   border-radius: var(--radius-pill);
   background: rgba(245, 158, 11, 0.12);
@@ -2515,7 +2515,7 @@ tcg-deck {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 7px;
+  padding: 8px;
   color: var(--text-mid);
   border-radius: var(--radius-sm);
   transition: color 0.15s var(--ease), background 0.15s var(--ease);
@@ -2540,7 +2540,7 @@ tcg-deck {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 3px;
+  padding: 0 4px;
 }
 
 .nav-bell-dropdown {
@@ -2554,7 +2554,7 @@ tcg-deck {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.15));
+  box-shadow: var(--shadow-lg);
   z-index: 50;
 }
 
@@ -2614,7 +2614,7 @@ tcg-deck {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 7px;
+  padding: 8px;
   color: var(--text-mid);
   border-radius: var(--radius-sm);
   transition: color 0.15s var(--ease), background 0.15s var(--ease);
@@ -2634,7 +2634,7 @@ tcg-deck {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.15));
+  box-shadow: var(--shadow-lg);
   padding: 14px;
   z-index: 50;
 }
@@ -2684,7 +2684,7 @@ tcg-deck {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.15));
+  box-shadow: var(--shadow-lg);
   z-index: 50;
   overflow: hidden;
 }
@@ -2919,7 +2919,7 @@ tcg-deck {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.15));
+  box-shadow: var(--shadow-lg);
   padding: 10px;
   z-index: 50;
 }
@@ -3170,7 +3170,7 @@ tcg-deck {
 .cp-result {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   width: 100%;
   min-width: 0;
   padding: 6px;
@@ -3256,7 +3256,7 @@ tcg-deck {
 }
 
 .cp-mercado select {
-  padding: 9px 10px;
+  padding: 10px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--white);
@@ -3302,7 +3302,7 @@ tcg-deck {
 }
 
 .cp-chosen-list button {
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
   background: var(--ice);
   color: var(--navy);
@@ -3340,7 +3340,7 @@ tcg-deck {
   color: var(--border);
   background: none;
   padding: 0 2px;
-  transition: color 0.12s var(--ease), transform 0.12s var(--ease);
+  transition: color 0.15s var(--ease), transform 0.12s var(--ease);
 }
 
 .rating-box .star-pick:hover {
@@ -3508,7 +3508,7 @@ a.rater-name:hover {
 .guide-card-author {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   margin-top: 6px;
   font-size: var(--t-xs);
   min-width: 0;
@@ -3599,8 +3599,8 @@ a.rater-name:hover {
 .helpful-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 9px 16px;
+  gap: 8px;
+  padding: 10px 16px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
   background: var(--white);
@@ -3637,7 +3637,7 @@ a.rater-name:hover {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-left: 7px;
+  margin-left: 8px;
   padding: 1px 8px 1px 6px;
   border-radius: var(--radius-pill);
   background: var(--ice);
@@ -3705,7 +3705,7 @@ a.rater-name:hover {
   margin-bottom: 18px;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
 .peticion {
@@ -3773,7 +3773,7 @@ a.rater-name:hover {
 .peticion-cuerpo h3 {
   font-size: var(--t-lg);
   font-weight: 700;
-  margin: 0 0 3px;
+  margin: 0 0 4px;
 }
 
 .peticion-detalle {
@@ -3801,15 +3801,15 @@ a.rater-name:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 9px;
+  margin-top: 10px;
 }
 
 .peticion-acciones .btn-secondary {
-  padding: 5px 11px;
+  padding: 6px 12px;
   font-size: var(--t-xs);
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .peticion-borrar {
@@ -3822,7 +3822,7 @@ a.rater-name:hover {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 9px 0 0;
+  margin: 10px 0 0;
   font-size: var(--t-sm);
   color: var(--success);
   font-weight: 600;
@@ -3839,7 +3839,7 @@ a.rater-name:hover {
 
 .editor-desde-peticion {
   margin: -8px 0 14px;
-  padding: 9px 12px;
+  padding: 10px 12px;
   background: var(--ice);
   border-radius: var(--radius-sm);
 }
@@ -3908,8 +3908,8 @@ a.rater-name:hover {
 .tema-moderacion button {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
+  gap: 6px;
+  padding: 6px 12px;
   font-size: var(--t-xs);
 }
 
@@ -3952,7 +3952,7 @@ a.rater-name:hover {
 .tema-leyendo {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   margin: 2px 0 0;
   font-size: var(--t-xs);
 }
@@ -4070,7 +4070,7 @@ a.rater-name:hover {
 }
 
 .sugerencia-item-acciones button {
-  padding: 5px 14px;
+  padding: 6px 14px;
   font-size: var(--t-sm);
 }
 
@@ -4086,9 +4086,9 @@ a.rater-name:hover {
 .destacada-sello {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   margin-bottom: 8px;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
   background: var(--navy);
   color: var(--white);
@@ -4101,7 +4101,7 @@ a.rater-name:hover {
 .destacada-titulo {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   font-size: var(--t-2xl);
   font-weight: 800;
   letter-spacing: -0.3px;
@@ -4113,7 +4113,7 @@ a.rater-name:hover {
 }
 
 .destacada-nota {
-  margin: 7px 0 0;
+  margin: 8px 0 0;
   font-size: var(--t-md);
   line-height: 1.6;
   color: var(--text-mid);
@@ -4223,7 +4223,7 @@ a.rater-name:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 13px 16px;
+  padding: 14px 16px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -4356,7 +4356,7 @@ a.reto-tarjeta:hover {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  box-shadow: 0 8px 24px rgba(15, 30, 50, 0.16);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 
@@ -4492,11 +4492,11 @@ a.reto-tarjeta:hover {
 .encuesta-opcion-voto {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 9px 11px;
+  gap: 10px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  margin-bottom: 7px;
+  margin-bottom: 8px;
   cursor: pointer;
   font-size: var(--t-md);
 }
@@ -4507,7 +4507,7 @@ a.reto-tarjeta:hover {
 }
 
 .encuesta-resultado {
-  margin-bottom: 11px;
+  margin-bottom: 12px;
 }
 
 .encuesta-resultado-cab {
@@ -4522,7 +4522,7 @@ a.reto-tarjeta:hover {
 .encuesta-resultado-cab span {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -4545,7 +4545,7 @@ a.reto-tarjeta:hover {
   height: 100%;
   background: var(--border-strong);
   border-radius: var(--radius-pill);
-  transition: width 0.25s var(--ease);
+  transition: width 0.15s var(--ease);
 }
 
 .encuesta-mio .encuesta-barra span {
@@ -4801,7 +4801,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   color: var(--navy);
   background: var(--ice);
   border-radius: var(--radius-pill);
-  padding: 5px 12px;
+  padding: 6px 12px;
 }
 
 .primeros-pasos-lista {
@@ -5012,7 +5012,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 
 .hovercard-datos {
   display: grid;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -5037,7 +5037,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 .hovercard-seguir {
   margin-top: 4px;
   justify-self: start;
-  padding: 3px 12px;
+  padding: 4px 12px;
   font-size: var(--t-sm);
 }
 
@@ -5261,7 +5261,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   background: var(--ice);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 7px 10px;
+  padding: 8px 10px;
   font-size: var(--t-xs);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5298,7 +5298,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 10px;
+  padding: 8px 10px;
   border-radius: var(--radius-sm);
 }
 
@@ -5478,7 +5478,7 @@ body.portada-compacta .page-content {
 .bienvenida-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   padding: 4px 10px;
   border-radius: var(--radius-pill);
   background: rgba(245, 158, 11, 0.14);
@@ -5683,7 +5683,7 @@ body.portada-compacta .page-content {
 
 .esq-linea {
   height: 13px;
-  margin-bottom: 11px;
+  margin-bottom: 12px;
 }
 
 /* La última línea de un párrafo nunca llega al margen: sin esto el

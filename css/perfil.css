@@ -141,7 +141,7 @@
 .profile-level {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-size: var(--t-sm);
   color: var(--navy);
   font-weight: 700;
@@ -317,7 +317,7 @@
 }
 
 .accordion-header .chevron {
-  transition: transform 0.2s var(--ease);
+  transition: transform 0.15s var(--ease);
   font-size: var(--t-sm);
 }
 
@@ -439,8 +439,8 @@
 .perfil-rango {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--border);
   background: var(--ice);
@@ -488,7 +488,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   padding: 14px 8px;
   background: none;
   border: none;
@@ -499,7 +499,7 @@
 .perfil-cifra .valor {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-size: var(--t-xl);
   font-weight: 800;
   color: var(--navy);
@@ -552,7 +552,7 @@ button.perfil-cifra:hover .rotulo {
 .foro-act-titular {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   margin: 0 0 10px;
   font-size: var(--t-md);
   font-weight: 800;
@@ -574,7 +574,7 @@ button.perfil-cifra:hover .rotulo {
 
 .foro-act-fila {
   display: flex;
-  gap: 9px;
+  gap: 10px;
   padding: 10px 0;
   border-top: 1px solid var(--border);
 }
@@ -633,7 +633,7 @@ button.perfil-cifra:hover .rotulo {
    tira limpia y la otra en tres cajitas con borde. */
 .foro-act-numeros > div {
   display: grid;
-  gap: 3px;
+  gap: 4px;
   text-align: center;
 }
 

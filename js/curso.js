@@ -149,7 +149,7 @@ function renderConceptLike(b, extraClass, label) {
         <span>${b.emoji ? contentIconHtml(b.emoji, 20, 'lightbulb') : ''}</span>
         <span class="block-label">${label}</span>
       </div>
-      ${b.image_url ? `<img src="${escapeHtml(b.image_url)}" class="block-image" onerror="this.style.display='none'">` : ''}
+      ${b.image_url ? `<img loading="lazy" src="${escapeHtml(b.image_url)}" class="block-image" onerror="this.style.display='none'">` : ''}
       <h2 class="block-title">${escapeHtml(b.title || '')}</h2>
       <p class="block-body">${parseBBCode(b.body || '')}</p>
       ${b.highlight ? `<div class="block-highlight">${parseBBCode(b.highlight)}</div>` : ''}
@@ -421,10 +421,10 @@ function renderDiferencias(b) {
       <p class="subtext diferencias-info" id="diferenciasInfo"></p>
       <div class="diferencias-par">
         <figure><figcaption>A · Original</figcaption>${
-          b.image_left_url ? `<img src="${escapeHtml(b.image_left_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen A.</p>'
+          b.image_left_url ? `<img loading="lazy" src="${escapeHtml(b.image_left_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen A.</p>'
         }</figure>
         <figure class="diferencias-lienzo" id="diferenciasLienzo"><figcaption>B · Busca aquí</figcaption>${
-          b.image_url ? `<img src="${escapeHtml(b.image_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen B.</p>'
+          b.image_url ? `<img loading="lazy" src="${escapeHtml(b.image_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen B.</p>'
         }</figure>
       </div>
       <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
@@ -440,7 +440,7 @@ function renderZonas(b) {
       ${cabeceraPractica('ENCUENTRA EL FALLO', b)}
       <h2 class="block-question">${escapeHtml(b.question || 'Toca dónde está el fallo')}</h2>
       <div class="zonas-lienzo" id="zonasLienzo">
-        ${b.image_url ? `<img src="${escapeHtml(b.image_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen de este ejercicio.</p>'}
+        ${b.image_url ? `<img loading="lazy" src="${escapeHtml(b.image_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen de este ejercicio.</p>'}
       </div>
       <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
     </div>`

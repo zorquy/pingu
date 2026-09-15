@@ -563,7 +563,7 @@ function pintarEditor() {
       }
       <div class="torneos-form-campo">Imagen del torneo
         <div class="torneo-imagen-campo">
-          <img id="editarImagenPreview" class="torneo-imagen-preview ${torneo.image_url ? '' : 'hidden'}" src="${escapeHtml(torneo.image_url || '')}" alt="" />
+          <img loading="lazy" id="editarImagenPreview" class="torneo-imagen-preview ${torneo.image_url ? '' : 'hidden'}" src="${escapeHtml(torneo.image_url || '')}" alt="" />
           <button type="button" class="btn-secondary" id="btnEditarImagen">${torneo.image_url ? 'Cambiar imagen' : 'Elegir imagen'}</button>
           <button type="button" class="btn-outline ${torneo.image_url ? '' : 'hidden'}" id="btnEditarImagenQuitar">Quitar</button>
           <input type="file" id="editarImagenInput" accept="image/*" class="hidden" />
@@ -572,7 +572,7 @@ function pintarEditor() {
       </div>
       <div class="torneos-form-campo">Banner del torneo
         <div class="torneo-imagen-campo">
-          <img id="editarBannerPreview" class="torneo-banner-preview ${torneo.banner_url ? '' : 'hidden'}" src="${escapeHtml(torneo.banner_url || '')}" alt="" />
+          <img loading="lazy" id="editarBannerPreview" class="torneo-banner-preview ${torneo.banner_url ? '' : 'hidden'}" src="${escapeHtml(torneo.banner_url || '')}" alt="" />
           <button type="button" class="btn-secondary" id="btnEditarBanner">${torneo.banner_url ? 'Cambiar banner' : 'Elegir banner'}</button>
           <button type="button" class="btn-outline ${torneo.banner_url ? '' : 'hidden'}" id="btnEditarBannerQuitar">Quitar</button>
           <input type="file" id="editarBannerInput" accept="image/*" class="hidden" />
@@ -1756,6 +1756,11 @@ function pintarPestanas() {
   if (!visibles.some((p) => p.id === pestanaActiva)) pestanaActiva = visibles[0]?.id || 'torneo'
 
   const nav = $('torneoPestanas')
+  // Una barra con UNA sola pestaña no es una barra: es un botón que no
+  // lleva a ninguna parte (tanda 310). Cuando el torneo solo está
+  // abierto a inscripciones queda «Torneo» y nada más, y ahí flotaba
+  // suelta entre el cartel y la primera tarjeta. Se esconde.
+  nav.classList.toggle('hidden', visibles.length < 2)
   const html = visibles
     .map(
       (p) =>

@@ -31,7 +31,7 @@ export function mensajeDelHilo({ title, description, slug, cover_image: portada 
   const url = `https://pokedoc.es/noticias/${encodeURIComponent(slug || '')}`
   const partes = []
   if (portada) {
-    partes.push(`<p><img src="${escapeHtml(portada)}" alt="${escapeHtml(title || '')}"></p>`)
+    partes.push(`<p><img loading="lazy" src="${escapeHtml(portada)}" alt="${escapeHtml(title || '')}"></p>`)
   }
   if (description) partes.push(`<p>${escapeHtml(description)}</p>`)
   partes.push(

@@ -27,7 +27,7 @@
   line-height: 1.5;
   color: var(--text-mid);
   max-width: 520px;
-  margin: 7px 0 0;
+  margin: 8px 0 0;
 }
 .torneos-heroe-acciones {
   display: flex;
@@ -90,7 +90,7 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 3px 10px;
+  padding: 4px 10px;
 }
 .torneo-vivo-der {
   display: flex;
@@ -446,7 +446,7 @@
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 3px 8px;
+  padding: 4px 8px;
   font-size: var(--t-xs);
   color: var(--text-mid);
   font-weight: 500;
@@ -455,7 +455,7 @@
 .torneo-campeon {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   margin-top: auto;
   font-size: var(--t-sm);
   color: var(--text-mid);
@@ -538,7 +538,7 @@
   font-family: var(--font-display);
   font-weight: 600;
   font-size: var(--t-md);
-  padding: 9px 16px;
+  padding: 10px 16px;
   text-decoration: none;
   box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.18);
 }
@@ -549,7 +549,7 @@
 .torneo-pie .btn-secondary,
 .torneo-pie .torneo-duplicar {
   font-size: var(--t-md);
-  padding: 9px 16px;
+  padding: 10px 16px;
 }
 
 /* En un móvil el pie SÍ vuelve a partirse. El `nowrap` de arriba está
@@ -612,7 +612,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
   background: var(--warning-bg);
   color: var(--warning);
@@ -677,7 +677,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 12px 14px;
-  transition: border-color 0.18s var(--ease, ease), box-shadow 0.18s var(--ease, ease), transform 0.18s var(--ease, ease);
+  transition: border-color 0.15s var(--ease, ease), box-shadow 0.18s var(--ease, ease), transform 0.18s var(--ease, ease);
 }
 .torneo-cal-mes:hover {
   border-color: var(--border-strong);
@@ -837,7 +837,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   box-shadow: var(--shadow-xs);
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 .torneo-arte .torneo-estado-abierto { color: var(--success); }
 .torneo-arte .torneo-estado-cerrado { color: var(--warning); }
@@ -888,7 +888,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
    chapas de al lado: ahí compite por el ancho con «Duplicar» y con el
    estado, y en un móvil no caben tres botones de tamaño normal. */
 .torneo-borrar-fila {
-  padding: 5px 10px;
+  padding: 6px 10px;
   font-size: var(--t-xs);
 }
 
@@ -902,7 +902,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-estado {
   font-size: var(--t-xs);
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
   white-space: nowrap;
 }
@@ -1006,7 +1006,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: #fff;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 .torneo-cabecera .torneo-estado-abierto { color: var(--success); }
 .torneo-cabecera .torneo-estado-cerrado { color: #a8720d; }
@@ -1030,11 +1030,11 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-dato {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   background: rgba(255, 255, 255, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--radius-pill);
-  padding: 6px 13px;
+  padding: 6px 14px;
   font-size: var(--t-sm);
   font-weight: 500;
 }
@@ -1051,7 +1051,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: rgba(255, 255, 255, 0.14);
   color: #fff;
   border-radius: var(--radius-pill);
-  padding: 5px 14px;
+  padding: 6px 14px;
   font-size: var(--t-sm);
   font-weight: 700;
   cursor: pointer;
@@ -1065,7 +1065,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 
 @media (max-width: 640px) {
   .torneo-cabecera-dentro { padding: 18px; }
-  .torneo-dato { font-size: var(--t-xs); padding: 5px 10px; }
+  .torneo-dato { font-size: var(--t-xs); padding: 6px 10px; }
 }
 
 /* ── La barra viva (tanda 298) ──
@@ -1144,7 +1144,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   display: inline-flex;
   align-items: center;
   border-radius: var(--radius-md);
-  padding: 7px 12px;
+  padding: 8px 12px;
   font-size: var(--t-sm);
   font-weight: 600;
 }
@@ -1171,7 +1171,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  padding: 5px;
+  padding: 6px;
   margin: 0 0 18px;
   width: fit-content;
   max-width: 100%;
@@ -1197,7 +1197,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-mesa-cab {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   flex-wrap: wrap;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
@@ -1247,10 +1247,10 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   align-items: center;
   text-align: center;
   border-radius: var(--radius-pill);
-  padding: 4px 11px;
+  padding: 4px 12px;
   font-size: var(--t-xs);
   font-weight: 600;
-  margin-top: 5px;
+  margin-top: 6px;
   background: var(--warning-bg);
   color: var(--warning);
 }
@@ -1523,7 +1523,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   grid-template-columns: 34px 1fr auto 1fr;
   align-items: center;
   gap: 12px;
-  padding: 11px 12px;
+  padding: 12px 12px;
   border-bottom: 1px solid var(--border);
 }
 .torneo-mesa:last-child { border-bottom: none; }
@@ -1567,7 +1567,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-mesa-resolver select { font-size: var(--t-sm); max-width: 220px; }
 .torneo-mesa .torneo-disputa-reportes { grid-column: 1 / -1; }
 @media (max-width: 560px) {
-  .torneo-mesa { grid-template-columns: 30px 1fr auto; gap: 9px; padding: 10px 8px; }
+  .torneo-mesa { grid-template-columns: 30px 1fr auto; gap: 10px; padding: 10px 8px; }
   .torneo-mesa-lado.der { flex-direction: row; text-align: left; grid-column: 2; }
   .torneo-mesa-centro { grid-column: 3; grid-row: 1 / 3; }
 }
@@ -1589,7 +1589,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--white);
-  padding: 9px 12px;
+  padding: 10px 12px;
   text-align: center;
 }
 .torneo-paso-r {
@@ -1600,7 +1600,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   color: var(--text-dim);
   font-weight: 700;
 }
-.torneo-paso-e { display: block; font-family: var(--font-display); font-size: var(--t-md); margin-top: 3px; }
+.torneo-paso-e { display: block; font-family: var(--font-display); font-size: var(--t-md); margin-top: 4px; }
 .torneo-paso.fin { background: var(--ice); border-color: transparent; }
 .torneo-paso.fin .torneo-paso-e { color: var(--navy); }
 .torneo-paso.lista { border-color: var(--border-strong); }
@@ -1710,7 +1710,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 
 .torneo-codigo input {
-  padding: 9px 11px;
+  padding: 10px 12px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   font: inherit;
@@ -1913,7 +1913,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   display: flex;
   flex-direction: column;
   max-width: 85%;
-  padding: 6px 12px 5px;
+  padding: 6px 12px 6px;
   border-radius: 12px;
   border-bottom-left-radius: 4px;
   background: var(--white);
@@ -2033,7 +2033,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border: 1px solid var(--border-strong);
   background: var(--white);
   border-radius: var(--radius-pill);
-  padding: 7px 14px;
+  padding: 8px 14px;
   font-size: var(--t-md);
   font-weight: 500;
   color: var(--text-mid);
@@ -2082,7 +2082,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   top: 4px;
   left: 4px;
   z-index: 1;
-  padding: 1px 7px;
+  padding: 1px 8px;
   border-radius: var(--radius-pill);
   background: rgba(20, 20, 25, 0.82);
   color: #fff;
@@ -2092,7 +2092,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-carta figcaption {
   font-size: var(--t-xs);
   color: var(--text-dim);
-  margin-top: 3px;
+  margin-top: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2114,7 +2114,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-mio {
   font-size: var(--t-xs);
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
   background: rgba(30, 81, 117, 0.12);
   color: var(--navy);
@@ -2139,7 +2139,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   background: var(--white);
   color: var(--text-dim);
   border-radius: var(--radius-pill);
-  padding: 3px 12px;
+  padding: 4px 12px;
   font-size: var(--t-sm);
   font-weight: 600;
   cursor: pointer;
@@ -2440,7 +2440,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   font-size: var(--t-sm);
   cursor: pointer;
 }
-.torneo-check-campo input { margin-top: 3px; }
+.torneo-check-campo input { margin-top: 4px; }
 
 /* El calendario de la liga en la ficha: una chapa por jornada. */
 .torneo-jornadas {
@@ -2452,10 +2452,10 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-jornada-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  padding: 3px 10px;
+  padding: 4px 10px;
   font-size: var(--t-xs);
   color: var(--text-mid);
 }
@@ -2508,7 +2508,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-exportar button { padding: 4px 12px; font-size: var(--t-xs); }
 
 /* La lista de un rival bajo la clasificación y sus botones «Ver lista». */
-.torneo-ver-lista { padding: 3px 10px; font-size: var(--t-xs); white-space: nowrap; }
+.torneo-ver-lista { padding: 4px 10px; font-size: var(--t-xs); white-space: nowrap; }
 .torneo-clasif-chips { margin: 10px 0; }
 .torneo-lista-rival {
   margin-top: 12px;
@@ -2526,7 +2526,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   font-size: var(--t-sm);
 }
 .torneo-quitar-jornada {
-  padding: 2px 9px;
+  padding: 2px 10px;
   font-size: var(--t-xs);
   line-height: 1.4;
   flex: 0 0 auto;
@@ -2658,7 +2658,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   font-size: var(--t-sm);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
   background: rgba(160, 160, 160, 0.14);
   color: var(--text-mid);

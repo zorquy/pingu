@@ -15657,3 +15657,97 @@ a filas con separador. Lo dije de memoria sin abrir el CSS. Queda escrito
 porque el error de método importa más que el dato: **proponer trabajo
 sobre un recuerdo en vez de sobre el código es como se inventan tandas
 que no hacen falta.**
+
+---
+
+## Tanda 310 — el espaciado, los desplegables y los estados vacíos (sept. 2026)
+
+PINGU: «¿más mejoras visuales?». Esta vez **medidas sobre el código antes
+de proponerlas**, después de haberme inventado una en la tanda anterior.
+
+### La escala de espaciado
+
+El mismo problema que tenían los tamaños de letra, sin arreglar: **31
+valores distintos** de `padding`/`margin`/`gap`, y **226 de ellos
+IMPARES** — 3, 5, 7, 9, 11, 13, 15, 17. Los mismos «medio pasos»
+elegidos a ojo, componente a componente. Nada respiraba igual que lo de
+al lado, y eso es buena parte de lo que se lee como «hecho a trozos».
+
+Los impares se redondean **al par siguiente**: +1 px no se ve de uno en
+uno, **nunca aprieta nada** (solo da aire, así que no puede romper una
+caja justa) y deja una propiedad que se comprueba de una sola manera —
+que no quede ningún impar.
+
+Y seis pasos como tokens para lo que se escriba a partir de ahora:
+`--e-xs: 4px` · `--e-sm: 8px` · `--e-md: 12px` · `--e-lg: 16px` ·
+`--e-xl: 24px` · `--e-2xl: 32px`.
+
+**Lo que NO se ha hecho, y por qué.** La consolidación de verdad sería
+llevar también los pares intermedios a la escala: 10 px (132 usos) a 8 o
+a 12, 6 (103) a 8, 14 (51) a 16. Eso son ±2 px en más de 400
+declaraciones — un cambio que sí puede romper una caja justa, y que no
+me puedo mirar pantalla por pantalla en las 26 páginas. Queda pendiente
+para hacerlo con capturas de antes y después delante.
+
+### Los desplegables eran del sistema operativo
+
+**34 `<select>` en la web y ni un solo `appearance: none`.** Heredaban el
+borde y el radio de la regla común de campos, pero el navegador seguía
+poniendo SU flecha y SU altura: al lado de un campo y un botón con
+diseño propio se veían claramente de otra cosa. De lo que más grita
+«plantilla», y se ve en `/mis-partidas` y en los filtros de torneos.
+
+La flecha va como imagen de fondo (un SVG en `data:`) porque **un
+`<select>` no admite `::after`**: lo pinta el sistema y no tiene
+pseudoelementos donde colgar nada. Y hacen falta DOS copias, una por
+tema: el color va dentro del SVG, así que una sola se quedaría invisible
+sobre el fondo oscuro.
+
+La prueba no comprueba «lleva `appearance: none`»: **mide** que el
+desplegable tenga el mismo alto, borde y radio que el campo de al lado.
+
+### Los estados vacíos
+
+`.empty-state` era `text-align: center` y gris, en **58 sitios**: una
+página entera en blanco con una frase flotando en medio. Tu propia
+página 404 —mascota, titular, buscador y tres salidas— enseña cuál es el
+listón.
+
+Sin tocar los 58 sitios no se les puede poner icono ni botón, así que lo
+que se hace es **darles cuerpo**: caja con borde punteado sobre una
+superficie tenue. El punteado dice «esto está vacío», que es justo la
+duda que dejaba el texto suelto — si estaba vacío o a medio cargar.
+Dentro de una tarjeta que ya tiene borde, el punteado se quita: dos
+bordes concéntricos se leen como un fallo de pintado.
+
+### Sombras y transiciones
+
+**Nueve duraciones de transición** (0,1 / 0,12 / 0,15 / 0,18 / 0,2 /
+0,25 / 0,3 / 0,35 / 0,4). Se notaba como que unas cosas responden «más
+rápido» que otras sin motivo. Ahora dos: **0,15 s** para lo que responde
+a un gesto y **0,3 s** para lo que ENTRA en escena.
+
+Y de las 26 sombras escritas a pelo, la mayoría no eran sombras de
+elevación: eran **relieves de botón** (`0 4px 0 0`) y **aros de foco**
+(`0 0 0 3px`), que van por color y no se tocan. Las que sí lo eran
+resultaron ser **cuatro versiones casi iguales de lo mismo**: un panel
+flotando sobre la página (`.mencion-lista`, `.foro-mod-menu`,
+`.foro-mod-barra`, `.selector-mazo-lista`).
+
+Lo bonito: `components.css` ya pedía **`var(--shadow-lg, …)` con
+respaldo** en tres sitios — el token se esperaba desde antes y nadie lo
+había definido. Ahora existe, los cuatro paneles lo usan y los respaldos
+sobran.
+
+### Y dos arreglos pequeños
+
+- **La ficha de torneo pintaba una barra de UNA sola pestaña.** La barra
+  se arma con las pestañas visibles, y con el torneo solo abierto a
+  inscripciones queda «Torneo» y nada más, flotando entre el cartel y la
+  primera tarjeta. Una barra de una pestaña es un botón que no lleva a
+  ninguna parte: se esconde por debajo de dos.
+- **17 imágenes que pinta el JavaScript no pedían carga diferida.** En
+  una lista larga eso es el navegador trayéndose fotos que nadie ha
+  visto todavía.
+
+Cubierto en `test-tanda-310.mjs` (6 bloques) + `rigor-tanda-310.py`.

@@ -140,7 +140,7 @@
    hoy sin tener que leer el número. */
 .reto-puntos {
   display: flex;
-  gap: 7px;
+  gap: 8px;
   margin: 2px 0;
 }
 
@@ -184,7 +184,7 @@
   display: inline-block;
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: var(--radius-pill);
-  padding: 9px 16px;
+  padding: 10px 16px;
   color: #fff;
   font-size: var(--t-sm);
 }
@@ -251,7 +251,7 @@ a.noticia-banner:hover {
 }
 
 .noticia-banner-texto {
-  padding: 13px 16px;
+  padding: 14px 16px;
 }
 
 .noticia-banner-etiqueta {
@@ -273,7 +273,7 @@ a.noticia-banner:hover {
 
 .noticia-banner-texto small {
   display: block;
-  margin-top: 3px;
+  margin-top: 4px;
   color: var(--text-mid);
 }
 
@@ -376,7 +376,7 @@ a.noticia-banner:hover {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 10px;
+  padding: 8px 10px;
   border-radius: var(--radius-sm);
 }
 
@@ -446,13 +446,13 @@ a.noticia-banner:hover {
 .portada-torneo {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 14px;
   padding: 14px 16px;
   border-radius: var(--radius-lg);
   background: linear-gradient(120deg, var(--navy-dark), var(--navy-light));
   color: #fff;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.1s var(--ease);
+  transition: transform 0.15s var(--ease);
 }
 
 .portada-torneo:hover {
@@ -479,7 +479,7 @@ a.noticia-banner:hover {
 }
 
 .portada-torneo-fecha span {
-  margin-top: 3px;
+  margin-top: 4px;
   font-size: var(--t-2xs);
   letter-spacing: 0.07em;
   color: rgba(255, 255, 255, 0.75);
@@ -509,7 +509,7 @@ a.noticia-banner:hover {
   background: #fff;
   color: var(--navy-dark);
   border-radius: var(--radius-pill);
-  padding: 7px 14px;
+  padding: 8px 14px;
   font-size: var(--t-sm);
   font-weight: 700;
 }
@@ -532,11 +532,11 @@ a.noticia-banner:hover {
 .portada-tema {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  padding: 6px 13px;
+  padding: 6px 14px;
   font-size: var(--t-sm);
   font-weight: 600;
   color: var(--text);
@@ -558,7 +558,7 @@ a.noticia-banner:hover {
   background: var(--ice);
   color: var(--navy);
   border-radius: var(--radius-pill);
-  padding: 1px 7px;
+  padding: 1px 8px;
   font-size: var(--t-2xs);
   font-weight: 700;
 }
@@ -579,7 +579,7 @@ a.noticia-banner:hover {
 
 .foro-vivo-cuenta small {
   display: block;
-  margin-top: 3px;
+  margin-top: 4px;
   color: var(--text-dim);
   font-size: var(--t-2xs);
 }
@@ -600,7 +600,7 @@ a.noticia-banner:hover {
   align-items: flex-end;
   height: 90px;
   padding: 10px;
-  margin-bottom: 13px;
+  margin-bottom: 14px;
 }
 
 .recent-arte::before {
@@ -657,7 +657,7 @@ a.noticia-banner:hover {
 .primeros-pasos-barra {
   display: block;
   height: 6px;
-  margin: 11px 0 4px;
+  margin: 12px 0 4px;
   border-radius: var(--radius-pill);
   background: var(--ice);
   overflow: hidden;

@@ -50,6 +50,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   es que el sitio pide otro paso: mételo en `:root`. La única excepción
   es un avatar pintado a un tamaño concreto, donde la inicial crece con
   el diámetro del círculo y no con la escala.
+- **El espaciado sale de la escala** (`--e-xs`…`--e-2xl` en `:root`,
+  tanda 310) y **nunca es impar**: los 3, 5, 7 y 9 px eran «medio pasos»
+  elegidos a ojo, igual que lo eran los tamaños de letra.
 - **Los bordes también tienen escala** (tanda 309): un CONTORNO es de
   `1px` o de `2px`, y nada más. Un lado suelto (`border-left: 3px`) es una
   barra de cita, no un contorno; y hay dos sitios donde un `border` dibuja

@@ -92,6 +92,24 @@
   --t-2xl: 26px;   /* título de página */
   --t-3xl: 34px;   /* héroe */
 
+  /* ── La escala de espaciado (tanda 310) ──
+   *
+   * Había 31 valores distintos de padding/margin/gap y 226 de ellos eran
+   * IMPARES: 3, 5, 7, 9, 11, 13… los mismos «medio pasos» elegidos uno a
+   * uno que tenían los tamaños de letra antes de la tanda 305. Nada
+   * respiraba igual que lo de al lado y el ojo lo leía como «hecho a
+   * trozos».
+   *
+   * Los impares ya no están (redondeados al par siguiente: +1 px no se
+   * ve de uno en uno y nunca aprieta nada). Estos seis pasos son los que
+   * hay que usar al escribir algo nuevo. */
+  --e-xs: 4px;    /* pegado: un icono y su texto */
+  --e-sm: 8px;    /* dentro de una chapa o una fila */
+  --e-md: 12px;   /* entre cosas de un mismo bloque */
+  --e-lg: 16px;   /* el aire de una tarjeta */
+  --e-xl: 24px;   /* entre bloques */
+  --e-2xl: 32px;  /* entre secciones */
+
   --radius-sm: 7px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -101,6 +119,13 @@
   --shadow-xs: 0 1px 2px rgba(13, 27, 42, 0.05);
   --shadow-sm: 0 2px 10px rgba(13, 27, 42, 0.05);
   --shadow-md: 0 12px 32px rgba(13, 27, 42, 0.09);
+  /* Lo que FLOTA sobre la página —un menú, una lista de sugerencias, una
+     barra de moderación— necesita más separación que una tarjeta, o se
+     confunde con lo que tiene debajo. Había cuatro versiones casi
+     iguales de esta sombra, una por sitio; y en components.css ya se
+     pedía `var(--shadow-lg, …)` con respaldo, o sea que el token se
+     esperaba desde antes y nadie lo había definido (tanda 310). */
+  --shadow-lg: 0 10px 28px rgba(13, 27, 42, 0.16);
   --shadow-ring: 0 0 0 3px rgba(30, 81, 117, 0.16);
 
   --navbar-bg: rgba(255, 255, 255, 0.92);
@@ -266,6 +291,34 @@ select:focus {
   border-color: var(--navy);
 }
 
+/* ── Los desplegables, con la cara del sitio (tanda 310) ──
+   Había 34 `<select>` en la web y ni un `appearance: none`: heredaban el
+   borde y el radio de la regla de arriba, pero el navegador seguía
+   poniendo SU flecha y SU altura. Al lado de un campo y un botón con
+   diseño propio se veían claramente de otra cosa — de lo que más grita
+   «plantilla» en /mis-partidas y en los filtros de torneos.
+
+   La flecha va como imagen de fondo (un SVG en `data:`) porque un
+   `<select>` no admite `::after`: lo pinta el sistema y no tiene
+   pseudoelementos donde colgar nada. */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  /* Sitio a la derecha para la flecha, o el texto largo se le mete
+     debajo. */
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%2352717f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+/* En modo oscuro la flecha tiene que verse sobre el fondo oscuro: el
+   color va DENTRO del SVG, así que hace falta otra copia. */
+:root[data-theme='dark'] select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%2394adb8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+}
+
 ::placeholder {
   color: #94adb8;
   opacity: 1;
@@ -314,7 +367,7 @@ textarea {
   backdrop-filter: saturate(1.4) blur(10px);
   -webkit-backdrop-filter: saturate(1.4) blur(10px);
   border-bottom: 1px solid var(--border);
-  transition: box-shadow 0.25s var(--ease);
+  transition: box-shadow 0.15s var(--ease);
 }
 
 .navbar.scrolled {
@@ -340,7 +393,7 @@ textarea {
 .nav-logo {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   font-weight: 800;
   font-size: var(--t-xl);
   color: var(--text);
@@ -388,7 +441,7 @@ textarea {
    oscurecerse al pasar por encima. */
 .nav-links a {
   position: relative;
-  padding: 7px 12px;
+  padding: 8px 12px;
   border-radius: var(--radius-pill);
   transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
 }
@@ -429,7 +482,7 @@ textarea {
   width: 100%;
   background: var(--text);
   border-radius: 2px;
-  transition: transform 0.2s var(--ease), opacity 0.2s var(--ease);
+  transition: transform 0.15s var(--ease), opacity 0.2s var(--ease);
 }
 
 .nav-user-avatar {
@@ -459,7 +512,7 @@ textarea {
 }
 
 .nav-menu-mobile a {
-  padding: 11px 0;
+  padding: 12px 0;
   font-weight: 600;
   font-size: var(--t-lg);
   color: var(--text-mid);
@@ -510,7 +563,7 @@ textarea {
     gap: 6px;
   }
   .nav-right {
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
     flex-shrink: 1;
   }
@@ -519,8 +572,8 @@ textarea {
     padding-right: 4px;
   }
   .nav-torneo-mini {
-    padding-left: 7px;
-    padding-right: 7px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }
 
@@ -532,12 +585,12 @@ textarea {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 13px 24px;
+  padding: 14px 24px;
   border-radius: var(--radius-md);
   font-weight: 600;
   font-size: var(--t-md);
   line-height: 1;
-  transition: transform 0.1s var(--ease), box-shadow 0.1s var(--ease), background 0.15s var(--ease), border-color 0.15s var(--ease);
+  transition: transform 0.15s var(--ease), box-shadow 0.1s var(--ease), background 0.15s var(--ease), border-color 0.15s var(--ease);
   white-space: nowrap;
 }
 
@@ -634,7 +687,7 @@ button.btn-block {
   color: var(--navy);
   font-weight: 700;
   font-size: var(--t-xs);
-  padding: 6px 13px;
+  padding: 6px 14px;
   border-radius: var(--radius-pill);
   margin-bottom: 22px;
 }
@@ -806,9 +859,9 @@ button.btn-block {
   padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 10px;
   overflow: hidden;
-  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+  transition: transform 0.15s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
 
 .category-card:hover {
@@ -866,7 +919,7 @@ button.btn-block {
   gap: 8px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+  transition: transform 0.15s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
 
 .recent-card:hover {
@@ -924,7 +977,7 @@ button.btn-block {
   gap: 4px;
   font-size: var(--t-2xs);
   font-weight: 700;
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
 }
 
@@ -978,7 +1031,7 @@ button.btn-block {
   height: 100%;
   background: var(--navy);
   border-radius: var(--radius-pill);
-  transition: width 0.4s var(--ease);
+  transition: width 0.3s var(--ease);
 }
 
 
@@ -1026,11 +1079,34 @@ button.btn-block {
 }
 
 /* ── Empty / loading states ── */
+/* ── Los estados vacíos (tanda 310) ──
+   Eran una línea de texto gris centrada, y hay 58 en la web: una página
+   entera en blanco con una frase flotando en medio. Tu propia página 404
+   —con su mascota, su titular y tres salidas— enseña cuál es el listón.
+
+   Aquí no se puede poner un icono ni un botón sin tocar los 58 sitios,
+   así que lo que se hace es DARLE CUERPO: una caja con borde punteado
+   sobre la superficie del sitio. El punteado dice «esto está vacío, no
+   es que falte por cargar», que es justo la duda que dejaba el texto
+   suelto. Los sitios donde además conviene ofrecer algo que hacer llevan
+   su propio bloque con icono y botón. */
 .empty-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 32px 20px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--navy) 2%, transparent);
   color: var(--text-mid);
   font-size: var(--t-md);
+}
+
+/* Dentro de una tarjeta que YA tiene borde, el punteado sobra: dos
+   bordes concéntricos se leen como un fallo de pintado. */
+.simple-card > .empty-state,
+.foro-seccion > .empty-state,
+.tab-panel > .empty-state:only-child {
+  border: none;
+  background: none;
 }
 
 .skeleton {
@@ -1182,7 +1258,7 @@ button.btn-block {
   gap: 4px;
   font-size: var(--t-2xs);
   font-weight: 700;
-  padding: 3px 9px 3px 6px;
+  padding: 4px 10px 4px 6px;
   border-radius: var(--radius-pill);
   text-transform: capitalize;
 }

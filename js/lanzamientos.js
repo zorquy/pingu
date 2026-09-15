@@ -86,7 +86,7 @@ async function init() {
     const [primero, ...resto] = proximos
     destacadoEl.innerHTML = `
       <div class="lanzamiento-destacado">
-        ${primero.imagen ? `<img class="lanzamiento-logo-grande" src="${escapeHtml(primero.imagen)}" alt="" decoding="async" referrerpolicy="no-referrer" />` : ''}
+        ${primero.imagen ? `<img loading="lazy" class="lanzamiento-logo-grande" src="${escapeHtml(primero.imagen)}" alt="" decoding="async" referrerpolicy="no-referrer" />` : ''}
         <div>
           <span class="eyebrow">El siguiente set</span>
           <h2>${escapeHtml(primero.nombre)}</h2>

@@ -741,7 +741,7 @@ async function cargarLanzamiento() {
     hueco.innerHTML = `
       ${
         proximo.imagen
-          ? `<img class="lanzamiento-portada-logo" src="${escapeHtml(proximo.imagen)}" alt="${escapeHtml(proximo.nombre)}" decoding="async" referrerpolicy="no-referrer" onerror="this.replaceWith(this.alt)" />`
+          ? `<img loading="lazy" class="lanzamiento-portada-logo" src="${escapeHtml(proximo.imagen)}" alt="${escapeHtml(proximo.nombre)}" decoding="async" referrerpolicy="no-referrer" onerror="this.replaceWith(this.alt)" />`
           : `<span class="lanzamiento-portada-icono">${icons.calendar(18)}</span>`
       }
       <span class="lanzamiento-portada-texto">
