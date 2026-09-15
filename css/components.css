@@ -41,6 +41,30 @@
   border-bottom-color: var(--navy);
 }
 
+/* ── El contador de cada pestaña (tanda 308) ──
+   Cinco pestañas sin un número al lado obligan a entrar en todas para
+   saber dónde está lo que buscas, y en la mayoría de los perfiles casi
+   todas están vacías. Va en components.css y no en perfil.css porque
+   `.tab-btn` ya vive aquí: la chapa es parte de la pestaña. */
+.pest-cuenta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--navy) 10%, transparent);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  line-height: 17px;
+}
+
+.tab-btn.active .pest-cuenta {
+  background: color-mix(in srgb, var(--navy) 16%, transparent);
+  color: var(--navy);
+}
+
 .tab-panel {
   display: none;
 }
@@ -5722,6 +5746,61 @@ body.portada-compacta .page-content {
 /* Se apaga poco a poco hacia abajo: lo de arriba es lo que vas a leer
    primero, y dar a entender que la página sigue sin pintarla entera es
    más honesto que rellenarla de gris hasta el pie. */
+/* ── Esqueletos de LISTA (tanda 308) ──
+   El de la tanda 305 tiene forma de ARTÍCULO y sirve para una guía o un
+   curso abiertos. /noticias y /aprender no enseñan un artículo: enseñan
+   una rejilla de tarjetas, y ahí la silueta correcta es otra — si no, lo
+   que aparece al cargar no se parece a lo que llega después, que es todo
+   lo que un esqueleto tiene que hacer.
+
+   Dos formas porque hay dos tarjetas: la noticia es VERTICAL (portada
+   arriba, texto debajo) y la guía es HORIZONTAL (icono cuadrado a la
+   izquierda, texto a la derecha). */
+.esq-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.esq-tarjeta .esq-bloque {
+  /* La misma proporción que .noticia-portada, para que la tarjeta no
+     pegue un salto de alto al llegar la de verdad. */
+  aspect-ratio: 16 / 9;
+  height: auto;
+  margin: 0;
+}
+
+.esq-guia {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.esq-guia i {
+  flex-shrink: 0;
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-md);
+}
+
+.esq-guia .esq-cuerpo {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+/* El icono, con el mismo barrido que el resto de piezas (`shimmer`). */
+.esq-guia i {
+  background: linear-gradient(90deg, var(--border) 25%, var(--ice) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
 .esq-articulo > *:nth-child(n + 5) {
   opacity: 0.55;
 }

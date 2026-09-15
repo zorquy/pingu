@@ -9,6 +9,7 @@ import { createNotification } from './notifications.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
+import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash } from './perfil-pestanias.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
@@ -133,6 +134,8 @@ async function loadReputationAndGuides() {
     .eq('review_status', 'approved')
     .order('published_at', { ascending: false })
 
+  contarPestania('guides', approvedCount || 0)
+
   const container = document.getElementById('publishedGuides')
   if (!guides || guides.length === 0) {
     container.innerHTML = `<p class="empty-state">Todavía no tiene guías publicadas.</p>`
@@ -160,15 +163,11 @@ async function cargarForoUnaVez() {
   await pintarActividadDelForo(document.getElementById('foroActividad'), profileId, { esMio: false })
 }
 
-// ── Pestañas del perfil ──
-document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    document.getElementById('profileTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
-    document.querySelectorAll('.tab-panel[id^="ptab-"]').forEach((p) => p.classList.remove('active'))
-    btn.classList.add('active')
-    document.getElementById(`ptab-${btn.dataset.ptab}`).classList.add('active')
-    if (btn.dataset.ptab === 'foro') cargarForoUnaVez()
-  })
+// ── Pestañas del perfil (tanda 308: en js/perfil-pestanias.js) ──
+montarPestanias({
+  alAbrir: (cual) => {
+    if (cual === 'foro') cargarForoUnaVez()
+  },
 })
 
 // ── Mensaje privado ──
@@ -296,14 +295,15 @@ document.getElementById('btnShowTrophies')?.addEventListener('click', () => {
 })
 
 // ── Muro ──
-function loadComments() {
-  return renderWall({
+async function loadComments() {
+  const n = await renderWall({
     listEl: document.getElementById('commentsList'),
     formEl: document.getElementById('commentForm'),
     profileId,
     currentSession,
     isAdmin: isViewerAdmin,
   })
+  contarPestania('wall', typeof n === 'number' ? n : 0)
 }
 
 async function init() {
@@ -330,7 +330,19 @@ async function init() {
     loadFollowSummary(),
     loadAchievementsGrid(),
     loadPalmaresTorneos(),
+    contarElForo(),
   ])
+
+  // Con las cuentas ya puestas, se abre la que tenga algo — y solo si
+  // quien mira no ha tocado nada todavía ni ha llegado con un #hash.
+  abrirLaQueTengaAlgo()
+}
+
+// La pestaña «Foro» se PINTA con pereza (son varias consultas), pero su
+// número hace falta antes: para la chapa y para decidir qué se abre.
+async function contarElForo() {
+  const { contarActividadDelForo } = await import('./foro-actividad.js')
+  contarPestania('foro', await contarActividadDelForo(profileId))
 }
 
 // El palmarés de torneos (tanda 211). MIENTRAS DURE LA PRUEBA solo lo
@@ -429,3 +441,4 @@ async function loadPalmaresTorneos() {
 }
 
 init()
+abrirLaDelHash()

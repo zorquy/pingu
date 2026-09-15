@@ -67,15 +67,14 @@ el contenedor de una sesión — el 2026-08-28 uno se reinició y se llevó
 por delante el doble y unas 87 pruebas, sin copia en ninguna parte. De
 ahí la rama: fuera de lo que se despliega, pero en algún sitio.
 
-**Estado a 2026-09-15**: cubiertos torneos (8 pruebas, más la de la
+**Estado a 2026-09-15 (tanda 308)**: cubiertos torneos (8 pruebas, más la de la
 vista previa al compartir, las dos del registro de partidas y las de
 permisos contra PostgreSQL de verdad), el foro —índice, lista de temas y
 vista de un tema— (2), la PORTADA y /aprender (tanda 299), /usuarios
 (301), la escala tipográfica y los esqueletos de artículo (305) y las
 dos fichas de persona —/perfil y /usuario— con la lista de inscritos de
-un torneo (306). El CONTENIDO de una guía y de un curso (más allá de su
-esqueleto) y /noticias siguen SIN cobertura: un cambio ahí sale a
-producción sin red debajo. Del foro faltan las piezas de alrededor
+un torneo (306). Desde la 308, también **/noticias y las fichas de guía
+y de curso**, que era el hueco grande. Del foro faltan las piezas de alrededor
 (encuestas, no leídos, suscripciones, búsqueda, menciones, moderación).
 
 **El rigor rompe el repo a propósito: no commitees mientras corre.**

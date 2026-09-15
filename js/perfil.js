@@ -8,6 +8,7 @@ import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notificat
 import { authorRatingSummary, starsHtml } from './guide-rating.js'
 import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
 import { renderWall } from './wall.js'
+import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash } from './perfil-pestanias.js'
 import { showToast } from './toast.js'
 import { estadoDeGuia, ESTADOS } from './guia-estado.js'
 
@@ -215,40 +216,16 @@ async function cargarMisTorneosUnaVez() {
 }
 
 // ── Pestañas del perfil ──
-document.getElementById('profileTabs')?.querySelectorAll('.tab-btn').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    document.getElementById('profileTabs').querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'))
-    document.querySelectorAll('.tab-panel[id^="ptab-"]').forEach((p) => p.classList.remove('active'))
-    btn.classList.add('active')
-    document.getElementById(`ptab-${btn.dataset.ptab}`).classList.add('active')
-    if (btn.dataset.ptab === 'foro') cargarForoUnaVez()
-    if (btn.dataset.ptab === 'torneos') cargarMisTorneosUnaVez()
-  })
+// (tanda 308: la mecánica vive en js/perfil-pestanias.js, que comparten
+// esta página y la ficha de otra persona.)
+montarPestanias({
+  alAbrir: (cual) => {
+    if (cual === 'foro') cargarForoUnaVez()
+    if (cual === 'torneos') cargarMisTorneosUnaVez()
+  },
 })
 
-// Llegar con la pestaña puesta: /perfil.html#torneos, #guides, #foro…
-//
-// Antes esto solo entendía `#torneos` y cualquier otro hash se ignoraba
-// en silencio. Se notó con el aviso de «te sugieren una corrección»
-// (tanda 253), que enlaza a `#guides`: pulsabas la campanita, caías en
-// el Muro y no había ni rastro de la corrección — PINGU: «me ha llevado
-// a mi perfil y ya».
-//
-// Genérico y no una lista de casos: cualquier pestaña que exista se abre
-// por su nombre, así que el siguiente aviso que enlace aquí ya funciona
-// sin tocar nada. Se comprueba contra los botones que HAY, que además es
-// lo que impide que un hash inventado deje la página sin ninguna
-// pestaña activa.
-const pestanaDelHash = window.location.hash.replace('#', '')
-if (pestanaDelHash) {
-  // Se BUSCA entre los botones que hay en vez de meter el texto del
-  // hash dentro de un selector. Con un selector habría que escaparlo, y
-  // escapar es defenderse de algo que puede colarse; aquí directamente
-  // no hay dónde colar nada, que es más barato de leer y no se puede
-  // olvidar el día que alguien toque esta línea.
-  const boton = [...document.querySelectorAll('#profileTabs .tab-btn')].find((b) => b.dataset.ptab === pestanaDelHash)
-  boton?.click()
-}
+abrirLaDelHash()
 
 // ── Siguiendo / Seguidores ──
 function followChipHtml(p) {
@@ -860,12 +837,29 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
 })
 
 async function loadWall(session) {
-  await renderWall({
+  const n = await renderWall({
     listEl: document.getElementById('commentsList'),
     formEl: document.getElementById('commentForm'),
     profileId: session.user.id,
     currentSession: session,
   })
+  contarPestania('wall', typeof n === 'number' ? n : 0)
+}
+
+// Las dos pestañas que se PINTAN con pereza necesitan su número antes
+// de abrirse: para la chapa y para decidir cuál se abre. Son consultas
+// de cabecera (`head: true`), sin filas.
+async function contarElForo(session) {
+  const { contarActividadDelForo } = await import('./foro-actividad.js')
+  contarPestania('foro', await contarActividadDelForo(session.user.id))
+}
+
+async function contarMisTorneos(session) {
+  const { count } = await supabase
+    .from('tournament_registrations')
+    .select('tournament_id', { count: 'exact', head: true })
+    .eq('user_id', session.user.id)
+  contarPestania('torneos', count || 0)
 }
 
 async function loadAccountDeletionStatus(session) {
@@ -897,7 +891,19 @@ async function init() {
   if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarMisTorneosUnaVez()
 
   const profile = await loadProfile(session)
-  await Promise.all([loadStats(session, profile), loadCompletedCourses(session), loadMyGuides(session), loadWall(session), loadFollowSummary(session)])
+  await Promise.all([
+    loadStats(session, profile),
+    loadCompletedCourses(session),
+    loadMyGuides(session),
+    loadWall(session),
+    loadFollowSummary(session),
+    contarElForo(session),
+    contarMisTorneos(session),
+  ])
+
+  // Con las cuentas puestas, se abre la pestaña que tenga algo: «Muro»
+  // era siempre la primera y en casi todos los perfiles está vacía.
+  abrirLaQueTengaAlgo()
   await loadAchievements(profile)
   await loadAccountDeletionStatus(session)
 

@@ -16,6 +16,22 @@ import { haceCuanto, fechaLarga, etiquetaHtml, urlForo, urlTema, faltaElForo, re
 
 const CUANTOS = 20
 
+// Solo los números, para la chapa de la pestaña y para decidir cuál se
+// abre (tanda 308). Son dos consultas de CABECERA —`head: true`, sin
+// filas— así que cuestan mucho menos que pintar la pestaña entera, que
+// es lo que se sigue haciendo con pereza al abrirla.
+export async function contarActividadDelForo(userId) {
+  if (!userId) return 0
+  const [{ count: nTemas, error }, { count: nMensajes }] = await Promise.all([
+    supabase.from('forum_threads').select('id', { count: 'exact', head: true }).eq('author_id', userId),
+    supabase.from('forum_posts').select('id', { count: 'exact', head: true }).eq('author_id', userId),
+  ])
+  // Sin foro montado no hay nada que contar, y desde luego no hay que
+  // enseñar un error en una chapa.
+  if (faltaElForo(error)) return 0
+  return (nTemas || 0) + (nMensajes || 0)
+}
+
 function filaTema(t, foroPorId) {
   const foro = foroPorId[t.board_id]
   return `

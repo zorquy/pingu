@@ -12,6 +12,47 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-15 (7) — PINGU-Claude (tanda 308 — pestañas con cuenta, esqueletos de lista y el hueco de pruebas)
+
+**Hecho**: cuatro mejoras de las cinco que propuse. La quinta la retiré:
+dije que el foro seguía siendo «una tarjeta por tema» y **no es verdad**,
+la 299 ya lo pasó a filas. Lo dije de memoria sin mirarlo.
+
+- **Las pestañas del perfil** llevan su cuenta y se abre **la que tiene
+  algo**: «Muro» era siempre la primera y en casi todos los perfiles está
+  vacía. Quien mira manda: un `#hash` gana siempre, y si ya has pulsado
+  tú una pestaña la página no te mueve cuando terminen de llegar las
+  cuentas (`event.isTrusted` distingue tu clic del suyo).
+- La mecánica estaba **copiada en perfil.js y usuario.js** y pasa a
+  `js/perfil-pestanias.js`.
+- **`/noticias` y `/aprender` cargan con la silueta de lo que enseñan**:
+  la de la 305 tiene forma de ARTÍCULO y esas dos son rejillas de
+  tarjetas. Dos formas nuevas, vertical y horizontal.
+- **El hueco de pruebas**: `/noticias` y las fichas de guía y curso no
+  tenían NINGUNA. Ya las tienen.
+
+**Dos cosas que le faltaban al doble** y que conviene que sepas, porque
+las dos hacían que una prueba viera un sitio que no existe:
+
+1. **No tenía la tabla del muro** (`profile_comments`): estaba siempre
+   vacío, así que el caso «tiene algo, no me muevas» no se podía probar.
+2. **No resolvía los `select` embebidos** (`categories(name, slug)`).
+   Devolvía las filas sin la relación, así que la página se portaba como
+   si la guía no tuviera categoría — sin dar error. Ahora se resuelven
+   con las relaciones declaradas en el propio doble.
+
+**Ficheros**: `js/perfil-pestanias.js` (NUEVO), `js/perfil.js`,
+`js/usuario.js`, `js/wall.js` (renderWall devuelve la cuenta),
+`js/foro-actividad.js`, `css/components.css`, `noticias.html`,
+`aprender.html`, `SCHEMA.md`.
+En la rama `pruebas`: `test-tanda-308.mjs`, `test-noticias.mjs`,
+`test-ficha-guia.mjs`, `rigor-tanda-308.py` (los cuatro NUEVOS) y el
+doble (`stub-supabase.js`).
+
+**En curso / pendiente**: nada a medias.
+
+---
+
 ## 2026-09-15 (6) — PINGU-Claude (tanda 307 — la pestaña «Foro» del perfil, rota desde la 299)
 
 **Hecho**: PINGU mandó una captura del perfil nuevo: «se ha roto». La

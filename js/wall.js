@@ -80,11 +80,15 @@ export async function renderWall({
   )
   wireReportButtons(listEl, currentSession)
 
-  if (!formEl) return
+  // Devuelve CUÁNTOS hay. Lo usa la chapa de la pestaña del perfil
+  // (tanda 308), y por eso lo devuelven las TRES salidas de la función:
+  // si una se dejara sin devolver, la chapa diría 0 justo en los casos
+  // en que no hay formulario o no hay sesión.
+  if (!formEl) return comments.length
 
   if (!currentSession) {
     formEl.innerHTML = `<p class="subtext"><a href="/auth.html" style="color:var(--navy); font-weight:700;">Inicia sesión</a> para escribir aquí.</p>`
-    return
+    return comments.length
   }
 
   const replyToId = isProfileWall ? new URLSearchParams(window.location.search).get('reply_to') : null
@@ -165,4 +169,6 @@ export async function renderWall({
     }
     renderWall({ listEl, formEl, profileId, currentSession, table, idField, placeholder, emptyMessage, isAdmin })
   })
+
+  return comments.length
 }

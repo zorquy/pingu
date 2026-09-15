@@ -15387,3 +15387,104 @@ llevan borde.
 Cubierto en `test-tanda-299.mjs` (bloques nuevos) + `rigor-tanda-307.py`
 (4 mutaciones, la principal contra la propia prueba: devolverle el regex
 viejo tiene que ponerla roja).
+
+---
+
+## Tanda 308 — las pestañas dicen cuánto hay, y el hueco de pruebas (sept. 2026)
+
+PINGU: «¿además qué mejoras me propones?». De las cinco que propuse,
+**una era falsa**: dije que el foro seguía siendo «una tarjeta por tema»
+y no lo es — la tanda 299 ya lo pasó a filas con separador. Lo dije de
+memoria sin mirarlo. Las otras cuatro, aquí.
+
+### Las pestañas del perfil
+
+Cinco pestañas sin un número al lado obligan a entrar en todas para saber
+dónde está lo que buscas. Y **«Muro» era siempre la primera y en casi
+todos los perfiles está vacía**: entrabas y te encontrabas un «todavía no
+hay nada escrito» con 13 cosas a una pestaña de distancia.
+
+Ahora cada una lleva su cuenta (`.pest-cuenta`), y se abre la que tiene
+algo. Tres reglas que importan más que el efecto:
+
+1. **El cero no se pinta.** «Muro 0» ocupa sitio para decir que no hay
+   nada, y para eso ya está el panel cuando entras.
+2. **El orden no es el de las pestañas**: `wall → foro → guides →
+   torneos`. El muro va primero porque es donde se te escribe a ti; si
+   está vacío, lo interesante es lo que ha hecho esa persona.
+3. **Quien mira manda.** Un `#hash` es una intención explícita —lo pone
+   un aviso de la campanita, o alguien que comparte el enlace— y gana
+   siempre. Y si ya has pulsado tú una pestaña, la página no te mueve de
+   sitio cuando terminen de llegar las cuentas: se distingue tu clic del
+   `.click()` de la propia página con `event.isTrusted`.
+
+La mecánica estaba **copiada en `perfil.js` y en `usuario.js`** —el mismo
+bucle y el mismo bloque del `#hash` escritos dos veces— y pasa a
+`js/perfil-pestanias.js`.
+
+Las dos pestañas que se pintan con pereza (foro y torneos) necesitan su
+número ANTES de abrirse. Se piden con `head: true`, sin filas: dos
+consultas de cabecera cuestan mucho menos que pintar la pestaña entera.
+
+`renderWall()` ahora **devuelve cuántos comentarios hay**, y lo devuelven
+sus TRES salidas: si una se dejara sin devolver, la chapa diría 0 justo
+en los casos en que no hay formulario o no hay sesión.
+
+### Esqueletos de LISTA
+
+El esqueleto de la tanda 305 tiene forma de ARTÍCULO y sirve para una
+guía o un curso abiertos. `/noticias` y `/aprender` no enseñan un
+artículo: enseñan una rejilla de tarjetas. Ahí la silueta correcta es
+otra — si no, lo que aparece al cargar no se parece a lo que llega
+después, que es todo lo que un esqueleto tiene que hacer.
+
+Dos formas porque hay dos tarjetas: la noticia es **vertical** (portada
+apaisada arriba, texto debajo) y la guía es **horizontal** (icono
+cuadrado a la izquierda, texto a la derecha). La prueba no cuenta
+elementos: **mide** que la portada sea más ancha que alta y que el icono
+esté a la izquierda del texto.
+
+### Y el hueco de pruebas que quedaba
+
+`/noticias` y las fichas de guía y de curso no tenían **ninguna** prueba.
+Dos ficheros nuevos, `test-noticias.mjs` y `test-ficha-guia.mjs`, con lo
+que de verdad puede romperse ahí:
+
+- **Que los dos listados no se mezclen.** Una noticia es una fila de
+  `guides` con `kind = 'news'`: comparten tabla, así que el fallo posible
+  es que una guía aparezca en /noticias o una noticia en /aprender. No se
+  ve hasta que alguien publica.
+- **«Ver más» solo cuando hay más.** Se piden 13 para pintar 12, que es
+  como se sabe si queda alguna sin contar la tabla entera.
+- **«Escribir noticia» solo para el equipo**, y con `?tipo=noticia` — la
+  diferencia entre escribir una noticia y acordarse de marcarla.
+- **Que el JavaScript no se lleve por delante lo que ya estaba.** Es la
+  forma del fallo de la tanda 270, que pasó de verdad: el servidor deja
+  el artículo pintado en el HTML y el cliente, que no encontraba el slug,
+  lo sustituyó por «Guía no encontrada». Un fallo del cliente se llevó
+  una página **que ya estaba bien**.
+- **Que una noticia tenga UNA dirección**: se llega por
+  `/guia.html?slug=…` pero la buena es `/noticias/<slug>`, y la barra se
+  corrige sin recargar.
+- **Que una guía sin publicar lo diga**, y que una publicada no.
+
+### Dos cosas que le faltaban al doble
+
+Escribir esas pruebas destapó dos huecos en el doble de Supabase, y los
+dos hacían que **la prueba viera un sitio que no existe**:
+
+1. **No había tabla del muro** (`profile_comments`). El muro estaba
+   siempre vacío, así que «se queda en el muro cuando tiene algo» —justo
+   el caso en que la página NO debe moverte— no se podía comprobar.
+2. **No resolvía los `select` embebidos.**
+   `.select('*, categories(name, slug)')` trae la fila relacionada dentro
+   del resultado; el doble devolvía las filas sin ella, así que la página
+   se comportaba como si esa guía no tuviera categoría — **sin dar
+   error**. La miga de pan salía apuntando a `?slug=` vacío y parecía un
+   fallo de la web. Ahora se resuelven, con las relaciones DECLARADAS
+   (`categories → category_id`, `guides → guide_id`, `tcg_sets → set_id`,
+   `forum_posts → post_id`): de «categories» a «category» no se llega con
+   una regla, y declararlas documenta además cuáles usa el sitio.
+
+Cubierto en `test-tanda-308.mjs` (5 bloques), `test-noticias.mjs` (6),
+`test-ficha-guia.mjs` (8) + `rigor-tanda-308.py`.
