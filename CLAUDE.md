@@ -89,7 +89,13 @@ use esa clase (le pasó a «Ahora en el foro», que es de la portada), y
 que un `@media` se quede en `components.css` con su base ya mudada — un
 `@media` no suma especificidad y `components.css` carga primero, así que
 la base gana y el móvil se rompe. `test-tanda-299.mjs` comprueba las
-dos cosas; si mueves CSS de hoja, pásala.
+dos cosas **en las 26 páginas del sitio**; si mueves CSS de hoja, pásala.
+
+Y la lección de la tanda 303, que costó un foro roto en producción: esa
+prueba existía desde la 299 y **miraba solo la portada**, así que no vio
+que `tema.html` se había quedado sin `foro.css`. Una prueba escrita
+contra el caso que acabas de arreglar no vale — escríbela contra **la
+forma** del fallo.
 
 ## Los torneos (sección «Jugar»)
 

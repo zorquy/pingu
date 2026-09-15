@@ -15027,3 +15027,64 @@ fuente buscando `btnTelegramTorneo`, y el rigor lo cazó: con la llamada a
 `pintarTelegram` borrada la prueba pasaba igual, porque el texto seguía
 dentro de una función que ya no llamaba nadie. Un botón que no se pinta
 es justo el fallo que hay que poder ver.
+
+---
+
+## Tanda 303 — el foro roto, y la prueba que miraba a otro lado (sept. 2026)
+
+PINGU, con una captura: «importante, el foro esta roto, mira como se ve».
+Y lo estaba: la vista de un tema salió a producción **sin una sola regla
+de CSS** — el mensaje, la columna del autor, las citas, las reacciones y
+la barra del editor, todo en crudo.
+
+### Qué pasó
+
+La tanda 299 sacó 191 bloques de CSS del foro de `components.css` a
+`css/foro.css` para que no los bajara todo el mundo. Se comprobó la
+portada (donde ya había fallado `.foro-vivo`) y `foro.html`. **`tema.html`
+no carga `foro.css`**, y nadie lo miró.
+
+Lo peor no es el fallo: es que **la tanda 299 escribió una prueba para
+exactamente esto** —recorrer las clases que pinta una pantalla y
+comprobar que cada una tiene regla en una hoja que esa pantalla carga— y
+la escribió **mirando solo la portada**. La prueba pasaba en verde con el
+foro roto.
+
+### El arreglo, y el barrido
+
+1. `tema.html` carga `css/foro.css`.
+2. **Barrido de las 26 páginas del sitio** con el mismo criterio. Salieron
+   dos más:
+   - **`usuarios.html`** usaba `.seccion-cabecera`, que vive en
+     `portada.css` y Comunidad no carga: el título «Gente de PokeDoc»
+     estaba sin estilo. Es de la tanda 301 — el mismo fallo, cometido
+     otra vez, dos tandas después. La regla se muda a `components.css`,
+     que bajan las dos.
+   - **`mis-partidas.html`**: `.torneo-ver-mas` vive en `torneos.css`, que
+     esa página no carga, así que el botón «Ver N más» salía pegado a la
+     izquierda en vez de centrado. Se resuelve con dos líneas en
+     `partidas.css` — traerse la hoja entera de torneos por un margen
+     sería pagar 30 KB.
+3. **La prueba recorre ahora LAS 26 PÁGINAS**, no la portada: para cada
+   una, qué clases pintan su HTML y su JavaScript, y si cada una tiene
+   regla en alguna de las hojas que *esa* página carga. Solo cuentan las
+   que sí existen en otra hoja — una clase sin regla en ninguna parte es
+   otra cosa (un gancho de JavaScript) y no un estilo perdido. Cuando
+   falla, **nombra la página y las clases**.
+4. El fallo entra como mutación del rigor de la 299, para que no pueda
+   repetirse en silencio.
+
+### La lección, que es la de la tanda
+
+Una prueba escrita contra el caso que acabas de arreglar no vale: hay que
+escribirla contra **la forma** del fallo. «La portada no se quedó sin
+reglas» y «ninguna página se queda sin reglas» se parecen mucho y no son
+lo mismo — y la diferencia entre las dos fue un foro roto en producción.
+
+### Y una limpieza del rigor
+
+Tres mutaciones del rigor de la 299 apuntaban a código que la tanda 300
+sustituyó (las categorías pasaron a chips, la rareza del galón a la
+pastilla sobre la portada). Quitadas: **una mutación cuya ancla ya no
+existe se cuenta como «sin detectar» y tapa las de verdad**. Lo que
+vigilaban lo cubre el rigor de la 300, contra el código que sí existe.

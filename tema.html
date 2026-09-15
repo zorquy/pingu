@@ -46,6 +46,12 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
+  <!-- La hoja del foro. Faltaba desde la tanda 299, que sacó los 191
+       bloques de foro de components.css para que no los bajara todo el
+       mundo: se comprobó la portada y foro.html, y la VISTA DE UN TEMA se
+       quedó fuera — con el mensaje, la columna del autor, las citas y las
+       reacciones sin una sola regla. Salió así a producción. -->
+  <link rel="stylesheet" href="/css/foro.css" />
 </head>
 <body>
   <nav class="navbar" id="navbar">

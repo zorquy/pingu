@@ -447,3 +447,12 @@
 /* El buscador de torneos ocupa lo que le dejen; el resto de la barra
    manda menos. */
 #torneoBuscarCampo { flex: 1 1 220px; }
+
+/* El «Ver N más» de las listas. La regla de verdad vive en
+ * css/torneos.css, que /mis-partidas NO carga: el botón salía pegado a la
+ * izquierda en vez de centrado bajo la lista. Son dos líneas — traerse la
+ * hoja entera de torneos por esto sería pagar 30 KB por un margen. */
+.torneo-ver-mas {
+  display: block;
+  margin: 12px auto 0;
+}

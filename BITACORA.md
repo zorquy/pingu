@@ -12,6 +12,52 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-15 (4) — PINGU-Claude (tanda 303 — el foro roto, y la prueba que miraba a otro lado)
+
+**Hecho**: PINGU mandó una captura — «importante, el foro esta roto» — y
+lo estaba: la VISTA DE UN TEMA salía en producción sin una sola regla de
+CSS. Mensaje, columna del autor, citas, reacciones y la barra del editor,
+todo en crudo.
+
+**La causa es mía y de la tanda 299**: saqué 191 bloques de CSS del foro
+de components.css a foro.css para que no los bajara todo el mundo,
+comprobé la portada y foro.html, y **tema.html no carga foro.css**.
+
+Y lo peor: **la 299 escribió una prueba para exactamente este fallo** —
+recorrer las clases que pinta una pantalla y comprobar que tienen regla
+en una hoja que esa pantalla carga— y la escribí MIRANDO SOLO LA PORTADA.
+Pasaba en verde con el foro roto.
+
+**El barrido de las 26 páginas** sacó dos más:
+- **usuarios.html** usaba `.seccion-cabecera`, que vive en portada.css y
+  Comunidad no carga: el título «Gente de PokeDoc», sin estilo. Es de la
+  tanda 301 — el mismo fallo, otra vez, dos tandas después. La regla se
+  muda a components.css.
+- **mis-partidas.html**: el botón «Ver N más» salía pegado a la izquierda
+  porque `.torneo-ver-mas` vive en torneos.css, que esa página no carga.
+  Dos líneas en partidas.css; traerse 30 KB de hoja por un margen, no.
+
+**La prueba recorre ahora las 26 páginas** y, cuando falla, NOMBRA la
+página y las clases. Verificada quitando otra vez la hoja de tema.html:
+se pone roja. Y el fallo entra como mutación del rigor.
+
+**La lección**: una prueba escrita contra el caso que acabas de arreglar
+no vale; hay que escribirla contra LA FORMA del fallo. «La portada no se
+queda sin reglas» y «ninguna página se queda sin reglas» se parecen mucho
+y no son lo mismo — y la diferencia fue un foro roto en producción.
+
+**Limpieza**: tres mutaciones del rigor de la 299 apuntaban a código que
+la 300 sustituyó. Quitadas — una mutación con el ancla rota se cuenta
+como «sin detectar» y tapa las de verdad.
+
+**Ficheros**: tema.html, usuarios.html (vía css), css/components.css,
+css/portada.css, css/partidas.css, SCHEMA.md, CLAUDE.md.
+
+**En curso / pendiente**: el perfil de una persona y la cobertura de
+/noticias y la ficha de guía.
+
+---
+
 ## 2026-09-15 (3) — PINGU-Claude (tanda 302 — el torneo al canal, a mano)
 
 **Hecho**: PINGU preguntó por qué la Pachanga inaugural no había salido

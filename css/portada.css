@@ -427,33 +427,9 @@ a.noticia-banner:hover {
  * detrás de otro. Ahora lo que pasa va en la columna ancha y lo tuyo
  * —tu torneo, tus pasos, tu liga— en la estrecha. */
 
-/* La cabecera de cada bloque de la columna ancha: título y su enlace de
-   «ver todo» en la misma línea, que es lo que dice que hay más detrás. */
-.seccion-cabecera {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.seccion-cabecera a {
-  color: var(--navy);
-  font-size: 13.5px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.seccion-cabecera-sm h2 {
-  margin: 0;
-  font-size: 15px;
-  font-family: var(--font-display, 'Fredoka', 'Inter', sans-serif);
-  font-weight: 600;
-}
-
-.seccion-cabecera-sm a {
-  font-size: 12.5px;
-}
+/* `.seccion-cabecera` vive en css/components.css desde la tanda 303: la
+   usan la portada Y /usuarios, y esas dos no comparten ninguna otra
+   hoja. Tenerla aquí dejaba el título de «Gente de PokeDoc» sin estilo. */
 
 /* La caja blanca de la columna lateral. Es la misma forma que .top-mes,
    que ya vive ahí: así los cinco bloques de la lateral se leen como
