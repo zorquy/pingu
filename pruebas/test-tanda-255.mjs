@@ -62,7 +62,12 @@ console.log('\n── 1. La portada enseña el próximo torneo ──')
     ],
   })
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
-  check('sale la tarjeta', (await page.locator('#torneoPortada .reto-tarjeta').count()) === 1)
+  // En la tanda 300 la tarjeta dejó de ser una fila fina (.reto-tarjeta)
+  // y pasó a tarjeta con fecha: un torneo es una CITA. Lo que esta
+  // prueba vigila no cambia — que salga, con su nombre, su cuándo y sus
+  // plazas—, solo cambia dónde se lee.
+  check('sale la tarjeta', (await page.locator('#torneoPortada .portada-torneo').count()) === 1)
+  check('  …con el día en un recuadro', (await page.locator('.portada-torneo-fecha b').count()) === 1)
   const texto = await page.locator('#torneoPortada').innerText()
   check('con el nombre del torneo', /Copa Inaugural PokeDoc/.test(texto), texto.replace(/\n/g, ' | '))
   check('y cuándo se juega', /Mañana a las \d{2}:\d{2}/.test(texto), texto.replace(/\n/g, ' | '))
@@ -106,7 +111,10 @@ console.log('\n── 4. Aforo sin límite: no se inventa plazas ──')
   const { page } = await abrir('/', { __FAKE_SESSION__: 'admin-1', __FAKE_TORNEOS__: [torneo({ max_players: null })] })
   const texto = await page.locator('#torneoPortada').innerText()
   check('no habla de plazas', !/plaza/.test(texto), texto.replace(/\n/g, ' | '))
-  check('pero sí de las inscripciones', /Inscripciones abiertas/.test(texto))
+  // «Inscripciones abiertas» era una frase dentro del texto; desde la
+  // tanda 300 lo dice el BOTÓN. Lo que hay que seguir exigiendo es que
+  // se vea que puedes apuntarte, no la frase exacta.
+  check('pero sí que puedes apuntarte', /Apuntarme/.test(texto), texto.replace(/\n/g, ' | '))
   await page.close()
 }
 
@@ -114,7 +122,7 @@ console.log('\n── 5. Y sin cuenta también se ve ──')
 {
   const { page, errores } = await abrir('/', { __FAKE_SESSION__: 'none', __FAKE_TORNEOS__: [torneo()] })
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
-  check('la tarjeta sale igual', (await page.locator('#torneoPortada .reto-tarjeta').count()) === 1)
+  check('la tarjeta sale igual', (await page.locator('#torneoPortada .portada-torneo').count()) === 1)
   await page.close()
 }
 

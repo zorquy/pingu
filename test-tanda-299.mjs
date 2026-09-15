@@ -311,37 +311,32 @@ console.log('\n── 7. F · Sin cuenta, y sin noticia ──')
 
 console.log('\n── 8. F · El color deja de gritar en las rejillas ──')
 {
+  // La tanda 300 cambió DÓNDE se lee esto, no QUÉ: las seis tarjetas de
+  // categoría son ahora chips de tema, y la rareza pasó del galón del
+  // borde a una pastilla sobre la portada de la guía. Lo que se vigila
+  // sigue siendo lo mismo — que ningún color salga de un hash y que
+  // ninguno pinte el marco entero.
   const { page } = await abrir('/index.html')
-  // Las categorías: sin marco de color (salía de un hash del id y no
-  // quería decir nada).
-  const cat = page.locator('#categoriesGrid .category-card').first()
-  check('la tarjeta de categoría ya no lleva marco de color', !(await cat.evaluate((e) => e.className)).includes('border-tint'),
-    await cat.evaluate((e) => e.className))
-  const grosor = await cat.evaluate((e) => getComputedStyle(e).borderTopWidth)
-  check('  …y su borde es fino', grosor === '1px', grosor)
-  // La rareza sigue diciéndose, pero de galón y no de marco.
+  const chip = page.locator('.portada-tema').first()
+  check('el tema es un chip, no una tarjeta con marco de color',
+    !(await chip.evaluate((e) => e.className)).includes('icon-tint'), await chip.evaluate((e) => e.className))
+  // El tinte sí, pero SOLO en la pastilla del icono.
+  check('  …y el tinte se queda en la pastilla del icono',
+    (await page.locator('.portada-tema-icono').first().evaluate((e) => e.className)).includes('icon-tint'))
+  const fondoChip = await chip.evaluate((e) => getComputedStyle(e).backgroundColor)
+  const fondoCaja = await page.evaluate(() => getComputedStyle(document.querySelector('.foro-vivo')).backgroundColor)
+  check('  …y el chip es blanco como el resto de cajas', fondoChip === fondoCaja, `${fondoChip} vs ${fondoCaja}`)
+
   const guia = page.locator('#recentGrid .recent-card').first()
-  check('la guía reciente ya no lleva marco de rareza', !(await guia.evaluate((e) => e.className)).includes('border-rarity'),
+  check('la guía reciente no lleva marco de rareza', !(await guia.evaluate((e) => e.className)).includes('border-rarity'),
     await guia.evaluate((e) => e.className))
-  // «No es transparente» no vale: sin --galon la regla cae al gris de
-  // respaldo, que tampoco es transparente y colaría. Tiene que ser EL
-  // COLOR DE SU RAREZA, y dos rarezas distintas tienen que verse
-  // distintas — que es lo único que hace que el galón signifique algo.
-  const galon = await guia.evaluate((e) => getComputedStyle(e, '::before').backgroundColor)
-  const suRareza = await page.evaluate(() => {
-    const c = document.querySelector('#recentGrid .recent-card')
-    const rareza = [...c.classList].find((x) => x.startsWith('galon-'))?.slice(6)
-    const v = getComputedStyle(document.documentElement).getPropertyValue(`--rarity-${rareza}`).trim()
-    // De #rrggbb a rgb(), que es como lo devuelve getComputedStyle.
-    const n = parseInt(v.slice(1), 16)
-    return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`
-  })
-  check('  …pero sí galón del color de SU rareza', galon === suRareza, `${galon} vs ${suRareza}`)
-  const colores = await page.locator('#recentGrid .recent-card').evaluateAll((cs) =>
-    cs.map((c) => getComputedStyle(c, '::before').backgroundColor)
-  )
-  check('  …y dos rarezas distintas se ven distintas', new Set(colores).size > 1, colores.join(' | '))
-  check('  …y la pastilla de rareza sigue', (await page.locator('#recentGrid .rarity-chip').count()) > 0)
+  const grosor = await guia.evaluate((e) => getComputedStyle(e).borderTopWidth)
+  check('  …y su borde es fino', grosor === '1px', grosor)
+  check('  …pero la rareza se sigue diciendo, sobre la portada',
+    (await page.locator('#recentGrid .recent-arte .rarity-chip').count()) > 0)
+  // Y en español: la columna guarda «gold» y eso no lo dice nadie aquí.
+  const rareza = await page.locator('#recentGrid .rarity-chip').first().textContent()
+  check('  …y en español', /Oro|Plata|Bronce|Platino/.test(rareza || ''), rareza)
   // Las .border-tint-* solo las usaba esto: si quedaron, es CSS muerto.
   check('y el CSS muerto se fue', !/\.border-tint-\d \{/.test(leer('css/style.css')))
   await page.close()

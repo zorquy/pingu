@@ -48,6 +48,7 @@ const T = {
   user_achievements: [],
   daily_challenge_results: [],
   user_progress: [],
+  xp_mes: [],
 }
 
 // ── Quién eres ──
@@ -80,6 +81,31 @@ for (const [id, p] of Object.entries(PERSONAS)) {
     notification_prefs_disabled: [],
     notification_email_disabled: [],
   })
+}
+
+// Gente a medida (tanda 301). Las cinco personas de arriba son fijas y no
+// tienen ni XP ni racha ni fecha de actividad: /usuarios vive justo de
+// eso. Este gancho MEZCLA por id —retoca la que ya existe, añade la que
+// no— para que una prueba pueda montar una comunidad entera sin tocar
+// las cinco de siempre, que usan las demás pruebas.
+const genteExtra = typeof window !== 'undefined' ? window.__FAKE_PERFILES__ : null
+if (Array.isArray(genteExtra)) {
+  for (const fila of genteExtra) {
+    const ya = T.user_profiles.find((p) => p.id === fila.id)
+    if (ya) Object.assign(ya, fila)
+    else
+      T.user_profiles.push({
+        is_admin: false,
+        is_tournament_admin: false,
+        is_moderator: false,
+        achievements: [],
+        avatar_url: null,
+        xp: 0,
+        notification_prefs_disabled: [],
+        notification_email_disabled: [],
+        ...fila,
+      })
+  }
 }
 
 const quienSoy = typeof window !== 'undefined' ? window.__FAKE_SESSION__ || 'admin-1' : 'admin-1'
@@ -349,6 +375,14 @@ sembrar('__FAKE_PROGRESO__', 'user_progress', (i) => ({
   current_block: 1,
   read_at: null,
   started_at: new Date(Date.now() - (i + 1) * 3600e3).toISOString(),
+}))
+
+// La foto de XP con la que empezó el mes: el podio de /usuarios y el
+// «top del mes» de la portada salen de restar esto al total de hoy.
+sembrar('__FAKE_XP_MES__', 'xp_mes', (i) => ({
+  user_id: `u${i}`,
+  mes: `${new Date().getUTCFullYear()}-${String(new Date().getUTCMonth() + 1).padStart(2, '0')}-01`,
+  xp_inicio: 0,
 }))
 
 sembrar('__FAKE_SUGERENCIAS__', 'guide_suggestions', (i) => ({
