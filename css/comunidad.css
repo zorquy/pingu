@@ -1,0 +1,433 @@
+/* ── La comunidad (tanda 301) ──
+ *
+ * /usuarios era una COLUMNA ESTRECHA centrada que abría por «Guías de la
+ * comunidad»: la página se llama Comunidad y lo primero que veías era
+ * una lista de documentos con un párrafo de explicación. Ni una cara, ni
+ * un número, ni nada que hacer. Por eso no la usaba nadie.
+ *
+ * Esta hoja solo la carga /usuarios, como manda la norma de la casa
+ * (CLAUDE.md): lo de una sola pantalla no lo baja todo el mundo. */
+
+/* ── Los números ── */
+.com-cifras {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0 22px;
+}
+
+@media (min-width: 760px) {
+  .com-cifras {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.com-cifra {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-xs);
+  min-width: 0;
+}
+
+.com-cifra b {
+  display: block;
+  font-family: var(--font-display, 'Fredoka', 'Inter', sans-serif);
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.com-cifra span {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-mid);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+/* ── Las pestañas, como chips ──
+ * Mismo idioma que /aprender y /torneos. Conservan `data-ctab`, así que
+ * el ancla de la dirección y el botón de atrás siguen funcionando. */
+.com-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 22px;
+}
+
+.com-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 8px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-mid);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.com-chip:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.com-chip.active {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.com-chip-n {
+  background: var(--ice);
+  color: var(--navy);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.com-chip-n:empty {
+  display: none;
+}
+
+.com-chip.active .com-chip-n {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+/* ── Las dos columnas ── */
+.com-dos {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.com-principal {
+  min-width: 0;
+}
+
+.com-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+@media (min-width: 960px) {
+  .com-dos {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 22px;
+    align-items: start;
+  }
+
+  /* La lateral acompaña al hacer scroll mientras quepa. align-self es
+     imprescindible: si se estirara al alto de la rejilla, el sticky no
+     tendría recorrido. */
+  .com-lateral {
+    position: sticky;
+    top: 78px;
+    align-self: start;
+  }
+}
+
+.com-caja {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-xs);
+}
+
+.com-caja h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.com-boton-ancho {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* ── El podio del mes ── */
+.com-podio {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl, 18px);
+  padding: 20px 22px 22px;
+  margin-bottom: 24px;
+  color: #fff;
+  background: linear-gradient(120deg, var(--navy-dark), var(--navy) 55%, #3d8ab8);
+  box-shadow: var(--shadow-md);
+}
+
+/* La trama de puntos, como en la cabecera de un torneo y en el héroe del
+   reto: sin ella el degradado se ve plano. */
+.com-podio::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.2px, transparent 1.3px);
+  background-size: 16px 16px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.com-podio > * {
+  position: relative;
+  z-index: 1;
+}
+
+.com-podio-rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.com-podio h2 {
+  margin: 7px 0 16px;
+  font-size: 20px;
+}
+
+.com-podio-tres {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.com-puesto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 15px 10px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  text-align: center;
+  min-width: 0;
+  transition: background 0.15s var(--ease);
+}
+
+.com-puesto:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* El primero se distingue, pero sin marco dorado: un tinte cálido y el
+   nombre de la medalla. Tres marcos de color en fila es justo lo que la
+   tanda 299 quitó del resto de la web. */
+.com-puesto-1 {
+  background: rgba(255, 209, 102, 0.16);
+  border-color: rgba(255, 209, 102, 0.45);
+}
+
+.com-puesto-medalla {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.com-puesto-1 .com-puesto-medalla {
+  color: #ffd166;
+}
+
+.com-puesto-cara {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  font-weight: 700;
+  font-size: 19px;
+  background-size: cover;
+  background-position: center;
+}
+
+.com-puesto-nombre {
+  font-weight: 700;
+  font-size: 14.5px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.com-puesto-xp {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+}
+
+@media (max-width: 560px) {
+  /* En el móvil, los tres en columna: tres tarjetas de 100px de ancho
+     dejan el nombre en «Fulan…» y la XP partida en tres líneas. */
+  .com-podio-tres {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .com-puesto {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 12px;
+  }
+
+  .com-puesto-cara {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    flex-shrink: 0;
+    order: -1;
+  }
+
+  .com-puesto-medalla {
+    order: 1;
+    margin-left: auto;
+  }
+}
+
+/* ── Las personas ── */
+.user-directory-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 11px;
+}
+
+@media (min-width: 620px) {
+  .user-directory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.com-persona {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 13px 15px;
+  box-shadow: var(--shadow-xs);
+  min-width: 0;
+  transition: border-color 0.15s var(--ease);
+}
+
+.com-persona:hover {
+  border-color: var(--border-strong);
+}
+
+.com-persona-cara {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  color: #fff;
+  font-weight: 700;
+  font-size: 17px;
+  background-size: cover;
+  background-position: center;
+}
+
+.com-persona-cuerpo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 7px;
+  min-width: 0;
+  flex: 1;
+}
+
+.com-persona-nombre {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.com-persona-nombre:hover {
+  color: var(--navy);
+}
+
+/* La línea de «qué ha hecho» se lleva el ancho entero: es la que dice a
+   quién le preguntas, y partida al lado de la chapa de nivel no se lee. */
+.com-persona-hizo {
+  flex-basis: 100%;
+  color: var(--text-mid);
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+.com-persona-racha {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  background: var(--warning-bg);
+  color: #a06008;
+  border-radius: var(--radius-pill);
+  padding: 3px 9px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+:root[data-theme='dark'] .com-persona-racha {
+  color: #f0a94a;
+}
+
+/* ── El montón de caras de «por aquí hoy» ── */
+.com-monton {
+  display: flex;
+  margin-bottom: 13px;
+  padding-left: 2px;
+}
+
+.com-monton-cara {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--white);
+  margin-left: -8px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.com-monton-cara:first-child {
+  margin-left: 0;
+}
+
+.com-monton-mas {
+  background: var(--text-dim);
+}

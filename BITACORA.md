@@ -12,6 +12,120 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-15 (2) — PINGU-Claude (tanda 301 — la comunidad)
+
+**Hecho**: /usuarios, que PINGU dijo que «no se usa demasiado». Y no se
+usaba por cuatro razones concretas: era una columna estrecha centrada,
+abría por «Guías de la comunidad» (la página se llama Comunidad y lo
+primero era una lista de documentos), las tarjetas repetían «Novato ·
+0 XP» en todas con marco dorado en las tres primeras, y no había nada
+que hacer ni motivo para volver.
+
+Ahora abre por GENTE y a ancho completo. **Los números arriba**
+—miembros, mensajes de la semana, guías vuestras y rachas VIVAS hoy—,
+que son lo único que demuestra que aquí hay alguien. **Podio del mes**
+en azul, con la XP ganada desde el día 1 (`xp_mes`) y no la total: por XP
+total ganaría siempre quien lleva más tiempo aquí, y entonces no le daría
+a nadie un motivo para aparecer. **Pestañas como chips** con su cuenta,
+igual que /aprender y /torneos (conservan `data-ctab`, así que el ancla y
+el botón de atrás siguen igual). **Las tarjetas dicen qué ha hecho cada
+uno** («3 guías · 211 mensajes») y su racha; quien no ha hecho nada dice
+«Acaba de llegar», no ceros. Y una lateral con quién anda por aquí hoy.
+
+**Dos cosas que descubrió la prueba, no yo**:
+- una tabla que falta **tumbaba la lista de gente entera** — `(x || [])`
+  no basta cuando lo que llega no es nulo sino otra cosa; hace falta
+  `Array.isArray`. Y la lista de gente ES la página;
+- «por aquí hoy» solo puede estar vacío SIN cuenta: al entrar con sesión
+  tu propia visita te marca activo hoy (`checkDailyStreak`).
+
+**Y un susto que merece quedar escrito**: el contenedor se reinició a
+mitad del rigor de esta tanda y dejó `usuarios.html` CON LA MUTACIÓN
+PUESTA — el chip de «Gente» sin su `active`—, con el árbol de git con
+pinta de estar listo para subir. El `finally` del script cubre las
+excepciones, no que la máquina se muera. Si llego a commitear en ese
+momento, eso sale a producción.
+
+Arreglado de raíz: el andamio común de los rigores (`rigor_comun.py`)
+guarda el contenido original en disco ANTES de tocar nada y lo deshace
+solo al arrancar la siguiente pasada, y `comprobar-arbol.sh` canta si
+queda algo a medias. Se pasa antes de cada commit. Está anotado en
+CLAUDE.md.
+
+**Ficheros**: usuarios.html, js/usuarios.js, css/comunidad.css (NUEVO),
+CLAUDE.md, SCHEMA.md.
+
+**Pruebas**: test-tanda-301.mjs (NUEVA, 8 bloques, 51 comprobaciones). La
+que más trabaja es la del podio: el fixture le da a Ash más XP TOTAL que
+a Misty pero menos ganada este mes, así que cambiar el cálculo mueve el
+oro y se ve. El doble gana `__FAKE_PERFILES__` (mezcla por id, para no
+romper las cinco personas fijas) y `__FAKE_XP_MES__` con su tabla.
+
+**En curso / pendiente**: el perfil de una persona sigue con la pinta
+vieja, y es adonde lleva todo lo de Comunidad — el salto se nota en el
+primer clic. Sin cobertura: fichas de guía y curso, perfiles y /noticias.
+
+---
+
+## 2026-09-15 (1) — PINGU-Claude (tanda 300 — la portada, en dos columnas de verdad)
+
+**Hecho**: lo que le faltaba a la F de la 299. PINGU, al verla en
+producción: «la portada no ibas a tocar más? es muy parecida». Tenía
+razón: en la 299 vi que ya existía el panel de dos columnas y **decidí
+por mi cuenta que F era más pequeña de lo que prometía la maqueta
+aprobada**. Se movió la fila de arriba y de ahí para abajo la portada
+siguió siendo la torre de bloques de siempre.
+
+**El reparto**: lo que PASA en la columna ancha (destacada, foro, guías
+nuevas, temas), lo TUYO en la estrecha (torneo, primeros pasos,
+comunidad, liga, top del mes, lanzamiento). Y la fila de «hoy» pasa a
+usar las MISMAS dos columnas que el panel, para que los bordes cuadren.
+
+**«Explora por tema» → fila de chips**, y este es el cambio con más razón
+detrás. Lo dijo PINGU: con 16 guías en 6 categorías, entrar en una te
+deja en una página con dos guías — el vacío que la 299 quitó de
+/aprender. Así que los chips NO llevan a categoria.html: llevan a
+`/aprender.html?tema=<slug>` con el filtro puesto. Se ordenan por número
+de guías y la categoría con cero no sale. Las páginas de categoría siguen
+existiendo para enlaces directos.
+
+**El torneo** pasa de fila fina gris a tarjeta navy con el día en un
+recuadro y «Apuntarme». **El foro** saca la cuenta de mensajes a la
+derecha, en grande. **Las guías nuevas** suben del fondo a la columna
+principal, pasan de 3 a 4 y estrenan portada de color (la de /aprender),
+con la rareza encima y en español. **Los primeros pasos** bajan a la
+lateral con barra. **Los dos atajos se van.**
+
+Los seis degradados de portada y `arteDe` pasan a ser COMPARTIDOS
+(components.css y app.js): los usan /aprender y la portada, y duplicarlos
+en dos hojas habría sido el fallo de la 299 otra vez.
+
+**Un fallo que me hice yo solo y cazó la prueba**: al cuadrar la fila de
+«hoy» con el panel la pasé de flex a rejilla, y una rejilla de dos
+columnas no encoge sola — sin noticia quedaban 320 px en blanco al lado
+del reto, un caso que la 299 SÍ resolvía. Arreglado con
+`.seccion-recogida` + `:has()`.
+
+**Ficheros**: index.html, js/home.js, js/aprender.js, js/app.js,
+js/primeros-pasos.js, css/portada.css, css/components.css,
+css/aprender.css, SCHEMA.md.
+
+**Pruebas**: test-tanda-300.mjs (NUEVA, 8 bloques, 48 comprobaciones) y
+test-tanda-299 reapuntado —su bloque 8 miraba `#categoriesGrid`, que ya
+no existe; lo que vigila (que ningún color salga de un hash ni pinte el
+marco entero) no cambia, solo dónde se lee—.
+
+**Peso**: 159,9 KB gzip de los 170. **Quedan 10 KB de margen**: menos que
+antes, y quien toque la portada otra vez tiene que mirarlo.
+
+**En curso / pendiente**: lo siguiente es COMUNIDAD (/usuarios), con
+maqueta ya aprobada: números arriba, podio del mes, pestañas como chips
+con su cuenta y tarjetas de persona que digan qué ha hecho cada uno. Hoy
+esa página abre por «Guías de la comunidad» en una columna estrecha y no
+la usa nadie.
+
+---
+
 ## 2026-09-14 (8) — PINGU-Claude (tanda 299 — D, E y F: foro, aprender y portada)
 
 **Hecho**: lo que quedaba del rediseño después de torneos, las tres a la

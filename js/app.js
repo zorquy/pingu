@@ -25,6 +25,18 @@ export function tintClassForKey(key) {
   return `icon-tint-${tintIndexForKey(key)}`
 }
 
+// La portada de una guía que no trae imagen: uno de seis degradados
+// (.arte-1..6 en components.css). Se elige por el SLUG y no al azar —
+// si cambiara en cada pintada, la rejilla de /aprender parpadearía al
+// filtrar. Lo llaman la portada y /aprender, de ahí que viva aquí.
+const ARTES = 6
+export function arteDe(algo) {
+  const clave = String(algo?.slug || algo?.id || algo || '')
+  let suma = 0
+  for (let i = 0; i < clave.length; i++) suma = (suma * 31 + clave.charCodeAt(i)) % 100000
+  return (suma % ARTES) + 1
+}
+
 export function borderRarityClass(rarity) {
   return `border-rarity-${rarity || 'bronze'}`
 }

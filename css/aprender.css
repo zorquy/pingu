@@ -145,14 +145,10 @@
   height: 100px;
   padding: 11px;
 }
-/* Seis degradados, elegidos por el slug en aprender.js: una guía sin
-   imagen se ve siempre igual en vez de cambiar de color al filtrar. */
-.guia-arte-1 { background: linear-gradient(135deg, #0d9e6e, #7cc6d8 130%); }
-.guia-arte-2 { background: linear-gradient(135deg, #2a6b96, #7cc6d8 130%); }
-.guia-arte-3 { background: linear-gradient(135deg, #c8720a, #e0b252 130%); }
-.guia-arte-4 { background: linear-gradient(135deg, #0891b2, #2a6b96 130%); }
-.guia-arte-5 { background: linear-gradient(135deg, #7c3aed, #4f46e5 130%); }
-.guia-arte-6 { background: linear-gradient(135deg, #be185d, #7c3aed 130%); }
+/* Los seis degradados (.arte-1..6) y su trama viven en
+   css/components.css desde la tanda 300: los gasta también la portada
+   («Guías nuevas»), y las dos pantallas no comparten más hoja que esa.
+   Duplicarlos aquí sería el fallo de la 299 otra vez. */
 .guia-arte::before {
   content: '';
   position: absolute;

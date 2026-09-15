@@ -4579,6 +4579,19 @@ a.reto-tarjeta:hover {
   font-weight: 700;
 }
 
+/* ── La portada de una guía sin imagen (tanda 299, compartida en la 300) ──
+ * Seis degradados que se eligen por el SLUG (arteDe, js/app.js), no al
+ * azar: si cambiaran en cada pintada, la rejilla de /aprender
+ * parpadearía al filtrar. Viven aquí y no en aprender.css porque desde
+ * la tanda 300 los usa también la portada, y esas dos pantallas no
+ * comparten ninguna otra hoja. */
+.arte-1 { background: linear-gradient(135deg, #0d9e6e, #7cc6d8 130%); }
+.arte-2 { background: linear-gradient(135deg, #2a6b96, #7cc6d8 130%); }
+.arte-3 { background: linear-gradient(135deg, #c8720a, #e0b252 130%); }
+.arte-4 { background: linear-gradient(135deg, #0891b2, #2a6b96 130%); }
+.arte-5 { background: linear-gradient(135deg, #7c3aed, #4f46e5 130%); }
+.arte-6 { background: linear-gradient(135deg, #be185d, #7c3aed 130%); }
+
 /* ── Seguir un tema ── */
 .tema-seguir {
   display: inline-flex;

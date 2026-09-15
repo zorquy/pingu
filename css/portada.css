@@ -30,11 +30,23 @@
   min-width: 0;
 }
 
-/* El reto manda un poco más que la noticia: es lo único de la portada
-   que cambia por lo que TÚ haces. */
-@media (min-width: 900px) {
-  .portada-hoy > #retoSeccion {
-    flex-grow: 1.2;
+/* En escritorio la fila de «hoy» se alinea con el panel de abajo: las
+   mismas dos columnas (ancha + 320px). Si cada una llevara su reparto,
+   el borde del reto y el del foro no coincidirían y la portada se vería
+   descuadrada por la mitad. */
+@media (min-width: 960px) {
+  .portada-hoy {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 16px;
+  }
+
+  /* Si una de las dos se recoge (no hay noticia, o no hay reto), la que
+     queda se lleva la fila. Una rejilla de dos columnas no lo hace sola:
+     dejaría 320 px en blanco al lado. La marca la pone recogerSeccion
+     (js/home.js). */
+  .portada-hoy:has(> .seccion-recogida) {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -405,4 +417,324 @@ a.noticia-banner:hover {
      320px. Mismo trato que el título de al lado: se recorta con «…». */
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── Las dos columnas de verdad (tanda 300) ──
+ *
+ * La 299 dejó el reto y la noticia arriba, pero de ahí para abajo la
+ * portada seguía siendo una torre de bloques a pantalla completa: guía
+ * destacada, torneo, foro, atajos, categorías, actividad y guías, uno
+ * detrás de otro. Ahora lo que pasa va en la columna ancha y lo tuyo
+ * —tu torneo, tus pasos, tu liga— en la estrecha. */
+
+/* La cabecera de cada bloque de la columna ancha: título y su enlace de
+   «ver todo» en la misma línea, que es lo que dice que hay más detrás. */
+.seccion-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.seccion-cabecera a {
+  color: var(--navy);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.seccion-cabecera-sm h2 {
+  margin: 0;
+  font-size: 15px;
+  font-family: var(--font-display, 'Fredoka', 'Inter', sans-serif);
+  font-weight: 600;
+}
+
+.seccion-cabecera-sm a {
+  font-size: 12.5px;
+}
+
+/* La caja blanca de la columna lateral. Es la misma forma que .top-mes,
+   que ya vive ahí: así los cinco bloques de la lateral se leen como
+   cinco cosas del mismo tipo y no como cinco inventos distintos. */
+.panel-lateral {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-xs);
+}
+
+/* ── El próximo torneo: una cita, no un enlace ── */
+.portada-torneo {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(120deg, var(--navy-dark), var(--navy-light));
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.1s var(--ease);
+}
+
+.portada-torneo:hover {
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+/* El día, en un recuadro: es lo primero que se mira de una cita, y es lo
+   que distingue esta tarjeta del resto de enlaces de la portada. */
+.portada-torneo-fecha {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  line-height: 1;
+}
+
+.portada-torneo-fecha b {
+  font-family: var(--font-display, 'Fredoka', 'Inter', sans-serif);
+  font-size: 19px;
+}
+
+.portada-torneo-fecha span {
+  margin-top: 3px;
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 700;
+}
+
+.portada-torneo-cuerpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.portada-torneo-cuerpo strong {
+  font-size: 14.5px;
+  line-height: 1.25;
+}
+
+.portada-torneo-cuerpo small {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.portada-torneo-boton {
+  flex-shrink: 0;
+  background: #fff;
+  color: var(--navy-dark);
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ── Los temas, en fila de chips ── */
+.portada-temas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.portada-temas-rotulo {
+  color: var(--text-mid);
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: 2px;
+}
+
+.portada-tema {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 6px 13px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  transition: border-color 0.15s var(--ease);
+}
+
+.portada-tema:hover {
+  border-color: var(--navy);
+  color: var(--text);
+}
+
+/* El icono se queda con el tinte de la categoría: es el único color que
+   sobrevivió a la tanda 299 y es el que hace reconocible cada tema. */
+.portada-tema svg {
+  flex-shrink: 0;
+}
+
+.portada-tema b {
+  background: var(--ice);
+  color: var(--navy);
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+/* ── El foro, con la cuenta de mensajes a la derecha ── */
+.foro-vivo-cuenta {
+  flex-shrink: 0;
+  text-align: right;
+  line-height: 1;
+}
+
+.foro-vivo-cuenta b {
+  display: block;
+  font-family: var(--font-display, 'Fredoka', 'Inter', sans-serif);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.foro-vivo-cuenta small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+/* ── Las guías nuevas, con su portada ── */
+/* La misma pinta que las tarjetas de /aprender: el degradado sale de
+   .arte-1..6 (components.css) y la rareza se pone ENCIMA de la portada,
+   que es donde la mirada ya está. */
+#recentGrid .recent-card {
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+}
+
+.recent-arte {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 90px;
+  padding: 10px;
+  margin-bottom: 13px;
+}
+
+.recent-arte::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1.1px, transparent 1.2px);
+  background-size: 14px 14px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.recent-arte img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recent-arte .rarity-chip {
+  position: relative;
+  z-index: 1;
+}
+
+#recentGrid .recent-card h3,
+#recentGrid .recent-card p,
+#recentGrid .recent-card .meta,
+#recentGrid .recent-card .guide-card-author,
+#recentGrid .recent-card .guide-card-social {
+  margin-left: 16px;
+  margin-right: 16px;
+}
+
+#recentGrid .recent-card .guide-card-social {
+  margin-bottom: 14px;
+}
+
+/* Dos columnas, siempre: .grid-guides pasa a tres a partir de 1080px
+   contando con el ancho completo de la página, y aquí la rejilla vive
+   dentro de una columna. Con cuatro guías salen dos filas de dos, que es
+   lo que además equilibra el alto con la columna lateral. */
+@media (min-width: 640px) {
+  #recentGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Los primeros pasos, en la lateral ── */
+.portada-lateral .primeros-pasos {
+  padding: 16px 18px;
+}
+
+.primeros-pasos-barra {
+  display: block;
+  height: 6px;
+  margin: 11px 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  overflow: hidden;
+}
+
+.primeros-pasos-barra i {
+  display: block;
+  height: 100%;
+  background: var(--success);
+  border-radius: var(--radius-pill);
+  transition: width 0.3s var(--ease);
+}
+
+/* En una columna de 320px el botón del paso siguiente no cabe al lado
+   del texto: baja debajo y se lleva la fila entera. */
+@media (min-width: 960px) {
+  .portada-lateral .paso {
+    flex-wrap: wrap;
+  }
+
+  .portada-lateral .paso-boton {
+    width: 100%;
+    margin-top: 8px;
+    justify-content: center;
+  }
+}
+
+/* El tinte de la categoría va SOLO en la pastilla del icono. Puesto en
+   el chip entero (primer intento de la 300) devolvía justo lo que la 299
+   quitó: seis pastillas de colores distintos compitiendo en fila. */
+.portada-tema-icono {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  /* Sin la sombra de tres píxeles de .icon-tint-*: a 22px es una raya
+     gorda, no un relieve. */
+  box-shadow: none !important;
+}
+
+/* El título de una guía nueva cabe en dos líneas. En la rejilla ancha de
+   antes entraba en una y se recortaba con «…»; en dos columnas, casi
+   todos los títulos se quedaban a medias. */
+#recentGrid .recent-card h3 {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }

@@ -43,6 +43,7 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/comunidad.css" />
 </head>
 <body>
   <nav class="navbar" id="navbar">
@@ -71,47 +72,93 @@
     </div>
   </nav>
 
-  <main class="page-content container-narrow">
+  <!-- La comunidad (tanda 301).
+       Era una COLUMNA ESTRECHA centrada que abría por «Guías de la
+       comunidad»: la página se llama Comunidad y lo primero que veías era
+       una lista de documentos con un párrafo de explicación. Ni una cara,
+       ni un número, ni nada que hacer. Ahora abre por GENTE, a ancho
+       completo, y lo primero son los números — que es la única forma de
+       demostrar que aquí hay alguien. -->
+  <main class="page-content container">
     <div class="page-header" style="padding-top: 8px;">
-      <h1>Comunidad</h1>
-      <p class="subtext">Descubre a otros coleccionistas y jugadores, y las guías que ha creado la comunidad.</p>
+      <h1>La comunidad</h1>
+      <p class="subtext">Quién está aquí, qué está haciendo y a quién puedes preguntarle.</p>
     </div>
 
-    <div class="tabs" id="communityTabs">
-      <button class="tab-btn active" data-ctab="guides">Guías de la comunidad</button>
-      <button class="tab-btn" data-ctab="users">Usuarios</button>
-      <button class="tab-btn" data-ctab="peticiones">Peticiones</button>
-      <button class="tab-btn" data-ctab="activity">Actividad</button>
+    <!-- Los números. Nacen con guiones y no con ceros: un «0 miembros»
+         mientras carga es mentira, y un guion se entiende. -->
+    <div class="com-cifras" id="comCifras">
+      <div class="com-cifra"><b id="cifraMiembros">—</b><span>miembros</span></div>
+      <div class="com-cifra"><b id="cifraMensajes">—</b><span>mensajes en el foro</span></div>
+      <div class="com-cifra"><b id="cifraGuias">—</b><span>guías escritas por vosotros</span></div>
+      <div class="com-cifra"><b id="cifraRachas">—</b><span>rachas vivas hoy</span></div>
     </div>
 
-    <div class="tab-panel" id="ctab-activity">
-      <p class="subtext" style="margin: -4px 0 16px;">Lo último que ha pasado en PokeDoc. Si prefieres no aparecer aquí, puedes desactivarlo en «Editar perfil».</p>
-      <div id="activityFeed"></div>
+    <!-- Las pestañas pasan a chips con su cuenta, como en /aprender y en
+         /torneos: así toda la web habla el mismo idioma. Conservan
+         `data-ctab` y los paneles `#ctab-*`, así que el ancla de la
+         dirección y el botón de atrás siguen funcionando igual. -->
+    <div class="com-chips" id="communityTabs">
+      <button class="com-chip active" data-ctab="users">Gente <span class="com-chip-n" id="chipGente"></span></button>
+      <button class="com-chip" data-ctab="guides">Sus guías <span class="com-chip-n" id="chipGuias"></span></button>
+      <button class="com-chip" data-ctab="activity">Actividad</button>
+      <button class="com-chip" data-ctab="peticiones">Peticiones <span class="com-chip-n" id="chipPeticiones"></span></button>
     </div>
 
-    <div class="tab-panel active" id="ctab-guides">
-      <p class="subtext" style="margin: -4px 0 16px;">Guías creadas por la comunidad, con o sin revisar todavía — las que llevan el sello ✓ Aprobada ya las ha comprobado el equipo de PokeDoc y también aparecen en el sitio oficial.</p>
-      <div style="display: flex; gap: 10px; align-items: center; margin: 18px 0;">
-        <div class="search-input-wrap" style="margin: 0; flex: 1;">
-          <input type="text" id="communityGuideSearchInput" class="search-input" placeholder="Buscar guías de la comunidad…" />
+    <div class="com-dos">
+      <div class="com-principal">
+        <!-- GENTE es la pestaña de entrada: la página se llama Comunidad. -->
+        <div class="tab-panel active" id="ctab-users">
+          <div id="comPodio"></div>
+          <div class="seccion-cabecera">
+            <h2 class="section-title">Gente de PokeDoc</h2>
+          </div>
+          <div class="search-input-wrap">
+            <input type="text" id="userSearchInput" class="search-input" placeholder="Buscar por nombre de usuario…" />
+          </div>
+          <div id="userDirectoryEmpty"></div>
+          <div class="user-directory-grid" id="userDirectoryGrid"></div>
         </div>
-        <a href="/editor-guia.html" class="btn-primary" style="white-space: nowrap;">+ Crear guía</a>
-      </div>
-      <div id="communityGuidesEmpty"></div>
-      <div class="community-guide-list" id="communityGuidesGrid"></div>
-      <div id="communityGuidesPagination"></div>
-    </div>
 
-    <div class="tab-panel" id="ctab-peticiones">
-      <div id="peticionesPanel"></div>
-    </div>
+        <div class="tab-panel" id="ctab-guides">
+          <p class="subtext" style="margin: -4px 0 16px;">Guías creadas por la comunidad, con o sin revisar todavía — las que llevan el sello ✓ Aprobada ya las ha comprobado el equipo de PokeDoc y también aparecen en el sitio oficial.</p>
+          <div style="display: flex; gap: 10px; align-items: center; margin: 18px 0;">
+            <div class="search-input-wrap" style="margin: 0; flex: 1;">
+              <input type="text" id="communityGuideSearchInput" class="search-input" placeholder="Buscar guías de la comunidad…" />
+            </div>
+            <a href="/editor-guia.html" class="btn-primary" style="white-space: nowrap;">+ Crear guía</a>
+          </div>
+          <div id="communityGuidesEmpty"></div>
+          <div class="community-guide-list" id="communityGuidesGrid"></div>
+          <div id="communityGuidesPagination"></div>
+        </div>
 
-    <div class="tab-panel" id="ctab-users">
-      <div class="search-input-wrap">
-        <input type="text" id="userSearchInput" class="search-input" placeholder="Buscar por nombre de usuario…" />
+        <div class="tab-panel" id="ctab-activity">
+          <p class="subtext" style="margin: -4px 0 16px;">Lo último que ha pasado en PokeDoc. Si prefieres no aparecer aquí, puedes desactivarlo en «Editar perfil».</p>
+          <div id="activityFeed"></div>
+        </div>
+
+        <div class="tab-panel" id="ctab-peticiones">
+          <div id="peticionesPanel"></div>
+        </div>
       </div>
-      <div id="userDirectoryEmpty"></div>
-      <div class="user-directory-grid" id="userDirectoryGrid"></div>
+
+      <aside class="com-lateral">
+        <!-- Quién anda por aquí hoy. Se recoge sola si no hay nadie:
+             «0 personas hoy» es peor que no decir nada. -->
+        <section class="com-caja hidden" id="comHoy"></section>
+
+        <section class="com-caja">
+          <h3>Lo que acaba de pasar</h3>
+          <div id="comUltimo"><div class="skeleton" style="height: 120px;"></div></div>
+        </section>
+
+        <section class="com-caja">
+          <h3>¿Falta una guía?</h3>
+          <p class="subtext" style="margin: 0 0 12px;">Pide la que echas de menos y alguien de aquí puede escribirla.</p>
+          <a class="btn-primary com-boton-ancho" href="#peticiones" data-ir-peticiones>Pedir una guía</a>
+        </section>
+      </aside>
     </div>
   </main>
 

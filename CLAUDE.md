@@ -70,6 +70,16 @@ cobertura: un cambio ahí sale a producción sin red debajo. Del foro
 faltan las piezas de alrededor (encuestas, no leídos, suscripciones,
 búsqueda, menciones, moderación).
 
+**El rigor rompe el repo a propósito: no commitees mientras corre.**
+Un script de rigor muta un fichero de verdad, pasa las pruebas y lo
+restaura. Si el contenedor se muere a mitad (pasó el 2026-09-15, y antes
+el 2026-08-28), el fichero se queda ROTO en disco y el árbol tiene pinta
+de estar listo para subir — y Netlify despliega esta rama en directo.
+Desde la tanda 301 el andamio común (`rigor_comun.py`, en la rama
+`pruebas`) guarda el original en disco antes de tocarlo y lo deshace solo
+al arrancar la siguiente pasada. **Pasa `comprobar-arbol.sh` antes de
+cada commit**: canta si quedó alguna mutación a medias.
+
 **Dónde va cada hoja de CSS** (tanda 299, y el fallo que costó
 aprenderlo): `components.css` y `style.css` los baja TODO el mundo; lo
 de una sola pantalla va en su hoja (`foro.css`, `portada.css`,

@@ -14769,3 +14769,185 @@ El doble de Supabase gana dos tablas, `daily_challenge_results` y
 `user_progress`: sin ellas no se podía probar ni el reto YA JUGADO ni
 «Sigue donde lo dejaste» — las dos pantallas se probaban siempre en su
 estado de recién llegado.
+
+---
+
+## Tanda 300 — la portada, en dos columnas de verdad (sept. 2026)
+
+PINGU, al ver la 299 en producción: «la portada no ibas a tocar más? es
+muy parecida». Y tenía razón. En la 299 abrí `index.html`, vi que ya
+existía el panel de dos columnas y **decidí por mi cuenta que F era más
+pequeña de lo que prometía la maqueta que se había aprobado**. Resultado:
+se movió la fila de arriba y de ahí para abajo la portada siguió siendo
+la torre de bloques de siempre. Esto es lo que faltaba.
+
+### El reparto
+
+Lo que PASA en la columna ancha, lo TUYO en la estrecha:
+
+| Columna ancha | Lateral |
+| --- | --- |
+| Guía destacada | El próximo torneo |
+| Ahora en el foro | Tus primeros pasos |
+| Guías nuevas | En la comunidad |
+| Busca por tema | Liga, top del mes, lanzamiento |
+
+Y la fila de «hoy» (reto + noticia, tanda 299) pasa a usar **las mismas
+dos columnas** que el panel — `minmax(0, 1fr) 320px` — para que el borde
+del reto y el del foro coincidan. Si cada una llevara su reparto, la
+portada se vería partida por la mitad.
+
+Eso obligó a un apaño con nombre: una rejilla de dos columnas **no
+encoge sola** cuando falta un hijo, así que sin noticia quedaban 320 px
+en blanco al lado del reto — un caso que la 299 sí resolvía, con flex.
+Ahora `recogerSeccion()` (js/home.js) marca la sección con
+`.seccion-recogida` y `.portada-hoy:has(> .seccion-recogida)` pasa a una
+sola columna. La marca existe para que el CSS tenga un gancho estable:
+mirar el `display` en línea funcionaría hoy y se rompería en cuanto
+alguien escondiera la sección de otra forma.
+
+### Los temas: el cambio con más razón detrás
+
+«Explora por tema» eran seis tarjetas de 140 px que llevaban a
+`categoria.html`. El problema no era el tamaño, era **adónde llevaban**:
+con 16 guías repartidas en 6 categorías, entrar en una te deja en una
+página con dos guías — exactamente el vacío que la tanda 299 le quitó a
+/aprender.
+
+Ahora es una **fila de chips** que lleva a `/aprender.html?tema=<slug>`,
+con el filtro ya puesto: se ven las de ese tema y, a un clic en «Todas»,
+las 16. Nadie aterriza en una pantalla muerta. Los chips se ordenan por
+número de guías y **una categoría con cero guías no sale**.
+
+`js/aprender.js` lee `?tema=` y lo traduce a id de categoría cuando llega
+la consulta (el slug es lo que viaja en la URL; el id no se sabe antes).
+Un slug que no existe —enlace viejo, categoría borrada— **no filtra
+nada**: se ven todas, que es mejor que una pantalla vacía sin explicar.
+
+Las páginas de categoría **siguen existiendo** para enlaces directos y
+para los buscadores. Lo que cambia es por dónde entra la gente desde la
+portada.
+
+### Lo demás
+
+- **El torneo** deja de ser una fila fina gris y pasa a tarjeta navy con
+  el **día en un recuadro** y botón de «Apuntarme». Un torneo es una
+  cita, y de una cita lo primero que se mira es el día.
+- **El foro** saca la cuenta de mensajes de la línea de texto y la pone a
+  la derecha, en grande: es el dato que decide si entras —24 mensajes es
+  una conversación; 1, un aviso— y perdido entre el nombre y la hora no
+  se leía.
+- **Las guías nuevas** suben del fondo de la página a la columna
+  principal, pasan de 3 a **4** (dos filas de dos, que es lo que cuadra
+  el alto con la lateral) y estrenan **portada de color** — la misma de
+  /aprender. La rareza se muda del galón de la 299 a una pastilla
+  **sobre** la portada, y se dice en español: la columna guarda `gold` y
+  eso aquí no lo dice nadie.
+- **Los primeros pasos** bajan a la lateral con **barra de progreso**:
+  «1 de 3» es un dato, una barra a un tercio se lee sin leer.
+- **Los dos atajos** (foro / escribir guía) se van. Con el foro en
+  pantalla y la comunidad en la lateral, no les quedaba trabajo.
+
+### El degradado, compartido
+
+Los seis degradados de portada de guía (`.arte-1..6`) y la función que
+los elige (`arteDe`, ahora en `js/app.js`) los usan **dos** pantallas:
+/aprender y la portada. Así que el CSS se muda de `css/aprender.css` a
+`css/components.css` —la única hoja que bajan las dos— y la función a
+`app.js`. Duplicarlo en las dos hojas habría sido el fallo de la 299 otra
+vez, y hay prueba que lo vigila.
+
+### Comprobado
+
+`test-tanda-300.mjs` (8 bloques, 48 comprobaciones). Comprueba en qué
+COLUMNA cae cada bloque (si uno se queda en la equivocada, la portada
+vuelve a ser una torre), que ni un solo chip lleva a `categoria.html`,
+que /aprender sabe leer el tema y que un tema inventado no vacía la
+pantalla.
+
+**Peso**: 159,9 KB gzip de los 170. Quedan 10 KB de margen — menos que
+antes; la próxima que toque la portada tiene que mirarlo.
+
+**Un tropiezo del entorno, no del código**: el servidor de pruebas
+(`serve`) redirige `/aprender.html` a `/aprender` y **se come la query**.
+Netlify no hace eso —no tiene ese redirect, y el resto de la web enlaza
+con `.html` 61 veces—, así que el enlace se queda como está y es la
+prueba la que navega a la URL limpia. Que el chip apunte a `.html` se
+comprueba aparte.
+
+---
+
+## Tanda 301 — la comunidad (sept. 2026)
+
+PINGU: «la pestaña de comunidad está bastante parecida, quizá le podemos
+dar una vuelta, porque no se usa demasiado».
+
+### Por qué no se usaba
+
+No era falta de brillo, eran cuatro cosas concretas:
+
+1. Era una **columna estrecha centrada** (`container-narrow`) con
+   márgenes enormes en un escritorio: parecía una página secundaria de
+   las de aviso legal.
+2. **Abría por «Guías de la comunidad»**. La página se llama Comunidad y
+   lo primero que veías era una lista de documentos precedida de un
+   párrafo de explicación.
+3. Las tarjetas de persona repetían **«Novato · 0 XP»** en todas y las
+   tres primeras llevaban **marco dorado** — el mismo marco de color que
+   la tanda 299 quitó del resto de la web. No distinguían a nadie.
+4. **No había nada que hacer ni motivo para volver**: ni quién está
+   activo, ni quién sabe de qué, ni nada que ganar por aparecer.
+
+### Lo que hay ahora
+
+- **Los números, arriba**: miembros, mensajes del foro esta semana, guías
+  escritas por la comunidad y **rachas vivas hoy**. Es lo único que
+  demuestra que aquí hay gente, y la página no lo decía en ningún sitio.
+  Cuatro consultas de CUENTA (`head: true`), así que no se trae ni una
+  fila, y **cada una se pinta por su cuenta**: si una falla, las otras
+  tres salen igual y la que falla se queda con su guion — un cero sería
+  mentira.
+- **El podio del mes**, en azul. Sale de la XP **ganada desde el día 1**
+  (`xp_mes`, el mismo cálculo que el «Top del mes» de la portada), no de
+  la XP total. La diferencia importa: un podio por XP total premiaría a
+  quien lleva aquí más tiempo, no a quien está aportando ahora — y
+  entonces no le daría a nadie un motivo para aparecer. Si nadie ha
+  ganado XP este mes, **no sale**: un podio vacío no es un podio.
+- **Las pestañas son chips con su cuenta**, como en /aprender y /torneos.
+  Conservan `data-ctab` y los paneles `#ctab-*`, así que el ancla de la
+  dirección y el botón de atrás siguen funcionando exactamente igual.
+- **La tarjeta de persona** dice **qué ha hecho** cada uno («3 guías ·
+  211 mensajes») y su racha si la tiene viva. Quien no ha hecho nada dice
+  «Acaba de llegar» y no «0 guías · 0 mensajes». Los mensajes salen de
+  UNA consulta que trae solo la columna del autor y se cuentan en el
+  navegador — no doscientas consultas.
+- **Lateral** con quién anda por aquí hoy (montón de caras), lo último
+  que ha pasado y el atajo para pedir una guía.
+- Y **abre por GENTE**, a ancho completo.
+
+### Dos cosas que descubrió la prueba
+
+- **Una tabla que falta tumbaba la lista de gente entera.** Entre que se
+  despliega y alguien ejecuta una migración, una tabla puede no estar, y
+  entonces lo que devuelve la consulta no es una lista. `(filas || [])`
+  no basta —lo que llega no es nulo, es otra cosa—, hace falta
+  `Array.isArray`. Y la lista de gente ES la página.
+- **«Por aquí hoy» solo puede estar vacío sin cuenta.** Al entrar con
+  sesión, la propia visita marca tu `last_active_date` de hoy
+  (`checkDailyStreak`), así que con cuenta siempre hay al menos una
+  persona por aquí: tú. La prueba del caso vacío va sin sesión.
+
+### Comprobado
+
+`test-tanda-301.mjs` (8 bloques, 51 comprobaciones). Lo que más vigila es
+que el podio sea **del mes**: el fixture le da a Ash más XP total que a
+Misty pero menos ganada este mes, así que si alguien cambiara el cálculo
+a XP total, el oro se movería y la prueba lo vería.
+
+El doble gana dos ganchos: `__FAKE_PERFILES__` (mezcla por id — retoca la
+persona que ya existe, añade la que no, para no romper las cinco fijas
+que usan las demás pruebas) y `__FAKE_XP_MES__` con su tabla `xp_mes`,
+sin la cual no se puede probar ningún podio.
+
+`css/comunidad.css` es nueva y **solo la carga /usuarios**, como manda la
+norma de la casa.

@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo, rutaDeArticulo, cuandoFue } from './articulos.js'
-import { escapeHtml, getSession, profileUrl, tintClassForKey, cardMediaHtml, categoryIconHtml, guideHasReference } from './app.js'
+import { escapeHtml, getSession, profileUrl, tintClassForKey, categoryIconHtml, guideHasReference, arteDe } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
@@ -10,35 +10,43 @@ import { montarPrimerosPasos } from './primeros-pasos.js'
 import { haceCuanto, nombreDe, perfilesPorId, urlTema, avatarHtml, etiquetaHtml } from './foro-comun.js'
 import { clasificacionSemanal } from './liga.js'
 
-// Las tarjetas de categoría ya no llevan marco de color (tanda 299).
-// Seis tarjetas seguidas con seis bordes de 2 px en seis colores
-// distintos no ordenaban nada: el color no quería decir nada —salía de
-// un hash del id— y competía con el de la rejilla de guías de abajo. El
-// color se queda donde sí significa: la pastilla del icono.
+// Los temas, de seis tarjetas a una fila de chips (tanda 300)
+//
+// «Explora por tema» ocupaba un bloque entero de la portada con seis
+// tarjetas de 140 px. El problema no era el tamaño: era adónde llevaban.
+// Con 16 guías repartidas en 6 categorías, entrar en una te deja en una
+// página con dos guías — el mismo vacío que la tanda 299 le quitó a
+// /aprender.
+//
+// Así que los chips NO llevan a categoria.html. Llevan a /aprender con
+// ese tema ya puesto en el filtro: ahí se ven las suyas y, a un clic,
+// todas. Las páginas de categoría siguen existiendo para enlaces
+// directos y para los buscadores; lo que cambia es por dónde entra la
+// gente desde la portada.
+//
+// Se ordenan por número de guías: un tema con una sola guía no merece
+// salir antes que el que tiene seis.
 async function loadCategories() {
-  const grid = document.getElementById('categoriesGrid')
+  const hueco = document.getElementById('temasChips')
+  if (!hueco) return
   const { data, error } = await supabase.from('categories').select('*').order('order_pos')
+  if (error || !data?.length) return recogerSeccion('temasSeccion')
 
-  if (error || !data || data.length === 0) {
-    grid.innerHTML = `<p class="empty-state">No hay categorías disponibles todavía.</p>`
-    return
-  }
+  const conGuias = data.filter((c) => (c.guide_count ?? 0) > 0).sort((a, b) => (b.guide_count ?? 0) - (a.guide_count ?? 0))
+  if (!conGuias.length) return recogerSeccion('temasSeccion')
 
-  grid.innerHTML = data
-    .map((cat) => {
-      const icon =
-        cat.cover_image && !cat.icon_image
-          ? cardMediaHtml(cat.cover_image, cat.emoji)
-          : `<div class="category-icon ${tintClassForKey(cat.id)}">${categoryIconHtml(cat, 22)}</div>`
-      return `
-    <a href="categoria.html?slug=${encodeURIComponent(cat.slug)}" class="category-card">
-      ${icon}
-      <h3>${escapeHtml(cat.name)}</h3>
-      <p>${escapeHtml(cat.description || '')}</p>
-      <span class="pill">${cat.guide_count ?? 0} guías</span>
-    </a>`
-    })
-    .join('')
+  hueco.innerHTML = `
+    <span class="portada-temas-rotulo">Busca por tema</span>
+    ${conGuias
+      .map(
+        (c) => `
+      <a class="portada-tema" href="/aprender.html?tema=${encodeURIComponent(c.slug)}">
+        <span class="portada-tema-icono ${tintClassForKey(c.id)}">${categoryIconHtml(c, 14)}</span>
+        <span>${escapeHtml(c.name)}</span>
+        <b>${c.guide_count ?? 0}</b>
+      </a>`
+      )
+      .join('')}`
 
   const heroCategories = document.getElementById('heroStatCategories')
   if (heroCategories) heroCategories.textContent = data.length
@@ -77,10 +85,14 @@ async function cargarNumerosComunidad() {
   } catch {}
 }
 
-// La rareza sigue diciéndose —en la pastilla de abajo y ahora también
-// en un galón fino arriba (tanda 299)—, pero deja de pintar el marco
-// entero: tres marcos dorados en fila pesaban más que las portadas de
-// las guías, que es lo que se tiene que mirar.
+// La rareza dejó de pintar el marco entero en la 299 (tres marcos
+// dorados en fila pesaban más que las guías) y en la 300 se muda otra
+// vez: de galón sobre el borde a pastilla SOBRE la portada de color,
+// que es donde la mirada ya está. El galón desaparece con ella.
+// En español, que es el idioma de la web: la columna guarda
+// bronze/silver/gold/platinum y hasta ahora se pintaba tal cual.
+const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino' }
+
 async function loadRecent() {
   const grid = document.getElementById('recentGrid')
   // Solo GUÍAS. Las noticias son mucho más frecuentes que las guías: sin
@@ -92,7 +104,10 @@ async function loadRecent() {
       .select('*, categories(name)')
       .not('published_at', 'is', null)
       .order('published_at', { ascending: false })
-      .limit(3)
+      // Cuatro y no tres desde la tanda 300: la rejilla vive ahora en la
+      // columna ancha, no a pantalla completa, así que van de dos en dos
+      // — y tres dejaban una tarjeta suelta en la segunda fila.
+      .limit(4)
     return filtrar ? q.eq('kind', 'guide') : q
   }
   const { data, error } = await conVueltaAtrasDeTipo(() => consulta(true), () => consulta(false))
@@ -105,14 +120,16 @@ async function loadRecent() {
   grid.innerHTML = data
     .map(
       (g) => `
-    <div class="recent-card galon-${escapeHtml(g.guide_rarity || 'bronze')}" data-guide-id="${g.id}" data-author-id="${escapeHtml(g.author_id || '')}" data-slug="${escapeHtml(g.slug || '')}" data-has-guide="${guideHasReference(g) ? '1' : ''}" tabindex="0" role="link">
-      ${g.cover_image ? cardMediaHtml(g.cover_image, g.cover_emoji) : `<span class="emoji">${contentIconHtml(g.cover_emoji, 32, 'bookOpen')}</span>`}
+    <div class="recent-card" data-guide-id="${g.id}" data-author-id="${escapeHtml(g.author_id || '')}" data-slug="${escapeHtml(g.slug || '')}" data-has-guide="${guideHasReference(g) ? '1' : ''}" tabindex="0" role="link">
+      <span class="recent-arte arte-${arteDe(g)}">
+        ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" decoding="async" onerror="this.remove()" />` : ''}
+        <span class="rarity-chip rarity-${g.guide_rarity || 'bronze'}">${RAREZAS[g.guide_rarity] || RAREZAS.bronze}</span>
+      </span>
       <h3>${escapeHtml(g.title)}</h3>
       <p>${escapeHtml(g.description || '')}</p>
       <div class="meta">
         ${MOSTRAR_PLANES ? `<span class="badge ${g.is_pro ? 'badge-pro' : 'badge-free'}">${g.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
         <span class="time-tag">${g.estimated_mins || 5} min</span>
-        <span class="rarity-chip rarity-${g.guide_rarity || 'bronze'}">${g.guide_rarity || 'bronze'}</span>
       </div>
       <div class="guide-card-author" data-card-author></div>
       <div class="guide-card-social">
@@ -157,7 +174,16 @@ async function loadHomeActivity(session) {
 // que si no el esqueleto se queda ahí girando para siempre.
 function recogerSeccion(id) {
   const s = document.getElementById(id)
-  if (s) s.style.display = 'none'
+  if (!s) return
+  s.style.display = 'none'
+  // La marca es para el CSS: la fila de «hoy» es una rejilla de dos
+  // columnas para cuadrar con el panel de abajo, y una rejilla no
+  // encoge sola cuando falta un hijo — dejaría 320px en blanco al lado
+  // del reto. Con esto, `.portada-hoy:has(> .seccion-recogida)` pasa a
+  // una sola columna. Mirar el `display` en línea desde CSS sería
+  // posible pero se rompería en cuanto alguien lo escondiera de otra
+  // forma.
+  s.classList.add('seccion-recogida')
 }
 
 // ── El próximo torneo, en la portada (tanda 255) ──
@@ -264,14 +290,23 @@ async function cargarTorneoPortada() {
       plazas = libres === 0 ? ' · sin plazas libres' : libres === 1 ? ' · queda 1 plaza' : ` · quedan ${libres} plazas`
     }
 
+    // De fila fina gris a tarjeta con fecha (tanda 300): un torneo es
+    // una CITA, y de una cita lo primero que se mira es el día. El
+    // recuadro de la fecha es lo que la distingue del resto de enlaces
+    // de la portada de un vistazo.
+    const dia = new Date(torneo.start_at)
+    const MESES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
     hueco.innerHTML = `
-      <a class="reto-tarjeta" href="/torneo?slug=${encodeURIComponent(torneo.slug)}">
-        <span class="reto-icono">${icons.trophy(20)}</span>
-        <div class="reto-texto">
+      <a class="portada-torneo" href="/torneo?slug=${encodeURIComponent(torneo.slug)}">
+        <span class="portada-torneo-fecha">
+          <b>${dia.getDate()}</b>
+          <span>${MESES[dia.getMonth()]}</span>
+        </span>
+        <span class="portada-torneo-cuerpo">
           <strong>${escapeHtml(torneo.name)}</strong>
-          <small>${escapeHtml(cuandoSeJuega(torneo.start_at))}${escapeHtml(plazas)}. Inscripciones abiertas.</small>
-        </div>
-        <span class="reto-flecha">→</span>
+          <small>${escapeHtml(cuandoSeJuega(torneo.start_at))}${escapeHtml(plazas)}</small>
+        </span>
+        <span class="portada-torneo-boton">Apuntarme</span>
       </a>`
     seccion.style.display = ''
   } catch {
@@ -324,15 +359,21 @@ async function cargarForoVivo() {
           const perfil = perfiles[t.last_post_author_id] || perfiles[t.author_id]
           const quien = nombreDe(perfil) || 'Alguien'
           const mensajes = t.post_count || 1
+          // La cuenta de mensajes se saca de la línea de texto y se pone
+          // a la derecha, en grande (tanda 300). Es el dato que decide si
+          // entras —un tema con 24 mensajes es una conversación; uno con
+          // 1, un aviso— y perdido entre el nombre y la hora no se leía.
           return `
         <li class="foro-vivo-fila">
           ${avatarHtml(perfil, 34)}
           <div class="foro-vivo-texto">
             <a class="foro-vivo-titulo" href="${urlTema(t.id)}">${etiquetaHtml(t.prefix)}${escapeHtml(t.title)}</a>
-            <span class="subtext foro-vivo-meta">${escapeHtml(quien)} · ${haceCuanto(t.last_post_at || t.created_at)} · ${mensajes} ${
-              mensajes === 1 ? 'mensaje' : 'mensajes'
-            }</span>
+            <span class="subtext foro-vivo-meta">${escapeHtml(quien)} · ${haceCuanto(t.last_post_at || t.created_at)}</span>
           </div>
+          <span class="foro-vivo-cuenta">
+            <b>${mensajes}</b>
+            <small>${mensajes === 1 ? 'mensaje' : 'mensajes'}</small>
+          </span>
         </li>`
         })
         .join('')}

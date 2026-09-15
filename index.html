@@ -167,11 +167,6 @@
       <div class="bienvenida" id="bienvenida"><div class="skeleton" style="height: 48px; width: 100%;"></div></div>
     </section>
 
-    <!-- Los primeros pasos de quien acaba de registrarse. Empieza oculto y
-         solo aparece si hay alguno sin hacer: a quien ya se los sabe no le
-         estorba (ver js/primeros-pasos.js). -->
-    <section class="container hidden" id="primerosPasos"></section>
-
     <!-- Lo que te trae hoy (tanda 299). El reto del día y la última
          noticia estaban dentro de la columna principal del panel, debajo
          de la guía destacada: lo que más cambia de la portada —y lo
@@ -217,17 +212,6 @@
           <div class="destacada" id="destacada"><div class="skeleton" style="height: 92px;"></div></div>
         </section>
 
-        <!-- El próximo torneo (tanda 255). La sección «Jugar» se abrió el
-             2026-09-02 y la portada no la mencionaba: el único camino
-             era el enlace del menú, y un menú hay que abrirlo para
-             saber lo que hay dentro. Lo pinta js/home.js reutilizando
-             la pinta de las tarjetas del reto (cero CSS nuevo, que el
-             presupuesto de la portada anda justo) y se recoge sola si
-             no hay ningún torneo con las inscripciones abiertas. -->
-        <section id="torneoPortadaSeccion">
-          <div class="reto-tarjetas" id="torneoPortada"><div class="skeleton" style="height: 84px;"></div></div>
-        </section>
-
         <!-- Lo último del foro, visible SIN sesión: los temas son públicos, y
              enseñar que hay gente hablando hoy es la mejor prueba de que esto
              es una comunidad y no una web de leer. La pinta js/home.js y se
@@ -236,41 +220,62 @@
           <div class="foro-vivo" id="foroVivo"><div class="skeleton" style="height: 310px;"></div></div>
         </section>
 
-        <!-- Las dos cosas que la portada no enseñaba.
-             El foro y el editor de guías existían solo en el menú, y un menú
-             hay que abrirlo para saber lo que hay dentro: quien llegaba a
-             pokedoc.es no tenía forma de enterarse de que esto es una
-             comunidad donde se pregunta y se escribe, no una web de leer.
-             Van en HTML y no pintados por JavaScript a propósito: son
-             enlaces de navegación, así que tienen que existir desde el
-             primer instante y poder rastrearse.
-             "Escribir una guía" se le enseña también a quien no ha entrado:
-             es de las cosas que mejor explican qué es esto. Si pulsa sin
-             sesión, requireAuth() lo manda a registrarse, que es justo lo
-             que se busca. -->
-        <section id="atajosSeccion">
-          <div class="reto-tarjetas">
-            <a class="reto-tarjeta" href="foro.html">
-              <span class="reto-icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>
-              <div class="reto-texto">
-                <strong>Entra en el foro</strong>
-                <small>Pregunta, enseña tus cartas y habla con otros coleccionistas.</small>
-              </div>
-              <span class="reto-flecha">→</span>
-            </a>
-            <a class="reto-tarjeta" href="editor-guia.html">
-              <span class="reto-icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></span>
-              <div class="reto-texto">
-                <strong>Escribe una guía</strong>
-                <small>¿Sabes de algo? Compártelo y sal publicado con tu nombre.</small>
-              </div>
-              <span class="reto-flecha">→</span>
-            </a>
+        <!-- Las guías nuevas suben aquí desde el fondo de la página
+             (tanda 300). Estaban las últimas de todo, detrás de la
+             actividad, en una franja de color a pantalla completa: lo
+             que la web PRODUCE salía después de todo lo demás. Ahora van
+             en la columna principal, justo debajo del foro. -->
+        <section id="recientesSeccion">
+          <div class="seccion-cabecera">
+            <h2 class="section-title">Guías nuevas</h2>
+            <a href="/aprender.html">Ver todas →</a>
+          </div>
+          <div class="grid-guides" id="recentGrid">
+            <div class="skeleton" style="height: 120px;"></div>
+            <div class="skeleton" style="height: 120px;"></div>
+            <div class="skeleton" style="height: 120px;"></div>
           </div>
         </section>
+
+        <!-- «Explora por tema» deja de ser seis tarjetas grandes y pasa
+             a una fila de chips (tanda 300). El motivo lo puso PINGU: con
+             16 guías repartidas en 6 categorías, entrar en una te deja en
+             una página con dos guías — que es justo el vacío que la
+             tanda 299 quitó de /aprender. Así que estos chips NO llevan a
+             categoria.html: llevan a /aprender con ese tema ya filtrado,
+             donde se ven las suyas y, a un clic, todas. Las páginas de
+             categoría siguen existiendo para enlaces directos. -->
+        <section id="temasSeccion">
+          <div class="portada-temas" id="temasChips"></div>
+        </section>
+
       </div>
 
       <aside class="portada-lateral">
+        <!-- El próximo torneo sube a la lateral y deja de ser una fila
+             fina gris (tanda 300): es una cita con fecha y plazas, no un
+             enlace más. Sigue recogiéndose sola si no hay ninguno con las
+             inscripciones abiertas. -->
+        <section id="torneoPortadaSeccion">
+          <div id="torneoPortada"><div class="skeleton" style="height: 76px;"></div></div>
+        </section>
+
+        <!-- Los primeros pasos y la actividad bajan de bloque ancho a
+             caja de lateral (tanda 300). Los dos son acompañamiento: ni
+             lo primero que vienes a ver ni algo que necesite media
+             pantalla. Empiezan ocultos y los enseña su propio código. -->
+        <section class="hidden" id="primerosPasos"></section>
+
+        <section class="hidden" id="homeActivity">
+          <div class="panel-lateral">
+            <div class="seccion-cabecera seccion-cabecera-sm">
+              <h2>En la comunidad</h2>
+              <a href="/usuarios.html">Ver todo →</a>
+            </div>
+            <div id="homeActivityFeed"></div>
+          </div>
+        </section>
+
         <!-- La liga de la semana: la clasificación del reto diario de
              lunes a domingo. Va encima del top del mes porque se mueve
              más rápido (cada reto jugado la cambia). La pinta
@@ -290,34 +295,6 @@
           <a class="lanzamiento-portada" id="lanzamientoPortada" href="/lanzamientos.html"><span class="skeleton" style="height: 40px; width: 100%;"></span></a>
         </section>
       </aside>
-    </div>
-
-    <section class="section container">
-      <h2 class="section-title">Explora por tema</h2>
-      <div class="grid-categories" id="categoriesGrid">
-        <div class="skeleton" style="height: 140px;"></div>
-        <div class="skeleton" style="height: 140px;"></div>
-        <div class="skeleton" style="height: 140px;"></div>
-      </div>
-    </section>
-
-    <section class="section container hidden" id="homeActivity">
-      <div class="admin-section-header" style="margin-bottom: 10px;">
-        <h2 class="section-title" style="margin: 0;">En la comunidad</h2>
-        <a href="/usuarios.html" class="btn-secondary" style="padding: 6px 12px; font-size: 13px;">Ver todo →</a>
-      </div>
-      <div id="homeActivityFeed"></div>
-    </section>
-
-    <div class="band-ice">
-      <section class="section container">
-        <h2 class="section-title">Añadidas recientemente</h2>
-        <div class="grid-guides" id="recentGrid">
-          <div class="skeleton" style="height: 120px;"></div>
-          <div class="skeleton" style="height: 120px;"></div>
-          <div class="skeleton" style="height: 120px;"></div>
-        </div>
-      </section>
     </div>
 
     <section class="container section" id="signupBanner" style="display: none;">

@@ -70,6 +70,10 @@ export function siguientePaso(hecho) {
   return PASOS.find((p) => !hecho[p.clave]) || null
 }
 
+// La barra de progreso se añadió en la tanda 300, al mudar el panel a la
+// columna lateral de la portada: «1 de 3» en texto es un dato, pero una
+// barra a un tercio se lee sin leer — y en una caja estrecha eso es la
+// diferencia entre que se entienda de un vistazo o no se mire.
 export function panelPrimerosPasosHtml(estado) {
   const siguiente = siguientePaso(estado.hecho)
   const filas = PASOS.map((paso) => {
@@ -93,6 +97,7 @@ export function panelPrimerosPasosHtml(estado) {
       </div>
       <span class="primeros-pasos-cuenta">${estado.hechos} de ${PASOS.length}</span>
     </div>
+    <span class="primeros-pasos-barra" aria-hidden="true"><i style="width:${Math.round((estado.hechos / PASOS.length) * 100)}%"></i></span>
     <ul class="primeros-pasos-lista">${filas}</ul>
     <p class="subtext primeros-pasos-pie">Al completar los tres te llevas tu primer trofeo.</p>
   </div>`

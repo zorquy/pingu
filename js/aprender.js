@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
-import { escapeHtml, getSession, guideHasCourse } from './app.js'
+import { escapeHtml, getSession, guideHasCourse, arteDe } from './app.js'
 import { icons } from './icons.js'
 import { medallasPorCurso } from './medallero.js'
 
@@ -44,20 +44,19 @@ const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Pla
 
 // El estado de la pantalla: qué filtro está puesto. Vive fuera de la
 // función de pintar para que un repintado no lo pierda.
+//
+// Puede venir puesto de fuera: los chips de tema de la portada (tanda
+// 300) enlazan aquí con ?tema=<slug> en vez de a categoria.html, para
+// que nadie caiga en una página de categoría con dos guías. Se guarda el
+// SLUG porque es lo que viaja en la URL; el id de la categoría no se
+// sabe hasta que responde la consulta.
 let filtroCategoria = 'todas'
+let temaDeLaUrl = null
+try {
+  temaDeLaUrl = new URLSearchParams(location.search).get('tema') || null
+} catch {}
 let filtroNivel = null
 let soloSinLeer = false
-
-// Seis degradados para la portada de una guía que no trae imagen. Se
-// elige por el slug, no al azar: igual que en las tarjetas de torneo, si
-// cambiara en cada pintada la rejilla parpadearía al filtrar.
-const ARTES = 6
-function arteDe(g) {
-  const clave = String(g.slug || g.id || '')
-  let suma = 0
-  for (let i = 0; i < clave.length; i++) suma = (suma * 31 + clave.charCodeAt(i)) % 100000
-  return (suma % ARTES) + 1
-}
 
 function tarjetaDeGuia(g, progreso) {
   const p = progreso[g.id] || null
@@ -68,7 +67,7 @@ function tarjetaDeGuia(g, progreso) {
   return `
   <article class="guia-tarjeta">
     <a class="guia-tarjeta-enlace" href="/guia.html?slug=${encodeURIComponent(g.slug)}">
-      <span class="guia-arte guia-arte-${arteDe(g)}">
+      <span class="guia-arte arte-${arteDe(g)}">
         ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" onerror="this.style.display='none'" />` : ''}
         ${g.guide_rarity && RAREZAS[g.guide_rarity] ? `<span class="guia-rareza rareza-${escapeHtml(g.guide_rarity)}">${RAREZAS[g.guide_rarity]}</span>` : ''}
       </span>
@@ -177,6 +176,16 @@ async function loadCategories(session) {
 
   const porCategoria = {}
   for (const g of guias) if (g.category_id) porCategoria[g.category_id] = (porCategoria[g.category_id] || 0) + 1
+
+  // El tema que venía en la URL se traduce a su id ahora que hay
+  // categorías. Si el slug no existe —enlace viejo, categoría borrada—
+  // no se filtra nada: se ven todas, que es mejor que una pantalla vacía
+  // sin explicación.
+  if (temaDeLaUrl) {
+    const cat = (categories || []).find((c) => c.slug === temaDeLaUrl)
+    if (cat && porCategoria[cat.id]) filtroCategoria = cat.id
+    temaDeLaUrl = null
+  }
 
   const pintar = () => {
     const visibles = guias.filter((g) => {
