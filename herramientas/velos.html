@@ -1,0 +1,59 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Velos</title>
+<style>
+:root{--navy:#1e5175;--g:linear-gradient(135deg,#2a6b96,#7cc6d8 130%)}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 -apple-system,"Segoe UI",Roboto,sans-serif;background:#f4f7f9;color:#12222e;padding:24px}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:#5a7280;margin:0 0 20px;font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.col{background:#fff;border:1px solid #d8e2e8;border-radius:12px;padding:16px}
+.col h2{font-size:15px;margin:0 0 2px}
+.col .n{font-size:12px;color:#5a7280;margin:0 0 14px}
+.col.ahora h2{color:#b45309}.col.prop h2{color:#0d7a55}
+h3{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#5a7280;margin:16px 0 8px;border-top:1px solid #e6edf1;padding-top:12px}
+h3:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.ladder{display:flex;flex-wrap:wrap;gap:6px}
+.sw{width:56px;border-radius:6px;overflow:hidden;border:1px solid #d8e2e8}
+.sw i{display:block;height:34px;background:var(--navy)}
+.sw i b{display:block;height:100%}
+.sw span{display:block;font-size:10px;text-align:center;padding:3px 0;color:#5a7280;font-variant-numeric:tabular-nums}
+.tex{background:var(--g);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.tex .t{font-size:13px;font-weight:600}
+.tex .m{font-size:11px;font-variant-numeric:tabular-nums;margin-top:2px}
+.chips{background:var(--g);border-radius:10px;padding:12px;display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:11px;font-weight:700;color:#fff;padding:5px 9px;border-radius:99px;border:1px solid rgba(255,255,255,.35)}
+</style></head><body>
+<h1>Los velos blancos — 25 alfas distintas, ¿los recogemos en 6?</h1>
+<p class="sub">65 usos de <code>rgba(255,255,255,α)</code> repartidos por las hojas. Los flojos son bordes y fondos; los fuertes son TEXTO blanco sobre color, y ahí el alfa sí cambia el contraste — habría que medirlo en las páginas de verdad antes de tocarlo.</p>
+<div class="cols">
+  <div class="col ahora"><h2>AHORA</h2><p class="n">25 valores, elegidos uno a uno</p>
+    <h3>Velo flojo — bordes y fondos sobre color</h3><div class="ladder" id="lA"></div>
+    <h3>Velo fuerte — texto blanco sobre color</h3><div id="tA"></div>
+    <h3>Chapas</h3><div class="chips" id="cA"></div>
+  </div>
+  <div class="col prop"><h2>PROPUESTA</h2><p class="n">6 pasos: 0,10 · 0,16 · 0,24 · 0,45 · 0,75 · 0,92</p>
+    <h3>Velo flojo — bordes y fondos sobre color</h3><div class="ladder" id="lB"></div>
+    <h3>Velo fuerte — texto blanco sobre color</h3><div id="tB"></div>
+    <h3>Chapas</h3><div class="chips" id="cB"></div>
+  </div>
+</div>
+<script>
+const FLOJOS=[.08,.1,.12,.13,.14,.16,.18,.2,.22,.24,.25,.28,.35,.4,.45,.5]
+const PROP_FLOJOS=[.1,.16,.24,.45]
+const FUERTES=[.7,.75,.8,.82,.85,.9,.92,.94,.95]
+const PROP_FUERTES=[.75,.92]
+// Contraste real del blanco a ese alfa sobre el degradado (se toma el
+// extremo más claro, que es el peor caso).
+const FONDO=[124,198,216]
+const lin=c=>{c/=255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)}
+const L=([r,g,b])=>.2126*lin(r)+.7152*lin(g)+.0722*lin(b)
+const mezcla=a=>FONDO.map(c=>Math.round(255*a+c*(1-a)))
+const ratio=a=>{const l1=L(mezcla(a)),l2=L(FONDO);const[x,y]=l1>l2?[l1,l2]:[l2,l1];return (x+.05)/(y+.05)}
+const sw=(a)=>`<div class="sw"><i><b style="background:rgba(255,255,255,${a})"></b></i><span>${a.toFixed(2).replace('.',',')}</span></div>`
+lA.innerHTML=FLOJOS.map(sw).join(''); lB.innerHTML=PROP_FLOJOS.map(sw).join('')
+const tex=a=>`<div class="tex"><div class="t" style="color:rgba(255,255,255,${a})">Texto secundario de una tarjeta</div><div class="m" style="color:rgba(255,255,255,${a})">α ${a.toFixed(2).replace('.',',')}</div></div>`
+tA.innerHTML=FUERTES.map(tex).join(''); tB.innerHTML=PROP_FUERTES.map(tex).join('')
+const chip=a=>`<span class="chip" style="background:rgba(255,255,255,${a})">Chapa ${a.toFixed(2).replace('.',',')}</span>`
+cA.innerHTML=[.14,.16,.18,.2,.22,.24,.25,.28].map(chip).join('')
+cB.innerHTML=[.16,.24].map(chip).join('')
+</script></body></html>
