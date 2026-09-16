@@ -190,8 +190,14 @@ console.log('\n── 6b. Y cabe en una línea, también en el móvil ──')
     // rompiendo «campeonato» y dejando «Veterano» solo en el último.
     check(`${donde}: el resumen no pasa de dos renglones`, (await alto('.torneo-palmares')) < 50, String(await alto('.torneo-palmares')))
     // Y el nombre sigue siendo un nombre y no una columna de letras: con
-    // «Ash» en vertical el <h2> medía más de 100 px de alto.
-    check(`${donde}: el nombre no se pone en vertical`, (await alto('.profile-hero-info h2')) < 40, String(await alto('.profile-hero-info h2')))
+    // «Ash» en vertical medía más de 100 px de alto.
+    //
+    // El selector nombra las DOS etiquetas: el nombre pasó de <h2> a
+    // <h1> en la tanda 313 —era la única pantalla del sitio sin ningún
+    // <h1>— y lo que esta prueba defiende no es la etiqueta, es que el
+    // nombre quepa de lado.
+    const NOMBRE = '.profile-hero-info h1, .profile-hero-info h2'
+    check(`${donde}: el nombre no se pone en vertical`, (await alto(NOMBRE)) < 40, String(await alto(NOMBRE)))
     // La fila del palmarés va DEBAJO del bloque del avatar, no dentro.
     const fuera = await page.evaluate(() => !document.querySelector('.profile-hero-body .palmares-fila'))
     check(`${donde}: la fila va fuera del bloque del avatar`, fuera)
