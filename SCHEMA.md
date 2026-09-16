@@ -16243,3 +16243,96 @@ invocara; hacer que la función devolviera siempre cadena vacía pasaba
 desapercibido. El doble de Supabase todavía no sabe servir un curso, así
 que la función se saca del fichero y **se ejecuta** en la prueba: se mide
 lo que devuelve, no que alguien la llame.
+
+---
+
+## Tanda 314 — el foro, con red debajo
+
+La sección más grande del sitio tenía cubiertos el índice, la lista de
+temas y la vista de un tema desde la 299. **Todo lo de alrededor no tenía
+ni una prueba**: encuestas, no leídos, suscripciones, búsqueda, menciones
+y moderación. Cada cambio ahí salía a producción a pelo.
+
+Lo que se comprueba no es que «funcione». Son las **decisiones** que
+están escritas en los comentarios del código y que un refactor se lleva
+por delante sin que nada dé error.
+
+### Lo que ahora está atado
+
+- **Una encuesta no enseña por dónde va antes de que votes.** Es la más
+  importante y la más fácil de perder: no rompe nada visible. Está
+  escrita en `js/encuesta.js` —«ver por dónde va la votación cambia lo
+  que vota la gente, y en una comunidad pequeña eso se nota mucho»— y
+  ahora hay una prueba que siembra votos de OTROS y exige cero
+  resultados a la vista. El total sí se dice: saber cuánta gente ha
+  votado no condiciona a nadie; saber a qué, sí.
+- **Cambiar el voto borra el anterior**, o la encuesta contaría doble a
+  quien se lo pensó dos veces.
+- **Sin cuenta se ve la encuesta pero no se marca nada**, y se dice por
+  qué. Y una de varias respuestas son casillas, no botones de radio.
+- **Las menciones y lo que NO es una mención**: una dirección de correo
+  no menciona a nadie; los párrafos SEPARAN (`<p>hola</p><p>@ash</p>` sí
+  menciona — sin eso, `textContent` los pegaba y la regla del correo lo
+  descartaba, o sea que abrir un párrafo con @alguien no avisaba a
+  nadie); el tope de cinco; y al enlazar, nunca dentro de otro enlace ni
+  dentro de `<code>`.
+- **Lo no leído y lo que NO cuenta como no leído**: si el último mensaje
+  es TUYO, el tema no va en negrita —responder te lo marcaba a ti
+  mismo—; sin la migración no se marca NADA (lo contrario sería media
+  pantalla en negrita para siempre y sin forma de quitarlo); y sin
+  cuenta tampoco.
+- **Seguir un tema**, con la vuelta atrás: el botón se pinta antes de que
+  conteste la base —uno que tarda medio segundo se pulsa dos veces— así
+  que si falla tiene que volver a «Seguir». Si no, le dirías «Siguiendo»
+  a alguien a quien no vas a avisar.
+- **El buscador**, por título y por el texto de un mensaje. Y si la
+  columna no existe todavía, dice **que no está activado** en vez de «no
+  hay nada con eso», que sería mentir: haberlo lo hay.
+- **La moderación solo la ve el equipo**, y el equipo es `is_admin` **o**
+  `is_moderator` — perder el segundo dejaba a los moderadores sin
+  herramientas sin que nada diera error.
+
+### Lo que hubo que enseñarle al doble
+
+- **Las tres tablas de encuestas** (`forum_polls`, `forum_poll_options`,
+  `forum_poll_votes`), sembrables por separado: hay pruebas que necesitan
+  una encuesta SIN votos y otras con votos de otra gente.
+- **`forum_poll_resultados` se CALCULA** de las tablas, como en Postgres,
+  en vez de devolverse a mano desde cada prueba. Si lo dijera la semilla,
+  «no se enseñan los resultados antes de votar» estaría comprobando la
+  semilla y no la pantalla.
+- **`search_norm`, la columna generada del buscador**, se calcula al
+  vuelo igual que `name_search` de las cartas. Así una prueba del
+  buscador no tiene que sembrar a mano una columna que en producción se
+  rellena sola —y que por tanto nunca podría desincronizarse del título
+  de verdad—.
+- **`window.__SIN_COLUMNAS__`**, para fingir que falta UNA COLUMNA y no
+  la tabla entera. Una migración a medias deja la tabla en su sitio; con
+  `__SIN_TABLAS__` no se podía llegar a la rama del buscador porque se
+  caía antes.
+
+### Lo que sacó la verificación
+
+**Dos mutaciones del rigor resultaron ser INERTES, y eso enseña algo del
+código.** «Sin la migración se marca todo como no leído» no se detectaba
+ni quitando la guarda de `estaSinLeer` ni quitando la de
+`sinLeerPorForo`: **cada una es la red de repuesto de la otra**, así que
+ninguna sola cambia el comportamiento. La mutación buena va sobre el
+ORIGEN —`hayDatos`, que es quien dice si la tabla contestó—. Una
+mutación que no cambia nada se cuenta como «sin detectar» y tapa las de
+verdad.
+
+**Y el primer intento de fingir la columna que falta dejó la página
+colgada en «Cargando…» sin un solo error.** El atajo era un `Proxy` que
+devuelve una función para CUALQUIER propiedad: con eso,
+`resultado.error` y `resultado.data` son las dos funciones —las dos
+ciertas— así que el cliente ni entra en su rama de error ni se queda sin
+datos. Se enumeran los métodos a mano.
+
+**Y la comprobación leía el `.empty-state` equivocado**: el lateral del
+foro tiene el suyo («Cargando…»), y coger el primero del documento leía
+ese en vez del del buscador. Las comprobaciones de una columna van
+acotadas a su columna.
+
+Cubierto en `test-tanda-314.mjs` (9 bloques) + `rigor-tanda-314.py`
+(14 mutaciones).

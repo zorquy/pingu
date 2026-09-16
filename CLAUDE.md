@@ -146,9 +146,16 @@ y de curso**, que era el hueco grande; desde la 311 el **contraste
 medido** en ocho páginas por los dos temas, desde la 312 los
 **objetivos táctiles** y el pie en las 22 páginas, y desde la 313 el
 salto al contenido, el `<h1>` de cada pantalla, el respeto a «menos
-movimiento» y el hueco de las imágenes. Del foro faltan las piezas de
-alrededor (encuestas, no leídos, suscripciones, búsqueda, menciones,
-moderación).
+movimiento» y el hueco de las imágenes. **Y desde la 314, el foro
+ENTERO**: encuestas, no leídos, suscripciones, búsqueda, menciones y
+moderación, que era el agujero grande que quedaba. Lo único del foro que
+sigue sin red son los avisos por correo, que viven en disparadores de la
+base y no en el cliente.
+
+**Una mutación que no cambia el comportamiento NO es una prueba
+aprobada** (tanda 314): si dos guardas son red de repuesto una de la
+otra, quitar cualquiera de ellas deja todo igual y el rigor lo apunta
+como «sin detectar». Muta el ORIGEN del dato, no una de sus guardas.
 
 **El rigor rompe el repo a propósito: no commitees mientras corre.**
 Un script de rigor muta un fichero de verdad, pasa las pruebas y lo

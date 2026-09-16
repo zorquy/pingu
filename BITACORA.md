@@ -12,6 +12,65 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-16 (3) — PINGU-Claude (tanda 314 — el foro, con red debajo)
+
+**Hecho**: pruebas para todo lo que rodea al foro, que era lo último de
+la lista que aprobó PINGU y lo que más riesgo tenía: **la sección más
+grande del sitio y cada cambio salía a producción a pelo**.
+
+Nueve bloques, y lo que atan no es que «funcione» sino las DECISIONES
+escritas en los comentarios del código:
+
+- **Una encuesta no enseña por dónde va antes de que votes.** La más
+  importante y la más fácil de perder, porque perderla no rompe nada
+  visible. Con votos de OTROS sembrados y cero resultados exigidos.
+- Cambiar el voto borra el anterior; sin cuenta se ve pero no se marca;
+  de varias respuestas son casillas y no radios; cerrada enseña y no deja.
+- **Las menciones y lo que NO es una mención**: un correo no menciona a
+  nadie, los párrafos separan, el tope de cinco, y nunca un enlace
+  dentro de otro ni dentro de `<code>`.
+- **Lo no leído**: si el último mensaje es TUYO no cuenta; sin la
+  migración no se marca nada; sin cuenta tampoco.
+- **Seguir un tema**, con la vuelta atrás cuando la base lo rechaza.
+- **El buscador**, por título y por texto de mensaje, y el aviso de «no
+  está activado» en vez de mentir con «no hay nada».
+- **La moderación**, que la ve el equipo — `is_admin` O `is_moderator`.
+
+**Lo que hubo que enseñarle al doble** (rama `pruebas`): las tres tablas
+de encuestas, el cálculo de `forum_poll_resultados` a partir de ellas (si
+lo dijera la semilla, la prueba estrella comprobaría la semilla y no la
+pantalla), la columna generada `search_norm`, y
+**`window.__SIN_COLUMNAS__`** para fingir que falta UNA columna y no la
+tabla entera — que es como se ve una migración a medias.
+
+**Lo que sacó la verificación**:
+
+1. **Dos mutaciones resultaron INERTES**, y eso dice algo del código: las
+   dos guardas de «sin migración no marques nada» son red de repuesto
+   una de la otra, así que quitar cualquiera de ellas no cambia nada. La
+   mutación buena va sobre `hayDatos`, que es el origen.
+2. **Fingir la columna que falta con un `Proxy` dejó la página colgada en
+   «Cargando…» sin un solo error**: un Proxy que devuelve una función
+   para cualquier propiedad hace que `data` y `error` sean las dos
+   ciertas, y el cliente ni entra en la rama de error ni se queda sin
+   datos.
+3. **Y la prueba leía el `.empty-state` del LATERAL** en vez del de la
+   columna del buscador. Las comprobaciones de una columna van acotadas
+   a su columna.
+
+**Ficheros**: ninguno de la web — esta tanda es solo pruebas. En la rama
+`pruebas`: `test-tanda-314.mjs` (NUEVO), `rigor-tanda-314.py` (NUEVO),
+`stub-supabase.js` (tablas de encuestas, `forum_poll_resultados`,
+`search_norm` y `__SIN_COLUMNAS__`), `correr-suite.sh`.
+
+**Suite**: 75 en verde. **Rigor**: 14 mutaciones, todas detectadas.
+
+**En curso / pendiente**: de la lista que aprobó PINGU ya no queda nada
+salvo **el resto de la escala de color** (~500 valores a mano; ojo con
+`#fff`, que en oscuro NO es blanco sino la superficie `#182430`). Del
+foro siguen sin cubrir las notificaciones por correo, que viven en
+disparadores de la base y no en el cliente.
+
 ## 2026-09-16 (2) — PINGU-Claude (tanda 313 — lo que no se ve)
 
 **Hecho**: la otra mitad de la lista que aprobó PINGU, la que no sale en
