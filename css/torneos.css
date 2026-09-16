@@ -59,8 +59,8 @@
   align-items: center;
   gap: 24px;
   flex-wrap: wrap;
-  background: linear-gradient(115deg, #163d59, #2a6b96 62%, #347fae);
-  color: #fff;
+  background: linear-gradient(115deg, var(--navy-solid-dark), var(--navy-solid-light) 62%, #347fae);
+  color: var(--blanco-fijo);
   border-radius: var(--radius-xl);
   padding: 16px 24px;
   margin-bottom: 24px;
@@ -84,7 +84,7 @@
   align-items: center;
   gap: 8px;
   background: var(--danger-solid);
-  color: #fff;
+  color: var(--blanco-fijo);
   border-radius: var(--radius-pill);
   font-size: var(--t-2xs);
   font-weight: 700;
@@ -115,8 +115,8 @@
 }
 /* Sobre navy el botón se invierte, el mismo truco que tenía el héroe. */
 .torneo-vivo .btn-primary {
-  background: #fff;
-  color: #1e5175;
+  background: var(--blanco-fijo);
+  color: var(--navy-solid);
   box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.25);
 }
 .torneo-vivo .btn-primary:hover { background: #e1f0f4; }
@@ -181,7 +181,7 @@
 }
 .torneo-wizard-paso.actual {
   background: var(--navy);
-  color: #fff;
+  color: var(--blanco-fijo);
 }
 .torneo-wizard-paso.actual .torneo-wizard-numero { background: rgba(255, 255, 255, 0.22); }
 .torneo-wizard-paso.hecho {
@@ -356,12 +356,17 @@
 /* Seis degradados, elegidos por el slug en torneos.js: un torneo sin
    imagen se ve siempre igual en vez de cambiar de color en cada
    recarga. */
-.torneo-arte-1 { background: linear-gradient(135deg, #2a6b96, #7cc6d8 120%); }
-.torneo-arte-2 { background: linear-gradient(135deg, #4f46e5, #be185d 130%); }
-.torneo-arte-3 { background: linear-gradient(135deg, #0d9e6e, #7cc6d8 130%); }
-.torneo-arte-4 { background: linear-gradient(135deg, #c8720a, #e0b252 130%); }
-.torneo-arte-5 { background: linear-gradient(135deg, #7c3aed, #4f46e5 130%); }
-.torneo-arte-6 { background: linear-gradient(135deg, #0891b2, #2a6b96 130%); }
+/* De la paleta de arte de style.css (tanda 315), que comparten con las
+   tarjetas de guía. Dos cambian un pelo y va a propósito: el nº 1 tenía
+   la parada en 120% y la paleta la tiene en 130% —el degradado llega un
+   poco menos lejos—, y el nº 2 iba de morado a rosa y ahora usa el rosa
+   de la paleta, que son los mismos dos colores en el otro sentido. */
+.torneo-arte-1 { background: var(--arte-azul); }
+.torneo-arte-2 { background: var(--arte-rosa); }
+.torneo-arte-3 { background: var(--arte-verde); }
+.torneo-arte-4 { background: var(--arte-ambar); }
+.torneo-arte-5 { background: var(--arte-morado); }
+.torneo-arte-6 { background: var(--arte-cian); }
 /* La trama de puntos: sin ella, un degradado a pantalla completa se ve
    plano y barato. Va detrás de todo y no intercepta clics. */
 .torneo-arte::before {
@@ -473,7 +478,7 @@
   place-items: center;
   font-size: var(--t-2xs);
   font-weight: 600;
-  color: #fff;
+  color: var(--blanco-fijo);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -530,7 +535,7 @@
   align-items: center;
   justify-content: center;
   background: var(--success);
-  color: #fff;
+  color: var(--blanco-fijo);
   border: none;
   border-radius: var(--radius-md);
   font-family: var(--font-display);
@@ -540,7 +545,7 @@
   text-decoration: none;
   box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.18);
 }
-.torneo-btn-apuntarse:hover { background: color-mix(in srgb, var(--success) 88%, #000); color: #fff; }
+.torneo-btn-apuntarse:hover { background: color-mix(in srgb, var(--success) 88%, #000); color: var(--blanco-fijo); }
 /* Los botones del pie, todos a la misma altura y sin el tamaño de
    formulario que traen por defecto. */
 .torneo-pie .btn-primary,
@@ -664,9 +669,9 @@
   from { opacity: 0; transform: translateX(-28px); }
   to { opacity: 1; transform: none; }
 }
-.torneo-cal-meses.cal-entra .torneo-cal-mes { animation: torneo-cal-aparece 0.3s var(--ease, ease) both; }
-.torneo-cal-meses.cal-entra-der .torneo-cal-mes { animation: torneo-cal-desde-der 0.28s var(--ease, ease) both; }
-.torneo-cal-meses.cal-entra-izq .torneo-cal-mes { animation: torneo-cal-desde-izq 0.28s var(--ease, ease) both; }
+.torneo-cal-meses.cal-entra .torneo-cal-mes { animation: torneo-cal-aparece 0.3s var(--ease) both; }
+.torneo-cal-meses.cal-entra-der .torneo-cal-mes { animation: torneo-cal-desde-der 0.28s var(--ease) both; }
+.torneo-cal-meses.cal-entra-izq .torneo-cal-mes { animation: torneo-cal-desde-izq 0.28s var(--ease) both; }
 /* Escalonadas: cada mes espera 22 ms más que el anterior (--i lo pone
    torneos.js). */
 .torneo-cal-meses .torneo-cal-mes { animation-delay: calc(var(--i, 0) * 22ms); }
@@ -675,7 +680,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 12px 16px;
-  transition: border-color 0.15s var(--ease, ease), box-shadow 0.18s var(--ease, ease), transform 0.18s var(--ease, ease);
+  transition: border-color 0.15s var(--ease), box-shadow 0.18s var(--ease), transform 0.18s var(--ease);
 }
 .torneo-cal-mes:hover {
   border-color: var(--border-strong);
@@ -723,7 +728,7 @@
   font: inherit;
   font-size: var(--t-xs);
   padding: 0;
-  transition: background 0.15s var(--ease, ease), transform 0.15s var(--ease, ease), box-shadow 0.15s var(--ease, ease);
+  transition: background 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 .torneo-cal-dia.hoy { box-shadow: inset 0 0 0 1px var(--border-strong); }
 /* Dos colores según quién organiza (tanda 246): navy los OFICIALES del
@@ -736,7 +741,7 @@ button.torneo-cal-dia.con-torneo {
 }
 button.torneo-cal-dia.con-torneo.oficial {
   background: var(--navy);
-  color: #fff;
+  color: var(--blanco-fijo);
 }
 button.torneo-cal-dia.con-torneo:hover {
   background: var(--ice-dark);
@@ -764,7 +769,7 @@ button.torneo-cal-dia.con-torneo.oficial:hover { background: var(--navy-light); 
 .torneo-cal-punto.comunidad { background: var(--ice); border: 1px solid var(--ice-dark); }
 button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--navy); }
 /* El panel del día entra con el mismo gesto que los meses. */
-.torneo-cal-dia-panel { animation: torneo-cal-aparece 0.25s var(--ease, ease) both; }
+.torneo-cal-dia-panel { animation: torneo-cal-aparece 0.25s var(--ease) both; }
 .torneo-cal-dia-titulo { margin: 16px 0 8px; }
 /* Quien pidió menos movimiento, lo tiene: todo aparece en el sitio. */
 @media (prefers-reduced-motion: reduce) {
@@ -846,7 +851,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
    no es una etiqueta, es algo que está pasando ahora. */
 .torneo-arte .torneo-estado-jugando {
   background: var(--danger-solid);
-  color: #fff;
+  color: var(--blanco-fijo);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -934,8 +939,8 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-radius: var(--radius-xl);
   overflow: hidden;
   margin: 16px 0 0;
-  background: linear-gradient(120deg, #163d59, #1e5175 55%, #3d8ab8);
-  color: #fff;
+  background: linear-gradient(120deg, var(--navy-solid-dark), var(--navy-solid) 55%, #3d8ab8);
+  color: var(--blanco-fijo);
   box-shadow: var(--shadow-md);
 }
 /* La trama de puntos, como en las tarjetas de la lista: sin ella el
@@ -978,11 +983,11 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   font-size: clamp(1.55rem, 1.2rem + 1.6vw, 2.1rem);
   line-height: 1.15;
   letter-spacing: -0.01em;
-  color: #fff;
+  color: var(--blanco-fijo);
 }
 .torneo-meta { margin: 8px 0 0; font-size: var(--t-md); color: #bfdcec; }
 .torneo-cabecera .torneo-descripcion { color: #d6e8f2; margin-top: 12px; max-width: 70ch; }
-.torneo-cabecera .torneo-descripcion a { color: #fff; }
+.torneo-cabecera .torneo-descripcion a { color: var(--blanco-fijo); }
 
 .torneo-ficha-cabecera {
   display: flex;
@@ -995,7 +1000,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
    mismo que se hizo en las tarjetas de la lista). */
 .torneo-cabecera .torneo-estado,
 .torneo-cabecera .torneo-oficial {
-  background: #fff;
+  background: var(--blanco-fijo);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1007,7 +1012,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-cabecera .torneo-oficial { color: #a06008; }
 .torneo-cabecera .torneo-estado-jugando {
   background: var(--danger-solid);
-  color: #fff;
+  color: var(--blanco-fijo);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -1041,7 +1046,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   gap: 8px;
   border: 1px solid rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  color: var(--blanco-fijo);
   border-radius: var(--radius-pill);
   padding: 8px 16px;
   font-size: var(--t-sm);
@@ -1051,8 +1056,8 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 .torneo-compartir:hover {
   background: rgba(255, 255, 255, 0.24);
-  border-color: #fff;
-  color: #fff;
+  border-color: var(--blanco-fijo);
+  color: var(--blanco-fijo);
 }
 
 @media (max-width: 640px) {
@@ -1182,9 +1187,9 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 .torneo-pestanas-pastillas .torneo-pestana.activa {
   background: var(--navy);
-  color: #fff;
+  color: var(--blanco-fijo);
 }
-:root[data-theme='dark'] .torneo-pestanas-pastillas .torneo-pestana.activa { color: #fff; }
+:root[data-theme='dark'] .torneo-pestanas-pastillas .torneo-pestana.activa { color: var(--blanco-fijo); }
 
 /* ── El tablero de «Tu partida» (tanda 298) ──
    Era una columna de párrafos —contexto, «vs rival», TCG Live, reloj,
@@ -1233,7 +1238,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   place-items: center;
   font-family: var(--font-display);
   font-size: var(--t-2xl);
-  color: #fff;
+  color: var(--blanco-fijo);
   margin-bottom: 8px;
 }
 .torneo-duelo-nombre { font-family: var(--font-display); font-size: var(--t-xl); }
@@ -1297,7 +1302,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-plazas-relleno {
   height: 100%;
   border-radius: var(--radius-pill);
-  background: #fff;
+  background: var(--blanco-fijo);
   transition: width 0.3s;
 }
 .torneo-plazas-texto { font-size: var(--t-sm); color: #bfdcec; font-weight: 600; }
@@ -1536,7 +1541,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   font-size: var(--t-sm);
   color: var(--text-mid);
 }
-.torneo-mesa.mia .torneo-mesa-num { background: var(--navy); border-color: var(--navy); color: #fff; }
+.torneo-mesa.mia .torneo-mesa-num { background: var(--navy); border-color: var(--navy); color: var(--blanco-fijo); }
 .torneo-mesa-lado { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .torneo-mesa-lado.der { flex-direction: row-reverse; text-align: right; }
 .torneo-mesa-cara {
@@ -1546,7 +1551,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   flex: none;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--blanco-fijo);
   font-size: var(--t-2xs);
   font-weight: 600;
 }
@@ -1601,8 +1606,8 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 /* La que se está jugando, en navy macizo: es la única que importa ahora. */
 .torneo-paso.viva { background: var(--navy); border-color: var(--navy); }
 .torneo-paso.viva .torneo-paso-r { color: #a9cee3; }
-.torneo-paso.viva .torneo-paso-e { color: #fff; }
-:root[data-theme='dark'] .torneo-paso.viva .torneo-paso-e { color: #fff; }
+.torneo-paso.viva .torneo-paso-e { color: var(--blanco-fijo); }
+:root[data-theme='dark'] .torneo-paso.viva .torneo-paso-e { color: var(--blanco-fijo); }
 
 /* ── El puesto en la clasificación (tanda 298) ──
    Oro, plata y bronce en los tres primeros, y tu fila marcada. En una
@@ -1916,7 +1921,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-chat-linea.mia .torneo-burbuja {
   background: var(--navy);
   border-color: var(--navy);
-  color: #fff;
+  color: var(--blanco-fijo);
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 4px;
 }
@@ -2033,12 +2038,12 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-pestanas-chips .torneo-pestana.activa {
   background: var(--navy);
   border-color: var(--navy);
-  color: #fff;
+  color: var(--blanco-fijo);
 }
-:root[data-theme='dark'] .torneo-pestanas-chips .torneo-pestana.activa { color: #fff; }
+:root[data-theme='dark'] .torneo-pestanas-chips .torneo-pestana.activa { color: var(--blanco-fijo); }
 .torneo-pestanas-chips .torneo-pestana.activa .torneo-pestana-cuenta {
   background: rgba(255, 255, 255, 0.22);
-  color: #fff;
+  color: var(--blanco-fijo);
 }
 
 .torneo-panel > .simple-card { margin-bottom: 16px; }
@@ -2075,7 +2080,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   padding: 1px 8px;
   border-radius: var(--radius-pill);
   background: rgba(20, 20, 25, 0.82);
-  color: #fff;
+  color: var(--blanco-fijo);
   font-size: var(--t-xs);
   font-weight: 700;
 }
@@ -2145,7 +2150,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   padding: 4px 12px;
   border-left: 3px solid #e8a020;
   background: rgba(232, 160, 32, 0.08);
-  border-radius: 0 var(--radius-sm, 6px) var(--radius-sm, 6px) 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .torneo-marca-top {
@@ -2281,7 +2286,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   padding: 1px 8px;
   border-radius: var(--radius-pill);
   background: var(--danger-solid);
-  color: #fff;
+  color: var(--blanco-fijo);
   font-size: var(--t-2xs);
   font-weight: 800;
 }

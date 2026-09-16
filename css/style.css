@@ -67,6 +67,49 @@
      encima se quedaría en 2,4 de contraste. Este se queda quieto y lo
      que cambia alrededor es el fondo de la página. */
   --danger-solid: #dc2626;
+  /* ── El blanco que NO es el del tema (tanda 315) ──
+     `--white` es la SUPERFICIE de la página, y en el tema oscuro vale
+     #182430: o sea, negro. Pero hay 62 sitios donde el blanco es blanco
+     porque va ENCIMA DE UN COLOR —la letra de un botón azul, el relleno
+     de una barra sobre su pista, el aro del progreso de una categoría—
+     y ahí tiene que seguir siendo blanco en los dos temas.
+     Iban a mano, y eso es una trampa esperando: cualquiera que «ordene»
+     un `#fff` a `var(--white)` deja letra negra sobre azul en oscuro sin
+     que nada dé error. Con nombre propio, la diferencia se lee. */
+  --blanco-fijo: #fff;
+  /* El azul de la casa cuando hace de FONDO SÓLIDO con blanco encima.
+     Mismo caso que --danger-solid: --navy se ACLARA en oscuro para
+     poder leerse como texto, y un fondo aclarado con blanco encima se
+     queda sin contraste. */
+  --navy-solid: #1e5175;
+  /* Y sus dos compañeros de degradado. Los héroes de color —la cabecera
+     de un torneo, la tira de «sigue aprendiendo», el arte de una
+     tarjeta— van del más oscuro al más claro pasando por --navy-solid, y
+     son FIJOS por lo mismo: llevan blanco encima. Tienen los MISMOS
+     valores que --navy-dark y --navy-light, y ahí está la trampa:
+     parecen intercambiables y no lo son, porque esos dos SÍ cambian con
+     el tema.
+     (Los valores no se citan aquí a propósito: un barrido que sustituye
+     un color también pasa por los comentarios, y esta línea se lo comió
+     en el primer intento.) */
+  --navy-solid-dark: #163d59;
+  --navy-solid-light: #2a6b96;
+
+  /* ── La paleta de ARTE (tanda 315) ──
+     Los seis degradados que le tocan a una tarjeta según su identidad:
+     los usan las guías de la portada y de /aprender (`.arte-1..6`) y las
+     tarjetas de torneo (`.torneo-arte-1..6`). Estaban escritos DOS
+     VECES, en components.css y en torneos.css, con los mismos seis
+     colores en distinto orden — o sea que cambiar la paleta era cambiar
+     doce degradados y acordarse de los dos sitios.
+     Son FIJOS, como los azules de arriba: llevan texto blanco encima y
+     no pueden seguir al tema. */
+  --arte-verde: linear-gradient(135deg, #0d9e6e, #7cc6d8 130%);
+  --arte-azul: linear-gradient(135deg, #2a6b96, #7cc6d8 130%);
+  --arte-ambar: linear-gradient(135deg, #c8720a, #e0b252 130%);
+  --arte-cian: linear-gradient(135deg, #0891b2, #2a6b96 130%);
+  --arte-morado: linear-gradient(135deg, #7c3aed, #4f46e5 130%);
+  --arte-rosa: linear-gradient(135deg, #be185d, #7c3aed 130%);
   --warning: #c8720a;
   --warning-bg: #fdf1de;
   --indigo: #4f46e5;
@@ -138,8 +181,8 @@
      barra de moderación— necesita más separación que una tarjeta, o se
      confunde con lo que tiene debajo. Había cuatro versiones casi
      iguales de esta sombra, una por sitio; y en components.css ya se
-     pedía `var(--shadow-lg, …)` con respaldo, o sea que el token se
-     esperaba desde antes y nadie lo había definido (tanda 310). */
+     pedía el token con un respaldo detrás, o sea que se esperaba desde
+     antes y nadie lo había definido (tanda 310). */
   --shadow-lg: 0 10px 28px rgba(13, 27, 42, 0.16);
   --shadow-ring: 0 0 0 3px rgba(30, 81, 117, 0.16);
 
@@ -435,8 +478,8 @@ body:has(> .footer) .page-content {
      —para poder leerse como TEXTO— y el blanco de encima se quedaba en
      2,35. Es el mismo caso que `--danger-solid`: un fondo sólido que
      lleva blanco encima no se aclara con el tema. */
-  background: #1e5175;
-  color: #fff;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
   font-weight: 700;
   font-size: var(--t-sm);
   transition: top 0.15s var(--ease);

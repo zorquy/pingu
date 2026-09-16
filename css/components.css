@@ -1912,7 +1912,7 @@ tcg-deck {
 }
 
 .toast-success {
-  background: var(--success, #16a34a);
+  background: var(--success);
 }
 
 /* ── Reportar contenido ── */
@@ -3812,12 +3812,17 @@ a.reto-tarjeta:hover {
  * parpadearía al filtrar. Viven aquí y no en aprender.css porque desde
  * la tanda 300 los usa también la portada, y esas dos pantallas no
  * comparten ninguna otra hoja. */
-.arte-1 { background: linear-gradient(135deg, #0d9e6e, #7cc6d8 130%); }
-.arte-2 { background: linear-gradient(135deg, #2a6b96, #7cc6d8 130%); }
-.arte-3 { background: linear-gradient(135deg, #c8720a, #e0b252 130%); }
-.arte-4 { background: linear-gradient(135deg, #0891b2, #2a6b96 130%); }
-.arte-5 { background: linear-gradient(135deg, #7c3aed, #4f46e5 130%); }
-.arte-6 { background: linear-gradient(135deg, #be185d, #7c3aed 130%); }
+/* Los seis degradados salen de la paleta de arte de style.css desde la
+   tanda 315: estaban escritos aquí Y en torneos.css, los mismos seis en
+   distinto orden. El ORDEN sí es de cada pantalla —a una guía le toca
+   uno por su identidad y a un torneo otro— pero los colores son los
+   mismos. */
+.arte-1 { background: var(--arte-verde); }
+.arte-2 { background: var(--arte-azul); }
+.arte-3 { background: var(--arte-ambar); }
+.arte-4 { background: var(--arte-cian); }
+.arte-5 { background: var(--arte-morado); }
+.arte-6 { background: var(--arte-rosa); }
 
 /* La cabecera de cada bloque de la columna ancha: título y su enlace de
    «ver todo» en la misma línea, que es lo que dice que hay más detrás. */
@@ -3839,7 +3844,7 @@ a.reto-tarjeta:hover {
 .seccion-cabecera-sm h2 {
   margin: 0;
   font-size: var(--t-lg);
-  font-family: var(--font-display, 'Fredoka', 'Inter', sans-serif);
+  font-family: var(--font-display);
   font-weight: 600;
 }
 
@@ -3953,7 +3958,7 @@ a.reto-tarjeta:hover {
   flex-wrap: wrap;
   margin: 24px 0 4px;
   padding: 16px 24px;
-  background: linear-gradient(135deg, var(--navy), var(--indigo, var(--navy)));
+  background: linear-gradient(135deg, var(--navy), var(--indigo));
   color: var(--white);
   border-radius: var(--radius-lg);
 }
@@ -4165,7 +4170,7 @@ yt-video iframe {
   justify-content: center;
   gap: 12px;
   padding: 24px;
-  color: #fff;
+  color: var(--blanco-fijo);
   background: radial-gradient(120% 120% at 50% 40%, #24445c 0%, #0d1b2a 100%);
   font: inherit;
   transition: background 0.15s ease;
@@ -4253,7 +4258,7 @@ yt-video .yt-enlace {
   text-decoration: underline;
 }
 
-yt-video .yt-enlace:hover { color: #fff; }
+yt-video .yt-enlace:hover { color: var(--blanco-fijo); }
 
 /* ── Página 404 ──────────────────────────────────────────────────────────
    Antes no había: Netlify mandaba cualquier dirección desconocida a la
@@ -4554,7 +4559,7 @@ yt-video .yt-enlace:hover { color: #fff; }
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--blanco-fijo);
   font-weight: 800;
   background-size: cover;
   background-position: center;
@@ -4722,7 +4727,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 
 .lightbox-cerrar:hover {
   background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  color: var(--blanco-fijo);
 }
 
 .lightbox-flecha {
@@ -4739,7 +4744,7 @@ yt-video .yt-enlace:hover { color: #fff; }
 
 .lightbox-flecha:hover {
   background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  color: var(--blanco-fijo);
 }
 
 .lightbox-ant {

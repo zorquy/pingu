@@ -39,8 +39,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-09-16 van 165,9 y quedan
-  4,1**: el pie de la tanda 312 está en las 22 páginas y suma, y la
+  CSS) debe caber en 170 KB gzip. **A 2026-09-16 van 167,0 y quedan
+  3,0**: el pie de la tanda 312 está en las 22 páginas y suma, y la
   313 sacó el editor de texto rico a `css/editor-texto.css` para hacer
   sitio. Antes de meter nada más en la portada, haz sitio —
   `pesar-portada.mjs` dice quién ocupa qué— y el camino es siempre el
@@ -72,6 +72,21 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   únicas paletas con rojo a mano son las dos de IDENTIDAD —los `--rt-*`
   del editor y `COLORES_AVATAR`— y están declaradas como excepción en
   `test-tanda-311.mjs`.
+- **El blanco que va ENCIMA de un color es `--blanco-fijo`, no
+  `--white`** (tanda 315). `--white` es la SUPERFICIE de la página y en
+  oscuro vale `#182430`: «ordenar» un `#fff` a `var(--white)` deja letra
+  oscura sobre fondo azul y **no da error en ninguna parte**. Con él,
+  `--danger-solid` y los tres azules sólidos (`--navy-solid`,
+  `--navy-solid-dark`, `--navy-solid-light`) forman la familia de los que
+  **no se redefinen en el tema oscuro a propósito**, porque llevan blanco
+  encima. Los seis degradados de tarjeta son `--arte-*` y viven SOLO en
+  `style.css` — estaban escritos dos veces, en `components.css` y en
+  `torneos.css`.
+- **Un token que existe no se pide con respaldo** (tandas 310 y 315): un
+  `var(--x, valor)` existía porque `--x` no existía, y mientras los dos
+  conviven dicen cosas distintas y gana el que nadie ha tocado. La
+  excepción son los que pone el JavaScript en un `style=` (`--chapa`,
+  `--galon`, `--i`), donde el respaldo ES el valor por defecto.
 - **Lo que se pulsa mide 44 px** (tanda 312), y el tamaño se da con
   `min-width`/`min-height` — nunca engordando el `padding`, que cambiaría
   el dibujo. **El ANCHO solo se le pide a lo que es un icono y nada
@@ -146,7 +161,9 @@ y de curso**, que era el hueco grande; desde la 311 el **contraste
 medido** en ocho páginas por los dos temas, desde la 312 los
 **objetivos táctiles** y el pie en las 22 páginas, y desde la 313 el
 salto al contenido, el `<h1>` de cada pantalla, el respeto a «menos
-movimiento» y el hueco de las imágenes. **Y desde la 314, el foro
+movimiento» y el hueco de las imágenes. Desde la 315, la **escala de
+color entera**: los tokens fijos que no se redefinen en oscuro, la
+paleta de arte y los respaldos que sobran. **Y desde la 314, el foro
 ENTERO**: encuestas, no leídos, suscripciones, búsqueda, menciones y
 moderación, que era el agujero grande que quedaba. Lo único del foro que
 sigue sin red son los avisos por correo, que viven en disparadores de la

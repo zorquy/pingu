@@ -192,10 +192,9 @@
   padding: 8px 12px;
   border-radius: var(--radius-pill);
   background: rgba(13, 27, 42, 0.55);
-  /* Blanco fijo (no var(--white), que en modo oscuro pasa a ser el
-     color de superficie/tarjeta oscuro): este botón siempre va sobre
-     un fondo oscuro traslúcido, en cualquier tema. */
-  color: #fff;
+  /* Blanco fijo y no `--white`: este botón va siempre sobre un fondo
+     oscuro traslúcido, en cualquier tema. */
+  color: var(--blanco-fijo);
   font-size: var(--t-xs);
   font-weight: 700;
   cursor: pointer;

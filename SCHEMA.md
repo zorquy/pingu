@@ -16336,3 +16336,78 @@ acotadas a su columna.
 
 Cubierto en `test-tanda-314.mjs` (9 bloques) + `rigor-tanda-314.py`
 (14 mutaciones).
+
+---
+
+## Tanda 315 — el resto de la escala de color
+
+Lo último de la lista que aprobó PINGU. La propuesta decía «502 colores
+escritos a mano». **Al medirlo, casi ninguno era un descuido**: son
+colores FIJOS de la marca que NO pueden seguir al tema porque llevan
+texto blanco encima. Sustituirlos por tokens semánticos los habría roto
+—es exactamente lo que le pasó a la paleta del avatar en la 311—. Lo que
+hacía falta era otra cosa: **ponerles nombre, para que se vea que son
+fijos a propósito**.
+
+### `--blanco-fijo`: el blanco que va ENCIMA de un color
+
+`--white` no es blanco. Es la SUPERFICIE de la página, y en el tema
+oscuro vale `#182430`. Pero había **62 sitios** con `#fff` a mano donde
+el blanco es blanco de verdad, porque va sobre un fondo de color: el
+texto de un botón azul, la chapa de un torneo, el enlace de salto.
+
+Esos 62 eran una trampa puesta: cualquiera que «ordenara» un `#fff` a
+`var(--white)` —que es lo que parece limpio— dejaba letra oscura sobre
+fondo azul en el tema oscuro, **sin que nada diera error**. Ahora tienen
+nombre y se ve para qué son.
+
+Con él, la familia de tokens que **no cambian en oscuro a propósito** ya
+son claramente eso, una familia: `--blanco-fijo`, `--danger-solid`
+(tanda 311) y los tres azules sólidos nuevos —`--navy-solid`,
+`--navy-solid-dark` y `--navy-solid-light`—. Son los que llevan blanco
+encima; aclararlos en oscuro deja ese blanco sin contraste.
+
+### La paleta de arte, en un solo sitio
+
+Los seis degradados de las tarjetas sin foto estaban escritos **dos
+veces**: las seis `.arte-N` de `components.css` y las seis
+`.torneo-arte-N` de `torneos.css`, los mismos colores en distinto orden.
+Cambiar la paleta era cambiar doce degradados y acordarse de los dos
+sitios.
+
+Ahora hay seis tokens (`--arte-verde`, `--arte-azul`, `--arte-ambar`,
+`--arte-cian`, `--arte-morado`, `--arte-rosa`) en `style.css` y las doce
+clases los piden. Las doce clases siguen existiendo y **siguen dando seis
+colores distintos**: unificar mal habría dejado la rejilla de /aprender
+como una pared de un solo color, y eso no lo caza leer ficheros — la
+prueba lo mide pintando.
+
+### Los respaldos que ya no hacen falta
+
+La norma sale de la tanda 310 con `--shadow-lg`: un `var(--token,
+respaldo)` existía porque el token no existía, y mientras los dos
+conviven **dicen cosas distintas y gana el que nadie ha tocado**. Se han
+quitado **31**. La comprobación se generaliza: ningún token que esté
+DEFINIDO puede pedirse con respaldo.
+
+La excepción, declarada: los tokens que pone el JavaScript en un
+`style=` —`--chapa`, `--galon`, `--i`…—. Ahí el respaldo ES el valor por
+defecto de quien no lo recibe, y tiene que estar.
+
+### Lo que NO se ha hecho, y por qué
+
+Queda pendiente **la consolidación de los velos blancos**: 25 valores de
+alfa distintos en `rgba(255,255,255,α)` repartidos por 65 usos, que se
+podrían recoger en unos 6 pasos. No se ha tocado, y es una decisión, no
+un olvido: es un cambio **estético**, y la mitad de él ninguna auditoría
+lo puede verificar: los velos flojos (0,08–0,28) son bordes y fondos
+sobre color, donde la escala no se rompe y las pruebas salen verdes
+hagas lo que hagas. Y la otra mitad no es estética en absoluto: los
+velos fuertes (0,7–0,95) son TEXTO blanco sobre un fondo de color, así
+que bajar un 0,82 a 0,75 **sí baja el contraste** y hay que medirlo
+antes. Un barrido de 65 sitios sin
+nadie que valide el resultado es justo la forma de la lección de las
+tandas 310 y 311.
+
+Cubierto en `test-tanda-315.mjs` (4 bloques) + `rigor-tanda-315.py`
+(10 mutaciones).

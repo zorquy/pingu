@@ -12,6 +12,51 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-16 (4) — PINGU-Claude (tanda 315 — el resto de la escala de color)
+
+**Hecho**: lo último de la lista que aprobó PINGU. La propuesta hablaba
+de «502 colores a mano»; al medirlo, **casi ninguno era un descuido**:
+son colores FIJOS de la marca que no pueden seguir al tema porque llevan
+texto blanco encima. Cambiarlos por tokens semánticos los habría roto —
+es lo que le pasó a la paleta del avatar en la 311—. Lo que se ha hecho
+es **ponerles nombre**:
+
+- **`--blanco-fijo`** para los 62 `#fff` que van ENCIMA de un color.
+  `--white` no es blanco: es la superficie, y en oscuro vale `#182430`.
+  Cualquiera que «ordenara» uno de esos `#fff` a `var(--white)` dejaba
+  letra oscura sobre fondo azul sin que nada diera error.
+- **`--navy-solid`, `--navy-solid-dark` y `--navy-solid-light`** (11
+  usos) para los azules que llevan blanco encima y que por eso NO se
+  aclaran en oscuro. Con `--danger-solid` (311) ya son una familia
+  reconocible.
+- **Los seis `--arte-*`**: los degradados de las tarjetas sin foto
+  estaban escritos DOS veces —las seis `.arte-N` de `components.css` y
+  las seis `.torneo-arte-N` de `torneos.css`, los mismos en distinto
+  orden—. Ahora viven solo en `style.css`.
+- **31 `var(--token, respaldo)` fuera**: el respaldo existía porque el
+  token no, y mientras conviven dicen cosas distintas.
+
+**Ficheros**: `css/style.css`, `css/components.css`, `css/torneos.css`,
+`css/aprender.css`, `css/comunidad.css`, `css/curso.css`,
+`css/editor-texto.css`, `css/foro.css`, `css/noticias.css`,
+`css/perfil.css`, `css/portada.css`, `SCHEMA.md`, `CLAUDE.md`.
+En la rama `pruebas`: `test-tanda-315.mjs` (nuevo, 4 bloques),
+`rigor-tanda-315.py` (nuevo, 10 mutaciones).
+
+**Comprobado**: contraste medido 0 fallos en los dos temas, portada en
+167,0 KB de 170, y capturas de /aprender y /torneos para ver que los
+degradados salen igual que antes.
+
+**En curso / pendiente**: nada en curso. Queda **a propósito** sin hacer
+la consolidación de los velos blancos (25 alfas distintas de
+`rgba(255,255,255,α)` en 65 usos, que cabrían en ~6 pasos): los velos flojos (0,08–0,28) son bordes
+y fondos, y ahí ninguna auditoría puede decir nada —salen verdes hagas
+lo que hagas—; los fuertes (0,7–0,95) son TEXTO blanco sobre color, y
+ahí bajar un 0,82 a 0,75 SÍ baja el contraste y hay que medirlo. Lo
+tiene que mirar un ojo humano antes. Pendiente de aprobación de PINGU.
+
+---
+
 ## 2026-09-16 (3) — PINGU-Claude (tanda 314 — el foro, con red debajo)
 
 **Hecho**: pruebas para todo lo que rodea al foro, que era lo último de

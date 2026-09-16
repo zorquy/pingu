@@ -5,15 +5,16 @@
 
 /* ── Sigue donde lo dejaste ──
    Lo que hace volver. Sin esto, quien dejó un curso a medias tiene que
-   acordarse de cuál era y buscarlo. Colores fijos y no var(--navy): el
-   panel es oscuro en los dos temas. */
+   acordarse de cuál era y buscarlo. Va con los azules FIJOS
+   (`--navy-solid-*`) y no con `--navy`: el panel es oscuro en los dos
+   temas y lleva blanco encima. */
 .aprender-seguir {
   display: flex;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  background: linear-gradient(115deg, #163d59, #2a6b96 62%, #347fae);
-  color: #fff;
+  background: linear-gradient(115deg, var(--navy-solid-dark), var(--navy-solid-light) 62%, #347fae);
+  color: var(--blanco-fijo);
   border-radius: var(--radius-xl);
   padding: 24px 24px;
   margin-bottom: 24px;
@@ -41,13 +42,13 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: conic-gradient(#fff calc(var(--vuelta) * 360deg), rgba(255, 255, 255, 0.25) 0);
+  background: conic-gradient(var(--blanco-fijo) calc(var(--vuelta) * 360deg), rgba(255, 255, 255, 0.25) 0);
 }
 .aprender-aro b {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: #1e5175;
+  background: var(--navy-solid);
   display: grid;
   place-items: center;
   font-family: var(--font-display);
@@ -63,8 +64,8 @@
 }
 .aprender-seguir-texto strong { font-family: var(--font-display); font-size: var(--t-xl); line-height: 1.2; }
 .aprender-seguir-sub { font-size: var(--t-sm); color: #bfdcec; }
-.aprender-seguir-boton { margin-left: auto; background: #fff; color: #163d59; flex: none; }
-.aprender-seguir-boton:hover { background: #e1f0f4; color: #163d59; }
+.aprender-seguir-boton { margin-left: auto; background: var(--blanco-fijo); color: var(--navy-solid-dark); flex: none; }
+.aprender-seguir-boton:hover { background: #e1f0f4; color: var(--navy-solid-dark); }
 
 /* ── Los filtros ──
    Las categorías dejan de ser una pantalla intermedia y pasan a ser
@@ -93,7 +94,7 @@
   transition: border-color 0.15s, color 0.15s;
 }
 .aprender-chip:hover { border-color: var(--navy); color: var(--navy); }
-.aprender-chip.activa { background: var(--navy); border-color: var(--navy); color: #fff; }
+.aprender-chip.activa { background: var(--navy); border-color: var(--navy); color: var(--blanco-fijo); }
 .aprender-chip-n {
   background: var(--ice);
   color: var(--navy);
@@ -102,7 +103,7 @@
   font-weight: 600;
   padding: 1px 8px;
 }
-.aprender-chip.activa .aprender-chip-n { background: rgba(255, 255, 255, 0.22); color: #fff; }
+.aprender-chip.activa .aprender-chip-n { background: rgba(255, 255, 255, 0.22); color: var(--blanco-fijo); }
 .aprender-filtros-sep { width: 1px; align-self: stretch; background: var(--border); margin: 2px 4px; }
 
 /* ── La rejilla de guías ── */
@@ -200,7 +201,7 @@
 }
 .guia-chapa-min {
   background: rgba(13, 27, 42, 0.46);
-  color: #fff;
+  color: var(--blanco-fijo);
 }
 
 .guia-rareza {

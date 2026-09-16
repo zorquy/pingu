@@ -628,8 +628,8 @@
 
 /* ── Resuelto ── */
 .foro-chapa-resuelto {
-  background: var(--success-bg, rgba(52, 211, 153, 0.15));
-  color: var(--success, #34d399);
+  background: var(--success-bg);
+  color: var(--success);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -637,7 +637,7 @@
 
 /* La respuesta que resolvió el tema, enmarcada en su color. */
 .foro-mensaje-solucion .foro-mensaje-cuerpo {
-  border: 1px solid var(--success, #34d399);
+  border: 1px solid var(--success);
   border-radius: var(--radius-sm);
   padding: 12px 12px;
 }
@@ -649,7 +649,7 @@
   margin: 0 0 8px;
   font-size: var(--t-xs);
   font-weight: 700;
-  color: var(--success, #34d399);
+  color: var(--success);
 }
 
 /* ── Firma ──
@@ -1093,7 +1093,7 @@
 
 .foro-chapa-nuevos {
   background: var(--navy);
-  color: #fff;
+  color: var(--blanco-fijo);
 }
 
 /* Los subforos que cuelgan de una fila del índice: van como enlaces en
@@ -1122,7 +1122,7 @@
   color: var(--white);
   font-size: var(--t-xs);
   font-weight: 700;
-  box-shadow: var(--shadow-md, 0 6px 20px rgba(13, 27, 42, 0.18));
+  box-shadow: var(--shadow-md);
   transform: translateX(-50%);
 }
 

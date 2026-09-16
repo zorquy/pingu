@@ -1148,7 +1148,7 @@
 .tf-option.correct,
 .fillblank-option.correct,
 .carta-opcion.correct {
-  animation: curso-latido 0.35s var(--ease, ease);
+  animation: curso-latido 0.35s var(--ease);
 }
 
 .quiz-option.incorrect,
@@ -1197,7 +1197,7 @@
 }
 
 .curso-combo-grande strong {
-  font-family: var(--font-display, inherit);
+  font-family: var(--font-display);
   font-size: 44px;
   line-height: 1;
   color: #f59e0b;
@@ -1211,7 +1211,7 @@
 
 /* La barra de progreso, dorada mientras hay multiplicador. */
 .curso-progress-fill {
-  transition: width 0.3s var(--ease, ease), background 0.3s var(--ease, ease);
+  transition: width 0.3s var(--ease), background 0.3s var(--ease);
 }
 
 .curso-progress-fill.progress-racha {
@@ -1233,7 +1233,7 @@
 .reward-medalla {
   position: relative;
   overflow: hidden;
-  animation: curso-medalla-entra 0.5s var(--ease, ease);
+  animation: curso-medalla-entra 0.5s var(--ease);
 }
 
 .reward-medalla::after {
@@ -1423,7 +1423,7 @@
 .memoria-dorso {
   background: linear-gradient(135deg, var(--navy), #2b6a97);
   color: var(--white);
-  font-family: var(--font-display, inherit);
+  font-family: var(--font-display);
   font-size: var(--t-2xl);
   font-weight: 800;
   border: 2px solid rgba(255, 255, 255, 0.25);
@@ -1484,7 +1484,7 @@
 
 .escribe-caja.correct input { border-color: var(--success); background: var(--success-bg); }
 .escribe-caja.incorrect input { border-color: var(--danger); background: var(--danger-bg); color: var(--danger); }
-.escribe-caja.correct { animation: curso-latido 0.35s var(--ease, ease); }
+.escribe-caja.correct { animation: curso-latido 0.35s var(--ease); }
 .escribe-caja.incorrect { animation: curso-sacudida 0.4s ease; }
 
 /* ── Las diferencias ── */
@@ -1507,7 +1507,7 @@
 .diferencias-par figcaption {
   font-size: var(--t-xs);
   font-weight: 700;
-  color: var(--text-mid, inherit);
+  color: var(--text-mid);
   opacity: 0.75;
   margin-bottom: 4px;
 }
@@ -1538,7 +1538,7 @@
   align-items: flex-end;
   gap: 8px;
   pointer-events: none;
-  animation: curso-mascota-entra 0.35s var(--ease, ease);
+  animation: curso-mascota-entra 0.35s var(--ease);
 }
 
 .curso-mascota-burbuja {
