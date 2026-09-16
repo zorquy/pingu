@@ -37,7 +37,12 @@ console.log('\n── 1. Una noticia no se anuncia como una guía ──')
   const fila = page.locator('#homeActivityFeed .activity-item').first()
   const texto = (await fila.textContent())?.replace(/\s+/g, ' ').trim()
   check('no dice «ha publicado la guía»', !/publicado la guía/.test(texto || ''), texto)
-  check('dice que es una noticia', /Nueva noticia:/.test(texto || ''), texto)
+  // Desde la tanda 312 el tipo va en una CHAPA y no en un «Nueva
+  // noticia:» delante del titular — cinco filas seguidas empezaban por
+  // lo mismo. Lo que esta prueba defiende no era la frase, era que la
+  // fila diga QUÉ es: se comprueba la chapa, que es donde vive ahora.
+  check('dice que es una noticia', (await fila.locator('.activity-tipo').count()) === 1, texto)
+  check('  …y la chapa lo dice', /^Noticia/i.test((await fila.locator('.activity-tipo').textContent()) || ''), texto)
   check('con el titular', /Binder Collection/.test(texto || ''))
   // El enlace bueno es /noticias/<slug>, no el de guía.
   const href = await fila.locator('a').last().getAttribute('href')
@@ -93,7 +98,8 @@ console.log('\n── 4. La misma noticia no sale dos veces ──')
   const filas = await page.locator('#homeActivityFeed .activity-item').allTextContents()
   const juntas = filas.join(' | ').replace(/\s+/g, ' ')
   check('solo una entrada', filas.length === 1, juntas)
-  check('y es la de la noticia', /Nueva noticia:/.test(juntas), juntas)
+  check('y es la de la noticia',
+    (await page.locator('#homeActivityFeed .activity-tipo').count()) === 1, juntas)
   check('no la del hilo del foro', !/ha abierto un tema/.test(juntas), juntas)
   await page.close()
 }
