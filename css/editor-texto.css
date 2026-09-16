@@ -1,0 +1,330 @@
+/* El editor de texto rico: su barra, su superficie y sus menús.
+ *
+ * Sale de components.css en la tanda 313, por la norma de la 299 y por
+ * sitio: es CHROME DE EDICIÓN que viajaba en las 26 páginas, incluida la
+ * portada, donde no se edita nada. Lo carga quien de verdad escribe.
+ *
+ * OJO a dos cosas:
+ *  · Esto es el EDITOR. Lo que se ve al LEER un artículo son las clases
+ *    `.rt-*` (sin la «e»), y esas se quedan en components.css porque las
+ *    gasta cualquiera que abra una guía.
+ *  · Las reglas que AGRUPAN `.article-body` con `.rte-surface` también se
+ *    quedan allí: la mitad de lectura la necesita todo el mundo, y
+ *    partirlas sería duplicar las declaraciones — peor que el kilobyte
+ *    que ahorra.
+ */
+
+/* ── Editor WYSIWYG de Documentación (tipo Word) ── */
+.rte-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  /* Ojo: nada de overflow:hidden aquí — convertiría a este contenedor en
+     el "scrollport" de la toolbar sticky de abajo (al no poder desplazarse
+     él mismo) y rompería el sticky respecto a la página. Las esquinas se
+     redondean en toolbar/surface por separado en su lugar. */
+}
+
+.rte-toolbar {
+  display: flex;
+  /* Dos filas: los botones de siempre y, debajo, la barra que sale al
+     seleccionar una imagen o una lista de cartas. */
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--bg);
+  border-bottom: 1.5px solid var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  position: sticky;
+  /* Debajo de la navbar (también sticky, top:0): sin este offset, ambas
+     compiten por el mismo punto de anclaje y la toolbar queda tapada un
+     instante al hacer scroll. */
+  top: 60px;
+  z-index: 1;
+}
+
+.rte-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+}
+
+.rte-toolbar button {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-mid);
+  font-size: var(--t-md);
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.rte-toolbar button:hover {
+  background: var(--ice);
+  color: var(--navy);
+}
+
+/* Separador entre grupos de botones. Con tantos botones, sin esto la
+   barra se lee como una lista larga en vez de como grupos. */
+.rte-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 8px;
+  background: var(--border-strong);
+  flex-shrink: 0;
+}
+
+.rte-tachadura {
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  margin-left: -4px;
+}
+
+/* ── Paletas de color ── */
+.rte-color-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.rte-paleta {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.rte-paleta button {
+  min-width: 28px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+/* La paleta de emojis: misma caja flotante que las de color, pero en
+   parrilla — cuarenta emojis en fila única se salían de la pantalla. */
+.rte-paleta-emojis {
+  display: grid;
+  grid-template-columns: repeat(8, 28px);
+  max-width: min(80vw, 300px);
+}
+
+.rte-paleta-emojis button {
+  font-size: var(--t-xl);
+  line-height: 1;
+  border: none;
+  background: transparent;
+}
+
+.rte-paleta-emojis button:hover {
+  background: var(--ice, rgba(56, 189, 248, 0.15));
+  border-radius: 6px;
+}
+
+.rte-swatch-letra {
+  font-size: var(--t-lg);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.rte-swatch-caja {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(13, 27, 42, 0.18);
+}
+
+/* ── Barra del bloque seleccionado ── */
+.rte-blockbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px;
+  background: var(--ice);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.rte-blockbar-nombre {
+  font-size: var(--t-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--navy);
+}
+
+.rte-blockbar-grupo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rte-blockbar-grupo input[type='range'] {
+  width: 110px;
+  accent-color: var(--navy);
+}
+
+.rte-blockbar-valor {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--text-mid);
+  min-width: 36px;
+}
+
+.rte-blockbar button {
+  height: 28px;
+  min-width: 30px;
+  font-size: var(--t-xs);
+  background: var(--white);
+  border: 1px solid var(--border);
+}
+
+.rte-surface {
+  --rte-pad-y: 32px;
+  --rte-pad-x: 32px;
+  position: relative;
+  min-height: 60vh;
+  max-height: 75vh;
+  overflow-y: auto;
+  padding: var(--rte-pad-y) var(--rte-pad-x);
+  background: var(--white);
+  outline: none;
+  font-size: var(--t-lg);
+  line-height: 1.75;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* El texto de ayuda de la caja vacía. Va como pseudoelemento y no como
+   contenido real: dentro de un contenteditable, cualquier cosa de verdad
+   se puede seleccionar, borrar o acabar guardada en el mensaje. */
+.rte-surface.rte-vacia::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: var(--rte-pad-y);
+  left: var(--rte-pad-x);
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+/* ── La caja de escribir del foro ──
+   Es la misma máquina que la del editor de guías, pero un mensaje de foro
+   no es una guía: empieza en el tamaño de una respuesta y crece con lo
+   que se escribe, en vez de abrir media pantalla en blanco. */
+.rte-compacta .rte-surface {
+  --rte-pad-y: 12px;
+  --rte-pad-x: 14px;
+  min-height: 110px;
+  max-height: 55vh;
+  font-size: var(--t-md);
+  line-height: 1.6;
+}
+
+.rte-compacta .rte-toolbar {
+  gap: 4px;
+  padding: 8px 8px;
+  /* En una caja baja, una barra pegajosa se despega de su propia caja al
+     hacer scroll y se queda flotando sobre el mensaje de al lado. */
+  position: static;
+}
+
+/* Encoger la barra no puede significar amontonarla.
+
+   OJO: durante un tiempo esto no se veía porque el contenedor de la
+   barra en el foro (`<div id="respuestaBarra">`) NO llevaba la clase
+   `rte-toolbar` — solo la llevaba el del editor de guías. Sin esa clase
+   no le aplicaba NINGUNA regla de la barra: los botones salían en crudo,
+   de 7 px de ancho y pegados unos a otros. Se veía como un churro de
+   símbolos y parecía un problema de espaciado.
+
+   Al bajar los botones a 28 px con 2 px de hueco, "¶H2H3 B/US A▮Tx" se
+   leía como un solo churro de símbolos: no se distinguía dónde acababa
+   un botón y empezaba el siguiente, ni qué botones iban juntos. Se
+   arregla dando aire (hueco entre botones y márgenes en los
+   separadores) y un borde que aparece al pasar por encima, para que
+   cada botón se vea como un botón. */
+.rte-compacta .rte-tools {
+  gap: 4px;
+  row-gap: 8px;
+}
+
+.rte-compacta .rte-toolbar button {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 12px;
+  font-size: var(--t-sm);
+  /* Transparente y no ausente: si el borde apareciera solo al pasar por
+     encima, los botones se moverían un píxel. */
+  border: 1px solid transparent;
+}
+
+.rte-compacta .rte-toolbar button:hover {
+  border-color: var(--border-strong);
+}
+
+.rte-compacta .rte-sep {
+  height: 18px;
+  margin: 0 8px;
+}
+
+.rte-surface img {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+}
+
+/* Lo que está seleccionado se ve seleccionado. Es un `outline` y no un
+   `border` a propósito: un borde cambiaría el tamaño del elemento y la
+   imagen daría un salto al pincharla. */
+.rte-surface .rt-sel,
+.rte-surface figure:has(.rt-sel) {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* En el EDITOR el resumen es un título que se escribe, no un botón: con
+   user-select: none no se podía ni seleccionar para cambiarlo, y el
+   cursor de mano prometía "esto se pulsa" cuando lo que toca es "esto se
+   edita". El plegado dentro del editor lo anula el propio editor. */
+.rte-surface summary {
+  user-select: text;
+  cursor: text;
+}
+
+/* El aspa de borrar el spoiler, solo en el editor. El aspa va en un
+   ::before y NUNCA como texto del botón: el saneador tira los <button>
+   pero conserva su texto, y acabaría guardada en el título. */
+.rte-sp-quitar {
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  line-height: 1;
+  user-select: none;
+}
+
+.rte-sp-quitar::before {
+  content: '✕';
+  font-size: var(--t-xs);
+}
+
+.rte-sp-quitar:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}

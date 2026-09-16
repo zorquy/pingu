@@ -12,6 +12,79 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-16 (2) — PINGU-Claude (tanda 313 — lo que no se ve)
+
+**Hecho**: la otra mitad de la lista que aprobó PINGU, la que no sale en
+una captura.
+
+- **El salto al contenido** en las 22 páginas con barra. Antes, con
+  teclado, había que pasar por los doce enlaces de arriba en CADA página.
+- **El `<h1>` que faltaba**: /perfil y /usuario eran las únicas pantallas
+  del sitio sin ninguno.
+- **«Menos movimiento»**: 12 selectores animaban sin respetar el ajuste
+  del sistema, tres de ellos con animación INFINITA. Ahora ninguno.
+- **El hueco de las imágenes**, con un método nuevo para las de curso:
+  la proporción se mide AL SUBIRLAS y se guarda en el JSON del bloque
+  (`image_ratio`), así que no hace falta migración y los bloques viejos
+  se quedan como estaban.
+
+**Y dos números míos estaban mal, que también es un resultado**:
+
+1. Dije «44 de 48 imágenes sin tamaño». Eso contaba ATRIBUTOS, no saltos:
+   casi todas tienen su caja decidida por CSS, que vale igual. Medido de
+   verdad eran **cuatro** — y una de ellas, `.torneo-tarjeta-imagen`, no
+   tenía NI UNA regla de CSS: un cartel de 1200 px se comía la fila
+   entera del calendario.
+2. Dije «7 páginas sin meta description». Son exactamente las siete que
+   llevan `noindex`, o sea las que Google no mira. Lo que importa es al
+   revés y está bien: las 17 indexables la tienen.
+
+**Lo que sacó la verificación**:
+
+1. **Un fallo de verdad debajo del ajuste de movimiento**: el globo de
+   «+puntos» del curso se borra al terminar su animación, y `curso.css`
+   ya se la apagaba con «menos movimiento» puesto. Para esa gente el
+   `animationend` NO LLEGABA NUNCA y los globos se apilaban en el
+   marcador toda la partida. `curso-estimulos.js` ya tenía su red; esto
+   no. Ahora la comprobación mira todo lo que se borra al acabar una
+   animación, no solo este caso.
+2. **La trampa de la 312 volvió a picar dentro de la prueba nueva**:
+   buscaba el nombre de una clase con `includes`, y `.x-no` contiene
+   `.x`. Un nombre de clase se comprueba ENTERO, con frontera detrás.
+3. **Y una mutación se escapaba porque la prueba miraba la llamada y no
+   el resultado**: `huecoDeImagen` se daba por buena si el `<img>` la
+   invocaba. Ahora la función se ejecuta en la prueba y se mide lo que
+   devuelve.
+4. **Y la tanda se pasó del presupuesto de `components.css`** (31,1 de
+   31 KB). Se hizo sitio en vez de subir el número: el editor de texto
+   rico sale a **`css/editor-texto.css` (NUEVO)**, que es chrome de
+   EDICIÓN viajando en las 26 páginas. De 31,1 a 29,0 KB y la portada de
+   168,0 a **165,9**. Las reglas que agrupan `.article-body` con
+   `.rte-surface` se quedan: partirlas sería duplicarlas. `test-tanda-299`
+   cazó que a `/torneo` se le había olvidado la hoja nueva.
+5. **Y el propio enlace de salto cayó en las dos normas de las tandas
+   anteriores**, cazado por `test-tanda-311` y `test-tanda-312`: fondo
+   `var(--navy)` con blanco encima daba 2,35 en oscuro (el token se
+   aclara a propósito, como con `--danger-solid`), y medía 40 de alto en
+   vez de 44.
+
+**Ficheros**: las 22 páginas `.html` (el salto), `css/style.css`,
+`css/components.css`, `css/curso.css`, `css/torneos.css`,
+`css/lanzamientos.css`, `css/foro.css`, `css/perfil.css`, `js/perfil.js`,
+`js/usuario.js`, `js/curso.js`, `js/block-editor.js`,
+**`css/editor-texto.css` (NUEVO)**, `admin/editor-guia.html`,
+`SCHEMA.md`, `CLAUDE.md`. En la rama `pruebas`: `test-tanda-313.mjs` (NUEVO),
+`rigor-tanda-313.py` (NUEVO), `correr-suite.sh`.
+
+**Suite**: 74 en verde. **Rigor**: 14 mutaciones, todas detectadas.
+**Peso de la portada**: 165,9 KB gzip de 170, y `components.css` en 29,0
+de los 31 que vigila la prueba.
+
+**En curso / pendiente**: de la lista aprobada quedan los **502 colores a
+mano** y el **foro sin cobertura de pruebas** (encuestas, no leídos,
+suscripciones, búsqueda, menciones, moderación). El presupuesto de la
+portada vuelve a tener aire: 4,1 KB.
+
 ## 2026-09-16 — PINGU-Claude (tanda 312 — las seis mejoras visuales)
 
 **Hecho**: las seis que eligió PINGU con los prototipos delante (cada una

@@ -113,6 +113,13 @@ function celebrarPuntos(ganados) {
   globo.textContent = `+${ganados}`
   hud.appendChild(globo)
   globo.addEventListener('animationend', () => globo.remove())
+  // Red de seguridad, como la de curso-estimulos.js (tanda 313). Sin
+  // ella este globo NO SE BORRA NUNCA para quien tiene puesto «menos
+  // movimiento»: css/curso.css le apaga la animación a `.hud-suma`, así
+  // que `animationend` no llega a dispararse y los globos se van
+  // apilando en el marcador, invisibles pero ahí. También pasa con la
+  // pestaña en segundo plano.
+  setTimeout(() => globo.remove(), 1200)
   hudPuntos.classList.remove('hud-late')
   // Reiniciar la animación: sin este reflow, dos aciertos seguidos solo
   // la lanzan la primera vez (la clase nunca llega a quitarse del todo).
@@ -142,6 +149,19 @@ function renderHook(b) {
     </div>`
 }
 
+// El hueco de una imagen, reservado antes de que llegue (tanda 313).
+//
+// Los bloques que se suban a partir de ahora guardan su proporción
+// (`image_ratio`, ver js/block-editor.js): con ella el navegador ya sabe
+// cuánto alto va a ocupar la foto y la lección no pega el salto cuando
+// aterriza. Los bloques de antes no la traen y se quedan como estaban —
+// no se inventa una proporción por defecto, que sería recortar o
+// deformar la mitad de las imágenes que ya hay.
+function huecoDeImagen(ratio) {
+  const r = Number(ratio)
+  return Number.isFinite(r) && r > 0 ? ` style="aspect-ratio:${r}"` : ''
+}
+
 function renderConceptLike(b, extraClass, label) {
   return `
     <div class="block ${extraClass}">
@@ -149,7 +169,7 @@ function renderConceptLike(b, extraClass, label) {
         <span>${b.emoji ? contentIconHtml(b.emoji, 20, 'lightbulb') : ''}</span>
         <span class="block-label">${label}</span>
       </div>
-      ${b.image_url ? `<img loading="lazy" src="${escapeHtml(b.image_url)}" class="block-image" onerror="this.style.display='none'">` : ''}
+      ${b.image_url ? `<img loading="lazy" src="${escapeHtml(b.image_url)}" class="block-image"${huecoDeImagen(b.image_ratio)} onerror="this.style.display='none'">` : ''}
       <h2 class="block-title">${escapeHtml(b.title || '')}</h2>
       <p class="block-body">${parseBBCode(b.body || '')}</p>
       ${b.highlight ? `<div class="block-highlight">${parseBBCode(b.highlight)}</div>` : ''}
@@ -421,10 +441,10 @@ function renderDiferencias(b) {
       <p class="subtext diferencias-info" id="diferenciasInfo"></p>
       <div class="diferencias-par">
         <figure><figcaption>A · Original</figcaption>${
-          b.image_left_url ? `<img loading="lazy" src="${escapeHtml(b.image_left_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen A.</p>'
+          b.image_left_url ? `<img loading="lazy" src="${escapeHtml(b.image_left_url)}" alt=""${huecoDeImagen(b.image_left_ratio)} draggable="false">` : '<p class="deck-empty">Falta la imagen A.</p>'
         }</figure>
         <figure class="diferencias-lienzo" id="diferenciasLienzo"><figcaption>B · Busca aquí</figcaption>${
-          b.image_url ? `<img loading="lazy" src="${escapeHtml(b.image_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen B.</p>'
+          b.image_url ? `<img loading="lazy" src="${escapeHtml(b.image_url)}" alt=""${huecoDeImagen(b.image_ratio)} draggable="false">` : '<p class="deck-empty">Falta la imagen B.</p>'
         }</figure>
       </div>
       <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
@@ -440,7 +460,7 @@ function renderZonas(b) {
       ${cabeceraPractica('ENCUENTRA EL FALLO', b)}
       <h2 class="block-question">${escapeHtml(b.question || 'Toca dónde está el fallo')}</h2>
       <div class="zonas-lienzo" id="zonasLienzo">
-        ${b.image_url ? `<img loading="lazy" src="${escapeHtml(b.image_url)}" alt="" draggable="false">` : '<p class="deck-empty">Falta la imagen de este ejercicio.</p>'}
+        ${b.image_url ? `<img loading="lazy" src="${escapeHtml(b.image_url)}" alt=""${huecoDeImagen(b.image_ratio)} draggable="false">` : '<p class="deck-empty">Falta la imagen de este ejercicio.</p>'}
       </div>
       <div class="quiz-explanation hidden">${escapeHtml(b.explanation || '')}</div>
     </div>`

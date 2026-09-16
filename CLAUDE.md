@@ -39,10 +39,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-09-16 van 167,4 y quedan
-  2,6**: el pie de la tanda 312 está en las 22 páginas y suma. Antes de
-  meter nada más en la portada hay que hacer sitio —`pesar-portada.mjs`
-  dice quién ocupa qué—. `components.css` y `js/app.js` los
+  CSS) debe caber en 170 KB gzip. **A 2026-09-16 van 165,9 y quedan
+  4,1**: el pie de la tanda 312 está en las 22 páginas y suma, y la
+  313 sacó el editor de texto rico a `css/editor-texto.css` para hacer
+  sitio. Antes de meter nada más en la portada, haz sitio —
+  `pesar-portada.mjs` dice quién ocupa qué— y el camino es siempre el
+  mismo: lo que solo usa una pantalla, a su hoja. `components.css` y `js/app.js` los
   baja TODO el mundo — el CSS o JS de una sola página va en su propio
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
@@ -81,6 +83,23 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `test-tanda-312.mjs` y admitidas por la WCAG: un enlace EN LÍNEA dentro
   de una frase, un enlace que repite un destino que ya cubre una caja
   mayor, y una lista compacta que cumple la regla de separación.
+- **Lo que se borra al terminar una animación necesita un temporizador
+  detrás** (tanda 313). Con «menos movimiento» puesto la animación no
+  corre, así que `animationend` NO SE DISPARA y el elemento no se borra
+  nunca — le pasaba al globo de «+puntos» del curso, que se apilaba toda
+  la partida. Lo mismo con la pestaña en segundo plano.
+- **Todo lo que anima respeta `prefers-reduced-motion`** (tanda 313), sin
+  excepciones: `test-tanda-313.mjs` recorre las hojas y por cada selector
+  que anima busca quién lo apaga.
+- **Toda imagen tiene su hueco reservado** antes de que llegue, por
+  cualquiera de las tres vías: los atributos `width`+`height`, un
+  `aspect-ratio`, o un alto fijo —suyo o del padre—. Para las que sube
+  alguien y no se sabe cuánto miden, la proporción se guarda AL SUBIRLA
+  (`image_ratio` en el JSON del bloque, tanda 313): inventarse una por
+  defecto recortaría o deformaría lo que ya hay.
+- **Las páginas `noindex` no necesitan `meta description`** y las
+  indexables sí. Son cosas distintas: contar «páginas sin descripción»
+  sin mirar el `robots` da un número que no significa nada.
 - **El pie va en el HTML de las 22 páginas que lo tienen** (tanda 312),
   no montado desde JavaScript: esos enlaces tienen que estar aunque el JS
   no llegue, y son los que recorre Google. Si tocas el pie, tócalo en las
@@ -116,7 +135,7 @@ el contenedor de una sesión — el 2026-08-28 uno se reinició y se llevó
 por delante el doble y unas 87 pruebas, sin copia en ninguna parte. De
 ahí la rama: fuera de lo que se despliega, pero en algún sitio.
 
-**Estado a 2026-09-16 (tanda 312)**: cubiertos torneos (8 pruebas, más la de la
+**Estado a 2026-09-16 (tanda 313)**: cubiertos torneos (8 pruebas, más la de la
 vista previa al compartir, las dos del registro de partidas y las de
 permisos contra PostgreSQL de verdad), el foro —índice, lista de temas y
 vista de un tema— (2), la PORTADA y /aprender (tanda 299), /usuarios
@@ -124,8 +143,10 @@ vista de un tema— (2), la PORTADA y /aprender (tanda 299), /usuarios
 dos fichas de persona —/perfil y /usuario— con la lista de inscritos de
 un torneo (306). Desde la 308, también **/noticias y las fichas de guía
 y de curso**, que era el hueco grande; desde la 311 el **contraste
-medido** en ocho páginas por los dos temas, y desde la 312 los
-**objetivos táctiles** y el pie en las 22 páginas. Del foro faltan las piezas de
+medido** en ocho páginas por los dos temas, desde la 312 los
+**objetivos táctiles** y el pie en las 22 páginas, y desde la 313 el
+salto al contenido, el `<h1>` de cada pantalla, el respeto a «menos
+movimiento» y el hueco de las imágenes. Del foro faltan las piezas de
 alrededor (encuestas, no leídos, suscripciones, búsqueda, menciones,
 moderación).
 
@@ -138,6 +159,12 @@ Desde la tanda 301 el andamio común (`rigor_comun.py`, en la rama
 `pruebas`) guarda el original en disco antes de tocarlo y lo deshace solo
 al arrancar la siguiente pasada. **Pasa `comprobar-arbol.sh` antes de
 cada commit**: canta si quedó alguna mutación a medias.
+
+Y **no mates un rigor con `pkill`**: el 2026-09-16 se hizo para dejar
+sitio a la suite y pilló una mutación puesta —`foro.html` se quedó sin el
+enlace de salto—. El salvavidas lo arregló (`rigor_comun.rescatar()`),
+pero solo porque `comprobar-arbol.sh` lo cantó. Si hay que parar uno,
+espera a que acabe la mutación en curso o rescata justo después.
 
 **Dónde va cada hoja de CSS** (tanda 299, y el fallo que costó
 aprenderlo): `components.css` y `style.css` los baja TODO el mundo; lo
@@ -175,13 +202,17 @@ definición del token —que queda SIN definir y **no da error**—. Antes de
 lanzar un barrido: mira a mano una muestra de lo que va a tocar, y
 después pasa la suite entera, que es quien cazó los tres.
 
-Y la trampa de la tanda 312, que es sobre CÓMO SE COMPRUEBA y no sobre
-el CSS: **un nombre de clase se comprueba entero y entre comillas**
+Y la trampa de la tanda 312, **que volvió a picar en la 313 dentro de la
+prueba nueva**, y que es sobre CÓMO SE COMPRUEBA y no sobre el CSS: **un
+nombre de clase se comprueba entero y entre comillas**
 (`/class="pie-rejilla"/`), nunca como un trozo de texto suelto. La prueba
 buscaba `pie-rejilla` y `pie-rejilla-no` también casaba, así que el rigor
 rompió el pie de una página y la prueba siguió en verde. Es pariente de
 la trampa de los comentarios: al barrer código en busca de una cadena,
-todo lo que la CONTIENE cuenta, no solo lo que ES.
+todo lo que la CONTIENE cuenta, no solo lo que ES. Y su pariente, también de la 313: **una prueba que
+mira si se LLAMA a una función no prueba lo que la función hace** — hacer
+que devolviera siempre vacío pasó desapercibido hasta que la prueba
+empezó a ejecutarla.
 
 Y la de flexbox, misma tanda: **un margen automático en el eje
 transversal ANULA el estirado**. `.page-content` es también `.container`,

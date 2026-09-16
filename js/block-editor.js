@@ -310,6 +310,30 @@ export function makeSortable(containerEl, list, onChange) {
   })
 }
 
+// El ancho partido por el alto de un fichero de imagen, redondeado a
+// tres decimales. Devuelve null si el navegador no puede leerlo — que no
+// es un error: significa que ese bloque se queda como estaba.
+function medirProporcion(file) {
+  return new Promise((resolve) => {
+    try {
+      const url = URL.createObjectURL(file)
+      const img = new Image()
+      img.onload = () => {
+        const r = img.naturalWidth && img.naturalHeight ? Math.round((img.naturalWidth / img.naturalHeight) * 1000) / 1000 : null
+        URL.revokeObjectURL(url)
+        resolve(r)
+      }
+      img.onerror = () => {
+        URL.revokeObjectURL(url)
+        resolve(null)
+      }
+      img.src = url
+    } catch {
+      resolve(null)
+    }
+  })
+}
+
 export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
   containerEl.innerHTML = blocks
     .map(
@@ -409,6 +433,14 @@ export function renderCourseBlockEditor(containerEl, blocks, uploadImage) {
         try {
           const url = await uploadImage(file)
           blocks[i][campo] = url
+          // La PROPORCIÓN se guarda al subir (tanda 313), que es el único
+          // momento en que se sabe sin bajarse la imagen otra vez. Con
+          // ella, quien luego hace el curso tiene el hueco reservado y la
+          // lección no pega un salto cuando aterriza la foto.
+          // Va en el JSON del bloque, así que no hace falta migración; los
+          // bloques de antes no la llevan y se comportan como hasta ahora.
+          const proporcion = await medirProporcion(file)
+          if (proporcion) blocks[i][campo === 'image_left_url' ? 'image_left_ratio' : 'image_ratio'] = proporcion
           renderCourseBlockEditor(containerEl, blocks, uploadImage)
         } catch (err) {
           showToast('No se pudo subir la imagen: ' + err.message)

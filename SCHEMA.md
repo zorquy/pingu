@@ -16093,3 +16093,153 @@ sobre el nombre de la clase, y **`pie-rejilla-no` también casa**. Un
 nombre de clase se comprueba entero y entre comillas (`class="x"`), no
 como un trozo de texto: si no, cualquier cosa que empiece igual pasa por
 buena. Es un pariente de la trampa de los comentarios de la 310.
+
+---
+
+## Tanda 313 — lo que no se ve
+
+La otra mitad de la lista que aprobó PINGU: las cosas que no salen en una
+captura. Dos de ellas resultaron medir bastante menos de lo que yo había
+contado, y eso va aquí porque el número equivocado también es un
+resultado.
+
+### El salto al contenido
+
+Con teclado, llegar al texto de una página costaba pasar por los doce
+enlaces de la barra. En **cada** página. Ahora las 22 que tienen barra
+llevan un enlace de «Saltar al contenido» como primer elemento del
+cuerpo, y `<main>` tiene el ancla donde aterrizar.
+
+El enlace está **siempre en el documento**: un `display: none` lo sacaría
+del recorrido del tabulador, que es justo lo único que tiene que hacer.
+Lo que hace es esconderse fuera de la pantalla (`top: -64px`) y volver al
+enfocarse.
+
+### El `<h1>` que faltaba
+
+`/perfil` y `/usuario` eran las únicas pantallas del sitio sin ninguno:
+el nombre de la persona iba en un `<h2>` y del documento no colgaba nada.
+El título de una ficha de persona **es** la persona.
+
+### Quien pide menos movimiento, lo tiene
+
+Barrido de todas las hojas: **12 selectores animaban sin respetar el
+ajuste del sistema** —los esqueletos de carga, el modal de logro, el
+visor de imágenes, el destello de un mensaje nuevo del foro, los
+deslizamientos entre bloques de un curso y la entrada del calendario de
+torneos—. Tres de ellos con animación **infinita**, que es exactamente el
+caso para el que existe la preferencia.
+
+**Y debajo había un fallo de verdad.** El globo de «+puntos» del curso se
+borra solo cuando termina su animación:
+
+```js
+globo.addEventListener('animationend', () => globo.remove())
+```
+
+…y `css/curso.css` ya le apagaba la animación a `.hud-suma` con «menos
+movimiento» puesto. O sea que para esa gente **`animationend` no llegaba
+nunca** y los globos se iban apilando en el marcador, invisibles
+(`opacity: 0`) pero ahí, uno por acierto, toda la partida. `curso-
+estimulos.js` ya tenía su red —un `setTimeout` de respaldo, con su
+comentario— y esto no. Ahora la tiene.
+
+La comprobación que queda no mira `.hud-suma`: mira **todo lo que se
+borra al terminar una animación** y exige que lleve temporizador detrás.
+
+De paso, `@keyframes foro-destello` vivía en `components.css` y solo lo
+usa `foro.css`. La prueba de la 299 no lo veía porque busca CLASES
+huérfanas y un `@keyframes` no lo es — pero la norma es la misma.
+
+### El hueco de las imágenes
+
+**Aquí conté mal.** Dije «44 de 48 imágenes sin tamaño declarado». Lo que
+había contado eran ATRIBUTOS `width`/`height`, y casi todas esas imágenes
+tienen su caja decidida por CSS, que vale igual. Medido de verdad —¿está
+la caja decidida por alguna de las tres vías: atributos, `aspect-ratio` o
+un alto fijo, suyo o del padre?— eran **cuatro**:
+
+- **`.torneo-tarjeta-imagen`** (la miniatura de un torneo en el
+  calendario) **no tenía ni una regla de CSS**: se pintaba al tamaño
+  natural del fichero, así que un cartel de 1200 px se comía la fila
+  entera. Ese no era solo un salto, era un fallo de pintado esperando a
+  que alguien subiera un cartel grande.
+- **Los dos logos de lanzamientos** usaban `max-height` en vez de
+  `height`: con un máximo, el alto es `auto` hasta que llega el logo.
+- **`.block-image`**, la imagen de un bloque de curso, que es de tamaño
+  desconocido porque la sube quien escribe.
+
+Para esa última la solución no es inventarse una proporción —recortaría o
+deformaría la mitad de lo que ya hay— sino **medirla cuando se sube**,
+que es el único momento en que se sabe sin bajarse la imagen otra vez.
+`js/block-editor.js` la guarda en `image_ratio` dentro del JSON del
+bloque (**sin migración**: son claves nuevas en un campo que ya es JSON) y
+`js/curso.js` la pinta como `aspect-ratio`. Los bloques de antes no la
+traen y se comportan como hasta ahora.
+
+### Las descripciones
+
+**Y aquí también conté mal.** Dije «7 páginas sin `meta description`».
+Las siete son exactamente las siete que llevan `noindex` —el editor, tus
+guardados, tus mensajes, tus partidas, tu perfil, la bienvenida y el
+cambio de contraseña—, o sea las que Google no mira. Una descripción ahí
+no se enseña en ningún sitio.
+
+Lo que sí importa es al revés, y es lo que comprueba la prueba: que **no
+haya ninguna página INDEXABLE sin descripción**. No la hay: las 17 la
+tienen.
+
+**Y la 313 se pasó del presupuesto de `components.css`.** El bloque de
+«menos movimiento» lo dejó en 31,1 KB gzip, por encima de los 31 que
+vigila `test-tanda-306`. Se hizo sitio, no se subió el número: **el
+editor de texto rico sale a `css/editor-texto.css` (NUEVO)**. Es chrome
+de EDICIÓN —la barra, la superficie, los menús de color— que viajaba en
+las 26 páginas, incluida la portada, donde no se edita nada. Lo cargan
+las siete que de verdad escriben: /editor-guia, /foro, /tema, /perfil,
+/torneos, /torneo y el editor del panel.
+
+De 31,1 a **29,0 KB**, y la portada de 168,0 a **165,9 de 170**.
+
+Dos cuidados en ese traslado, los dos aprendidos a golpes esta misma
+noche:
+
+- **Las reglas que AGRUPAN `.article-body` con `.rte-surface` se quedan
+  en `components.css`.** La mitad de lectura la necesita cualquiera que
+  abra una guía, y partirlas en dos sería duplicar las declaraciones:
+  peor que el kilobyte que ahorra. Lo que se mueve es lo que habla SOLO
+  del editor.
+- **La extracción se hizo contando llaves, no con una expresión regular
+  sobre el fichero entero.** El regex se perdía dentro de un `@media`
+  —`.rte-wrap` se quedaba sin extraer— y en la tanda 312 ya se había
+  llevado seis reglas ajenas por arrastrar el comentario de delante.
+
+Y quien lo cazó fue `test-tanda-299`: la primera pasada dejó `/torneo`
+—la ficha de un torneo, que también edita— sin la hoja nueva.
+
+**Y el propio enlace de salto cayó en las dos normas de las tandas
+anteriores, cazado por sus pruebas.** Iba con `background: var(--navy)` y
+texto blanco: en el tema oscuro ese token **se aclara a propósito** —para
+poder leerse como texto— y el blanco de encima se quedaba en **2,35**. Es
+exactamente el caso de `--danger-solid`: un fondo sólido que lleva blanco
+encima no se aclara con el tema, así que lleva el azul fijo. Y medía
+**40 px de alto**, por debajo de los 44 que la 312 le pide a todo lo que
+se pulsa.
+
+Cubierto en `test-tanda-313.mjs` (5 bloques) + `rigor-tanda-313.py`
+(14 mutaciones).
+
+### Lo que sacó la verificación
+
+**La trampa de la 312 volvió a picar, dentro de la prueba nueva.** La
+comprobación de «¿alguna regla le da alto a esta clase?» buscaba
+`'.' + clase` con un `includes`, y el rigor renombró el selector a
+`.torneo-tarjeta-imagen-no` — que **contiene** `.torneo-tarjeta-imagen`.
+La prueba dio por reservada una caja cuya regla ya no existía. Otra vez:
+**un nombre de clase se comprueba entero, con frontera detrás.**
+
+**Y una mutación no se detectaba porque la prueba miraba la llamada y no
+el resultado.** `huecoDeImagen` se comprobaba viendo que el `<img>` la
+invocara; hacer que la función devolviera siempre cadena vacía pasaba
+desapercibido. El doble de Supabase todavía no sabe servir un curso, así
+que la función se saca del fichero y **se ejecuta** en la prueba: se mide
+lo que devuelve, no que alguien la llame.

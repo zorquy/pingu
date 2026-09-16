@@ -413,6 +413,38 @@ body:has(> .footer) .page-content {
   }
 }
 
+/* ── Saltar al contenido (tanda 313) ──
+   Con teclado, llegar al texto de una página costaba pasar por los doce
+   enlaces de la barra, en cada página. Este enlace está SIEMPRE en el
+   documento —un `display: none` lo sacaría del recorrido del tabulador y
+   entonces no existiría— y lo que hace es esconderse fuera de la
+   pantalla hasta que se enfoca. */
+.salta-al-contenido {
+  position: absolute;
+  left: 8px;
+  top: -64px;
+  z-index: 200;
+  display: inline-flex;
+  align-items: center;
+  /* 44 de alto, como todo lo que se pulsa (norma de la tanda 312). Con
+     el padding solo se quedaba en 40 y lo cazó su propia prueba. */
+  min-height: 44px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  /* Azul FIJO y no `var(--navy)`: en el tema oscuro el token se aclara
+     —para poder leerse como TEXTO— y el blanco de encima se quedaba en
+     2,35. Es el mismo caso que `--danger-solid`: un fondo sólido que
+     lleva blanco encima no se aclara con el tema. */
+  background: #1e5175;
+  color: #fff;
+  font-weight: 700;
+  font-size: var(--t-sm);
+  transition: top 0.15s var(--ease);
+}
+.salta-al-contenido:focus {
+  top: 8px;
+}
+
 /* ── Navbar ── */
 .navbar {
   position: sticky;
@@ -1706,4 +1738,13 @@ button.btn-block {
   transform-origin: left;
   z-index: 1200;
   pointer-events: none;
+}
+
+/* El esqueleto genérico también se queda quieto cuando se pide menos
+   movimiento (tanda 313): su barrido es INFINITO, que es el caso que la
+   preferencia existe para apagar. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
 }

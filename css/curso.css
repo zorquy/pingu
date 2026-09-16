@@ -1570,3 +1570,19 @@
     animation: none;
   }
 }
+
+/* Los deslizamientos entre bloques y la sacudida de una carta fallada
+   (tanda 313). Apagarlos es SEGURO: el cambio de bloque lo mueve un
+   `setTimeout` de 300 ms en js/curso.js, no el final de la animación —
+   si dependiera de `animationend`, quitarle el movimiento a alguien le
+   dejaría el curso congelado. */
+@media (prefers-reduced-motion: reduce) {
+  .slide-out-left,
+  .slide-in-right,
+  .slide-out-right,
+  .slide-in-left,
+  .match-item.wrong,
+  .carta-opcion.wrong {
+    animation: none;
+  }
+}

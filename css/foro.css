@@ -1518,3 +1518,27 @@ a.foro-cita-quien:hover {
     align-items: center;
   }
 }
+
+/* El destello del tema recién llegado. Vivía en components.css, que lo
+   baja todo el mundo, y solo lo usa esta hoja (tanda 313). La prueba de
+   la 299 no lo vio porque busca CLASES huérfanas y un `@keyframes` no lo
+   es — pero la norma es la misma. */
+/* El destello del mensaje al que llegas por un enlace o un aviso: un
+   fondo azulado que se apaga solo. Sin él, aterrizas en mitad de un
+   hilo y no sabes cuál de los cinco mensajes de la pantalla era. */
+@keyframes foro-destello {
+  from {
+    background: rgba(56, 189, 248, 0.16);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+  }
+  to {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foro-mensaje-destello {
+    animation: none;
+  }
+}

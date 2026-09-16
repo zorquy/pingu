@@ -286,6 +286,11 @@
   min-width: 0;
 }
 
+/* h1 desde la tanda 313 (era h2): esta era la única pantalla del sitio
+   sin ningún <h1>, y el título de una ficha de persona es la persona.
+   El selector nombra a los dos porque el tamaño no depende de la
+   etiqueta, y así una vuelta atrás no deja el nombre sin estilo. */
+.profile-hero-info h1,
 .profile-hero-info h2 {
   font-size: var(--t-xl);
   font-weight: 800;

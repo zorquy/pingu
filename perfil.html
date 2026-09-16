@@ -27,6 +27,7 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/editor-texto.css" />
   <!-- TODA la ficha de una persona vive aquí desde la tanda 306
        (cabecera, tira de cifras, trofeos, palmarés, «Mis torneos»):
        solo la usan esta pantalla y /usuario, así que no tiene por qué
@@ -34,6 +35,10 @@
   <link rel="stylesheet" href="css/perfil.css" />
 </head>
 <body>
+  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
+       porque su razón de ser es no tener que tabular por los doce
+       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
+  <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
@@ -60,7 +65,7 @@
     </div>
   </nav>
 
-  <main class="page-content container-narrow">
+  <main id="contenido" class="page-content container-narrow">
     <div class="profile-hero" id="profileHero">
       <div class="profile-hero-banner" id="heroBanner">
         <button class="profile-hero-edit-btn" id="btnEditBanner" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Banner</button>

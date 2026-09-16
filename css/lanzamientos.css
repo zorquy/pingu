@@ -22,7 +22,10 @@
   background: linear-gradient(120deg, rgba(125, 182, 221, 0.1), rgba(125, 182, 221, 0.02) 60%), var(--white);
 }
 .lanzamiento-destacado h2 { margin: 2px 0; font-size: var(--t-2xl); }
-.lanzamiento-logo-grande { width: 130px; max-height: 90px; object-fit: contain; }
+/* `height` y no `max-height` (tanda 313): con el máximo, el alto es
+   `auto` hasta que llega el logo y todo lo de debajo da un salto. Con
+   `contain` el logo sigue sin deformarse. */
+.lanzamiento-logo-grande { width: 130px; height: 90px; object-fit: contain; }
 
 .lanzamiento-cuenta {
   margin-left: auto;

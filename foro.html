@@ -47,12 +47,17 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/editor-texto.css" />
   <!-- Solo lo de moderar desde la lista (tanda 256). Aparte de
        components.css a propósito: eso lo baja todo el mundo y esto solo
        lo ve el equipo. -->
   <link rel="stylesheet" href="/css/foro.css" />
 </head>
 <body>
+  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
+       porque su razón de ser es no tener que tabular por los doce
+       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
+  <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
       <a href="/index.html" class="nav-logo">Poke<span>Doc</span></a>
@@ -79,7 +84,7 @@
     </div>
   </nav>
 
-  <main class="page-content container">
+  <main id="contenido" class="page-content container">
     <nav class="foro-migas" id="foroMigas" aria-label="Dónde estás"></nav>
 
     <!-- El buscador del foro. Va arriba del todo y pequeño: quien viene

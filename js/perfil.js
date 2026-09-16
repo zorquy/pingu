@@ -44,7 +44,10 @@ async function loadProfile(session) {
   applyHeroVisuals(profile, name)
 
   document.getElementById('heroInfo').innerHTML = `
-    <h2>${escapeHtml(name)}${MOSTRAR_PLANES && profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h2>
+    <!-- El nombre es el <h1> de la página desde la tanda 313: era
+         la única pantalla del sitio sin ninguno, y el título de una
+         ficha de persona es la persona. -->
+    <h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1>
     <div class="perfil-chapas">
       <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
       <!-- El rango lo rellena loadStats(): depende de cuántas guías

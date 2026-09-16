@@ -2720,3 +2720,26 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
     min-height: 44px;
   }
 }
+
+/* La entrada de los meses del calendario (tanda 313). El calendario ya
+   respetaba la preferencia en sus otras piezas; estas tres se habían
+   quedado fuera. */
+@media (prefers-reduced-motion: reduce) {
+  .torneo-cal-meses.cal-entra .torneo-cal-mes,
+  .torneo-cal-meses.cal-entra-der .torneo-cal-mes,
+  .torneo-cal-meses.cal-entra-izq .torneo-cal-mes {
+    animation: none;
+  }
+}
+
+/* La miniatura de un torneo dentro del calendario (tanda 313).
+   NO TENÍA NI UNA REGLA: se pintaba al tamaño natural del fichero, así
+   que un cartel de 1200 px se comía la fila entera — y encima sin hueco
+   reservado, o sea con salto al cargar. */
+.torneo-tarjeta-imagen {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
