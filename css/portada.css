@@ -162,6 +162,8 @@
   padding-top: 12px;
   padding-bottom: 12px;
   font-weight: 700;
+  /* Medía 38 de alto (tanda 312). Es EL botón de la portada. */
+  min-height: 44px;
 }
 
 /* El botón blanco sobre azul: el .btn-primary de la casa es azul y sobre

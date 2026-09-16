@@ -230,7 +230,11 @@ const TEXTOS = {
   lectura: { icono: 'bookOpen', verbo: 'se ha leído' },
   guia: { icono: 'sparkles', verbo: 'ha publicado la guía' },
   // Sin verbo y sin nombre: lo pinta la rama impersonal de eventoHtml.
-  noticia: { icono: 'newspaper', verbo: 'Nueva noticia:', deLaCasa: true },
+  // `etiqueta` es lo que va en la chapa desde la tanda 312: cinco filas
+  // seguidas que empezaban por «Nueva noticia:» hacían que lo primero
+  // que leías cinco veces fuera lo único que no cambiaba. La chapa dice
+  // lo mismo, ocupa un renglón aparte y deja el titular al principio.
+  noticia: { icono: 'newspaper', verbo: 'Nueva noticia:', etiqueta: 'Noticia', deLaCasa: true },
   guia_enviada: { icono: 'edit', verbo: 'ha enviado a revisión la guía' },
   comentario: { icono: 'messageSquare', verbo: 'ha comentado en' },
   alta: { icono: 'user', verbo: 'se ha unido a PokeDoc' },
@@ -262,8 +266,13 @@ function eventoHtml(e) {
         e.perfil?.avatar_url ? '' : getInitial(nombre)
       }</a>`
   const quien = t.deLaCasa
-    ? `<strong>${escapeHtml(t.verbo)}</strong>`
+    ? `<span class="activity-tipo">${escapeHtml(t.etiqueta || t.verbo)}</span>`
     : `<a href="${profileUrl(e.perfil)}" class="activity-name">${escapeHtml(nombre)}</a> ${t.verbo}`
+  // El icono de la derecha dice DE QUÉ tipo es el evento, y eso solo
+  // aporta cuando a la izquierda hay la cara de una persona. En lo de la
+  // casa la izquierda YA es ese mismo icono: dos copias del mismo dibujo
+  // en la misma fila, una a cada lado.
+  const iconoDerecha = t.deLaCasa ? '' : `<span class="activity-icon" aria-hidden="true">${icons[t.icono](15)}</span>`
   return `
     <li class="activity-item">
       ${cabeza}
@@ -271,7 +280,7 @@ function eventoHtml(e) {
         <p>${quien}${destino}</p>
         <span class="activity-when">${haceCuanto(e.fecha)}</span>
       </div>
-      <span class="activity-icon" aria-hidden="true">${icons[t.icono](15)}</span>
+      ${iconoDerecha}
     </li>`
 }
 

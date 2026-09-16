@@ -1823,132 +1823,12 @@ tcg-deck {
 }
 
 /* ── Auth ── */
-.auth-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: var(--bg);
-}
-
-.auth-box {
-  width: 100%;
-  max-width: 380px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  text-align: center;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 36px 32px;
-  box-shadow: var(--shadow-sm);
-}
-
-.auth-logo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-weight: 800;
-  font-size: var(--t-xl);
-}
-
-.auth-logo::before {
-  content: 'P';
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: var(--navy);
-  color: var(--white);
-  font-size: var(--t-md);
-  font-weight: 800;
-  transform: rotate(-6deg);
-}
-
-.auth-logo span {
-  color: var(--navy);
-}
-
-/* El título y su subtexto viven DENTRO de cada paso (#stepLogin…), no
-   como hijos directos de .auth-box: el gap del flex no llega ahí y el
-   reset global deja el h2 a margen cero. Sin estos márgenes el título
-   salía pegado al subtexto (y un -8px viejo aún los solapaba). */
-.auth-box h2 {
-  font-size: var(--t-2xl);
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  margin-bottom: 8px;
-}
 
 .subtext {
   color: var(--text-mid);
   font-size: var(--t-sm);
   line-height: 1.5;
 }
-
-.auth-input {
-  width: 100%;
-  padding: 16px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  font-size: var(--t-lg);
-  outline: none;
-  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
-}
-
-.auth-input:focus {
-  border-color: var(--navy);
-  box-shadow: var(--shadow-ring);
-}
-
-.auth-error {
-  color: var(--danger);
-  font-size: var(--t-sm);
-  min-height: 18px;
-}
-
-.auth-switch {
-  font-size: var(--t-sm);
-  color: var(--text-mid);
-  margin-top: 4px;
-}
-
-.auth-switch button {
-  color: var(--navy);
-  font-weight: 700;
-}
-
-.auth-success {
-  color: var(--success);
-  font-size: var(--t-sm);
-}
-
-.auth-google-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.auth-google-btn::before {
-  content: 'G';
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--navy);
-  color: var(--white);
-  font-size: var(--t-2xs);
-  font-weight: 800;
-}
-
 
 /* ── Modal "ver todos los niveles/rangos" ── */
 .ladder-list {
@@ -2843,20 +2723,6 @@ tcg-deck {
   margin-bottom: 24px;
 }
 
-/* ── Footer con enlaces legales ── */
-.footer-links {
-  margin-top: 8px;
-}
-
-.footer-links a {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.footer-links a:hover {
-  color: var(--navy);
-}
-
 /* ── Selector de emoji (portada de guías) ── */
 .emoji-picker-wrap {
   position: relative;
@@ -3050,6 +2916,27 @@ tcg-deck {
   color: var(--text-dim);
   flex-shrink: 0;
   display: flex;
+}
+
+/* La chapa de tipo de lo que publica la casa (tanda 312). Va en su
+   propio renglón, encima del titular, para que lo primero que se lee de
+   cada fila sea lo que cambia y no lo que se repite. */
+.activity-tipo {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+/* Es un elemento en línea dentro del <p>: sin esto el titular se le
+   pegaría al lado en vez de empezar debajo. */
+.activity-tipo + a {
+  display: block;
 }
 
 /* ── Listas de cartas dentro de una guía ── */
@@ -4132,35 +4019,6 @@ a.rater-name:hover {
   font-weight: 600;
 }
 
-/* Panel de admin */
-.admin-destacada {
-  margin-top: 32px;
-  padding: 16px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-}
-
-.admin-destacada h2 {
-  margin: 0 0 4px;
-  font-size: var(--t-xl);
-}
-
-.admin-destacada-campos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.admin-destacada-campos select {
-  flex: 1 1 240px;
-}
-
-.admin-destacada-campos input {
-  flex: 2 1 260px;
-}
-
 /* El editor de lanzamientos (.lanz-*) vive en admin/css/admin.css:
    esta hoja la baja también la portada y el presupuesto anda justo. */
 
@@ -4244,7 +4102,6 @@ a.reto-tarjeta:hover {
   flex-shrink: 0;
 }
 
-.reto-tarjeta-hecha .reto-icono { color: var(--text-dim); }
 
 .reto-texto {
   flex: 1;
@@ -4875,7 +4732,14 @@ yt-video .yt-enlace:hover { color: #fff; }
 .paso-boton {
   flex-shrink: 0;
   font-size: var(--t-sm);
-  padding: 8px 16px;
+  /* 12 y no 8 (tanda 312): con 8 el botón medía 29 px de alto y es la
+     llamada a la acción de «Tus primeros pasos» — lo primero que se le
+     pide a alguien que acaba de llegar. Un dedo pide 44. */
+  padding: 12px 16px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .primeros-pasos-pie {
@@ -5541,21 +5405,6 @@ body.portada-compacta .page-content {
   color: var(--text-mid);
 }
 
-/* El informe del chequeo de cursos en /admin. */
-.admin-revision {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px 16px;
-  margin-bottom: 16px;
-  font-size: var(--t-sm);
-}
-.admin-revision-titulo { font-weight: 700; margin: 0 0 8px; }
-.admin-revision ul { margin: 0; padding-left: 16px; }
-.admin-revision li { margin: 4px 0; }
-.admin-revision-limpia p { margin: 0; color: #1f7a55; font-weight: 600; }
-:root[data-theme='dark'] .admin-revision-limpia p { color: #4ade9b; }
-
 /* ── La liga de la semana (reutiliza la tarjeta del top del mes) ── */
 .liga-yo {
   outline: 2px solid var(--navy);
@@ -5592,10 +5441,6 @@ body.portada-compacta .page-content {
   color: #1f7a55;
 }
 :root[data-theme='dark'] .bienvenida-salvada { color: #4ade9b; }
-
-/* El % crítico del panel de preguntas falladas. Del token desde la
-   tanda 311: era otro rojo a mano con su copia clara al lado. */
-.falladas-critica { color: var(--danger); }
 
 /* ── El calendario de lanzamientos ── */
 /* La página /lanzamientos tiene su hoja (css/lanzamientos.css): aquí
@@ -5763,4 +5608,50 @@ body.portada-compacta .page-content {
 
 .esq-articulo > *:nth-child(n + 8) {
   opacity: 0.3;
+}
+
+/* ── Los controles densos, en una pantalla que se toca (tanda 312) ──
+   La barra de arriba se arregló en style.css para todo el mundo; estos
+   son los que se quedaban cortos SOLO para un dedo, así que van tras
+   `pointer: coarse` y no tocan el ratón, donde 44 px sería aire de más
+   en una fila de chips.
+
+   Aquí van SOLO los que salen en varias pantallas. Lo de una sola —los
+   del foro, los del perfil, las pestañas del torneo, los chips de
+   /aprender y de /comunidad— vive en su hoja: es la norma de la tanda
+   299, que esta misma tanda se saltó de primeras y cazaron sus pruebas.
+
+   Fuera de aquí, a propósito: los enlaces dentro de una frase —los
+   legales del pie, un @nombre en un mensaje—. La norma de tamaño mínimo
+   de la WCAG los exenta expresamente, y estirarlos rompería el renglón
+   que los contiene. */
+@media (pointer: coarse) {
+  .tab-btn,
+  .card-save-btn,
+  .autor-link,
+  .pie-col a,
+  .seccion-cabecera a,
+  .breadcrumb a {
+    min-height: 44px;
+  }
+  .card-save-btn,
+  .tab-btn {
+    min-width: 44px;
+  }
+  /* Los que son caja de icono tienen que seguir centrándolo cuando la
+     caja crece por debajo de ellos. */
+  .card-save-btn,
+  .autor-link,
+  .seccion-cabecera a,
+  .breadcrumb a {
+    display: inline-flex;
+    align-items: center;
+  }
+  /* Los del pie van en bloque y no en línea: `inline-flex` los encogía
+     al ancho de su palabra —«Foro» se quedaba en 28 px— y el objetivo
+     volvía a ser pequeño por el otro lado. */
+  .pie-col a {
+    display: flex;
+    align-items: center;
+  }
 }

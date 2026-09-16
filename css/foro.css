@@ -964,7 +964,9 @@
   min-width: 0;
   border: none;
   background: none;
-  padding: 8px 0;
+  /* 12 y no 8 (tanda 312): la caja de escribir medía 36 de alto y en un
+     móvil hay que acertarle con el dedo para poder teclear. */
+  padding: 12px 0;
   font-size: var(--t-sm);
   color: var(--text);
 }
@@ -1496,5 +1498,23 @@ a.foro-cita-quien:hover {
 
   .foro-form-fila select {
     flex: 1;
+  }
+}
+
+/* Los controles del foro que se quedaban cortos para un dedo (tanda
+   312). Aquí y no en components.css: son de esta pantalla, y
+   test-tanda-299 lo comprueba. */
+@media (pointer: coarse) {
+  .foro-buscador-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .foro-migas a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
   }
 }

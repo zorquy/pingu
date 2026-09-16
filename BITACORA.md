@@ -12,6 +12,84 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-16 — PINGU-Claude (tanda 312 — las seis mejoras visuales)
+
+**Hecho**: las seis que eligió PINGU con los prototipos delante (cada una
+montada ENCIMA de la página real, no dibujada aparte).
+
+1. **La franja de color de la tarjeta de guía** eran 100 px vacíos —un
+   tercio de la tarjeta— y la CATEGORÍA no salía en la tarjeta por ningún
+   lado, aunque los chips de arriba filtren por eso. Ahora lleva
+   categoría y minutos. Y la barra de progreso se pinta SIEMPRE, con el
+   relleno a cero: antes aparecía y desaparecía y descuadraba la rejilla.
+2. **El pie de página**, de una línea a cuatro columnas en las 22 páginas
+   que lo tienen. Pero el fallo de debajo no era el pie: `.page-content`
+   llevaba `min-height: 100vh`, así que el contenido medía una pantalla
+   entera con una sola tarjeta dentro y el pie caía detrás de 500 px de
+   nada. El cuerpo pasa a columna flexible.
+3. **Los números de /comunidad**: de cuatro tarjetas sueltas a un bloque
+   con separadores, la mitad de alto y con el número mandando.
+4. **«Lo que acaba de pasar»**: cinco filas que empezaban por «Nueva
+   noticia:» y con el MISMO icono a izquierda y derecha. Ahora el tipo es
+   una chapa y el icono de la derecha solo sale si a la izquierda hay una
+   cara.
+5. **La noticia sin foto** se pintaba al 45% de opacidad: un rectángulo
+   pálido con un icono diminuto, o sea, el aspecto exacto de una imagen
+   rota. Ahora es el degradado de la marca con su sello.
+6. **Los objetivos táctiles**: de 143 medidos a 393 px, 18 clases por
+   debajo de 44, y la barra de arriba ENTERA (35×35, 34×34, 30×30, el
+   logo a 26). Ahora quedan tres, que son las excepciones que la propia
+   WCAG admite y están declaradas en la prueba.
+
+**Lo que sacó la verificación**:
+
+1. **La suite cazó lo que se me pasó**: con un torneo EN JUEGO la barra
+   lleva un pasajero más y con todo a 44 px dejaba de caber — la página
+   se salía de lado a 320, 360 y 390. Lo vio `test-torneos-15`. De paso
+   se vio que con esa chapa el LOGO se encogía a 2 px, y eso ya pasaba
+   antes.
+2. **Cuatro mutaciones del rigor estaban mal puestas** y enseñan más que
+   las buenas: `hidden` no esconde un elemento cuya clase pone
+   `display: flex`; dos cortaban a media regla y dejaban la otra mitad
+   del arreglo en pie; y una cambiaba una clase que la prueba no miraba.
+3. **Y un agujero de verdad**: la prueba buscaba `pie-rejilla` como
+   trozo de texto, y `pie-rejilla-no` también casa. Un nombre de clase se
+   comprueba ENTERO y entre comillas.
+4. **La propia tanda se saltó la norma de la 299**: el bloque de
+   `pointer: coarse` nació entero en `components.css` con clases del
+   foro, del perfil, de /comunidad, de /aprender y de torneos dentro. Lo
+   cazaron `test-tanda-299` y `test-tanda-306`. Al repartirlo se destapó
+   que `components.css` se había pasado de los 31 KB, así que se hizo
+   sitio de verdad: **`css/auth.css` (NUEVO)** con la pantalla de entrar
+   —la usan tres páginas y viajaba en las 26— y las doce reglas de
+   `/admin` a `admin/css/admin.css`. De 31,5 a 30,9 KB.
+5. **Y el barrido de extracción se llevó seis reglas ajenas** —el
+   `.block-highlight` y la familia `.article-sidebar`— porque el patrón
+   arrastraba el comentario de delante. Lo vio `test-tanda-299` otra vez:
+   al mover reglas de hoja hay que pasarla DESPUÉS de cada movimiento.
+
+**Ficheros**: las 22 páginas `.html` (el pie), `css/style.css`,
+`css/components.css`, `css/aprender.css`, `css/comunidad.css`,
+`css/noticias.css`, `css/foro.css`, `css/portada.css`, `css/perfil.css`,
+`css/torneos.css`, **`css/auth.css` (NUEVO)**, `admin/css/admin.css`,
+`js/aprender.js`, `js/activity.js`, `js/theme.js`, `SCHEMA.md`,
+`CLAUDE.md`. En la rama
+`pruebas`: `test-tanda-312.mjs` (NUEVO), `rigor-tanda-312.py` (NUEVO),
+`correr-suite.sh`.
+
+**Suite**: 73 en verde. **Rigor**: 19 mutaciones, todas detectadas.
+**Peso de la portada**: 167,2 KB gzip de 170, y `components.css` en 30,9
+de los 31 que vigila la prueba. Queda poco: el pie nuevo va en las 22
+páginas y suma. Antes de meter nada más en la portada hay que hacer
+sitio, y el camino es el de siempre — sacar a su hoja lo que solo usa una
+pantalla.
+
+**En curso / pendiente**: nada a medias. De la lista que aprobó PINGU
+quedan: las imágenes sin tamaño declarado (44 de 48), el enlace de
+«saltar al contenido» y el `<h1>` de /perfil, los 502 colores a mano, las
+7 páginas sin `meta description`, el `prefers-reduced-motion` que le
+falta a `components.css`, y el foro sin cobertura de pruebas.
+
 ## 2026-09-15 (10) — PINGU-Claude (tanda 311 — que todo se lea)
 
 **Hecho**: las tres mejoras que la 310 dejó pendientes a propósito, que

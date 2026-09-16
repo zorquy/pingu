@@ -1,0 +1,128 @@
+/* La pantalla de entrar, registrarse y recuperar la contraseña.
+ *
+ * Sale de components.css en la tanda 312 por la norma de la 299: esto lo
+ * usan TRES páginas (/auth, /reset-password y /onboarding) y viajaba en
+ * la hoja que se baja en las 26. Aquí también hacía falta hueco: el
+ * presupuesto de la portada estaba en 167,4 de 170.
+ */
+
+/* ── Auth ── */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 36px 32px;
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: 800;
+  font-size: var(--t-xl);
+}
+
+.auth-logo::before {
+  content: 'P';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: var(--white);
+  font-size: var(--t-md);
+  font-weight: 800;
+  transform: rotate(-6deg);
+}
+
+.auth-logo span {
+  color: var(--navy);
+}
+
+/* El título y su subtexto viven DENTRO de cada paso (#stepLogin…), no
+   como hijos directos de .auth-box: el gap del flex no llega ahí y el
+   reset global deja el h2 a margen cero. Sin estos márgenes el título
+   salía pegado al subtexto (y un -8px viejo aún los solapaba). */
+.auth-box h2 {
+  font-size: var(--t-2xl);
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 16px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--t-lg);
+  outline: none;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.auth-input:focus {
+  border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
+}
+
+.auth-error {
+  color: var(--danger);
+  font-size: var(--t-sm);
+  min-height: 18px;
+}
+
+.auth-switch {
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+  margin-top: 4px;
+}
+
+.auth-switch button {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.auth-success {
+  color: var(--success);
+  font-size: var(--t-sm);
+}
+
+.auth-google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auth-google-btn::before {
+  content: 'G';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--white);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+}

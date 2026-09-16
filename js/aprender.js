@@ -58,17 +58,33 @@ try {
 let filtroNivel = null
 let soloSinLeer = false
 
-function tarjetaDeGuia(g, progreso) {
+// La franja de color de arriba medía 100 px —un tercio de la tarjeta— y
+// no llevaba nada salvo la chapa de rareza (tanda 312). Ahora lleva las
+// dos cosas que de verdad ayudan a elegir: de QUÉ es la guía y CUÁNTO
+// cuesta leerla. La categoría no salía en ningún sitio de la tarjeta,
+// aunque los chips de arriba filtren justo por eso.
+//
+// Recibe el nombre de la categoría ya resuelto y no el mapa entero: la
+// tarjeta no tiene por qué saber cómo se buscan las categorías.
+function tarjetaDeGuia(g, progreso, categoria) {
   const p = progreso[g.id] || null
   const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
   const hechoPct = p?.status === 'completed' ? 100 : p && bloques ? Math.round((Math.min(p.current_block || 0, bloques) / bloques) * 100) : 0
   const leida = Boolean(p?.read_at) || p?.status === 'completed'
   const nivel = NIVELES[g.level] || null
+  // La barra se pinta SIEMPRE, con el relleno a cero si no has empezado:
+  // antes aparecía y desaparecía según el progreso, y una tarjeta con
+  // barra al lado de otra sin barra no se leen como lo mismo.
+  const relleno = leida && hechoPct === 0 ? 100 : hechoPct
   return `
   <article class="guia-tarjeta">
     <a class="guia-tarjeta-enlace" href="/guia.html?slug=${encodeURIComponent(g.slug)}">
       <span class="guia-arte arte-${arteDe(g)}">
         ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" onerror="this.style.display='none'" />` : ''}
+        <span class="guia-arte-info">
+          ${categoria ? `<span class="guia-chapa-cat">${escapeHtml(categoria)}</span>` : '<span></span>'}
+          ${g.estimated_mins ? `<span class="guia-chapa-min">${g.estimated_mins} min</span>` : ''}
+        </span>
         ${g.guide_rarity && RAREZAS[g.guide_rarity] ? `<span class="guia-rareza rareza-${escapeHtml(g.guide_rarity)}">${RAREZAS[g.guide_rarity]}</span>` : ''}
       </span>
       <span class="guia-cuerpo">
@@ -76,11 +92,9 @@ function tarjetaDeGuia(g, progreso) {
         ${g.description ? `<span class="guia-desc">${escapeHtml(g.description)}</span>` : ''}
         <span class="guia-etiquetas">
           ${nivel ? `<span class="guia-etiqueta">${nivel}</span>` : ''}
-          ${g.estimated_mins ? `<span class="guia-etiqueta">${g.estimated_mins} min</span>` : ''}
           ${guideHasCourse(g) ? '<span class="guia-etiqueta">Con curso</span>' : ''}
         </span>
         <span class="guia-progreso">
-          ${hechoPct > 0 || leida ? `<span class="guia-barra"><i style="width:${leida && hechoPct === 0 ? 100 : hechoPct}%"></i></span>` : ''}
           <span class="guia-progreso-texto">${
             p?.status === 'completed'
               ? '<span class="guia-hecha">✓ Curso hecho</span>'
@@ -90,6 +104,7 @@ function tarjetaDeGuia(g, progreso) {
                   ? `Vas por el ${hechoPct}%`
                   : 'Sin empezar'
           }</span>
+          <span class="guia-barra"><i style="width:${relleno}%"></i></span>
         </span>
       </span>
     </a>
@@ -177,6 +192,11 @@ async function loadCategories(session) {
   const porCategoria = {}
   for (const g of guias) if (g.category_id) porCategoria[g.category_id] = (porCategoria[g.category_id] || 0) + 1
 
+  // id → nombre, para la chapa de la tarjeta. Se arma una vez y no una
+  // búsqueda por tarjeta en cada repintado: cambiar de filtro repinta
+  // todas las guías y eso serían decenas de recorridos por nada.
+  const nombreDeCategoria = Object.fromEntries((categories || []).map((c) => [c.id, c.name]))
+
   // El tema que venía en la URL se traduce a su id ahora que hay
   // categorías. Si el slug no existe —enlace viejo, categoría borrada—
   // no se filtra nada: se ven todas, que es mejor que una pantalla vacía
@@ -199,7 +219,7 @@ async function loadCategories(session) {
       ${chipsHtml(categories || [], guias, porCategoria)}
       ${
         visibles.length
-          ? `<div class="guia-rejilla">${visibles.map((g) => tarjetaDeGuia(g, progreso)).join('')}</div>`
+          ? `<div class="guia-rejilla">${visibles.map((g) => tarjetaDeGuia(g, progreso, nombreDeCategoria[g.category_id])).join('')}</div>`
           : '<p class="empty-state">No hay ninguna guía con esos filtros. Prueba a quitar alguno.</p>'
       }`
     list.querySelectorAll('[data-cat]').forEach((b) =>

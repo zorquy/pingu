@@ -39,7 +39,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. `components.css` y `js/app.js` los
+  CSS) debe caber en 170 KB gzip. **A 2026-09-16 van 167,4 y quedan
+  2,6**: el pie de la tanda 312 está en las 22 páginas y suma. Antes de
+  meter nada más en la portada hay que hacer sitio —`pesar-portada.mjs`
+  dice quién ocupa qué—. `components.css` y `js/app.js` los
   baja TODO el mundo — el CSS o JS de una sola página va en su propio
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
@@ -67,6 +70,21 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   únicas paletas con rojo a mano son las dos de IDENTIDAD —los `--rt-*`
   del editor y `COLORES_AVATAR`— y están declaradas como excepción en
   `test-tanda-311.mjs`.
+- **Lo que se pulsa mide 44 px** (tanda 312), y el tamaño se da con
+  `min-width`/`min-height` — nunca engordando el `padding`, que cambiaría
+  el dibujo. **El ANCHO solo se le pide a lo que es un icono y nada
+  más**: un control con texto mide lo que mide su palabra y estirarlo
+  sería un área invisible pisando al de al lado; a ese se le pide alto.
+  La barra de arriba va para todo el mundo; los controles densos (chips,
+  pestañas, el guardar de una tarjeta, los enlaces del pie) van tras
+  `pointer: coarse`. Tres excepciones, declaradas en
+  `test-tanda-312.mjs` y admitidas por la WCAG: un enlace EN LÍNEA dentro
+  de una frase, un enlace que repite un destino que ya cubre una caja
+  mayor, y una lista compacta que cumple la regla de separación.
+- **El pie va en el HTML de las 22 páginas que lo tienen** (tanda 312),
+  no montado desde JavaScript: esos enlaces tienen que estar aunque el JS
+  no llegue, y son los que recorre Google. Si tocas el pie, tócalo en las
+  22 — la prueba las cuenta.
 - **Un control que se pulsa no se pinta con `--text-dim`** (tanda 311).
   Ese gris da 2,35 y es para un metadato de refilón: una fecha, un «hace
   2 h». Un botón hay que poder leerlo — `--text-mid`. La excepción es un
@@ -98,15 +116,16 @@ el contenedor de una sesión — el 2026-08-28 uno se reinició y se llevó
 por delante el doble y unas 87 pruebas, sin copia en ninguna parte. De
 ahí la rama: fuera de lo que se despliega, pero en algún sitio.
 
-**Estado a 2026-09-15 (tanda 311)**: cubiertos torneos (8 pruebas, más la de la
+**Estado a 2026-09-16 (tanda 312)**: cubiertos torneos (8 pruebas, más la de la
 vista previa al compartir, las dos del registro de partidas y las de
 permisos contra PostgreSQL de verdad), el foro —índice, lista de temas y
 vista de un tema— (2), la PORTADA y /aprender (tanda 299), /usuarios
 (301), la escala tipográfica y los esqueletos de artículo (305) y las
 dos fichas de persona —/perfil y /usuario— con la lista de inscritos de
 un torneo (306). Desde la 308, también **/noticias y las fichas de guía
-y de curso**, que era el hueco grande; y desde la 311 el **contraste
-medido** en ocho páginas por los dos temas. Del foro faltan las piezas de
+y de curso**, que era el hueco grande; desde la 311 el **contraste
+medido** en ocho páginas por los dos temas, y desde la 312 los
+**objetivos táctiles** y el pie en las 22 páginas. Del foro faltan las piezas de
 alrededor (encuestas, no leídos, suscripciones, búsqueda, menciones,
 moderación).
 
@@ -155,6 +174,20 @@ cambiar con el tema) y dejó `--danger: var(--danger)` en la propia
 definición del token —que queda SIN definir y **no da error**—. Antes de
 lanzar un barrido: mira a mano una muestra de lo que va a tocar, y
 después pasa la suite entera, que es quien cazó los tres.
+
+Y la trampa de la tanda 312, que es sobre CÓMO SE COMPRUEBA y no sobre
+el CSS: **un nombre de clase se comprueba entero y entre comillas**
+(`/class="pie-rejilla"/`), nunca como un trozo de texto suelto. La prueba
+buscaba `pie-rejilla` y `pie-rejilla-no` también casaba, así que el rigor
+rompió el pie de una página y la prueba siguió en verde. Es pariente de
+la trampa de los comentarios: al barrer código en busca de una cadena,
+todo lo que la CONTIENE cuenta, no solo lo que ES.
+
+Y la de flexbox, misma tanda: **un margen automático en el eje
+transversal ANULA el estirado**. `.page-content` es también `.container`,
+que centra con `margin: 0 auto`; al volver el cuerpo una columna
+flexible, la columna se encogió de 1080 a 813 px y la página se quedó
+estrecha sin que nada diera error. Lleva `width: 100%` por eso.
 
 Y la TERCERA trampa, de la tanda 306: al mudar reglas a una hoja, las que
 llegan se colocan DESPUÉS de las que ya estaban. `.profile-hero-banner`

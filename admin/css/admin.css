@@ -567,3 +567,62 @@ body {
    solo es para cuando TCGdex se equivoca (tanda 233). */
 .admin-detalle-avanzado { margin-top: 14px; }
 .admin-detalle-avanzado > summary { cursor: pointer; color: var(--text-mid); font-size: 14px; }
+
+
+/* ── Lo que venía de components.css (tanda 312) ──
+   Estas reglas solo las usa /admin, pero vivían en la hoja que se baja
+   en las 26 páginas del sitio. Es la misma norma de la tanda 299 que
+   reparte foro.css, perfil.css o torneos.css; /admin tiene su hoja
+   desde siempre y aquí es donde le tocaba estar. */
+/* Panel de admin */
+.admin-destacada {
+  margin-top: 32px;
+  padding: 16px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.admin-destacada h2 {
+  margin: 0 0 4px;
+  font-size: var(--t-xl);
+}
+
+.admin-destacada-campos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-destacada-campos select {
+  flex: 1 1 240px;
+}
+
+.admin-destacada-campos input {
+  flex: 2 1 260px;
+}
+
+/* El informe del chequeo de cursos en /admin. */
+.admin-revision {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 16px;
+  margin-bottom: 16px;
+  font-size: var(--t-sm);
+}
+
+.admin-revision-titulo { font-weight: 700; margin: 0 0 8px; }
+
+.admin-revision ul { margin: 0; padding-left: 16px; }
+
+.admin-revision li { margin: 4px 0; }
+
+.admin-revision-limpia p { margin: 0; color: #1f7a55; font-weight: 600; }
+
+:root[data-theme='dark'] .admin-revision-limpia p { color: #4ade9b; }
+
+/* El % crítico del panel de preguntas falladas. Del token desde la
+   tanda 311: era otro rojo a mano con su copia clara al lado. */
+.falladas-critica { color: var(--danger); }

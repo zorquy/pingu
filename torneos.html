@@ -242,9 +242,44 @@
     <p id="torneosVacio" class="empty-state hidden">Todavía no hay ningún torneo. Crea el primero con el botón de arriba.</p>
   </main>
 
+  <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres
+       enlaces centrados; el problema no era que fuera feo, era que casi
+       todas las páginas se quedan cortas y dejaban entre 400 y 900 px de
+       nada antes de llegar a él. Un pie con columnas llena ese hueco,
+       da una segunda vía a cada sección desde cualquier página y enlaza
+       internamente todo el sitio, que es lo que Google recorre.
+       Va en el HTML y no montado desde JavaScript a propósito: estos
+       enlaces tienen que estar en la página aunque el JS no llegue. -->
   <footer class="footer">
-    <p>© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
-    <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/lanzamientos.html">Lanzamientos</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
+    <div class="pie-rejilla">
+      <div>
+        <p class="pie-marca">Poke<span>Doc</span></p>
+        <p class="pie-lema">La comunidad española de Pokémon TCG. Guías, cursos, foro y torneos. Todo gratis.</p>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Aprender</p>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/guardados.html">Guardados</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Comunidad</p>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+        <a href="/buscar.html">Buscar</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Jugar</p>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/curso.html?reto=hoy">Reto de hoy</a>
+      </div>
+    </div>
+    <div class="pie-abajo">
+      <p class="pie-copy">© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
+      <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
+    </div>
   </footer>
 
   <script type="module" src="js/app.js"></script>

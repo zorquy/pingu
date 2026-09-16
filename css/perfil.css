@@ -656,3 +656,19 @@ button.perfil-cifra:hover .rotulo {
 .foro-act-recorte {
   margin: 8px 0 0;
 }
+
+/* Los botones de la ficha de una persona, para un dedo (tanda 312). */
+@media (pointer: coarse) {
+  .profile-hero-edit-btn,
+  .profile-level,
+  .perfil-rango {
+    min-height: 44px;
+  }
+  .profile-hero-avatar-edit {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

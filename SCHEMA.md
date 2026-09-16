@@ -15923,3 +15923,173 @@ queda en 12 —que también es un paso— pero repartido de otra forma. Por
 eso la prueba mide además que **la portada no se salga de ancho a 320 y
 a 1280**: lo que rompe un cambio de espaciado no es un color, es una
 caja que deja de caber.
+
+---
+
+## Tanda 312 — las seis mejoras visuales
+
+PINGU las eligió con los prototipos delante: cada una se montó ENCIMA de
+la página real inyectándole el CSS por arriba, no como un dibujo aparte,
+y la comparación se hizo con capturas de las dos.
+
+### 1. La franja de color de la tarjeta de guía
+
+Medía 100 px —un tercio de la tarjeta— con un degradado y nada dentro
+salvo la chapa de rareza. Y la **categoría no salía en la tarjeta por
+ningún lado**, aunque los chips de arriba filtren justo por eso.
+
+Ahora lleva las dos cosas que ayudan a elegir: de qué es y cuánto cuesta
+leerla. El nivel se queda abajo con las etiquetas, que es donde compite
+con menos cosas.
+
+De paso, el pie de la tarjeta: la barra de progreso se pinta **siempre**,
+con el relleno a cero si no has empezado. Antes aparecía y desaparecía
+según el progreso, así que dos tarjetas seguidas tenían pies de altura
+distinta y la rejilla se veía descuadrada sin que se supiera por qué.
+
+### 2. El pie de página, y el vacío que tapaba
+
+El pie era un copyright y tres enlaces centrados. Pero el problema de
+fondo no era el pie: **`.page-content` llevaba `min-height: 100vh`**, o
+sea que el contenido estaba obligado a medir una pantalla entera aunque
+llevara una sola tarjeta. En /torneos con un torneo eso son 500 px de
+nada y encima hay que bajar a buscar el pie.
+
+Dos cambios:
+
+- El pie pasa a cuatro columnas (marca + Aprender + Comunidad + Jugar)
+  con la línea legal debajo. Va **en el HTML de las 22 páginas que lo
+  tienen** y no montado desde JavaScript: estos enlaces tienen que estar
+  aunque el JS no llegue, y son los que recorre Google.
+- El cuerpo es una **columna flexible** (`body:has(> .footer)`) y el
+  contenido crece lo que le sobre. Una página corta cabe entera sin
+  scroll y el pie queda pegado abajo sin vacío por encima.
+
+El `:has()` es para tocar solo esas 22: /auth, /curso, /onboarding y
+/reset-password son pantallas a medida sin pie.
+
+**Y el `width: 100%` del contenido no es decorativo.** `.page-content` es
+también `.container`, que centra con `margin: 0 auto`. En un contenedor
+flexible en columna, **un margen automático en el eje transversal ANULA
+el estirado** y el elemento pasa a medir su contenido: la columna se
+encogió de 1080 a 813 px y la página se quedó estrecha sin que nada
+diera error.
+
+### 3. Los números de /comunidad
+
+Cuatro tarjetas con su borde, su sombra y su hueco, y el número —que es
+el dato— pequeño y pegado a la esquina. Son cuatro caras de lo mismo, así
+que ahora son un bloque con separadores: la mitad de alto y el número
+manda.
+
+### 4. La actividad no repite
+
+Cinco filas seguidas empezaban por «Nueva noticia:» y además llevaban
+**el mismo icono a la izquierda y a la derecha**: a la izquierda porque
+lo de la casa no lo firma una persona, y a la derecha porque ahí va el
+tipo de evento. Ahora el tipo es una chapa en su propio renglón y el
+icono de la derecha solo sale cuando a la izquierda hay una cara.
+
+### 5. La noticia sin foto
+
+La intención ya era la correcta desde el principio —el comentario del
+código decía «que no parezca que la imagen no ha cargado»— pero la
+ejecución hacía justo eso: el azul de la casa **al 45% de opacidad**
+sobre `--ice` es un rectángulo pálido con un icono diminuto flotando en
+medio, que es exactamente el aspecto de una imagen rota. Ahora es el
+degradado de la marca con su trama, el icono opaco y el sello abajo.
+
+### 6. Lo que se puede tocar mide 44 px
+
+Medido a 393 px de ancho en ocho páginas: de 143 objetivos, **18 clases
+por debajo**, y la barra de arriba estaba ENTERA — buscar, tema, mensajes
+y campana a 35×35, el avatar a 34×34, la hamburguesa a 30×30 y el logo a
+26×26.
+
+El tamaño se da con `min-width`/`min-height`, no tocando el `padding` de
+cada uno: el dibujo no cambia y lo que crece es el hueco que recoge el
+toque. La barra va para todo el mundo; lo demás (chips, pestañas, el
+botón de guardar de una tarjeta, los enlaces del pie) va tras
+`pointer: coarse`, que es donde 44 px significa algo.
+
+Y hay una regla de reparto: **el ancho solo se le pide a lo que es un
+icono y nada más.** Un control con texto mide de ancho lo que mide su
+palabra —«Inicio» en una miga de pan son 34 px— y estirarlo sería un área
+invisible pisando al de al lado. Lo que sí se le puede pedir siempre es
+alto.
+
+Excepciones declaradas en la prueba, las tres que la propia WCAG admite:
+un enlace **en línea** dentro de una frase, un enlace que **repite** un
+destino que ya cubre una caja mayor, y la lista de actividad, que cumple
+la otra salida de la norma —la de **separación** entre objetivos—.
+
+**Y algo tenía que salir de la barra**: con todo a 44, seis botones más
+el logo piden 336 px de contenido. El candidato es el **tema**, que es
+una preferencia que se toca una vez y que además ya viene puesta del
+sistema. Por debajo de 360 px el botón de la barra se esconde y
+`renderThemeToggle` monta un **gemelo dentro del menú desplegable**, con
+su etiqueta escrita. El corte es 359 y no 400: a 393 px, que es lo que
+mide media España en el bolsillo, los seis caben.
+
+**Y la propia tanda se saltó la norma de la 299.** El bloque de
+`pointer: coarse` nació entero en `components.css`, con clases del foro,
+del perfil, de /comunidad, de /aprender y de torneos dentro — o sea, cada
+pantalla arrastrando las reglas de las demás en la hoja que se baja en
+las 26 páginas. Lo cazaron `test-tanda-299` y `test-tanda-306`, que
+vigilan justo eso. Ahora en `components.css` quedan solo los controles
+que salen en varias pantallas y el resto vive en su hoja.
+
+**Y eso destapó el peso.** `components.css` se pasó de los 31 KB gzip que
+vigila `test-tanda-306`. Se hizo sitio de verdad en vez de subir el
+número, y por el mismo criterio de la 299:
+
+- **La pantalla de entrar sale a `css/auth.css`** (NUEVA). La usan tres
+  páginas —/auth, /reset-password y /onboarding— y viajaba en las 26.
+- **Lo de `/admin` sale a `admin/css/admin.css`**, que existe desde
+  siempre. Eran doce reglas que solo ve el panel.
+
+Resultado: `components.css` de 31,5 a 30,9 KB, y la portada en 167,2 de
+170.
+
+**La lección del traslado, que casi cuesta un despliegue roto:** el
+primer barrido de extracción se llevó por delante seis reglas que no eran
+de auth —`.block-highlight` y la familia `.article-sidebar`— porque el
+patrón cogía el comentario de delante y arrastraba con él. Las páginas
+del artículo se quedaron sin ellas. **Lo vio `test-tanda-299` en la
+siguiente pasada**, que es exactamente para lo que está: al mover reglas
+de hoja, la prueba que comprueba que ninguna página usa una clase de una
+hoja que no carga es la red, y hay que pasarla DESPUÉS de cada
+movimiento, no al final.
+
+Cubierto en `test-tanda-312.mjs` (6 bloques) + `rigor-tanda-312.py`
+(19 mutaciones).
+
+### Lo que sacó la verificación
+
+**La suite cazó lo que se me había pasado: la barra con un torneo EN
+JUEGO.** Ahí la barra lleva un pasajero más —la chapa que te lleva a tu
+partida— y con todo a 44 px dejaba de caber: la página entera se salía de
+lado a 320, 360 y 390. Lo vio `test-torneos-15`, que mide justo ese
+estado desde la tanda 221. Arreglado retirando buscar y tema por debajo
+de 480 px **cuando la chapa está presente** (`:has(.nav-torneo-vivo)`), y
+de paso se arregló otra cosa que llevaba tiempo ahí: con la chapa puesta,
+**el logo se encogía a 2 px**, porque la barra le robaba el sitio al
+nombre del sitio.
+
+**El rigor cazó cuatro mutaciones mal puestas y un agujero de verdad en
+la prueba.** Las mal puestas enseñan más que las buenas:
+
+- `hidden` sobre `.guia-arte-info` **no esconde nada**: la clase pone
+  `display: flex` y le gana a la regla del navegador. La mutación no
+  rompía lo que decía romper.
+- Dos mutaciones **cortaban a media regla** —una dejaba el `min-height`
+  del contenido con su selector original, la otra dejaba el borde y la
+  sombra del bloque de números— así que la mitad del arreglo seguía en
+  pie y nada se notaba.
+- La cuarta cambiaba el nombre de una clase **que la prueba no miraba**.
+
+Y el agujero: la prueba miraba `/pie-rejilla/` con una expresión regular
+sobre el nombre de la clase, y **`pie-rejilla-no` también casa**. Un
+nombre de clase se comprueba entero y entre comillas (`class="x"`), no
+como un trozo de texto: si no, cualquier cosa que empiece igual pasa por
+buena. Es un pariente de la trampa de los comentarios de la 310.

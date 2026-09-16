@@ -382,6 +382,31 @@ textarea {
   min-height: 100vh;
 }
 
+/* El hueco de las páginas cortas (tanda 312).
+   `min-height: 100vh` obligaba al CONTENIDO a medir una pantalla entera
+   aunque llevara una sola tarjeta, así que el pie aterrizaba debajo de
+   430 px de nada y encima había que hacer scroll para llegar. Con la
+   columna flexible el contenido crece lo que le sobre —ni un píxel más—
+   y el pie queda pegado abajo sin vacío por encima.
+   Va con :has() para tocar SOLO las 22 páginas que tienen pie: /auth,
+   /curso y /onboarding son pantallas a medida sin él, y volverlas
+   flexibles sería cambiarles el layout sin motivo. */
+body:has(> .footer) {
+  display: flex;
+  flex-direction: column;
+}
+body:has(> .footer) .page-content {
+  flex: 1 0 auto;
+  min-height: 0;
+  /* El `width: 100%` NO es decorativo: `.page-content` es también
+     `.container`, que centra con `margin: 0 auto`. En un contenedor
+     flexible en columna, un margen automático en el eje transversal
+     ANULA el estirado y el elemento pasa a medir su contenido — la
+     columna se encogió de 1080 a 813 px y la página se quedó estrecha
+     sin que nada diera error. */
+  width: 100%;
+}
+
 @media (min-width: 900px) {
   .container {
     padding: 0 40px;
@@ -497,13 +522,63 @@ textarea {
   min-height: 45px;
 }
 
+/* ── Lo que se puede tocar mide 44 px (tanda 312) ──
+   Medido en ocho páginas a 393 px de ancho: de 143 objetivos, 18 clases
+   estaban por debajo, y la barra de arriba estaba ENTERA — buscar, tema,
+   mensajes y campana a 35×35, el avatar a 34×34, la hamburguesa a 30×30
+   y el logo a 26×26. Un dedo mide bastante más que un cursor y estos son
+   los seis botones que salen en todas las páginas del sitio.
+
+   El tamaño se da con `min-width`/`min-height` y no tocando el `padding`
+   de cada uno: así el dibujo no cambia —el icono sigue midiendo lo que
+   medía— y lo que crece es el hueco que recoge el toque.
+
+   El `:not()` deja fuera el desplegable de la cuenta, que cuelga del
+   mismo sitio pero es una lista, no la barra. */
+.nav-inner .nav-right a:not(.nav-user-dropdown a),
+.nav-inner .nav-right button:not(.nav-user-dropdown button),
+.nav-logo {
+  min-height: 44px;
+}
+
+/* El ANCHO solo para los que son un icono y nada más. Un control con
+   texto mide de ancho lo que mide su palabra y estirarlo no arregla
+   nada: la chapa de racha y la del torneo en juego llevan texto, y
+   obligarlas a 44 les quitaba el sitio a las demás — la barra se salía
+   de la pantalla en cuanto había un torneo jugándose. */
+#navSearchBtn,
+#navThemeToggle,
+#navMsgBtn,
+#navBellBtn,
+#navUserBtn,
+.nav-toggle,
+.nav-logo {
+  min-width: 44px;
+}
+
+/* Los enlaces de navegación no necesitan ancho —ya lo tienen de sobra
+   con su texto— pero sí alto. */
+.nav-links a,
+.nav-menu-mobile a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
 .nav-toggle {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   gap: 4px;
   width: 30px;
   height: 30px;
+}
+
+/* Las tres rayas siguen midiendo 30: lo que crece es el botón, así que
+   hay que devolverle su ancho a lo de dentro. */
+.nav-toggle span {
+  width: 30px;
 }
 
 .nav-toggle span {
@@ -582,6 +657,75 @@ textarea {
     gap: 0;
   }
 }
+
+/* ── Por debajo de 360 px: el botón de tema baja al menú (tanda 312) ──
+   Con los objetivos a 44, los seis botones más el logo y sus huecos
+   piden 336 px de contenido. A 360 con el margen apretado caben justos;
+   por debajo, no. Algo tenía que salir, y el candidato es el tema: es
+   una preferencia que se toca UNA vez —y que además ya viene puesta del
+   sistema—, no una acción que se repite como buscar, los mensajes o los
+   avisos. No desaparece: `renderThemeToggle` monta un gemelo dentro del
+   menú desplegable, que es donde cabe con su etiqueta escrita.
+
+   El corte es 359 y no 400: a 393 px, que es lo que mide media España en
+   el bolsillo, los seis caben — poner el corte más arriba les quitaba el
+   botón a quienes no hacía ninguna falta. */
+@media (max-width: 359px) {
+  #navThemeToggle {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .nav-inner {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* El gemelo se pinta como los enlaces del menú, que es lo que parece.
+   Va ANTES de su `@media`, no después: un `@media` no suma
+   especificidad, así que con la base detrás ganaba ella por orden y el
+   botón salía en las dos partes a la vez. Es la trampa de la tanda 299,
+   que aquí vuelve dentro de una sola hoja. */
+.nav-tema-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 0;
+  font-size: var(--t-md);
+  font-weight: 600;
+  color: var(--text-mid);
+  text-align: left;
+  width: 100%;
+}
+
+/* Y de 360 para arriba sobra: ahí está el botón de la barra. */
+@media (min-width: 360px) {
+  .nav-tema-menu {
+    display: none;
+  }
+}
+
+/* ── Con un torneo EN JUEGO la barra lleva un pasajero más ──
+   La chapa que te lleva a tu partida se suma a los seis botones, y en un
+   móvil eso ya no cabe con todos a 44 px: la página entera se salía de
+   lado (lo cazó test-torneos-15, que mide justo ese estado).
+   Por debajo de 480 px se retiran los dos que menos falta hacen
+   mientras estás jugando —buscar y tema—; el tema sigue estando, en el
+   menú. Va DESPUÉS del `@media` de arriba porque tiene que poder
+   deshacerlo, y un `@media` no suma especificidad. */
+@media (max-width: 479px) {
+  .nav-right:has(.nav-torneo-vivo) #navSearchBtn,
+  .nav-right:has(.nav-torneo-vivo) #navThemeToggle {
+    display: none;
+  }
+  body:has(.nav-torneo-vivo) .nav-tema-menu {
+    display: flex;
+  }
+}
+
 
 /* Pantallas MUY estrechas (iPhone SE y compañía, 320-360px): con la
    sesión abierta, la barra acumula chip de torneo + racha + búsqueda +
@@ -1372,14 +1516,114 @@ button.btn-block {
 }
 
 /* ── Footer ── */
+/* ── El pie (tanda 312) ──
+   Era una línea centrada. El problema no era el aspecto: casi todas las
+   páginas se quedan cortas —/torneos con un torneo deja 500 px de nada—
+   y el pie aparecía al final de un vacío, sin nada que ofrecer. Ahora
+   son cuatro columnas que llenan ese hueco y dan una segunda vía a cada
+   sección desde cualquier página.
+   Va en style.css, que lo baja todo el mundo, porque el pie está en las
+   22 páginas que lo tienen. */
 .footer {
-  text-align: center;
-  padding: 36px 24px;
   /* text-dim se quedaba en 2.2:1 a este cuerpo (PageSpeed, AA). */
   color: var(--text-mid);
   font-size: var(--t-sm);
   border-top: 1px solid var(--border);
-  margin-top: 24px;
+  margin-top: 48px;
+  background: var(--white);
+}
+
+.pie-rejilla {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px 24px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 32px;
+}
+
+.pie-marca {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+.pie-marca span {
+  color: var(--navy);
+}
+
+.pie-lema {
+  margin: 0;
+  max-width: 260px;
+  font-size: var(--t-sm);
+  line-height: 1.5;
+}
+
+/* No es un <h2>: el pie repite estos tres rótulos en las 22 páginas y no
+   son la jerarquía del documento, son etiquetas de una lista. */
+.pie-titulo {
+  margin: 0 0 12px;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mid);
+}
+
+.pie-col a {
+  display: block;
+  padding: 4px 0;
+  font-size: var(--t-sm);
+  color: var(--text);
+  text-decoration: none;
+}
+.pie-col a:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.pie-abajo {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 16px 24px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.pie-copy,
+.footer-links {
+  margin: 0;
+}
+
+/* Los enlaces legales vivían en components.css, que carga DESPUÉS de
+   esta hoja: su `margin-top` le ganaba al `margin: 0` de aquí arriba y
+   la línea de abajo quedaba descuadrada. Se mudan aquí, con el resto del
+   pie, que es donde se entienden. */
+.footer-links a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.footer-links a:hover {
+  color: var(--navy);
+}
+
+/* En un móvil las tres columnas de enlaces no caben al lado de la marca:
+   la marca ocupa el ancho entero y los enlaces se reparten en dos. */
+@media (max-width: 720px) {
+  .pie-rejilla {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .pie-rejilla > div:first-child {
+    grid-column: 1 / -1;
+  }
+  .pie-lema {
+    max-width: none;
+  }
 }
 
 /* Línea secundaria bajo la barra de progreso de una categoría (los

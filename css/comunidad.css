@@ -9,11 +9,20 @@
  * (CLAUDE.md): lo de una sola pantalla no lo baja todo el mundo. */
 
 /* ── Los números ── */
+/* Los números, en una sola tira (tanda 312).
+   Eran cuatro tarjetas con su borde, su sombra y su hueco, y el número
+   —que es el dato— iba pequeño y pegado a la esquina. Son CUATRO CARAS
+   DE LO MISMO, así que se leen mejor como un bloque con separadores:
+   ocupa la mitad de alto y el número manda. */
 .com-cifras {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
   margin: 16px 0 24px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
 }
 
 @media (min-width: 760px) {
@@ -23,12 +32,24 @@
 }
 
 .com-cifra {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px 16px;
-  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 16px 12px;
   min-width: 0;
+  /* Las rayas de dentro. En dos columnas la de la derecha no lleva
+     vertical y la fila de arriba sí lleva horizontal; con `overflow:
+     hidden` en el padre, los bordes de los extremos quedan recortados y
+     no hace falta un `:last-child` por cada caso. */
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+@media (min-width: 760px) {
+  .com-cifra {
+    border-bottom: 0;
+  }
 }
 
 .com-cifra b {
@@ -41,10 +62,10 @@
 
 .com-cifra span {
   display: block;
-  margin-top: 4px;
   color: var(--text-mid);
   font-size: var(--t-xs);
   line-height: 1.35;
+  text-align: center;
 }
 
 /* ── Las pestañas, como chips ──
@@ -437,4 +458,15 @@
 .com-ver-todos {
   display: block;
   margin: 16px auto 0;
+}
+
+/* Los chips y las caras de /comunidad, para un dedo (tanda 312). */
+@media (pointer: coarse) {
+  .com-chip {
+    min-height: 44px;
+  }
+  .com-monton-cara {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }

@@ -40,12 +40,45 @@
   width: 100%;
 }
 
+/* La intención ya era esta desde el principio —«que no parezca que la
+   imagen no ha cargado»— pero la ejecución hacía justo eso: el azul de
+   la casa al 45% sobre --ice se quedaba en un rectángulo pálido con un
+   icono diminuto flotando, que es exactamente el aspecto de una imagen
+   rota (tanda 312).
+   Ahora es el degradado de la marca con su trama, el icono opaco y el
+   sello abajo: se lee como una portada hecha a propósito. */
 .noticia-portada-vacia {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--navy);
-  opacity: 0.45;
+  overflow: hidden;
+  background-image: linear-gradient(135deg, #16405e 0%, #2a7fb5 55%, #3fa3c9 100%);
+  color: rgba(255, 255, 255, 0.7);
+}
+.noticia-portada-vacia::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1.1px, transparent 1.2px);
+  background-size: 14px 14px;
+}
+/* El sello. Es decorativo —el nombre del sitio ya está en la barra— así
+   que va por CSS y no por markup: no tiene que leerlo un lector de
+   pantalla ni aparecer al copiar el texto de la página. */
+.noticia-portada-vacia::after {
+  content: 'PokeDoc';
+  position: absolute;
+  left: 16px;
+  bottom: 12px;
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.noticia-portada-vacia svg {
+  position: relative;
 }
 
 /* ── El titular: la última noticia, a todo el ancho ── */

@@ -2713,3 +2713,10 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   .torneo-arquetipo-marco { width: 22px; height: 22px; }
   .torneo-arquetipo-nombre { max-width: 9ch; }
 }
+
+/* Las pestañas de un torneo, para un dedo (tanda 312). */
+@media (pointer: coarse) {
+  .torneo-pestana {
+    min-height: 44px;
+  }
+}
