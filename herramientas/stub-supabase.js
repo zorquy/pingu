@@ -32,6 +32,11 @@ const T = {
   forum_post_reactions: [],
   forum_thread_reads: [],
   forum_subscriptions: [],
+  // Las encuestas del foro (tanda 314). Tres tablas: la encuesta de un
+  // tema, sus opciones y los votos.
+  forum_polls: [],
+  forum_poll_options: [],
+  forum_poll_votes: [],
   user_notifications: [],
   tcg_cards: [],
   tcg_archetypes: [],
@@ -279,6 +284,32 @@ sembrar('__FAKE_REACCIONES__', 'forum_post_reactions', (i) => ({
   post_id: 'msg-1',
   user_id: 'user-2',
   kind: 'like',
+}))
+
+// La encuesta de un tema, sus opciones y los votos (tanda 314).
+//
+// Se siembran por separado a propósito: hay pruebas que necesitan una
+// encuesta SIN votos (para ver que no se enseñan los resultados antes de
+// votar) y otras con votos de otra gente.
+sembrar('__FAKE_ENCUESTA__', 'forum_polls', (i) => ({
+  thread_id: 'tema-1',
+  question: `¿Pregunta ${i + 1}?`,
+  multiple: false,
+  closes_at: null,
+}))
+
+sembrar('__FAKE_OPCIONES__', 'forum_poll_options', (i) => ({
+  id: `op-${i + 1}`,
+  thread_id: 'tema-1',
+  label: `Opción ${i + 1}`,
+  order_pos: i,
+}))
+
+sembrar('__FAKE_VOTOS__', 'forum_poll_votes', (i) => ({
+  id: `voto-${i + 1}`,
+  option_id: 'op-1',
+  thread_id: 'tema-1',
+  user_id: `user-${i + 2}`,
 }))
 
 sembrar('__FAKE_LECTURAS__', 'forum_thread_reads', (i) => ({
@@ -681,28 +712,16 @@ function consulta(tabla, estado = {}) {
     range: (desde, hasta) => consulta(tabla, { ...st, rango: [desde, hasta] }),
     // `ilike` de PostgREST: el comodín es % y no distingue mayúsculas.
     ilike: (col, patron) => {
+      // Fingir que una COLUMNA no existe, que no es lo mismo que fingir
+      // que falta la tabla entera: una migración a medias deja la tabla
+      // en su sitio y le falta una columna generada. Es el caso del
+      // buscador del foro, que se apoya en `search_norm`.
+      const faltan = (typeof window !== 'undefined' && window.__SIN_COLUMNAS__) || {}
+      if ((faltan[tabla] || []).includes(col)) return cadenaRota(tabla, col)
       const re = new RegExp('^' + String(patron).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*') + '$', 'i')
-      return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => re.test(String(f[col] ?? ''))] })
-    },
-    // `like` de PostgREST: como ilike pero distinguiendo mayúsculas. Lo
-    // usa la búsqueda de cartas contra `name_search`, que en la base es
-    // una columna GENERADA (minúsculas y sin tildes). Aquí se calcula al
-    // vuelo si la fila no la trae, que es como se siembran las cartas.
-    like: (col, patron) => {
-      const re = new RegExp('^' + String(patron).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*') + '$')
       return consulta(tabla, {
         ...st,
-        filtros: [
-          ...st.filtros,
-          (f) => {
-            const valor =
-              f[col] ??
-              (col === 'name_search'
-                ? String(f.name ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-                : '')
-            return re.test(String(valor))
-          },
-        ],
+        filtros: [...st.filtros, (f) => re.test(String(f[col] ?? valorGenerado(f, col)))],
       })
     },
     gt: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] > val] }),
@@ -820,6 +839,24 @@ export const supabase = {
   // el contador de la ficha se comporte como en la web de verdad.
   rpc: async (nombre, args = {}) => {
     RPCS.push({ nombre, args })
+    // Los resultados de una encuesta se CALCULAN de las tablas, como en
+    // Postgres. Devolverlos a mano desde cada prueba haría que «no se
+    // enseñan los resultados antes de votar» comprobara la semilla y no
+    // la pantalla.
+    if (nombre === 'forum_poll_resultados') {
+      const opciones = T.forum_poll_options.filter((o) => o.thread_id === args.p_thread)
+      return {
+        data: opciones
+          .slice()
+          .sort((a, b) => (a.order_pos || 0) - (b.order_pos || 0))
+          .map((o) => ({
+            option_id: o.id,
+            label: o.label,
+            votos: T.forum_poll_votes.filter((v) => v.option_id === o.id).length,
+          })),
+        error: null,
+      }
+    }
     if (nombre === 'forum_ver_tema') {
       const tema = T.forum_threads.find((t) => t.id === args.p_thread)
       if (tema) tema.view_count = (tema.view_count || 0) + 1
@@ -868,6 +905,40 @@ export const supabase = {
   },
   channel: () => ({ on: () => ({ subscribe: () => {} }), subscribe: () => {} }),
   removeChannel: () => {},
+}
+
+// Una cadena de consulta que, se encadene lo que se encadene, termina
+// resolviendo a «esa columna no existe». Mismo truco que el de
+// `__SIN_TABLAS__`, pero para una columna: una migración a medias deja
+// la tabla en su sitio y le falta una columna generada — que es
+// exactamente el estado del buscador del foro sin su SQL ejecutado.
+function cadenaRota(tabla, col) {
+  const err = { data: null, error: { code: '42703', message: `column ${tabla}.${col} does not exist` } }
+  const nodo = { then: (res, rej) => Promise.resolve(err).then(res, rej) }
+  // Se enumeran a mano en vez de con un Proxy: un Proxy que devuelve una
+  // función para CUALQUIER propiedad hace que `resultado.error` y
+  // `resultado.data` sean funciones —las dos ciertas— y el cliente ni
+  // entra en su rama de error ni se queda sin datos: se queda colgado.
+  for (const m of ['select', 'eq', 'neq', 'in', 'or', 'not', 'is', 'gt', 'gte', 'lt', 'lte',
+                   'ilike', 'like', 'order', 'limit', 'range', 'filter', 'contains', 'overlaps']) {
+    nodo[m] = () => nodo
+  }
+  nodo.maybeSingle = async () => err
+  nodo.single = async () => err
+  return nodo
+}
+
+// `search_norm` es una columna GENERADA en la base: el título del tema
+// —o el cuerpo del mensaje sin etiquetas— en minúsculas y sin tildes
+// (ver supabase-migration-buscar-foro.sql y plegarTexto en js/texto.js).
+// Aquí se calcula al vuelo, igual que `name_search` de las cartas, para
+// que una prueba del buscador no tenga que sembrar a mano una columna
+// que en producción se rellena sola — y que por tanto nunca podría
+// desincronizarse del título de verdad.
+function valorGenerado(fila, col) {
+  if (col !== 'search_norm') return ''
+  const crudo = fila.title ?? String(fila.body_html ?? '').replace(/<[^>]*>/g, ' ')
+  return String(crudo).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
 // Para que una prueba pueda mirar el estado sin pasar por la API.
