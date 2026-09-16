@@ -213,12 +213,13 @@ console.log('\n── 5. El foro dice cuánta conversación hay ──')
 console.log('\n── 6. Las guías nuevas, con su portada ──')
 {
   const { page } = await abrir('/index.html')
-  const tarjetas = page.locator('#recentGrid .recent-card')
+  // Desde la tanda 316 la portada usa la MISMA tarjeta que /aprender.
+  const tarjetas = page.locator('#recentGrid .guia-tarjeta')
   check('salen cuatro guías', (await tarjetas.count()) === 4, String(await tarjetas.count()))
-  check('  …cada una con su portada de color', (await page.locator('#recentGrid .recent-arte').count()) === 4)
+  check('  …cada una con su portada de color', (await page.locator('#recentGrid .guia-arte').count()) === 4)
   // El degradado sale del SLUG, no al azar: si cambiara en cada pintada
   // la rejilla parpadearía. Se comprueba recargando.
-  const artes = () => page.locator('#recentGrid .recent-arte').evaluateAll((es) => es.map((e) => [...e.classList].find((c) => c.startsWith('arte-'))))
+  const artes = () => page.locator('#recentGrid .guia-arte').evaluateAll((es) => es.map((e) => [...e.classList].find((c) => c.startsWith('arte-'))))
   const antes = await artes()
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
@@ -232,7 +233,10 @@ console.log('\n── 6. Las guías nuevas, con su portada ──')
   // La rareza se muda del galón de la 299 a una pastilla SOBRE la
   // portada: tiene que seguir diciéndose, y en español — la columna
   // guarda «gold» y eso aquí no lo dice nadie.
-  const rarezas = await page.locator('#recentGrid .recent-arte .rarity-chip').allTextContents()
+  // La rareza baja de la franja a la fila de etiquetas en la tanda 316,
+  // con el nivel y el curso: son las tres cómo es esta guía. Lo que
+  // defiende esta comprobación —que se diga, y en español— no cambia.
+  const rarezas = await page.locator('#recentGrid .guia-rareza').allTextContents()
   check('  …y cada una dice su rareza', rarezas.length === 4, String(rarezas.length))
   check('  …en español', rarezas.every((r) => /^(Bronce|Plata|Oro|Platino)$/.test(r.trim())), rarezas.join(' | '))
   await page.close()

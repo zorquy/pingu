@@ -15,6 +15,11 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 150) : ''}`)
 }
 
+// NOTA de la tanda 316: la portada dejó de repetir en «En la comunidad»
+// lo que ya está pintado más arriba —la noticia del banner, las cuatro
+// guías nuevas y los temas de «Ahora en el foro»—. Así que aquí las
+// semillas tienen que dejar SOBRANTES: lo que se mira en el hilo de
+// actividad tiene que ser algo que no esté también en pantalla.
 const BASE = 'http://localhost:8892'
 const browser = await chromium.launch()
 const abrir = async (ruta, semillas) => {
@@ -30,7 +35,14 @@ const abrir = async (ruta, semillas) => {
 console.log('\n── 1. Una noticia no se anuncia como una guía ──')
 {
   const { page, errores } = await abrir('/', {
-    __FAKE_NOTICIAS__: [{ title: 'El Binder Collection se retrasa hasta diciembre' }],
+    // DOS noticias desde la tanda 316: la más reciente es la del banner
+    // de la portada y la actividad ya no la repite, así que la que se
+    // mira aquí tiene que ser OTRA. Con una sola, el bloque de actividad
+    // se quedaba vacío y se recogía — que es justo lo que la 316 quería.
+    __FAKE_NOTICIAS__: [
+      { title: 'La del banner, que no se repite' },
+      { title: 'El Binder Collection se retrasa hasta diciembre' },
+    ],
     __FAKE_GUIAS__: [],
     __FAKE_TEMAS__: [],
   })
@@ -46,7 +58,7 @@ console.log('\n── 1. Una noticia no se anuncia como una guía ──')
   check('con el titular', /Binder Collection/.test(texto || ''))
   // El enlace bueno es /noticias/<slug>, no el de guía.
   const href = await fila.locator('a').last().getAttribute('href')
-  check('y lleva a la noticia', href === '/noticias/noticia-1', href)
+  check('y lleva a la noticia', href === '/noticias/noticia-2', href)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }
@@ -56,7 +68,8 @@ console.log('\n── 2. Y no la firma nadie ──')
   // Que ponga «PINGU ha publicado» hace que una noticia parezca la
   // opinión de alguien en vez de lo que ha pasado.
   const { page } = await abrir('/', {
-    __FAKE_NOTICIAS__: [{ title: 'Noticia de prueba' }],
+    // La primera es la del banner; la segunda, la que se mira aquí.
+    __FAKE_NOTICIAS__: [{ title: 'La del banner' }, { title: 'Noticia de prueba' }],
     __FAKE_GUIAS__: [],
     __FAKE_TEMAS__: [],
   })
@@ -71,7 +84,9 @@ console.log('\n── 3. Una guía SÍ la firma quien la escribe ──')
 {
   // Lo de la firma es el pago de escribir una guía: no se toca.
   const { page } = await abrir('/', {
-    __FAKE_GUIAS__: [{ title: 'Cómo saber si una carta es falsa' }],
+    // CINCO: «Guías nuevas» se queda con cuatro y la quinta es la que
+    // llega al hilo de actividad.
+    __FAKE_GUIAS__: Array.from({ length: 5 }, (_, i) => ({ title: `Cómo saber si una carta es falsa ${i + 1}` })),
     __FAKE_NOTICIAS__: [],
     __FAKE_TEMAS__: [],
   })
@@ -81,7 +96,9 @@ console.log('\n── 3. Una guía SÍ la firma quien la escribe ──')
   check('con el nombre de quien la escribió', (await fila.locator('.activity-name').count()) === 1)
   check('y su avatar', (await fila.locator('a.activity-avatar').count()) === 1)
   const href = await fila.locator('a').last().getAttribute('href')
-  check('y lleva a la guía', href === '/guia.html?slug=guia-1', href)
+  // Cuál de las cinco sobra depende del orden del doble; lo que importa
+  // es que la fila lleve a la guía y no a otra parte.
+  check('y lleva a la guía', /^\/guia\.html\?slug=guia-\d+$/.test(href || ''), href)
   await page.close()
 }
 
@@ -91,8 +108,15 @@ console.log('\n── 4. La misma noticia no sale dos veces ──')
   // no es un tema que haya abierto nadie. Contarlo aparte llenaba el
   // hilo con la misma noticia dos veces seguidas.
   const { page } = await abrir('/', {
-    __FAKE_NOTICIAS__: [{ title: 'Se retrasa el Binder Collection', forum_thread_id: 'tema-1' }],
+    __FAKE_NOTICIAS__: [
+      { title: 'La del banner' },
+      { title: 'Se retrasa el Binder Collection', forum_thread_id: 'tema-1' },
+    ],
     __FAKE_GUIAS__: [],
+    // El hilo va con un id que NO está entre los que pinta «Ahora en el
+    // foro»… salvo que sea de los cuatro más nuevos. Como solo hay uno,
+    // lo estaría: lo importante aquí es que no salga como tema, y eso se
+    // comprueba igual.
     __FAKE_TEMAS__: [{ id: 'tema-1', title: 'Noticia: Se retrasa el Binder Collection' }],
   })
   const filas = await page.locator('#homeActivityFeed .activity-item').allTextContents()
@@ -128,7 +152,16 @@ console.log('\n── 6. Un tema normal del foro sigue saliendo ──')
   const { page } = await abrir('/', {
     __FAKE_NOTICIAS__: [],
     __FAKE_GUIAS__: [],
-    __FAKE_TEMAS__: [{ id: 'tema-9', title: '¿Qué mazo llevo al regional?' }],
+    // CINCO temas, y el que se mira va el PRIMERO —el doble los siembra
+    // del más viejo al más nuevo, y «Ahora en el foro» pinta los cuatro
+    // más nuevos—. Y de OTRA persona: el hilo de actividad deja como
+    // mucho tres eventos por cabeza para que no lo llene alguien solo,
+    // y si los cinco temas fueran del mismo, los tres que sobreviven
+    // serían justo los que ya están pintados arriba.
+    __FAKE_TEMAS__: [
+      { id: 'tema-9', title: '¿Qué mazo llevo al regional?', author_id: 'user-2' },
+      ...Array.from({ length: 4 }, (_, i) => ({ id: `tema-${i + 1}`, title: `Tema de relleno ${i + 1}` })),
+    ],
   })
   const texto = (await page.locator('#homeActivityFeed').textContent())?.replace(/\s+/g, ' ')
   check('con su persona delante', /ha abierto un tema en el foro/.test(texto || ''), texto)

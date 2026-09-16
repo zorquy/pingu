@@ -295,22 +295,36 @@ console.log('\n── 6. Las tarjetas de /torneos no se estrujan ──')
     await page.close()
   }
 
-  // En PC la tarjeta no se estira a lo ancho de la página: la rejilla la
-  // corta en columnas. Sin esto, una sola tarjeta ocupaba 1200 px de
-  // ancho y 90 px de alto, que es la fila de antes con otro nombre.
+  // En PC la tarjeta no se estira a lo ancho de la página. Sin esto, una
+  // sola tarjeta ocupaba 1200 px de ancho y 90 px de alto, que es la fila
+  // de antes con otro nombre.
+  //
+  // Reescrito en la tanda 316: antes esto se comprobaba contando las
+  // COLUMNAS de la rejilla (`>= 3`), que es el mecanismo y no la
+  // decisión. La 316 le puso a la tarjeta sola un tope de 620 px —para
+  // que deje de haber 750 px de hueco al lado— y con eso la rejilla ya
+  // no tiene tres columnas, aunque la tarjeta siga SIN estirarse. Contar
+  // columnas daba rojo por un cambio que respeta lo que esta prueba
+  // defiende. Así que ahora se mide lo que de verdad importaba: que no
+  // ocupe la fila entera y que siga teniendo FORMA de tarjeta y no de
+  // fila — que era el texto literal del comentario de la tanda 297.
   const pc = await abrir('/torneos', 1200, SEMILLA_LISTA)
   const rejilla = await pc.evaluate(() => {
     const tarjeta = document.querySelector('.torneo-tarjeta')
-    const lista = document.querySelector('.torneos-lista')
+    const lista = document.querySelector('.torneos-rejilla') || document.querySelector('.torneos-lista')
+    const caja = tarjeta.getBoundingClientRect()
     return {
-      anchoTarjeta: Math.round(tarjeta.getBoundingClientRect().width),
+      anchoTarjeta: Math.round(caja.width),
+      altoTarjeta: Math.round(caja.height),
       anchoLista: Math.round(lista.getBoundingClientRect().width),
-      columnas: getComputedStyle(lista).gridTemplateColumns.split(' ').length,
+      // La franja de color: es lo que distingue una tarjeta de una fila.
+      arte: Math.round(tarjeta.querySelector('.torneo-arte')?.getBoundingClientRect().height || 0),
     }
   })
   check('en PC la tarjeta no se estira a toda la página',
     rejilla.anchoTarjeta < rejilla.anchoLista * 0.6, JSON.stringify(rejilla))
-  check('  …porque la lista va en columnas', rejilla.columnas >= 3, JSON.stringify(rejilla))
+  check('  …y sigue siendo una tarjeta, no una fila',
+    rejilla.altoTarjeta > 200 && rejilla.arte > 40, JSON.stringify(rejilla))
   await pc.close()
 }
 

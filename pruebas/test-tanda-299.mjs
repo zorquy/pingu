@@ -430,15 +430,20 @@ console.log('\n── 8. F · El color deja de gritar en las rejillas ──')
   const fondoCaja = await page.evaluate(() => getComputedStyle(document.querySelector('.foro-vivo')).backgroundColor)
   check('  …y el chip es blanco como el resto de cajas', fondoChip === fondoCaja, `${fondoChip} vs ${fondoCaja}`)
 
-  const guia = page.locator('#recentGrid .recent-card').first()
+  // Desde la tanda 316 la tarjeta de la portada es la MISMA que la de
+  // /aprender (.guia-tarjeta), y la rareza se dice en la fila de
+  // etiquetas en vez de flotando sobre la franja de color. Lo que esta
+  // comprobación defiende no cambia: que la rareza no pinte el marco de
+  // la tarjeta y que se diga en español.
+  const guia = page.locator('#recentGrid .guia-tarjeta').first()
   check('la guía reciente no lleva marco de rareza', !(await guia.evaluate((e) => e.className)).includes('border-rarity'),
     await guia.evaluate((e) => e.className))
   const grosor = await guia.evaluate((e) => getComputedStyle(e).borderTopWidth)
   check('  …y su borde es fino', grosor === '1px', grosor)
-  check('  …pero la rareza se sigue diciendo, sobre la portada',
-    (await page.locator('#recentGrid .recent-arte .rarity-chip').count()) > 0)
+  check('  …pero la rareza se sigue diciendo',
+    (await page.locator('#recentGrid .guia-rareza').count()) > 0)
   // Y en español: la columna guarda «gold» y eso no lo dice nadie aquí.
-  const rareza = await page.locator('#recentGrid .rarity-chip').first().textContent()
+  const rareza = await page.locator('#recentGrid .guia-rareza').first().textContent()
   check('  …y en español', /Oro|Plata|Bronce|Platino/.test(rareza || ''), rareza)
   // Las .border-tint-* solo las usaba esto: si quedaron, es CSS muerto.
   check('y el CSS muerto se fue', !/\.border-tint-\d \{/.test(leer('css/style.css')))

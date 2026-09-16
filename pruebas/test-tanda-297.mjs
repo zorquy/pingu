@@ -226,10 +226,17 @@ console.log('\n── 7. Lo que el rediseño ARREGLA del HTML ──')
 
 console.log('\n── 8. La rejilla y las chips ──')
 {
-  check('la lista es una rejilla', /\.torneos-lista \{[^}]*display: grid/.test(CSS))
+  // Desde la tanda 316 las TARJETAS tienen su propia caja: antes las
+  // pestañas vivían en la misma rejilla y la cruzaban con
+  // `grid-column: 1 / -1`, y eso impedía que `auto-fit` plegara las
+  // pistas vacías —una pista que alguien cruza no está vacía—. Lo que
+  // esta prueba defiende sigue igual: que la lista sea una rejilla con
+  // un mínimo por tarjeta y que las pestañas no se coloquen como una
+  // tarjeta más.
+  check('la lista de tarjetas es una rejilla', /\.torneos-rejilla \{[^}]*display: grid/.test(CSS))
   check('  …con un mínimo por tarjeta', /minmax\(330px, 1fr\)/.test(CSS))
-  // Sin esto, las pestañas se colocarían como si fueran una tarjeta más.
-  check('  …y las pestañas la cruzan entera', /\.torneos-lista > \.torneo-pestanas[\s\S]{0,80}grid-column: 1 \/ -1/.test(CSS))
+  check('  …y las pestañas no están dentro de ella',
+    /\.torneos-lista \{[^}]*display: flex/.test(CSS) && !/\.torneos-rejilla > \.torneo-pestanas/.test(CSS))
   // Las de la FICHA se quedan como estaban: allí son navegación, no
   // filtros. Por eso el estilo de chip va en una clase aparte.
   check('las chips son de la lista, no de la ficha', /\.torneo-pestanas-chips/.test(CSS) && JS_LISTA.includes('torneo-pestanas torneo-pestanas-chips'))
@@ -249,7 +256,7 @@ console.log('\n── 8. La rejilla y las chips ──')
   }))
   check('  …así que los filtros no llevan subrayado debajo', subrayados.filtros === 0, JSON.stringify(subrayados))
   check('  …y el conmutador Lista/Calendario sí conserva el suyo', subrayados.conmutador >= 2, JSON.stringify(subrayados))
-  const cuantas = await page.evaluate(() => getComputedStyle(document.querySelector('.torneos-lista')).gridTemplateColumns.split(' ').length)
+  const cuantas = await page.evaluate(() => getComputedStyle(document.querySelector('.torneos-rejilla')).gridTemplateColumns.split(' ').length)
   check('a 1280 px caben tres columnas', cuantas === 3, String(cuantas))
   // En un móvil estrecho lo que importa no es cuántas columnas hay —una,
   // seguro— sino que la tarjeta NO se salga: con `minmax(330px, 1fr)` y

@@ -96,7 +96,13 @@ console.log('\n── 5. La consulta pide la portada ──')
   const home = (await import('node:fs')).readFileSync('/home/user/pingu/js/home.js', 'utf8')
   const i = home.indexOf('cargarNoticiaPortada')
   const consulta = home.slice(i, i + 600)
-  check('se pide cover_image', /\.select\('slug, title, published_at, cover_image'\)/.test(consulta), consulta.slice(0, 160))
+  // Se busca cover_image DENTRO del select, no el select entero escrito
+  // igual: en la tanda 316 se le añadió `id` —hace falta para que la
+  // actividad no repita esta misma noticia— y la comprobación se puso
+  // roja sin que nada se hubiera roto. Lo que importa es que la columna
+  // se pida, no en qué orden ni con quién al lado.
+  const elSelect = consulta.match(/\.select\('([^']*)'\)/)?.[1] || ''
+  check('se pide cover_image', elSelect.split(',').map((c) => c.trim()).includes('cover_image'), elSelect)
 }
 
 console.log('\n── 6. En móvil no se desborda ──')
