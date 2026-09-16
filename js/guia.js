@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js'
 import { rutaDeArticulo, fechaLarga, fechaMaquina, slugDeArticuloEnLaUrl } from './articulos.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, avatarStyle, guideHasCourse } from './app.js'
-import { renderReferenceBlocksHtml } from './block-editor.js'
+import { renderReferenceBlocksHtml } from './bloques-lectura.js'
 import { hydrateDecks } from './cards-block.js'
 import { hydrateVideos } from './video-youtube.js'
 import { renderRatingWidget } from './guide-rating.js'

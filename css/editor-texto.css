@@ -328,3 +328,276 @@
   color: var(--danger);
   border-color: var(--danger);
 }
+
+/* ── El buscador de cartas del editor (mudado en la tanda 316) ──
+ *
+ * Vivía en components.css, que lo baja TODO el mundo. Lo abre el editor
+ * de texto rico (js/card-picker.js, desde richtext-editor.js y
+ * block-editor.js), y esta hoja la cargan exactamente las mismas siete
+ * páginas que tienen editor. La portada no tiene ninguno.
+ */
+/* ── Buscador de cartas del editor ── */
+
+.card-picker h3 {
+  margin-bottom: 8px;
+}
+
+.cp-help {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  margin-bottom: 12px;
+}
+
+.cp-input {
+  width: 100%;
+  padding: 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-lg);
+  font-family: inherit;
+}
+
+.cp-status {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  margin: 8px 0;
+}
+
+.cp-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  /* Con muchos resultados el modal crecería sin fin; se hace scroll aquí
+     dentro. overflow-x oculto porque poner overflow-y hace que el eje x
+     pase a "auto" y la rejilla se pueda arrastrar de lado. */
+  max-height: 46vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.cp-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.cp-result:hover {
+  background: var(--ice);
+}
+
+.cp-result.elegida {
+  border-color: var(--navy);
+  background: var(--ice);
+}
+
+.cp-result img {
+  width: 100%;
+  aspect-ratio: 245 / 342;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+/* Cartas sin escaneo en el catálogo. Hay dos maneras de llegar aquí: que
+   la carta no tenga imagen guardada, o que la imagen dé error al cargarse
+   —y esa segunda antes dejaba un hueco invisible que parecía un fallo de
+   la web. El ancho lo pone el padre —.cp-result es una columna flex y
+   estira a sus hijos, comprobado rompiéndolo—; lo que hace falta aquí es
+   la proporción, que es lo que le da altura a un hueco sin imagen. */
+.cp-noimg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 245 / 342;
+  border-radius: 4px;
+  background: var(--ice);
+  border: 1px dashed var(--border);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  text-align: center;
+}
+
+
+
+/* La caja de buscar y el selector de catálogo, en una fila. En el móvil
+   el selector baja debajo: los dos juntos no caben en 360 px. */
+.cp-buscar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cp-buscar .cp-input { flex: 1 1 200px; width: auto; }
+
+.cp-mercado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.cp-mercado select {
+  padding: 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--t-sm);
+  max-width: 100%;
+}
+
+.cp-name,
+.cp-set {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-name {
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.cp-set {
+  font-size: var(--t-2xs);
+  color: var(--text-mid);
+}
+
+.cp-chosen-title {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  margin: 12px 0 8px;
+}
+
+.cp-chosen-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 4px;
+  max-height: 90px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.cp-chosen-list button {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+
+/* ── El selector de emoji de la portada de una guía (tanda 316) ──
+ * Lo abre js/emoji-picker.js desde el editor. Mismo motivo que el
+ * buscador de cartas: estaba en components.css y no lo usa nadie más.
+ */
+
+
+/* ── Selector de emoji (portada de guías) ── */
+.emoji-picker-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.emoji-picker-wrap input {
+  flex: 1;
+  /* Un hijo de flex tiene min-width:auto y se niega a encoger por debajo
+     de su ancho intrínseco: en un móvil de 320 px el campo empujaba al
+     botón del emoji 41 px fuera de la pantalla. Venía de antes de la
+     tanda 306; salió en el barrido de las 26 páginas. */
+  min-width: 0;
+}
+
+.emoji-picker-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  font-size: var(--t-xl);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s var(--ease);
+}
+
+.emoji-picker-btn:hover {
+  border-color: var(--navy);
+}
+
+/* ESTO NO ES COSMÉTICO, ARREGLA UN FALLO.
+   El botón se repinta a sí mismo (`pintarBoton()`) nada más entrar en su
+   propio manejador de click. Con un emoji dentro daba igual: el click
+   sobre un nodo de texto llega con `e.target` = el botón. Con un SVG
+   dentro, `e.target` es el SVG — y para cuando el evento sube hasta el
+   `document`, ese SVG ya lo ha sustituido el repintado, así que
+   `wrap.contains(e.target)` da falso, el cierre por "click fuera" se
+   dispara y el panel se abría y se cerraba en el mismo click.
+   Con esto el objetivo del click es siempre el botón. */
+.emoji-picker-btn > *,
+.emoji-picker-option > * {
+  pointer-events: none;
+}
+
+.emoji-picker-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  /* 6 columnas de 34 px + 5 huecos de 4 + 10 de relleno a cada lado. Con
+     los 240 px de antes las casillas no cabían por 4 px y la última
+     columna se salía por el borde. */
+  width: 254px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 12px;
+  z-index: 50;
+}
+
+.emoji-picker-option {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--t-xl);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-picker-option:hover {
+  background: var(--ice);
+}
+
+/* El que está puesto ahora mismo. Con emojis se distinguía por el dibujo
+   de colores; con iconos de un solo trazo hace falta decirlo con el
+   fondo, o no hay forma de saber cuál está elegido. */
+.emoji-picker-option.selected {
+  background: var(--navy);
+  color: var(--white);
+}

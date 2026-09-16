@@ -283,11 +283,22 @@
 .torneos-form-acciones .torneo-wizard-derecha { display: flex; gap: 8px; margin-left: auto; }
 
 /* ── La lista ── */
-/* La lista es una REJILLA desde la tanda 297: cada torneo era una línea
-   de texto y el ancho sobrante no lo aprovechaba nadie. `auto-fill` con
-   un mínimo y no dos columnas fijas, para que en una pantalla ancha
-   entren tres y en una tableta dos, sin media queries. */
+/* La lista de torneos son TRES cosas apiladas: las pestañas de grupo, la
+   rejilla de tarjetas y el «ver N más». La rejilla tiene su propia caja
+   desde la tanda 316 — antes las tres eran hijas de la misma rejilla, y
+   las pestañas la cruzaban entera con `grid-column: 1 / -1`. Eso es lo
+   que impedía que `auto-fit` plegara las pistas vacías: una pista que
+   cruza alguien NO está vacía, aunque lo que la cruce sea una barra de
+   pestañas. */
 .torneos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* `auto-fill` con un mínimo y no dos columnas fijas (tanda 297): en una
+   pantalla ancha entran tres y en una tableta dos, sin media queries. */
+.torneos-rejilla {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
   gap: 16px;
@@ -296,14 +307,40 @@
    fila miden lo mismo y sus pies quedan alineados. Con start, una a la
    que el pie se le va a dos líneas deja a su vecina flotando a media
    altura, y la rejilla se ve descuadrada. */
-/* Las pestañas cruzan la rejilla entera: son de la lista, no una
-   tarjeta más. Igual el pie de «ver N más». */
-.torneos-lista > .torneo-pestanas,
-.torneos-lista > .torneo-ver-mas { grid-column: 1 / -1; }
 @media (max-width: 420px) {
   /* Por debajo de 420 px el mínimo de la rejilla desbordaría: una sola
      columna y que la tarjeta mande. */
-  .torneos-lista { grid-template-columns: 1fr; gap: 16px; }
+  .torneos-rejilla { grid-template-columns: 1fr; }
+}
+
+/* ── Con pocos torneos, la rejilla deja de guardar sitio (tanda 316) ──
+ *
+ * `auto-fill` CREA las pistas que caben aunque estén vacías: con un
+ * torneo en juego, la fila de 1.080 px tenía una tarjeta de 330 y 750 px
+ * de nada al lado, y debajo media pantalla en blanco hasta el pie. No
+ * era un fallo de datos —es lo normal un martes— sino que la rejilla no
+ * sabe cuántas tarjetas le van a llegar.
+ *
+ * `auto-fit` es la misma rejilla con las pistas vacías PLEGADAS, así que
+ * lo que hay se reparte la fila. Se pide solo con una o dos tarjetas: de
+ * tres en adelante ya no sobra sitio, y con `auto-fit` a secas una lista
+ * de cuatro en una pantalla ancha saldría con tarjetas gigantes.
+ *
+ * El selector dice «el último hijo está entre los dos primeros», que es
+ * la forma de contar «hay una o dos» sin escribirlo dos veces. Aquí ya
+ * vale `:nth-child` porque en esta caja solo hay tarjetas.
+ */
+/* Con DOS, `auto-fit` pliega la tercera pista y cada una se lleva media
+   fila. */
+.torneos-rejilla:has(> :nth-child(2):last-child) {
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+}
+
+/* Con UNA, estirarla a los 1.080 px de la fila la convierte en una
+   banda de color con el texto arrinconado a la izquierda. Se le da un
+   tope: ancha de verdad, pero todavía una tarjeta. */
+.torneos-rejilla:has(> :only-child) {
+  grid-template-columns: minmax(0, 620px);
 }
 
 /* ── La tarjeta de un torneo (tanda 297) ──

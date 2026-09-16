@@ -219,17 +219,6 @@
   }
 }
 
-.guide-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
-}
-
 /* Las tarjetas de guía son un <div> con un click encima, no un <a>. El
    navegador no tiene forma de saberlo: sin esto el cursor sale de flecha
    sobre el hueco de la tarjeta y de barra de texto sobre el título y la
@@ -238,52 +227,16 @@
 
    Se engancha a [role="link"] y no a cada clase porque ese atributo es
    exactamente lo que marca "esto se comporta como un enlace": lo llevan
-   las tres tarjetas clicables (.guide-card en las listas de categoría y
-   guardados, .recent-card en la home, .community-guide-row en el perfil
-   de cada usuario) y nada más. Si mañana aparece una cuarta, hereda el
-   cursor por llevar el rol correcto, sin tocar este fichero.
+   las tarjetas clicables (.guide-card en la lista de una categoría,
+   .saved-guide-row en guardados, .community-guide-row en el perfil de
+   cada usuario) y nada más. La de la portada dejó de estar en la lista
+   en la tanda 316: ahora es un <a> de verdad. Si mañana aparece otra,
+   hereda el cursor por llevar el rol correcto, sin tocar este fichero.
 
    `cursor` se hereda, así que los hijos lo cogen solos; los botones y
    enlaces de dentro traen el suyo y siguen mandando ellos. */
 [role='link'] {
   cursor: pointer;
-}
-
-.guide-card:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
-}
-
-/* El hueco del icono enseña la PORTADA cuando la guía tiene, y el emoji
-   cuando no. Se probó a poner la portada grande arriba, como en la home,
-   pero la mayoría de las guías no tienen portada: quedaba una rejilla a
-   parches, y con una imagen de 160 px por tarjeta se pasaba de ver 4
-   guías de un vistazo a ver 2. Así se gana la referencia visual sin
-   perder densidad, y el que no tenga portada no desentona. */
-.guide-card-icon {
-  font-size: var(--t-2xl);
-  width: 46px;
-  height: 46px;
-  border-radius: var(--radius-md);
-  background: var(--ice);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 3px 0 0 var(--ice-dark);
-  overflow: hidden;
-}
-
-.guide-card-icon.has-cover {
-  background-size: cover;
-  background-position: center;
-  /* Sin la sombra de "pastilla": con una foto dentro parece un botón. */
-  box-shadow: none;
-}
-
-.guide-card-info {
-  flex: 1;
-  min-width: 0;
 }
 
 .guide-label {
@@ -294,109 +247,6 @@
   letter-spacing: 0.5px;
 }
 
-.guide-card-info h3 {
-  font-size: var(--t-lg);
-  font-weight: 700;
-  margin-top: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Se recorta a 2 líneas con "…" y se reserva esa altura de 2 líneas
-   siempre (height, no solo el límite de line-clamp) — si no, una
-   descripción de una sola línea ocupaba menos que una de dos y las
-   tarjetas seguían sin medir lo mismo. */
-.guide-card-info p {
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-  margin-top: 4px;
-  line-height: 1.4;
-  height: 2.8em;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-}
-
-.guide-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-
-.guide-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.btn-course,
-.btn-guide {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: var(--t-xs);
-  font-weight: 700;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  text-align: center;
-  transition: background 0.15s var(--ease);
-}
-
-/* En el modal ampliado, Guía y Curso van en la misma fila que el botón
-   "Guardar" (.btn-outline) — para que no se vean como una acción menor
-   junto a un botón más grande, adoptan aquí el mismo tamaño y radio que
-   el resto de botones del sitio; en la tarjeta pequeña se quedan
-   compactos, que es lo que corresponde a ese espacio. */
-.modal-actions .btn-guide,
-.modal-actions .btn-course {
-  padding: 16px 24px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  font-size: var(--t-md);
-  line-height: 1;
-  gap: 8px;
-}
-
-/* La Guía es la acción principal (siempre existe); el Curso es
-   opcional, así que lleva el estilo secundario. */
-.btn-guide {
-  background: var(--navy);
-  color: var(--white);
-}
-
-.btn-guide:hover {
-  background: var(--navy-light);
-}
-
-.btn-course {
-  background: var(--ice);
-  color: var(--navy);
-}
-
-.btn-course:hover {
-  background: var(--ice-dark);
-}
-
-@media (max-width: 480px) {
-  .guide-card {
-    flex-wrap: wrap;
-  }
-  .guide-actions {
-    flex-direction: row;
-    width: 100%;
-  }
-  .guide-actions a {
-    flex: 1;
-  }
-}
 
 /* ── Fila de guía de la comunidad (usuarios.html) ──
    A propósito NO es la misma tarjeta que una guía oficial: puede haber
@@ -1769,14 +1619,6 @@ tcg-deck {
   border-color: var(--navy) !important;
 }
 
-/* ── Guardar y valoración en la tarjeta pequeña ── */
-.guide-card-social {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-}
-
 .card-save-btn {
   display: inline-flex;
   align-items: center;
@@ -2408,100 +2250,6 @@ tcg-deck {
   margin-bottom: 24px;
 }
 
-/* ── Selector de emoji (portada de guías) ── */
-.emoji-picker-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.emoji-picker-wrap input {
-  flex: 1;
-  /* Un hijo de flex tiene min-width:auto y se niega a encoger por debajo
-     de su ancho intrínseco: en un móvil de 320 px el campo empujaba al
-     botón del emoji 41 px fuera de la pantalla. Venía de antes de la
-     tanda 306; salió en el barrido de las 26 páginas. */
-  min-width: 0;
-}
-
-.emoji-picker-btn {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--white);
-  font-size: var(--t-xl);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.15s var(--ease);
-}
-
-.emoji-picker-btn:hover {
-  border-color: var(--navy);
-}
-
-/* ESTO NO ES COSMÉTICO, ARREGLA UN FALLO.
-   El botón se repinta a sí mismo (`pintarBoton()`) nada más entrar en su
-   propio manejador de click. Con un emoji dentro daba igual: el click
-   sobre un nodo de texto llega con `e.target` = el botón. Con un SVG
-   dentro, `e.target` es el SVG — y para cuando el evento sube hasta el
-   `document`, ese SVG ya lo ha sustituido el repintado, así que
-   `wrap.contains(e.target)` da falso, el cierre por "click fuera" se
-   dispara y el panel se abría y se cerraba en el mismo click.
-   Con esto el objetivo del click es siempre el botón. */
-.emoji-picker-btn > *,
-.emoji-picker-option > * {
-  pointer-events: none;
-}
-
-.emoji-picker-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  /* 6 columnas de 34 px + 5 huecos de 4 + 10 de relleno a cada lado. Con
-     los 240 px de antes las casillas no cabían por 4 px y la última
-     columna se salía por el borde. */
-  width: 254px;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 4px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: 12px;
-  z-index: 50;
-}
-
-.emoji-picker-option {
-  width: 34px;
-  height: 34px;
-  border: none;
-  background: transparent;
-  border-radius: var(--radius-sm);
-  font-size: var(--t-xl);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.emoji-picker-option:hover {
-  background: var(--ice);
-}
-
-/* El que está puesto ahora mismo. Con emojis se distinguía por el dibujo
-   de colores; con iconos de un solo trazo hace falta decirlo con el
-   fondo, o no hay forma de saber cuál está elegido. */
-.emoji-picker-option.selected {
-  background: var(--navy);
-  color: var(--white);
-}
-
 /* Un icono pegado a un texto en la misma línea (títulos de guía en las
    listas, cabeceras de colección). Ver inlineIconHtml en content-icon.js:
    un SVG en línea se apoya en la línea base con toda su caja, así que sin
@@ -2699,191 +2447,6 @@ tcg-deck {
   margin: 8px 0 0;
 }
 
-/* ── Buscador de cartas del editor ── */
-
-.card-picker h3 {
-  margin-bottom: 8px;
-}
-
-.cp-help {
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-  margin-bottom: 12px;
-}
-
-.cp-input {
-  width: 100%;
-  padding: 12px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: var(--t-lg);
-  font-family: inherit;
-}
-
-.cp-status {
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-  margin: 8px 0;
-}
-
-.cp-results {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 12px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  /* Con muchos resultados el modal crecería sin fin; se hace scroll aquí
-     dentro. overflow-x oculto porque poner overflow-y hace que el eje x
-     pase a "auto" y la rejilla se pueda arrastrar de lado. */
-  max-height: 46vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.cp-result {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 100%;
-  min-width: 0;
-  padding: 8px;
-  text-align: left;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-}
-
-.cp-result:hover {
-  background: var(--ice);
-}
-
-.cp-result.elegida {
-  border-color: var(--navy);
-  background: var(--ice);
-}
-
-.cp-result img {
-  width: 100%;
-  aspect-ratio: 245 / 342;
-  object-fit: contain;
-  border-radius: 4px;
-}
-
-/* Cartas sin escaneo en el catálogo. Hay dos maneras de llegar aquí: que
-   la carta no tenga imagen guardada, o que la imagen dé error al cargarse
-   —y esa segunda antes dejaba un hueco invisible que parecía un fallo de
-   la web. El ancho lo pone el padre —.cp-result es una columna flex y
-   estira a sus hijos, comprobado rompiéndolo—; lo que hace falta aquí es
-   la proporción, que es lo que le da altura a un hueco sin imagen. */
-.cp-noimg {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 245 / 342;
-  border-radius: 4px;
-  background: var(--ice);
-  border: 1px dashed var(--border);
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-  text-align: center;
-}
-
-/* Botones que se leen como un enlace: el "Ver más" de aquí, el "Editar" y
-   "Borrar" de un mensaje del foro, "Quitar la cita", "Cambiar mi voto".
-   La clase se usaba en cuatro sitios y NO ESTABA DEFINIDA en ninguno: con
-   el reset de `button` (sin borde, sin fondo y color heredado) salían
-   como texto normal, y nada indicaba que se podían pinchar. */
-.link-btn {
-  padding: 0;
-  font: inherit;
-  color: var(--navy);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.link-btn:hover { color: var(--navy-dark); }
-
-.link-btn[disabled] {
-  color: var(--text-dim);
-  text-decoration: none;
-  cursor: default;
-}
-
-/* La caja de buscar y el selector de catálogo, en una fila. En el móvil
-   el selector baja debajo: los dos juntos no caben en 360 px. */
-.cp-buscar {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.cp-buscar .cp-input { flex: 1 1 200px; width: auto; }
-
-.cp-mercado {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-}
-
-.cp-mercado select {
-  padding: 12px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--white);
-  color: var(--text);
-  font-family: inherit;
-  font-size: var(--t-sm);
-  max-width: 100%;
-}
-
-.cp-name,
-.cp-set {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cp-name {
-  font-size: var(--t-xs);
-  font-weight: 700;
-}
-
-.cp-set {
-  font-size: var(--t-2xs);
-  color: var(--text-mid);
-}
-
-.cp-chosen-title {
-  font-size: var(--t-xs);
-  font-weight: 700;
-  margin: 12px 0 8px;
-}
-
-.cp-chosen-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
-  padding: 0;
-  margin: 0 0 4px;
-  max-height: 90px;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.cp-chosen-list button {
-  padding: 4px 12px;
-  border-radius: var(--radius-pill);
-  background: var(--ice);
-  color: var(--navy);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-}
-
 /* ── Valorar una guía (al final de la guía y del curso) ── */
 
 .rating-box {
@@ -3077,19 +2640,7 @@ a.rater-name:hover {
   color: var(--ice);
 }
 
-/* ── Autoría en la tarjeta de guía ── */
-
-.guide-card-author {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  font-size: var(--t-xs);
-  min-width: 0;
-}
-
-.guide-card-author .autor-link,
-.guide-card-author .autor-oficial {
+:is(.guide-card-author, .guia-pie-autor) :is(.autor-link, .autor-oficial) {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -3104,12 +2655,12 @@ a.rater-name:hover {
   white-space: nowrap;
 }
 
-.guide-card-author .autor-link:hover {
+:is(.guide-card-author, .guia-pie-autor) .autor-link:hover {
   color: var(--navy);
   text-decoration: underline;
 }
 
-.guide-card-author .autor-oficial {
+:is(.guide-card-author, .guia-pie-autor) .autor-oficial {
   color: var(--navy);
 }
 
@@ -3246,202 +2797,6 @@ a.rater-name:hover {
 .my-guide-stats-vacio {
   font-style: italic;
   color: var(--text-dim);
-}
-
-/* ── Peticiones de guías ── */
-/* La caja la pone `.simple-card`; aquí solo la disposición. El aspecto
-   de los campos (redondeo, borde, fondo, foco) viene de la regla base de
-   style.css, la misma para todo el sitio. */
-.peticion-form {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.peticion-form input,
-.peticion-form textarea {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.peticion-form textarea {
-  min-height: 62px;
-}
-
-.peticion-form button {
-  justify-self: start;
-}
-
-.peticiones-aviso {
-  padding: 12px 16px;
-  background: var(--ice);
-  border-radius: var(--radius-md);
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.peticion {
-  display: flex;
-  gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.peticion-cumplida {
-  opacity: 0.72;
-}
-
-/* El voto es lo primero que se ve, y a propósito: el número es lo que
-   convence a alguien de ponerse a escribir. */
-.peticion-voto {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  width: 48px;
-  flex-shrink: 0;
-  padding: 8px 0;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--text-mid);
-  cursor: pointer;
-  align-self: flex-start;
-}
-
-.peticion-voto:hover:not(:disabled) {
-  border-color: var(--navy);
-  color: var(--navy);
-}
-
-.peticion-voto-on {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: var(--white);
-}
-
-.peticion-voto:disabled {
-  cursor: default;
-  opacity: 0.55;
-}
-
-.peticion-voto-flecha {
-  font-size: var(--t-2xs);
-  line-height: 1;
-}
-
-.peticion-voto-num {
-  font-size: var(--t-lg);
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.peticion-cuerpo {
-  flex: 1;
-  min-width: 0;
-}
-
-.peticion-cuerpo h3 {
-  font-size: var(--t-lg);
-  font-weight: 700;
-  margin: 0 0 4px;
-}
-
-.peticion-detalle {
-  margin: 0 0 8px;
-  font-size: var(--t-sm);
-  color: var(--text-mid);
-  line-height: 1.55;
-}
-
-.peticion-pie {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-size: var(--t-xs);
-  color: var(--text-dim);
-}
-
-.peticion-fecha::before {
-  content: '·';
-  margin-right: 8px;
-}
-
-.peticion-acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.peticion-acciones .btn-secondary {
-  padding: 8px 12px;
-  font-size: var(--t-xs);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.peticion-borrar {
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-  text-decoration: underline;
-}
-
-.peticion-hecha {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 12px 0 0;
-  font-size: var(--t-sm);
-  color: var(--success);
-  font-weight: 600;
-}
-
-.peticiones-sub {
-  margin: 24px 0 4px;
-  font-size: var(--t-sm);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-dim);
-}
-
-.editor-desde-peticion {
-  margin: -8px 0 16px;
-  padding: 12px 12px;
-  background: var(--ice);
-  border-radius: var(--radius-sm);
-}
-
-/* Etiqueta del tema: [Duda], [Oficial]... */
-/* El color de cada etiqueta lo pone etiquetaHtml() en línea (texto,
-   fondo translúcido y borde); esto de aquí es la forma y el respaldo
-   por si llegara una sin estilo. */
-.foro-etiqueta {
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  background: color-mix(in srgb, var(--chapa, var(--navy)) 14%, transparent);
-  border-color: color-mix(in srgb, var(--chapa, var(--navy)) 35%, transparent);
-  color: color-mix(in srgb, var(--chapa, var(--navy)) 45%, #12303f);
-  font-size: var(--t-2xs);
-  font-weight: 800;
-}
-
-/* Los chips de color (etiquetas de tema, chapas de nivel y títulos del
-   admin) reciben su tono por --chapa y el texto se OSCURECE en tema
-   claro: la paleta es clara a propósito para el tema oscuro, y tal cual
-   sobre blanco no contrastaba (PageSpeed, AA). En el oscuro los colores
-   se usan tal cual, que ahí sí llegan al 4.5:1. */
-:root[data-theme='dark'] .foro-etiqueta,
-:root[data-theme='dark'] .nivel-chapa,
-:root[data-theme='dark'] .foro-titulo-etiqueta {
-  color: var(--chapa, var(--navy));
 }
 
 /* ── El tema ── */
@@ -5352,4 +4707,270 @@ body.portada-compacta .page-content {
   .esq-guia i {
     animation: none;
   }
+}
+
+/* ═══ La tarjeta de una guía (tanda 316) ═══
+ *
+ * Vivía en css/aprender.css, y la portada tenía LA SUYA —`.recent-card`
+ * en portada.css— para el mismo objeto y sin una clase en común. Al
+ * unificarlas, el molde lo pinta js/guia-tarjeta.js y el CSS tiene que
+ * estar donde llegue a las DOS pantallas: aquí, que lo baja todo el
+ * mundo. Dejarlo en aprender.css era el fallo de la tanda 299 otra vez,
+ * pero al revés.
+ */
+/* ── La rejilla de guías ── */
+.guia-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+@media (max-width: 380px) {
+  /* Por debajo del mínimo la pista desbordaría: una sola columna. */
+  .guia-rejilla { grid-template-columns: 1fr; }
+}
+/* ── La tarjeta se mide a SÍ MISMA (tanda 316) ──
+ *
+ * Medido, y es la razón de que esto no se pueda hacer con un `@media`:
+ * con la ventana en 960 px la MISMA tarjeta mide 264 px en la portada
+ * —que la mete en una columna con la lateral al lado— y 432 en
+ * /aprender, que la deja a página completa. Y con la ventana en 600 mide
+ * 552, o sea que «pantalla más grande» ha llegado a significar «tarjeta
+ * más pequeña». Un `@media` solo sabe de la VENTANA: le estaría dando
+ * la misma respuesta a los tres casos.
+ *
+ * `container-type: inline-size` hace que la tarjeta sea el marco de
+ * referencia de lo que lleva dentro, y el `@container` de abajo se
+ * dispara por lo que mide ELLA.
+ */
+.guia-tarjeta {
+  container-type: inline-size;
+  container-name: guia;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s var(--ease), border-color 0.15s, transform 0.15s var(--ease);
+}
+.guia-tarjeta:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .guia-tarjeta:hover { transform: none; }
+}
+.guia-tarjeta-enlace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+.guia-arte {
+  position: relative;
+  display: block;
+  height: 100px;
+}
+/* Los seis degradados (.arte-1..6) están unos cientos de líneas más
+   arriba, en esta misma hoja. */
+.guia-arte::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1.1px, transparent 1.2px);
+  background-size: 14px 14px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.guia-arte img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* La fila de arriba de la franja (tanda 312): categoría a la izquierda,
+   minutos a la derecha. `inset: 0` con `align-items: flex-start` la deja
+   pegada arriba sin robarle el sitio a la rareza, que sigue abajo.
+   No recibe pulsaciones: la tarjeta entera es un enlace y un hijo que
+   los capturase abriría agujeros donde no se puede pulsar. */
+.guia-arte-info {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px;
+  pointer-events: none;
+}
+.guia-chapa-cat,
+.guia-chapa-min {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+/* Sobre los seis degradados, un fondo claro con texto oscuro: el color
+   de la franja cambia con la guía, así que la chapa no puede fiarse de
+   él. Es el mismo recurso que ya usa la rareza. */
+.guia-chapa-cat {
+  background: rgba(255, 255, 255, 0.94);
+  color: #0d1b2a;
+}
+.guia-chapa-min {
+  background: rgba(13, 27, 42, 0.46);
+  color: var(--blanco-fijo);
+}
+
+.guia-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 16px 16px;
+  flex: 1;
+}
+.guia-titulo { font-family: var(--font-display); font-size: var(--t-xl); line-height: 1.28; transition: color 0.15s; }
+.guia-tarjeta:hover .guia-titulo { color: var(--navy); }
+.guia-desc { color: var(--text-mid); font-size: var(--t-sm); line-height: 1.5; }
+.guia-etiquetas { display: flex; flex-wrap: wrap; gap: 8px; }
+.guia-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  font-weight: 500;
+  white-space: nowrap;
+}
+/* La rareza es una ETIQUETA más desde la 316. En la franja de color se
+   quedaba sola en una segunda línea —y obligaba a la franja a medir 100
+   px para hacerle sitio— mientras el nivel y el curso vivían abajo. Son
+   las tres la misma cosa: cómo es esta guía. */
+.guia-rareza { font-weight: 700; }
+.rareza-bronze { color: var(--rarity-bronze); }
+.rareza-silver { color: var(--rarity-silver); }
+.rareza-gold { color: var(--rarity-gold); }
+.rareza-platinum { color: var(--rarity-platinum); }
+
+/* El progreso abajo del todo y con `margin-top:auto`: así dos tarjetas
+   vecinas lo tienen a la misma altura aunque sus títulos midan distinto. */
+/* El pie de la tarjeta (tanda 312). Antes era el texto debajo de la
+   barra y la barra solo aparecía si habías empezado, así que dos
+   tarjetas seguidas tenían pies de altura distinta. Ahora es una línea:
+   el estado a la izquierda y la barra ocupando lo que sobre, con una
+   raya que la separa del resumen. */
+.guia-progreso {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.guia-barra { flex: 1; height: 4px; border-radius: var(--radius-pill); background: var(--ice); overflow: hidden; }
+.guia-barra i { display: block; height: 100%; border-radius: var(--radius-pill); background: var(--success); }
+/* --text-dim daba 2,35 aquí y esto es el estado de la guía, no un
+   metadato de refilón (norma de la tanda 311). */
+.guia-progreso-texto { flex: 0 0 auto; font-size: var(--t-xs); font-weight: 700; color: var(--text-mid); }
+.guia-hecha { color: var(--success); font-weight: 700; }
+:root[data-theme='dark'] .guia-barra { background: var(--ice-dark); }
+
+/* Por debajo de 300 px de TARJETA (no de ventana): la franja de color
+   se queda en la mitad y el aire de dentro se recorta. A 264 px, 100 px
+   de degradado son más de un tercio de lo que se ve antes del título. */
+@container guia (max-width: 299px) {
+  .guia-arte { height: 68px; }
+  .guia-cuerpo { padding: 12px; gap: 8px; }
+  .guia-titulo { font-size: var(--t-lg); }
+  .guia-desc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+}
+
+/* El pie: solo lo pinta la portada, que es donde había un autor y un
+ * botón de guardar. Va FUERA del enlace de la tarjeta — un <button>
+ * dentro de un <a> no existe en HTML y el navegador lo saca fuera,
+ * descolocando la caja.
+ */
+.guia-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 16px 16px;
+}
+.guia-pie-autor { font-size: var(--t-xs); color: var(--text-mid); }
+.guia-pie:empty { display: none; }
+
+/* ── El botón que parece un enlace ──
+ * Genérico, y por eso aquí: lo usan las encuestas del foro, la
+ * moderación en lote y el «ver los 7 de la semana» de la portada, además
+ * del buscador de cartas del editor. Se fue por error a
+ * css/editor-texto.css en la mudanza de la tanda 316 —viajaba pegado al
+ * buscador de cartas— y la portada se quedó sin él.
+ */
+/* Botones que se leen como un enlace: el "Ver más" de aquí, el "Editar" y
+   "Borrar" de un mensaje del foro, "Quitar la cita", "Cambiar mi voto".
+   La clase se usaba en cuatro sitios y NO ESTABA DEFINIDA en ninguno: con
+   el reset de `button` (sin borde, sin fondo y color heredado) salían
+   como texto normal, y nada indicaba que se podían pinchar. */
+.link-btn {
+  padding: 0;
+  font: inherit;
+  color: var(--navy);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link-btn:hover { color: var(--navy-dark); }
+
+.link-btn[disabled] {
+  color: var(--text-dim);
+  text-decoration: none;
+  cursor: default;
+}
+
+/* ── La etiqueta de un tema del foro, y sus parientes de color ──
+ * Se fue por error a css/comunidad.css en la tanda 316 —viajaba pegada a
+ * las peticiones de guía— y la usan la portada, los dos perfiles y la
+ * ficha de un torneo, que no bajan esa hoja.
+ */
+/* Etiqueta del tema: [Duda], [Oficial]... */
+/* El color de cada etiqueta lo pone etiquetaHtml() en línea (texto,
+   fondo translúcido y borde); esto de aquí es la forma y el respaldo
+   por si llegara una sin estilo. */
+.foro-etiqueta {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--chapa, var(--navy)) 14%, transparent);
+  border-color: color-mix(in srgb, var(--chapa, var(--navy)) 35%, transparent);
+  color: color-mix(in srgb, var(--chapa, var(--navy)) 45%, #12303f);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+}
+
+/* Los chips de color (etiquetas de tema, chapas de nivel y títulos del
+   admin) reciben su tono por --chapa y el texto se OSCURECE en tema
+   claro: la paleta es clara a propósito para el tema oscuro, y tal cual
+   sobre blanco no contrastaba (PageSpeed, AA). En el oscuro los colores
+   se usan tal cual, que ahí sí llegan al 4.5:1. */
+:root[data-theme='dark'] .foro-etiqueta,
+:root[data-theme='dark'] .nivel-chapa,
+:root[data-theme='dark'] .foro-titulo-etiqueta {
+  color: var(--chapa, var(--navy));
 }

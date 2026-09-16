@@ -16411,3 +16411,188 @@ tandas 310 y 311.
 
 Cubierto en `test-tanda-315.mjs` (4 bloques) + `rigor-tanda-315.py`
 (10 mutaciones).
+
+---
+
+## Tanda 316 — seis cosas que solo se ven mirando
+
+PINGU preguntó si quedaban mejoras visuales. En vez de opinar, se
+levantó el sitio con datos y se MIDIÓ. Las seis que salieron no estaban
+en el código: estaban en la pantalla.
+
+### 1. La misma guía se dibujaba de dos maneras
+
+La portada usaba `.recent-card` (js/home.js) y /aprender `.guia-tarjeta`
+(js/aprender.js): **dos componentes para el mismo objeto, con cero clases
+en común**. La de la portada no decía la categoría, ni el nivel, ni si
+traía curso, ni por dónde ibas, y gastaba 170 px de degradado para
+enseñar una chapa de rareza. La de /aprender no decía de quién era ni
+dejaba guardarla.
+
+Ahora el molde es uno (`js/guia-tarjeta.js`) y lo usan las dos. Es la de
+/aprender, que dice más, con lo que la portada aportaba: el autor y el
+botón de guardar, en un PIE que va **fuera** del enlace —un `<button>`
+dentro de un `<a>` no existe en HTML y el navegador lo saca fuera,
+descolocando la caja—. La rareza baja de la franja a la fila de
+etiquetas, donde ya estaban el nivel y el curso: son las tres la misma
+cosa, cómo es esta guía.
+
+El CSS se muda de `css/aprender.css` a `css/components.css`, que es la
+única hoja que bajan las dos pantallas. **Y al llegar chocó con algo**:
+`.guia-etiqueta` pinta de gris y `.rareza-bronze` de bronce, las dos son
+(0,1,0), y en el orden nuevo la etiqueta quedaba DESPUÉS — la rareza
+salía gris. Es la trampa de la tanda 306, otra vez, y esta vez tocó
+ponerle un comentario al lado del sitio exacto.
+
+### 2. En el móvil no se leía de qué iba ningún tema
+
+Medido: en 390 px al título le quedaban **160 px** y los tres salían
+cortados («Mi lista de C…»). En 1280 tiene 562 y no se corta ninguno. La
+columna de «12 mensajes» se llevaba el ancho.
+
+La cuenta NO se quita —la 300 la puso en grande a propósito, porque es el
+dato que decide si entras— sino que **baja a su propia línea** debajo del
+autor y la hora. El título se lleva el ancho entero y se reparte en dos
+líneas (tres por debajo de 560 px, que es donde solo le quedan 152–222).
+
+### 3. La portada contaba lo mismo dos veces
+
+«Ahora en el foro» y «En la comunidad» traían **exactamente los mismos
+tres temas**, y la noticia del banner salía otra vez dentro de la
+actividad. Tres módulos para dos noticias.
+
+Ahora los módulos de arriba DEVUELVEN qué han pintado (`guia:<id>`,
+`tema:<id>`, `noticia:<id>`) y la actividad descarta lo que ya está en
+pantalla. No serializa la portada: las consultas siguen saliendo todas a
+la vez y lo único que espera es el pintado de un bloque que está muy por
+debajo del primer pantallazo. Si la promesa de arriba falla no se filtra
+nada — un duplicado se perdona, un hueco no.
+
+### 4. En el móvil, lo primero que necesita alguien nuevo estaba al 61%
+
+«Tus primeros pasos» empezaba en **y = 2.401 de una portada de 3.917**.
+En escritorio está en 470, arriba en la lateral; en el móvil las dos
+columnas se apilan y la lateral entera cae al final.
+
+`display: contents` disuelve las dos columnas por debajo de 960 px y deja
+todas las secciones como hijas directas del panel — que es lo único que
+hace que un `order` pueda mover una sección de una columna a la otra. Ya
+no hace falta apagarlo al completar los tres pasos: ahí la sección se
+queda `hidden` para siempre y un elemento sin caja no se coloca en
+ninguna parte. Medido después: **y = 715**.
+
+### 5. Una tarjeta sola dejaba media pantalla en blanco
+
+En /torneos con un torneo en juego, la rejilla mantenía sus 330 px de
+pista y dejaba 750 px de nada al lado. `auto-fill` CREA las pistas que
+caben aunque no las use nadie.
+
+**Y aquí está la lección que costó encontrar**: cambiar a `auto-fit` no
+arregló nada. `auto-fit` pliega las pistas VACÍAS, y en esa rejilla
+vivían también las pestañas de grupo con `grid-column: 1 / -1` — una
+pista que alguien CRUZA no está vacía, aunque lo que la cruce sea una
+barra de pestañas. Por eso las tarjetas tienen ahora su propia caja
+(`.torneos-rejilla`) y la lista pasa a ser una columna flexible.
+
+Con dos tarjetas, `auto-fit` y media fila cada una. Con UNA, un tope de
+620 px: estirada a los 1.080 de la fila deja de ser una tarjeta y pasa a
+ser una banda de color con el texto arrinconado.
+
+### 6. El buscador del foro salía antes que el nombre de la pantalla
+
+El orden al entrar en /foro era: migas → **buscador** → «Foro» →
+subtítulo → «Marcar todo como leído», con el buscador en una banda para
+él solo. Ahora va en la misma fila que el título, a la derecha, como en
+/torneos y /aprender. Sigue siendo un `<form>` de verdad, que funciona
+con Enter y sin JavaScript.
+
+### Y dos cosas de CSS moderno, con su motivo medido
+
+**`@container` en la tarjeta de guía.** El dato que lo obliga: con la
+ventana en 960 px la MISMA tarjeta mide **264 px en la portada** —que la
+mete en una columna con la lateral al lado— **y 432 en /aprender**, que
+la deja a página completa. Y con la ventana en 600 mide 552, o sea que
+«pantalla más grande» ha llegado a significar «tarjeta más pequeña». Un
+`@media` solo sabe de la ventana: le daría la misma respuesta a los tres
+casos. Ahora la tarjeta es su propio marco de referencia y por debajo de
+300 px de TARJETA la franja de color baja de 100 a 68 px.
+
+**`text-wrap: balance`** en los títulos y `pretty` en los resúmenes:
+reparte las líneas en vez de dejar una palabra suelta en la última.
+Donde no esté soportado, el texto sale exactamente como salía.
+
+### Lo que hubo que mover para que cupiera
+
+La portada se fue a 171,0 KB de 170 al añadir todo esto. El camino de
+siempre —lo que usa una sola pantalla, a su hoja— dio de sobra:
+
+- `.guide-card` y su familia (la tarjeta ANCHA de guía, con icono y dos
+  botones) a **`css/categoria.css`** (nueva): la pinta
+  `renderGuideCardHtml` y la única pantalla que la pinta es /categoria.
+  El `@media` viaja CON su base a propósito: si se quedara en
+  components.css, la base de la hoja nueva —que carga después— le ganaría
+  por orden y el móvil se rompería sin que nada diera error.
+- El buscador de cartas y el selector de emoji del editor a
+  **`css/editor-texto.css`**, que cargan las siete páginas con editor.
+- Las peticiones de guía a **`css/comunidad.css`**, que es la única hoja
+  de /usuarios.
+
+Quedan **168,5 KB de 170**.
+
+### Lo que NO se ha tocado
+
+Sigue habiendo una TERCERA tarjeta de guía: la fila compacta de
+`.community-guide-row` (usuarios.html) y `.saved-guide-row`
+(guardados.html). Son una FORMA distinta —fila fina en vez de tarjeta— y
+eso está razonado en su comentario, así que no entran en la unificación.
+Pero conviene saber que existen.
+
+### Lo que sacó la verificación
+
+**La suite dio OCHO rojos y todos eran míos, de dos clases distintas.**
+
+Cinco eran pruebas escritas contra el MARCADO viejo: `.recent-card`, la
+cadena exacta del `select` de la noticia, o contar las columnas de la
+rejilla de torneos. Reescritas contra la FORMA — y en dos casos quedan
+más estrictas que antes: la de la tanda 297 ya no cuenta columnas sino
+que mide que la tarjeta sola no ocupe la fila entera **y que siga
+teniendo forma de tarjeta y no de fila**, que era el texto literal de su
+propio comentario y que la versión anterior no comprobaba.
+
+Las otras tres eran fallos de verdad, y los cazó el barrido de la 299:
+
+- **`.link-btn` se fue a `editor-texto.css`** pegado al buscador de
+  cartas, y es un botón GENÉRICO: lo usan las encuestas, la moderación en
+  lote y el «ver los 7 de la semana» de la portada. Lo mismo con
+  **`.foro-etiqueta`**, que viajó a `comunidad.css` pegada a las
+  peticiones y la usan la portada, los dos perfiles y la ficha de un
+  torneo. **Una sección de CSS no es una unidad de mudanza**: hay que
+  mirar clase por clase quién la usa.
+- **Y la grande: mover el CSS no bastaba, había que mover el CÓDIGO.** El
+  barrido sigue los imports, así que `guardados.html`, `index.html` y
+  `usuarios.html` «usaban» las clases de `.guide-card` solo por importar
+  `js/guide-card.js`, y `guia.html` alcanzaba el selector de emoji y el
+  buscador de cartas a través de `js/block-editor.js`. Dos módulos
+  partidos: **`js/tarjeta-guia-ancha.js`** (el molde ancho, que solo pinta
+  /categoria) y **`js/bloques-lectura.js`** (pintar bloques guardados en
+  modo lectura, que es lo único que /guia necesitaba del editor).
+
+**Y una decisión que cambió al chocar con las pruebas**: el descarte de
+duplicados NO cubre las guías. La actividad trae como mucho **tres
+eventos por persona** (para que no la llene alguien solo) y esos tres son
+siempre los de las guías que están justo encima, así que descartarlas
+dejaba el bloque vacío. Además borraba el «Fulano ha publicado la guía
+X», que es el pago de haberla escrito (tanda 289). La distinción que lo
+resuelve: **la tarjeta de «Guías nuevas» es una ficha del catálogo; «X ha
+publicado» es un SUCESO con su firma.** No son lo mismo aunque hablen de
+la misma guía.
+
+**Del rigor, 17 de 18 a la primera. La que se escapó es la que me había
+mordido a mí**: pintar la rareza del gris de las etiquetas. La prueba no
+miraba su color. Y el primer arreglo tampoco valía — decía «la rareza no
+es gris», y eso lo cumple también un `color: inherit` que la deja del
+color del texto normal. Tiene que decir **«la rareza es SU color»**, el
+del token, comparado en el mismo formato.
+
+Cubierto en `test-tanda-316.mjs` (8 bloques) + `rigor-tanda-316.py`
+(18 mutaciones, todas detectadas).

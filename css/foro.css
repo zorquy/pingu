@@ -322,6 +322,16 @@
   font-size: var(--t-sm);
 }
 
+/* La derecha de la cabecera: el buscador y lo que ponga foro.js
+   («Marcar todo como leído», «Nuevo tema»). En una pantalla estrecha se
+   apila debajo del título y ocupa la fila entera. */
+.foro-cabecera-derecha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .foro-cabecera-acciones .btn-primary {
   padding: 12px 16px;
   font-size: var(--t-md);
@@ -940,14 +950,16 @@
    ══════════════════════════════════════════════════════════════ */
 
 /* ── El buscador ──
-   Discreto y arriba del todo: quien viene a leer no lo necesita, y quien
-   viene a buscar algo concreto lo encuentra donde lo espera. */
+   Discreto y a la derecha de la cabecera, en la misma fila que el título
+   (tanda 316): quien viene a leer no lo necesita, y quien viene a buscar
+   algo concreto lo encuentra donde lo espera. Antes iba encima del <h1>,
+   en una banda suya, y era lo primero que se leía al entrar. */
 .foro-buscador {
   display: flex;
   align-items: center;
   gap: 8px;
   max-width: 300px;
-  margin: 0 0 12px auto;
+  margin: 0;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
@@ -1159,9 +1171,10 @@
 }
 
 @media (max-width: 700px) {
+  .foro-cabecera-derecha,
   .foro-buscador {
+    width: 100%;
     max-width: none;
-    margin-left: 0;
   }
 }
 

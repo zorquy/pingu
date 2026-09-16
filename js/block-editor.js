@@ -1,48 +1,14 @@
+// El editor de bloques de una guía. Lo de PINTAR un bloque ya guardado
+// se fue a js/bloques-lectura.js en la tanda 316: lo necesita /guia, que
+// no tiene editor ninguno, y traerlo de aquí le colaba el selector de
+// emoji y el buscador de cartas.
 import { escapeHtml } from './app.js'
-import { bbcodeToolbarHtml, wireBBCodeToolbars, parseBBCode } from './bbcode.js'
-import { sanitizeRichText } from './richtext-format.js'
+import { bbcodeToolbarHtml, wireBBCodeToolbars } from './bbcode.js'
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { attachEmojiPicker } from './emoji-picker.js'
 
-// Render de un bloque de referencia a HTML final — lo usan tanto guia.js
-// (la página real) como la vista previa en vivo del editor, para que las
-// dos coincidan exactamente. `richtext` es el tipo nuevo (editor WYSIWYG);
-// los demás son de guías antiguas creadas con el editor de bloques previo.
-export function renderReferenceBlock(block, headings = []) {
-  switch (block.type) {
-    case 'richtext': {
-      const clean = sanitizeRichText(block.html || '')
-      if (typeof DOMParser === 'undefined') return clean
-      const doc = new DOMParser().parseFromString(clean, 'text/html')
-      doc.querySelectorAll('h2, h3').forEach((h) => {
-        const id = `section-${headings.length}`
-        h.id = id
-        headings.push({ id, text: h.textContent })
-      })
-      return doc.body.innerHTML
-    }
-    case 'heading': {
-      const id = `section-${headings.length}`
-      headings.push({ id, text: block.text })
-      return `<h2 id="${id}">${escapeHtml(block.text || '')}</h2>`
-    }
-    case 'paragraph':
-      return `<p>${parseBBCode(block.text || '')}</p>`
-    case 'image':
-      return block.url ? `<img loading="lazy" src="${block.url}" alt="${escapeHtml(block.caption || '')}" onerror="this.style.display='none'">` : ''
-    case 'list':
-      return `<ul>${(block.items || []).map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`
-    case 'highlight':
-      return `<div class="block-highlight">${parseBBCode(block.text || '')}</div>`
-    default:
-      return ''
-  }
-}
-
-export function renderReferenceBlocksHtml(blocks, headings = []) {
-  return (blocks || []).map((b) => renderReferenceBlock(b, headings)).join('')
-}
+export { renderReferenceBlock, renderReferenceBlocksHtml } from './bloques-lectura.js'
 
 // El campo se sigue llamando `emoji` porque así se llama en los bloques
 // ya guardados en la base y renombrarlo obligaría a migrar contenido de

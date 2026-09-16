@@ -309,6 +309,31 @@ button {
   color: inherit;
 }
 
+/* ── Los títulos se reparten las líneas (tanda 316) ──
+ *
+ * `balance` mira el título entero y parte las líneas para que queden
+ * parecidas, en vez de dejar una palabra suelta en la última. El
+ * navegador solo lo hace en bloques cortos —de ahí que se pida a los
+ * títulos y no al cuerpo del artículo—, y donde no esté soportado el
+ * texto sale exactamente como salía.
+ *
+ * `pretty` en los resúmenes es su pariente barato: evita la línea final
+ * de una palabra sin reequilibrar el párrafo entero.
+ */
+h1,
+h2,
+h3,
+.guia-titulo,
+.torneo-nombre,
+.foro-vivo-titulo {
+  text-wrap: balance;
+}
+
+.subtext,
+.guia-desc {
+  text-wrap: pretty;
+}
+
 /* Aspecto base de TODOS los campos de formulario.
  *
  * Antes solo se heredaba la tipografía, así que un campo sin clase

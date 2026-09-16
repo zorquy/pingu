@@ -1,10 +1,10 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo, rutaDeArticulo, cuandoFue } from './articulos.js'
-import { escapeHtml, getSession, profileUrl, tintClassForKey, categoryIconHtml, guideHasReference, arteDe } from './app.js'
-import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
+import { escapeHtml, getSession, profileUrl, tintClassForKey, categoryIconHtml } from './app.js'
+import { decorateGuideCards } from './guide-card.js'
+import { tarjetaDeGuia } from './guia-tarjeta.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
-import { MOSTRAR_PLANES } from './planes.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 import { montarPrimerosPasos } from './primeros-pasos.js'
 import { haceCuanto, nombreDe, perfilesPorId, urlTema, avatarHtml, etiquetaHtml } from './foro-comun.js'
@@ -85,14 +85,6 @@ async function cargarNumerosComunidad() {
   } catch {}
 }
 
-// La rareza dejó de pintar el marco entero en la 299 (tres marcos
-// dorados en fila pesaban más que las guías) y en la 300 se muda otra
-// vez: de galón sobre el borde a pastilla SOBRE la portada de color,
-// que es donde la mirada ya está. El galón desaparece con ella.
-// En español, que es el idioma de la web: la columna guarda
-// bronze/silver/gold/platinum y hasta ahora se pintaba tal cual.
-const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino' }
-
 async function loadRecent() {
   const grid = document.getElementById('recentGrid')
   // Solo GUÍAS. Las noticias son mucho más frecuentes que las guías: sin
@@ -117,27 +109,16 @@ async function loadRecent() {
     return
   }
 
+  // La MISMA tarjeta que /aprender (tanda 316). Aquí va con PIE —el
+  // autor y el botón de guardar, que es lo que la portada aportaba de
+  // más— y sin progreso: la portada no se trae el de nadie, así que la
+  // barra sale a cero con «Sin empezar», igual que una guía que nadie ha
+  // abierto.
+  //
+  // El nombre de la categoría viene en la propia consulta
+  // (`categories(name)`), que ya se pedía y no se usaba para nada.
   grid.innerHTML = data
-    .map(
-      (g) => `
-    <div class="recent-card" data-guide-id="${g.id}" data-author-id="${escapeHtml(g.author_id || '')}" data-slug="${escapeHtml(g.slug || '')}" data-has-guide="${guideHasReference(g) ? '1' : ''}" tabindex="0" role="link">
-      <span class="recent-arte arte-${arteDe(g)}">
-        ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" decoding="async" onerror="this.remove()" />` : ''}
-        <span class="rarity-chip rarity-${g.guide_rarity || 'bronze'}">${RAREZAS[g.guide_rarity] || RAREZAS.bronze}</span>
-      </span>
-      <h3>${escapeHtml(g.title)}</h3>
-      <p>${escapeHtml(g.description || '')}</p>
-      <div class="meta">
-        ${MOSTRAR_PLANES ? `<span class="badge ${g.is_pro ? 'badge-pro' : 'badge-free'}">${g.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
-        <span class="time-tag">${g.estimated_mins || 5} min</span>
-      </div>
-      <div class="guide-card-author" data-card-author></div>
-      <div class="guide-card-social">
-        <button class="card-save-btn" data-card-save title="Guardar" aria-label="Guardar" onclick="event.stopPropagation()">${icons.bookmark(16)}</button>
-        <span class="card-rating" data-card-rating>Sin valorar</span>
-      </div>
-    </div>`
-    )
+    .map((g) => tarjetaDeGuia(g, { categoria: g.categories?.name || '', pie: true }))
     .join('')
 
 }
@@ -145,15 +126,44 @@ async function loadRecent() {
 // Solo para quien ha iniciado sesión. Alguien que llega buscando si su
 // carta es falsa no quiere ver quién se ha apuntado hoy; un miembro sí
 // agradece ver que aquello está vivo.
-async function loadHomeActivity(session) {
+// Lo que un evento de actividad SEÑALA, con el mismo nombre que usan
+// los módulos de arriba al decir qué han pintado. Un evento que no
+// señala a nada concreto (un alta, una petición) no tiene clave y nunca
+// se descarta.
+function claveDeEvento(e) {
+  if (e.tipo === 'tema') return `tema:${String(e.enlace || '').split('/').pop()}`
+  if (e.tipo === 'noticia') return `noticia:${e.guideId}`
+  return null
+}
+
+// «En la comunidad» traía EXACTAMENTE los mismos tres temas que «Ahora
+// en el foro» y la misma noticia del banner (tanda 316, medido). Bajabas
+// la portada y lo que veías era lo de arriba otra vez.
+//
+// Así que la actividad se pinta con lo que NO esté ya en pantalla. Se
+// piden más eventos de los que caben porque unos cuantos se van a caer
+// por el camino.
+//
+// Las GUÍAS no entran en el descarte, y es una decisión: la tarjeta de
+// «Guías nuevas» es una ficha del catálogo, y «Fulano ha publicado la
+// guía X» es un SUCESO con su firma — que es el pago de haberla escrito
+// (tanda 289). Además `loadActivity` trae como mucho tres guías por
+// fuente, y esas tres son siempre las que están arriba: descartarlas
+// dejaba el bloque vacío en cuanto la comunidad tuviera un día tranquilo.
+async function loadHomeActivity(session, clavesDeArriba) {
   if (!session) return
   try {
-    const actividad = await loadActivity(4)
+    const actividad = await loadActivity(12)
+    // Si la promesa de arriba falla, mejor no filtrar nada que dejar la
+    // portada sin bloque: un duplicado se perdona, un hueco no.
+    const yaEstan = await clavesDeArriba.catch(() => new Set())
+    const eventos = actividad.eventos.filter((e) => !yaEstan.has(claveDeEvento(e))).slice(0, 4)
     // En la home, si no hay nada que enseñar el bloque no se abre — ni
     // para decir que está vacío ni para decir que ha fallado. Es un
-    // extra de la portada, no la pantalla de actividad.
-    if (actividad.eventos.length === 0) return
-    document.getElementById('homeActivityFeed').innerHTML = renderActivityHtml(actividad)
+    // extra de la portada, no la pantalla de actividad. Y desde la 316
+    // también se recoge cuando lo único que había ya estaba arriba.
+    if (eventos.length === 0) return
+    document.getElementById('homeActivityFeed').innerHTML = renderActivityHtml({ ...actividad, eventos })
     document.getElementById('homeActivity').classList.remove('hidden')
   } catch {
     // Si falla, la home se queda como siempre. No es contenido crítico.
@@ -216,7 +226,7 @@ async function cargarNoticiaPortada() {
   try {
     const { data, error } = await supabase
       .from('guides')
-      .select('slug, title, published_at, cover_image')
+      .select('id, slug, title, published_at, cover_image')
       .eq('kind', 'news')
       .not('published_at', 'is', null)
       .order('published_at', { ascending: false })
@@ -256,6 +266,7 @@ async function cargarNoticiaPortada() {
     const foto = hueco.querySelector('.noticia-banner-foto')
     if (foto) foto.onerror = () => foto.remove()
     seccion.style.display = ''
+    return [`noticia:${noticia.id}`, `guia:${noticia.id}`]
   } catch {
     recogerSeccion('noticiaPortadaSeccion')
   }
@@ -379,6 +390,7 @@ async function cargarForoVivo() {
         .join('')}
     </ul>`
   seccion.style.display = ''
+  return temas.map((t) => `tema:${t.id}`)
 }
 
 // ── La bienvenida del miembro ──
@@ -473,21 +485,29 @@ async function init() {
     document.getElementById('signupBanner').style.display = 'block'
   }
 
+  // Las claves de lo que pintan los módulos de ARRIBA, para que la
+  // actividad no lo repita. No serializa la portada: las consultas
+  // siguen saliendo todas a la vez y lo único que espera es el PINTADO
+  // de la actividad, que está muy por debajo del primer pantallazo.
+  const arriba = Promise.all([cargarForoVivo(), cargarNoticiaPortada()]).then(
+    (listas) => new Set(listas.flat().filter(Boolean))
+  )
+
   await Promise.all([
     loadCategories(),
     loadRecent(),
     loadHeroGuideCount(),
     cargarNumerosComunidad(),
-    cargarForoVivo(),
-    cargarNoticiaPortada(),
+    arriba,
     cargarTorneoPortada(),
     cargarBienvenida(session),
-    loadHomeActivity(session),
+    loadHomeActivity(session, arriba),
     // Va dentro del mismo grupo: es una consulta corta y así no añade una
     // espera más antes de que la portada esté entera.
     montarPrimerosPasos(document.getElementById('primerosPasos'), session),
   ])
-  wireGuideCardClicks(document.getElementById('recentGrid'))
+  // Desde la 316 la tarjeta ES un <a>, así que no hace falta
+  // wireGuideCardClicks: con los dos, un clic navegaba dos veces.
   await decorateGuideCards(document.getElementById('recentGrid'), session)
 }
 

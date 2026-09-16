@@ -12,6 +12,77 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-16 (5) — PINGU-Claude (tanda 316 — seis cosas que solo se ven mirando)
+
+**Hecho**: PINGU preguntó si quedaban mejoras visuales. En vez de
+opinar, se levantó el sitio con datos y se midió. Las seis que salieron
+no estaban en el código, estaban en la pantalla:
+
+1. **Una sola tarjeta de guía.** La portada y /aprender tenían DOS
+   moldes para el mismo objeto, con cero clases en común. Ahora el
+   molde es `js/guia-tarjeta.js` y lo usan las dos.
+2. **En el móvil se lee de qué va cada tema.** Medido: al título le
+   quedaban 160 px y los tres salían cortados. La cuenta de mensajes
+   baja a su línea y el título se lleva el ancho (222 px, ninguno corta).
+3. **La portada ya no cuenta lo mismo dos veces.** «Ahora en el foro» y
+   «En la comunidad» traían los mismos tres temas y la misma noticia.
+4. **«Tus primeros pasos», arriba en el móvil**: estaba en y = 2.401 de
+   3.917 (el 61% hacia abajo). Ahora, en 715.
+5. **Con uno o dos torneos la rejilla no guarda sitio vacío.**
+6. **El buscador del foro** va en la fila del título y no encima.
+
+Más `@container` en la tarjeta de guía y `text-wrap: balance` en los
+títulos.
+
+**Lo que enseñó hacerlo**: (a) `auto-fit` NO pliega una pista que alguien
+CRUZA — las pestañas con `grid-column: 1 / -1` mantenían las tres pistas
+«ocupadas», así que cambiar `auto-fill` por `auto-fit` no hacía nada;
+(b) el caso de `@container` estaba medido delante: con la ventana en 960
+la misma tarjeta mide 264 px en la portada y 432 en /aprender, y ningún
+`@media` puede distinguirlos; (c) al mudar el CSS de la tarjeta a
+components.css, `.guia-etiqueta` (gris) quedó DESPUÉS de `.rareza-*`
+(bronce) con la misma especificidad y la rareza salía gris — la trampa
+de la tanda 306, otra vez.
+
+**Ficheros**: `js/guia-tarjeta.js` (NUEVO), `css/categoria.css` (NUEVO),
+`js/home.js`, `js/aprender.js`, `js/torneos/torneos.js`,
+`css/components.css`, `css/portada.css`, `css/aprender.css`,
+`css/torneos.css`, `css/foro.css`, `css/style.css`, `css/comunidad.css`,
+`css/editor-texto.css`, `index.html`, `foro.html`, `categoria.html`,
+`SCHEMA.md`, `CLAUDE.md`. En la rama `pruebas`: `test-tanda-316.mjs` y
+`rigor-tanda-316.py` (nuevos), y actualizadas `test-tanda-269`,
+`288`, `289`, `297`, `299`, `300` y `torneos-15`.
+
+**Peso**: se fue a 171,0 KB de 170 y se hizo sitio sacando de
+components.css lo que usa una sola pantalla (la tarjeta ancha de guía a
+`css/categoria.css`, el buscador de cartas y el emoji al editor, las
+peticiones a comunidad). Quedan **168,1**.
+
+**Lo que sacó la verificación**: la suite dio OCHO rojos y todos eran
+míos. Cinco, pruebas escritas contra el marcado viejo (reescritas contra
+la FORMA, y dos quedan más estrictas). Los otros tres, fallos de verdad
+que cazó el barrido de la 299: `.link-btn` y `.foro-etiqueta` se habían
+ido de `components.css` pegadas a la sección de al lado —y las usa media
+web—, y sobre todo que **mover el CSS no bastaba: había que mover el
+CÓDIGO**, porque el barrido sigue los imports y una página «usa» una
+clase por importar el módulo que la pinta. De ahí dos módulos nuevos:
+`js/tarjeta-guia-ancha.js` y `js/bloques-lectura.js`.
+
+Del rigor, 17 de 18 a la primera; la que se escapó era justo la que me
+había mordido a mí (la rareza pintada del gris de las etiquetas), y el
+primer arreglo de la prueba tampoco valía — decía «no es gris» y hay que
+decir «es SU color».
+
+**Suite**: 77/77 en verde. **Rigor**: 18 mutaciones, todas detectadas.
+
+**En curso / pendiente**: nada en curso. Queda apuntado que hay una
+TERCERA tarjeta de guía —la fila compacta de /usuarios y /guardados—,
+que no entra en la unificación porque es otra forma, pero que existe. Y
+sigue pendiente de tu visto bueno la consolidación de los velos blancos
+de la 315.
+
+---
+
 ## 2026-09-16 (4) — PINGU-Claude (tanda 315 — el resto de la escala de color)
 
 **Hecho**: lo último de la lista que aprobó PINGU. La propuesta hablaba

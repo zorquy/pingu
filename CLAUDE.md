@@ -39,8 +39,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-09-16 van 167,0 y quedan
-  3,0**: el pie de la tanda 312 está en las 22 páginas y suma, y la
+  CSS) debe caber en 170 KB gzip. **A 2026-09-16 van 168,1 y quedan
+  1,9**: el pie de la tanda 312 está en las 22 páginas y suma, y la
   313 sacó el editor de texto rico a `css/editor-texto.css` para hacer
   sitio. Antes de meter nada más en la portada, haz sitio —
   `pesar-portada.mjs` dice quién ocupa qué— y el camino es siempre el
@@ -115,6 +115,32 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
 - **Las páginas `noindex` no necesitan `meta description`** y las
   indexables sí. Son cosas distintas: contar «páginas sin descripción»
   sin mirar el `robots` da un número que no significa nada.
+- **Una guía se dibuja con UNA tarjeta** (tanda 316): el molde vive en
+  `js/guia-tarjeta.js` y su CSS en `components.css`, porque lo bajan la
+  portada Y /aprender. Había dos moldes para el mismo objeto sin una
+  clase en común, y el de la portada decía la mitad. (Sigue existiendo
+  una tercera FORMA, la fila compacta de /usuarios y /guardados, que es
+  otra cosa a propósito.)
+- **Una tarjeta se mide a SÍ MISMA, no a la ventana** (tanda 316). Con la
+  ventana en 960 px la misma tarjeta de guía mide 264 px en la portada y
+  432 en /aprender; con la ventana en 600, 552. «Pantalla más grande»
+  puede significar «tarjeta más pequeña», así que un `@media` es la
+  herramienta equivocada: lo que responde al ancho de su caja va con
+  `container-type: inline-size` + `@container`.
+- **`auto-fit` no pliega una pista que alguien CRUZA** (tanda 316). En
+  /torneos las pestañas de grupo iban con `grid-column: 1 / -1` dentro de
+  la misma rejilla, así que las tres pistas contaban como ocupadas y
+  cambiar `auto-fill` por `auto-fit` no hacía absolutamente nada. Lo que
+  se reparte una fila necesita su propia caja.
+- **Sacar CSS de `components.css` es mudar DEPENDENCIAS, no reglas**
+  (tanda 316). El barrido de la 299 sigue los imports, así que una
+  página «usa» una clase por importar el módulo que la pinta, aunque no
+  la pinte nunca: `index.html` arrastraba las clases de `.guide-card`
+  solo por importar `js/guide-card.js`, y `guia.html` llegaba al selector
+  de emoji a través de `js/block-editor.js`. Si el CSS se va, el código
+  que lo pinta se va con él. Y **una sección de CSS no es una unidad de
+  mudanza**: `.link-btn` y `.foro-etiqueta` viajaron pegadas a la sección
+  de al lado y dejaron sin estilo a media web.
 - **El pie va en el HTML de las 22 páginas que lo tienen** (tanda 312),
   no montado desde JavaScript: esos enlaces tienen que estar aunque el JS
   no llegue, y son los que recorre Google. Si tocas el pie, tócalo en las
@@ -161,8 +187,10 @@ y de curso**, que era el hueco grande; desde la 311 el **contraste
 medido** en ocho páginas por los dos temas, desde la 312 los
 **objetivos táctiles** y el pie en las 22 páginas, y desde la 313 el
 salto al contenido, el `<h1>` de cada pantalla, el respeto a «menos
-movimiento» y el hueco de las imágenes. Desde la 315, la **escala de
-color entera**: los tokens fijos que no se redefinen en oscuro, la
+movimiento» y el hueco de las imágenes. Desde la 316, la **tarjeta de
+guía compartida**, los títulos del foro en el móvil, la portada sin
+repetirse y las tarjetas que se miden a sí mismas. Desde la 315, la
+**escala de color entera**: los tokens fijos que no se redefinen en oscuro, la
 paleta de arte y los respaldos que sobran. **Y desde la 314, el foro
 ENTERO**: encuestas, no leídos, suscripciones, búsqueda, menciones y
 moderación, que era el agujero grande que quedaba. Lo único del foro que

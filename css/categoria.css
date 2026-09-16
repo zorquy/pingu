@@ -1,0 +1,185 @@
+/* ── La ficha de una categoría (tanda 316) ──
+ *
+ * La tarjeta ANCHA de guía (`.guide-card`: icono a la izquierda, dos
+ * botones a la derecha) la pinta `renderGuideCardHtml` en
+ * js/guide-card.js, y la única pantalla que la pinta es ésta. Vivía en
+ * components.css, que lo baja TODO el mundo — incluida la portada, que
+ * desde la 316 usa la tarjeta compartida y no la necesita para nada.
+ *
+ * El `@media` del final viaja con su base a propósito: si se quedara en
+ * components.css, la base de aquí —que carga DESPUÉS— le ganaría por
+ * orden y el móvil se rompería sin que nada diera error. Es la trampa de
+ * la tanda 299.
+ */
+
+
+
+.guide-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.guide-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+/* El hueco del icono enseña la PORTADA cuando la guía tiene, y el emoji
+   cuando no. Se probó a poner la portada grande arriba, como en la home,
+   pero la mayoría de las guías no tienen portada: quedaba una rejilla a
+   parches, y con una imagen de 160 px por tarjeta se pasaba de ver 4
+   guías de un vistazo a ver 2. Así se gana la referencia visual sin
+   perder densidad, y el que no tenga portada no desentona. */
+.guide-card-icon {
+  font-size: var(--t-2xl);
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 3px 0 0 var(--ice-dark);
+  overflow: hidden;
+}
+
+.guide-card-icon.has-cover {
+  background-size: cover;
+  background-position: center;
+  /* Sin la sombra de "pastilla": con una foto dentro parece un botón. */
+  box-shadow: none;
+}
+
+.guide-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.guide-card-info h3 {
+  font-size: var(--t-lg);
+  font-weight: 700;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Se recorta a 2 líneas con "…" y se reserva esa altura de 2 líneas
+   siempre (height, no solo el límite de line-clamp) — si no, una
+   descripción de una sola línea ocupaba menos que una de dos y las
+   tarjetas seguían sin medir lo mismo. */
+.guide-card-info p {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  margin-top: 4px;
+  line-height: 1.4;
+  height: 2.8em;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.guide-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.guide-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-course,
+.btn-guide {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  text-align: center;
+  transition: background 0.15s var(--ease);
+}
+
+/* En el modal ampliado, Guía y Curso van en la misma fila que el botón
+   "Guardar" (.btn-outline) — para que no se vean como una acción menor
+   junto a un botón más grande, adoptan aquí el mismo tamaño y radio que
+   el resto de botones del sitio; en la tarjeta pequeña se quedan
+   compactos, que es lo que corresponde a ese espacio. */
+.modal-actions .btn-guide,
+.modal-actions .btn-course {
+  padding: 16px 24px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--t-md);
+  line-height: 1;
+  gap: 8px;
+}
+
+/* La Guía es la acción principal (siempre existe); el Curso es
+   opcional, así que lleva el estilo secundario. */
+.btn-guide {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.btn-guide:hover {
+  background: var(--navy-light);
+}
+
+.btn-course {
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.btn-course:hover {
+  background: var(--ice-dark);
+}
+
+/* ── Guardar y valoración en la tarjeta pequeña ── */
+.guide-card-social {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* ── Autoría en la tarjeta de guía ── */
+
+.guide-card-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: var(--t-xs);
+  min-width: 0;
+}
+@media (max-width: 480px) {
+  .guide-card {
+    flex-wrap: wrap;
+  }
+  .guide-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+  .guide-actions a {
+    flex: 1;
+  }
+}

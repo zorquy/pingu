@@ -291,36 +291,6 @@ a.noticia-banner:hover {
   font-weight: 600;
 }
 
-/* ── El galón de rareza de las guías recientes ──
- *
- * Antes la rareza pintaba el MARCO entero, 2px y en su color: tres
- * marcos dorados en fila pesaban más que las portadas de las guías, que
- * es lo que hay que mirar. Ahora es una línea de 3px arriba, y la
- * rareza se sigue leyendo además en su pastilla de abajo. */
-#recentGrid .recent-card {
-  position: relative;
-  border-width: 1px;
-  border-color: var(--border);
-  padding-top: 24px;
-}
-
-#recentGrid .recent-card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3px;
-  background: var(--galon, var(--border-strong));
-}
-
-#recentGrid .recent-card:hover {
-  border-color: var(--border-strong);
-}
-
-.galon-bronze { --galon: var(--rarity-bronze); }
-.galon-silver { --galon: var(--rarity-silver); }
-.galon-gold { --galon: var(--rarity-gold); }
-.galon-platinum { --galon: var(--rarity-platinum); }
-
 /* ── Las tarjetas de categoría, sin marco de color ──
  *
  * El borde de 2px se lo daba `.category-card` para que se viera el color
@@ -398,12 +368,18 @@ a.noticia-banner:hover {
   line-height: 1.35;
 }
 
+/* Dos líneas y no una (tanda 316). Con `nowrap` un título largo se
+   cortaba con «…» incluso en los 562 px del escritorio, y en el móvil
+   —donde solo le quedaban 160— se cortaban los tres. Un tema que no
+   dice de qué va no invita a entrar a nadie. */
 .foro-vivo-titulo {
   font-weight: 700;
   color: var(--text);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .foro-vivo-titulo:hover {
@@ -419,6 +395,53 @@ a.noticia-banner:hover {
      320px. Mismo trato que el título de al lado: se recorta con «…». */
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── En el móvil el título manda (tanda 316) ──
+ *
+ * Medido en 390 px: al título le quedaban 160 px y los tres salían
+ * cortados —«Mi lista de C…»—, porque la cuenta de mensajes se lleva su
+ * columna a la derecha. En 1280 tiene 562 y no se corta ni uno. Un tema
+ * que no dice de qué va no invita a entrar a nadie.
+ *
+ * La cuenta NO se quita: la 300 la puso en grande a propósito, porque es
+ * el dato que decide si entras. Lo que cambia es dónde — baja a su
+ * propia línea, debajo del autor y la hora, y deja el ancho entero para
+ * el título, que se reparte en dos líneas.
+ */
+@media (max-width: 559px) {
+  .foro-vivo-fila {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: start;
+  }
+  .foro-vivo-fila > .mini-avatar { grid-row: 1 / span 2; }
+  .foro-vivo-texto { grid-column: 2; }
+  .foro-vivo-cuenta {
+    grid-column: 2;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    text-align: left;
+    margin-top: 4px;
+  }
+  .foro-vivo-cuenta b {
+    display: inline;
+    font-size: var(--t-sm);
+  }
+  .foro-vivo-cuenta small {
+    display: inline;
+    margin-top: 0;
+  }
+
+  /* TRES líneas y no dos: medido, en 390 px al título le quedan 222 y en
+     320 px, 152. Con dos líneas «¿Qué mazo me recomendáis para empezar?»
+     —que no es un título raro— seguía cortándose. */
+  .foro-vivo-titulo {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
 }
 
 /* ── Las dos columnas de verdad (tanda 300) ──
@@ -590,65 +613,10 @@ a.noticia-banner:hover {
   font-size: var(--t-2xs);
 }
 
-/* ── Las guías nuevas, con su portada ── */
-/* La misma pinta que las tarjetas de /aprender: el degradado sale de
-   .arte-1..6 (components.css) y la rareza se pone ENCIMA de la portada,
-   que es donde la mirada ya está. */
-#recentGrid .recent-card {
-  padding: 0;
-  overflow: hidden;
-  gap: 0;
-}
-
-.recent-arte {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  height: 90px;
-  padding: 12px;
-  margin-bottom: 16px;
-}
-
-.recent-arte::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1.1px, transparent 1.2px);
-  background-size: 14px 14px;
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.recent-arte img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.recent-arte .rarity-chip {
-  position: relative;
-  z-index: 1;
-}
-
-#recentGrid .recent-card h3,
-#recentGrid .recent-card p,
-#recentGrid .recent-card .meta,
-#recentGrid .recent-card .guide-card-author,
-#recentGrid .recent-card .guide-card-social {
-  margin-left: 16px;
-  margin-right: 16px;
-}
-
-#recentGrid .recent-card .guide-card-social {
-  margin-bottom: 16px;
-}
-
-/* Dos columnas, siempre: .grid-guides pasa a tres a partir de 1080px
-   contando con el ancho completo de la página, y aquí la rejilla vive
-   dentro de una columna. Con cuatro guías salen dos filas de dos, que es
-   lo que además equilibra el alto con la columna lateral. */
+/* Dos columnas, siempre. `.guia-rejilla` se rellena sola con pistas de
+   300 px mínimo contando el ancho que tenga; aquí vive DENTRO de una
+   columna, y con cuatro guías se quieren dos filas de dos —que es lo que
+   además equilibra el alto con la lateral—. */
 @media (min-width: 640px) {
   #recentGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -706,17 +674,32 @@ a.noticia-banner:hover {
   box-shadow: none !important;
 }
 
-/* El título de una guía nueva cabe en dos líneas. En la rejilla ancha de
-   antes entraba en una y se recortaba con «…»; en dos columnas, casi
-   todos los títulos se quedaban a medias. */
-#recentGrid .recent-card h3 {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
+/* ── En el móvil, los primeros pasos primero (tanda 316) ──
+ *
+ * Medido: «Tus primeros pasos» empezaba a 2.401 px de una portada de
+ * 3.917 — el 61% hacia abajo. En escritorio está a 470, arriba en la
+ * lateral; en el móvil las dos columnas se apilan y la lateral entera
+ * cae al final. O sea que el módulo que le dice a alguien RECIÉN
+ * LLEGADO qué hacer es de lo último que ve, justo el día que más falta
+ * le hace.
+ *
+ * `display: contents` disuelve las dos columnas y deja todas las
+ * secciones como hijas directas del panel, que es lo único que hace que
+ * `order` pueda mover una de una columna a la otra. El hueco entre
+ * secciones no cambia: el panel tiene el mismo `gap` de 16 px que las
+ * columnas que disuelve.
+ *
+ * No hace falta apagarlo cuando los tres pasos están hechos: ahí la
+ * sección se queda `hidden` para siempre (js/primeros-pasos.js) y un
+ * elemento sin caja no se coloca en ninguna parte.
+ */
+@media (max-width: 959px) {
+  .portada-principal,
+  .portada-lateral {
+    display: contents;
+  }
+
+  #primerosPasos {
+    order: -1;
+  }
 }

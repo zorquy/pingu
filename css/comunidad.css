@@ -470,3 +470,179 @@
     min-height: 44px;
   }
 }
+
+/* ── Peticiones de guías (mudadas en la tanda 316) ──
+ *
+ * Las pinta js/peticiones.js y la única pantalla que lo carga es
+ * /usuarios, que ya baja esta hoja. En components.css se lo bajaba
+ * todo el mundo para nada.
+ */
+/* ── Peticiones de guías ── */
+/* La caja la pone `.simple-card`; aquí solo la disposición. El aspecto
+   de los campos (redondeo, borde, fondo, foco) viene de la regla base de
+   style.css, la misma para todo el sitio. */
+.peticion-form {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.peticion-form input,
+.peticion-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.peticion-form textarea {
+  min-height: 62px;
+}
+
+.peticion-form button {
+  justify-self: start;
+}
+
+.peticiones-aviso {
+  padding: 12px 16px;
+  background: var(--ice);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.peticion {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.peticion-cumplida {
+  opacity: 0.72;
+}
+
+/* El voto es lo primero que se ve, y a propósito: el número es lo que
+   convence a alguien de ponerse a escribir. */
+.peticion-voto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 48px;
+  flex-shrink: 0;
+  padding: 8px 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-mid);
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.peticion-voto:hover:not(:disabled) {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.peticion-voto-on {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--white);
+}
+
+.peticion-voto:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.peticion-voto-flecha {
+  font-size: var(--t-2xs);
+  line-height: 1;
+}
+
+.peticion-voto-num {
+  font-size: var(--t-lg);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.peticion-cuerpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.peticion-cuerpo h3 {
+  font-size: var(--t-lg);
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.peticion-detalle {
+  margin: 0 0 8px;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+  line-height: 1.55;
+}
+
+.peticion-pie {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--t-xs);
+  color: var(--text-dim);
+}
+
+.peticion-fecha::before {
+  content: '·';
+  margin-right: 8px;
+}
+
+.peticion-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.peticion-acciones .btn-secondary {
+  padding: 8px 12px;
+  font-size: var(--t-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.peticion-borrar {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  text-decoration: underline;
+}
+
+.peticion-hecha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  font-size: var(--t-sm);
+  color: var(--success);
+  font-weight: 600;
+}
+
+.peticiones-sub {
+  margin: 24px 0 4px;
+  font-size: var(--t-sm);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+
+.editor-desde-peticion {
+  margin: -8px 0 16px;
+  padding: 12px 12px;
+  background: var(--ice);
+  border-radius: var(--radius-sm);
+}

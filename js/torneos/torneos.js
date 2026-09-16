@@ -283,7 +283,7 @@ function pintarGrupos(grupos) {
         )
         .join('')}
     </nav>
-    ${activa.filas.join('')}
+    <div class="torneos-rejilla">${activa.filas.join('')}</div>
     ${activa.pie || ''}`
   lista.querySelectorAll('[data-grupo]').forEach((b) =>
     b.addEventListener('click', () => {
