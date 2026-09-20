@@ -744,11 +744,25 @@ function seccionDeCabecera(linea) {
   return null
 }
 
-// El código de set son 2–6 mayúsculas… salvo las energías básicas, que
-// TCG Live exporta con el set literal «Energy» («3 Basic {F} Energy
-// Energy 50»). Sin esa alternativa las cuatro líneas de energía se
-// descartaban, el total daba 49 y el jugador no podía guardar su lista.
-const CARD_LINE = /^(\d+)\s+(.+?)\s+([A-Z]{2,6}|Energy)\s+(\S+)$/
+// El código de set son 2–6 caracteres en MAYÚSCULAS O DÍGITOS… salvo las
+// energías básicas, que TCG Live exporta con el set literal «Energy»
+// («3 Basic {F} Energy Energy 50»). Sin esa alternativa las cuatro líneas
+// de energía se descartaban, el total daba 49 y el jugador no podía
+// guardar su lista.
+//
+// Los dígitos entran en la tanda 318, y con prisa: salió la colección
+// del 30 aniversario, cuyo código lleva número, y NINGUNA lista que la
+// incluyera se podía guardar. Era el sitio menos evidente donde
+// buscarlo, porque el panel de administración ya se había traído el set
+// entero — pero el importador llena la base de CARTAS (el buscador, los
+// sprites) y este parser no consulta la base para nada: solo mira la
+// FORMA de la línea. Las dos cosas nunca estuvieron enlazadas.
+//
+// Ya pasaba antes con «151», que TCG Live exporta como MEW y por eso no
+// se notó. Admitir dígitos no afloja nada: el set es el penúltimo
+// campo y el número, el último, así que un nombre que acabe en cifra
+// («Professor's Research 189») sigue sin casar — le falta un campo.
+const CARD_LINE = /^(\d+)\s+(.+?)\s+([A-Z0-9]{2,6}|Energy)\s+(\S+)$/
 
 // Parsea un export de TCG Live: líneas vacías y comentarios (#, //) se
 // ignoran; las cabeceras de sección (con o sin tilde) cambian la sección

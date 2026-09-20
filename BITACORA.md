@@ -12,6 +12,41 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-20 — PINGU-Claude (tanda 318 — URGENTE: sets con número en la decklist)
+
+**Hecho**: salió la colección del 30 aniversario, cuyo código de set
+lleva un número, y **ninguna decklist que la incluyera se podía
+guardar**: el editor decía «No se entiende la línea». PINGU lo pilló con
+un torneo empezando.
+
+La causa estaba en una sola línea de `js/torneos/motor.js`: el código de
+set se leía con `[A-Z]{2,6}`, **solo letras**. Ahora es `[A-Z0-9]{2,6}`.
+
+**Lo importante para la próxima**: traerse el set desde el panel de
+administración NO arregla esto, y es lo primero que uno prueba. El
+importador llena la base de CARTAS (el buscador del editor, los sprites)
+y el parser de decklists **no consulta la base para nada** — solo mira la
+FORMA de la línea. Las dos cosas nunca estuvieron enlazadas.
+
+Ya pasaba antes con «151», pero no se notó porque TCG Live lo exporta
+como `MEW`.
+
+**Comprobado**: lista de 60 con `30C` y `M30C` mezclados con sets de
+siempre → 60 cartas, cero errores. Y las cuatro formas que NO deben
+colarse siguen sin colarse (nombre acabado en cifra sin set, set en
+minúsculas, cabecera desconocida, set de 7 caracteres).
+`test-decklist-idiomas.mjs` entero en verde.
+
+**Ficheros**: `js/torneos/motor.js` (una línea y su comentario),
+`BITACORA.md`.
+
+**En curso / pendiente**: **la tanda 317 (`@layer`) está aparcada en la
+rama local `tanda-317-espera`** — estaba commiteada sin pushear y con la
+suite a medias, y NO la he arrastrado con esta urgencia. Hay que
+retomarla: pasar la suite entera y el rigor antes de subirla.
+
+---
+
 ## 2026-09-16 (5) — PINGU-Claude (tanda 316 — seis cosas que solo se ven mirando)
 
 **Hecho**: PINGU preguntó si quedaban mejoras visuales. En vez de
