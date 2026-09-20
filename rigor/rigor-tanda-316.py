@@ -15,14 +15,14 @@ MUTACIONES = [
     # que pasó, y no lo nota nadie hasta que alguien compara las dos
     # pantallas a la vez.
     ('js/home.js', 'la portada vuelve a pintar su propia tarjeta',
-     "    .map((g) => tarjetaDeGuia(g, { categoria: g.categories?.name || '', pie: true }))",
+     "    .map((g) => tarjetaDeGuia(g, { progreso, categoria: g.categories?.name || '', pie: true }))",
      "    .map((g) => `<div class=\"recent-card\"><h3>${g.title}</h3></div>`)"),
     ('js/guia-tarjeta.js', 'la tarjeta deja de decir de qué es la guía',
      "          ${categoria ? `<span class=\"guia-chapa-cat\">${escapeHtml(categoria)}</span>` : '<span></span>'}",
      "          <span></span>"),
     ('js/home.js', 'la portada pierde el autor y el guardar',
-     "    .map((g) => tarjetaDeGuia(g, { categoria: g.categories?.name || '', pie: true }))",
-     "    .map((g) => tarjetaDeGuia(g, { categoria: g.categories?.name || '' }))"),
+     "    .map((g) => tarjetaDeGuia(g, { progreso, categoria: g.categories?.name || '', pie: true }))",
+     "    .map((g) => tarjetaDeGuia(g, { progreso, categoria: g.categories?.name || '' }))"),
     # Y la trampa de la 306, que picó al mudar el bloque de hoja: el gris
     # de la etiqueta se come el color de la rareza si va detrás.
     ('css/components.css', 'la rareza se pinta del gris de las etiquetas',
