@@ -109,18 +109,29 @@ async function loadRecent() {
     return
   }
 
-  // La MISMA tarjeta que /aprender (tanda 316). Aquí va con PIE —el
-  // autor y el botón de guardar, que es lo que la portada aportaba de
-  // más— y sin progreso: la portada no se trae el de nadie, así que la
-  // barra sale a cero con «Sin empezar», igual que una guía que nadie ha
-  // abierto.
+  // La MISMA tarjeta que /aprender (tanda 316), con PIE —el autor y el
+  // botón de guardar, que es lo que la portada aportaba de más— y el
+  // nombre de la categoría, que ya venía en la consulta sin usarse.
   //
-  // El nombre de la categoría viene en la propia consulta
-  // (`categories(name)`), que ya se pedía y no se usaba para nada.
-  grid.innerHTML = data
-    .map((g) => tarjetaDeGuia(g, { categoria: g.categories?.name || '', pie: true }))
-    .join('')
+  // Y con progreso desde la 319: solo el de las cuatro que se enseñan
+  // (`.in`), no la tabla entera como /aprender —allí hace falta para
+  // filtrar por «sin leer»—. Sin sesión se le pasa `null`, que es el
+  // valor que no afirma nada; el porqué, en js/guia-tarjeta.js.
+  let progreso = null
+  const sesion = await getSession()
+  if (sesion) {
+    progreso = {}
+    const { data: filas } = await supabase
+      .from('user_progress')
+      .select('guide_id, status, read_at, current_block, started_at')
+      .eq('user_id', sesion.user.id)
+      .in('guide_id', data.map((g) => g.id))
+    for (const f of filas || []) progreso[f.guide_id] = f
+  }
 
+  grid.innerHTML = data
+    .map((g) => tarjetaDeGuia(g, { progreso, categoria: g.categories?.name || '', pie: true }))
+    .join('')
 }
 
 // Solo para quien ha iniciado sesión. Alguien que llega buscando si su

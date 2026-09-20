@@ -16596,3 +16596,174 @@ del token, comparado en el mismo formato.
 
 Cubierto en `test-tanda-316.mjs` (8 bloques) + `rigor-tanda-316.py`
 (18 mutaciones, todas detectadas).
+
+## Tanda 318 — un set con un número dentro
+
+Salió la colección del 30 aniversario y **ninguna decklist que la
+incluyera se podía guardar**. El editor decía «No se entiende la línea»
+sobre `4 Mew ex 30C 123`.
+
+Una sola línea de `js/torneos/motor.js`:
+
+```js
+const CARD_LINE = /^(\d+)\s+(.+?)\s+([A-Z0-9]{2,6}|Energy)\s+(\S+)$/
+```
+
+El código de set se leía con `[A-Z]{2,6}` — **solo letras**. Pasaba ya
+con «151», pero no se notó porque TCG Live lo exporta como `MEW`.
+
+**Lo que hay que recordar**, porque es lo primero que uno prueba y no
+sirve de nada: **traerse el set desde /admin NO arregla esto.** El
+importador llena la tabla de CARTAS (el buscador del editor, los
+sprites); el parser de decklists **no consulta la base para nada**,
+solo mira la FORMA de la línea. Las dos cosas nunca estuvieron
+enlazadas, y darlo por hecho cuesta media hora con un torneo empezando.
+
+Comprobado que las cuatro formas que NO deben colarse siguen sin
+colarse: nombre acabado en cifra sin set, set en minúsculas, cabecera
+desconocida y set de 7 caracteres.
+
+## Tanda 319 — una barra vacía afirma algo falso
+
+La tarjeta de guía que unificó la 316 pinta una barra de progreso. En
+/aprender se le pasa el progreso de quien mira. En la portada **no se le
+pasaba nada** — y la tarjeta tomaba el hueco por un cero: barra vacía y
+«Sin empezar» debajo de una guía leída de cabo a rabo.
+
+El defecto no era la portada: era que el componente **solo sabía
+distinguir dos estados donde hay tres**.
+
+```js
+export function tarjetaDeGuia(g, { progreso = null, … } = {}) {
+  const seSabe = progreso !== null && progreso !== undefined
+  const p = (seSabe && progreso[g.id]) || null
+```
+
+- `null` → no se sabe. **No se pinta la barra.**
+- `{}` → se sabe, y de esta guía no hay nada: «Sin empezar».
+- la fila → lo que ponga.
+
+La portada se trae el progreso de las CUATRO guías que enseña —con un
+`.in` sobre sus ids, no la tabla entera como /aprender, que allí hace
+falta para filtrar por «sin leer»—. Sin sesión no pide nada y la
+tarjeta se queda sin barra: no es lo mismo «no has empezado» que «no
+hay nadie de quien saberlo».
+
+**La forma del fallo**: cuando un componente recibe un dato opcional, el
+valor por defecto tiene que ser *el que no afirma nada*. Un `{}` como
+defecto convierte «no me lo han dado» en «me han dado cero», y el
+componente miente en la pantalla que no se lo pasa — sin dar error en
+ninguna parte.
+
+Cubierto en `test-tanda-319.mjs` (3 bloques).
+
+## Tanda 320 — tres puntos de corte elegidos a ojo
+
+Con un torneo en juego aparece el chip amarillo en la barra de arriba, y
+a partir de ahí toda la barra se iba a la izquierda y «PokeDoc» se
+amontonaba encima de su icono.
+
+El síntoma no era un desbordamiento —que canta— sino **un hijo de flex
+cediendo en silencio**, que es por lo que llevaba meses así.
+
+**1. `.nav-logo` se encogía.** Es hijo de flex, así que por defecto cede
+sitio cuando el bloque de al lado crece: de 126 px a 44. El
+`min-width: 44px` que le puso la 312 **no lo evita** — eso es el mínimo
+de la CAJA, y lo que se pasaba de rosca era el REPARTO. Lo evita
+`flex-shrink: 0`.
+
+**2. El corte de los enlaces estaba 214 px corto.** Estaba en 860; la
+barra pide **1.074** (logo 126 + enlaces 496 + los seis iconos 340 +
+relleno y huecos 112). Entre 860 y 1.073 no cabía y cedía el logo. Va a
+1.080. Con el chip puesto hacen falta 1.162, así que entre 1.080 y
+1.179 los enlaces se van al desplegable, que ya existía y cabe de sobra
+(pide 726).
+
+**3. El chip con el NOMBRE salía desde 860, y pide 1.282.** Se ha
+invertido la regla: manda el chip corto («Jugar») **por defecto** y el
+del nombre solo aparece por encima de 1.340. Así el caso que se sale es
+el que hay que DECLARAR, no el que hay que recordar. Y el corte que
+esconde lupa y tema con el chip puesto sube de 479 a 599, porque entre
+480 y 549 la barra seguía saliéndose.
+
+Los tres números salen de un barrido de anchos, no de mirar la pantalla.
+
+**Y el nombre se cortaba a hachazo** («Pachanga de inauguraci»):
+`text-overflow: ellipsis` **no hace nada sobre un contenedor flex**. El
+texto necesita su propia caja con `min-width: 0` — ahora va en un
+`<span class="nav-torneo-nombre">`.
+
+**Una trampa que costó el módulo entero**: los estilos del chip viven
+dentro de una plantilla de JavaScript (`const ESTILOS = \``), y un
+comentario de CSS con una **comilla invertida** dentro cierra la cadena.
+`aviso-torneo.js` dejó de cargar **sin dar error en la página**, porque
+el `import()` va en diferido y su fallo se traga. Se descubrió porque el
+chip desapareció de una captura propia. En los comentarios de dentro de
+esa plantilla, cero comillas invertidas.
+
+Cubierto en `test-tanda-320.mjs` (4 bloques).
+
+## Tanda 321 — que no dependa de que un tercero esté en pie
+
+El 2026-09-20 `r2.limitlesstcg.net` dejó de responder. No un 404: un
+`ERR_CONNECTION_TIMED_OUT`. Y **todos los minisprites del sitio se
+apagaron a la vez** — PINGU lo vio en /mis-partidas, donde quedaban los
+huecos reservados y nada dentro.
+
+El código hacía lo correcto, y por eso el síntoma era ese: el `onerror`
+de `atributosDeRespaldo` **esconde** la imagen que no llega, porque un
+icono roto parece la página estropeada. Un hueco vacío es lo que se ve
+cuando todo funciona y el sprite no existe.
+
+Lo que no había era a dónde ir. El respaldo que existía desde la 296
+—de una FORMA a su ESPECIE BASE— vive en la misma CDN, así que cuando
+la que se cae es la CDN entera no sirve de nada.
+
+**Ahora `respaldoDeSprite(url)` devuelve el SIGUIENTE sitio donde
+probar**, y se recorre llamándola otra vez con lo que devuelve. Eso es
+exactamente lo que ya hacían los dos manejadores de `error` de
+`cartas-decklist.js` y `selector-mazo.js` (`if (respaldo) img.src =
+respaldo`), así que los dos heredaron la cadena entera sin tocarlos.
+
+La cadena, de menos a más pérdida:
+
+1. la especie base, en Limitless (se conserva el estilo);
+2. `cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/<dex>.png`;
+3. el mismo fichero desde `raw.githubusercontent.com`, por si el que se
+   cae es jsDelivr — mismo repo, así que es un cambio de puerta y no de
+   contenido;
+4. esconder la imagen.
+
+**Por qué los sprites por NÚMERO y no los iconos de caja.** Los iconos
+de caja de octava generación se parecen más, pero **se acaban en el
+898**: dejan fuera toda la novena, que es justo la que se juega
+(Gholdengo es el 1000, Raging Bolt el 1021). Comprobado a mano: del 900
+en adelante son 404. Los `sprites/pokemon/<dex>.png` cubren los 1025.
+
+Lo que se pierde al caer al segundo origen es la FORMA: PokeAPI no tiene
+«ogerpon-wellspring», así que una forma acaba enseñando su especie base
+— el mismo apaño que ya se hacía con las megas recién salidas.
+
+**Lo que NO arregla**, y va escrito en el código: si un origen no
+CONTESTA en vez de dar un 404, cada peldaño espera a que el navegador se
+canse. En una caída entera los sprites tardan. Aparecen, que era el
+problema.
+
+**Dos lecciones, las dos sobre la prueba y no sobre el código:**
+
+**Una prueba que necesita que un tercero esté en pie se pone roja el día
+que ese tercero se cae** — y entonces dice «tu encadenado está roto»
+cuando lo que pasa es justo lo contrario: que hace falta. El bloque que
+mide «se ve» corta los dos primeros peldaños y **sirve el tercero desde
+la propia prueba**; que esas URLs existan se comprueba en un bloque
+APARTE, contra la red. Si ese sale rojo el mensaje es otro: «el respaldo
+ya no vale, busca otro».
+
+**Y la caché del navegador hace que un bloque contamine al siguiente.**
+La segunda mitad del bloque 3 —cortar TODO y comprobar que la imagen se
+esconde— salía en rojo porque el navegador ya se había traído el tercer
+peldaño en la primera mitad y lo servía de su caché con la red cortada.
+Va en un `browser.newContext()`. Es de los fallos que dan verde por el
+motivo equivocado en cuanto cambia el orden de los bloques.
+
+Cubierto en `test-tanda-321.mjs` (4 bloques).

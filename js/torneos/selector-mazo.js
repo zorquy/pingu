@@ -200,9 +200,10 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
   const spriteImg = sprite.querySelector('img')
   const limpiar = contenedor.querySelector('.selector-mazo-limpiar')
 
-  // El sprite del campo, con la misma red que la lista: si el de la
-  // forma no está en la CDN se prueba el de su especie base, y si
-  // tampoco llega se esconde el marco — nunca el icono roto.
+  // El sprite del campo, con la misma red que la lista: cada fallo baja
+  // un peldaño de la cadena de respaldos —la especie base primero, y el
+  // segundo origen si la caída es de la CDN entera—, y agotada la
+  // cadena se esconde el marco. Nunca el icono roto.
   spriteImg.addEventListener('error', () => {
     const respaldo = respaldoDeSprite(spriteImg.src)
     if (respaldo && spriteImg.src !== respaldo) spriteImg.src = respaldo

@@ -39,10 +39,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-09-16 van 168,1 y quedan
-  1,9**: el pie de la tanda 312 está en las 22 páginas y suma, y la
+  CSS) debe caber en 170 KB gzip. **A 2026-09-20 van 169,3 y queda
+  0,7**: el pie de la tanda 312 está en las 22 páginas y suma, la
   313 sacó el editor de texto rico a `css/editor-texto.css` para hacer
-  sitio. Antes de meter nada más en la portada, haz sitio —
+  sitio, y la 319 le metió a la portada la consulta del progreso. Queda
+  MENOS DE UN KILOBYTE: la próxima tanda que toque la portada tiene que
+  empezar por hacer sitio, no por mirar si cabe. El candidato es
+  `components.css` (28,6 KB gzip, el mayor de los que baja todo el
+  mundo). Antes de meter nada más en la portada, haz sitio —
   `pesar-portada.mjs` dice quién ocupa qué— y el camino es siempre el
   mismo: lo que solo usa una pantalla, a su hoja. `components.css` y `js/app.js` los
   baja TODO el mundo — el CSS o JS de una sola página va en su propio
@@ -127,6 +131,36 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   puede significar «tarjeta más pequeña», así que un `@media` es la
   herramienta equivocada: lo que responde al ancho de su caja va con
   `container-type: inline-size` + `@container`.
+- **Un respaldo que vive en el mismo sitio no es un respaldo** (tanda
+  321). El 2026-09-20 se cayó `r2.limitlesstcg.net` entera y todos los
+  minisprites del sitio se apagaron a la vez: la red que había —de una
+  FORMA a su ESPECIE BASE— pedía las dos a la misma CDN. Ahora
+  `respaldoDeSprite(url)` devuelve el SIGUIENTE sitio donde probar y se
+  recorre llamándola otra vez, así que la cadena cruza de origen
+  (Limitless → jsDelivr → GitHub a pelo → esconder). Si añades una
+  imagen de un tercero, pregúntate qué se ve el día que ese tercero no
+  conteste — y que la respuesta no sea «nada, sin dar error».
+- **Un hijo de flex CEDE antes de desbordar** (tanda 320), y por eso una
+  barra que no cabe no da ningún síntoma que cante: `.nav-logo` se
+  encogía de 126 px a 44 y «PokeDoc» se amontonaba encima de su icono.
+  `min-width` NO lo evita —ese es el mínimo de la caja, y lo que se pasa
+  de rosca es el REPARTO—; lo evita `flex-shrink: 0`. Corolario: **un
+  punto de corte elegido a ojo es una afirmación sobre un ancho que
+  nadie ha medido**. Los tres de la barra de arriba estaban cortos (860
+  donde hacían falta 1.074, y 479 donde hacían falta 599) y llevaban
+  meses así. Mide el ancho que pide la barra; no mires la pantalla.
+- **`text-overflow: ellipsis` no hace nada sobre un contenedor flex**
+  (tanda 320): el texto necesita SU propia caja con `min-width: 0`. Sin
+  ella el nombre se corta a hachazo («Pachanga de inauguraci») y parece
+  un fallo en vez de un recorte.
+- **Un dato opcional se recibe con el valor que NO afirma nada** (tanda
+  319). La tarjeta de guía tomaba `progreso = {}` por defecto, así que
+  la portada —que no se lo pasaba— pintaba la barra a cero y decía «Sin
+  empezar» debajo de una guía leída entera. Hay TRES estados, no dos:
+  `null` = no se sabe (no se pinta), `{}` = se sabe y no hay nada, y la
+  fila = lo que ponga. Un defecto que convierte «no me lo han dado» en
+  «me han dado cero» miente en la pantalla que no se lo pasa, y **no da
+  error en ninguna parte**.
 - **`auto-fit` no pliega una pista que alguien CRUZA** (tanda 316). En
   /torneos las pestañas de grupo iban con `grid-column: 1 / -1` dentro de
   la misma rejilla, así que las tres pistas contaban como ocupadas y

@@ -12,6 +12,129 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-20 — PINGU-Claude (tanda 321 — URGENTE: se cayó la CDN de los sprites)
+
+**Hecho**: `r2.limitlesstcg.net`, de donde salen TODOS los minisprites
+del sitio, dejó de responder. No un 404: un `ERR_CONNECTION_TIMED_OUT`,
+confirmado por PINGU abriendo la URL a pelo en su navegador. Se veía en
+/mis-partidas —los huecos reservados y nada dentro— pero le pasaba
+igual a /torneo, al selector de mazo y a las decklists.
+
+**El código hacía lo correcto**, y por eso el síntoma era ese: el
+`onerror` esconde la imagen que no llega, porque un icono roto parece la
+página estropeada. Lo que faltaba era a dónde ir: el respaldo que había
+—de una FORMA a su ESPECIE BASE— pide las dos a la MISMA CDN, así que
+cuando se cae la CDN entera no sirve de nada.
+
+Ahora `respaldoDeSprite(url)` devuelve el SIGUIENTE sitio donde probar y
+se recorre llamándola otra vez con lo que devuelve. Los dos manejadores
+de `error` que ya existían (`cartas-decklist.js`, `selector-mazo.js`)
+hacían ya `if (respaldo) img.src = respaldo`, así que heredaron la
+cadena entera sin tocarles la lógica. La cadena: especie base en
+Limitless → PokeAPI por jsDelivr → el mismo fichero desde GitHub →
+esconder.
+
+**Por qué los sprites por NÚMERO y no los iconos de caja**, que se
+parecen más: los iconos se acaban en el 898 y dejan fuera toda la
+novena generación, que es la que se juega. Comprobado: del 900 en
+adelante, 404.
+
+**Comprobado**: `test-tanda-321.mjs` en verde, 4 bloques. El que
+importa mide en un navegador que con los dos primeros peldaños cortados
+el sprite SE VE, y que sin ninguno se esconde.
+
+**Ficheros**: `js/torneos/sprites-pokemon.js` (el grueso),
+`js/mis-partidas.js`, `js/torneos/cartas-decklist.js`,
+`js/torneos/selector-mazo.js` (comentarios que se habían quedado
+viejos). En la rama `pruebas`: `test-tanda-321.mjs` (NUEVO).
+
+**En curso / pendiente**: falta el rigor de la 321, además de los de la
+319 y la 320. Y OJO: cuando Limitless vuelva, esto **no hay que
+deshacerlo** — la cadena solo entra cuando el primero falla, así que en
+condiciones normales no cambia nada.
+
+---
+
+## 2026-09-20 — PINGU-Claude (tandas 319 y 320 — la barra de progreso decía mentiras, y la barra de arriba se rompía)
+
+**Hecho**: dos cosas que PINGU vio en su propia pantalla, las dos del
+mismo tipo: una pieza que se comportaba bien en el caso para el que se
+escribió y mal en el de al lado.
+
+**319 — «Sin empezar» en guías ya leídas.** La tarjeta de guía unificada
+de la 316 pinta una barra de progreso. En /aprender se le pasa el
+progreso de quien mira; en la portada NO se le pasaba nada, y la tarjeta
+tomaba el hueco por un cero: barra vacía y «Sin empezar» debajo de una
+guía leída entera.
+
+El arreglo es que `progreso` ahora distingue TRES estados y no dos:
+`null` = no se sabe (no se pinta barra), `{}` = se sabe y no hay nada
+(«Sin empezar»), y la fila = lo que ponga. La portada se trae el
+progreso de las CUATRO guías que enseña (`.in`, no la tabla entera como
+/aprender, que allí hace falta para filtrar por «sin leer»), y sin
+sesión no pide nada y la tarjeta se queda sin barra.
+
+**La lección**: una barra vacía por no saber AFIRMA algo falso. Cuando
+un componente recibe un dato opcional, «no me lo han dado» y «me han
+dado cero» tienen que poder distinguirse, o el valor por defecto acaba
+mintiendo en la pantalla que no lo pasa.
+
+**320 — la barra de arriba se amontonaba encima del logo.** Con un
+torneo en juego aparece el chip amarillo, y a partir de ahí toda la
+barra se iba a la izquierda y «PokeDoc» se apelotonaba sobre su icono.
+
+Tres causas, las tres MEDIDAS con un barrido de anchos, no elegidas a
+ojo:
+
+1. `.nav-logo` es hijo de flex y por tanto **se encoge por defecto**:
+   pasaba de 126 px a 44. El `min-width: 44px` que le puso la 312 no lo
+   evita —ese es el mínimo de la caja, no del reparto—; lo evita
+   `flex-shrink: 0`.
+2. El corte de los enlaces estaba en 860 px y la barra pide **1.074**.
+   Entre 860 y 1.073 no cabía, y en vez de desbordar, cedía el logo.
+   Ahora el corte es 1.080, y con el chip puesto hacen falta 1.162, así
+   que entre 1.080 y 1.179 los enlaces se van al desplegable (que ya
+   existía y cabe de sobra).
+3. El chip con el NOMBRE salía desde los 860 px, donde no cabe ni de
+   lejos: pide 1.282. Se ha invertido la regla — manda el chip corto
+   («Jugar») por defecto y el del nombre solo aparece por encima de
+   1.340. Y el corte que esconde lupa y tema con el chip puesto sube de
+   479 a 599, porque entre 480 y 549 la barra seguía saliéndose.
+
+De paso, el nombre del torneo se cortaba a hachazo («Pachanga de
+inauguraci»): `text-overflow: ellipsis` **no hace nada sobre un
+contenedor flex**, el texto necesita su propia caja con `min-width: 0`.
+Ahora va en un `<span class="nav-torneo-nombre">`.
+
+**La lección**: un punto de corte elegido a ojo es una afirmación sobre
+un ancho que nadie ha medido. Los tres estaban mal y los tres llevaban
+meses así, porque el síntoma no era un desbordamiento —que canta— sino
+un hijo de flex cediendo en silencio.
+
+**Ficheros**: `js/guia-tarjeta.js`, `js/home.js` (319);
+`css/style.css`, `js/torneos/aviso-torneo.js` (320).
+En la rama `pruebas`: `test-tanda-319.mjs` (NUEVO, 3 bloques),
+`test-tanda-320.mjs` (NUEVO, 4 bloques), `herramientas/correr-suite.sh`.
+
+**En curso / pendiente**:
+- Falta el rigor de la 319 y de la 320.
+- **La tanda 317 (`@layer`) sigue aparcada** en la rama local
+  `tanda-317-espera`. OJO al retomarla: movía 47 reglas de la barra de
+  arriba a `style.css`, y la 320 acaba de tocar esas mismas reglas —
+  hay que reconciliarlo a mano, no fusionarlo a lo bruto.
+- Sin resolver: PINGU dice que en **/mis-partidas no salen los sprites**
+  de los mazos. Descartado que sea el generador (con datos de prueba
+  pinta las `<img>` con la URL correcta) y descartada la cadena de
+  respaldo. El sospechoso es la CDN `r2.limitlesstcg.net`, que
+  **no se puede comprobar desde el contenedor** (el proxy la bloquea con
+  un 403 al CONNECT — eso es la jaula, no la CDN). Si se confirma, el
+  arreglo es un segundo origen de respaldo en
+  `js/torneos/sprites-pokemon.js` antes de esconder la imagen: hoy el
+  `onerror` la esconde, y por eso el síntoma es «un hueco» en vez de un
+  icono roto.
+
+---
+
 ## 2026-09-20 — PINGU-Claude (tanda 318 — URGENTE: sets con número en la decklist)
 
 **Hecho**: salió la colección del 30 aniversario, cuyo código de set

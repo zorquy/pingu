@@ -318,10 +318,12 @@ export async function rellenarChapasArquetipo(raiz) {
         img.addEventListener('error', () => {
           if (img.classList.contains('es-sprite')) {
             spritesRotos.add(img.src)
-            // Antes de rendirse: el sprite de una forma que la CDN no
-            // tenga cae al de su ESPECIE BASE (una mega recién salida
-            // enseña el Pokémon a secas). Si el respaldo tampoco carga,
-            // este mismo manejador vuelve a saltar y ya no hay más caída.
+            // Antes de rendirse se baja un peldaño de la cadena de
+            // respaldos: la ESPECIE BASE (una mega recién salida enseña
+            // el Pokémon a secas) y, si la caída es de la CDN entera, el
+            // segundo ORIGEN. Este mismo manejador vuelve a saltar con
+            // cada fallo, así que la cadena se recorre sola; `spritesRotos`
+            // es lo que impide dar vueltas si dos peldaños coinciden.
             const respaldo = respaldoDeSprite(img.src)
             if (respaldo && !spritesRotos.has(respaldo)) {
               img.src = respaldo

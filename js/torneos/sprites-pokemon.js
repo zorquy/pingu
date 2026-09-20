@@ -448,22 +448,95 @@ for (const f of FORMAS_TCG) {
   }
 }
 
-// La URL del sprite de la especie base de esta URL de forma, o null si
-// no es una forma (o ya es la base y no hay a qué caer).
-export function respaldoDeSprite(url) {
-  return RESPALDO_POR_URL.get(String(url ?? '')) ?? null
+// ── El segundo ORIGEN: cuando la CDN entera no contesta ──
+//
+// El 2026-09-20 r2.limitlesstcg.net dejó de responder (no un 404: un
+// ERR_CONNECTION_TIMED_OUT) y TODOS los sprites del sitio se apagaron a
+// la vez — en /mis-partidas se veían los huecos reservados y nada
+// dentro, porque el manejador de abajo esconde lo que no llega. La web
+// no puede depender de que un tercero esté en pie.
+//
+// El segundo origen son los sprites de PokeAPI, que van por NÚMERO de
+// Pokédex y cubren los 1025 (los iconos de caja de octava generación,
+// que son los que más se parecen, se cortan en el 898 y dejan fuera
+// justo la generación que se juega). Y detrás va el MISMO fichero desde
+// GitHub a pelo, por si el que se cae es jsDelivr: son el mismo repo,
+// así que es un cambio de puerta, no de contenido.
+//
+// Lo que se pierde al caer aquí es la FORMA: PokeAPI no tiene
+// «ogerpon-wellspring», así que una forma acaba enseñando su especie
+// base — exactamente el mismo apaño que ya se hacía con las megas
+// recién salidas, y para reconocer un mazo de un vistazo sirve igual.
+const CDN_RESPALDO = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon'
+const CDN_RESPALDO_2 = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
+
+// De una URL de Limitless a su número de Pokédex, que es lo que pide el
+// segundo origen. Las formas apuntan a la especie BASE porque es lo
+// único que PokeAPI tiene; las megas llevan un dex inventado
+// (20000 + base) y por eso se usa `f.base`, nunca `f.dex`.
+const DEX_POR_URL = new Map()
+for (let i = 0; i < POKEMON_POR_DEX.length; i++) {
+  const s = slugLimitless(POKEMON_POR_DEX[i])
+  if (s) DEX_POR_URL.set(`${CDN_SPRITES}/${s}.png`, i + 1)
+}
+for (const f of FORMAS_TCG) {
+  if (f.slug) DEX_POR_URL.set(`${CDN_SPRITES}/${f.slug}.png`, f.base || f.dex)
 }
 
-// Los atributos de <img> que aplican ese respaldo. Va como onerror en
-// línea porque estos sprites nacen de cadenas de HTML (innerHTML), no
-// de createElement: primero se prueba la especie base y, si tampoco
-// llega, la imagen se esconde — nunca el icono roto del navegador. Las
-// URLs las montamos nosotros de slugs (letras, números y guiones), así
-// que van sin escapar sin peligro.
+// El SIGUIENTE sitio donde probar este sprite, o null si ya no quedan.
+// Es una cadena y se recorre llamando otra vez con lo que devuelve, que
+// es justo lo que hacen los manejadores de `error`: cada fallo da un
+// paso más. El orden es de menos a más pérdida — primero la especie
+// base en la CDN de siempre (se conserva el estilo), y solo después el
+// salto de origen.
+export function respaldoDeSprite(url) {
+  const u = String(url ?? '')
+  const base = RESPALDO_POR_URL.get(u)
+  if (base) return base
+  const dex = DEX_POR_URL.get(u)
+  if (dex) return `${CDN_RESPALDO}/${dex}.png`
+  if (u.startsWith(`${CDN_RESPALDO}/`)) return `${CDN_RESPALDO_2}/${u.slice(CDN_RESPALDO.length + 1)}`
+  return null
+}
+
+// La cadena entera de una vez, para quien no puede ir pidiéndola paso a
+// paso. El tope de 4 y el descarte de repetidos son un cinturón: una
+// tabla mal montada que se apuntara a sí misma colgaría el navegador.
+export function cadenaDeRespaldos(url) {
+  const cadena = []
+  let u = String(url ?? '')
+  for (let i = 0; i < 4; i++) {
+    const siguiente = respaldoDeSprite(u)
+    if (!siguiente || cadena.includes(siguiente)) break
+    cadena.push(siguiente)
+    u = siguiente
+  }
+  return cadena
+}
+
+// Los atributos de <img> que recorren esa cadena. Va como onerror en
+// línea porque estos sprites nacen de cadenas de HTML (innerHTML) y no
+// de createElement, así que aquí no se puede enganchar un listener ni
+// llamar a nada de este módulo: la cadena viaja entera en el atributo.
+// Al agotarse, la imagen se ESCONDE — nunca el icono roto del
+// navegador, que parece la página estropeada.
+//
+// Las URLs las montamos nosotros (letras, números, guiones y puntos),
+// así que van sin escapar sin peligro, y el manejador no lleva ni una
+// comilla doble para no cerrar el atributo.
+//
+// Lo que NO arregla: si la CDN no contesta en vez de dar un 404, cada
+// paso espera a que el navegador se canse, así que en una caída entera
+// los sprites tardan en aparecer. Aparecen, que era el problema.
+const SALTO_DE_RESPALDO =
+  "var r=(this.dataset.respaldos||'').split(' ').filter(Boolean);" +
+  "if(r.length){this.src=r.shift();this.dataset.respaldos=r.join(' ')}" +
+  "else{this.style.display='none'}"
+
 export function atributosDeRespaldo(url) {
-  const respaldo = respaldoDeSprite(url)
-  const datos = respaldo ? ` data-respaldo="${respaldo}"` : ''
-  return `${datos} onerror="if(this.dataset.respaldo){this.src=this.dataset.respaldo;this.removeAttribute('data-respaldo')}else{this.style.display='none'}"`
+  const cadena = cadenaDeRespaldos(url)
+  const datos = cadena.length ? ` data-respaldos="${cadena.join(' ')}"` : ''
+  return `${datos} onerror="${SALTO_DE_RESPALDO}"`
 }
 
 // ── Objetos con sprite propio ──

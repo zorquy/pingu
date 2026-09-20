@@ -341,10 +341,12 @@ function spritesDeMazoHtml(nombre, clave) {
     const objeto = spriteDeObjeto(nombre)
     if (objeto) urls = [objeto]
   }
-  // Si un sprite no llega, atributosDeRespaldo prueba primero el de la
-  // especie base (una mega que la CDN aún no tiene) y, si tampoco, la
-  // imagen se ESCONDE. Un icono de imagen rota es peor que no enseñar
-  // nada: parece que la página está estropeada.
+  // Si un sprite no llega, atributosDeRespaldo recorre la cadena: la
+  // especie base (una mega que la CDN aún no tiene) y luego el segundo
+  // ORIGEN, por si la que está caída es la CDN entera — pasó el
+  // 2026-09-20 y esta pantalla se quedó con los huecos y nada dentro.
+  // Agotada la cadena la imagen se ESCONDE: un icono de imagen rota es
+  // peor que no enseñar nada, parece que la página está estropeada.
   return urls
     .map((u) => `<img class="partidas-sprite" src="${escapeHtml(u)}" alt="" loading="lazy"${atributosDeRespaldo(u)} />`)
     .join('')

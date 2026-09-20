@@ -554,6 +554,14 @@ body:has(> .footer) .page-content {
   color: var(--text);
   white-space: nowrap;
   letter-spacing: -0.2px;
+  /* Y NO se encoge (tanda 320). Es un hijo de flex, así que por defecto
+     cede sitio cuando el bloque de al lado crece: con el chip del torneo
+     puesto pasaba de 126 px a 44, y como el texto lleva `nowrap`, «Poke
+     Doc» se amontonaba encima del icono. Un `min-width` no lo salva —eso
+     es el mínimo de la CAJA, y aquí lo que se pasaba de rosca era el
+     reparto—. La 312 ya le puso el mínimo de 44 por lo táctil y se quedó
+     a medias: hacía falta esto. */
+  flex-shrink: 0;
 }
 
 .nav-logo::before {
@@ -728,7 +736,15 @@ body:has(> .footer) .page-content {
   border-bottom: none;
 }
 
-@media (min-width: 860px) {
+/* El corte de los enlaces: 1080 y no 860 (tanda 320).
+   MEDIDO, no elegido: logo 126 + enlaces 496 + los seis iconos 340 +
+   relleno y huecos 112 = 1.074 px. Con el corte en 860, entre 860 y
+   1.073 la barra pedía más de lo que había… y no se notaba porque el
+   logo, que es hijo de flex, CEDÍA: se encogía de 126 a 44 px y «Poke
+   Doc» se amontonaba encima del icono. Eso es lo que PINGU vio.
+   Por debajo manda el menú desplegable, que ya existía y cabe de sobra
+   (pide 726). */
+@media (min-width: 1080px) {
   .nav-links {
     display: flex;
   }
@@ -740,7 +756,28 @@ body:has(> .footer) .page-content {
   }
 }
 
-@media (max-width: 859px) {
+/* Y con un torneo EN JUEGO la barra lleva un pasajero más —el chip que
+   te lleva a tu mesa, 70 px hasta con el texto corto— así que los
+   enlaces no caben hasta los 1.162. En ese tramo manda el menú
+   desplegable, que es el que ya sabe guardar los enlaces: no se quita
+   ningún control, solo cambian de sitio.
+
+   El `.open` lleva `!important` porque la regla de arriba lo pone con
+   `!important` también, y sin él el menú no se podría abrir en este
+   tramo — se vería el botón y no pasaría nada al pulsarlo. */
+@media (min-width: 1080px) and (max-width: 1179px) {
+  body:has(.nav-torneo-vivo) .nav-links {
+    display: none;
+  }
+  body:has(.nav-torneo-vivo) .nav-toggle {
+    display: flex;
+  }
+  body:has(.nav-torneo-vivo) .nav-menu-mobile.open {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 979px) {
   /* Con sesión, nav-right acumula búsqueda + tema + mensajes + campana +
      avatar + el propio botón de menú: en móvil no caben todos junto al
      logo sin desbordar la página horizontalmente (el botón de menú
@@ -816,7 +853,12 @@ body:has(> .footer) .page-content {
    mientras estás jugando —buscar y tema—; el tema sigue estando, en el
    menú. Va DESPUÉS del `@media` de arriba porque tiene que poder
    deshacerlo, y un `@media` no suma especificidad. */
-@media (max-width: 479px) {
+/* 599 y no 479 (tanda 320): medido, con el chip puesto la barra pide 550
+   px, así que entre 480 y 549 seguía saliéndose. El corte de 479 se
+   eligió a ojo en la 312 y se quedó 70 px corto. 599 es además el mismo
+   corte al que la llamita de la racha se retira, así que las dos piezas
+   que sobran en una pantalla estrecha se van juntas. */
+@media (max-width: 599px) {
   .nav-right:has(.nav-torneo-vivo) #navSearchBtn,
   .nav-right:has(.nav-torneo-vivo) #navThemeToggle {
     display: none;

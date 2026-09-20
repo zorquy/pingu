@@ -20,8 +20,20 @@ export const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinu
 // resuelto —la tarjeta no tiene por qué saber cómo se buscan—; y `pie`
 // dice si se pintan los ganchos del autor y del guardar, que solo tienen
 // sentido donde alguien los va a rellenar (decorateGuideCards).
-export function tarjetaDeGuia(g, { progreso = {}, categoria = '', pie = false } = {}) {
-  const p = progreso[g.id] || null
+//
+// `progreso` distingue TRES cosas y no dos (tanda 319):
+//   · `null`  → no se sabe. No se pinta la barra.
+//   · `{}`    → se sabe, y de esta guía no hay nada: «Sin empezar».
+//   · con la fila dentro → lo que sea que ponga.
+//
+// La diferencia entre las dos primeras no es teórica: en la 316 la
+// portada no se traía el progreso de nadie y la tarjeta pintaba la barra
+// igual, así que a quien ya se había leído la guía le decía «Sin
+// empezar». Una barra vacía por no saber es peor que no tener barra:
+// afirma algo falso en vez de callarse.
+export function tarjetaDeGuia(g, { progreso = null, categoria = '', pie = false } = {}) {
+  const seSabe = progreso !== null && progreso !== undefined
+  const p = (seSabe && progreso[g.id]) || null
   const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
   const hechoPct = p?.status === 'completed' ? 100 : p && bloques ? Math.round((Math.min(p.current_block || 0, bloques) / bloques) * 100) : 0
   const leida = Boolean(p?.read_at) || p?.status === 'completed'
@@ -57,10 +69,14 @@ export function tarjetaDeGuia(g, { progreso = {}, categoria = '', pie = false } 
           ${guideHasCourse(g) ? '<span class="guia-etiqueta">Con curso</span>' : ''}
           ${rareza ? `<span class="guia-etiqueta guia-rareza rareza-${escapeHtml(rareza)}">${RAREZAS[rareza]}</span>` : ''}
         </span>
-        <span class="guia-progreso">
+        ${
+          seSabe
+            ? `<span class="guia-progreso">
           <span class="guia-progreso-texto">${estado}</span>
           <span class="guia-barra"><i style="width:${relleno}%"></i></span>
-        </span>
+        </span>`
+            : ''
+        }
       </span>
     </a>
     ${
