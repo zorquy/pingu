@@ -140,6 +140,10 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
   //  · --rt-* : los colores que elige quien escribe una guía. Cambian con
   //    el tema por su cuenta y su lista vive también en
   //    js/richtext-format.js.
+  //  · --tipo-energia (css/carta.css, tanda 324): los once colores de
+  //    los tipos de energía del TCG. El rojo del tipo Fuego es EL rojo
+  //    del tipo Fuego: si cambiara con el tema dejaría de nombrar al
+  //    tipo, que es su único trabajo. Paleta cerrada, como las otras dos.
   //  · COLORES_AVATAR (js/app.js): el color del avatar se deduce del
   //    identificador de cada persona y no puede cambiar al cambiar de
   //    tema. Aquí llegó a colarse `var(--danger)`, que en oscuro vuelve
@@ -159,7 +163,7 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
   const aMano = []
   for (const hoja of HOJAS) {
     for (const m of sinComentarios(leer(hoja)).matchAll(/([a-z-]+)\s*:\s*([^;{]*#[0-9a-f]{6}[^;{]*);/gi)) {
-      if (m[1].startsWith('--rt-')) continue
+      if (m[1].startsWith('--rt-') || m[1] === '--tipo-energia') continue
       for (const h of m[2].matchAll(/#[0-9a-f]{6}/gi)) {
         if (esRojo(h[0]) && !/^--danger/.test(m[1])) aMano.push(`${hoja}: ${m[1]}: ${h[0]}`)
       }
