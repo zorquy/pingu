@@ -53,13 +53,23 @@ MUTACIONES = [
     (F, 'una mega se salta la especie base y cambia de origen de golpe',
      '  const base = RESPALDO_POR_URL.get(u)\n  if (base) return base\n', ''),
 
-    # ── 6. Las megas apuntan a su dex inventado ──
-    # `f.dex` de una mega es 20000 + base: pediría el sprite número
-    # 20428, que no existe. El comentario del código avisa; la prueba
-    # tiene que cazarlo igual.
-    (F, 'las formas usan su dex inventado en vez del de la especie',
-     '  if (f.slug) DEX_POR_URL.set(`${CDN_SPRITES}/${f.slug}.png`, f.base || f.dex)',
-     '  if (f.slug) DEX_POR_URL.set(`${CDN_SPRITES}/${f.slug}.png`, f.dex || f.base)'),
+    # ── 6. Las formas se quedan sin su peldaño a la especie base ──
+    # (La mutación que había aquí tocaba DEX_POR_URL con las formas, y
+    # el rigor la dio por «sin detectar» con razón: ese registro era
+    # CÓDIGO MUERTO, porque toda forma la caza antes RESPALDO_POR_URL.
+    # Se quitó del código y la mutación pasó a ser esta, que sí se
+    # ejecuta.)
+    (F, 'las formas dejan de tener el peldaño de su especie base',
+     '  if (!f.slug || !f.base || f.dex === f.base) continue',
+     '  continue'),
+
+    # ── 6 bis. Los DOS orígenes de salida, a los iconos de caja ──
+    # Cambiando uno solo, los dos dejan de pedir el mismo fichero y lo
+    # caza el bloque 1 sin red. Cambiando los dos, la única red es la
+    # del bloque 4: los Pokémon de la novena dan 404.
+    (F, 'los dos orígenes se van a los iconos de caja a la vez',
+     "sprites@master/sprites/pokemon'\nconst CDN_RESPALDO_2 = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'",
+     "sprites@master/sprites/pokemon/versions/generation-viii/icons'\nconst CDN_RESPALDO_2 = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-viii/icons'"),
 
     # ── 7. Una comilla doble dentro del atributo ──
     # Cierra el onerror a media función y el resto se lee como atributos
@@ -78,12 +88,18 @@ MUTACIONES = [
     (F, 'agotada la cadena, la imagen no se esconde',
      '"else{this.style.display=\'none\'}"', '"else{}"'),
 
-    # ── 10. El cinturón del bucle ──
-    # Con el tope fuera, una tabla que se apuntara a sí misma colgaría
-    # la pestaña. La prueba comprueba que la cadena acaba y no repite.
-    (F, 'la cadena deja de descartar repetidos',
-     '    if (!siguiente || cadena.includes(siguiente)) break',
-     '    if (!siguiente) break'),
+    # ── 10. Los dos peldaños de salida, el mismo ──
+    # Con los dos iguales, respaldoDeSprite se devuelve a sí misma: la
+    # cadena se llena de repeticiones y, sin el tope del bucle, la
+    # pestaña se cuelga. Es la forma de PROBAR ese tope, porque el tope
+    # en sí no se puede mutar: no hay ningún dato que lo alcance, así
+    # que quitarlo no cambia nada y el rigor lo daba por «sin detectar».
+    # Un límite duro contra un cuelgue es código defensivo legítimo
+    # aunque hoy no lo dispare nadie — lo que no vale es fingir que una
+    # mutación vacía lo prueba.
+    (F, 'los dos peldaños de salida apuntan al mismo sitio',
+     "const CDN_RESPALDO_2 = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'",
+     "const CDN_RESPALDO_2 = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon'"),
 ]
 
 rigor_comun.correr(MUTACIONES, 'test-tanda-321.mjs')

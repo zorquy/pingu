@@ -30,14 +30,20 @@ const PNG = '/tmp/pk887.png'
 // El navegador de Playwright no hereda el proxy del contenedor, así que
 // para mirar la red se usa curl, que sí. (Lo de arriba es por lo que el
 // bloque 3 no sale a internet: no por gusto, es que no puede.)
+// Devuelve `bloqueado` cuando el que dice que no es NUESTRA red, no el
+// origen. Los dos se parecen (un cero y ninguna respuesta) y confundirlos
+// es lo que hace que una prueba afirme que un sitio está caído cuando lo
+// único que pasa es que desde aquí no se sale.
 const cabecera = async (url) => {
   try {
     const salida = execFileSync('curl', ['-sS', '-o', '/dev/null', '--max-time', '25',
-      '-w', '%{http_code} %{content_type}', url], { encoding: 'utf8' })
+      '-w', '%{http_code} %{content_type}', url], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
     const [status, tipo] = salida.trim().split(' ')
     return { status: Number(status), tipo }
   } catch (e) {
-    return { status: 0, tipo: String(e.message).slice(0, 60) }
+    const texto = `${e.stderr || ''} ${e.message || ''}`
+    const bloqueado = /CONNECT tunnel failed|403|Received HTTP code 403 from proxy/.test(texto)
+    return { status: 0, tipo: texto.replace(/\s+/g, ' ').slice(0, 70), bloqueado }
   }
 }
 
@@ -68,6 +74,22 @@ console.log('\n── 1. Todo sprite tiene a dónde caer, y acaba fuera de Limit
   // peldaño, una mega que la CDN aún no tiene pierde calidad sin motivo.
   const mega = cadenaDeRespaldos(urlDeSprite(dexDeCarta('Mega Lopunny ex')))
   check('una mega prueba antes su especie base', mega[0] === 'https://r2.limitlesstcg.net/pokemon/gen9/lopunny.png', mega[0])
+
+  // Los dos peldaños de salida son EL MISMO fichero por dos puertas
+  // distintas (jsDelivr sirve el repo de GitHub), así que tienen que
+  // pedir la misma ruta. Cambiar uno y no el otro es lo que pasa cuando
+  // alguien «mejora» el respaldo a medias, y no da error: simplemente
+  // uno de los dos deja de existir para media Pokédex.
+  //
+  // Esta comprobación va aquí, sin red, a propósito: el bloque 4 no
+  // puede pedirlos todos en cualquier entorno, y una invariante que
+  // solo se comprueba cuando hay salida a internet no se comprueba.
+  {
+    const fuera = cadenaDeRespaldos(urlDeSprite(1021)).filter((u) => !u.startsWith(LIMITLESS))
+    const rutas = fuera.map((u) => u.slice(u.indexOf('/sprites/pokemon/')))
+    check('los dos peldaños de salida piden el mismo fichero',
+      fuera.length === 2 && rutas[0] === rutas[1], fuera.join(' | '))
+  }
 
   // Y la cadena termina: sin esto un manejador que la recorre en bucle
   // cuelga la pestaña.
@@ -159,14 +181,38 @@ console.log('\n── 4. Y esas URLs de respaldo existen de verdad ──')
   // cubren las nueve generaciones porque el corte de la novena es justo
   // lo que descartó al candidato anterior (los iconos de caja de octava
   // se acaban en el 898 y la novena es la que se juega).
+  // Y se piden TODOS los peldaños de cada cadena, no solo el último.
+  // Mirar solo el final dejaba pasar que el segundo origen apuntara a
+  // una ruta que no cubre la novena generación: el rigor cambió esa
+  // ruta, el tercer peldaño seguía bien y la prueba se quedó en verde.
+  // Un respaldo que no se comprueba no es un respaldo.
   const DEX = [1, 25, 150, 384, 493, 649, 721, 809, 898, 1000, 1006, 1017, 1021, 1025]
   const malos = []
+  const bloqueados = new Set()
+  let pedidos = 0
+  let comprobados = 0
   for (const d of DEX) {
-    const u = cadenaDeRespaldos(urlDeSprite(d)).at(-1)
-    const { status, tipo } = await cabecera(u)
-    if (status !== 200 || !String(tipo).startsWith('image/')) malos.push(`${d}: ${status} ${tipo}`)
+    for (const u of cadenaDeRespaldos(urlDeSprite(d))) {
+      // Los peldaños que siguen dentro de Limitless no se piden: hoy
+      // está caída, y lo que este bloque comprueba es la SALIDA.
+      if (u.startsWith(LIMITLESS)) continue
+      pedidos++
+      const { status, tipo, bloqueado } = await cabecera(u)
+      if (bloqueado) { bloqueados.add(new URL(u).host); continue }
+      comprobados++
+      if (status !== 200 || !String(tipo).startsWith('image/')) malos.push(`${d} → ${u}: ${status} ${tipo}`)
+    }
   }
-  check(`los ${DEX.length} respaldos contestan una imagen`, malos.length === 0, malos.join(' | '))
+  check(`los peldaños de salida contestan una imagen (${comprobados} de ${pedidos})`,
+    malos.length === 0, malos.join(' | '))
+  // Un bloque que no llega a comprobar NADA sale verde igual y no
+  // significa nada — la lección de la tanda 307. Al menos un origen de
+  // salida tiene que haberse podido pedir de verdad.
+  check('  …y se ha podido comprobar al menos un origen', comprobados > 0,
+    `todo bloqueado: ${[...bloqueados].join(', ')}`)
+  if (bloqueados.size) {
+    console.log(`  ·· sin comprobar (la red de ESTE entorno los bloquea, que no dice nada del origen): ${[...bloqueados].join(', ')}`)
+  }
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

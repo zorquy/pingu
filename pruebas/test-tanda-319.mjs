@@ -35,6 +35,14 @@ const PROGRESO = [
   { user_id: 'user-1', guide_id: 'g2', status: 'in_progress', current_block: 2, read_at: null, started_at: new Date(ahora - 7200e3).toISOString() },
   { user_id: 'user-1', guide_id: 'g3', status: 'completed', current_block: 4, read_at: new Date(ahora - 600e3).toISOString(), started_at: new Date(ahora - 600e3).toISOString() },
   // g4, a propósito sin fila: «sin empezar» de verdad.
+  //
+  // Y las de OTRA persona, que dicen justo lo contrario en las mismas
+  // guías. Sin ellas, quitar el filtro por usuario de la consulta no
+  // cambiaba nada y el rigor lo cantó: una prueba con un solo usuario
+  // en la tabla no puede afirmar que el filtro funcione.
+  { user_id: 'user-2', guide_id: 'g1', status: 'in_progress', current_block: 1, read_at: null, started_at: new Date(ahora - 5000e3).toISOString() },
+  { user_id: 'user-2', guide_id: 'g2', status: 'completed', current_block: 4, read_at: new Date(ahora - 900e3).toISOString(), started_at: new Date(ahora - 9000e3).toISOString() },
+  { user_id: 'user-2', guide_id: 'g4', status: 'completed', current_block: 4, read_at: new Date(ahora - 300e3).toISOString(), started_at: new Date(ahora - 3000e3).toISOString() },
 ]
 
 const browser = await chromium.launch()
@@ -110,6 +118,33 @@ console.log('\n── 3. Sin sesión no hay barra, que no es lo mismo que cero �
   check('salen las cuatro guías igual', cartas.length === 4, String(cartas.length))
   const conBarra = cartas.filter((c) => c.estado !== null)
   check('  …y ninguna enseña barra', conBarra.length === 0, conBarra.map((c) => `${c.titulo}: ${c.estado}`).join(' | '))
+  await page.close()
+}
+
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 4. Y una pantalla que ni se acuerde del progreso ──')
+{
+  // Las dos pantallas de arriba pasan el dato siempre, así que el VALOR
+  // POR DEFECTO no lo ejercita nadie — el rigor lo cantó: cambiarlo a
+  // `{}` no rompía ninguna prueba, y ese `{}` es exactamente el fallo de
+  // la 316. Lo que hay que sostener es la propiedad, no las dos
+  // pantallas de hoy: una tercera que monte la tarjeta y se olvide del
+  // progreso tiene que quedarse SIN barra, no con una barra a cero.
+  // Se monta DENTRO del navegador y no en Node: el módulo tira de
+  // js/app.js, que toca el `document` nada más cargarse.
+  const { page } = await abrir('/index.html')
+  const [sinDecirNada, sabiendoQueNada] = await page.evaluate(async () => {
+    const { tarjetaDeGuia } = await import('/js/guia-tarjeta.js')
+    const guia = { id: 'g1', slug: 'g1', title: 'Guía número 1', kind: 'guide', blocks: [{}, {}, {}, {}] }
+    return [tarjetaDeGuia(guia), tarjetaDeGuia(guia, { progreso: {} })]
+  })
+  check('sin pasarle progreso, no pinta barra', !/guia-progreso/.test(sinDecirNada),
+    sinDecirNada.match(/guia-progreso-texto">([^<]*)/)?.[1] ?? '')
+  // Y el control: pasándole un mapa vacío SÍ la pinta, porque eso es
+  // «lo sé y no hay nada». Sin esta mitad, un componente que no pintara
+  // la barra JAMÁS pasaría la de arriba.
+  check('  …y con un mapa vacío sí, diciendo «Sin empezar»',
+    /guia-progreso/.test(sabiendoQueNada) && /Sin empezar/.test(sabiendoQueNada))
   await page.close()
 }
 

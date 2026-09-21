@@ -126,6 +126,43 @@ console.log('\n── 4. El nombre largo se corta con puntos suspensivos ──'
   await page.close()
 }
 
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 5. Los enlaces que se apartan siguen siendo alcanzables ──')
+{
+  // El rigor quitó el `!important` del menú en el tramo donde los
+  // enlaces se apartan y NINGUNA prueba se enteró: había botón, se
+  // pulsaba y no pasaba nada. El fallo es de los peores —un control que
+  // parece que está— y ninguna prueba lo veía porque ninguna ABRÍA el
+  // menú. Mirar que el botón exista no prueba que el botón haga algo.
+  //
+  // Lo que se afirma es el DESTINO, no el CSS: en cualquier ancho, o
+  // los enlaces están a la vista, o se llega a ellos pulsando el botón.
+  const ANCHOS = [400, 900, 1100, 1150, 1200, 1400]
+  for (const ancho of ANCHOS) {
+    for (const conChip of [false, true]) {
+      const { page } = await abrir(ancho, conChip)
+      const antes = await page.evaluate(() =>
+        [...document.querySelectorAll('.nav-links a')].filter((a) => a.offsetParent !== null).length)
+      let visibles = antes
+      let pulsado = false
+      if (!antes) {
+        const boton = await page.$('.nav-toggle')
+        const seVe = boton && await boton.isVisible()
+        if (seVe) {
+          await boton.click()
+          await page.waitForTimeout(250)
+          pulsado = true
+          visibles = await page.evaluate(() =>
+            [...document.querySelectorAll('.nav-menu-mobile a')].filter((a) => a.offsetParent !== null).length)
+        }
+      }
+      check(`[${ancho}${conChip ? ' con torneo' : ''}] se llega a los enlaces${pulsado ? ' (por el menú)' : ''}`,
+        visibles >= 4, `a la vista: ${antes} · tras pulsar: ${visibles}`)
+      await page.close()
+    }
+  }
+}
+
 await browser.close()
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
 process.exit(fails === 0 ? 0 : 1)
