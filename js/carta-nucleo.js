@@ -12,56 +12,22 @@
 // copia vigilada: aquel vive en `js/tcgdex.js`, que importa
 // `./supabase.js` y no se puede arrastrar a un servidor.
 import { escapeHtml } from './html.js'
+import { normalizarNombre } from './normalizar.js'
+// Las direcciones viven aparte para que quien solo quiera enlazar no se
+// lleve el molde —y con él, sus clases— por delante. Ver carta-ruta.js.
+import { rutaDeCarta, urlDeImagen, urlDeLogo } from './carta-ruta.js'
 
-const ASSETS = 'https://assets.tcgdex.net'
+export {
+  aSlug,
+  candidatosDeRuta,
+  idDeRutaDeColeccion,
+  rutaDeCarta,
+  rutaDeColeccion,
+  urlDeImagen,
+  urlDeLogo,
+} from './carta-ruta.js'
 
-// ── La dirección ──
-//
-// `/carta/ceruledge-ex-sv5-36`: el nombre delante, porque eso es lo que
-// lee una persona antes de pulsar y lo que Google pesa.
-//
-// El identificador de TCGdex ya es `<set>-<número>`, así que la
-// dirección termina en dos trozos separados por guion. Para leerla al
-// revés NO se puede dar por hecho dónde acaba el nombre —lleva guiones
-// él también—, así que se prueban los candidatos de menos a más trozos y
-// se pregunta por TODOS a la vez. Un identificador de set con un guion
-// dentro (no he visto ninguno, pero tampoco los he contado todos) se
-// resuelve solo por el segundo candidato, en vez de dar un 404 que
-// nadie sabría explicar.
-export function rutaDeCarta(carta) {
-  const id = String(carta?.id ?? '')
-  if (!id) return '/cartas'
-  return `/carta/${aSlug(carta?.name)}-${id}`
-}
 
-export function aSlug(texto) {
-  return String(texto ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60) || 'carta'
-}
-
-// Los identificadores que PODRÍA ser esta dirección, del más probable al
-// menos. Se devuelven todos para preguntar una sola vez.
-export function candidatosDeRuta(ruta) {
-  const m = String(ruta ?? '').match(/^\/carta\/([^/?#]+)/)
-  if (!m) return []
-  const trozos = decodeURIComponent(m[1]).split('-').filter(Boolean)
-  const fuera = []
-  for (const cuantos of [2, 3, 4]) {
-    if (trozos.length < cuantos) break
-    fuera.push(trozos.slice(-cuantos).join('-'))
-  }
-  return fuera
-}
-
-export function urlDeImagen(imagePath, calidad = 'high') {
-  if (!imagePath) return null
-  return `${ASSETS}/en/${imagePath}/${calidad}.webp`
-}
 
 // ── El español ──
 //
@@ -217,12 +183,101 @@ export function fechaLarga(iso) {
   return `${Number(m[3])} de ${MESES[Number(m[2]) - 1]} de ${m[1]}`
 }
 
+// ════════════════════════════════════════════════════════════════════
+// En los torneos de PokeDoc (tanda 325)
+// ════════════════════════════════════════════════════════════════════
+//
+// Esta es la fila que justifica el proyecto entero. El nombre, la foto y
+// los ataques los tienen otras quince webs; «la llevan 18 mazos, sobre
+// todo de Ceruledge Dusknoir» no lo tiene nadie más, y sale de datos que
+// ya recogemos en cada torneo.
+
+// La clave con la que se pregunta por `tcg_card_play`. Es la MISMA
+// función que usa la tarea que rellena la tabla — importada, no copiada:
+// si las dos se separaran, la ficha preguntaría por una clave que no
+// existe y el bloque desaparecería sin dar error.
+export function claveDeJuego(carta) {
+  return normalizarNombre(carta?.name)
+}
+
+// La media de copias, con una cifra decimal y coma, que es como se
+// escribe en español. Se calcula al pintar y no se guarda: guardar una
+// media ya dividida haría imposible recalcular nada.
+export function mediaDeCopias(play) {
+  const mazos = Number(play?.decks)
+  const copias = Number(play?.total_copies)
+  if (!mazos || !Number.isFinite(copias)) return null
+  return (copias / mazos).toFixed(1).replace('.', ',')
+}
+
+// Cuántos mazos hacen falta para que el número signifique algo.
+//
+// Con dos mazos, «el 100% la juega a 4 copias» es verdad y no dice
+// nada. El bloque no sale hasta que hay una muestra, y cuando sale lleva
+// el tamaño de la muestra A LA VISTA: es la diferencia entre un dato y
+// una afirmación.
+export const MAZOS_MINIMOS = 3
+
+export function hayDatosDeJuego(play) {
+  return Number(play?.decks) >= MAZOS_MINIMOS
+}
+
+export function bloqueDeJuego(play) {
+  if (!hayDatosDeJuego(play)) return ''
+  const media = mediaDeCopias(play)
+  const torneos = Number(play?.tournaments) || 0
+  const arqs = Array.isArray(play?.archetypes) ? play.archetypes : []
+  const masMazos = arqs.reduce((a, b) => a + (Number(b?.mazos) || 0), 0)
+  const otros = Math.max(0, Number(play.decks) - masMazos)
+
+  const cifras =
+    '<dl class="juego-cifras">' +
+    `<div><dt>Mazos que la llevan</dt><dd>${escapeHtml(play.decks)}</dd></div>` +
+    (media ? `<div><dt>Copias de media</dt><dd>${escapeHtml(media)}</dd></div>` : '') +
+    (torneos ? `<div><dt>${torneos === 1 ? 'Torneo' : 'Torneos'}</dt><dd>${escapeHtml(torneos)}</dd></div>` : '') +
+    '</dl>'
+
+  // Los arquetipos, con su barra. El ancho sale de una variable en el
+  // `style=` y ESE respaldo sí es legítimo: es el valor por defecto de
+  // algo que pone el código, no un token que exista en una hoja.
+  const filas = [
+    ...arqs.map(
+      (a) =>
+        '<li>' +
+        `<span class="juego-arq-nombre">${escapeHtml(a?.nombre || 'Sin catalogar')}</span>` +
+        `<span class="juego-arq-barra" style="--parte: ${Math.round(((Number(a?.mazos) || 0) / Number(play.decks)) * 100)}%"></span>` +
+        `<span class="juego-arq-num">${escapeHtml(a?.mazos ?? 0)}</span>` +
+        '</li>'
+    ),
+    otros > 0
+      ? '<li class="juego-arq-otros">' +
+        '<span class="juego-arq-nombre">Otros</span>' +
+        `<span class="juego-arq-barra" style="--parte: ${Math.round((otros / Number(play.decks)) * 100)}%"></span>` +
+        `<span class="juego-arq-num">${escapeHtml(otros)}</span>` +
+        '</li>'
+      : '',
+  ].filter(Boolean)
+
+  return (
+    '<section class="carta-juego">' +
+    '<h2>En los torneos de PokeDoc</h2>' +
+    cifras +
+    (filas.length ? `<p class="juego-donde">Se juega sobre todo en</p><ul class="juego-arqs">${filas.join('')}</ul>` : '') +
+    // El pie no es decoración: dice de dónde sale el número y de cuántos
+    // mazos, que es lo que permite a quien lee decidir si se lo cree.
+    `<p class="juego-pie">Contado sobre las listas públicas de los torneos de PokeDoc. ` +
+    `Una lista solo entra aquí cuando su torneo la deja ver.</p>` +
+    '<p class="juego-enlace"><a href="/torneos">Ver los torneos</a></p>' +
+    '</section>'
+  )
+}
+
 // ── El núcleo entero ──
 //
 // Lo pintan las DOS mitades: el borde antes de entregar la página y
 // js/carta.js si el borde no llegó. Por eso vive aquí y no en ninguna de
 // las dos, y por eso no toca el DOM: devuelve una cadena.
-export function nucleoDeCarta(carta, set) {
+export function nucleoDeCarta(carta, set, play = null) {
   if (!carta) return ''
   const img = urlDeImagen(carta.image_path, 'high')
   const sub = subtituloDeCarta(carta)
@@ -245,6 +300,7 @@ export function nucleoDeCarta(carta, set) {
     bloqueFicha(carta, set) +
     bloqueCombate(carta) +
     bloqueAtaques(carta) +
+    bloqueDeJuego(play) +
     (carta.description ? `<p class="carta-descripcion">${escapeHtml(carta.description)}</p>` : '') +
     '</div>' +
     '</div>'
@@ -253,16 +309,30 @@ export function nucleoDeCarta(carta, set) {
 
 // ── Quién merece salir en Google ──
 //
-// «Miles de páginas casi vacías hunden el dominio, no lo suben.» Una
-// ficha sin engordar es el nombre, una foto y un número: exactamente lo
-// que tienen las otras quince bases de cartas que ya existen, y en
-// inglés. Esa nace en `noindex`.
+// «Miles de páginas casi vacías hunden el dominio, no lo suben.» Y no
+// solo esas páginas: castiga al sitio ENTERO.
 //
-// Hoy el listón es «está engordada». Cuando entre el bloque de torneos
-// —lo que de verdad no tiene nadie más— el listón sube aquí, en un solo
-// sitio, y no en cinco ifs repartidos.
-export function mereceIndexarse(carta) {
-  return Boolean(carta?.detalle_at)
+// En la tanda 324 el listón era «está engordada», con la idea de que el
+// español ya era la diferencia. Al montar el bloque de torneos se vio
+// que esa idea no se sostenía todavía: los nombres y el texto de los
+// ataques vienen del catálogo OCCIDENTAL, que es inglés. Lo que hoy está
+// en español son las etiquetas —tipo, rareza, fase—, no la carta. Una
+// ficha engordada es, de momento, lo mismo que tienen otras quince webs.
+//
+// Así que el listón es el de la tanda 325 y son DOS condiciones:
+//
+//   · engordada (si no, no hay ni ficha que enseñar), y
+//   · con datos de juego (si no, no hay nada que las demás no tengan).
+//
+// Sale caro a corto plazo —se indexan decenas de fichas, no miles— y es
+// lo correcto: las que no entran siguen funcionando para quien llegue,
+// se enlazan desde su colección (que SÍ se indexa) y se encienden solas
+// en cuanto alguien las juegue en un torneo.
+//
+// Cuando exista el catálogo en español, la primera condición vuelve a
+// valer por sí sola y se cambia AQUÍ, en un sitio y no en cinco.
+export function mereceIndexarse(carta, play = null) {
+  return Boolean(carta?.detalle_at) && hayDatosDeJuego(play)
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -274,21 +344,7 @@ export function mereceIndexarse(carta) {
 // copias que se separen tiene que estar en un módulo que pueda importar
 // tanto el navegador como la función del borde.
 
-export function rutaDeColeccion(set) {
-  const id = String(set?.id ?? '')
-  if (!id) return '/cartas'
-  return `/coleccion/${encodeURIComponent(id)}`
-}
 
-export function idDeRutaDeColeccion(ruta) {
-  const m = String(ruta ?? '').match(/^\/coleccion\/([^/?#]+)/)
-  return m ? decodeURIComponent(m[1]) : null
-}
-
-export function urlDeLogo(logoPath) {
-  if (!logoPath) return null
-  return `${ASSETS}/en/${logoPath}.webp`
-}
 
 // Una carta dentro de la rejilla de su colección.
 //

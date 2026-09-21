@@ -13,6 +13,13 @@
 // Solo lee filas públicas, así que va con la clave publicable (la misma
 // que ya viaja en js/supabase.js). La clave secreta no pinta nada aquí.
 
+// Las reglas de qué carta merece estar en Google y cómo se escribe su
+// dirección viven en UN sitio y se importan (tanda 326). Escribirlas aquí
+// otra vez sería tener dos opiniones sobre lo mismo: el día que suba el
+// listón, el sitemap seguiría ofreciendo lo de antes y Google se comería
+// las páginas que la propia web marca como `noindex`.
+import { claveDeJuego, mereceIndexarse, rutaDeCarta, rutaDeColeccion } from '../../js/carta-nucleo.js'
+
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ'
 const SITIO = 'https://pokedoc.es'
@@ -27,6 +34,9 @@ const ESTATICAS = [
   // que un buscador vuelva a mirar.
   ['/noticias', '0.9'],
   ['/aprender.html', '0.9'],
+  // El índice del catálogo: es la puerta a las colecciones y, por ellas,
+  // a las fichas de carta.
+  ['/cartas', '0.8'],
   ['/buscar.html', '0.6'],
   ['/usuarios.html', '0.6'],
   ['/foro.html', '0.8'],
@@ -101,6 +111,66 @@ export default async () => {
       // tenía forma de saber que existen.
       consultar('forum_threads?select=id,last_post_at&order=last_post_at.desc&limit=5000').catch(() => []),
     ])
+
+    // ── El catálogo (tanda 326) ──
+    //
+    // Las colecciones van TODAS: doscientas cartas con su número y su
+    // imagen no es una página escasa, y son las que enlazan a las fichas.
+    //
+    // Las fichas, en cambio, solo las que la propia web marca como
+    // indexables — y eso lo decide `mereceIndexarse`, la misma función
+    // que pone el `noindex` en la página. Ofrecer en el sitemap una
+    // dirección que llega con `noindex` es pedirle a Google que gaste su
+    // presupuesto de rastreo en algo que le vas a decir que ignore.
+    //
+    // Las dos consultas llevan su propio `catch`: mientras la migración
+    // de `tcg_card_play` no esté puesta, la tabla no existe y el sitemap
+    // ENTERO se caería por una sección que todavía no existe.
+    const [sets, jugadas] = await Promise.all([
+      consultar('tcg_sets?market=eq.WEST&select=id,release_date&order=release_date.desc&limit=2000').catch(() => []),
+      consultar('tcg_card_play?select=name_key,decks,updated_at&order=decks.desc&limit=5000').catch(() => []),
+    ])
+
+    for (const s of sets) {
+      if (!s.id) continue
+      urls.push({
+        loc: `${SITIO}${rutaDeColeccion(s)}`,
+        lastmod: soloFecha(s.release_date),
+        priority: '0.7',
+        // Una colección solo cambia si se reimporta el catálogo.
+        changefreq: 'monthly',
+      })
+    }
+
+    // De las jugadas hay que sacar la carta de verdad: `tcg_card_play` se
+    // agrupa por NOMBRE, y una dirección necesita un identificador. Se
+    // piden en un solo viaje.
+    if (jugadas.length) {
+      const nombres = jugadas.map((j) => `"${encodeURIComponent(String(j.name_key))}"`).join(',')
+      const cartas = await consultar(
+        `tcg_cards?market=eq.WEST&name_search=in.(${nombres})&select=id,name,name_search,detalle_at&limit=5000`
+      ).catch(() => [])
+      const porNombre = new Map(jugadas.map((j) => [j.name_key, j]))
+      for (const c of cartas) {
+        // La clave se vuelve a calcular AQUÍ, en JavaScript, con la
+        // misma función que usa la ficha. El `in.(…)` de arriba es solo
+        // un prefiltro barato contra `name_search`, que Postgres genera
+        // con su propio `unaccent` y no tiene por qué coincidir al
+        // carácter con el nuestro (el nuestro además junta espacios
+        // dobles). Si el prefiltro se deja alguna fuera, esa carta no
+        // sale en el sitemap — un despiste, no una dirección mal puesta.
+        // Al revés sería peor: ofrecerle a Google una ficha que luego
+        // llega con `noindex`.
+        const play = porNombre.get(claveDeJuego(c))
+        if (!mereceIndexarse(c, play)) continue
+        urls.push({
+          loc: `${SITIO}${rutaDeCarta(c)}`,
+          lastmod: soloFecha(play?.updated_at),
+          priority: '0.6',
+          changefreq: 'weekly',
+        })
+      }
+    }
 
     for (const c of categorias) {
       if (c.slug) {

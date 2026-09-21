@@ -39,6 +39,8 @@ import {
   rutaDeCarta,
   subtituloDeCarta,
   urlDeImagen,
+  claveDeJuego,
+  hayDatosDeJuego,
   cabeceraDeColeccion,
   coleccionMereceIndexarse,
   idDeRutaDeColeccion,
@@ -938,6 +940,19 @@ async function metaDeCarta(url) {
   if (!carta) return null
 
   const set = carta.tcg_sets || null
+
+  // Los datos de juego, en una segunda consulta (tanda 325). No se
+  // puede embeber: `tcg_card_play` se agrupa por NOMBRE y no tiene
+  // clave ajena a la carta, a propósito — a quien pregunta «¿se juega
+  // Ceruledge ex?» le da igual de qué reimpresión sea la copia.
+  //
+  // Si la tabla todavía no existe (la migración la ejecuta un humano),
+  // `pedir` devuelve null y el bloque no sale. La página va igual: es la
+  // regla de oro de este fichero.
+  const play = await pedir(
+    `tcg_card_play?name_key=eq.${encodeURIComponent(claveDeJuego(carta))}&select=decks,total_copies,tournaments,archetypes&limit=1`
+  )
+
   // La canónica se construye con el nombre de la carta, no con lo que
   // venía escrito: quien llegue por una dirección con el nombre mal
   // puesto no genera una página duplicada.
@@ -950,7 +965,14 @@ async function metaDeCarta(url) {
     tipo: 'article',
     titulo: `${carta.name}${carta.local_id ? ` ${carta.local_id}` : ''}${donde} — PokeDoc`,
     descripcion: recortar(
-      [sub, set?.name ? `Colección: ${set.name}.` : '', 'Ataques, habilidad y datos de la carta, en español.']
+      [
+        sub,
+        set?.name ? `Colección: ${set.name}.` : '',
+        // Si se juega, eso es lo primero que quiere saber quien ve el
+        // enlace — por delante de la rareza y del ilustrador.
+        hayDatosDeJuego(play) ? `La llevan ${play.decks} mazos en los torneos de PokeDoc.` : '',
+        'Ataques, habilidad y datos de la carta, en español.',
+      ]
         .filter(Boolean)
         .join(' · ')
     ),
@@ -960,8 +982,8 @@ async function metaDeCarta(url) {
     // abajo, que es justo donde está el nombre y donde el número.
     imagen: urlDeImagen(carta.image_path, 'high') || IMAGEN_POR_DEFECTO,
     imagenCuadrada: true,
-    robots: mereceIndexarse(carta) ? null : 'noindex,follow',
-    nucleo: nucleoDeCarta(carta, set),
+    robots: mereceIndexarse(carta, play) ? null : 'noindex,follow',
+    nucleo: nucleoDeCarta(carta, set, play),
     datos: {
       '@context': 'https://schema.org',
       '@graph': [

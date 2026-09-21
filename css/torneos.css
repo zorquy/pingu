@@ -2785,3 +2785,17 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   object-fit: cover;
   flex-shrink: 0;
 }
+
+/* El nombre de una carta de la lista enlaza a su ficha (tanda 326).
+   Hereda el color del pie para no convertir una rejilla de 60 cartas en
+   una pared de azul; el subrayado al pasar por encima ya dice que se
+   puede pulsar. */
+.torneo-carta-enlace {
+  color: inherit;
+  text-decoration: none;
+}
+
+.torneo-carta-enlace:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}

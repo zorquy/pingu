@@ -517,3 +517,179 @@
   border-color: var(--border-strong);
   box-shadow: var(--shadow-sm);
 }
+
+/* ════════════════════════════════════════════════════════════════════
+ * En los torneos de PokeDoc (tanda 325)
+ * ════════════════════════════════════════════════════════════════════
+ *
+ * El bloque que justifica que la ficha exista. Va destacado a
+ * propósito: es lo único de esta página que no está en ninguna otra
+ * web. */
+
+.carta-juego {
+  margin-top: var(--e-xl);
+  padding: var(--e-lg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+}
+
+.carta-juego h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  margin: 0 0 var(--e-md);
+}
+
+.juego-cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--e-md);
+  margin: 0 0 var(--e-lg);
+}
+
+.juego-cifras dt {
+  font-size: var(--t-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-mid);
+  margin-bottom: var(--e-xs);
+}
+
+.juego-cifras dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  color: var(--navy);
+  line-height: 1.1;
+}
+
+.juego-donde {
+  margin: 0 0 var(--e-sm);
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.juego-arqs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.juego-arqs li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px auto;
+  align-items: center;
+  gap: var(--e-md);
+  font-size: var(--t-md);
+}
+
+.juego-arq-nombre {
+  /* Su propia caja con `min-width: 0`, o el recorte no ocurre y el
+     nombre largo empuja la barra fuera (tanda 320). */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* La barra. El ancho llega en `--parte` desde el `style=` que escribe el
+   JavaScript, y ESE respaldo sí es legítimo: es el valor por defecto de
+   algo que pone el código, no un token que viva en una hoja. */
+.juego-arq-barra {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+  position: relative;
+  overflow: hidden;
+}
+
+.juego-arq-barra::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--parte, 0%);
+  background: var(--navy);
+  border-radius: var(--radius-pill);
+}
+
+.juego-arq-otros .juego-arq-barra::before {
+  background: var(--text-dim);
+}
+
+.juego-arq-num {
+  font-weight: 700;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+/* El pie dice de dónde sale el número y sobre cuántos mazos. No es
+   letra pequeña de compromiso: es lo que permite a quien lee decidir si
+   se lo cree. */
+.juego-pie {
+  margin: var(--e-lg) 0 0;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.juego-enlace {
+  margin: var(--e-sm) 0 0;
+}
+
+.juego-enlace a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--navy);
+  font-weight: 600;
+  font-size: var(--t-sm);
+}
+
+/* ── Dónde se habla de esta carta ── */
+.carta-menciones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.carta-menciones a {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.carta-menciones a:hover {
+  border-color: var(--border-strong);
+}
+
+.mencion-donde {
+  flex-shrink: 0;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.mencion-titulo {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t-md);
+  font-weight: 600;
+}

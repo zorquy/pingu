@@ -27,6 +27,7 @@
 // la tiene se señala. Y señalar es AVISAR: el reglamento nunca impide
 // guardar la lista — de eso se encarga el juez, no el formulario.
 import { supabase } from '../supabase.js'
+import { rutaDeCarta } from '../carta-ruta.js'
 import { searchCards, cardImageUrl, normalizeSearch } from '../tcgdex.js'
 import { escapeHtml } from '../app.js'
 import { nombreDeSetLive, MARCAS_LEGALES_DEFECTO } from './comun.js'
@@ -414,6 +415,19 @@ export async function pintarDecklistVisual(contenedor, parsed) {
           'afterbegin',
           `<img src="${cardImageUrl(carta.image_path, 'low')}" alt="${escapeHtml(linea.name)}" loading="lazy" onerror="this.remove()" />`
         )
+
+        // Y el nombre pasa a ser un enlace a la ficha de la carta
+        // (tanda 326). Es el enlace interno que más vale del sitio: sale
+        // de una página que la gente LEE de verdad —la lista de un mazo
+        // que acaba de ganar un torneo— y apunta justo a la ficha que
+        // cuenta cuántos mazos la llevan.
+        //
+        // Solo cuando la carta se ha resuelto: sin identificador no hay
+        // dirección que poner, y un enlace roto es peor que ninguno.
+        const pie = hueco.querySelector('figcaption')
+        if (pie) {
+          pie.innerHTML = `<a class="torneo-carta-enlace" href="${escapeHtml(rutaDeCarta(carta))}">${escapeHtml(linea.name)}</a>`
+        }
         if (
           carta.regulation_mark &&
           !legales.includes(carta.regulation_mark) &&

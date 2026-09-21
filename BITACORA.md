@@ -12,6 +12,78 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-22 — PINGU-Claude (tandas 325 y 326 — el catálogo, terminado)
+
+**Hecho**: cerrado el plan de las páginas de carta. Ya está todo montado.
+
+**325 — «en los torneos de PokeDoc».** El bloque que justifica el
+proyecto: cuántos mazos llevan la carta, cuántas copias de media, en
+cuántos torneos y de qué arquetipos, con su barra. Una tarea programada
+cada media hora lo calcula en `tcg_card_play`.
+
+Lo delicado de esta tanda es que la casa tiene una promesa escrita —los
+arquetipos no se guardan, para que la visibilidad no se pueda
+equivocar— y un agregado guardado la deja en manos de una decisión.
+**La decisión: la tarea LEE las decklists con la clave PÚBLICA** y solo
+escribe con la de servicio. Así lo que entra en el agregado es, por
+construcción, lo que ya ve todo el mundo. El rigor lo vigila: cambiar
+esa clave pone la prueba roja.
+
+También: el bloque no sale por debajo de 3 mazos (un porcentaje sacado
+de dos listas es ruido con aspecto de dato), lleva la muestra a la vista
+y dice de dónde salen sus números. Y guías del sitio e hilos del foro
+que nombran la carta, debajo.
+
+**326 — que lleguen.** Sitemap con `/cartas`, todas las colecciones y
+solo las fichas indexables —**importando la misma función** que pone el
+`noindex`, para que no haya dos opiniones—; `/cartas` en el pie de las
+25 páginas; y el enlace que más vale del sitio: el nombre de cada carta
+dentro de la lista visual de un mazo enlaza a su ficha.
+
+**SUBÍ EL LISTÓN DEL NOINDEX, y va contra lo que escribí en la 324.**
+Allí dije que bastaba con estar engordada porque «el español ya es la
+diferencia». No lo es todavía: los nombres y el texto de los ataques
+salen del catálogo occidental, que es INGLÉS; lo que está en español son
+las etiquetas. Así que ahora hacen falta las dos cosas, engordada Y
+jugada. Se indexan decenas de fichas en vez de miles, y es lo correcto
+mientras no haya catálogo en español — cuando lo haya, se cambia en un
+solo sitio.
+
+**HAY UNA MIGRACIÓN QUE EJECUTAR**: `supabase-migration-cartas-juego.sql`.
+Hasta entonces la tabla no existe, el bloque no sale y las fichas siguen
+en `noindex` — nada se rompe, pero la tanda 325 no se ve.
+
+**Ficheros**: NUEVOS `supabase-migration-cartas-juego.sql`,
+`netlify/lib/juego-agregado.mjs`, `netlify/functions/cartas-juego.mjs`,
+`js/normalizar.js`, `js/carta-ruta.js`. Tocados: `js/carta-nucleo.js`,
+`js/carta.js`, `js/torneos/arquetipos.js`,
+`js/torneos/cartas-decklist.js`, `netlify/edge-functions/meta-social.js`,
+`netlify/functions/sitemap.mjs`, `css/carta.css`, `css/torneos.css`,
+`carta.html`, las 25 páginas con pie, `SCHEMA.md`. En `pruebas`:
+`test-tanda-325.mjs`, `test-tanda-326.mjs`, `rigor-tanda-325.py`,
+`rigor-tanda-326.py` (NUEVOS), `test-tanda-324.mjs` puesto al día con el
+listón nuevo, el doble con `tcg_card_play` y `correr-suite.sh` con las
+tres pruebas nuevas.
+
+**Dos cosas que salieron de refactorizar y conviene no repetir**: un
+`export … from` reexporta pero NO crea el enlace local, y `arquetipos.js`
+usaba la función por dentro (ReferenceError en cuanto se deducía un
+arquetipo, cazado por la prueba a la primera). Y un módulo que PINTA no
+se importa solo para enlazar: el barrido de CSS le habría colgado a
+/torneo todas las clases de `css/carta.css`. Por eso existe
+`js/carta-ruta.js`, donde no hay ni una etiqueta.
+
+**Pruebas**: suite entera verde, **85 de 85**. Rigor 325: 13 de 13.
+Rigor 326: 10 de 10.
+
+**En curso / pendiente**: el catálogo EN ESPAÑOL, que es lo que desbloquea
+el listón para las 23.000 fichas (nombres e imágenes vienen en el listado
+del set: ~154 peticiones, no 16.000). Y sigue pendiente de PINGU
+**reimportar el catálogo** —el set más nuevo es de 2025-10-30— y la
+imagen del bloque `zonas` del curso de «Cómo se lee una carta».
+
+---
+
 ## 2026-09-21 — PINGU-Claude (tanda 324 — las páginas de carta)
 
 **Hecho**: la pantalla que faltaba del plan del catálogo. Tres

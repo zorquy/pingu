@@ -30,17 +30,17 @@
 import { dexDeCarta, dexExacto, BASE_DE_FORMA, spriteDeObjeto, OBJETOS_TCG } from './sprites-pokemon.js'
 import { esAntepasadoDe } from './evoluciones.js'
 
-// Nombres sin tildes, sin mayúsculas y sin dobles espacios. Vive aquí y
-// no se importa de tcgdex.js a propósito: este módulo NO toca la red ni
-// el DOM, y así se puede probar entero en Node.
-export function normalizarNombre(nombre) {
-  return String(nombre ?? '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim()
-}
+// `normalizarNombre` vive ahora en `js/normalizar.js` (tanda 325): la
+// ficha de una carta la necesita y no puede cargarse este módulo
+// entero, que arrastra la Pokédex. Se reexporta para no tocar a los que
+// ya la importaban de aquí.
+//
+// OJO con la forma: un `export … from` reexporta pero NO crea el enlace
+// local, y este módulo la usa por dentro en cinco sitios. Se importa Y
+// se reexporta. (Lo cazó la prueba de la 325 al primer intento: un
+// `ReferenceError` en cuanto se deduce un arquetipo.)
+import { normalizarNombre } from '../normalizar.js'
+export { normalizarNombre }
 
 // Todas las líneas de un mazo en una sola lista. El arquetipo puede
 // venir de un Pokémon o de un objeto (los «Martillos» son Trainer), así

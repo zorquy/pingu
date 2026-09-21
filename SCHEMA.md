@@ -17165,3 +17165,167 @@ tal le va—, las guías que la mencionan y los hilos del foro que la
 nombran. Es la fila que justifica el proyecto entero y va en la
 siguiente. Tampoco entra el sitemap: mientras las fichas nazcan en
 `noindex` no hay nada que ofrecer.
+
+---
+
+## Tanda 325 — «en los torneos de PokeDoc»
+
+La fila que justifica el proyecto entero. El nombre, la foto y los
+ataques los tienen otras quince webs; **cuántos mazos la llevan y de qué
+arquetipos, no** — y sale de datos que ya recogemos en cada torneo.
+
+Ficheros nuevos: `supabase-migration-cartas-juego.sql`,
+`netlify/lib/juego-agregado.mjs`, `netlify/functions/cartas-juego.mjs`,
+`js/normalizar.js`. Tocados: `js/carta-nucleo.js`, `js/carta.js`,
+`css/carta.css`, `carta.html`, `netlify/edge-functions/meta-social.js`,
+`js/torneos/arquetipos.js`.
+
+### La promesa que había que no romper
+
+La casa tiene una regla escrita: **los arquetipos NO se guardan**, se
+deducen al pintarlos, y por eso la regla de visibilidad no se puede
+equivocar — ves el mazo de alguien exactamente cuando la base te deja
+ver su lista.
+
+Aquí se guarda un agregado, así que esa garantía deja de ser estructural
+y pasa a depender de una decisión. La decisión es esta: **la función
+programada LEE las decklists con la clave PÚBLICA** y solo ESCRIBE con la
+de servicio. Leyendo como el público, la política `decklists_ver` decide
+igual que para cualquier visitante, y lo que entra en el agregado es —por
+construcción— lo que ya puede ver todo el mundo.
+
+Con la clave de servicio bastaría un torneo con las listas en «nunca»
+para que sus mazos acabaran contados aquí y, desde aquí, en una página
+pública. `rigor-tanda-325.py` lo muta: cambiar la clave de lectura pone
+la prueba roja.
+
+Y por lo mismo el agregado **se rehace entero cada media hora**, no se va
+sumando: una lista que deja de ser pública tiene que dejar de contar. Se
+escribe lo nuevo y después se borra lo que no lleva la marca de esta
+pasada, en ese orden — si la pasada se cae a mitad, las fichas enseñan
+datos de ayer, que es mucho mejor que una tabla vacía.
+
+### Un número sin muestra no es un número
+
+Con dos mazos, «el 100% la juega a 4 copias» es verdad y no dice nada.
+El bloque no sale por debajo de `MAZOS_MINIMOS` (3), y cuando sale lleva
+**el tamaño de la muestra a la vista** y un pie que dice de dónde salen
+los números. Es la diferencia entre un dato y una afirmación.
+
+Tampoco hay porcentaje de victorias, aunque el boceto lo pedía: un 57%
+sacado de dieciocho mazos es ruido con aspecto de dato. Entra cuando haya
+con qué.
+
+La media de copias **se calcula al pintar**, no se guarda: guardar una
+media ya dividida hace imposible recalcular nada.
+
+### El listón de Google sube (y por qué me equivoqué en la 324)
+
+En la 324 el listón era «está engordada», con el argumento de que el
+español ya era la diferencia. Al montar este bloque se vio que ese
+argumento no se sostenía todavía: **los nombres y el texto de los ataques
+vienen del catálogo occidental, que es inglés**. Lo que hoy está en
+español son las etiquetas —tipo, rareza, fase—, no la carta.
+
+Así que `mereceIndexarse(carta, play)` pide ahora las dos cosas:
+engordada **y** con datos de juego. Sale caro —se indexan decenas de
+fichas, no miles— y es lo correcto mientras no haya catálogo en español.
+Las que no entran siguen funcionando para quien llegue y se enlazan desde
+su colección, que sí se indexa. Cuando exista el español, la primera
+condición vuelve a valer sola y se cambia **ahí, en un sitio**.
+
+### `normalizarNombre` sale a su propio módulo
+
+`tcg_card_play` se indexa por el nombre normalizado. La ficha lo calcula
+para preguntar y la tarea lo calcula para guardar: **si las dos versiones
+se separaran, la ficha preguntaría por una clave que no existe y el
+bloque desaparecería sin dar error en ninguna parte.** Por eso se importa
+y no se copia.
+
+Vivía dentro de `js/torneos/arquetipos.js`, que arrastra la Pokédex de
+1.025 especies — demasiado para una página que no pinta ni un sprite. Sale
+a `js/normalizar.js` y aquel lo reexporta, igual que `escapeHtml` salió de
+`app.js` en su día.
+
+**Y una trampa que costó un `ReferenceError` a la primera**: un
+`export … from` reexporta pero **no crea el enlace local**, y
+`arquetipos.js` la usa por dentro en cinco sitios. Hay que importar Y
+reexportar.
+
+### Limitación conocida
+
+El agregado se agrupa por **nombre**, y los nombres salen del texto de la
+decklist. TCG Live exporta en el idioma de quien juega, así que una lista
+en español («Órdenes del jefe») no casa con el catálogo occidental
+(«Boss's Orders») y no cuenta. La mayoría de exports competitivos vienen
+en inglés, así que hoy funciona; cuando exista el catálogo en español,
+esto se resuelve con la misma tabla de traducciones.
+
+### Cubierto
+
+`test-tanda-325.mjs` (7 bloques) y `rigor-tanda-325.py` (13 mutaciones).
+
+---
+
+## Tanda 326 — que lleguen
+
+Una página que nadie enlaza y que no está en el sitemap existe para quien
+conoce la dirección y para nadie más. Esta tanda es la fontanería.
+
+Tocados: `netlify/functions/sitemap.mjs`, `js/torneos/cartas-decklist.js`,
+`css/torneos.css`, las 25 páginas con pie. Nuevo: `js/carta-ruta.js`.
+
+### El sitemap no puede ofrecer lo que la web marca `noindex`
+
+Es lo peor que puede hacer un sitemap: gastarle a Google el presupuesto
+de rastreo en páginas que luego le vas a decir que ignore. Por eso el
+sitemap **importa `mereceIndexarse`**, la misma función que pone el
+`noindex` en la página, en vez de reescribir la regla. El día que el
+listón cambie, cambia en los dos sitios a la vez o en ninguno.
+
+Entran: `/cartas`, **todas** las colecciones (doscientas cartas con su
+número y su imagen no es una página escasa) y solo las fichas indexables.
+
+Las dos consultas nuevas llevan su propio `catch`: mientras la migración
+de `tcg_card_play` no esté puesta, la tabla no existe y el sitemap
+**entero** se caería por una sección que todavía no existe.
+
+Y la clave de juego **se recalcula en JavaScript** con nuestra función:
+el `in.(…)` contra `name_search` es solo un prefiltro barato, porque el
+`unaccent` de Postgres no tiene por qué decir lo mismo que el nuestro
+(el nuestro además junta espacios dobles). Si el prefiltro se deja alguna
+fuera, esa carta no sale en el sitemap: un despiste, no una dirección mal
+puesta.
+
+### El enlace que más vale
+
+El nombre de cada carta dentro de la lista visual de un mazo enlaza ahora
+a su ficha. Sale de una página que la gente **lee de verdad** —la lista
+del mazo que acaba de ganar un torneo— y apunta justo a la ficha que
+cuenta cuántos mazos la llevan. Solo cuando la carta se ha resuelto: sin
+identificador no hay dirección, y un enlace roto es peor que ninguno.
+
+### `js/carta-ruta.js`, o enlazar no es pintar
+
+Y aquí saltó la trampa del barrido de CSS de la 299/316. La lista de un
+mazo solo necesita saber **adónde** enlaza una carta; si importara
+`carta-nucleo.js`, el barrido le colgaría a `/torneo` todas las clases de
+`css/carta.css`, que esa página no carga — exactamente lo que le pasó a
+`.guide-card` con la portada.
+
+Las direcciones salen a `js/carta-ruta.js`, donde **no hay ni una
+etiqueta**, y `carta-nucleo.js` lo reexporta. La prueba lo vigila por los
+dos lados: que el módulo de direcciones no pinte, y que la lista del mazo
+no importe el molde.
+
+### El pie
+
+`/cartas` entra en la columna «Aprender» de las 25 páginas con pie. La
+portada sigue en 169,3 KB gzip de 170: el enlace no llega ni al redondeo.
+
+### Cubierto
+
+`test-tanda-326.mjs` (5 bloques) y `rigor-tanda-326.py` (10 mutaciones).
+El bloque del enlace **llama a `pintarDecklistVisual` de verdad** y mira
+el HTML que sale: una prueba que comprueba que se llama a algo no prueba
+lo que ese algo hace.

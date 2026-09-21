@@ -13,7 +13,14 @@
 // molde es uno solo y el relevo no existe.
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
-import { candidatosDeRuta, nucleoDeCarta, rutaDeCarta, urlDeImagen, rarezaEs } from './carta-nucleo.js'
+import {
+  candidatosDeRuta,
+  claveDeJuego,
+  nucleoDeCarta,
+  rutaDeCarta,
+  urlDeImagen,
+  rarezaEs,
+} from './carta-nucleo.js'
 
 const MERCADO = 'WEST'
 
@@ -55,11 +62,25 @@ async function cargar() {
 
   const carta = data[0]
   const set = carta.tcg_sets || null
-  pintar(carta, set)
+
+  // Los datos de juego hacen falta ANTES de pintar, porque el bloque va
+  // dentro del núcleo. Si la tabla no existe todavía —la migración la
+  // ejecuta un humano— esto devuelve error y el bloque no sale: la
+  // ficha se pinta igual.
+  const { data: juego } = await supabase
+    .from('tcg_card_play')
+    .select('decks,total_copies,tournaments,archetypes')
+    .eq('name_key', claveDeJuego(carta))
+    .maybeSingle()
+
+  pintar(carta, set, juego || null)
+  // Estas dos van por libre: llegan cuando llegan y sus secciones nacen
+  // escondidas, así que una consulta lenta no retrasa la ficha.
   versiones(carta).catch(() => {})
+  menciones(carta).catch(() => {})
 }
 
-function pintar(carta, set) {
+function pintar(carta, set, play = null) {
   document.title = `${carta.name} — ${set?.name || 'Pokémon TCG'} — PokeDoc`
 
   const miga = $('migaColeccion')
@@ -72,7 +93,7 @@ function pintar(carta, set) {
   // Si el borde ya lo pintó, no se toca. `data-servidor` lo pone
   // `inyectarNucleo` en la función del borde.
   if (caja.dataset.servidor !== '1') {
-    caja.innerHTML = nucleoDeCarta(carta, set)
+    caja.innerHTML = nucleoDeCarta(carta, set, play)
   }
   encenderLupa(caja)
 }
@@ -134,6 +155,54 @@ async function versiones(carta) {
 // Una pantalla sin encabezado no existe para quien la navega con un
 // lector: esconder el artículo entero dejaba la página sin `h1`. Se
 // queda el título y se dice lo que pasa debajo.
+// ── Dónde más se habla de esta carta ──
+//
+// Guías que la explican e hilos del foro que la nombran. Es la otra
+// mitad de «qué tiene esta página que no tenga la de al lado»: las dos
+// cosas son NUESTRAS y las dos son enlaces internos, que es lo que
+// recorre Google.
+//
+// Se busca por el nombre tal cual. Un nombre corto («Iono») daría
+// falsos positivos dentro de otras palabras, así que por debajo de
+// cuatro letras no se busca: mejor no enseñar la sección que enseñarla
+// con ruido.
+const LETRAS_MINIMAS_PARA_BUSCAR = 4
+
+async function menciones(carta) {
+  const nombre = String(carta?.name || '').trim()
+  if (nombre.length < LETRAS_MINIMAS_PARA_BUSCAR) return
+
+  const [guias, temas] = await Promise.all([
+    supabase
+      .from('guides')
+      .select('slug,title')
+      .not('published_at', 'is', null)
+      .ilike('search_content', `%${nombre}%`)
+      .limit(4),
+    supabase
+      .from('forum_threads')
+      .select('id,title')
+      .ilike('title', `%${nombre}%`)
+      .limit(4),
+  ])
+
+  const filas = [
+    ...(guias.data || []).map((g) => ({ url: `/guia?slug=${encodeURIComponent(g.slug)}`, titulo: g.title, donde: 'Guía' })),
+    ...(temas.data || []).map((t) => ({ url: `/tema/${encodeURIComponent(t.id)}`, titulo: t.title, donde: 'Foro' })),
+  ]
+  if (!filas.length) return
+
+  $('listaMenciones').innerHTML = filas
+    .map(
+      (f) =>
+        `<li><a href="${escapeHtml(f.url)}">` +
+        `<span class="mencion-donde">${escapeHtml(f.donde)}</span>` +
+        `<span class="mencion-titulo">${escapeHtml(f.titulo)}</span></a></li>`
+    )
+    .join('')
+  $('cartaMenciones')?.classList.remove('hidden')
+}
+
 function fallo() {
   const caja = $('cartaNucleo')
   // Y si el borde YA pintó la ficha, esto no toca nada.
