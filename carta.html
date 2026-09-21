@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carta de Pokémon TCG — PokeDoc</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e5175" />
+  <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+  <meta name="description" content="Ficha de una carta de Pokémon TCG en español: ataques, habilidad, PS, debilidad, rareza e ilustración." />
+  <!-- meta-social:inicio -->
+  <link rel="canonical" href="https://pokedoc.es/carta.html" />
+  <meta property="og:url" content="https://pokedoc.es/carta.html" />
+  <meta property="og:site_name" content="PokeDoc" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:title" content="Carta de Pokémon TCG" />
+  <meta property="og:description" content="Ataques, habilidad, PS, debilidad, rareza e ilustración. En español." />
+  <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Carta de Pokémon TCG" />
+  <meta name="twitter:description" content="Ataques, habilidad, PS, debilidad, rareza e ilustración. En español." />
+  <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <!-- meta-social:fin -->
+  <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
+  <link rel="modulepreload" href="/js/supabase.js" />
+  <link rel="modulepreload" href="/js/app.js" />
+  <link rel="modulepreload" href="/js/icons.js" />
+  <link rel="modulepreload" href="/js/content-icon.js" />
+  <link rel="modulepreload" href="/js/html.js" />
+  <link rel="modulepreload" href="/js/carta-nucleo.js" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/carta.css" />
+</head>
+<body>
+  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
+       porque su razón de ser es no tener que tabular por los doce
+       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
+  <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="index.html">Inicio</a>
+        <a href="/noticias">Noticias</a>
+        <a href="aprender.html">Aprender</a>
+        <a href="foro.html">Foro</a>
+        <a href="usuarios.html">Comunidad</a>
+        <a href="torneos.html" class="nav-jugar hidden">Jugar</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="index.html">Inicio</a>
+      <a href="/noticias">Noticias</a>
+      <a href="aprender.html">Aprender</a>
+      <a href="foro.html">Foro</a>
+      <a href="usuarios.html">Comunidad</a>
+      <a href="torneos.html" class="nav-jugar hidden">Jugar</a>
+    </div>
+  </nav>
+
+  <main id="contenido" class="page-content container">
+    <!-- Las migas. Van en el HTML y no montadas desde JavaScript: son
+         enlaces internos y es lo que recorre Google. La colección se
+         rellena en el servidor (o en el cliente si aquel no llegó). -->
+    <nav class="carta-migas" aria-label="Dónde estás">
+      <a href="/index.html">Inicio</a>
+      <span aria-hidden="true">›</span>
+      <a href="/cartas">Cartas</a>
+      <span aria-hidden="true">›</span>
+      <span id="migaColeccion" class="carta-miga-actual">Carta</span>
+    </nav>
+
+    <!-- EL NÚCLEO. Lo pintan dos mitades y las dos usan el mismo molde
+         (js/carta-nucleo.js): la función del borde lo mete aquí dentro
+         antes de entregar la página, y js/carta.js lo pinta solo si
+         llega y ve que el borde no lo hizo. Los marcadores son los que
+         busca `inyectarNucleo`; si se tocan, se tocan en los dos sitios. -->
+    <article id="cartaNucleo" class="carta-articulo">
+      <!-- carta:inicio -->
+      <!-- El h1 está escrito aquí y no solo en el molde: una pantalla
+           SIEMPRE tiene su encabezado, también mientras carga y también
+           si la carta no existe. Lo sustituye entero el núcleo, así que
+           nunca hay dos. -->
+      <div class="carta-cabecera"><h1>Carta</h1></div>
+      <div class="carta-esqueleto" aria-hidden="true">
+        <div class="carta-esqueleto-scan skeleton"></div>
+        <div class="carta-esqueleto-datos">
+          <span class="skeleton"></span><span class="skeleton"></span><span class="skeleton"></span>
+        </div>
+      </div>
+      <!-- carta:fin -->
+    </article>
+
+    <p id="cartaError" class="empty-state hidden">No encuentro esa carta. Puede que la dirección esté mal escrita o que la carta todavía no esté en el catálogo.</p>
+
+    <!-- Lo que añade el navegador y el borde no pinta: otras versiones
+         de la misma carta. Sin datos, la sección entera no sale. -->
+    <section id="cartaVersiones" class="carta-seccion hidden">
+      <h2 class="section-title">Otras versiones de esta carta</h2>
+      <div id="listaVersiones" class="carta-versiones"></div>
+    </section>
+  </main>
+
+  <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres
+       enlaces centrados; el problema no era que fuera feo, era que casi
+       todas las páginas se quedan cortas y dejaban entre 400 y 900 px de
+       nada antes de llegar a él. Un pie con columnas llena ese hueco,
+       da una segunda vía a cada sección desde cualquier página y enlaza
+       internamente todo el sitio, que es lo que Google recorre.
+       Va en el HTML y no montado desde JavaScript a propósito: estos
+       enlaces tienen que estar en la página aunque el JS no llegue. -->
+  <footer class="footer">
+    <div class="pie-rejilla">
+      <div>
+        <p class="pie-marca">Poke<span>Doc</span></p>
+        <p class="pie-lema">La comunidad española de Pokémon TCG. Guías, cursos, foro y torneos. Todo gratis.</p>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Aprender</p>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/guardados.html">Guardados</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Comunidad</p>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+        <a href="/buscar.html">Buscar</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Jugar</p>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/curso.html?reto=hoy">Reto de hoy</a>
+      </div>
+    </div>
+    <div class="pie-abajo">
+      <p class="pie-copy">© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
+      <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/carta.js"></script>
+</body>
+</html>

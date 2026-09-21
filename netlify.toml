@@ -161,6 +161,27 @@
   to = "/guia.html?slug=:slug"
   status = 200
 
+# La ficha de una carta (tanda 324): /carta/ceruledge-ex-sv5-36.
+#
+# El identificador NO se pasa como parámetro a propósito. Va dentro del
+# nombre y hay que leerlo al revés (el nombre lleva guiones él también),
+# así que quien lo separa es `candidatosDeRuta` en js/carta-nucleo.js —
+# el mismo trozo de código en el navegador y en la función del borde.
+# Partirlo aquí con un `:algo` obligaría a que Netlify supiera algo que
+# solo sabe ese fichero.
+[[redirects]]
+  from = "/carta/*"
+  to = "/carta.html"
+  status = 200
+
+# La colección: /coleccion/sv5. Aquí el identificador SÍ es el trozo
+# entero, así que podría ir como `:id` — va como `*` para que las dos
+# rutas del catálogo se lean igual y las dos las parta el mismo módulo.
+[[redirects]]
+  from = "/coleccion/*"
+  to = "/coleccion.html"
+  status = 200
+
 # Cualquier dirección que no exista termina en la 404 CON código 404.
 #
 # Antes esta regla mandaba todo a la portada con un 200: un enlace mal

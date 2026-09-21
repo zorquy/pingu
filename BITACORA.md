@@ -12,6 +12,57 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-21 — PINGU-Claude (tanda 324 — las páginas de carta)
+
+**Hecho**: la pantalla que faltaba del plan del catálogo. Tres
+direcciones nuevas: `/carta/ceruledge-ex-sv5-36` (la ficha),
+`/coleccion/sv5` (el set entero) y `/cartas` (el índice, con buscador y
+lista de colecciones). Las tres se sirven desde el borde con su núcleo
+ya pintado, así que un robot que no ejecuta JavaScript ve la página
+entera.
+
+**El molde se IMPORTA, no se copia.** `js/carta-nucleo.js` lo usan las
+dos mitades porque la función del borde lo importa directamente — se
+puede porque no toca el DOM y solo depende de `js/html.js`. Y el borde
+deja `data-servidor="1"`, así que el cliente NO repinta: no hay relevo y
+no hay salto, que es el problema conocido del texto de los artículos.
+
+**El fallo que destapó el rigor**: el borde entregaba la ficha bien y, si
+la consulta que hace el cliente después fallaba, el camino de error
+borraba la página buena y ponía «Carta no encontrada» encima de algo que
+se estaba leyendo. Un camino de error solo puede deshacer lo que hizo su
+propio camino de éxito.
+
+**Y el candado**: una ficha sin engordar nace en `noindex,follow`. Lo
+decide `mereceIndexarse()` y solo ella; hoy el listón es `detalle_at`, y
+sube ahí cuando entre el bloque de torneos. La colección SÍ se indexa —
+doscientas cartas con su número y su imagen no es una página escasa, y
+el borde le mete 60 enlaces internos en el documento.
+
+**Ficheros**: NUEVOS `carta.html`, `coleccion.html`, `cartas.html`,
+`js/carta-nucleo.js`, `js/carta.js`, `js/coleccion.js`, `js/cartas.js`,
+`css/carta.css`. Tocados: `netlify/edge-functions/meta-social.js`,
+`netlify.toml`, `SCHEMA.md`. En `pruebas`: `test-tanda-324.mjs` y
+`rigor-tanda-324.py` (NUEVOS), y dos retoques — `test-tanda-311.mjs`
+(los once colores de tipo son paleta de IDENTIDAD, como `COLORES_AVATAR`)
+y `test-tanda-312.mjs` (el pie va ya en 25 páginas, no en 22).
+
+**Pruebas**: suite entera verde (83 con la nueva) y rigor 16 de 16.
+
+**OJO en este despliegue**: la función del borde importa por primera vez
+un fichero de fuera de `netlify/edge-functions/`. Carga bien en Node,
+pero si Netlify se quejara al empaquetar, el arreglo es volver el módulo
+una copia vigilada — como `IDIOMA_POR_MERCADO`.
+
+**En curso / pendiente**: la tanda siguiente es el BLOQUE DE TORNEOS de
+la ficha (cuántos mazos la llevan, con qué arquetipos, qué tal le va),
+que es lo que de verdad no tiene nadie más y lo que sube el listón del
+`noindex`. Después, el sitemap y el español de los nombres. Y sigue
+pendiente de PINGU **reimportar el catálogo**: el set más nuevo es de
+2025-10-30.
+
+---
+
 ## 2026-09-21 — PINGU-Claude (rigor de la 322 y la 323)
 
 **Hecho**: pasados los dos. **322: 13 de 13. 323: 9 de 9.** Pero los dos

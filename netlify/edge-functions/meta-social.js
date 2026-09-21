@@ -23,6 +23,29 @@
 // devuelve algo raro, se sirve la página tal cual venía. Peor vista
 // previa, nunca página en blanco.
 
+// El molde de la ficha de una carta se IMPORTA, no se copia (tanda 324).
+//
+// Se puede porque `js/carta-nucleo.js` no toca el DOM y lo único que
+// importa es `js/html.js`, que es escapado puro. Es justo lo contrario
+// del caso de `IDIOMA_POR_MERCADO`, que sí es una copia vigilada porque
+// su original vive en un fichero que importa `./supabase.js`.
+//
+// Y así el cuerpo de una carta NO tiene dos mitades que puedan
+// separarse, que es el problema conocido del texto de un artículo.
+import {
+  candidatosDeRuta,
+  mereceIndexarse,
+  nucleoDeCarta,
+  rutaDeCarta,
+  subtituloDeCarta,
+  urlDeImagen,
+  cabeceraDeColeccion,
+  coleccionMereceIndexarse,
+  idDeRutaDeColeccion,
+  rejillaDeCartas,
+  rutaDeColeccion,
+} from '../../js/carta-nucleo.js'
+
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 // La clave publicable, la misma que ya viaja en js/supabase.js y que
 // cualquiera puede leer desde el navegador. Aquí solo se leen filas
@@ -154,7 +177,22 @@ export function inyectarMeta(html, meta) {
   // en vez de servirla sin nada.
   else salida = salida.replace(/<\/head>/i, `${bloque}\n</head>`)
 
-  return inyectarCuerpo(salida, meta.cuerpo)
+  // `noindex` para lo que todavía no merece estar en Google (tanda
+  // 324). Miles de páginas casi vacías hunden el dominio ENTERO, no
+  // solo esas páginas, así que una ficha sin engordar se sirve igual
+  // para quien llega, pero no se ofrece.
+  //
+  // `follow` a propósito: que no se indexe no quiere decir que sus
+  // enlaces no valgan. La colección a la que apunta sí se indexa.
+  if (meta.robots) {
+    salida = salida.replace(
+      /<\/head>/i,
+      `  <meta name="robots" content="${escaparAtributo(meta.robots)}" />\n</head>`
+    )
+  }
+
+  salida = inyectarNucleo(inyectarCuerpo(salida, meta.cuerpo), meta.nucleo)
+  return inyectarColeccion(salida, meta.coleccionCabecera, meta.coleccionCartas)
 }
 
 // El texto del artículo, dentro del <article> que hoy llega vacío.
@@ -167,6 +205,48 @@ export function inyectarCuerpo(html, cuerpo) {
   const marcadores = /<!-- articulo:inicio -->[\s\S]*?<!-- articulo:fin -->/
   if (!marcadores.test(html)) return html
   return html.replace(marcadores, `<!-- articulo:inicio -->${cuerpo}<!-- articulo:fin -->`)
+}
+
+// El núcleo de la ficha de una carta (tanda 324).
+//
+// Igual que `inyectarCuerpo` pero con sus propios marcadores, y con una
+// diferencia importante: además marca la caja con `data-servidor="1"`.
+// Eso es lo que mira js/carta.js para NO repintar lo que ya está.
+//
+// Sin esa marca habría dos mitades pintando lo mismo con un relevo en
+// medio —que es lo que hace saltar la página en los artículos—. Con
+// ella, el molde es uno y el cliente solo añade lo que falta.
+// La colección tiene DOS huecos (la cabecera y la rejilla) porque son
+// dos cajas distintas de la página. La marca de «ya está pintado» va en
+// la cabecera, que es la que mira js/coleccion.js; la rejilla no la
+// necesita porque el cliente CUENTA las que hay y sigue por ahí — que
+// además es lo que le dice por dónde pedir las siguientes.
+export function inyectarColeccion(html, cabecera, cartas) {
+  let salida = html
+  if (cabecera) {
+    const m = /<!-- coleccion:inicio -->[\s\S]*?<!-- coleccion:fin -->/
+    if (m.test(salida)) {
+      salida = salida
+        .replace(m, `<!-- coleccion:inicio -->${cabecera}<!-- coleccion:fin -->`)
+        .replace('<div id="coleccionCabecera"', '<div id="coleccionCabecera" data-servidor="1"')
+    }
+  }
+  if (cartas) {
+    const m = /<!-- coleccion-cartas:inicio -->[\s\S]*?<!-- coleccion-cartas:fin -->/
+    if (m.test(salida)) {
+      salida = salida.replace(m, `<!-- coleccion-cartas:inicio -->${cartas}<!-- coleccion-cartas:fin -->`)
+    }
+  }
+  return salida
+}
+
+export function inyectarNucleo(html, nucleo) {
+  if (!nucleo) return html
+  const marcadores = /<!-- carta:inicio -->[\s\S]*?<!-- carta:fin -->/
+  if (!marcadores.test(html)) return html
+  return html
+    .replace(marcadores, `<!-- carta:inicio -->${nucleo}<!-- carta:fin -->`)
+    .replace('<article id="cartaNucleo"', '<article id="cartaNucleo" data-servidor="1"')
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -346,6 +426,19 @@ async function pedirConVueltaAtras(rutaNueva, rutaVieja) {
   const conColumna = await pedir(rutaNueva)
   if (conColumna) return conColumna
   return pedir(rutaVieja)
+}
+
+// Lo mismo pero devolviendo la LISTA entera. `pedir` se queda con la
+// primera fila, que es lo que quieren casi todas las de este fichero;
+// la rejilla de una colección quiere todas.
+async function pedirVarias(ruta) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
+    headers: { apikey: SUPABASE_KEY, authorization: `Bearer ${SUPABASE_KEY}`, accept: 'application/json' },
+    signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS),
+  })
+  if (!res.ok) return []
+  const filas = await res.json()
+  return Array.isArray(filas) ? filas : []
 }
 
 async function pedir(ruta) {
@@ -817,10 +910,151 @@ async function metaDeTorneo(url) {
   }
 }
 
+// ════════════════════════════════════════════════════════════════════
+// La ficha de una carta (tanda 324)
+// ════════════════════════════════════════════════════════════════════
+//
+// Esta es la única de este fichero donde el cuerpo importa MÁS que las
+// etiquetas: una ficha de carta se comparte poco y se busca mucho. Por
+// eso pinta el núcleo entero en el servidor y por eso decide aquí si la
+// página merece salir en Google.
+const COLUMNAS_CARTA =
+  'id,set_id,local_id,name,image_path,category,rarity,types,hp,illustrator,' +
+  'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
+  'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,' +
+  'tcg_sets(id,name,release_date,card_count_official,card_count_total)'
+
+async function metaDeCarta(url) {
+  // Los candidatos van en un solo `in.(…)`: el nombre de la carta lleva
+  // guiones y no se sabe dónde acaba, así que probarlos de uno en uno
+  // serían hasta tres viajes con 2,5 segundos para toda la página.
+  const candidatos = candidatosDeRuta(url.pathname)
+  const porQuery = url.searchParams.get('id')
+  const buscar = porQuery ? [porQuery] : candidatos
+  if (!buscar.length) return null
+
+  const lista = buscar.map((c) => `"${encodeURIComponent(c)}"`).join(',')
+  const carta = await pedir(`tcg_cards?id=in.(${lista})&market=eq.WEST&select=${COLUMNAS_CARTA}&limit=1`)
+  if (!carta) return null
+
+  const set = carta.tcg_sets || null
+  // La canónica se construye con el nombre de la carta, no con lo que
+  // venía escrito: quien llegue por una dirección con el nombre mal
+  // puesto no genera una página duplicada.
+  const canonica = `${SITIO}${rutaDeCarta(carta)}`
+  const sub = subtituloDeCarta(carta)
+  const donde = set?.name ? ` de ${set.name}` : ''
+
+  return {
+    url: canonica,
+    tipo: 'article',
+    titulo: `${carta.name}${carta.local_id ? ` ${carta.local_id}` : ''}${donde} — PokeDoc`,
+    descripcion: recortar(
+      [sub, set?.name ? `Colección: ${set.name}.` : '', 'Ataques, habilidad y datos de la carta, en español.']
+        .filter(Boolean)
+        .join(' · ')
+    ),
+    // El escaneo de la carta ES la vista previa. Y va como `summary`
+    // (cuadrada) y no como tarjeta ancha: una carta es más alta que
+    // ancha y en el formato grande saldría recortada por arriba y por
+    // abajo, que es justo donde está el nombre y donde el número.
+    imagen: urlDeImagen(carta.image_path, 'high') || IMAGEN_POR_DEFECTO,
+    imagenCuadrada: true,
+    robots: mereceIndexarse(carta) ? null : 'noindex,follow',
+    nucleo: nucleoDeCarta(carta, set),
+    datos: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Product',
+          name: carta.name,
+          image: urlDeImagen(carta.image_path, 'high') || undefined,
+          description: sub || undefined,
+          sku: carta.id,
+          category: 'Pokémon TCG',
+          brand: { '@type': 'Brand', name: 'Pokémon' },
+          isPartOf: set?.name ? { '@type': 'CreativeWork', name: set.name } : undefined,
+        },
+        migas([
+          { nombre: 'Inicio', url: `${SITIO}/` },
+          { nombre: 'Cartas', url: `${SITIO}/cartas` },
+          ...(set?.name ? [{ nombre: set.name, url: `${SITIO}/coleccion/${encodeURIComponent(set.id)}` }] : []),
+          { nombre: carta.name, url: canonica },
+        ]),
+      ],
+    },
+  }
+}
+
+// ── La colección entera ──
+//
+// Esta SÍ se indexa: son doscientas cartas con su número, su nombre y
+// su imagen, y es la puerta por la que se llega a las fichas. La ficha
+// suelta es la que tiene que ganarse el sitio.
+//
+// Las 60 primeras cartas salen en el documento. Son las que caben en
+// pantalla y son, sobre todo, SESENTA ENLACES INTERNOS que un robot
+// recorre sin ejecutar JavaScript. Las demás las pide el cliente.
+const CARTAS_EN_EL_DOCUMENTO = 60
+
+async function metaDeColeccion(url) {
+  const id = idDeRutaDeColeccion(url.pathname) || url.searchParams.get('set')
+  if (!id) return null
+
+  const set = await pedir(
+    `tcg_sets?id=eq.${encodeURIComponent(id)}&market=eq.WEST` +
+      '&select=id,name,serie_name,logo_path,release_date,card_count_official,card_count_total&limit=1'
+  )
+  if (!set) return null
+
+  const cartas = await pedirVarias(
+    `tcg_cards?set_id=eq.${encodeURIComponent(id)}&market=eq.WEST` +
+      `&select=id,name,local_id,image_path&order=local_id.asc&limit=${CARTAS_EN_EL_DOCUMENTO}`
+  )
+
+  const canonica = `${SITIO}${rutaDeColeccion(set)}`
+  const total = set.card_count_official || set.card_count_total
+  return {
+    url: canonica,
+    tipo: 'website',
+    titulo: `${set.name} — todas las cartas — PokeDoc`,
+    descripcion: recortar(
+      `Las ${total || ''} cartas de ${set.name}`.replace('  ', ' ') +
+        `${set.serie_name ? ` (${set.serie_name})` : ''}: número, rareza, ataques e ilustración de cada una, en español.`
+    ),
+    imagen: urlDeImagen(cartas[0]?.image_path, 'high') || IMAGEN_POR_DEFECTO,
+    imagenCuadrada: true,
+    robots: coleccionMereceIndexarse(set, cartas.length) ? null : 'noindex,follow',
+    coleccionCabecera: cabeceraDeColeccion(set, cartas.length),
+    coleccionCartas: rejillaDeCartas(cartas),
+    datos: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'CollectionPage',
+          name: set.name,
+          url: canonica,
+          isPartOf: set.serie_name ? { '@type': 'CreativeWorkSeries', name: set.serie_name } : undefined,
+          datePublished: set.release_date || undefined,
+        },
+        migas([
+          { nombre: 'Inicio', url: `${SITIO}/` },
+          { nombre: 'Cartas', url: `${SITIO}/cartas` },
+          { nombre: set.name, url: canonica },
+        ]),
+      ],
+    },
+  }
+}
+
 async function calcularMeta(url) {
   const ruta = url.pathname
   // Antes que /guia: una noticia se sirve DESDE guia.html, pero se pide
   // por /noticias/<slug> y es lo que hay que mirar.
+  // Con cuidado, que es la trampa de siempre: '/cartas' (el índice)
+  // también empieza por '/carta'. Aquí se pide la ficha y solo la ficha.
+  if (/^\/carta(\.html)?$/.test(ruta) || ruta.startsWith('/carta/')) return metaDeCarta(url)
+  if (/^\/coleccion(\.html)?$/.test(ruta) || ruta.startsWith('/coleccion/')) return metaDeColeccion(url)
   if (ruta.startsWith('/noticias/')) return metaDeGuia(url, false, true)
   if (ruta.startsWith('/guia')) return metaDeGuia(url, false)
   if (ruta.startsWith('/curso')) return metaDeGuia(url, true)
@@ -871,6 +1105,12 @@ export default async (request, context) => {
 // eso es justo lo que veníamos a arreglar.
 export const config = {
   path: [
+    '/coleccion/*',
+    '/coleccion.html',
+    '/coleccion',
+    '/carta/*',
+    '/carta.html',
+    '/carta',
     '/noticias/*',
     '/guia.html',
     '/curso.html',

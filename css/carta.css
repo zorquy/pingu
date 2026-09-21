@@ -1,0 +1,519 @@
+/* La ficha de una carta (tanda 324).
+ *
+ * Hoja propia porque la baja UNA pantalla. `components.css` y
+ * `style.css` los descarga todo el mundo y la portada va con 0,7 KB de
+ * margen: nada de esto tiene sitio allí.
+ */
+
+.carta-articulo {
+  margin-bottom: var(--e-2xl);
+}
+
+/* ── Las migas ── */
+.carta-migas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+  margin-bottom: var(--e-lg);
+}
+
+.carta-migas a {
+  color: var(--text-mid);
+  text-decoration: none;
+}
+
+.carta-migas a:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.carta-miga-actual {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── El título ── */
+.carta-cabecera h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  margin: 0 0 var(--e-xs);
+}
+
+.carta-sub {
+  margin: 0 0 var(--e-xl);
+  color: var(--text-mid);
+  font-size: var(--t-lg);
+}
+
+/* ── Las dos columnas ──
+ *
+ * El escaneo a la izquierda y los datos a la derecha. La medida de la
+ * columna de la carta (320 px) es una MEDIDA y no un paso: es el ancho
+ * al que un escaneo de 600×825 se lee sin forzar la vista. Por encima de
+ * 32 px la regla solo pide la retícula de 4. */
+.carta-cuerpo {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: var(--e-2xl);
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .carta-cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--e-xl);
+  }
+}
+
+.carta-scan {
+  margin: 0;
+  position: sticky;
+  top: var(--e-2xl);
+}
+
+.carta-scan img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  display: block;
+}
+
+.carta-scan-vacio {
+  /* El hueco del escaneo que falta, con la proporción de una carta. Sin
+     esto la página se encogería y pegaría un salto al llegar el resto. */
+  aspect-ratio: 600 / 825;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-dim);
+  font-size: var(--t-sm);
+}
+
+/* «Ver en grande» es un enlace con texto: se le pide ALTO y no ancho.
+   Estirar a 44 px de ancho algo que mide lo que su palabra sería un área
+   invisible pisando a lo de al lado (tanda 312). */
+.carta-lupa {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: var(--e-sm);
+  color: var(--navy);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.carta-lupa:hover {
+  text-decoration: underline;
+}
+
+/* ── La ficha y el combate ── */
+.carta-ficha,
+.carta-combate {
+  display: grid;
+  gap: var(--e-md) var(--e-xl);
+  margin: 0 0 var(--e-xl);
+  padding: var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.carta-ficha {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.carta-combate {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.carta-ficha dt,
+.carta-combate dt {
+  font-size: var(--t-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-mid);
+  margin-bottom: var(--e-xs);
+}
+
+.carta-ficha dd,
+.carta-combate dd {
+  margin: 0;
+  font-size: var(--t-md);
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Ataques y habilidades ── */
+.carta-ataques h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  margin: 0 0 var(--e-md);
+}
+
+.carta-movs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--e-md);
+}
+
+.carta-mov {
+  padding: var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.carta-mov-nombre {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin: 0;
+  font-size: var(--t-lg);
+  font-weight: 700;
+}
+
+.carta-mov-coste {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  /* No se encoge: un hijo de flex CEDE antes de desbordar, y el coste
+     de un ataque amontonado no se lee (tanda 320). */
+  flex-shrink: 0;
+}
+
+.carta-mov-dano {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  color: var(--navy);
+}
+
+.carta-mov-texto {
+  margin: var(--e-sm) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-md);
+  line-height: 1.55;
+}
+
+.carta-etiqueta-hab {
+  display: inline-block;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--indigo-bg);
+  color: var(--indigo);
+  font-size: var(--t-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.carta-coste-libre {
+  font-size: var(--t-xs);
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+/* ── Los puntos de energía ──
+ *
+ * PALETA DE IDENTIDAD, como `COLORES_AVATAR` y los `--rt-*` del editor:
+ * el azul del tipo Agua es el azul del tipo Agua en los dos temas. No se
+ * redefine en oscuro A PROPÓSITO — si cambiara, dejaría de nombrar al
+ * tipo, que es su único trabajo. Por eso va declarada como excepción en
+ * la prueba de la escala de color.
+ *
+ * Los símbolos de verdad son imágenes de Nintendo y no están en ninguna
+ * CDN abierta, así que aquí son puntos con su nombre en el `title` y en
+ * el `aria-label`: quien no ve el color lo oye igual. */
+.carta-energia {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(13, 27, 42, 0.18);
+  display: inline-block;
+  flex-shrink: 0;
+  /* El color va por un token propio y no a pelo: así la paleta se
+     declara una vez, se ve de un vistazo que es CERRADA, y el barrido
+     de los rojos puede dejarla pasar por su nombre —igual que hace con
+     los `--rt-*` del editor— en vez de por la forma del selector. */
+  --tipo-energia: #d8dee3;
+  background: var(--tipo-energia);
+}
+
+.carta-energia[data-tipo='Grass'] { --tipo-energia: #4faa5a; }
+.carta-energia[data-tipo='Fire'] { --tipo-energia: #e8564a; }
+.carta-energia[data-tipo='Water'] { --tipo-energia: #3aa2dd; }
+.carta-energia[data-tipo='Lightning'] { --tipo-energia: #e9c227; }
+.carta-energia[data-tipo='Psychic'] { --tipo-energia: #a06bc4; }
+.carta-energia[data-tipo='Fighting'] { --tipo-energia: #c8722f; }
+.carta-energia[data-tipo='Darkness'] { --tipo-energia: #3d4a57; }
+.carta-energia[data-tipo='Metal'] { --tipo-energia: #8c9aa5; }
+.carta-energia[data-tipo='Fairy'] { --tipo-energia: #e07bb0; }
+.carta-energia[data-tipo='Dragon'] { --tipo-energia: #b59433; }
+.carta-energia[data-tipo='Colorless'] { --tipo-energia: #e6eaed; }
+
+.carta-descripcion {
+  margin: var(--e-lg) 0 0;
+  padding-left: var(--e-md);
+  /* Un lado suelto no es un contorno: es una barra de cita (tanda 309). */
+  border-left: 3px solid var(--border-strong);
+  color: var(--text-mid);
+  font-size: var(--t-md);
+  font-style: italic;
+}
+
+/* ── Otras versiones ── */
+.carta-seccion {
+  margin-top: var(--e-2xl);
+}
+
+.carta-versiones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--e-lg);
+}
+
+.carta-version {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.carta-version img,
+.carta-version-vacia {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 245 / 337;
+  border-radius: var(--radius-md);
+  display: block;
+  background: var(--border);
+}
+
+.carta-version-pie {
+  display: block;
+  margin-top: var(--e-sm);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.carta-version-set {
+  display: block;
+  font-size: var(--t-2xs);
+  color: var(--text-mid);
+}
+
+.carta-version:hover .carta-version-pie {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+/* ── El esqueleto ──
+ *
+ * Usa `.skeleton` de style.css, que ya se queda quieto con «menos
+ * movimiento» puesto. Reinventar el barrido aquí habría sido inventar
+ * también una animación infinita sin quien la apague. */
+.carta-esqueleto {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: var(--e-2xl);
+}
+
+@media (max-width: 720px) {
+  .carta-esqueleto {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.carta-esqueleto-scan {
+  aspect-ratio: 600 / 825;
+}
+
+.carta-esqueleto-datos {
+  display: grid;
+  gap: var(--e-md);
+  align-content: start;
+}
+
+.carta-esqueleto-datos span {
+  height: 88px;
+  display: block;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * La colección y el índice (tanda 324)
+ * ════════════════════════════════════════════════════════════════════
+ *
+ * Comparten hoja con la ficha porque son las tres pantallas del
+ * catálogo y se navegan seguidas: quien abre una colección abre una
+ * ficha a continuación, y así la hoja ya está en su caché. */
+
+.coleccion-cabecera {
+  display: grid;
+  justify-items: start;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-xl);
+}
+
+/* El logo de un set no tiene proporción fija —los hay apaisados y los
+   hay casi cuadrados—, así que el hueco se reserva con un ALTO y se le
+   deja elegir el ancho. Poner width/height sería inventarse medidas. */
+.coleccion-logo,
+.coleccion-logo-hueco {
+  height: 72px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.coleccion-logo-hueco {
+  width: 180px;
+  border-radius: var(--radius-md);
+}
+
+.coleccion-cabecera h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  margin: 0;
+}
+
+.coleccion-datos {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-md);
+}
+
+/* ── La rejilla de cartas ──
+ *
+ * Se mide a SÍ MISMA y no a la ventana (tanda 316): la misma rejilla
+ * está en la colección a todo lo ancho y en el buscador del índice, y
+ * «ventana más grande» no quiere decir «hueco más grande». */
+.coleccion-rejilla {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--e-lg);
+}
+
+@container (min-width: 700px) {
+  .coleccion-rejilla {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+.coleccion-carta {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.coleccion-carta img,
+.coleccion-carta-vacia {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 245 / 337;
+  display: block;
+  border-radius: var(--radius-md);
+  background: var(--border);
+}
+
+.coleccion-carta-num {
+  display: block;
+  margin-top: var(--e-sm);
+  font-size: var(--t-2xs);
+  color: var(--text-mid);
+}
+
+.coleccion-carta-nombre {
+  display: block;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  /* Su propia caja con `min-width: 0`: `ellipsis` no hace nada sobre un
+     contenedor flex ni sobre una celda que no lo pide (tanda 320). */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coleccion-carta:hover .coleccion-carta-nombre {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+#verMas {
+  margin: var(--e-xl) auto 0;
+  display: block;
+  min-height: 44px;
+}
+
+/* ── El índice ── */
+.cartas-buscador {
+  display: block;
+  margin-bottom: var(--e-xl);
+}
+
+.cartas-buscador input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--e-md) var(--e-lg);
+  font-size: var(--t-lg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+
+.cartas-buscador input:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.cartas-colecciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--e-lg);
+}
+
+.cartas-coleccion {
+  display: grid;
+  gap: var(--e-sm);
+  padding: var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--text);
+  /* Una tarjeta entera es lo que se pulsa, así que ya mide de sobra:
+     no hace falta pedirle 44 px a nada de dentro. */
+}
+
+.cartas-coleccion img {
+  height: 56px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  justify-self: start;
+}
+
+.cartas-coleccion-nombre {
+  font-weight: 700;
+  font-size: var(--t-lg);
+}
+
+.cartas-coleccion-pie {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.cartas-coleccion:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}

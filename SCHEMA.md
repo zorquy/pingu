@@ -17026,3 +17026,142 @@ no encuentra algo que el resto del sistema sí sabe montar.
 Cubierto en `test-tanda-323.mjs` (6 bloques), escrito contra la FORMA
 del fallo —«una mega que no está en la lista curada»— y no contra
 Zeraora: dentro de tres meses habrá otras.
+
+---
+
+## Tanda 324 — las páginas de carta
+
+Segunda pieza del plan del catálogo. La 322 metió los datos en
+`tcg_cards`; esto es la pantalla que los enseña, y con ella las otras
+dos que hacen falta para llegar a ella:
+
+| Dirección | Qué es |
+| --- | --- |
+| `/carta/ceruledge-ex-sv5-36` | la ficha de una carta |
+| `/coleccion/sv5` | todas las cartas de un set |
+| `/cartas` | el índice: buscador y lista de colecciones |
+
+Ficheros nuevos: `carta.html`, `coleccion.html`, `cartas.html`,
+`js/carta-nucleo.js`, `js/carta.js`, `js/coleccion.js`, `js/cartas.js`,
+`css/carta.css`. Tocados: `netlify/edge-functions/meta-social.js` y
+`netlify.toml`.
+
+### El molde se IMPORTA, no se copia
+
+El texto de un artículo lo pintan dos mitades —`js/guia.js` en el
+navegador y la función del borde en el servidor— y son dos códigos
+distintos que hay que acordarse de tocar a la vez. Cuando se separan, lo
+primero que ve la gente es el texto sin formato y luego pega un salto;
+ya pasó y está contado en la tanda 309.
+
+Aquí no hay dos códigos. `js/carta-nucleo.js` **lo importa la función
+del borde directamente** (`import … from '../../js/carta-nucleo.js'`), y
+se puede porque ese fichero no toca el DOM y lo único que importa es
+`js/html.js`, que es escapado puro. Es justo lo contrario del caso de
+`IDIOMA_POR_MERCADO`, que sí es una copia vigilada porque su original
+vive en `js/tcgdex.js`, que importa `./supabase.js`.
+
+**Y encima el cliente no repinta.** El borde deja `data-servidor="1"` en
+la caja y `js/carta.js` lo mira antes de tocar nada. Así no hay relevo,
+no hay salto, y el navegador solo añade lo que el borde no puede traer
+en su viaje: las otras versiones de la carta.
+
+### Una consulta que falla no puede borrar una página que está bien
+
+Lo destapó el rigor de esta misma tanda y es el fallo más interesante de
+las tres páginas. El borde entrega la ficha entera y correcta; acto
+seguido el cliente le pregunta a Supabase por lo suyo. Si **esa** consulta
+falla —red floja, tiempo agotado, una política que cambió— el camino de
+error borraba el núcleo y escribía «Carta no encontrada» encima de una
+ficha que se estaba leyendo.
+
+Ahora `fallo()` empieza mirando `data-servidor`: si el borde pintó, no
+toca nada. La regla general: **un camino de error solo puede deshacer lo
+que hizo su propio camino de éxito.**
+
+### La dirección lleva el nombre, y hay que saber leerla al revés
+
+`/carta/ceruledge-ex-sv5-36` pone el nombre delante porque eso es lo que
+lee una persona y lo que pesa Google. El precio es que para recuperar el
+identificador hay que leer la dirección del revés, y **el nombre lleva
+guiones él también**, así que no se puede saber dónde acaba.
+
+`candidatosDeRuta` devuelve los tres candidatos (los dos últimos trozos,
+los tres últimos, los cuatro) y se preguntan **todos en la misma
+consulta**. El normal acierta a la primera; un identificador de set con
+un guion dentro acierta al segundo en vez de dar un 404 que nadie sabría
+explicar. Un `in.(…)` cuesta lo mismo que un `eq.`, y tres viajes con
+2,5 segundos de presupuesto para toda la página, no.
+
+### Quién merece salir en Google
+
+«Miles de páginas casi vacías hunden el dominio, no lo suben.» Una ficha
+sin engordar es un nombre, una foto y un número: exactamente lo que
+tienen las otras quince bases de cartas que ya existen, y en inglés.
+
+Por eso hay una sola función, `mereceIndexarse(carta)`, y hoy el listón
+es «está engordada» (`detalle_at`). Lo que no lo pasa se sirve igual para
+quien llegue —la página funciona— pero sale con
+`<meta name="robots" content="noindex,follow">`. **Follow a propósito**:
+que no se indexe no quiere decir que sus enlaces no valgan, y el que
+apunta a su colección sí cuenta.
+
+**La colección es otra cosa y sí se indexa**: doscientas cartas con su
+número, su nombre y su imagen no es una página escasa, y es la puerta
+por la que se llega a las fichas. Además el borde le mete las 60
+primeras cartas en el documento, que son **sesenta enlaces internos que
+un robot recorre sin ejecutar JavaScript**.
+
+Cuando entre el bloque de torneos —lo que de verdad no tiene nadie más—
+el listón sube dentro de `mereceIndexarse` y en ningún otro sitio.
+
+### Lo que la página no sabe, no lo dice
+
+La lección de la 319, otra vez, y aquí pega tres veces: un Entrenador no
+tiene PS, una Energía no tiene ataques y una carta sin engordar no tiene
+casi nada. En los tres casos la línea se acorta o el bloque no sale, que
+es distinto de decir «0 PS» o de pintar una lista de ataques vacía.
+
+El subtítulo se arma por trozos y cada trozo solo entra si se sabe; el
+cuadro de debilidad/resistencia/retirada no existe fuera de un Pokémon;
+y la resistencia que no hay es una raya, no un cero.
+
+### El español es la respuesta
+
+A «qué tiene esta página que no tenga la de al lado» se contesta, de
+momento, con el idioma: `TIPOS_ES`, `FASES_ES`, `RAREZAS_ES`,
+`CATEGORIAS_ES` y `ENTRENADORES_ES` traducen lo que TCGdex da en inglés.
+Lo que no esté en la tabla **sale tal cual vino**: vale más un «Trainer»
+suelto que un hueco, y el día que se inventen una categoría nueva no se
+rompe nada.
+
+Los símbolos de energía de verdad son imágenes de Nintendo y no están en
+ninguna CDN abierta, así que el coste de un ataque se pinta con puntos de
+color **y su nombre en `title` y `aria-label`**: quien no ve el color lo
+oye. Los once colores van en `--tipo-energia`, una paleta de IDENTIDAD
+—como `COLORES_AVATAR` y los `--rt-*` del editor— que **no se redefine en
+el tema oscuro a propósito**: si el rojo del tipo Fuego cambiara con el
+tema dejaría de nombrar al tipo, que es su único trabajo. Declarada como
+excepción en `test-tanda-311.mjs`.
+
+### «/cartas» no es «/carta»
+
+La trampa de siempre, la misma que «/torneos» y «/torneo»: un
+`ruta.startsWith('/carta')` se traga el índice entero y le pone las
+etiquetas de una ficha que no existe. El despachador del borde pide ruta
+exacta o barra: `/^\/carta(\.html)?$/` o `startsWith('/carta/')`.
+
+### Cubierto
+
+`test-tanda-324.mjs` (8 bloques) y `rigor-tanda-324.py` (16 mutaciones).
+La prueba de las dos mitades es la que no tienen los artículos: carga la
+misma carta pintada por el borde y pintada por el cliente y **compara el
+texto**. Si algún día alguien duplica el molde, se pone roja.
+
+### Lo que NO entra todavía
+
+El bloque de torneos —cuántos mazos la llevan, con qué arquetipos, qué
+tal le va—, las guías que la mencionan y los hilos del foro que la
+nombran. Es la fila que justifica el proyecto entero y va en la
+siguiente. Tampoco entra el sitemap: mientras las fichas nazcan en
+`noindex` no hay nada que ofrecer.
