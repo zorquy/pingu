@@ -154,6 +154,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   le había olvidado a alguien y salió al querer ordenar el catálogo por
   lo más reciente. Si añades una columna que venga de un set, pregúntate
   si viene en el LISTADO o solo en el set completo.
+- **Una lista curada a mano se queda vieja, y el buscador es quien lo
+  nota** (tanda 323). Las megas de `FORMAS_TCG` se sondearon contra la
+  CDN el 2026-09-02, y lo que salió después no estaba: quien buscaba
+  Mega-Zeraora en /mis-partidas encontraba «Zeraora» a secas y no podía
+  apuntar la partida. Lo curioso es que el resto del módulo YA lo
+  resolvía —`dexDeClave` registra sola cualquier «Mega X» cuya X sea una
+  especie, con su número sintético y su slug—, así que el sprite
+  funcionaba desde el principio. **El único sitio que no usaba el
+  mecanismo era `buscarOpciones`, que recorre listas fijas.** Si añades
+  un camino que resuelve algo sobre la marcha, mira quién MÁS recorre la
+  lista estática: el que no se entere te da un fallo sin error.
 - **Un dato que decide la PRIORIDAD no se puede ir calculando sobre la
   marcha** (tanda 322). `cartas-detalle` ordenaba los sets por fecha de
   salida y curaba esa fecha del set por el que iba pasando. Es circular:

@@ -12,6 +12,60 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-21 — PINGU-Claude (tanda 323 — las megas que no salían al registrar partidas)
+
+**Hecho**: PINGU, desde la comunidad: «a la hora de registrar partidas
+no sale Mega-Zeraora». La lista de megas de `FORMAS_TCG` se sondeó
+contra la CDN el 2026-09-02 y lo posterior no está.
+
+**Lo interesante es que el módulo YA sabía resolverla.** `dexDeClave`
+(tanda 240) registra sola cualquier «Mega X» cuya X sea una especie:
+número sintético, slug `x-mega` y respaldo a la base. Comprobado —
+`dexDeCarta('Mega Zeraora ex')` da 20807 y el sprite sale. **El sprite
+funcionaba desde el principio.** El único sitio que no usaba el
+mecanismo era `buscarOpciones` en `selector-mazo.js`, que recorre listas
+fijas; y como Zeraora SÍ está como especie, quien la tecleaba encontraba
+el Pokémon a secas y se quedaba sin poder apuntar la partida.
+
+Ahora, con «mega» y dos letras más, también se ofrecen las
+sintetizadas. Dos límites para que no sea ruido: solo salen si las pides
+por su nombre (existen 1.025 megas posibles y casi ninguna es carta), y
+las especies con mega curada no se sintetizan **comparando por ESPECIE y
+no por nombre** — Charizard y Mewtwo vienen en dos sabores, así que un
+filtro por nombre dejaba pasar «Mega Charizard» a secas, que no existe, y
+encima delante de las dos buenas por orden alfabético.
+
+**La lección**: si añades un camino que resuelve algo sobre la marcha,
+mira quién MÁS recorre la lista estática. El mecanismo llevaba desde la
+240 y había un consumidor que no lo usaba — fallo sin error en ninguna
+parte.
+
+**Y de paso, dos hallazgos en el catálogo** (no arreglados aquí):
+
+- **El catálogo lleva sin actualizarse desde el 2026-08-03** y su set más
+  nuevo es «Mega Rising» (2025-10-30). Por eso Mega-Zeraora y
+  Mega-Dragalge no están en `tcg_cards`. Afecta al editor de guías, a
+  las imágenes de las decklists y a las futuras páginas de carta. PINGU
+  tiene que reimportar el listado de sets y las cartas de los nuevos.
+- **CORRECCIÓN a la entrada anterior**: dije que NINGÚN set tenía fecha y
+  no es cierto. Los modernos la tienen. Aquella consulta solo enseñaba
+  los sets YA PROCESADOS, que resultaban ser los sin fecha porque los
+  NULL se ordenaban primero. Conclusión general sacada de una muestra
+  sesgada. El arreglo de la fecha sigue siendo correcto y necesario —hay
+  sets sin ella y se están curando—, pero la afirmación era más gorda de
+  lo que sostenían los datos.
+
+**Comprobado**: suite entera, 82 de 82 en verde.
+
+**Ficheros**: `js/torneos/selector-mazo.js`, `CLAUDE.md`, `SCHEMA.md`.
+En `pruebas`: `test-tanda-323.mjs` (NUEVO, 6 bloques).
+
+**En curso / pendiente**: reimportar el catálogo. El rigor de la 322 y
+el de la 323. La 324 (el español). Y el curso de «Cómo se lee una
+carta».
+
+---
+
 ## 2026-09-21 — PINGU-Claude (322: curar la fecha a la vez que engordar era circular)
 
 **Hecho**: con el importador arreglado, las fechas EMPEZARON a aparecer

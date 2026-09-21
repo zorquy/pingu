@@ -94,6 +94,52 @@ export function buscarOpciones(texto, catalogo = [], limite = 40) {
     })
   }
 
+  // Las MEGAS que NO están en la lista curada (tanda 323).
+  //
+  // `FORMAS_TCG` lleva las megas comprobadas contra la CDN, y la última
+  // sonda es del 2026-09-02: todo lo que ha salido después no aparece
+  // aquí. Le pasó a Mega-Zeraora — quien la buscaba encontraba
+  // «Zeraora» a secas y no había forma de apuntar la partida.
+  //
+  // El resto del módulo ya sabía resolverlas: `dexDeCarta` pasa por
+  // `dexDeClave`, que registra sola cualquier «Mega X» cuya X sea una
+  // especie, con su número sintético y su slug. El sprite funcionaba
+  // desde el principio; lo único que no se enteraba era ESTE buscador,
+  // que recorre listas fijas.
+  //
+  // Solo se ofrecen si se teclea «mega» y al menos dos letras más. Así
+  // nadie ve «Mega Caterpie» por casualidad: solo sale lo que has
+  // pedido por su nombre. Y si la CDN todavía no tiene ese sprite, el
+  // respaldo da el de la especie base, que es mejor que un hueco.
+  const resto = q.startsWith('mega') ? q.slice(4) : ''
+  if (resto.length >= 2) {
+    // Las especies que YA tienen mega en la lista curada no se
+    // sintetizan. No basta con comparar nombres: Charizard y Mewtwo
+    // vienen en dos sabores («Mega Charizard X» y «Mega Charizard Y»),
+    // así que un «Mega Charizard» a secas pasaría el filtro por nombre
+    // y ofrecería una carta que NO EXISTE, encima delante de las dos
+    // que sí. Se compara por la ESPECIE, que es lo que las une.
+    const yaCuradas = new Set(
+      FORMAS_TCG.filter((f) => f.base && String(f.nombre).startsWith('Mega ')).map((f) => f.base)
+    )
+    for (let i = 0; i < POKEMON_POR_DEX.length; i++) {
+      if (yaCuradas.has(i + 1)) continue
+      if (!POKEMON_APLASTADOS[i].includes(resto)) continue
+      const nombre = `Mega ${POKEMON_POR_DEX[i]}`
+      if (opciones.some((o) => o.nombre === nombre)) continue
+      // Llamarla es lo que la REGISTRA: sin esto el sprite saldría null.
+      const dex = dexDeCarta(nombre)
+      if (!dex) continue
+      opciones.push({
+        tipo: 'pokemon',
+        valor: `d:${nombre.toLowerCase()}`,
+        nombre,
+        sprite: urlDeSprite(dex),
+        empieza: POKEMON_APLASTADOS[i].startsWith(resto),
+      })
+    }
+  }
+
   // Los OBJETOS con sprite propio (el martillo), al primer golpe de
   // tecla y con su sprite — sin esperar al espejo de cartas, que es lo
   // que hacía que el martillo tardara o no saliera. El alias en español

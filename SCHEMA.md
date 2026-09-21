@@ -16977,3 +16977,52 @@ no se engorde ni una carta más.
 **La lección**: si un criterio de orden depende de un dato que todavía
 no tienes, complétalo ANTES. Mientras falte, el orden no ordena — y si
 además lo vas rellenando según ordenas, se muerde la cola.
+
+## Tanda 323 — las megas que salieron después de la última sonda
+
+PINGU, desde la comunidad: «a la hora de registrar partidas no sale
+Mega-Zeraora».
+
+La lista de megas de `FORMAS_TCG` se comprobó contra la CDN de Limitless
+el 2026-09-02 —la sonda encontró 20 que faltaban— y todo lo que ha salido
+después no está. Mega-Zeraora es una de esas.
+
+**Lo interesante es que el módulo ya sabía resolverla.** `dexDeClave`
+registra sola cualquier «Mega X» cuya X sea una especie: le da su número
+sintético (20000 + dex de la base), su slug `x-mega` y su respaldo a la
+especie base. Comprobado: `dexDeCarta('Mega Zeraora ex')` devuelve 20807
+y `urlDeSprite` da `zeraora-mega.png`. **El sprite funcionaba desde el
+principio.**
+
+El único sitio que no se enteraba era `buscarOpciones` en
+`js/torneos/selector-mazo.js`, que recorre `POKEMON_POR_DEX` y
+`FORMAS_TCG` y nada más. Como Zeraora SÍ está como especie, quien
+tecleaba «zeraora» encontraba el Pokémon a secas y se quedaba sin forma
+de apuntar la mega.
+
+Ahora, si lo tecleado empieza por «mega» y trae al menos dos letras más,
+también se ofrecen las sintetizadas. Llamar a `dexDeCarta` es lo que las
+REGISTRA, así que sin esa llamada saldrían con sprite null.
+
+**Dos decisiones que limitan el ruido**, porque existen 1.025 megas
+posibles y casi ninguna es una carta:
+
+**Solo salen si las pides por su nombre.** Con «mega» y dos letras. Así
+nadie ve «Mega Caterpie» por casualidad, y quien la quiera apuntar
+puede — es su mazo.
+
+**Las especies que ya tienen mega curada no se sintetizan, y se compara
+por ESPECIE y no por nombre.** Charizard y Mewtwo vienen en dos sabores
+(«Mega Charizard X» y «Mega Charizard Y»), así que un filtro por nombre
+dejaría pasar «Mega Charizard» a secas —que no es una carta— y encima lo
+pondría delante de las dos que sí, por orden alfabético.
+
+**La lección**: si añades un camino que resuelve algo sobre la marcha,
+mira quién MÁS recorre la lista estática. Aquí el mecanismo llevaba
+desde la tanda 240 y había un consumidor que no lo usaba; el resultado
+es un fallo que no da error en ninguna parte — simplemente el buscador
+no encuentra algo que el resto del sistema sí sabe montar.
+
+Cubierto en `test-tanda-323.mjs` (6 bloques), escrito contra la FORMA
+del fallo —«una mega que no está en la lista curada»— y no contra
+Zeraora: dentro de tres meses habrá otras.
