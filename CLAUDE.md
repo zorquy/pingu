@@ -144,6 +144,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   IMÁGENES sí vienen en el listado del set, así que traducir el catálogo
   a otro idioma son ~154 peticiones y no 16.000: son dos costes muy
   distintos y conviene no confundirlos.
+- **El LISTADO de sets de TCGdex es un «SetResume» y le faltan campos**
+  (tandas 233 y 322). `fetchSets` devuelve id, nombre, logo, símbolo y
+  cuenta de cartas — pero **no el código de TCG Live ni la fecha de
+  salida**. `setToRow` corre sobre el listado, así que esas dos columnas
+  nacen vacías y nadie se entera: existen, y están a null en los 220
+  sets. Lo del código ya estaba resuelto (se guarda al importar las
+  cartas, que es cuando se tiene el set COMPLETO en la mano); la fecha se
+  le había olvidado a alguien y salió al querer ordenar el catálogo por
+  lo más reciente. Si añades una columna que venga de un set, pregúntate
+  si viene en el LISTADO o solo en el set completo.
 - **PostgREST se come el `nullslast` al ordenar por una tabla EMBEBIDA**
   (tanda 322), sin dar error. Y como Postgres pone los NULL PRIMERO en un
   `DESC`, `order=tcg_sets(release_date).desc.nullslast` hizo justo lo

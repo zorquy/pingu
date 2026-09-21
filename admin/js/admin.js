@@ -9,7 +9,7 @@ import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
-import { fetchSets, fetchSet, setToRow, cardToRow, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet } from '../../js/tcgdex.js'
+import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet } from '../../js/tcgdex.js'
 import { checkSchema } from '../../js/schema-check.js'
 
 let categories = []
@@ -2636,6 +2636,13 @@ async function importarSets(ids) {
       const cambiosSet = { imported_at: new Date().toISOString(), imported_cards: filas.length }
       const codigoLive = codigoLiveDeSet(set)
       if (codigoLive) cambiosSet.tcg_online_code = codigoLive
+      // Y la FECHA DE SALIDA, por lo mismo y en el mismo sitio (tanda
+      // 322). Estaba a null en los 220 sets: `setToRow` corre sobre el
+      // listado, y el listado no la trae. Sin ella no se puede ordenar
+      // el catálogo por lo más reciente ni decir en una ficha cuándo
+      // salió la colección.
+      const fechaSalida = fechaDeSet(set)
+      if (fechaSalida) cambiosSet.release_date = fechaSalida
       const { error: errSet } = await supabase
         .from('tcg_sets')
         .update(cambiosSet)

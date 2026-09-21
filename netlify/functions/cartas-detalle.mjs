@@ -1,4 +1,4 @@
-import { detalleDeCarta, urlDeCarta } from '../lib/carta-detalle.mjs'
+import { detalleDeCarta, urlDeCarta, urlDeSet, fechaDeSet } from '../lib/carta-detalle.mjs'
 
 // Engorda las cartas de `tcg_cards` poco a poco (tanda 322).
 //
@@ -94,10 +94,40 @@ const SETS_POR_VENTANA = 25
 // silencio.
 async function setsPorPrioridad(clave) {
   const sets = await rest(
-    `tcg_sets?select=id&market=eq.${MERCADO}&order=release_date.desc.nullslast`,
+    `tcg_sets?select=id,release_date&market=eq.${MERCADO}&order=release_date.desc.nullslast`,
     clave
   )
-  return (sets || []).map((s) => s.id)
+  return {
+    orden: (sets || []).map((s) => s.id),
+    sinFecha: new Set((sets || []).filter((s) => !s.release_date).map((s) => s.id)),
+  }
+}
+
+// Rellena la fecha de salida de UN set, si le falta.
+//
+// El importador ya la guarda desde la tanda 322, pero solo al reimportar
+// las cartas de un set — y son 220 clics. Esto lo va curando solo: una
+// petición de más por set, una sola vez en la vida del set, aprovechando
+// que la función ya está pasando por ahí.
+//
+// Si falla, no se toca nada y no se corta la pasada: las cartas de ese
+// set se engordan igual. La fecha es para ordenar y para la ficha de la
+// colección, no para que el engorde funcione.
+async function curarFechaDeSet(clave, setId) {
+  try {
+    const res = await fetch(urlDeSet(setId, MERCADO), { headers: { Accept: 'application/json' } })
+    if (!res.ok) return null
+    const fecha = fechaDeSet(await res.json())
+    if (!fecha) return null
+    await rest(`tcg_sets?id=eq.${encodeURIComponent(setId)}&market=eq.${MERCADO}`, clave, {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ release_date: fecha }),
+    })
+    return fecha
+  } catch {
+    return null
+  }
 }
 
 // Las siguientes cartas que tocan, buscando por ventanas de sets hasta
@@ -135,11 +165,16 @@ export default async function handler() {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return new Response('Falta SUPABASE_SERVICE_ROLE_KEY', { status: 500 })
 
-  const setsOrdenados = await setsPorPrioridad(clave)
-  const pendientes = await siguientes(clave, setsOrdenados)
+  const { orden, sinFecha } = await setsPorPrioridad(clave)
+  const pendientes = await siguientes(clave, orden)
   if (!pendientes.length) {
     return Response.json({ hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
   }
+
+  // De paso, la fecha del set por el que vamos, si le falta. Una sola
+  // petición y una sola vez por set.
+  const setActual = pendientes[0].set_id
+  const fechaCurada = sinFecha.has(setActual) ? await curarFechaDeSet(clave, setActual) : null
 
   let hechas = 0
   let fallidas = 0
@@ -177,7 +212,7 @@ export default async function handler() {
     await esperar(PAUSA_MS)
   }
 
-  return Response.json({ hechas, fallidas, sinTiempo, pedidas: pendientes.length })
+  return Response.json({ hechas, fallidas, sinTiempo, pedidas: pendientes.length, set: setActual, fechaCurada })
 }
 
 // Cada cinco minutos. Antes era cada hora con tandas de 150, y esa

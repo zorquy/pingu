@@ -16902,3 +16902,44 @@ de una sintaxis que puede ignorarse en silencio**.
 De paso quedó comprobado que `evolveFrom` es el nombre correcto: 14 de
 las 22 evoluciones procesadas traen `evolve_from`. Las 8 que no, son
 promos, que llevan la ficha más pobre del catálogo.
+
+### Y la causa de VERDAD: ningún set tenía fecha
+
+El arreglo del orden en dos pasos no cambió nada, y la segunda consulta
+lo enseñó: Aquapolis, Skyridge, Expedition, BREAKpoint, Flashfire… **los
+220 sets tenían `release_date` a null**. No era que las promos fueran
+primero: es que no había nada por lo que ordenar.
+
+La causa estaba a dos líneas de algo que este repo ya sabía. El LISTADO
+de sets de TCGdex devuelve un **SetResume**, que trae id, nombre, logo,
+símbolo y cuenta de cartas — **y ni el código de TCG Live ni la fecha de
+salida**. `setToRow` corre sobre ese listado, así que las dos columnas
+nacían vacías.
+
+Lo del código de TCG Live ya se había descubierto en la tanda 233 y se
+resolvió guardándolo al importar las CARTAS de un set, que es cuando se
+tiene el set completo en la mano. La fecha se quedó fuera de aquel
+arreglo, y no dio guerra hasta que hizo falta ordenar.
+
+Tres piezas:
+
+**`fechaDeSet(set)`** en `js/tcgdex.js`, exportada por el mismo motivo
+que `codigoLiveDeSet`, y **`admin.js`** la guarda en el mismo sitio y con
+la misma guarda («solo si viene»): escribir null borraría lo que ya
+hubiera.
+
+**Y la función programada la cura sola**, porque si no habría que
+reimportar 220 sets a mano. Cuando empieza con un set al que le falta la
+fecha, la pide una vez y la guarda. Si falla no pasa nada: las cartas se
+engordan igual. La fecha es para ordenar y para la ficha de la
+colección, no para que el engorde funcione.
+
+**Lo que hay que llevarse**: no es «me faltó una columna». Es que un
+listado que devuelve un resumen **calla los campos que no trae**, y una
+columna que nace vacía no da ningún error — se descubre el día que
+alguien la usa para algo, meses después. Este repo ya había pagado esa
+lección una vez con el código de TCG Live.
+
+Y una sobre el método: el primer arreglo fue correcto (PostgREST sí se
+come el `nullslast`) y **aun así no arreglaba el síntoma**. Arreglar la
+primera causa que encuentras no es lo mismo que arreglar la causa.

@@ -30,6 +30,22 @@ export function urlDeCarta(cardId, market = 'WEST') {
   return `${API}/${idioma}/cards/${encodeURIComponent(cardId)}`
 }
 
+// El set COMPLETO, que es el único sitio donde viene su fecha de salida:
+// el listado devuelve un SetResume y ahí ese campo no está. Por eso los
+// 220 sets tenían `release_date` a null.
+export function urlDeSet(setId, market = 'WEST') {
+  const idioma = IDIOMA_POR_MERCADO[market] || IDIOMA_POR_MERCADO.WEST
+  return `${API}/${idioma}/sets/${encodeURIComponent(setId)}`
+}
+
+// Vale como fecha de Postgres, o null. Misma criba que `fecha()` en
+// js/tcgdex.js: las cartas antiguas la traen vacía o a medias, y una
+// cadena rara tumbaría la fila entera.
+export function fechaDeSet(set) {
+  const v = set?.releaseDate
+  return /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : null
+}
+
 // Un entero o null.
 //
 // TCGdex da los PS y la retirada como número, pero algunas cartas

@@ -12,6 +12,54 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-21 — PINGU-Claude (322: la causa de verdad era que ningún set tenía fecha)
+
+**Hecho**: el arreglo del orden en dos pasos **era correcto y no
+arreglaba nada**. La segunda consulta de PINGU lo enseñó: Aquapolis,
+Skyridge, Expedition, BREAKpoint, Flashfire… **los 220 sets tienen
+`release_date` a null**. No era que las promos fueran primero: es que no
+había nada por lo que ordenar.
+
+**La causa estaba a dos líneas de algo que este repo ya sabía.** El
+LISTADO de sets de TCGdex devuelve un SetResume, que trae id, nombre,
+logo, símbolo y cuenta de cartas — y **ni el código de TCG Live ni la
+fecha de salida**. `setToRow` corre sobre ese listado, así que las dos
+columnas nacían vacías. Lo del código se descubrió en la tanda 233 y se
+resolvió guardándolo al importar las CARTAS (que es cuando se tiene el
+set completo en la mano); la fecha se quedó fuera de aquel arreglo y no
+dio guerra hasta hoy. El comentario que lo explica está literalmente dos
+líneas más abajo del sitio donde faltaba.
+
+**Y no es solo el orden**: las páginas de carta y de colección que
+diseñamos enseñan la fecha de salida. Sin esto saldrían vacías.
+
+Tres piezas: `fechaDeSet()` exportada de `js/tcgdex.js`; `admin.js` la
+guarda junto al código de TCG Live, con la misma guarda de «solo si
+viene» (escribir null borraría lo que hubiera); y **la función
+programada la cura sola** — al llegar a un set sin fecha la pide una vez
+y la guarda, para no tener que reimportar 220 sets a mano. Si esa
+petición falla no pasa nada: las cartas se engordan igual.
+
+**Dos lecciones**:
+- Un listado que devuelve un RESUMEN calla los campos que no trae, y una
+  columna que nace vacía no da error: se descubre meses después, el día
+  que alguien la usa. Este repo ya lo había pagado una vez.
+- **Arreglar la primera causa que encuentras no es arreglar la causa.**
+  Lo del `nullslast` de PostgREST era cierto, estaba mal, y el síntoma
+  seguía igual.
+
+**Comprobado**: suite entera, 81 de 81 en verde.
+
+**Ficheros**: `js/tcgdex.js`, `admin/js/admin.js`,
+`netlify/lib/carta-detalle.mjs`, `netlify/functions/cartas-detalle.mjs`,
+`CLAUDE.md`, `SCHEMA.md`.
+
+**En curso / pendiente**: ver que `release_date` empieza a rellenarse y
+que el engorde pasa a sets modernos. Falta el rigor de la 322 (13
+mutaciones, sin pasar desde los arreglos). Y la 323, el español.
+
+---
+
 ## 2026-09-21 — PINGU-Claude (322: el orden del engorde salía al revés)
 
 **Hecho**: la primera pasada real fue bien —206 cartas, 0 fallidas, y

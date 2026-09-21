@@ -156,6 +156,23 @@ function fecha(valor) {
   return /^\d{4}-\d{2}-\d{2}$/.test(valor || '') ? valor : null
 }
 
+// La fecha de salida de un set, validada.
+//
+// Va aparte y exportada por el MISMO motivo que `codigoLiveDeSet`: sólo
+// viene en el set COMPLETO (`sets/<id>`), no en el listado — el listado
+// devuelve un SetResume y ese campo no está. Quien importa las cartas de
+// un set ya tiene el set completo en la mano, así que es el único sitio
+// donde se puede guardar sin pedir nada de más.
+//
+// Esto se descubrió en la tanda 322: `release_date` estaba a null en
+// TODOS los sets, porque `setToRow` corre sobre el listado y allí la
+// fecha nunca llega. No daba error: simplemente la columna existía
+// vacía, y con ella no se puede ordenar el catálogo ni decir en una
+// ficha cuándo salió la colección.
+export function fechaDeSet(set) {
+  return fecha(set?.releaseDate)
+}
+
 export function setToRow(set, market = MERCADO_POR_DEFECTO) {
   const fila = {
     id: set.id,
