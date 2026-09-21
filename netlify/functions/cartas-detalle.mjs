@@ -106,9 +106,7 @@ async function setsPorPrioridad(clave) {
 // Rellena la fecha de salida de UN set, si le falta.
 //
 // El importador ya la guarda desde la tanda 322, pero solo al reimportar
-// las cartas de un set — y son 220 clics. Esto lo va curando solo: una
-// petición de más por set, una sola vez en la vida del set, aprovechando
-// que la función ya está pasando por ahí.
+// las cartas de un set — y son 220 clics. Esto lo cura solo.
 //
 // Si falla, no se toca nada y no se corta la pasada: las cartas de ese
 // set se engordan igual. La fecha es para ordenar y para la ficha de la
@@ -166,15 +164,40 @@ export default async function handler() {
   if (!clave) return new Response('Falta SUPABASE_SERVICE_ROLE_KEY', { status: 500 })
 
   const { orden, sinFecha } = await setsPorPrioridad(clave)
+
+  // ── Primero, TODAS las fechas ──
+  //
+  // Esto se hacía a la vez que el engorde, curando la del set por el que
+  // se iba pasando, y era CIRCULAR: la prioridad se calcula por fecha,
+  // casi ningún set tenía, y el set recién curado se ponía por delante
+  // de todos los que seguían sin ella. Resultado: la función se quedaba
+  // dando vueltas a los sets viejos que ella misma había curado, en vez
+  // de saltar a los modernos —que era justo lo que la prioridad existía
+  // para evitar—.
+  //
+  // La prioridad no puede funcionar hasta que se sepan TODAS las fechas,
+  // así que van antes y se llevan la pasada entera. Son ~220 sets a una
+  // petición cada uno: menos de una hora, y solo la primera vez.
+  //
+  // Y hay un segundo motivo para que no sea un extra del engorde: la
+  // ficha de una colección enseña cuándo salió. Esa fecha hace falta
+  // aunque no se engorde ni una carta más.
+  if (sinFecha.size) {
+    let curadas = 0
+    const arranqueFechas = Date.now()
+    for (const setId of orden) {
+      if (!sinFecha.has(setId)) continue
+      if (Date.now() - arranqueFechas > PRESUPUESTO_MS) break
+      if (await curarFechaDeSet(clave, setId)) curadas++
+      await esperar(PAUSA_MS)
+    }
+    return Response.json({ fase: 'fechas', curadas, quedaban: sinFecha.size })
+  }
+
   const pendientes = await siguientes(clave, orden)
   if (!pendientes.length) {
     return Response.json({ hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
   }
-
-  // De paso, la fecha del set por el que vamos, si le falta. Una sola
-  // petición y una sola vez por set.
-  const setActual = pendientes[0].set_id
-  const fechaCurada = sinFecha.has(setActual) ? await curarFechaDeSet(clave, setActual) : null
 
   let hechas = 0
   let fallidas = 0
@@ -212,7 +235,7 @@ export default async function handler() {
     await esperar(PAUSA_MS)
   }
 
-  return Response.json({ hechas, fallidas, sinTiempo, pedidas: pendientes.length, set: setActual, fechaCurada })
+  return Response.json({ fase: 'cartas', hechas, fallidas, sinTiempo, pedidas: pendientes.length })
 }
 
 // Cada cinco minutos. Antes era cada hora con tandas de 150, y esa

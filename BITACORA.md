@@ -12,6 +12,38 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-21 — PINGU-Claude (322: curar la fecha a la vez que engordar era circular)
+
+**Hecho**: con el importador arreglado, las fechas EMPEZARON a aparecer
+(Power Keepers 2007, Emerald 2005, Gym Heroes 2000) y el engorde seguía
+yendo por lo viejo.
+
+La cura estaba enganchada al engorde —curaba la fecha del set por el que
+iba pasando— y eso es **circular**, porque la prioridad se calcula por
+fecha: casi ninguno tenía, se curaba uno cualquiera, y ESE se ponía por
+delante de todos los nulos. La función se quedaba dando vueltas a los
+sets que ella misma había curado, que eran viejos por casualidad.
+
+Ahora las fechas van en una **fase aparte** que se lleva las pasadas
+enteras hasta acabarlas (~220 peticiones, menos de una hora, solo la
+primera vez). El engorde no empieza hasta que no falta ninguna. Y hay un
+segundo motivo que manda más: la ficha de una colección enseña cuándo
+salió, así que la fecha hace falta aunque no se engorde ni una carta.
+
+**La lección**: si un criterio de orden depende de un dato que todavía no
+tienes, complétalo ANTES. Mientras falte, el orden no ordena — y si
+además lo rellenas según ordenas, se muerde la cola.
+
+**Ficheros**: `netlify/functions/cartas-detalle.mjs`, `CLAUDE.md`,
+`SCHEMA.md`.
+
+**En curso / pendiente**: la respuesta de la función ahora dice `fase`
+(«fechas» o «cartas»). Durante la próxima hora dirá «fechas»; después
+pasa sola a «cartas» y ya empezará por los sets modernos. Falta el rigor
+de la 322 y la 323 (el español).
+
+---
+
 ## 2026-09-21 — PINGU-Claude (322: la causa de verdad era que ningún set tenía fecha)
 
 **Hecho**: el arreglo del orden en dos pasos **era correcto y no

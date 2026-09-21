@@ -154,6 +154,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   le había olvidado a alguien y salió al querer ordenar el catálogo por
   lo más reciente. Si añades una columna que venga de un set, pregúntate
   si viene en el LISTADO o solo en el set completo.
+- **Un dato que decide la PRIORIDAD no se puede ir calculando sobre la
+  marcha** (tanda 322). `cartas-detalle` ordenaba los sets por fecha de
+  salida y curaba esa fecha del set por el que iba pasando. Es circular:
+  casi ninguno tenía fecha, y el que acababa de curar se ponía por
+  delante de todos los que seguían sin ella — así que la función se
+  quedaba dando vueltas a los sets VIEJOS que ella misma había curado,
+  que es lo contrario de para lo que existía la prioridad. Ahora las
+  fechas van en una fase aparte que se lleva las pasadas enteras hasta
+  acabarlas (~220 peticiones, menos de una hora), y solo después empieza
+  el engorde. Si un criterio de orden depende de un dato que todavía no
+  tienes, complétalo ANTES: mientras falte, el orden no ordena.
 - **PostgREST se come el `nullslast` al ordenar por una tabla EMBEBIDA**
   (tanda 322), sin dar error. Y como Postgres pone los NULL PRIMERO en un
   `DESC`, `order=tcg_sets(release_date).desc.nullslast` hizo justo lo

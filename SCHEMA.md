@@ -16943,3 +16943,37 @@ lección una vez con el código de TCG Live.
 Y una sobre el método: el primer arreglo fue correcto (PostgREST sí se
 come el `nullslast`) y **aun así no arreglaba el síntoma**. Arreglar la
 primera causa que encuentras no es lo mismo que arreglar la causa.
+
+### Y la tercera vuelta: curar la fecha a la vez que engordar era circular
+
+Con el importador arreglado y la función curando fechas, las fechas
+EMPEZARON a aparecer —Power Keepers 2007, Emerald 2005, Gym Heroes
+2000— y el engorde seguía yendo por lo viejo.
+
+La cura estaba enganchada al engorde: curaba la fecha del set por el que
+iba pasando. Y eso es **circular**, porque la prioridad se calcula por
+fecha:
+
+1. Casi ningún set tiene fecha, así que el orden está empatado.
+2. Se coge uno cualquiera y se le cura la fecha.
+3. Ahora ESE set tiene fecha, y los que tienen fecha van antes que los
+   nulos (`nullslast`).
+4. Así que la siguiente pasada vuelve al mismo set, y al siguiente que
+   cure, y al siguiente — **siempre dentro de los que ella misma ha
+   curado**, que son viejos por casualidad.
+
+La función se quedaba dando vueltas a los sets de 2000-2007 en vez de
+saltar a los modernos, que es justo lo que la prioridad existía para
+evitar.
+
+**Las fechas van ahora en una fase APARTE**, que se lleva las pasadas
+enteras hasta terminarlas: ~220 peticiones, menos de una hora, y solo la
+primera vez. El engorde no empieza hasta que no falta ninguna.
+
+Hay un segundo motivo para separarlas, y es el que de verdad manda: la
+ficha de una colección enseña cuándo salió. Esa fecha hace falta aunque
+no se engorde ni una carta más.
+
+**La lección**: si un criterio de orden depende de un dato que todavía
+no tienes, complétalo ANTES. Mientras falte, el orden no ordena — y si
+además lo vas rellenando según ordenas, se muerde la cola.
