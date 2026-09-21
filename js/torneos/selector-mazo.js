@@ -119,6 +119,12 @@ export function buscarOpciones(texto, catalogo = [], limite = 40) {
     // así que un «Mega Charizard» a secas pasaría el filtro por nombre
     // y ofrecería una carta que NO EXISTE, encima delante de las dos
     // que sí. Se compara por la ESPECIE, que es lo que las une.
+    //
+    // Y esto es TAMBIÉN lo que impide los duplicados, así que no hay
+    // descarte por nombre detrás: lo había, y el rigor lo marcó como
+    // «sin detectar» con razón — quitarlo no cambiaba nada, porque una
+    // mega curada nunca llega hasta aquí. Dos guardas que se cubren la
+    // una a la otra no las prueba nadie.
     const yaCuradas = new Set(
       FORMAS_TCG.filter((f) => f.base && String(f.nombre).startsWith('Mega ')).map((f) => f.base)
     )
@@ -126,7 +132,6 @@ export function buscarOpciones(texto, catalogo = [], limite = 40) {
       if (yaCuradas.has(i + 1)) continue
       if (!POKEMON_APLASTADOS[i].includes(resto)) continue
       const nombre = `Mega ${POKEMON_POR_DEX[i]}`
-      if (opciones.some((o) => o.nombre === nombre)) continue
       // Llamarla es lo que la REGISTRA: sin esto el sprite saldría null.
       const dex = dexDeCarta(nombre)
       if (!dex) continue

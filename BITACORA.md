@@ -12,6 +12,36 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-21 — PINGU-Claude (rigor de la 322 y la 323)
+
+**Hecho**: pasados los dos. **322: 13 de 13. 323: 9 de 9.** Pero los dos
+dejaron un escape en la primera vuelta, y los dos eran del andamio y de
+mí, no del código:
+
+**«ANCLA MALA (2 veces)»** en la 322. Mi ancla —la línea que saca el
+idioma del mercado— aparecía DOS veces desde que añadí `urlDeSet`, y el
+andamio se negó a mutar algo ambiguo en vez de tocar la que no era. Bien
+hecho por su parte. Un ancla es única o no es un ancla: ahora lleva la
+línea de debajo dentro.
+
+**Una guarda redundante** en la 323. Quitar el descarte de duplicados
+por nombre no cambiaba nada, porque `yaCuradas` ya impide que una mega
+curada llegue a sintetizarse. Dos guardas cubriéndose — la lección de la
+314. Se quitó la que sobraba (y el comentario ahora explica que la
+prevención de duplicados es un EFECTO de comparar por especie, no una
+comprobación aparte), y la mutación se sustituyó por una que sí se
+observa: la sintetizada llegando con otro `tipo` que la curada.
+
+**Ficheros**: `js/torneos/selector-mazo.js`. En `pruebas`:
+`rigor-tanda-322.py`, `rigor-tanda-323.py` (NUEVO).
+
+**En curso / pendiente**: la 324 (el español). El curso de «Cómo se lee
+una carta» está escrito y entregado en el chat — su bloque `zonas` pide
+una imagen que tiene que subir PINGU. Y sigue pendiente **reimportar el
+catálogo**: el set más nuevo es de 2025-10-30.
+
+---
+
 ## 2026-09-21 — PINGU-Claude (tanda 323 — las megas que no salían al registrar partidas)
 
 **Hecho**: PINGU, desde la comunidad: «a la hora de registrar partidas
