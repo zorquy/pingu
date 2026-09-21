@@ -103,6 +103,18 @@ console.log('\n── 4. La marca de regulación NO se borra ──')
 console.log('\n── 5. La URL, y el mapa de idiomas que está copiado ──')
 {
   check('la URL lleva el idioma del mercado', urlDeCarta('sv5-36', 'WEST') === 'https://api.tcgdex.net/v2/en/cards/sv5-36', urlDeCarta('sv5-36', 'WEST'))
+  // Y un mercado que NO sea el occidental, que es lo que de verdad
+  // prueba que el parámetro se use. Comprobar solo WEST y un mercado
+  // inválido no vale: los dos dan inglés, así que un `const idioma =
+  // 'en'` a pelo pasaba las dos. Lo cazó el rigor.
+  //
+  // Hoy solo se engorda el occidental, pero la función acepta mercado: si
+  // lo ignorase en silencio, el día que se añada el japonés se pedirían
+  // las cartas en inglés y saldrían con el nombre equivocado.
+  const otros = Object.entries(IDIOMA_POR_MERCADO).filter(([, idioma]) => idioma !== 'en')
+  const mal = otros.filter(([mercado, idioma]) => !urlDeCarta('x', mercado).includes(`/${idioma}/`))
+  check(`los otros ${otros.length} mercados piden SU idioma`, mal.length === 0,
+    mal.map(([m, i]) => `${m} debería ser ${i}: ${urlDeCarta('x', m)}`).join(' | '))
   check('un mercado desconocido cae al occidental', urlDeCarta('x', 'ZZ').includes('/en/'), urlDeCarta('x', 'ZZ'))
   check('el identificador va escapado', urlDeCarta('a b', 'WEST').includes('a%20b'))
 
