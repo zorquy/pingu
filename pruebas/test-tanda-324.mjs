@@ -207,9 +207,13 @@ console.log('\n── 5. Quién merece salir en Google ──')
   // «Miles de páginas casi vacías hunden el dominio, no lo suben.» Una
   // ficha sin engordar es lo mismo que tienen otras quince webs, y en
   // inglés: esa no se ofrece hasta que tenga algo que las demás no.
-  check('una carta engordada se indexa', mereceIndexarse(CERULEDGE))
-  check('una sin engordar, no', !mereceIndexarse(PELADA))
-  check('y una que no existe, tampoco', !mereceIndexarse(null))
+  // OJO: el listón lo subió la tanda 325. Aquí se comprueba lo que
+  // sigue siendo de esta tanda —que sin engordar NO se indexa— y la
+  // condición nueva se prueba entera en test-tanda-325.mjs.
+  const JUGADA = { decks: 9, total_copies: 22, tournaments: 3, archetypes: [] }
+  check('una carta engordada Y jugada se indexa', mereceIndexarse(CERULEDGE, JUGADA))
+  check('una sin engordar, no', !mereceIndexarse(PELADA, JUGADA))
+  check('y una que no existe, tampoco', !mereceIndexarse(null, JUGADA))
 
   const html = readFileSync(`${RAIZ}/carta.html`, 'utf8')
   const conNoindex = inyectarMeta(html, { url: 'u', titulo: 't', descripcion: 'd', imagen: 'i', robots: 'noindex,follow', nucleo: 'x' })

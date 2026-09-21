@@ -41,7 +41,7 @@ const T = {
   tcg_cards: [],
   tcg_archetypes: [],
   tcg_sets: [],
-  tcg_cards: [],
+  tcg_card_play: [],
   match_log: [],
   match_log_torneos: [],
   guides: [],
@@ -330,6 +330,12 @@ sembrar('__FAKE_SETS__', 'tcg_sets', (i) => ({
 sembrar('__FAKE_CARTAS__', 'tcg_cards', (i) => ({
   id: `carta-${i}`, set_id: 'set-0', market: 'WEST', local_id: String(i), name: `Carta ${i}`, image_path: `x/y/${i}`,
 }))
+// Lo que se juega en los torneos (tanda 325). La clave es el nombre
+// normalizado, igual que en la tabla de verdad.
+sembrar('__FAKE_JUEGO__', 'tcg_card_play', (i) => ({
+  name_key: `carta ${i}`, name: `Carta ${i}`, decks: 0, total_copies: 0, tournaments: 0, archetypes: [],
+}))
+
 sembrar('__FAKE_AJUSTES__', 'site_settings', (i) => ({ key: `clave-${i}`, value: {} }))
 
 sembrar('__FAKE_PARTIDAS__', 'match_log', (i) => ({
