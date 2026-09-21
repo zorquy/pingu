@@ -73,19 +73,54 @@ async function rest(ruta, clave, opciones = {}) {
   return res.status === 204 ? null : res.json()
 }
 
-// Las siguientes que tocan. `detalle_error` fuera a propósito: una carta
-// que ya falló no se reintenta en cada pasada — si no, cuatro cartas
-// rotas se comerían la tanda entera para siempre y el resto del catálogo
-// no avanzaría nunca. Para reintentarlas se vacía la columna a mano.
-async function siguientes(clave) {
-  const ruta =
-    'tcg_cards?select=id,set_id,tcg_sets!inner(release_date)' +
-    `&market=eq.${MERCADO}` +
-    '&detalle_at=is.null' +
-    '&detalle_error=is.null' +
-    '&order=tcg_sets(release_date).desc.nullslast' +
-    `&limit=${POR_PASADA}`
-  return (await rest(ruta, clave)) || []
+// Cuántos sets se preguntan de una vez al buscar por dónde seguir. Con
+// ~220 sets son 9 preguntas en el peor caso, y en la práctica una o dos:
+// se avanza por la lista y la frontera está donde se quedó la pasada
+// anterior.
+const SETS_POR_VENTANA = 25
+
+// Los sets, del más nuevo al más viejo, y los SIN FECHA al final.
+//
+// Esto era una sola consulta con `order=tcg_sets(release_date).desc.
+// nullslast` sobre la tabla embebida, y **PostgREST se comía el
+// `nullslast` sin dar error**. Como Postgres pone los NULL PRIMERO en un
+// DESC, el catálogo se empezó a engordar por las promos de McDonald's de
+// 2014 — lo menos buscado que hay. Salió porque las 206 primeras cartas
+// eran todas de sets sin fecha.
+//
+// Ahora el orden se hace aquí, sobre la tabla de sets directamente
+// (ordenar por una columna propia sí funciona), y la elección de qué
+// carta toca es NUESTRA y no de una sintaxis que puede ignorarse en
+// silencio.
+async function setsPorPrioridad(clave) {
+  const sets = await rest(
+    `tcg_sets?select=id&market=eq.${MERCADO}&order=release_date.desc.nullslast`,
+    clave
+  )
+  return (sets || []).map((s) => s.id)
+}
+
+// Las siguientes cartas que tocan, buscando por ventanas de sets hasta
+// dar con una que tenga pendientes.
+//
+// `detalle_error` fuera a propósito: una carta que ya falló no se
+// reintenta en cada pasada — si no, cuatro cartas rotas se comerían la
+// tanda entera para siempre y el resto del catálogo no avanzaría nunca.
+// Para reintentarlas se vacía la columna a mano.
+async function siguientes(clave, setsOrdenados) {
+  for (let i = 0; i < setsOrdenados.length; i += SETS_POR_VENTANA) {
+    const ventana = setsOrdenados.slice(i, i + SETS_POR_VENTANA)
+    const ruta =
+      'tcg_cards?select=id,set_id' +
+      `&market=eq.${MERCADO}` +
+      `&set_id=in.(${ventana.map((x) => encodeURIComponent(x)).join(',')})` +
+      '&detalle_at=is.null' +
+      '&detalle_error=is.null' +
+      `&limit=${POR_PASADA}`
+    const filas = (await rest(ruta, clave)) || []
+    if (filas.length) return filas
+  }
+  return []
 }
 
 async function guardar(clave, id, fila) {
@@ -100,7 +135,8 @@ export default async function handler() {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return new Response('Falta SUPABASE_SERVICE_ROLE_KEY', { status: 500 })
 
-  const pendientes = await siguientes(clave)
+  const setsOrdenados = await setsPorPrioridad(clave)
+  const pendientes = await siguientes(clave, setsOrdenados)
   if (!pendientes.length) {
     return Response.json({ hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
   }

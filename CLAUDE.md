@@ -144,6 +144,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   IMÁGENES sí vienen en el listado del set, así que traducir el catálogo
   a otro idioma son ~154 peticiones y no 16.000: son dos costes muy
   distintos y conviene no confundirlos.
+- **PostgREST se come el `nullslast` al ordenar por una tabla EMBEBIDA**
+  (tanda 322), sin dar error. Y como Postgres pone los NULL PRIMERO en un
+  `DESC`, `order=tcg_sets(release_date).desc.nullslast` hizo justo lo
+  contrario de lo que decía: el catálogo se empezó a engordar por las
+  promos de McDonald's de 2014, que son lo menos buscado que hay. Se vio
+  porque las 206 primeras cartas eran TODAS de sets sin fecha. Sobre una
+  columna PROPIA de la tabla sí funciona; sobre una embebida, ordena tú
+  en dos pasos y no le confíes la prioridad a una sintaxis que puede
+  ignorarse en silencio.
 - **Miles de páginas casi vacías hunden el dominio, no lo suben** (tanda
   322). Es contenido escaso generado en masa, y castiga al sitio entero y
   no solo a esas páginas. Antes de generar una página por fila de una

@@ -12,6 +12,42 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-21 — PINGU-Claude (322: el orden del engorde salía al revés)
+
+**Hecho**: la primera pasada real fue bien —206 cartas, 0 fallidas, y
+confirmado que el mapeo es correcto (`attacks` trae `cost`/`name`/
+`effect`, `hp` es número, `types` es array)—. Pero al preguntar de qué
+SETS eran, salieron **todas de sets sin fecha**: promos de McDonald's de
+2014 a 2024.
+
+**La causa**: pedía `order=tcg_sets(release_date).desc.nullslast`, que es
+ordenar por una columna de una tabla EMBEBIDA. **PostgREST acepta eso y
+se come el `nullslast`**, sin dar error. Y Postgres pone los NULL
+PRIMERO en un `DESC`, así que el catálogo se empezó a engordar **por lo
+menos buscado que existe**, que es exactamente lo contrario de lo que el
+código decía hacer.
+
+Cero errores, todo verde, y haciendo lo contrario. Solo se vio mirando
+de dónde eran las cartas ya hechas.
+
+Ahora va en dos pasos: los sets se ordenan por su propia columna (ahí
+`nullslast` sí funciona) y las cartas pendientes se buscan por ventanas
+de 25 sets. Una o dos consultas más por pasada, y la prioridad pasa a
+ser nuestra.
+
+**De paso**: comprobado que `evolveFrom` es el nombre bueno — 14 de 22
+evoluciones traen `evolve_from`; las 8 que no son promos, que llevan la
+ficha más pobre.
+
+**Ficheros**: `netlify/functions/cartas-detalle.mjs`, `CLAUDE.md`,
+`SCHEMA.md`.
+
+**En curso / pendiente**: ver que la siguiente pasada coge ya sets
+modernos. Falta el rigor de la 322 (13 mutaciones escritas, sin pasar
+desde el arreglo). Y la 323, el español.
+
+---
+
 ## 2026-09-21 — PINGU-Claude (arreglo de la 322: la pasada no cabía en el tiempo)
 
 **Hecho**: PINGU ejecutó el SQL y la comprobación dio 0 hechas, 0

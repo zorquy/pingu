@@ -16877,3 +16877,28 @@ caduca, una columna deja preguntar mañana «¿cuáles fallaron y por qué?»
 con un `select`.
 
 Cubierto en `test-tanda-322.mjs` (5 bloques, 23 comprobaciones).
+
+### El orden salió al revés, y no dio error
+
+La primera pasada real dejó 206 cartas engordadas, 0 fallidas — y todas
+de **sets sin fecha de salida**: promos de McDonald's de 2014 a 2024 y la
+30th Celebration.
+
+La función pedía `order=tcg_sets(release_date).desc.nullslast`, que es
+ordenar por una columna de una tabla EMBEBIDA. **PostgREST acepta la
+sintaxis y se come el `nullslast`**, sin avisar. Y como Postgres pone los
+NULL PRIMERO en un `DESC`, el resultado fue el contrario exacto del que
+se pedía: el catálogo empezó a engordarse por lo menos buscado que hay.
+
+No daba ningún error: 206 hechas, 0 fallidas, todo verde. Solo se vio al
+preguntar **de qué sets eran** las que ya estaban.
+
+Ahora va en dos pasos: una consulta trae los sets ordenados por su
+propia columna (ahí `nullslast` sí funciona) y otra busca cartas
+pendientes por ventanas de 25 sets hasta dar con una que tenga. Son una
+o dos consultas más por pasada, y a cambio **la prioridad es nuestra y no
+de una sintaxis que puede ignorarse en silencio**.
+
+De paso quedó comprobado que `evolveFrom` es el nombre correcto: 14 de
+las 22 evoluciones procesadas traen `evolve_from`. Las 8 que no, son
+promos, que llevan la ficha más pobre del catálogo.
