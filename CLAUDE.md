@@ -136,8 +136,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   frente a las ~220 de importar el catálogo entero. Por eso `cardToRow`
   deja los campos a null: no es un olvido, es un coste. No lo «arregles»
   metiéndolo en la importación — se reparte, y ya está repartido en la
-  función programada `cartas-detalle` (150 por hora, 350 ms entre
-  peticiones, lo más nuevo primero). En cambio los NOMBRES y las
+  función programada `cartas-detalle` (40 cada cinco minutos, 350 ms
+  entre peticiones, lo más nuevo primero). Y el 40 no es un gusto: **una
+  función programada de Netlify se mata a los 30 segundos**, así que el
+  bucle lleva además su propio presupuesto de tiempo y lo que no da
+  tiempo se queda para la pasada siguiente. En cambio los NOMBRES y las
   IMÁGENES sí vienen en el listado del set, así que traducir el catálogo
   a otro idioma son ~154 peticiones y no 16.000: son dos costes muy
   distintos y conviene no confundirlos.

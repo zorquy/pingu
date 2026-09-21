@@ -12,6 +12,43 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-21 — PINGU-Claude (arreglo de la 322: la pasada no cabía en el tiempo)
+
+**Hecho**: PINGU ejecutó el SQL y la comprobación dio 0 hechas, 0
+fallidas, 22.723 totales — o sea, la función aún no había corrido. Al
+revisarla apareció un fallo mío que habría salido en la primera pasada:
+
+**Una función programada de Netlify se mata a los 30 segundos.** Yo puse
+150 cartas por pasada con 350 ms de pausa, y cada carta cuesta además
+una petición a TCGdex y un PATCH a Supabase: unos 600-700 ms. Son ~105
+segundos. Se habría cortado a mitad en TODAS las pasadas, guardando unas
+40 cartas y muriendo — sin error visible, solo una pasada que nunca
+termina de hacer lo que dice.
+
+Ahora son **40 por pasada cada cinco minutos**, y el bucle lleva su
+propio presupuesto (22 s) para dejar de empezar cartas antes de que
+Netlify lo mate. Lo que no da tiempo no se pierde: sigue con `detalle_at`
+a null y lo coge la siguiente. La respuesta dice cuántas quedaron sin
+tiempo.
+
+De paso sale mejor la cuenta: 40 × 12 = **480 a la hora** frente a las
+150 de antes, así que las 22.723 caen en un par de días en vez de una
+semana.
+
+**La lección, que es la de siempre en otra forma**: un número elegido
+por lo que parece razonable —150, una vez por hora— es una afirmación
+sobre un límite que nadie ha mirado. Igual que los puntos de corte de la
+barra de arriba en la 320.
+
+**Ficheros**: `netlify/functions/cartas-detalle.mjs`, `CLAUDE.md`,
+`SCHEMA.md`.
+
+**En curso / pendiente**: sigue pendiente ver la primera pasada de
+verdad — que es lo único que confirma que la forma de la respuesta de
+TCGdex es la que supuse. Y la 323 (el español) detrás.
+
+---
+
 ## 2026-09-21 — PINGU-Claude (tanda 322 — las cartas, con datos para tener página propia)
 
 **Hecho**: primera pieza de las páginas de carta, que es la apuesta de

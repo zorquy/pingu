@@ -16813,10 +16813,22 @@ una función de servidor y ese fichero importa `./supabase.js`**, que es
 del navegador. Es una función PURA a propósito: así se prueba con una
 respuesta guardada, sin red y sin base.
 
-**`netlify/functions/cartas-detalle.mjs`** — la función programada. 150
-cartas por pasada, una pasada por hora, 350 ms entre peticiones. El
-catálogo occidental entero cae en una semana sin portarse como un abusón
-con quien regala los datos.
+**`netlify/functions/cartas-detalle.mjs`** — la función programada. 40
+cartas por pasada, una pasada cada cinco minutos, 350 ms entre
+peticiones. Las 22.723 del catálogo occidental caen en un par de días sin
+portarse como un abusón con quien regala los datos.
+
+El 40 **no es un número elegido**: sale de que una función programada de
+Netlify **se mata a los 30 segundos**. Cada carta cuesta una petición a
+TCGdex, un PATCH a Supabase y la pausa — unos 600-700 ms. La primera
+versión pedía 150 por hora, que son ~105 segundos, y se habría cortado a
+mitad en todas y cada una de las pasadas. Tandas cortas y más a menudo
+dan además MÁS cartas al día (480 a la hora frente a 150).
+
+Y por si la red va lenta un día, el bucle lleva su propio presupuesto
+(22 s) y deja de empezar cartas nuevas antes de que Netlify lo mate. Lo
+que no da tiempo no se pierde: sigue con `detalle_at` a null y lo coge la
+pasada siguiente. La respuesta dice cuántas quedaron sin tiempo.
 
 El orden es por fecha de salida del set, de más nuevo a más viejo: los
 sets recientes son los que se juegan y los que la gente busca, así que la

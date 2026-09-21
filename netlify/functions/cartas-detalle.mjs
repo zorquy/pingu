@@ -27,10 +27,25 @@ import { detalleDeCarta, urlDeCarta } from '../lib/carta-detalle.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
-// Cuántas por pasada. Con una cada hora son ~3.600 al día y el catálogo
-// occidental entero cae en una semana. Subirlo es fácil y es justo lo
-// que no hay que hacer sin mirar antes si TCGdex lo agradece.
-const POR_PASADA = 150
+// Cuántas por pasada.
+//
+// El número no sale de lo que me apetece: sale de que **una función
+// programada de Netlify se mata a los 30 segundos**. Cada carta cuesta
+// una petición a TCGdex, un PATCH a Supabase y la pausa de abajo — unos
+// 600-700 ms. Con 150 harían falta ~105 segundos y la pasada moriría a
+// mitad en todas y cada una de las veces.
+//
+// Así que 40, que caben de sobra, y el bucle además se corta solo por
+// tiempo (PRESUPUESTO_MS). Lo que no dé tiempo NO se pierde: sigue con
+// `detalle_at` a null y lo coge la pasada siguiente.
+const POR_PASADA = 40
+
+// Cuándo dejar de empezar cartas nuevas. Netlify corta a los 30 s sin
+// avisar y sin dejar terminar la petición en curso; parar por nuestra
+// cuenta antes deja la pasada cerrada en orden y la respuesta dice
+// cuántas se hicieron. Es la diferencia entre «se acabó el tiempo» y
+// «nos mataron».
+const PRESUPUESTO_MS = 22000
 
 // Entre peticiones. No es paranoia: 150 peticiones seguidas a una API
 // sin clave es la forma de que te bloqueen el rango y te quedes sin
@@ -92,8 +107,14 @@ export default async function handler() {
 
   let hechas = 0
   let fallidas = 0
+  let sinTiempo = 0
+  const arranque = Date.now()
 
   for (const carta of pendientes) {
+    if (Date.now() - arranque > PRESUPUESTO_MS) {
+      sinTiempo = pendientes.length - hechas - fallidas
+      break
+    }
     try {
       const res = await fetch(urlDeCarta(carta.id, MERCADO), { headers: { Accept: 'application/json' } })
       if (!res.ok) throw new Error(`TCGdex ${res.status}`)
@@ -120,8 +141,11 @@ export default async function handler() {
     await esperar(PAUSA_MS)
   }
 
-  return Response.json({ hechas, fallidas, pedidas: pendientes.length })
+  return Response.json({ hechas, fallidas, sinTiempo, pedidas: pendientes.length })
 }
 
-// Una vez por hora. No más: ver POR_PASADA y PAUSA_MS arriba.
-export const config = { schedule: '0 * * * *' }
+// Cada cinco minutos. Antes era cada hora con tandas de 150, y esa
+// cuenta no salía: no caben en los 30 s que da Netlify. Tandas cortas y
+// más a menudo dan MÁS cartas al día (40 × 12 = 480 a la hora frente a
+// 150) y además ninguna pasada se muere a mitad.
+export const config = { schedule: '*/5 * * * *' }
