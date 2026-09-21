@@ -211,6 +211,21 @@ export function cardToRow(card, setId, market = MERCADO_POR_DEFECTO) {
   }
 }
 
+// ── El detalle de UNA carta (tanda 322) ──
+//
+// Esta es la petición cara que `cardToRow` evita a propósito: una por
+// carta, ~23.000 contra un catálogo comunitario y gratuito. No se usa al
+// importar un set; la usa la función programada `cartas-detalle`, que va
+// por tandas y no corre nunca contra el catálogo entero de golpe.
+export function fetchCard(cardId, market = MERCADO_POR_DEFECTO) {
+  return pedir(`cards/${encodeURIComponent(cardId)}`, idiomaDeMercado(market))
+}
+
+// El mapeo de esa respuesta a las columnas de `tcg_cards` NO vive aquí:
+// vive en `netlify/lib/carta-detalle.mjs`, porque quien lo usa es una
+// función de servidor y este fichero importa `./supabase.js`, que es del
+// navegador. Arrastrarlo entero a Netlify no funciona.
+
 // Postgres guarda `name_search` en minúsculas y sin tildes (columna
 // generada con unaccent). Aquí se hace lo mismo con lo que se teclea:
 // si no, quien escriba "pomez" no encontraría "Piedra Pómez" — y con

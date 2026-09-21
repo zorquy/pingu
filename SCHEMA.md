@@ -16767,3 +16767,101 @@ Va en un `browser.newContext()`. Es de los fallos que dan verde por el
 motivo equivocado en cuanto cambia el orden de los bloques.
 
 Cubierto en `test-tanda-321.mjs` (4 bloques).
+
+## Tanda 322 — las cartas, con lo que hace falta para tener página propia
+
+Primera pieza de las páginas de carta. `tcg_cards` guardaba lo justo
+para el buscador del editor y para traducir una decklist: nombre,
+imagen, número y set. Con eso una página de carta es un título, una foto
+y tres datos.
+
+**Y publicar miles de páginas así no sube en Google: hunde el sitio
+entero.** Es el caso de libro de «contenido escaso generado en masa», y
+es de las pocas cosas por las que un dominio pierde posiciones completo
+y no solo esas páginas. Así que la pregunta de la tanda no era «cómo
+genero las páginas» sino «qué tiene esta página que no tenga la de al
+lado».
+
+### Por qué estaban vacías, que es lo que hay que entender primero
+
+Estaba escrito en `js/tcgdex.js` desde la tanda 233: el listado de un set
+trae poco (`id`, `localId`, `name`, `image`) y traer lo demás exige **una
+petición POR CARTA**. Son ~23.000 contra un catálogo comunitario y
+gratuito, frente a las ~220 que cuesta importar el catálogo entero.
+
+O sea: no era un olvido, era un coste. Y la tanda no lo elimina, lo
+**reparte**.
+
+### Las piezas
+
+**`supabase-migration-cartas-detalle.sql`** — 17 columnas: `category`,
+`hp`, `types`, `stage`, `evolve_from`, `retreat`, `attacks`, `abilities`,
+`weaknesses`, `resistances`, `trainer_type`, `energy_type`, `suffix`,
+`rarity`, `illustrator`, `description`, `variants`. Más `detalle_at` y
+`detalle_error`, que son las que hacen que el relleno se pueda reanudar.
+
+Las listas van en `jsonb` y no aplanadas a columnas porque son de tamaño
+variable: aplanarlas obligaría a inventar un tope y a partirlo el día
+que salga una carta con tres ataques.
+
+El índice es **parcial** (`where detalle_at is null`): solo indexa lo que
+queda por hacer, así que encoge según avanza y acaba ocupando nada.
+
+**`netlify/lib/carta-detalle.mjs`** — el mapeo de la respuesta de TCGdex
+a las columnas. Vive ahí y no en `js/tcgdex.js` porque **quien lo usa es
+una función de servidor y ese fichero importa `./supabase.js`**, que es
+del navegador. Es una función PURA a propósito: así se prueba con una
+respuesta guardada, sin red y sin base.
+
+**`netlify/functions/cartas-detalle.mjs`** — la función programada. 150
+cartas por pasada, una pasada por hora, 350 ms entre peticiones. El
+catálogo occidental entero cae en una semana sin portarse como un abusón
+con quien regala los datos.
+
+El orden es por fecha de salida del set, de más nuevo a más viejo: los
+sets recientes son los que se juegan y los que la gente busca, así que la
+parte ÚTIL del catálogo queda engordada el primer día y no el último.
+
+### Tres decisiones que están en el código
+
+**Lo que no viene se guarda como `null`, nunca como cero o lista vacía.**
+Un Entrenador no tiene PS ni ataques, y TCGdex manda el campo AUSENTE, no
+vacío. Un mapeo que ponga `hp: 0` o `attacks: []` convierte «no lo sé» en
+una afirmación, y la página diría que un Estadio tiene 0 PS. Es la
+lección de la tanda 319 aplicada a otra capa.
+
+**Los números se validan o se tiran.** Las cartas viejas traen los PS en
+texto («70») o con sufijo («70+»). Una cadena donde Postgres espera
+integer tumba la fila ENTERA: la carta se quedaría sin engordar para
+siempre por culpa de un campo de adorno, y sin dar error en ningún sitio
+visible.
+
+**`regulation_mark` solo se escribe si viene.** La rellenó de una vez
+`supabase-migration-cartas-marcas.sql` con un SQL de 8.300 líneas.
+Escribirla a `null` cuando TCGdex no la manda se cargaría la comprobación
+de reglamento de las decklists, en silencio.
+
+### Y una copia vigilada
+
+`IDIOMA_POR_MERCADO` en la librería es una copia de `MERCADOS` en
+`js/tcgdex.js`, porque aquel fichero no se puede arrastrar a una función
+de Netlify. Copiar siete líneas es más barato que partir el fichero —
+**pero solo si la copia está vigilada**: hay una comprobación que lee el
+original como TEXTO (importarlo arrastraría `./supabase.js`) y compara
+los dos mapas. Sin ella, el día que alguien añada un mercado en un sitio
+y no en el otro, las cartas de ese mercado se pedirían en inglés sin que
+nada diera error.
+
+### Lo que esta tanda NO demuestra
+
+Las respuestas de ejemplo de la prueba están escritas con la forma que
+**documenta** TCGdex. No se han comprobado contra la API de verdad: el
+contenedor no sale a internet. La prueba afirma que mapeamos bien lo que
+CREEMOS que llega, no que TCGdex mande eso.
+
+Esa segunda mitad la confirma la primera pasada real, y por eso el error
+se guarda **en la propia fila** y no solo en el log: un log de Netlify
+caduca, una columna deja preguntar mañana «¿cuáles fallaron y por qué?»
+con un `select`.
+
+Cubierto en `test-tanda-322.mjs` (5 bloques, 23 comprobaciones).

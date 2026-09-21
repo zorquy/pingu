@@ -12,6 +12,65 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-21 — PINGU-Claude (tanda 322 — las cartas, con datos para tener página propia)
+
+**Hecho**: primera pieza de las páginas de carta, que es la apuesta de
+tráfico que decidimos. `tcg_cards` solo guardaba nombre, imagen, número
+y set — con eso una página de carta es un título y tres datos, y
+publicar miles de páginas así **hunde el dominio entero** por contenido
+escaso. Añadidas 17 columnas (PS, tipos, fase, ataques, habilidades,
+debilidad, retirada, rareza, ilustrador, variantes…).
+
+**Lo que hay que entender antes de tocar esto**: los campos estaban
+vacíos POR UN COSTE, no por olvido, y está escrito en `js/tcgdex.js`
+desde la 233. El listado de un set trae poco y lo demás exige UNA
+PETICIÓN POR CARTA: ~23.000 contra un catálogo comunitario y gratuito,
+frente a las ~220 de importar el catálogo entero. La tanda no elimina el
+coste, lo REPARTE: función programada, 150 cartas por hora con pausa de
+350 ms, ordenadas por fecha de salida del set (lo reciente es lo que se
+juega y lo que se busca). El catálogo cae en una semana.
+
+**Decisiones que están en el código**: lo que no viene se guarda como
+`null` y nunca como cero o lista vacía —un Entrenador no tiene PS, y
+`hp: 0` haría que la página afirmara que un Estadio tiene 0 PS—; los
+números se validan o se tiran (las cartas viejas traen «70» o «70+», y
+una cadena donde Postgres espera integer tumba la fila entera); y
+`regulation_mark` SOLO se escribe si viene, porque ponerla a null
+rompería la comprobación de reglamento de las decklists en silencio.
+
+**Una copia vigilada**: `IDIOMA_POR_MERCADO` en `netlify/lib/` es copia
+de `MERCADOS` en `js/tcgdex.js` (no se puede arrastrar ese fichero a
+Netlify: importa `./supabase.js`). La prueba lee el original como TEXTO y
+compara los dos mapas, para que no se separen.
+
+**Comprobado**: `test-tanda-322.mjs`, 23 comprobaciones, sin red ni
+base. ⚠️ Pero las respuestas de ejemplo están escritas con la forma que
+DOCUMENTA TCGdex y **no se han verificado contra la API real** — el
+contenedor no sale a internet. La prueba afirma que mapeamos bien lo que
+creemos que llega. Por eso el error se guarda en la propia fila.
+
+**Ficheros**: `supabase-migration-cartas-detalle.sql` (NUEVO — hay que
+ejecutarlo), `netlify/lib/carta-detalle.mjs` (NUEVO),
+`netlify/functions/cartas-detalle.mjs` (NUEVO), `js/tcgdex.js`
+(`fetchCard`), `js/schema-check.js`. En `pruebas`:
+`test-tanda-322.mjs` (NUEVO).
+
+**En curso / pendiente**:
+- **PINGU tiene que ejecutar el SQL** y dejar correr una pasada. Hasta
+  entonces la función falla cada hora (y /admin lo canta).
+- Falta el rigor de la 322.
+- **Siguiente (323): el español.** Decidido inglés + español y nada más
+  —diez idiomas serían 200.000 páginas casi vacías—. Y OJO: el idioma NO
+  es un `market`. Los occidentales son UN catálogo traducido (el español
+  comparte sus 154 identificadores de set con el inglés), así que va en
+  una tabla de traducciones, no duplicando filas. Barato: nombre e
+  imagen vienen en el LISTADO del set, ~154 peticiones, no 16.000.
+- Sigue aparcada la **317 (`@layer`)**, que choca con la 320.
+- Portada a **169,3 de 170 KB**.
+- Apuntado: el **curso de «Cómo se lee una carta»**.
+
+---
+
 ## 2026-09-21 — PINGU-Claude (el rigor de las 319, 320 y 321)
 
 **Hecho**: pasados los tres rigores. El de la 321 salió a la primera

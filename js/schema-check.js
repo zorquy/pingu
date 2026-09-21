@@ -50,6 +50,10 @@ export const REQUISITOS = [
   { tabla: 'judge_calls', columna: 'notified_at', fichero: 'supabase-migration-torneos.sql', rompe: 'Llamar a un juez no le avisa.' },
   { tabla: 'tournament_registrations', columna: 'participation_confirmed_at', fichero: 'supabase-migration-torneos.sql', rompe: 'La inscripción en dos pasos no funciona.' },
   { tabla: 'tcg_cards', columna: 'regulation_mark', fichero: 'supabase-migration-cartas-marcas.sql', rompe: 'Las decklists no comprueban el reglamento (marcas H/I/J).' },
+  // Basta con vigilar `detalle_at`: es la columna que la función
+  // programada consulta en CADA pasada, así que si falta, `cartas-detalle`
+  // revienta una vez por hora en silencio y nadie se entera.
+  { tabla: 'tcg_cards', columna: 'detalle_at', fichero: 'supabase-migration-cartas-detalle.sql', rompe: 'Las cartas no se engordan: sin PS, ataques, rareza ni ilustrador, y la función cartas-detalle falla cada hora.' },
   // Tabla entera, no columna: si falta, el select ya falla igual y el
   // aviso sale. Sin ella los mazos NO dejan de identificarse (se deducen
   // solos), pero el catálogo curado no existe y /admin no puede llenarlo.

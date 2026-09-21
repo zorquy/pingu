@@ -131,6 +131,28 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   puede significar «tarjeta más pequeña», así que un `@media` es la
   herramienta equivocada: lo que responde al ancho de su caja va con
   `container-type: inline-size` + `@container`.
+- **Engordar el catálogo de cartas cuesta UNA PETICIÓN POR CARTA**
+  (tandas 233 y 322), ~23.000 contra un catálogo comunitario y gratuito,
+  frente a las ~220 de importar el catálogo entero. Por eso `cardToRow`
+  deja los campos a null: no es un olvido, es un coste. No lo «arregles»
+  metiéndolo en la importación — se reparte, y ya está repartido en la
+  función programada `cartas-detalle` (150 por hora, 350 ms entre
+  peticiones, lo más nuevo primero). En cambio los NOMBRES y las
+  IMÁGENES sí vienen en el listado del set, así que traducir el catálogo
+  a otro idioma son ~154 peticiones y no 16.000: son dos costes muy
+  distintos y conviene no confundirlos.
+- **Miles de páginas casi vacías hunden el dominio, no lo suben** (tanda
+  322). Es contenido escaso generado en masa, y castiga al sitio entero y
+  no solo a esas páginas. Antes de generar una página por fila de una
+  tabla, contesta qué tiene esa página que no tenga la de al lado — y si
+  la respuesta no existe todavía, esa página nace en `noindex`.
+- **Una constante copiada se vigila con una prueba** (tanda 322).
+  `IDIOMA_POR_MERCADO` en `netlify/lib/carta-detalle.mjs` es copia de
+  `MERCADOS` en `js/tcgdex.js`, porque ese fichero importa
+  `./supabase.js` y no se puede arrastrar a una función de Netlify.
+  Copiar siete líneas es más barato que partir el fichero, pero una copia
+  sin vigilar se separa y no da error: la prueba lee el original como
+  TEXTO —importarlo arrastraría el navegador— y compara los dos mapas.
 - **Un respaldo que vive en el mismo sitio no es un respaldo** (tanda
   321). El 2026-09-20 se cayó `r2.limitlesstcg.net` entera y todos los
   minisprites del sitio se apagaron a la vez: la red que había —de una
