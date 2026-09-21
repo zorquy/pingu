@@ -64,9 +64,14 @@ MUTACIONES = [
      "  if (!card || typeof card !== 'object') return null", '  card = card || {}'),
 
     # ── 6. El idioma ──
-    (F, 'la URL pide siempre en inglés, sea cual sea el mercado',
-     '  const idioma = IDIOMA_POR_MERCADO[market] || IDIOMA_POR_MERCADO.WEST',
-     "  const idioma = 'en'"),
+    # El ancla lleva la línea de DEBAJO a propósito: desde que existe
+    # `urlDeSet`, la del idioma aparece dos veces y el andamio se niega a
+    # mutar algo ambiguo (bien hecho). Un ancla es única o no es un ancla.
+    (F, 'la URL de una carta pide siempre en inglés, sea cual sea el mercado',
+     '  const idioma = IDIOMA_POR_MERCADO[market] || IDIOMA_POR_MERCADO.WEST\n'
+     '  return `${API}/${idioma}/cards/${encodeURIComponent(cardId)}`',
+     "  const idioma = 'en'\n"
+     '  return `${API}/${idioma}/cards/${encodeURIComponent(cardId)}`'),
     # La copia que se separa del original. Es EXACTAMENTE lo que la
     # prueba de la copia vigilada existe para cazar.
     (F, 'la copia del mapa de idiomas se separa del original',
