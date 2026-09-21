@@ -12,6 +12,55 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-21 — PINGU-Claude (el rigor de las 319, 320 y 321)
+
+**Hecho**: pasados los tres rigores. El de la 321 salió a la primera
+(12 de 12). Los otros dos dejaron TRES escapes, y los tres eran huecos
+de MIS pruebas, no del código — los tres de la misma familia: la prueba
+miraba que la pieza existiera, no que hiciera su trabajo.
+
+1. **El valor por defecto no lo ejercitaba nadie.** Cambiar
+   `progreso = null` a `{}` —que ES el fallo de la 316— no rompía nada,
+   porque las dos pantallas que existen hoy pasan el dato siempre.
+   Ahora la prueba monta la tarjeta SIN pasárselo y exige que no pinte
+   barra; y con un mapa vacío exige que sí la pinte. Las dos mitades,
+   porque una tarjeta que no pintara barra JAMÁS pasaría la primera.
+
+2. **Un filtro por usuario no se prueba con un solo usuario.** Quitar
+   el `.eq('user_id', …)` no cambiaba nada porque en la tabla de prueba
+   solo había filas de `user-1`. Metidas tres de `user-2` que dicen lo
+   contrario en las mismas guías.
+
+3. **Ninguna prueba ABRÍA el menú.** El rigor quitó el `!important` del
+   desplegable en el tramo donde los enlaces se apartan y todo siguió
+   verde: había botón, se pulsaba y no pasaba nada. El bloque nuevo
+   afirma el DESTINO y no el CSS — en cualquier ancho, o los enlaces
+   están a la vista o se llega a ellos pulsando el botón.
+
+**Y dos cosas que el rigor encontró en el CÓDIGO de la 321** (esas sí):
+el registro de las FORMAS en la tabla de números de Pokédex era código
+muerto —toda forma la intercepta antes el peldaño de la especie base—,
+y el descarte de repetidos de la cadena era red de repuesto del tope del
+bucle. Los dos fuera. Comprobado que las cinco formas que probé
+(Ogerpon y sus máscaras, Ursaluna, las megas) siguen resolviendo igual.
+
+**El susto**: el contenedor se reinició CON los rigores en marcha, que
+es el escenario que deja un fichero roto en disco con pinta de estar
+listo para subir. El log había llegado a `TODOS FIN` y
+`comprobar-arbol.sh` dio limpio, así que no quedó nada a medias.
+
+**Ficheros**: `js/torneos/sprites-pokemon.js`. En la rama `pruebas`:
+`test-tanda-319.mjs`, `test-tanda-320.mjs`, `test-tanda-321.mjs`,
+`rigor-tanda-321.py`.
+
+**En curso / pendiente**: sigue aparcada la **tanda 317 (`@layer`)** en
+la rama local `tanda-317-espera` — y OJO, movía 47 reglas de la barra de
+arriba a `style.css`, que es justo lo que la 320 acaba de tocar: hay que
+reconciliarlo a mano. Y el presupuesto de la portada está en **169,3 de
+170**: menos de un kilobyte.
+
+---
+
 ## 2026-09-20 — PINGU-Claude (tanda 321 — URGENTE: se cayó la CDN de los sprites)
 
 **Hecho**: `r2.limitlesstcg.net`, de donde salen TODOS los minisprites

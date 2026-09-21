@@ -471,16 +471,17 @@ const CDN_RESPALDO = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites
 const CDN_RESPALDO_2 = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
 
 // De una URL de Limitless a su número de Pokédex, que es lo que pide el
-// segundo origen. Las formas apuntan a la especie BASE porque es lo
-// único que PokeAPI tiene; las megas llevan un dex inventado
-// (20000 + base) y por eso se usa `f.base`, nunca `f.dex`.
+// segundo origen. Solo ESPECIES, y no es un olvido: una forma nunca
+// llega aquí, porque el peldaño anterior (RESPALDO_POR_URL) ya la ha
+// mandado a la URL de su especie base, que sí está en esta tabla. Se
+// intentó registrar también las formas y el rigor lo cantó — las
+// mutaciones sobre esa línea no cambiaban nada porque no se ejecutaba
+// nunca. Y menos mal: el `dex` de una mega es inventado (20000 + base)
+// y pedírselo a PokeAPI habría dado un 404.
 const DEX_POR_URL = new Map()
 for (let i = 0; i < POKEMON_POR_DEX.length; i++) {
   const s = slugLimitless(POKEMON_POR_DEX[i])
   if (s) DEX_POR_URL.set(`${CDN_SPRITES}/${s}.png`, i + 1)
-}
-for (const f of FORMAS_TCG) {
-  if (f.slug) DEX_POR_URL.set(`${CDN_SPRITES}/${f.slug}.png`, f.base || f.dex)
 }
 
 // El SIGUIENTE sitio donde probar este sprite, o null si ya no quedan.
@@ -500,14 +501,17 @@ export function respaldoDeSprite(url) {
 }
 
 // La cadena entera de una vez, para quien no puede ir pidiéndola paso a
-// paso. El tope de 4 y el descarte de repetidos son un cinturón: una
-// tabla mal montada que se apuntara a sí misma colgaría el navegador.
+// paso. El tope es lo único que garantiza que esto TERMINE: una tabla
+// mal montada que se apuntara a sí misma colgaría la pestaña. Había
+// además un descarte de repetidos, y el rigor lo marcó como «sin
+// detectar» — con razón: era red de repuesto del tope, y dos guardas
+// que se cubren la una a la otra no las prueba nadie.
 export function cadenaDeRespaldos(url) {
   const cadena = []
   let u = String(url ?? '')
   for (let i = 0; i < 4; i++) {
     const siguiente = respaldoDeSprite(u)
-    if (!siguiente || cadena.includes(siguiente)) break
+    if (!siguiente) break
     cadena.push(siguiente)
     u = siguiente
   }
