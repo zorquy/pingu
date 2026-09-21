@@ -124,4 +124,4 @@ export default async function handler() {
 }
 
 // Una vez por hora. No más: ver POR_PASADA y PAUSA_MS arriba.
-export const config = { schedule: '@hourly' }
+export const config = { schedule: '0 * * * *' }
