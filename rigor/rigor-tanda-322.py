@@ -13,7 +13,11 @@ import sys
 sys.path.insert(0, '/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad')
 import rigor_comun
 
-F = 'netlify/lib/carta-detalle.mjs'
+# El mapeo se mudó a js/ en la tanda 331 (lo necesita el navegador para
+# completar una ficha sin engordar). Lo del SERVIDOR —las URLs y el
+# idioma del mercado— se quedó donde estaba.
+F = 'js/carta-detalle.js'
+S = 'netlify/lib/carta-detalle.mjs'
 
 MUTACIONES = [
     # ── 1. «No lo sé» pasa a ser un dato ──
@@ -67,17 +71,17 @@ MUTACIONES = [
     # El ancla lleva la línea de DEBAJO a propósito: desde que existe
     # `urlDeSet`, la del idioma aparece dos veces y el andamio se niega a
     # mutar algo ambiguo (bien hecho). Un ancla es única o no es un ancla.
-    (F, 'la URL de una carta pide siempre en inglés, sea cual sea el mercado',
+    (S, 'la URL de una carta pide siempre en inglés, sea cual sea el mercado',
      '  const idioma = IDIOMA_POR_MERCADO[market] || IDIOMA_POR_MERCADO.WEST\n'
      '  return `${API}/${idioma}/cards/${encodeURIComponent(cardId)}`',
      "  const idioma = 'en'\n"
      '  return `${API}/${idioma}/cards/${encodeURIComponent(cardId)}`'),
     # La copia que se separa del original. Es EXACTAMENTE lo que la
     # prueba de la copia vigilada existe para cazar.
-    (F, 'la copia del mapa de idiomas se separa del original',
+    (S, 'la copia del mapa de idiomas se separa del original',
      "  JP: 'ja',", "  JP: 'jp',"),
-    (F, 'el identificador deja de escaparse en la URL',
-     '${encodeURIComponent(cardId)}', '${cardId}'),
+    (S, 'el identificador deja de escaparse en la URL',
+     'cards/${encodeURIComponent(cardId)}`\n}', 'cards/${cardId}`\n}'),
 ]
 
 rigor_comun.correr(MUTACIONES, 'test-tanda-322.mjs')

@@ -59,6 +59,28 @@ console.log('\n── 1. La huella: qué es «la misma carta» ──')
   // El efecto NO entra en la huella a propósito: se reescribe entre
   // erratas y entre idiomas, y dos impresiones de la misma carta pueden
   // traerlo distinto. Si entrara, una reimpresión dejaría de reconocerse.
+  // Y los casos que aíslan cada campo por separado. Con un ejemplo que
+  // cambia varios a la vez, quitar uno de la huella no se nota: el
+  // rigor lo cazó y tenía razón.
+  check('…ni uno que solo cambia los PS',
+    !esLaMismaCarta(PRIMEAPE, { ...PRIMEAPE, hp: 90 }))
+  check('…ni uno que solo cambia de fase',
+    !esLaMismaCarta(PRIMEAPE, { ...PRIMEAPE, stage: 'Basic' }))
+  check('…ni uno que solo cambia de tipo',
+    !esLaMismaCarta(PRIMEAPE, { ...PRIMEAPE, types: ['Darkness'] }))
+
+  // El ORDEN de los ataques no puede contar: la misma carta dejaría de
+  // reconocerse solo porque la API los devuelva al revés.
+  const DOS = { ...PRIMEAPE, attacks: [
+    { name: 'Corkscrew Punch', cost: ['Colorless', 'Colorless'], damage: '50' },
+    { name: 'Rage', cost: ['Fighting'], damage: '20' },
+  ] }
+  const DOS_AL_REVES = { ...DOS, attacks: [...DOS.attacks].reverse() }
+  check('el orden de los ataques da igual', esLaMismaCarta(DOS, DOS_AL_REVES))
+  check('…pero cambiar uno de los dos, no', !esLaMismaCarta(DOS, {
+    ...DOS, attacks: [DOS.attacks[0], { name: 'Rage', cost: ['Fighting'], damage: '30' }],
+  }))
+
   check('el texto del efecto no rompe la huella',
     esLaMismaCarta(PRIMEAPE, { ...PRIMEAPE, attacks: [{ ...PRIMEAPE.attacks[0], effect: 'Otra redacción.' }] }))
 
@@ -123,6 +145,37 @@ console.log('\n── 2. «Otras versiones», en la página ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
+console.log('\n── 2 bis. La debilidad se dibuja, no se escribe ──')
+{
+  // «Pone debilidad fuego x2, pero debería salir el icono del tipo, ¿no?»
+  // (PINGU). En la carta de verdad es un símbolo, no la palabra.
+  const page = await browser.newPage({ viewport: { width: 1150, height: 1000 } })
+  await page.addInitScript((pr) => {
+    window.__FAKE_SETS__ = [{ id: 'pbl', name: 'Pitch Black', market: 'WEST', serie_id: 'mega' }]
+    window.__FAKE_CARTAS__ = [pr]
+  }, PRIMEAPE)
+  await page.goto(`${BASE}/carta/primeape-pbl-43`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2200)
+
+  const punto = page.locator('.carta-combate div').first().locator('.carta-energia')
+  check('la debilidad lleva su icono', (await punto.count()) === 1,
+    limpio(await page.locator('.carta-combate div').first().textContent()))
+  check('…del tipo que toca', (await punto.getAttribute('data-tipo')) === 'Psychic')
+  // Y el nombre no se pierde: quien no ve el color lo oye.
+  check('…con su nombre traducido para quien no ve el color',
+    (await punto.getAttribute('aria-label')) === 'Psíquico',
+    await punto.getAttribute('aria-label'))
+  check('…y también en el title', (await punto.getAttribute('title')) === 'Psíquico')
+  check('el multiplicador sigue escrito',
+    limpio(await page.locator('.carta-combate div').first().textContent()).includes('×2'))
+  // La retirada, en puntos incoloros: tantos como cuesta.
+  const retirada = page.locator('.carta-combate div').nth(2).locator('.carta-energia')
+  check('la retirada son 2 puntos, como su coste', (await retirada.count()) === 2)
+  check('…y son incoloros', (await retirada.first().getAttribute('aria-label')) === 'Incolora')
+  await page.close()
+}
+
+// ═════════════════════════════════════════════════════════════════════
 console.log('\n── 3. Una carta sin identificar NO se acusa ──')
 {
   // El fallo de PINGU, y el peor de los dos. La lista trae un set que no
@@ -173,6 +226,30 @@ console.log('\n── 3. Una carta sin identificar NO se acusa ──')
   check('…y dice POR QUÉ, que es lo accionable',
     /catálogo/i.test(r.aviso), r.aviso)
   check('…sin llamarla fuera de reglamento', !/fuera del reglamento/i.test(r.aviso), r.aviso)
+
+  // El caso de al lado, que es donde se cuela un «exacta = true» de más:
+  // el SET sí está en el catálogo, pero ese número no. Un dedazo en la
+  // lista, o una carta que no se importó. Tampoco se ha identificado
+  // nada, así que tampoco se puede acusar.
+  const r15 = await page.evaluate(async () => {
+    const { pintarDecklistVisual } = await import('/js/torneos/cartas-decklist.js')
+    const caja = document.createElement('div')
+    document.body.appendChild(caja)
+    await pintarDecklistVisual(caja, {
+      // OBF sí lo conocemos; el número 999 no existe.
+      pokemon: [{ quantity: 1, name: 'Mew ex', set: 'OBF', number: '999' }],
+      trainer: [], energy: [],
+    })
+    const aviso = caja.querySelector('[data-reglamento]')
+    return {
+      ilegales: caja.querySelectorAll('.torneo-carta-ilegal').length,
+      aviso: (aviso && !aviso.classList.contains('hidden') && aviso.textContent) || '',
+    }
+  })
+  check('un set conocido con un número que no existe tampoco se acusa',
+    r15.ilegales === 0, `${r15.ilegales} marcadas`)
+  check('…y se cuenta como no identificada', /no he podido identificar/i.test(r15.aviso),
+    r15.aviso || '(sin aviso)')
 
   // Y el contrario, para que el arreglo no apague el comprobador: una
   // carta que SÍ identificamos y que sí está fuera, se marca.

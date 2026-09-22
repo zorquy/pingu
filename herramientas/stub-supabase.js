@@ -716,6 +716,24 @@ function consulta(tabla, estado = {}) {
       })
     },
     range: (desde, hasta) => consulta(tabla, { ...st, rango: [desde, hasta] }),
+    // `like` de PostgREST: igual que `ilike` pero distinguiendo
+    // mayúsculas. FALTABA, y no era un detalle: `searchCards` lo usa, y
+    // como no existía el método, la llamada reventaba, el `try/catch` de
+    // `resolverCarta` se tragaba el error y el camino de respaldo POR
+    // NOMBRE no lo había ejercitado ninguna prueba jamás.
+    //
+    // Ese es justo el camino que marcó en rojo el Mew ex de PINGU. Una
+    // prueba que no puede llegar a un camino no dice nada de él, y aquí
+    // ni siquiera se veía: el error se perdía en un catch.
+    like: (col, patron) => {
+      const faltan = (typeof window !== 'undefined' && window.__SIN_COLUMNAS__) || {}
+      if ((faltan[tabla] || []).includes(col)) return cadenaRota(tabla, col)
+      const re = new RegExp('^' + String(patron).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*') + '$')
+      return consulta(tabla, {
+        ...st,
+        filtros: [...st.filtros, (f) => re.test(String(f[col] ?? valorGenerado(f, col)))],
+      })
+    },
     // `ilike` de PostgREST: el comodín es % y no distingue mayúsculas.
     ilike: (col, patron) => {
       // Fingir que una COLUMNA no existe, que no es lo mismo que fingir

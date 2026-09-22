@@ -112,6 +112,13 @@ console.log('\n── 3. Qué es una era y qué no ──')
         card_count_official: 15, release_date: '2025-08-01' },
       { id: 'sv8', name: 'Surging Sparks', market: 'WEST', serie_name: 'Escarlata y Púrpura',
         card_count_official: 252, release_date: '2024-11-08' },
+      // OJO con el orden: el set más NUEVO de Espada y Escudo es
+      // pequeño y el grande es más viejo. Así «el primero» y «el más
+      // grande» dejan de ser el mismo, que es lo que hace falta para
+      // que se note si alguien mira solo el primero. Con un set por
+      // serie, el rigor no veía la diferencia.
+      { id: 'swshp', name: 'SWSH Promos', market: 'WEST', serie_name: 'Espada y Escudo',
+        card_count_official: 30, release_date: '2022-06-01' },
       { id: 'swsh3', name: 'Darkness Ablaze', market: 'WEST', serie_name: 'Espada y Escudo',
         card_count_official: 189, release_date: '2020-08-14' },
       { id: 'raro', name: 'Promo suelto', market: 'WEST', serie_name: null,
