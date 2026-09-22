@@ -34,7 +34,7 @@ const COLUMNAS =
   'id,set_id,local_id,name,image_path,category,rarity,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,' +
-  'tcg_sets(id,name,release_date,card_count_official,card_count_total)'
+  'tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total)'
 
 const $ = (id) => document.getElementById(id)
 
@@ -65,6 +65,11 @@ async function cargar() {
 
   const carta = data[0]
   const set = carta.tcg_sets || null
+
+  // Una carta de Pokémon TCG Pocket no tiene ficha aquí: es otro juego.
+  // Con el identificador del set, que es lo que los reconoce — la serie
+  // la traen vacía.
+  if (!esDelTCG({ id: carta.set_id, serie_id: set?.serie_id })) return fallo()
 
   // Los datos de juego hacen falta ANTES de pintar, porque el bloque va
   // dentro del núcleo. Si la tabla no existe todavía —la migración la
@@ -144,7 +149,7 @@ async function versiones(carta) {
 
   // Y aquí se cae casi todo: mismo nombre no es la misma carta.
   const mismas = data
-    .filter((v) => esDelTCG({ serie_id: v.tcg_sets?.serie_id }))
+    .filter((v) => esDelTCG({ id: v.set_id, serie_id: v.tcg_sets?.serie_id }))
     .filter((v) => esLaMismaCarta(carta, v))
     .slice(0, 12)
   if (!mismas.length) return
