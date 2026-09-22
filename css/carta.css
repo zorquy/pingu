@@ -768,3 +768,23 @@
     display: none;
   }
 }
+
+/* El dato de combate con su icono (tanda 328). En la carta de verdad la
+   debilidad es un símbolo, no la palabra «Fuego»; aquí igual, con el
+   nombre en el `title` para quien no ve el color. */
+.carta-combate-dato {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  flex-wrap: wrap;
+}
+
+.carta-mult {
+  font-weight: 700;
+  font-size: var(--t-md);
+}
+
+.carta-nada {
+  color: var(--text-mid);
+  font-weight: 400;
+}

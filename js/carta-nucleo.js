@@ -72,6 +72,48 @@ export const categoriaEs = (v) => traducir(CATEGORIAS_ES, v)
 export const rarezaEs = (v) => traducir(RAREZAS_ES, v)
 export const entrenadorEs = (v) => traducir(ENTRENADORES_ES, v)
 
+// ── ¿Son la misma carta o solo se llaman igual? ──
+//
+// Un Primeape de Jungle y un Primeape de Pitch Black comparten el
+// nombre y NO son la misma carta: distinto ataque, distinta vida,
+// distinto todo. Son dos cartas de la misma especie.
+//
+// La ficha enseñaba «otras versiones» comparando SOLO el nombre, así
+// que salían trece Primeapes de trece sets que no tienen nada que ver.
+// Una reimpresión de verdad comparte el TEXTO DE REGLAS: misma vida,
+// misma fase, mismos ataques con el mismo coste y el mismo daño.
+//
+// El texto del efecto NO entra en la huella a propósito: se reescribe
+// entre erratas y entre idiomas, y dos impresiones de la misma carta
+// pueden traerlo distinto. Lo que no cambia nunca es el nombre del
+// ataque, su coste y su daño.
+export function huellaDeCarta(carta) {
+  if (!carta || carta.category !== 'Pokemon') return null
+  // Sin ataques no hay huella: una carta sin engordar se parecería a
+  // cualquier otra sin engordar, y saldrían todas como «la misma».
+  const ataques = Array.isArray(carta.attacks) ? carta.attacks : null
+  if (!ataques || !ataques.length) return null
+  const trozos = ataques
+    .map((a) => [
+      normalizarNombre(a?.name),
+      String(a?.damage ?? ''),
+      (Array.isArray(a?.cost) ? a.cost : []).join('+'),
+    ].join('/'))
+    .sort()
+  return [
+    normalizarNombre(carta.name),
+    carta.hp ?? '',
+    carta.stage ?? '',
+    (Array.isArray(carta.types) ? carta.types : []).join('+'),
+    trozos.join('|'),
+  ].join('·')
+}
+
+export function esLaMismaCarta(a, b) {
+  const ha = huellaDeCarta(a)
+  return Boolean(ha) && ha === huellaDeCarta(b)
+}
+
 // ── El subtítulo ──
 //
 // La línea de debajo del nombre: lo que se contesta de un vistazo. Cada
@@ -86,6 +128,9 @@ export function subtituloDeCarta(carta) {
     if (Number.isInteger(carta.hp)) partes.push(`${carta.hp} PS`)
     const tipos = (carta.types || []).map(tipoEs).filter(Boolean)
     if (tipos.length) partes.push(`Tipo ${tipos.join(' / ')}`)
+    // OJO: el subtítulo es TEXTO PLANO —se escapa entero al pintarlo—
+    // así que aquí el tipo va con su nombre y no con su icono. El icono
+    // está en el cuadro de combate, donde sí se puede meter HTML.
   } else if (carta?.category === 'Trainer') {
     partes.push(entrenadorEs(carta.trainer_type) || 'Entrenador')
   } else if (carta?.category === 'Energy') {
@@ -102,12 +147,7 @@ export function subtituloDeCarta(carta) {
 function costeDeAtaque(coste) {
   const lista = Array.isArray(coste) ? coste : []
   if (!lista.length) return '<span class="carta-coste-libre">Sin coste</span>'
-  return lista
-    .map((t) => {
-      const es = tipoEs(t) || String(t)
-      return `<span class="carta-energia" data-tipo="${escapeHtml(t)}" title="${escapeHtml(es)}" aria-label="${escapeHtml(es)}"></span>`
-    })
-    .join('')
+  return lista.map(puntoDeEnergia).join('')
 }
 
 function bloqueAtaques(carta) {
@@ -135,20 +175,45 @@ function bloqueAtaques(carta) {
   return `<section class="carta-ataques"><h2>Ataques y habilidades</h2><ul class="carta-movs">${filas.join('')}</ul></section>`
 }
 
+// Un punto de energía de un tipo, con su nombre puesto para quien no
+// ve el color. Se usa en el coste de un ataque, en la debilidad, en la
+// resistencia y en la retirada: es el MISMO dibujo en los cuatro
+// sitios porque en la carta de verdad también lo es.
+function puntoDeEnergia(tipo) {
+  const es = tipoEs(tipo) || String(tipo)
+  return `<span class="carta-energia" data-tipo="${escapeHtml(tipo)}" title="${escapeHtml(es)}" aria-label="${escapeHtml(es)}"></span>`
+}
+
 // Debilidad, resistencia y retirada. Los tres son del combate y van
 // juntos; un Entrenador no tiene ninguno y el bloque no sale.
+//
+// Con el ICONO del tipo y no con su nombre escrito (tanda 328, pedido
+// por PINGU): en la carta de verdad la debilidad es un símbolo rojo, no
+// la palabra «Fuego». El nombre sigue estando en el `title` y en el
+// `aria-label`, así que no se pierde para quien no ve el color — y al
+// lado va el multiplicador, que es el dato que se lee.
 function bloqueCombate(carta) {
   if (carta?.category !== 'Pokemon') return ''
   const uno = (etiqueta, filas) => {
     const lista = Array.isArray(filas) ? filas : []
-    const texto = lista.length
-      ? lista.map((f) => `${tipoEs(f?.type) || ''} ${f?.value || ''}`.trim()).join(', ')
-      : '—'
-    return `<div><dt>${etiqueta}</dt><dd>${escapeHtml(texto)}</dd></div>`
+    const dentro = lista.length
+      ? lista
+          .map((f) => `${puntoDeEnergia(f?.type)}<span class="carta-mult">${escapeHtml(f?.value || '')}</span>`)
+          .join('')
+      : '<span class="carta-nada">—</span>'
+    return `<div><dt>${etiqueta}</dt><dd class="carta-combate-dato">${dentro}</dd></div>`
   }
-  const retirada = Number.isInteger(carta.retreat)
-    ? `<div><dt>Retirada</dt><dd>${carta.retreat === 0 ? 'Gratis' : `${carta.retreat}`}</dd></div>`
-    : ''
+  // La retirada son TANTOS puntos incoloros como cuesta, que es
+  // exactamente como está impreso en la carta. Un «2» a secas obliga a
+  // traducir mentalmente algo que ya era un dibujo.
+  let retirada = ''
+  if (Number.isInteger(carta.retreat)) {
+    const dentro =
+      carta.retreat === 0
+        ? '<span class="carta-nada">Gratis</span>'
+        : Array.from({ length: carta.retreat }, () => puntoDeEnergia('Colorless')).join('')
+    retirada = `<div><dt>Retirada</dt><dd class="carta-combate-dato">${dentro}</dd></div>`
+  }
   return `<dl class="carta-combate">${uno('Debilidad', carta.weaknesses)}${uno('Resistencia', carta.resistances)}${retirada}</dl>`
 }
 

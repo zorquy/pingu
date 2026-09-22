@@ -12,10 +12,13 @@
 // problema de raíz: si el borde ya pintó, esto no toca el núcleo. El
 // molde es uno solo y el relevo no existe.
 import { supabase } from './supabase.js'
+import { esDelTCG } from './catalogo-series.js'
 import { escapeHtml } from './app.js'
 import {
   candidatosDeRuta,
   claveDeJuego,
+  esLaMismaCarta,
+  huellaDeCarta,
   nucleoDeCarta,
   rutaDeCarta,
   urlDeImagen,
@@ -123,18 +126,32 @@ function encenderLupa(caja) {
 // borde tiene 2,5 segundos para toda la página. Que llegue tarde no
 // rompe nada — la sección nace escondida.
 async function versiones(carta) {
+  // Sin huella no se puede decir qué es la misma carta, así que no se
+  // dice nada. Pasa con las que no están engordadas todavía y con los
+  // Entrenadores y las Energías, donde no hay ataques que comparar.
+  if (!huellaDeCarta(carta)) return
+
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,name,local_id,image_path,rarity,set_id,tcg_sets(name)')
+    .select('id,name,local_id,image_path,rarity,set_id,category,hp,stage,types,attacks,tcg_sets(name,serie_id)')
     .eq('market', MERCADO)
     .eq('name', carta.name)
     .neq('id', carta.id)
-    .limit(12)
+    // Se piden más de las que se enseñan: el nombre es solo el
+    // prefiltro barato y la mayoría se van a caer al comparar la huella.
+    .limit(60)
   if (error || !data?.length) return
+
+  // Y aquí se cae casi todo: mismo nombre no es la misma carta.
+  const mismas = data
+    .filter((v) => esDelTCG({ serie_id: v.tcg_sets?.serie_id }))
+    .filter((v) => esLaMismaCarta(carta, v))
+    .slice(0, 12)
+  if (!mismas.length) return
 
   const caja = $('listaVersiones')
   if (!caja) return
-  caja.innerHTML = data
+  caja.innerHTML = mismas
     .map((v) => {
       const img = urlDeImagen(v.image_path, 'low')
       const pie = [v.local_id, rarezaEs(v.rarity)].filter(Boolean).join(' · ')

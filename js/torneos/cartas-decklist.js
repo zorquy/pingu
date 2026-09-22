@@ -147,11 +147,26 @@ export async function codigosSinResolver(parsed) {
   return sinResolver
 }
 
+// Devuelve la carta Y CÓMO se ha encontrado, que es lo que faltaba
+// (tanda 328).
+//
+// `exacta: true` = por su set y su número, o sea, ES la impresión que el
+// jugador escribió. `exacta: false` = no hemos sabido cuál es y hemos
+// cogido una gemela por el nombre, que sirve para poner una imagen y no
+// sirve para NADA MÁS.
+//
+// La diferencia no era un matiz: el comprobador de reglamento juzgaba la
+// gemela como si fuera la carta. PINGU jugó un torneo con un Mew ex de
+// 30th Celebration y la lista se lo marcó en rojo como marca G, porque
+// la gemela que encontramos por nombre era de 2022. Acusar a alguien de
+// llevar una carta fuera de reglamento basándose en OTRA carta es lo
+// peor que puede hacer esta pantalla.
 async function resolverCarta(linea) {
   const clave = `${normalizeSearch(linea.name)}|${linea.set}|${linea.number}`
   if (cache.has(clave)) return cache.get(clave)
   const nombreNorm = normalizeSearch(linea.name)
   let carta = null
+  let exacta = false
   try {
     // Primero el tiro exacto: su set y su número de colección, SIN el
     // nombre (los sets nuevos numeran con ceros por delante — 057 — y
@@ -167,6 +182,7 @@ async function resolverCarta(linea) {
         .in('local_id', [numero, numero.padStart(3, '0')])
         .limit(1)
       carta = data?.[0] || null
+      exacta = Boolean(carta)
     }
     // Sin set en el espejo (o carta que no aparece): por nombre, como antes.
     if (!carta) {
@@ -204,8 +220,12 @@ async function resolverCarta(linea) {
   } catch {
     carta = null
   }
-  cache.set(clave, carta)
-  return carta
+  // La marca de la gemela NO se deja salir: quien la reciba no tiene
+  // forma de saber que no es de esta carta, y ya sabemos en qué acaba
+  // eso. Sin marca, el comprobador no puede juzgarla aunque quiera.
+  const salida = carta ? { ...carta, exacta, regulation_mark: exacta ? carta.regulation_mark : null } : null
+  cache.set(clave, salida)
+  return salida
 }
 
 // ── Los dos iconos del arquetipo (tanda 230) ──
@@ -405,10 +425,21 @@ export async function pintarDecklistVisual(contenedor, parsed) {
 
   const legales = await marcasLegales()
   let fuera = 0
+  // Las que no hemos podido identificar. No son ilegales: son
+  // desconocidas, y casi siempre quiere decir que el catálogo se ha
+  // quedado viejo y le falta el set que salió la semana pasada.
+  let sinIdentificar = 0
   await Promise.all(
     SECCIONES.flatMap((s) =>
       (parsed[s.campo] || []).map(async (linea, i) => {
         const carta = await resolverCarta(linea)
+        // Se cuenta ANTES de la salida temprana, y por eso cuenta
+        // también lo que no se ha encontrado en absoluto. Ese caso —la
+        // carta que sale sin imagen y sin nada— era el más confuso de
+        // todos: no decía nada y parecía que la lista estaba mal
+        // escrita. Una energía básica no cuenta: esas se escriben de mil
+        // maneras y no se identifican nunca.
+        if ((!carta || !carta.exacta) && !esEnergiaBasica(linea)) sinIdentificar += linea.quantity
         const hueco = contenedor.querySelector(`[data-linea="${s.campo}-${i}"]`)
         if (!hueco || !carta) return
         hueco.insertAdjacentHTML(
@@ -428,7 +459,12 @@ export async function pintarDecklistVisual(contenedor, parsed) {
         if (pie) {
           pie.innerHTML = `<a class="torneo-carta-enlace" href="${escapeHtml(rutaDeCarta(carta))}">${escapeHtml(linea.name)}</a>`
         }
+        // `carta.exacta` es la guarda nueva y la más importante: sin
+        // ella se juzgaba a una gemela encontrada por el nombre. Va la
+        // PRIMERA porque las demás comprobaciones no significan nada si
+        // no sabemos de qué carta hablamos.
         if (
+          carta.exacta &&
           carta.regulation_mark &&
           !legales.includes(carta.regulation_mark) &&
           !esEnergiaBasica(linea) &&
@@ -447,8 +483,23 @@ export async function pintarDecklistVisual(contenedor, parsed) {
     )
   )
   const aviso = contenedor.querySelector('[data-reglamento]')
-  if (aviso && fuera > 0) {
-    aviso.textContent = `Fuera del reglamento: ${fuera} ${fuera === 1 ? 'carta' : 'cartas'} — esta temporada solo valen las marcas ${legales.join(', ')} (la letra pequeña de la esquina), y estas no tienen reimpresión legal. Es un aviso: la lista se puede entregar igual, lo revisará la organización.`
+  if (!aviso) return
+
+  // Dos mensajes distintos porque son dos cosas distintas, y mezclarlas
+  // fue justo el fallo: «no la reconozco» no es «está prohibida».
+  const partes = []
+  if (fuera > 0) {
+    partes.push(
+      `Fuera del reglamento: ${fuera} ${fuera === 1 ? 'carta' : 'cartas'} — esta temporada solo valen las marcas ${legales.join(', ')} (la letra pequeña de la esquina), y estas no tienen reimpresión legal. Es un aviso: la lista se puede entregar igual, lo revisará la organización.`
+    )
+  }
+  if (sinIdentificar > 0) {
+    partes.push(
+      `No he podido identificar ${sinIdentificar} ${sinIdentificar === 1 ? 'carta' : 'cartas'}: su colección no está en nuestro catálogo todavía. La imagen puede ser de otra impresión y de esas NO se comprueba el reglamento.`
+    )
+  }
+  if (partes.length) {
+    aviso.textContent = partes.join(' ')
     aviso.classList.remove('hidden')
   }
 }
