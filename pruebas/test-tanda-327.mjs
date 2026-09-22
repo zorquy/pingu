@@ -20,7 +20,7 @@
 // dirección con barra. La próxima que se añada entra sola.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
-import { esDelTCG, SERIES_FUERA } from '/home/user/pingu/js/catalogo-series.js'
+import { esDelTCG, ID_DE_POCKET, SERIES_FUERA } from '/home/user/pingu/js/catalogo-series.js'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -106,11 +106,33 @@ console.log('\n── 2. Y se comprueba DE VERDAD, abriéndolas ──')
 console.log('\n── 3. Pokémon TCG Pocket es otro juego ──')
 {
   check('la serie está declarada fuera', SERIES_FUERA.includes('tcgp'))
-  check('un set del TCG entra', esDelTCG({ serie_id: 'sv' }))
+  check('un set del TCG entra', esDelTCG({ id: 'sv5', serie_id: 'sv' }))
   // Las colecciones viejas de Wizards traen `serie_id` vacío y son el
   // TCG más TCG que hay: null NO es motivo para echar a nadie.
-  check('…y uno sin serie también', esDelTCG({ serie_id: null }) && esDelTCG({}))
-  check('uno de Pocket, no', !esDelTCG({ serie_id: 'tcgp' }))
+  check('…y uno sin serie también', esDelTCG({ id: 'base1', serie_id: null }) && esDelTCG({ id: 'tr' }))
+  check('uno de Pocket por su serie, no', !esDelTCG({ id: 'x', serie_id: 'tcgp' }))
+
+  // ── Y LOS DE VERDAD ──
+  //
+  // Esta es la comprobación que faltaba y por la que el filtro no valía
+  // para nada. En la base de PokeDoc los CATORCE sets de Pocket tienen
+  // `serie_id` a NULL, así que mirar solo la serie no echaba a ninguno.
+  // La prueba pasaba en verde porque el fixture lo había escrito yo con
+  // la serie puesta: probaba el código contra mi invento y no contra los
+  // datos. Aquí van los catorce tal y como están, sacados de la consulta
+  // que ejecutó PINGU.
+  const DE_POCKET = ['B2a', 'B2', 'B1a', 'B1', 'A4a', 'A4', 'A3b', 'A3a', 'A3', 'A2b', 'A2a', 'A2', 'A1a', 'A1']
+  const colados = DE_POCKET.filter((id) => esDelTCG({ id, serie_id: null }))
+  check('los catorce de Pocket se van, con la serie vacía', colados.length === 0, colados.join(', '))
+  check('…y se reconocen por su identificador', DE_POCKET.every((id) => ID_DE_POCKET.test(id)))
+
+  // Y el otro lado, que es el que hace daño si se pasa de listo: ningún
+  // set del TCG puede caer por el patrón. Los de mesa llevan SIEMPRE dos
+  // letras o más antes del número.
+  const DEL_TCG = ['base1', 'base2', 'swsh3', 'sv5', 'sv3.5', 'xy7', 'hgss2', 'col1', 'pl1',
+    'ex14', 'bw11', 'sm9', 'dp3', '30C', 'PBL', 'tr', 'me01', 'sv10.5b']
+  const echados = DEL_TCG.filter((id) => !esDelTCG({ id, serie_id: null }))
+  check('y ningún set del TCG se va por delante', echados.length === 0, echados.join(', '))
 
   // Y la columna PEDIDA en cada consulta: sin ella el filtro recibe
   // undefined y deja pasar todo SIN DAR ERROR.
@@ -124,7 +146,8 @@ console.log('\n── 3. Pokémon TCG Pocket es otro juego ──')
   await page.addInitScript(() => {
     window.__FAKE_SETS__ = [
       { id: 'sv5', name: 'Fuerzas Temporales', market: 'WEST', serie_id: 'sv', release_date: '2024-03-22' },
-      { id: 'A1', name: 'Genetic Apex', market: 'WEST', serie_id: 'tcgp', release_date: '2024-10-30' },
+      // Sin serie, como está de verdad en la base.
+      { id: 'A1', name: 'Genetic Apex', market: 'WEST', serie_id: null, release_date: '2024-10-30' },
     ]
   })
   await page.goto(`${BASE}/cartas`, { waitUntil: 'domcontentloaded' })
@@ -136,7 +159,7 @@ console.log('\n── 3. Pokémon TCG Pocket es otro juego ──')
 
   const p2 = await browser.newPage()
   await p2.addInitScript(() => {
-    window.__FAKE_SETS__ = [{ id: 'A1', name: 'Genetic Apex', market: 'WEST', serie_id: 'tcgp' }]
+    window.__FAKE_SETS__ = [{ id: 'A1', name: 'Genetic Apex', market: 'WEST', serie_id: null }]
   })
   await p2.goto(`${BASE}/coleccion/A1`, { waitUntil: 'domcontentloaded' })
   await p2.waitForTimeout(1800)

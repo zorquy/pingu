@@ -80,7 +80,9 @@ console.log('\n── 2. «Otras versiones», en la página ──')
     window.__FAKE_SETS__ = [
       { id: 'pbl', name: 'Pitch Black', market: 'WEST', serie_id: 'mega', release_date: '2026-07-17', card_count_official: 84 },
       { id: 'jungle', name: 'Jungle', market: 'WEST', serie_id: 'base', release_date: '1999-06-16' },
-      { id: 'A1a', name: 'Mythical Island', market: 'WEST', serie_id: 'tcgp', release_date: '2024-12-17' },
+      // Sin serie, como está de verdad en la base: es lo que hacía que
+      // el filtro no la echara.
+      { id: 'A1a', name: 'Mythical Island', market: 'WEST', serie_id: null, release_date: '2024-12-17' },
       { id: 'pbl2', name: 'Pitch Black promo', market: 'WEST', serie_id: 'mega', release_date: '2026-07-20' },
     ]
     window.__FAKE_CARTAS__ = [
