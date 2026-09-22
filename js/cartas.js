@@ -44,27 +44,64 @@ async function colecciones() {
   const soloTCG = data.filter(esDelTCG)
   if (!soloTCG.length) return
 
-  // Agrupadas por serie, conservando el orden en que llegan: como la
-  // consulta ya viene de la más nueva a la más vieja, la primera vez que
-  // aparece una serie es por su set más reciente. Así las series salen
-  // también de la más nueva a la más vieja SIN una segunda ordenación
-  // que pudiera decir otra cosa.
-  const series = new Map()
-  for (const s of soloTCG) {
-    const clave = s.serie_name || 'Otras colecciones'
-    if (!series.has(clave)) series.set(clave, [])
-    series.get(clave).push(s)
-  }
+  const series = agruparEnSeries(soloTCG)
 
-  $('listaColecciones').innerHTML = [...series]
+  $('listaColecciones').innerHTML = series
     .map(
-      ([nombre, sets]) =>
-        `<section class="serie"><h3 class="serie-titulo">${escapeHtml(nombre)}</h3>` +
+      (g) =>
+        `<section class="serie${g.era ? '' : ' serie-menor'}">` +
+        `<h3 class="serie-titulo">${escapeHtml(g.nombre)}</h3>` +
         '<ul class="serie-lista">' +
-        sets.map(filaDeColeccion).join('') +
+        g.sets.map(filaDeColeccion).join('') +
         '</ul></section>'
     )
     .join('')
+}
+
+// ── Las eras, y lo que no es una era ──
+//
+// Agrupar por serie y ordenar por el set más nuevo de cada una deja
+// «McDonald's Collection» entre Escarlata y Púrpura y Espada y Escudo,
+// porque McDonald's saca promos todos los años. Y eso es lo contrario
+// de lo que busca quien entra: «para jugar nos interesan las últimas
+// colecciones» (PINGU).
+//
+// La regla NO es una lista de nombres a mano —eso se queda viejo el día
+// que salga la siguiente promo—: es el TAMAÑO. Una expansión de verdad
+// pasa de las cien cartas; una colección de promos no llega a treinta.
+// Así que una serie es una ERA si alguno de sus sets es grande.
+//
+// Las eras van primero, de la más nueva a la más vieja. Detrás, todo lo
+// demás —promos, colecciones sueltas y lo que aún no tiene serie—, con
+// el mismo orden entre ellas.
+export const CARTAS_DE_UNA_EXPANSION = 100
+
+export const SIN_CLASIFICAR = 'Sin clasificar'
+
+export function esUnaEra(sets) {
+  return sets.some((s) => (s.card_count_official || s.card_count_total || 0) >= CARTAS_DE_UNA_EXPANSION)
+}
+
+export function agruparEnSeries(sets) {
+  // El orden de llegada YA es de lo más nuevo a lo más viejo, así que la
+  // primera vez que aparece una serie es por su set más reciente. Se
+  // conserva, y así no hay una segunda ordenación que pudiera decir
+  // otra cosa.
+  const porSerie = new Map()
+  for (const s of sets) {
+    const clave = s.serie_name || SIN_CLASIFICAR
+    if (!porSerie.has(clave)) porSerie.set(clave, [])
+    porSerie.get(clave).push(s)
+  }
+  const grupos = [...porSerie].map(([nombre, suyos]) => ({ nombre, sets: suyos, era: esUnaEra(suyos) }))
+  // Lo que no tiene serie va al final del todo pase lo que pase: no es
+  // que sea menos importante, es que no sabemos qué es, y una caja de
+  // «no lo sé» en medio de las eras rompe la lectura.
+  return [
+    ...grupos.filter((g) => g.era && g.nombre !== SIN_CLASIFICAR),
+    ...grupos.filter((g) => !g.era && g.nombre !== SIN_CLASIFICAR),
+    ...grupos.filter((g) => g.nombre === SIN_CLASIFICAR),
+  ]
 }
 
 function filaDeColeccion(s) {

@@ -12,6 +12,52 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-22 — PINGU-Claude (tanda 330 — el catálogo en español, y qué es una era)
+
+**El español.** PINGU: «los ataques salen en inglés, why?». No era un
+descuido —el catálogo occidental se importa en inglés a propósito—,
+pero esa decisión era sobre el LISTADO, donde lo único que hay es el
+nombre. El texto de los ataques viene en la petición POR CARTA, que ya
+hacemos igual: pedirla en español no cuesta ni una petición más, cuesta
+pedirla en otro idioma.
+
+Ahora la tarea pide `es` y cae a `en` (las anteriores a 2011 no están
+traducidas y TCGdex da 404), y **apunta en qué idioma lo consiguió** en
+`detalle_lang`. Sin esa columna, una carta traducida y una que no lo
+está son indistinguibles, y reintentarlo dentro de un año costaría
+reengordar las 23.000. La tanda por pasada baja de 40 a 30 porque en el
+peor caso son dos peticiones por carta.
+
+**HAY MIGRACIÓN**: `supabase-migration-cartas-espanol.sql`. Añade
+`detalle_lang` y cambia el índice parcial del engorde. Hasta que se
+ejecute, la tarea no encuentra la columna y no avanza.
+
+**Las eras.** Ordenar las series por su set más nuevo dejaba
+«McDonald's Collection» entre Escarlata y Púrpura y Espada y Escudo,
+porque McDonald's saca promos todos los años. La regla nueva NO es una
+lista de nombres a mano —se quedaría vieja, la lección de la 323— sino
+el TAMAÑO: una serie es una ERA si alguno de sus sets pasa de cien
+cartas. Las eras primero y de la más nueva a la más vieja; detrás las
+promos; y lo que no tiene serie, al final del todo.
+
+**Ficheros**: `netlify/lib/carta-detalle.mjs`,
+`netlify/functions/cartas-detalle.mjs`, `js/cartas.js`, `css/carta.css`.
+NUEVO `supabase-migration-cartas-espanol.sql`. En `pruebas`:
+`test-tanda-330.mjs` (NUEVO).
+
+**Pruebas**: suite entera verde, **88 de 88**.
+
+**En curso / pendiente**: los REPRINTS de una carta sin engordar no
+salen, y es por diseño —sin ataques no hay huella—, pero se nota: PINGU
+abrió Mega Darkrai y Mew ex y no vio nada. El arreglo bueno es pedirle
+la ficha a TCGdex EN EL NAVEGADOR cuando falta, que además la traería en
+español al momento. Pide mover `detalleDeCarta` a `js/` (hoy vive en
+`netlify/lib/` y el rigor de la 322 lo ancla ahí). Mientras tanto se
+arregla solo según avanza el engorde, que va de lo más nuevo a lo más
+viejo. Y el rigor de las tandas 328, 329 y 330 sigue pendiente.
+
+---
+
 ## 2026-09-22 — PINGU-Claude (tandas 328 y 329 — la identidad de una carta)
 
 **328 — mismo nombre no es la misma carta.** Dos fallos con la misma

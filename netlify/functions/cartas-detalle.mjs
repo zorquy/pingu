@@ -1,4 +1,4 @@
-import { detalleDeCarta, urlDeCarta, urlDeSet, leFaltaAlgo, loQueFaltaDeUnSet } from '../lib/carta-detalle.mjs'
+import { detalleEnEspanol, urlDeSet, leFaltaAlgo, loQueFaltaDeUnSet } from '../lib/carta-detalle.mjs'
 
 // Engorda las cartas de `tcg_cards` poco a poco (tanda 322).
 //
@@ -38,7 +38,7 @@ const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 // Así que 40, que caben de sobra, y el bucle además se corta solo por
 // tiempo (PRESUPUESTO_MS). Lo que no dé tiempo NO se pierde: sigue con
 // `detalle_at` a null y lo coge la pasada siguiente.
-const POR_PASADA = 40
+const POR_PASADA = 30
 
 // Cuándo dejar de empezar cartas nuevas. Netlify corta a los 30 s sin
 // avisar y sin dejar terminar la petición en curso; parar por nuestra
@@ -147,7 +147,12 @@ async function siguientes(clave, setsOrdenados) {
       'tcg_cards?select=id,set_id' +
       `&market=eq.${MERCADO}` +
       `&set_id=in.(${ventana.map((x) => encodeURIComponent(x)).join(',')})` +
-      '&detalle_at=is.null' +
+      // Sin engordar, o engordada ANTES de la tanda 330 —cuando no se
+      // pedía en español y no se apuntaba el idioma—. Esas se vuelven a
+      // pasar una vez; las que ya se intentaron y salieron en inglés
+      // NO, porque repetir lo que ya se sabe que no existe son 23.000
+      // peticiones para nada.
+      '&or=(detalle_at.is.null,detalle_lang.is.null)' +
       '&detalle_error=is.null' +
       `&limit=${POR_PASADA}`
     const filas = (await rest(ruta, clave)) || []
@@ -228,10 +233,19 @@ export default async function handler() {
       break
     }
     try {
-      const res = await fetch(urlDeCarta(carta.id, MERCADO), { headers: { Accept: 'application/json' } })
-      if (!res.ok) throw new Error(`TCGdex ${res.status}`)
-      const detalle = detalleDeCarta(await res.json())
-      if (!detalle) throw new Error('respuesta vacía')
+      // Español primero, inglés si esa carta no está traducida. Son dos
+      // peticiones solo para las que NO tienen español, que son las
+      // viejas; las modernas se resuelven en la primera.
+      const encontrado = await detalleEnEspanol(carta.id, async (url) => {
+        const res = await fetch(url, { headers: { Accept: 'application/json' } })
+        if (!res.ok) return null
+        return res.json()
+      })
+      if (!encontrado) throw new Error('respuesta vacía')
+      const detalle = { ...encontrado.fila, detalle_lang: encontrado.idioma }
+      // El nombre traducido se escribe SOLO si vino de verdad: pisarlo
+      // con null dejaría la carta sin nombre y sin forma de buscarla.
+      if (encontrado.nombre) detalle.name = encontrado.nombre
       // `detalle_at` se escribe en la MISMA sentencia que los datos. Si
       // fueran dos, un corte entre ellas dejaría la carta engordada y
       // marcada como pendiente, y la siguiente pasada la repetiría — con

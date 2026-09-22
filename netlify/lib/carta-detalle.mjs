@@ -161,3 +161,42 @@ export function loQueFaltaDeUnSet(fila, completo) {
 export function leFaltaAlgo(fila) {
   return !fila?.release_date || !fila?.serie_id || !fila?.serie_name || !fila?.tcg_online_code
 }
+
+// ── El idioma de la ficha (tanda 330) ──
+//
+// El catálogo occidental se IMPORTA en inglés a propósito, pero eso es
+// una decisión sobre el listado, donde lo único que hay es el nombre. El
+// texto de los ataques viene en la petición POR CARTA, que hacemos
+// igual: pedirla en español no cuesta ni una petición más, cuesta
+// pedirla en otro idioma.
+//
+// El orden importa. Primero español, y si esa carta no está traducida
+// —TCGdex no tiene las anteriores a 2011—, inglés. Al revés no tendría
+// sentido, y quedarse solo en español dejaría media ficha vacía.
+export const IDIOMAS_DE_FICHA = ['es', 'en']
+
+export function urlDeCartaEnIdioma(cardId, idioma) {
+  return `${API}/${idioma}/cards/${encodeURIComponent(cardId)}`
+}
+
+// Pide la carta en español y cae a inglés. Devuelve TAMBIÉN en qué
+// idioma vino, que es lo que se guarda en `detalle_lang`: sin eso, una
+// carta traducida y una que no lo está son indistinguibles, y
+// reintentarlo dentro de un año costaría reengordar las 23.000.
+//
+// `pedir` se inyecta para poder probar esto sin red.
+export async function detalleEnEspanol(cardId, pedir) {
+  for (const idioma of IDIOMAS_DE_FICHA) {
+    const carta = await pedir(urlDeCartaEnIdioma(cardId, idioma))
+    if (!carta) continue
+    const fila = detalleDeCarta(carta)
+    if (!fila) continue
+    // El NOMBRE también viene traducido, y es lo primero que se lee.
+    // Se devuelve aparte porque `detalleDeCarta` no lo toca: la columna
+    // `name` la escribe la importación y aquí se pisa solo si de verdad
+    // ha llegado algo.
+    const nombre = typeof carta.name === 'string' && carta.name.trim() ? carta.name.trim() : null
+    return { fila, idioma, nombre }
+  }
+  return null
+}

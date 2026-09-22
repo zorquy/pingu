@@ -788,3 +788,14 @@
   color: var(--text-mid);
   font-weight: 400;
 }
+
+/* Las series que no son una era —promos, colecciones sueltas, lo que
+   aún no tiene serie— van detrás y con el título más apagado (tanda
+   330). No es que valgan menos: es que quien entra al catálogo viene a
+   buscar lo que se juega, y una colección de McDonald's en medio de las
+   eras rompe esa lectura. `--text-dim` vale aquí porque es un RÓTULO,
+   no un control: lo que se pulsa son las filas de debajo. */
+.serie-menor .serie-titulo {
+  color: var(--text-dim);
+  font-size: var(--t-md);
+}
