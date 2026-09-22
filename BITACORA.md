@@ -12,6 +12,67 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-22 — IBAI-Claude (tanda 333 — el engorde estaba en un cerrojo, y la huella no cruzaba el idioma)
+
+**Hecho**: Ibai pidió «que salgan los reprints etc». Miré la base con la
+clave pública y el estado era este: 21.356 cartas, 3.676 engordadas,
+**cero en español** — la migración de la 330 ya está ejecutada, pero la
+tarea programada llevaba todo el día atascada en la fase de sets.
+
+**El cerrojo.** `leFaltaAlgo` contaba como «incompleto» un set sin
+código de TCG Live o sin fecha, y ~100 sets NO LOS TIENEN en TCGdex (los
+anteriores a TCG Online no tienen código; algunas promos, ni fecha). La
+fase de sets era excluyente —devolvía sin engordar ni una carta— así que
+se los volvía a pedir cada cinco minutos para siempre. Ahora
+`leFaltaAlgo` mira solo la SERIE, que el set completo trae siempre: un
+set con serie es un set ya visitado (fecha y código se curan en esa
+misma visita, si existen). Y la fase de sets ya no es excluyente: corre
+acotada (`PRESUPUESTO_SETS_MS`, 8 s) y el engorde corre SIEMPRE con el
+tiempo que quede.
+
+**La huella.** Comparaba los NOMBRES de los ataques, y desde la 330
+conviven fichas en español y en inglés: «Hackeo Genoma» no casa jamás
+con «Genome Hacking» (comprobado contra TCGdex con el Mew ex de PINGU),
+así que ninguna reimpresión cruzaba el idioma — con el catálogo entero
+por reengordar en español, casi todas las parejas iban a cruzar. Ahora
+`esLaMismaCarta` mira el idioma de cada ficha (`idiomaDeFicha`:
+`detalle_lang`, y null = inglés de antes de la 330): mismo idioma,
+huella fina con nombres; idiomas distintos, la huella se queda con lo
+que no se traduce (PS, fase, tipos, coste y daño de cada ataque — el
+nombre de la CARTA entra siempre, Pokémon no traduce especies). Y las
+candidatas traídas al vuelo se piden EN EL IDIOMA de la carta que se
+mira (`detalleEnEspanol` acepta ahora el orden de idiomas), que da la
+comparación fina y le ahorra a una ficha en inglés la petición en
+español que iba a dar 404. La ficha al vuelo se marca con su
+`detalle_lang` en memoria, y `carta.js` pide la columna en sus dos
+consultas.
+
+**Ficheros**: `netlify/lib/carta-detalle.mjs` (`leFaltaAlgo`),
+`netlify/functions/cartas-detalle.mjs` (fase de sets acotada y no
+excluyente), `js/carta-nucleo.js` (`idiomaDeFicha` NUEVA, huella con
+nombres opcionales, `esLaMismaCarta` por idioma), `js/carta-detalle.js`
+(`detalleEnEspanol` con orden de idiomas inyectable), `js/carta.js`
+(`detalle_lang` en las consultas y en la ficha al vuelo, candidatas en
+el idioma de la carta).
+
+**Pruebas**: verifiqué la lógica con un guion suelto fuera del repo (12
+comprobaciones, todas verdes, con las respuestas reales de TCGdex del
+Mew ex en es/en) y `node --check` de los cuatro módulos. PINGU: pide una
+pasada de suite — sospecho que `test-tanda-331.mjs` ancla la firma vieja
+de `detalleEnEspanol`/`huellaDeCarta` (los cambios son compatibles hacia
+atrás: parámetros nuevos con valor por defecto) y que algún fixture de
+la 328 compara huellas: si las dos fichas del fixture no llevan
+`detalle_lang`, las dos cuentan como inglés y el resultado no cambia.
+
+**En curso / pendiente**: nada a medias. Vigilar en un rato que
+`detalle_lang=eq.es` empieza a subir (la consulta de «cómo va» está al
+pie de supabase-migration-cartas-espanol.sql); el reengorde de las
+3.676 en inglés más el resto del catálogo tardará unos días a 30 cada
+5 min. Los 4 sets sin fecha y ~98 sin código se quedan así a propósito:
+TCGdex no los tiene.
+
+---
+
 ## 2026-09-22 — PINGU-Claude (tanda 331 — la ficha se completa sola, y el rigor de todo)
 
 **331.** PINGU: «entro al Mew ex y solo me sale Mew y su número». Era

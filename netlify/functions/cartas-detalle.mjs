@@ -47,6 +47,15 @@ const POR_PASADA = 30
 // «nos mataron».
 const PRESUPUESTO_MS = 22000
 
+// Cuánto de ese presupuesto puede comerse la cura de sets. Era una fase
+// EXCLUYENTE —«primero los sets, y se llevan la pasada entera»— y eso
+// tenía sentido cuando faltaban las 220 fechas y la prioridad no podía
+// funcionar sin ellas. Pero se convirtió en un cerrojo: bastaba UN set
+// que TCGdex no pudiera completar para que la fase no acabara nunca y
+// el engorde no arrancara jamás (tanda 333). Ahora los sets van
+// primero pero acotados, y las cartas corren SIEMPRE con lo que quede.
+const PRESUPUESTO_SETS_MS = 8000
+
 // Entre peticiones. No es paranoia: 150 peticiones seguidas a una API
 // sin clave es la forma de que te bloqueen el rango y te quedes sin
 // catálogo, que es peor que tardar una semana.
@@ -173,15 +182,15 @@ export default async function handler() {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return new Response('Falta SUPABASE_SERVICE_ROLE_KEY', { status: 500 })
 
+  const arranque = Date.now()
   const { orden, porId, incompletos } = await setsPorPrioridad(clave)
 
-  // ── Primero, los SETS enteros ──
+  // ── Primero, los SETS que quedan por visitar ──
   //
   // Era solo la fecha. Desde la tanda 329 cura también la SERIE y el
   // CÓDIGO DE TCG LIVE, porque los tres se le olvidan por el mismo
   // motivo: `fetchSets` corre sobre el LISTADO, que es un «SetResume»,
-  // y allí no viene ninguno de los tres. La consulta del 2026-09-22 lo
-  // dejó claro: 210 sets sin serie y 98 sin código.
+  // y allí no viene ninguno de los tres.
   //
   // El código no es cosmético: sin él, una línea de decklist que diga
   // «30C» no encuentra su set, la carta se busca por nombre y el
@@ -189,43 +198,33 @@ export default async function handler() {
   // tampoco: sin ella no hay eras en el índice y el filtro de Pocket
   // del importador no funciona.
   //
-  //
-  // Esto se hacía a la vez que el engorde, curando la del set por el que
-  // se iba pasando, y era CIRCULAR: la prioridad se calcula por fecha,
-  // casi ningún set tenía, y el set recién curado se ponía por delante
-  // de todos los que seguían sin ella. Resultado: la función se quedaba
-  // dando vueltas a los sets viejos que ella misma había curado, en vez
-  // de saltar a los modernos —que era justo lo que la prioridad existía
-  // para evitar—.
-  //
-  // La prioridad no puede funcionar hasta que se sepan TODAS las fechas,
-  // así que van antes y se llevan la pasada entera. Son ~220 sets a una
-  // petición cada uno: menos de una hora, y solo la primera vez.
-  //
-  // Y hay un segundo motivo para que no sea un extra del engorde: la
-  // ficha de una colección enseña cuándo salió. Esa fecha hace falta
-  // aunque no se engorde ni una carta más.
+  // En la 329 esta fase era EXCLUYENTE y devolvía aquí mismo, porque la
+  // prioridad por fecha no podía funcionar hasta saber todas las
+  // fechas. Ese trabajo ya está hecho (206 de 210), y la exclusividad
+  // resultó ser un cerrojo: un set que TCGdex no puede completar —los
+  // anteriores a TCG Online no tienen código— se quedaba «incompleto»
+  // para siempre, la fase no acababa nunca y el engorde no arrancaba
+  // jamás (tanda 333). Ahora `leFaltaAlgo` mira solo la serie, que el
+  // set completo trae SIEMPRE —un set con serie es un set ya
+  // visitado—, y esta fase corre acotada, con las cartas detrás.
+  let setsCurados = 0
   if (incompletos.size) {
-    let curados = 0
-    const arranqueSets = Date.now()
     for (const setId of orden) {
       if (!incompletos.has(setId)) continue
-      if (Date.now() - arranqueSets > PRESUPUESTO_MS) break
-      if (await curarSet(clave, porId.get(setId))) curados++
+      if (Date.now() - arranque > PRESUPUESTO_SETS_MS) break
+      if (await curarSet(clave, porId.get(setId))) setsCurados++
       await esperar(PAUSA_MS)
     }
-    return Response.json({ fase: 'sets', curados, quedaban: incompletos.size })
   }
 
   const pendientes = await siguientes(clave, orden)
   if (!pendientes.length) {
-    return Response.json({ hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
+    return Response.json({ setsCurados, hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
   }
 
   let hechas = 0
   let fallidas = 0
   let sinTiempo = 0
-  const arranque = Date.now()
 
   for (const carta of pendientes) {
     if (Date.now() - arranque > PRESUPUESTO_MS) {
@@ -267,7 +266,7 @@ export default async function handler() {
     await esperar(PAUSA_MS)
   }
 
-  return Response.json({ fase: 'cartas', hechas, fallidas, sinTiempo, pedidas: pendientes.length })
+  return Response.json({ setsCurados, hechas, fallidas, sinTiempo, pedidas: pendientes.length })
 }
 
 // Cada cinco minutos. Antes era cada hora con tandas de 150, y esa

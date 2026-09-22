@@ -108,7 +108,19 @@ export function loQueFaltaDeUnSet(fila, completo) {
   return cambios
 }
 
+// Un set «incompleto» es uno al que aún NO se le ha pedido el set
+// completo, y el marcador es la SERIE: el set completo la trae siempre,
+// así que un set con serie es un set ya visitado. La fecha y el código
+// de TCG Live se curan en esa misma visita SI TCGdex los tiene — y
+// cuando no los tiene, no los va a tener mañana: los sets anteriores a
+// TCG Online no tienen código, y algunas promos no traen fecha.
+//
+// Contarlos como «incompletos» (tanda 333, y el porqué de este cambio)
+// dejaba ~100 sets imposibles de completar: la fase de sets se los
+// volvía a pedir a TCGdex cada cinco minutos para siempre, nunca
+// acababa, y el engorde de cartas —que iba DETRÁS de ella— no arrancó
+// jamás. Con 3.676 cartas engordadas de 21.356, y ninguna en español.
 export function leFaltaAlgo(fila) {
-  return !fila?.release_date || !fila?.serie_id || !fila?.serie_name || !fila?.tcg_online_code
+  return !fila?.serie_id || !fila?.serie_name
 }
 

@@ -93,9 +93,13 @@ export function urlDeCartaEnIdioma(cardId, idioma) {
 // carta traducida y una que no lo está son indistinguibles, y
 // reintentarlo dentro de un año costaría reengordar las 23.000.
 //
-// `pedir` se inyecta para poder probar esto sin red.
-export async function detalleEnEspanol(cardId, pedir) {
-  for (const idioma of IDIOMAS_DE_FICHA) {
+// `pedir` se inyecta para poder probar esto sin red. Y `idiomas` también
+// (tanda 333): quien compara huellas quiere la candidata en el idioma de
+// la carta que YA tiene —los nombres de los ataques solo casan dentro de
+// un idioma—, así que pasa el suyo primero. Para pintar, el orden por
+// defecto es el bueno: español, y si no hay, inglés.
+export async function detalleEnEspanol(cardId, pedir, idiomas = IDIOMAS_DE_FICHA) {
+  for (const idioma of idiomas) {
     const carta = await pedir(urlDeCartaEnIdioma(cardId, idioma))
     if (!carta) continue
     const fila = detalleDeCarta(carta)

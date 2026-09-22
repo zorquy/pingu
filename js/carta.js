@@ -16,13 +16,14 @@
 // de TCGdex, que entonces lo pintado se queda corto (tanda 332).
 import { supabase } from './supabase.js'
 import { esDelTCG } from './catalogo-series.js'
-import { detalleEnEspanol } from './carta-detalle.js'
+import { detalleEnEspanol, IDIOMAS_DE_FICHA } from './carta-detalle.js'
 import { escapeHtml } from './app.js'
 import {
   candidatosDeRuta,
   claveDeJuego,
   esLaMismaCarta,
   huellaDeCarta,
+  idiomaDeFicha,
   nucleoDeCarta,
   rutaDeCarta,
   urlDeImagen,
@@ -37,7 +38,7 @@ const MERCADO = 'WEST'
 const COLUMNAS =
   'id,set_id,local_id,name,image_path,category,rarity,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
-  'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,' +
+  'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,detalle_lang,' +
   'tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total)'
 
 const $ = (id) => document.getElementById(id)
@@ -110,13 +111,13 @@ async function cargar() {
 // NO se escribe en la base: el navegador no tiene permiso para tocar
 // `tcg_cards` (y menos mal). Esto es para que se VEA; la tarea
 // programada ya lo guardará cuando le toque.
-async function conDetalleDeTCGdex(carta) {
+async function conDetalleDeTCGdex(carta, idiomas = undefined) {
   try {
     const encontrado = await detalleEnEspanol(carta.id, async (url) => {
       const res = await fetch(url, { headers: { Accept: 'application/json' } })
       if (!res.ok) return null
       return res.json()
-    })
+    }, idiomas)
     if (!encontrado) return carta
     // Lo de la base MANDA sobre lo que llega: la marca de regulación y
     // el número los curamos nosotros y son más de fiar. Solo se rellena
@@ -126,6 +127,9 @@ async function conDetalleDeTCGdex(carta) {
       if (carta[k] === null || carta[k] === undefined) mezcla[k] = v
     }
     if (encontrado.nombre) mezcla.name = encontrado.nombre
+    // La huella necesita saber en qué idioma están estos ataques: una
+    // ficha traída al vuelo no lo tiene apuntado en la base.
+    mezcla.detalle_lang = encontrado.idioma
     return mezcla
   } catch {
     return carta
@@ -189,10 +193,16 @@ async function conTextoDeReglas(candidatas, carta) {
     .slice(0, CANDIDATAS_QUE_SE_COMPLETAN)
   if (!faltan.length) return candidatas
 
+  // En el IDIOMA de la carta que se está mirando, y solo si no existe
+  // en él se prueba el resto: los nombres de los ataques solo casan
+  // dentro de un idioma, así que pedir la candidata en el mismo da la
+  // comparación fina — y a una ficha en inglés le ahorra además la
+  // petición en español que iba a dar 404.
+  const idiomas = [...new Set([idiomaDeFicha(carta), ...IDIOMAS_DE_FICHA])]
   const completadas = new Map()
   await Promise.all(
     faltan.map(async (v) => {
-      const completa = await conDetalleDeTCGdex(v)
+      const completa = await conDetalleDeTCGdex(v, idiomas)
       if (completa !== v) completadas.set(v.id, completa)
     })
   )
@@ -216,7 +226,7 @@ async function versiones(carta) {
 
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,name,local_id,image_path,rarity,set_id,category,hp,stage,types,attacks,tcg_sets(name,serie_id)')
+    .select('id,name,local_id,image_path,rarity,set_id,category,hp,stage,types,attacks,detalle_lang,tcg_sets(name,serie_id)')
     .eq('market', MERCADO)
     .eq('name', carta.name)
     .neq('id', carta.id)

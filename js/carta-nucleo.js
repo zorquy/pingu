@@ -85,9 +85,9 @@ export const entrenadorEs = (v) => traducir(ENTRENADORES_ES, v)
 //
 // El texto del efecto NO entra en la huella a propósito: se reescribe
 // entre erratas y entre idiomas, y dos impresiones de la misma carta
-// pueden traerlo distinto. Lo que no cambia nunca es el nombre del
-// ataque, su coste y su daño.
-export function huellaDeCarta(carta) {
+// pueden traerlo distinto. Dentro de un idioma, lo que no cambia nunca
+// es el nombre del ataque, su coste y su daño.
+export function huellaDeCarta(carta, conNombresDeAtaque = true) {
   if (!carta || carta.category !== 'Pokemon') return null
   // Sin ataques no hay huella: una carta sin engordar se parecería a
   // cualquier otra sin engordar, y saldrían todas como «la misma».
@@ -95,7 +95,7 @@ export function huellaDeCarta(carta) {
   if (!ataques || !ataques.length) return null
   const trozos = ataques
     .map((a) => [
-      normalizarNombre(a?.name),
+      conNombresDeAtaque ? normalizarNombre(a?.name) : '',
       String(a?.damage ?? ''),
       (Array.isArray(a?.cost) ? a.cost : []).join('+'),
     ].join('/'))
@@ -109,9 +109,26 @@ export function huellaDeCarta(carta) {
   ].join('·')
 }
 
+// En qué idioma están los ataques de una ficha. `detalle_lang` lo apunta
+// el engorde desde la tanda 330 ('es' o 'en'); null significa engordada
+// ANTES, cuando todo se pedía en inglés. Una ficha traída al vuelo lo
+// lleva puesto por js/carta.js con el idioma en que llegó.
+export function idiomaDeFicha(carta) {
+  return carta?.detalle_lang || 'en'
+}
+
 export function esLaMismaCarta(a, b) {
-  const ha = huellaDeCarta(a)
-  return Boolean(ha) && ha === huellaDeCarta(b)
+  // Los nombres de los ataques solo se comparan si las dos fichas hablan
+  // el MISMO idioma: desde la tanda 330 conviven cartas en español y en
+  // inglés, y «Hackeo Genoma» no casaría jamás con «Genome Hacking»
+  // aunque sean el mismo ataque — así que ninguna reimpresión cruzaba
+  // el idioma y la sección salía vacía (tanda 333). Entre idiomas
+  // distintos la huella se queda con lo que no se traduce: PS, fase,
+  // tipos, y el coste y el daño de cada ataque. El nombre de la CARTA
+  // sí entra siempre, porque Pokémon no traduce los nombres de especie.
+  const conNombres = idiomaDeFicha(a) === idiomaDeFicha(b)
+  const ha = huellaDeCarta(a, conNombres)
+  return Boolean(ha) && ha === huellaDeCarta(b, conNombres)
 }
 
 // ── El subtítulo ──
