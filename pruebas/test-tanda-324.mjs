@@ -253,9 +253,12 @@ console.log('\n── 6. La colección y el índice ──')
 
   const { page: p2, errores: e2 } = await abrir('/cartas.html', cartas, [SET, { id: 'sv4', name: 'Destinos de Paldea', market: 'WEST', release_date: '2024-01-26' }])
   check('el índice se abre sin errores', e2.length === 0, e2.join(' | '))
-  check('lista las colecciones', (await p2.locator('.cartas-coleccion').count()) === 2)
+  // Desde la 328 son filas de una lista agrupada por serie, no
+  // tarjetas con logo: la mitad de las colecciones no tiene logo y una
+  // rejilla de logos no deja comparar ni fecha ni tamaño.
+  check('lista las colecciones', (await p2.locator('.serie-fila').count()) === 2)
   check('lo más nuevo primero',
-    limpio(await p2.locator('.cartas-coleccion-nombre').first().textContent()) === 'Fuerzas Temporales')
+    limpio(await p2.locator('.serie-nombre').first().textContent()) === 'Fuerzas Temporales')
   await p2.fill('#buscarCarta', 'carta 3')
   await p2.waitForTimeout(800)
   check('el buscador encuentra', (await p2.locator('#resultados .coleccion-carta').count()) === 1)

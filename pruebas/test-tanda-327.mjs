@@ -129,7 +129,7 @@ console.log('\n── 3. Pokémon TCG Pocket es otro juego ──')
   })
   await page.goto(`${BASE}/cartas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1800)
-  const nombres = await page.locator('.cartas-coleccion-nombre').allTextContents()
+  const nombres = await page.locator('.serie-nombre').allTextContents()
   check('el índice no enseña las de Pocket', !nombres.includes('Genetic Apex'), nombres.join(' | '))
   check('…y sí las del TCG', nombres.includes('Fuerzas Temporales'), nombres.join(' | '))
   await page.close()
@@ -249,25 +249,38 @@ console.log('\n── 5. Se llega al catálogo sin saberse la URL ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 6. Una colección sin logo no descuadra la rejilla ──')
+console.log('\n── 6. La lista de colecciones se lee de un vistazo ──')
 {
+  // Esto era «una colección sin logo no descuadra la rejilla». La 328 se
+  // llevó la rejilla por delante: eran tarjetas con logo, y la mitad de
+  // las colecciones no tiene logo en TCGdex. Ahora es una lista con el
+  // CÓDIGO delante —que es como la gente las nombra— y el problema
+  // desaparece de raíz: todas las filas se ven iguales.
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
   await page.addInitScript(() => {
     window.__FAKE_SETS__ = [
-      { id: 'sv5', name: 'Con logo', market: 'WEST', serie_id: 'sv', logo_path: 'sv/sv5/logo', release_date: '2024-03-22' },
-      { id: 'tr', name: 'Sin logo', market: 'WEST', serie_id: null, logo_path: null, release_date: '2000-04-24' },
+      { id: 'sv8', name: 'Surging Sparks', market: 'WEST', serie_id: 'sv', serie_name: 'Escarlata y Púrpura',
+        tcg_online_code: 'SSP', logo_path: 'sv/sv8/logo', release_date: '2024-11-08', card_count_official: 252 },
+      { id: 'tr', name: 'Team Rocket', market: 'WEST', serie_id: null, serie_name: null,
+        tcg_online_code: null, logo_path: null, release_date: '2000-04-24', card_count_official: 82 },
     ]
   })
   await page.goto(`${BASE}/cartas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1800)
-  check('la que no tiene logo enseña el icono de la casa',
-    (await page.locator('.cartas-coleccion-sinlogo svg').count()) === 1)
-  // El hueco tiene que medir lo MISMO que un logo, o la rejilla sale a
-  // trompicones y parece rota cuando solo falta un dato.
-  const alturas = await page.evaluate(() =>
-    [...document.querySelectorAll('.cartas-coleccion')].map((n) =>
-      Math.round((n.querySelector('img') || n.querySelector('.cartas-coleccion-sinlogo')).getBoundingClientRect().height)))
-  check('y ocupa lo mismo que un logo', alturas.length === 2 && alturas[0] === alturas[1], alturas.join(' vs '))
+
+  const codigos = (await page.locator('.serie-codigo').allTextContents()).map((t) => t.trim())
+  check('la que tiene código lo enseña', codigos.includes('SSP'), codigos.join(' | '))
+  // La que no tiene código cae al identificador. Lo que NO puede pasar
+  // es que se quede sin insignia: entonces la columna se descuadra y la
+  // lista deja de leerse en vertical, que es para lo que existe.
+  check('la que no lo tiene cae al identificador', codigos.includes('TR'), codigos.join(' | '))
+  check('ninguna fila se queda sin insignia', codigos.length === 2 && codigos.every(Boolean), codigos.join(' | '))
+
+  // Y el orden, que lo pidió PINGU: series de la más nueva a la más
+  // vieja, y dentro igual. Sale del orden en que llegan las filas, sin
+  // una segunda ordenación que pudiera decir otra cosa.
+  const series = await page.locator('.serie-titulo').allTextContents()
+  check('la serie más nueva va primero', series[0] === 'Escarlata y Púrpura', series.join(' | '))
   await page.close()
 }
 
