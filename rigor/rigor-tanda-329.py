@@ -40,9 +40,11 @@ MUTACIONES = [
     # Con solo la fecha, un set que ya la tiene pero no tiene serie ni
     # codigo no entra nunca: la fase se da por acabada con 210 sets sin
     # serie.
-    (L, 'un set con fecha se da por completo aunque le falte todo lo demas',
-     "  return !fila?.release_date || !fila?.serie_id || !fila?.serie_name || !fila?.tcg_online_code",
-     '  return !fila?.release_date'),
+    (L, 'volver a pedir fecha y codigo: el cerrojo de la 329',
+     '  return !fila?.serie_id || !fila?.serie_name',
+     '  return !fila?.serie_id || !fila?.serie_name || !fila?.release_date || !fila?.tcg_online_code'),
+    (L, 'un set con fecha se da por completo aunque no se haya visitado',
+     '  return !fila?.serie_id || !fila?.serie_name', '  return !fila?.release_date'),
 
     # ── 4. El importador ──
     # Volver a escribir la serie desde el LISTADO, donde no viene: pone

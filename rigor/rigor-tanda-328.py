@@ -57,13 +57,31 @@ MUTACIONES = [
     (N, 'el orden de los ataques cuenta',
      '    .sort()\n  return [', '  return ['),
 
+    # ── 2 bis. La huella cruzando idiomas (tanda 333) ──
+    # Comparar los nombres de los ataques SIEMPRE: «Hackeo Genoma» no
+    # casa con «Genome Hacking», y con medio catalogo en cada idioma casi
+    # ninguna reimpresion cruzaba. La seccion sale vacia y parece que el
+    # arreglo de la 328 no funciona.
+    (N, 'la huella vuelve a comparar nombres aunque cambie el idioma',
+     '  const conNombres = idiomaDeFicha(a) === idiomaDeFicha(b)', '  const conNombres = true'),
+    # Y lo contrario: no compararlos NUNCA. Dentro de un idioma se pierde
+    # la comparacion fina y dos cartas distintas con el mismo coste y el
+    # mismo dano pasan por la misma.
+    (N, 'la huella deja de comparar nombres aunque el idioma coincida',
+     '  const conNombres = idiomaDeFicha(a) === idiomaDeFicha(b)', '  const conNombres = false'),
+    # Una ficha sin idioma tiene que contar como INGLES: es como estan
+    # las 3.676 engordadas antes de la 330.
+    (N, 'una ficha sin idioma deja de contar como ingles',
+     "  return carta?.detalle_lang || 'en'", "  return carta?.detalle_lang || 'es'"),
+
     # ── 3. Pocket en la ficha ──
     (C, 'Pocket vuelve a colarse en «otras versiones»',
-     '    .filter((v) => esDelTCG({ id: v.set_id, serie_id: v.tcg_sets?.serie_id }))\n', ''),
+     '  const candidatas = data.filter((v) => esDelTCG({ id: v.set_id, serie_id: v.tcg_sets?.serie_id }))',
+     '  const candidatas = data'),
     # Y con solo la serie, que es el filtro que no echaba a ninguno.
     (C, 'el filtro de «otras versiones» vuelve a mirar solo la serie',
-     '    .filter((v) => esDelTCG({ id: v.set_id, serie_id: v.tcg_sets?.serie_id }))',
-     '    .filter((v) => esDelTCG({ serie_id: v.tcg_sets?.serie_id }))'),
+     '  const candidatas = data.filter((v) => esDelTCG({ id: v.set_id, serie_id: v.tcg_sets?.serie_id }))',
+     '  const candidatas = data.filter((v) => esDelTCG({ serie_id: v.tcg_sets?.serie_id }))'),
 
     # ── 4. Los iconos de tipo ──
     (N, 'la debilidad vuelve a salir como texto, sin su icono',

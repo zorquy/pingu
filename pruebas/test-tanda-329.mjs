@@ -75,11 +75,43 @@ console.log('\n── 3. Quién entra en la fase de curación ──')
   // Si solo entrara lo que no tiene fecha, los 210 sets con fecha y sin
   // serie no entrarían NUNCA y la fase se daría por acabada.
   check('un set al que le falta la serie entra', leFaltaAlgo({ release_date: 'x', tcg_online_code: 'Y' }))
-  check('…y uno al que le falta el código, también',
-    leFaltaAlgo({ release_date: 'x', serie_id: 'a', serie_name: 'b' }))
-  check('…y uno al que le falta la fecha', leFaltaAlgo({ serie_id: 'a', serie_name: 'b', tcg_online_code: 'C' }))
-  check('uno completo no entra',
+  check('…y uno al que solo le falta el nombre de la serie',
+    leFaltaAlgo({ release_date: 'x', serie_id: 'a', tcg_online_code: 'C' }))
+  check('uno con serie no entra',
     !leFaltaAlgo({ release_date: 'x', serie_id: 'a', serie_name: 'b', tcg_online_code: 'C' }))
+
+  // ── Y LO QUE NO PUEDE CONTAR COMO INCOMPLETO ──
+  //
+  // Esto lo escribí al revés en la 329 y costó un día de catálogo
+  // parado. Pedía también fecha y código, y ~100 sets NO LOS TIENEN en
+  // TCGdex: los anteriores a TCG Online no tienen código y algunas
+  // promos no traen fecha. Como la fase de sets era excluyente, esos
+  // cien se volvían a pedir cada cinco minutos PARA SIEMPRE y el
+  // engorde de cartas, que iba detrás, no arrancó jamás — 3.676 de
+  // 21.356 y ninguna en español. Lo encontró la sesión de IBAI.
+  //
+  // El marcador bueno es la SERIE, que el set completo trae siempre: un
+  // set con serie es un set ya visitado. La fecha y el código se curan
+  // en esa misma visita SI EXISTEN, y si no existen hoy tampoco van a
+  // existir mañana.
+  check('un set SIN código ya visitado no vuelve a entrar',
+    !leFaltaAlgo({ release_date: 'x', serie_id: 'base', serie_name: 'Base', tcg_online_code: null }),
+     'los anteriores a TCG Online no tienen código y volverían a pedirse para siempre')
+  check('…ni uno sin fecha',
+    !leFaltaAlgo({ release_date: null, serie_id: 'base', serie_name: 'Base', tcg_online_code: 'BS' }),
+    'algunas promos no traen fecha')
+  check('…ni uno sin ninguna de las dos',
+    !leFaltaAlgo({ release_date: null, serie_id: 'base', serie_name: 'Base', tcg_online_code: null }))
+
+  // Y la otra mitad del cerrojo: la fase de sets ya no puede quedarse
+  // con la pasada entera. Corre acotada y el engorde corre SIEMPRE con
+  // el tiempo que quede.
+  const tarea = readFileSync(`${RAIZ}/netlify/functions/cartas-detalle.mjs`, 'utf8')
+  check('la fase de sets tiene su propio presupuesto',
+    /PRESUPUESTO_SETS_MS/.test(tarea), 'volvería a poder comerse la pasada entera')
+  check('…y no corta la pasada: el engorde va después igual',
+    !/return Response\.json\(\{ fase: 'sets'/.test(tarea),
+    'la fase de sets vuelve a ser excluyente')
 }
 
 // ═════════════════════════════════════════════════════════════════════

@@ -14,7 +14,7 @@
 // convertido en una afirmación.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
-import { esLaMismaCarta, huellaDeCarta } from '/home/user/pingu/js/carta-nucleo.js'
+import { esLaMismaCarta, huellaDeCarta, idiomaDeFicha } from '/home/user/pingu/js/carta-nucleo.js'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -90,6 +90,45 @@ console.log('\n── 1. La huella: qué es «la misma carta» ──')
   check('dos sin engordar no son «la misma»',
     !esLaMismaCarta({ category: 'Pokemon', name: 'X' }, { category: 'Pokemon', name: 'X' }))
   check('un Entrenador tampoco tiene huella', huellaDeCarta({ category: 'Trainer', name: 'Iono' }) === null)
+
+  // ── Y LA HUELLA CRUZANDO IDIOMAS (tanda 333) ──
+  //
+  // Esto se me escapó entero al juntar la 328 con la 330. La huella
+  // compara los NOMBRES de los ataques, y desde que el catálogo se
+  // engorda en español conviven fichas en los dos idiomas: «Hackeo
+  // Genoma» no casa jamás con «Genome Hacking» aunque sean el mismo
+  // ataque. Con el catálogo entero por reengordar, casi todas las
+  // parejas iban a cruzar idioma — así que la sección salía vacía y
+  // parecía que el arreglo de la 328 no funcionaba. Lo encontró la
+  // sesión de IBAI.
+  const ES = { ...PRIMEAPE, detalle_lang: 'es',
+    attacks: [{ name: 'Puñetazo Sacacorchos', cost: ['Colorless', 'Colorless'], damage: '50' }] }
+  const EN = { ...PRIMEAPE, detalle_lang: 'en' }
+  check('la misma carta en español y en inglés SÍ es la misma', esLaMismaCarta(ES, EN))
+
+  // Pero sin pasarse: entre idiomas distintos la huella se queda con lo
+  // que no se traduce, y eso tiene que seguir distinguiendo cartas.
+  check('…pero dos cartas distintas siguen sin serlo, aunque crucen idioma',
+    !esLaMismaCarta(ES, { ...EN, hp: 70 }))
+  check('…ni con otro coste', !esLaMismaCarta(ES, { ...EN, attacks: [{ name: 'Rage', cost: ['Fighting'], damage: '50' }] }))
+  check('…ni con otro daño', !esLaMismaCarta(ES, { ...EN, attacks: [{ name: 'Rage', cost: ['Colorless', 'Colorless'], damage: '90' }] }))
+  // Y el nombre de la CARTA sigue contando siempre: Pokémon no traduce
+  // los nombres de especie, así que no perderlo es gratis.
+  check('…ni si son especies distintas', !esLaMismaCarta(ES, { ...EN, name: 'Mankey' }))
+
+  // Dentro de un mismo idioma, la huella sigue siendo la fina: si no,
+  // dos cartas que solo se diferencian en el NOMBRE del ataque —mismo
+  // coste, mismo daño— pasarían por la misma.
+  const MISMO_COSTE_OTRO_ATAQUE = { ...EN,
+    attacks: [{ name: 'Rage', cost: ['Colorless', 'Colorless'], damage: '50' }] }
+  check('en el mismo idioma, el nombre del ataque sigue contando',
+    !esLaMismaCarta(EN, MISMO_COSTE_OTRO_ATAQUE))
+  check('…y cruzando idioma, esas dos ya no se pueden distinguir (es el precio)',
+    esLaMismaCarta(ES, MISMO_COSTE_OTRO_ATAQUE))
+
+  // Una ficha de antes de la 330 no lleva idioma: es inglés.
+  check('sin `detalle_lang` se cuenta como inglés', idiomaDeFicha({}) === 'en')
+  check('…y con él, lo que diga', idiomaDeFicha({ detalle_lang: 'es' }) === 'es')
 }
 
 // ═════════════════════════════════════════════════════════════════════
