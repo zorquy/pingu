@@ -51,11 +51,13 @@ MUTACIONES = [
     # ficha se apaga otra vez sin dar error.
     (D, 'sin la via de la estructura: una palabra desconocida ya no es un Pokemon',
      '  return Number.isInteger(carta?.hp)\n}', '  return false\n}'),
-    # Y al reves: que la estructura se trague cualquier cosa. Un
-    # Entrenador no tiene PS, asi que esto solo puede meter ruido.
-    (D, 'la estructura se traga cualquier cosa',
-     "  if (cat === 'Trainer' || cat === 'Energy') return false", '  if (false) return false'),
-
+    # NO hay mutacion de «la estructura se traga cualquier cosa»
+    # (quitar el `if (cat === 'Trainer' || cat === 'Energy') return
+    # false`): ningun Entrenador ni ninguna Energia tiene PS, asi que
+    # el `Number.isInteger(hp)` de abajo devuelve lo mismo y el
+    # comportamiento no cambia. Es justo la trampa de la tanda 314 —
+    # dos guardas que son red de repuesto una de la otra— y una
+    # mutacion que no cambia nada no es una prueba que falte.
     # ── 4. Guardar sin canonizar ──
     # Las que vengan a partir de ahora se guardan traducidas y el
     # problema se reproduce solo, carta a carta.
@@ -67,17 +69,8 @@ MUTACIONES = [
     # y la base le gana por orden porque un @media no suma
     # especificidad. La pagina no da un solo error.
     (CSS, 'el bloque del movil vuelve a ir antes de la base',
-     '''.carta-scan {
-  margin: 0;
-  position: sticky;
-  top: var(--e-2xl);
-}''',
-     '''@media (max-width: 720px) { .carta-scan { position: static; } }
-.carta-scan {
-  margin: 0;
-  position: sticky;
-  top: var(--e-2xl);
-}'''),
+     '.carta-scan {\n  margin: 0;\n  position: sticky;\n  top: var(--e-2xl);\n}\n\n/* ── Y en el móvil, ni pegajoso ni tan grande ──\n *\n * ESTE BLOQUE VA DESPUÉS DE LA BASE Y NO ANTES, y no es un capricho de\n * orden: **un `@media` no suma especificidad**. Estaba escrito arriba,\n * antes de `.carta-scan`, así que `position: sticky` le ganaba por\n * orden de aparición y el escaneo seguía pegado al scroll en el móvil,\n * pasando por encima de la ficha. El `max-width` sí funcionaba —ese no\n * choca con nada—, y por eso parecía que la regla se aplicaba.\n *\n * Es la trampa de la tanda 299 dentro de UNA SOLA HOJA: allí era un\n * `@media` que se quedó en `components.css` con su base ya mudada.\n * Misma mecánica, mismo síntoma: el móvil se rompe y nada da error.\n *\n * En una columna el escaneo se comía la pantalla entera y había que\n * bajar para ver el primer dato. 260 px es una MEDIDA, no un paso: por\n * encima de 32 solo se le pide la retícula de 4. */\n@media (max-width: 720px) {\n  .carta-scan {\n    /* Sin columna al lado a la que acompañar, quedarse fijo solo tapa\n       lo que se está leyendo. */\n    position: static;\n    max-width: 260px;\n    margin-inline: auto;\n  }\n}\n',
+     '@media (max-width: 720px) {\n  .carta-scan {\n    /* Sin columna al lado a la que acompañar, quedarse fijo solo tapa\n       lo que se está leyendo. */\n    position: static;\n    max-width: 260px;\n    margin-inline: auto;\n  }\n}\n\n.carta-scan {\n  margin: 0;\n  position: sticky;\n  top: var(--e-2xl);\n}\n\n/* ── Y en el móvil, ni pegajoso ni tan grande ──\n *\n * ESTE BLOQUE VA DESPUÉS DE LA BASE Y NO ANTES, y no es un capricho de\n * orden: **un `@media` no suma especificidad**. Estaba escrito arriba,\n * antes de `.carta-scan`, así que `position: sticky` le ganaba por\n * orden de aparición y el escaneo seguía pegado al scroll en el móvil,\n * pasando por encima de la ficha. El `max-width` sí funcionaba —ese no\n * choca con nada—, y por eso parecía que la regla se aplicaba.\n *\n * Es la trampa de la tanda 299 dentro de UNA SOLA HOJA: allí era un\n * `@media` que se quedó en `components.css` con su base ya mudada.\n * Misma mecánica, mismo síntoma: el móvil se rompe y nada da error.\n *\n * En una columna el escaneo se comía la pantalla entera y había que\n * bajar para ver el primer dato. 260 px es una MEDIDA, no un paso: por\n * encima de 32 solo se le pide la retícula de 4. */\n'),
     # Y que el tope desaparezca: a pantalla completa el escaneo se come
     # el sitio de todo lo demas.
     (CSS, 'el escaneo del movil pierde su tope de ancho',
