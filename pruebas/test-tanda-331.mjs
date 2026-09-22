@@ -239,18 +239,80 @@ console.log('\n── 6. Y cuando el BORDE ya ha pintado (que es producción) �
   }))
   const p2 = await browser.newPage()
   const pedidas2 = await conTCGdex(p2)
+  // Se CUENTAN los repintados con un observador puesto antes de que
+  // cargue nada.
+  //
+  // Antes esto marcaba un nodo con `data-testigo` justo después del
+  // `goto` y miraba si sobrevivía. Era una CARRERA y la perdía: el
+  // cliente ya había repintado para cuando llegaba la marca, así que se
+  // ponía sobre el núcleo nuevo y sobrevivía siempre. El rigor lo cazó
+  // —dos mutaciones que fuerzan el repintado pasaban desapercibidas— y
+  // tenía razón: una prueba que depende de quién llega antes no prueba
+  // nada.
+  await p2.addInitScript(() => {
+    // Un repintado se distingue por su FORMA, no por cuándo pasa.
+    //
+    // Aquí me equivoqué dos veces seguidas. Primero marcaba un nodo
+    // después del `goto` y miraba si sobrevivía: una carrera que perdía
+    // siempre. Después conté los cambios y salían seis, que era el
+    // navegador construyendo la página; puse el contador a cero en
+    // DOMContentLoaded y entonces se comía el repintado de verdad,
+    // porque js/carta.js es un módulo y corre ANTES de ese evento.
+    //
+    // Lo que no depende del reloj: `caja.innerHTML = …` BORRA los hijos
+    // que había, y el navegador al parsear solo los AÑADE. Un repintado
+    // es, por definición, un cambio con `removedNodes`.
+    window.__repintados = 0
+    new MutationObserver((cambios) => {
+      for (const c of cambios) {
+        if (c.target?.id === 'cartaNucleo' && c.removedNodes.length) window.__repintados++
+      }
+    }).observe(document, { childList: true, subtree: true })
+  })
   await p2.addInitScript((c) => {
     window.__FAKE_SETS__ = [{ id: '30c', name: '30th Celebration', market: 'WEST' }]
     window.__FAKE_CARTAS__ = [c]
   }, completa)
   await p2.goto(`${BASE}/t331-borde-ok.html?id=30c-25`, { waitUntil: 'domcontentloaded' })
-  await p2.evaluate(() => document.querySelector('#cartaNucleo .carta-cabecera')?.setAttribute('data-testigo', '1'))
   await p2.waitForTimeout(2400)
   check('una carta engordada NO se repinta',
-    (await p2.locator('#cartaNucleo [data-testigo]').count()) === 1,
-    'el cliente ha repintado lo que el borde ya tenía bien')
+    (await p2.evaluate(() => window.__repintados)) === 0,
+    `el cliente repintó ${await p2.evaluate(() => window.__repintados)} veces lo que el borde ya tenía bien`)
   check('…ni se le pide nada a TCGdex', pedidas2.length === 0, pedidas2.join(','))
   await p2.close()
+
+  // Y el contrario, con el mismo contador: la que NO está engordada sí
+  // se repinta, y una sola vez.
+  const p3 = await browser.newPage()
+  await conTCGdex(p3)
+  await p3.addInitScript(() => {
+    // Un repintado se distingue por su FORMA, no por cuándo pasa.
+    //
+    // Aquí me equivoqué dos veces seguidas. Primero marcaba un nodo
+    // después del `goto` y miraba si sobrevivía: una carrera que perdía
+    // siempre. Después conté los cambios y salían seis, que era el
+    // navegador construyendo la página; puse el contador a cero en
+    // DOMContentLoaded y entonces se comía el repintado de verdad,
+    // porque js/carta.js es un módulo y corre ANTES de ese evento.
+    //
+    // Lo que no depende del reloj: `caja.innerHTML = …` BORRA los hijos
+    // que había, y el navegador al parsear solo los AÑADE. Un repintado
+    // es, por definición, un cambio con `removedNodes`.
+    window.__repintados = 0
+    new MutationObserver((cambios) => {
+      for (const c of cambios) {
+        if (c.target?.id === 'cartaNucleo' && c.removedNodes.length) window.__repintados++
+      }
+    }).observe(document, { childList: true, subtree: true })
+  })
+  await p3.addInitScript((c) => {
+    window.__FAKE_SETS__ = [{ id: '30c', name: '30th Celebration', market: 'WEST' }]
+    window.__FAKE_CARTAS__ = [c]
+  }, EN_LA_BASE)
+  await p3.goto(`${BASE}/t331-borde.html?id=30c-25`, { waitUntil: 'domcontentloaded' })
+  await p3.waitForTimeout(2600)
+  check('la que no lo está SÍ se repinta', (await p3.evaluate(() => window.__repintados)) >= 1)
+  await p3.close()
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
