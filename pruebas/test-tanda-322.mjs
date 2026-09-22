@@ -11,7 +11,7 @@
 // (el contenedor no sale a internet), así que esta prueba afirma que
 // mapeamos bien LO QUE CREEMOS que llega — no que TCGdex mande eso.
 // Esa segunda mitad la tiene que confirmar la primera pasada real.
-import { detalleDeCarta, urlDeCarta, IDIOMA_POR_MERCADO } from '/home/user/pingu/netlify/lib/carta-detalle.mjs'
+import { detalleDeCarta, urlDeCarta, IDIOMA_POR_MERCADO, codigoLiveDeSet } from '/home/user/pingu/netlify/lib/carta-detalle.mjs'
 import { readFileSync } from 'node:fs'
 
 let fails = 0
@@ -136,6 +136,23 @@ console.log('\n── 5. La URL, y el mapa de idiomas que está copiado ──')
     .filter((k) => original[k] !== IDIOMA_POR_MERCADO[k])
   check('la copia no se ha separado del original', distintos.length === 0,
     distintos.map((k) => `${k}: ${original[k]} vs ${IDIOMA_POR_MERCADO[k]}`).join(' | '))
+
+  // ── Y la SEGUNDA copia vigilada (tanda 329) ──
+  //
+  // `codigoLiveDeSet` también está dos veces, y por lo mismo. Esta se
+  // vigila comparándolas de verdad —las dos son funciones puras— en vez
+  // de mirar el texto: lo que importa no es que estén escritas igual,
+  // sino que digan lo mismo.
+  const cuerpo = fuente.match(/export function codigoLiveDeSet\(set\) \{([\s\S]*?)\n\}/)?.[1] ?? ''
+  check('se ha encontrado el original del código', cuerpo.includes('tcgOnline'), cuerpo.slice(0, 80))
+  const original2 = new Function('set', cuerpo)
+  const casos = ['twm', 'TWM', '30C', 'mee', '', '  sfa  ', 'demasiadolargo', 'a', 'A-B', null, 12]
+  const discrepan = casos.filter((v) => {
+    const set = v === null ? null : { tcgOnline: v }
+    return original2(set) !== codigoLiveDeSet(set)
+  })
+  check('las dos versiones del código dicen lo mismo', discrepan.length === 0,
+    discrepan.map((v) => `${JSON.stringify(v)}: ${original2({ tcgOnline: v })} vs ${codigoLiveDeSet({ tcgOnline: v })}`).join(' | '))
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
