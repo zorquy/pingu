@@ -91,8 +91,12 @@ async function cargar() {
   // verdad. Esa es justo la excepción que la norma de la casa admite:
   // lo caro es pedir las 23.000, no pedir la que se está mirando.
   const completa = carta.detalle_at ? carta : await conDetalleDeTCGdex(carta)
+  // ¿Hemos traído algo que el borde NO tenía? Entonces lo que hay
+  // pintado se queda corto y hay que repintarlo, diga lo que diga la
+  // marca de «ya pintado».
+  const mejorQueLoPintado = completa !== carta
 
-  pintar(completa, set, juego || null)
+  pintar(completa, set, juego || null, mejorQueLoPintado)
   // Estas dos van por libre: llegan cuando llegan y sus secciones nacen
   // escondidas, así que una consulta lenta no retrasa la ficha.
   versiones(completa).catch(() => {})
@@ -131,7 +135,7 @@ async function conDetalleDeTCGdex(carta) {
   }
 }
 
-function pintar(carta, set, play = null) {
+function pintar(carta, set, play = null, repintarIgual = false) {
   document.title = `${carta.name} — ${set?.name || 'Pokémon TCG'} — PokeDoc`
 
   const miga = $('migaColeccion')
@@ -141,9 +145,20 @@ function pintar(carta, set, play = null) {
 
   const caja = $('cartaNucleo')
   if (!caja) return
-  // Si el borde ya lo pintó, no se toca. `data-servidor` lo pone
-  // `inyectarNucleo` en la función del borde.
-  if (caja.dataset.servidor !== '1') {
+  // Si el borde ya lo pintó, no se toca… SALVO que ahora tengamos más
+  // de lo que él tenía.
+  //
+  // El borde pinta con lo que hay en la base. Si esa carta no está
+  // engordada, pinta el nombre, la foto y el número — y como deja la
+  // caja marcada, el cliente no la repintaba NUNCA. Así que el detalle
+  // que acabábamos de pedirle a TCGdex se quedaba en una variable y no
+  // llegaba a la pantalla. Lo vio PINGU en el Mew ex y tenía razón: «ya
+  // ves que no».
+  //
+  // Aquí no se rompe la regla de las dos mitades, se completa: el
+  // molde sigue siendo UNO, y solo se repinta cuando lo pintado está
+  // demostrablemente incompleto.
+  if (caja.dataset.servidor !== '1' || repintarIgual) {
     caja.innerHTML = nucleoDeCarta(carta, set, play)
   }
   encenderLupa(caja)
