@@ -19,6 +19,7 @@
 // listón, el sitemap seguiría ofreciendo lo de antes y Google se comería
 // las páginas que la propia web marca como `noindex`.
 import { claveDeJuego, mereceIndexarse, rutaDeCarta, rutaDeColeccion } from '../../js/carta-nucleo.js'
+import { esDelTCG } from '../../js/catalogo-series.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ'
@@ -127,12 +128,13 @@ export default async () => {
     // de `tcg_card_play` no esté puesta, la tabla no existe y el sitemap
     // ENTERO se caería por una sección que todavía no existe.
     const [sets, jugadas] = await Promise.all([
-      consultar('tcg_sets?market=eq.WEST&select=id,release_date&order=release_date.desc&limit=2000').catch(() => []),
+      consultar('tcg_sets?market=eq.WEST&select=id,serie_id,release_date&order=release_date.desc&limit=2000').catch(() => []),
       consultar('tcg_card_play?select=name_key,decks,updated_at&order=decks.desc&limit=5000').catch(() => []),
     ])
 
     for (const s of sets) {
-      if (!s.id) continue
+      // Las de Pokémon TCG Pocket ni se ofrecen: su página no existe.
+      if (!s.id || !esDelTCG(s)) continue
       urls.push({
         loc: `${SITIO}${rutaDeColeccion(s)}`,
         lastmod: soloFecha(s.release_date),

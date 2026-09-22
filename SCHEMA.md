@@ -17329,3 +17329,99 @@ portada sigue en 169,3 KB gzip de 170: el enlace no llega ni al redondeo.
 El bloque del enlace **llama a `pintarDecklistVisual` de verdad** y mira
 el HTML que sale: una prueba que comprueba que se llama a algo no prueba
 lo que ese algo hace.
+
+---
+
+## Tanda 327 — lo que se rompió al salir a producción
+
+PINGU, al abrirlo por la mañana: «está roto, se ve horrible».
+
+Y lo estaba. `/coleccion/tr` y `/carta/…` salían **sin CSS y sin
+JavaScript**: el contenido entero, en crudo, como un documento de 1995.
+
+### La causa, y por qué ninguna prueba la vio
+
+Las tres páginas del catálogo cargaban sus hojas con rutas **relativas**
+(`href="css/style.css"`), copiadas de `lanzamientos.html`. En `/cartas`
+eso resuelve a `/css/style.css` y funciona. En `/coleccion/tr` el
+navegador resuelve contra `/coleccion/` y pide
+`/coleccion/css/style.css`, que es un 404. La página se sirve igual —con
+su contenido y su `<h1>`—, solo que sin una sola regla.
+
+Las páginas que ya tenían dirección bonita (`usuario.html`, `tema.html`)
+llevan las rutas absolutas desde siempre. `lanzamientos.html` no tiene
+dirección bonita, así que a ella nunca le pasó.
+
+**Y no lo vio nadie por DOS motivos, no uno:**
+
+1. Las pruebas de la 324 y la 326 abrían `/carta.html?id=…` y
+   `/coleccion.html?set=…` —las direcciones PLANAS—, donde las relativas
+   resuelven bien.
+2. **El servidor de pruebas no hacía las reescrituras de Netlify**, así
+   que la dirección bonita ni siquiera existía en local. No es que la
+   prueba mirara mal: es que no había nada que mirar.
+
+Arreglado lo segundo (`herramientas/servir.py` hace ahora las mismas
+reescrituras que `netlify.toml`) antes de arreglar lo primero.
+
+La prueba se escribe contra **la forma**: saca de `netlify.toml` todas
+las direcciones con barra, abre cada una y comprueba que llegan las
+hojas y que el fondo del `body` es el del sitio. La siguiente página que
+se añada entra sola.
+
+### Pokémon TCG Pocket no es el TCG
+
+Salían sus colecciones mezcladas con las de mesa. `fetchSets` ya las
+filtra **al importar** desde la tanda 233, pero lo que está en la base se
+importó antes de eso — así que las páginas filtran otra vez **al leer**.
+La lista vive en `js/catalogo-series.js`, sin dependencias, para que
+puedan usarla el navegador, la función del borde y el sitemap.
+
+Dos detalles que no dan error si se hacen mal: `serie_id` **a null NO es
+motivo para echar a un set** (las colecciones de Wizards lo traen vacío y
+son el TCG más TCG que hay), y el filtro hay que **pedir la columna** en
+el `select` — sin ella recibe `undefined` y deja pasar todo.
+
+### La barra: el chip y los enlaces nunca cupieron juntos
+
+Al meter «Cartas» en la barra, la prueba de la 320 se puso roja con un
+torneo en juego. Al medir salió algo más gordo que mi enlace:
+
+`.nav-inner` está topada en `--container-w` (1.160) y **no crece con el
+monitor**. Dentro caben 1.048 de contenido. El logo pide 126 y los
+enlaces 573, así que a la derecha quedan 349 — justo lo que mide
+`.nav-right` sin chip. Con el chip se va a 578: **con el chip puesto los
+enlaces no caben a ningún ancho.**
+
+Y no cabían antes tampoco. Con los enlaces en 496 la cuenta daba 1.168 y
+seguían sin entrar; lo que pasaba es que `.nav-links` es hijo de flex y
+**cedía en silencio**, sin desbordar nada y sin que ninguna prueba se
+quejara. Es la misma trampa que la del logo en la 320, un piso más
+abajo. El catálogo solo la destapó.
+
+La regla que existía (`@media (min-width: 1080px) and (max-width: 1179px)`)
+daba por hecho que era cuestión de anchura de ventana. No lo era: ahora
+los enlaces se van al menú **siempre que hay chip**, a cualquier ancho.
+
+Y el corte de los enlaces pasa de 1.080 a **1.160**, medido otra vez.
+`herramientas/medir-barra.mjs` da el número; si se añade o se quita un
+enlace, se vuelve a medir. **Un punto de corte heredado es una afirmación
+sobre un ancho que ya no existe.**
+
+### Se llega al catálogo sin saberse la URL
+
+«Cartas» entra en la barra de arriba y en el menú del móvil de las 25
+páginas, además del pie que ya puso la 326. Los caminos de dentro —la
+lista de un mazo, y las guías con cartas insertadas— siguen siendo los
+que más valen.
+
+### Una colección sin logo ya no descuadra la rejilla
+
+Muchas colecciones viejas no tienen logo en TCGdex. Sin reservar su
+hueco la tarjeta se encogía y la rejilla salía a trompicones: parecía
+rota y solo era un dato que falta. Ahora el hueco mide lo mismo que un
+logo (56 px) y dentro va el icono de la casa.
+
+### Cubierto
+
+`test-tanda-327.mjs` (6 bloques) y `rigor-tanda-327.py` (13 mutaciones).

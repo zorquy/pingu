@@ -736,15 +736,19 @@ body:has(> .footer) .page-content {
   border-bottom: none;
 }
 
-/* El corte de los enlaces: 1080 y no 860 (tanda 320).
-   MEDIDO, no elegido: logo 126 + enlaces 496 + los seis iconos 340 +
-   relleno y huecos 112 = 1.074 px. Con el corte en 860, entre 860 y
-   1.073 la barra pedía más de lo que había… y no se notaba porque el
-   logo, que es hijo de flex, CEDÍA: se encogía de 126 a 44 px y «Poke
-   Doc» se amontonaba encima del icono. Eso es lo que PINGU vio.
-   Por debajo manda el menú desplegable, que ya existía y cabe de sobra
-   (pide 726). */
-@media (min-width: 1080px) {
+/* El corte de los enlaces: 1160 (tanda 327), y antes 1080 (tanda 320).
+   MEDIDO CADA VEZ, no elegido: logo 126 + enlaces 573 + los seis iconos
+   340 + relleno y huecos 112 = 1.151 px. Los enlaces pasaron de 496 a
+   573 al entrar «Cartas», así que el corte de 1.080 se quedó corto y
+   entre 1.080 y 1.150 la barra volvía a pedir más de lo que había.
+   Y eso NO da ningún síntoma que cante: el logo es hijo de flex y CEDE
+   —se encoge de 126 a 44 px y «Poke Doc» se amontona encima de su
+   icono—, que es exactamente lo que vio PINGU en la 320.
+   REGLA: si añades o quitas un enlace de la barra, vuelve a medir lo que
+   PIDE (herramientas/medir-barra.mjs) y mueve este número. Un punto de
+   corte heredado es una afirmación sobre un ancho que ya no existe.
+   Por debajo manda el menú desplegable, que cabe de sobra. */
+@media (min-width: 1160px) {
   .nav-links {
     display: flex;
   }
@@ -756,16 +760,32 @@ body:has(> .footer) .page-content {
   }
 }
 
-/* Y con un torneo EN JUEGO la barra lleva un pasajero más —el chip que
-   te lleva a tu mesa, 70 px hasta con el texto corto— así que los
-   enlaces no caben hasta los 1.162. En ese tramo manda el menú
-   desplegable, que es el que ya sabe guardar los enlaces: no se quita
-   ningún control, solo cambian de sitio.
+/* Y con un torneo EN JUEGO los enlaces se van al menú SIEMPRE, a
+   cualquier ancho (tanda 327). Antes era un tramo —de 1.080 a 1.179— y
+   el tramo estaba mal: la cuenta no depende del ancho de la ventana,
+   porque `.nav-inner` está topada en `--container-w` (1.160) y no crece
+   más por mucho monitor que haya.
+
+   MEDIDO: dentro de esos 1.160 caben 1.048 de contenido (80 de relleno
+   y 32 de huecos). El logo pide 126 y los enlaces 573, así que a la
+   derecha quedan 349 — justo lo que mide `.nav-right` SIN chip. Con
+   chip se va a 578, así que con el chip puesto los enlaces no caben a
+   NINGÚN ancho.
+
+   Y no cabían antes tampoco: con los enlaces en 496 la cuenta daba
+   1.168 y seguían sin entrar. Lo que pasaba es que `.nav-links` es hijo
+   de flex y CEDÍA —se apretaba en silencio, sin desbordar nada y sin
+   que ninguna prueba se quejara—, que es la misma trampa que la del
+   logo en la 320. El chip solo la destapó al crecer el catálogo.
+
+   En ese estado manda el menú desplegable, que es el que ya sabe
+   guardar los enlaces: no se quita ningún control, solo cambian de
+   sitio.
 
    El `.open` lleva `!important` porque la regla de arriba lo pone con
-   `!important` también, y sin él el menú no se podría abrir en este
-   tramo — se vería el botón y no pasaría nada al pulsarlo. */
-@media (min-width: 1080px) and (max-width: 1179px) {
+   `!important` también, y sin él el menú no se podría abrir — se vería
+   el botón y no pasaría nada al pulsarlo. */
+@media (min-width: 1160px) {
   body:has(.nav-torneo-vivo) .nav-links {
     display: none;
   }

@@ -47,6 +47,7 @@ import {
   rejillaDeCartas,
   rutaDeColeccion,
 } from '../../js/carta-nucleo.js'
+import { esDelTCG } from '../../js/catalogo-series.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 // La clave publicable, la misma que ya viaja en js/supabase.js y que
@@ -1025,9 +1026,10 @@ async function metaDeColeccion(url) {
 
   const set = await pedir(
     `tcg_sets?id=eq.${encodeURIComponent(id)}&market=eq.WEST` +
-      '&select=id,name,serie_name,logo_path,release_date,card_count_official,card_count_total&limit=1'
+      '&select=id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total&limit=1'
   )
-  if (!set) return null
+  // Pokémon TCG Pocket es otro juego: su colección no tiene página aquí.
+  if (!set || !esDelTCG(set)) return null
 
   const cartas = await pedirVarias(
     `tcg_cards?set_id=eq.${encodeURIComponent(id)}&market=eq.WEST` +

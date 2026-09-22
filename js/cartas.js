@@ -8,6 +8,8 @@ import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { rejillaDeCartas, rutaDeColeccion, urlDeLogo, fechaLarga } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
+import { esDelTCG } from './catalogo-series.js'
+import { icons } from './icons.js'
 
 const MERCADO = 'WEST'
 const $ = (id) => document.getElementById(id)
@@ -15,7 +17,7 @@ const $ = (id) => document.getElementById(id)
 async function colecciones() {
   const { data, error } = await supabase
     .from('tcg_sets')
-    .select('id,name,serie_name,logo_path,release_date,card_count_official,card_count_total')
+    .select('id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total')
     .eq('market', MERCADO)
     // Lo más nuevo primero, y las que no tienen fecha al final. Aquí sí
     // funciona `nullslast`: es una columna PROPIA de la tabla, no una
@@ -23,7 +25,14 @@ async function colecciones() {
     .order('release_date', { ascending: false, nullsFirst: false })
   if (error || !data?.length) return
 
-  $('listaColecciones').innerHTML = data
+  // Fuera lo que no es el TCG de mesa. La tabla trae sets de Pokémon
+  // TCG Pocket importados antes de que el importador los filtrara, y
+  // son otro juego: mezclados aquí, quien busca una carta para su mazo
+  // se encuentra una del móvil.
+  const soloTCG = data.filter(esDelTCG)
+  if (!soloTCG.length) return
+
+  $('listaColecciones').innerHTML = soloTCG
     .map((s) => {
       const logo = urlDeLogo(s.logo_path)
       const total = s.card_count_official || s.card_count_total
@@ -32,7 +41,9 @@ async function colecciones() {
         .join(' · ')
       return (
         `<a class="cartas-coleccion" href="${escapeHtml(rutaDeColeccion(s))}">` +
-        (logo ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy" decoding="async">` : '') +
+        (logo
+          ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy" decoding="async">`
+          : `<span class="cartas-coleccion-sinlogo" aria-hidden="true">${icons.cards(28)}</span>`) +
         `<span class="cartas-coleccion-nombre">${escapeHtml(s.name)}</span>` +
         `<span class="cartas-coleccion-pie">${escapeHtml(pie)}</span>` +
         '</a>'

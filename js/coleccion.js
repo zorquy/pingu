@@ -13,6 +13,7 @@ import {
   idDeRutaDeColeccion,
   rejillaDeCartas,
 } from './carta-nucleo.js'
+import { esDelTCG } from './catalogo-series.js'
 
 const MERCADO = 'WEST'
 
@@ -34,11 +35,12 @@ async function cargar() {
 
   const { data: set, error } = await supabase
     .from('tcg_sets')
-    .select('id,name,serie_name,logo_path,release_date,card_count_official,card_count_total')
+    .select('id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total')
     .eq('market', MERCADO)
     .eq('id', setId)
     .maybeSingle()
-  if (error || !set) return fallo()
+  // Una colección que no es del TCG de mesa no tiene página aquí.
+  if (error || !set || !esDelTCG(set)) return fallo()
 
   document.title = `${set.name} — Cartas de Pokémon TCG — PokeDoc`
   const miga = $('migaColeccion')

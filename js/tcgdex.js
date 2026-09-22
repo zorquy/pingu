@@ -64,7 +64,12 @@ export const NOMBRE_MERCADO = {
 // Series que NO se importan. `tcgp` es Pokémon TCG Pocket: es un juego de
 // móvil, sus cartas no existen en papel y no se coleccionan ni se juegan
 // en torneo. Aparece en los siete catálogos occidentales.
-export const SERIES_EXCLUIDAS = ['tcgp']
+// La lista vive en `js/catalogo-series.js`: la necesitan también la
+// función del borde y el sitemap, y este fichero importa `./supabase.js`
+// y no se puede arrastrar a un servidor. Se importa Y se reexporta — un
+// `export … from` no crea el enlace local y aquí se usa por dentro.
+import { SERIES_FUERA } from './catalogo-series.js'
+export const SERIES_EXCLUIDAS = SERIES_FUERA
 
 export const idiomaDeMercado = (market) => MERCADOS[market] || MERCADOS[MERCADO_POR_DEFECTO]
 

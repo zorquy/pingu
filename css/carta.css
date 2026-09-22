@@ -693,3 +693,22 @@
   font-size: var(--t-md);
   font-weight: 600;
 }
+
+/* La colección sin logo (tanda 327).
+ *
+ * Muchas colecciones viejas no tienen logo en TCGdex. Sin reservar su
+ * hueco la tarjeta se encogía y la rejilla salía a trompicones, con unos
+ * nombres a una altura y otros a otra — parecía roto y solo era un dato
+ * que falta. El hueco es el MISMO que ocupa un logo (56 px), para que
+ * las dos clases de tarjeta se alineen. */
+.cartas-coleccion-sinlogo {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  color: var(--text-dim);
+}
+
+.cartas-coleccion-sinlogo svg {
+  width: 28px;
+  height: 28px;
+}

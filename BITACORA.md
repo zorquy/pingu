@@ -12,6 +12,63 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-22 — PINGU-Claude (tanda 327 — el catálogo, arreglado de verdad)
+
+**Hecho**: PINGU abrió las páginas nuevas en producción y estaban rotas.
+`/coleccion/tr` y `/carta/…` salían SIN CSS y SIN JavaScript.
+
+**La causa era mía**: las tres cargaban sus hojas con rutas RELATIVAS,
+copiadas de `lanzamientos.html`. En `/cartas` eso resuelve bien; en
+`/coleccion/tr` el navegador pide `/coleccion/css/style.css` y se come un
+404. Las páginas que ya tenían dirección bonita (usuario, tema) llevan
+las rutas absolutas desde siempre.
+
+**Y no lo vio nadie por DOS motivos**: las pruebas abrían la dirección
+PLANA (`/carta.html?id=…`), y el servidor de pruebas **no hacía las
+reescrituras de Netlify**, así que la dirección bonita ni existía en
+local. Arreglado lo segundo antes que lo primero — `servir.py` hace ahora
+las mismas reescrituras que `netlify.toml`.
+
+**Lo demás que venía en el mismo parte**: fuera las colecciones de
+Pokémon TCG Pocket (se filtran AL LEER, no solo al importar, porque lo
+que está en la base entró antes de ese filtro); «Cartas» en la barra de
+arriba y en el menú del móvil de las 25 páginas; y una colección sin
+logo ya no descuadra la rejilla.
+
+**Y una cosa gorda que salió al medir la barra**: el chip de torneo en
+juego y los enlaces NUNCA cupieron juntos. `.nav-inner` está topada en
+1.160 y no crece con el monitor; con el chip, `.nav-right` se va a 578 y
+no quedan enlaces que quepan a NINGÚN ancho. No cabían antes tampoco —
+`.nav-links` es hijo de flex y cedía en silencio. La regla que había
+daba por hecho que era cuestión de ventana (un tramo de 1.080 a 1.179);
+ahora los enlaces se van al menú siempre que hay chip. El corte de los
+enlaces pasa a 1.160, medido otra vez con `herramientas/medir-barra.mjs`.
+
+**El rigor me corrigió TRES veces** y las tres eran de la prueba, no del
+código: un `[\s\S]*?` que se saltaba el `</div>` y encontraba el enlace
+en el menú del móvil (la trampa de la 312 con otra cara); una mutación
+que no cambiaba nada; y sobre todo —la buena— que yo comprobaba si los
+enlaces se APRETABAN cuando lo que pasa de verdad es que **la página se
+desborda en horizontal**. Medí el síntoma equivocado.
+
+**Ficheros**: `carta.html`, `coleccion.html`, `cartas.html` (rutas
+absolutas), las 25 con pie (barra y menú), `css/style.css` (el corte y
+la regla del chip), `js/cartas.js`, `js/coleccion.js`, `js/tcgdex.js`,
+`css/carta.css`, `netlify/edge-functions/meta-social.js`,
+`netlify/functions/sitemap.mjs`, `SCHEMA.md`. NUEVO
+`js/catalogo-series.js`. En `pruebas`: `test-tanda-327.mjs` y
+`rigor-tanda-327.py` (NUEVOS), `servir.py` con las reescrituras,
+`medir-barra.mjs` (NUEVO), `test-tanda-324.mjs` al día.
+
+**Pruebas**: suite entera verde, **86 de 86**. Rigor 327: 13 de 13.
+
+**En curso / pendiente**: lo de siempre — el catálogo EN ESPAÑOL, que
+PINGU **reimporte el catálogo** (el set más nuevo sigue siendo de
+2025-10-30, y hasta que no se reimporte muchas colecciones no tienen ni
+logo ni fecha) y la imagen del bloque `zonas` del curso.
+
+---
+
 ## 2026-09-22 — PINGU-Claude (tandas 325 y 326 — el catálogo, terminado)
 
 **Hecho**: cerrado el plan de las páginas de carta. Ya está todo montado.
