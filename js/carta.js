@@ -13,6 +13,7 @@
 // molde es uno solo y el relevo no existe.
 import { supabase } from './supabase.js'
 import { esDelTCG } from './catalogo-series.js'
+import { detalleEnEspanol } from './carta-detalle.js'
 import { escapeHtml } from './app.js'
 import {
   candidatosDeRuta,
@@ -81,11 +82,53 @@ async function cargar() {
     .eq('name_key', claveDeJuego(carta))
     .maybeSingle()
 
-  pintar(carta, set, juego || null)
+  // Si la tarea programada todavía no ha llegado a esta carta, se le
+  // pide la ficha a TCGdex AQUÍ. El engorde va de lo más nuevo a lo más
+  // viejo y el catálogo son 23.000 cartas: sin esto, quien abra una
+  // carta antigua ve el nombre, la foto y nada más durante días.
+  //
+  // Una petición, y solo para la carta que alguien ha abierto de
+  // verdad. Esa es justo la excepción que la norma de la casa admite:
+  // lo caro es pedir las 23.000, no pedir la que se está mirando.
+  const completa = carta.detalle_at ? carta : await conDetalleDeTCGdex(carta)
+
+  pintar(completa, set, juego || null)
   // Estas dos van por libre: llegan cuando llegan y sus secciones nacen
   // escondidas, así que una consulta lenta no retrasa la ficha.
-  versiones(carta).catch(() => {})
-  menciones(carta).catch(() => {})
+  versiones(completa).catch(() => {})
+  menciones(completa).catch(() => {})
+}
+
+// La ficha que falta, pedida a TCGdex en el momento.
+//
+// Devuelve la carta con lo que haya llegado encima. Si falla —red,
+// 404, la carta no está en su catálogo— devuelve la de la base tal
+// cual: la página se pinta con menos, que es lo que pasaba antes, y no
+// se queda en blanco.
+//
+// NO se escribe en la base: el navegador no tiene permiso para tocar
+// `tcg_cards` (y menos mal). Esto es para que se VEA; la tarea
+// programada ya lo guardará cuando le toque.
+async function conDetalleDeTCGdex(carta) {
+  try {
+    const encontrado = await detalleEnEspanol(carta.id, async (url) => {
+      const res = await fetch(url, { headers: { Accept: 'application/json' } })
+      if (!res.ok) return null
+      return res.json()
+    })
+    if (!encontrado) return carta
+    // Lo de la base MANDA sobre lo que llega: la marca de regulación y
+    // el número los curamos nosotros y son más de fiar. Solo se rellena
+    // lo que estaba vacío.
+    const mezcla = { ...encontrado.fila, ...carta }
+    for (const [k, v] of Object.entries(encontrado.fila)) {
+      if (carta[k] === null || carta[k] === undefined) mezcla[k] = v
+    }
+    if (encontrado.nombre) mezcla.name = encontrado.nombre
+    return mezcla
+  } catch {
+    return carta
+  }
 }
 
 function pintar(carta, set, play = null) {

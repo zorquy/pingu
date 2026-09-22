@@ -12,6 +12,59 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-22 — PINGU-Claude (tanda 331 — la ficha se completa sola, y el rigor de todo)
+
+**331.** PINGU: «entro al Mew ex y solo me sale Mew y su número». Era
+verdad: esa carta no estaba engordada, así que no había ataques, ni PS,
+ni debilidad — y sin ataques tampoco hay huella, así que tampoco salían
+sus reimpresiones.
+
+Ahora, si falta el detalle, la ficha **se lo pide a TCGdex en el
+momento**, en español. Una petición, y solo para la carta que alguien ha
+abierto de verdad: esa es la excepción que admite la norma de la casa —
+lo caro es pedir las 23.000, no pedir la que se está mirando. Lo de la
+base MANDA sobre lo que llega (la marca de regulación la curamos
+nosotros); lo de fuera solo rellena huecos. Si la red falla, la página
+sale como antes: peor ficha, nunca página en blanco.
+
+Para eso `detalleDeCarta` se muda de `netlify/lib/` a
+**`js/carta-detalle.js`**: sigue sin un solo import y la función de
+Netlify lo reexporta, igual que se hizo con `normalizarNombre` en la 325.
+
+**EL RIGOR DE TODO.** 322 (13/13), 328 (15/15), 329 (9/9), 330 (12/12) y
+331 (6/6). Y me corrigió SIETE veces, todas en las pruebas:
+
+  · Dos fixtures que no se parecían a los datos: una serie con un solo
+    set (donde «el primero» y «el más grande» son el mismo) y una carta
+    sin las columnas del detalle a null, que es como llegan de verdad.
+  · Cinco huecos en la prueba de la 328: la huella probada con ejemplos
+    que cambiaban varios campos a la vez, el orden de los ataques sin
+    probar, y los iconos de tipo que no miraba nadie.
+
+**Y UN AGUJERO EN EL DOBLE que llevaba ahí desde siempre**: no tenía
+`.like`, solo `.ilike`. `searchCards` usa `.like`, así que la llamada
+reventaba, el `try/catch` de `resolverCarta` se tragaba el error y **el
+camino de respaldo POR NOMBRE no lo había ejercitado ninguna prueba
+jamás** — justo el camino que marcó en rojo el Mew ex de PINGU. Añadido
+al doble; la suite entera sigue verde con él.
+
+**Ficheros**: NUEVO `js/carta-detalle.js`. Tocados
+`netlify/lib/carta-detalle.mjs` (reexporta), `js/carta.js`. En
+`pruebas`: `test-tanda-329.mjs` y `test-tanda-331.mjs` (NUEVOS),
+`rigor-tanda-328.py`, `rigor-tanda-329.py`, `rigor-tanda-330.py`,
+`rigor-tanda-331.py` (NUEVOS), `rigor-tanda-322.py` (anclas al fichero
+mudado), `stub-supabase.js` (`.like`), y los fixtures de la 328, la 330
+y la 331.
+
+**Pruebas**: suite entera verde, **88 de 88**. Rigor: 55 mutaciones,
+todas detectadas.
+
+**En curso / pendiente**: que PINGU ejecute
+`supabase-migration-cartas-espanol.sql` — sin ella la tarea no avanza. Y
+decidir qué hacer con los sets japoneses del catálogo occidental.
+
+---
+
 ## 2026-09-22 — PINGU-Claude (tanda 330 — el catálogo en español, y qué es una era)
 
 **El español.** PINGU: «los ataques salen en inglés, why?». No era un
