@@ -296,7 +296,8 @@ console.log('\n── 7. «/cartas» no es «/carta» ──')
   for (const f of ['carta.html', 'coleccion.html', 'cartas.html']) {
     const p = readFileSync(`${RAIZ}/${f}`, 'utf8')
     check(`${f} lleva el pie`, /class="pie-rejilla"/.test(p))
-    check(`  …y su hoja propia`, /href="css\/carta\.css"/.test(p))
+    // Absoluta: en /coleccion/tr una relativa pide /coleccion/css/… (327).
+    check(`  …y su hoja propia, con ruta absoluta`, /href="\/css\/carta\.css"/.test(p))
   }
 }
 
