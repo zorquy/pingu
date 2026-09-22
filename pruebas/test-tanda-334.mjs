@@ -131,6 +131,49 @@ console.log('\n── 4. En la página, con los datos de la base ──')
   await page.close()
 }
 
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 5. En el móvil el escaneo NO se queda pegado ──')
+{
+  // PINGU: «al scrollear la carta baja junto al scroll y no debería».
+  //
+  // Y la causa es la trampa de la 299 dentro de UNA SOLA HOJA: **un
+  // `@media` no suma especificidad**. El bloque del móvil estaba escrito
+  // ARRIBA, antes de `.carta-scan`, así que `position: sticky` le ganaba
+  // por orden de aparición. El `max-width` de ese mismo bloque sí
+  // funcionaba —no choca con nada—, y por eso parecía que la regla se
+  // aplicaba entera.
+  //
+  // Se comprueba el EFECTO y no el texto de la hoja: `position` calculado
+  // y dónde acaba la imagen después de bajar. Una prueba que busque
+  // «position: static» en el CSS pasaría aunque otra regla lo pisara.
+  for (const [nombre, ancho, esperado] of [['móvil', 390, 'static'], ['escritorio', 1280, 'sticky']]) {
+    const page = await browser.newPage({ viewport: { width: ancho, height: 800 }, isMobile: ancho < 720 })
+    await page.addInitScript((c) => {
+      window.__FAKE_SETS__ = [{ id: '30c', name: '30th Celebration', market: 'WEST', card_count_official: 128 }]
+      window.__FAKE_CARTAS__ = c
+    }, [EN_ES('30c-66', '066')])
+    await page.goto(`${BASE}/carta/mew-ex-30c-66`, { waitUntil: 'domcontentloaded' })
+    await page.waitForTimeout(2200)
+    const pos = await page.locator('.carta-scan').evaluate((n) => getComputedStyle(n).position)
+    check(`en ${nombre} el escaneo es \`${esperado}\``, pos === esperado, pos)
+
+    if (ancho < 720) {
+      // Y que se comporte como tal: al bajar 400 px, la imagen tiene que
+      // haberse ido con la página, no quedarse clavada tapando la ficha.
+      const antes = await page.locator('.carta-scan').evaluate((n) => Math.round(n.getBoundingClientRect().top))
+      await page.evaluate(() => window.scrollBy(0, 400))
+      await page.waitForTimeout(300)
+      const despues = await page.locator('.carta-scan').evaluate((n) => Math.round(n.getBoundingClientRect().top))
+      check('…y al bajar se va con la página', despues < antes - 300, `${antes} → ${despues}`)
+      // Y sigue topado: en una columna, a pantalla completa se comía el
+      // sitio de todo lo demás.
+      const img = await page.locator('.carta-scan img').evaluate((n) => Math.round(n.getBoundingClientRect().width))
+      check('…y sigue topado a 260 px', img === 260, `${img}px`)
+    }
+    await page.close()
+  }
+}
+
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
 await browser.close()
 process.exit(fails === 0 ? 0 : 1)
