@@ -476,47 +476,7 @@
   outline-offset: 2px;
 }
 
-.cartas-colecciones {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--e-lg);
-}
 
-.cartas-coleccion {
-  display: grid;
-  gap: var(--e-sm);
-  padding: var(--e-lg);
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  text-decoration: none;
-  color: var(--text);
-  /* Una tarjeta entera es lo que se pulsa, así que ya mide de sobra:
-     no hace falta pedirle 44 px a nada de dentro. */
-}
-
-.cartas-coleccion img {
-  height: 56px;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
-  justify-self: start;
-}
-
-.cartas-coleccion-nombre {
-  font-weight: 700;
-  font-size: var(--t-lg);
-}
-
-.cartas-coleccion-pie {
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-}
-
-.cartas-coleccion:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
-}
 
 /* ════════════════════════════════════════════════════════════════════
  * En los torneos de PokeDoc (tanda 325)
@@ -694,21 +654,117 @@
   font-weight: 600;
 }
 
-/* La colección sin logo (tanda 327).
+
+
+/* ════════════════════════════════════════════════════════════════════
+ * Las colecciones, en lista (tanda 328)
+ * ════════════════════════════════════════════════════════════════════
  *
- * Muchas colecciones viejas no tienen logo en TCGdex. Sin reservar su
- * hueco la tarjeta se encogía y la rejilla salía a trompicones, con unos
- * nombres a una altura y otros a otra — parecía roto y solo era un dato
- * que falta. El hueco es el MISMO que ocupa un logo (56 px), para que
- * las dos clases de tarjeta se alineen. */
-.cartas-coleccion-sinlogo {
-  height: 56px;
-  display: flex;
-  align-items: center;
-  color: var(--text-dim);
+ * Eran tarjetas con el logo. El problema no era que fueran feas: era
+ * que la mitad de las colecciones no tiene logo en TCGdex, y que una
+ * rejilla de logos no deja COMPARAR nada — ni la fecha, ni el tamaño,
+ * ni el código, que es como la gente las nombra de verdad.
+ *
+ * Una lista con el código delante sí, y además todas las filas se ven
+ * iguales tengan logo o no. */
+
+.serie {
+  margin-bottom: var(--e-2xl);
 }
 
-.cartas-coleccion-sinlogo svg {
-  width: 28px;
-  height: 28px;
+.serie-titulo {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  color: var(--text-mid);
+  margin: 0 0 var(--e-sm);
+  padding-bottom: var(--e-sm);
+  border-bottom: 1px solid var(--border);
+}
+
+.serie-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* La fila. El código va a un ancho FIJO para que las insignias queden
+   en columna: si cada una midiera lo suyo, los nombres empezarían a
+   distinta altura y la lista dejaría de leerse de un vistazo. */
+.serie-fila {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 104px 88px;
+  align-items: center;
+  gap: var(--e-md);
+  /* Lo que se pulsa mide 44 (tanda 312), y se le pide ALTO: una fila
+     ocupa todo el ancho de su caja, estirarla no significa nada. */
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.serie-fila:hover {
+  background: var(--ice);
+}
+
+.serie-codigo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 2px var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: var(--t-2xs);
+  letter-spacing: 0.02em;
+  color: var(--text-mid);
+  /* No cede: un hijo de grid con contenido corto se encoge igual, y una
+     insignia a medio recortar no dice nada (tanda 320). */
+  overflow: hidden;
+}
+
+.serie-nombre {
+  font-weight: 600;
+  font-size: var(--t-md);
+  /* Su propia caja, o `ellipsis` no hace nada y el nombre largo empuja
+     la fecha fuera de la fila. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.serie-fecha,
+.serie-cuantas {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  white-space: nowrap;
+}
+
+.serie-cuantas {
+  text-align: right;
+}
+
+/* En el móvil no caben cuatro columnas: la fecha y la cuenta se van
+   debajo del nombre, que es lo que de verdad se busca. */
+@media (max-width: 599px) {
+  .serie-fila {
+    grid-template-columns: 56px minmax(0, 1fr);
+    grid-template-areas: 'codigo nombre' 'codigo datos';
+    row-gap: 2px;
+  }
+  .serie-codigo {
+    grid-area: codigo;
+  }
+  .serie-nombre {
+    grid-area: nombre;
+  }
+  .serie-fecha {
+    grid-area: datos;
+  }
+  .serie-cuantas {
+    display: none;
+  }
 }
