@@ -98,16 +98,33 @@ console.log('\n── 1. La ficha dice lo que la carta es ──')
   check('…y quién la ilustró', ficha.includes('Shin Nagasawa'), ficha)
 
   const combate = limpio((await page.locator('.carta-combate div').allTextContents()).join(' | '))
-  check('la debilidad va traducida', combate.includes('Agua ×2'), combate)
+  // Desde la 328 la debilidad es un ICONO con su multiplicador, como en
+  // la carta de verdad. El NOMBRE del tipo no desaparece: se va al
+  // `title` y al `aria-label`, que es donde lo encuentra quien no ve el
+  // color. Eso es lo que se comprueba, no la posición del punto.
+  const puntoDebilidad = page.locator('.carta-combate div').first().locator('.carta-energia')
+  check('la debilidad sale con el icono de su tipo', (await puntoDebilidad.count()) === 1, combate)
+  check('…y el tipo, traducido, se puede oír',
+    (await puntoDebilidad.getAttribute('aria-label')) === 'Agua',
+    await puntoDebilidad.getAttribute('aria-label'))
+  check('…con su multiplicador al lado', combate.includes('×2'), combate)
   check('la resistencia que no hay es una raya, no un cero', combate.includes('Resistencia—'), combate)
+  // La retirada, en puntos incoloros: tantos como cuesta, igual que
+  // está impreso. Un «1» obliga a traducir algo que ya era un dibujo.
+  check('la retirada son puntos, no un número',
+    (await page.locator('.carta-combate div').nth(2).locator('.carta-energia').count()) === 1)
 
   const movs = (await page.locator('.carta-mov-nombre').allTextContents()).map(limpio)
   check('la habilidad va la primera', /Habilidad Fuego Fatuo/.test(movs[0] || ''), movs.join(' | '))
   check('el ataque lleva su daño', /Llamas Abismales 30\+/.test(movs[1] || ''), movs.join(' | '))
   check('y su coste, con un punto por energía',
     (await page.locator('.carta-mov').nth(1).locator('.carta-energia').count()) === 2)
+  // Se mira el punto DEL ATAQUE, no «el primero de la página»: desde la
+  // 328 el cuadro de combate va antes y el primero es el de la
+  // debilidad. Una prueba que depende del orden de pintado se rompe
+  // cada vez que se mueve un bloque y no prueba nada.
   check('cada punto de energía se puede oír, no solo ver',
-    (await page.locator('.carta-energia').first().getAttribute('aria-label')) === 'Fuego')
+    (await page.locator('.carta-mov').nth(1).locator('.carta-energia').first().getAttribute('aria-label')) === 'Fuego')
   await page.close()
 }
 
