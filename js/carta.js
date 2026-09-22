@@ -3,14 +3,17 @@
 // La mayor parte del trabajo no está aquí: el centro de la página lo
 // pinta `js/carta-nucleo.js`, y normalmente lo ha pintado YA la función
 // del borde antes de entregar el documento. Este fichero hace tres
-// cosas: pintar el núcleo SI el borde no llegó, rellenar lo que el borde
-// no trae (las otras versiones) y encender lo que se pulsa.
+// cosas: completar la ficha cuando la tarea programada todavía no ha
+// llegado a esa carta, rellenar lo que el borde no trae (las otras
+// versiones y las menciones) y repintar SOLO si ha conseguido más de lo
+// que había pintado.
 //
-// POR QUÉ NO REPINTA LO QUE YA ESTÁ. En un artículo, js/guia.js sustituye
+// POR QUÉ CASI NUNCA REPINTA. En un artículo, js/guia.js sustituye
 // entero lo que puso el servidor, y por eso las dos mitades tienen que
-// coincidir al pixel o la página pega un salto. Aquí se evita el
-// problema de raíz: si el borde ya pintó, esto no toca el núcleo. El
-// molde es uno solo y el relevo no existe.
+// coincidir al pixel o la página pega un salto. Aquí el molde es uno
+// solo y el relevo no existe: si el borde ya pintó, esto no toca nada…
+// salvo que la carta no estuviera engordada y hayamos traído su ficha
+// de TCGdex, que entonces lo pintado se queda corto (tanda 332).
 import { supabase } from './supabase.js'
 import { esDelTCG } from './catalogo-series.js'
 import { detalleEnEspanol } from './carta-detalle.js'
@@ -40,12 +43,6 @@ const COLUMNAS =
 const $ = (id) => document.getElementById(id)
 
 async function cargar() {
-  // Si el borde ya pintó, lo que se pulsa se enciende YA, sin esperar a
-  // la consulta. Antes la lupa colgaba de que la consulta saliera bien,
-  // así que una red lenta dejaba una ficha completa sin su enlace.
-  const caja = $('cartaNucleo')
-  if (caja?.dataset.servidor === '1') encenderLupa(caja)
-
   const candidatos = candidatosDeRuta(location.pathname)
   // La dirección larga es la buena, pero `?id=` sigue valiendo: es como
   // llega un enlace viejo y como se prueba la página en local sin las
@@ -161,22 +158,45 @@ function pintar(carta, set, play = null, repintarIgual = false) {
   if (caja.dataset.servidor !== '1' || repintarIgual) {
     caja.innerHTML = nucleoDeCarta(carta, set, play)
   }
-  encenderLupa(caja)
 }
 
-// La imagen, a tamaño completo. No es un visor: es abrir el escaneo en
-// su propia pestaña, que es lo que la gente hace igual con el botón
-// derecho y encima funciona sin JavaScript si esto no llega.
-function encenderLupa(caja) {
-  const img = caja.querySelector('.carta-scan img')
-  if (!img || caja.querySelector('.carta-lupa')) return
-  const a = document.createElement('a')
-  a.className = 'carta-lupa'
-  a.href = img.src
-  a.target = '_blank'
-  a.rel = 'noopener'
-  a.textContent = 'Ver en grande'
-  img.parentElement.appendChild(a)
+// El escaneo se amplía pulsándolo, con el visor de toda la web
+// (js/lightbox.js). Aquí había un enlace «Ver en grande» que abría la
+// imagen en otra pestaña: una pieza de más para hacer lo que el resto
+// del sitio ya hace igual, y encima distinta. Lo quitó PINGU al verlo
+// en el móvil.
+
+// Cuántas candidatas se completan pidiéndoselas a TCGdex.
+//
+// El tope no es por rendimiento: es por educación. Una carta popular
+// tiene quince impresiones, y quince peticiones por visita a un
+// catálogo comunitario y gratuito no se hace. Con ocho se cubren las
+// que le interesan a alguien, y el resto aparece solo según la tarea
+// programada va engordando.
+const CANDIDATAS_QUE_SE_COMPLETAN = 8
+
+// Las del MISMO set primero: «la alternativa» de la carta que estás
+// mirando es casi siempre otra ilustración del mismo set, y es justo la
+// que se echa en falta.
+function porCercania(carta) {
+  return (a, b) => Number(b.set_id === carta.set_id) - Number(a.set_id === carta.set_id)
+}
+
+async function conTextoDeReglas(candidatas, carta) {
+  const faltan = candidatas
+    .filter((v) => !Array.isArray(v.attacks) || !v.attacks.length)
+    .sort(porCercania(carta))
+    .slice(0, CANDIDATAS_QUE_SE_COMPLETAN)
+  if (!faltan.length) return candidatas
+
+  const completadas = new Map()
+  await Promise.all(
+    faltan.map(async (v) => {
+      const completa = await conDetalleDeTCGdex(v)
+      if (completa !== v) completadas.set(v.id, completa)
+    })
+  )
+  return candidatas.map((v) => completadas.get(v.id) || v)
 }
 
 // ── Otras versiones de la misma carta ──
@@ -205,9 +225,14 @@ async function versiones(carta) {
     .limit(60)
   if (error || !data?.length) return
 
-  // Y aquí se cae casi todo: mismo nombre no es la misma carta.
-  const mismas = data
-    .filter((v) => esDelTCG({ id: v.set_id, serie_id: v.tcg_sets?.serie_id }))
+  const candidatas = data.filter((v) => esDelTCG({ id: v.set_id, serie_id: v.tcg_sets?.serie_id }))
+
+  // Y aquí se cae casi todo: mismo nombre no es la misma carta. Pero
+  // para comparar hace falta su texto de reglas, y las que la tarea no
+  // ha engordado todavía no lo tienen — así que en un set recién salido
+  // no salía NINGUNA. Es lo que vio PINGU en el Mew ex: «abajo no salen
+  // los otros prints».
+  const mismas = (await conTextoDeReglas(candidatas, carta))
     .filter((v) => esLaMismaCarta(carta, v))
     .slice(0, 12)
   if (!mismas.length) return
@@ -232,9 +257,6 @@ async function versiones(carta) {
   $('cartaVersiones')?.classList.remove('hidden')
 }
 
-// Una pantalla sin encabezado no existe para quien la navega con un
-// lector: esconder el artículo entero dejaba la página sin `h1`. Se
-// queda el título y se dice lo que pasa debajo.
 // ── Dónde más se habla de esta carta ──
 //
 // Guías que la explican e hilos del foro que la nombran. Es la otra

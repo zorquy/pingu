@@ -66,6 +66,18 @@
     grid-template-columns: minmax(0, 1fr);
     gap: var(--e-xl);
   }
+  /* En una columna, el escaneo se comía la pantalla entera: había que
+     bajar para ver el primer dato (tanda 332, PINGU en el móvil). Se
+     topa a 260 px y se centra — sigue leyéndose, y ahora entra también
+     la ficha sin desplazar. Es una MEDIDA, no un paso: por encima de 32
+     solo se le pide la retícula de 4. */
+  .carta-scan {
+    /* Y deja de ser pegajoso: en el móvil no hay columna al lado a la
+       que acompañar, así que quedarse fijo solo roba sitio. */
+    position: static;
+    max-width: 260px;
+    margin-inline: auto;
+  }
 }
 
 .carta-scan {
@@ -80,6 +92,9 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   display: block;
+  /* Se pulsa para ampliar, con el visor de toda la web. El cursor lo
+     dice sin necesidad de un enlace debajo. */
+  cursor: zoom-in;
 }
 
 .carta-scan-vacio {
@@ -92,24 +107,6 @@
   border-radius: var(--radius-lg);
   color: var(--text-dim);
   font-size: var(--t-sm);
-}
-
-/* «Ver en grande» es un enlace con texto: se le pide ALTO y no ancho.
-   Estirar a 44 px de ancho algo que mide lo que su palabra sería un área
-   invisible pisando a lo de al lado (tanda 312). */
-.carta-lupa {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  margin-top: var(--e-sm);
-  color: var(--navy);
-  font-size: var(--t-sm);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.carta-lupa:hover {
-  text-decoration: underline;
 }
 
 /* ── La ficha y el combate ── */
