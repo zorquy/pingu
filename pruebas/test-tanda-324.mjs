@@ -70,6 +70,10 @@ const abrir = async (ruta, cartas = [CERULEDGE], sets = [SET]) => {
   await page.addInitScript((s) => {
     window.__FAKE_CARTAS__ = s.c
     window.__FAKE_SETS__ = s.s
+    // Las marcas de la temporada, para que la chapa de legalidad de la
+    // tanda 335 salga igual en las dos mitades y esta prueba compare
+    // manzanas con manzanas.
+    window.__FAKE_AJUSTES__ = [{ key: 'torneos_reglas', value: { marcas_legales: ['H', 'I', 'J'] } }]
   }, { c: cartas, s: sets })
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
@@ -166,7 +170,11 @@ console.log('\n── 3. Las DOS mitades dicen lo mismo, y no se pisan ──')
   const html = readFileSync(`${RAIZ}/carta.html`, 'utf8')
   const desdeElBorde = inyectarMeta(html, {
     url: 'u', titulo: 'Ceruledge ex', descripcion: 'd', imagen: 'i', imagenCuadrada: true,
-    nucleo: nucleoDeCarta(CERULEDGE, SET),
+    // Con la misma legalidad que va a calcular el cliente: en producción
+    // el borde también la consulta, y si aquí se le pasara `null` las
+    // dos mitades dirían cosas distintas por culpa de la prueba y no del
+    // código (tanda 335).
+    nucleo: nucleoDeCarta(CERULEDGE, SET, null, { marcas: ['H', 'I', 'J'], reimpresion: false }),
   })
   writeFileSync(`${SC}/test-forum/t324-borde.html`, desdeElBorde)
   check('el borde marca la caja', /id="cartaNucleo" data-servidor="1"/.test(desdeElBorde))

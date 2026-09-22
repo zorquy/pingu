@@ -75,8 +75,16 @@ console.log('\n── 2. La tarea apunta en qué idioma lo consiguió ──')
   check('se guarda el idioma en la fila', /detalle_lang: encontrado\.idioma/.test(tarea))
   check('y se vuelven a pasar las que no lo tienen',
     /detalle_lang\.is\.null/.test(tarea), 'las engordadas antes de la 330 no se reintentarían')
-  check('el nombre solo se pisa si vino de verdad',
-    /if \(encontrado\.nombre\) detalle\.name = encontrado\.nombre/.test(tarea))
+  // Esto comprobaba que el nombre traducido se escribiera en `name`
+  // «solo si vino de verdad». La condición estaba bien; el DESTINO
+  // estaba mal, y la prueba lo bendijo: `name` es la clave con la que se
+  // cruzan el agregado de torneos, el resolutor de decklists y la huella
+  // de las reimpresiones. Desde la tanda 335 el traducido va a `name_es`
+  // y `name` no se toca — y eso es lo que se comprueba ahora.
+  check('el nombre traducido va a su columna y solo si vino de verdad',
+    /if \(encontrado\.nombre && encontrado\.idioma !== 'en'\) detalle\.name_es = encontrado\.nombre/.test(tarea))
+  check('…y no encima de la clave', !/\bdetalle\.name\s*=[^=]/.test(tarea),
+    tarea.match(/.*detalle\.name\s*=[^=].*/)?.[0])
 
   // Y la columna, en su migración.
   const sql = readFileSync(`${RAIZ}/supabase-migration-cartas-espanol.sql`, 'utf8')
