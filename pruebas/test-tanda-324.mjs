@@ -178,7 +178,14 @@ console.log('\n── 3. Las DOS mitades dicen lo mismo, y no se pisan ──')
   const delBorde = limpio(await page.locator('#cartaNucleo').textContent())
   check('el cliente no repinta lo que ya está', /Ceruledge ex/.test(delBorde), delBorde)
   check('…y sigue habiendo un solo h1', (await page.locator('#cartaNucleo h1').count()) === 1)
-  check('…y la lupa se enciende igual', (await page.locator('.carta-lupa').count()) === 1)
+  // La 332 quitó el enlace «Ver en grande»: ahora se amplía pulsando la
+  // imagen, con el visor de toda la web. Lo que importa sigue siendo lo
+  // mismo —que lo que se pulsa funcione aunque el borde haya pintado—,
+  // así que se comprueba el visor y no el enlace que ya no existe.
+  await page.locator('.carta-scan img').click()
+  await page.waitForTimeout(400)
+  check('…y el escaneo se amplía al pulsarlo', (await page.locator('.lightbox').count()) === 1)
+  await page.keyboard.press('Escape')
   await page.close()
 
   // Y ahora la misma carta pintada por el CLIENTE. Las dos mitades
