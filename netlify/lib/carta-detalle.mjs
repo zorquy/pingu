@@ -124,3 +124,35 @@ export function leFaltaAlgo(fila) {
   return !fila?.serie_id || !fila?.serie_name
 }
 
+
+// ── Qué nombres hay que devolver al inglés (tanda 335) ──
+//
+// Entre la 330 y la 335 el engorde en español escribía el nombre
+// traducido ENCIMA de `tcg_cards.name`, que es la CLAVE con la que se
+// cruzan el agregado de `tcg_card_play`, el resolutor de decklists y la
+// huella de las reimpresiones. El español está a salvo en `name_es`; el
+// inglés hay que volver a pedirlo, y viene en el LISTADO del set.
+//
+// Esto es la parte PURA —decidir qué filas hay que escribir— y vive
+// aquí por lo mismo que `loQueFaltaDeUnSet`: se prueba con una
+// respuesta guardada, sin red y sin base.
+//
+// Dos cribas que no son cosmética:
+//
+//   · solo las que YA están en nuestra tabla. Se escribe con un
+//     `merge-duplicates`, y un identificador que no exista no daría
+//     error: INSERTARÍA una fila a medias, sin set y sin imagen.
+//   · solo las que están mal de verdad. Iono se llama Iono en los dos
+//     idiomas, y reescribirla sería gastar la pasada en no cambiar
+//     nada.
+export function nombresPorArreglar(nuestras, completo, market = 'WEST') {
+  const porId = new Map(
+    (Array.isArray(completo?.cards) ? completo.cards : [])
+      .filter((c) => c?.id && typeof c.name === 'string' && c.name.trim())
+      .map((c) => [String(c.id), c.name.trim()])
+  )
+  if (!porId.size) return []
+  return (Array.isArray(nuestras) ? nuestras : [])
+    .filter((c) => porId.has(String(c?.id)) && porId.get(String(c.id)) !== c.name)
+    .map((c) => ({ id: c.id, market, name: porId.get(String(c.id)) }))
+}

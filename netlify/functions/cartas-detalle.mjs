@@ -1,4 +1,4 @@
-import { detalleEnEspanol, urlDeSet, leFaltaAlgo, loQueFaltaDeUnSet } from '../lib/carta-detalle.mjs'
+import { detalleEnEspanol, urlDeSet, leFaltaAlgo, loQueFaltaDeUnSet, nombresPorArreglar } from '../lib/carta-detalle.mjs'
 
 // Engorda las cartas de `tcg_cards` poco a poco (tanda 322).
 //
@@ -56,6 +56,11 @@ const PRESUPUESTO_MS = 22000
 // primero pero acotados, y las cartas corren SIEMPRE con lo que quede.
 const PRESUPUESTO_SETS_MS = 8000
 
+// Y cuánto puede comerse la reparación de nombres (tanda 335). Es una
+// fase de vida corta: acaba cuando no queden sets marcados, y a partir
+// de ahí no cuesta nada porque la consulta no devuelve ninguno.
+const PRESUPUESTO_NOMBRES_MS = 6000
+
 // Entre peticiones. No es paranoia: 150 peticiones seguidas a una API
 // sin clave es la forma de que te bloqueen el rango y te quedes sin
 // catálogo, que es peor que tardar una semana.
@@ -102,11 +107,17 @@ const SETS_POR_VENTANA = 25
 // carta toca es NUESTRA y no de una sintaxis que puede ignorarse en
 // silencio.
 async function setsPorPrioridad(clave) {
+  // `names_fixed_at` la añade una migración que ejecuta un humano, y
+  // pedirle a PostgREST una columna que no existe **no devuelve null:
+  // devuelve un 400 y tumba la consulta entera**. Sin esta vuelta atrás,
+  // subir esto antes de ejecutar la migración pararía el engorde en
+  // seco. Se pide con ella y, si no está, sin ella.
+  const columnas = 'id,release_date,serie_id,serie_name,tcg_online_code'
+  const ordenar = '&order=release_date.desc.nullslast'
   const sets = await rest(
-    `tcg_sets?select=id,release_date,serie_id,serie_name,tcg_online_code&market=eq.${MERCADO}` +
-      '&order=release_date.desc.nullslast',
+    `tcg_sets?select=${columnas},names_fixed_at&market=eq.${MERCADO}${ordenar}`,
     clave
-  )
+  ).catch(() => rest(`tcg_sets?select=${columnas}&market=eq.${MERCADO}${ordenar}`, clave))
   const filas = sets || []
   return {
     orden: filas.map((s) => s.id),
@@ -114,6 +125,11 @@ async function setsPorPrioridad(clave) {
     // un PATCH en un set que ya está completo.
     porId: new Map(filas.map((s) => [s.id, s])),
     incompletos: new Set(filas.filter(leFaltaAlgo).map((s) => s.id)),
+    // Los que todavía tienen cartas con el nombre pisado (tanda 335).
+    // `=== null` y no un `!`: sin la migración la columna no viaja y el
+    // valor es `undefined`, que aquí significa «no hay nada que
+    // reparar» y deja la fase apagada. Pendiente de verdad es null.
+    porReparar: filas.filter((s) => s.names_fixed_at === null).map((s) => s.id),
   }
 }
 
@@ -140,6 +156,54 @@ async function curarSet(clave, fila) {
   } catch {
     return null
   }
+}
+
+// ── Devolverle a un set sus nombres en inglés (tanda 335) ──
+//
+// Entre la tanda 330 y la 335, el engorde en español escribía el nombre
+// traducido ENCIMA de `tcg_cards.name`. Y ese nombre es la CLAVE con la
+// que se cruzan el agregado de `tcg_card_play`, el respaldo del
+// resolutor de decklists y la huella de las reimpresiones — así que las
+// cartas traducidas dejaron de casar con nada, sin dar error.
+//
+// El español ya está a salvo (la migración lo copió a `name_es`). El
+// inglés se había perdido, y se recupera del LISTADO de un set, que sí
+// trae el nombre de todas sus cartas: ~220 peticiones en vez de 2.811.
+//
+// Se escribe en UNA sola sentencia por set, con un upsert que solo
+// lleva la clave y el nombre: PATCH carta a carta serían 200 viajes y
+// la pasada moriría a los 30 segundos. Y solo se mandan los
+// identificadores que YA tenemos en la tabla — un `merge-duplicates`
+// con un id que no existe insertaría una fila a medias.
+async function repararNombresDeUnSet(clave, setId) {
+  const res = await fetch(urlDeSet(setId, MERCADO), { headers: { Accept: 'application/json' } })
+  // Un set que TCGdex no conoce no se puede arreglar nunca: se marca
+  // como visto para que no vuelva a pedirse en cada pasada. Es la
+  // lección del cerrojo de la 333.
+  if (res.status === 404) return 0
+  if (!res.ok) return null
+
+  const completo = await res.json()
+
+  // `name_es=not.is.null` es la criba que importa: son las que se
+  // engordaron en español, que son exactamente las que pueden tener el
+  // nombre pisado. Qué filas hay que escribir lo decide
+  // `nombresPorArreglar`, que es pura y se prueba sin red.
+  const nuestras =
+    (await rest(
+      `tcg_cards?select=id,name&market=eq.${MERCADO}&set_id=eq.${encodeURIComponent(setId)}` +
+        '&name_es=not.is.null&limit=1000',
+      clave
+    )) || []
+  const cambios = nombresPorArreglar(nuestras, completo, MERCADO)
+  if (!cambios.length) return 0
+
+  await rest('tcg_cards', clave, {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(cambios),
+  })
+  return cambios.length
 }
 
 // Las siguientes cartas que tocan, buscando por ventanas de sets hasta
@@ -183,7 +247,7 @@ export default async function handler() {
   if (!clave) return new Response('Falta SUPABASE_SERVICE_ROLE_KEY', { status: 500 })
 
   const arranque = Date.now()
-  const { orden, porId, incompletos } = await setsPorPrioridad(clave)
+  const { orden, porId, incompletos, porReparar } = await setsPorPrioridad(clave)
 
   // ── Primero, los SETS que quedan por visitar ──
   //
@@ -217,9 +281,31 @@ export default async function handler() {
     }
   }
 
+  // ── Y los nombres ingleses que el engorde en español se llevó ──
+  //
+  // Va después de la cura de sets y antes del engorde, y acotada: es
+  // trabajo de una sola vez, y mientras dure el bloque «En los torneos
+  // de PokeDoc» no sale en las cartas traducidas.
+  let nombresArreglados = 0
+  for (const setId of porReparar) {
+    if (Date.now() - arranque > PRESUPUESTO_SETS_MS + PRESUPUESTO_NOMBRES_MS) break
+    const cuantos = await repararNombresDeUnSet(clave, setId).catch(() => null)
+    // null es «no se ha podido, que lo intente la pasada siguiente»; un
+    // número —incluido el 0— es «visto», y el set se marca.
+    if (cuantos !== null) {
+      nombresArreglados += cuantos
+      await rest(`tcg_sets?id=eq.${encodeURIComponent(setId)}&market=eq.${MERCADO}`, clave, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ names_fixed_at: new Date().toISOString() }),
+      }).catch(() => {})
+    }
+    await esperar(PAUSA_MS)
+  }
+
   const pendientes = await siguientes(clave, orden)
   if (!pendientes.length) {
-    return Response.json({ setsCurados, hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
+    return Response.json({ setsCurados, nombresArreglados, hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
   }
 
   let hechas = 0
@@ -242,9 +328,18 @@ export default async function handler() {
       })
       if (!encontrado) throw new Error('respuesta vacía')
       const detalle = { ...encontrado.fila, detalle_lang: encontrado.idioma }
-      // El nombre traducido se escribe SOLO si vino de verdad: pisarlo
-      // con null dejaría la carta sin nombre y sin forma de buscarla.
-      if (encontrado.nombre) detalle.name = encontrado.nombre
+      // El nombre traducido va a `name_es`, NUNCA encima de `name`
+      // (tanda 335).
+      //
+      // `name` es la CLAVE con la que se cruzan tres cosas que vienen en
+      // inglés: el agregado de `tcg_card_play` (que se construye con el
+      // texto de las decklists), el respaldo por nombre del resolutor y
+      // la huella de las reimpresiones. Pisarlo dejaba el bloque «En los
+      // torneos de PokeDoc» sin poder casar jamás — y sin dar error.
+      //
+      // Lo que se guarda como clave es canónico; lo que se enseña va
+      // traducido. Misma lección que los enums de la 334.
+      if (encontrado.nombre && encontrado.idioma !== 'en') detalle.name_es = encontrado.nombre
       // `detalle_at` se escribe en la MISMA sentencia que los datos. Si
       // fueran dos, un corte entre ellas dejaría la carta engordada y
       // marcada como pendiente, y la siguiente pasada la repetiría — con
@@ -266,7 +361,7 @@ export default async function handler() {
     await esperar(PAUSA_MS)
   }
 
-  return Response.json({ setsCurados, hechas, fallidas, sinTiempo, pedidas: pendientes.length })
+  return Response.json({ setsCurados, nombresArreglados, hechas, fallidas, sinTiempo, pedidas: pendientes.length })
 }
 
 // Cada cinco minutos. Antes era cada hora con tandas de 150, y esa

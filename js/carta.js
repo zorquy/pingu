@@ -17,10 +17,12 @@
 import { supabase } from './supabase.js'
 import { esDelTCG } from './catalogo-series.js'
 import { detalleEnEspanol, IDIOMAS_DE_FICHA } from './carta-detalle.js'
+import { legalidadDeCarta, marcasLegales } from './carta-legalidad.js'
 import { escapeHtml } from './app.js'
 import {
   candidatosDeRuta,
   claveDeJuego,
+  nombreDeCarta,
   esLaMismaCarta,
   huellaDeCarta,
   idiomaDeFicha,
@@ -36,7 +38,7 @@ const MERCADO = 'WEST'
 // propósito: `*` traería también `name_search` y `dex_ids`, que no pinta
 // nadie, en TODAS las visitas.
 const COLUMNAS =
-  'id,set_id,local_id,name,image_path,category,rarity,types,hp,illustrator,' +
+  'id,set_id,local_id,name,name_es,image_path,category,rarity,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,detalle_lang,' +
   'tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total)'
@@ -74,6 +76,13 @@ async function cargar() {
   // dentro del núcleo. Si la tabla no existe todavía —la migración la
   // ejecuta un humano— esto devuelve error y el bloque no sale: la
   // ficha se pinta igual.
+  // Las marcas de la temporada se piden YA, sin esperar a nada: no
+  // dependen de la carta, y así cuando le toque a la chapa la respuesta
+  // está y no hay un viaje más antes de pintar. La promesa se deja
+  // suelta a propósito; quien la espera es `legalidadDeCarta`, que
+  // comparte la caché.
+  marcasLegales().catch(() => {})
+
   const { data: juego } = await supabase
     .from('tcg_card_play')
     .select('decks,total_copies,tournaments,archetypes')
@@ -89,12 +98,17 @@ async function cargar() {
   // verdad. Esa es justo la excepción que la norma de la casa admite:
   // lo caro es pedir las 23.000, no pedir la que se está mirando.
   const completa = carta.detalle_at ? carta : await conDetalleDeTCGdex(carta)
+
+  // Y si se puede jugar hoy. Va ANTES de pintar por lo mismo que los
+  // datos de juego: la chapa está dentro del núcleo, y si llegara
+  // después habría que repintar la ficha entera para meterla.
+  const ley = await legalidadDeCarta(completa)
   // ¿Hemos traído algo que el borde NO tenía? Entonces lo que hay
   // pintado se queda corto y hay que repintarlo, diga lo que diga la
   // marca de «ya pintado».
   const mejorQueLoPintado = completa !== carta
 
-  pintar(completa, set, juego || null, mejorQueLoPintado)
+  pintar(completa, set, juego || null, ley, mejorQueLoPintado)
   // Estas dos van por libre: llegan cuando llegan y sus secciones nacen
   // escondidas, así que una consulta lenta no retrasa la ficha.
   versiones(completa).catch(() => {})
@@ -126,7 +140,10 @@ async function conDetalleDeTCGdex(carta, idiomas = undefined) {
     for (const [k, v] of Object.entries(encontrado.fila)) {
       if (carta[k] === null || carta[k] === undefined) mezcla[k] = v
     }
-    if (encontrado.nombre) mezcla.name = encontrado.nombre
+    // El nombre traducido va a `name_es`, igual que en el engorde: si
+    // pisara `name` se llevaría por delante la clave con la que cruzan
+    // las decklists y el bloque de torneos (tanda 335).
+    if (encontrado.nombre && encontrado.idioma !== 'en') mezcla.name_es = encontrado.nombre
     // La huella necesita saber en qué idioma están estos ataques: una
     // ficha traída al vuelo no lo tiene apuntado en la base.
     mezcla.detalle_lang = encontrado.idioma
@@ -136,8 +153,8 @@ async function conDetalleDeTCGdex(carta, idiomas = undefined) {
   }
 }
 
-function pintar(carta, set, play = null, repintarIgual = false) {
-  document.title = `${carta.name} — ${set?.name || 'Pokémon TCG'} — PokeDoc`
+function pintar(carta, set, play = null, legalidad = null, repintarIgual = false) {
+  document.title = `${nombreDeCarta(carta)} — ${set?.name || 'Pokémon TCG'} — PokeDoc`
 
   const miga = $('migaColeccion')
   if (miga && set?.name) {
@@ -160,7 +177,7 @@ function pintar(carta, set, play = null, repintarIgual = false) {
   // molde sigue siendo UNO, y solo se repinta cuando lo pintado está
   // demostrablemente incompleto.
   if (caja.dataset.servidor !== '1' || repintarIgual) {
-    caja.innerHTML = nucleoDeCarta(carta, set, play)
+    caja.innerHTML = nucleoDeCarta(carta, set, play, legalidad)
   }
 }
 
@@ -226,7 +243,7 @@ async function versiones(carta) {
 
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,name,local_id,image_path,rarity,set_id,category,hp,stage,types,attacks,detalle_lang,tcg_sets(name,serie_id)')
+    .select('id,name,name_es,local_id,image_path,rarity,set_id,category,hp,stage,types,attacks,detalle_lang,tcg_sets(name,serie_id)')
     .eq('market', MERCADO)
     .eq('name', carta.name)
     .neq('id', carta.id)
@@ -281,7 +298,10 @@ async function versiones(carta) {
 const LETRAS_MINIMAS_PARA_BUSCAR = 4
 
 async function menciones(carta) {
-  const nombre = String(carta?.name || '').trim()
+  // Se busca por el nombre que LEE la gente: las guías y el foro están
+  // escritos en español, así que buscar «Boss's Orders» no encontraría
+  // nada aunque el hilo hable de esa carta.
+  const nombre = String(nombreDeCarta(carta) || '').trim()
   if (nombre.length < LETRAS_MINIMAS_PARA_BUSCAR) return
 
   const [guias, temas] = await Promise.all([

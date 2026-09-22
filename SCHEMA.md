@@ -17425,3 +17425,197 @@ logo (56 px) y dentro va el icono de la casa.
 ### Cubierto
 
 `test-tanda-327.mjs` (6 bloques) y `rigor-tanda-327.py` (13 mutaciones).
+
+---
+
+## Tandas 328 a 331 — la identidad de una carta, y que la ficha se complete sola
+
+Van juntas porque son el mismo hilo: **qué es «la misma carta»** y **de
+dónde sale lo que la ficha enseña**.
+
+### 328 — «mismo nombre» no es «la misma carta»
+
+Dos fallos que PINGU vio el mismo día, y que eran uno.
+
+**El primero**: el revisor de decklists marcaba un Mew ex LEGAL como
+fuera de reglamento. La línea pegada traía un set y un número que no
+resolvían, así que el resolutor caía al respaldo por NOMBRE, encontraba
+otra impresión cualquiera y **se quedaba con SU marca de regulación**.
+Una carta legal aparecía en rojo porque el código le había puesto
+encima la marca de una prima suya.
+
+Arreglado marcando la procedencia: `exacta` dice si la carta salió de
+un cruce set+número o de una búsqueda por nombre, y **la marca de
+regulación solo se conserva cuando es exacta**. Lo que no se sabe se
+queda a null, que es «no se sabe», y no se convierte en una acusación.
+
+**El segundo**: «Otras versiones» enseñaba trece Primeapes que no tenían
+nada que ver. El prefiltro por nombre estaba bien; lo que faltaba era el
+filtro de verdad. De ahí `huellaDeCarta`: nombre + PS + fase + tipos +
+los ataques (nombre, daño y coste) ordenados. Dos impresiones de la
+misma carta dan la misma huella; dos cartas distintas con el mismo
+nombre, no.
+
+### 329 — el LISTADO de sets no es un set
+
+`fetchSets` devuelve un «SetResume» de TCGdex y le faltan campos. Se
+sabía de la 233 para el código de TCG Live y la fecha de salida; en la
+329 salió el tercero: **la serie**. Por eso 210 sets estaban sin
+clasificar, por eso se colaron los de Pocket (que se reconocen por la
+serie) y por eso el Mew ex no encontraba a sus gemelas.
+
+La cura va en una fase aparte de la tarea programada: pide el set
+COMPLETO y rellena solo lo que falta.
+
+### 330 — el catálogo en español, y qué es una era
+
+El engorde pide la ficha en español y cae al inglés si no existe
+(`detalleEnEspanol`). Se guarda en qué idioma llegó (`detalle_lang`),
+que hace falta para comparar huellas entre idiomas.
+
+Y las eras: `/cartas` agrupa por serie. Lo que no tiene serie va a «Sin
+clasificar» **al final**, y las promocionales de marca (McDonald's y
+compañía) van abajo del todo, que es donde PINGU las quería.
+
+### 331 — la ficha se completa sola
+
+El engorde va de lo más nuevo a lo más viejo y el catálogo son 21.356
+cartas: quien abría una carta antigua veía el nombre, la foto y nada
+más durante días. Ahora, si la carta no está engordada, **se le pide la
+ficha a TCGdex en el momento**. Una petición, y solo para la carta que
+alguien ha abierto de verdad — que es justo la excepción que la norma de
+la casa admite: lo caro es pedir las 23.000.
+
+**Y el fallo que costó tres intentos**: no se veía. El borde marca lo
+que ha pintado con `data-servidor="1"` para que el cliente no repinte y
+el texto no pegue un salto — así que lo que acabábamos de pedirle a
+TCGdex se quedaba en una variable. Lo dijo PINGU mirando un Mew ex: «ya
+ves que no». El arreglo no rompe la regla de las dos mitades, la
+completa: se repinta **solo cuando lo pintado está demostrablemente
+incompleto**.
+
+---
+
+## Tanda 334 — TCGdex no traduce solo los ataques
+
+Tres síntomas en dos días —no sale el subtítulo, no sale la debilidad,
+no salen los otros prints— y era UNO.
+
+Al engordar en español, TCGdex traduce **también los campos que el
+código compara con cadenas inglesas**: `category` llega como «Pokémon»,
+`stage` como «Básico», los tipos como «Psíquico». Y `category ===
+'Pokemon'` era la puerta del subtítulo, del cuadro de combate Y de la
+huella.
+
+`canonizarCarta` devuelve los enums al inglés en los dos sitios: al
+ESCRIBIR (las que vengan) y al PINTAR (las ya guardadas, que así no hace
+falta reengordar). Las tablas se construyen **invirtiendo** las de
+traducción que ya existían.
+
+Y la red para que no vuelva a pasar: adivinar cómo escribe TCGdex cada
+palabra es una lista curada, y una lista curada se queda vieja (la 323).
+Por eso `esPokemon` mira la categoría y, si esa palabra no la conoce,
+**la estructura**: los PS solo los tiene un Pokémon.
+
+**Estaba a la vista**: donde nuestra tabla dice «Doble rara», la ficha
+ponía «Rara Doble». Eso no lo escribió PokeDoc.
+
+De paso, el escaneo en el móvil: iba `sticky` y bajaba con el scroll
+tapando la ficha. La regla del móvil estaba escrita ARRIBA del todo, y
+**un `@media` no suma especificidad** — la base, más abajo, le ganaba
+por orden. El `max-width` del mismo bloque sí funcionaba (no choca con
+nada), y por eso parecía que la regla se aplicaba entera.
+
+---
+
+## Tanda 335 — el nombre en español va en su propia columna
+
+### El fallo
+
+Al engordar en español (330) el nombre traducido se escribía **encima de
+`tcg_cards.name`**. Y ese nombre no es una etiqueta: es la **clave** con
+la que se cruzan tres cosas que vienen en inglés.
+
+- `tcg_card_play` se agrupa por nombre y se construye con el texto de las
+  decklists, que TCG Live exporta en inglés. Con el catálogo en español
+  la ficha preguntaba por «órdenes del jefe» y el agregado tenía «boss's
+  orders»: el bloque «En los torneos de PokeDoc» **no podía casar nunca**
+  y desaparecía sin dar error.
+- El respaldo por nombre del resolutor de decklists, igual.
+- Y la huella que decide si dos impresiones son la misma carta.
+
+Es la lección de la 334 un piso más abajo: **lo que se GUARDA como clave
+es canónico; lo que se ENSEÑA va traducido.**
+
+### La forma
+
+`name` se queda en inglés y el traducido va a **`name_es`**.
+`nombreDeCarta(carta)` es lo único que se pinta —`<h1>`, pestaña, `alt`,
+baldosa de la rejilla, título social, JSON-LD— y `claveDeJuego(carta)`
+es lo único que se cruza, siempre sobre `name`. La dirección se hace con
+el español (`/carta/ordenes-del-jefe-sv3-172`) y sigue resolviendo por el
+identificador del final, así que ninguna dirección vieja se rompe.
+
+### Y lo que ya se había guardado mal
+
+Las 2.811 cartas engordadas en español ya tenían el nombre traducido en
+`name`, y el inglés se había perdido. Son dos arreglos distintos:
+
+- **El español se salva con SQL**: está en `name`, así que se copia a
+  `name_es` y ese lado queda hecho en la migración.
+- **El inglés hay que volver a pedirlo**, y viene en el **listado** de
+  un set —que trae el nombre de todas sus cartas—, así que son ~220
+  peticiones y no 2.811. Lo hace una fase nueva de la tarea programada,
+  acotada en tiempo y con `tcg_sets.names_fixed_at` marcando por dónde
+  va. La migración marca de entrada los sets sin ninguna carta en
+  español, que no hay que repasar.
+
+Dos detalles que no dan error si se hacen mal. El primero: se escribe
+con un **upsert** (`resolution=merge-duplicates`), porque PATCH carta a
+carta serían 200 viajes y la pasada muere a los 30 segundos — y por eso
+solo se mandan identificadores que YA están en la tabla: uno que no
+exista no da error, **inserta una fila a medias**. El segundo: pedirle a
+PostgREST la columna nueva antes de que exista **no devuelve null,
+devuelve un 400 y tumba la consulta entera**, así que va con vuelta
+atrás — sin ella, subir el código antes de ejecutar la migración habría
+parado el engorde en seco.
+
+### Y la trampa de la columna de búsqueda
+
+`name_search` pasa a llevar **los dos idiomas pegados**, para que se
+encuentre escribiendo «órdenes» o escribiendo «boss». Pero con eso deja
+de servir para **cruzar exacto**: el sitemap lo hacía con
+`name_search=in.(…)` y se habría quedado sin todas las fichas traducidas
+**sin dar error**. Por eso el cruce se lleva su propia columna,
+`name_key`, que es literalmente lo que `name_search` era antes. Dos
+trabajos que se parecían y han dejado de parecerse.
+
+### La chapa de si se puede jugar hoy
+
+La pregunta que trae a alguien a la ficha de una carta vieja no es
+cuántos PS tiene —eso se ve en el escaneo— sino si la puede meter en el
+mazo. Hasta ahora esa respuesta solo estaba a la vista para quien pegaba
+una decklist entera en un torneo.
+
+Tres estados, con las mismas dos piezas que el revisor de decklists:
+
+| | |
+|---|---|
+| **Legal en Estándar** | su marca está entre las de la temporada |
+| **Esta impresión no, pero sí una reimpresión** | la marca no vale, pero existe otra impresión que sí |
+| **No es legal en Estándar** | ni la marca ni ninguna reimpresión |
+
+Y un cuarto estado que **no se pinta**: si no se saben las marcas de la
+temporada, no se afirma nada. Es la lección de la 319 — un defecto que
+convierte «no me lo han dado» en «no es legal» le diría a alguien que no
+puede jugar una carta que sí.
+
+Solo se habla de **Estándar**. Expandido no se puede deducir de la marca
+(las cartas anteriores a 2019 no llevan ninguna y muchas son legales
+igual), así que afirmarlo sería inventárselo.
+
+La regla no está escrita dos veces: `js/carta-legalidad.js` va a buscar
+el dato y lo usan la ficha Y el revisor; `legalidadEstandar` en
+`js/carta-nucleo.js` decide, y es pura para que la pueda ejecutar
+también la función del borde. Una energía básica está siempre dentro:
+es regla del juego, no del formato.

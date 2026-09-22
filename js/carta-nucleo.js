@@ -20,7 +20,7 @@ import { rutaDeCarta, urlDeImagen, urlDeLogo } from './carta-ruta.js'
 // lo de aquí los compara en inglés. Se devuelven a su forma canónica al
 // pintar, para que las 2.811 ya guardadas se vean bien sin tener que
 // reengordarlas (tanda 334).
-import { canonizarCarta, esPokemon } from './carta-detalle.js'
+import { canonizarCarta, esEnergiaBasica, esPokemon } from './carta-detalle.js'
 
 export {
   aSlug,
@@ -135,6 +135,17 @@ export function esLaMismaCarta(a, b) {
   const conNombres = idiomaDeFicha(a) === idiomaDeFicha(b)
   const ha = huellaDeCarta(a, conNombres)
   return Boolean(ha) && ha === huellaDeCarta(b, conNombres)
+}
+
+// El nombre que se ENSEÑA: el español si lo tenemos, y el inglés si no
+// (tanda 335).
+//
+// `name` se queda SIEMPRE en inglés porque es la clave con la que se
+// cruzan las decklists, el agregado de torneos y la huella. Esta función
+// es la única puerta por la que sale el nombre a la pantalla.
+export function nombreDeCarta(carta) {
+  const es = typeof carta?.name_es === 'string' ? carta.name_es.trim() : ''
+  return es || carta?.name || ''
 }
 
 // ── El subtítulo ──
@@ -263,6 +274,68 @@ function bloqueFicha(carta, set) {
   )
 }
 
+// ── ¿Se puede jugar hoy? ──
+//
+// La pregunta que trae a alguien a la ficha de una carta vieja no es
+// «¿cuántos PS tiene?» —eso se ve en el escaneo— sino «¿esto lo puedo
+// meter en mi mazo?». Hasta ahora la respuesta estaba a la vista SOLO
+// para quien pegaba una decklist entera en un torneo.
+//
+// Se decide con las mismas dos piezas que el revisor de decklists: las
+// marcas legales de la temporada y si existe una REIMPRESIÓN legal del
+// mismo nombre. Las dos llegan ya resueltas en `legalidad`, porque esto
+// lo pinta también la función del borde, que no tiene cliente de
+// Supabase — la que las va a buscar es `js/carta-legalidad.js`.
+//
+// `legalidad` a null significa «no se sabe» y NO se pinta nada. Es la
+// lección de la tanda 319: un defecto que convierte «no me lo han dado»
+// en «no es legal» miente en la pantalla que no se lo pasa, y aquí
+// mentiría diciéndole a alguien que no puede jugar una carta que sí.
+//
+// Solo se habla de ESTÁNDAR. Expandido no se puede deducir de la marca
+// —las cartas anteriores a 2019 no llevan ninguna y muchas son legales
+// igual—, así que afirmarlo sería inventárselo.
+export function legalidadEstandar(cartaCruda, legalidad) {
+  const marcas = legalidad?.marcas
+  if (!Array.isArray(marcas) || !marcas.length) return null
+  const carta = canonizarCarta(cartaCruda)
+  if (!carta) return null
+  // Una energía básica está SIEMPRE dentro, lleve la marca que lleve:
+  // es regla del juego, no del formato.
+  if (esEnergiaBasica(carta)) return { estado: 'legal', energia: true }
+  const marca = String(carta.regulation_mark || '')
+  if (marca && marcas.includes(marca)) return { estado: 'legal', marca }
+  // Sin marca tampoco vale: desde 2022 el Estándar las exige. Pero la
+  // carta puede tener una reimpresión moderna que sí, y entonces lo que
+  // no se puede jugar es ESTA impresión, no la carta.
+  if (legalidad.reimpresion) return { estado: 'reimpresion', marca }
+  return { estado: 'fuera', marca }
+}
+
+const TEXTO_LEGALIDAD = {
+  legal: 'Legal en Estándar',
+  reimpresion: 'Esta impresión no, pero sí una reimpresión',
+  fuera: 'No es legal en Estándar',
+}
+
+function bloqueLegalidad(carta, legalidad) {
+  const ley = legalidadEstandar(carta, legalidad)
+  if (!ley) return ''
+  const porQue = ley.energia
+    ? 'Una energía básica se puede jugar siempre, lleve la marca que lleve.'
+    : ley.estado === 'legal'
+      ? `Su marca de regulación (${ley.marca}) está entre las de esta temporada: ${legalidad.marcas.join(', ')}.`
+      : ley.estado === 'reimpresion'
+        ? `Esta copia ${ley.marca ? `lleva la marca ${ley.marca}` : 'no lleva marca de regulación'} y se ha quedado fuera, pero hay otra impresión de la misma carta con una marca legal (${legalidad.marcas.join(', ')}).`
+        : `Esta temporada solo valen las marcas ${legalidad.marcas.join(', ')} (la letra pequeña de la esquina), y esta carta no tiene ninguna impresión que las lleve.`
+  return (
+    `<p class="carta-legal carta-legal-${ley.estado}">` +
+    `<span class="carta-legal-titulo">${escapeHtml(TEXTO_LEGALIDAD[ley.estado])}</span>` +
+    `<span class="carta-legal-porque">${escapeHtml(porQue)}</span>` +
+    '</p>'
+  )
+}
+
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
   'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
@@ -366,17 +439,17 @@ export function bloqueDeJuego(play) {
 // Lo pintan las DOS mitades: el borde antes de entregar la página y
 // js/carta.js si el borde no llegó. Por eso vive aquí y no en ninguna de
 // las dos, y por eso no toca el DOM: devuelve una cadena.
-export function nucleoDeCarta(cartaCruda, set, play = null) {
+export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
   if (!cartaCruda) return ''
   // Una sola vez, aquí: a partir de este punto los tipos, la fase y la
   // categoría están en inglés, que es lo que esperan todos los bloques.
   const carta = canonizarCarta(cartaCruda)
   const img = urlDeImagen(carta.image_path, 'high')
   const sub = subtituloDeCarta(carta)
-  const alt = `Carta de ${carta.name}${set?.name ? ` (${set.name})` : ''}`
+  const alt = `Carta de ${nombreDeCarta(carta)}${set?.name ? ` (${set.name})` : ''}`
   return (
     '<div class="carta-cabecera">' +
-    `<h1>${escapeHtml(carta.name || 'Carta')}</h1>` +
+    `<h1>${escapeHtml(nombreDeCarta(carta) || 'Carta')}</h1>` +
     (sub ? `<p class="carta-sub">${escapeHtml(sub)}</p>` : '') +
     '</div>' +
     '<div class="carta-cuerpo">' +
@@ -390,6 +463,7 @@ export function nucleoDeCarta(cartaCruda, set, play = null) {
     '</figure>' +
     '<div class="carta-datos">' +
     bloqueFicha(carta, set) +
+    bloqueLegalidad(carta, legalidad) +
     bloqueCombate(carta) +
     bloqueAtaques(carta) +
     bloqueDeJuego(play) +
@@ -448,10 +522,10 @@ export function fichaDeRejilla(carta) {
   return (
     `<a class="coleccion-carta" href="${escapeHtml(rutaDeCarta(carta))}">` +
     (img
-      ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(carta?.name || '')}" width="245" height="337" loading="lazy" decoding="async">`
+      ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(nombreDeCarta(carta))}" width="245" height="337" loading="lazy" decoding="async">`
       : '<span class="coleccion-carta-vacia"></span>') +
     `<span class="coleccion-carta-num">${escapeHtml(carta?.local_id || '')}</span>` +
-    `<span class="coleccion-carta-nombre">${escapeHtml(carta?.name || '')}</span>` +
+    `<span class="coleccion-carta-nombre">${escapeHtml(nombreDeCarta(carta))}</span>` +
     '</a>'
   )
 }

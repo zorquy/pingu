@@ -38,6 +38,7 @@ import {
   nucleoDeCarta,
   rutaDeCarta,
   subtituloDeCarta,
+  nombreDeCarta,
   urlDeImagen,
   claveDeJuego,
   hayDatosDeJuego,
@@ -922,10 +923,41 @@ async function metaDeTorneo(url) {
 // eso pinta el núcleo entero en el servidor y por eso decide aquí si la
 // página merece salir en Google.
 const COLUMNAS_CARTA =
-  'id,set_id,local_id,name,image_path,category,rarity,types,hp,illustrator,' +
+  'id,set_id,local_id,name,name_es,image_path,category,rarity,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,' +
   'tcg_sets(id,name,release_date,card_count_official,card_count_total)'
+
+// Lo que `nucleoDeCarta` necesita para decir si una carta se puede
+// jugar: las marcas legales de la temporada y si hay una reimpresión
+// legal. Es lo mismo que hace `legalidadDeCarta` en
+// `js/carta-legalidad.js` — pero aquel importa el cliente de Supabase y
+// aquí no hay cliente, solo `pedir`. Lo que NO se duplica es la
+// DECISIÓN, que está en `legalidadEstandar` y se importa.
+//
+// Si algo falla se devuelve null, que es «no se sabe»: la chapa no sale
+// y la página va igual. Es la regla de oro de este fichero.
+// Las marcas de la temporada cambian una vez al año, así que se guardan
+// mientras viva este isolate: cada ficha las pedía otra vez.
+let marcasDelBorde
+async function legalidadDeCartaEnElBorde(carta) {
+  if (marcasDelBorde === undefined) {
+    const ajuste = await pedir(`site_settings?key=eq.torneos_reglas&select=value&limit=1`)
+    marcasDelBorde = ajuste?.value?.marcas_legales ?? null
+  }
+  const marcas = marcasDelBorde
+  if (!Array.isArray(marcas) || !marcas.length) return null
+  const marca = String(carta?.regulation_mark || '')
+  if (marca && marcas.includes(marca)) return { marcas, reimpresion: false }
+  // El nombre INGLÉS, que es la clave con la que se cruzan las
+  // impresiones entre sí (tanda 335): `name_es` es lo que se enseña.
+  if (!carta?.name) return { marcas, reimpresion: false }
+  const otra = await pedir(
+    `tcg_cards?market=eq.WEST&name=eq.${encodeURIComponent(carta.name)}` +
+      `&regulation_mark=in.(${marcas.map((m) => `"${encodeURIComponent(m)}"`).join(',')})&select=id&limit=1`
+  )
+  return { marcas, reimpresion: Boolean(otra) }
+}
 
 async function metaDeCarta(url) {
   // Los candidatos van en un solo `in.(…)`: el nombre de la carta lleva
@@ -950,9 +982,20 @@ async function metaDeCarta(url) {
   // Si la tabla todavía no existe (la migración la ejecuta un humano),
   // `pedir` devuelve null y el bloque no sale. La página va igual: es la
   // regla de oro de este fichero.
-  const play = await pedir(
-    `tcg_card_play?name_key=eq.${encodeURIComponent(claveDeJuego(carta))}&select=decks,total_copies,tournaments,archetypes&limit=1`
-  )
+  //
+  // Y a la vez, si la carta se puede jugar hoy (tanda 335). Lo pinta el
+  // borde y no el cliente porque la chapa va DENTRO del núcleo: si
+  // llegara después habría que repintar la ficha entera para meterla,
+  // que es justo lo que se arregló en la 331.
+  //
+  // Las dos van juntas: no dependen la una de la otra, y en serie serían
+  // dos viajes más en el camino de cada ficha.
+  const [play, legalidad] = await Promise.all([
+    pedir(
+      `tcg_card_play?name_key=eq.${encodeURIComponent(claveDeJuego(carta))}&select=decks,total_copies,tournaments,archetypes&limit=1`
+    ),
+    legalidadDeCartaEnElBorde(carta),
+  ])
 
   // La canónica se construye con el nombre de la carta, no con lo que
   // venía escrito: quien llegue por una dirección con el nombre mal
@@ -964,7 +1007,7 @@ async function metaDeCarta(url) {
   return {
     url: canonica,
     tipo: 'article',
-    titulo: `${carta.name}${carta.local_id ? ` ${carta.local_id}` : ''}${donde} — PokeDoc`,
+    titulo: `${nombreDeCarta(carta)}${carta.local_id ? ` ${carta.local_id}` : ''}${donde} — PokeDoc`,
     descripcion: recortar(
       [
         sub,
@@ -984,13 +1027,13 @@ async function metaDeCarta(url) {
     imagen: urlDeImagen(carta.image_path, 'high') || IMAGEN_POR_DEFECTO,
     imagenCuadrada: true,
     robots: mereceIndexarse(carta, play) ? null : 'noindex,follow',
-    nucleo: nucleoDeCarta(carta, set, play),
+    nucleo: nucleoDeCarta(carta, set, play, legalidad),
     datos: {
       '@context': 'https://schema.org',
       '@graph': [
         {
           '@type': 'Product',
-          name: carta.name,
+          name: nombreDeCarta(carta),
           image: urlDeImagen(carta.image_path, 'high') || undefined,
           description: sub || undefined,
           sku: carta.id,
@@ -1033,7 +1076,7 @@ async function metaDeColeccion(url) {
 
   const cartas = await pedirVarias(
     `tcg_cards?set_id=eq.${encodeURIComponent(id)}&market=eq.WEST` +
-      `&select=id,name,local_id,image_path&order=local_id.asc&limit=${CARTAS_EN_EL_DOCUMENTO}`
+      `&select=id,name,name_es,local_id,image_path&order=local_id.asc&limit=${CARTAS_EN_EL_DOCUMENTO}`
   )
 
   const canonica = `${SITIO}${rutaDeColeccion(set)}`

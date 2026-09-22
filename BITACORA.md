@@ -12,6 +12,87 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-22 — PINGU-Claude (tanda 335 — el nombre en español, en su propia columna, y la chapa de legalidad)
+
+**Hecho**: dos cosas, una de arreglo y otra nueva.
+
+**1. El nombre.** Al engordar en español (tanda 330) el nombre traducido
+se escribía ENCIMA de `tcg_cards.name`. Y ese nombre no es una etiqueta:
+es la CLAVE con la que se cruzan tres cosas que vienen en inglés —
+`tcg_card_play` (que se construye con decklists de TCG Live), el respaldo
+por nombre del resolutor de decklists, y la huella de las reimpresiones.
+Con el catálogo en español, la ficha preguntaba por «órdenes del jefe» y
+el agregado tenía «boss's orders»: el bloque «En los torneos de PokeDoc»
+**no podía casar NUNCA** y desaparecía sin dar error. Es la lección de la
+334 un piso más abajo: **lo que se guarda como CLAVE es canónico; lo que
+se ENSEÑA va traducido.**
+
+Ahora `name` se queda en inglés y el traducido va a `name_es`.
+`nombreDeCarta()` es lo único que se pinta y `claveDeJuego()` lo único
+que se cruza. Y la trampa que casi se cuela: `name_search` pasa a llevar
+los DOS idiomas (para que se encuentre por «órdenes» y por «boss»), con
+lo que deja de servir para cruzar EXACTO — el sitemap lo hacía así y se
+habría quedado sin todas las fichas traducidas en silencio. De ahí
+`name_key`, que es lo que `name_search` era antes.
+
+Se vio en la captura de /coleccion, no en el código: la baldosa ponía
+«Boss's Orders» y la ficha «Órdenes del jefe». La rejilla la pintan
+/cartas y /coleccion con el mismo molde, así que estaban las dos.
+
+**1b. Y lo que ya estaba guardado mal.** Las 2.811 cartas engordadas en
+español ya tienen el nombre traducido en `name`. El español se salva con
+SQL (se copia a `name_es`); el inglés se había perdido y hay que volver a
+pedirlo — pero viene en el LISTADO de un set, así que son ~220 peticiones
+y no 2.811. Lo hace una fase nueva de la tarea programada, acotada en
+tiempo, con `tcg_sets.names_fixed_at` marcando por dónde va. Escribe cada
+set de una sentencia (PATCH carta a carta serían 200 viajes y la pasada
+se muere a los 30 s) y solo con identificadores que ya están en la tabla:
+un `merge-duplicates` con uno que no existe **no da error, inserta una
+fila a medias**. Y la columna nueva se pide con vuelta atrás, porque
+PostgREST devuelve 400 —no null— si no existe: sin eso, subir esto antes
+de ejecutar la migración habría parado el engorde en seco.
+
+**2. La chapa de si se puede jugar hoy.** La pregunta que trae a alguien
+a la ficha de una carta vieja no es cuántos PS tiene, sino si la puede
+meter en el mazo — y esa respuesta solo estaba a la vista para quien
+pegaba una decklist entera en un torneo. Tres estados: legal, «esta
+impresión no pero sí una reimpresión», y fuera. Y un cuarto que NO se
+pinta: si no se saben las marcas de la temporada, no se afirma nada (la
+lección de la 319). Solo se habla de ESTÁNDAR — Expandido no se puede
+deducir de la marca y afirmarlo sería inventárselo.
+
+La regla no está escrita dos veces: `js/carta-legalidad.js` va a buscar
+el dato (lo usan la ficha Y el revisor de decklists, que ha soltado su
+copia) y `legalidadEstandar` decide, pura, para que la pueda ejecutar
+también la función del borde.
+
+**Ficheros**: `supabase-migration-cartas-nombre-es.sql` (NUEVO, **sin
+ejecutar**), `js/carta-legalidad.js` (NUEVO), `js/carta-nucleo.js`,
+`js/carta-detalle.js`, `js/carta-ruta.js`, `js/carta.js`, `js/cartas.js`,
+`js/coleccion.js`, `js/schema-check.js`, `js/torneos/cartas-decklist.js`,
+`netlify/lib/carta-detalle.mjs`,
+`js/torneos/comun.js`, `css/carta.css`,
+`netlify/functions/cartas-detalle.mjs`, `netlify/functions/sitemap.mjs`,
+`netlify/edge-functions/meta-social.js`, `SCHEMA.md` (que iba sin las
+tandas 328 a 334 y se ha puesto al día), `CLAUDE.md`.
+En la rama `pruebas`: `pruebas/test-tanda-335.mjs` (NUEVO),
+`rigor/rigor-tanda-334.py` (NUEVO), `rigor/rigor-tanda-335.py` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**:
+- **PINGU tiene que ejecutar `supabase-migration-cartas-nombre-es.sql`**.
+  Hasta entonces la ficha sigue enseñando el nombre en inglés y el bloque
+  de torneos sigue sin salir en las traducidas. La migración además pone
+  `detalle_at` a null en las que se engordaron en español, para que la
+  tarea programada devuelva los nombres ingleses set a set (~220
+  peticiones, una hora larga). Mientras tanto, esas cartas siguen sin su
+  bloque de torneos.
+- Sigue pendiente de PINGU la imagen del bloque `zonas` del curso de
+  anatomía de una carta, y decidir qué hacer con los sets japoneses del
+  catálogo WEST.
+
+---
+
 ## 2026-09-22 — PINGU-Claude (tanda 334 — TCGdex no traduce solo los ataques)
 
 **Hecho**: PINGU, tres veces en dos días: no sale el subtítulo, no sale

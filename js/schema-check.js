@@ -39,7 +39,9 @@ export const REQUISITOS = [
   { tabla: 'account_deletion_requests', columna: 'status', fichero: 'supabase-migration-account-deletion-requests.sql', rompe: 'No se puede pedir la baja de cuenta.' },
   { tabla: 'guide_pro_content', columna: 'blocks', fichero: 'supabase-migration-guide-pro-content.sql', rompe: 'El contenido Pro no se carga.' },
   { tabla: 'tcg_cards', columna: 'name_search', fichero: 'supabase-migration-cartas.sql', rompe: 'El buscador de cartas del editor no encuentra nada.' },
+  { tabla: 'tcg_cards', columna: 'name_es', fichero: 'supabase-migration-cartas-nombre-es.sql', rompe: 'Las fichas de carta salen con el nombre en inglés y el buscador no encuentra por el español.' },
   { tabla: 'tcg_sets', columna: 'imported_at', fichero: 'supabase-migration-cartas.sql', rompe: 'No se pueden importar las cartas.' },
+  { tabla: 'tcg_sets', columna: 'names_fixed_at', fichero: 'supabase-migration-cartas-nombre-es.sql', rompe: 'Las cartas engordadas en español se quedan con el nombre traducido en la clave, y su bloque de torneos no sale.' },
   // Torneos (tanda 225). Faltaban TODAS, y por eso una migración de
   // torneos sin ejecutar no se notaba: el barredor aparca el paso en
   // silencio y los avisos simplemente no salen, sin que nadie lo diga.

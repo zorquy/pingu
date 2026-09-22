@@ -138,12 +138,6 @@ export function nombreDeSetLive(codigo) {
   return SETS_LIVE[String(codigo || '').toUpperCase()] || null
 }
 
-// Las marcas de regulación legales en Estándar AHORA (rotan cada
-// abril). El valor vivo está en site_settings ('torneos_reglas', lo
-// siembra supabase-migration-cartas-marcas.sql) para poder cambiarlo
-// sin desplegar; esto es el respaldo si la clave no existe.
-export const MARCAS_LEGALES_DEFECTO = ['H', 'I', 'J']
-
 // ── El color de una cara (tandas 297 y 298) ──
 //
 // Las iniciales de la lista y las del tablero de «Tu partida» tienen que

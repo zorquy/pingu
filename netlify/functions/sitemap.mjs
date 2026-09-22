@@ -150,19 +150,24 @@ export default async () => {
     if (jugadas.length) {
       const nombres = jugadas.map((j) => `"${encodeURIComponent(String(j.name_key))}"`).join(',')
       const cartas = await consultar(
-        `tcg_cards?market=eq.WEST&name_search=in.(${nombres})&select=id,name,name_search,detalle_at&limit=5000`
+        `tcg_cards?market=eq.WEST&name_key=in.(${nombres})&select=id,name,name_es,name_key,detalle_at&limit=5000`
       ).catch(() => [])
       const porNombre = new Map(jugadas.map((j) => [j.name_key, j]))
       for (const c of cartas) {
         // La clave se vuelve a calcular AQUÍ, en JavaScript, con la
         // misma función que usa la ficha. El `in.(…)` de arriba es solo
-        // un prefiltro barato contra `name_search`, que Postgres genera
-        // con su propio `unaccent` y no tiene por qué coincidir al
-        // carácter con el nuestro (el nuestro además junta espacios
-        // dobles). Si el prefiltro se deja alguna fuera, esa carta no
-        // sale en el sitemap — un despiste, no una dirección mal puesta.
-        // Al revés sería peor: ofrecerle a Google una ficha que luego
-        // llega con `noindex`.
+        // un prefiltro barato contra `name_key`, que Postgres genera con
+        // su propio `unaccent` y no tiene por qué coincidir al carácter
+        // con el nuestro (el nuestro además junta espacios dobles). Si
+        // el prefiltro se deja alguna fuera, esa carta no sale en el
+        // sitemap — un despiste, no una dirección mal puesta. Al revés
+        // sería peor: ofrecerle a Google una ficha que luego llega con
+        // `noindex`.
+        //
+        // Y el prefiltro va contra `name_key` y no contra `name_search`
+        // porque desde la tanda 335 `name_search` lleva los DOS idiomas
+        // pegados: cruzar exacto contra él no casaría ni una sola carta
+        // traducida.
         const play = porNombre.get(claveDeJuego(c))
         if (!mereceIndexarse(c, play)) continue
         urls.push({

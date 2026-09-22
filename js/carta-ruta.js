@@ -30,7 +30,13 @@ const ASSETS = 'https://assets.tcgdex.net'
 export function rutaDeCarta(carta) {
   const id = String(carta?.id ?? '')
   if (!id) return '/cartas'
-  return `/carta/${aSlug(carta?.name)}-${id}`
+  // Con el nombre que LEE una persona: si tenemos el español, ese
+  // (tanda 335). La dirección es lo que se pulsa y lo que pesa Google,
+  // y la web es española. El identificador del final es lo único que la
+  // resuelve, así que el nombre de delante puede cambiar sin romper
+  // ningún enlace viejo.
+  const nombre = (typeof carta?.name_es === 'string' && carta.name_es.trim()) || carta?.name
+  return `/carta/${aSlug(nombre)}-${id}`
 }
 
 export function aSlug(texto) {

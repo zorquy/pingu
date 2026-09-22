@@ -144,6 +144,24 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   IMÁGENES sí vienen en el listado del set, así que traducir el catálogo
   a otro idioma son ~154 peticiones y no 16.000: son dos costes muy
   distintos y conviene no confundirlos.
+- **Lo que se GUARDA como clave es canónico; lo que se ENSEÑA va
+  traducido** (tandas 334 y 335). TCGdex no traduce solo los ataques:
+  traduce los ENUMS (`category` → «Pokémon», `stage` → «Básico», la
+  rareza → «Rara Doble») y traduce el NOMBRE. Y el nombre inglés es la
+  CLAVE con la que se cruzan `tcg_card_play` (que se construye con
+  decklists de TCG Live), el respaldo del resolutor y la huella de las
+  reimpresiones — así que escribirle el español encima dejó el bloque
+  «En los torneos de PokeDoc» sin poder casar NUNCA, **sin dar error**.
+  El traducido va en `name_es` y se pinta con `nombreDeCarta()`; el
+  inglés se queda en `name` y se cruza con `claveDeJuego()`. Si añades
+  un campo que venga traducido, pregúntate si alguien lo COMPARA.
+- **Una columna que sirve para BUSCAR y otra para CRUZAR son dos
+  columnas** (tanda 335). `name_search` hacía los dos trabajos mientras
+  se parecían; al meterle el español dejaron de parecerse —su valor pasó
+  a ser «boss s orders órdenes del jefe»— y un `in.(…)` con la clave
+  inglesa no casa con NADA. El sitemap, que era el único que cruzaba
+  exacto, se habría quedado sin las fichas traducidas en silencio. De ahí
+  `name_key`, que es lo que `name_search` era antes.
 - **El LISTADO de sets de TCGdex es un «SetResume» y le faltan campos**
   (tandas 233 y 322). `fetchSets` devuelve id, nombre, logo, símbolo y
   cuenta de cartas — pero **no el código de TCG Live ni la fecha de

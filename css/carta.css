@@ -160,6 +160,72 @@
   color: var(--text);
 }
 
+/* ── Si se puede jugar hoy (tanda 335) ── */
+/*
+   Va pegada debajo de la ficha de coleccionista y antes del combate,
+   porque es lo que trae a alguien a la ficha de una carta vieja: no
+   cuántos PS tiene, sino si la puede meter en el mazo.
+
+   EL COLOR VA EN EL BORDE Y EN EL PUNTO, NO EN LA LETRA. Con el texto
+   pintado del color del estado sobre su fondo suave, el título se
+   quedaba en 3,95 de contraste en el tema claro (`--danger` sobre
+   `--danger-bg`) y el «porqué» en 4,27: los dos por debajo del 4,5 que
+   pide la WCAG para un texto de 14 px. Y no lo habría cazado nadie,
+   porque el medidor de la casa salta los fondos translúcidos y el tema
+   oscuro sí pasaba.
+
+   Así que la chapa es una tarjeta como las de al lado —fondo `--white`,
+   borde de 1px— y lo único que cambia con el estado son el color del
+   borde y el del punto. El contraste pasa a ser el mismo que el del
+   resto de la página, que ya está medido. Y el estado no depende solo
+   del color: lo dicen el punto, el borde y la frase. */
+.carta-legal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin: 0 0 var(--e-xl);
+  padding: var(--e-md) var(--e-lg);
+  background: var(--white);
+  /* El color del estado, en un solo sitio: lo redefinen las tres clases
+     de abajo. Va declarado aquí y no pedido con respaldo porque un
+     token con `var(--x, valor)` es la señal de que `--x` no existe, y
+     este existe siempre. */
+  --chapa-legal: var(--border);
+  border: 1px solid var(--chapa-legal);
+  border-radius: var(--radius-lg);
+}
+
+.carta-legal-titulo {
+  font-weight: 700;
+  font-size: var(--t-md);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+/* El punto de color. Es CSS y no un icono a propósito: la norma de la
+   casa prohíbe emojis sueltos, y meter aquí un SVG obligaría a
+   `carta-nucleo.js` a importar `js/icons.js` — que es justo lo que ese
+   fichero no puede hacer para seguir cabiendo en la función del borde. */
+.carta-legal-titulo::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--chapa-legal);
+}
+
+.carta-legal-porque {
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.carta-legal-legal { --chapa-legal: var(--success); }
+.carta-legal-reimpresion { --chapa-legal: var(--warning); }
+.carta-legal-fuera { --chapa-legal: var(--danger); }
+
 /* ── Ataques y habilidades ── */
 .carta-ataques h2 {
   font-family: var(--font-display);

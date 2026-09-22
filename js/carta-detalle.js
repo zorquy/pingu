@@ -183,6 +183,13 @@ const A_CATEGORIA = inverso(CATEGORIAS, { Pokemon: 'Pokemon', Entrenadora: 'Trai
   Energias: 'Energy' })
 const A_ENTRENADOR = inverso(ENTRENADORES, { Apoyo: 'Supporter', Articulo: 'Item',
   Herramienta: 'Tool', 'Ace Spec': 'Item' })
+// Y el tipo de energía, que también viene traducido y decide si una
+// carta está SIEMPRE dentro del formato (tanda 335). TCGdex lo llama
+// «Normal» en inglés; en español se ha visto escrito de las dos maneras,
+// así que van las dos — si mañana sale una tercera, el valor se queda
+// tal cual y lo único que pasa es que esa energía no se marca como
+// básica, que es el lado seguro del error.
+const A_ENERGIA = inverso({ Normal: 'Normal', Special: 'Especial' }, { Basica: 'Normal' })
 
 const canonico = (mapa, valor) => (valor == null ? valor : mapa.get(sinTildes(valor)) || valor)
 
@@ -196,6 +203,7 @@ export function canonizarCarta(fila) {
     category: canonico(A_CATEGORIA, fila.category),
     stage: canonico(A_FASE, fila.stage),
     trainer_type: canonico(A_ENTRENADOR, fila.trainer_type),
+    energy_type: canonico(A_ENERGIA, fila.energy_type),
     types: Array.isArray(fila.types) ? fila.types.map(tipo) : fila.types,
     weaknesses: conTipo(fila.weaknesses),
     resistances: conTipo(fila.resistances),
@@ -218,4 +226,19 @@ export function esPokemon(carta) {
   if (cat === 'Pokemon') return true
   if (cat === 'Trainer' || cat === 'Energy') return false
   return Number.isInteger(carta?.hp)
+}
+
+// ¿Es una energía básica? Importa porque una energía básica se puede
+// jugar SIEMPRE, lleve la marca de regulación que lleve: es regla del
+// juego y no del formato (tanda 335).
+//
+// El revisor de decklists lo pregunta por el NOMBRE de la línea pegada,
+// porque allí no hay más que texto. Aquí hay ficha, así que se pregunta
+// por lo que la carta ES — y el nombre queda de respaldo para las que
+// todavía no se han engordado y tienen la categoría a null.
+export function esEnergiaBasica(carta) {
+  const cat = canonico(A_CATEGORIA, carta?.category)
+  if (cat === 'Energy') return canonico(A_ENERGIA, carta?.energy_type) !== 'Special'
+  if (cat) return false
+  return /^basic\b|energ[íi]a b[áa]sica/i.test(String(carta?.name ?? ''))
 }

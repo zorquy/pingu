@@ -63,7 +63,7 @@ async function cargar() {
 async function masCartas(cuantas) {
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,name,local_id,image_path')
+    .select('id,name,name_es,local_id,image_path')
     .eq('market', MERCADO)
     .eq('set_id', setId)
     .order('local_id')

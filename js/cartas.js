@@ -145,7 +145,7 @@ async function buscar(texto) {
   }
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,name,local_id,image_path')
+    .select('id,name,name_es,local_id,image_path')
     .eq('market', MERCADO)
     .ilike('name_search', `%${q}%`)
     .limit(60)

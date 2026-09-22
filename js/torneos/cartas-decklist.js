@@ -30,25 +30,15 @@ import { supabase } from '../supabase.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { searchCards, cardImageUrl, normalizeSearch } from '../tcgdex.js'
 import { escapeHtml } from '../app.js'
-import { nombreDeSetLive, MARCAS_LEGALES_DEFECTO } from './comun.js'
+import { nombreDeSetLive } from './comun.js'
+// Las dos preguntas de legalidad viven fuera desde la tanda 335: las
+// hace también la ficha de una carta, y una copia se habría separado el
+// día que cambiara la temporada.
+import { marcasLegales, hayReimpresionLegal } from '../carta-legalidad.js'
 import { spriteDeCarta, respaldoDeSprite } from './sprites-pokemon.js'
 
 const cache = new Map()
 const setsPorCodigo = new Map() // código Live → set_id del espejo (o null)
-let marcasCache = null
-
-// Las marcas legales de la temporada, una sola vez por página.
-export async function marcasLegales() {
-  if (marcasCache) return marcasCache
-  try {
-    const { data } = await supabase.from('site_settings').select('value').eq('key', 'torneos_reglas').maybeSingle()
-    const marcas = data?.value?.marcas_legales
-    marcasCache = Array.isArray(marcas) && marcas.length ? marcas : MARCAS_LEGALES_DEFECTO
-  } catch {
-    marcasCache = MARCAS_LEGALES_DEFECTO
-  }
-  return marcasCache
-}
 
 // Una energía básica nunca está fuera de reglamento, lleve la marca que
 // lleve (regla del juego real). Por nombre y no por categoría: la
@@ -362,32 +352,6 @@ export async function rellenarChapasArquetipo(raiz) {
       }
     })
   )
-}
-
-// La regla de la reimpresión: ¿existe una carta con este MISMO nombre y
-// marca legal? Se pregunta por el nombre del ESPEJO (el de la carta ya
-// resuelta), que es el idioma en el que el espejo guarda sus gemelas —
-// el de la línea pegada viene en el idioma del jugador y no casaría.
-// Se guarda la PROMESA, no el resultado: las cuatro copias de una carta
-// se resuelven a la vez y con el resultado a secas saldrían cuatro
-// consultas idénticas antes de que la primera vuelva.
-const reimpresiones = new Map()
-function hayReimpresionLegal(nombre, legales) {
-  if (!reimpresiones.has(nombre)) {
-    reimpresiones.set(
-      nombre,
-      supabase
-        .from('tcg_cards')
-        .select('id')
-        .eq('market', 'WEST')
-        .eq('name', nombre)
-        .in('regulation_mark', legales)
-        .limit(1)
-        .then(({ data }) => !!data?.length)
-        .catch(() => false)
-    )
-  }
-  return reimpresiones.get(nombre)
 }
 
 const SECCIONES = [
