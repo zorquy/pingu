@@ -16,6 +16,9 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
 import { detalleDeCarta, detalleEnEspanol } from '/home/user/pingu/js/carta-detalle.js'
+import { nucleoDeCarta } from '/home/user/pingu/js/carta-nucleo.js'
+import { inyectarMeta } from '/home/user/pingu/netlify/edge-functions/meta-social.js'
+import { writeFileSync } from 'node:fs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -172,6 +175,82 @@ console.log('\n── 5. El módulo mudado no arrastra nada ──')
     'un `export … from` no crearía el enlace local y aquí se usa por dentro')
   check('y sigue mapeando lo mismo', detalleDeCarta(MEW_ES).hp === 180)
   check('…y el español sigue primero', (await detalleEnEspanol('x', async (u) => (u.includes('/es/') ? MEW_ES : null))).idioma === 'es')
+}
+
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 6. Y cuando el BORDE ya ha pintado (que es producción) ──')
+{
+  // Aquí es donde se me escapó, y PINGU lo vio en dos minutos: «ya ves
+  // que no».
+  //
+  // En producción la ficha la pinta primero la función del borde, con
+  // lo que hay en la BASE. Si la carta no está engordada, eso es el
+  // nombre, la foto y el número — y como el borde deja la caja marcada
+  // con `data-servidor="1"`, el cliente NO la repintaba nunca. Así que
+  // el detalle que acababa de pedirle a TCGdex se quedaba en una
+  // variable y no llegaba a la pantalla.
+  //
+  // El servidor de pruebas no ejecuta la función del borde, así que
+  // esta situación no existía en local. Se construye a mano, igual que
+  // hace el bloque 3 de la 324: se pasa el HTML por `inyectarMeta` y se
+  // sirve el resultado.
+  const SC = '/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad'
+  const html = readFileSync(`${RAIZ}/carta.html`, 'utf8')
+  const desdeElBorde = inyectarMeta(html, {
+    url: 'u', titulo: 'Mew ex', descripcion: 'd', imagen: 'i', imagenCuadrada: true,
+    // Lo que el borde puede pintar de una carta SIN engordar.
+    nucleo: nucleoDeCarta(EN_LA_BASE, SET),
+  })
+  writeFileSync(`${SC}/test-forum/t331-borde.html`, desdeElBorde)
+  check('el borde marca la caja como pintada', /data-servidor="1"/.test(desdeElBorde))
+  check('…y lo que pinta va SIN ataques, porque no los tiene',
+    !/carta-ataques/.test(desdeElBorde))
+
+  const page = await browser.newPage({ viewport: { width: 1150, height: 1100 } })
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 160)))
+  await conTCGdex(page)
+  await page.addInitScript((c) => {
+    window.__FAKE_SETS__ = [{ id: '30c', name: '30th Celebration', market: 'WEST', serie_name: 'Mega',
+      release_date: '2026-09-16', card_count_official: 128 }]
+    window.__FAKE_CARTAS__ = [c]
+  }, EN_LA_BASE)
+  await page.goto(`${BASE}/t331-borde.html?id=30c-25`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2600)
+
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  const movs = (await page.locator('.carta-mov-nombre').allTextContents()).map(limpio)
+  check('el cliente REPINTA y los ataques llegan a la pantalla', movs.length === 2, movs.join(' | '))
+  check('…en español', movs[0].includes('Búsqueda Genética'), movs.join(' | '))
+  check('…y el subtítulo también',
+    limpio(await page.locator('.carta-sub').textContent()) === 'Básico · 180 PS · Tipo Psíquico',
+    await page.locator('.carta-sub').textContent())
+  check('sigue habiendo un solo h1', (await page.locator('#cartaNucleo h1').count()) === 1)
+  await page.close()
+
+  // Y el contrario, que es la regla que NO se puede romper: si la carta
+  // YA está engordada, el borde pinta bien y el cliente no toca nada.
+  const completa = { ...EN_LA_BASE, detalle_at: '2026-09-22T10:00:00Z', category: 'Pokemon',
+    hp: 180, stage: 'Basic', types: ['Psychic'],
+    attacks: [{ name: 'Impulso Psíquico', cost: ['Psychic'], damage: '180' }] }
+  writeFileSync(`${SC}/test-forum/t331-borde-ok.html`, inyectarMeta(html, {
+    url: 'u', titulo: 'Mew ex', descripcion: 'd', imagen: 'i', imagenCuadrada: true,
+    nucleo: nucleoDeCarta(completa, SET),
+  }))
+  const p2 = await browser.newPage()
+  const pedidas2 = await conTCGdex(p2)
+  await p2.addInitScript((c) => {
+    window.__FAKE_SETS__ = [{ id: '30c', name: '30th Celebration', market: 'WEST' }]
+    window.__FAKE_CARTAS__ = [c]
+  }, completa)
+  await p2.goto(`${BASE}/t331-borde-ok.html?id=30c-25`, { waitUntil: 'domcontentloaded' })
+  await p2.evaluate(() => document.querySelector('#cartaNucleo .carta-cabecera')?.setAttribute('data-testigo', '1'))
+  await p2.waitForTimeout(2400)
+  check('una carta engordada NO se repinta',
+    (await p2.locator('#cartaNucleo [data-testigo]').count()) === 1,
+    'el cliente ha repintado lo que el borde ya tenía bien')
+  check('…ni se le pide nada a TCGdex', pedidas2.length === 0, pedidas2.join(','))
+  await p2.close()
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

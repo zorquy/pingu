@@ -47,7 +47,22 @@ MUTACIONES = [
      '  } catch {\n    return carta\n  }\n}\n\nfunction pintar',
      '  } finally {\n    /* nada */\n  }\n}\n\nfunction pintar'),
 
-    # ── 5. El modulo mudado ──
+    # ── 5. El repintado, que es donde se me escapo ──
+    # Sin esto, el borde pinta la ficha corta, deja la caja marcada, y el
+    # detalle que acabamos de pedir NO LLEGA A LA PANTALLA. Es lo que vio
+    # PINGU: «ya ves que no». La pagina no falla, simplemente no cambia.
+    (C, 'lo que se ha traido no llega a la pantalla si el borde ya pinto',
+     "  if (caja.dataset.servidor !== '1' || repintarIgual) {",
+     "  if (caja.dataset.servidor !== '1') {"),
+    # Y el contrario: repintar SIEMPRE lo que el borde ya tenia bien.
+    # Vuelve el relevo y con el el salto de los articulos.
+    (C, 'se repinta siempre, tambien lo que el borde ya tenia bien',
+     "  if (caja.dataset.servidor !== '1' || repintarIgual) {", '  if (true) {'),
+    # La senal de «traigo mas» siempre encendida: mismo efecto.
+    (C, 'se da por hecho que siempre traemos mas',
+     '  const mejorQueLoPintado = completa !== carta', '  const mejorQueLoPintado = true'),
+
+    # ── 6. El modulo mudado ──
     # Que deje de ser puro: en cuanto toca el DOM ya no puede vivir en los
     # dos sitios, y la funcion de Netlify deja de arrancar.
     (D, 'el modulo compartido empieza a tocar el navegador',
