@@ -47,6 +47,16 @@ NUEVAS), `js/carta-nucleo.js` (las tres puertas). En `pruebas`:
 **Pruebas**: suite entera verde, **91 de 91**. Rigor de la 334,
 pendiente.
 
+**Y de propina, la misma trampa un piso más abajo**: el escaneo seguía
+pegado al scroll en el móvil. El bloque `@media (max-width: 720px)` que
+lo ponía `static` estaba escrito ARRIBA, antes de la base `.carta-scan
+{ position: sticky }` — y **un `@media` no suma especificidad**, así que
+ganaba la base por orden de aparición. Lo que despistaba: el
+`max-width` del mismo bloque SÍ funcionaba, porque no choca con nada, y
+por eso parecía que la regla entera se aplicaba. Es la trampa de la 299
+dentro de UNA SOLA HOJA. La prueba mira el `position` CALCULADO y dónde
+acaba la imagen al bajar, no el texto del CSS.
+
 **En curso / pendiente**: las chapas de legalidad (Estándar/Expandido)
 en la ficha, que es lo que falta frente a Limitless. Y el rigor de la
 334.

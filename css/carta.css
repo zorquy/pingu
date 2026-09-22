@@ -66,24 +66,38 @@
     grid-template-columns: minmax(0, 1fr);
     gap: var(--e-xl);
   }
-  /* En una columna, el escaneo se comía la pantalla entera: había que
-     bajar para ver el primer dato (tanda 332, PINGU en el móvil). Se
-     topa a 260 px y se centra — sigue leyéndose, y ahora entra también
-     la ficha sin desplazar. Es una MEDIDA, no un paso: por encima de 32
-     solo se le pide la retícula de 4. */
-  .carta-scan {
-    /* Y deja de ser pegajoso: en el móvil no hay columna al lado a la
-       que acompañar, así que quedarse fijo solo roba sitio. */
-    position: static;
-    max-width: 260px;
-    margin-inline: auto;
-  }
 }
 
 .carta-scan {
   margin: 0;
   position: sticky;
   top: var(--e-2xl);
+}
+
+/* ── Y en el móvil, ni pegajoso ni tan grande ──
+ *
+ * ESTE BLOQUE VA DESPUÉS DE LA BASE Y NO ANTES, y no es un capricho de
+ * orden: **un `@media` no suma especificidad**. Estaba escrito arriba,
+ * antes de `.carta-scan`, así que `position: sticky` le ganaba por
+ * orden de aparición y el escaneo seguía pegado al scroll en el móvil,
+ * pasando por encima de la ficha. El `max-width` sí funcionaba —ese no
+ * choca con nada—, y por eso parecía que la regla se aplicaba.
+ *
+ * Es la trampa de la tanda 299 dentro de UNA SOLA HOJA: allí era un
+ * `@media` que se quedó en `components.css` con su base ya mudada.
+ * Misma mecánica, mismo síntoma: el móvil se rompe y nada da error.
+ *
+ * En una columna el escaneo se comía la pantalla entera y había que
+ * bajar para ver el primer dato. 260 px es una MEDIDA, no un paso: por
+ * encima de 32 solo se le pide la retícula de 4. */
+@media (max-width: 720px) {
+  .carta-scan {
+    /* Sin columna al lado a la que acompañar, quedarse fijo solo tapa
+       lo que se está leyendo. */
+    position: static;
+    max-width: 260px;
+    margin-inline: auto;
+  }
 }
 
 .carta-scan img {
