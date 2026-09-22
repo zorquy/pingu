@@ -12,6 +12,47 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-22 — PINGU-Claude (tanda 334 — TCGdex no traduce solo los ataques)
+
+**Hecho**: PINGU, tres veces en dos días: no sale el subtítulo, no sale
+la debilidad, no salen los otros prints. Yo los traté como tres cosas
+distintas y eran UNA.
+
+Al empezar a engordar en español (tanda 330) se me pasó lo obvio:
+**TCGdex traduce también los campos que el código compara con cadenas
+inglesas.** `category` llega como «Pokémon», `stage` como «Básico», los
+tipos como «Psíquico». Y `category === 'Pokemon'` era la puerta del
+subtítulo, del cuadro de debilidad/resistencia/retirada Y de la huella
+— así que una carta engordada en español se quedaba sin las tres a la
+vez, y sin huella tampoco salían sus reimpresiones. Los tipos
+traducidos, de paso, dejaban los puntos de energía en gris.
+
+**Estaba a la vista y no lo vi**: donde nuestra tabla dice «Doble rara»,
+la ficha ponía «Rara Doble». Eso no lo escribió PokeDoc.
+
+Arreglado en los dos lados: `canonizarCarta` devuelve los enums al
+inglés al ESCRIBIR (las que vengan) y al PINTAR (las 2.811 ya guardadas,
+que no hace falta reengordar). Las tablas se construyen INVIRTIENDO las
+de traducción que ya existían, no escribiendo una lista nueva.
+
+**Y la red que evita que vuelva a pasar**: adivinar cómo escribe TCGdex
+cada palabra es una lista curada, y una lista curada se queda vieja (la
+323). Por eso `esPokemon` mira la categoría Y, si esa palabra no la
+conoce, **la estructura**: los PS solo los tiene un Pokémon.
+
+**Ficheros**: `js/carta-detalle.js` (`canonizarCarta` y `esPokemon`
+NUEVAS), `js/carta-nucleo.js` (las tres puertas). En `pruebas`:
+`test-tanda-334.mjs` (NUEVO).
+
+**Pruebas**: suite entera verde, **91 de 91**. Rigor de la 334,
+pendiente.
+
+**En curso / pendiente**: las chapas de legalidad (Estándar/Expandido)
+en la ficha, que es lo que falta frente a Limitless. Y el rigor de la
+334.
+
+---
+
 ## 2026-09-22 — IBAI-Claude (tanda 333 — el engorde estaba en un cerrojo, y la huella no cruzaba el idioma)
 
 **Hecho**: Ibai pidió «que salgan los reprints etc». Miré la base con la

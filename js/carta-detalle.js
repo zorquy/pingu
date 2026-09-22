@@ -68,7 +68,9 @@ export function detalleDeCarta(card) {
   // que ya estaba bien, y eso rompería la comprobación de reglamento de
   // las decklists sin que nadie se entere.
   if (card.regulationMark) fila.regulation_mark = card.regulationMark
-  return fila
+  // Y con los enums en su forma canónica: TCGdex los traduce igual que
+  // los ataques, y todo el resto del código los compara en inglés.
+  return canonizarCarta(fila)
 }
 
 // ── El idioma de la ficha (tanda 330) ──
@@ -112,4 +114,108 @@ export async function detalleEnEspanol(cardId, pedir, idiomas = IDIOMAS_DE_FICHA
     return { fila, idioma, nombre }
   }
   return null
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Devolver los ENUMS a su forma canónica (tanda 334)
+// ════════════════════════════════════════════════════════════════════
+//
+// Al empezar a engordar en español (tanda 330) se nos pasó lo obvio:
+// TCGdex no traduce solo los ataques. Traduce TAMBIÉN los campos que
+// el código compara con cadenas inglesas — `category`, `stage`, los
+// tipos, la rareza. La ficha de PINGU lo enseñaba a la vista: donde
+// nuestra tabla dice «Doble rara» salía «Rara Doble», que es la cadena
+// de TCGdex tal cual.
+//
+// Y eso no era cosmético. `category === 'Pokemon'` es la puerta del
+// subtítulo, del cuadro de debilidad/resistencia/retirada Y de la
+// huella — así que una carta engordada en español se quedaba sin las
+// tres cosas a la vez, y sin huella tampoco salían sus reimpresiones.
+// Los tres síntomas que PINGU llevaba dos días viendo eran UNO.
+//
+// Aquí se deshace: lo que se guarda y lo que se compara vuelve al
+// inglés, que es la forma canónica de todo el resto del código. Lo que
+// se ENSEÑA se sigue traduciendo al pintar, con las tablas de siempre.
+
+const sinTildes = (v) =>
+  String(v ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+
+// Se construye INVIRTIENDO las tablas de traducción que ya existen, no
+// escribiendo una lista nueva: así no puede separarse de ellas. Y con
+// las claves sin tildes ni mayúsculas, que es lo que evita depender de
+// cómo escriba TCGdex cada palabra.
+function inverso(tabla, extras = {}) {
+  const mapa = new Map()
+  for (const [ingles, español] of Object.entries(tabla)) {
+    mapa.set(sinTildes(español), ingles)
+    mapa.set(sinTildes(ingles), ingles)
+  }
+  for (const [alias, ingles] of Object.entries(extras)) mapa.set(sinTildes(alias), ingles)
+  return mapa
+}
+
+// Las mismas tablas que usa `js/carta-nucleo.js` para pintar, aquí al
+// revés. Van escritas otra vez porque este módulo no importa NADA a
+// propósito —lo usan el navegador y dos funciones de servidor— y una
+// prueba compara las dos para que no se separen.
+const TIPOS = { Grass: 'Planta', Fire: 'Fuego', Water: 'Agua', Lightning: 'Rayo',
+  Psychic: 'Psíquico', Fighting: 'Lucha', Darkness: 'Oscuro', Metal: 'Metal',
+  Fairy: 'Hada', Dragon: 'Dragón', Colorless: 'Incolora' }
+const FASES = { Basic: 'Básico', Stage1: 'Fase 1', Stage2: 'Fase 2', MEGA: 'MEGA',
+  VMAX: 'VMAX', VSTAR: 'VSTAR', Restored: 'Restaurado', 'LEVEL-UP': 'Nivel superior' }
+const CATEGORIAS = { Pokemon: 'Pokémon', Trainer: 'Entrenador', Energy: 'Energía' }
+const ENTRENADORES = { Supporter: 'Partidario', Item: 'Objeto', Stadium: 'Estadio', Tool: 'Herramienta' }
+
+// Los alias son las formas que NO salen de invertir la tabla: como lo
+// escribe TCGdex en su español, o las variantes que se ven por ahí. Si
+// aparece una que no está, el valor se queda tal cual y lo salva la
+// comprobación por ESTRUCTURA de `esPokemon` — no se pierde la ficha.
+const A_TIPO = inverso(TIPOS, { Relampago: 'Lightning', Electrico: 'Lightning',
+  Oscuridad: 'Darkness', Siniestro: 'Darkness', Acero: 'Metal', Normal: 'Colorless',
+  Incoloro: 'Colorless', Planta2: 'Grass', Combate: 'Fighting' })
+const A_FASE = inverso(FASES, { Basica: 'Basic', 'Nivel 1': 'Stage1', 'Nivel 2': 'Stage2',
+  'Fase1': 'Stage1', 'Fase2': 'Stage2' })
+const A_CATEGORIA = inverso(CATEGORIAS, { Pokemon: 'Pokemon', Entrenadora: 'Trainer',
+  Energias: 'Energy' })
+const A_ENTRENADOR = inverso(ENTRENADORES, { Apoyo: 'Supporter', Articulo: 'Item',
+  Herramienta: 'Tool', 'Ace Spec': 'Item' })
+
+const canonico = (mapa, valor) => (valor == null ? valor : mapa.get(sinTildes(valor)) || valor)
+
+export function canonizarCarta(fila) {
+  if (!fila || typeof fila !== 'object') return fila
+  const tipo = (t) => canonico(A_TIPO, t)
+  const conTipo = (lista) =>
+    Array.isArray(lista) ? lista.map((f) => (f && typeof f === 'object' ? { ...f, type: tipo(f.type) } : f)) : lista
+  return {
+    ...fila,
+    category: canonico(A_CATEGORIA, fila.category),
+    stage: canonico(A_FASE, fila.stage),
+    trainer_type: canonico(A_ENTRENADOR, fila.trainer_type),
+    types: Array.isArray(fila.types) ? fila.types.map(tipo) : fila.types,
+    weaknesses: conTipo(fila.weaknesses),
+    resistances: conTipo(fila.resistances),
+    attacks: Array.isArray(fila.attacks)
+      ? fila.attacks.map((a) =>
+          a && typeof a === 'object' && Array.isArray(a.cost) ? { ...a, cost: a.cost.map(tipo) } : a
+        )
+      : fila.attacks,
+  }
+}
+
+// ¿Es un Pokémon?
+//
+// Por la categoría canónica, y si esa palabra no la conocemos, POR LA
+// ESTRUCTURA: los PS solo los tiene un Pokémon. Esa segunda vía es la
+// que hace que un idioma nuevo, o una palabra que TCGdex cambie mañana,
+// no vuelva a dejar media ficha en blanco sin que nada dé error.
+export function esPokemon(carta) {
+  const cat = canonico(A_CATEGORIA, carta?.category)
+  if (cat === 'Pokemon') return true
+  if (cat === 'Trainer' || cat === 'Energy') return false
+  return Number.isInteger(carta?.hp)
 }

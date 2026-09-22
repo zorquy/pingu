@@ -16,6 +16,11 @@ import { normalizarNombre } from './normalizar.js'
 // Las direcciones viven aparte para que quien solo quiera enlazar no se
 // lleve el molde —y con él, sus clases— por delante. Ver carta-ruta.js.
 import { rutaDeCarta, urlDeImagen, urlDeLogo } from './carta-ruta.js'
+// Las fichas engordadas en español traen los enums TRADUCIDOS, y todo
+// lo de aquí los compara en inglés. Se devuelven a su forma canónica al
+// pintar, para que las 2.811 ya guardadas se vean bien sin tener que
+// reengordarlas (tanda 334).
+import { canonizarCarta, esPokemon } from './carta-detalle.js'
 
 export {
   aSlug,
@@ -87,8 +92,9 @@ export const entrenadorEs = (v) => traducir(ENTRENADORES_ES, v)
 // entre erratas y entre idiomas, y dos impresiones de la misma carta
 // pueden traerlo distinto. Dentro de un idioma, lo que no cambia nunca
 // es el nombre del ataque, su coste y su daño.
-export function huellaDeCarta(carta, conNombresDeAtaque = true) {
-  if (!carta || carta.category !== 'Pokemon') return null
+export function huellaDeCarta(cartaCruda, conNombresDeAtaque = true) {
+  const carta = canonizarCarta(cartaCruda)
+  if (!carta || !esPokemon(carta)) return null
   // Sin ataques no hay huella: una carta sin engordar se parecería a
   // cualquier otra sin engordar, y saldrían todas como «la misma».
   const ataques = Array.isArray(carta.attacks) ? carta.attacks : null
@@ -137,9 +143,10 @@ export function esLaMismaCarta(a, b) {
 // trozo solo aparece si SE SABE. Un Entrenador no tiene PS y una carta
 // sin engordar no tiene casi nada: en los dos casos la línea se acorta,
 // que es distinto de decir «0 PS» (la lección de la 319).
-export function subtituloDeCarta(carta) {
+export function subtituloDeCarta(cartaCruda) {
+  const carta = canonizarCarta(cartaCruda)
   const partes = []
-  if (carta?.category === 'Pokemon') {
+  if (esPokemon(carta)) {
     if (carta.stage) partes.push(faseEs(carta.stage))
     if (carta.evolve_from) partes.push(`Evoluciona de ${carta.evolve_from}`)
     if (Number.isInteger(carta.hp)) partes.push(`${carta.hp} PS`)
@@ -210,7 +217,7 @@ function puntoDeEnergia(tipo) {
 // `aria-label`, así que no se pierde para quien no ve el color — y al
 // lado va el multiplicador, que es el dato que se lee.
 function bloqueCombate(carta) {
-  if (carta?.category !== 'Pokemon') return ''
+  if (!esPokemon(carta)) return ''
   const uno = (etiqueta, filas) => {
     const lista = Array.isArray(filas) ? filas : []
     const dentro = lista.length
@@ -359,8 +366,11 @@ export function bloqueDeJuego(play) {
 // Lo pintan las DOS mitades: el borde antes de entregar la página y
 // js/carta.js si el borde no llegó. Por eso vive aquí y no en ninguna de
 // las dos, y por eso no toca el DOM: devuelve una cadena.
-export function nucleoDeCarta(carta, set, play = null) {
-  if (!carta) return ''
+export function nucleoDeCarta(cartaCruda, set, play = null) {
+  if (!cartaCruda) return ''
+  // Una sola vez, aquí: a partir de este punto los tipos, la fase y la
+  // categoría están en inglés, que es lo que esperan todos los bloques.
+  const carta = canonizarCarta(cartaCruda)
   const img = urlDeImagen(carta.image_path, 'high')
   const sub = subtituloDeCarta(carta)
   const alt = `Carta de ${carta.name}${set?.name ? ` (${set.name})` : ''}`
