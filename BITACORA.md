@@ -12,6 +12,75 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-22 — PINGU-Claude (tandas 328 y 329 — la identidad de una carta)
+
+**328 — mismo nombre no es la misma carta.** Dos fallos con la misma
+causa: comparar por NOMBRE y tratar el resultado como si fuera la carta.
+
+EL GRAVE: la lista de un mazo marcaba en rojo el Mew ex de 30th
+Celebration de PINGU como fuera de reglamento, usando la marca de OTRO
+Mew ex encontrado por nombre. Ahora `resolverCarta` dice si el hallazgo
+es EXACTO (set + número) y, si no lo es, la marca viaja a null: el
+comprobador no puede juzgar lo que no ha identificado aunque quiera. Y
+avisa de que no la reconoce y de por qué.
+
+EL OTRO: «otras versiones» salían trece Primeapes de trece sets. Una
+reimpresión comparte el TEXTO DE REGLAS (vida, fase, ataques con su
+coste y su daño); el efecto no entra en la huella porque se reescribe
+entre erratas. Y la debilidad, la resistencia y la retirada salen ya con
+el icono del tipo.
+
+**Y el filtro de Pocket que no echaba a nadie.** En la base los CATORCE
+sets de Pocket tienen `serie_id` a NULL, así que mirar solo la serie no
+servía de nada. **Y mi prueba pasaba en verde porque el fixture lo
+había escrito yo con la serie puesta**: probaba el código contra mi
+invento y no contra los datos. Ahora se reconocen por el IDENTIFICADOR
+(A1, A2b, B1…) y la prueba lleva los catorce de verdad más la lista de
+sets de mesa que NO pueden caer por el patrón. PINGU ejecutó
+`supabase-migration-borrar-pocket.sql`: fuera 14 sets y 2.380 cartas.
+
+**329 — lo que solo viene en el set completo, otra vez.** La consulta de
+después del borrado lo destapó: **los 210 sets tienen `serie_id` y
+`serie_name` a NULL**, y solo 112 tienen código de TCG Live. Es la
+lección de la 322 sin aplicar: `setToRow` corre sobre el LISTADO, que es
+un «SetResume», y allí no viene ni la serie, ni el código, ni la fecha.
+
+Y explica DOS cosas de golpe: por qué no hay eras en el índice, y por
+qué se colaron los sets de Pocket —`fetchSets` los filtraba con
+`s.serie?.id`, que nunca llegó—. Y también por qué falló el Mew ex: 30C
+no tiene código, así que su set no se encuentra.
+
+Arreglado: la fase de curación de `cartas-detalle` cura ahora el SET
+ENTERO (fecha, serie y código), `setToRow` ya no escribe la serie desde
+el listado —la borraría al reimportar— y `fetchSets` filtra con
+`esDelTCG`. Unas 210 peticiones, menos de una hora.
+
+**ME CORRIJO EN DOS COSAS que llevo días repitiendo**: (1) «el set más
+nuevo es de 2025-10-30 y el catálogo lleva siete semanas de retraso» —
+ese set era Mega Rising, que es de POCKET; el catálogo llega al
+2026-09-16 y está al día. (2) le he estado pidiendo a PINGU que
+reimporte cuando el problema no era ese.
+
+**Ficheros**: `js/carta-nucleo.js`, `js/carta.js`, `js/cartas.js`,
+`js/catalogo-series.js`, `js/tcgdex.js`, `js/torneos/cartas-decklist.js`,
+`css/carta.css`, `netlify/lib/carta-detalle.mjs`,
+`netlify/functions/cartas-detalle.mjs`, `netlify/edge-functions/meta-social.js`,
+`netlify/functions/sitemap.mjs`. NUEVO
+`supabase-migration-borrar-pocket.sql` (ya ejecutado).
+En `pruebas`: `test-tanda-328.mjs` (NUEVO), `test-tanda-322.mjs` (vigila
+la segunda copia, `codigoLiveDeSet`), `test-tanda-324.mjs` y
+`test-tanda-327.mjs` al día.
+
+**Pruebas**: suite entera verde, **87 de 87**. El rigor de la 328 y la
+329, pendiente.
+
+**En curso / pendiente**: el catálogo EN ESPAÑOL (los ataques salen en
+inglés porque el occidental se importa en inglés a propósito: nombres e
+imágenes son ~154 peticiones, pero el texto de los ataques son ~23.000).
+Y decidir qué hacer con los sets japoneses del catálogo occidental.
+
+---
+
 ## 2026-09-22 — PINGU-Claude (tanda 327 — el catálogo, arreglado de verdad)
 
 **Hecho**: PINGU abrió las páginas nuevas en producción y estaban rotas.

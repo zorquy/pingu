@@ -1,4 +1,4 @@
-import { detalleDeCarta, urlDeCarta, urlDeSet, fechaDeSet } from '../lib/carta-detalle.mjs'
+import { detalleDeCarta, urlDeCarta, urlDeSet, leFaltaAlgo, loQueFaltaDeUnSet } from '../lib/carta-detalle.mjs'
 
 // Engorda las cartas de `tcg_cards` poco a poco (tanda 322).
 //
@@ -94,12 +94,17 @@ const SETS_POR_VENTANA = 25
 // silencio.
 async function setsPorPrioridad(clave) {
   const sets = await rest(
-    `tcg_sets?select=id,release_date&market=eq.${MERCADO}&order=release_date.desc.nullslast`,
+    `tcg_sets?select=id,release_date,serie_id,serie_name,tcg_online_code&market=eq.${MERCADO}` +
+      '&order=release_date.desc.nullslast',
     clave
   )
+  const filas = sets || []
   return {
-    orden: (sets || []).map((s) => s.id),
-    sinFecha: new Set((sets || []).filter((s) => !s.release_date).map((s) => s.id)),
+    orden: filas.map((s) => s.id),
+    // Indexadas por id para poder escribir SOLO lo que falte y no gastar
+    // un PATCH en un set que ya está completo.
+    porId: new Map(filas.map((s) => [s.id, s])),
+    incompletos: new Set(filas.filter(leFaltaAlgo).map((s) => s.id)),
   }
 }
 
@@ -111,18 +116,18 @@ async function setsPorPrioridad(clave) {
 // Si falla, no se toca nada y no se corta la pasada: las cartas de ese
 // set se engordan igual. La fecha es para ordenar y para la ficha de la
 // colección, no para que el engorde funcione.
-async function curarFechaDeSet(clave, setId) {
+async function curarSet(clave, fila) {
   try {
-    const res = await fetch(urlDeSet(setId, MERCADO), { headers: { Accept: 'application/json' } })
+    const res = await fetch(urlDeSet(fila.id, MERCADO), { headers: { Accept: 'application/json' } })
     if (!res.ok) return null
-    const fecha = fechaDeSet(await res.json())
-    if (!fecha) return null
-    await rest(`tcg_sets?id=eq.${encodeURIComponent(setId)}&market=eq.${MERCADO}`, clave, {
+    const cambios = loQueFaltaDeUnSet(fila, await res.json())
+    if (!Object.keys(cambios).length) return null
+    await rest(`tcg_sets?id=eq.${encodeURIComponent(fila.id)}&market=eq.${MERCADO}`, clave, {
       method: 'PATCH',
       headers: { Prefer: 'return=minimal' },
-      body: JSON.stringify({ release_date: fecha }),
+      body: JSON.stringify(cambios),
     })
-    return fecha
+    return cambios
   } catch {
     return null
   }
@@ -163,9 +168,22 @@ export default async function handler() {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return new Response('Falta SUPABASE_SERVICE_ROLE_KEY', { status: 500 })
 
-  const { orden, sinFecha } = await setsPorPrioridad(clave)
+  const { orden, porId, incompletos } = await setsPorPrioridad(clave)
 
-  // ── Primero, TODAS las fechas ──
+  // ── Primero, los SETS enteros ──
+  //
+  // Era solo la fecha. Desde la tanda 329 cura también la SERIE y el
+  // CÓDIGO DE TCG LIVE, porque los tres se le olvidan por el mismo
+  // motivo: `fetchSets` corre sobre el LISTADO, que es un «SetResume»,
+  // y allí no viene ninguno de los tres. La consulta del 2026-09-22 lo
+  // dejó claro: 210 sets sin serie y 98 sin código.
+  //
+  // El código no es cosmético: sin él, una línea de decklist que diga
+  // «30C» no encuentra su set, la carta se busca por nombre y el
+  // comprobador de reglamento se queda sin poder juzgarla. Y la serie
+  // tampoco: sin ella no hay eras en el índice y el filtro de Pocket
+  // del importador no funciona.
+  //
   //
   // Esto se hacía a la vez que el engorde, curando la del set por el que
   // se iba pasando, y era CIRCULAR: la prioridad se calcula por fecha,
@@ -182,16 +200,16 @@ export default async function handler() {
   // Y hay un segundo motivo para que no sea un extra del engorde: la
   // ficha de una colección enseña cuándo salió. Esa fecha hace falta
   // aunque no se engorde ni una carta más.
-  if (sinFecha.size) {
-    let curadas = 0
-    const arranqueFechas = Date.now()
+  if (incompletos.size) {
+    let curados = 0
+    const arranqueSets = Date.now()
     for (const setId of orden) {
-      if (!sinFecha.has(setId)) continue
-      if (Date.now() - arranqueFechas > PRESUPUESTO_MS) break
-      if (await curarFechaDeSet(clave, setId)) curadas++
+      if (!incompletos.has(setId)) continue
+      if (Date.now() - arranqueSets > PRESUPUESTO_MS) break
+      if (await curarSet(clave, porId.get(setId))) curados++
       await esperar(PAUSA_MS)
     }
-    return Response.json({ fase: 'fechas', curadas, quedaban: sinFecha.size })
+    return Response.json({ fase: 'sets', curados, quedaban: incompletos.size })
   }
 
   const pendientes = await siguientes(clave, orden)

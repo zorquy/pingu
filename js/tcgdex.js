@@ -68,7 +68,7 @@ export const NOMBRE_MERCADO = {
 // función del borde y el sitemap, y este fichero importa `./supabase.js`
 // y no se puede arrastrar a un servidor. Se importa Y se reexporta — un
 // `export … from` no crea el enlace local y aquí se usa por dentro.
-import { SERIES_FUERA } from './catalogo-series.js'
+import { esDelTCG, SERIES_FUERA } from './catalogo-series.js'
 export const SERIES_EXCLUIDAS = SERIES_FUERA
 
 export const idiomaDeMercado = (market) => MERCADOS[market] || MERCADOS[MERCADO_POR_DEFECTO]
@@ -116,7 +116,12 @@ async function pedir(ruta, idioma = IDIOMA) {
 // Los sets de un mercado, ya sin las series excluidas.
 export async function fetchSets(market = MERCADO_POR_DEFECTO) {
   const sets = await pedir('sets', idiomaDeMercado(market))
-  return (sets || []).filter((s) => !SERIES_EXCLUIDAS.includes(s.serie?.id))
+  // Con `esDelTCG`, no con la serie a secas: el listado NO trae `serie`,
+  // así que el filtro de antes —`!SERIES_EXCLUIDAS.includes(s.serie?.id)`—
+  // no echó nunca a nadie. Por eso se colaron los catorce sets de
+  // Pokémon TCG Pocket que hubo que borrar a mano el 2026-09-22. Lo que
+  // sí llega siempre es el IDENTIFICADOR.
+  return (sets || []).filter(esDelTCG)
 }
 
 // Devuelve el set CON todas sus cartas dentro: por eso importar el
@@ -183,8 +188,10 @@ export function setToRow(set, market = MERCADO_POR_DEFECTO) {
     id: set.id,
     market,
     name: set.name || set.id,
-    serie_id: set.serie?.id || null,
-    serie_name: set.serie?.name || null,
+    // La SERIE no va aquí: `setToRow` corre sobre el LISTADO y allí no
+    // está (es un «SetResume»). Escribirla desde aquí ponía null en los
+    // 210 sets y, al reimportar, BORRARÍA la que la tarea programada
+    // acaba de curar. Se pone abajo, y solo si llega.
     logo_path: imagePathFromUrl(set.logo),
     symbol_url: set.symbol || null,
     release_date: fecha(set.releaseDate),
@@ -200,6 +207,12 @@ export function setToRow(set, market = MERCADO_POR_DEFECTO) {
   // código que la importación de cartas acababa de guardar.
   const codigo = codigoLiveDeSet(set)
   if (codigo) fila.tcg_online_code = codigo
+  // Lo mismo con la serie y con la fecha: solo si vienen. Los tres son
+  // del set COMPLETO, y los tres se escriben cuando se importan las
+  // cartas de un set (que es cuando se tiene el completo en la mano) o
+  // los cura la tarea programada.
+  if (set.serie?.id) fila.serie_id = set.serie.id
+  if (set.serie?.name) fila.serie_name = set.serie.name
   return fila
 }
 
