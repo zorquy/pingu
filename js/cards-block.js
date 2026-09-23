@@ -1,5 +1,6 @@
 import { escapeHtml } from './app.js'
 import { cardsByIds, cardImageUrl, refCarta, parseRefCarta, MERCADO_POR_DEFECTO } from './tcgdex.js'
+import { rutaDeCarta } from './carta-ruta.js'
 
 // Una lista de cartas dentro de una guía.
 //
@@ -46,11 +47,27 @@ function cartaHtml(carta) {
       `<img src="${escapeHtml(src)}" alt="${escapeHtml(carta.name)}" loading="lazy"
          onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{className:'deck-card-noimg',textContent:this.alt}))">`
     : `<span class="deck-card-noimg">${escapeHtml(carta.name)}</span>`
-  return `<li class="deck-card" title="${escapeHtml(pie)}">
-    ${img}
-    <span class="deck-card-name">${escapeHtml(carta.name)}</span>
-    <span class="deck-card-set">${escapeHtml(setName)} #${escapeHtml(carta.local_id)}</span>
-  </li>`
+  // ── Y la carta lleva a su ficha (tanda 340) ──
+  //
+  // PINGU: «una carta debería ser clicable desde cualquier sitio». Aquí
+  // no lo era: el bloque de cartas de una guía pintaba un escaneo y su
+  // nombre, y ahí se acababa. Es de los sitios donde más sentido tiene —
+  // estás leyendo una guía que la menciona y quieres ver qué hace.
+  //
+  // SOLO las occidentales: la ficha vive en /carta y esa página busca en
+  // el catálogo WEST. Enlazar una carta japonesa o china llevaría a «no
+  // encontrada», que es peor que no enlazar. Las de otros mercados se
+  // quedan como estaban.
+  const dentro =
+    `${img}` +
+    `<span class="deck-card-name">${escapeHtml(carta.name)}</span>` +
+    `<span class="deck-card-set">${escapeHtml(setName)} #${escapeHtml(carta.local_id)}</span>`
+  const esOccidental = !carta.market || carta.market === 'WEST'
+  return `<li class="deck-card" title="${escapeHtml(pie)}">` +
+    (esOccidental
+      ? `<a class="deck-card-enlace" href="${escapeHtml(rutaDeCarta(carta))}">${dentro}</a>`
+      : dentro) +
+    '</li>'
 }
 
 export function renderDeckHtml(cartas, idsPedidos = []) {

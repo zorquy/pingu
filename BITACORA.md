@@ -12,6 +12,62 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-23 — PINGU-Claude (tanda 340 — el tipo que no conocemos, y la carta clicable desde cualquier sitio)
+
+**Hecho**: dos cosas del mismo mensaje de PINGU, más la mudanza de CSS
+que exigía la norma de la casa.
+
+**1. El punto de la debilidad mentía.** «Está pintada con el círculo
+blanco y es débil a siniestro». El color por defecto de
+`.carta-energia` es `#d8dee3` y el de Incolora `#e6eaed`: un tipo sin
+traducir **no se veía como «no lo sé», se veía como Incolora**. No
+faltaba un color — se estaba diciendo uno falso, y en una debilidad eso
+es decirle a alguien que su carta es débil a otra cosa.
+
+Las cuatro grafías que se me ocurrieron (Darkness, Oscuro, Oscuridad,
+Siniestro) ya se traducían todas, así que lo que TCGdex manda para ese
+set es otra cosa **y no había forma de enterarse**. Ahora un tipo
+desconocido sale con `data-tipo="?"`, hueco y punteado, y lleva el valor
+CRUDO en el título: se ve que falta una traducción y se ve CUÁL.
+
+**2. La carta, clicable desde cualquier sitio.** En la lista de un mazo
+de torneo solo enlazaba el nombre del pie —letra pequeña debajo de un
+escaneo de 245 px— y en una guía no enlazaba nada. Ahora el escaneo
+enlaza en las dos. En las guías, **solo las occidentales**: /carta busca
+en el catálogo WEST y enlazar una japonesa llevaría a «no encontrada»,
+que es peor que no enlazar.
+
+**3. Y hacer sitio en la portada.** Mi CSS la dejaba en 169,9 de 170, y
+la norma dice que quien la toca empieza por hacer sitio. El bloque
+`.deck-grid` / `.deck-card*` se fue a `css/cartas-lista.css`.
+
+**Dos trampas, y las dos estaban puestas donde dice la casa que están**:
+`js/curso.js` usa `.deck-empty` para el «Falta la imagen» de un
+ejercicio y curso.html no carga la hoja nueva, así que esas dos reglas
+SE QUEDAN (la lección de la 316). Y la hoja no es «de guías»: el barrido
+de la 299 la puso roja dos veces seguidas hasta enseñarme que la
+incrustan OCHO páginas —el foro, los temas, los dos perfiles y los dos
+de torneos también—. Sin esa prueba lo habría roto.
+
+**Ficheros**: `js/carta-nucleo.js`, `js/cards-block.js`, `js/tcgdex.js`,
+`js/torneos/cartas-decklist.js`, `css/carta.css`, `css/components.css`,
+`css/torneos.css`, `css/cartas-lista.css` (NUEVO), y las ocho páginas que
+la cargan. `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-340.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**:
+- **Falta saber qué manda TCGdex como debilidad del Mew ex de 30th.** Ya
+  no se pinta mal, pero sigue sin traducirse. Con esta tanda el valor
+  crudo sale en el título del punto: PINGU pasa el ratón por encima y me
+  lo dice, o sale de `select weaknesses from tcg_cards where id =
+  '30th-066'`. Con eso es una línea en la tabla de alias.
+- Sigue faltando la pantalla de /admin para la marca de un set (339).
+- Y la portada queda en 169,8 de 170 — 0,2 KB libres. Sigue siendo
+  poquísimo: la próxima que la toque, a hacer sitio otra vez.
+
+---
+
 ## 2026-09-23 — PINGU-Claude (tanda 339 — la marca de regulación es del SET)
 
 **Hecho**: PINGU, con la carta delante: «sí que lleva marca de

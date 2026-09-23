@@ -2381,64 +2381,17 @@ tcg-deck {
   margin: 24px 0;
 }
 
-.deck-grid,
-/* `.article-body ul` gana por especificidad a una sola clase, así que le
-   volvía a poner sangría y viñetas dentro de una guía. */
-.article-body .deck-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.deck-card {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  /* Sin esto, un nombre largo ensancha la celda y desborda en móvil. */
-  min-width: 0;
-}
-
-.deck-card img {
-  width: 100%;
-  aspect-ratio: 245 / 342;
-  object-fit: contain;
-  border-radius: 6px;
-  background: var(--ice);
-}
-
-.deck-card-noimg {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  aspect-ratio: 245 / 342;
-  padding: 8px;
-  border-radius: 6px;
-  background: var(--ice);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 700;
-}
-
-.deck-card-name {
-  font-size: var(--t-xs);
-  font-weight: 700;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.deck-card-set {
-  font-size: var(--t-2xs);
-  color: var(--text-mid);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* ── Las cartas de una guía viven en css/cartas-lista.css (tanda 340) ──
+ *
+ * El bloque `.deck-grid` / `.deck-card*` se mudó para hacer sitio en la
+ * portada, que estaba a 0,1 KB del presupuesto. Solo lo usan guia.html y
+ * editor-guia.html, y `components.css` lo baja TODO el mundo.
+ *
+ * `.deck-empty` y `.deck-note` SE QUEDAN aquí y no es un olvido:
+ * `js/curso.js` usa `.deck-empty` para el «Falta la imagen» de un
+ * ejercicio, y curso.html no carga la hoja de las guías. Llevárselas
+ * pegadas al bloque de al lado es exactamente lo que dejó sin estilo a
+ * media web en la tanda 316. */
 
 .deck-empty,
 .deck-note {

@@ -2104,6 +2104,13 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   margin: 0;
   text-align: center;
 }
+/* El escaneo lleva a la ficha de la carta (tanda 340). Antes solo
+   enlazaba el nombre del pie, que es letra pequeña debajo de una imagen
+   de 245 px: la gente pulsa la carta. `display: block` para que el
+   enlace no deje el hueco de línea de un inline debajo de la imagen. */
+.torneo-carta-foto {
+  display: block;
+}
 .torneo-carta img {
   width: 100%;
   border-radius: 6px;

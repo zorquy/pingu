@@ -367,7 +367,12 @@ export async function cardsByIds(refs) {
     Object.entries(porMercado).map(([market, ids]) =>
       supabase
         .from('tcg_cards')
-        .select('id, market, set_id, local_id, name, image_path, tcg_sets(name)')
+        // `name_es` viaja porque la dirección de la ficha se hace con el
+        // nombre que se ENSEÑA (tanda 335), y sin él las cartas de una
+        // guía enlazarían a la dirección inglesa mientras la ficha vive
+        // en la española. Resolver, resuelven las dos —el identificador
+        // va al final— pero serían dos direcciones para una página.
+        .select('id, market, set_id, local_id, name, name_es, image_path, tcg_sets(name)')
         .eq('market', market)
         .in('id', ids)
     )

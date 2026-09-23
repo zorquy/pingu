@@ -1,0 +1,86 @@
+/* La lista de cartas incrustada (tanda 340).
+ *
+ * Vive aquí y no en `components.css` porque la bajan CINCO páginas de 26,
+ * y aquella hoja la baja TODO el mundo — la portada estaba a 0,1 KB de su
+ * presupuesto.
+ *
+ * Y son cinco y no dos: la primera versión de esta hoja se llamaba
+ * `guia.css` porque parecía cosa de las guías, y el barrido de la 299 la
+ * puso roja al momento — **el FORO también incrusta listas de cartas**
+ * (foro.html, tema.html) y el muro de un perfil igual. Eso es lo que esa
+ * prueba existe para cazar, y lo cazó.
+ *
+ * Lo que NO se mudó: `.deck-empty` y `.deck-note`, que siguen en
+ * `components.css` porque `js/curso.js` usa la primera para el «Falta la
+ * imagen» de un ejercicio, y curso.html no carga esta hoja. */
+
+.deck-grid,
+/* `.article-body ul` gana por especificidad a una sola clase, así que le
+   volvía a poner sangría y viñetas dentro de una guía. */
+.article-body .deck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.deck-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  /* Sin esto, un nombre largo ensancha la celda y desborda en móvil. */
+  min-width: 0;
+}
+
+/* La carta de una guía lleva a su ficha (tanda 340). El enlace envuelve
+   el escaneo Y el nombre, así que es él quien tiene que llevar la
+   columna: la `li` se queda con un solo hijo. */
+.deck-card-enlace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.deck-card img {
+  width: 100%;
+  aspect-ratio: 245 / 342;
+  object-fit: contain;
+  border-radius: 6px;
+  background: var(--ice);
+}
+
+.deck-card-noimg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  aspect-ratio: 245 / 342;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.deck-card-name {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deck-card-set {
+  font-size: var(--t-2xs);
+  color: var(--text-mid);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

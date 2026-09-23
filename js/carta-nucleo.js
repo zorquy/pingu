@@ -214,9 +214,35 @@ function bloqueAtaques(carta) {
 // ve el color. Se usa en el coste de un ataque, en la debilidad, en la
 // resistencia y en la retirada: es el MISMO dibujo en los cuatro
 // sitios porque en la carta de verdad también lo es.
+// El punto de color de un tipo de energía.
+//
+// ── Y lo que hace cuando NO conoce el tipo (tanda 340) ──
+//
+// Antes pintaba el punto igual con cualquier cadena, y el color por
+// defecto de `.carta-energia` (#d8dee3) es prácticamente el de Incolora
+// (#e6eaed). Así que un tipo que no reconocíamos no se veía como «no lo
+// sé»: se veía como **Incolora**, que es otro tipo. No faltaba un color,
+// **se estaba diciendo uno falso** — y en una debilidad eso es decirle a
+// alguien que su carta es débil a otra cosa.
+//
+// Lo vio PINGU en el Mew ex de 30th Celebration: débil a Siniestro y con
+// el punto blanco. Las grafías que se nos ocurrieron (Oscuro,
+// Oscuridad, Siniestro, Darkness) ya se traducían todas, así que lo que
+// TCGdex manda para ese set es otra cosa — y el fallo de fondo es que no
+// había forma de enterarse.
+//
+// Ahora un tipo desconocido sale con `data-tipo="?"`, que tiene su
+// propio dibujo (hueco y punteado, no un color), y lleva el valor CRUDO
+// en el título: así se ve que falta una traducción y además se ve CUÁL.
+export const TIPOS_CONOCIDOS = Object.keys(TIPOS_ES)
+
 function puntoDeEnergia(tipo) {
-  const es = tipoEs(tipo) || String(tipo)
-  return `<span class="carta-energia" data-tipo="${escapeHtml(tipo)}" title="${escapeHtml(es)}" aria-label="${escapeHtml(es)}"></span>`
+  const conocido = TIPOS_CONOCIDOS.includes(tipo)
+  const es = conocido ? tipoEs(tipo) : `Tipo sin traducir: ${String(tipo ?? '—')}`
+  return (
+    `<span class="carta-energia" data-tipo="${escapeHtml(conocido ? tipo : '?')}"` +
+    ` title="${escapeHtml(es)}" aria-label="${escapeHtml(es)}"></span>`
+  )
 }
 
 // Debilidad, resistencia y retirada. Los tres son del combate y van

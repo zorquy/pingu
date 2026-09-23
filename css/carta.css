@@ -336,6 +336,17 @@
 .carta-energia[data-tipo='Dragon'] { --tipo-energia: #b59433; }
 .carta-energia[data-tipo='Colorless'] { --tipo-energia: #e6eaed; }
 
+/* El tipo que NO conocemos (tanda 340). No lleva color: lleva un hueco.
+   El color por defecto de arriba es casi el de Incolora, así que un tipo
+   sin traducir se veía como Incolora —otro tipo— en vez de verse como lo
+   que es. Un punto hueco y punteado no se confunde con ninguno de los
+   once, y el título lleva el valor crudo para saber qué falta. */
+.carta-energia[data-tipo='?'] {
+  --tipo-energia: transparent;
+  border-style: dashed;
+  border-color: var(--text-mid);
+}
+
 .carta-descripcion {
   margin: var(--e-lg) 0 0;
   padding-left: var(--e-md);

@@ -406,9 +406,20 @@ export async function pintarDecklistVisual(contenedor, parsed) {
         if ((!carta || !carta.exacta) && !esEnergiaBasica(linea)) sinIdentificar += linea.quantity
         const hueco = contenedor.querySelector(`[data-linea="${s.campo}-${i}"]`)
         if (!hueco || !carta) return
+        // La IMAGEN también enlaza (tanda 340). Antes solo lo hacía el
+        // nombre del pie, que es letra pequeña debajo de un escaneo de
+        // 245 px: la gente pulsa la carta, no su nombre. Lo dijo PINGU:
+        // «una carta debería ser clicable desde cualquier sitio».
+        //
+        // Va sin foco propio y oculta al lector de pantalla porque el
+        // enlace del pie ya lleva al mismo sitio: dos paradas de tabulador
+        // seguidas al mismo destino son ruido. Es la excepción que la
+        // norma de los 44 px ya admite — «un enlace que repite un destino
+        // que ya cubre una caja mayor».
+        const foto = `<img src="${cardImageUrl(carta.image_path, 'low')}" alt="${escapeHtml(linea.name)}" loading="lazy" onerror="this.remove()" />`
         hueco.insertAdjacentHTML(
           'afterbegin',
-          `<img src="${cardImageUrl(carta.image_path, 'low')}" alt="${escapeHtml(linea.name)}" loading="lazy" onerror="this.remove()" />`
+          `<a class="torneo-carta-foto" href="${escapeHtml(rutaDeCarta(carta))}" tabindex="-1" aria-hidden="true">${foto}</a>`
         )
 
         // Y el nombre pasa a ser un enlace a la ficha de la carta

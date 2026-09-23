@@ -17839,3 +17839,61 @@ acuerda nadie.
 
 Cubierto en `test-tanda-339.mjs` (4 bloques), que ejecuta `marcaHeredada`
 de verdad — es pura justo para eso.
+
+---
+
+## Tanda 340 — el tipo que no conocemos, y la carta clicable
+
+### El punto de la debilidad decía un color falso
+
+PINGU: «la debilidad está pintada con el círculo blanco y es débil a
+siniestro».
+
+El color por defecto de `.carta-energia` era `#d8dee3` y el de Incolora
+`#e6eaed`. Prácticamente el mismo. Así que un tipo que no reconocíamos
+**no se veía como «no lo sé»: se veía como Incolora**, que es otro tipo.
+No faltaba un color — se estaba afirmando uno falso, y en una debilidad
+eso es decirle a alguien que su carta es débil a otra cosa.
+
+Las cuatro grafías que se nos ocurrieron —`Darkness`, `Oscuro`,
+`Oscuridad`, `Siniestro`— ya se traducían todas. Así que lo que TCGdex
+manda para ese set es **otra cosa**, y el fallo de fondo no era la
+traducción que falta: era que **no había forma de enterarse**.
+
+Ahora un tipo desconocido sale con `data-tipo="?"` —hueco y punteado, no
+un color— y lleva el **valor crudo** en el título. Se ve que falta una
+traducción, y se ve cuál.
+
+### Una carta se pulsa desde donde esté
+
+«Una carta debería ser clicable desde cualquier sitio». No lo era:
+
+- En la lista de un mazo de torneo enlazaba **solo el nombre del pie**,
+  que es letra pequeña debajo de un escaneo de 245 px. La gente pulsa la
+  carta.
+- En una guía **no enlazaba nada**, que es donde más sentido tiene: estás
+  leyendo algo que la menciona y quieres ver qué hace.
+
+En las guías se enlazan **solo las occidentales**: /carta busca en el
+catálogo WEST, y enlazar una japonesa llevaría a «no encontrada» — peor
+que no enlazar.
+
+### Y hacer sitio en la portada
+
+El CSS de arriba la dejó en 169,9 de 170, y la norma dice que quien la
+toca **empieza por hacer sitio**. El bloque `.deck-grid` / `.deck-card*`
+se fue a `css/cartas-lista.css`.
+
+Dos trampas, las dos ya escritas en las normas:
+
+**`.deck-empty` y `.deck-note` se quedan en `components.css`.**
+`js/curso.js` usa la primera para el «Falta la imagen» de un ejercicio, y
+curso.html no carga la hoja nueva. Llevárselas pegadas al bloque de al
+lado es lo que dejó sin estilo a media web en la 316.
+
+**Y la hoja no es «de guías».** Se llamó `guia.css` durante diez minutos
+y el barrido de la 299 la puso roja **dos veces seguidas**, sacando cada
+vez otra página: primero el foro, los temas y el muro de un perfil;
+después los dos de torneos, que también admiten el bloque en la
+descripción. Son OCHO páginas de 26 — y la portada no es ninguna, que
+era de lo que se trataba. Sin esa prueba lo habría roto en producción.
