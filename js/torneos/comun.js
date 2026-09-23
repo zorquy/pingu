@@ -130,6 +130,13 @@ const SETS_LIVE = {
   ASC: 'Ascended Heroes',
   POR: 'Perfect Order',
   CRI: 'Chaos Rising',
+  // Los tres que faltaban (tanda 345). El nombre tiene que ser el que
+  // tiene el set EN NUESTRA BASE, no el que use Limitless: esto se
+  // resuelve con un `.eq('name', …)` exacto. Por eso MEP va como «MEP
+  // Black Star Promos» y no como «Mega Promos».
+  PBL: 'Pitch Black',
+  '30C': '30th Celebration',
+  MEP: 'MEP Black Star Promos',
   PIT: 'Pitch Black',
   SVE: 'Scarlet & Violet Energy',
 }

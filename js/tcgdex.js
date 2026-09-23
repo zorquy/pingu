@@ -221,6 +221,17 @@ export function setToRow(set, market = MERCADO_POR_DEFECTO) {
 //
 // Comprobado contra los tipos del SDK oficial de TCGdex (@tcgdex/sdk):
 // `Set.tcgOnline?: string`. Está en el Set completo, no en SetResume.
+// OJO CON EL NOMBRE DEL CAMPO (tanda 345). `tcgOnline` es el código de
+// Pokémon TCG **Online**, la plataforma vieja, que cerró en 2023 — y
+// TCGdex dejó de rellenarlo entonces. Para todo lo posterior viene
+// vacío, así que esta función devuelve null y NO es un fallo suyo: el
+// dato no existe arriba.
+//
+// Los códigos de TCG **Live** (PBL, SSP, TWM…) no los da ninguna API que
+// usemos: salen de una lista curada a mano —la misma idea que `SETS_LIVE`
+// en js/torneos/comun.js— y se siembran con
+// supabase-migration-codigos-live.sql. Un set nuevo se añade desde /admin
+// sin desplegar.
 export function codigoLiveDeSet(set) {
   const bruto = set?.tcgOnline
   if (typeof bruto !== 'string') return null

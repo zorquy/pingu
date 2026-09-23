@@ -12,6 +12,57 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-23 — PINGU-Claude (tanda 345 — el código es de TCG LIVE, y TCGdex ya no lo da)
+
+**Hecho**: PINGU, mirando la consulta de la 343: «pero el TCG Online es
+lo antiguo, ahora es el TCG Live». Ahí está.
+
+**La corrección que debo**: dije que la 343 arreglaría los códigos de
+set. La tarea hizo su parte —visitó 216 de los 220 sets en un rato— y el
+resultado fue **98 sin código, y TODOS los modernos entre ellos**. No es
+que faltaran pasadas: `codigoLiveDeSet` lee `set.tcgOnline`, que es el
+código de **Pokémon TCG Online** —la plataforma vieja, que cerró en
+2023—, y TCGdex dejó de rellenarlo entonces. **El dato no existe arriba,
+así que ninguna pasada lo va a traer.** Lo peor es que no da error: la
+columna se queda a null y la lista de /cartas enseña el identificador
+interno («ME05») como si fuera el código.
+
+**Lo que se hace**: `supabase-migration-codigos-live.sql` (NUEVO) siembra
+los 25 códigos de la era actual —de `30th`→30C y `me05`→PBL hasta
+`sv01`→SVI—, solo donde la columna está vacía y solo en el catálogo
+occidental, así que no pisa lo que TCGdex sí dio en su día.
+
+**Y /admin pasa a ser el sitio donde se apuntan los nuevos.** La tarjeta
+de «Códigos de set de TCG Live» ya tenía el campo de mano, pero
+escondido en un desplegable de «avanzado» —porque se suponía que esto se
+rellenaba solo— y **escribía solo el mapa de `site_settings`**, que
+arregla las decklists y deja la etiqueta de /cartas en ME05. Son el
+mismo dato dicho dos veces: ahora guardar escribe las dos, el bloque de
+mano sale a la vista, y los textos dejan de prometer que TCGdex lo trae
+y de echarle la culpa a la edad del set («los sets antiguos no tienen»
+era falso: no los trae de ninguno).
+
+**Y el lector de decklists**: `SETS_LIVE` de `js/torneos/comun.js` es el
+respaldo mientras la migración no esté puesta, y le faltaban PBL, 30C y
+MEP. MEP va con **nuestro** nombre de set (`MEP Black Star Promos`, no
+«Mega Promos») porque ese paso resuelve con un `.eq('name', …)` exacto.
+
+**Ficheros**: `supabase-migration-codigos-live.sql` (NUEVO),
+`js/tcgdex.js`, `js/torneos/comun.js`, `admin/index.html`,
+`admin/js/admin.js`, `admin/css/admin.css`, `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-345.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: quedan DOS migraciones por ejecutar:
+`supabase-migration-codigos-live.sql` y
+`supabase-migration-marcas-por-set.sql`. Cada set nuevo que salga a
+partir de ahora necesita que alguien le apunte el código en /admin →
+Cartas → Códigos de set de TCG Live: la tarjeta dice cuántos de los 20
+más nuevos lo tienen. Siguen 290 cartas atascadas con `detalle_error`,
+sin mirar qué error es.
+
+---
+
 ## 2026-09-23 — PINGU-Claude (tanda 344 — la colección, de golpe y a un tamaño que se vea)
 
 **Hecho**: tres cosas que pidió PINGU de /coleccion.

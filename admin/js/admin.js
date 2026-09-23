@@ -2549,8 +2549,11 @@ function initMarcasDeSetSection() {
 // había forma de arreglarlo sin desplegar. Ahora se asignan desde aquí,
 // se guardan en site_settings y mandan sobre la tabla.
 //
-// Y si TCGdex trae el código en su catálogo, se rellena solo al pulsar
-// «Buscar sets en TCGdex».
+// Y ya NO se rellena solo (tanda 345): el campo que traía TCGdex era el
+// código de Pokémon TCG Online, que cerró en 2023, así que viene vacío en
+// todo lo moderno. Lo de aquí abajo es el camino normal, no el de
+// repuesto — y al guardar escribe las DOS cosas: el mapa de decklists y
+// la columna del set, que es la etiqueta que se ve en /cartas.
 // ═══════════════════════════════════════════════════════════════════
 
 let setsLive = {} // CÓDIGO → id de set nuestro
@@ -2599,7 +2602,7 @@ function pintarSetsLive() {
           })
           .join('')}</tbody>
       </table>`
-    : '<p class="admin-note">Ninguno asignado a mano: todos vienen de TCGdex.</p>'
+    : '<p class="admin-note">Ninguno asignado a mano todavía. Los sets nuevos hay que apuntarlos aquí: TCGdex ya no trae el código.</p>'
 
   caja.querySelectorAll('[data-quitar-setlive]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -2620,6 +2623,29 @@ function pintarSetsLive() {
   }
 }
 
+// El mapa de aquí arreglaba las decklists y nada más. Pero el MISMO dato
+// vive en `tcg_sets.tcg_online_code`, que es de donde sale la etiqueta de
+// /cartas — y como TCGdex dejó de darlo, esa columna se quedó vacía en
+// todo lo moderno y la lista de sets enseñaba «ME05» en vez de «PBL».
+// Son el mismo dato dicho dos veces: se escriben los dos a la vez o uno
+// de ellos se queda viejo sin que nadie se entere.
+async function volcarCodigosEnLosSets() {
+  let escritos = 0
+  for (const [codigo, setId] of Object.entries(setsLive)) {
+    const fila = tcgSetsLocales.find((s) => s.id === setId && (s.market || 'WEST') === 'WEST')
+    if (!fila || fila.tcg_online_code === codigo) continue
+    const { error } = await supabase
+      .from('tcg_sets')
+      .update({ tcg_online_code: codigo })
+      .eq('id', setId)
+      .eq('market', 'WEST')
+    if (error) continue
+    fila.tcg_online_code = codigo
+    escritos++
+  }
+  return escritos
+}
+
 async function guardarSetsLive() {
   const { error } = await supabase
     .from('site_settings')
@@ -2629,8 +2655,13 @@ async function guardarSetsLive() {
     showToast('No se ha podido guardar: ' + error.message, 'error')
     return
   }
-  if (nota) nota.textContent = `Guardado: ${Object.keys(setsLive).length} códigos.`
-  showToast('Códigos guardados. Las decklists ya los usan.', 'success')
+  const escritos = await volcarCodigosEnLosSets()
+  if (nota) {
+    nota.textContent = `Guardado: ${Object.keys(setsLive).length} códigos` +
+      (escritos ? `, ${escritos} escritos también en el set.` : '.')
+  }
+  pintarSetsLive()
+  showToast('Códigos guardados. Las decklists y la lista de sets ya los usan.', 'success')
 }
 
 // ── Traer los códigos de lo YA importado (tanda 233) ──
@@ -2671,8 +2702,9 @@ async function traerCodigosLive() {
         continue
       }
       if (!codigo) {
-        // Los sets anteriores a TCG Live no tienen código, y eso es
-        // normal: no es un error que haya que enseñar.
+        // No es un error que haya que enseñar, pero tampoco es «es un set
+        // viejo»: TCGdex no lo da para NINGUNO desde 2023. Se cuentan y
+        // se dice al final con esas palabras.
         sinCodigo++
         continue
       }
@@ -2693,9 +2725,10 @@ async function traerCodigosLive() {
 
   if (nota) {
     nota.textContent = traidos
-      ? `${traidos} códigos guardados${sinCodigo ? ` (${sinCodigo} sets sin código, normal en los antiguos)` : ''}.` +
+      ? `${traidos} códigos guardados${sinCodigo ? ` (${sinCodigo} sin código en TCGdex)` : ''}.` +
         ' Las decklists ya los usan.'
-      : 'Ningún código nuevo. Los sets antiguos no tienen: TCG Live no existía.'
+      : `Ningún código nuevo${sinCodigo ? ` (${sinCodigo} sets mirados)` : ''}. TCGdex ya no trae el campo: ` +
+        'era el código de TCG Online, que cerró en 2023. Apúntalos a mano aquí abajo.'
   }
   pintarSetsLive()
 }

@@ -576,6 +576,11 @@ body {
 .admin-detalle-avanzado { margin-top: 14px; }
 .admin-detalle-avanzado > summary { cursor: pointer; color: var(--text-mid); font-size: 14px; }
 
+/* El bloque de «a mano» de los códigos de TCG Live dejó de ser un
+   desplegable en la tanda 345: desde que TCGdex no da el campo es el
+   camino normal y no el avanzado. */
+.admin-bloque-mano { margin-top: 16px; }
+
 
 /* ── Lo que venía de components.css (tanda 312) ──
    Estas reglas solo las usa /admin, pero vivían en la hoja que se baja

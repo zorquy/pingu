@@ -18065,3 +18065,76 @@ el móvil. El contenedor pasa a ser la caja de fuera (`.coleccion-medida`).
 
 Es pariente de la trampa de la 299 —un `@media` que se queda sin su
 base— con el mismo síntoma: la regla existe, se lee bien, y no hace nada.
+
+---
+
+## Tanda 345 — el código es de TCG LIVE, y TCGdex ya no lo da
+
+PINGU, mirando la consulta de la 343: «pero el TCG Online es lo antiguo,
+ahora es el TCG Live». Ahí estaba.
+
+**Lo que dije y no era.** La 343 hizo que la tarea visitara los ~220 sets
+para curarles el código. Los visitó —216 de 220 en un rato— y el
+resultado fue: **98 siguen sin código, y TODOS los modernos entre
+ellos**. No faltaban pasadas.
+
+`codigoLiveDeSet(set)` lee `set.tcgOnline`. Ese es el código de **Pokémon
+TCG Online**, la plataforma vieja, que cerró en 2023 — y TCGdex dejó de
+rellenar el campo entonces. El que se usa hoy es el de **TCG Live**, que
+es el que sale en las decklists y con el que habla la gente. Son dos
+códigos distintos con el mismo aspecto, y el que tenemos es el muerto:
+**el dato no existe arriba y ninguna pasada lo va a traer.**
+
+Y no da error en ninguna parte. La columna se queda a null, y quien la
+lee tiene su respaldo: `js/cartas.js` pinta `tcg_online_code || id`, así
+que la lista de sets enseña «ME05» —el identificador interno, que es la
+nomenclatura asiática— como si fuera el código occidental. Exactamente lo
+que PINGU vio y lo que la 343 dijo que arreglaría.
+
+**La siembra.** `supabase-migration-codigos-live.sql` mete los 25 códigos
+de la era actual por id de set (`30th`→30C, `me05`→PBL, `me04`→CRI,
+`me03`→POR, `me02.5`→ASC, `me02`→PFL, `me01`→MEG, `mee`→MEE, `mep`→MEP,
+`sv10.5b`→BLK, `sv10.5w`→WHT, `sv10`→DRI, `sv09`→JTG, `sv08.5`→PRE,
+`sv08`→SSP, `sv07`→SCR, `sv06.5`→SFA, `sv06`→TWM, `sv05`→TEF,
+`sv04.5`→PAF, `sv04`→PAR, `sv03.5`→MEW, `sv03`→OBF, `sv02`→PAL,
+`sv01`→SVI), con `market = 'WEST'` y `tcg_online_code is null`: lo que
+TCGdex sí dio en su día no se pisa.
+
+**Un dato que ya no llega solo necesita una PUERTA, no una tarea.** La
+tarjeta de /admin → Cartas → «Códigos de set de TCG Live» ya tenía el
+campo de mano, pero contaba otra historia: el texto prometía que «lo trae
+TCGdex: cada set nuevo que importes guarda su código solo», el botón de
+traer decía «los sets antiguos no tienen: TCG Live no existía» cuando no
+encontraba nada —falso, no lo trae de NINGUNO— y el formulario de mano
+estaba plegado en un desplegable de «avanzado». Tres textos escritos
+cuando aquello era verdad, que hoy mandan a quien lo lee al sitio
+equivocado. Ahora el bloque de mano va a la vista, la tarjeta dice por
+qué, y el mensaje de «ningún código nuevo» explica el motivo real.
+
+**Y el mismo dato vivía en dos sitios sin hablarse.** El formulario de
+mano escribía solo `site_settings.torneos_sets_live`, que es el mapa que
+consulta el lector de decklists. Pero la ETIQUETA de /cartas sale de
+`tcg_sets.tcg_online_code`. Mientras TCGdex rellenaba la columna, apuntar
+solo el mapa bastaba; desde que no, apuntar a mano arreglaba las
+decklists y dejaba la lista de sets en «ME05». `volcarCodigosEnLosSets()`
+escribe las dos al guardar — y no reescribe el que ya coincide.
+
+**El respaldo de `SETS_LIVE`** (en `js/torneos/comun.js`) es lo que usa el
+lector de decklists mientras la migración no esté puesta, y le faltaban
+PBL, 30C y MEP. Cuidado con el nombre: ese paso resuelve con un
+`.eq('name', nombre)` **exacto** contra nuestra tabla, así que MEP va
+como `MEP Black Star Promos` —lo que dice nuestra base— y no como «Mega
+Promos», que es como lo llama Limitless.
+
+**La prueba** (`pruebas/test-tanda-345.mjs`) mira cuatro cosas: que sin
+el campo `tcgOnline` no hay código y que el porqué está escrito donde se
+lee; que la siembra tiene forma de siembra (códigos bien formados, sin
+repetidos, solo donde está vacío y solo WEST); que todo código sembrado
+tiene respaldo en `SETS_LIVE` —si no, entre el despliegue y la migración
+una decklist con ese set no resolvería—; y que /admin escribe las dos
+mitades y ya no cuenta la historia vieja.
+
+**Lo que queda a mano.** Cada set nuevo necesita que alguien le apunte el
+código en esa tarjeta. Es un campo y un guardar, y la propia tarjeta dice
+cuántos de los 20 más nuevos lo tienen: no hay que acordarse, hay que
+mirarla cuando sale un set.

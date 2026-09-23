@@ -413,14 +413,17 @@
           <p class="admin-note">
             Cuando alguien pega una decklist, cada línea trae el código del set tal como lo escribe
             TCG Live («TWM 128»). Ese código se traduce a un set nuestro para poder enseñar la
-            imagen de la carta, y <strong>lo trae TCGdex</strong>: cada set nuevo que importes
-            guarda su código solo, sin que nadie tenga que apuntar nada.
+            imagen de la carta, y es también la etiqueta que se ve en la lista de sets de
+            <a href="/cartas.html">Cartas</a>: sin él ahí sale el identificador interno
+            («ME05» en vez de «PBL»).
           </p>
-          <p class="admin-note">
-            Los sets importados <em>antes</em> de que esto existiera no lo tienen. El botón de abajo
-            los rellena sin volver a bajar las cartas, de los más nuevos a los más viejos — que son
-            los que salen en las decklists. Los sets anteriores a TCG Live no tienen código, y eso
-            es normal.
+          <p class="admin-note admin-note-alerta">
+            <strong>Esto ya no se rellena solo.</strong> El campo que traía TCGdex era el código de
+            <em>Pokémon TCG Online</em>, la plataforma vieja, que cerró en 2023: desde entonces
+            viene vacío en todos los sets nuevos. El botón de abajo sigue aquí por si TCGdex lo
+            retoma, pero hoy no va a encontrar nada de la era actual —
+            <strong>los sets nuevos se apuntan a mano aquí abajo</strong>, que son dos campos y un
+            guardar.
           </p>
           <div class="foro-admin-fila">
             <button class="btn-primary" id="btnTraerCodigos">Traer códigos de TCG Live</button>
@@ -431,11 +434,12 @@
           <div id="setsLiveResumen"></div>
           <div id="setsLiveLista"></div>
 
-          <details class="admin-detalle-avanzado">
-            <summary>Asignar un código a mano</summary>
+          <div class="admin-bloque-mano">
+            <h4 style="margin-bottom: 4px;">Asignar un código a mano</h4>
             <p class="admin-note">
-              Solo hace falta si TCGdex se equivoca o si un set no trae código. Lo que pongas aquí
-              manda sobre lo que diga TCGdex.
+              El código es el que sale en la decklist (ASC, POR, PBL…). Lo que pongas aquí manda
+              sobre lo que diga TCGdex, y al guardar se escribe también en el set, así que la
+              etiqueta de <a href="/cartas.html">Cartas</a> cambia con esto.
             </p>
             <div class="foro-admin-fila">
               <input type="text" id="setLiveCodigo" placeholder="Código (ASC)" style="max-width: 160px;" />
@@ -445,7 +449,7 @@
             <div class="foro-admin-fila">
               <button class="btn-secondary" id="btnGuardarSetsLive">Guardar los de mano</button>
             </div>
-          </details>
+          </div>
         </div>
 
         <div class="cards-import-bar">
