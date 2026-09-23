@@ -483,16 +483,40 @@
  * Se mide a SÍ MISMA y no a la ventana (tanda 316): la misma rejilla
  * está en la colección a todo lo ancho y en el buscador del índice, y
  * «ventana más grande» no quiere decir «hueco más grande». */
-.coleccion-rejilla {
+/* ── Cuántas caben por fila (tanda 344) ──
+ *
+ * Antes era `auto-fill` con un mínimo, y en una pantalla ancha salían
+ * ocho por fila: cartas del tamaño de un sello, en una página que existe
+ * para MIRAR cartas. Ahora el número es fijo — cuatro arriba, dos en el
+ * móvil— porque lo que se quiere no es «las que quepan» sino un tamaño
+ * concreto.
+ *
+ * DOS en el móvil y no una: a una por fila hay que bajar doscientas
+ * veces para ver un set, y una carta a pantalla completa tampoco se lee
+ * mejor.
+ *
+ * Y va con `@container` y no con `@media` porque la rejilla se mide a SÍ
+ * misma (la lección de la 316): la misma página con la barra lateral
+ * abierta o cerrada tiene anchos distintos, y la ventana no lo sabe. */
+.coleccion-medida {
   container-type: inline-size;
+}
+
+.coleccion-rejilla {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--e-lg);
 }
 
-@container (min-width: 700px) {
+@container (min-width: 560px) {
   .coleccion-rejilla {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@container (min-width: 760px) {
+  .coleccion-rejilla {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 

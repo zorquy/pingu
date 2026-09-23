@@ -12,6 +12,46 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-23 — PINGU-Claude (tanda 344 — la colección, de golpe y a un tamaño que se vea)
+
+**Hecho**: tres cosas que pidió PINGU de /coleccion.
+
+**Todas las cartas de golpe.** Salían 60 y un botón de «ver más». Una
+colección es una lista que se hojea, y partirla obliga a pulsar para ver
+lo que ya sabías que estaba. Un set son ~200 cartas y las imágenes van
+con `loading="lazy"`, así que lo que baja de verdad es lo que se mira. El
+botón se va del HTML: sin nadie que lo encienda era marcado muerto.
+
+**Cuatro por fila arriba, dos en el móvil.** Era `auto-fill` con un
+mínimo y en pantalla ancha salían ocho: cartas del tamaño de un sello en
+una página que existe para MIRAR cartas. Dos en el móvil y no una —a una
+por fila hay que bajar doscientas veces, y a pantalla completa tampoco se
+lee mejor.
+
+**Y un fallo que llevaba ahí desde la 324 y no se notaba**: la rejilla
+tenía el `container-type` Y sus propios `@container`. **Un elemento no
+puede consultarse a sí mismo**, así que ese breakpoint no se aplicó
+nunca. No se veía porque `auto-fill` adaptaba las columnas por su cuenta;
+al fijar el número, salió a la primera. El contenedor pasa a ser la caja
+de fuera.
+
+**El logo del set ya salía**: `cabeceraDeColeccion` lo pinta desde la 324
+con `logo_path`, que el importador guarda. Queda comprobado en la prueba,
+con el caso de un set sin logo (media colección no tiene).
+
+**Ficheros**: `js/coleccion.js`, `coleccion.html`, `css/carta.css`,
+`SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-344.mjs` (NUEVO),
+`pruebas/test-tanda-324.mjs` y `herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: lo de ME05 en vez de PBL **no es código**: el
+molde ya prefiere el código de TCG Live. Falta ejecutar
+`supabase-migration-sets-curado.sql` y que la tarea visite los ~220 sets
+(menos de una hora). Siguen pendientes también
+`supabase-migration-marcas-por-set.sql`.
+
+---
+
 ## 2026-09-23 — PINGU-Claude (tanda 343 — saber si un set se ha VISITADO, no si le falta un campo)
 
 **Hecho**: PINGU, comparando /cartas con Limitless: «los sets están mal,

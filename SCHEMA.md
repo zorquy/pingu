@@ -18032,3 +18032,36 @@ Cubierto en `test-tanda-343.mjs` (6 bloques), que ejecuta `faltaVisitar`
 de verdad. Y de paso se reescribieron dos comprobaciones de la 335 y la
 339 que miraban la FORMA vieja del respaldo (dos `.catch()` anidados) y
 dejaron de casar sin que el código perdiera nada.
+
+---
+
+## Tanda 344 — la colección, de golpe y a un tamaño que se vea
+
+Tres cosas de /coleccion que pidió PINGU.
+
+**Todas las cartas de golpe.** Salían 60 y un botón de «ver más». Una
+colección es una lista que se hojea, y partirla obliga a pulsar para ver
+lo que ya sabías que estaba. Un set son ~200 cartas, las imágenes van con
+`loading="lazy"` y lo que baja de verdad es lo que se mira. El botón se
+va del HTML: sin nadie que lo encienda era marcado muerto.
+
+**Cuatro por fila arriba, dos en el móvil.** Era `auto-fill` con un
+mínimo y en pantalla ancha salían ocho — cartas del tamaño de un sello en
+una página que existe para mirar cartas. Dos en el móvil y no una: a una
+por fila hay que bajar doscientas veces para ver un set, y una carta a
+pantalla completa tampoco se lee mejor.
+
+### El `@container` que no se aplicaba desde la 324
+
+La rejilla tenía el `container-type` **y** sus propios `@container`. Y
+**un elemento no puede consultarse a sí mismo**: la consulta mira al
+contenedor ANTEPASADO más cercano. Así que ese breakpoint no se aplicó
+nunca.
+
+No se notaba porque `auto-fill` adaptaba las columnas por su cuenta —
+hacía el trabajo que la media query creía estar haciendo. Al fijar el
+número de columnas salió a la primera: cuatro en escritorio y cuatro en
+el móvil. El contenedor pasa a ser la caja de fuera (`.coleccion-medida`).
+
+Es pariente de la trampa de la 299 —un `@media` que se queda sin su
+base— con el mismo síntoma: la regla existe, se lee bien, y no hace nada.

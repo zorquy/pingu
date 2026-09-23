@@ -93,11 +93,16 @@
       <!-- coleccion:fin -->
     </div>
 
-    <div id="coleccionRejilla" class="coleccion-rejilla">
-      <!-- coleccion-cartas:inicio --><!-- coleccion-cartas:fin -->
+    <!-- La caja de fuera es la que mide: un elemento NO puede consultarse
+         a sí mismo con `@container`, así que la rejilla no podía
+         reaccionar a su propio ancho. El breakpoint que había antes de la
+         tanda 344 no se aplicaba nunca y `auto-fill` lo disimulaba. -->
+    <div class="coleccion-medida">
+      <div id="coleccionRejilla" class="coleccion-rejilla">
+        <!-- coleccion-cartas:inicio --><!-- coleccion-cartas:fin -->
+      </div>
     </div>
 
-    <button id="verMas" class="btn btn-secondary hidden" type="button">Ver más cartas</button>
 
     <p id="coleccionError" class="empty-state hidden">No encuentro esa colección. Puede que la dirección esté mal escrita.</p>
   </main>

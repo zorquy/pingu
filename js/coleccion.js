@@ -17,17 +17,22 @@ import { esDelTCG } from './catalogo-series.js'
 
 const MERCADO = 'WEST'
 
-// Cuántas cartas van en el documento que sale del servidor y cuántas
-// trae después cada «ver más». Las 60 primeras cubren la pantalla de
-// quien llega; el resto se pide cuando se pide.
-const PRIMERAS = 60
-const POR_TANDA = 120
+// ── Todas de golpe (tanda 344) ──
+//
+// Antes salían 60 y un botón de «ver más». PINGU lo quitó: una colección
+// es una lista que se hojea, y partirla obliga a pulsar para ver lo que
+// ya sabías que estaba. Un set son ~200 cartas y las imágenes van con
+// `loading="lazy"`, así que lo que baja de verdad es lo que se mira.
+//
+// Se pide por páginas igualmente, pero sin parar: PostgREST corta en
+// 1.000 filas por respuesta y un set no llega, pero el bucle no da nada
+// por supuesto.
+const POR_PAGINA = 500
 
 const $ = (id) => document.getElementById(id)
 
 let setId = null
 let desde = 0
-let quedan = true
 
 async function cargar() {
   setId = idDeRutaDeColeccion(location.pathname) || new URLSearchParams(location.search).get('set')
@@ -53,8 +58,7 @@ async function cargar() {
   // de volver a pedirlas.
   const yaPintadas = $('coleccionRejilla')?.querySelectorAll('.coleccion-carta').length || 0
   desde = yaPintadas
-  if (!yaPintadas) await masCartas(PRIMERAS)
-  actualizarBoton()
+  await todasLasCartas()
 }
 
 // El orden es por `local_id`, que es el número impreso en la carta — y
@@ -68,25 +72,23 @@ async function masCartas(cuantas) {
     .eq('set_id', setId)
     .order('local_id')
     .range(desde, desde + cuantas - 1)
-  if (error) return
+  if (error) return 0
   const lista = data || []
   if (lista.length) $('coleccionRejilla')?.insertAdjacentHTML('beforeend', rejillaDeCartas(lista))
   desde += lista.length
-  quedan = lista.length === cuantas
+  return lista.length
 }
 
-function actualizarBoton() {
-  const btn = $('verMas')
-  if (!btn) return
-  btn.classList.toggle('hidden', !quedan)
-  if (btn.dataset.listo === '1') return
-  btn.dataset.listo = '1'
-  btn.addEventListener('click', async () => {
-    btn.disabled = true
-    await masCartas(POR_TANDA)
-    btn.disabled = false
-    actualizarBoton()
-  })
+// Hasta que no quede ninguna. El tope es por si algún día un set trae
+// miles: un bucle sin salida contra una consulta que siempre devuelve
+// algo dejaría la pestaña colgada.
+const PAGINAS_MAXIMO = 10
+
+async function todasLasCartas() {
+  for (let i = 0; i < PAGINAS_MAXIMO; i++) {
+    const traidas = await masCartas(POR_PAGINA)
+    if (traidas < POR_PAGINA) return
+  }
 }
 
 // Igual que en la ficha: se queda el encabezado, se va el esqueleto. Y
