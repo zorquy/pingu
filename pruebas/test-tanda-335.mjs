@@ -125,8 +125,13 @@ console.log('\n── 3. Nadie escribe el nombre traducido encima de `name` ─�
   // Y lo que no puede pasar: que subir esto ANTES de ejecutar la
   // migración pare el engorde. PostgREST devuelve 400 —no null— si le
   // pides una columna que no existe.
-  check('la columna nueva se pide con vuelta atrás',
-    /names_fixed_at[\s\S]{0,200}\.catch\(\(\) => rest\(/.test(tarea))
+  // Se comprueba la FORMA, no la distancia: la primera versión medía una
+  // ventana de 200 caracteres y un comentario en medio la rompió sin que
+  // el código cambiara. Lo que importa es que la consulta que pide la
+  // columna nueva tenga detrás otra que no la pide.
+  check('la columna nueva se pide…', /select=\$\{columnas\},names_fixed_at/.test(tarea))
+  check('…y con vuelta atrás a una consulta sin ella',
+    /\.catch\(\(\) =>[\s\S]*?select=\$\{columnas\}&market/.test(tarea))
   check('…y sin ella la fase se queda apagada',
     /s\.names_fixed_at === null/.test(tarea))
 
