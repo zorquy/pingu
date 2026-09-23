@@ -124,6 +124,18 @@ MUTACIONES = [
      '  if (!Array.isArray(marcas) || !marcas.length) return null',
      "  if (!Array.isArray(marcas) || !marcas.length) return { estado: 'fuera', marca: '' }"),
 
+    # ── 6b. Y el null que no es un dato (tanda 338) ──
+    # `regulation_mark` a null son DOS cosas que en la base se ven
+    # igual: la carta no lleva marca, o no la hemos engordado. Sin esta
+    # linea, a un Mew ex recien salido le sale «No es legal en
+    # Estandar», que es lo peor que se le puede decir a alguien.
+    (N, 'una carta sin engordar se da por ilegal',
+     '  if (!marca && !carta.detalle_at) return null', '  if (false) return null'),
+    # Y el contrario: no afirmar NUNCA sin marca, con lo que las cartas
+    # viejas de verdad se quedan mudas y la chapa deja de servir.
+    (N, 'una carta vieja sin marca se queda muda',
+     '  if (!marca && !carta.detalle_at) return null', '  if (!marca) return null'),
+
     # ── 7. Los dos errores simetricos ──
     # Todo legal: la chapa deja de servir para nada y quien se fie se
     # presenta en un torneo con una lista que le rechazan.

@@ -190,10 +190,31 @@ console.log('\n── 5. La chapa de si se puede jugar hoy ──')
   check('con marca vieja pero con reimpresión, es ESTA impresión la que no vale',
     legalidadEstandar({ regulation_mark: 'D' }, { ...L, reimpresion: true })?.estado === 'reimpresion')
   // Desde 2022 el Estándar exige marca, así que no tenerla también deja
-  // fuera — pero la carta puede tener una reimpresión moderna.
-  check('sin marca, fuera', legalidadEstandar({}, L)?.estado === 'fuera')
+  // fuera — pero solo si SABEMOS que no la lleva, y eso es haberla
+  // pedido (`detalle_at`).
+  check('sin marca y con la ficha traída, fuera',
+    legalidadEstandar({ detalle_at: 'x' }, L)?.estado === 'fuera')
   check('…salvo que haya reimpresión',
-    legalidadEstandar({}, { ...L, reimpresion: true })?.estado === 'reimpresion')
+    legalidadEstandar({ detalle_at: 'x' }, { ...L, reimpresion: true })?.estado === 'reimpresion')
+
+  // ── Y lo que costó un Mew ex recién salido (tanda 338) ──
+  //
+  // `regulation_mark` a null son DOS cosas que en la base se ven igual:
+  // la carta no lleva marca, o no la hemos engordado todavía. Tratar la
+  // segunda como la primera le ponía «No es legal en Estándar» a una
+  // carta del set más nuevo que hay.
+  check('sin marca y SIN engordar, no se afirma nada',
+    legalidadEstandar({}, L) === null, JSON.stringify(legalidadEstandar({}, L)))
+  check('…ni aunque haya una reimpresión legal',
+    legalidadEstandar({}, { ...L, reimpresion: true }) === null)
+  check('…y tampoco se pinta la chapa',
+    !/carta-legal/.test(nucleoDeCarta({ id: 'x', name: 'Mew ex' }, null, null, L)))
+  // Pero con marca sí se decide, esté engordada o no: la marca la puede
+  // haber puesto el volcado de la tanda 215 sin que la ficha esté.
+  check('con marca y sin engordar, sí se decide',
+    legalidadEstandar({ regulation_mark: 'I' }, L)?.estado === 'legal')
+  check('…y una marca vieja sin engordar también',
+    legalidadEstandar({ regulation_mark: 'D' }, L)?.estado === 'fuera')
 
   // Y lo que NO se puede afirmar: si no se sabe, no se pinta. La lección
   // de la 319 — un defecto que convierte «no me lo han dado» en «no es

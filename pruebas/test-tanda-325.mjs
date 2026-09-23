@@ -18,9 +18,11 @@ import {
 } from '/home/user/pingu/netlify/lib/juego-agregado.mjs'
 import {
   MAZOS_MINIMOS,
+  MAZOS_PARA_TENDENCIA,
   bloqueDeJuego,
   claveDeJuego,
   hayDatosDeJuego,
+  hayMuestra,
   mediaDeCopias,
   mereceIndexarse,
   nucleoDeCarta,
@@ -125,13 +127,38 @@ console.log('\n── 3. La promesa de la visibilidad ──')
 // ═════════════════════════════════════════════════════════════════════
 console.log('\n── 4. Un número sin muestra no es un número ──')
 {
-  // Con dos mazos, «el 100% la juega a 4 copias» es verdad y no dice
-  // nada. El bloque no sale hasta que hay muestra.
-  check(`hacen falta ${MAZOS_MINIMOS} mazos`, MAZOS_MINIMOS >= 3)
-  check('con uno menos, no hay bloque', !hayDatosDeJuego({ decks: MAZOS_MINIMOS - 1 }))
-  check('con los justos, sí', hayDatosDeJuego({ decks: MAZOS_MINIMOS }))
+  // REESCRITO EN LA 338. Antes el bloque no salía por debajo de tres
+  // mazos, con el razonamiento de que «el 100 % la juega a 4 copias» no
+  // dice nada. Eso sigue siendo cierto de la MEDIA — pero no del hecho:
+  // que una carta se haya jugado en un torneo de PokeDoc es justo lo que
+  // no tiene ninguna otra web, y esconderlo por no poder calcular una
+  // media encima es tirar el dato bueno para proteger el malo.
+  //
+  // Ahora el bloque sale desde UN mazo y lo que cambia es lo que dice.
+  check('el bloque sale desde un solo mazo', hayDatosDeJuego({ decks: 1 }))
+  check('sin ningún mazo, no', !hayDatosDeJuego({ decks: 0 }))
   check('sin datos, tampoco', !hayDatosDeJuego(null))
-  check('y no se pinta nada', bloqueDeJuego({ decks: 2, total_copies: 8 }) === '')
+  check('pero para hablar de tendencia hacen falta tres', MAZOS_PARA_TENDENCIA >= 3)
+  check('…con dos no hay muestra', !hayMuestra({ decks: 2 }))
+  check('…con tres sí', hayMuestra({ decks: 3 }))
+
+  // Y lo que NO se hace nunca: pintar una media de una muestra de uno.
+  const unaLista = bloqueDeJuego({ decks: 1, total_copies: 4, tournaments: 1, archetypes: [{ nombre: 'Ceruledge', mazos: 1 }] })
+  check('con un mazo el bloque sale', /carta-juego/.test(unaLista))
+  check('…y lo dice en singular', /Mazo que la lleva/.test(unaLista), unaLista.slice(0, 200))
+  check('…sin media', !/Copias de media/.test(unaLista))
+  check('…pero con las copias de verdad, que eso sí es un dato', /<dt>Copias<\/dt><dd>4</.test(unaLista))
+  check('…sin «se juega sobre todo en», que con uno no es un sobre todo',
+    !/Se juega sobre todo/.test(unaLista))
+  check('…y avisando del tamaño de la muestra', /una sola lista/.test(unaLista), unaLista)
+
+  // Con dos, lo mismo pero en plural.
+  const dos = bloqueDeJuego({ decks: 2, total_copies: 7, tournaments: 1, archetypes: [{ nombre: 'A', mazos: 2 }] })
+  check('con dos tampoco hay media', !/Copias de media/.test(dos))
+  check('…y el aviso lo dice', /de 2 listas/.test(dos), dos)
+  // Y las copias exactas SOLO con un mazo: con dos, un total de 7 no es
+  // «7 copias» de nadie.
+  check('…y no se enseña un total como si fueran copias de una lista', !/<dt>Copias<\/dt>/.test(dos))
 
   // La media se calcula al pintar: guardarla ya dividida haría imposible
   // recalcular nada.
@@ -156,7 +183,14 @@ console.log('\n── 5. El listón para salir en Google sube ──')
   const engordada = { detalle_at: 'x' }
   const jugada = { decks: 9 }
   check('engordada pero sin jugar: no', !mereceIndexarse(engordada, null))
-  check('engordada y poco jugada: tampoco', !mereceIndexarse(engordada, { decks: MAZOS_MINIMOS - 1 }))
+  // Con el listón de la MUESTRA, no con el del bloque: desde la 338 son
+  // dos números distintos, y este es el que decide qué ve Google. Con
+  // `MAZOS_MINIMOS - 1` esto valía cero y pasaba de cualquier manera —
+  // lo cantó el rigor.
+  check('engordada y poco jugada: tampoco',
+    !mereceIndexarse(engordada, { decks: MAZOS_PARA_TENDENCIA - 1 }))
+  check('…aunque el bloque sí salga con esos mismos mazos',
+    hayDatosDeJuego({ decks: MAZOS_PARA_TENDENCIA - 1 }))
   check('engordada y jugada: sí', mereceIndexarse(engordada, jugada))
   check('jugada pero sin engordar: no', !mereceIndexarse({}, jugada))
   // Y que la decisión esté en UN sitio: el borde no puede tener otra.
