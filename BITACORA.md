@@ -12,6 +12,65 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-23 — PINGU-Claude (tanda 339 — la marca de regulación es del SET)
+
+**Hecho**: PINGU, con la carta delante: «sí que lleva marca de
+regulación, llevan la marca J… no podemos dejar la marca vacía, y por
+fecha ya deberías saber qué marca lleva». Las dos cosas, ciertas.
+
+**Lo que pasaba**: TCGdex no trae `regulationMark` para las cartas del
+set `30th`. Se vio en las filas ya engordadas —`detalle_at` puesto,
+`detalle_lang` = es, sin error, y la columna a null— y `detalleDeCarta`
+solo la escribe SI VIENE, a propósito (ponerla a null cuando falta
+borraría las 8.288 que sembró la 215). Así que la ficha decía «No es
+legal en Estándar» de una carta que sí lo es.
+
+**Y mi arreglo de la 338 NO cubría este caso**, cosa que le dije mal:
+aquella guarda solo calla cuando la ficha no se ha traído, y estas
+están traídas. Valía para las 6.500 sin engordar, no para estas.
+
+**Lo que lo hace arreglable sin inventar**: la marca es propiedad del
+SET, no de cada carta. De ahí las tres fases de la migración, en orden
+de menos a más suposición: (1) preguntarle a las propias cartas del set
+—que no adivina nada—, (2) heredar la del set anterior más cercano por
+fecha, y solo a partir de que las marcas existen, con el suelo sacado de
+los DATOS (el set más antiguo que tiene una) y no de una fecha escrita a
+mano, y (3) lo que un humano ha comprobado, que manda sobre las otras
+dos: el `30th` va en J porque PINGU lo ha mirado.
+
+Queda apuntado de dónde sale cada una (`regulation_mark_origen`), que es
+lo que permite revisar las DEDUCIDAS —un puñado— en vez de los 220 sets.
+
+**Y lo que no puede hacer**: rellenar los sets anteriores a que las
+marcas existieran. Ahí el null no es un hueco, es la verdad, y
+rellenarlo daría por legal media colección de 2016. Es el fallo
+contrario y es peor.
+
+**Y los sets que vengan, solos**: la tarea programada hace lo mismo con
+cada set nuevo que llegue sin marca, y una carta recién engordada sin
+marca coge la de su set. Sin eso habría que repetir la migración a mano
+cada vez, y de eso no se acuerda nadie.
+
+**Ficheros**: `supabase-migration-marcas-por-set.sql` (NUEVO, **sin
+ejecutar**), `netlify/lib/carta-detalle.mjs`,
+`netlify/functions/cartas-detalle.mjs`, `js/schema-check.js`,
+`SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-339.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**:
+- **PINGU tiene que ejecutar `supabase-migration-marcas-por-set.sql`** y
+  después **revisar los sets deducidos** (`regulation_mark_origen =
+  'fecha'`), que son los únicos que pueden estar mal: si la rotación cae
+  justo entre un set y el siguiente, la deducción se queda con la letra
+  anterior.
+- Falta la pantalla de /admin para corregir a mano la marca de un set.
+  Hoy eso se hace con un `update`.
+- La suite entera sigue pendiente de una pasada con la 336, 337, 338 y
+  339 dentro.
+
+---
+
 ## 2026-09-23 — PINGU-Claude (tanda 338 — el null que no es un dato, y el bloque de torneos con poca muestra)
 
 **Hecho**: dos cosas que salieron del mismo mensaje de PINGU sobre el

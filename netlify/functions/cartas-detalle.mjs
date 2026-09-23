@@ -1,4 +1,4 @@
-import { detalleEnEspanol, urlDeSet, leFaltaAlgo, loQueFaltaDeUnSet, nombresPorArreglar } from '../lib/carta-detalle.mjs'
+import { detalleEnEspanol, urlDeSet, leFaltaAlgo, loQueFaltaDeUnSet, nombresPorArreglar, marcaHeredada } from '../lib/carta-detalle.mjs'
 
 // Engorda las cartas de `tcg_cards` poco a poco (tanda 322).
 //
@@ -112,12 +112,20 @@ async function setsPorPrioridad(clave) {
   // devuelve un 400 y tumba la consulta entera**. Sin esta vuelta atrás,
   // subir esto antes de ejecutar la migración pararía el engorde en
   // seco. Se pide con ella y, si no está, sin ella.
-  const columnas = 'id,release_date,serie_id,serie_name,tcg_online_code'
+  const columnas = 'id,release_date,serie_id,serie_name,tcg_online_code,regulation_mark,regulation_mark_origen'
   const ordenar = '&order=release_date.desc.nullslast'
   const sets = await rest(
     `tcg_sets?select=${columnas},names_fixed_at&market=eq.${MERCADO}${ordenar}`,
     clave
-  ).catch(() => rest(`tcg_sets?select=${columnas}&market=eq.${MERCADO}${ordenar}`, clave))
+  ).catch(() =>
+    // Sin la migración de la 335 no existe `names_fixed_at`; sin la de la
+    // 339 tampoco `regulation_mark`. Las dos vueltas atrás son la misma
+    // idea: PostgREST devuelve 400 —no null— si le pides una columna que
+    // no está, y eso tumbaría la consulta entera y pararía el engorde.
+    rest(`tcg_sets?select=${columnas}&market=eq.${MERCADO}${ordenar}`, clave).catch(() =>
+      rest(`tcg_sets?select=id,release_date,serie_id,serie_name,tcg_online_code&market=eq.${MERCADO}${ordenar}`, clave)
+    )
+  )
   const filas = sets || []
   return {
     orden: filas.map((s) => s.id),
@@ -130,6 +138,9 @@ async function setsPorPrioridad(clave) {
     // valor es `undefined`, que aquí significa «no hay nada que
     // reparar» y deja la fase apagada. Pendiente de verdad es null.
     porReparar: filas.filter((s) => s.names_fixed_at === null).map((s) => s.id),
+    // Los que no tienen marca de regulación (tanda 339). Sin la
+    // migración la columna no viaja y esto sale vacío: la fase no corre.
+    porMarcar: filas.filter((s) => s.regulation_mark === null).map((s) => s.id),
   }
 }
 
@@ -247,7 +258,7 @@ export default async function handler() {
   if (!clave) return new Response('Falta SUPABASE_SERVICE_ROLE_KEY', { status: 500 })
 
   const arranque = Date.now()
-  const { orden, porId, incompletos, porReparar } = await setsPorPrioridad(clave)
+  const { orden, porId, incompletos, porReparar, porMarcar } = await setsPorPrioridad(clave)
 
   // ── Primero, los SETS que quedan por visitar ──
   //
@@ -303,9 +314,42 @@ export default async function handler() {
     await esperar(PAUSA_MS)
   }
 
+  // ── Y los sets que llegan sin marca de regulación (tanda 339) ──
+  //
+  // La marca es del SET, y TCGdex no la trae para algunos. Sin ella la
+  // ficha dice «No es legal en Estándar» de una carta que sí lo es. La
+  // migración arregló los que había; esto es para los que vengan, que si
+  // no habría que repetirla a mano con cada set nuevo.
+  //
+  // Es barato: solo mira los sets SIN marca, que después de la migración
+  // son los recién importados. Cuando no hay ninguno, no cuesta nada.
+  let marcasPuestas = 0
+  for (const setId of porMarcar) {
+    const heredada = marcaHeredada(porId.get(setId), [...porId.values()])
+    if (!heredada) continue
+    try {
+      await rest(`tcg_sets?id=eq.${encodeURIComponent(setId)}&market=eq.${MERCADO}`, clave, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ regulation_mark: heredada, regulation_mark_origen: 'fecha' }),
+      })
+      // Y a sus cartas, solo donde está vacía: lo que TCGdex haya dicho
+      // de una carta concreta no se toca nunca.
+      await rest(
+        `tcg_cards?set_id=eq.${encodeURIComponent(setId)}&market=eq.${MERCADO}&regulation_mark=is.null`,
+        clave,
+        { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ regulation_mark: heredada }) }
+      )
+      porId.get(setId).regulation_mark = heredada
+      marcasPuestas++
+    } catch {
+      // Si falla, la pasada siguiente lo reintenta: el set sigue sin marca.
+    }
+  }
+
   const pendientes = await siguientes(clave, orden)
   if (!pendientes.length) {
-    return Response.json({ setsCurados, nombresArreglados, hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
+    return Response.json({ setsCurados, nombresArreglados, marcasPuestas, hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
   }
 
   let hechas = 0
@@ -344,6 +388,13 @@ export default async function handler() {
       // fueran dos, un corte entre ellas dejaría la carta engordada y
       // marcada como pendiente, y la siguiente pasada la repetiría — con
       // 23.000 cartas eso no es un detalle, es no terminar nunca.
+      // Si TCGdex no manda la marca pero su set sí la tiene, se pone la
+      // del set: es la misma para todas sus cartas, y dejarla vacía hace
+      // que la ficha diga que no es legal (tanda 339).
+      if (!detalle.regulation_mark) {
+        const delSet = porId.get(carta.set_id)?.regulation_mark
+        if (delSet) detalle.regulation_mark = delSet
+      }
       await guardar(clave, carta.id, { ...detalle, detalle_at: new Date().toISOString(), detalle_error: null })
       hechas++
     } catch (e) {
@@ -361,7 +412,7 @@ export default async function handler() {
     await esperar(PAUSA_MS)
   }
 
-  return Response.json({ setsCurados, nombresArreglados, hechas, fallidas, sinTiempo, pedidas: pendientes.length })
+  return Response.json({ setsCurados, nombresArreglados, marcasPuestas, hechas, fallidas, sinTiempo, pedidas: pendientes.length })
 }
 
 // Cada cinco minutos. Antes era cada hora con tandas de 150, y esa

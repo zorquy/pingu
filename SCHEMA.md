@@ -17776,3 +17776,66 @@ preguntas distintas: que el bloque salga con un mazo es bueno para quien
 ya está en la página; ofrecerle a Google una ficha cuyo único contenido
 propio es «la llevó un mazo» es contenido escaso, y eso castiga al sitio
 entero. El comportamiento de indexación es exactamente el de antes.
+
+---
+
+## Tanda 339 — la marca de regulación es del SET, no de la carta
+
+PINGU, con la carta delante: «sí que lleva marca de regulación, llevan
+la marca J… no podemos dejar la marca vacía, y por fecha ya deberías
+saber qué marca lleva».
+
+TCGdex **no trae** `regulationMark` para las cartas del set `30th`. Se
+vio en las filas ya engordadas: `detalle_at` puesto, `detalle_lang` =
+es, `detalle_error` a null, y la columna vacía. Y `detalleDeCarta` solo
+la escribe si viene, a propósito — ponerla a null cuando falta borraría
+las 8.288 que sembró la tanda 215.
+
+Resultado: la ficha decía **«No es legal en Estándar»** de una carta que
+sí lo es. Eso es peor que no decir nada.
+
+(Y el arreglo de la 338 no cubría este caso: aquella guarda solo calla
+cuando la ficha **no** se ha traído, y estas están traídas.)
+
+### Lo que lo hace arreglable sin inventar
+
+**Todas las cartas de un set llevan la misma marca.** Es propiedad del
+set. De ahí tres fases, en orden de menos a más suposición:
+
+1. **Preguntarle a las propias cartas del set.** Si 200 de ellas llevan
+   la G, el set es G. Aquí no se adivina nada. Se coge la más repetida y
+   no «la primera»: una fila suelta mal importada no puede decidir por
+   el set entero.
+2. **Heredar la del set anterior más cercano por fecha**, y solo a
+   partir de que las marcas existen — con el suelo sacado de **los
+   datos** (el set más antiguo que tiene una) y no de una fecha escrita
+   a mano, que es lo que se queda viejo.
+3. **Lo que un humano ha comprobado manda.** El `30th` va en J porque
+   PINGU lo ha mirado, y eso gana a cualquier deducción: si la rotación
+   cae justo entre un set y el siguiente, la fase 2 se queda con la
+   letra anterior.
+
+Queda apuntado **de dónde sale cada una** (`regulation_mark_origen`:
+`cartas` / `fecha` / `mano`), que es lo que permite revisar las
+deducidas —un puñado— en vez de los 220 sets.
+
+### Y lo que NO puede hacer
+
+Rellenar los sets **anteriores a que las marcas existieran**. Ahí el
+null no es un hueco: es la verdad, y esas cartas no son legales en
+Estándar. Rellenarlo daría por legal media colección de 2016 — el fallo
+contrario, y bastante peor que el que se está arreglando.
+
+A las cartas se les escribe **solo donde está vacía**: lo que TCGdex haya
+dicho de una carta concreta no se toca nunca. Y si mañana empieza a
+traer la marca de ese set, el engorde la sobrescribe con la de verdad.
+
+### Y los sets que vengan, solos
+
+La tarea programada hace lo mismo con cada set nuevo que llegue sin
+marca, y una carta recién engordada sin marca coge la de su set. Sin
+eso habría que repetir la migración a mano con cada set, y de eso no se
+acuerda nadie.
+
+Cubierto en `test-tanda-339.mjs` (4 bloques), que ejecuta `marcaHeredada`
+de verdad — es pura justo para eso.

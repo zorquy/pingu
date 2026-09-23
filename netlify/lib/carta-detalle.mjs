@@ -156,3 +156,40 @@ export function nombresPorArreglar(nuestras, completo, market = 'WEST') {
     .filter((c) => porId.has(String(c?.id)) && porId.get(String(c.id)) !== c.name)
     .map((c) => ({ id: c.id, market, name: porId.get(String(c.id)) }))
 }
+
+// ── La marca de regulación de un SET (tanda 339) ──
+//
+// Es propiedad del set y no de cada carta: todas las de un mismo set
+// llevan la misma letra. TCGdex no la trae para algunos —el `30th`, sin
+// ir más lejos—, y sin ella la ficha dice «No es legal en Estándar» de
+// una carta que sí lo es, que es peor que no decir nada.
+//
+// Esto NO adivina cuando no hace falta: `regulation_mark` en el set ya
+// viene resuelto de la migración (que se lo preguntó a sus propias
+// cartas). Esta función es solo para los sets NUEVOS, que llegan sin
+// ninguna carta con marca. Y deduce de datos nuestros —el set anterior
+// más cercano— y no de una lista de fechas escrita a mano, que es lo que
+// se queda viejo.
+//
+// Devuelve null cuando NO hay que tocar nada, que son tres casos:
+//   · el set ya tiene marca,
+//   · la puso un humano (`mano` manda sobre cualquier deducción),
+//   · o es anterior a que las marcas existieran, y ahí el null no es un
+//     hueco: es la verdad, y esas cartas no son legales en Estándar.
+//
+// `sets` llega ordenado de más nuevo a más viejo, que es como lo deja
+// `setsPorPrioridad`.
+export function marcaHeredada(set, sets) {
+  if (!set || set.regulation_mark || set.regulation_mark_origen === 'mano') return null
+  if (!set.release_date) return null
+  const conMarca = sets.filter((s) => s.regulation_mark && s.release_date)
+  if (!conMarca.length) return null
+  const primera = conMarca.reduce((a, b) => (a.release_date <= b.release_date ? a : b))
+  if (set.release_date < primera.release_date) return null
+  // El anterior más cercano que ya tiene marca. Se recorre en vez de
+  // fiarse del orden de la lista: si algún día llega sin ordenar, esto
+  // sigue dando lo mismo.
+  const anteriores = conMarca.filter((s) => s.release_date <= set.release_date)
+  if (!anteriores.length) return null
+  return anteriores.reduce((a, b) => (a.release_date >= b.release_date ? a : b)).regulation_mark || null
+}
