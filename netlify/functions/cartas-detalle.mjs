@@ -1,4 +1,4 @@
-import { detalleEnEspanol, urlDeSet, leFaltaAlgo, loQueFaltaDeUnSet, nombresPorArreglar, marcaHeredada } from '../lib/carta-detalle.mjs'
+import { detalleEnEspanol, urlDeSet, faltaVisitar, loQueFaltaDeUnSet, nombresPorArreglar, marcaHeredada } from '../lib/carta-detalle.mjs'
 
 // Engorda las cartas de `tcg_cards` poco a poco (tanda 322).
 //
@@ -107,32 +107,36 @@ const SETS_POR_VENTANA = 25
 // carta toca es NUESTRA y no de una sintaxis que puede ignorarse en
 // silencio.
 async function setsPorPrioridad(clave) {
-  // `names_fixed_at` la añade una migración que ejecuta un humano, y
-  // pedirle a PostgREST una columna que no existe **no devuelve null:
-  // devuelve un 400 y tumba la consulta entera**. Sin esta vuelta atrás,
-  // subir esto antes de ejecutar la migración pararía el engorde en
-  // seco. Se pide con ella y, si no está, sin ella.
-  const columnas = 'id,release_date,serie_id,serie_name,tcg_online_code,regulation_mark,regulation_mark_origen'
-  const ordenar = '&order=release_date.desc.nullslast'
-  const sets = await rest(
-    `tcg_sets?select=${columnas},names_fixed_at&market=eq.${MERCADO}${ordenar}`,
-    clave
-  ).catch(() =>
-    // Sin la migración de la 335 no existe `names_fixed_at`; sin la de la
-    // 339 tampoco `regulation_mark`. Las dos vueltas atrás son la misma
-    // idea: PostgREST devuelve 400 —no null— si le pides una columna que
-    // no está, y eso tumbaría la consulta entera y pararía el engorde.
-    rest(`tcg_sets?select=${columnas}&market=eq.${MERCADO}${ordenar}`, clave).catch(() =>
-      rest(`tcg_sets?select=id,release_date,serie_id,serie_name,tcg_online_code&market=eq.${MERCADO}${ordenar}`, clave)
-    )
-  )
+  // ── Las columnas que puede que no existan todavía ──
+  //
+  // Cada migración de estas la ejecuta un humano, y pedirle a PostgREST
+  // una columna que no está **no devuelve null: devuelve un 400 y tumba
+  // la consulta entera**. Sin esto, subir el código antes de ejecutar la
+  // migración pararía el engorde en seco.
+  //
+  // Se prueban de más a menos, quitando UNA cada vez y no todas de
+  // golpe: así, con la migración de la 339 puesta y la de la 343 sin
+  // poner, no se pierde también la marca de regulación.
+  const BASE = 'id,release_date,serie_id,serie_name,tcg_online_code'
+  const CANDIDATAS = [
+    `${BASE},regulation_mark,regulation_mark_origen,curado_at,names_fixed_at`,
+    `${BASE},regulation_mark,regulation_mark_origen,curado_at`,
+    `${BASE},regulation_mark,regulation_mark_origen`,
+    BASE,
+  ]
+  const ordenar = `&market=eq.${MERCADO}&order=release_date.desc.nullslast`
+  let sets = null
+  for (const cols of CANDIDATAS) {
+    sets = await rest(`tcg_sets?select=${cols}${ordenar}`, clave).catch(() => null)
+    if (sets) break
+  }
   const filas = sets || []
   return {
     orden: filas.map((s) => s.id),
     // Indexadas por id para poder escribir SOLO lo que falte y no gastar
     // un PATCH en un set que ya está completo.
     porId: new Map(filas.map((s) => [s.id, s])),
-    incompletos: new Set(filas.filter(leFaltaAlgo).map((s) => s.id)),
+    incompletos: new Set(filas.filter(faltaVisitar).map((s) => s.id)),
     // Los que todavía tienen cartas con el nombre pisado (tanda 335).
     // `=== null` y no un `!`: sin la migración la columna no viaja y el
     // valor es `undefined`, que aquí significa «no hay nada que
@@ -157,13 +161,24 @@ async function curarSet(clave, fila) {
     const res = await fetch(urlDeSet(fila.id, MERCADO), { headers: { Accept: 'application/json' } })
     if (!res.ok) return null
     const cambios = loQueFaltaDeUnSet(fila, await res.json())
-    if (!Object.keys(cambios).length) return null
+    // `curado_at` se escribe SIEMPRE, aunque no hubiera nada que
+    // rellenar: es la marca de «ya hemos ido a mirar», y sin ella el set
+    // volvería en cada pasada. Ese era el cerrojo de la 333, dicho de
+    // otra manera (tanda 343).
+    //
+    // Y solo si la columna EXISTE. Mandarla sin la migración puesta no
+    // devuelve null, devuelve un 400 — y como este PATCH lleva también
+    // la serie y la fecha, se llevaría por delante la cura entera, no
+    // solo la marca. Se sabe por la fila, que viene de la consulta que
+    // ya probó qué columnas hay.
+    const marca = 'curado_at' in fila ? { curado_at: new Date().toISOString() } : {}
+    if (!Object.keys(cambios).length && !Object.keys(marca).length) return null
     await rest(`tcg_sets?id=eq.${encodeURIComponent(fila.id)}&market=eq.${MERCADO}`, clave, {
       method: 'PATCH',
       headers: { Prefer: 'return=minimal' },
-      body: JSON.stringify(cambios),
+      body: JSON.stringify({ ...cambios, ...marca }),
     })
-    return cambios
+    return Object.keys(cambios).length ? cambios : null
   } catch {
     return null
   }

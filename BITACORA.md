@@ -12,6 +12,56 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-23 — PINGU-Claude (tanda 343 — saber si un set se ha VISITADO, no si le falta un campo)
+
+**Hecho**: PINGU, comparando /cartas con Limitless: «los sets están mal,
+pones la nomenclatura asiática y no la occidental». Donde Limitless dice
+PBL, SSP o TWM, PokeDoc decía ME05, SV08 o SV06 — lo primero es el código
+de TCG Live, con el que habla la gente y que sale en las decklists; lo
+segundo es el identificador interno de TCGdex.
+
+**El molde ya estaba bien**: `insignia` prefiere el de Live desde
+siempre. Lo que faltaba era el DATO.
+
+**Y falta por algo que merece quedar escrito.** El código solo viene en
+el SET COMPLETO, y lo cura la fase de sets de la tarea programada, que
+visita los que `leFaltaAlgo` marca. Esa condición ha preguntado dos cosas
+distintas y las dos estaban mal por el mismo lado:
+
+- Hasta la 333 incluía el código. Los sets anteriores a TCG Online no
+  tienen ninguno, así que se quedaban «incompletos» para siempre: la
+  fase no acababa nunca y el engorde no arrancaba jamás.
+- Desde la 333 mira solo la serie. Eso rompió el cerrojo — y **el código
+  dejó de curarse en silencio**.
+
+Las dos preguntaban «¿le falta ESTE campo?», y eso no distingue «no lo
+hemos pedido» de «TCGdex no lo tiene». Es el mismo error que la chapa de
+legalidad de la 338, un piso más arriba. `curado_at` responde a otra
+cosa: **¿hemos ido a mirar?** La fase termina siempre, que era lo que la
+333 quería, y el código se cura, que era lo que se perdió.
+
+**Dos agujeros que me encontré al escribirlo**, los dos sobre qué pasa
+ANTES de ejecutar la migración: la consulta de sets tiraba todas las
+columnas nuevas de golpe al fallar (así que sin la 343 se perdía también
+la marca de la 339 — ahora baja de escalón en escalón), y el PATCH
+mandaba `curado_at` siempre, lo que sin la columna da un 400 y se lleva
+por delante la cura ENTERA, no solo la marca.
+
+**Ficheros**: `supabase-migration-sets-curado.sql` (NUEVO, **sin
+ejecutar**), `netlify/lib/carta-detalle.mjs`,
+`netlify/functions/cartas-detalle.mjs`, `js/schema-check.js`,
+`SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-343.mjs` (NUEVO),
+`pruebas/test-tanda-335.mjs` y `pruebas/test-tanda-339.mjs` (las dos
+comprobaban la FORMA vieja del respaldo) y `herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: **ejecutar
+`supabase-migration-sets-curado.sql`**. Después, los ~220 sets se visitan
+una vez —menos de una hora— y los códigos van apareciendo solos. Hasta
+entonces /cartas sigue enseñando ME05 y SV08.
+
+---
+
 ## 2026-09-23 — PINGU-Claude (tanda 342 — TCGdex declina los tipos en femenino)
 
 **Hecho**: la debilidad del Mew ex de 30th Celebration salía sin

@@ -17981,3 +17981,54 @@ Errores con la palabra dentro**. Dos detalles:
 Y esto solo funciona porque la 340 hizo que un tipo desconocido se
 marcara (`data-tipo="?"`) en vez de pintarse como Incolora. Sin aquello
 no habría nada que contar: el fallo se veía igual que un acierto.
+
+---
+
+## Tanda 343 — saber si un set se ha VISITADO, no si le falta un campo
+
+PINGU, comparando /cartas con Limitless: «los sets están mal, pones la
+nomenclatura asiática y no la occidental». Donde Limitless dice **PBL**,
+**SSP** o **TWM**, PokeDoc decía **ME05**, **SV08** o **SV06**. Lo
+primero es el código de TCG Live —el que sale en las decklists y con el
+que habla la gente—; lo segundo, el identificador interno de TCGdex.
+
+El molde ya estaba bien: `insignia` prefiere el de Live desde siempre.
+Lo que faltaba era **el dato**.
+
+### La pregunta estaba mal hecha, dos veces
+
+El código solo viene en el SET COMPLETO, nunca en el listado (la lección
+de la 233), y lo cura la fase de sets de la tarea programada — que visita
+los que `leFaltaAlgo` marca. Esa condición ha preguntado dos cosas
+distintas, y las dos fallaban por el mismo lado:
+
+| | qué preguntaba | qué salía mal |
+|---|---|---|
+| hasta la 333 | ¿le falta serie, fecha **o código**? | los sets anteriores a TCG Online no tienen código: «incompletos» para siempre, la fase no acababa y el engorde no arrancaba |
+| desde la 333 | ¿le falta la serie? | rompió el cerrojo, pero **el código dejó de curarse en silencio** |
+
+Las dos preguntan **«¿le falta este campo?»**, y esa pregunta no puede
+distinguir *no lo hemos pedido* de *TCGdex no lo tiene*. Es exactamente
+el error de la chapa de legalidad de la 338, un piso más arriba.
+
+`curado_at` responde a otra cosa: **¿hemos ido a mirar?** Un set visitado
+se queda con lo que TCGdex tenga —código incluido, o sin él si no
+existe— y no se vuelve a pedir. La fase termina **siempre**, que era lo
+que la 333 quería, y el código se cura, que era lo que se perdió.
+
+### Dos agujeros, los dos sobre el antes de la migración
+
+**La consulta de sets tiraba todas las columnas nuevas de golpe.** Con la
+migración de la 339 puesta y la de la 343 sin poner, el 400 de
+`curado_at` hacía caer también `regulation_mark` y apagaba aquella fase.
+Ahora se baja de escalón en escalón, soltando una columna cada vez.
+
+**Y el PATCH mandaba `curado_at` siempre.** Ese PATCH lleva también la
+serie y la fecha, así que un 400 se llevaría por delante la cura entera,
+no solo la marca. Se manda solo si la columna viaja en la fila — que es
+lo que dice la consulta que ya probó qué hay.
+
+Cubierto en `test-tanda-343.mjs` (6 bloques), que ejecuta `faltaVisitar`
+de verdad. Y de paso se reescribieron dos comprobaciones de la 335 y la
+339 que miraban la FORMA vieja del respaldo (dos `.catch()` anidados) y
+dejaron de casar sin que el código perdiera nada.

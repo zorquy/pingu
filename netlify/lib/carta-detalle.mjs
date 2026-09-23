@@ -124,6 +124,35 @@ export function leFaltaAlgo(fila) {
   return !fila?.serie_id || !fila?.serie_name
 }
 
+// ── ¿Hay que ir a mirar este set? (tanda 343) ──
+//
+// Las dos versiones anteriores preguntaban «¿le falta ESTE dato?», y esa
+// pregunta no puede distinguir «no lo hemos pedido» de «TCGdex no lo
+// tiene». Las dos fallaron por ese lado, cada una hacia su lado:
+//
+//   · Hasta la 333, la condición incluía el código de TCG Live. Los sets
+//     anteriores a TCG Online no tienen ninguno, así que se quedaban
+//     «incompletos» para siempre: la fase no acababa nunca y el engorde
+//     no arrancaba jamás.
+//   · Desde la 333 mira solo la serie, y eso rompió el cerrojo — pero el
+//     código dejó de curarse EN SILENCIO. Un set que ya tenía serie no
+//     se volvía a visitar aunque le faltara. Por eso /cartas enseñaba
+//     ME05 y SV08 donde la gente dice PBL y SSP.
+//
+// `curado_at` responde a otra cosa: «¿hemos ido a mirar?». Un set
+// visitado se queda con lo que TCGdex tenga —código incluido, o sin él
+// si no existe— y no se vuelve a pedir. La fase termina SIEMPRE, que era
+// lo que la 333 quería, y el código se cura, que era lo que se perdió.
+//
+// Y mientras la migración no esté puesta la columna no viaja, así que se
+// usa la regla vieja: `'curado_at' in fila` distingue «la columna no
+// está» de «está y vale null», que es justo la confusión que esto viene
+// a quitar.
+export function faltaVisitar(fila) {
+  if (fila && 'curado_at' in fila) return !fila.curado_at
+  return leFaltaAlgo(fila)
+}
+
 
 // ── Qué nombres hay que devolver al inglés (tanda 335) ──
 //

@@ -43,6 +43,7 @@ export const REQUISITOS = [
   { tabla: 'tcg_sets', columna: 'imported_at', fichero: 'supabase-migration-cartas.sql', rompe: 'No se pueden importar las cartas.' },
   { tabla: 'tcg_sets', columna: 'names_fixed_at', fichero: 'supabase-migration-cartas-nombre-es.sql', rompe: 'Las cartas engordadas en español se quedan con el nombre traducido en la clave, y su bloque de torneos no sale.' },
   { tabla: 'tcg_sets', columna: 'regulation_mark', fichero: 'supabase-migration-marcas-por-set.sql', rompe: 'Los sets que TCGdex no marca dejan sus cartas sin marca, y la ficha dice que no son legales cuando sí lo son.' },
+  { tabla: 'tcg_sets', columna: 'curado_at', fichero: 'supabase-migration-sets-curado.sql', rompe: 'El código de TCG Live no se cura, y los sets salen con el identificador de TCGdex (ME05) en vez del que usa la gente (PBL).' },
   // Torneos (tanda 225). Faltaban TODAS, y por eso una migración de
   // torneos sin ejecutar no se notaba: el barredor aparca el paso en
   // silencio y los avisos simplemente no salen, sin que nadie lo diga.
