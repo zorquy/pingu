@@ -12,6 +12,57 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-23 — PINGU-Claude (tanda 338 — el null que no es un dato, y el bloque de torneos con poca muestra)
+
+**Hecho**: dos cosas que salieron del mismo mensaje de PINGU sobre el
+Mew ex del 30 aniversario.
+
+**1. La chapa de legalidad mentía sobre lo que no sabía.**
+`regulation_mark` a null son DOS cosas que en la base se ven igual: una
+carta que NO LLEVA marca —anterior a 2019, y entonces sí está fuera— y
+una que todavía no hemos engordado, donde la columna está vacía porque
+nadie la ha pedido. Yo trataba la segunda como la primera, así que a una
+carta del set más nuevo que hay le salía «No es legal en Estándar».
+
+Es la lección de la 319 —el defecto que convierte «no me lo han dado» en
+un dato— y **la tengo escrita en el comentario de esa misma función**.
+La escribí y la volví a pisar un piso más arriba: allí era el parámetro
+que no llegaba, aquí la columna que no se ha rellenado. Ahora se
+distinguen por `detalle_at`, y sin marca y sin ficha no se pinta nada.
+
+**2. El bloque de torneos, desde un mazo.** PINGU: «aunque esté en 1
+mazo ya debería salir». Tiene razón: que una carta se haya jugado en un
+torneo de PokeDoc es justo lo que no tiene ninguna otra web, y
+esconderlo por no poder calcular una media encima es tirar el dato bueno
+para proteger el malo.
+
+Pero con un mazo no se puede decir «copias de media» ni «se juega sobre
+todo en»: una media de una muestra de uno es el mismo número disfrazado
+de estadística. Así que `MAZOS_MINIMOS` baja a 1 y aparece
+`MAZOS_PARA_TENDENCIA` (3). Con poca muestra se cuenta el caso —y se
+enseñan las copias EXACTAS, que antes no se veían nunca— y el pie avisa
+del tamaño. Con muestra, lo de siempre.
+
+Una trampa que me colé a mí mismo: con la lista de arquetipos vacía, la
+fila de «Otros» se llevaba todos los mazos y salía «Se juega sobre todo
+en · Otros 1» — la misma afirmación, dicha de otro modo. La cazó la
+prueba.
+
+**Y lo que NO baja es el listón de Google**: son dos preguntas distintas
+y ahora tienen dos números. Indexar sigue pidiendo muestra (3), porque
+una ficha cuyo único contenido propio es «la llevó un mazo» es contenido
+escaso y eso castiga al sitio entero.
+
+**Ficheros**: `js/carta-nucleo.js`, `js/carta.js`, `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-325.mjs` (reescrito su bloque
+4, que afirmaba la regla vieja), `pruebas/test-tanda-335.mjs`,
+`rigor/rigor-tanda-335.py` y `rigor/rigor-tanda-338.py` (NUEVO).
+
+**En curso / pendiente**: la suite entera sigue pendiente de una pasada
+con la 336, la 337 y la 338 dentro.
+
+---
+
 ## 2026-09-23 — PINGU-Claude (tandas 336 y 337 — las marcas legales desde /admin, y el check-in de una mesa viva)
 
 **Hecho**: dos cosas sin relación entre sí.

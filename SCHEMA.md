@@ -17714,3 +17714,65 @@ las mesas en `active`**, así que un check-in tardío en una mesa que ya
 espera confirmación no cambia ningún resultado. Solo deja constancia.
 
 Cubierto en `test-tanda-337.mjs` (3 bloques).
+
+---
+
+## Tanda 338 — el null que no es un dato
+
+PINGU, sobre el Mew ex del 30 aniversario: «sale con la chapa de
+regulación incorrecta y no sale lo de los torneos». Dos síntomas, y solo
+uno era un fallo.
+
+### La chapa afirmaba sobre lo que no sabía
+
+`tcg_cards.regulation_mark` a null son **dos cosas que en la base se ven
+igual**:
+
+- la carta **no lleva** marca — anterior a 2019, y entonces sí está
+  fuera de Estándar;
+- la carta **no se ha engordado todavía**, y la columna está vacía
+  porque nadie se la ha pedido a TCGdex.
+
+`legalidadEstandar` trataba la segunda como la primera, así que a una
+carta del set más nuevo que hay le ponía **«No es legal en Estándar»**.
+
+Es la lección de la tanda 319 —un defecto que convierte «no me lo han
+dado» en un dato— un piso más arriba: allí era el parámetro que no
+llegaba, aquí la columna que todavía no se ha rellenado. Y estaba
+escrita **en el comentario de esa misma función**.
+
+Se distinguen por `detalle_at`: si la ficha está traída y aun así no hay
+marca, es que la carta no la lleva. Si no está traída, no se pinta nada.
+Con marca sí se decide esté engordada o no, porque el volcado de la
+tanda 215 rellenó 8.288 marcas sin fichas.
+
+### Y el segundo síntoma no era un fallo
+
+El bloque de torneos no salía porque **no llegaba a tres mazos**, que era
+el listón de la tanda 325. Pero PINGU tenía razón en el fondo: que una
+carta se haya jugado en un torneo de PokeDoc es justo lo que no tiene
+ninguna otra web.
+
+Así que hay **dos números y no uno**:
+
+| | |
+|---|---|
+| `MAZOS_MINIMOS` = 1 | a partir de aquí el bloque SALE |
+| `MAZOS_PARA_TENDENCIA` = 3 | a partir de aquí se puede hablar de media y de arquetipos |
+
+Con poca muestra el bloque cuenta el CASO —cuántos mazos, **las copias
+exactas** (que antes no se veían nunca), en cuántos torneos— y el pie
+avisa de que son los datos de una lista. Con muestra, lo de siempre.
+
+La trampa fina, que se coló al escribirlo: con la lista de arquetipos
+vacía, `otros` se lleva **todos** los mazos y se pintaba «Se juega sobre
+todo en · Otros 1». La misma afirmación que esto quería evitar, dicha de
+otro modo. Por eso la guarda va sobre `filas` y no sobre `arqs`.
+
+### Lo que NO cambia: el listón de Google
+
+`mereceIndexarse` pide **muestra**, no el mínimo del bloque. Son dos
+preguntas distintas: que el bloque salga con un mazo es bueno para quien
+ya está en la página; ofrecerle a Google una ficha cuyo único contenido
+propio es «la llevó un mazo» es contenido escaso, y eso castiga al sitio
+entero. El comportamiento de indexación es exactamente el de antes.

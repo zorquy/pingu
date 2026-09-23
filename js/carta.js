@@ -147,6 +147,12 @@ async function conDetalleDeTCGdex(carta, idiomas = undefined) {
     // La huella necesita saber en qué idioma están estos ataques: una
     // ficha traída al vuelo no lo tiene apuntado en la base.
     mezcla.detalle_lang = encontrado.idioma
+    // Y que conste que la ficha YA la tenemos, aunque la base todavía
+    // no. Lo mira la chapa de legalidad para distinguir «esta carta no
+    // lleva marca» de «no la hemos pedido»: sin esto, una carta recién
+    // traída de TCGdex y sin marca se quedaría muda en vez de decir que
+    // está fuera (tanda 338).
+    mezcla.detalle_at = carta.detalle_at || new Date().toISOString()
     return mezcla
   } catch {
     return carta

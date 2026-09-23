@@ -305,9 +305,27 @@ export function legalidadEstandar(cartaCruda, legalidad) {
   if (esEnergiaBasica(carta)) return { estado: 'legal', energia: true }
   const marca = String(carta.regulation_mark || '')
   if (marca && marcas.includes(marca)) return { estado: 'legal', marca }
-  // Sin marca tampoco vale: desde 2022 el Estándar las exige. Pero la
-  // carta puede tener una reimpresión moderna que sí, y entonces lo que
-  // no se puede jugar es ESTA impresión, no la carta.
+  // ── Y aquí, la trampa (tanda 338) ──
+  //
+  // `regulation_mark` a null son DOS cosas que en la base se ven igual:
+  // una carta que NO LLEVA marca —anterior a 2019, y entonces sí está
+  // fuera— y una que todavía no hemos engordado, donde la columna está
+  // vacía porque nadie la ha pedido. Afirmar sobre la segunda es
+  // inventar, y lo que se inventa es lo peor que se puede decir: a un
+  // Mew ex recién salido le salía «No es legal en Estándar».
+  //
+  // Es la lección de la 319 —el defecto que convierte «no me lo han
+  // dado» en un dato— aplicada un piso más arriba: allí era el
+  // parámetro que no llegaba, aquí es la columna que todavía no se ha
+  // rellenado. La escribí en el comentario de esta misma función y la
+  // volví a pisar.
+  //
+  // Se distinguen por `detalle_at`: si la ficha está traída y aun así no
+  // hay marca, es que la carta no la lleva.
+  if (!marca && !carta.detalle_at) return null
+  // Sin marca y con la ficha traída, fuera: desde 2022 el Estándar las
+  // exige. Pero la carta puede tener una reimpresión moderna que sí, y
+  // entonces lo que no se puede jugar es ESTA impresión, no la carta.
   if (legalidad.reimpresion) return { estado: 'reimpresion', marca }
   return { estado: 'fuera', marca }
 }
@@ -372,37 +390,72 @@ export function mediaDeCopias(play) {
   return (copias / mazos).toFixed(1).replace('.', ',')
 }
 
-// Cuántos mazos hacen falta para que el número signifique algo.
+// Cuántos mazos hacen falta para que el bloque salga, y cuántos para
+// que se pueda hablar de TENDENCIA. No son el mismo número (tanda 338).
 //
-// Con dos mazos, «el 100% la juega a 4 copias» es verdad y no dice
-// nada. El bloque no sale hasta que hay una muestra, y cuando sale lleva
-// el tamaño de la muestra A LA VISTA: es la diferencia entre un dato y
-// una afirmación.
-export const MAZOS_MINIMOS = 3
+// Hasta la 338 el bloque no salía por debajo de tres mazos, y el
+// razonamiento era «con dos, *el 100 % la juega a 4 copias* es verdad y
+// no dice nada». Eso sigue siendo cierto de la MEDIA y del reparto por
+// arquetipo — pero no del hecho en sí. Que una carta se haya jugado en
+// un torneo de PokeDoc es justo lo que no tiene ninguna otra web, y
+// esconderlo por no poder calcular una media encima es tirar el dato
+// bueno para proteger el malo.
+//
+// Así que el bloque sale desde UN mazo y lo que cambia es lo que DICE:
+// con pocos se cuenta el caso («la llevó un mazo, a 4 copias, en la
+// Copa de Otoño») y con muestra se habla de tendencia («copias de
+// media», «se juega sobre todo en»). Lo que no se hace nunca es pintar
+// una media de una muestra de uno.
+export const MAZOS_MINIMOS = 1
+
+// A partir de aquí una media y un reparto por arquetipo significan algo.
+export const MAZOS_PARA_TENDENCIA = 3
 
 export function hayDatosDeJuego(play) {
   return Number(play?.decks) >= MAZOS_MINIMOS
 }
 
+export function hayMuestra(play) {
+  return Number(play?.decks) >= MAZOS_PARA_TENDENCIA
+}
+
 export function bloqueDeJuego(play) {
   if (!hayDatosDeJuego(play)) return ''
-  const media = mediaDeCopias(play)
+  // Con uno o dos mazos NO se habla de media ni de reparto: una media de
+  // una muestra de uno es el mismo número disfrazado de estadística.
+  const muestra = hayMuestra(play)
+  const media = muestra ? mediaDeCopias(play) : null
   const torneos = Number(play?.tournaments) || 0
+  // La guarda de la muestra va SOLO sobre `filas`, más abajo. Aquí había
+  // otra, y el rigor la cantó por lo que es: red de repuesto de la de
+  // abajo, que no cambia nada si se quita (la trampa de la 314). Y la de
+  // abajo es la que tiene que estar, porque es la única que tapa la fila
+  // de «Otros».
   const arqs = Array.isArray(play?.archetypes) ? play.archetypes : []
   const masMazos = arqs.reduce((a, b) => a + (Number(b?.mazos) || 0), 0)
   const otros = Math.max(0, Number(play.decks) - masMazos)
 
+  // Con un solo mazo, «copias de media» sería la cuenta de ese mazo
+  // llamada media. Se dice lo que es: cuántas copias llevaba.
+  const copias = Number(play?.total_copies)
+  const unaLista = Number(play.decks) === 1 && Number.isFinite(copias) && copias > 0
   const cifras =
     '<dl class="juego-cifras">' +
-    `<div><dt>Mazos que la llevan</dt><dd>${escapeHtml(play.decks)}</dd></div>` +
+    `<div><dt>${Number(play.decks) === 1 ? 'Mazo que la lleva' : 'Mazos que la llevan'}</dt>` +
+    `<dd>${escapeHtml(play.decks)}</dd></div>` +
     (media ? `<div><dt>Copias de media</dt><dd>${escapeHtml(media)}</dd></div>` : '') +
+    (unaLista ? `<div><dt>${copias === 1 ? 'Copia' : 'Copias'}</dt><dd>${escapeHtml(copias)}</dd></div>` : '') +
     (torneos ? `<div><dt>${torneos === 1 ? 'Torneo' : 'Torneos'}</dt><dd>${escapeHtml(torneos)}</dd></div>` : '') +
     '</dl>'
 
   // Los arquetipos, con su barra. El ancho sale de una variable en el
   // `style=` y ESE respaldo sí es legítimo: es el valor por defecto de
   // algo que pone el código, no un token que exista en una hoja.
-  const filas = [
+  // Sin muestra no hay reparto NINGUNO: con `arqs` vacío, `otros` se
+  // lleva todos los mazos y se pintaba «Se juega sobre todo en · Otros
+  // 1», que es la afirmación que esto quería evitar, dicha con otras
+  // palabras.
+  const filas = !muestra ? [] : [
     ...arqs.map(
       (a) =>
         '<li>' +
@@ -427,7 +480,12 @@ export function bloqueDeJuego(play) {
     (filas.length ? `<p class="juego-donde">Se juega sobre todo en</p><ul class="juego-arqs">${filas.join('')}</ul>` : '') +
     // El pie no es decoración: dice de dónde sale el número y de cuántos
     // mazos, que es lo que permite a quien lee decidir si se lo cree.
-    `<p class="juego-pie">Contado sobre las listas públicas de los torneos de PokeDoc. ` +
+    `<p class="juego-pie">` +
+    (muestra
+      ? ''
+      : `Son ${play.decks === 1 ? 'los datos de una sola lista' : `los datos de ${play.decks} listas`}: ` +
+        'suficiente para decir que se juega, no para sacar una media ni un mazo típico. ') +
+    `Contado sobre las listas públicas de los torneos de PokeDoc. ` +
     `Una lista solo entra aquí cuando su torneo la deja ver.</p>` +
     '<p class="juego-enlace"><a href="/torneos">Ver los torneos</a></p>' +
     '</section>'
@@ -497,8 +555,15 @@ export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
 //
 // Cuando exista el catálogo en español, la primera condición vuelve a
 // valer por sí sola y se cambia AQUÍ, en un sitio y no en cinco.
+// Ojo: esto NO usa el listón del bloque (tanda 338). Son dos preguntas
+// distintas y desde la 338 tienen dos números. Que el bloque salga con
+// un mazo es bueno para quien ya está en la página; ofrecerle a Google
+// una ficha cuyo único contenido propio es «la llevó un mazo» es
+// justo lo que la casa llama contenido escaso. Para indexar se pide
+// MUESTRA, que es el listón que había antes de la 338 — así que aquí no
+// cambia nada.
 export function mereceIndexarse(carta, play = null) {
-  return Boolean(carta?.detalle_at) && hayDatosDeJuego(play)
+  return Boolean(carta?.detalle_at) && hayMuestra(play)
 }
 
 // ════════════════════════════════════════════════════════════════════
