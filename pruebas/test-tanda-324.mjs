@@ -279,8 +279,10 @@ console.log('\n── 6. La colección y el índice ──')
   check('y cada una enlaza a su ficha con el nombre dentro',
     (await page.locator('.coleccion-carta').first().getAttribute('href')) === '/carta/carta-1-sv5-1',
     await page.locator('.coleccion-carta').first().getAttribute('href'))
-  check('«ver más» no sale si no hay más',
-    ((await page.locator('#verMas').getAttribute('class')) || '').includes('hidden'))
+  // Desde la 344 no hay «ver más»: salen todas de golpe. Una colección
+  // es una lista que se hojea, y partirla obliga a pulsar para ver lo
+  // que ya sabías que estaba.
+  check('ya no hay botón de «ver más»', (await page.locator('#verMas').count()) === 0)
   await page.close()
 
   const { page: p2, errores: e2 } = await abrir('/cartas.html', cartas, [SET, { id: 'sv4', name: 'Destinos de Paldea', market: 'WEST', release_date: '2024-01-26' }])
