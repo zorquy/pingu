@@ -174,9 +174,17 @@ const ENTRENADORES = { Supporter: 'Partidario', Item: 'Objeto', Stadium: 'Estadi
 // escribe TCGdex en su español, o las variantes que se ven por ahí. Si
 // aparece una que no está, el valor se queda tal cual y lo salva la
 // comprobación por ESTRUCTURA de `esPokemon` — no se pierde la ficha.
+// TCGdex declina los tipos en FEMENINO, porque concuerdan con «energía»:
+// manda «Oscura», no «Oscuro». La tabla de arriba tenía la forma
+// masculina y la debilidad del Mew ex de 30th Celebration salía sin
+// traducir — lo vio PINGU (tanda 342). Van las dos formas de cada uno
+// que tiene género; los demás son nombres y no varían (Agua, Fuego,
+// Lucha, Metal, Hada, Dragón, Planta, Rayo).
 const A_TIPO = inverso(TIPOS, { Relampago: 'Lightning', Electrico: 'Lightning',
-  Oscuridad: 'Darkness', Siniestro: 'Darkness', Acero: 'Metal', Normal: 'Colorless',
-  Incoloro: 'Colorless', Planta2: 'Grass', Combate: 'Fighting' })
+  Electrica: 'Lightning', Oscuridad: 'Darkness', Siniestro: 'Darkness',
+  Siniestra: 'Darkness', Oscura: 'Darkness', Acero: 'Metal', Metalica: 'Metal',
+  Metalico: 'Metal', Normal: 'Colorless', Incoloro: 'Colorless',
+  Psiquica: 'Psychic', Planta2: 'Grass', Combate: 'Fighting' })
 const A_FASE = inverso(FASES, { Basica: 'Basic', 'Nivel 1': 'Stage1', 'Nivel 2': 'Stage2',
   'Fase1': 'Stage1', 'Fase2': 'Stage2' })
 const A_CATEGORIA = inverso(CATEGORIAS, { Pokemon: 'Pokemon', Entrenadora: 'Trainer',

@@ -18,6 +18,7 @@ import { supabase } from './supabase.js'
 import { esDelTCG } from './catalogo-series.js'
 import { detalleEnEspanol, IDIOMAS_DE_FICHA } from './carta-detalle.js'
 import { legalidadDeCarta, marcasLegales } from './carta-legalidad.js'
+import { logClientError } from './error-log.js'
 import { escapeHtml } from './app.js'
 import {
   candidatosDeRuta,
@@ -109,6 +110,9 @@ async function cargar() {
   const mejorQueLoPintado = completa !== carta
 
   pintar(completa, set, juego || null, ley, mejorQueLoPintado)
+  // Y si ha quedado algún tipo sin traducir, que lo cuente la web y no
+  // una persona (tanda 342).
+  avisarDeTiposSinTraducir()
   // Estas dos van por libre: llegan cuando llegan y sus secciones nacen
   // escondidas, así que una consulta lenta no retrasa la ficha.
   versiones(completa).catch(() => {})
@@ -184,6 +188,38 @@ function pintar(carta, set, play = null, legalidad = null, repintarIgual = false
   // demostrablemente incompleto.
   if (caja.dataset.servidor !== '1' || repintarIgual) {
     caja.innerHTML = nucleoDeCarta(carta, set, play, legalidad)
+  }
+}
+
+// ── Que lo cuente la web, no una persona (tanda 342) ──
+//
+// La debilidad del Mew ex de 30th Celebration salía sin traducir porque
+// TCGdex declina los tipos en femenino —«Oscura», no «Oscuro»— y la
+// tabla tenía la forma masculina. Se arregló con una línea; lo que costó
+// fue ENTERARSE: hizo falta que PINGU lo viera en pantalla, me lo dijera,
+// yo probara once grafías a ciegas, y al final sacara el valor de un
+// `select`.
+//
+// Es la lección de la 323 —una lista curada se queda vieja y alguien
+// tiene que notarlo— con el mismo remedio que el resto del sitio usa
+// para los fallos que no lanzan excepción: `logClientError`. Si a la
+// tabla le falta una palabra, aparece sola en /admin → Errores con la
+// palabra dentro.
+//
+// Se mira el DOM y no la carta a propósito: así cubre también lo que
+// pintó la función del borde, que es lo que se ve cuando la ficha ya
+// está engordada.
+function avisarDeTiposSinTraducir() {
+  try {
+    const sueltos = [...document.querySelectorAll('#cartaNucleo .carta-energia[data-tipo="?"]')]
+    if (!sueltos.length) return
+    // Los valores crudos van en el título, que es donde los deja
+    // `puntoDeEnergia`. Sin repetir: una carta puede llevar el mismo
+    // tipo en la debilidad y en el coste de un ataque.
+    const crudos = [...new Set(sueltos.map((n) => n.getAttribute('title') || ''))]
+    logClientError(`Tipo de energía sin traducir en /carta: ${crudos.join(' | ')}`)
+  } catch {
+    // Avisar de un fallo no puede provocar otro.
   }
 }
 

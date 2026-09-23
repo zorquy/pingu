@@ -12,6 +12,41 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-23 — PINGU-Claude (tanda 342 — TCGdex declina los tipos en femenino)
+
+**Hecho**: la debilidad del Mew ex de 30th Celebration salía sin
+traducir. El valor guardado era **«Oscura»**, con A: TCGdex concuerda los
+tipos con «energía» y manda la forma femenina, y la tabla tenía la
+masculina. Añadidas las dos formas de los que tienen género (Oscura,
+Psíquica, Metálica, Eléctrica, Siniestra, Incolora).
+
+**Pero el arreglo de verdad es la otra mitad.** La traducción es una
+línea; lo que costó fue ENTERARSE: hizo falta que PINGU lo viera en
+pantalla, me lo dijera, yo probara once grafías a ciegas y al final
+saliera de un `select`. Es la lección de la 323 —una lista curada se
+queda vieja y alguien tiene que notarlo— y el sitio ya tiene el remedio
+para los fallos que no lanzan excepción: `logClientError`. Ahora, si a la
+tabla le falta una palabra, **aparece sola en /admin → Errores con la
+palabra dentro**.
+
+Se mira el DOM y no la carta a propósito: así cubre también lo que pintó
+la función del borde, que es lo que se ve cuando la ficha ya está
+engordada. Y solo avisa cuando falta algo — un canal que suena siempre
+deja de escucharse.
+
+**Ficheros**: `js/carta-detalle.js`, `js/carta.js`, `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-342.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: PINGU ha visto que en /cartas los sets salen
+con el identificador de TCGdex (ME05, SV10) y no con el código de TCG
+Live (PBL, SSP), que es el que usa la gente. El código YA prefiere el de
+Live — lo que falta es el DATO, y sé por qué: la 333 quitó el código de
+`leFaltaAlgo` para romper un cerrojo, y con eso dejó de curarse. Va en la
+siguiente.
+
+---
+
 ## 2026-09-23 — PINGU-Claude (tanda 341 — la marca de un set, desde /admin)
 
 **Hecho**: la pantalla que faltaba de la 339. Vive en /admin → Cartas,

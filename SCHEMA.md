@@ -17944,3 +17944,40 @@ convierte en algo aceptable es peor que uno que te dice que no. Se quitó
 el `maxlength` y se valida **lo que se escribió**.
 
 Cubierto en `test-tanda-341.mjs` (4 bloques).
+
+---
+
+## Tanda 342 — TCGdex declina los tipos en femenino
+
+La debilidad del Mew ex de 30th Celebration salía sin traducir. El valor
+guardado era **«Oscura»**, con A: TCGdex concuerda los tipos con
+«energía» y manda la forma femenina; la tabla tenía la masculina.
+
+Se añaden las dos formas de los que tienen género —Oscura, Psíquica,
+Metálica, Eléctrica, Siniestra, Incolora— y se dejan igual los que son
+nombres y no varían (Agua, Fuego, Lucha, Metal, Hada, Dragón, Planta,
+Rayo).
+
+### Pero el arreglo de verdad es la otra mitad
+
+La traducción es **una línea**. Lo que costó fue **enterarse**: hizo
+falta que PINGU lo viera en pantalla, lo dijera, se probaran once
+grafías a ciegas y al final saliera de un `select`.
+
+Es la lección de la 323 —una lista curada se queda vieja y alguien tiene
+que notarlo— y el sitio ya tenía el remedio para los fallos que no lanzan
+excepción: `logClientError`, que existe justo para «el `{ error }` que
+devuelve una consulta y que si nadie lo mira se queda en silencio».
+
+Ahora, si a la tabla le falta una palabra, **aparece sola en /admin →
+Errores con la palabra dentro**. Dos detalles:
+
+- Se mira el **DOM** y no la carta, así que cubre también lo que pintó la
+  función del borde — que es lo que se ve cuando la ficha ya está
+  engordada y el cliente no repinta.
+- Solo avisa cuando falta algo. Un canal que suena siempre deja de
+  escucharse.
+
+Y esto solo funciona porque la 340 hizo que un tipo desconocido se
+marcara (`data-tipo="?"`) en vez de pintarse como Incolora. Sin aquello
+no habría nada que contar: el fallo se veía igual que un acierto.
