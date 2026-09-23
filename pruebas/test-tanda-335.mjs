@@ -125,13 +125,19 @@ console.log('\n── 3. Nadie escribe el nombre traducido encima de `name` ─�
   // Y lo que no puede pasar: que subir esto ANTES de ejecutar la
   // migración pare el engorde. PostgREST devuelve 400 —no null— si le
   // pides una columna que no existe.
-  // Se comprueba la FORMA, no la distancia: la primera versión medía una
-  // ventana de 200 caracteres y un comentario en medio la rompió sin que
-  // el código cambiara. Lo que importa es que la consulta que pide la
-  // columna nueva tenga detrás otra que no la pide.
-  check('la columna nueva se pide…', /select=\$\{columnas\},names_fixed_at/.test(tarea))
-  check('…y con vuelta atrás a una consulta sin ella',
-    /\.catch\(\(\) =>[\s\S]*?select=\$\{columnas\}&market/.test(tarea))
+  // Se comprueba la FORMA, y la forma ha cambiado DOS veces sin que el
+  // código perdiera nada: primero era una ventana de 200 caracteres (la
+  // rompió un comentario), luego dos `.catch()` anidados (los sustituyó
+  // una lista de candidatas en la 343). Lo que de verdad importa, y lo
+  // único que se mira ahora: que `names_fixed_at` esté en la consulta
+  // más completa y NO en la última, que es la que queda si la migración
+  // no está puesta.
+  const candidatas = (tarea.match(/const CANDIDATAS = \[([\s\S]*?)\]/)?.[1] || '')
+    .split('\n').map((l) => l.trim()).filter(Boolean)
+  check('la columna nueva se pide en la consulta más completa',
+    /names_fixed_at/.test(candidatas[0] || ''), candidatas[0])
+  check('…y la última no la pide, que es la de antes de la migración',
+    !/names_fixed_at/.test(candidatas.at(-1) || ''), candidatas.at(-1))
   check('…y sin ella la fase se queda apagada',
     /s\.names_fixed_at === null/.test(tarea))
 

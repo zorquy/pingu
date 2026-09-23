@@ -102,8 +102,21 @@ console.log('\n── 4. Y los sets que vengan, solos ──')
     /if \(!detalle\.regulation_mark\)[\s\S]{0,200}detalle\.regulation_mark = delSet/.test(tarea))
   // Y la vuelta atrás: sin la migración puesta, la columna no existe y
   // pedirla devuelve 400 —no null— y tumbaría el engorde entero.
-  check('sin la migración puesta, la tarea sigue engordando',
-    /regulation_mark[\s\S]{0,400}\.catch\(\(\) =>[\s\S]{0,400}\.catch\(\(\) =>/.test(tarea))
+  // Se comprueba la FORMA y no el encadenado concreto: la primera
+  // versión buscaba dos `.catch()` anidados, y al pasar a una lista de
+  // candidatas (tanda 343) dejó de casar sin que el código perdiera
+  // nada. Lo que importa es que haya VARIAS consultas de menos a más
+  // pobre y que se pruebe la siguiente cuando una falla.
+  const candidatas = tarea.match(/const CANDIDATAS = \[([\s\S]*?)\]/)?.[1] || ''
+  check('la consulta de sets se prueba en varios escalones',
+    (candidatas.match(/`|'/g) || []).length > 0 && candidatas.split('\n').filter((l) => l.trim()).length >= 3,
+    candidatas.replace(/\s+/g, ' ').slice(0, 160))
+  check('…el primero con la columna nueva y el último sin ella',
+    /regulation_mark/.test(candidatas.split('\n')[1] || '') &&
+      !/regulation_mark/.test(candidatas.split('\n').filter((l) => l.trim()).at(-1) || ''),
+    candidatas.replace(/\s+/g, ' ').slice(0, 200))
+  check('…y se pasa a la siguiente cuando una falla',
+    /for \(const cols of CANDIDATAS\)[\s\S]{0,200}\.catch\(\(\) => null\)/.test(tarea))
   check('…y la fase se queda apagada', /s\.regulation_mark === null/.test(tarea))
 }
 
