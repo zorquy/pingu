@@ -378,6 +378,37 @@
         </div>
 
         <div class="admin-card" style="margin-bottom: 20px;">
+          <h3 style="margin-top: 0;">Marca de regulación de cada set</h3>
+          <p class="admin-note">
+            La marca es del <strong>set</strong>: todas sus cartas llevan la misma. TCGdex no la
+            trae para algunos —al 30th Celebration le faltaba entera— y sin ella la ficha de una
+            carta dice que no es legal cuando sí lo es.
+          </p>
+          <p class="admin-note">
+            Casi todas salen solas de las propias cartas del set. Las que hay que mirar son
+            <strong>las deducidas</strong>: esas se heredaron del set anterior por fecha, y si la
+            rotación cayó justo ahí se habrán quedado con la letra de antes.
+          </p>
+          <div id="marcasSetResumen"></div>
+          <div id="marcasSetLista"></div>
+          <span class="admin-note" id="marcasSetNota"></span>
+
+          <details class="admin-detalle-avanzado">
+            <summary>Corregir cualquier set</summary>
+            <p class="admin-note">
+              Para los que no salen arriba. Lo que pongas aquí manda sobre lo que se deduzca
+              después, igual que los códigos de TCG Live.
+            </p>
+            <div class="foro-admin-fila">
+              <select id="marcaSetCual" aria-label="Set"></select>
+              <input type="text" id="marcaSetLetra" placeholder="J" style="max-width: 80px;"
+                     aria-label="Marca de regulación" />
+              <button class="btn-secondary" id="btnMarcaSetGuardar">Guardar</button>
+            </div>
+          </details>
+        </div>
+
+        <div class="admin-card" style="margin-bottom: 20px;">
           <h3 style="margin-top: 0;">Códigos de set de TCG Live</h3>
           <p class="admin-note">
             Cuando alguien pega una decklist, cada línea trae el código del set tal como lo escribe

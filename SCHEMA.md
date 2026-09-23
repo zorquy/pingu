@@ -17897,3 +17897,50 @@ vez otra página: primero el foro, los temas y el muro de un perfil;
 después los dos de torneos, que también admiten el bloque en la
 descripción. Son OCHO páginas de 26 — y la portada no es ninguna, que
 era de lo que se trataba. Sin esa prueba lo habría roto en producción.
+
+---
+
+## Tanda 341 — la marca de un set, desde /admin
+
+La pantalla que faltaba de la 339, en /admin → Cartas.
+
+**No enseña los 220 sets.** La migración de la 339 resolvió casi todos
+sin adivinar —preguntándole a sus propias cartas— y la tarea programada
+hace lo mismo con los que van llegando. Lo único que ninguna de las dos
+puede garantizar son las **deducidas**: se heredan del set anterior por
+fecha, y si la rotación cayó justo entre uno y el siguiente se quedan con
+la letra de antes. Esas son la tabla, y de las más nuevas hacia abajo.
+
+Una pantalla que te da 220 filas para que encuentres tres es una pantalla
+que nadie mira. El resumen de arriba cuenta las cuatro familias —seguras,
+a mano, deducidas y sin marca— para saber si hay algo que hacer sin leer
+la tabla.
+
+Tres decisiones que no se ven:
+
+**Confirmar deja la marca como `mano` aunque no cambies la letra.** Eso
+es lo que hace que ninguna pasada futura la vuelva a deducir: el valor
+puede ser el mismo, pero pasa de «lo dedujo una fórmula» a «lo miró
+alguien».
+
+**Se escribe el set Y sus cartas.** Lo que lee la ficha de una carta es
+la columna de la CARTA; tocar solo el set dejaría la pantalla diciendo
+una letra y las fichas otra. Y solo donde está vacía: lo que TCGdex haya
+dicho de una carta concreta no se pisa nunca.
+
+**Sin la migración, se dice cuál falta** en vez de pintar una tabla
+vacía, que parece un fallo.
+
+### Y el `maxlength` que convertía una palabra en una marca
+
+La casilla llevaba `maxlength="2"`. Escribir «Jota» la recortaba a «Jo»,
+eso **sí** pasaba la validación de una o dos letras, y se guardaba «JO»
+como marca — dejando el set entero fuera de reglamento.
+
+Salió al escribir la prueba: el caso inválido se convertía en válido y
+la fila desaparecía de la lista, así que la iteración siguiente no
+encontraba el campo. Un campo que se traga lo que escribes y te lo
+convierte en algo aceptable es peor que uno que te dice que no. Se quitó
+el `maxlength` y se valida **lo que se escribió**.
+
+Cubierto en `test-tanda-341.mjs` (4 bloques).

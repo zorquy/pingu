@@ -2378,6 +2378,170 @@ function initMarcasSection() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// MARCA DE REGULACIÓN DE CADA SET (tanda 341)
+//
+// La marca es del SET: todas sus cartas llevan la misma. TCGdex no la
+// trae para algunos —al 30th Celebration le faltaba entera— y sin ella
+// la ficha de una carta dice que no es legal cuando sí lo es.
+//
+// La migración de la 339 las resolvió casi todas sin adivinar, y la
+// tarea programada hace lo mismo con los sets que van llegando. Esta
+// pantalla es para lo ÚNICO que ninguna de las dos puede garantizar: las
+// DEDUCIDAS. Se heredan del set anterior por fecha, y si la rotación
+// cayó justo entre uno y el siguiente se quedan con la letra de antes.
+//
+// Por eso la lista de arriba no son los 220 sets: son esos. Una pantalla
+// que te enseña 220 filas para que encuentres tres es una pantalla que
+// nadie mira.
+// ═══════════════════════════════════════════════════════════════════
+
+// Lo que se puede escribir en la casilla: una letra, o dos por si algún
+// día se pasa de la Z. Ni una palabra ni un número.
+//
+// Y la casilla NO lleva `maxlength`: lo tuvo, y recortaba «Jota» a «Jo»
+// —que pasa esta comprobación— y guardaba «JO» como marca, dejando el
+// set entero fuera de reglamento. Un campo que se traga lo que escribes
+// en silencio y te lo convierte en algo válido es peor que uno que te
+// dice que no. Se valida LO QUE SE ESCRIBIÓ.
+const MARCA_VALIDA = /^[A-Z]{1,2}$/
+
+function setsPorMarca() {
+  const oeste = tcgSetsLocales.filter((x) => (x.market || 'WEST') === 'WEST')
+  return {
+    oeste,
+    deCartas: oeste.filter((x) => x.regulation_mark_origen === 'cartas'),
+    deducidos: oeste
+      .filter((x) => x.regulation_mark_origen === 'fecha')
+      .sort((a, b) => String(b.release_date || '').localeCompare(String(a.release_date || ''))),
+    aMano: oeste.filter((x) => x.regulation_mark_origen === 'mano'),
+    sinMarca: oeste.filter((x) => !x.regulation_mark),
+  }
+}
+
+function pintarMarcasDeSet() {
+  const caja = document.getElementById('marcasSetLista')
+  const resumen = document.getElementById('marcasSetResumen')
+  if (!caja || !resumen) return
+
+  const { oeste, deCartas, deducidos, aMano, sinMarca } = setsPorMarca()
+
+  // Sin la migración puesta la columna no viaja y no hay nada que
+  // enseñar. Se dice, en vez de pintar una tabla vacía que parece un
+  // fallo.
+  if (!oeste.some((x) => x.regulation_mark || x.regulation_mark_origen)) {
+    resumen.innerHTML =
+      '<p class="admin-note admin-note-warn admin-note-alerta">Falta ejecutar' +
+      ' <strong>supabase-migration-marcas-por-set.sql</strong>: hasta entonces los sets no tienen' +
+      ' marca y las cartas que TCGdex no marca salen como no legales.</p>'
+    caja.innerHTML = ''
+    return
+  }
+
+  resumen.innerHTML =
+    `<p class="admin-note"><strong>${deCartas.length}</strong> salen de sus propias cartas (seguras)` +
+    `${aMano.length ? `, <strong>${aMano.length}</strong> puestas a mano` : ''}` +
+    `, <strong>${deducidos.length}</strong> deducidas y ` +
+    `<strong>${sinMarca.length}</strong> sin marca —esas son anteriores a que existieran, y ahí` +
+    ' el hueco es la verdad.</p>'
+
+  caja.innerHTML = deducidos.length
+    ? `<table class="admin-table">
+        <thead><tr><th>Set</th><th>Salió</th><th>Marca</th><th></th></tr></thead>
+        <tbody>${deducidos
+          .map(
+            (s) => `<tr>
+              <td><strong>${escapeHtml(s.name || s.id)}</strong> <span class="subtext">${escapeHtml(s.id)}</span></td>
+              <td>${escapeHtml(s.release_date || '—')}</td>
+              <td><input type="text" style="max-width: 70px;"
+                    aria-label="Marca de ${escapeHtml(s.name || s.id)}"
+                    data-marca-set="${escapeHtml(s.id)}" value="${escapeHtml(s.regulation_mark || '')}" /></td>
+              <td><button class="btn-outline btn-small" data-confirmar-marca="${escapeHtml(s.id)}">Confirmar</button></td>
+            </tr>`
+          )
+          .join('')}</tbody>
+      </table>
+      <p class="admin-note">Confirmar una la deja marcada como puesta A MANO, aunque no cambies la
+       letra: eso es lo que hace que ninguna pasada futura la vuelva a deducir.</p>`
+    : '<p class="admin-note">Ninguna deducida: todas salen de sus cartas o están puestas a mano.</p>'
+
+  caja.querySelectorAll('[data-confirmar-marca]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const id = b.dataset.confirmarMarca
+      const campo = caja.querySelector(`[data-marca-set="${CSS.escape(id)}"]`)
+      guardarMarcaDeSet(id, (campo?.value || '').trim().toUpperCase()).catch(() => {})
+    })
+  )
+
+  const sel = document.getElementById('marcaSetCual')
+  if (sel) {
+    sel.innerHTML = oeste
+      .slice()
+      .sort((a, b) => String(b.release_date || '').localeCompare(String(a.release_date || '')))
+      .map(
+        (s) =>
+          `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name || s.id)}` +
+          `${s.regulation_mark ? ` — ${escapeHtml(s.regulation_mark)}` : ' — sin marca'}</option>`
+      )
+      .join('')
+  }
+}
+
+// Guarda la marca de un set Y la de sus cartas que no la tengan.
+//
+// Las dos cosas, y en este orden: el set es de dónde se hereda, pero lo
+// que lee la ficha de una carta es la columna de la CARTA. Cambiar solo
+// el set dejaría la pantalla diciendo una letra y las fichas otra.
+//
+// Solo donde está vacía: lo que TCGdex haya dicho de una carta concreta
+// no se pisa nunca.
+async function guardarMarcaDeSet(setId, letra) {
+  const nota = document.getElementById('marcasSetNota')
+  if (!MARCA_VALIDA.test(letra)) {
+    showToast('La marca es una letra: la de la esquina de la carta (H, I, J…).', 'error')
+    return
+  }
+  const { error } = await supabase
+    .from('tcg_sets')
+    .update({ regulation_mark: letra, regulation_mark_origen: 'mano' })
+    .eq('id', setId)
+    .eq('market', 'WEST')
+  if (error) {
+    showToast('No se ha podido guardar: ' + error.message, 'error')
+    return
+  }
+  const { error: errorCartas, count } = await supabase
+    .from('tcg_cards')
+    .update({ regulation_mark: letra }, { count: 'exact' })
+    .eq('set_id', setId)
+    .eq('market', 'WEST')
+    .is('regulation_mark', null)
+  if (errorCartas) {
+    showToast('El set se ha guardado, pero sus cartas no: ' + errorCartas.message, 'error')
+    return
+  }
+  const fila = tcgSetsLocales.find((x) => x.id === setId && (x.market || 'WEST') === 'WEST')
+  if (fila) {
+    fila.regulation_mark = letra
+    fila.regulation_mark_origen = 'mano'
+  }
+  pintarMarcasDeSet()
+  if (nota) nota.textContent = `${setId} → ${letra}${count ? ` (${count} cartas)` : ''}.`
+  showToast(`Marca ${letra} guardada. Las fichas ya la usan.`, 'success')
+}
+
+function initMarcasDeSetSection() {
+  document.getElementById('btnMarcaSetGuardar')?.addEventListener('click', () => {
+    const id = document.getElementById('marcaSetCual')?.value
+    const letra = (document.getElementById('marcaSetLetra')?.value || '').trim().toUpperCase()
+    if (!id) {
+      showToast('Elige un set.', 'error')
+      return
+    }
+    guardarMarcaDeSet(id, letra).catch(() => {})
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // CÓDIGOS DE SET DE TCG LIVE (tanda 232)
 //
 // El 2026-09-01 PINGU pegó una lista con ASC, POR, CRI y MEE, y ninguno
@@ -2887,6 +3051,9 @@ async function init() {
   initArquetiposSection()
   initSetsLiveSection()
   initMarcasSection()
+  initMarcasDeSetSection()
+  // Después de loadCards(): se pinta con `tcgSetsLocales`.
+  pintarMarcasDeSet()
 
   document.getElementById('analyticsDays')?.addEventListener('change', loadAnalytics)
 }

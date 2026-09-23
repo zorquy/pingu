@@ -12,6 +12,45 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-23 — PINGU-Claude (tanda 341 — la marca de un set, desde /admin)
+
+**Hecho**: la pantalla que faltaba de la 339. Vive en /admin → Cartas,
+debajo de la de las marcas legales de la temporada.
+
+**Y no enseña los 220 sets, enseña los que hay que mirar.** La migración
+de la 339 resolvió casi todos sin adivinar —preguntándole a sus propias
+cartas— y la tarea programada hace lo mismo con los que van llegando. Lo
+único que ninguna de las dos puede garantizar son las DEDUCIDAS: se
+heredan del set anterior por fecha, y si la rotación cayó justo entre uno
+y el siguiente se quedan con la letra de antes. Esas son la tabla. Una
+pantalla que te da 220 filas para que encuentres tres es una pantalla que
+nadie mira.
+
+Confirmar una la deja como `mano`, **aunque no cambies la letra**: eso es
+lo que hace que ninguna pasada futura la vuelva a deducir. Y escribe el
+set Y sus cartas, porque lo que lee la ficha es la columna de la CARTA —
+tocar solo el set dejaría la pantalla diciendo una letra y las fichas
+otra. Solo donde está vacía: lo que TCGdex haya dicho de una carta
+concreta no se pisa.
+
+**Un fallo que salió al escribir la prueba**: la casilla llevaba
+`maxlength="2"`, así que recortaba «Jota» a «Jo» —que SÍ pasa la
+validación— y guardaba «JO» como marca, dejando el set entero fuera de
+reglamento. Un campo que se traga lo que escribes y te lo convierte en
+algo válido es peor que uno que dice que no. Fuera el `maxlength`: se
+valida lo que se escribió.
+
+**Ficheros**: `admin/index.html`, `admin/js/admin.js`, `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-341.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: sigue pendiente de PINGU ejecutar
+`supabase-migration-marcas-por-set.sql` — hasta entonces esta pantalla
+sale diciendo justo eso, que es lo que tiene que decir en vez de una
+tabla vacía.
+
+---
+
 ## 2026-09-23 — PINGU-Claude (tanda 340 — el tipo que no conocemos, y la carta clicable desde cualquier sitio)
 
 **Hecho**: dos cosas del mismo mensaje de PINGU, más la mudanza de CSS
