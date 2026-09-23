@@ -354,6 +354,30 @@
         <div class="admin-stats-grid" id="cardsSummary"></div>
 
         <div class="admin-card" style="margin-bottom: 20px;">
+          <h3 style="margin-top: 0;">Marcas de regulación legales</h3>
+          <p class="admin-note">
+            La letra pequeña de la esquina de una carta. Estas son las que valen en Estándar
+            <strong>esta temporada</strong>, y de aquí salen las dos cosas que se lo dicen a la
+            gente: el aviso del revisor de decklists de un torneo y la chapa de «se puede jugar
+            hoy» de la ficha de cada carta.
+          </p>
+          <p class="admin-note">
+            <strong>Rotan cada abril.</strong> Cuando llegue la rotación hay que cambiarlas aquí:
+            no se enteran solas, y hasta que alguien las toque la web dirá que un mazo legal no lo
+            es sin dar ningún error.
+          </p>
+          <div id="marcasAviso"></div>
+          <div class="foro-admin-fila">
+            <input type="text" id="marcasLegales" placeholder="H, I, J" style="max-width: 200px;"
+                   aria-label="Marcas legales, separadas por comas" />
+            <button class="btn-secondary" id="btnComprobarMarcas">Comprobar</button>
+            <button class="btn-primary" id="btnGuardarMarcas">Guardar</button>
+            <span class="admin-note" id="marcasNota"></span>
+          </div>
+          <div id="marcasRecuento"></div>
+        </div>
+
+        <div class="admin-card" style="margin-bottom: 20px;">
           <h3 style="margin-top: 0;">Códigos de set de TCG Live</h3>
           <p class="admin-note">
             Cuando alguien pega una decklist, cada línea trae el código del set tal como lo escribe

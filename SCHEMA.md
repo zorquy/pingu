@@ -17619,3 +17619,98 @@ el dato y lo usan la ficha Y el revisor; `legalidadEstandar` en
 `js/carta-nucleo.js` decide, y es pura para que la pueda ejecutar
 también la función del borde. Una energía básica está siempre dentro:
 es regla del juego, no del formato.
+
+---
+
+## Tanda 336 — las marcas de regulación, con pantalla
+
+`marcas_legales` decide si una carta se puede jugar en Estándar, y de
+ahí salen las dos cosas que se lo dicen a la gente: el revisor de
+decklists de un torneo y la chapa de la ficha de una carta.
+
+Vive en `site_settings` desde la tanda 215 para poder cambiarla sin
+desplegar — pero **no tenía pantalla**, así que en la práctica solo se
+podía cambiar desde el SQL Editor. Y **rotan cada abril**.
+
+Un ajuste que hay que tocar una vez al año y que no tiene pantalla se
+queda viejo sin que nada dé error, y el síntoma es de los peores que
+hay: la web diciéndole a alguien que un mazo legal no lo es.
+
+Por eso la pantalla hace tres cosas y no una:
+
+- **Deja cambiarlas** (/admin → Cartas).
+- **Canta cuando ha pasado un abril** desde la última vez. Sin ese
+  aviso, unas marcas de hace tres temporadas se ven exactamente igual
+  que unas buenas.
+- **Cuenta cuántas cartas quedarían legales antes de guardar.** Es la
+  red contra la errata: una letra que no existe da cero, y cero se ve
+  aquí en vez de en el mazo de alguien.
+
+Dos detalles que no dan error si se hacen mal. `updated_at` se escribe
+**a mano**: la columna tiene `default now()`, que solo corre al
+INSERTAR, y no hay disparador — sin escribirla, la fecha se quedaría en
+la de la siembra y el aviso de la rotación mentiría **callándose**, que
+es la peor forma de mentir de las dos. Y la cuenta filtra por mercado:
+los catálogos asiáticos son otro juego y no pueden inflar el número que
+se mira para decidir.
+
+Sin migración: la clave, la columna y la política ya existían.
+
+Cubierto en `test-tanda-336.mjs` (7 bloques) y `rigor-tanda-336.py` (19
+mutaciones, todas detectadas).
+
+---
+
+## Tanda 337 — el check-in de una mesa que sigue viva
+
+Reportado desde un torneo de verdad: **sin que hubieran pasado los 5
+minutos de check-in**, una mesa no dejaba marcarse listo y soltaba
+«Esta mesa ya no admite check-in.»
+
+### No tenía nada que ver con el tiempo
+
+1. El rival reporta su resultado **antes** de que tú hayas hecho
+   check-in. Eso deja la mesa en `awaiting_confirmation`.
+2. Tú sigues viendo el botón: «Tu partida» lo pinta mirando si TÚ estás
+   listo.
+3. Lo pulsas, y `torneos_checkin` solo admitía `pending` y `active`.
+
+El mensaje mentía dos veces: ni era «ya», ni tenía que ver con la
+ventana de tiempo que la persona estaba mirando.
+
+### Se arregla ABRIENDO, y solo en el servidor
+
+El check-in es un registro de **presencia**. Si tu rival acaba de
+reportar, es que estabas en la mesa: negarte apuntarlo es lo contrario
+de lo que dice la realidad, y a quien resuelva una disputa le hace falta
+saber que los dos estaban. Así que la función admite la mesa mientras
+siga viva y la rechaza cuando de verdad se ha acabado.
+
+**Y el cliente no se toca**, que es lo que costó ver. El primer intento
+le añadió una guarda de estado al botón — y no habría cambiado ni un
+píxel: «Tu partida» ya devuelve antes con una pantalla propia para cada
+estado terminal (`TERMINALES`) y para `pending` y `disputed`, así que el
+botón solo llega a pintarse en `active` y `awaiting_confirmation`. El
+desajuste estaba entero en la función. Revertido.
+
+### La prueba, contra la FORMA del fallo
+
+Lo fácil habría sido copiar la lista de estados en JavaScript y
+comprobar que las dos coinciden. Eso es una copia más que mantener, y
+además comprueba lo que no es: el servidor puede ser más permisivo que
+la pantalla sin que pase nada.
+
+Lo que importa es lo contrario, y es lo que se mide: **ningún estado en
+el que la pantalla ofrezca el botón puede ser rechazado por la
+función.** La prueba abre /torneo en los **nueve** estados de una mesa
+—sacados de la propia tabla, así que uno nuevo entra solo—, apunta en
+cuáles sale el botón, y comprueba que todos están en la guarda. Con la
+lista vieja, `awaiting_confirmation` salía y no estaba: rojo.
+
+### Y no reabre ninguna puerta
+
+El barredor que da la ronda por perdida a quien no aparece **solo mira
+las mesas en `active`**, así que un check-in tardío en una mesa que ya
+espera confirmación no cambia ningún resultado. Solo deja constancia.
+
+Cubierto en `test-tanda-337.mjs` (3 bloques).

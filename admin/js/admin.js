@@ -2237,6 +2237,147 @@ function initArquetiposSection() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// MARCAS DE REGULACIÓN LEGALES (tanda 336)
+//
+// La letra de la esquina que decide si una carta se puede jugar en
+// Estándar. Vive en site_settings ('torneos_reglas') y de ahí salen las
+// DOS cosas que se lo dicen a la gente: el aviso del revisor de
+// decklists y la chapa de la ficha de una carta.
+//
+// POR QUÉ ESTO EXISTE: hasta ahora la fila solo se podía cambiar desde
+// el SQL Editor, y **las marcas rotan cada abril**. Un ajuste que hay
+// que cambiar una vez al año y que no tiene pantalla se queda viejo sin
+// que nada dé error — y el síntoma es de los peores que hay: la web
+// diciéndole a alguien que un mazo legal no lo es.
+//
+// Por eso la pantalla hace tres cosas, no una:
+//   · deja cambiarlas,
+//   · CANTA cuando ha pasado un abril desde la última vez, y
+//   · antes de guardar cuenta cuántas cartas quedarían legales, para que
+//     una letra mal escrita se vea aquí y no en el mazo de alguien.
+// ═══════════════════════════════════════════════════════════════════
+
+let marcasLegalesActuales = []
+let marcasActualizado = null
+
+// El 1 de abril MÁS RECIENTE que ya ha pasado. Si las marcas se tocaron
+// antes de esa fecha, se han saltado una rotación.
+function ultimaRotacion(hoy = new Date()) {
+  const abril = new Date(Date.UTC(hoy.getUTCFullYear(), 3, 1))
+  if (abril > hoy) abril.setUTCFullYear(abril.getUTCFullYear() - 1)
+  return abril
+}
+
+function marcasDelCampo() {
+  return (document.getElementById('marcasLegales')?.value || '')
+    .toUpperCase()
+    .split(/[^A-Z]+/)
+    .filter(Boolean)
+}
+
+async function loadMarcasLegales() {
+  const { data } = await supabase
+    .from('site_settings')
+    .select('value,updated_at')
+    .eq('key', 'torneos_reglas')
+    .maybeSingle()
+  const marcas = data?.value?.marcas_legales
+  marcasLegalesActuales = Array.isArray(marcas) ? marcas : []
+  marcasActualizado = data?.updated_at || null
+  const campo = document.getElementById('marcasLegales')
+  if (campo) campo.value = marcasLegalesActuales.join(', ')
+  pintarAvisoMarcas()
+}
+
+function pintarAvisoMarcas() {
+  const caja = document.getElementById('marcasAviso')
+  if (!caja) return
+
+  if (!marcasLegalesActuales.length) {
+    caja.innerHTML =
+      '<p class="admin-note admin-note-warn admin-note-alerta">No hay ninguna marca guardada, así que manda el respaldo del código' +
+      ' (H, I, J). Guárdalas aquí para poder cambiarlas sin desplegar.</p>'
+    return
+  }
+
+  const cuando = marcasActualizado ? new Date(marcasActualizado) : null
+  const vieja = cuando && cuando < ultimaRotacion()
+  const fecha = cuando
+    ? cuando.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+    : 'nunca desde que esto se guarda'
+  caja.innerHTML = vieja
+    ? `<p class="admin-note admin-note-warn admin-note-alerta"><strong>Ha pasado un abril desde la última vez.</strong>` +
+      ` Estas marcas (${marcasLegalesActuales.join(', ')}) se tocaron el ${fecha}, y la rotación es en abril:` +
+      ' lo más probable es que estén viejas. Compruébalas.</p>'
+    : `<p class="admin-note">Ahora mismo valen <strong>${marcasLegalesActuales.join(', ')}</strong>,` +
+      ` puestas el ${fecha}.</p>`
+}
+
+// Cuántas cartas quedarían legales con lo que hay escrito. Es la red
+// contra la errata: una letra que no existe da cero, y cero se ve aquí
+// en vez de en el mazo de alguien.
+async function comprobarMarcas() {
+  const caja = document.getElementById('marcasRecuento')
+  const marcas = marcasDelCampo()
+  if (!caja) return marcas
+  if (!marcas.length) {
+    caja.innerHTML = '<p class="admin-note admin-note-warn admin-note-alerta">No has escrito ninguna marca.</p>'
+    return marcas
+  }
+  caja.innerHTML = '<p class="admin-note">Contando…</p>'
+  const { count, error } = await supabase
+    .from('tcg_cards')
+    .select('id', { count: 'exact', head: true })
+    .eq('market', 'WEST')
+    .in('regulation_mark', marcas)
+  if (error) {
+    caja.innerHTML = `<p class="admin-note">No se ha podido contar: ${escapeHtml(error.message)}</p>`
+    return marcas
+  }
+  caja.innerHTML = count
+    ? `<p class="admin-note">Con ${marcas.join(', ')} queda${count === 1 ? '' : 'n'} <strong>${count}</strong>` +
+      ` carta${count === 1 ? '' : 's'} legal${count === 1 ? '' : 'es'} en el catálogo.</p>`
+    : `<p class="admin-note admin-note-warn admin-note-alerta"><strong>Ninguna carta del catálogo lleva esas marcas.</strong>` +
+      ' Casi seguro que hay una letra mal: mira la esquina de una carta de la rotación antes de guardar.</p>'
+  return marcas
+}
+
+async function guardarMarcasLegales() {
+  const marcas = await comprobarMarcas()
+  if (!marcas.length) {
+    showToast('Escribe al menos una marca (H, I, J).', 'error')
+    return
+  }
+  const nota = document.getElementById('marcasNota')
+  // `updated_at` se escribe A MANO: la columna tiene `default now()`,
+  // que solo corre al INSERTAR, y no hay disparador. Sin esto, la fecha
+  // se quedaría en la del día que se sembró la fila y el aviso de la
+  // rotación mentiría justo al revés de como conviene.
+  const { error } = await supabase.from('site_settings').upsert(
+    { key: 'torneos_reglas', value: { marcas_legales: marcas }, updated_at: new Date().toISOString() },
+    { onConflict: 'key' }
+  )
+  if (error) {
+    showToast('No se ha podido guardar: ' + error.message, 'error')
+    return
+  }
+  marcasLegalesActuales = marcas
+  marcasActualizado = new Date().toISOString()
+  pintarAvisoMarcas()
+  if (nota) nota.textContent = 'Guardado.'
+  showToast('Marcas guardadas. Las decklists y las fichas ya las usan.', 'success')
+}
+
+function initMarcasSection() {
+  document.getElementById('btnComprobarMarcas')?.addEventListener('click', () => {
+    comprobarMarcas().catch(() => {})
+  })
+  document.getElementById('btnGuardarMarcas')?.addEventListener('click', () => {
+    guardarMarcasLegales().catch(() => {})
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // CÓDIGOS DE SET DE TCG LIVE (tanda 232)
 //
 // El 2026-09-01 PINGU pegó una lista con ASC, POR, CRI y MEE, y ninguno
@@ -2740,10 +2881,12 @@ async function init() {
   // Después de loadCards(): necesita tcgSetsLocales para poder enseñar
   // el nombre de cada set en vez de su identificador.
   await loadSetsLive()
+  await loadMarcasLegales()
 
   initCardsSection()
   initArquetiposSection()
   initSetsLiveSection()
+  initMarcasSection()
 
   document.getElementById('analyticsDays')?.addEventListener('change', loadAnalytics)
 }

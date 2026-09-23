@@ -12,6 +12,62 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-23 — PINGU-Claude (tandas 336 y 337 — las marcas legales desde /admin, y el check-in de una mesa viva)
+
+**Hecho**: dos cosas sin relación entre sí.
+
+**336 — las marcas de regulación, con pantalla.** `marcas_legales` vive
+en `site_settings` y **rota cada abril**, pero hasta hoy solo se podía
+cambiar desde el SQL Editor. Un ajuste que se toca una vez al año y no
+tiene pantalla se queda viejo sin que nada dé error, y el síntoma es de
+los peores: la web diciéndole a alguien que un mazo legal no lo es.
+
+La pantalla (en /admin → Cartas) hace tres cosas, no una: deja
+cambiarlas, **canta cuando ha pasado un abril** desde la última vez, y
+**antes de guardar cuenta cuántas cartas quedarían legales** — si
+escribes una letra que no existe te lo dice ahí, y no en el mazo de
+alguien. `updated_at` se escribe A MANO: la columna tiene `default
+now()`, que solo corre al INSERTAR, y no hay disparador; sin eso el
+aviso de la rotación mentiría callándose. Sin migración: la clave, la
+columna y la política ya existían.
+
+**337 — el check-in que fallaba en un torneo de verdad.** Reportado por
+un jugador: sin que hubieran pasado los 5 minutos, una mesa no dejaba
+marcarse listo y soltaba «Esta mesa ya no admite check-in.»
+
+No tenía nada que ver con el tiempo. El rival reporta antes de que tú
+hagas check-in → la mesa pasa a `awaiting_confirmation` → el botón
+SIGUE ahí, y `torneos_checkin` solo admitía `pending` y `active`. El
+mensaje mentía dos veces: ni era «ya», ni tenía que ver con la ventana
+que la persona estaba mirando.
+
+Se arregla ABRIENDO y **solo en el servidor**: el check-in es un
+registro de PRESENCIA, y si tu rival acaba de reportar es que estabas
+en la mesa. Mi primer intento le añadió una guarda al cliente y **no
+habría cambiado ni un píxel** — «Tu partida» ya tiene pantalla propia
+para cada estado cerrado y para `pending` y `disputed`, así que el botón
+solo llega a pintarse en `active` y `awaiting_confirmation`. Revertido.
+
+Y no reabre ninguna puerta: el barredor que da la ronda por perdida solo
+mira las mesas en `active`, así que un check-in tardío no cambia ningún
+resultado.
+
+**Ficheros**: `admin/index.html`, `admin/js/admin.js`,
+`admin/css/admin.css`, `supabase-migration-checkin-mesa-viva.sql`
+(NUEVO, **sin ejecutar**), `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-336.mjs`,
+`pruebas/test-tanda-337.mjs`, `rigor/rigor-tanda-336.py` (los tres
+NUEVOS) y `herramientas/correr-suite.sh`.
+
+**En curso / pendiente**:
+- **PINGU tiene que ejecutar `supabase-migration-checkin-mesa-viva.sql`**.
+  Hasta entonces el fallo del check-in sigue vivo: es el único arreglo
+  de la 337 y está entero en la función.
+- La suite entera está pendiente de una pasada con la 336 y la 337
+  dentro (las dos pasan sueltas, y el rigor de la 336 detecta sus 19).
+
+---
+
 ## 2026-09-22 — PINGU-Claude (tanda 335 — el nombre en español, en su propia columna, y la chapa de legalidad)
 
 **Hecho**: dos cosas, una de arreglo y otra nueva.

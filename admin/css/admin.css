@@ -300,6 +300,14 @@ body {
   margin: 0 0 12px;
 }
 
+/* Lo mismo pero para lo que está MAL y no solo raro: una rotación de
+   marcas que se ha saltado, o unas marcas que no llevan ni una carta.
+   Solo cambia el color del canto — el resto lo hereda de
+   `.admin-note-warn`, que es de donde viene la forma. */
+.admin-note-alerta {
+  border-left-color: var(--danger);
+}
+
 /* Gráfico de barras a mano: una rejilla de columnas de altura variable.
    Sin librería de gráficos — son cuatro divs y no merece la pena traer
    una dependencia externa (que además el CSP de nada serviría). */
