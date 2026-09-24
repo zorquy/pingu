@@ -48,8 +48,14 @@ const CARTAS = [
   // Las dos mitades del 30 aniversario, que son UN set.
   { id: '30th-1', set_id: '30th', market: 'WEST', local_id: '001', name: 'Pikachu', name_es: 'Pikachu',
     image_path: 'x/5', types: ['Lightning'] },
-  { id: '30th-c-1', set_id: '30th-c', market: 'WEST', local_id: '002', name: 'Venusaur', name_es: 'Venusaur',
-    image_path: 'x/6', types: ['Grass'] },
+  { id: '30th-2', set_id: '30th', market: 'WEST', local_id: '002', name: 'Mew', name_es: 'Mew',
+    image_path: 'x/6', types: ['Psychic'] },
+  // La otra mitad empieza otra vez por el 001, que es lo que mezclaba
+  // las dos listas.
+  { id: '30th-c-1', set_id: '30th-c', market: 'WEST', local_id: '001', name: 'Charizard', name_es: 'Charizard',
+    image_path: 'x/7', types: ['Fire'] },
+  { id: '30th-c-2', set_id: '30th-c', market: 'WEST', local_id: '002', name: 'Venusaur', name_es: 'Venusaur',
+    image_path: 'x/8', types: ['Grass'] },
 ]
 
 const browser = await chromium.launch()
@@ -169,14 +175,20 @@ console.log('\n── 5b. Y las dos mitades del 30 aniversario, juntas ──')
 {
   const { page } = await abrir('/coleccion/30c')
   check('la página del padre enseña las cartas de las dos',
-    (await page.locator('.coleccion-carta').count()) === 2,
+    (await page.locator('.coleccion-carta').count()) === 4,
     String(await page.locator('.coleccion-carta').count()))
+  // Las dos mitades empiezan por el 001, así que ordenar solo por el
+  // número las intercala y parece una lista mal ordenada: la Classic va
+  // ENTERA al final.
+  const orden = await page.locator('.coleccion-carta-nombre').allTextContents()
+  check('y la otra mitad va al final del todo',
+    orden.join(' | ') === 'Pikachu | Mew | Charizard | Venusaur', orden.join(' | '))
   await page.close()
   // Y quien llegue por la dirección de la mitad, acaba en la del set.
   const { page: p2 } = await abrir('/coleccion/30th-c')
   check('la mitad lleva al set entero',
     new URL(p2.url()).pathname === '/coleccion/30c', new URL(p2.url()).pathname)
-  check('…con las cartas de las dos', (await p2.locator('.coleccion-carta').count()) === 2)
+  check('…con las cartas de las dos', (await p2.locator('.coleccion-carta').count()) === 4)
   await p2.close()
 }
 
@@ -194,6 +206,23 @@ console.log('\n── 6. El buscador de /cartas filtra por tipo ──')
   check('…y las colecciones se apartan',
     (await page.locator('#seccionColecciones').getAttribute('class')).includes('hidden'))
   await page.close()
+}
+
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 7. La imagen que el listado de un set no trae ──')
+{
+  const { detalleDeCarta, imagePathFromUrl } = await import('/home/user/pingu/js/carta-detalle.js')
+  check('la ficha de una carta la recupera',
+    detalleDeCarta({ image: 'https://assets.tcgdex.net/en/me/30th-c/001' }).image_path === 'me/30th-c/001',
+    detalleDeCarta({ image: 'https://assets.tcgdex.net/en/me/30th-c/001' }).image_path)
+  // Y si no viene, la clave NI SE ESCRIBE: un null encima borraría la
+  // que ya estaba bien.
+  check('…y si no viene, no la toca', !('image_path' in detalleDeCarta({ name: 'X' })))
+  check('sigue exportada donde estaba', imagePathFromUrl('https://x.net/en/a/b') === 'a/b')
+  const tcgdex = readFileSync('/home/user/pingu/js/tcgdex.js', 'utf8')
+  check('y tcgdex la importa en vez de copiarla',
+    /import \{ imagePathFromUrl \} from '\.\/carta-detalle\.js'/.test(tcgdex) &&
+    !/function imagePathFromUrl/.test(tcgdex))
 }
 
 await browser.close()
