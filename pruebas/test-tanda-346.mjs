@@ -31,7 +31,7 @@ const SETS = [
     tcg_online_code: 'MEE', release_date: '2026-02-20', card_count_official: 10 },
   { id: '30th', name: '30th Celebration', market: 'WEST', serie_id: '30th', serie_name: '30th Celebration',
     tcg_online_code: '30C', release_date: '2026-08-01', card_count_official: 160 },
-  { id: '30thc', name: 'Classics Collection', market: 'WEST', serie_id: '30thc', serie_name: '30th Classics',
+  { id: '30th-c', name: '30th Classic Collection', market: 'WEST', serie_id: '30thc', serie_name: '30th Classics',
     release_date: '2026-08-01', card_count_official: 30 },
 ]
 
@@ -45,6 +45,11 @@ const CARTAS = [
   // Sin engordar: no tiene tipo, y no es «de ningún tipo».
   { id: 'me05-4', set_id: 'me05', market: 'WEST', local_id: '004', name: 'Rare Candy', name_es: 'Caramelo Raro',
     image_path: 'x/4', types: null },
+  // Las dos mitades del 30 aniversario, que son UN set.
+  { id: '30th-1', set_id: '30th', market: 'WEST', local_id: '001', name: 'Pikachu', name_es: 'Pikachu',
+    image_path: 'x/5', types: ['Lightning'] },
+  { id: '30th-c-1', set_id: '30th-c', market: 'WEST', local_id: '002', name: 'Venusaur', name_es: 'Venusaur',
+    image_path: 'x/6', types: ['Grass'] },
 ]
 
 const browser = await chromium.launch()
@@ -95,20 +100,28 @@ console.log('\n── 2. El nombre, una vez ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 3. Las promos abren la era, y el 30 aniversario es UNO ──')
+console.log('\n── 3. El 30 aniversario es de Mega, y es UN set ──')
 {
   const { page, errores } = await abrir('/cartas')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const series = await page.locator('.serie-titulo').allTextContents()
-  check('el 30 aniversario no sale partido en dos',
-    series.filter((t) => /30/.test(t)).length === 1, series.join(' | '))
+  // Lo primero que hice fue sacarlo a su propio grupo. PINGU: «30 aniv
+  // es parte de megaevoluciones, no me lo separes».
+  check('no hay un grupo del 30 aniversario', !series.some((t) => /30/.test(t)), series.join(' | '))
   const mega = page.locator('.serie').filter({ hasText: 'Mega Evolution' }).first()
   const nombres = await mega.locator('.serie-nombre').allTextContents()
-  check('promos primero, energías después y luego los sets',
-    nombres.join(' | ') === 'MEP Black Star Promos | Mega Evolution Energy | Pitch Black | Mega Evolution',
+  // Y las dos mitades son UNA fila: «es el mismo set, no me lo separes».
+  check('el 30 aniversario va en una sola fila',
+    nombres.filter((t) => /30th/i.test(t)).length === 1, nombres.join(' | '))
+  check('…y no es la Classic la que sale', !nombres.some((t) => /Classic/i.test(t)), nombres.join(' | '))
+  // Y abajo las energías y las promos, en ese orden desde el final.
+  check('las expansiones arriba, y abajo energías y promos',
+    nombres.join(' | ') === 'Pitch Black | 30th Celebration | Mega Evolution | Mega Evolution Energy | MEP Black Star Promos',
     nombres.join(' | '))
-  // Y el enlace de la fila ya lleva el código.
-  const href = await mega.locator('.serie-fila').nth(2).getAttribute('href')
+  // La fila plegada cuenta las cartas de las dos mitades: 160 + 30.
+  const cuantas = await mega.locator('li').filter({ hasText: '30th Celebration' }).locator('.serie-cuantas').textContent()
+  check('y la cuenta suma las dos mitades', cuantas.trim() === '190 cartas', cuantas)
+  const href = await mega.locator('.serie-fila').first().getAttribute('href')
   check('la fila enlaza al código', href === '/coleccion/pbl', href)
   await page.close()
 }
@@ -149,6 +162,22 @@ console.log('\n── 5. Y por la dirección vieja se sigue llegando ──')
   check('…y la barra se corrige sola',
     new URL(page.url()).pathname === '/coleccion/pbl', new URL(page.url()).pathname)
   await page.close()
+}
+
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── 5b. Y las dos mitades del 30 aniversario, juntas ──')
+{
+  const { page } = await abrir('/coleccion/30c')
+  check('la página del padre enseña las cartas de las dos',
+    (await page.locator('.coleccion-carta').count()) === 2,
+    String(await page.locator('.coleccion-carta').count()))
+  await page.close()
+  // Y quien llegue por la dirección de la mitad, acaba en la del set.
+  const { page: p2 } = await abrir('/coleccion/30th-c')
+  check('la mitad lleva al set entero',
+    new URL(p2.url()).pathname === '/coleccion/30c', new URL(p2.url()).pathname)
+  check('…con las cartas de las dos', (await p2.locator('.coleccion-carta').count()) === 2)
+  await p2.close()
 }
 
 // ═════════════════════════════════════════════════════════════════════
