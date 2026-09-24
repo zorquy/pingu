@@ -42,6 +42,15 @@ funcionando: la columna se quita y se reintenta, como las otras cinco.
 En la rama `pruebas`: `pruebas/test-tanda-352.mjs` (NUEVO) y
 `herramientas/correr-suite.sh`.
 
+**Corregido el mismo día**: la primera versión de la migración falló en
+la base («0A000: cannot use subquery in check constraint») — un CHECK no
+admite subconsultas, y recorrer una lista jsonb lo es. El recorrido pasa
+a una función IMMUTABLE. Y al probarla **contra PostgreSQL 16 de verdad**
+salió un segundo agujero que no se veía leyendo: `jsonb_typeof(p ->
+'premio') <> 'string'` **no** rechaza un premio a medias, porque si la
+clave no está `jsonb_typeof` devuelve NULL y `NULL <> 'string'` no es
+cierto: es nulo. Con `is distinct from` sí.
+
 **En curso / pendiente**: ejecutar `supabase-migration-torneos-premios.sql`
 (los tres SQL de las tandas 350 y 352). Lo que queda por hacer con los
 premios, si PINGU quiere: enseñarlos en la vista previa al compartir, en

@@ -18471,6 +18471,21 @@ Y el **puesto es texto**, no un número: «Top 8», «Todos los
 participantes» y «Mejor lista» son premios de verdad y no caben en un
 entero. El orden es el del array, que lo pone quien lo escribe.
 
+**Y un CHECK no admite subconsultas.** La primera versión de la
+migración recorría la lista con `not exists (select … from
+jsonb_array_elements(...))` dentro del propio CHECK, y Postgres lo
+rechaza de plano: `0A000: cannot use subquery in check constraint`. El
+recorrido va en una función **IMMUTABLE** —inmutable de verdad: una que
+mirara otra tabla no valdría— y el CHECK solo la llama.
+
+Lo segundo solo salió al probarla **contra un PostgreSQL de verdad**, y
+no se veía leyéndola: `jsonb_typeof(p -> 'premio') <> 'string'` **no**
+rechaza un objeto al que le falte esa clave. Si la clave no está,
+`jsonb_typeof` devuelve NULL, y `NULL <> 'string'` no es cierto — es
+nulo, y un WHERE con nulo no selecciona esa fila. Así que `{"puesto":
+"1º"}` sin premio entraba. Con `is distinct from` no. Es la trampa de
+siempre de los tres valores, en el sitio donde menos se mira.
+
 **La forma se valida en la base y no solo en el navegador.** Esta columna
 la escribe cualquiera que pueda editar su torneo, y un jsonb con
 cualquier cosa dentro rompería la ficha a todo el que la abra. El CHECK

@@ -39,23 +39,40 @@ alter table public.tournaments
 alter table public.tournaments
   drop constraint if exists tournaments_prizes_check;
 
+-- ── Y por qué esto es una FUNCIÓN y no un check a pelo ──
+--
+-- Un CHECK no admite subconsultas (0A000: «cannot use subquery in check
+-- constraint»), y recorrer una lista jsonb es una: `jsonb_array_elements`
+-- devuelve filas. La forma de comprobar una lista dentro de un CHECK es
+-- meter el recorrido en una función IMMUTABLE — inmutable de verdad,
+-- porque Postgres exige que el resultado dependa solo de lo que entra:
+-- una función que mirara otra tabla no valdría aquí.
+create or replace function public.premios_bien_formados(p_premios jsonb)
+returns boolean
+language sql
+immutable
+as $$
+  select jsonb_typeof(p_premios) = 'array'
+     -- Doce premios son de sobra para un podio y un par de menciones.
+     and jsonb_array_length(p_premios) <= 12
+     and not exists (
+       select 1
+       from jsonb_array_elements(p_premios) as p
+       -- `is distinct from` y no `<>`: si la clave NO ESTÁ, `jsonb_typeof`
+       -- devuelve NULL, y `NULL <> 'string'` no es cierto — es nulo. Con
+       -- `<>` se colaba un premio a medias ({"puesto":"1º"} sin premio),
+       -- que es justo el caso que esto viene a impedir.
+       where jsonb_typeof(p) is distinct from 'object'
+          or jsonb_typeof(p -> 'puesto') is distinct from 'string'
+          or jsonb_typeof(p -> 'premio') is distinct from 'string'
+          or length(p ->> 'puesto') > 40
+          or length(p ->> 'premio') > 200
+     )
+$$;
+
 alter table public.tournaments
   add constraint tournaments_prizes_check check (
-    prizes is null
-    or (
-      jsonb_typeof(prizes) = 'array'
-      -- Doce premios son de sobra para un podio y un par de menciones.
-      and jsonb_array_length(prizes) <= 12
-      and not exists (
-        select 1
-        from jsonb_array_elements(prizes) as p
-        where jsonb_typeof(p) <> 'object'
-           or jsonb_typeof(p -> 'puesto') <> 'string'
-           or jsonb_typeof(p -> 'premio') <> 'string'
-           or length(p ->> 'puesto') > 40
-           or length(p ->> 'premio') > 200
-      )
-    )
+    prizes is null or public.premios_bien_formados(prizes)
   );
 
 -- Las políticas no se tocan: quien puede editar su torneo puede escribir
