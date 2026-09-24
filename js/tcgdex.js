@@ -90,11 +90,12 @@ export const IDIOMAS_CANDIDATOS = [
 // luego en el idioma que toque. Las cartas antiguas no tienen escaneo en
 // español (comprobado: la de Set Base no carga), así que hace falta
 // poder caer a inglés sin volver a preguntarle a nadie.
-export function imagePathFromUrl(url) {
-  if (!url) return null
-  const m = String(url).match(/^https?:\/\/[^/]+\/[a-z-]{2,5}\/(.+)$/i)
-  return m ? m[1] : null
-}
+// Vive en `js/carta-detalle.js` desde la tanda 348, que no importa nada:
+// la función programada que engorda cartas también lo necesita, y este
+// fichero importa `./supabase.js` y no se puede arrastrar a Netlify. Se
+// reexporta para que nada de lo que ya lo pedía aquí se entere.
+import { imagePathFromUrl } from './carta-detalle.js'
+export { imagePathFromUrl }
 
 // calidad: 'low' (miniatura, ~40 KB) o 'high' (lectura, ~400 KB).
 //

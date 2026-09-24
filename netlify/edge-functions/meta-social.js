@@ -1099,7 +1099,8 @@ async function metaDeColeccion(url) {
     : `set_id=eq.${encodeURIComponent(set.id)}`
   const cartas = await pedirVarias(
     `tcg_cards?${deQuien}&market=eq.WEST` +
-      `&select=id,name,name_es,local_id,image_path&order=local_id.asc&limit=${CARTAS_EN_EL_DOCUMENTO}`
+      `&select=id,name,name_es,local_id,image_path&order=${prefijo ? 'set_id.asc,' : ''}local_id.asc` +
+      `&limit=${CARTAS_EN_EL_DOCUMENTO}`
   )
 
   const canonica = `${SITIO}${rutaDeColeccion(set)}`

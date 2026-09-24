@@ -18239,3 +18239,37 @@ energías, y la última fila las promos. Solo cambia el número que
 devuelve `rangoDeSet`, pero el comentario de al lado decía «las promos
 abren» con toda la seguridad del mundo — un comentario seguro de sí
 mismo no hace verdadera la lectura que hay debajo.
+
+
+---
+
+## Tanda 348 — el 30 aniversario, en orden y con sus imágenes
+
+Dos cosas que se vieron solo después de plegar las dos mitades en una
+página.
+
+**Dos listas que empiezan por el 001 no se ordenan por el 001.** Cada
+mitad numera sus cartas desde el principio, así que el `order('local_id')`
+de siempre las intercalaba —001, 001, 002, 002— y la página parecía una
+lista mal ordenada, no dos colecciones juntas. Se ordena primero por
+`set_id`: como la regla de plegado es un PREFIJO, el identificador del
+padre siempre va delante del de sus hijos por orden alfabético, así que
+no hace falta decir en ninguna parte cuál va primero.
+
+**Una imagen que no está no es un fallo de la rejilla.** Las cartas de
+la Classic Collection salían con el hueco gris porque tienen
+`image_path` a null en la base: **el listado de un set no siempre trae
+la imagen**, y esas cartas entraron por ahí. Es el mismo reparto de la
+tanda 233 —el listado trae unas cosas y la ficha otras—, esta vez por el
+lado de la imagen.
+
+La ficha de una carta sí la trae, así que `detalleDeCarta` la recupera
+al engordar, con la regla de la marca de regulación: **la clave se
+escribe o no se escribe, nunca se pone a null**. Un null encima borraría
+la imagen de las 20.000 que sí la tienen.
+
+Y para que la función programada pueda usarla, `imagePathFromUrl` se
+muda a `js/carta-detalle.js` —el fichero sin dependencias— y `tcgdex.js`
+la importa de allí. Copiarla habría sido la tercera copia vigilada por
+una prueba (la de la 322); mudarla no cuesta nada porque el fichero de
+destino ya viajaba a Netlify.

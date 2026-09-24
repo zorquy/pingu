@@ -12,6 +12,42 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-24 — PINGU-Claude (tanda 348 — el 30 aniversario, en orden y con sus imágenes)
+
+**Hecho**: dos cosas que PINGU vio en la página del 30C ya plegada.
+
+**Las Classic van al FINAL, no intercaladas.** Las dos mitades empiezan
+la numeración en el 001, así que ordenar solo por el número impreso las
+mezclaba —001, 001, 002, 002…— y parecía una lista mal ordenada. Ahora
+se ordena primero por `set_id` y después por el número: el identificador
+del padre es prefijo del hijo, así que el padre queda delante solo, sin
+una lista de nombres que mantener.
+
+**Y las Classic salían sin imagen.** No es de la rejilla: esas cartas
+tienen `image_path` a NULL en la base. El listado de un set no siempre
+trae la imagen, y la ficha de una carta sí — así que `detalleDeCarta` la
+recupera al engordar, con la misma regla que la marca de regulación:
+**solo si viene**, porque escribir null encima borraría la que ya estaba
+bien. Se arreglan solas según pase `cartas-detalle` (esas cartas no
+están engordadas: se ve en que sus nombres siguen en inglés).
+
+Para eso, `imagePathFromUrl` se muda de `js/tcgdex.js` a
+`js/carta-detalle.js`, que no importa nada y sí puede viajar a una
+función de Netlify. No es una copia: `tcgdex.js` la importa de allí.
+
+**Ficheros**: `js/carta-detalle.js`, `js/tcgdex.js`, `js/coleccion.js`,
+`netlify/edge-functions/meta-social.js`, `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-346.mjs` (el bloque 5b con el
+orden, y un bloque 7 nuevo para la imagen).
+
+**En curso / pendiente**: si TCGdex tampoco tiene escaneo de esas cartas,
+esto no lo puede arreglar — desde aquí no se puede comprobar (el proxy
+bloquea `api.tcgdex.net`). Se sabrá cuando la tarea pase por ellas.
+Siguen sin ejecutar `supabase-migration-codigos-live.sql` y
+`supabase-migration-marcas-por-set.sql`.
+
+---
+
 ## 2026-09-24 — PINGU-Claude (tanda 347 — dos cosas que entendí al revés en la 346)
 
 **Hecho**: PINGU, con la 346 ya en producción, con captura.

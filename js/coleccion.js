@@ -120,6 +120,12 @@ async function masCartas(cuantas) {
     .select('id,name,name_es,local_id,image_path,types,category,rarity')
     .eq('market', MERCADO)
   consulta = prefijo ? consulta.like('set_id', `${prefijo}%`) : consulta.eq('set_id', setId)
+  // Y si son dos mitades, PRIMERO la del set y después la otra: los dos
+  // empiezan la numeración en el 001, así que ordenar solo por el número
+  // impreso las mezcla —001, 001, 002, 002…— y parecen la misma lista
+  // mal ordenada. El identificador del padre es prefijo del hijo, así
+  // que ordenar por `set_id` deja al padre delante solo.
+  if (prefijo) consulta = consulta.order('set_id')
   const { data, error } = await consulta
     .order('local_id')
     .range(desde, desde + cuantas - 1)

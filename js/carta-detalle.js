@@ -40,6 +40,14 @@ function lista(valor) {
 // las cartas viejas falta de todo. Lo que no venga se queda null: nada
 // de valores por defecto, que es justo lo que hace que una página afirme
 // algo falso sin que nada dé error.
+// La parte de la dirección de una imagen que guardamos: lo que va
+// DESPUÉS del idioma, porque el idioma se elige al pintarla.
+export function imagePathFromUrl(url) {
+  if (!url) return null
+  const m = String(url).match(/^https?:\/\/[^/]+\/[a-z-]{2,5}\/(.+)$/i)
+  return m ? m[1] : null
+}
+
 export function detalleDeCarta(card) {
   if (!card || typeof card !== 'object') return null
   const fila = {
@@ -68,6 +76,13 @@ export function detalleDeCarta(card) {
   // que ya estaba bien, y eso rompería la comprobación de reglamento de
   // las decklists sin que nadie se entere.
   if (card.regulationMark) fila.regulation_mark = card.regulationMark
+  // Y la imagen, con la misma regla (tanda 348): SOLO si viene. El
+  // listado de un set no siempre la trae —las cartas de la Classic
+  // Collection del 30 aniversario salían con el hueco vacío— y la ficha
+  // de una carta sí. Ponerla a null cuando no viene borraría la que ya
+  // estaba: por eso se escribe la clave o no se escribe.
+  const imagen = imagePathFromUrl(card.image)
+  if (imagen) fila.image_path = imagen
   // Y con los enums en su forma canónica: TCGdex los traduce igual que
   // los ataques, y todo el resto del código los compara en inglés.
   return canonizarCarta(fila)
