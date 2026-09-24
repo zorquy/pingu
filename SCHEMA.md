@@ -18416,3 +18416,32 @@ función de envío contra una red de mentira** y comprueba las dos
 pasadas: la que reclama manda y marca; la que llega después se encuentra
 el reclamo vacío y **no manda nada**. Con una comprobación de texto no se
 habría visto nunca.
+
+
+---
+
+## Tanda 351 — el botón de Editar un torneo no hacía nada
+
+«Acabo de crear un torneo pero no puedo editarlo, quiero meter el
+banner» (PINGU).
+
+`pintarEditor` colgaba el formulario de `.torneo-ficha`: la tarjeta
+blanca que había antes de la **tanda 298**, la que rehízo la cabecera
+del torneo. Aquella tanda se llevó la clase por delante y esta línea se
+quedó apuntando al vacío — `querySelector` devuelve null,
+`insertAdjacentHTML` revienta, y el botón deja de hacer nada. El único
+síntoma es una línea roja en una consola que no mira nadie.
+
+Es el pariente de la trampa de la 299, con otra cara: **mudar una
+pantalla es mudar las DEPENDENCIAS de quien la usa**, y un selector por
+clase no avisa cuando la clase desaparece. Ahora se cuelga de
+`#torneoCabecera` —un id, que es lo que el HTML declara— y si algún día
+tampoco está, se cae a la caja de la página en vez de romperse.
+
+**Y la prueba que existía estaba en verde**: la de la tanda 296
+comprobaba que el botón de Editar SALE para quien manda en el torneo.
+Salía. La lección de la 313, otra vez y en otro sitio: comprobar que
+algo se ofrece no es comprobar que funciona. La prueba nueva lo PULSA
+—en `draft`, que es como nace un torneo recién creado, y en
+`registration_open`— y mira que salga el formulario con su campo de
+banner y su editor de descripción cargado.

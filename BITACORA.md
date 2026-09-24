@@ -12,6 +12,33 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-24 — PINGU-Claude (tanda 351 — el botón de Editar un torneo no hacía nada)
+
+**Hecho**: PINGU: «acabo de crear un torneo pero no puedo editarlo,
+quiero meter el banner. El botón de editar no hace nada».
+
+El formulario se colgaba de `.torneo-ficha`, que era la tarjeta blanca de
+antes de la **tanda 298** — aquella rehízo la cabecera y esa clase dejó
+de existir. `querySelector` devolvía null y la línea reventaba: el botón
+dejó de hacer nada, con un error en la consola que no mira nadie. Ahora
+se cuelga debajo de `#torneoCabecera`, y si algún día también le cambian
+el nombre se cae a la caja de la página en vez de romperse.
+
+**Y la prueba de la 296 estaba en verde**: comprobaba que el botón SALE.
+Que salga no es que funcione. La nueva lo PULSA, en `draft` y en
+`registration_open`, y mira que aparezca el formulario con el campo del
+banner.
+
+**Ficheros**: `js/torneos/torneo.js`, `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-351.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: siguen los dos SQL de la 350
+(`supabase-migration-correo-envio.sql` y
+`supabase-migration-correo-enlaces.sql`).
+
+---
+
 ## 2026-09-24 — PINGU-Claude (tanda 350 — los correos: duplicados, enlaces y verlos todos)
 
 **Hecho**: PINGU, con quejas de gente: «los correos de resumen semanal se

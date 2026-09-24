@@ -498,8 +498,29 @@ function pintarEditor() {
   const estructuraBloqueada = torneo.status === 'registration_closed'
   const esLiga = torneo.format === 'league'
   const bloqueo = estructuraBloqueada ? 'disabled title="Con las inscripciones cerradas, la estructura ya no se toca"' : ''
-  document.querySelector('.torneo-ficha').insertAdjacentHTML(
-    'beforeend',
+  // ── Dónde se cuelga el formulario (tanda 351) ──
+  //
+  // Iba a `.torneo-ficha`, que era la tarjeta blanca de antes. La tanda
+  // 298 rehízo la cabecera y esa clase DEJÓ DE EXISTIR, así que
+  // `querySelector` devolvía null y esta línea reventaba: el botón de
+  // Editar dejó de hacer nada, sin más síntoma que un error en la
+  // consola que no mira nadie. PINGU se quedó sin poder ponerle el
+  // banner a un torneo recién creado.
+  //
+  // Ahora se cuelga DEBAJO de la cabecera, y si algún día también le
+  // cambian el nombre, se cae a la caja de la página en vez de romperse.
+  const anfitrion = document.getElementById('torneoCabecera')
+  if (anfitrion) {
+    anfitrion.insertAdjacentHTML('afterend', editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo))
+  } else {
+    const suelo = document.querySelector('.page-content') || document.body
+    suelo.insertAdjacentHTML('beforeend', editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo))
+  }
+  engancharEditor(torneo, estructuraBloqueada, esLiga)
+}
+
+function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo) {
+  return (
     `
     <div class="torneos-form torneo-editor" id="torneoEditor">
       <div class="torneos-form-rejilla">
@@ -591,6 +612,11 @@ function pintarEditor() {
       </div>
     </div>`
   )
+}
+
+// El formulario ya está en la página: esto le pone la vida (el editor de
+// texto, las imágenes, las jornadas de una liga y el guardar).
+function engancharEditor(torneo, estructuraBloqueada, esLiga) {
   if (esLiga) {
     const fechas = (Array.isArray(torneo.matchday_dates) ? torneo.matchday_dates : []).map(aFechaLocal)
     pintarJornadasEditor(fechas.length ? fechas : [''], estructuraBloqueada)
