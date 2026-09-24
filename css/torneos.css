@@ -2806,3 +2806,97 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   color: var(--navy);
   text-decoration: underline;
 }
+
+/* ── Los premios de un torneo (tanda 352) ──
+   Panel propio, fuera de la cabecera: es lo que decide si alguien se
+   apunta, y dentro del panel navy competiría con el nombre del torneo. */
+.torneo-premios {
+  margin: var(--e-lg) 0;
+  padding: var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.torneo-premios-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: 0 0 var(--e-md);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.torneo-premios-lista {
+  display: grid;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.torneo-premio {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  font-size: var(--t-md);
+  color: var(--text);
+}
+
+/* El primero, destacado: en un torneo con premios la pregunta es «¿qué
+   se lleva el que gana?», y esa respuesta no puede pesar lo mismo que
+   las demás. Lleva el dorado en el CANTO y no de fondo, que un fondo
+   dorado con texto encima no llega al contraste. */
+.torneo-premio-primero {
+  border-left: 3px solid var(--warning);
+  background: var(--bg);
+  font-weight: 600;
+}
+
+.torneo-premio-puesto {
+  flex: 0 0 auto;
+  min-width: 88px;
+  font-weight: 700;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.torneo-premio-que { flex: 1 1 auto; min-width: 0; }
+
+/* La chapa del listado. Va con el canto dorado por lo mismo. */
+.torneo-etiqueta-premio {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-color: var(--warning);
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* El editor: una fila por premio, puesto estrecho y premio ancho. */
+.torneo-premios-editor { display: grid; gap: var(--e-sm); margin: var(--e-sm) 0; }
+
+.torneo-premio-fila {
+  display: flex;
+  gap: var(--e-sm);
+  align-items: center;
+}
+
+.torneo-premio-fila input[data-premio-puesto] { flex: 0 1 120px; min-width: 0; }
+.torneo-premio-fila input[data-premio-que] { flex: 1 1 auto; min-width: 0; }
+
+@media (max-width: 560px) {
+  /* En el móvil el puesto se pone encima: dos campos y un botón en una
+     fila de 360 px dejan el premio en cuatro caracteres. */
+  .torneo-premio-fila { flex-wrap: wrap; }
+  .torneo-premio-fila input[data-premio-puesto] { flex: 1 1 100%; }
+  .torneo-premio-fila input[data-premio-que] { flex: 1 1 calc(100% - 56px); }
+  .torneo-premio { flex-direction: column; gap: 4px; }
+  .torneo-premio-puesto { min-width: 0; }
+}

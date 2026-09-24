@@ -12,6 +12,44 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-24 — PINGU-Claude (tanda 352 — los premios de un torneo, fuera de la descripción)
+
+**Hecho**: PINGU: «acabo de crear mi primer torneo con premios, pero
+solo se especifican en la descripción».
+
+Los premios pasan a ser una LISTA (`prizes`, jsonb: `[{puesto, premio}]`)
+en vez de un párrafo. El puesto es TEXTO a propósito: «Top 8», «Todos los
+participantes» y «Mejor lista» son premios de verdad y no caben en un
+entero.
+
+Dónde se ven: **panel propio en la ficha** —fuera de la cabecera, con el
+primero destacado— y **chapa en la tarjeta de /torneos** con el premio
+del primer puesto, que es lo que hace que alguien abra el torneo. Y el
+campo está en los dos formularios, el de crear y el de editar.
+
+La descripción deja de pedirlos: su marcador de posición decía «Reglas de
+la casa, premios…» y ahora dice «cómo se juega». Si el hueco viejo sigue
+invitando, conviven los dos sitios y gana el viejo.
+
+La base valida la FORMA (la columna la escribe cualquiera que pueda
+editar su torneo), y entre el despliegue y el SQL crear y editar siguen
+funcionando: la columna se quita y se reintenta, como las otras cinco.
+
+**Ficheros**: `supabase-migration-torneos-premios.sql` (NUEVO),
+`js/torneos/comun.js`, `js/torneos/torneo.js`, `js/torneos/torneos.js`,
+`js/schema-check.js`, `torneo.html`, `torneos.html`, `css/torneos.css`,
+`SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-352.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: ejecutar `supabase-migration-torneos-premios.sql`
+(los tres SQL de las tandas 350 y 352). Lo que queda por hacer con los
+premios, si PINGU quiere: enseñarlos en la vista previa al compartir, en
+el anuncio del foro y de Telegram, y al lado de cada puesto en la
+clasificación final.
+
+---
+
 ## 2026-09-24 — PINGU-Claude (tanda 351 — el botón de Editar un torneo no hacía nada)
 
 **Hecho**: PINGU: «acabo de crear un torneo pero no puedo editarlo,

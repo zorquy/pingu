@@ -117,6 +117,14 @@
           <input type="datetime-local" id="torneoFecha" />
           <span class="torneo-campo-pista">En tu zona horaria.</span>
         </label>
+        <!-- Los premios (tanda 352). Antes se escribían dentro de la
+             descripción, y ahí no se pueden enseñar en el listado ni en
+             ningún otro sitio. Una fila por puesto. -->
+        <div class="torneos-form-campo">Premios (opcional)
+          <div class="torneo-premios-editor" id="nuevoPremiosLista"></div>
+          <button type="button" class="btn-secondary" id="btnNuevoAnadirPremio">Añadir un premio</button>
+          <span class="torneo-campo-pista">Una línea por puesto. El puesto es texto libre: «1º», «Top 8», «Todos los participantes»… El primero es el que sale en el listado de torneos.</span>
+        </div>
         <!-- La descripción escribe con el editor del foro (tanda 220):
              negrita, listas, imágenes… torneos.js lo monta al abrir el
              wizard, que el editor son dos módulos y no los paga quien

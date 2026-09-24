@@ -18445,3 +18445,54 @@ algo se ofrece no es comprobar que funciona. La prueba nueva lo PULSA
 —en `draft`, que es como nace un torneo recién creado, y en
 `registration_open`— y mira que salga el formulario con su campo de
 banner y su editor de descripción cargado.
+
+
+---
+
+## Tanda 352 — los premios de un torneo, fuera de la descripción
+
+«Acabo de crear mi primer torneo con premios, pero solo se especifican en
+la descripción» (PINGU).
+
+**Un dato metido en un párrafo solo existe donde está el párrafo.** Los
+premios vivían dentro de `description`, que es texto con formato, así que
+no se podían enseñar en /torneos —donde la gente decide si se apunta—, ni
+resumir al compartir, ni cruzar con la clasificación final. Los veía
+quien ya había entrado y había leído hasta abajo.
+
+**Por qué una lista y no un texto.** Un premio siempre es DE alguien: del
+primero, del segundo, de todo el que juegue. Guardado como «1º: 50 €, 2º:
+un sobre» hay que volver a partirlo por comas cada vez que se quiera
+enseñar en otro sitio, y ahí es donde se rompe. Guardado como lista, cada
+sitio decide qué enseña de ella: la ficha los pinta todos, la tarjeta del
+listado enseña el del primero.
+
+Y el **puesto es texto**, no un número: «Top 8», «Todos los
+participantes» y «Mejor lista» son premios de verdad y no caben en un
+entero. El orden es el del array, que lo pone quien lo escribe.
+
+**La forma se valida en la base y no solo en el navegador.** Esta columna
+la escribe cualquiera que pueda editar su torneo, y un jsonb con
+cualquier cosa dentro rompería la ficha a todo el que la abra. El CHECK
+exige lista, objetos con las dos mitades en texto, y los mismos límites
+que el cliente — si el cliente recortara a un número distinto, pasarse no
+daría un aviso: daría un error de PostgREST que nadie sabría leer.
+
+**Media frase no se pinta.** Un puesto sin premio, o un premio sin
+puesto, se tira al leer. En pantalla se leería como un fallo, y la
+columna puede traer lo que sea (la escribió otra versión del cliente, o
+alguien a mano).
+
+**Y el hueco viejo deja de invitar.** El editor de la descripción decía
+«Reglas de la casa, premios…». Si el sitio de antes sigue pidiéndolos,
+los dos conviven y gana el que ya está escrito: ahora dice «cómo se
+juega».
+
+**El canto dorado y no el fondo**: un fondo dorado con texto encima no
+llega al contraste, y el premio del primero tiene que LEERSE. Sale del
+token `--warning`, que es el ámbar de la casa y se adapta al tema oscuro
+— un dorado a mano no lo haría.
+
+Queda fuera de esta tanda, por si se quiere después: el premio en la
+vista previa al compartir, en el anuncio del foro y de Telegram, y al
+lado de cada puesto en la clasificación final.

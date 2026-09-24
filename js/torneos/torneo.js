@@ -19,6 +19,11 @@ import {
   faltaLaRpc,
   puedeLlevar,
   avisoDeMigracion,
+  premiosDeTorneo,
+  premiosParaGuardar,
+  PREMIOS_MAXIMO,
+  PUESTO_MAXIMO,
+  PREMIO_MAXIMO,
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces } from './jueces.js'
@@ -292,6 +297,8 @@ function pintarFicha() {
     )
   }
 
+  pintarPremios()
+
   // max_players NULL = aforo sin límite (tanda 228): sin denominador la
   // barra de ocupación no cuenta nada — se esconde y se dice la gente.
   const ocupadas = activos()
@@ -432,6 +439,41 @@ async function mandarTorneoATelegram(btn, forzar) {
 // Y si la condición deja de cumplirse (el torneo se cancela, se
 // termina), el botón se quita: antes desaparecía solo porque la caja se
 // vaciaba entera.
+// ── Los premios, en su panel (tanda 352) ──
+//
+// Estaban dentro de la descripción. Ahí solo los ve quien ya ha entrado
+// Y ha leído el párrafo entero — y el premio es justo lo que hace que
+// alguien entre.
+//
+// El primero se pinta destacado: en un torneo con premios, la pregunta
+// es «¿qué se lleva el que gana?» y la respuesta no puede estar al mismo
+// peso que el resto de la lista.
+function pintarPremios() {
+  const caja = $('torneoPremios')
+  if (!caja) return
+  const premios = premiosDeTorneo(torneo)
+  caja.classList.toggle('hidden', premios.length === 0)
+  if (!premios.length) {
+    caja.innerHTML = ''
+    return
+  }
+  pintarSiCambia(
+    caja,
+    `<h2 class="torneo-premios-titulo" id="torneoPremiosTitulo">${icons.trophy(18)} Premios</h2>` +
+      '<ul class="torneo-premios-lista">' +
+      premios
+        .map(
+          (p, i) =>
+            `<li class="torneo-premio${i === 0 ? ' torneo-premio-primero' : ''}">` +
+            `<span class="torneo-premio-puesto">${escapeHtml(p.puesto)}</span>` +
+            `<span class="torneo-premio-que">${escapeHtml(p.premio)}</span>` +
+            '</li>'
+        )
+        .join('') +
+      '</ul>'
+  )
+}
+
 function anadirAccion(acciones, procede, id, html, enganchar) {
   const puesto = acciones.querySelector(`#${id}`)
   if (!procede) {
@@ -600,6 +642,11 @@ function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo) {
         </div>
         <span class="torneo-campo-pista">Se enseña arriba del todo en la ficha. Apaisado queda mejor.</span>
       </div>
+      <div class="torneos-form-campo">Premios
+        <div class="torneo-premios-editor" id="editarPremiosLista"></div>
+        <button type="button" class="btn-secondary" id="btnEditarAnadirPremio">Añadir un premio</button>
+        <span class="torneo-campo-pista">Una línea por puesto. El puesto es texto libre: «1º», «Top 8», «Todos los participantes»… El primero es el que sale en el listado de torneos.</span>
+      </div>
       <div class="torneos-form-descripcion">Descripción
         <div class="rte-wrap rte-compacta torneo-desc-editor">
           <div class="rte-toolbar" id="editarDescBarra"></div>
@@ -614,9 +661,50 @@ function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo) {
   )
 }
 
+// ── Las filas de premios del editor (tanda 352) ──
+//
+// Se repintan enteras en cada cambio, como las jornadas de una liga: son
+// como mucho doce filas y así no hay dos ideas de cuál es el orden (la
+// del DOM y la de una variable) que puedan discrepar.
+function pintarPremiosEditor(filas) {
+  const caja = $('editarPremiosLista')
+  if (!caja) return
+  caja.innerHTML = (filas.length ? filas : [{ puesto: '', premio: '' }])
+    .map(
+      (p, i) => `<div class="torneo-premio-fila">
+        <input type="text" data-premio-puesto="${i}" maxlength="${PUESTO_MAXIMO}" placeholder="1º" value="${escapeHtml(p.puesto || '')}" aria-label="Puesto del premio ${i + 1}" />
+        <input type="text" data-premio-que="${i}" maxlength="${PREMIO_MAXIMO}" placeholder="50 € en cartas" value="${escapeHtml(p.premio || '')}" aria-label="Qué se lleva" />
+        <button type="button" class="btn-secondary torneo-quitar-jornada" data-premio-quitar="${i}" title="Quitar este premio">✕</button>
+      </div>`
+    )
+    .join('')
+  caja.querySelectorAll('[data-premio-quitar]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const quedan = premiosDelEditor().filter((_, i) => i !== Number(b.dataset.premioQuitar))
+      pintarPremiosEditor(quedan)
+    })
+  )
+}
+
+function premiosDelEditor() {
+  return [...document.querySelectorAll('#editarPremiosLista .torneo-premio-fila')].map((fila) => ({
+    puesto: fila.querySelector('[data-premio-puesto]')?.value || '',
+    premio: fila.querySelector('[data-premio-que]')?.value || '',
+  }))
+}
+
 // El formulario ya está en la página: esto le pone la vida (el editor de
 // texto, las imágenes, las jornadas de una liga y el guardar).
 function engancharEditor(torneo, estructuraBloqueada, esLiga) {
+  pintarPremiosEditor(premiosDeTorneo(torneo))
+  $('btnEditarAnadirPremio')?.addEventListener('click', () => {
+    const actuales = premiosDelEditor()
+    if (actuales.length >= PREMIOS_MAXIMO) {
+      showToast(`Como mucho ${PREMIOS_MAXIMO} premios.`)
+      return
+    }
+    pintarPremiosEditor([...actuales, { puesto: '', premio: '' }])
+  })
   if (esLiga) {
     const fechas = (Array.isArray(torneo.matchday_dates) ? torneo.matchday_dates : []).map(aFechaLocal)
     pintarJornadasEditor(fechas.length ? fechas : [''], estructuraBloqueada)
@@ -642,7 +730,7 @@ function engancharEditor(torneo, estructuraBloqueada, esLiga) {
       toolbarEl: barra,
       surfaceEl: $('editarDescCuerpo'),
       initialHtml: torneo.description || '',
-      placeholder: 'Reglas de la casa, premios…',
+      placeholder: 'Reglas de la casa, cómo se juega…',
       onChange: (html) => {
         editarDescripcionHtml = html
       },
@@ -745,6 +833,7 @@ async function guardarEdicion() {
     // porque la política RLS y el código pre-migración lo leen.
     decklist_visibility: modoListas,
     show_opponent_decklists: modoListas === 'en_juego',
+    prizes: premiosParaGuardar(premiosDelEditor()),
   }
   // Solo si el campo está en pantalla: si no, un organizador normal
   // guardaría `false` cada vez que edita y le quitaría el sello a un
@@ -790,7 +879,7 @@ async function guardarEdicion() {
   // Si alguna migración de columna nueva aún no se ejecutó, se guarda
   // sin esa columna (del modo de listas queda el booleano viejo). El
   // comprobador de /admin ya avisa de lo que falta.
-  for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'join_code']) {
+  for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'join_code', 'prizes']) {
     if (error && (error.message || '').includes(columna)) {
       delete cambios[columna]
       ;({ error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id))

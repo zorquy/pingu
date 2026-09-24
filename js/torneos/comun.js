@@ -227,3 +227,64 @@ export const COLUMNAS_PUBLICAS_INSCRIPCION = [
   'dropped_at',
   'dropped_after_round_id',
 ]
+
+// ── Los premios de un torneo (tanda 352) ──
+//
+// Vivían dentro de la descripción, que es un bloque de texto: no se
+// podía enseñar en /torneos —donde la gente decide si se apunta— ni
+// resumir en ningún sitio. Ahora son una lista, y cada sitio decide qué
+// enseña de ella.
+//
+// Aquí, en el módulo sin DOM, porque lo usan las dos pantallas y porque
+// así se prueba en Node: lo que hay que acertar no es el HTML, es QUÉ se
+// considera un premio y qué se tira.
+export const PREMIOS_MAXIMO = 12
+export const PUESTO_MAXIMO = 40
+export const PREMIO_MAXIMO = 200
+
+// Lo que llega de la base puede ser cualquier cosa: la columna es jsonb
+// y la escribe cualquiera que pueda editar su torneo. Se queda solo lo
+// que tiene las dos mitades — un puesto sin premio, o un premio sin
+// puesto, es media frase y en pantalla se leería como un fallo.
+export function premiosDeTorneo(torneo) {
+  const lista = Array.isArray(torneo?.prizes) ? torneo.prizes : []
+  return lista
+    .map((p) => ({
+      puesto: String(p?.puesto ?? '').trim().slice(0, PUESTO_MAXIMO),
+      premio: String(p?.premio ?? '').trim().slice(0, PREMIO_MAXIMO),
+    }))
+    .filter((p) => p.puesto && p.premio)
+    .slice(0, PREMIOS_MAXIMO)
+}
+
+export function hayPremios(torneo) {
+  return premiosDeTorneo(torneo).length > 0
+}
+
+// Lo que cabe en una chapa del listado: el premio del PRIMERO, que es el
+// que hace que alguien abra el torneo. Los demás están a un clic.
+//
+// Y si no cabe, se recorta con puntos suspensivos en vez de dejar media
+// palabra: una chapa que dice «50 € en cart» parece rota.
+export function resumenDePremios(torneo, tope = 42) {
+  const premios = premiosDeTorneo(torneo)
+  if (!premios.length) return ''
+  const texto = premios[0].premio
+  return texto.length <= tope ? texto : `${texto.slice(0, tope - 1).trimEnd()}…`
+}
+
+// Y al revés: lo que se guarda. Se limpia igual que se lee, porque la
+// base tiene un CHECK con estos mismos límites — pasarse de largo no
+// daría un aviso, daría un error de PostgREST que nadie sabría leer.
+export function premiosParaGuardar(filas) {
+  const limpias = (Array.isArray(filas) ? filas : [])
+    .map((p) => ({
+      puesto: String(p?.puesto ?? '').trim().slice(0, PUESTO_MAXIMO),
+      premio: String(p?.premio ?? '').trim().slice(0, PREMIO_MAXIMO),
+    }))
+    .filter((p) => p.puesto && p.premio)
+    .slice(0, PREMIOS_MAXIMO)
+  // Sin premios se guarda NULL y no un array vacío: son la misma idea
+  // dicha de dos maneras, y dos maneras es una de más para preguntar.
+  return limpias.length ? limpias : null
+}

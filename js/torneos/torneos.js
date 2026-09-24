@@ -14,7 +14,7 @@ import { escapeHtml, getSession, getProfile, slugify, uploadProfileImage } from 
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { officialStructure } from './motor.js'
-import { ESTADOS, fechaBonita, puedeBorrarTorneo, colorDeNombre } from './comun.js'
+import { ESTADOS, fechaBonita, puedeBorrarTorneo, colorDeNombre, hayPremios, resumenDePremios, premiosParaGuardar, PREMIOS_MAXIMO, PUESTO_MAXIMO, PREMIO_MAXIMO } from './comun.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 
 const $ = (id) => document.getElementById(id)
@@ -160,6 +160,15 @@ function tarjetaHtml(t, datos) {
       <span class="torneo-cuerpo">
         <strong class="torneo-nombre">${escapeHtml(t.name)}</strong>
         <span class="torneo-etiquetas">
+          ${
+            // Los premios (tanda 352) van los PRIMEROS de las etiquetas y
+            // con color propio: es lo que decide si alguien abre el
+            // torneo, y entre «3 rondas suizas» y «19:00» no lo miraría
+            // nadie. Se enseña el del primer puesto; los demás, dentro.
+            hayPremios(t)
+              ? `<span class="torneo-etiqueta torneo-etiqueta-premio">${icons.trophy(13)} ${escapeHtml(resumenDePremios(t))}</span>`
+              : ''
+          }
           <span class="torneo-etiqueta">${escapeHtml(estructuraCorta(t))}</span>
           ${t.swiss_bo === 3 ? '<span class="torneo-etiqueta">BO3</span>' : ''}
           ${t.top_cut_size ? `<span class="torneo-etiqueta">Top ${t.top_cut_size}</span>` : ''}
@@ -761,7 +770,7 @@ async function montarEditorDescripcion(session, htmlInicial = '') {
     toolbarEl: barra,
     surfaceEl: $('torneoDescCuerpo'),
     initialHtml: htmlInicial,
-    placeholder: 'Reglas de la casa, premios…',
+    placeholder: 'Reglas de la casa, cómo se juega…',
     onChange: (html) => {
       descripcionHtml = html
     },
@@ -769,7 +778,46 @@ async function montarEditorDescripcion(session, htmlInicial = '') {
   })
 }
 
+// ── Las filas de premios del formulario de crear (tanda 352) ──
+//
+// Mismo trato que en el editor de la ficha: se repintan enteras, que son
+// como mucho doce y así no hay dos ideas del orden.
+function pintarPremiosNuevo(filas) {
+  const caja = $('nuevoPremiosLista')
+  if (!caja) return
+  caja.innerHTML = (filas.length ? filas : [{ puesto: '', premio: '' }])
+    .map(
+      (p, i) => `<div class="torneo-premio-fila">
+        <input type="text" data-premio-puesto="${i}" maxlength="${PUESTO_MAXIMO}" placeholder="1º" value="${escapeHtml(p.puesto || '')}" aria-label="Puesto del premio ${i + 1}" />
+        <input type="text" data-premio-que="${i}" maxlength="${PREMIO_MAXIMO}" placeholder="50 € en cartas" value="${escapeHtml(p.premio || '')}" aria-label="Qué se lleva" />
+        <button type="button" class="btn-secondary torneo-quitar-jornada" data-premio-quitar="${i}" title="Quitar este premio">✕</button>
+      </div>`
+    )
+    .join('')
+  caja.querySelectorAll('[data-premio-quitar]').forEach((b) =>
+    b.addEventListener('click', () => {
+      pintarPremiosNuevo(premiosDelFormulario().filter((_, i) => i !== Number(b.dataset.premioQuitar)))
+    })
+  )
+}
+
+function premiosDelFormulario() {
+  return [...document.querySelectorAll('#nuevoPremiosLista .torneo-premio-fila')].map((fila) => ({
+    puesto: fila.querySelector('[data-premio-puesto]')?.value || '',
+    premio: fila.querySelector('[data-premio-que]')?.value || '',
+  }))
+}
+
 function engancharFormulario(session, perfil) {
+  pintarPremiosNuevo([])
+  $('btnNuevoAnadirPremio')?.addEventListener('click', () => {
+    const actuales = premiosDelFormulario()
+    if (actuales.length >= PREMIOS_MAXIMO) {
+      showToast(`Como mucho ${PREMIOS_MAXIMO} premios.`)
+      return
+    }
+    pintarPremiosNuevo([...actuales, { puesto: '', premio: '' }])
+  })
   const form = $('torneoForm')
   const plazas = $('torneoPlazas')
 
@@ -956,6 +1004,7 @@ function engancharFormulario(session, perfil) {
       admin_id: session.user.id,
       name: nombre,
       description: descripcionHtml || null,
+      prizes: premiosParaGuardar(premiosDelFormulario()),
       start_at: new Date($('torneoFecha').value).toISOString(),
       status: 'draft',
       format: liga ? 'league' : 'standard',
@@ -981,7 +1030,7 @@ function engancharFormulario(session, perfil) {
     // torneos tiene que seguir funcionando: si la base no conoce una
     // columna, se reintenta sin ella (del modo de listas queda el
     // booleano viejo, que dice lo mismo salvo el «nunca»).
-    for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'join_code']) {
+    for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'join_code', 'prizes']) {
       if (error && (error.message || '').includes(columna)) {
         delete fila[columna]
         ;({ error } = await supabase.from('tournaments').insert(fila))

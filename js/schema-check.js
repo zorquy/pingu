@@ -70,6 +70,7 @@ export const REQUISITOS = [
   { tabla: 'tournaments', columna: 'image_url', fichero: 'supabase-migration-torneos-imagen.sql', rompe: 'No se puede poner imagen a un torneo (crear y editar torneos sí funciona).' },
   { tabla: 'tournaments', columna: 'decklist_visibility', fichero: 'supabase-migration-torneos-listas.sql', rompe: 'El modo «listas nunca públicas» no se guarda (los otros dos modos van por el booleano viejo).' },
   { tabla: 'tournaments', columna: 'banner_url', fichero: 'supabase-migration-torneos-banner.sql', rompe: 'No se puede poner banner a un torneo (todo lo demás funciona).' },
+  { tabla: 'tournaments', columna: 'prizes', fichero: 'supabase-migration-torneos-premios.sql', rompe: 'Los premios de un torneo no se guardan: se pueden escribir y al recargar no están.' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que
