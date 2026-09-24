@@ -18273,3 +18273,59 @@ muda a `js/carta-detalle.js` —el fichero sin dependencias— y `tcgdex.js`
 la importa de allí. Copiarla habría sido la tercera copia vigilada por
 una prueba (la de la 322); mudarla no cuesta nada porque el fichero de
 destino ya viajaba a Netlify.
+
+
+---
+
+## Tanda 349 — el guion de las megas
+
+«Mew ex sí sale en qué mazos se ha jugado, pero Mega Darkrai no, y
+también se ha usado una vez» (PINGU).
+
+**Lo primero que hay que descartar es lo que uno cree que es.** El umbral
+ya estaba en un mazo desde la 338, así que no era eso. Y la consulta que
+pasó PINGU lo dijo en una línea: TCGdex llama a esa carta
+**`Mega-Darkrai ex`**, con guion. TCG Live escribe `Mega Darkrai ex`, con
+espacio.
+
+`normalizarNombre` quita tildes, pasa a minúsculas y junta espacios
+dobles — pero no toca los separadores. Así que:
+
+- la tarea `cartas-juego` guardaba la fila como `mega darkrai ex` (lo que
+  escribió el jugador),
+- y la ficha preguntaba por `mega-darkrai ex` (lo que dice TCGdex).
+
+La fila existía. Nadie la encontraba. **No daba error en ninguna parte**,
+y no era una carta: era la era Mega entera, que es justo la que se juega.
+
+**Un separador no es un carácter, es un hueco.** En el nombre de una
+carta un guion no significa nada que un espacio no signifique (Ho-Oh,
+Porygon-Z, Mega-Gardevoir). Como CLAVE son lo mismo, así que
+`claveDeCarta` los junta.
+
+Y se separa de `normalizarNombre` a propósito: aquella la usan también la
+Pokédex y el buscador de especies de /mis-partidas, donde un guion sí
+puede ser parte de un identificador. Cambiar la de todos para arreglar la
+de uno es la trampa de los barridos en bloque (310 y 311): lo que se
+PARECE al caso no siempre ES el caso.
+
+**Las dos mitades la importan, no la copian.** Es la misma regla que ya
+estaba escrita en `js/normalizar.js` cuando salió de `arquetipos.js`: si
+la clave se calcula en dos sitios, los dos se separan y la tabla se llena
+de filas que nadie sabe encontrar. Que es exactamente lo que acababa de
+pasar, pero por otro motivo.
+
+**Y el idioma, que era el otro camino al mismo sitio.** El export de TCG
+Live sale en el idioma del jugador, así que una lista pegada en español
+guarda `ordenes del jefe` y la ficha pregunta por `boss's orders`. No es
+una clave mal calculada: son dos claves legítimas de la misma carta. Se
+pregunta por las dos y se suman los mazos y las copias — **pero no los
+torneos**, porque el mismo torneo puede tener una lista en cada idioma y
+se contaría dos veces.
+
+**La migración es para el sitemap.** `tcg_cards.name_key` es una columna
+GENERADA y el sitemap la usa de prefiltro para cruzar contra
+`tcg_card_play`. Si el JavaScript junta los separadores y Postgres no, el
+prefiltro deja fuera justo a las cartas con guion: no es un error
+visible, es que esas fichas dejan de ofrecerse a Google. La columna se
+redefine con la misma regla.

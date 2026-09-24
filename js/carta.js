@@ -22,7 +22,8 @@ import { logClientError } from './error-log.js'
 import { escapeHtml } from './app.js'
 import {
   candidatosDeRuta,
-  claveDeJuego,
+  clavesDeJuego,
+  unirJuego,
   nombreDeCarta,
   esLaMismaCarta,
   huellaDeCarta,
@@ -85,11 +86,11 @@ async function cargar() {
   // comparte la caché.
   marcasLegales().catch(() => {})
 
-  const { data: juego } = await supabase
+  const { data: juegoFilas } = await supabase
     .from('tcg_card_play')
     .select('decks,total_copies,tournaments,archetypes')
-    .eq('name_key', claveDeJuego(carta))
-    .maybeSingle()
+    .in('name_key', clavesDeJuego(carta))
+  const juego = unirJuego(juegoFilas)
 
   // Si la tarea programada todavía no ha llegado a esta carta, se le
   // pide la ficha a TCGdex AQUÍ. El engorde va de lo más nuevo a lo más

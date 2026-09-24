@@ -12,7 +12,7 @@
 // copia vigilada: aquel vive en `js/tcgdex.js`, que importa
 // `./supabase.js` y no se puede arrastrar a un servidor.
 import { escapeHtml } from './html.js'
-import { normalizarNombre } from './normalizar.js'
+import { normalizarNombre, claveDeCarta } from './normalizar.js'
 // Las direcciones viven aparte para que quien solo quiera enlazar no se
 // lleve el molde —y con él, sus clases— por delante. Ver carta-ruta.js.
 import { rutaDeCarta, urlDeImagen, urlDeLogo } from './carta-ruta.js'
@@ -404,7 +404,47 @@ export function fechaLarga(iso) {
 // si las dos se separaran, la ficha preguntaría por una clave que no
 // existe y el bloque desaparecería sin dar error.
 export function claveDeJuego(carta) {
-  return normalizarNombre(carta?.name)
+  return claveDeCarta(carta?.name)
+}
+
+// ── Y por qué NO basta con una clave (tanda 349) ──
+//
+// El export de TCG Live sale en el idioma del jugador, así que una lista
+// pegada en español guarda «órdenes del jefe» y la ficha pregunta por
+// «boss's orders». La carta es la misma y los mazos son distintos, así
+// que se pregunta por las dos claves y se SUMAN.
+//
+// No es lo mismo que el guion: aquel era una clave mal calculada, esto
+// son dos claves legítimas para la misma carta.
+export function clavesDeJuego(carta) {
+  const claves = [claveDeCarta(carta?.name), claveDeCarta(carta?.name_es)]
+  return [...new Set(claves.filter(Boolean))]
+}
+
+// Dos filas de la misma carta son dos montones de mazos distintos: se
+// suman. Los arquetipos se juntan por nombre, que es lo que se pinta.
+export function unirJuego(filas) {
+  const lista = (Array.isArray(filas) ? filas : []).filter(Boolean)
+  if (lista.length < 2) return lista[0] || null
+  const arqs = new Map()
+  for (const f of lista) {
+    for (const a of Array.isArray(f?.archetypes) ? f.archetypes : []) {
+      const clave = claveDeCarta(a?.nombre)
+      const previo = arqs.get(clave)
+      arqs.set(clave, { nombre: previo?.nombre || a?.nombre, mazos: (previo?.mazos || 0) + (Number(a?.mazos) || 0) })
+    }
+  }
+  const suma = (campo) => lista.reduce((t, f) => t + (Number(f?.[campo]) || 0), 0)
+  return {
+    decks: suma('decks'),
+    total_copies: suma('total_copies'),
+    // Los torneos NO se pueden sumar sin equivocarse —el mismo torneo
+    // puede tener una lista en cada idioma y se contaría dos veces—, así
+    // que se dice el mayor, que es el único número que seguro no miente
+    // por arriba.
+    tournaments: Math.max(...lista.map((f) => Number(f?.tournaments) || 0)),
+    archetypes: [...arqs.values()].sort((a, b) => b.mazos - a.mazos),
+  }
 }
 
 // La media de copias, con una cifra decimal y coma, que es como se

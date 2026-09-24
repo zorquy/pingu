@@ -12,6 +12,48 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-24 — PINGU-Claude (tanda 349 — el guion de las megas)
+
+**Hecho**: PINGU: «Mew ex sí sale en qué mazos se ha jugado, pero Mega
+Darkrai no, y también se ha usado una vez».
+
+**No era el umbral** —desde la 338 con UN mazo ya se enseña—: era la
+CLAVE. TCGdex la llama **`Mega-Darkrai ex`, con GUION**, y TCG Live la
+escribe `Mega Darkrai ex`, con espacio. `normalizarNombre` quitaba
+tildes, mayúsculas y espacios de más, pero no tocaba los separadores, así
+que la tarea guardaba la fila con una clave y la ficha preguntaba por
+otra. **La fila existía y nadie la encontraba, sin dar error, para la era
+Mega ENTERA.**
+
+La clave pasa a juntar los separadores (`claveDeCarta`, en
+`js/normalizar.js`), y las dos mitades —la ficha y la tarea— la importan
+de ahí. `normalizarNombre` se queda como estaba: la usan también la
+Pokédex y el buscador de especies, donde un guion sí puede ser parte de
+un identificador.
+
+**Y de paso, las dos lenguas.** El export de TCG Live sale en el idioma
+del jugador, así que la misma carta puede tener fila en inglés y fila en
+español, y son mazos DISTINTOS. La ficha pregunta por las dos claves y
+las suma — salvo los torneos, que no se pueden sumar sin contar dos veces
+el mismo torneo con una lista en cada idioma.
+
+**Ficheros**: `js/normalizar.js`, `js/carta-nucleo.js`, `js/carta.js`,
+`netlify/lib/juego-agregado.mjs`,
+`netlify/edge-functions/meta-social.js`,
+`supabase-migration-clave-de-carta.sql` (NUEVO), `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-349.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: la tabla se reconstruye sola cada media hora,
+así que las fichas se arreglan sin hacer nada. La migración
+`supabase-migration-clave-de-carta.sql` es para el SITEMAP (la columna
+generada `name_key` tiene que juntar los separadores igual que el
+JavaScript, o las cartas con guion dejan de ofrecerse a Google). Siguen
+`supabase-migration-codigos-live.sql` y
+`supabase-migration-marcas-por-set.sql`.
+
+---
+
 ## 2026-09-24 — PINGU-Claude (tanda 348 — el 30 aniversario, en orden y con sus imágenes)
 
 **Hecho**: dos cosas que PINGU vio en la página del 30C ya plegada.

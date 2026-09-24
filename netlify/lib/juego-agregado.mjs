@@ -8,7 +8,11 @@
 // que pinta los mazos de un torneo. No hay una segunda opinión sobre qué
 // es un Ceruledge Dusknoir: si algún día se afina la deducción, se afina
 // para los dos sitios a la vez.
-import { arquetipoDeMazo, claveDeArquetipo, normalizarNombre } from '../../js/torneos/arquetipos.js'
+import { arquetipoDeMazo, claveDeArquetipo } from '../../js/torneos/arquetipos.js'
+// La clave se calcula con la MISMA función que pregunta la ficha. Si
+// las dos se separaran, la tabla se llenaría de filas que nadie sabe
+// encontrar — que es justo lo que pasó con el guion de las megas.
+import { claveDeCarta } from '../../js/normalizar.js'
 
 // Cuántos arquetipos se guardan por carta. Los tres primeros cuentan la
 // historia; del cuarto para abajo es ruido con una copia cada uno, y
@@ -47,7 +51,7 @@ export function agregarJuego(decklists, catalogo = []) {
       for (const linea of parsed[seccion] || []) {
         const nombre = String(linea?.name ?? '').trim()
         if (!nombre) continue
-        const key = normalizarNombre(nombre)
+        const key = claveDeCarta(nombre)
         if (!key) continue
         const copias = Number(linea?.quantity)
         const previo = enEsteMazo.get(key)

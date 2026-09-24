@@ -40,7 +40,8 @@ import {
   subtituloDeCarta,
   nombreDeCarta,
   urlDeImagen,
-  claveDeJuego,
+  clavesDeJuego,
+  unirJuego,
   hayDatosDeJuego,
   cabeceraDeColeccion,
   coleccionMereceIndexarse,
@@ -993,7 +994,8 @@ async function metaDeCarta(url) {
   // dos viajes más en el camino de cada ficha.
   const [play, legalidad] = await Promise.all([
     pedir(
-      `tcg_card_play?name_key=eq.${encodeURIComponent(claveDeJuego(carta))}&select=decks,total_copies,tournaments,archetypes&limit=1`
+      `tcg_card_play?name_key=in.(${clavesDeJuego(carta).map((k) => `"${encodeURIComponent(k)}"`).join(',')})` +
+        '&select=decks,total_copies,tournaments,archetypes&limit=4'
     ),
     legalidadDeCartaEnElBorde(carta),
   ])

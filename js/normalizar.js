@@ -21,3 +21,24 @@ export function normalizarNombre(nombre) {
     .replace(/\s+/g, ' ')
     .trim()
 }
+
+// ── Y la CLAVE con la que se cruza una carta (tanda 349) ──
+//
+// `normalizarNombre` quita tildes, mayúsculas y espacios de más. No
+// tocaba los separadores, y ahí estaba el fallo: **TCGdex llama a las
+// megas «Mega-Darkrai ex», con guion, y TCG Live las escribe «Mega
+// Darkrai ex», con espacio**. Normalizados dan dos claves distintas, así
+// que la fila de `tcg_card_play` existía y la ficha no la encontraba
+// NUNCA — sin dar error, y para la era entera.
+//
+// El guion en el nombre de una carta no significa nada que un espacio no
+// signifique (Ho-Oh, Porygon-Z, Mega-Gardevoir): como CLAVE, los dos son
+// el mismo hueco. Se separa de `normalizarNombre` porque aquella la usan
+// también la Pokédex y el buscador de especies, donde un guion sí puede
+// ser parte de un identificador.
+export function claveDeCarta(nombre) {
+  return normalizarNombre(nombre)
+    .replace(/[-–—_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
