@@ -788,6 +788,27 @@ function consulta(tabla, estado = {}) {
       })
       return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => pruebas.some((p) => p(f))] })
     },
+    // `contains` de PostgREST sobre una columna ARRAY (`types`): la
+    // carta lleva ESE tipo dentro. Una de dos tipos sale en los dos, y
+    // una sin engordar —`types` a null— no sale en ninguno, que es lo
+    // que hace la base.
+    contains: (col, vals) =>
+      consulta(tabla, {
+        ...st,
+        filtros: [...st.filtros, (f) => {
+          const suyos = Array.isArray(f[col]) ? f[col] : []
+          return (Array.isArray(vals) ? vals : [vals]).every((v) => suyos.includes(v))
+        }],
+      }),
+    // Y `overlaps`, que es el primo: basta con que compartan UNO.
+    overlaps: (col, vals) =>
+      consulta(tabla, {
+        ...st,
+        filtros: [...st.filtros, (f) => {
+          const suyos = Array.isArray(f[col]) ? f[col] : []
+          return (Array.isArray(vals) ? vals : [vals]).some((v) => suyos.includes(v))
+        }],
+      }),
     neq: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => String(f[col]) !== String(val)] }),
     in: (col, vals) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => vals.map(String).includes(String(f[col]))] }),
     is: (col, val) =>
