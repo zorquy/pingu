@@ -567,9 +567,60 @@
 }
 
 /* ── El índice ── */
-.cartas-buscador {
-  display: block;
+/* Buscador y filtros en una fila que se parte sola en el móvil: el
+   nombre se lleva el sitio que sobre y el tipo mide lo que mide su
+   palabra más larga (tanda 346). */
+.cartas-buscador,
+.coleccion-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  align-items: center;
   margin-bottom: var(--e-xl);
+}
+
+.coleccion-filtro-campo {
+  display: block;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.coleccion-filtro-campo:has(select) {
+  flex: 0 1 auto;
+}
+
+.coleccion-cuenta {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.coleccion-filtros select,
+.cartas-buscador select {
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  font-size: var(--t-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+
+.coleccion-filtros input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  font-size: var(--t-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+
+.coleccion-filtros input:focus-visible,
+.coleccion-filtros select:focus-visible,
+.cartas-buscador select:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
 }
 
 .cartas-buscador input {

@@ -29,6 +29,7 @@ import {
   idiomaDeFicha,
   nucleoDeCarta,
   rutaDeCarta,
+  rutaDeColeccion,
   urlDeImagen,
   rarezaEs,
 } from './carta-nucleo.js'
@@ -42,7 +43,7 @@ const COLUMNAS =
   'id,set_id,local_id,name,name_es,image_path,category,rarity,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,detalle_lang,' +
-  'tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total)'
+  'tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,tcg_online_code)'
 
 const $ = (id) => document.getElementById(id)
 
@@ -168,7 +169,7 @@ function pintar(carta, set, play = null, legalidad = null, repintarIgual = false
 
   const miga = $('migaColeccion')
   if (miga && set?.name) {
-    miga.outerHTML = `<a id="migaColeccion" href="/coleccion/${escapeHtml(set.id)}">${escapeHtml(set.name)}</a>`
+    miga.outerHTML = `<a id="migaColeccion" href="${escapeHtml(rutaDeColeccion(set))}">${escapeHtml(set.name)}</a>`
   }
 
   const caja = $('cartaNucleo')

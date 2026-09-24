@@ -93,6 +93,21 @@
       <!-- coleccion:fin -->
     </div>
 
+    <!-- El filtro (tanda 346). Nace escondido: sin JavaScript no filtra
+         nada, y un control muerto es peor que ninguno. -->
+    <div id="coleccionFiltros" class="coleccion-filtros hidden">
+      <label class="coleccion-filtro-campo">
+        <span class="sr-only">Buscar dentro de esta colección</span>
+        <input id="filtroNombre" type="search" placeholder="Buscar en esta colección…" autocomplete="off" />
+      </label>
+      <label class="coleccion-filtro-campo">
+        <span class="sr-only">Filtrar por tipo</span>
+        <select id="filtroTipo"></select>
+      </label>
+      <span id="coleccionCuenta" class="coleccion-cuenta"></span>
+    </div>
+    <p id="coleccionVacia" class="empty-state hidden">Ninguna carta de esta colección encaja con lo que buscas.</p>
+
     <!-- La caja de fuera es la que mide: un elemento NO puede consultarse
          a sí mismo con `@container`, así que la rejilla no podía
          reaccionar a su propio ancho. El breakpoint que había antes de la

@@ -44,6 +44,7 @@ import {
   hayDatosDeJuego,
   cabeceraDeColeccion,
   coleccionMereceIndexarse,
+  filtroDeColeccion,
   idDeRutaDeColeccion,
   rejillaDeCartas,
   rutaDeColeccion,
@@ -926,7 +927,7 @@ const COLUMNAS_CARTA =
   'id,set_id,local_id,name,name_es,image_path,category,rarity,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,' +
-  'tcg_sets(id,name,release_date,card_count_official,card_count_total)'
+  'tcg_sets(id,name,release_date,card_count_official,card_count_total,tcg_online_code)'
 
 // Lo que `nucleoDeCarta` necesita para decir si una carta se puede
 // jugar: las marcas legales de la temporada y si hay una reimpresión
@@ -1044,7 +1045,7 @@ async function metaDeCarta(url) {
         migas([
           { nombre: 'Inicio', url: `${SITIO}/` },
           { nombre: 'Cartas', url: `${SITIO}/cartas` },
-          ...(set?.name ? [{ nombre: set.name, url: `${SITIO}/coleccion/${encodeURIComponent(set.id)}` }] : []),
+          ...(set?.name ? [{ nombre: set.name, url: `${SITIO}${rutaDeColeccion(set)}` }] : []),
           { nombre: carta.name, url: canonica },
         ]),
       ],
@@ -1064,18 +1065,23 @@ async function metaDeCarta(url) {
 const CARTAS_EN_EL_DOCUMENTO = 60
 
 async function metaDeColeccion(url) {
-  const id = idDeRutaDeColeccion(url.pathname) || url.searchParams.get('set')
-  if (!id) return null
+  const clave = idDeRutaDeColeccion(url.pathname) || url.searchParams.get('set')
+  if (!clave) return null
 
+  // La dirección puede traer el código de TCG Live (`pbl`) o el
+  // identificador de TCGdex (`me05`), que es lo que decían los enlaces
+  // de antes de la tanda 346 — y los que ya indexó Google. El filtro
+  // sale del mismo sitio que el del navegador para que los dos
+  // resuelvan igual.
   const set = await pedir(
-    `tcg_sets?id=eq.${encodeURIComponent(id)}&market=eq.WEST` +
-      '&select=id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total&limit=1'
+    `tcg_sets?or=(${encodeURIComponent(filtroDeColeccion(clave))})&market=eq.WEST` +
+      '&select=id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
   )
   // Pokémon TCG Pocket es otro juego: su colección no tiene página aquí.
   if (!set || !esDelTCG(set)) return null
 
   const cartas = await pedirVarias(
-    `tcg_cards?set_id=eq.${encodeURIComponent(id)}&market=eq.WEST` +
+    `tcg_cards?set_id=eq.${encodeURIComponent(set.id)}&market=eq.WEST` +
       `&select=id,name,name_es,local_id,image_path&order=local_id.asc&limit=${CARTAS_EN_EL_DOCUMENTO}`
   )
 

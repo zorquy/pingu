@@ -128,7 +128,7 @@ export default async () => {
     // de `tcg_card_play` no esté puesta, la tabla no existe y el sitemap
     // ENTERO se caería por una sección que todavía no existe.
     const [sets, jugadas] = await Promise.all([
-      consultar('tcg_sets?market=eq.WEST&select=id,serie_id,release_date&order=release_date.desc&limit=2000').catch(() => []),
+      consultar('tcg_sets?market=eq.WEST&select=id,serie_id,release_date,tcg_online_code&order=release_date.desc&limit=2000').catch(() => []),
       consultar('tcg_card_play?select=name_key,decks,updated_at&order=decks.desc&limit=5000').catch(() => []),
     ])
 

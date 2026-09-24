@@ -6,7 +6,7 @@
 // habría forma de encontrarlas, ni para una persona ni para Google.
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
-import { rejillaDeCartas, rutaDeColeccion } from './carta-nucleo.js'
+import { rejillaDeCartas, rutaDeColeccion, TIPOS_ES } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
 import { esDelTCG } from './catalogo-series.js'
 
@@ -82,6 +82,53 @@ export function esUnaEra(sets) {
   return sets.some((s) => (s.card_count_official || s.card_count_total || 0) >= CARTAS_DE_UNA_EXPANSION)
 }
 
+// ── El 30 aniversario es UNA cosa ──
+//
+// TCGdex lo tiene partido —la celebración por un lado y la Classics
+// Collection por otro—, y para quien entra es lo mismo: «yo no separaría
+// los sets, los tendría en lo mismo» (PINGU). Se juntan por el
+// identificador, que es lo que no cambia con el nombre que le dé TCGdex.
+export function claveDeSerie(set) {
+  const pista = `${set?.id || ''} ${set?.serie_id || ''} ${set?.serie_name || ''} ${set?.name || ''}`
+  if (/30th/i.test(pista)) return '30 aniversario'
+  return set?.serie_name || SIN_CLASIFICAR
+}
+
+// ── Y dentro de una era: promos, energías y luego los sets ──
+//
+// «Las promos siempre son el primer set de la era» (PINGU). Es el orden
+// con el que se habla de una era y el que usan las bases de siempre: las
+// promos abren, las energías van detrás —salen con la era pero no son
+// una expansión— y después las expansiones, de la más nueva a la más
+// vieja, que es como estaban.
+//
+// Se mira el NOMBRE porque es lo único que lo dice: no hay una columna
+// que separe una promo de una expansión, y el tamaño tampoco vale (una
+// colección de promos puede tener 80 cartas).
+const ES_PROMO = /\bpromos?\b/i
+const ES_ENERGIA = /\benerg(y|ies|ia|ías|ía)\b/i
+
+export function rangoDeSet(set) {
+  const nombre = String(set?.name || '')
+  if (ES_PROMO.test(nombre)) return 0
+  if (ES_ENERGIA.test(nombre)) return 1
+  return 2
+}
+
+export function ordenDentroDeUnaSerie(a, b) {
+  const ra = rangoDeSet(a)
+  const rb = rangoDeSet(b)
+  if (ra !== rb) return ra - rb
+  // Empate: lo más nuevo primero, y lo que no tiene fecha al final —
+  // igual que en la consulta, que es de donde vienen ya ordenados.
+  const fa = String(a?.release_date || '')
+  const fb = String(b?.release_date || '')
+  if (!fa && !fb) return 0
+  if (!fa) return 1
+  if (!fb) return -1
+  return fb.localeCompare(fa)
+}
+
 export function agruparEnSeries(sets) {
   // El orden de llegada YA es de lo más nuevo a lo más viejo, así que la
   // primera vez que aparece una serie es por su set más reciente. Se
@@ -89,10 +136,11 @@ export function agruparEnSeries(sets) {
   // otra cosa.
   const porSerie = new Map()
   for (const s of sets) {
-    const clave = s.serie_name || SIN_CLASIFICAR
+    const clave = claveDeSerie(s)
     if (!porSerie.has(clave)) porSerie.set(clave, [])
     porSerie.get(clave).push(s)
   }
+  for (const [, suyos] of porSerie) suyos.sort(ordenDentroDeUnaSerie)
   const grupos = [...porSerie].map(([nombre, suyos]) => ({ nombre, sets: suyos, era: esUnaEra(suyos) }))
   // Lo que no tiene serie va al final del todo pase lo que pase: no es
   // que sea menos importante, es que no sabemos qué es, y una caja de
@@ -134,21 +182,30 @@ export function fechaCorta(iso) {
 // Pómez», y hay 1.159 cartas acentuadas en el catálogo.
 let ultimaBusqueda = 0
 
+const RESULTADOS = 60
+
 async function buscar(texto) {
   const q = normalizeSearch(texto).trim()
+  const tipo = $('buscarTipo')?.value || ''
   const mio = ++ultimaBusqueda
-  if (q.length < 3) {
+  // Con menos de tres letras y sin tipo no hay nada que buscar: vuelven
+  // las colecciones. Pero un tipo SOLO sí es una búsqueda — es «enséñame
+  // cartas de Fuego», y para eso están los datos guardados.
+  if (q.length < 3 && !tipo) {
     $('resultados').innerHTML = ''
     $('sinResultados').classList.add('hidden')
     $('seccionColecciones').classList.remove('hidden')
     return
   }
-  const { data, error } = await supabase
+  let consulta = supabase
     .from('tcg_cards')
     .select('id,name,name_es,local_id,image_path')
     .eq('market', MERCADO)
-    .ilike('name_search', `%${q}%`)
-    .limit(60)
+  if (q.length >= 3) consulta = consulta.ilike('name_search', `%${q}%`)
+  // `types` es un array: `contains` pregunta si lleva ESE tipo dentro, y
+  // una carta de dos tipos sale en los dos.
+  if (tipo) consulta = consulta.contains('types', [tipo])
+  const { data, error } = await consulta.limit(RESULTADOS)
   // Una respuesta que llega tarde no puede pisar a una más nueva: se
   // teclea más rápido de lo que contesta la red.
   if (mio !== ultimaBusqueda) return
@@ -166,5 +223,16 @@ $('buscarCarta')?.addEventListener('input', (e) => {
   const v = e.target.value
   temporizador = setTimeout(() => buscar(v).catch(() => {}), 250)
 })
+
+// El desplegable de tipos se llena desde el mismo sitio que los pinta,
+// así que no hay una lista de tipos escrita dos veces.
+const selTipo = $('buscarTipo')
+if (selTipo) {
+  selTipo.innerHTML = '<option value="">Todos los tipos</option>' +
+    Object.entries(TIPOS_ES).map(([t, es]) => `<option value="${escapeHtml(t)}">${escapeHtml(es)}</option>`).join('')
+  // Aquí no hay retardo: elegir en un desplegable es una decisión
+  // tomada, no alguien tecleando.
+  selTipo.addEventListener('change', () => buscar($('buscarCarta')?.value || '').catch(() => {}))
+}
 
 colecciones().catch(() => {})

@@ -10,9 +10,13 @@ import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import {
   cabeceraDeColeccion,
+  filtroDeColeccion,
   idDeRutaDeColeccion,
   rejillaDeCartas,
+  rutaDeColeccion,
+  TIPOS_ES,
 } from './carta-nucleo.js'
+import { normalizeSearch } from './tcgdex.js'
 import { esDelTCG } from './catalogo-series.js'
 
 const MERCADO = 'WEST'
@@ -34,18 +38,33 @@ const $ = (id) => document.getElementById(id)
 let setId = null
 let desde = 0
 
-async function cargar() {
-  setId = idDeRutaDeColeccion(location.pathname) || new URLSearchParams(location.search).get('set')
-  if (!setId) return fallo()
+// Todas las cartas que han llegado, en crudo. Hacen falta enteras porque
+// el filtro es de aquí: ya están bajadas, así que preguntar otra vez a
+// la base por «las de tipo Fuego» sería pedir lo que ya tenemos.
+let todas = []
 
-  const { data: set, error } = await supabase
+async function cargar() {
+  const clave = idDeRutaDeColeccion(location.pathname) || new URLSearchParams(location.search).get('set')
+  if (!clave) return fallo()
+
+  // Dos columnas, porque la dirección puede ser el código nuevo (`pbl`) o
+  // el identificador de siempre (`me05`): los enlaces viejos, los de
+  // fuera y los que ya indexó Google tienen que seguir llegando.
+  const { data, error } = await supabase
     .from('tcg_sets')
-    .select('id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total')
+    .select('id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total,tcg_online_code')
     .eq('market', MERCADO)
-    .eq('id', setId)
-    .maybeSingle()
+    .or(filtroDeColeccion(clave))
+    .limit(1)
+  const set = data?.[0] || null
   // Una colección que no es del TCG de mesa no tiene página aquí.
   if (error || !set || !esDelTCG(set)) return fallo()
+  setId = set.id
+
+  // Y si se llegó por la vieja, la barra pasa a decir la buena sin
+  // recargar: una sola dirección para una sola página.
+  const buena = rutaDeColeccion(set)
+  if (location.pathname !== buena) history.replaceState(null, '', buena + location.search)
 
   document.title = `${set.name} — Cartas de Pokémon TCG — PokeDoc`
   const miga = $('migaColeccion')
@@ -54,11 +73,15 @@ async function cargar() {
   const caja = $('coleccionCabecera')
   if (caja && caja.dataset.servidor !== '1') caja.innerHTML = cabeceraDeColeccion(set)
 
-  // Si el borde ya dejó las primeras, se sigue por donde las dejó en vez
-  // de volver a pedirlas.
-  const yaPintadas = $('coleccionRejilla')?.querySelectorAll('.coleccion-carta').length || 0
-  desde = yaPintadas
+  // Se piden TODAS desde la primera aunque el borde ya haya pintado 60
+  // (tanda 346). Antes se seguía por donde él las dejó, pero con el
+  // filtro hay que poder repintar la rejilla entera — y no se puede
+  // filtrar lo que no se tiene. Son 60 filas repetidas en una petición:
+  // más barato que un estado partido en dos sitios.
+  desde = 0
+  todas = []
   await todasLasCartas()
+  montarFiltros()
 }
 
 // El orden es por `local_id`, que es el número impreso en la carta — y
@@ -67,15 +90,16 @@ async function cargar() {
 async function masCartas(cuantas) {
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,name,name_es,local_id,image_path')
+    .select('id,name,name_es,local_id,image_path,types,category,rarity')
     .eq('market', MERCADO)
     .eq('set_id', setId)
     .order('local_id')
     .range(desde, desde + cuantas - 1)
   if (error) return 0
   const lista = data || []
-  if (lista.length) $('coleccionRejilla')?.insertAdjacentHTML('beforeend', rejillaDeCartas(lista))
+  todas = todas.concat(lista)
   desde += lista.length
+  if (lista.length) pintar()
   return lista.length
 }
 
@@ -90,6 +114,62 @@ async function todasLasCartas() {
     if (traidas < POR_PAGINA) return
   }
 }
+
+// ── El filtro de la colección (tanda 346) ──
+//
+// «Como guardamos todos los datos, podemos usar todos los filtros
+// necesarios» (PINGU). Y aquí no cuesta una consulta: las cartas ya
+// están todas bajadas, así que filtrar es repintar.
+//
+// El tipo solo lo tienen las cartas ENGORDADAS: una sin `types` no es
+// «de ningún tipo», es una de la que no se sabe. Por eso el desplegable
+// solo ofrece los tipos que de verdad hay en esta colección — un tipo
+// que no filtrara nada sería una promesa falsa.
+function tiposDeLaColeccion() {
+  const hay = new Set()
+  for (const c of todas) for (const t of c.types || []) hay.add(t)
+  return Object.keys(TIPOS_ES).filter((t) => hay.has(t))
+}
+
+function montarFiltros() {
+  const caja = $('coleccionFiltros')
+  if (!caja) return
+  const tipos = tiposDeLaColeccion()
+  const sel = $('filtroTipo')
+  if (sel) {
+    sel.innerHTML = '<option value="">Todos los tipos</option>' +
+      tipos.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(TIPOS_ES[t])}</option>`).join('')
+    // Sin tipos que ofrecer —una colección sin engordar— el desplegable
+    // sobra: enseñarlo vacío es enseñar un control que no hace nada.
+    sel.closest('.coleccion-filtro-campo')?.classList.toggle('hidden', tipos.length < 2)
+  }
+  caja.classList.remove('hidden')
+}
+
+function cumple(carta, texto, tipo) {
+  if (tipo && !(carta.types || []).includes(tipo)) return false
+  if (!texto) return true
+  const busca = normalizeSearch(`${carta.name_es || ''} ${carta.name || ''} ${carta.local_id || ''}`)
+  return busca.includes(texto)
+}
+
+function pintar() {
+  const rejilla = $('coleccionRejilla')
+  if (!rejilla) return
+  const texto = normalizeSearch($('filtroNombre')?.value || '').trim()
+  const tipo = $('filtroTipo')?.value || ''
+  const vistas = todas.filter((c) => cumple(c, texto, tipo))
+  rejilla.innerHTML = rejillaDeCartas(vistas)
+  const vacio = $('coleccionVacia')
+  if (vacio) vacio.classList.toggle('hidden', vistas.length > 0 || !todas.length)
+  const cuenta = $('coleccionCuenta')
+  if (cuenta) {
+    cuenta.textContent = texto || tipo ? `${vistas.length} de ${todas.length} cartas` : ''
+  }
+}
+
+$('filtroNombre')?.addEventListener('input', () => pintar())
+$('filtroTipo')?.addEventListener('change', () => pintar())
 
 // Igual que en la ficha: se queda el encabezado, se va el esqueleto. Y
 // si el borde ya pintó la cabecera, una consulta que falle no la borra

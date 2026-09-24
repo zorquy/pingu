@@ -78,10 +78,19 @@
       <p>El catálogo entero, colección a colección. Cada carta con sus ataques, su rareza y quién la ilustró — en español.</p>
     </div>
 
-    <label class="cartas-buscador">
-      <span class="sr-only">Buscar una carta por su nombre</span>
-      <input id="buscarCarta" type="search" placeholder="Buscar una carta por su nombre…" autocomplete="off" />
-    </label>
+    <div class="cartas-buscador">
+      <label class="coleccion-filtro-campo">
+        <span class="sr-only">Buscar una carta por su nombre</span>
+        <input id="buscarCarta" type="search" placeholder="Buscar una carta por su nombre…" autocomplete="off" />
+      </label>
+      <!-- El tipo lo llena js/cartas.js desde la misma tabla que los
+           traduce: una lista de tipos escrita aquí a mano se quedaría
+           vieja el día que salga uno nuevo. -->
+      <label class="coleccion-filtro-campo">
+        <span class="sr-only">Filtrar por tipo</span>
+        <select id="buscarTipo"></select>
+      </label>
+    </div>
     <div id="resultados" class="coleccion-rejilla"></div>
     <p id="sinResultados" class="empty-state hidden">No hay ninguna carta con ese nombre en el catálogo.</p>
 

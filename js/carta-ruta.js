@@ -68,15 +68,38 @@ export function urlDeImagen(imagePath, calidad = 'high') {
   return `${ASSETS}/en/${imagePath}/${calidad}.webp`
 }
 
+// ── La dirección de una colección (tanda 346) ──
+//
+// El trozo que se lee es el CÓDIGO de TCG Live —`/coleccion/pbl`—, que
+// es el que usa la gente, el que sale en las decklists y el que enseña
+// la lista de colecciones. El identificador de TCGdex (`me05`) es
+// interno y con la nomenclatura asiática: PINGU vio que la etiqueta ya
+// decía PBL y la dirección seguía diciendo ME05.
+//
+// Se queda de respaldo para los sets que no tienen código (los viejos, y
+// los nuevos hasta que alguien se lo apunte), y las direcciones VIEJAS
+// siguen valiendo porque quien resuelve prueba las dos columnas.
 export function rutaDeColeccion(set) {
-  const id = String(set?.id ?? '')
-  if (!id) return '/cartas'
-  return `/coleccion/${encodeURIComponent(id)}`
+  const clave = String(set?.tcg_online_code || set?.id || '')
+  if (!clave) return '/cartas'
+  return `/coleccion/${encodeURIComponent(clave.toLowerCase())}`
 }
 
 export function idDeRutaDeColeccion(ruta) {
   const m = String(ruta ?? '').match(/^\/coleccion\/([^/?#]+)/)
   return m ? decodeURIComponent(m[1]) : null
+}
+
+// Lo que hay que preguntarle a la base para resolver esa dirección: son
+// DOS columnas, y el filtro sale de aquí para que el navegador y el
+// borde no puedan decir cosas distintas.
+//
+// Se limpia lo que llega: un `or=(…)` de PostgREST se parte por comas y
+// paréntesis, así que una clave con uno de esos dentro no rompe la
+// consulta — se queda sin él y no encuentra nada, que es lo correcto.
+export function filtroDeColeccion(clave) {
+  const limpia = String(clave ?? '').replace(/[^A-Za-z0-9.\-_]/g, '')
+  return `id.eq.${limpia.toLowerCase()},tcg_online_code.eq.${limpia.toUpperCase()}`
 }
 
 export function urlDeLogo(logoPath) {

@@ -12,6 +12,53 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-24 — PINGU-Claude (tanda 346 — la dirección, el nombre repetido, el orden y los filtros)
+
+**Hecho**: seis cosas que pidió PINGU de /cartas y /coleccion.
+
+**La dirección ya no dice ME05.** La etiqueta de la lista pasó a decir
+PBL en la 345, pero al entrar la barra seguía diciendo
+`/coleccion/me05`. Ahora la dirección es el CÓDIGO
+(`/coleccion/pbl`), con el identificador de TCGdex de respaldo para los
+sets que no tienen código. Las direcciones viejas siguen llegando
+—`filtroDeColeccion()` pregunta por las DOS columnas, y el borde usa ese
+mismo filtro— y la barra se corrige sola al entrar por la vieja.
+
+**El nombre, una vez.** Con logo se veían el logo (que lleva el nombre
+escrito) y el `<h1>` debajo. El `<h1>` no se va: se esconde con
+`sr-only`, y el nombre pasa al `alt` del logo. Sin logo se ve, que es
+medio catálogo viejo.
+
+**El 30 aniversario es UNO.** TCGdex lo tiene partido en dos series (la
+celebración y la Classics Collection) y para quien entra es lo mismo.
+
+**Las promos abren la era**, después las energías y luego las
+expansiones de la más nueva a la más vieja. No hay columna que lo diga,
+así que se mira el nombre.
+
+**Y los filtros.** En /coleccion, un buscador y un desplegable de tipo
+que filtran SIN consultar (las cartas ya están todas bajadas), y el
+desplegable solo ofrece los tipos que de verdad hay en esa colección. En
+/cartas, el mismo desplegable junto al buscador: un tipo solo ya es una
+búsqueda («enséñame cartas de Fuego»).
+
+**Ficheros**: `js/carta-ruta.js`, `js/carta-nucleo.js`, `js/cartas.js`,
+`js/coleccion.js`, `js/carta.js`, `cartas.html`, `coleccion.html`,
+`css/carta.css`, `netlify/edge-functions/meta-social.js`,
+`netlify/functions/sitemap.mjs`, `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-346.mjs` (NUEVO),
+`herramientas/stub-supabase.js` (`contains` y `overlaps`, que el doble no
+tenía) y `herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: el filtro por tipo solo encuentra cartas
+ENGORDADAS —una sin `types` no es «de ningún tipo», es una de la que no
+se sabe—, así que mejora según avanza `cartas-detalle`. Siguen sin
+ejecutar `supabase-migration-codigos-live.sql` (sin él las direcciones
+nuevas siguen siendo las viejas: el código está a null) y
+`supabase-migration-marcas-por-set.sql`.
+
+---
+
 ## 2026-09-23 — PINGU-Claude (tanda 345 — el código es de TCG LIVE, y TCGdex ya no lo da)
 
 **Hecho**: PINGU, mirando la consulta de la 343: «pero el TCG Online es

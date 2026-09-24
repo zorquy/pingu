@@ -18138,3 +18138,65 @@ mitades y ya no cuenta la historia vieja.
 código en esa tarjeta. Es un campo y un guardar, y la propia tarjeta dice
 cuántos de los 20 más nuevos lo tienen: no hay que acordarse, hay que
 mirarla cuando sale un set.
+
+
+---
+
+## Tanda 346 — la dirección, el nombre repetido, el orden y los filtros
+
+Seis cosas de /cartas y /coleccion, de un tirón de PINGU.
+
+**La dirección era la mitad del arreglo de la 345.** La etiqueta de la
+lista ya decía PBL, pero al pulsar la barra decía `/coleccion/me05`: el
+identificador interno de TCGdex, con la nomenclatura asiática. La
+dirección pasa a ser el código de TCG Live, y el identificador se queda
+de respaldo para los sets que no lo tienen.
+
+Lo delicado no es generarla, es **resolverla**: hay dos columnas y tres
+sitios que resuelven (el navegador, la función del borde y el sitemap).
+Por eso el filtro sale de UNA función, `filtroDeColeccion()`, que el
+borde y el cliente importan igual — si cada uno resolviera a su manera,
+media dirección funcionaría solo para las personas o solo para Google, y
+sin dar error. Y lo que llega por la barra se limpia antes de entrar en
+un `or=(…)`, que se parte por comas y paréntesis.
+
+Las direcciones viejas siguen llegando, y además **la barra se corrige
+sola** (`history.replaceState`): una página, una dirección.
+
+**El nombre escrito dos veces.** El logo de un set LLEVA el nombre
+dibujado, así que un `<h1>` con el mismo texto debajo lo dice dos veces.
+El `<h1>` no se puede quitar —es el título de la página para Google y
+para un lector de pantalla—, así que se esconde con `sr-only` y el
+nombre se va al `alt` del logo. Sin logo se ve: media colección vieja no
+tiene.
+
+**Una serie de TCGdex no es siempre una era.** El 30 aniversario está
+partido en dos (la celebración y la Classics Collection) y para quien
+entra es la misma cosa. `claveDeSerie()` las junta.
+
+**Y dentro de una era hay un orden que no es la fecha**: promos,
+energías y luego las expansiones. Es como se habla de una era. No hay
+ninguna columna que diga «esto es una promo», así que se mira el nombre
+— igual que `esUnaEra` mira el tamaño y no una lista de nombres.
+
+**Los filtros, y dónde se filtra.** En una colección las cartas ya están
+TODAS bajadas desde la 344, así que filtrar es repintar: cero consultas.
+Eso obligó a un cambio: antes se seguía por donde el borde había dejado
+las 60 primeras, y no se puede filtrar lo que no se tiene, así que ahora
+se piden todas desde la primera y la rejilla se repinta entera. Son 60
+filas repetidas en una petición, contra un estado partido en dos sitios.
+
+El desplegable **solo ofrece los tipos que hay en esa colección**: un
+tipo que no filtrara nada es una promesa falsa. Y una carta sin `types`
+no es «de ningún tipo» — es una que todavía no se ha engordado, así que
+no sale en ningún tipo, igual que en la base.
+
+En /cartas el filtro sí es una consulta (`contains` sobre el array
+`types`, que además hace que una carta de dos tipos salga en los dos), y
+**un tipo solo ya es una búsqueda**: «enséñame cartas de Fuego» es una
+petición legítima aunque no se teclee nada.
+
+**El doble de Supabase no tenía `contains`.** Estaba en la lista de
+métodos del nodo de error pero no en el de verdad, así que la consulta
+habría petado en las pruebas con un «no es una función» — y en
+producción habría ido bien. Añadido junto con `overlaps`.

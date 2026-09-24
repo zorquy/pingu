@@ -28,6 +28,7 @@ export {
   idDeRutaDeColeccion,
   rutaDeCarta,
   rutaDeColeccion,
+  filtroDeColeccion,
   urlDeImagen,
   urlDeLogo,
 } from './carta-ruta.js'
@@ -644,9 +645,14 @@ export function cabeceraDeColeccion(set, cuantasHay = null) {
       // El logo de un set no tiene medidas fijas (los hay anchos y los
       // hay cuadrados), así que el hueco se reserva con un alto fijo en
       // el CSS y no con width/height, que mentirían.
-      ? `<img class="coleccion-logo" src="${escapeHtml(logo)}" alt="" loading="eager" decoding="async">`
+      // El logo LLEVA el nombre escrito, así que enseñarlo otra vez
+      // debajo es decirlo dos veces (tanda 346). El <h1> no se va: se
+      // esconde a la vista y sigue ahí para Google y para quien navega
+      // con lector de pantalla. Sin logo, se ve — que es el caso de la
+      // mitad del catálogo viejo.
+      ? `<img class="coleccion-logo" src="${escapeHtml(logo)}" alt="${escapeHtml(set.name || '')}" loading="eager" decoding="async">`
       : '') +
-    `<h1>${escapeHtml(set.name || 'Colección')}</h1>` +
+    `<h1${logo ? ' class="sr-only"' : ''}>${escapeHtml(set.name || 'Colección')}</h1>` +
     (datos.length ? `<p class="coleccion-datos">${escapeHtml(datos.join(' · '))}</p>` : '') +
     '</div>'
   )
