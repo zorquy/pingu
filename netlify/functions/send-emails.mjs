@@ -33,6 +33,24 @@ const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 const POR_PASADA = 50
 const MAX_INTENTOS = 5
 
+// ── Por qué se RECLAMA antes de mandar (tanda 350) ──
+//
+// Una función programada de Netlify se mata a los 30 segundos. Esta
+// pasada mandaba el correo y DESPUÉS marcaba la fila, así que al morir a
+// mitad dejaba en `pending` filas ya enviadas — y la pasada siguiente,
+// cinco minutos después, las volvía a mandar. Con dos avisos sueltos no
+// se nota; con el resumen semanal, que encola una fila por persona, la
+// gente recibía el mismo correo tres veces.
+//
+// Ahora se reclaman primero (status `sending`) con un UPDATE
+// condicionado a que sigan `pending`: lo resuelve Postgres, así que dos
+// pasadas a la vez no pueden llevarse la misma fila.
+const PRESUPUESTO_MS = 20000
+
+// Una fila reclamada hace más de esto es una pasada que murió. Vuelve a
+// la cola contando el intento: si no, moriría en bucle para siempre.
+const RESCATE_MINUTOS = 20
+
 function servicio(clave) {
   return { apikey: clave, authorization: `Bearer ${clave}`, 'content-type': 'application/json' }
 }
@@ -60,11 +78,16 @@ async function buscarDestinatario(userId, clave) {
   return user.email
 }
 
-async function marcar(id, campos, clave) {
+// `claimed_at` solo viaja si la migración está puesta: sin ella la
+// columna no existe y PostgREST responde 400 a TODO el PATCH, así que
+// una fila enviada se quedaría sin marcar y se volvería a mandar — el
+// mismo fallo que esto viene a arreglar, por el otro lado.
+async function marcar(id, campos, clave, conReclamo = true) {
+  const limpios = conReclamo ? campos : Object.fromEntries(Object.entries(campos).filter(([k]) => k !== 'claimed_at'))
   await rest(`email_outbox?id=eq.${id}`, clave, {
     method: 'PATCH',
     headers: { prefer: 'return=minimal' },
-    body: JSON.stringify(campos),
+    body: JSON.stringify(limpios),
   })
 }
 
@@ -98,11 +121,59 @@ export default async () => {
     )
   }
 
-  const pendientes = await rest(
-    `email_outbox?status=eq.pending&order=created_at.asc&limit=${POR_PASADA}` +
-      `&select=id,recipient_id,type,subject,preview,link,attempts`,
+  // ── El rescate, lo primero ──
+  //
+  // Lo que se quedó reclamado y sin mandar vuelve a la cola. Va antes de
+  // pedir pendientes para que entre en esta misma pasada.
+  const limite = new Date(Date.now() - RESCATE_MINUTOS * 60000).toISOString()
+  const rescatadas = await rest(
+    `email_outbox?status=eq.sending&claimed_at=lt.${encodeURIComponent(limite)}&select=id`,
+    clave,
+    {
+      method: 'PATCH',
+      headers: { prefer: 'return=representation' },
+      body: JSON.stringify({ status: 'pending', claimed_at: null }),
+    }
+  ).catch(() => [])
+
+  // ── Reclamar: el UPDATE decide, no el JavaScript ──
+  //
+  // Se piden los candidatos y se reclaman con un filtro que exige que
+  // sigan `pending`. Lo que vuelve es EXACTAMENTE lo que esta pasada se
+  // ha llevado: si otra llegó antes, aquí no vuelve nada y no se manda
+  // nada dos veces.
+  const candidatos = await rest(
+    `email_outbox?status=eq.pending&order=created_at.asc&limit=${POR_PASADA}&select=id`,
     clave
   )
+  const ids = (candidatos || []).map((f) => f.id)
+  const COLUMNAS = 'id,recipient_id,type,subject,preview,link,attempts'
+  let reclamando = true
+  let pendientes = []
+  if (ids.length) {
+    try {
+      pendientes = await rest(
+        `email_outbox?status=eq.pending&id=in.(${ids.join(',')})&select=${COLUMNAS}`,
+        clave,
+        {
+          method: 'PATCH',
+          headers: { prefer: 'return=representation' },
+          body: JSON.stringify({ status: 'sending', claimed_at: new Date().toISOString() }),
+        }
+      )
+    } catch {
+      // La migración la ejecuta un humano, y hasta entonces ni el estado
+      // `sending` ni `claimed_at` existen: el UPDATE devuelve un 400 y
+      // tumbaría la pasada entera. Sin reclamar se sigue como se hacía
+      // antes —que es el comportamiento con el que lleva meses— en vez
+      // de dejar de mandar correo hasta que alguien abra el SQL Editor.
+      reclamando = false
+      pendientes = await rest(
+        `email_outbox?status=eq.pending&order=created_at.asc&limit=${POR_PASADA}&select=${COLUMNAS}`,
+        clave
+      )
+    }
+  }
 
   let enviados = 0
   let fallidos = 0
@@ -110,13 +181,25 @@ export default async () => {
   // Una sola conexión SMTP para toda la tanda (ver crearTransporteSmtp).
   const transporte = provider === 'smtp' && (pendientes || []).length ? await crearTransporteSmtp(smtp) : null
 
+  const arranque = Date.now()
+  let sinTiempo = 0
+
   for (const fila of pendientes || []) {
+    // El presupuesto de tiempo: lo que no dé tiempo vuelve a la cola
+    // ANTES de que Netlify mate la pasada. Sin esto, morir a mitad
+    // dejaría reclamadas unas filas que habría que esperar 20 minutos a
+    // rescatar.
+    if (Date.now() - arranque > PRESUPUESTO_MS) {
+      if (reclamando) await marcar(fila.id, { status: 'pending', claimed_at: null }, clave, true).catch(() => {})
+      sinTiempo++
+      continue
+    }
     try {
       const to = await buscarDestinatario(fila.recipient_id, clave)
       if (!to) {
         // Sin dirección utilizable no hay reintento que valga: se cierra
         // como fallida en vez de quedarse dando vueltas para siempre.
-        await marcar(fila.id, { status: 'failed', last_error: 'Sin dirección de correo confirmada' }, clave)
+        await marcar(fila.id, { status: 'failed', claimed_at: null, last_error: 'Sin dirección de correo confirmada' }, clave, reclamando)
         fallidos++
         continue
       }
@@ -141,7 +224,7 @@ export default async () => {
         await sendEmail(provider, mensaje)
       }
 
-      await marcar(fila.id, { status: 'sent', sent_at: new Date().toISOString(), attempts: fila.attempts + 1 }, clave)
+      await marcar(fila.id, { status: 'sent', sent_at: new Date().toISOString(), attempts: fila.attempts + 1, claimed_at: null }, clave, reclamando)
       enviados++
     } catch (e) {
       const intentos = (fila.attempts || 0) + 1
@@ -153,9 +236,13 @@ export default async () => {
         {
           attempts: intentos,
           last_error: String(e.message || e).slice(0, 500),
-          ...(intentos >= MAX_INTENTOS ? { status: 'failed' } : {}),
+          claimed_at: null,
+          // Y si aún le quedan intentos, vuelve a la cola: dejarla en
+          // `sending` la congelaría hasta que la rescatara el tiempo.
+          status: intentos >= MAX_INTENTOS ? 'failed' : 'pending',
         },
-        clave
+        clave,
+        reclamando
       ).catch(() => {})
       fallidos++
     }
@@ -163,7 +250,17 @@ export default async () => {
 
   if (transporte && typeof transporte.close === 'function') transporte.close()
 
-  return new Response(JSON.stringify({ ok: true, enviados, fallidos, revisados: (pendientes || []).length }), {
+  return new Response(JSON.stringify({
+    ok: true,
+    enviados,
+    fallidos,
+    revisados: (pendientes || []).length,
+    // Lo que se devolvió a la cola por tiempo y lo que se rescató de una
+    // pasada muerta. Los dos números tienen que ser CERO casi siempre:
+    // si no lo son, es que la cola va más rápido de lo que se vacía.
+    sinTiempo,
+    rescatadas: (rescatadas || []).length,
+  }), {
     status: 200,
     headers: { 'content-type': 'application/json' },
   })

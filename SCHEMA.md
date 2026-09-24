@@ -18329,3 +18329,90 @@ GENERADA y el sitemap la usa de prefiltro para cruzar contra
 prefiltro deja fuera justo a las cartas con guion: no es un error
 visible, es que esas fichas dejan de ofrecerse a Google. La columna se
 redefine con la misma regla.
+
+
+---
+
+## Tanda 350 — los correos: duplicados, enlaces y verlos todos
+
+«Los correos de resumen semanal se duplican y llegan varias veces.
+Además, quiero ver todos los correos que mandamos y hacerlos más
+visuales... hay algunos que el botón no funciona» (PINGU).
+
+### Una cola sin reclamo manda dos veces
+
+`send-emails` corre cada 5 minutos: pide las 50 filas `pending` más
+viejas, manda cada correo y **después** marca la fila como `sent`. Entre
+el envío y la marca la fila sigue estando `pending`, y nada impide que
+otra pasada la coja.
+
+Con dos avisos sueltos no se nota: la pasada acaba en un segundo. **El
+resumen semanal encola una fila por PERSONA**, así que de golpe hay
+cientos — y **una función programada de Netlify se mata a los 30
+segundos**. La pasada moría a mitad con treinta correos enviados y sin
+marcar, y cinco minutos después la siguiente se los encontraba en
+`pending`. Por eso se duplicaba exactamente el semanal.
+
+El arreglo es el de cualquier cola: **reclamar antes de trabajar**. Se
+piden los candidatos y se marcan `sending` con un UPDATE condicionado a
+que sigan `pending`; lo que devuelve es exactamente lo que esa pasada se
+ha llevado. Lo decide Postgres en una sentencia, no el JavaScript entre
+dos.
+
+Y dos cosas que van con ello:
+
+- **Presupuesto de tiempo** (20 s). Lo que no dé tiempo vuelve a
+  `pending` ANTES de que Netlify mate la pasada. Es la misma norma que
+  `cartas-detalle`: el que se muere a la mitad tiene que dejar el mundo
+  como se lo encontró.
+- **Rescate.** Una fila reclamada hace más de 20 minutos es una pasada
+  que murió; vuelve a la cola contando el intento, que si no moriría en
+  bucle para siempre.
+
+Y el envío **no puede pararse porque falte la migración**: el estado
+`sending` no existe hasta que un humano la ejecuta, así que si el UPDATE
+falla se sigue como antes. Tumbar el correo entero por eso sería cambiar
+un fallo que duplica por uno que calla.
+
+### Un correo que nadie ve hasta que le toca a alguien
+
+No había ninguna forma de mirar los correos: solo esperar a que te
+llegara uno. Así es como se vive meses con un botón que lleva a otro
+sitio — y así estaba el de «tu guía necesita cambios», que llevaba a
+`/perfil.html`. No es un 404, que se habría cazado: te deja en tu perfil
+a buscar la guía tú, en el correo que existe para decirte qué cambiar.
+
+**/admin → Correos** enseña los dieciséis, con su vista previa, quién
+los encola, su enlace y su pie. Y la plantilla se muda de
+`netlify/lib/email.mjs` a **`js/email-plantilla.js`** por la misma razón
+que `carta-nucleo.js`: el navegador tiene que pintar EXACTAMENTE lo que
+pinta el servidor. Una copia parecida se separa, y la del correo no la ve
+nadie hasta que sale mal en la bandeja de alguien.
+
+La cola se mira con dos funciones que devuelven **recuentos y errores,
+nunca asuntos ni destinatarios**, y solo al admin. `email_outbox` sigue
+con RLS y cero políticas: que se pueda diagnosticar no es motivo para
+que se pueda leer.
+
+### El botón que no funciona
+
+Un botón de correo es un enlace con fondo, y hay clientes que se comen el
+fondo, o el enlace entero. Ahora debajo va **la dirección escrita en
+claro**: siempre hay por dónde entrar, y además se VE adónde lleva antes
+de pulsar, que es lo que distingue un correo de confianza de uno que
+parece phishing.
+
+Y una **etiqueta de familia** en color (Foro, Torneo, Guías, Comunidad,
+Resumen) antes del asunto: en una bandeja con veinte cosas, todos los
+correos iguales son un bloque gris más. Va como celda de tabla con fondo
+y no como `<span>`, porque el Outlook de Windows pinta con el motor de
+Word.
+
+### Lo que la prueba hace de verdad
+
+El fallo de los duplicados no es una cadena mal escrita: es el ORDEN en
+que pasan las cosas. Así que `test-tanda-350.mjs` **hace correr la
+función de envío contra una red de mentira** y comprueba las dos
+pasadas: la que reclama manda y marca; la que llega después se encuentra
+el reclamo vacío y **no manda nada**. Con una comprobación de texto no se
+habría visto nunca.

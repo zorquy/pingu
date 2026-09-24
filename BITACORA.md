@@ -12,6 +12,56 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-24 — PINGU-Claude (tanda 350 — los correos: duplicados, enlaces y verlos todos)
+
+**Hecho**: PINGU, con quejas de gente: «los correos de resumen semanal se
+duplican y llegan varias veces. Además, quiero ver todos los correos que
+mandamos y hacerlos más visuales... hay algunos que el botón no funciona».
+
+**Los duplicados.** `send-emails` mandaba el correo y DESPUÉS marcaba la
+fila. Entre esas dos cosas la fila seguía en `pending`, y **una función
+programada de Netlify se mata a los 30 segundos**: la pasada moría
+habiendo mandado treinta correos sin marcar ninguno, y cinco minutos
+después la siguiente los volvía a mandar. Por eso se duplicaba el
+SEMANAL y no los demás: es el único que encola una fila por persona.
+Ahora se RECLAMAN antes de mandar (estado `sending`, con un UPDATE
+condicionado a que sigan `pending`, que resuelve Postgres y no el
+JavaScript), hay presupuesto de tiempo de 20 s, y lo que se quede
+reclamado más de 20 minutos vuelve a la cola contando el intento.
+
+**Verlos todos.** Nueva pantalla **/admin → Correos**: los dieciséis
+correos que mandamos, con su vista previa pintada por la MISMA plantilla
+que sale de verdad, quién encola cada uno, su enlace y su pie. Más el
+estado de la cola (en cola / enviándose / enviados / fallidos) y los
+últimos errores, con dos funciones que devuelven RECUENTOS y nunca
+destinatarios.
+
+**Más visuales**: etiqueta de familia en color (Foro, Torneo, Guías,
+Comunidad, Resumen), título más grande, y **la dirección escrita en
+claro debajo del botón** — que es lo que arregla «el botón no funciona»
+en los clientes que se comen el fondo o el enlace.
+
+**El enlace roto**: el de «tu guía necesita cambios» llevaba a
+`/perfil.html` («búscala tú»). Ahora abre la guía EN EL EDITOR, con
+`?id=` y no `?slug=` —con el slug el editor abre una guía nueva y en
+blanco—.
+
+**Ficheros**: `js/email-plantilla.js` (NUEVO, la plantilla sale de
+`netlify/lib/email.mjs` para que /admin pinte con ella),
+`netlify/lib/email.mjs`, `netlify/functions/send-emails.mjs`,
+`admin/index.html`, `admin/js/admin.js`,
+`supabase-migration-correo-envio.sql` (NUEVO),
+`supabase-migration-correo-enlaces.sql` (NUEVO), `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-350.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: hay que ejecutar los dos SQL. Sin
+`correo-envio` el envío sigue funcionando como hasta ahora (el reclamo
+se salta solo si el estado no existe) — **pero los duplicados siguen
+hasta ejecutarlo**.
+
+---
+
 ## 2026-09-24 — PINGU-Claude (tanda 349 — el guion de las megas)
 
 **Hecho**: PINGU: «Mew ex sí sale en qué mazos se ha jugado, pero Mega

@@ -10,6 +10,7 @@ import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet } from '../../js/tcgdex.js'
+import { EJEMPLOS_DE_CORREO, renderFilaDeCola, textosDeTipo, familiaDeTipo } from '../../js/email-plantilla.js'
 import { checkSchema } from '../../js/schema-check.js'
 
 let categories = []
@@ -3089,6 +3090,102 @@ async function init() {
   pintarMarcasDeSet()
 
   document.getElementById('analyticsDays')?.addEventListener('change', loadAnalytics)
+
+  // Las vistas previas no piden nada a la red: se pintan siempre. La
+  // cola sí, y si la migración no está puesta lo dice y ya.
+  pintarCorreos()
+  loadCorreosCola().catch(() => {})
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Correos (tanda 350)
+// ═══════════════════════════════════════════════════════════════════
+//
+// «Quiero ver todos los correos que mandamos» (PINGU). Hasta ahora la
+// única manera de ver uno era esperar a que te tocara, y así es como se
+// vive meses con un enlace que lleva a otro sitio.
+//
+// La vista previa se pinta con `js/email-plantilla.js`, que es EL MISMO
+// módulo que usa la función de envío — no una copia parecida. Una copia
+// se separa, y la del correo no la ve nadie hasta que sale mal en la
+// bandeja de alguien.
+const SITIO_CORREO = 'https://pokedoc.es'
+
+function pintarCorreos() {
+  const caja = document.getElementById('correosLista')
+  if (!caja) return
+  caja.innerHTML = EJEMPLOS_DE_CORREO.map((ej, i) => {
+    const { cta, pie } = textosDeTipo(ej.type)
+    const familia = familiaDeTipo(ej.type)
+    return `<div class="admin-card" style="margin-bottom: 16px;">
+      <h3 style="margin-top: 0;">${escapeHtml(ej.subject)}</h3>
+      <p class="admin-note">
+        <code>${escapeHtml(ej.type)}</code>${familia ? ` · ${escapeHtml(familia.etiqueta)}` : ''} ·
+        botón «${escapeHtml(cta)}» · lo encola: ${escapeHtml(ej.donde)}
+      </p>
+      <p class="admin-note">Enlace: <a href="${escapeHtml(ej.link || '')}" target="_blank" rel="noopener">${escapeHtml(ej.link || '(sin enlace)')}</a></p>
+      <p class="admin-note">Pie: ${escapeHtml(pie)}</p>
+      <details class="admin-detalle-avanzado" ${i === 0 ? 'open' : ''}>
+        <summary>Ver el correo</summary>
+        <iframe title="Vista previa de ${escapeHtml(ej.type)}" style="width:100%;height:520px;border:1px solid var(--border);border-radius:8px;margin-top:8px;background:#f4f6f8;" sandbox=""></iframe>
+      </details>
+    </div>`
+  }).join('')
+
+  // El HTML del correo se mete con `srcdoc` y NO como cadena en el
+  // atributo: el correo lleva comillas por todas partes y escaparlo a
+  // mano es una fuga esperando. Con `sandbox=""` el iframe no ejecuta
+  // nada ni navega a ningún sitio.
+  caja.querySelectorAll('iframe').forEach((marco, i) => {
+    const ej = EJEMPLOS_DE_CORREO[i]
+    const { html } = renderFilaDeCola(ej, {
+      siteUrl: SITIO_CORREO,
+      unsubscribeUrl: `${SITIO_CORREO}/baja-correo?t=EJEMPLO&tipo=${encodeURIComponent(ej.type)}`,
+    })
+    marco.srcdoc = html
+  })
+}
+
+// ── Cómo va la cola ──
+//
+// `email_outbox` no la puede leer nadie desde el navegador (RLS sin
+// políticas, a propósito). Estas dos funciones devuelven RECUENTOS y
+// errores, nunca asuntos ni destinatarios, y solo al admin.
+async function loadCorreosCola() {
+  const resumen = document.getElementById('correosResumen')
+  const errores = document.getElementById('correosErrores')
+  if (!resumen) return
+
+  const { data, error } = await supabase.rpc('email_outbox_resumen')
+  if (error) {
+    resumen.innerHTML = ''
+    if (errores) {
+      errores.innerHTML = `<p class="admin-note admin-note-alerta">No se puede leer la cola: ${escapeHtml(error.message)}.
+        Si pone que no existe la función, falta ejecutar <code>supabase-migration-correo-envio.sql</code>.</p>`
+    }
+    return
+  }
+
+  const filas = data || []
+  const porEstado = {}
+  for (const f of filas) porEstado[f.status] = (porEstado[f.status] || 0) + Number(f.cuantos || 0)
+  resumen.innerHTML = [
+    statCardHtml(porEstado.pending || 0, 'En cola', 'esperando a salir'),
+    statCardHtml(porEstado.sending || 0, 'Enviándose', 'reclamados por una pasada'),
+    statCardHtml(porEstado.sent || 0, 'Enviados', 'en total'),
+    statCardHtml(porEstado.failed || 0, 'Fallidos', 'no se pudieron mandar'),
+  ].join('')
+
+  const { data: fallos } = await supabase.rpc('email_outbox_errores')
+  if (errores) {
+    errores.innerHTML = (fallos || []).length
+      ? `<details class="admin-detalle-avanzado"><summary>Últimos errores (${fallos.length})</summary>
+          <table class="admin-table"><thead><tr><th>Tipo</th><th>Error</th><th>Intentos</th></tr></thead>
+          <tbody>${fallos
+            .map((f) => `<tr><td><code>${escapeHtml(f.type)}</code></td><td>${escapeHtml(String(f.last_error || '').slice(0, 160))}</td><td>${escapeHtml(f.attempts)}</td></tr>`)
+            .join('')}</tbody></table></details>`
+      : '<p class="admin-note">Ningún error en la cola.</p>'
+  }
 }
 
 init()
