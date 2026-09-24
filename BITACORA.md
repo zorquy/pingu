@@ -12,6 +12,40 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-24 — PINGU-Claude (tanda 347 — dos cosas que entendí al revés en la 346)
+
+**Hecho**: PINGU, con la 346 ya en producción, con captura.
+
+**«30 aniv es parte de megaevoluciones, no me lo separes».** Yo entendí
+lo contrario y le saqué un grupo propio, «30 aniversario». Es una
+entrega de la era de Mega Evolución como cualquier otra. Y lo que pedía
+era otra cosa: **30th Celebration y 30th Classic Collection son EL MISMO
+set**, y salían en dos filas. Ahora se pliegan en una (la cuenta de
+cartas suma las dos), la página del set enseña las cartas de las dos
+mitades, y quien llegue por la dirección de la mitad acaba en la del
+set. En el sitemap solo va una.
+
+La era a la que se pega no está escrita a mano: se busca la serie de los
+sets `me*` EN LOS DATOS. El nombre lo pone TCGdex y puede cambiar; los
+identificadores no.
+
+**«Primero promos y energía empezando por ABAJO».** Las había puesto
+arriba. Contando desde el final: la última fila son las promos, encima
+las energías, y por delante las expansiones de la más nueva a la más
+vieja.
+
+**Ficheros**: `js/catalogo-series.js`, `js/cartas.js`, `js/coleccion.js`,
+`netlify/edge-functions/meta-social.js`, `netlify/functions/sitemap.mjs`,
+`SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-346.mjs` (los bloques 3 y 5b,
+que ahora prueban lo que PINGU quería y no lo que yo entendí).
+
+**En curso / pendiente**: lo mismo que la 346 — sin
+`supabase-migration-codigos-live.sql` las direcciones siguen siendo las
+viejas. Y sigue `supabase-migration-marcas-por-set.sql`.
+
+---
+
 ## 2026-09-24 — PINGU-Claude (tanda 346 — la dirección, el nombre repetido, el orden y los filtros)
 
 **Hecho**: seis cosas que pidió PINGU de /cartas y /coleccion.

@@ -19,7 +19,7 @@
 // listón, el sitemap seguiría ofreciendo lo de antes y Google se comería
 // las páginas que la propia web marca como `noindex`.
 import { claveDeJuego, mereceIndexarse, rutaDeCarta, rutaDeColeccion } from '../../js/carta-nucleo.js'
-import { esDelTCG } from '../../js/catalogo-series.js'
+import { esDelTCG, padreDeColeccion } from '../../js/catalogo-series.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ'
@@ -135,6 +135,10 @@ export default async () => {
     for (const s of sets) {
       // Las de Pokémon TCG Pocket ni se ofrecen: su página no existe.
       if (!s.id || !esDelTCG(s)) continue
+      // Ni las que son parte de otra: su dirección lleva a la del padre,
+      // y ofrecer las dos es pedirle a Google que rastree la misma
+      // colección dos veces.
+      if (padreDeColeccion(s.id)) continue
       urls.push({
         loc: `${SITIO}${rutaDeColeccion(s)}`,
         lastmod: soloFecha(s.release_date),

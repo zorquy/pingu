@@ -17,7 +17,7 @@ import {
   TIPOS_ES,
 } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, prefijoDeColeccion } from './catalogo-series.js'
 
 const MERCADO = 'WEST'
 
@@ -56,9 +56,23 @@ async function cargar() {
     .eq('market', MERCADO)
     .or(filtroDeColeccion(clave))
     .limit(1)
-  const set = data?.[0] || null
+  let set = data?.[0] || null
   // Una colección que no es del TCG de mesa no tiene página aquí.
   if (error || !set || !esDelTCG(set)) return fallo()
+
+  // Y si este set es parte de otro —la Classics Collection lo es del 30
+  // aniversario—, la página es la del padre: es un set solo, y tener dos
+  // direcciones para él las deja a las dos a medias.
+  const padre = padreDeColeccion(set.id)
+  if (padre) {
+    const { data: suyo } = await supabase
+      .from('tcg_sets')
+      .select('id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total,tcg_online_code')
+      .eq('market', MERCADO)
+      .eq('id', padre)
+      .limit(1)
+    if (suyo?.[0]) set = suyo[0]
+  }
   setId = set.id
 
   // Y si se llegó por la vieja, la barra pasa a decir la buena sin
@@ -82,17 +96,31 @@ async function cargar() {
   todas = []
   await todasLasCartas()
   montarFiltros()
+
+  // La cuenta declarada del set plegado es solo la de su mitad: con las
+  // cartas ya contadas se repinta con el número de verdad. Un «160
+  // cartas» encima de 190 es peor que no decir ninguna.
+  if (prefijoDeColeccion(setId) && caja) {
+    caja.innerHTML = cabeceraDeColeccion(
+      { ...set, card_count_official: null, card_count_total: null },
+      todas.length
+    )
+  }
 }
 
 // El orden es por `local_id`, que es el número impreso en la carta — y
 // es TEXTO, no número: hay cartas que se llaman «TG12», «SV107» o
 // «H31». Ordenar como número las dejaría todas juntas al principio.
 async function masCartas(cuantas) {
-  const { data, error } = await supabase
+  // Normalmente un set es UN `set_id`. El 30 aniversario son todos los
+  // que empiezan por «30th», porque TCGdex lo parte en dos y es uno.
+  const prefijo = prefijoDeColeccion(setId)
+  let consulta = supabase
     .from('tcg_cards')
     .select('id,name,name_es,local_id,image_path,types,category,rarity')
     .eq('market', MERCADO)
-    .eq('set_id', setId)
+  consulta = prefijo ? consulta.like('set_id', `${prefijo}%`) : consulta.eq('set_id', setId)
+  const { data, error } = await consulta
     .order('local_id')
     .range(desde, desde + cuantas - 1)
   if (error) return 0

@@ -49,7 +49,7 @@ import {
   rejillaDeCartas,
   rutaDeColeccion,
 } from '../../js/carta-nucleo.js'
-import { esDelTCG } from '../../js/catalogo-series.js'
+import { esDelTCG, padreDeColeccion, prefijoDeColeccion } from '../../js/catalogo-series.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 // La clave publicable, la misma que ya viaja en js/supabase.js y que
@@ -1073,15 +1073,32 @@ async function metaDeColeccion(url) {
   // de antes de la tanda 346 — y los que ya indexó Google. El filtro
   // sale del mismo sitio que el del navegador para que los dos
   // resuelvan igual.
-  const set = await pedir(
+  let set = await pedir(
     `tcg_sets?or=(${encodeURIComponent(filtroDeColeccion(clave))})&market=eq.WEST` +
       '&select=id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
   )
   // Pokémon TCG Pocket es otro juego: su colección no tiene página aquí.
   if (!set || !esDelTCG(set)) return null
 
+  // Un set que es parte de otro no tiene página propia: la canónica es
+  // la del padre, y quien llegue aquí tiene que ver la del padre — si no,
+  // habría dos direcciones enseñando media colección cada una.
+  const padre = padreDeColeccion(set.id)
+  if (padre) {
+    const suyo = await pedir(
+      `tcg_sets?id=eq.${encodeURIComponent(padre)}&market=eq.WEST` +
+        '&select=id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
+    )
+    if (suyo) set = suyo
+  }
+
+  // Y el 30 aniversario se lleva las cartas de sus dos mitades.
+  const prefijo = prefijoDeColeccion(set.id)
+  const deQuien = prefijo
+    ? `set_id=like.${encodeURIComponent(prefijo)}*`
+    : `set_id=eq.${encodeURIComponent(set.id)}`
   const cartas = await pedirVarias(
-    `tcg_cards?set_id=eq.${encodeURIComponent(set.id)}&market=eq.WEST` +
+    `tcg_cards?${deQuien}&market=eq.WEST` +
       `&select=id,name,name_es,local_id,image_path&order=local_id.asc&limit=${CARTAS_EN_EL_DOCUMENTO}`
   )
 

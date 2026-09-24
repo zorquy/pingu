@@ -18200,3 +18200,42 @@ petición legítima aunque no se teclee nada.
 métodos del nodo de error pero no en el de verdad, así que la consulta
 habría petado en las pruebas con un «no es una función» — y en
 producción habría ido bien. Añadido junto con `overlaps`.
+
+
+---
+
+## Tanda 347 — dos cosas que entendí al revés en la 346
+
+Las dos son de lectura, no de código, y las dos se colaron enteras hasta
+producción porque una prueba solo comprueba lo que TÚ has entendido.
+
+**«El 30 aniversario y la Classics son el mismo set».** Yo leí «son la
+misma ERA» y les hice un grupo propio, que es justo lo contrario de lo
+que pedía: «30 aniv es parte de megaevoluciones, JODER, no me lo
+separes». Dos errores en uno — el grupo sobraba, y lo que había que
+juntar eran las dos FILAS.
+
+Ahora hay dos ideas distintas y separadas:
+
+- **A qué era pertenece** (`claveDeSerie`): el 30 aniversario va con Mega
+  Evolución. La era se busca EN LOS DATOS —la serie de los sets `me*`— en
+  vez de escribir su nombre aquí: el nombre lo pone TCGdex y cambia, los
+  identificadores no.
+- **Qué sets son el mismo set** (`COLECCIONES_JUNTAS`, en
+  `js/catalogo-series.js`): una regla de PREFIJO, no una lista de
+  identificadores, porque nadie sabe cómo va a llamar TCGdex a la
+  siguiente entrega. El hijo se pliega en el padre: una fila, la cuenta
+  sumada, la página con las cartas de las dos mitades (`like` sobre
+  `set_id` en vez de `eq`), la dirección de la mitad llevando a la del
+  set, y una sola entrada en el sitemap.
+
+Y como la cuenta declarada del padre es solo la de su mitad, la cabecera
+se repinta con el número REAL cuando ya están las cartas: «160 cartas»
+encima de 190 es peor que no decir ninguna.
+
+**«Primero promos y energía empezando por abajo».** Las puse arriba. El
+orden es: las expansiones de la más nueva a la más vieja, después las
+energías, y la última fila las promos. Solo cambia el número que
+devuelve `rangoDeSet`, pero el comentario de al lado decía «las promos
+abren» con toda la seguridad del mundo — un comentario seguro de sí
+mismo no hace verdadera la lectura que hay debajo.

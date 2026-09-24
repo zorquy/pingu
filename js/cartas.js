@@ -8,7 +8,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { rejillaDeCartas, rutaDeColeccion, TIPOS_ES } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion } from './catalogo-series.js'
 
 const MERCADO = 'WEST'
 const $ = (id) => document.getElementById(id)
@@ -41,7 +41,7 @@ async function colecciones() {
     .order('release_date', { ascending: false, nullsFirst: false })
   if (error || !data?.length) return
 
-  const soloTCG = data.filter(esDelTCG)
+  const soloTCG = plegarHermanos(data.filter(esDelTCG))
   if (!soloTCG.length) return
 
   const series = agruparEnSeries(soloTCG)
@@ -82,25 +82,56 @@ export function esUnaEra(sets) {
   return sets.some((s) => (s.card_count_official || s.card_count_total || 0) >= CARTAS_DE_UNA_EXPANSION)
 }
 
-// ── El 30 aniversario es UNA cosa ──
+// ── Los que son el mismo set, en una sola fila ──
 //
-// TCGdex lo tiene partido —la celebración por un lado y la Classics
-// Collection por otro—, y para quien entra es lo mismo: «yo no separaría
-// los sets, los tendría en lo mismo» (PINGU). Se juntan por el
-// identificador, que es lo que no cambia con el nombre que le dé TCGdex.
-export function claveDeSerie(set) {
+// «30th Celebration y la Classics son el mismo set» (PINGU). El hijo no
+// desaparece: sus cartas se cuentan en la fila del padre, que es lo que
+// dice la lista, y su página lleva al padre.
+export function plegarHermanos(sets) {
+  const porId = new Map(sets.map((s) => [String(s.id).toLowerCase(), s]))
+  const fuera = []
+  for (const s of sets) {
+    const padre = padreDeColeccion(s.id)
+    const suyo = padre ? porId.get(padre) : null
+    if (!suyo) {
+      fuera.push(s)
+      continue
+    }
+    // Si el padre no está importado, el hijo se queda como está: vale
+    // más una fila de más que una colección que desaparece.
+    suyo.card_count_official = (suyo.card_count_official || 0) + (s.card_count_official || 0)
+    suyo.card_count_total = (suyo.card_count_total || 0) + (s.card_count_total || 0)
+  }
+  return fuera
+}
+
+// ── El 30 aniversario NO es una era aparte ──
+//
+// Lo primero que hice fue sacarlo a su propio grupo, y PINGU: «30 aniv
+// es parte de megaevoluciones, no me lo separes». Es una entrega de esa
+// era, como cualquier otra.
+//
+// La era a la que va se busca EN LOS DATOS —la serie de los sets `me*`—
+// en vez de escribir aquí su nombre: el nombre lo pone TCGdex y puede
+// cambiar, los identificadores no.
+export function serieDeLaEraMega(sets) {
+  return sets.find((s) => /^me/i.test(String(s?.id || '')) && s?.serie_name)?.serie_name || null
+}
+
+export function claveDeSerie(set, serieMega = null) {
   const pista = `${set?.id || ''} ${set?.serie_id || ''} ${set?.serie_name || ''} ${set?.name || ''}`
-  if (/30th/i.test(pista)) return '30 aniversario'
+  if (/30th/i.test(pista) && serieMega) return serieMega
   return set?.serie_name || SIN_CLASIFICAR
 }
 
-// ── Y dentro de una era: promos, energías y luego los sets ──
+// ── Y dentro de una era: las expansiones, y abajo las energías y las
+// promos ──
 //
-// «Las promos siempre son el primer set de la era» (PINGU). Es el orden
-// con el que se habla de una era y el que usan las bases de siempre: las
-// promos abren, las energías van detrás —salen con la era pero no son
-// una expansión— y después las expansiones, de la más nueva a la más
-// vieja, que es como estaban.
+// «Primero promos y energía EMPEZANDO POR ABAJO» (PINGU, corrigiéndome:
+// las había puesto arriba). Contando desde el final: la última fila son
+// las promos, encima las energías, y todo lo demás por delante de la más
+// nueva a la más vieja. Las dos salen con la era pero no son
+// expansiones, así que no compiten por el sitio de arriba.
 //
 // Se mira el NOMBRE porque es lo único que lo dice: no hay una columna
 // que separe una promo de una expansión, y el tamaño tampoco vale (una
@@ -110,9 +141,9 @@ const ES_ENERGIA = /\benerg(y|ies|ia|ías|ía)\b/i
 
 export function rangoDeSet(set) {
   const nombre = String(set?.name || '')
-  if (ES_PROMO.test(nombre)) return 0
+  if (ES_PROMO.test(nombre)) return 2
   if (ES_ENERGIA.test(nombre)) return 1
-  return 2
+  return 0
 }
 
 export function ordenDentroDeUnaSerie(a, b) {
@@ -135,8 +166,9 @@ export function agruparEnSeries(sets) {
   // conserva, y así no hay una segunda ordenación que pudiera decir
   // otra cosa.
   const porSerie = new Map()
+  const serieMega = serieDeLaEraMega(sets)
   for (const s of sets) {
-    const clave = claveDeSerie(s)
+    const clave = claveDeSerie(s, serieMega)
     if (!porSerie.has(clave)) porSerie.set(clave, [])
     porSerie.get(clave).push(s)
   }

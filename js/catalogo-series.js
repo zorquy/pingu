@@ -37,3 +37,31 @@ export function esDelTCG(set) {
   if (ID_DE_POCKET.test(String(set?.id ?? ''))) return false
   return true
 }
+
+// ── Sets que en realidad son EL MISMO set (tanda 347) ──
+//
+// PINGU: «30th Celebration y la Classics son el mismo set, no hace falta
+// que me lo separes». TCGdex lo tiene partido en dos identificadores,
+// pero para quien entra es una colección: una fila en la lista y una
+// página con las cartas de las dos.
+//
+// La regla es un PREFIJO y no una lista de identificadores, porque
+// TCGdex todavía no ha dicho cómo va a llamar a la siguiente entrega del
+// mismo set — y una lista a mano se queda vieja el día que salga (la
+// lección de la 323).
+export const COLECCIONES_JUNTAS = [{ padre: '30th', prefijo: '30th' }]
+
+// Si este set es parte de otro, cuál. `null` si es él mismo.
+export function padreDeColeccion(id) {
+  const x = String(id ?? '').toLowerCase()
+  for (const { padre, prefijo } of COLECCIONES_JUNTAS) {
+    if (x !== padre && x.startsWith(prefijo)) return padre
+  }
+  return null
+}
+
+// Y al revés: este set, ¿se lleva las cartas de otros?
+export function prefijoDeColeccion(id) {
+  const x = String(id ?? '').toLowerCase()
+  return COLECCIONES_JUNTAS.find((c) => c.padre === x)?.prefijo || null
+}
