@@ -27,7 +27,7 @@ import {
   mereceIndexarse,
   nucleoDeCarta,
 } from '/home/user/pingu/js/carta-nucleo.js'
-import { normalizarNombre } from '/home/user/pingu/js/normalizar.js'
+import { normalizarNombre, claveDeCarta } from '/home/user/pingu/js/normalizar.js'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -205,12 +205,21 @@ console.log('\n── 6. La clave se calcula una vez ──')
   // calcula para preguntar y la tarea lo calcula para guardar: si las
   // dos versiones se separaran, la ficha preguntaría por una clave que
   // no existe y el bloque desaparecería SIN DAR ERROR.
+  // Desde la 349 la clave es `claveDeCarta` y no `normalizarNombre`: los
+  // separadores se juntan, porque TCGdex escribe «Mega-Darkrai ex» y TCG
+  // Live «Mega Darkrai ex». Lo que se comprueba aquí sigue siendo lo
+  // mismo — que las dos mitades calculan LA MISMA clave —, y por eso se
+  // comprueba con el caso que lo destapó y no con el nombre de la
+  // función.
   check('la ficha y el agregado usan la misma función',
-    claveDeJuego({ name: 'Piedra Pómez' }) === normalizarNombre('Piedra Pómez'))
+    claveDeJuego({ name: 'Piedra Pómez' }) === claveDeCarta('Piedra Pómez'))
+  check('…y el guion ya no parte la clave',
+    claveDeJuego({ name: 'Mega-Darkrai ex' }) === claveDeCarta('Mega Darkrai ex'))
   check('…y normaliza de verdad', claveDeJuego({ name: '  Piedra   PÓMEZ ' }) === 'piedra pomez',
     claveDeJuego({ name: '  Piedra   PÓMEZ ' }))
   const agregado = readFileSync(`${RAIZ}/netlify/lib/juego-agregado.mjs`, 'utf8')
-  check('el agregado la IMPORTA, no la copia', /import \{[^}]*normalizarNombre/.test(agregado))
+  check('el agregado la IMPORTA, no la copia',
+    /import \{[^}]*claveDeCarta/.test(agregado) && !/function claveDeCarta/.test(agregado))
 }
 
 // ═════════════════════════════════════════════════════════════════════
