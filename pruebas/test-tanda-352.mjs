@@ -53,9 +53,20 @@ console.log('\n── 2. La base también lo comprueba ──')
   // jsonb sin forma rompería la ficha a todo el que la abra.
   const sql = leer('supabase-migration-torneos-premios.sql')
   check('se añade la columna', /add column if not exists prizes jsonb/.test(sql))
-  check('y se comprueba que es una lista', /jsonb_typeof\(prizes\) = 'array'/.test(sql))
+  check('y se comprueba que es una lista', /jsonb_typeof\(p_premios\) = 'array'/.test(sql))
+  // Y con `is distinct from` y no `<>`: si la clave no está,
+  // `jsonb_typeof` devuelve NULL y `NULL <> 'string'` no es cierto — es
+  // nulo. Con `<>` se colaba {"puesto":"1º"} sin premio, comprobado
+  // contra PostgreSQL 16 de verdad.
   check('…de objetos con las dos mitades',
-    /jsonb_typeof\(p -> 'puesto'\) <> 'string'/.test(sql) && /jsonb_typeof\(p -> 'premio'\) <> 'string'/.test(sql))
+    /jsonb_typeof\(p -> 'puesto'\) is distinct from 'string'/.test(sql) &&
+    /jsonb_typeof\(p -> 'premio'\) is distinct from 'string'/.test(sql))
+  // Un CHECK no admite subconsultas (0A000), y recorrer una lista jsonb
+  // lo es: el recorrido va en una función IMMUTABLE. La primera versión
+  // de esta migración falló en la base de PINGU por eso.
+  check('el recorrido va en una función inmutable',
+    /create or replace function public\.premios_bien_formados/.test(sql) && /\nimmutable\n/.test(sql))
+  check('…y el check solo la llama', /check \(\s*prizes is null or public\.premios_bien_formados\(prizes\)\s*\)/.test(sql))
   check('…y con los mismos límites que el cliente',
     /length\(p ->> 'puesto'\) > 40/.test(sql) && /length\(p ->> 'premio'\) > 200/.test(sql))
   check('/admin avisa si falta la migración', /supabase-migration-torneos-premios\.sql/.test(leer('js/schema-check.js')))
