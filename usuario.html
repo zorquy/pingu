@@ -92,35 +92,35 @@
       </div>
       <div class="nav-right">
         <div id="nav-user"></div>
-        <button class="nav-toggle" id="navToggle" aria-label="Menú"><span></span><span></span><span></span></button>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú" aria-expanded="false" aria-controls="navMobileMenu"><span></span><span></span><span></span></button>
       </div>
     </div>
     <div class="nav-menu-mobile" id="navMobileMenu">
       <a href="/index.html">Inicio</a>
       <a href="/noticias">Noticias</a>
-      <div class="nav-menu-grupo">
-        <p class="nav-menu-titulo">Aprender</p>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Aprender</summary>
         <a href="/aprender.html">Guías y cursos</a>
         <a href="/curso.html?reto=hoy">Reto de hoy</a>
         <a href="/guardados.html">Guardados</a>
-      </div>
-      <div class="nav-menu-grupo">
-        <p class="nav-menu-titulo">Cartas</p>
+      </details>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Cartas</summary>
         <a href="/cartas">Catálogo de cartas</a>
         <a href="/lanzamientos.html">Lanzamientos</a>
-      </div>
-      <div class="nav-menu-grupo">
-        <p class="nav-menu-titulo">Comunidad</p>
+      </details>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Comunidad</summary>
         <a href="/foro.html">Foro</a>
         <a href="/usuarios.html">Gente</a>
-      </div>
-      <div class="nav-menu-grupo nav-jugar hidden">
-        <p class="nav-menu-titulo">Jugar</p>
+      </details>
+      <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
+        <summary>Jugar</summary>
         <a href="/torneos.html">Torneos</a>
         <a href="/constructor">Constructor de mazos</a>
         <a href="/mazos">Mis mazos</a>
         <a href="/mis-partidas">Mis partidas</a>
-      </div>
+      </details>
     </div>
   </nav>
 

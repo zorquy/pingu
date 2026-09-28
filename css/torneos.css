@@ -2150,6 +2150,56 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   margin: 12px 0 8px;
 }
 .torneo-decklist-visual { margin-bottom: 8px; }
+
+/* «Usar un mazo del constructor» (tanda 359): el botón y, al pulsarlo,
+   la lista de los mazos guardados justo debajo, antes del texto. */
+.torneo-desde-mazo {
+  margin-bottom: 12px;
+}
+.torneo-desde-mazo .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.torneo-mazos {
+  margin-top: 8px;
+}
+.torneo-mazos-lista {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.torneo-mazo-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  text-align: left;
+  font-size: var(--t-md);
+}
+.torneo-mazo-opcion:hover,
+.torneo-mazo-opcion:focus-visible {
+  border-color: var(--navy);
+  background: var(--ice);
+  outline: none;
+}
+.torneo-mazo-opcion .subtext {
+  font-size: var(--t-xs);
+}
+.torneo-mazo-opcion .torneo-cuenta-mal {
+  color: var(--danger);
+}
 .torneo-mio {
   font-size: var(--t-xs);
   font-weight: 700;

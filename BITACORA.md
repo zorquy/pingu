@@ -12,6 +12,81 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-28 — IBAI-Claude (tanda 360 — revisión y subida de la 359)
+
+**Hecho**: revisada, probada y subida la tanda 359 de claude.ai. El
+código estaba limpio: no he tenido que tocar nada de la web.
+
+**Probado en navegador con un usuario inscrito** (y dejado como test
+permanente, `pruebas/test-tanda-359.mjs`): la pestaña Jugar enseña
+«Usar un mazo del constructor», lista los mazos con nombre y cuenta,
+el elegido se ESCRIBE en el editor sin entregarse (queda «Guardar
+decklist»), la promo sale «SVP 92» y no «PR-SV 92», y la básica como
+«Basic {R} Energy MEE 2». Y el constructor se abre VACÍO con el
+borrador ofrecido en una línea: «Seguir con él» lo recupera entero.
+
+**Medido**: la portada baja a **166,5 KB gzip** (−3,4 KB: style −3.686
+por la mudanza de comentarios, app +203, index +47). El botón nuevo
+pesa donde debe: torneo.js +1.168 y torneos.css +198, fuera de portada.
+
+**La suite**: test-tanda-320 adaptado al cajón (cuenta enlaces sueltos
+y summary, y abre un acordeón para ver que enseña lo suyo); 309 y 327
+valían tal cual. El doble aprende `user_decks` (gancho `__FAKE_MAZOS__`),
+que «Usar un mazo» y /mazos consultan. La 313 (reduced-motion del cajón
+y de la flecha) y los táctiles (filas de 52) van cubiertos por sus
+pruebas de siempre. Pasada completa lanzada: 30/110 en verde y ninguna
+roja al empujar (los tests del constructor, barra, pie y la 359 nueva
+pasados aparte en directo); si algo sale al terminar, va en la
+siguiente entrada.
+
+**Ficheros**: solo rama `pruebas` (test-tanda-359.mjs NUEVO,
+test-tanda-320.mjs, stub-supabase.js, correr-suite.sh). La web va tal
+cual la dejó la 359.
+
+**En curso / pendiente**: siguen las migraciones de la 354 y la 358 por
+ejecutar (mazos y energias-especiales), y el rigor de los tests nuevos
+(355, constructor, 359).
+
+---
+
+## 2026-09-28 — PINGU-Claude desde claude.ai (tanda 359 — constructor vacío, mazo guardado en el torneo y menú del móvil)
+
+**Hecho** (pedido de PINGU):
+1. **/constructor se abre VACÍO.** El último mazo ya no se carga solo:
+   se ofrece en una línea («Seguir con él») y sigue recuperable.
+2. **«Usar un mazo del constructor» al entregar la decklist** de un
+   torneo: lista tus mazos guardados y escribe el elegido en el editor
+   (no entrega: se revisa y «Guardar decklist»). Texto con
+   `textoParaTorneo` (nucleo.js): las promos van como SVP/SP… porque el
+   motor no lee «PR-SV». Probado con los mazos reales de PINGU contra
+   `parseDecklist`/`validateDecklist`: 60/60 y cero errores.
+3. **El menú del móvil es un cajón lateral**: a toda altura desde la
+   derecha, velo sobre la página, Inicio y Noticias sueltos y los cuatro
+   apartados en acordeón (`<details name>`), el tuyo abierto; la
+   hamburguesa se vuelve X; cierran Escape y tocar el velo.
+
+**Portada**: se hizo sitio antes — los 14 comentarios más largos de
+style.css se mudan a SCHEMA.md (tanda 359). Neto: **~−3,5 KB gzip**
+(style −3.744, app +198, index +36; medido con gzip -9 sobre LF).
+
+**Ficheros**: `js/constructor.js`, `js/constructor/nucleo.js`,
+`js/torneos/torneo.js`, `css/torneos.css`, `css/style.css`, `js/app.js`,
+las 27 páginas con barra (el HTML del menú del móvil y
+`aria-expanded`/`aria-controls` en la hamburguesa), `SCHEMA.md`.
+
+**En curso / pendiente**:
+- **Suite**: el HTML del menú del móvil cambia (de `div` +
+  `.nav-menu-titulo` a `details`/`summary`); las pruebas de la 358 que lo
+  miren hay que adaptarlas. Revisar también 313 (la animación del cajón
+  y la flecha tienen su `prefers-reduced-motion`) y los objetivos
+  táctiles (filas de 52 y 44).
+- Visto al probar: los mazos exportan el nombre que haya en `name`, que
+  en algunas filas sigue en español mientras dura la reparación de la
+  335 («Clefairy ex de Lylia»). El motor casa por colección y número; el
+  export a TCG Live y los arquetipos, cuando acabe la reparación.
+
+---
+
 ## 2026-09-28 — IBAI-Claude (tanda 358 — revisión y subida de las 354-357, y el tipo de las energías en origen)
 
 **Hecho**: revisadas, probadas y subidas las tandas 354-357 de la sesión

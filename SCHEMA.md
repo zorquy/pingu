@@ -18737,3 +18737,314 @@ sale de `decklist-export.js` porque aquel módulo pinta
 página que no carga esa hoja — una página «usa» las clases de todo lo
 que importa (regla de la 299/316, lo cazó su prueba). La API de los
 torneos no cambia: `decklist-export.js` lo reexporta.
+
+## Tanda 359 — el constructor se abre vacío, entregar un mazo guardado en un torneo y el menú del móvil como cajón
+
+**El constructor se abre VACÍO.** Antes, entrar sin nada en la dirección
+cargaba el borrador de la última vez; PINGU lo quiere vacío: quien entra
+por el menú viene a hacer un mazo. El borrador no se tira: se ofrece en
+una línea («Tu último mazo … sigue guardado en este navegador. Seguir con
+él») y se lee a memoria al arrancar, así que sigue recuperable aunque el
+mazo nuevo lo pise en localStorage al añadir la primera carta.
+
+**Entregar un mazo del constructor en un torneo.** En «Tu decklist», con
+la lista editable, hay un botón «Usar un mazo del constructor»: lista tus
+mazos guardados (nombre, x/60, formato, fecha) y al elegir uno escribe su
+texto en el editor. NO entrega: se revisa y se pulsa «Guardar decklist»,
+que es donde se valida, como siempre. El constructor se carga con
+`import()` al pulsar. El texto sale de `textoParaTorneo` (nucleo.js), que
+es el de TCG Live con UNA diferencia: el motor lee el código de colección
+con `[A-Z0-9]{2,6}` y las promos de TCG Live llevan guion («PR-SV 92»),
+así que van con el código de Limitless (SVP, SP, SMP…). Probado con los
+mazos reales de PINGU: 60/60, cero líneas ilegibles, cero errores.
+
+OJO, visto al probarlo: mientras dura la reparación de `name` (tanda 335)
+hay filas con el nombre ESPAÑOL en `name`, y la lista sale con «Clefairy
+ex de Lylia» u «Ogerpon Máscara Turquesa ex». El motor lo acepta (casa
+por colección y número), pero el export a TCG Live y los arquetipos
+cruzan por nombre inglés: se arregla solo cuando acabe la reparación.
+
+**El menú del móvil, un cajón lateral.** Eran quince enlaces seguidos
+en un panel bajo la barra. Ahora entra por la derecha a toda altura, con
+un velo sobre la página (una sombra de `100vmax`, sin elemento extra),
+Inicio y Noticias sueltos y los cuatro apartados como acordeón
+(`<details name="nav-menu">`: abrir uno cierra los otros). El apartado
+donde estás viene abierto y marcado. La hamburguesa queda por encima y
+se convierte en X; también cierran Escape y tocar el velo (ese toque se
+come en fase de captura para no pulsar la página de debajo). Dos trampas:
+
+- `backdrop-filter` en `.navbar` la convierte en bloque contenedor de lo
+  `position: fixed`: con él, el cajón mediría lo que la barra. Se quita
+  mientras el menú está abierto (`.navbar:has(.nav-menu-mobile.open)`).
+- El HTML del menú cambia en las 27 páginas (de `div` con título a
+  `details`/`summary`): las pruebas adaptadas en la 358 que miren
+  `.nav-menu-titulo` tienen que pasar a `summary`.
+
+**Portada: se hizo sitio antes.** El cajón cuesta +486 bytes gzip en
+style.css, +198 en app.js y +36 en index.html. Se han sacado de
+style.css los catorce comentarios de más de 540 caracteres (quedan en
+una línea que apunta aquí; el texto entero, abajo): −4.230 bytes. Neto
+de la tanda: **unos −3,5 KB**.
+
+### Los comentarios de style.css que viven aquí desde la 359
+
+#### Encima de `@font-face` (Las fuentes, servidas desde aquí ──)
+
+```css
+/* ── Las fuentes, servidas desde aquí ──
+   Antes se pedían a fonts.googleapis.com con un <link rel="stylesheet">.
+   Eso son DOS dominios de terceros en el camino crítico: googleapis para
+   la hoja de estilo (que BLOQUEA el pintado) y, dentro de ella, gstatic
+   para los ficheros de fuente. Cuatro viajes —DNS, TLS, la hoja, las
+   fuentes— antes de poder pintar una letra, y dos puntos de fallo ajenos.
+
+   Ahora son dos ficheros del propio sitio, cacheados un año.
+
+   Y son fuentes VARIABLES: un solo fichero por familia cubre todos los
+   pesos. Con las estáticas hacían falta siete (400/500/600/800 de Inter
+   y 500/600/700 de Fredoka): 142 KB en siete peticiones, contra 76 KB en
+   dos.
+
+   El nombre de familia se declara sin el "Variable" que traen los
+   paquetes de fontsource, para que el resto del CSS (`font-family:
+   'Inter'`) siga valiendo tal cual.
+
+   `font-display: swap` para que el texto se lea desde el primer momento
+   con la fuente del sistema y cambie cuando llegue la buena, en vez de
+   quedarse invisible esperando. */
+```
+
+#### Encima de `--blanco-fijo: #fff;   /* El azul de la casa cuando hace de FONDO SÓLIDO con blanco encima.      Mismo caso que --dan` (El blanco que NO es el del tema (tanda 315) ──)
+
+```css
+/* ── El blanco que NO es el del tema (tanda 315) ──
+     `--white` es la SUPERFICIE de la página, y en el tema oscuro vale
+     #182430: o sea, negro. Pero hay 62 sitios donde el blanco es blanco
+     porque va ENCIMA DE UN COLOR —la letra de un botón azul, el relleno
+     de una barra sobre su pista, el aro del progreso de una categoría—
+     y ahí tiene que seguir siendo blanco en los dos temas.
+     Iban a mano, y eso es una trampa esperando: cualquiera que «ordene»
+     un `#fff` a `var(--white)` deja letra negra sobre azul en oscuro sin
+     que nada dé error. Con nombre propio, la diferencia se lee. */
+```
+
+#### Encima de `--navy-solid-dark: #163d59;   --navy-solid-light: #2a6b96;    /* ── La paleta de ARTE (tanda 315) ──      Los seis de` (Y sus dos compañeros de degradado. Los héroes de color —la cabecera)
+
+```css
+/* Y sus dos compañeros de degradado. Los héroes de color —la cabecera
+     de un torneo, la tira de «sigue aprendiendo», el arte de una
+     tarjeta— van del más oscuro al más claro pasando por --navy-solid, y
+     son FIJOS por lo mismo: llevan blanco encima. Tienen los MISMOS
+     valores que --navy-dark y --navy-light, y ahí está la trampa:
+     parecen intercambiables y no lo son, porque esos dos SÍ cambian con
+     el tema.
+     (Los valores no se citan aquí a propósito: un barrido que sustituye
+     un color también pasa por los comentarios, y esta línea se lo comió
+     en el primer intento.) */
+```
+
+#### Encima de `--arte-verde: linear-gradient(135deg, #0d9e6e, #7cc6d8 130%);   --arte-azul: linear-gradient(135deg, #2a6b96, #7cc6d8` (La paleta de ARTE (tanda 315) ──)
+
+```css
+/* ── La paleta de ARTE (tanda 315) ──
+     Los seis degradados que le tocan a una tarjeta según su identidad:
+     los usan las guías de la portada y de /aprender (`.arte-1..6`) y las
+     tarjetas de torneo (`.torneo-arte-1..6`). Estaban escritos DOS
+     VECES, en components.css y en torneos.css, con los mismos seis
+     colores en distinto orden — o sea que cambiar la paleta era cambiar
+     doce degradados y acordarse de los dos sitios.
+     Son FIJOS, como los azules de arriba: llevan texto blanco encima y
+     no pueden seguir al tema. */
+```
+
+#### Encima de `--t-2xs: 11px;   /* chapas diminutas y rótulos en versalitas */   --t-xs: 12px;   /* metadatos: fechas, cuentas, «hac` (La escala tipográfica (tanda 305) ──)
+
+```css
+/* ── La escala tipográfica (tanda 305) ──
+   *
+   * Antes había 36 tamaños distintos y 596 declaraciones, con pasos de
+   * MEDIO PÍXEL entre 10,5 y 16 px: 13 px salía 105 veces, 12,5 px 55,
+   * 13,5 px 48, 14,5 px 27... elegidos uno a uno, componente a
+   * componente, en vez de salir de una escala.
+   *
+   * El efecto era que el ojo no distinguía jerarquía y TODO se leía como
+   * «texto mediano» — que es buena parte de por qué la web parecía hecha
+   * con una plantilla aunque cada pieza estuviera bien.
+   *
+   * Ocho pasos, y cada uno claramente otro. Si necesitas un tamaño que
+   * no está, casi siempre es que el sitio pide otro paso, no un tamaño
+   * nuevo: mételo aquí antes de escribir un número suelto. */
+```
+
+#### Encima de `--e-xs: 4px;    /* pegado: un icono y su texto */   --e-sm: 8px;    /* dentro de una chapa o una fila */   --e-md: 12` (La escala de espaciado (tanda 310) ──)
+
+```css
+/* ── La escala de espaciado (tanda 310) ──
+   *
+   * Había 31 valores distintos de padding/margin/gap y 226 de ellos eran
+   * IMPARES: 3, 5, 7, 9, 11, 13… los mismos «medio pasos» elegidos uno a
+   * uno que tenían los tamaños de letra antes de la tanda 305. Nada
+   * respiraba igual que lo de al lado y el ojo lo leía como «hecho a
+   * trozos».
+   *
+   * Los impares ya no están (redondeados al par siguiente: +1 px no se
+   * ve de uno en uno y nunca aprieta nada). Estos seis pasos son los que
+   * hay que usar al escribir algo nuevo. */
+```
+
+#### Encima de `--navy: #6fb0dc;   --navy-light: #63a8d6;   --navy-dark: #3a76a3;   --ice: #1c2b38;   --ice-dark: #243847;   --bg: #0` (Aclarado en la tanda 311 (era #4a90c2). El azul del tema oscuro se)
+
+```css
+/* Aclarado en la tanda 311 (era #4a90c2). El azul del tema oscuro se
+     quedaba corto contra las superficies oscuras: 45 reglas ponen texto
+     --navy sobre fondo --ice y las 45 daban 4,17 de contraste, por
+     debajo del 4,5 legible. Con este sube a 6,14.
+
+     Se comprobó que NADA empeora antes de tocarlo: --navy también hace
+     de FONDO en 32 reglas, pero en oscuro el texto que lleva encima es
+     --white, que aquí es la superficie oscura (#182430) — o sea texto
+     oscuro sobre azul, que con este azul pasa de 4,54 a 7,20. Y no hay
+     ni una regla que ponga texto CLARO sobre fondo --navy, que es el
+     único caso al que este cambio le haría daño. */
+```
+
+#### Encima de `input, textarea, select` (Aspecto base de TODOS los campos de formulario.)
+
+```css
+/* Aspecto base de TODOS los campos de formulario.
+ *
+ * Antes solo se heredaba la tipografía, así que un campo sin clase
+ * propia salía con la forma que le diera el navegador: rectángulo con
+ * esquinas vivas y borde gris de sistema. Al lado del recuadro de
+ * comentarios de las guías —que sí está redondeado— cantaba mucho.
+ *
+ * El FONDO se queda blanco a propósito, también en tema oscuro: es como
+ * está el recuadro de comentarios y es la referencia que se quiere. Por
+ * eso son valores fijos y no `var(--white)`, que en oscuro se volvería
+ * oscuro.
+ *
+ * Se listan los tipos uno a uno a propósito: `input` a secas también
+ * pillaría casillas, botones de radio, deslizadores y selectores de
+ * fichero, que no se pintan así.
+ *
+ * Las clases que ya tienen su propio aspecto (.search-input, .auth-input,
+ * .cp-input, .be-field...) ganan por especificidad y siguen igual. */
+```
+
+#### Encima de `select` (Los desplegables, con la cara del sitio (tanda 310) ──)
+
+```css
+/* ── Los desplegables, con la cara del sitio (tanda 310) ──
+   Había 34 `<select>` en la web y ni un `appearance: none`: heredaban el
+   borde y el radio de la regla de arriba, pero el navegador seguía
+   poniendo SU flecha y SU altura. Al lado de un campo y un botón con
+   diseño propio se veían claramente de otra cosa — de lo que más grita
+   «plantilla» en /mis-partidas y en los filtros de torneos.
+
+   La flecha va como imagen de fondo (un SVG en `data:`) porque un
+   `<select>` no admite `::after`: lo pinta el sistema y no tiene
+   pseudoelementos donde colgar nada. */
+```
+
+#### Encima de `body:has(> .footer)` (El hueco de las páginas cortas (tanda 312).)
+
+```css
+/* El hueco de las páginas cortas (tanda 312).
+   `min-height: 100vh` obligaba al CONTENIDO a medir una pantalla entera
+   aunque llevara una sola tarjeta, así que el pie aterrizaba debajo de
+   430 px de nada y encima había que hacer scroll para llegar. Con la
+   columna flexible el contenido crece lo que le sobre —ni un píxel más—
+   y el pie queda pegado abajo sin vacío por encima.
+   Va con :has() para tocar SOLO las 22 páginas que tienen pie: /auth,
+   /curso y /onboarding son pantallas a medida sin él, y volverlas
+   flexibles sería cambiarles el layout sin motivo. */
+```
+
+#### Encima de `.nav-inner .nav-right a:not(.nav-user-dropdown a), .nav-inner .nav-right button:not(.nav-user-dropdown button), .nav-lo` (Lo que se puede tocar mide 44 px (tanda 312) ──)
+
+```css
+/* ── Lo que se puede tocar mide 44 px (tanda 312) ──
+   Medido en ocho páginas a 393 px de ancho: de 143 objetivos, 18 clases
+   estaban por debajo, y la barra de arriba estaba ENTERA — buscar, tema,
+   mensajes y campana a 35×35, el avatar a 34×34, la hamburguesa a 30×30
+   y el logo a 26×26. Un dedo mide bastante más que un cursor y estos son
+   los seis botones que salen en todas las páginas del sitio.
+
+   El tamaño se da con `min-width`/`min-height` y no tocando el `padding`
+   de cada uno: así el dibujo no cambia —el icono sigue midiendo lo que
+   medía— y lo que crece es el hueco que recoge el toque.
+
+   El `:not()` deja fuera el desplegable de la cuenta, que cuelga del
+   mismo sitio pero es una lista, no la barra. */
+```
+
+#### Encima de `@media (max-width: 359px)` (Por debajo de 360 px: el botón de tema baja al menú (tanda 312) ──)
+
+```css
+/* ── Por debajo de 360 px: el botón de tema baja al menú (tanda 312) ──
+   Con los objetivos a 44, los seis botones más el logo y sus huecos
+   piden 336 px de contenido. A 360 con el margen apretado caben justos;
+   por debajo, no. Algo tenía que salir, y el candidato es el tema: es
+   una preferencia que se toca UNA vez —y que además ya viene puesta del
+   sistema—, no una acción que se repite como buscar, los mensajes o los
+   avisos. No desaparece: `renderThemeToggle` monta un gemelo dentro del
+   menú desplegable, que es donde cabe con su etiqueta escrita.
+
+   El corte es 359 y no 400: a 393 px, que es lo que mide media España en
+   el bolsillo, los seis caben — poner el corte más arriba les quitaba el
+   botón a quienes no hacía ninguna falta. */
+```
+
+#### Encima de `.empty-state` (Los estados vacíos (tanda 310) ──)
+
+```css
+/* ── Los estados vacíos (tanda 310) ──
+   Eran una línea de texto gris centrada, y hay 58 en la web: una página
+   entera en blanco con una frase flotando en medio. Tu propia página 404
+   —con su mascota, su titular y tres salidas— enseña cuál es el listón.
+
+   Aquí no se puede poner un icono ni un botón sin tocar los 58 sitios,
+   así que lo que se hace es DARLE CUERPO: una caja con borde punteado
+   sobre la superficie del sitio. El punteado dice «esto está vacío, no
+   es que falte por cargar», que es justo la duda que dejaba el texto
+   suelto. Los sitios donde además conviene ofrecer algo que hacer llevan
+   su propio bloque con icono y botón. */
+```
+
+#### Encima de `@media (max-width: 900px), (pointer: coarse)` (El zoom de iOS al enfocar un campo)
+
+```css
+/* ────────────────────────────────────────────────────────────
+   El zoom de iOS al enfocar un campo
+   ────────────────────────────────────────────────────────────
+
+   Safari en iOS AMPLÍA la página entera cuando enfocas un input,
+   textarea o select cuyo font-size sea MENOR de 16px. Al ampliar,
+   la maqueta se sale por la derecha: el usuario abría la lupa de la
+   barra, aparecía el teclado y el botón "Buscar" y el título se iban
+   fuera de pantalla.
+
+   No hay forma de desactivarlo. `user-scalable=no` en el viewport lo
+   evitaría en teoría, pero iOS lo ignora desde hace años — a propósito,
+   porque impedir hacer zoom es una barrera para quien ve poco. Así que
+   la ÚNICA solución es que el campo mida 16px o más.
+
+   Va como regla general y no campo por campo porque es un problema de
+   clase: le pasa a cualquier campo del sitio, y a los que se añadan
+   mañana. Medido antes de escribir esto: el buscador de la barra estaba
+   a 13px (y sale en TODAS las páginas), y a 14px los campos de acceso,
+   las cajas de comentarios, el selector de categoría y el editor.
+
+   Las dos condiciones son necesarias:
+   - `max-width: 900px` coge los móviles.
+   - `pointer: coarse` coge las tabletas, que son anchas pero también
+     hacen zoom al enfocar.
+
+   El !important es deliberado: reglas como `.auth-input { font-size:
+   14px }` tienen más especificidad que un selector de etiqueta y
+   ganarían. Esto no es una preferencia de diseño que se pueda pisar,
+   es una restricción de la plataforma.
+
+   Lo vigila test-zoom-movil.mjs, que recorre todas las páginas midiendo
+   cada campo. */
+```

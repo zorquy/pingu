@@ -1,24 +1,4 @@
-/* ── Las fuentes, servidas desde aquí ──
-   Antes se pedían a fonts.googleapis.com con un <link rel="stylesheet">.
-   Eso son DOS dominios de terceros en el camino crítico: googleapis para
-   la hoja de estilo (que BLOQUEA el pintado) y, dentro de ella, gstatic
-   para los ficheros de fuente. Cuatro viajes —DNS, TLS, la hoja, las
-   fuentes— antes de poder pintar una letra, y dos puntos de fallo ajenos.
-
-   Ahora son dos ficheros del propio sitio, cacheados un año.
-
-   Y son fuentes VARIABLES: un solo fichero por familia cubre todos los
-   pesos. Con las estáticas hacían falta siete (400/500/600/800 de Inter
-   y 500/600/700 de Fredoka): 142 KB en siete peticiones, contra 76 KB en
-   dos.
-
-   El nombre de familia se declara sin el "Variable" que traen los
-   paquetes de fontsource, para que el resto del CSS (`font-family:
-   'Inter'`) siga valiendo tal cual.
-
-   `font-display: swap` para que el texto se lea desde el primer momento
-   con la fuente del sistema y cambie cuando llegue la buena, en vez de
-   quedarse invisible esperando. */
+/* Las fuentes, servidas desde aquí (el porqué, en SCHEMA.md: tanda 359) */
 @font-face {
   font-family: 'Inter';
   font-style: normal;
@@ -67,43 +47,18 @@
      encima se quedaría en 2,4 de contraste. Este se queda quieto y lo
      que cambia alrededor es el fondo de la página. */
   --danger-solid: #dc2626;
-  /* ── El blanco que NO es el del tema (tanda 315) ──
-     `--white` es la SUPERFICIE de la página, y en el tema oscuro vale
-     #182430: o sea, negro. Pero hay 62 sitios donde el blanco es blanco
-     porque va ENCIMA DE UN COLOR —la letra de un botón azul, el relleno
-     de una barra sobre su pista, el aro del progreso de una categoría—
-     y ahí tiene que seguir siendo blanco en los dos temas.
-     Iban a mano, y eso es una trampa esperando: cualquiera que «ordene»
-     un `#fff` a `var(--white)` deja letra negra sobre azul en oscuro sin
-     que nada dé error. Con nombre propio, la diferencia se lee. */
+  /* El blanco que NO es el del tema (tanda 315) (el porqué, en SCHEMA.md: tanda 359) */
   --blanco-fijo: #fff;
   /* El azul de la casa cuando hace de FONDO SÓLIDO con blanco encima.
      Mismo caso que --danger-solid: --navy se ACLARA en oscuro para
      poder leerse como texto, y un fondo aclarado con blanco encima se
      queda sin contraste. */
   --navy-solid: #1e5175;
-  /* Y sus dos compañeros de degradado. Los héroes de color —la cabecera
-     de un torneo, la tira de «sigue aprendiendo», el arte de una
-     tarjeta— van del más oscuro al más claro pasando por --navy-solid, y
-     son FIJOS por lo mismo: llevan blanco encima. Tienen los MISMOS
-     valores que --navy-dark y --navy-light, y ahí está la trampa:
-     parecen intercambiables y no lo son, porque esos dos SÍ cambian con
-     el tema.
-     (Los valores no se citan aquí a propósito: un barrido que sustituye
-     un color también pasa por los comentarios, y esta línea se lo comió
-     en el primer intento.) */
+  /* Y sus dos compañeros de degradado. (el porqué, en SCHEMA.md: tanda 359) */
   --navy-solid-dark: #163d59;
   --navy-solid-light: #2a6b96;
 
-  /* ── La paleta de ARTE (tanda 315) ──
-     Los seis degradados que le tocan a una tarjeta según su identidad:
-     los usan las guías de la portada y de /aprender (`.arte-1..6`) y las
-     tarjetas de torneo (`.torneo-arte-1..6`). Estaban escritos DOS
-     VECES, en components.css y en torneos.css, con los mismos seis
-     colores en distinto orden — o sea que cambiar la paleta era cambiar
-     doce degradados y acordarse de los dos sitios.
-     Son FIJOS, como los azules de arriba: llevan texto blanco encima y
-     no pueden seguir al tema. */
+  /* La paleta de ARTE (tanda 315) (el porqué, en SCHEMA.md: tanda 359) */
   --arte-verde: linear-gradient(135deg, #0d9e6e, #7cc6d8 130%);
   --arte-azul: linear-gradient(135deg, #2a6b96, #7cc6d8 130%);
   --arte-ambar: linear-gradient(135deg, #c8720a, #e0b252 130%);
@@ -127,20 +82,7 @@
   --rarity-platinum-bg: linear-gradient(155deg, #e4f4fb, #bfe3f2);
 
 
-  /* ── La escala tipográfica (tanda 305) ──
-   *
-   * Antes había 36 tamaños distintos y 596 declaraciones, con pasos de
-   * MEDIO PÍXEL entre 10,5 y 16 px: 13 px salía 105 veces, 12,5 px 55,
-   * 13,5 px 48, 14,5 px 27... elegidos uno a uno, componente a
-   * componente, en vez de salir de una escala.
-   *
-   * El efecto era que el ojo no distinguía jerarquía y TODO se leía como
-   * «texto mediano» — que es buena parte de por qué la web parecía hecha
-   * con una plantilla aunque cada pieza estuviera bien.
-   *
-   * Ocho pasos, y cada uno claramente otro. Si necesitas un tamaño que
-   * no está, casi siempre es que el sitio pide otro paso, no un tamaño
-   * nuevo: mételo aquí antes de escribir un número suelto. */
+  /* La escala tipográfica (tanda 305) (el porqué, en SCHEMA.md: tanda 359) */
   --t-2xs: 11px;   /* chapas diminutas y rótulos en versalitas */
   --t-xs: 12px;   /* metadatos: fechas, cuentas, «hace 20 min» */
   --t-sm: 13px;   /* texto secundario */
@@ -150,17 +92,7 @@
   --t-2xl: 26px;   /* título de página */
   --t-3xl: 34px;   /* héroe */
 
-  /* ── La escala de espaciado (tanda 310) ──
-   *
-   * Había 31 valores distintos de padding/margin/gap y 226 de ellos eran
-   * IMPARES: 3, 5, 7, 9, 11, 13… los mismos «medio pasos» elegidos uno a
-   * uno que tenían los tamaños de letra antes de la tanda 305. Nada
-   * respiraba igual que lo de al lado y el ojo lo leía como «hecho a
-   * trozos».
-   *
-   * Los impares ya no están (redondeados al par siguiente: +1 px no se
-   * ve de uno en uno y nunca aprieta nada). Estos seis pasos son los que
-   * hay que usar al escribir algo nuevo. */
+  /* La escala de espaciado (tanda 310) (el porqué, en SCHEMA.md: tanda 359) */
   --e-xs: 4px;    /* pegado: un icono y su texto */
   --e-sm: 8px;    /* dentro de una chapa o una fila */
   --e-md: 12px;   /* entre cosas de un mismo bloque */
@@ -200,17 +132,7 @@
    <head> de cada página, antes de pintar nada, para no dar un parpadeo de
    tema claro al cargar con el oscuro ya guardado. */
 :root[data-theme='dark'] {
-  /* Aclarado en la tanda 311 (era #4a90c2). El azul del tema oscuro se
-     quedaba corto contra las superficies oscuras: 45 reglas ponen texto
-     --navy sobre fondo --ice y las 45 daban 4,17 de contraste, por
-     debajo del 4,5 legible. Con este sube a 6,14.
-
-     Se comprobó que NADA empeora antes de tocarlo: --navy también hace
-     de FONDO en 32 reglas, pero en oscuro el texto que lleva encima es
-     --white, que aquí es la superficie oscura (#182430) — o sea texto
-     oscuro sobre azul, que con este azul pasa de 4,54 a 7,20. Y no hay
-     ni una regla que ponga texto CLARO sobre fondo --navy, que es el
-     único caso al que este cambio le haría daño. */
+  /* Aclarado en la tanda 311 (era #4a90c2). (el porqué, en SCHEMA.md: tanda 359) */
   --navy: #6fb0dc;
   --navy-light: #63a8d6;
   --navy-dark: #3a76a3;
@@ -334,24 +256,7 @@ h3,
   text-wrap: pretty;
 }
 
-/* Aspecto base de TODOS los campos de formulario.
- *
- * Antes solo se heredaba la tipografía, así que un campo sin clase
- * propia salía con la forma que le diera el navegador: rectángulo con
- * esquinas vivas y borde gris de sistema. Al lado del recuadro de
- * comentarios de las guías —que sí está redondeado— cantaba mucho.
- *
- * El FONDO se queda blanco a propósito, también en tema oscuro: es como
- * está el recuadro de comentarios y es la referencia que se quiere. Por
- * eso son valores fijos y no `var(--white)`, que en oscuro se volvería
- * oscuro.
- *
- * Se listan los tipos uno a uno a propósito: `input` a secas también
- * pillaría casillas, botones de radio, deslizadores y selectores de
- * fichero, que no se pintan así.
- *
- * Las clases que ya tienen su propio aspecto (.search-input, .auth-input,
- * .cp-input, .be-field...) ganan por especificidad y siguen igual. */
+/* Aspecto base de TODOS los campos de formulario. (el porqué, en SCHEMA.md: tanda 359) */
 input,
 textarea,
 select {
@@ -393,16 +298,7 @@ select:focus {
   border-color: var(--navy);
 }
 
-/* ── Los desplegables, con la cara del sitio (tanda 310) ──
-   Había 34 `<select>` en la web y ni un `appearance: none`: heredaban el
-   borde y el radio de la regla de arriba, pero el navegador seguía
-   poniendo SU flecha y SU altura. Al lado de un campo y un botón con
-   diseño propio se veían claramente de otra cosa — de lo que más grita
-   «plantilla» en /mis-partidas y en los filtros de torneos.
-
-   La flecha va como imagen de fondo (un SVG en `data:`) porque un
-   `<select>` no admite `::after`: lo pinta el sistema y no tiene
-   pseudoelementos donde colgar nada. */
+/* Los desplegables, con la cara del sitio (tanda 310) (el porqué, en SCHEMA.md: tanda 359) */
 select {
   appearance: none;
   -webkit-appearance: none;
@@ -459,15 +355,7 @@ textarea {
   min-height: 100vh;
 }
 
-/* El hueco de las páginas cortas (tanda 312).
-   `min-height: 100vh` obligaba al CONTENIDO a medir una pantalla entera
-   aunque llevara una sola tarjeta, así que el pie aterrizaba debajo de
-   430 px de nada y encima había que hacer scroll para llegar. Con la
-   columna flexible el contenido crece lo que le sobre —ni un píxel más—
-   y el pie queda pegado abajo sin vacío por encima.
-   Va con :has() para tocar SOLO las 22 páginas que tienen pie: /auth,
-   /curso y /onboarding son pantallas a medida sin él, y volverlas
-   flexibles sería cambiarles el layout sin motivo. */
+/* El hueco de las páginas cortas (tanda 312). (el porqué, en SCHEMA.md: tanda 359) */
 body:has(> .footer) {
   display: flex;
   flex-direction: column;
@@ -697,19 +585,7 @@ body:has(> .footer) .page-content {
   min-height: 45px;
 }
 
-/* ── Lo que se puede tocar mide 44 px (tanda 312) ──
-   Medido en ocho páginas a 393 px de ancho: de 143 objetivos, 18 clases
-   estaban por debajo, y la barra de arriba estaba ENTERA — buscar, tema,
-   mensajes y campana a 35×35, el avatar a 34×34, la hamburguesa a 30×30
-   y el logo a 26×26. Un dedo mide bastante más que un cursor y estos son
-   los seis botones que salen en todas las páginas del sitio.
-
-   El tamaño se da con `min-width`/`min-height` y no tocando el `padding`
-   de cada uno: así el dibujo no cambia —el icono sigue midiendo lo que
-   medía— y lo que crece es el hueco que recoge el toque.
-
-   El `:not()` deja fuera el desplegable de la cuenta, que cuelga del
-   mismo sitio pero es una lista, no la barra. */
+/* Lo que se puede tocar mide 44 px (tanda 312) (el porqué, en SCHEMA.md: tanda 359) */
 .nav-inner .nav-right a:not(.nav-user-dropdown a),
 .nav-inner .nav-right button:not(.nav-user-dropdown button),
 .nav-logo {
@@ -778,53 +654,139 @@ body:has(> .footer) .page-content {
   font-size: var(--t-sm);
 }
 
+/* ── El menú del móvil: un cajón lateral (tanda 359) ──
+   Entra por la derecha y tapa la página con un velo (la sombra enorme),
+   con Inicio y Noticias sueltos y los cuatro apartados plegados — antes
+   eran quince enlaces seguidos. Uno abierto cierra los otros
+   (`<details name>`), y se abre solo el del sitio donde estás. */
 .nav-menu-mobile {
   display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  width: min(340px, 86vw);
   flex-direction: column;
-  gap: 2px;
-  padding: 8px 24px 16px;
-  border-top: 1px solid var(--border);
+  padding: 72px 24px 32px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--white);
+  border-left: 1px solid var(--border);
+  box-shadow: 0 0 0 100vmax rgb(13 27 42 / 45%);
+  animation: cajon-entra 0.2s var(--ease);
+}
+
+@keyframes cajon-entra {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
 }
 
 .nav-menu-mobile.open {
   display: flex;
 }
 
-.nav-menu-mobile a {
-  padding: 12px 0;
-  font-weight: 600;
+/* `backdrop-filter` hace de la barra el bloque contenedor de lo fijo: con
+   él puesto, el cajón mediría lo que la barra y no la pantalla. */
+.navbar:has(.nav-menu-mobile.open) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: var(--white);
+}
+
+body:has(.nav-menu-mobile.open) {
+  overflow: hidden;
+}
+
+/* La hamburguesa queda por encima del cajón y se vuelve una X. */
+.nav-toggle {
+  position: relative;
+  z-index: 201;
+}
+
+.nav-toggle[aria-expanded='true'] span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.nav-toggle[aria-expanded='true'] span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle[aria-expanded='true'] span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.nav-menu-mobile > a,
+.nav-menu-grupo summary {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
   font-size: var(--t-lg);
-  color: var(--text-mid);
+  font-weight: 700;
+  color: var(--text);
   border-bottom: 1px solid var(--border);
 }
 
-.nav-menu-mobile a:last-child {
+.nav-menu-grupo summary {
+  justify-content: space-between;
+  list-style: none;
+  cursor: pointer;
+}
+
+.nav-menu-grupo summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-menu-grupo summary::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s var(--ease);
+}
+
+.nav-menu-grupo[open] summary::after {
+  transform: rotate(225deg);
+}
+
+.nav-menu-grupo[open] {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-menu-grupo[open] summary {
   border-bottom: none;
-}
-
-/* En el menú del móvil los desplegables son apartados con su título y
-   los enlaces a dos columnas: todo a la vista de un vistazo, sin
-   acordeones que abrir. */
-.nav-menu-grupo {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 16px;
-  padding-top: 8px;
-}
-
-.nav-menu-titulo {
-  grid-column: 1 / -1;
-  font-size: var(--t-xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-mid);
 }
 
 .nav-menu-grupo a {
+  display: flex;
+  padding-left: 16px;
   font-size: var(--t-md);
-  border-bottom: none;
+  font-weight: 600;
+  color: var(--text-mid);
+  border-radius: var(--radius-sm);
+}
+
+.nav-menu-mobile a.active,
+.nav-menu-grupo:has(a.active) summary {
+  color: var(--navy);
+}
+
+.nav-menu-grupo a.active {
+  background: color-mix(in srgb, var(--navy) 10%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-menu-mobile,
+  .nav-menu-grupo summary::after {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* El corte en el que caben los enlaces: MEDIDO, no elegido (tandas 320,
@@ -877,18 +839,7 @@ body:has(> .footer) .page-content {
   }
 }
 
-/* ── Por debajo de 360 px: el botón de tema baja al menú (tanda 312) ──
-   Con los objetivos a 44, los seis botones más el logo y sus huecos
-   piden 336 px de contenido. A 360 con el margen apretado caben justos;
-   por debajo, no. Algo tenía que salir, y el candidato es el tema: es
-   una preferencia que se toca UNA vez —y que además ya viene puesta del
-   sistema—, no una acción que se repite como buscar, los mensajes o los
-   avisos. No desaparece: `renderThemeToggle` monta un gemelo dentro del
-   menú desplegable, que es donde cabe con su etiqueta escrita.
-
-   El corte es 359 y no 400: a 393 px, que es lo que mide media España en
-   el bolsillo, los seis caben — poner el corte más arriba les quitaba el
-   botón a quienes no hacía ninguna falta. */
+/* Por debajo de 360 px: el botón de tema baja al menú (tanda 312) (el porqué, en SCHEMA.md: tanda 359) */
 @media (max-width: 359px) {
   #navThemeToggle {
     display: none;
@@ -1477,17 +1428,7 @@ button.btn-block {
 }
 
 /* ── Empty / loading states ── */
-/* ── Los estados vacíos (tanda 310) ──
-   Eran una línea de texto gris centrada, y hay 58 en la web: una página
-   entera en blanco con una frase flotando en medio. Tu propia página 404
-   —con su mascota, su titular y tres salidas— enseña cuál es el listón.
-
-   Aquí no se puede poner un icono ni un botón sin tocar los 58 sitios,
-   así que lo que se hace es DARLE CUERPO: una caja con borde punteado
-   sobre la superficie del sitio. El punteado dice «esto está vacío, no
-   es que falte por cargar», que es justo la duda que dejaba el texto
-   suelto. Los sitios donde además conviene ofrecer algo que hacer llevan
-   su propio bloque con icono y botón. */
+/* Los estados vacíos (tanda 310) (el porqué, en SCHEMA.md: tanda 359) */
 .empty-state {
   text-align: center;
   padding: 32px 24px;
@@ -1858,39 +1799,7 @@ button.btn-block {
   margin-top: 1px;
 }
 
-/* ────────────────────────────────────────────────────────────
-   El zoom de iOS al enfocar un campo
-   ────────────────────────────────────────────────────────────
-
-   Safari en iOS AMPLÍA la página entera cuando enfocas un input,
-   textarea o select cuyo font-size sea MENOR de 16px. Al ampliar,
-   la maqueta se sale por la derecha: el usuario abría la lupa de la
-   barra, aparecía el teclado y el botón "Buscar" y el título se iban
-   fuera de pantalla.
-
-   No hay forma de desactivarlo. `user-scalable=no` en el viewport lo
-   evitaría en teoría, pero iOS lo ignora desde hace años — a propósito,
-   porque impedir hacer zoom es una barrera para quien ve poco. Así que
-   la ÚNICA solución es que el campo mida 16px o más.
-
-   Va como regla general y no campo por campo porque es un problema de
-   clase: le pasa a cualquier campo del sitio, y a los que se añadan
-   mañana. Medido antes de escribir esto: el buscador de la barra estaba
-   a 13px (y sale en TODAS las páginas), y a 14px los campos de acceso,
-   las cajas de comentarios, el selector de categoría y el editor.
-
-   Las dos condiciones son necesarias:
-   - `max-width: 900px` coge los móviles.
-   - `pointer: coarse` coge las tabletas, que son anchas pero también
-     hacen zoom al enfocar.
-
-   El !important es deliberado: reglas como `.auth-input { font-size:
-   14px }` tienen más especificidad que un selector de etiqueta y
-   ganarían. Esto no es una preferencia de diseño que se pueda pisar,
-   es una restricción de la plataforma.
-
-   Lo vigila test-zoom-movil.mjs, que recorre todas las páginas midiendo
-   cada campo. */
+/* El zoom de iOS al enfocar un campo (el porqué, en SCHEMA.md: tanda 359) */
 @media (max-width: 900px), (pointer: coarse) {
   input:not([type='checkbox']):not([type='radio']):not([type='range']),
   textarea,

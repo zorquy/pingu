@@ -407,6 +407,16 @@ export function textoTcgLive(entradas, codigoDeSet) {
   return `${bloques.join('\n\n')}\n\nTotal Cards: ${suma(entradas)}`
 }
 
+// El texto para ENTREGAR en un torneo de PokeDoc («Usar un mazo del
+// constructor» en /torneo). Es el de TCG Live con una diferencia: el
+// motor de torneos lee el código de colección con [A-Z0-9]{2,6}, y las
+// promos de TCG Live llevan guion («PR-SV 92»): esa línea saldría como
+// «no se entiende». Van con el código de Limitless, que sí casa.
+const PROMOS_SIN_GUION = { 'PR-SV': 'SVP', 'PR-SW': 'SP', 'PR-SM': 'SMP', 'PR-XY': 'XYP', 'PR-BLW': 'BWP', 'PR-ME': 'MEP' }
+export function textoParaTorneo(entradas, codigoDeSet) {
+  return textoTcgLive(entradas, codigoDeSet).replace(/ (PR-[A-Z]{2,3}) (\S+)$/gm, (m, codigo, numero) => ` ${PROMOS_SIN_GUION[codigo] || codigo.replace('-', '')} ${numero}`)
+}
+
 // La misma lista en la forma que entiende el motor de torneos
 // (`parseDecklist` de js/torneos/motor.js): sirve para reutilizar la
 // imagen de decklist que ya se descarga desde /torneo.

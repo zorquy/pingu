@@ -1649,6 +1649,10 @@ function pintarDecklist() {
     <div class="torneo-decklist-visual" id="decklistVisual"></div>
     <details class="torneo-decklist-editor" ${(editorAbierto ?? !miDecklist) ? 'open' : ''}>
       <summary>${miDecklist ? (editable ? 'Editar la lista (texto)' : 'Ver la lista en texto') : 'Pegar la lista'}</summary>
+      ${editable ? `<div class="torneo-desde-mazo">
+        <button type="button" class="btn-secondary" id="btnUsarMazo" aria-expanded="false" aria-controls="decklistMazos">${icons.cards(16)} Usar un mazo del constructor</button>
+        <div class="torneo-mazos hidden" id="decklistMazos"></div>
+      </div>` : ''}
       <textarea id="decklistTexto" rows="10" maxlength="20000" ${editable ? '' : 'readonly'} placeholder="Pokémon: 8&#10;4 Charizard ex OBF 125&#10;…">${escapeHtml(miDecklist?.raw_text || '')}</textarea>
       <p class="torneo-decklist-cuenta" id="decklistCuenta"></p>
       <ul class="torneo-decklist-errores hidden" id="decklistErrores"></ul>
@@ -1685,8 +1689,79 @@ function pintarCuentaDecklist() {
     (ilegibles.length ? ` · ${ilegibles.length} ${ilegibles.length === 1 ? 'línea que no se entiende' : 'líneas que no se entienden'}` : '')
 }
 
+// ── Entregar un mazo del constructor (tanda 359) ──
+//
+// Quien ya tiene el mazo montado en /constructor no tiene que copiarlo y
+// pegarlo: elige uno de sus mazos guardados y el texto se escribe solo en
+// el editor. NO se entrega al elegirlo — se revisa y se pulsa «Guardar
+// decklist», como siempre, que es donde se valida.
+//
+// El constructor se carga con import() al pulsar: el torneo no lo
+// necesita para nada más y así no pesa en la ficha.
+async function abrirMazosGuardados() {
+  const caja = $('decklistMazos')
+  const boton = $('btnUsarMazo')
+  const abrir = caja.classList.contains('hidden')
+  caja.classList.toggle('hidden', !abrir)
+  boton.setAttribute('aria-expanded', String(abrir))
+  if (!abrir) return
+  caja.innerHTML = '<p class="subtext">Cargando tus mazos…</p>'
+  try {
+    const { misMazos } = await import('../constructor/datos.js')
+    const mazos = await misMazos(session.user.id)
+    if (!mazos.length) {
+      caja.innerHTML = '<p class="subtext">Todavía no tienes mazos guardados. <a href="/constructor">Monta uno en el constructor</a>, guárdalo y vuelve aquí.</p>'
+      return
+    }
+    const formatos = { standard: 'Estándar', expanded: 'Expandido', libre: 'Libre' }
+    caja.innerHTML = `<ul class="torneo-mazos-lista">${mazos
+      .map((m) => {
+        const n = (m.cards || []).reduce((t, c) => t + (c.n || 0), 0)
+        return `<li><button type="button" class="torneo-mazo-opcion" data-mazo="${escapeHtml(m.id)}">
+          <strong>${escapeHtml(m.name)}</strong>
+          <span class="subtext${n === 60 ? '' : ' torneo-cuenta-mal'}">${n}/60 cartas · ${formatos[m.format] || 'Estándar'} · ${fechaBonita(m.updated_at)}</span>
+        </button></li>`
+      })
+      .join('')}</ul>`
+    caja.onclick = (e) => {
+      const b = e.target.closest('[data-mazo]')
+      if (b) ponerMazoEnLista(mazos.find((m) => m.id === b.dataset.mazo))
+    }
+  } catch (err) {
+    caja.innerHTML = `<p class="subtext">${escapeHtml(err.message || 'No se han podido cargar tus mazos.')}</p>`
+  }
+}
+
+async function ponerMazoEnLista(mazo) {
+  if (!mazo) return
+  const texto = $('decklistTexto')
+  if (texto.value.trim() && !window.confirm(`¿Cambiar la lista que hay escrita por la de «${mazo.name}»?`)) return
+  try {
+    const [{ cartasPorIds, cargarSets }, { textoParaTorneo }] = await Promise.all([
+      import('../constructor/datos.js'),
+      import('../constructor/nucleo.js'),
+    ])
+    const [mapa, sets] = await Promise.all([cartasPorIds((mazo.cards || []).map((c) => c.id)), cargarSets()])
+    const entradas = (mazo.cards || []).filter((c) => mapa.get(c.id)).map((c) => ({ carta: mapa.get(c.id), n: c.n }))
+    const perdidas = (mazo.cards || []).length - entradas.length
+    texto.value = textoParaTorneo(entradas, (setId) => sets.codigoDeId.get(setId) || null)
+    pintarCuentaDecklist()
+    $('decklistMazos').classList.add('hidden')
+    $('btnUsarMazo').setAttribute('aria-expanded', 'false')
+    showToast(
+      perdidas
+        ? `Lista de «${mazo.name}» puesta, pero ${perdidas} ${perdidas === 1 ? 'carta ya no está' : 'cartas ya no están'} en el catálogo. Revísala antes de guardar.`
+        : `Lista de «${mazo.name}» puesta. Revísala y pulsa «Guardar decklist».`,
+      perdidas ? 'error' : 'success'
+    )
+  } catch (err) {
+    avisarError(err, 'No se ha podido cargar el mazo')
+  }
+}
+
 function engancharDecklist() {
   let guardando = false
+  $('btnUsarMazo')?.addEventListener('click', abrirMazosGuardados)
   $('decklistTexto').addEventListener('input', pintarCuentaDecklist)
   pintarCuentaDecklist()
   $('btnGuardarDecklist').addEventListener('click', async () => {

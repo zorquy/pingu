@@ -636,9 +636,21 @@ function initMobileMenu() {
   const toggle = document.getElementById('navToggle')
   const menu = document.getElementById('navMobileMenu')
   if (!toggle || !menu) return
-  toggle.addEventListener('click', () => {
-    menu.classList.toggle('open')
-  })
+  // El cajón del móvil (tanda 359): la X lo cierra, y también Escape o
+  // tocar el velo — ese toque se come para no pulsar la página de debajo.
+  const menuA = (abrir) => toggle.setAttribute('aria-expanded', menu.classList.toggle('open', abrir))
+  toggle.addEventListener('click', () => menuA(!menu.classList.contains('open')))
+  document.addEventListener(
+    'click',
+    (e) => {
+      if (menu.classList.contains('open') && !menu.contains(e.target) && !toggle.contains(e.target)) {
+        e.preventDefault()
+        e.stopPropagation()
+        menuA(false)
+      }
+    },
+    true
+  )
   // Los desplegables de la barra (tanda 356): el ratón los abre con CSS;
   // esto es para el dedo. Uno abierto cierra los demás.
   const cerrar = () => document.querySelectorAll('.nav-grupo-btn').forEach((b) => b.setAttribute('aria-expanded', 'false'))
@@ -651,7 +663,12 @@ function initMobileMenu() {
     })
   )
   document.addEventListener('click', cerrar)
-  document.addEventListener('keydown', (e) => e.key === 'Escape' && cerrar())
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      cerrar()
+      menuA(false)
+    }
+  })
 }
 
 // Qué apartado del menú se marca (tanda 309): se compara por CLAVE —sin
@@ -683,6 +700,8 @@ function markActiveLink() {
   document.querySelectorAll('.nav-links a, .nav-menu-mobile a').forEach((a) => {
     if (claveDeRuta(a.getAttribute('href')) === actual) a.classList.add('active')
   })
+  // En el cajón del móvil, el apartado donde estás viene ya abierto.
+  document.querySelector('.nav-menu-grupo a.active')?.parentElement.setAttribute('open', '')
 }
 
 // «Enviar feedback» vive AQUÍ desde la tanda 309, y no en el desplegable

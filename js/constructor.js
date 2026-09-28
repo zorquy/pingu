@@ -885,9 +885,22 @@ async function cargarDesdeUrl() {
     return
   }
 
-  // Sin nada en la dirección: el borrador de la última vez.
+  // Sin nada en la dirección, el constructor se abre VACÍO (lo pidió
+  // PINGU): quien entra por el menú viene a hacer un mazo, no a
+  // encontrarse el último que tocó. El borrador no se pierde: se ofrece en
+  // una línea, y se guarda en memoria al leerlo, así que sigue ahí aunque
+  // el mazo nuevo lo pise en el navegador al añadir la primera carta.
   const b = leerBorrador()
-  if (b?.cartas?.length) await ponerBorrador(b)
+  if (b?.cartas?.length) {
+    const n = b.cartas.reduce((s, c) => s + (c.n || 0), 0)
+    const nombre = b.nombre ? `«${escapeHtml(b.nombre)}»` : 'sin nombre'
+    aviso(`<p>Tu último mazo (${nombre}, ${n} ${n === 1 ? 'carta' : 'cartas'}) sigue guardado en este navegador. <button type="button" class="link-btn" id="cmRecuperar">Seguir con él</button></p>`)
+    $('cmRecuperar')?.addEventListener('click', async () => {
+      if (lista().length && estado.cambiado && !confirmarPerder()) return
+      await ponerBorrador(b)
+      aviso('')
+    })
+  }
 }
 
 async function ponerFila(fila) {
