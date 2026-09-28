@@ -3095,6 +3095,7 @@ async function init() {
   // cola sí, y si la migración no está puesta lo dice y ya.
   pintarCorreos()
   loadCorreosCola().catch(() => {})
+  loadColabora().catch(() => {})
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -3186,6 +3187,133 @@ async function loadCorreosCola() {
             .join('')}</tbody></table></details>`
       : '<p class="admin-note">Ningún error en la cola.</p>'
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Colabora (tanda 361)
+// ═══════════════════════════════════════════════════════════════════
+//
+// Las solicitudes de /colabora, con el HISTORIAL de cada persona al
+// lado. Ese es el motivo de que el formulario pida sesión: un formulario
+// de fuera te da un nombre, y con un nombre no se decide nada. Con sus
+// mensajes en el foro, sus torneos y su antigüedad, sí.
+const ESTADOS_COLABORA = {
+  nueva: 'Nueva',
+  hablando: 'Hablando',
+  aceptada: 'Aceptada',
+  descartada: 'Descartada',
+}
+
+const PUESTOS_COLABORA = {
+  noticias: 'Noticias', guias: 'Guías', torneos: 'Torneos',
+  foro: 'Foro', redes: 'Diseño y redes', otra: 'Otra cosa',
+}
+
+const HORAS_COLABORA = { poca: 'Poco tiempo', media: 'Un rato por semana', mucha: 'Bastante' }
+
+async function loadColabora() {
+  const caja = document.getElementById('colaboraLista')
+  const resumen = document.getElementById('colaboraResumen')
+  if (!caja) return
+
+  const { data, error } = await supabase
+    .from('collab_applications')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    resumen.innerHTML = ''
+    caja.innerHTML = `<p class="admin-note admin-note-alerta">No se puede leer: ${escapeHtml(error.message)}.
+      Si dice que no existe la tabla, falta ejecutar <code>supabase-migration-colabora.sql</code>.</p>`
+    return
+  }
+
+  const filas = data || []
+  const porEstado = {}
+  for (const f of filas) porEstado[f.status] = (porEstado[f.status] || 0) + 1
+  resumen.innerHTML = [
+    statCardHtml(porEstado.nueva || 0, 'Sin contestar', 'esperando respuesta'),
+    statCardHtml(porEstado.hablando || 0, 'Hablando', 'conversación abierta'),
+    statCardHtml(porEstado.aceptada || 0, 'Dentro', 'ya colaboran'),
+    statCardHtml(filas.length, 'En total', 'desde que existe la página'),
+  ].join('')
+
+  if (!filas.length) {
+    caja.innerHTML = '<p class="admin-note">Nadie se ha ofrecido todavía.</p>'
+    return
+  }
+
+  // El historial, en tres consultas para TODAS las solicitudes juntas y
+  // no una por persona: con cinco solicitudes da igual, con cincuenta es
+  // la diferencia entre una pantalla y una espera.
+  const ids = [...new Set(filas.map((f) => f.user_id))]
+  const [perfiles, mensajes, torneos] = await Promise.all([
+    supabase.from('user_profiles').select('id,username,display_name,avatar_url,created_at').in('id', ids),
+    supabase.from('forum_posts').select('author_id').in('author_id', ids),
+    supabase.from('tournament_registrations').select('user_id').in('user_id', ids),
+  ])
+  const perfilDe = new Map((perfiles.data || []).map((p) => [p.id, p]))
+  const cuenta = (lista, campo) => {
+    const m = new Map()
+    for (const f of lista || []) m.set(f[campo], (m.get(f[campo]) || 0) + 1)
+    return m
+  }
+  const mensajesDe = cuenta(mensajes.data, 'author_id')
+  const torneosDe = cuenta(torneos.data, 'user_id')
+
+  caja.innerHTML = filas
+    .map((f) => {
+      const p = perfilDe.get(f.user_id)
+      const nombre = p?.display_name || p?.username || 'Alguien'
+      const desde = p?.created_at ? new Date(p.created_at).toLocaleDateString('es-ES') : '—'
+      const roles = (f.roles || []).map((r) => PUESTOS_COLABORA[r] || r).join(', ')
+      return `<div class="admin-card" style="margin-bottom: 16px;">
+        <h3 style="margin-top: 0;">
+          ${p?.username ? `<a href="/usuario/${escapeHtml(p.username)}" target="_blank" rel="noopener">${escapeHtml(nombre)}</a>` : escapeHtml(nombre)}
+          <span class="subtext">· ${escapeHtml(ESTADOS_COLABORA[f.status] || f.status)}</span>
+        </h3>
+        <p class="admin-note">
+          <strong>${escapeHtml(roles || '—')}</strong> · ${escapeHtml(HORAS_COLABORA[f.horas] || f.horas)} ·
+          ${escapeHtml(new Date(f.created_at).toLocaleDateString('es-ES'))}
+        </p>
+        <p class="admin-note">
+          En PokeDoc desde ${escapeHtml(desde)} ·
+          <strong>${mensajesDe.get(f.user_id) || 0}</strong> mensajes en el foro ·
+          <strong>${torneosDe.get(f.user_id) || 0}</strong> torneos jugados
+        </p>
+        ${f.experiencia ? `<p class="admin-note"><strong>Ha hecho:</strong> ${escapeHtml(f.experiencia)}</p>` : ''}
+        ${f.por_que ? `<p class="admin-note"><strong>Por qué:</strong> ${escapeHtml(f.por_que)}</p>` : ''}
+        ${f.muestra ? `<blockquote class="admin-cita">${escapeHtml(f.muestra)}</blockquote>` : ''}
+        <div class="foro-admin-fila">
+          <select data-colabora-estado="${escapeHtml(f.id)}">
+            ${Object.entries(ESTADOS_COLABORA)
+              .map(([v, t]) => `<option value="${v}" ${f.status === v ? 'selected' : ''}>${t}</option>`)
+              .join('')}
+          </select>
+          <input type="text" data-colabora-nota="${escapeHtml(f.id)}" placeholder="Nota para ti" value="${escapeHtml(f.nota_admin || '')}" />
+          <button class="btn-secondary" data-colabora-guardar="${escapeHtml(f.id)}">Guardar</button>
+        </div>
+      </div>`
+    })
+    .join('')
+
+  caja.querySelectorAll('[data-colabora-guardar]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const id = b.dataset.colaboraGuardar
+      const estado = caja.querySelector(`[data-colabora-estado="${id}"]`).value
+      const nota = caja.querySelector(`[data-colabora-nota="${id}"]`).value.trim()
+      const { error } = await supabase
+        .from('collab_applications')
+        .update({ status: estado, nota_admin: nota || null, updated_at: new Date().toISOString() })
+        .eq('id', id)
+      if (error) {
+        showToast('No se ha podido guardar: ' + error.message, 'error')
+        return
+      }
+      showToast('Guardado.', 'success')
+      loadColabora().catch(() => {})
+    })
+  )
 }
 
 init()

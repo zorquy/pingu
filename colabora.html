@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Colabora con PokeDoc — PokeDoc</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e5175" />
+  <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+  <meta name="description" content="PokeDoc lo lleva gente de la comunidad, en su tiempo libre. Si quieres escribir, organizar torneos o echar una mano, cuéntanoslo." />
+  <!-- meta-social:inicio -->
+  <link rel="canonical" href="https://pokedoc.es/colabora" />
+  <meta property="og:url" content="https://pokedoc.es/colabora" />
+  <meta property="og:site_name" content="PokeDoc" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:title" content="Colabora con PokeDoc" />
+  <meta property="og:description" content="PokeDoc lo lleva gente de la comunidad, en su tiempo libre. Si quieres escribir, organizar torneos o echar una mano, cuéntanoslo." />
+  <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Buscar — PokeDoc" />
+  <meta name="twitter:description" content="PokeDoc lo lleva gente de la comunidad, en su tiempo libre. Si quieres escribir, organizar torneos o echar una mano, cuéntanoslo." />
+  <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <!-- meta-social:fin -->
+  <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- Estos seis módulos los carga TODA página. Sin esto el navegador
+       los descubre en cascada —la página pide su .js, ese pide app.js,
+       app.js pide supabase.js y ese el bundle de 152 KB—, y cada salto
+       es un viaje de ida y vuelta más antes de poder pintar. Con
+       modulepreload se piden los seis a la vez, desde el primer momento.
+       Van estos y no todo el grafo a propósito: son los que no cambian
+       de página a página, así que no se quedan obsoletos solos. -->
+  <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
+  <link rel="modulepreload" href="/js/supabase.js" />
+  <link rel="modulepreload" href="/js/app.js" />
+  <link rel="modulepreload" href="/js/icons.js" />
+  <link rel="modulepreload" href="/js/content-icon.js" />
+  <link rel="modulepreload" href="/js/html.js" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="/css/colabora.css" />
+</head>
+<body>
+  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
+       porque su razón de ser es no tener que tabular por los doce
+       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
+  <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="index.html">Inicio</a>
+        <a href="/noticias">Noticias</a>
+        <a href="aprender.html">Aprender</a>
+        <a href="/cartas">Cartas</a>
+        <a href="foro.html">Foro</a>
+        <a href="usuarios.html">Comunidad</a>
+        <a href="torneos.html" class="nav-jugar hidden">Jugar</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="index.html">Inicio</a>
+      <a href="/noticias">Noticias</a>
+      <a href="aprender.html">Aprender</a>
+        <a href="/cartas">Cartas</a>
+      <a href="foro.html">Foro</a>
+      <a href="usuarios.html">Comunidad</a>
+      <a href="torneos.html" class="nav-jugar hidden">Jugar</a>
+    </div>
+  </nav>
+
+  <main id="contenido" class="page-content container-narrow">
+    <div class="page-header" style="padding-top: 8px;">
+      <h1>Colabora con PokeDoc</h1>
+      <p>PokeDoc no lo lleva una empresa: lo lleva gente de la comunidad en su tiempo libre, y es gratis para todo el mundo. Si quieres que crezca, aquí tienes por dónde.</p>
+    </div>
+
+    <!-- Lo que hace falta, con lo que CUESTA cada cosa. Sin esto, la
+         respuesta típica es «me gustaría ayudar en lo que sea», que no se
+         puede usar: hay que volver a escribir para saber qué sabe hacer.
+         Con la lista delante, el que encaja se reconoce solo. -->
+    <section class="colabora-puestos" aria-labelledby="colaboraQue">
+      <h2 id="colaboraQue">Qué hace falta</h2>
+      <ul class="colabora-lista">
+        <li class="colabora-puesto">
+          <h3>Escribir noticias</h3>
+          <p>Lo que pasa en el TCG cada semana, contado en español. Una noticia a la semana, media hora larga.</p>
+        </li>
+        <li class="colabora-puesto">
+          <h3>Escribir guías</h3>
+          <p>Explicar algo que sepas: reglas, coleccionismo, cómo detectar una falsa. A tu ritmo, sin calendario.</p>
+        </li>
+        <li class="colabora-puesto">
+          <h3>Organizar torneos</h3>
+          <p>Montar y llevar torneos en PokeDoc. Tú decides formato y fechas; la herramienta ya está hecha.</p>
+        </li>
+        <li class="colabora-puesto">
+          <h3>Echar una mano en el foro</h3>
+          <p>Abrir conversación, responder a quien llega nuevo y avisar de lo que se vaya de madre.</p>
+        </li>
+        <li class="colabora-puesto">
+          <h3>Diseño y redes</h3>
+          <p>Que lo que hacemos se vea. Miniaturas, redes, ideas.</p>
+        </li>
+        <li class="colabora-puesto">
+          <h3>Otra cosa</h3>
+          <p>Si se te ocurre algo que no está aquí, cuéntalo abajo. Casi todo lo bueno ha salido así.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="colabora-trato">
+      <h2>El trato, claro desde el principio</h2>
+      <ul>
+        <li><strong>Es voluntario y no hay dinero.</strong> PokeDoc es gratis y no tiene ingresos: lo decimos antes de que preguntes.</li>
+        <li><strong>Tu nombre va delante.</strong> Lo que escribas lleva tu firma y tu enlace, y tu perfil queda como parte del equipo.</li>
+        <li><strong>Decides, no solo ejecutas.</strong> Quien lleva algo, lo lleva de verdad.</li>
+        <li><strong>Te puedes ir cuando quieras</strong>, sin explicaciones y sin mal rollo. Saber que puedes irte es lo que hace que apetezca quedarse.</li>
+      </ul>
+    </section>
+
+    <!-- El formulario pide sesión a propósito: así cada solicitud llega
+         con la persona detrás (sus mensajes, sus torneos, cuánto lleva),
+         que es lo que hace falta para contestarla. -->
+    <section class="colabora-form" aria-labelledby="colaboraFormTitulo">
+      <h2 id="colaboraFormTitulo">Cuéntanos</h2>
+
+      <p id="colaboraEntrar" class="colabora-aviso hidden">
+        Para escribirnos hace falta tener cuenta — así sabemos quién eres y podemos contestarte.
+        <a class="btn-primary" id="colaboraEntrarBtn" href="/auth.html">Entrar o registrarse</a>
+      </p>
+
+      <p id="colaboraYaEsta" class="colabora-aviso hidden">
+        Ya tienes una solicitud enviada. Te contestamos en cuanto la miremos — y si quieres añadir algo,
+        escríbenos por privado.
+      </p>
+
+      <form id="colaboraForm" class="hidden">
+        <fieldset class="colabora-campo">
+          <legend>¿Qué te gustaría llevar?</legend>
+          <div class="colabora-opciones" id="colaboraRoles"></div>
+        </fieldset>
+
+        <label class="colabora-campo">¿Cuánto tiempo al mes, de verdad?
+          <select id="colaboraHoras">
+            <option value="poca">Poco: alguna cosa suelta</option>
+            <option value="media" selected>Un rato cada semana</option>
+            <option value="mucha">Bastante: me quiero meter en serio</option>
+          </select>
+        </label>
+
+        <label class="colabora-campo">¿Has hecho algo parecido? (opcional)
+          <input type="text" id="colaboraExperiencia" maxlength="300" placeholder="Un canal, un hilo, un mazo que compartiste… un enlace vale" />
+        </label>
+
+        <label class="colabora-campo">¿Por qué PokeDoc?
+          <textarea id="colaboraPorQue" rows="3" maxlength="1000" placeholder="Dos líneas bastan."></textarea>
+        </label>
+
+        <label class="colabora-campo">Escríbenos algo tuyo
+          <textarea id="colaboraMuestra" rows="5" maxlength="2000" placeholder="Cinco líneas sobre lo que quieras del TCG. No es un examen: es para saber cómo escribes o cómo explicas las cosas."></textarea>
+        </label>
+
+        <div class="colabora-acciones">
+          <button type="submit" class="btn-primary" id="colaboraEnviar">Enviar</button>
+          <span class="colabora-nota" id="colaboraNota"></span>
+        </div>
+      </form>
+
+      <p id="colaboraGracias" class="colabora-aviso hidden">
+        Recibido. Te contestamos, tanto si sí como si no — eso siempre.
+      </p>
+    </section>
+  </main>
+
+  <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres
+       enlaces centrados; el problema no era que fuera feo, era que casi
+       todas las páginas se quedan cortas y dejaban entre 400 y 900 px de
+       nada antes de llegar a él. Un pie con columnas llena ese hueco,
+       da una segunda vía a cada sección desde cualquier página y enlaza
+       internamente todo el sitio, que es lo que Google recorre.
+       Va en el HTML y no montado desde JavaScript a propósito: estos
+       enlaces tienen que estar en la página aunque el JS no llegue. -->
+  <footer class="footer">
+    <div class="pie-rejilla">
+      <div>
+        <p class="pie-marca">Poke<span>Doc</span></p>
+        <p class="pie-lema">La comunidad española de Pokémon TCG. Guías, cursos, foro y torneos. Todo gratis.</p>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Aprender</p>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/cartas">Cartas</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/guardados.html">Guardados</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Comunidad</p>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+        <a href="/buscar.html">Buscar</a>
+        <a href="/colabora">Colabora</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Jugar</p>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/curso.html?reto=hoy">Reto de hoy</a>
+      </div>
+    </div>
+    <div class="pie-abajo">
+      <p class="pie-copy">© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
+      <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="/js/colabora.js"></script>
+</body>
+</html>

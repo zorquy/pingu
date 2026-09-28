@@ -109,6 +109,7 @@ export const TEXTOS_POR_TIPO = {
   forum_mention: { cta: 'Ver la mención', pie: 'Recibes este correo porque te han mencionado en el foro.' },
   new_follower: { cta: 'Ver su perfil', pie: 'Recibes este correo porque alguien ha empezado a seguirte.' },
   guide_submitted: { cta: 'Revisar la guía', pie: 'Recibes este correo porque eres del equipo de PokeDoc.' },
+  collab_application: { cta: 'Ver la solicitud', pie: 'Recibes este correo porque eres del equipo de PokeDoc.' },
   guide_approved: { cta: 'Ver tu guía publicada', pie: 'Recibes este correo porque escribiste esta guía.' },
   guide_rejected: { cta: 'Abrir la guía en el editor', pie: 'Recibes este correo porque escribiste esta guía.' },
 
@@ -154,6 +155,7 @@ export const FAMILIA_POR_TIPO = {
   forum_mention: 'foro',
   new_follower: 'social',
   guide_submitted: 'guias',
+  collab_application: 'social',
   guide_approved: 'guias',
   guide_rejected: 'guias',
   weekly_digest: 'resumen',
@@ -506,6 +508,13 @@ export const EJEMPLOS_DE_CORREO = [
     subject: 'Tu guía «Cómo montar tu primer mazo» necesita cambios',
     preview: 'Falta explicar la regla de las cartas de energía especial.',
     link: '/editor-guia.html?id=8c2a1b40-5555-6666-7777-888899990000',
+  },
+  {
+    type: 'collab_application',
+    donde: 'Disparador de la base (supabase-migration-colabora.sql)',
+    subject: 'Alguien quiere colaborar en PokeDoc',
+    preview: 'Ibai se ha ofrecido para echar una mano. Su solicitud está en /admin.',
+    link: '/admin/',
   },
   {
     type: 'torneo_recordatorio',

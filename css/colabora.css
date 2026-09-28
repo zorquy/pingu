@@ -1,0 +1,145 @@
+/* La página de «Colabora» (tanda 361). Hoja propia: solo la usa esta
+   pantalla, y components.css lo baja todo el mundo. */
+
+.colabora-puestos,
+.colabora-trato,
+.colabora-form {
+  margin-bottom: var(--e-2xl);
+}
+
+.colabora-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--e-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.colabora-puesto {
+  padding: var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.colabora-puesto h3 {
+  margin: 0 0 4px;
+  font-size: var(--t-lg);
+  color: var(--text);
+}
+
+.colabora-puesto p {
+  margin: 0;
+  font-size: var(--t-sm);
+  line-height: 1.55;
+  color: var(--text-mid);
+}
+
+.colabora-trato ul {
+  margin: 0;
+  padding-left: var(--e-lg);
+  color: var(--text-mid);
+  font-size: var(--t-md);
+  line-height: 1.7;
+}
+
+.colabora-trato strong { color: var(--text); }
+
+/* El aviso de «entra primero» y el de «ya está enviada»: mismo trato que
+   una tarjeta, para que no parezcan un error. */
+.colabora-aviso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--navy);
+  border-radius: var(--radius-lg);
+  font-size: var(--t-md);
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.colabora-campo {
+  display: block;
+  margin-bottom: var(--e-lg);
+  font-size: var(--t-md);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.colabora-campo input[type='text'],
+.colabora-campo select,
+.colabora-campo textarea {
+  display: block;
+  width: 100%;
+  margin-top: var(--e-sm);
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  font: inherit;
+  font-weight: 400;
+  font-size: var(--t-md);
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.colabora-campo textarea { line-height: 1.6; resize: vertical; }
+
+.colabora-campo input:focus-visible,
+.colabora-campo select:focus-visible,
+.colabora-campo textarea:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+fieldset.colabora-campo {
+  border: 0;
+  padding: 0;
+  margin-inline: 0;
+}
+
+.colabora-campo legend {
+  padding: 0;
+  font-weight: 600;
+}
+
+.colabora-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--e-sm);
+  margin-top: var(--e-sm);
+}
+
+/* Lo que se pulsa mide 44 px: aquí toda la fila es el objetivo, que es
+   más fácil de dar que una casilla de 13 px. */
+.colabora-opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  font-weight: 400;
+  font-size: var(--t-md);
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.colabora-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-md);
+}
+
+.colabora-nota {
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}

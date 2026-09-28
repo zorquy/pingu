@@ -384,6 +384,57 @@ usuario, 60 entradas máx. en `cards`.
 
 ---
 
+## 2026-09-28 — PINGU-Claude (tanda 361 — /colabora, para dejar de llevarlo todo solo)
+
+**Hecho**: PINGU quiere delegar —gente que escriba noticias, que organice
+torneos, que eche una mano con el foro—, todo voluntario y sin dinero.
+Su idea era un formulario abierto del tipo «cuéntanos qué te gustaría
+aportar».
+
+**Se monta lo mismo pero con la lista delante.** «Aporta lo que quieras»
+da dos respuestas: silencio, o «me gustaría ayudar en lo que sea», que no
+se puede usar. La gente no sabe qué puede ofrecerte hasta que ve **lo que
+hace falta y lo que cuesta cada cosa** — con la lista, el que encaja se
+reconoce solo y el que no, no rellena.
+
+**Y pide sesión a propósito.** Un Google Form te da un nombre; esto te da
+un nombre CON SU HISTORIAL. En /admin cada solicitud sale con los
+mensajes que esa persona ha escrito en el foro, los torneos que ha jugado
+y cuánto lleva registrada. Eso es lo que hace falta para contestar.
+
+**El formulario**: qué te gustaría llevar (los seis puestos), cuánto
+tiempo al mes de verdad, qué has hecho antes, por qué PokeDoc, y **unas
+líneas escritas ahí mismo** — que predice quién va a hacer el trabajo
+mejor que las otras cuatro preguntas juntas.
+
+Una solicitud viva por persona (índice único parcial), y el cliente lo
+cuenta en vez de enseñar un error de índice. Aviso al equipo por
+campanita **y por correo** el mismo día: una solicitud sin contestar una
+semana es un voluntario perdido.
+
+**Ficheros**: `colabora.html` (NUEVO), `js/colabora.js` (NUEVO),
+`css/colabora.css` (NUEVO), `supabase-migration-colabora.sql` (NUEVO),
+`admin/index.html`, `admin/js/admin.js`, `admin/css/admin.css`,
+`js/email-plantilla.js`, `js/notifications.js`,
+`netlify/functions/baja-correo.mjs`, el pie de las 26 páginas,
+`SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-361.mjs` (NUEVO),
+`herramientas/stub-supabase.js` (la tabla nueva) y
+`herramientas/correr-suite.sh`.
+
+**Ojo con la numeración**: esto se escribió como «tanda 354» y la otra
+sesión ya había usado ese número para el constructor de mazos. Renumerada
+a 361 al integrar. Con dos sesiones a la vez, el número se coge al SUBIR,
+no al empezar.
+
+**En curso / pendiente**: ejecutar `supabase-migration-colabora.sql`
+—comprobada contra un PostgreSQL 16 de verdad, incluidas las políticas,
+el índice de «una viva» y el disparador del aviso—. Y lo que NO es
+código: los dos o tres primeros colaboradores se fichan por privado, uno
+a uno; esta página es para el que llegue después.
+
+---
+
 ## 2026-09-28 — PINGU-Claude (tanda 353 — las guías se mudan a /guia/<slug>)
 
 **Hecho**: Search Console, el primer día con datos: **14 páginas

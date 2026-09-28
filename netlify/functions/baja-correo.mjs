@@ -43,6 +43,7 @@ const NOMBRES = {
   // (ver más abajo), y darse de baja de "guías para revisar" no puede
   // dejar a un admin sin sus mensajes privados.
   guide_submitted: 'los avisos de guías nuevas para revisar',
+  collab_application: 'los avisos de gente que se ofrece a colaborar',
   weekly_digest: 'el resumen semanal de la comunidad',
   // Torneos (tanda 223). Sin estas claves aquí, el enlace de baja de un
   // correo de torneo apagaría TODOS los correos de esa persona.

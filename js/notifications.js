@@ -113,6 +113,7 @@ export const EMAIL_TYPES = {
 // demás avisos de golpe.
 export const EMAIL_TYPES_EQUIPO = {
   guide_submitted: 'Guías nuevas para revisar',
+  collab_application: 'Cuando alguien se ofrece a colaborar',
 }
 
 export async function createNotification({ recipientId, actorId, type, title, body = null, link = null }) {

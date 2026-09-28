@@ -18569,7 +18569,6 @@ absolutas desde que se sirve en `/noticias/<slug>` (tanda 269): **una
 página que se sirve bajo una carpeta no puede tener ni un enlace
 relativo**, y eso incluye los que pinta el JavaScript.
 
-
 ## Tanda 356 — la barra de arriba, en desplegables
 
 Eran siete enlaces sueltos (Inicio, Noticias, Aprender, Cartas, Foro,
@@ -19048,3 +19047,51 @@ de la tanda: **unos −3,5 KB**.
    Lo vigila test-zoom-movil.mjs, que recorre todas las páginas midiendo
    cada campo. */
 ```
+
+---
+
+## Tanda 361 — /colabora, para dejar de llevarlo todo solo
+
+PINGU quiere delegar y no puede pagar. La pregunta era dónde anunciarlo;
+la respuesta que se montó cambia un poco la pregunta.
+
+**«Cuéntanos qué te gustaría aportar» no funciona.** Suena abierto y
+generoso, y devuelve silencio o «me gustaría ayudar en lo que sea» — que
+no se puede usar, porque hay que volver a escribir para averiguar qué
+sabe hacer esa persona, y la mitad se queda ahí. **La gente no sabe qué
+puede ofrecerte hasta que ve la lista.** Con los seis puestos delante, y
+con lo que cuesta cada uno («una noticia a la semana, media hora»), el
+que encaja se reconoce solo y el que no, no rellena. Le ahorras el
+trabajo a uno y el chasco al otro.
+
+**Por qué pide sesión, que es la decisión de fondo.** Un formulario de
+fuera te da un nombre. Este te da un nombre **con su historial**: en
+/admin cada solicitud aparece con cuántos mensajes ha escrito en el foro,
+cuántos torneos ha jugado y cuánto lleva registrada. Con un nombre no se
+decide nada; con eso, sí. Y filtra de paso: quien no se registra para
+escribirte, tampoco iba a durar.
+
+**La muestra de escritura es el campo que más acierta.** Cinco líneas
+escritas en el propio formulario predicen quién va a hacer el trabajo
+mejor que la experiencia, que las ganas y que el «por qué PokeDoc»
+juntos. El que no las escribe tampoco iba a escribir la noticia del
+sábado.
+
+**Una solicitud viva por persona**, con un índice único parcial
+(`where status in ('nueva','hablando')`). Sin eso, dos pestañas abiertas
+son dos solicitudes idénticas que hay que leer dos veces. Y el cliente
+mira ANTES de enviar y lo cuenta con palabras: un error de índice único
+no significa nada para quien lo lee.
+
+**Y avisa el mismo día**, por campanita y por correo, como una guía que
+entra a revisión. Una solicitud que se queda una semana sin respuesta no
+es una solicitud pendiente: es un voluntario perdido. Por eso el correo
+lleva tipo propio (`collab_application`), con su verbo, su motivo, su
+ejemplo en /admin → Correos y su casilla para darse de baja — si se puede
+recibir, se tiene que poder apagar.
+
+**Lo que esta página NO hace.** No trae voluntarios: los dos o tres
+primeros se fichan por privado, uno a uno, entre la gente que ya está
+aportando gratis sin que nadie se lo pida. Esto es para el que llegue
+dentro de seis meses, cuando nadie esté buscando. Son cosas distintas y
+la página no puede sustituir a los mensajes.
