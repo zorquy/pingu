@@ -299,7 +299,10 @@ console.log('\n── 3. E · Las guías se ven al entrar en /aprender ──')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
   const tarjetas = page.locator('.guia-tarjeta')
   check('las 7 guías salen sin dar un clic', (await tarjetas.count()) === 7, String(await tarjetas.count()))
-  check('  …con su enlace a la guía', /guia\.html\?slug=/.test((await page.locator('.guia-tarjeta-enlace').first().getAttribute('href')) || ''))
+  // Desde la tanda 353 la guía vive en /guia/<slug>: era la única
+  // sección del sitio con dirección de parámetro.
+  check('  …con su enlace a la guía', /^\/guia\/[^?]/.test((await page.locator('.guia-tarjeta-enlace').first().getAttribute('href')) || ''),
+    (await page.locator('.guia-tarjeta-enlace').first().getAttribute('href')) || '')
   // La franja de seguir: el curso empezado y sin terminar más reciente.
   const seguir = page.locator('.aprender-seguir')
   check('hay «sigue donde lo dejaste»', await seguir.isVisible())

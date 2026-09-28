@@ -16,6 +16,7 @@ REESCRITURAS = [
     (re.compile(r'^/tema/[^/]+$'), '/tema.html'),
     (re.compile(r'^/foro/[^/]+$'), '/foro.html'),
     (re.compile(r'^/noticias/[^/]+$'), '/guia.html'),
+    (re.compile(r'^/guia/[^/]+$'), '/guia.html'),
 ]
 
 class H(http.server.SimpleHTTPRequestHandler):

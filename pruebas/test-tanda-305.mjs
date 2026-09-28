@@ -84,7 +84,15 @@ console.log('\n── 3. Un tamaño suelto tampoco se cuela por el HTML ──')
   const sueltos = []
   const ficheros = [
     ...readdirSync(RAIZ).filter((f) => f.endsWith('.html')),
-    ...readdirSync(`${RAIZ}/js`).filter((f) => f.endsWith('.js')).map((f) => `js/${f}`),
+    // `js/email-plantilla.js` NO entra, y no es un despiste (tanda 353):
+    // pinta CORREOS, no la web. Un cliente de correo no soporta variables
+    // CSS ni hojas externas —el Outlook de Windows pinta con el motor de
+    // Word—, así que ahí los tamaños van a mano por obligación. Vive en
+    // `js/` desde la 350 para que /admin pueda enseñar la vista previa
+    // con la misma plantilla que se envía.
+    ...readdirSync(`${RAIZ}/js`)
+      .filter((f) => f.endsWith('.js') && f !== 'email-plantilla.js')
+      .map((f) => `js/${f}`),
     ...readdirSync(`${RAIZ}/js/torneos`).filter((f) => f.endsWith('.js')).map((f) => `js/torneos/${f}`),
   ]
   for (const f of ficheros) {
