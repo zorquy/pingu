@@ -22,6 +22,7 @@ const T = {
   match_results: [],
   pairing_history: [],
   judge_applications: [],
+  collab_applications: [],
   judge_calls: [],
   judge_messages: [],
   match_messages: [],
@@ -42,7 +43,7 @@ const T = {
   tcg_archetypes: [],
   tcg_sets: [],
   tcg_card_play: [],
-  // Los mazos del constructor (tanda 354).
+  // Los mazos del constructor (tanda 361).
   user_decks: [],
   match_log: [],
   match_log_torneos: [],
@@ -488,6 +489,21 @@ sembrar('__FAKE_JUECES__', 'judge_applications', (i) => ({
   tournament_id: 'torneo-1',
   user_id: 'user-2',
   status: 'pending',
+}))
+
+// Las solicitudes de /colabora (tanda 361).
+sembrar('__FAKE_COLABORA__', 'collab_applications', (i) => ({
+  id: `colab-${i + 1}`,
+  user_id: 'user-2',
+  roles: ['noticias'],
+  horas: 'media',
+  experiencia: null,
+  por_que: null,
+  muestra: 'Unas líneas de ejemplo.',
+  status: 'nueva',
+  nota_admin: null,
+  created_at: '2026-09-28T10:00:00Z',
+  updated_at: '2026-09-28T10:00:00Z',
 }))
 
 sembrar('__FAKE_LOGROS__', 'achievement_definitions', (i) => ({
