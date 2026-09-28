@@ -556,7 +556,7 @@ async function cargarDestacada() {
 
   document.getElementById('destacada').innerHTML = `
     <span class="destacada-sello">${icons.star(13)} Guía destacada</span>
-    <a class="destacada-titulo" href="/guia.html?slug=${encodeURIComponent(guia.slug)}">
+    <a class="destacada-titulo" href="/guia/${encodeURIComponent(guia.slug)}">
       ${contentIconHtml(guia.cover_emoji, 22, 'bookOpen')} ${escapeHtml(guia.title)}
     </a>
     ${elegida.nota ? `<p class="destacada-nota">“${escapeHtml(elegida.nota)}”</p>` : `<p class="destacada-nota">${escapeHtml(guia.description || '')}</p>`}

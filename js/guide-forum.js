@@ -221,7 +221,7 @@ async function avisarMencionados(body, actorId, guideSlug) {
           type: 'guide_comment',
           title: 'Te han mencionado en un comentario',
           body: body.slice(0, 140),
-          link: `/guia.html?slug=${encodeURIComponent(guideSlug || '')}`,
+          link: `/guia/${encodeURIComponent(guideSlug || '')}`,
         })
       )
   )

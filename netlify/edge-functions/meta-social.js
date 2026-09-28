@@ -489,7 +489,10 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
   // Una noticia llega por /noticias/<slug>, no por ?slug=. Lo reescribe
   // Netlify a guia.html DESPUÉS de esto, así que aquí la dirección todavía
   // es la que ha pedido el robot.
-  const enRuta = url.pathname.match(/^\/noticias\/([^/?#]+)/)
+  // Desde la tanda 353 las guías también llegan por ruta limpia
+  // (/guia/<slug>), así que se miran las dos y se cae a la query, que es
+  // por donde entran los enlaces viejos antes de que el 301 los mueva.
+  const enRuta = url.pathname.match(/^\/(?:noticias|guia)\/([^/?#]+)/)
   const slug = enRuta ? decodeURIComponent(enRuta[1]) : url.searchParams.get('slug')
   if (!slug) return null
   // Las columnas que se piden están todas comprobadas: si se cuela una que
@@ -1149,7 +1152,7 @@ async function calcularMeta(url) {
   if (/^\/carta(\.html)?$/.test(ruta) || ruta.startsWith('/carta/')) return metaDeCarta(url)
   if (/^\/coleccion(\.html)?$/.test(ruta) || ruta.startsWith('/coleccion/')) return metaDeColeccion(url)
   if (ruta.startsWith('/noticias/')) return metaDeGuia(url, false, true)
-  if (ruta.startsWith('/guia')) return metaDeGuia(url, false)
+  if (ruta.startsWith('/guia')) return metaDeGuia(url, false)  // /guia, /guia.html y /guia/<slug>
   if (ruta.startsWith('/curso')) return metaDeGuia(url, true)
   if (ruta.startsWith('/categoria')) return metaDeCategoria(url)
   if (ruta.startsWith('/usuario')) return metaDePerfil(url)
@@ -1206,6 +1209,7 @@ export const config = {
     '/carta',
     '/noticias/*',
     '/guia.html',
+    '/guia/*',
     '/curso.html',
     '/categoria.html',
     '/usuario.html',

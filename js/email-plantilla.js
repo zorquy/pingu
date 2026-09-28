@@ -361,7 +361,7 @@ export function renderResumenSemanal({ temas = [], guia = null, noticias = [], s
     mensajes: Number(t.mensajes) || 0,
   }))
   const filaGuia = guia
-    ? { titulo: sanitizeHeader(guia.titulo, 160), url: absoluteUrl(siteUrl, `/guia.html?slug=${encodeURIComponent(String(guia.slug ?? ''))}`) }
+    ? { titulo: sanitizeHeader(guia.titulo, 160), url: absoluteUrl(siteUrl, `/guia/${encodeURIComponent(String(guia.slug ?? ''))}`) }
     : null
   // Las noticias van PRIMERO en el correo: es lo más perecedero de todo
   // lo que lleva dentro. Un hilo del foro sigue ahí la semana que viene;
@@ -463,7 +463,7 @@ export const EJEMPLOS_DE_CORREO = [
     donde: 'Disparador de la base (supabase-migration-correo-avisos.sql)',
     subject: 'Ibai ha respondido a tu comentario',
     preview: 'A mí me pasó lo mismo con la carta de la promo, revisa la marca.',
-    link: '/guia.html?slug=como-leer-una-carta',
+    link: '/guia/como-leer-una-carta',
   },
   {
     type: 'forum_reply',
@@ -498,7 +498,7 @@ export const EJEMPLOS_DE_CORREO = [
     donde: 'Disparador de la base (supabase-migration-aviso-guia-revision.sql)',
     subject: 'Tu guía «Cómo montar tu primer mazo» ya está publicada',
     preview: 'Ya se puede leer en PokeDoc.',
-    link: '/guia.html?slug=como-montar-tu-primer-mazo',
+    link: '/guia/como-montar-tu-primer-mazo',
   },
   {
     type: 'guide_rejected',

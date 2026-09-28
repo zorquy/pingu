@@ -190,7 +190,7 @@ export async function renderRatingWidget(container, { guideId, session, guide = 
           type: 'guide_rating',
           title: 'Nueva valoración en tu guía',
           body: `${'★'.repeat(elegida)} en "${guide.title}"`,
-          link: `/guia.html?slug=${guide.slug}`,
+          link: `/guia/${guide.slug}`,
         }).catch(() => {})
       }
       await renderRatingWidget(container, { guideId, session, guide, titulo })

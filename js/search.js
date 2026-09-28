@@ -98,7 +98,7 @@ async function runSearch(rawQuery) {
   resultsEl.innerHTML = data
     .map(
       (g) => `
-    <a href="guia.html?slug=${encodeURIComponent(g.slug)}" class="search-result" style="display: block;">
+    <a href="/guia/${encodeURIComponent(g.slug)}" class="search-result" style="display: block;">
       <span class="guide-label">${escapeHtml(g.categories?.name || '')}</span>
       <h3>${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title)}</h3>
       <p class="snippet">${snippet(g.search_content || g.description, termino)}</p>

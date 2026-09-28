@@ -97,7 +97,7 @@ function filaHtml(p) {
       ${
         cumplida
           ? `<p class="peticion-hecha">${icons.checkCircle(14)} Ya está escrita:
-               <a href="/guia.html?slug=${encodeURIComponent(p.guia.slug)}">${escapeHtml(p.guia.title)}</a></p>`
+               <a href="/guia/${encodeURIComponent(p.guia.slug)}">${escapeHtml(p.guia.title)}</a></p>`
           : `<div class="peticion-acciones">
                <a class="btn-secondary" href="/editor-guia.html?titulo=${encodeURIComponent(p.title)}&peticion=${p.id}">${icons.edit(13)} Escribir esta guía</a>
                ${puedoCumplir ? `<button type="button" class="btn-secondary" data-cumplir="${p.id}">Ya la he escrito</button>` : ''}
@@ -189,7 +189,7 @@ async function cumplir(id, contenedor) {
         type: 'guide_request_fulfilled',
         title: 'Ya existe la guía que pediste',
         body: guia.title,
-        link: `/guia.html?slug=${encodeURIComponent(guia.slug)}`,
+        link: `/guia/${encodeURIComponent(guia.slug)}`,
       })
     )
   )

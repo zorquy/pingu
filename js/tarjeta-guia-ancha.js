@@ -19,7 +19,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
     : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">${icons.graduationCap(15)} Curso</span>`
   const hasGuide = guideHasReference(guide)
   const guideBtn = hasGuide
-    ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">${icons.bookOpen(15)} Guía</a>`
+    ? `<a href="/guia/${encodeURIComponent(guide.slug)}" class="btn-guide" onclick="event.stopPropagation()">${icons.bookOpen(15)} Guía</a>`
     : `<span class="btn-guide" style="opacity:.4; cursor:not-allowed;">${icons.bookOpen(15)} Guía</span>`
 
   return `

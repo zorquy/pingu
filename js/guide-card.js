@@ -134,7 +134,7 @@ export function wireGuideCardClicks(containerEl) {
     const slug = card.dataset.slug
     if (!slug) return
     const destino = card.dataset.hasGuide
-      ? `guia.html?slug=${encodeURIComponent(slug)}`
+      ? `/guia/${encodeURIComponent(slug)}`
       : `curso.html?slug=${encodeURIComponent(slug)}`
     const ir = () => { window.location.href = destino }
     card.addEventListener('click', ir)

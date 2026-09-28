@@ -1227,7 +1227,7 @@ async function loadContentPreviews(reports) {
   if (idsByType.guide?.length > 0) {
     const { data } = await supabase.from('guides').select('id, title, slug').in('id', idsByType.guide)
     ;(data || []).forEach((g) => {
-      previews[g.id] = { text: g.title, url: `/guia.html?slug=${encodeURIComponent(g.slug)}` }
+      previews[g.id] = { text: g.title, url: `/guia/${encodeURIComponent(g.slug)}` }
     })
   }
 
@@ -1237,7 +1237,7 @@ async function loadContentPreviews(reports) {
     const { data: guides } = guideIds.length > 0 ? await supabase.from('guides').select('id, slug').in('id', guideIds) : { data: [] }
     const slugById = Object.fromEntries((guides || []).map((g) => [g.id, g.slug]))
     ;(comments || []).forEach((c) => {
-      previews[c.id] = { text: snippet(c.body), url: slugById[c.guide_id] ? `/guia.html?slug=${encodeURIComponent(slugById[c.guide_id])}` : null }
+      previews[c.id] = { text: snippet(c.body), url: slugById[c.guide_id] ? `/guia/${encodeURIComponent(slugById[c.guide_id])}` : null }
     })
   }
 
@@ -1920,7 +1920,7 @@ async function loadAnalytics() {
     .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
     .slice(0, 15)
     .map((g) => ({
-      html: `<a href="/guia.html?slug=${encodeURIComponent(g.slug)}" target="_blank" rel="noopener">${escapeHtml(g.title)}</a>`,
+      html: `<a href="/guia/${encodeURIComponent(g.slug)}" target="_blank" rel="noopener">${escapeHtml(g.title)}</a>`,
       value: g.view_count || 0,
     }))
   document.getElementById('analyticsGuides').innerHTML = rankTableHtml(guideRows, ['Guía', 'Vistas'])

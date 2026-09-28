@@ -5,12 +5,12 @@
 // que compartir para que eso no se convierta en un lío repartido por
 // media docena de ficheros.
 
-// La dirección de un artículo. Una noticia vive en /noticias/<slug>
-// porque la dirección también dice de qué va la página, y eso lo lee
-// tanto quien la copia en un chat como quien la indexa.
+// La dirección de un artículo: /noticias/<slug> o /guia/<slug>. Las guías
+// se mudaron en la tanda 353 y las viejas llegan por el 301 de
+// netlify.toml; el porqué, en SCHEMA.md (esto lo baja la portada).
 export function rutaDeArticulo(kind, slug) {
   const limpio = encodeURIComponent(slug || '')
-  return kind === 'news' ? `/noticias/${limpio}` : `/guia.html?slug=${limpio}`
+  return kind === 'news' ? `/noticias/${limpio}` : `/guia/${limpio}`
 }
 
 // El slug del artículo que se está mirando, venga por donde venga.
@@ -27,7 +27,9 @@ export function rutaDeArticulo(kind, slug) {
 // primero la ruta y se cae a la query, que es por donde llegan los
 // enlaces viejos y la búsqueda.
 export function slugDeArticuloEnLaUrl(ubicacion = window.location) {
-  const enRuta = String(ubicacion.pathname || '').match(/\/noticias\/([^/?#]+)/)
+  // Las dos formas limpias, y la query de respaldo. `/guia` a secas no
+  // cuenta: es la página sin artículo.
+  const enRuta = String(ubicacion.pathname || '').match(/\/(?:noticias|guia)\/([^/?#]+)/)
   if (enRuta) {
     try {
       return decodeURIComponent(enRuta[1])

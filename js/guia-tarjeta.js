@@ -53,7 +53,7 @@ export function tarjetaDeGuia(g, { progreso = null, categoria = '', pie = false 
           : 'Sin empezar'
   return `
   <article class="guia-tarjeta" data-guide-id="${escapeHtml(g.id || '')}" data-author-id="${escapeHtml(g.author_id || '')}">
-    <a class="guia-tarjeta-enlace" href="/guia.html?slug=${encodeURIComponent(g.slug)}">
+    <a class="guia-tarjeta-enlace" href="/guia/${encodeURIComponent(g.slug)}">
       <span class="guia-arte arte-${arteDe(g)}">
         ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" onerror="this.style.display='none'" />` : ''}
         <span class="guia-arte-info">

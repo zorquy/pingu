@@ -574,7 +574,7 @@ function renderReward(b) {
           // esto dónde lo explican?". Sin este botón había que volver a
           // buscar la guía por el catálogo.
           modo === 'curso' && guideHasReference(guide)
-            ? `<a href="guia.html?slug=${encodeURIComponent(guide.slug)}" class="btn-secondary">${icons.bookOpen(15)} Repasar la teoría</a>`
+            ? `<a href="/guia/${encodeURIComponent(guide.slug)}" class="btn-secondary">${icons.bookOpen(15)} Repasar la teoría</a>`
             : ''
         }
         <a href="aprender.html" class="${modo === 'curso' && resumen.medal !== 'oro' ? 'btn-secondary' : 'btn-primary'}">Seguir explorando →</a>

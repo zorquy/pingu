@@ -119,7 +119,7 @@ async function init() {
   const esNoticia = guide.kind === 'news'
 
   // UNA dirección por artículo. Se puede llegar a una noticia por
-  // /guia.html?slug=… (desde la búsqueda, o desde un enlace viejo), pero
+  // /guia.html?slug=… (un enlace viejo, que llega por el 301), pero
   // la buena es /noticias/<slug>: se corrige la barra de direcciones sin
   // recargar y se apunta ahí la canónica, que es lo que evita que Google
   // vea dos páginas con el mismo texto.

@@ -18511,3 +18511,60 @@ token `--warning`, que es el ámbar de la casa y se adapta al tema oscuro
 Queda fuera de esta tanda, por si se quiere después: el premio en la
 vista previa al compartir, en el anuncio del foro y de Telegram, y al
 lado de cada puesto en la clasificación final.
+
+
+---
+
+## Tanda 353 — las guías se mudan a /guia/<slug>
+
+El primer día de Search Console dio el dato que faltaba: **14 páginas
+indexadas en todo PokeDoc**, 20 clics en tres meses y todas las búsquedas
+son la propia marca. El sitio no existe en Google.
+
+Mirando por qué, apareció una cosa que llevaba desde la tanda 269 delante
+de las narices: **las guías eran la única sección con dirección de
+parámetro**. `/carta/…`, `/coleccion/…`, `/tema/…`, `/usuario/…`,
+`/noticias/…` — todas limpias; las guías, `/guia.html?slug=…`. Aquella
+tanda mudó las noticias y dejó las guías a medias.
+
+**Por qué importa**: Google rastrea menos las direcciones con parámetros
+y a veces las agrupa como duplicadas; y la palabra clave no está en la
+ruta, que es donde más pesa. En un resultado de búsqueda,
+`pokedoc.es/guia/como-se-lee-una-carta-pokemon` se lee y se pulsa mejor.
+
+**Y por qué AHORA**, que es la parte que no se ve: cambiar una dirección
+que Google ya ha posicionado cuesta semanas de recolocación; cambiar una
+que no conoce no cuesta nada. Con 14 páginas indexadas, este es el mejor
+momento que va a haber. Dentro de seis meses habría sido una mala idea.
+
+**El 301 no es un detalle**. Los enlaces con `?slug=` viven en sitios que
+no se pueden reescribir: correos ya enviados, avisos guardados en
+`user_notifications` y dos disparadores de la base. Un cambio de
+direcciones sin redirección no rompe la web — rompe los enlaces de
+antes, que es peor, porque no lo ve nadie hasta que alguien pulsa uno.
+
+Va con `force = true` porque `/guia.html` es un fichero de verdad y, sin
+eso, el fichero gana y el 301 no se aplica jamás.
+
+**Y el orden de las reglas es parte del arreglo.** La regla de las
+noticias reescribe `/noticias/:slug` a `/guia.html?slug=…`. Va ANTES del
+301 a propósito: Netlify aplica la primera que coincide y no vuelve a
+pasar una reescritura interna por la lista. Con el orden al revés, cada
+noticia acabaría redirigida a `/guia/<slug>` y dejaría de ser una
+noticia. La prueba comprueba el ORDEN, no solo que las dos reglas estén.
+
+**Veintinueve enlaces en veinte ficheros.** En vez de importar
+`rutaDeArticulo` en los veinte —veinte dependencias nuevas por una
+plantilla de una línea—, se cambió la cadena y **la prueba prohíbe la
+forma vieja en todo el árbol**, saltándose comentarios (la forma vieja se
+sigue nombrando para explicar por qué se mudó). Es la norma de la casa
+para una constante copiada: se vigila con una prueba.
+
+Y cuatro de los veintinueve eran enlaces RELATIVOS
+(`href="guia.html?slug=…"`, sin barra inicial). Eso ahora **tiene** que
+ser absoluto: la página de una guía pasa a servirse bajo `/guia/<slug>`,
+y desde ahí un enlace relativo apunta a `/guia/guia.html`. Es la misma
+razón por la que `guia.html` enlaza sus hojas y sus módulos con rutas
+absolutas desde que se sirve en `/noticias/<slug>` (tanda 269): **una
+página que se sirve bajo una carpeta no puede tener ni un enlace
+relativo**, y eso incluye los que pinta el JavaScript.

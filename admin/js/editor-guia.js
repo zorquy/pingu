@@ -369,7 +369,7 @@ async function notifyFollowersOfNewGuide(authorId, title, slug) {
       type: 'followed_guide_published',
       title: 'Nueva guía publicada',
       body: title,
-      link: `/guia.html?slug=${slug}`,
+      link: `/guia/${slug}`,
     })
   }
 }
@@ -435,7 +435,7 @@ async function persistGuide(extraFields = {}) {
       type: 'guide_approved',
       title: 'Tu guía ha sido aprobada',
       body: payload.title,
-      link: `/guia.html?slug=${payload.slug}`,
+      link: `/guia/${payload.slug}`,
     })
     await notifyFollowersOfNewGuide(authorId, payload.title, payload.slug)
   }

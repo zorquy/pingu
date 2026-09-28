@@ -142,7 +142,7 @@ export async function renderWall({
           type: 'guide_comment',
           title: 'Nuevo comentario en tu guía',
           body: guideForNotif.title,
-          link: `/guia.html?slug=${guideForNotif.slug}`,
+          link: `/guia/${guideForNotif.slug}`,
         })
       }
     }

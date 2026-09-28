@@ -202,7 +202,7 @@ export default async () => {
       urls.push({
         loc: esNoticia
           ? `${SITIO}/noticias/${encodeURIComponent(g.slug)}`
-          : `${SITIO}/guia.html?slug=${encodeURIComponent(g.slug)}`,
+          : `${SITIO}/guia/${encodeURIComponent(g.slug)}`,
         lastmod: soloFecha(g.published_at),
         priority: esNoticia ? '0.9' : '0.8',
         changefreq: esNoticia ? 'daily' : 'monthly',

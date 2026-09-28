@@ -131,7 +131,7 @@ export async function montarBotonHelpful(contenedor, guide, session) {
         type: 'guide_helpful',
         title: 'A alguien le ha servido tu guía',
         body: guide.title,
-        link: `/guia.html?slug=${encodeURIComponent(guide.slug)}`,
+        link: `/guia/${encodeURIComponent(guide.slug)}`,
       })
     }
 

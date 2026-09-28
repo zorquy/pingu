@@ -12,6 +12,66 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-28 — PINGU-Claude (tanda 353 — las guías se mudan a /guia/<slug>)
+
+**Hecho**: Search Console, el primer día con datos: **14 páginas
+indexadas en TODO PokeDoc**, 20 clics en tres meses y todas las
+búsquedas son la marca («pokedoc», «poke doc», incluso «pokedoku»). Ni
+una guía indexada.
+
+Mirando por qué, salió esto: **las guías eran la única sección del sitio
+con dirección de parámetro** (`/guia.html?slug=…`). Las cartas tienen
+`/carta/…`, las colecciones `/coleccion/…`, el foro `/tema/…`, los
+perfiles `/usuario/…` y las noticias `/noticias/…` desde la tanda 269 —
+las guías se quedaron a medias en aquella mudanza.
+
+Google rastrea menos las direcciones con parámetros y a veces las agrupa
+como duplicadas, y la palabra clave no está en la ruta, que es donde más
+pesa.
+
+**Y se hace AHORA por lo mismo que lo destapó**: con 14 páginas
+indexadas, cambiar las direcciones no cuesta nada. Dentro de seis meses,
+con las guías posicionadas, costaría semanas.
+
+La vieja sigue llegando con un **301** (hay enlaces con `?slug=` en
+correos ya enviados, en avisos guardados en la base y en dos
+disparadores de SQL, y esos no se pueden reescribir). Cuidado con el
+orden en `netlify.toml`: la regla de las noticias apunta a
+`/guia.html?slug=…` y va ANTES del 301, o una noticia acabaría redirigida
+a `/guia/<slug>`.
+
+**Ficheros**: `js/articulos.js`, `netlify.toml`,
+`netlify/edge-functions/meta-social.js`, `netlify/functions/sitemap.mjs`,
+`netlify/functions/rss.mjs` y los 20 ficheros que enlazaban a la forma
+vieja (`js/guia-tarjeta.js`, `js/guide-card.js`, `js/search.js`,
+`js/curso.js`, `js/usuario.js`, `js/wall.js`, `js/peticiones.js`,
+`admin/js/*`…), `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-353.mjs` (NUEVO),
+`herramientas/servir.py` (la misma regla que netlify.toml) y
+`herramientas/correr-suite.sh`.
+
+**Dos cosas que saltaron al pasar las pruebas**, y las dos valen la pena
+anotarlas:
+
+- **La portada se salió del presupuesto** (170,3 de 170 KB) por los
+  COMENTARIOS que le había puesto a `js/articulos.js`, que lo baja la
+  portada. Recortados, y el porqué entero vive en SCHEMA.md, que no pesa.
+  Queda en 169,8.
+- **La prueba de la escala tipográfica (305) empezó a fallar por
+  `js/email-plantilla.js`**, que se mudó a `js/` en la 350. Un correo NO
+  es la web: un cliente de correo no soporta variables CSS ni hojas
+  externas —el Outlook de Windows pinta con el motor de Word—, así que
+  ahí los tamaños van a mano por obligación. Declarado como excepción en
+  la prueba, con el motivo escrito.
+
+**En curso / pendiente**: el `guid` del RSS es la dirección, así que los
+lectores de feeds volverán a enseñar las guías una vez. Con la audiencia
+de hoy es irrelevante, pero conviene saberlo. Y los dos disparadores de
+SQL siguen encolando la forma vieja: funcionan por el 301, y se
+cambiarán cuando toque otra migración de correos.
+
+---
+
 ## 2026-09-24 — PINGU-Claude (tanda 352 — los premios de un torneo, fuera de la descripción)
 
 **Hecho**: PINGU: «acabo de crear mi primer torneo con premios, pero

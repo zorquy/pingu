@@ -161,6 +161,35 @@
   to = "/guia.html?slug=:slug"
   status = 200
 
+# Las guías (tanda 353): /guia/<slug>, como las noticias desde la 269.
+#
+# Eran la única sección del sitio con dirección de parámetro, y Search
+# Console lo enseñó: 14 páginas indexadas en todo PokeDoc y ni una guía.
+# Google rastrea menos las direcciones con `?algo=` y la palabra clave no
+# está en la ruta, que es donde más pesa.
+#
+# El 301 va PRIMERO y es lo que hace que no se rompa nada: hay enlaces
+# con `?slug=` en correos ya enviados, en avisos guardados en la base y
+# en los disparadores de SQL, y esos no se pueden reescribir. Netlify
+# permite condicionar por query, y el `slug` que captura se le pasa a la
+# dirección nueva.
+#
+# Ojo con el orden: esta regla mira `/guia.html`, y la reescritura de
+# `/noticias/:slug` apunta a `/guia.html?slug=…` PERO es interna (200),
+# así que no vuelve a pasar por aquí. Una noticia sigue siendo una
+# noticia.
+[[redirects]]
+  from = "/guia.html"
+  query = {slug = ":slug"}
+  to = "/guia/:slug"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/guia/:slug"
+  to = "/guia.html?slug=:slug"
+  status = 200
+
 # La ficha de una carta (tanda 324): /carta/ceruledge-ex-sv5-36.
 #
 # El identificador NO se pasa como parámetro a propósito. Va dentro del

@@ -52,7 +52,7 @@ async function consultar(ruta) {
 const enlace = (fila) =>
   fila.kind === 'news'
     ? `${SITIO}/noticias/${encodeURIComponent(fila.slug)}`
-    : `${SITIO}/guia.html?slug=${encodeURIComponent(fila.slug)}`
+    : `${SITIO}/guia/${encodeURIComponent(fila.slug)}`
 
 // El `guid` de cada entrada es su identidad para el lector: es lo que usa
 // para saber si ya la ha enseñado. Tiene que ser estable aunque el título

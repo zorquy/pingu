@@ -51,7 +51,7 @@ async function loadSaved(session) {
     if (!slug) return
     // Igual que las demás tarjetas: a la guía si la tiene, si no al curso.
     const destino = row.dataset.hasGuide
-      ? `guia.html?slug=${encodeURIComponent(slug)}`
+      ? `/guia/${encodeURIComponent(slug)}`
       : `curso.html?slug=${encodeURIComponent(slug)}`
     row.addEventListener('click', () => { window.location.href = destino })
   })

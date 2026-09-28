@@ -173,7 +173,7 @@ export async function resolverSugerencia(sugerencia, aceptada, guideTitle, guide
       type: 'guide_suggestion_accepted',
       title: 'Han aceptado tu corrección',
       body: guideTitle,
-      link: `/guia.html?slug=${encodeURIComponent(guideSlug || '')}`,
+      link: `/guia/${encodeURIComponent(guideSlug || '')}`,
     })
   }
   return { error: null }

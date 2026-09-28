@@ -147,7 +147,7 @@ async function loadReputationAndGuides() {
   container.innerHTML = guides
     .map(
       (g) => `
-    <a href="/guia.html?slug=${encodeURIComponent(g.slug)}" class="completed-course-row" style="text-decoration:none; color:inherit;">
+    <a href="/guia/${encodeURIComponent(g.slug)}" class="completed-course-row" style="text-decoration:none; color:inherit;">
       <span>${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title)}</span>
       <span class="date">${escapeHtml(g.categories?.name || '')}</span>
     </a>`

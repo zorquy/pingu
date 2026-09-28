@@ -143,7 +143,7 @@ async function adminIds() {
 }
 
 export async function notifyGuideComment({ guideAuthorId, actorId, guideTitle, guideSlug, replyToAuthorId = null }) {
-  const link = `/guia.html?slug=${guideSlug}`
+  const link = `/guia/${guideSlug}`
   const enviados = new Set([actorId])
 
   // La respuesta va primero: si alguien es a la vez el autor de la guía y
