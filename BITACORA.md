@@ -12,6 +12,80 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-28 — PINGU-Claude desde claude.ai (tanda 354 — constructor de mazos)
+
+**Hecho**: un constructor de mazos en `/constructor`, a imagen del de
+my.limitlesstcg.com/builder pero en español y cruzado con nuestro espejo.
+Buscador con filtros (categoría, subtipo, tipo, colección, «solo cartas
+del formato»), mazo en rejilla o lista ordenado como los exports de TCG
+Live (líneas evolutivas, partidarios → objetos → herramientas → estadios,
+especiales antes que básicas), validación de Estándar/Expandido (60
+cartas, 4 por nombre, un AS TÁCTICO, un Radiante, al menos un básico,
+marcas legales CON la regla de la reimpresión), deshacer, mano de prueba
+con premios, probabilidad de robar cada carta. Entra y sale por todas
+partes: importa texto de TCG Live / Limitless / escrito a mano, enlaces
+del builder de Limitless (`?i=`) y los nuestros (`?l=`); exporta a TCG
+Live, abre el mazo en el builder de Limitless (formato del enlace sacado
+a mano y comprobado: promos como `SP`/`SVP`) y descarga la imagen con
+`descargarImagenDecklist`. Mazos guardados en `user_decks` (privados o
+públicos por enlace `/constructor?mazo=<id>`), con página `/mazos`
+(«Mis mazos»: duplicar, borrar). Sin sesión se puede montar todo; al
+guardar manda a /auth.html y vuelve con el mazo en la URL. Borrador en
+localStorage.
+
+**Ficheros**: `constructor.html` (NUEVO), `mazos.html` (NUEVO, noindex),
+`js/constructor.js` (NUEVO), `js/mazos.js` (NUEVO),
+`js/constructor/nucleo.js` (NUEVO, puro: reglas, orden, formatos de
+texto y enlaces), `js/constructor/datos.js` (NUEVO: consultas),
+`css/constructor.css` (NUEVO), `supabase-migration-mazos.sql` (NUEVO),
+`js/torneos/comun.js` (exporta `codigoLiveDeNombreDeSet`),
+`torneos.html` (botón «Constructor de mazos»),
+`netlify/functions/sitemap.mjs` (`/constructor`) y el enlace del pie en
+todas las páginas con `pie-rejilla` **menos index.html**.
+
+**PENDIENTE PARA PINGU — ejecutar `supabase-migration-mazos.sql`** en el
+SQL Editor. Hasta entonces todo funciona salvo guardar, que avisa con un
+mensaje que nombra el fichero (PGRST205 traducido). La migración se probó
+en pglite: RLS (ver si es público o tuyo; crear/editar/borrar solo lo
+tuyo), el dueño no se puede cambiar por UPDATE, tope de 300 mazos por
+usuario, 60 entradas máx. en `cards`.
+
+**Decisiones que conviene saber**:
+
+- **Nombres (tanda 335)**: se enseña `name_es || name` con un
+  `nombreVisible` propio en nucleo.js — es la regla de `nombreDeCarta`,
+  copiada porque importar carta-nucleo.js (pinta HTML) haría que la
+  página «usara» sus clases (prueba 299). Exportar a TCG Live/Limitless
+  usa `name` (inglés). Las filas pasan por `canonizarCarta` al llegar y
+  las marcas salen de `marcasLegales` de carta-legalidad.js.
+- **Mientras dura la reparación de `name`** hay impresiones con el
+  inglés y otras con el español en `name`/`name_key` (la promo de Boss's
+  Orders vs. las «Órdenes de Jefes» modernas). Por eso: la clave de «4
+  por nombre» es `name_es` cuando lo hay; la reimpresión legal se cruza
+  por `name`, `name_key` Y `name_es`; y al resolver una línea por nombre
+  se juntan las exactas de casa con las exactas en inglés de TCGdex (una
+  petición, solo al importar sin código o buscar sin resultados). Cuando
+  la reparación acabe, `name_key` bastaría — se puede simplificar.
+- El pie de **index.html NO lleva el enlace**: la portada está a 169,8 de
+  170 KB. Tampoco hay «Mis mazos» en el menú de usuario (vive en app.js,
+  mismo presupuesto): se llega por /constructor. Si se libera algo de
+  peso, son dos líneas.
+
+**En curso / pendiente**:
+- Pasar la suite de `pruebas`: hay dos páginas nuevas con pie (las
+  pruebas que cuentan pies y enlaces las verán) y un CSS nuevo; revisar
+  escala tipográfica/espaciado por si alguna prueba es más estricta que
+  lo que he mirado a mano.
+- Bug GLOBAL visto de paso (no tocado, es style.css y pesa en portada):
+  en tema oscuro la regla de `select` pone la flecha con `background`
+  sin `no-repeat` y se repite en mosaico si una hoja usa el atajo
+  `background`. Pasa en /cartas. En constructor.css se esquiva con
+  `background-color`.
+- Ideas siguientes: botón «Abrir en el constructor» en las listas de
+  /torneo, mazos públicos en el perfil, carrito de CardZone desde un mazo.
+
+---
+
 ## 2026-09-28 — PINGU-Claude (tanda 353 — las guías se mudan a /guia/<slug>)
 
 **Hecho**: Search Console, el primer día con datos: **14 páginas

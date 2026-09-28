@@ -145,6 +145,17 @@ export function nombreDeSetLive(codigo) {
   return SETS_LIVE[String(codigo || '').toUpperCase()] || null
 }
 
+// El camino inverso: del nombre inglés de una colección a su código de
+// TCG Live. Lo usa el constructor de mazos para escribir las listas de
+// exportación; se exporta desde aquí en vez de copiar la tabla, para que
+// el día que salga una colección nueva baste con añadirla en SETS_LIVE.
+export function codigoLiveDeNombreDeSet(nombre) {
+  const buscado = String(nombre || '').trim().toLowerCase()
+  if (!buscado) return null
+  for (const [codigo, n] of Object.entries(SETS_LIVE)) if (n.toLowerCase() === buscado) return codigo
+  return null
+}
+
 // ── El color de una cara (tandas 297 y 298) ──
 //
 // Las iniciales de la lista y las del tablero de «Tu partida» tienen que

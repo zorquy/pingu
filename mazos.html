@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mensajes — PokeDoc</title>
+  <title>Mis mazos — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
@@ -12,38 +12,28 @@
   <meta name="robots" content="noindex" />
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <!-- Estos seis módulos los carga TODA página. Sin esto el navegador
-       los descubre en cascada —la página pide su .js, ese pide app.js,
-       app.js pide supabase.js y ese el bundle de 152 KB—, y cada salto
-       es un viaje de ida y vuelta más antes de poder pintar. Con
-       modulepreload se piden los seis a la vez, desde el primer momento.
-       Van estos y no todo el grafo a propósito: son los que no cambian
-       de página a página, así que no se quedan obsoletos solos. -->
   <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
   <link rel="modulepreload" href="/js/supabase.js" />
   <link rel="modulepreload" href="/js/app.js" />
   <link rel="modulepreload" href="/js/icons.js" />
-  <link rel="modulepreload" href="/js/content-icon.js" />
-  <link rel="modulepreload" href="/js/html.js" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/components.css" />
+  <link rel="modulepreload" href="/js/constructor/datos.js" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/constructor.css" />
 </head>
 <body>
-  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
-       porque su razón de ser es no tener que tabular por los doce
-       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
   <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <a href="/index.html" class="nav-logo">Poke<span>Doc</span></a>
       <div class="nav-links">
-        <a href="index.html">Inicio</a>
+        <a href="/index.html">Inicio</a>
         <a href="/noticias">Noticias</a>
-        <a href="aprender.html">Aprender</a>
+        <a href="/aprender.html">Aprender</a>
         <a href="/cartas">Cartas</a>
-        <a href="foro.html">Foro</a>
-        <a href="usuarios.html">Comunidad</a>
-        <a href="torneos.html" class="nav-jugar hidden">Jugar</a>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Comunidad</a>
+        <a href="/torneos.html" class="nav-jugar hidden">Jugar</a>
       </div>
       <div class="nav-right">
         <div id="nav-user"></div>
@@ -51,28 +41,30 @@
       </div>
     </div>
     <div class="nav-menu-mobile" id="navMobileMenu">
-      <a href="index.html">Inicio</a>
+      <a href="/index.html">Inicio</a>
       <a href="/noticias">Noticias</a>
-      <a href="aprender.html">Aprender</a>
-        <a href="/cartas">Cartas</a>
-      <a href="foro.html">Foro</a>
-      <a href="usuarios.html">Comunidad</a>
-      <a href="torneos.html" class="nav-jugar hidden">Jugar</a>
+      <a href="/aprender.html">Aprender</a>
+      <a href="/cartas">Cartas</a>
+      <a href="/foro.html">Foro</a>
+      <a href="/usuarios.html">Comunidad</a>
+      <a href="/torneos.html" class="nav-jugar hidden">Jugar</a>
     </div>
   </nav>
 
-  <main id="contenido" class="page-content container-narrow">
-    <div id="messagesRoot"></div>
+  <main id="contenido" class="page-content container cm-pagina">
+    <div class="cm-cabecera-pagina">
+      <h1>Mis mazos</h1>
+      <a class="btn-primary cm-btn" href="/constructor?nuevo=1">Nuevo mazo</a>
+    </div>
+    <div id="cmAviso" class="cm-aviso hidden" role="status"></div>
+    <p class="subtext" id="mzCargando">Cargando tus mazos…</p>
+    <div class="cm-mazos" id="mzLista"></div>
+    <div class="cm-vacio hidden" id="mzVacio">
+      <p><strong>Todavía no has guardado ningún mazo.</strong></p>
+      <p>Móntalo en el <a class="link-btn" href="/constructor?nuevo=1">constructor</a> y pulsa «Guardar»: aparecerá aquí.</p>
+    </div>
   </main>
 
-  <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres
-       enlaces centrados; el problema no era que fuera feo, era que casi
-       todas las páginas se quedan cortas y dejaban entre 400 y 900 px de
-       nada antes de llegar a él. Un pie con columnas llena ese hueco,
-       da una segunda vía a cada sección desde cualquier página y enlaza
-       internamente todo el sitio, que es lo que Google recorre.
-       Va en el HTML y no montado desde JavaScript a propósito: estos
-       enlaces tienen que estar en la página aunque el JS no llegue. -->
   <footer class="footer">
     <div class="pie-rejilla">
       <div>
@@ -107,7 +99,7 @@
     </div>
   </footer>
 
-  <script type="module" src="js/app.js"></script>
-  <script type="module" src="js/mensajes.js"></script>
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/mazos.js"></script>
 </body>
 </html>

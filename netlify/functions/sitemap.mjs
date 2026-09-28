@@ -41,6 +41,9 @@ const ESTATICAS = [
   ['/buscar.html', '0.6'],
   ['/usuarios.html', '0.6'],
   ['/foro.html', '0.8'],
+  // El constructor de mazos: pública e indexable (los mazos concretos no,
+  // van por parámetro y son de cada usuario).
+  ['/constructor', '0.7'],
   // La página que explica el proyecto: es a la que apuntan el vídeo y el
   // enlace de la biografía, así que conviene que Google la tenga.
   ['/sobre.html', '0.7'],

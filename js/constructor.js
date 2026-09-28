@@ -1,0 +1,1005 @@
+// El constructor de mazos (/constructor): a la izquierda el mazo, a la
+// derecha el buscador, como el builder de Limitless — que es lo que la
+// comunidad ya sabe usar — pero en español, con la regla de la
+// reimpresión de /torneo y guardado en tu cuenta de PokeDoc.
+//
+// Las reglas, los formatos de texto y los enlaces viven en
+// constructor/nucleo.js (sin DOM, probados en Node); la base, en
+// constructor/datos.js. Aquí solo se pinta y se escucha.
+import { getSession, escapeHtml } from './app.js'
+import { supabase } from './supabase.js'
+import { showToast } from './toast.js'
+import { cardImageUrl } from './tcgdex.js'
+import { rutaDeCarta } from './carta-ruta.js'
+import {
+  validarMazo,
+  seccionesDelMazo,
+  esEnergiaBasica,
+  claveDeNombre,
+  nombreVisible,
+  textoTcgLive,
+  enlaceLimitless,
+  comoDecklist,
+  codificarMazo,
+  decodificarMazo,
+  leerLista,
+  leerEnlaceLimitless,
+  robarMano,
+  probabilidadEnMano,
+  numeroSinCeros,
+} from './constructor/nucleo.js'
+import {
+  marcasLegales,
+  cargarSets,
+  buscarCartas,
+  cartasPorIds,
+  nombresConReimpresionLegal,
+  resolverLineas,
+  cargarMazo,
+  guardarMazo,
+  TIPOS,
+} from './constructor/datos.js'
+
+const $ = (id) => document.getElementById(id)
+const BORRADOR = 'pokedoc-constructor-borrador'
+const MAX_POR_NOMBRE = 4
+
+// ── El estado ──
+const estado = {
+  id: null, // el mazo guardado que se está editando (null = sin guardar)
+  duenoId: null,
+  soloLectura: false, // un mazo público de otra persona
+  nombre: '',
+  formato: 'standard',
+  publico: false,
+  entradas: new Map(), // id de carta → { carta, n }
+  historia: [],
+  cambiado: false,
+  sesion: null,
+  legales: ['H', 'I', 'J'],
+  reimpresion: new Set(),
+  reimpresionPedida: new Set(),
+  sets: null,
+  modo: 'rejilla',
+}
+
+const busqueda = { desde: 0, total: 0, cartas: [], pidiendo: false, turno: 0 }
+
+// ── Utilidades del estado ──
+const lista = () => [...estado.entradas.values()]
+const total = () => lista().reduce((s, e) => s + e.n, 0)
+const copiasDe = (id) => estado.entradas.get(id)?.n || 0
+const codigoDeSet = (setId) => estado.sets?.codigoDeId.get(setId) || null
+
+function copiasDelNombre(carta) {
+  const k = claveDeNombre(carta)
+  return lista().filter((e) => claveDeNombre(e.carta) === k).reduce((s, e) => s + e.n, 0)
+}
+
+function instantanea() {
+  return lista().map((e) => [e.carta, e.n])
+}
+
+function apuntarHistoria() {
+  estado.historia.push(instantanea())
+  if (estado.historia.length > 60) estado.historia.shift()
+  $('cmDeshacer').disabled = false
+}
+
+function deshacer() {
+  const anterior = estado.historia.pop()
+  if (!anterior) return
+  estado.entradas = new Map(anterior.map(([carta, n]) => [carta.id, { carta, n }]))
+  $('cmDeshacer').disabled = !estado.historia.length
+  marcarCambio()
+}
+
+// Poner n copias de una carta. Devuelve si ha cambiado algo.
+function ponerCopias(carta, n, { conHistoria = true } = {}) {
+  if (estado.soloLectura) {
+    avisarSoloLectura()
+    return false
+  }
+  const actual = copiasDe(carta.id)
+  let nuevo = Math.max(0, Math.min(60, n))
+  // El tope de 4 por nombre se aplica al AÑADIR, no al importar: una
+  // lista pegada con 5 se deja entrar (y se avisa) para que la persona
+  // vea qué le pasa a su lista en vez de perder una copia sin saberlo.
+  if (nuevo > actual && !esEnergiaBasica(carta)) {
+    const libres = MAX_POR_NOMBRE - copiasDelNombre(carta)
+    if (libres <= 0) {
+      showToast(`Ya llevas ${MAX_POR_NOMBRE} copias de ${nombreVisible(carta)} (cuentan juntas todas sus versiones).`, 'error')
+      return false
+    }
+    nuevo = Math.min(nuevo, actual + libres)
+  }
+  if (nuevo === actual) return false
+  if (conHistoria) apuntarHistoria()
+  if (nuevo === 0) estado.entradas.delete(carta.id)
+  else estado.entradas.set(carta.id, { carta, n: nuevo })
+  marcarCambio()
+  return true
+}
+
+const sumar = (carta, d) => ponerCopias(carta, copiasDe(carta.id) + d)
+
+function marcarCambio() {
+  estado.cambiado = true
+  guardarBorrador()
+  pintarMazo()
+  actualizarContadoresBusqueda()
+}
+
+// ── El borrador en el navegador ──
+//
+// Es una comodidad, no el guardado: permite cerrar la pestaña (o ir a
+// iniciar sesión para guardar) sin perder el mazo. Por eso todo va en
+// try/catch — en una ventana privada no hay localStorage y la página
+// tiene que funcionar igual.
+function guardarBorrador() {
+  if (estado.soloLectura) return
+  try {
+    localStorage.setItem(
+      BORRADOR,
+      JSON.stringify({
+        id: estado.id,
+        nombre: estado.nombre,
+        formato: estado.formato,
+        publico: estado.publico,
+        cartas: lista().map((e) => ({ id: e.carta.id, n: e.n })),
+        cambiado: estado.cambiado,
+        cuando: Date.now(),
+      })
+    )
+  } catch {}
+}
+
+function leerBorrador() {
+  try {
+    return JSON.parse(localStorage.getItem(BORRADOR) || 'null')
+  } catch {
+    return null
+  }
+}
+
+// ── Pintar el mazo ──
+function imagenHtml(carta, calidad = 'low') {
+  const url = cardImageUrl(carta.image_path, calidad)
+  // El nombre va DEBAJO de la imagen: si la CDN no contesta, la imagen se
+  // quita y queda el nombre — nunca un hueco sin nada (CLAUDE.md, 321).
+  return `<span class="cm-sin-imagen">${escapeHtml(nombreVisible(carta))}</span>${url ? `<img src="${escapeHtml(url)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />` : ''}`
+}
+
+function etiquetaSet(carta) {
+  return `${codigoDeSet(carta.set_id) || String(carta.set_id).toUpperCase()} ${numeroSinCeros(carta.local_id)}`
+}
+
+const TITULOS = { P: 'Pokémon', T: 'Entrenador', E: 'Energía', X: 'Sin clasificar todavía' }
+
+function pintarMazo() {
+  const entradas = lista()
+  const n = total()
+  $('cmTotal').innerHTML = `<strong>${n}</strong>/60 cartas`
+  $('cmTotal').classList.toggle('cm-total-ok', n === 60)
+  $('cmTabCuenta').textContent = n
+  const secciones = seccionesDelMazo(entradas)
+  const suma = (l) => l.reduce((s, e) => s + e.n, 0)
+  $('cmReparto').textContent = entradas.length
+    ? `${suma(secciones.P)} Pokémon · ${suma(secciones.T) + suma(secciones.X)} Entrenador · ${suma(secciones.E)} Energía`
+    : ''
+
+  const v = validarMazo(entradas, { formato: estado.formato, legales: estado.legales, reimpresionLegal: estado.reimpresion })
+  const sello = $('cmSello')
+  if (!entradas.length) {
+    sello.textContent = ''
+    sello.className = 'cm-sello'
+  } else if (!v.problemas.length) {
+    sello.textContent = estado.formato === 'libre' ? 'Mazo completo' : `Válido en ${estado.formato === 'standard' ? 'Estándar' : 'Expandido'}`
+    sello.className = 'cm-sello cm-sello-ok'
+  } else {
+    sello.textContent = `${v.problemas.length} ${v.problemas.length === 1 ? 'cosa por revisar' : 'cosas por revisar'}`
+    sello.className = 'cm-sello cm-sello-mal'
+  }
+  const problemas = $('cmProblemas')
+  problemas.innerHTML = v.problemas.map((p) => `<li>${escapeHtml(p.texto)}</li>`).join('')
+  problemas.classList.toggle('hidden', !v.problemas.length || !entradas.length)
+
+  const cont = $('cmMazo')
+  cont.dataset.modo = estado.modo
+  $('cmVacio').classList.toggle('hidden', entradas.length > 0)
+  cont.querySelectorAll('.cm-seccion').forEach((s) => s.remove())
+  for (const clave of ['P', 'T', 'E', 'X']) {
+    const grupo = secciones[clave]
+    if (!grupo.length) continue
+    const sec = document.createElement('div')
+    sec.className = 'cm-seccion'
+    sec.innerHTML = `
+      <h3 class="cm-seccion-titulo">${TITULOS[clave]} <span class="subtext">(${suma(grupo)})</span></h3>
+      <div class="${estado.modo === 'lista' ? 'cm-lista' : 'cm-cartas'}">
+        ${grupo.map((e) => (estado.modo === 'lista' ? filaHtml(e, v.porCarta.get(e.carta.id)) : cartaHtml(e, v.porCarta.get(e.carta.id)))).join('')}
+      </div>`
+    cont.appendChild(sec)
+  }
+  pedirReimpresiones(entradas)
+}
+
+function cartaHtml(e, mal) {
+  const c = e.carta
+  const nombre = escapeHtml(nombreVisible(c))
+  return `
+    <div class="cm-carta${mal ? ' cm-carta-mal' : ''}" data-id="${escapeHtml(c.id)}" ${mal ? `title="${escapeHtml(mal.join(' · '))}"` : ''}>
+      <button type="button" class="cm-carta-img" data-info aria-label="Ver ${nombre}">${imagenHtml(c)}</button>
+      <span class="cm-carta-n" aria-hidden="true">${e.n}</span>
+      <div class="cm-carta-botones">
+        <button type="button" class="cm-mini" data-menos aria-label="Quitar una ${nombre}">−</button>
+        <button type="button" class="cm-mini" data-mas aria-label="Añadir una ${nombre}">+</button>
+      </div>
+    </div>`
+}
+
+function filaHtml(e, mal) {
+  const c = e.carta
+  const nombre = escapeHtml(nombreVisible(c))
+  return `
+    <div class="cm-fila${mal ? ' cm-carta-mal' : ''}" data-id="${escapeHtml(c.id)}" ${mal ? `title="${escapeHtml(mal.join(' · '))}"` : ''}>
+      <span class="cm-fila-n">${e.n}</span>
+      <button type="button" class="cm-fila-nombre" data-info>${nombre}</button>
+      <span class="cm-fila-set subtext">${escapeHtml(etiquetaSet(c))}</span>
+      <button type="button" class="cm-mini" data-menos aria-label="Quitar una ${nombre}">−</button>
+      <button type="button" class="cm-mini" data-mas aria-label="Añadir una ${nombre}">+</button>
+    </div>`
+}
+
+// La regla de la reimpresión necesita a la base: se pide solo por los
+// nombres con marca vieja que no se hayan preguntado ya, y al volver se
+// repinta. Así una carta vieja con reimpresión legal no sale en rojo.
+function pedirReimpresiones(entradas) {
+  if (estado.formato === 'libre') return
+  const viejas = entradas
+    .filter((e) => e.carta.regulation_mark && !estado.legales.includes(e.carta.regulation_mark) && !esEnergiaBasica(e.carta))
+    .map((e) => e.carta)
+    .filter((c) => !estado.reimpresionPedida.has(claveDeNombre(c)))
+  if (!viejas.length) return
+  viejas.forEach((c) => estado.reimpresionPedida.add(claveDeNombre(c)))
+  nombresConReimpresionLegal(viejas).then((legales) => {
+    if (!legales.size) return
+    legales.forEach((k) => estado.reimpresion.add(k))
+    pintarMazo()
+  })
+}
+
+// ── El buscador ──
+function filtros() {
+  return {
+    texto: $('cmTexto').value,
+    categoria: $('cmCategoria').value,
+    subtipo: $('cmSubtipo').value,
+    tipo: $('cmTipo').value,
+    set: $('cmSet').value,
+    formato: $('cmSoloLegales').checked ? estado.formato : 'libre',
+  }
+}
+
+async function buscar({ mas = false } = {}) {
+  const turno = ++busqueda.turno
+  if (!mas) {
+    busqueda.desde = 0
+    busqueda.cartas = []
+    $('cmResultados').innerHTML = '<p class="subtext cm-cargando">Buscando…</p>'
+  }
+  busqueda.pidiendo = true
+  $('cmMas').disabled = true
+  try {
+    const r = await buscarCartas({ ...filtros(), desde: busqueda.desde, limite: 60 })
+    // Si mientras tanto se ha lanzado otra búsqueda, esta ya no vale:
+    // pintarla mezclaría resultados de dos consultas.
+    if (turno !== busqueda.turno) return
+    if (r.sinFiltro) {
+      $('cmResultados').innerHTML = '<p class="subtext cm-cargando">Escribe un nombre o elige una colección para ver cartas.</p>'
+      $('cmCuenta').textContent = ''
+      $('cmMas').classList.add('hidden')
+      return
+    }
+    busqueda.cartas = mas ? busqueda.cartas.concat(r.cartas) : r.cartas
+    busqueda.total = r.total
+    busqueda.desde += r.cartas.length
+    pintarResultados(mas ? r.cartas : null)
+  } catch (err) {
+    if (turno !== busqueda.turno) return
+    $('cmResultados').innerHTML = `<p class="subtext cm-cargando">No se ha podido buscar (${escapeHtml(err.message || 'error de red')}). Prueba otra vez.</p>`
+  } finally {
+    if (turno === busqueda.turno) {
+      busqueda.pidiendo = false
+      $('cmMas').disabled = false
+    }
+  }
+}
+
+function resultadoHtml(c) {
+  const n = copiasDe(c.id)
+  const nombre = escapeHtml(nombreVisible(c))
+  return `
+    <div class="cm-resultado" data-id="${escapeHtml(c.id)}">
+      <button type="button" class="cm-resultado-img" data-anadir aria-label="Añadir ${nombre} (${escapeHtml(etiquetaSet(c))}) al mazo">${imagenHtml(c)}</button>
+      <span class="cm-resultado-en${n ? '' : ' hidden'}" aria-hidden="true">${n}</span>
+      <button type="button" class="cm-info" data-info aria-label="Ver ${nombre} en grande">i</button>
+      <span class="cm-resultado-pie subtext">${escapeHtml(etiquetaSet(c))}${c.regulation_mark ? ` · ${escapeHtml(c.regulation_mark)}` : ''}</span>
+    </div>`
+}
+
+function pintarResultados(nuevas) {
+  const cont = $('cmResultados')
+  if (!busqueda.cartas.length) {
+    cont.innerHTML = $('cmSoloLegales').checked && estado.formato !== 'libre'
+      ? '<p class="subtext cm-cargando">No hay cartas con esos filtros en el formato del mazo. Prueba a quitar algún filtro o a desmarcar «Solo cartas del formato del mazo».</p>'
+      : '<p class="subtext cm-cargando">No hay cartas con esos filtros. Prueba a quitar alguno.</p>'
+  } else if (nuevas) {
+    cont.insertAdjacentHTML('beforeend', nuevas.map(resultadoHtml).join(''))
+  } else {
+    cont.innerHTML = busqueda.cartas.map(resultadoHtml).join('')
+  }
+  $('cmCuenta').textContent = busqueda.total ? `${busqueda.total.toLocaleString('es-ES')} ${busqueda.total === 1 ? 'carta' : 'cartas'}` : ''
+  $('cmMas').classList.toggle('hidden', busqueda.desde >= busqueda.total)
+}
+
+// El numerito de «ya lo llevas» en cada resultado, sin repintar la
+// rejilla entera (que haría saltar las imágenes).
+function actualizarContadoresBusqueda() {
+  document.querySelectorAll('#cmResultados .cm-resultado').forEach((el) => {
+    const n = copiasDe(el.dataset.id)
+    const chapa = el.querySelector('.cm-resultado-en')
+    chapa.textContent = n
+    chapa.classList.toggle('hidden', !n)
+  })
+}
+
+function cartaPorId(id) {
+  return estado.entradas.get(id)?.carta || busqueda.cartas.find((c) => c.id === id) || null
+}
+
+// ── Los modales ──
+let modalAbierto = null
+let focoPrevio = null
+function abrirModal(id) {
+  focoPrevio = document.activeElement
+  modalAbierto = $(id)
+  modalAbierto.classList.remove('hidden')
+  modalAbierto.querySelector('[data-cerrar], button, textarea')?.focus()
+}
+function cerrarModal() {
+  if (!modalAbierto) return
+  modalAbierto.classList.add('hidden')
+  modalAbierto = null
+  focoPrevio?.focus?.()
+}
+
+let cartaAbierta = null
+function abrirCarta(carta) {
+  cartaAbierta = carta
+  $('cmCartaImg').src = cardImageUrl(carta.image_path, 'high') || ''
+  $('cmCartaImg').alt = nombreVisible(carta)
+  $('cmCartaNombre').textContent = nombreVisible(carta)
+  const set = estado.sets?.porId.get(carta.set_id)
+  $('cmCartaSet').textContent = [set?.name || carta.set_id, `nº ${numeroSinCeros(carta.local_id)}`, carta.regulation_mark ? `marca ${carta.regulation_mark}` : null, carta.rarity].filter(Boolean).join(' · ')
+  $('cmCartaFicha').href = rutaDeCarta(carta)
+  pintarCartaAbierta()
+  abrirModal('cmModalCarta')
+}
+
+function pintarCartaAbierta() {
+  if (!cartaAbierta) return
+  const n = copiasDe(cartaAbierta.id)
+  $('cmCartaCopias').textContent = n
+  $('cmCartaMenos').disabled = n === 0 || estado.soloLectura
+  $('cmCartaMas').disabled = estado.soloLectura
+  const t = Math.max(total(), 60)
+  // Lo que más se pregunta al ajustar un mazo: con estas copias, ¿cuántas
+  // veces la tengo en la mano inicial?
+  $('cmCartaProbabilidad').textContent = n
+    ? `Con ${n} ${n === 1 ? 'copia' : 'copias'}, la tienes en la mano inicial el ${Math.round(probabilidadEnMano(copiasDelNombre(cartaAbierta), t) * 100)} % de las veces.`
+    : `Con 1 copia la tendrías en la mano inicial el ${Math.round(probabilidadEnMano(1, t) * 100)} % de las veces; con 4, el ${Math.round(probabilidadEnMano(4, t) * 100)} %.`
+  const v = validarMazo(lista(), { formato: estado.formato, legales: estado.legales, reimpresionLegal: estado.reimpresion })
+  $('cmCartaAvisos').innerHTML = (v.porCarta.get(cartaAbierta.id) || []).map((m) => `<li>${escapeHtml(m)}</li>`).join('')
+}
+
+// ── Importar ──
+async function importar() {
+  const texto = $('cmImportarTexto').value.trim()
+  const res = $('cmImportarResultado')
+  if (!texto) return
+  const boton = $('cmImportarBoton')
+  boton.disabled = true
+  boton.textContent = 'Leyendo…'
+  res.classList.add('hidden')
+  try {
+    let lineas
+    let ilegibles = []
+    if (/limitlesstcg\.com\/builder\?i=|^1(?:[01][0-9a-zA-Z]\d\d)/.test(texto) && !/\s/.test(texto)) {
+      lineas = leerEnlaceLimitless(texto).map((l) => ({ n: l.n, nombre: '', set: l.set, numero: l.numero, original: `${l.n} ${l.set} ${l.numero}` }))
+    } else if (/[?&]l=/.test(texto) && !/\s/.test(texto)) {
+      // Un enlace de este mismo constructor.
+      const cod = new URL(texto, location.origin).searchParams.get('l')
+      const piezas = decodificarMazo(cod)
+      const mapa = await cartasPorIds(piezas.map((p) => p.id))
+      aplicarImportacion(piezas.filter((p) => mapa.get(p.id)).map((p) => ({ carta: mapa.get(p.id), n: p.n })))
+      cerrarModal()
+      return
+    } else {
+      ;({ lineas, ilegibles } = leerLista(texto))
+    }
+    if (!lineas.length) {
+      res.innerHTML = '<p>No he encontrado ninguna carta. Cada línea tiene que empezar por la cantidad: «4 Charmander PAF 7».</p>'
+      res.classList.remove('hidden')
+      return
+    }
+    const { resueltas, sinResolver } = await resolverLineas(lineas)
+    aplicarImportacion(resueltas.map((r) => ({ carta: r.carta, n: r.linea.n })))
+    const porNombre = resueltas.filter((r) => !r.exacta)
+    const avisos = []
+    if (sinResolver.length) avisos.push(`<p><strong>No encontradas (${sinResolver.length}):</strong></p><ul>${sinResolver.map((l) => `<li>${escapeHtml(l.original)}</li>`).join('')}</ul>`)
+    if (ilegibles.length) avisos.push(`<p><strong>Líneas que no parecen cartas (${ilegibles.length}):</strong></p><ul>${ilegibles.map((l) => `<li>${escapeHtml(l)}</li>`).join('')}</ul>`)
+    if (porNombre.length) avisos.push(`<p><strong>Encontradas por el nombre (${porNombre.length}):</strong> revisa que sea la versión que querías.</p><ul>${porNombre.map((r) => `<li>${escapeHtml(r.linea.original)} → ${escapeHtml(nombreVisible(r.carta))} (${escapeHtml(etiquetaSet(r.carta))})</li>`).join('')}</ul>`)
+    if (avisos.length) {
+      res.innerHTML = `<p>Importadas ${resueltas.reduce((s, r) => s + r.linea.n, 0)} cartas.</p>${avisos.join('')}`
+      res.classList.remove('hidden')
+    } else {
+      showToast(`Lista importada: ${total()} cartas.`, 'success')
+      cerrarModal()
+    }
+  } catch (err) {
+    res.innerHTML = `<p>No se ha podido importar: ${escapeHtml(err.message || 'error de red')}.</p>`
+    res.classList.remove('hidden')
+  } finally {
+    boton.disabled = false
+    boton.textContent = 'Importar'
+  }
+}
+
+function aplicarImportacion(piezas) {
+  if (estado.soloLectura) return avisarSoloLectura()
+  apuntarHistoria()
+  if ($('cmImportarSustituir').checked) estado.entradas = new Map()
+  for (const { carta, n } of piezas) {
+    const actual = copiasDe(carta.id)
+    estado.entradas.set(carta.id, { carta, n: Math.min(60, actual + n) })
+  }
+  marcarCambio()
+}
+
+// ── La mano de prueba ──
+let premiosVistos = false
+function nuevaMano() {
+  const entradas = lista()
+  if (total() < 13) {
+    $('cmManoEstado').textContent = 'Hacen falta al menos 13 cartas en el mazo para robar una mano y sus premios.'
+    $('cmMano').innerHTML = ''
+    $('cmManoPremios').innerHTML = ''
+    return
+  }
+  const { mano, premios, hayBasico } = robarMano(entradas)
+  premiosVistos = false
+  $('cmManoEstado').textContent = hayBasico
+    ? 'Tienes un Pokémon básico: puedes empezar.'
+    : 'Sin Pokémon básico: esta mano sería un mulligan (se baraja y se roba otra, y tu rival roba una carta más).'
+  $('cmMano').innerHTML = mano.map((c) => `<div class="cm-mano-carta">${imagenHtml(c)}</div>`).join('')
+  $('cmManoPremios').innerHTML = premios.map((c) => `<div class="cm-mano-carta cm-boca-abajo" data-premio>${imagenHtml(c)}</div>`).join('')
+}
+
+// ── Compartir ──
+function enlaceDelMazo() {
+  if (estado.id && estado.publico && !estado.cambiado) return `${location.origin}/constructor?mazo=${estado.id}`
+  return `${location.origin}/constructor?l=${codificarMazo(lista())}`
+}
+
+async function copiar(texto, ok) {
+  try {
+    await navigator.clipboard.writeText(texto)
+    showToast(ok, 'success')
+  } catch {
+    showToast('El navegador no ha dejado copiar. Prueba otra vez.', 'error')
+  }
+}
+
+async function accionCompartir(accion) {
+  if (!lista().length) return showToast('El mazo está vacío.', 'error')
+  if (accion === 'enlace') {
+    if (estado.id && !estado.publico) {
+      showToast('Tu mazo guardado es privado: el enlace lleva la lista dentro, así que funciona igual.', 'success')
+    }
+    return copiar(enlaceDelMazo(), 'Enlace copiado: quien lo abra verá este mazo.')
+  }
+  if (accion === 'tcglive') return copiar(textoTcgLive(lista(), codigoDeSet), 'Lista copiada. En TCG Live: Mazos → Crear mazo → Importar.')
+  if (accion === 'limitless') {
+    window.open(enlaceLimitless(lista(), codigoDeSet), '_blank', 'noopener')
+    return
+  }
+  if (accion === 'imagen') {
+    const { descargarImagenDecklist } = await import('./torneos/decklist-export.js')
+    descargarImagenDecklist(estado.nombre || 'Mazo sin nombre', comoDecklist(lista(), codigoDeSet))
+  }
+}
+
+async function accionHerramienta(accion) {
+  if (accion === 'importar') {
+    $('cmImportarResultado').classList.add('hidden')
+    $('cmImportarSustituir').checked = true
+    abrirModal('cmModalImportar')
+    // Si en el portapapeles hay una lista, se pega sola: es lo que viene
+    // a hacer quien abre esto. Si el navegador no deja leerlo, no pasa
+    // nada — se pega a mano.
+    try {
+      const t = await navigator.clipboard.readText()
+      if (t && !$('cmImportarTexto').value && (/^\s*\*?\s*\d{1,2}\s*x?\s+\S/m.test(t) || /limitlesstcg\.com\/builder\?i=/.test(t))) $('cmImportarTexto').value = t
+    } catch {}
+    return
+  }
+  if (accion === 'mano') {
+    nuevaMano()
+    abrirModal('cmModalMano')
+    return
+  }
+  if (accion === 'vaciar') {
+    if (!lista().length || estado.soloLectura) return
+    apuntarHistoria()
+    estado.entradas = new Map()
+    marcarCambio()
+    showToast('Mazo vaciado. Si ha sido sin querer, pulsa «Deshacer».', 'success')
+    return
+  }
+  if (accion === 'nuevo') {
+    if (estado.cambiado && lista().length && !confirmarPerder()) return
+    empezarNuevo()
+  }
+}
+
+function confirmarPerder() {
+  // confirm() bloquea, pero aquí es justo lo que se quiere: una decisión
+  // que no se puede deshacer y que la persona tiene que ver sí o sí.
+  return window.confirm('Tienes cambios sin guardar en este mazo. ¿Empezar uno nuevo de todas formas?')
+}
+
+function empezarNuevo() {
+  estado.id = null
+  estado.duenoId = null
+  estado.soloLectura = false
+  estado.nombre = ''
+  estado.publico = false
+  estado.entradas = new Map()
+  estado.historia = []
+  estado.cambiado = false
+  $('cmDeshacer').disabled = true
+  history.replaceState(null, '', '/constructor')
+  pintarCabecera()
+  marcarCambio()
+  estado.cambiado = false
+  guardarBorrador()
+  pintarEstadoGuardado()
+}
+
+// ── Guardar ──
+async function guardar() {
+  if (!lista().length) return showToast('Añade alguna carta antes de guardar.', 'error')
+  if (!estado.sesion) {
+    guardarBorrador()
+    showToast('Entra en tu cuenta para guardar el mazo. Te lo guardamos mientras tanto.', 'success')
+    const volver = `/constructor?l=${codificarMazo(lista())}`
+    setTimeout(() => (location.href = `/auth.html?volver=${encodeURIComponent(volver)}`), 900)
+    return
+  }
+  const boton = $('cmGuardar')
+  boton.disabled = true
+  try {
+    const copia = estado.soloLectura
+    const fila = await guardarMazo({
+      id: copia ? null : estado.id,
+      name: estado.nombre || 'Mazo sin nombre',
+      format: estado.formato,
+      cards: lista().map((e) => ({ id: e.carta.id, n: e.n })),
+      cover_card: elegirPortada(),
+      is_public: copia ? false : estado.publico,
+    })
+    estado.id = fila.id
+    estado.duenoId = fila.user_id
+    estado.soloLectura = false
+    estado.cambiado = false
+    history.replaceState(null, '', `/constructor?mazo=${fila.id}`)
+    guardarBorrador()
+    pintarCabecera()
+    pintarEstadoGuardado()
+    showToast(copia ? 'Copia guardada en tus mazos.' : 'Mazo guardado.', 'success')
+  } catch (err) {
+    showToast(err.message || 'No se ha podido guardar.', 'error')
+  } finally {
+    boton.disabled = false
+  }
+}
+
+// La portada de la tarjeta en /mazos: el Pokémon del que más copias hay
+// (casi siempre el que da nombre al mazo).
+function elegirPortada() {
+  const p = seccionesDelMazo(lista()).P
+  const mejor = [...p].sort((a, b) => b.n - a.n)[0] || lista()[0]
+  return mejor?.carta.id || null
+}
+
+function pintarEstadoGuardado() {
+  const el = $('cmEstadoGuardado')
+  if (estado.soloLectura) el.textContent = ''
+  else if (!estado.id) el.textContent = lista().length ? 'Sin guardar' : ''
+  else el.textContent = estado.cambiado ? 'Cambios sin guardar' : 'Guardado'
+}
+
+function pintarCabecera() {
+  $('cmNombre').value = estado.nombre
+  $('cmNombre').readOnly = estado.soloLectura
+  $('cmFormato').value = estado.formato
+  $('cmPublico').checked = estado.publico
+  $('cmPublicoCampo').classList.toggle('hidden', !estado.sesion || estado.soloLectura)
+  $('cmGuardar').textContent = estado.soloLectura ? 'Guardar una copia' : 'Guardar'
+  document.title = `${estado.nombre ? `${estado.nombre} — ` : ''}Constructor de mazos — PokeDoc`
+}
+
+function avisarSoloLectura() {
+  showToast('Este mazo es de otra persona. Pulsa «Guardar una copia» para editarlo en tu cuenta.', 'error')
+}
+
+function aviso(html) {
+  const el = $('cmAviso')
+  el.innerHTML = html
+  el.classList.toggle('hidden', !html)
+}
+
+// ── Cargar lo que diga la dirección ──
+async function cargarDesdeUrl() {
+  const p = new URLSearchParams(location.search)
+  const idMazo = p.get('mazo')
+  const l = p.get('l')
+  const i = p.get('i')
+
+  if (idMazo) {
+    try {
+      const fila = await cargarMazo(idMazo)
+      if (!fila) {
+        aviso('<p>Este mazo no existe o es privado. Te dejamos un mazo nuevo para empezar.</p>')
+        return
+      }
+      await ponerFila(fila)
+      const esMio = estado.sesion?.user.id === fila.user_id
+      if (!esMio) {
+        estado.soloLectura = true
+        const { data: autor } = await supabase.from('user_profiles').select('username,display_name').eq('id', fila.user_id).maybeSingle()
+        const quien = autor ? escapeHtml(autor.display_name || autor.username) : 'otra persona'
+        aviso(`<p>Estás viendo un mazo de <strong>${quien}</strong>. Puedes exportarlo tal cual, o pulsar «Guardar una copia» para editarlo en tu cuenta.</p>`)
+      } else {
+        // ¿Hay cambios de este mismo mazo que se quedaron sin guardar?
+        const b = leerBorrador()
+        if (b && b.id === fila.id && b.cambiado && b.cuando > Date.parse(fila.updated_at)) {
+          aviso('<p>Tienes cambios de este mazo que no llegaste a guardar. <button type="button" class="link-btn" id="cmRecuperar">Recuperarlos</button></p>')
+          $('cmRecuperar')?.addEventListener('click', async () => {
+            await ponerBorrador(b)
+            aviso('')
+          })
+        }
+      }
+    } catch (err) {
+      aviso(`<p>${escapeHtml(err.message)}</p>`)
+    }
+    return
+  }
+
+  if (l) {
+    const piezas = decodificarMazo(l)
+    const mapa = await cartasPorIds(piezas.map((x) => x.id))
+    estado.entradas = new Map(piezas.filter((x) => mapa.get(x.id)).map((x) => [x.id, { carta: mapa.get(x.id), n: x.n }]))
+    estado.cambiado = true
+    const b = leerBorrador()
+    if (b && codificarMazo(lista()) === codificarMazo(b.cartas.map((c) => ({ carta: { id: c.id }, n: c.n })))) {
+      estado.nombre = b.nombre || ''
+      estado.formato = b.formato || 'standard'
+    }
+    return
+  }
+
+  if (i) {
+    const lineas = leerEnlaceLimitless(i).map((x) => ({ n: x.n, nombre: '', set: x.set, numero: x.numero, original: `${x.n} ${x.set} ${x.numero}` }))
+    const { resueltas, sinResolver } = await resolverLineas(lineas)
+    estado.entradas = new Map(resueltas.map((r) => [r.carta.id, { carta: r.carta, n: r.linea.n }]))
+    estado.cambiado = true
+    if (sinResolver.length) aviso(`<p>No he encontrado ${sinResolver.length} ${sinResolver.length === 1 ? 'carta' : 'cartas'} del enlace: ${sinResolver.map((x) => escapeHtml(x.original)).join(', ')}.</p>`)
+    return
+  }
+
+  // «Nuevo mazo» desde /mazos: empezar de cero aunque haya borrador.
+  if (p.has('nuevo')) {
+    history.replaceState(null, '', '/constructor')
+    return
+  }
+
+  // Sin nada en la dirección: el borrador de la última vez.
+  const b = leerBorrador()
+  if (b?.cartas?.length) await ponerBorrador(b)
+}
+
+async function ponerFila(fila) {
+  const mapa = await cartasPorIds((fila.cards || []).map((c) => c.id))
+  estado.id = fila.id
+  estado.duenoId = fila.user_id
+  estado.nombre = fila.name
+  estado.formato = fila.format
+  estado.publico = fila.is_public
+  estado.entradas = new Map((fila.cards || []).filter((c) => mapa.get(c.id)).map((c) => [c.id, { carta: mapa.get(c.id), n: c.n }]))
+  estado.cambiado = false
+}
+
+async function ponerBorrador(b) {
+  const mapa = await cartasPorIds(b.cartas.map((c) => c.id))
+  estado.id = b.id || null
+  estado.nombre = b.nombre || ''
+  estado.formato = b.formato || 'standard'
+  estado.publico = !!b.publico
+  estado.entradas = new Map(b.cartas.filter((c) => mapa.get(c.id)).map((c) => [c.id, { carta: mapa.get(c.id), n: c.n }]))
+  estado.cambiado = !!b.cambiado
+  pintarCabecera()
+  pintarMazo()
+  pintarEstadoGuardado()
+}
+
+// ── Los desplegables del buscador ──
+const SUBTIPOS_DE = {
+  T: [
+    ['partidario', 'Partidario'],
+    ['objeto', 'Objeto'],
+    ['herramienta', 'Herramienta'],
+    ['estadio', 'Estadio'],
+  ],
+  E: [
+    ['basica', 'Básica'],
+    ['especial', 'Especial'],
+  ],
+}
+
+function pintarSubtipos() {
+  const cat = $('cmCategoria').value
+  const opciones = SUBTIPOS_DE[cat] || []
+  $('cmSubtipo').innerHTML = '<option value="">Todos</option>' + opciones.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')
+  $('cmSubtipo').disabled = !opciones.length
+  $('cmTipo').disabled = cat === 'T' || cat === 'E'
+  if ($('cmTipo').disabled) $('cmTipo').value = ''
+}
+
+function pintarColecciones() {
+  const { sets } = estado.sets
+  // Agrupadas por serie, las series en el orden de su set más nuevo.
+  const series = new Map()
+  for (const s of sets) {
+    const k = s.serie_name || s.serie_id || 'Otras'
+    if (!series.has(k)) series.set(k, [])
+    series.get(k).push(s)
+  }
+  $('cmSet').innerHTML =
+    '<option value="">Todas</option>' +
+    [...series.entries()]
+      .map(
+        ([serie, lista]) =>
+          `<optgroup label="${escapeHtml(serie)}">${lista
+            .map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}${estado.sets.codigoDeId.get(s.id) ? ` (${escapeHtml(estado.sets.codigoDeId.get(s.id))})` : ''}</option>`)
+            .join('')}</optgroup>`
+      )
+      .join('')
+}
+
+// ── Los eventos ──
+function enganchar() {
+  // Pestañas del móvil.
+  document.querySelectorAll('.cm-pestania').forEach((b) =>
+    b.addEventListener('click', () => {
+      const vista = b.dataset.vista
+      $('cmRejilla').dataset.vista = vista
+      document.querySelectorAll('.cm-pestania').forEach((x) => {
+        const activa = x.dataset.vista === vista
+        x.classList.toggle('activa', activa)
+        x.setAttribute('aria-selected', activa)
+      })
+    })
+  )
+
+  $('cmNombre').addEventListener('input', () => {
+    estado.nombre = $('cmNombre').value
+    estado.cambiado = true
+    guardarBorrador()
+    pintarEstadoGuardado()
+    pintarCabecera()
+  })
+  $('cmFormato').addEventListener('change', () => {
+    estado.formato = $('cmFormato').value
+    marcarCambio()
+    buscar()
+  })
+  $('cmPublico').addEventListener('change', () => {
+    estado.publico = $('cmPublico').checked
+    estado.cambiado = true
+    guardarBorrador()
+    pintarEstadoGuardado()
+  })
+  $('cmGuardar').addEventListener('click', guardar)
+  $('cmDeshacer').addEventListener('click', deshacer)
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault()
+      guardar()
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !/input|textarea/i.test(document.activeElement?.tagName || '')) {
+      e.preventDefault()
+      deshacer()
+    } else if (e.key === 'Escape') {
+      cerrarMenus()
+      cerrarModal()
+    }
+  })
+
+  $('cmVacioImportar').addEventListener('click', () => accionHerramienta('importar'))
+
+  // Los dos menús desplegables.
+  const menus = [
+    ['cmBtnCompartir', 'cmMenuCompartir', accionCompartir],
+    ['cmBtnHerramientas', 'cmMenuHerramientas', accionHerramienta],
+  ]
+  for (const [btn, menu, accion] of menus) {
+    $(btn).addEventListener('click', (e) => {
+      e.stopPropagation()
+      const abierto = !$(menu).classList.contains('hidden')
+      cerrarMenus()
+      if (!abierto) {
+        $(menu).classList.remove('hidden')
+        $(btn).setAttribute('aria-expanded', 'true')
+        $(menu).querySelector('button')?.focus()
+      }
+    })
+    $(menu).addEventListener('click', (e) => {
+      const b = e.target.closest('[data-accion]')
+      if (!b) return
+      cerrarMenus()
+      accion(b.dataset.accion)
+    })
+  }
+  document.addEventListener('click', cerrarMenus)
+
+  // Vista del mazo: cartas o lista.
+  document.querySelectorAll('.cm-vista').forEach((b) =>
+    b.addEventListener('click', () => {
+      estado.modo = b.dataset.modo
+      document.querySelectorAll('.cm-vista').forEach((x) => {
+        x.classList.toggle('activa', x === b)
+        x.setAttribute('aria-pressed', x === b)
+      })
+      try {
+        localStorage.setItem('pokedoc-constructor-modo', estado.modo)
+      } catch {}
+      pintarMazo()
+    })
+  )
+
+  // El mazo: − / + / abrir, y el clic derecho quita una (como Limitless).
+  $('cmMazo').addEventListener('click', (e) => {
+    const el = e.target.closest('[data-id]')
+    if (!el) return
+    const carta = cartaPorId(el.dataset.id)
+    if (!carta) return
+    if (e.target.closest('[data-mas]')) sumar(carta, 1)
+    else if (e.target.closest('[data-menos]')) sumar(carta, -1)
+    else if (e.target.closest('[data-info]')) abrirCarta(carta)
+  })
+  $('cmMazo').addEventListener('contextmenu', (e) => {
+    const el = e.target.closest('[data-id]')
+    if (!el) return
+    e.preventDefault()
+    const carta = cartaPorId(el.dataset.id)
+    if (carta) sumar(carta, -1)
+  })
+
+  // Los resultados: pulsar añade; «i» abre; clic derecho quita una.
+  $('cmResultados').addEventListener('click', (e) => {
+    const el = e.target.closest('.cm-resultado')
+    if (!el) return
+    const carta = cartaPorId(el.dataset.id)
+    if (!carta) return
+    if (e.target.closest('[data-info]')) return abrirCarta(carta)
+    if (e.target.closest('[data-anadir]') && sumar(carta, 1)) {
+      el.classList.remove('cm-recien')
+      void el.offsetWidth
+      el.classList.add('cm-recien')
+    }
+  })
+  $('cmResultados').addEventListener('contextmenu', (e) => {
+    const el = e.target.closest('.cm-resultado')
+    if (!el) return
+    e.preventDefault()
+    const carta = cartaPorId(el.dataset.id)
+    if (carta && copiasDe(carta.id)) sumar(carta, -1)
+  })
+
+  // Buscar: al enviar y, con pausa, al escribir o cambiar un filtro.
+  let espera = null
+  const buscarEnUnRato = () => {
+    clearTimeout(espera)
+    espera = setTimeout(() => buscar(), 350)
+  }
+  $('cmFormBuscar').addEventListener('submit', (e) => {
+    e.preventDefault()
+    clearTimeout(espera)
+    buscar()
+  })
+  $('cmTexto').addEventListener('input', () => {
+    const t = $('cmTexto').value.trim()
+    if (t.length >= 2 || t.length === 0) buscarEnUnRato()
+  })
+  $('cmCategoria').addEventListener('change', () => {
+    pintarSubtipos()
+    buscar()
+  })
+  for (const id of ['cmSubtipo', 'cmTipo', 'cmSet', 'cmSoloLegales']) $(id).addEventListener('change', () => buscar())
+  $('cmMas').addEventListener('click', () => buscar({ mas: true }))
+
+  // Modales.
+  for (const m of ['cmModalCarta', 'cmModalImportar', 'cmModalMano']) {
+    $(m).addEventListener('click', (e) => {
+      if (e.target === $(m) || e.target.closest('[data-cerrar]')) cerrarModal()
+    })
+  }
+  $('cmCartaMas').addEventListener('click', () => {
+    if (cartaAbierta && sumar(cartaAbierta, 1)) pintarCartaAbierta()
+  })
+  $('cmCartaMenos').addEventListener('click', () => {
+    if (cartaAbierta && sumar(cartaAbierta, -1)) pintarCartaAbierta()
+  })
+  $('cmImportarBoton').addEventListener('click', importar)
+  $('cmManoOtra').addEventListener('click', nuevaMano)
+  $('cmManoVerPremios').addEventListener('click', () => {
+    premiosVistos = !premiosVistos
+    document.querySelectorAll('[data-premio]').forEach((p) => p.classList.toggle('cm-boca-abajo', !premiosVistos))
+    $('cmManoVerPremios').textContent = premiosVistos ? 'volver a taparlos' : 'darles la vuelta'
+  })
+}
+
+function cerrarMenus() {
+  for (const [btn, menu] of [
+    ['cmBtnCompartir', 'cmMenuCompartir'],
+    ['cmBtnHerramientas', 'cmMenuHerramientas'],
+  ]) {
+    $(menu).classList.add('hidden')
+    $(btn).setAttribute('aria-expanded', 'false')
+  }
+}
+
+// ── Arranque ──
+async function iniciar() {
+  try {
+    estado.modo = localStorage.getItem('pokedoc-constructor-modo') === 'lista' ? 'lista' : 'rejilla'
+  } catch {}
+  document.querySelectorAll('.cm-vista').forEach((x) => {
+    x.classList.toggle('activa', x.dataset.modo === estado.modo)
+    x.setAttribute('aria-pressed', x.dataset.modo === estado.modo)
+  })
+  $('cmTipo').innerHTML = '<option value="">Todos</option>' + TIPOS.map((t) => `<option value="${t.id}">${t.nombre}</option>`).join('')
+  pintarSubtipos()
+  enganchar()
+
+  const [sesion, legales, sets] = await Promise.all([getSession().catch(() => null), marcasLegales(), cargarSets().catch(() => null)])
+  estado.sesion = sesion
+  estado.legales = legales
+  estado.sets = sets || { sets: [], codigoDeId: new Map(), idDeCodigo: new Map(), porId: new Map() }
+  pintarColecciones()
+
+  await cargarDesdeUrl().catch((err) => aviso(`<p>No se ha podido cargar el mazo: ${escapeHtml(err.message || 'error de red')}.</p>`))
+  pintarCabecera()
+  pintarMazo()
+  pintarEstadoGuardado()
+
+  // Lo primero que se ve en el buscador: la colección más nueva que ya
+  // está en tiendas, que es de donde sale casi todo lo que se añade.
+  const hoy = new Date().toISOString().slice(0, 10)
+  const nueva = estado.sets.sets.find((s) => s.release_date && s.release_date <= hoy && estado.sets.codigoDeId.get(s.id) && (s.card_count_official || 0) > 20)
+  if (nueva) $('cmSet').value = nueva.id
+  buscar()
+}
+
+iniciar()
