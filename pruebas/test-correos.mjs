@@ -124,7 +124,8 @@ console.log('\n── 9. El resumen semanal, cada tema a SU tema ──')
     link: null,
   })
   check('el tema enlaza a su tema', html.includes('https://pokedoc.es/tema/11'))
-  check('la guía a su guía', html.includes('https://pokedoc.es/guia.html?slug=marcas'))
+  // Desde la tanda 353 la guía vive en /guia/<slug>.
+  check('la guía a su guía', html.includes('https://pokedoc.es/guia/marcas'))
   check('y el botón al foro', html.includes('https://pokedoc.es/foro'))
   check('el pie dice que es semanal', /una vez por semana/.test(html))
   check('en texto plano van los enlaces', text.includes('https://pokedoc.es/tema/11'))
