@@ -261,12 +261,15 @@ console.log('\n── 5. Se llega al catálogo sin saberse la URL ──')
     const j = html.indexOf(hasta, i + desde.length)
     return j < 0 ? '' : html.slice(i, j)
   }
+  // El corte va hasta nav-right y no hasta el primer </div>: desde la
+  // 356 la barra lleva desplegables ANIDADOS y el primer </div> cierra
+  // el primer submenú, antes de llegar al grupo de Cartas.
   const sinBarra = paginas.filter(
-    (f) => !trozo(leer(f), '<div class="nav-links">', '</div>').includes('href="/cartas"')
+    (f) => !trozo(leer(f), '<div class="nav-links">', '<div class="nav-right">').includes('href="/cartas"')
   )
   check('«Cartas» está en la barra de arriba', sinBarra.length === 0, sinBarra.join(', '))
   const sinMovil = paginas.filter(
-    (f) => !trozo(leer(f), '<div class="nav-menu-mobile"', '</div>').includes('href="/cartas"')
+    (f) => !trozo(leer(f), '<div class="nav-menu-mobile"', '</nav>').includes('href="/cartas"')
   )
   check('…y en el menú del móvil', sinMovil.length === 0, sinMovil.join(', '))
 }

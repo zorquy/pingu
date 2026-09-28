@@ -151,12 +151,12 @@ console.log('\n── 2. El pie de página ofrece algo, y las páginas cortas no
   // mirar: la lección de la tanda 303.
   const sinPie = PAGINAS.filter((f) => !/<footer class="footer">/.test(leer(f)))
   // Eran 22 hasta la tanda 324, que añadió las tres del catálogo
-  // (/carta, /coleccion y /cartas). El número está escrito a mano a
-  // propósito: si mañana alguien crea una página y se olvida del pie,
-  // una cuenta automática diría «todas las que tienen pie lo tienen» y
-  // no se enteraría nadie.
-  check('las 25 páginas con pie lo tienen nuevo',
-    PAGINAS.length - sinPie.length === 25, `${PAGINAS.length - sinPie.length} de ${PAGINAS.length}`)
+  // (/carta, /coleccion y /cartas); 27 desde la 354, con /constructor y
+  // /mazos. El número está escrito a mano a propósito: si mañana alguien
+  // crea una página y se olvida del pie, una cuenta automática diría
+  // «todas las que tienen pie lo tienen» y no se enteraría nadie.
+  check('las 27 páginas con pie lo tienen nuevo',
+    PAGINAS.length - sinPie.length === 27, `${PAGINAS.length - sinPie.length} de ${PAGINAS.length}`)
   // En CADA página, y con sus piezas contadas. Mirar solo si aparece la
   // palabra «pie-rejilla» dejaba pasar una página con la rejilla pero
   // sin columnas — el rigor metió justo esa y salió verde.

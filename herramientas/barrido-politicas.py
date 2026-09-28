@@ -43,11 +43,16 @@ final = {}
 # Por defecto mira las migraciones del repo. Con un directorio por
 # argumento mira ese — es como la prueba comprueba que el barrido SABE
 # detectar, dándole una política mala a posta.
+# La salida en UTF-8 explícito: en Windows la consola es cp1252 y los
+# ✔/✖ del informe la tumban al escribir.
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 DONDE = sys.argv[1] if len(sys.argv) > 1 else '/home/user/pingu'
 for f in sorted(glob.glob(os.path.join(DONDE, 'supabase-migration-*.sql')), key=clave):
     # Los comentarios pueden llevar EJEMPLOS de políticas viejas: leerlos
-    # daría por mala una política que está bien.
-    texto = '\n'.join(l for l in open(f).read().split('\n') if not l.strip().startswith('--'))
+    # daría por mala una política que está bien. El encoding va explícito
+    # porque en Windows `open` usa cp1252 y los SQL llevan tildes.
+    texto = '\n'.join(l for l in open(f, encoding='utf-8').read().split('\n') if not l.strip().startswith('--'))
     for nombre, tabla, using, check in politicas(texto):
         final[(tabla, nombre)] = (f.split('/')[-1], using, check)
 

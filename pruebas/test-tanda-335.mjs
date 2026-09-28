@@ -235,11 +235,16 @@ console.log('\n── 5. La chapa de si se puede jugar hoy ──')
   check('y no se pinta ninguna chapa', !/carta-legal/.test(nucleoDeCarta({ id: 'x', name: 'X' }, null, null, null)))
 
   // Una energía básica se puede jugar SIEMPRE: es regla del juego, no
-  // del formato. Y se reconoce también con la ficha en español.
+  // del formato. Y se reconoce también con la ficha en español. Desde la
+  // 358 el campo SOLO no basta —TCGdex marca «Normal» energías
+  // especiales, la Prisma y las suyas— así que la fila lleva su nombre,
+  // que es lo que decide (toda fila real lo tiene).
   check('una energía básica está dentro lleve lo que lleve',
-    legalidadEstandar({ category: 'Energía', energy_type: 'Normal', regulation_mark: 'A' }, L)?.estado === 'legal')
+    legalidadEstandar({ category: 'Energía', name: 'Fire Energy', name_es: 'Energía Fuego', energy_type: 'Normal', regulation_mark: 'A' }, L)?.estado === 'legal')
   check('…y una energía ESPECIAL no se cuela',
     legalidadEstandar({ category: 'Energía', energy_type: 'Especial', regulation_mark: 'A' }, L)?.estado === 'fuera')
+  check('…ni la Prisma, aunque el espejo la marque «Básico» (358)',
+    legalidadEstandar({ category: 'Energía', name: 'Prism Energy', name_es: 'Energía Prisma', energy_type: 'Básico', regulation_mark: 'A' }, L)?.estado === 'fuera')
   check('el tipo de energía también se canoniza',
     canonizarCarta({ energy_type: 'Especial' }).energy_type === 'Special')
   check('una carta sin engordar se reconoce por el nombre',

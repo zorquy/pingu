@@ -36,7 +36,10 @@ const PNG = '/tmp/pk887.png'
 // único que pasa es que desde aquí no se sale.
 const cabecera = async (url) => {
   try {
-    const salida = execFileSync('curl', ['-sS', '-o', '/dev/null', '--max-time', '25',
+    // El sumidero con nombre de cada sistema: en Windows /dev/null no
+    // existe y curl revienta al escribir (error 23).
+    const sumidero = process.platform === 'win32' ? 'NUL' : '/dev/null'
+    const salida = execFileSync('curl', ['-sS', '-o', sumidero, '--max-time', '25',
       '-w', '%{http_code} %{content_type}', url], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
     const [status, tipo] = salida.trim().split(' ')
     return { status: Number(status), tipo }
