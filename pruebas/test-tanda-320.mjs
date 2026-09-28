@@ -157,8 +157,18 @@ console.log('\n── 5. Los enlaces que se apartan siguen siendo alcanzables �
           await boton.click()
           await page.waitForTimeout(250)
           pulsado = true
+          // Desde la 359 el menú es un CAJÓN con acordeones: a la vista
+          // están los enlaces sueltos y los summary de los apartados.
           visibles = await page.evaluate(() =>
-            [...document.querySelectorAll('.nav-menu-mobile a')].filter((a) => a.offsetParent !== null).length)
+            [...document.querySelectorAll('.nav-menu-mobile > a, .nav-menu-grupo summary')].filter((a) => a.offsetParent !== null).length)
+          // Y un acordeón se abre y enseña lo suyo — que el control haga
+          // algo, la misma lección de siempre.
+          await page.locator('.nav-menu-grupo summary').first().click()
+          await page.waitForTimeout(200)
+          const dentro = await page.evaluate(() =>
+            [...document.querySelectorAll('.nav-menu-grupo[open] a')].filter((a) => a.offsetParent !== null).length)
+          check(`[${ancho}${conChip ? ' con torneo' : ''}] el acordeón se abre y enseña sus enlaces`,
+            dentro >= 2, `enlaces del apartado a la vista: ${dentro}`)
         }
       } else {
         // Con la barra a la vista, un grupo se abre y enseña lo suyo.

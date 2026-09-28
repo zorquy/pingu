@@ -42,6 +42,8 @@ const T = {
   tcg_archetypes: [],
   tcg_sets: [],
   tcg_card_play: [],
+  // Los mazos del constructor (tanda 354).
+  user_decks: [],
   match_log: [],
   match_log_torneos: [],
   guides: [],
@@ -337,6 +339,20 @@ sembrar('__FAKE_JUEGO__', 'tcg_card_play', (i) => ({
 }))
 
 sembrar('__FAKE_AJUSTES__', 'site_settings', (i) => ({ key: `clave-${i}`, value: {} }))
+
+// Los mazos guardados del constructor (tanda 359): los lista «Usar un
+// mazo del constructor» en la decklist de un torneo, y /mazos.
+sembrar('__FAKE_MAZOS__', 'user_decks', (i) => ({
+  id: `mazo-${i + 1}`,
+  user_id: 'user-1',
+  name: `Mazo ${i + 1}`,
+  format: 'standard',
+  cards: [],
+  cover_card: null,
+  is_public: false,
+  created_at: new Date(Date.now() - (i + 1) * 86400e3).toISOString(),
+  updated_at: new Date(Date.now() - (i + 1) * 3600e3).toISOString(),
+}))
 
 sembrar('__FAKE_PARTIDAS__', 'match_log', (i) => ({
   id: `mlog-${i + 1}`,
