@@ -102,31 +102,51 @@ console.log('\n── 2. El menú dice en qué sección estás ──')
   // direcciones limpias `'noticias' === '/noticias'` es falso. Por eso
   // el menú parecía texto plano: el estado que lo diferenciaba no
   // llegaba a existir nunca.
+  //
+  // Desde la 356 la barra son Noticias + cuatro DESPLEGABLES: lo que se
+  // enciende es el enlace suelto (a.active) o el BOTÓN del grupo que
+  // contiene al enlace activo (.nav-grupo:has(a.active) .nav-grupo-btn).
+  // «Inicio» ya no está en la barra ancha —el logo lleva a la portada—
+  // así que en la portada no se marca nada arriba y sí en el menú del
+  // móvil, que lo conserva.
+  const marcada = (page) =>
+    page.evaluate(() => {
+      const suelto = [...document.querySelectorAll('.nav-links > a.active')]
+      const grupos = [...document.querySelectorAll('.nav-links .nav-grupo')].filter((g) => g.querySelector('a.active'))
+      return [...suelto.map((a) => a.textContent.trim()), ...grupos.map((g) => g.querySelector('.nav-grupo-btn').textContent.trim())]
+    })
   const esperado = [
-    ['/index.html', 'Inicio'], ['/', 'Inicio'], ['/noticias', 'Noticias'],
-    ['/aprender', 'Aprender'], ['/foro', 'Foro'], ['/usuarios', 'Comunidad'], ['/torneos', 'Jugar'],
+    ['/noticias', 'Noticias'], ['/aprender', 'Aprender'], ['/foro', 'Comunidad'],
+    ['/usuarios', 'Comunidad'], ['/torneos', 'Jugar'],
   ]
   for (const [ruta, cual] of esperado) {
     const { page } = await abrir(ruta)
-    const act = await page.locator('.nav-links a.active').allTextContents()
-    check(`${ruta}: marca «${cual}»`, act.length === 1 && act[0].trim() === cual, JSON.stringify(act))
+    const act = await marcada(page)
+    check(`${ruta}: marca «${cual}»`, act.length === 1 && act[0] === cual, JSON.stringify(act))
+    await page.close()
+  }
+  for (const ruta of ['/index.html', '/']) {
+    const { page } = await abrir(ruta)
+    check(`${ruta}: arriba no se marca nada (el logo ES la portada)`, (await marcada(page)).length === 0,
+      JSON.stringify(await marcada(page)))
+    const movil = await page.locator('.nav-menu-mobile a.active').allTextContents()
+    check(`  …y el menú del móvil marca «Inicio»`, movil.length === 1 && movil[0].trim() === 'Inicio', JSON.stringify(movil))
     await page.close()
   }
 
   // Y leer algo también es estar en su sección: una guía es Aprender.
   const { page: g } = await abrir('/guia?slug=mi-guia', { semillas: { __FAKE_GUIAS__: [GUIA] } })
-  check('leyendo una guía se marca «Aprender»',
-    (await g.locator('.nav-links a.active').textContent())?.trim() === 'Aprender',
-    JSON.stringify(await g.locator('.nav-links a.active').allTextContents()))
+  check('leyendo una guía se marca «Aprender»', JSON.stringify(await marcada(g)) === '["Aprender"]',
+    JSON.stringify(await marcada(g)))
   await g.close()
 
   // La marca se VE, no solo está puesta: fondo distinto del de al lado.
   const { page: v } = await abrir('/foro')
-  const colores = await v.locator('.nav-links a').evaluateAll((ns) =>
+  const colores = await v.locator('.nav-links .nav-grupo-btn, .nav-links > a').evaluateAll((ns) =>
     ns.map((n) => ({ t: n.textContent.trim(), fondo: getComputedStyle(n).backgroundColor }))
   )
-  const activo = colores.find((c) => c.t === 'Foro')
-  const otro = colores.find((c) => c.t === 'Inicio')
+  const activo = colores.find((c) => c.t === 'Comunidad')
+  const otro = colores.find((c) => c.t === 'Aprender')
   check('la marca se ve: el activo tiene fondo y el resto no',
     activo.fondo !== otro.fondo && !/rgba\(0, 0, 0, 0\)/.test(activo.fondo), JSON.stringify([activo, otro]))
   await v.close()
@@ -139,7 +159,8 @@ console.log('\n── 3. El desplegable del perfil, más corto ──')
   await page.locator('#navUserBtn').click()
   await page.waitForTimeout(300)
   const opciones = (await page.locator('.nav-user-links a, .nav-user-links button').allTextContents()).map((t) => t.trim())
-  check('quedan cinco opciones', opciones.length === 5, JSON.stringify(opciones))
+  // Cinco en la 309; la 355 metió «Mis mazos» junto a «Mis partidas».
+  check('quedan seis opciones', opciones.length === 6, JSON.stringify(opciones))
   check('  …y «Mis torneos» ya no está', !opciones.some((o) => /mis torneos/i.test(o)), JSON.stringify(opciones))
   check('  …ni «Enviar feedback»', !opciones.some((o) => /feedback/i.test(o)), JSON.stringify(opciones))
   // Ni siquiera al admin, que era el único al que le salía «Mis torneos».

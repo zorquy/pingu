@@ -32,7 +32,9 @@ console.log('\n── 2. Cada entrada ──')
   check('el título', xml.includes('<title>Reveladas las cartas del 30 aniversario</title>'))
   // Una noticia va a su dirección de noticia; una guía, a la suya.
   check('la noticia enlaza a /noticias/', xml.includes('<link>https://pokedoc.es/noticias/cartas-30</link>'))
-  check('y la guía a la suya', xml.includes('<link>https://pokedoc.es/guia.html?slug=carta-falsa</link>'.replace('?', '?')))
+  // Desde la 353 una guía vive en /guia/<slug> (los enlaces viejos con
+  // ?slug= llegan por un 301).
+  check('y la guía a la suya', xml.includes('<link>https://pokedoc.es/guia/carta-falsa</link>'))
   check('el guid es la dirección, que no cambia', xml.includes('<guid isPermaLink="true">https://pokedoc.es/noticias/cartas-30</guid>'))
   // RSS 2.0 pide fecha de correo, no ISO: un lector que no la entiende
   // ordena las entradas como le parece.
@@ -86,7 +88,7 @@ console.log('\n── 5. El puente, y que nunca devuelva un error ──')
   try {
     const xml = await (await rss()).text()
     check('sin la migración, el canal sigue trayendo artículos', xml.includes('Una guía'), xml.slice(0, 120))
-    check('y trata lo que no sabe como guía', xml.includes('/guia.html?slug=g1'))
+    check('y trata lo que no sabe como guía', xml.includes('/guia/g1'))
   } finally {
     globalThis.fetch = original
   }

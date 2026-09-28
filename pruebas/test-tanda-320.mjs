@@ -137,12 +137,17 @@ console.log('\n── 5. Los enlaces que se apartan siguen siendo alcanzables �
   //
   // Lo que se afirma es el DESTINO, no el CSS: en cualquier ancho, o
   // los enlaces están a la vista, o se llega a ellos pulsando el botón.
+  //
+  // Desde la 356 la barra ancha son Noticias + cuatro DESPLEGABLES, así
+  // que «a la vista» son el enlace suelto y los botones de grupo — y
+  // llegar a un destino incluye ABRIR un grupo y ver sus enlaces, que
+  // es la misma lección del menú del móvil: que el control haga algo.
   const ANCHOS = [400, 900, 1100, 1150, 1200, 1400]
   for (const ancho of ANCHOS) {
     for (const conChip of [false, true]) {
       const { page } = await abrir(ancho, conChip)
       const antes = await page.evaluate(() =>
-        [...document.querySelectorAll('.nav-links a')].filter((a) => a.offsetParent !== null).length)
+        [...document.querySelectorAll('.nav-links > a, .nav-links .nav-grupo-btn')].filter((a) => a.offsetParent !== null).length)
       let visibles = antes
       let pulsado = false
       if (!antes) {
@@ -155,6 +160,14 @@ console.log('\n── 5. Los enlaces que se apartan siguen siendo alcanzables �
           visibles = await page.evaluate(() =>
             [...document.querySelectorAll('.nav-menu-mobile a')].filter((a) => a.offsetParent !== null).length)
         }
+      } else {
+        // Con la barra a la vista, un grupo se abre y enseña lo suyo.
+        await page.locator('.nav-links .nav-grupo-btn').first().hover()
+        await page.waitForTimeout(200)
+        const dentro = await page.evaluate(() =>
+          [...document.querySelectorAll('.nav-links .nav-sub a')].filter((a) => a.offsetParent !== null).length)
+        check(`[${ancho}${conChip ? ' con torneo' : ''}] el desplegable se abre y enseña sus enlaces`,
+          dentro >= 2, `enlaces del grupo a la vista: ${dentro}`)
       }
       check(`[${ancho}${conChip ? ' con torneo' : ''}] se llega a los enlaces${pulsado ? ' (por el menú)' : ''}`,
         visibles >= 4, `a la vista: ${antes} · tras pulsar: ${visibles}`)

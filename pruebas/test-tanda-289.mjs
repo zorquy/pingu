@@ -98,7 +98,8 @@ console.log('\n── 3. Una guía SÍ la firma quien la escribe ──')
   const href = await fila.locator('a').last().getAttribute('href')
   // Cuál de las cinco sobra depende del orden del doble; lo que importa
   // es que la fila lleve a la guía y no a otra parte.
-  check('y lleva a la guía', /^\/guia\.html\?slug=guia-\d+$/.test(href || ''), href)
+  // Desde la 353 una guía vive en /guia/<slug>.
+  check('y lleva a la guía', /^\/guia\/guia-\d+$/.test(href || ''), href)
   await page.close()
 }
 

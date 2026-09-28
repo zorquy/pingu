@@ -770,7 +770,22 @@ function consulta(tabla, estado = {}) {
       return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => String(f[col]) === String(val)] })
     },
     or: (expresion) => {
-      const trozos = String(expresion).split(',')
+      // Por comas DE PRIMER NIVEL: un «in.(H,I,J)» lleva comas dentro
+      // del paréntesis y esas no separan condiciones (tanda 358).
+      const trozos = []
+      {
+        let nivel = 0
+        let actual = ''
+        for (const ch of String(expresion)) {
+          if (ch === '(') nivel++
+          if (ch === ')') nivel--
+          if (ch === ',' && nivel === 0) {
+            trozos.push(actual)
+            actual = ''
+          } else actual += ch
+        }
+        if (actual) trozos.push(actual)
+      }
       const pruebas = trozos.map((t) => {
         const [col, op, ...resto] = t.split('.')
         const valor = resto.join('.')
@@ -784,6 +799,16 @@ function consulta(tabla, estado = {}) {
         if (op === 'lte') return (f) => f[col] != null && f[col] <= valor
         if (op === 'gt') return (f) => f[col] != null && f[col] > valor
         if (op === 'lt') return (f) => f[col] != null && f[col] < valor
+        // Las dos formas que usa el buscador del constructor (tanda 358):
+        // «regulation_mark.in.(H,I,J)» y «set_id.like.bw*».
+        if (op === 'in') {
+          const lista = valor.replace(/^\(|\)$/g, '').split(',').map((s) => s.trim())
+          return (f) => lista.includes(String(f[col]))
+        }
+        if (op === 'like') {
+          const r = new RegExp('^' + valor.split('*').map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$')
+          return (f) => f[col] != null && r.test(String(f[col]))
+        }
         throw new Error(`stub: .or() no entiende «${t}». Añádelo si el cliente lo usa.`)
       })
       return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => pruebas.some((p) => p(f))] })
@@ -816,8 +841,19 @@ function consulta(tabla, estado = {}) {
         ...st,
         filtros: [...st.filtros, (f) => (val === null ? f[col] === null || f[col] === undefined : f[col] === val)],
       }),
-    not: (col, _op, val) =>
-      consulta(tabla, { ...st, filtros: [...st.filtros, (f) => (val === null ? f[col] !== null && f[col] !== undefined : f[col] !== val)] }),
+    not: (col, op, val) =>
+      consulta(tabla, {
+        ...st,
+        filtros: [...st.filtros, (f) => {
+          // `.not(col, 'in', '(a,b)')`, como lo escribe PostgREST (lo usa
+          // el filtro de energías especiales del constructor, tanda 358).
+          if (op === 'in') {
+            const lista = String(val).replace(/^\(|\)$/g, '').split(',').map((s) => s.trim())
+            return !lista.includes(String(f[col]))
+          }
+          return val === null ? f[col] !== null && f[col] !== undefined : f[col] !== val
+        }],
+      }),
     gte: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] >= val] }),
     lte: (col, val) => consulta(tabla, { ...st, filtros: [...st.filtros, (f) => f[col] <= val] }),
     order: (col, opts = {}) => consulta(tabla, { ...st, ordenes: [...(st.ordenes || []), { col, asc: opts.ascending !== false }] }),

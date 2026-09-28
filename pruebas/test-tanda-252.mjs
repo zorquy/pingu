@@ -80,9 +80,11 @@ console.log('\n── 1. La sección ya no echa a nadie ──')
 console.log('\n── 2. El enlace «Jugar» sale para todos ──')
 {
   const { page } = await abrir('/', { __FAKE_SESSION__: 'user-1' })
-  const jugar = page.locator('.nav-jugar').first()
+  // Desde la 356 «Jugar» es un DESPLEGABLE (div.nav-grupo), no un
+  // enlace suelto: el destino vive en su submenú.
+  const jugar = page.locator('.nav-links .nav-jugar').first()
   check('un miembro normal ve «Jugar»', await jugar.isVisible())
-  check('y lleva a los torneos', (await jugar.getAttribute('href')) === 'torneos.html')
+  check('y lleva a los torneos', (await jugar.locator('.nav-sub a[href="/torneos.html"]').count()) === 1)
   await page.close()
 }
 

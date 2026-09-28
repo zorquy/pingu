@@ -180,8 +180,10 @@ console.log('\n── 7. La navegación ──')
   const { page } = await abrir('/')
   const enlace = page.locator('.nav-links a[href="/noticias"]')
   check('«Noticias» está en la barra', (await enlace.count()) === 1)
-  check('y va la segunda, después de Inicio',
-    (await page.locator('.nav-links a').nth(1).getAttribute('href')) === '/noticias')
+  // Desde la 356 va la PRIMERA: «Inicio» salió de la barra ancha (el
+  // logo ya lleva a la portada) y el resto son desplegables.
+  check('y va la primera, suelta delante de los desplegables',
+    (await page.locator('.nav-links > a').nth(0).getAttribute('href')) === '/noticias')
   await page.close()
 }
 

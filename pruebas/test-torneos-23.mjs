@@ -229,9 +229,15 @@ console.log('\n── 6. Los iconos son MINISPRITES (tanda 231) ──')
 console.log('\n── 7. Si la CDN de sprites falla, vuelve el nombre ──')
 {
   // No es un caso raro: las imágenes vienen de fuera, y de fuera se cae
-  // todo tarde o temprano. Aquí se cortan a propósito.
+  // todo tarde o temprano. Aquí se cortan a propósito — y la CADENA
+  // ENTERA de respaldos (tanda 321: Limitless → jsDelivr → GitHub), no
+  // solo la primera: en un entorno CON red, cortar solo Limitless hace
+  // que el respaldo cargue el sprite de verdad y el nombre nunca vuelva
+  // — que es el respaldo funcionando, no el fallo que se quiere probar.
   const page = await browser.newPage()
   await page.route('**/r2.limitlesstcg.net/**', (r) => r.abort())
+  await page.route('**/cdn.jsdelivr.net/**', (r) => r.abort())
+  await page.route('**/raw.githubusercontent.com/**', (r) => r.abort())
   await page.addInitScript((s) => {
     window.__FAKE_SESSION__ = 'user-1'
     window.__FAKE_TORNEOS__ = [{ ...s.t, status: 'finished', show_opponent_decklists: false }]
