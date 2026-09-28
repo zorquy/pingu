@@ -372,6 +372,10 @@ select {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 12px 12px;
+  /* Los 44 con min-height y no fiados al relleno (tanda 358): la letra
+     no mide lo mismo en todas las plataformas, y con la de Windows el
+     relleno se quedaba en 43. */
+  min-height: 44px;
   font-size: var(--t-md);
   outline: none;
   transition: border-color 0.15s var(--ease);

@@ -64,9 +64,19 @@ normalizado a LF con `core.autocrlf=false`.
   `test-constructor.mjs` (añadir, tope de 4 por nombre entre versiones,
   la Prisma como especial, importar de TCG Live y básicas a mee-00X).
   En verde las dos; su rigor queda pendiente.
-- Pasada completa en curso al empujar: 15/109 en verde y ninguna roja;
-  los rojos de la primera pasada quedaron todos explicados (CRLF,
-  expectativas de la 353, entorno) y las adaptadas pasan en directo.
+- **Pasada completa: las 109 en VERDE.** Por el camino cazó dos cosas de
+  verdad, arregladas en el segundo push de esta tanda: los controles de
+  formulario fiaban sus 44 px al relleno y con la letra de Windows se
+  quedaban en 43 (`min-height: 44px` en la regla compartida de
+  style.css, +60 bytes de portada → 169,9) y al recorte de una carta
+  reconocida le faltaba `loading="lazy"` (constructor.js). Adaptados
+  además los recuentos de pie (25→27 en 312 y 326), el corte del trozo
+  de barra en 327 (el primer `</div>` ya no cierra la barra: hay
+  desplegables anidados) y la energía básica de 335 lleva ahora su
+  nombre (el campo solo ya no basta, y la Prisma se comprueba como
+  fuera). Y tres portabilidades del entorno: encoding UTF-8 explícito en
+  barrido-politicas.py (lectura y salida) y el sumidero de curl por
+  sistema en test-tanda-321.
 
 **Ficheros**: `js/carta-detalle.js`, `js/carta-nucleo.js`,
 `js/constructor/nucleo.js`, `js/constructor/datos.js`,

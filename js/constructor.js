@@ -577,7 +577,7 @@ function pintarFilasImagen() {
     .map(
       (f, k) => `
       <div class="cm-imagen-fila${f.dudaCarta || f.dudaCopias ? ' cm-duda' : ''}" data-k="${k}">
-        <img class="cm-imagen-recorte" src="${escapeHtml(f.recorte)}" alt="" width="92" height="128" />
+        <img class="cm-imagen-recorte" src="${escapeHtml(f.recorte)}" alt="" width="92" height="128" loading="lazy" />
         <div class="cm-imagen-datos">
           <label class="cm-campo">Carta
             <select data-carta class="${f.dudaCarta ? 'cm-dudoso' : ''}">
