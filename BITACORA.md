@@ -422,6 +422,11 @@ En la rama `pruebas`: `pruebas/test-tanda-361.mjs` (NUEVO),
 `herramientas/stub-supabase.js` (la tabla nueva) y
 `herramientas/correr-suite.sh`.
 
+**Añadido después**: `/colabora` entra en el sitemap (`ESTATICAS` de
+`netlify/functions/sitemap.mjs`). Estaba enlazada desde el pie de las 28
+páginas, así que Google podía llegar; ofrecerla explícitamente es una
+línea y no cuesta nada.
+
 **Ojo con la numeración**: esto se escribió como «tanda 354» y la otra
 sesión ya había usado ese número para el constructor de mazos. Renumerada
 a 361 al integrar. Con dos sesiones a la vez, el número se coge al SUBIR,

@@ -40,6 +40,10 @@ const ESTATICAS = [
   ['/cartas', '0.8'],
   ['/buscar.html', '0.6'],
   ['/usuarios.html', '0.6'],
+  // Quién quiere echar una mano (tanda 361). Pública y sin cuenta: el
+  // formulario pide sesión, pero la página es un escaparate y quien
+  // todavía no tiene cuenta es justo a quien hay que convencer.
+  ['/colabora', '0.5'],
   ['/foro.html', '0.8'],
   // El constructor de mazos: pública e indexable (los mazos concretos no,
   // van por parámetro y son de cada usuario).
