@@ -47,11 +47,11 @@ const NOMBRES_ENERGIA = {
   G: ['grass', 'planta'],
   R: ['fire', 'fuego'],
   W: ['water', 'agua'],
-  L: ['lightning', 'rayo'],
-  P: ['psychic', 'psiquica'],
+  L: ['lightning', 'rayo', 'electrica', 'electrico'],
+  P: ['psychic', 'psiquica', 'psiquico'],
   F: ['fighting', 'lucha'],
-  D: ['darkness', 'oscura', 'oscuridad'],
-  M: ['metal', 'metalica'],
+  D: ['darkness', 'oscura', 'oscuro', 'oscuridad', 'siniestra'],
+  M: ['metal', 'metalica', 'metalico'],
 }
 const SETS_DE_ENERGIA_BASICA = ['sve', 'mee']
 
@@ -69,19 +69,62 @@ export function letraDeEnergia(nombre) {
   return null
 }
 
+// ── La imagen de una energía básica ──
+//
+// TCGdex no trae imagen de NINGUNA energía básica del espejo (sve y mee
+// tienen `image_path` a null), así que en el constructor salían como un
+// hueco con el nombre. Se pintan con las de la colección del 30
+// aniversario —MEE 9 a 16, las que llevan el sello del 30 aniversario—
+// sacadas de la CDN de Limitless, que es donde están; si esa no
+// contesta, las MEE 1 a 8 normales, y si tampoco, el nombre (tanda 321:
+// un respaldo tiene que estar en otro sitio, y el último es el texto).
+//
+// Es solo lo que se VE: la carta del mazo sigue siendo la del espejo
+// (mee-00X), que es la que se guarda y se exporta.
+const CDN_LIMITLESS = 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/MEE/MEE_'
+export function letraDeCartaDeEnergia(carta) {
+  if (!carta) return null
+  const letra = letraDeEnergia(carta.name) || letraDeEnergia(carta.name_es)
+  if (letra) return letra
+  const n = Number(carta.local_id)
+  return SETS_DE_ENERGIA_BASICA.includes(String(carta.set_id).toLowerCase()) && n >= 1 ? LETRAS_ENERGIA[(n - 1) % 8] : null
+}
+
+export function imagenDeEnergiaBasica(carta, tamanio = 'SM') {
+  const letra = letraDeCartaDeEnergia(carta)
+  if (!letra) return null
+  const i = LETRAS_ENERGIA.indexOf(letra)
+  const url = (n) => `${CDN_LIMITLESS}${String(n).padStart(3, '0')}_R_EN_${tamanio}.png`
+  return { url: url(9 + i), respaldo: url(1 + i) }
+}
+
+// El identificador de la energía básica que se usa al añadirla por
+// nombre o al importarla: la de MEE de su tipo, que es la que se pinta.
+export function idDeEnergiaBasica(letra) {
+  const i = LETRAS_ENERGIA.indexOf(String(letra || '').toUpperCase())
+  return i < 0 ? null : `mee-${String(i + 1).padStart(3, '0')}`
+}
+
+// ¿Es una energía BÁSICA? Por el NOMBRE, no por `energy_type`: en el
+// espejo ese campo miente — la Energía Prisma, la Ignición, la del Team
+// Rocket y las ocho «Energía X Burbujeante / Rocosa / Nitro…» de la era
+// ME vienen marcadas «Básico» y son ESPECIALES (comprobado contra
+// Limitless). Tomarlas por básicas les quitaba el límite de 4 copias.
+// Solo se fía de `energy_type` para decir que NO (si dice especial).
+// El Hada cuenta como básica (lo fue hasta 2020 y sigue en Expandido)
+// aunque no tenga gemela en MEE: por eso está aquí y NO en
+// NOMBRES_ENERGIA — no se puede llevar a una mee-00X.
+const TIPOS_BASICOS = 'planta|fuego|agua|rayo|psiquica|psiquico|lucha|oscura|oscuro|metalica|metalico|hada|grass|fire|water|lightning|psychic|fighting|darkness|metal|fairy'
+const NOMBRE_DE_BASICA = [
+  new RegExp(`^energia (${TIPOS_BASICOS})( basica)?$`),
+  new RegExp(`^(basic )?(\\{[grwlpfdm]\\}|${TIPOS_BASICOS}) energy$`),
+]
 export function esEnergiaBasica(carta) {
   if (!carta) return false
   const tipo = plano(carta.energy_type)
-  if (tipo === 'basico' || tipo === 'normal' || tipo === 'basic') return true
   if (tipo === 'special' || tipo === 'especial') return false
   if (SETS_DE_ENERGIA_BASICA.includes(String(carta.set_id || '').toLowerCase())) return true
-  // Por el nombre, para las que no están engordadas: «Energía Fuego» o
-  // «Basic Fire Energy», pero no «Energía Doble Turbo».
-  const n = plano(carta.name)
-  return (
-    /^energia\s+(planta|fuego|agua|rayo|psiquica|lucha|oscura|metalica)$/.test(n) ||
-    /^(basic\s+)?(\{[grwlpfdm]\}|grass|fire|water|lightning|psychic|fighting|darkness|metal)\s+energy$/.test(n)
-  )
+  return [carta.name, carta.name_es].some((n) => n && NOMBRE_DE_BASICA.some((r) => r.test(plano(n))))
 }
 
 // Supporter / Item / Tool / Stadium, en los dos idiomas del espejo.
@@ -258,23 +301,32 @@ export function esDeExpandido(carta) {
 // entrenadores por subtipo (partidarios, objetos, herramientas,
 // estadios) y las energías especiales antes que las básicas. Dentro de
 // cada grupo, las que más copias llevan primero.
+//
+// `{ estable: true }` es para PINTAR el mazo mientras se construye: ahí
+// ordenar por copias hace que una carta salte de sitio al pulsar «+» (la
+// tercera copia la adelanta a las que tienen dos) y el siguiente clic cae
+// en otra. Con `estable` se respetan los grupos y las líneas evolutivas,
+// pero dentro de ellos manda el orden en que se añadió cada carta.
 const ORDEN_ENTRENADOR = { partidario: 0, objeto: 1, herramienta: 2, estadio: 3, otro: 4 }
 
-export function seccionesDelMazo(entradas) {
+export function seccionesDelMazo(entradas, { estable = false } = {}) {
   const secciones = { P: [], T: [], E: [], X: [] }
   for (const e of entradas) secciones[categoriaDe(e.carta) || 'X'].push(e)
 
-  const porCopias = (a, b) => b.n - a.n || nombreVisible(a.carta).localeCompare(nombreVisible(b.carta), 'es')
+  const orden = new Map(entradas.map((e, i) => [e, i]))
+  const porCopias = estable
+    ? (a, b) => orden.get(a) - orden.get(b)
+    : (a, b) => b.n - a.n || nombreVisible(a.carta).localeCompare(nombreVisible(b.carta), 'es')
   secciones.T.sort((a, b) => (ORDEN_ENTRENADOR[subtipoDeEntrenador(a.carta)] ?? 5) - (ORDEN_ENTRENADOR[subtipoDeEntrenador(b.carta)] ?? 5) || porCopias(a, b))
   secciones.E.sort((a, b) => Number(esEnergiaBasica(a.carta)) - Number(esEnergiaBasica(b.carta)) || porCopias(a, b))
   secciones.X.sort(porCopias)
-  secciones.P = ordenarPorLineas(secciones.P, porCopias)
+  secciones.P = ordenarPorLineas(secciones.P, porCopias, estable)
   return secciones
 }
 
 // Una línea evolutiva junta: el básico, y detrás lo que evoluciona de él
 // (por `evolve_from`, en cualquier idioma: se compara el nombre plano).
-function ordenarPorLineas(pokemon, porCopias) {
+function ordenarPorLineas(pokemon, porCopias, estable = false) {
   const hijos = new Map()
   const raices = []
   // Por los DOS nombres: `evolve_from` puede venir en inglés o en español
@@ -303,7 +355,9 @@ function ordenarPorLineas(pokemon, porCopias) {
   // intermedio (Pidgey y Pidgeot ex sin Pidgeotto), el básico sigue
   // yendo delante de su evolución.
   const fase = (e) => (esBasico(e.carta) === true ? 0 : /2/.test(plano(e.carta.stage)) ? 2 : 1)
-  raices.sort((a, b) => peso(b) - peso(a) || fase(a) - fase(b) || porCopias(a, b)).forEach(visitar)
+  // En modo estable, sin el peso: la línea que crece no adelanta a las
+  // demás. La fase sí, que no cambia al pulsar «+».
+  raices.sort((a, b) => (estable ? 0 : peso(b) - peso(a)) || fase(a) - fase(b) || porCopias(a, b)).forEach(visitar)
   return fuera
 }
 
@@ -384,26 +438,12 @@ export function comoDecklist(entradas, codigoDeSet) {
 //   · long. set y long. número: un dígito cada una.
 //   · SET es el código de TCG Live («TWM») y NÚMERO va sin ceros.
 const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-export const LIMITLESS_BUILDER = 'https://my.limitlesstcg.com/builder'
-const PROMOS_LIMITLESS = { 'PR-SV': 'SVP', 'PR-SW': 'SP', 'PR-SM': 'SMP', 'PR-XY': 'XYP', 'PR-BLW': 'BWP', 'PR-ME': 'MEP' }
-
-export function enlaceLimitless(entradas, codigoDeSet) {
-  const trozos = []
-  for (const e of entradas) {
-    const partes = lineaTcgLive(e, codigoDeSet).match(/\s(\S+)\s(\S+)$/)
-    if (!partes) continue
-    const [, set, numero] = partes
-    // Las promos: TCG Live las escribe «PR-XX» y Limitless con su código.
-    const setL = PROMOS_LIMITLESS[set] || set
-    if (setL.length > 9 || numero.length > 9) continue
-    trozos.push(`0${BASE62[Math.max(1, Math.min(61, e.n))]}${setL.length}${numero.length}${setL}${numero}`)
-  }
-  return `${LIMITLESS_BUILDER}?i=1${trozos.join('')}`
-}
-
-// Y al revés: un enlace de Limitless pegado aquí. Devuelve líneas
-// { n, set, numero } con el código de TCG Live, que se resuelven igual
-// que las de un texto.
+// Solo se LEE (un enlace de Limitless pegado en «Importar»): exportar
+// hacia su builder se quitó a petición de PINGU — para llevarse el mazo
+// fuera ya están «Copiar para TCG Live» y el enlace propio. Devuelve
+// líneas { n, set, numero } que se resuelven igual que las de un texto
+// (las promos llegan con el código de Limitless, SVP, SP…, y datos.js
+// los acepta como alias).
 export function leerEnlaceLimitless(codigo) {
   const s = String(codigo || '').replace(/^.*[?&]i=/, '').replace(/[&#].*$/, '')
   if (!s.startsWith('1')) return []

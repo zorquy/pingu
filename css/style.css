@@ -412,8 +412,13 @@ select {
 }
 
 /* En modo oscuro la flecha tiene que verse sobre el fondo oscuro: el
-   color va DENTRO del SVG, así que hace falta otra copia. */
+   color va DENTRO del SVG, así que hace falta otra copia. Y repite el
+   no-repeat y la posición (tanda 356): una hoja de página que pinte el
+   fondo con el atajo `background` los devuelve a `repeat`, y como esta
+   regla gana por especificidad la flecha salía en mosaico (/cartas). */
 :root[data-theme='dark'] select {
+  background-repeat: no-repeat;
+  background-position: right 12px center;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%2394adb8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
 }
 
@@ -592,16 +597,11 @@ body:has(> .footer) .page-content {
   color: var(--text-mid);
 }
 
-/* ── El menú (tanda 309) ──
-   Era una línea de 2 px bajo el apartado activo… que no se encendía
-   nunca fuera de la portada (ver markActiveLink en js/app.js). Ya
-   encendida, se sube el contraste: PASTILLA RELLENA, y solo en el sitio
-   donde estás.
-
-   Solo el activo lleva fondo, no los seis. Con seis pastillas ninguna
-   destaca —que es justo lo que hay que ver— y compiten con el logo y
-   con los cuatro iconos de la derecha. El resto se conforma con
-   oscurecerse al pasar por encima. */
+/* ── El menú (tandas 309 y 356) ──
+   Solo el apartado donde estás lleva pastilla rellena; el resto se
+   oscurece al pasar. Desde la 356 la barra son CINCO entradas —Noticias
+   y cuatro desplegables— en vez de siete enlaces sueltos. El porqué
+   largo, en SCHEMA.md (tanda 356). */
 .nav-links a {
   position: relative;
   padding: 8px 12px;
@@ -614,10 +614,73 @@ body:has(> .footer) .page-content {
   background: color-mix(in srgb, var(--navy) 7%, transparent);
 }
 
-.nav-links a.active {
+.nav-links a.active,
+.nav-grupo:has(a.active) .nav-grupo-btn {
   color: var(--navy);
   font-weight: 700;
   background: color-mix(in srgb, var(--navy) 12%, transparent);
+}
+
+/* Los desplegables. Con ratón se abren al pasar; con teclado, al llegar
+   con el tabulador; con el dedo, al tocar (js/app.js cambia el
+   aria-expanded). Con `:focus-visible` y no `:focus-within`: si no, un
+   clic dejaba el botón con foco y el menú ya no se cerraba al volver a
+   pulsarlo. */
+.nav-grupo {
+  position: relative;
+}
+
+.nav-grupo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  color: inherit;
+  transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.nav-grupo-btn::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-top: -4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.nav-grupo:hover .nav-grupo-btn {
+  color: var(--text);
+  background: color-mix(in srgb, var(--navy) 7%, transparent);
+}
+
+.nav-sub {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 110;
+  min-width: 220px;
+  flex-direction: column;
+  padding: 4px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.nav-grupo:hover .nav-sub,
+.nav-grupo:has(:focus-visible) .nav-sub,
+.nav-grupo-btn[aria-expanded='true'] + .nav-sub {
+  display: flex;
+}
+
+.nav-sub a {
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
 }
 
 .nav-right {
@@ -736,19 +799,35 @@ body:has(> .footer) .page-content {
   border-bottom: none;
 }
 
-/* El corte de los enlaces: 1160 (tanda 327), y antes 1080 (tanda 320).
-   MEDIDO CADA VEZ, no elegido: logo 126 + enlaces 573 + los seis iconos
-   340 + relleno y huecos 112 = 1.151 px. Los enlaces pasaron de 496 a
-   573 al entrar «Cartas», así que el corte de 1.080 se quedó corto y
-   entre 1.080 y 1.150 la barra volvía a pedir más de lo que había.
-   Y eso NO da ningún síntoma que cante: el logo es hijo de flex y CEDE
-   —se encoge de 126 a 44 px y «Poke Doc» se amontona encima de su
-   icono—, que es exactamente lo que vio PINGU en la 320.
-   REGLA: si añades o quitas un enlace de la barra, vuelve a medir lo que
-   PIDE (herramientas/medir-barra.mjs) y mueve este número. Un punto de
-   corte heredado es una afirmación sobre un ancho que ya no existe.
-   Por debajo manda el menú desplegable, que cabe de sobra. */
-@media (min-width: 1160px) {
+/* En el menú del móvil los desplegables son apartados con su título y
+   los enlaces a dos columnas: todo a la vista de un vistazo, sin
+   acordeones que abrir. */
+.nav-menu-grupo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 16px;
+  padding-top: 8px;
+}
+
+.nav-menu-titulo {
+  grid-column: 1 / -1;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+
+.nav-menu-grupo a {
+  font-size: var(--t-md);
+  border-bottom: none;
+}
+
+/* El corte en el que caben los enlaces: MEDIDO, no elegido (tandas 320,
+   327 y 356; la cuenta, en SCHEMA.md). Si añades o quitas algo de la
+   barra, vuelve a medir lo que PIDE y mueve este número: un hijo de flex
+   cede en silencio antes de desbordar. */
+@media (min-width: 1080px) {
   .nav-links {
     display: flex;
   }
@@ -760,32 +839,11 @@ body:has(> .footer) .page-content {
   }
 }
 
-/* Y con un torneo EN JUEGO los enlaces se van al menú SIEMPRE, a
-   cualquier ancho (tanda 327). Antes era un tramo —de 1.080 a 1.179— y
-   el tramo estaba mal: la cuenta no depende del ancho de la ventana,
-   porque `.nav-inner` está topada en `--container-w` (1.160) y no crece
-   más por mucho monitor que haya.
-
-   MEDIDO: dentro de esos 1.160 caben 1.048 de contenido (80 de relleno
-   y 32 de huecos). El logo pide 126 y los enlaces 573, así que a la
-   derecha quedan 349 — justo lo que mide `.nav-right` SIN chip. Con
-   chip se va a 578, así que con el chip puesto los enlaces no caben a
-   NINGÚN ancho.
-
-   Y no cabían antes tampoco: con los enlaces en 496 la cuenta daba
-   1.168 y seguían sin entrar. Lo que pasaba es que `.nav-links` es hijo
-   de flex y CEDÍA —se apretaba en silencio, sin desbordar nada y sin
-   que ninguna prueba se quejara—, que es la misma trampa que la del
-   logo en la 320. El chip solo la destapó al crecer el catálogo.
-
-   En ese estado manda el menú desplegable, que es el que ya sabe
-   guardar los enlaces: no se quita ningún control, solo cambian de
-   sitio.
-
-   El `.open` lleva `!important` porque la regla de arriba lo pone con
-   `!important` también, y sin él el menú no se podría abrir — se vería
-   el botón y no pasaría nada al pulsarlo. */
-@media (min-width: 1160px) {
+/* Con un torneo EN JUEGO la chapa de la partida no deja sitio a los
+   enlaces a ningún ancho (la barra está topada en --container-w): se
+   van al menú. El `.open` lleva `!important` porque la regla de arriba
+   también (tanda 327; la cuenta, en SCHEMA.md). */
+@media (min-width: 1080px) {
   body:has(.nav-torneo-vivo) .nav-links {
     display: none;
   }

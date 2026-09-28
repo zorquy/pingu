@@ -17,8 +17,8 @@ import {
   esEnergiaBasica,
   claveDeNombre,
   nombreVisible,
+  imagenDeEnergiaBasica,
   textoTcgLive,
-  enlaceLimitless,
   comoDecklist,
   codificarMazo,
   decodificarMazo,
@@ -61,6 +61,7 @@ const estado = {
   reimpresionPedida: new Set(),
   sets: null,
   modo: 'rejilla',
+  avisosAbiertos: false,
 }
 
 const busqueda = { desde: 0, total: 0, cartas: [], pidiendo: false, turno: 0 }
@@ -163,11 +164,22 @@ function leerBorrador() {
 }
 
 // ── Pintar el mazo ──
-function imagenHtml(carta, calidad = 'low') {
+// La imagen de una carta, y si no tiene (las energías básicas: TCGdex no
+// las trae), la de su energía del 30 aniversario, con su respaldo.
+function fuenteDeImagen(carta, calidad = 'low') {
   const url = cardImageUrl(carta.image_path, calidad)
+  if (url) return { url, respaldo: '' }
+  if (!esEnergiaBasica(carta)) return { url: '', respaldo: '' }
+  return imagenDeEnergiaBasica(carta, calidad === 'high' ? 'LG' : 'SM') || { url: '', respaldo: '' }
+}
+
+function imagenHtml(carta, calidad = 'low') {
+  const { url, respaldo } = fuenteDeImagen(carta, calidad)
   // El nombre va DEBAJO de la imagen: si la CDN no contesta, la imagen se
   // quita y queda el nombre — nunca un hueco sin nada (CLAUDE.md, 321).
-  return `<span class="cm-sin-imagen">${escapeHtml(nombreVisible(carta))}</span>${url ? `<img src="${escapeHtml(url)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />` : ''}`
+  // Con respaldo, antes de quitarla se prueba el respaldo una vez.
+  const alFallar = respaldo ? `if(this.dataset.r){this.src=this.dataset.r;this.dataset.r=''}else this.remove()` : 'this.remove()'
+  return `<span class="cm-sin-imagen">${escapeHtml(nombreVisible(carta))}</span>${url ? `<img src="${escapeHtml(url)}" alt="" width="245" height="342" loading="lazy"${respaldo ? ` data-r="${escapeHtml(respaldo)}"` : ''} onerror="${alFallar}" />` : ''}`
 }
 
 function etiquetaSet(carta) {
@@ -182,7 +194,9 @@ function pintarMazo() {
   $('cmTotal').innerHTML = `<strong>${n}</strong>/60 cartas`
   $('cmTotal').classList.toggle('cm-total-ok', n === 60)
   $('cmTabCuenta').textContent = n
-  const secciones = seccionesDelMazo(entradas)
+  // Orden ESTABLE: pulsar «+» no puede cambiar de sitio la carta (ver
+  // seccionesDelMazo). El texto de TCG Live sí ordena por copias.
+  const secciones = seccionesDelMazo(entradas, { estable: true })
   const suma = (l) => l.reduce((s, e) => s + e.n, 0)
   $('cmReparto').textContent = entradas.length
     ? `${suma(secciones.P)} Pokémon · ${suma(secciones.T) + suma(secciones.X)} Entrenador · ${suma(secciones.E)} Energía`
@@ -190,6 +204,7 @@ function pintarMazo() {
 
   const v = validarMazo(entradas, { formato: estado.formato, legales: estado.legales, reimpresionLegal: estado.reimpresion })
   const sello = $('cmSello')
+  const hayAvisos = entradas.length > 0 && v.problemas.length > 0
   if (!entradas.length) {
     sello.textContent = ''
     sello.className = 'cm-sello'
@@ -200,14 +215,22 @@ function pintarMazo() {
     sello.textContent = `${v.problemas.length} ${v.problemas.length === 1 ? 'cosa por revisar' : 'cosas por revisar'}`
     sello.className = 'cm-sello cm-sello-mal'
   }
+  // El sello es el botón que abre los avisos; sin avisos no abre nada.
+  sello.disabled = !hayAvisos
+  if (!hayAvisos) estado.avisosAbiertos = false
+  sello.setAttribute('aria-expanded', String(!!estado.avisosAbiertos))
   const problemas = $('cmProblemas')
   problemas.innerHTML = v.problemas.map((p) => `<li>${escapeHtml(p.texto)}</li>`).join('')
-  problemas.classList.toggle('hidden', !v.problemas.length || !entradas.length)
+  problemas.classList.toggle('hidden', !hayAvisos || !estado.avisosAbiertos)
 
+  // Se repinta el mazo entero, pero SIN mover su scroll: se guarda la
+  // posición y se construye todo fuera antes de cambiarlo de una vez, así
+  // que el contenedor nunca se queda vacío (y a cero) entre medias.
   const cont = $('cmMazo')
+  const scroll = cont.scrollTop
   cont.dataset.modo = estado.modo
   $('cmVacio').classList.toggle('hidden', entradas.length > 0)
-  cont.querySelectorAll('.cm-seccion').forEach((s) => s.remove())
+  const nuevas = document.createDocumentFragment()
   for (const clave of ['P', 'T', 'E', 'X']) {
     const grupo = secciones[clave]
     if (!grupo.length) continue
@@ -218,8 +241,11 @@ function pintarMazo() {
       <div class="${estado.modo === 'lista' ? 'cm-lista' : 'cm-cartas'}">
         ${grupo.map((e) => (estado.modo === 'lista' ? filaHtml(e, v.porCarta.get(e.carta.id)) : cartaHtml(e, v.porCarta.get(e.carta.id)))).join('')}
       </div>`
-    cont.appendChild(sec)
+    nuevas.appendChild(sec)
   }
+  cont.querySelectorAll('.cm-seccion').forEach((s) => s.remove())
+  cont.appendChild(nuevas)
+  cont.scrollTop = scroll
   pedirReimpresiones(entradas)
 }
 
@@ -302,7 +328,7 @@ async function buscar({ mas = false } = {}) {
     }
     busqueda.cartas = mas ? busqueda.cartas.concat(r.cartas) : r.cartas
     busqueda.total = r.total
-    busqueda.desde += r.cartas.length
+    busqueda.desde += r.leidas ?? r.cartas.length
     pintarResultados(mas ? r.cartas : null)
   } catch (err) {
     if (turno !== busqueda.turno) return
@@ -376,7 +402,14 @@ function cerrarModal() {
 let cartaAbierta = null
 function abrirCarta(carta) {
   cartaAbierta = carta
-  $('cmCartaImg').src = cardImageUrl(carta.image_path, 'high') || ''
+  const grande = fuenteDeImagen(carta, 'high')
+  $('cmCartaImg').src = grande.url || ''
+  $('cmCartaImg').onerror = grande.respaldo
+    ? () => {
+        $('cmCartaImg').onerror = null
+        $('cmCartaImg').src = grande.respaldo
+      }
+    : null
   $('cmCartaImg').alt = nombreVisible(carta)
   $('cmCartaNombre').textContent = nombreVisible(carta)
   const set = estado.sets?.porId.get(carta.set_id)
@@ -404,6 +437,7 @@ function pintarCartaAbierta() {
 
 // ── Importar ──
 async function importar() {
+  if (modoImportar === 'imagen') return importarImagen()
   const texto = $('cmImportarTexto').value.trim()
   const res = $('cmImportarResultado')
   if (!texto) return
@@ -432,23 +466,153 @@ async function importar() {
       res.classList.remove('hidden')
       return
     }
-    const { resueltas, sinResolver } = await resolverLineas(lineas)
-    aplicarImportacion(resueltas.map((r) => ({ carta: r.carta, n: r.linea.n })))
-    const porNombre = resueltas.filter((r) => !r.exacta)
-    const avisos = []
-    if (sinResolver.length) avisos.push(`<p><strong>No encontradas (${sinResolver.length}):</strong></p><ul>${sinResolver.map((l) => `<li>${escapeHtml(l.original)}</li>`).join('')}</ul>`)
-    if (ilegibles.length) avisos.push(`<p><strong>Líneas que no parecen cartas (${ilegibles.length}):</strong></p><ul>${ilegibles.map((l) => `<li>${escapeHtml(l)}</li>`).join('')}</ul>`)
-    if (porNombre.length) avisos.push(`<p><strong>Encontradas por el nombre (${porNombre.length}):</strong> revisa que sea la versión que querías.</p><ul>${porNombre.map((r) => `<li>${escapeHtml(r.linea.original)} → ${escapeHtml(nombreVisible(r.carta))} (${escapeHtml(etiquetaSet(r.carta))})</li>`).join('')}</ul>`)
-    if (avisos.length) {
-      res.innerHTML = `<p>Importadas ${resueltas.reduce((s, r) => s + r.linea.n, 0)} cartas.</p>${avisos.join('')}`
-      res.classList.remove('hidden')
-    } else {
-      showToast(`Lista importada: ${total()} cartas.`, 'success')
-      cerrarModal()
-    }
+    await importarLineas(lineas, ilegibles)
   } catch (err) {
     res.innerHTML = `<p>No se ha podido importar: ${escapeHtml(err.message || 'error de red')}.</p>`
     res.classList.remove('hidden')
+  } finally {
+    boton.disabled = false
+    boton.textContent = 'Importar'
+  }
+}
+
+// Lo común al texto y a la imagen: resolver las líneas contra el espejo,
+// meterlas en el mazo y contar lo que no ha salido limpio.
+async function importarLineas(lineas, ilegibles = []) {
+  const res = $('cmImportarResultado')
+  const { resueltas, sinResolver } = await resolverLineas(lineas)
+  aplicarImportacion(resueltas.map((r) => ({ carta: r.carta, n: r.linea.n })))
+  const porNombre = resueltas.filter((r) => !r.exacta)
+  const avisos = []
+  if (sinResolver.length) avisos.push(`<p><strong>No encontradas (${sinResolver.length}):</strong></p><ul>${sinResolver.map((l) => `<li>${escapeHtml(l.original)}</li>`).join('')}</ul>`)
+  if (ilegibles.length) avisos.push(`<p><strong>Líneas que no parecen cartas (${ilegibles.length}):</strong></p><ul>${ilegibles.map((l) => `<li>${escapeHtml(l)}</li>`).join('')}</ul>`)
+  if (porNombre.length) avisos.push(`<p><strong>Encontradas por el nombre (${porNombre.length}):</strong> revisa que sea la versión que querías.</p><ul>${porNombre.map((r) => `<li>${escapeHtml(r.linea.original)} → ${escapeHtml(nombreVisible(r.carta))} (${escapeHtml(etiquetaSet(r.carta))})</li>`).join('')}</ul>`)
+  if (avisos.length) {
+    res.innerHTML = `<p>Importadas ${resueltas.reduce((s, r) => s + r.linea.n, 0)} cartas.</p>${avisos.join('')}`
+    res.classList.remove('hidden')
+  } else {
+    showToast(`Lista importada: ${total()} cartas.`, 'success')
+    cerrarModal()
+  }
+}
+
+// ── Importar desde una imagen de Limitless ──
+//
+// El reconocimiento (js/constructor/imagen.js) y su base de huellas
+// (~3 MB) solo se bajan la primera vez que alguien lo usa: el resto de
+// la página no los necesita. Cada carta reconocida sale en una fila con
+// su recorte al lado, para poder corregir la carta o las copias antes de
+// importar — las dudosas, en amarillo.
+let modoImportar = 'texto'
+let filasImagen = null
+let dbImagen = null
+let turnoImagen = 0
+
+function cambiarModoImportar(modo) {
+  modoImportar = modo
+  for (const [m, tab, panel] of [
+    ['texto', 'cmImportarModoTexto', 'cmImportarPanelTexto'],
+    ['imagen', 'cmImportarModoImagen', 'cmImportarPanelImagen'],
+  ]) {
+    $(tab).classList.toggle('activa', m === modo)
+    $(tab).setAttribute('aria-selected', String(m === modo))
+    $(panel).classList.toggle('hidden', m !== modo)
+  }
+  $('cmImportarResultado').classList.add('hidden')
+  $('cmImportarBoton').disabled = modo === 'imagen' && !filasImagen?.length
+}
+
+async function leerImagenSubida(fichero) {
+  if (!fichero) return
+  if (!/^image\//.test(fichero.type)) return showToast('Eso no es una imagen.', 'error')
+  if (modalAbierto !== $('cmModalImportar')) {
+    cerrarModal()
+    abrirModal('cmModalImportar')
+  }
+  cambiarModoImportar('imagen')
+  const turno = ++turnoImagen
+  const aviso = $('cmImagenEstado')
+  filasImagen = null
+  $('cmImagenFilas').innerHTML = ''
+  $('cmImportarBoton').disabled = true
+  try {
+    const mod = await import('./constructor/imagen.js')
+    if (!dbImagen) {
+      aviso.textContent = 'Cargando la base de cartas (solo la primera vez, unos segundos)…'
+      dbImagen = await mod.cargarHuellas()
+    }
+    aviso.textContent = 'Buscando las cartas en la imagen…'
+    const filas = await mod.leerImagen(fichero, dbImagen, (p) => {
+      if (turno === turnoImagen) aviso.textContent = `Reconociendo cartas… ${Math.round(p * 100)} %`
+    })
+    if (turno !== turnoImagen) return // llegó otra imagen mientras tanto
+    if (!filas.length) {
+      aviso.textContent = 'No he encontrado cartas en esta imagen. Tiene que ser una lista hecha con Limitless: las cartas en rejilla sobre fondo oscuro.'
+      return
+    }
+    filasImagen = filas.map((f) => ({ ...f, elegida: f.candidatas[0] }))
+    pintarFilasImagen()
+  } catch (err) {
+    if (turno === turnoImagen) aviso.textContent = `No se ha podido leer la imagen: ${err.message || 'error de red'}.`
+  }
+}
+
+function etiquetaHuella(i) {
+  const c = dbImagen.cartas[i]
+  return `${c.nombre} · ${c.set} ${c.num}`
+}
+
+function resumenImagen() {
+  const vivas = filasImagen.filter((f) => f.elegida >= 0)
+  const n = vivas.reduce((s, f) => s + (Number(f.copias) || 0), 0)
+  const dudas = vivas.filter((f) => f.dudaCarta || f.dudaCopias).length
+  $('cmImagenEstado').textContent =
+    `${vivas.length} ${vivas.length === 1 ? 'carta distinta' : 'cartas distintas'}, ${n} en total.` +
+    (dudas ? ` Revisa ${dudas === 1 ? 'la marcada' : `las ${dudas} marcadas`} en amarillo.` : ' Todo reconocido con seguridad.')
+  $('cmImportarBoton').disabled = !vivas.length
+}
+
+function pintarFilasImagen() {
+  $('cmImagenFilas').innerHTML = filasImagen
+    .map(
+      (f, k) => `
+      <div class="cm-imagen-fila${f.dudaCarta || f.dudaCopias ? ' cm-duda' : ''}" data-k="${k}">
+        <img class="cm-imagen-recorte" src="${escapeHtml(f.recorte)}" alt="" width="92" height="128" />
+        <div class="cm-imagen-datos">
+          <label class="cm-campo">Carta
+            <select data-carta class="${f.dudaCarta ? 'cm-dudoso' : ''}">
+              ${f.candidatas.map((i) => `<option value="${i}"${i === f.elegida ? ' selected' : ''}>${escapeHtml(etiquetaHuella(i))}</option>`).join('')}
+              <option value="-1">No importar esta carta</option>
+            </select>
+          </label>
+          <label class="cm-campo cm-imagen-copias">Copias
+            <input type="number" min="1" max="60" inputmode="numeric" value="${f.copias}" data-copias class="${f.dudaCopias ? 'cm-dudoso' : ''}" />
+          </label>
+        </div>
+      </div>`
+    )
+    .join('')
+  resumenImagen()
+}
+
+async function importarImagen() {
+  if (!filasImagen?.length) return
+  const lineas = filasImagen
+    .filter((f) => f.elegida >= 0 && Number(f.copias) > 0)
+    .map((f) => {
+      const c = dbImagen.cartas[f.elegida]
+      const n = Math.min(60, Math.round(Number(f.copias)))
+      return { n, nombre: c.nombre, set: c.set, numero: c.num, original: `${n} ${c.nombre} ${c.set} ${c.num}` }
+    })
+  if (!lineas.length) return
+  const boton = $('cmImportarBoton')
+  boton.disabled = true
+  boton.textContent = 'Importando…'
+  try {
+    await importarLineas(lineas)
+  } catch (err) {
+    $('cmImportarResultado').innerHTML = `<p>No se ha podido importar: ${escapeHtml(err.message || 'error de red')}.</p>`
+    $('cmImportarResultado').classList.remove('hidden')
   } finally {
     boton.disabled = false
     boton.textContent = 'Importar'
@@ -509,21 +673,27 @@ async function accionCompartir(accion) {
     return copiar(enlaceDelMazo(), 'Enlace copiado: quien lo abra verá este mazo.')
   }
   if (accion === 'tcglive') return copiar(textoTcgLive(lista(), codigoDeSet), 'Lista copiada. En TCG Live: Mazos → Crear mazo → Importar.')
-  if (accion === 'limitless') {
-    window.open(enlaceLimitless(lista(), codigoDeSet), '_blank', 'noopener')
-    return
-  }
   if (accion === 'imagen') {
-    const { descargarImagenDecklist } = await import('./torneos/decklist-export.js')
+    // decklist-imagen y no decklist-export: el de al lado pinta botones
+    // con clases de torneos.css, que esta página no carga (tanda 358).
+    const { descargarImagenDecklist } = await import('./torneos/decklist-imagen.js')
     descargarImagenDecklist(estado.nombre || 'Mazo sin nombre', comoDecklist(lista(), codigoDeSet))
   }
 }
 
 async function accionHerramienta(accion) {
+  if (accion === 'importar-imagen') {
+    $('cmImportarSustituir').checked = true
+    abrirModal('cmModalImportar')
+    cambiarModoImportar('imagen')
+    $('cmImagenFichero').focus()
+    return
+  }
   if (accion === 'importar') {
     $('cmImportarResultado').classList.add('hidden')
     $('cmImportarSustituir').checked = true
     abrirModal('cmModalImportar')
+    cambiarModoImportar('texto')
     // Si en el portapapeles hay una lista, se pega sola: es lo que viene
     // a hacer quien abre esto. Si el navegador no deja leerlo, no pasa
     // nada — se pega a mano.
@@ -832,9 +1002,20 @@ function enganchar() {
       deshacer()
     } else if (e.key === 'Escape') {
       cerrarMenus()
+      cerrarAvisos()
       cerrarModal()
     }
   })
+
+  // El sello abre y cierra los avisos; un clic fuera los cierra.
+  $('cmSello').addEventListener('click', (e) => {
+    e.stopPropagation()
+    estado.avisosAbiertos = !estado.avisosAbiertos
+    $('cmSello').setAttribute('aria-expanded', String(estado.avisosAbiertos))
+    $('cmProblemas').classList.toggle('hidden', !estado.avisosAbiertos)
+  })
+  $('cmProblemas').addEventListener('click', (e) => e.stopPropagation())
+  document.addEventListener('click', cerrarAvisos)
 
   $('cmVacioImportar').addEventListener('click', () => accionHerramienta('importar'))
 
@@ -864,10 +1045,10 @@ function enganchar() {
   document.addEventListener('click', cerrarMenus)
 
   // Vista del mazo: cartas o lista.
-  document.querySelectorAll('.cm-vista').forEach((b) =>
+  document.querySelectorAll('.cm-vista[data-modo]').forEach((b) =>
     b.addEventListener('click', () => {
       estado.modo = b.dataset.modo
-      document.querySelectorAll('.cm-vista').forEach((x) => {
+      document.querySelectorAll('.cm-vista[data-modo]').forEach((x) => {
         x.classList.toggle('activa', x === b)
         x.setAttribute('aria-pressed', x === b)
       })
@@ -952,12 +1133,66 @@ function enganchar() {
     if (cartaAbierta && sumar(cartaAbierta, -1)) pintarCartaAbierta()
   })
   $('cmImportarBoton').addEventListener('click', importar)
+  $('cmImportarModoTexto').addEventListener('click', () => cambiarModoImportar('texto'))
+  $('cmImportarModoImagen').addEventListener('click', () => cambiarModoImportar('imagen'))
+  $('cmImagenFichero').addEventListener('change', (e) => {
+    leerImagenSubida(e.target.files?.[0])
+    e.target.value = '' // que la misma imagen se pueda volver a elegir
+  })
+  const soltar = $('cmSoltar')
+  soltar.addEventListener('dragover', (e) => {
+    e.preventDefault()
+    soltar.classList.add('cm-encima')
+  })
+  soltar.addEventListener('dragleave', () => soltar.classList.remove('cm-encima'))
+  soltar.addEventListener('drop', (e) => {
+    e.preventDefault()
+    soltar.classList.remove('cm-encima')
+    leerImagenSubida(e.dataTransfer?.files?.[0])
+  })
+  // Pegar una imagen (Ctrl+V) en cualquier sitio de la página la importa:
+  // es lo más rápido después de «Copiar imagen» en Twitter o Discord. En
+  // un campo de texto no se toca: ahí se pega texto.
+  document.addEventListener('paste', (e) => {
+    const fichero = [...(e.clipboardData?.files || [])].find((f) => /^image\//.test(f.type))
+    if (!fichero) return
+    const enImportar = modalAbierto === $('cmModalImportar')
+    if (!enImportar && /input|textarea/i.test(document.activeElement?.tagName || '')) return
+    e.preventDefault()
+    if (estado.soloLectura) return avisarSoloLectura()
+    if (!enImportar) $('cmImportarSustituir').checked = true
+    leerImagenSubida(fichero)
+  })
+  $('cmImagenFilas').addEventListener('change', (e) => {
+    const fila = e.target.closest('[data-k]')
+    if (!fila || !filasImagen) return
+    const f = filasImagen[Number(fila.dataset.k)]
+    if (e.target.matches('[data-carta]')) {
+      f.elegida = Number(e.target.value)
+      f.dudaCarta = false
+    } else if (e.target.matches('[data-copias]')) {
+      f.copias = Math.max(1, Math.min(60, Math.round(Number(e.target.value) || 1)))
+      e.target.value = f.copias
+      f.dudaCopias = false
+    }
+    e.target.classList.remove('cm-dudoso')
+    fila.classList.toggle('cm-duda', f.dudaCarta || f.dudaCopias)
+    fila.classList.toggle('cm-quitada', f.elegida < 0)
+    resumenImagen()
+  })
   $('cmManoOtra').addEventListener('click', nuevaMano)
   $('cmManoVerPremios').addEventListener('click', () => {
     premiosVistos = !premiosVistos
     document.querySelectorAll('[data-premio]').forEach((p) => p.classList.toggle('cm-boca-abajo', !premiosVistos))
     $('cmManoVerPremios').textContent = premiosVistos ? 'volver a taparlos' : 'darles la vuelta'
   })
+}
+
+function cerrarAvisos() {
+  if (!estado.avisosAbiertos) return
+  estado.avisosAbiertos = false
+  $('cmSello').setAttribute('aria-expanded', 'false')
+  $('cmProblemas').classList.add('hidden')
 }
 
 function cerrarMenus() {
@@ -975,7 +1210,7 @@ async function iniciar() {
   try {
     estado.modo = localStorage.getItem('pokedoc-constructor-modo') === 'lista' ? 'lista' : 'rejilla'
   } catch {}
-  document.querySelectorAll('.cm-vista').forEach((x) => {
+  document.querySelectorAll('.cm-vista[data-modo]').forEach((x) => {
     x.classList.toggle('activa', x.dataset.modo === estado.modo)
     x.setAttribute('aria-pressed', x.dataset.modo === estado.modo)
   })

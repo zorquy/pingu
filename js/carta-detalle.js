@@ -85,7 +85,15 @@ export function detalleDeCarta(card) {
   if (imagen) fila.image_path = imagen
   // Y con los enums en su forma canónica: TCGdex los traduce igual que
   // los ataques, y todo el resto del código los compara en inglés.
-  return canonizarCarta(fila)
+  const canonica = canonizarCarta(fila)
+  // La corrección del tipo de energía que canonizarCarta no puede hacer
+  // sola: la fila que se guarda no lleva el nombre, pero la respuesta de
+  // TCGdex sí. Así el engorde escribe «Special» en la Prisma y las suyas
+  // aunque la API diga «Normal» (ver NOMBRES_DE_BASICA).
+  if (canonica.category === 'Energy' && canonica.energy_type === 'Normal' && !esNombreDeEnergiaBasica(card.name)) {
+    canonica.energy_type = 'Special'
+  }
+  return canonica
 }
 
 // ── El idioma de la ficha (tanda 330) ──
@@ -208,11 +216,30 @@ const A_ENTRENADOR = inverso(ENTRENADORES, { Apoyo: 'Supporter', Articulo: 'Item
   Herramienta: 'Tool', 'Ace Spec': 'Item' })
 // Y el tipo de energía, que también viene traducido y decide si una
 // carta está SIEMPRE dentro del formato (tanda 335). TCGdex lo llama
-// «Normal» en inglés; en español se ha visto escrito de las dos maneras,
-// así que van las dos — si mañana sale una tercera, el valor se queda
-// tal cual y lo único que pasa es que esa energía no se marca como
-// básica, que es el lado seguro del error.
-const A_ENERGIA = inverso({ Normal: 'Normal', Special: 'Especial' }, { Basica: 'Normal' })
+// «Normal» en inglés y en español se ha visto «Especial», «Básica» y
+// «Básico» — si mañana sale otra forma, el valor se queda tal cual y lo
+// único que pasa es que esa energía no se marca como básica, que es el
+// lado seguro del error.
+const A_ENERGIA = inverso({ Normal: 'Normal', Special: 'Especial' }, { Basica: 'Normal', Basico: 'Normal' })
+
+// ¿Este NOMBRE es el de una energía básica de verdad? Hace falta porque
+// el `energyType` de TCGdex no es de fiar en la otra dirección
+// (tanda 358): marca «Normal» energías ESPECIALES — la Prisma, la
+// Ignición, la del Team Rocket y las «Energía X Burbujeante / Rocosa /
+// Nitro…» de la era ME (comprobado el 2026-09-28 contra su API, y pasa
+// EN INGLÉS también, así que no es cosa de la traducción). Las básicas
+// son las que se llaman como su tipo, en cualquiera de las formas que
+// circulan («Energía Fuego», «Basic Fire Energy», «Basic {R} Energy»).
+// El Hada cuenta: fue básica hasta 2020 y sigue viva en Expandido.
+const NOMBRES_DE_BASICA = [
+  /^energia( basica)? (planta|fuego|agua|rayo|psiquica|lucha|oscura|metalica|hada)( basica)?$/,
+  /^(basic )?(\{[grwlpfdmy]\}|grass|fire|water|lightning|psychic|fighting|darkness|metal|fairy) energy$/,
+]
+export function esNombreDeEnergiaBasica(nombre) {
+  if (!nombre) return false
+  const n = sinTildes(nombre)
+  return NOMBRES_DE_BASICA.some((r) => r.test(n))
+}
 
 const canonico = (mapa, valor) => (valor == null ? valor : mapa.get(sinTildes(valor)) || valor)
 
@@ -221,12 +248,22 @@ export function canonizarCarta(fila) {
   const tipo = (t) => canonico(A_TIPO, t)
   const conTipo = (lista) =>
     Array.isArray(lista) ? lista.map((f) => (f && typeof f === 'object' ? { ...f, type: tipo(f.type) } : f)) : lista
+  // El «Normal» de una energía solo se cree si el NOMBRE es el de una
+  // básica (ver NOMBRES_DE_BASICA): TCGdex marca «Normal» varias
+  // especiales, y una especial tomada por básica pierde el límite de 4
+  // copias y sale «siempre legal» en su ficha. Sin nombre a mano (el
+  // engorde no lo pasa por aquí), se deja tal cual y lo corrige
+  // `detalleDeCarta`, que sí lo tiene.
+  let energia = canonico(A_ENERGIA, fila.energy_type)
+  if (energia === 'Normal' && (fila.name || fila.name_es) && !esNombreDeEnergiaBasica(fila.name) && !esNombreDeEnergiaBasica(fila.name_es)) {
+    energia = 'Special'
+  }
   return {
     ...fila,
     category: canonico(A_CATEGORIA, fila.category),
     stage: canonico(A_FASE, fila.stage),
     trainer_type: canonico(A_ENTRENADOR, fila.trainer_type),
-    energy_type: canonico(A_ENERGIA, fila.energy_type),
+    energy_type: energia,
     types: Array.isArray(fila.types) ? fila.types.map(tipo) : fila.types,
     weaknesses: conTipo(fila.weaknesses),
     resistances: conTipo(fila.resistances),
@@ -256,12 +293,20 @@ export function esPokemon(carta) {
 // juego y no del formato (tanda 335).
 //
 // El revisor de decklists lo pregunta por el NOMBRE de la línea pegada,
-// porque allí no hay más que texto. Aquí hay ficha, así que se pregunta
-// por lo que la carta ES — y el nombre queda de respaldo para las que
-// todavía no se han engordado y tienen la categoría a null.
+// porque allí no hay más que texto. Aquí hay ficha — pero el campo solo
+// vale para decir que NO (tanda 358: TCGdex marca «Normal» energías
+// especiales, y las filas engordadas antes del arreglo lo arrastran).
+// Que SÍ lo dice el nombre, que es el mismo criterio del constructor.
 export function esEnergiaBasica(carta) {
   const cat = canonico(A_CATEGORIA, carta?.category)
-  if (cat === 'Energy') return canonico(A_ENERGIA, carta?.energy_type) !== 'Special'
-  if (cat) return false
-  return /^basic\b|energ[íi]a b[áa]sica/i.test(String(carta?.name ?? ''))
+  if (cat && cat !== 'Energy') return false
+  if (canonico(A_ENERGIA, carta?.energy_type) === 'Special') return false
+  // Las colecciones que SOLO tienen energías básicas lo son por
+  // definición, se llamen como se llamen sus filas.
+  if (['sve', 'mee'].includes(String(carta?.set_id || '').toLowerCase())) return true
+  return (
+    esNombreDeEnergiaBasica(carta?.name) ||
+    esNombreDeEnergiaBasica(carta?.name_es) ||
+    /^basic\b|energ[íi]a b[áa]sica/i.test(String(carta?.name ?? ''))
+  )
 }

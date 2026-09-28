@@ -18568,3 +18568,172 @@ razón por la que `guia.html` enlaza sus hojas y sus módulos con rutas
 absolutas desde que se sirve en `/noticias/<slug>` (tanda 269): **una
 página que se sirve bajo una carpeta no puede tener ni un enlace
 relativo**, y eso incluye los que pinta el JavaScript.
+
+
+## Tanda 356 — la barra de arriba, en desplegables
+
+Eran siete enlaces sueltos (Inicio, Noticias, Aprender, Cartas, Foro,
+Comunidad, Jugar) y la web tiene bastantes más sitios que esos siete:
+Lanzamientos, el reto diario, Guardados, el constructor de mazos, Mis
+partidas… Todo lo que no estaba en la barra solo se encontraba por el
+pie. PINGU pidió agruparlo para no saturar y que se vean todos los
+apartados.
+
+**La barra queda en cinco entradas**, la misma organización que el pie:
+
+- **Noticias** — suelta, porque es lo que cambia cada día y lo que más
+  se vuelve a mirar.
+- **Aprender ▾** Guías y cursos · Reto de hoy · Guardados
+- **Cartas ▾** Catálogo de cartas · Lanzamientos
+- **Comunidad ▾** Foro · Gente
+- **Jugar ▾** Torneos · Constructor de mazos · Mis mazos · Mis partidas
+
+«Inicio» sale de la barra ancha: el logo ya lleva a la portada (y sigue
+en el menú del móvil, donde el logo es solo el icono).
+
+**Cómo se abren.** Con ratón, al pasar (CSS `:hover`); con teclado, al
+llegar con el tabulador (`:has(:focus-visible)`); con el dedo, al tocar
+(js/app.js cambia `aria-expanded` del botón, cierra los demás, y se
+cierran con Escape o tocando fuera). NO se usa `:focus-within`: un clic
+deja el botón con foco y el menú ya no se cerraba al volver a pulsarlo.
+El botón del grupo donde estás se marca igual que un enlace activo
+(`.nav-grupo:has(a.active)`).
+
+**En el móvil** no hay acordeones: el menú lleva los cuatro apartados con
+su título y los enlaces a dos columnas, todo a la vista.
+
+**El corte vuelve a 1.080.** Medido en el navegador con sesión: logo 126
++ enlaces 495 (antes 573) + iconos 340 + relleno y huecos 112 = 1.073. Con
+el chip de torneo en juego los enlaces siguen sin caber a ningún ancho
+(126 + 495 + 578 > 1.048 de contenido), así que esa regla se queda y baja
+también a 1.080.
+
+**Portada: se hizo sitio antes de meter nada** (CLAUDE.md). Los tres
+comentarios largos de la barra en style.css y el de `markActiveLink` en
+app.js se han quedado en una línea que apunta aquí; el texto entero va
+debajo. Medido con gzip -9: index.html +156, style.css −198 (incluye el
+arreglo de la flecha de los `select`), app.js −12. La tanda baja la
+portada en vez de subirla.
+
+`APARTADO_DE` pierde `guardados: 'aprender'` (Guardados ya tiene su
+enlace en el menú y se marca solo) y las dos entradas de /constructor y
+/mazos que se pusieron en la 355 por lo mismo.
+
+**Y de paso, la flecha de los `select` en mosaico** (el fallo de /cartas
+anotado en la 354): la regla del tema oscuro pone la imagen de la flecha
+con más especificidad que las hojas de página, y cuando una hoja pintaba
+el fondo con el atajo `background` devolvía `background-repeat` a
+`repeat`. La regla oscura repite ahora `no-repeat` y la posición.
+
+### Los comentarios que vivían en la barra (tandas 309, 320, 327)
+
+Con los números de entonces: los de hoy son los de arriba.
+
+```
+/* ── El menú (tanda 309) ──
+   Era una línea de 2 px bajo el apartado activo… que no se encendía
+   nunca fuera de la portada (ver markActiveLink en js/app.js). Ya
+   encendida, se sube el contraste: PASTILLA RELLENA, y solo en el sitio
+   donde estás.
+
+   Solo el activo lleva fondo, no los seis. Con seis pastillas ninguna
+   destaca —que es justo lo que hay que ver— y compiten con el logo y
+   con los cuatro iconos de la derecha. El resto se conforma con
+   oscurecerse al pasar por encima. */
+
+/* El corte de los enlaces: 1160 (tanda 327), y antes 1080 (tanda 320).
+   MEDIDO CADA VEZ, no elegido: logo 126 + enlaces 573 + los seis iconos
+   340 + relleno y huecos 112 = 1.151 px. Los enlaces pasaron de 496 a
+   573 al entrar «Cartas», así que el corte de 1.080 se quedó corto y
+   entre 1.080 y 1.150 la barra volvía a pedir más de lo que había.
+   Y eso NO da ningún síntoma que cante: el logo es hijo de flex y CEDE
+   —se encoge de 126 a 44 px y «Poke Doc» se amontona encima de su
+   icono—, que es exactamente lo que vio PINGU en la 320.
+   REGLA: si añades o quitas un enlace de la barra, vuelve a medir lo que
+   PIDE (herramientas/medir-barra.mjs) y mueve este número. Un punto de
+   corte heredado es una afirmación sobre un ancho que ya no existe.
+   Por debajo manda el menú desplegable, que cabe de sobra. */
+
+/* Y con un torneo EN JUEGO los enlaces se van al menú SIEMPRE, a
+   cualquier ancho (tanda 327). Antes era un tramo —de 1.080 a 1.179— y
+   el tramo estaba mal: la cuenta no depende del ancho de la ventana,
+   porque `.nav-inner` está topada en `--container-w` (1.160) y no crece
+   más por mucho monitor que haya.
+
+   MEDIDO: dentro de esos 1.160 caben 1.048 de contenido (80 de relleno
+   y 32 de huecos). El logo pide 126 y los enlaces 573, así que a la
+   derecha quedan 349 — justo lo que mide `.nav-right` SIN chip. Con
+   chip se va a 578, así que con el chip puesto los enlaces no caben a
+   NINGÚN ancho.
+
+   Y no cabían antes tampoco: con los enlaces en 496 la cuenta daba
+   1.168 y seguían sin entrar. Lo que pasaba es que `.nav-links` es hijo
+   de flex y CEDÍA —se apretaba en silencio, sin desbordar nada y sin
+   que ninguna prueba se quejara—, que es la misma trampa que la del
+   logo en la 320. El chip solo la destapó al crecer el catálogo.
+
+   En ese estado manda el menú desplegable, que es el que ya sabe
+   guardar los enlaces: no se quita ningún control, solo cambian de
+   sitio.
+
+   El `.open` lleva `!important` porque la regla de arriba lo pone con
+   `!important` también, y sin él el menú no se podría abrir — se vería
+   el botón y no pasaría nada al pulsarlo. */
+
+// Qué apartado del menú se marca (tanda 309).
+//
+// Antes esto comparaba el último trozo de la URL con el `href` TAL CUAL:
+// `'noticias' === '/noticias'` es falso, así que desde que hay
+// direcciones limpias la marca **solo se encendía en la portada**. En
+// /noticias, /aprender, /foro, /usuarios y /torneos no se marcaba nada —
+// y por eso el menú parecía texto plano con un hover: el estado que lo
+// diferenciaba no llegaba a existir.
+//
+// Se compara por CLAVE, no por texto: sin barras, sin `.html`, sin
+// parámetros. Así da igual cómo esté escrito el enlace en cada página
+// (`aprender.html` en la portada, `/aprender.html` en las demás).
+
+```
+
+
+## Tanda 358 — el tipo de las energías, arreglado en origen
+
+El hallazgo de la 357 («energy_type vale Básico en energías ESPECIALES»)
+no era cosa del engorde en español: **TCGdex trae `energyType: "Normal"`
+para esas cartas también en inglés** (comprobado el 2026-09-28 contra su
+API: la Prisma, la Ignición, las «Energía X Burbujeante/Rocosa/…» de la
+era ME). El dato viene mal de fábrica, así que canonizarlo no basta.
+
+**La regla nueva de `js/carta-detalle.js`**: el «Normal» de una energía
+solo se cree si el NOMBRE es el de una de las básicas
+(`esNombreDeEnergiaBasica`: «Energía Fuego», «Basic Fire Energy»,
+«Basic {R} Energy»… con el Hada, que fue básica hasta 2020 y sigue viva
+en Expandido). Se aplica en tres sitios:
+
+- `detalleDeCarta` (el engorde): escribe `Special` aunque la API diga
+  «Normal», porque tiene el nombre de la carta a mano.
+- `canonizarCarta` (las lecturas): corrige al vuelo las filas viejas —
+  solo cuando la fila lleva nombre; sin nombre se deja tal cual.
+- `esEnergiaBasica` (la ficha y su legalidad): el campo solo vale para
+  decir que NO (si dice Special); que SÍ lo dice el nombre, o la
+  colección (sve/mee son básicas por definición). El subtítulo de
+  carta-nucleo.js usa esta función y no el campo a pelo.
+
+**La dirección importa**: un `Special` que ya está bien NUNCA se
+reescribe por nombre. Las «Darkness Energy» y «Metal Energy» de la era
+Neo son ESPECIALES con nombre de básica — la regla del nombre las
+estropearía. Por eso `supabase-migration-energias-especiales.sql` solo
+toca filas que hoy digan «básica»/«Normal», y por eso la corrección de
+`canonizarCarta` solo va de Normal → Special y nunca al revés.
+
+La migración se probó contra un Postgres de verdad (pglite): las cuatro
+familias mal marcadas acaban en `Special`, las básicas de verdad en
+`Normal` (incluida la del español a medias en `name`), la Neo se queda
+`Special`, y ejecutarla dos veces deja lo mismo.
+
+**Y de paso, `decklist-imagen.js`**: el dibujado a canvas de la lista
+sale de `decklist-export.js` porque aquel módulo pinta
+`.torneo-exportar` (torneos.css) y el constructor lo importaba desde una
+página que no carga esa hoja — una página «usa» las clases de todo lo
+que importa (regla de la 299/316, lo cazó su prueba). La API de los
+torneos no cambia: `decklist-export.js` lo reexporta.

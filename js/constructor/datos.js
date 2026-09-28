@@ -15,7 +15,7 @@ import { normalizeSearch } from '../tcgdex.js'
 import { codigoLiveDeNombreDeSet } from '../torneos/comun.js'
 import { marcasLegales } from '../carta-legalidad.js'
 import { canonizarCarta } from '../carta-detalle.js'
-import { claveDeNombre, letraDeEnergia, plano } from './nucleo.js'
+import { claveDeNombre, esEnergiaBasica, idDeEnergiaBasica, letraDeCartaDeEnergia, letraDeEnergia, plano } from './nucleo.js'
 
 // Las marcas legales de la temporada salen del mismo sitio que la ficha
 // de carta (site_settings, con respaldo): se reexportan para que la
@@ -133,18 +133,23 @@ const SERIES_EXPANDIDO = ['bw', 'xy', 'sm', 'swsh', 'sv', 'me']
 
 function aplicarFiltros(q, { categoria, subtipo, tipo, set, formato, legales }) {
   if (categoria && CATEGORIAS[categoria]) q = q.in('category', CATEGORIAS[categoria])
-  if (subtipo && SUBTIPOS[subtipo]) {
-    q = subtipo === 'basica' || subtipo === 'especial' ? q.in('energy_type', SUBTIPOS[subtipo]) : q.in('trainer_type', SUBTIPOS[subtipo])
-  }
+  // Las energías, por colección y no por `energy_type`, que en el espejo
+  // marca «Básico» a especiales como la Prisma o la Ignición (ver
+  // esEnergiaBasica en nucleo.js). Las básicas son las ocho de MEE, que
+  // se pintan con el dibujo del 30 aniversario; las especiales, el resto
+  // (las básicas de colecciones viejas las quita `buscarCartas` después).
+  if (subtipo === 'basica') q = q.eq('set_id', 'mee')
+  else if (subtipo === 'especial') q = q.in('category', CATEGORIAS.E).not('set_id', 'in', '(sve,mee)')
+  else if (subtipo && SUBTIPOS[subtipo]) q = q.in('trainer_type', SUBTIPOS[subtipo])
   if (tipo) {
     const t = TIPOS.find((x) => x.id === tipo)
     if (t) q = q.overlaps('types', t.valores)
   }
   if (set) q = q.eq('set_id', set)
   if (formato === 'standard') {
-    // Las básicas llevan marca G y no rotan nunca: sin el `or` el filtro
-    // de Estándar escondería todas las energías básicas.
-    q = q.or(`regulation_mark.in.(${legales.join(',')}),energy_type.in.(Básico,Normal,Basic)`)
+    // Las básicas no rotan nunca, pero muchas llevan marca G: sin el `or`
+    // el filtro de Estándar las escondería. Van las de MEE (ver arriba).
+    q = q.or(`regulation_mark.in.(${legales.join(',')}),set_id.eq.mee`)
   } else if (formato === 'expanded') {
     q = q.or(SERIES_EXPANDIDO.map((s) => `set_id.like.${s}*`).join(','))
   }
@@ -164,10 +169,16 @@ export async function buscarCartas({ texto = '', categoria = '', subtipo = '', t
   q = aplicarFiltros(q, { categoria, subtipo, tipo, set, formato, legales })
   // Dentro de una colección, por su número (así se ve como el álbum);
   // fuera, por nombre, para que las versiones de una carta salgan juntas.
-  q = set ? q.order('local_id') : q.order('name_search').order('set_id', { ascending: false })
+  // (y las básicas, en el orden de siempre: Planta, Fuego, Agua…).
+  q = set || subtipo === 'basica' ? q.order('local_id') : q.order('name_search').order('set_id', { ascending: false })
   const { data, error, count } = await q.range(desde, desde + limite - 1)
   if (error) throw error
-  let cartas = canonizar(data)
+  // Una energía básica es la misma carta en cualquier colección: se deja
+  // solo la de MEE de cada tipo (sve y las de 2004 repetían ocho dibujos
+  // en trescientas filas). `leidas` es lo que ha devuelto la base, que es
+  // lo que cuenta para pedir la página siguiente.
+  const leidas = (data || []).length
+  let cartas = canonizar(data).filter(soloUnaBasica)
   let total = count ?? cartas.length
 
   // Cero en casa y hay texto: puede estar escrito en inglés.
@@ -177,12 +188,16 @@ export async function buscarCartas({ texto = '', categoria = '', subtipo = '', t
       let q2 = supabase.from('tcg_cards').select(COLUMNAS).eq('market', MERCADO).in('id', ids)
       q2 = aplicarFiltros(q2, { categoria, subtipo, tipo, set, formato, legales })
       const { data: d2 } = await q2.limit(limite)
-      cartas = canonizar(d2)
+      cartas = canonizar(d2).filter(soloUnaBasica)
       total = cartas.length
     }
   }
-  return { cartas, total }
+  return { cartas, total, leidas }
 }
+
+// Se quita la repetida solo si TIENE gemela en MEE (las de tipo con
+// letra): la Energía Hada es básica sin gemela y tiene que salir.
+const soloUnaBasica = (c) => !esEnergiaBasica(c) || c.set_id === 'mee' || !letraDeCartaDeEnergia(c)
 
 // El respaldo en inglés: TCGdex busca por nombre «a lo laxo» (contiene)
 // y devuelve identificadores, que son los mismos que los nuestros.
@@ -294,10 +309,12 @@ export async function resolverLineas(lineas) {
   for (const l of lineas) {
     const letra = letraDeEnergia(l.nombre)
     const esBasica = letra && (/^(basic\s+)?(\{[a-z]\}|[a-z]+)\s+energy$/i.test(plano(l.nombre)) || /^energia\s+\S+$/.test(plano(l.nombre)))
-    if (esBasica && (!l.set || l.set === 'ENERGY' || l.set === 'SVE' || l.set === 'MEE')) {
-      const setId = l.set === 'MEE' ? 'mee' : 'sve'
-      const num = l.set === 'MEE' || l.set === 'SVE' ? l.numero : String('GRWLPFDM'.indexOf(letra) + 1)
-      candidatos.set(l, [`${setId}-${String(num).padStart(3, '0')}`, `${setId}-${num}`])
+    // Una energía básica es la misma carta la escriban como la escriban
+    // («SVE 18», «MEE 10», «Energy 2», una de 2004…): se lleva SIEMPRE a
+    // la MEE de su tipo, que es la que se pinta con el dibujo del 30
+    // aniversario. Así el mazo no parte en dos filas la misma energía.
+    if (esBasica) {
+      candidatos.set(l, [idDeEnergiaBasica(letra), `sve-${String('GRWLPFDM'.indexOf(letra) + 1).padStart(3, '0')}`])
       continue
     }
     if (l.set && l.numero) {

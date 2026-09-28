@@ -574,6 +574,7 @@ async function renderNavUser(session) {
              Live que en un torneo de aquí, y de hecho es de lo poco de
              la sección de juego que ya vale antes de abrirla. -->
         <a href="/mis-partidas">${icons.layers(16)} Mis partidas</a>
+        <a href="/mazos">${icons.cards(16)} Mis mazos</a>
         <!-- Escribir una guía estaba SOLO dentro de una pestaña de
              Comunidad y de otra del perfil: había que saber que existía
              para encontrarlo. Aquí está en todas las páginas, en el menú
@@ -638,20 +639,24 @@ function initMobileMenu() {
   toggle.addEventListener('click', () => {
     menu.classList.toggle('open')
   })
+  // Los desplegables de la barra (tanda 356): el ratón los abre con CSS;
+  // esto es para el dedo. Uno abierto cierra los demás.
+  const cerrar = () => document.querySelectorAll('.nav-grupo-btn').forEach((b) => b.setAttribute('aria-expanded', 'false'))
+  document.querySelectorAll('.nav-grupo-btn').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const abrir = b.getAttribute('aria-expanded') !== 'true'
+      cerrar()
+      b.setAttribute('aria-expanded', abrir)
+    })
+  )
+  document.addEventListener('click', cerrar)
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && cerrar())
 }
 
-// Qué apartado del menú se marca (tanda 309).
-//
-// Antes esto comparaba el último trozo de la URL con el `href` TAL CUAL:
-// `'noticias' === '/noticias'` es falso, así que desde que hay
-// direcciones limpias la marca **solo se encendía en la portada**. En
-// /noticias, /aprender, /foro, /usuarios y /torneos no se marcaba nada —
-// y por eso el menú parecía texto plano con un hover: el estado que lo
-// diferenciaba no llegaba a existir.
-//
-// Se compara por CLAVE, no por texto: sin barras, sin `.html`, sin
-// parámetros. Así da igual cómo esté escrito el enlace en cada página
-// (`aprender.html` en la portada, `/aprender.html` en las demás).
+// Qué apartado del menú se marca (tanda 309): se compara por CLAVE —sin
+// barras, sin `.html`, sin parámetros—, no por el texto del enlace (la
+// historia, en SCHEMA.md).
 const claveDeRuta = (x) =>
   (x || '')
     .split(/[?#]/)[0]
@@ -667,7 +672,6 @@ const APARTADO_DE = {
   guia: 'aprender',
   curso: 'aprender',
   categoria: 'aprender',
-  guardados: 'aprender',
   usuario: 'usuarios',
   torneo: 'torneos',
 }

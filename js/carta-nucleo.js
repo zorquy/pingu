@@ -170,7 +170,9 @@ export function subtituloDeCarta(cartaCruda) {
   } else if (carta?.category === 'Trainer') {
     partes.push(entrenadorEs(carta.trainer_type) || 'Entrenador')
   } else if (carta?.category === 'Energy') {
-    partes.push(carta.energy_type === 'Special' ? 'Energía especial' : 'Energía básica')
+    // Por la regla y no por el campo: `energy_type` dice «básica» en
+    // varias especiales (tanda 358, ver esEnergiaBasica).
+    partes.push(esEnergiaBasica(carta) ? 'Energía básica' : 'Energía especial')
   }
   return partes.join(' · ')
 }

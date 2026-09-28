@@ -44,13 +44,38 @@
     <div class="nav-inner">
       <a href="/index.html" class="nav-logo">Poke<span>Doc</span></a>
       <div class="nav-links">
-        <a href="/index.html">Inicio</a>
         <a href="/noticias">Noticias</a>
-        <a href="/aprender.html">Aprender</a>
-        <a href="/cartas">Cartas</a>
-        <a href="/foro.html">Foro</a>
-        <a href="/usuarios.html">Comunidad</a>
-        <a href="/torneos.html" class="nav-jugar hidden">Jugar</a>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Aprender</button>
+          <div class="nav-sub">
+            <a href="/aprender.html">Guías y cursos</a>
+            <a href="/curso.html?reto=hoy">Reto de hoy</a>
+            <a href="/guardados.html">Guardados</a>
+          </div>
+        </div>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Cartas</button>
+          <div class="nav-sub">
+            <a href="/cartas">Catálogo de cartas</a>
+            <a href="/lanzamientos.html">Lanzamientos</a>
+          </div>
+        </div>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Comunidad</button>
+          <div class="nav-sub">
+            <a href="/foro.html">Foro</a>
+            <a href="/usuarios.html">Gente</a>
+          </div>
+        </div>
+        <div class="nav-grupo nav-jugar hidden">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
+          <div class="nav-sub">
+            <a href="/torneos.html">Torneos</a>
+            <a href="/constructor">Constructor de mazos</a>
+            <a href="/mazos">Mis mazos</a>
+            <a href="/mis-partidas">Mis partidas</a>
+          </div>
+        </div>
       </div>
       <div class="nav-right">
         <div id="nav-user"></div>
@@ -60,11 +85,29 @@
     <div class="nav-menu-mobile" id="navMobileMenu">
       <a href="/index.html">Inicio</a>
       <a href="/noticias">Noticias</a>
-      <a href="/aprender.html">Aprender</a>
-      <a href="/cartas">Cartas</a>
-      <a href="/foro.html">Foro</a>
-      <a href="/usuarios.html">Comunidad</a>
-      <a href="/torneos.html" class="nav-jugar hidden">Jugar</a>
+      <div class="nav-menu-grupo">
+        <p class="nav-menu-titulo">Aprender</p>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/curso.html?reto=hoy">Reto de hoy</a>
+        <a href="/guardados.html">Guardados</a>
+      </div>
+      <div class="nav-menu-grupo">
+        <p class="nav-menu-titulo">Cartas</p>
+        <a href="/cartas">Catálogo de cartas</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+      </div>
+      <div class="nav-menu-grupo">
+        <p class="nav-menu-titulo">Comunidad</p>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+      </div>
+      <div class="nav-menu-grupo nav-jugar hidden">
+        <p class="nav-menu-titulo">Jugar</p>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/mazos">Mis mazos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+      </div>
     </div>
   </nav>
 
@@ -100,7 +143,6 @@
               <div class="cm-menu-lista hidden" id="cmMenuCompartir" role="menu">
                 <button type="button" role="menuitem" data-accion="enlace">Copiar enlace del mazo</button>
                 <button type="button" role="menuitem" data-accion="tcglive">Copiar para TCG Live</button>
-                <button type="button" role="menuitem" data-accion="limitless">Abrir en Limitless</button>
                 <button type="button" role="menuitem" data-accion="imagen">Descargar imagen de la lista</button>
               </div>
             </div>
@@ -108,6 +150,7 @@
               <button type="button" class="btn-secondary cm-btn" id="cmBtnHerramientas" aria-haspopup="true" aria-expanded="false">Herramientas</button>
               <div class="cm-menu-lista hidden" id="cmMenuHerramientas" role="menu">
                 <button type="button" role="menuitem" data-accion="importar">Importar una lista</button>
+                <button type="button" role="menuitem" data-accion="importar-imagen">Importar desde una imagen</button>
                 <button type="button" role="menuitem" data-accion="mano">Mano de prueba</button>
                 <button type="button" role="menuitem" data-accion="nuevo">Empezar un mazo nuevo</button>
                 <button type="button" role="menuitem" data-accion="vaciar">Vaciar el mazo</button>
@@ -126,27 +169,31 @@
           </label>
           <label class="cm-check hidden" id="cmPublicoCampo">
             <input type="checkbox" id="cmPublico" />
-            Público: cualquiera con el enlace puede verlo
+            Público (lo ve quien tenga el enlace)
           </label>
           <span class="cm-guardado subtext" id="cmEstadoGuardado" aria-live="polite"></span>
-        </div>
-
-        <div class="cm-resumen">
-          <p class="cm-total" id="cmTotal"><strong>0</strong>/60 cartas</p>
-          <p class="cm-reparto subtext" id="cmReparto"></p>
-          <p class="cm-sello" id="cmSello"></p>
+          <!-- Aquí y no en la fila del recuento: en esa fila no cabía y
+               bajaba a una línea propia, que era mazo que no se veía. -->
           <div class="cm-vistas" role="group" aria-label="Cómo ver el mazo">
             <button type="button" class="cm-vista activa" data-modo="rejilla" aria-pressed="true">Cartas</button>
             <button type="button" class="cm-vista" data-modo="lista" aria-pressed="false">Lista</button>
           </div>
         </div>
 
-        <ul class="cm-problemas hidden" id="cmProblemas"></ul>
+        <div class="cm-resumen">
+          <p class="cm-total" id="cmTotal"><strong>0</strong>/60 cartas</p>
+          <p class="cm-reparto subtext" id="cmReparto"></p>
+          <!-- El sello abre la lista de avisos, que flota encima del mazo:
+               si fuera una lista fija, cada aviso nuevo empujaría las
+               cartas hacia abajo mientras se construye. -->
+          <button type="button" class="cm-sello" id="cmSello" aria-expanded="false" aria-controls="cmProblemas" disabled></button>
+          <ul class="cm-problemas hidden" id="cmProblemas"></ul>
+        </div>
 
         <div id="cmMazo" class="cm-mazo" data-modo="rejilla">
           <div class="cm-vacio" id="cmVacio">
             <p><strong>Tu mazo está vacío.</strong></p>
-            <p>Busca cartas y púlsalas para añadirlas, o <button type="button" class="link-btn" id="cmVacioImportar">importa una lista</button> de TCG Live o de Limitless.</p>
+            <p>Busca cartas y púlsalas para añadirlas, o <button type="button" class="link-btn" id="cmVacioImportar">importa una lista</button> de TCG Live o de Limitless (también desde una imagen).</p>
           </div>
         </div>
       </section>
@@ -223,9 +270,30 @@
     <div class="modal-box modal-box-wide">
       <button type="button" class="modal-close cm-cerrar" data-cerrar aria-label="Cerrar">×</button>
       <h3 id="cmImportarTitulo">Importar una lista</h3>
-      <p class="subtext">Pega la lista tal cual sale de TCG Live (en cualquier idioma), de Limitless o de PTCGO, o un enlace de importación del builder de Limitless. Las líneas sin código de colección se buscan por nombre.</p>
-      <label class="sr-only" for="cmImportarTexto">Lista del mazo</label>
-      <textarea id="cmImportarTexto" class="cm-importar-texto" rows="12" spellcheck="false" placeholder="Pokémon: 12&#10;4 Charmander PAF 7&#10;…&#10;&#10;Trainer: 36&#10;4 Arven SVI 166&#10;…"></textarea>
+      <div class="cm-vistas cm-importar-modos" role="tablist" aria-label="Desde dónde importar">
+        <button type="button" class="cm-vista activa" role="tab" aria-selected="true" data-importar="texto" id="cmImportarModoTexto">Texto</button>
+        <button type="button" class="cm-vista" role="tab" aria-selected="false" data-importar="imagen" id="cmImportarModoImagen">Imagen</button>
+      </div>
+
+      <div id="cmImportarPanelTexto">
+        <p class="subtext">Pega la lista tal cual sale de TCG Live (en cualquier idioma), de Limitless o de PTCGO, o un enlace de importación del builder de Limitless. Las líneas sin código de colección se buscan por nombre.</p>
+        <label class="sr-only" for="cmImportarTexto">Lista del mazo</label>
+        <textarea id="cmImportarTexto" class="cm-importar-texto" rows="12" spellcheck="false" placeholder="Pokémon: 12&#10;4 Charmander PAF 7&#10;…&#10;&#10;Trainer: 36&#10;4 Arven SVI 166&#10;…"></textarea>
+      </div>
+
+      <!-- Desde una imagen de lista de Limitless (ImgGen): se reconoce cada
+           carta por cómo se ve y el número de su hexágono. Lo hace
+           js/constructor/imagen.js, que se carga solo al usar esto. -->
+      <div id="cmImportarPanelImagen" class="hidden">
+        <p class="subtext">Sube o pega (Ctrl+V) una imagen de lista hecha con Limitless, de las que se comparten en redes. Se reconoce cada carta y sus copias; revisa las marcadas en amarillo antes de importar.</p>
+        <label class="cm-soltar" id="cmSoltar">
+          <input type="file" id="cmImagenFichero" accept="image/*" class="sr-only" />
+          <span class="cm-soltar-texto"><strong>Elige una imagen</strong>, arrástrala aquí o pégala</span>
+        </label>
+        <p class="subtext" id="cmImagenEstado" aria-live="polite"></p>
+        <div class="cm-imagen-filas" id="cmImagenFilas"></div>
+      </div>
+
       <label class="cm-check">
         <input type="checkbox" id="cmImportarSustituir" checked />
         Sustituir el mazo actual (si no, se añade a lo que ya hay)

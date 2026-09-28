@@ -31,13 +31,38 @@
     <div class="nav-inner">
       <a href="/index.html" class="nav-logo">Poke<span>Doc</span></a>
       <div class="nav-links">
-        <a href="/index.html">Inicio</a>
         <a href="/noticias">Noticias</a>
-        <a href="/aprender.html">Aprender</a>
-        <a href="/cartas">Cartas</a>
-        <a href="/foro.html">Foro</a>
-        <a href="/usuarios.html">Comunidad</a>
-        <a href="/torneos.html" class="nav-jugar hidden">Jugar</a>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Aprender</button>
+          <div class="nav-sub">
+            <a href="/aprender.html">Guías y cursos</a>
+            <a href="/curso.html?reto=hoy">Reto de hoy</a>
+            <a href="/guardados.html">Guardados</a>
+          </div>
+        </div>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Cartas</button>
+          <div class="nav-sub">
+            <a href="/cartas">Catálogo de cartas</a>
+            <a href="/lanzamientos.html">Lanzamientos</a>
+          </div>
+        </div>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Comunidad</button>
+          <div class="nav-sub">
+            <a href="/foro.html">Foro</a>
+            <a href="/usuarios.html">Gente</a>
+          </div>
+        </div>
+        <div class="nav-grupo nav-jugar hidden">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
+          <div class="nav-sub">
+            <a href="/torneos.html">Torneos</a>
+            <a href="/constructor">Constructor de mazos</a>
+            <a href="/mazos">Mis mazos</a>
+            <a href="/mis-partidas">Mis partidas</a>
+          </div>
+        </div>
       </div>
       <div class="nav-right">
         <div id="nav-user"></div>
@@ -47,11 +72,29 @@
     <div class="nav-menu-mobile" id="navMobileMenu">
       <a href="/index.html">Inicio</a>
       <a href="/noticias">Noticias</a>
-      <a href="/aprender.html">Aprender</a>
-        <a href="/cartas">Cartas</a>
-      <a href="/foro.html">Foro</a>
-      <a href="/usuarios.html">Comunidad</a>
-      <a href="/torneos.html" class="nav-jugar hidden">Jugar</a>
+      <div class="nav-menu-grupo">
+        <p class="nav-menu-titulo">Aprender</p>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/curso.html?reto=hoy">Reto de hoy</a>
+        <a href="/guardados.html">Guardados</a>
+      </div>
+      <div class="nav-menu-grupo">
+        <p class="nav-menu-titulo">Cartas</p>
+        <a href="/cartas">Catálogo de cartas</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+      </div>
+      <div class="nav-menu-grupo">
+        <p class="nav-menu-titulo">Comunidad</p>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+      </div>
+      <div class="nav-menu-grupo nav-jugar hidden">
+        <p class="nav-menu-titulo">Jugar</p>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/mazos">Mis mazos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+      </div>
     </div>
   </nav>
 

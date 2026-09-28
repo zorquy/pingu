@@ -12,6 +12,219 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-28 — IBAI-Claude (tanda 358 — revisión y subida de las 354-357, y el tipo de las energías en origen)
+
+**Hecho**: revisadas, probadas y subidas las tandas 354-357 de la sesión
+de claude.ai. Y lo que la 357 dejó señalado, arreglado EN ORIGEN:
+
+- **El «Básico» de las energías especiales no era cosa del engorde en
+  español**: TCGdex da `energyType: "Normal"` para la Prisma, la
+  Ignición y las «Energía X Burbujeante/Rocosa/…» de la era ME **también
+  en inglés** (comprobado contra su API). Así que `carta-detalle.js` ya
+  no se lo cree: el «Normal» de una energía solo vale si el NOMBRE es el
+  de una básica (`esNombreDeEnergiaBasica`, con el Hada incluida — fue
+  básica hasta 2020 y sigue en Expandido). `esEnergiaBasica` de la ficha
+  decide igual, y el subtítulo de carta-nucleo.js también: la ficha de la
+  Prisma decía «Energía básica» y siempre legal, y era mentira.
+- **`supabase-migration-energias-especiales.sql` (NUEVA)** corrige las
+  filas ya escritas. Probada contra un Postgres de verdad (pglite):
+  idempotente, y NO toca un `Special` correcto — las «Darkness Energy»
+  de la era Neo son especiales con nombre de básica y la regla del
+  nombre las estropearía; solo se tocan filas que hoy digan «básica».
+- **`decklist-imagen.js` (NUEVO)**: el dibujado a canvas sale de
+  decklist-export.js, que pinta `.torneo-exportar` (torneos.css) — y el
+  constructor lo importaba desde una página que no carga esa hoja. Lo
+  cazó test-tanda-299. La API de los torneos no cambia (reexportado).
+- Menores: igualdad estricta en el código nuevo de app.js, un comentario
+  desactualizado en imagen.js (las plantillas son 1…20, no 1…40), y el
+  Hada fuera del deduplicado del buscador (no tiene gemela en MEE).
+
+**Medido**: la barra pide 1.075 px (corte en 1.080 ✓). Portada: 169,8 KB
+gzip, la tanda 355+356 la BAJA 19 bytes netos (index +160, style −189,
+app +10). OJO: pesar-portada sobre un checkout de Windows da 170,7
+porque git materializa CRLF; producción sirve LF. De ahí también que
+media suite de texto diera falsos rojos — este checkout queda
+normalizado a LF con `core.autocrlf=false`.
+
+**La suite** (montada entera en local: doble, servidor, Playwright):
+- Adaptadas a la barra de la 356: test-tanda-252 (nav-jugar es
+  desplegable), 269 (Noticias va primera, Inicio salió), 309 (la marca
+  activa es el botón del grupo con `:has`; /foro marca «Comunidad»; el
+  menú de usuario son SEIS opciones con «Mis mazos»), 320 (se cuentan
+  botones de grupo y se comprueba que el desplegable ABRE).
+- Adaptadas a la 353 (rutas de guía que quedaron viejas): 271 y 289.
+- test-torneos-23: la caída de la CDN de sprites corta ahora la cadena
+  de respaldo ENTERA (Limitless→jsDelivr→GitHub); cortar solo la primera
+  en un entorno con red prueba el respaldo, no el fallo.
+- El doble aprende `.or()` con `in.(…)`/`like` (comas de primer nivel) y
+  `.not(col,'in','(a,b)')`, que el buscador del constructor usa.
+- **Dos pruebas nuevas**: `test-tanda-355.mjs` (las funciones copiadas
+  de huellas-limitless.js son idénticas a imagen.js, y huellas.bin se
+  abre con el lector del navegador: 5.235 cartas) y
+  `test-constructor.mjs` (añadir, tope de 4 por nombre entre versiones,
+  la Prisma como especial, importar de TCG Live y básicas a mee-00X).
+  En verde las dos; su rigor queda pendiente.
+- Pasada completa en curso al empujar: 15/109 en verde y ninguna roja;
+  los rojos de la primera pasada quedaron todos explicados (CRLF,
+  expectativas de la 353, entorno) y las adaptadas pasan en directo.
+
+**Ficheros**: `js/carta-detalle.js`, `js/carta-nucleo.js`,
+`js/constructor/nucleo.js`, `js/constructor/datos.js`,
+`js/constructor.js`, `js/constructor/imagen.js`, `js/app.js`,
+`js/torneos/decklist-imagen.js` (NUEVO),
+`js/torneos/decklist-export.js`,
+`supabase-migration-energias-especiales.sql` (NUEVA). En la rama
+`pruebas`: el stub, correr-suite.sh, los siete tests adaptados y los dos
+nuevos.
+
+**En curso / pendiente**:
+- **Ejecutar en el SQL Editor, en este orden**:
+  1. `supabase-migration-mazos.sql` (sin ella no se guardan mazos),
+  2. `supabase-migration-energias-especiales.sql`.
+- Regenerar `assets/constructor/huellas.bin` cuando salga colección
+  (instrucciones dentro de herramientas/huellas-limitless.js).
+- El rigor de test-tanda-355 y test-constructor.
+- PINGU: si pasas la suite en tu contenedor, los siete tests adaptados
+  vienen ya en la rama `pruebas`.
+
+---
+
+## 2026-09-28 — PINGU-Claude desde claude.ai (tanda 357 — constructor: las energías)
+
+**Hecho**: las energías básicas salían en el constructor como un hueco
+con el nombre: **TCGdex no trae imagen de ninguna** (sve y mee tienen
+`image_path` a null). Ahora se pintan con las del **30 aniversario**
+—MEE 9 a 16, las del sello de Pikachu—, que están en la CDN de Limitless;
+si no contesta, las MEE 1-8 normales, y si tampoco, el nombre (regla de
+la 321). Es solo lo que se VE: la carta del mazo es la del espejo.
+
+Y ordenado el resto de las energías, que estaba peor de lo que parecía:
+- Una básica se lleva SIEMPRE a la `mee-00X` de su tipo, venga como venga
+  («SVE 18», «MEE 10», «Energía Fuego»…): antes «SVE 2» y «SVE 18» eran
+  dos filas del mismo Fuego.
+- El buscador enseña solo esas ocho (antes, 336 filas de ocho dibujos),
+  «Energía básica» son esas ocho en orden, y «Especial» ya no se fía de
+  `energy_type` (ver abajo). `buscarCartas` devuelve `leidas` para que
+  «Cargar más» pida bien la página siguiente aunque se filtren filas.
+
+**Hallazgo en los DATOS (no arreglado aquí)**: en `tcg_cards`,
+`energy_type` vale **«Básico» en energías ESPECIALES**: Prisma, Ignición,
+Energía del Team Rocket (ASC) y las ocho de la era ME «Energía X
+Creciente / Telepática / Rocosa / Burbujeante / Magnética / Nitro /
+Voltaica / Sombría» (comprobado contra Limitless, que las da como Special
+Energy). En el constructor se les quitaba el límite de 4 copias; ahora
+`esEnergiaBasica` (nucleo.js) decide por el NOMBRE. **Pero
+`esEnergiaBasica` de js/carta-detalle.js también se fía de ese campo**,
+así que la ficha de esas cartas puede estar diciendo que son básicas /
+siempre legales. Lo suyo es arreglarlo en origen (de dónde sale ese
+«Básico» al engordar en español) y con una migración que las corrija; no
+lo he tocado porque es vuestra función y vuestros datos.
+
+**Ficheros**: `js/constructor.js`, `js/constructor/nucleo.js`,
+`js/constructor/datos.js`.
+
+**En curso / pendiente**: lo de `energy_type` de arriba; y la suite.
+
+---
+
+## 2026-09-28 — PINGU-Claude desde claude.ai (tanda 356 — la barra de arriba, en desplegables)
+
+**Hecho**: la barra pasa de siete enlaces sueltos a cinco entradas:
+**Noticias** · **Aprender ▾** (Guías y cursos, Reto de hoy, Guardados) ·
+**Cartas ▾** (Catálogo, Lanzamientos) · **Comunidad ▾** (Foro, Gente) ·
+**Jugar ▾** (Torneos, Constructor de mazos, Mis mazos, Mis partidas). Es la
+misma organización que el pie. «Inicio» sale de la barra ancha (el logo
+lleva a la portada) y sigue en el menú del móvil, que ahora va por
+apartados con título y los enlaces a dos columnas, sin acordeones.
+Desplegables: al pasar el ratón (CSS), con el tabulador
+(`:has(:focus-visible)`) y al tocar (js/app.js, `aria-expanded`; Escape
+o tocar fuera los cierran). El corte de la barra baja de 1.160 a
+**1.080** (medido: pide 1.073). Y de paso, **arreglada la flecha de los
+`select` en mosaico** del tema oscuro (lo que se veía en /cartas).
+
+**Portada**: se hizo sitio antes — los comentarios largos de la barra
+(style.css) y de `markActiveLink` (app.js) pasan a SCHEMA.md, tanda 356.
+Neto de la tanda: **−54 bytes gzip** (index +156, style −198, app −12).
+
+**Ficheros**: las 27 páginas con barra (todas menos auth, curso,
+onboarding y reset-password), `css/style.css`, `js/app.js`, `SCHEMA.md`.
+
+**En curso / pendiente**:
+- **Pasar la suite entera**: cambia el HTML de la barra en 27 páginas.
+  Las pruebas que busquen `a.nav-jugar` o cuenten los enlaces de
+  `.nav-links` van a cantar — `.nav-jugar` es ahora el `div.nav-grupo`
+  (y en el móvil `div.nav-menu-grupo`), sigue naciendo `hidden` y app.js
+  la desvela igual. Mirar también objetivos táctiles (los botones del
+  grupo miden 44) y contraste del título de apartado del móvil
+  (`--text-mid`).
+- `herramientas/medir-barra.mjs` (rama pruebas) debería dar ~1.073.
+
+---
+
+## 2026-09-28 — PINGU-Claude desde claude.ai (tanda 355 — constructor: pulido e importar desde imagen)
+
+**Hecho**: tres cosas que pidió PINGU al probar la 354.
+
+1. **El mazo ya no se mueve al añadir o quitar cartas.** En pantalla
+   ancha los dos paneles son fijos a la altura de la ventana y cada uno
+   tiene su scroll; el del mazo se conserva al repintar (se construye
+   fuera y se cambia de una vez). Tres causas del «baile»: la lista de
+   avisos encima del mazo crecía y encogía (ahora es un desplegable que
+   abre el sello «N cosas por revisar»), la página entera bajaba con el
+   mazo, y dentro de cada grupo se ordenaba por copias — pulsar «+»
+   adelantaba la carta y el siguiente clic caía en otra. Para pintar va
+   `seccionesDelMazo(…, { estable: true })` (orden de llegada dentro de
+   grupos y líneas); el texto de TCG Live sigue ordenando por copias. La
+   cabecera del panel se compactó (formato en línea, el conmutador
+   Cartas/Lista junto a él) para que quepa más mazo.
+2. **Fuera «Abrir en Limitless»** (exportar a su builder). Importar un
+   enlace de Limitless sigue funcionando.
+3. **Importar desde una IMAGEN de Limitless (ImgGen)**, como la extensión
+   de navegador de PINGU: Herramientas → «Importar desde una imagen», o
+   pegar con Ctrl+V en cualquier sitio de la página, o arrastrar. Se
+   reconoce cada carta por su huella visual y el número del hexágono por
+   plantillas; sale una fila por carta con su recorte para corregir la
+   carta (desplegable con las parecidas) o las copias, y lo dudoso va en
+   amarillo. Probado: una lista real de ImgGen, reescalada al 55 % y en
+   JPEG al 60 %, sale 16/16 cartas y 16/16 números; con escaneos de
+   TCGdex en vez de los de Limitless, 15/15 cartas.
+
+Y **«Mis mazos» en el menú del usuario** (junto a «Mis partidas») y
+«Jugar» se marca como activo en /constructor y /mazos. Es `js/app.js`,
+que cuenta para la portada: **+23 bytes gzip** (medido), queda ~169,85.
+
+**Ficheros**: `js/constructor/imagen.js` (NUEVO: reconocimiento, sin
+imports ni HTML, se carga con `import()` solo al usarlo),
+`herramientas/huellas-limitless.js` (NUEVO), `assets/constructor/huellas.bin`
+(NUEVO, 2,9 MB), `constructor.html`, `css/constructor.css`,
+`js/constructor.js`, `js/constructor/nucleo.js`, `js/app.js`.
+
+**Lo que hay que saber de `huellas.bin`**:
+- Es la base con la que se reconoce: 5.235 cartas (todo Estándar según
+  Limitless + las colecciones SV ya rotadas, porque la gente sigue
+  poniendo «Rare Candy SVI 191» y la imagen sale con ESE dibujo), 528
+  bytes por carta (luz a 16×22 y color a la mitad), más las plantillas
+  del contador 1–20 (ImgGen no pinta el hexágono con más de 20; entonces
+  sale 1 y marcado como dudoso).
+- **Se genera en la consola de limitlesstcg.com** con
+  `herramientas/huellas-limitless.js` (las instrucciones están arriba del
+  fichero): desde pokedoc.es no se puede, Limitless no deja pedir su
+  lista de cartas ni su generador desde otro dominio. **Hay que
+  regenerarlo cuando salga una colección**; mientras no, las cartas
+  nuevas salen como dudosas (se corrigen a mano), no rompen nada.
+- Las funciones `huella`, `compactar` y `detectar` están COPIADAS en la
+  herramienta. Es una constante copiada (tanda 322): pide una prueba en
+  `pruebas` que lea los dos ficheros como texto y compare esas tres.
+
+**En curso / pendiente**:
+- Sigue pendiente ejecutar `supabase-migration-mazos.sql` (tanda 354).
+- Pasar la suite: app.js tocado (presupuesto y menú), el conmutador de
+  vista cambió de sitio, el sello ahora es un `<button>`.
+- En móvil (<900 px) el comportamiento es el de antes (pestañas Mazo /
+  Buscar); los avisos también van en el desplegable.
+
+---
+
 ## 2026-09-28 — PINGU-Claude desde claude.ai (tanda 354 — constructor de mazos)
 
 **Hecho**: un constructor de mazos en `/constructor`, a imagen del de

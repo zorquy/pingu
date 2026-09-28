@@ -58,14 +58,54 @@
   min-width: 0;
 }
 
-/* El buscador se queda a la vista mientras se baja por el mazo, que es
-   como se usa: mirar el mazo, buscar lo que falta, añadir. */
-.cm-panel-buscar {
-  position: sticky;
-  top: 88px;
-  max-height: calc(100vh - 104px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+/* En pantalla ancha, los DOS paneles se quedan quietos a la altura de
+   la ventana y cada uno baja por dentro. Antes la página entera se
+   movía: al añadir una carta crecía el mazo (o la lista de avisos de
+   encima) y todo lo de debajo se desplazaba, y el siguiente clic caía
+   en otra carta. Ahora el mazo tiene su propio scroll, que no se mueve
+   al repintarlo, y el buscador el suyo. */
+@media (min-width: 901px) {
+  .cm-rejilla {
+    align-items: stretch;
+  }
+
+  .cm-panel-mazo,
+  .cm-panel-buscar {
+    position: sticky;
+    top: 88px;
+    height: calc(100vh - 104px);
+    height: calc(100dvh - 104px);
+    min-height: 480px;
+  }
+
+  .cm-panel-mazo {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cm-panel-mazo .cm-mazo {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    /* Un poco de aire para que el borde rojo de una carta marcada no
+       se corte contra el filo del scroll. */
+    padding: var(--e-xs);
+    margin: 0 calc(-1 * var(--e-xs));
+  }
+
+  .cm-panel-buscar {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  /* La barra de scroll del sistema sale blanca en el tema oscuro. */
+  .cm-panel-mazo .cm-mazo,
+  .cm-panel-buscar {
+    scrollbar-color: var(--border-strong) transparent;
+  }
 }
 
 .cm-titulo-panel {
@@ -221,8 +261,16 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--e-md) var(--e-lg);
-  margin-top: var(--e-md);
+  gap: var(--e-sm) var(--e-lg);
+  margin-top: var(--e-sm);
+}
+
+/* En la barra del mazo el formato va en línea («Formato [Estándar]»):
+   cada fila de cabecera que se ahorra es mazo que se ve sin bajar. */
+.cm-ajustes .cm-campo {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--e-sm);
 }
 
 .cm-campo {
@@ -274,14 +322,19 @@
   font-size: var(--t-xs);
 }
 
+/* El estado de guardado empuja a la derecha; el conmutador va detrás. */
+.cm-ajustes .cm-vistas {
+  margin-left: 0;
+}
+
 /* ── El resumen ── */
 .cm-resumen {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--e-sm) var(--e-md);
-  margin: var(--e-lg) 0 var(--e-md);
-  padding-top: var(--e-md);
+  margin: var(--e-sm) 0;
+  padding-top: var(--e-sm);
   border-top: 1px solid var(--border);
 }
 
@@ -352,12 +405,51 @@
   }
 }
 
+/* Los avisos van en un desplegable que se abre desde el sello, encima
+   del mazo, y no en una lista que empuja las cartas hacia abajo cada
+   vez que aparece o desaparece un aviso. */
+.cm-resumen {
+  position: relative;
+}
+
+button.cm-sello {
+  min-height: 32px;
+  cursor: pointer;
+}
+
+/* Sin avisos, el sello es solo una etiqueta: ni flecha ni mano. */
+button.cm-sello:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+button.cm-sello:not(:disabled)::after {
+  content: ' ▾';
+}
+
+button.cm-sello[aria-expanded='true']:not(:disabled)::after {
+  content: ' ▴';
+}
+
+@media (pointer: coarse) {
+  button.cm-sello {
+    min-height: 44px;
+  }
+}
+
 .cm-problemas {
-  margin-bottom: var(--e-md);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 15;
+  box-shadow: var(--shadow-lg);
   padding: var(--e-md) var(--e-lg);
   border: 1px solid var(--danger);
   border-radius: var(--radius-md);
-  background: var(--danger-bg);
+  /* Opaco: flota encima de las cartas. El rojo claro va por encima
+     del blanco por si --danger-bg es translúcido en algún tema. */
+  background: linear-gradient(var(--danger-bg), var(--danger-bg)), var(--white);
   color: var(--danger);
   font-size: var(--t-sm);
   list-style: disc inside;
@@ -799,6 +891,111 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: var(--t-sm);
   resize: vertical;
+}
+
+/* ── Importar: texto o imagen ── */
+.cm-importar-modos {
+  display: inline-flex;
+  margin: var(--e-sm) 0 var(--e-md);
+  margin-left: 0;
+  /* La caja del modal es una columna flexible con scroll: sin esto, esta
+     fila (que lleva overflow: hidden de .cm-vistas) se encoge a cero. */
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.cm-soltar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  margin-top: var(--e-md);
+  padding: var(--e-lg);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-mid);
+  font-size: var(--t-md);
+  text-align: center;
+  cursor: pointer;
+}
+
+.cm-soltar:hover,
+.cm-soltar.cm-encima,
+.cm-soltar:focus-within {
+  border-color: var(--navy);
+  background: var(--ice);
+}
+
+.cm-soltar-texto strong {
+  color: var(--navy);
+}
+
+.cm-imagen-filas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--e-sm);
+  max-height: 360px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.cm-imagen-fila {
+  display: flex;
+  gap: var(--e-md);
+  align-items: center;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+/* Lo que el reconocimiento no tiene claro: se ve de un vistazo. */
+.cm-imagen-fila.cm-duda {
+  border-color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.cm-imagen-fila.cm-quitada {
+  opacity: 0.5;
+}
+
+.cm-imagen-recorte {
+  width: 64px;
+  height: auto;
+  aspect-ratio: 92 / 128;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.cm-imagen-datos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+}
+
+.cm-imagen-datos select {
+  width: 100%;
+  min-width: 0;
+}
+
+.cm-imagen-copias input {
+  width: 88px;
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--white);
+  color: var(--text);
+  font-size: var(--t-md);
+  font-weight: 400;
+}
+
+.cm-imagen-datos .cm-dudoso {
+  border-color: var(--warning);
+  border-width: 2px;
 }
 
 .cm-importar-resultado {
