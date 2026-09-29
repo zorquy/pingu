@@ -13970,6 +13970,12 @@ guarda redundante en `juegoAbierto`, que se ha quitado.
 
 ## Tanda 292 — torneos privados, con código (sept. 2026)
 
+> **Reemplazada por la tanda 367.** Lo que sigue describe el modelo de
+> «privado = invisible», que duró hasta el 29 de septiembre. Desde la 367
+> un torneo con código **se ve como cualquier otro** y el candado está en
+> inscribirse, no en leer. Se conserva porque explica por qué se hizo así
+> y qué se aprendió (lo del `select *` sigue valiendo entero).
+
 Lo pidió PINGU: hay gente que quiere montar una pachanga **sin que salga
 en la lista**, y que solo entre quien tenga el código.
 
@@ -19346,3 +19352,126 @@ para afinar el encaje.
   a igualdad el más jugado; si ninguno, la deducción de siempre con id
   `pokedoc-…`. Sus listas no suman cartas (vienen en el idioma de cada
   jugador).
+---
+
+## Tanda 367 — un torneo «privado» pasa a ser un torneo CON CÓDIGO (sept. 2026)
+
+PINGU, al ver que el RSS de la 363 dejaba fuera los privados: **«los
+torneos privados sí deberían ser públicos y visibles, pero que te puedas
+apuntar eso debería ir con el código o contraseña»**.
+
+Tenía razón, y el fallo era de raíz y no del RSS. Desde la 292, `is_private`
+quería decir **invisible**: la política escondía la fila entera y el torneo
+no existía para quien no estuviera dentro. Eso resolvía la entrada de
+rebote —sin poder leer el id, no te inscribes— pero se llevaba por delante
+el escaparate: el torneo de una tienda o de un grupo no salía en ninguna
+parte, no lo indexaba nadie y no traía a nadie nuevo, que es justo lo que
+más falta le hace a la web.
+
+Ahora hay **una sola regla**: se VE como cualquier otro, se ENTRA con el
+código.
+
+### Lo que de verdad cambia: el candado se muda
+
+No es un cambio de pantalla, es un cambio de **quién** protege qué.
+
+| | Antes (292) | Ahora (367) |
+|---|---|---|
+| Lo protege | la política de LECTURA | la función de INSCRIPCIÓN |
+| Quién ve el torneo | organizador, admins e inscritos | todo el mundo |
+| Qué hace falta para entrar | poder leer la fila | el código |
+
+Y ese traslado tiene una consecuencia que es el corazón de la tanda:
+**`torneos_inscribirse` NO comprobaba ningún código, y no hacía falta**,
+porque esa función pide el `id` del torneo y el id no se podía saber. En
+cuanto la fila es pública, el id lo sabe cualquiera: sin la comprobación
+nueva, un torneo con código se entraría **sin código y sin dar ningún
+error**. Es la forma exacta en que estos fallos se quedan meses puestos.
+
+### Y el código, ¿dónde vive?
+
+En su propia tabla, `tournament_join_codes (tournament_id, code,
+updated_at)`, con RLS cerrada a `torneos_mando(tournament_id)` — el mismo
+criterio único de quién lleva un torneo que dice CLAUDE.md. La columna
+`tournaments.join_code` **se borra**.
+
+Se muda en vez de esconderse por lo que ya estaba razonado en la 292 y
+sigue valiendo: en Postgres, un `select *` de un rol sin permiso sobre UNA
+columna **no la devuelve vacía, falla la consulta entera** — y el cliente
+pide `tournaments` con `*` en varios sitios. Un grant por columnas habría
+dejado la sección de torneos sin cargar para todo el mundo. Mudando la
+columna, el `select *` sigue funcionando porque ya no hay nada que
+esconder en esa fila.
+
+Corolario para la próxima vez: **en cuanto una fila se vuelve pública,
+todas sus columnas se vuelven públicas**. Antes de abrir una política de
+lectura, la pregunta no es «¿se puede ver esta fila?» sino «¿qué hay
+dentro de esta fila que no se pueda ver?».
+
+### Dos parámetros con el mismo nombre son una llamada ambigua
+
+`torneos_inscribirse` pasa de tres parámetros a cuatro (`p_codigo` al
+final, con defecto). La de tres **hay que borrarla**, no dejarla al lado:
+PostgREST casa la RPC por los NOMBRES de los parámetros, así que dos
+funciones a las que se puede llamar con los mismos tres nombres son una
+llamada ambigua y Postgres la rechaza en vez de elegir. Es la misma
+lección de la 291.
+
+Y el defecto es `null` a propósito: un navegador con el JavaScript viejo
+en caché llama con tres parámetros y **no se cuela** en un torneo con
+código.
+
+### Dónde se anuncia, y dónde no
+
+Tres sitios y dos respuestas, que conviene no mezclar:
+
+- **La web y el RSS: sí.** El canal es el espejo de lo que la web enseña;
+  uno que esconde lo que la web muestra miente. Se quita el filtro
+  `is_private=is.false` de `rss.mjs` —quien decide es la política, no un
+  filtro escrito a mano— y la entrada dice que hace falta código.
+- **El canal de Telegram automático: no.** No porque haya nada que
+  esconder, sino porque es un aviso a todo el mundo de algo a lo que no
+  entra todo el mundo. La pasada automática los sigue saltando.
+- **El botón «Mandar al canal» de la ficha: sí.** Ahí lo decide una
+  persona, y es lo mismo que el sello de OFICIAL: un acto del sitio.
+
+### Un fallo que apareció al escribir la prueba
+
+Inscribirse reventaba con un `ReferenceError` **justo antes** del
+`recargar()`: el aviso de éxito miraba una variable `estado` que no
+existía en ninguna parte — se quedó de cuando el recuento lo hacía el
+navegador, y desde la 293 lo decide la RPC. La inscripción se guardaba
+bien, pero no salía ningún aviso y la ficha no se enteraba hasta
+refrescar. Ahora se recarga primero y el aviso mira `miInscripcion.status`,
+que además acierta cuando el torneo se llenó mientras rellenabas el
+formulario.
+
+Nadie lo había visto porque ninguna prueba **pulsaba** el botón de
+inscribirse en la ficha. Es la lección de la 313 otra vez.
+
+### Lo que se quita
+
+El formulario «¿Tienes un código?» de la pantalla de torneo no disponible
+(y su `torneos_entrar_con_codigo` en el cliente): existía para entrar a un
+torneo que no se podía ni ver, y eso ya no pasa. La RPC se queda definida
+—delegando, sin lógica propia— solo mientras dure el despliegue, porque un
+navegador con el JavaScript viejo en caché aún puede llamarla.
+
+### De paso: el corte de la barra, otra vez
+
+`test-tanda-327` cazó que la barra de arriba **pedía 1081 px y el corte
+estaba en 1080**. Un píxel, y el síntoma no canta — `.nav-links` es hijo
+de flex y cede en silencio. Va a **1100**, con holgura para la próxima
+letra que crezca. Es la tercera vez que este número se queda corto (320,
+356, 367): si tocas la barra, mídela.
+
+### Comprobado
+
+`test-tanda-367.mjs` (57), que **sustituye a `test-tanda-292.mjs`** —
+probaba justo lo contrario. Comprueba la migración contra PostgreSQL 16 de
+verdad (la copia de los códigos, la política por `torneos_mando`, que sin
+cuenta no se lee la tabla, que el cliente de tres parámetros no se cuela) y
+la pantalla en Chromium: que el torneo con código sale en la lista sin
+sesión, que la ficha pide el código y lo manda sin los espacios de
+pegarlo, que un torneo normal no pide nada, y que el editor lee el código
+de su tabla y no de la fila.

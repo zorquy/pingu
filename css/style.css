@@ -790,10 +790,12 @@ body:has(.nav-menu-mobile.open) {
 }
 
 /* El corte en el que caben los enlaces: MEDIDO, no elegido (tandas 320,
-   327 y 356; la cuenta, en SCHEMA.md). Si añades o quitas algo de la
+   327, 356 y 367; la cuenta, en SCHEMA.md). Si añades o quitas algo de la
    barra, vuelve a medir lo que PIDE y mueve este número: un hijo de flex
-   cede en silencio antes de desbordar. */
-@media (min-width: 1080px) {
+   cede en silencio antes de desbordar. En la 367 la barra pedía 1081 y el
+   corte estaba en 1080: UN píxel, y el síntoma no canta. Va a 1100 para
+   que la próxima letra que crezca no lo vuelva a pasar. */
+@media (min-width: 1100px) {
   .nav-links {
     display: flex;
   }
@@ -809,7 +811,7 @@ body:has(.nav-menu-mobile.open) {
    enlaces a ningún ancho (la barra está topada en --container-w): se
    van al menú. El `.open` lleva `!important` porque la regla de arriba
    también (tanda 327; la cuenta, en SCHEMA.md). */
-@media (min-width: 1080px) {
+@media (min-width: 1100px) {
   body:has(.nav-torneo-vivo) .nav-links {
     display: none;
   }

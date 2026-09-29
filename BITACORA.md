@@ -12,6 +12,78 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-29 — PINGU-Claude (tanda 367 — «privado» pasa a ser «con código»)
+
+**Hecho**: PINGU, al ver que el RSS de la 363 dejaba fuera los privados:
+«los torneos privados sí deberían ser públicos y visibles, pero que te
+puedas apuntar eso debería ir con el código o contraseña». Tenía razón, y
+el fallo era de raíz y no del RSS.
+
+Desde la 292, `is_private` quería decir **invisible**: la política
+escondía la fila entera. Eso resolvía la entrada de rebote —sin poder
+leer el id, no te inscribes— pero se llevaba por delante el escaparate.
+Ahora hay una sola regla: **se VE como cualquier otro, se ENTRA con el
+código**.
+
+Lo importante no es la pantalla, es que **el candado se muda de sitio**:
+de la política de LECTURA a la función de INSCRIPCIÓN. `torneos_inscribirse`
+no comprobaba ningún código y no hacía falta, porque pide el `id` del
+torneo y el id no se podía saber; en cuanto la fila es pública, sin la
+comprobación nueva un torneo con código se entraría **sin código y sin dar
+ningún error**.
+
+Y el código se muda a su propia tabla (`tournament_join_codes`, cerrada a
+`torneos_mando`), porque en cuanto una fila es pública **todas sus
+columnas lo son**. No se esconde columna a columna: un `select *` de un
+rol sin permiso sobre UNA columna falla la consulta entera y el cliente
+pide `tournaments` con `*` — es la trampa que ya estaba razonada en la 292.
+
+De paso, un fallo que salió al escribir la prueba: **inscribirse reventaba
+con un `ReferenceError` justo antes del `recargar()`** (un `estado` que no
+existía desde la 293). Se guardaba bien, pero no salía aviso y la ficha no
+se enteraba hasta refrescar. Ninguna prueba PULSABA el botón.
+
+Dónde se anuncia: la web y el RSS sí (el canal es el espejo de la web); la
+pasada automática de Telegram no (es un aviso a todos de algo a lo que no
+entra cualquiera); el botón de la ficha sí, que ahí lo decide una persona.
+
+De paso, `test-tanda-327` cazó que la barra de arriba **pedía 1081 px y
+el corte estaba en 1080**. Un píxel, y el síntoma no canta. A 1100.
+
+**Ficheros**: `supabase-migration-torneos-codigo.sql` (**nuevo — falta
+ejecutarlo**), `css/style.css`, `js/torneos/torneo.js`, `js/torneos/torneos.js`,
+`js/schema-check.js`, `torneo.html`, `torneos.html`,
+`netlify/functions/rss.mjs`, `netlify/functions/telegram-mandar.mjs`,
+`netlify/functions/telegram-torneos.mjs`, `SCHEMA.md`. En la rama
+`pruebas`: `test-tanda-367.mjs` (**nuevo**, sustituye a
+`test-tanda-292.mjs`, que se borra), `test-tanda-363.mjs`, el doble y
+`correr-suite.sh`.
+
+**Suite completa sobre la rama YA CON las 364-366 de Ibai: 112 verdes y
+UNA roja, que NO es de esta tanda** —
+
+- **`test-tanda-331` (para la sesión de IBAI)**: la 365 (el precio de
+  Cardmarket) pide la carta **también en inglés** a TCGdex, y esa prueba
+  decía «solo se pide el español». No la toco: es vuestro código y
+  vuestra decisión — o el inglés hace falta y la prueba se reescribe
+  contando por qué, o sobra y se quita la petición. Los cuatro fallos son
+  el mismo: `es,en` donde se esperaba `es`.
+- De paso se han ajustado dos cuentas escritas a mano que la 366 dejó
+  cortas: las páginas con pie pasan de 28 a **31** (`test-tanda-312` y
+  `test-tanda-326`), con /meta, /mazo-meta y /mi-coleccion.
+
+**En curso / pendiente**: nada a medias. Dos cosas para quien siga:
+
+- **La migración se ejecuta DESPUÉS del despliegue**, no antes: borra
+  `tournaments.join_code`. Los dos puentes del cliente aguantan el rato
+  intermedio en los dos órdenes.
+- Quedan **dos puentes temporales** que hay que quitar cuando lleve un
+  tiempo: el reintento de `torneos_inscribirse` con tres parámetros (en
+  `js/torneos/torneo.js`) y la RPC `torneos_entrar_con_codigo`, que ya no
+  llama nadie.
+
+---
+
 ## 2026-09-29 — IBAI-Claude (publica el remate de la 366 desde el equipo de Ibai)
 
 **Hecho**: subir el remate de la 366 (la entrada de abajo):

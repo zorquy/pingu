@@ -163,7 +163,7 @@ export async function mandarUnTorneo({ id, forzar = false, env = process.env, re
   try {
     const filas = await restImpl(
       `tournaments?id=eq.${encodeURIComponent(id)}` +
-        `&select=id,slug,name,description,banner_url,start_at,status,format,swiss_rounds,top_cut_size,max_players,is_private,telegram_sent_at&limit=1`,
+        `&select=id,slug,name,description,banner_url,start_at,status,format,swiss_rounds,top_cut_size,max_players,telegram_sent_at&limit=1`,
       env.SUPABASE_SERVICE_ROLE_KEY
     )
     torneo = filas?.[0]
@@ -172,10 +172,6 @@ export async function mandarUnTorneo({ id, forzar = false, env = process.env, re
   }
   if (!torneo) return { estado: 404, cuerpo: { error: 'Ese torneo ya no existe.' } }
 
-  // El candado que no se puede saltar ni forzando.
-  if (torneo.is_private) {
-    return { estado: 400, cuerpo: { error: 'Este torneo es privado: no puede salir por el canal.' } }
-  }
   if (torneo.status !== 'registration_open') {
     return {
       estado: 400,

@@ -51,8 +51,11 @@ function esOficial(t) {
 // Un torneo privado no sale en la lista para casi nadie, pero SÍ para
 // quien está dentro y para quien lo organiza: a ellos hay que decirles
 // que no lo va a ver el resto.
+// Desde la tanda 367 un torneo con código SE VE como los demás: la
+// chapa ya no avisa de que está escondido, avisa de que para apuntarse
+// hace falta la llave.
 const CHAPA_PRIVADO = () =>
-  `<span class="torneo-privado" title="Privado: no sale en la lista, se entra con código">${icons.lock(11)} Privado</span>`
+  `<span class="torneo-privado" title="Para inscribirse hace falta el código que da quien organiza">${icons.lock(11)} Con código</span>`
 const CHAPA_OFICIAL = () => `<span class="torneo-oficial" title="Torneo oficial, organizado por el equipo de PokeDoc">${icons.star(11)} Oficial</span>`
 
 // ── La tarjeta de un torneo (tanda 297) ──
@@ -979,6 +982,13 @@ function engancharFormulario(session, perfil) {
     if (!pasoValido(0) || !pasoValido(1)) return
     const nombre = $('torneoNombre').value.trim()
     const liga = esLigaElegida()
+    // Marcar «entrada con código» sin escribir ninguno dejaría un torneo
+    // a la vista al que NO SE PUEDE ENTRAR, y sin que nada diera error.
+    const codigoNuevo = $('torneoPrivado')?.checked ? $('torneoCodigoNuevo').value.trim() : ''
+    if ($('torneoPrivado')?.checked && !codigoNuevo) {
+      showToast('Escribe el código: sin él nadie podría inscribirse.', 'error')
+      return
+    }
     enviando = true
     // Primero la imagen: si la subida falla, el torneo NO se crea a
     // medias — se avisa y se deja reintentar con todo lo escrito.
@@ -1022,7 +1032,6 @@ function engancharFormulario(session, perfil) {
       // base lo pone a false pase lo que pase aquí.
       is_official: Boolean($('torneoOficial')?.checked),
       is_private: Boolean($('torneoPrivado')?.checked),
-      join_code: $('torneoPrivado')?.checked ? $('torneoCodigoNuevo').value.trim() || null : null,
     }
     let { error } = await supabase.from('tournaments').insert(fila)
     // Entre el despliegue y que un humano ejecute las migraciones de
@@ -1030,7 +1039,7 @@ function engancharFormulario(session, perfil) {
     // torneos tiene que seguir funcionando: si la base no conoce una
     // columna, se reintenta sin ella (del modo de listas queda el
     // booleano viejo, que dice lo mismo salvo el «nunca»).
-    for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'join_code', 'prizes']) {
+    for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'prizes']) {
       if (error && (error.message || '').includes(columna)) {
         delete fila[columna]
         ;({ error } = await supabase.from('tournaments').insert(fila))
@@ -1045,6 +1054,33 @@ function engancharFormulario(session, perfil) {
         'error'
       )
       return
+    }
+    // El código, después y aparte (tanda 367): vive en su propia tabla
+    // porque la fila del torneo la lee todo el mundo. Hace falta el id
+    // del torneo recién creado, y se busca por el slug, que lo acabamos
+    // de inventar aquí mismo y es único.
+    //
+    // Si esto falla no se deshace el torneo: ya está creado y su
+    // organizador puede poner el código desde Editar. Decirlo, eso sí.
+    if (fila.is_private && codigoNuevo) {
+      const { data: creado } = await supabase.from('tournaments').select('id').eq('slug', fila.slug).maybeSingle()
+      let falloCodigo = creado?.id ? null : { message: 'no se encuentra el torneo recién creado' }
+      if (creado?.id) {
+        ;({ error: falloCodigo } = await supabase
+          .from('tournament_join_codes')
+          .insert({ tournament_id: creado.id, code: codigoNuevo }))
+        // El PUENTE mientras la migración no esté puesta: al sitio viejo.
+        // Temporal — quitar cuando lleve un tiempo.
+        if (falloCodigo) {
+          ;({ error: falloCodigo } = await supabase
+            .from('tournaments')
+            .update({ join_code: codigoNuevo })
+            .eq('id', creado.id))
+        }
+      }
+      if (falloCodigo) {
+        showToast('El torneo está creado, pero el código no se ha guardado: ponlo desde Editar.', 'error')
+      }
     }
     form.classList.add('hidden')
     form.reset()

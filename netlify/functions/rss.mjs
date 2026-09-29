@@ -102,15 +102,22 @@ ${items}
 // quien no conoce la web. Que salga en el RSS es además lo que permite
 // que un puente lo publique solo en redes, sin que nadie se acuerde.
 //
-// Tres condiciones, y las tres importan:
+// Dos condiciones:
 //
 //   · `registration_open`: un borrador no existe todavía y uno cerrado ya
 //     no admite a nadie. El canal es para lo que se puede hacer HOY.
 //   · Que no haya empezado: anunciar un torneo que era ayer es ruido.
-//   · Y NUNCA los privados. Un torneo privado tiene código de acceso; su
-//     gracia es justamente que no se anuncia. Publicarlo en un canal
-//     abierto lo rompería sin que nadie se enterara — el sitio no daría
-//     ningún error, simplemente estaría contando algo que no debía.
+//
+// Los de CÓDIGO sí entran (tanda 367). Antes no, y con razón: eran
+// invisibles hasta por la API, así que sacarlos por aquí habría contado
+// lo que nadie quería contar. Desde que se ven como cualquier otro, el
+// canal no puede decir una cosa distinta de la web — un RSS que esconde
+// lo que la web enseña es un RSS que miente. Lo que sí se dice es que
+// hace falta código, para que nadie llegue a la ficha a ciegas.
+//
+// La consulta va con la clave publicable, o sea que quien decide lo que
+// sale es la POLÍTICA de la base, no este filtro. Por eso aquí ya no hay
+// ninguno: si algún día vuelve a esconderse un torneo, se esconderá solo.
 //
 // La FECHA de la entrada es `created_at` y no `start_at`: un lector
 // ordena por cuándo se publicó la novedad, no por cuándo se juega. Si
@@ -120,12 +127,10 @@ async function torneosAbiertos() {
   const filas = await consultar(
     'tournaments?status=eq.registration_open' +
       `&start_at=gte.${encodeURIComponent(new Date().toISOString())}` +
-      '&is_private=is.false' +
-      `&select=slug,name,description,start_at,created_at,max_players&order=created_at.desc&limit=10`
+      `&select=slug,name,description,start_at,created_at,max_players,is_private&order=created_at.desc&limit=10`
   ).catch(() =>
-    // Sin la columna de privados (migración sin ejecutar) no se cae el
-    // canal entero: se piden igual, que es como estaba antes de que
-    // existieran los torneos privados.
+    // Sin la columna (migración sin ejecutar) no se cae el canal entero:
+    // se piden sin ella, que es como estaba antes de que existiera.
     consultar(
       'tournaments?status=eq.registration_open' +
         `&start_at=gte.${encodeURIComponent(new Date().toISOString())}` +
@@ -143,7 +148,8 @@ async function torneosAbiertos() {
     description:
       `Se juega el ${fechaLarga(t.start_at)}` +
       (t.max_players ? ` · ${t.max_players} plazas` : '') +
-      '. Inscripción abierta en PokeDoc.',
+      '. Inscripción abierta en PokeDoc' +
+      (t.is_private ? ', con el código que da quien lo organiza.' : '.'),
     published_at: t.created_at || t.start_at,
   }))
 }

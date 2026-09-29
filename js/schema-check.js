@@ -71,6 +71,9 @@ export const REQUISITOS = [
   { tabla: 'tournaments', columna: 'decklist_visibility', fichero: 'supabase-migration-torneos-listas.sql', rompe: 'El modo «listas nunca públicas» no se guarda (los otros dos modos van por el booleano viejo).' },
   { tabla: 'tournaments', columna: 'banner_url', fichero: 'supabase-migration-torneos-banner.sql', rompe: 'No se puede poner banner a un torneo (todo lo demás funciona).' },
   { tabla: 'tournaments', columna: 'prizes', fichero: 'supabase-migration-torneos-premios.sql', rompe: 'Los premios de un torneo no se guardan: se pueden escribir y al recargar no están.' },
+  // Tabla entera (tanda 367). Un torneo con código sin ella se queda a la
+  // vista y sin llave: se ve, pero no entra nadie.
+  { tabla: 'tournament_join_codes', columna: 'code', fichero: 'supabase-migration-torneos-codigo.sql', rompe: 'Los torneos con código no guardan el suyo: se ven, pero no se puede entrar.' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

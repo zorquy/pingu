@@ -61,13 +61,13 @@ export async function procesar({ env = process.env, restImpl = rest, fetchImpl =
   let pendientes
   try {
     pendientes = await restImpl(
-      // `is_private` NO se puede dar por supuesto aquí: esta función usa
-      // la clave de servicio, que se salta la RLS. Lo que en la web hace
-      // invisible a un torneo privado no lo protege de esto — el filtro
-      // tiene que ir escrito. Sin él, el canal anunciaría con nombre,
-      // fecha y enlace justo lo que alguien quiso que no se viera.
-      // El `or` cubre las filas anteriores a la migración, que lo tienen
-      // a null en vez de a false.
+      // Los torneos CON CÓDIGO (`is_private`) se quedan fuera de la
+      // pasada automática. No porque haya nada que esconder —desde la
+      // tanda 367 se ven en la web y salen en el RSS— sino porque el
+      // canal es un aviso a 600 personas y a este no puede entrar
+      // cualquiera: anunciarlo solo lo decide quien lleva el sitio, con
+      // el botón de la ficha. El `or` cubre las filas anteriores a la
+      // migración, que lo tienen a null en vez de a false.
       `tournaments?status=eq.registration_open&telegram_sent_at=is.null` +
         `&or=(is_private.is.null,is_private.is.false)` +
         `&start_at=gte.${encodeURIComponent(ahora.toISOString())}` +

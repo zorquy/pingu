@@ -281,7 +281,7 @@ function pintarFicha() {
     // debe enseñar «undefined min» si a la fila le falta la columna.
     [icons.clock(15), `${torneo.round_time_minutes ?? 30} min por ronda`],
     [icons.checkCircle(15), `${torneo.checkin_minutes ?? 5} min de check-in`],
-    ...(torneo.is_private ? [[icons.lock(15), 'Privado, con código']] : []),
+    ...(torneo.is_private ? [[icons.lock(15), 'Se entra con código']] : []),
   ]
     .map(([icono, texto]) => `<div class="torneo-dato">${icono}<span>${escapeHtml(texto)}</span></div>`)
     .join(''))
@@ -375,7 +375,11 @@ function pintarFicha() {
 // el canal oficial de PokeDoc es un acto del sitio, del mismo tipo que el
 // sello de OFICIAL — `torneos_mando` no llega hasta ahí (ver CLAUDE.md).
 function pintarTelegram(acciones) {
-  const procede = Boolean(perfil?.is_admin) && !torneo.is_private && torneo.status === 'registration_open'
+  // Un torneo CON CÓDIGO sí puede salir por el canal desde la tanda 367:
+  // ya se ve en la web, así que esconderlo aquí no escondía nada. Lo que
+  // no hace es salir SOLO — la función programada sigue sin cogerlo, y
+  // anunciar un torneo al que no entra cualquiera lo decide una persona.
+  const procede = Boolean(perfil?.is_admin) && torneo.status === 'registration_open'
   const yaConsta = Boolean(torneo.telegram_sent_at)
   const html = `<button class="btn-secondary" id="btnTelegramTorneo">${
     yaConsta ? 'Mandar al canal otra vez' : 'Mandar al canal'
@@ -531,12 +535,49 @@ function fechasDelEditor() {
   return [...document.querySelectorAll('#editarJornadasLista input')].map((i) => i.value)
 }
 
-function pintarEditor() {
+// ── El código de entrada (tanda 367) ──
+//
+// Vive en `tournament_join_codes`, no en la fila del torneo. Desde que
+// un torneo con código se VE como los demás, cualquier columna suya la
+// puede leer cualquiera: la llave no puede ir pegada a la puerta. Esa
+// tabla solo la lee quien lleva el torneo, y lo decide su política.
+//
+// Se pide al ABRIR el editor y no al cargar la ficha: la ficha se
+// refresca sola cada 10 segundos y esto sería una consulta más en cada
+// vuelta para un dato que casi nunca se mira.
+//
+// El PUENTE (temporal, como `faltaLaRpc`): si la tabla todavía no está,
+// se cae al sitio viejo. Quitar esto cuando la migración lleve un tiempo.
+async function leerCodigo() {
+  const { data, error } = await supabase
+    .from('tournament_join_codes')
+    .select('code')
+    .eq('tournament_id', torneo.id)
+    .maybeSingle()
+  if (error) return torneo.join_code || ''
+  return data?.code || ''
+}
+
+// Sin código no se guarda una fila vacía: se borra. Una llave en blanco
+// no abre nada y encima haría creer que el torneo tiene una.
+async function guardarCodigo(codigo) {
+  if (!codigo) {
+    const { error } = await supabase.from('tournament_join_codes').delete().eq('tournament_id', torneo.id)
+    return error
+  }
+  const { error } = await supabase
+    .from('tournament_join_codes')
+    .upsert({ tournament_id: torneo.id, code: codigo }, { onConflict: 'tournament_id' })
+  return error
+}
+
+async function pintarEditor() {
   const previo = $('torneoEditor')
   if (previo) {
     previo.remove()
     return
   }
+  const codigoActual = await leerCodigo()
   const estructuraBloqueada = torneo.status === 'registration_closed'
   const esLiga = torneo.format === 'league'
   const bloqueo = estructuraBloqueada ? 'disabled title="Con las inscripciones cerradas, la estructura ya no se toca"' : ''
@@ -553,15 +594,15 @@ function pintarEditor() {
   // cambian el nombre, se cae a la caja de la página en vez de romperse.
   const anfitrion = document.getElementById('torneoCabecera')
   if (anfitrion) {
-    anfitrion.insertAdjacentHTML('afterend', editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo))
+    anfitrion.insertAdjacentHTML('afterend', editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo, codigoActual))
   } else {
     const suelo = document.querySelector('.page-content') || document.body
-    suelo.insertAdjacentHTML('beforeend', editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo))
+    suelo.insertAdjacentHTML('beforeend', editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo, codigoActual))
   }
   engancharEditor(torneo, estructuraBloqueada, esLiga)
 }
 
-function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo) {
+function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo, codigoActual) {
   return (
     `
     <div class="torneos-form torneo-editor" id="torneoEditor">
@@ -589,12 +630,12 @@ function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo) {
           : ''
       }
       <label class="torneos-form-campo">
-        <span><input type="checkbox" id="editarPrivado" ${torneo.is_private ? 'checked' : ''} /> Torneo privado</span>
-        <span class="torneo-campo-pista">No sale en la lista. Solo entra quien tenga el enlace y el código.</span>
+        <span><input type="checkbox" id="editarPrivado" ${torneo.is_private ? 'checked' : ''} /> Entrada con código</span>
+        <span class="torneo-campo-pista">El torneo se ve como cualquier otro, pero para inscribirse hace falta el código. Solo lo ves tú.</span>
       </label>
       <label class="torneos-form-campo">
         <span>Código para entrar</span>
-        <input type="text" id="editarCodigo" autocomplete="off" maxlength="40" value="${escapeHtml(torneo.join_code || '')}" />
+        <input type="text" id="editarCodigo" autocomplete="off" maxlength="40" value="${escapeHtml(codigoActual)}" />
       </label>
       <label class="torneos-form-campo">Listas de los rivales
         <select id="editarListasModo">
@@ -839,11 +880,17 @@ async function guardarEdicion() {
   // guardaría `false` cada vez que edita y le quitaría el sello a un
   // torneo oficial que lleve él.
   if ($('editarOficial')) cambios.is_official = $('editarOficial').checked
+  // El código va aparte (tanda 367) y con una regla delante: marcar
+  // «entrada con código» sin escribir ninguno dejaría un torneo a la
+  // vista al que NO SE PUEDE ENTRAR, y sin que nada diera error.
+  let codigoNuevo
   if ($('editarPrivado')) {
     cambios.is_private = $('editarPrivado').checked
-    // Sin marcar privado, el código se borra: dejarlo guardado sería
-    // tener una llave suelta de una puerta que ya no existe.
-    cambios.join_code = $('editarPrivado').checked ? $('editarCodigo').value.trim() || null : null
+    codigoNuevo = cambios.is_private ? $('editarCodigo').value.trim() : ''
+    if (cambios.is_private && !codigoNuevo) {
+      showToast('Escribe el código: sin él nadie podría inscribirse.', 'error')
+      return
+    }
   }
   // La imagen (tanda 239): solo si se tocó. Se sube aquí y no al
   // elegirla, para que cerrar el editor sin guardar no deje ficheros
@@ -879,7 +926,7 @@ async function guardarEdicion() {
   // Si alguna migración de columna nueva aún no se ejecutó, se guarda
   // sin esa columna (del modo de listas queda el booleano viejo). El
   // comprobador de /admin ya avisa de lo que falta.
-  for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'join_code', 'prizes']) {
+  for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'prizes']) {
     if (error && (error.message || '').includes(columna)) {
       delete cambios[columna]
       ;({ error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id))
@@ -888,6 +935,15 @@ async function guardarEdicion() {
   if (error) {
     avisarError(error, 'No se ha podido guardar')
     return
+  }
+  // Después del torneo, no antes: si la fila no se guarda, el código
+  // tampoco tiene por qué cambiar.
+  if (codigoNuevo !== undefined) {
+    const falloCodigo = await guardarCodigo(codigoNuevo)
+    if (falloCodigo) {
+      avisarError(falloCodigo, 'El torneo se ha guardado, pero el código no')
+      return
+    }
   }
   Object.assign(torneo, cambios)
   showToast('Torneo actualizado.', 'success')
@@ -1369,7 +1425,7 @@ function pintarMiPlaza() {
     pintarSiCambia(
       caja,
       torneo.status === 'registration_open'
-        ? `<p>Las inscripciones están abiertas${
+        ? `<p>${torneo.is_private ? 'Este torneo se entra con código, y las inscripciones están abiertas' : 'Las inscripciones están abiertas'}${
             // Con aforo sin límite (tanda 228 de IBAI) no hay plazas que
             // contar: restarle los inscritos a un null da NaN.
             torneo.max_players == null
@@ -1420,15 +1476,29 @@ function pintarMiPlaza() {
   }
   // Sin límite (max_players NULL) nunca hay lleno ni lista de espera.
   const lleno = torneo.max_players != null && activos() >= torneo.max_players
+  // El código (tanda 367): un torneo con código se ve entero, y lo único
+  // que pide la llave es APUNTARSE. Por eso el campo va aquí, en el
+  // formulario, y no en una pantalla intermedia que tape el torneo.
   if (!pintarSiCambia(caja, `
     ${lleno ? `<p class="torneo-lleno-aviso">Torneo lleno — puedes ponerte en la lista de espera (hay ${enCola()} esperando).</p>` : ''}
     <form id="formInscripcion" class="torneo-form-inscripcion">
+      ${
+        torneo.is_private
+          ? `<label>Código para entrar
+               <input type="text" id="inscripcionCodigo" maxlength="40" autocomplete="off" placeholder="El que te haya dado quien organiza" />
+             </label>`
+          : ''
+      }
       <label>Tu usuario de Pokémon TCG Live
         <input type="text" id="inscripcionTcgLive" maxlength="60" placeholder="AshKetchum99" />
       </label>
       <button type="submit" class="btn-primary" id="btnInscribirme">${lleno ? 'Apuntarme a la lista de espera' : 'Inscribirme'}</button>
     </form>
-    <p class="subtext">Las partidas se juegan en TCG Live: tu rival te buscará por ese usuario.</p>`)) return
+    <p class="subtext">${
+      torneo.is_private
+        ? 'Este torneo se juega con código: pídeselo a quien lo organiza. '
+        : ''
+    }Las partidas se juegan en TCG Live: tu rival te buscará por ese usuario.</p>`)) return
   engancharInscripcion(lleno)
 }
 
@@ -1470,6 +1540,11 @@ function engancharInscripcion(aLaCola = false) {
       showToast('Di tu usuario de TCG Live: sin él, tu rival no puede encontrarte.')
       return
     }
+    const codigo = $('inscripcionCodigo')?.value.trim() || ''
+    if (torneo.is_private && !codigo) {
+      showToast('Escribe el código del torneo.')
+      return
+    }
     enviando = true
     // Todo por la RPC, cola incluida (tanda 293).
     //
@@ -1483,11 +1558,26 @@ function engancharInscripcion(aLaCola = false) {
     // estado: lo hace la RPC bajo candado, que además cierra la carrera
     // de dos inscripciones a la vez — la que desde aquí no se podía
     // cerrar. Una consulta menos por inscripción.
-    const res = await supabase.rpc('torneos_inscribirse', {
+    // `p_codigo` va SIEMPRE, aunque el torneo no lo pida: quien decide si
+    // hace falta es la función, que es la que lee el código de verdad.
+    // Mandarlo solo «cuando parece que toca» sería fiarse de lo que cree
+    // el navegador sobre una fila que puede haber cambiado hace un rato.
+    const argumentos = {
       p_torneo: torneo.id,
       p_tcg_live: tcgLive,
       p_cola: Boolean(aLaCola),
-    })
+      p_codigo: codigo || null,
+    }
+    let res = await supabase.rpc('torneos_inscribirse', argumentos)
+    // El PUENTE de la tanda 367: PostgREST casa la RPC por los NOMBRES
+    // de los parámetros, así que mientras la migración no esté puesta la
+    // función de cuatro no existe y esto sería un «no encuentro esa
+    // función» para todo el mundo, torneos normales incluidos. Se
+    // reintenta con los tres de antes. Quitar cuando lleve un tiempo.
+    if (faltaLaRpc(res.error)) {
+      const { p_codigo: _, ...tresDeAntes } = argumentos
+      res = await supabase.rpc('torneos_inscribirse', tresDeAntes)
+    }
     enviando = false
     if (faltaLaRpc(res.error)) {
       showToast(avisoDeMigracion('supabase-migration-torneos-cola.sql'), 'error')
@@ -1504,13 +1594,23 @@ function engancharInscripcion(aLaCola = false) {
       else avisarError(error, 'No se ha podido inscribir')
       return
     }
+    // Primero recargar, y DESPUÉS el aviso (tanda 367). Aquí había un
+    // `estado === 'waitlisted'` que no existía en ninguna parte: se quedó
+    // de cuando el recuento lo hacía el navegador, y desde la 293 lo
+    // decide la RPC. O sea que inscribirse reventaba con un
+    // ReferenceError JUSTO ANTES del `recargar()`: se guardaba bien, no
+    // salía ningún aviso y la ficha no se enteraba hasta refrescar.
+    //
+    // Quién ha quedado en la cola no lo sabe el navegador —el torneo
+    // puede haberse llenado mientras rellenabas—, así que se mira la
+    // inscripción ya recargada, que es el dato de verdad.
+    await recargar()
     showToast(
-      estado === 'waitlisted'
+      miInscripcion?.status === 'waitlisted'
         ? 'Estás en la lista de espera: si se libera una plaza, te avisamos.'
         : '¡Inscrito! Ahora te quedan 2 pasos: entrega tu decklist y confirma tu participación (mira «Tu plaza»).',
       'success'
     )
-    await recargar()
   })
 }
 
@@ -2039,9 +2139,10 @@ async function init() {
   arrancarSondeoFicha()
 }
 
-// Sin torneo que enseñar: puede que el enlace esté mal, que se haya
-// borrado o que la sección aún no esté abierta. No se distingue a
-// propósito — decir «existe pero no puedes verlo» ya es contar algo.
+// Sin torneo que enseñar: el enlace está mal, el torneo se ha borrado o
+// es un borrador que todavía no ha abierto su organizador. Desde la 367
+// ya no cae aquí un torneo con código —esos se ven como los demás—, así
+// que esta pantalla vuelve a significar lo que dice.
 function pintarNoDisponible() {
   const caja = document.getElementById('torneoNoDisponible')
   if (!caja) {
@@ -2050,45 +2151,6 @@ function pintarNoDisponible() {
   }
   caja.classList.remove('hidden')
   document.getElementById('torneoEntrar')?.classList.toggle('hidden', Boolean(session))
-
-  // El formulario del código (tanda 292). Solo con sesión: entrar a un
-  // torneo te inscribe, y para eso hace falta cuenta.
-  //
-  // Se ofrece SIEMPRE que haya sesión, exista el torneo o no: si solo
-  // apareciera cuando el torneo existe de verdad, el propio formulario
-  // estaría confirmando que ese torneo está ahí — y eso es lo que un
-  // torneo privado no quiere contar.
-  const form = document.getElementById('torneoCodigo')
-  if (!form || !session) return
-  form.classList.remove('hidden')
-  if (form.dataset.enganchado) return
-  form.dataset.enganchado = '1'
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault()
-    const boton = form.querySelector('button[type="submit"]')
-    const codigo = document.getElementById('torneoCodigoValor').value.trim()
-    const tcg = document.getElementById('torneoCodigoTcg').value.trim()
-    if (!codigo || !tcg) return
-    boton.disabled = true
-    const res = await supabase.rpc('torneos_entrar_con_codigo', {
-      p_slug: new URLSearchParams(window.location.search).get('slug'),
-      p_codigo: codigo,
-      p_tcg_live: tcg,
-    })
-    boton.disabled = false
-    if (faltaLaRpc(res.error)) {
-      showToast('Falta ejecutar supabase-migration-torneos-privados.sql en Supabase.', 'error')
-      return
-    }
-    if (res.error) {
-      const texto = String(res.error.message || '')
-      showToast(texto.length < 140 ? texto : 'No se ha podido entrar al torneo.', 'error')
-      return
-    }
-    // Ya estás dentro: la política deja leerlo, así que basta con volver
-    // a cargar la página.
-    window.location.reload()
-  })
 }
 
 // ── El refresco automático (pedido de PINGU) ──
