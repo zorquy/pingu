@@ -21,9 +21,19 @@
 //   3. El de la gemela encontrada por nombre en el espejo.
 //   4. Y se quita la imagen: queda la caja con el nombre (nunca el icono
 //      roto del navegador).
-// Las energías básicas NO pasan por la cadena: se pintan con las de
-// /assets/energias/, que son nuestras y están siempre (lo pidió PINGU:
-// «que pongas las mismas energías por defecto siempre, pero que se vean»).
+// Las energías básicas tienen su PROPIA cadena, y siempre las mismas
+// cartas —reales y con su número de verdad—, venga como venga la línea
+// («Basic {P} Energy SVE 5», «Energía Psíquica», «Psychic Energy MEE 13»…).
+// Lo pidió PINGU en dos veces: «pon unas por defecto siempre», y después
+// «tienen que ser energías que existan con números que existan» (la
+// primera versión de esta tanda pintaba unas dibujadas por nosotros y no
+// se reconocían como energías). La cadena cruza de origen (tanda 321):
+//   1. Las del 30 aniversario de Mega Evolución, MEE 9–16, de la CDN de
+//      Limitless (las mismas que pinta el constructor).
+//   2. Las de Escarlata y Púrpura, SVE 1–8, de la CDN de pokemontcg.io:
+//      otro servidor, así que una caída de Limitless no las apaga.
+//   3. Las normales de Mega Evolución, MEE 1–8, otra vez en Limitless.
+//   4. Y solo si no contesta NADIE, la de /assets/energias/, nuestra.
 //
 // Sin DOM y sin Supabase: se prueba en Node.
 import { letraDeEnergia, PROMOS_SIN_GUION } from './constructor/nucleo.js'
@@ -66,6 +76,26 @@ export function imagenDeEnergiaLocal(letra) {
   return LETRAS_DE_ENERGIA.includes(letra) ? `/assets/energias/${letra}.svg` : null
 }
 
+// La carta REAL que se enseña para cada básica: MEE 9–16 (30 aniversario),
+// en el orden de siempre de las básicas (G R W L P F D M). Comprobado en
+// listas de Limitless: «Fire Energy MEE 10», «Psychic Energy MEE 13»,
+// «Darkness Energy MEE 15».
+export function cartaDeEnergia(letra) {
+  const i = LETRAS_DE_ENERGIA.indexOf(letra)
+  return i < 0 ? null : { set: 'MEE', numero: String(9 + i) }
+}
+
+export function cadenaDeEnergia(letra) {
+  const i = LETRAS_DE_ENERGIA.indexOf(letra)
+  if (i < 0) return []
+  return [
+    imagenDeLimitless('MEE', String(9 + i)),
+    `https://images.pokemontcg.io/sve/${i + 1}.png`,
+    imagenDeLimitless('MEE', String(1 + i)),
+    imagenDeEnergiaLocal(letra),
+  ]
+}
+
 // La CDN de Limitless: /tpci/TWM/TWM_130_R_EN_SM.png. El número va con
 // tres cifras si es numérico; los de letras («TG12») tal cual.
 export function imagenDeLimitless(set, numero, tamanio = 'SM') {
@@ -81,7 +111,7 @@ export function imagenDeLimitless(set, numero, tamanio = 'SM') {
 // `image_path` (cardImageUrl), inyectada para que esto no importe tcgdex.js.
 export function cadenaDeImagenes(linea, carta, urlDelEspejo) {
   const letra = letraDeEnergiaBasica(linea?.name)
-  if (letra) return [imagenDeEnergiaLocal(letra)]
+  if (letra) return cadenaDeEnergia(letra)
   const cadena = []
   const espejo = carta?.image_path ? urlDelEspejo(carta.image_path) : null
   if (espejo && carta.exacta) cadena.push(espejo)

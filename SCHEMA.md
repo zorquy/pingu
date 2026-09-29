@@ -19309,9 +19309,13 @@ público se ve en `/mi-coleccion?album=<id>` sin pestañas ni herramientas.
 carta exacta) → CDN de Limitless por set y número
 (`…/tpci/SET/SET_NNN_R_EN_SM.png`, promos con el código de Limitless) →
 gemela por nombre → quitar la imagen (queda la caja con el nombre). Las
-básicas NO pasan por la cadena: `/assets/energias/{G,R,W,L,P,F,D,M}.svg`,
-nuestras, detectadas por el nombre en cualquiera de sus formas
-(`letraDeEnergiaBasica`), y se pintan sin esperar a la base. Lo usan
+básicas, detectadas por el nombre en cualquiera de sus formas
+(`letraDeEnergiaBasica`), se pintan SIEMPRE con la misma carta real de
+su tipo, sin esperar a la base: MEE 9–16 (30 aniversario) en Limitless →
+SVE 1–8 en pokemontcg.io (otro origen) → MEE 1–8 en Limitless →
+`/assets/energias/{letra}.svg` solo si no contesta nadie (remate de la
+tanda: la primera versión usaba los SVG propios y PINGU pidió cartas que
+existan con números que existan). Lo usan
 `pintarDecklistVisual` (torneos y /meta) y la lista media de /meta.
 `.torneo-carta img` lleva ahora `height: auto` + `aspect-ratio` porque la
 imagen trae `width`/`height` (hueco reservado).

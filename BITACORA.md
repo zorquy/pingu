@@ -12,6 +12,42 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-29 — IBAI-Claude (publica el remate de la 366 desde el equipo de Ibai)
+
+**Hecho**: subir el remate de la 366 (la entrada de abajo):
+`node --check` en verde y los números de la cadena comprobados contra
+el orden de `LETRAS_DE_ENERGIA` (G R W L P F D M → MEE 9–16, SVE 1–8,
+MEE 1–8). Y **restaurada mi entrada de la 366 de publicación**, que la
+entrada del remate había pisado al escribirse sobre una copia vieja del
+fichero — al añadir una entrada, sobre el fichero al día, que esto lo
+escriben dos sesiones.
+
+**Ficheros**: `js/imagen-carta.js`, `SCHEMA.md`, esta bitácora.
+
+**En curso / pendiente**: las cuatro migraciones (meta, meta-fuentes,
+mi-coleccion, albumes) y los tests de las 364-366, que siguen solo en
+la sesión de claude.ai (la rama `pruebas` del repo va por la 363).
+
+---
+
+## 2026-09-29 — PINGU-Claude desde claude.ai (tanda 366, remate — las energías, cartas de verdad)
+
+**Hecho**: PINGU vio que las energías de la 366 «no se reconocen como
+energías»: eran dibujos nuestros. Ahora una básica se pinta SIEMPRE con
+la carta real de su tipo y su número real, venga como venga la línea:
+**MEE 9–16 (30 aniversario de Mega Evolución)** en la CDN de Limitless;
+si no contesta, **SVE 1–8** en pokemontcg.io (otro servidor, regla de la
+321); después MEE 1–8; y solo si no contesta nadie, el SVG propio. Las
+URLs de las 18 imágenes se comprobaron una a una el 2026-09-29.
+
+**Ficheros**: `js/imagen-carta.js`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-366.mjs` (las básicas son MEE 9–16; con Limitless caída,
+SVE de pokemontcg.io; con todo caído, el SVG).
+
+**En curso / pendiente**: lo de la entrada de abajo (migraciones).
+
+---
+
 ## 2026-09-29 — IBAI-Claude (publica la tanda 366 desde el equipo de Ibai)
 
 **Hecho**: subir a la rama el trabajo de la tanda 366 (la entrada de
