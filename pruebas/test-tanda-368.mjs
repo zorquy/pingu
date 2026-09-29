@@ -241,11 +241,24 @@ console.log('\n── 5. Cardmarket con su logo ──')
     /#00256a/i.test(marcaSinComentarios) && !/currentColor/.test(marcaSinComentarios),
     (marcaSinComentarios.match(/currentColor/) || [])[0] || '')
 
-  // La trampa de la 299: vivía en js/cardmarket.js, que importa TAMBIÉN
-  // /mi-coleccion — y esa página no carga carta.css. El barrido sigue
-  // los imports, no las llamadas.
-  check('no la arrastra quien no la dibuja', !/cardmarket-marca/.test(leer('js/mi-coleccion.js')))
-  check('  …y cardmarket.js se queda sin HTML', !/<svg/.test(leer('js/cardmarket.js')))
+  // La trampa de la 299, que aquí tiene dos mitades.
+  //
+  // Primera: el dibujo salió de `js/cardmarket.js` porque ese fichero lo
+  // importa medio catálogo por los idiomas y los estados, y el barrido
+  // sigue los IMPORTS, no las llamadas.
+  check('cardmarket.js se queda sin HTML', !/<svg/.test(leer('js/cardmarket.js')))
+  // Segunda (tanda 369): su CSS tiene hoja propia, porque la marca la
+  // dibujan DOS páginas. Mientras estuvo en `carta.css`, /mi-coleccion
+  // la enseñaba sin estilo — y eso no lo canta nadie.
+  //
+  // La regla, escrita como regla y no contra las dos páginas de hoy:
+  // quien importe el dibujo tiene que cargar la hoja.
+  const quienDibuja = ['carta', 'mi-coleccion']
+  for (const pagina of quienDibuja) {
+    check(`  …y ${pagina} carga css/cardmarket.css`,
+      /href="\/css\/cardmarket\.css"/.test(leer(`${pagina}.html`)))
+  }
+  check('  …y la hoja existe y trae el botón', /\.btn-cardmarket\s*\{/.test(leer('css/cardmarket.css')))
 
   const { page, errores } = await abrir('/carta?id=sv1-25', {
     tablas: {
