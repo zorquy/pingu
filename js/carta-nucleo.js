@@ -582,10 +582,17 @@ export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
     '<div class="carta-cuerpo">' +
     '<figure class="carta-scan">' +
     (img
+      // La imagen va dentro de su propia caja (tanda 368) y no suelta en
+      // el `figure`: el giro en 3D y el brillo se le ponen a ESA caja,
+      // que es solo la carta. Al `figure` no se le pueden poner, porque
+      // en escritorio va `sticky` y una transformación crea un contexto
+      // nuevo que deja el `sticky` sin efecto — la carta dejaría de
+      // acompañar al scroll y nada daría error.
+      //
       // 600×825 son las medidas reales de la imagen de TCGdex. Van
       // puestas para que el hueco esté reservado antes de que llegue:
       // sin ellas la página pega un salto de 800 px al cargarse.
-      ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}" width="600" height="825" loading="eager" decoding="async">`
+      ? `<span class="carta-scan-holo"><img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}" width="600" height="825" loading="eager" decoding="async"></span>`
       : '<div class="carta-scan-vacio">Sin imagen</div>') +
     '</figure>' +
     '<div class="carta-datos">' +

@@ -256,7 +256,7 @@ async function borrarDesdeEditor() {
 // Un archivador de nueve bolsillos: páginas de 3×3, de dos en dos en
 // pantalla ancha (como al abrirlo) y de una en una en el móvil.
 const POR_PAGINA = 9
-let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, tocar: false }
+let album = { set: null, cartas: [], pagina: 0, soloFaltan: false }
 let todosLosSets = null
 
 async function cargarSets() {
@@ -309,18 +309,37 @@ async function abrirAlbum(setId) {
   pintarAlbum()
 }
 
+// ── El bolsillo del archivador (tanda 368) ──
+//
+// Hasta hoy el bolsillo era UNA cosa o la OTRA, según un interruptor de
+// arriba: o un enlace a la ficha, o un botón que añadía una copia. Y eso
+// obligaba a elegir — lo dijo PINGU: «para añadir a la colección, cuando
+// estoy en el álbum, debería haber un botoncito en la carta para añadir o
+// quitar sin tener que ir a la carta».
+//
+// Ahora son las dos: el bolsillo entero sigue llevando a la ficha y
+// encima lleva su mando de − y +. Por eso es un `div` con un enlace
+// ENCIMA en vez de un `<a>` con todo dentro: un `<button>` dentro de un
+// `<a>` no es HTML válido y el navegador lo desmonta por su cuenta.
 function bolsilloHtml(c) {
   const n = tengoDe(c.id)
   const img = c.image_path ? cardImageUrl(c.image_path, 'low') : null
-  const etiqueta = `${nombreDe(c)} (${c.local_id})${n ? `, tienes ${n}` : ', te falta'}`
+  const nombre = nombreDe(c)
+  const etiqueta = `${nombre} (${c.local_id})${n ? `, tienes ${n}` : ', te falta'}`
   const dentro = `
     ${img ? `<img src="${escapeHtml(img)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />` : ''}
-    <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
-    ${n > 1 ? `<span class="mc-cantidad">×${n}</span>` : ''}`
-  if (album.tocar && esMia) {
-    return `<button type="button" class="mc-bolsillo${n ? ' tengo' : ''}" data-carta="${escapeHtml(c.id)}" aria-label="Añadir una copia: ${escapeHtml(etiqueta)}">${dentro}</button>`
-  }
-  return `<a class="mc-bolsillo${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
+    <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
+  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
+  if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}</div>`
+  // El número de copias vive DENTRO del mando y no suelto en una
+  // esquina: así lo que dice cuántas tienes está pegado a lo que lo
+  // cambia, y de paso no hay dos chapas peleándose por el mismo sitio.
+  return `<div class="mc-bolsillo${n ? ' tengo' : ''} mc-bolsillo-con-mando">${enlace}
+    <span class="mc-bolsillo-controles mc-bolsillo-mando">
+      <button type="button" data-quitar="${escapeHtml(c.id)}" ${n ? '' : 'disabled'} aria-label="Quitar una copia de ${escapeHtml(nombre)}">−</button>
+      <span class="mc-bolsillo-cuenta" aria-hidden="true">${n}</span>
+      <button type="button" data-anadir="${escapeHtml(c.id)}" aria-label="Añadir una copia de ${escapeHtml(nombre)}">+</button>
+    </span></div>`
 }
 
 function pintarAlbum() {
@@ -365,6 +384,35 @@ async function tocarBolsillo(cardId) {
     }
     pintarAlbum()
     pintarResumen()
+  } catch (err) {
+    showToast(err.message, 'error')
+  }
+}
+
+// ── Quitar una copia desde el bolsillo (tanda 368) ──
+//
+// De qué línea se quita, que es lo único que tiene enjundia: de la MÁS
+// NUEVA. Una misma carta puede estar en la colección varias veces —una
+// española en NM y otra inglesa en played son dos líneas distintas— y el
+// botón no pregunta cuál. La más nueva es la que acabas de meter, que es
+// lo que quiere deshacer quien pulsa «−» justo después de pulsar «+».
+// Para quitar una concreta está el editor de la pestaña «Mi colección»,
+// que sí enseña las líneas una a una.
+async function quitarDelBolsillo(cardId) {
+  const suyas = lineas.filter((l) => l.card_id === cardId)
+  if (!suyas.length) return
+  const l = suyas.reduce((a, b) => (String(a.created_at || '') >= String(b.created_at || '') ? a : b))
+  try {
+    if ((Number(l.cantidad) || 1) > 1) {
+      const nueva = await datos.actualizar(l.id, { cantidad: Number(l.cantidad) - 1 })
+      lineas[lineas.indexOf(l)] = nueva
+    } else {
+      await datos.borrar(l.id)
+      lineas.splice(lineas.indexOf(l), 1)
+    }
+    pintarAlbum()
+    pintarResumen()
+    pintarCartas()
   } catch (err) {
     showToast(err.message, 'error')
   }
@@ -497,11 +545,6 @@ function enganchar() {
     album.pagina = 0
     pintarAlbum()
   })
-  $('mcAlbumTocar')?.addEventListener('change', (e) => {
-    album.tocar = e.target.checked
-    $('mcTocarOpciones').classList.toggle('hidden', !album.tocar)
-    pintarAlbum()
-  })
   $('mcAlbumAnterior').addEventListener('click', () => {
     album.pagina = Math.max(0, album.pagina - Number($('mcAlbumAnterior').dataset.paso || 1))
     pintarAlbum()
@@ -510,9 +553,14 @@ function enganchar() {
     album.pagina += Number($('mcAlbumAnterior').dataset.paso || 1)
     pintarAlbum()
   })
+  // El mando del bolsillo (tanda 368). Va delegado en el archivador y no
+  // botón a botón: el álbum se repinta entero en cada cambio, así que un
+  // oyente por bolsillo habría que volver a colgarlo cada vez.
   $('mcAlbum').addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-carta]')
-    if (b) tocarBolsillo(b.dataset.carta)
+    const mas = e.target.closest('button[data-anadir]')
+    if (mas) return void tocarBolsillo(mas.dataset.anadir)
+    const menos = e.target.closest('button[data-quitar]')
+    if (menos) return void quitarDelBolsillo(menos.dataset.quitar)
   })
   let espera = null
   $('mcAnadirBuscar').addEventListener('input', () => {
@@ -641,7 +689,9 @@ async function iniciar() {
     document.title = `Colección de ${quien} — PokeDoc`
     document.querySelector('[data-pestania="anadir"]').classList.add('hidden')
     document.querySelector('[data-pestania="albumes"]').classList.add('hidden')
-    $('mcTocarZona').classList.add('hidden')
+    // Mirando la colección de otro no hay nada que añadir: los bolsillos
+    // salen sin mando (bolsilloHtml) y esta línea sobraría en pantalla.
+    $('mcTocarOpciones').classList.add('hidden')
     if (pestania === 'anadir' || pestania === 'albumes') pestania = 'cartas'
   }
   pintarCompartir()

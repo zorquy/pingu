@@ -393,6 +393,28 @@
   opacity: 1;
 }
 
+/* El enlace que cubre el bolsillo entero (tanda 368). El bolsillo pasó a
+   ser una caja para poder llevar botones dentro, así que lo que lleva a
+   la ficha es esta capa: cubre todo salvo donde el mando se le pone
+   encima, que es lo que se quiere. */
+.mc-bolsillo-enlace {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: inherit;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Con mando, el número de la carta se va ARRIBA: abajo está el mando y
+   si no se pisarían. */
+.mc-bolsillo-con-mando .mc-bolsillo-num {
+  top: var(--e-xs);
+  right: var(--e-xs);
+  bottom: auto;
+}
+
 .mc-bolsillo-num {
   position: absolute;
   right: var(--e-xs);
@@ -405,7 +427,13 @@
   font-weight: 700;
 }
 
-.mc-bolsillo.tengo .mc-bolsillo-num {
+/* Sin mando, el número solo sale en lo que te FALTA: es el dato con el
+   que se busca la carta, y sobre la carta a color estorba.
+   Con mando (tanda 368) sale siempre: se ha ido arriba, ya no pisa nada,
+   y en un archivador el número de bolsillo es justo por donde te guías.
+   Si desapareciera en las que tienes, la cuadrícula quedaría con huecos
+   numerados y otros no, que se lee peor que con todos. */
+.mc-bolsillo.tengo:not(.mc-bolsillo-con-mando) .mc-bolsillo-num {
   display: none;
 }
 
@@ -821,6 +849,61 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 .mc-bolsillo-controles [data-quitar] {
   color: var(--danger);
+}
+
+/* ── El mando de cada bolsillo (tanda 368) ──
+   Va SIEMPRE a la vista y no solo al pasar por encima: en una pantalla
+   táctil no hay «pasar por encima», y en el archivador el mando no es un
+   extra, es a lo que se viene. Encima del enlace, que ocupa el bolsillo
+   entero. */
+.mc-bolsillo-mando {
+  z-index: 1;
+  align-items: center;
+  padding: 2px;
+  border-radius: var(--radius-pill);
+  /* Un velo en vez del blanco a secas: por debajo se sigue viendo la
+     carta y el mando no parece una etiqueta pegada. */
+  background: color-mix(in srgb, var(--white) 88%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.mc-bolsillo-mando button {
+  flex: 0 0 auto;
+  min-width: 32px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: var(--t-md);
+  line-height: 1;
+}
+
+.mc-bolsillo-mando button:hover:not(:disabled) {
+  background: var(--bg);
+}
+
+/* La cuenta se lleva el hueco de en medio: así los dos botones quedan en
+   los extremos y el número justo entre lo que lo sube y lo que lo baja. */
+.mc-bolsillo-cuenta {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Sin ninguna copia el número no dice nada («0» es ruido): se calla y
+   deja el − apagado, que ya cuenta lo mismo. */
+.mc-bolsillo:not(.tengo) .mc-bolsillo-cuenta {
+  visibility: hidden;
+}
+
+@media (pointer: coarse) {
+  .mc-bolsillo-mando button {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 .mc-bolsillo-editar .mc-bolsillo-num {

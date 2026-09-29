@@ -12,6 +12,82 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-30 — PINGU-Claude (tanda 368 — el hueco de la portada, el mando del álbum, la carta en 3D y Cardmarket con su logo)
+
+**Hecho**: cuatro cosas que pidió PINGU mirando la web en el PC.
+
+**1. El hueco de la portada.** No era un hueco: era que el torneo y la
+última noticia iban en una fila propia de dos columnas, y **una fila mide
+lo que mida su caja MÁS ALTA** — el torneo es una tira de 76 px y la
+noticia una tarjeta con foto de más de 300. Debajo del torneo quedaban
+unos 250 px vacíos hasta «Ahora en el foro», y en el móvil no se veía
+porque ahí van apiladas. La cura no es rellenar el hueco: es no tener
+fila. Cada caja se ha ido a la columna del panel que ya existía (el
+torneo a la ancha, la noticia a la lateral) y una columna flexible fluye
+seguida. El orden del MÓVIL se repone con tres `order`, porque al mudar
+las cajas el DOM las separa y la noticia se habría caído a media página.
+
+**2. El mando de cada bolsillo del álbum.** Había un interruptor global
+(«Tocar una carta la añade», tanda 365) que obligaba a elegir: con él
+puesto no podías abrir la ficha de una carta, y sin él no podías añadir
+ninguna sin irte a la ficha y volver. Fuera. Ahora cada bolsillo lleva su
+**− N +** y el bolsillo entero sigue llevando a la ficha; por eso pasa a
+ser un `div` con el enlace ENCIMA, que un `<button>` dentro de un `<a>`
+no es HTML válido. El `−` quita de la línea MÁS NUEVA, que es la que
+quiere deshacer quien acaba de pulsar `+`.
+
+**3. El escaneo de la carta, en 3D.** Se inclina siguiendo al ratón con
+una banda de color que barre por encima (`js/carta-holo.js`). Solo con
+ratón —con el dedo, el primer toque ya es el que abre el visor— y apagado
+con «menos movimiento», en el JavaScript Y en el CSS. Va sobre una caja
+NUEVA dentro del `figure`: al `figure` no se le puede poner, porque va
+`sticky` y una transformación deja el `sticky` sin efecto.
+
+**4. Cardmarket con su logo.** La marca va DIBUJADA en SVG y no traída de
+cardmarket.com: colgarla de su servidor es una petición a un tercero para
+pintar un botón, y el día que no conteste el botón se queda mudo (la
+lección de la 321). En oscuro el logo va sobre una chapa blanca; su azul
+no se toca, que es su marca.
+
+**La trampa que casi cae, y que es la de la 299**: la marca estaba dentro
+de `js/cardmarket.js`, que importa TAMBIÉN /mi-coleccion para los idiomas
+y los estados — y /mi-coleccion no carga `carta.css`. El barrido sigue
+los IMPORTS, no las llamadas: una página «usa» una clase por importar el
+módulo que la pinta, aunque no la pinte nunca. De ahí
+`js/cardmarket-marca.js`, que solo importa quien la dibuja.
+
+**Ficheros**: `index.html`, `css/portada.css`, `js/home.js`,
+`js/mi-coleccion.js`, `mi-coleccion.html`, `css/mi-coleccion.css`,
+`js/carta-holo.js` (**nuevo**), `js/carta-nucleo.js`, `js/carta.js`,
+`css/carta.css`, `js/cardmarket-marca.js` (**nuevo**),
+`js/cardmarket.js`, `js/carta-mercado.js`, `SCHEMA.md`. En `pruebas`: el
+doble, que ahora conoce `user_collection`.
+
+**Suite completa: 113 verdes y una roja, que NO es de esta tanda** — sigue
+siendo `test-tanda-331`, de la 365 de IBAI (el precio de Cardmarket pide
+la carta también en inglés y esa prueba dice «solo se pide el español»).
+
+Cinco pruebas se han puesto al día porque hablaban de la fila que se fue
+o de la escala: la **299**, la **300** y la **362** decían «la fila de
+hoy» y ahora dicen lo mismo contra la columna; la **310** y la **311**
+cazaron que mi CSS nuevo usaba duraciones (0,08 / 0,2 / 0,45) y
+espaciados (6 y 10 px) fuera de la escala de la casa. Las dos tenían
+razón: la web tiene DOS duraciones (0,15 para responder a un gesto, 0,3
+para lo que entra o sale) y los pasos de espaciado son los seis de
+siempre.
+
+**En curso / pendiente**: de la lista que pasó PINGU quedan, y las dejo
+apuntadas porque son suyas y no están empezadas:
+
+- **El precio cuando no hay en el idioma que toca**: añadió una carta y
+  salió sin precio.
+- **Los álbumes, más visuales** (los soñados, de la 366).
+- **Cartas sin imagen**: la Classic Collection del 30 aniversario y
+  bastantes de la era Sol y Luna. Huele a `image_path` vacío en el
+  catálogo, o sea arreglo de DATOS y no de pantalla.
+
+---
+
 ## 2026-09-29 — PINGU-Claude (tanda 367 — «privado» pasa a ser «con código»)
 
 **Hecho**: PINGU, al ver que el RSS de la 363 dejaba fuera los privados:

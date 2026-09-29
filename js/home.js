@@ -274,13 +274,14 @@ function recogerSeccion(id) {
   const s = document.getElementById(id)
   if (!s) return
   s.style.display = 'none'
-  // La marca es para el CSS: la fila de «hoy» es una rejilla de dos
-  // columnas para cuadrar con el panel de abajo, y una rejilla no
-  // encoge sola cuando falta un hijo — dejaría 320px en blanco al lado
-  // del reto. Con esto, `.portada-hoy:has(> .seccion-recogida)` pasa a
-  // una sola columna. Mirar el `display` en línea desde CSS sería
-  // posible pero se rompería en cuanto alguien lo escondiera de otra
-  // forma.
+  // La marca deja dicho POR QUÉ está escondida: no la ha escondido nadie
+  // a mano, es que no había datos que pintar. La usaba una regla de CSS
+  // que encogía la fila de «hoy» cuando le faltaba un hijo; esa fila ya
+  // no existe (tanda 368), así que hoy no la mira nadie. Se conserva
+  // porque cuesta nada y es lo que distingue «recogida» de «oculta», que
+  // es justo lo que hará falta el día que alguien vuelva a colocar estas
+  // secciones. Mirar el `display` en línea desde CSS sería posible, pero
+  // se rompería en cuanto alguien la escondiera de otra forma.
   s.classList.add('seccion-recogida')
 }
 

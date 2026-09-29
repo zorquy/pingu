@@ -114,6 +114,12 @@ async function cargar() {
   const mejorQueLoPintado = completa !== carta
 
   pintar(completa, set, juego || null, ley, mejorQueLoPintado)
+  // El escaneo se inclina siguiendo al ratón (tanda 368). Va a demanda y
+  // no en los imports de arriba: con el dedo o con «menos movimiento»
+  // puesto no se monta nada, así que tampoco hace falta bajarlo.
+  import('./carta-holo.js')
+    .then(({ montarHolo }) => montarHolo(document.querySelector('.carta-scan-holo')))
+    .catch(() => {})
   // Y si ha quedado algún tipo sin traducir, que lo cuente la web y no
   // una persona (tanda 342).
   avisarDeTiposSinTraducir()

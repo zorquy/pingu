@@ -23,6 +23,9 @@ import {
   idiomaDe,
   estadoDe,
 } from './cardmarket.js'
+// El dibujo de la marca va aparte: es lo único de Cardmarket que
+// necesita CSS, y ese CSS solo lo carga esta página (ver el fichero).
+import { logoCardmarket, marcaCardmarket } from './cardmarket-marca.js'
 import { preciosEnVivo, lineasDeCarta, anadir } from './mi-coleccion/datos.js'
 
 const $ = (id) => document.getElementById(id)
@@ -76,10 +79,10 @@ export async function pintarMercado(carta) {
       </div>
       <div class="carta-mercado-paneles">
         <div class="carta-mercado-panel">
-          <p class="carta-mercado-titulo">Cardmarket</p>
+          <p class="carta-mercado-titulo">${logoCardmarket(20)}</p>
           <dl class="carta-precios" id="cmPrecios"></dl>
           <p class="carta-mercado-nota" id="cmNota"></p>
-          <a class="btn-primary carta-mercado-boton" id="cmEnlace" href="#" target="_blank" rel="noopener"></a>
+          <a class="btn-cardmarket carta-mercado-boton" id="cmEnlace" href="#" target="_blank" rel="noopener"></a>
         </div>
         <div class="carta-mercado-panel">
           <p class="carta-mercado-titulo">Mi colección</p>
@@ -104,7 +107,10 @@ export async function pintarMercado(carta) {
     const idProduct = precio?.idProduct || null
     const a = $('cmEnlace')
     a.href = enlaceCardmarket({ idProduct, idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre })
+    // `textContent` primero y la marca después: el texto viene de
+    // `textoDelEnlace` y así no hay forma de colar HTML por ahí.
     a.textContent = textoDelEnlace({ idProduct, idioma: estado.idioma, estado: estado.estado })
+    a.insertAdjacentHTML('afterbegin', marcaCardmarket(22))
   }
   pintarPrecio()
 

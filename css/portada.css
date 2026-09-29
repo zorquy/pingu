@@ -14,69 +14,31 @@
 
 /* ── Lo que te trae hoy: el reto y la última noticia ── */
 
-/* Flex y no una rejilla de dos columnas: cualquiera de las dos secciones
-   se puede recoger sola (js/home.js: recogerSeccion) y con flex la que
-   queda se lleva la fila entera en vez de dejar media portada vacía.
-   La base de 300px es la que las apila en el móvil sin media query. */
-.portada-hoy {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 16px;
-}
+/* Aquí vivía `.portada-hoy` (tandas 299 a 362): una fila propia con el
+   torneo a la izquierda y la última noticia a la derecha, en las mismas
+   dos columnas que el panel de abajo.
+   La quitó la tanda 368, y el motivo es de los que no se ven hasta que
+   alguien mira la portada en un PC: **una fila mide lo que mida su caja
+   MÁS ALTA**, y estas dos no se parecen en nada — el torneo es una tira
+   de 76 px y la noticia una tarjeta con foto de más de 300. Debajo del
+   torneo quedaba un agujero de unos 250 px hasta «Ahora en el foro», y
+   en el móvil no salía porque ahí van apiladas.
+   La cura no es rellenar el hueco: es no tener fila. Cada caja se fue a
+   la columna del panel que le tocaba (el torneo a la ancha, la noticia a
+   la lateral), y una columna flexible fluye seguida.
+   De paso se va `.portada-hoy:has(> .seccion-recogida)`, que existía
+   solo para que la rejilla no dejara 320 px en blanco cuando una de las
+   dos se recogía. Sin fila no hay nada que encoger. */
 
-.portada-hoy > section {
-  flex: 1 1 300px;
-  min-width: 0;
-}
-
-/* En escritorio la fila de «hoy» se alinea con el panel de abajo: las
-   mismas dos columnas (ancha + 320px). Si cada una llevara su reparto,
-   el borde del reto y el del foro no coincidirían y la portada se vería
-   descuadrada por la mitad. */
-@media (min-width: 960px) {
-  .portada-hoy {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
-    gap: 16px;
-  }
-
-  /* Si una de las dos se recoge (no hay noticia, o no hay reto), la que
-     queda se lleva la fila. Una rejilla de dos columnas no lo hace sola:
-     dejaría 320 px en blanco al lado. La marca la pone recogerSeccion
-     (js/home.js). */
-  .portada-hoy:has(> .seccion-recogida) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-/* La cadena de alturas hasta el contenido: la sección y el hueco que
-   rellena js/home.js se hacen flex para que el estirón de la fila llegue
-   hasta abajo y las dos cajas midan lo mismo. Nada de `height: 100%` por
-   el camino: un alto explícito en un hijo de flex ANULA el estirón, y
-   como el padre no tiene alto definido se queda en el alto del contenido
-   — la caja salía corta y debajo quedaba un claro blanco. Y sin el
-   margen de las tarjetas, que aquí deja un escalón.
-
-   Va por POSICIÓN y no por id (tanda 362): estas reglas describen «lo
-   que vive en la fila de hoy», no «el reto». Estaban escritas con
-   `#retoSeccion`, y al cambiar el reto por el torneo la fila se quedó
-   sin ellas — la caja se encogió a su contenido y la fila dejó de
-   cuadrar con el panel de abajo. Quien ocupe esa fila mañana las hereda
-   sin que nadie se acuerde. */
-.portada-hoy > section,
-.portada-hoy > section > .reto-tarjetas {
-  display: flex;
+/* Aquí iba la cadena de alturas que estiraba las dos cajas de la fila
+   hasta medir lo mismo. Sin fila que estirar, sobra: cada caja mide
+   ahora lo que mide su contenido, que es justo lo que se quería. Lo
+   único que se conserva es quitarle el margen de abajo a las tarjetas,
+   porque el aire entre secciones lo pone el `gap` de la columna y si no
+   se sumarían los dos. */
+.portada-principal > section > .destacada,
+.portada-lateral > section > .reto-tarjetas {
   margin-bottom: 0;
-}
-
-/* Y que cada eslabón OCUPE su sitio: un hijo de flex sin esto se encoge
-   a lo que mide su contenido, y la caja salía a media columna con un
-   claro de 200px al lado. */
-.portada-hoy > section > *,
-.portada-hoy > section > .reto-tarjetas > * {
-  flex: 1;
-  min-width: 0;
 }
 
 /* ── El héroe del reto ── */
@@ -703,6 +665,22 @@ a.noticia-banner:hover {
   .portada-principal,
   .portada-lateral {
     display: contents;
+  }
+
+  /* El orden del móvil, que con las columnas disueltas ya NO es el del
+     HTML (tanda 368). El torneo y la noticia vivían en una fila propia
+     por encima del panel, así que salían los primeros; al mudarlos cada
+     uno a su columna, el DOM los separa —el torneo abre la ancha y la
+     noticia abre la lateral, que va detrás entera— y en el móvil la
+     noticia se habría caído hasta la mitad de la página.
+     Estos tres números reponen exactamente lo que se veía antes: torneo,
+     noticia, primeros pasos y a partir de ahí el orden del documento. */
+  #torneoPortadaSeccion {
+    order: -3;
+  }
+
+  #noticiaPortadaSeccion {
+    order: -2;
   }
 
   #primerosPasos {

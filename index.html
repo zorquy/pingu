@@ -237,39 +237,6 @@
       <div class="bienvenida" id="bienvenida"><div class="skeleton" style="height: 48px; width: 100%;"></div></div>
     </section>
 
-    <!-- Lo que te trae hoy (tanda 299). El reto del día y la última
-         noticia estaban dentro de la columna principal del panel, debajo
-         de la guía destacada: lo que más cambia de la portada —y lo
-         único que da motivo para volver mañana— salía en tercer lugar y
-         a media anchura. Ahora abren la portada, a lo ancho y en dos
-         cajas grandes. Los ids son los de siempre: js/home.js las
-         rellena igual, y si no hay noticia (o no hay reto) la sección se
-         recoge sola y la otra se queda con toda la fila — de ahí el flex
-         en vez de una rejilla de dos columnas fijas. -->
-    <div class="container portada-hoy" id="portadaHoy">
-      <!-- El torneo sube aquí desde la barra lateral (tanda 362), y el
-           reto baja a cambio. El motivo son los números: `/torneo` es la
-           segunda página más vista del sitio y la tocan 47 de las 55
-           personas que vuelven; el reto diario lleva 103 partidas en toda
-           la historia de la web. El sitio más caro de la portada lo
-           ocupaba lo que menos se usa. -->
-      <section id="torneoPortadaSeccion">
-        <div id="torneoPortada"><div class="skeleton" style="height: 76px;"></div></div>
-      </section>
-
-      <!-- La última noticia (tanda 277, con banner desde la 288). La
-           sección se estrenó el 2026-09-10 y la portada no la
-           mencionaba: quien entra a pokedoc.es no tiene por qué abrir
-           el menú para enterarse de que hay noticias.
-           Desde la 288 va con la IMAGEN de portada, que es lo que
-           distingue una noticia de un enlace, y con «Ver todas» para
-           que se entienda que Noticias es una sección y no un
-           artículo suelto. Se recoge sola si no hay ninguna. -->
-      <section id="noticiaPortadaSeccion">
-        <div id="noticiaPortada"><div class="skeleton" style="height: 84px;"></div></div>
-      </section>
-    </div>
-
     <!-- El panel de la portada. En escritorio, dos columnas: lo ancho
          (guía destacada, torneo, foro vivo) a la izquierda y la barra
          lateral (top del mes, atajos) a la derecha, para que todo se vea
@@ -279,6 +246,25 @@
          js/home.js las rellena y las enseña igual que antes. -->
     <div class="container panel-portada" id="panelPortada">
       <div class="portada-principal">
+        <!-- El torneo abre la columna ancha (tanda 362, recolocado en la
+             368). El motivo de que esté arriba del todo son los números:
+             `/torneo` es la segunda página más vista del sitio y la tocan
+             47 de las 55 personas que vuelven; el reto diario lleva 103
+             partidas en toda la historia de la web.
+
+             Y por qué está AQUÍ dentro y no en una fila suya (que es como
+             nació): esa fila era una rejilla de dos columnas con el torneo
+             a la izquierda y la noticia a la derecha, y las dos cajas no
+             miden lo mismo ni de lejos — el torneo es una tira de 76 px y
+             la noticia una tarjeta con foto de 300 y pico. La fila mide lo
+             que mida la MÁS ALTA, así que debajo del torneo quedaba un
+             agujero de 250 px en escritorio antes de «Ahora en el foro».
+             Metiendo cada una en la columna que ya existía, cada columna
+             fluye seguida y no hay hueco que rellenar. -->
+        <section id="torneoPortadaSeccion">
+          <div id="torneoPortada"><div class="skeleton" style="height: 76px;"></div></div>
+        </section>
+
         <!-- Los bloques que rellena js/home.js nacen VISIBLES con un
              esqueleto de la altura aproximada del contenido: si nacieran
              con display:none, al llegar los datos empujarían todo lo de
@@ -328,6 +314,18 @@
       </div>
 
       <aside class="portada-lateral">
+        <!-- La última noticia (tanda 277, con banner desde la 288; aquí
+             desde la 368). La sección se estrenó el 2026-09-10 y la
+             portada no la mencionaba: quien entra a pokedoc.es no tiene
+             por qué abrir el menú para enterarse de que hay noticias.
+             Va con la IMAGEN de portada, que es lo que distingue una
+             noticia de un enlace, y con «Ver todas» para que se entienda
+             que Noticias es una sección y no un artículo suelto. Se
+             recoge sola si no hay ninguna. -->
+        <section id="noticiaPortadaSeccion">
+          <div id="noticiaPortada"><div class="skeleton" style="height: 84px;"></div></div>
+        </section>
+
         <!-- El reto del día, que hasta la 362 abría la portada a lo ancho
              (ver el comentario de arriba). Sigue estando, y arriba de la
              lateral: 103 partidas en toda la historia no dan para el

@@ -153,10 +153,17 @@
         <div class="mc-album-barra">
           <select id="mcAlbumSet" aria-label="Colección del álbum"></select>
           <label class="mc-interruptor"><input type="checkbox" id="mcAlbumSoloFaltan" /> Solo las que me faltan</label>
-          <span id="mcTocarZona"><label class="mc-interruptor"><input type="checkbox" id="mcAlbumTocar" /> Tocar una carta la añade</label></span>
         </div>
-        <div class="mc-tocar hidden" id="mcTocarOpciones">
-          <span>Cada toque suma una copia en</span>
+        <!-- Aquí había un interruptor de «Tocar una carta la añade»
+             (tanda 365) que se fue en la 368. Obligaba a elegir: con él
+             puesto no podías abrir la ficha de una carta, y sin él no
+             podías añadir ninguna sin irte a la ficha y volver. Ahora
+             cada bolsillo lleva su − y su +, y el bolsillo entero sigue
+             llevando a la ficha; no hay modo que recordar.
+             Lo que sí se queda es con QUÉ se añade, que antes vivía
+             escondido detrás del interruptor. -->
+        <div class="mc-tocar" id="mcTocarOpciones">
+          <span>Al pulsar + se suma una copia en</span>
           <select id="mcTocarIdioma" aria-label="Idioma al añadir"></select>
           <select id="mcTocarEstado" aria-label="Estado al añadir"></select>
         </div>

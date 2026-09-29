@@ -19475,3 +19475,110 @@ la pantalla en Chromium: que el torneo con código sale en la lista sin
 sesión, que la ficha pide el código y lo manda sin los espacios de
 pegarlo, que un torneo normal no pide nada, y que el editor lee el código
 de su tabla y no de la fila.
+
+---
+
+## Tanda 368 — el hueco de la portada, el mando del álbum, la carta en 3D y Cardmarket con su logo (sept. 2026)
+
+Cuatro cosas que pidió PINGU mirando la web en el PC. La primera es la
+que enseña algo.
+
+### Una fila mide lo que mida su caja MÁS ALTA
+
+`.portada-hoy` era una rejilla de dos columnas con el torneo a la
+izquierda y la última noticia a la derecha. El torneo es una tira de
+76 px; la noticia, una tarjeta con foto de más de 300. La fila mide lo
+que mida la más alta, así que **debajo del torneo quedaba un agujero de
+unos 250 px** hasta «Ahora en el foro».
+
+Dos cosas que hacen esto peor de lo que parece:
+
+- **En el móvil no se veía.** Ahí las dos van apiladas, así que cada una
+  mide lo suyo y no sobra nada. El fallo solo existía en la mitad de las
+  pantallas — y es la mitad que quien lo montó no estaba mirando.
+- **Nada da error.** Un hueco no rompe ninguna prueba, no sale en la
+  consola y no cambia ningún número.
+
+La cura no es rellenar el hueco: es **no tener fila**. Cada caja se fue a
+la columna del panel que ya existía —el torneo a la ancha, la noticia a
+la lateral— y una columna flexible fluye seguida. De paso desaparece
+`.portada-hoy:has(> .seccion-recogida)`, que existía solo para que la
+rejilla no dejara 320 px en blanco cuando una de las dos se recogía.
+
+**El precio de mudar una caja de sitio es el ORDEN del móvil.** Las dos
+vivían por encima del panel, o sea las primeras; al repartirlas, el DOM
+las separa (el torneo abre una columna, la noticia abre la otra, que va
+detrás entera) y con `display: contents` en el móvil la noticia se habría
+caído a media página. Tres `order` lo reponen exactamente. Si mueves algo
+de la portada entre columnas, mira antes qué le pasa en el móvil.
+
+### Un `<button>` dentro de un `<a>` no existe
+
+El bolsillo del archivador era **una cosa o la otra** según un
+interruptor de arriba («Tocar una carta la añade»): o un enlace a la
+ficha, o un botón que añadía una copia. Elegir entre abrir y añadir no es
+una decisión que deba tomar quien mira su álbum.
+
+Ahora es un `div` con el enlace ENCIMA (`position: absolute; inset: 0`) y
+el mando de `−` y `+` por delante. Tiene que ser así: un `<button>`
+dentro de un `<a>` no es HTML válido y el navegador lo desmonta por su
+cuenta — el mando dejaría de funcionar sin que nada diera error.
+
+**De qué línea quita el `−`**: de la más NUEVA. Una misma carta puede
+estar varias veces en la colección (una española NM y una inglesa played
+son dos líneas) y el botón no pregunta. La más nueva es la que quiere
+deshacer quien acaba de pulsar `+`.
+
+### Una transformación mata un `sticky`
+
+El escaneo de la carta se inclina siguiendo al ratón, con una banda de
+color que barre por encima (`js/carta-holo.js`).
+
+El giro va sobre una caja NUEVA dentro del `figure`, no sobre el
+`figure`. El `figure` es `position: sticky` en escritorio, y **cualquier
+`transform` crea un contexto de apilamiento que deja el `sticky` sin
+efecto**: la carta dejaría de acompañar al scroll, y tampoco daría error.
+
+Tres cosas más que no son de gusto:
+
+- **Solo con ratón.** Con el dedo no hay «pasar por encima»: el primer
+  toque ya es el que abre el visor, así que la carta pegaría un salto
+  justo al pulsarla.
+- **Apagado con «menos movimiento», en el JavaScript Y en el CSS.** En el
+  JavaScript para no escuchar el ratón para nada; en el CSS porque ahí
+  vive la transición de vuelta al reposo. Una cosa sin la otra deja medio
+  efecto vivo.
+- **El brillo lleva `pointer-events: none`.** Sin él, la capa se come el
+  clic y el visor de ampliar deja de abrirse — sin dar error.
+
+Y una de mezcla: el arcoíris va en `soft-light`, no en `color-dodge`. El
+dodge SUMA luz, y sobre el amarillo y el blanco de una carta —que es casi
+toda la carta— se va a blanco puro y el arcoíris desaparece justo donde
+tendría que verse. Además va **recortado a una franja** que cruza la
+carta: teñida entera parecía una mancha de aceite.
+
+### Un logo ajeno se dibuja, no se cuelga
+
+La marca de Cardmarket va en SVG propio (`js/cardmarket-marca.js`).
+Colgarla de cardmarket.com es pedirle a cada visitante una petición a un
+tercero para pintar un botón, y el día que ese tercero no conteste el
+botón se queda mudo — es la lección de la 321 otra vez. Su azul no se
+repinta con nuestro tema (`currentColor` no vale para un logo ajeno): en
+oscuro va sobre una chapa blanca, que es como se pone un logo de otro.
+
+**Y la trampa de la 299, que casi vuelve a picar.** La marca estaba
+dentro de `js/cardmarket.js` — que importa TAMBIÉN /mi-coleccion, para
+los idiomas y los estados. Y /mi-coleccion no carga `carta.css`, donde
+vive el CSS del logo. El barrido sigue los IMPORTS, no las llamadas: una
+página «usa» una clase por importar el módulo que la pinta, aunque no la
+pinte nunca. De ahí el fichero aparte.
+
+### Comprobado
+
+`test-tanda-368.mjs` (31), más `test-tanda-299` actualizada (sus dos
+comprobaciones sobre la fila de «hoy» pasan a exigir lo mismo dicho de
+otra manera: que lo de «hoy» abra cada columna y que una sección recogida
+no deje un claro). Lo que se mide y no se supone: el HUECO debajo del
+torneo en píxeles, el orden PINTADO en el móvil (no el del documento, que
+el `order` de flex no lo mueve), y el mando pulsándolo de verdad —`+`,
+`−`, y el `−` sobre dos copias, que baja a una en vez de borrar la línea.
