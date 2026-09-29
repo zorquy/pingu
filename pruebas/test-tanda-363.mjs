@@ -47,12 +47,13 @@ console.log('\n── 2. Qué torneos salen y cuáles NO ──')
   const xml = await (await handler()).text()
   const consulta = pedidas.find((u) => u.includes('/tournaments')) || ''
 
-  // Las tres condiciones, y las tres importan.
+  // Las dos condiciones, y las dos importan.
   check('solo con la inscripción abierta', /status=eq\.registration_open/.test(consulta))
   check('solo los que no han empezado', /start_at=gte\./.test(consulta))
-  // Un torneo privado tiene código de acceso: su gracia es no anunciarse.
-  // Publicarlo en un canal abierto lo rompería SIN DAR NINGÚN ERROR.
-  check('y NUNCA los privados', /is_private=is\.false/.test(consulta))
+  // Los de CÓDIGO sí entran desde la tanda 367: se ven en la web como
+  // cualquier otro, y un canal que esconde lo que la web enseña miente.
+  // Lo que decide es la POLÍTICA de la base, no un filtro escrito aquí.
+  check('los de código ya no se filtran', !/is_private=is\.false/.test(consulta), consulta)
 
   check('el torneo sale en el canal', xml.includes('/torneo?slug=pachanga'))
   check('…con su título reconocible', /<title>Torneo: Pachanga de inauguración<\/title>/.test(xml))
@@ -86,10 +87,11 @@ console.log('\n── 3. Y si algo falla, el canal sigue saliendo ──')
   check('sin torneos, el canal sale con los artículos', xml.includes('Una noticia') && !xml.includes('/torneo?slug='))
   globalThis.fetch = original
 
-  // Y el respaldo por si la columna de privados no existe todavía.
+  // Y el respaldo por si la columna de privados no existe todavía: se
+  // pide en el select, así que sin ella la consulta entera fallaría.
   const js = leer('netlify/functions/rss.mjs')
   check('hay vuelta atrás sin la columna de privados',
-    /is_private=is\.false[\s\S]{0,400}\.catch\(\(\) =>/.test(js))
+    /max_players,is_private[\s\S]{0,400}\.catch\(\(\) =>/.test(js))
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

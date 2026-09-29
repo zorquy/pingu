@@ -103,8 +103,9 @@ console.log('\n── 3. El pie enlaza el catálogo ──')
   // El nombre de clase, entero y entre comillas: buscar el trozo suelto
   // casaría también con `pie-rejilla-no` (la trampa de la 312).
   const sinEnlace = conPie.filter((f) => !/href="\/cartas"/.test(readFileSync(`${RAIZ}/${f}`, 'utf8')))
-  // 27 desde la 354: /constructor y /mazos también llevan pie.
-  check('las 27 páginas con pie enlazan a /cartas', conPie.length === 27 && sinEnlace.length === 0,
+  // 31 desde la 366, que añadió /meta, /mazo-meta y /mi-coleccion (28
+  // desde la 361 con /colabora; 27 desde la 354 con /constructor y /mazos).
+  check('las 31 páginas con pie enlazan a /cartas', conPie.length === 31 && sinEnlace.length === 0,
     `${conPie.length} con pie, sin enlace: ${sinEnlace.join(', ')}`)
 }
 

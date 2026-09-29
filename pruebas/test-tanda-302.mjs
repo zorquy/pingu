@@ -107,16 +107,15 @@ console.log('\n── 2. El caso de PINGU: ya CONSTA mandado sin haberlo estado 
 
 console.log('\n── 3. Lo que NO puede salir por el canal ──')
 {
-  // Un torneo privado no sale NI FORZANDO. La función programada ya lo
-  // filtra, pero aquí hay una persona pulsando un botón, y lo que se
-  // escapa por el canal no se recoge: nombre, fecha y enlace de algo que
-  // alguien quiso que no se viera.
+  // Un torneo CON CÓDIGO sí sale por aquí desde la tanda 367: ya se ve
+  // en la web y sale en el RSS, así que esconderlo en este botón no
+  // escondía nada. Lo que no hace es salir SOLO — la pasada automática
+  // sigue saltándoselo, y anunciar un torneo al que no entra cualquiera
+  // lo decide una persona.
   const priv = { ...TORNEO, is_private: true }
   const r = await mandar({}, { torneo: priv })
-  check('un torneo privado no sale', r.estado === 400 && /privado/i.test(r.cuerpo.error), JSON.stringify(r.cuerpo))
-  check('  …sin llamar a Telegram', r.enviado.length === 0)
-  const f = await mandar({ forzar: true }, { torneo: priv })
-  check('  …y forzando tampoco', f.estado === 400 && f.enviado.length === 0, JSON.stringify(f.cuerpo))
+  check('un torneo con código sí sale a mano', r.estado === 200 && r.cuerpo.ok === true, JSON.stringify(r.cuerpo))
+  check('  …llamando a Telegram', r.enviado.length === 1)
 
   // Un borrador no: el enlace llevaría a una página que no existe.
   const borrador = { ...TORNEO, status: 'draft' }
@@ -230,9 +229,10 @@ console.log('\n── 7. El botón, y quién lo ve ──')
   check('  …y avisando del caso de los torneos viejos', /ya existían al poner el canal/.test(pista), pista.slice(0, 200))
   await constaba.page.close()
 
-  // Dónde NO puede salir.
+  // Dónde NO puede salir. Un torneo con código ya no está en esta lista
+  // (tanda 367): el botón sale, y lo decide quien lleva el sitio.
   const priv = await abrir('admin-1', { is_private: true })
-  check('en un torneo privado no hay botón', priv.cuantos === 0, String(priv.cuantos))
+  check('en un torneo con código SÍ hay botón', priv.cuantos === 1, String(priv.cuantos))
   await priv.page.close()
   const borrador = await abrir('admin-1', { status: 'draft' })
   check('en un borrador tampoco', borrador.cuantos === 0, String(borrador.cuantos))

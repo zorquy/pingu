@@ -15,6 +15,7 @@ const T = {
   user_profiles: [],
   tournaments: [],
   tournament_registrations: [],
+  tournament_join_codes: [],
   tournament_decklists: [],
   rounds: [],
   tournament_matches: [],
@@ -166,6 +167,13 @@ sembrar('__FAKE_TORNEOS__', 'tournaments', (i) => ({
   cancel_notified_at: null,
   reminder_notified_at: null,
   delete_after_notice_at: null,
+}))
+
+// El código de entrada de un torneo (tanda 367). Vive en su propia tabla
+// porque la fila del torneo la lee todo el mundo.
+sembrar('__FAKE_CODIGOS__', 'tournament_join_codes', (i) => ({
+  tournament_id: `torneo-${i + 1}`,
+  code: 'PACHA',
 }))
 
 sembrar('__FAKE_INSCRIPCIONES__', 'tournament_registrations', (i) => ({

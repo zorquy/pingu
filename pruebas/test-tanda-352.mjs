@@ -72,8 +72,10 @@ console.log('\n── 2. La base también lo comprueba ──')
   check('/admin avisa si falta la migración', /supabase-migration-torneos-premios\.sql/.test(leer('js/schema-check.js')))
   // Y entre el despliegue y el SQL, crear y editar torneos SIGUE
   // funcionando: la columna se quita y se reintenta.
-  check('crear aguanta sin la columna', /'join_code', 'prizes'\]/.test(leer('js/torneos/torneos.js')))
-  check('editar también', /'join_code', 'prizes'\]/.test(leer('js/torneos/torneo.js')))
+  // (El 'join_code' de esta lista se fue en la tanda 367: el código ya no
+  // es una columna de tournaments, vive en su propia tabla.)
+  check('crear aguanta sin la columna', /'is_private', 'prizes'\]/.test(leer('js/torneos/torneos.js')))
+  check('editar también', /'is_private', 'prizes'\]/.test(leer('js/torneos/torneo.js')))
 }
 
 console.log('\n── 3. En la ficha del torneo ──')
