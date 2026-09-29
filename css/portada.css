@@ -50,25 +50,31 @@
   }
 }
 
-/* La cadena de alturas hasta el héroe: la sección y el hueco que rellena
-   js/home.js (#retoTarjetas, que es una rejilla de tarjetas en el resto
-   de la portada) se hacen flex para que el estirón de la fila llegue
-   hasta el héroe y éste mida lo mismo que la noticia de al lado. Nada de
-   `height: 100%` por el camino: un alto explícito en un hijo de flex
-   ANULA el estirón, y como el padre no tiene alto definido se queda en
-   el alto del contenido — el héroe salía corto y debajo quedaba un claro
-   blanco. Y sin el margen de las tarjetas, que aquí deja un escalón. */
-.portada-hoy #retoSeccion,
-.portada-hoy #retoTarjetas {
+/* La cadena de alturas hasta el contenido: la sección y el hueco que
+   rellena js/home.js se hacen flex para que el estirón de la fila llegue
+   hasta abajo y las dos cajas midan lo mismo. Nada de `height: 100%` por
+   el camino: un alto explícito en un hijo de flex ANULA el estirón, y
+   como el padre no tiene alto definido se queda en el alto del contenido
+   — la caja salía corta y debajo quedaba un claro blanco. Y sin el
+   margen de las tarjetas, que aquí deja un escalón.
+
+   Va por POSICIÓN y no por id (tanda 362): estas reglas describen «lo
+   que vive en la fila de hoy», no «el reto». Estaban escritas con
+   `#retoSeccion`, y al cambiar el reto por el torneo la fila se quedó
+   sin ellas — la caja se encogió a su contenido y la fila dejó de
+   cuadrar con el panel de abajo. Quien ocupe esa fila mañana las hereda
+   sin que nadie se acuerde. */
+.portada-hoy > section,
+.portada-hoy > section > .reto-tarjetas {
   display: flex;
   margin-bottom: 0;
 }
 
 /* Y que cada eslabón OCUPE su sitio: un hijo de flex sin esto se encoge
-   a lo que mide su contenido, y el héroe salía a media columna con un
+   a lo que mide su contenido, y la caja salía a media columna con un
    claro de 200px al lado. */
-.portada-hoy #retoSeccion > *,
-.portada-hoy #retoTarjetas > * {
+.portada-hoy > section > *,
+.portada-hoy > section > .reto-tarjetas > * {
   flex: 1;
   min-width: 0;
 }
