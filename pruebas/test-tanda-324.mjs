@@ -67,6 +67,15 @@ const abrir = async (ruta, cartas = [CERULEDGE], sets = [SET]) => {
   const page = await browser.newPage({ viewport: { width: 1100, height: 900 } })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 160)))
+  // El escaneo, servido de mentira (tanda 370). Este entorno no alcanza
+  // la CDN de TCGdex, así que la imagen fallaba SIEMPRE; desde que la
+  // cadena de respaldos tiene un final —al agotarse, «Sin imagen»— eso
+  // dejaba la ficha sin `<img>` que pulsar y esta prueba se quedaba
+  // esperando al visor. En producción la imagen carga, que es lo que
+  // esta prueba quiere comprobar.
+  await page.route('**/assets.tcgdex.net/**', (r) =>
+    r.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="825"><rect width="600" height="825" fill="#c33"/></svg>' })
+  )
   await page.addInitScript((s) => {
     window.__FAKE_CARTAS__ = s.c
     window.__FAKE_SETS__ = s.s

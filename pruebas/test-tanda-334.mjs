@@ -108,6 +108,13 @@ console.log('\n── 4. En la página, con los datos de la base ──')
   const page = await browser.newPage({ viewport: { width: 1280, height: 1100 } })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 160)))
+  // El escaneo, servido de mentira (tanda 370). Este entorno no alcanza
+  // la CDN de TCGdex, así que la imagen fallaba SIEMPRE; desde que la
+  // cadena de respaldos tiene un final —al agotarse, el hueco de «Sin
+  // imagen»— eso deja la ficha sin `<img>`, y aquí se mide la imagen.
+  await page.route('**/assets.tcgdex.net/**', (r) =>
+    r.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="825"><rect width="600" height="825" fill="#c33"/></svg>' })
+  )
   await page.addInitScript((c) => {
     window.__FAKE_SETS__ = [{ id: '30c', name: '30th Celebration', market: 'WEST', serie_name: 'Mega',
       release_date: '2026-09-16', card_count_official: 128 }]
@@ -148,6 +155,11 @@ console.log('\n── 5. En el móvil el escaneo NO se queda pegado ──')
   // «position: static» en el CSS pasaría aunque otra regla lo pisara.
   for (const [nombre, ancho, esperado] of [['móvil', 390, 'static'], ['escritorio', 1280, 'sticky']]) {
     const page = await browser.newPage({ viewport: { width: ancho, height: 800 }, isMobile: ancho < 720 })
+    // El escaneo, servido de mentira (tanda 370): aquí se MIDE la imagen,
+    // y en este entorno la CDN de TCGdex no contesta nunca.
+    await page.route('**/assets.tcgdex.net/**', (r) =>
+      r.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="825"><rect width="600" height="825" fill="#c33"/></svg>' })
+    )
     await page.addInitScript((c) => {
       window.__FAKE_SETS__ = [{ id: '30c', name: '30th Celebration', market: 'WEST', card_count_official: 128 }]
       window.__FAKE_CARTAS__ = c
