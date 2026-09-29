@@ -12,6 +12,58 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-29 — PINGU-Claude (tanda 362 — la portada, con lo que la gente usa de verdad)
+
+**Hecho**: cuatro cambios en la portada, y dos salen directos de la
+analítica.
+
+**El titular vendía otra web.** Decía «guías, curiosidades y cursos», y
+la analítica dice que **47 de las 55 personas que vuelven pasan por un
+torneo** y que **436 visitas de gente sin cuenta** entran directas a la
+ficha de uno. Ahora el titular menciona los torneos y el botón principal
+es «Ver los torneos»; «Empezar a aprender» pasa a secundario y «¿Qué es
+PokeDoc?» baja a enlace de texto.
+
+**El sitio más caro lo ocupaba lo que menos se usa.** El reto diario
+—**103 partidas en toda la historia de la web**— abría la portada a lo
+ancho, y el próximo torneo estaba en la barra lateral como
+acompañamiento. Cambiados. Y la tarjeta del torneo, que es horizontal,
+queda mejor a lo ancho que encajada en la lateral.
+
+**«Mensajes esta semana» se va del panel.** Con 105 mensajes en todo el
+foro ese número iba a ser de un dígito muchas semanas, y un dato en vivo
+bajo es prueba social EN CONTRA. En su lugar, las cartas del catálogo:
+no puede bajar, y es lo único del panel que ninguna otra web española
+tiene.
+
+**Y las tres cartas del héroe son fotos de verdad**, del set más nuevo.
+Los rectángulos de CSS se quedan como hueco reservado y respaldo: si la
+consulta falla o la CDN no contesta, la portada se ve como antes y no se
+mueve nada de sitio.
+
+**Dos cosas del camino, las dos de las que ya avisaba CLAUDE.md**:
+
+- **La primera versión se salió del presupuesto** (172,1 de 170 KB) por
+  importar `carta-ruta.js` y `catalogo-series.js` para tres cadenas.
+  Rehecho sin ellos: la dirección de las imágenes es una constante local
+  vigilada por prueba (la norma de la 322) y el filtro de Pokémon TCG
+  Pocket se resuelve pidiendo sets **con código de TCG Live**, que hace
+  las dos cosas de una. Queda en **168,6 KB**.
+- **Y un fallo de contraste mío**: el enlace «¿Qué es PokeDoc?» salió con
+  `--ice`, que es el color del panel navy, sobre el fondo CLARO del
+  héroe. Casi invisible. A `--text-mid` (la norma de la 311).
+
+**Ficheros**: `index.html`, `js/home.js`, `css/portada.css`, `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-362.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: nada bloqueante. La foto del héroe no se puede
+comprobar de verdad desde aquí —el entorno bloquea `assets.tcgdex.net`—,
+así que en las capturas va con una imagen de relleno; el camino de
+respaldo (que se quite y quede el rectángulo) sí está probado.
+
+---
+
 ## 2026-09-28 — IBAI-Claude (tanda 360 — revisión y subida de la 359)
 
 **Hecho**: revisada, probada y subida la tanda 359 de claude.ai. El

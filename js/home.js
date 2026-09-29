@@ -10,6 +10,7 @@ import { montarPrimerosPasos } from './primeros-pasos.js'
 import { haceCuanto, nombreDe, perfilesPorId, urlTema, avatarHtml, etiquetaHtml } from './foro-comun.js'
 import { clasificacionSemanal } from './liga.js'
 
+
 // Los temas, de seis tarjetas a una fila de chips (tanda 300)
 //
 // «Explora por tema» ocupaba un bloque entero de la portada con seis
@@ -67,21 +68,97 @@ async function loadHeroGuideCount() {
   el.textContent = count || 0
 }
 
-// Los números que hablan de personas: cuánta gente hay y cuánto se ha
-// hablado esta semana. Si algo falla se quedan los guiones del HTML —
-// mejor un guion que un cero mentiroso.
+// Los números del panel: cuánta gente hay y cuántas cartas tiene el
+// catálogo. Si algo falla se quedan los guiones del HTML — mejor un guion
+// que un cero mentiroso.
+//
+// El segundo era «mensajes esta semana» hasta la tanda 362. Un dato en
+// vivo que puede salir bajo es prueba social EN CONTRA: con 105 mensajes
+// en todo el foro, «3 esta semana» le dice a quien llega que aquí no hay
+// nadie. El catálogo solo sube, y es lo único de este panel que ninguna
+// otra web española tiene.
 async function cargarNumerosComunidad() {
   const elMiembros = document.getElementById('heroStatMiembros')
-  const elMensajes = document.getElementById('heroStatMensajes')
-  if (!elMiembros && !elMensajes) return
+  const elCartas = document.getElementById('heroStatCartas')
+  if (!elMiembros && !elCartas) return
   try {
-    const desde = new Date(Date.now() - 7 * 86400e3).toISOString()
-    const [{ count: miembros }, { count: mensajes }] = await Promise.all([
+    const [{ count: miembros }, { count: cartas }] = await Promise.all([
       supabase.from('user_profiles').select('id', { count: 'exact', head: true }),
-      supabase.from('forum_posts').select('id', { count: 'exact', head: true }).gte('created_at', desde),
+      supabase.from('tcg_cards').select('id', { count: 'exact', head: true }).eq('market', 'WEST'),
     ])
     if (elMiembros && miembros != null) elMiembros.textContent = miembros
-    if (elMensajes && mensajes != null) elMensajes.textContent = mensajes
+    // Con separador de miles: «21356» se lee como un número de serie y
+    // «21.356» se lee como una cifra.
+    if (elCartas && cartas != null) elCartas.textContent = cartas.toLocaleString('es-ES')
+  } catch {}
+}
+
+// El sitio de las imágenes de carta. Es COPIA de `ASSETS` en
+// `js/carta-ruta.js`, y la copia es a propósito: importar aquel módulo
+// mete su peso en la portada, que va al límite de los 170 KB, por UNA
+// cadena. Una copia sin vigilar se separa, así que la compara
+// test-tanda-362.mjs — la misma norma que `IDIOMA_POR_MERCADO` (322).
+const ASSETS_CARTAS = 'https://assets.tcgdex.net'
+
+// ── Las tres cartas del héroe, de verdad (tanda 362) ──
+//
+// El panel dibujaba tres rectángulos de color con CSS. Se hizo cuando no
+// había catálogo; ahora hay 21.000 fichas con su escaneo, y tres cartas
+// REALES del set más nuevo cambian la primera impresión de la portada
+// por completo.
+//
+// Los rectángulos se quedan: son el hueco reservado y el respaldo. Si la
+// consulta falla, si la CDN no contesta o si el set nuevo todavía no
+// tiene imágenes, la portada se ve exactamente como antes — y no se
+// mueve nada de sitio, porque la foto va DENTRO del rectángulo que ya
+// estaba.
+async function cartasDelHeroe() {
+  const marcos = document.querySelectorAll('.card-stack .tcg-card')
+  if (!marcos.length) return
+  try {
+    // En dos pasos y no con un `order` sobre la tabla embebida: PostgREST
+    // se come el `nullslast` ahí y ordenaría por los sets sin fecha
+    // (tanda 322).
+    //
+    // Y se pide CON código de TCG Live, que hace dos cosas de una: son
+    // los sets con los que juega la gente, y de paso deja fuera los de
+    // Pokémon TCG Pocket sin tener que arrastrar `esDelTCG` hasta la
+    // portada — que son 26 páginas bajándose un módulo por un filtro.
+    const { data: sets } = await supabase
+      .from('tcg_sets')
+      .select('id')
+      .eq('market', 'WEST')
+      .not('release_date', 'is', null)
+      .not('tcg_online_code', 'is', null)
+      .order('release_date', { ascending: false })
+      .limit(1)
+    const set = (sets || [])[0]
+    if (!set) return
+
+    const { data: cartas } = await supabase
+      .from('tcg_cards')
+      .select('image_path')
+      .eq('market', 'WEST')
+      .eq('set_id', set.id)
+      .not('image_path', 'is', null)
+      .order('local_id')
+      .limit(marcos.length)
+    const fotos = (cartas || []).map((c) => (c.image_path ? `${ASSETS_CARTAS}/en/${c.image_path}/low.webp` : null)).filter(Boolean)
+    if (!fotos.length) return
+
+    marcos.forEach((marco, i) => {
+      const url = fotos[i % fotos.length]
+      if (!url || marco.querySelector('img')) return
+      const img = document.createElement('img')
+      img.className = 'tcg-card-foto'
+      img.loading = 'lazy'
+      img.decoding = 'async'
+      img.alt = ''
+      // Si la imagen no llega, se quita y queda el rectángulo de siempre.
+      img.addEventListener('error', () => img.remove())
+      img.src = url
+      marco.appendChild(img)
+    })
   } catch {}
 }
 
@@ -509,6 +586,7 @@ async function init() {
     loadRecent(),
     loadHeroGuideCount(),
     cargarNumerosComunidad(),
+    cartasDelHeroe(),
     arriba,
     cargarTorneoPortada(),
     cargarBienvenida(session),

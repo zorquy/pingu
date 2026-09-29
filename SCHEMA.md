@@ -19095,3 +19095,61 @@ primeros se fichan por privado, uno a uno, entre la gente que ya está
 aportando gratis sin que nadie se lo pida. Esto es para el que llegue
 dentro de seis meses, cuando nadie esté buscando. Son cosas distintas y
 la página no puede sustituir a los mensajes.
+
+
+---
+
+## Tanda 362 — la portada, con lo que la gente usa de verdad
+
+Cuatro cambios, y los dos primeros no son de diseño: son de **mirar los
+números antes de opinar**.
+
+**Lo que enseñas tiene que ser lo que usan.** El héroe vendía «guías,
+curiosidades y cursos interactivos». La analítica de /admin dice que
+`/torneo` es la segunda página más vista del sitio, que la tocan **47 de
+las 55 personas que vuelven**, y que **436 de las visitas de gente sin
+cuenta** entran directas a la ficha de un torneo (enlaces compartidos en
+grupos). La portada estaba describiendo una web distinta de la que la
+gente usa.
+
+**Y el hueco más caro de una página es el de arriba.** Ahí estaba el reto
+diario, que lleva **103 partidas en toda la historia de la web**,
+mientras el próximo torneo vivía en la barra lateral. Intercambiados. De
+paso se gana una cosa que no era el objetivo: la tarjeta del torneo es
+HORIZONTAL (recuadro de fecha, nombre, botón) y a lo ancho se lee mucho
+mejor que encajada en una columna de 300 px.
+
+**Un dato en vivo que puede salir bajo es prueba social en contra.** El
+panel enseñaba «mensajes esta semana» con un foro que lleva 105 mensajes
+en total: «3 esta semana» en la portada le dice a quien llega que aquí no
+hay nadie. La regla que queda escrita: **un contador en vivo solo vale si
+no puede avergonzarte**. El del catálogo (21.000 cartas) solo sube.
+
+**Las cartas del héroe eran rectángulos de CSS** de cuando no había
+catálogo. Ahora son fotos del set más nuevo — y los rectángulos SIGUEN
+ahí debajo: son el hueco reservado y el respaldo. Si la consulta falla,
+si la CDN se cae (pasó el 2026-09-20 con Limitless) o si el set nuevo aún
+no tiene escaneos, la portada se ve exactamente como antes y no se mueve
+nada de sitio. Una imagen de un tercero se mete preguntándose antes qué
+se ve el día que ese tercero no conteste.
+
+**Y el presupuesto de la portada volvió a morder.** La primera versión
+importaba `carta-ruta.js` (por `urlDeImagen`) y `catalogo-series.js` (por
+`esDelTCG`): **172,1 KB de 170**. Dos módulos enteros, que bajan las 26
+páginas, por TRES CADENAS.
+
+La salida no fue hacer sitio en otro lado, fue no necesitarlo:
+
+- La dirección de las imágenes pasa a ser una constante local, **copiada
+  a propósito** y vigilada por la prueba — la misma norma que
+  `IDIOMA_POR_MERCADO` en la 322.
+- Y el filtro de Pokémon TCG Pocket se resuelve **pidiendo sets con
+  código de TCG Live**: ningún set de Pocket lo tiene y todos los
+  modernos sí, así que una condición de la consulta sustituye a un módulo
+  importado. Queda en 168,6 KB.
+
+**El fallo de contraste, para que no se repita**: el enlace nuevo se
+escribió con `--ice`, que es el color del texto DENTRO del panel navy. El
+héroe está sobre el fondo claro de la página, así que salió casi
+invisible. Los tokens de color llevan el nombre de lo que son, no del
+sitio donde los viste la última vez.

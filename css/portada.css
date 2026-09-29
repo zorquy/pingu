@@ -703,3 +703,42 @@ a.noticia-banner:hover {
     order: -1;
   }
 }
+
+/* ── La foto dentro del rectángulo del héroe (tanda 362) ──
+   El marco ya reservaba su hueco y su giro; la foto lo rellena y hereda
+   el redondeo. Si no llega, el rectángulo se queda como estaba y no se
+   mueve nada de sitio. */
+.tcg-card-foto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
+/* «¿Qué es PokeDoc?» deja de ser un botón que compite con las dos
+   acciones del héroe y pasa a ser lo que es: una pregunta de quien ya se
+   ha parado a mirar. */
+.hero-que-es {
+  margin-top: var(--e-md);
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: var(--t-sm);
+  /* `--text-mid` y no `--ice`: el héroe está sobre el fondo CLARO de la
+     página, no dentro del panel navy. Con el hielo se quedaba en un gris
+     casi invisible — un control que se pulsa hay que poder leerlo
+     (tanda 311). */
+  color: var(--text-mid);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.hero-que-es:hover { color: var(--navy); }
+
+.hero-que-es:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}

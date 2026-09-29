@@ -169,11 +169,21 @@
         <div class="hero-copy">
           <span class="hero-pill">🇪🇸 En español</span>
           <h1>Todo sobre Pokémon TCG. Sin perder el tiempo.</h1>
-          <p>Guías, curiosidades y cursos interactivos para coleccionistas y jugadores.</p>
+          <!-- Los TORNEOS entran en el titular (tanda 362). La portada
+               vendía guías y cursos, y la analítica dice otra cosa: 47 de
+               las 55 personas que vuelven pasan por un torneo, y 436 de
+               las visitas de gente sin cuenta entran directas a la ficha
+               de uno. Se estaba enseñando una web distinta de la que se
+               usa. -->
+          <p>Guías, cursos interactivos y torneos para coleccionistas y jugadores.</p>
           <div class="hero-actions">
-            <a href="aprender.html" class="btn-primary">Empezar a aprender →</a>
-            <button class="btn-outline" id="btnWhatIsPokeDoc">¿Qué es PokeDoc?</button>
+            <a href="/torneos.html" class="btn-primary">Ver los torneos →</a>
+            <a href="aprender.html" class="btn-outline">Empezar a aprender</a>
           </div>
+          <!-- «Qué es PokeDoc» deja de competir con las dos acciones: lo
+               pregunta quien ya ha decidido mirar, no quien acaba de
+               llegar. -->
+          <button class="hero-que-es" id="btnWhatIsPokeDoc">¿Qué es PokeDoc?</button>
         </div>
         <div class="hero-panel">
           <div class="card-stack on-navy" aria-hidden="true">
@@ -194,9 +204,16 @@
               <div class="value" id="heroStatGuides">–</div>
               <div class="label">guías publicadas</div>
             </div>
+            <!-- Era «mensajes esta semana» (tanda 362). Con un foro que
+                 lleva 105 mensajes en total, ese número iba a ser de un
+                 dígito muchas semanas — y «3 mensajes esta semana» en la
+                 portada es prueba social EN CONTRA: le dice a quien llega
+                 que aquí no hay nadie. El catálogo no puede bajar, y es
+                 lo único de esta lista que ninguna otra web española
+                 tiene. -->
             <div class="hero-panel-stat">
-              <div class="value" id="heroStatMensajes">–</div>
-              <div class="label">mensajes esta semana</div>
+              <div class="value" id="heroStatCartas">–</div>
+              <div class="label">cartas en español</div>
             </div>
           </div>
           <div class="hero-panel-divider"></div>
@@ -226,8 +243,14 @@
          recoge sola y la otra se queda con toda la fila — de ahí el flex
          en vez de una rejilla de dos columnas fijas. -->
     <div class="container portada-hoy" id="portadaHoy">
-      <section id="retoSeccion">
-        <div class="reto-tarjetas" id="retoTarjetas"><div class="skeleton" style="height: 168px;"></div></div>
+      <!-- El torneo sube aquí desde la barra lateral (tanda 362), y el
+           reto baja a cambio. El motivo son los números: `/torneo` es la
+           segunda página más vista del sitio y la tocan 47 de las 55
+           personas que vuelven; el reto diario lleva 103 partidas en toda
+           la historia de la web. El sitio más caro de la portada lo
+           ocupaba lo que menos se usa. -->
+      <section id="torneoPortadaSeccion">
+        <div id="torneoPortada"><div class="skeleton" style="height: 76px;"></div></div>
       </section>
 
       <!-- La última noticia (tanda 277, con banner desde la 288). La
@@ -301,12 +324,13 @@
       </div>
 
       <aside class="portada-lateral">
-        <!-- El próximo torneo sube a la lateral y deja de ser una fila
-             fina gris (tanda 300): es una cita con fecha y plazas, no un
-             enlace más. Sigue recogiéndose sola si no hay ninguno con las
-             inscripciones abiertas. -->
-        <section id="torneoPortadaSeccion">
-          <div id="torneoPortada"><div class="skeleton" style="height: 76px;"></div></div>
+        <!-- El reto del día, que hasta la 362 abría la portada a lo ancho
+             (ver el comentario de arriba). Sigue estando, y arriba de la
+             lateral: 103 partidas en toda la historia no dan para el
+             sitio más caro de la página, pero quien lo juega lo juega a
+             diario y tiene que encontrarlo. -->
+        <section id="retoSeccion">
+          <div class="reto-tarjetas" id="retoTarjetas"><div class="skeleton" style="height: 168px;"></div></div>
         </section>
 
         <!-- Los primeros pasos y la actividad bajan de bloque ancho a
