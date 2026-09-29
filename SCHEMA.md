@@ -19191,3 +19191,60 @@ cuándo se juega y cuántas plazas.
 Cada consulta con su propio `catch`: si los torneos fallan, el canal sale
 con los artículos. Un canal roto hace que algunos lectores se den de baja
 solos, y eso no se recupera.
+
+## Tanda 364 — los mazos del meta (/meta y /meta/<arquetipo>)
+
+**Qué es**: la sección «Decks» de Limitless en PokeDoc. `/meta` es el
+ranking de arquetipos de los torneos online de Estándar (uso, tendencia
+contra el periodo anterior, % de victorias, tops); `/meta/<id>` es la
+ficha de un arquetipo: cifras, la mejor lista a un clic, guías de
+PokeDoc vinculadas, la lista media (% de listas que llevan cada carta y
+copias medias, núcleo ≥ 50 % y opciones plegadas) y las listas del top 8
+para copiar a TCG Live, abrir en el constructor, bajar como imagen o ver
+en Limitless. Periodo de 7, 14 o 30 días en `?dias=`.
+
+**De dónde salen los datos**: `netlify/functions/meta-limitless.mjs`,
+programada cada 10 min. Lee `play.limitlesstcg.com/api/tournaments`
+(PTCG, STANDARD, ≥ 16 jugadores, con al menos 12 h para que haya
+acabado, hasta 60 días atrás; lo más nuevo primero) y pasa la
+clasificación entera a `meta_ingerir_torneo`. La API es pública para
+esto (solo `/decks` pide clave) y el arquetipo viene ya puesto por
+Limitless en cada jugador (`deck.id/name/icons`). Presupuesto de 20 s por
+pasada (Netlify mata a los 30); un 429 corta la pasada.
+
+**Tablas** (`supabase-migration-meta.sql`): `meta_torneos` (qué se ha
+leído), `meta_arquetipos` (nombre e iconos, manda el torneo más
+reciente), `meta_resultados` (una fila por jugador: puesto y resultado;
+la lista ENTERA solo del top 8), `meta_cartas_dia` (recuento de cartas
+por arquetipo y día, de TODAS las listas: de ahí sale la lista media sin
+guardar las listas) y `meta_guias` (guía ↔ arquetipo). Pokémon se agrupa
+por nombre + colección + número; entrenadores y energías, por nombre. Lo
+de más de 65 días se borra al ingerir. Ingerir es transaccional e
+idempotente por torneo; solo `service_role` puede llamarla.
+
+**Lecturas**: `meta_resumen(dias)`, `meta_totales(dias)`,
+`meta_lista_media(arquetipo, dias)`, `meta_listas(arquetipo, dias,
+limite)`. Se calculan al leer (no hay agregado que se quede viejo) y
+todas cortan por DÍA UTC, para que el total de listas y el recuento de
+cartas cuenten los mismos torneos.
+
+**Guías**: vincula el AUTOR de una guía publicada (o un admin);
+desvincula quien la vinculó, el autor o un admin. La guía no cambia.
+El borrado se comprueba con `.select()` porque un DELETE rechazado por
+RLS no da error.
+
+**Umbral de muestra**: `MIN_MAZOS_CON_MUESTRA` (30, js/meta/nucleo.js)
+decide a la vez qué filas se esconden tras «ver todos», qué fichas van
+en `noindex` y cuáles entran en el sitemap. «Other» de Limitless no sale
+en el ranking: va en una nota.
+
+**Piezas**: `meta.html`, `mazo-meta.html` (servida en `/meta/:arquetipo`
+por netlify.toml), `js/meta.js`, `js/meta-mazo.js`, `js/meta/nucleo.js`
+(puro), `js/meta/datos.js`, `js/meta/pintar.js`, `css/meta.css`. La ficha
+carga también `torneos.css` porque la rejilla de cartas es la de las
+decklists (`pintarDecklistVisual` y `resolverCarta`, que se exporta). Se
+exportan además `PROMOS_SIN_GUION` (nucleo del constructor, para escribir
+las promos como `PR-SV` hacia TCG Live), `CDN_SPRITES` y
+`SALTO_DE_RESPALDO` (sprites-pokemon.js). «Abrir en el constructor» usa
+el formato `?i=` del builder de Limitless, que el constructor ya leía, y
+el constructor acepta ahora `&nombre=`.

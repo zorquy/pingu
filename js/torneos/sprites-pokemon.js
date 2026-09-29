@@ -405,7 +405,7 @@ export function dexDeCarta(nombreDeCarta) {
 // mr-mime, «Nidoran♀» → nidoran-f, «Farfetch'd» → farfetchd) y las
 // formas ponen el suyo a mano (Limitless dice «ogerpon-wellspring», no
 // «wellspring-mask-ogerpon»). Comprobado contra la CDN de verdad.
-const CDN_SPRITES = 'https://r2.limitlesstcg.net/pokemon/gen9'
+export const CDN_SPRITES = 'https://r2.limitlesstcg.net/pokemon/gen9'
 
 // El nombre como lo escribe Limitless: minúsculas, sin tildes ni
 // puntuación, espacios a guiones y los símbolos de género a letra.
@@ -532,7 +532,7 @@ export function cadenaDeRespaldos(url) {
 // Lo que NO arregla: si la CDN no contesta en vez de dar un 404, cada
 // paso espera a que el navegador se canse, así que en una caída entera
 // los sprites tardan en aparecer. Aparecen, que era el problema.
-const SALTO_DE_RESPALDO =
+export const SALTO_DE_RESPALDO =
   "var r=(this.dataset.respaldos||'').split(' ').filter(Boolean);" +
   "if(r.length){this.src=r.shift();this.dataset.respaldos=r.join(' ')}" +
   "else{this.style.display='none'}"

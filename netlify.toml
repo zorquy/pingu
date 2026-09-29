@@ -190,6 +190,15 @@
   to = "/guia.html?slug=:slug"
   status = 200
 
+# La ficha de un mazo del meta (tanda 364): /meta/dragapult-dusknoir.
+# El id es el de Limitless tal cual; la página lo lee de la barra
+# (location.pathname), así que el ?dias= de quien comparte el enlace
+# sigue ahí. /meta a secas es meta.html por la dirección limpia.
+[[redirects]]
+  from = "/meta/:arquetipo"
+  to = "/mazo-meta.html?a=:arquetipo"
+  status = 200
+
 # La ficha de una carta (tanda 324): /carta/ceruledge-ex-sv5-36.
 #
 # El identificador NO se pasa como parámetro a propósito. Va dentro del

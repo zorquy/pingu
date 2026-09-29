@@ -20,6 +20,10 @@
 // las páginas que la propia web marca como `noindex`.
 import { claveDeJuego, mereceIndexarse, rutaDeCarta, rutaDeColeccion } from '../../js/carta-nucleo.js'
 import { esDelTCG, padreDeColeccion } from '../../js/catalogo-series.js'
+// El umbral de muestra de una ficha del meta es el MISMO que decide su
+// `noindex` en la página (tanda 364): ofrecer aquí una que llega con
+// `noindex` sería gastar rastreo en balde.
+import { MIN_MAZOS_CON_MUESTRA, ARQUETIPO_OTROS, PERIODO_POR_DEFECTO } from '../../js/meta/nucleo.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ'
@@ -48,6 +52,9 @@ const ESTATICAS = [
   // El constructor de mazos: pública e indexable (los mazos concretos no,
   // van por parámetro y son de cada usuario).
   ['/constructor', '0.7'],
+  // Los mazos del meta (tanda 364): cambia cada día y es de lo que más
+  // se busca de un juego de cartas («mejores mazos pokémon tcg»).
+  ['/meta', '0.8'],
   // La página que explica el proyecto: es a la que apuntan el vídeo y el
   // enlace de la biografía, así que conviene que Google la tenga.
   ['/sobre.html', '0.7'],
@@ -230,6 +237,14 @@ export default async () => {
           changefreq: 'weekly',
         })
       }
+    }
+
+    // Los mazos del meta con muestra de verdad. Con su propio `catch`:
+    // sin la migración la función no existe, y el resto tiene que salir.
+    const mazos = await consultar(`rpc/meta_resumen?p_dias=${PERIODO_POR_DEFECTO}`).catch(() => [])
+    for (const m of mazos) {
+      if (!m.arquetipo || m.arquetipo === ARQUETIPO_OTROS || m.mazos < MIN_MAZOS_CON_MUESTRA) continue
+      urls.push({ loc: `${SITIO}/meta/${encodeURIComponent(m.arquetipo)}`, priority: '0.6', changefreq: 'daily' })
     }
   } catch (e) {
     // Un sitemap que devuelve 500 le dice a Google que el sitio está

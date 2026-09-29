@@ -412,7 +412,7 @@ export function textoTcgLive(entradas, codigoDeSet) {
 // motor de torneos lee el código de colección con [A-Z0-9]{2,6}, y las
 // promos de TCG Live llevan guion («PR-SV 92»): esa línea saldría como
 // «no se entiende». Van con el código de Limitless, que sí casa.
-const PROMOS_SIN_GUION = { 'PR-SV': 'SVP', 'PR-SW': 'SP', 'PR-SM': 'SMP', 'PR-XY': 'XYP', 'PR-BLW': 'BWP', 'PR-ME': 'MEP' }
+export const PROMOS_SIN_GUION = { 'PR-SV': 'SVP', 'PR-SW': 'SP', 'PR-SM': 'SMP', 'PR-XY': 'XYP', 'PR-BLW': 'BWP', 'PR-ME': 'MEP' }
 export function textoParaTorneo(entradas, codigoDeSet) {
   return textoTcgLive(entradas, codigoDeSet).replace(/ (PR-[A-Z]{2,3}) (\S+)$/gm, (m, codigo, numero) => ` ${PROMOS_SIN_GUION[codigo] || codigo.replace('-', '')} ${numero}`)
 }

@@ -151,7 +151,7 @@ export async function codigosSinResolver(parsed) {
 // la gemela que encontramos por nombre era de 2022. Acusar a alguien de
 // llevar una carta fuera de reglamento basándose en OTRA carta es lo
 // peor que puede hacer esta pantalla.
-async function resolverCarta(linea) {
+export async function resolverCarta(linea) {
   const clave = `${normalizeSearch(linea.name)}|${linea.set}|${linea.number}`
   if (cache.has(clave)) return cache.get(clave)
   const nombreNorm = normalizeSearch(linea.name)

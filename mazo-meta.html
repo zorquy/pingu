@@ -4,48 +4,30 @@
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calendario de lanzamientos de Pokémon TCG — PokeDoc</title>
+  <title>Mazo del meta — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
   <link rel="apple-touch-icon" href="/assets/icon-192.png" />
-  <meta name="description" content="Las fechas de lanzamiento de los próximos sets de Pokémon TCG, con cuenta atrás. Mantenido por la comunidad de PokeDoc." />
-  <!-- meta-social:inicio -->
-  <link rel="canonical" href="https://pokedoc.es/lanzamientos.html" />
-  <meta property="og:url" content="https://pokedoc.es/lanzamientos.html" />
-  <meta property="og:site_name" content="PokeDoc" />
-  <meta property="og:type" content="website" />
-  <meta property="og:locale" content="es_ES" />
-  <meta property="og:title" content="Calendario de lanzamientos de Pokémon TCG" />
-  <meta property="og:description" content="Las fechas de los próximos sets, con cuenta atrás. Mantenido por la comunidad de PokeDoc." />
-  <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Calendario de lanzamientos de Pokémon TCG" />
-  <meta name="twitter:description" content="Las fechas de los próximos sets, con cuenta atrás. Mantenido por la comunidad de PokeDoc." />
-  <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
-  <!-- meta-social:fin -->
+  <meta name="description" content="La ficha de un mazo del meta de Pokémon TCG: su lista media, listas del top 8 para copiar a TCG Live y guías en español para aprender a llevarlo." />
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
   <link rel="modulepreload" href="/js/supabase.js" />
   <link rel="modulepreload" href="/js/app.js" />
   <link rel="modulepreload" href="/js/icons.js" />
-  <link rel="modulepreload" href="/js/content-icon.js" />
-  <link rel="modulepreload" href="/js/html.js" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/components.css" />
-  <link rel="stylesheet" href="css/lanzamientos.css" />
+  <link rel="modulepreload" href="/js/meta/nucleo.js" />
+  <link rel="modulepreload" href="/js/meta/datos.js" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/torneos.css" />
+  <link rel="stylesheet" href="/css/meta.css" />
 </head>
 <body>
-  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
-       porque su razón de ser es no tener que tabular por los doce
-       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
   <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <a href="/index.html" class="nav-logo">Poke<span>Doc</span></a>
       <div class="nav-links">
         <a href="/noticias">Noticias</a>
         <div class="nav-grupo">
@@ -116,37 +98,71 @@
     </div>
   </nav>
 
-  <main id="contenido" class="page-content container">
-    <div class="page-header">
-      <h1>Calendario de lanzamientos</h1>
-      <p>Las fechas de los próximos sets de Pokémon TCG, con cuenta atrás. Lo mantenemos a mano: si falta alguno, dilo en el foro.</p>
+  <main id="contenido" class="page-content container meta-pagina">
+    <p class="meta-migas"><a class="link-btn" href="/meta">← Mazos del meta</a></p>
+    <header class="meta-cabecera meta-ficha-cabecera">
+      <div class="meta-ficha-titulo">
+        <span id="mmIconos"></span>
+        <div>
+          <h1 id="mmNombre">Cargando…</h1>
+          <p class="meta-totales" id="mmSub"></p>
+        </div>
+      </div>
+      <div class="meta-periodo" id="mmPeriodo" role="group" aria-label="Periodo"></div>
+    </header>
+    <div id="mmAviso" class="meta-aviso hidden" role="status"></div>
+
+    <div id="mmContenido">
+      <dl class="meta-cifras" id="mmCifras"></dl>
+
+      <div class="meta-acciones hidden" id="mmAcciones">
+        <div>
+          <p class="meta-acciones-titulo">La mejor lista del periodo</p>
+          <p class="meta-totales" id="mmAccionesTexto"></p>
+        </div>
+        <div class="meta-acciones-botones">
+          <button type="button" class="btn-primary" id="mmCopiarMejor">Copiar para TCG Live</button>
+          <a class="btn-secondary" id="mmAbrirMejor" href="/constructor">Abrir en el constructor</a>
+        </div>
+      </div>
+
+      <section class="meta-seccion" aria-labelledby="mmGuiasTitulo">
+        <div class="meta-seccion-cab">
+          <h2 id="mmGuiasTitulo">Guías de este mazo</h2>
+          <div class="meta-guias-acciones" id="mmGuiasAcciones"></div>
+        </div>
+        <form class="meta-vincular hidden" id="mmVincular">
+          <label for="mmVincularGuia">¿Qué guía explica cómo jugar este mazo?</label>
+          <div class="meta-vincular-fila">
+            <select id="mmVincularGuia" required></select>
+            <button type="submit" class="btn-primary" id="mmVincularBoton">Vincular</button>
+            <button type="button" class="link-btn" id="mmVincularCancelar">Cancelar</button>
+          </div>
+        </form>
+        <div class="meta-guias" id="mmGuiasLista"></div>
+        <p class="subtext hidden" id="mmGuiasVacio">Todavía no hay guías de este mazo. Si lo juegas, escribe una en PokeDoc y vincúlala aquí cuando esté publicada.</p>
+      </section>
+
+      <section class="meta-seccion" aria-labelledby="mmMediaTitulo">
+        <div class="meta-seccion-cab">
+          <h2 id="mmMediaTitulo">Lista media</h2>
+        </div>
+        <p class="meta-totales" id="mmMediaSub"></p>
+        <div id="mmMedia"></div>
+      </section>
+
+      <section class="meta-seccion" aria-labelledby="mmListasTitulo">
+        <div class="meta-seccion-cab">
+          <h2 id="mmListasTitulo">Listas del top 8</h2>
+        </div>
+        <p class="meta-totales">Listas de verdad, jugadas en torneo. Ábrelas para ver las cartas, copiarlas para TCG Live o llevártelas al constructor.</p>
+        <ol class="meta-listas" id="mmListas"></ol>
+      </section>
     </div>
 
-    <!-- El siguiente set, en grande y con su cuenta atrás. Lo pinta
-         js/lanzamientos.js; sin sets futuros, no sale. -->
-    <div id="proximoDestacado" class="hidden"></div>
-
-    <section id="seccionProximos" class="hidden">
-      <h2 class="section-title">Próximos sets</h2>
-      <div id="listaProximos" class="lanzamientos-lista"></div>
-    </section>
-
-    <section id="seccionPasados" class="hidden">
-      <h2 class="section-title">Ya en tiendas</h2>
-      <div id="listaPasados" class="lanzamientos-lista"></div>
-    </section>
-
-    <p id="lanzamientosVacio" class="empty-state hidden">Todavía no hay fechas anunciadas por aquí. En cuanto se anuncie el próximo set, saldrá con su cuenta atrás.</p>
+    <p class="meta-fuente">Datos de los torneos online de Estándar con 16 jugadores o más de <a href="https://play.limitlesstcg.com" target="_blank" rel="noopener">Limitless</a>, que es también quien clasifica cada lista en su arquetipo.</p>
   </main>
 
-  <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres
-       enlaces centrados; el problema no era que fuera feo, era que casi
-       todas las páginas se quedan cortas y dejaban entre 400 y 900 px de
-       nada antes de llegar a él. Un pie con columnas llena ese hueco,
-       da una segunda vía a cada sección desde cualquier página y enlaza
-       internamente todo el sitio, que es lo que Google recorre.
-       Va en el HTML y no montado desde JavaScript a propósito: estos
-       enlaces tienen que estar en la página aunque el JS no llegue. -->
   <footer class="footer">
     <div class="pie-rejilla">
       <div>
@@ -183,7 +199,7 @@
     </div>
   </footer>
 
-  <script type="module" src="js/app.js"></script>
-  <script type="module" src="js/lanzamientos.js"></script>
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/meta-mazo.js"></script>
 </body>
 </html>

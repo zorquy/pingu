@@ -1,0 +1,629 @@
+/* ── Los mazos del meta (/meta y /meta/<arquetipo>, tanda 364) ──
+   Hoja propia: solo la cargan esas dos pantallas. Prefijo `meta-`. La
+   ficha de un arquetipo carga además torneos.css, porque la rejilla de
+   cartas es la de las decklists de torneo (`.torneo-carta…`). */
+
+.meta-pagina {
+  width: 100%;
+  padding-top: var(--e-xl);
+  padding-bottom: var(--e-2xl);
+}
+
+.meta-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--e-lg);
+  margin-bottom: var(--e-sm);
+}
+
+.meta-cabecera h1 {
+  font-size: var(--t-2xl);
+}
+
+.meta-lema {
+  max-width: 680px;
+  margin-top: var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-md);
+}
+
+.meta-totales {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  margin-bottom: var(--e-lg);
+}
+
+.meta-aviso {
+  margin-bottom: var(--e-lg);
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--text);
+  font-size: var(--t-md);
+}
+
+/* ── El selector de periodo ── */
+.meta-periodo {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+}
+
+.meta-periodo-btn {
+  min-height: 44px;
+  padding: 0 var(--e-lg);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.meta-periodo-btn.activo {
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.meta-periodo-btn:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* ── Los iconos ── */
+.meta-iconos {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: 80px;
+  height: 40px;
+}
+
+.meta-icono {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.meta-iconos-grandes {
+  width: 128px;
+  height: 64px;
+}
+
+.meta-iconos-grandes .meta-icono {
+  width: 64px;
+  height: 64px;
+}
+
+/* ── El ranking ──
+   Una fila es una rejilla que se mide a SÍ MISMA (tanda 316): en ancho
+   van las seis columnas; estrecha, la tendencia y las victorias bajan
+   debajo del nombre. */
+.meta-tabla {
+  container-type: inline-size;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.meta-ranking {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  transition: opacity 0.15s var(--ease);
+}
+
+.meta-cargando {
+  opacity: 0.5;
+}
+
+.meta-ranking:empty {
+  min-height: 240px;
+}
+
+.meta-cabecera-tabla,
+.meta-fila-enlace {
+  display: grid;
+  grid-template-columns: 32px 80px minmax(0, 1fr) minmax(120px, 200px) 80px 80px;
+  align-items: center;
+  gap: var(--e-md);
+  padding: var(--e-sm) var(--e-lg);
+}
+
+.meta-cabecera-tabla {
+  border-bottom: 1px solid var(--border);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.meta-cabecera-tabla span:nth-child(n + 5) {
+  text-align: right;
+}
+
+.meta-fila + .meta-fila {
+  border-top: 1px solid var(--border);
+}
+
+.meta-fila-enlace {
+  min-height: 56px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.meta-fila-enlace:hover {
+  background: var(--bg);
+}
+
+.meta-fila-enlace:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: -2px;
+}
+
+.meta-pos {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-align: center;
+}
+
+.meta-nombre {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.meta-nombre strong {
+  overflow: hidden;
+  font-size: var(--t-lg);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta-sub {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+.meta-uso {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.meta-barra {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  overflow: hidden;
+}
+
+.meta-barra i {
+  display: block;
+  width: var(--ancho, 0);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--navy);
+}
+
+.meta-uso-num {
+  min-width: 56px;
+  font-size: var(--t-md);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: right;
+}
+
+.meta-tend,
+.meta-victorias {
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.meta-tend-sube,
+.meta-bueno {
+  color: var(--success);
+}
+
+.meta-tend-baja,
+.meta-malo {
+  color: var(--danger);
+}
+
+.meta-tend-igual {
+  color: var(--text-mid);
+}
+
+.meta-tend-nuevo {
+  color: var(--indigo);
+}
+
+@container (max-width: 640px) {
+  .meta-cabecera-tabla {
+    display: none;
+  }
+
+  .meta-fila-enlace {
+    grid-template-columns: 16px 56px minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'pos iconos nombre uso uso'
+      'pos iconos nombre tend vict';
+    column-gap: var(--e-sm);
+    row-gap: var(--e-xs);
+    padding: var(--e-md);
+  }
+
+  .meta-pos {
+    grid-area: pos;
+  }
+
+  .meta-fila-enlace .meta-iconos {
+    grid-area: iconos;
+    width: 56px;
+    height: 28px;
+  }
+
+  .meta-fila-enlace .meta-icono {
+    width: 28px;
+    height: 28px;
+  }
+
+  .meta-nombre {
+    grid-area: nombre;
+  }
+
+  /* Estrecho, el nombre puede ir en dos líneas: «Dragap…» no dice qué
+     mazo es, y es lo único de la fila que hay que poder leer. */
+  .meta-nombre strong {
+    font-size: var(--t-md);
+    white-space: normal;
+  }
+
+  .meta-uso {
+    grid-area: uso;
+    justify-content: flex-end;
+  }
+
+  .meta-barra {
+    display: none;
+  }
+
+  /* La tendencia y las victorias van debajo del uso, cada una en su
+     columna, y las victorias con su rótulo para que se entienda qué son. */
+  .meta-tend {
+    grid-area: tend;
+  }
+
+  .meta-victorias {
+    grid-area: vict;
+  }
+
+  .meta-victorias::before {
+    content: 'Vict. ';
+    color: var(--text-mid);
+    font-weight: 400;
+  }
+
+}
+
+.meta-ver-todos {
+  margin-top: var(--e-lg);
+}
+
+.meta-nota {
+  margin-top: var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.meta-fuente {
+  max-width: 760px;
+  margin-top: var(--e-2xl);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+/* ── La ficha de un arquetipo ── */
+.meta-migas {
+  margin-bottom: var(--e-sm);
+  font-size: var(--t-sm);
+}
+
+.meta-ficha-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-lg);
+  min-width: 0;
+}
+
+.meta-ficha-titulo .meta-totales {
+  margin-bottom: 0;
+}
+
+.meta-cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--e-md);
+  margin: var(--e-lg) 0;
+}
+
+.meta-cifra {
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.meta-cifra dt {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.meta-cifra dd {
+  margin: var(--e-xs) 0 0;
+  font-size: var(--t-xl);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.meta-cifra .meta-tend {
+  font-size: var(--t-sm);
+}
+
+.meta-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  margin-bottom: var(--e-xl);
+  padding: var(--e-lg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+}
+
+.meta-acciones .meta-totales {
+  margin-bottom: 0;
+}
+
+.meta-acciones-titulo {
+  font-weight: 700;
+}
+
+.meta-acciones-botones,
+.meta-lista-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.meta-acciones-botones .btn-primary,
+.meta-acciones-botones .btn-secondary,
+.meta-lista-acciones .btn-primary,
+.meta-lista-acciones .btn-secondary,
+.meta-lista-acciones .link-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.meta-seccion {
+  margin-top: var(--e-2xl);
+}
+
+.meta-seccion-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  margin-bottom: var(--e-sm);
+}
+
+.meta-seccion h2 {
+  font-size: var(--t-xl);
+}
+
+/* ── Las guías ── */
+.meta-guias-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-md);
+}
+
+.meta-guias-acciones .link-btn,
+.meta-guias-acciones .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.meta-guias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--e-lg);
+}
+
+.meta-guia {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+.meta-guia-quitar {
+  align-self: flex-start;
+  min-height: 44px;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.meta-vincular {
+  margin-bottom: var(--e-lg);
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.meta-vincular label {
+  display: block;
+  margin-bottom: var(--e-sm);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.meta-vincular-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.meta-vincular select {
+  flex: 1 1 240px;
+  min-width: 0;
+  min-height: 44px;
+}
+
+.meta-vincular .link-btn {
+  min-height: 44px;
+}
+
+/* ── La lista media ── */
+.meta-carta-pct {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  z-index: 1;
+  padding: 1px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.meta-carta img {
+  aspect-ratio: 245 / 342;
+  height: auto;
+}
+
+.meta-opciones {
+  margin-top: var(--e-lg);
+}
+
+.meta-opciones > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text-mid);
+  font-size: var(--t-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Las listas del top 8 ── */
+.meta-listas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meta-lista {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.meta-lista > summary {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 56px;
+  padding: var(--e-sm) var(--e-lg);
+  cursor: pointer;
+  list-style: none;
+}
+
+.meta-lista > summary::-webkit-details-marker {
+  display: none;
+}
+
+.meta-lista > summary:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
+}
+
+.meta-lista[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.meta-lista-puesto {
+  font-size: var(--t-lg);
+  font-weight: 700;
+  text-align: center;
+}
+
+.meta-lista-quien {
+  min-width: 0;
+}
+
+.meta-lista-quien .meta-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta-pais {
+  margin-left: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.meta-lista-resultado {
+  font-size: var(--t-md);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.meta-lista-cuerpo {
+  padding: var(--e-lg);
+}
+
+.meta-lista-cuerpo > .subtext {
+  margin-top: var(--e-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meta-ranking {
+    transition: none;
+  }
+}

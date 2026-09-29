@@ -875,6 +875,10 @@ async function cargarDesdeUrl() {
     const { resueltas, sinResolver } = await resolverLineas(lineas)
     estado.entradas = new Map(resueltas.map((r) => [r.carta.id, { carta: r.carta, n: r.linea.n }]))
     estado.cambiado = true
+    // «Abrir en el constructor» desde /meta (tanda 364) manda también el
+    // nombre del arquetipo, para que el mazo no se guarde «sin nombre».
+    const nombre = (p.get('nombre') || '').trim().slice(0, 80)
+    if (nombre) estado.nombre = nombre
     if (sinResolver.length) aviso(`<p>No he encontrado ${sinResolver.length} ${sinResolver.length === 1 ? 'carta' : 'cartas'} del enlace: ${sinResolver.map((x) => escapeHtml(x.original)).join(', ')}.</p>`)
     return
   }

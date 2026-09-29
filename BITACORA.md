@@ -12,6 +12,89 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-29 — IBAI-Claude (publica la tanda 364 desde el equipo de Ibai)
+
+**Hecho**: subir a la rama el trabajo de la tanda 364 (la entrada de
+abajo), que estaba hecho en este equipo pero sin commitear. El árbol
+local ya incluía las tandas 361-363 que PINGU subió entre medias (solo
+`colabora.html` difería, por el enlace nuevo del pie), así que va todo
+en un commit sobre la 363. Sintaxis de los JS nuevos comprobada con
+`node --check` antes de subir.
+
+**Ficheros**: los de la entrada de la tanda 364 (abajo).
+
+**En curso / pendiente**:
+- **Los tests de la 364 NO están en la rama `pruebas`**: los ficheros
+  que la entrada de abajo dice (`pruebas/test-tanda-364*.mjs`,
+  `pruebas/meta-364-*.mjs`, `herramientas/servir.py`,
+  `herramientas/correr-suite.sh`) no existen en este equipo — se
+  quedaron en la sesión de claude.ai. PINGU: recuperarlos o rehacerlos
+  antes de contar la 364 como cubierta.
+- Sigue pendiente ejecutar `supabase-migration-meta.sql` (ver abajo).
+
+---
+
+## 2026-09-29 — PINGU-Claude desde claude.ai (tanda 364 — los mazos del meta, como en Limitless)
+
+**Hecho**: PINGU pidió «lo de los mazos meta que tiene Limitless»: un
+apartado con los mazos más usados para copiarlos y cogerlos de guía, y
+que se puedan adjuntar guías a cada arquetipo.
+
+- **/meta**: ranking de arquetipos de los torneos online de Estándar de
+  Limitless (≥ 16 jugadores): % de uso con barra, tendencia contra el
+  periodo anterior, % de victorias y tops. 7/14/30 días. «Other» va en
+  una nota; los de menos de 30 mazos, tras «ver todos».
+- **/meta/<arquetipo>**: cifras, «la mejor lista del periodo» (copiar
+  para TCG Live / abrir en el constructor), guías vinculadas, lista media
+  con imágenes (% y copias medias; opciones < 50 % plegadas) y las listas
+  del top 8 desplegables con copiar, constructor, imagen y enlace a
+  Limitless.
+- **Guías**: el autor de una guía PUBLICADA la vincula desde la ficha
+  (un admin, cualquiera). Quitar: quien la vinculó, el autor o un admin.
+- **Los datos**: función programada nueva `meta-limitless` (cada 10 min)
+  contra la API pública de Limitless, y todo el cálculo en SQL. La
+  primera carga (60 días, ~1.000 torneos) tarda unas horas de pasadas;
+  la ventana de 14 días se llena en la primera hora. No se guardan todas
+  las listas (serían ~70 MB/mes): solo las del top 8; del resto, el
+  recuento de cartas por día. Detalle en SCHEMA.md, tanda 364.
+- Barra (Jugar → «Mazos del meta»), pie de las 30 páginas y sitemap
+  (/meta y las fichas con muestra). Portada: **168,9 KB** (+0,3 por los
+  enlaces de index.html).
+
+**Probado**: SQL en PGlite (ingesta idempotente, ranking, lista media,
+RLS de las guías: borrador, guía ajena, `added_by` fingido, anon sin
+ingesta); la función contra un Limitless falso con la forma real de la
+API (corte por tiempo, orden, filtros, última pasada de una página); y
+las dos páginas en Chromium contra esa base (escritorio, móvil, oscuro,
+vincular y quitar guía, texto de TCG Live, enlace al constructor con
+nombre, noindex con poca muestra). Suite: 299, 305, 309-313, 315, 316,
+320, 359 y constructor en verde; 312 actualizada a 30 páginas con pie.
+
+**Ficheros**: `meta.html` (NUEVO), `mazo-meta.html` (NUEVO), `js/meta.js`
+(NUEVO), `js/meta-mazo.js` (NUEVO), `js/meta/nucleo.js` (NUEVO),
+`js/meta/datos.js` (NUEVO), `js/meta/pintar.js` (NUEVO), `css/meta.css`
+(NUEVO), `netlify/functions/meta-limitless.mjs` (NUEVO),
+`supabase-migration-meta.sql` (NUEVO), `js/constructor.js` (`&nombre=`),
+`js/constructor/nucleo.js`, `js/torneos/sprites-pokemon.js` y
+`js/torneos/cartas-decklist.js` (solo añaden `export`),
+`netlify/functions/sitemap.mjs`, `netlify.toml`, las 30 páginas con
+barra/pie (enlace «Mazos del meta»), `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-364.mjs`,
+`pruebas/test-tanda-364-funcion.mjs`, `pruebas/meta-364-base.mjs`,
+`pruebas/meta-364-datos.mjs` (NUEVOS), `pruebas/test-tanda-312.mjs`,
+`herramientas/servir.py` (/meta/<id>) y `herramientas/correr-suite.sh`.
+
+**En curso / pendiente**:
+- **PENDIENTE PARA PINGU — ejecutar `supabase-migration-meta.sql`** en el
+  SQL Editor. Hasta entonces /meta dice qué fichero falta y la función
+  se salta la pasada con el mismo aviso.
+- `colabora.html` sigue con la barra ANTIGUA (anterior a la 356): solo le
+  he puesto el enlace en el pie. Habría que pasarle la barra nueva.
+- Ideas: enlazar desde la guía a su mazo del meta, sumar los torneos de
+  PokeDoc como segunda fuente, y un aviso cuando un mazo entre en el top.
+
+---
+
 ## 2026-09-29 — PINGU-Claude (tanda 363 — los torneos entran en el RSS)
 
 **Hecho**: PINGU quiere una cuenta de X para PokeDoc que publique sola
