@@ -12,6 +12,82 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-29 — IBAI-Claude (publica la tanda 365 desde el equipo de Ibai)
+
+**Hecho**: subir a la rama el trabajo de la tanda 365 (la entrada de
+abajo), que estaba en este equipo sin commitear. Revisado antes de
+subir: el diff sobre la 364 es solo aditivo (297 inserciones, 0
+borrados; en las 31 páginas solo entra el enlace «Mi colección» en
+barra y pie), los JS nuevos pasan `node --check` y la función
+programada nueva lleva su horario declarado dentro
+(`precios-coleccion.mjs`, cada 10 min).
+
+**Ficheros**: los de la entrada de la tanda 365 (abajo).
+
+**En curso / pendiente**:
+- Ejecutar `supabase-migration-mi-coleccion.sql` (y la de la 364 si
+  sigue sin ejecutar).
+- Los tests de la 364 y la 365 siguen viviendo solo en la sesión de
+  claude.ai; la rama `pruebas` del repo va por la 363.
+
+---
+
+## 2026-09-29 — PINGU-Claude desde claude.ai (tanda 365 — Mi colección y el precio de Cardmarket)
+
+**Hecho**: PINGU pidió en Cartas un «Mi colección» (meter tus cartas, ver
+el valor, enlace a Cardmarket, álbum virtual) y que el precio de
+Cardmarket saliera en el idioma y estado de la carta, con el enlace a
+Cardmarket ya filtrado.
+
+- **/mi-coleccion**: Cartas (valor, filtros, editar línea con gradeo y
+  valor propio), Álbum (archivador 3×3 por colección, «solo las que me
+  faltan», «tocar una carta la añade») y Añadir. Privada por defecto,
+  pública con un interruptor (`?u=<usuario>`).
+- **Ficha de carta**: bloque «Precio y colección» con idioma, estado y
+  versión que mandan a la vez sobre el enlace y sobre «Añadir».
+- **El enlace de Cardmarket** va por `idProduct` con `language`,
+  `minCondition` e `isReverseHolo`; comprobado en Cardmarket que redirige
+  a la carta con los filtros puestos.
+- **Lo que NO se puede**: el MÍNIMO exacto por idioma y estado. TCGdex
+  solo trae el precio general (desde, tendencia, medias); el filtrado solo
+  lo da la API de vendedor de Cardmarket. Se enseña el general con su
+  nombre y el enlace lleva al mínimo de verdad. Se lo he dicho a PINGU y
+  le he preguntado si CardZone tiene acceso a esa API.
+- Función programada nueva `precios-coleccion` para no pedir precios en
+  cada visita. Detalle en SCHEMA.md, tanda 365.
+- Barra (Cartas → «Mi colección») y pie (Aprender) en las 31 páginas.
+  Portada: **168,9 KB**.
+
+**Probado**: SQL en PGlite (privada/pública, dueño inmutable, estados
+válidos, `precios_pendientes` solo servicio); la función contra TCGdex
+falso; y en Chromium contra esa base: ficha (precio, enlace por estado y
+reverse, añadir y sumar copias), lista, buscador, editor, álbum (pliegos,
+tocar para añadir, solo las que faltan, móvil), pública/privada y que con
+precios guardados la página no pide nada a TCGdex. Suite: 299, 305,
+309-313, 315, 316, 320, 324, 326, 340, 342 y constructor en verde. **La
+326 estaba en rojo desde la 361** (contaba 27 pies): puesta a 31.
+
+**Ficheros**: `mi-coleccion.html` (NUEVO), `js/mi-coleccion.js` (NUEVO),
+`js/mi-coleccion/datos.js` (NUEVO), `js/cardmarket.js` (NUEVO),
+`js/carta-mercado.js` (NUEVO), `css/mi-coleccion.css` (NUEVO),
+`netlify/functions/precios-coleccion.mjs` (NUEVO),
+`supabase-migration-mi-coleccion.sql` (NUEVO), `js/carta.js`,
+`carta.html`, `css/carta.css`, las 31 páginas con barra/pie, `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-365.mjs` y
+`pruebas/coleccion-365-postgrest.mjs` (NUEVOS), `test-tanda-312.mjs`,
+`test-tanda-326.mjs`, `herramientas/correr-suite.sh`, y los de la 364 que
+IBAI no encontró (`test-tanda-364*.mjs`, `meta-364-*.mjs`, `servir.py`).
+
+**En curso / pendiente**:
+- **PENDIENTE PARA PINGU — ejecutar `supabase-migration-mi-coleccion.sql`**
+  (y la de la 364 si sigue sin ejecutar).
+- Si CardZone tiene API de Cardmarket: función para el mínimo exacto por
+  idioma y estado con esas credenciales.
+- Ideas: importar colección desde CSV, enlazar la colección pública desde
+  el perfil, valor histórico.
+
+---
+
 ## 2026-09-29 — IBAI-Claude (publica la tanda 364 desde el equipo de Ibai)
 
 **Hecho**: subir a la rama el trabajo de la tanda 364 (la entrada de

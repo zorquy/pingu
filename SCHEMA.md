@@ -19248,3 +19248,45 @@ las promos como `PR-SV` hacia TCG Live), `CDN_SPRITES` y
 `SALTO_DE_RESPALDO` (sprites-pokemon.js). «Abrir en el constructor» usa
 el formato `?i=` del builder de Limitless, que el constructor ya leía, y
 el constructor acepta ahora `&nombre=`.
+
+## Tanda 365 — Mi colección y el precio de Cardmarket
+
+**Qué es**: `/mi-coleccion` (Cartas → «Mi colección»), con tres vistas:
+*Cartas* (lista con valor, filtros y orden, editar cada línea: idioma,
+estado, versión, copias, gradeo, valor propio, lo que pagaste y notas),
+*Álbum* (una colección como archivador de 3×3, dos hojas abiertas en
+ancho y una en móvil, lo que tienes a color y lo que falta en gris,
+«solo las que me faltan» y «tocar una carta la añade» con idioma y estado
+elegidos) y *Añadir cartas* (buscador del espejo). Privada por defecto;
+el interruptor «Colección pública» la enseña en `/mi-coleccion?u=<usuario>`
+sin nada editable ni lo pagado. En la ficha de cada carta, el bloque
+«Precio y colección» (`js/carta-mercado.js`): idioma, estado y versión
+UNA vez, y con eso el botón de Cardmarket filtra y «Añadir» guarda.
+
+**El precio**: TCGdex trae en la ficha de una carta
+`pricing.cardmarket` (copia diaria de la guía de Cardmarket): `idProduct`,
+`low` («desde»), `trend`, medias 1/7/30 y lo mismo con `-holo`, que es el
+REVERSO holo. Es el precio GENERAL (cualquier idioma y estado). El mínimo
+por idioma y estado no lo da ninguna fuente abierta (solo la API de
+vendedor de Cardmarket o su web, que bloquea lecturas de fuera): por eso
+se enseña «desde» y «tendencia» con su nombre y el enlace lleva al mínimo
+real. El valor de la colección suma la tendencia (o media 30, o desde) ×
+copias, o el valor propio de la línea si lo hay; sin ajuste por estado a
+propósito.
+
+**El enlace**: `https://www.cardmarket.com/es/Pokemon/Products?idProduct=N
+&language=L&minCondition=C[&isReverseHolo=Y]`. Cardmarket redirige a la
+página de la carta CONSERVANDO los filtros (comprobado el 2026-09-29).
+Idiomas: ES 4, EN 1, FR 2, DE 3, IT 5, PT 8; la japonesa es otro producto
+(se busca por nombre). Estados: MT 1 … PO 7, y `minCondition` es «ese o
+mejor». Todo en `js/cardmarket.js` (puro).
+
+**Tablas** (`supabase-migration-mi-coleccion.sql`): `user_collection`
+(una línea = carta + idioma + estado + versión + gradeo; añadir una igual
+suma copias), `user_profiles.coleccion_publica` (con
+`coleccion_es_publica()` para la política) y `tcg_card_prices` (precio
+por carta, solo de las que alguien TIENE). La función programada
+`precios-coleccion` (cada 10 min, 40 cartas, 300 ms, 22 s de presupuesto)
+las refresca con `precios_pendientes()` (sin precio o de hace más de 20 h;
+solo `service_role`). En la página, lo que no tenga precio guardado se
+pide a TCGdex en el momento, con tope de 40 por visita.

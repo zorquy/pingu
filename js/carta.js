@@ -19,6 +19,8 @@ import { esDelTCG } from './catalogo-series.js'
 import { detalleEnEspanol, IDIOMAS_DE_FICHA } from './carta-detalle.js'
 import { legalidadDeCarta, marcasLegales } from './carta-legalidad.js'
 import { logClientError } from './error-log.js'
+// El precio de Cardmarket y «Añadir a mi colección» (tanda 365).
+import { pintarMercado } from './carta-mercado.js'
 import { escapeHtml } from './app.js'
 import {
   candidatosDeRuta,
@@ -119,6 +121,8 @@ async function cargar() {
   // escondidas, así que una consulta lenta no retrasa la ficha.
   versiones(completa).catch(() => {})
   menciones(completa).catch(() => {})
+  // Y el precio y la colección, igual: su sección nace escondida.
+  pintarMercado(completa).catch(() => {})
 }
 
 // La ficha que falta, pedida a TCGdex en el momento.

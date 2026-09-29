@@ -62,6 +62,7 @@
           <div class="nav-sub">
             <a href="/cartas">Catálogo de cartas</a>
             <a href="/lanzamientos.html">Lanzamientos</a>
+            <a href="/mi-coleccion">Mi colección</a>
           </div>
         </div>
         <div class="nav-grupo">
@@ -100,6 +101,7 @@
         <summary>Cartas</summary>
         <a href="/cartas">Catálogo de cartas</a>
         <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/mi-coleccion">Mi colección</a>
       </details>
       <details class="nav-menu-grupo" name="nav-menu">
         <summary>Comunidad</summary>
@@ -152,6 +154,11 @@
 
     <p id="cartaError" class="empty-state hidden">No encuentro esa carta. Puede que la dirección esté mal escrita o que la carta todavía no esté en el catálogo.</p>
 
+    <!-- Precio de Cardmarket y «Añadir a mi colección» (tanda 365). Lo
+         pinta js/carta-mercado.js con el precio que pide a TCGdex en el
+         momento; nace escondido para que no salga un hueco si no llega. -->
+    <section id="cartaMercado" class="carta-seccion hidden" aria-label="Precio y colección"></section>
+
     <!-- Dónde más se habla de esta carta: guías del sitio e hilos del
          foro. Llegan por su cuenta y la sección nace escondida, así que
          una consulta lenta no retrasa la ficha. -->
@@ -188,6 +195,7 @@
         <a href="/cartas">Cartas</a>
         <a href="/noticias">Noticias</a>
         <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/mi-coleccion">Mi colección</a>
         <a href="/guardados.html">Guardados</a>
       </div>
       <div class="pie-col">

@@ -1,0 +1,151 @@
+// El bloque «Precio y colección» de la ficha de una carta (tanda 365).
+//
+// Dos mitades que comparten los mismos selectores: eliges idioma y
+// estado UNA vez y con eso (1) el botón de Cardmarket abre la carta con
+// esos filtros puestos y (2) «Añadir a mi colección» la guarda así.
+//
+// El precio es el general de Cardmarket (vía TCGdex): se enseña con su
+// nombre —«desde», «tendencia»— y el mínimo exacto de tu idioma y tu
+// estado está a un clic, en Cardmarket. Ver js/cardmarket.js.
+import { escapeHtml, getSession } from './app.js'
+import { showToast } from './toast.js'
+import { nombreDeCarta } from './carta-nucleo.js'
+import {
+  IDIOMAS,
+  ESTADOS,
+  VARIANTES,
+  IDIOMA_POR_DEFECTO,
+  ESTADO_POR_DEFECTO,
+  precioDe,
+  euros,
+  enlaceCardmarket,
+  textoDelEnlace,
+  idiomaDe,
+  estadoDe,
+} from './cardmarket.js'
+import { preciosEnVivo, lineasDeCarta, anadir } from './mi-coleccion/datos.js'
+
+const $ = (id) => document.getElementById(id)
+
+// Las versiones que existen de ESTA carta, según TCGdex. Si no lo dice,
+// normal y reverse, que es lo más común.
+function variantesDe(v) {
+  if (!v) return ['normal', 'reverse']
+  const lista = []
+  if (v.normal) lista.push('normal')
+  if (v.reverse) lista.push('reverse')
+  if (v.holo) lista.push('holo')
+  if (v.firstEdition) lista.push('primera')
+  return lista.length ? lista : ['normal']
+}
+
+function opciones(lista, activo) {
+  return lista.map((o) => `<option value="${escapeHtml(o.id)}"${o.id === activo ? ' selected' : ''}>${escapeHtml(o.nombre)}</option>`).join('')
+}
+
+function haceCuanto(iso) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+}
+
+function resumenDeTengo(lineas) {
+  if (!lineas.length) return ''
+  const copias = lineas.reduce((s, l) => s + l.cantidad, 0)
+  const detalle = lineas.map((l) => `${l.cantidad}× ${idiomaDe(l.idioma).nombre.toLowerCase()} ${estadoDe(l.estado).id}${l.variante === 'reverse' ? ' reverse' : ''}`).join(', ')
+  return `La tienes: ${copias} ${copias === 1 ? 'copia' : 'copias'} (${detalle}).`
+}
+
+export async function pintarMercado(carta) {
+  const caja = $('cartaMercado')
+  if (!caja || !carta?.id) return
+  // Solo las del mercado occidental tienen precio en Cardmarket vía
+  // TCGdex (las japonesas son otro producto allí).
+  const vivo = await preciosEnVivo(carta.id)
+  const variantes = variantesDe(vivo?.variants)
+  const estado = { idioma: IDIOMA_POR_DEFECTO, estado: ESTADO_POR_DEFECTO, variante: variantes[0] }
+  const nombre = nombreDeCarta(carta)
+
+  caja.innerHTML = `
+    <h2 class="section-title">Precio y colección</h2>
+    <div class="carta-mercado">
+      <div class="carta-mercado-filtros">
+        <label>Idioma <select id="cmIdioma">${opciones(IDIOMAS.filter((i) => i.id !== 'ja'), estado.idioma)}</select></label>
+        <label>Estado <select id="cmEstado">${opciones(ESTADOS, estado.estado)}</select></label>
+        ${variantes.length > 1 ? `<label>Versión <select id="cmVariante">${opciones(VARIANTES.filter((v) => variantes.includes(v.id)), estado.variante)}</select></label>` : ''}
+      </div>
+      <div class="carta-mercado-paneles">
+        <div class="carta-mercado-panel">
+          <p class="carta-mercado-titulo">Cardmarket</p>
+          <dl class="carta-precios" id="cmPrecios"></dl>
+          <p class="carta-mercado-nota" id="cmNota"></p>
+          <a class="btn-primary carta-mercado-boton" id="cmEnlace" href="#" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="carta-mercado-panel">
+          <p class="carta-mercado-titulo">Mi colección</p>
+          <p class="carta-mercado-nota" id="cmTengo">Guárdala con el idioma, el estado y la versión de arriba.</p>
+          <div class="carta-mercado-anadir" id="cmAnadirZona"></div>
+          <a class="link-btn carta-mercado-ir" href="/mi-coleccion">Ir a mi colección</a>
+        </div>
+      </div>
+    </div>`
+  caja.classList.remove('hidden')
+
+  const pintarPrecio = () => {
+    const precio = precioDe(vivo?.pricing, { reverse: estado.variante === 'reverse' })
+    $('cmPrecios').innerHTML = precio
+      ? `<div><dt>Desde</dt><dd>${euros(precio.desde)}</dd></div>
+         <div><dt>Tendencia</dt><dd>${euros(precio.tendencia)}</dd></div>
+         <div><dt>Media 30 días</dt><dd>${euros(precio.media30)}</dd></div>`
+      : ''
+    $('cmNota').textContent = precio
+      ? `Precio general de la carta en cualquier idioma y estado${precio.reverse ? ' (reverse holo)' : ''}, actualizado el ${haceCuanto(precio.actualizado)}. El mínimo en ${idiomaDe(estado.idioma).nombre.toLowerCase()} y ${estadoDe(estado.estado).nombre} lo ves en Cardmarket con el botón.`
+      : 'No tenemos el precio de esta carta. Búscala en Cardmarket:'
+    const idProduct = precio?.idProduct || null
+    const a = $('cmEnlace')
+    a.href = enlaceCardmarket({ idProduct, idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre })
+    a.textContent = textoDelEnlace({ idProduct, idioma: estado.idioma, estado: estado.estado })
+  }
+  pintarPrecio()
+
+  for (const [id, campo] of [['cmIdioma', 'idioma'], ['cmEstado', 'estado'], ['cmVariante', 'variante']]) {
+    $(id)?.addEventListener('change', (e) => {
+      estado[campo] = e.target.value
+      pintarPrecio()
+    })
+  }
+
+  // ── La mitad de la colección ──
+  const sesion = await getSession().catch(() => null)
+  const zona = $('cmAnadirZona')
+  if (!sesion) {
+    zona.innerHTML = `<a class="btn-secondary" href="/auth.html?volver=${encodeURIComponent(location.pathname)}">Entra para guardarla</a>`
+    return
+  }
+  zona.innerHTML = `
+    <label class="carta-mercado-cantidad">Copias <input type="number" id="cmCantidad" min="1" max="999" value="1" inputmode="numeric" /></label>
+    <button type="button" class="btn-secondary" id="cmAnadir">Añadir a mi colección</button>`
+  const refrescarTengo = async () => {
+    try {
+      const lineas = await lineasDeCarta(sesion.user.id, carta.id)
+      $('cmTengo').textContent = resumenDeTengo(lineas) || 'Guárdala con el idioma, el estado y la versión de arriba.'
+    } catch {
+      // Sin la migración no hay colección: el botón lo dirá al pulsarlo.
+    }
+  }
+  refrescarTengo()
+  $('cmAnadir').addEventListener('click', async () => {
+    const boton = $('cmAnadir')
+    const cantidad = Math.max(1, Math.min(999, Math.round(Number($('cmCantidad').value) || 1)))
+    boton.disabled = true
+    try {
+      await anadir(sesion.user.id, { card_id: carta.id, idioma: estado.idioma, estado: estado.estado, variante: estado.variante, cantidad })
+      showToast('Añadida a tu colección.', 'success')
+      await refrescarTengo()
+    } catch (err) {
+      showToast(err.message, 'error')
+    } finally {
+      boton.disabled = false
+    }
+  })
+}

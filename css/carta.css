@@ -962,3 +962,105 @@
   color: var(--text-dim);
   font-size: var(--t-md);
 }
+
+/* ── Precio y colección (tanda 365) ──
+   Lo pinta js/carta-mercado.js. Los selectores de arriba mandan sobre
+   las dos mitades: el enlace de Cardmarket y lo que se guarda. */
+.carta-mercado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-lg);
+}
+
+.carta-mercado-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-md);
+}
+
+.carta-mercado-filtros label,
+.carta-mercado-cantidad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.carta-mercado-filtros select {
+  min-width: 160px;
+  min-height: 44px;
+}
+
+.carta-mercado-cantidad input {
+  width: 96px;
+  min-height: 44px;
+}
+
+.carta-mercado-paneles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--e-lg);
+}
+
+.carta-mercado-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.carta-mercado-titulo {
+  font-size: var(--t-lg);
+  font-weight: 700;
+}
+
+.carta-precios {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-md);
+  width: 100%;
+  margin: 0;
+}
+
+.carta-precios:empty {
+  display: none;
+}
+
+.carta-precios dt {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.carta-precios dd {
+  margin: var(--e-xs) 0 0;
+  font-size: var(--t-xl);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.carta-mercado-nota {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.carta-mercado-boton,
+.carta-mercado-anadir .btn-secondary,
+.carta-mercado-ir {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.carta-mercado-anadir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--e-md);
+}

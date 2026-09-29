@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi colección — PokeDoc</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e5175" />
+  <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+  <meta name="robots" content="noindex" />
+  <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
+  <link rel="modulepreload" href="/js/supabase.js" />
+  <link rel="modulepreload" href="/js/app.js" />
+  <link rel="modulepreload" href="/js/icons.js" />
+  <link rel="modulepreload" href="/js/cardmarket.js" />
+  <link rel="modulepreload" href="/js/mi-coleccion/datos.js" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/mi-coleccion.css" />
+</head>
+<body>
+  <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="/noticias">Noticias</a>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Aprender</button>
+          <div class="nav-sub">
+            <a href="/aprender.html">Guías y cursos</a>
+            <a href="/curso.html?reto=hoy">Reto de hoy</a>
+            <a href="/guardados.html">Guardados</a>
+          </div>
+        </div>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Cartas</button>
+          <div class="nav-sub">
+            <a href="/cartas">Catálogo de cartas</a>
+            <a href="/lanzamientos.html">Lanzamientos</a>
+            <a href="/mi-coleccion">Mi colección</a>
+          </div>
+        </div>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Comunidad</button>
+          <div class="nav-sub">
+            <a href="/foro.html">Foro</a>
+            <a href="/usuarios.html">Gente</a>
+          </div>
+        </div>
+        <div class="nav-grupo nav-jugar hidden">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
+          <div class="nav-sub">
+            <a href="/torneos.html">Torneos</a>
+            <a href="/meta">Mazos del meta</a>
+            <a href="/constructor">Constructor de mazos</a>
+            <a href="/mazos">Mis mazos</a>
+            <a href="/mis-partidas">Mis partidas</a>
+          </div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú" aria-expanded="false" aria-controls="navMobileMenu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="/index.html">Inicio</a>
+      <a href="/noticias">Noticias</a>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Aprender</summary>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/curso.html?reto=hoy">Reto de hoy</a>
+        <a href="/guardados.html">Guardados</a>
+      </details>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Cartas</summary>
+        <a href="/cartas">Catálogo de cartas</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/mi-coleccion">Mi colección</a>
+      </details>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Comunidad</summary>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+      </details>
+      <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
+        <summary>Jugar</summary>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/meta">Mazos del meta</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/mazos">Mis mazos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+      </details>
+    </div>
+  </nav>
+
+  <main id="contenido" class="page-content container mc-pagina">
+    <header class="mc-cabecera">
+      <div>
+        <h1 id="mcTitulo">Mi colección</h1>
+        <p class="mc-lema">Tus cartas, lo que valen en Cardmarket y tu álbum por colecciones.</p>
+      </div>
+      <div class="mc-compartir hidden" id="mcCompartir">
+        <label class="mc-interruptor"><input type="checkbox" id="mcPublica" /> Colección pública</label>
+        <button type="button" class="link-btn hidden" id="mcCopiarEnlace">Copiar enlace</button>
+      </div>
+    </header>
+    <div id="mcAviso" class="mc-aviso hidden" role="status"></div>
+
+    <div class="mc-entrar hidden" id="mcEntrar">
+      <p><strong>Entra para guardar tus cartas.</strong> Tu colección es privada salvo que tú decidas enseñarla.</p>
+      <a class="btn-primary" href="/auth.html?volver=%2Fmi-coleccion">Entrar</a>
+    </div>
+
+    <div id="mcContenido">
+      <dl class="mc-resumen" id="mcResumen"></dl>
+      <p class="mc-nota" id="mcResumenNota"></p>
+      <p class="subtext" id="mcCargando">Cargando la colección…</p>
+
+      <div class="mc-pestanias" role="tablist" aria-label="Vistas de la colección">
+        <button type="button" role="tab" class="mc-pestania activa" data-pestania="cartas" aria-selected="true" aria-controls="mcPanelCartas">Cartas</button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="album" aria-selected="false" aria-controls="mcPanelAlbum">Álbum</button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="anadir" aria-selected="false" aria-controls="mcPanelAnadir">Añadir cartas</button>
+      </div>
+
+      <section id="mcPanelCartas" role="tabpanel" aria-label="Cartas">
+        <div class="mc-filtros hidden" id="mcFiltros">
+          <input type="search" id="mcBuscar" placeholder="Buscar en tu colección" aria-label="Buscar en tu colección" />
+          <select id="mcFiltroSet" aria-label="Colección"></select>
+          <select id="mcFiltroIdioma" aria-label="Idioma"></select>
+          <select id="mcOrden" aria-label="Ordenar">
+            <option value="valor">Más valiosas</option>
+            <option value="recientes">Añadidas hace poco</option>
+            <option value="coleccion">Por colección y número</option>
+            <option value="nombre">Por nombre</option>
+          </select>
+        </div>
+        <div class="mc-cartas" id="mcCartas"></div>
+        <div class="mc-vacio hidden" id="mcCartasVacio">
+          <p><strong>Todavía no hay cartas aquí.</strong></p>
+          <p>Añádelas desde «Añadir cartas», desde el álbum de una colección o con el botón de la ficha de cualquier carta.</p>
+        </div>
+        <p class="subtext hidden" id="mcSinResultados">Ninguna carta de tu colección encaja con esos filtros.</p>
+      </section>
+
+      <section id="mcPanelAlbum" class="hidden" role="tabpanel" aria-label="Álbum">
+        <div class="mc-album-barra">
+          <select id="mcAlbumSet" aria-label="Colección del álbum"></select>
+          <label class="mc-interruptor"><input type="checkbox" id="mcAlbumSoloFaltan" /> Solo las que me faltan</label>
+          <span id="mcTocarZona"><label class="mc-interruptor"><input type="checkbox" id="mcAlbumTocar" /> Tocar una carta la añade</label></span>
+        </div>
+        <div class="mc-tocar hidden" id="mcTocarOpciones">
+          <span>Cada toque suma una copia en</span>
+          <select id="mcTocarIdioma" aria-label="Idioma al añadir"></select>
+          <select id="mcTocarEstado" aria-label="Estado al añadir"></select>
+        </div>
+        <p class="mc-progreso" id="mcAlbumProgreso"></p>
+        <div id="mcAlbum"></div>
+        <p class="subtext hidden" id="mcAlbumVacio">No hay ninguna colección que enseñar todavía.</p>
+        <div class="mc-album-paginas">
+          <button type="button" class="btn-secondary" id="mcAlbumAnterior">← Anterior</button>
+          <span id="mcAlbumPaginas"></span>
+          <button type="button" class="btn-secondary" id="mcAlbumSiguiente">Siguiente →</button>
+        </div>
+      </section>
+
+      <section id="mcPanelAnadir" class="hidden" role="tabpanel" aria-label="Añadir cartas">
+        <input type="search" id="mcAnadirBuscar" class="mc-anadir-buscar" placeholder="Busca una carta por su nombre (en español o en inglés)" aria-label="Buscar una carta" />
+        <form class="mc-anadir-form hidden" id="mcAnadirForm">
+          <div class="mc-anadir-elegida" id="mcAnadirElegida"></div>
+          <div class="mc-anadir-campos">
+            <label>Idioma <select id="mcAnadirIdioma"></select></label>
+            <label>Estado <select id="mcAnadirEstado"></select></label>
+            <label>Versión <select id="mcAnadirVariante"></select></label>
+            <label>Copias <input type="number" id="mcAnadirCantidad" min="1" max="999" value="1" inputmode="numeric" /></label>
+            <button type="submit" class="btn-primary" id="mcAnadirBoton">Añadir</button>
+          </div>
+        </form>
+        <div class="mc-resultados" id="mcAnadirResultados"></div>
+      </section>
+    </div>
+
+    <dialog class="mc-editor" id="mcEditor" aria-labelledby="mcEditorTitulo">
+      <form id="mcEditorForm" method="dialog">
+        <h2 id="mcEditorTitulo">Editar</h2>
+        <p class="subtext" id="mcEdPrecio"></p>
+        <div class="mc-editor-campos">
+          <label>Idioma <select id="mcEdIdioma"></select></label>
+          <label>Estado <select id="mcEdEstado"></select></label>
+          <label>Versión <select id="mcEdVariante"></select></label>
+          <label>Copias <input type="number" id="mcEdCantidad" min="1" max="999" inputmode="numeric" /></label>
+          <label>Gradeo <input type="text" id="mcEdGradeo" maxlength="20" placeholder="CGC 10" /></label>
+          <label>Tu valor (€, opcional) <input type="text" id="mcEdValor" inputmode="decimal" placeholder="Manda sobre Cardmarket" /></label>
+          <label>Lo que pagaste (€) <input type="text" id="mcEdCompra" inputmode="decimal" /></label>
+          <label class="mc-editor-notas">Notas <textarea id="mcEdNotas" maxlength="280" rows="2"></textarea></label>
+        </div>
+        <div class="mc-editor-acciones">
+          <button type="button" class="link-btn mc-borrar" id="mcEdBorrar">Quitar de la colección</button>
+          <span></span>
+          <button type="button" class="btn-secondary" id="mcEdCancelar">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <p class="mc-fuente">Los precios son los de la guía de <a href="https://www.cardmarket.com" target="_blank" rel="noopener">Cardmarket</a> (vía TCGdex), de la carta en general. El enlace de cada carta abre Cardmarket con su idioma, su estado y su versión ya filtrados, que es donde está el mínimo exacto.</p>
+  </main>
+
+  <footer class="footer">
+    <div class="pie-rejilla">
+      <div>
+        <p class="pie-marca">Poke<span>Doc</span></p>
+        <p class="pie-lema">La comunidad española de Pokémon TCG. Guías, cursos, foro y torneos. Todo gratis.</p>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Aprender</p>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/cartas">Cartas</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/mi-coleccion">Mi colección</a>
+        <a href="/guardados.html">Guardados</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Comunidad</p>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+        <a href="/buscar.html">Buscar</a>
+        <a href="/colabora">Colabora</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Jugar</p>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/meta">Mazos del meta</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/curso.html?reto=hoy">Reto de hoy</a>
+      </div>
+    </div>
+    <div class="pie-abajo">
+      <p class="pie-copy">© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
+      <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
+    </div>
+  </footer>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/mi-coleccion.js"></script>
+</body>
+</html>
