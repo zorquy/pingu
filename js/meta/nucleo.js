@@ -14,11 +14,24 @@ export const SECCIONES = [
   { campo: 'energy', titulo: 'Energías', live: 'Energy' },
 ]
 
-// Las ventanas que se pueden elegir. La base acepta de 1 a 30; aquí van
-// las tres que tienen sentido leer (una semana es el meta de AHORA, un
-// mes ya mezcla dos metas si ha salido colección).
-export const PERIODOS = [7, 14, 30]
+// Las ventanas que se pueden elegir. Una semana es el meta de AHORA; un
+// mes ya mezcla dos metas si ha salido colección. Los 90 días están por
+// los OFICIALES (tanda 366): hay dos o tres al mes y con menos no se ve
+// nada.
+export const PERIODOS = [7, 14, 30, 90]
 export const PERIODO_POR_DEFECTO = 14
+
+// De dónde sale cada torneo (tanda 366). `null` es «todas».
+export const FUENTES = [
+  { id: null, nombre: 'Todos' },
+  { id: 'oficial', nombre: 'Oficiales' },
+  { id: 'online', nombre: 'Online' },
+  { id: 'pokedoc', nombre: 'PokeDoc' },
+]
+export function fuenteDe(valor) {
+  return FUENTES.some((f) => f.id === valor) ? valor : null
+}
+export const NOMBRE_DE_FUENTE = { oficial: 'Oficial', online: 'Online', pokedoc: 'PokeDoc' }
 
 export function periodoDe(valor) {
   const n = Number(valor)

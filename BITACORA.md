@@ -12,6 +12,88 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-29 — IBAI-Claude (publica la tanda 366 desde el equipo de Ibai)
+
+**Hecho**: subir a la rama el trabajo de la tanda 366 (la entrada de
+abajo), que estaba en este equipo sin commitear. Revisado antes de
+subir: los 13 JS nuevos/tocados pasan `node --check`, los 8 SVG de
+energías están en `assets/energias/`, y las dos funciones programadas
+nuevas llevan su horario declarado dentro (`meta-oficiales` cada 20
+min, `meta-pokedoc` al minuto 17 de cada hora).
+
+**Ficheros**: los de la entrada de la tanda 366 (abajo).
+
+**En curso / pendiente**:
+- Las CUATRO migraciones en el orden que dice la entrada de abajo
+  (meta, meta-fuentes, mi-coleccion, albumes).
+- Vigilar el registro de `meta-oficiales` tras el despliegue por si
+  Cloudflare bloquea la lectura de limitlesstcg.com.
+- Los tests de las tandas 364-366 siguen solo en la sesión de
+  claude.ai; la rama `pruebas` del repo va por la 363.
+
+---
+
+## 2026-09-29 — PINGU-Claude desde claude.ai (tanda 366 — álbumes soñados, energías que se ven y el meta con oficiales y PokeDoc)
+
+**Hecho** (tres pedidos de PINGU):
+1. **Álbumes soñados** en /mi-coleccion: álbumes a tu gusto con las
+   cartas que quieras (vacío, con tus cartas o con una colección entera),
+   ordenables, con ✓ en lo que tienes, «solo las que me faltan», cuánto
+   costaría completarlo y público por enlace.
+2. **Las imágenes de las decklists de torneo ya no fallan**: las
+   energías básicas se pintan con imágenes NUESTRAS (/assets/energias/,
+   ocho SVG) sin esperar a nada, y el resto de cartas tiene cadena de
+   respaldo (espejo → CDN de Limitless por set y número → caja con el
+   nombre). Causa: TCGdex no tiene escaneo de ninguna básica
+   (`src="null"`), los sets que el espejo no sabe cruzar no se pintaban y
+   no había segundo origen.
+3. **/meta cuenta ahora oficiales y PokeDoc**, con filtro «Todos ·
+   Oficiales · Online · PokeDoc» y periodo de 90 días. Oficiales
+   (regionales, internacionales, especiales y Mundial) leídos del HTML de
+   limitlesstcg.com (no tiene API para ellos; robots.txt lo permite);
+   PokeDoc desde nuestros torneos terminados y públicos, encajados en el
+   arquetipo de Limitless. En la ficha, las listas oficiales van primero
+   con su chapa y su enlace.
+
+**Probado**: SQL en PGlite (álbumes: dueño, tope; meta: fuentes,
+retención, filtros, que las listas de PokeDoc no ensucian la media); las
+dos funciones nuevas contra HTML con la estructura real de Limitless y
+contra torneos de PokeDoc (el privado no entra, un mazo en español cae en
+su arquetipo); y en Chromium: álbumes (crear de tres formas, añadir,
+mover, quitar, renombrar, público/privado), /meta con fuentes y la
+decklist con CDN caída y levantada. Suite: 299, 305, 309-313, 315, 316,
+320, 326, 328, 335, 340, 345, 359, sets-live, torneos-22/23, sprites,
+decklist-idiomas, constructor y migraciones en verde.
+
+**Ficheros**: `js/imagen-carta.js` (NUEVO), `assets/energias/*.svg`
+(NUEVOS, 8), `js/mi-coleccion/albumes.js` (NUEVO),
+`netlify/lib/limitless-oficial.mjs` (NUEVO), `netlify/lib/meta-pokedoc.mjs`
+(NUEVO), `netlify/functions/meta-oficiales.mjs` (NUEVO),
+`netlify/functions/meta-pokedoc.mjs` (NUEVO),
+`supabase-migration-albumes.sql` (NUEVO),
+`supabase-migration-meta-fuentes.sql` (NUEVO),
+`js/torneos/cartas-decklist.js`, `css/torneos.css`, `js/meta.js`,
+`js/meta-mazo.js`, `js/meta/nucleo.js`, `js/meta/datos.js`,
+`js/meta/pintar.js`, `css/meta.css`, `meta.html`, `mazo-meta.html`,
+`js/mi-coleccion.js`, `mi-coleccion.html`, `css/mi-coleccion.css`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-366.mjs`, `test-tanda-366-meta.mjs`
+(NUEVOS), `test-tanda-364.mjs`, `test-tanda-365.mjs`, `meta-364-base.mjs`,
+`correr-suite.sh`.
+
+**En curso / pendiente**:
+- **PENDIENTE PARA PINGU — ejecutar en este orden**:
+  `supabase-migration-meta.sql` (si no está), `supabase-migration-meta-fuentes.sql`,
+  `supabase-migration-mi-coleccion.sql` (si no está) y
+  `supabase-migration-albumes.sql`.
+- **Lo que no he podido comprobar desde aquí**: que Netlify pueda leer
+  limitlesstcg.com (si Cloudflare bloquea la función, `meta-oficiales`
+  lo dirá en su registro con el código de error) y que su HTML siga así:
+  si cambia, la función devuelve «¿ha cambiado su HTML?», no basura.
+- El listado de Limitless trae ~5 meses de oficiales en su primera
+  página; más atrás haría falta paginar.
+
+---
+
 ## 2026-09-29 — IBAI-Claude (publica la tanda 365 desde el equipo de Ibai)
 
 **Hecho**: subir a la rama el trabajo de la tanda 365 (la entrada de

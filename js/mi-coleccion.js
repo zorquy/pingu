@@ -30,6 +30,7 @@ import {
   valorDeLinea,
 } from './cardmarket.js'
 import * as datos from './mi-coleccion/datos.js'
+import * as albumes from './mi-coleccion/albumes.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -42,7 +43,8 @@ let lineas = []
 let cartas = new Map() // id → fila de tcg_cards
 let guardados = new Map() // id → fila de tcg_card_prices
 const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
-let pestania = ['cartas', 'album', 'anadir'].includes(params.get('ver')) ? params.get('ver') : 'cartas'
+let pestania = ['cartas', 'album', 'albumes', 'anadir'].includes(params.get('ver')) ? params.get('ver') : 'cartas'
+let albumesAbiertos = false
 
 const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
 
@@ -453,13 +455,19 @@ function cambiarPestania(nueva) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAnadir', 'anadir']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAlbumes', 'albumes'], ['mcPanelAnadir', 'anadir']]) {
     $(id).classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
   if (nueva === 'cartas') url.searchParams.delete('ver')
   else url.searchParams.set('ver', nueva)
+  if (nueva !== 'albumes') url.searchParams.delete('album')
   history.replaceState(null, '', url)
+  // Los álbumes soñados (tanda 366) se cargan la primera vez que se abren.
+  if (nueva === 'albumes' && !albumesAbiertos && esMia) {
+    albumesAbiertos = true
+    albumes.entrar(params.get('album'))
+  }
   if (nueva === 'album' && !album.set) pintarSelectorAlbum()
   if (nueva === 'anadir') $('mcAnadirBuscar').focus()
 }
@@ -552,10 +560,51 @@ function prepararOpcionesDeFormulario() {
   $('mcTocarEstado').innerHTML = opciones(ESTADOS, ESTADO_POR_DEFECTO)
 }
 
+// Lo que los álbumes soñados necesitan de esta página. Con getters: la
+// colección y sus cartas se cargan después y se reasignan.
+const contexto = {
+  get sesion() {
+    return sesion
+  },
+  lineas: () => lineas,
+  get cartas() {
+    return cartas
+  },
+  sets: () => cargarSets(),
+  porNumero,
+}
+
+// /mi-coleccion?album=<id> de OTRA persona: solo ese álbum, para verlo.
+async function verAlbumAjeno(fila) {
+  $('mcTitulo').textContent = 'Álbum soñado'
+  document.title = `${fila.nombre} — Álbum soñado — PokeDoc`
+  for (const id of ['mcResumen', 'mcResumenNota', 'mcCargando', 'mcCompartir']) $(id)?.classList.add('hidden')
+  document.querySelector('.mc-pestanias').classList.add('hidden')
+  cambiarPestania('albumes')
+  await albumes.abrir(fila.id, { soloVer: true })
+}
+
 async function iniciar() {
   prepararOpcionesDeFormulario()
   enganchar()
+  albumes.iniciarAlbumes(contexto)
   sesion = await getSession().catch(() => null)
+  const idAlbum = params.get('album')
+  if (idAlbum) {
+    const fila = await albumes.cargarParaVer(idAlbum)
+    if (!fila) {
+      aviso('<p>Ese álbum no existe o es privado.</p>')
+      if (!sesion) {
+        $('mcContenido').classList.add('hidden')
+        return
+      }
+    } else if (fila.user_id !== sesion?.user.id) {
+      await verAlbumAjeno(fila)
+      return
+    } else {
+      pestania = 'albumes'
+    }
+  }
   const usuario = params.get('u')
   try {
     if (usuario) {
@@ -591,8 +640,9 @@ async function iniciar() {
     $('mcTitulo').textContent = `Colección de ${quien}`
     document.title = `Colección de ${quien} — PokeDoc`
     document.querySelector('[data-pestania="anadir"]').classList.add('hidden')
+    document.querySelector('[data-pestania="albumes"]').classList.add('hidden')
     $('mcTocarZona').classList.add('hidden')
-    if (pestania === 'anadir') pestania = 'cartas'
+    if (pestania === 'anadir' || pestania === 'albumes') pestania = 'cartas'
   }
   pintarCompartir()
   cambiarPestania(pestania)
@@ -608,6 +658,9 @@ async function iniciar() {
   $('mcCargando').classList.add('hidden')
   repintar()
   if (pestania === 'album') pintarSelectorAlbum()
+  // Si se entró directo a un álbum, se repinta ahora que se sabe qué
+  // cartas tienes.
+  if (pestania === 'albumes' && params.get('album')) albumes.abrir(params.get('album'))
   // Los precios que falten llegan después y repintan: la lista no espera.
   await completarPrecios()
   repintar()

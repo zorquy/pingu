@@ -23,17 +23,17 @@ async function rpc(nombre, args) {
   return data || []
 }
 
-export const resumen = (dias) => rpc('meta_resumen', { p_dias: dias })
+export const resumen = (dias, fuente = null) => rpc('meta_resumen', { p_dias: dias, p_fuente: fuente })
 
-export async function totales(dias) {
-  const filas = await rpc('meta_totales', { p_dias: dias })
+export async function totales(dias, fuente = null) {
+  const filas = await rpc('meta_totales', { p_dias: dias, p_fuente: fuente })
   return filas[0] || { torneos: 0, jugadores: 0, desde: null, ultima_lectura: null }
 }
 
-export const listaMedia = (arquetipo, dias) => rpc('meta_lista_media', { p_arquetipo: arquetipo, p_dias: dias })
+export const listaMedia = (arquetipo, dias, fuente = null) => rpc('meta_lista_media', { p_arquetipo: arquetipo, p_dias: dias, p_fuente: fuente })
 
-export const listasDestacadas = (arquetipo, dias, limite = 12) =>
-  rpc('meta_listas', { p_arquetipo: arquetipo, p_dias: dias, p_limite: limite })
+export const listasDestacadas = (arquetipo, dias, limite = 12, fuente = null) =>
+  rpc('meta_listas', { p_arquetipo: arquetipo, p_dias: dias, p_limite: limite, p_fuente: fuente })
 
 // El arquetipo por su id, aunque no haya salido en el periodo elegido
 // (para poder decir «esta semana no se ha jugado» con su nombre).

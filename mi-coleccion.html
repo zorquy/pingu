@@ -125,6 +125,7 @@
       <div class="mc-pestanias" role="tablist" aria-label="Vistas de la colección">
         <button type="button" role="tab" class="mc-pestania activa" data-pestania="cartas" aria-selected="true" aria-controls="mcPanelCartas">Cartas</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="album" aria-selected="false" aria-controls="mcPanelAlbum">Álbum</button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="albumes" aria-selected="false" aria-controls="mcPanelAlbumes">Álbumes soñados</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="anadir" aria-selected="false" aria-controls="mcPanelAnadir">Añadir cartas</button>
       </div>
 
@@ -166,6 +167,55 @@
           <button type="button" class="btn-secondary" id="mcAlbumAnterior">← Anterior</button>
           <span id="mcAlbumPaginas"></span>
           <button type="button" class="btn-secondary" id="mcAlbumSiguiente">Siguiente →</button>
+        </div>
+      </section>
+
+      <section id="mcPanelAlbumes" class="hidden" role="tabpanel" aria-label="Álbumes soñados">
+        <div id="mcAlbumesLista">
+          <div class="mc-albumes-cab">
+            <p class="mc-nota">Monta el álbum que quieras: con tus cartas, con una colección entera o carta a carta, en el orden que quieras. Verás cuáles ya tienes y cuánto costaría completarlo.</p>
+            <button type="button" class="btn-primary" id="mcAlbNuevoAbrir">Nuevo álbum</button>
+          </div>
+          <form class="mc-alb-nuevo hidden" id="mcAlbNuevo">
+            <label>Nombre <input type="text" id="mcAlbNombre" maxlength="80" placeholder="Mis Eevee favoritos" /></label>
+            <label>Empezar con
+              <select id="mcAlbOrigen">
+                <option value="vacio">Un álbum vacío</option>
+                <option value="mias">Todas mis cartas</option>
+                <option value="set">Una colección entera</option>
+              </select>
+            </label>
+            <label class="hidden" id="mcAlbSetCampo">Colección <select id="mcAlbSet"></select></label>
+            <button type="submit" class="btn-primary">Crear</button>
+          </form>
+          <div class="mc-albumes" id="mcAlbumesRejilla"></div>
+          <p class="subtext hidden" id="mcAlbumesVacio">Todavía no tienes ningún álbum soñado.</p>
+        </div>
+
+        <div id="mcAlbumesDetalle" class="hidden">
+          <button type="button" class="link-btn mc-alb-volver" id="mcAlbVolver">← Tus álbumes</button>
+          <input type="text" class="mc-alb-titulo" id="mcAlbTitulo" maxlength="80" aria-label="Nombre del álbum" />
+          <textarea class="mc-alb-descripcion" id="mcAlbDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)" aria-label="Descripción del álbum"></textarea>
+          <p class="mc-progreso" id="mcAlbProgreso"></p>
+          <p class="mc-nota" id="mcAlbFalta"></p>
+          <div id="mcAlbHerramientas">
+            <div class="mc-alb-barra">
+              <input type="search" id="mcAlbBuscar" placeholder="Añade cartas: busca por nombre" aria-label="Buscar cartas para el álbum" />
+              <button type="button" class="btn-secondary" id="mcAlbEditar">Ordenar y quitar</button>
+              <label class="mc-interruptor"><input type="checkbox" id="mcAlbSoloFaltan" /> Solo las que me faltan</label>
+              <label class="mc-interruptor"><input type="checkbox" id="mcAlbPublico" /> Público</label>
+              <button type="button" class="link-btn hidden" id="mcAlbCopiar">Copiar enlace</button>
+              <span class="mc-alb-estado" id="mcAlbEstado" role="status"></span>
+            </div>
+            <div class="mc-resultados mc-alb-resultados" id="mcAlbResultados"></div>
+          </div>
+          <div id="mcAlbArchivador"></div>
+          <div class="mc-album-paginas">
+            <button type="button" class="btn-secondary" id="mcAlbAnterior">← Anterior</button>
+            <span id="mcAlbPaginas"></span>
+            <button type="button" class="btn-secondary" id="mcAlbSiguiente">Siguiente →</button>
+          </div>
+          <p class="mc-alb-borrar-zona"><button type="button" class="link-btn mc-borrar" id="mcAlbBorrar">Borrar este álbum</button></p>
         </div>
       </section>
 

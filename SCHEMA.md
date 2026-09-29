@@ -19290,3 +19290,55 @@ por carta, solo de las que alguien TIENE). La función programada
 las refresca con `precios_pendientes()` (sin precio o de hace más de 20 h;
 solo `service_role`). En la página, lo que no tenga precio guardado se
 pide a TCGdex en el momento, con tope de 40 por visita.
+
+## Tanda 366 — álbumes soñados, imágenes de decklist que no fallan y el meta con oficiales y PokeDoc
+
+**Álbumes soñados** (`/mi-coleccion` → «Álbumes soñados»,
+`js/mi-coleccion/albumes.js`, `supabase-migration-albumes.sql`): tabla
+`user_albums` (nombre, descripción, `cartas` = [{id}] en orden, hasta
+1.080; público o privado; 100 por persona). Se crea vacío, con todas tus
+cartas (una por carta distinta, por colección y número) o con una
+colección entera. Se ve como archivador 3×3 (pliegos de dos hojas), con
+✓ en lo que ya tienes, «solo las que me faltan», «Ordenar y quitar»
+(← ✕ → por bolsillo), buscador para añadir, guardado automático (500 ms)
+y «cuánto costaría completarlo» (tendencia de Cardmarket de lo que
+falta: precios guardados y, del resto, hasta 60 pedidos a TCGdex). Uno
+público se ve en `/mi-coleccion?album=<id>` sin pestañas ni herramientas.
+
+**Imágenes de decklist** (`js/imagen-carta.js`): cadena espejo (si es la
+carta exacta) → CDN de Limitless por set y número
+(`…/tpci/SET/SET_NNN_R_EN_SM.png`, promos con el código de Limitless) →
+gemela por nombre → quitar la imagen (queda la caja con el nombre). Las
+básicas NO pasan por la cadena: `/assets/energias/{G,R,W,L,P,F,D,M}.svg`,
+nuestras, detectadas por el nombre en cualquiera de sus formas
+(`letraDeEnergiaBasica`), y se pintan sin esperar a la base. Lo usan
+`pintarDecklistVisual` (torneos y /meta) y la lista media de /meta.
+`.torneo-carta img` lleva ahora `height: auto` + `aspect-ratio` porque la
+imagen trae `width`/`height` (hueco reservado).
+
+**El meta con tres fuentes** (`supabase-migration-meta-fuentes.sql`):
+`meta_torneos.fuente` ('online' | 'oficial' | 'pokedoc'), `tipo` y
+`enlace`; `meta_resultados.enlace`. La ingesta lee `fuente`, `tipo`,
+`enlace` y `contar_cartas` de `p_torneo` (misma firma). Retención: 65
+días lo online, 400 el resto. Las lecturas aceptan `p_fuente` (null =
+todas) y `meta_dias` admite hasta 365 (la web ofrece 7/14/30/90); la
+flecha de tendencia solo sale con ventana ≤ 30 días o filtrando por una
+fuente que se guarda 400 días. `meta_listas` pone primero las oficiales.
+`meta_firmas()` (Pokémon de ≥ 80 % de las listas de cada arquetipo) queda
+para afinar el encaje.
+- `meta-oficiales` (cada 20 min, un torneo por pasada): lee el HTML de
+  limitlesstcg.com (`netlify/lib/limitless-oficial.mjs`, puro): listado
+  → oficiales de formato «standard» cuyo nombre es Regional,
+  International/NAIC/EUIC/LAIC/OCIC, Special Event o World
+  Championships (fuera la Champions League japonesa y las ligas de
+  Corea e Indonesia) → clasificación con arquetipo e iconos → las listas
+  de los 64 primeros, de 4 en 4 con reloj de 20 s. Sin resultados (solo
+  puesto). El id de arquetipo se toma de `meta_arquetipos` por nombre.
+- `meta-pokedoc` (cada hora): torneos terminados, públicos y de
+  Estándar, leídos con la clave PUBLICABLE (como cartas-juego). Resultado
+  por jugador desde mesas y resultados; puesto por puntos (3/1) y
+  victorias. Arquetipo: el de Limitless cuyos Pokémon icono lleve TODOS
+  el mazo (por `dexDeCarta`, que entiende el español), el más concreto y
+  a igualdad el más jugado; si ninguno, la deducción de siempre con id
+  `pokedoc-…`. Sus listas no suman cartas (vienen en el idioma de cada
+  jugador).

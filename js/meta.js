@@ -3,9 +3,10 @@
 // programada meta-limitless. Cada fila lleva a la ficha del arquetipo.
 import { escapeHtml } from './html.js'
 import { resumen, totales } from './meta/datos.js'
-import { iconosHtml, periodoHtml, engancharPeriodo, haceCuanto } from './meta/pintar.js'
+import { iconosHtml, periodoHtml, engancharPeriodo, fuenteHtml, engancharFuente, haceCuanto } from './meta/pintar.js'
 import {
   periodoDe,
+  fuenteDe,
   porcentaje,
   entero,
   tendencia,
@@ -16,6 +17,7 @@ import {
 
 const $ = (id) => document.getElementById(id)
 let dias = periodoDe(new URLSearchParams(location.search).get('dias'))
+let fuente = fuenteDe(new URLSearchParams(location.search).get('fuente'))
 let turno = 0
 let verTodos = false
 let filas = []
@@ -32,7 +34,10 @@ function filaHtml(f, i, maximo) {
   // La barra se mide contra el MÁS jugado, no contra el 100 %: con el
   // primero en un 15 %, todas las barras serían rayitas iguales.
   const ancho = maximo > 0 ? Math.max(2, Math.round((Number(f.cuota) / maximo) * 100)) : 0
-  const href = `/meta/${encodeURIComponent(f.arquetipo)}${dias !== 14 ? `?dias=${dias}` : ''}`
+  const q = new URLSearchParams()
+  if (dias !== 14) q.set('dias', String(dias))
+  if (fuente) q.set('fuente', fuente)
+  const href = `/meta/${encodeURIComponent(f.arquetipo)}${q.toString() ? `?${q}` : ''}`
   return `
     <li class="meta-fila">
       <a class="meta-fila-enlace" href="${href}">
@@ -78,7 +83,7 @@ async function cargar() {
   $('metaRanking').setAttribute('aria-busy', 'true')
   $('metaRanking').classList.add('meta-cargando')
   try {
-    const [r, t] = await Promise.all([resumen(dias), totales(dias)])
+    const [r, t] = await Promise.all([resumen(dias, fuente), totales(dias, fuente)])
     if (mio !== turno) return
     filas = r
     aviso('')
@@ -86,10 +91,19 @@ async function cargar() {
       $('metaTotales').textContent = ''
       $('metaRanking').innerHTML = ''
       $('metaCabeceraTabla').classList.add('hidden')
-      aviso('<p><strong>Todavía no hay torneos leídos en este periodo.</strong> Los datos se cargan solos cada diez minutos; la primera carga tarda unas horas.</p>')
+      aviso(fuente === 'oficial'
+        ? '<p><strong>No hay torneos oficiales en este periodo.</strong> Prueba con 90 días: hay dos o tres al mes.</p>'
+        : fuente === 'pokedoc'
+          ? '<p><strong>No hay torneos de PokeDoc terminados en este periodo.</strong> <a class="link-btn" href="/torneos.html">Mira los próximos</a>.</p>'
+          : '<p><strong>Todavía no hay torneos leídos en este periodo.</strong> Los datos se cargan solos; la primera carga tarda unas horas.</p>')
       return
     }
-    $('metaTotales').textContent = `${entero(t.torneos)} torneos · ${entero(t.jugadores)} jugadores · actualizado ${haceCuanto(t.ultima_lectura)}`
+    const partes = [
+      t.oficiales ? `${entero(t.oficiales)} ${t.oficiales === 1 ? 'oficial' : 'oficiales'}` : '',
+      t.online ? `${entero(t.online)} online` : '',
+      t.pokedoc ? `${entero(t.pokedoc)} de PokeDoc` : '',
+    ].filter(Boolean)
+    $('metaTotales').textContent = `${entero(t.torneos)} torneos${partes.length > 1 ? ` (${partes.join(', ')})` : ''} · ${entero(t.jugadores)} jugadores · actualizado ${haceCuanto(t.ultima_lectura)}`
     pintar()
   } catch (err) {
     if (mio !== turno) return
@@ -101,6 +115,11 @@ async function cargar() {
 }
 
 function iniciar() {
+  $('metaFuente').innerHTML = fuenteHtml(fuente)
+  engancharFuente($('metaFuente'), (f) => {
+    fuente = f
+    cargar()
+  })
   const caja = $('metaPeriodo')
   caja.innerHTML = periodoHtml(dias)
   engancharPeriodo(caja, (d) => {

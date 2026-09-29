@@ -3,7 +3,7 @@
 // css/meta.css, que cargan las dos.
 import { escapeHtml } from '../html.js'
 import { CDN_SPRITES, cadenaDeRespaldos, SALTO_DE_RESPALDO } from '../torneos/sprites-pokemon.js'
-import { urlDeIcono, especieBaseDeIcono, PERIODOS } from './nucleo.js'
+import { urlDeIcono, especieBaseDeIcono, PERIODOS, FUENTES } from './nucleo.js'
 
 // Un minisprite con su cadena de respaldos. Si el icono es una mega que
 // la CDN aún no tiene, el primer peldaño es la especie base (se ve el
@@ -30,6 +30,30 @@ export function periodoHtml(activo) {
   return PERIODOS.map(
     (d) => `<button type="button" class="meta-periodo-btn${d === activo ? ' activo' : ''}" data-dias="${d}" aria-pressed="${d === activo}">${d} días</button>`
   ).join('')
+}
+
+// Y de dónde salen los torneos (tanda 366), con el mismo aspecto.
+export function fuenteHtml(activa) {
+  return FUENTES.map(
+    (f) => `<button type="button" class="meta-periodo-btn${f.id === activa ? ' activo' : ''}" data-fuente="${f.id || ''}" aria-pressed="${f.id === activa}">${f.nombre}</button>`
+  ).join('')
+}
+
+export function engancharFuente(caja, alCambiar) {
+  caja.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-fuente]')
+    if (!b) return
+    const fuente = b.dataset.fuente || null
+    for (const x of caja.querySelectorAll('[data-fuente]')) {
+      x.classList.toggle('activo', x === b)
+      x.setAttribute('aria-pressed', String(x === b))
+    }
+    const url = new URL(location.href)
+    if (fuente) url.searchParams.set('fuente', fuente)
+    else url.searchParams.delete('fuente')
+    history.replaceState(null, '', url)
+    alCambiar(fuente)
+  })
 }
 
 // El periodo vive en la dirección (?dias=7) para que un enlace compartido

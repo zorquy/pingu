@@ -36,6 +36,9 @@ import { nombreDeSetLive } from './comun.js'
 // día que cambiara la temporada.
 import { marcasLegales, hayReimpresionLegal } from '../carta-legalidad.js'
 import { spriteDeCarta, respaldoDeSprite } from './sprites-pokemon.js'
+// La imagen de cada línea con su cadena de respaldos, y las energías
+// básicas con las nuestras (tanda 366).
+import { cadenaDeImagenes, atributosDeImagen, letraDeEnergiaBasica } from '../imagen-carta.js'
 
 const cache = new Map()
 const setsPorCodigo = new Map() // código Live → set_id del espejo (o null)
@@ -396,6 +399,13 @@ export async function pintarDecklistVisual(contenedor, parsed) {
   await Promise.all(
     SECCIONES.flatMap((s) =>
       (parsed[s.campo] || []).map(async (linea, i) => {
+        // Las energías básicas se pintan YA, sin esperar a la base: su
+        // imagen es nuestra y no depende de encontrar la carta (tanda 366).
+        if (letraDeEnergiaBasica(linea.name)) {
+          const h = contenedor.querySelector(`[data-linea="${s.campo}-${i}"]`)
+          const attrs = atributosDeImagen(cadenaDeImagenes(linea, null, cardImageUrl))
+          if (h && attrs) h.insertAdjacentHTML('afterbegin', `<span class="torneo-carta-foto"><img ${attrs} alt="${escapeHtml(linea.name)}" width="245" height="342" loading="lazy" /></span>`)
+        }
         const carta = await resolverCarta(linea)
         // Se cuenta ANTES de la salida temprana, y por eso cuenta
         // también lo que no se ha encontrado en absoluto. Ese caso —la
@@ -405,7 +415,15 @@ export async function pintarDecklistVisual(contenedor, parsed) {
         // maneras y no se identifican nunca.
         if ((!carta || !carta.exacta) && !esEnergiaBasica(linea)) sinIdentificar += linea.quantity
         const hueco = contenedor.querySelector(`[data-linea="${s.campo}-${i}"]`)
-        if (!hueco || !carta) return
+        if (!hueco) return
+        // Sin carta en el espejo también se prueba la imagen: la CDN de
+        // Limitless la tiene por set y número aunque nosotros no sepamos
+        // cruzar el set (tanda 366). Lo que no se puede es enlazarla.
+        if (!carta) {
+          const attrs = letraDeEnergiaBasica(linea.name) ? null : atributosDeImagen(cadenaDeImagenes(linea, null, cardImageUrl))
+          if (attrs) hueco.insertAdjacentHTML('afterbegin', `<span class="torneo-carta-foto"><img ${attrs} alt="${escapeHtml(linea.name)}" width="245" height="342" loading="lazy" /></span>`)
+          return
+        }
         // La IMAGEN también enlaza (tanda 340). Antes solo lo hacía el
         // nombre del pie, que es letra pequeña debajo de un escaneo de
         // 245 px: la gente pulsa la carta, no su nombre. Lo dijo PINGU:
@@ -416,11 +434,23 @@ export async function pintarDecklistVisual(contenedor, parsed) {
         // seguidas al mismo destino son ruido. Es la excepción que la
         // norma de los 44 px ya admite — «un enlace que repite un destino
         // que ya cubre una caja mayor».
-        const foto = `<img src="${cardImageUrl(carta.image_path, 'low')}" alt="${escapeHtml(linea.name)}" loading="lazy" onerror="this.remove()" />`
-        hueco.insertAdjacentHTML(
-          'afterbegin',
-          `<a class="torneo-carta-foto" href="${escapeHtml(rutaDeCarta(carta))}" tabindex="-1" aria-hidden="true">${foto}</a>`
-        )
+        //
+        // La imagen va con su cadena de respaldos (js/imagen-carta.js):
+        // antes era `src` del espejo a secas, y una energía básica (sin
+        // escaneo en TCGdex) o una CDN caída dejaban la caja vacía.
+        const yaPintada = hueco.querySelector('.torneo-carta-foto')
+        if (yaPintada) {
+          // La energía ya está puesta: solo se le pone el enlace.
+          yaPintada.outerHTML = `<a class="torneo-carta-foto" href="${escapeHtml(rutaDeCarta(carta))}" tabindex="-1" aria-hidden="true">${yaPintada.innerHTML}</a>`
+        } else {
+          const attrs = atributosDeImagen(cadenaDeImagenes(linea, carta, (ruta) => cardImageUrl(ruta, 'low')))
+          if (attrs) {
+            hueco.insertAdjacentHTML(
+              'afterbegin',
+              `<a class="torneo-carta-foto" href="${escapeHtml(rutaDeCarta(carta))}" tabindex="-1" aria-hidden="true"><img ${attrs} alt="${escapeHtml(linea.name)}" width="245" height="342" loading="lazy" /></a>`
+            )
+          }
+        }
 
         // Y el nombre pasa a ser un enlace a la ficha de la carta
         // (tanda 326). Es el enlace interno que más vale del sitio: sale

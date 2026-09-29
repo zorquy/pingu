@@ -2113,6 +2113,10 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 .torneo-carta img {
   width: 100%;
+  /* Con `width`/`height` en el HTML (el hueco reservado, tanda 366), el
+     alto hay que soltarlo o la carta sale estirada a 342 px. */
+  height: auto;
+  aspect-ratio: 245 / 342;
   border-radius: 6px;
   display: block;
 }

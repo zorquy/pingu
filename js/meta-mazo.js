@@ -10,12 +10,14 @@ import { cardImageUrl } from './tcgdex.js'
 import { tarjetaDeGuia } from './guia-tarjeta.js'
 import { resolverCarta, pintarDecklistVisual } from './torneos/cartas-decklist.js'
 import { copiarDecklist, descargarImagenDecklist } from './torneos/decklist-export.js'
-import { imagenDeEnergiaBasica, esEnergiaBasica } from './constructor/nucleo.js'
+import { cadenaDeImagenes, atributosDeImagen, letraDeEnergiaBasica } from './imagen-carta.js'
 import * as datos from './meta/datos.js'
-import { iconosHtml, periodoHtml, engancharPeriodo, fechaCorta } from './meta/pintar.js'
+import { iconosHtml, periodoHtml, engancharPeriodo, fuenteHtml, engancharFuente, fechaCorta } from './meta/pintar.js'
 import {
   SECCIONES,
   periodoDe,
+  fuenteDe,
+  NOMBRE_DE_FUENTE,
   porcentaje,
   copiasMedias,
   entero,
@@ -45,6 +47,7 @@ function idDeLaUrl() {
 
 const ID = idDeLaUrl()
 let dias = periodoDe(new URLSearchParams(location.search).get('dias'))
+let fuente = fuenteDe(new URLSearchParams(location.search).get('fuente'))
 let turno = 0
 let nombreMazo = ID
 let listas = []
@@ -84,7 +87,7 @@ function pintarCabecera(arq, fila) {
 function pintarCifras(fila) {
   if (!fila) {
     $('mmCifras').innerHTML = ''
-    $('mmSub').textContent = `No se ha jugado en torneos de 16 o más jugadores en los últimos ${dias} días.`
+    $('mmSub').textContent = `No se ha jugado en ${fuente === 'oficial' ? 'torneos oficiales' : fuente === 'pokedoc' ? 'torneos de PokeDoc' : 'los torneos que contamos'} en los últimos ${dias} días.`
     return
   }
   const t = tendencia(fila.cuota, fila.cuota_anterior)
@@ -92,7 +95,7 @@ function pintarCifras(fila) {
   $('mmCifras').innerHTML = `
     <div class="meta-cifra"><dt>Uso</dt><dd>${porcentaje(fila.cuota)}${t && t.tipo !== 'nuevo' ? ` <span class="meta-tend meta-tend-${t.tipo}">${escapeHtml(textoTendencia(t))}</span>` : ''}</dd></div>
     <div class="meta-cifra"><dt>Victorias</dt><dd>${porcentaje(fila.porcentaje_victorias)}</dd></div>
-    <div class="meta-cifra"><dt>Resultado total</dt><dd>${entero(fila.victorias)}-${entero(fila.derrotas)}-${entero(fila.empates)}</dd></div>
+    <div class="meta-cifra"><dt>Resultado total</dt><dd>${fila.victorias + fila.derrotas + fila.empates > 0 ? `${entero(fila.victorias)}-${entero(fila.derrotas)}-${entero(fila.empates)}` : '—'}</dd></div>
     <div class="meta-cifra"><dt>Top 8</dt><dd>${entero(fila.top8)}</dd></div>`
 }
 
@@ -101,7 +104,8 @@ function pintarAcciones() {
   const mejor = listas[0]
   $('mmAcciones').classList.toggle('hidden', !mejor)
   if (!mejor) return
-  $('mmAccionesTexto').textContent = `La del ${puestoOrdinal(mejor.puesto)} puesto de ${mejor.torneo} (${resultado(mejor.victorias, mejor.derrotas, mejor.empates)}).`
+  const r = resultadoDe(mejor)
+  $('mmAccionesTexto').textContent = `La del ${puestoOrdinal(mejor.puesto)} puesto de ${mejor.torneo}${r ? ` (${r})` : ''}.`
   $('mmAbrirMejor').href = enlaceConstructor(mejor.lista, nombreMazo)
 }
 
@@ -120,25 +124,23 @@ function cartaMediaHtml(f, i) {
 }
 
 async function rellenarImagen(hueco, f) {
-  // Las básicas no tienen imagen en el espejo (tanda 357): se pintan con
-  // las mismas del constructor.
-  if (f.seccion === 'energy' && esEnergiaBasica({ name: f.nombre, set_id: String(f.set_codigo || '').toLowerCase() })) {
-    const img = imagenDeEnergiaBasica({ name: f.nombre, set_id: 'mee', local_id: f.numero })
-    if (img) {
-      hueco.insertAdjacentHTML(
-        'afterbegin',
-        `<img src="${escapeHtml(img.url)}" alt="${escapeHtml(f.nombre)}" width="245" height="342" loading="lazy" onerror="if(this.dataset.r){this.remove()}else{this.dataset.r=1;this.src='${escapeHtml(img.respaldo)}'}" />`
-      )
-    }
+  const linea = { name: f.nombre, set: f.set_codigo, number: f.numero }
+  // Las básicas, con las nuestras y sin preguntar a nadie (tanda 366).
+  if (letraDeEnergiaBasica(f.nombre)) {
+    const attrs = atributosDeImagen(cadenaDeImagenes(linea, null, cardImageUrl))
+    if (attrs) hueco.insertAdjacentHTML('afterbegin', `<span class="torneo-carta-foto"><img ${attrs} alt="${escapeHtml(f.nombre)}" width="245" height="342" loading="lazy" /></span>`)
     return
   }
-  const carta = await resolverCarta({ name: f.nombre, set: f.set_codigo, number: f.numero }).catch(() => null)
-  if (!carta?.image_path) return
+  const carta = await resolverCarta(linea).catch(() => null)
+  const attrs = atributosDeImagen(cadenaDeImagenes(linea, carta, (r) => cardImageUrl(r, 'low')))
+  if (!attrs) return
+  const img = `<img ${attrs} alt="${escapeHtml(f.nombre)}" width="245" height="342" loading="lazy" />`
+  if (!carta) {
+    hueco.insertAdjacentHTML('afterbegin', `<span class="torneo-carta-foto">${img}</span>`)
+    return
+  }
   const ruta = escapeHtml(rutaDeCarta(carta))
-  hueco.insertAdjacentHTML(
-    'afterbegin',
-    `<a class="torneo-carta-foto" href="${ruta}" tabindex="-1" aria-hidden="true"><img src="${escapeHtml(cardImageUrl(carta.image_path, 'low'))}" alt="${escapeHtml(f.nombre)}" width="245" height="342" loading="lazy" onerror="this.remove()" /></a>`
-  )
+  hueco.insertAdjacentHTML('afterbegin', `<a class="torneo-carta-foto" href="${ruta}" tabindex="-1" aria-hidden="true">${img}</a>`)
   const pie = hueco.querySelector('figcaption')
   if (pie) pie.innerHTML = `<a class="torneo-carta-enlace" href="${ruta}">${escapeHtml(f.nombre)}</a>`
 }
@@ -182,25 +184,37 @@ function pintarListaMedia(filas) {
 }
 
 // ── Las listas del top 8 ──
+// Los oficiales no traen el resultado (solo el puesto): un «0-0-0» ahí
+// diría que no jugó ninguna partida.
+const resultadoDe = (l) => (l.victorias + l.derrotas + l.empates > 0 ? resultado(l.victorias, l.derrotas, l.empates) : '')
+
+function enlaceDeLista(l) {
+  if (l.enlace) return { url: l.enlace, texto: l.fuente === 'pokedoc' ? 'Ver el torneo' : 'Ver en Limitless', fuera: /^https?:/.test(l.enlace) }
+  const url = enlaceLimitless(l.torneo_id, l.jugador)
+  return url ? { url, texto: 'Ver en Limitless', fuera: true } : null
+}
+
 function listaHtml(l, i) {
   const quien = l.nombre_jugador ? escapeHtml(l.nombre_jugador) : 'Jugador'
   const pais = l.pais ? ` <span class="meta-pais">${escapeHtml(l.pais)}</span>` : ''
+  const chapa = l.fuente && l.fuente !== 'online' ? ` <span class="meta-chapa-fuente${l.fuente === 'oficial' ? ' meta-chapa-oficial' : ''}">${escapeHtml(l.tipo || NOMBRE_DE_FUENTE[l.fuente])}</span>` : ''
+  const ver = enlaceDeLista(l)
   return `
     <li>
       <details class="meta-lista" data-lista="${i}">
         <summary>
           <span class="meta-lista-puesto">${puestoOrdinal(l.puesto)}</span>
-          <span class="meta-lista-quien"><strong>${quien}</strong>${pais}
+          <span class="meta-lista-quien"><strong>${quien}</strong>${pais}${chapa}
             <span class="meta-sub">${escapeHtml(l.torneo)} · ${fechaCorta(l.fecha)} · ${entero(l.jugadores)} jugadores</span>
           </span>
-          <span class="meta-lista-resultado">${resultado(l.victorias, l.derrotas, l.empates)}</span>
+          <span class="meta-lista-resultado">${resultadoDe(l)}</span>
         </summary>
         <div class="meta-lista-cuerpo">
           <div class="meta-lista-acciones">
             <button type="button" class="btn-primary" data-copiar>Copiar para TCG Live</button>
             <a class="btn-secondary" href="${escapeHtml(enlaceConstructor(l.lista, nombreMazo))}">Abrir en el constructor</a>
             <button type="button" class="btn-secondary" data-imagen>Descargar imagen</button>
-            ${enlaceLimitless(l.torneo_id, l.jugador) ? `<a class="link-btn" href="${escapeHtml(enlaceLimitless(l.torneo_id, l.jugador))}" target="_blank" rel="noopener">Ver en Limitless</a>` : ''}
+            ${ver ? `<a class="link-btn" href="${escapeHtml(ver.url)}"${ver.fuera ? ' target="_blank" rel="noopener"' : ''}>${ver.texto}</a>` : ''}
           </div>
           <p class="subtext">${totalDeLista(l.lista)} cartas.</p>
           <div class="meta-lista-cartas"></div>
@@ -345,9 +359,9 @@ async function cargar() {
   try {
     const [arq, ranking, media, destacadas] = await Promise.all([
       datos.arquetipo(ID),
-      datos.resumen(dias),
-      datos.listaMedia(ID, dias),
-      datos.listasDestacadas(ID, dias),
+      datos.resumen(dias, fuente),
+      datos.listaMedia(ID, dias, fuente),
+      datos.listasDestacadas(ID, dias, 12, fuente),
     ])
     if (mio !== turno) return
     if (!arq) {
@@ -377,6 +391,11 @@ async function iniciar() {
     location.replace('/meta')
     return
   }
+  $('mmFuente').innerHTML = fuenteHtml(fuente)
+  engancharFuente($('mmFuente'), (f) => {
+    fuente = f
+    cargar()
+  })
   const caja = $('mmPeriodo')
   caja.innerHTML = periodoHtml(dias)
   engancharPeriodo(caja, (d) => {
