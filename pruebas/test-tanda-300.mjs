@@ -88,12 +88,15 @@ console.log('\n── 1. El reparto: lo que pasa, y lo tuyo ──')
   const { page, errores } = await abrir('/index.html')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
   for (const [id, donde] of [
-    ['retoSeccion', 'hoy'],
+    // Cambiados en la tanda 362: el torneo es lo que más se usa de la
+    // web y estaba en la lateral; el reto lleva 103 partidas en toda la
+    // historia y abría la portada.
+    ['torneoPortadaSeccion', 'hoy'],
     ['noticiaPortadaSeccion', 'hoy'],
     ['foroVivoSeccion', 'principal'],
     ['recientesSeccion', 'principal'],
     ['temasSeccion', 'principal'],
-    ['torneoPortadaSeccion', 'lateral'],
+    ['retoSeccion', 'lateral'],
     ['primerosPasos', 'lateral'],
     ['homeActivity', 'lateral'],
     ['ligaSeccion', 'lateral'],
@@ -105,10 +108,14 @@ console.log('\n── 1. El reparto: lo que pasa, y lo tuyo ──')
   check('los atajos ya no están', (await page.locator('#atajosSeccion').count()) === 0)
   // Y la fila de «hoy» cuadra con el panel: si cada una llevara su
   // reparto, la portada se vería partida por la mitad.
+  // Se mide LO QUE HAY en la fila, sin nombrarlo: lo que se comprueba es
+  // que la fila de arriba y el panel de abajo cuadren, y eso tiene que
+  // seguir siendo cierto con el reto, con el torneo o con lo que se
+  // ponga mañana (tanda 362).
   const bordes = await page.evaluate(() => {
-    const a = document.querySelector('.reto-hoy').getBoundingClientRect().right
+    const caja = document.querySelector('#portadaHoy > section:not(.seccion-recogida) > *')
     const b = document.querySelector('.foro-vivo').getBoundingClientRect().right
-    return [Math.round(a), Math.round(b)]
+    return [Math.round(caja.getBoundingClientRect().right), Math.round(b)]
   })
   check('la fila de hoy cuadra con el panel de abajo', Math.abs(bordes[0] - bordes[1]) <= 2, bordes.join(' vs '))
   await page.close()
@@ -265,9 +272,10 @@ console.log('\n── 7. Sin noticia, el reto se lleva la fila ──')
     await page.locator('#noticiaPortadaSeccion').evaluate((e) => e.classList.contains('seccion-recogida')))
   const [fila, heroe] = await page.evaluate(() => [
     document.getElementById('portadaHoy').getBoundingClientRect().width,
-    document.querySelector('.reto-hoy').getBoundingClientRect().width,
+    // Quien ocupe la fila, sin nombrarlo (tanda 362).
+    document.querySelector('#portadaHoy > section:not(.seccion-recogida) > *').getBoundingClientRect().width,
   ])
-  check('  …y el reto se lleva la fila entera', heroe > fila * 0.9, `${Math.round(heroe)} de ${Math.round(fila)}`)
+  check('  …y lo que queda se lleva la fila entera', heroe > fila * 0.9, `${Math.round(heroe)} de ${Math.round(fila)}`)
   await page.close()
 }
 

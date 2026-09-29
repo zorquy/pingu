@@ -406,12 +406,24 @@ console.log('\n── 7. F · Sin cuenta, y sin noticia ──')
   // si no, media portada en blanco.
   const { page } = await abrir('/index.html', { noticias: [] })
   check('sin noticia, la sección se recoge', !(await page.locator('#noticiaPortadaSeccion').isVisible()))
+  // Sin nombrar a quien la ocupa: desde la 362 la fila la llevan el
+  // torneo y la noticia, antes el reto y la noticia. Lo que se comprueba
+  // es la FILA — que quien quede se la lleve entera en vez de dejar 320
+  // px en blanco.
+  //
+  // Y con el caso de que no quede NADIE, que en este fixture es lo que
+  // pasa (sin noticia y sin torneo): entonces lo que hay que exigir es
+  // que la fila no ocupe sitio, no que alguien la llene.
   const anchos = await page.evaluate(() => {
     const f = document.getElementById('portadaHoy')
-    const h = document.querySelector('.reto-hoy')
-    return [f.getBoundingClientRect().width, h.getBoundingClientRect().width]
+    const h = document.querySelector('#portadaHoy > section:not(.seccion-recogida) > *')
+    return [f.getBoundingClientRect().width, h ? h.getBoundingClientRect().width : null, f.getBoundingClientRect().height]
   })
-  check('  …y el héroe se lleva la fila', anchos[1] > anchos[0] * 0.9, anchos.map(Math.round).join(' de '))
+  check(
+    anchos[1] == null ? '  …y la fila vacía no deja un claro' : '  …y lo que queda se lleva la fila',
+    anchos[1] == null ? anchos[2] < 8 : anchos[1] > anchos[0] * 0.9,
+    anchos[1] == null ? `alto ${Math.round(anchos[2])}` : `${Math.round(anchos[1])} de ${Math.round(anchos[0])}`
+  )
   await page.close()
 }
 
