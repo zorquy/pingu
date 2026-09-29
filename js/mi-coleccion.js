@@ -13,8 +13,11 @@
 import { escapeHtml, getSession } from './app.js'
 import { showToast } from './toast.js'
 import { supabase } from './supabase.js'
-import { cardImageUrl, normalizeSearch } from './tcgdex.js'
+import { normalizeSearch } from './tcgdex.js'
 import { rutaDeCarta } from './carta-ruta.js'
+// El escaneo con su respaldo (tanda 370): TCGdex no tiene imagen de
+// muchas cartas viejas, y sin esto el bolsillo se quedaba en blanco.
+import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { esDelTCG } from './catalogo-series.js'
 import {
   IDIOMAS,
@@ -129,12 +132,12 @@ function lineaHtml(l) {
   const c = cartas.get(l.card_id)
   const precio = precioDe(l)
   const valor = valorDeLinea(l, precio)
-  const img = c?.image_path ? cardImageUrl(c.image_path, 'low') : null
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const cm = enlaceCardmarket({ idProduct: precio?.idProduct, idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c) })
   return `
     <article class="mc-carta" data-linea="${escapeHtml(l.id)}">
       <a class="mc-carta-foto" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}" tabindex="-1" aria-hidden="true">
-        ${img ? `<img src="${escapeHtml(img)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />` : ''}
+        ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
         ${l.cantidad > 1 ? `<span class="mc-cantidad">×${l.cantidad}</span>` : ''}
       </a>
       <div class="mc-carta-info">
@@ -202,10 +205,8 @@ function abrirEditor(l) {
   // colección es. Antes la ventana solo decía el nombre en un título, y
   // con dos impresiones de la misma carta en la colección no había forma
   // de saber cuál estabas tocando hasta guardar.
-  const img = c?.image_path ? cardImageUrl(c.image_path, 'low') : null
-  $('mcEdFoto').innerHTML = img
-    ? `<img src="${escapeHtml(img)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />`
-    : ''
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  $('mcEdFoto').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''
   $('mcEditorTitulo').textContent = nombreDe(c)
   $('mcEdSet').textContent = c ? `${c.tcg_sets?.name || ''} · ${c.local_id}` : l.card_id
   $('mcEdIdioma').innerHTML = opciones(IDIOMAS, l.idioma)
@@ -341,11 +342,11 @@ async function abrirAlbum(setId) {
 // `<a>` no es HTML válido y el navegador lo desmonta por su cuenta.
 function bolsilloHtml(c) {
   const n = tengoDe(c.id)
-  const img = c.image_path ? cardImageUrl(c.image_path, 'low') : null
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
   const etiqueta = `${nombre} (${c.local_id})${n ? `, tienes ${n}` : ', te falta'}`
   const dentro = `
-    ${img ? `<img src="${escapeHtml(img)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />` : ''}
+    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
   if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}</div>`
@@ -463,9 +464,9 @@ async function buscar() {
   $('mcAnadirResultados').innerHTML = lista.length
     ? lista
         .map((c) => {
-          const img = c.image_path ? cardImageUrl(c.image_path, 'low') : null
+          const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
           return `<button type="button" class="mc-resultado" data-carta="${escapeHtml(c.id)}">
-            ${img ? `<img src="${escapeHtml(img)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />` : ''}
+            ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
             <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
             <span class="mc-resultado-set">${escapeHtml(c.tcg_sets?.name || c.set_id)} · ${escapeHtml(c.local_id)}</span>
           </button>`
@@ -479,7 +480,8 @@ async function elegir(cardId) {
   const c = buscar.ultimas?.get(cardId)
   if (!c) return
   seleccion = c
-  $('mcAnadirElegida').innerHTML = `${c.image_path ? `<img src="${escapeHtml(cardImageUrl(c.image_path, 'low'))}" alt="" width="245" height="342" loading="lazy" />` : ''}
+  const escaneoElegida = atributosDeEscaneo(cadenaDeEscaneo(c))
+  $('mcAnadirElegida').innerHTML = `${escaneoElegida ? `<img ${escaneoElegida} alt="" width="245" height="342" loading="lazy" />` : ''}
     <div><strong>${escapeHtml(nombreDe(c))}</strong><p class="subtext">${escapeHtml(c.tcg_sets?.name || '')} · ${escapeHtml(c.local_id)}</p><p class="subtext" id="mcAnadirPrecio">Buscando precio…</p></div>`
   $('mcAnadirForm').classList.remove('hidden')
   $('mcAnadirForm').scrollIntoView({ block: 'nearest', behavior: 'smooth' })

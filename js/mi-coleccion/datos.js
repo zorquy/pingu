@@ -70,7 +70,10 @@ export async function borrar(id) {
 }
 
 // ── Las cartas del espejo ──
-const COLUMNAS_CARTA = 'id,set_id,local_id,name,name_es,image_path,rarity,category,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path)'
+// `tcg_online_code` va aquí desde la tanda 370: es lo que necesita el
+// segundo sitio donde buscar un escaneo cuando TCGdex no tiene el de esa
+// carta (ver js/escaneo-carta.js).
+const COLUMNAS_CARTA = 'id,set_id,local_id,name,name_es,image_path,rarity,category,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
 
 export async function cartasPorIds(ids) {
   const unicos = [...new Set(ids.filter(Boolean))]
@@ -86,7 +89,7 @@ export async function cartasPorIds(ids) {
 export async function cartasDeSet(setId) {
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,set_id,local_id,name,name_es,image_path,rarity')
+    .select('id,set_id,local_id,name,name_es,image_path,rarity,tcg_sets(tcg_online_code)')
     .eq('market', 'WEST')
     .eq('set_id', setId)
     .limit(1000)

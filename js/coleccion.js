@@ -36,6 +36,10 @@ const POR_PAGINA = 500
 const $ = (id) => document.getElementById(id)
 
 let setId = null
+// El código de TCG Live del set, que es lo que necesita el segundo sitio
+// donde buscar un escaneo (tanda 370). Aquí arriba porque lo resuelve
+// `cargar` y lo usa `pintar`, que son dos funciones distintas.
+let codigoDeSet = null
 let desde = 0
 
 // Todas las cartas que han llegado, en crudo. Hacen falta enteras porque
@@ -74,6 +78,7 @@ async function cargar() {
     if (suyo?.[0]) set = suyo[0]
   }
   setId = set.id
+  codigoDeSet = set.tcg_online_code || null
 
   // Y si se llegó por la vieja, la barra pasa a decir la buena sin
   // recargar: una sola dirección para una sola página.
@@ -193,7 +198,10 @@ function pintar() {
   const texto = normalizeSearch($('filtroNombre')?.value || '').trim()
   const tipo = $('filtroTipo')?.value || ''
   const vistas = todas.filter((c) => cumple(c, texto, tipo))
-  rejilla.innerHTML = rejillaDeCartas(vistas)
+  // El código de TCG Live del set, para el segundo sitio donde buscar un
+  // escaneo (tanda 370). Va una vez y no por carta: en esta página todas
+  // son del mismo set.
+  rejilla.innerHTML = rejillaDeCartas(vistas, codigoDeSet)
   const vacio = $('coleccionVacia')
   if (vacio) vacio.classList.toggle('hidden', vistas.length > 0 || !todas.length)
   const cuenta = $('coleccionCuenta')

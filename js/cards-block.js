@@ -1,6 +1,8 @@
 import { escapeHtml } from './app.js'
 import { cardsByIds, cardImageUrl, refCarta, parseRefCarta, MERCADO_POR_DEFECTO } from './tcgdex.js'
 import { rutaDeCarta } from './carta-ruta.js'
+// La cadena de escaneos, compartida con el catálogo (tanda 370).
+import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 
 // Una lista de cartas dentro de una guía.
 //
@@ -37,15 +39,25 @@ export function deckAttrValue(ids) {
 
 function cartaHtml(carta) {
   // El escaneo sale en el idioma del mercado de la carta.
-  const src = cardImageUrl(carta.image_path, 'low', carta.market)
+  // La cadena entera (tanda 370): nuestro espejo primero y, si TCGdex no
+  // tiene escaneo de esta carta —y de muchas viejas no lo tiene—, el de
+  // Limitless por código de TCG Live y número.
+  // El escaneo sale en el idioma del mercado de la carta, de ahí el
+  // montador propio; y si se agota la cadena, en vez de quitar la imagen
+  // se pone el NOMBRE, que en una guía es lo que hace falta leer.
+  const escaneo = atributosDeEscaneo(
+    cadenaDeEscaneo(carta, null, 'low', (ruta, calidad) => cardImageUrl(ruta, calidad, carta.market)),
+    "this.replaceWith(Object.assign(document.createElement('span'),{className:'deck-card-noimg',textContent:this.alt}))"
+  )
   const setName = carta.tcg_sets?.name || carta.set_id
   const pie = `${carta.name} · ${setName} #${carta.local_id}`
-  const img = src
-    ? // Ya no se reintenta en otro idioma: el catálogo es inglés y
-      // tiene escaneo de todas las cartas. Si aun así falta, se cambia
-      // la imagen por el nombre en texto para no dejar un hueco roto.
-      `<img src="${escapeHtml(src)}" alt="${escapeHtml(carta.name)}" loading="lazy"
-         onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{className:'deck-card-noimg',textContent:this.alt}))">`
+  // Aquí ponía que «el catálogo es inglés y tiene escaneo de todas las
+  // cartas». No lo tiene: es un catálogo comunitario y los sets viejos
+  // están a medias, y esa suposición es la que dejaba el hueco. Ahora se
+  // prueban los dos sitios y, solo si no contesta ninguno, se cambia la
+  // imagen por el nombre en texto para no dejar un hueco roto.
+  const img = escaneo
+    ? `<img ${escaneo} alt="${escapeHtml(carta.name)}" loading="lazy">`
     : `<span class="deck-card-noimg">${escapeHtml(carta.name)}</span>`
   // ── Y la carta lleva a su ficha (tanda 340) ──
   //

@@ -16,6 +16,10 @@ import { normalizarNombre, claveDeCarta } from './normalizar.js'
 // Las direcciones viven aparte para que quien solo quiera enlazar no se
 // lleve el molde —y con él, sus clases— por delante. Ver carta-ruta.js.
 import { rutaDeCarta, urlDeImagen, urlDeLogo } from './carta-ruta.js'
+// El segundo sitio donde buscar un escaneo (tanda 370). Módulo propio y
+// diminuto a propósito: esto lo importa también la función del borde.
+import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
+export { cadenaDeEscaneo, atributosDeEscaneo }
 // Las fichas engordadas en español traen los enums TRADUCIDOS, y todo
 // lo de aquí los compara en inglés. Se devuelven a su forma canónica al
 // pintar, para que las 2.811 ya guardadas se vean bien sin tener que
@@ -571,7 +575,18 @@ export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
   // Una sola vez, aquí: a partir de este punto los tipos, la fase y la
   // categoría están en inglés, que es lo que esperan todos los bloques.
   const carta = canonizarCarta(cartaCruda)
-  const img = urlDeImagen(carta.image_path, 'high')
+  // La cadena entera, no solo nuestro espejo (tanda 370): si TCGdex no
+  // tiene escaneo de esta carta —y de muchas viejas no lo tiene—, queda
+  // el de Limitless por código de TCG Live y número.
+  // Y si se agotan los dos sitios, en la ficha NO se quita la imagen: se
+  // pone el hueco de «Sin imagen», que es lo que había antes. Quitarla
+  // dejaría el `figure` sin nada y la columna se encogería de golpe —
+  // aquí la imagen ocupa media pantalla, no es una miniatura de una
+  // rejilla.
+  const escaneo = atributosDeEscaneo(
+    cadenaDeEscaneo(carta, set?.tcg_online_code, 'high'),
+    "this.replaceWith(Object.assign(document.createElement('div'),{className:'carta-scan-vacio',textContent:'Sin imagen'}))"
+  )
   const sub = subtituloDeCarta(carta)
   const alt = `Carta de ${nombreDeCarta(carta)}${set?.name ? ` (${set.name})` : ''}`
   return (
@@ -581,7 +596,7 @@ export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
     '</div>' +
     '<div class="carta-cuerpo">' +
     '<figure class="carta-scan">' +
-    (img
+    (escaneo
       // La imagen va dentro de su propia caja (tanda 368) y no suelta en
       // el `figure`: el giro en 3D y el brillo se le ponen a ESA caja,
       // que es solo la carta. Al `figure` no se le pueden poner, porque
@@ -592,7 +607,7 @@ export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
       // 600×825 son las medidas reales de la imagen de TCGdex. Van
       // puestas para que el hueco esté reservado antes de que llegue:
       // sin ellas la página pega un salto de 800 px al cargarse.
-      ? `<span class="carta-scan-holo"><img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}" width="600" height="825" loading="eager" decoding="async"></span>`
+      ? `<span class="carta-scan-holo"><img ${escaneo} alt="${escapeHtml(alt)}" width="600" height="825" loading="eager" decoding="async"></span>`
       : '<div class="carta-scan-vacio">Sin imagen</div>') +
     '</figure>' +
     '<div class="carta-datos">' +
@@ -653,17 +668,22 @@ export function mereceIndexarse(carta, play = null) {
 
 
 
+// La cadena de sitios donde buscar el escaneo de una carta vive en
+// `js/escaneo-carta.js` (tanda 370) y se reexporta aquí porque media web
+// la pedía desde este fichero. Por qué está allí y no aquí lo cuenta ese
+// fichero: esto pinta la ficha entera, y quien solo quiere una imagen no
+// puede arrastrarla.
 // Una carta dentro de la rejilla de su colección.
 //
 // El hueco va reservado con `width`+`height` (245×337 es la miniatura de
 // TCGdex): son 200 imágenes en una página, y sin las medidas la lista
 // entera baila mientras cargan.
-export function fichaDeRejilla(carta) {
-  const img = urlDeImagen(carta?.image_path, 'low')
+export function fichaDeRejilla(carta, codigoDeSet = null) {
+  const attrs = atributosDeEscaneo(cadenaDeEscaneo(carta, codigoDeSet))
   return (
     `<a class="coleccion-carta" href="${escapeHtml(rutaDeCarta(carta))}">` +
-    (img
-      ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(nombreDeCarta(carta))}" width="245" height="337" loading="lazy" decoding="async">`
+    (attrs
+      ? `<img ${attrs} alt="${escapeHtml(nombreDeCarta(carta))}" width="245" height="337" loading="lazy" decoding="async">`
       : '<span class="coleccion-carta-vacia"></span>') +
     `<span class="coleccion-carta-num">${escapeHtml(carta?.local_id || '')}</span>` +
     `<span class="coleccion-carta-nombre">${escapeHtml(nombreDeCarta(carta))}</span>` +
@@ -671,10 +691,13 @@ export function fichaDeRejilla(carta) {
   )
 }
 
-export function rejillaDeCartas(cartas) {
+// `codigoDeSet` es para la rejilla de UNA colección, donde el código se
+// sabe una vez y no viene en cada fila. En el buscador, que mezcla sets,
+// cada carta trae el suyo embebido.
+export function rejillaDeCartas(cartas, codigoDeSet = null) {
   const lista = Array.isArray(cartas) ? cartas : []
   if (!lista.length) return ''
-  return lista.map(fichaDeRejilla).join('')
+  return lista.map((c) => fichaDeRejilla(c, codigoDeSet)).join('')
 }
 
 // La cabecera de una colección: logo, nombre, serie, fecha y cuántas

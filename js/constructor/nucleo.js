@@ -412,7 +412,11 @@ export function textoTcgLive(entradas, codigoDeSet) {
 // motor de torneos lee el código de colección con [A-Z0-9]{2,6}, y las
 // promos de TCG Live llevan guion («PR-SV 92»): esa línea saldría como
 // «no se entiende». Van con el código de Limitless, que sí casa.
-export const PROMOS_SIN_GUION = { 'PR-SV': 'SVP', 'PR-SW': 'SP', 'PR-SM': 'SMP', 'PR-XY': 'XYP', 'PR-BLW': 'BWP', 'PR-ME': 'MEP' }
+// La tabla se mudó a js/escaneo-carta.js (tanda 370): la necesitaba
+// gente que no quiere estas 26 KB de reglas de mazo encima. Se reexporta
+// para no tocar a quien ya la pedía aquí.
+export { PROMOS_SIN_GUION } from '../escaneo-carta.js'
+import { PROMOS_SIN_GUION } from '../escaneo-carta.js'
 export function textoParaTorneo(entradas, codigoDeSet) {
   return textoTcgLive(entradas, codigoDeSet).replace(/ (PR-[A-Z]{2,3}) (\S+)$/gm, (m, codigo, numero) => ` ${PROMOS_SIN_GUION[codigo] || codigo.replace('-', '')} ${numero}`)
 }

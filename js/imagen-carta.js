@@ -36,14 +36,12 @@
 //   4. Y solo si no contesta NADIE, la de /assets/energias/, nuestra.
 //
 // Sin DOM y sin Supabase: se prueba en Node.
-import { letraDeEnergia, PROMOS_SIN_GUION } from './constructor/nucleo.js'
-
-const CDN_LIMITLESS = 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci'
-
-// Los códigos de promo de TCG Live llevan guion («PR-SV 92») y la CDN de
-// Limitless usa los suyos (SVP). Es LA tabla del constructor, importada:
-// una copia se separaría sin avisar (tanda 322).
-const PROMOS = PROMOS_SIN_GUION
+import { letraDeEnergia } from './constructor/nucleo.js'
+// La dirección de Limitless vive aparte desde la tanda 370: la usan
+// también el catálogo, la ficha de una carta y «Mi colección», y
+// traérsela de aquí les habría metido el constructor entero encima.
+export { imagenDeLimitless } from './escaneo-carta.js'
+import { imagenDeLimitless } from './escaneo-carta.js'
 
 // Las ocho letras de las básicas, que son las de los ficheros.
 export const LETRAS_DE_ENERGIA = ['G', 'R', 'W', 'L', 'P', 'F', 'D', 'M']
@@ -94,16 +92,6 @@ export function cadenaDeEnergia(letra) {
     imagenDeLimitless('MEE', String(1 + i)),
     imagenDeEnergiaLocal(letra),
   ]
-}
-
-// La CDN de Limitless: /tpci/TWM/TWM_130_R_EN_SM.png. El número va con
-// tres cifras si es numérico; los de letras («TG12») tal cual.
-export function imagenDeLimitless(set, numero, tamanio = 'SM') {
-  const s = PROMOS[String(set || '').toUpperCase()] || String(set || '').toUpperCase()
-  const n = String(numero ?? '').trim()
-  if (!/^[A-Z0-9]{2,6}$/.test(s) || !/^[A-Za-z0-9]{1,6}$/.test(n)) return null
-  const num = /^\d+$/.test(n) ? n.padStart(3, '0') : n
-  return `${CDN_LIMITLESS}/${s}/${s}_${num}_R_EN_${tamanio}.png`
 }
 
 // La cadena entera para una línea de lista ({ name, set, number }) y lo

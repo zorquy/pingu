@@ -12,6 +12,79 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-30 — PINGU-Claude (tanda 370 — las cartas que no salían con imagen)
+
+**Hecho**: PINGU: «hay cartas antiguas que no salen y hay cartas del 30
+aniversario que no tienen imágenes, sobre todo la Classic Collection; un
+montón de cartas de la era de Sol y Luna que tampoco».
+
+**No era nuestro ni del idioma.** `image_path` sale del listado de
+TCGdex, que se pide en INGLÉS, y TCGdex sencillamente **no tiene escaneo
+de esas cartas**: es un catálogo comunitario y los sets viejos están a
+medias. En `js/cards-block.js` había escrito, negro sobre blanco, «el
+catálogo es inglés y tiene escaneo de todas las cartas». Esa suposición
+es lo que dejaba el hueco.
+
+El segundo sitio es la **CDN de Limitless**, que va por CÓDIGO DE TCG
+LIVE y número, o sea que no depende de que TCGdex conozca la carta. La
+cadena ya existía para las decklists (tanda 366 de IBAI); lo que hace
+esta tanda es llevarla a donde se mira: el catálogo, la ficha de una
+carta, «Mi colección», los álbumes y las cartas dentro de una guía.
+
+**Dos cosas que NO hace**, y las dos a propósito:
+
+- **No pide a Limitless lo que ya tenemos.** Es el respaldo, no el primer
+  sitio: cargarle trabajo a un tercero por gusto no.
+- **No pone arte inglés en una carta japonesa.** Los ficheros de
+  Limitless son `_R_EN_`. En una guía sobre cartas japonesas, enseñar la
+  impresión inglesa estaría contando otra cosa: ahí la cadena se queda
+  sin segundo sitio y punto.
+
+**La lección de la 299, DOS veces en la misma tanda.** El barrido sigue
+los IMPORTS, no las llamadas:
+
+1. La tabla de promos vivía en `js/constructor/nucleo.js` — 26 KB de
+   reglas de legalidad de mazos. Traérsela desde el catálogo se los
+   llevaba puestos a /cartas y a /coleccion para montar una dirección.
+2. Y la cadena vivió un rato en `js/carta-nucleo.js`, que pinta la ficha
+   entera. En cuanto `cards-block.js` la importó de ahí, **/foro y el
+   editor de guías «usaron» las clases de la ficha sin pintarlas nunca**
+   y sin cargar su hoja. Lo cazó `test-tanda-299` a la primera.
+
+De ahí `js/escaneo-carta.js`: lo que usa medio sitio tiene que vivir en
+algo que no arrastre medio sitio.
+
+**Y un efecto secundario que cazó `test-tanda-324`**: al ponerle a la
+imagen un `onerror` que recorre la cadena, cuando la cadena se agota la
+imagen SE QUITA. En una miniatura está bien (la caja ya tiene su estilo);
+en la ficha dejaba el `figure` vacío y la columna se encogía de golpe. Ahí
+el final de la cadena es el hueco de «Sin imagen», que es lo que había.
+
+**Ficheros**: `js/escaneo-carta.js` (**nuevo**), `js/carta-nucleo.js`,
+`js/cards-block.js`, `js/coleccion.js`, `js/cartas.js`, `js/tcgdex.js`,
+`js/imagen-carta.js`, `js/constructor/nucleo.js`, `js/mi-coleccion.js`,
+`js/mi-coleccion/albumes.js`, `js/mi-coleccion/datos.js`, `SCHEMA.md`. En
+`pruebas`: `test-tanda-370.mjs` (**nuevo**) y `test-tanda-324.mjs`.
+
+**Suite completa: 115 verdes y una roja**, que sigue siendo
+`test-tanda-331` de la 365 de IBAI (el precio de Cardmarket pide la carta
+también en inglés). Las 324 y 334 se han puesto al día: las dos MIDEN la
+imagen de la ficha, y **ninguna de las dos había cargado nunca una de
+verdad** —este entorno no alcanza la CDN—, así que se fiaban de que una
+imagen rota siguiera en el DOM. Ahora se la sirven ellas.
+
+**En curso / pendiente**:
+
+- **PENDIENTE PARA PINGU**: pasar el SQL que le di (cuántas cartas sin
+  imagen por set, y si ese set tiene código de TCG Live). Hace falta para
+  saber si la **Classic Collection** se arregla con esto: si ese set no
+  tiene `tcg_online_code`, el respaldo no puede saltar y habría que
+  curárselo.
+- Sigue sin empezar: **el precio cuando no hay en el idioma que toca**.
+- Y sigue roja `test-tanda-331`, que es de la 365 de IBAI.
+
+---
+
 ## 2026-09-30 — PINGU-Claude (tanda 369 — el archivador que se estiraba, el logo en la lista y la ventana de editar)
 
 **Hecho**: tres cosas que pidió PINGU sobre «Mi colección».

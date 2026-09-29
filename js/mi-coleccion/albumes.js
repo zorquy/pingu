@@ -11,8 +11,11 @@
 import { supabase } from '../supabase.js'
 import { escapeHtml } from '../html.js'
 import { showToast } from '../toast.js'
-import { cardImageUrl, normalizeSearch } from '../tcgdex.js'
+import { normalizeSearch } from '../tcgdex.js'
 import { rutaDeCarta } from '../carta-ruta.js'
+// El escaneo con su respaldo (tanda 370): sin él, una carta de la que
+// TCGdex no tiene imagen deja el bolsillo en blanco.
+import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { esDelTCG } from '../catalogo-series.js'
 import { euros, valorDe, precioDe, precioDeFila } from '../cardmarket.js'
 import * as datos from './datos.js'
@@ -75,12 +78,12 @@ const esMio = () => Boolean(actual && ctx.sesion && actual.user_id === ctx.sesio
 function tarjetaHtml(a) {
   const ids = (a.cartas || []).map((c) => c.id)
   const portada = ctx.cartas.get(ids[0]) || cartasDelAlbum.get(ids[0])
-  const img = portada?.image_path ? cardImageUrl(portada.image_path, 'low') : null
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(portada))
   const mias = ids.filter((id) => tengo(id)).length
   const pct = ids.length ? Math.round((mias / ids.length) * 100) : 0
   return `
     <button type="button" class="mc-album-tarjeta" data-album="${escapeHtml(a.id)}">
-      <span class="mc-album-portada">${img ? `<img src="${escapeHtml(img)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />` : ''}</span>
+      <span class="mc-album-portada">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
       <span class="mc-album-info">
         <strong>${escapeHtml(a.nombre)}</strong>
         <span class="mc-album-cuenta">${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'} · tienes ${mias} (${pct} %)</span>
@@ -182,10 +185,10 @@ function bolsilloHtml(item, indice) {
   const c = cartaDe(item.id)
   const mia = ctx.sesion && actual.user_id === ctx.sesion.user.id && tengo(item.id)
   const marcar = esMio()
-  const img = c?.image_path ? cardImageUrl(c.image_path, 'low') : null
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const clase = `mc-bolsillo${!marcar || mia ? ' tengo' : ''}`
   const dentro = `
-    ${img ? `<img src="${escapeHtml(img)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />` : ''}
+    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c?.local_id || '?')}</span>
     ${marcar && mia ? '<span class="mc-tengo-marca" title="La tienes">✓</span>' : ''}`
   if (editando) {
@@ -304,9 +307,9 @@ async function buscar() {
   $('mcAlbResultados').innerHTML = lista.length
     ? lista
         .map((c) => {
-          const img = c.image_path ? cardImageUrl(c.image_path, 'low') : null
+          const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
           return `<button type="button" class="mc-resultado" data-carta="${escapeHtml(c.id)}" title="Añadir al álbum">
-            ${img ? `<img src="${escapeHtml(img)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />` : ''}
+            ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
             <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}${tengo(c.id) ? ' <span class="mc-chip">La tienes</span>' : ''}</span>
             <span class="mc-resultado-set">${escapeHtml(c.tcg_sets?.name || c.set_id)} · ${escapeHtml(c.local_id)}</span>
           </button>`

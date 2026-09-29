@@ -384,7 +384,10 @@ export async function cardsByIds(refs) {
         // guía enlazarían a la dirección inglesa mientras la ficha vive
         // en la española. Resolver, resuelven las dos —el identificador
         // va al final— pero serían dos direcciones para una página.
-        .select('id, market, set_id, local_id, name, name_es, image_path, tcg_sets(name)')
+        // Y `tcg_online_code` desde la tanda 370: es lo que necesita el
+        // segundo sitio donde buscar un escaneo cuando TCGdex no tiene
+        // el de esa carta (ver js/escaneo-carta.js).
+        .select('id, market, set_id, local_id, name, name_es, image_path, tcg_sets(name, tcg_online_code)')
         .eq('market', market)
         .in('id', ids)
     )

@@ -19654,3 +19654,94 @@ dentro, y eso tiene que verse antes de pulsar.
 BOLSILLO con una hoja y con dos, que tiene que ser el mismo —es el
 síntoma exacto de lo que se rompía—, y que la ventana de editar cambia de
 carta al abrir otra línea, que es el fallo que arregla.
+
+---
+
+## Tanda 370 — las cartas que no salían con imagen (sept. 2026)
+
+### El catálogo NO tiene escaneo de todas las cartas
+
+PINGU: «hay cartas antiguas que no salen y hay cartas del 30 aniversario
+que no tienen imágenes, sobre todo la Classic Collection; un montón de
+cartas de la era de Sol y Luna que tampoco».
+
+`image_path` sale de `cardToRow`, que lo saca del `image` del listado de
+un set de TCGdex. Ese listado se pide en INGLÉS (`MERCADOS.WEST = 'en'`),
+así que no era cosa del idioma: **TCGdex sencillamente no tiene esas
+imágenes**. Es un catálogo comunitario y los sets viejos están a medias.
+
+Lo que convierte esto en un fallo de los que duran meses es que la
+suposición contraria estaba ESCRITA. En `js/cards-block.js`, palabra por
+palabra: «el catálogo es inglés y tiene escaneo de todas las cartas». Un
+comentario que afirma algo falso es peor que no tener comentario: el
+siguiente que pasa por ahí no vuelve a comprobarlo.
+
+### El segundo sitio va por una clave DISTINTA
+
+La CDN de Limitless sirve por **código de TCG Live + número**
+(`/tpci/SUM/SUM_007_R_EN_SM.png`), no por identificador de TCGdex. Eso es
+justo lo que la hace útil como respaldo: **no depende de que TCGdex
+conozca la carta**. Si dos fuentes fallan por lo mismo no son dos
+fuentes — es la lección de la 321 (un respaldo que vive en el mismo sitio
+no es un respaldo).
+
+La cadena ya existía para las decklists desde la 366. Esta tanda la lleva
+a donde se mira: el catálogo, la ficha, «Mi colección», los álbumes y las
+cartas de una guía.
+
+Dos límites, los dos a propósito:
+
+- **Limitless no es el primer sitio.** Si el escaneo está en nuestro
+  espejo, no se le pide nada a nadie: cargarle trabajo a un tercero por
+  gusto, no.
+- **Solo para las occidentales.** Sus ficheros son el arte inglés
+  (`_R_EN_`). En una guía sobre cartas japonesas, enseñar la impresión
+  inglesa estaría contando otra cosa, así que ahí la cadena se queda sin
+  segundo sitio.
+
+Y si no hay ninguno de los dos, **no se inventa una dirección**: una
+inventada es un 404 para todo el mundo.
+
+### La lección de la 299, dos veces en la misma tanda
+
+El barrido sigue los IMPORTS, no las llamadas. Las dos veces el síntoma
+fue el mismo: una página «usa» algo por importar el módulo que lo pinta,
+aunque no lo pinte nunca.
+
+1. La tabla de promos (seis líneas) vivía en `js/constructor/nucleo.js`,
+   que son **26 KB de reglas de legalidad de mazos**. Importarla desde el
+   catálogo se los llevaba puestos a /cartas y a /coleccion.
+2. Y la cadena vivió un rato en `js/carta-nucleo.js`, que pinta la ficha
+   entera. En cuanto `cards-block.js` la importó de ahí, **/foro y el
+   editor de guías quedaron señalados por usar las clases de la ficha**
+   sin cargar su hoja. Lo cazó `test-tanda-299` en la primera pasada.
+
+De ahí `js/escaneo-carta.js`, que no tiene más dependencia que
+`carta-ruta.js`. La regla, dicha corta: **lo que usa medio sitio tiene
+que vivir en algo que no arrastre medio sitio.**
+
+### Un `onerror` cambia lo que pasa cuando NO hay imagen
+
+Al ponerle a la imagen un manejador que recorre la cadena, hay que decir
+qué pasa al agotarla. Por defecto la imagen se QUITA, que es lo correcto
+en una miniatura: la caja ya tiene su estilo y es mejor que el icono roto
+del navegador.
+
+En la ficha de una carta no: ahí la imagen ocupa media pantalla y
+quitarla dejaba el `figure` vacío y la columna encogiéndose de golpe. El
+final de la cadena es el hueco de «Sin imagen», que es lo que había
+antes. En las cartas de una guía, el NOMBRE en texto, que es lo que hacía
+antes también.
+
+Lo cazó `test-tanda-324`, que pulsa el escaneo para abrir el visor: sin
+imagen en el DOM, no había nada que pulsar. Y de paso enseñó que esa
+prueba **nunca había cargado una imagen de verdad** —este entorno no
+alcanza la CDN—, así que ahora se la sirve ella.
+
+### Comprobado
+
+`test-tanda-370.mjs` (25). Lo que se mide y no se supone: con el espejo
+devolviendo 404 y Limitless contestando, que las seis cartas salgan con
+imagen en el catálogo, en el álbum y en la ficha; y al revés, que con el
+espejo bueno **no se le pida NADA a Limitless**. Más el caso de un set
+sin código de TCG Live, donde lo correcto es no pintar nada.
