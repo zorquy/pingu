@@ -72,29 +72,43 @@ console.log('\n── 1. El titular dice a qué se juega aquí ──')
 console.log('\n── 2. El torneo ocupa el sitio caro ──')
 {
   const { page, errores } = await abrir()
-  const enHoy = await page.locator('#portadaHoy #torneoPortadaSeccion').count()
+  // La tanda 368 se llevó la fila de «hoy» (medía lo que medía su caja
+  // más alta y dejaba 250 px de hueco debajo del torneo). Lo que esta
+  // tanda defendía sigue igual y por eso la comprobación se queda, dicha
+  // contra lo que hay ahora: el torneo ABRE la columna ancha —por
+  // delante de la guía destacada— y el reto se queda en la lateral.
+  const enHoy = await page.evaluate(() => {
+    const t = document.getElementById('torneoPortadaSeccion')
+    const d = document.getElementById('destacadaSeccion')
+    if (!t || !d || !t.closest('.portada-principal')) return 0
+    return t.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING ? 1 : 0
+  })
   const enLateral = await page.locator('.portada-lateral #retoSeccion').count()
-  check('el torneo está en la fila de arriba', enHoy === 1)
+  check('el torneo abre la columna ancha', enHoy === 1)
   check('y el reto en la lateral', enLateral === 1)
   // Lo que cazó el fallo: las reglas del estirón estaban escritas con el
-  // id del reto, así que al cambiarlos la caja se encogió.
+  // id del reto, así que al cambiarlos la caja se encogió. Desde la 368
+  // no hay fila y se mide contra la COLUMNA, que es lo que ahora tiene
+  // que llenar — la pregunta es la misma: que la caja de arriba no salga
+  // a media anchura con un claro al lado.
   const [fila, caja, panel] = await page.evaluate(() => [
-    document.getElementById('portadaHoy').getBoundingClientRect().width,
-    document.querySelector('#portadaHoy > section:not(.seccion-recogida) > *').getBoundingClientRect().width,
+    document.querySelector('.portada-principal').getBoundingClientRect().width,
+    document.querySelector('.portada-principal > section:not(.seccion-recogida) > *').getBoundingClientRect().width,
     document.querySelector('.foro-vivo')?.getBoundingClientRect().right ?? null,
   ])
-  check('la caja se estira en su fila', caja > fila * 0.9, `${Math.round(caja)} de ${Math.round(fila)}`)
+  check('la caja se estira en su columna', caja > fila * 0.9, `${Math.round(caja)} de ${Math.round(fila)}`)
   // Con `> 0`: en este fixture el foro está vacío y su caja mide cero, y
   // comparar contra un cero es comparar contra nada.
   if (panel > 0) {
     const dcho = await page.evaluate(() =>
-      document.querySelector('#portadaHoy > section:not(.seccion-recogida) > *').getBoundingClientRect().right)
-    check('…y cuadra con el panel de abajo', Math.abs(dcho - panel) <= 2, `${Math.round(dcho)} vs ${Math.round(panel)}`)
+      document.querySelector('.portada-principal > section:not(.seccion-recogida) > *').getBoundingClientRect().right)
+    check('…y cuadra con lo de abajo', Math.abs(dcho - panel) <= 2, `${Math.round(dcho)} vs ${Math.round(panel)}`)
   }
-  // Y las reglas van por posición: quien ocupe la fila mañana las hereda.
+  // Y las reglas van por POSICIÓN, no por el id de quien las ocupa: quien
+  // se ponga ahí mañana las hereda sin que nadie se acuerde. Era la
+  // lección de esta tanda y sigue valiendo con la fila quitada (368).
   const css = leer('css/portada.css').replace(/\/\*[\s\S]*?\*\//g, '')
-  check('el estirón va por posición y no por el id del reto',
-    /\.portada-hoy > section\b/.test(css) && !/\.portada-hoy #retoSeccion/.test(css))
+  check('las reglas no llevan el id del reto', !/#retoSeccion/.test(css), (css.match(/[^\n]*#retoSeccion[^\n]*/) || [])[0])
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }

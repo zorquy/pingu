@@ -79,7 +79,6 @@ const columnaDe = (page, id) =>
     if (!e) return 'no está'
     if (e.closest('.portada-lateral')) return 'lateral'
     if (e.closest('.portada-principal')) return 'principal'
-    if (e.closest('.portada-hoy')) return 'hoy'
     return 'suelto'
   }, id)
 
@@ -91,8 +90,13 @@ console.log('\n── 1. El reparto: lo que pasa, y lo tuyo ──')
     // Cambiados en la tanda 362: el torneo es lo que más se usa de la
     // web y estaba en la lateral; el reto lleva 103 partidas en toda la
     // historia y abría la portada.
-    ['torneoPortadaSeccion', 'hoy'],
-    ['noticiaPortadaSeccion', 'hoy'],
+    // Y en la 368 dejan de tener fila propia: esa fila medía lo que
+    // medía su caja más alta y dejaba 250 px de hueco debajo del torneo,
+    // así que cada uno se fue a la columna que le tocaba. Lo que este
+    // reparto dice no cambia — el torneo en lo ancho, la noticia en la
+    // lateral—, solo deja de haber un tercer sitio donde caer.
+    ['torneoPortadaSeccion', 'principal'],
+    ['noticiaPortadaSeccion', 'lateral'],
     ['foroVivoSeccion', 'principal'],
     ['recientesSeccion', 'principal'],
     ['temasSeccion', 'principal'],
@@ -106,18 +110,21 @@ console.log('\n── 1. El reparto: lo que pasa, y lo tuyo ──')
   // Los dos atajos se van: con el foro ya en pantalla y la comunidad en
   // la lateral, no les quedaba trabajo.
   check('los atajos ya no están', (await page.locator('#atajosSeccion').count()) === 0)
-  // Y la fila de «hoy» cuadra con el panel: si cada una llevara su
-  // reparto, la portada se vería partida por la mitad.
-  // Se mide LO QUE HAY en la fila, sin nombrarlo: lo que se comprueba es
-  // que la fila de arriba y el panel de abajo cuadren, y eso tiene que
-  // seguir siendo cierto con el reto, con el torneo o con lo que se
-  // ponga mañana (tanda 362).
+  // Y lo de «hoy» cuadra con el resto de su columna: si no, la portada se
+  // ve partida por la mitad.
+  //
+  // Se mide LO QUE HAY arriba, sin nombrarlo: tiene que seguir siendo
+  // cierto con el reto, con el torneo o con lo que se ponga mañana
+  // (tanda 362). Hasta la 368 eso vivía en una fila propia y se comparaba
+  // fila contra panel; desde que cada caja está en su columna, se compara
+  // la primera caja de la columna ancha contra otra de más abajo — que es
+  // la misma pregunta con la fila quitada de en medio.
   const bordes = await page.evaluate(() => {
-    const caja = document.querySelector('#portadaHoy > section:not(.seccion-recogida) > *')
+    const caja = document.querySelector('.portada-principal > section:not(.seccion-recogida) > *')
     const b = document.querySelector('.foro-vivo').getBoundingClientRect().right
     return [Math.round(caja.getBoundingClientRect().right), Math.round(b)]
   })
-  check('la fila de hoy cuadra con el panel de abajo', Math.abs(bordes[0] - bordes[1]) <= 2, bordes.join(' vs '))
+  check('lo de arriba cuadra con lo de abajo', Math.abs(bordes[0] - bordes[1]) <= 2, bordes.join(' vs '))
   await page.close()
 }
 
@@ -270,12 +277,18 @@ console.log('\n── 7. Sin noticia, el reto se lleva la fila ──')
   check('la sección sin noticia se recoge', !(await page.locator('#noticiaPortadaSeccion').isVisible()))
   check('  …y queda marcada para el CSS',
     await page.locator('#noticiaPortadaSeccion').evaluate((e) => e.classList.contains('seccion-recogida')))
-  const [fila, heroe] = await page.evaluate(() => [
-    document.getElementById('portadaHoy').getBoundingClientRect().width,
-    // Quien ocupe la fila, sin nombrarlo (tanda 362).
-    document.querySelector('#portadaHoy > section:not(.seccion-recogida) > *').getBoundingClientRect().width,
-  ])
-  check('  …y lo que queda se lleva la fila entera', heroe > fila * 0.9, `${Math.round(heroe)} de ${Math.round(fila)}`)
+  // Y no deja un claro donde estaba. Hasta la tanda 368 lo que se medía
+  // era que el compañero de FILA se la llevara entera; sin fila, lo que
+  // hay que exigir es que la recogida no ocupe sitio — misma pregunta,
+  // sin la fila de por medio.
+  //
+  // Se MIDE y no se mira el `display`: un hueco lo puede dejar también un
+  // margen o el `gap` de una caja vacía.
+  const alto = await page.evaluate(() => {
+    const n = document.getElementById('noticiaPortadaSeccion')
+    return n ? n.getBoundingClientRect().height : -1
+  })
+  check('  …y no deja un claro donde estaba', alto === 0, `alto ${Math.round(alto)}`)
   await page.close()
 }
 

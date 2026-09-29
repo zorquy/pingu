@@ -16,6 +16,8 @@ const T = {
   tournaments: [],
   tournament_registrations: [],
   tournament_join_codes: [],
+  user_collection: [],
+  user_albums: [],
   tournament_decklists: [],
   rounds: [],
   tournament_matches: [],
@@ -167,6 +169,24 @@ sembrar('__FAKE_TORNEOS__', 'tournaments', (i) => ({
   cancel_notified_at: null,
   reminder_notified_at: null,
   delete_after_notice_at: null,
+}))
+
+// Mi colección (tanda 365) y los álbumes a mano (366).
+sembrar('__FAKE_COLECCION__', 'user_collection', (i) => ({
+  id: `col-${i + 1}`,
+  user_id: 'admin-1',
+  card_id: `set1-${i + 1}`,
+  market: 'WEST',
+  idioma: 'es',
+  estado: 'NM',
+  variante: 'normal',
+  cantidad: 1,
+  gradeo: null,
+  valor_manual: null,
+  precio_compra: null,
+  notas: null,
+  created_at: new Date(Date.now() - i * 60000).toISOString(),
+  updated_at: new Date().toISOString(),
 }))
 
 // El código de entrada de un torneo (tanda 367). Vive en su propia tabla

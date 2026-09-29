@@ -353,8 +353,6 @@ console.log('\n── 5. F · El reto abre la portada, en grande ──')
 {
   const { page, errores } = await abrir('/index.html')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  const fila = page.locator('#portadaHoy')
-  check('hay fila de «hoy»', await fila.isVisible())
   const heroe = page.locator('.reto-hoy')
   check('  …con el héroe del reto', await heroe.isVisible())
   check('  …y la noticia al lado', await page.locator('.noticia-banner').isVisible())
@@ -362,13 +360,27 @@ console.log('\n── 5. F · El reto abre la portada, en grande ──')
   // que era antes (84px de esqueleto).
   const alto = await heroe.evaluate((e) => e.getBoundingClientRect().height)
   check('  …y es de verdad grande', alto > 150, `${Math.round(alto)}px`)
-  // Y ARRIBA: por encima del panel de dos columnas.
+  // Y ARRIBA DEL TODO en su columna. Hasta la tanda 368 esto se
+  // comprobaba contra `#portadaHoy`, una fila propia por encima del
+  // panel; esa fila se fue porque medía lo que medía su caja más alta y
+  // dejaba 250 px de hueco debajo del torneo. Lo que importa sigue
+  // siendo lo mismo y por eso la comprobación se queda: lo que abre la
+  // portada tiene que estar por delante de la guía destacada, no
+  // enterrado debajo.
   const arriba = await page.evaluate(() => {
-    const h = document.getElementById('portadaHoy')
-    const p = document.getElementById('panelPortada')
-    return h && p ? h.getBoundingClientRect().top < p.getBoundingClientRect().top : false
+    const t = document.getElementById('torneoPortadaSeccion')
+    const n = document.getElementById('noticiaPortadaSeccion')
+    const d = document.getElementById('destacadaSeccion')
+    const reto = document.getElementById('retoSeccion')
+    if (!t || !n || !d || !reto) return false
+    // El torneo, antes que la guía destacada en la columna ancha; la
+    // noticia, antes que el reto en la lateral.
+    return (
+      t.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING &&
+      n.compareDocumentPosition(reto) & Node.DOCUMENT_POSITION_FOLLOWING
+    )
   })
-  check('  …por encima del panel', arriba)
+  check('  …y lo de «hoy» abre cada columna', Boolean(arriba))
   // Los cinco puntos: sin jugar, los cinco vacíos.
   const puntos = page.locator('.reto-punto')
   check('salen los cinco puntos', (await puntos.count()) === 5, String(await puntos.count()))
@@ -406,24 +418,20 @@ console.log('\n── 7. F · Sin cuenta, y sin noticia ──')
   // si no, media portada en blanco.
   const { page } = await abrir('/index.html', { noticias: [] })
   check('sin noticia, la sección se recoge', !(await page.locator('#noticiaPortadaSeccion').isVisible()))
-  // Sin nombrar a quien la ocupa: desde la 362 la fila la llevan el
-  // torneo y la noticia, antes el reto y la noticia. Lo que se comprueba
-  // es la FILA — que quien quede se la lleve entera en vez de dejar 320
-  // px en blanco.
+  // Y que al recogerse NO deje un claro. Hasta la tanda 368 esto era una
+  // fila de dos columnas y lo que se comprobaba era que quien quedase se
+  // la llevara entera; desde la 368 no hay fila —cada caja vive en su
+  // columna—, así que lo que se exige es lo mismo dicho de la otra
+  // manera: una sección recogida no ocupa sitio.
   //
-  // Y con el caso de que no quede NADIE, que en este fixture es lo que
-  // pasa (sin noticia y sin torneo): entonces lo que hay que exigir es
-  // que la fila no ocupe sitio, no que alguien la llene.
-  const anchos = await page.evaluate(() => {
-    const f = document.getElementById('portadaHoy')
-    const h = document.querySelector('#portadaHoy > section:not(.seccion-recogida) > *')
-    return [f.getBoundingClientRect().width, h ? h.getBoundingClientRect().width : null, f.getBoundingClientRect().height]
+  // No vale mirar solo `display: none`: el fallo que esto vigila es el
+  // HUECO, y un hueco lo puede dejar también un margen o un `gap` de una
+  // caja vacía. Se mide.
+  const alto = await page.evaluate(() => {
+    const n = document.getElementById('noticiaPortadaSeccion')
+    return n ? n.getBoundingClientRect().height : -1
   })
-  check(
-    anchos[1] == null ? '  …y la fila vacía no deja un claro' : '  …y lo que queda se lleva la fila',
-    anchos[1] == null ? anchos[2] < 8 : anchos[1] > anchos[0] * 0.9,
-    anchos[1] == null ? `alto ${Math.round(anchos[2])}` : `${Math.round(anchos[1])} de ${Math.round(anchos[0])}`
-  )
+  check('  …y no deja un claro donde estaba', alto === 0, `alto ${Math.round(alto)}`)
   await page.close()
 }
 
