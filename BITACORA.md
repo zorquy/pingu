@@ -12,6 +12,57 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-30 — PINGU-Claude (tanda 369 — el archivador que se estiraba, el logo en la lista y la ventana de editar)
+
+**Hecho**: tres cosas que pidió PINGU sobre «Mi colección».
+
+**1. Los álbumes soñados NO eran otro diseño: eran el mismo estirado.**
+`.mc-archivador` iba con `auto-fit`, y con **una sola hoja** esa hoja se
+lleva todas las pistas y ocupa el ancho entero — los bolsillos salían al
+doble de tamaño. En el álbum de un set casi siempre hay dos hojas y por
+eso ahí nunca cantó; en los soñados, que tienen pocas cartas, pasaba
+siempre. Ahora son dos columnas FIJAS en pantalla ancha y, si solo hay
+una hoja, la otra cara va vacía en punteado — un archivador abierto tiene
+dos caras. Es pariente de la lección de la 316: `auto-fit` decide por su
+cuenta cuántas pistas hay, y eso está bien para una rejilla de tarjetas y
+mal para algo que tiene que medir SIEMPRE lo mismo.
+
+**2. El logo de Cardmarket, también en la lista.** Y de paso las dos
+acciones de una carta dejan de ser dos enlaces de texto idénticos: una te
+SACA de la web y la otra abre una ventana aquí dentro, así que ahora cada
+una lleva delante lo que es.
+
+**Esto obligó a sacar el CSS a `css/cardmarket.css`.** Estaba en
+`carta.css`, y /mi-coleccion no la carga: el logo habría salido sin
+estilo. Es la trampa de la 299 por segunda vez en dos tandas — la primera
+me obligó a separar el DIBUJO (`js/cardmarket-marca.js`), esta a separar
+su HOJA. La regla que queda escrita en la prueba no nombra páginas: quien
+importe el dibujo tiene que cargar la hoja.
+
+**3. La ventana de editar enseña la carta.** Ya era un `<dialog>`; lo que
+le faltaba era decir de QUÉ carta hablas. Con dos impresiones de la misma
+carta en la colección, la ventana decía el nombre y nada más y no había
+forma de saber cuál estabas tocando hasta guardar. Ahora lleva el
+escaneo, el nombre, la colección, el precio y el enlace a Cardmarket con
+los filtros de esa línea.
+
+**Ficheros**: `css/cardmarket.css` (**nuevo**), `css/carta.css`,
+`css/mi-coleccion.css`, `js/mi-coleccion.js`, `js/mi-coleccion/albumes.js`,
+`mi-coleccion.html`, `carta.html`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-369.mjs` (**nuevo**) y la 368, cuya comprobación de «no la
+arrastra quien no la dibuja» ya no valía —ahora /mi-coleccion la dibuja a
+propósito— y pasa a exigir que quien la dibuje cargue la hoja.
+
+**En curso / pendiente**: lo que sigue sin empezar de la lista de PINGU:
+
+- **El precio cuando no hay en el idioma que toca.**
+- **Cartas sin imagen**: Classic Collection del 30 aniversario y bastante
+  de la era Sol y Luna. Huele a `image_path` vacío en el catálogo, o sea
+  arreglo de DATOS y no de pantalla.
+- Y sigue roja `test-tanda-331`, que es de la 365 de IBAI.
+
+---
+
 ## 2026-09-30 — PINGU-Claude (tanda 368 — el hueco de la portada, el mando del álbum, la carta en 3D y Cardmarket con su logo)
 
 **Hecho**: cuatro cosas que pidió PINGU mirando la web en el PC.

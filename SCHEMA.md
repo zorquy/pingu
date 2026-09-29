@@ -19582,3 +19582,75 @@ no deje un claro). Lo que se mide y no se supone: el HUECO debajo del
 torneo en píxeles, el orden PINTADO en el móvil (no el del documento, que
 el `order` de flex no lo mueve), y el mando pulsándolo de verdad —`+`,
 `−`, y el `−` sobre dos copias, que baja a una en vez de borrar la línea.
+
+---
+
+## Tanda 369 — el archivador que se estiraba, el logo en la lista y la ventana de editar (sept. 2026)
+
+### `auto-fit` con UN hijo se lo come todo
+
+PINGU: «en álbumes está perfecto enseñado, pero en álbumes soñados
+debería ser igual […] se ve como una página, pero demasiado grande».
+
+No eran dos diseños: era el MISMO, estirado. `.mc-archivador` iba con
+`repeat(auto-fit, minmax(280px, 1fr))`. Con `auto-fit`, las pistas que
+sobran **se pliegan y su espacio se reparte entre las que tienen
+contenido** — o sea que con una sola hoja, esa hoja se lleva el ancho
+entero y sus nueve bolsillos salen al doble de tamaño.
+
+Lo que hace esto difícil de ver:
+
+- **El álbum de un set casi nunca tiene una sola hoja** (un set son 200
+  cartas), así que ahí siempre había dos y se veía bien.
+- **Un álbum soñado suele tener menos de nueve cartas**, o sea UNA hoja,
+  o sea siempre mal.
+
+Un mismo CSS, dos resultados, según un dato que no está en el CSS.
+
+La regla que queda: **`auto-fit` decide por su cuenta cuántas pistas
+hay**. Eso está bien para una rejilla de tarjetas, donde lo que importa
+es llenar la fila, y mal para algo que tiene que medir SIEMPRE lo mismo.
+Un archivador tiene el tamaño que tiene, lleve una hoja o cien. Ahora son
+dos columnas fijas por encima de 900 px, y si solo hay una hoja la otra
+cara va vacía en punteado: un archivador abierto tiene dos caras, y sin
+ella la página parecía cortada por la mitad.
+
+Es pariente de la lección de la 316 (`auto-fit` no pliega una pista que
+alguien cruza): las dos veces el problema es fiarle a `auto-fit` una
+decisión que no es suya.
+
+### La trampa de la 299, dos veces en dos tandas
+
+La 368 sacó el DIBUJO de la marca de Cardmarket a `js/cardmarket-marca.js`
+porque `js/cardmarket.js` lo importa medio catálogo y el barrido sigue los
+imports, no las llamadas.
+
+Esta saca su HOJA. El CSS del logo vivía en `css/carta.css`, y en cuanto
+la marca aparece también en la lista de «Mi colección» —que no carga esa
+hoja— el logo sale sin estilo. Nadie lo canta: no es un error, es un SVG
+sin colocar.
+
+Por eso `css/cardmarket.css`, y por eso la prueba no lo comprueba contra
+las dos páginas de hoy sino como regla: **quien importe el dibujo tiene
+que cargar la hoja**. Escrita contra la forma del fallo y no contra el
+caso, que es la lección de la 303.
+
+### Una ventana tiene que decir de qué habla
+
+El editor de una línea ya era un `<dialog>`; lo que le faltaba era la
+carta. Con dos impresiones de la misma carta en la colección —una
+española y una inglesa, por ejemplo— la ventana decía el nombre y nada
+más, así que **no había forma de saber cuál estabas tocando hasta
+guardar**. Ahora lleva el escaneo, el nombre, la colección, el precio y el
+enlace a Cardmarket con los filtros de ESA línea.
+
+Y las dos acciones de una carta en la lista dejan de ser dos enlaces de
+texto idénticos: una te SACA de la web y la otra abre una ventana aquí
+dentro, y eso tiene que verse antes de pulsar.
+
+### Comprobado
+
+`test-tanda-369.mjs` (19). Lo que se mide y no se supone: el ancho del
+BOLSILLO con una hoja y con dos, que tiene que ser el mismo —es el
+síntoma exacto de lo que se rompía—, y que la ventana de editar cambia de
+carta al abrir otra línea, que es el fallo que arregla.

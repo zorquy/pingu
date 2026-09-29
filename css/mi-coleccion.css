@@ -274,14 +274,56 @@
   gap: var(--e-md);
 }
 
-.mc-carta-acciones .link-btn {
+/* Las dos acciones de una carta (tanda 369). Eran dos enlaces de texto
+   iguales —«Cardmarket» y «Editar»— y no se distinguían de un vistazo:
+   uno te SACA de la web y el otro abre una ventana aquí dentro. Ahora
+   cada uno lleva delante lo que es, y la de Cardmarket lleva su marca.
+
+   Chapas y no enlaces sueltos: en una tarjeta con foto, precio y chips,
+   dos enlaces subrayados al fondo se leían como el pie de página. */
+.mc-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-height: 44px;
-  font-size: var(--t-sm);
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease);
+}
+
+.mc-accion:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+/* La marca no se repinta con nuestro tema: es de otro. Se le pone una
+   chapa blanca fija debajo, que en claro no se ve (blanco sobre blanco)
+   y en oscuro es lo que la hace legible. Aclararle el azul sería
+   inventarse su marca. */
+.mc-accion-cm .cm-marca {
+  flex: 0 0 auto;
+  box-sizing: content-box;
+  padding: 2px;
+  border-radius: 4px;
+  background: var(--blanco-fijo);
 }
 
 @media (pointer: fine) {
-  .mc-carta-acciones .link-btn {
+  .mc-accion {
     min-height: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-accion {
+    transition: none;
   }
 }
 
@@ -346,10 +388,29 @@
 
 /* Las hojas del archivador: dos abiertas en pantalla ancha, una en el
    móvil. Cada una, 3×3 bolsillos, que es el archivador de siempre. */
+/* El archivador abierto: dos hojas en pantalla ancha, una en el móvil.
+ *
+ * Columnas FIJAS y no `auto-fit` (tanda 369). Con `auto-fit`, una hoja
+ * sola se lleva todas las pistas y se estira al ancho entero: los
+ * bolsillos salían al doble de tamaño y la página parecía otra cosa. Se
+ * veía en los álbumes soñados, que suelen tener menos de nueve cartas y
+ * por tanto UNA sola hoja — el álbum de un set casi siempre tiene dos y
+ * por eso ahí nunca cantó.
+ *
+ * Es pariente de la lección de la 316: `auto-fit` decide por su cuenta
+ * cuántas pistas hay, y eso está bien para una rejilla de tarjetas y mal
+ * para algo que tiene que medir SIEMPRE lo mismo. Un archivador tiene el
+ * tamaño que tiene, lleve una hoja o cien. */
 .mc-archivador {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--e-xl);
+}
+
+@media (min-width: 900px) {
+  .mc-archivador {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .mc-hoja {
@@ -440,6 +501,14 @@
 .mc-bolsillo .mc-cantidad {
   top: var(--e-xs);
   left: var(--e-xs);
+}
+
+/* La cara del archivador que no tiene cartas: se ve que ESTÁ, sin
+   fingir que hay algo dentro. */
+.mc-hoja-fantasma {
+  border-style: dashed;
+  background: transparent;
+  box-shadow: none;
 }
 
 .mc-bolsillo-vacio {
@@ -580,6 +649,45 @@
 
 .mc-editor h2 {
   font-size: var(--t-xl);
+}
+
+/* ── La cabecera de la ventana, con la carta (tanda 369) ──
+   El escaneo a la izquierda y quién es a la derecha. La foto lleva un
+   ancho FIJO y su proporción: si midiera «lo que quepa», la ventana
+   pegaría un salto al llegar la imagen. */
+.mc-editor-cabecera {
+  display: flex;
+  gap: var(--e-lg);
+  align-items: flex-start;
+}
+
+.mc-editor-foto {
+  flex: 0 0 auto;
+  width: 96px;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.mc-editor-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mc-editor-quien {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--e-xs);
+  align-items: flex-start;
+}
+
+.mc-editor-set {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
 }
 
 .mc-editor-campos {

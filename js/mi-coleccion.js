@@ -29,6 +29,10 @@ import {
   enlaceCardmarket,
   valorDeLinea,
 } from './cardmarket.js'
+import { icons } from './icons.js'
+// La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
+// cargan esta página y la ficha de una carta).
+import { marcaCardmarket } from './cardmarket-marca.js'
 import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 
@@ -139,8 +143,8 @@ function lineaHtml(l) {
         <p class="mc-chips">${chipsDe(l)}</p>
         <p class="mc-carta-valor">${valor ? euros(valor) : '<span class="mc-sin-precio">Sin precio</span>'}${l.cantidad > 1 && valor ? ` <span class="mc-unidad">(${euros(valor / l.cantidad)} c/u)</span>` : ''}</p>
         <div class="mc-carta-acciones">
-          <a class="link-btn" href="${escapeHtml(cm)}" target="_blank" rel="noopener" title="Cardmarket con el idioma, el estado y la versión de esta carta">Cardmarket</a>
-          ${esMia ? '<button type="button" class="link-btn" data-editar>Editar</button>' : ''}
+          <a class="mc-accion mc-accion-cm" href="${escapeHtml(cm)}" target="_blank" rel="noopener" aria-label="Ver en Cardmarket, en ${escapeHtml(idiomaDe(l.idioma).nombre.toLowerCase())} y ${escapeHtml(estadoDe(l.estado).nombre)}" title="Cardmarket con el idioma, el estado y la versión de esta carta">${marcaCardmarket(18)}<span>Cardmarket</span></a>
+          ${esMia ? `<button type="button" class="mc-accion" data-editar aria-label="Editar ${escapeHtml(nombreDe(c))}">${icons.edit(15)}<span>Editar</span></button>` : ''}
         </div>
       </div>
     </article>`
@@ -194,7 +198,16 @@ function pintarFiltros() {
 function abrirEditor(l) {
   const c = cartas.get(l.card_id)
   const d = $('mcEditor')
-  $('mcEditorTitulo').textContent = `${nombreDe(c)}${c ? ` · ${c.tcg_sets?.name || ''} ${c.local_id}` : ''}`
+  // La carta, a la vista (tanda 369): el escaneo, el nombre y de qué
+  // colección es. Antes la ventana solo decía el nombre en un título, y
+  // con dos impresiones de la misma carta en la colección no había forma
+  // de saber cuál estabas tocando hasta guardar.
+  const img = c?.image_path ? cardImageUrl(c.image_path, 'low') : null
+  $('mcEdFoto').innerHTML = img
+    ? `<img src="${escapeHtml(img)}" alt="" width="245" height="342" loading="lazy" onerror="this.remove()" />`
+    : ''
+  $('mcEditorTitulo').textContent = nombreDe(c)
+  $('mcEdSet').textContent = c ? `${c.tcg_sets?.name || ''} · ${c.local_id}` : l.card_id
   $('mcEdIdioma').innerHTML = opciones(IDIOMAS, l.idioma)
   $('mcEdEstado').innerHTML = opciones(ESTADOS, l.estado)
   $('mcEdVariante').innerHTML = opciones(VARIANTES, l.variante)
@@ -204,7 +217,12 @@ function abrirEditor(l) {
   $('mcEdCompra').value = l.precio_compra ?? ''
   $('mcEdNotas').value = l.notas || ''
   const precio = precioDe(l)
-  $('mcEdPrecio').textContent = precio ? `Cardmarket: desde ${euros(precio.desde)} · tendencia ${euros(precio.tendencia)}` : 'Sin precio de Cardmarket.'
+  $('mcEdPrecio').textContent = precio ? `Desde ${euros(precio.desde)} · tendencia ${euros(precio.tendencia)}` : 'Sin precio de Cardmarket.'
+  // Y el enlace a Cardmarket también aquí, con los filtros de ESTA línea:
+  // es justo cuando estás mirando lo que vale cuando quieres ir a verla.
+  const cm = $('mcEdCardmarket')
+  cm.href = enlaceCardmarket({ idProduct: precio?.idProduct, idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c) })
+  cm.innerHTML = `${marcaCardmarket(18)}<span>Ver en Cardmarket</span>`
   d.dataset.linea = l.id
   d.showModal()
 }
@@ -362,6 +380,10 @@ function pintarAlbum() {
     const trozo = lista.slice(p * POR_PAGINA, (p + 1) * POR_PAGINA)
     hojas.push(`<div class="mc-hoja" aria-label="Página ${p + 1}">${trozo.map(bolsilloHtml).join('')}${'<span class="mc-bolsillo mc-bolsillo-vacio" aria-hidden="true"></span>'.repeat(POR_PAGINA - trozo.length)}</div>`)
   }
+  // Y si solo hay una hoja, la otra mitad del archivador no se queda en
+  // blanco: va una hoja vacía. Un archivador abierto tiene dos caras, y
+  // sin ella la página parecía cortada por la mitad (tanda 369).
+  if (hojas.length === 1 && deUnaVez > 1) hojas.push('<div class="mc-hoja mc-hoja-fantasma" aria-hidden="true"></div>')
   $('mcAlbum').innerHTML = lista.length ? `<div class="mc-archivador">${hojas.join('')}</div>` : '<p class="subtext">¡No te falta ninguna! Colección completa.</p>'
   $('mcAlbumPaginas').textContent = lista.length ? `Página ${album.pagina + 1}${deUnaVez > 1 && album.pagina + 1 < paginas ? `-${album.pagina + 2}` : ''} de ${paginas}` : ''
   $('mcAlbumAnterior').disabled = album.pagina === 0

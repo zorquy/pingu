@@ -20,6 +20,7 @@
   <link rel="modulepreload" href="/js/mi-coleccion/datos.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/cardmarket.css" />
   <link rel="stylesheet" href="/css/mi-coleccion.css" />
 </head>
 <body>
@@ -244,8 +245,19 @@
 
     <dialog class="mc-editor" id="mcEditor" aria-labelledby="mcEditorTitulo">
       <form id="mcEditorForm" method="dialog">
-        <h2 id="mcEditorTitulo">Editar</h2>
-        <p class="subtext" id="mcEdPrecio"></p>
+        <!-- La cabecera con la CARTA a la vista (tanda 369). Antes era un
+             título de texto y ya está: abrías el editor y no sabías si te
+             habías equivocado de fila hasta guardar. Con el escaneo
+             delante, se ve de qué carta hablas. -->
+        <div class="mc-editor-cabecera">
+          <div class="mc-editor-foto" id="mcEdFoto"></div>
+          <div class="mc-editor-quien">
+            <h2 id="mcEditorTitulo">Editar</h2>
+            <p class="mc-editor-set" id="mcEdSet"></p>
+            <p class="subtext" id="mcEdPrecio"></p>
+            <a class="mc-accion mc-accion-cm" id="mcEdCardmarket" href="#" target="_blank" rel="noopener"></a>
+          </div>
+        </div>
         <div class="mc-editor-campos">
           <label>Idioma <select id="mcEdIdioma"></select></label>
           <label>Estado <select id="mcEdEstado"></select></label>

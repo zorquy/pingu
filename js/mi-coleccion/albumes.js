@@ -217,6 +217,10 @@ function pintarDetalle() {
     const trozo = lista.slice(p * POR_PAGINA, (p + 1) * POR_PAGINA)
     hojas.push(`<div class="mc-hoja" aria-label="Página ${p + 1}">${trozo.map(({ item, i }) => bolsilloHtml(item, i)).join('')}${'<span class="mc-bolsillo mc-bolsillo-vacio" aria-hidden="true"></span>'.repeat(POR_PAGINA - trozo.length)}</div>`)
   }
+  // Y si solo hay una hoja, la otra mitad del archivador no se queda en
+  // blanco: va una hoja vacía. Un archivador abierto tiene dos caras, y
+  // sin ella la página parecía cortada por la mitad (tanda 369).
+  if (hojas.length === 1 && deUnaVez > 1) hojas.push('<div class="mc-hoja mc-hoja-fantasma" aria-hidden="true"></div>')
   $('mcAlbArchivador').innerHTML = lista.length
     ? `<div class="mc-archivador">${hojas.join('')}</div>`
     : `<p class="subtext">${actual.cartas.length ? '¡Ya las tienes todas!' : 'Este álbum está vacío. Busca cartas arriba para añadirlas.'}</p>`
