@@ -12,6 +12,47 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-29 — PINGU-Claude (tanda 363 — los torneos entran en el RSS)
+
+**Hecho**: PINGU quiere una cuenta de X para PokeDoc que publique sola
+cada noticia, guía y torneo, y él retuitear. El canal RSS ya existía
+—`/rss.xml`, tanda 271— pero llevaba SOLO artículos, así que justo lo que
+más gente trae (un torneo abierto) se quedaba fuera de cualquier
+automatización.
+
+Ahora el canal mezcla artículos y torneos, ordenados por fecha de
+publicación. Tres condiciones para que un torneo entre, y las tres
+importan:
+
+- **Inscripción abierta**: un borrador no existe y uno cerrado ya no
+  admite a nadie.
+- **Que no haya empezado**: anunciar el torneo de ayer es ruido.
+- **Y NUNCA los privados.** Un torneo privado tiene código de acceso; su
+  gracia es no anunciarse. Publicarlo en un canal abierto lo rompería
+  **sin dar ningún error**.
+
+La fecha de la entrada es `created_at` y no `start_at`: un lector ordena
+por cuándo se publicó la novedad. Con `start_at`, un torneo creado hoy
+para dentro de un mes se pondría por delante de todo.
+
+Y la descripción del torneo NO es la suya (la escribe alguien con el
+editor rico y trae HTML, que en un RSS se enseña en crudo): se compone
+con lo que hace falta para decidir si te apuntas — cuándo se juega y
+cuántas plazas.
+
+**Ficheros**: `netlify/functions/rss.mjs`, `SCHEMA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-363.mjs` (NUEVO) y
+`herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: lo de X no es código todavía. PINGU crea la
+cuenta y prueba un puente RSS → X; si funciona, la siguiente tanda lo
+hace nativo con el patrón de `telegram-noticias.mjs`. Y el aviso que le
+di: **X entierra los mensajes con enlace externo**, así que el robot
+sirve para no olvidarse de nada, no para tener alcance — el alcance lo
+pone una persona citando el mensaje.
+
+---
+
 ## 2026-09-29 — PINGU-Claude (tanda 362 — la portada, con lo que la gente usa de verdad)
 
 **Hecho**: cuatro cambios en la portada, y dos salen directos de la

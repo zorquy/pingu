@@ -50,9 +50,13 @@ async function consultar(ruta) {
 // propósito y no importada de js/articulos.js: esto corre en el servidor
 // y aquello es un módulo del navegador que arrastra sus propios imports.
 const enlace = (fila) =>
-  fila.kind === 'news'
-    ? `${SITIO}/noticias/${encodeURIComponent(fila.slug)}`
-    : `${SITIO}/guia/${encodeURIComponent(fila.slug)}`
+  fila.kind === 'torneo'
+    ? `${SITIO}/torneo?slug=${encodeURIComponent(fila.slug)}`
+    : fila.kind === 'news'
+      ? `${SITIO}/noticias/${encodeURIComponent(fila.slug)}`
+      : `${SITIO}/guia/${encodeURIComponent(fila.slug)}`
+
+const CATEGORIA = { torneo: 'Torneos', news: 'Noticias' }
 
 // El `guid` de cada entrada es su identidad para el lector: es lo que usa
 // para saber si ya la ha enseñado. Tiene que ser estable aunque el título
@@ -68,7 +72,7 @@ export function documento(entradas, { ahora = new Date() } = {}) {
       <guid isPermaLink="true">${escapar(url)}</guid>
       ${fecha ? `<pubDate>${escapar(fecha)}</pubDate>` : ''}
       <description>${escapar(e.description || '')}</description>
-      <category>${escapar(e.kind === 'news' ? 'Noticias' : 'Guías')}</category>
+      <category>${escapar(CATEGORIA[e.kind] || 'Guías')}</category>
     </item>`
     })
     .join('\n')
@@ -89,6 +93,71 @@ ${items}
   </channel>
 </rss>
 `
+}
+
+// ── Los torneos también son novedades (tanda 363) ──
+//
+// El canal llevaba solo artículos, y lo que más movimiento trae a PokeDoc
+// es un torneo abierto: es lo que la gente comparte y por donde entra
+// quien no conoce la web. Que salga en el RSS es además lo que permite
+// que un puente lo publique solo en redes, sin que nadie se acuerde.
+//
+// Tres condiciones, y las tres importan:
+//
+//   · `registration_open`: un borrador no existe todavía y uno cerrado ya
+//     no admite a nadie. El canal es para lo que se puede hacer HOY.
+//   · Que no haya empezado: anunciar un torneo que era ayer es ruido.
+//   · Y NUNCA los privados. Un torneo privado tiene código de acceso; su
+//     gracia es justamente que no se anuncia. Publicarlo en un canal
+//     abierto lo rompería sin que nadie se enterara — el sitio no daría
+//     ningún error, simplemente estaría contando algo que no debía.
+//
+// La FECHA de la entrada es `created_at` y no `start_at`: un lector
+// ordena por cuándo se publicó la novedad, no por cuándo se juega. Si
+// fuera `start_at`, un torneo creado hoy para dentro de un mes saldría
+// por delante de todo lo demás y volvería a subir al principio cada vez.
+async function torneosAbiertos() {
+  const filas = await consultar(
+    'tournaments?status=eq.registration_open' +
+      `&start_at=gte.${encodeURIComponent(new Date().toISOString())}` +
+      '&is_private=is.false' +
+      `&select=slug,name,description,start_at,created_at,max_players&order=created_at.desc&limit=10`
+  ).catch(() =>
+    // Sin la columna de privados (migración sin ejecutar) no se cae el
+    // canal entero: se piden igual, que es como estaba antes de que
+    // existieran los torneos privados.
+    consultar(
+      'tournaments?status=eq.registration_open' +
+        `&start_at=gte.${encodeURIComponent(new Date().toISOString())}` +
+        `&select=slug,name,description,start_at,created_at,max_players&order=created_at.desc&limit=10`
+    )
+  )
+  return (filas || []).map((t) => ({
+    kind: 'torneo',
+    slug: t.slug,
+    title: `Torneo: ${t.name}`,
+    // La descripción del torneo la escribe alguien con el editor de texto
+    // rico, así que puede traer HTML. En un RSS eso se escapa —el lector
+    // lo enseñaría en crudo—, y aquí basta con lo que hace falta para
+    // decidir si te apuntas: cuándo se juega y cuánta gente cabe.
+    description:
+      `Se juega el ${fechaLarga(t.start_at)}` +
+      (t.max_players ? ` · ${t.max_players} plazas` : '') +
+      '. Inscripción abierta en PokeDoc.',
+    published_at: t.created_at || t.start_at,
+  }))
+}
+
+// «el 4 de octubre a las 19:00», en español y en la zona de España, que
+// es donde está la gente que juega estos torneos.
+function fechaLarga(iso) {
+  try {
+    return new Intl.DateTimeFormat('es-ES', {
+      day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid',
+    }).format(new Date(iso))
+  } catch {
+    return String(iso).slice(0, 10)
+  }
 }
 
 export default async () => {
@@ -114,7 +183,23 @@ export default async () => {
     console.warn('rss: no se ha podido leer de Supabase', e?.message || e)
   }
 
-  return new Response(documento(entradas || []), {
+  // Los torneos van en su propia consulta y con su propio `catch`: si la
+  // tabla falla, el canal sale con los artículos en vez de vacío.
+  let torneos = []
+  try {
+    torneos = await torneosAbiertos()
+  } catch (e) {
+    console.warn('rss: no se han podido leer los torneos', e?.message || e)
+  }
+
+  // Todo junto y por fecha de publicación, que es como lo ordena un
+  // lector. El tope es el mismo de siempre: un canal es una ventana a lo
+  // último, no un archivo.
+  const todo = [...(entradas || []), ...torneos]
+    .sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0))
+    .slice(0, CUANTAS)
+
+  return new Response(documento(todo), {
     headers: {
       'content-type': 'application/rss+xml; charset=utf-8',
       // Diez minutos de caché. Un lector no necesita el segundo exacto, y

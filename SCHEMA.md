@@ -19153,3 +19153,41 @@ escribió con `--ice`, que es el color del texto DENTRO del panel navy. El
 héroe está sobre el fondo claro de la página, así que salió casi
 invisible. Los tokens de color llevan el nombre de lo que son, no del
 sitio donde los viste la última vez.
+
+
+---
+
+## Tanda 363 — los torneos entran en el RSS
+
+PINGU quiere una cuenta de X que publique sola cada novedad. Antes de
+escribir nada contra la API de X conviene mirar qué hay ya: **el canal
+RSS existe desde la tanda 271**, y cualquier puente de automatización
+come RSS. Lo que faltaba no era el robot: era que el canal llevara los
+torneos.
+
+**Qué torneo entra en un canal público.** Tres condiciones, y la tercera
+es de las que no dan error:
+
+- `registration_open` — un borrador no existe todavía y uno cerrado ya no
+  admite a nadie. El canal es para lo que se puede hacer HOY.
+- Que no haya empezado.
+- **Y nunca uno privado.** Un torneo privado tiene código de acceso: su
+  razón de ser es no anunciarse. Meterlo en un canal abierto no rompe
+  nada visible — simplemente estarías publicando lo que alguien pidió que
+  no se publicara. Es el mismo tipo de fallo que la RLS evita en la web, y
+  aquí lo tiene que evitar la consulta.
+
+**La fecha de una entrada es cuándo se publicó, no cuándo ocurre.** Con
+`start_at` como `pubDate`, un torneo creado hoy para dentro de un mes
+saldría por delante de todo lo demás y volvería a subir al principio cada
+vez que el lector se actualizara. Un canal ordena por novedad.
+
+**Y la descripción se compone, no se copia.** La del torneo la escribe
+una persona con el editor de texto rico, así que trae HTML — y en un RSS
+el HTML va escapado: el lector lo enseñaría en crudo, con las etiquetas a
+la vista. La entrada lleva lo que hace falta para decidir si te apuntas:
+cuándo se juega y cuántas plazas.
+
+Cada consulta con su propio `catch`: si los torneos fallan, el canal sale
+con los artículos. Un canal roto hace que algunos lectores se den de baja
+solos, y eso no se recupera.
