@@ -78,6 +78,15 @@ export function filasDePokedex({ mio, totales, soloMios = false, texto = '' }) {
   return filas
 }
 
+// La barra va con `--ancho`, que es la variable que lee `.mc-barra i` en
+// la hoja y la que escriben las otras cuatro barras de esta página. Con
+// `--i` se pinta SIEMPRE al 0 % y no da ningún error: se lee como
+// «todavía no tengo ninguna» en los 1.025. Lo vigila test-tanda-382,
+// que barre TODAS las barras del sitio y no solo esta.
+//
+// (Y el comentario va AQUÍ y no dentro del HTML de abajo: un comentario
+// con acentos graves METIDO EN UNA PLANTILLA la termina, y el fichero
+// deja de parsear. Es la segunda vez esta semana.)
 function filaHtml(f) {
   const sprite = urlDeSprite(f.dex)
   const pct = f.total ? Math.min(100, Math.round((f.tengo / f.total) * 100)) : 0
@@ -96,7 +105,7 @@ function filaHtml(f) {
             : '—'
           : `${f.tengo} de ${f.total}`
       }</span>
-      ${f.total ? `<span class="mc-barra" role="presentation"><i style="--i:${pct}%"></i></span>` : ''}
+      ${f.total ? `<span class="mc-barra" role="presentation"><i style="--ancho:${pct}%"></i></span>` : ''}
     </button>`
 }
 

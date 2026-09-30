@@ -125,7 +125,10 @@ export async function cartasPorIds(ids) {
 export async function cartasDeSet(setId) {
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,set_id,local_id,name,name_es,image_path,rarity,tcg_sets(tcg_online_code)')
+    // `category` desde la 382: sin ella el filtro de categoría del
+    // álbum tendría un desplegable vacío y no filtraría nada — y no
+    // daría ningún error, que es lo de siempre.
+    .select('id,set_id,local_id,name,name_es,image_path,rarity,category,tcg_sets(tcg_online_code)')
     .eq('market', 'WEST')
     .eq('set_id', setId)
     .limit(1000)

@@ -174,6 +174,20 @@
             <h3 class="mc-album-titulo" id="mcAlbumTitulo"></h3>
             <label class="mc-interruptor"><input type="checkbox" id="mcAlbumSoloFaltan" /> Solo las que me faltan</label>
           </div>
+          <!-- Los filtros DENTRO de una colección (tanda 382). Es lo que
+               le faltaba a esta pantalla frente a la app de TCGdex: en
+               un set de 200 cartas, «enséñame solo las ultra raras que
+               me faltan» es la pregunta que se hace quien colecciona, y
+               hasta ahora había que ir pasando páginas.
+
+               Las opciones se sacan de las cartas que hay DE VERDAD en
+               esta colección, no de una lista escrita a mano: un set con
+               rareza nueva la trae sola (la lección de la 323). -->
+          <div class="mc-album-filtros" id="mcAlbumFiltros">
+            <select id="mcAlbumRareza" aria-label="Filtrar por rareza"></select>
+            <select id="mcAlbumTipo" aria-label="Filtrar por categoría"></select>
+            <span class="subtext" id="mcAlbumCuenta"></span>
+          </div>
         <!-- Aquí había un interruptor de «Tocar una carta la añade»
              (tanda 365) que se fue en la 368. Obligaba a elegir: con él
              puesto no podías abrir la ficha de una carta, y sin él no

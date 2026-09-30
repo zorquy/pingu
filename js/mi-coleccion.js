@@ -23,7 +23,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // y el barrido de la 299 sigue los imports —así que importarlo por una
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
-import { rarezaEs } from './carta-traducciones.js'
+import { rarezaEs, categoriaEs } from './carta-traducciones.js'
 import { esDelTCG } from './catalogo-series.js'
 import {
   IDIOMAS,
@@ -678,10 +678,55 @@ function bolsilloHtml(c) {
     </span></div>`
 }
 
+// Las opciones de los dos filtros salen de las cartas que hay DE VERDAD
+// en esta colección, no de una lista escrita a mano: un set con una
+// rareza nueva la trae solo. Es la lección de la 323 — una lista curada
+// se queda vieja y el que lo nota es quien busca.
+function pintarFiltrosDeAlbum() {
+  const opcionesDe = (saca, vacio) => {
+    const valores = [...new Set(album.cartas.map(saca).filter(Boolean))].sort((a, b) =>
+      String(a).localeCompare(String(b), 'es')
+    )
+    return `<option value="">${vacio}</option>` +
+      valores.map((v) => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('')
+  }
+  // Solo se repintan si cambió la colección: repintar un `<select>` le
+  // borra lo elegido, y eso al filtrar sería insoportable.
+  const rareza = $('mcAlbumRareza')
+  const tipo = $('mcAlbumTipo')
+  if (rareza.dataset.set !== album.set) {
+    rareza.innerHTML = opcionesDe((c) => (c.rarity ? rarezaEs(c.rarity) : null), 'Cualquier rareza')
+    tipo.innerHTML = opcionesDe((c) => (c.category ? categoriaEs(c.category) : null), 'Cualquier categoría')
+    rareza.dataset.set = album.set
+    // Y si la colección no tiene ni rarezas ni categorías guardadas —el
+    // engorde todavía no ha llegado— el filtro se esconde en vez de
+    // ofrecer un desplegable con una sola opción que no hace nada.
+    rareza.classList.toggle('hidden', rareza.options.length <= 1)
+    tipo.classList.toggle('hidden', tipo.options.length <= 1)
+  }
+}
+
+function cartasDelAlbumFiltradas() {
+  const rareza = $('mcAlbumRareza').value
+  const tipo = $('mcAlbumTipo').value
+  return album.cartas.filter((c) => {
+    if (album.soloFaltan && tengoDe(c.id)) return false
+    if (rareza && (!c.rarity || rarezaEs(c.rarity) !== rareza)) return false
+    if (tipo && (!c.category || categoriaEs(c.category) !== tipo)) return false
+    return true
+  })
+}
+
 function pintarAlbum() {
-  const lista = album.soloFaltan ? album.cartas.filter((c) => !tengoDe(c.id)) : album.cartas
+  pintarFiltrosDeAlbum()
+  const lista = cartasDelAlbumFiltradas()
   const tengo = album.cartas.filter((c) => tengoDe(c.id)).length
   const total = album.cartas.length
+  // El progreso es SIEMPRE el de la colección entera, filtres lo que
+  // filtres: «llevas 40 de 198» no puede cambiar porque estés mirando
+  // solo las ultra raras. Lo que cambia es la cuenta de al lado.
+  const filtrando = lista.length !== album.cartas.length
+  $('mcAlbumCuenta').textContent = filtrando ? `${lista.length} de ${total} cartas a la vista` : ''
   const pct = total ? Math.round((tengo / total) * 100) : 0
   $('mcAlbumProgreso').innerHTML = total
     ? `<span><strong>${tengo}</strong> de ${total} cartas · ${pct} %</span><span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>`
@@ -1237,6 +1282,14 @@ function enganchar() {
       pintarPokedex()
     }
   })
+  for (const id of ['mcAlbumRareza', 'mcAlbumTipo']) {
+    $(id).addEventListener('change', () => {
+      // Al filtrar se vuelve a la primera página: seguir en la 7 de una
+      // lista que ahora tiene 2 deja el archivador en blanco.
+      album.pagina = 0
+      pintarAlbum()
+    })
+  }
   $('mcAlbumSoloFaltan').addEventListener('change', (e) => {
     album.soloFaltan = e.target.checked
     album.pagina = 0

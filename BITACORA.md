@@ -12,6 +12,35 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-10-01 — PINGU-Claude (tanda 382 — filtros dentro de una colección)
+
+**Hecho**: lo segundo de las cuatro cosas de TCGdex. Dentro del álbum
+abierto, dos desplegables: rareza y categoría. Las opciones salen de las
+cartas que hay DE VERDAD en esa colección (una rareza nueva aparece
+sola), el progreso NO cambia al filtrar —«llevas 3 de 18» es de la
+colección entera— y al filtrar se vuelve a la página 1, que si no el
+archivador se queda en blanco sin dar error.
+
+Si la colección todavía no tiene rareza ni categoría guardadas (el
+engorde no ha llegado), los dos desplegables se esconden en vez de
+ofrecer una opción que no hace nada.
+
+**Y de camino, un fallo mío de la 381**: la barra de progreso de la
+Pokédex escribía `--i` y la hoja lee `--ancho`. Se pintaba SIEMPRE al
+0 %, o sea que los 1.025 Pokémon parecían vacíos. La prueba nueva barre
+TODAS las barras del sitio, no solo esa.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`js/mi-coleccion/datos.js` (`category` en `cartasDeSet`),
+`js/mi-coleccion/pokedex.js`, `css/mi-coleccion.css`, `SCHEMA.md`. En
+`pruebas`: `test-tanda-382.mjs` (**nuevo**).
+
+**En curso / pendiente**: de las cuatro cosas de TCGdex quedan dos: la
+ficha de una carta y cómo se marca lo que tienes (las variantes por
+separado, que es lo que hace TCGdex y lo que más cambia el modelo).
+
+---
+
 ## 2026-10-01 — PINGU-Claude (tanda 381 — la Pokédex de Mi colección)
 
 **Hecho**: lo primero de las cuatro cosas que PINGU quiere de la app de

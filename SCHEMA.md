@@ -20569,3 +20569,62 @@ verdad** con 21.000 filas: que el índice GIN SE USA para `dex_ids @>
 '{25}'` (con pocas filas el planificador coge cualquier cosa y no
 prueba nada), que el `{}` saca la carta de la cola y que una TAG TEAM
 sale en las dos especies.
+
+---
+
+## Tanda 382 — la vista de una colección, y una barra que marcaba cero (oct. 2026)
+
+Lo segundo de las cuatro cosas de la app de TCGdex. En un set de 200
+cartas, «enséñame solo las ultra raras que me faltan» es la pregunta de
+quien colecciona, y hasta ahora había que ir pasando páginas del
+archivador.
+
+Dos desplegables dentro del álbum abierto —rareza y categoría— con tres
+decisiones que no son cosméticas:
+
+- **Las opciones salen de las cartas que hay DE VERDAD en esa
+  colección**, no de una lista escrita a mano: un set con una rareza
+  nueva la trae solo. Es la lección de la 323 — una lista curada se queda
+  vieja y el que lo nota es quien busca.
+- **El progreso NO cambia al filtrar.** «Llevas 3 de 18» es de la
+  colección entera; si cambiara según lo que estés mirando, la cifra
+  dejaría de significar nada. Lo que cambia es la cuenta de al lado
+  («3 de 18 a la vista»), y solo aparece cuando hay filtro.
+- **Sin rareza guardada, el filtro se esconde.** Las cartas se engordan
+  por tandas, así que una colección recién importada no tiene ni rareza
+  ni categoría: un desplegable con UNA opción que no hace nada es peor
+  que no tenerlo.
+
+Y al filtrar se vuelve a la página 1: seguir en la 7 de una lista que
+ahora tiene tres cartas deja el archivador **en blanco y sin error**.
+
+`cartasDeSet` ahora pide también `category`, que no traía — sin ella el
+segundo desplegable habría salido vacío sin que nada fallara.
+
+### El fallo de la 381 que esto destapó
+
+La barra de progreso de la Pokédex escribía `--i` y la hoja lee
+`--ancho`. **Se pintaba siempre al 0 %**, o sea que los 1.025 Pokémon
+parecían vacíos, y no daba ningún error por ninguna parte.
+
+La prueba no comprueba ese caso: barre **todo el JavaScript** buscando
+cada `.mc-barra` que se rellena desde una plantilla y comprueba que usa
+la misma variable que lee la hoja — sacándola del CSS, no escribiéndola
+otra vez. Y comprueba que el barrido LLEGA (cuenta cuántas barras ha
+mirado), porque si no encontrara ninguna saldría verde por vacío: la
+lección de la 307.
+
+### Y la trampa de los acentos graves, por segunda vez esta semana
+
+Al documentar el arreglo puse el comentario DENTRO de la plantilla de
+HTML, con `--ancho` entre acentos graves. **Un acento grave dentro de un
+template literal lo termina**, y el fichero dejó de parsear entero. Pasó
+igual en la 376 con `js/mensajes.js`. Los comentarios que hablan de
+código van FUERA de la plantilla.
+
+### Comprobado
+
+`test-tanda-382.mjs`: que las opciones salen de la colección y en
+español, que el progreso no se mueve al filtrar, que filtrar vuelve a la
+primera página y que sin rareza guardada los dos desplegables se
+esconden pero el archivador sigue.

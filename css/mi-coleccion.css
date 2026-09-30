@@ -1950,3 +1950,22 @@ input.mc-alb-titulo:not([readonly]):focus {
     transform: none;
   }
 }
+
+/* Los filtros dentro de una colección (tanda 382). */
+.mc-album-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+.mc-album-filtros select {
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
