@@ -464,9 +464,45 @@ async function cerrarRonda(ronda) {
   await ctx.recargarFicha()
 }
 
+// ── El podio se congela AQUÍ (tanda 388) ──
+//
+// Antes lo sellaba `sellarResultado()` en torneo.js, y solo cuando
+// alguien CON MANDO volvía a abrir la ficha del torneo. Pero el
+// organizador acaba el torneo desde la vista de rondas: si no vuelve a
+// entrar en la ficha —y no tiene por qué—, el podio se quedaba sin
+// congelar para siempre. Y de ahí cuelga media sección:
+//
+//   · El palmarés de los perfiles lee `podium`.
+//   · El anuncio del resultado en el hilo del foro (desde la 217).
+//   · Y desde la 387, el XP de los torneos: el barredor solo reparte
+//     cuando el podio está sellado, porque es la única fuente de quién
+//     quedó dónde. Sin sellar no reparte NADA, y el registro dice que
+//     todo va bien.
+//
+// El podio es un hecho en el momento en que se cierra la última mesa, y
+// justo aquí está calculado: `podioDelTorneo()` vive en este mismo
+// módulo. Sellarlo al terminar quita la dependencia de que alguien pase
+// por la página.
+//
+// `sellarResultado()` se queda como red: si esto falló (se cayó la red
+// entre el update y el sello), la siguiente visita del organizador lo
+// arregla. Lo que ya no hace es ser el ÚNICO camino.
 async function terminarTorneo(mensaje) {
   await supabase.from('tournaments').update({ status: 'finished' }).eq('id', ctx.torneo.id)
+  // El orden importa: `podioDelTorneo()` devuelve vacío si el torneo no
+  // está en `finished`, así que el estado se pone en ctx ANTES de
+  // preguntar por el podio.
   ctx.torneo.status = 'finished'
+
+  const podio = podioDelTorneo()
+  if (podio.length) {
+    const cambios = { champion_id: podio[0], podium: podio }
+    const { error } = await supabase.from('tournaments').update(cambios).eq('id', ctx.torneo.id)
+    // Si no se puede sellar, el torneo YA está terminado y eso es lo que
+    // importa: no se deshace nada ni se molesta a nadie con un error. La
+    // ficha lo volverá a intentar.
+    if (!error) Object.assign(ctx.torneo, cambios)
+  }
   showToast(mensaje, 'success')
 }
 

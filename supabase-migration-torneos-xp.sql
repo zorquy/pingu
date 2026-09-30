@@ -201,4 +201,18 @@ $$;
 -- Solo lo llama el barredor, que va con la clave de servicio. Ni el
 -- cliente ni nadie con sesión puede repartir XP: la función escribe en
 -- `user_profiles` y va con `security definer`.
+--
+-- **Y el `grant` de abajo no es de adorno.** Una función nueva nace con
+-- EXECUTE para PUBLIC, así que `service_role` lo tenía POR SER PUBLIC —
+-- no por un permiso propio. Revocarle a public se lo quita también a él,
+-- comprobado contra Postgres 16:
+--
+--     recién creada:   service_role t · authenticated t
+--     tras el revoke:  service_role f · authenticated f
+--
+-- Sin el grant, el barredor habría recibido «permission denied», la fase
+-- se habría ido al catch y **no se habría repartido XP jamás** — con el
+-- registro diciendo tranquilamente «XP de torneos aparcado». El orden
+-- importa: primero se quita a todos, después se le da al único que debe.
 revoke all on function public.torneos_repartir_xp(uuid) from public, anon, authenticated;
+grant execute on function public.torneos_repartir_xp(uuid) to service_role;

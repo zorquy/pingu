@@ -640,3 +640,104 @@
   color: var(--text-dim);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   La fila de una guía de la comunidad (tanda 388: de components.css)
+   ══════════════════════════════════════════════════════════════
+   Solo la pinta /usuarios: `community-guide-row` sale de js/usuarios.js
+   y de ningún otro sitio, y esta hoja la carga solo /usuarios — bajaba
+   en las veintiséis páginas para una. Se hizo sitio en la portada para
+   la suma atómica del XP.
+
+   Van SOLO sus reglas y no la sección donde vivían: ahí estaban también
+   `simple-card`, `star-picker` y `wall-empty`, que las baja todo el
+   mundo. Una sección de CSS no es una unidad de mudanza (tanda 316). */
+
+/* ── Fila de guía de la comunidad (usuarios.html) ──
+   A propósito NO es la misma tarjeta que una guía oficial: puede haber
+   cientos de guías con calidad muy variable, así que se listan finas y
+   en horizontal (estilo resultado de foro) en vez de en tarjetas grandes
+   en cuadrícula, para que quepan muchas de un vistazo. */
+.community-guide-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.community-guide-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.community-guide-row:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.community-guide-row-icon {
+  font-size: var(--t-lg);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.community-guide-row-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-guide-row-info h3 {
+  font-size: var(--t-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.community-guide-row-info p {
+  font-size: var(--t-2xs);
+  color: var(--text-mid);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.community-guide-row-badge {
+  font-size: var(--t-2xs);
+  padding: 2px 8px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.community-guide-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  font-size: var(--t-2xs);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* Y su @media, que se va CON su base: un `@media` olvidado en
+   components.css con la base ya mudada no suma especificidad y
+   components.css carga primero, así que la base nueva le gana y el móvil
+   se rompe sin dar error (la lección de la tanda 299). */
+
+@media (max-width: 640px) {
+  .community-guide-row-meta {
+    display: none;
+  }
+}

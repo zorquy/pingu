@@ -18,6 +18,59 @@ mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
 que falló es que ninguno de los dos la releyó justo antes de numerar,
 porque las dos tandas se empezaron con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 388 — que el XP llegue de verdad)
+
+**Hecho**: repaso de la 387 recién subida. Cuatro agujeros, y los cuatro
+de la misma familia: algo contestaba «bien» sin haber hecho nada.
+
+1. **El `revoke` de la 387 dejaba la función sin poder ejecutarse.** Una
+   función nace con EXECUTE para PUBLIC, así que `service_role` lo tenía
+   POR SER public: revocarle a public se lo quitaba también a él
+   (medido: `service_role t` antes, `f` después). El barredor habría
+   recibido «permission denied», la fase se habría ido al catch y **no se
+   habría repartido XP nunca**, con el registro diciendo que todo bien.
+2. **`addXP` perdía el premio que caía en medio.** Leer-sumar-escribir:
+   entre la lectura y la escritura cabe otro premio. Reproducido con dos
+   conexiones a Postgres: **105 donde tocaba 255**. Ahora la suma pasa
+   dentro de la base en una frase, y el id dejó de ser parámetro (se lo
+   suma a `auth.uid()`).
+3. **«No hubo error» no es «sumó».** El doble contesta a una función que
+   no conoce sin error y sin datos, así que `addXP` daba el premio por
+   dado. Y era real: `xp_sumar` devolvía null si el update no encontraba
+   fila. Arreglado por los DOS lados.
+4. **El podio solo se congelaba si el organizador volvía a abrir la
+   ficha** (viene de la 217; la 387 lo heredó sin verlo). El organizador
+   termina el torneo desde la vista de rondas y no tiene por qué volver:
+   sin podio sellado, ni palmarés, ni anuncio en el foro, ni XP. Ahora se
+   sella al terminar, donde el podio ya está calculado, y
+   `sellarResultado` se queda como red.
+
+Para hacer sitio en la portada saqué `.community-guide-row` de
+`components.css` a `css/comunidad.css`. Dos trampas esquivadas por haber
+picado antes: **solo sus nueve reglas y no la sección** (ahí estaban
+`simple-card`, `star-picker` y `wall-empty`, que baja todo el mundo — la
+316), y **el `@media` se fue con su base** (la 299).
+
+**SQL a ejecutar**: `supabase-migration-xp-atomico.sql` (**nuevo**) y la
+versión corregida de `supabase-migration-torneos-xp.sql` — **si ya
+ejecutaste la de ayer, vuelve a pasarla**: le falta el `grant execute …
+to service_role` y sin él el XP de torneos no se reparte. Las dos son
+idempotentes (`create or replace`), así que pasarlas dos veces no rompe
+nada. Sigue pendiente `supabase-migration-rangos-intercambios.sql`.
+
+**Ficheros**: `supabase-migration-xp-atomico.sql` (**nuevo**),
+`supabase-migration-torneos-xp.sql`, `js/gamification.js`,
+`js/torneos/ronda.js`, `css/components.css`, `css/comunidad.css`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-388.mjs` (**nuevo**) y
+`correr-suite.sh`.
+
+**En curso / pendiente**: el puente del camino viejo en `addXP` (quitar
+cuando la migración lleve un tiempo). Sigue sin hacerse: celebrar el XP
+de un torneo («+150 XP» en el aviso del final), y el tablón de
+intercambios sin chapa de nivel. Y CUÁNTO XP vale cada cosa lo sigue
+diciendo el cliente: cerrarlo es mover cada premio al servidor, tanda
+grande.
+
 ## 2026-10-01 — PINGU-Claude (tanda 387 — el XP de los torneos, y el nivel junto al nombre)
 
 **Hecho**: PINGU preguntó si teñir los nombres por nivel además de por

@@ -170,8 +170,51 @@ export function levelProgress(xp) {
   return { ...current, pct }
 }
 
+// «No existe esa función», de PostgREST (PGRST202) o de PostgreSQL
+// (42883). Misma comprobación que `faltaLaRpc` en js/torneos/comun.js,
+// copiada a mano porque ese fichero pesa 5,8 KB gzip y la portada no
+// tiene ese margen; `test-tanda-388.mjs` vigila que las dos digan lo
+// mismo (lección de la 322).
+const noHayFuncion = (e) =>
+  e?.code === 'PGRST202' || e?.code === '42883' || /could not find the function|does not exist/i.test(String(e?.message || ''))
+
+// Sumar XP sin perderlo: la suma pasa DENTRO de la base, en una frase.
+// Leer-sumar-escribir desde aquí perdía el premio que caía en medio —
+// medido, 105 donde tocaba 255 cuando el barredor reparte un torneo a la
+// vez. El porqué entero, en SCHEMA.md, tanda 388.
 export async function addXP(userId, amount) {
   if (!amount) return
+
+  // `xp_sumar` se lo suma a `auth.uid()`: si algún día alguien reparte XP
+  // a OTRA persona, esto se va por el camino viejo en vez de sumárselo a
+  // quien no toca.
+  const { data: sesion } = await supabase.auth.getSession()
+  if (sesion?.session?.user?.id === userId) {
+    const { data: total, error } = await supabase.rpc('xp_sumar', { p_cuanto: amount })
+    // Y no basta con que no haya error: hace falta que conteste un TOTAL.
+    // Una respuesta vacía se tomaba por buena y `addXP` devolvía 0 sin
+    // haber sumado nada — el premio se daba por dado. «La función
+    // contestó» no es «el XP entró», así que sin número se sigue por el
+    // camino viejo, que sí escribe.
+    const nuevo = Number(total)
+    if (!error && Number.isFinite(nuevo) && nuevo > 0) {
+      const antes = calculateLevel(nuevo - amount)
+      const ahora = calculateLevel(nuevo)
+      if (ahora !== antes) celebrarSubidaDeNivel(ahora)
+      await checkAchievements(userId)
+      return nuevo
+    }
+    // Un error que NO sea «esa función no existe» es un error de verdad.
+    // Sin error pero sin total (la función existe y contestó vacío) no se
+    // grita: se sigue callado por el camino viejo, que escribe.
+    if (error && !noHayFuncion(error)) {
+      logClientError(`No se pudo sumar el XP: ${error.message}`, error.details || error.hint || null)
+      throw new Error(error.message)
+    }
+  }
+
+  // El camino viejo: puente hasta que la migración lleve un tiempo
+  // puesta. Pierde XP en una carrera, que es lo que había.
   const { data } = await supabase.from('user_profiles').select('total_xp').eq('id', userId).single()
 
   const newXP = (data?.total_xp || 0) + amount

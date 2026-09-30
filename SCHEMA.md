@@ -21249,3 +21249,140 @@ así que no puede contar cuánto te llevaste, y `celebrarSubidaDeNivel`
 vive en el cliente. Se ve en el perfil, en la chapa y en el rastro, pero
 no hay confeti. Candidato a tanda propia: mover el reparto por delante
 del aviso y que el mensaje diga «+150 XP».
+
+## Tanda 388 — que el XP llegue de verdad (oct. 2026)
+
+Repaso de la 387 recién subida, a petición de PINGU («más mejoras»).
+Salieron cuatro agujeros y los cuatro son de la misma familia: **algo
+contestaba «bien» sin haber hecho nada**.
+
+### 1. El `revoke` dejó la función sin poder ejecutarse
+
+La 387 acabó con esto, para que nadie con sesión pudiera repartirse XP:
+
+```sql
+revoke all on function public.torneos_repartir_xp(uuid) from public, anon, authenticated;
+```
+
+Una función nace con EXECUTE para PUBLIC, así que `service_role` lo tenía
+**por ser public**, no por un permiso propio. Medido contra Postgres 16:
+
+```
+recién creada:   service_role t · authenticated t
+tras el revoke:  service_role f · authenticated f
+```
+
+El barredor habría recibido «permission denied», la fase se habría ido al
+`catch` y **no se habría repartido XP jamás** — con el registro diciendo
+tranquilamente «XP de torneos aparcado». Un `grant execute … to
+service_role` lo arregla, y el orden importa: primero se quita a todos,
+después se le da al único que debe.
+
+La prueba lo barre por la forma, y la regla es **quién llama desde
+fuera**: el cliente con `supabase.rpc('x')` y las funciones de Netlify con
+`rpc/x`. Solo esas necesitan permiso. Un disparador (`returns trigger`) o
+un ayudante que solo llaman otras funciones, no — y exigírselo habría
+llenado la prueba de excepciones. Son 23 funciones llamadas desde fuera y
+la regla se cumple en todas. Comprobado quitando el grant: lo caza por
+las dos vías.
+
+### 2. `addXP` perdía el premio que caía en medio
+
+Hacía leer, sumar, escribir:
+
+```
+select total_xp        → 100
+update total_xp = 105
+```
+
+Entre esas dos frases cabe otro premio, y el que llega tarde escribe el
+total que leyó al principio. Ya pasaba entre dos pestañas o entre la racha
+diaria y el premio de un curso, pero eran 5 XP. **Desde la 387 el otro que
+escribe es el servidor repartiendo un torneo**, y ahí son 150 de golpe.
+
+Reproducido con dos conexiones a Postgres a la vez:
+
+```
+leer-sumar-escribir → 105    (100 + 5 + 150 tenía que dar 255)
+xp_sumar            → 255
+```
+
+La suma pasa ahora dentro de la base, en una frase: `total_xp = total_xp +
+p_cuanto`, que es atómica por definición. Y de paso **el id dejó de ser un
+parámetro**: la función se lo suma a `auth.uid()`, así que ya no hay nada
+que falsear para sumarle XP a otra persona. (Lo que sigue en manos del
+cliente es CUÁNTO. Cerrar eso es mover cada premio al servidor, que es
+otra tanda mucho más grande; por ahora la función rechaza lo que no esté
+entre 1 y 500, que es el techo de lo que reparte la web.)
+
+### 3. «No hubo error» no es «sumó»
+
+Al pasar `addXP` a la RPC, la condición era `if (!error)`. Y el doble de
+Supabase contesta a una función que no conoce **sin error y sin datos**, así
+que `addXP` se creía que había sumado, devolvía 0 y no tocaba la tabla.
+
+Se vio con el doble, pero el agujero es real en producción: la propia
+`xp_sumar` devolvía `null` si el `update` no encontraba fila, y el cliente
+lo habría tomado por bueno. Arreglado por los dos lados —la función
+revienta si no actualizó nada, y el cliente exige un número y no solo la
+ausencia de error—, que es lo que hace que no dependa de cuál de los dos
+se acuerde.
+
+El puente sigue: mientras la migración no esté puesta, PostgREST contesta
+PGRST202 y se va por el camino viejo. El predicado que lo detecta está
+copiado de `faltaLaRpc` en `js/torneos/comun.js` porque ese fichero pesa
+5,8 KB gzip y la portada no tiene ese margen; la prueba compara los dos
+códigos de error, que es lo que hace de una copia algo vigilado.
+
+### 4. El podio solo se congelaba si el organizador volvía a entrar
+
+Este venía de la 217 y la 387 lo heredó sin darse cuenta.
+`sellarResultado()` está en `torneo.js` y arranca con:
+
+```js
+if (torneo.status !== 'finished' || !mando()) return
+```
+
+O sea: el podio se sellaba cuando alguien **con mando** volvía a ABRIR la
+ficha. Pero el organizador termina el torneo desde la vista de rondas, y
+no tiene ninguna razón para volver a la ficha. Si no volvía:
+
+- el palmarés de los perfiles se quedaba sin ese torneo,
+- el resultado no se anunciaba en el hilo del foro,
+- y desde la 387, **el XP no se repartía nunca**, porque el barredor solo
+  reparte con el podio sellado.
+
+El podio es un hecho en el momento en que se cierra la última mesa, y
+justo ahí está calculado: `podioDelTorneo()` vive en el mismo módulo que
+`terminarTorneo()`. Así que se sella al terminar, y `sellarResultado()` se
+queda como RED —si falló la red entre el update y el sello, la siguiente
+visita lo arregla— pero ya no es el único camino.
+
+El orden importa y la prueba lo vigila: `podioDelTorneo()` devuelve vacío
+si el torneo no está en `finished`, así que el estado se pone en `ctx`
+ANTES de preguntar. Y esa comprobación picó en la trampa de la 312 —el
+comentario de encima NOMBRA la función, así que mirar posiciones sobre el
+texto crudo casaba con la explicación y no con la llamada—: ahora se
+quitan los comentarios antes de medir.
+
+### Sitio en la portada
+
+`js/gamification.js` lo baja la portada y el puente lo engordó, así que
+primero se hizo sitio: las reglas de `.community-guide-row` salieron de
+`components.css` a `css/comunidad.css`, que solo carga /usuarios.
+
+Dos cosas se hicieron bien por haber picado antes: **no se mudó la
+sección**, porque ahí vivían también `simple-card`, `star-picker` y
+`wall-empty`, que las baja todo el mundo (la 316) — solo las nueve reglas
+suyas; y **el `@media` se fue con su base**, porque uno olvidado en
+`components.css` con la base ya mudada no suma especificidad y
+`components.css` carga primero, así que la base nueva le gana y el móvil
+se rompe sin dar error (la 299).
+
+### Comprobado
+
+`test-tanda-388.mjs`, más las dos migraciones contra un PostgreSQL 16 de
+verdad: la suma atómica sube y recalcula el nivel, un premio de 99.999 o
+de −50 se rechaza sin mover el total, sin perfil revienta, y la carrera de
+dos conexiones da 255 donde el camino viejo daba 105. Pasadas además la
+299, 301, 306, 386 y 387.
