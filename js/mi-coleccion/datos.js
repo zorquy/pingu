@@ -191,6 +191,45 @@ export function precioDeLinea(linea, guardados, vivos) {
 // sumar: `valorDe` devolvería null igual.
 export const tieneCifras = (p) => Boolean(p && (p.tendencia || p.media30 || p.desde))
 
+// ── La Pokédex (tanda 381) ──
+//
+// Cuántas cartas hay de cada Pokémon en el catálogo entero. NO depende
+// de quién pregunte, así que se pide UNA vez por visita y se guarda.
+//
+// Lo que TIENE cada uno no se pregunta: la página ya lleva su colección
+// en memoria y contar por especie sale gratis en el navegador. Una
+// consulta que ya está hecha no se vuelve a hacer.
+export async function pokedexResumen() {
+  const { data, error } = await supabase.rpc('pokedex_resumen')
+  if (error) {
+    // Sin la migración no hay Pokédex, pero el resto de la página no
+    // tiene por qué enterarse: se devuelve vacío y la pestaña lo dice.
+    if (traducir(error).sinMigracion) return []
+    throw traducir(error)
+  }
+  return data || []
+}
+
+// Todas las cartas de una especie, de todas las colecciones. Entra por
+// el índice GIN de `dex_ids` (`cs` es el `@>` de Postgres).
+//
+// El tope es de verdad: de Pikachu hay más de 300 cartas y nadie las
+// mira todas de una vez. Se piden las más nuevas primero, que es el
+// orden en el que la gente busca.
+export async function cartasDeEspecie(dex, limite = 300) {
+  const { data, error } = await supabase
+    .from('tcg_cards')
+    .select(COLUMNAS_CARTA)
+    .eq('market', 'WEST')
+    .contains('dex_ids', [Number(dex)])
+    .limit(limite)
+  if (error) {
+    if (traducir(error).sinMigracion) return []
+    throw traducir(error)
+  }
+  return data || []
+}
+
 // ── El valor en el tiempo (tanda 377) ──
 //
 // La foto diaria la toma una función programada; aquí solo se lee. Y se

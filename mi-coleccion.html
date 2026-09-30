@@ -130,6 +130,7 @@
         <button type="button" role="tab" class="mc-pestania" data-pestania="anadir" aria-selected="false" aria-controls="mcPanelAnadir">Añadir cartas</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="resumen" aria-selected="false" aria-controls="mcPanelResumen">Resumen</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="cambios" aria-selected="false" aria-controls="mcPanelCambios">Cambios</button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="pokedex" aria-selected="false" aria-controls="mcPanelPokedex">Pokédex</button>
       </div>
 
       <section id="mcPanelCartas" role="tabpanel" aria-label="Cartas">
@@ -228,6 +229,23 @@
            la pantalla empieza por deberes. -->
       <section id="mcPanelCambios" class="hidden" role="tabpanel" aria-label="Cambios">
         <div id="mcCambiosPanel"></div>
+      </section>
+
+      <!-- LA POKÉDEX (tanda 381). Lo pidió PINGU viendo la app de
+           TCGdex, y es lo que convierte un listado de cartas en una
+           colección: la gente no colecciona sets, colecciona Pokémon.
+
+           La rejilla de las 1.025 especies con tu progreso se pinta SIN
+           UNA SOLA CONSULTA —tu colección ya está en memoria y la
+           especie sale del nombre de cada carta—; lo único que se
+           pregunta es cuántas hay en el catálogo. -->
+      <section id="mcPanelPokedex" class="hidden" role="tabpanel" aria-label="Pokédex">
+        <div class="pdx-mandos" id="mcPdxMandos">
+          <input type="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número…" autocomplete="off" />
+          <label class="mc-tocar-opcion"><input type="checkbox" id="mcPdxSoloMios" /> Solo los que tengo</label>
+          <span class="subtext" id="mcPdxCuenta"></span>
+        </div>
+        <div id="mcPokedexPanel"></div>
       </section>
 
       <section id="mcPanelAlbumes" class="hidden" role="tabpanel" aria-label="Álbumes soñados">

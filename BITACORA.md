@@ -12,6 +12,51 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-10-01 — PINGU-Claude (tanda 381 — la Pokédex de Mi colección)
+
+**Hecho**: lo primero de las cuatro cosas que PINGU quiere de la app de
+TCGdex. Pestaña «Pokédex» en /mi-coleccion: los 1.025 Pokémon con su
+sprite y tu progreso («1 de 3»), buscador, «solo los que tengo», y al
+pulsar uno salen TODAS sus cartas de todas las colecciones con las
+tuyas marcadas.
+
+**La especie sale del NOMBRE y no cuesta ni una petición.** Pedírsela a
+TCGdex serían ~21.000 peticiones y dos días; `dexesDeNombre` ya la saca
+y lleva desde la 231 moviendo los minisprites y los arquetipos. La
+función que rellena la columna NO SALE A INTERNET: lee y escribe en
+nuestra base, así que va por lotes de 500 y se acaba en unas pasadas.
+
+**Lo que hizo falta añadir**: `dexesDeNombre` daba solo la primera
+especie de una TAG TEAM —«Pikachu & Zekrom-GX» se quedaba en Pikachu,
+porque `aplastar` se come el guion y «zekromgx» no es nada—. Y la regla
+que lo arregla no puede partir por el guion sin más: **Ho-Oh y
+Porygon-Z se llaman así**. Se prueba la palabra entera primero.
+
+`dexesDeNombre` **no se ha tocado**: de ella cuelga cómo se agrupan los
+mazos en /mis-partidas y en el meta.
+
+**Y la pantalla funciona sin esperar al catálogo**: mientras `dex_ids`
+se rellena, tus cartas se sacan del nombre. Una pantalla en blanco
+esperando a una tarea de fondo es una pantalla rota.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`js/mi-coleccion/datos.js`, `css/mi-coleccion.css`, `SCHEMA.md`, y
+**nuevos**: `js/pokedex-especies.js`, `js/mi-coleccion/pokedex.js`,
+`netlify/functions/cartas-pokedex.mjs` y
+`supabase-migration-pokedex.sql`. En `pruebas`: `test-tanda-381.mjs`
+(**nuevo**) y el doble, que ahora calcula `pokedex_resumen` del
+catálogo.
+
+**PENDIENTE DE PINGU**: ejecutar `supabase-migration-pokedex.sql`. Hasta
+entonces la pestaña enseña lo tuyo y dice que el catálogo se está
+repasando.
+
+**En curso / pendiente**: de las cuatro cosas de TCGdex quedan tres —la
+vista de una colección, la ficha de una carta y cómo se marca lo que
+tienes—.
+
+---
+
 ## 2026-10-01 — PINGU-Claude (tanda 380 — el curador se queda con todo)
 
 **Hecho**: PINGU: «hay un montón de colecciones sin logo —Shining

@@ -20487,3 +20487,85 @@ comprueba la REGLA —cada escalón es un prefijo estricto del anterior, o
 sea que se sueltan por la cola y nunca una de en medio— y sobrevive al
 escalón siguiente. Una prueba que se rompe al añadir el caso siguiente
 mide la lista, no la regla.
+
+---
+
+## Tanda 381 — la Pokédex de «Mi colección» (oct. 2026)
+
+PINGU, sobre la app de TCGdex: «me gustaría hacer algo como lo que
+tienen ellos incrustado en Pokédex». Es lo que convierte un listado de
+cartas en una colección: **la gente no colecciona sets, colecciona
+Pokémon.** Entras en Pikachu y ves sus cartas de todas las colecciones,
+con cuáles tienes.
+
+### La especie sale del NOMBRE, y no cuesta ni una petición
+
+`tcg_cards.dex_ids` existe desde la primera migración del catálogo y
+estaba vacía en las 21.356 filas. Lo obvio es pedírsela a TCGdex (su
+carta trae `dexId`): serían ~21.000 peticiones y dos días de función
+programada, contra un catálogo comunitario y gratuito — la cuenta que
+esta casa lleva haciendo desde la 233.
+
+Y no hace falta. `dexDeCarta` y `dexesDeNombre` ya sacan la especie de
+un texto, y llevan desde la tanda 231 moviendo los minisprites y los
+arquetipos de mazo. Rellenar la columna es leer y escribir en NUESTRA
+base: `cartas-pokedex.mjs` **no sale a internet**, y por eso va por lotes
+de 500 sin pausa en vez de 30 con 350 ms entre medias.
+
+### Por qué hizo falta `especiesDeCarta` y no valía `dexesDeNombre`
+
+Casi valía. Ya resuelve las formas —«Teal Mask Ogerpon ex» cae en
+Ogerpon y no en dos Pokémon— pero se escribió para NOMBRES DE MAZO, y
+ahí no hay sufijos pegados con guion. En un nombre de CARTA sí:
+**«Pikachu & Zekrom-GX» daba solo Pikachu**, porque `aplastar` se come el
+guion y «zekromgx» no es ninguna especie. Las TAG TEAM se quedaban con
+la mitad.
+
+Y la regla que lo arregla tiene que ser cuidadosa, porque **partir por el
+guion sin más rompe dos especies de verdad**: «Ho-Oh» (250) y
+«Porygon-Z» (474) se llaman así. Por eso se prueba SIEMPRE la palabra
+ENTERA primero y solo si no es ninguna especie se mira lo que hay antes
+del último guion. Porygon-Z casa entero; Zekrom-GX no, y entonces sí se
+prueba «Zekrom».
+
+`dexesDeNombre` **no se ha tocado**: de ella cuelga cómo se agrupan los
+mazos en /mis-partidas y en el meta, y cambiarla movería esas firmas sin
+que nada diera error. Esto es otra pregunta —«¿qué Pokémon SALE en esta
+carta?»— y se contesta aparte.
+
+### Qué se pregunta y qué no
+
+La rejilla de las 1.025 especies con tu progreso se pinta **sin una sola
+consulta**: tu colección ya está en memoria y la especie sale del nombre.
+Lo único que se pide es cuántas hay en el catálogo (`pokedex_resumen`,
+una vez por visita).
+
+Y **lo tuyo sale aunque el catálogo no esté repasado**. Mientras
+`dex_ids` se rellena, la consulta por especie devuelve poco o nada; las
+cartas que tienes se añaden desde el nombre. Una pantalla que se queda
+en blanco esperando a una tarea de fondo es una pantalla rota.
+
+### El centinela, por tercera vez
+
+`null` es «no lo hemos mirado»; `{}` es «mirado, y no sale ningún
+Pokémon». Un Entrenador se queda en `{}`. Sin esa diferencia los ~5.000
+Entrenadores volverían en cada pasada para siempre — la lección de la
+333 y de la 380: **una cola que no distingue «no preguntado» de «no hay»
+no se vacía nunca.**
+
+### Y una de CSS que se midió
+
+Las cartas de una especie salían como tiras: 144×342 en vez de 144×201.
+El `<img>` lleva `height="342"` para reservar su hueco, y **ese atributo
+se aplica como CSS** —de baja prioridad, pero CSS al fin—, así que la
+altura queda DEFINIDA y `aspect-ratio` no actúa: solo actúa si un lado es
+`auto`. Con `height: auto` vuelve a 1,40, que es la proporción de una
+carta. La prueba lo MIDE.
+
+### Comprobado
+
+`test-tanda-381.mjs`, y la migración contra un **PostgreSQL 16 de
+verdad** con 21.000 filas: que el índice GIN SE USA para `dex_ids @>
+'{25}'` (con pocas filas el planificador coge cualquier cosa y no
+prueba nada), que el `{}` saca la carta de la cola y que una TAG TEAM
+sale en las dos especies.

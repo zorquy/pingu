@@ -57,7 +57,7 @@ let lineas = []
 let cartas = new Map() // id → fila de tcg_cards
 let guardados = new Map() // id → fila de tcg_card_prices
 const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
-let pestania = ['cartas', 'album', 'albumes', 'anadir', 'resumen', 'cambios'].includes(params.get('ver')) ? params.get('ver') : 'cartas'
+let pestania = ['cartas', 'album', 'albumes', 'anadir', 'resumen', 'cambios', 'pokedex'].includes(params.get('ver')) ? params.get('ver') : 'cartas'
 let albumesAbiertos = false
 
 // Los intercambios (tanda 376). El módulo entra por `import()` la
@@ -72,6 +72,14 @@ let cambiosCargados = false
 // y volver a pedirlas sería una consulta por clic.
 let tablonTiene = []
 let tablonBusca = []
+
+// La Pokédex (tanda 381). El módulo entra por `import()` la primera vez
+// que se abre: se trae los 1.025 nombres de `sprites-pokemon.js` y no
+// tiene por qué pesar en la primera visita de nadie.
+let pokedex = null
+let totalesPokedex = new Map()
+let pokedexCargada = false
+let especieAbierta = null
 
 const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
 
@@ -861,7 +869,7 @@ function cambiarPestania(nueva) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAlbumes', 'albumes'], ['mcPanelAnadir', 'anadir'], ['mcPanelResumen', 'resumen'], ['mcPanelCambios', 'cambios']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAlbumes', 'albumes'], ['mcPanelAnadir', 'anadir'], ['mcPanelResumen', 'resumen'], ['mcPanelCambios', 'cambios'], ['mcPanelPokedex', 'pokedex']]) {
     $(id).classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
@@ -877,7 +885,86 @@ function cambiarPestania(nueva) {
   if (nueva === 'album' && !album.set) pintarEstanteria()
   if (nueva === 'resumen') pintarResumenPanel()
   if (nueva === 'cambios') abrirCambios()
+  if (nueva === 'pokedex') abrirPokedex()
   if (nueva === 'anadir') $('mcAnadirBuscar').focus()
+}
+
+// ── La Pokédex (tanda 381) ──
+//
+// Lo que TIENES no se consulta: tu colección ya está en memoria y de qué
+// Pokémon es cada carta sale de su nombre. Lo único que se pregunta es
+// cuántas hay en el catálogo de cada una, una vez por visita.
+async function abrirPokedex() {
+  const caja = $('mcPokedexPanel')
+  if (!caja) return
+  if (!pokedexCargada) {
+    caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
+    try {
+      const [modulo, totales] = await Promise.all([
+        import('./mi-coleccion/pokedex.js'),
+        datos.pokedexResumen().catch(() => []),
+      ])
+      pokedex = modulo
+      totalesPokedex = new Map((totales || []).map((f) => [Number(f.dex), Number(f.cartas)]))
+      pokedexCargada = true
+    } catch (err) {
+      caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
+      return
+    }
+  }
+  if (especieAbierta) return pintarEspecie(especieAbierta)
+  pintarPokedex()
+}
+
+function pintarPokedex() {
+  const caja = $('mcPokedexPanel')
+  $('mcPdxMandos').classList.remove('hidden')
+  const mio = pokedex.loMioPorEspecie(lineas, cartas)
+  const filas = pokedex.filasDePokedex({
+    mio,
+    totales: totalesPokedex,
+    soloMios: $('mcPdxSoloMios').checked,
+    texto: $('mcPdxBuscar').value,
+  })
+  caja.innerHTML = pokedex.rejillaHtml(filas)
+  // El contador de arriba cuenta especies DISTINTAS, no cartas: es una
+  // Pokédex, y lo que se llena son huecos de Pokémon.
+  const conAlguna = [...mio.values()].filter(Boolean).length
+  $('mcPdxCuenta').textContent = `${conAlguna} de 1.025 Pokémon`
+}
+
+async function pintarEspecie(dex) {
+  const caja = $('mcPokedexPanel')
+  especieAbierta = dex
+  $('mcPdxMandos').classList.add('hidden')
+  caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
+  let delCatalogo = []
+  try {
+    delCatalogo = await datos.cartasDeEspecie(dex)
+  } catch {
+    // Que no se vea el catálogo no puede dejar la pantalla en blanco:
+    // abajo se enseña lo tuyo igualmente.
+  }
+  const tuyas = new Set(lineas.map((l) => l.card_id))
+  // Las TUYAS salen siempre, vengan o no del catálogo. Mientras la
+  // columna `dex_ids` se esté rellenando, la consulta de arriba devuelve
+  // poco o nada — y lo tuyo es justo lo que has venido a ver. Se saca
+  // del NOMBRE, que ya está en memoria, así que no cuesta nada.
+  const porId = new Map(delCatalogo.map((c) => [c.id, c]))
+  for (const id of tuyas) {
+    const c = cartas.get(id)
+    if (c && !porId.has(id) && pokedex.esDeLaEspecie(c, dex)) porId.set(id, c)
+  }
+  const lista = [...porId.values()].sort(porSetYNumero)
+  caja.innerHTML = pokedex.especieHtml({ dex, cartas: lista, tuyas, sinCatalogo: delCatalogo.length === 0 })
+}
+
+// Por colección y, dentro, por número impreso: es el orden del álbum, y
+// así una especie se lee como se leería en el archivador.
+function porSetYNumero(a, b) {
+  const fa = a.tcg_sets?.release_date || ''
+  const fb = b.tcg_sets?.release_date || ''
+  return String(fb).localeCompare(String(fa)) || porNumero(a, b)
 }
 
 // ── Los cambios (tanda 376) ──
@@ -1103,6 +1190,7 @@ function repintar() {
   // entonces las líneas ya estaban. Un enlace directo, no.
   if (pestania === 'resumen') pintarResumenPanel()
   if (pestania === 'cambios') abrirCambios()
+  if (pestania === 'pokedex') abrirPokedex()
 }
 
 function enganchar() {
@@ -1126,6 +1214,29 @@ function enganchar() {
     if (b) abrirAlbum(b.dataset.set)
   })
   $('mcAlbumVolver').addEventListener('click', volverALaEstanteria)
+
+  // ── La Pokédex (tanda 381) ──
+  //
+  // Los dos mandos y la delegación del clic van AQUÍ y no dentro de la
+  // pestaña: el panel se repinta entero en cada filtro, así que un
+  // oyente puesto dentro se duplicaría en cada tecla. La caja de fuera
+  // no se repinta nunca.
+  for (const id of ['mcPdxBuscar', 'mcPdxSoloMios']) {
+    $(id).addEventListener(id === 'mcPdxBuscar' ? 'input' : 'change', () => {
+      // Al filtrar se vuelve a la rejilla: filtrar con una especie
+      // abierta no significa nada.
+      especieAbierta = null
+      if (pokedexCargada) pintarPokedex()
+    })
+  }
+  $('mcPanelPokedex').addEventListener('click', (e) => {
+    const especie = e.target.closest('[data-dex]')
+    if (especie) return pintarEspecie(Number(especie.dataset.dex))
+    if (e.target.closest('#pdxVolver')) {
+      especieAbierta = null
+      pintarPokedex()
+    }
+  })
   $('mcAlbumSoloFaltan').addEventListener('change', (e) => {
     album.soloFaltan = e.target.checked
     album.pagina = 0
