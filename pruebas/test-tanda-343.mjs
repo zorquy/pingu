@@ -89,16 +89,43 @@ console.log('\n── 4. Y las columnas se piden de más a menos, una a una ─�
   check('hay varios escalones', candidatas.length >= 4, String(candidatas.length))
   // Uno a uno y no todo de golpe: con la migración de la 339 puesta y
   // esta sin poner, no se puede perder también la marca de regulación.
-  check('el primero lo pide todo',
-    /curado_at/.test(candidatas[0]) && /names_fixed_at/.test(candidatas[0]) &&
-      /regulation_mark/.test(candidatas[0]), candidatas[0])
-  check('el segundo suelta solo la última columna nueva',
-    !/names_fixed_at/.test(candidatas[1]) && /curado_at/.test(candidatas[1]) &&
-      /regulation_mark/.test(candidatas[1]), candidatas[1])
-  check('el tercero suelta la siguiente',
-    !/curado_at/.test(candidatas[2]) && /regulation_mark/.test(candidatas[2]), candidatas[2])
-  check('y el último es el de siempre',
-    !/regulation_mark/.test(candidatas.at(-1)), candidatas.at(-1))
+  // ── LA FORMA, no las posiciones (corregido en la tanda 380) ──
+  //
+  // Esto miraba `candidatas[1]` y `candidatas[2]` por su número, así que
+  // añadir UNA columna nueva arriba —`curado_v`— la ponía roja sin que
+  // nada se hubiera roto: todo seguía bajando de una en una, solo que
+  // un escalón más abajo. Una prueba que se rompe al añadir el caso
+  // siguiente mide la lista, no la regla.
+  //
+  // Lo que de verdad importa es que cada escalón suelte EXACTAMENTE una
+  // columna opcional respecto al anterior, y ninguna más. Eso se puede
+  // comprobar sin saber cuántos escalones hay ni cómo se llaman.
+  // El último escalón es `BASE,` a secas: cero opcionales.
+  const opcionales = (c) =>
+    /^BASE,?$/.test(c.trim())
+      ? []
+      : c.replace(/^`?\$\{BASE\},?/, '').replace(/[`,]+$/, '').split(',').map((x) => x.trim()).filter(Boolean)
+
+  check('el primero lo pide todo', opcionales(candidatas[0]).length >= 3, opcionales(candidatas[0]).join(' '))
+  const mal = []
+  for (let i = 1; i < candidatas.length; i++) {
+    const antes = opcionales(candidatas[i - 1])
+    const ahora = opcionales(candidatas[i])
+    // Cada escalón tiene que ser un PREFIJO estricto del anterior: se
+    // sueltan por la COLA, de lo más nuevo a lo más viejo, y nunca una
+    // de en medio. Las de una misma migración bajan juntas
+    // (`regulation_mark` y su `_origen`), así que «una sola columna» no
+    // es la regla — la regla es que no se pierde nada fuera de orden.
+    //
+    // Eso es lo que protege el caso de la 339: con aquella migración
+    // puesta y la de después sin poner, la marca de regulación tiene que
+    // sobrevivir al escalón.
+    if (ahora.length >= antes.length || antes.slice(0, ahora.length).join(',') !== ahora.join(',')) {
+      mal.push(`${i}: [${antes.join(' ')}] → [${ahora.join(' ')}]`)
+    }
+  }
+  check('  …y cada escalón suelta por la COLA, sin saltarse ninguna', mal.length === 0, mal.join(' | '))
+  check('y el último es el de siempre', opcionales(candidatas.at(-1)).length === 0, candidatas.at(-1))
 }
 
 // ═════════════════════════════════════════════════════════════════════
