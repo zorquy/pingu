@@ -128,6 +128,7 @@
         <button type="button" role="tab" class="mc-pestania" data-pestania="album" aria-selected="false" aria-controls="mcPanelAlbum">Álbum</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="albumes" aria-selected="false" aria-controls="mcPanelAlbumes">Álbumes soñados</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="anadir" aria-selected="false" aria-controls="mcPanelAnadir">Añadir cartas</button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="resumen" aria-selected="false" aria-controls="mcPanelResumen">Resumen</button>
       </div>
 
       <section id="mcPanelCartas" role="tabpanel" aria-label="Cartas">
@@ -201,6 +202,18 @@
         <div id="mcAlbum"></div>
         </div>
         <p class="subtext hidden" id="mcAlbumVacio">No hay ninguna colección que enseñar todavía.</p>
+      </section>
+
+      <!-- EL RESUMEN (tanda 374). Las cuatro cifras de arriba dicen
+           cuánto tienes; esta pestaña dice QUÉ tienes. Tres cosas, y las
+           tres salen de lo que ya está guardado:
+           · Las REPETIDAS, que son la puerta a los intercambios: sin
+             saber qué te sobra no hay nada que ofrecer.
+           · Lo más valioso, que es lo primero que enseña cualquiera.
+           · El reparto por serie y por rareza, que es lo que cuenta qué
+             clase de coleccionista eres. -->
+      <section id="mcPanelResumen" class="hidden" role="tabpanel" aria-label="Resumen">
+        <div id="mcResumenPanel"></div>
       </section>
 
       <section id="mcPanelAlbumes" class="hidden" role="tabpanel" aria-label="Álbumes soñados">

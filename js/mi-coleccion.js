@@ -18,6 +18,12 @@ import { rutaDeCarta, urlDeLogo } from './carta-ruta.js'
 // El escaneo con su respaldo (tanda 370): TCGdex no tiene imagen de
 // muchas cartas viejas, y sin esto el bolsillo se quedaba en blanco.
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
+// La rareza, en cristiano, para el reparto del resumen (tanda 374).
+// De las TABLAS, no del núcleo: `carta-nucleo.js` pinta la ficha entera,
+// y el barrido de la 299 sigue los imports —así que importarlo por una
+// rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
+// no carga esa hoja.
+import { rarezaEs } from './carta-traducciones.js'
 import { esDelTCG } from './catalogo-series.js'
 import {
   IDIOMAS,
@@ -119,6 +125,133 @@ function pintarResumen() {
   $('mcResumenNota').textContent = lineas.length
     ? `El valor suma la tendencia de Cardmarket de cada carta (o el valor que le hayas puesto tú), sin ajustar por estado.${sinPrecio ? ` ${sinPrecio} ${sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía.` : ''}`
     : ''
+}
+
+// ══════════════════════════════════════════════════════════════════
+// La pestaña «Resumen» (tanda 374)
+// ══════════════════════════════════════════════════════════════════
+//
+// Las cuatro cifras de arriba dicen CUÁNTO tienes; esta pestaña dice QUÉ
+// tienes. Todo sale de lo que ya está guardado — ni una consulta más.
+
+// ── Las repetidas ──
+//
+// «tienes 3 · te sobran 2». Es la puerta a los intercambios: sin saber
+// qué te sobra no hay nada que ofrecer, y es la pregunta que se hace
+// cualquiera que abre una caja de cartas repetidas.
+//
+// Se cuenta por CARTA y no por línea: tres copias de la misma carta en
+// tres estados distintos son tres líneas y una sola carta repetida. Lo
+// que sobra es todo menos una.
+function repetidas() {
+  const porCarta = new Map()
+  for (const l of lineas) porCarta.set(l.card_id, (porCarta.get(l.card_id) || 0) + l.cantidad)
+  return [...porCarta.entries()]
+    .filter(([, n]) => n > 1)
+    .map(([id, n]) => ({ carta: cartas.get(id), id, tengo: n, sobran: n - 1 }))
+    .sort((a, b) => b.sobran - a.sobran)
+}
+
+// ── Lo más valioso ──
+//
+// Por el valor de UNA copia y no por el de la línea entera: diez cartas
+// de un euro no son «lo más valioso que tienes», son diez cartas de un
+// euro. Lo que se quiere enseñar es la pieza.
+function masValiosas(cuantas = 10) {
+  const porCarta = new Map()
+  for (const l of lineas) {
+    const v = valorDeLinea(l, precioDe(l))
+    if (!v) continue
+    const unidad = v / (Number(l.cantidad) || 1)
+    if (unidad > (porCarta.get(l.card_id) || 0)) porCarta.set(l.card_id, unidad)
+  }
+  return [...porCarta.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, cuantas)
+    .map(([id, v]) => ({ carta: cartas.get(id), id, valor: v }))
+}
+
+// ── El reparto ──
+//
+// Cuántas cartas DISTINTAS por serie y por rareza. Distintas y no
+// copias: «tengo 40 de Espada y Escudo» se entiende; «tengo 78 contando
+// repetidas» no dice nada de la colección.
+function repartoPor(saca) {
+  const cuenta = new Map()
+  for (const id of new Set(lineas.map((l) => l.card_id))) {
+    const clave = saca(cartas.get(id))
+    if (!clave) continue
+    cuenta.set(clave, (cuenta.get(clave) || 0) + 1)
+  }
+  return [...cuenta.entries()].sort((a, b) => b[1] - a[1])
+}
+
+function barrasHtml(filas) {
+  if (!filas.length) return ''
+  const mayor = filas[0][1]
+  return `<ul class="mc-reparto">${filas
+    .map(
+      ([nombre, n]) => `<li>
+        <span class="mc-reparto-nombre">${escapeHtml(nombre)}</span>
+        <span class="mc-barra" aria-hidden="true"><i style="--ancho:${Math.round((n / mayor) * 100)}%"></i></span>
+        <span class="mc-reparto-n">${n}</span>
+      </li>`
+    )
+    .join('')}</ul>`
+}
+
+function filaDeCartaHtml(c, derecha) {
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  return `<li class="mc-fila-carta">
+    <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}">
+      <span class="mc-fila-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+      <span class="mc-fila-nombre">${escapeHtml(nombreDe(c))}<small>${escapeHtml(c?.tcg_sets?.name || '')}</small></span>
+    </a>
+    <span class="mc-fila-dato">${derecha}</span>
+  </li>`
+}
+
+function pintarResumenPanel() {
+  const caja = $('mcResumenPanel')
+  if (!caja) return
+  if (!lineas.length) {
+    caja.innerHTML = '<p class="subtext">Cuando añadas cartas, aquí te contamos qué tienes.</p>'
+    return
+  }
+  const rep = repetidas()
+  const valiosas = masValiosas()
+  const porSerie = repartoPor((c) => c?.tcg_sets?.name)
+  const porRareza = repartoPor((c) => (c?.rarity ? rarezaEs(c.rarity) : null))
+  const sobranTotal = rep.reduce((s, r) => s + r.sobran, 0)
+  caja.innerHTML = `
+    <div class="mc-resumen-rejilla">
+      <section class="mc-resumen-caja">
+        <h3>Tus repetidas</h3>
+        ${
+          rep.length
+            ? `<p class="subtext">Te sobran <strong>${sobranTotal}</strong> ${sobranTotal === 1 ? 'copia' : 'copias'} de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}. Son las que puedes cambiar.</p>
+               <ul class="mc-lista-cartas">${rep.slice(0, 12).map((r) => filaDeCartaHtml(r.carta, `tienes ${r.tengo} · <strong>te sobran ${r.sobran}</strong>`)).join('')}</ul>`
+            : '<p class="subtext">No tienes ninguna repetida todavía.</p>'
+        }
+      </section>
+      <section class="mc-resumen-caja">
+        <h3>Lo más valioso</h3>
+        ${
+          valiosas.length
+            ? `<ul class="mc-lista-cartas">${valiosas.map((v) => filaDeCartaHtml(v.carta, `<strong>${euros(v.valor)}</strong>`)).join('')}</ul>
+               <p class="subtext">Por lo que vale UNA copia, no la línea entera.</p>`
+            : '<p class="subtext">Todavía no sabemos el precio de ninguna de tus cartas.</p>'
+        }
+      </section>
+      <section class="mc-resumen-caja">
+        <h3>Por colección</h3>
+        ${barrasHtml(porSerie.slice(0, 10)) || '<p class="subtext">—</p>'}
+      </section>
+      <section class="mc-resumen-caja">
+        <h3>Por rareza</h3>
+        ${barrasHtml(porRareza.slice(0, 10)) || '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>'}
+      </section>
+    </div>`
 }
 
 // ── Pestaña «Cartas» ──
@@ -617,7 +750,7 @@ function cambiarPestania(nueva) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAlbumes', 'albumes'], ['mcPanelAnadir', 'anadir']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAlbumes', 'albumes'], ['mcPanelAnadir', 'anadir'], ['mcPanelResumen', 'resumen']]) {
     $(id).classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
@@ -631,6 +764,7 @@ function cambiarPestania(nueva) {
     albumes.entrar(params.get('album'))
   }
   if (nueva === 'album' && !album.set) pintarEstanteria()
+  if (nueva === 'resumen') pintarResumenPanel()
   if (nueva === 'anadir') $('mcAnadirBuscar').focus()
 }
 

@@ -414,6 +414,135 @@
   }
 }
 
+/* ── El resumen (tanda 374) ──
+ * Cuatro cajas: repetidas, lo más valioso y los dos repartos. En
+ * escritorio, dos columnas; en el móvil, una.
+ */
+/* Dos columnas como mucho, no «las que quepan»: son CUATRO cajas, y con
+   tres columnas la cuarta se queda sola en una fila con media pantalla
+   en blanco al lado. `min(100%, 420px)` para que en el móvil no se
+   desborde — un `minmax` con un mínimo mayor que la pantalla saca barra
+   horizontal. */
+.mc-resumen-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: var(--e-lg);
+  align-items: start;
+}
+
+.mc-resumen-caja {
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.mc-resumen-caja h3 {
+  margin-bottom: var(--e-md);
+  font-size: var(--t-md);
+}
+
+.mc-lista-cartas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-fila-carta {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  /* 44 porque la fila ENTERA es un enlace a la carta. */
+  min-height: 44px;
+}
+
+.mc-fila-carta > a {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: var(--e-md);
+  color: inherit;
+  text-decoration: none;
+}
+
+/* El hueco de la miniatura va reservado con la proporción de una carta:
+   son doce imágenes y sin esto la lista baila al llegar. */
+.mc-fila-foto {
+  flex: 0 0 auto;
+  width: 32px;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--bg);
+}
+
+.mc-fila-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* `min-width: 0` para que el recorte funcione: sin él, el nombre estira
+   la fila en vez de cortarse (la lección de la 320). */
+.mc-fila-nombre {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-fila-nombre small {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 400;
+}
+
+.mc-fila-dato {
+  flex: 0 0 auto;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-reparto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-reparto li {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+}
+
+.mc-reparto-nombre {
+  flex: 0 0 40%;
+  overflow: hidden;
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-reparto-n {
+  flex: 0 0 auto;
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
 /* ── La estantería (tanda 372) ──
  *
  * La rejilla de colecciones con su logo y su progreso. Sustituye a un

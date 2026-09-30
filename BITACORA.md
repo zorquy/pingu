@@ -12,6 +12,58 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-30 — PINGU-Claude (tanda 374 — el resumen: qué tienes, no cuánto)
+
+**Hecho**: las cuatro cifras de arriba de «Mi colección» dicen CUÁNTO
+tienes. Faltaba lo otro. Pestaña nueva con cuatro cajas, y las cuatro
+salen de lo que ya estaba guardado — **ni una consulta más**.
+
+- **Tus repetidas**: «tienes 4 · te sobran 3». Es la puerta a los
+  intercambios — sin saber qué te sobra no hay nada que ofrecer — y es
+  la pregunta que se hace cualquiera que abre una caja de repetidas. Se
+  cuenta por CARTA y no por línea: tres copias en tres estados distintos
+  son tres líneas y una sola carta repetida.
+- **Lo más valioso**, por lo que vale UNA copia y no la línea entera.
+  Diez cartas de un euro no son «lo más valioso que tienes», son diez
+  cartas de un euro.
+- **Por colección y por rareza**, contando cartas DISTINTAS. «Tengo 40 de
+  Espada y Escudo» se entiende; «78 contando repetidas» no dice nada de
+  la colección.
+
+Y las cuatro cajas van de **dos en dos**, no «las que quepan»: con tres
+columnas la cuarta se quedaba sola con media pantalla en blanco al lado.
+El `minmax` lleva `min(100%, 420px)` porque un mínimo mayor que la
+pantalla saca barra horizontal en el móvil.
+
+Y de regalo, **la trampa de la 299 por tercera vez esta semana**: el
+reparto por rareza necesitaba `rarezaEs`, que vivía en
+`js/carta-nucleo.js` — el módulo que pinta la ficha ENTERA. El barrido
+sigue los imports y no las llamadas, así que /mi-coleccion pasó a «usar»
+seis clases de `carta.css`, una hoja que no carga. Las tablas se han ido
+a `js/carta-traducciones.js`, que no sabe dibujar nada, y `carta-nucleo`
+las reexporta para no tocar a quien ya las pedía. **Ojo al reexportar**:
+un `export … from` NO trae el nombre al ámbito del fichero, y aquí
+dentro se usan — hay que importar Y exportar.
+
+**Ficheros**: `js/mi-coleccion.js`, `mi-coleccion.html`,
+`css/mi-coleccion.css`, `js/carta-nucleo.js`, `SCHEMA.md`, y
+`js/carta-traducciones.js` (**nuevo**). En `pruebas`:
+`test-tanda-374.mjs` (**nuevo**).
+
+**En curso / pendiente**: de HoloNook queda lo grande, los
+**intercambios** — y ahí les ganamos, porque su propio tutorial dice
+«HoloNook no tiene chat: los cambios se hablan por fuera» y manda a X o
+Instagram, mientras que nosotros tenemos foro y mensajes propios. Las
+repetidas de esta tanda son justo el paso previo.
+
+Y el **valor de la colección en el tiempo**, que es lo único de la lista
+que necesita migración: hay que guardar una foto del valor cada día con
+una función programada, porque hoy solo sabemos el de ahora.
+
+Sigue pendiente de PINGU el **SQL de las imágenes**.
+
+---
+
 ## 2026-09-30 — PINGU-Claude (tandas 372 y 373 — la estantería y el brillo por rareza)
 
 PINGU: «tira con todo y todo lo que creas conveniente para mejorar este

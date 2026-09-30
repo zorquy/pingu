@@ -19890,3 +19890,84 @@ no se supone: el **alto calculado** de la barra de progreso (8 px, no un
 óvalo), la **opacidad calculada** de la lámina en reposo y con el ratón
 encima, y el **fondo calculado** de tres rarezas distintas comparado
 entre sí — que el atributo cambie no prueba que se vea distinto.
+
+---
+
+## Tanda 374 — el resumen: qué tienes, no cuánto (sept. 2026)
+
+Las cuatro cifras de la cabecera de «Mi colección» —cartas, distintas,
+colecciones, valor— dicen **cuánto** tienes. Ninguna dice **qué**. Esta
+pestaña es lo segundo, y no cuesta una consulta: todo sale de las líneas
+y las cartas que ya están cargadas.
+
+### Tres formas de contar, y cada una la suya
+
+Lo que tiene enjundia de esta tanda es que **la unidad de cuenta cambia
+según la pregunta**, y equivocarse no da error, solo un número que
+engaña:
+
+- **Repetidas: por CARTA.** Tres copias de la misma carta en tres estados
+  distintos son tres LÍNEAS y una sola carta repetida. Contando líneas
+  saldría que te sobran tres cuando te sobran dos.
+- **Lo más valioso: por COPIA.** Ordenar por el valor de la línea pone
+  arriba diez cartas de un euro por delante de una de ocho. Y «lo más
+  valioso que tienes» es la pieza, no el montón.
+- **El reparto: por carta DISTINTA.** «Tengo 40 de Espada y Escudo» se
+  entiende. «78 contando repetidas» no dice nada de la colección: dice
+  cuántos sobres has abierto.
+
+### Las repetidas son la puerta a los intercambios
+
+No están por completar la pantalla. Sin saber qué te sobra no hay nada
+que ofrecer, y es exactamente la pregunta que se hace cualquiera que abre
+su caja de repetidas. Cuando se monten los intercambios, esta lista ya
+está calculada.
+
+### Cuatro cajas no caben en «las que quepan»
+
+`repeat(auto-fill, minmax(320px, 1fr))` daba tres columnas en escritorio
+y dejaba la cuarta caja sola en una fila, con media pantalla en blanco al
+lado. Con cuatro elementos lo que se quiere son **dos por fila**, y eso
+se pide, no se deja a la rejilla.
+
+Y el mínimo va en `min(100%, 420px)`: un `minmax` cuyo mínimo es mayor
+que la pantalla **saca barra de desplazamiento horizontal** en el móvil,
+que es de los fallos que solo se ven en un teléfono.
+
+### `js/carta-traducciones.js`: las tablas, sin el dibujo
+
+El reparto por rareza tenía que enseñar «Hiperrara» y no `Hyper rare`,
+así que pidió `rarezaEs` a `js/carta-nucleo.js`. Y ahí saltó **la trampa
+de la 299 por tercera vez esta semana**: el barrido sigue los `import`,
+no las llamadas, así que /mi-coleccion pasó a «usar» las seis clases de
+un movimiento (`carta-mov`, `carta-mov-coste`, `carta-etiqueta-hab`…)
+por importar el módulo que las pinta — en una página que no carga
+`carta.css`.
+
+Las cinco tablas (`TIPOS_ES`, `FASES_ES`, `ENTRENADORES_ES`,
+`CATEGORIAS_ES`, `RAREZAS_ES`), sus cinco funciones y `familiaDeBrillo`
+se han ido a `js/carta-traducciones.js`, que no sabe dibujar nada y no
+importa a nadie. `carta-nucleo.js` las reexporta, así que `carta.js`,
+`cartas.js` y `coleccion.js` siguen pidiéndolas donde estaban.
+
+Es la misma mudanza que `carta-ruta.js` (la 324) y `escaneo-carta.js`
+(la 370), y la regla que sale de las tres es una: **lo que solo necesita
+un DATO no tiene que arrastrar el DIBUJO**. Cuando un módulo se llama
+«núcleo» de algo, todo el que lo toque hereda ese algo entero.
+
+Y un detalle de JavaScript que cuesta una tarde: **`export … from`
+reexporta pero NO trae el nombre al ámbito del fichero**. `carta-nucleo`
+usa `tipoEs` y `familiaDeBrillo` por dentro, así que necesita las dos
+líneas — un `import` y un `export`. Con solo el reexport, el fichero
+carga y revienta al pintar la primera carta.
+
+### Comprobado
+
+`test-tanda-374.mjs` (21) y `test-tanda-299.mjs`, que es quien cazó lo
+de las tablas — escrita contra **la forma** del fallo y no contra el
+caso, que es justo para lo que se escribió así. Lo que se mide y no se supone: que el orden de
+«lo más valioso» cambia según se cuente por copia o por línea (se
+comprueba que la de 8 € va por delante de la de 2 € aunque la línea de
+la de 2 € valga más), que una carta con una sola copia NO sale en
+repetidas, y **la coordenada superior de las cuatro cajas** — dos valores
+distintos, o sea dos filas de dos.
