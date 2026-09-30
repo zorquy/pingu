@@ -20689,3 +20689,158 @@ fila fuera (regla de la 312).
 no se inventa ninguna, que marcar reverse NO marca normal (que es toda
 la idea), que el progreso del álbum no se mueve, que la tira no se come
 el bolsillo ni se pisa con el mando, y los 44 px con el dedo.
+
+## Tanda 384 — el laboratorio de pruebas del constructor (sept. 2026)
+
+PINGU: «quiero mejorar el constructor para probar todas las
+probabilidades a la hora de robar cartas. Como un laboratorio de
+pruebas: una demo funcional del juego con manos de prueba y haciendo que
+las cartas funcionen. Y un interruptor que abra una tabla con el
+porcentaje de robar cada carta en cada momento». La referencia era el
+«Test draw» de TCG Dexter.
+
+Sustituye a la «mano de prueba» de la 354, que robaba siete cartas y ya.
+Se abre con **Probar** (junto a Compartir), desde Herramientas →
+«Laboratorio de pruebas», desde cada lista de /meta («Probar en el
+laboratorio») y con `?lab=1` en el enlace del constructor.
+
+### Cuatro ficheros, y por qué están partidos así
+
+- `js/constructor/partida.js` — **el motor**. Sin DOM y sin Supabase,
+  como `nucleo.js`: así se prueba en Node, que es donde se ve si una
+  regla está mal. En la pantalla una regla mal escrita no da error:
+  deja jugar una carta que no se podía, o calcula un 40 % que es un 30.
+- `js/constructor/efectos.js` — **lo que hace cada carta**. Se le
+  INYECTA al motor al crear la partida: el motor pone las piezas
+  (robar, buscar, mover, dañar) y cada carta las combina. 122
+  entrenadores, 44 habilidades, 63 ataques con efecto y 15 energías
+  especiales, con su texto en español.
+- `js/constructor/nombres.js` — el nombre inglés de las cartas que el
+  espejo guarda en español (ver más abajo).
+- `js/constructor/laboratorio.js` + `css/laboratorio.css` — la pantalla.
+  El JS se baja con un `import()` al pulsar Probar; la HOJA va en
+  `constructor.html` desde el principio, porque el barrido de la 299
+  sigue los `import()` dinámicos y lo que pinta el laboratorio tiene que
+  tener su CSS cargado.
+
+Las elecciones («elige dos Pokémon de tu mazo») tampoco viven en el
+motor: se las pregunta a un `ui` que le pasa quien llama. En la web es
+una ventana; en las pruebas, un guion. Por eso todo lo que elige es
+asíncrono.
+
+### Deshacer de verdad: el azar vive DENTRO del estado
+
+El generador de números es una semilla guardada en `s.azar`, no
+`Math.random`. Deshacer es volver a una copia del estado
+(`structuredClone`), y si el azar viviera fuera, deshacer un Ultra Ball y
+volver a jugarlo barajaría DISTINTO: podrías repetir un robo hasta que
+saliera lo que querías, que es justo lo que un laboratorio de
+probabilidades no puede dejar hacer.
+
+Corolario: **en el estado no puede haber funciones** —`structuredClone`
+no las copia—. Los bonos de turno (Cinturón Colosal, Cass…) se guardan
+como `{clave, n, porque}` y lo que hacen vive en `BONOS_DE_TURNO`.
+
+### Las probabilidades: lo que TÚ sabes, no lo que sabe el motor
+
+La tabla tiene dos pestañas.
+
+**El mazo** (sin jugar): mulligan, manos con dos o más básicos, media de
+mulligans, y por cada carta la probabilidad de tenerla en la mano
+inicial, para tu turno 2, para tu turno 3, y de que estén TODAS en los
+premios. Condicionado a quedarte una mano con básico, que es la única
+que se juega:
+
+    P(X en las 7+k | hay básico en las 7)
+      = 1 − [P(sin X en 7+k) − P(sin básico ni X en 7) · P(sin X en k de las 53)] / P(hay básico)
+
+**Ahora** (en partida): quedan, próximo robo, en los N próximos robos y
+en los premios. Y aquí está la trampa: el motor SABE qué hay en cada
+premio y en qué orden está el mazo. Si calculara con eso, la tabla
+diría «100 %» cuando la carta está arriba del todo — y eso no es una
+probabilidad, es hacer trampas. Así que cuenta con lo que sabe el
+JUGADOR (`s.conocimiento`):
+
+- `arriba` / `abajo`: cuántas cartas de arriba y de abajo conoces
+  (las que has colocado tú arriba, la que Drakloak pone abajo…).
+- `confirmados`: cartas que has VISTO en el mazo al buscar y que no has
+  sacado (también las siete que enseña Pokégear y vuelven barajadas:
+  no sabes dónde están, pero sí que no están en los premios). Si miras el mazo entero, los premios quedan resueltos por
+  descarte y la tabla lo dice como número exacto, no como porcentaje.
+- los premios que has cogido o mirado.
+
+Con eso, «¿cuántas X hay en la parte que no conozco?» es una
+hipergeométrica: las X no vistas se reparten entre los huecos del mazo
+sin identificar y los premios boca abajo. Todo exacto, y **validado
+contra Monte Carlo** en la prueba (mano inicial, búsqueda parcial,
+carta abajo, cartas de arriba conocidas).
+
+### Las cartas, por su nombre INGLÉS — y el espejo la mitad en español
+
+El efecto se busca por el nombre inglés normalizado (`claveDeEfecto`):
+sin tildes, en minúsculas, apóstrofo recto y **guiones como espacios**,
+porque el espejo tiene «Mega-Kangaskhan ex» y «Mega Kangaskhan ex», y
+son la misma carta. La tabla de efectos se normaliza al cargarla
+(`enPlano`): una clave escrita «Poké Pad» con tilde no casaba con nada,
+y la carta salía como «a mano» **sin dar error**.
+
+Lo que costó descubrir: la reparación de nombres de la 335 no ha llegado
+a todas. El 2026-09-30, de las 318 cartas más jugadas del meta, **176
+tenían el ESPAÑOL en `name`** —«Órdenes de Jefes», «Pokétableta»,
+«Zoroark ex de N»—. Buscarlas por el inglés dejaba media mesa sin
+efectos, y sin dar error. `nombres.js` es la tabla que las casa, sacada
+de la base (nombre de la impresión que juega el meta contra su nombre
+oficial), no de memoria. Y las reglas que miran el nombre —si es ex, si
+es Mega (3 premios), si es Tera, de quién es («de N», «del Team
+Rocket», «de Cintia»), qué evoluciona de qué— pasan TODAS por la clave
+canónica. Cuando la reparación acabe, la tabla sobra y no estorba.
+
+### Mismo nombre, otro ataque: la firma
+
+Dos cartas con el mismo nombre no tienen por qué tener los mismos
+ataques (hay Greninja ex, Toxel o Riolu de varios sets con textos
+distintos). Un efecto de ataque se escribe por su POSICIÓN (`#0`, `#1`)
+y va con su **firma**: cuántos ataques tiene la carta y los dígitos del
+daño impreso. Si la impresión no casa, el ataque se juega a mano en vez
+de hacer lo que hace otra carta que se llama igual.
+
+Y una habilidad solo se automatiza en cartas modernas o sin marca, y si
+la carta TIENE habilidades en el catálogo: un Pokémon viejo con el mismo
+nombre no hereda la de uno nuevo.
+
+### Lo que no está automatizado se juega a mano, y lo dice
+
+Una carta sin efecto no bloquea la partida: se juega «a mano» (se
+descarta, o se queda en la mesa, y tú haces lo que dice), y su menú lo
+avisa. Los ataques sin efecto hacen su daño impreso, y siempre está
+«Atacar a mano…» con el daño que quieras. El rival es un **maniquí** que
+no juega —tres plantillas: básico de 120 PS (1 premio), ex de 230 (2)
+y Mega ex de 340 (3)—:
+sirve para ver cuándo llegas a quitar premios, no para ganar a nadie.
+Se le puede simular un KO para las cartas que miran «si te dejaron
+fuera de combate el turno pasado».
+
+### Comprobado
+
+`test-tanda-384.mjs` (rama `pruebas`, con `cartas-laboratorio.json`: los
+textos oficiales de las 322 cartas del meta): la tabla del mazo contra
+Monte Carlo; las probabilidades en partida (sin conocimiento, tras
+buscar el mazo entero, tras un Pokégear, con una carta abajo, con las de
+arriba conocidas); que las claves casan sin tildes; que las 25 cartas
+más jugadas están automatizadas; que TODOS los entrenadores
+automatizados se juegan sin perder ni duplicar una carta; 60 partidas
+al azar con cinco mazos del meta y 10 más con los nombres EN ESPAÑOL
+(«Zoroark ex de N» evoluciona de «Zorua de N» y da 2 premios,
+«Mega-Kangaskhan ex» da 3); que una impresión con otro daño, otro
+número de ataques u otra era NO hereda el efecto, ni una sin
+habilidades la habilidad; las reglas de turno (una energía, un
+partidario, nada de Caramelo Raro el primer turno…); que deshacer y
+volver a barajar da el mismo orden; que la paleta de energías sigue
+siendo copia de la de `css/carta.css`; y la pantalla de punta a punta,
+también a 360 px sin desbordar.
+
+`rigor-tanda-384.py` rompe el origen de cada cosa (14 mutaciones) y la
+prueba las ve todas. La primera pasada cazó una red de repuesto:
+`claveDeEfecto` miraba también `name_es`, que cuando `name` viene en
+español dice lo mismo, así que quitar la traducción no cambiaba nada.
+Se quitó la línea que sobraba, no se inventó una prueba para ella.

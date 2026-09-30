@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
   <link rel="apple-touch-icon" href="/assets/icon-192.png" />
-  <meta name="description" content="Monta tu mazo de Pokémon TCG en español: busca cartas, comprueba que es legal en Estándar, prueba manos iniciales y expórtalo a TCG Live o a Limitless." />
+  <meta name="description" content="Monta tu mazo de Pokémon TCG en español: busca cartas, comprueba que es legal en Estándar, juega partidas de prueba con las probabilidades de robo en vivo y expórtalo a TCG Live." />
   <!-- meta-social:inicio -->
   <link rel="canonical" href="https://pokedoc.es/constructor" />
   <meta property="og:url" content="https://pokedoc.es/constructor" />
@@ -37,6 +37,10 @@
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/constructor.css" />
+  <!-- El laboratorio (tanda 384) se baja al abrirlo, pero su hoja va aquí:
+       el barrido de la 299 sigue los import() dinámicos, y lo que pinta
+       js/constructor/laboratorio.js tiene que tener su CSS cargado. -->
+  <link rel="stylesheet" href="/css/laboratorio.css" />
 </head>
 <body>
   <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
@@ -142,6 +146,7 @@
           <div class="cm-acciones">
             <button type="button" class="btn-primary cm-btn" id="cmGuardar">Guardar</button>
             <button type="button" class="btn-secondary cm-btn" id="cmDeshacer" disabled title="Deshacer el último cambio">Deshacer</button>
+            <button type="button" class="btn-secondary cm-btn" id="cmProbar" title="Jugar partidas de prueba con este mazo y ver las probabilidades de robo">Probar</button>
             <div class="cm-menu">
               <button type="button" class="btn-secondary cm-btn" id="cmBtnCompartir" aria-haspopup="true" aria-expanded="false">Compartir</button>
               <div class="cm-menu-lista hidden" id="cmMenuCompartir" role="menu">
@@ -155,7 +160,7 @@
               <div class="cm-menu-lista hidden" id="cmMenuHerramientas" role="menu">
                 <button type="button" role="menuitem" data-accion="importar">Importar una lista</button>
                 <button type="button" role="menuitem" data-accion="importar-imagen">Importar desde una imagen</button>
-                <button type="button" role="menuitem" data-accion="mano">Mano de prueba</button>
+                <button type="button" role="menuitem" data-accion="laboratorio">Laboratorio de pruebas</button>
                 <button type="button" role="menuitem" data-accion="nuevo">Empezar un mazo nuevo</button>
                 <button type="button" role="menuitem" data-accion="vaciar">Vaciar el mazo</button>
               </div>
@@ -306,21 +311,6 @@
       <div class="cm-modal-botones">
         <button type="button" class="btn-secondary cm-btn" data-cerrar>Cancelar</button>
         <button type="button" class="btn-primary cm-btn" id="cmImportarBoton">Importar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- La mano de prueba: 7 cartas y 6 premios boca abajo. -->
-  <div class="modal-overlay hidden" id="cmModalMano" role="dialog" aria-modal="true" aria-labelledby="cmManoTitulo">
-    <div class="modal-box modal-box-wide cm-modal-mano">
-      <button type="button" class="modal-close cm-cerrar" data-cerrar aria-label="Cerrar">×</button>
-      <h3 id="cmManoTitulo">Mano de prueba</h3>
-      <p class="subtext" id="cmManoEstado" aria-live="polite"></p>
-      <div class="cm-mano" id="cmMano"></div>
-      <p class="cm-mano-premios-titulo subtext">Premios (boca abajo): <button type="button" class="link-btn" id="cmManoVerPremios">darles la vuelta</button></p>
-      <div class="cm-mano cm-mano-premios" id="cmManoPremios"></div>
-      <div class="cm-modal-botones">
-        <button type="button" class="btn-primary cm-btn" id="cmManoOtra">Otra mano</button>
       </div>
     </div>
   </div>

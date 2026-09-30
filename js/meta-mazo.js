@@ -213,6 +213,7 @@ function listaHtml(l, i) {
           <div class="meta-lista-acciones">
             <button type="button" class="btn-primary" data-copiar>Copiar para TCG Live</button>
             <a class="btn-secondary" href="${escapeHtml(enlaceConstructor(l.lista, nombreMazo))}">Abrir en el constructor</a>
+            <a class="btn-secondary" href="${escapeHtml(enlaceConstructor(l.lista, nombreMazo, { laboratorio: true }))}">Probar en el laboratorio</a>
             <button type="button" class="btn-secondary" data-imagen>Descargar imagen</button>
             ${ver ? `<a class="link-btn" href="${escapeHtml(ver.url)}"${ver.fuera ? ' target="_blank" rel="noopener"' : ''}>${ver.texto}</a>` : ''}
           </div>

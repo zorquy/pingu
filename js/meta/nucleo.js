@@ -189,9 +189,11 @@ export function codigoLimitless(lista) {
   return s
 }
 
-export function enlaceConstructor(lista, nombre = '') {
+export function enlaceConstructor(lista, nombre = '', { laboratorio = false } = {}) {
   const p = new URLSearchParams({ i: codigoLimitless(lista) })
   if (nombre) p.set('nombre', String(nombre).slice(0, 80))
+  // `lab`: abre el laboratorio de pruebas nada más cargar (tanda 384).
+  if (laboratorio) p.set('lab', '1')
   return `/constructor?${p.toString()}`
 }
 

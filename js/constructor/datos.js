@@ -241,6 +241,28 @@ export async function cartasPorIds(ids) {
   return fuera
 }
 
+// ── Lo que el laboratorio necesita y el buscador no (tanda 384) ──
+//
+// Ataques, habilidades, retirada, debilidad: el buscador no los pide
+// porque pesan y no los pinta. El laboratorio sí los usa, y los pide al
+// abrirse, UNA consulta por el mazo entero (de 100 en 100 como arriba).
+// Las cartas que el engorde aún no ha visitado vuelven con esos campos a
+// null, y el laboratorio lo dice al ver la carta en vez de inventárselos.
+const COLUMNAS_DE_JUEGO = 'id,attacks,abilities,retreat,weaknesses,resistances,hp,types,stage,evolve_from,rarity'
+
+export async function detallesDeJuego(ids) {
+  const unicos = [...new Set(ids.filter(Boolean))]
+  const fuera = new Map()
+  for (let i = 0; i < unicos.length; i += 100) {
+    const { data, error } = await supabase.from('tcg_cards').select(COLUMNAS_DE_JUEGO).eq('market', MERCADO).in('id', unicos.slice(i, i + 100))
+    if (error) throw error
+    // Sin los campos que vienen a null: `{ ...carta, ...detalle }` no
+    // puede borrar con un null lo que la carta ya traía.
+    for (const c of data || []) fuera.set(c.id, Object.fromEntries(Object.entries(c).filter(([, v]) => v != null)))
+  }
+  return fuera
+}
+
 // ── La regla de la reimpresión ──
 // Qué cartas del mazo tienen ALGUNA impresión con marca legal. Devuelve
 // el conjunto de sus `claveDeNombre`, que es lo que mira `validarMazo`.

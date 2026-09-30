@@ -542,20 +542,6 @@ export function leerLista(texto) {
   return { lineas, ilegibles }
 }
 
-// ── La mano de prueba ──
-//
-// Siete cartas al azar del mazo, y seis de premio detrás. Con el azar
-// inyectable para poder probarla.
-export function robarMano(entradas, azar = Math.random) {
-  const mazo = entradas.flatMap((e) => Array.from({ length: e.n }, () => e.carta))
-  for (let i = mazo.length - 1; i > 0; i--) {
-    const j = Math.floor(azar() * (i + 1))
-    ;[mazo[i], mazo[j]] = [mazo[j], mazo[i]]
-  }
-  const mano = mazo.slice(0, 7)
-  return { mano, premios: mazo.slice(7, 13), hayBasico: mano.some((c) => esBasico(c) === true), resto: mazo.length - 13 }
-}
-
 // La probabilidad de tener al menos una copia de una carta en la mano
 // inicial de 7 (hipergeométrica). Es lo que más se consulta al ajustar
 // un mazo: «¿meto la tercera?».

@@ -24,9 +24,9 @@ import {
   decodificarMazo,
   leerLista,
   leerEnlaceLimitless,
-  robarMano,
   probabilidadEnMano,
   numeroSinCeros,
+  esBasico,
 } from './constructor/nucleo.js'
 import {
   marcasLegales,
@@ -630,23 +630,32 @@ function aplicarImportacion(piezas) {
   marcarCambio()
 }
 
-// ── La mano de prueba ──
-let premiosVistos = false
-function nuevaMano() {
-  const entradas = lista()
-  if (total() < 13) {
-    $('cmManoEstado').textContent = 'Hacen falta al menos 13 cartas en el mazo para robar una mano y sus premios.'
-    $('cmMano').innerHTML = ''
-    $('cmManoPremios').innerHTML = ''
-    return
+// ── El laboratorio de pruebas (tanda 384) ──
+//
+// Sustituye a la «mano de prueba» de la 354: aquella robaba siete cartas
+// y ya; esto es una partida con reglas, las cartas del meta funcionando y
+// la tabla de probabilidades en vivo. Se baja SOLO al abrirlo — motor,
+// efectos y pantalla pesan, y quien monta un mazo no los necesita.
+let abriendoLab = false
+async function abrirLab() {
+  if (abriendoLab) return
+  const n = total()
+  if (n < 13) return showToast('Hacen falta al menos 13 cartas en el mazo para repartir una mano y los premios.', 'error')
+  // Sin fase en el catálogo no se acusa (esBasico da null): puede ser esa.
+  if (!lista().some((e) => esBasico(e.carta) !== false)) {
+    return showToast('El mazo necesita algún Pokémon básico para poder empezar una partida.', 'error')
   }
-  const { mano, premios, hayBasico } = robarMano(entradas)
-  premiosVistos = false
-  $('cmManoEstado').textContent = hayBasico
-    ? 'Tienes un Pokémon básico: puedes empezar.'
-    : 'Sin Pokémon básico: esta mano sería un mulligan (se baraja y se roba otra, y tu rival roba una carta más).'
-  $('cmMano').innerHTML = mano.map((c) => `<div class="cm-mano-carta">${imagenHtml(c)}</div>`).join('')
-  $('cmManoPremios').innerHTML = premios.map((c) => `<div class="cm-mano-carta cm-boca-abajo" data-premio>${imagenHtml(c)}</div>`).join('')
+  abriendoLab = true
+  $('cmProbar').disabled = true
+  try {
+    const { abrirLaboratorio } = await import('./constructor/laboratorio.js')
+    await abrirLaboratorio({ entradas: lista(), nombre: estado.nombre, codigoDeSet })
+  } catch (err) {
+    showToast(`No se ha podido abrir el laboratorio: ${err.message || 'error de red'}.`, 'error')
+  } finally {
+    abriendoLab = false
+    $('cmProbar').disabled = false
+  }
 }
 
 // ── Compartir ──
@@ -703,11 +712,7 @@ async function accionHerramienta(accion) {
     } catch {}
     return
   }
-  if (accion === 'mano') {
-    nuevaMano()
-    abrirModal('cmModalMano')
-    return
-  }
+  if (accion === 'laboratorio' || accion === 'mano') return abrirLab()
   if (accion === 'vaciar') {
     if (!lista().length || estado.soloLectura) return
     apuntarHistoria()
@@ -1138,7 +1143,7 @@ function enganchar() {
   $('cmMas').addEventListener('click', () => buscar({ mas: true }))
 
   // Modales.
-  for (const m of ['cmModalCarta', 'cmModalImportar', 'cmModalMano']) {
+  for (const m of ['cmModalCarta', 'cmModalImportar']) {
     $(m).addEventListener('click', (e) => {
       if (e.target === $(m) || e.target.closest('[data-cerrar]')) cerrarModal()
     })
@@ -1197,12 +1202,7 @@ function enganchar() {
     fila.classList.toggle('cm-quitada', f.elegida < 0)
     resumenImagen()
   })
-  $('cmManoOtra').addEventListener('click', nuevaMano)
-  $('cmManoVerPremios').addEventListener('click', () => {
-    premiosVistos = !premiosVistos
-    document.querySelectorAll('[data-premio]').forEach((p) => p.classList.toggle('cm-boca-abajo', !premiosVistos))
-    $('cmManoVerPremios').textContent = premiosVistos ? 'volver a taparlos' : 'darles la vuelta'
-  })
+  $('cmProbar').addEventListener('click', abrirLab)
 }
 
 function cerrarAvisos() {
@@ -1252,6 +1252,10 @@ async function iniciar() {
   const nueva = estado.sets.sets.find((s) => s.release_date && s.release_date <= hoy && estado.sets.codigoDeId.get(s.id) && (s.card_count_official || 0) > 20)
   if (nueva) $('cmSet').value = nueva.id
   buscar()
+
+  // «Probar en el laboratorio» desde /meta: el mazo llega por la
+  // dirección y el laboratorio se abre solo.
+  if (new URLSearchParams(location.search).has('lab') && lista().length) abrirLab()
 }
 
 iniciar()

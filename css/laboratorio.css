@@ -1,0 +1,1555 @@
+/* ── El laboratorio de pruebas del constructor (tanda 384) ──
+   Hoja propia: solo la usa /constructor, y lo que baja todo el mundo
+   (components.css) no puede crecer. Prefijo `lab-`.
+
+   Ocupa la pantalla entera por encima de la página: una mesa de juego
+   no cabe en una ventana de las de siempre, y el mazo que se prueba es
+   el que está debajo, sin guardar ni recargar nada. */
+
+html.lab-abierto {
+  overflow: hidden;
+}
+
+.lab {
+  position: fixed;
+  inset: 0;
+  /* Por debajo de los avisos (2000), que tienen que verse encima. */
+  z-index: 1500;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.lab[hidden] {
+  display: none;
+}
+
+/* ── La barra de arriba ── */
+.lab-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm) var(--e-lg);
+  padding: var(--e-sm) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+
+.lab-titulo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+
+.lab-titulo h2 {
+  font-size: var(--t-xl);
+  outline: none;
+}
+
+.lab-nombre {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-mid);
+  font-size: var(--t-md);
+}
+
+.lab-turno {
+  font-weight: 700;
+  font-size: var(--t-md);
+  color: var(--navy);
+}
+
+.lab-barra-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-left: auto;
+}
+
+.lab-btn {
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-lg);
+}
+
+.lab-btn-prob[aria-pressed='true'] {
+  background: var(--navy-solid);
+  border-color: var(--navy-solid);
+  color: var(--blanco-fijo);
+  box-shadow: 0 4px 0 0 var(--navy-solid-dark);
+}
+
+.lab-cerrar {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--text-mid);
+  font-size: var(--t-2xl);
+  line-height: 1;
+}
+
+.lab-cerrar:hover {
+  background: var(--ice);
+  color: var(--text);
+}
+
+/* ── El cuerpo: la mesa y, si se abre, la tabla ── */
+.lab-cuerpo {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lab-cargando {
+  padding: var(--e-2xl);
+  color: var(--text-mid);
+  text-align: center;
+}
+
+.lab-mesa {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--e-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+@media (min-width: 1100px) {
+  .lab-con-prob .lab-cuerpo {
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 460px);
+  }
+}
+
+.lab-prob {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--e-lg);
+  border-left: 1px solid var(--border);
+  background: var(--white);
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* Sin sitio para las dos columnas, la tabla va por encima de la mesa,
+   como una hoja que se abre desde la derecha. */
+@media (max-width: 1099px) {
+  .lab-prob {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(100%, 480px);
+    z-index: 6;
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.lab-rotulo .subtext {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.lab-rotulo {
+  margin-bottom: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Las cartas ──
+   Todas con su hueco reservado (CLAUDE.md, tanda 313): la proporción de
+   una carta, y la imagen encima. Si la imagen no llega queda el nombre. */
+.lab-carta {
+  --lab-ancho: 84px;
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  width: var(--lab-ancho);
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--ice);
+  border: 1px solid var(--border);
+}
+
+.lab-carta img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lab-sin-imagen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--e-xs);
+  text-align: center;
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--text-mid);
+  overflow: hidden;
+}
+
+button.lab-carta {
+  cursor: pointer;
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+button.lab-carta:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-sm);
+}
+
+button.lab-carta:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* El dorso: los dos azules fijos de la casa, que no cambian de tema a
+   propósito (tanda 315) — un dorso es siempre el mismo dorso. */
+.lab-dorso {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 50%, var(--blanco-fijo) 0 12%, transparent 13%),
+    repeating-linear-gradient(45deg, var(--navy-solid) 0 8px, var(--navy-solid-dark) 8px 16px);
+}
+
+.lab-chapa {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  border: 1px solid var(--border-strong);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lab-carta .lab-chapa-manual {
+  position: absolute;
+  left: var(--e-xs);
+  bottom: var(--e-xs);
+  z-index: 1;
+}
+
+.lab-chapa-manual {
+  background: var(--warning-bg);
+  border-color: var(--warning);
+  color: var(--text);
+}
+
+/* Lo que acaba de llegar a la mano. */
+.lab-nueva {
+  border: 2px solid var(--navy);
+  box-shadow: var(--shadow-ring);
+}
+
+.lab-carta .lab-chapa-nueva {
+  position: absolute;
+  right: var(--e-xs);
+  top: var(--e-xs);
+  z-index: 1;
+  background: var(--navy-solid);
+  border-color: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.lab-chapa-estado {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--text);
+}
+
+/* ── La energía: un punto con la letra del tipo ──
+   Los colores son los de los tipos del TCG y viven en `--tipo-energia`,
+   la excepción declarada de la tanda 311 (paleta cerrada de identidad).
+   Es COPIA de la de css/carta.css; la prueba de la tanda 384 compara las
+   dos. */
+.lab-energia {
+  --tipo-energia: #e6eaed;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--tipo-energia);
+  border: 1px solid var(--border-strong);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.lab-energia sub {
+  font-size: var(--t-2xs);
+}
+
+.lab-energia[data-tipo='G'] { --tipo-energia: #4faa5a; }
+.lab-energia[data-tipo='R'] { --tipo-energia: #e8564a; }
+.lab-energia[data-tipo='W'] { --tipo-energia: #3aa2dd; }
+.lab-energia[data-tipo='L'] { --tipo-energia: #e9c227; }
+.lab-energia[data-tipo='P'] { --tipo-energia: #a06bc4; }
+.lab-energia[data-tipo='F'] { --tipo-energia: #c8722f; }
+.lab-energia[data-tipo='D'] { --tipo-energia: #3d4a57; }
+.lab-energia[data-tipo='M'] { --tipo-energia: #8c9aa5; }
+.lab-energia[data-tipo='Y'] { --tipo-energia: #e07bb0; }
+.lab-energia[data-tipo='N'] { --tipo-energia: #b59433; }
+.lab-energia[data-tipo='C'] { --tipo-energia: #e6eaed; }
+
+/* Sobre los colores claros, letra oscura (la fija: con --text se
+   aclararía en el tema oscuro y desaparecería sobre el amarillo). */
+.lab-energia[data-tipo='L'],
+.lab-energia[data-tipo='C'],
+.lab-energia[data-tipo='M'],
+.lab-energia[data-tipo='*'] {
+  color: var(--navy-solid-dark);
+}
+
+.lab-energia[data-tipo='*'] {
+  --tipo-energia: #e6eaed;
+  background: linear-gradient(135deg, #4faa5a, #3aa2dd 50%, #a06bc4);
+  color: var(--blanco-fijo);
+}
+
+.lab-texto-bloque .lab-energia,
+.lab-menu-texto .lab-energia {
+  min-width: 16px;
+  height: 16px;
+  vertical-align: text-bottom;
+}
+
+.lab-energia-especial {
+  border-style: dashed;
+  border-color: var(--text-mid);
+}
+
+/* ── El rival ── */
+.lab-rival {
+  padding: var(--e-md);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.lab-rival-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-sm);
+}
+
+.lab-rival-cab .lab-rotulo {
+  margin: 0;
+}
+
+.lab-rival-plegar {
+  display: none;
+}
+
+.lab-rival-ajustes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  font-size: var(--t-sm);
+}
+
+.lab-campo-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+}
+
+.lab-campo-mini select {
+  width: auto;
+  min-height: 36px;
+  padding-top: var(--e-xs);
+  padding-bottom: var(--e-xs);
+  font-size: var(--t-sm);
+}
+
+.lab-contador {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+}
+
+.lab-contador strong {
+  min-width: 24px;
+  text-align: center;
+  color: var(--text);
+  font-size: var(--t-lg);
+}
+
+.lab-mini {
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--white);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: var(--t-lg);
+  line-height: 1;
+}
+
+.lab-mini:hover {
+  background: var(--ice);
+}
+
+@media (pointer: coarse) {
+  .lab-mini {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .lab-campo-mini select {
+    min-height: 44px;
+  }
+}
+
+.lab-rival-fila {
+  display: flex;
+  gap: var(--e-sm);
+  overflow-x: auto;
+  padding-bottom: var(--e-xs);
+}
+
+.lab-maniqui {
+  flex: 0 0 136px;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.lab-maniqui-activo {
+  flex-basis: 176px;
+  border: 2px solid var(--navy);
+}
+
+.lab-maniqui-nombre {
+  font-size: var(--t-sm);
+  font-weight: 700;
+  margin-bottom: var(--e-xs);
+}
+
+/* La barra de vida (tuya y del maniquí). */
+.lab-ps {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  overflow: hidden;
+}
+
+.lab-ps span {
+  display: block;
+  width: var(--pct, 0%);
+  height: 100%;
+  background: var(--success);
+}
+
+.lab-ps-texto {
+  margin-top: var(--e-xs);
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Tu lado ── */
+/* El tapete: tu lado de la mesa se distingue del rival y de la mano. */
+.lab-campo {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) 112px;
+  gap: var(--e-md);
+  align-items: start;
+  padding: var(--e-md);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(ellipse at 50% 30%, var(--white) 0%, transparent 70%),
+    var(--ice);
+  border: 1px solid var(--border);
+}
+
+.lab-lado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+  min-width: 0;
+}
+
+.lab-premios {
+  display: grid;
+  grid-template-columns: repeat(2, 48px);
+  gap: var(--e-xs);
+}
+
+.lab-premios .lab-carta {
+  --lab-ancho: 48px;
+}
+
+.lab-premios > p {
+  grid-column: 1 / -1;
+}
+
+.lab-estadio .lab-carta {
+  --lab-ancho: 84px;
+}
+
+.lab-centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-md);
+  min-width: 0;
+}
+
+.lab-activo {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.lab-banca {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-sm);
+  width: 100%;
+}
+
+.lab-slot {
+  display: flex;
+  gap: var(--e-sm);
+  align-items: flex-start;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.lab-slot .lab-slot-carta {
+  --lab-ancho: 76px;
+}
+
+.lab-slot-activo {
+  border: 2px solid var(--navy);
+  box-shadow: var(--shadow-sm);
+}
+
+.lab-slot-activo .lab-slot-carta {
+  --lab-ancho: 112px;
+}
+
+.lab-slot-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  width: 88px;
+  min-width: 0;
+}
+
+.lab-slot-activo .lab-slot-info {
+  width: 128px;
+}
+
+.lab-energias,
+.lab-chapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+}
+
+.lab-danio {
+  position: absolute;
+  right: var(--e-xs);
+  top: var(--e-xs);
+  z-index: 1;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.lab-hueco {
+  width: 76px;
+  aspect-ratio: 245 / 342;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.lab-hueco-activo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: auto;
+  min-height: 120px;
+  padding: var(--e-md);
+  text-align: center;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.lab-pila {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-xs);
+  width: 100%;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  text-align: center;
+}
+
+.lab-pila:hover {
+  border-color: var(--navy);
+}
+
+.lab-pila > .lab-dorso,
+.lab-pila-cara,
+.lab-pila-vacia {
+  position: relative;
+  display: block;
+  width: 64px;
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.lab-pila-cara img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lab-pila-vacia {
+  border: 1px dashed var(--border-strong);
+}
+
+.lab-pila-texto {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  line-height: 1.3;
+}
+
+.lab-pila-texto strong {
+  display: block;
+  color: var(--text);
+  font-size: var(--t-lg);
+}
+
+/* ── La barra del turno ── */
+.lab-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  border: 1px solid var(--border);
+}
+
+.lab-acciones:empty {
+  display: none;
+}
+
+.lab-acciones-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin-left: auto;
+}
+
+.lab-guia,
+.lab-aviso {
+  flex: 1 1 280px;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.lab-aviso {
+  color: var(--text);
+}
+
+.lab-estados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+}
+
+.lab-estado {
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--border-strong);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.lab-estado-hecho {
+  border-style: solid;
+  background: var(--ice);
+  color: var(--text);
+}
+
+.lab-estado-alerta {
+  border-style: solid;
+  border-color: var(--warning);
+  background: var(--warning-bg);
+  color: var(--text);
+}
+
+/* ── La mano ── */
+.lab-mano {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  min-height: 120px;
+}
+
+.lab-mano .lab-carta {
+  --lab-ancho: 88px;
+}
+
+/* ── El registro ── */
+.lab-registro {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  padding: var(--e-sm) var(--e-md);
+}
+
+.lab-registro summary {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+@media (pointer: coarse) {
+  .lab-registro summary {
+    min-height: 44px;
+  }
+}
+
+.lab-registro-lista {
+  max-height: 180px;
+  overflow-y: auto;
+  padding-left: var(--e-lg);
+  list-style: none;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.lab-registro-lista li {
+  padding: 1px 0;
+}
+
+.lab-registro-turno {
+  margin-top: var(--e-xs);
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ── El menú de una carta ── */
+.lab-menu {
+  position: fixed;
+  left: var(--x, 8px);
+  top: var(--y, 8px);
+  z-index: 20;
+  width: min(320px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
+  padding: var(--e-xs);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+}
+
+.lab-menu-titulo {
+  padding: var(--e-sm);
+  font-weight: 700;
+  font-size: var(--t-md);
+}
+
+.lab-menu-texto {
+  display: block;
+  margin-top: var(--e-xs);
+  font-weight: 400;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.lab-menu-op {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--e-sm);
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-size: var(--t-md);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.lab-menu-op:hover,
+.lab-menu-op:focus-visible {
+  background: var(--ice);
+  outline: none;
+}
+
+.lab-menu-op[aria-disabled='true'] {
+  cursor: not-allowed;
+  color: var(--text-dim);
+}
+
+.lab-menu-op[aria-disabled='true']:hover {
+  background: none;
+}
+
+.lab-menu-peligro {
+  color: var(--danger);
+}
+
+.lab-menu-detalle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  font-weight: 400;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.lab-menu-no {
+  display: block;
+  font-weight: 400;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.lab-menu-separador {
+  margin: var(--e-xs) 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+/* En el móvil el menú es una hoja que sube desde abajo: cerca del dedo
+   y sin taparse con el borde de la pantalla. */
+@media (max-width: 640px) {
+  .lab-menu {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    max-height: 70vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}
+
+/* ── Las ventanas de elegir ── */
+.lab-velo {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--e-lg);
+  background: rgba(13, 27, 42, 0.48);
+}
+
+/* La ventana no se desplaza entera: se desplaza su cuerpo, y el título y
+   los botones se quedan a la vista (en el móvil, «Confirmar» se quedaba
+   debajo de 40 cartas). */
+.lab-dialogo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  width: min(760px, 100%);
+  max-height: 100%;
+  overflow: hidden;
+  padding: var(--e-lg);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+  outline: none;
+}
+
+.lab-dialogo h3 {
+  font-size: var(--t-lg);
+}
+
+.lab-dialogo > * {
+  flex-shrink: 0;
+}
+
+.lab-dialogo > .lab-dialogo-cuerpo,
+.lab-dialogo > .lab-ver {
+  flex: 1 1 auto;
+  flex-shrink: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--e-xs);
+  margin: 0 calc(-1 * var(--e-xs));
+}
+
+.lab-dialogo-cuenta {
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.lab-dialogo-error {
+  min-height: 1em;
+  font-size: var(--t-sm);
+  color: var(--danger);
+}
+
+.lab-dialogo-botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--e-sm);
+  margin-top: var(--e-xs);
+}
+
+.lab-rejilla-cartas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: var(--e-sm);
+}
+
+.lab-rejilla-cartas .lab-carta {
+  --lab-ancho: 100%;
+}
+
+.lab-rejilla-mini {
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  margin-bottom: var(--e-sm);
+}
+
+.lab-elegible[aria-pressed='true'] {
+  border: 2px solid var(--navy);
+  box-shadow: var(--shadow-ring);
+}
+
+.lab-elegible[aria-pressed='true']::after {
+  content: '✓';
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-weight: 800;
+  font-size: var(--t-sm);
+}
+
+.lab-no-vale {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+button.lab-carta.lab-no-vale:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.lab-rejilla-pokemon {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--e-sm);
+}
+
+.lab-elegible-pokemon {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  text-align: center;
+}
+
+.lab-elegible-pokemon img {
+  width: 72px;
+  aspect-ratio: 245 / 342;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.lab-elegible-pokemon .lab-sin-imagen {
+  position: static;
+}
+
+.lab-elegible-pokemon img + .lab-elegible-nombre,
+.lab-elegible-pokemon .lab-sin-imagen:has(+ img) {
+  display: none;
+}
+
+.lab-elegible-nombre {
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.lab-elegible-rival {
+  border-style: dashed;
+}
+
+.lab-elegible-pokemon:hover {
+  border-color: var(--navy);
+}
+
+.lab-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+}
+
+.lab-opcion {
+  flex-direction: column;
+  align-items: flex-start;
+  white-space: normal;
+  text-align: left;
+}
+
+.lab-numero input {
+  width: 120px;
+  text-align: center;
+  font-size: var(--t-lg);
+}
+
+.lab-reparto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+}
+
+.lab-reparto-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--t-md);
+}
+
+.lab-opciones-partida {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm) var(--e-lg);
+  padding: 0;
+  border: 0;
+}
+
+.lab-opciones-partida legend {
+  margin-bottom: var(--e-xs);
+  font-weight: 700;
+  font-size: var(--t-md);
+}
+
+.lab-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  font-size: var(--t-md);
+}
+
+.lab-radio input {
+  width: auto;
+}
+
+/* ── Ver una carta ── */
+.lab-ver {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: var(--e-lg);
+  align-items: start;
+}
+
+.lab-ver-img {
+  position: relative;
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--ice);
+}
+
+.lab-ver-img img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lab-ver-texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  font-size: var(--t-md);
+}
+
+.lab-texto-bloque {
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.lab-texto-bloque p + p {
+  margin-top: var(--e-xs);
+  color: var(--text-mid);
+}
+
+@media (max-width: 640px) {
+  .lab-ver {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lab-ver-img {
+    width: min(240px, 100%);
+    margin: 0 auto;
+  }
+}
+
+/* ── El final ── */
+.lab-fin {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--e-lg);
+  background: rgba(13, 27, 42, 0.36);
+}
+
+.lab-fin-caja {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  width: min(440px, 100%);
+  padding: var(--e-xl);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.lab-fin-caja h3 {
+  font-size: var(--t-2xl);
+}
+
+.lab-fin-caja .lab-acciones-botones {
+  justify-content: center;
+  margin: var(--e-sm) 0 0;
+}
+
+/* ── La tabla de probabilidades ── */
+.lab-prob-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-sm);
+}
+
+.lab-prob-cab h3 {
+  font-size: var(--t-lg);
+}
+
+.lab-pestanias {
+  display: flex;
+  gap: var(--e-xs);
+  margin-bottom: var(--e-md);
+  padding: var(--e-xs);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.lab-pestania {
+  flex: 1;
+  min-height: 36px;
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.lab-pestania.activa {
+  background: var(--white);
+  color: var(--navy);
+  box-shadow: var(--shadow-xs);
+}
+
+@media (pointer: coarse) {
+  .lab-pestania {
+    min-height: 44px;
+  }
+}
+
+.lab-prob-resumen {
+  font-weight: 700;
+  font-size: var(--t-md);
+}
+
+.lab-prob-saber {
+  margin: var(--e-xs) 0 var(--e-sm);
+}
+
+.lab-robos {
+  margin-bottom: var(--e-sm);
+  font-size: var(--t-sm);
+}
+
+.lab-tabla-caja {
+  overflow-x: auto;
+  margin: 0 calc(-1 * var(--e-lg));
+  padding: 0 var(--e-lg);
+}
+
+/* Anchos fijos: con el automático, el nombre largo de una carta se
+   quedaba media tabla y la última columna se salía por la derecha. */
+.lab-tabla {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-tabla th,
+.lab-tabla td {
+  padding: var(--e-xs) var(--e-xs);
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.lab-tabla thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: normal;
+}
+
+.lab-tabla th[scope='row'],
+.lab-tabla thead th:first-child {
+  text-align: left;
+  white-space: normal;
+}
+
+.lab-tabla th[scope='row'] {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.lab-tabla thead th:nth-child(1) {
+  width: 36%;
+}
+
+.lab-tabla thead th:nth-child(2) {
+  width: 13%;
+}
+
+.lab-fila-nombre {
+  display: inline;
+}
+
+.lab-fila-pie {
+  display: block;
+  font-weight: 400;
+  font-size: var(--t-2xs);
+  color: var(--text-mid);
+}
+
+.lab-marca {
+  width: auto;
+  margin-right: var(--e-xs);
+  vertical-align: middle;
+}
+
+.lab-fila-seccion th {
+  padding-top: var(--e-md);
+  text-align: left;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lab-fila-grupo th[scope='row'] {
+  color: var(--navy);
+}
+
+.lab-fila-apagada {
+  opacity: 0.45;
+}
+
+.lab-num {
+  display: block;
+  text-align: right;
+}
+
+/* La barra va DEBAJO del número: al lado, la tabla no cabía en el panel
+   de 460 px y la última columna se salía por la derecha. */
+.lab-barra-prob {
+  display: block;
+  width: 100%;
+  height: 4px;
+  margin-top: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  overflow: hidden;
+}
+
+
+
+.lab-barra-prob span {
+  display: block;
+  width: var(--pct, 0%);
+  height: 100%;
+  background: var(--navy);
+}
+
+.lab-prob-nota {
+  margin-top: var(--e-md);
+}
+
+.lab-cifras {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+.lab-cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--e-sm);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.lab-cifra-valor {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-xl);
+  color: var(--navy);
+}
+
+.lab-cifra-texto {
+  font-size: var(--t-2xs);
+  color: var(--text-mid);
+  line-height: 1.3;
+}
+
+/* ── Pantalla estrecha ── */
+@media (max-width: 760px) {
+  /* La cabecera en tres filas cortas, con el × siempre arriba a la
+     derecha: antes el × caía solo en una cuarta fila. */
+  .lab-barra {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--e-xs) var(--e-sm);
+    padding: var(--e-sm) var(--e-md);
+  }
+
+  .lab-titulo {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .lab-cerrar-lab {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .lab-turno {
+    grid-column: 1 / -1;
+  }
+
+  .lab-barra-botones {
+    grid-column: 1 / -1;
+    margin: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .lab-barra-botones .lab-btn {
+    padding: var(--e-xs) var(--e-sm);
+    font-size: var(--t-sm);
+  }
+
+  .lab-rival-plegar {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .lab-rival-ajustes {
+    display: none;
+    width: 100%;
+  }
+
+  .lab-rival-ajustes.abierto {
+    display: flex;
+  }
+
+  .lab-premios {
+    grid-template-columns: repeat(3, 40px);
+  }
+
+  .lab-premios .lab-carta {
+    --lab-ancho: 40px;
+  }
+
+  .lab-rejilla-cartas {
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  }
+
+  .lab-tabla {
+    font-size: var(--t-xs);
+  }
+
+  .lab-tabla thead th:nth-child(1) {
+    width: 34%;
+  }
+
+  .lab-mesa {
+    padding: var(--e-md);
+  }
+
+  .lab-campo {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .lab-centro {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .lab-lado-der {
+    flex-direction: row;
+  }
+
+  /* Las dos pilas, una al lado de la otra, tienen que caber en media
+     pantalla de 320 px. */
+  .lab-pila {
+    min-width: 0;
+    padding: var(--e-xs);
+  }
+
+  .lab-pila > .lab-dorso,
+  .lab-pila-cara,
+  .lab-pila-vacia {
+    width: 44px;
+  }
+
+  .lab-banca {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: var(--e-xs);
+  }
+
+  .lab-slot-activo .lab-slot-carta {
+    --lab-ancho: 96px;
+  }
+
+  .lab-slot .lab-slot-carta {
+    --lab-ancho: 64px;
+  }
+
+  .lab-slot-info {
+    width: 72px;
+  }
+
+  .lab-mano .lab-carta {
+    --lab-ancho: 72px;
+  }
+
+  .lab-cifras {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.lab-carta {
+    transition: none;
+  }
+
+  button.lab-carta:hover {
+    transform: none;
+  }
+}

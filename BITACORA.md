@@ -12,6 +12,62 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-30 16:15 — PINGU-Claude (tanda 384 — el laboratorio de pruebas del constructor)
+
+**Hecho**: PINGU pidió un laboratorio en el constructor: una partida de
+verdad con manos de prueba y cartas que funcionan, y un interruptor con
+la tabla de probabilidades de robar cada carta en cada momento (la
+referencia era el «Test draw» de TCG Dexter). Sustituye a la «mano de
+prueba» de la 354. Se abre con **Probar**, desde Herramientas, desde
+cada lista de /meta y con `?lab=1`.
+
+Mulligan, activo y banca, turnos con sus reglas (una energía, un
+partidario, sin evolucionar en el primer turno…), evoluciones y Caramelo
+Raro, retirada, estadios, herramientas, ataques con daño y debilidad,
+premios, deshacer y un maniquí de rival al que quitarle premios. 122
+entrenadores, 44 habilidades, 63 ataques y 15 energías especiales hacen
+lo que dicen; lo que no, se juega a mano y lo avisa. De las 322 cartas
+más jugadas del meta, el único entrenador que queda a mano es
+Transformation Tome.
+
+La tabla calcula con lo que sabe el JUGADOR, no el motor (que sabe el
+orden del mazo y los premios): lo que has visto al buscar, lo que has
+colocado arriba o abajo, los premios cogidos. Exacto, y validado contra
+Monte Carlo. Detalle entero en SCHEMA.md.
+
+**Lo que costó encontrar**: de las 318 cartas más jugadas, **176 tienen
+el ESPAÑOL en `name`** —la reparación de la 335 no ha llegado a todas—.
+Buscar los efectos por el inglés dejaba media mesa muerta sin dar error.
+`js/constructor/nombres.js` las casa (sacada de la base, no de memoria),
+y las reglas que miran el nombre (ex, Mega = 3 premios, Tera, «de N»,
+qué evoluciona de qué) pasan todas por la clave canónica.
+
+**Ficheros**: `constructor.html`, `js/constructor.js`,
+`js/constructor/datos.js` (`detallesDeJuego`), `js/constructor/nucleo.js`
+(fuera `robarMano`, que era la mano de prueba), `js/meta/nucleo.js` y
+`js/meta-mazo.js` (el enlace desde /meta), `SCHEMA.md`, y **nuevos**
+`js/constructor/partida.js`, `js/constructor/efectos.js`,
+`js/constructor/nombres.js`, `js/constructor/laboratorio.js` y
+`css/laboratorio.css`. En `pruebas`: `test-tanda-384.mjs` y
+`cartas-laboratorio.json` (**nuevos**), `rigor/rigor-tanda-384.py`
+(**nuevo**), y la suite la incluye.
+
+**En curso / pendiente**: cuando la reparación de nombres de la 335
+acabe, `nombres.js` sobra (no estorba mientras tanto). Una carta nueva
+del meta sin efecto se juega a mano: para automatizarla, su texto va en
+`efectos.js` y, si es un ataque, con su firma. No toca la portada.
+
+**Suite**: entera en verde salvo `test-tanda-331.mjs`, que está en
+rojo TAMBIÉN sin mis cambios (lo he pasado contra la 380, la 381 y la
+383): la ficha de una carta le pide `en` a TCGdex donde la prueba espera
+que no pida nada. No lo he tocado — para quien lleve la ficha. Y tres
+cosas del entorno, no del código: `sql-chats.sql`, `sql-dueno.sql` y
+`sql-organizadores.sql` viven en la RAÍZ de `pruebas` y la receta del
+README no los copia (294 y 295 salen rojas por eso), y la 321 necesita
+un PNG en `/tmp/pk887.png` que no está en ninguna parte.
+
+---
+
 ## 2026-10-01 — PINGU-Claude (tanda 383 — cada versión por su lado)
 
 **Hecho**: lo tercero de la lista. Una carta existe en normal, reverse
