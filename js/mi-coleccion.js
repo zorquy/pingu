@@ -14,7 +14,7 @@ import { escapeHtml, getSession } from './app.js'
 import { showToast } from './toast.js'
 import { supabase } from './supabase.js'
 import { normalizeSearch } from './tcgdex.js'
-import { rutaDeCarta } from './carta-ruta.js'
+import { rutaDeCarta, urlDeLogo } from './carta-ruta.js'
 // El escaneo con su respaldo (tanda 370): TCGdex no tiene imagen de
 // muchas cartas viejas, y sin esto el bolsillo se quedaba en blanco.
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
@@ -282,7 +282,10 @@ async function cargarSets() {
   if (todosLosSets) return todosLosSets
   const { data } = await supabase
     .from('tcg_sets')
-    .select('id,name,serie_id,release_date,card_count_official')
+    // El logo y la serie viajan desde la tanda 372: la estantería se ve
+    // por los logos, y agrupar por serie es lo que hace navegable una
+    // lista de 220 colecciones.
+    .select('id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total')
     .eq('market', 'WEST')
     .order('release_date', { ascending: false, nullsFirst: false })
     .limit(1000)
@@ -294,30 +297,106 @@ function tengoDe(cardId) {
   return lineas.filter((l) => l.card_id === cardId).reduce((s, l) => s + l.cantidad, 0)
 }
 
-async function pintarSelectorAlbum() {
+// ── La estantería (tanda 372) ──
+//
+// Aquí había un `<select>` con 220 colecciones dentro. PINGU, enseñando
+// HoloNook: «en general mejora visualmente todo». Un desplegable es lo
+// menos vistoso que hay y, peor, **esconde lo único que engancha de
+// coleccionar: cuánto llevas**. Con la lista abierta ves de un vistazo
+// dónde te falta poco para completar, que es exactamente lo que hace
+// volver al día siguiente.
+//
+// Dos estados, como en los álbumes soñados: la estantería y el
+// archivador abierto. Se parecen a propósito — son la misma idea.
+async function pintarEstanteria() {
   const sets = await cargarSets()
-  // Primero las colecciones en las que ya tienes cartas, por cuántas.
+  // Cuántas DISTINTAS tienes de cada colección. Distintas y no copias:
+  // el progreso de un álbum es cuántos bolsillos has llenado, y tres
+  // Charizards llenan uno.
   const cuantas = new Map()
-  for (const l of lineas) {
-    const s = cartas.get(l.card_id)?.set_id
+  for (const id of new Set(lineas.map((l) => l.card_id))) {
+    const s = cartas.get(id)?.set_id
     if (s) cuantas.set(s, (cuantas.get(s) || 0) + 1)
   }
-  const mias = sets.filter((s) => cuantas.has(s.id)).sort((a, b) => cuantas.get(b.id) - cuantas.get(a.id))
-  const resto = esMia ? sets.filter((s) => !cuantas.has(s.id)) : []
-  const sel = $('mcAlbumSet')
-  sel.innerHTML =
-    (mias.length ? `<optgroup label="Tus colecciones">${mias.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join('')}</optgroup>` : '') +
-    (resto.length ? `<optgroup label="Empezar otra">${resto.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join('')}</optgroup>` : '')
-  const pedido = params.get('set')
-  const inicial = (pedido && sets.some((s) => s.id === pedido) && pedido) || mias[0]?.id || resto[0]?.id || ''
-  sel.value = inicial
-  $('mcAlbumVacio').classList.toggle('hidden', Boolean(inicial))
-  if (inicial) await abrirAlbum(inicial)
+  const texto = normalizeSearch($('mcEstanteriaBuscar')?.value || '').trim()
+  const serie = $('mcEstanteriaSerie')?.value || ''
+  const cumple = (s) =>
+    (!serie || s.serie_id === serie) && (!texto || normalizeSearch(`${s.name} ${s.id}`).includes(texto))
+
+  // Las tuyas primero y por lo lleno que está el álbum, no por cuántas
+  // cartas tienes: lo que se quiere ver arriba es lo que estás a punto
+  // de completar.
+  const mias = sets.filter((s) => cuantas.has(s.id) && cumple(s)).sort((a, b) => pctDe(b, cuantas) - pctDe(a, cuantas))
+  const resto = esMia ? sets.filter((s) => !cuantas.has(s.id) && cumple(s)) : []
+
+  const series = [...new Map(sets.filter((s) => s.serie_id).map((s) => [s.serie_id, s.serie_name || s.serie_id])).entries()]
+  const sel = $('mcEstanteriaSerie')
+  if (sel && !sel.dataset.montado) {
+    sel.dataset.montado = '1'
+    sel.innerHTML = '<option value="">Todas las series</option>' + series.map(([id, n]) => `<option value="${escapeHtml(id)}">${escapeHtml(n)}</option>`).join('')
+  }
+
+  $('mcEstanteriaRejilla').innerHTML =
+    (mias.length ? `<h3 class="mc-estanteria-titulo">Tus colecciones</h3><div class="mc-estanteria">${mias.map((s) => tarjetaDeSet(s, cuantas.get(s.id) || 0)).join('')}</div>` : '') +
+    (resto.length ? `<h3 class="mc-estanteria-titulo">Empezar otra</h3><div class="mc-estanteria">${resto.map((s) => tarjetaDeSet(s, 0)).join('')}</div>` : '')
+  $('mcAlbumVacio').classList.toggle('hidden', Boolean(mias.length || resto.length))
+}
+
+// Cuántas cartas tiene una colección. `card_count_official` es la
+// numeración impresa («1/198») y es la que cuenta para un álbum; si no
+// la sabemos, el total. Si no hay ninguna, no se inventa un porcentaje.
+function totalDe(set) {
+  return set?.card_count_official || set?.card_count_total || 0
+}
+
+function pctDe(set, cuantas) {
+  const total = totalDe(set)
+  return total ? (cuantas.get(set.id) || 0) / total : 0
+}
+
+function tarjetaDeSet(set, tengo) {
+  const total = totalDe(set)
+  const pct = total ? Math.round((tengo / total) * 100) : 0
+  const logo = urlDeLogo(set.logo_path)
+  const completo = total && tengo >= total
+  return `
+    <button type="button" class="mc-set-tarjeta${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}">
+      <span class="mc-set-logo">${
+        logo
+          // El logo LLEVA el nombre escrito, así que el <span> de abajo
+          // se esconde a la vista cuando hay logo y se queda para quien
+          // navega con lector de pantalla (misma decisión que la 346).
+          ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy" onerror="this.remove()" />`
+          : ''
+      }</span>
+      <span class="mc-set-nombre${logo ? ' sr-only' : ''}">${escapeHtml(set.name || set.id)}</span>
+      ${
+        total
+          ? `<span class="mc-set-cuenta">${tengo} de ${total}${completo ? ' · completa' : ` · ${pct} %`}</span>
+             <span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>`
+          : '<span class="mc-set-cuenta">Sin numeración</span>'
+      }
+    </button>`
+}
+
+// ── Abrir y cerrar el archivador ──
+function volverALaEstanteria() {
+  album.set = null
+  album.pagina = 0
+  $('mcEstanteriaZona').classList.remove('hidden')
+  $('mcArchivadorZona').classList.add('hidden')
+  pintarEstanteria()
 }
 
 async function abrirAlbum(setId) {
   album.set = setId
   album.pagina = 0
+  // La estantería se va y sale el archivador (tanda 372). Los dos viven
+  // en la misma pestaña, como en los álbumes soñados.
+  $('mcEstanteriaZona').classList.add('hidden')
+  $('mcArchivadorZona').classList.remove('hidden')
+  const set = (todosLosSets || []).find((s) => s.id === setId)
+  $('mcAlbumTitulo').textContent = set?.name || ''
   $('mcAlbum').innerHTML = '<p class="subtext">Cargando la colección…</p>'
   try {
     album.cartas = (await datos.cartasDeSet(setId)).sort(porNumero)
@@ -551,7 +630,7 @@ function cambiarPestania(nueva) {
     albumesAbiertos = true
     albumes.entrar(params.get('album'))
   }
-  if (nueva === 'album' && !album.set) pintarSelectorAlbum()
+  if (nueva === 'album' && !album.set) pintarEstanteria()
   if (nueva === 'anadir') $('mcAnadirBuscar').focus()
 }
 
@@ -574,7 +653,15 @@ function enganchar() {
   $('mcEdBorrar').addEventListener('click', borrarDesdeEditor)
   $('mcEdCancelar').addEventListener('click', () => $('mcEditor').close())
 
-  $('mcAlbumSet').addEventListener('change', (e) => abrirAlbum(e.target.value))
+  // La estantería: buscar, filtrar por serie y abrir una colección.
+  for (const id of ['mcEstanteriaBuscar', 'mcEstanteriaSerie']) {
+    $(id).addEventListener(id === 'mcEstanteriaBuscar' ? 'input' : 'change', () => pintarEstanteria())
+  }
+  $('mcEstanteriaRejilla').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-set]')
+    if (b) abrirAlbum(b.dataset.set)
+  })
+  $('mcAlbumVolver').addEventListener('click', volverALaEstanteria)
   $('mcAlbumSoloFaltan').addEventListener('change', (e) => {
     album.soloFaltan = e.target.checked
     album.pagina = 0
@@ -777,7 +864,7 @@ async function iniciar() {
   }
   $('mcCargando').classList.add('hidden')
   repintar()
-  if (pestania === 'album') pintarSelectorAlbum()
+  if (pestania === 'album') pintarEstanteria()
   // Si se entró directo a un álbum, se repinta ahora que se sabe qué
   // cartas tienes.
   if (pestania === 'albumes' && params.get('album')) albumes.abrir(params.get('album'))

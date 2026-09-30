@@ -19823,3 +19823,70 @@ carta que tienes y de una que te falta, y que el rango de la cabecera
 sale de cartas salteadas (`001 – 022`) y no de la página. Más que el
 módulo no toca el DOM, que `localStorage` roto no revienta nada, y que un
 color inventado no se cuela.
+
+---
+
+## Tandas 372 y 373 — la estantería y el brillo por rareza (sept. 2026)
+
+### Un desplegable esconde lo que engancha
+
+Para abrir un álbum había que elegir el set en un `<select>` de 220
+opciones. Lo feo es lo de menos: un desplegable **enseña una cosa cada
+vez**, y lo que hace volver a una web de coleccionar es ver **cuánto
+llevas de todo a la vez** — dónde te falta poco, qué acabas de empezar,
+qué tienes completo. Eso no cabe en un `<option>`.
+
+La estantería ordena las tuyas **por porcentaje y no por número de
+cartas**: arriba va lo que estás a punto de completar, no lo que más
+tienes. Y el progreso cuenta cartas DISTINTAS, porque un álbum se llena
+por bolsillos y tres copias llenan uno.
+
+### Un hijo de flex hereda el eje del padre, no el de su regla
+
+`.mc-barra` se escribió para vivir en una FILA (`flex: 1 1 200px`: llena
+el hueco que queda al lado del texto). Metida en una tarjeta que es una
+COLUMNA, ese mismo `flex-grow` la estira a lo ALTO — y con
+`border-radius: var(--radius-pill)` deja de ser una barra para ser un
+óvalo del tamaño de la tarjeta.
+
+No da error, no rompe el hueco de nada, y en una captura canta a un
+kilómetro. La regla: **una clase con `flex` escrita para un eje no se
+reutiliza en el otro sin decirle qué hacer**.
+
+### El brillo ES la rareza
+
+La 368 puso un destello genérico en el escaneo. Para quien colecciona eso
+está mal: una común y una hiperrara relucían igual, y la lámina es
+justamente lo que distingue una carta de 20 céntimos de una de 200 euros.
+
+**Seis familias, no trece.** Hay trece rarezas en el catálogo pero
+solo cuatro o cinco patrones de lámina de verdad: barras (holo clásica),
+polvo de estrellas (cosmos), estallido (radiante), arcoíris (ilustración
+especial) y purpurina dorada (hiperrara). Un efecto por rareza serían
+trece que mantener y ninguno reconocible.
+
+Tres decisiones que no son de gusto:
+
+- **Una común devuelve `null`, y `null` es una respuesta.** Es la misma
+  idea de la 319: hay diferencia entre «no brilla» y «no se sabe». Darle
+  un brillo suave a una común sería mentir sobre lo que tienes.
+- **La familia se escribe en el HTML**, no la pone el JavaScript del
+  giro. Así la lleva también la página que pinta la función del borde, y
+  está desde el primer pintado.
+- **Lo que no está en la tabla se adivina por palabras.** El catálogo lo
+  mantiene gente y aparecen rarezas nuevas; una que diga «Hyper» tiene
+  que brillar el día uno. Pero no se inventa: lo que no suena a nada, no
+  brilla.
+
+Y una de mezcla, otra vez: el arcoíris va en `soft-light` y la dorada y
+el cosmos en `screen`. `color-dodge` SUMA luz y sobre el amarillo y el
+blanco de una carta se va a blanco puro — ya pasó en la 368 y vuelve a
+pasar con cada lámina nueva.
+
+### Comprobado
+
+`test-tanda-372.mjs` (18) y `test-tanda-373.mjs` (28). Lo que se mide y
+no se supone: el **alto calculado** de la barra de progreso (8 px, no un
+óvalo), la **opacidad calculada** de la lámina en reposo y con el ratón
+encima, y el **fondo calculado** de tres rarezas distintas comparado
+entre sí — que el atributo cambie no prueba que se vea distinto.

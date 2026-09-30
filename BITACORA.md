@@ -12,6 +12,63 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-30 — PINGU-Claude (tandas 372 y 373 — la estantería y el brillo por rareza)
+
+PINGU: «tira con todo y todo lo que creas conveniente para mejorar este
+apartado». Dos cosas más de HoloNook, las dos de las que se ven.
+
+### 372 — la estantería
+
+Para abrir un álbum había que elegir el set en un **`<select>` con 220
+colecciones dentro**. Además de ser lo menos vistoso que hay, **escondía
+lo único que engancha de coleccionar: cuánto llevas**. Ahora es una
+rejilla con el logo de cada colección, «9 de 198 · 5 %» y su barra —de un
+vistazo ves dónde te falta poco para completar, que es exactamente lo que
+hace volver al día siguiente.
+
+Dos estados en la misma pestaña, como en los álbumes soñados: la
+estantería y el archivador abierto. Se parecen a propósito, son la misma
+idea. Con buscador y filtro por serie, que las series salen de los sets
+que hay y no de una lista a mano.
+
+**Las tuyas van por PORCENTAJE, no por cuántas cartas tienes.** Lo que se
+quiere ver arriba es lo que estás a punto de completar. Y el progreso
+cuenta cartas DISTINTAS: un álbum se llena por bolsillos, y tres
+Charizards llenan uno.
+
+**El fallo que cazó la prueba**: `.mc-barra` nace con `flex: 1 1 200px`
+porque vive en una FILA; dentro de una tarjeta en COLUMNA ese `flex-grow`
+la estira a lo alto y, con el radio de píldora, la convierte en un óvalo
+del tamaño de la tarjeta. Un hijo de flex hereda el eje del padre, no el
+del sitio donde se escribió la regla.
+
+### 373 — cada rareza, su brillo
+
+La 368 le puso al escaneo un giro en 3D con UN destello, el mismo para
+todas: una común relucía igual que una hiperrara. Para un coleccionista
+eso no se perdona — **el brillo ES la rareza**.
+
+Seis familias y no trece (una por rareza): lo que distingue una lámina de
+otra en la mano es el PATRÓN —barras, polvo de estrellas, estallido,
+arcoíris, purpurina dorada— y hay cuatro o cinco de verdad. Trece efectos
+serían trece que mantener y ninguno reconocible.
+
+- **Una común NO brilla.** `null` es una respuesta, no un olvido: darle
+  un brillo suave sería mentir sobre lo que tienes en la mano.
+- **La familia va en el HTML**, no la pone el JavaScript del giro: así la
+  lleva también la página que pinta la función del borde.
+- **Una rareza que no está en la tabla se adivina por palabras.** El
+  catálogo lo mantiene gente; una rareza nueva que diga «Hyper» tiene que
+  brillar desde el día uno, no cuando alguien se acuerde. Pero no se
+  inventa: lo que no suena a nada, no brilla.
+
+**Ficheros**: `js/mi-coleccion.js`, `mi-coleccion.html`,
+`css/mi-coleccion.css`, `js/carta-nucleo.js`, `css/carta.css`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-372.mjs` y `test-tanda-373.mjs`
+(**nuevos**).
+
+---
+
 ## 2026-09-30 — PINGU-Claude (tanda 371 — el archivador con cara de archivador)
 
 **Hecho**: PINGU enseñó **holonook.es** (que mi contenedor no alcanza; lo

@@ -252,7 +252,132 @@
 }
 
 .carta-scan-holo.holo.holo-activo::before {
-  opacity: 0.85;
+  opacity: var(--holo-fuerza, 0.85);
+}
+
+/* ══ Cada rareza, su lámina (tanda 373) ══
+ *
+ * Lo pidió PINGU viendo HoloNook. Hasta aquí el escaneo de CUALQUIER
+ * carta relucía igual, así que una común brillaba como una hiperrara —
+ * y para un coleccionista el brillo ES la rareza.
+ *
+ * Qué familia le toca a cada una lo decide `familiaDeBrillo`
+ * (js/carta-nucleo.js) y llega en `data-brillo`. Aquí solo está cómo se
+ * ve cada lámina. Una carta SIN `data-brillo` no lleva ninguna: una
+ * común no brilla, y darle un brillo suave sería mentir sobre lo que
+ * tienes en la mano.
+ *
+ * Las cinco cambian tres cosas y nada más —el dibujo de la banda, su
+ * fuerza y cómo se mezcla—, así que añadir la sexta es un bloque de tres
+ * líneas y no un efecto nuevo.
+ */
+.carta-scan-holo:not([data-brillo]).holo::before {
+  display: none;
+}
+
+/* HOLO CLÁSICA (Rara holo, Doble rara): las barras de arcoíris en
+   diagonal de toda la vida. Es la que más gente reconoce. */
+.carta-scan-holo[data-brillo='holo'] {
+  --holo-fuerza: 0.7;
+}
+
+/* COSMOS (Ultra rara, Ilustración rara): polvo de estrellas. Puntos
+   claros de dos tamaños en vez de bandas — es lo que hace que parezca
+   purpurina fina y no una banda de color. */
+.carta-scan-holo[data-brillo='cosmos'] {
+  --holo-fuerza: 0.9;
+}
+
+.carta-scan-holo[data-brillo='cosmos'].holo::before {
+  background:
+    radial-gradient(circle at 20% 25%, rgb(255 255 255 / 90%) 0 1px, transparent 2px),
+    radial-gradient(circle at 70% 15%, rgb(255 255 255 / 80%) 0 2px, transparent 3px),
+    radial-gradient(circle at 45% 60%, rgb(200 235 255 / 90%) 0 1px, transparent 2px),
+    radial-gradient(circle at 85% 70%, rgb(255 255 255 / 85%) 0 2px, transparent 3px),
+    radial-gradient(circle at 10% 80%, rgb(255 230 255 / 85%) 0 1px, transparent 2px),
+    repeating-linear-gradient(108deg, rgb(120 200 255) 0%, rgb(255 255 255) 6%, rgb(180 160 255) 12%);
+  background-size:
+    60px 60px,
+    90px 90px,
+    70px 70px,
+    110px 110px,
+    80px 80px,
+    300% 100%;
+  mix-blend-mode: screen;
+}
+
+/* RADIANTE (Radiante, Asombrosa, Variocolor): el estallido de color
+   desde un punto, que es lo que hace la lámina de las asombrosas. */
+.carta-scan-holo[data-brillo='radiante'] {
+  --holo-fuerza: 0.8;
+}
+
+.carta-scan-holo[data-brillo='radiante'].holo::before {
+  background: conic-gradient(
+    from 0deg at var(--holo-x) var(--holo-y),
+    rgb(255 80 160),
+    rgb(255 210 80),
+    rgb(80 255 190),
+    rgb(80 190 255),
+    rgb(190 100 255),
+    rgb(255 80 160)
+  );
+  background-size: 100% 100%;
+  background-position: 0 0;
+  mix-blend-mode: soft-light;
+}
+
+/* ARCOÍRIS (Ilustración especial rara): el barrido entero, sin
+   recortar a una franja — en estas la lámina ocupa la carta. */
+.carta-scan-holo[data-brillo='arcoiris'] {
+  --holo-fuerza: 0.75;
+}
+
+.carta-scan-holo[data-brillo='arcoiris'].holo::before {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+/* DORADA (Hiperrara): purpurina de oro. Sin arcoíris — una hiperrara no
+   es multicolor, es dorada, y pintarla de colores sería otra carta. */
+.carta-scan-holo[data-brillo='dorada'] {
+  --holo-fuerza: 0.95;
+}
+
+.carta-scan-holo[data-brillo='dorada'].holo::before {
+  background:
+    radial-gradient(circle at 30% 30%, rgb(255 240 190 / 95%) 0 1px, transparent 2px),
+    radial-gradient(circle at 75% 55%, rgb(255 225 150 / 90%) 0 2px, transparent 3px),
+    radial-gradient(circle at 15% 70%, rgb(255 250 210 / 90%) 0 1px, transparent 2px),
+    repeating-linear-gradient(
+      100deg,
+      rgb(190 140 40) 0%,
+      rgb(255 225 140) 4%,
+      rgb(255 250 220) 7%,
+      rgb(190 140 40) 12%
+    );
+  background-size:
+    50px 50px,
+    80px 80px,
+    65px 65px,
+    260% 100%;
+  mix-blend-mode: screen;
+}
+
+/* ACE SPEC: la plateada con el rojo de su marco. */
+.carta-scan-holo[data-brillo='acespec'] {
+  --holo-fuerza: 0.8;
+}
+
+.carta-scan-holo[data-brillo='acespec'].holo::before {
+  background: repeating-linear-gradient(
+    104deg,
+    rgb(220 60 60) 0%,
+    rgb(255 255 255) 5%,
+    rgb(190 200 215) 10%,
+    rgb(220 60 60) 15%
+  );
+  mix-blend-mode: soft-light;
 }
 
 .carta-scan-holo.holo.holo-activo::after {

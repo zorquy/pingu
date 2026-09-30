@@ -151,10 +151,26 @@
       </section>
 
       <section id="mcPanelAlbum" class="hidden" role="tabpanel" aria-label="Álbum">
-        <div class="mc-album-barra">
-          <select id="mcAlbumSet" aria-label="Colección del álbum"></select>
-          <label class="mc-interruptor"><input type="checkbox" id="mcAlbumSoloFaltan" /> Solo las que me faltan</label>
+        <!-- LA ESTANTERÍA (tanda 372). Aquí había un `<select>` con 220
+             colecciones dentro: lo menos vistoso que hay y, peor,
+             escondía lo único que engancha de coleccionar — cuánto
+             llevas de cada una. Con la lista abierta ves de un vistazo
+             dónde te falta poco para completar, que es justo lo que hace
+             volver al día siguiente. -->
+        <div id="mcEstanteriaZona">
+          <div class="mc-estanteria-barra">
+            <input type="search" id="mcEstanteriaBuscar" placeholder="Buscar una colección…" aria-label="Buscar una colección" />
+            <select id="mcEstanteriaSerie" aria-label="Serie"></select>
+          </div>
+          <div id="mcEstanteriaRejilla"></div>
         </div>
+
+        <div id="mcArchivadorZona" class="hidden">
+          <div class="mc-album-barra">
+            <button type="button" class="link-btn mc-album-volver" id="mcAlbumVolver">← Todas las colecciones</button>
+            <h3 class="mc-album-titulo" id="mcAlbumTitulo"></h3>
+            <label class="mc-interruptor"><input type="checkbox" id="mcAlbumSoloFaltan" /> Solo las que me faltan</label>
+          </div>
         <!-- Aquí había un interruptor de «Tocar una carta la añade»
              (tanda 365) que se fue en la 368. Obligaba a elegir: con él
              puesto no podías abrir la ficha de una carta, y sin él no
@@ -183,6 +199,7 @@
         </div>
         <div class="mc-tapas hidden" id="mcAlbumTapas" role="group" aria-label="Color del archivador"></div>
         <div id="mcAlbum"></div>
+        </div>
         <p class="subtext hidden" id="mcAlbumVacio">No hay ninguna colección que enseñar todavía.</p>
       </section>
 

@@ -76,6 +76,56 @@ export const RAREZAS_ES = {
 
 const traducir = (tabla, valor) => (valor ? tabla[valor] || String(valor) : null)
 
+// ── Qué brillo le toca a cada rareza (tanda 373) ──
+//
+// Lo pidió PINGU viendo HoloNook: «cada rareza, su brillo». Hasta ahora
+// el escaneo de CUALQUIER carta se inclinaba con el mismo destello, así
+// que una común y una hiperrara relucían igual — que es justo lo que un
+// coleccionista no perdona, porque el brillo ES la rareza.
+//
+// Seis familias y no trece, una por rareza: lo que distingue a una
+// lámina de otra en la mano es el PATRÓN (barras, polvo de estrellas,
+// arcoíris, purpurina dorada), y hay cuatro o cinco patrones de verdad.
+// Trece efectos distintos serían trece que mantener y ninguno
+// reconocible.
+//
+// `null` es una respuesta, no un olvido: una común NO brilla, y darle un
+// brillo suave sería mentir sobre lo que tienes en la mano.
+const BRILLO_POR_RAREZA = {
+  Common: null,
+  Uncommon: null,
+  Rare: null,
+  Promo: null,
+  'Rare Holo': 'holo',
+  'Double rare': 'holo',
+  'ACE SPEC Rare': 'acespec',
+  'Ultra Rare': 'cosmos',
+  'Illustration rare': 'cosmos',
+  'Radiant Rare': 'radiante',
+  'Amazing Rare': 'radiante',
+  'Shiny rare': 'radiante',
+  'Special illustration rare': 'arcoiris',
+  'Hyper rare': 'dorada',
+}
+
+// Las rarezas llegan canonizadas al inglés (`canonizarCarta`), pero el
+// catálogo lo mantiene gente y aparecen variantes: se compara sin
+// mayúsculas y, si no está en la tabla, por palabras. Una rareza nueva
+// que diga «Hyper» tiene que brillar como una hiperrara desde el día
+// uno, no cuando alguien se acuerde de añadirla.
+export function familiaDeBrillo(rareza) {
+  if (!rareza) return null
+  const clave = Object.keys(BRILLO_POR_RAREZA).find((k) => k.toLowerCase() === String(rareza).toLowerCase())
+  if (clave) return BRILLO_POR_RAREZA[clave]
+  const r = String(rareza).toLowerCase()
+  if (/hyper|hiperrara|rainbow|arco/.test(r)) return 'dorada'
+  if (/special illustration|ilustraci[oó]n especial/.test(r)) return 'arcoiris'
+  if (/radiant|radiante|shiny|variocolor|amazing|asombrosa/.test(r)) return 'radiante'
+  if (/ultra|illustration|ilustraci[oó]n/.test(r)) return 'cosmos'
+  if (/holo|double rare|doble rara/.test(r)) return 'holo'
+  return null
+}
+
 export const tipoEs = (v) => traducir(TIPOS_ES, v)
 export const faseEs = (v) => traducir(FASES_ES, v)
 export const categoriaEs = (v) => traducir(CATEGORIAS_ES, v)
@@ -583,6 +633,11 @@ export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
   // dejaría el `figure` sin nada y la columna se encogería de golpe —
   // aquí la imagen ocupa media pantalla, no es una miniatura de una
   // rejilla.
+  // El brillo que le toca a esta carta por su rareza (tanda 373). Va en
+  // el HTML y no lo pone el JavaScript del giro: así lo lleva también la
+  // página que pinta la función del borde, y la lámina está ahí desde el
+  // primer pintado aunque el resto no llegue.
+  const brillo = familiaDeBrillo(carta?.rarity)
   const escaneo = atributosDeEscaneo(
     cadenaDeEscaneo(carta, set?.tcg_online_code, 'high'),
     "this.replaceWith(Object.assign(document.createElement('div'),{className:'carta-scan-vacio',textContent:'Sin imagen'}))"
@@ -607,7 +662,7 @@ export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
       // 600×825 son las medidas reales de la imagen de TCGdex. Van
       // puestas para que el hueco esté reservado antes de que llegue:
       // sin ellas la página pega un salto de 800 px al cargarse.
-      ? `<span class="carta-scan-holo"><img ${escaneo} alt="${escapeHtml(alt)}" width="600" height="825" loading="eager" decoding="async"></span>`
+      ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}><img ${escaneo} alt="${escapeHtml(alt)}" width="600" height="825" loading="eager" decoding="async"></span>`
       : '<div class="carta-scan-vacio">Sin imagen</div>') +
     '</figure>' +
     '<div class="carta-datos">' +

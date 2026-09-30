@@ -414,6 +414,128 @@
   }
 }
 
+/* ── La estantería (tanda 372) ──
+ *
+ * La rejilla de colecciones con su logo y su progreso. Sustituye a un
+ * `<select>` de 220 opciones, que además de feo escondía lo único que
+ * engancha: cuánto llevas.
+ *
+ * `auto-fill` y no `auto-fit` (la lección de la 369): con tres
+ * colecciones, `auto-fit` las estiraría a un tercio de pantalla cada
+ * una. Una tarjeta de colección mide lo que mide, haya tres o doscientas.
+ */
+.mc-estanteria-barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+}
+
+.mc-estanteria-barra input,
+.mc-estanteria-barra select {
+  flex: 1 1 220px;
+  min-width: 0;
+  min-height: 44px;
+}
+
+.mc-estanteria-titulo {
+  margin: var(--e-xl) 0 var(--e-md);
+  font-size: var(--t-md);
+}
+
+.mc-estanteria-titulo:first-child {
+  margin-top: 0;
+}
+
+.mc-estanteria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--e-md);
+}
+
+.mc-set-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease);
+}
+
+.mc-set-tarjeta:hover {
+  border-color: var(--navy);
+}
+
+/* El logo lleva un alto FIJO y no medidas: los hay anchos y los hay
+   cuadrados, y darle width/height mentiría sobre su forma. Con el alto
+   reservado, la rejilla no baila mientras cargan doscientos. */
+.mc-set-logo {
+  display: grid;
+  place-items: center;
+  height: 56px;
+}
+
+.mc-set-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.mc-set-nombre {
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.mc-set-cuenta {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+/* La barra, sin estirarse. `.mc-barra` nace con `flex: 1 1 200px` porque
+   vive en una fila donde tiene que llenar el hueco; aquí la tarjeta es
+   una COLUMNA, así que ese `flex-grow` la estira a lo ALTO y con el
+   radio de píldora se convierte en un óvalo del tamaño de la tarjeta.
+   Un hijo de flex hereda el eje del padre, no el del sitio donde se
+   escribió la regla. */
+.mc-set-tarjeta .mc-barra {
+  flex: 0 0 8px;
+  width: 100%;
+}
+
+/* La completa se marca: es el premio de coleccionar, y con doscientas
+   tarjetas iguales no se veía cuál habías terminado. */
+.mc-set-tarjeta.completo {
+  border-color: var(--success);
+}
+
+.mc-set-tarjeta.completo .mc-set-cuenta {
+  color: var(--success);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-set-tarjeta {
+    transition: none;
+  }
+}
+
+/* La cabecera del archivador abierto: volver, el nombre y el filtro. */
+.mc-album-volver {
+  flex: 0 0 auto;
+}
+
+.mc-album-titulo {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-lg);
+}
+
 /* ── La tapa (tanda 371) ──
  *
  * Lo que convierte «una rejilla de cartas» en «mi archivador». El color
