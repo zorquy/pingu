@@ -19745,3 +19745,81 @@ devolviendo 404 y Limitless contestando, que las seis cartas salgan con
 imagen en el catálogo, en el álbum y en la ficha; y al revés, que con el
 espejo bueno **no se le pida NADA a Limitless**. Más el caso de un set
 sin código de TCG Live, donde lo correcto es no pintar nada.
+
+---
+
+## Tanda 371 — el archivador con cara de archivador (sept. 2026)
+
+PINGU enseñó **holonook.es**, una app dedicada solo a coleccionar, y
+pidió «mejora visualmente todo». De allí se trae la ESTRUCTURA. No la
+piel: su pastel de cristal es suyo, y calcarlo rompería la escala de
+color que lleva 370 tandas en pie.
+
+### Lo que se copia, y por qué cada cosa
+
+- **Tapa de color, lomo y tres anillas.** Es lo que convierte «una
+  rejilla de cartas» en «mi archivador», y no cuesta nada: es CSS.
+- **Cabecera por hoja**, con el número de página y el rango de cartas.
+  Lo primero dice dónde estás; lo segundo, si esta es la hoja que
+  buscabas sin leer los nueve bolsillos.
+- **Las que faltan, grabadas en la funda.** Iban en gris al 30 % y
+  parecían una foto mal cargada.
+- **«Ir a…»**, porque un set son 22 pliegos.
+
+### El rango de la cabecera se LEE, no se calcula
+
+`001 – 009` sale del primer y del último bolsillo **de esa hoja**. La
+tentación es deducirlo de la página (`pagina * 9 + 1`), y funciona
+exactamente hasta que alguien pone «solo las que me faltan»: ahí los
+números no son seguidos, y la cabecera diría un rango que no existe. Un
+dato que se puede leer no se deduce.
+
+### Un color de tapa suelto es el primero de veinte
+
+Los ocho colores salen de la escala (`--navy`, `--success`,
+`--danger-solid`…) más los neutros. En una función de «personaliza tu
+álbum» la puerta está abierta a que cada tapa traiga su hex, y en un mes
+hay veinte colores que no están en ninguna parte. `--tapa` es lo único
+que cambia entre una y otra; todo lo demás se deriva, así que el noveno
+color es una línea.
+
+**Se guarda en `localStorage`**, no en la base. Es gusto de quien mira,
+no un dato de la colección, y así no hay migración para algo que es puro
+adorno. La contrapartida está en CLAUDE.md y se asume: no viaja entre
+dispositivos. El día que tenga que viajar, es una columna en
+`user_profiles` y `js/mi-coleccion/archivador.js` no se entera.
+
+Y un detalle que sí importa: **`localStorage` puede tirar una
+excepción** (ventana privada, almacenamiento bloqueado). Leer el color va
+dentro de un `try`, y si falla se usa el de por defecto: que no se pueda
+recordar un color no puede dejar a nadie sin álbum.
+
+### El archivador estaba escrito dos veces
+
+`js/mi-coleccion.js` y `js/mi-coleccion/albumes.js` montaban cada uno sus
+hojas, con su propia copia de `POR_PAGINA = 9`. Ya habían empezado a
+separarse — es literalmente de lo que se quejó PINGU en la 369 («en
+álbumes está perfecto, pero en álbumes soñados debería ser igual»).
+
+Ahora lo monta `js/mi-coleccion/archivador.js`, y lo que NO se comparte
+es cómo se pinta un bolsillo: uno lleva el mando de −/+ y el otro las
+flechas de ordenar. Eso se pasa como función. La regla, que vale para la
+próxima vez: **se comparte el molde, no el contenido**.
+
+### Las anillas no van en la rejilla
+
+Van en una capa aparte, posicionadas sobre el archivador. Metidas entre
+las dos hojas contarían como una columna más de la rejilla y el reparto
+se iría al garete — es la lección de la 316 (lo que cruza una rejilla
+ocupa pista). Y con una sola hoja (móvil) no se pintan: unas anillas al
+borde de la pantalla son un adorno encima del contenido.
+
+### Comprobado
+
+`test-tanda-371.mjs` (30). Lo que se mide y no se supone: el **color de
+fondo calculado** del archivador antes y después de elegir tapa —que el
+atributo cambie no prueba que se vea—, la **opacidad calculada** de una
+carta que tienes y de una que te falta, y que el rango de la cabecera
+sale de cartas salteadas (`001 – 022`) y no de la página. Más que el
+módulo no toca el DOM, que `localStorage` roto no revienta nada, y que un
+color inventado no se cuela.

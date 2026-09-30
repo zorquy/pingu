@@ -12,6 +12,56 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-30 — PINGU-Claude (tanda 371 — el archivador con cara de archivador)
+
+**Hecho**: PINGU enseñó **holonook.es** (que mi contenedor no alcanza; lo
+vi por capturas suyas) y pidió «mejora visualmente todo». De allí se trae
+la ESTRUCTURA, no la piel: su pastel de cristal es suyo y calcarlo
+rompería nuestra escala de color.
+
+- **Tapa de archivador** en ocho colores, con **lomo y tres anillas**. El
+  color sale de la escala de la web —un color de tapa suelto sería el
+  primero de veinte— y se guarda en `localStorage`: es gusto de quien
+  mira, no un dato de la colección, así que no hace falta migración. La
+  pega, dicha: no viaja entre dispositivos. Si algún día tiene que
+  viajar, es una columna en el perfil y el módulo no cambia.
+- **Cabecera por hoja**: «PÁGINA 1 · 001 – 009». El rango sale de las
+  cartas DE ESA HOJA y no de una cuenta: con «solo las que me faltan»
+  puesto los números no son seguidos, y un rango deducido mentiría.
+- **Las que faltan, como grabadas en la funda** en vez de en gris plano,
+  con la sombra del plástico dentro; y las que tienes, con el brillo por
+  encima. A las que faltan se les deja un pelín de color a propósito: es
+  lo que permite ver de un vistazo si lo que te falta es un Charizard o
+  un Squirtle.
+- **«Ir a…» y los mandos arriba**: en un set de 200 cartas son 22
+  pliegos, y tenerlos solo debajo obligaba a bajar la pantalla entera
+  para pasar de página.
+
+**Y lo de debajo, que es lo que evita que esto se pudra**: el archivador
+estaba escrito DOS VECES —el álbum de una colección y los soñados—, cada
+uno con su copia del «9 por página». Ya habían empezado a separarse, y de
+eso se quejó PINGU en la 369 («en álbumes está perfecto, pero en álbumes
+soñados debería ser igual»). Ahora lo monta
+`js/mi-coleccion/archivador.js`. Lo que NO se comparte es cómo se pinta
+un bolsillo, que sí es distinto en cada uno: se pasa como función.
+
+**Ficheros**: `js/mi-coleccion/archivador.js` (**nuevo**),
+`js/mi-coleccion.js`, `js/mi-coleccion/albumes.js`, `mi-coleccion.html`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-371.mjs` (**nuevo**) y el doble, que ahora conoce
+`user_albums`.
+
+**En curso / pendiente**: sigue lo de antes —el precio cuando no hay en
+el idioma que toca, y el SQL de las imágenes que tiene que pasar PINGU
+para saber si la Classic Collection quedó arreglada—. Y de HoloNook
+quedan apuntadas, por orden: el **muro de álbumes** (matar el
+desplegable), el **brillo por rareza** (ellos tienen uno por cada una y
+nosotros uno genérico; `rarity` ya viaja en las consultas), las
+**repetidas calculadas solas** y los **intercambios**, donde les ganamos
+porque ellos mandan a X o Instagram y nosotros tenemos mensajes propios.
+
+---
+
 ## 2026-09-30 — PINGU-Claude (tanda 370 — las cartas que no salían con imagen)
 
 **Hecho**: PINGU: «hay cartas antiguas que no salen y hay cartas del 30

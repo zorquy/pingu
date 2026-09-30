@@ -402,9 +402,10 @@
  * para algo que tiene que medir SIEMPRE lo mismo. Un archivador tiene el
  * tamaño que tiene, lleve una hoja o cien. */
 .mc-archivador {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--e-xl);
+  gap: var(--e-2xl);
 }
 
 @media (min-width: 900px) {
@@ -413,15 +414,132 @@
   }
 }
 
+/* ── La tapa (tanda 371) ──
+ *
+ * Lo que convierte «una rejilla de cartas» en «mi archivador». El color
+ * lo elige quien mira y se guarda en su navegador (ver
+ * js/mi-coleccion/archivador.js).
+ *
+ * Los ocho colores salen de la escala de la web, no inventados: un color
+ * de tapa suelto sería el primero de veinte. `--tapa` es lo único que
+ * cambia entre uno y otro; todo lo demás se deriva de él, así que añadir
+ * el noveno es una línea.
+ */
+.mc-binder {
+  --tapa: var(--navy);
+  padding: var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--tapa);
+  /* El canto de la carpeta: un borde interior más claro arriba y más
+     oscuro abajo es lo que da el volumen sin una imagen. */
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    inset 0 -2px 0 rgb(0 0 0 / 25%),
+    var(--shadow-md);
+}
+
+.mc-binder[data-tapa='azul'] { --tapa: var(--navy); }
+.mc-binder[data-tapa='rojo'] { --tapa: var(--danger-solid); }
+.mc-binder[data-tapa='verde'] { --tapa: var(--success); }
+.mc-binder[data-tapa='amarillo'] { --tapa: #d9a521; }
+.mc-binder[data-tapa='morado'] { --tapa: #6d4aa8; }
+.mc-binder[data-tapa='rosa'] { --tapa: #c04a7e; }
+.mc-binder[data-tapa='negro'] { --tapa: #22303d; }
+.mc-binder[data-tapa='crema'] { --tapa: #b9a888; }
+
+/* Los botones del color, redondos y del color que ponen. */
+.mc-tapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+.mc-tapa {
+  --tapa: var(--navy);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--tapa);
+  cursor: pointer;
+}
+
+.mc-tapa[data-tapa='azul'] { --tapa: var(--navy); }
+.mc-tapa[data-tapa='rojo'] { --tapa: var(--danger-solid); }
+.mc-tapa[data-tapa='verde'] { --tapa: var(--success); }
+.mc-tapa[data-tapa='amarillo'] { --tapa: #d9a521; }
+.mc-tapa[data-tapa='morado'] { --tapa: #6d4aa8; }
+.mc-tapa[data-tapa='rosa'] { --tapa: #c04a7e; }
+.mc-tapa[data-tapa='negro'] { --tapa: #22303d; }
+.mc-tapa[data-tapa='crema'] { --tapa: #b9a888; }
+
+/* El elegido, con un aro por fuera: el color ya lo lleva dentro, así que
+   el borde no puede ser lo que distinga. */
+.mc-tapa[aria-pressed='true'] {
+  border-color: var(--white);
+  box-shadow: 0 0 0 2px var(--text);
+}
+
+/* Las anillas, en el lomo. Van en una capa encima del archivador y no
+   entre las hojas: metidas en la rejilla contarían como una columna (la
+   lección de la 316). Solo con las dos hojas abiertas. */
+.mc-anillas {
+  position: absolute;
+  top: 14%;
+  bottom: 14%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 32px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* Cada anilla: un óvalo abierto, con el metal claro arriba y la sombra
+   abajo. Sin imagen — dos bordes y un degradado. */
+/* Cada anilla es un aro ABIERTO: por dentro se ve la tapa, que es lo que
+   la hace parecer metal y no un botón. Con relleno salían tres discos
+   oscuros. */
+.mc-anillas i {
+  height: 34px;
+  border: 3px solid rgb(255 255 255 / 75%);
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 45%),
+    inset 0 -1px 2px rgb(0 0 0 / 35%);
+}
+
 .mc-hoja {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--e-sm);
-  padding: var(--e-md);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--bg);
+  padding: var(--e-lg) var(--e-md) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
   box-shadow: var(--shadow-sm);
+}
+
+/* La cabecera de cada hoja: «Página 5» y el rango de números. Lo primero
+   dice dónde estás; lo segundo, si esta es la hoja que buscabas sin leer
+   los nueve bolsillos. */
+.mc-hoja-cabecera {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-md);
+  left: var(--e-md);
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-dim);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .mc-bolsillo {
@@ -439,19 +557,48 @@
   cursor: pointer;
 }
 
-/* Lo que te falta, en gris y medio transparente: se ve qué carta es
-   (para buscarla) pero se nota el hueco. */
+/* ── Lo que te falta (tanda 371) ──
+ *
+ * Antes iba en gris al 30 %: se veía qué carta es, pero parecía una foto
+ * mal cargada. Ahora se ve como GRABADA en la funda vacía — casi sin
+ * color y muy aclarada, con la sombra del bolsillo por encima. Dice lo
+ * mismo (esta no la tienes, y es esta) pero cuenta que el hueco es del
+ * álbum, no un fallo.
+ *
+ * `saturate` en vez de `grayscale(1)` a secas: un pelín de color deja
+ * reconocer de un vistazo si lo que falta es un Charizard o un Squirtle,
+ * que es para lo que se mira la página. */
 .mc-bolsillo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(1);
-  opacity: 0.3;
+  filter: saturate(0.12) brightness(1.35) contrast(0.7);
+  opacity: 0.55;
+}
+
+/* El bolsillo vacío: el plástico, con su sombra dentro. */
+.mc-bolsillo:not(.tengo) {
+  background: var(--bg);
+  box-shadow: inset 0 1px 6px rgb(0 0 0 / 12%);
 }
 
 .mc-bolsillo.tengo img {
   filter: none;
   opacity: 1;
+}
+
+/* Y la que SÍ tienes, dentro de su funda: el brillo del plástico por
+   encima. Es lo que hace que la página parezca un archivador y no una
+   rejilla de imágenes. `pointer-events: none` porque va sobre el enlace
+   que ocupa el bolsillo entero — sin él se come el clic, y no daría
+   ningún error. */
+.mc-bolsillo.tengo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgb(255 255 255 / 28%) 0 22%, rgb(255 255 255 / 0%) 45%);
 }
 
 /* El enlace que cubre el bolsillo entero (tanda 368). El bolsillo pasó a
@@ -520,6 +667,31 @@
 .mc-bolsillo:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
+}
+
+/* Los mandos del archivador, arriba (tanda 371). */
+.mc-album-mandos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+.mc-album-mandos .btn-secondary,
+.mc-album-mandos select {
+  min-height: 44px;
+}
+
+.mc-album-mandos #mcAlbumPaginas {
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+/* «Personalizar» se va a la derecha: no es de pasar página, es de cómo
+   se ve. Juntos parecían la misma familia de botones. */
+.mc-album-tapa {
+  margin-left: auto;
 }
 
 .mc-album-paginas {

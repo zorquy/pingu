@@ -38,6 +38,7 @@ import { icons } from './icons.js'
 import { marcaCardmarket } from './cardmarket-marca.js'
 import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
+import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -274,7 +275,6 @@ async function borrarDesdeEditor() {
 //
 // Un archivador de nueve bolsillos: páginas de 3×3, de dos en dos en
 // pantalla ancha (como al abrirlo) y de una en una en el móvil.
-const POR_PAGINA = 9
 let album = { set: null, cartas: [], pagina: 0, soloFaltan: false }
 let todosLosSets = null
 
@@ -369,26 +369,37 @@ function pintarAlbum() {
   $('mcAlbumProgreso').innerHTML = total
     ? `<span><strong>${tengo}</strong> de ${total} cartas · ${pct} %</span><span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>`
     : ''
-  const paginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA))
   const ancho = window.matchMedia('(min-width: 900px)').matches
   const deUnaVez = ancho ? 2 : 1
-  // Se abre por pliegos, como un archivador: (1-2), (3-4)… Al pasar del
-  // móvil a la pantalla ancha, la página actual cae en su pliego.
-  album.pagina = Math.min(album.pagina, paginas - 1)
-  album.pagina -= album.pagina % deUnaVez
-  const hojas = []
-  for (let p = album.pagina; p < Math.min(paginas, album.pagina + deUnaVez); p++) {
-    const trozo = lista.slice(p * POR_PAGINA, (p + 1) * POR_PAGINA)
-    hojas.push(`<div class="mc-hoja" aria-label="Página ${p + 1}">${trozo.map(bolsilloHtml).join('')}${'<span class="mc-bolsillo mc-bolsillo-vacio" aria-hidden="true"></span>'.repeat(POR_PAGINA - trozo.length)}</div>`)
+  if (!lista.length) {
+    $('mcAlbum').innerHTML = '<p class="subtext">¡No te falta ninguna! Colección completa.</p>'
+    $('mcAlbumPaginas').textContent = ''
+    $('mcAlbumSalto').innerHTML = ''
+    $('mcAlbumSalto').classList.add('hidden')
+    $('mcAlbumAnterior').disabled = true
+    $('mcAlbumSiguiente').disabled = true
+    return
   }
-  // Y si solo hay una hoja, la otra mitad del archivador no se queda en
-  // blanco: va una hoja vacía. Un archivador abierto tiene dos caras, y
-  // sin ella la página parecía cortada por la mitad (tanda 369).
-  if (hojas.length === 1 && deUnaVez > 1) hojas.push('<div class="mc-hoja mc-hoja-fantasma" aria-hidden="true"></div>')
-  $('mcAlbum').innerHTML = lista.length ? `<div class="mc-archivador">${hojas.join('')}</div>` : '<p class="subtext">¡No te falta ninguna! Colección completa.</p>'
-  $('mcAlbumPaginas').textContent = lista.length ? `Página ${album.pagina + 1}${deUnaVez > 1 && album.pagina + 1 < paginas ? `-${album.pagina + 2}` : ''} de ${paginas}` : ''
+  // El archivador entero lo monta js/mi-coleccion/archivador.js, que lo
+  // comparten esta pantalla y los álbumes soñados: era el mismo dibujo
+  // escrito dos veces, y ya había empezado a separarse.
+  const armado = archivadorHtml({
+    lista,
+    pagina: album.pagina,
+    deUnaVez,
+    tapa: tapaGuardada(),
+    pintarBolsillo: (c) => bolsilloHtml(c),
+  })
+  album.pagina = armado.pagina
+  $('mcAlbum').innerHTML = armado.html
+  $('mcAlbumPaginas').textContent = textoDePaginas(album.pagina, armado.paginas, deUnaVez)
+  // El «Ir a…»: en un set de 200 cartas son 22 pliegos, y pasarlos de
+  // dos en dos con el botón es media docena de clics para nada.
+  const salto = $('mcAlbumSalto')
+  salto.innerHTML = opcionesDeSalto(armado.paginas, deUnaVez, album.pagina)
+  salto.classList.toggle('hidden', armado.paginas <= deUnaVez)
   $('mcAlbumAnterior').disabled = album.pagina === 0
-  $('mcAlbumSiguiente').disabled = album.pagina + deUnaVez >= paginas
+  $('mcAlbumSiguiente').disabled = album.pagina + deUnaVez >= armado.paginas
   $('mcAlbumAnterior').dataset.paso = String(deUnaVez)
 }
 
@@ -567,6 +578,41 @@ function enganchar() {
   $('mcAlbumSoloFaltan').addEventListener('change', (e) => {
     album.soloFaltan = e.target.checked
     album.pagina = 0
+    pintarAlbum()
+  })
+  // ── El color de la tapa (tanda 371) ──
+  //
+  // Es lo que convierte «una rejilla de cartas» en «mi archivador». Se
+  // guarda en el navegador y no en la base: es gusto de quien mira, no
+  // un dato de la colección, y así no hace falta migración para esto.
+  $('mcAlbumTapa').addEventListener('click', () => {
+    const caja = $('mcAlbumTapas')
+    const abierto = caja.classList.toggle('hidden')
+    $('mcAlbumTapa').setAttribute('aria-expanded', String(!abierto))
+    if (!abierto && !caja.dataset.montado) {
+      caja.dataset.montado = '1'
+      const puesta = tapaGuardada()
+      caja.innerHTML = TAPAS.map(
+        (t) =>
+          `<button type="button" class="mc-tapa" data-tapa="${t.id}" aria-pressed="${t.id === puesta}" title="${escapeHtml(t.nombre)}">` +
+          `<span class="sr-only">${escapeHtml(t.nombre)}</span></button>`
+      ).join('')
+    }
+  })
+  $('mcAlbumTapas').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-tapa]')
+    if (!b) return
+    guardarTapa(b.dataset.tapa)
+    for (const otro of $('mcAlbumTapas').querySelectorAll('[data-tapa]')) {
+      otro.setAttribute('aria-pressed', String(otro === b))
+    }
+    // Se repintan los dos: el álbum de la colección y el soñado que haya
+    // abierto. La tapa es una sola para toda la pantalla.
+    if (album.set) pintarAlbum()
+    albumes.repintar?.()
+  })
+  $('mcAlbumSalto').addEventListener('change', (e) => {
+    album.pagina = Number(e.target.value) || 0
     pintarAlbum()
   })
   $('mcAlbumAnterior').addEventListener('click', () => {

@@ -169,13 +169,21 @@
           <select id="mcTocarEstado" aria-label="Estado al añadir"></select>
         </div>
         <p class="mc-progreso" id="mcAlbumProgreso"></p>
-        <div id="mcAlbum"></div>
-        <p class="subtext hidden" id="mcAlbumVacio">No hay ninguna colección que enseñar todavía.</p>
-        <div class="mc-album-paginas">
+        <!-- Los mandos del archivador ARRIBA (tanda 371): en un set de
+             200 cartas son 22 pliegos, y tenerlos solo debajo del álbum
+             obligaba a bajar la pantalla entera para pasar de página.
+             El «Ir a…» se esconde si el álbum cabe en un pliego: un
+             desplegable con una sola opción es un adorno. -->
+        <div class="mc-album-mandos">
           <button type="button" class="btn-secondary" id="mcAlbumAnterior">← Anterior</button>
           <span id="mcAlbumPaginas"></span>
           <button type="button" class="btn-secondary" id="mcAlbumSiguiente">Siguiente →</button>
+          <select id="mcAlbumSalto" class="hidden" aria-label="Ir a una página"></select>
+          <button type="button" class="btn-secondary mc-album-tapa" id="mcAlbumTapa" aria-expanded="false">Personalizar</button>
         </div>
+        <div class="mc-tapas hidden" id="mcAlbumTapas" role="group" aria-label="Color del archivador"></div>
+        <div id="mcAlbum"></div>
+        <p class="subtext hidden" id="mcAlbumVacio">No hay ninguna colección que enseñar todavía.</p>
       </section>
 
       <section id="mcPanelAlbumes" class="hidden" role="tabpanel" aria-label="Álbumes soñados">

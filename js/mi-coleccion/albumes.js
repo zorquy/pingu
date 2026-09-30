@@ -22,7 +22,9 @@ import * as datos from './datos.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-albumes.sql'
 const MAX_CARTAS = 1080
-const POR_PAGINA = 9
+// Nueve por hoja: vive en el módulo del archivador desde la 371, que
+// es quien lo usa.
+import { archivadorHtml, textoDePaginas, tapaGuardada, POR_PAGINA } from './archivador.js'
 const $ = (id) => document.getElementById(id)
 const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
 
@@ -212,24 +214,32 @@ function pintarDetalle() {
       ? `<span><strong>${mias}</strong> de ${ids.length} las tienes · ${Math.round((mias / ids.length) * 100)} %</span><span class="mc-barra" aria-hidden="true"><i style="--ancho:${Math.round((mias / ids.length) * 100)}%"></i></span>`
       : `<span>${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'}</span>`
   const deUnaVez = window.matchMedia('(min-width: 900px)').matches ? 2 : 1
-  const paginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA))
-  pagina = Math.min(pagina, paginas - 1)
-  pagina -= pagina % deUnaVez
-  const hojas = []
-  for (let p = pagina; p < Math.min(paginas, pagina + deUnaVez); p++) {
-    const trozo = lista.slice(p * POR_PAGINA, (p + 1) * POR_PAGINA)
-    hojas.push(`<div class="mc-hoja" aria-label="Página ${p + 1}">${trozo.map(({ item, i }) => bolsilloHtml(item, i)).join('')}${'<span class="mc-bolsillo mc-bolsillo-vacio" aria-hidden="true"></span>'.repeat(POR_PAGINA - trozo.length)}</div>`)
+  if (!lista.length) {
+    $('mcAlbArchivador').innerHTML = `<p class="subtext">${
+      actual.cartas.length ? '¡Ya las tienes todas!' : 'Este álbum está vacío. Busca cartas arriba para añadirlas.'
+    }</p>`
+    $('mcAlbPaginas').textContent = ''
+    $('mcAlbAnterior').disabled = true
+    $('mcAlbSiguiente').disabled = true
+  } else {
+    // El mismo archivador que el álbum de una colección (tanda 371): era
+    // el mismo dibujo escrito dos veces y ya había empezado a separarse,
+    // que es justo de lo que se quejó PINGU («en álbumes está perfecto,
+    // pero en álbumes soñados debería ser igual»).
+    const armado = archivadorHtml({
+      lista,
+      pagina,
+      deUnaVez,
+      tapa: tapaGuardada(),
+      pintarBolsillo: ({ item, i }) => bolsilloHtml(item, i),
+      numeroDe: ({ item }) => cartaDe(item.id)?.local_id ?? '',
+    })
+    pagina = armado.pagina
+    $('mcAlbArchivador').innerHTML = armado.html
+    $('mcAlbPaginas').textContent = textoDePaginas(pagina, armado.paginas, deUnaVez)
+    $('mcAlbAnterior').disabled = pagina === 0
+    $('mcAlbSiguiente').disabled = pagina + deUnaVez >= armado.paginas
   }
-  // Y si solo hay una hoja, la otra mitad del archivador no se queda en
-  // blanco: va una hoja vacía. Un archivador abierto tiene dos caras, y
-  // sin ella la página parecía cortada por la mitad (tanda 369).
-  if (hojas.length === 1 && deUnaVez > 1) hojas.push('<div class="mc-hoja mc-hoja-fantasma" aria-hidden="true"></div>')
-  $('mcAlbArchivador').innerHTML = lista.length
-    ? `<div class="mc-archivador">${hojas.join('')}</div>`
-    : `<p class="subtext">${actual.cartas.length ? '¡Ya las tienes todas!' : 'Este álbum está vacío. Busca cartas arriba para añadirlas.'}</p>`
-  $('mcAlbPaginas').textContent = lista.length ? `Página ${pagina + 1}${deUnaVez > 1 && pagina + 1 < paginas ? `-${pagina + 2}` : ''} de ${paginas}` : ''
-  $('mcAlbAnterior').disabled = pagina === 0
-  $('mcAlbSiguiente').disabled = pagina + deUnaVez >= paginas
   $('mcAlbAnterior').dataset.paso = String(deUnaVez)
   $('mcAlbEditar').textContent = editando ? 'Hecho' : 'Ordenar y quitar'
 }
@@ -332,6 +342,13 @@ function anadir(cardId) {
 }
 
 // ── Enganches ──
+// Repintar lo que haya abierto, sin volver a pedir nada. Lo usa el
+// color de la tapa (tanda 371), que es una preferencia de pantalla y no
+// un dato: cambiarla no tiene por qué recargar el álbum.
+export function repintar() {
+  if (actual) pintarDetalle()
+}
+
 export function iniciarAlbumes(contexto) {
   ctx = contexto
   $('mcAlbNuevoAbrir')?.addEventListener('click', async () => {
