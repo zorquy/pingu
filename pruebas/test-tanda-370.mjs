@@ -30,13 +30,49 @@ const BASE = 'http://localhost:8892'
 console.log('\n── 1. La dirección de Limitless, sin arrastrar el constructor ──')
 {
   const { imagenDeLimitless, PROMOS_SIN_GUION, codigoDeSetDe } = await import('/home/user/pingu/js/escaneo-carta.js')
-  // Tres cifras si el número es numérico; los de letras, tal cual.
+  // ── CÓMO SE ESCRIBE EL NÚMERO (corregido en la tanda 379) ──
+  //
+  // Limitless tiene DOS costumbres y hay que respetar las dos: el número
+  // a secas va con TRES cifras, y el que lleva letras delante va SIN el
+  // cero de relleno.
+  //
+  // La segunda faltaba, y el síntoma era tan raro que no lo habría
+  // cazado nadie leyendo el código: en la Galarian Gallery `GG10` a
+  // `GG70` se veían y `GG01` a `GG09` NO. La misma colección, unas sí y
+  // otras no, sin un solo error por ninguna parte. Lo vio PINGU mirando
+  // cartas a mano: «el GG10 carga, pero el GG1 no».
+  //
+  // Los casos de abajo están COMPROBADOS contra la CDN el 2026-09-30, no
+  // deducidos: `CRZ_GG1` carga, `SHF_SV001` no y `SHF_SV1` sí. Dos
+  // series distintas, que es lo que permite tratarlo como una regla y no
+  // como una lista de excepciones.
   check('un número normal va a tres cifras', imagenDeLimitless('TWM', '130').endsWith('/TWM/TWM_130_R_EN_SM.png'),
     imagenDeLimitless('TWM', '130'))
   check('  …y uno de una cifra también', imagenDeLimitless('SUM', '7').endsWith('/SUM/SUM_007_R_EN_SM.png'),
     imagenDeLimitless('SUM', '7'))
-  check('  …y uno con letras se queda como está', imagenDeLimitless('CRZ', 'GG12').endsWith('/CRZ/CRZ_GG12_R_EN_SM.png'),
-    imagenDeLimitless('CRZ', 'GG12'))
+  check('  …pero uno con letras PIERDE el cero de relleno',
+    imagenDeLimitless('CRZ', 'GG01').endsWith('/CRZ/CRZ_GG1_R_EN_SM.png'), imagenDeLimitless('CRZ', 'GG01'))
+  check('  …y lo mismo con tres cifras', imagenDeLimitless('SHF', 'SV001').endsWith('/SHF/SHF_SV1_R_EN_SM.png'),
+    imagenDeLimitless('SHF', 'SV001'))
+  // Y el que NO lleva cero de relleno no se toca: el cero de `GG10` es
+  // parte del número, no relleno. Quitarlo dejaría `GG1` para DOS cartas
+  // distintas, que es peor que el fallo que se venía a arreglar.
+  check('  …y un cero que NO es relleno se queda',
+    imagenDeLimitless('CRZ', 'GG10').endsWith('/CRZ/CRZ_GG10_R_EN_SM.png'), imagenDeLimitless('CRZ', 'GG10'))
+  check('  …ni se toca el que no tiene ceros',
+    imagenDeLimitless('PR-SM', 'SM125').endsWith('/SMP/SMP_SM125_R_EN_SM.png'), imagenDeLimitless('PR-SM', 'SM125'))
+
+  // El tope del número: los promos de Espada y Escudo son `SWSH177`, que
+  // son SIETE caracteres, y el guardia aceptaba hasta 6 — devolvía null
+  // y esas 22 cartas no llegaban ni a intentarlo. Un corte elegido a ojo
+  // es una afirmación sobre un ancho que nadie ha medido (lección 320).
+  check('un número de siete caracteres ya no se tira',
+    imagenDeLimitless('PR-SW', 'SWSH177') !== null, String(imagenDeLimitless('PR-SW', 'SWSH177')))
+  check('  …y además pierde su cero', imagenDeLimitless('PR-SW', 'SWSH074').endsWith('/SP/SP_SWSH74_R_EN_SM.png'),
+    imagenDeLimitless('PR-SW', 'SWSH074'))
+  // Pero sigue sin inventarse: nueve caracteres no es un número de carta.
+  check('  …y con nueve sigue sin montar nada', imagenDeLimitless('TWM', 'ABCDEFGHI') === null,
+    String(imagenDeLimitless('TWM', 'ABCDEFGHI')))
   // Las promos llevan guion en TCG Live y no en la CDN.
   check('las promos se traducen', imagenDeLimitless('PR-SV', '92').includes('/SVP/SVP_092_'),
     imagenDeLimitless('PR-SV', '92'))
