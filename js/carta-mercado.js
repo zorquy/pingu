@@ -31,6 +31,7 @@ import { logoCardmarket, marcaCardmarket } from './cardmarket-marca.js'
 import { preciosEnVivo, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
 import { variantesDeCarta, TODAS } from './mi-coleccion/variantes.js'
 import { especiesDeCarta, especiePorDex } from './pokedex-especies.js'
+import { atributosDeRango } from './rangos.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -224,7 +225,7 @@ async function pintarQuienLaDa(carta) {
             return `<li>
               <a class="mini-avatar" href="${escapeHtml(profileUrl(f))}" style="${avatarStyle(f)}">${f.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>
               <div>
-                <a href="${escapeHtml(profileUrl(f))}">${escapeHtml(nombre)}</a>
+                <a href="${escapeHtml(profileUrl(f))}"${atributosDeRango(f)}>${escapeHtml(nombre)}</a>
                 <p class="subtext">${escapeHtml(senas(f))}${f.cambio > 1 ? ` · da ${f.cambio}` : ''}</p>
               </div>
               <a class="link-btn" href="/mensajes.html?with=${encodeURIComponent(f.user_id)}">${icons.mail(15)}Escribir</a>

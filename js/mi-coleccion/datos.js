@@ -258,6 +258,8 @@ export async function valorHistorico(userId, dias = 90) {
 
 // ── Perfil: colección pública o privada ──
 export async function perfilPorUsuario(username) {
+  // sin rango: igual que en mi-coleccion.js, el nombre del dueño es el
+  // título de la pantalla y no un enlace (tanda 386).
   const { data, error } = await supabase.from('user_profiles').select('id,username,display_name,coleccion_publica').eq('username', username).maybeSingle()
   if (error) throw traducir(error)
   return data

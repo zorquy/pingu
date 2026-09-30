@@ -85,6 +85,8 @@ export function destinoTrasEntrar(bruto) {
 async function afterAuth(userId) {
   const { data: profile } = await supabase
     .from('user_profiles')
+    // sin rango: es MI propio perfil recién entrado, y solo para saber si
+    // le falta el paso de bienvenida (tanda 386).
     .select('username, onboarding_completed')
     .eq('id', userId)
     .single()

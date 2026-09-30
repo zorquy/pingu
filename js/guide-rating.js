@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { createNotification } from './notifications.js'
 import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 // Valorar una guía.
 //
@@ -80,7 +81,7 @@ function listaValoradoresHtml(reviews, perfilesPorId) {
       const avatar = `<span class="rater-avatar" style="${oculto ? '' : avatarStyle(p)}">${oculto ? '' : escapeHtml(getInitial(nombre))}</span>`
       const quien = oculto
         ? `<span class="rater-name">${escapeHtml(nombre)}</span>`
-        : `<a class="rater-name" href="${profileUrl(p)}">${escapeHtml(nombre)}</a>`
+        : `<a class="rater-name" href="${profileUrl(p)}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>`
       return `<li class="rater-row">
           ${avatar}
           ${quien}
@@ -111,7 +112,7 @@ export async function renderRatingWidget(container, { guideId, session, guide = 
     const ids = [...new Set(reviews.map((r) => r.reviewer_id).filter(Boolean))]
     const { data: perfiles } = await supabase
       .from('user_profiles')
-      .select('id, username, display_name, avatar_url, hide_activity')
+      .select(`id, username, display_name, avatar_url, hide_activity, ${COLUMNAS_RANGO}`)
       .in('id', ids)
     perfilesPorId = Object.fromEntries((perfiles || []).map((p) => [p.id, p]))
   }

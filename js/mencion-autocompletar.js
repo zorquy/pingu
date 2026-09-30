@@ -78,6 +78,9 @@ async function buscarPersonas(escrito) {
   try {
     const { data, error } = await supabase
       .from('user_profiles')
+      // sin rango: es el desplegable que sale al escribir @, y todavía no
+      // hay ningún perfil al que ir — se elige a quién mencionar. El color
+      // llega luego, en la mención ya escrita (js/menciones.js, tanda 386).
       .select('id, username, display_name, avatar_url')
       // Por el nombre de usuario y por el que se ve. `search_norm` va sin
       // acentos, así que escribir "@jesus" encuentra a "Jesús".

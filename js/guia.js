@@ -16,6 +16,7 @@ import { compartirHtml, engancharCompartir } from './compartir.js'
 import { contributorBadgeHtml } from './contributor-badge.js'
 import { montarSugerencia, creditosHtml } from './guide-suggestions.js'
 import { laVeLaGente, estadoDeGuia } from './guia-estado.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 const slug = slugDeArticuloEnLaUrl()
 
@@ -154,7 +155,7 @@ async function init() {
   if (guide.author_id && !esNoticia) {
     const { data } = await supabase
       .from('user_profiles')
-      .select('id, display_name, username, avatar_url')
+      .select(`id, display_name, username, avatar_url, ${COLUMNAS_RANGO}`)
       .eq('id', guide.author_id)
       .single()
     author = data
@@ -182,7 +183,7 @@ async function init() {
           // publicada. Se dice lo que sí es cierto — que la ha escrito.
           author ? (guide.review_status === 'pending' ? 'Escrita por' : 'Publicada por') : esNoticia ? 'Noticia de' : 'Guía oficial de'
         }</span>
-        ${author ? `<a href="${profileUrl(author)}" style="font-weight:700; color:var(--navy);">${escapeHtml(authorName)}</a>${authorBadge}` : `<strong>${escapeHtml(authorName)}</strong>`}
+        ${author ? `<a href="${profileUrl(author)}"${atributosDeRango(author, 'font-weight:700; color:var(--navy)')}>${escapeHtml(authorName)}</a>${authorBadge}` : `<strong>${escapeHtml(authorName)}</strong>`}
       </div>
     </div>
     ${creditos}`

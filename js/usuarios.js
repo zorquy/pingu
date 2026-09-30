@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 import { escapeHtml, getInitial, getSession, profileUrl, guideHasReference, avatarStyle } from './app.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { calculateLevel, levelBadgeHtml } from './gamification.js'
@@ -34,7 +35,7 @@ function userCardHtml(p) {
     <div class="com-persona">
       <a class="com-persona-cara" href="${profileUrl(p)}" style="${avatarStyle(p)}" aria-label="${escapeHtml(name)}">${p.avatar_url ? '' : getInitial(name)}</a>
       <div class="com-persona-cuerpo">
-        <a class="com-persona-nombre" href="${profileUrl(p)}">${escapeHtml(name)}</a>
+        <a class="com-persona-nombre" href="${profileUrl(p)}"${atributosDeRango(p)}>${escapeHtml(name)}</a>
         ${levelBadgeHtml(calculateLevel(p.total_xp), 11)}
         <span class="com-persona-hizo">${hizo.length ? escapeHtml(hizo.join(' · ')) : 'Acaba de llegar'}</span>
       </div>
@@ -226,7 +227,9 @@ async function loadUsers() {
   const [{ data }, { data: approvedGuides }, { data: mensajes }] = await Promise.all([
     supabase
       .from('user_profiles')
-      .select('id, username, display_name, level, total_xp, avatar_url, banner_color, current_streak, last_active_date')
+      // Y el rango (tanda 386): sin estas dos columnas todo el
+      // directorio saldría en azul y parecería que no hay ni un admin.
+      .select(`id, username, display_name, level, total_xp, avatar_url, banner_color, current_streak, last_active_date, ${COLUMNAS_RANGO}`)
       .order('total_xp', { ascending: false })
       .limit(200),
     supabase.from('guides').select('author_id').eq('review_status', 'approved').not('author_id', 'is', null),
@@ -342,6 +345,9 @@ async function loadCommunityGuides(session) {
   const authorIds = [...new Set(list.map((g) => g.author_id))]
   let authorsById = {}
   if (authorIds.length > 0) {
+    // sin rango: el autor de una guía de la comunidad sale como texto
+    // dentro de la descripción («De Ash — …»), sin enlace al perfil
+    // (tanda 386).
     const { data: authors } = await supabase.from('user_profiles').select('id, display_name, username').in('id', authorIds)
     authorsById = Object.fromEntries((authors || []).map((a) => [a.id, a]))
   }

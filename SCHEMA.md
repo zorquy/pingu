@@ -20897,3 +20897,198 @@ recargar vuelve a abrir la especie que acabas de cerrar.
 y sin él cada una dice lo suyo, que la copia de la ficha se fue, que la
 TAG TEAM y el Entrenador NO llevan enlace, que `?dex=` abre la especie y
 que un número inventado deja la rejilla en paz.
+
+## Tanda 386 — el color de un nombre según su rango (oct. 2026)
+
+PINGU, con una captura del lateral del foro delante: «que los nicks aquí
+en las estadísticas del foro, cuando te diga quién está conectado y tal,
+y luego aparte en la web, en todos los sitios donde ponga un nombre con
+enlace que vaya al perfil, que tenga el color que tiene que tener. Un
+usuario normal debería ser azul y después los admins y los moderadores
+de otros colores».
+
+### Un solo sitio decide: `js/rangos.js`
+
+El nombre de alguien se pinta en media web: el foro, la comunidad, la
+firma de un artículo, los comentarios, quién valoró una guía, la lista
+de inscritos de un torneo, el top del mes de la portada. Trece ficheros.
+
+Si el color se decidiera en cada uno, dentro de dos tandas habría uno
+que se quedó sin enterarse **y nadie lo notaría**: un nombre en azul
+entre nombres en azul no canta. Así que hay un módulo y cuatro
+funciones: `rangoDe`, `nombreDeRango`, `estiloDeRango` y
+`atributosDeRango`. Sin DOM y sin Supabase, se prueban en Node.
+
+La escala es una lista ORDENADA de más alto a más bajo, así que quien es
+admin **y** moderador sale como admin sin que nadie escriba un `if`. El
+rango de una persona normal es `null` y no `'normal'`: lo normal no se
+marca, y tener un nombre para ello invita a pintarlo de algo.
+
+### El color NO puede ir en una hoja de estilos
+
+La primera versión puso `a.rango-admin { color: … }` en
+`components.css`, que es lo que manda el libro. Y los nombres del foro
+salieron **azules**.
+
+`.foro-gente a` pone `color: var(--navy)`, empata en especificidad
+(0-1-1) y `foro.css` carga DESPUÉS de `components.css`: gana por orden.
+No es un fallo de `foro.css` — es que la regla del rango tiene que
+ganarle a CUALQUIER hoja de pantalla que coloree sus propios enlaces, y
+hay veintitantas. Subir la especificidad a ojo solo mueve la pelea un
+escalón: una hoja con `.foro-panel .foro-gente a` volvería a empatar y a
+ganar por orden, y **el día que pase nadie se enteraría**.
+
+Así que el color va donde no hay pelea: en el `style=` del enlace, con
+el TOKEN dentro, que es el mismo patrón que `--chapa` y `--galon`. La
+clase `rango-admin` / `rango-moderador` se queda como asidero —de ella
+cuelgan las pruebas— pero quien pinta es el token.
+
+**Y dos atributos `style` en la misma etiqueta NO se suman**: el
+navegador se queda con el primero y tira el segundo. La firma de un
+artículo ya traía el suyo (`font-weight:700; color:var(--navy)`), así
+que `atributosDeRango(perfil, estiloBase)` los MEZCLA en una sola
+declaración, con el del rango detrás, que es quien tiene que ganar. Sin
+eso el rango se habría perdido en silencio justo ahí.
+
+### Los colores, elegidos midiendo
+
+No salen de la paleta que ya había, a propósito: el azul es el de los
+enlaces, el verde significa «completo» y **el rojo está reservado para
+peligro** desde la tanda 311 — usarlo para «admin» mezclaría dos cosas
+que no tienen nada que ver, y además lo cazaría su prueba.
+
+Dos tokens propios en `style.css`, con su pareja en el tema oscuro:
+
+| rango | claro | contraste | oscuro | contraste |
+|---|---|---|---|---|
+| admin | `#a1560a` | 5,45 | `#f0a63a` | 7,66 |
+| moderador | `#7040b8` | 6,74 | `#b389ee` | 5,79 |
+
+Los cuatro por encima del 4,5 que pide la WCAG para texto. Un color de
+rango que no se lee no es un rango, es un adorno.
+
+Y el color **nunca** es lo único que lo dice: el enlace va en negrita y
+lleva un `title` con el nombre del rango, porque quien no distingue el
+ámbar del violeta se quedaría sin saberlo. Es la misma regla que el
+signo en la gráfica del valor de la tanda 377.
+
+### La consulta que no pide las columnas miente sin dar error
+
+`COLUMNAS_RANGO` se exporta para que ninguna consulta se las invente.
+Una pantalla que se traiga el nombre sin `is_admin, is_moderator` pinta
+a **todo el mundo** en azul: no da ningún error, y lo que se ve es que
+no hay ni un admin conectado. Dieciséis consultas ampliadas — y ni una
+petición extra, son columnas de la misma.
+
+La prueba lo barre por la FORMA del fallo y no por el caso: **cada
+`.select(` de todo `js/`** que pida `username` o `display_name` tiene
+que traerse también el rango. La excepción NO es una lista dentro de la
+prueba —una lista curada se queda vieja y el fichero que cambió no se
+entera, que es la lección de las tandas 323 y 380— sino un comentario
+`// sin rango:` pegado a la consulta, que viaja con ella y explica por
+qué. Son once, y casi todas por el mismo motivo: ese nombre sale como
+**texto** y no como enlace (el «Hola, X» de la bienvenida, el «De Ash —»
+de una guía de la comunidad, el dueño de una colección, el organizador
+de un torneo). Un nombre de color sin nada que pulsar promete un sitio
+al que ir que no existe. Los otros dos casos son más finos: en la lista
+de conversaciones el nombre va dentro del enlace **a la conversación**,
+que lleva a otro sitio; y en `js/torneos/torneos.js` el `is_admin` que
+ya se pedía **no es un rango que pintar**, es quién puede poner el sello
+de OFICIAL.
+
+**Y el barrido mira TODO `js/`, no solo los ficheros que pintan.** La
+primera versión miraba solo esos quince y se le escapó el caso justo:
+la cabecera de una conversación enseña un nombre con enlace al perfil,
+pero **la consulta vive en `js/messages.js` y el enlace en
+`js/mensajes.js`**. Una consulta y su pintura en ficheros distintos es
+lo normal, no la excepción.
+
+### Y los nombres que no salen de un `select`
+
+El tablón de intercambios y el «quién da esta carta» de la ficha
+enseñan nombres CON enlace al perfil, pero no vienen de una consulta del
+cliente: vienen de tres funciones de la base, y **una función solo
+devuelve las columnas que declara**. El barrido de los `.select(` no las
+ve, así que la prueba tiene un segundo barrido: toda función de una
+migración que devuelva un `username` tiene que devolver también el
+rango, o llevar su `-- sin rango:` pegado (lo lleva
+`course_leaderboard`, cuyos nombres van como texto en la pantalla final
+del curso).
+
+De ahí `supabase-migration-rangos-intercambios.sql`. Y **no vale un
+`create or replace`**: Postgres no deja cambiar las columnas de salida
+de una función que ya existe («cannot change return type of existing
+function»), hay que tirarla y volver a crearla — con lo que se van los
+permisos, que la migración devuelve. El cuerpo no cambia ni una coma.
+
+El barrido mira TODAS las migraciones y se queda con que una función
+está bien si **cualquiera** de ellas la declara con el rango: las
+migraciones son un libro de cuentas, el fichero viejo se queda como está
+y el nuevo manda. Mirar fichero por fichero habría dado por mala la
+definición original, que era correcta cuando se escribió.
+
+El cliente aguanta la migración sin poner: si las columnas no llegan,
+`rangoDe` ve `undefined` y no pinta nada, que es lo que hacía antes.
+
+### Los diecisiete sitios
+
+El foro entero (`js/foro-comun.js` los cubre todos
+de golpe), la comunidad, el hilo de actividad, la firma de un artículo,
+la tarjeta de una guía, los comentarios de guía, quién la valoró, las
+sugerencias, la guía destacada y los dos «top del mes» de la portada, la
+tarjetita al pasar por encima de un nombre, las peticiones, los
+inscritos de un torneo, los chips de «sigue a» de los dos perfiles, la
+cabecera de un mensaje privado y **las @menciones**.
+
+La mención es el único sitio donde el rango se pone a mano, porque se
+monta con `createElement` y no con una plantilla — de ahí que
+`claseDeRango` y `estiloDeRango` se exporten por separado. Y una
+mención de alguien normal sigue saliendo con `class="mencion"` tal cual:
+`test-tanda-314` lo mira, y romperlo habría salido gratis.
+
+Fuera del barrido queda a propósito el podio: los tres primeros de
+/usuarios y del top del mes ya van tintados de oro, plata y bronce, y
+meterles encima el color del rango sería decir dos cosas con el mismo
+sitio. El NOMBRE de esas filas sí lleva su rango; la medalla no.
+
+### Hacer sitio en la portada, antes de mirar si cabe
+
+`js/rangos.js` lo baja la portada (la firma de la guía destacada y el
+top del mes), y el presupuesto estaba en 168,5 de 170. Así que primero
+se hizo sitio, que es lo que manda CLAUDE.md:
+
+- La primera versión del módulo pesaba **2,5 KB gzip**, casi todo
+  comentarios. El porqué largo se mudó aquí, a SCHEMA.md, que nadie
+  descarga: quedó en 1,3.
+- `css/404.css` (**nuevo**): la página 404 y el «torneo no encontrado».
+  Dos páginas lo pintan, y bajaba en las veintiséis.
+- `css/legal.css` (**nuevo**): las reglas `.legal-page` de Términos,
+  Privacidad y Sobre PokeDoc. **Solo esas**: `.inline-content-icon` y
+  `.saved-guide-icon` estaban en la misma sección y las usa media web —
+  una sección de CSS no es una unidad de mudanza (tanda 316).
+- Las encuestas del foro y la cabecera de un tema, a `foro.css`: las
+  pintan `js/encuesta.js` y `js/tema.js`, que solo entran por foro.html
+  y tema.html.
+
+Total: 168,8 KB gzip, con 1,2 de sitio. Se fueron las secciones
+ENTERAS, con sus `@media` dentro: una base mudada y un `@media`
+olvidado en `components.css` rompen el móvil sin dar error (tanda 299).
+
+### Comprobado
+
+`test-tanda-386.mjs`: las cinco funciones en Node (incluido que admin
+gana a moderador, que una columna que no vino no asciende a nadie y que
+un estilo propio se mezcla en UN solo atributo); tres barridos de código —las
+consultas que piden un nombre, las etiquetas con dos `style`, y **al
+revés, que no quede ni un enlace a un perfil con nombre sin su color**,
+que es lo que de verdad se pidió: una consulta bien y un enlace olvidado
+se ven igual de azules—; y en el navegador, el color
+**computado** contra el token en los dos temas y en los tres paneles del
+lateral del foro, el contraste medido de los cuatro colores, que una
+persona normal no lleva clase ni color, y que el CSS mudado sigue
+pintando en las cinco páginas que lo usan **y vive solo en su hoja
+nueva** — mudar es mudar, no copiar. Y la migración,
+aplicada contra un PostgreSQL 16 de verdad: las tres funciones devuelven
+el rango de quien da o busca la carta, con la regla de lo recíproco
+intacta. Pasada además la 299, 306, 311, 312, 313, 314, 315 y 316 —las
+que miran hojas, contraste y menciones— y la suite entera.

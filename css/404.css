@@ -1,0 +1,62 @@
+/* La página que no existe (404) y el "torneo no encontrado".
+   Sale de components.css en la tanda 386: la portada se quedó sin
+   presupuesto (169,3 de 170) y esto solo lo pintan dos páginas. Lo que usa una
+   pantalla va en su hoja — la regla de siempre. */
+
+/* ── Página 404 ──────────────────────────────────────────────────────────
+   Antes no había: Netlify mandaba cualquier dirección desconocida a la
+   portada con un 200, así que un enlace mal copiado enseñaba la home como
+   si no hubiera pasado nada — y los buscadores se creían que esa dirección
+   inventada era una página de verdad. */
+.pagina-404 {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 24px 0 40px;
+}
+
+.pagina-404 h1 {
+  margin: 8px 0 12px;
+}
+
+.pagina-404 .subtext {
+  max-width: 46ch;
+}
+
+.buscador-404 {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  max-width: 420px;
+}
+
+.buscador-404 input {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .pagina-404 {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* En columna, la caja de texto medía lo que pedían sus topes (46ch de
+     párrafo, 420px de buscador) y se salía de una pantalla de 320px.
+     Los topes siguen mandando, pero nunca por encima del ancho que hay. */
+  .pagina-404 > div {
+    width: 100%;
+  }
+
+  .pagina-404 .subtext {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .buscador-404 {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+}

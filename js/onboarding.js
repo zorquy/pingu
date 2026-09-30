@@ -109,6 +109,8 @@ async function init() {
   const session = await requireAuth()
   if (!session) return
 
+  // sin rango: es MI perfil durante la bienvenida, para saludarme por mi
+  // nombre (tanda 386).
   const { data: profile } = await supabase.from('user_profiles').select('display_name, username').eq('id', session.user.id).maybeSingle()
   // Si ya hay nombre guardado se respeta; si no, se sugiere el de la
   // cuenta con la que ha entrado (Google lo manda en user_metadata). Sigue

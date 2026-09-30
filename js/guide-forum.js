@@ -5,6 +5,7 @@ import { reportButtonHtml, wireReportButtons } from './report.js'
 import { contributorCounts, badgeHtml } from './contributor-badge.js'
 import { notifyGuideComment, createNotification } from './notifications.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 // 20 y no 10. Con 10, una guía con 12 comentarios ya se parte en dos
 // páginas, y los DOS más nuevos quedan escondidos en la segunda — que es
@@ -16,7 +17,7 @@ const PAGE_SIZE = 20
 async function profilesByIds(ids) {
   const uniqueIds = [...new Set(ids)]
   if (uniqueIds.length === 0) return {}
-  const { data } = await supabase.from('user_profiles').select('id, display_name, username, avatar_url').in('id', uniqueIds)
+  const { data } = await supabase.from('user_profiles').select(`id, display_name, username, avatar_url, ${COLUMNAS_RANGO}`).in('id', uniqueIds)
   return Object.fromEntries((data || []).map((p) => [p.id, p]))
 }
 
@@ -93,7 +94,7 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
         <a class="mini-avatar" href="${profile ? profileUrl(profile) : '#'}" style="width:44px; height:44px; font-size:16px; ${avatarStyle(profile)}">${profile?.avatar_url ? '' : getInitial(name)}</a>
         <div class="forum-post-body">
           <div class="forum-post-header">
-            <a href="${profile ? profileUrl(profile) : '#'}" class="forum-post-author">${escapeHtml(name)}</a>${badgeHtml(rangos[c.author_id])}
+            <a href="${profile ? profileUrl(profile) : '#'}" class="forum-post-author"${atributosDeRango(profile)}>${escapeHtml(name)}</a>${badgeHtml(rangos[c.author_id])}
             <span class="forum-post-date">${new Date(c.created_at).toLocaleString('es-ES')}</span>
           </div>
           ${parent ? `<div class="forum-quote">En respuesta a <strong>${escapeHtml(authorName(parent.author_id))}</strong>: “${escapeHtml(snippet(parent.body))}”</div>` : ''}

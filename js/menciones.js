@@ -11,6 +11,7 @@
 // (ver slugify en js/texto.js), así que eso es lo que se busca.
 import { supabase } from './supabase.js'
 import { profileUrl } from './app.js'
+import { COLUMNAS_RANGO, claseDeRango, estiloDeRango, nombreDeRango } from './rangos.js'
 
 // El primer grupo es lo que va DELANTE de la arroba, y tiene que ser el
 // principio del texto o algo que no sea parte de una dirección: sin eso,
@@ -79,7 +80,7 @@ export async function perfilesMencionados(html) {
   try {
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('id, username, display_name')
+      .select(`id, username, display_name, ${COLUMNAS_RANGO}`)
       .or(nombres.map((n) => `username.ilike.${n}`).join(','))
     if (error) return []
     return data || []
@@ -124,7 +125,15 @@ export function enlazarMenciones(html, perfilesPorNombre) {
       const desde = m.index + m[1].length
       if (desde > ultimo) trozos.appendChild(doc.createTextNode(texto.slice(ultimo, desde)))
       const a = doc.createElement('a')
-      a.className = 'mencion'
+      // La mención se queda con su forma de mención y ADEMÁS coge el
+      // color de su rango: es un enlace a un perfil como cualquier otro
+      // (tanda 386). Se pone a mano porque esto es DOM, no una plantilla.
+      a.className = `mencion${claseDeRango(perfil)}`
+      const estilo = estiloDeRango(perfil)
+      if (estilo) {
+        a.setAttribute('style', estilo)
+        a.title = nombreDeRango(perfil)
+      }
       a.href = profileUrl(perfil)
       a.textContent = `@${perfil.username}`
       trozos.appendChild(a)

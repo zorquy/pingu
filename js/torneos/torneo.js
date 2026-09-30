@@ -36,6 +36,7 @@ import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { sanitizeRichText } from '../richtext-format.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 import { pintarSiCambia, textoSiCambia } from './pintar.js'
+import { atributosDeRango, COLUMNAS_RANGO } from '../rangos.js'
 
 let session = null
 let perfil = null
@@ -97,7 +98,7 @@ async function cargarInscripciones() {
     // Con avatar desde la tanda 306: la lista de inscritos era una
     // columna de nombres y no se distinguía a nadie de un vistazo. Es
     // una columna más de la misma consulta — ni una petición extra.
-    const { data: perfiles } = await supabase.from('user_profiles').select('id, username, avatar_url').in('id', ids)
+    const { data: perfiles } = await supabase.from('user_profiles').select(`id, username, avatar_url, ${COLUMNAS_RANGO}`).in('id', ids)
     const porId = Object.fromEntries((perfiles || []).map((p) => [p.id, p]))
     for (const i of inscripciones) i.perfil = porId[i.user_id] || null
     organizador = porId[torneo.admin_id] || null
@@ -1969,7 +1970,7 @@ function pintarInscritos() {
           : ''
       return `
       <div class="torneo-inscrito">
-        <span class="torneo-inscrito-nombre">${caraDe(i.perfil, nombre)}<a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(nombre)}</a>${retirado}</span>
+        <span class="torneo-inscrito-nombre">${caraDe(i.perfil, nombre)}<a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}"${atributosDeRango(i.perfil)}>${escapeHtml(nombre)}</a>${retirado}</span>
         ${tcgLiveDe(i)}
         ${decklist}${confirmado}${expulsar}
       </div>`
@@ -1982,7 +1983,7 @@ function pintarInscritos() {
           .map(
             (i, n) => `
       <div class="torneo-inscrito torneo-inscrito-cola">
-        <span class="torneo-inscrito-nombre"><span class="torneo-cola-puesto">${n + 1}.</span>${caraDe(i.perfil, i.perfil?.username || 'Alguien')}<a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}">${escapeHtml(i.perfil?.username || 'Alguien')}</a></span>
+        <span class="torneo-inscrito-nombre"><span class="torneo-cola-puesto">${n + 1}.</span>${caraDe(i.perfil, i.perfil?.username || 'Alguien')}<a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}"${atributosDeRango(i.perfil)}>${escapeHtml(i.perfil?.username || 'Alguien')}</a></span>
         ${tcgLiveDe(i)}
       </div>`
           )

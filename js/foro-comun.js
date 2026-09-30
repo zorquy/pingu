@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 import { contributorCounts, badgeHtml } from './contributor-badge.js'
 
@@ -38,7 +39,10 @@ export async function perfilesPorId(ids) {
   // los "en línea" y en "leyendo ahora", pero no se le nombra.
   const { data } = await supabase
     .from('user_profiles')
-    .select('id, username, display_name, avatar_url, level, total_xp, hide_activity')
+    // Y el RANGO (tanda 386): sin estas dos columnas todo el mundo se
+    // pintaría en azul y parecería que no hay ni un admin conectado —
+    // sin que nada diera error.
+    .select(`id, username, display_name, avatar_url, level, total_xp, hide_activity, ${COLUMNAS_RANGO}`)
     .in('id', unicos)
   return Object.fromEntries((data || []).map((p) => [p.id, p]))
 }
@@ -53,7 +57,9 @@ export function avatarHtml(perfil, tamano = 20) {
 
 export function enlacePerfil(perfil) {
   const nombre = escapeHtml(nombreDe(perfil))
-  return perfil ? `<a href="${profileUrl(perfil)}">${nombre}</a>` : `<span>${nombre}</span>`
+  // El color del rango sale de `js/rangos.js` y de ningún otro sitio
+  // (tanda 386). Aquí solo se pega lo que aquella función diga.
+  return perfil ? `<a href="${profileUrl(perfil)}"${atributosDeRango(perfil)}>${nombre}</a>` : `<span>${nombre}</span>`
 }
 
 // Cuántas reacciones han recibido los mensajes de alguien: los

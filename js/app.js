@@ -255,6 +255,7 @@ export function profileParamsFromLocation() {
 
 export async function uniqueUsername(base, excludeUserId) {
   const clean = slugify(base) || 'user'
+  // sin rango: el nombre es para ARMAR la dirección, no para pintarlo.
   let query = supabase.from('user_profiles').select('username').ilike('username', `${clean}%`)
   if (excludeUserId) query = query.neq('id', excludeUserId)
   const { data } = await query

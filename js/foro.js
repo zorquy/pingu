@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { COLUMNAS_RANGO } from './rangos.js'
 import { getSession, escapeHtml } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
@@ -375,7 +376,7 @@ async function panelDeNumerosHtml() {
     // antiguas, así que si da error simplemente no se enseña esa línea.
     supabase
       .from('user_profiles')
-      .select('id, username, display_name')
+      .select(`id, username, display_name, ${COLUMNAS_RANGO}`)
       .order('created_at', { ascending: false })
       .limit(1)
       .then(({ data, error }) => (error ? null : data?.[0] || null))
@@ -384,7 +385,7 @@ async function panelDeNumerosHtml() {
     // mantiene la racha diaria. Quien esconde su actividad no aparece.
     supabase
       .from('user_profiles')
-      .select('id, username, display_name, hide_activity')
+      .select(`id, username, display_name, hide_activity, ${COLUMNAS_RANGO}`)
       .eq('last_active_date', hoy)
       .limit(40)
       .then(({ data, error }) => (error ? [] : (data || []).filter((p) => !p.hide_activity)))
@@ -393,7 +394,7 @@ async function panelDeNumerosHtml() {
     // cumples: mientras no esté, esta línea simplemente no sale.
     supabase
       .from('user_profiles')
-      .select('id, username, display_name')
+      .select(`id, username, display_name, ${COLUMNAS_RANGO}`)
       .eq('birthday_md', hoyMD)
       .limit(10)
       .then(({ data, error }) => (error ? [] : data || []))

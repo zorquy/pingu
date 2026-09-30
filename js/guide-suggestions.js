@@ -3,6 +3,7 @@ import { escapeHtml, profileUrl } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { createNotification } from './notifications.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 // Sugerir una corrección a la guía de otro.
 //
@@ -44,9 +45,9 @@ export async function creditosHtml(guideId) {
   const ids = [...new Set(data.map((s) => s.author_id).filter(Boolean))]
   if (ids.length === 0) return ''
 
-  const { data: perfiles } = await supabase.from('user_profiles').select('id, username, display_name').in('id', ids)
+  const { data: perfiles } = await supabase.from('user_profiles').select(`id, username, display_name, ${COLUMNAS_RANGO}`).in('id', ids)
   const nombres = (perfiles || []).map(
-    (p) => `<a href="${profileUrl(p)}">${escapeHtml(p.display_name || p.username || 'alguien')}</a>`
+    (p) => `<a href="${profileUrl(p)}"${atributosDeRango(p)}>${escapeHtml(p.display_name || p.username || 'alguien')}</a>`
   )
   if (nombres.length === 0) return ''
 

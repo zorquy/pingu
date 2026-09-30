@@ -3,6 +3,7 @@ import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 import { icons } from './icons.js'
 import { rutaDeArticulo, conVueltaAtrasDeTipo } from './articulos.js'
 import { logClientError } from './error-log.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 // Hilo de actividad reciente. No hay tabla de eventos: se arma leyendo
 // lo que ya existe (progreso, guías —publicadas y en revisión—,
@@ -182,7 +183,7 @@ export async function loadActivity(limite = 20) {
 
   const [{ data: perfiles }, { data: guias }] = await Promise.all([
     userIds.length
-      ? supabase.from('user_profiles').select('id, username, display_name, avatar_url, hide_activity').in('id', userIds)
+      ? supabase.from('user_profiles').select(`id, username, display_name, avatar_url, hide_activity, ${COLUMNAS_RANGO}`).in('id', userIds)
       : Promise.resolve({ data: [] }),
     guideIds.length
       ? conVueltaAtrasDeTipo(
@@ -267,7 +268,7 @@ function eventoHtml(e) {
       }</a>`
   const quien = t.deLaCasa
     ? `<span class="activity-tipo">${escapeHtml(t.etiqueta || t.verbo)}</span>`
-    : `<a href="${profileUrl(e.perfil)}" class="activity-name">${escapeHtml(nombre)}</a> ${t.verbo}`
+    : `<a href="${profileUrl(e.perfil)}" class="activity-name"${atributosDeRango(e.perfil)}>${escapeHtml(nombre)}</a> ${t.verbo}`
   // El icono de la derecha dice DE QUÉ tipo es el evento, y eso solo
   // aporta cuando a la izquierda hay la cara de una persona. En lo de la
   // casa la izquierda YA es ese mismo icono: dos copias del mismo dibujo

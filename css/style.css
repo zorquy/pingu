@@ -40,6 +40,20 @@
      que NINGUNO se adaptaba al tema. */
   --danger: #dc2626;
   --danger-bg: #fee2e2;
+
+  /* ── Los rangos (tanda 386) ──
+     El nombre de un admin y el de un moderador se distinguen del de una
+     persona normal, que va en el azul de los enlaces.
+
+     NO salen de la paleta que ya había: el verde significa «completo» y
+     el ROJO ESTÁ RESERVADO PARA PELIGRO desde la 311 — «admin» y
+     «cuidado» no son lo mismo, y además lo cazaría su prueba.
+
+     Elegidos MIDIENDO, no a ojo: ámbar da 5,45 sobre blanco y violeta
+     6,74; en el tema oscuro, 7,66 y 5,79. Los cuatro por encima del 4,5
+     de la WCAG, porque un color de rango que no se lee no es un rango. */
+  --rango-admin: #a1560a;
+  --rango-moderador: #7040b8;
   /* El rojo que va de FONDO con texto blanco encima: la chapa de «en
      juego», la marca de una carta ilegal. Es otro token a propósito y
      NO tiene versión clara para el tema oscuro — al revés que --danger,
@@ -134,6 +148,9 @@
 :root[data-theme='dark'] {
   /* Aclarado en la tanda 311 (era #4a90c2). (el porqué, en SCHEMA.md: tanda 359) */
   --navy: #6fb0dc;
+  /* Los rangos, aclarados para el fondo oscuro (tanda 386). */
+  --rango-admin: #f0a63a;
+  --rango-moderador: #b389ee;
   --navy-light: #63a8d6;
   --navy-dark: #3a76a3;
   --ice: #1c2b38;

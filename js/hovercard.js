@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, avatarStyle, getSession } from './app.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 // La tarjetita al posar el ratón sobre el nombre de alguien: avatar,
 // nivel, mensajes del foro y el botón de seguir, sin ir a su perfil.
@@ -21,7 +22,7 @@ async function perfilDe(username) {
   if (cache.has(username)) return cache.get(username)
   const { data } = await supabase
     .from('user_profiles')
-    .select('id, username, display_name, avatar_url, level, total_xp, forum_post_count, bio')
+    .select(`id, username, display_name, avatar_url, level, total_xp, forum_post_count, bio, ${COLUMNAS_RANGO}`)
     .ilike('username', username)
     .limit(1)
   const perfil = data?.[0] || null
@@ -54,7 +55,7 @@ async function abrir(enlace, username) {
   tarjeta.innerHTML = `
     <span class="hovercard-avatar" style="${avatarStyle(perfil)}">${perfil.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
     <div class="hovercard-datos">
-      <a class="hovercard-nombre" href="/usuario/${encodeURIComponent(perfil.username)}">${escapeHtml(nombre)}</a>
+      <a class="hovercard-nombre" href="/usuario/${encodeURIComponent(perfil.username)}"${atributosDeRango(perfil)}>${escapeHtml(nombre)}</a>
       <span class="hovercard-linea">${levelBadgeHtml(perfil.level, 11)} · ${perfil.total_xp || 0} XP</span>
       ${Number.isFinite(perfil.forum_post_count) ? `<span class="hovercard-linea subtext">Mensajes en el foro: ${perfil.forum_post_count}</span>` : ''}
       ${perfil.bio ? `<span class="hovercard-bio">${escapeHtml(perfil.bio).slice(0, 90)}</span>` : ''}

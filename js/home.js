@@ -9,6 +9,7 @@ import { loadActivity, renderActivityHtml } from './activity.js'
 import { montarPrimerosPasos } from './primeros-pasos.js'
 import { haceCuanto, nombreDe, perfilesPorId, urlTema, avatarHtml, etiquetaHtml } from './foro-comun.js'
 import { clasificacionSemanal } from './liga.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 
 // Los temas, de seis tarjetas a una fila de chips (tanda 300)
@@ -497,6 +498,7 @@ async function cargarBienvenida(session) {
   const hueco = document.getElementById('bienvenida')
   if (!seccion || !hueco) return
   try {
+    // sin rango: el «Hola, X» es TEXTO, no un enlace al perfil.
     const [{ data: profile }, { calculateLevel, levelBadgeHtml }] = await Promise.all([
       supabase
         .from('user_profiles')
@@ -629,7 +631,7 @@ async function cargarDestacada() {
 
   let autor = null
   if (guia.author_id) {
-    const { data } = await supabase.from('user_profiles').select('id, username, display_name').eq('id', guia.author_id).maybeSingle()
+    const { data } = await supabase.from('user_profiles').select(`id, username, display_name, ${COLUMNAS_RANGO}`).eq('id', guia.author_id).maybeSingle()
     autor = data
   }
 
@@ -639,7 +641,7 @@ async function cargarDestacada() {
       ${contentIconHtml(guia.cover_emoji, 22, 'bookOpen')} ${escapeHtml(guia.title)}
     </a>
     ${elegida.nota ? `<p class="destacada-nota">“${escapeHtml(elegida.nota)}”</p>` : `<p class="destacada-nota">${escapeHtml(guia.description || '')}</p>`}
-    ${autor ? `<p class="destacada-autor">De <a href="${profileUrl(autor)}">${escapeHtml(autor.display_name || autor.username)}</a></p>` : ''}`
+    ${autor ? `<p class="destacada-autor">De <a href="${profileUrl(autor)}"${atributosDeRango(autor)}>${escapeHtml(autor.display_name || autor.username)}</a></p>` : ''}`
   seccion.style.display = ''
 }
 cargarDestacada().catch(() => recogerSeccion('destacadaSeccion'))
@@ -772,7 +774,7 @@ async function cargarLiga(session) {
 
   const { data: perfiles } = await supabase
     .from('user_profiles')
-    .select('id, username, display_name, avatar_url, banner_color')
+    .select(`id, username, display_name, avatar_url, banner_color, ${COLUMNAS_RANGO}`)
     .in('id', filas.slice(0, 30).map((f) => f.user_id))
   const perfilPor = Object.fromEntries((perfiles || []).map((p) => [p.id, p]))
 
@@ -790,7 +792,7 @@ async function cargarLiga(session) {
       <li class="top-mes-fila ${CLASES_PODIO[i] || ''} ${soyYo ? 'liga-yo' : ''}">
         ${puestoHtml(i)}
         ${avatarHtml(perfil, 26)}
-        <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(perfil?.username || '')}">${escapeHtml(
+        <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(perfil?.username || '')}"${atributosDeRango(perfil)}>${escapeHtml(
           perfil?.display_name || perfil?.username || 'Usuario'
         )}</a>
         <strong class="top-mes-xp">${f.puntos} pts</strong>
@@ -883,7 +885,7 @@ async function cargarTopDelMes() {
 
   const { data: perfiles } = await supabase
     .from('user_profiles')
-    .select('id, username, display_name, avatar_url, banner_color, total_xp, level')
+    .select(`id, username, display_name, avatar_url, banner_color, total_xp, level, ${COLUMNAS_RANGO}`)
     .limit(2000)
   if (!perfiles) return recogerSeccion('topMesSeccion')
 
@@ -913,7 +915,7 @@ async function cargarTopDelMes() {
         <li class="top-mes-fila ${CLASES_PODIO[i] || ''}">
           ${puestoHtml(i)}
           ${avatarHtml(f.perfil, 26)}
-          <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(f.perfil.username || '')}">${escapeHtml(
+          <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(f.perfil.username || '')}"${atributosDeRango(f.perfil)}>${escapeHtml(
             f.perfil.display_name || f.perfil.username || 'Usuario'
           )}</a>
           <strong class="top-mes-xp">+${f.ganado} XP</strong>

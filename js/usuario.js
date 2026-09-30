@@ -10,6 +10,7 @@ import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash } from './perfil-pestanias.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
@@ -234,7 +235,7 @@ async function loadFollowButton() {
 function followChipHtml(p) {
   const name = p.display_name || p.username || 'Usuario'
   const estiloAvatar = avatarStyle(p)
-  return `<a class="follow-avatar-chip" href="${profileUrl(p)}"><span class="mini-avatar" style="${estiloAvatar}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
+  return `<a class="follow-avatar-chip" href="${profileUrl(p)}"${atributosDeRango(p)}><span class="mini-avatar" style="${estiloAvatar}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
 }
 
 function openFollowListModal(title, list, emptyMessage) {
@@ -265,7 +266,7 @@ async function loadFollowSummary() {
 
   let profilesById = {}
   if (allIds.length > 0) {
-    const { data: profiles } = await supabase.from('user_profiles').select('id, display_name, username, avatar_url').in('id', allIds)
+    const { data: profiles } = await supabase.from('user_profiles').select(`id, display_name, username, avatar_url, ${COLUMNAS_RANGO}`).in('id', allIds)
     profilesById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
   }
 

@@ -40,6 +40,8 @@ function nombreDe(userId) {
 async function resolverNombres(ids) {
   const faltan = [...new Set(ids)].filter((id) => id && !perfiles[id] && !ctx.inscripciones.some((i) => i.user_id === id))
   if (!faltan.length) return
+  // sin rango: la lista de jueces de un torneo los nombra para poder
+  // quitarlos, sin enlace al perfil (tanda 386).
   const { data } = await supabase.from('user_profiles').select('id, username').in('id', faltan)
   for (const p of data || []) perfiles[p.id] = p.username
 }

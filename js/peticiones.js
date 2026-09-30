@@ -3,6 +3,7 @@ import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { createNotification } from './notifications.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 // Peticiones de guías.
 //
@@ -47,7 +48,7 @@ async function cargar() {
   const guiaIds = [...new Set(peticiones.map((p) => p.fulfilled_guide_id).filter(Boolean))]
 
   const [{ data: perfiles }, { data: guias }, { data: misVotos }] = await Promise.all([
-    ids.length ? supabase.from('user_profiles').select('id, username, display_name, avatar_url').in('id', ids) : Promise.resolve({ data: [] }),
+    ids.length ? supabase.from('user_profiles').select(`id, username, display_name, avatar_url, ${COLUMNAS_RANGO}`).in('id', ids) : Promise.resolve({ data: [] }),
     guiaIds.length ? supabase.from('guides').select('id, title, slug').in('id', guiaIds) : Promise.resolve({ data: [] }),
     sesion
       ? supabase.from('guide_request_votes').select('request_id').eq('user_id', sesion.user.id)
@@ -89,7 +90,7 @@ function filaHtml(p) {
         ${
           p.quien
             ? `<a class="mini-avatar" href="${profileUrl(p.quien)}" style="width:20px; height:20px; font-size:10px; ${avatarStyle(p.quien)}">${p.quien.avatar_url ? '' : getInitial(nombre)}</a>
-               <a href="${profileUrl(p.quien)}">${escapeHtml(nombre)}</a>`
+               <a href="${profileUrl(p.quien)}"${atributosDeRango(p.quien)}>${escapeHtml(nombre)}</a>`
             : `<span>${escapeHtml(nombre)}</span>`
         }
         <span class="peticion-fecha">${new Date(p.created_at).toLocaleDateString('es-ES')}</span>

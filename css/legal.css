@@ -1,0 +1,42 @@
+/* Términos, Privacidad y Sobre PokeDoc.
+   Sale de components.css en la tanda 386: la portada se quedó sin
+   presupuesto (169,3 de 170) y esto solo lo pintan tres páginas. Lo que usa una
+   pantalla va en su hoja — la regla de siempre. */
+
+/* ── Páginas legales (Términos, Privacidad) ── */
+.legal-page h2 {
+  margin: 32px 0 12px;
+  font-size: var(--t-xl);
+}
+
+.legal-page h2:first-of-type {
+  margin-top: 8px;
+}
+
+.legal-page p,
+.legal-page li {
+  color: var(--text-mid);
+  line-height: 1.65;
+  font-size: var(--t-md);
+}
+
+.legal-page ul {
+  margin: 8px 0 8px 4px;
+}
+
+.legal-page li {
+  margin: 4px 0;
+  padding-left: 16px;
+  position: relative;
+}
+
+.legal-page li::before {
+  content: '•';
+  position: absolute;
+  left: 2px;
+  color: var(--navy);
+}
+
+.legal-page .subtext {
+  margin-bottom: 24px;
+}

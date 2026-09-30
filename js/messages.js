@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { COLUMNAS_RANGO } from './rangos.js'
 
 // Capa de datos compartida para mensajería privada (1 a 1), usada tanto por
 // la campanita de mensajes de la navbar (js/nav-messages.js) como por la
@@ -43,6 +44,9 @@ export async function listConversations(myId) {
   const otherIds = [...new Set(Object.values(otherIdByConv))]
   const { data: profiles } =
     otherIds.length > 0
+      // sin rango: en la lista de conversaciones el nombre va dentro del
+      // enlace A LA CONVERSACIÓN, no al perfil. Colorearlo diría «pulsa
+      // aquí para ver a esta persona» y lleva a otro sitio (tanda 386).
       ? await supabase.from('user_profiles').select('id, username, display_name, avatar_url').in('id', otherIds)
       : { data: [] }
   const profileById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
@@ -98,7 +102,7 @@ export async function getOtherParticipant(conversationId, myId) {
   if (!data) return null
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('id, username, display_name, avatar_url')
+    .select(`id, username, display_name, avatar_url, ${COLUMNAS_RANGO}`)
     .eq('id', data.user_id)
     .single()
   return profile

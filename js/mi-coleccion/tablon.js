@@ -17,6 +17,7 @@ import { idiomaDe, estadoDe, varianteDe } from '../cardmarket.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { porPersona } from './cambios.js'
+import { atributosDeRango } from '../rangos.js'
 
 const nombreDe = (c) => c?.name_es || c?.name || '—'
 
@@ -69,7 +70,7 @@ function personaHtml(p, direccion) {
       <header>
         <a class="mini-avatar" href="${escapeHtml(profileUrl(p))}" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>
         <div>
-          <a class="mc-cambio-quien" href="${escapeHtml(profileUrl(p))}">${escapeHtml(nombre)}</a>
+          <a class="mc-cambio-quien" href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>
           <p class="subtext">${n} ${n === 1 ? 'carta' : 'cartas'}${direccion === 'tiene' ? ' que buscas' : ' que das'}</p>
         </div>
         ${p.reciproco ? `<span class="mc-chapa-reciproco" title="Tú tienes algo que busca y te da algo que buscas: el cambio se cierra entre vosotros dos.">${icons.refreshCw(14)}Cambio directo</span>` : ''}

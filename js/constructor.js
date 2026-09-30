@@ -842,6 +842,8 @@ async function cargarDesdeUrl() {
       const esMio = estado.sesion?.user.id === fila.user_id
       if (!esMio) {
         estado.soloLectura = true
+        // sin rango: el nombre del dueño de un mazo sale como texto en la
+        // cabecera del laboratorio, sin enlace al perfil (tanda 386).
         const { data: autor } = await supabase.from('user_profiles').select('username,display_name').eq('id', fila.user_id).maybeSingle()
         const quien = autor ? escapeHtml(autor.display_name || autor.username) : 'otra persona'
         aviso(`<p>Estás viendo un mazo de <strong>${quien}</strong>. Puedes exportarlo tal cual, o pulsar «Guardar una copia» para editarlo en tu cuenta.</p>`)

@@ -18,6 +18,70 @@ mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
 que falló es que ninguno de los dos la releyó justo antes de numerar,
 porque las dos tandas se empezaron con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 386 — el color de un nombre según su rango)
+
+**Hecho**: lo que pidió PINGU con la captura del lateral del foro
+delante. Los nicks con enlace al perfil salen con el color de su rango:
+ámbar el admin, violeta el moderador, azul de enlace todo el mundo. Un
+solo módulo decide (`js/rangos.js`) y trece ficheros lo usan.
+
+Tres cosas que costaron aprender:
+
+1. **El color NO puede ir en una hoja.** La primera versión lo puso en
+   `components.css` y los nombres del foro salieron AZULES: `.foro-gente
+   a` empata en especificidad y `foro.css` carga después. Ahora el color
+   va en el `style=` del enlace, con el token dentro. Y **dos atributos
+   `style` en la misma etiqueta no se suman** —gana el primero—, así que
+   `atributosDeRango(perfil, estiloBase)` los mezcla en uno.
+2. **La consulta que no pide `is_admin, is_moderator` pinta a todo el
+   mundo en azul sin dar error.** Dieciséis consultas ampliadas. La
+   prueba barre TODO `js/` —no solo los ficheros que pintan: la cabecera
+   de un mensaje privado tiene la consulta en `js/messages.js` y el
+   enlace en `js/mensajes.js`, y la primera versión del barrido se lo
+   comió— y la excepción es un comentario `// sin rango:` pegado a la
+   consulta, no una lista en la prueba. Son once, casi todas porque ese
+   nombre sale como texto y no como enlace.
+3. **La portada estaba a 168,5 de 170**, así que primero hice sitio (es
+   lo que manda CLAUDE.md) y luego miré si cabía: el módulo pasó de 2,5
+   a 1,3 KB gzip mudando el porqué largo a SCHEMA.md, y salieron de
+   `components.css` la 404, las páginas legales y las encuestas y la
+   cabecera de tema. Quedan **1,2 KB** de sitio.
+
+**SQL a ejecutar**: `supabase-migration-rangos-intercambios.sql`
+(**nuevo**). Amplía las tres funciones de intercambios con
+`is_admin`/`is_moderator`, porque los nombres del tablón salen de ellas
+y no de un `select`. Lleva `drop function` antes de cada una a la
+fuerza: Postgres no deja cambiar las columnas de salida con un `create
+or replace`. La web funciona igual sin ejecutarla (sin las columnas no
+se pinta ningún rango), así que no corre prisa.
+
+**Ficheros**: `js/rangos.js` (**nuevo**), `css/404.css` (**nuevo**),
+`css/legal.css` (**nuevo**), `css/style.css`, `css/components.css`,
+`css/foro.css`, `js/foro.js`, `js/foro-comun.js`, `js/usuarios.js`,
+`js/activity.js`, `js/guia.js`, `js/guide-card.js`, `js/guide-forum.js`,
+`js/guide-rating.js`, `js/guide-suggestions.js`, `js/home.js`,
+`js/hovercard.js`, `js/peticiones.js`, `js/torneos/torneo.js`,
+`js/menciones.js`, `js/messages.js`, `js/mensajes.js`, `js/perfil.js`,
+`js/usuario.js`, `js/carta-mercado.js`, `js/mi-coleccion/tablon.js`,
+`404.html`, `torneo.html`, `terminos.html`,
+`privacidad.html`, `sobre.html`, `SCHEMA.md`. Y un comentario de una
+línea (`// sin rango:`, el que exige la prueba) en `js/app.js`,
+`js/auth.js`, `js/onboarding.js`, `js/wall.js`,
+`js/mencion-autocompletar.js`, `js/mi-coleccion.js`,
+`js/mi-coleccion/datos.js`, `js/torneos/jueces.js`,
+`js/torneos/torneos.js`, `supabase-migration-cursos-juego.sql` y
+**`js/constructor.js`** — este último es de
+IBAI (tanda 384, ya publicada y sin nada marcado en curso), y lo tocado
+es solo ese comentario: ni una línea de código. En `pruebas`: `test-tanda-386.mjs`
+(**nuevo**) y `correr-suite.sh`.
+
+**En curso / pendiente**: nada a medias. Los nombres que salen como
+TEXTO y no como enlace se quedan sin color a propósito (los dos llevan
+su comentario). Si algún día se quiere un rango más, es una línea en
+`ESCALA` y su par de tokens en `style.css`. Sigue pendiente de antes:
+quitar el puente de `torneos_inscribirse` de 3 parámetros y el de la
+columna `cambio` en `js/mi-coleccion/datos.js`.
+
 ## 2026-10-01 — PINGU-Claude (tanda 385 — la ficha de una carta)
 
 **Hecho**: la última de las cuatro. Dos cosas:

@@ -13,6 +13,8 @@ const REPORT_TYPE_BY_TABLE = {
 async function profilesForIds(ids) {
   const uniqueIds = [...new Set(ids)]
   if (uniqueIds.length === 0) return {}
+  // sin rango: en el muro el nombre de quien escribe va como texto; lo
+  // único que enlaza es el «responder» (tanda 386).
   const { data } = await supabase.from('user_profiles').select('id, display_name, username').in('id', uniqueIds)
   return Object.fromEntries((data || []).map((p) => [p.id, p]))
 }

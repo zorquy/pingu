@@ -1555,3 +1555,230 @@ a.foro-cita-quien:hover {
     animation: none;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Las encuestas de un tema (tanda 386: salen de components.css)
+   ══════════════════════════════════════════════════════════════
+   Solo las pintan foro.html y tema.html —js/encuesta.js entra por
+   js/foro.js y js/tema.js, y nadie más—, así que bajaba en la portada
+   sin que la portada tenga encuestas. Se fue entera, con sus @media:
+   una base mudada y un @media olvidado en components.css romperían el
+   móvil sin dar error (la lección de la tanda 299). */
+
+/* ── Encuestas del foro ──
+   Antes de votar son opciones marcables; después, barras con el
+   porcentaje. La tuya se distingue del resto. */
+.encuesta {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  padding: 16px 16px;
+  margin: 0 0 16px;
+}
+
+.encuesta h3 {
+  margin: 0 0 12px;
+  font-size: var(--t-lg);
+}
+
+.encuesta-opcion-voto {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: var(--t-md);
+}
+
+.encuesta-opcion-voto:hover {
+  border-color: var(--navy);
+  background: var(--bg);
+}
+
+.encuesta-resultado {
+  margin-bottom: 12px;
+}
+
+.encuesta-resultado-cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--t-md);
+  margin-bottom: 4px;
+}
+
+.encuesta-resultado-cab span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* La opción que has votado tú, marcada. Sin esto, al volver a un tema
+   no hay forma de recordar qué votaste. */
+.encuesta-mio .encuesta-resultado-cab {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.encuesta-barra {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.encuesta-barra span {
+  display: block;
+  height: 100%;
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+  transition: width 0.15s var(--ease);
+}
+
+.encuesta-mio .encuesta-barra span {
+  background: var(--navy);
+}
+
+.encuesta-resultado small {
+  font-size: var(--t-xs);
+  color: var(--text-dim);
+}
+
+.encuesta-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* El formulario, al abrir un tema */
+.encuesta-form {
+  margin: 12px 0 4px;
+}
+
+.encuesta-campos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.encuesta-campos input[type='text'] {
+  width: 100%;
+}
+
+#encuestaOpciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   La cabecera de un tema y su moderación (tanda 386: de components.css)
+   ══════════════════════════════════════════════════════════════
+   `.tema-*` solo lo pintan tema.html y js/tema.js. Aquí también van sus
+   @media: se muda la sección entera o no se muda. */
+
+/* ── El tema ── */
+.tema-cabecera h1 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: var(--t-2xl);
+  line-height: 1.25;
+}
+
+.tema-firma {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: var(--t-xs);
+  /* Sin esto, la línea de la firma no cabe en un móvil estrecho: avatar,
+     nombre, fecha, vistas y DOS botones (Seguir y Compartir) suman más
+     de 360 px, y la página entera se arrastraba de lado. Con `wrap`, los
+     botones se caen a una segunda línea y ya está. */
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.tema-moderacion {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.tema-moderacion {
+  flex-wrap: wrap;
+}
+
+.tema-moderacion button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: var(--t-xs);
+}
+
+/* «Borrar tema» no es un botón más del panel: se lleva el hilo entero y
+   sus respuestas. Va apagado y solo se pone rojo al pasar por encima o
+   al pedir confirmación, el mismo criterio que «Borrar torneo» — que
+   avise sin gritar desde el primer momento.
+
+   Se separa del resto SOLO cuando hay resto: al autor, que únicamente ve
+   este botón, un margen automático lo mandaría solo al otro extremo. */
+.tema-moderacion button + .tema-borrar {
+  margin-left: auto;
+}
+.tema-borrar {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.tema-borrar:hover,
+.tema-borrar[data-confirmar='1'] {
+  /* Del token desde la tanda 311. Antes eran dos rojos escritos a mano:
+     uno aquí y su copia clara para el oscuro en un bloque aparte. El
+     token ya trae los dos, así que el override sobraba. (Y los tonos no
+     se citan: un comentario que nombra el valor prohibido pone en rojo
+     la prueba que lo busca — van tres veces.) */
+  border-color: var(--danger);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.tema-borrar[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── Quién está leyendo el tema ── */
+.tema-leyendo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 0;
+  font-size: var(--t-xs);
+}
+
+/* El bloque de móvil del foro (@media max-width 900px) se fue a
+ * css/foro.css en la tanda 299, detrás de las reglas base que también se
+ * mudaron allí. Quedarse aquí lo dejaba ANTES de su base en el orden de
+ * carga —components.css va primero— y con la misma especificidad gana la
+ * última: el índice del foro se quedó sin apilarse en el móvil y la
+ * lateral de 280px se salía de la pantalla. */

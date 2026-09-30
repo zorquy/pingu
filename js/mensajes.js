@@ -5,6 +5,7 @@ import { reportButtonHtml, wireReportButtons } from './report.js'
 import { icons } from './icons.js'
 import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 const root = document.getElementById('messagesRoot')
 const params = new URLSearchParams(window.location.search)
@@ -71,6 +72,8 @@ async function renderNewConversation(session) {
     // columna plegada, y si la migración de acentos todavía no está
     // puesta se busca como antes (ver js/busqueda.js).
     const base = () =>
+      // sin rango: la búsqueda para empezar una conversación; al pulsar se
+      // abre el hilo, no el perfil (tanda 386).
       supabase.from('user_profiles').select('id, username, display_name, avatar_url').neq('id', session.user.id)
     const { data } = await conVueltaAtras(
       () => base().ilike('search_norm', `%${terminoParaFiltro(q)}%`).limit(10),
@@ -120,7 +123,7 @@ async function renderThread(session, conversationId) {
     <div class="page-header" style="padding-top: 8px; display:flex; align-items:center; gap:12px;">
       <a href="/mensajes.html" style="font-weight:700; color:var(--text-dim);">←</a>
       <a class="mini-avatar" href="${profileUrl(otherProfile)}" style="width:40px; height:40px; font-size:15px; ${avatarStyle(otherProfile)}">${otherProfile.avatar_url ? '' : getInitial(name)}</a>
-      <h1 style="margin:0; font-size: var(--t-xl);"><a href="${profileUrl(otherProfile)}" style="color:var(--text);">${escapeHtml(name)}</a></h1>
+      <h1 style="margin:0; font-size: var(--t-xl);"><a href="${profileUrl(otherProfile)}"${atributosDeRango(otherProfile, 'color:var(--text)')}>${escapeHtml(name)}</a></h1>
     </div>
     <div id="threadMessages" style="display:flex; flex-direction:column; gap:8px; margin:16px 0;"></div>
     <div class="simple-card">

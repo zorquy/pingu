@@ -375,6 +375,9 @@ async function cargarLista(session, perfil = null) {
   if (quienes.size) {
     const { data: perfiles } = await supabase
       .from('user_profiles')
+      // sin rango: aquí `is_admin` NO es un rango que pintar — es quién
+      // puede poner el sello de OFICIAL de PokeDoc. Y el nombre del
+      // organizador va como texto en la tarjeta (tanda 386).
       .select('id, username, avatar_url, is_admin')
       .in('id', [...quienes])
     for (const p of perfiles || []) gente[p.id] = p

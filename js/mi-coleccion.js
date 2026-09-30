@@ -1538,6 +1538,8 @@ async function iniciar() {
         $('mcEntrar').classList.remove('hidden')
         return
       }
+      // sin rango: el nombre del dueño de la colección va en el título de la
+      // pantalla («La colección de Ash»), como texto (tanda 386).
       const { data } = await supabase.from('user_profiles').select('id,username,display_name,coleccion_publica').eq('id', sesion.user.id).maybeSingle()
       dueno = data || { id: sesion.user.id }
       esMia = true

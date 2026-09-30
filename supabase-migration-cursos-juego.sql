@@ -323,6 +323,9 @@ create policy "daily_challenge_results_insert" on public.daily_challenge_results
 -- llama, que ya tiene su propia fila a mano.
 drop function if exists public.course_leaderboard(uuid, integer);
 drop function if exists public.course_leaderboard(uuid);
+-- sin rango: los nombres de esta tabla salen como TEXTO en la pantalla
+-- final del curso, sin enlace al perfil, así que no llevan el color de
+-- su rango (tanda 386).
 create or replace function public.course_leaderboard(p_guide_id uuid, p_limit integer default 100)
 returns table (
   posicion bigint,

@@ -11,6 +11,7 @@ import { renderWall } from './wall.js'
 import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash } from './perfil-pestanias.js'
 import { showToast } from './toast.js'
 import { estadoDeGuia, ESTADOS } from './guia-estado.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 let currentSession = null
 let currentProfile = null
@@ -234,7 +235,7 @@ abrirLaDelHash()
 function followChipHtml(p) {
   const name = displayName(p, '')
   const estiloAvatar = avatarStyle(p)
-  return `<a class="follow-avatar-chip" href="${profileUrl(p)}"><span class="mini-avatar" style="${estiloAvatar}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
+  return `<a class="follow-avatar-chip" href="${profileUrl(p)}"${atributosDeRango(p)}><span class="mini-avatar" style="${estiloAvatar}">${p.avatar_url ? '' : getInitial(name)}</span>${escapeHtml(name)}</a>`
 }
 
 let followingCache = []
@@ -255,7 +256,7 @@ async function loadFollowSummary(session) {
 
   let profilesById = {}
   if (allIds.length > 0) {
-    const { data: profiles } = await supabase.from('user_profiles').select('id, display_name, username, avatar_url').in('id', allIds)
+    const { data: profiles } = await supabase.from('user_profiles').select(`id, display_name, username, avatar_url, ${COLUMNAS_RANGO}`).in('id', allIds)
     profilesById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
   }
 

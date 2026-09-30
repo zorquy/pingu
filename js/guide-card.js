@@ -19,6 +19,7 @@ import { escapeHtml, getSession, profileUrl } from './app.js'
 import { icons } from './icons.js'
 import { starsHtml as _stars } from './guide-rating.js'
 import { medallasPorCurso, chipMedallaHtml } from './medallero.js'
+import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 export { starsHtml } from './guide-rating.js'
 
@@ -60,14 +61,14 @@ async function getRatingStats(guideIds) {
 async function autoresPorId(ids) {
   const unicos = [...new Set(ids.filter(Boolean))]
   if (unicos.length === 0) return {}
-  const { data } = await supabase.from('user_profiles').select('id, username, display_name').in('id', unicos)
+  const { data } = await supabase.from('user_profiles').select(`id, username, display_name, ${COLUMNAS_RANGO}`).in('id', unicos)
   return Object.fromEntries((data || []).map((p) => [p.id, p]))
 }
 
 function autorHtml(autor) {
   if (!autor) return `<span class="autor-oficial">${icons.shield(13)} Guía oficial</span>`
   const nombre = autor.display_name || autor.username || 'un colaborador'
-  return `<a href="${profileUrl(autor)}" class="autor-link" onclick="event.stopPropagation()">${icons.user(13)} ${escapeHtml(nombre)}</a>`
+  return `<a href="${profileUrl(autor)}" class="autor-link" onclick="event.stopPropagation()"${atributosDeRango(autor)}>${icons.user(13)} ${escapeHtml(nombre)}</a>`
 }
 
 export async function decorateGuideCards(containerEl, session) {
