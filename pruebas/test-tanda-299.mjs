@@ -183,10 +183,26 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
   // de las hojas QUE ESA PÁGINA CARGA. Se cuentan solo las que sí existen
   // en otra hoja — una clase sin regla en ninguna parte es otra cosa
   // (puede ser un gancho de JavaScript) y no un estilo perdido.
+  // Las TRES formas de ponerle una clase a algo (tanda 378). Hasta
+  // entonces solo se leía `class="…"`, así que todo lo que se pinta
+  // creando el elemento a mano era INVISIBLE para el barrido: el
+  // selector de emoji hace `btn.className = 'emoji-picker-btn'` y por eso
+  // /admin llevaba meses sin su hoja con esta prueba en verde.
+  //
+  // Es la misma forma de fallo que los `import()` dinámicos de la 307:
+  // el barrido miraba una de las maneras de hacer las cosas y daba por
+  // hecho que era la única.
   const clasesDeTexto = (txt) => {
     const fuera = new Set()
-    for (const m of txt.matchAll(/class="([^"$]*)"/g)) {
-      for (const c of m[1].split(/\s+/)) if (/^[a-zA-Z][\w-]*$/.test(c)) fuera.add(c)
+    const meter = (s) => {
+      for (const c of String(s).split(/\s+/)) if (/^[a-zA-Z][\w-]*$/.test(c)) fuera.add(c)
+    }
+    for (const m of txt.matchAll(/class="([^"$]*)"/g)) meter(m[1])
+    // `x.className = 'a b'` y `x.className += ' a'`.
+    for (const m of txt.matchAll(/\.className\s*\+?=\s*'([^'$]*)'/g)) meter(m[1])
+    // `classList.add('a', 'b')`, `.toggle('a', cond)`, `.remove('a')`.
+    for (const m of txt.matchAll(/classList\.(?:add|remove|toggle)\(([^)]*)\)/g)) {
+      for (const c of m[1].matchAll(/'([\w-]+)'/g)) meter(c[1])
     }
     return fuera
   }
@@ -198,8 +214,19 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
     }
     return fuera
   }
+  // Las hojas de admin/ cuentan también: si no, una clase que solo vive
+  // en admin.css saldría como «huérfana» en la página que la usa.
   const todasLasHojas = readdirSync(`${RAIZ}/css`).filter((f) => f.endsWith('.css')).map((f) => `css/${f}`)
+    .concat(readdirSync(`${RAIZ}/admin/css`).filter((f) => f.endsWith('.css')).map((f) => `admin/css/${f}`))
+  // Y las páginas de admin/ (tanda 378). Hasta entonces el barrido miraba
+  // SOLO la raíz, así que /admin llevaba desde que se repartió
+  // components.css pintando la moderación del foro, el selector de emoji
+  // y las listas de cartas sin una sola regla, con esta prueba en verde.
+  //
+  // Es la lección de la 303 por tercera vez: una prueba que mira UNAS
+  // páginas no dice nada de las que no mira, y sale verde igual.
   const paginas = readdirSync(RAIZ).filter((f) => f.endsWith('.html'))
+    .concat(readdirSync(`${RAIZ}/admin`).filter((f) => f.endsWith('.html')).map((f) => `admin/${f}`))
   const rotas = []
   const recogidas = {}
   for (const pagina of paginas) {
@@ -215,7 +242,13 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
     // así que con el regex de los import estáticos seguía sin verse. La
     // pestaña «Foro» de los dos perfiles llevaba desde la tanda 299 sin
     // una sola regla y lo vio PINGU en una captura, no esta prueba.
-    const pendientes = [...fuente.matchAll(/<script[^>]+src="([^"]+)"/g)].map((m) => m[1].replace(/^\//, ''))
+    // Una página de admin/ escribe sus `src` relativos a su carpeta
+    // (`js/admin.js` es `admin/js/admin.js`), así que se prueban las dos
+    // formas. Sin esto el barrido de /admin no recogería NADA y la
+    // página saldría verde por vacía — el otro fallo de la 307.
+    const carpeta = pagina.includes('/') ? pagina.slice(0, pagina.lastIndexOf('/') + 1) : ''
+    const resolver = (r) => (existsSync(`${RAIZ}/${r}`) ? r : existsSync(`${RAIZ}/${carpeta}${r}`) ? `${carpeta}${r}` : r)
+    const pendientes = [...fuente.matchAll(/<script[^>]+src="([^"]+)"/g)].map((m) => resolver(m[1].replace(/^\//, '')))
     const vistos = new Set()
     while (pendientes.length) {
       const js = pendientes.shift()
@@ -256,6 +289,21 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
   check('  …y lo mismo en la ficha de otra persona',
     recogidas['usuario.html']?.has('foro-act-columnas') === true,
     'no llegó a js/foro-actividad.js desde usuario.html')
+
+  // Y que LLEGA a las de admin (tanda 378), que es la misma trampa con
+  // otra carpeta: sus `<script src>` son relativos a `admin/`, así que
+  // si no se resuelven el barrido recoge cero clases de /admin y la
+  // comprobación de arriba sale verde por vacía.
+  //
+  // `emoji-picker-btn` está a DOS saltos —admin/index.html →
+  // admin/js/admin.js → js/emoji-picker.js— y es justo una de las que
+  // faltaban.
+  check('el barrido llega a las páginas de admin',
+    recogidas['admin/index.html']?.has('emoji-picker-btn') === true,
+    `recogió ${recogidas['admin/index.html']?.size ?? 0} clases de admin/index.html`)
+  check('  …y al editor de guías de admin',
+    recogidas['admin/editor-guia.html']?.has('be-field') === true,
+    `recogió ${recogidas['admin/editor-guia.html']?.size ?? 0} clases de admin/editor-guia.html`)
 
   // ── Y ninguna hoja puede usar una variable que no existe ──
   //

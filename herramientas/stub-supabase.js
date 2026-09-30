@@ -18,6 +18,11 @@ const T = {
   tournament_join_codes: [],
   user_collection: [],
   user_albums: [],
+  // Lo que cada uno busca (tanda 376). Lo que DA no es tabla: es la
+  // columna `cambio` de su linea de `user_collection`.
+  user_wants: [],
+  // La foto diaria del valor de una coleccion (tanda 377).
+  user_collection_value: [],
   tournament_decklists: [],
   rounds: [],
   tournament_matches: [],
@@ -192,12 +197,40 @@ sembrar('__FAKE_COLECCION__', 'user_collection', (i) => ({
   estado: 'NM',
   variante: 'normal',
   cantidad: 1,
+  // Cuantas copias de esta linea da su dueno (tanda 376). A 0 por
+  // defecto: nadie da nada sin decirlo.
+  cambio: 0,
   gradeo: null,
   valor_manual: null,
   precio_compra: null,
   notas: null,
   created_at: new Date(Date.now() - i * 60000).toISOString(),
   updated_at: new Date().toISOString(),
+}))
+
+// Lo que cada uno busca (tanda 376). `idioma` a null es «me da igual»,
+// que no es lo mismo que «en espanol»: son los dos casos que cruzan
+// distinto en el tablon.
+// El valor de una coleccion dia a dia (tanda 377). La semilla va vacia:
+// con menos de dos dias la grafica dice «la primera foto se toma esta
+// noche», que es un estado que hay que poder probar.
+sembrar('__FAKE_VALOR__', 'user_collection_value', (i) => ({
+  user_id: 'admin-1',
+  dia: new Date(Date.now() - i * 86400000).toISOString().slice(0, 10),
+  valor: 100,
+  copias: 1,
+  distintas: 1,
+  sin_precio: 0,
+}))
+
+sembrar('__FAKE_DESEOS__', 'user_wants', (i) => ({
+  id: `des-${i + 1}`,
+  user_id: 'admin-1',
+  card_id: `set1-${i + 1}`,
+  idioma: null,
+  prioridad: 1,
+  notas: null,
+  created_at: new Date(Date.now() - i * 60000).toISOString(),
 }))
 
 // El código de entrada de un torneo (tanda 367). Vive en su propia tabla
@@ -1008,6 +1041,80 @@ export const supabase = {
           })),
         error: null,
       }
+    }
+    // ── El tablon de cambios (tanda 376) ──
+    //
+    // Se CALCULAN de las tablas, como los resultados de una encuesta:
+    // devolverlos a mano desde cada prueba haria que «las dobles
+    // coincidencias van primero» comprobara la semilla y no la pantalla.
+    //
+    // Es la misma cuenta que hace el SQL, y a proposito: si una de las
+    // dos se equivoca, la prueba del navegador y la del PostgreSQL de
+    // verdad dicen cosas distintas y eso se ve.
+    if (nombre === 'intercambios_quien_tiene' || nombre === 'intercambios_quien_busca' || nombre === 'intercambios_de_carta') {
+      const yo = sesion?.user?.id || null
+      const perfil = (id) => T.user_profiles.find((p) => p.id === id) || {}
+      const casa = (ida, vuelta) => !ida || ida === vuelta
+      const doy = T.user_collection.filter((c) => c.user_id === yo && Number(c.cambio) > 0)
+      const busco = T.user_wants.filter((w) => w.user_id === yo)
+      const fila = (c, w, quien) => {
+        const p = perfil(quien)
+        return {
+          user_id: quien,
+          username: p.username || null,
+          display_name: p.display_name || null,
+          avatar_url: p.avatar_url || null,
+          card_id: c.card_id,
+          idioma: c.idioma,
+          estado: c.estado,
+          variante: c.variante,
+          gradeo: c.gradeo || null,
+          cambio: Number(c.cambio) || 0,
+          prioridad: w ? w.prioridad : null,
+        }
+      }
+      if (nombre === 'intercambios_de_carta') {
+        const filas = T.user_collection
+          .filter((c) => c.card_id === args.p_card_id && Number(c.cambio) > 0 && c.user_id !== yo && !perfil(c.user_id).is_banned)
+          .map((c) => fila(c, null, c.user_id))
+          .sort((a, b) => b.cambio - a.cambio || String(a.username).localeCompare(String(b.username)))
+        return { data: filas.slice(0, args.p_limite || 20), error: null }
+      }
+      let filas = []
+      if (nombre === 'intercambios_quien_tiene') {
+        for (const w of busco) {
+          for (const c of T.user_collection) {
+            if (c.user_id === yo || Number(c.cambio) <= 0) continue
+            if (c.card_id !== w.card_id || !casa(w.idioma, c.idioma)) continue
+            if (perfil(c.user_id).is_banned) continue
+            const f = fila(c, w, c.user_id)
+            // Reciproco: esa persona busca algo que yo doy.
+            f.reciproco = T.user_wants.some(
+              (w2) => w2.user_id === c.user_id && doy.some((m) => m.card_id === w2.card_id && casa(w2.idioma, m.idioma))
+            )
+            filas.push(f)
+          }
+        }
+      } else {
+        for (const c of doy) {
+          for (const w of T.user_wants) {
+            if (w.user_id === yo) continue
+            if (w.card_id !== c.card_id || !casa(w.idioma, c.idioma)) continue
+            if (perfil(w.user_id).is_banned) continue
+            const f = fila(c, w, w.user_id)
+            // Reciproco: esa persona da algo que yo busco.
+            f.reciproco = T.user_collection.some(
+              (c2) => c2.user_id === w.user_id && Number(c2.cambio) > 0 && busco.some((b) => b.card_id === c2.card_id && casa(b.idioma, c2.idioma))
+            )
+            filas.push(f)
+          }
+        }
+      }
+      filas.sort(
+        (a, b) => Number(b.reciproco) - Number(a.reciproco) || (b.prioridad || 0) - (a.prioridad || 0) ||
+          b.cambio - a.cambio || String(a.username).localeCompare(String(b.username))
+      )
+      return { data: filas.slice(0, args.p_limite || 200), error: null }
     }
     if (nombre === 'forum_ver_tema') {
       const tema = T.forum_threads.find((t) => t.id === args.p_thread)

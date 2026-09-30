@@ -151,6 +151,11 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
   })
   await page.locator('[data-pestania="album"]').click()
   await page.waitForTimeout(1600)
+  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
+  // archivador: hay que entrar en una colección. La prueba se quedó
+  // escrita contra el desplegable de antes.
+  await page.locator('.mc-set-tarjeta').first().click()
+  await page.waitForTimeout(1500)
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('todos los bolsillos llevan mando', (await page.locator('.mc-bolsillo-mando').count()) === 9,
     String(await page.locator('.mc-bolsillo-mando').count()))
@@ -198,8 +203,13 @@ console.log('\n── 4. La carta que se mueve ──')
   check('  …y el dedo se descarta explícitamente', /pointerType === 'touch'/.test(js))
   // Una transformación crea un contexto nuevo y deja el `sticky` sin
   // efecto: por eso el giro va en una caja de dentro y no en el `figure`.
+  // Contra el BLOQUE entero (`[^}]*`) y no contra los primeros 400
+  // caracteres: con la ventana, meter un comentario dentro de la regla
+  // empujaba el `transform` fuera y la prueba se ponía roja sin que el
+  // CSS hubiera cambiado de comportamiento. Una prueba que se rompe al
+  // comentar el código mide otra cosa distinta de la que dice medir.
   check('el giro NO va sobre el figure sticky',
-    !/\.carta-scan\s*\{[^}]*transform:/.test(css) && /\.carta-scan-holo\.holo\s*\{[\s\S]{0,400}transform: perspective/.test(css))
+    !/\.carta-scan\s*\{[^}]*transform:/.test(css) && /\.carta-scan-holo\.holo\s*\{[^}]*transform: perspective/.test(css))
   // Si la capa del brillo se come el clic, el visor deja de abrirse y no
   // da ningún error.
   check('el brillo no se come el clic', /carta-scan-holo\.holo::before,[\s\S]{0,400}pointer-events: none/.test(css))

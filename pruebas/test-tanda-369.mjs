@@ -60,6 +60,11 @@ console.log('\n── 1. Un archivador mide lo mismo lleve una hoja o dos ──
   const una = await abrir(6, [{ id: 'c1', card_id: 'sv1-1', cantidad: 1 }])
   await una.page.locator('[data-pestania="album"]').click()
   await una.page.waitForTimeout(1500)
+  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
+  // archivador: hay que entrar en una colección. La prueba se quedó
+  // escrita contra el desplegable de antes.
+  await una.page.locator('.mc-set-tarjeta').first().click()
+  await una.page.waitForTimeout(1500)
   check('sin errores', una.errores.length === 0, una.errores.join(' | '))
   const medidaUna = await una.page.evaluate(() => {
     const h = document.querySelector('.mc-hoja:not(.mc-hoja-fantasma)')
@@ -82,6 +87,11 @@ console.log('\n── 1. Un archivador mide lo mismo lleve una hoja o dos ──
   const dos = await abrir(18, [{ id: 'c1', card_id: 'sv1-1', cantidad: 1 }])
   await dos.page.locator('[data-pestania="album"]').click()
   await dos.page.waitForTimeout(1500)
+  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
+  // archivador: hay que entrar en una colección. La prueba se quedó
+  // escrita contra el desplegable de antes.
+  await dos.page.locator('.mc-set-tarjeta').first().click()
+  await dos.page.waitForTimeout(1500)
   const medidaDos = await dos.page.evaluate(() => {
     const b = document.querySelector('.mc-bolsillo')
     return b ? Math.round(b.getBoundingClientRect().width) : null
@@ -97,6 +107,11 @@ console.log('\n── 2. En el móvil sigue abriéndose por una hoja ──')
 {
   const { page } = await abrir(18, [], { viewport: { width: 390, height: 900 } })
   await page.locator('[data-pestania="album"]').click()
+  await page.waitForTimeout(1500)
+  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
+  // archivador: hay que entrar en una colección. La prueba se quedó
+  // escrita contra el desplegable de antes.
+  await page.locator('.mc-set-tarjeta').first().click()
   await page.waitForTimeout(1500)
   check('una hoja a la vez', (await page.locator('.mc-hoja:not(.mc-hoja-fantasma)').count()) === 1)
   // Y sin fantasma: en el móvil el archivador no está «abierto», se pasa

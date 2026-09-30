@@ -171,6 +171,11 @@ console.log('\n── 5. El álbum y la ficha de la carta ──')
   })
   await page.locator('[data-pestania="album"]').click()
   await page.waitForTimeout(1800)
+  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
+  // archivador: hay que entrar en una colección. La prueba se quedó
+  // escrita contra el desplegable de antes.
+  await page.locator('.mc-set-tarjeta').first().click()
+  await page.waitForTimeout(1500)
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('los bolsillos salen con carta', (await page.locator('.mc-bolsillo img').count()) === 6,
     String(await page.locator('.mc-bolsillo img').count()))

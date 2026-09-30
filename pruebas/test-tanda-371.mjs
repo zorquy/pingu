@@ -119,6 +119,11 @@ async function abrir(opciones = {}) {
   await page.waitForTimeout(2400)
   await page.locator('[data-pestania="album"]').click()
   await page.waitForTimeout(1600)
+  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
+  // archivador: hay que entrar en una colección. La prueba se quedó
+  // escrita contra el desplegable de antes.
+  await page.locator('.mc-set-tarjeta').first().click()
+  await page.waitForTimeout(1500)
   return { page, errores }
 }
 
@@ -154,6 +159,11 @@ console.log('\n── 4. En pantalla, y cambiando de color ──')
   await page.waitForTimeout(2400)
   await page.locator('[data-pestania="album"]').click()
   await page.waitForTimeout(1600)
+  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
+  // archivador: hay que entrar en una colección. La prueba se quedó
+  // escrita contra el desplegable de antes.
+  await page.locator('.mc-set-tarjeta').first().click()
+  await page.waitForTimeout(1500)
   check('el color se recuerda', (await page.locator('.mc-binder').getAttribute('data-tapa')) === 'rojo',
     await page.locator('.mc-binder').getAttribute('data-tapa'))
   await page.close()

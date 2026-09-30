@@ -11,6 +11,10 @@
 //     cartas de un euro no son «lo más valioso que tienes».
 //   · El reparto cuenta cartas DISTINTAS: «tengo 40 de Espada y Escudo»
 //     se entiende; «78 contando repetidas» no dice nada.
+// (Tanda 377: las cuatro cajas se nombran por su REJILLA. Desde
+// entonces hay una quinta con la misma clase —la del valor en el
+// tiempo— que va fuera de ella a propósito, así que «las cuatro cajas»
+// ya no es «todo lo que lleva esta clase».)
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
 let fails = 0
@@ -66,8 +70,8 @@ console.log('\n── 1. Las repetidas ──')
 {
   const { page, errores } = await abrir(COL)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('salen las cuatro cajas', (await page.locator('.mc-resumen-caja').count()) === 4)
-  const caja = page.locator('.mc-resumen-caja').first()
+  check('salen las cuatro cajas', (await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()) === 4)
+  const caja = page.locator('.mc-resumen-rejilla .mc-resumen-caja').first()
   // Sobran: 2 (de 3) + 1 (de 2) + 3 (de 4) + 1 (de 2) = 7, de 4 cartas.
   check('dice cuántas copias te sobran', /Te sobran 7 copias de 4 cartas/.test(limpio(await caja.textContent())),
     limpio(await caja.textContent()).slice(0, 90))
@@ -85,7 +89,7 @@ console.log('\n── 1. Las repetidas ──')
 console.log('\n── 2. Lo más valioso, por copia ──')
 {
   const { page } = await abrir(COL)
-  const caja = page.locator('.mc-resumen-caja').nth(1)
+  const caja = page.locator('.mc-resumen-rejilla .mc-resumen-caja').nth(1)
   const filas = await caja.locator('.mc-fila-carta').allTextContents()
   // Carta 1 vale 120 la copia (y 360 la línea); Carta 4 vale 2 la copia
   // (y 8 la línea). Si se ordenara por la LÍNEA, la 4 subiría por encima
@@ -102,12 +106,12 @@ console.log('\n── 2. Lo más valioso, por copia ──')
 console.log('\n── 3. El reparto cuenta DISTINTAS ──')
 {
   const { page } = await abrir(COL)
-  const porColeccion = page.locator('.mc-resumen-caja').nth(2)
+  const porColeccion = page.locator('.mc-resumen-rejilla .mc-resumen-caja').nth(2)
   const t = limpio(await porColeccion.textContent())
   // 4 cartas distintas de sv1 y 2 de swsh1 — aunque sean 13 copias.
   check('Escarlata y Púrpura cuenta 4', /Escarlata y Púrpura 4/.test(t.replace(/\s+/g, ' ')), t.slice(0, 120))
   check('  …y Espada y Escudo 2', /Espada y Escudo 2/.test(t.replace(/\s+/g, ' ')), t.slice(0, 120))
-  const porRareza = page.locator('.mc-resumen-caja').nth(3)
+  const porRareza = page.locator('.mc-resumen-rejilla .mc-resumen-caja').nth(3)
   // Las rarezas salen EN CRISTIANO, no en el inglés del catálogo.
   check('las rarezas salen traducidas', /Hiperrara|Ultra rara|Rara holo/.test(limpio(await porRareza.textContent())),
     limpio(await porRareza.textContent()).slice(0, 120))
@@ -118,8 +122,8 @@ console.log('\n── 4. Una colección vacía no enseña cajas vacías ──')
 {
   const { page, errores } = await abrir([])
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('no se pintan cuatro cajas en blanco', (await page.locator('.mc-resumen-caja').count()) === 0,
-    String(await page.locator('.mc-resumen-caja').count()))
+  check('no se pintan cuatro cajas en blanco', (await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()) === 0,
+    String(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()))
   check('  …sino que se dice', /Cuando añadas cartas/.test(limpio(await page.locator('#mcResumenPanel').textContent())),
     limpio(await page.locator('#mcResumenPanel').textContent()))
   await page.close()
@@ -131,11 +135,11 @@ console.log('\n── 5. Sin repetidas y sin precios, se dice ──')
     { id: 'l1', card_id: 'sv1-1', cantidad: 1 },
     { id: 'l2', card_id: 'sv1-2', cantidad: 1 },
   ])
-  check('lo de las repetidas se dice', /No tienes ninguna repetida/.test(limpio(await page.locator('.mc-resumen-caja').first().textContent())),
-    limpio(await page.locator('.mc-resumen-caja').first().textContent()))
+  check('lo de las repetidas se dice', /No tienes ninguna repetida/.test(limpio(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').first().textContent())),
+    limpio(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').first().textContent()))
   // Sin precio no se enseña una lista vacía ni un 0,00 €, que mentiría.
-  check('  …y lo del precio también', /no sabemos el precio/.test(limpio(await page.locator('.mc-resumen-caja').nth(1).textContent())),
-    limpio(await page.locator('.mc-resumen-caja').nth(1).textContent()))
+  check('  …y lo del precio también', /no sabemos el precio/.test(limpio(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').nth(1).textContent())),
+    limpio(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').nth(1).textContent()))
   await page.close()
 }
 
@@ -145,7 +149,7 @@ console.log('\n── 6. Cuatro cajas, dos columnas ──')
   // pantalla en blanco al lado. Se mide dónde acaban pintadas.
   const { page } = await abrir(COL)
   const filas = await page.evaluate(() =>
-    [...document.querySelectorAll('.mc-resumen-caja')].map((e) => Math.round(e.getBoundingClientRect().top))
+    [...document.querySelectorAll('.mc-resumen-rejilla .mc-resumen-caja')].map((e) => Math.round(e.getBoundingClientRect().top))
   )
   check('dos por fila', new Set(filas).size === 2, filas.join(', '))
   await page.close()
