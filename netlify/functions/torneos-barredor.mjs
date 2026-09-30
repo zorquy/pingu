@@ -49,6 +49,10 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: true, saltado: 'sin SUPABASE_SERVICE_ROLE_KEY: no se barre nada' }
 
+  // Cuántos torneos se han repartido en esta pasada, y cuánto XP.
+  let xpTorneos = 0
+  let xpRepartido = 0
+
   // El push, con la misma fontanería que el resto de funciones de aviso.
   const privada = env.PUSH_VAPID_PRIVATE
   let mandar = null
@@ -517,12 +521,51 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     console.error('lista de espera aparcada:', e?.message || e)
   }
 
+  // 0c. EL XP DE LOS TORNEOS (tanda 387): a quien jugó, a quien subió al
+  //     podio y a quien ganó. Va aquí, en el servidor, porque `addXP` lee
+  //     el total y le suma: llamarlo al pintar la ficha repartiría XP
+  //     cada vez que alguien la abre, y la ficha se refresca sola cada
+  //     diez segundos.
+  //
+  //     Quien reparte de verdad es `torneos_repartir_xp`, que deja una
+  //     fila por premio y solo suma por las que mete de nuevo: si esto se
+  //     llama dos veces, la segunda no da nada.
+  //
+  //     El filtro pide `podium` sellado: el podio congelado es la única
+  //     fuente de quién quedó dónde, y mientras no esté esto no es «no ha
+  //     ganado nadie», es «aún no se sabe». Se queda para la pasada
+  //     siguiente, y así la cola de los torneos viejos se vacía sola a
+  //     razón de unos cuantos por minuto.
+  //
+  //     El tope de 20 no es un gusto: una función programada de Netlify
+  //     se mata a los 30 segundos y esto va con todo lo demás en la misma
+  //     pasada.
+  try {
+    const pendientes = await rest(
+      `tournaments?status=eq.finished&podium=not.is.null&xp_awarded_at=is.null&select=id,name&order=id&limit=20`,
+      clave
+    )
+    for (const t of pendientes || []) {
+      const dado = await rest('rpc/torneos_repartir_xp', clave, {
+        method: 'POST',
+        body: JSON.stringify({ p_torneo: t.id }),
+      })
+      xpTorneos++
+      xpRepartido += Number(dado) || 0
+    }
+  } catch (e) {
+    // La columna llega con supabase-migration-torneos-xp.sql. Mientras no
+    // esté puesta esto falla, y no puede llevarse por delante el barrido
+    // de relojes, que es para lo que existe esta función.
+    console.error('XP de torneos aparcado:', e?.message || e)
+  }
+
   const rondas = await rest(
     `rounds?status=eq.active&select=id,tournament_id,round_number,phase,started_at,ends_at,players_notified_at,checkin_warned_at`,
     clave
   )
   if (!rondas || rondas.length === 0)
-    return { ok: true, rondas: 0, aperturas, promociones, avisados, caducadas, correos, campanas, cancelaciones, recordatorios, borrados, finales, llamadasAvisadas }
+    return { ok: true, rondas: 0, aperturas, promociones, avisados, caducadas, correos, campanas, cancelaciones, recordatorios, borrados, finales, llamadasAvisadas, xpTorneos, xpRepartido }
 
   const idsTorneos = [...new Set(rondas.map((r) => r.tournament_id))]
   const torneos = await rest(
@@ -747,6 +790,8 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     llamadasAvisadas,
     recordatorios,
     borrados,
+    xpTorneos,
+    xpRepartido,
   }
 }
 

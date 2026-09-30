@@ -21092,3 +21092,160 @@ aplicada contra un PostgreSQL 16 de verdad: las tres funciones devuelven
 el rango de quien da o busca la carta, con la regla de lo recíproco
 intacta. Pasada además la 299, 306, 311, 312, 313, 314, 315 y 316 —las
 que miran hojas, contraste y menciones— y la suite entera.
+
+## Tanda 387 — el XP de los torneos, y el nivel junto al nombre (oct. 2026)
+
+PINGU, después de preguntarme si convenía teñir los nombres por nivel:
+«deberíamos meter experiencia por jugar torneos y ganar torneos también»
+y «que se vea que la gente se curra las cosas».
+
+### Lo primero: por qué el nombre NO se tiñe por nivel
+
+Se planteó usar los colores de las chapas de nivel (gris el Novato,
+verde el Entrenador, azul el Coleccionista, morado el Experto, naranja el
+Maestro) como color del nombre. **Medido, no se puede**:
+
+| nivel | color | sobre blanco | sobre el fondo oscuro |
+|---|---|---|---|
+| Novato | `#8a93a5` | 3,09 ❌ | 5,10 |
+| Entrenador | `#22a06b` | 3,33 ❌ | 4,73 |
+| Coleccionista | `#38bdf8` | 2,14 ❌ | 7,35 |
+| Experto | `#a78bfa` | 2,72 ❌ | 5,79 |
+| Maestro | `#f59e0b` | 2,15 ❌ | 7,33 |
+
+Los cinco por debajo del 4,5 que pide la WCAG para texto, y no por
+descuido: **la chapa no usa ese color como letra**. Su CSS hace
+`color-mix(… var(--chapa) 45%, #12303f)` en claro justo por esto, y en
+oscuro sí lo usa crudo. O sea que «ya tenemos los colores hechos» era
+media verdad: teníamos la mitad oscura.
+
+Y hay tres razones más, que pesan incluso si alguien oscureciera los
+cinco:
+
+- **El nivel YA se ve, con su palabra y su icono, pegado al nombre.** El
+  color del rango no duplicaba nada —no había ninguna marca de «esta
+  persona es moderadora»—; el del nivel duplicaría algo que además está
+  etiquetado. Una escala de cinco pasos es una CANTIDAD, y una cantidad
+  se lee con su palabra, no con un tono que hay que memorizar. El color
+  sirve para pocos valores categóricos.
+- **La mayoría de la gente es Novato** (0–250 XP), así que la mayoría de
+  los nombres saldrían GRISES. Un foro con el 80% de los nombres
+  apagados se lee como «casi todo desactivado» (regla de la 311: lo que
+  se pulsa no se pinta con gris apagado). Y el recién llegado se llevaría
+  el nombre más pálido de la página, que es lo contrario de premiar.
+- **El azul del Coleccionista es el azul del enlace**, así que un
+  Coleccionista se vería idéntico a «no me llegó el nivel» — el fallo
+  mudo que la 386 se dedicó a quitar. Y el morado del Experto es el
+  violeta del moderador.
+
+Así que el nombre sigue diciendo el RANGO y solo el rango.
+`test-tanda-387.mjs` deja esa decisión atada por los dos lados: mide que
+los cinco colores siguen sin valer como letra, y comprueba que
+`NIVEL_ESTILOS` no sale de `js/gamification.js` —el único que lo lee es
+`levelBadgeHtml`, que lo mete en `--chapa`— para que nadie coja un color
+de nivel y pinte con él.
+
+### La chapa donde faltaba: el hilo de actividad
+
+Lo que sí hacía falta era enseñar el nivel donde no estaba. El hilo de
+actividad —/comunidad y el adelanto de la portada— es justo donde se ve
+quién anda moviéndose y era el hueco.
+
+Lo que NO se ha tocado son los paneles del lateral del foro («En línea
+ahora», «Por aquí hoy»): son listas de hasta cuarenta nombres separados
+por comas, y una chapa por nombre las destroza. Un dato que no cabe no
+se mete a presión.
+
+Y `total_xp` puede no venir. Entonces no se enseña NADA, que no es lo
+mismo que enseñar «Novato»: un cero inventado diría que esa persona no ha
+hecho nada (la regla de los tres estados de la 319).
+
+### El XP de los torneos: el agujero era más raro de lo que parecía
+
+Los torneos **sí** daban XP, pero solo al desbloquear un hito
+(`torneo_jugado`, `torneo_veterano`, `torneo_campeon`…). O sea que el
+primer torneo daba 30 y **el undécimo daba cero**. Lo más costoso de la
+web —una tarde entera— no alimentaba la barra, y hacerse una guía sí. Los
+hitos se quedan como están: son medallas, y una medalla por torneo
+llenaría el perfil de iconos iguales (decisión de la 262). Lo que
+faltaba era el XP de cada vez.
+
+30 por jugarlo, +40 por subir al podio y +80 más por ganarlo: el campeón
+se lleva 150 y el último 30. Con la escala en 250 para dejar de ser
+Novato, un torneo jugado vale más o menos lo que un curso (~55) y ganarlo
+casi tres.
+
+**Y no puede vivir en el cliente.** `addXP` lee el total y le suma, así
+que llamarlo al pintar la ficha repartiría XP cada vez que alguien la
+abre — y la ficha se refresca sola cada diez segundos. Lo reparte
+`torneos_repartir_xp` desde el barredor, y la idempotencia no es «con
+cuidado»: cada premio deja su fila en `tournament_xp_awards` con la
+pareja (torneo, persona) como clave, y el XP se suma SOLO por las filas
+que el INSERT ha metido de verdad. Llamarla dos veces no da nada la
+segunda. De paso la tabla deja el rastro: cuánto se llevó cada uno y por
+qué, que es lo que hace que «¿de dónde han salido estos 150 XP?» tenga
+respuesta.
+
+### El nivel también se calcula en la base, y es copia vigilada
+
+`addXP` escribe DOS columnas: `total_xp` y `level`, que es el nombre del
+nivel ya resuelto. Si la base sube el XP y no toca `level`, alguien se
+queda con la chapa de Novato y 4.000 puntos, y **no da ningún error**:
+las dos columnas dicen cosas distintas y gana la que nadie ha tocado. Por
+eso `nivel_de_xp()` y por eso el nivel se recalcula **en el mismo
+update** que el XP.
+
+Los umbrales son copia de `LEVEL_THRESHOLDS`. Es el caso de la 322 otra
+vez: `js/gamification.js` importa `./supabase.js` y no se puede importar
+desde Node, así que la prueba lo lee como TEXTO y compara los cinco
+números con los del SQL. Comprobado mutando el 250 a 300: la prueba lo
+caza y enseña los dos lados.
+
+### Quién cuenta como jugador, y por qué hay un mínimo
+
+No vale estar inscrito: hay que haber JUGADO una mesa con resultado. Si
+contara la inscripción, cuatro cuentas apuntadas y ni una partida serían
+120 XP por torneo — y **crear torneos está abierto a todo el mundo** desde
+la 266. Por lo mismo hay un mínimo de cuatro jugadores de verdad: ganar
+un torneo de dos no es ganar un torneo.
+
+Esto reduce el fraude, no lo cierra: cuatro cuentas cómplices que jueguen
+de verdad se llevan sus 150, y llegar a Maestro así pediría unos 53
+torneos amañados y públicos. Queda dicho a la cara y no tapado.
+
+**Y aun sin repartir nada se marca `xp_awarded_at`.** Una cola que no
+distingue «no lo he mirado» de «lo he mirado y no había nada» no se vacía
+nunca — van tres tandas aprendiéndolo (333, 380 y 381). En cambio un
+torneo **sin podio congelado sí se queda pendiente**: eso no es «no ha
+ganado nadie», es «aún no se sabe», y el podio sellado es la única fuente
+de quién quedó dónde. Así la cola de los torneos ya terminados se vacía
+sola a veinte por minuto.
+
+### La fase va ANTES del return temprano
+
+`procesar()` tiene un `return` para cuando ningún torneo tiene ronda
+activa, que es la mayoría de los minutos. Una fase puesta detrás se
+saltaría casi siempre **sin dar error**. Va antes, y sus dos contadores
+salen en los dos returns.
+
+La prueba lo vigila por la forma y sin lista de excepciones: cada
+contador tiene que salir en todos los `return` **posteriores a donde se
+incrementa**. El return temprano no puede contar una fase que aún no ha
+corrido, y esa es justo la regla — no un caso especial.
+
+### Comprobado
+
+`test-tanda-387.mjs`, y la migración aplicada contra un PostgreSQL 16 de
+verdad: 150 al campeón, 70 a los del podio, 30 al que jugó y 0 al que se
+apuntó y no apareció; el campeón cruzó los 250 y su `level` pasó a
+Entrenador en el mismo update; la segunda llamada devolvió 0 y no cambió
+nada; un torneo de dos no repartió pero quedó marcado; uno sin podio
+sellado siguió pendiente; y `nivel_de_xp` casa en los diez bordes.
+Pasadas además la 289, 299, 301, 306, 312 y 386.
+
+**Pendiente, dicho a propósito**: el XP de un torneo no se celebra. El
+aviso del final de torneo lo manda una fase que corre ANTES del reparto,
+así que no puede contar cuánto te llevaste, y `celebrarSubidaDeNivel`
+vive en el cliente. Se ve en el perfil, en la chapa y en el rastro, pero
+no hay confeti. Candidato a tanda propia: mover el reparto por delante
+del aviso y que el mensaje diga «+150 XP».

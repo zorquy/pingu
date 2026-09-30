@@ -18,6 +18,56 @@ mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
 que falló es que ninguno de los dos la releyó justo antes de numerar,
 porque las dos tandas se empezaron con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 387 — el XP de los torneos, y el nivel junto al nombre)
+
+**Hecho**: PINGU preguntó si teñir los nombres por nivel además de por
+rango. Lo analicé y **dije que no**, con los números delante: los cinco
+colores de las chapas dan entre 2,14 y 3,33 de contraste sobre blanco
+(la WCAG pide 4,5) porque la chapa NO los usa como letra —los oscurece un
+45% hacia `#12303f`—; la mayoría de la gente es Novato, así que la
+mayoría de los nombres saldrían grises y el recién llegado se llevaría el
+más pálido; el azul del Coleccionista es el azul del enlace; y el nivel
+YA se ve, con su palabra, pegado al nombre. El nombre se queda diciendo
+el rango y solo el rango.
+
+Lo que sí se hizo, que es lo que PINGU quería de fondo:
+
+1. **XP recurrente por torneos.** El agujero era raro: los torneos SÍ
+   daban XP, pero solo al desbloquear un hito, así que tu primer torneo
+   daba 30 y **el undécimo cero**. Ahora 30 por jugar, +40 por podio y
+   +80 más por ganar. Lo reparte el servidor, no el cliente: `addXP` lee
+   y suma, y la ficha se refresca cada diez segundos.
+2. **Idempotente por construcción**, no por cuidado: cada premio deja su
+   fila con la pareja (torneo, persona) como clave y el XP se suma solo
+   por lo que el INSERT mete de nuevo. Y el nivel se recalcula en el
+   MISMO update que el XP: si no, alguien se queda con 4.000 puntos y la
+   chapa de Novato sin que nada dé error.
+3. **La chapa de nivel en el hilo de actividad**, que era el hueco. En
+   los paneles del lateral del foro NO se ha metido: son listas de hasta
+   cuarenta nombres con comas y una chapa por nombre las destroza.
+4. La fase del barredor va **antes** del `return` temprano de
+   `procesar()` — detrás se saltaría la mayoría de los minutos sin dar
+   error— y la prueba lo vigila por la forma: cada contador tiene que
+   salir en todos los returns posteriores a donde se incrementa.
+
+**SQL a ejecutar**: `supabase-migration-torneos-xp.sql` (**nuevo**).
+Aplicada y probada contra un PostgreSQL 16 de verdad. Sin ella el
+barredor aparca esa fase y avisa por consola, sin llevarse por delante el
+barrido de relojes. Sigue pendiente de antes
+`supabase-migration-rangos-intercambios.sql`.
+
+**Ficheros**: `supabase-migration-torneos-xp.sql` (**nuevo**),
+`netlify/functions/torneos-barredor.mjs`, `js/activity.js`, `SCHEMA.md`.
+En `pruebas`: `test-tanda-387.mjs` (**nuevo**) y `correr-suite.sh`.
+
+**En curso / pendiente**: el XP de un torneo **no se celebra** — el aviso
+del final lo manda una fase que corre antes del reparto, y el confeti
+vive en el cliente. Se ve en el perfil y en la chapa, pero no hay
+«+150 XP» por ningún sitio. Candidato a tanda propia: mover el reparto
+por delante del aviso. Y el tablón de intercambios sigue sin chapa de
+nivel porque sus nombres salen de una función de la base: haría falta
+ampliarla otra vez.
+
 ## 2026-10-01 — PINGU-Claude (tanda 386 — el color de un nombre según su rango)
 
 **Hecho**: lo que pidió PINGU con la captura del lateral del foro
