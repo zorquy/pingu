@@ -20628,3 +20628,64 @@ código van FUERA de la plantilla.
 español, que el progreso no se mueve al filtrar, que filtrar vuelve a la
 primera página y que sin rareza guardada los dos desplegables se
 esconden pero el archivador sigue.
+
+---
+
+## Tanda 383 — cada versión de una carta, por su lado (oct. 2026)
+
+Lo tercero de la lista de PINGU. Una carta no se colecciona una vez: la
+misma existe en normal, en reverse holo, en holo o en primera edición, y
+quien colecciona las marca por separado.
+
+Y no hay que preguntarle nada a nadie: TCGdex trae `card.variants` y el
+curador ya lo guarda en `tcg_cards.variants` desde la tanda 330. Estaba
+ahí sin usar — como el logo de la 380.
+
+### Se enseñan las que EXISTEN, no las cuatro siempre
+
+De casi ninguna carta existen las cuatro: una común de hoy tiene normal
+y reverse; una ultra rara solo holo; las de 1999 tienen primera edición
+y las de ahora no. Ofrecer cuatro casillas en todas sería invitar a
+marcar una versión **que no se ha impreso nunca**, y entonces tu
+colección diría que tienes algo que no existe.
+
+Y lo que no se sabe tampoco se inventa: si `variants` viene vacío —la
+carta no se ha engordado todavía— se enseña una sola versión, la normal,
+que es lo que hacía la pantalla antes. Un hueco no puede convertirse en
+«esta carta solo existe en normal». Con una sola versión no se enseña
+selector: sería una casilla que solo se puede marcar de una manera.
+
+`wPromo` se deja fuera a propósito: es un SELLO impreso en la carta, no
+una versión que se coleccione aparte.
+
+### El progreso no cambia, y eso es deliberado
+
+Un álbum se llena por BOLSILLOS, y un bolsillo lo llena cualquier
+versión. «Llevas 40 de 198» sigue contando cartas. Las versiones son
+otra pregunta —«¿la tienes en reverse?»— y se contesta en su sitio.
+
+El interruptor de versión y el `+`/`−` de copias conviven porque miden
+cosas distintas: uno es sí/no y el otro cuenta. Al desmarcar se quita
+UNA copia, no la línea: si tenías tres reverse y te desprendes de una,
+querías eso.
+
+### Dónde se coloca
+
+Arriba del bolsillo y no abajo, porque abajo está el mando de copias y
+dos controles pegados al mismo borde se pulsan mal. La prueba mide que
+no se tocan.
+
+`.mc-variantes` comparte clase con el mando (`.mc-bolsillo-controles`),
+que va anclado abajo — así que necesita `bottom: auto` o **la tira se
+estira de borde a borde y tapa la carta entera**. También medido.
+
+Con el dedo miden 44 px de ALTO; el ancho no se les pide, porque son dos
+o tres en una fila que ya se reparte el bolsillo y estirarlas sacaría la
+fila fuera (regla de la 312).
+
+### Comprobado
+
+`test-tanda-383.mjs`: las versiones de cada tipo de carta, que sin datos
+no se inventa ninguna, que marcar reverse NO marca normal (que es toda
+la idea), que el progreso del álbum no se mueve, que la tira no se come
+el bolsillo ni se pisa con el mando, y los 44 px con el dedo.

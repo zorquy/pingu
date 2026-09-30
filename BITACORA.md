@@ -12,6 +12,39 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-10-01 — PINGU-Claude (tanda 383 — cada versión por su lado)
+
+**Hecho**: lo tercero de la lista. Una carta existe en normal, reverse
+holo, holo o primera edición, y ahora se marcan por separado en el
+bolsillo del álbum. No hubo que pedirle nada a nadie: TCGdex lo trae en
+`card.variants` y el curador ya lo guardaba desde la 330 — estaba ahí
+sin usar, como el logo de la 380.
+
+Se enseñan **las que existen de esa carta**, no las cuatro siempre:
+ofrecer «1.ª edición» en una de 2024 invita a apuntar algo que no se ha
+impreso nunca. Y sin datos (carta sin engordar) se enseña una sola, que
+es lo que hacía antes.
+
+**El progreso del álbum NO cambia**: un bolsillo lo llena cualquier
+versión, así que «40 de 198» sigue contando cartas. Las versiones son
+otra pregunta.
+
+**Nota**: PINGU aclaró que la app que le gusta es **dextcg.com**, no el
+catálogo TCGdex — yo estaba hablando de otra cosa. No la puedo ver (el
+proxy me la bloquea), así que sigo por la lista de cuatro cosas que
+eligió, que es lo que hay.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`
+(`variants` en las consultas), `css/mi-coleccion.css`, `SCHEMA.md`, y
+**nuevo** `js/mi-coleccion/variantes.js`. En `pruebas`:
+`test-tanda-383.mjs` (**nuevo**).
+
+**En curso / pendiente**: queda una de las cuatro, la ficha de una
+carta. Y las dos migraciones sin ejecutar (`curado-completo` y
+`pokedex`).
+
+---
+
 ## 2026-10-01 — PINGU-Claude (tanda 382 — filtros dentro de una colección)
 
 **Hecho**: lo segundo de las cuatro cosas de TCGdex. Dentro del álbum

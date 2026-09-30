@@ -109,7 +109,7 @@ export async function borrar(id) {
 // `tcg_online_code` va aquí desde la tanda 370: es lo que necesita el
 // segundo sitio donde buscar un escaneo cuando TCGdex no tiene el de esa
 // carta (ver js/escaneo-carta.js).
-const COLUMNAS_CARTA = 'id,set_id,local_id,name,name_es,image_path,rarity,category,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
+const COLUMNAS_CARTA = 'id,set_id,local_id,name,name_es,image_path,rarity,category,variants,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
 
 export async function cartasPorIds(ids) {
   const unicos = [...new Set(ids.filter(Boolean))]
@@ -128,7 +128,7 @@ export async function cartasDeSet(setId) {
     // `category` desde la 382: sin ella el filtro de categoría del
     // álbum tendría un desplegable vacío y no filtraría nada — y no
     // daría ningún error, que es lo de siempre.
-    .select('id,set_id,local_id,name,name_es,image_path,rarity,category,tcg_sets(tcg_online_code)')
+    .select('id,set_id,local_id,name,name_es,image_path,rarity,category,variants,tcg_sets(tcg_online_code)')
     .eq('market', 'WEST')
     .eq('set_id', setId)
     .limit(1000)

@@ -1969,3 +1969,49 @@ input.mc-alb-titulo:not([readonly]):focus {
   color: var(--text);
   font-size: var(--t-sm);
 }
+
+/* ── Las versiones de una carta, en su bolsillo (tanda 383) ──
+   Arriba del bolsillo y no abajo: abajo está el mando de copias, y dos
+   controles pegados en el mismo borde se pulsan mal. */
+.mc-variantes {
+  /* `bottom: auto` porque `.mc-bolsillo-controles` —la clase que
+     comparte con el mando— lo fija abajo: sin esto la fila se estiraría
+     del borde de arriba al de abajo y taparía la carta entera. */
+  top: var(--e-xs);
+  bottom: auto;
+  left: var(--e-xs);
+  right: var(--e-xs);
+  display: flex;
+  gap: 2px;
+}
+
+.mc-variante {
+  flex: 1 1 0;
+  min-height: 20px;
+  padding: 1px 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text-mid);
+  cursor: pointer;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* La que tienes, en el verde de completar: es el mismo idioma que el
+   resto de la página («esto ya está»). */
+.mc-variante.tengo {
+  border-color: var(--success);
+  background: var(--success);
+  color: var(--blanco-fijo);
+}
+
+/* Con el dedo, 44 px de alto. El ANCHO no se le pide: son dos o tres en
+   una fila que ya se reparte el bolsillo entero, y estirarlas sacaría
+   la fila fuera (regla de la 312). */
+@media (pointer: coarse) {
+  .mc-variante {
+    min-height: 44px;
+  }
+}

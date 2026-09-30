@@ -45,6 +45,7 @@ import { marcaCardmarket } from './cardmarket-marca.js'
 import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
+import { variantesDeCarta, tieneVarias, nombreDeVariante } from './mi-coleccion/variantes.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -531,8 +532,14 @@ async function cargarSets() {
   return todosLosSets
 }
 
-function tengoDe(cardId) {
-  return lineas.filter((l) => l.card_id === cardId).reduce((s, l) => s + l.cantidad, 0)
+// Cuántas copias tienes de una carta. Con `variante` cuenta solo las de
+// esa versión (tanda 383); sin ella, todas — que es lo que mide el
+// progreso de una colección, porque un álbum se llena por BOLSILLOS y
+// un bolsillo lo llena cualquier versión.
+function tengoDe(cardId, variante = null) {
+  return lineas
+    .filter((l) => l.card_id === cardId && (!variante || (l.variante || 'normal') === variante))
+    .reduce((s, l) => s + l.cantidad, 0)
 }
 
 // ── La estantería (tanda 372) ──
@@ -670,7 +677,22 @@ function bolsilloHtml(c) {
   // El número de copias vive DENTRO del mando y no suelto en una
   // esquina: así lo que dice cuántas tienes está pegado a lo que lo
   // cambia, y de paso no hay dos chapas peleándose por el mismo sitio.
-  return `<div class="mc-bolsillo${n ? ' tengo' : ''} mc-bolsillo-con-mando">${enlace}
+  // ── Las versiones, cada una por su lado (tanda 383) ──
+  //
+  // Solo si la carta tiene MÁS DE UNA: con una sola sería una casilla
+  // que solo se puede marcar de una manera. Y las que se enseñan son
+  // las que existen de verdad (`tcg_cards.variants`), no las cuatro
+  // siempre: ofrecer «1.ª edición» en una carta de 2024 invita a
+  // apuntar algo que no se ha impreso nunca.
+  const versiones = tieneVarias(c)
+    ? `<span class="mc-bolsillo-controles mc-variantes">${variantesDeCarta(c)
+        .map((v) => {
+          const tengo = tengoDe(c.id, v.nuestro)
+          return `<button type="button" class="mc-variante${tengo ? ' tengo' : ''}" data-variante="${escapeHtml(v.nuestro)}" data-carta="${escapeHtml(c.id)}" title="${escapeHtml(v.nombre)}" aria-pressed="${tengo ? 'true' : 'false'}" aria-label="${escapeHtml(v.nombre)} de ${escapeHtml(nombre)}${tengo ? `, tienes ${tengo}` : ', te falta'}">${escapeHtml(v.corto)}</button>`
+        })
+        .join('')}</span>`
+    : ''
+  return `<div class="mc-bolsillo${n ? ' tengo' : ''} mc-bolsillo-con-mando">${enlace}${versiones}
     <span class="mc-bolsillo-controles mc-bolsillo-mando">
       <button type="button" data-quitar="${escapeHtml(c.id)}" ${n ? '' : 'disabled'} aria-label="Quitar una copia de ${escapeHtml(nombre)}">−</button>
       <span class="mc-bolsillo-cuenta" aria-hidden="true">${n}</span>
@@ -805,6 +827,51 @@ async function quitarDelBolsillo(cardId) {
     } else {
       await datos.borrar(l.id)
       lineas.splice(lineas.indexOf(l), 1)
+    }
+    pintarAlbum()
+    pintarResumen()
+    pintarCartas()
+  } catch (err) {
+    showToast(err.message, 'error')
+  }
+}
+
+// Marcar o desmarcar UNA versión (tanda 383).
+//
+// Es un interruptor, no un contador: el `+`/`−` de al lado sigue siendo
+// el que cuenta copias. Aquí la pregunta es «¿la tienes en reverse?», y
+// esa se contesta sí o no.
+//
+// Al desmarcar se quita UNA copia y no la línea entera: si tenías tres
+// reverse y te desprendes de una, lo que querías era eso y no borrarlas
+// las tres de golpe. Cuando llega a cero, la línea desaparece sola.
+async function alternarVariante(cardId, variante) {
+  const suyas = lineas.filter((l) => l.card_id === cardId && (l.variante || 'normal') === variante)
+  try {
+    if (!suyas.length) {
+      const nueva = await datos.anadir(sesion.user.id, {
+        card_id: cardId,
+        idioma: $('mcTocarIdioma').value,
+        estado: $('mcTocarEstado').value,
+        variante,
+        cantidad: 1,
+      })
+      lineas.unshift(nueva)
+      // La carta puede no estar en el mapa: el álbum se pinta con las
+      // del set, no con las tuyas (mismo caso que `tocarBolsillo`).
+      if (!cartas.has(cardId)) {
+        const c = album.cartas.find((x) => x.id === cardId)
+        const set = (todosLosSets || []).find((x) => x.id === album.set)
+        if (c) cartas.set(cardId, { ...c, tcg_sets: set ? { id: set.id, name: set.name, release_date: set.release_date } : null })
+      }
+    } else {
+      const l = suyas.reduce((a, b) => (String(a.created_at || '') >= String(b.created_at || '') ? a : b))
+      if ((Number(l.cantidad) || 1) > 1) {
+        lineas[lineas.indexOf(l)] = await datos.actualizar(l.id, { cantidad: Number(l.cantidad) - 1 })
+      } else {
+        await datos.borrar(l.id)
+        lineas.splice(lineas.indexOf(l), 1)
+      }
     }
     pintarAlbum()
     pintarResumen()
@@ -1346,6 +1413,8 @@ function enganchar() {
     if (mas) return void tocarBolsillo(mas.dataset.anadir)
     const menos = e.target.closest('button[data-quitar]')
     if (menos) return void quitarDelBolsillo(menos.dataset.quitar)
+    const version = e.target.closest('button[data-variante]')
+    if (version) return void alternarVariante(version.dataset.carta, version.dataset.variante)
   })
   let espera = null
   $('mcAnadirBuscar').addEventListener('input', () => {
