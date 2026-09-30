@@ -13,7 +13,29 @@ function traducir(error) {
   return e
 }
 
-export const COLUMNAS_LINEA = 'id,user_id,card_id,market,idioma,estado,variante,cantidad,gradeo,valor_manual,precio_compra,notas,created_at,updated_at'
+const COLUMNAS_BASE = 'id,user_id,card_id,market,idioma,estado,variante,cantidad,gradeo,valor_manual,precio_compra,notas,created_at,updated_at'
+
+// `cambio` (cuántas copias de esta línea das, tanda 376) llega con
+// `supabase-migration-intercambios.sql`. Mientras no esté ejecutada,
+// PEDIRLA REVIENTA LA PÁGINA ENTERA: PostgREST devuelve 42703 y la
+// colección no se carga. Así que se pide, y si no está se deja de
+// pedir — un PUENTE, como el `faltaLaRpc` de los torneos, y con la
+// misma fecha de caducidad: cuando la migración lleve un tiempo
+// puesta, esto se quita y `COLUMNAS_LINEA` vuelve a ser una constante.
+let hayCambio = true
+export let COLUMNAS_LINEA = `${COLUMNAS_BASE},cambio`
+
+// Si el error es «no existe la columna cambio», se apunta y se avisa a
+// quien llamó de que vuelva a intentarlo. Cualquier otro error no es
+// esto y sube tal cual.
+function faltaLaColumnaCambio(error) {
+  if (!hayCambio || !error) return false
+  const esto = error.code === '42703' || /column .*cambio.* does not exist|'cambio' column/i.test(error.message || '')
+  if (!esto) return false
+  hayCambio = false
+  COLUMNAS_LINEA = COLUMNAS_BASE
+  return true
+}
 
 export async function lineasDe(userId) {
   const filas = []
@@ -27,7 +49,16 @@ export async function lineasDe(userId) {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .range(desde, desde + 999)
-    if (error) throw traducir(error)
+    if (error) {
+      // El puente: si lo único que falta es la columna `cambio`, se
+      // repite ESTA misma vuelta sin ella. Sin el `continue` la página
+      // se quedaría con las filas a medias y diría un valor más bajo.
+      if (faltaLaColumnaCambio(error)) {
+        desde -= 1000
+        continue
+      }
+      throw traducir(error)
+    }
     filas.push(...(data || []))
     if (!data || data.length < 1000) break
   }
@@ -55,9 +86,14 @@ export async function anadir(userId, linea) {
 }
 
 export async function actualizar(id, cambios) {
+  // El puente otra vez, y aquí en el CUERPO y no en el `select`: sin la
+  // migración, mandar `cambio` en el update devuelve 42703 y el
+  // «Guardar» de la ficha de una línea dejaría de funcionar entero por
+  // un campo que todavía no existe.
+  const cuerpo = hayCambio ? cambios : { ...cambios, cambio: undefined }
   // Con `select`: una escritura que la política rechaza no da error,
   // vuelve vacía (CLAUDE.md). Sin mirar, «guardado» mentiría.
-  const { data, error } = await supabase.from('user_collection').update(cambios).eq('id', id).select(COLUMNAS_LINEA)
+  const { data, error } = await supabase.from('user_collection').update(cuerpo).eq('id', id).select(COLUMNAS_LINEA)
   if (error) throw traducir(error)
   if (!data?.length) throw new Error('No se ha podido guardar: esa línea no es tuya o ya no existe.')
   return data[0]
@@ -131,12 +167,51 @@ export function preciosEnVivo(cardId) {
 }
 
 // El precio de una línea: el guardado si lo hay; si no, en vivo.
+//
+// «Si lo hay» es «si DICE algo» y no «si existe la fila» (tanda 375).
+// La función programada guarda fila para toda carta que mira, tenga o
+// no cifras — y una fila con los precios a null salía de aquí como una
+// respuesta, tapando para siempre la consulta en vivo. Resultado: una
+// carta que el día que le tocó la pasada no estaba en Cardmarket se
+// quedaba en «Sin precio» aunque al día siguiente ya tuviera.
 export function precioDeLinea(linea, guardados, vivos) {
   const reverse = linea.variante === 'reverse'
-  const fila = guardados.get(linea.card_id)
-  if (fila) return precioDeFila(fila, { reverse })
+  const guardado = precioDeFila(guardados.get(linea.card_id), { reverse })
+  if (tieneCifras(guardado)) return guardado
   const v = vivos.get(linea.card_id)
-  return v ? precioDe(v.pricing, { reverse }) : null
+  const vivo = v ? precioDe(v.pricing, { reverse }) : null
+  if (tieneCifras(vivo)) return vivo
+  // Ninguno tiene cifras: vale el que al menos traiga el `idProduct`,
+  // que es lo que hace que el enlace a Cardmarket lleve a la carta y no
+  // a una búsqueda por nombre.
+  return guardado || vivo
+}
+
+// Un precio con `idProduct` y nada más sirve para el ENLACE, no para
+// sumar: `valorDe` devolvería null igual.
+export const tieneCifras = (p) => Boolean(p && (p.tendencia || p.media30 || p.desde))
+
+// ── El valor en el tiempo (tanda 377) ──
+//
+// La foto diaria la toma una función programada; aquí solo se lee. Y se
+// lee desde una fecha y no entera: para una gráfica de tres meses no
+// hacen falta tres años de días.
+export async function valorHistorico(userId, dias = 90) {
+  const desde = new Date(Date.now() - dias * 86400000).toISOString().slice(0, 10)
+  const { data, error } = await supabase
+    .from('user_collection_value')
+    .select('dia,valor,copias,distintas,sin_precio')
+    .eq('user_id', userId)
+    .gte('dia', desde)
+    .order('dia', { ascending: true })
+  if (error) {
+    // Sin la migración no hay histórico, y eso NO es un error que deba
+    // tumbar el resumen entero: se devuelve vacío y la gráfica dice que
+    // la primera foto se toma esta noche.
+    if (traducir(error).sinMigracion) return []
+    throw traducir(error)
+  }
+  return data || []
 }
 
 // ── Perfil: colección pública o privada ──

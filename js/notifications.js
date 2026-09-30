@@ -35,6 +35,12 @@ export const NOTIFICATION_TYPES = {
   torneo_apertura: 'Torneos nuevos con inscripciones abiertas',
   // Solo le llega a quien organiza o arbitra un torneo.
   torneo_juez: 'Cuando llaman a un juez en un torneo tuyo',
+  // Los cambios (tanda 376). Este NO lo manda el navegador de nadie: lo
+  // mete un disparador de la base cuando alguien pone a cambio una
+  // carta de tu lista de búsqueda. Está aquí para que salga en las
+  // preferencias y se pueda apagar — un aviso que no se puede apagar es
+  // el que hace que la gente apague TODOS.
+  trade_match: 'Cuando alguien da una carta que buscas',
 }
 
 // De qué se avisa TAMBIÉN por correo.

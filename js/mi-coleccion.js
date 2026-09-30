@@ -57,8 +57,21 @@ let lineas = []
 let cartas = new Map() // id → fila de tcg_cards
 let guardados = new Map() // id → fila de tcg_card_prices
 const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
-let pestania = ['cartas', 'album', 'albumes', 'anadir'].includes(params.get('ver')) ? params.get('ver') : 'cartas'
+let pestania = ['cartas', 'album', 'albumes', 'anadir', 'resumen', 'cambios'].includes(params.get('ver')) ? params.get('ver') : 'cartas'
 let albumesAbiertos = false
+
+// Los intercambios (tanda 376). El módulo entra por `import()` la
+// primera vez que se abre la pestaña: es la que menos se abre y no
+// tiene por qué pesar en la primera visita de nadie.
+let cambios = null // el módulo de consultas, cuando llegue
+let tablon = null // el módulo que pinta
+let deseos = [] // lo que busco
+let cambiosCargados = false
+// Lo último que devolvieron las dos RPC. Se guarda porque el botón de
+// escribir necesita las cartas de ESA persona para redactar el mensaje,
+// y volver a pedirlas sería una consulta por clic.
+let tablonTiene = []
+let tablonBusca = []
 
 const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
 
@@ -89,8 +102,15 @@ const precioDe = (l) => datos.precioDeLinea(l, guardados, vivos)
 // pedir 500 fichas de golpe a un servicio gratuito no se hace.
 const EN_VIVO_POR_VISITA = 40
 
+// «Sin precio guardado» es SIN CIFRAS, no sin fila (tanda 375): la
+// función programada guarda fila para toda carta que mira, así que
+// mirar solo si la fila existe dejaba fuera para siempre a las que
+// aquel día no tenían precio. Son justo las que hay que reintentar.
+const SIN_VIVOS = new Map()
+const yaSeSabe = (id) => datos.tieneCifras(datos.precioDeLinea({ card_id: id }, guardados, SIN_VIVOS))
+
 async function completarPrecios() {
-  const faltan = [...new Set(lineas.map((l) => l.card_id))].filter((id) => !guardados.has(id) && !vivos.has(id)).slice(0, EN_VIVO_POR_VISITA)
+  const faltan = [...new Set(lineas.map((l) => l.card_id))].filter((id) => !vivos.has(id) && !yaSeSabe(id)).slice(0, EN_VIVO_POR_VISITA)
   let i = 0
   const trabajador = async () => {
     while (i < faltan.length) {
@@ -103,6 +123,17 @@ async function completarPrecios() {
 }
 
 // ── El resumen ──
+//
+// Lo que vale la colección AHORA. Suelto desde la 377 porque lo piden
+// DOS sitios: la cifra de arriba y la cabecera de la gráfica del valor.
+// Sumarlo dos veces sería la forma más fácil de que un día dijeran
+// números distintos de lo mismo en la misma pantalla.
+function valorDeAhora() {
+  let total = 0
+  for (const l of lineas) total += valorDeLinea(l, precioDe(l)) || 0
+  return total
+}
+
 function pintarResumen() {
   const copias = lineas.reduce((s, l) => s + l.cantidad, 0)
   const distintas = new Set(lineas.map((l) => l.card_id)).size
@@ -224,6 +255,13 @@ function pintarResumenPanel() {
   const porRareza = repartoPor((c) => (c?.rarity ? rarezaEs(c.rarity) : null))
   const sobranTotal = rep.reduce((s, r) => s + r.sobran, 0)
   caja.innerHTML = `
+    <!-- El valor en el tiempo (tanda 377). Va ARRIBA y a lo ancho, no en
+         la rejilla: es la única cifra que cambia sola, y es la que se
+         viene a mirar. -->
+    <section class="mc-resumen-caja mc-valor-caja" id="mcValorCaja">
+      <h3>Lo que vale tu colección</h3>
+      <div class="skeleton" style="height:120px"></div>
+    </section>
     <div class="mc-resumen-rejilla">
       <section class="mc-resumen-caja">
         <h3>Tus repetidas</h3>
@@ -252,6 +290,34 @@ function pintarResumenPanel() {
         ${barrasHtml(porRareza.slice(0, 10)) || '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>'}
       </section>
     </div>`
+  pintarValorEnElTiempo()
+}
+
+// La gráfica llega DESPUÉS y por su cuenta: el resto del resumen sale de
+// lo que ya está en memoria y no tiene por qué esperar a una consulta.
+// Se pide una sola vez por visita.
+let historico = null
+
+async function pintarValorEnElTiempo() {
+  const caja = $('mcValorCaja')
+  if (!caja) return
+  try {
+    if (!historico) {
+      const [grafica, filas] = await Promise.all([
+        import('./mi-coleccion/grafica-valor.js'),
+        datos.valorHistorico(dueno.id),
+      ])
+      historico = { grafica, filas }
+    }
+    // Con el valor de AHORA, que es el mismo que enseña la cifra de
+    // arriba: la foto diaria es de las 4:07 y sin esto la pantalla
+    // enseñaría dos totales distintos de lo mismo.
+    caja.innerHTML = `<h3>Lo que vale tu colección</h3>${historico.grafica.graficaHtml(historico.filas, { ahora: valorDeAhora() })}`
+  } catch {
+    // Una gráfica que no llega no puede tumbar el resumen: se quita la
+    // caja y lo demás sigue ahí.
+    caja.remove()
+  }
 }
 
 // ── Pestaña «Cartas» ──
@@ -259,7 +325,22 @@ function chipsDe(l) {
   const chips = [idiomaDe(l.idioma).id.toUpperCase(), estadoDe(l.estado).id]
   if (l.variante !== 'normal') chips.push(varianteDe(l.variante).nombre)
   if (l.gradeo) chips.push(l.gradeo)
-  return chips.map((c) => `<span class="mc-chip">${escapeHtml(c)}</span>`).join('')
+  const base = chips.map((c) => `<span class="mc-chip">${escapeHtml(c)}</span>`).join('')
+  // Y si la das, se ve AQUÍ (tanda 376). El dato se pone en el editor,
+  // pero un dato que solo se ve abriendo el editor es un dato que se te
+  // olvida que pusiste: en una lista de 300 cartas no sabrías cuáles
+  // están a cambio sin abrirlas una a una.
+  const doy = Number(l.cambio) || 0
+  return base + (doy > 0 ? `<span class="mc-chip mc-chip-cambio">${icons.refreshCw(11)}doy ${doy}</span>` : '')
+}
+
+// De dónde sale el número, cuando no sale de donde debería. Un precio
+// prestado de la versión normal es MEJOR que un hueco —la carta vale
+// eso como poco— pero callarlo sería decir que el reverso vale eso, y
+// un reverso suele valer más (tanda 375).
+function notaDePrecio(l, precio) {
+  if (!precio?.prestado || (l && typeof l.valor_manual === 'number' && l.valor_manual > 0)) return ''
+  return ' <span class="mc-nota-precio" title="Cardmarket no publica precio del reverso holográfico de esta carta. Se enseña el de la versión normal, que es el mínimo que vale.">de la normal</span>'
 }
 
 function lineaHtml(l) {
@@ -278,7 +359,7 @@ function lineaHtml(l) {
         <a class="mc-carta-nombre" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}">${escapeHtml(nombreDe(c))}</a>
         <p class="mc-carta-set">${escapeHtml(c?.tcg_sets?.name || l.card_id)}${c ? ` · ${escapeHtml(c.local_id)}` : ''}</p>
         <p class="mc-chips">${chipsDe(l)}</p>
-        <p class="mc-carta-valor">${valor ? euros(valor) : '<span class="mc-sin-precio">Sin precio</span>'}${l.cantidad > 1 && valor ? ` <span class="mc-unidad">(${euros(valor / l.cantidad)} c/u)</span>` : ''}</p>
+        <p class="mc-carta-valor">${valor ? euros(valor) : '<span class="mc-sin-precio">Sin precio</span>'}${l.cantidad > 1 && valor ? ` <span class="mc-unidad">(${euros(valor / l.cantidad)} c/u)</span>` : ''}${notaDePrecio(l, precio)}</p>
         <div class="mc-carta-acciones">
           <a class="mc-accion mc-accion-cm" href="${escapeHtml(cm)}" target="_blank" rel="noopener" aria-label="Ver en Cardmarket, en ${escapeHtml(idiomaDe(l.idioma).nombre.toLowerCase())} y ${escapeHtml(estadoDe(l.estado).nombre)}" title="Cardmarket con el idioma, el estado y la versión de esta carta">${marcaCardmarket(18)}<span>Cardmarket</span></a>
           ${esMia ? `<button type="button" class="mc-accion" data-editar aria-label="Editar ${escapeHtml(nombreDe(c))}">${icons.edit(15)}<span>Editar</span></button>` : ''}
@@ -347,12 +428,21 @@ function abrirEditor(l) {
   $('mcEdEstado').innerHTML = opciones(ESTADOS, l.estado)
   $('mcEdVariante').innerHTML = opciones(VARIANTES, l.variante)
   $('mcEdCantidad').value = l.cantidad
+  // `?? 0` y no `|| 0`: son lo mismo hoy, pero el día que la columna no
+  // esté (la migración sin ejecutar) `undefined || 0` y `undefined ?? 0`
+  // siguen dando 0 — lo que no vale es un `l.cambio` a pelo, que
+  // dejaría el campo con «undefined» escrito dentro.
+  $('mcEdCambio').value = Number(l.cambio) || 0
   $('mcEdGradeo').value = l.gradeo || ''
   $('mcEdValor').value = l.valor_manual ?? ''
   $('mcEdCompra').value = l.precio_compra ?? ''
   $('mcEdNotas').value = l.notas || ''
   const precio = precioDe(l)
-  $('mcEdPrecio').textContent = precio ? `Desde ${euros(precio.desde)} · tendencia ${euros(precio.tendencia)}` : 'Sin precio de Cardmarket.'
+  // Con `precio` a secas salía «Desde — · tendencia —» para una carta
+  // de la que solo se sabe el `idProduct`: dos rayas no son un precio.
+  $('mcEdPrecio').textContent = datos.tieneCifras(precio)
+    ? `Desde ${euros(precio.desde)} · tendencia ${euros(precio.tendencia)}${precio.prestado ? ' (de la versión normal: Cardmarket no publica el del reverso)' : ''}`
+    : 'Sin precio de Cardmarket.'
   // Y el enlace a Cardmarket también aquí, con los filtros de ESTA línea:
   // es justo cuando estás mirando lo que vale cuando quieres ir a verla.
   const cm = $('mcEdCardmarket')
@@ -373,6 +463,13 @@ async function guardarEditor(e) {
     variante: $('mcEdVariante').value,
     cantidad: Math.max(1, Math.min(999, Math.round(Number($('mcEdCantidad').value) || 1))),
     gradeo: $('mcEdGradeo').value.trim().slice(0, 20) || null,
+    // No se pueden dar más copias de las que tienes: el tope se recorta
+    // aquí Y en la base (`user_collection_cambio`). Aquí para que no dé
+    // un error feo; allí porque la API está abierta.
+    cambio: Math.max(0, Math.min(
+      Math.max(1, Math.min(999, Math.round(Number($('mcEdCantidad').value) || 1))),
+      Math.round(Number($('mcEdCambio').value) || 0)
+    )),
     valor_manual: num($('mcEdValor').value),
     precio_compra: num($('mcEdCompra').value),
     notas: $('mcEdNotas').value.trim().slice(0, 280) || null,
@@ -668,6 +765,18 @@ async function quitarDelBolsillo(cardId) {
 let seleccion = null
 let turnoBusqueda = 0
 
+// La consulta del buscador de cartas, suelta desde la 376 porque la
+// usan DOS sitios: «Añadir cartas» y la lista de búsqueda de los
+// cambios. Copiarla habría dejado dos buscadores que se separan sin
+// que nadie se entere — la lección de `IDIOMA_POR_MERCADO`.
+async function buscarCartas(texto, limite = 60) {
+  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,image_path,rarity,tcg_sets(id,name,serie_id,release_date,tcg_online_code)').eq('market', 'WEST')
+  for (const p of texto.split(/\s+/).filter(Boolean)) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
+  const { data, error } = await q.order('name_search').limit(limite)
+  if (error) throw error
+  return (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }))
+}
+
 async function buscar() {
   const texto = normalizeSearch($('mcAnadirBuscar').value)
   const mio = ++turnoBusqueda
@@ -675,15 +784,15 @@ async function buscar() {
     $('mcAnadirResultados').innerHTML = ''
     return
   }
-  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,image_path,rarity,tcg_sets(id,name,serie_id,release_date)').eq('market', 'WEST')
-  for (const p of texto.split(/\s+/).filter(Boolean)) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
-  const { data, error } = await q.order('name_search').limit(60)
-  if (mio !== turnoBusqueda) return
-  if (error) {
+  let lista
+  try {
+    lista = await buscarCartas(texto)
+  } catch (error) {
+    if (mio !== turnoBusqueda) return
     $('mcAnadirResultados').innerHTML = `<p class="subtext">${escapeHtml(error.message)}</p>`
     return
   }
-  const lista = (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }))
+  if (mio !== turnoBusqueda) return
   $('mcAnadirResultados').innerHTML = lista.length
     ? lista
         .map((c) => {
@@ -712,7 +821,9 @@ async function elegir(cardId) {
   if (seleccion?.id !== c.id) return
   if (v) vivos.set(c.id, v)
   const p = datos.precioDeLinea({ card_id: c.id, variante: $('mcAnadirVariante').value }, guardados, vivos)
-  $('mcAnadirPrecio').textContent = p ? `Cardmarket: desde ${euros(p.desde)} · tendencia ${euros(p.tendencia)}` : 'Sin precio de Cardmarket.'
+  $('mcAnadirPrecio').textContent = datos.tieneCifras(p)
+    ? `Cardmarket: desde ${euros(p.desde)} · tendencia ${euros(p.tendencia)}${p.prestado ? ' (de la versión normal)' : ''}`
+    : 'Sin precio de Cardmarket.'
 }
 
 async function anadirSeleccion(e) {
@@ -750,7 +861,7 @@ function cambiarPestania(nueva) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAlbumes', 'albumes'], ['mcPanelAnadir', 'anadir'], ['mcPanelResumen', 'resumen']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAlbumes', 'albumes'], ['mcPanelAnadir', 'anadir'], ['mcPanelResumen', 'resumen'], ['mcPanelCambios', 'cambios']]) {
     $(id).classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
@@ -765,7 +876,215 @@ function cambiarPestania(nueva) {
   }
   if (nueva === 'album' && !album.set) pintarEstanteria()
   if (nueva === 'resumen') pintarResumenPanel()
+  if (nueva === 'cambios') abrirCambios()
   if (nueva === 'anadir') $('mcAnadirBuscar').focus()
+}
+
+// ── Los cambios (tanda 376) ──
+//
+// Lo que doy sale de las líneas que ya están cargadas (`cambio > 0`);
+// lo que busco y el tablón piden tres consultas, y solo la primera vez
+// que se abre la pestaña.
+const loQueDoy = () => lineas.filter((l) => Number(l.cambio) > 0)
+
+async function abrirCambios() {
+  const caja = $('mcCambiosPanel')
+  if (!caja) return
+  if (cambiosCargados) return pintarCambios()
+  caja.innerHTML = '<div class="skeleton" style="height:180px"></div>'
+  try {
+    ;[cambios, tablon] = await Promise.all([import('./mi-coleccion/cambios.js'), import('./mi-coleccion/tablon.js')])
+    deseos = await cambios.deseosDe(sesion.user.id)
+    cambiosCargados = true
+    await pintarCambios()
+  } catch (err) {
+    // Sin la migración no se enseña un tablón vacío, que parecería que
+    // no hay nadie: se dice qué falta. Es el mismo trato que le da el
+    // resto de la página a `sinMigracion`.
+    caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
+  }
+}
+
+async function pintarCambios() {
+  const caja = $('mcCambiosPanel')
+  const doy = loQueDoy()
+  let tiene = []
+  let busca = []
+  try {
+    // Las dos direcciones a la vez: son independientes y la pantalla
+    // las enseña juntas.
+    ;[tiene, busca] = await Promise.all([
+      deseos.length ? cambios.quienTiene() : Promise.resolve([]),
+      doy.length ? cambios.quienBusca() : Promise.resolve([]),
+    ])
+  } catch (err) {
+    caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
+    return
+  }
+  tablonTiene = tiene
+  tablonBusca = busca
+  // Las cartas del tablón pueden no estar en el mapa: son de OTRA gente
+  // y esta página solo cargó las tuyas.
+  const faltan = [...tiene, ...busca, ...deseos].map((f) => f.card_id).filter((id) => !cartas.has(id))
+  if (faltan.length) {
+    const nuevas = await datos.cartasPorIds(faltan)
+    for (const [id, c] of nuevas) cartas.set(id, c)
+  }
+  caja.innerHTML = `
+    ${tablon.tablonHtml({ tiene, busca, cartas, deseos, doy })}
+    <section class="mc-cambio-bloque">
+      <h3>Lo que das</h3>
+      ${doy.length
+        ? `<ul class="mc-lista-cartas">${doy.map((l) => filaDeCartaHtml(cartas.get(l.card_id), `das <strong>${l.cambio}</strong> de ${l.cantidad}`)).join('')}</ul>
+           <p class="subtext">Se cambia en cada carta, con «Editar» → «De esas, doy».</p>`
+        : `<p class="subtext">Todavía no das ninguna. Abre una carta repetida en la pestaña «Cartas», dale a «Editar» y pon cuántas copias das.${repetidas().length ? ` Te sobran copias de ${repetidas().length} ${repetidas().length === 1 ? 'carta' : 'cartas'} — mira el <button type="button" class="link-btn" data-ir-resumen>resumen</button>.` : ''}</p>`}
+    </section>
+    <section class="mc-cambio-bloque">
+      <h3>Lo que buscas</h3>
+      <div class="mc-deseo-alta">
+        <input type="search" id="mcDeseoBuscar" placeholder="Busca una carta para apuntarla…" autocomplete="off" />
+        <div id="mcDeseoResultados" class="mc-deseo-resultados hidden"></div>
+      </div>
+      ${deseos.length
+        ? `<ul class="mc-lista-cartas mc-deseos">${deseos.map(deseoHtml).join('')}</ul>
+           <p class="subtext">Tu lista de búsqueda la ve todo el mundo: es lo que hace que alguien te escriba.</p>`
+        : '<p class="subtext">Apunta las cartas que te faltan y te diremos quién las tiene.</p>'}
+    </section>`
+  engancharCambios()
+}
+
+// Las tres prioridades, con la palabra que las explica. El número solo
+// no dice nada: «2» no es «la busco mucho».
+const PRIORIDADES = [
+  { valor: 1, nombre: 'La busco' },
+  { valor: 2, nombre: 'La busco mucho' },
+  { valor: 3, nombre: 'Es LA que me falta' },
+]
+
+// El buscador de la lista de búsqueda, con su propio turno: dos
+// buscadores en la misma página compartiendo contador se pisarían.
+let turnoDeseo = 0
+
+async function buscarParaDesear() {
+  const caja = $('mcDeseoResultados')
+  const texto = normalizeSearch($('mcDeseoBuscar').value)
+  const mio = ++turnoDeseo
+  if (texto.length < 2) {
+    caja.classList.add('hidden')
+    caja.innerHTML = ''
+    return
+  }
+  let lista
+  try {
+    lista = await buscarCartas(texto, 24)
+  } catch (err) {
+    if (mio !== turnoDeseo) return
+    caja.classList.remove('hidden')
+    caja.innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
+    return
+  }
+  if (mio !== turnoDeseo) return
+  // Las que ya están apuntadas se enseñan, pero desactivadas: quitarlas
+  // de la lista haría pensar que el buscador no las encuentra.
+  const yaEstan = new Set(deseos.map((d) => d.card_id))
+  caja.classList.remove('hidden')
+  caja.innerHTML = lista.length
+    ? lista
+        .map((c) => {
+          const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+          const ya = yaEstan.has(c.id)
+          return `<button type="button" class="mc-resultado" data-desear="${escapeHtml(c.id)}"${ya ? ' disabled' : ''}>
+            ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
+            <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
+            <span class="mc-resultado-set">${ya ? 'Ya la buscas' : `${escapeHtml(c.tcg_sets?.name || c.set_id)} · ${escapeHtml(c.local_id)}`}</span>
+          </button>`
+        })
+        .join('')
+    : '<p class="subtext">Ninguna carta con ese nombre.</p>'
+  // Y al mapa, que es de donde lo saca la lista al repintarse.
+  for (const c of lista) if (!cartas.has(c.id)) cartas.set(c.id, c)
+}
+
+// El panel se repinta entero en cada cambio, así que los oyentes van
+// UNA vez y sobre la caja de fuera —que no se repinta— y no sobre lo de
+// dentro. Sin esto, apuntar tres deseos deja tres oyentes y el cuarto
+// clic hace la misma cosa cuatro veces.
+let cambiosEnganchados = false
+
+function engancharCambios() {
+  const caja = $('mcCambiosPanel')
+  // El buscador SÍ se repinta, así que su oyente se pone cada vez; y va
+  // en el elemento nuevo, que es otro objeto.
+  const buscarDeseo = $('mcDeseoBuscar')
+  if (buscarDeseo) buscarDeseo.addEventListener('input', buscarParaDesear)
+  if (cambiosEnganchados) return
+  cambiosEnganchados = true
+  caja.addEventListener('change', async (e) => {
+    const sel = e.target.closest('.mc-deseo-prioridad')
+    if (!sel) return
+    try {
+      const nuevo = await cambios.cambiarPrioridad(sel.dataset.deseo, Number(sel.value))
+      deseos = deseos.map((d) => (d.id === nuevo.id ? nuevo : d))
+      showToast('Guardado.', 'success')
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+  })
+  caja.addEventListener('click', async (e) => {
+    const escribir = e.target.closest('[data-escribir]')
+    if (escribir) return abrirMensaje(escribir.dataset.escribir, escribir.dataset.direccion)
+
+    const alResumen = e.target.closest('[data-ir-resumen]')
+    if (alResumen) return cambiarPestania('resumen')
+
+    const desear = e.target.closest('[data-desear]')
+    if (desear) {
+      desear.disabled = true
+      try {
+        const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: desear.dataset.desear })
+        deseos = [d, ...deseos]
+        $('mcDeseoBuscar').value = ''
+        showToast('Apuntada. Si alguien la da, saldrá arriba.', 'success')
+        await pintarCambios()
+      } catch (err) {
+        desear.disabled = false
+        showToast(err.message, err.yaEstaba ? 'info' : 'error')
+      }
+      return
+    }
+
+    const quitar = e.target.closest('[data-quitar-deseo]')
+    if (quitar) {
+      try {
+        await cambios.borrarDeseo(quitar.dataset.quitarDeseo)
+        deseos = deseos.filter((d) => d.id !== quitar.dataset.quitarDeseo)
+        await pintarCambios()
+      } catch (err) {
+        showToast(err.message, 'error')
+      }
+    }
+  })
+}
+
+// El mensaje se deja ESCRITO, no enviado: quien lo manda lo lee antes.
+// Un botón que manda un mensaje a un desconocido sin enseñárselo es una
+// forma rápida de quedar mal, y encima con el nombre de la casa.
+function abrirMensaje(userId, direccion) {
+  const filas = (direccion === 'tiene' ? tablonTiene : tablonBusca).filter((f) => f.user_id === userId)
+  const persona = { reciproco: filas.some((f) => f.reciproco) }
+  const texto = tablon.borradorDe(persona, filas.map((f) => ({ ...f, carta: cartas.get(f.card_id) })), direccion)
+  location.href = `/mensajes.html?with=${encodeURIComponent(userId)}&texto=${encodeURIComponent(texto)}`
+}
+
+function deseoHtml(d) {
+  const c = cartas.get(d.card_id)
+  const sel = PRIORIDADES.map((p) => `<option value="${p.valor}"${p.valor === d.prioridad ? ' selected' : ''}>${escapeHtml(p.nombre)}</option>`).join('')
+  return filaDeCartaHtml(
+    c,
+    `<select class="mc-deseo-prioridad" data-deseo="${escapeHtml(d.id)}" aria-label="Cuánto buscas ${escapeHtml(nombreDe(c))}">${sel}</select>
+     <span class="mc-deseo-idioma">${d.idioma ? escapeHtml(idiomaDe(d.idioma).nombre) : 'cualquier idioma'}</span>
+     <button type="button" class="link-btn mc-borrar" data-quitar-deseo="${escapeHtml(d.id)}" aria-label="Quitar ${escapeHtml(nombreDe(c))} de tu lista">${icons.trash(14)}</button>`
+  )
 }
 
 function repintar() {
@@ -773,6 +1092,17 @@ function repintar() {
   pintarFiltros()
   pintarCartas()
   if (album.set) pintarAlbum()
+  // Y las pestañas que se pintan de una vez, si están abiertas (tanda
+  // 377). Aquí estaba el fallo: `cambiarPestania` corre ANTES de que
+  // lleguen las líneas —hace falta para que la pestaña que pide la
+  // dirección se vea enseguida—, así que entrar directo a
+  // /mi-coleccion?ver=resumen pintaba «Cuando añadas cartas» con la
+  // colección todavía vacía... y ya no se volvía a pintar nunca.
+  //
+  // No se veía porque la prueba de la 374 PULSABA la pestaña, y para
+  // entonces las líneas ya estaban. Un enlace directo, no.
+  if (pestania === 'resumen') pintarResumenPanel()
+  if (pestania === 'cambios') abrirCambios()
 }
 
 function enganchar() {
@@ -980,10 +1310,14 @@ async function iniciar() {
     document.title = `Colección de ${quien} — PokeDoc`
     document.querySelector('[data-pestania="anadir"]').classList.add('hidden')
     document.querySelector('[data-pestania="albumes"]').classList.add('hidden')
+    // Los cambios son de QUIEN MIRA, no de la colección que se mira:
+    // «quién encaja conmigo» no significa nada en la página de otra
+    // persona, y las dos RPC van contra `auth.uid()` de todas formas.
+    document.querySelector('[data-pestania="cambios"]').classList.add('hidden')
     // Mirando la colección de otro no hay nada que añadir: los bolsillos
     // salen sin mando (bolsilloHtml) y esta línea sobraría en pantalla.
     $('mcTocarOpciones').classList.add('hidden')
-    if (pestania === 'anadir' || pestania === 'albumes') pestania = 'cartas'
+    if (['anadir', 'albumes', 'cambios'].includes(pestania)) pestania = 'cartas'
   }
   pintarCompartir()
   cambiarPestania(pestania)

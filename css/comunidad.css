@@ -640,9 +640,3 @@
   color: var(--text-dim);
 }
 
-.editor-desde-peticion {
-  margin: -8px 0 16px;
-  padding: 12px 12px;
-  background: var(--ice);
-  border-radius: var(--radius-sm);
-}

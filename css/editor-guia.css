@@ -1,0 +1,279 @@
+/* El editor de guías: los bloques y sus campos (tanda 378).
+ *
+ * POR QUÉ SE MUDÓ AQUÍ. La portada tiene un presupuesto de 170 KB gzip
+ * y estaba a 0,8 KB del tope, con `components.css` —28,6 KB, la hoja
+ * que baja TODO el mundo— como primer candidato a adelgazar. Estas 32
+ * reglas las usa UNA sola pantalla: el editor de guías.
+ *
+ * LAS TRES TRAMPAS DE MUDAR CSS, y cómo se han sorteado:
+ *
+ *  · Una pantalla que usa la clase y NO carga esta hoja (tandas 299 y
+ *    303). Las `.be-*` y `.block-editor-*` las pinta
+ *    `js/block-editor.js`, y ese módulo lo arrastraba también
+ *    `admin/index.html` — no para editar nada, solo por pedirle
+ *    `renderReferenceBlocksHtml`, que en realidad vive en
+ *    `js/bloques-lectura.js`. Se ha corregido el import allí, que era
+ *    lo que estaba mal de todas formas: el barrido de la 299 sigue los
+ *    IMPORTS y no las llamadas, así que un reexport arrastra la hoja
+ *    entera. Ahora los únicos que las pintan son `editor-guia.html` y
+ *    `admin/editor-guia.html`, y los dos cargan esta hoja.
+ *
+ *  · Un `@media` que se queda atrás con su base ya mudada (tanda 299):
+ *    un `@media` no suma especificidad y `components.css` carga
+ *    primero, así que la base ganaría. El de `.editor-actions` en
+ *    móvil se ha traído con las demás.
+ *
+ *  · Y el orden al llegar (tanda 306): aquí no aplica, porque esta hoja
+ *    nace vacía y se carga DESPUÉS de `components.css`. Las reglas van
+ *    en el mismo orden en que estaban.
+ *
+ * Lo que NO se ha mudado, aunque también lo use una sola pantalla: las
+ * ~40 reglas de `guia.html` (`.article-header`, `.article-body`,
+ * `.forum-post-*`). Esas las pintan DOS mitades —`js/guia.js` y
+ * `netlify/edge-functions/meta-social.js`— y ahí la casa ya se ha
+ * quemado. Serían otros ~1,5 KB gzip de la portada, para otra tanda con
+ * la suite delante.
+ */
+
+.block-editor-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--bg);
+  cursor: grab;
+}
+
+.block-editor-item.dragging {
+  opacity: 0.4;
+}
+
+.block-editor-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.block-editor-item-header select {
+  font-weight: 700;
+  font-size: var(--t-sm);
+  flex: 1;
+}
+
+.block-type-icon {
+  font-size: var(--t-xl);
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.block-editor-item-header .remove-block {
+  color: var(--danger);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+/* ── Campos de texto del editor de bloques ── */
+.be-field {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-md);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s var(--ease);
+}
+
+.be-field:focus {
+  border-color: var(--navy);
+}
+
+textarea.be-field {
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.5;
+}
+
+.be-image-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.be-image-row .be-field {
+  flex: 1;
+  margin-bottom: 0;
+  color: var(--text-mid);
+  background: var(--bg);
+}
+
+.be-image-row .btn-outline {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: var(--t-sm);
+  white-space: nowrap;
+}
+
+.bbcode-toolbar + textarea.be-field {
+  margin-top: 0;
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  min-height: 260px;
+  font-size: var(--t-lg);
+  line-height: 1.7;
+  padding: 16px;
+}
+
+.cover-image-preview {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.editor-back {
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.editor-back:hover {
+  color: var(--navy);
+}
+
+.editor-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.editor-general-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 16px;
+}
+
+.editor-block-list {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.editor-block-list .block-editor-item {
+  padding: 24px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-lg);
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.editor-block-list .block-editor-item:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.editor-block-list .block-editor-item-header select {
+  font-size: var(--t-sm);
+}
+
+.editor-ref-preview {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: var(--t-sm);
+  line-height: 1.6;
+  color: var(--text-mid);
+  white-space: pre-wrap;
+}
+
+.editor-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-bottom: 40px;
+}
+
+@media (max-width: 600px) {
+  .editor-actions {
+    flex-direction: column;
+  }
+}
+
+/* El editor de lanzamientos (.lanz-*) vive en admin/css/admin.css:
+   esta hoja la baja también la portada y el presupuesto anda justo. */
+
+/* ── Editor: los bloques de curso con cartas ── */
+.be-cartas-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.be-cartas-row textarea { flex: 1; }
+
+.be-ayuda {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  margin: -2px 0 2px;
+}
+
+/* Marcar la zona buena pinchando en la imagen. */
+.be-zonas {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.be-zonas img {
+  max-width: 100%;
+  max-height: 320px;
+  display: block;
+  border-radius: var(--radius-sm);
+  cursor: crosshair;
+  user-select: none;
+}
+
+.be-zona {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px dashed var(--success);
+  background: rgba(13, 158, 110, 0.16);
+  cursor: pointer;
+}
+
+.be-zona:hover {
+  border-color: var(--danger);
+  background: rgba(220, 38, 38, 0.16);
+}
+
+
+/* El aviso de «estás escribiendo una guía que ha pedido alguien». Vivía
+   en `comunidad.css` (tanda 378) porque la petición se gestiona en
+   /comunidad — pero este aviso lo pinta el EDITOR, y /comunidad no lo
+   pinta nunca. Estaba huérfano en las dos páginas del editor, que no
+   cargan esa hoja, y no se vio porque el barrido de la 299 no leía
+   `el.className = '…'`. */
+.editor-desde-peticion {
+  margin: -8px 0 16px;
+  padding: 12px 12px;
+  background: var(--ice);
+  border-radius: var(--radius-sm);
+}

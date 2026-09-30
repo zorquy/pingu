@@ -7,7 +7,8 @@
 // El precio es el general de Cardmarket (vía TCGdex): se enseña con su
 // nombre —«desde», «tendencia»— y el mínimo exacto de tu idioma y tu
 // estado está a un clic, en Cardmarket. Ver js/cardmarket.js.
-import { escapeHtml, getSession } from './app.js'
+import { escapeHtml, getSession, getInitial, avatarStyle, profileUrl } from './app.js'
+import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { nombreDeCarta } from './carta-nucleo.js'
 import {
@@ -22,11 +23,12 @@ import {
   textoDelEnlace,
   idiomaDe,
   estadoDe,
+  varianteDe,
 } from './cardmarket.js'
 // El dibujo de la marca va aparte: es lo único de Cardmarket que
 // necesita CSS, y ese CSS solo lo carga esta página (ver el fichero).
 import { logoCardmarket, marcaCardmarket } from './cardmarket-marca.js'
-import { preciosEnVivo, lineasDeCarta, anadir } from './mi-coleccion/datos.js'
+import { preciosEnVivo, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -91,18 +93,32 @@ export async function pintarMercado(carta) {
           <a class="link-btn carta-mercado-ir" href="/mi-coleccion">Ir a mi colección</a>
         </div>
       </div>
+      <!-- Quién da ESTA carta (tanda 376). Va en la ficha y no solo en
+           /mi-coleccion porque es donde se está cuando te hace falta:
+           miras una carta que te falta y ves que hay tres personas que
+           la dan. Sin cuenta también — es el escaparate, igual que los
+           torneos desde la 252. -->
+      <div class="carta-cambios hidden" id="cmCambios"></div>
     </div>`
   caja.classList.remove('hidden')
 
   const pintarPrecio = () => {
     const precio = precioDe(vivo?.pricing, { reverse: estado.variante === 'reverse' })
-    $('cmPrecios').innerHTML = precio
+    // Con cifras o sin ellas: un precio del que solo se sabe el
+    // `idProduct` pintaba tres rayas donde tenía que haber euros.
+    const hayCifras = tieneCifras(precio)
+    $('cmPrecios').innerHTML = hayCifras
       ? `<div><dt>Desde</dt><dd>${euros(precio.desde)}</dd></div>
          <div><dt>Tendencia</dt><dd>${euros(precio.tendencia)}</dd></div>
          <div><dt>Media 30 días</dt><dd>${euros(precio.media30)}</dd></div>`
       : ''
-    $('cmNota').textContent = precio
-      ? `Precio general de la carta en cualquier idioma y estado${precio.reverse ? ' (reverse holo)' : ''}, actualizado el ${haceCuanto(precio.actualizado)}. El mínimo en ${idiomaDe(estado.idioma).nombre.toLowerCase()} y ${estadoDe(estado.estado).nombre} lo ves en Cardmarket con el botón.`
+    // Y si el número es prestado de la versión normal, se dice AQUÍ y no
+    // en letra pequeña: la diferencia entre un reverso y su normal la
+    // paga quien compra.
+    $('cmNota').textContent = hayCifras
+      ? precio.prestado
+        ? `Cardmarket no publica precio del reverso holográfico de esta carta, así que este es el de la versión NORMAL —lo que vale como poco—, actualizado el ${haceCuanto(precio.actualizado)}. El del reverso en ${idiomaDe(estado.idioma).nombre.toLowerCase()} y ${estadoDe(estado.estado).nombre} lo ves en Cardmarket con el botón.`
+        : `Precio general de la carta en cualquier idioma y estado${precio.reverse ? ' (reverse holo)' : ''}, actualizado el ${haceCuanto(precio.actualizado)}. El mínimo en ${idiomaDe(estado.idioma).nombre.toLowerCase()} y ${estadoDe(estado.estado).nombre} lo ves en Cardmarket con el botón.`
       : 'No tenemos el precio de esta carta. Búscala en Cardmarket:'
     const idProduct = precio?.idProduct || null
     const a = $('cmEnlace')
@@ -120,6 +136,13 @@ export async function pintarMercado(carta) {
       pintarPrecio()
     })
   }
+
+  // ── Quién la da (tanda 376) ──
+  //
+  // Va por `import()` y sin `await` que bloquee: si la migración no está
+  // puesta o la consulta falla, la ficha se queda exactamente como
+  // estaba. Un bloque de intercambios roto no puede tumbar el precio.
+  pintarQuienLaDa(carta)
 
   // ── La mitad de la colección ──
   const sesion = await getSession().catch(() => null)
@@ -154,4 +177,46 @@ export async function pintarMercado(carta) {
       boton.disabled = false
     }
   })
+}
+
+// Quién da esta carta, en la ficha (tanda 376).
+//
+// SE CALLA cuando no hay nadie: un «nadie la da» en cada una de las
+// 23.000 fichas es ruido en 22.900 de ellas. Y se calla igual si la
+// migración no está o la consulta falla — por eso el `catch` vacío, que
+// aquí no esconde un fallo sino que decide no enseñar un bloque.
+async function pintarQuienLaDa(carta) {
+  const caja = $('cmCambios')
+  if (!caja) return
+  try {
+    const { quienDaEsta } = await import('./mi-coleccion/cambios.js')
+    const gente = await quienDaEsta(carta.id, 12)
+    if (!gente.length) return
+    const senas = (f) => {
+      const p = [idiomaDe(f.idioma).nombre, estadoDe(f.estado).nombre]
+      if (f.variante && f.variante !== 'normal') p.push(varianteDe(f.variante).nombre)
+      return p.join(' · ')
+    }
+    caja.innerHTML = `
+      <h3 class="carta-cambios-titulo">${icons.refreshCw(16)} ${gente.length} ${gente.length === 1 ? 'persona la da' : 'personas la dan'} para cambiar</h3>
+      <ul class="carta-cambios-lista">
+        ${gente
+          .map((f) => {
+            const nombre = f.display_name || f.username || 'Alguien'
+            return `<li>
+              <a class="mini-avatar" href="${escapeHtml(profileUrl(f))}" style="${avatarStyle(f)}">${f.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>
+              <div>
+                <a href="${escapeHtml(profileUrl(f))}">${escapeHtml(nombre)}</a>
+                <p class="subtext">${escapeHtml(senas(f))}${f.cambio > 1 ? ` · da ${f.cambio}` : ''}</p>
+              </div>
+              <a class="link-btn" href="/mensajes.html?with=${encodeURIComponent(f.user_id)}">${icons.mail(15)}Escribir</a>
+            </li>`
+          })
+          .join('')}
+      </ul>
+      <p class="subtext">Apunta esta carta en tu <a href="/mi-coleccion?ver=cambios">lista de búsqueda</a> y te avisamos cuando alguien más la dé.</p>`
+    caja.classList.remove('hidden')
+  } catch {
+    // Sin migración o sin red: la ficha se queda como estaba.
+  }
 }

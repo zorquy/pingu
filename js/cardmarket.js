@@ -74,18 +74,37 @@ const num = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : n
 
 // De `pricing` de TCGdex a lo que se enseña. `reverse` elige las cifras
 // del reverso holográfico. Devuelve null si no hay nada que enseñar.
+//
+// LO DEL REVERSO, que es de donde salía la mitad de los «Sin precio»
+// (tanda 375): los campos `-holo` solo existen en las cartas que
+// Cardmarket lista como producto aparte. En las demás —promos, muchas
+// antiguas, casi todo lo que no sea del bloque de moda— están a null, y
+// pedir el precio del reverso devolvía NADA. Osea que marcar tu carta
+// como «reverse holo» hacía DESAPARECER un precio que estaba ahí.
+//
+// Un reverso sin cifras propias no vale cero: vale por lo menos lo que
+// vale la carta. Se cae a las del normal y se marca `prestado`, para
+// que la pantalla pueda decir de dónde sale — un precio que no es el
+// tuyo y no lo dice es peor que no tenerlo.
 export function precioDe(pricing, { reverse = false } = {}) {
   const cm = pricing?.cardmarket
   if (!cm) return null
-  const s = reverse ? '-holo' : ''
-  const fuera = {
-    idProduct: Number.isInteger(cm.idProduct) ? cm.idProduct : null,
+  const cifrasDe = (s) => ({
     desde: num(cm[`low${s}`]),
     tendencia: num(cm[`trend${s}`]),
     media30: num(cm[`avg30${s}`]),
     media7: num(cm[`avg7${s}`]),
+  })
+  const hay = (c) => Boolean(c.desde || c.tendencia || c.media30)
+  const propias = cifrasDe(reverse ? '-holo' : '')
+  const prestado = reverse && !hay(propias) && hay(cifrasDe(''))
+  const fuera = {
+    idProduct: Number.isInteger(cm.idProduct) ? cm.idProduct : null,
+    ...(prestado ? cifrasDe('') : propias),
     actualizado: cm.updated || null,
     reverse,
+    // De la versión normal, porque la del reverso no la da nadie.
+    prestado,
   }
   return fuera.desde || fuera.tendencia || fuera.media30 || fuera.idProduct ? fuera : null
 }

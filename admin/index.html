@@ -27,6 +27,15 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
+  <!-- Tres hojas que /admin SÍ pinta y no cargaba (tanda 378). El
+       barrido de la 299 solo miraba las HTML de la RAÍZ, así que estos
+       huecos llevaban aquí desde que se repartió components.css:
+       · foro.css — la moderación del foro (.foro-admin-*)
+       · editor-texto.css — el selector de emoji (attachEmojiPicker)
+       · cartas-lista.css — las listas de cartas de una guía -->
+  <link rel="stylesheet" href="/css/foro.css" />
+  <link rel="stylesheet" href="/css/editor-texto.css" />
+  <link rel="stylesheet" href="/css/cartas-lista.css" />
   <link rel="stylesheet" href="/admin/css/admin.css" />
 </head>
 <body>

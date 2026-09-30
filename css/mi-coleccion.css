@@ -254,6 +254,18 @@
   font-weight: 700;
 }
 
+/* La chapa de «doy 2» (tanda 376). Va en azul sólido y no en el hielo
+   de las demás porque no dice CÓMO es la carta —idioma, estado— sino
+   qué has decidido tú con ella: es la única de la fila que es una
+   acción tuya, y se busca con la vista. */
+.mc-chip-cambio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
 .mc-carta-valor {
   margin-top: auto;
   font-size: var(--t-lg);
@@ -265,6 +277,17 @@
 .mc-sin-precio {
   color: var(--text-mid);
   font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+/* «de la normal»: el precio es prestado de la versión sin reverso
+   (tanda 375). Va con línea de puntos porque LLEVA EXPLICACIÓN detrás
+   —el `title`—, y esa es la convención de la web para eso. */
+.mc-nota-precio {
+  border-bottom: 1px dotted var(--border);
+  color: var(--text-mid);
+  cursor: help;
+  font-size: var(--t-2xs);
   font-weight: 400;
 }
 
@@ -1448,4 +1471,300 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 .mc-alb-borrar-zona .link-btn {
   min-height: 44px;
+}
+
+/* ── Los cambios (tanda 376) ──
+   Es la pieza donde le ganamos a HoloNook, que manda los cambios «por
+   fuera» a X o a Instagram. Aquí se cierran dentro, y la pantalla
+   está ordenada para eso: primero quién encaja, después las dos
+   listas que lo alimentan. */
+.mc-cambio-cab {
+  margin-bottom: var(--e-xl);
+}
+
+.mc-cambio-cab h2 {
+  margin-bottom: var(--e-sm);
+  font-size: var(--t-xl);
+}
+
+.mc-cambio-bloque {
+  margin-bottom: var(--e-2xl);
+}
+
+.mc-cambio-bloque h3 {
+  margin-bottom: var(--e-md);
+  font-size: var(--t-lg);
+}
+
+/* Se mide a SÍ MISMA y no a la ventana (la lección de la 316): esta
+   rejilla vive dentro de un panel con su propio ancho. */
+.mc-cambio-gente {
+  display: grid;
+  gap: var(--e-lg);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+}
+
+.mc-cambio-persona {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+/* La doble coincidencia se ve de lejos: es la única que se cierra de un
+   mensaje, y es lo que hace volver a la pestaña. */
+.mc-cambio-persona.reciproco {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 1px var(--navy);
+}
+
+.mc-cambio-persona header {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+}
+
+.mc-cambio-persona header > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.mc-cambio-persona header p {
+  margin: 0;
+}
+
+.mc-cambio-quien {
+  display: block;
+  overflow: hidden;
+  color: var(--text);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-chapa-reciproco {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  cursor: help;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.mc-cambio-cartas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-cambio-carta {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+}
+
+.mc-cambio-carta p {
+  margin: 0;
+}
+
+/* El hueco de la miniatura, reservado con la proporción de una carta:
+   son ocho por tarjeta y sin esto la lista baila al llegar. */
+.mc-cambio-foto {
+  flex: 0 0 auto;
+  width: 28px;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.mc-cambio-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mc-cambio-nombre {
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.mc-cambio-escribir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  margin-top: auto;
+}
+
+/* ── La lista de búsqueda ── */
+.mc-deseo-alta {
+  position: relative;
+  margin-bottom: var(--e-md);
+}
+
+.mc-deseo-alta input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--t-md);
+}
+
+.mc-deseo-resultados {
+  display: grid;
+  gap: var(--e-sm);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+  max-height: 340px;
+  margin-top: var(--e-sm);
+  padding: var(--e-sm);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.mc-deseo-prioridad {
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--t-xs);
+}
+
+.mc-deseo-idioma {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+/* La fila de un deseo lleva tres cosas a la derecha —prioridad, idioma y
+   el botón de quitar— y eso en 390 px no cabe con el nombre al lado: el
+   nombre se encogía A CERO y la fila quedaba con una miniatura y un
+   desplegable, sin decir de qué carta hablaba.
+   `min-width: 0` no lo evita: ese es el mínimo de la caja, y lo que se
+   pasa de rosca es el REPARTO (la lección de la 320). Lo que lo evita es
+   dejar envolver y darle al nombre una base propia. */
+.mc-deseos .mc-fila-carta {
+  flex-wrap: wrap;
+}
+
+.mc-deseos .mc-fila-carta > a {
+  flex: 1 1 180px;
+}
+
+.mc-deseos .mc-fila-dato {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--e-sm);
+}
+
+.mc-deseos .mc-borrar {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+}
+
+/* ── El valor en el tiempo (tanda 377) ──
+   Va arriba y a lo ancho, fuera de la rejilla: es la única cifra que
+   cambia sola, y es la que se viene a mirar. */
+.mc-valor-caja {
+  margin-bottom: var(--e-lg);
+}
+
+.mc-valor-cifras {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--e-sm) var(--e-md);
+  margin-bottom: var(--e-md);
+}
+
+.mc-valor-ahora {
+  margin: 0;
+  font-size: var(--t-2xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.mc-valor-cambio {
+  margin: 0;
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+/* El verde y el rojo NO son lo único que lo dice: el número lleva su
+   signo delante, que es lo que lee quien no distingue los dos colores. */
+.mc-valor-cambio.sube {
+  color: var(--success);
+}
+
+.mc-valor-cambio.baja {
+  color: var(--danger);
+}
+
+.mc-valor-cambio span {
+  font-weight: 400;
+}
+
+/* Alto fijo: el hueco está reservado antes de que llegue la consulta,
+   igual que el de una imagen. Sin esto el resumen pega un salto. */
+.mc-valor-grafica {
+  display: block;
+  width: 100%;
+  height: 160px;
+}
+
+.mc-valor-area {
+  fill: var(--navy);
+  opacity: 0.12;
+  stroke: none;
+}
+
+.mc-valor-linea {
+  fill: none;
+  stroke: var(--navy);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  /* `preserveAspectRatio="none"` estira el dibujo, y con él estiraría el
+     grosor de la línea: `non-scaling-stroke` lo deja en 2 px de verdad. */
+  vector-effect: non-scaling-stroke;
+}
+
+.mc-valor-punto {
+  fill: var(--navy);
+  stroke: var(--white);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.mc-valor-pie {
+  display: flex;
+  justify-content: space-between;
+  margin: var(--e-xs) 0 var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
 }

@@ -129,6 +129,7 @@
         <button type="button" role="tab" class="mc-pestania" data-pestania="albumes" aria-selected="false" aria-controls="mcPanelAlbumes">Álbumes soñados</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="anadir" aria-selected="false" aria-controls="mcPanelAnadir">Añadir cartas</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="resumen" aria-selected="false" aria-controls="mcPanelResumen">Resumen</button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="cambios" aria-selected="false" aria-controls="mcPanelCambios">Cambios</button>
       </div>
 
       <section id="mcPanelCartas" role="tabpanel" aria-label="Cartas">
@@ -216,6 +217,19 @@
         <div id="mcResumenPanel"></div>
       </section>
 
+      <!-- LOS CAMBIOS (tanda 376). Es la pieza donde le ganamos a
+           HoloNook: su tutorial dice «no tiene chat: los cambios se
+           hablan por fuera» y te manda a X o a Instagram. Aquí el
+           cambio se cierra DENTRO, con los mensajes de la casa.
+
+           Tres partes y un orden que no es casual: primero LO QUE SALE
+           —quién encaja contigo—, porque es lo que hace volver; y
+           debajo las dos listas que lo alimentan, doy y busco. Al revés
+           la pantalla empieza por deberes. -->
+      <section id="mcPanelCambios" class="hidden" role="tabpanel" aria-label="Cambios">
+        <div id="mcCambiosPanel"></div>
+      </section>
+
       <section id="mcPanelAlbumes" class="hidden" role="tabpanel" aria-label="Álbumes soñados">
         <div id="mcAlbumesLista">
           <div class="mc-albumes-cab">
@@ -301,6 +315,11 @@
           <label>Estado <select id="mcEdEstado"></select></label>
           <label>Versión <select id="mcEdVariante"></select></label>
           <label>Copias <input type="number" id="mcEdCantidad" min="1" max="999" inputmode="numeric" /></label>
+          <!-- Cuántas DAS (tanda 376). Va aquí y no en una pantalla
+               aparte porque es un dato de ESTA línea: de tus tres
+               Charizards en español y Near Mint, das dos. Una lista de
+               cambio separada sería el mismo dato escrito dos veces. -->
+          <label>De esas, doy <input type="number" id="mcEdCambio" min="0" max="999" inputmode="numeric" /></label>
           <label>Gradeo <input type="text" id="mcEdGradeo" maxlength="20" placeholder="CGC 10" /></label>
           <label>Tu valor (€, opcional) <input type="text" id="mcEdValor" inputmode="decimal" placeholder="Manda sobre Cardmarket" /></label>
           <label>Lo que pagaste (€) <input type="text" id="mcEdCompra" inputmode="decimal" /></label>

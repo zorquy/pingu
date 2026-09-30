@@ -174,6 +174,30 @@ async function renderThread(session, conversationId) {
     .then((m) => m.engancharAutocompletarMenciones(document.getElementById('msgBody')))
     .catch(() => {})
 
+  // ── El borrador de un cambio (tanda 376) ──
+  //
+  // `?texto=` deja el mensaje ESCRITO, nunca enviado: lo usa el tablón
+  // de cambios de /mi-coleccion para redactar «he visto que das estas
+  // cartas…». Quien lo manda lo lee y lo corrige antes, que es justo lo
+  // que no hace un botón que envía solo.
+  //
+  // Solo si la caja está vacía —si
+  // había algo escrito manda lo escrito— y se quita de la dirección
+  // enseguida: recargar la página no puede volver a plantar el mismo
+  // texto encima de lo que estuvieras escribiendo.
+  const borrador = params.get('texto')
+  if (borrador) {
+    const caja = document.getElementById('msgBody')
+    if (caja && !caja.value.trim()) {
+      caja.value = borrador.slice(0, 4000)
+      caja.focus()
+      caja.setSelectionRange(caja.value.length, caja.value.length)
+    }
+    const url = new URL(location.href)
+    url.searchParams.delete('texto')
+    history.replaceState(null, '', url)
+  }
+
   let sending = false
   document.getElementById('btnSendMsg').addEventListener('click', async () => {
     if (sending) return

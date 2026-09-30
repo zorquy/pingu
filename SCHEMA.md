@@ -19971,3 +19971,360 @@ comprueba que la de 8 € va por delante de la de 2 € aunque la línea de
 la de 2 € valga más), que una carta con una sola copia NO sale en
 repetidas, y **la coordenada superior de las cuatro cajas** — dos valores
 distintos, o sea dos filas de dos.
+
+---
+
+## Tanda 375 — el «Sin precio» que no era (sept. 2026)
+
+PINGU: «he añadido una carta y me sale que no hay precio, pero debería
+haber». Eran **tres fallos encadenados**, y los tres del mismo tipo: un
+hueco que se toma por una respuesta.
+
+### 1. Marcar «reverse holo» hacía DESAPARECER el precio
+
+Cardmarket publica las cifras del reverso holográfico en campos aparte
+(`low-holo`, `trend-holo`, `avg30-holo`), y solo en las cartas que lista
+como producto separado. En las demás —promos, muchas antiguas, casi todo
+lo que no sea del bloque de moda— están a null.
+
+`precioDe(pricing, { reverse: true })` pedía esos campos y nada más, así
+que en esas cartas devolvía NADA. Osea que elegir la versión que tienes
+te quitaba un precio que estaba ahí delante.
+
+Un reverso sin cifras propias **no vale cero: vale por lo menos lo que
+vale la carta**. Ahora se cae a las del normal y se marca `prestado`,
+que es la otra mitad del arreglo: la pantalla dice «de la normal»,
+porque un número que no es el tuyo y no lo dice es peor que un hueco —un
+reverso suele valer más, y quien vende se lleva la diferencia.
+
+### 2. Una fila guardada VACÍA tapaba la consulta en vivo para siempre
+
+La función programada `precios-coleccion` guarda fila para toda carta que
+mira, **tenga cifras o no**. Y `precioDeLinea` daba por buena cualquier
+fila que existiera, así que una carta que el día de su pasada no estaba
+en Cardmarket se quedaba en «Sin precio» para siempre: la fila existía,
+luego no se preguntaba en vivo, luego la fila nunca se llenaba.
+
+«Si lo hay» es **si DICE algo**, no si la fila existe. De ahí
+`tieneCifras(p)`, que es la pregunta que hacía falta y que no estaba
+escrita en ningún sitio.
+
+El tercer eslabón estaba en la página: `completarPrecios` filtraba por
+`!guardados.has(id)`, o sea por que la fila existiera. Las cartas que
+había que reintentar eran justo las que ese filtro dejaba fuera.
+
+### 3. «Desde — · tendencia —» no es un precio
+
+De una carta de la que solo se sabe el `idProduct` —existe en Cardmarket,
+pero no hay guía de precios— se pintaban tres rayas donde tenían que ir
+euros. El `idProduct` sirve para el ENLACE (que lleve a la carta y no a
+una búsqueda por nombre), no para sumar. Ahora se mira `tieneCifras`
+antes de pintar cifras, en la ficha y en las dos cajas de /mi-coleccion.
+
+### La forma del fallo
+
+Las tres son la misma: **un dato que falta y un dato que vale cero no son
+lo mismo, y confundirlos no da error en ninguna parte**. Es la lección de
+la 319 (`progreso = {}` por defecto) otra vez, y van tres.
+
+### Comprobado
+
+`test-tanda-375.mjs`. Lo que se mide y no se supone: que un reverso sin
+cifras propias sale con las del normal Y marcado, que uno CON cifras
+propias manda las suyas (lo prestado es el último recurso, no el
+primero), que el normal nunca coge las del reverso, y que una fila
+guardada vacía ya no tapa la consulta en vivo. En pantalla, que la carta
+en reverse deja de decir «Sin precio» y deja de contarse como carta sin
+precio en el total de arriba.
+
+---
+
+## Tanda 376 — los intercambios: donde le ganamos a HoloNook (sept. 2026)
+
+Es la pieza grande que le faltaba a «Mi colección». Y es donde ganamos:
+el tutorial de HoloNook dice, con esas palabras, «HoloNook no tiene chat:
+los cambios se hablan por fuera», y te manda a X o a Instagram. PokeDoc
+tiene foro y mensajes propios, así que **aquí el cambio se cierra
+dentro** — y eso no se copia en una tarde.
+
+### Dos listas, y una de ellas no es tabla
+
+Lo que **doy** es una columna en la línea que ya tienes:
+`user_collection.cambio` = «de estas copias, doy tantas». Una tabla
+aparte sería el mismo dato escrito dos veces, y el día que vendieras la
+carta una de las dos se quedaría sin enterarse.
+
+Lo que **busco** sí es tabla (`user_wants`), porque es justo lo que NO
+tienes: no hay ninguna fila donde colgarlo.
+
+`user_wants.idioma` admite null, y eso **no es un descuido**: `null` es
+«me da igual» y `'es'` es «en español», y son dos cosas distintas. Quien
+colecciona en español no quiere la inglesa; quien está completando el
+álbum se conforma con cualquiera. Un valor por defecto de `'es'` habría
+decidido por la mitad de la gente. El índice único lleva
+`coalesce(idioma, '*')` porque **en un índice único los NULL no chocan
+entre sí**: sin eso, «cualquier idioma» se podía apuntar cien veces.
+
+### Lo que se abre es el TABLÓN, no la tabla
+
+Marcar `cambio > 0` es decir en voz alta «doy esta carta», y apuntar algo
+en `user_wants` es «busco esta». Las dos cosas son públicas por
+definición: un tablón donde no se vea quién tiene qué no sirve de nada.
+
+Lo que NO se abre es el resto de la colección. Y aquí estuvo la decisión
+importante: **relajar la política de `select` de `user_collection` para
+que se vieran las filas con `cambio > 0` habría soltado la fila entera**
+—`precio_compra`, `valor_manual`, `notas`—. Lo que pagaste por una carta
+no es asunto de nadie, y eso se habría escapado sin que nada diera error.
+
+Así que las políticas de `user_collection` **no se tocan** y el tablón
+sale de tres funciones `security definer` que devuelven columnas
+contadas: la carta, el idioma, el estado, la versión, el gradeo y cuántas
+das. La prueba lo vigila leyendo el SQL.
+
+### La doble coincidencia
+
+Un cambio de verdad es recíproco: yo tengo lo tuyo y tú tienes lo mío.
+Las dos RPC lo marcan (`reciproco`) con un `exists` cruzado, y van
+primero en el orden — son las únicas que se cierran de un mensaje. En la
+pantalla llevan chapa y marco, y la cabecera las cuenta, que es lo que
+hace volver al día siguiente.
+
+### Se agrupa por PERSONA, y eso se hace en JavaScript
+
+Las RPC devuelven una fila por CARTA, que es lo que sabe la base. Pero un
+cambio se habla con una persona: si alguien tiene seis cosas que buscas,
+eso es UN mensaje. `porPersona()` agrupa en el cliente, y está ahí y no
+en SQL a propósito — así la función sigue devolviendo filas planas, que
+es lo que se puede probar sin montar el tablón entero.
+
+### El mensaje se deja ESCRITO, nunca enviado
+
+`/mensajes.html?texto=…` planta un borrador en la caja. **No envía**: un
+botón que manda un mensaje a un desconocido sin enseñárselo es una forma
+rápida de quedar mal, y encima con el nombre de la casa. Solo se planta
+si la caja está vacía, y `texto` se borra de la dirección enseguida, para
+que recargar no vuelva a pisar lo que estuvieras escribiendo.
+
+### Y en la ficha de una carta
+
+`intercambios_de_carta` va también sin sesión, como los torneos desde la
+252: es el escaparate. El bloque **se calla cuando no hay nadie** —un
+«nadie la da» en cada una de las 23.000 fichas es ruido en 22.900— y se
+calla igual si la migración no está puesta o la consulta falla. Un bloque
+de intercambios roto no puede tumbar el precio.
+
+### El puente de la columna `cambio`
+
+Hasta que `supabase-migration-intercambios.sql` esté ejecutada, **pedir
+la columna `cambio` revienta la colección entera**: PostgREST devuelve
+42703 y no se carga nada. Así que `datos.js` la pide y, si no está, deja
+de pedirla y repite la vuelta — un puente como el `faltaLaRpc` de los
+torneos, con la misma fecha de caducidad. También en el cuerpo del
+`update`, o el «Guardar» de una línea dejaría de funcionar entero por un
+campo que todavía no existe.
+
+### Comprobado
+
+`test-tanda-376.mjs` (34), y la migración pasada contra un **PostgreSQL
+16 de verdad** con cuatro personas: que lo recíproco sale marcado, que un
+deseo en español no casa con una carta en inglés, que un baneado no sale
+en ninguna de las tres funciones, que la línea con `cambio = 0` no se ve
+nunca, que el escaparate va sin sesión, que el tope de 999 y el índice
+único cortan, y que la migración es re-ejecutable.
+
+En el navegador, el doble **calcula** las tres RPC de las tablas en vez
+de devolver una respuesta a mano — como los resultados de una encuesta
+desde la 314. Devolverlas a mano haría que «las dobles coincidencias van
+primero» comprobara la semilla y no la pantalla. Y son la misma cuenta
+que hace el SQL a propósito: si una de las dos se equivoca, las dos
+pruebas dicen cosas distintas y eso se ve.
+
+---
+
+## Tanda 377 — lo que vale tu colección, en el tiempo (sept. 2026)
+
+Era lo último de la lista de PINGU. Sabíamos lo que vale una colección
+AHORA, y solo ahora: se sumaba al pintar la página y no se guardaba en
+ningún sitio. Así que «¿ha subido este mes?» no se podía contestar — y es
+la pregunta que se hace cualquiera que colecciona.
+
+### Una fila por persona y día
+
+`user_collection_value (user_id, dia, valor, copias, distintas,
+sin_precio)`. **No** se guarda el valor de cada CARTA cada día: serían
+millones de filas para contestar una pregunta que es sobre el total. Si
+algún día hace falta «cuánto ha subido este Charizard», eso sale del
+histórico de precios de la carta, que es otra tabla y otro problema.
+
+`sin_precio` está ahí porque sin él **un salto en la gráfica no se
+distingue de «ese día se curaron 200 precios»** — que es exactamente lo
+que va a pasar las primeras semanas, mientras `precios-coleccion` va
+rellenando. La gráfica lo dice con palabras cuando quedan cartas sin
+precio.
+
+### El valor sale IGUAL que en la página, y eso no es evidente
+
+`valor_de_linea(...)` en SQL repite el orden de `valorDeLinea` +
+`valorDe` de `js/cardmarket.js`: manda el valor que le puso su dueño; si
+no, la tendencia; si no, la media de 30 días; si no, el «desde». Y la
+variante `reverse` coge las cifras `-holo` **con la misma caída a las
+normales que arregló la 375**.
+
+Si sumara distinto, un día la gráfica diría 400 € y la cifra de arriba
+380, y nadie sabría cuál creerse. La prueba lo vigila leyendo el SQL.
+
+### Una sentencia para todo el mundo
+
+`coleccion_foto_diaria()` hace un `group by user_id` y ya está. Una
+consulta por coleccionista **no cabe**: Netlify mata una función
+programada a los 30 segundos (la lección de la 322) y eso se come el
+presupuesto en cuanto haya unos cuantos.
+
+Lleva `on conflict (user_id, dia) do update` porque la función puede
+correr dos veces el mismo día —un reintento, un despliegue— y dos filas
+del mismo día partirían la gráfica en dos puntos con la misma fecha.
+
+La función programada corre **a las 4:07**. El minuto no es redondo a
+propósito: casi todo el mundo programa en punto. Y de madrugada porque
+los precios los refresca `precios-coleccion` a lo largo del día, así que
+la foto de las cuatro es la del día ENTERO de ayer.
+
+### La gráfica: SVG a mano
+
+Dos `path` y un `circle`. Meter una librería de gráficas rompería la
+norma de la casa (vanilla, sin build, sin npm) por una línea quebrada.
+`js/mi-coleccion/grafica-valor.js` **no toca el DOM**: devuelve HTML, así
+que la cuenta se puede probar en Node.
+
+Tres cosas que parecen detalles y no lo son:
+
+- **Con un solo día no se pinta línea.** Una línea plana de un punto
+  diría «no ha cambiado nada» cuando lo que pasa es que todavía no
+  sabemos nada. Son dos cosas distintas, y van tres tandas seguidas con
+  esta misma lección (319, 375 y esta).
+- **El porcentaje no se calcula desde cero.** Una colección que empieza
+  en 0 € y llega a 40 no ha subido «infinito por ciento»: ha subido 40 €.
+  `pct` es `null` y solo se enseña el importe.
+- **El signo va en el TEXTO.** El verde y el rojo no pueden ser lo único
+  que diga si sube: quien no distingue los dos colores lee el `+` o el
+  `-`. Y el `aria-label` del SVG dice «de 100,00 € a 150,00 €», no
+  «gráfica».
+
+El `svg` va con `preserveAspectRatio="none"` para estirarse a lo ancho, y
+por eso la línea y el punto llevan `vector-effect: non-scaling-stroke`:
+sin él, el estiramiento estiraría también el grosor del trazo.
+
+### Y un fallo que salió montando esto (y era de la 374)
+
+`/mi-coleccion?ver=resumen` pintaba **«Cuando añadas cartas»** para
+siempre. La pestaña se elige ANTES de que lleguen las líneas —hace falta,
+para que la que pide la dirección se vea enseguida— así que el resumen se
+pintaba con la colección todavía vacía... y `repintar()` no lo volvía a
+pintar nunca.
+
+Lo que hace que no se viera es lo de siempre: **la prueba de la 374
+PULSABA la pestaña**, y para entonces las líneas ya estaban. Un enlace
+directo, no. Es la lección de la 303 otra vez —una prueba escrita contra
+el camino que acabas de usar no vale— y por eso la comprobación nueva
+entra por la DIRECCIÓN y no por el clic.
+
+Ahora `repintar()` repasa las pestañas que se pintan de una vez
+(`resumen` y `cambios`). Y ojo, que esto crece: **cada pestaña nueva que
+se pinte de golpe en vez de repintarse sola tiene que entrar ahí**.
+
+### Comprobado
+
+`test-tanda-377.mjs`, y la migración pasada contra un **PostgreSQL 16 de
+verdad**: que la suma da 350 € para una colección de tres líneas con un
+precio manual, un reverso y una carta sin precio; que el reverso sin
+cifras propias cae a las normales; que las cartas sin precio se cuentan
+en copias; y que correr la función dos veces el mismo día deja UNA fila.
+
+---
+
+## Tanda 378 — hacer sitio en la portada, y las páginas que nadie miraba (sept. 2026)
+
+CLAUDE.md lo dejó escrito: la portada iba a 169,3 KB gzip de 170, y **la
+próxima tanda que la tocara tenía que empezar por hacer sitio**. El
+candidato señalado era `components.css` —28,6 KB, la hoja que baja TODO
+el mundo—.
+
+Ahora van **168,5 KB, y caben 1,5**. Casi el doble de margen.
+
+### De dónde salió
+
+Un análisis, no una intuición: se barrieron las 35 páginas siguiendo sus
+`<link>`, sus `<script src>` y todos los imports —estáticos y
+dinámicos— y se agrupó cada regla de `components.css` por **qué páginas
+pueden llegar a pintarla**. Lo que usa UNA sola pantalla:
+
+| Página | CSS suyo en `components.css` |
+|---|---|
+| `index.html` | 8,6 KB crudos |
+| `guia.html` | 5,8 KB |
+| `editor-guia.html` | **4,4 KB ← esta tanda** |
+| `perfil.html` | 3,6 KB |
+| `tema.html` | 2,7 KB |
+| `usuarios.html` | 1,9 KB |
+
+Se ha mudado **el editor de guías** (32 reglas → `css/editor-guia.css`),
+que es el de menor radio de explosión: una pantalla de admin. Lo de
+`index.html` no sirve para este presupuesto —la portada carga su hoja
+igual—, y las ~40 reglas de `guia.html` (`.article-header`,
+`.article-body`, `.forum-post-*`) **se han dejado a propósito**: esas las
+pintan DOS mitades, `js/guia.js` y
+`netlify/edge-functions/meta-social.js`, y ahí la casa ya se ha quemado.
+Son otros ~1,5 KB para otra tanda, con la suite delante y sin prisa.
+
+### Las tres trampas de mudar CSS, y una cuarta
+
+Las tres conocidas (tandas 299, 303 y 306) se sortearon como manda el
+manual. La de las **dependencias** (316) apareció otra vez y con la misma
+forma: las `.be-*` y `.block-editor-*` las pinta `js/block-editor.js`, y
+ese módulo lo arrastraba **`admin/index.html`** — no para editar nada,
+solo por pedirle `renderReferenceBlocksHtml`, **que en realidad vive en
+`js/bloques-lectura.js`**, el módulo que la 316 creó justo para esto. Se
+ha corregido el import, que estaba mal de todas formas: /admin se
+descargaba el editor de bloques entero, con el selector de emoji y el
+buscador de cartas detrás.
+
+### Y la cuarta, que es la gorda: LO QUE LA PRUEBA NO MIRABA
+
+Al comprobar la mudanza salieron **huecos que llevaban meses ahí**:
+
+- **`admin/index.html` no cargaba tres hojas que sí pinta**: `foro.css`
+  (la moderación del foro), `editor-texto.css` (el selector de emoji) y
+  `cartas-lista.css` (las listas de cartas de una guía).
+- **`admin/editor-guia.html` no cargaba `cartas-lista.css`**, que la
+  versión de la raíz sí carga: las mismas listas salían bien en una y sin
+  estilo en la otra.
+- **`.editor-desde-peticion` vivía en `comunidad.css`** y lo pinta el
+  EDITOR, no /comunidad. Estaba huérfano en las dos páginas del editor.
+
+Dos razones por las que `test-tanda-299.mjs` no vio nada de esto, y las
+dos eran de la prueba:
+
+1. **Barría solo las HTML de la RAÍZ.** `admin/` no lo miraba nadie. Es
+   la lección de la 303 por tercera vez: una prueba que mira unas
+   páginas no dice nada de las que no mira, **y sale verde igual**. Ahora
+   son 37 páginas, y hay dos comprobaciones de que el barrido LLEGA a las
+   de admin —cuyos `<script src>` son relativos a su carpeta— porque de
+   una página de la que no recoges clases no puedes decir que no tenga
+   huérfanas (el otro fallo de la 307).
+2. **Solo leía `class="…"`.** Todo lo que se pinta creando el elemento a
+   mano era invisible: el selector de emoji hace
+   `btn.className = 'emoji-picker-btn'`. Ahora lee las TRES formas —
+   `class="…"`, `.className =` y `classList.add/remove/toggle`.
+
+Es la misma forma de fallo que los `import()` dinámicos de la 307: **el
+barrido miraba una de las maneras de hacer las cosas y daba por hecho que
+era la única.** Y al ampliarlo salió el tercer hueco solo.
+
+### Comprobado
+
+`test-tanda-299.mjs`, ahora sobre **37 páginas** y con el extractor de
+clases ampliado, más `pesar-portada.mjs` (168,5 KB, 1,5 de margen). La
+mudanza se verificó además contando llaves y comprobando que las 32
+reglas están en la hoja nueva y en ninguna otra: una regla perdida al
+mudar no da error, deja una pantalla sin estilo.

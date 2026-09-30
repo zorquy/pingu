@@ -12,6 +12,131 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-30 — PINGU-Claude (tandas 375 a 378 — el precio que no era, los INTERCAMBIOS, el valor en el tiempo y sitio en la portada)
+
+**Hecho**: dos cosas, y la segunda es grande.
+
+**La 375, el «Sin precio» que no era.** Lo cazó PINGU: «he añadido una
+carta y me sale que no hay precio, pero debería haber». Eran TRES fallos
+encadenados y los tres del mismo tipo — un hueco que se toma por una
+respuesta:
+
+1. Marcar una carta como «reverse holo» pedía los campos `-holo` de
+   Cardmarket, que solo existen en las cartas que Cardmarket lista como
+   producto aparte. En las demás están a null, así que **elegir la
+   versión que tienes te quitaba el precio**. Ahora se cae al de la
+   versión normal y SE DICE («de la normal»): un reverso vale eso como
+   poco, pero suele valer más, y un número prestado que no se declara es
+   peor que un hueco.
+2. `precioDeLinea` daba por buena cualquier fila de `tcg_card_prices`,
+   tuviera cifras o no. La función programada guarda fila para toda carta
+   que mira, así que una fila VACÍA tapaba la consulta en vivo **para
+   siempre**: existía la fila, luego no se preguntaba, luego nunca se
+   llenaba. De ahí `tieneCifras()`, que era la pregunta que faltaba.
+3. Un precio del que solo se sabe el `idProduct` pintaba «Desde — ·
+   tendencia —». Dos rayas no son un precio.
+
+**La 376, los INTERCAMBIOS.** Es la pieza donde le ganamos a HoloNook: su
+propio tutorial dice «HoloNook no tiene chat: los cambios se hablan por
+fuera» y te manda a X o a Instagram. Aquí el cambio se cierra DENTRO.
+
+- Pestaña «Cambios» en /mi-coleccion: arriba **quién encaja contigo** (los
+  recíprocos primero, con chapa y marco) y debajo las dos listas que lo
+  alimentan. En ese orden a propósito: al revés la pantalla empieza por
+  deberes.
+- Lo que DAS es una columna en la línea (`cambio`), no una lista aparte:
+  «de estas tres, doy dos». Se pone en «Editar» de cada carta.
+- Lo que BUSCAS sí es tabla, con prioridad y con idioma opcional —`null`
+  es «me da igual» y no es lo mismo que «en español».
+- El botón de escribir deja el mensaje REDACTADO y sin enviar, en los
+  mensajes de la casa.
+- Y en la ficha de una carta, «3 personas la dan para cambiar». Sin
+  cuenta también, que es el escaparate.
+
+**La 377, el valor en el tiempo.** Era lo último de tu lista. Ahora hay
+una foto diaria del valor de cada colección y una gráfica arriba del
+resumen: «vale 150 €, +50 desde el 1 de sept». La toma una función
+programada a las 4:07 de la madrugada, con UNA sentencia para todo el
+mundo (una consulta por persona se comería los 30 s de Netlify). Y suma
+igual que la página, con el mismo orden y con la caída del reverso de la
+375 — si sumara distinto, la gráfica diría 400 y la cifra de arriba 380
+y nadie sabría cuál creerse. Cuando quedan cartas sin precio, lo dice:
+si no, el día que se curen 200 precios parecería que ha subido.
+
+Y de paso salió un fallo de la 374: `/mi-coleccion?ver=resumen` por
+ENLACE DIRECTO decía «Cuando añadas cartas» para siempre —la pestaña se
+elige antes de que lleguen las líneas y `repintar()` no la repasaba—. No
+se veía porque la prueba de la 374 pulsaba la pestaña, y para entonces
+ya estaban. La comprobación nueva entra por la dirección.
+
+**La 378, sitio en la portada.** CLAUDE.md lo tenía escrito: iba a 169,3
+de 170 KB y la próxima tanda que la tocara tenía que empezar por hacer
+sitio. **Ahora van 168,5 y caben 1,5.** Se mudaron a `css/editor-guia.css`
+las 32 reglas de `components.css` que solo usa el editor de guías (la
+pantalla de menor riesgo; en SCHEMA.md está la tabla de qué le queda a
+cada página, para la próxima).
+
+Y de paso salieron **tres huecos de meses** que ninguna prueba miraba:
+`/admin` no cargaba `foro.css`, `editor-texto.css` ni `cartas-lista.css`
+aunque pinta las tres; el editor de guías de admin no cargaba
+`cartas-lista.css` y el de la raíz sí; y `.editor-desde-peticion` vivía
+en `comunidad.css` cuando lo pinta el editor. Los tres se escapaban por
+dos razones, y **las dos eran de la prueba**: barría solo las HTML de la
+RAÍZ (admin/ no lo miraba nadie) y solo leía `class="…"`, no
+`el.className = …`. Ahora son 37 páginas y las tres formas de poner una
+clase. También `admin/js/admin.js` pedía `renderReferenceBlocksHtml` a
+`block-editor.js` cuando vive en `bloques-lectura.js`: /admin se bajaba
+el editor de bloques entero para nada.
+
+**Ficheros**: `js/cardmarket.js`, `js/mi-coleccion/datos.js`,
+`js/mi-coleccion.js`, `js/carta-mercado.js`, `js/mensajes.js`,
+`mi-coleccion.html`, `css/mi-coleccion.css`, `css/carta.css`, `SCHEMA.md`,
+y **nuevos**: `js/mi-coleccion/cambios.js`, `js/mi-coleccion/tablon.js` y
+`supabase-migration-intercambios.sql`,
+`supabase-migration-valor-historico.sql`,
+`js/mi-coleccion/grafica-valor.js` y
+`netlify/functions/valor-coleccion.mjs`. También `js/notifications.js`
+(el tipo de aviso nuevo) y `css/carta.css`. En `pruebas`:
+`test-tanda-375.mjs`, `test-tanda-376.mjs` y `test-tanda-377.mjs`
+(**nuevos**), `test-tanda-299.mjs` (37 páginas y el extractor ampliado),
+las cuatro de los álbumes (368 a 371) que se habían quedado escritas
+contra el desplegable que quitó la 372, y el doble, que ahora CALCULA las
+tres RPC del tablón de las tablas en vez de devolver una respuesta a
+mano.
+
+De la 378: `css/editor-guia.css` (**nuevo**), `css/components.css`,
+`css/comunidad.css`, `editor-guia.html`, `admin/editor-guia.html`,
+`admin/index.html` y `admin/js/admin.js`.
+
+**PENDIENTE DE PINGU — tres SQL, y el orden importa**:
+
+1. `supabase-migration-intercambios.sql`. Hasta que esté puesta, la
+   pestaña «Cambios» dice qué falta y el resto de la colección funciona
+   igual (hay un puente en `datos.js` para la columna `cambio`; quítalo
+   cuando lleve un tiempo).
+2. `supabase-migration-valor-historico.sql`. Hasta que esté, la gráfica
+   dice «la primera foto se toma esta noche» y no molesta a nadie. La
+   primera línea de verdad sale al SEGUNDO día: con un punto no hay
+   gráfica.
+3. `supabase-migration-torneos-codigo.sql`, que sigue esperando de la
+   367 — y esa va **DESPUÉS del despliegue**, porque tira
+   `tournaments.join_code`.
+
+Las tres pasadas contra un PostgreSQL 16 de verdad antes de entregarlas.
+Y el disparador del aviso probado con seis casos: solo salta al EMPEZAR a
+dar una carta, un aviso por persona aunque tenga el deseo apuntado dos
+veces (eso era un fallo y lo cazó la prueba), nadie se avisa a sí mismo,
+y quien lo apaga en sus preferencias no recibe nada.
+
+**En curso / pendiente**: la lista de PINGU queda **terminada**. Lo que
+se me ocurre para seguir: que el tablón de cambios avise también por
+correo (hoy solo campanita), y una página pública de intercambios que
+Google pueda indexar —pero eso tiene la trampa de la 322, así que solo si
+cada página dice algo que no diga la de al lado—. Sigue pendiente el
+**SQL de las imágenes** que le pasé a PINGU.
+
+---
+
 ## 2026-09-30 — PINGU-Claude (tanda 374 — el resumen: qué tienes, no cuánto)
 
 **Hecho**: las cuatro cifras de arriba de «Mi colección» dicen CUÁNTO

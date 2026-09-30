@@ -453,97 +453,6 @@
   margin-bottom: 16px;
 }
 
-.block-editor-item {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 12px;
-  margin-bottom: 12px;
-  background: var(--bg);
-  cursor: grab;
-}
-
-.block-editor-item.dragging {
-  opacity: 0.4;
-}
-
-.block-editor-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.block-editor-item-header select {
-  font-weight: 700;
-  font-size: var(--t-sm);
-  flex: 1;
-}
-
-.block-type-icon {
-  font-size: var(--t-xl);
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-sm);
-  background: var(--ice);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.block-editor-item-header .remove-block {
-  color: var(--danger);
-  font-size: var(--t-xs);
-  font-weight: 700;
-}
-
-/* ── Campos de texto del editor de bloques ── */
-.be-field {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 12px 12px;
-  margin-bottom: 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: var(--t-md);
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s var(--ease);
-}
-
-.be-field:focus {
-  border-color: var(--navy);
-}
-
-textarea.be-field {
-  resize: vertical;
-  min-height: 70px;
-  line-height: 1.5;
-}
-
-.be-image-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.be-image-row .be-field {
-  flex: 1;
-  margin-bottom: 0;
-  color: var(--text-mid);
-  background: var(--bg);
-}
-
-.be-image-row .btn-outline {
-  flex-shrink: 0;
-  padding: 8px 16px;
-  font-size: var(--t-sm);
-  white-space: nowrap;
-}
-
 .bbcode-toolbar {
   display: flex;
   gap: 2px;
@@ -578,16 +487,6 @@ textarea.be-field {
   text-decoration: underline;
 }
 
-.bbcode-toolbar + textarea.be-field {
-  margin-top: 0;
-  border-top: none;
-  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-  min-height: 260px;
-  font-size: var(--t-lg);
-  line-height: 1.7;
-  padding: 16px;
-}
-
 /* ── Imagen de portada subida (en vez de URL) ── */
 .cover-image-upload {
   display: flex;
@@ -596,27 +495,9 @@ textarea.be-field {
   flex-wrap: wrap;
 }
 
-.cover-image-preview {
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-}
-
 /* ── Editor de guías a página completa ── */
 .editor-header {
   padding: 24px 0 16px;
-}
-
-.editor-back {
-  font-size: var(--t-sm);
-  font-weight: 700;
-  color: var(--text-mid);
-}
-
-.editor-back:hover {
-  color: var(--navy);
 }
 
 /* El aviso de "esta guía está en revisión". Mismo tono que el banner de
@@ -629,68 +510,6 @@ textarea.be-field {
   font-size: var(--t-sm);
   color: var(--text-mid);
   max-width: 720px;
-}
-
-.editor-panel {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 32px;
-  margin-bottom: 24px;
-}
-
-.editor-general-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0 16px;
-}
-
-.editor-block-list {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.editor-block-list .block-editor-item {
-  padding: 24px;
-  margin-bottom: 16px;
-  border-radius: var(--radius-lg);
-  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
-}
-
-.editor-block-list .block-editor-item:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
-}
-
-.editor-block-list .block-editor-item-header select {
-  font-size: var(--t-sm);
-}
-
-.editor-ref-preview {
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  margin-bottom: 16px;
-  max-height: 300px;
-  overflow-y: auto;
-  font-size: var(--t-sm);
-  line-height: 1.6;
-  color: var(--text-mid);
-  white-space: pre-wrap;
-}
-
-.editor-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  padding-bottom: 40px;
-}
-
-@media (max-width: 600px) {
-  .editor-actions {
-    flex-direction: column;
-  }
 }
 
 .modal-box .modal-actions {
@@ -3010,54 +2829,6 @@ a.rater-name:hover {
 .destacada-autor a {
   color: var(--navy);
   font-weight: 600;
-}
-
-/* El editor de lanzamientos (.lanz-*) vive en admin/css/admin.css:
-   esta hoja la baja también la portada y el presupuesto anda justo. */
-
-/* ── Editor: los bloques de curso con cartas ── */
-.be-cartas-row {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.be-cartas-row textarea { flex: 1; }
-
-.be-ayuda {
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-  margin: -2px 0 2px;
-}
-
-/* Marcar la zona buena pinchando en la imagen. */
-.be-zonas {
-  position: relative;
-  display: inline-block;
-  max-width: 100%;
-}
-
-.be-zonas img {
-  max-width: 100%;
-  max-height: 320px;
-  display: block;
-  border-radius: var(--radius-sm);
-  cursor: crosshair;
-  user-select: none;
-}
-
-.be-zona {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  border: 2px dashed var(--success);
-  background: rgba(13, 158, 110, 0.16);
-  cursor: pointer;
-}
-
-.be-zona:hover {
-  border-color: var(--danger);
-  background: rgba(220, 38, 38, 0.16);
 }
 
 /* ── El reto del día en la home ── */

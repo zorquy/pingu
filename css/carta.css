@@ -134,6 +134,12 @@
   --holo-ry: 0deg;
   --holo-x: 50%;
   --holo-y: 50%;
+  /* La fuerza de la lámina por defecto. Va DECLARADA aquí y no pedida
+     con un respaldo (`var(--holo-fuerza, 0.85)`): mientras convivían un
+     valor por defecto y seis redefiniciones decían cosas distintas y
+     ganaba el que nadie había tocado. Cada familia la pisa con la suya
+     más abajo. */
+  --holo-fuerza: 0.85;
   /* La perspectiva va AQUÍ y no en el padre: el padre es el `figure`
      `sticky`, y darle perspectiva también rompería el `sticky`. */
   transform: perspective(900px) rotateX(var(--holo-rx)) rotateY(var(--holo-ry));
@@ -252,7 +258,7 @@
 }
 
 .carta-scan-holo.holo.holo-activo::before {
-  opacity: var(--holo-fuerza, 0.85);
+  opacity: var(--holo-fuerza);
 }
 
 /* ══ Cada rareza, su lámina (tanda 373) ══
@@ -1356,4 +1362,60 @@
   flex-wrap: wrap;
   align-items: flex-end;
   gap: var(--e-md);
+}
+
+/* ── Quién da esta carta (tanda 376) ──
+   Va debajo del precio, que es donde se está cuando te hace falta:
+   miras una carta que te falta y ves que hay tres que la dan. */
+.carta-cambios {
+  margin-top: var(--e-lg);
+  padding-top: var(--e-lg);
+  border-top: 1px solid var(--border);
+}
+
+.carta-cambios-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+  font-size: var(--t-md);
+}
+
+.carta-cambios-lista {
+  display: grid;
+  gap: var(--e-sm);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  margin: 0 0 var(--e-md);
+  padding: 0;
+  list-style: none;
+}
+
+.carta-cambios-lista li {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.carta-cambios-lista li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.carta-cambios-lista li p {
+  margin: 0;
+}
+
+/* El enlace de escribir es un icono con su palabra: se le pide alto y
+   no ancho, que estirarlo pisaría al de al lado (regla de la 312). */
+.carta-cambios-lista .link-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
 }

@@ -2,7 +2,11 @@ import { supabase } from '../../js/supabase.js'
 import { escapeHtml, getSession, validateImageFile, uploadGuideImage, profileUrl, slugify } from '../../js/app.js'
 import { invalidateAchievementsCache } from '../../js/gamification.js'
 import { showToast } from '../../js/toast.js'
-import { renderReferenceBlocksHtml } from '../../js/block-editor.js'
+// Del módulo de LECTURA, que existe para esto desde la 316 (ver su
+// cabecera): `block-editor.js` solo lo reexporta, y pedírselo a él
+// arrastraba el editor entero —y con él sus clases— a una página que no
+// edita nada. El barrido de la 299 sigue los imports, no las llamadas.
+import { renderReferenceBlocksHtml } from '../../js/bloques-lectura.js'
 import { icons } from '../../js/icons.js'
 import { contentIconHtml, inlineIconHtml } from '../../js/content-icon.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
