@@ -20399,3 +20399,91 @@ honesto.
 deducidos: `GG01`→`GG1`, `SV001`→`SV1`, `GG10` intacto, `SM125` intacto,
 `SWSH074`→`SWSH74`, `SWSH177` ya no se tira, y nueve caracteres siguen
 sin montar nada.
+
+---
+
+## Tanda 380 — el curador se queda con todo lo que ya se descarga (sept. 2026)
+
+PINGU: «hay un montón de colecciones que no tienen logo —Shining
+Legends, la Shiny Vault, todas las Trainer Gallery, la 30th
+Celebration— y la Classic Collection no trae ninguna carta».
+
+Tres síntomas, **una causa**. `cartas-detalle` ya se descarga el SET
+COMPLETO y la CARTA COMPLETA de TCGdex —son las peticiones caras, las
+que la importación evita a propósito, una por carta sobre ~23.000— y se
+quedaba con una parte de lo que viene dentro:
+
+- de un set curaba la fecha, la serie y el código de TCG Live, **y no el
+  logo ni la cuenta de cartas**;
+- de una carta guardaba 17 campos y la imagen.
+
+Así que arreglarlo **no cuesta ni una petición más**. Lo que cuesta es
+volver a pasar por lo ya visitado, y ahí estaba el problema de verdad.
+
+### La 30th Classic Collection «sin cartas» no era eso
+
+Sus 30 cartas estaban en la base. Lo que faltaba era el NÚMERO:
+`card_count_official` a 0, y la estantería mide con
+`card_count_official || card_count_total || 0`. O sea «0 de 0», y el
+álbum vacío. El mismo olvido, con otra cara.
+
+### Por qué una VERSIÓN y no «¿le falta el logo?»
+
+La tentación es visitar los sets sin logo. Pero **hay sets cuyo logo
+TCGdex no tiene**, y esa pregunta no distingue «no lo hemos pedido» de
+«no existe»: se volverían a pedir cada cinco minutos para siempre.
+
+No es una hipótesis. Es lo que pasó en la 333 con el código de TCG Live:
+~100 sets imposibles de completar, la fase de sets no acababa nunca y el
+engorde —que va detrás— no arrancó jamás. 3.676 cartas de 21.356, y
+ninguna en español.
+
+`curado_v` lo resuelve de raíz. El curador lleva un número; cuando
+**aprende** a quedarse con un campo nuevo, el número sube. Cada fila con
+versión vieja se revisita UNA vez, se le escribe la nueva y no vuelve —
+tenga o no tenga el campo. La pregunta deja de ser «¿le falta esto?» y
+pasa a ser «¿le preguntamos con lo que sabemos hoy?», que sí se puede
+contestar.
+
+### Y la lección que costó encontrar
+
+**La imagen de una carta se guarda desde la tanda 348.** El código lleva
+dos meses escrito y correcto. Pero solo corre cuando el engorde VISITA
+la carta, y el engorde solo visita las que tienen `detalle_at` a null:
+las ~1.200 engordadas antes de la 348 ya llevaban su marca, así que
+nunca se volvieron a mirar. **Dos meses de código bueno aplicado a cero
+filas.**
+
+O sea: *enseñarle al curador un campo nuevo no sirve de nada si no hay
+forma de volver a pasar por lo ya visitado.* Cada vez que este fichero
+aprenda a guardar algo, hay que subir `VERSION_CURADO` — y por eso la
+constante vive junto a `faltaVisitar` y no en la función programada.
+
+### El repaso
+
+Fase nueva, acotada a 4 segundos y la última de la pasada: pide las
+cartas con imagen vacía **y** versión vieja, las mira **en inglés y nada
+más** —el escaneo es el mismo fichero en todos los idiomas, probar
+cuatro multiplicaría por cuatro la petición cara— y escribe la versión
+con imagen o sin ella. Son ~1.200 peticiones de una sola vez, unas tres
+horas. Después no cuesta nada: la consulta va por un índice parcial que
+para entonces está vacío, así que no hay que acordarse de borrarlo.
+
+Acotada y no excluyente por la lección de la 333: **una fase que se lleva
+la pasada entera es un cerrojo esperando a que algo no se pueda
+completar.**
+
+### Comprobado
+
+`test-tanda-380.mjs`, y la migración contra un **PostgreSQL 16 de
+verdad**: que los dos índices son parciales, que el de las cartas SE USA
+(con 21.356 filas, sin él la consulta barre la tabla) y que marcar una
+carta la saca de la cola.
+
+Y `test-tanda-343.mjs`, que se puso roja por una columna nueva sin que
+nada se hubiera roto: miraba `candidatas[1]` y `candidatas[2]` **por su
+número**, así que añadir un escalón arriba la descolocaba entera. Ahora
+comprueba la REGLA —cada escalón es un prefijo estricto del anterior, o
+sea que se sueltan por la cola y nunca una de en medio— y sobrevive al
+escalón siguiente. Una prueba que se rompe al añadir el caso siguiente
+mide la lista, no la regla.

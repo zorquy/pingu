@@ -1,4 +1,4 @@
-import { detalleEnEspanol, urlDeSet, faltaVisitar, loQueFaltaDeUnSet, nombresPorArreglar, marcaHeredada } from '../lib/carta-detalle.mjs'
+import { detalleEnEspanol, urlDeSet, faltaVisitar, loQueFaltaDeUnSet, nombresPorArreglar, marcaHeredada, imagePathFromUrl, VERSION_CURADO, urlDeCartaEnIdioma } from '../lib/carta-detalle.mjs'
 
 // Engorda las cartas de `tcg_cards` poco a poco (tanda 322).
 //
@@ -61,6 +61,16 @@ const PRESUPUESTO_SETS_MS = 8000
 // de ahí no cuesta nada porque la consulta no devuelve ninguno.
 const PRESUPUESTO_NOMBRES_MS = 6000
 
+// Y cuánto puede comerse el repaso de imágenes (tanda 380). Otra fase de
+// vida corta: son ~1.200 cartas de una sola vez, y a 30 por pasada cada
+// cinco minutos se acaba en unas tres horas. Después no cuesta nada,
+// porque su consulta va por un índice parcial que se queda vacío.
+//
+// 4 segundos y no más: por detrás va el engorde, que todavía tiene
+// 17.000 cartas por delante y lleva meses de trabajo. Una fase nueva no
+// puede quitarle sitio a la que sigue siendo el trabajo de verdad.
+const PRESUPUESTO_IMAGENES_MS = 4000
+
 // Entre peticiones. No es paranoia: 150 peticiones seguidas a una API
 // sin clave es la forma de que te bloqueen el rango y te quedes sin
 // catálogo, que es peor que tardar una semana.
@@ -117,8 +127,15 @@ async function setsPorPrioridad(clave) {
   // Se prueban de más a menos, quitando UNA cada vez y no todas de
   // golpe: así, con la migración de la 339 puesta y la de la 343 sin
   // poner, no se pierde también la marca de regulación.
-  const BASE = 'id,release_date,serie_id,serie_name,tcg_online_code'
+  // Las cuatro de la 380 —logo, símbolo y las dos cuentas— van en la
+  // BASE porque existen desde la primera migración del catálogo: no hay
+  // ningún escenario en el que falten. Y hacen falta AQUÍ y no solo al
+  // escribir, porque `loQueFaltaDeUnSet` decide con ellas si toca
+  // escribir o no: sin pedirlas, todas parecerían vacías y se gastaría
+  // un PATCH en cada set que ya está bien.
+  const BASE = 'id,release_date,serie_id,serie_name,tcg_online_code,logo_path,symbol_url,card_count_official,card_count_total'
   const CANDIDATAS = [
+    `${BASE},regulation_mark,regulation_mark_origen,curado_at,names_fixed_at,curado_v`,
     `${BASE},regulation_mark,regulation_mark_origen,curado_at,names_fixed_at`,
     `${BASE},regulation_mark,regulation_mark_origen,curado_at`,
     `${BASE},regulation_mark,regulation_mark_origen`,
@@ -172,6 +189,11 @@ async function curarSet(clave, fila) {
     // solo la marca. Se sabe por la fila, que viene de la consulta que
     // ya probó qué columnas hay.
     const marca = 'curado_at' in fila ? { curado_at: new Date().toISOString() } : {}
+    // Y la VERSIÓN del curador (tanda 380), por lo mismo y con la misma
+    // cautela: solo si la columna existe. Es lo que hace que este set no
+    // vuelva aunque TCGdex no le haya dado logo — y lo que hará que
+    // vuelva UNA vez el día que el curador aprenda otro campo.
+    if ('curado_v' in fila) marca.curado_v = VERSION_CURADO
     if (!Object.keys(cambios).length && !Object.keys(marca).length) return null
     await rest(`tcg_sets?id=eq.${encodeURIComponent(fila.id)}&market=eq.${MERCADO}`, clave, {
       method: 'PATCH',
@@ -258,6 +280,54 @@ async function siguientes(clave, setsOrdenados) {
     if (filas.length) return filas
   }
   return []
+}
+
+// ── El repaso de imágenes (tanda 380) ──
+//
+// `detalleDeCarta` guarda la imagen de la ficha DESDE LA TANDA 348. El
+// problema es que esa línea solo corre cuando el engorde visita la
+// carta, y el engorde solo visita las que tienen `detalle_at` a null.
+// Las ~1.200 que se engordaron ANTES de la 348 ya llevan su marca, así
+// que nunca se volvieron a mirar: el código para curarlas llevaba dos
+// meses escrito y sin aplicarse a una sola fila.
+//
+// Eso es lo que arregla `curado_v`. Aquí se piden las que siguen sin
+// imagen y con la versión vieja, se les pregunta UNA vez, y se les
+// escribe la versión tengan imagen o no — que es lo que impide que las
+// que TCGdex sencillamente no tiene se pregunten para siempre.
+//
+// Fase acotada y la ÚLTIMA: es trabajo de una sola vez (~1.200
+// peticiones, unas dos horas a este ritmo) y no puede quitarle sitio al
+// engorde, que es el que sigue teniendo 17.000 cartas por delante.
+async function cartasSinImagen(clave) {
+  const ruta =
+    'tcg_cards?select=id,local_id' +
+    `&market=eq.${MERCADO}` +
+    '&image_path=is.null' +
+    `&curado_v=lt.${VERSION_CURADO}` +
+    `&limit=${POR_PASADA}`
+  return (await rest(ruta, clave).catch(() => null)) || []
+}
+
+async function repasarImagen(clave, fila) {
+  let imagen = null
+  try {
+    // En INGLÉS y nada más: el escaneo es el mismo fichero en todos los
+    // idiomas —`image_path` va sin idioma delante, se pone al pintar— y
+    // probar cuatro idiomas multiplicaría por cuatro una petición que ya
+    // es la cara. Si el inglés no la tiene, no la tiene nadie.
+    const res = await fetch(urlDeCartaEnIdioma(fila.id, 'en'), { headers: { Accept: 'application/json' } })
+    if (res.ok) imagen = imagePathFromUrl((await res.json())?.image)
+  } catch {
+    // Sin red no se marca nada: que lo intente la pasada siguiente.
+    return null
+  }
+  // La marca se escribe SIEMPRE, con imagen o sin ella. Sin esto, una
+  // carta que TCGdex no tiene volvería en cada pasada y el repaso no
+  // acabaría nunca — el cerrojo de la 333, otra vez.
+  const cuerpo = imagen ? { image_path: imagen, curado_v: VERSION_CURADO } : { curado_v: VERSION_CURADO }
+  await guardar(clave, fila.id, cuerpo).catch(() => {})
+  return imagen
 }
 
 async function guardar(clave, id, fila) {
@@ -362,9 +432,31 @@ export default async function handler() {
     }
   }
 
+  // ── El repaso de imágenes (tanda 380) ──
+  //
+  // Va aquí —después de los sets, antes del engorde— y acotado. Es
+  // trabajo de UNA SOLA VEZ: ~1.200 cartas que se engordaron antes de
+  // que el curador supiera quedarse con la imagen. Cuando se acaben,
+  // esta fase no cuesta nada: la consulta va por un índice parcial que
+  // para entonces está vacío.
+  //
+  // Acotado y no exclusivo por la lección de la 333: una fase que se
+  // lleva la pasada entera es un cerrojo esperando a que algo no se
+  // pueda completar.
+  let imagenesRecuperadas = 0
+  let imagenesMiradas = 0
+  if (Date.now() - arranque < PRESUPUESTO_SETS_MS + PRESUPUESTO_NOMBRES_MS + PRESUPUESTO_IMAGENES_MS) {
+    for (const fila of await cartasSinImagen(clave)) {
+      if (Date.now() - arranque > PRESUPUESTO_SETS_MS + PRESUPUESTO_NOMBRES_MS + PRESUPUESTO_IMAGENES_MS) break
+      imagenesMiradas++
+      if (await repasarImagen(clave, fila)) imagenesRecuperadas++
+      await esperar(PAUSA_MS)
+    }
+  }
+
   const pendientes = await siguientes(clave, orden)
   if (!pendientes.length) {
-    return Response.json({ setsCurados, nombresArreglados, marcasPuestas, hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
+    return Response.json({ setsCurados, nombresArreglados, marcasPuestas, imagenesMiradas, imagenesRecuperadas, hechas: 0, fallidas: 0, mensaje: 'No queda ninguna por engordar' })
   }
 
   let hechas = 0
@@ -427,7 +519,7 @@ export default async function handler() {
     await esperar(PAUSA_MS)
   }
 
-  return Response.json({ setsCurados, nombresArreglados, marcasPuestas, hechas, fallidas, sinTiempo, pedidas: pendientes.length })
+  return Response.json({ setsCurados, nombresArreglados, marcasPuestas, imagenesMiradas, imagenesRecuperadas, hechas, fallidas, sinTiempo, pedidas: pendientes.length })
 }
 
 // Cada cinco minutos. Antes era cada hora con tandas de 150, y esa

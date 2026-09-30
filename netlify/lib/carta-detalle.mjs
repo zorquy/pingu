@@ -51,8 +51,8 @@ export function fechaDeSet(set) {
 // navegador. Se importan Y se reexportan —un `export … from` no crea el
 // enlace local y aquí se usan por dentro— igual que se hizo con
 // `normalizarNombre` en la 325.
-import { detalleDeCarta, IDIOMAS_DE_FICHA, urlDeCartaEnIdioma, detalleEnEspanol } from '../../js/carta-detalle.js'
-export { detalleDeCarta, IDIOMAS_DE_FICHA, urlDeCartaEnIdioma, detalleEnEspanol }
+import { detalleDeCarta, IDIOMAS_DE_FICHA, urlDeCartaEnIdioma, detalleEnEspanol, imagePathFromUrl } from '../../js/carta-detalle.js'
+export { detalleDeCarta, IDIOMAS_DE_FICHA, urlDeCartaEnIdioma, detalleEnEspanol, imagePathFromUrl }
 
 // ── Lo que solo viene en el SET COMPLETO (tanda 329) ──
 //
@@ -105,8 +105,32 @@ export function loQueFaltaDeUnSet(fila, completo) {
   if (!fila?.serie_name && serie_name) cambios.serie_name = serie_name
   const codigo = codigoLiveDeSet(completo)
   if (!fila?.tcg_online_code && codigo) cambios.tcg_online_code = codigo
+
+  // ── El LOGO y las CUENTAS (tanda 380) ──
+  //
+  // Venían en esta misma respuesta desde el primer día y se tiraban. Es
+  // lo que dejaba sin logo a Shining Legends, a la Shiny Vault, a las
+  // cuatro Trainer Gallery y a la 30th Celebration.
+  //
+  // Y la cuenta explica un síntoma que parecía otra cosa: la 30th
+  // Classic Collection «no traía ninguna carta». Las 30 estaban en la
+  // base; lo que faltaba era el número, y la estantería mide con
+  // `card_count_official || card_count_total || 0` — o sea «0 de 0».
+  const logo = imagePathFromUrl(completo?.logo)
+  if (!fila?.logo_path && logo) cambios.logo_path = logo
+  if (!fila?.symbol_url && completo?.symbol) cambios.symbol_url = completo.symbol
+  // `> 0` y no `!= null`: el 0 de la 30th Classic Collection es un
+  // número guardado, así que con `!fila?.card_count_official` valdría —
+  // pero con un `is null` NO, y prefiero que la condición diga lo que
+  // significa: «no sabemos cuántas tiene».
+  const total = entero(completo?.cardCount?.total)
+  const oficial = entero(completo?.cardCount?.official)
+  if (!(fila?.card_count_total > 0) && total) cambios.card_count_total = total
+  if (!(fila?.card_count_official > 0) && oficial) cambios.card_count_official = oficial
   return cambios
 }
+
+const entero = (v) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Math.round(Number(v)) : null)
 
 // Un set «incompleto» es uno al que aún NO se le ha pedido el set
 // completo, y el marcador es la SERIE: el set completo la trae siempre,
@@ -148,7 +172,22 @@ export function leFaltaAlgo(fila) {
 // usa la regla vieja: `'curado_at' in fila` distingue «la columna no
 // está» de «está y vale null», que es justo la confusión que esto viene
 // a quitar.
+// La VERSIÓN del curador (tanda 380). Sube cuando aprende a quedarse
+// con un campo nuevo que ya venía en la respuesta: entonces cada fila
+// visitada por una versión anterior se revisita UNA vez.
+//
+// Por qué una versión y no «¿le falta el logo?»: porque hay sets cuyo
+// logo TCGdex no tiene, y esa pregunta no distingue «no lo hemos
+// pedido» de «no existe» — se volverían a pedir para siempre. Es
+// EXACTAMENTE el cerrojo de la 333, que dejó el engorde sin arrancar
+// jamás. La pregunta que sí se puede contestar es «¿le preguntamos con
+// lo que sabemos hoy?».
+export const VERSION_CURADO = 1
+
 export function faltaVisitar(fila) {
+  // Sin la columna (migración sin ejecutar) se comporta como antes: el
+  // curador nuevo no puede exigir una columna que todavía no está.
+  if (fila && 'curado_v' in fila && (fila.curado_v ?? 0) < VERSION_CURADO) return true
   if (fila && 'curado_at' in fila) return !fila.curado_at
   return leFaltaAlgo(fila)
 }

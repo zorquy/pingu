@@ -12,6 +12,55 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-10-01 — PINGU-Claude (tanda 380 — el curador se queda con todo)
+
+**Hecho**: PINGU: «hay un montón de colecciones sin logo —Shining
+Legends, la Shiny Vault, todas las Trainer Gallery, la 30th
+Celebration— y la Classic Collection no trae ninguna carta».
+
+Tres síntomas, UNA causa: `cartas-detalle` ya se descarga el SET
+COMPLETO y la CARTA COMPLETA —las peticiones caras— y se quedaba con una
+parte. El logo venía en esa respuesta desde el primer día. **Arreglarlo
+no cuesta ni una petición más.**
+
+Y lo de la Classic Collection «sin cartas» no era eso: sus 30 cartas
+están en la base, lo que faltaba era el NÚMERO (`card_count_official` a
+0) y la estantería mide con `official || total || 0`. O sea «0 de 0».
+
+**Lo que costó encontrar**: la imagen de una carta se guarda DESDE LA
+348. El código lleva dos meses escrito y correcto, pero solo corre
+cuando el engorde visita la carta, y el engorde solo mira las que tienen
+`detalle_at` a null. Las ~1.200 engordadas antes de la 348 ya llevaban
+su marca. **Dos meses de código bueno aplicado a cero filas.**
+
+De ahí `curado_v`: una VERSIÓN del curador. Cuando aprende a guardar un
+campo nuevo, el número sube y cada fila vieja se revisita UNA vez —
+tenga o no tenga el campo. No se puede preguntar «¿le falta el logo?»
+porque hay sets cuyo logo TCGdex no tiene, y eso se volvería a pedir
+para siempre: es el cerrojo de la 333, que dejó el engorde sin arrancar.
+
+**Si algún día este curador aprende a guardar otra cosa, hay que subir
+`VERSION_CURADO`.** Por eso vive junto a `faltaVisitar`.
+
+**Ficheros**: `netlify/lib/carta-detalle.mjs`,
+`netlify/functions/cartas-detalle.mjs`, `js/carta-detalle.js` (un
+comentario), `SCHEMA.md`, y **nuevo**
+`supabase-migration-curado-completo.sql`. En `pruebas`:
+`test-tanda-380.mjs` (**nuevo**) y `test-tanda-343.mjs`, que miraba las
+columnas por su POSICIÓN y se ponía roja al añadir una — ahora comprueba
+la regla (cada escalón, prefijo estricto del anterior).
+
+**PENDIENTE DE PINGU**: ejecutar `supabase-migration-curado-completo.sql`.
+Después, el repaso va solo: los 220 sets en menos de una hora (logos y
+cuentas) y las ~1.200 cartas en unas tres.
+
+**En curso / pendiente**: PINGU quiere rehacer «Mi colección» con cuatro
+cosas de la app de TCGdex —la Pokédex por especie, la vista de una
+colección, la ficha de una carta y cómo se marca lo que tienes—. Eso es
+lo siguiente y es grande.
+
+---
+
 ## 2026-09-30 (noche) — PINGU-Claude (tanda 379 — el cero de relleno)
 
 **Hecho**: las cartas sin escaneo de TCGdex tiran de Limitless desde la

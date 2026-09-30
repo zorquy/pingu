@@ -81,6 +81,15 @@ export function detalleDeCarta(card) {
   // Collection del 30 aniversario salían con el hueco vacío— y la ficha
   // de una carta sí. Ponerla a null cuando no viene borraría la que ya
   // estaba: por eso se escribe la clave o no se escribe.
+  //
+  // OJO A LO QUE ESTO NO ARREGLA (tanda 380): esta línea solo corre
+  // cuando el engorde VISITA la carta, y el engorde solo visita las que
+  // tienen `detalle_at` a null. Las ~1.200 que se engordaron ANTES de
+  // la 348 ya tienen su marca, así que nunca se volvieron a mirar y su
+  // imagen sigue sin curarse — aunque el código para curarla lleve aquí
+  // desde entonces. Eso es lo que arregla `curado_v`: enseñarle al
+  // curador un campo nuevo no sirve de nada si no hay forma de volver a
+  // pasar por lo ya visitado.
   const imagen = imagePathFromUrl(card.image)
   if (imagen) fila.image_path = imagen
   // Y con los enums en su forma canónica: TCGdex los traduce igual que
