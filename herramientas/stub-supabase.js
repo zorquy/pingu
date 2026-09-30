@@ -171,6 +171,17 @@ sembrar('__FAKE_TORNEOS__', 'tournaments', (i) => ({
   delete_after_notice_at: null,
 }))
 
+// Los álbumes soñados (tanda 366).
+sembrar('__FAKE_ALBUMES__', 'user_albums', (i) => ({
+  id: `alb-${i + 1}`,
+  user_id: 'admin-1',
+  nombre: `Álbum ${i + 1}`,
+  descripcion: null,
+  cartas: [],
+  is_public: false,
+  updated_at: new Date().toISOString(),
+}))
+
 // Mi colección (tanda 365) y los álbumes a mano (366).
 sembrar('__FAKE_COLECCION__', 'user_collection', (i) => ({
   id: `col-${i + 1}`,
