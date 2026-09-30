@@ -12,6 +12,43 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-30 (noche) — PINGU-Claude (tanda 379 — el cero de relleno)
+
+**Hecho**: las cartas sin escaneo de TCGdex tiran de Limitless desde la
+370, y funcionaba A MEDIAS. Lo cazó PINGU mirando cartas a mano: «el
+GG10 carga, pero el GG1 no». Limitless tiene DOS costumbres y solo
+estaba una — el número a secas va con tres cifras (`70` → `070`), pero
+el que lleva letras delante va SIN el cero de relleno (`GG01` → `GG1`,
+`SV001` → `SV1`). Por eso fallaban justo `GG01`–`GG09` y se veían de
+`GG10` en adelante: ese cero no es relleno.
+
+Comprobado contra la CDN en DOS series (`CRZ_GG1` carga, `SHF_SV001` no
+y `SHF_SV1` sí), que es lo que permite tratarlo como regla y no como
+lista.
+
+Y el tope del número pasa de 6 a 8: los promos de Espada y Escudo son
+`SWSH177`, que son siete, y el 6 los tiraba a todos devolviendo `null`.
+22 cartas que no llegaban ni a intentarlo.
+
+**Antes de esto**, PINGU ejecutó unos `update` a mano rellenando el
+`tcg_online_code` de los Black Star Promos y de las energías de SV, que
+TCGdex dejó de dar en 2023: las cartas «sin salida» bajaron de 765 a 612.
+
+**Ficheros**: `js/escaneo-carta.js`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-370.mjs` (casos medidos, no deducidos).
+
+**En curso / pendiente**: las cuatro *Trainer Gallery* (120 cartas)
+siguen sin imagen A PROPÓSITO. Lo obvio —darles el código del set
+padre— **rompería el resolutor de decklists**: `setDeCodigo()` hace
+`.limit(1)` sobre el código, así que dos sets con `BRS` harían que una
+línea «BRS 15» resolviera al azar. Hay que deducir el padre en
+`escaneo-carta.js`, no escribirlo en los datos.
+
+Y ~250 cartas (McDonald's, Trainer Kits, POP…) no tienen arreglo por
+aquí: nunca existieron en TCG Live.
+
+---
+
 ## 2026-09-30 (después) — PINGU-Claude (limpieza: los SQL ya están puestos)
 
 **Hecho**: PINGU ha ejecutado las tres migraciones (intercambios, valor

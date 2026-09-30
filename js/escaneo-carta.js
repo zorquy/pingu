@@ -48,17 +48,38 @@ export const PROMOS_SIN_GUION = {
   'PR-ME': 'MEP',
 }
 
-// /tpci/TWM/TWM_130_R_EN_SM.png. El número va con tres cifras si es
-// numérico; los de letras («TG12») tal cual.
+// /tpci/TWM/TWM_130_R_EN_SM.png.
+//
+// ── CÓMO SE ESCRIBE EL NÚMERO, que es donde estaba el fallo (tanda 379) ──
+//
+// Limitless tiene DOS costumbres y hay que respetar las dos:
+//
+//   · Número a secas → con TRES cifras: «70» es `070`.
+//   · Número con letras delante → SIN el cero de relleno: la Galarian
+//     Gallery es `GG1`, no `GG01`, y la Shiny Vault es `SV1`, no `SV001`.
+//
+// La segunda no estaba, y por eso el síntoma era tan raro: `GG10` a
+// `GG70` se veían y `GG01` a `GG09` no. La misma colección, unas sí y
+// otras no, sin ningún error por ninguna parte. Lo cazó PINGU mirando
+// cartas a mano, no una prueba: «el GG10 carga, pero el GG1 no».
+//
+// Comprobado contra la CDN el 2026-09-30 en DOS series distintas —CRZ y
+// SHF—, que es lo que permite aplicarlo como regla y no como lista.
 //
 // Devuelve null si el set o el número no tienen pinta de serlo: esto
 // monta una dirección a pelo, y una dirección inventada es una imagen
 // rota. Mejor no pintar nada, que la caja ya tiene su estilo para eso.
+//
+// El tope del número es 8 y no 6: los promos de Espada y Escudo son
+// `SWSH177`, que son SIETE, y el 6 los tiraba a todos sin decir nada —
+// devolvía null y la carta se quedaba en blanco. Era un número elegido
+// a ojo, que es la lección de la 320: un corte que nadie ha medido es
+// una afirmación sobre un ancho que nadie ha medido.
 export function imagenDeLimitless(set, numero, tamanio = 'SM') {
   const s = PROMOS_SIN_GUION[String(set || '').toUpperCase()] || String(set || '').toUpperCase()
   const n = String(numero ?? '').trim()
-  if (!/^[A-Z0-9]{2,6}$/.test(s) || !/^[A-Za-z0-9]{1,6}$/.test(n)) return null
-  const num = /^\d+$/.test(n) ? n.padStart(3, '0') : n
+  if (!/^[A-Z0-9]{2,6}$/.test(s) || !/^[A-Za-z0-9]{1,8}$/.test(n)) return null
+  const num = /^\d+$/.test(n) ? n.padStart(3, '0') : n.replace(/^([A-Za-z]+)0+(?=\d)/, '$1')
   return `${CDN}/${s}/${s}_${num}_R_EN_${tamanio}.png`
 }
 

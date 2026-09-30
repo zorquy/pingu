@@ -20328,3 +20328,74 @@ clases ampliado, más `pesar-portada.mjs` (168,5 KB, 1,5 de margen). La
 mudanza se verificó además contando llaves y comprobando que las 32
 reglas están en la hoja nueva y en ninguna otra: una regla perdida al
 mudar no da error, deja una pantalla sin estilo.
+
+
+---
+
+## Tanda 379 — el cero de relleno que apagaba media colección (sept. 2026)
+
+La 370 montó el segundo sitio donde buscar un escaneo —la CDN de
+Limitless, por código de TCG Live y número— para las cartas que TCGdex no
+tiene. Funcionaba a medias, y el síntoma era tan raro que **no lo habría
+cazado nadie leyendo el código**:
+
+> «Crown Zenith Galarian Gallery carga algunas. El GG10 carga, pero el
+> GG1, que es el Voltorb de Hisui, no.» — PINGU, mirando cartas a mano.
+
+La misma colección, unas sí y otras no, sin un solo error por ninguna
+parte.
+
+### Limitless tiene DOS costumbres, y solo estaba una
+
+- Número a secas → **tres cifras**: «70» es `070`. Eso estaba.
+- Número **con letras delante** → **sin** el cero de relleno: la Galarian
+  Gallery es `GG1`, no `GG01`; la Shiny Vault es `SV1`, no `SV001`.
+
+TCGdex las guarda rellenas (`GG01`, `SV001`) y el código las pasaba tal
+cual. Por eso fallaban exactamente `GG01`–`GG09` y se veían `GG10` en
+adelante: el cero de `GG10` no es relleno, es parte del número.
+
+Comprobado contra la CDN **en dos series distintas** —`CRZ_GG1` carga,
+`SHF_SV001` no y `SHF_SV1` sí—, que es lo que permite aplicarlo como
+REGLA y no como una lista de excepciones. Una lista se queda vieja (la
+lección de la 323).
+
+### Y el tope del número, que tiraba 22 cartas enteras
+
+El guardia aceptaba hasta 6 caracteres. Los promos de Espada y Escudo son
+`SWSH177`, que son **siete**: `imagenDeLimitless` devolvía `null` y esas
+cartas no llegaban ni a intentarlo. Ahora 8.
+
+Ese 6 era un número elegido a ojo, que es la lección de la 320: **un
+corte que nadie ha medido es una afirmación sobre un ancho que nadie ha
+medido.** Se vio comparando el `local_id` real de la base contra el
+guardia, no mirando la pantalla.
+
+### Lo que salió de camino
+
+Del diagnóstico salieron **1.231 cartas sin escaneo de 21.356** (5,8 %), y
+de esas 765 sin salida. La mitad eran sets sin `tcg_online_code`, que
+TCGdex dejó de dar en 2023: se rellenaron a mano los Black Star Promos
+(`PR-SM`, `PR-SV`, `PR-SW`, `PR-XY`, `PR-BLW`) y las energías de
+Escarlata y Púrpura (`SVE`), y las sin salida bajaron a 612.
+
+Lo que **no** se tocó, a propósito: las cuatro *Trainer Gallery*. Lo
+obvio sería darles el código del set padre (`BRS`, `ASR`, `LOR`, `SIT`),
+pero `setDeCodigo()` en `js/torneos/cartas-decklist.js` hace
+`.eq('tcg_online_code', clave).limit(1)` — **coge la primera que salga**.
+Habría dos sets con el mismo código y una línea de decklist «BRS 15»
+resolvería a uno u otro al azar. Cambiaría 120 imágenes por un resolutor
+impredecible: eso se arregla en el código que deduce el padre, no en los
+datos.
+
+Y ~250 cartas no tienen arreglo por este camino —McDonald's, Trainer
+Kits, POP Series, Unseen Forces Unown— porque **nunca existieron en TCG
+Live** y Limitless no las aloja. Se quedan con su hueco, que es lo
+honesto.
+
+### Comprobado
+
+`test-tanda-370.mjs`, con los casos **medidos contra la CDN** y no
+deducidos: `GG01`→`GG1`, `SV001`→`SV1`, `GG10` intacto, `SM125` intacto,
+`SWSH074`→`SWSH74`, `SWSH177` ya no se tira, y nueve caracteres siguen
+sin montar nada.
