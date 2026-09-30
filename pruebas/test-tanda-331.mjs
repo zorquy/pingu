@@ -72,6 +72,22 @@ const conTCGdex = async (page, { hayEspanol = true, cae = false } = {}) => {
   return pedidas
 }
 
+// La sección del precio pide la carta EN INGLÉS para sacar las cifras de
+// Cardmarket (`urlDePrecio`, tanda 375), y es la MISMA dirección que
+// usaría el detalle: desde aquí no hay forma de distinguirlas por la url.
+// Así que se le descuenta UNA petición en inglés, y aparte se comprueba
+// que esa petición existe — si algún día el precio deja de pedirla, esta
+// prueba tiene que cantarlo en vez de seguir en verde por descontar algo
+// que ya no pasa.
+//
+// Se quita una cualquiera y no la última: el precio y el detalle salen en
+// paralelo y el orden no está garantizado.
+const sinLaDelPrecio = (pedidas) => {
+  const i = pedidas.indexOf('en')
+  return i === -1 ? pedidas : [...pedidas.slice(0, i), ...pedidas.slice(i + 1)]
+}
+const pidioElPrecio = (pedidas) => pedidas.includes('en')
+
 const abrir = async (opciones = {}, cartas = [EN_LA_BASE]) => {
   const page = await browser.newPage({ viewport: { width: 1150, height: 1100 } })
   const errores = []
@@ -104,7 +120,8 @@ console.log('\n── 1. Una carta sin engordar se pinta ENTERA ──')
   const ficha = limpio((await page.locator('.carta-ficha div').allTextContents()).join(' | '))
   check('y la rareza y el ilustrador, que tampoco estaban', /Doble rara/.test(ficha) && /PLANETA/.test(ficha), ficha)
   // Español primero, y sin pedir el inglés de más.
-  check('solo se pide el español', pedidas.join(',') === 'es', pedidas.join(','))
+  check('el precio pide la carta en inglés', pidioElPrecio(pedidas), pedidas.join(','))
+  check('solo se pide el español', sinLaDelPrecio(pedidas).join(',') === 'es', pedidas.join(','))
   await page.close()
 }
 
@@ -137,7 +154,8 @@ console.log('\n── 3. Si TCGdex no contesta, la página va igual ──')
 
   // Y una carta vieja sin traducir: cae al inglés y se pinta igual.
   const { page: p2, pedidas } = await abrir({ hayEspanol: false })
-  check('una sin traducir pide los dos idiomas', pedidas.join(',') === 'es,en', pedidas.join(','))
+  check('una sin traducir pide los dos idiomas',
+    sinLaDelPrecio(pedidas).join(',') === 'es,en', pedidas.join(','))
   check('…y se pinta con el inglés',
     (await p2.locator('.carta-mov-nombre').allTextContents()).some((t) => /Genome Hacking/.test(t)),
     (await p2.locator('.carta-mov-nombre').allTextContents()).join(' | '))
@@ -153,7 +171,7 @@ console.log('\n── 4. Una carta ya engordada NO se vuelve a pedir ──')
     ...EN_LA_BASE, detalle_at: '2026-09-22T10:00:00Z', category: 'Pokemon', hp: 180,
     stage: 'Basic', types: ['Psychic'], attacks: [{ name: 'Impulso Psíquico', cost: ['Psychic'], damage: '180' }],
   }])
-  check('no se pide nada a TCGdex', pedidas.length === 0, pedidas.join(','))
+  check('no se pide nada a TCGdex', sinLaDelPrecio(pedidas).length === 0, pedidas.join(','))
   check('y la ficha sale igual de completa',
     (await page.locator('.carta-mov-nombre').count()) === 1)
   await page.close()
@@ -278,7 +296,7 @@ console.log('\n── 6. Y cuando el BORDE ya ha pintado (que es producción) �
   check('una carta engordada NO se repinta',
     (await p2.evaluate(() => window.__repintados)) === 0,
     `el cliente repintó ${await p2.evaluate(() => window.__repintados)} veces lo que el borde ya tenía bien`)
-  check('…ni se le pide nada a TCGdex', pedidas2.length === 0, pedidas2.join(','))
+  check('…ni se le pide nada a TCGdex', sinLaDelPrecio(pedidas2).length === 0, pedidas2.join(','))
   await p2.close()
 
   // Y el contrario, con el mismo contador: la que NO está engordada sí
