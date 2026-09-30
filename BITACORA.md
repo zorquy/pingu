@@ -12,6 +12,41 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+## 2026-09-30 (después) — PINGU-Claude (limpieza: los SQL ya están puestos)
+
+**Hecho**: PINGU ha ejecutado las tres migraciones (intercambios, valor
+histórico y el código de torneo). Con `tournaments.join_code` YA TIRADA,
+dos respaldos del puente de la 367 pasaban de ser redundantes a ser
+IMPOSIBLES —escribían en una columna que no existe—, así que se van:
+
+- `js/torneos/torneos.js`: el respaldo que, si fallaba el insert en
+  `tournament_join_codes`, escribía en `tournaments.join_code`. Además de
+  no poder funcionar, **pisaba el error de verdad con otro que no dice
+  nada**.
+- `js/torneos/torneo.js`: `leerCodigo()` se caía a `torneo.join_code`.
+  Ahora devuelve '' a secas, que es lo correcto igual: mejor el campo
+  vacío que un código que no sabemos si es el bueno.
+
+**Se queda** el reintento de `torneos_inscribirse` con los tres
+parámetros de antes: ese no apunta a nada tirado y protege del rato en
+que PostgREST todavía tiene la caché de esquema fría después de una
+migración. Ese sí, cuando lleve un tiempo.
+
+Y las dos tablas nuevas entran en `REQUISITOS` de `js/schema-check.js`,
+que es el sitio donde una migración sin ejecutar se anuncia sola en
+/admin en vez de reventar más tarde con un mensaje de PostgREST en
+inglés. `user_wants` y `user_collection_value`; la columna
+`user_collection.cambio` no hace falta porque la cubre su puente.
+
+**Ficheros**: `js/schema-check.js`, `js/torneos/torneos.js`,
+`js/torneos/torneo.js`.
+
+**En curso / pendiente**: la primera línea de la gráfica del valor sale
+**mañana**: la función programada corre a las 4:07 y con un solo punto no
+se pinta nada. Sigue pendiente el **SQL de las imágenes**.
+
+---
+
 ## 2026-09-30 — PINGU-Claude (tandas 375 a 378 — el precio que no era, los INTERCAMBIOS, el valor en el tiempo y sitio en la portada)
 
 **Hecho**: dos cosas, y la segunda es grande.

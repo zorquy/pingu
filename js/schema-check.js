@@ -74,6 +74,14 @@ export const REQUISITOS = [
   // Tabla entera (tanda 367). Un torneo con código sin ella se queda a la
   // vista y sin llave: se ve, pero no entra nadie.
   { tabla: 'tournament_join_codes', columna: 'code', fichero: 'supabase-migration-torneos-codigo.sql', rompe: 'Los torneos con código no guardan el suyo: se ven, pero no se puede entrar.' },
+  // Los intercambios (tanda 376). Se comprueba `user_wants`, que es la
+  // tabla NUEVA; la columna `user_collection.cambio` la cubre el puente
+  // de `js/mi-coleccion/datos.js`, que deja de pedirla si no está.
+  { tabla: 'user_wants', columna: 'prioridad', fichero: 'supabase-migration-intercambios.sql', rompe: 'La pestaña «Cambios» de Mi colección no funciona: nadie puede apuntar lo que busca ni ver quién le encaja.' },
+  // El valor en el tiempo (tanda 377). Sin esto la gráfica dice «la
+  // primera foto se toma esta noche» para siempre, y la función
+  // programada se salta cada pasada sin dar guerra.
+  { tabla: 'user_collection_value', columna: 'valor', fichero: 'supabase-migration-valor-historico.sql', rompe: 'La gráfica del valor de una colección no sale nunca (el resto de Mi colección funciona).' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

@@ -546,15 +546,18 @@ function fechasDelEditor() {
 // refresca sola cada 10 segundos y esto sería una consulta más en cada
 // vuelta para un dato que casi nunca se mira.
 //
-// El PUENTE (temporal, como `faltaLaRpc`): si la tabla todavía no está,
-// se cae al sitio viejo. Quitar esto cuando la migración lleve un tiempo.
+// El puente al sitio viejo se fue con la migración (2026-09-30):
+// `tournaments.join_code` ya no existe. Si esto falla ahora es por otra
+// cosa —permisos, red— y devolver '' es lo correcto igual: el campo sale
+// vacío y quien edita vuelve a escribir su código, que es mejor que
+// enseñarle uno que no sabemos si es el bueno.
 async function leerCodigo() {
   const { data, error } = await supabase
     .from('tournament_join_codes')
     .select('code')
     .eq('tournament_id', torneo.id)
     .maybeSingle()
-  if (error) return torneo.join_code || ''
+  if (error) return ''
   return data?.code || ''
 }
 

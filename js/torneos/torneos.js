@@ -1066,17 +1066,13 @@ function engancharFormulario(session, perfil) {
       const { data: creado } = await supabase.from('tournaments').select('id').eq('slug', fila.slug).maybeSingle()
       let falloCodigo = creado?.id ? null : { message: 'no se encuentra el torneo recién creado' }
       if (creado?.id) {
+        // El puente al sitio viejo se fue con la migración (2026-09-30):
+        // `tournaments.join_code` YA NO EXISTE, así que un respaldo que
+        // escriba ahí solo puede fallar — y encima pisaba el error de
+        // verdad con otro que no dice nada.
         ;({ error: falloCodigo } = await supabase
           .from('tournament_join_codes')
           .insert({ tournament_id: creado.id, code: codigoNuevo }))
-        // El PUENTE mientras la migración no esté puesta: al sitio viejo.
-        // Temporal — quitar cuando lleve un tiempo.
-        if (falloCodigo) {
-          ;({ error: falloCodigo } = await supabase
-            .from('tournaments')
-            .update({ join_code: codigoNuevo })
-            .eq('id', creado.id))
-        }
       }
       if (falloCodigo) {
         showToast('El torneo está creado, pero el código no se ha guardado: ponlo desde Editar.', 'error')
