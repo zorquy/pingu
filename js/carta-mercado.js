@@ -29,19 +29,22 @@ import {
 // necesita CSS, y ese CSS solo lo carga esta página (ver el fichero).
 import { logoCardmarket, marcaCardmarket } from './cardmarket-marca.js'
 import { preciosEnVivo, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
+import { variantesDeCarta, TODAS } from './mi-coleccion/variantes.js'
+import { especiesDeCarta, especiePorDex } from './pokedex-especies.js'
 
 const $ = (id) => document.getElementById(id)
 
-// Las versiones que existen de ESTA carta, según TCGdex. Si no lo dice,
-// normal y reverse, que es lo más común.
+// Las versiones que existen de ESTA carta. La cuenta la hace
+// `js/mi-coleccion/variantes.js`, que es el mismo módulo que usa el
+// bolsillo del álbum: aquí había una copia y las dos YA DISCREPABAN —
+// esta suponía normal + reverse cuando no se sabía, y aquella solo
+// normal (tanda 384).
+//
+// Y esta pantalla pide TODAS cuando no se sabe, a propósito: aquí la
+// carta la tienes tú en la mano y sabes mejor que nosotros en qué
+// versión es. En el álbum es al revés, porque allí marcar es AFIRMAR.
 function variantesDe(v) {
-  if (!v) return ['normal', 'reverse']
-  const lista = []
-  if (v.normal) lista.push('normal')
-  if (v.reverse) lista.push('reverse')
-  if (v.holo) lista.push('holo')
-  if (v.firstEdition) lista.push('primera')
-  return lista.length ? lista : ['normal']
+  return variantesDeCarta({ variants: v }, TODAS).map((x) => x.nuestro)
 }
 
 function opciones(lista, activo) {
@@ -59,6 +62,20 @@ function resumenDeTengo(lineas) {
   const copias = lineas.reduce((s, l) => s + l.cantidad, 0)
   const detalle = lineas.map((l) => `${l.cantidad}× ${idiomaDe(l.idioma).nombre.toLowerCase()} ${estadoDe(l.estado).id}${l.variante === 'reverse' ? ' reverse' : ''}`).join(', ')
   return `La tienes: ${copias} ${copias === 1 ? 'copia' : 'copias'} (${detalle}).`
+}
+
+// «Ver los 312 Pikachus» → la Pokédex, abierta en esa especie (tanda
+// 384). Sin consultar nada: la especie sale del NOMBRE, que ya está
+// aquí, con el mismo mecanismo que usa la Pokédex.
+//
+// Solo si la carta tiene UNA especie: en una TAG TEAM habría que elegir
+// entre dos y un enlace que elige por ti manda a medio sitio.
+function enlaceDeEspecie(carta) {
+  const dexes = especiesDeCarta(carta?.name || carta?.name_es)
+  if (dexes.length !== 1) return ''
+  const nombre = especiePorDex(dexes[0])
+  if (!nombre) return ''
+  return `<a class="link-btn carta-mercado-ir" href="/mi-coleccion?ver=pokedex&amp;dex=${dexes[0]}">Todas las cartas de ${escapeHtml(nombre)}</a>`
 }
 
 export async function pintarMercado(carta) {
@@ -91,6 +108,7 @@ export async function pintarMercado(carta) {
           <p class="carta-mercado-nota" id="cmTengo">Guárdala con el idioma, el estado y la versión de arriba.</p>
           <div class="carta-mercado-anadir" id="cmAnadirZona"></div>
           <a class="link-btn carta-mercado-ir" href="/mi-coleccion">Ir a mi colección</a>
+          ${enlaceDeEspecie(carta)}
         </div>
       </div>
       <!-- Quién da ESTA carta (tanda 376). Va en la ficha y no solo en

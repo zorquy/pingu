@@ -20844,3 +20844,56 @@ prueba las ve todas. La primera pasada cazó una red de repuesto:
 `claveDeEfecto` miraba también `name_es`, que cuando `name` viene en
 español dice lo mismo, así que quitar la traducción no cambiaba nada.
 Se quitó la línea que sobraba, no se inventó una prueba para ella.
+---
+
+## Tanda 385 — la ficha de una carta, atada al resto (oct. 2026)
+
+La última de las cuatro. Dos cosas, y la primera es una copia que **ya
+había empezado a separarse**.
+
+### Las versiones se calculaban en dos sitios, y discrepaban
+
+`js/carta-mercado.js` tenía su propia `variantesDe`, y la 383 creó
+`js/mi-coleccion/variantes.js` sin enterarse de que ya existía la otra.
+No daban lo mismo: cuando `variants` viene vacío, la ficha suponía
+**normal + reverse** y el bolsillo del álbum **solo normal**.
+
+Lo interesante es que **las dos tenían razón**, cada una para lo suyo:
+
+- En el álbum, marcar es **afirmar** que tienes algo. Ofrecer casillas
+  de versiones que a lo mejor no existen invita a apuntar una carta que
+  no se ha impreso nunca.
+- En la ficha, guardar es **describir** lo que tienes en la mano.
+  Esconderle la opción a quien sabe mejor que nosotros en qué versión la
+  tiene es impedirle apuntar la verdad.
+
+Por eso `variantesDeCarta(carta, siNoSeSabe)` **pide el respaldo en vez
+de traerlo puesto**. Un valor por defecto habría enterrado la diferencia
+otra vez, y la siguiente vez tampoco se habría visto. Cuando el dato SE
+SABE las dos pantallas dan lo mismo pase lo que pase, que es lo único
+que de verdad no podía fallar.
+
+### De una carta a su Pokédex
+
+Desde una carta no se podía llegar a su Pokédex: había que ir a
+/mi-coleccion y buscarla otra vez entre 1.025. Ahora hay un enlace
+—«Todas las cartas de Pikachu»— y la Pokédex acepta `?dex=25` para abrir
+esa especie directamente.
+
+Sin consultar nada: la especie sale del NOMBRE con el mismo mecanismo de
+la 381.
+
+Y **solo cuando la carta tiene UNA especie**. Una TAG TEAM tiene dos, y
+un enlace que elige por ti manda a medio sitio; un Entrenador no tiene
+ninguna. En los dos casos no se pone enlace, que es mejor que uno que
+lleva a donde no querías.
+
+Al volver a la rejilla, `dex` se borra de la dirección: si se queda,
+recargar vuelve a abrir la especie que acabas de cerrar.
+
+### Comprobado
+
+`test-tanda-385.mjs`: que con el dato sabido las dos pantallas coinciden
+y sin él cada una dice lo suyo, que la copia de la ficha se fue, que la
+TAG TEAM y el Entrenador NO llevan enlace, que `?dex=` abre la especie y
+que un número inventado deja la rejilla en paz.

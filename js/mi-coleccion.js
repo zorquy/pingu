@@ -1024,6 +1024,11 @@ async function abrirPokedex() {
       return
     }
   }
+  // `?dex=25` entra directa a una especie (tanda 384): es lo que hace
+  // que el enlace desde la ficha de una carta lleve a algún sitio y no
+  // a una rejilla de 1.025 donde hay que buscarla otra vez.
+  const pedida = Number(params.get('dex'))
+  if (!especieAbierta && pedida >= 1 && pedida <= 1025) especieAbierta = pedida
   if (especieAbierta) return pintarEspecie(especieAbierta)
   pintarPokedex()
 }
@@ -1346,6 +1351,11 @@ function enganchar() {
     if (especie) return pintarEspecie(Number(especie.dataset.dex))
     if (e.target.closest('#pdxVolver')) {
       especieAbierta = null
+      // Y fuera de la dirección: si se queda, recargar vuelve a abrir la
+      // especie que acabas de cerrar.
+      const url = new URL(location.href)
+      url.searchParams.delete('dex')
+      history.replaceState(null, '', url)
       pintarPokedex()
     }
   })

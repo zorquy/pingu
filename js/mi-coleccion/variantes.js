@@ -33,13 +33,34 @@ const EQUIVALE = [
 
 export const VARIANTE_POR_DEFECTO = 'normal'
 
+// Todas las que existen en el TCG, para quien quiera ofrecerlas cuando
+// no sabe cuáles tiene esta carta.
+export const TODAS = EQUIVALE.slice()
+
 // Las versiones de esta carta, en el orden de arriba. Devuelve al menos
 // una: una carta sin ninguna versión no se podría guardar.
-export function variantesDeCarta(carta) {
+//
+// ── `siNoSeSabe` NO TIENE UN VALOR «OBVIO», POR ESO SE PIDE ──
+//
+// Cuando `variants` viene vacío —la carta no se ha engordado— hay dos
+// respuestas razonables y son OPUESTAS, según para qué se pregunte:
+//
+//   · Para MARCAR en el álbum, una sola (la normal). Marcar es AFIRMAR
+//     que tienes algo, y ofrecer casillas de versiones que a lo mejor no
+//     existen invita a apuntar una carta que no se ha impreso nunca.
+//   · Para GUARDAR desde la ficha, todas. Ahí la carta la tienes tú en
+//     la mano y sabes mejor que nosotros en qué versión: esconderle la
+//     opción sería impedirle apuntar lo que de verdad tiene.
+//
+// Los dos sitios lo hacían por su cuenta y **ya discrepaban** (la ficha
+// suponía normal + reverse y el bolsillo solo normal). Un valor por
+// defecto habría enterrado la diferencia otra vez, así que se pide: que
+// cada pantalla diga en voz alta qué prefiere.
+export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   const v = carta?.variants
-  if (!v || typeof v !== 'object') return [EQUIVALE[0]]
+  if (!v || typeof v !== 'object') return siNoSeSabe
   const hay = EQUIVALE.filter((e) => v[e.suyo] === true)
-  return hay.length ? hay : [EQUIVALE[0]]
+  return hay.length ? hay : siNoSeSabe
 }
 
 // ¿Merece la pena enseñar el selector? Con una sola versión no: sería

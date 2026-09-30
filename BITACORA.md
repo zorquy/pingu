@@ -12,6 +12,39 @@ antes de cada push (ver CLAUDE.md). Formato:
 
 ---
 
+**OJO, CHOQUE DE NÚMEROS**: Ibai y yo usamos la 384 a la vez y con el
+mismo nombre de fichero de prueba. Él llegó antes al remoto, así que lo
+mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
+que falló es que ninguno de los dos la releyó justo antes de numerar,
+porque las dos tandas se empezaron con el repo al día.
+
+## 2026-10-01 — PINGU-Claude (tanda 385 — la ficha de una carta)
+
+**Hecho**: la última de las cuatro. Dos cosas:
+
+1. **Las versiones se calculaban en DOS sitios y ya discrepaban**: la
+   ficha suponía normal + reverse cuando no se sabía y el bolsillo del
+   álbum solo normal. Lo curioso es que las dos tenían razón para lo
+   suyo —marcar es AFIRMAR, guardar desde la ficha es DESCRIBIR lo que
+   tienes en la mano—, así que ahora `variantesDeCarta` PIDE el
+   respaldo en vez de traerlo puesto. Un valor por defecto habría
+   enterrado la diferencia otra vez.
+2. **Enlace de una carta a su Pokédex** («Todas las cartas de Pikachu»),
+   con `?dex=25` para entrar directo. Solo si la carta tiene UNA
+   especie: una TAG TEAM tiene dos y un enlace que elige por ti manda a
+   medio sitio.
+
+**Ficheros**: `js/carta-mercado.js`, `js/mi-coleccion/variantes.js`,
+`js/mi-coleccion.js`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-385.mjs` (**nuevo**).
+
+**En curso / pendiente**: las cuatro cosas de la lista están hechas.
+PINGU aclaró que la app que le gusta es **dextcg.com** y yo no la puedo
+ver (el proxy la bloquea): si pasa capturas, se ajusta.
+
+Los SQL de la 380 y la 381 ya están ejecutados, así que el repaso del
+catálogo (logos, símbolos, cuentas y las ~1.200 imágenes) y el relleno
+de la Pokédex van solos.
 ## 2026-09-30 16:15 — PINGU-Claude (tanda 384 — el laboratorio de pruebas del constructor)
 
 **Hecho**: PINGU pidió un laboratorio en el constructor: una partida de
