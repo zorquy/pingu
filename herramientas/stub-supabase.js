@@ -1116,6 +1116,20 @@ export const supabase = {
       )
       return { data: filas.slice(0, args.p_limite || 200), error: null }
     }
+    // La Pokédex (tanda 381). Se CALCULA del catálogo, como los
+    // resultados de una encuesta: devolverlo a mano haría que «tienes 3
+    // de 12» comprobara la semilla y no la pantalla.
+    if (nombre === 'pokedex_resumen') {
+      const porDex = new Map()
+      for (const c of T.tcg_cards) {
+        if ((c.market || 'WEST') !== 'WEST') continue
+        for (const d of c.dex_ids || []) porDex.set(d, (porDex.get(d) || 0) + 1)
+      }
+      return {
+        data: [...porDex.entries()].sort((a, b) => a[0] - b[0]).map(([dex, cartas]) => ({ dex, cartas })),
+        error: null,
+      }
+    }
     if (nombre === 'forum_ver_tema') {
       const tema = T.forum_threads.find((t) => t.id === args.p_thread)
       if (tema) tema.view_count = (tema.view_count || 0) + 1
