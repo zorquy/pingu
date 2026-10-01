@@ -10,7 +10,8 @@
 //
 // /mi-coleccion?u=<usuario> enseña la de otra persona si la ha hecho
 // pública, sin nada que se pueda tocar.
-import { escapeHtml, getSession } from './app.js'
+import { escapeHtml, getSession, profileUrl, avatarStyle, getInitial } from './app.js'
+import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
 import { supabase } from './supabase.js'
 import { normalizeSearch } from './tcgdex.js'
@@ -565,6 +566,7 @@ function abrirEditor(l) {
   // «Ilustrador: —» ocupa lo mismo que el dato y no dice nada.
   $('mcEdTabla').innerHTML = tablaDeCarta(c)
   pintarCarpetasDeLaFicha(l.id)
+  pintarQuienLaTiene(l.card_id)
   $('mcEdIdioma').innerHTML = opciones(IDIOMAS, l.idioma)
   $('mcEdEstado').innerHTML = opciones(ESTADOS, l.estado)
   $('mcEdVariante').innerHTML = opciones(VARIANTES, l.variante)
@@ -1288,6 +1290,39 @@ let carpetaAbierta = null
 // esconde si no hay ninguna carpeta: un rótulo «Carpetas» encima de un
 // hueco vacío no dice qué hacer, y lo que hay que hacer está en otra
 // pestaña.
+// Quién de los que sigues tiene esta carta (tanda 403). El bloque se
+// esconde si no hay nadie: un rótulo «La tienen» encima de un hueco
+// vacío dice «no tienes amigos» sin querer, y además no se distingue de
+// «todavía no lo he mirado».
+async function pintarQuienLaTiene(cardId) {
+  const bloque = $('mcEdQuienBloque')
+  const hueco = $('mcEdQuien')
+  if (!bloque || !hueco || !cardId) return
+  bloque.classList.add('hidden')
+  let gente = []
+  try {
+    gente = await datos.quienLaTiene(cardId)
+  } catch {
+    return
+  }
+  // Puede haber llegado tarde: si mientras tanto se ha abierto otra
+  // carta, esto pintaría la gente de la anterior.
+  const l = lineas.find((x) => x.id === $('mcEditor').dataset.linea)
+  if (!l || l.card_id !== cardId) return
+  if (!gente.length) return
+  bloque.classList.remove('hidden')
+  hueco.innerHTML = gente
+    .map((g) => {
+      const nombre = g.display_name || g.username || 'Alguien'
+      return `<a class="mc-quien-persona" href="${escapeHtml(profileUrl(g))}"${atributosDeRango(g)}>
+        <span class="mini-avatar" style="${avatarStyle(g)}">${g.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
+        <span class="mc-quien-nombre">${escapeHtml(nombre)}</span>
+        <span class="mc-quien-cuantas">×${Number(g.copias) || 1}</span>
+      </a>`
+    })
+    .join('')
+}
+
 async function pintarCarpetasDeLaFicha(lineId) {
   const bloque = $('mcEdCarpetasBloque')
   const hueco = $('mcEdCarpetas')

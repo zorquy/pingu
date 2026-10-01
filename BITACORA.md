@@ -23,6 +23,36 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 403 — quién de los tuyos tiene esta carta)
+
+**Hecho**: el bloque «FRIENDS» de Dex, con lo que aquí tiene sentido —
+no hay amigos, hay **seguidos**.
+
+Va por una función de la base y no por una consulta: **la colección de
+otra persona no se lee desde fuera**, su política solo deja ver la tuya,
+y abrirla entera para esto sería enseñar a cualquiera lo que tiene todo
+el mundo. La función contesta esa pregunta y ninguna otra.
+
+**Y respeta `coleccion_publica`**: quien la tiene en privado no sale
+aunque le sigas. Seguir a alguien no es permiso para mirarle los cajones.
+
+El bloque se esconde si no hay nadie: un rótulo «La tienen» encima de un
+hueco vacío dice «no tienes amigos» sin querer. Y una respuesta que llega
+tarde no pinta la gente de otra carta — la ficha se abre y se cierra más
+rápido que la consulta.
+
+**La prueba de la 386 hizo su trabajo**: la función devolvía un nombre
+que sale CON ENLACE al perfil y no traía `is_admin`/`is_moderator`, así
+que habrían salido todos en azul. Lo cazó sola.
+
+**SQL a ejecutar**: `supabase-migration-quien-la-tiene.sql` (**nuevo**).
+Sin él, el bloque no sale y ya está.
+
+**Ficheros**: `supabase-migration-quien-la-tiene.sql` (**nuevo**),
+`js/mi-coleccion/datos.js`, `js/mi-coleccion.js`, `mi-coleccion.html`,
+`css/mi-coleccion.css`. En `pruebas`: `test-tanda-403.mjs` (**nuevo**) y
+`correr-suite.sh`.
+
 ## 2026-10-01 — PINGU-Claude (tanda 402 — carpetas para ordenar tu colección)
 
 **Hecho**: lo que pidió PINGU viendo Dex — carpetas, con subcarpetas

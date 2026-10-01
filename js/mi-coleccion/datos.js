@@ -277,3 +277,21 @@ export async function ponerPublica(userId, publica) {
   if (!data?.length) throw new Error('No se ha podido cambiar.')
   return data[0].coleccion_publica
 }
+
+// Quién de los que sigues tiene esta carta (tanda 403).
+//
+// Va por una función de la base porque la colección de otra persona no se
+// lee desde fuera: su política solo deja ver la tuya. La función contesta
+// esa pregunta y ninguna otra, y respeta `coleccion_publica` — seguir a
+// alguien no es permiso para mirarle los cajones.
+export async function quienLaTiene(cardId) {
+  const { data, error } = await supabase.rpc('coleccion_quien_la_tiene', { p_card_id: cardId })
+  if (error) {
+    // Sin la migración, el bloque no sale. No es un fallo que haya que
+    // gritar en mitad de una ficha.
+    if (traducir(error).sinMigracion) return []
+    throw traducir(error)
+  }
+  return data || []
+}
+
