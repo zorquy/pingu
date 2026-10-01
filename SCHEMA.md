@@ -21697,3 +21697,89 @@ texto empieza donde empieza la columna.
 y 1280 px —la forma del fallo, no el ancho que falló—; el nombre, la
 colección y las chapas centrados en el móvil; y en el ordenador, la carta
 a la izquierda de los datos y el nombre SIN centrar.
+
+## Tanda 408 — de ocho pestañas a cinco (oct. 2026)
+
+PINGU: «creo que la pestaña de añadir cartas sobra porque tú puedes
+buscar las cartas en el buscador directamente, ¿no? ¿Cómo
+reestructurarías todo para parecerse a Dex, que tenga las funciones
+justas y que no sobre ninguna pestaña?».
+
+Tenía razón, y la 405 había resuelto el síntoma y no el problema: la
+columna lateral hizo que las ocho CUPIERAN, y caber no es lo mismo que
+hacer falta.
+
+### Las cinco, y dónde se metió cada una de las otras tres
+
+| Pestaña | Lo que se come |
+|---|---|
+| **Cartas** | **Añadir cartas** |
+| **Expansiones** | — |
+| **Pokédex** | — |
+| **Carpetas** | **Álbumes soñados** |
+| **Panel** (antes «Resumen») | **Cambios** |
+
+**Añadir cartas** era una pestaña con SU PROPIO buscador, y eso obligaba
+a saber de antemano si la carta que buscas ya es tuya: si lo era estaba
+en «Cartas», y si no, en la otra. **Nadie sabe eso antes de buscar.**
+Ahora hay un buscador: arriba lo tuyo filtrado y debajo, tras una línea,
+«¿No la tienes? Añádela del catálogo». Lo tuyo se filtra en memoria y es
+instantáneo; el catálogo va detrás con su espera de 250 ms, porque es una
+consulta por tecla.
+
+**Álbumes soñados** y **Carpetas** son la misma pregunta —cómo agrupo mis
+cartas— con dos respuestas: lo que tengo y lo que quiero tener. En las
+capturas de Dex una carpeta ya lleva su barra de progreso (Eiscue, 16 de
+27), que es exactamente un álbum soñado.
+
+**Cambios** se va al Panel porque es lo que hace el panel de control de
+Dex: «Intercambiar» es un acceso de ahí, no una sección aparte. Y porque
+los cambios nacen de lo que el panel te acaba de contar — lo que te
+sobra.
+
+Con cinco caben en la barra del móvil **sin un «Más» detrás**, y la
+columna del ordenador no necesita rótulos de grupo: cinco nombres se leen
+de un vistazo. Lo que escondía el «Más» ya no existe.
+
+### Un `?ver=` que ya no existe NO da error
+
+Abre la primera pestaña y parece que el enlace estaba mal escrito. Los
+tres nombres viejos no se borran: se REDIRIGEN (`MUDANZAS` en
+`js/mi-coleccion.js`). `?ver=anadir` lleva a Cartas, `?ver=albumes` a
+Carpetas —con su `&album=` intacto— y `?ver=cambios` al Panel. Y lo que
+ESCRIBE una URL (el enlace que copias de un álbum, el aviso de
+`carta-mercado.js`) pasa a escribir el nombre nuevo.
+
+### Lo que era una pestaña escondida ahora es un bloque escondido
+
+Mirando la colección de OTRA persona, tres cosas no tenían sentido y se
+escondían quitando su pestaña. Ahora son tres bloques dentro de otras
+pestañas, así que lo que se esconde son los bloques: el catálogo para
+añadir, los álbumes soñados y los cambios —que son de QUIEN MIRA, no de
+la colección que se mira—.
+
+### Y una regresión de la 405 que no se había visto
+
+El panel del Resumen pinta cuatro cajas en dos columnas, con
+`minmax(min(100%, 420px), 1fr)`. Desde que el menú es una COLUMNA, el
+panel mide 840 px en una pantalla de 1280 — y dos cajas de 420 más su
+hueco piden 856. Se quedaban en **una sola columna, cuatro cajas en
+cuatro filas**, sin que nada diera error. Ahora son 380. Un número
+elegido contra un ancho que ya no existe no ordena nada; lo cazó
+`test-tanda-374.mjs`, que mide dónde acaban pintadas y no cuántas son.
+
+### Comprobado
+
+`test-tanda-408.mjs`: que son esas cinco y que cada una tiene su panel
+—una pestaña sin panel no da error, deja la pantalla en blanco—; las
+cinco en la barra del móvil, sin «Más» y **sin un solo nombre cortado**;
+las TRES mudanzas y las CINCO actuales abriéndose por enlace; que ningún
+sitio sigue escribiendo un `?ver=` mudado; el catálogo apareciendo al
+buscar, POR DEBAJO de tus cartas, y yéndose al borrar; y los dos bloques
+mudados en su nueva casa con su rótulo.
+
+Y una trampa que mordió DENTRO de la prueba: el barrido de «quién escribe
+todavía un `?ver=` viejo» salía rojo por **el comentario que explica la
+mudanza**, que lo nombra. Al barrer código en busca de una cadena cuenta
+todo lo que la CONTIENE, no solo lo que la ES. Va con los comentarios
+quitados antes de buscar.

@@ -23,6 +23,36 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 408 — de ocho pestañas a cinco)
+
+**Hecho**: lo pidió PINGU y tenía razón — la 405 había resuelto el
+síntoma (que las ocho CUPIERAN en una columna) y no el problema. Quedan
+**cinco**: Cartas (que se come **Añadir cartas**), Expansiones, Pokédex,
+Carpetas (que se come **Álbumes soñados**) y **Panel** (antes «Resumen»,
+que se come **Cambios**). Un solo buscador: arriba lo tuyo y debajo «¿No
+la tienes? Añádela del catálogo» — tener dos obligaba a saber ANTES de
+buscar si la carta ya era tuya. Con cinco sobra el «Más» del móvil y los
+rótulos de grupo de la columna.
+
+**Los enlaces viejos no se borran, se redirigen**: `?ver=anadir` →
+Cartas, `?ver=albumes` → Carpetas (con su `&album=`) y `?ver=cambios` →
+Panel. Un `?ver=` que ya no existe NO da error: abre la primera pestaña y
+parece que el enlace estaba mal escrito.
+
+**Y una regresión de la 405 que no se había visto**: el panel del Resumen
+pedía 420 px por caja, y desde que el menú es una columna el panel mide
+840 en una pantalla de 1280 — dos cajas piden 856. Las cuatro cajas se
+quedaban en cuatro filas, sin dar error. A 380.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`js/mi-coleccion/albumes.js`, `js/carta-mercado.js`, `css/mi-coleccion.css`,
+`SCHEMA.md`. En la rama `pruebas`: `test-tanda-408.mjs` (nuevo) y la
+sección del menú de `test-tanda-405.mjs`, que hablaba de ocho.
+
+**En curso / pendiente**: los dos SQL sin lanzar
+(`supabase-migration-carpetas.sql` y `supabase-migration-quien-la-tiene.sql`)
+y los tres puentes temporales.
+
 ## 2026-10-01 — PINGU-Claude (tanda 407 — la carta que no estaba en el móvil)
 
 **Hecho**: PINGU pasó las capturas de la ficha de Dex en el móvil para

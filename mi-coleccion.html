@@ -124,45 +124,25 @@
       <p class="mc-nota" id="mcResumenNota"></p>
       <p class="subtext" id="mcCargando">Cargando la colección…</p>
 
-      <!-- EL MENÚ (tanda 405). Eran ocho pestañas en una fila y en un
-           portátil ya no caían: la fila se partía o se iba a un
-           desplazamiento lateral que esconde la mitad. En Dex el menú es
-           LATERAL, y eso es lo que arregla el problema de verdad — una
-           columna crece hacia abajo sin pelearse con el ancho, así que
-           caben las ocho Y agrupadas, que es lo que dice para qué sirve
-           cada una.
-           En el móvil no hay sitio para una columna, así que el mismo
-           menú se vuelve una barra de CINCO sitios como la de la app:
-           las cuatro de mirar y un «Más» que despliega el resto. Un solo
-           DOM para las dos formas (los grupos van a `display: contents`),
-           porque dos copias de los mismos botones se separan. -->
-      <nav class="mc-pestanias mc-menu" id="mcMenu" aria-label="Vistas de la colección">
-        <div class="mc-menu-grupo">
-          <p class="mc-menu-titulo">Tu colección</p>
-          <div class="mc-menu-lista" role="tablist" aria-label="Tu colección">
-            <button type="button" role="tab" class="mc-pestania activa" data-pestania="cartas" data-icono="cards" data-sitio="1" aria-selected="true" aria-controls="mcPanelCartas"><span class="mc-menu-texto">Cartas</span></button>
-            <button type="button" role="tab" class="mc-pestania" data-pestania="carpetas" data-icono="folder" data-sitio="4" aria-selected="false" aria-controls="mcPanelCarpetas"><span class="mc-menu-texto">Carpetas</span></button>
-            <button type="button" role="tab" class="mc-pestania" data-pestania="albumes" data-icono="star" aria-selected="false" aria-controls="mcPanelAlbumes"><span class="mc-menu-texto mc-menu-largo">Álbumes soñados</span><span class="mc-menu-texto mc-menu-corto">Álbumes</span></button>
-          </div>
-        </div>
-        <div class="mc-menu-grupo">
-          <p class="mc-menu-titulo">Explorar</p>
-          <div class="mc-menu-lista" role="tablist" aria-label="Explorar">
-            <button type="button" role="tab" class="mc-pestania" data-pestania="album" data-icono="layers" data-sitio="2" aria-selected="false" aria-controls="mcPanelAlbum"><span class="mc-menu-texto">Expansiones</span></button>
-            <button type="button" role="tab" class="mc-pestania" data-pestania="pokedex" data-icono="target" data-sitio="3" aria-selected="false" aria-controls="mcPanelPokedex"><span class="mc-menu-texto">Pokédex</span></button>
-            <button type="button" role="tab" class="mc-pestania" data-pestania="anadir" data-icono="search" aria-selected="false" aria-controls="mcPanelAnadir"><span class="mc-menu-texto mc-menu-largo">Añadir cartas</span><span class="mc-menu-texto mc-menu-corto">Añadir</span></button>
-          </div>
-        </div>
-        <div class="mc-menu-grupo">
-          <p class="mc-menu-titulo">Tu actividad</p>
-          <div class="mc-menu-lista" role="tablist" aria-label="Tu actividad">
-            <button type="button" role="tab" class="mc-pestania" data-pestania="resumen" data-icono="barChart" aria-selected="false" aria-controls="mcPanelResumen"><span class="mc-menu-texto">Resumen</span></button>
-            <button type="button" role="tab" class="mc-pestania" data-pestania="cambios" data-icono="refreshCw" aria-selected="false" aria-controls="mcPanelCambios"><span class="mc-menu-texto">Cambios</span></button>
-          </div>
-        </div>
-        <!-- El quinto sitio de la barra del móvil. En el ordenador no
-             existe: allí están las ocho a la vista. -->
-        <button type="button" class="mc-menu-mas" id="mcMenuMas" data-icono="moreHorizontal" aria-expanded="false" aria-controls="mcMenu"><span class="mc-menu-texto">Más</span></button>
+      <!-- EL MENÚ (tandas 405 a 408). Empezó siendo ocho pestañas en una
+           fila que en un portátil no cabía; la columna las hizo caber, pero
+           caber no es lo mismo que hacer falta. Son CINCO, las mismas cinco
+           que la app: lo tuyo, las dos formas de explorar, la manera de
+           ordenarlo y tus números.
+           Las otras tres no se han borrado, se han metido donde les tocaba:
+           añadir cartas es el MISMO buscador de «Cartas», los álbumes
+           soñados son otra forma de agrupar y viven en «Carpetas», y los
+           cambios son una cosa del panel —en Dex, «Intercambiar» es un
+           acceso del panel de control—.
+           Con cinco caben en la barra del móvil sin un «Más» detrás, y en
+           el ordenador la columna no necesita rótulos de grupo: cinco
+           nombres se leen de un vistazo. -->
+      <nav class="mc-pestanias mc-menu" id="mcMenu" role="tablist" aria-label="Vistas de la colección">
+        <button type="button" role="tab" class="mc-pestania activa" data-pestania="cartas" data-icono="cards" aria-selected="true" aria-controls="mcPanelCartas"><span class="mc-menu-texto">Cartas</span></button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="album" data-icono="layers" aria-selected="false" aria-controls="mcPanelAlbum"><span class="mc-menu-texto">Expansiones</span></button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="pokedex" data-icono="target" aria-selected="false" aria-controls="mcPanelPokedex"><span class="mc-menu-texto">Pokédex</span></button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="carpetas" data-icono="folder" aria-selected="false" aria-controls="mcPanelCarpetas"><span class="mc-menu-texto">Carpetas</span></button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="resumen" data-icono="barChart" aria-selected="false" aria-controls="mcPanelResumen"><span class="mc-menu-texto">Panel</span></button>
       </nav>
 
       <section id="mcPanelCartas" role="tabpanel" aria-label="Cartas">
@@ -230,6 +210,28 @@
           <p>Añádelas desde «Añadir cartas», desde el álbum de una colección o con el botón de la ficha de cualquier carta.</p>
         </div>
         <p class="subtext hidden" id="mcSinResultados">Ninguna carta de tu colección encaja con esos filtros.</p>
+
+        <!-- EL CATÁLOGO, DEBAJO (tanda 408). «Añadir cartas» era una
+             pestaña con SU PROPIO buscador, y eso obligaba a saber de
+             antemano si la carta que buscas ya es tuya: si lo era, estaba
+             en «Cartas»; si no, en la otra pestaña. Nadie sabe eso antes
+             de buscar. Ahora hay UN buscador: arriba lo tuyo y aquí lo que
+             todavía no tienes, para añadirlo sin cambiar de sitio. -->
+        <section class="mc-catalogo hidden" id="mcCatalogo" aria-label="Añadir del catálogo">
+          <h2 class="mc-catalogo-titulo">¿No la tienes? Añádela del catálogo</h2>
+
+        <form class="mc-anadir-form hidden" id="mcAnadirForm">
+          <div class="mc-anadir-elegida" id="mcAnadirElegida"></div>
+          <div class="mc-anadir-campos">
+            <label>Idioma <select id="mcAnadirIdioma"></select></label>
+            <label>Estado <select id="mcAnadirEstado"></select></label>
+            <label>Versión <select id="mcAnadirVariante"></select></label>
+            <label>Copias <input type="number" id="mcAnadirCantidad" min="1" max="999" value="1" inputmode="numeric" /></label>
+            <button type="submit" class="btn-primary" id="mcAnadirBoton">Añadir</button>
+          </div>
+        </form>
+        <div class="mc-resultados" id="mcAnadirResultados"></div>
+        </section>
       </section>
 
       <section id="mcPanelAlbum" class="hidden" role="tabpanel" aria-label="Expansiones">
@@ -322,6 +324,16 @@
              clase de coleccionista eres. -->
       <section id="mcPanelResumen" class="hidden" role="tabpanel" aria-label="Resumen">
         <div id="mcResumenPanel"></div>
+
+        <!-- LOS CAMBIOS, AQUÍ (tanda 408). En el panel de control de Dex,
+             «Intercambiar» es un acceso más del panel: no es una sección
+             aparte, es algo que haces con lo que el panel te acaba de
+             contar —lo que te sobra—. -->
+        <div class="mc-bloque-cambios" id="mcBloqueCambios">
+          <h2 class="mc-subtitulo">Cambios</h2>
+
+        <div id="mcCambiosPanel"></div>
+        </div>
       </section>
 
       <!-- LOS CAMBIOS (tanda 376). Es la pieza donde le ganamos a
@@ -333,9 +345,6 @@
            —quién encaja contigo—, porque es lo que hace volver; y
            debajo las dos listas que lo alimentan, doy y busco. Al revés
            la pantalla empieza por deberes. -->
-      <section id="mcPanelCambios" class="hidden" role="tabpanel" aria-label="Cambios">
-        <div id="mcCambiosPanel"></div>
-      </section>
 
       <!-- LA POKÉDEX (tanda 381). Lo pidió PINGU viendo la app de
            TCGdex, y es lo que convierte un listado de cartas en una
@@ -353,21 +362,15 @@
           <p class="mc-migas-carpetas" id="mcCarpetaMigas"></p>
         </div>
         <div id="mcCarpetasPanel"></div>
-      </section>
 
-      <section id="mcPanelPokedex" class="hidden" role="tabpanel" aria-label="Pokédex">
-        <div class="pdx-mandos" id="mcPdxMandos">
-          <div class="mc-buscador">
-            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-            <input type="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número…" autocomplete="off" aria-label="Busca un Pokémon" />
-          </div>
-          <label class="mc-tocar-opcion"><input type="checkbox" id="mcPdxSoloMios" /> Solo los que tengo</label>
-          <span class="subtext" id="mcPdxCuenta"></span>
-        </div>
-        <div id="mcPokedexPanel"></div>
-      </section>
+        <!-- LOS ÁLBUMES SOÑADOS, AQUÍ (tanda 408). Una carpeta y un álbum
+             soñado son la misma pregunta —cómo agrupo mis cartas— con dos
+             respuestas: lo que tengo y lo que quiero tener. En Dex una
+             carpeta ya lleva su barra de progreso, que es exactamente un
+             álbum soñado. Dos pestañas para eso eran una de más. -->
+        <div class="mc-bloque-albumes" id="mcBloqueAlbumes">
+          <h2 class="mc-subtitulo">Álbumes soñados</h2>
 
-      <section id="mcPanelAlbumes" class="hidden" role="tabpanel" aria-label="Álbumes soñados">
         <div id="mcAlbumesLista">
           <div class="mc-albumes-cab">
             <p class="mc-nota">Monta el álbum que quieras: con tus cartas, con una colección entera o carta a carta, en el orden que quieras. Verás cuáles ya tienes y cuánto costaría completarlo.</p>
@@ -414,25 +417,22 @@
           </div>
           <p class="mc-alb-borrar-zona"><button type="button" class="link-btn mc-borrar" id="mcAlbBorrar">Borrar este álbum</button></p>
         </div>
+        </div>
       </section>
 
-      <section id="mcPanelAnadir" class="hidden" role="tabpanel" aria-label="Añadir cartas">
-        <div class="mc-buscador mc-buscador-ancho">
-          <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-          <input type="search" id="mcAnadirBuscar" placeholder="Busca una carta por su nombre (en español o en inglés)" aria-label="Buscar una carta" />
-        </div>
-        <form class="mc-anadir-form hidden" id="mcAnadirForm">
-          <div class="mc-anadir-elegida" id="mcAnadirElegida"></div>
-          <div class="mc-anadir-campos">
-            <label>Idioma <select id="mcAnadirIdioma"></select></label>
-            <label>Estado <select id="mcAnadirEstado"></select></label>
-            <label>Versión <select id="mcAnadirVariante"></select></label>
-            <label>Copias <input type="number" id="mcAnadirCantidad" min="1" max="999" value="1" inputmode="numeric" /></label>
-            <button type="submit" class="btn-primary" id="mcAnadirBoton">Añadir</button>
+      <section id="mcPanelPokedex" class="hidden" role="tabpanel" aria-label="Pokédex">
+        <div class="pdx-mandos" id="mcPdxMandos">
+          <div class="mc-buscador">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número…" autocomplete="off" aria-label="Busca un Pokémon" />
           </div>
-        </form>
-        <div class="mc-resultados" id="mcAnadirResultados"></div>
+          <label class="mc-tocar-opcion"><input type="checkbox" id="mcPdxSoloMios" /> Solo los que tengo</label>
+          <span class="subtext" id="mcPdxCuenta"></span>
+        </div>
+        <div id="mcPokedexPanel"></div>
       </section>
+
+
     </div>
 
     <dialog class="mc-editor" id="mcEditor" aria-labelledby="mcEditorTitulo">

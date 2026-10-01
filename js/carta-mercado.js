@@ -233,7 +233,7 @@ async function pintarQuienLaDa(carta) {
           })
           .join('')}
       </ul>
-      <p class="subtext">Apunta esta carta en tu <a href="/mi-coleccion?ver=cambios">lista de búsqueda</a> y te avisamos cuando alguien más la dé.</p>`
+      <p class="subtext">Apunta esta carta en tu <a href="/mi-coleccion?ver=resumen">lista de búsqueda</a> y te avisamos cuando alguien más la dé.</p>`
     caja.classList.remove('hidden')
   } catch {
     // Sin migración o sin red: la ficha se queda como estaba.

@@ -119,39 +119,27 @@
   border-color: var(--navy);
 }
 
-/* ── EL MENÚ (tanda 405) ──
-   Dos formas y un solo DOM. En el móvil es la barra de cinco sitios de la
-   app: una rejilla de cinco columnas, así que las cuatro pestañas que no
-   tienen sitio caen a una segunda fila cuando se pulsa «Más» sin cambiar
-   de sistema de colocación a medio camino. En el ordenador es una COLUMNA
-   a la izquierda, que es lo que deja caber las ocho con sus grupos. */
+/* ── EL MENÚ (tandas 405 a 408) ──
+   Dos formas y un solo DOM. En el móvil es la barra de la app: una
+   píldora pegada al fondo con los cinco sitios. En el ordenador es una
+   columna a la izquierda. Fueron ocho pestañas agrupadas en tres: con
+   cinco ya no hacen falta ni los grupos ni el «Más» que desplegaba el
+   resto, que es lo que se gana al quitar lo que sobra. */
 .mc-pestanias {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0;
-  /* De lado a lado, como la barra de una app. No es un capricho: con los
-     24 px de margen de la página a cada lado, un quinto se queda en 65 px
-     y «Expansiones» pide 69 — el nombre salía cortado. Los 24 son los de
-     `.page-content`, y por eso se escriben con su token. */
+  /* De lado a lado. No es un capricho: con los 24 px de margen de la
+     página a cada lado, un quinto se queda en 65 px y «Expansiones» pide
+     69 — el nombre salía cortado. Los 24 son los de `.page-content`, y
+     por eso se escriben con su token. */
   margin-inline: calc(var(--e-xl) * -1);
   margin-bottom: var(--e-lg);
   padding-inline: var(--e-xs);
   border-bottom: 1px solid var(--border);
 }
 
-/* Los grupos dejan de ser caja para que los botones sean hijos directos
-   de la rejilla: con ellos por medio, los cinco sitios serían tres. */
-.mc-menu-grupo,
-.mc-menu-lista {
-  display: contents;
-}
-
-.mc-menu-titulo {
-  display: none;
-}
-
-.mc-pestania,
-.mc-menu-mas {
+.mc-pestania {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -170,13 +158,6 @@
   cursor: pointer;
 }
 
-/* Dos nombres para dos sitios: en un quinto de 390 px, «Álbumes soñados»
-   se queda en «Álbume…», que no dice nada. El corto no es una
-   abreviatura a ojo — es el nombre que cabe. */
-.mc-menu-largo {
-  display: none;
-}
-
 /* El nombre necesita su propia caja con `min-width: 0` para que el recorte
    sea unos puntos y no un hachazo. */
 .mc-menu-texto {
@@ -192,37 +173,18 @@
   color: var(--text);
 }
 
-.mc-pestania:focus-visible,
-.mc-menu-mas:focus-visible {
+.mc-pestania:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: -2px;
 }
 
-/* Los cinco sitios de la barra. El orden lo dice el HTML con `data-sitio`
-   y no el orden del documento, porque en el documento van agrupadas. */
-.mc-menu [data-sitio="1"] { order: 1; }
-.mc-menu [data-sitio="2"] { order: 2; }
-.mc-menu [data-sitio="3"] { order: 3; }
-.mc-menu [data-sitio="4"] { order: 4; }
-.mc-menu-mas { order: 5; }
-.mc-menu [data-pestania]:not([data-sitio]) { order: 6; }
-
-/* Las que no tienen sitio, solo con el «Más» desplegado. */
-.mc-menu [data-pestania]:not([data-sitio]) {
-  display: none;
-}
-
-.mc-menu.abierto [data-pestania]:not([data-sitio]) {
-  display: flex;
-}
-
 /* LA BARRA, ABAJO Y FLOTANDO (tanda 406). Es lo que más cambia la
    sensación de app en las capturas de Dex: una píldora pegada al fondo,
-   siempre a mano, en vez de una fila arriba que se va con el desplazamiento.
-   Con un detalle que Dex no necesita y una web sí: **se aparta cuando
-   llega el pie**, porque un menú flotando encima de los enlaces del pie
-   es un menú que estorba. Lo aparta un observador, no un oyente de
-   `scroll` corriendo todo el rato. */
+   siempre a mano, en vez de una fila arriba que se va con el
+   desplazamiento. Con un detalle que Dex no necesita y una web sí: **se
+   aparta cuando llega el pie**, porque un menú flotando encima de los
+   enlaces del pie es un menú que estorba. Lo aparta un observador, no un
+   oyente de `scroll` corriendo todo el rato. */
 @media (max-width: 899px) {
   .mc-pestanias {
     position: fixed;
@@ -257,8 +219,7 @@
   /* La de turno: la chapa va detrás del ICONO, no detrás del hueco
      entero. Pintando el hueco, el bloque azul toca el borde de la
      píldora y parece un trozo pegado; y para separarlo haría falta un
-     relleno que la barra no tiene —con él, un quinto se queda en 71 px y
-     «Expansiones» pide 69 más su aire—. */
+     relleno que la barra no tiene. */
   .mc-pestania.activa {
     border-bottom-color: transparent;
     background: transparent;
@@ -302,7 +263,9 @@
   }
 
   .mc-pestanias {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     position: sticky;
     top: var(--e-md);
     margin: 0;
@@ -310,31 +273,6 @@
     padding-right: var(--e-md);
     border-right: 1px solid var(--border);
     border-bottom: 0;
-  }
-
-  .mc-menu-grupo {
-    display: block;
-  }
-
-  .mc-menu-grupo + .mc-menu-grupo {
-    margin-top: var(--e-md);
-  }
-
-  .mc-menu-lista {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .mc-menu-titulo {
-    display: block;
-    margin: 0 0 var(--e-xs);
-    padding: 0 var(--e-sm);
-    color: var(--text-mid);
-    font-size: var(--t-2xs);
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
 
   .mc-pestania {
@@ -363,24 +301,8 @@
     color: var(--blanco-fijo);
   }
 
-  .mc-menu .mc-menu-texto {
+  .mc-menu-texto {
     max-width: none;
-  }
-
-  .mc-menu-largo {
-    display: block;
-  }
-
-  .mc-menu-corto {
-    display: none;
-  }
-
-  .mc-menu-mas {
-    display: none;
-  }
-
-  .mc-menu [data-pestania]:not([data-sitio]) {
-    display: flex;
   }
 }
 
@@ -402,12 +324,6 @@
   flex: 1 1 160px;
   min-width: 0;
   max-width: 320px;
-}
-
-/* El de «Añadir cartas» pide más sitio: su texto de ejemplo es una frase
-   entera y recortada no dice qué se puede buscar. */
-.mc-buscador-ancho {
-  max-width: 520px;
 }
 
 .mc-buscador-lupa {
@@ -817,7 +733,12 @@
    horizontal. */
 .mc-resumen-rejilla {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  /* 380 y no 420: desde que el menú es una COLUMNA (tanda 405) el panel
+     mide 840 px en una pantalla de 1280, y dos cajas de 420 más su hueco
+     piden 856. Se quedaban en una sola columna —cuatro cajas en cuatro
+     filas— sin que nada diera error. Un número elegido contra un ancho
+     que ya no existe no ordena nada. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
   gap: var(--e-lg);
   align-items: start;
 }
@@ -1419,8 +1340,8 @@
 }
 
 /* ── Añadir ── */
-.mc-buscador-ancho {
-  margin-bottom: var(--e-lg);
+#mcAnadirResultados {
+  margin-top: var(--e-lg);
 }
 
 .mc-anadir-form {
@@ -2937,6 +2858,30 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-weight: 800;
   line-height: 20px;
   text-align: center;
+}
+
+/* ── Lo que antes era una pestaña y ahora es un bloque (tanda 408) ── */
+
+/* El catálogo, debajo de tus cartas. Separado por una línea y no por una
+   caja: es la MISMA búsqueda, y meterlo en un panel lo volvería a
+   convertir en otro sitio. */
+.mc-catalogo {
+  margin-top: var(--e-2xl);
+  padding-top: var(--e-lg);
+  border-top: 1px solid var(--border);
+}
+
+.mc-catalogo-titulo,
+.mc-subtitulo {
+  margin: 0 0 var(--e-lg);
+  font-size: var(--t-lg);
+}
+
+.mc-bloque-albumes,
+.mc-bloque-cambios {
+  margin-top: var(--e-2xl);
+  padding-top: var(--e-lg);
+  border-top: 1px solid var(--border);
 }
 
 /* ── La cabecera de la Pokédex (tanda 400) ── */

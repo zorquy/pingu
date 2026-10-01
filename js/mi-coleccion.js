@@ -61,7 +61,14 @@ let lineas = []
 let cartas = new Map() // id → fila de tcg_cards
 let guardados = new Map() // id → fila de tcg_card_prices
 const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
-let pestania = ['cartas', 'album', 'albumes', 'anadir', 'resumen', 'cambios', 'carpetas', 'pokedex'].includes(params.get('ver')) ? params.get('ver') : 'cartas'
+// Las cinco pestañas (tanda 408) y, al lado, los tres nombres viejos que
+// siguen llegando por enlace: no se borran, se REDIRIGEN a donde se ha
+// mudado cada cosa. Un `?ver=` que ya no existe no da error — abre la
+// primera pestaña y parece que el enlace estaba mal.
+const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen']
+const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas', cambios: 'resumen' }
+const pedida = params.get('ver')
+let pestania = PESTANAS.includes(pedida) ? pedida : MUDANZAS[pedida] || 'cartas'
 let albumesAbiertos = false
 
 // Los intercambios (tanda 376). El módulo entra por `import()` la
@@ -1239,13 +1246,20 @@ async function buscarCartas(texto, limite = 60) {
   return (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }))
 }
 
+// El catálogo que se enseña DEBAJO de tus cartas (tanda 408): mismo
+// buscador, dos respuestas. Hace falta un mínimo de dos letras porque una
+// sola trae media base.
 async function buscar() {
-  const texto = normalizeSearch($('mcAnadirBuscar').value)
+  const texto = normalizeSearch($('mcBuscar').value)
   const mio = ++turnoBusqueda
-  if (texto.length < 2) {
+  // Mirando la colección de otro no hay nada que añadir, así que ni se
+  // pregunta: el bloque ni siquiera existe en pantalla.
+  if (!esMia || texto.length < 2) {
+    $('mcCatalogo').classList.add('hidden')
     $('mcAnadirResultados').innerHTML = ''
     return
   }
+  $('mcCatalogo').classList.remove('hidden')
   let lista
   try {
     lista = await buscarCartas(texto)
@@ -1318,32 +1332,32 @@ async function anadirSeleccion(e) {
 // ── Pestañas y repintado ──
 function cambiarPestania(nueva) {
   pestania = nueva
-  $('mcMenu')?.classList.remove('abierto')
-  $('mcMenuMas')?.setAttribute('aria-expanded', 'false')
   for (const b of document.querySelectorAll('[data-pestania]')) {
     const activa = b.dataset.pestania === nueva
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAlbumes', 'albumes'], ['mcPanelAnadir', 'anadir'], ['mcPanelResumen', 'resumen'], ['mcPanelCambios', 'cambios'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex']]) {
     $(id).classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
   if (nueva === 'cartas') url.searchParams.delete('ver')
   else url.searchParams.set('ver', nueva)
-  if (nueva !== 'albumes') url.searchParams.delete('album')
+  if (nueva !== 'carpetas') url.searchParams.delete('album')
   history.replaceState(null, '', url)
   // Los álbumes soñados (tanda 366) se cargan la primera vez que se abren.
-  if (nueva === 'albumes' && !albumesAbiertos && esMia) {
+  // Los álbumes soñados viven dentro de «Carpetas» desde la 408, así que
+  // es esa pestaña la que los enciende la primera vez.
+  if (nueva === 'carpetas' && !albumesAbiertos && esMia) {
     albumesAbiertos = true
     albumes.entrar(params.get('album'))
   }
   if (nueva === 'album' && !album.set) pintarEstanteria()
   if (nueva === 'resumen') pintarResumenPanel()
-  if (nueva === 'cambios') abrirCambios()
+  if (nueva === 'resumen' && esMia) abrirCambios()
   if (nueva === 'carpetas') abrirCarpetas()
   if (nueva === 'pokedex') abrirPokedex()
-  if (nueva === 'anadir') $('mcAnadirBuscar').focus()
+
 }
 
 // ── Las carpetas (tanda 402) ──
@@ -1795,7 +1809,7 @@ function repintar() {
   // No se veía porque la prueba de la 374 PULSABA la pestaña, y para
   // entonces las líneas ya estaban. Un enlace directo, no.
   if (pestania === 'resumen') pintarResumenPanel()
-  if (pestania === 'cambios') abrirCambios()
+  if (pestania === 'resumen' && esMia) abrirCambios()
   if (pestania === 'pokedex') abrirPokedex()
 }
 
@@ -1824,16 +1838,16 @@ function enganchar() {
     ).observe(pie)
   }
 
-  // El «Más» del móvil: despliega las pestañas que no caben en los cinco
-  // sitios de la barra. En el ordenador está escondido por CSS.
-  $('mcMenuMas').addEventListener('click', () => {
-    const abierto = $('mcMenu').classList.toggle('abierto')
-    $('mcMenuMas').setAttribute('aria-expanded', abierto ? 'true' : 'false')
-  })
+  let esperaCatalogo = null
   for (const id of ['mcBuscar', 'mcFiltroSet', 'mcFiltroIdioma', 'mcOrden']) {
     $(id).addEventListener(id === 'mcBuscar' ? 'input' : 'change', () => {
       pintarCartas()
       pintarCuentaDeFiltros()
+      // Y el catálogo detrás, con su espera: lo tuyo se filtra en memoria
+      // y es instantáneo, pero esto es una consulta por tecla.
+      if (id !== 'mcBuscar') return
+      clearTimeout(esperaCatalogo)
+      esperaCatalogo = setTimeout(buscar, 250)
     })
   }
 
@@ -2157,11 +2171,6 @@ function enganchar() {
   try { album.split = localStorage.getItem('mc-split') === '1' } catch {}
   pintarVistaVariantes()
 
-  let espera = null
-  $('mcAnadirBuscar').addEventListener('input', () => {
-    clearTimeout(espera)
-    espera = setTimeout(buscar, 250)
-  })
   $('mcAnadirResultados').addEventListener('click', (e) => {
     const b = e.target.closest('[data-carta]')
     if (b) elegir(b.dataset.carta)
@@ -2223,7 +2232,7 @@ async function verAlbumAjeno(fila) {
   document.title = `${fila.nombre} — Álbum soñado — PokeDoc`
   for (const id of ['mcResumen', 'mcResumenNota', 'mcCargando', 'mcCompartir']) $(id)?.classList.add('hidden')
   document.querySelector('.mc-pestanias').classList.add('hidden')
-  cambiarPestania('albumes')
+  cambiarPestania('carpetas')
   await albumes.abrir(fila.id, { soloVer: true })
 }
 
@@ -2245,7 +2254,7 @@ async function iniciar() {
       await verAlbumAjeno(fila)
       return
     } else {
-      pestania = 'albumes'
+      pestania = 'carpetas'
     }
   }
   const usuario = params.get('u')
@@ -2284,16 +2293,16 @@ async function iniciar() {
     const quien = dueno.display_name || dueno.username
     $('mcTitulo').textContent = `Colección de ${quien}`
     document.title = `Colección de ${quien} — PokeDoc`
-    document.querySelector('[data-pestania="anadir"]').classList.add('hidden')
-    document.querySelector('[data-pestania="albumes"]').classList.add('hidden')
-    // Los cambios son de QUIEN MIRA, no de la colección que se mira:
-    // «quién encaja conmigo» no significa nada en la página de otra
-    // persona, y las dos RPC van contra `auth.uid()` de todas formas.
-    document.querySelector('[data-pestania="cambios"]').classList.add('hidden')
+    // Lo que era una pestaña escondida ahora es un BLOQUE escondido
+    // dentro de otra (tanda 408): el catálogo para añadir, los álbumes
+    // soñados y los cambios. Los cambios son de QUIEN MIRA, no de la
+    // colección que se mira —«quién encaja conmigo» no significa nada en
+    // la página de otra persona, y las dos RPC van contra `auth.uid()` de
+    // todas formas—.
+    for (const id of ['mcCatalogo', 'mcBloqueAlbumes', 'mcBloqueCambios']) $(id)?.classList.add('hidden')
     // Mirando la colección de otro no hay nada que añadir: los bolsillos
     // salen sin mando (bolsilloHtml) y esta línea sobraría en pantalla.
     $('mcTocarOpciones').classList.add('hidden')
-    if (['anadir', 'albumes', 'cambios'].includes(pestania)) pestania = 'cartas'
   }
   pintarCompartir()
   cambiarPestania(pestania)
@@ -2311,7 +2320,7 @@ async function iniciar() {
   if (pestania === 'album') pintarEstanteria()
   // Si se entró directo a un álbum, se repinta ahora que se sabe qué
   // cartas tienes.
-  if (pestania === 'albumes' && params.get('album')) albumes.abrir(params.get('album'))
+  if (pestania === 'carpetas' && params.get('album')) albumes.abrir(params.get('album'))
   // Los precios que falten llegan después y repintan: la lista no espera.
   await completarPrecios()
   repintar()

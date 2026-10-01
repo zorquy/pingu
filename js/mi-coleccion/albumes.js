@@ -171,7 +171,10 @@ export async function abrir(id, { soloVer = false } = {}) {
   $('mcAlbPublico').checked = Boolean(actual.is_public)
   $('mcAlbCopiar').classList.toggle('hidden', !actual.is_public)
   const url = new URL(location.href)
-  url.searchParams.set('ver', 'albumes')
+  // Los álbumes soñados viven dentro de «Carpetas» desde la 408, así que
+  // el enlace que se copia tiene que apuntar ahí: `ver=albumes` todavía
+  // llega (se redirige), pero no se SIGUE escribiendo.
+  url.searchParams.set('ver', 'carpetas')
   url.searchParams.set('album', actual.id)
   history.replaceState(null, '', url)
   pintarDetalle()
