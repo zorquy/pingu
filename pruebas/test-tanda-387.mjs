@@ -124,6 +124,26 @@ console.log('\n── 3. El barredor cuenta en los dos returns ──')
   check('el reparto va con tope por pasada', /xp_awarded_at=is\.null[^`]*limit=\d+/.test(f))
 }
 
+console.log('\n── 3b. El XP se reparte ANTES de avisar (tanda 401) ──')
+{
+  // Si el aviso del final saliera primero, el torneo estaría sin
+  // repartir y no habría nada que contar: el XP se ganaba en silencio y
+  // se veía solo en el perfil, que es como no verlo.
+  const f = leer('netlify/functions/torneos-barredor.mjs')
+  const cuerpo = f.slice(f.indexOf('async function procesar'))
+  const reparto = cuerpo.indexOf('rpc/torneos_repartir_xp')
+  const aviso = cuerpo.indexOf('finish_notified_at=is.null')
+  check('el reparto corre antes del aviso', reparto > -1 && aviso > -1 && reparto < aviso,
+    `reparto en ${reparto}, aviso en ${aviso}`)
+  check('y el aviso lee lo repartido', /tournament_xp_awards\?tournament_id=eq/.test(f))
+  // «+150 XP» y no «150 XP»: el signo dice que es algo ganado.
+  check('  …con su signo', /\+\$\{xpPor\[id\]\} XP/.test(f))
+  // Y si la tabla no está, el aviso sale como antes: un premio que no se
+  // puede leer no puede llevarse por delante el aviso del final.
+  const trozo = f.slice(f.indexOf('let xpPor'), f.indexOf('const masXp'))
+  check('  …y si la tabla no está, el aviso sigue saliendo', /catch\s*\{\s*\n?\s*xpPor = \{\}/.test(trozo), trozo.slice(0, 200))
+}
+
 console.log('\n── 4. El hilo de actividad va LIMPIO ──')
 {
   // La 387 metió aquí la chapa del nivel y PINGU la quitó al verla
