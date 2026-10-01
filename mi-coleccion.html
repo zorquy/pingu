@@ -381,19 +381,7 @@
             <p class="mc-nota">Monta el álbum que quieras: con tus cartas, con una colección entera o carta a carta, en el orden que quieras. Verás cuáles ya tienes y cuánto costaría completarlo.</p>
             <button type="button" class="btn-primary" id="mcAlbNuevoAbrir">Nuevo álbum</button>
           </div>
-          <form class="mc-alb-nuevo hidden" id="mcAlbNuevo">
-            <label>Nombre <input type="text" id="mcAlbNombre" maxlength="80" placeholder="Mis Eevee favoritos" /></label>
-            <label>Empezar con
-              <select id="mcAlbOrigen">
-                <option value="vacio">Un álbum vacío</option>
-                <option value="mias">Todas mis cartas</option>
-                <option value="set">Una colección entera</option>
-              </select>
-            </label>
-            <label class="hidden" id="mcAlbSetCampo">Colección <select id="mcAlbSet"></select></label>
-            <button type="submit" class="btn-primary">Crear</button>
-          </form>
-          <div class="mc-albumes" id="mcAlbumesRejilla"></div>
+          <div class="mc-burbujas" id="mcAlbumesRejilla"></div>
           <p class="subtext hidden" id="mcAlbumesVacio">Todavía no tienes ningún álbum soñado.</p>
         </div>
 
@@ -543,7 +531,8 @@
               <h3>Datos de la carta</h3>
               <div class="mc-ficha-caja"><dl class="mc-ficha-tabla" id="mcEdTabla"></dl></div>
             </section>
-          </div>
+          
+</div>
         </div>
         <!-- Sin botones (tanda 397). Se guarda solo según tocas, así que
              no hay nada que confirmar ni que cancelar; y para quitarla,
@@ -554,6 +543,59 @@
     </dialog>
 
     <p class="mc-fuente">Los precios son los de la guía de <a href="https://www.cardmarket.com" target="_blank" rel="noopener">Cardmarket</a> (vía TCGdex), de la carta en general. El enlace de cada carta abre Cardmarket con su idioma, su estado y su versión ya filtrados, que es donde está el mínimo exacto.</p>
+      <!-- EL DIÁLOGO DEL ADORNO (tanda 411). Uno solo para carpetas y
+           álbumes: lo único que cambia es el título y la palabra del
+           botón, y dos diálogos que se parecen acaban siendo dos que ya
+           no se parecen. -->
+      <dialog class="mc-dlg-adorno" id="mcDlgAdorno" aria-labelledby="mcDlgTitulo">
+        <form id="mcDlgForm">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcDlgTitulo">Nueva carpeta</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcDlgCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-dlg-cuerpo">
+            <!-- La vista previa es la MISMA burbuja que se verá luego. -->
+            <div class="mc-dlg-vista" id="mcDlgVista" aria-hidden="true"></div>
+            <label class="mc-dlg-nombre">Nombre
+              <input type="text" id="mcDlgNombre" maxlength="60" placeholder="Mis Charizards" required />
+            </label>
+            <div class="mc-dlg-tabs" id="mcDlgTabs" role="tablist" aria-label="Qué dibujo quieres">
+              <button type="button" role="tab" class="mc-chip-filtro activo" data-pestania-adorno="icono" aria-selected="true">Iconos</button>
+              <button type="button" role="tab" class="mc-chip-filtro" data-pestania-adorno="dex" aria-selected="false">Pokémon</button>
+              <button type="button" role="tab" class="mc-chip-filtro" data-pestania-adorno="emoji" aria-selected="false">Emoji</button>
+            </div>
+            <div class="mc-dlg-rejilla" id="mcDlgIconos"></div>
+            <div class="mc-dlg-dex hidden" id="mcDlgDex">
+              <div class="mc-buscador">
+                <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+                <input type="search" id="mcDlgDexBuscar" placeholder="Busca un Pokémon" aria-label="Busca un Pokémon" />
+              </div>
+              <div class="mc-dlg-rejilla" id="mcDlgDexRejilla"></div>
+            </div>
+            <div class="mc-dlg-rejilla hidden" id="mcDlgEmojis"></div>
+            <h3 class="mc-dlg-rotulo">Color de fondo</h3>
+            <div class="mc-dlg-colores" id="mcDlgColores"></div>
+            <!-- Solo para un álbum NUEVO (tanda 411): un álbum nace con
+                 cartas dentro o vacío, y eso se pregunta una vez. Una
+                 carpeta no, así que esto se esconde. -->
+            <div class="mc-dlg-origen hidden" id="mcDlgOrigen">
+              <label>Empezar con
+                <select id="mcAlbOrigen" class="mc-chapa-select">
+                  <option value="vacio">Un álbum vacío</option>
+                  <option value="mias">Todas mis cartas</option>
+                  <option value="set">Una colección entera</option>
+                </select>
+              </label>
+              <label class="hidden" id="mcAlbSetCampo">Colección <select id="mcAlbSet" class="mc-chapa-select"></select></label>
+            </div>
+          </div>
+          <div class="mc-panel-pie">
+            <button type="button" class="link-btn mc-dlg-borrar hidden" id="mcDlgBorrar">Borrar</button>
+            <button type="button" class="link-btn" id="mcDlgCancelar">Cancelar</button>
+            <button type="submit" class="btn-primary" id="mcDlgGuardar">Crear</button>
+          </div>
+        </form>
+      </dialog>
   </main>
 
   <footer class="footer">

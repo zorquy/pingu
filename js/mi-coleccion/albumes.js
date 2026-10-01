@@ -25,6 +25,8 @@ const MAX_CARTAS = 1080
 // Nueve por hoja: vive en el módulo del archivador desde la 371, que
 // es quien lo usa.
 import { archivadorHtml, textoDePaginas, tapaGuardada, POR_PAGINA } from './archivador.js'
+import { burbujaHtml } from './adorno.js'
+import { abrirDialogoAdorno } from './dialogo-adorno.js'
 const $ = (id) => document.getElementById(id)
 const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
 
@@ -83,15 +85,26 @@ function tarjetaHtml(a) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(portada))
   const mias = ids.filter((id) => tengo(id)).length
   const pct = ids.length ? Math.round((mias / ids.length) * 100) : 0
-  return `
-    <button type="button" class="mc-album-tarjeta" data-album="${escapeHtml(a.id)}">
-      <span class="mc-album-portada">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-      <span class="mc-album-info">
-        <strong>${escapeHtml(a.nombre)}</strong>
-        <span class="mc-album-cuenta">${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'} · tienes ${mias} (${pct} %)</span>
-        ${a.is_public ? '<span class="mc-chip">Público</span>' : ''}
-      </span>
-    </button>`
+  // La MISMA burbuja que una carpeta (tanda 411). PINGU: «para los
+  // álbumes, lo mismo; la única diferencia es que uno es una carpeta y
+  // otro es un álbum».
+  //
+  // Y si no le has puesto adorno, la portada sigue siendo la primera
+  // carta: era lo bueno de la tarjeta vieja y no hay por qué perderlo
+  // para ganar una forma.
+  const sinAdorno = !a.icono && !a.dex_id && !a.emoji
+  const dibujo = sinAdorno && escaneo
+    ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" class="mc-burbuja-portada" />`
+    : null
+  return burbujaHtml({
+    id: a.id,
+    nombre: a.nombre,
+    pie: `${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'} · tienes ${mias}${a.is_public ? ' · público' : ''}`,
+    adorno: a,
+    barra: pct,
+    dibujo,
+    atributo: 'data-album',
+  })
 }
 
 async function pintarLista() {
@@ -110,9 +123,7 @@ async function pintarLista() {
   $('mcAlbumesVacio').classList.toggle('hidden', albumes.length > 0)
 }
 
-async function nuevoAlbum(e) {
-  e.preventDefault()
-  const nombre = $('mcAlbNombre').value.trim().slice(0, 80) || 'Mi álbum'
+async function nuevoAlbum({ nombre, icono, dex_id, emoji, color }) {
   const origen = $('mcAlbOrigen').value
   let ids = []
   try {
@@ -129,9 +140,11 @@ async function nuevoAlbum(e) {
       const setId = $('mcAlbSet').value
       if (setId) ids = (await datos.cartasDeSet(setId)).sort(ctx.porNumero).map((c) => c.id)
     }
-    const fila = await crearAlbum({ nombre, cartas: ids.slice(0, MAX_CARTAS).map((id) => ({ id })) })
-    $('mcAlbNuevo').classList.add('hidden')
-    $('mcAlbNombre').value = ''
+    const fila = await crearAlbum({
+      nombre: String(nombre).trim().slice(0, 80) || 'Mi álbum',
+      icono, dex_id, emoji, color,
+      cartas: ids.slice(0, MAX_CARTAS).map((id) => ({ id })),
+    })
     showToast('Álbum creado.', 'success')
     await abrir(fila.id)
   } catch (err) {
@@ -355,13 +368,16 @@ export function repintar() {
 export function iniciarAlbumes(contexto) {
   ctx = contexto
   $('mcAlbNuevoAbrir')?.addEventListener('click', async () => {
-    $('mcAlbNuevo').classList.toggle('hidden')
     const sets = await ctx.sets()
     $('mcAlbSet').innerHTML = sets.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join('')
-    $('mcAlbNombre').focus()
+    abrirDialogoAdorno({
+      titulo: 'Nuevo álbum soñado',
+      boton: 'Crear álbum',
+      conOrigen: true,
+      alGuardar: nuevoAlbum,
+    })
   })
   $('mcAlbOrigen')?.addEventListener('change', (e) => $('mcAlbSetCampo').classList.toggle('hidden', e.target.value !== 'set'))
-  $('mcAlbNuevo')?.addEventListener('submit', nuevoAlbum)
   $('mcAlbumesRejilla')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-album]')
     if (b) abrir(b.dataset.album)

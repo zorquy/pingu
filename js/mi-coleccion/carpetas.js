@@ -12,8 +12,9 @@
 import { supabase } from '../supabase.js'
 import { traducir } from './datos.js'
 import { escapeHtml } from '../html.js'
+import { burbujaHtml } from './adorno.js'
 
-const COLUMNAS = 'id,parent_id,nombre,emoji,color,orden,created_at'
+const COLUMNAS = 'id,parent_id,nombre,icono,dex_id,emoji,color,orden,created_at'
 
 // ── Las consultas ──
 
@@ -37,10 +38,12 @@ export async function resumenDeCarpetas() {
   return new Map((data || []).map((f) => [f.folder_id, { cartas: Number(f.cartas) || 0, copias: Number(f.copias) || 0 }]))
 }
 
-export async function crearCarpeta(userId, { nombre, parent_id = null, emoji = null, color = null }) {
+export async function crearCarpeta(userId, { nombre, parent_id = null, icono = null, dex_id = null, emoji = null, color = null }) {
   const { data, error } = await supabase
     .from('collection_folders')
-    .insert({ user_id: userId, nombre: String(nombre).trim().slice(0, 60), parent_id, emoji, color })
+    // El adorno son TRES columnas y a lo sumo una lleva valor (tanda 411):
+    // un icono del sitio, un Pokémon o un emoji.
+    .insert({ user_id: userId, nombre: String(nombre).trim().slice(0, 60), parent_id, icono, dex_id, emoji, color })
     .select(COLUMNAS)
     .single()
   if (error) throw traducir(error)
@@ -158,19 +161,15 @@ export function tarjetaHtml(c, resumen) {
   const pie = hijas
     ? `${hijas} ${hijas === 1 ? 'subcarpeta' : 'subcarpetas'}${r.cartas ? ` · ${r.cartas} cartas` : ''}`
     : `${r.cartas} ${r.cartas === 1 ? 'carta' : 'cartas'}`
-  return `<article class="mc-carpeta" data-carpeta="${escapeHtml(c.id)}"${c.color ? ` style="--carpeta-color:${escapeHtml(c.color)}"` : ''}>
-    <button type="button" class="mc-carpeta-abrir" data-abrir="${escapeHtml(c.id)}">
-      <span class="mc-carpeta-icono" aria-hidden="true">${escapeHtml(c.emoji || '')}</span>
-      <span class="mc-carpeta-nombre">${escapeHtml(c.nombre)}</span>
-      <span class="mc-carpeta-pie">${escapeHtml(pie)}</span>
-    </button>
-    <button type="button" class="mc-carpeta-editar" data-editar-carpeta="${escapeHtml(c.id)}" aria-label="Opciones de ${escapeHtml(c.nombre)}">···</button>
-  </article>`
+  // La MISMA burbuja que los álbumes (tanda 411). PINGU: «el tema de las
+  // carpetas también me gustaría que fuese como en las expansiones, mismo
+  // tamaño, me gustan mucho esas burbujas».
+  return burbujaHtml({ id: c.id, nombre: c.nombre, pie, adorno: c, atributo: 'data-carpeta' })
 }
 
 export function rejillaHtml(arbol, resumen) {
   if (!arbol.length) {
     return '<p class="empty-state">Todavía no tienes carpetas. Crea una para ordenar tu colección como quieras: por serie, por lo que te falta, por lo que das.</p>'
   }
-  return `<div class="mc-carpetas">${arbol.map((c) => tarjetaHtml(c, resumen)).join('')}</div>`
+  return `<div class="mc-burbujas">${arbol.map((c) => tarjetaHtml(c, resumen)).join('')}</div>`
 }

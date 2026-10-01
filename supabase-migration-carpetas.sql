@@ -24,13 +24,26 @@ create table if not exists public.collection_folders (
   user_id uuid not null references public.user_profiles (id) on delete cascade,
   parent_id uuid references public.collection_folders (id) on delete cascade,
   nombre text not null,
-  -- El adorno: un emoji y un color, como en Dex. Los dos opcionales,
-  -- porque una carpeta sin adorno sigue siendo una carpeta.
+  -- EL ADORNO (tanda 411). Es UNA de tres cosas: un icono del sitio
+  -- (`icono`, el nombre que usa js/icons.js), un Pokémon (`dex_id`) o un
+  -- emoji. Tres columnas y no una con prefijos porque una columna que
+  -- hace dos trabajos se separa en silencio (la lección de la 335), y
+  -- aquí habría que partir la cadena en cada sitio que la pinte.
+  -- Precedencia al pintar: Pokémon > emoji > icono.
+  -- El color es opcional: sin él se saca del propio adorno, siempre el
+  -- mismo para el mismo adorno.
+  icono text,
+  dex_id int,
   emoji text,
   color text,
   orden int not null default 0,
   created_at timestamptz not null default now()
 );
+
+-- Por si la tabla se creó con una versión anterior de este mismo fichero
+-- (la 402 no tenía `icono` ni `dex_id`): añadirlas no duele si ya están.
+alter table public.collection_folders add column if not exists icono text;
+alter table public.collection_folders add column if not exists dex_id int;
 
 create index if not exists collection_folders_mias on public.collection_folders (user_id, parent_id, orden);
 

@@ -21885,3 +21885,88 @@ se ha pedido (sigue su esqueleto) y que el botón abre y cierra; dónde
 empiezan los cambios, medido en píxeles y no en número de secciones,
 porque lo que molestaba era el desplazamiento; y en el móvil, que una
 tarjeta cabe en la pantalla y que la página no se va a lo ancho.
+
+## Tanda 411 — carpetas y álbumes, con la misma burbuja (oct. 2026)
+
+PINGU: «el tema de las carpetas también me gustaría que fuese como en las
+expansiones, mismo tamaño, me gustan mucho esas burbujas, esos cuadrados.
+Y que al crear una carpeta te salga un pop-up para elegir un emoji, o un
+sprite de la Pokédex, o un color de fondo. El emoji iría como en las
+expansiones va el logo, y el fondo, en vez de sacarlo del logo, lo eliges
+tú. Para los álbumes lo mismo; la única diferencia es que uno es una
+carpeta y otro es un álbum».
+
+### La burbuja
+
+`js/mi-coleccion/adorno.js` pinta la misma forma que `.mc-set-tarjeta`:
+cabecera de 92 px con el dibujo centrado y, debajo, el nombre, el pie y
+una barra opcional. Una carpeta, un álbum y una expansión se leen como la
+misma cosa porque **son la misma pieza**, no tres que se parecen.
+
+Un álbum **sin adorno sigue enseñando la portada de su primera carta**:
+era lo bueno de la tarjeta vieja y no hay por qué perderlo para ganar una
+forma. Por eso la burbuja acepta un `dibujo` que sustituye al icono.
+
+### El adorno son TRES columnas
+
+Un adorno es UNA de tres cosas: un icono del sitio (`icono`, el nombre
+que usa `js/icons.js`), un Pokémon (`dex_id`) o un emoji. Cabría en una
+columna con prefijos («dex:25») y habría que partir la cadena en cada
+sitio que la pinte; tres columnas dicen qué es sin interpretar nada, y el
+precedente de la casa es claro: una columna que hace dos trabajos se
+separa en silencio (tanda 335). Precedencia al pintar: **Pokémon > emoji
+> icono**, que es el orden en que se eligió.
+
+Y al elegir uno se BORRAN los otros dos. Si el emoji se quedara puesto
+por debajo del Pokémon, al quitar el Pokémon reaparecería un emoji que
+nadie recuerda haber elegido.
+
+### El color automático
+
+Sin color elegido se saca del propio adorno, con una cuenta sobre su
+código, y **siempre sale el mismo**. No se saca de los píxeles: para leer
+el color de un emoji habría que pintarlo en un lienzo, y el sprite viene
+de otra CDN —leerlo mancharía el lienzo y el navegador no deja—. Un color
+que cambiara en cada pintada haría que una carpeta se viera de un color
+hoy y de otro mañana.
+
+### Un diálogo, no dos
+
+Lo único que cambia entre crear una carpeta y crear un álbum es el título
+y la palabra del botón. El diálogo es uno (`dialogo-adorno.js`) y lo
+propio del álbum —«empezar con»— es un bloque que se enseña o se esconde.
+El `window.prompt` de la 402 se va: pedía el nombre y nada más, así que
+una carpeta nacía sin cara.
+
+Los 1.025 Pokémon salen **de 60 en 60** con buscador por nombre o número:
+cada uno es una imagen, y pintarlos todos es pedir mil imágenes para
+elegir una.
+
+**Y los emojis, con una nota.** La norma de la casa es «iconos SVG de
+`js/icons.js`, nunca emojis sueltos en la interfaz». Se respeta: los
+iconos del sitio son la primera pestaña y la que sale por defecto. El
+emoji está porque PINGU lo pidió por su nombre, y porque esto no es la
+interfaz — es lo que ESCRIBE la persona en su carpeta, como el nombre.
+
+### El barrido de CSS que salió mal
+
+Al quitar las reglas que quedaban muertas (`.mc-carpeta-*`,
+`.mc-album-tarjeta`…) se lanzó una expresión regular por clase. Se llevó
+por delante reglas de VARIOS selectores y dejó selectores huérfanos
+pegados a la regla siguiente: `.mc-albumes-cab .btn-primary` habría
+acabado siendo una rejilla. Se vio contando las llaves (447 pasaron a
+430), se restauró el fichero desde la copia del servidor de pruebas y se
+hizo a mano, regla por regla. **Es la lección de la casa sobre barridos
+en bloque, otra vez**: una transformación da por hecho que todo lo que se
+PARECE al caso ES el caso, y un selector compartido no lo es.
+
+### Comprobado
+
+`test-tanda-411.mjs`: el adorno con datos a mano —el color elegido manda,
+el automático es estable, la precedencia Pokémon > emoji > icono, la
+burbuja escapando el nombre y aceptando un dibujo propio—; el diálogo
+centrado, sin borrar al crear y con borrar al editar, los iconos siendo
+SVG y no emojis, los Pokémon de 60 en 60 y buscables por nombre y por
+número, que elegir un emoji quita el Pokémon, y la carpeta creada con su
+color; que el de un álbum es el mismo diálogo pero pregunta con qué
+empezar; y las dos migraciones leídas.

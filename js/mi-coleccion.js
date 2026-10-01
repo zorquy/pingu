@@ -46,6 +46,7 @@ import { marcaCardmarket } from './cardmarket-marca.js'
 import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
+import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante } from './mi-coleccion/variantes.js'
 import { especiePorDex } from './pokedex-especies.js'
@@ -1980,18 +1981,27 @@ function enganchar() {
     guardarEditor()
   })
 
-  // ── Las carpetas (tanda 402) ──
-  $('mcCarpetaNueva').addEventListener('click', async () => {
-    const nombre = window.prompt('¿Cómo se llama la carpeta?')
-    if (!nombre || !nombre.trim()) return
-    try {
-      // Si estás DENTRO de una, la nueva nace dentro: es lo que esperas
-      // al pulsar «nueva» estando en «Vintage».
-      await carpetas.crearCarpeta(sesion.user.id, { nombre, parent_id: carpetaAbierta })
-      await recargarCarpetas()
-    } catch (err) {
-      showToast(err.message, 'error')
-    }
+  // ── Las carpetas (tandas 402 y 411) ──
+  //
+  // El `window.prompt` se fue en la 411: pedía el nombre y nada más, así
+  // que una carpeta nacía sin cara y había que ir a editarla para
+  // ponérsela. Ahora el diálogo pregunta las tres cosas de una vez.
+  iniciarDialogoAdorno()
+  $('mcCarpetaNueva').addEventListener('click', () => {
+    abrirDialogoAdorno({
+      titulo: 'Nueva carpeta',
+      boton: 'Crear carpeta',
+      alGuardar: async (v) => {
+        try {
+          // Si estás DENTRO de una, la nueva nace dentro: es lo que
+          // esperas al pulsar «nueva» estando en «Vintage».
+          await carpetas.crearCarpeta(sesion.user.id, { ...v, parent_id: carpetaAbierta })
+          await recargarCarpetas()
+        } catch (err) {
+          showToast(err.message, 'error')
+        }
+      },
+    })
   })
   $('mcCarpetasPanel').addEventListener('click', async (e) => {
     const abrir = e.target.closest('[data-abrir]')
@@ -1999,14 +2009,23 @@ function enganchar() {
       carpetaAbierta = abrir.dataset.abrir
       return pintarCarpetas()
     }
-    const editar = e.target.closest('[data-editar-carpeta]')
+    const editar = e.target.closest('[data-ajustes]')
     if (!editar) return
-    const c = carpetasLista.find((x) => x.id === editar.dataset.editarCarpeta)
+    const c = carpetasLista.find((x) => x.id === editar.dataset.ajustes)
     if (!c) return
-    const nombre = window.prompt('Nombre de la carpeta (vacío para borrarla):', c.nombre)
-    if (nombre === null) return
-    try {
-      if (!nombre.trim()) {
+    abrirDialogoAdorno({
+      titulo: 'Cambiar la carpeta',
+      boton: 'Guardar',
+      valores: { nombre: c.nombre, icono: c.icono, dex_id: c.dex_id, emoji: c.emoji, color: c.color },
+      alGuardar: async (v) => {
+        try {
+          await carpetas.renombrarCarpeta(c.id, v)
+          await recargarCarpetas()
+        } catch (err) {
+          showToast(err.message, 'error')
+        }
+      },
+      alBorrar: async () => {
         // Borrar se lleva las SUBcarpetas, así que se avisa de eso y no
         // de «se borrará la carpeta» a secas. Las cartas no se tocan:
         // viven en tu colección, no en la carpeta.
@@ -2015,15 +2034,15 @@ function enganchar() {
           ? `¿Borrar «${c.nombre}» y sus ${hijas} subcarpetas? Las cartas se quedan en tu colección.`
           : `¿Borrar «${c.nombre}»? Las cartas se quedan en tu colección.`
         if (!window.confirm(aviso)) return
-        await carpetas.borrarCarpeta(c.id)
-        if (carpetaAbierta === c.id) carpetaAbierta = c.parent_id || null
-      } else {
-        await carpetas.renombrarCarpeta(c.id, { nombre: nombre.trim().slice(0, 60) })
-      }
-      await recargarCarpetas()
-    } catch (err) {
-      showToast(err.message, 'error')
-    }
+        try {
+          await carpetas.borrarCarpeta(c.id)
+          if (carpetaAbierta === c.id) carpetaAbierta = c.parent_id || null
+          await recargarCarpetas()
+        } catch (err) {
+          showToast(err.message, 'error')
+        }
+      },
+    })
   })
   $('mcCarpetaMigas').addEventListener('click', (e) => {
     if (!e.target.closest('[data-volver-carpetas]')) return

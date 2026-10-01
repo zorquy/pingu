@@ -23,6 +23,37 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 411 — carpetas y álbumes, con la misma burbuja)
+
+**Hecho**: carpetas y álbumes se pintan con la MISMA burbuja que una
+expansión (`js/mi-coleccion/adorno.js`), y al crear o editar sale un
+diálogo —uno solo para los dos— donde eliges icono del sitio, Pokémon o
+emoji, y color de fondo. El `window.prompt` de la 402 se va: pedía el
+nombre y nada más, así que una carpeta nacía sin cara. Un álbum sin
+adorno sigue enseñando la portada de su primera carta.
+
+**DOS SQL que tocan**: `supabase-migration-carpetas.sql` **ha cambiado**
+(lleva `icono` y `dex_id`); como no estaba lanzado se ha editado ese
+fichero en vez de añadir otro, y va con `add column if not exists`, así
+que relanzarlo no duele. Y uno nuevo:
+`supabase-migration-album-adorno.sql`.
+
+**Un error mío, corregido**: al quitar el CSS que quedaba muerto lancé un
+barrido con expresión regular y se llevó reglas de VARIOS selectores,
+dejando selectores huérfanos pegados a la regla siguiente. Se vio
+contando las llaves, se restauró desde la copia del servidor de pruebas y
+se hizo a mano. La lección de los barridos en bloque, otra vez.
+
+**Ficheros**: `js/mi-coleccion/adorno.js` (nuevo),
+`js/mi-coleccion/dialogo-adorno.js` (nuevo), `js/mi-coleccion/carpetas.js`,
+`js/mi-coleccion/albumes.js`, `js/mi-coleccion.js`, `mi-coleccion.html`,
+`css/mi-coleccion.css`, `supabase-migration-carpetas.sql`,
+`supabase-migration-album-adorno.sql` (nuevo), `SCHEMA.md`. En la rama
+`pruebas`: `test-tanda-411.mjs` (nuevo).
+
+**En curso / pendiente**: CUATRO SQL sin lanzar —carpetas (editada),
+quién la tiene, favoritos de sets y el adorno de los álbumes—.
+
 ## 2026-10-01 — PINGU-Claude (tanda 410 — el panel, con la tira de tarjetas)
 
 **Hecho**: el panel, reordenado como pidió PINGU viendo Dex. Una **tira

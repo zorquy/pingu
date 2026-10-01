@@ -1771,95 +1771,8 @@
   margin: 0;
 }
 
-.mc-albumes-cab .btn-primary,
-.mc-alb-nuevo .btn-primary {
+.mc-albumes-cab .btn-primary {
   min-height: 44px;
-}
-
-.mc-alb-nuevo {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: var(--e-md);
-  margin-bottom: var(--e-xl);
-  padding: var(--e-lg);
-  border: 1px solid var(--navy);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-}
-
-.mc-alb-nuevo label {
-  display: flex;
-  flex: 1 1 200px;
-  flex-direction: column;
-  gap: var(--e-xs);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 600;
-}
-
-.mc-alb-nuevo input,
-.mc-alb-nuevo select {
-  min-height: 44px;
-}
-
-.mc-albumes {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--e-lg);
-}
-
-.mc-album-tarjeta {
-  display: flex;
-  gap: var(--e-md);
-  align-items: center;
-  min-height: 112px;
-  padding: var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.mc-album-tarjeta:hover,
-.mc-album-tarjeta:focus-visible {
-  border-color: var(--navy);
-}
-
-.mc-album-portada {
-  flex-shrink: 0;
-  width: 64px;
-  aspect-ratio: 245 / 342;
-  border-radius: 6px;
-  background: var(--ice);
-  overflow: hidden;
-}
-
-.mc-album-portada img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.mc-album-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--e-xs);
-  min-width: 0;
-}
-
-.mc-album-info strong {
-  font-size: var(--t-lg);
-}
-
-.mc-album-cuenta {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
 }
 
 .mc-alb-volver {
@@ -2943,69 +2856,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin-bottom: var(--e-lg);
 }
 
-.mc-carpeta {
-  display: flex;
-  position: relative;
-  align-items: stretch;
-  /* La barrita de color a la izquierda, como en Dex. Si la carpeta no
-     tiene color se queda en el borde de siempre: una carpeta sin adorno
-     sigue siendo una carpeta. */
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--carpeta-color, var(--border));
-  border-radius: var(--radius-md);
-  background: var(--white);
-}
-
-.mc-carpeta-abrir {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  min-height: 44px;
-  padding: var(--e-md);
-  border: 0;
-  background: none;
-  color: var(--text);
-  text-align: left;
-  cursor: pointer;
-}
-
-.mc-carpeta-icono {
-  font-size: var(--t-lg);
-  line-height: 1.2;
-}
-
-.mc-carpeta-nombre {
-  overflow: hidden;
-  font-size: var(--t-md);
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mc-carpeta-pie {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
-
-.mc-carpeta-editar {
-  /* Ancho SÍ: es un icono y nada más (la regla de la 312). */
-  min-width: 44px;
-  min-height: 44px;
-  border: 0;
-  border-left: 1px solid var(--border);
-  background: none;
-  color: var(--text-mid);
-  font-size: var(--t-lg);
-  cursor: pointer;
-}
-
-.mc-carpeta-editar:hover {
-  background: var(--bg);
-  color: var(--text);
-}
-
 /* ── Quién de los tuyos la tiene (tanda 403) ── */
 .mc-quien {
   display: flex;
@@ -3235,4 +3085,265 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 .mc-ver-todo-fila {
   margin: 0 0 var(--e-lg);
+}
+
+/* ── LA BURBUJA (tanda 411) ──
+   PINGU: «las carpetas también me gustaría que fuesen como en las
+   expansiones, mismo tamaño, me gustan mucho esas burbujas, esos
+   cuadrados». Es la misma forma que `.mc-set-tarjeta`: cabecera de alto
+   fijo con el dibujo centrado y, debajo, el nombre y su pie. Lo que
+   cambia es que el fondo no sale de un logo sino del color elegido. */
+.mc-burbujas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--e-md);
+}
+
+.mc-burbuja {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.mc-burbuja-abrir {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Mismo alto que la cabecera de una expansión: es lo que hace que las dos
+   rejillas se lean como la misma cosa. */
+.mc-burbuja-cabecera {
+  display: grid;
+  position: relative;
+  place-items: center;
+  height: 92px;
+  overflow: hidden;
+  background: var(--burbuja-color, var(--navy-solid));
+  color: var(--blanco-fijo);
+}
+
+.mc-burbuja-emoji {
+  font-size: 34px;
+  line-height: 1;
+}
+
+/* La portada de un álbum sin adorno: la carta, recortada y oscurecida
+   para que el nombre de debajo siga leyéndose. */
+.mc-burbuja-portada {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+}
+
+.mc-burbuja-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  padding: var(--e-md);
+}
+
+.mc-burbuja-nombre {
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.mc-burbuja-pie {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+/* La barra, sin estirarse: `.mc-barra` nace con `flex: 1 1 200px` para
+   vivir en una fila, y aquí la caja es una columna. */
+.mc-burbuja .mc-barra {
+  flex: 0 0 8px;
+  width: 100%;
+}
+
+.mc-burbuja-mas {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgb(20 20 25 / 45%);
+  color: var(--blanco-fijo);
+  font: inherit;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .mc-burbuja-mas {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+.mc-burbuja-abrir:focus-visible,
+.mc-burbuja-mas:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: -2px;
+}
+
+/* ── El diálogo del adorno (tanda 411) ── */
+.mc-dlg-vista {
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--e-md);
+}
+
+.mc-dlg-vista .mc-burbuja-cabecera {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-lg);
+}
+
+.mc-dlg-nombre {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin-bottom: var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.mc-dlg-nombre input {
+  width: 100%;
+}
+
+.mc-dlg-tabs {
+  display: flex;
+  gap: var(--e-xs);
+  margin-bottom: var(--e-md);
+}
+
+.mc-dlg-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: var(--e-xs);
+  margin-bottom: var(--e-md);
+  max-height: 232px;
+  overflow-y: auto;
+}
+
+.mc-dlg-opcion {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+
+.mc-dlg-opcion.activa {
+  border-color: transparent;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.mc-dlg-rotulo {
+  margin: 0 0 var(--e-sm);
+  font-size: var(--t-sm);
+}
+
+.mc-dlg-colores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+}
+
+.mc-dlg-color {
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-dlg-color span {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+}
+
+.mc-dlg-color.activa {
+  border-color: var(--navy);
+}
+
+.mc-dlg-origen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-md);
+  margin-top: var(--e-lg);
+}
+
+.mc-dlg-origen label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.mc-dlg-borrar {
+  margin-right: auto;
+  color: var(--danger);
+}
+
+/* La ventana del adorno: centrada y acotada, no pegada a un lado como el
+   panel de filtros. Lo de dentro se desplaza; la cabecera y el pie, no. */
+.mc-dlg-adorno {
+  width: min(520px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100vh - 48px);
+  /* `auto` a los cuatro lados: un `dialog` modal se centra solo, pero
+     cualquier margen puesto a 0 lo pega a ese lado. */
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--text);
+}
+
+.mc-dlg-adorno::backdrop {
+  background: rgb(13 27 42 / 50%);
+}
+
+.mc-dlg-cuerpo {
+  padding: var(--e-lg);
 }
