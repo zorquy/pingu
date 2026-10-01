@@ -2585,3 +2585,88 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-size: var(--t-xs);
 }
 
+/* ── Las carpetas (tanda 402) ── */
+.mc-carpetas-mandos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-md);
+  align-items: center;
+  margin-bottom: var(--e-lg);
+}
+
+.mc-migas-carpetas {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-carpetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+}
+
+.mc-carpeta {
+  display: flex;
+  position: relative;
+  align-items: stretch;
+  /* La barrita de color a la izquierda, como en Dex. Si la carpeta no
+     tiene color se queda en el borde de siempre: una carpeta sin adorno
+     sigue siendo una carpeta. */
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--carpeta-color, var(--border));
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.mc-carpeta-abrir {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--e-md);
+  border: 0;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-carpeta-icono {
+  font-size: var(--t-lg);
+  line-height: 1.2;
+}
+
+.mc-carpeta-nombre {
+  overflow: hidden;
+  font-size: var(--t-md);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-carpeta-pie {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-carpeta-editar {
+  /* Ancho SÍ: es un icono y nada más (la regla de la 312). */
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: none;
+  color: var(--text-mid);
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+
+.mc-carpeta-editar:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+

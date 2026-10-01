@@ -5,7 +5,10 @@ import { urlDePrecio, precioDe, precioDeFila, claveDeLinea } from '../cardmarket
 
 export const FICHERO_MIGRACION = 'supabase-migration-mi-coleccion.sql'
 
-function traducir(error) {
+// Se exporta desde la tanda 402: `carpetas.js` necesita la misma lectura
+// de «esto es que la migración no está puesta», y copiarla sería tener
+// dos ideas de cuándo callarse.
+export function traducir(error) {
   if (!error) return null
   const sin = ['PGRST202', 'PGRST205', '42P01', '42703'].includes(error.code) || /does not exist|Could not find/i.test(error.message || '')
   const e = new Error(sin ? `Falta ejecutar ${FICHERO_MIGRACION} en Supabase.` : error.message || 'No se ha podido consultar.')

@@ -60,7 +60,7 @@ let lineas = []
 let cartas = new Map() // id → fila de tcg_cards
 let guardados = new Map() // id → fila de tcg_card_prices
 const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
-let pestania = ['cartas', 'album', 'albumes', 'anadir', 'resumen', 'cambios', 'pokedex'].includes(params.get('ver')) ? params.get('ver') : 'cartas'
+let pestania = ['cartas', 'album', 'albumes', 'anadir', 'resumen', 'cambios', 'carpetas', 'pokedex'].includes(params.get('ver')) ? params.get('ver') : 'cartas'
 let albumesAbiertos = false
 
 // Los intercambios (tanda 376). El módulo entra por `import()` la
@@ -564,6 +564,7 @@ function abrirEditor(l) {
   // que enseña qué se puede pedir. Una fila que no se sabe NO se pinta —
   // «Ilustrador: —» ocupa lo mismo que el dato y no dice nada.
   $('mcEdTabla').innerHTML = tablaDeCarta(c)
+  pintarCarpetasDeLaFicha(l.id)
   $('mcEdIdioma').innerHTML = opciones(IDIOMAS, l.idioma)
   $('mcEdEstado').innerHTML = opciones(ESTADOS, l.estado)
   $('mcEdVariante').innerHTML = opciones(VARIANTES, l.variante)
@@ -1252,7 +1253,7 @@ function cambiarPestania(nueva) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAlbumes', 'albumes'], ['mcPanelAnadir', 'anadir'], ['mcPanelResumen', 'resumen'], ['mcPanelCambios', 'cambios'], ['mcPanelPokedex', 'pokedex']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelAlbumes', 'albumes'], ['mcPanelAnadir', 'anadir'], ['mcPanelResumen', 'resumen'], ['mcPanelCambios', 'cambios'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex']]) {
     $(id).classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
@@ -1268,8 +1269,115 @@ function cambiarPestania(nueva) {
   if (nueva === 'album' && !album.set) pintarEstanteria()
   if (nueva === 'resumen') pintarResumenPanel()
   if (nueva === 'cambios') abrirCambios()
+  if (nueva === 'carpetas') abrirCarpetas()
   if (nueva === 'pokedex') abrirPokedex()
   if (nueva === 'anadir') $('mcAnadirBuscar').focus()
+}
+
+// ── Las carpetas (tanda 402) ──
+//
+// Se cargan la primera vez que se abre la pestaña, como los álbumes
+// soñados: quien nunca entra no se baja el módulo ni hace las dos
+// consultas.
+let carpetas = null
+let carpetasLista = []
+let carpetasResumen = new Map()
+let carpetaAbierta = null
+
+// Las carpetas de la carta abierta (tanda 402). El bloque entero se
+// esconde si no hay ninguna carpeta: un rótulo «Carpetas» encima de un
+// hueco vacío no dice qué hacer, y lo que hay que hacer está en otra
+// pestaña.
+async function pintarCarpetasDeLaFicha(lineId) {
+  const bloque = $('mcEdCarpetasBloque')
+  const hueco = $('mcEdCarpetas')
+  if (!bloque || !hueco) return
+  if (!carpetas) {
+    try {
+      carpetas = await import('./mi-coleccion/carpetas.js')
+    } catch {
+      bloque.classList.add('hidden')
+      return
+    }
+  }
+  if (!carpetasLista.length) {
+    const lista = await carpetas.listarCarpetas().catch(() => null)
+    carpetasLista = lista || []
+  }
+  if (!carpetasLista.length) {
+    bloque.classList.add('hidden')
+    return
+  }
+  bloque.classList.remove('hidden')
+  const dentro = new Set(await carpetas.carpetasDeLinea(lineId).catch(() => []))
+  hueco.innerHTML = carpetasLista
+    .map((c) => {
+      const puesta = dentro.has(c.id)
+      return `<button type="button" class="mc-chip-filtro${puesta ? ' activo' : ''}" data-carpeta-chip="${escapeHtml(c.id)}" aria-pressed="${puesta ? 'true' : 'false'}">${escapeHtml(c.emoji ? `${c.emoji} ` : '')}${escapeHtml(c.nombre)}</button>`
+    })
+    .join('')
+}
+
+async function abrirCarpetas() {
+  const caja = $('mcCarpetasPanel')
+  if (!caja) return
+  if (!carpetas) {
+    caja.innerHTML = '<div class="skeleton" style="height:200px"></div>'
+    try {
+      carpetas = await import('./mi-coleccion/carpetas.js')
+    } catch (err) {
+      caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
+      return
+    }
+  }
+  await recargarCarpetas()
+}
+
+async function recargarCarpetas() {
+  const caja = $('mcCarpetasPanel')
+  const lista = await carpetas.listarCarpetas().catch(() => null)
+  // `null` = la migración no está puesta. Es distinto de «no tienes
+  // ninguna»: lo primero se arregla ejecutando un SQL y lo segundo
+  // creando una carpeta, y decir lo que no es manda a la gente a buscar
+  // un botón que no existe.
+  if (lista === null) {
+    caja.innerHTML = '<p class="empty-state">Las carpetas todavía no están activadas en la base. En cuanto lo estén, aquí podrás ordenar tu colección como quieras.</p>'
+    $('mcCarpetaNueva').disabled = true
+    return
+  }
+  carpetasLista = lista
+  carpetasResumen = await carpetas.resumenDeCarpetas().catch(() => new Map())
+  pintarCarpetas()
+}
+
+function pintarCarpetas() {
+  const caja = $('mcCarpetasPanel')
+  const migas = $('mcCarpetaMigas')
+  if (carpetaAbierta) {
+    const c = carpetasLista.find((x) => x.id === carpetaAbierta)
+    if (!c) {
+      carpetaAbierta = null
+      return pintarCarpetas()
+    }
+    const hijas = carpetasLista.filter((x) => x.parent_id === c.id).map((x) => ({ ...x, hijas: [] }))
+    migas.innerHTML = `<button type="button" class="link-btn" data-volver-carpetas>← Carpetas</button> <strong>${escapeHtml(c.nombre)}</strong>`
+    caja.innerHTML = (hijas.length ? carpetas.rejillaHtml(hijas, carpetasResumen) : '') +
+      '<div class="mc-cartas" id="mcCarpetaCartas"></div>'
+    pintarCartasDeCarpeta(c.id)
+    return
+  }
+  migas.textContent = ''
+  caja.innerHTML = carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)
+}
+
+async function pintarCartasDeCarpeta(id) {
+  const hueco = $('mcCarpetaCartas')
+  if (!hueco) return
+  const ids = new Set(await carpetas.lineasDeCarpeta(id).catch(() => []))
+  const dentro = lineas.filter((l) => ids.has(l.id))
+  hueco.innerHTML = dentro.length
+    ? dentro.map(lineaHtml).join('')
+    : '<p class="empty-state">Esta carpeta todavía no tiene cartas. Ábrelas desde tu colección y métela en una carpeta desde su ficha.</p>'
 }
 
 // ── La Pokédex (tanda 381) ──
@@ -1594,6 +1702,78 @@ function enganchar() {
       pintarCuentaDeFiltros()
     })
   }
+
+  // ── Las carpetas (tanda 402) ──
+  $('mcCarpetaNueva').addEventListener('click', async () => {
+    const nombre = window.prompt('¿Cómo se llama la carpeta?')
+    if (!nombre || !nombre.trim()) return
+    try {
+      // Si estás DENTRO de una, la nueva nace dentro: es lo que esperas
+      // al pulsar «nueva» estando en «Vintage».
+      await carpetas.crearCarpeta(sesion.user.id, { nombre, parent_id: carpetaAbierta })
+      await recargarCarpetas()
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+  })
+  $('mcCarpetasPanel').addEventListener('click', async (e) => {
+    const abrir = e.target.closest('[data-abrir]')
+    if (abrir) {
+      carpetaAbierta = abrir.dataset.abrir
+      return pintarCarpetas()
+    }
+    const editar = e.target.closest('[data-editar-carpeta]')
+    if (!editar) return
+    const c = carpetasLista.find((x) => x.id === editar.dataset.editarCarpeta)
+    if (!c) return
+    const nombre = window.prompt('Nombre de la carpeta (vacío para borrarla):', c.nombre)
+    if (nombre === null) return
+    try {
+      if (!nombre.trim()) {
+        // Borrar se lleva las SUBcarpetas, así que se avisa de eso y no
+        // de «se borrará la carpeta» a secas. Las cartas no se tocan:
+        // viven en tu colección, no en la carpeta.
+        const hijas = carpetasLista.filter((x) => x.parent_id === c.id).length
+        const aviso = hijas
+          ? `¿Borrar «${c.nombre}» y sus ${hijas} subcarpetas? Las cartas se quedan en tu colección.`
+          : `¿Borrar «${c.nombre}»? Las cartas se quedan en tu colección.`
+        if (!window.confirm(aviso)) return
+        await carpetas.borrarCarpeta(c.id)
+        if (carpetaAbierta === c.id) carpetaAbierta = c.parent_id || null
+      } else {
+        await carpetas.renombrarCarpeta(c.id, { nombre: nombre.trim().slice(0, 60) })
+      }
+      await recargarCarpetas()
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+  })
+  $('mcCarpetaMigas').addEventListener('click', (e) => {
+    if (!e.target.closest('[data-volver-carpetas]')) return
+    const c = carpetasLista.find((x) => x.id === carpetaAbierta)
+    carpetaAbierta = c?.parent_id || null
+    pintarCarpetas()
+  })
+
+  // Meter y sacar la carta abierta de una carpeta, desde su ficha.
+  $('mcEdCarpetas').addEventListener('click', async (e) => {
+    const chip = e.target.closest('[data-carpeta-chip]')
+    if (!chip) return
+    const id = $('mcEditor').dataset.linea
+    if (!id) return
+    const folder = chip.dataset.carpetaChip
+    const dentro = chip.getAttribute('aria-pressed') === 'true'
+    try {
+      if (dentro) await carpetas.sacarDeCarpeta(folder, id)
+      else await carpetas.meterEnCarpeta(folder, id)
+      // Se repinta desde la base y no a ojo: si la escritura falló, el
+      // chip se quedaría diciendo que está dentro cuando no lo está.
+      await pintarCarpetasDeLaFicha(id)
+      carpetasResumen = await carpetas.resumenDeCarpetas().catch(() => carpetasResumen)
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+  })
 
   // ── El panel de filtros (tanda 399) ──
   $('mcAbrirFiltros').addEventListener('click', () => {

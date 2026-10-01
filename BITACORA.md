@@ -23,6 +23,49 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 402 — carpetas para ordenar tu colección)
+
+**Hecho**: lo que pidió PINGU viendo Dex — carpetas, con subcarpetas
+dentro, para ordenar la colección como quieras. Pestaña propia, y en la
+ficha de una carta unos chips para meterla y sacarla.
+
+**Por qué una tabla y no una etiqueta**: lo barato habría sido un
+`text[]` en `user_collection`, pero una carpeta tiene nombre, color,
+emoji, orden y PADRE, y eso en un array de cadenas acaba siendo un nombre
+con separadores dentro. Lo que mata la idea es la carpeta VACÍA: con
+etiquetas no existe hasta que metes algo, así que no se puede crear
+primero y llenar después — que es justo como se ordena una colección.
+
+**El ciclo lo impide un disparador y no un `check`**: una restricción
+solo ve la fila que se escribe, y esto hay que mirarlo SUBIENDO por el
+árbol. Con tope de 50 vueltas, por si alguna vez entrara un ciclo por
+otro lado: sin él, el bucle se llevaría la conexión por delante.
+Comprobado contra Postgres 16 a uno y a dos saltos.
+
+**Borrar una carpeta se lleva sus subcarpetas pero NO las cartas**: una
+carta vive en tu colección, no en la carpeta. Y el aviso lo dice.
+
+**Una carpeta huérfana se cuelga de la raíz** en vez de desaparecer: una
+carpeta que no se ve es una carpeta que no se puede recuperar. Y el
+desplegable de madres no ofrece ni la propia ni sus descendientes —
+ofrecer un ciclo es ofrecer un error.
+
+**«No tienes carpetas» y «las carpetas no están activadas» son mensajes
+distintos**: lo primero se arregla creando una y lo segundo ejecutando un
+SQL. Decir lo que no es manda a la gente a buscar un botón que no existe.
+
+**Un fallo que salió al probarlo**: el `?ver=` tiene su lista de pestañas
+permitidas, y una pestaña nueva que no esté en ella no se abre por enlace
+— el panel se queda escondido **sin dar error**.
+
+**SQL a ejecutar**: `supabase-migration-carpetas.sql` (**nuevo**). Hasta
+que no esté, la pestaña lo dice y no se rompe nada.
+
+**Ficheros**: `supabase-migration-carpetas.sql` (**nuevo**),
+`js/mi-coleccion/carpetas.js` (**nuevo**), `js/mi-coleccion.js`,
+`js/mi-coleccion/datos.js`, `mi-coleccion.html`, `css/mi-coleccion.css`.
+En `pruebas`: `test-tanda-402.mjs` (**nuevo**) y `correr-suite.sh`.
+
 ## 2026-10-01 — PINGU-Claude (tanda 401 — el XP de un torneo, contado)
 
 **Hecho**: lo que quedó dicho como pendiente en la 387. El XP de un

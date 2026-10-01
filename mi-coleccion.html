@@ -131,6 +131,7 @@
         <button type="button" role="tab" class="mc-pestania" data-pestania="anadir" aria-selected="false" aria-controls="mcPanelAnadir">Añadir cartas</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="resumen" aria-selected="false" aria-controls="mcPanelResumen">Resumen</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="cambios" aria-selected="false" aria-controls="mcPanelCambios">Cambios</button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="carpetas" aria-selected="false" aria-controls="mcPanelCarpetas">Carpetas</button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="pokedex" aria-selected="false" aria-controls="mcPanelPokedex">Pokédex</button>
       </div>
 
@@ -301,6 +302,16 @@
            UNA SOLA CONSULTA —tu colección ya está en memoria y la
            especie sale del nombre de cada carta—; lo único que se
            pregunta es cuántas hay en el catálogo. -->
+      <!-- Carpetas (tanda 402): ordenar tu colección como quieras, con
+           subcarpetas dentro. Lo pidió PINGU viendo Dex. -->
+      <section id="mcPanelCarpetas" role="tabpanel" aria-label="Carpetas" class="hidden">
+        <div class="mc-carpetas-mandos">
+          <button type="button" class="btn-primary" id="mcCarpetaNueva">Nueva carpeta</button>
+          <p class="mc-migas-carpetas" id="mcCarpetaMigas"></p>
+        </div>
+        <div id="mcCarpetasPanel"></div>
+      </section>
+
       <section id="mcPanelPokedex" class="hidden" role="tabpanel" aria-label="Pokédex">
         <div class="pdx-mandos" id="mcPdxMandos">
           <input type="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número…" autocomplete="off" />
@@ -436,6 +447,14 @@
           <label>Lo que pagaste (€) <input type="text" id="mcEdCompra" inputmode="decimal" /></label>
           <label class="mc-editor-notas">Notas <textarea id="mcEdNotas" maxlength="280" rows="2"></textarea></label>
         </div>
+            </section>
+
+            <!-- En qué carpetas está esta copia (tanda 402). Va antes de
+                 los datos porque es algo TUYO y se toca; los datos de la
+                 carta son de consulta. -->
+            <section class="mc-ficha-bloque" id="mcEdCarpetasBloque">
+              <h3>Carpetas</h3>
+              <div class="mc-chips-filtro" id="mcEdCarpetas"></div>
             </section>
 
             <section class="mc-ficha-bloque">
