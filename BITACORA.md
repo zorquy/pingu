@@ -23,6 +23,23 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 401 — el XP de un torneo, contado)
+
+**Hecho**: lo que quedó dicho como pendiente en la 387. El XP de un
+torneo se ganaba **en silencio**: se veía en el perfil y en el rastro,
+pero no había ningún «+150 XP» por ningún lado, que es como no verlo.
+
+La fase del reparto ahora corre **antes** que la del aviso del final (iba
+después), así que el aviso puede leer `tournament_xp_awards` y decir
+cuánto te llevaste. Al campeón se le dice la cifra; al resto, que su XP
+está sumado — una cifra en común no vale, cada uno se llevó la suya.
+
+Si la tabla no está puesta, el aviso sale como antes: un premio que no se
+puede leer no puede llevarse por delante el aviso del final.
+
+**Ficheros**: `netlify/functions/torneos-barredor.mjs`. En `pruebas`:
+`test-tanda-387.mjs`.
+
 ## 2026-10-01 — PINGU-Claude (tanda 400 — la cabecera de la Pokédex)
 
 **Hecho**: arriba de la Pokédex van ahora cuatro cifras, como en Dex:

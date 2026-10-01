@@ -369,6 +369,45 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   //     todo menos para el final, que es justo cuando la gente quiere
   //     mirar: juegas cinco rondas, se cierra la última, se calcula el
   //     podio y nadie te dice dónde has quedado. Se avisa una vez, a
+  // 0c. EL XP DE LOS TORNEOS (tanda 387): a quien jugó, a quien subió al
+  //     podio y a quien ganó. Va aquí, en el servidor, porque `addXP` lee
+  //     el total y le suma: llamarlo al pintar la ficha repartiría XP
+  //     cada vez que alguien la abre, y la ficha se refresca sola cada
+  //     diez segundos.
+  //
+  //     Quien reparte de verdad es `torneos_repartir_xp`, que deja una
+  //     fila por premio y solo suma por las que mete de nuevo: si esto se
+  //     llama dos veces, la segunda no da nada.
+  //
+  //     El filtro pide `podium` sellado: el podio congelado es la única
+  //     fuente de quién quedó dónde, y mientras no esté esto no es «no ha
+  //     ganado nadie», es «aún no se sabe». Se queda para la pasada
+  //     siguiente, y así la cola de los torneos viejos se vacía sola a
+  //     razón de unos cuantos por minuto.
+  //
+  //     El tope de 20 no es un gusto: una función programada de Netlify
+  //     se mata a los 30 segundos y esto va con todo lo demás en la misma
+  //     pasada.
+  try {
+    const pendientes = await rest(
+      `tournaments?status=eq.finished&podium=not.is.null&xp_awarded_at=is.null&select=id,name&order=id&limit=20`,
+      clave
+    )
+    for (const t of pendientes || []) {
+      const dado = await rest('rpc/torneos_repartir_xp', clave, {
+        method: 'POST',
+        body: JSON.stringify({ p_torneo: t.id }),
+      })
+      xpTorneos++
+      xpRepartido += Number(dado) || 0
+    }
+  } catch (e) {
+    // La columna llega con supabase-migration-torneos-xp.sql. Mientras no
+    // esté puesta esto falla, y no puede llevarse por delante el barrido
+    // de relojes, que es para lo que existe esta función.
+    console.error('XP de torneos aparcado:', e?.message || e)
+  }
+
   //     quien jugó, y a quien ganó se le dice que ha ganado.
   try {
     const acabados = await rest(
@@ -382,18 +421,40 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       )
       const ids = (jugaron || []).map((i) => i.user_id)
       const enlace = new URL(`/torneo?slug=${encodeURIComponent(t.slug)}`, sitio).href
+      // Cuánto XP se llevó cada uno, para decírselo en el aviso (tanda
+      // 401). La fase del reparto corre ANTES que esta a propósito: si
+      // no, el aviso saldría con el torneo sin repartir y no habría nada
+      // que contar. El XP se ganaba en silencio y se veía en el perfil,
+      // que es como no verlo.
+      //
+      // Si la tabla no está (migración sin ejecutar), se queda vacío y el
+      // aviso sale como antes: un premio que no se puede leer no puede
+      // llevarse por delante el aviso del final.
+      let xpPor = {}
+      try {
+        const premios = await rest(
+          `tournament_xp_awards?tournament_id=eq.${t.id}&select=user_id,amount`,
+          clave
+        )
+        xpPor = Object.fromEntries((premios || []).map((x) => [x.user_id, Number(x.amount) || 0]))
+      } catch {
+        xpPor = {}
+      }
+      // «+150 XP» y no «150 XP»: el signo dice que es algo que has
+      // ganado, no un total.
+      const masXp = (id) => (xpPor[id] ? ` +${xpPor[id]} XP.` : '')
       // Al campeón se le felicita aparte: recibir «mira dónde has
       // quedado» cuando acabas de ganar es un aviso desaprovechado.
       const campeon = t.champion_id && ids.includes(t.champion_id) ? t.champion_id : null
       if (campeon) {
         await avisarPorTodo([campeon], {
           title: `¡Has ganado — ${t.name}!`,
-          body: 'Campeón. Tu palmarés ya lo luce en el perfil.',
+          body: `Campeón.${masXp(campeon)} Tu palmarés ya lo luce en el perfil.`,
           tag: 'torneo-final',
           link: enlace,
           tipo: 'torneo_final',
           subject: `Has ganado «${t.name}»`,
-          preview: 'Campeón del torneo. Tu palmarés ya lo luce en el perfil.',
+          preview: `Campeón del torneo.${masXp(campeon)} Tu palmarés ya lo luce en el perfil.`,
           thread: `torneo-final-${t.id}`,
         })
       }
@@ -401,7 +462,9 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       if (resto.length) {
         await avisarPorTodo(resto, {
           title: `Torneo terminado — ${t.name}`,
-          body: 'Ya está la clasificación final con el podio y tus desempates.',
+          body: `Ya está la clasificación final con el podio y tus desempates.${
+            resto.some((id) => xpPor[id]) ? ' Y tu XP por jugarlo, sumado.' : ''
+          }`,
           tag: 'torneo-final',
           link: enlace,
           tipo: 'torneo_final',
@@ -519,45 +582,6 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     }
   } catch (e) {
     console.error('lista de espera aparcada:', e?.message || e)
-  }
-
-  // 0c. EL XP DE LOS TORNEOS (tanda 387): a quien jugó, a quien subió al
-  //     podio y a quien ganó. Va aquí, en el servidor, porque `addXP` lee
-  //     el total y le suma: llamarlo al pintar la ficha repartiría XP
-  //     cada vez que alguien la abre, y la ficha se refresca sola cada
-  //     diez segundos.
-  //
-  //     Quien reparte de verdad es `torneos_repartir_xp`, que deja una
-  //     fila por premio y solo suma por las que mete de nuevo: si esto se
-  //     llama dos veces, la segunda no da nada.
-  //
-  //     El filtro pide `podium` sellado: el podio congelado es la única
-  //     fuente de quién quedó dónde, y mientras no esté esto no es «no ha
-  //     ganado nadie», es «aún no se sabe». Se queda para la pasada
-  //     siguiente, y así la cola de los torneos viejos se vacía sola a
-  //     razón de unos cuantos por minuto.
-  //
-  //     El tope de 20 no es un gusto: una función programada de Netlify
-  //     se mata a los 30 segundos y esto va con todo lo demás en la misma
-  //     pasada.
-  try {
-    const pendientes = await rest(
-      `tournaments?status=eq.finished&podium=not.is.null&xp_awarded_at=is.null&select=id,name&order=id&limit=20`,
-      clave
-    )
-    for (const t of pendientes || []) {
-      const dado = await rest('rpc/torneos_repartir_xp', clave, {
-        method: 'POST',
-        body: JSON.stringify({ p_torneo: t.id }),
-      })
-      xpTorneos++
-      xpRepartido += Number(dado) || 0
-    }
-  } catch (e) {
-    // La columna llega con supabase-migration-torneos-xp.sql. Mientras no
-    // esté puesta esto falla, y no puede llevarse por delante el barrido
-    // de relojes, que es para lo que existe esta función.
-    console.error('XP de torneos aparcado:', e?.message || e)
   }
 
   const rondas = await rest(
