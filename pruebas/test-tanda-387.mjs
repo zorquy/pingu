@@ -124,62 +124,43 @@ console.log('\n── 3. El barredor cuenta en los dos returns ──')
   check('el reparto va con tope por pasada', /xp_awarded_at=is\.null[^`]*limit=\d+/.test(f))
 }
 
-console.log('\n── 4. La chapa junto al nombre ──')
-const browser = await chromium.launch()
-const abrir = async (perfiles, autor = undefined) => {
+console.log('\n── 4. El hilo de actividad va LIMPIO ──')
+{
+  // La 387 metió aquí la chapa del nivel y PINGU la quitó al verla
+  // (tanda 389): «antes se veía más limpio». Y tenía razón por el mismo
+  // motivo que el nombre no se tiñe — casi todo el mundo es Novato, así
+  // que era una pastilla gris idéntica en cada fila. Peor aún en las
+  // filas de «se ha unido a PokeDoc», que son Novato POR DEFINICIÓN: una
+  // marca que no puede decir nada nuevo nunca.
+  //
+  // Esto lo vigila para que no vuelva a entrar por descuido.
+  const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1200, height: 1100 } })
-  const errores = []
-  page.on('pageerror', (e) => errores.push(String(e).slice(0, 160)))
-  await page.addInitScript(([ps, quien]) => {
-    window.__FAKE_PERFILES__ = ps
-    window.__FAKE_GUIAS__ = Array.from({ length: 5 }, (_, i) => ({
-      title: `Guía ${i + 1}`,
-      ...(quien ? { author_id: quien } : {}),
-    }))
+  await page.addInitScript(() => {
+    window.__FAKE_PERFILES__ = [
+      { id: 'admin-1', username: 'Oak', display_name: 'Oak', is_admin: true, total_xp: 9000 },
+    ]
+    window.__FAKE_GUIAS__ = Array.from({ length: 5 }, (_, i) => ({ title: `Guía ${i + 1}` }))
     window.__FAKE_NOTICIAS__ = []
     window.__FAKE_TEMAS__ = []
-  }, [perfiles, autor])
+  })
   await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
-  return { page, errores }
-}
-{
-  const { page, errores } = await abrir([
-    { id: 'admin-1', username: 'Oak', display_name: 'Oak', is_admin: true, total_xp: 9000 },
-  ])
-  check('sin errores', errores.length === 0, errores.join(' | '))
+  const filas = await page.locator('#homeActivityFeed .activity-item').count()
+  check('el hilo de actividad tiene filas', filas > 0, `${filas}`)
+  check('y ninguna lleva chapa de nivel',
+    (await page.locator('#homeActivityFeed .nivel-chapa').count()) === 0)
+  // El NOMBRE sí sigue llevando el color de su rango: eso son tres
+  // valores, no cinco, y no se repite en cada línea.
   const fila = page.locator('#homeActivityFeed .activity-item').first()
-  check('el hilo de actividad tiene filas',
-    (await page.locator('#homeActivityFeed .activity-item').count()) > 0)
-  check('con la chapa del nivel junto al nombre',
-    (await fila.locator('.nivel-chapa').count()) === 1)
-  check('  …y dice el nivel que toca',
-    (await fila.locator('.nivel-chapa').textContent())?.includes('Maestro'),
-    await fila.locator('.nivel-chapa').textContent())
-  // El nombre sigue llevando SU color, el del rango, y no el del nivel.
   const color = await fila.locator('.activity-name').evaluate((e) => getComputedStyle(e).color)
   const token = await page.evaluate(() => {
     const d = document.createElement('i')
     d.style.color = getComputedStyle(document.documentElement).getPropertyValue('--rango-admin')
     document.body.append(d); const c = getComputedStyle(d).color; d.remove(); return c
   })
-  check('el nombre lleva el color del RANGO, no el del nivel', color === token, `${color} vs ${token}`)
-  await page.close()
-}
-{
-  // Tres estados y no dos (tanda 319): sin `total_xp` no se sabe, y lo
-  // que no se sabe no se pinta. Enseñar «Novato» sería inventar un cero.
-  // Firma OTRA persona a propósito. La racha diaria de la portada
-  // ESCRIBE +5 XP en el perfil de QUIEN MIRA, así que con la guía firmada
-  // por él su `total_xp` nunca llega vacío y este caso no se podría
-  // probar. Y sin sesión no hay hilo de actividad en la portada.
-  const { page } = await abrir([], 'user-1')
-  const fila = page.locator('#homeActivityFeed .activity-item').first()
-  check('sin total_xp no se enseña ninguna chapa',
-    (await fila.locator('.nivel-chapa').count()) === 0)
-  check('  …pero el nombre sigue estando',
-    (await fila.locator('.activity-name').count()) === 1)
-  await page.close()
+  check('pero el nombre sigue con el color de su rango', color === token, `${color} vs ${token}`)
+  await browser.close()
 }
 
 console.log('\n── 5. El nombre NO se tiñe por nivel ──')
@@ -227,6 +208,5 @@ console.log('\n── 5. El nombre NO se tiñe por nivel ──')
     /--chapa:\$\{estilo\.color\}/.test(leer('js/gamification.js')))
 }
 
-await browser.close()
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
 process.exit(fails === 0 ? 0 : 1)
