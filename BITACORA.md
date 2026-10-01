@@ -18,10 +18,32 @@ mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
 que falló es que ninguno de los dos la releyó justo antes de numerar,
 porque las dos tandas se empezaron con el repo al día.
 
+**OJO, CHOQUE DE NÚMEROS (y van TRES)**: la 413 se usó a la vez en dos
+sesiones. La otra llegó antes al remoto, así que lo mío pasa a ser la
+**414**. Van 384, 394 y 413: releer la bitácora antes de numerar no basta
+cuando las dos tandas empiezan con el repo al día. Lo que sí funcionaría
+es mirar el REMOTO justo antes del commit, no al empezar.
+
 **OJO, CHOQUE DE NÚMEROS (otra vez)**: Ibai y yo usamos la 394 a la vez.
 Él llegó antes al remoto, así que lo mío pasa a ser la **395**. Es la
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
+
+## 2026-10-01 — PINGU-Claude (tanda 414 — la Pokédex: el anillo y las generaciones)
+
+**Hecho**: la Pokédex pasa de ser un muro de 1.025 casillas a un índice:
+agrupada **por generaciones**, con cuántos llevas de cada una al lado del
+rótulo. La última generación no tiene final (`Infinity`) a propósito: el
+día que salga la décima, una lista de rangos cerrados dejaría a los
+nuevos fuera de todos los grupos y desaparecerían sin dar error. Y la
+caja de «Registrados» lleva un **anillo** de progreso —`conic-gradient`,
+sin dependencias— con su `aria-label`.
+
+**Ficheros**: `js/mi-coleccion/pokedex.js`, `css/mi-coleccion.css`,
+`SCHEMA.md`. En la rama `pruebas`: `test-tanda-413.mjs` (nuevo).
+
+**En curso / pendiente**: los CUATRO SQL sin lanzar. Y queda pasar la
+suite entera: desde la 409 solo se han corrido las pruebas de lo tocado.
 
 ## 2026-10-01 13:45 — PINGU-Claude (tanda 413 — la impresión de la colección, guardar cualquier lista, la portada y el meta del torneo)
 

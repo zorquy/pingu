@@ -22182,3 +22182,35 @@ cada una enseñó algo de la prueba:
 **La mudanza a `lista-canonica.js`** dejó viejos los anclajes de los
 rigores 232, 233, 326 y 328 y dos lecturas de texto de las pruebas 328 y
 345: movidos, y las mutaciones movidas, comprobadas una a una.
+## Tanda 414 — la Pokédex: el anillo y las generaciones (oct. 2026)
+
+### Mil veinticinco casillas seguidas no son una lista
+
+Son un muro: no hay forma de saber por dónde vas ni de llegar a «los de
+Hoenn» sin desplazarse a ojo. En la app de Dex están agrupados por
+generación y con su cuenta al lado, y eso convierte el muro en un índice.
+
+**La última generación no tiene final.** Las ocho primeras son rangos
+cerrados que no van a cambiar nunca; la novena sí. El día que salga la
+décima, una lista de rangos cerrados dejaría a los nuevos FUERA de todos
+los grupos y desaparecerían de la pantalla sin dar error. Con `Infinity`,
+caen en la última: mal colocados, pero visibles.
+
+Y los rótulos vacíos no se pintan: con un buscador puesto, la mayoría de
+las generaciones se quedan sin nada debajo.
+
+### El anillo
+
+Es el mismo dato que el pie —el porcentaje—, pero un número suelto no
+dice si vas por la mitad o por el final; un anillo sí, de un vistazo y
+sin leer. Va con `conic-gradient` y un agujero encima: ni dependencia ni
+dibujo, es un fondo. Y lleva `aria-label`, porque un anillo sin texto no
+lo lee nadie que no lo vea.
+
+### Comprobado
+
+`test-tanda-413.mjs`: el reparto por generaciones con datos a mano —cada
+uno en la suya, sin rótulos vacíos, y **un número que todavía no existe
+cayendo en la última en vez de perderse**—; y en pantalla, el anillo con
+su porcentaje, su degradado cónico y su etiqueta, los nueve rótulos con
+su cuenta, y que al buscar solo quedan los rótulos con algo debajo.

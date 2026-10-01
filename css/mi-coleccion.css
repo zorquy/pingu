@@ -3392,7 +3392,7 @@ input.mc-alb-titulo:not([readonly]):focus {
   display: none;
 }
 
-/* ── La cabecera, más corta en el móvil (tanda 413) ──
+/* ── La cabecera, más corta en el móvil (tanda 412) ──
    Las cuatro cifras en dos filas de cajas grandes se comían 200 px antes
    de la primera carta, en TODAS las pestañas. En una pantalla de 390 px
    eso es un cuarto de pantalla repetido cinco veces. Pasan a ser una tira
@@ -3417,4 +3417,62 @@ input.mc-alb-titulo:not([readonly]):focus {
   .mc-cifra dd {
     font-size: var(--t-lg);
   }
+}
+
+/* ── El anillo de la Pokédex (tanda 414) ──
+   Es el mismo dato que el pie, pero un número suelto no dice si vas por
+   la mitad o por el final. Un `conic-gradient` y un agujero encima: ni
+   dependencia ni dibujo, es un fondo. */
+.mc-pdx-principal {
+  display: flex;
+  gap: var(--e-md);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mc-anillo {
+  display: grid;
+  position: relative;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: conic-gradient(var(--navy-solid) calc(var(--pct, 0) * 1%), var(--border) 0);
+}
+
+.mc-anillo::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: var(--white);
+}
+
+.mc-anillo b {
+  position: relative;
+  font-size: var(--t-2xs);
+  font-weight: 800;
+}
+
+/* El rótulo de una generación (tanda 414): el nombre a la izquierda y
+   cuántos llevas a la derecha, que es lo que convierte un muro de mil
+   casillas en un índice. */
+.pdx-generacion {
+  display: flex;
+  gap: var(--e-md);
+  align-items: baseline;
+  justify-content: space-between;
+  margin: var(--e-xl) 0 var(--e-md);
+  font-size: var(--t-md);
+}
+
+.pdx-generacion:first-child {
+  margin-top: 0;
+}
+
+.pdx-generacion small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
 }

@@ -109,11 +109,54 @@ function filaHtml(f) {
     </button>`
 }
 
+// ── Por generaciones (tanda 414) ──
+//
+// Mil veinticinco casillas seguidas no son una lista, son un muro: no hay
+// forma de saber por dónde vas ni de llegar a «los de Hoenn» sin
+// desplazarse a ojo. En la app de Dex están agrupados por generación y
+// con su cuenta al lado, y eso es lo que convierte el muro en un índice.
+//
+// **La última no tiene final.** Las ocho primeras son rangos cerrados que
+// no van a cambiar nunca, pero la novena sí: el día que salga la décima,
+// una lista cerrada dejaría a los nuevos FUERA de todos los grupos y
+// desaparecerían de la pantalla sin dar error. Así, caen en la última.
+const GENERACIONES = [
+  { nombre: 'Primera generación', desde: 1, hasta: 151 },
+  { nombre: 'Segunda generación', desde: 152, hasta: 251 },
+  { nombre: 'Tercera generación', desde: 252, hasta: 386 },
+  { nombre: 'Cuarta generación', desde: 387, hasta: 493 },
+  { nombre: 'Quinta generación', desde: 494, hasta: 649 },
+  { nombre: 'Sexta generación', desde: 650, hasta: 721 },
+  { nombre: 'Séptima generación', desde: 722, hasta: 809 },
+  { nombre: 'Octava generación', desde: 810, hasta: 905 },
+  { nombre: 'Novena generación', desde: 906, hasta: Infinity },
+]
+
+export function porGeneraciones(filas) {
+  const grupos = GENERACIONES.map((g) => ({ ...g, filas: [] }))
+  for (const f of filas) {
+    const g = grupos.find((x) => f.dex >= x.desde && f.dex <= x.hasta)
+    if (g) g.filas.push(f)
+  }
+  // Un rótulo encima de nada es ruido: con un buscador puesto, la mayoría
+  // de las generaciones se quedan vacías.
+  return grupos.filter((g) => g.filas.length)
+}
+
 export function rejillaHtml(filas) {
   if (!filas.length) {
     return '<p class="empty-state">Ningún Pokémon con ese nombre.</p>'
   }
-  return `<div class="pdx-rejilla">${filas.map(filaHtml).join('')}</div>`
+  return porGeneraciones(filas)
+    .map((g) => {
+      const tengo = g.filas.filter((f) => f.tengo).length
+      return `<h3 class="pdx-generacion">
+          <span>${escapeHtml(g.nombre)}</span>
+          <small>${tengo} de ${g.filas.length}</small>
+        </h3>
+        <div class="pdx-rejilla">${g.filas.map(filaHtml).join('')}</div>`
+    })
+    .join('')
 }
 
 // ── Una especie abierta ──
@@ -216,8 +259,20 @@ export function cabeceraHtml(resumen, { nombreDe = (d) => `#${d}` } = {}) {
   const miles = (n) => new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(n)
   const tarjeta = (rotulo, cifra, pie) =>
     `<div class="mc-pdx-caja"><p class="mc-pdx-rotulo">${escapeHtml(rotulo)}</p><p class="mc-pdx-cifra">${escapeHtml(String(cifra))}</p><p class="mc-pdx-pie">${escapeHtml(pie)}</p></div>`
+  // El anillo (tanda 414). Es el mismo dato que el pie —el porcentaje—,
+  // pero un número suelto no dice si vas por la mitad o por el final; un
+  // anillo sí, de un vistazo y sin leer. Va con `conic-gradient`, sin
+  // dependencias ni dibujo: es un fondo.
+  const anillo = `<span class="mc-anillo" style="--pct:${crudo.toFixed(1)}" role="img" aria-label="${escapeHtml(String(pct))} % registrado"><b>${escapeHtml(String(pct))} %</b></span>`
   return `<div class="mc-pdx-cabecera">
-    ${tarjeta('Registrados', `${resumen.registrados}`, `de ${miles(resumen.total)} · ${pct} %`)}
+    <div class="mc-pdx-caja mc-pdx-principal">
+      <div>
+        <p class="mc-pdx-rotulo">Registrados</p>
+        <p class="mc-pdx-cifra">${resumen.registrados}</p>
+        <p class="mc-pdx-pie">de ${escapeHtml(miles(resumen.total))}</p>
+      </div>
+      ${anillo}
+    </div>
     ${tarjeta('Completados', `${resumen.completados}`, 'con todas sus cartas')}
     ${resumen.mas ? tarjeta('El que más tienes', `${resumen.mas.cuantas}`, nombreDe(resumen.mas.dex)) : ''}
     ${resumen.menos ? tarjeta('El que menos', `${resumen.menos.cuantas}`, nombreDe(resumen.menos.dex)) : ''}
