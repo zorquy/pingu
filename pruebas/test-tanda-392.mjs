@@ -132,13 +132,19 @@ console.log('\n── 3. La ficha, en un diálogo ──')
   check('la ventana ocupa de verdad', (caja?.width || 0) >= 900, `${Math.round(caja?.width || 0)}px`)
   // Un diálogo sin `margin: auto` se queda arriba a la izquierda, que es
   // justo lo que PINGU llamó «se abre en una esquina».
+  const ancho = await page.evaluate(() => window.innerWidth)
   const centro = (caja?.x || 0) + (caja?.width || 0) / 2
-  check('  …y está centrada', Math.abs(centro - 640) < 4, `centro en ${Math.round(centro)} de 640`)
+  check('  …y está centrada', Math.abs(centro - ancho / 2) < 4,
+    `centro en ${Math.round(centro)} de ${ancho / 2}`)
   check('la carta se ve GRANDE', (foto?.width || 0) >= 300, `${Math.round(foto?.width || 0)}px`)
   // Y cabe entera: con el alto topado, los botones de guardar se salían
   // de la pantalla en un portátil.
-  check('  …y la ventana cabe en la pantalla', (caja?.height || 0) <= 900 - 40,
-    `${Math.round(caja?.height || 0)} de 900`)
+  // Contra el alto DE VERDAD de la ventana, no contra un número escrito
+  // a mano: la primera versión comparaba con 900 mientras esta prueba
+  // abre a 1000, así que decía que no cabía algo que cabía de sobra.
+  const alto = await page.evaluate(() => window.innerHeight)
+  check('  …y la ventana cabe en la pantalla', (caja?.height || 0) <= alto - 40,
+    `${Math.round(caja?.height || 0)} de ${alto}`)
 
   // La tabla de datos no es adorno: la rareza, la energía y el ilustrador
   // son por lo que se filtra, y verlos aquí enseña qué se puede pedir.
