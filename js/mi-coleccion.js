@@ -46,6 +46,7 @@ import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante } from './mi-coleccion/variantes.js'
+import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -650,7 +651,7 @@ async function guardarEditor({ retardo = 0 } = {}) {
 //
 // Un archivador de nueve bolsillos: páginas de 3×3, de dos en dos en
 // pantalla ancha (como al abrirlo) y de una en una en el móvil.
-let album = { set: null, cartas: [], pagina: 0, soloFaltan: false }
+let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false }
 let todosLosSets = null
 
 async function cargarSets() {
@@ -800,7 +801,34 @@ async function abrirAlbum(setId) {
 // encima lleva su mando de − y +. Por eso es un `div` con un enlace
 // ENCIMA en vez de un `<a>` con todo dentro: un `<button>` dentro de un
 // `<a>` no es HTML válido y el navegador lo desmonta por su cuenta.
+// Una casilla de UNA versión (tanda 398). Misma forma que la de la carta
+// entera para que el pliego no baile, pero lo que cuenta y lo que marca
+// es solo esa versión.
+function bolsilloDeVariante(c, v) {
+  const n = tengoDe(c.id, v.nuestro)
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  const nombre = nombreDe(c)
+  const etiqueta = `${nombre} (${c.local_id}), ${v.nombre}${n ? `, tienes ${n}` : ', te falta'}`
+  const dentro = `
+    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
+    <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
+  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
+  const pie = `<span class="mc-bolsillo-variante">${escapeHtml(v.nombre)}</span>`
+  if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}${pie}</div>`
+  return `<div class="mc-bolsillo${n ? ' tengo' : ''} mc-bolsillo-con-mando">${enlace}${pie}
+    <span class="mc-bolsillo-controles mc-bolsillo-mando">
+      <button type="button" data-quitar="${escapeHtml(c.id)}" data-var="${escapeHtml(v.nuestro)}" ${n ? '' : 'disabled'} aria-label="Quitar una copia de ${escapeHtml(nombre)}, ${escapeHtml(v.nombre)}">−</button>
+      <span class="mc-bolsillo-cuenta" aria-hidden="true">${n}</span>
+      <button type="button" data-anadir="${escapeHtml(c.id)}" data-var="${escapeHtml(v.nuestro)}" aria-label="Añadir una copia de ${escapeHtml(nombre)}, ${escapeHtml(v.nombre)}">+</button>
+    </span></div>`
+}
+
 function bolsilloHtml(c) {
+  // En «una por versión» la casilla es de ESA versión: su cuenta, su
+  // nombre y sus botones. Sin esto, las cuatro casillas de una carta
+  // enseñarían el mismo número y marcarían todas a la vez — cuatro
+  // huecos que no se distinguen no son cuatro huecos.
+  if (c.__variante) return bolsilloDeVariante(c, c.__variante)
   const n = tengoDe(c.id)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
@@ -875,6 +903,17 @@ function cartasDelAlbumFiltradas() {
   })
 }
 
+// Cuál de los dos está puesto. `aria-pressed` además de la clase: para
+// quien no ve el color, la clase no dice nada.
+function pintarVistaVariantes() {
+  for (const [id, split] of [['mcVistaStack', false], ['mcVistaSplit', true]]) {
+    const b = $(id)
+    if (!b) continue
+    b.classList.toggle('activo', album.split === split)
+    b.setAttribute('aria-pressed', album.split === split ? 'true' : 'false')
+  }
+}
+
 function pintarAlbum() {
   pintarFiltrosDeAlbum()
   const lista = cartasDelAlbumFiltradas()
@@ -885,10 +924,26 @@ function pintarAlbum() {
   // solo las ultra raras. Lo que cambia es la cuenta de al lado.
   const filtrando = lista.length !== album.cartas.length
   $('mcAlbumCuenta').textContent = filtrando ? `${lista.length} de ${total} cartas a la vista` : ''
-  const pct = total ? Math.round((tengo / total) * 100) : 0
-  $('mcAlbumProgreso').innerHTML = total
-    ? `<span><strong>${tengo}</strong> de ${total} cartas · ${pct} %</span><span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>`
-    : ''
+  // Tres barras y no una (tanda 398). La de «completo» es la de siempre;
+  // la de «maestro» cuenta cada versión por separado y es la que
+  // persigue quien colecciona en serio; la de «adicionales» son los
+  // secretos, aparte porque mezclarlos hace que nadie llegue al 100 %.
+  // La que no tiene nada que contar no se pinta.
+  // `album.set` es el ID, no el set: el recuento oficial hay que
+  // buscarlo. Sin él, `esAdicional` no puede separar los secretos y la
+  // barra de «completo» se come el set entero — que es lo que pasaba.
+  const elSet = (todosLosSets || []).find((x) => x.id === album.set) || null
+  const barras = barrasDeSet(progresoDeSet({ cartas: album.cartas, set: elSet, tengo: tengoDe }))
+  $('mcAlbumProgreso').innerHTML = barras
+    .map((b) => {
+      const pct = porcentaje(b) ?? 0
+      return `<div class="mc-barra-fila">
+        <span class="mc-barra-nombre">${escapeHtml(b.nombre)}</span>
+        <span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>
+        <span class="mc-barra-cuenta"><strong>${b.tengo}</strong> de ${b.total}</span>
+      </div>`
+    })
+    .join('')
   const ancho = window.matchMedia('(min-width: 900px)').matches
   const deUnaVez = ancho ? 2 : 1
   if (!lista.length) {
@@ -903,8 +958,14 @@ function pintarAlbum() {
   // El archivador entero lo monta js/mi-coleccion/archivador.js, que lo
   // comparten esta pantalla y los álbumes soñados: era el mismo dibujo
   // escrito dos veces, y ya había empezado a separarse.
+  // En «una por versión» cada carta se abre en tantas casillas como
+  // versiones tenga. Se hace AQUÍ y no en el filtro para que la cuenta
+  // de arriba siga siendo la del set y no la de lo que se ve.
+  const paraPintar = album.split
+    ? lista.flatMap((c) => variantesDeCarta(c).map((v) => ({ ...c, __variante: v })))
+    : lista
   const armado = archivadorHtml({
-    lista,
+    lista: paraPintar,
     pagina: album.pagina,
     deUnaVez,
     tapa: tapaGuardada(),
@@ -923,11 +984,13 @@ function pintarAlbum() {
   $('mcAlbumAnterior').dataset.paso = String(deUnaVez)
 }
 
-async function tocarBolsillo(cardId) {
+// `variante` llega desde «una por versión» (tanda 398): ahí el + suma a
+// ESA versión y no a la normal, que es lo que distingue las casillas.
+async function tocarBolsillo(cardId, variante = 'normal') {
   const idioma = $('mcTocarIdioma').value
   const estado = $('mcTocarEstado').value
   try {
-    const nueva = await datos.anadir(sesion.user.id, { card_id: cardId, idioma, estado, variante: 'normal', cantidad: 1 })
+    const nueva = await datos.anadir(sesion.user.id, { card_id: cardId, idioma, estado, variante, cantidad: 1 })
     const i = lineas.findIndex((l) => l.id === nueva.id)
     if (i >= 0) lineas[i] = nueva
     else lineas.unshift(nueva)
@@ -952,8 +1015,10 @@ async function tocarBolsillo(cardId) {
 // lo que quiere deshacer quien pulsa «−» justo después de pulsar «+».
 // Para quitar una concreta está el editor de la pestaña «Mi colección»,
 // que sí enseña las líneas una a una.
-async function quitarDelBolsillo(cardId) {
-  const suyas = lineas.filter((l) => l.card_id === cardId)
+async function quitarDelBolsillo(cardId, variante = null) {
+  // Sin versión, la más reciente de cualquiera; con versión, solo de esa
+  // — si no, el «−» de la casilla del reverse holo te quitaría la normal.
+  const suyas = lineas.filter((l) => l.card_id === cardId && (!variante || l.variante === variante))
   if (!suyas.length) return
   const l = suyas.reduce((a, b) => (String(a.created_at || '') >= String(b.created_at || '') ? a : b))
   try {
@@ -1617,12 +1682,26 @@ function enganchar() {
   // oyente por bolsillo habría que volver a colgarlo cada vez.
   $('mcAlbum').addEventListener('click', (e) => {
     const mas = e.target.closest('button[data-anadir]')
-    if (mas) return void tocarBolsillo(mas.dataset.anadir)
+    if (mas) return void tocarBolsillo(mas.dataset.anadir, mas.dataset.var || 'normal')
     const menos = e.target.closest('button[data-quitar]')
-    if (menos) return void quitarDelBolsillo(menos.dataset.quitar)
+    if (menos) return void quitarDelBolsillo(menos.dataset.quitar, menos.dataset.var || null)
     const version = e.target.closest('button[data-variante]')
     if (version) return void alternarVariante(version.dataset.carta, version.dataset.variante)
   })
+  // Stack / Split. Se recuerda, porque quien colecciona set maestro lo
+  // quiere SIEMPRE y volver a pulsarlo en cada set sería un peaje.
+  for (const [id, split] of [['mcVistaStack', false], ['mcVistaSplit', true]]) {
+    $(id).addEventListener('click', () => {
+      album.split = split
+      album.pagina = 0
+      try { localStorage.setItem('mc-split', split ? '1' : '0') } catch {}
+      pintarVistaVariantes()
+      pintarAlbum()
+    })
+  }
+  try { album.split = localStorage.getItem('mc-split') === '1' } catch {}
+  pintarVistaVariantes()
+
   let espera = null
   $('mcAnadirBuscar').addEventListener('input', () => {
     clearTimeout(espera)

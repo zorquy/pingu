@@ -2331,3 +2331,87 @@ input.mc-alb-titulo:not([readonly]):focus {
   appearance: none;
 }
 
+/* ── Las tres barras del set (tanda 398) ── */
+.mc-barras {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin: var(--e-md) 0;
+}
+
+/* Nombre · barra · cuenta, en una fila. La barra se lleva el hueco que
+   sobre, así que las tres quedan alineadas aunque los nombres midan
+   distinto. */
+.mc-barra-fila {
+  display: grid;
+  grid-template-columns: minmax(96px, auto) minmax(0, 1fr) minmax(76px, auto);
+  gap: var(--e-md);
+  align-items: center;
+}
+
+.mc-barra-nombre {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.mc-barra-cuenta {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  /* En móvil el nombre y la cuenta se ponen encima: tres columnas en
+     320 px dejan la barra en un palmo y no se lee ninguna. */
+  .mc-barra-fila {
+    grid-template-columns: minmax(0, 1fr) minmax(76px, auto);
+  }
+
+  .mc-barra-fila .mc-barra {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Una por carta / una por versión ── */
+.mc-vista-variantes {
+  display: flex;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+.mc-chip-vista {
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-chip-vista.activo {
+  border-color: var(--navy);
+  background: var(--navy-solid);
+  /* Blanco FIJO: `--white` es la superficie de la página y en oscuro
+     vale #182430, así que dejaría letra oscura sobre azul (tanda 315). */
+  color: var(--blanco-fijo);
+}
+
+/* El nombre de la versión, bajo su casilla. Solo sale en «una por
+   versión»: ahí es lo único que distingue dos huecos con el mismo
+   dibujo. */
+.mc-bolsillo-variante {
+  display: block;
+  overflow: hidden;
+  padding: 2px var(--e-xs) 0;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+

@@ -202,7 +202,17 @@
           <select id="mcTocarIdioma" aria-label="Idioma al añadir"></select>
           <select id="mcTocarEstado" aria-label="Estado al añadir"></select>
         </div>
-        <p class="mc-progreso" id="mcAlbumProgreso"></p>
+        <!-- Las tres barras (tanda 398): completo, maestro y adicionales.
+             Son tres preguntas distintas y antes había una sola, así que
+             quien colecciona por versiones no tenía ningún número suyo. -->
+        <div class="mc-barras" id="mcAlbumProgreso"></div>
+        <!-- Stack / Split: una casilla por CARTA o una por VERSIÓN. En
+             «split» un reverse holo y su normal son dos huecos, que es
+             como se colecciona un set maestro. -->
+        <div class="mc-vista-variantes">
+          <button type="button" class="mc-chip-vista activo" id="mcVistaStack" aria-pressed="true">Una por carta</button>
+          <button type="button" class="mc-chip-vista" id="mcVistaSplit" aria-pressed="false">Una por versión</button>
+        </div>
         <!-- Los mandos del archivador ARRIBA (tanda 371): en un set de
              200 cartas son 22 pliegos, y tenerlos solo debajo del álbum
              obligaba a bajar la pantalla entera para pasar de página.

@@ -23,6 +23,42 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 398 — las tres barras del set, y una casilla por versión)
+
+**Hecho**: la «tanda B» de lo de Dex.
+
+1. **Tres barras en vez de una**: **completo** (una casilla por número),
+   **maestro** (cada versión por separado) y **adicionales** (los
+   secretos). Son tres preguntas distintas y antes solo había la primera,
+   así que quien colecciona por versiones no tenía ningún número suyo. En
+   151 eso es 164 de 207 contra 257 de 360. Las cuentas van en
+   `js/mi-coleccion/progreso-set.js`, puro y probado en Node.
+2. **Una por carta / una por versión** (el Stack/Split de Dex). En
+   «versión» cada carta se abre en tantas casillas como versiones tenga,
+   cada una con su nombre, su cuenta y sus botones — y el «+» suma a ESA
+   versión, que si no las cuatro casillas harían lo mismo. Se recuerda,
+   porque quien va a por el set maestro lo quiere siempre.
+
+**Dos reglas que se respetan**: solo es *adicional* lo que pasa del
+recuento oficial Y es un número (las promos llevan «XY122» y ahí no se
+puede decir si va antes o después), y la barra que no tiene nada que
+contar no se pinta — la mayoría de los sets viejos no tienen secretos.
+
+**Un fallo que salió al probarlo**: `album.set` es el ID y no el set, así
+que el recuento oficial no llegaba y la barra de «completo» se comía el
+set entero (1 de 3 en vez de 1 de 2) sin la de secretos.
+
+**Y dos pruebas viejas**: la 383 miraba el texto de la barra única; y la
+368 comprobaba que no hubiera un `<button>` dentro del enlace mirando
+«los 400 caracteres siguientes», una ventana que se come el `</a>` y
+marcaba como malo un botón que está fuera. Una distancia no es una
+estructura — y es la segunda vez que esa prueba pica en lo mismo.
+
+**Ficheros**: `js/mi-coleccion/progreso-set.js` (**nuevo**),
+`js/mi-coleccion.js`, `mi-coleccion.html`, `css/mi-coleccion.css`. En
+`pruebas`: `test-tanda-398.mjs` (**nuevo**), `test-tanda-383.mjs`,
+`test-tanda-368.mjs`, `correr-suite.sh`.
+
 ## 2026-10-01 — PINGU-Claude (tanda 397 — la ficha se guarda sola)
 
 **Hecho**: tres cosas que pidió PINGU comparando con Dex, y un fallo que
