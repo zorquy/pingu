@@ -55,8 +55,9 @@ console.log('\n── 3. Y el lector de decklists los conoce ──')
   // con un `.eq('name', …)` exacto. Por eso MEP no es «Mega Promos».
   check('MEP usa el nombre de nuestra base',
     nombreDeSetLive('MEP') === 'MEP Black Star Promos', nombreDeSetLive('MEP'))
+  // El resolutor vive en js/lista-canonica.js desde la tanda 413.
   check('el resolutor casa por nombre exacto',
-    /\.eq\('name', nombre\)/.test(leer('js/torneos/cartas-decklist.js')))
+    /\.eq\('name', nombre\)/.test(leer('js/lista-canonica.js')))
 }
 
 console.log('\n── 4. Y /admin es donde se apuntan ──')

@@ -5,13 +5,14 @@ SC='/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad'
 REPO='/home/user/pingu'
 NODE='/opt/node22/bin/node'
 
+# Desde la tanda 413 el resolutor de códigos vive en js/lista-canonica.js.
 ROTURAS = [
     # ── Códigos de set automáticos ──
-    ('js/torneos/cartas-decklist.js', ['test-sets-live.mjs'], 'deja de mirar el codigo de la base',
+    ('js/lista-canonica.js', ['test-sets-live.mjs'], 'deja de mirar el codigo de la base',
      "      .eq('tcg_online_code', clave)", "      .eq('tcg_online_code', 'NUNCA')"),
-    ('js/torneos/cartas-decklist.js', ['test-sets-live.mjs'], 'lo asignado a mano deja de mandar',
+    ('js/lista-canonica.js', ['test-sets-live.mjs'], 'lo asignado a mano deja de mandar',
      "  if (overrides[clave]) {\n    setsPorCodigo.set(codigo, overrides[clave])\n    return overrides[clave]\n  }", ""),
-    ('js/torneos/cartas-decklist.js', ['test-sets-live.mjs'], 'se cae la red de la tabla escrita a mano',
+    ('js/lista-canonica.js', ['test-sets-live.mjs'], 'se cae la red de la tabla escrita a mano',
      "    const nombre = nombreDeSetLive(clave)", "    const nombre = null"),
     ('js/tcgdex.js', ['test-tcgdex-codigo.mjs'], 'el codigo de set se guarda sin validar',
      "  return /^[A-Z0-9]{2,6}$/.test(limpio) ? limpio : null", "  return limpio"),

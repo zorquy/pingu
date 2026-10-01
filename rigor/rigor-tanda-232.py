@@ -4,6 +4,7 @@ SC='/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad'
 REPO='/home/user/pingu'
 NODE='/opt/node22/bin/node'
 
+# Desde la tanda 413 el resolutor de códigos vive en js/lista-canonica.js.
 ROTURAS = [
     ('js/torneos/motor.js', ['test-decklist-idiomas.mjs'], 'vuelve a entender solo el ingles',
      "  trainer: ['trainer', 'entrenador', 'dresseur', 'allenatore', 'treinador'],\n  energy: ['energy', 'energia', 'energie'],",
@@ -20,7 +21,7 @@ ROTURAS = [
      "    if (dexPrimera && dex && dex < dexPrimera && dex >= dexPrimera - 3) return false", ""),
     ('js/torneos/arquetipos.js', ['test-torneos-22.mjs'], 'se descarta el segundo icono siempre',
      "  const segunda = candidatas.slice(1).find((x) => {", "  const segunda = [].find((x) => {"),
-    ('js/torneos/cartas-decklist.js', ['test-sets-live.mjs'], 'el override del admin deja de mandar',
+    ('js/lista-canonica.js', ['test-sets-live.mjs'], 'el override del admin deja de mandar',
      "  if (overrides[clave]) {\n    setsPorCodigo.set(codigo, overrides[clave])\n    return overrides[clave]\n  }", ""),
 ]
 

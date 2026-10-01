@@ -40,14 +40,15 @@ MUTACIONES = [
      '        const play = porNombre.get(claveDeJuego(c))', '        const play = porNombre.get(c.name_search)'),
 
     # ── 4. El enlace de la lista de un mazo ──
+    # (Desde la tanda 413 el pie se pinta de una vez con la rejilla.)
     (D, 'el nombre de la carta deja de enlazar a su ficha',
-     "          pie.innerHTML = `<a class=\"torneo-carta-enlace\" href=\"${escapeHtml(rutaDeCarta(carta))}\">${escapeHtml(linea.name)}</a>`",
-     '          pie.textContent = linea.name'),
+     "${conPie && l.carta ? `<a class=\"torneo-carta-enlace\" href=\"${escapeHtml(rutaDeCarta(l.carta))}\">${escapeHtml(l.name)}</a>` : escapeHtml(l.name)}",
+     '${escapeHtml(l.name)}'),
     # …y el enlace roto, que es peor que no tener enlace: se pone aunque
     # la carta no se haya resuelto.
     (D, 'se enlaza también lo que no se ha resuelto',
-     '        const pie = hueco.querySelector(\'figcaption\')',
-     '        const pie = hueco.querySelector(\'figcaption\') || document.createElement(\'figcaption\')'),
+     '${conPie && l.carta ? `<a',
+     '${conPie ? `<a'),
 
     # ── 5. La trampa del barrido ──
     # Importar el molde en vez del módulo de direcciones le cuelga a

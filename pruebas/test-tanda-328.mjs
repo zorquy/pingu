@@ -318,12 +318,16 @@ console.log('\n── 4. La marca de una gemela no sale del resolutor ──')
   // El cinturón, por si alguien vuelve a usar la carta resuelta para
   // otra cosa: cuando no es exacta, la marca viaja a null. Así no se
   // puede juzgar aunque se quiera.
-  const fuente = readFileSync(`${RAIZ}/js/torneos/cartas-decklist.js`, 'utf8')
+  //
+  // Desde la tanda 413 el resolutor vive en js/lista-canonica.js (lo usa
+  // también la imagen exportada) y el comprobador sigue en la rejilla:
+  // se leen los dos, y el `?.` vale igual que el punto.
+  const fuente = ['js/torneos/cartas-decklist.js', 'js/lista-canonica.js'].map((f) => readFileSync(`${RAIZ}/${f}`, 'utf8')).join('\n')
   check('el resolutor dice si el hallazgo es exacto', /exacta:? *(true|false|exacta)/.test(fuente))
   check('…y borra la marca cuando no lo es',
     /regulation_mark: exacta \? carta\.regulation_mark : null/.test(fuente))
   check('…y el comprobador lo mira antes que nada',
-    /if \(\s*carta\.exacta &&/.test(fuente), 'el comprobador no exige que la carta sea la que es')
+    /if \(\s*carta\??\.exacta &&/.test(fuente), 'el comprobador no exige que la carta sea la que es')
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

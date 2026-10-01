@@ -726,6 +726,24 @@ function consulta(tabla, estado = {}) {
     })
   }
 
+  // Las columnas que se pidieron, y SOLO esas (tanda 413), en las tablas
+  // que diga `window.__PROYECTAR__`. Por defecto el doble devuelve la fila
+  // entera pida lo que pida, y así un código que necesita una columna que
+  // NO pide —los ataques de una carta— funciona aquí y en producción no.
+  // Es optativo para no cambiarle el suelo a las pruebas de antes.
+  const proyectar = (filas) => {
+    const tablas = typeof window !== 'undefined' ? window.__PROYECTAR__ : null
+    if (!Array.isArray(tablas) || !tablas.includes(tabla) || !st.columnas || st.columnas === '*') return filas
+    const planas = String(st.columnas)
+      .replace(/(?:\w+:)?\w+(?:!\w+)?\([^)]*\)/g, '')
+      .split(',')
+      .map((c) => c.trim().split(':').pop())
+      .filter(Boolean)
+    if (planas.includes('*')) return filas
+    const claves = [...planas, ...embebidosDe(st.columnas).map((e) => e.clave)]
+    return filas.map((f) => Object.fromEntries(claves.filter((c) => c in f).map((c) => [c, f[c]])))
+  }
+
   const aplicar = () => {
     let filas = tabla === 'forum_boards_resumen' ? resumenDeForos() : (T[tabla] || []).slice()
     // Una política de borrado que dice que NO no da error: le añade a la
@@ -795,7 +813,7 @@ function consulta(tabla, estado = {}) {
     }
     // Lecturas
     if (st.soloCuenta) return { data: null, count: contar(), error: null }
-    const filas = conEmbebidos(aplicar())
+    const filas = proyectar(conEmbebidos(aplicar()))
     if (st.unico === 'maybe') return { data: filas[0] || null, error: null }
     if (st.unico === 'one') {
       return filas.length === 1

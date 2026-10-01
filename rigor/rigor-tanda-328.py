@@ -11,29 +11,31 @@ import rigor_comun
 
 N = 'js/carta-nucleo.js'
 D = 'js/torneos/cartas-decklist.js'
+# Desde la tanda 413 el resolutor y la cuenta de las no identificadas
+# viven en js/lista-canonica.js; el comprobador y el aviso, en la rejilla.
+LC = 'js/lista-canonica.js'
 C = 'js/carta.js'
 
 MUTACIONES = [
     # ── 1. El fallo grave: acusar a una carta que no se ha identificado ──
     (D, 'se vuelve a juzgar el reglamento de una gemela encontrada por nombre',
-     '        if (\n          carta.exacta &&\n          carta.regulation_mark &&',
+     '        if (\n          carta?.exacta &&\n          carta.regulation_mark &&',
      '        if (\n          carta.regulation_mark &&'),
     # Y el cinturon: la marca de la gemela vuelve a salir del resolutor.
-    (D, 'la marca de una gemela sale del resolutor',
+    (LC, 'la marca de una gemela sale del resolutor',
      '  const salida = carta ? { ...carta, exacta, regulation_mark: exacta ? carta.regulation_mark : null } : null',
      '  const salida = carta ? { ...carta, exacta } : null'),
     # Un hallazgo por nombre se da por exacto: lo peor de los dos mundos.
-    (D, 'un hallazgo por nombre se da por exacto',
+    (LC, 'un hallazgo por nombre se da por exacto',
      '      exacta = Boolean(carta)', '      exacta = true'),
     # Y el aviso que no avisa: la carta no se marca, pero tampoco se dice
     # nada y parece que la lista esta bien escrita.
-    (D, 'no se avisa de las cartas que no se han podido identificar',
-     '        if ((!carta || !carta.exacta) && !esEnergiaBasica(linea)) sinIdentificar += linea.quantity\n', ''),
-    # Contarlo DESPUES de la salida temprana: la que no se encuentra en
-    # absoluto —la mas confusa de todas— vuelve a no decir nada.
-    (D, 'la carta que no se encuentra en absoluto no se cuenta',
-     '        if ((!carta || !carta.exacta) && !esEnergiaBasica(linea)) sinIdentificar += linea.quantity\n        const hueco',
-     '        const hueco'),
+    (LC, 'no se avisa de las cartas que no se han podido identificar',
+     '    .filter((e) => (!e.carta || !e.carta.exacta) && !esEnergiaBasica(e.linea) && !letraDeEnergiaBasica(e.linea.name))',
+     '    .filter(() => false)'),
+    # («La que no se encuentra en absoluto no se cuenta» se mudó con la
+    # cuenta a la tanda 413: allí hay una lista entera de cartas que el
+    # catálogo no tiene, y aquí no.)
     # Y mezclar los dos mensajes, que fue justo el fallo: «no la
     # reconozco» no es «esta prohibida».
     (D, 'volver a llamar «fuera del reglamento» a lo que no se reconoce',
