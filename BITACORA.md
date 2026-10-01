@@ -117,6 +117,53 @@ es la de siempre, no de esto), la 413 y la 299.
 
 **En curso / pendiente**: nada.
 
+## 2026-10-01 — PINGU-Claude (tanda 419 — la barra que no se va, y dos dobles viejos)
+
+**Hecho**: la tanda de pasar la suite ENTERA después de la 418 y arreglar
+lo que cantó. Tres cosas de la web y dos de las herramientas.
+
+**La barra flotante del móvil ya no se esconde.** La 406 le puso un
+`IntersectionObserver` que la apartaba cuando el pie entraba en pantalla,
+para que no tapara sus enlaces. Pero **en una página CORTA el pie se ve
+desde el primer momento**, así que la barra nacía escondida y en el móvil
+no había forma de cambiar de pestaña: ni un menú ni nada. Un menú que
+desaparece es peor que un menú que tapa. Fuera el observador, y lo que
+había que resolver se resuelve en el CSS y sin piezas móviles: el pie
+reserva su sitio (`padding-bottom: 96px`). La barra está SIEMPRE, como en
+una app.
+
+**El diálogo de adorno cabe en el teléfono.** El de crear carpeta o álbum
+crecía más que la ventana y el botón de «Crear» se salía por abajo: no
+había forma de crear una carpeta desde el móvil. Ahora el formulario es
+una columna flexible con el cuerpo desplazable y la cabecera y el pie
+quietos. **Lo cazó la prueba del archivador**, que no iba de esto —falló
+con «element is outside of the viewport»—.
+
+**Y `--t-3xl` en vez de `34px`** en `.mc-burbuja-emoji`: el número estaba
+en la escala y se escribió a pelo igualmente.
+
+**Las dos herramientas, que es la parte que más vale escribir**:
+`sync-forum.sh` copiaba el doble de Supabase de **una copia suelta en el
+scratchpad**, no de la de la rama `pruebas`, que es donde vive de verdad.
+Esa copia se quedó atrás y el doble servido no tenía ni el juez de la 394
+ni la proyección de la 413: **las pruebas 394 y 413 salían ROJAS por el
+doble y no por la web**, con 5 y 3 fallos que parecían una regresión de
+torneos. Es EXACTAMENTE el mismo fallo que tenía `correr-suite.sh` con las
+copias de las pruebas. Ahora los cinco ficheros que el script repone
+salen del árbol de `pruebas` (`WT=/tmp/wt-pruebas`), y la copia vieja del
+scratchpad queda renombrada para que nadie la vuelva a coger. Y la 413
+necesita Pillow para medir el PNG exportado: estaba sin instalar y sus
+tres medidas salían con un traceback de Python.
+
+**Ficheros**: `css/mi-coleccion.css`, `js/mi-coleccion.js`. En la rama
+`pruebas`: `herramientas/sync-forum.sh`, y las pruebas 369, 405 y 406
+puestas al día con lo que cambió en la 417 y la 418 (el archivador ya
+solo está en los álbumes soñados; el rótulo del set; la barra que no se
+aparta).
+
+**En curso / pendiente**: nada a medias. La suite entera pasada después
+de todo esto.
+
 ## 2026-10-01 — PINGU-Claude (tandas 417 y 418 — la expansión, en rejilla)
 
 **417**: dentro de una expansión ya no hay archivador: hay una **tira**

@@ -2139,17 +2139,15 @@ function pintarIconos() {
 function enganchar() {
   pintarIconos()
   for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.pestania))
-  // La barra flota pegada al fondo en el móvil (tanda 406), así que al
-  // llegar al pie taparía justo los enlaces del pie. Se aparta sola
-  // cuando el pie entra en pantalla — con un observador y no con un
-  // oyente de `scroll`, que correría en cada píxel. En el ordenador la
-  // clase no pinta nada: su regla vive en el `@media` del móvil.
-  const pie = document.querySelector('footer')
-  if (pie && 'IntersectionObserver' in window) {
-    new IntersectionObserver(
-      ([e]) => $('mcMenu').classList.toggle('apartada', e.isIntersecting),
-    ).observe(pie)
-  }
+  // AQUÍ VIVÍA el observador que apartaba la barra flotante al llegar al
+  // pie (tanda 406). Se fue en la 419 y el motivo merece quedar escrito:
+  // en una página CORTA el pie se ve desde el primer momento, así que la
+  // barra nacía escondida y en el móvil no había forma de cambiar de
+  // pestaña. Un menú que desaparece es peor que un menú que tapa.
+  //
+  // Lo que había que resolver —que la barra no se coma los enlaces del
+  // pie— se resuelve en el CSS y sin piezas móviles: el pie reserva su
+  // sitio. Así la barra está SIEMPRE, como en una app.
 
   let esperaCatalogo = null
   for (const id of ['mcBuscar', 'mcFiltroSet', 'mcFiltroIdioma', 'mcOrden']) {

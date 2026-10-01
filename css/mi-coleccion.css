@@ -202,18 +202,21 @@
     border-radius: var(--radius-xl);
     background: var(--white);
     box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
-    transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
   }
 
-  .mc-pestanias.apartada {
-    opacity: 0;
-    transform: translateY(120%);
-    pointer-events: none;
-  }
-
-  /* El sitio que ocupa la barra, para que no tape la última fila. */
+  /* El sitio que ocupa la barra, para que no tape la última fila. Y el
+     PIE reserva el suyo (tanda 419): antes la barra se apartaba sola
+     cuando el pie entraba en pantalla, y en una página corta el pie se ve
+     desde el primer momento — así que la barra nacía escondida y no había
+     forma de cambiar de pestaña. Un menú que desaparece es peor que un
+     menú que tapa; reservando sitio no hace falta ninguna de las dos
+     cosas. */
   .mc-pagina {
     padding-bottom: 88px;
+  }
+
+  .footer {
+    padding-bottom: 96px;
   }
 
   /* La de turno: la chapa va detrás del ICONO, no detrás del hueco
@@ -231,12 +234,6 @@
     border-radius: var(--radius-md);
     background: var(--navy-solid);
     color: var(--blanco-fijo);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mc-pestanias {
-    transition: none;
   }
 }
 
@@ -3136,7 +3133,10 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 .mc-burbuja-emoji {
-  font-size: 34px;
+  /* 34 px a pelo era justo `--t-3xl`: el número existía en la escala y se
+     escribió igualmente. Un tamaño suelto es el principio de una segunda
+     escala. */
+  font-size: var(--t-3xl);
   line-height: 1;
 }
 
@@ -3707,4 +3707,24 @@ input.mc-alb-titulo:not([readonly]):focus {
   .mc-archivador-caja .mc-tira-flecha[hidden] {
     display: none;
   }
+}
+
+/* El cuerpo del diálogo se desplaza y el pie se queda (tanda 419). Sin
+   esto, en una pantalla de móvil el diálogo crecía más que la ventana y
+   el botón de «Crear» se salía por abajo: no había forma de crear una
+   carpeta desde el teléfono. Lo cazó la prueba del archivador, que no iba
+   de esto —«element is outside of the viewport»—. */
+.mc-dlg-adorno form {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 48px);
+}
+
+.mc-dlg-cuerpo {
+  overflow-y: auto;
+}
+
+.mc-dlg-adorno .mc-panel-cabecera,
+.mc-dlg-adorno .mc-panel-pie {
+  flex: 0 0 auto;
 }

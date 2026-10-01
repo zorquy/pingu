@@ -22472,3 +22472,56 @@ medida píxel a píxel (transparente en esquinas y huecos, el azul de las
 insignias y de la franja); importarla exacta en el constructor; y,
 quitándole la lista, reconocerla sobre transparente, negro y blanco con
 las copias bien leídas. Su rigor, 17 mutaciones, las 17 detectadas.
+
+## Tanda 419 — la barra que no se va, y dos dobles viejos (oct. 2026)
+
+Lo que salió al pasar la suite entera después de la 418.
+
+**La barra flotante de pestañas del móvil ya no se esconde.** La 406 le
+había puesto un `IntersectionObserver` sobre el `<footer>` que le ponía
+`.apartada` cuando el pie entraba en pantalla, para no taparle los
+enlaces. El fallo: **en una página corta el pie se ve desde el primer
+momento**, así que la barra nacía ya escondida y en el móvil no quedaba
+ningún menú con el que cambiar de pestaña. La regla general que deja esto:
+*un menú que desaparece es peor que un menú que tapa*, y lo que se
+resuelve reservando sitio no necesita una pieza móvil. Fuera el
+observador, fuera `.apartada` y su transición, y el pie reserva sus
+96 px con `padding-bottom` dentro del `@media` del móvil de
+`css/mi-coleccion.css` (la hoja solo la baja /mi-coleccion, así que la
+regla no sale de ahí).
+
+**El diálogo de adorno cabe en el teléfono.** `#mcDlgAdorno` crecía con
+su contenido —la rejilla de sprites de la Pokédex son 60 de golpe— y en
+una pantalla de 360×640 el botón de «Crear» caía fuera de la ventana, sin
+nada que se pudiera desplazar: no había forma de crear una carpeta desde
+el móvil. El formulario pasa a ser una columna flexible con
+`max-height: calc(100vh - 48px)`, el cuerpo (`.mc-dlg-cuerpo`) con
+`overflow-y: auto` y la cabecera y el pie con `flex: 0 0 auto`. **Lo cazó
+una prueba que no iba de esto**: la del archivador falló con «element is
+outside of the viewport» al pulsar el botón, que es cómo se ve este fallo
+desde fuera.
+
+**`--t-3xl` en vez de `34px`** en `.mc-burbuja-emoji`: el número estaba en
+la escala y se escribió a pelo igualmente. Un tamaño suelto es el
+principio de una segunda escala.
+
+### Y las dos herramientas, que es la lección que más vale
+
+`sync-forum.sh` repone cinco ficheros después de copiar el sitio al
+entorno de pruebas (los dos dobles, las dos páginas de laboratorio y las
+fotos), porque ninguno puede vivir en el repo. Los cogía de **copias
+sueltas en el scratchpad**, no del árbol de la rama `pruebas`, que es
+donde viven de verdad. La copia del doble de Supabase se quedó atrás: no
+tenía ni la rama del JUEZ de la 394 ni la proyección de columnas de la
+413. Resultado: **las pruebas 394 y 413 salían rojas por el doble y no
+por la web** —5 y 3 fallos, con toda la pinta de una regresión en
+torneos—. Es el mismo fallo que tenía `correr-suite.sh`, que corría copias
+viejas de las pruebas en vez de las de la rama. La forma del fallo, que es
+lo que hay que recordar: **un fichero que tiene una casa canónica y una
+copia de trabajo se separa, y el que lee la copia no se entera**. Ahora
+los cinco salen de `WT=/tmp/wt-pruebas` y la copia vieja queda renombrada
+para que nadie la vuelva a coger.
+
+Y la 413 mide el PNG exportado con Pillow, que estaba sin instalar: sus
+tres medidas salían con un `ModuleNotFoundError` metido donde debía ir el
+valor, así que la prueba fallaba diciendo `undefined,undefined,undefined`.
