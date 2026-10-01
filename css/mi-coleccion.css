@@ -3498,6 +3498,19 @@ input.mc-alb-titulo:not([readonly]):focus {
    la mitad o por el final. Un `conic-gradient` y un agujero encima: ni
    dependencia ni dibujo, es un fondo. */
 .mc-pdx-principal {
+  /* La caja de «Registrados» se lleva DOS pistas (tanda 424). Lleva 84 px
+     de texto y un anillo de 72 que no cede —es `flex: 0 0 auto`, y un
+     círculo que se encoge deja de ser un círculo—, así que pide 200 px; la
+     pista de la rejilla mide 185 en cuanto caben dos columnas, y el anillo
+     se salía por el borde derecho. Medido, no mirado.
+
+     `span 2` y no `1 / -1`: así coge sitio SOLO cuando le hace falta. Con
+     una sola columna se queda en una, con dos se las lleva las dos, y en
+     el escritorio con cuatro se queda en dos —la fila entera la dejaba de
+     840 px con el anillo perdido a lo lejos—. Lo pide el contenido, que
+     tiene más cosas dentro que las otras tres cajas, y no un punto de
+     corte elegido a ojo. */
+  grid-column: span 2;
   display: flex;
   gap: var(--e-md);
   align-items: center;

@@ -22675,3 +22675,35 @@ Y la lección de método: **«a veces falla» es una afirmación sobre la web,
 no sobre la prueba, mientras nadie mire cuál de las dos es.** Lo destapó
 imprimir el estado justo antes del check que fallaba: entre una pasada
 verde y una roja, lo único distinto era `document.activeElement`.
+
+## Tanda 424 — el anillo de la Pokédex, dentro de su caja (oct. 2026)
+
+La caja de «Registrados» de /mi-coleccion → Pokédex lleva el texto a la
+izquierda y el anillo de progreso a la derecha. Pide **200 px**: 84 de
+texto (el ancho mínimo de «REGISTRADOS», que es una palabra y no parte) +
+12 de hueco + 72 de anillo + 32 de relleno. La rejilla es
+`repeat(auto-fit, minmax(170px, 1fr))`, así que **en cuanto caben dos
+columnas la pista mide 185** y faltan 15.
+
+El anillo es `flex: 0 0 auto` y tiene que serlo —un círculo que se encoge
+deja de ser un círculo—, así que no cede: se salía por el borde derecho.
+Es el pariente de la lección de la tanda 320 (*un hijo de flex CEDE antes
+de desbordar, y por eso no canta*) vista por el otro lado: **cuando NO
+puede ceder, no desborda en silencio, se sale por encima del borde**. Las
+dos se arreglan igual: midiendo lo que pide la caja, no mirando la
+pantalla.
+
+Arreglo: `grid-column: span 2` en `.mc-pdx-principal`. **No `1 / -1`**,
+que es lo primero que uno escribe: la fila entera deja la caja de 840 px
+en el escritorio con el anillo perdido a lo lejos. Con `span 2` coge sitio
+solo cuando le hace falta — una columna → una pista; dos → las dos;
+cuatro → dos—, y quien lo pide es el contenido (esta caja tiene más cosas
+dentro que las otras tres), no un punto de corte elegido a ojo.
+
+**La prueba, contra la forma y no contra el caso** (`test-tanda-414`,
+sección 3): a SEIS anchos comprueba que el anillo cabe dentro de su caja,
+que la caja no desborda por dentro, que el anillo **sigue siendo redondo**
+—por si alguien lo «arregla» encogiéndolo— y que la página no coge barra
+lateral. Mereció la pena: sin el arreglo el peor ancho no era el de la
+captura que lo destapó, sino **600 px**, donde se salía 8 px enteros
+mientras en los demás eran 1.

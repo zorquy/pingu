@@ -35,6 +35,37 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-01 — PINGU-Claude (tanda 424 — el anillo de la Pokédex se salía de su caja)
+
+**Hecho**: PINGU, con una captura del móvil: «el circulito que te está
+guardando el progreso se desplaza y sale de la burbuja».
+
+**Lo que pasaba**: la caja de «Registrados» pide 84 px de texto + 12 de
+hueco + 72 de anillo + 32 de relleno = **200 px**, y la pista de la
+rejilla mide **185** en cuanto caben dos columnas. El anillo es
+`flex: 0 0 auto` —y tiene que serlo: un círculo que se encoge deja de ser
+un círculo—, así que no cedía y se salía por el borde derecho. Sin dar
+error en ninguna parte.
+
+**Arreglado** dándole DOS pistas a esa caja (`grid-column: span 2`). No
+`1 / -1`: la fila entera la dejaba de 840 px en el escritorio con el
+anillo perdido a lo lejos. Con `span 2` coge sitio solo cuando le hace
+falta — con una columna se queda en una, con dos se las lleva las dos, y
+con cuatro se queda en dos. Lo pide el contenido, que tiene más cosas
+dentro que las otras tres cajas, y no un punto de corte elegido a ojo.
+
+**Y la prueba va contra la FORMA del fallo**, no contra el ancho que
+falló: comprueba a SEIS anchos que el anillo cabe dentro de su caja, que
+la caja no desborda por dentro, que el anillo sigue siendo REDONDO (por si
+alguien lo «arregla» encogiéndolo) y que la página no coge barra lateral.
+Bien que se hizo así: sin el arreglo, el peor ancho no era el de la
+captura sino **600 px**, donde se salía 8 px enteros.
+
+**Ficheros**: `css/mi-coleccion.css`. En `pruebas`: `test-tanda-414.mjs`
+(sección 3 nueva).
+
+**En curso / pendiente**: nada.
+
 ## 2026-10-01 — PINGU-Claude (tanda 423 — el foco que se perdía al cerrar un menú del laboratorio)
 
 **Hecho**: arreglado el fallo que llevaba tandas saliendo como «la 384 a
