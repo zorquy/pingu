@@ -227,6 +227,77 @@ console.log('\n── 6. La imagen de la ficha es la GRANDE ──')
   check('  …y la rejilla sigue con la pequeña', /const escaneo = atributosDeEscaneo\(cadenaDeEscaneo\(c\)\)/.test(js))
 }
 
+console.log('\n── 7. Se guarda solo, y el cero la quita (tanda 397) ──')
+{
+  // PINGU: «que no tengas botón de guardar o cancelar o quitar; según
+  // haces el cambio, que se guarde».
+  const { page, errores } = await abrir()
+  await page.locator('.mc-carta-foto').nth(1).click()
+  await page.waitForTimeout(600)
+  check('ya no hay botones de guardar ni cancelar',
+    (await page.locator('#mcEdBorrar, #mcEdCancelar').count()) === 0)
+  check('  …ni un submit en el formulario',
+    (await page.locator('#mcEditorForm button[type="submit"]').count()) === 0)
+
+  // Subir una copia se guarda sin tocar nada más.
+  const antes = Number(await page.locator('#mcEdCantidad').inputValue())
+  await page.locator('.mc-contador-btn[data-paso="1"]').click()
+  await page.waitForTimeout(900)
+  check('el contador suma', Number(await page.locator('#mcEdCantidad').inputValue()) === antes + 1)
+  check('  …y lo dice', /Guardado/.test((await page.locator('#mcEdEstadoGuardado').textContent()) || ''))
+  // Y de verdad, no solo en la pantalla: se cierra y se vuelve a abrir.
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(400)
+  await page.locator('.mc-carta-foto').nth(1).click()
+  await page.waitForTimeout(600)
+  check('  …y se ha guardado de verdad',
+    Number(await page.locator('#mcEdCantidad').inputValue()) === antes + 1,
+    await page.locator('#mcEdCantidad').inputValue())
+
+  // El «−» tiene que poder llegar a cero: el mínimo del campo es 0 y
+  // `Number(min) || 1` lo convertía en 1, así que la última copia no se
+  // podía quitar. El 0 es falsy y ese `||` se lo comía.
+  const min = await page.locator('#mcEdCantidad').getAttribute('min')
+  check('el mínimo del campo es cero', min === '0', min)
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  await page.close()
+}
+
+console.log('\n── 8. El número de copias se lee en los DOS temas ──')
+{
+  // PINGU: «el número de copias no se ve en el fondo oscuro». El mando
+  // lleva fondo propio y el campo heredaba el color que tocara.
+  for (const tema of ['light', 'dark']) {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } })
+    await page.addInitScript((t) => {
+      try { localStorage.setItem('theme', t) } catch {}
+      addEventListener('DOMContentLoaded', () => document.documentElement.setAttribute('data-theme', t))
+      window.__FAKE_SETS__ = [{ id: 'sv1', name: 'SV', market: 'WEST', card_count_official: 2, card_count_total: 2, release_date: '2023-01-01' }]
+      window.__FAKE_CARTAS__ = [{ id: 'sv1-1', set_id: 'sv1', local_id: '1', name: 'A', image_path: 'x/1', market: 'WEST', variants: { normal: true } }]
+      window.__FAKE_COLECCION__ = [{ id: 'l1', card_id: 'sv1-1', cantidad: 1, idioma: 'es', estado: 'nueva', variante: 'normal' }]
+    }, tema)
+    await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
+    await page.waitForTimeout(2500)
+    await page.locator('.mc-carta-foto').first().click()
+    await page.waitForTimeout(600)
+    const r = await page.locator('#mcEdCantidad').evaluate((i) => {
+      const L = (c) => {
+        const [r, g, b] = c.match(/\d+/g).slice(0, 3).map((n) => {
+          const v = Number(n) / 255
+          return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+        })
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+      }
+      const letra = getComputedStyle(i).color
+      const fondo = getComputedStyle(i.closest('.mc-contador-mando')).backgroundColor
+      const [x, y] = [L(letra), L(fondo)].sort((a, b) => b - a)
+      return { letra, fondo, contraste: (x + 0.05) / (y + 0.05) }
+    })
+    check(`en tema ${tema} el número se lee`, r.contraste >= 4.5, `${r.contraste.toFixed(2)} (${r.letra} sobre ${r.fondo})`)
+    await page.close()
+  }
+}
+
 await browser.close()
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
 process.exit(fails === 0 ? 0 : 1)

@@ -265,8 +265,15 @@ console.log('\n── 8. «De esas, doy» va en la línea, no en una lista apart
   await page.waitForTimeout(600)
   check('el editor tiene el campo', (await page.locator('#mcEdCambio').count()) === 1)
   await page.fill('#mcEdCambio', '2')
-  await page.locator('#mcEditorForm button[type="submit"]').click()
+  // Ya no hay botón de guardar (tanda 397): se guarda solo al cambiar el
+  // campo. `fill` no dispara `change`, así que se manda a mano — es lo
+  // que hace el navegador al salir del campo.
+  await page.locator('#mcEdCambio').dispatchEvent('change')
   await page.waitForTimeout(1200)
+  // Y se cierra a mano: guardar ya no la cierra —no hay nada que
+  // confirmar—, así que la ficha se queda delante tapando la rejilla.
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
   // Y no se pueden dar más copias de las que tienes: el tope se recorta
   // en el cliente para no dar un error feo, y en la base porque la API
   // está abierta.
@@ -275,8 +282,15 @@ console.log('\n── 8. «De esas, doy» va en la línea, no en una lista apart
   check('se guardó', (await page.locator('#mcEdCambio').inputValue()) === '2',
     await page.locator('#mcEdCambio').inputValue())
   await page.fill('#mcEdCambio', '99')
-  await page.locator('#mcEditorForm button[type="submit"]').click()
+  // Ya no hay botón de guardar (tanda 397): se guarda solo al cambiar el
+  // campo. `fill` no dispara `change`, así que se manda a mano — es lo
+  // que hace el navegador al salir del campo.
+  await page.locator('#mcEdCambio').dispatchEvent('change')
   await page.waitForTimeout(1200)
+  // Y se cierra a mano: guardar ya no la cierra —no hay nada que
+  // confirmar—, así que la ficha se queda delante tapando la rejilla.
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
   await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(600)
   check('  …y no se dan más de las que tienes', (await page.locator('#mcEdCambio').inputValue()) === '3',
@@ -344,7 +358,7 @@ console.log('\n── 11. El aviso de «alguien da una carta que buscas» ──
   // una noticia, y avisar de cada ajuste convierte la campanita en ruido.
   check('solo salta al EMPEZAR a dar una carta', /coalesce\(old\.cambio, 0\) > 0/.test(sql))
   // Un tope, porque una carta que buscan 500 personas metería 500 filas
-  // en una sola pulsación de «Guardar».
+  // en un solo cambio del campo.
   check('  …con tope de destinatarios', /limit 25/.test(sql))
   // Y sin duplicar: la misma persona puede tener la carta apuntada dos
   // veces (una «en español» y otra «me da igual»), y sin el `distinct`
