@@ -126,6 +126,11 @@ function montar() {
   raiz.hidden = true
   raiz.setAttribute('role', 'dialog')
   raiz.setAttribute('aria-modal', 'true')
+  // Para poder devolverle el foco cuando se cierra un menú y no hay a
+  // dónde volver (tanda 422). Sin esto el foco se queda en el `body`, y
+  // como el oyente de Escape vive AQUÍ, deja de llegarle: el laboratorio
+  // se quedaba sin poder cerrarse con el teclado.
+  raiz.tabIndex = -1
   raiz.setAttribute('aria-labelledby', 'labTitulo')
   raiz.innerHTML = `
     <header class="lab-barra">
@@ -142,7 +147,7 @@ function montar() {
       <button type="button" class="lab-cerrar lab-cerrar-lab" data-accion="cerrar" aria-label="Cerrar el laboratorio">×</button>
     </header>
     <div class="lab-cuerpo" id="labCuerpo"></div>
-    <div class="lab-menu hidden" id="labMenu" role="menu"></div>
+    <div class="lab-menu hidden" id="labMenu" role="menu" tabindex="-1"></div>
     <div class="lab-velo hidden" id="labVelo">
       <div class="lab-dialogo" id="labDialogo" role="dialog" aria-modal="true" aria-labelledby="labDialogoTitulo"></div>
     </div>`
@@ -672,12 +677,31 @@ function abrirMenu(ancla, titulo, opciones) {
   const abajo = r.bottom + 8
   const alto = menu.offsetHeight
   menu.style.setProperty('--y', `${abajo + alto > window.innerHeight - 8 ? Math.max(8, r.top - alto - 8) : abajo}px`)
-  menu.querySelector('[data-op]:not([aria-disabled])')?.focus()
+  // De dónde salió, para devolverle el foco al cerrar.
+  menu._ancla = ancla
+  // Si TODAS las opciones están vetadas no hay ninguna que enfocar, y
+  // entonces el foco se queda donde estuviera —que tras repintar la mano
+  // es el `body`— (tanda 422). Con el foco fuera del laboratorio, el
+  // Escape no le llega: el menú se cerraba y el siguiente Escape no hacía
+  // nada. Un menú abierto se queda SIEMPRE con el foco, aunque no haya
+  // nada que pulsar: si no, no se puede ni leer con el teclado.
+  const primera = menu.querySelector('[data-op]:not([aria-disabled])')
+  ;(primera || menu).focus()
 }
 
 function cerrarMenu() {
   const menu = L.raiz && $('#labMenu')
-  if (menu && !menu.classList.contains('hidden')) menu.classList.add('hidden')
+  if (!menu || menu.classList.contains('hidden')) return
+  menu.classList.add('hidden')
+  // Y el foco vuelve a la carta desde la que se abrió. Si esa carta ya no
+  // está —la mano se repinta en cada jugada— vuelve al laboratorio, que
+  // es quien escucha el teclado.
+  const ancla = menu._ancla
+  menu._ancla = null
+  if (menu.contains(document.activeElement) || document.activeElement === document.body) {
+    if (ancla?.isConnected) ancla.focus()
+    else L.raiz?.focus()
+  }
 }
 
 function menuDeMano(uid, ancla) {

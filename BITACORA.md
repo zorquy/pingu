@@ -35,6 +35,37 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-01 — PINGU-Claude (tanda 423 — el foco que se perdía al cerrar un menú del laboratorio)
+
+**Hecho**: arreglado el fallo que llevaba tandas saliendo como «la 384 a
+veces falla y a la segunda pasa». No era un parpadeo de la prueba: **falla
+2 de cada 3 veces**, y lo que falla es la web.
+
+**Lo que pasaba**. El menú de una carta del laboratorio enfocaba su
+primera opción JUGABLE (`[data-op]:not([aria-disabled])`). Cuando la
+jugada no deja ninguna —y eso depende del barajeo, de ahí que pareciera
+azar—, no enfocaba nada, y el foco se quedaba donde estuviera: en el
+`body`, porque la mano se repinta y la carta que acabas de pulsar ya no es
+el mismo botón. **El oyente de Escape vive en la raíz del laboratorio**,
+así que con el foco en el `body` no le llega: cerrabas el menú y el
+siguiente Escape no hacía nada. El laboratorio se quedaba sin poder
+cerrarse con el teclado, y encima el menú abierto no se podía ni leer.
+
+**Lo arreglado**: un menú abierto se queda SIEMPRE con el foco, aunque no
+haya nada que pulsar (el propio menú lleva `tabindex="-1"`), y al cerrarse
+lo devuelve a la carta desde la que se abrió — o al laboratorio, que es
+quien escucha el teclado, si esa carta ya no está. Cinco pasadas seguidas
+de la 384 en verde, donde antes eran dos de cada tres en rojo.
+
+**La lección**: una prueba que «a veces falla» es una afirmación sobre la
+web, no sobre la prueba, mientras nadie mire cuál de las dos. Lo que lo
+destapó fue imprimir el estado justo antes del check que fallaba: entre
+una pasada verde y una roja lo ÚNICO distinto era `document.activeElement`.
+
+**Ficheros**: `js/constructor/laboratorio.js`.
+
+**En curso / pendiente**: nada.
+
 ## 2026-10-01 — PINGU-Claude (tanda 422 — moverse por la ficha, y un rigor que podía fallar)
 
 **Hecho**: la ficha de una carta gana **flechas** para pasar a la de al

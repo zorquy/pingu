@@ -22645,3 +22645,33 @@ porque ninguna se parece a las otras:
    id gastado puesto, la siguiente flecha dispara un guardado de una carta
    que nadie ha tocado, con su «Guardado» en pantalla. En un set de 200,
    200 escrituras que no pide nadie.
+
+## Tanda 423 — el foco que se perdía al cerrar un menú (oct. 2026)
+
+`test-tanda-384` llevaba tandas apuntada en la bitácora como «a veces
+falla en *Escape cierra el laboratorio* y a la segunda pasa». Medida:
+**falla 2 de cada 3**. Y lo que fallaba era la web.
+
+`abrirMenu` enfocaba la primera opción **jugable**
+(`[data-op]:not([aria-disabled])`). Cuando la jugada no deja ninguna
+—depende del barajeo, de ahí la pinta de azar— no enfocaba nada y el foco
+se quedaba donde estuviera, que tras repintar la mano es el `body`: la
+carta que acabas de pulsar ya no es el mismo botón. Y **el oyente de
+Escape vive en `L.raiz`**, así que con el foco en el `body` el evento no
+pasa por él. Cerrabas el menú y el siguiente Escape no hacía nada.
+
+Dos reglas, que valen para cualquier menú y no solo para este:
+
+- **Un menú abierto se queda SIEMPRE con el foco**, aunque no haya ni una
+  opción que pulsar. Si no, no se puede ni leer con el teclado, y lo que
+  escuche más arriba deja de enterarse. Por eso `#labMenu` lleva
+  `tabindex="-1"` y se enfoca él cuando no hay opción.
+- **Al cerrarse lo devuelve** a donde se abrió, y si eso ya no existe, a
+  quien escucha el teclado (`L.raiz`, que por eso lleva `tabindex="-1"`).
+  Un repintado se lleva por delante el elemento al que ibas a volver, así
+  que el respaldo no es un adorno.
+
+Y la lección de método: **«a veces falla» es una afirmación sobre la web,
+no sobre la prueba, mientras nadie mire cuál de las dos es.** Lo destapó
+imprimir el estado justo antes del check que fallaba: entre una pasada
+verde y una roja, lo único distinto era `document.activeElement`.
