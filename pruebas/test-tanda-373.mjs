@@ -55,7 +55,9 @@ console.log('\n── 1. Qué brillo le toca a cada rareza ──')
 
 console.log('\n── 2. Cada familia tiene su lámina en el CSS ──')
 {
-  const css = leer('css/carta.css')
+  // El bloque del brillo salió a `css/carta-holo.css` en la tanda 394:
+  // lo cargan cuatro páginas, así que ya no cabía dentro de `carta.css`.
+  const css = leer('css/carta-holo.css')
   for (const fam of ['holo', 'cosmos', 'radiante', 'arcoiris', 'dorada', 'acespec']) {
     check(`«${fam}» está pintada`, new RegExp(`data-brillo='${fam}'`).test(css))
   }

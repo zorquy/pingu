@@ -192,7 +192,10 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
 console.log('\n── 4. La carta que se mueve ──')
 {
   const js = leer('js/carta-holo.js')
-  const css = leer('css/carta.css')
+  // El bloque del holo salió a su propia hoja en la tanda 394: lo
+  // cargan /carta, /cartas, /coleccion y /mi-coleccion, así que ya no
+  // podía vivir dentro de `carta.css`.
+  const css = leer('css/carta-holo.css')
   // Con «menos movimiento» puesto no se monta nada — y además el CSS lo
   // apaga por su cuenta, que es la norma de la casa: una cosa sin la
   // otra deja medio efecto vivo.

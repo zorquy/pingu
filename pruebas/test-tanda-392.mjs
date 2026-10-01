@@ -17,6 +17,7 @@
 //     atajo de dentro de tu colección, no su sustituto: la página es la
 //     que indexa Google y la que se comparte.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+import { readFileSync } from 'node:fs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -159,6 +160,65 @@ console.log('\n── 4. Lo que no se sabe no se pinta ──')
   check('sin ilustrador, no sale la fila del ilustrador', !/Ilustrador/.test(tabla), tabla.slice(0, 120))
   check('  …pero sí lo que sí se sabe', /Número/.test(tabla), tabla.slice(0, 120))
   await page.close()
+}
+
+console.log('\n── 5. El holo, la imagen grande y salir pulsando fuera (tanda 394) ──')
+{
+  // PINGU: «no estás abriendo la imagen completa, estás abriendo la
+  // miniatura», «debería hacer el efecto holográfico como en la ficha» y
+  // «también debería poder cerrarse pulsando fuera».
+  const { page, errores } = await abrir()
+  const carta = page.locator('.mc-carta-foto').first()
+
+  // El MISMO envoltorio y el MISMO data-brillo que /carta: si fueran
+  // otros, el día que alguien toque el efecto arreglaría una pantalla y
+  // dejaría la otra a medias.
+  check('la casilla es un escaneo de los que se mueven',
+    /carta-scan-holo/.test((await carta.getAttribute('class')) || ''), await carta.getAttribute('class'))
+
+  // Y el efecto se monta al PASAR por encima, no al pintar: con
+  // trescientas cartas, montarlo en todas serían trescientos juegos de
+  // escuchas para las dos o tres por las que vas a pasar.
+  // Por la LISTA de clases y no por una expresión: `\bholo\b` casa
+  // dentro de `carta-scan-holo`, porque el guion no es carácter de
+  // palabra. Es la trampa de la 312 otra vez — lo que CONTIENE la cadena
+  // cuenta, no solo lo que ES.
+  const montado = () => carta.evaluate((e) => e.classList.contains('holo'))
+  check('  …y no está montado antes de pasar por encima', (await montado()) === false)
+  await carta.hover()
+  await page.waitForTimeout(500)
+  check('  …y se monta al pasar el ratón', (await montado()) === true)
+
+  await carta.click()
+  await page.waitForTimeout(700)
+  check('la ficha también trae el escaneo que se mueve',
+    (await page.locator('#mcEdFoto .carta-scan-holo').count()) === 1)
+
+  // Pulsar FUERA cierra. Un <dialog> no lo hace solo.
+  check('la ficha está abierta', (await page.locator('#mcEditor[open]').count()) === 1)
+  await page.mouse.click(30, 30)
+  await page.waitForTimeout(400)
+  check('pulsar fuera la cierra', (await page.locator('#mcEditor[open]').count()) === 0)
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  await page.close()
+}
+
+console.log('\n── 6. La imagen de la ficha es la GRANDE ──')
+{
+  // Se reutilizaba la miniatura de la rejilla: a 380 px de ancho, una
+  // imagen pensada para 140 se ve borrosa, y la carta es justo lo que
+  // has venido a mirar. Se prueba en Node porque la CDN está bloqueada.
+  const { cadenaDeEscaneo } = await import('/home/user/pingu/js/escaneo-carta.js')
+  const c = { id: 'sv1-115', image_path: 'sv/sv1/115' }
+  const baja = String(cadenaDeEscaneo(c))
+  const alta = String(cadenaDeEscaneo(c, null, 'high'))
+  check('hay dos calidades y no son la misma', baja !== alta)
+  check('  …y la grande es «high»', /high/.test(alta) && !/high/.test(baja), alta.slice(0, 80))
+  // Y que la ficha pida la grande, que es lo que se olvidó.
+  const js = readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')
+  const abre = js.slice(js.indexOf('mcEdFoto'))
+  check('la ficha pide la grande', /cadenaDeEscaneo\(c, null, 'high'\)/.test(js))
+  check('  …y la rejilla sigue con la pequeña', /const escaneo = atributosDeEscaneo\(cadenaDeEscaneo\(c\)\)/.test(js))
 }
 
 await browser.close()
