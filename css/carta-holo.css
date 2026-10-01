@@ -1,0 +1,321 @@
+/* El escaneo que se mueve, y su brillo (tanda 395: sale de carta.css).
+
+   Lo usan DOS pantallas: la ficha de una carta y mi colección, donde
+   PINGU lo pidió — «la animación de la ficha completa, que se mueva así
+   como en 3D y con el holo, es bastante mejor». Una hoja propia y no
+   `carta.css` entera: esa trae las dos columnas, las migas y el bloque
+   de combate, que en la colección no pintan nada.
+
+   Se muda la sección ENTERA, con sus seis familias de brillo y sus
+   @media: una base aquí y un @media olvidado allá rompen el móvil sin
+   dar error (la lección de la tanda 299). */
+
+/* ── El escaneo que se mueve (tanda 368) ──
+ *
+ * La carta se inclina siguiendo al ratón y por encima corre un brillo.
+ * Los valores los escribe js/carta-holo.js en variables; aquí está lo
+ * que significan y, sobre todo, el REPOSO — que es lo que se ve si el
+ * JavaScript no llega, si el ajuste de «menos movimiento» está puesto o
+ * si se mira con el dedo.
+ *
+ * La clase `holo` la pone el JavaScript, no el HTML: sin ella esto es
+ * una imagen y ya está. Así el efecto no existe cuando no debe existir,
+ * en vez de existir apagado.
+ */
+.carta-scan-holo {
+  display: block;
+  position: relative;
+  border-radius: var(--radius-lg);
+}
+
+.carta-scan-holo.holo {
+  --holo-rx: 0deg;
+  --holo-ry: 0deg;
+  --holo-x: 50%;
+  --holo-y: 50%;
+  /* La fuerza de la lámina por defecto. Va DECLARADA aquí y no pedida
+     con un respaldo (`var(--holo-fuerza, 0.85)`): mientras convivían un
+     valor por defecto y seis redefiniciones decían cosas distintas y
+     ganaba el que nadie había tocado. Cada familia la pisa con la suya
+     más abajo. */
+  --holo-fuerza: 0.85;
+  /* La perspectiva va AQUÍ y no en el padre: el padre es el `figure`
+     `sticky`, y darle perspectiva también rompería el `sticky`. */
+  transform: perspective(900px) rotateX(var(--holo-rx)) rotateY(var(--holo-ry));
+  transform-style: preserve-3d;
+  /* Las dos duraciones de la casa, y cada una donde toca: 0,15 s es la
+     de responder a un gesto —mientras mueves el ratón la carta va pegada
+     a la mano— y 0,3 s la de algo que entra o sale de escena, que aquí
+     es la vuelta al reposo. Con la misma en los dos lados, o la carta va
+     con retraso al seguirte o vuelve de un golpe seco que delata el
+     truco. */
+  transition:
+    transform 0.3s var(--ease),
+    box-shadow 0.3s var(--ease);
+  will-change: transform;
+}
+
+.carta-scan-holo.holo.holo-activo {
+  transition:
+    transform 0.15s linear,
+    box-shadow 0.3s var(--ease);
+}
+
+/* El brillo, en DOS capas encima de la carta, porque hacen cosas
+ * distintas y no se pueden mezclar igual:
+ *
+ *   ::before — el ARCOÍRIS. Unas bandas de color que barren la carta al
+ *     moverla. Van en `color-dodge`, que es lo que QUEMA el color de
+ *     debajo en vez de pintarle un velo: la diferencia entre una carta
+ *     holográfica y una carta con una pegatina de plástico.
+ *   ::after — el DESTELLO. Un foco blanco donde está el ratón, en
+ *     `overlay`, que aclara sin comerse el dibujo. Con `color-dodge`
+ *     también, el centro se quedaba en blanco puro y se perdía la carta.
+ *
+ * `pointer-events: none` en las dos es imprescindible: sin él se comen
+ * el clic y el visor de ampliar deja de abrirse — y no da error. */
+.carta-scan-holo.holo::before,
+.carta-scan-holo.holo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+}
+
+.carta-scan-holo.holo::before {
+  background: repeating-linear-gradient(
+    108deg,
+    rgb(255 0 140) 0%,
+    rgb(255 190 0) 5%,
+    rgb(0 235 160) 10%,
+    rgb(0 160 255) 15%,
+    rgb(170 60 255) 20%,
+    rgb(255 0 140) 25%
+  );
+  /* Tres anchos de carta: así hay banda de sobra para barrer de lado a
+     lado sin que se vea el corte. */
+  background-size: 300% 100%;
+  background-position: calc(var(--holo-x) * -2) 0;
+  /* Y el arcoíris va RECORTADO a una franja que cruza la carta, no
+     extendido por toda ella. Con todo teñido parecía una mancha de
+     aceite, no una lámina: en una carta de verdad el brillo está donde
+     le da la luz y el resto se ve normal. La franja se desplaza con el
+     ratón, que es lo que hace que «corra» al mover la carta. */
+  mask-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    #000 45%,
+    #000 55%,
+    transparent 70%
+  );
+  mask-size: 260% 100%;
+  mask-position: calc(100% - var(--holo-x)) 0;
+  -webkit-mask-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    #000 45%,
+    #000 55%,
+    transparent 70%
+  );
+  -webkit-mask-size: 260% 100%;
+  -webkit-mask-position: calc(100% - var(--holo-x)) 0;
+  /* `soft-light` y no `color-dodge`: el dodge SUMA luz, y sobre el
+     amarillo y el blanco de una carta —que es casi toda la carta— se va
+     a blanco puro y el arcoíris desaparece justo donde tendría que
+     verse. `soft-light` tiñe respetando lo claro y lo oscuro del dibujo,
+     que es lo que hace de verdad una lámina holográfica. */
+  mix-blend-mode: soft-light;
+}
+
+.carta-scan-holo.holo::after {
+  background:
+    radial-gradient(
+      circle at var(--holo-x) var(--holo-y),
+      rgb(255 255 255 / 90%),
+      rgb(255 255 255 / 10%) 32%,
+      rgb(0 0 0 / 30%) 92%
+    ),
+    /* Y una banda de luz atravesada, la que recorre la carta al girarla.
+       Se mueve con el ratón, al revés que el destello, para que las dos
+       no vayan pegadas. */
+    linear-gradient(
+      100deg,
+      rgb(255 255 255 / 0%) 42%,
+      rgb(255 255 255 / 45%) 50%,
+      rgb(255 255 255 / 0%) 58%
+    );
+  background-size:
+    100% 100%,
+    250% 100%;
+  background-position:
+    0 0,
+    calc(100% - var(--holo-x)) 0;
+  mix-blend-mode: overlay;
+}
+
+.carta-scan-holo.holo.holo-activo::before {
+  opacity: var(--holo-fuerza);
+}
+
+/* ══ Cada rareza, su lámina (tanda 373) ══
+ *
+ * Lo pidió PINGU viendo HoloNook. Hasta aquí el escaneo de CUALQUIER
+ * carta relucía igual, así que una común brillaba como una hiperrara —
+ * y para un coleccionista el brillo ES la rareza.
+ *
+ * Qué familia le toca a cada una lo decide `familiaDeBrillo`
+ * (js/carta-nucleo.js) y llega en `data-brillo`. Aquí solo está cómo se
+ * ve cada lámina. Una carta SIN `data-brillo` no lleva ninguna: una
+ * común no brilla, y darle un brillo suave sería mentir sobre lo que
+ * tienes en la mano.
+ *
+ * Las cinco cambian tres cosas y nada más —el dibujo de la banda, su
+ * fuerza y cómo se mezcla—, así que añadir la sexta es un bloque de tres
+ * líneas y no un efecto nuevo.
+ */
+.carta-scan-holo:not([data-brillo]).holo::before {
+  display: none;
+}
+
+/* HOLO CLÁSICA (Rara holo, Doble rara): las barras de arcoíris en
+   diagonal de toda la vida. Es la que más gente reconoce. */
+.carta-scan-holo[data-brillo='holo'] {
+  --holo-fuerza: 0.7;
+}
+
+/* COSMOS (Ultra rara, Ilustración rara): polvo de estrellas. Puntos
+   claros de dos tamaños en vez de bandas — es lo que hace que parezca
+   purpurina fina y no una banda de color. */
+.carta-scan-holo[data-brillo='cosmos'] {
+  --holo-fuerza: 0.9;
+}
+
+.carta-scan-holo[data-brillo='cosmos'].holo::before {
+  background:
+    radial-gradient(circle at 20% 25%, rgb(255 255 255 / 90%) 0 1px, transparent 2px),
+    radial-gradient(circle at 70% 15%, rgb(255 255 255 / 80%) 0 2px, transparent 3px),
+    radial-gradient(circle at 45% 60%, rgb(200 235 255 / 90%) 0 1px, transparent 2px),
+    radial-gradient(circle at 85% 70%, rgb(255 255 255 / 85%) 0 2px, transparent 3px),
+    radial-gradient(circle at 10% 80%, rgb(255 230 255 / 85%) 0 1px, transparent 2px),
+    repeating-linear-gradient(108deg, rgb(120 200 255) 0%, rgb(255 255 255) 6%, rgb(180 160 255) 12%);
+  background-size:
+    60px 60px,
+    90px 90px,
+    70px 70px,
+    110px 110px,
+    80px 80px,
+    300% 100%;
+  mix-blend-mode: screen;
+}
+
+/* RADIANTE (Radiante, Asombrosa, Variocolor): el estallido de color
+   desde un punto, que es lo que hace la lámina de las asombrosas. */
+.carta-scan-holo[data-brillo='radiante'] {
+  --holo-fuerza: 0.8;
+}
+
+.carta-scan-holo[data-brillo='radiante'].holo::before {
+  background: conic-gradient(
+    from 0deg at var(--holo-x) var(--holo-y),
+    rgb(255 80 160),
+    rgb(255 210 80),
+    rgb(80 255 190),
+    rgb(80 190 255),
+    rgb(190 100 255),
+    rgb(255 80 160)
+  );
+  background-size: 100% 100%;
+  background-position: 0 0;
+  mix-blend-mode: soft-light;
+}
+
+/* ARCOÍRIS (Ilustración especial rara): el barrido entero, sin
+   recortar a una franja — en estas la lámina ocupa la carta. */
+.carta-scan-holo[data-brillo='arcoiris'] {
+  --holo-fuerza: 0.75;
+}
+
+.carta-scan-holo[data-brillo='arcoiris'].holo::before {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+/* DORADA (Hiperrara): purpurina de oro. Sin arcoíris — una hiperrara no
+   es multicolor, es dorada, y pintarla de colores sería otra carta. */
+.carta-scan-holo[data-brillo='dorada'] {
+  --holo-fuerza: 0.95;
+}
+
+.carta-scan-holo[data-brillo='dorada'].holo::before {
+  background:
+    radial-gradient(circle at 30% 30%, rgb(255 240 190 / 95%) 0 1px, transparent 2px),
+    radial-gradient(circle at 75% 55%, rgb(255 225 150 / 90%) 0 2px, transparent 3px),
+    radial-gradient(circle at 15% 70%, rgb(255 250 210 / 90%) 0 1px, transparent 2px),
+    repeating-linear-gradient(
+      100deg,
+      rgb(190 140 40) 0%,
+      rgb(255 225 140) 4%,
+      rgb(255 250 220) 7%,
+      rgb(190 140 40) 12%
+    );
+  background-size:
+    50px 50px,
+    80px 80px,
+    65px 65px,
+    260% 100%;
+  mix-blend-mode: screen;
+}
+
+/* ACE SPEC: la plateada con el rojo de su marco. */
+.carta-scan-holo[data-brillo='acespec'] {
+  --holo-fuerza: 0.8;
+}
+
+.carta-scan-holo[data-brillo='acespec'].holo::before {
+  background: repeating-linear-gradient(
+    104deg,
+    rgb(220 60 60) 0%,
+    rgb(255 255 255) 5%,
+    rgb(190 200 215) 10%,
+    rgb(220 60 60) 15%
+  );
+  mix-blend-mode: soft-light;
+}
+
+.carta-scan-holo.holo.holo-activo::after {
+  opacity: 1;
+}
+
+/* Y con «menos movimiento» puesto no se mueve nada, aunque la clase esté
+   (por ejemplo si el ajuste se cambia con la página abierta antes de que
+   el JavaScript se entere). Norma de la casa: lo que anima se apaga aquí
+   también, no solo en el JavaScript. */
+@media (prefers-reduced-motion: reduce) {
+  .carta-scan-holo.holo,
+  .carta-scan-holo.holo.holo-activo {
+    transform: none;
+    transition: none;
+  }
+
+  .carta-scan-holo.holo::before,
+  .carta-scan-holo.holo::after,
+  .carta-scan-holo.holo.holo-activo::before,
+  .carta-scan-holo.holo.holo-activo::after {
+    display: none;
+  }
+}
+
+.carta-scan-vacio {
+  /* El hueco del escaneo que falta, con la proporción de una carta. Sin
+     esto la página se encogería y pegaría un salto al llegar el resto. */
+  aspect-ratio: 600 / 825;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-dim);
+  font-size: var(--t-sm);
+}

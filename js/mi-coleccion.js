@@ -23,7 +23,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // y el barrido de la 299 sigue los imports —así que importarlo por una
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
-import { rarezaEs, categoriaEs, tipoEs } from './carta-traducciones.js'
+import { rarezaEs, categoriaEs, tipoEs, familiaDeBrillo } from './carta-traducciones.js'
 import { esDelTCG } from './catalogo-series.js'
 import {
   IDIOMAS,
@@ -378,6 +378,7 @@ function lineaHtml(l) {
   const c = cartas.get(l.card_id)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const variante = l.variante !== 'normal' ? varianteDe(l.variante).nombre : ''
+  const brillo = c ? familiaDeBrillo(c.rarity) : null
   // La etiqueta la lee quien no ve la carta, así que lleva lo que la
   // imagen dice sin palabras: qué es, de dónde y cuántas.
   const etiqueta = `${nombreDe(c)}${c?.tcg_sets?.name ? `, ${c.tcg_sets.name}` : ''}${
@@ -385,7 +386,9 @@ function lineaHtml(l) {
   }${l.cantidad > 1 ? `, ${l.cantidad} copias` : ''}`
   return `
     <article class="mc-carta" data-linea="${escapeHtml(l.id)}">
-      <button type="button" class="mc-carta-foto" data-ficha aria-label="${escapeHtml(etiqueta)}">
+      <button type="button" class="mc-carta-foto carta-scan-holo"${
+        brillo ? ` data-brillo="${brillo}"` : ''
+      } data-ficha aria-label="${escapeHtml(etiqueta)}">
         ${
           // Sin escaneo se pinta un hueco CON EL NOMBRE dentro, no nada.
           // Al quitar el texto de debajo, una carta sin imagen se quedaba
@@ -456,8 +459,26 @@ function abrirEditor(l) {
   // colección es. Antes la ventana solo decía el nombre en un título, y
   // con dos impresiones de la misma carta en la colección no había forma
   // de saber cuál estabas tocando hasta guardar.
-  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-  $('mcEdFoto').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''
+  // La imagen de la ficha va en GRANDE (tanda 395). Antes se reutilizaba
+  // la miniatura de la rejilla: a 380 px de ancho, una imagen pensada
+  // para 140 se ve borrosa, y la carta es justo lo que has venido a
+  // mirar. `high` es la misma que usa la ficha de /carta.
+  //
+  // Y con el holo encima, que es lo que pidió PINGU: la carta se inclina
+  // siguiendo al ratón y le corre el brillo por encima. El envoltorio
+  // `.carta-scan-holo` y el `data-brillo` son los mismos que allí —si
+  // fueran otros, el día que alguien toque el efecto arreglaría una
+  // pantalla y dejaría la otra a medias.
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c, null, 'high'))
+  const brillo = c ? familiaDeBrillo(c.rarity) : null
+  $('mcEdFoto').innerHTML = escaneo
+    ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}><img ${escaneo} alt="" width="600" height="825" decoding="async" /></span>`
+    : ''
+  // El holo se monta sobre el envoltorio recién pintado. A demanda, como
+  // en /carta: con el dedo o con «menos movimiento» puesto no se monta
+  // nada, así que tampoco hace falta bajar el módulo.
+  const caja = $('mcEdFoto').querySelector('.carta-scan-holo')
+  if (caja) import('./carta-holo.js').then(({ montarHolo }) => montarHolo(caja)).catch(() => {})
   $('mcEditorTitulo').textContent = nombreDe(c)
   // El set va ARRIBA del nombre y el número con él, como una miga de pan:
   // «de dónde es» antes que «cómo se llama» (tanda 393).
@@ -1394,6 +1415,29 @@ function enganchar() {
     const l = lineas.find((x) => x.id === e.target.closest('[data-linea]').dataset.linea)
     if (l) abrirEditor(l)
   })
+  // Pulsar FUERA cierra la ficha (tanda 395). Un `<dialog>` no lo hace
+  // solo: el clic en el fondo llega al propio diálogo, así que se mira si
+  // el destino ES el diálogo —y no algo de dentro— y si cae fuera de su
+  // caja. Sin lo segundo, pulsar en el hueco entre dos campos lo cerraría
+  // con lo que estabas escribiendo a medias.
+  $('mcEditor').addEventListener('click', (e) => {
+    if (e.target !== e.currentTarget) return
+    const r = e.currentTarget.getBoundingClientRect()
+    const dentro = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
+    if (!dentro) e.currentTarget.close()
+  })
+
+  // El holo de la rejilla, montado la PRIMERA vez que el ratón entra en
+  // una carta y no al pintarlas: con trescientas, montarlo en todas sería
+  // trescientos juegos de escuchas para las dos o tres por las que vas a
+  // pasar. `once` por tarjeta, que el módulo ya se encarga del resto.
+  $('mcCartas').addEventListener('pointerover', (e) => {
+    const caja = e.target.closest('.mc-carta-foto')
+    if (!caja || caja.dataset.holoPuesto) return
+    caja.dataset.holoPuesto = '1'
+    import('./carta-holo.js').then(({ montarHolo }) => montarHolo(caja)).catch(() => {})
+  })
+
   $('mcEditorForm').addEventListener('submit', guardarEditor)
   $('mcEdBorrar').addEventListener('click', borrarDesdeEditor)
   $('mcEdCancelar').addEventListener('click', () => $('mcEditor').close())
