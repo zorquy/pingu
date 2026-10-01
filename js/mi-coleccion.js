@@ -1451,6 +1451,10 @@ function cambiarPestania(nueva) {
     $(id).classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
+  // La nota que explica de dónde sale el valor solo hace falta donde se
+  // enseña el valor (tanda 413). En las otras cuatro pestañas eran tres
+  // renglones de letra pequeña entre la cabecera y lo que venías a ver.
+  $('mcResumenNota')?.classList.toggle('hidden', nueva !== 'resumen')
   if (nueva === 'cartas') url.searchParams.delete('ver')
   else url.searchParams.set('ver', nueva)
   if (nueva !== 'carpetas') url.searchParams.delete('album')

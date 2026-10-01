@@ -21970,3 +21970,52 @@ SVG y no emojis, los Pokémon de 60 en 60 y buscables por nombre y por
 número, que elegir un emoji quita el Pokémon, y la carpeta creada con su
 color; que el de un álbum es el mismo diálogo pero pregunta con qué
 empezar; y las dos migraciones leídas.
+
+## Tanda 412 — los mandos del archivador y la cabecera (oct. 2026)
+
+Repaso de interfaz, con PINGU durmiendo la siesta y «trabaja en toda la
+interfaz en general».
+
+### El archivador: cinco filas de mandos pasan a dos
+
+Entre el título de una colección y su primera carta había los filtros,
+la frase «Al pulsar + se suma una copia en…» con sus dos desplegables,
+las barras de progreso, las dos chapas de versión y la paginación.
+
+Ahora: **las barras justo debajo del título** —cuánto llevas es lo que se
+viene a ver— y una sola fila de chapas con rareza, categoría, las dos de
+versión y «Al añadir». Esta última es un `<details>` que **cuelga** de su
+chapa en vez de empujar la fila: si empujara, al abrirlo se movería todo
+lo de debajo y se perdería de vista lo que estabas mirando. La primera
+carta sube unos 200 px.
+
+### La lupa que se comía su texto
+
+Al unificar los cuatro buscadores en la 406, el hueco de la lupa lo pone
+`.mc-buscador input`. Pero la regla propia de la Pokédex va DESPUÉS en la
+hoja y le devolvía el relleno izquierdo a 12 px, así que el texto de
+ejemplo se pintaba ENCIMA de la lupa. No daba error, y es el mismo patrón
+de siempre: un `@media` o una regla posterior no suman especificidad,
+simplemente ganan por orden. La prueba no mira la Pokédex: recorre TODOS
+los buscadores visibles y compara el relleno con dónde acaba la lupa.
+
+### La cabecera, más corta
+
+Las cuatro cifras iban en dos filas de cajas grandes y se comían 200 px
+antes de lo que venías a ver, **en las cinco pestañas**. En un móvil de
+390 px eso es un cuarto de pantalla repetido cinco veces. Pasan a ser una
+tira que se desliza, la misma pieza que la del panel.
+
+Y la nota que explica de dónde sale el valor se queda **solo en el
+Panel**: explica el valor, y el valor vive ahí. En las otras cuatro eran
+tres renglones de letra pequeña entre la cabecera y el contenido.
+
+### Comprobado
+
+`test-tanda-412.mjs`: que ningún buscador visible pinta su texto sobre la
+lupa; en el archivador, que las barras van antes que los filtros y los
+filtros antes que la paginación, que el ajuste de añadir no ocupa sitio,
+se abre al pedirlo y **flota** en vez de empujar, y que las chapas de
+versión están en la fila de filtros; y en el móvil, que las cifras van en
+una sola fila deslizable, que la nota del valor no está fuera del Panel y
+sí dentro, y que el buscador entra en la primera pantalla.

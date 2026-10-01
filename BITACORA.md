@@ -23,6 +23,30 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 412 — los mandos del archivador y la cabecera)
+
+**Hecho**: repaso de interfaz. En el **archivador**, las cinco filas de
+mandos entre el título y la primera carta pasan a dos: las barras de
+progreso suben justo debajo del título y el resto es una fila de chapas,
+con «Al añadir» colgando de la suya en vez de empujar la fila. La primera
+carta sube unos 200 px.
+
+**Un fallo mío de la 406, corregido**: al unificar los buscadores, la
+regla propia de la Pokédex —que va después en la hoja— le devolvía el
+relleno izquierdo al campo, así que el texto de ejemplo se pintaba ENCIMA
+de la lupa. La prueba no mira la Pokédex: recorre todos los buscadores.
+
+**Y la cabecera**: las cuatro cifras iban en dos filas de cajas grandes
+en las CINCO pestañas; ahora son una tira que se desliza. Y la nota que
+explica el valor se queda solo en el Panel, que es donde se enseña el
+valor. En el móvil, el buscador pasa de empezar a 500 px a empezar a 304.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En la rama `pruebas`:
+`test-tanda-412.mjs` (nuevo).
+
+**En curso / pendiente**: los CUATRO SQL sin lanzar.
+
 ## 2026-10-01 — PINGU-Claude (tanda 411 — carpetas y álbumes, con la misma burbuja)
 
 **Hecho**: carpetas y álbumes se pintan con la MISMA burbuja que una

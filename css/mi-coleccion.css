@@ -2274,8 +2274,11 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin-bottom: var(--e-lg);
 }
 
+/* Sin `padding`: lo pone `.mc-buscador input` y ahí está el hueco de la
+   lupa (tanda 412). Al unificar los buscadores en la 406, esta regla —que
+   va después— le devolvía el relleno de la izquierda a 12 px y el texto
+   de ejemplo se pintaba ENCIMA de la lupa. */
 .pdx-mandos input[type='search'] {
-  padding: var(--e-sm) var(--e-md);
   border: 1px solid var(--border);
   background: var(--white);
   color: var(--text);
@@ -3346,4 +3349,72 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 .mc-dlg-cuerpo {
   padding: var(--e-lg);
+}
+
+/* ── Los mandos del archivador, en una fila (tanda 412) ──
+   Había cinco filas de controles entre el título de la colección y la
+   primera carta: los filtros, la frase de «al pulsar +», las barras, las
+   dos chapas de versión y la paginación. Ahora las barras van arriba
+   —cuánto llevas es lo que se viene a ver— y el resto es una fila. */
+.mc-tocar-caja {
+  position: relative;
+}
+
+.mc-tocar-caja > summary {
+  list-style: none;
+  user-select: none;
+}
+
+.mc-tocar-caja > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Abierto, el ajuste cuelga de su chapa en vez de empujar la fila. */
+.mc-tocar-caja[open] > .mc-tocar {
+  display: flex;
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--e-xs));
+  left: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  width: max-content;
+  max-width: min(420px, 90vw);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+
+.mc-tocar-caja > .mc-tocar {
+  display: none;
+}
+
+/* ── La cabecera, más corta en el móvil (tanda 413) ──
+   Las cuatro cifras en dos filas de cajas grandes se comían 200 px antes
+   de la primera carta, en TODAS las pestañas. En una pantalla de 390 px
+   eso es un cuarto de pantalla repetido cinco veces. Pasan a ser una tira
+   que se desliza, como la del panel: la misma pieza, la misma idea. */
+@media (max-width: 599px) {
+  .mc-resumen {
+    display: flex;
+    gap: var(--e-sm);
+    margin-inline: calc(var(--e-xl) * -1);
+    padding-inline: var(--e-xl);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .mc-cifra {
+    flex: 0 0 auto;
+    min-width: 128px;
+    padding: var(--e-sm) var(--e-md);
+    scroll-snap-align: start;
+  }
+
+  .mc-cifra dd {
+    font-size: var(--t-lg);
+  }
 }

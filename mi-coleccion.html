@@ -272,9 +272,31 @@
                Las opciones se sacan de las cartas que hay DE VERDAD en
                esta colección, no de una lista escrita a mano: un set con
                rareza nueva la trae sola (la lección de la 323). -->
+          <!-- EL ORDEN (tanda 412): primero cuánto llevas, que es lo que se
+               viene a ver, y después los mandos. Antes había cinco filas de
+               controles entre el título y la primera carta. -->
+          <div class="mc-barras" id="mcAlbumProgreso"></div>
           <div class="mc-album-filtros" id="mcAlbumFiltros">
             <select id="mcAlbumRareza" class="mc-chapa-select" aria-label="Filtrar por rareza"></select>
             <select id="mcAlbumTipo" class="mc-chapa-select" aria-label="Filtrar por categoría"></select>
+            <!-- Stack / Split: una casilla por CARTA o una por VERSIÓN. En
+                 «split» un reverse holo y su normal son dos huecos, que es
+                 como se colecciona un set maestro. -->
+            <div class="mc-vista-variantes" role="group" aria-label="Cómo se cuentan las versiones">
+              <button type="button" class="mc-chip-vista activo" id="mcVistaStack" aria-pressed="true">Una por carta</button>
+              <button type="button" class="mc-chip-vista" id="mcVistaSplit" aria-pressed="false">Una por versión</button>
+            </div>
+            <!-- Con qué se añade. Es un ajuste que se toca una vez y antes
+                 ocupaba una fila entera con su frase; ahora vive detrás de
+                 su chapa. -->
+            <details class="mc-tocar-caja" id="mcTocarCaja">
+              <summary class="mc-chip-mando">Al añadir</summary>
+              <div class="mc-tocar" id="mcTocarOpciones">
+                <span>Al pulsar + se suma una copia en</span>
+                <select id="mcTocarIdioma" class="mc-chapa-select" aria-label="Idioma al añadir"></select>
+                <select id="mcTocarEstado" class="mc-chapa-select" aria-label="Estado al añadir"></select>
+              </div>
+            </details>
             <span class="subtext" id="mcAlbumCuenta"></span>
           </div>
         <!-- Aquí había un interruptor de «Tocar una carta la añade»
@@ -285,22 +307,12 @@
              llevando a la ficha; no hay modo que recordar.
              Lo que sí se queda es con QUÉ se añade, que antes vivía
              escondido detrás del interruptor. -->
-        <div class="mc-tocar" id="mcTocarOpciones">
-          <span>Al pulsar + se suma una copia en</span>
-          <select id="mcTocarIdioma" aria-label="Idioma al añadir"></select>
-          <select id="mcTocarEstado" aria-label="Estado al añadir"></select>
-        </div>
         <!-- Las tres barras (tanda 398): completo, maestro y adicionales.
              Son tres preguntas distintas y antes había una sola, así que
              quien colecciona por versiones no tenía ningún número suyo. -->
-        <div class="mc-barras" id="mcAlbumProgreso"></div>
         <!-- Stack / Split: una casilla por CARTA o una por VERSIÓN. En
              «split» un reverse holo y su normal son dos huecos, que es
              como se colecciona un set maestro. -->
-        <div class="mc-vista-variantes">
-          <button type="button" class="mc-chip-vista activo" id="mcVistaStack" aria-pressed="true">Una por carta</button>
-          <button type="button" class="mc-chip-vista" id="mcVistaSplit" aria-pressed="false">Una por versión</button>
-        </div>
         <!-- Los mandos del archivador ARRIBA (tanda 371): en un set de
              200 cartas son 22 pliegos, y tenerlos solo debajo del álbum
              obligaba a bajar la pantalla entera para pasar de página.
@@ -419,7 +431,7 @@
             <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
             <input type="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número…" autocomplete="off" aria-label="Busca un Pokémon" />
           </div>
-          <label class="mc-tocar-opcion"><input type="checkbox" id="mcPdxSoloMios" /> Solo los que tengo</label>
+          <label class="mc-interruptor"><input type="checkbox" id="mcPdxSoloMios" /> Solo los que tengo</label>
           <span class="subtext" id="mcPdxCuenta"></span>
         </div>
         <div id="mcPokedexPanel"></div>
