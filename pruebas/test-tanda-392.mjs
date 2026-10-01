@@ -1,0 +1,127 @@
+// Tanda 392 — la colección enseña la CARTA, y la ficha va en un diálogo.
+//
+// PINGU, enseñando la app de Dex: «me gusta más cómo lo hacen ellos
+// porque es solo la imagen, y cuando le clicas te sale un pop-up con
+// toda la información».
+//
+// Lo que esta prueba mira y no supone:
+//   · Que la casilla NO vuelve a llenarse de texto. Es lo que se pidió y
+//     es lo que se deshace solo: cada tanda que quiera enseñar un dato
+//     más lo pondrá aquí si nadie lo impide.
+//   · Que lo que sí queda es lo que la ilustración NO dice: cuántas
+//     tienes y qué variante es, y la variante solo cuando no es normal.
+//   · Que la casilla RESERVA SU HUECO aunque no llegue la imagen. Es el
+//     fallo que salió al hacerlo: sin escaneo el botón medía cero
+//     píxeles, o sea invisible y sin poder pulsarse — una carta perdida.
+//   · Y que la ficha ENTERA sigue siendo una página. El diálogo es el
+//     atajo de dentro de tu colección, no su sustituto: la página es la
+//     que indexa Google y la que se comparte.
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+
+let fails = 0
+const check = (l, ok, extra = '') => {
+  if (!ok) fails++
+  console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 200) : ''}`)
+}
+const BASE = 'http://localhost:8892'
+const browser = await chromium.launch()
+
+const abrir = async ({ conImagen = true } = {}) => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } })
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 150)))
+  await page.addInitScript((hay) => {
+    window.__FAKE_SETS__ = [{ id: 'sv1', name: 'Scarlet & Violet', market: 'WEST',
+      card_count_official: 4, card_count_total: 4, release_date: '2023-03-31' }]
+    window.__FAKE_CARTAS__ = [1, 2, 3, 4].map((n) => ({
+      id: `sv1-${n}`, set_id: 'sv1', local_id: String(n), name: `Carta ${n}`,
+      image_path: hay ? `x/${n}` : null, market: 'WEST', variants: { normal: true, reverse: true },
+    }))
+    window.__FAKE_COLECCION__ = [1, 2, 3, 4].map((n) => ({
+      id: `l${n}`, card_id: `sv1-${n}`, cantidad: n === 2 ? 3 : 1,
+      idioma: 'es', estado: 'nueva', variante: n === 3 ? 'reverse' : 'normal', gradeo: null,
+    }))
+  }, conImagen)
+  await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2600)
+  return { page, errores }
+}
+
+console.log('\n── 1. La casilla es la carta ──')
+{
+  const { page, errores } = await abrir()
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  check('salen las cuatro', (await page.locator('.mc-carta').count()) === 4)
+
+  // Lo que se quitó, y que no puede volver por descuido.
+  for (const [clase, que] of [
+    ['.mc-carta-nombre', 'el nombre'],
+    ['.mc-carta-set', 'el set'],
+    ['.mc-carta-valor', 'el precio'],
+    ['.mc-carta-acciones', 'los botones'],
+  ]) {
+    check(`  ya no lleva ${que}`, (await page.locator(clase).count()) === 0)
+  }
+
+  // Y lo que sí: la cantidad solo si hay más de una, la variante solo si
+  // no es la normal. Un «×1» y un «Normal» en cada casilla serían dos
+  // etiquetas que no distinguen nada — justo el ruido que se quitó.
+  check('la cantidad sale solo donde hay más de una',
+    (await page.locator('.mc-cantidad').count()) === 1,
+    await page.locator('.mc-cantidad').first().textContent())
+  check('  …y dice cuántas', (await page.locator('.mc-cantidad').first().textContent())?.includes('3'))
+  check('la variante sale solo cuando no es la normal',
+    (await page.locator('.mc-carta-variante').count()) === 1,
+    await page.locator('.mc-carta-variante').first().textContent())
+
+  // Quien no ve la carta se queda sin TODO lo que se ha quitado, así que
+  // la etiqueta del botón tiene que decirlo.
+  const etiqueta = await page.locator('.mc-carta-foto').nth(1).getAttribute('aria-label')
+  check('la etiqueta dice qué es, de dónde y cuántas',
+    /Carta 2/.test(etiqueta) && /Scarlet/.test(etiqueta) && /3 copias/.test(etiqueta), etiqueta)
+  await page.close()
+}
+
+console.log('\n── 2. El hueco está aunque no llegue la imagen ──')
+{
+  // El fallo que salió al hacerlo: la cadena de respaldo acaba
+  // ESCONDIENDO el escaneo cuando ninguna CDN contesta (tanda 321), y el
+  // botón se quedaba en cero píxeles. Con el texto debajo no se notaba
+  // porque la casilla tenía alto por otro lado.
+  const { page } = await abrir({ conImagen: false })
+  const caja = await page.locator('.mc-carta-foto').first().boundingBox()
+  check('la casilla mide algo sin imagen', (caja?.height || 0) > 100, JSON.stringify(caja))
+  check('  …y se puede pulsar', (caja?.width || 0) >= 44 && (caja?.height || 0) >= 44)
+  // Y dentro, el nombre: un hueco gris sin nada no dice qué carta es.
+  check('  …y dice de qué carta es',
+    (await page.locator('.mc-carta-sinfoto').count()) > 0 ||
+      /Carta/.test((await page.locator('.mc-carta-foto').first().textContent()) || ''))
+  await page.close()
+}
+
+console.log('\n── 3. La ficha, en un diálogo ──')
+{
+  const { page, errores } = await abrir()
+  check('el diálogo empieza cerrado', (await page.locator('#mcEditor[open]').count()) === 0)
+  await page.locator('.mc-carta-foto').first().click()
+  await page.waitForTimeout(600)
+  check('pulsar la carta lo abre', (await page.locator('#mcEditor[open]').count()) === 1)
+
+  // Lo que se quitó de la casilla tiene que estar AQUÍ, o se ha perdido.
+  const texto = (await page.locator('#mcEditor').textContent())?.replace(/\s+/g, ' ') || ''
+  check('con el nombre de la carta', /Carta 1/.test(texto), texto.slice(0, 120))
+  check('con su set', /Scarlet/.test(texto))
+  check('con el precio', /Cardmarket|precio/i.test(texto))
+  check('y con los campos para editarla', (await page.locator('#mcEdCantidad').count()) === 1)
+
+  // La página de la ficha sigue existiendo: es la que se comparte y la
+  // que indexa Google. El diálogo es un atajo, no su sustituto.
+  const ficha = await page.locator('#mcEdFicha').getAttribute('href')
+  check('y la salida a la ficha entera', /^\/carta\//.test(ficha || ''), ficha)
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  await page.close()
+}
+
+await browser.close()
+console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
+process.exit(fails === 0 ? 0 : 1)
