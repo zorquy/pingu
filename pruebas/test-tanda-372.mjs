@@ -78,17 +78,13 @@ console.log('\n── 2. La estantería, con su progreso ──')
   const texto = (n) => page.locator('.mc-set-tarjeta').nth(n).textContent()
   check('la primera dice cuánto llevas', /9 de 20/.test((await texto(0)) || ''), (await texto(0))?.replace(/\s+/g, ' '))
 
-  // Las tuyas primero, y por lo LLENO que está el álbum — no por cuántas
-  // cartas tienes. Lo que quieres ver arriba es lo que estás a punto de
-  // completar, que es lo que hace volver.
-  check('  …y van por porcentaje, no por cuántas',
-    /9 de 20/.test((await texto(0)) || '') && /3 de 40/.test((await texto(1)) || ''),
-    `${(await texto(0))?.replace(/\s+/g, ' ')} | ${(await texto(1))?.replace(/\s+/g, ' ')}`)
-
-  // El progreso cuenta cartas DISTINTAS, no copias: un álbum se llena
-  // por bolsillos, y tres Charizards llenan uno.
-  check('las tuyas y las de empezar van separadas',
-    (await page.locator('.mc-estanteria-titulo').count()) === 2,
+  // Desde la tanda 409 el orden NO es «las tuyas primero»: PINGU lo quitó
+  // («arriba solo si la pones como favorito; si no, se van a agrupar
+  // arriba y no tiene sentido»). Los rótulos son las ERAS, y una
+  // colección empezada se queda en la suya. Lo que sigue siendo de esta
+  // tanda es el progreso, que es lo que se comprueba aquí.
+  check('los rótulos son eras y no «tus colecciones»',
+    !(await page.locator('.mc-estanteria-titulo').allTextContents()).some((t) => /tus colecciones|empezar otra/i.test(t)),
     (await page.locator('.mc-estanteria-titulo').allTextContents()).join(' | '))
 
   // La barra no se estira: `.mc-barra` nace con `flex: 1 1 200px` para
