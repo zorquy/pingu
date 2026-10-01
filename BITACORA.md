@@ -18,6 +18,41 @@ mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
 que falló es que ninguno de los dos la releyó justo antes de numerar,
 porque las dos tandas se empezaron con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 392 — la colección enseña la CARTA)
+
+**Hecho**: la «tanda A» de lo que pidió PINGU viendo la app de Dex: «me
+gusta más cómo lo hacen ellos porque es solo la imagen, y cuando le
+clicas te sale un pop-up con toda la información».
+
+La casilla llevaba nombre, set, cuatro chips, el precio con su nota y dos
+botones. Con trescientas cartas eso no es una colección, es una hoja de
+cálculo con fotos, y el escaneo —lo único que de verdad reconoces de un
+vistazo— quedaba del tamaño de un sello. Ahora encima solo va lo que la
+ilustración NO dice: la cantidad (si hay más de una) y la variante (si no
+es la normal). Rejilla más apretada, sin marco: la carta ya trae el suyo.
+
+**La ficha en pop-up no hizo falta escribirla**: el diálogo de la 369 ya
+tenía la foto grande, el nombre, el set, el precio, Cardmarket y los
+campos. Estaba escondido tras un botón «Editar» en cada fila — lo mismo
+que pedía PINGU, pero sin que nadie lo encontrara. Ahora se abre pulsando
+la carta, y se le añadió la salida a la ficha ENTERA, que sigue siendo
+una página (es la que indexa Google y la que se comparte).
+
+**Un fallo que salió al hacerlo**: al quitar el texto de debajo, una
+carta sin escaneo dejaba el botón en CERO píxeles — invisible y sin poder
+pulsarse, o sea una carta perdida. Pasa de verdad: la cadena de respaldo
+acaba escondiendo la imagen cuando ninguna CDN contesta (tanda 321). El
+hueco se reserva ahora en el propio botón con `aspect-ratio`, y dentro va
+el nombre.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`mi-coleccion.html`. En `pruebas`: `test-tanda-392.mjs` (**nuevo**) y
+`correr-suite.sh`.
+
+**En curso / pendiente**: la tanda B (Stack/Split Variants y las tres
+barras de la cabecera del set). Y del plan largo: filtros en panel
+lateral, cabecera de la Pokédex, carpetas, intercambios por objetivo.
+
 ## 2026-10-01 — PINGU-Claude (tanda 391 — la Pokédex no había rellenado NI UNA carta)
 
 **Hecho**: PINGU: «la Pokédex dice que está vacío el catálogo; entro en

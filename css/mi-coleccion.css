@@ -169,24 +169,102 @@
 
 .mc-cartas {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
-  gap: var(--e-lg);
+  /* Más apretada que antes (tanda 392): sin nombre ni precio debajo, la
+     casilla es la carta y caben bastantes más por fila. */
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--e-md);
 }
 
+/* ── La carta, y ya (tanda 392) ──
+   La casilla era una tarjeta con marco, fondo, nombre, set, chips,
+   precio y dos botones. Ahora es la CARTA: sin caja alrededor, porque el
+   escaneo ya trae la suya pintada y un marco encima de otro marco es
+   ruido. Lo que no se ve mirando la ilustración —cuántas tienes y qué
+   variante es— va encima; el resto, en la ficha. */
 .mc-carta {
   display: flex;
   flex-direction: column;
+  gap: var(--e-xs);
   min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  overflow: hidden;
 }
 
+/* Es un botón, así que hay que apagarle lo de botón: el área que se
+   pulsa es la carta entera y el dibujo lo pone la imagen. */
 .mc-carta-foto {
   position: relative;
   display: block;
-  padding: var(--e-sm) var(--e-sm) 0;
+  width: 100%;
+  /* El hueco se reserva AQUÍ y no solo en la imagen. Si el escaneo no
+     llega, la cadena de respaldo acaba escondiéndolo (tanda 321) y el
+     botón se quedaba en cero píxeles: invisible y sin poder pulsarse,
+     o sea una carta que has perdido. Con el `aspect-ratio` en el propio
+     botón, el hueco está aunque dentro no haya nada. */
+  aspect-ratio: 245 / 342;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease);
+}
+
+.mc-carta-foto:hover {
+  transform: translateY(-2px);
+}
+
+/* El hueco de una carta sin escaneo. Lleva el mismo `aspect-ratio` que
+   la imagen para que la fila no baile cuando una de cada diez no tiene
+   foto, y el nombre dentro para que se sepa qué es. */
+.mc-carta-sinfoto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 245 / 342;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-align: center;
+}
+
+.mc-carta-sinfoto small {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+/* El foco se ve SIEMPRE, y por fuera: un contorno pegado al canto de la
+   carta se pierde contra la ilustración. */
+.mc-carta-foto:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-carta-foto {
+    transition: none;
+  }
+
+  .mc-carta-foto:hover {
+    transform: none;
+  }
+}
+
+/* La variante, debajo y callada: solo sale cuando NO es la normal, que
+   es cuando la ilustración no basta para distinguirla (un reverso holo
+   y un normal son el mismo dibujo). */
+.mc-carta-variante {
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mc-carta-foto img,
@@ -202,8 +280,8 @@
 
 .mc-cantidad {
   position: absolute;
-  top: var(--e-md);
-  left: var(--e-md);
+  top: var(--e-sm);
+  left: var(--e-sm);
   z-index: 1;
   padding: 1px var(--e-sm);
   border-radius: var(--radius-pill);

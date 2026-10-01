@@ -352,28 +352,55 @@ function notaDePrecio(l, precio) {
   return ' <span class="mc-nota-precio" title="Cardmarket no publica precio del reverso holográfico de esta carta. Se enseña el de la versión normal, que es el mínimo que vale.">de la normal</span>'
 }
 
+// Una carta de la colección: LA CARTA Y YA (tanda 392).
+//
+// PINGU, enseñando la app de Dex: «me gusta más cómo lo hacen ellos
+// porque es solo la imagen, y cuando le clicas te sale un pop-up con
+// toda la información».
+//
+// Y tiene razón por un motivo que no es de gusto: antes cada casilla
+// llevaba nombre, set, cuatro chips, el precio, su nota y dos botones.
+// Con trescientas cartas eso no es una colección, es una hoja de
+// cálculo con fotos — y el escaneo, que es lo único que de verdad
+// reconoces de un vistazo, quedaba del tamaño de un sello entre tanto
+// texto.
+//
+// Lo que se enseña encima es solo lo que NO se ve mirando la carta: la
+// cantidad (una carta repetida no se distingue de una suelta) y la
+// variante, cuando no es la normal (el reverso holo y el normal son la
+// misma ilustración). Todo lo demás vive en la ficha, a un toque.
+//
+// La ficha es el diálogo que ya existía desde la 369 con la foto, el
+// nombre, el set, el precio, Cardmarket y los campos. Estaba escondido
+// tras un botón «Editar» en cada fila: lo mismo que pedía PINGU, pero
+// sin que nadie lo encontrara.
 function lineaHtml(l) {
   const c = cartas.get(l.card_id)
-  const precio = precioDe(l)
-  const valor = valorDeLinea(l, precio)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-  const cm = enlaceCardmarket({ idProduct: precio?.idProduct, idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c) })
+  const variante = l.variante !== 'normal' ? varianteDe(l.variante).nombre : ''
+  // La etiqueta la lee quien no ve la carta, así que lleva lo que la
+  // imagen dice sin palabras: qué es, de dónde y cuántas.
+  const etiqueta = `${nombreDe(c)}${c?.tcg_sets?.name ? `, ${c.tcg_sets.name}` : ''}${
+    variante ? `, ${variante}` : ''
+  }${l.cantidad > 1 ? `, ${l.cantidad} copias` : ''}`
   return `
     <article class="mc-carta" data-linea="${escapeHtml(l.id)}">
-      <a class="mc-carta-foto" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}" tabindex="-1" aria-hidden="true">
-        ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
+      <button type="button" class="mc-carta-foto" data-ficha aria-label="${escapeHtml(etiqueta)}">
+        ${
+          // Sin escaneo se pinta un hueco CON EL NOMBRE dentro, no nada.
+          // Al quitar el texto de debajo, una carta sin imagen se quedaba
+          // en un botón vacío de cero píxeles: invisible y, peor, sin
+          // poder pulsarse para abrir su ficha. Un hueco que no se puede
+          // tocar es una carta que has perdido.
+          escaneo
+            ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
+            : `<span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}${
+                c?.local_id ? `<small>${escapeHtml(c.local_id)}</small>` : ''
+              }</span>`
+        }
         ${l.cantidad > 1 ? `<span class="mc-cantidad">×${l.cantidad}</span>` : ''}
-      </a>
-      <div class="mc-carta-info">
-        <a class="mc-carta-nombre" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}">${escapeHtml(nombreDe(c))}</a>
-        <p class="mc-carta-set">${escapeHtml(c?.tcg_sets?.name || l.card_id)}${c ? ` · ${escapeHtml(c.local_id)}` : ''}</p>
-        <p class="mc-chips">${chipsDe(l)}</p>
-        <p class="mc-carta-valor">${valor ? euros(valor) : '<span class="mc-sin-precio">Sin precio</span>'}${l.cantidad > 1 && valor ? ` <span class="mc-unidad">(${euros(valor / l.cantidad)} c/u)</span>` : ''}${notaDePrecio(l, precio)}</p>
-        <div class="mc-carta-acciones">
-          <a class="mc-accion mc-accion-cm" href="${escapeHtml(cm)}" target="_blank" rel="noopener" aria-label="Ver en Cardmarket, en ${escapeHtml(idiomaDe(l.idioma).nombre.toLowerCase())} y ${escapeHtml(estadoDe(l.estado).nombre)}" title="Cardmarket con el idioma, el estado y la versión de esta carta">${marcaCardmarket(18)}<span>Cardmarket</span></a>
-          ${esMia ? `<button type="button" class="mc-accion" data-editar aria-label="Editar ${escapeHtml(nombreDe(c))}">${icons.edit(15)}<span>Editar</span></button>` : ''}
-        </div>
-      </div>
+      </button>
+      ${variante ? `<span class="mc-carta-variante">${escapeHtml(variante)}</span>` : ''}
     </article>`
 }
 
@@ -457,6 +484,16 @@ function abrirEditor(l) {
   const cm = $('mcEdCardmarket')
   cm.href = enlaceCardmarket({ idProduct: precio?.idProduct, idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c) })
   cm.innerHTML = `${marcaCardmarket(18)}<span>Ver en Cardmarket</span>`
+  // Y la salida a la ficha entera. Si la carta no está en el catálogo no
+  // hay adónde ir, así que el enlace se esconde en vez de llevar a una
+  // página rota.
+  const ficha = $('mcEdFicha')
+  if (c) {
+    ficha.href = rutaDeCarta(c)
+    ficha.hidden = false
+  } else {
+    ficha.hidden = true
+  }
   d.dataset.linea = l.id
   d.showModal()
 }
@@ -1314,7 +1351,10 @@ function enganchar() {
   for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.pestania))
   for (const id of ['mcBuscar', 'mcFiltroSet', 'mcFiltroIdioma', 'mcOrden']) $(id).addEventListener(id === 'mcBuscar' ? 'input' : 'change', pintarCartas)
   $('mcCartas').addEventListener('click', (e) => {
-    if (!e.target.closest('[data-editar]')) return
+    // Ahora la ficha se abre pulsando la CARTA, no un botón «Editar» en
+    // cada fila (tanda 392). `data-editar` se sigue aceptando: lo usan
+    // otras pantallas que todavía pintan la fila con su botón.
+    if (!e.target.closest('[data-ficha], [data-editar]')) return
     const l = lineas.find((x) => x.id === e.target.closest('[data-linea]').dataset.linea)
     if (l) abrirEditor(l)
   })
