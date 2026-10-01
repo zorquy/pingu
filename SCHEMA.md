@@ -22321,3 +22321,78 @@ gráfica: es que no hay filas en `user_collection_value`. Las escribe
 `test-tanda-410.mjs`, puesta al día: la gráfica se ve de entrada y está
 FUERA del bloque que se esconde, y lo que hay detrás del botón son las
 cuatro cajas de listas.
+
+## Tandas 417 y 418 — una expansión es una rejilla (oct. 2026)
+
+PINGU, con la pantalla de Dex delante: «mira las expansiones cómo se
+muestran, quiero lo mismo. El formato álbum dejémoslo solamente para los
+álbumes soñados y punto». Y después: «cuando clicas en una carta te lleva
+a la ficha completa, pero debería abrirte el pop-up con toda la info y
+después un botón para ir a la ficha»; «los botones de anterior y
+siguiente deberían ir a la izquierda y a la derecha, y las páginas quizá
+abajo, para no recargar demasiado la parte de arriba»; «los botones de
+una por carta y una por versión yo los pondría a juntar variantes y
+separar variantes, así queda más claro».
+
+### Por qué el archivador no era la vista de una expansión
+
+Un archivador de pliegos ordena lo que TÚ montas, carta a carta: es la
+forma de un álbum soñado. Una expansión ya viene ordenada y lo que se
+quiere es verla entera — y con pliegos había que pasar **22 páginas**
+para mirar un set de 200.
+
+Ahora: una tira con lo que se pregunta de una colección (cuánto llevas
+con su anillo, lo que valen tus copias de ahí y de qué va), un buscador
+**por nombre o por número** —«la 102» es como se busca una carta dentro
+de un set— y la rejilla entera.
+
+El archivador no se borra: se queda en los álbumes soñados, y con él se
+muda el «Personalizar» de la tapa, que vivía en la expansión y allí ya no
+pintaba nada.
+
+### La ficha se abre en la ventana
+
+En «Cartas» pulsar una carta abría su ficha; en una expansión y en la
+Pokédex te sacaba de la página. Ahora es lo mismo en los tres sitios.
+
+Para una carta que **no tienes** no hay línea que editar, así que se
+monta una de mentira solo para pintar —no se guarda nunca— y en vez del
+bloque de «tu copia» sale el de añadirla. Al añadirla, la ficha se queda
+abierta y pasa a ser la tuya: lo que se acaba de hacer es tener la carta,
+no cerrar una ventana.
+
+**El enlace se queda puesto a propósito.** Con el botón de en medio, con
+Ctrl o con ⌘ sigue abriendo la página entera en otra pestaña, que es lo
+que espera cualquiera de un enlace; lo que se cambia es el clic normal.
+
+**Y un fallo que se vio al probarlo**: `cartas` es el mapa de TU
+colección, así que una carta que no tienes no está en él. Sin buscarla
+donde esté a la vista —la colección abierta, la especie abierta—, la
+ventana salía con el nombre y el enlace de OTRA carta.
+
+### Los mandos del archivador
+
+Las flechas a los lados (las mismas que las de la tira: una pieza y no
+dos que se parecen), las páginas y el «Ir a…» debajo. Con el dedo las
+flechas de la tira se esconden —se desliza—, pero el archivador NO se
+desliza: sus flechas son la única forma de pasar de pliego, así que ahí
+sí se pintan.
+
+### Comprobado
+
+`test-tanda-417.mjs`: la rejilla con las doce cartas de una vez y sin
+mandos de página, la tira con sus tres tarjetas y su anillo, el buscador
+por nombre y por número, y **el archivador vivo en el álbum soñado** con
+su «Personalizar».
+
+`test-tanda-418.mjs`: que pulsar una carta abre la ventana y no se va de
+la página, con el enlace todavía puesto; que una que no tienes abre la
+ficha con SU nombre y SU enlace —la forma del fallo— y el botón de
+añadir, y que al añadirla pasa a ser la tuya; lo mismo en la Pokédex; los
+nombres nuevos de las dos vistas; y las flechas al lado del archivador
+con las páginas debajo.
+
+Y seis pruebas puestas al día, que daban por hecho el archivador dentro
+de una expansión: 371 (que ahora mira el del álbum soñado), 372, 382
+—donde una sección entera desaparece: comprobaba que filtrar volvía a la
+página 1, y sin páginas ese fallo ya no PUEDE pasar—, 383, 398 y 412.

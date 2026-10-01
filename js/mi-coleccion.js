@@ -406,8 +406,8 @@ function pintarResumenPanel() {
 // Las flechas de la tira. Se mueve de tarjeta en tarjeta —el ancho de
 // una más su hueco— y no una cantidad fija de píxeles: con una fija, la
 // tira acaba parándose a mitad de una tarjeta.
-function engancharTira() {
-  const tira = $('mcTira')
+function engancharTira(idTira = 'mcTira', idIzq = 'mcTiraIzq', idDer = 'mcTiraDer') {
+  const tira = $(idTira)
   if (!tira) return
   const paso = () => {
     const una = tira.querySelector('.mc-diapo')
@@ -415,11 +415,11 @@ function engancharTira() {
   }
   const pintarFlechas = () => {
     const resto = tira.scrollWidth - tira.clientWidth - tira.scrollLeft
-    $('mcTiraIzq').hidden = tira.scrollLeft <= 4
-    $('mcTiraDer').hidden = resto <= 4
+    $(idIzq).hidden = tira.scrollLeft <= 4
+    $(idDer).hidden = resto <= 4
   }
-  $('mcTiraIzq').addEventListener('click', () => tira.scrollBy({ left: -paso(), behavior: 'smooth' }))
-  $('mcTiraDer').addEventListener('click', () => tira.scrollBy({ left: paso(), behavior: 'smooth' }))
+  $(idIzq).addEventListener('click', () => tira.scrollBy({ left: -paso(), behavior: 'smooth' }))
+  $(idDer).addEventListener('click', () => tira.scrollBy({ left: paso(), behavior: 'smooth' }))
   tira.addEventListener('scroll', pintarFlechas, { passive: true })
   pintarFlechas()
 }
@@ -665,9 +665,40 @@ function pintarFiltros() {
 }
 
 // ── Editar una línea ──
+// La ficha de una carta, la tengas o no (tanda 418).
+//
+// PINGU: «en una expansión, cuando clicas en una carta te lleva a la
+// ficha completa, pero debería ser igual que en la Pokédex y en todo lo
+// que tenemos en mi colección: que te abra el pop-up con toda la info y
+// después un botón para ir a la ficha completa».
+//
+// Para una carta que no tienes no hay línea que editar, así que se monta
+// una de mentira SOLO para pintar —no se guarda nunca— y en vez del
+// bloque de «tu copia» sale el de añadirla.
+function abrirCarta(cardId, carta = null) {
+  // La carta puede no estar en `cartas`: ese mapa es el de TU colección,
+  // y aquí se abre cualquiera. Se busca donde esté a la vista —la
+  // colección abierta o la especie abierta— y se guarda, que es lo que
+  // lee todo lo que pinta la ficha.
+  const encontrada = carta
+    || cartas.get(cardId)
+    || album.cartas?.find((x) => x.id === cardId)
+    || cartasDeLaEspecie.find((x) => x.id === cardId)
+  if (encontrada && !cartas.has(cardId)) cartas.set(cardId, encontrada)
+  const mia = lineas.find((x) => x.card_id === cardId)
+  if (mia) return abrirEditor(mia)
+  abrirEditor({ id: null, card_id: cardId, cantidad: 0, idioma: IDIOMAS[0]?.id, estado: ESTADOS[0]?.id, variante: 'normal' })
+}
+
 function abrirEditor(l) {
   const c = cartas.get(l.card_id)
   const d = $('mcEditor')
+  // Sin `id` es una carta que no tienes: el bloque de tu copia no pinta
+  // nada y lo que hace falta es poder añadirla.
+  const tuya = Boolean(l.id)
+  $('mcEdCopiaBloque')?.classList.toggle('hidden', !tuya)
+  $('mcEdAnadirBloque')?.classList.toggle('hidden', tuya || !esMia)
+  $('mcEdAnadirCarta')?.setAttribute('data-carta', l.card_id)
   // La carta, a la vista (tanda 369): el escaneo, el nombre y de qué
   // colección es. Antes la ventana solo decía el nombre en un título, y
   // con dos impresiones de la misma carta en la colección no había forma
@@ -710,7 +741,10 @@ function abrirEditor(l) {
   // que enseña qué se puede pedir. Una fila que no se sabe NO se pinta —
   // «Ilustrador: —» ocupa lo mismo que el dato y no dice nada.
   $('mcEdTabla').innerHTML = tablaDeCarta(c)
-  pintarCarpetasDeLaFicha(l.id)
+  // Las carpetas cuelgan de una LÍNEA, así que sin ella no hay nada que
+  // enseñar; el «quién la tiene» es de la carta y sí vale siempre.
+  if (l.id) pintarCarpetasDeLaFicha(l.id)
+  else $('mcEdCarpetasBloque')?.classList.add('hidden')
   pintarQuienLaTiene(l.card_id)
   $('mcEdIdioma').innerHTML = opciones(IDIOMAS, l.idioma)
   $('mcEdEstado').innerHTML = opciones(ESTADOS, l.estado)
@@ -1144,7 +1178,7 @@ function bolsilloDeVariante(c, v) {
         : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
     }
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
-  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
+  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
   const pie = `<span class="mc-bolsillo-variante">${escapeHtml(v.nombre)}</span>`
   if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}${pie}</div>`
   return `<div class="mc-bolsillo${n ? ' tengo' : ''} mc-bolsillo-con-mando">${enlace}${pie}
@@ -1175,7 +1209,7 @@ function bolsilloHtml(c) {
         : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
     }
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
-  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
+  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
   if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}</div>`
   // El número de copias vive DENTRO del mando y no suelto en una
   // esquina: así lo que dice cuántas tienes está pegado a lo que lo
@@ -1234,10 +1268,15 @@ function pintarFiltrosDeAlbum() {
 function cartasDelAlbumFiltradas() {
   const rareza = $('mcAlbumRareza').value
   const tipo = $('mcAlbumTipo').value
+  // Por nombre O por número (tanda 417): en Dex se busca «por nombre de
+  // carta, número o ilustrador», y el número es como se busca una carta
+  // dentro de un set — «la 102» —, que es justo lo que no se podía.
+  const texto = normalizeSearch($('mcAlbumBuscar')?.value || '').trim()
   return album.cartas.filter((c) => {
     if (album.soloFaltan && tengoDe(c.id)) return false
     if (rareza && (!c.rarity || rarezaEs(c.rarity) !== rareza)) return false
     if (tipo && (!c.category || categoriaEs(c.category) !== tipo)) return false
+    if (texto && !normalizeSearch(`${nombreDe(c)} ${c.local_id || ''}`).includes(texto)) return false
     return true
   })
 }
@@ -1256,71 +1295,112 @@ function pintarVistaVariantes() {
 function pintarAlbum() {
   pintarFiltrosDeAlbum()
   const lista = cartasDelAlbumFiltradas()
-  const tengo = album.cartas.filter((c) => tengoDe(c.id)).length
   const total = album.cartas.length
   // El progreso es SIEMPRE el de la colección entera, filtres lo que
   // filtres: «llevas 40 de 198» no puede cambiar porque estés mirando
   // solo las ultra raras. Lo que cambia es la cuenta de al lado.
-  const filtrando = lista.length !== album.cartas.length
+  const filtrando = lista.length !== total
   $('mcAlbumCuenta').textContent = filtrando ? `${lista.length} de ${total} cartas a la vista` : ''
-  // Tres barras y no una (tanda 398). La de «completo» es la de siempre;
-  // la de «maestro» cuenta cada versión por separado y es la que
-  // persigue quien colecciona en serio; la de «adicionales» son los
-  // secretos, aparte porque mezclarlos hace que nadie llegue al 100 %.
-  // La que no tiene nada que contar no se pinta.
   // `album.set` es el ID, no el set: el recuento oficial hay que
   // buscarlo. Sin él, `esAdicional` no puede separar los secretos y la
   // barra de «completo» se come el set entero — que es lo que pasaba.
   const elSet = (todosLosSets || []).find((x) => x.id === album.set) || null
-  const barras = barrasDeSet(progresoDeSet({ cartas: album.cartas, set: elSet, tengo: tengoDe }))
-  $('mcAlbumProgreso').innerHTML = barras
-    .map((b) => {
-      const pct = porcentaje(b) ?? 0
-      return `<div class="mc-barra-fila">
-        <span class="mc-barra-nombre">${escapeHtml(b.nombre)}</span>
-        <span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>
-        <span class="mc-barra-cuenta"><strong>${b.tengo}</strong> de ${b.total}</span>
-      </div>`
-    })
-    .join('')
-  const ancho = window.matchMedia('(min-width: 900px)').matches
-  const deUnaVez = ancho ? 2 : 1
+  pintarTiraDeSet(elSet)
+
   if (!lista.length) {
-    $('mcAlbum').innerHTML = '<p class="subtext">¡No te falta ninguna! Colección completa.</p>'
-    $('mcAlbumPaginas').textContent = ''
-    $('mcAlbumSalto').innerHTML = ''
-    $('mcAlbumSalto').classList.add('hidden')
-    $('mcAlbumAnterior').disabled = true
-    $('mcAlbumSiguiente').disabled = true
+    $('mcAlbum').innerHTML = album.cartas.length
+      ? '<p class="subtext">Ninguna carta de esta colección encaja con esos filtros.</p>'
+      : '<p class="subtext">¡No te falta ninguna! Colección completa.</p>'
     return
   }
-  // El archivador entero lo monta js/mi-coleccion/archivador.js, que lo
-  // comparten esta pantalla y los álbumes soñados: era el mismo dibujo
-  // escrito dos veces, y ya había empezado a separarse.
   // En «una por versión» cada carta se abre en tantas casillas como
   // versiones tenga. Se hace AQUÍ y no en el filtro para que la cuenta
   // de arriba siga siendo la del set y no la de lo que se ve.
   const paraPintar = album.split
     ? lista.flatMap((c) => variantesDeCarta(c).map((v) => ({ ...c, __variante: v })))
     : lista
-  const armado = archivadorHtml({
-    lista: paraPintar,
-    pagina: album.pagina,
-    deUnaVez,
-    tapa: tapaGuardada(),
-    pintarBolsillo: (c) => bolsilloHtml(c),
-  })
-  album.pagina = armado.pagina
-  $('mcAlbum').innerHTML = armado.html
-  $('mcAlbumPaginas').textContent = textoDePaginas(album.pagina, armado.paginas, deUnaVez)
-  // El «Ir a…»: en un set de 200 cartas son 22 pliegos, y pasarlos de
-  // dos en dos con el botón es media docena de clics para nada.
-  const salto = $('mcAlbumSalto')
-  salto.innerHTML = opcionesDeSalto(armado.paginas, deUnaVez, album.pagina)
-  salto.classList.toggle('hidden', armado.paginas <= deUnaVez)
-  $('mcAlbumAnterior').disabled = album.pagina === 0
-  $('mcAlbumSiguiente').disabled = album.pagina + deUnaVez >= armado.paginas
-  $('mcAlbumAnterior').dataset.paso = String(deUnaVez)
+  // Una rejilla y no un archivador (tanda 417): una expansión ya viene
+  // ordenada y lo que se quiere es verla entera. El archivador —pliegos,
+  // páginas y tapa— se queda para los álbumes soñados, que es donde el
+  // orden lo pones tú.
+  $('mcAlbum').innerHTML = `<div class="mc-album-rejilla">${paraPintar.map(bolsilloHtml).join('')}</div>`
+}
+
+// ── La tira de una expansión (tanda 417) ──
+//
+// PINGU, con la pantalla de Dex delante: «mira las expansiones cómo se
+// muestran, quiero lo mismo». Allí, antes de las cartas, hay una tira con
+// lo que se pregunta de una colección: cuánto llevas, lo que vale y de
+// qué va. Es la misma pieza que la del panel.
+function pintarTiraDeSet(elSet) {
+  const caja = $('mcAlbumProgreso')
+  if (!caja) return
+  const barras = barrasDeSet(progresoDeSet({ cartas: album.cartas, set: elSet, tengo: tengoDe }))
+  const completo = barras.find((b) => b.id === 'completo') || barras[0]
+  const pct = completo ? porcentaje(completo) ?? 0 : 0
+  // Lo que valen TUS copias de esta colección, que es lo que se puede
+  // decir con lo que hay en memoria: el precio del set entero pediría el
+  // de todas las cartas, las tengas o no.
+  const mias = lineas.filter((l) => album.cartas.some((c) => c.id === l.card_id))
+  const valor = mias.reduce((n, l) => n + (valorDeLinea(l, precioDe(l)) || 0), 0)
+  const caras = masValiosasDe(mias, 2)
+  // De qué va la colección: cuántas de cada clase. Sale de las cartas que
+  // ya están en memoria, sin pedir nada.
+  const tipos = new Map()
+  for (const c of album.cartas) {
+    const t = categoriaEs(c.category) || 'Otras'
+    tipos.set(t, (tipos.get(t) || 0) + 1)
+  }
+  const porTipo = [...tipos.entries()].sort((a, b) => b[1] - a[1])
+
+  caja.innerHTML = `
+    <div class="mc-tira-caja">
+      <div class="mc-tira" id="mcTiraSet" tabindex="0" role="group" aria-label="Resumen de la colección">
+        ${diapoHtml('Conjunto completo', `
+          <p class="mc-diapo-cifra">${completo ? completo.tengo : 0}</p>
+          <p class="mc-diapo-pie">de ${completo ? completo.total : 0} cartas</p>
+          <span class="mc-anillo" style="--pct:${pct}" role="img" aria-label="${pct} % del conjunto"><b>${pct} %</b></span>
+          ${barras
+            .filter((b) => b.id !== 'completo')
+            .map((b) => `<div class="mc-barra-fila">
+              <span class="mc-barra-nombre">${escapeHtml(b.nombre)}</span>
+              <span class="mc-barra" aria-hidden="true"><i style="--ancho:${porcentaje(b) ?? 0}%"></i></span>
+              <span class="mc-barra-cuenta"><strong>${b.tengo}</strong> de ${b.total}</span>
+            </div>`)
+            .join('')}`)}
+        ${diapoHtml('Lo que tienes de aquí', `
+          <p class="mc-diapo-cifra">${escapeHtml(euros(valor))}</p>
+          <p class="mc-diapo-pie">${mias.length ? `en ${mias.length} ${mias.length === 1 ? 'carta' : 'cartas'} tuyas` : 'todavía no tienes ninguna'}</p>
+          ${caras.length
+            ? `<ul class="mc-diapo-lista">${caras
+                .map((v) => `<li><span>${escapeHtml(nombreDe(v.carta))}</span><strong>${escapeHtml(euros(v.valor))}</strong></li>`)
+                .join('')}</ul>`
+            : ''}`)}
+        ${diapoHtml('Tipos de carta', porTipo.length
+          ? `<p class="mc-diapo-cifra">${porTipo.length}</p>
+             <p class="mc-diapo-pie">${porTipo.map(([t]) => escapeHtml(t)).join(', ')}</p>
+             ${barrasHtml(porTipo)}`
+          : '<p class="subtext">El catálogo todavía no dice de qué clase es cada carta.</p>')}
+      </div>
+      <button type="button" class="mc-tira-flecha mc-tira-izq" id="mcTiraSetIzq" aria-label="Ver lo anterior" hidden>‹</button>
+      <button type="button" class="mc-tira-flecha mc-tira-der" id="mcTiraSetDer" aria-label="Ver lo siguiente">›</button>
+    </div>`
+  engancharTira('mcTiraSet', 'mcTiraSetIzq', 'mcTiraSetDer')
+}
+
+// Lo más valioso de una lista de líneas, por el valor de UNA copia.
+function masValiosasDe(filas, cuantas = 3) {
+  const porCarta = new Map()
+  for (const l of filas) {
+    const v = valorDeLinea(l, precioDe(l))
+    if (!v) continue
+    const unidad = v / (Number(l.cantidad) || 1)
+    if (unidad > (porCarta.get(l.card_id) || 0)) porCarta.set(l.card_id, unidad)
+  }
+  return [...porCarta.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, cuantas)
+    .map(([id, v]) => ({ carta: cartas.get(id) || album.cartas.find((c) => c.id === id), id, valor: v }))
 }
 
 // `variante` llega desde «una por versión» (tanda 398): ahí el + suma a
@@ -1748,6 +1828,8 @@ function pintarPokedex() {
   $('mcPdxCuenta').textContent = `${resumen.registrados} de 1.025 Pokémon`
 }
 
+let cartasDeLaEspecie = []
+
 async function pintarEspecie(dex) {
   const caja = $('mcPokedexPanel')
   especieAbierta = dex
@@ -1771,6 +1853,9 @@ async function pintarEspecie(dex) {
     if (c && !porId.has(id) && pokedex.esDeLaEspecie(c, dex)) porId.set(id, c)
   }
   const lista = [...porId.values()].sort(porSetYNumero)
+  // Se guardan para la ficha (tanda 418): al pulsar una carta de aquí
+  // hay que poder pintarla, y las que no son tuyas no están en `cartas`.
+  cartasDeLaEspecie = lista
   caja.innerHTML = pokedex.especieHtml({ dex, cartas: lista, tuyas, sinCatalogo: delCatalogo.length === 0 })
 }
 
@@ -2080,6 +2165,16 @@ function enganchar() {
   }
 
   // ── La nota, plegada (tanda 405) ──
+  $('mcEdAnadirCarta').addEventListener('click', async () => {
+    const id = $('mcEdAnadirCarta').dataset.carta
+    if (!id) return
+    await tocarBolsillo(id)
+    // Y la ficha se queda abierta, ya como TUYA: lo que se acaba de
+    // hacer es tener la carta, no cerrar una ventana.
+    const nueva = lineas.find((x) => x.card_id === id)
+    if (nueva) abrirEditor(nueva)
+  })
+
   $('mcEdNotaAbrir').addEventListener('click', () => {
     pintarNota($('mcEdNotas').value, true)
     $('mcEdNotas').focus()
@@ -2381,21 +2476,30 @@ function enganchar() {
     if (album.set) pintarAlbum()
     albumes.repintar?.()
   })
-  $('mcAlbumSalto').addEventListener('change', (e) => {
-    album.pagina = Number(e.target.value) || 0
-    pintarAlbum()
-  })
-  $('mcAlbumAnterior').addEventListener('click', () => {
-    album.pagina = Math.max(0, album.pagina - Number($('mcAlbumAnterior').dataset.paso || 1))
-    pintarAlbum()
-  })
-  $('mcAlbumSiguiente').addEventListener('click', () => {
-    album.pagina += Number($('mcAlbumAnterior').dataset.paso || 1)
-    pintarAlbum()
-  })
+  // El buscador de dentro de una colección (tanda 417): en un set de 200
+  // cartas, llegar a una por los filtros es imposible.
+  $('mcAlbumBuscar').addEventListener('input', () => pintarAlbum())
   // El mando del bolsillo (tanda 368). Va delegado en el archivador y no
   // botón a botón: el álbum se repinta entero en cada cambio, así que un
   // oyente por bolsillo habría que volver a colgarlo cada vez.
+  // El clic en una carta abre la FICHA, no la página (tanda 418). El
+  // enlace se queda puesto a propósito: con el botón de en medio, con
+  // Ctrl o con ⌘ sigue abriendo la página entera en otra pestaña, que es
+  // lo que espera cualquiera de un enlace. Lo que se cambia es el clic
+  // normal.
+  const abreLaPagina = (e) => e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey
+  const engancharFicha = (zona, selector) => {
+    $(zona)?.addEventListener('click', (e) => {
+      if (abreLaPagina(e)) return
+      const enlace = e.target.closest(selector)
+      if (!enlace || !enlace.dataset.carta) return
+      e.preventDefault()
+      abrirCarta(enlace.dataset.carta)
+    })
+  }
+  engancharFicha('mcAlbum', '.mc-bolsillo-enlace')
+  engancharFicha('mcPanelPokedex', '.pdx-carta')
+
   $('mcAlbum').addEventListener('click', (e) => {
     const mas = e.target.closest('button[data-anadir]')
     if (mas) return void tocarBolsillo(mas.dataset.anadir, mas.dataset.var || 'normal')

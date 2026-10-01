@@ -29,6 +29,33 @@ es mirar el REMOTO justo antes del commit, no al empezar.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tandas 417 y 418 — la expansión, en rejilla)
+
+**417**: dentro de una expansión ya no hay archivador: hay una **tira**
+con lo que se pregunta de una colección (cuánto llevas con su anillo, lo
+que valen tus copias y de qué va), un **buscador por nombre o número** y
+la **rejilla entera**. Con pliegos había que pasar 22 páginas para mirar
+un set de 200. El archivador se queda en los álbumes soñados, y con él se
+muda el «Personalizar» de la tapa.
+
+**418**: pulsar una carta abre la **ficha en la ventana** —en una
+expansión y en la Pokédex te sacaba de la página— y, si no la tienes,
+sale el botón de añadirla en vez del bloque de «tu copia». El enlace se
+queda puesto: con Ctrl o con el botón de en medio sigue abriendo la
+página entera. Las flechas del archivador van **a los lados** y las
+páginas **debajo**. Y las dos vistas pasan a llamarse **«Juntar
+variantes» / «Separar variantes»**.
+
+**Un fallo que se vio al probarlo**: `cartas` es el mapa de TU colección,
+así que una carta que no tienes no está en él — la ventana salía con el
+nombre y el enlace de OTRA carta.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`js/mi-coleccion/albumes.js`, `js/mi-coleccion/pokedex.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En la rama `pruebas`:
+`test-tanda-417.mjs` y `test-tanda-418.mjs` (nuevos) y SEIS puestas al
+día (371, 372, 382, 383, 398 y 412).
+
 ## 2026-10-01 — PINGU-Claude (tanda 416 — el gráfico de precios, de vuelta)
 
 **Hecho**: PINGU, «¿y dónde está el gráfico de precios? No existe». La

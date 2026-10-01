@@ -276,6 +276,10 @@
                viene a ver, y después los mandos. Antes había cinco filas de
                controles entre el título y la primera carta. -->
           <div class="mc-barras" id="mcAlbumProgreso"></div>
+          <div class="mc-buscador mc-buscador-ancho">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" id="mcAlbumBuscar" placeholder="Busca por nombre o número" aria-label="Buscar en esta colección" />
+          </div>
           <div class="mc-album-filtros" id="mcAlbumFiltros">
             <select id="mcAlbumRareza" class="mc-chapa-select" aria-label="Filtrar por rareza"></select>
             <select id="mcAlbumTipo" class="mc-chapa-select" aria-label="Filtrar por categoría"></select>
@@ -283,8 +287,13 @@
                  «split» un reverse holo y su normal son dos huecos, que es
                  como se colecciona un set maestro. -->
             <div class="mc-vista-variantes" role="group" aria-label="Cómo se cuentan las versiones">
-              <button type="button" class="mc-chip-vista activo" id="mcVistaStack" aria-pressed="true">Una por carta</button>
-              <button type="button" class="mc-chip-vista" id="mcVistaSplit" aria-pressed="false">Una por versión</button>
+              <!-- «Juntar» y «separar» y no «una por carta / una por versión»
+                   (tanda 418). PINGU: «así queda más claro». Lo que se hace
+                   es juntar las versiones de una carta en un hueco o
+                   darle uno a cada una; el nombre viejo decía el
+                   RESULTADO y había que pensarlo. -->
+              <button type="button" class="mc-chip-vista activo" id="mcVistaStack" aria-pressed="true">Juntar variantes</button>
+              <button type="button" class="mc-chip-vista" id="mcVistaSplit" aria-pressed="false">Separar variantes</button>
             </div>
             <!-- Con qué se añade. Es un ajuste que se toca una vez y antes
                  ocupaba una fila entera con su frase; ahora vive detrás de
@@ -313,19 +322,14 @@
         <!-- Stack / Split: una casilla por CARTA o una por VERSIÓN. En
              «split» un reverse holo y su normal son dos huecos, que es
              como se colecciona un set maestro. -->
-        <!-- Los mandos del archivador ARRIBA (tanda 371): en un set de
-             200 cartas son 22 pliegos, y tenerlos solo debajo del álbum
-             obligaba a bajar la pantalla entera para pasar de página.
-             El «Ir a…» se esconde si el álbum cabe en un pliego: un
-             desplegable con una sola opción es un adorno. -->
-        <div class="mc-album-mandos">
-          <button type="button" class="btn-secondary" id="mcAlbumAnterior">← Anterior</button>
-          <span id="mcAlbumPaginas"></span>
-          <button type="button" class="btn-secondary" id="mcAlbumSiguiente">Siguiente →</button>
-          <select id="mcAlbumSalto" class="hidden" aria-label="Ir a una página"></select>
-          <button type="button" class="btn-secondary mc-album-tapa" id="mcAlbumTapa" aria-expanded="false">Personalizar</button>
-        </div>
-        <div class="mc-tapas hidden" id="mcAlbumTapas" role="group" aria-label="Color del archivador"></div>
+        <!-- DENTRO DE UNA EXPANSIÓN, UNA REJILLA (tanda 417). PINGU, con
+             la pantalla de Dex al lado: «mira las expansiones cómo se
+             muestran, quiero lo mismo; el formato álbum dejémoslo
+             solamente para los álbumes soñados y punto».
+             Y tiene sentido: un archivador de pliegos ordena lo que TÚ
+             montas, carta a carta. Una expansión ya viene ordenada y lo
+             que se quiere es verla entera. Los pliegos obligaban a pasar
+             22 páginas para mirar un set de 200. -->
         <div id="mcAlbum"></div>
         </div>
         <p class="subtext hidden" id="mcAlbumVacio">No hay ninguna colección que enseñar todavía.</p>
@@ -414,12 +418,26 @@
             </div>
             <div class="mc-resultados mc-alb-resultados" id="mcAlbResultados"></div>
           </div>
-          <div id="mcAlbArchivador"></div>
-          <div class="mc-album-paginas">
-            <button type="button" class="btn-secondary" id="mcAlbAnterior">← Anterior</button>
-            <span id="mcAlbPaginas"></span>
-            <button type="button" class="btn-secondary" id="mcAlbSiguiente">Siguiente →</button>
+          <div class="mc-archivador-caja">
+            <div id="mcAlbArchivador"></div>
+            <button type="button" class="mc-tira-flecha mc-tira-izq" id="mcAlbAnterior" aria-label="Pliego anterior">‹</button>
+            <button type="button" class="mc-tira-flecha mc-tira-der" id="mcAlbSiguiente" aria-label="Pliego siguiente">›</button>
           </div>
+          <!-- Las flechas A LOS LADOS del archivador y las páginas DEBAJO
+               (tanda 418). PINGU: «los botones de anterior y siguiente
+               deberían ir a la izquierda y a la derecha, y las páginas
+               quizá abajo, para no recargar demasiado la parte de arriba
+               con botones y filtros». Es verdad: arriba había dos filas
+               de mandos antes de ver una sola carta. -->
+          <div class="mc-album-paginas">
+            <span id="mcAlbPaginas"></span>
+            <select id="mcAlbSalto" class="mc-chapa-select hidden" aria-label="Ir a una página"></select>
+            <!-- La tapa se muda aquí desde la expansión (tanda 417): el
+                 archivador ya solo existe en los álbumes soñados, así que
+                 el color del archivador se elige donde se ve. -->
+            <button type="button" class="btn-secondary mc-album-tapa" id="mcAlbumTapa" aria-expanded="false">Personalizar</button>
+          </div>
+          <div class="mc-tapas hidden" id="mcAlbumTapas" role="group" aria-label="Color del archivador"></div>
           <p class="mc-alb-borrar-zona"><button type="button" class="link-btn mc-borrar" id="mcAlbBorrar">Borrar este álbum</button></p>
         </div>
         </div>
@@ -475,7 +493,20 @@
               </div>
             </section>
 
-            <section class="mc-ficha-bloque">
+            <!-- Para una carta que NO tienes (tanda 418): la ficha se abre
+                 igual —la foto, los datos, el precio y la salida a la
+                 página entera— y en vez del bloque de «tu copia» sale el
+                 botón de añadirla. PINGU: «cuando clicas en una carta te
+                 lleva a la ficha completa, pero debería abrirte el pop-up
+                 con toda la info y después un botón para ir a la ficha». -->
+            <section class="mc-ficha-bloque hidden" id="mcEdAnadirBloque">
+              <div class="mc-ficha-caja">
+                <p class="subtext">Todavía no tienes esta carta.</p>
+                <button type="button" class="btn-primary" id="mcEdAnadirCarta">Añadir a mi colección</button>
+              </div>
+            </section>
+
+            <section class="mc-ficha-bloque" id="mcEdCopiaBloque">
               <h3>Tu copia</h3>
               <div class="mc-ficha-caja">
         <div class="mc-editor-campos">

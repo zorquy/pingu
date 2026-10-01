@@ -24,7 +24,7 @@ export const FICHERO_MIGRACION = 'supabase-migration-albumes.sql'
 const MAX_CARTAS = 1080
 // Nueve por hoja: vive en el módulo del archivador desde la 371, que
 // es quien lo usa.
-import { archivadorHtml, textoDePaginas, tapaGuardada, POR_PAGINA } from './archivador.js'
+import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, POR_PAGINA } from './archivador.js'
 import { burbujaHtml } from './adorno.js'
 import { abrirDialogoAdorno } from './dialogo-adorno.js'
 const $ = (id) => document.getElementById(id)
@@ -235,8 +235,9 @@ function pintarDetalle() {
       actual.cartas.length ? '¡Ya las tienes todas!' : 'Este álbum está vacío. Busca cartas arriba para añadirlas.'
     }</p>`
     $('mcAlbPaginas').textContent = ''
-    $('mcAlbAnterior').disabled = true
-    $('mcAlbSiguiente').disabled = true
+    $('mcAlbAnterior').hidden = true
+    $('mcAlbSiguiente').hidden = true
+    $('mcAlbSalto')?.classList.add('hidden')
   } else {
     // El mismo archivador que el álbum de una colección (tanda 371): era
     // el mismo dibujo escrito dos veces y ya había empezado a separarse,
@@ -253,8 +254,18 @@ function pintarDetalle() {
     pagina = armado.pagina
     $('mcAlbArchivador').innerHTML = armado.html
     $('mcAlbPaginas').textContent = textoDePaginas(pagina, armado.paginas, deUnaVez)
-    $('mcAlbAnterior').disabled = pagina === 0
-    $('mcAlbSiguiente').disabled = pagina + deUnaVez >= armado.paginas
+    // Las flechas se APAGAN en los extremos, como las de la tira: una
+    // flecha que no lleva a ninguna parte miente (tanda 418).
+    $('mcAlbAnterior').hidden = pagina === 0
+    $('mcAlbSiguiente').hidden = pagina + deUnaVez >= armado.paginas
+    // Y el «Ir a…», que se mudó aquí desde la expansión: en un álbum de
+    // 200 cartas son 22 pliegos y pasarlos de dos en dos es media docena
+    // de clics para nada. Se esconde si todo cabe en un pliego.
+    const salto = $('mcAlbSalto')
+    if (salto) {
+      salto.innerHTML = opcionesDeSalto(armado.paginas, deUnaVez, pagina)
+      salto.classList.toggle('hidden', armado.paginas <= deUnaVez)
+    }
   }
   $('mcAlbAnterior').dataset.paso = String(deUnaVez)
   $('mcAlbEditar').textContent = editando ? 'Hecho' : 'Ordenar y quitar'
@@ -423,6 +434,10 @@ export function iniciarAlbumes(contexto) {
   $('mcAlbSoloFaltan')?.addEventListener('change', (e) => {
     soloFaltan = e.target.checked
     pagina = 0
+    pintarDetalle()
+  })
+  $('mcAlbSalto')?.addEventListener('change', (e) => {
+    pagina = Number(e.target.value) || 0
     pintarDetalle()
   })
   $('mcAlbAnterior')?.addEventListener('click', () => {

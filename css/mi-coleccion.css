@@ -3636,3 +3636,75 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-size: var(--t-sm);
   font-weight: 800;
 }
+
+/* ── Una expansión es una REJILLA (tanda 417) ──
+   PINGU: «mira las expansiones cómo se muestran, quiero lo mismo; el
+   formato álbum dejémoslo solamente para los álbumes soñados y punto».
+   Un archivador de pliegos ordena lo que TÚ montas, carta a carta; una
+   expansión ya viene ordenada y lo que se quiere es verla entera. */
+.mc-album-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--e-md);
+}
+
+/* La tira de una expansión: la misma pieza que la del panel, pero con el
+   anillo y las barras dentro de la primera tarjeta. */
+#mcAlbumProgreso .mc-diapo {
+  flex-basis: min(320px, 86%);
+}
+
+#mcAlbumProgreso .mc-anillo {
+  position: absolute;
+  top: var(--e-lg);
+  right: var(--e-lg);
+}
+
+#mcAlbumProgreso .mc-diapo {
+  position: relative;
+}
+
+#mcAlbumProgreso .mc-barra-fila {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(40px, 1fr) auto;
+  gap: var(--e-sm);
+  align-items: center;
+  font-size: var(--t-2xs);
+}
+
+/* ── Las flechas del archivador, a los lados (tanda 418) ──
+   PINGU: «los botones de anterior y siguiente deberían ir a la izquierda
+   y a la derecha, y las páginas quizá abajo, para no recargar demasiado
+   la parte de arriba con botones y filtros». Son las mismas flechas que
+   las de la tira: una pieza y no dos que se parecen. */
+.mc-archivador-caja {
+  position: relative;
+}
+
+.mc-archivador-caja .mc-tira-flecha {
+  width: 44px;
+  height: 44px;
+  font-size: var(--t-2xl);
+}
+
+.mc-album-paginas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-md);
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--e-md);
+}
+
+/* Con el dedo las flechas de la tira se esconden —se desliza—, pero el
+   archivador NO se desliza: sus flechas son la única forma de pasar de
+   pliego, así que aquí sí se pintan. */
+@media (pointer: coarse) {
+  .mc-archivador-caja .mc-tira-flecha {
+    display: grid;
+  }
+
+  .mc-archivador-caja .mc-tira-flecha[hidden] {
+    display: none;
+  }
+}

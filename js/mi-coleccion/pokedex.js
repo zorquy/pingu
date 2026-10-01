@@ -181,7 +181,7 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false }) {
           // tiene código de TCG Live. Lo que no puede ser es que el hueco
           // se quede vacío: un sitio en blanco se lee como un fallo, y
           // una carta con su nombre escrito se lee como una carta.
-          return `<a class="pdx-carta${mia ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" title="${escapeHtml(nombreDe(c))} — ${escapeHtml(c.tcg_sets?.name || c.set_id)}">
+          return `<a class="pdx-carta${mia ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" title="${escapeHtml(nombreDe(c))} — ${escapeHtml(c.tcg_sets?.name || c.set_id)}">
             ${
               escaneo
                 ? `<img ${escaneo} alt="${escapeHtml(nombreDe(c))}" width="245" height="342" loading="lazy" />`
