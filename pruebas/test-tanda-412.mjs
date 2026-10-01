@@ -59,12 +59,14 @@ console.log('\n── 2. El archivador, con los mandos en una fila ──')
   const y = await page.evaluate(() => {
     const t = (s) => document.querySelector(s)?.getBoundingClientRect().top ?? null
     return { titulo: t('.mc-album-barra'), barras: t('#mcAlbumProgreso'), filtros: t('#mcAlbumFiltros'),
-      mandos: t('.mc-album-mandos') }
+      cartas: t('#mcAlbum') }
   })
   // Primero cuánto llevas, que es lo que se viene a ver, y después los
   // mandos. Antes las barras estaban por debajo de dos filas de controles.
   check('las barras van antes que los filtros', y.barras < y.filtros, JSON.stringify(y))
-  check('  …y los filtros antes que la paginación', y.filtros < y.mandos, JSON.stringify(y))
+  // Y los filtros antes que las cartas. (Era «antes que la paginación»;
+  // desde la 417 una expansión no tiene páginas, es una rejilla.)
+  check('  …y los filtros antes que las cartas', y.filtros < y.cartas, JSON.stringify(y))
 
   // «Al pulsar + se suma una copia en…» ocupaba una fila entera con su
   // frase para un ajuste que se toca una vez. Ahora cuelga de su chapa.

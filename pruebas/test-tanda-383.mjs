@@ -112,7 +112,9 @@ async function abrir(viewport = { width: 1280, height: 1200 }) {
   // Desde la 398 son TRES barras; la de «completo» es la que cuenta
   // bolsillos, que es lo que mira esta comprobación.
   check('el progreso cuenta bolsillos, no versiones',
-    /Set completo 1 de 4/.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
+    // «Conjunto completo» desde la 417, que es como se llama la primera
+    // tarjeta de la tira de una colección.
+    /Conjunto completo 1 de 4/.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
     limpio(await page.locator('#mcAlbumProgreso').textContent()))
 
   await chip().click()

@@ -114,7 +114,9 @@ async function abrir(opciones = {}) {
   check('  …y el progreso sigue siendo el de la colección entera',
     // Desde la 398 son tres barras; la de «completo» es la que dice
     // cuántos bolsillos llevas, que es lo que mira esto.
-    /Set completo 3 de 18/.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
+    // Desde la 417 el progreso vive en la tira de la colección, y la
+    // primera tarjeta se llama «Conjunto completo».
+    /Conjunto completo 3 de 18/.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
     limpio(await page.locator('#mcAlbumProgreso').textContent()))
 
   await page.selectOption('#mcAlbumRareza', '')
@@ -129,18 +131,20 @@ async function abrir(opciones = {}) {
   await page.close()
 }
 
-console.log('\n── 3. Filtrar vuelve a la primera página ──')
+console.log('\n── 3. Filtrar no deja la pantalla en blanco ──')
 {
-  // Seguir en la página 7 de una lista que ahora tiene 3 cartas deja el
-  // archivador EN BLANCO, y sin ningún error.
-  // 54 cartas: con dos hojas de nueve a la vez son tres páginas, así
-  // que «Siguiente» existe de verdad.
+  // Esto comprobaba que filtrar volvía a la página 1: seguir en la
+  // página 7 de una lista que ahora tiene 3 cartas dejaba el archivador
+  // EN BLANCO y sin ningún error. Desde la tanda 417 una expansión no
+  // tiene páginas —es una rejilla— así que ese fallo ya no PUEDE pasar.
+  // Lo que se sigue comprobando es el efecto: que al filtrar se ve lo
+  // filtrado.
   const { page } = await abrir({ cuantas: 54 })
-  await page.locator('#mcAlbumSiguiente').click()
-  await page.waitForTimeout(600)
   await page.selectOption('#mcAlbumRareza', 'Ultra rara')
   await page.waitForTimeout(700)
-  check('el archivador no se queda en blanco', (await page.locator('.mc-bolsillo').count()) > 0,
+  check('se ve lo filtrado', (await page.locator('.mc-bolsillo').count()) > 0,
+    String(await page.locator('.mc-bolsillo').count()))
+  check('  …y no la colección entera', (await page.locator('.mc-bolsillo').count()) < 54,
     String(await page.locator('.mc-bolsillo').count()))
   await page.close()
 }
@@ -154,7 +158,7 @@ console.log('\n── 4. Sin rareza guardada, el filtro no estorba ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('el filtro de rareza se esconde', !(await page.locator('#mcAlbumRareza').isVisible()))
   check('  …y el de categoría también', !(await page.locator('#mcAlbumTipo').isVisible()))
-  check('  …pero el archivador sigue ahí', (await page.locator('.mc-binder').count()) === 1)
+  check('  …pero la rejilla sigue ahí', (await page.locator('.mc-album-rejilla').count()) === 1)
   await page.close()
 }
 

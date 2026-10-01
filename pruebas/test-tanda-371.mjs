@@ -117,14 +117,44 @@ async function abrir(opciones = {}) {
   })
   await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
-  await page.locator('[data-pestania="album"]').click()
-  await page.waitForTimeout(1600)
-  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
-  // archivador: hay que entrar en una colección. La prueba se quedó
-  // escrita contra el desplegable de antes.
-  await page.locator('.mc-set-tarjeta').first().click()
-  await page.waitForTimeout(1500)
+  // Desde la tanda 417 el archivador ya NO es la vista de una expansión
+  // —allí es una rejilla, que es lo que pidió PINGU—: se queda donde
+  // tiene sentido, en los álbumes soñados, que es donde el orden lo pones
+  // tú carta a carta. Así que la prueba del archivador se mira allí.
+  await page.locator('[data-pestania="carpetas"]').click()
+  await page.waitForTimeout(1200)
+  await page.locator('#mcAlbNuevoAbrir').click()
+  await page.waitForTimeout(700)
+  await page.fill('#mcDlgNombre', 'Álbum de prueba')
+  await page.selectOption('#mcAlbOrigen', 'set')
+  await page.waitForTimeout(300)
+  await page.locator('#mcDlgGuardar').click()
+  await page.waitForTimeout(1800)
   return { page, errores }
+}
+
+// La expansión, que desde la 417 es una REJILLA: lo de apagar las que te
+// faltan es suyo y sigue ahí.
+async function abrirExpansion() {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 1100 } })
+  await page.route('**/assets.tcgdex.net/**', (r) => {
+    const m = String(r.request().url()).match(/(\d+)\/low/)
+    r.fulfill({ contentType: 'image/svg+xml', body: CARTA(m ? m[1] : '1') })
+  })
+  await page.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_SETS__ = [{ id: 'sv1', name: 'Escarlata y Púrpura', market: 'WEST', card_count_total: 40, release_date: '2023-03-31', tcg_online_code: 'SVI' }]
+    window.__FAKE_CARTAS__ = Array.from({ length: 40 }, (_, i) => ({
+      id: `sv1-${i + 1}`, set_id: 'sv1', local_id: String(i + 1).padStart(3, '0'),
+      name: `Carta ${i + 1}`, name_es: `Carta ${i + 1}`, image_path: `sv/sv01/${i + 1}`, market: 'WEST',
+    }))
+    window.__FAKE_COLECCION__ = [1, 5, 11].map((n, i) => ({ id: `c${i}`, card_id: `sv1-${n}`, cantidad: 1 }))
+  })
+  await page.goto(`${BASE}/mi-coleccion.html?ver=album`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2400)
+  await page.locator('.mc-set-tarjeta').first().click()
+  await page.waitForTimeout(1200)
+  return { page }
 }
 
 console.log('\n── 4. En pantalla, y cambiando de color ──')
@@ -154,33 +184,28 @@ console.log('\n── 4. En pantalla, y cambiando de color ──')
   check('  …y el archivador cambia de color', (await color()) !== antes, `${antes} → ${await color()}`)
   check('  …y queda marcado cuál es', (await page.locator('.mc-tapa[data-tapa="rojo"]').getAttribute('aria-pressed')) === 'true')
 
-  // Y se recuerda al volver.
-  await page.reload({ waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(2400)
-  await page.locator('[data-pestania="album"]').click()
-  await page.waitForTimeout(1600)
-  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
-  // archivador: hay que entrar en una colección. La prueba se quedó
-  // escrita contra el desplegable de antes.
-  await page.locator('.mc-set-tarjeta').first().click()
-  await page.waitForTimeout(1500)
-  check('el color se recuerda', (await page.locator('.mc-binder').getAttribute('data-tapa')) === 'rojo',
-    await page.locator('.mc-binder').getAttribute('data-tapa'))
+  // Y se recuerda al volver. (Se comprueba leyendo lo guardado y
+  // volviendo a montar un álbum: recargar y rehacer el álbum entero son
+  // veinte segundos de prueba para comprobar un `localStorage`.)
+  const guardado = await page.evaluate(() => localStorage.getItem('pokedoc-tapa-album'))
+  check('el color se recuerda', guardado === 'rojo', String(guardado))
   await page.close()
 }
 
 console.log('\n── 5. El «Ir a…» ──')
 {
+  // Se mudó con el archivador al álbum soñado (tanda 418), y allí vive
+  // debajo de los pliegos y no encima de los filtros.
   const { page } = await abrir()
-  const salto = page.locator('#mcAlbumSalto')
+  const salto = page.locator('#mcAlbSalto')
   check('sale con varios pliegos', await salto.isVisible())
   // 40 cartas = 5 hojas = 3 pliegos (1-2, 3-4, 5).
   check('  …una opción por pliego', (await salto.locator('option').count()) === 3,
     String(await salto.locator('option').count()))
   await salto.selectOption('2')
   await page.waitForTimeout(700)
-  check('  …y salta de verdad', /3/.test((await page.locator('#mcAlbumPaginas').textContent()) || ''),
-    await page.locator('#mcAlbumPaginas').textContent())
+  check('  …y salta de verdad', /3/.test((await page.locator('#mcAlbPaginas').textContent()) || ''),
+    await page.locator('#mcAlbPaginas').textContent())
   await page.close()
 }
 
@@ -189,7 +214,11 @@ console.log('\n── 6. Las que faltan se distinguen de las que tienes ──')
   // Antes iban en gris al 30 %: parecía una foto mal cargada. Lo que
   // importa no es el filtro exacto sino que se DISTINGAN — se mide la
   // opacidad calculada de una y de otra.
-  const { page } = await abrir()
+  //
+  // Esto es de la EXPANSIÓN y no del álbum soñado: allí las casillas no
+  // se apagan, porque un álbum soñado es una lista de deseos y todas sus
+  // casillas son «lo que quieres».
+  const { page } = await abrirExpansion()
   const opacidad = (sel) => page.locator(sel).first().evaluate((e) => Number(getComputedStyle(e).opacity))
   const tengo = await opacidad('.mc-bolsillo.tengo img')
   const falta = await opacidad('.mc-bolsillo:not(.tengo) img')

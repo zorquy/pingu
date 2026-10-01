@@ -130,7 +130,11 @@ console.log('\n── 5. Abrir una colección y volver ──')
   const { page, errores } = await abrir([{ id: 'a', card_id: 'sv1-1', cantidad: 1 }])
   await page.locator('.mc-set-tarjeta').first().click()
   await page.waitForTimeout(1600)
-  check('se abre el archivador', (await page.locator('.mc-binder').count()) === 1)
+  // Desde la 417 una expansión es una REJILLA y no un archivador: el
+  // formato álbum se quedó para los álbumes soñados, que es donde el
+  // orden lo pones tú carta a carta.
+  check('se abre la colección', (await page.locator('.mc-album-rejilla').count()) === 1)
+  check('  …y no es un archivador', (await page.locator('#mcAlbum .mc-binder').count()) === 0)
   check('  …con el nombre de la colección', ((await page.locator('#mcAlbumTitulo').textContent()) || '').length > 0,
     await page.locator('#mcAlbumTitulo').textContent())
   check('  …y la estantería se esconde', !(await page.locator('#mcEstanteriaZona').isVisible()))

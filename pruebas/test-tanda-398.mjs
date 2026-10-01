@@ -80,7 +80,7 @@ const abrir = async () => {
   const barras = (await page.locator('#mcAlbumProgreso').textContent())?.replace(/\s+/g, ' ').trim() || ''
   // El set tiene 2 oficiales y 3 cartas: la tercera es secreta, y cada
   // carta tiene dos versiones.
-  check('el completo deja fuera la secreta', /Set completo 1 de 2/.test(barras), barras)
+  check('el completo deja fuera la secreta', /Conjunto completo 1 de 2/.test(barras), barras)
   check('el maestro cuenta las seis versiones', /Set maestro 1 de 6/.test(barras), barras)
   check('y la secreta tiene su barra', /Adicionales 0 de 1/.test(barras), barras)
 
