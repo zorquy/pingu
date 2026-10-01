@@ -46,6 +46,7 @@ import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante } from './mi-coleccion/variantes.js'
+import { especiePorDex } from './pokedex-especies.js'
 import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
 
 const $ = (id) => document.getElementById(id)
@@ -1313,11 +1314,16 @@ function pintarPokedex() {
     soloMios: $('mcPdxSoloMios').checked,
     texto: $('mcPdxBuscar').value,
   })
-  caja.innerHTML = pokedex.rejillaHtml(filas)
+  // La cabecera con las cuatro cifras (tanda 400), y debajo la rejilla.
+  // Se pinta siempre, incluso filtrando: «llevas 701 de 1.025» no puede
+  // cambiar porque estés buscando «char», igual que el progreso de un
+  // set no cambia al filtrar por rareza.
+  const resumen = pokedex.resumenDePokedex({ mio, totales: totalesPokedex })
+  caja.innerHTML = pokedex.cabeceraHtml(resumen, { nombreDe: (d) => especiePorDex(d) || `#${d}` }) +
+    pokedex.rejillaHtml(filas)
   // El contador de arriba cuenta especies DISTINTAS, no cartas: es una
   // Pokédex, y lo que se llena son huecos de Pokémon.
-  const conAlguna = [...mio.values()].filter(Boolean).length
-  $('mcPdxCuenta').textContent = `${conAlguna} de 1.025 Pokémon`
+  $('mcPdxCuenta').textContent = `${resumen.registrados} de 1.025 Pokémon`
 }
 
 async function pintarEspecie(dex) {

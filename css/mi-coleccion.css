@@ -2548,3 +2548,40 @@ input.mc-alb-titulo:not([readonly]):focus {
   text-align: center;
 }
 
+/* ── La cabecera de la Pokédex (tanda 400) ── */
+.mc-pdx-cabecera {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+}
+
+.mc-pdx-caja {
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.mc-pdx-rotulo {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mc-pdx-cifra {
+  margin: var(--e-xs) 0 0;
+  font-size: var(--t-2xl);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.mc-pdx-pie {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+

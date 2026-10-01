@@ -158,3 +158,69 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false }) {
     </div>
     ${cuerpo}`
 }
+
+// ── La cabecera de la Pokédex (tanda 400) ──
+//
+// PINGU, enseñando Dex: arriba de su Pokédex hay cuatro cifras —cuántos
+// llevas, cuántos has COMPLETADO, el que más tienes y el que menos— y
+// aquí solo había un «X de 1.025» en letra pequeña.
+//
+// «Completado» es tener TODAS las cartas que el catálogo conoce de esa
+// especie. Hace falta saber el total, así que una especie de la que no
+// se sabe cuántas hay no cuenta ni como completada ni como pendiente:
+// no se sabe, que no es lo mismo que cero (la regla de la 319).
+//
+// Puro: `mio` es un Map dex → cuántas tienes, `totales` otro dex →
+// cuántas hay. Se prueba en Node.
+export function resumenDePokedex({ mio = new Map(), totales = new Map(), total = 1025 } = {}) {
+  let registrados = 0
+  let completados = 0
+  let masDex = null
+  let menosDex = null
+  for (const [dex, n] of mio) {
+    if (!n) continue
+    registrados++
+    const hay = totales.get(dex)
+    if (hay && n >= hay) completados++
+    if (masDex === null || n > mio.get(masDex)) masDex = dex
+    // El que MENOS tienes es entre los que tienes: un cero no es «poco»,
+    // es que no lo tienes, y para eso ya está lo que falta.
+    if (menosDex === null || n < mio.get(menosDex)) menosDex = dex
+  }
+  return {
+    registrados,
+    total,
+    completados,
+    // null y no {dex: 0}: con la Pokédex vacía no hay «el que más», y
+    // enseñar a Bulbasaur con un 0 sería inventarlo.
+    mas: masDex === null ? null : { dex: masDex, cuantas: mio.get(masDex) },
+    menos: menosDex === null ? null : { dex: menosDex, cuantas: mio.get(menosDex) },
+  }
+}
+
+// La cabecera pintada. Las tarjetas que no tienen nada que decir —con la
+// Pokédex vacía, «el que más» y «el que menos»— no se pintan: una
+// tarjeta con una raya ocupa lo mismo que el dato.
+export function cabeceraHtml(resumen, { nombreDe = (d) => `#${d}` } = {}) {
+  // Con un decimal por debajo del 10 %: 2 de 1.025 redondeado da «0 %»,
+  // que parece que no tienes nada cuando sí tienes. Y el total con punto
+  // de millar, que «1025» se lee como un número de carta.
+  const crudo = resumen.total ? (resumen.registrados / resumen.total) * 100 : 0
+  const pct = crudo > 0 && crudo < 10 ? crudo.toFixed(1).replace('.', ',') : Math.round(crudo)
+  // : en español los números de cuatro cifras no
+  // se agrupan por defecto, así que 1025 salía sin punto y se leía como
+  // un número de carta.
+  // `useGrouping: 'always'`: en español los números de cuatro cifras no se
+  // agrupan por defecto, así que 1025 salía sin punto y se leía como un
+  // número de carta.
+  const miles = (n) => new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(n)
+  const tarjeta = (rotulo, cifra, pie) =>
+    `<div class="mc-pdx-caja"><p class="mc-pdx-rotulo">${escapeHtml(rotulo)}</p><p class="mc-pdx-cifra">${escapeHtml(String(cifra))}</p><p class="mc-pdx-pie">${escapeHtml(pie)}</p></div>`
+  return `<div class="mc-pdx-cabecera">
+    ${tarjeta('Registrados', `${resumen.registrados}`, `de ${miles(resumen.total)} · ${pct} %`)}
+    ${tarjeta('Completados', `${resumen.completados}`, 'con todas sus cartas')}
+    ${resumen.mas ? tarjeta('El que más tienes', `${resumen.mas.cuantas}`, nombreDe(resumen.mas.dex)) : ''}
+    ${resumen.menos ? tarjeta('El que menos', `${resumen.menos.cuantas}`, nombreDe(resumen.menos.dex)) : ''}
+  </div>`
+}
+

@@ -23,6 +23,28 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 400 — la cabecera de la Pokédex)
+
+**Hecho**: arriba de la Pokédex van ahora cuatro cifras, como en Dex:
+**registrados** (con su porcentaje), **completados** (los que tienes con
+TODAS sus cartas), **el que más tienes** y **el que menos**. Antes solo
+había un «X de 1.025» en letra pequeña.
+
+«El que menos» es entre los que TIENES: un cero no es «poco», es que no
+lo tienes, y para eso ya está lo que falta. Y con la Pokédex vacía esas
+dos tarjetas no se pintan — enseñar a alguien con un 0 sería inventarlo.
+
+**Dos detalles que salieron al verlo**: `especiePorDex` devuelve el
+NOMBRE y no un objeto, así que pedirle `.nombre` daba `undefined` y salía
+«#25» en vez de «Pikachu»; y 2 de 1.025 redondeado da «0 %», que parece
+que no tienes nada cuando sí tienes, así que por debajo del 10 % va con
+un decimal. El total lleva su punto de millar, que «1025» se lee como un
+número de carta.
+
+**Ficheros**: `js/mi-coleccion/pokedex.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`. En `pruebas`: `test-tanda-400.mjs` (**nuevo**) y
+`correr-suite.sh`.
+
 ## 2026-10-01 — PINGU-Claude (tanda 399 — los filtros, en un panel de chips)
 
 **Hecho**: lo que pidió PINGU viendo el panel de Dex. La barra se queda
