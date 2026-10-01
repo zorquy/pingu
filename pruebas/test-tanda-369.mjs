@@ -58,13 +58,17 @@ console.log('\n── 1. Un archivador mide lo mismo lleve una hoja o dos ──
 
   // Seis cartas = una sola hoja, que es el caso que se rompía.
   const una = await abrir(6, [{ id: 'c1', card_id: 'sv1-1', cantidad: 1 }])
-  await una.page.locator('[data-pestania="album"]').click()
-  await una.page.waitForTimeout(1500)
-  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
-  // archivador: hay que entrar en una colección. La prueba se quedó
-  // escrita contra el desplegable de antes.
-  await una.page.locator('.mc-set-tarjeta').first().click()
-  await una.page.waitForTimeout(1500)
+  // Desde la tanda 417 el archivador ya no es la vista de una expansión
+  // —allí es una rejilla— sino la de un álbum soñado, que es donde el
+  // orden lo pones tú carta a carta. Se monta uno con el set entero.
+  await una.page.locator('[data-pestania="carpetas"]').click()
+  await una.page.waitForTimeout(1200)
+  await una.page.locator('#mcAlbNuevoAbrir').click()
+  await una.page.waitForTimeout(700)
+  await una.page.fill('#mcDlgNombre', 'Álbum')
+  await una.page.selectOption('#mcAlbOrigen', 'set')
+  await una.page.locator('#mcDlgGuardar').click()
+  await una.page.waitForTimeout(1800)
   check('sin errores', una.errores.length === 0, una.errores.join(' | '))
   const medidaUna = await una.page.evaluate(() => {
     const h = document.querySelector('.mc-hoja:not(.mc-hoja-fantasma)')
@@ -85,13 +89,17 @@ console.log('\n── 1. Un archivador mide lo mismo lleve una hoja o dos ──
   // lo que se quería: que el archivador no cambie de tamaño según lo
   // lleno que esté.
   const dos = await abrir(18, [{ id: 'c1', card_id: 'sv1-1', cantidad: 1 }])
-  await dos.page.locator('[data-pestania="album"]').click()
-  await dos.page.waitForTimeout(1500)
-  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
-  // archivador: hay que entrar en una colección. La prueba se quedó
-  // escrita contra el desplegable de antes.
-  await dos.page.locator('.mc-set-tarjeta').first().click()
-  await dos.page.waitForTimeout(1500)
+  // Desde la tanda 417 el archivador ya no es la vista de una expansión
+  // —allí es una rejilla— sino la de un álbum soñado, que es donde el
+  // orden lo pones tú carta a carta. Se monta uno con el set entero.
+  await dos.page.locator('[data-pestania="carpetas"]').click()
+  await dos.page.waitForTimeout(1200)
+  await dos.page.locator('#mcAlbNuevoAbrir').click()
+  await dos.page.waitForTimeout(700)
+  await dos.page.fill('#mcDlgNombre', 'Álbum')
+  await dos.page.selectOption('#mcAlbOrigen', 'set')
+  await dos.page.locator('#mcDlgGuardar').click()
+  await dos.page.waitForTimeout(1800)
   const medidaDos = await dos.page.evaluate(() => {
     const b = document.querySelector('.mc-bolsillo')
     return b ? Math.round(b.getBoundingClientRect().width) : null
@@ -106,13 +114,17 @@ console.log('\n── 1. Un archivador mide lo mismo lleve una hoja o dos ──
 console.log('\n── 2. En el móvil sigue abriéndose por una hoja ──')
 {
   const { page } = await abrir(18, [], { viewport: { width: 390, height: 900 } })
-  await page.locator('[data-pestania="album"]').click()
-  await page.waitForTimeout(1500)
-  // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
-  // archivador: hay que entrar en una colección. La prueba se quedó
-  // escrita contra el desplegable de antes.
-  await page.locator('.mc-set-tarjeta').first().click()
-  await page.waitForTimeout(1500)
+  // Desde la tanda 417 el archivador ya no es la vista de una expansión
+  // —allí es una rejilla— sino la de un álbum soñado, que es donde el
+  // orden lo pones tú carta a carta. Se monta uno con el set entero.
+  await page.locator('[data-pestania="carpetas"]').click()
+  await page.waitForTimeout(1200)
+  await page.locator('#mcAlbNuevoAbrir').click()
+  await page.waitForTimeout(700)
+  await page.fill('#mcDlgNombre', 'Álbum')
+  await page.selectOption('#mcAlbOrigen', 'set')
+  await page.locator('#mcDlgGuardar').click()
+  await page.waitForTimeout(1800)
   check('una hoja a la vez', (await page.locator('.mc-hoja:not(.mc-hoja-fantasma)').count()) === 1)
   // Y sin fantasma: en el móvil el archivador no está «abierto», se pasa
   // hoja a hoja. Una cara vacía ahí solo sería media pantalla perdida.

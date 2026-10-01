@@ -57,46 +57,44 @@ console.log('\n── 1. En el móvil, la barra va pegada al fondo ──')
   await page.close()
 }
 
-console.log('\n── 2. La barra se aparta cuando llega el pie ──')
+console.log('\n── 2. La barra está SIEMPRE, y no tapa el pie ──')
 {
-  // Un menú flotando encima de los enlaces del pie es un menú que
-  // estorba, y además esos enlaces son los que recorre Google.
-  const { page } = await abrir(390, 800)
-  const tapa = () => page.evaluate(() => {
-    const m = document.getElementById('mcMenu').getBoundingClientRect()
-    const p = document.querySelector('footer').getBoundingClientRect()
-    const visible = getComputedStyle(document.getElementById('mcMenu')).opacity !== '0'
-    return visible && m.bottom > p.top && m.top < p.bottom
-  })
-  check('de entrada la barra se ve',
-    (await page.locator('#mcMenu').evaluate((e) => getComputedStyle(e).opacity)) === '1')
-  await page.evaluate(() => scrollTo(0, document.body.scrollHeight))
-  await page.waitForTimeout(700)
-  check('al llegar al pie, no lo tapa', (await tapa()) === false)
-  await page.evaluate(() => scrollTo(0, 0))
-  await page.waitForTimeout(700)
-  check('  …y al subir vuelve',
-    (await page.locator('#mcMenu').evaluate((e) => getComputedStyle(e).opacity)) === '1')
-  await page.close()
-}
-
-console.log('\n── 3. En el ordenador NO flota: es la columna ──')
-{
-  // La clase de apartarse se pone igual (el observador no mira el ancho),
-  // así que su regla tiene que vivir SOLO en el `@media` del móvil: si se
-  // escapara, la columna del ordenador desaparecería al llegar al pie.
-  const { page } = await abrir(1280, 900)
-  await page.evaluate(() => scrollTo(0, document.body.scrollHeight))
-  await page.waitForTimeout(700)
-  const r = await page.evaluate(() => {
-    const m = document.getElementById('mcMenu')
-    const c = getComputedStyle(m)
-    return { pos: c.position, opacidad: c.opacity, clase: m.classList.contains('apartada') }
-  })
-  check('la columna no es fija', r.pos === 'sticky', r.pos)
-  check('  …y sigue viéndose aunque se le ponga la clase', r.opacidad === '1',
-    `${r.opacidad} (clase puesta: ${r.clase})`)
-  await page.close()
+  // La 406 apartaba la barra cuando el pie entraba en pantalla. La 418 lo
+  // quitó: en una página CORTA el pie se ve desde el primer momento, así
+  // que la barra nacía escondida y en el móvil no había forma de cambiar
+  // de pestaña. Un menú que desaparece es peor que un menú que tapa.
+  //
+  // Lo que había que resolver —que la barra no se coma los enlaces del
+  // pie— lo resuelve el pie reservando su sitio, sin piezas móviles.
+  for (const [nombre, cuantas] of [['con la colección vacía', 0], ['con la colección llena', 30]]) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 840 } })
+    await page.addInitScript((cu) => {
+      window.__FAKE_SETS__ = [{ id: 'sv1', name: 'EP', market: 'WEST', card_count_total: 30,
+        release_date: '2023-03-31', logo_path: 'x/l' }]
+      window.__FAKE_CARTAS__ = Array.from({ length: 30 }, (_, i) => ({ id: 'sv1-' + (i + 1),
+        set_id: 'sv1', local_id: String(i + 1), name: 'C' + i, image_path: 'x/' + i, market: 'WEST',
+        rarity: 'Common', category: 'Pokemon', variants: { normal: true } }))
+      window.__FAKE_COLECCION__ = window.__FAKE_CARTAS__.slice(0, cu).map((c, i) => ({ id: 'l' + i,
+        card_id: c.id, cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', notas: null }))
+    }, cuantas)
+    await page.goto(BASE + '/mi-coleccion.html', { waitUntil: 'domcontentloaded' })
+    await page.waitForTimeout(2400)
+    check(`el menú está ${nombre}`, await page.locator('#mcMenu').isVisible())
+    await page.evaluate(() => scrollTo(0, document.body.scrollHeight))
+    await page.waitForTimeout(700)
+    const abajo = await page.evaluate(() => {
+      const m = document.getElementById('mcMenu').getBoundingClientRect()
+      const tapados = [...document.querySelectorAll('footer a')].filter((a) => {
+        const r = a.getBoundingClientRect()
+        return r.top < m.bottom && r.bottom > m.top && r.top < innerHeight && r.bottom > 0
+      })
+      return { opacidad: getComputedStyle(document.getElementById('mcMenu')).opacity, tapados: tapados.length }
+    })
+    check(`  …y sigue estando al final ${nombre}`, abajo.opacidad === '1', abajo.opacidad)
+    // Y lo que había que proteger: ningún enlace del pie queda debajo.
+    check(`  …sin tapar ningún enlace del pie ${nombre}`, abajo.tapados === 0, String(abajo.tapados))
+    await page.close()
+  }
 }
 
 console.log('\n── 4. Un filtro es una chapa, no un campo de formulario ──')

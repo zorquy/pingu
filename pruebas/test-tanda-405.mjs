@@ -123,9 +123,11 @@ console.log('\n── 3. Las expansiones, todas del mismo tamaño ──')
   // El nombre va en `sr-only` porque el logo lo lleva escrito. Pero si el
   // logo NO LLEGA —aquí nunca llega, la CDN está cortada, y el 2026-09-20
   // se cayó de verdad— la tarjeta se quedaba sin nada que leer y sin dar
-  // error. Al fallar la imagen, el nombre vuelve a la vista.
+  // error. Desde la 415 el que vuelve a la vista es el rótulo de la
+  // CABECERA, y el de debajo se queda solo para el lector de pantalla:
+  // enseñar los dos lo escribía dos veces en la misma tarjeta.
   check('si el logo no llega, el nombre se lee',
-    await t.locator('.mc-set-nombre').evaluate((e) => !e.classList.contains('sr-only')))
+    await t.locator('.mc-set-rotulo').isVisible())
   // El código viene de `tcg_online_code`, que había que PEDIR: la
   // consulta de sets no lo traía y la chapa no habría salido nunca.
   check('  …y la consulta lo pide', /card_count_total,tcg_online_code/.test(leer('js/mi-coleccion.js')))
