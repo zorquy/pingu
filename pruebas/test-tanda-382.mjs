@@ -112,7 +112,9 @@ async function abrir(opciones = {}) {
   // depender de lo que estés mirando, o la cifra deja de significar
   // nada.
   check('  …y el progreso sigue siendo el de la colección entera',
-    /3 de 18 cartas/.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
+    // Desde la 398 son tres barras; la de «completo» es la que dice
+    // cuántos bolsillos llevas, que es lo que mira esto.
+    /Set completo 3 de 18/.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
     limpio(await page.locator('#mcAlbumProgreso').textContent()))
 
   await page.selectOption('#mcAlbumRareza', '')
