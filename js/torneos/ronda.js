@@ -2080,6 +2080,7 @@ function pintarMeta() {
     chapa: (arq) => chapaArquetipoHtml(arq, { marcar }),
     nombreDe,
     enJuego: ctx.torneo.status !== 'finished',
+    exportar: ctx.torneo.status === 'finished' && Boolean(mando()),
   })
   const contenido = $('metaContenido')
   if (!metaEnganchado) {
@@ -2090,7 +2091,10 @@ function pintarMeta() {
       const fila = e.target.closest('[data-meta-arquetipo]')
       const volver = e.target.closest('[data-meta-volver]')
       const ver = e.target.closest('[data-meta-lista]')
-      if (fila) {
+      const imagen = e.target.closest('[data-meta-imagen]')
+      if (imagen) {
+        void descargarMetaComoImagen(imagen)
+      } else if (fila) {
         metaAbierto = fila.dataset.metaArquetipo
         pintarMeta()
         contenido.querySelector('[data-meta-volver]')?.focus()
@@ -2110,6 +2114,39 @@ function pintarMeta() {
   if (yaEstaPintado('meta', html)) return
   contenido.innerHTML = html
   void rellenarChapasArquetipo(contenido)
+}
+
+// La imagen del meta para compartir (tanda 425). Su módulo dibuja a mano
+// en un canvas y no lo necesita nadie más que quien la pide, así que se
+// baja al pulsar. Los datos son los mismos que pinta la pestaña: el meta
+// agrupado y la clasificación final, con el corte mandando.
+// Apagado mientras se monta: tarda lo que tarden en llegar los sprites, y
+// un segundo toque bajaría la imagen dos veces.
+async function descargarMetaComoImagen(boton) {
+  boton.disabled = true
+  try {
+    const { descargarImagenMeta } = await import('./meta-imagen.js')
+    const tabla = clasificacionFinal()
+    await descargarImagenMeta({
+      torneo: {
+        nombre: ctx.torneo.name,
+        fecha: ctx.torneo.start_at,
+        rondas: rondas.filter((r) => r.phase !== 'top_cut').length,
+        corte: ctx.torneo.top_cut_size || 0,
+        liga: ctx.torneo.format === 'league',
+      },
+      meta: agruparMeta(arquetipos, tabla),
+      jugadores: tabla.length,
+      top: tabla.slice(0, 4).map((e) => {
+        const arq = arquetipos.get(e.playerId) || null
+        return { nombre: nombreDe(e.playerId), mazo: arq?.nombre || null, arq }
+      }),
+    })
+  } catch {
+    showToast('No se ha podido montar la imagen.', 'error')
+  } finally {
+    boton.disabled = false
+  }
 }
 
 function pintarCiclo() {

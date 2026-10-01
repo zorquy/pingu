@@ -12,6 +12,7 @@
 // `agruparMeta` es pura (sin DOM ni base) y se prueba en Node; el pintado
 // va debajo y lo monta ronda.js con lo que ya tiene a mano.
 import { escapeHtml } from '../app.js'
+import { icons } from '../icons.js'
 import { claveDeArquetipo, dexesDeNombre } from './arquetipos.js'
 
 // La clave del META es el Pokémon PRINCIPAL del mazo, no el arquetipo
@@ -151,7 +152,7 @@ const ordinal = (n) => (n ? `${n}.º` : '—')
 
 // ── El pintado ──
 //
-// `ayudas` = { chapa(arq) → html, nombreDe(userId), enJuego } para no
+// `ayudas` = { chapa(arq) → html, nombreDe(userId), enJuego, exportar } para no
 // traerse aquí media ronda.js. El nombre del mazo va APARTE de la chapa:
 // la chapa lo esconde cuando tiene iconos, y aquí el nombre es el dato.
 export function metaHtml(meta, abierto, ayudas) {
@@ -174,8 +175,16 @@ export function metaHtml(meta, abierto, ayudas) {
       </li>`
     )
     .join('')
+  // La imagen para compartir (tanda 425): solo quien lleva el torneo y
+  // solo terminado, que es cuando el meta ya no cambia.
+  const imagen = ayudas.exportar
+    ? `<button type="button" class="btn-secondary torneo-meta-imagen" data-meta-imagen>${icons.image(16)} Descargar imagen del meta</button>`
+    : ''
   return `
-    <p class="subtext">${meta.total} ${meta.total === 1 ? 'lista' : 'listas'} · ${meta.arquetipos.length} ${meta.arquetipos.length === 1 ? 'mazo distinto' : 'mazos distintos'}.${ayudas.enJuego ? ' El torneo sigue en juego: los puestos van cambiando.' : ''} Pulsa uno para ver quién lo jugó.</p>
+    <div class="torneo-meta-resumen">
+      <p class="subtext">${meta.total} ${meta.total === 1 ? 'lista' : 'listas'} · ${meta.arquetipos.length} ${meta.arquetipos.length === 1 ? 'mazo distinto' : 'mazos distintos'}.${ayudas.enJuego ? ' El torneo sigue en juego: los puestos van cambiando.' : ''} Pulsa uno para ver quién lo jugó.</p>
+      ${imagen}
+    </div>
     <ul class="torneo-meta-lista">${filas}</ul>`
 }
 

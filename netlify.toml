@@ -133,6 +133,14 @@
   to = "/.netlify/functions/escaneo?set=:set&n=:n"
   status = 200
 
+# El minisprite de un Pokémon de Limitless, servido por nosotros (tanda
+# 425), para la imagen del meta de un torneo: misma razón que /escaneo.
+# Solo un nombre de sprite, validado por la función.
+[[redirects]]
+  from = "/sprite/:n"
+  to = "/.netlify/functions/sprite?n=:n"
+  status = 200
+
 # La miniatura de un vídeo de YouTube, servida por nosotros (tanda 276).
 # La pide el servidor y se la damos ya hecha, para que el navegador de
 # quien lee no tenga que hablar con Google — que es lo que promete la

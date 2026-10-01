@@ -35,6 +35,34 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 09:30 — PINGU-Claude (tanda 425 — la imagen del meta, para quien lleva el torneo)
+
+**Hecho** (escrita como 422 en su sesión; la 422, la 423 y la 424 se
+las llevó la otra sesión antes de integrarla, así que va como **425**):
+lo que pidió PINGU con la infografía de un regional delante: «añade una
+opción para que los admin puedan generar esa imagen al acabar
+todos los torneos», con los sprites de PokeDoc. En la pestaña Meta de un
+torneo TERMINADO, quien lo lleva (`mando()`) tiene «Descargar imagen del
+meta»: un PNG 1080×1350 (a doble resolución) con el anillo de mazos y sus
+sprites dentro, los porcentajes, la leyenda (los sueltos en «Otros», con
+sus nombres), cuántos jugaron y el top 4. Los sprites son los MISMOS de
+las chapas, pero servidos por `/sprite/<nombre>` (función nueva), porque
+Limitless no da permiso de CORS y un canvas que pinta una imagen sin
+permiso no se puede guardar — lo mismo que `/escaneo` en la 413. No es un
+proxy abierto: solo un nombre de sprite. Detalle en SCHEMA.md.
+**Ficheros**: js/torneos/meta-imagen.js (NUEVO), netlify/functions/sprite.mjs
+(NUEVO), netlify.toml (la regla de /sprite), js/torneos/meta-torneo.js (el
+botón), js/torneos/ronda.js (su escucha y los datos), css/torneos.css,
+SCHEMA.md. En `pruebas`: test-tanda-425.mjs y rigor/rigor-tanda-425.py
+(NUEVOS), y test-tanda-413.mjs (el resumen del meta va ahora dentro de
+`.torneo-meta-resumen`).
+**En curso / pendiente**: el botón no sale con el torneo en juego a
+propósito (el meta aún cambia); si se quiere para las ligas a mitad, es
+quitar esa condición en `pintarMeta`. **Pruebas**: la 425 en verde y su
+rigor, 32 de 32 (pasado sobre este mismo código antes de renumerar: solo
+cambian comentarios). Con lo de la 422 a la 424 debajo, en verde también
+la 413, 421, 422, 414, 384, 305, 310, 369 y 406.
+
 ## 2026-10-01 — PINGU-Claude (tanda 424 — el anillo de la Pokédex se salía de su caja)
 
 **Hecho**: PINGU, con una captura del móvil: «el circulito que te está

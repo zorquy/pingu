@@ -2787,6 +2787,17 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   display: grid;
   gap: 8px;
 }
+/* El resumen y, para quien lleva el torneo, el botón de la imagen
+   (tanda 425): en una fila mientras quepan, y el botón debajo si no. */
+.torneo-meta-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.torneo-meta-resumen .subtext { flex: 1 1 280px; margin: 0; }
+.torneo-meta-imagen { padding: 8px 16px; font-size: var(--t-sm); }
 .torneo-meta-fila {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -2909,7 +2920,8 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   .torneo-meta-cuota { font-size: var(--t-lg); }
 }
 @media (pointer: coarse) {
-  .torneo-meta-volver { min-height: 44px; }
+  .torneo-meta-volver,
+  .torneo-meta-imagen { min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .torneo-meta-fila,

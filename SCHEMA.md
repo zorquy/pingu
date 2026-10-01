@@ -22707,3 +22707,67 @@ que la caja no desborda por dentro, que el anillo **sigue siendo redondo**
 lateral. Mereció la pena: sin el arreglo el peor ancho no era el de la
 captura que lo destapó, sino **600 px**, donde se salía 8 px enteros
 mientras en los demás eran 1.
+
+## Tanda 425 — la imagen del meta, para quien lleva el torneo (oct. 2026)
+
+PINGU, con la infografía del meta de un regional delante: «añade una
+opción para que los admin puedan generar esa imagen al acabar todos los
+torneos», con los sprites de PokeDoc.
+
+### El botón
+
+En la pestaña Meta de un torneo TERMINADO, quien lo lleva (`mando()`: el
+admin del sitio, el rol de organizador o quien lo creó) ve «Descargar
+imagen del meta» al lado del resumen. Con el torneo en juego no sale —el
+meta todavía cambia— y dentro de un mazo tampoco: la imagen es del meta
+entero. `metaHtml` lo pinta si `ayudas.exportar`; la escucha es la misma
+de la pestaña (`data-meta-imagen`), y el módulo de la imagen
+(`js/torneos/meta-imagen.js`) se baja con un `import()` al pulsar. El
+botón se apaga mientras se monta.
+
+Los datos son los de la pestaña: `agruparMeta` (tanda 421) y
+`clasificacionFinal()` (con corte, manda el corte). Jugadores son los de
+la clasificación; listas, las entregadas.
+
+### La imagen
+
+Un PNG de 1080×1350 a doble resolución, dibujado a mano en un canvas:
+cabecera azul con la marca, el nombre, «El meta del torneo» y fecha ·
+rondas (jornadas en una liga) · top; el anillo con un trozo por mazo, el
+sprite del mazo dentro (dos si caben), el porcentaje fuera con su guía y
+el total en el centro; la leyenda; una caja con cuántos jugaron y otra
+con el top 4 (medalla, sprite, mazo y quién); y el pie.
+
+- **Qué trozos**: si hay ocho mazos o menos, todos; si no, los de más de
+  un jugador (hasta ocho) y el resto en «Otros», en gris, con sus nombres
+  debajo de la leyenda. Un solo mazo sobrante no es «otros»: va con su
+  nombre y su sprite, en el gris. Los ocho colores son la paleta
+  categórica validada para fondo oscuro (daltonismo y contraste ≥ 3:1
+  sobre el fondo).
+- **Los nombres van sin «ex»**, como los llama la gente.
+- **Las cifras no se pisan** (`colocarEtiquetas`): las de cada lado se
+  juntan en bloques a 30 px y cada bloque se centra donde querían estar
+  las suyas; y `sitioDeCifra` la aparta del anillo cuando se la ha subido
+  o bajado, sin salirse de la imagen ni pisar la leyenda.
+
+### Los sprites: `/sprite`
+
+Los de las chapas de la web son de la CDN de Limitless, que NO da permiso
+de CORS (comprobado desde pokedoc.es el 2026-10-01), y un canvas que
+pinta una imagen sin permiso ya no se puede guardar. Como `/escaneo` en
+la tanda 413: `netlify/functions/sprite.mjs` los trae desde nuestro
+dominio (`/sprite/<nombre>`, que `netlify.toml` lleva a la función).
+Solo acepta un nombre de sprite —minúsculas, números y guiones, 40 como
+mucho— y monta la dirección con `CDN_SPRITES`; solo devuelve imágenes, y
+las cachea un año. Detrás va la cadena de respaldos de siempre (PokeAPI
+por jsDelivr y por GitHub, que sí dan permiso), y si no llega ninguno, el
+trozo enseña su número de jugadores: la imagen sale igual.
+
+`test-tanda-425.mjs`: la función con un `fetch` falso (nombres raros, una
+página de error con 200, un 404, la CDN caída) y que TODOS los sprites de
+la web pasan su filtro; quién ve el botón (admin, creador, jugador, sin
+cuenta, torneo en juego); la imagen bajada —tamaño, todo lo que escribe
+(se apunta cada `fillText`), el top en el orden de la clasificación y
+los píxeles de fondo, cabecera, trozo y sprite—; el respaldo cuando
+/sprite no lo tiene; sin ningún sprite; y en el móvil. Su rigor, 32
+mutaciones, las 32 detectadas.
