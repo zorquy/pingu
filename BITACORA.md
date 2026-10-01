@@ -18,6 +18,32 @@ mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
 que falló es que ninguno de los dos la releyó justo antes de numerar,
 porque las dos tandas se empezaron con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 390 — la columna del autor, más limpia)
+
+**Hecho**: PINGU, con una captura del foro: «puede que se vea muy
+cargado». Eran cuatro pastillas apiladas del mismo tamaño y ninguna
+ganaba. Tres recortes:
+
+1. **«Miembro del equipo» y «Moderación» fuera.** Desde la 386 el NOMBRE
+   ya sale en ámbar o violeta según el rango, con su `title`: la chapa
+   decía lo mismo otra vez y en una línea entera. Es la señal vieja que
+   se quedó puesta al llegar la nueva — la metí yo y no la quité.
+2. **«Abrió el tema» se va a la cabecera del mensaje.** No es un dato de
+   la persona, es del HILO, y estaba en la columna de identidad mezclado
+   con cosas que esa persona lleva a todos sus mensajes. Y va callada
+   (`--text-mid` sobre `--bg`): el ámbar de `.foro-chapa` al lado de la
+   fecha gritaba más que el mensaje.
+3. **Nivel y colaborador en UNA línea**, no apilados en columna.
+
+**Ficheros**: `js/tema.js`, `css/foro.css`.
+
+**OJO, no verificado a ojo**: el doble no soporta
+`.eq(...).maybeSingle()` —devuelve vacío—, así que `tema.html` siempre
+dice «este tema no existe» y NO hay forma de pintar la columna del autor
+en local. Por eso tampoco existe ninguna prueba que la cubra. Verdes la
+299, 313, 314 y 386, pero esto hay que mirarlo en producción. Si alguien
+arregla el doble, lo primero que merece prueba es esta columna.
+
 ## 2026-10-01 — PINGU-Claude (tanda 389 — fuera la chapa de nivel del hilo de actividad)
 
 **Hecho**: PINGU la vio en producción y la quitó: «antes se veía más

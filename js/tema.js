@@ -106,12 +106,26 @@ function tituloDe(perfil, guiasAprobadas) {
   return `<span class="foro-autor-titulo foro-autor-rangos">${trozos.join('')}</span>`
 }
 
-function chapasDe(perfil, esAutorDelTema) {
-  const chapas = []
-  if (perfil?.is_admin) chapas.push('<span class="foro-chapa foro-chapa-equipo">Miembro del equipo</span>')
-  else if (perfil?.is_moderator) chapas.push('<span class="foro-chapa foro-chapa-equipo">Moderación</span>')
-  if (esAutorDelTema) chapas.push('<span class="foro-chapa">Abrió el tema</span>')
-  return chapas.join('')
+// La chapa de «Abrió el tema», para la CABECERA del mensaje (tanda 390).
+//
+// Antes esto devolvía tres chapas y las tres iban apiladas en la columna
+// del autor, debajo del nivel y del rango de colaborador. PINGU lo vio en
+// producción: «puede que se vea muy cargado». Y sí — cuatro pastillas del
+// mismo tamaño, cada una de un color, ninguna ganando.
+//
+// Dos se han caído, por motivos distintos:
+//
+//   · **«Miembro del equipo» y «Moderación» sobran**: desde la tanda 386
+//     el NOMBRE ya sale en ámbar o en violeta según el rango, con su
+//     `title`. Decir lo mismo otra vez y en una línea entera no añade
+//     nada; es la señal vieja que se quedó puesta al llegar la nueva.
+//   · **«Abrió el tema» no es de la persona, es del HILO.** Estaba en la
+//     columna de identidad, que responde a «quién es este», mezclado con
+//     cosas que esa persona lleva a todos sus mensajes. Ahora va en la
+//     cabecera del mensaje, junto a la fecha y el número, que es donde
+//     están los datos de ESE mensaje.
+function chapaDeAutorDelTema(esAutorDelTema) {
+  return esAutorDelTema ? '<span class="foro-chapa foro-chapa-abrio">Abrió el tema</span>' : ''
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -625,7 +639,6 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
       ${avatarHtml(perfil, 56)}
       <div class="foro-autor-nombre">${enlacePerfil(perfil)}</div>
       ${tituloDe(perfil, cuentas[m.author_id] || 0)}
-      ${chapasDe(perfil, m.author_id && m.author_id === tema.author_id)}
       ${
         // El clásico "Mensajes: 336". Number.isFinite y no truthiness: el
         // 0 de quien estrena cuenta también se dice.
@@ -654,6 +667,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
         <span class="subtext" title="${escapeHtml(fechaLarga(m.created_at))}">${escapeHtml(haceCuanto(m.created_at))}${
           m.edited_at ? ' · editado' : ''
         }</span>
+        ${chapaDeAutorDelTema(m.author_id && m.author_id === tema.author_id)}
         <button type="button" class="foro-copiar-enlace" data-copiar-enlace="${m.id}" data-num="${numero}" title="Copiar el enlace a este mensaje" aria-label="Copiar el enlace a este mensaje">${icons.link(13)}</button>
         <a class="foro-mensaje-num" href="#mensaje-${m.id}" title="Enlace a este mensaje">#${numero}</a>
       </header>

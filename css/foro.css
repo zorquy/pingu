@@ -1323,9 +1323,14 @@ a.foro-cita-quien:hover {
 }
 
 /* ── La columna del autor: nivel + distinción apilados ── */
+/* Nivel y rango de colaborador, en UNA línea (tanda 390). Iban apilados
+   en columna, así que dos chips pequeños ocupaban dos renglones enteros y
+   pesaban más que el nombre. Son dos chips, no dos párrafos. `wrap` por
+   si el nombre del título puesto a mano es largo: entonces sí baja. */
 .foro-autor-rangos {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 4px;
 }
@@ -1782,3 +1787,19 @@ a.foro-cita-quien:hover {
  * carga —components.css va primero— y con la misma especificidad gana la
  * última: el índice del foro se quedó sin apilarse en el móvil y la
  * lateral de 280px se salía de la pantalla. */
+
+/* «Abrió el tema», ya en la cabecera del mensaje (tanda 390).
+   Va CALLADA: al lado de la fecha y del número, que son datos de
+   refilón, y el ámbar de `.foro-chapa` ahí dentro gritaba más que el
+   propio mensaje. Lo que se quitó de la columna del autor no puede
+   volver a entrar por la puerta de atrás con otro color. */
+.foro-chapa-abrio {
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
