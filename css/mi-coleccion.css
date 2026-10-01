@@ -1202,15 +1202,49 @@
   display: grid;
   grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
   gap: var(--e-xl);
-  align-items: start;
+  /* `stretch` y no `start`: es lo que hace que la columna de la carta
+     tenga el alto de la otra y pueda centrarse dentro. */
+  align-items: stretch;
 }
 
 /* La carta se queda a la vista mientras se baja por los datos (tanda
    396). La ficha se desplaza por dentro, así que sin esto la carta —que
    es la protagonista— se iba arriba en cuanto mirabas la tabla. */
+/* La carta ocupa TODO el alto de su columna y se centra en él (tanda
+   397). PINGU: «en Dex la carta ocupa todo el vertical izquierdo, así no
+   deja hueco». Tenía razón: la derecha siempre es más alta —lleva tres
+   paneles— y la izquierda se quedaba con un socavón debajo de la carta.
+   Centrada, el hueco se reparte arriba y abajo y deja de leerse como un
+   olvido. */
 .mc-ficha-carta {
+  display: flex;
   position: sticky;
   top: 0;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+/* El aviso de «Guardado», que sustituye a los tres botones. Aparece y se
+   apaga solo: un cartel fijo diciendo que todo está guardado es ruido. */
+.mc-ed-guardado {
+  margin: var(--e-md) 0 0;
+  color: var(--success);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-align: right;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+}
+
+.mc-ed-guardado.visible {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-ed-guardado {
+    transition: none;
+  }
 }
 
 @media (max-width: 760px) {
@@ -2275,6 +2309,10 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 .mc-contador-mando input[type='number'] {
   width: 56px;
+  /* El color, DICHO. Sin esto el número salía del color que tocara y en
+     el tema oscuro se perdía contra el fondo del mando: se veía en claro
+     y no en oscuro, que es el fallo que cantó PINGU. */
+  color: var(--text);
   border: 0;
   border-right: 1px solid var(--border);
   border-left: 1px solid var(--border);

@@ -555,51 +555,93 @@ function tablaDeCarta(c) {
     .join('')
 }
 
-async function guardarEditor(e) {
-  e.preventDefault()
-  const d = $('mcEditor')
-  const id = d.dataset.linea
+// ── Se guarda SOLO (tanda 397) ──
+//
+// PINGU, comparando con Dex: «quiero que sea automático; que no tengas
+// botón de guardar o cancelar o quitar de la colección, todo eso sobra;
+// según haces el cambio, que se guarde».
+//
+// Y tiene razón en algo más que el gusto: con botón de guardar, cerrar
+// la ficha de cualquier otra manera —pulsando fuera, con Escape— TIRABA
+// lo escrito sin avisar. Ahora no hay nada que perder porque no hay nada
+// pendiente.
+//
+// El retardo es para no mandar una petición por tecla mientras escribes
+// una nota. Los desplegables y el contador no esperan: ahí el cambio ya
+// está hecho en cuanto sueltas.
+let guardadoPendiente = null
+
+function leerEditor() {
   const num = (v) => (String(v).trim() === '' ? null : Math.max(0, Math.round(Number(String(v).replace(',', '.')) * 100) / 100))
-  const cambios = {
+  // El cero es legal AQUÍ y solo aquí: significa «ya no la tengo», y es
+  // lo que sustituye al botón de quitar. Lo convierte en un borrado
+  // `guardarEditor`, no la base.
+  const cantidad = Math.max(0, Math.min(999, Math.round(Number($('mcEdCantidad').value) || 0)))
+  return {
     idioma: $('mcEdIdioma').value,
     estado: $('mcEdEstado').value,
     variante: $('mcEdVariante').value,
-    cantidad: Math.max(1, Math.min(999, Math.round(Number($('mcEdCantidad').value) || 1))),
+    cantidad,
     gradeo: $('mcEdGradeo').value.trim().slice(0, 20) || null,
     // No se pueden dar más copias de las que tienes: el tope se recorta
     // aquí Y en la base (`user_collection_cambio`). Aquí para que no dé
     // un error feo; allí porque la API está abierta.
-    cambio: Math.max(0, Math.min(
-      Math.max(1, Math.min(999, Math.round(Number($('mcEdCantidad').value) || 1))),
-      Math.round(Number($('mcEdCambio').value) || 0)
-    )),
+    cambio: Math.max(0, Math.min(cantidad, Math.round(Number($('mcEdCambio').value) || 0))),
     valor_manual: num($('mcEdValor').value),
     precio_compra: num($('mcEdCompra').value),
     notas: $('mcEdNotas').value.trim().slice(0, 280) || null,
   }
-  try {
-    const nueva = await datos.actualizar(id, cambios)
-    lineas = lineas.map((l) => (l.id === id ? nueva : l))
-    d.close()
-    showToast('Guardado.', 'success')
-    repintar()
-  } catch (err) {
-    showToast(err.message, 'error')
-  }
 }
 
-async function borrarDesdeEditor() {
+async function guardarEditor({ retardo = 0 } = {}) {
   const d = $('mcEditor')
   const id = d.dataset.linea
-  // confirm() a propósito, como en /mazos: no se puede deshacer.
-  if (!window.confirm('¿Quitar esta carta de tu colección? No se puede deshacer.')) return
+  if (!id) return
+  clearTimeout(guardadoPendiente)
+  if (retardo) {
+    guardadoPendiente = setTimeout(() => guardarEditor(), retardo)
+    return
+  }
+  const cambios = leerEditor()
+  const aviso = $('mcEdEstadoGuardado')
   try {
-    await datos.borrar(id)
-    lineas = lineas.filter((l) => l.id !== id)
-    d.close()
-    showToast('Quitada de tu colección.', 'success')
+    // Cero copias es quitarla. Se pregunta porque no se puede deshacer y
+    // porque aquí no hay botón de cancelar: sin la pregunta, un «−» de
+    // más en la última copia se lleva la carta y lo que tuviera escrito.
+    if (cambios.cantidad === 0) {
+      if (!window.confirm('¿Quitar esta carta de tu colección? No se puede deshacer.')) {
+        // Se devuelve el campo a lo que había: dejarlo en 0 diría que
+        // está quitada cuando no lo está.
+        const l = lineas.find((x) => x.id === id)
+        $('mcEdCantidad').value = String(l?.cantidad ?? 1)
+        return
+      }
+      await datos.borrar(id)
+      lineas = lineas.filter((l) => l.id !== id)
+      d.dataset.linea = ''
+      d.close()
+      showToast('Quitada de tu colección.', 'success')
+      repintar()
+      return
+    }
+    const nueva = await datos.actualizar(id, cambios)
+    lineas = lineas.map((l) => (l.id === id ? nueva : l))
+    // Sin toast: saldría uno por cada toque del contador. El aviso vive
+    // en la propia ficha y se apaga solo.
+    if (aviso) {
+      aviso.textContent = 'Guardado'
+      aviso.classList.add('visible')
+      clearTimeout(aviso.dataset.reloj)
+      aviso.dataset.reloj = setTimeout(() => aviso.classList.remove('visible'), 1600)
+    }
+    // Y la rejilla de detrás, al día: si cambias la versión o las
+    // copias, la casilla lo dice.
     repintar()
   } catch (err) {
+    if (aviso) {
+      aviso.textContent = 'No se ha podido guardar'
+      aviso.classList.add('visible')
+    }
     showToast(err.message, 'error')
   }
 }
@@ -1446,13 +1488,36 @@ function enganchar() {
     b.addEventListener('click', () => {
       const campo = $('mcEdCantidad')
       const n = Math.round(Number(campo.value) || 0) + Number(b.dataset.paso)
-      campo.value = String(Math.min(Number(campo.max) || 999, Math.max(Number(campo.min) || 1, n)))
+      // `Number(campo.min) || 1` estaba mal desde que el mínimo es CERO:
+      // el 0 es falsy, así que el `||` lo convertía en 1 y el «−» nunca
+      // llegaba a quitar la última copia.
+      const tope = Number(campo.max)
+      const suelo = Number(campo.min)
+      campo.value = String(Math.min(Number.isFinite(tope) ? tope : 999, Math.max(Number.isFinite(suelo) ? suelo : 0, n)))
+      campo.dispatchEvent(new Event('change', { bubbles: true }))
     })
   }
 
-  $('mcEditorForm').addEventListener('submit', guardarEditor)
-  $('mcEdBorrar').addEventListener('click', borrarDesdeEditor)
-  $('mcEdCancelar').addEventListener('click', () => $('mcEditor').close())
+  // Cada campo se guarda solo (tanda 397). Los desplegables y el
+  // contador, al soltar; lo que se escribe, con medio segundo de
+  // retardo, que si no sale una petición por tecla.
+  for (const id of ['mcEdIdioma', 'mcEdEstado', 'mcEdVariante']) {
+    $(id).addEventListener('change', () => guardarEditor())
+  }
+  for (const id of ['mcEdCantidad', 'mcEdCambio']) {
+    $(id).addEventListener('change', () => guardarEditor())
+  }
+  for (const id of ['mcEdGradeo', 'mcEdValor', 'mcEdCompra', 'mcEdNotas']) {
+    $(id).addEventListener('input', () => guardarEditor({ retardo: 600 }))
+  }
+  // Y al cerrar, lo que quedara en el aire se manda: si no, escribir una
+  // nota y pulsar fuera antes de los 600 ms la perdería.
+  $('mcEditor').addEventListener('close', () => {
+    if (guardadoPendiente) {
+      clearTimeout(guardadoPendiente)
+      guardadoPendiente = null
+    }
+  })
 
   // La estantería: buscar, filtrar por serie y abrir una colección.
   for (const id of ['mcEstanteriaBuscar', 'mcEstanteriaSerie']) {

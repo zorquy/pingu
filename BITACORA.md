@@ -23,6 +23,47 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 397 — la ficha se guarda sola)
+
+**Hecho**: tres cosas que pidió PINGU comparando con Dex, y un fallo que
+cantó él.
+
+1. **Se guarda SOLO.** «Que no tengas botón de guardar o cancelar o
+   quitar de la colección; todo eso sobra; según haces el cambio, que se
+   guarde.» Y tenía razón en más que el gusto: con botón de guardar,
+   cerrar la ficha pulsando fuera o con Escape **tiraba lo escrito sin
+   avisar**. Ahora no hay nada que perder porque no hay nada pendiente.
+   Los desplegables y el contador guardan al soltar; lo que se teclea,
+   con 600 ms de retardo para no mandar una petición por letra.
+2. **Quitar una carta es bajar las copias a CERO**, que es como lo hace
+   Dex. Sigue preguntando, porque no se puede deshacer y porque ya no hay
+   botón de cancelar: sin la pregunta, un «−» de más en la última copia
+   se lleva la carta.
+3. **La carta ocupa todo el alto de su columna.** «En Dex la carta ocupa
+   todo el vertical izquierdo, así no deja hueco.» La derecha siempre es
+   más alta —lleva tres paneles— y debajo de la carta quedaba un socavón;
+   centrada en la columna entera, el hueco se reparte y deja de leerse
+   como un olvido.
+4. **El número de copias no se veía en el tema oscuro.** El mando lleva
+   fondo propio (`--white`) y el campo heredaba el color que tocara, así
+   que se leía en claro y no en oscuro. Ahora el color va DICHO, y la
+   prueba lo mide en los dos temas (17,4 y 13,5).
+
+**Y un fallo que salió al permitir el cero**: `Number(campo.min) || 1`
+convertía el 0 en 1, porque **el cero es falsy**. O sea que el «−» nunca
+llegaba a quitar la última copia, justo lo que se acababa de añadir.
+
+**Pendiente de lo que pidió PINGU**: las carpetas y «qué seguidores la
+tienen» van en tanda propia — la primera pide tabla nueva y la segunda,
+consultar colecciones ajenas con su política. Y las chapas de variante
+con su cuenta (como el Blastoise Holo ×1 / Jumbo) son un cambio de
+modelo: nuestra ficha edita UNA línea y la suya enseña todas las
+versiones de la carta a la vez.
+
+**Ficheros**: `js/mi-coleccion.js`, `mi-coleccion.html`,
+`css/mi-coleccion.css`. En `pruebas`: `test-tanda-392.mjs`,
+`test-tanda-376.mjs`.
+
 ## 2026-10-01 — PINGU-Claude (tanda 396 — la ficha, vestida)
 
 **Hecho**: lo que PINGU llevaba pidiendo dos veces y yo no había hecho —

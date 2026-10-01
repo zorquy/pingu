@@ -375,7 +375,7 @@
           <label class="mc-contador">Copias
             <span class="mc-contador-mando">
               <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>
-              <input type="number" id="mcEdCantidad" min="1" max="999" inputmode="numeric" />
+              <input type="number" id="mcEdCantidad" min="0" max="999" inputmode="numeric" />
               <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una copia más">+</button>
             </span>
           </label>
@@ -397,12 +397,11 @@
             </section>
           </div>
         </div>
-        <div class="mc-editor-acciones">
-          <button type="button" class="link-btn mc-borrar" id="mcEdBorrar">Quitar de la colección</button>
-          <span></span>
-          <button type="button" class="btn-secondary" id="mcEdCancelar">Cancelar</button>
-          <button type="submit" class="btn-primary">Guardar</button>
-        </div>
+        <!-- Sin botones (tanda 397). Se guarda solo según tocas, así que
+             no hay nada que confirmar ni que cancelar; y para quitarla,
+             bajar las copias a cero. Lo único que queda es el aviso de
+             que ha ido bien, que se apaga solo. -->
+        <p class="mc-ed-guardado" id="mcEdEstadoGuardado" role="status" aria-live="polite"></p>
       </form>
     </dialog>
 
