@@ -350,11 +350,18 @@ function pintarResumenPanel() {
       <button type="button" class="btn-secondary" id="mcVerTodo" aria-expanded="false" aria-controls="mcEstadisticas">Ver todas las estadísticas</button>
     </p>
 
+    <!-- LA GRÁFICA, A LA VISTA (tanda 416). La 410 la metió detrás de
+         «Ver todas las estadísticas» para que el panel no fuera tan
+         largo, y PINGU: «¿y dónde está el gráfico de precios? No
+         existe». Tenía razón: es la ÚNICA cifra que cambia sola, y es la
+         que se viene a mirar. Escondida detrás de un botón, no existe.
+         Lo que sigue detrás del botón es lo demás, que son listas. -->
+    <section class="mc-resumen-caja mc-valor-caja" id="mcValorCaja">
+      <h3>Lo que vale tu colección</h3>
+      <div class="skeleton" style="height:120px"></div>
+    </section>
+
     <div class="mc-estadisticas hidden" id="mcEstadisticas">
-      <section class="mc-resumen-caja mc-valor-caja" id="mcValorCaja">
-        <h3>Lo que vale tu colección</h3>
-        <div class="skeleton" style="height:120px"></div>
-      </section>
       <div class="mc-resumen-rejilla">
         <section class="mc-resumen-caja">
           <h3>Tus repetidas</h3>
@@ -390,8 +397,10 @@ function pintarResumenPanel() {
     const abierto = !$('mcEstadisticas').classList.toggle('hidden')
     $('mcVerTodo').setAttribute('aria-expanded', abierto ? 'true' : 'false')
     $('mcVerTodo').textContent = abierto ? 'Ocultar las estadísticas' : 'Ver todas las estadísticas'
-    if (abierto) pintarValorEnElTiempo()
   })
+  // La gráfica es una consulta y llega cuando llega: el resto del panel
+  // sale de lo que ya está en memoria y no la espera.
+  pintarValorEnElTiempo()
 }
 
 // Las flechas de la tira. Se mueve de tarjeta en tarjeta —el ancho de

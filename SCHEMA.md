@@ -22295,3 +22295,29 @@ porque aquí ninguna imagen carga y para cuando se mira la cadena ya se ha
 agotado; que un bolsillo sin escaneo lleva el nombre; y la tira, con las
 flechas apagándose en los extremos, moviendo una tarjeta entera y **sin
 barra pero deslizable**.
+
+## Tanda 416 — el gráfico de precios, de vuelta a la vista (oct. 2026)
+
+PINGU: «¿y dónde está el gráfico de precios? No existe».
+
+Y tenía razón: la tanda 410 lo metió detrás de «Ver todas las
+estadísticas» para que el panel no fuera tan largo. Pero el valor en el
+tiempo es **la única cifra que cambia sola**, y es la que se viene a
+mirar —eso ya estaba escrito en la tanda 377 y se perdió al reordenar—.
+Detrás de un botón, no existe.
+
+Ahora va a la vista, justo debajo de la tira. Lo que sigue detrás del
+botón es lo demás, que son listas: las repetidas, lo más valioso, por
+colección y por rareza. Se pide al abrir el panel y llega cuando llega;
+el resto del panel sale de lo que ya está en memoria y no la espera.
+
+**Si en producción dice «la primera foto se toma esta noche»**, no es la
+gráfica: es que no hay filas en `user_collection_value`. Las escribe
+`coleccion_foto_diaria` desde la función programada
+`netlify/functions/valor-coleccion.mjs`, a las 4:07 cada día.
+
+### Comprobado
+
+`test-tanda-410.mjs`, puesta al día: la gráfica se ve de entrada y está
+FUERA del bloque que se esconde, y lo que hay detrás del botón son las
+cuatro cajas de listas.

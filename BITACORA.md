@@ -29,6 +29,21 @@ es mirar el REMOTO justo antes del commit, no al empezar.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 416 — el gráfico de precios, de vuelta)
+
+**Hecho**: PINGU, «¿y dónde está el gráfico de precios? No existe». La
+410 lo metió detrás de «Ver todas las estadísticas» y ahí no lo encuentra
+nadie. Vuelve a la vista, debajo de la tira; detrás del botón se quedan
+las listas. Es la única cifra que cambia sola y es la que se viene a
+mirar — estaba escrito en la 377 y se perdió al reordenar.
+
+**Si en producción dice «la primera foto se toma esta noche»** no es la
+gráfica: es que no hay filas en `user_collection_value`, que las escribe
+la función programada `valor-coleccion.mjs` a las 4:07.
+
+**Ficheros**: `js/mi-coleccion.js`, `SCHEMA.md`. En la rama `pruebas`:
+`test-tanda-410.mjs` puesta al día.
+
 ## 2026-10-01 — PINGU-Claude (tanda 415 — los dibujos que faltaban)
 
 **Hecho**, todo de lo que vio PINGU en producción:
