@@ -596,12 +596,16 @@ const browser = await chromium.launch()
   if (await page.locator('#labMenu:not(.hidden)').count()) {
     check('el menú de una carta enseña su texto (el espejo no lo tiene)', /Baraja tu mano/.test(await page.locator('#labMenu').innerText()))
     await page.keyboard.press('Escape')
+    // El primer Escape cierra el menú; hasta que no se haya ido, el
+    // segundo se lo comería él. Con la suite entera corriendo, 150 ms
+    // fijos no bastaban (tanda 394): se espera a que pase, no un rato.
+    await page.locator('#labMenu').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {})
   }
 
   // Cerrar y volver: la partida sigue.
   const turno = await page.locator('#labTurno').innerText()
   await page.keyboard.press('Escape')
-  await page.waitForTimeout(150)
+  await page.locator('.lab').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {})
   check('Escape cierra el laboratorio', await page.locator('.lab').isHidden())
   await page.click('#cmProbar')
   await page.waitForTimeout(400)

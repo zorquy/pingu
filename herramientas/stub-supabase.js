@@ -1157,6 +1157,54 @@ export const supabase = {
       return { data: null, error: typeof e === 'string' ? { code: 'P0001', message: e } : e }
     }
 
+    // ── Lo que hace un JUEZ (tanda 394) ──
+    //
+    // Se HACE sobre las tablas, como en Postgres: si solo se apuntara,
+    // «dar de baja» dejaría al jugador en la lista de «Sin check-in» y la
+    // prueba estaría mirando la semilla, no la pantalla. Y con la misma
+    // puerta que la función de verdad (supabase-migration-torneos-
+    // jueces.sql): quien lleva el torneo o un juez APROBADO de ese torneo.
+    // La que vale es la del SQL, probada contra PostgreSQL en
+    // sql-jueces.sql; esta es para que el navegador se comporte igual.
+    if (nombre === 'torneos_dar_de_baja' || nombre === 'torneos_resolver_como_juez') {
+      const yo = sesion?.user?.id || null
+      const perfil = T.user_profiles.find((p) => p.id === yo) || {}
+      const manda = (t) =>
+        Boolean(perfil.is_admin || perfil.is_tournament_admin || T.tournaments.find((x) => x.id === t)?.admin_id === yo)
+      const juez = (t) =>
+        T.judge_applications.some((j) => j.tournament_id === t && j.user_id === yo && j.status === 'approved')
+      const no = (message) => ({ data: null, error: { code: 'P0001', message } })
+      if (nombre === 'torneos_dar_de_baja') {
+        const insc = T.tournament_registrations.find((i) => i.id === args.p_inscripcion)
+        if (!insc) return no('Inscripción no encontrada.')
+        if (!manda(insc.tournament_id) && !juez(insc.tournament_id)) {
+          return no('Solo el organizador o un juez del torneo pueden dar de baja a un jugador.')
+        }
+        if (insc.status !== 'active') return { data: false, error: null }
+        const t = T.tournaments.find((x) => x.id === insc.tournament_id)
+        Object.assign(insc, { status: 'dropped', dropped_at: new Date().toISOString(), dropped_after_round_id: t?.current_round_id || null })
+        return { data: true, error: null }
+      }
+      const m = T.tournament_matches.find((x) => x.id === args.p_partida)
+      if (!m) return no('Mesa no encontrada.')
+      const ronda = T.rounds.find((r) => r.id === m.round_id) || {}
+      if (!manda(ronda.tournament_id) && !juez(ronda.tournament_id)) {
+        return no('Solo el organizador o un juez del torneo pueden resolver una mesa.')
+      }
+      if (ronda.status !== 'active') return no('Esa ronda no está en juego.')
+      if (['finished', 'bye', 'forfeit_a', 'forfeit_b', 'forfeit_both'].includes(m.status)) {
+        return no('Esa mesa ya está cerrada: corregirla es cosa del organizador.')
+      }
+      const r = args.p_resultado
+      const ganador = ['a_wins', 'forfeit_b'].includes(r) ? m.player_a_id : ['b_wins', 'forfeit_a'].includes(r) ? m.player_b_id : null
+      Object.assign(m, { status: r.startsWith('forfeit') ? r : 'finished', finished_at: new Date().toISOString() })
+      const ya = T.match_results.find((x) => x.match_id === m.id)
+      const fila = { match_id: m.id, result: r, winner_id: ganador, resolved_by: yo }
+      if (ya) Object.assign(ya, fila)
+      else T.match_results.push({ id: `res-juez-${m.id}`, created_at: new Date().toISOString(), ...fila })
+      return { data: true, error: null }
+    }
+
     // Y si la prueba dice qué tiene que devolver, se devuelve: la RPC de
     // reportar contesta 'esperando' o 'conciliado' y el cliente pinta
     // cosas distintas.
