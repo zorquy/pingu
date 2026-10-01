@@ -23,6 +23,21 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 404 — la pestaña se llama Expansiones)
+
+**Hecho**: lo que quedaba de la estructura. La pestaña «Álbum» pasa a
+llamarse **Expansiones**, que es lo que enseña y como lo llama todo el
+mundo. «Álbumes soñados» NO se toca: es otra cosa.
+
+**Los tres puentes siguen puestos, a propósito.** Estaban en la lista de
+pendientes, pero quitarlos a ciegas es una apuesta mala: si la migración
+de `torneos-cola` no estuviera puesta, quitar ese puente deja a la gente
+sin poder inscribirse a un torneo. Se gana un puñado de líneas y se
+arriesga una sección entera. Van cuando PINGU confirme que esas tres
+migraciones están corriendo en producción.
+
+**Ficheros**: `mi-coleccion.html`.
+
 ## 2026-10-01 — PINGU-Claude (tanda 403 — quién de los tuyos tiene esta carta)
 
 **Hecho**: el bloque «FRIENDS» de Dex, con lo que aquí tiene sentido —
