@@ -1438,6 +1438,18 @@ function enganchar() {
     import('./carta-holo.js').then(({ montarHolo }) => montarHolo(caja)).catch(() => {})
   })
 
+  // Los dos botones del contador. Suman sobre lo que haya escrito, y se
+  // quedan dentro de los topes del propio campo: pulsar «−» con una sola
+  // copia no puede dejarte en cero, que es «no la tengo» y eso se dice
+  // quitándola de la colección, no poniendo un cero.
+  for (const b of document.querySelectorAll('.mc-contador-btn')) {
+    b.addEventListener('click', () => {
+      const campo = $('mcEdCantidad')
+      const n = Math.round(Number(campo.value) || 0) + Number(b.dataset.paso)
+      campo.value = String(Math.min(Number(campo.max) || 999, Math.max(Number(campo.min) || 1, n)))
+    })
+  }
+
   $('mcEditorForm').addEventListener('submit', guardarEditor)
   $('mcEdBorrar').addEventListener('click', borrarDesdeEditor)
   $('mcEdCancelar').addEventListener('click', () => $('mcEditor').close())

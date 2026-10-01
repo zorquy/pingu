@@ -1168,6 +1168,11 @@
    pantalla. */
 .mc-editor {
   width: min(1040px, calc(100vw - 32px));
+  /* Con `content-box`, el relleno se SUMA al tope de alto: el diálogo
+     pedía 852 y medía 900, o sea la pantalla entera y los botones de
+     guardar rozando el borde. Lo cazó test-tanda-392 al crecer los
+     paneles de la 396. */
+  box-sizing: border-box;
   max-height: calc(100vh - 48px);
   margin: auto;
   padding: var(--e-xl);
@@ -1200,6 +1205,14 @@
   align-items: start;
 }
 
+/* La carta se queda a la vista mientras se baja por los datos (tanda
+   396). La ficha se desplaza por dentro, así que sin esto la carta —que
+   es la protagonista— se iba arriba en cuanto mirabas la tabla. */
+.mc-ficha-carta {
+  position: sticky;
+  top: 0;
+}
+
 @media (max-width: 760px) {
   .mc-ficha {
     grid-template-columns: minmax(0, 1fr);
@@ -1209,6 +1222,7 @@
   /* Y ahí la carta no se come la pantalla entera: con el alto de un
      móvil, una carta a ancho completo deja los datos fuera de vista. */
   .mc-ficha-carta {
+    position: static;
     max-width: 260px;
     margin: 0 auto;
   }
@@ -1224,9 +1238,9 @@
 }
 
 .mc-ficha-datos > h2 {
-  margin: var(--e-xs) 0 var(--e-sm);
-  font-size: var(--t-2xl);
-  line-height: 1.2;
+  margin: var(--e-xs) 0 var(--e-md);
+  font-size: var(--t-3xl);
+  line-height: 1.15;
 }
 
 .mc-ficha-chapas {
@@ -1236,12 +1250,23 @@
   margin: 0 0 var(--e-lg);
 }
 
+/* Cada bloque es un PANEL, no una sección suelta (tanda 396). PINGU, dos
+   veces: «sigue siendo muy pocho, mira qué bonito y moderno lo muestra
+   Dex». Y lo que hace que aquello se vea montado y esto no es justo
+   esto: allí cada grupo vive en su caja con su fondo y su aire, y aquí
+   eran rótulos sueltos sobre el fondo del diálogo, así que nada separaba
+   «el precio» de «tu copia» salvo un hueco. Agrupar es lo que convierte
+   una lista de datos en una ficha. */
 .mc-ficha-bloque {
-  margin-bottom: var(--e-lg);
+  margin-bottom: var(--e-md);
+  padding: var(--e-md) var(--e-lg) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
 }
 
 .mc-ficha-bloque h3 {
-  margin: 0 0 var(--e-sm);
+  margin: 0 0 var(--e-md);
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 800;
@@ -1249,9 +1274,12 @@
   letter-spacing: 0.5px;
 }
 
+/* El precio, con el peso que tiene: es el número que se viene a mirar
+   después de la carta. */
 .mc-ficha-precio {
-  margin: 0 0 var(--e-sm);
-  font-size: var(--t-md);
+  margin: 0 0 var(--e-md);
+  font-size: var(--t-lg);
+  font-weight: 700;
 }
 
 .mc-ficha-enlaces {
@@ -1275,8 +1303,15 @@
   gap: var(--e-sm);
   align-items: baseline;
   justify-content: space-between;
-  padding: var(--e-xs) 0;
+  padding: var(--e-sm) 0;
   border-bottom: 1px solid var(--border);
+}
+
+/* La última fila de cada columna sin raya: una línea que no separa nada
+   es un borde que sobra. */
+.mc-ficha-tabla > div:last-child,
+.mc-ficha-tabla > div:nth-last-child(2):nth-child(odd) {
+  border-bottom: 0;
 }
 
 .mc-ficha-tabla dt {
@@ -2207,3 +2242,54 @@ input.mc-alb-titulo:not([readonly]):focus {
     min-height: 44px;
   }
 }
+
+/* ── El contador de copias (tanda 396) ── */
+.mc-contador-mando {
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.mc-contador-btn {
+  /* 44 de ancho Y de alto: aquí el ancho SÍ se pide, porque es un icono y
+     nada más — la regla de la 312 deja el ancho para lo que no lleva
+     palabra. */
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--text-mid);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mc-contador-btn:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.mc-contador-mando input[type='number'] {
+  width: 56px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+  text-align: center;
+  /* Las flechas nativas sobran: para eso están los dos botones, y en
+     medio del mando se amontonan con ellos. */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.mc-contador-mando input[type='number']::-webkit-outer-spin-button,
+.mc-contador-mando input[type='number']::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+

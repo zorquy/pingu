@@ -367,7 +367,18 @@
           <label>Idioma <select id="mcEdIdioma"></select></label>
           <label>Estado <select id="mcEdEstado"></select></label>
           <label>Versión <select id="mcEdVariante"></select></label>
-          <label>Copias <input type="number" id="mcEdCantidad" min="1" max="999" inputmode="numeric" /></label>
+          <!-- Las copias, con sus dos botones (tanda 396). Un campo de
+               número a secas obliga a seleccionar y teclear para sumar
+               una, y sumar una es lo que más se hace aquí: te llega un
+               sobre y metes la que ya tenías. Las flechas nativas del
+               navegador son de dos píxeles y en el móvil no salen. -->
+          <label class="mc-contador">Copias
+            <span class="mc-contador-mando">
+              <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>
+              <input type="number" id="mcEdCantidad" min="1" max="999" inputmode="numeric" />
+              <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una copia más">+</button>
+            </span>
+          </label>
           <!-- Cuántas DAS (tanda 376). Va aquí y no en una pantalla
                aparte porque es un dato de ESTA línea: de tus tres
                Charizards en español y Near Mint, das dos. Una lista de
