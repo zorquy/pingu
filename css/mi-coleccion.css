@@ -2415,3 +2415,136 @@ input.mc-alb-titulo:not([readonly]):focus {
   white-space: nowrap;
 }
 
+/* ── El panel de filtros (tanda 399) ──
+   Entra por la derecha y ocupa el alto entero, como el de Dex: un modal
+   centrado taparía la rejilla que estás filtrando, y lo que quieres es
+   ver cómo cambia mientras tocas. */
+.mc-panel-filtros {
+  width: min(420px, calc(100vw - 32px));
+  max-width: none;
+  height: 100vh;
+  max-height: 100vh;
+  /* `auto` a la izquierda y 0 a la derecha: eso lo pega al lado. */
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text);
+}
+
+.mc-panel-filtros::backdrop {
+  background: rgba(13, 27, 42, 0.5);
+}
+
+.mc-panel-cabecera {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--e-lg);
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+
+.mc-panel-cabecera h2 {
+  margin: 0;
+  font-size: var(--t-xl);
+}
+
+.mc-panel-cerrar {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-mid);
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+
+.mc-panel-cuerpo {
+  /* El alto que queda entre la cabecera y el pie, los dos pegados. */
+  max-height: calc(100vh - 150px);
+  padding: var(--e-lg);
+  overflow-y: auto;
+}
+
+.mc-grupo-filtro {
+  margin-bottom: var(--e-lg);
+}
+
+.mc-grupo-filtro h3 {
+  margin: 0 0 var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mc-grupo-filtro select {
+  width: 100%;
+  min-height: 44px;
+}
+
+.mc-chips-filtro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.mc-chip-filtro {
+  /* Alto sí, ancho NO: llevan palabra, y estirarlos dejaría un área
+     invisible pisando al de al lado (la regla de la 312). */
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-chip-filtro.activo {
+  border-color: var(--navy);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.mc-panel-pie {
+  display: flex;
+  position: sticky;
+  bottom: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+  border-top: 1px solid var(--border);
+  background: var(--white);
+}
+
+/* La chapa del botón: sin ella, un filtro olvidado parece una colección
+   que ha encogido. */
+.mc-abrir-filtros {
+  display: inline-flex;
+  gap: var(--e-sm);
+  align-items: center;
+}
+
+.mc-filtros-cuenta {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  line-height: 20px;
+  text-align: center;
+}
+

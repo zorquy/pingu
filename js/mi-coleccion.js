@@ -408,6 +408,63 @@ function lineaHtml(l) {
     </article>`
 }
 
+// ── Los filtros de chips (tanda 399) ──
+//
+// PINGU, enseñando Dex: su panel lleva tipo de carta, energía y rareza en
+// chips. Nosotros teníamos tres desplegables y ya no cabían.
+//
+// Los grupos se arman con lo que hay EN TU colección y no con una lista
+// escrita a mano: una lista ofrece rarezas que no tienes y se queda sin
+// las que salgan mañana (la lección de la tanda 323). Si de un grupo solo
+// sale un valor, el grupo no se pinta: un filtro con una sola opción no
+// filtra nada.
+const filtros = { tipo: new Set(), energia: new Set(), rareza: new Set(), variante: new Set(), estado: new Set() }
+let ordenAlReves = false
+
+const GRUPOS = [
+  { id: 'tipo', nombre: 'Tipo de carta', de: (l, c) => (c?.category ? [categoriaEs(c.category)] : []) },
+  { id: 'energia', nombre: 'Energía', de: (l, c) => (Array.isArray(c?.types) ? c.types.map(tipoEs) : []) },
+  { id: 'rareza', nombre: 'Rareza', de: (l, c) => (c?.rarity ? [rarezaEs(c.rarity)] : []) },
+  { id: 'variante', nombre: 'Versión', de: (l) => [varianteDe(l.variante).nombre] },
+  { id: 'estado', nombre: 'Estado', de: (l) => [estadoDe(l.estado).nombre] },
+]
+
+function valoresDeGrupo(g) {
+  const vistos = new Set()
+  for (const l of lineas) for (const v of g.de(l, cartas.get(l.card_id))) if (v) vistos.add(v)
+  return [...vistos].sort((a, b) => a.localeCompare(b, 'es'))
+}
+
+function pintarGruposDeChips() {
+  const hueco = $('mcGruposChips')
+  if (!hueco) return
+  hueco.innerHTML = GRUPOS.map((g) => {
+    const valores = valoresDeGrupo(g)
+    if (valores.length < 2) return ''
+    return `<div class="mc-grupo-filtro"><h3>${escapeHtml(g.nombre)}</h3><div class="mc-chips-filtro">${valores
+      .map((v) => {
+        const puesto = filtros[g.id].has(v)
+        return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-grupo="${g.id}" data-valor="${escapeHtml(v)}" aria-pressed="${puesto ? 'true' : 'false'}">${escapeHtml(v)}</button>`
+      })
+      .join('')}</div></div>`
+  }).join('')
+}
+
+// Cuántos filtros hay puestos, para la chapa del botón: sin ella, un
+// filtro olvidado parece una colección que ha encogido.
+function cuantosFiltros() {
+  return GRUPOS.reduce((n, g) => n + filtros[g.id].size, 0) +
+    ($('mcFiltroSet')?.value ? 1 : 0) + ($('mcFiltroIdioma')?.value ? 1 : 0)
+}
+
+function pintarCuentaDeFiltros() {
+  const chapa = $('mcFiltrosCuenta')
+  if (!chapa) return
+  const n = cuantosFiltros()
+  chapa.textContent = n ? String(n) : ''
+  chapa.classList.toggle('hidden', n === 0)
+}
+
 function lineasFiltradas() {
   const texto = normalizeSearch($('mcBuscar').value)
   const set = $('mcFiltroSet').value
@@ -418,6 +475,14 @@ function lineasFiltradas() {
     if (set && c?.set_id !== set) return false
     if (idioma && l.idioma !== idioma) return false
     if (texto && !normalizeSearch(`${c?.name || ''} ${c?.name_es || ''} ${c?.tcg_sets?.name || ''}`).includes(texto)) return false
+    // Los chips: dentro de un grupo suman (quiero Agua O Fuego) y entre
+    // grupos restan (Agua Y rara). Es como se espera de un filtro, y al
+    // revés no serviría: elegir dos rarezas dejaría cero resultados.
+    for (const g of GRUPOS) {
+      if (!filtros[g.id].size) continue
+      const suyos = g.de(l, c)
+      if (!suyos.some((v) => filtros[g.id].has(v))) return false
+    }
     return true
   })
   const valor = (l) => valorDeLinea(l, precioDe(l)) || 0
@@ -431,7 +496,11 @@ function lineasFiltradas() {
       return String(cb?.tcg_sets?.release_date || '').localeCompare(String(ca?.tcg_sets?.release_date || '')) || String(ca?.set_id).localeCompare(String(cb?.set_id)) || porNumero(ca || {}, cb || {})
     },
   }[orden]
-  return filtradas.sort(cmp)
+  const ordenadas = filtradas.sort(cmp)
+  // Al revés = al revés de lo que diga el orden elegido, sea cual sea.
+  // Invertir la lista YA ordenada y no escribir cuatro comparadores más
+  // es lo que hace que un orden nuevo salga con su vuelta puesta.
+  return ordenAlReves ? ordenadas.reverse() : ordenadas
 }
 
 function pintarCartas() {
@@ -1513,7 +1582,52 @@ function repintar() {
 
 function enganchar() {
   for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.pestania))
-  for (const id of ['mcBuscar', 'mcFiltroSet', 'mcFiltroIdioma', 'mcOrden']) $(id).addEventListener(id === 'mcBuscar' ? 'input' : 'change', pintarCartas)
+  for (const id of ['mcBuscar', 'mcFiltroSet', 'mcFiltroIdioma', 'mcOrden']) {
+    $(id).addEventListener(id === 'mcBuscar' ? 'input' : 'change', () => {
+      pintarCartas()
+      pintarCuentaDeFiltros()
+    })
+  }
+
+  // ── El panel de filtros (tanda 399) ──
+  $('mcAbrirFiltros').addEventListener('click', () => {
+    pintarGruposDeChips()
+    $('mcPanelFiltros').showModal()
+  })
+  $('mcFiltrosCerrar').addEventListener('click', () => $('mcPanelFiltros').close())
+  $('mcFiltrosVer').addEventListener('click', () => $('mcPanelFiltros').close())
+  // Pulsar fuera también cierra, igual que la ficha: mirar que el clic
+  // caiga FUERA de la caja y no solo que el destino sea el diálogo.
+  $('mcPanelFiltros').addEventListener('click', (e) => {
+    if (e.target !== e.currentTarget) return
+    const r = e.currentTarget.getBoundingClientRect()
+    const dentro = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
+    if (!dentro) e.currentTarget.close()
+  })
+  $('mcGruposChips').addEventListener('click', (e) => {
+    const chip = e.target.closest('[data-grupo]')
+    if (!chip) return
+    const conjunto = filtros[chip.dataset.grupo]
+    if (conjunto.has(chip.dataset.valor)) conjunto.delete(chip.dataset.valor)
+    else conjunto.add(chip.dataset.valor)
+    pintarGruposDeChips()
+    pintarCartas()
+    pintarCuentaDeFiltros()
+  })
+  $('mcOrdenAlReves').addEventListener('click', () => {
+    ordenAlReves = !ordenAlReves
+    $('mcOrdenAlReves').classList.toggle('activo', ordenAlReves)
+    $('mcOrdenAlReves').setAttribute('aria-pressed', ordenAlReves ? 'true' : 'false')
+    pintarCartas()
+  })
+  $('mcFiltrosLimpiar').addEventListener('click', () => {
+    for (const g of GRUPOS) filtros[g.id].clear()
+    $('mcFiltroSet').value = ''
+    $('mcFiltroIdioma').value = ''
+    pintarGruposDeChips()
+    pintarCartas()
+    pintarCuentaDeFiltros()
+  })
   $('mcCartas').addEventListener('click', (e) => {
     // Ahora la ficha se abre pulsando la CARTA, no un botón «Editar» en
     // cada fila (tanda 392). `data-editar` se sigue aceptando: lo usan

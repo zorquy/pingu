@@ -23,6 +23,35 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 399 — los filtros, en un panel de chips)
+
+**Hecho**: lo que pidió PINGU viendo el panel de Dex. La barra se queda
+con buscar y un botón de **Filtros**; el resto se va a un panel que entra
+por la derecha, con **orden** (y su «al revés»), **colección**,
+**idioma** y chips de **tipo de carta**, **energía**, **rareza**,
+**versión** y **estado**.
+
+**Los grupos salen de lo que HAY en tu colección**, no de una lista
+escrita a mano: una lista ofrece rarezas que no tienes y se queda sin las
+que salgan mañana (la lección de la 323). Y **un grupo con un solo valor
+no se pinta**: un filtro con una opción no filtra nada.
+
+**Dentro de un grupo los chips SUMAN y entre grupos RESTAN.** Es lo que
+se espera, y al revés no serviría: elegir dos rarezas daría cero
+resultados siempre.
+
+**El «al revés» invierte la lista YA ordenada** en vez de escribir cuatro
+comparadores más, así que un orden nuevo sale con su vuelta puesta. Y va
+en su propio botón y no en «tocar otra vez el mismo campo» como Dex: un
+segundo significado escondido en el mismo sitio no se descubre.
+
+Y una chapa con cuántos filtros hay puestos, porque sin ella un filtro
+olvidado parece una colección que ha encogido.
+
+**Ficheros**: `js/mi-coleccion.js`, `mi-coleccion.html`,
+`css/mi-coleccion.css`. En `pruebas`: `test-tanda-399.mjs` (**nuevo**),
+`test-tanda-382.mjs`, `correr-suite.sh`.
+
 ## 2026-10-01 — PINGU-Claude (tanda 398 — las tres barras del set, y una casilla por versión)
 
 **Hecho**: la «tanda B» de lo de Dex.

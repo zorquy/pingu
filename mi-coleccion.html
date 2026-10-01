@@ -135,17 +135,54 @@
       </div>
 
       <section id="mcPanelCartas" role="tabpanel" aria-label="Cartas">
+        <!-- La barra se queda con lo de siempre: buscar y abrir los
+             filtros. El resto se fue a un panel (tanda 399) porque cuatro
+             desplegables en fila no caben en un móvil y porque los de
+             verdad —tipo, energía, rareza— son muchos más de cuatro. -->
         <div class="mc-filtros hidden" id="mcFiltros">
           <input type="search" id="mcBuscar" placeholder="Buscar en tu colección" aria-label="Buscar en tu colección" />
-          <select id="mcFiltroSet" aria-label="Colección"></select>
-          <select id="mcFiltroIdioma" aria-label="Idioma"></select>
-          <select id="mcOrden" aria-label="Ordenar">
-            <option value="valor">Más valiosas</option>
-            <option value="recientes">Añadidas hace poco</option>
-            <option value="coleccion">Por colección y número</option>
-            <option value="nombre">Por nombre</option>
-          </select>
+          <button type="button" class="btn-secondary mc-abrir-filtros" id="mcAbrirFiltros" aria-haspopup="dialog">
+            Filtros <span class="mc-filtros-cuenta hidden" id="mcFiltrosCuenta"></span>
+          </button>
         </div>
+
+        <dialog class="mc-panel-filtros" id="mcPanelFiltros" aria-labelledby="mcPanelFiltrosTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcPanelFiltrosTitulo">Filtros</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
+          </div>
+          <div class="mc-panel-cuerpo">
+            <div class="mc-grupo-filtro">
+              <h3>Ordenar</h3>
+              <select id="mcOrden" aria-label="Ordenar">
+                <option value="valor">Más valiosas</option>
+                <option value="recientes">Añadidas hace poco</option>
+                <option value="coleccion">Por colección y número</option>
+                <option value="nombre">Por nombre</option>
+              </select>
+              <!-- Dar la vuelta al orden: en Dex se toca el campo otra
+                   vez, pero un segundo significado escondido en el mismo
+                   sitio no se descubre. Aquí va su propio botón. -->
+              <button type="button" class="mc-chip-filtro" id="mcOrdenAlReves" aria-pressed="false">Al revés</button>
+            </div>
+            <div class="mc-grupo-filtro">
+              <h3>Colección</h3>
+              <select id="mcFiltroSet" aria-label="Colección"></select>
+            </div>
+            <div class="mc-grupo-filtro">
+              <h3>Idioma</h3>
+              <select id="mcFiltroIdioma" aria-label="Idioma"></select>
+            </div>
+            <!-- Los grupos de chips se pintan solos desde lo que hay EN TU
+                 colección: una lista escrita a mano ofrece rarezas que no
+                 tienes y se queda sin las que salgan mañana. -->
+            <div id="mcGruposChips"></div>
+          </div>
+          <div class="mc-panel-pie">
+            <button type="button" class="link-btn" id="mcFiltrosLimpiar">Limpiar</button>
+            <button type="button" class="btn-primary" id="mcFiltrosVer">Ver resultados</button>
+          </div>
+        </dialog>
         <div class="mc-cartas" id="mcCartas"></div>
         <div class="mc-vacio hidden" id="mcCartasVacio">
           <p><strong>Todavía no hay cartas aquí.</strong></p>
