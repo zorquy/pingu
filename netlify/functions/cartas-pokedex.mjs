@@ -86,10 +86,21 @@ export async function procesar({ env = process.env, fetchImpl = null, reloj = ()
         // o volverían en la pasada siguiente.
         return { id: f.id, market: MERCADO, dex_ids: dexes }
       })
-      await pedir('tcg_cards?on_conflict=id,market', {
+      // Un UPSERT NO es un UPDATE con otro nombre (tanda 391). Esto era
+      // un `POST …?on_conflict=id,market` con solo {id, market,
+      // dex_ids}, y PostgREST lo traduce a `INSERT … ON CONFLICT DO
+      // UPDATE`: el INSERT se evalúa primero y revienta contra los NOT
+      // NULL de `set_id`, `local_id` y `name`. Llevaba desde la 381
+      // fallando cada diez minutos con la columna a null en las 23.000
+      // cartas — la Pokédex estaba vacía y no era un fallo de pantalla.
+      //
+      // Un PATCH por carta serían 500 peticiones por pasada, así que el
+      // lote entero se va de una a `pokedex_marcar`, que hace un solo
+      // UPDATE … FROM.
+      await pedir('rpc/pokedex_marcar', {
         method: 'POST',
-        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify(cambios),
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ p_filas: cambios }),
       })
       if (filas.length < POR_LOTE) break
     }

@@ -18,6 +18,46 @@ mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
 que falló es que ninguno de los dos la releyó justo antes de numerar,
 porque las dos tandas se empezaron con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 391 — la Pokédex no había rellenado NI UNA carta)
+
+**Hecho**: PINGU: «la Pokédex dice que está vacío el catálogo; entro en
+Bulbasaur y no hay nada». Y no era la pantalla.
+
+`cartas-pokedex.mjs` guardaba el `dex_ids` con un **upsert parcial** de
+PostgREST (`POST tcg_cards?on_conflict=id,market` con solo `{id, market,
+dex_ids}`). PostgREST lo traduce a `INSERT … ON CONFLICT DO UPDATE` y
+**el INSERT se evalúa primero**, así que reventaba contra los NOT NULL de
+`set_id`, `local_id` y `name`. Reproducido contra Postgres 16:
+
+    null value in column "set_id" of relation "tcg_cards"
+    violates not-null constraint
+
+O sea: fallaba cada diez minutos desde la tanda 381, en silencio, y la
+columna seguía a null en las 23.000 cartas. **Un UPSERT no es un UPDATE
+con otro nombre** — `cartas-detalle.mjs`, que sí funciona, usa PATCH.
+
+Un PATCH por carta serían 500 peticiones por pasada, así que el lote
+entero se va de una a `pokedex_marcar`, que hace un solo `UPDATE … FROM`
+y respeta el centinela `{}`.
+
+Barridas las otras dos upserts del repo (`top-del-mes`,
+`lanzamiento-push`): esas sí mandan la fila completa.
+
+**Lo del gráfico del valor NO es un fallo**: necesita DOS fotos para
+dibujar una línea, y con una sola dice «la primera foto se toma esta
+noche» a propósito. Con un punto la línea sería plana y diría «no ha
+cambiado nada», que no es lo mismo que «todavía no se sabe» (la regla de
+la 319).
+
+**SQL a ejecutar**: `supabase-migration-pokedex-marcar.sql` (**nuevo**).
+Hasta que no esté, la Pokédex sigue vacía. Pendientes de antes:
+`rangos-intercambios`, `torneos-xp` (otra vez, por el grant) y
+`xp-atomico`.
+
+**Ficheros**: `supabase-migration-pokedex-marcar.sql` (**nuevo**),
+`netlify/functions/cartas-pokedex.mjs`. En `pruebas`:
+`test-tanda-391.mjs` (**nuevo**) y `correr-suite.sh`.
+
 ## 2026-10-01 — PINGU-Claude (tanda 390 — la columna del autor, más limpia)
 
 **Hecho**: PINGU, con una captura del foro: «puede que se vea muy
