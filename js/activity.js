@@ -4,7 +4,6 @@ import { icons } from './icons.js'
 import { rutaDeArticulo, conVueltaAtrasDeTipo } from './articulos.js'
 import { logClientError } from './error-log.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
-import { calculateLevel, levelBadgeHtml } from './gamification.js'
 
 // Hilo de actividad reciente. No hay tabla de eventos: se arma leyendo
 // lo que ya existe (progreso, guías —publicadas y en revisión—,
@@ -184,7 +183,7 @@ export async function loadActivity(limite = 20) {
 
   const [{ data: perfiles }, { data: guias }] = await Promise.all([
     userIds.length
-      ? supabase.from('user_profiles').select(`id, username, display_name, avatar_url, hide_activity, total_xp, ${COLUMNAS_RANGO}`).in('id', userIds)
+      ? supabase.from('user_profiles').select(`id, username, display_name, avatar_url, hide_activity, ${COLUMNAS_RANGO}`).in('id', userIds)
       : Promise.resolve({ data: [] }),
     guideIds.length
       ? conVueltaAtrasDeTipo(
@@ -244,19 +243,6 @@ const TEXTOS = {
   tema: { icono: 'messageSquare', verbo: 'ha abierto un tema en el foro:' },
 }
 
-// La chapa del nivel junto al nombre (tanda 387). La CHAPA y no el
-// nombre teñido: una escala de cinco pasos se lee con su palabra, y esos
-// cinco colores como letra dan 2,1–3,3 sobre blanco. El porqué entero
-// está en SCHEMA.md, tanda 387.
-//
-// Sin `total_xp` no se enseña NADA, que no es lo mismo que enseñar
-// «Novato»: un cero inventado diría que esa persona no ha hecho nada.
-function chapaDeNivel(perfil) {
-  const xp = perfil?.total_xp
-  if (typeof xp !== 'number') return ''
-  return ` ${levelBadgeHtml(calculateLevel(xp), 11)}`
-}
-
 function eventoHtml(e) {
   const t = TEXTOS[e.tipo]
   const nombre = e.perfil?.display_name || e.perfil?.username || 'Alguien'
@@ -284,7 +270,7 @@ function eventoHtml(e) {
     ? `<span class="activity-tipo">${escapeHtml(t.etiqueta || t.verbo)}</span>`
     : `<a href="${profileUrl(e.perfil)}" class="activity-name"${atributosDeRango(e.perfil)}>${escapeHtml(
         nombre
-      )}</a>${chapaDeNivel(e.perfil)} ${t.verbo}`
+      )}</a> ${t.verbo}`
   // El icono de la derecha dice DE QUÉ tipo es el evento, y eso solo
   // aporta cuando a la izquierda hay la cara de una persona. En lo de la
   // casa la izquierda YA es ese mismo icono: dos copias del mismo dibujo

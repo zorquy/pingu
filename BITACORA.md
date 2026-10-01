@@ -18,6 +18,25 @@ mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
 que falló es que ninguno de los dos la releyó justo antes de numerar,
 porque las dos tandas se empezaron con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 389 — fuera la chapa de nivel del hilo de actividad)
+
+**Hecho**: PINGU la vio en producción y la quitó: «antes se veía más
+limpio». Tenía razón, y por el MISMO motivo por el que en la 387 dije que
+el nombre no se tiñe por nivel: casi todo el mundo es Novato, así que era
+una pastilla gris idéntica en cada fila. Y el caso que enseñó es el peor
+posible — las filas de «se ha unido a PokeDoc» son Novato POR DEFINICIÓN,
+o sea una marca que no puede decir nada nuevo nunca. Apliqué el argumento
+al color y se me olvidó aplicarlo a la chapa.
+
+El nombre sigue con el color de su rango, que son tres valores y no se
+repite en cada línea.
+
+**Ficheros**: `js/activity.js`. En `pruebas`: `test-tanda-387.mjs` (la
+sección 4 ahora vigila lo contrario: que el hilo vaya limpio).
+
+**En curso / pendiente**: lo de antes. Desarrollo parado a petición de
+PINGU para ahorrar tokens.
+
 ## 2026-10-01 — PINGU-Claude (tanda 388 — que el XP llegue de verdad)
 
 **Hecho**: repaso de la 387 recién subida. Cuatro agujeros, y los cuatro
