@@ -175,7 +175,7 @@ function pngLiso(w, h, [r, g, b]) {
 }
 const PNG = pngLiso(245, 342, [214, 120, 60])
 const browser = await chromium.launch()
-async function abrir(ruta, sem, { sesion = 'user-2', ancho = 1280, alto = 900, oscuro = false, sinCors = [], antes = null } = {}) {
+async function abrir(ruta, sem, { sesion = 'user-2', ancho = 1280, alto = 900, oscuro = false, sinCors = [], escaneoRoto = [], antes = null } = {}) {
   const page = await browser.newPage({ viewport: { width: ancho, height: alto }, colorScheme: oscuro ? 'dark' : 'light', acceptDownloads: true })
   const errores = []
   const escaneos = []
@@ -189,9 +189,12 @@ async function abrir(ruta, sem, { sesion = 'user-2', ancho = 1280, alto = 900, o
     route.fulfill({ status: 200, contentType: 'image/png', body: PNG, headers: { 'access-control-allow-origin': conPermiso ? '*' : 'https://otro.example' } })
   })
   await page.route(/\/escaneo\/[^/]+\/[^/?]+$/, (route) => {
-    escaneos.push(new URL(route.request().url()).pathname)
+    const ruta = new URL(route.request().url()).pathname
+    escaneos.push(ruta)
+    if (escaneoRoto.includes(ruta)) return route.fulfill({ status: 404, body: 'Sin escaneo' })
     route.fulfill({ status: 200, contentType: 'image/png', body: PNG })
   })
+
   await page.addInitScript(([s, se, a]) => {
     window.__FAKE_SESSION__ = s
     for (const [k, v] of Object.entries(se)) window[k] = v
@@ -341,7 +344,7 @@ console.log('\n── 3. Las piezas que viven en el navegador ──')
         sinImagen: img.fuentesDeCarta({ name: "Lillie's Determination", set: 'MEG', number: '119', carta: { exacta: true, image_path: null } }),
         gemela: img.fuentesDeCarta({ name: 'Ultra Ball', set: 'XXX', number: '07', carta: { exacta: false, image_path: 'me01/131' } }),
       },
-      alto: [img.medidas({ pokemon: Array(9).fill({}) }).alto, img.medidas({ pokemon: Array(10).fill({}) }).alto, img.medidas({ pokemon: Array(10).fill({}), trainer: [{}] }).alto],
+      alto: [img.medidas({ pokemon: Array(6).fill({}) }).alto, img.medidas({ pokemon: Array(10).fill({}), trainer: Array(8).fill({}) }).alto, img.medidas({ pokemon: Array(20).fill({}), trainer: Array(20).fill({}) }).alto],
     }
   })
   check('la energía por su número: MEE 13 Psíquica, 9 Planta, 16 Metálica, 1 Planta',
@@ -363,11 +366,13 @@ console.log('\n── 3. Las piezas que viven en el navegador ──')
   check('  …y las de /meta (count, número como número)', r.lineasMeta[0].n === 3 && r.lineasMeta[0].numero === '77', JSON.stringify(r.lineasMeta))
   const deFuera = Object.values(r.fuentes).flat().filter((u) => !u.startsWith('/escaneo/') && !/^https:\/\/(assets\.tcgdex\.net|images\.pokemontcg\.io)\//.test(u))
   check('la imagen exportada SOLO pide a sitios con permiso (o a /escaneo)', deFuera.length === 0, deFuera.join(' '))
-  check('  …la energía, la de pokemontcg.io y si no la del 30 aniversario', r.fuentes.energia[0] === 'https://images.pokemontcg.io/sve/6.png' && r.fuentes.energia[1] === '/escaneo/MEE/14', r.fuentes.energia.join(' '))
-  check('  …con escaneo en el espejo, ese primero', /tcgdex\.net\/.*me01\/131\/low\.webp$/.test(r.fuentes.conImagen[0]) && r.fuentes.conImagen[1] === '/escaneo/MEG/131', r.fuentes.conImagen.join(' '))
+  // Desde la 420, Limitless (por /escaneo) va PRIMERO: son los escaneos de
+  // los que salen las huellas del reconocimiento de imágenes.
+  check('  …la energía, la del 30 aniversario y si no la de pokemontcg.io', r.fuentes.energia[0] === '/escaneo/MEE/14' && r.fuentes.energia[1] === 'https://images.pokemontcg.io/sve/6.png', r.fuentes.energia.join(' '))
+  check('  …primero Limitless y el espejo de respaldo', r.fuentes.conImagen[0] === '/escaneo/MEG/131' && /tcgdex\.net\/.*me01\/131\/low\.webp$/.test(r.fuentes.conImagen[1]), r.fuentes.conImagen.join(' '))
   check('  …sin escaneo, /escaneo', r.fuentes.sinImagen.join() === '/escaneo/MEG/119')
   check('  …y una gemela por nombre va DESPUÉS de su set y número', r.fuentes.gemela[0] === '/escaneo/XXX/7' && /me01\/131/.test(r.fuentes.gemela[1]), r.fuentes.gemela.join(' '))
-  check('la imagen crece con las filas de cartas', r.alto[1] > r.alto[0] && r.alto[2] > r.alto[1], r.alto.join())
+  check('la imagen crece con las filas de cartas (6, 18 y 40 cartas distintas)', r.alto[1] > r.alto[0] && r.alto[2] > r.alto[1], r.alto.join())
   check('sin errores de página', errores.length === 0, errores.join(' | '))
   await page.close()
 }
@@ -456,11 +461,12 @@ console.log('\n── 5. Guardarse la lista de otro ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 6. La imagen exportada: estilo Limitless, con el toque de PokeDoc ──')
+console.log('\n── 6. La imagen exportada (su forma se prueba en la 420) ──')
 {
-  // La Ultra Ball se sirve SIN permiso de CORS: la imagen tiene que salir
-  // igual, sacándola de /escaneo, sin manchar el lienzo.
-  const { page, errores, escaneos } = await abrir('/torneo?slug=copa', semillas(), { sinCors: ['me01/131'] })
+  // La Ultra Ball no está en Limitless (/escaneo da 404) y el espejo la
+  // sirve SIN permiso de CORS: la imagen tiene que salir igual, con la
+  // carta como caja con su nombre, sin manchar el lienzo.
+  const { page, errores, escaneos } = await abrir('/torneo?slug=copa', semillas(), { sinCors: ['me01/131'], escaneoRoto: ['/escaneo/MEG/131'] })
   await abrirListaDe(page, 'Ash')
   const [bajada] = await Promise.all([
     page.waitForEvent('download', { timeout: 15000 }).catch(() => null),
@@ -472,15 +478,14 @@ console.log('\n── 6. La imagen exportada: estilo Limitless, con el toque de 
   if (bajada) await bajada.saveAs(ruta)
   const py = spawnSync('python3', ['-c', `
 from PIL import Image
-im = Image.open(${JSON.stringify(ruta)}).convert('RGB')
-print(im.size[0], im.size[1], *im.getpixel((4, 4)), *im.getpixel((im.size[0] // 2, im.size[1] - 4)))`], { encoding: 'utf8' })
-  const [w, h, r1, g1, b1, r2, g2, b2] = (py.stdout || '').trim().split(/\s+/).map(Number)
-  check('a 2400 px de ancho (nítida en el móvil)', w === 2400, py.stdout || py.stderr)
-  check('  …y alta como sus tres secciones', h > 1400 && h < 4000, h)
-  check('el fondo es el azul de la casa arriba y abajo', Math.abs(r1 - 0x16) < 12 && Math.abs(g1 - 0x3d) < 12 && Math.abs(b1 - 0x59) < 12 && b2 > r2 && b2 > 80, `${r1},${g1},${b1} · ${r2},${g2},${b2}`)
-  check('la carta sin escaneo se pidió a /escaneo', escaneos.includes('/escaneo/MEG/119'), escaneos.join(' '))
-  check('  …y la que no traía permiso, también (y el lienzo no se manchó)', escaneos.includes('/escaneo/MEG/131') && Boolean(bajada), escaneos.join(' '))
-  check('  …la Rara Doble, de su escaneo (no hizo falta /escaneo)', !escaneos.includes('/escaneo/MEG/179') && !escaneos.includes('/escaneo/MEG/77'), escaneos.join(' '))
+im = Image.open(${JSON.stringify(ruta)}).convert('RGBA')
+print(im.size[0], im.size[1], im.getpixel((4, 4))[3])`], { encoding: 'utf8' })
+  const [w, h, alfa] = (py.stdout || '').trim().split(/\s+/).map(Number)
+  check('a 1368 × 1148: siete cartas en una rejilla de 4 + 3', w === 1368 && h === 1148, py.stdout || py.stderr)
+  check('  …con el fondo transparente', alfa === 0, alfa)
+  check('todas las cartas, primero de Limitless (por /escaneo)', ['/escaneo/MEG/77', '/escaneo/MEG/76', '/escaneo/SVI/50', '/escaneo/SVI/172', '/escaneo/MEG/119', '/escaneo/MEE/14'].every((e) => escaneos.includes(e)), escaneos.join(' '))
+  check('  …la impresión que se enseña: la 077, no la 179', escaneos.includes('/escaneo/MEG/77') && !escaneos.includes('/escaneo/MEG/179'), escaneos.join(' '))
+  check('  …y la que no llega por ningún lado no mancha el lienzo', escaneos.includes('/escaneo/MEG/131') && Boolean(bajada))
   check('sin errores de página', errores.length === 0, errores.join(' | '))
   await page.close()
 }
