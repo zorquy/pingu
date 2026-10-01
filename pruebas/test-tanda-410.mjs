@@ -55,16 +55,19 @@ console.log('\n── 2. Lo largo, detrás de un botón ──')
   const { page } = await abrir()
   const escondidas = () => page.locator('#mcEstadisticas').evaluate((e) => e.classList.contains('hidden'))
   check('las estadísticas no están de entrada', await escondidas())
-  // Y la gráfica del valor es una CONSULTA: sin abrir esto, no se pide.
-  // Por eso sigue estando su esqueleto y no su dibujo.
-  check('  …ni se ha pedido la gráfica',
-    (await page.locator('#mcValorCaja .skeleton').count()) === 1)
+  // Pero la GRÁFICA del valor sí (tanda 416). La 410 la metió aquí
+  // dentro y PINGU: «¿y dónde está el gráfico de precios? No existe».
+  // Es la única cifra que cambia sola y es la que se viene a mirar;
+  // detrás de un botón, no existe.
+  check('  …pero la gráfica del valor sí', await page.locator('#mcValorCaja').isVisible())
+  check('  …y está FUERA del bloque que se esconde',
+    await page.locator('#mcValorCaja').evaluate((e) => !e.closest('#mcEstadisticas')))
   check('  …y el botón lo dice', (await page.locator('#mcVerTodo').getAttribute('aria-expanded')) === 'false')
   await page.locator('#mcVerTodo').click()
   await page.waitForTimeout(600)
   check('al pulsar, salen', (await escondidas()) === false)
-  check('  …y son las cinco cajas de siempre (el valor y las cuatro)',
-    (await page.locator('#mcEstadisticas .mc-resumen-caja').count()) === 5,
+  check('  …y son las cuatro cajas de siempre',
+    (await page.locator('#mcEstadisticas .mc-resumen-caja').count()) === 4,
     await page.locator('#mcEstadisticas .mc-resumen-caja').count())
   await page.locator('#mcVerTodo').click()
   await page.waitForTimeout(400)
