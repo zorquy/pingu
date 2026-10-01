@@ -21657,3 +21657,43 @@ y la página reservando su sitio; el pie sin taparse al bajar del todo y
 la barra volviendo al subir; en el ordenador, `sticky` y visible **con la
 clase de apartarse puesta**; y el desplegable de series hecho píldora sin
 perder los 44 px ni la flecha.
+
+## Tanda 407 — la carta que no estaba en el móvil (oct. 2026)
+
+PINGU pasó las capturas de la ficha de Dex en el móvil —la carta primero
+y lo más grande, el nombre centrado debajo— para compararlas con la
+nuestra. Y al abrirla salió lo otro: **en el móvil la carta no se veía**.
+
+### El margen automático, por segunda vez
+
+`.mc-ficha-carta` llevaba `margin: 0 auto` para centrarse, y **un margen
+automático ANULA el estirado del hijo de una rejilla**. Sin estirado, la
+caja se encoge a su contenido — y su contenido es `.mc-editor-foto`, que
+mide el 100 % DE ELLA. La cuenta es circular y el navegador la resuelve
+en CERO: ancho 0, y con el `aspect-ratio`, alto 0 también.
+
+Resultado: en el móvil, la ficha de una carta se abría **sin la carta**,
+que es exactamente lo que has ido a mirar, y no daba error en ninguna
+parte. Se arregla con `width: 100%`, que es lo que devuelve el estirado;
+el `max-width: 260px` sigue topándola y el margen la sigue centrando.
+
+Es la SEGUNDA vez que pica el mismo margen: la primera fue
+`.page-content` en la tanda 313, que se quedó en 813 px de 1080. La
+lección estaba escrita y aun así volvió, porque allí se leía como «una
+columna estrecha» y aquí como «no hay carta». Por eso la prueba no mira
+el ancho que falló: mira que la caja de la carta tenga tamaño **en cinco
+anchos distintos**.
+
+### Y el nombre, centrado bajo la carta
+
+En el móvil la carta manda y lo que la acompaña se centra debajo, como en
+la app. Con el nombre pegado a la izquierda bajo una carta centrada, la
+cabecera se lee torcida. En el ordenador no: ahí la carta va al lado y el
+texto empieza donde empieza la columna.
+
+### Comprobado
+
+`test-tanda-407.mjs`: la caja de la carta con tamaño a 360, 390, 600, 760
+y 1280 px —la forma del fallo, no el ancho que falló—; el nombre, la
+colección y las chapas centrados en el móvil; y en el ordenador, la carta
+a la izquierda de los datos y el nombre SIN centrar.

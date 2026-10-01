@@ -1613,12 +1613,34 @@
   }
 
   /* Y ahí la carta no se come la pantalla entera: con el alto de un
-     móvil, una carta a ancho completo deja los datos fuera de vista. */
+     móvil, una carta a ancho completo deja los datos fuera de vista.
+
+     El `width: 100%` NO sobra, y es la segunda vez que pica (la primera,
+     `.page-content` en la 313): **un margen automático ANULA el
+     estirado** del hijo de una rejilla. Sin él, la caja se encogía a su
+     contenido — y su contenido es `.mc-editor-foto`, que mide el 100 %
+     DE ELLA: la cuenta es circular y se resuelve en CERO. Resultado, la
+     carta no se veía en el móvil, que es justo lo que has venido a
+     mirar, y no daba error en ninguna parte. */
   .mc-ficha-carta {
     position: static;
+    width: 100%;
     max-width: 260px;
     margin: 0 auto;
   }
+
+  /* En el móvil la carta manda y lo que la acompaña se centra debajo,
+     como en la app: con el nombre pegado a la izquierda bajo una carta
+     centrada, la cabecera se lee torcida. */
+  .mc-ficha-datos > h2,
+  .mc-ficha-set {
+    text-align: center;
+  }
+
+  .mc-ficha-chapas {
+    justify-content: center;
+  }
+
 }
 
 .mc-ficha-set {

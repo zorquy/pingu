@@ -23,6 +23,26 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 407 — la carta que no estaba en el móvil)
+
+**Hecho**: PINGU pasó las capturas de la ficha de Dex en el móvil para
+compararlas, y al abrir la nuestra salió otra cosa: **la carta no se
+veía**. `.mc-ficha-carta` llevaba `margin: 0 auto`, y un margen
+automático ANULA el estirado del hijo de una rejilla; sin estirado la
+caja se encoge a su contenido, y su contenido mide el 100 % DE ELLA — la
+cuenta es circular y sale CERO. La ficha de una carta se abría en el
+móvil sin la carta, sin dar error. **Segunda vez que pica el mismo
+margen** (la primera, `.page-content` en la 313). Y de paso, el nombre y
+las chapas se centran bajo la carta en el móvil, como en la app.
+
+**Ficheros**: `css/mi-coleccion.css`, `SCHEMA.md`. En la rama `pruebas`:
+`test-tanda-407.mjs` (nuevo) — que no comprueba el ancho que falló, sino
+que la carta tiene caja en CINCO anchos.
+
+**En curso / pendiente**: los dos SQL sin lanzar
+(`supabase-migration-carpetas.sql` y `supabase-migration-quien-la-tiene.sql`)
+y los tres puentes temporales.
+
 ## 2026-10-01 — PINGU-Claude (tanda 406 — el móvil con la cara de la app)
 
 **Hecho**: con las cinco capturas de dextcg.com en el móvil delante. **La
