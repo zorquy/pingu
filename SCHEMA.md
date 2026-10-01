@@ -21783,3 +21783,105 @@ todavía un `?ver=` viejo» salía rojo por **el comentario que explica la
 mudanza**, que lo nombra. Al barrer código en busca de una cadena cuenta
 todo lo que la CONTIENE, no solo lo que la ES. Va con los comentarios
 quitados antes de buscar.
+
+## Tanda 409 — las expansiones, por eras y por año (oct. 2026)
+
+PINGU, con la estantería al lado de la app: «deberían estar ordenadas por
+eras, y dentro por año, de las más nuevas a las más viejas hacia abajo. Y
+los sets especiales como los Trainer Kits, los POP Series y estas cosas,
+abajo del todo. Y arriba que estén tus colecciones porque tienen una
+carta, yo lo quitaría: arriba solo si la pones como favorito».
+
+### El orden, sin una lista de eras escrita a mano
+
+`js/mi-coleccion/estanteria.js` agrupa por `serie_id` y ordena los grupos
+por el set MÁS NUEVO de cada uno. Así «Mega Evolución» sale por delante
+de «Escarlata y Púrpura» sin que nadie tenga que saberse el orden de las
+eras — y la era que salga en 2030 se coloca sola. Una lista de eras a
+mano es otra lista que se queda vieja (la lección de la 323).
+
+Dentro de una era, por fecha y lo más nuevo arriba. Un set **sin fecha**
+no se inventa un año: se va al final de su grupo, que es donde menos
+estorba.
+
+### Los promos de una era son de su era
+
+La primera versión los mandaba al fondo con los Trainer Kits. PINGU:
+«las Black Star Promo de cada era tienen que ir en cada era, la primera».
+Así que `esPromoDeEra()` los deja en su serie y los hunde al FONDO de
+ella. Y se fuerza en vez de confiarlo a la fecha porque una colección de
+promos sigue recibiendo cartas durante años: su fecha dice cuándo
+EMPEZÓ, no dónde va.
+
+Al fondo del todo se quedan solo los que no son de ninguna era: Trainer
+Kits, POP Series y los promos sin serie.
+
+**La lista es de lo ESPECIAL y no de lo normal, a propósito.** Lo que se
+queda viejo es la lista, y conviene que al quedarse vieja falle por el
+lado bueno: si fuera una lista de «eras de verdad», una era nueva caería
+entera al fondo —lo más buscado que hay—; siendo de especiales, lo que
+pasa es que una colección de promos nueva se cuela en medio.
+
+### Lo que se QUITA: «Tus colecciones» arriba
+
+Las que tenías empezadas subían solas al principio. Con cien empezadas
+eso no es un orden: es la misma lista de larga, pero sin fechas. Ahora
+arriba va solo lo que marcas, con una estrella dentro de la expansión.
+
+`supabase-migration-sets-favoritos.sql`: tabla con RLS, clave
+`(user_id, set_id)` y **sin foránea a `tcg_sets`** — el catálogo se
+reimporta entero y una foránea se llevaría por delante los favoritos de
+la gente; un favorito de un set que ya no existe no casa con nada y no se
+pinta. Y el cliente distingue los TRES estados: `null` = no está la
+migración (ni grupo ni estrella), conjunto vacío = no tienes ninguno.
+
+### Comprobado
+
+`test-tanda-409.mjs`: la colocación con datos a mano —un trainer kit y
+una POP son especiales, un promo de era NO lo es pero se hunde en la
+suya, una era futura tampoco lo es, el orden dentro de cada era, el set
+sin fecha—; en pantalla, los rótulos de era, que ya no hay «Tus
+colecciones» ni «Empezar otra», que la que tiene una carta sigue en su
+era y que su promo es el último; la estrella marcando y subiendo el set a
+«Tus favoritas»; y la migración leída. Y la política, contra PostgreSQL
+de verdad: uno ve el suyo, dos ve cero, dos no puede marcar por uno y su
+`delete` no toca nada.
+
+**Y un aviso sobre el doble de `auth.uid()`**: el que está guardado en la
+rama `pruebas` lee una variable de sesión y está bien. El que tenía
+cargado la base local estaba sobrescrito con un uuid FIJO, así que
+cualquier prueba de política que se hubiera corrido contra ella habría
+pasado sola: los dos «usuarios» eran el mismo. Si una comprobación de RLS
+sale bien a la primera, mira antes qué devuelve `auth.uid()`.
+
+## Tanda 410 — el panel, con la tira de tarjetas (oct. 2026)
+
+PINGU: «el panel está desordenadísimo, lo de los cambios está ahí abajo,
+es demasiado scroll para lo que es. Reordénalo, que tenga sentido. Ponlo
+bonito. Fíjate en Dex: te pone slides con toda la info, y le das a ver
+todo y te saca todas las estadísticas».
+
+El panel son TRES cosas y en este orden:
+
+1. **La tira**, que se desliza: cuatro tarjetas con lo que se viene a
+   mirar —cuántas tienes, lo que vale, lo que te sobra y por rareza—. En
+   el alto de una caja caben cuatro.
+2. **Los cambios**, que es lo único del panel que pide HACER algo.
+   Estaban detrás de cuatro pantallas de desplazamiento; ahora empiezan a
+   273 px del principio del panel.
+3. **Las estadísticas largas**, detrás de «Ver todas las estadísticas».
+
+Y un efecto que no es solo de orden: **la gráfica del valor es una
+consulta**, y mientras no se abre el bloque no se pide. El panel se abre
+sin pedir nada que no esté ya en memoria.
+
+### Comprobado
+
+`test-tanda-410.mjs`: las cuatro tarjetas, que la tira se desliza con
+enganche y **se puede recorrer con el teclado** —una zona que se desplaza
+sola y no es alcanzable deja fuera lo que hay a la derecha para quien no
+usa ratón—; que las estadísticas no están de entrada, que la gráfica NO
+se ha pedido (sigue su esqueleto) y que el botón abre y cierra; dónde
+empiezan los cambios, medido en píxeles y no en número de secciones,
+porque lo que molestaba era el desplazamiento; y en el móvil, que una
+tarjeta cabe en la pantalla y que la página no se va a lo ancho.

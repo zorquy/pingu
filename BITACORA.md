@@ -23,6 +23,55 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 410 — el panel, con la tira de tarjetas)
+
+**Hecho**: el panel, reordenado como pidió PINGU viendo Dex. Una **tira
+de cuatro tarjetas que se desliza** (cuántas tienes, lo que vale, lo que
+te sobra, por rareza), debajo **los cambios** —que era la queja: estaban
+a cuatro pantallas de desplazamiento y ahora empiezan a 273 px— y, detrás
+de «Ver todas las estadísticas», lo largo de antes. De regalo: la gráfica
+del valor es una consulta y ya no se pide hasta que se abre ese bloque.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`, `SCHEMA.md`.
+En la rama `pruebas`: `test-tanda-410.mjs` (nuevo).
+
+**En curso / pendiente**: lo que viene es carpetas y álbumes con la misma
+tarjeta que las expansiones, y un diálogo para crearlas eligiendo emoji,
+sprite de la Pokédex y color. OJO: eso toca
+`supabase-migration-carpetas.sql`, que todavía NO está lanzado — se edita
+ese fichero en vez de añadir otro.
+
+## 2026-10-01 — PINGU-Claude (tanda 409 — las expansiones, por eras y por año)
+
+**Hecho**: la estantería se ordena por ERAS y, dentro, por año con lo más
+nuevo arriba. El orden de las eras no está escrito en ninguna lista: una
+era vale lo que vale su set más nuevo, así que la que salga en 2030 se
+coloca sola. Los **promos de cada era se quedan en su era**, al fondo de
+ella (forzado, no fiado a la fecha: una colección de promos sigue
+recibiendo cartas años). Al fondo del todo, solo lo que no es de ninguna
+era: Trainer Kits y POP Series. Y **fuera el grupo «Tus colecciones»**:
+arriba va solo lo que marcas con la estrella dentro de la expansión.
+
+**SQL nuevo**: `supabase-migration-sets-favoritos.sql` (tabla con RLS,
+sin foránea al catálogo). Sin él la pantalla funciona igual, sin grupo de
+arriba y sin estrella.
+
+**OJO con el doble de `auth.uid()`**: el guardado en la rama `pruebas`
+(`sql/prep-torneos.sql`) lee `prueba.uid` y está bien. El que tenía
+CARGADO la base local estaba sobrescrito con un uuid FIJO — con él,
+cualquier prueba de política pasa sola porque los dos «usuarios» son el
+mismo. Restaurado el bueno. Si una comprobación de RLS sale bien a la
+primera, mira antes qué devuelve `auth.uid()`.
+
+**Ficheros**: `js/mi-coleccion/estanteria.js` (nuevo),
+`js/mi-coleccion/datos.js`, `js/mi-coleccion.js`, `mi-coleccion.html`,
+`css/mi-coleccion.css`, `supabase-migration-sets-favoritos.sql` (nuevo),
+`SCHEMA.md`. En la rama `pruebas`: `test-tanda-409.mjs` (nuevo).
+
+**En curso / pendiente**: TRES SQL sin lanzar —carpetas, quién la tiene y
+este de favoritos—. Y el Panel, que PINGU quiere con tiras de tarjetas
+tipo Dex y un «Ver todo»; está sin empezar.
+
 ## 2026-10-01 — PINGU-Claude (tanda 408 — de ocho pestañas a cinco)
 
 **Hecho**: lo pidió PINGU y tenía razón — la 405 había resuelto el

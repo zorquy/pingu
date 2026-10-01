@@ -45,6 +45,7 @@ import { icons } from './icons.js'
 import { marcaCardmarket } from './cardmarket-marca.js'
 import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
+import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante } from './mi-coleccion/variantes.js'
 import { especiePorDex } from './pokedex-especies.js'
@@ -70,6 +71,11 @@ const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas', cambios: 'resumen' }
 const pedida = params.get('ver')
 let pestania = PESTANAS.includes(pedida) ? pedida : MUDANZAS[pedida] || 'cartas'
 let albumesAbiertos = false
+// Las expansiones favoritas. TRES estados y no dos: `null` es «no se
+// sabe» —la migración no está puesta—, y entonces ni se pinta el grupo ni
+// sale la estrella. Un `new Set()` por defecto diría «no tienes ninguna»,
+// que es otra cosa.
+let favoritos = null
 
 // Los intercambios (tanda 376). El módulo entra por `import()` la
 // primera vez que se abre la pestaña: es la que menos se abre y no
@@ -261,6 +267,18 @@ function filaDeCartaHtml(c, derecha) {
   </li>`
 }
 
+// ── EL PANEL (tanda 410) ──
+//
+// PINGU: «el panel está desordenadísimo, lo de los cambios está ahí
+// abajo, es demasiado scroll para lo que es. Reordénalo, que tenga
+// sentido. Fíjate en Dex: te pone slides con toda la info, y le das a
+// ver todo y te saca todas las estadísticas».
+//
+// Así que el panel son TRES cosas y en este orden: una tira de tarjetas
+// que se desliza con lo que se viene a mirar, los cambios —que es lo
+// único del panel que pide hacer algo— y, detrás de un botón, las
+// estadísticas largas. Lo que antes ocupaba cuatro pantallas de
+// desplazamiento ahora cabe en una.
 function pintarResumenPanel() {
   const caja = $('mcResumenPanel')
   if (!caja) return
@@ -268,48 +286,109 @@ function pintarResumenPanel() {
     caja.innerHTML = '<p class="subtext">Cuando añadas cartas, aquí te contamos qué tienes.</p>'
     return
   }
+  const copias = lineas.reduce((n, l) => n + l.cantidad, 0)
+  const distintas = new Set(lineas.map((l) => l.card_id)).size
+  const colecciones = new Set([...cartas.values()].map((c) => c?.set_id).filter(Boolean)).size
   const rep = repetidas()
-  const valiosas = masValiosas()
-  const porSerie = repartoPor((c) => c?.tcg_sets?.name)
+  const sobran = rep.reduce((n, r) => n + r.sobran, 0)
+  const valiosas = masValiosas(3)
   const porRareza = repartoPor((c) => (c?.rarity ? rarezaEs(c.rarity) : null))
-  const sobranTotal = rep.reduce((s, r) => s + r.sobran, 0)
+  const total = valorDeAhora()
+
   caja.innerHTML = `
-    <!-- El valor en el tiempo (tanda 377). Va ARRIBA y a lo ancho, no en
-         la rejilla: es la única cifra que cambia sola, y es la que se
-         viene a mirar. -->
-    <section class="mc-resumen-caja mc-valor-caja" id="mcValorCaja">
-      <h3>Lo que vale tu colección</h3>
-      <div class="skeleton" style="height:120px"></div>
-    </section>
-    <div class="mc-resumen-rejilla">
-      <section class="mc-resumen-caja">
-        <h3>Tus repetidas</h3>
-        ${
-          rep.length
-            ? `<p class="subtext">Te sobran <strong>${sobranTotal}</strong> ${sobranTotal === 1 ? 'copia' : 'copias'} de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}. Son las que puedes cambiar.</p>
-               <ul class="mc-lista-cartas">${rep.slice(0, 12).map((r) => filaDeCartaHtml(r.carta, `tienes ${r.tengo} · <strong>te sobran ${r.sobran}</strong>`)).join('')}</ul>`
-            : '<p class="subtext">No tienes ninguna repetida todavía.</p>'
-        }
-      </section>
-      <section class="mc-resumen-caja">
-        <h3>Lo más valioso</h3>
+    <div class="mc-tira" id="mcTira" tabindex="0" role="group" aria-label="Resumen de tu colección">
+      ${diapoHtml('Tu colección', `
+        <p class="mc-diapo-cifra">${copias.toLocaleString('es-ES')}</p>
+        <p class="mc-diapo-pie">cartas contando las repetidas</p>
+        <dl class="mc-diapo-datos">
+          <div><dt>Distintas</dt><dd>${distintas.toLocaleString('es-ES')}</dd></div>
+          <div><dt>Colecciones</dt><dd>${colecciones}</dd></div>
+        </dl>`)}
+      ${diapoHtml('Lo que vale', `
+        <p class="mc-diapo-cifra">${escapeHtml(euros(total))}</p>
+        <p class="mc-diapo-pie">la tendencia de Cardmarket, sin ajustar por estado</p>
         ${
           valiosas.length
-            ? `<ul class="mc-lista-cartas">${valiosas.map((v) => filaDeCartaHtml(v.carta, `<strong>${euros(v.valor)}</strong>`)).join('')}</ul>
-               <p class="subtext">Por lo que vale UNA copia, no la línea entera.</p>`
-            : '<p class="subtext">Todavía no sabemos el precio de ninguna de tus cartas.</p>'
-        }
+            ? `<ul class="mc-diapo-lista">${valiosas
+                .map((v) => `<li><span>${escapeHtml(nombreDe(v.carta))}</span><strong>${escapeHtml(euros(v.valor))}</strong></li>`)
+                .join('')}</ul>`
+            : '<p class="subtext">Todavía no sabemos el precio de ninguna.</p>'
+        }`)}
+      ${diapoHtml('Lo que te sobra', `
+        <p class="mc-diapo-cifra">${sobran.toLocaleString('es-ES')}</p>
+        <p class="mc-diapo-pie">${sobran === 1 ? 'copia repetida' : 'copias repetidas'}${rep.length ? `, de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}` : ''}</p>
+        ${
+          rep.length
+            ? `<ul class="mc-diapo-lista">${rep
+                .slice(0, 3)
+                .map((r) => `<li><span>${escapeHtml(nombreDe(r.carta))}</span><strong>+${r.sobran}</strong></li>`)
+                .join('')}</ul>`
+            : '<p class="subtext">No tienes ninguna repetida todavía.</p>'
+        }`)}
+      ${diapoHtml('Por rareza', porRareza.length
+        ? barrasHtml(porRareza.slice(0, 5))
+        : '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>')}
+    </div>
+
+    <!-- El botón va AQUÍ y no al final: lo largo no se enseña hasta que
+         se pide, y así los cambios quedan a una pantalla y no a cuatro.
+         Además, la gráfica del valor es una consulta: sin abrir esto, no
+         se pide. -->
+    <p class="mc-ver-todo-fila">
+      <button type="button" class="btn-secondary" id="mcVerTodo" aria-expanded="false" aria-controls="mcEstadisticas">Ver todas las estadísticas</button>
+    </p>
+
+    <div class="mc-estadisticas hidden" id="mcEstadisticas">
+      <section class="mc-resumen-caja mc-valor-caja" id="mcValorCaja">
+        <h3>Lo que vale tu colección</h3>
+        <div class="skeleton" style="height:120px"></div>
       </section>
-      <section class="mc-resumen-caja">
-        <h3>Por colección</h3>
-        ${barrasHtml(porSerie.slice(0, 10)) || '<p class="subtext">—</p>'}
-      </section>
-      <section class="mc-resumen-caja">
-        <h3>Por rareza</h3>
-        ${barrasHtml(porRareza.slice(0, 10)) || '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>'}
-      </section>
+      <div class="mc-resumen-rejilla">
+        <section class="mc-resumen-caja">
+          <h3>Tus repetidas</h3>
+          ${
+            rep.length
+              ? `<p class="subtext">Te sobran <strong>${sobran}</strong> ${sobran === 1 ? 'copia' : 'copias'} de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}. Son las que puedes cambiar.</p>
+                 <ul class="mc-lista-cartas">${rep.slice(0, 12).map((r) => filaDeCartaHtml(r.carta, `tienes ${r.tengo} · <strong>te sobran ${r.sobran}</strong>`)).join('')}</ul>`
+              : '<p class="subtext">No tienes ninguna repetida todavía.</p>'
+          }
+        </section>
+        <section class="mc-resumen-caja">
+          <h3>Lo más valioso</h3>
+          ${
+            masValiosas().length
+              ? `<ul class="mc-lista-cartas">${masValiosas().map((v) => filaDeCartaHtml(v.carta, `<strong>${euros(v.valor)}</strong>`)).join('')}</ul>
+                 <p class="subtext">Por lo que vale UNA copia, no la línea entera.</p>`
+              : '<p class="subtext">Todavía no sabemos el precio de ninguna de tus cartas.</p>'
+          }
+        </section>
+        <section class="mc-resumen-caja">
+          <h3>Por colección</h3>
+          ${barrasHtml(repartoPor((c) => c?.tcg_sets?.name).slice(0, 10)) || '<p class="subtext">—</p>'}
+        </section>
+        <section class="mc-resumen-caja">
+          <h3>Por rareza</h3>
+          ${barrasHtml(porRareza.slice(0, 10)) || '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>'}
+        </section>
+      </div>
     </div>`
-  pintarValorEnElTiempo()
+
+  $('mcVerTodo').addEventListener('click', () => {
+    const abierto = !$('mcEstadisticas').classList.toggle('hidden')
+    $('mcVerTodo').setAttribute('aria-expanded', abierto ? 'true' : 'false')
+    $('mcVerTodo').textContent = abierto ? 'Ocultar las estadísticas' : 'Ver todas las estadísticas'
+    if (abierto) pintarValorEnElTiempo()
+  })
+}
+
+// Una tarjeta de la tira. Todas iguales por fuera: lo que cambia es lo
+// que llevan dentro, y así la tira se lee como una tira y no como cuatro
+// cajas distintas puestas en fila.
+function diapoHtml(titulo, dentro) {
+  return `<article class="mc-diapo">
+    <h3 class="mc-diapo-titulo">${escapeHtml(titulo)}</h3>
+    ${dentro}
+  </article>`
 }
 
 // La gráfica llega DESPUÉS y por su cuenta: el resto del resumen sale de
@@ -818,11 +897,11 @@ async function pintarEstanteria() {
   const cumple = (s) =>
     (!serie || s.serie_id === serie) && (!texto || normalizeSearch(`${s.name} ${s.id}`).includes(texto))
 
-  // Las tuyas primero y por lo lleno que está el álbum, no por cuántas
-  // cartas tienes: lo que se quiere ver arriba es lo que estás a punto
-  // de completar.
-  const mias = sets.filter((s) => cuantas.has(s.id) && cumple(s)).sort((a, b) => pctDe(b, cuantas) - pctDe(a, cuantas))
-  const resto = esMia ? sets.filter((s) => !cuantas.has(s.id) && cumple(s)) : []
+  // Por ERAS, y dentro por año (tanda 409). Antes subían arriba las que
+  // tenías empezadas; con cien empezadas eso no es un orden, es una lista
+  // igual de larga pero sin fechas. Ahora arriba va solo lo que marcas.
+  const visibles = sets.filter((s) => cumple(s) && (esMia || cuantas.has(s.id)))
+  const grupos = gruposDeEstanteria(visibles, favoritos || new Set())
 
   const series = [...new Map(sets.filter((s) => s.serie_id).map((s) => [s.serie_id, s.serie_name || s.serie_id])).entries()]
   const sel = $('mcEstanteriaSerie')
@@ -831,10 +910,11 @@ async function pintarEstanteria() {
     sel.innerHTML = '<option value="">Todas las series</option>' + series.map(([id, n]) => `<option value="${escapeHtml(id)}">${escapeHtml(n)}</option>`).join('')
   }
 
-  $('mcEstanteriaRejilla').innerHTML =
-    (mias.length ? `<h3 class="mc-estanteria-titulo">Tus colecciones</h3><div class="mc-estanteria">${mias.map((s) => tarjetaDeSet(s, cuantas.get(s.id) || 0)).join('')}</div>` : '') +
-    (resto.length ? `<h3 class="mc-estanteria-titulo">Empezar otra</h3><div class="mc-estanteria">${resto.map((s) => tarjetaDeSet(s, 0)).join('')}</div>` : '')
-  $('mcAlbumVacio').classList.toggle('hidden', Boolean(mias.length || resto.length))
+  $('mcEstanteriaRejilla').innerHTML = grupos
+    .map((g) => `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>
+      <div class="mc-estanteria">${g.sets.map((x) => tarjetaDeSet(x, cuantas.get(x.id) || 0)).join('')}</div>`)
+    .join('')
+  $('mcAlbumVacio').classList.toggle('hidden', visibles.length > 0)
 }
 
 // Cuántas cartas tiene una colección. `card_count_official` es la
@@ -842,11 +922,6 @@ async function pintarEstanteria() {
 // la sabemos, el total. Si no hay ninguna, no se inventa un porcentaje.
 function totalDe(set) {
   return set?.card_count_official || set?.card_count_total || 0
-}
-
-function pctDe(set, cuantas) {
-  const total = totalDe(set)
-  return total ? (cuantas.get(set.id) || 0) / total : 0
 }
 
 // La tarjeta de una expansión (rehecha en la tanda 405).
@@ -909,6 +984,39 @@ function respaldarNombresDeSet(zona) {
   }, true)
 }
 
+// La estrella del archivador (tanda 409). Solo sale si es TU colección y
+// si la migración está puesta: sin ella, `favoritos` es `null` y marcar
+// no guardaría nada — un botón que no hace nada es peor que ninguno.
+function pintarEstrella() {
+  const b = $('mcAlbumFavorito')
+  if (!b) return
+  const puede = esMia && favoritos instanceof Set && Boolean(album.set)
+  b.classList.toggle('hidden', !puede)
+  if (!puede) return
+  const marcada = favoritos.has(album.set)
+  b.classList.toggle('activa', marcada)
+  b.setAttribute('aria-pressed', marcada ? 'true' : 'false')
+  b.querySelector('.mc-estrella-texto').textContent = marcada ? 'Favorita' : 'Marcar como favorita'
+}
+
+async function cambiarFavorita() {
+  if (!(favoritos instanceof Set) || !album.set) return
+  const marcada = favoritos.has(album.set)
+  // Se pinta antes de guardar: el botón tiene que responder al dedo. Si
+  // la base dice que no, se deshace y se avisa.
+  if (marcada) favoritos.delete(album.set)
+  else favoritos.add(album.set)
+  pintarEstrella()
+  try {
+    await datos.marcarFavorito(sesion.user.id, album.set, !marcada)
+  } catch (err) {
+    if (marcada) favoritos.add(album.set)
+    else favoritos.delete(album.set)
+    pintarEstrella()
+    aviso(`<p>${escapeHtml(err.message)}</p>`)
+  }
+}
+
 // ── Abrir y cerrar el archivador ──
 function volverALaEstanteria() {
   album.set = null
@@ -927,6 +1035,7 @@ async function abrirAlbum(setId) {
   $('mcArchivadorZona').classList.remove('hidden')
   const set = (todosLosSets || []).find((s) => s.id === setId)
   $('mcAlbumTitulo').textContent = set?.name || ''
+  pintarEstrella()
   $('mcAlbum').innerHTML = '<p class="subtext">Cargando la colección…</p>'
   try {
     album.cartas = (await datos.cartasDeSet(setId)).sort(porNumero)
@@ -2061,6 +2170,7 @@ function enganchar() {
     if (b) abrirAlbum(b.dataset.set)
   })
   respaldarNombresDeSet($('mcEstanteriaRejilla'))
+  $('mcAlbumFavorito').addEventListener('click', cambiarFavorita)
   $('mcAlbumVolver').addEventListener('click', volverALaEstanteria)
 
   // ── La Pokédex (tanda 381) ──
@@ -2311,6 +2421,9 @@ async function iniciar() {
     lineas = await datos.lineasDe(dueno.id)
     const ids = lineas.map((l) => l.card_id)
     ;[cartas, guardados] = await Promise.all([datos.cartasPorIds(ids), datos.preciosGuardados(ids)])
+    // Las favoritas van aparte y sin parar nada: si fallan, la estantería
+    // se pinta igual, solo que sin su grupo de arriba.
+    if (esMia) favoritos = await datos.favoritosDeSets(dueno.id).catch(() => null)
   } catch (err) {
     aviso(`<p>${escapeHtml(err.message)}</p>`)
     return

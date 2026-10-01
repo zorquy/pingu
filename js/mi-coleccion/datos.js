@@ -295,3 +295,27 @@ export async function quienLaTiene(cardId) {
   return data || []
 }
 
+
+// ── Las expansiones favoritas (tanda 409) ──
+//
+// Sin la migración puesta, esto se comporta como si no tuvieras ninguna:
+// la estantería se pinta igual —sin el grupo de arriba— y el botón de la
+// estrella se esconde. Es mejor que un error en mitad de una pantalla que
+// funciona, y mejor que guardarlos en el navegador «mientras tanto»: dos
+// sitios donde viven los favoritos son dos listas que se separan.
+export async function favoritosDeSets(userId) {
+  const { data, error } = await supabase.from('collection_favorite_sets').select('set_id').eq('user_id', userId)
+  if (error) {
+    if (traducir(error).sinMigracion) return null
+    throw traducir(error)
+  }
+  return new Set((data || []).map((f) => f.set_id))
+}
+
+export async function marcarFavorito(userId, setId, favorito) {
+  const q = favorito
+    ? supabase.from('collection_favorite_sets').upsert({ user_id: userId, set_id: setId })
+    : supabase.from('collection_favorite_sets').delete().eq('user_id', userId).eq('set_id', setId)
+  const { error } = await q
+  if (error) throw traducir(error)
+}

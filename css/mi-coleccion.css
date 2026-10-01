@@ -3095,3 +3095,144 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin-top: var(--e-sm);
 }
 
+
+/* ── La estrella de una expansión (tanda 409) ── */
+.mc-estrella {
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mc-estrella:hover {
+  border-color: var(--navy);
+  color: var(--text);
+}
+
+/* Marcada: el relleno de la estrella no basta —es un icono de trazo— así
+   que lo que cambia es la chapa entera. */
+.mc-estrella.activa {
+  border-color: transparent;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.mc-estrella:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* ── EL PANEL: la tira de tarjetas (tanda 410) ──
+   PINGU: «el panel está desordenadísimo, es demasiado scroll para lo que
+   es. En Dex te pone slides con toda la info». Una tira que se desliza
+   enseña cuatro cosas en el alto de una, y lo que no cabe se pide. */
+.mc-tira {
+  display: flex;
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+  padding-bottom: var(--e-xs);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* De lado a lado en el móvil, como la barra: una tira que empieza y
+     acaba con margen no parece que siga. */
+  scroll-padding-inline: var(--e-xl);
+}
+
+.mc-tira:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 4px;
+}
+
+.mc-diapo {
+  display: flex;
+  flex: 0 0 min(300px, 82%);
+  flex-direction: column;
+  gap: var(--e-xs);
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  scroll-snap-align: start;
+}
+
+.mc-diapo-titulo {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mc-diapo-cifra {
+  margin: 0;
+  font-size: var(--t-3xl);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.mc-diapo-pie {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-diapo-datos {
+  display: flex;
+  gap: var(--e-lg);
+  margin: var(--e-sm) 0 0;
+}
+
+.mc-diapo-datos dt {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+}
+
+.mc-diapo-datos dd {
+  margin: 0;
+  font-size: var(--t-lg);
+  font-weight: 700;
+}
+
+.mc-diapo-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin: var(--e-sm) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-diapo-lista li {
+  display: flex;
+  gap: var(--e-sm);
+  justify-content: space-between;
+  font-size: var(--t-xs);
+}
+
+/* El nombre cede y la cifra no: al revés, un nombre largo empuja al euro
+   fuera de la tarjeta. */
+.mc-diapo-lista li span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-diapo-lista li strong {
+  flex: 0 0 auto;
+}
+
+.mc-ver-todo-fila {
+  margin: 0 0 var(--e-lg);
+}
