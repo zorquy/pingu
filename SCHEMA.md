@@ -21600,3 +21600,60 @@ y el ✕ apareciendo, limpiando y escondiéndose. Y la forma del fallo, no
 el fallo: **todas** las pestañas del menú contra la lista blanca de
 `?ver=` —una pestaña que no esté en ella no se abre por enlace y no da
 error en ninguna parte—.
+
+## Tanda 406 — el móvil con la cara de la app (oct. 2026)
+
+Las cinco capturas de dextcg.com en el móvil. Lo que se copia no es el
+dibujo: es la barra pegada al fondo y que un filtro se parezca a un
+filtro y no a un campo de formulario.
+
+### 1. La barra, abajo y flotando
+
+En Dex la barra de pestañas es una PÍLDORA pegada al fondo, siempre a
+mano. La nuestra estaba arriba y se iba con el desplazamiento, que en una
+rejilla de doscientas cartas es la mitad del tiempo.
+
+**Y un detalle que Dex no necesita y una web sí: se aparta cuando llega
+el pie.** Un menú flotando encima de los enlaces del pie es un menú que
+estorba — y esos enlaces son los que recorre Google. Lo aparta un
+`IntersectionObserver` sobre el `<footer>`, no un oyente de `scroll`, que
+correría en cada píxel.
+
+**La clase de apartarse se pone también en el ordenador**, porque el
+observador no mira el ancho de la pantalla. Por eso su regla vive SOLO
+dentro del `@media` del móvil: si se escapara de ahí, la columna del
+ordenador desaparecería al llegar al pie y no daría error en ninguna
+parte. Va comprobado en la prueba, que es donde se lee.
+
+**La chapa de la pestaña abierta va detrás del ICONO, no detrás del hueco
+entero.** Pintando el hueco, el bloque azul toca el borde de la píldora y
+parece un trozo pegado; y separarlo pedía un relleno que la barra no se
+puede permitir — con él, un quinto de 390 px se queda en 71 y
+«Expansiones» pide 69 más su propio aire.
+
+### 2. Un filtro es una chapa
+
+`#mcEstanteriaSerie`, `#mcAlbumRareza` y `#mcAlbumTipo` eran rectángulos
+grises de formulario al lado de un buscador ya redondo. Ahora son
+píldoras con su flechita — la flecha ya la ponía `select` en `style.css`
+desde la 310, así que esto solo les da la forma, y conservan sus 44 px.
+Los del PANEL de filtros no se tocan: ahí dentro un formulario es un
+formulario.
+
+### Lo que NO se copia, y por qué
+
+En Dex las expansiones del móvil son FILAS: miniatura a la izquierda,
+nombre y barra a la derecha. Se vería más compacto, pero para que la
+tarjeta cambie de forma según SU ancho —y no según el de la ventana—
+haría falta envolver cada una, porque un `@container` no puede
+reestilizar al propio contenedor. Con un `@media` funcionaría hoy y se
+rompería el día que esa rejilla aparezca en otro sitio, que es justo la
+lección de la tanda 316.
+
+### Comprobado
+
+`test-tanda-406.mjs`: la barra fija, pegada al fondo, con sombra y radio,
+y la página reservando su sitio; el pie sin taparse al bajar del todo y
+la barra volviendo al subir; en el ordenador, `sticky` y visible **con la
+clase de apartarse puesta**; y el desplegable de series hecho píldora sin
+perder los 44 px ni la flecha.

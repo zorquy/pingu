@@ -23,6 +23,32 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 406 — el móvil con la cara de la app)
+
+**Hecho**: con las cinco capturas de dextcg.com en el móvil delante. **La
+barra de pestañas se va abajo**, flotando como una píldora, con la chapa
+azul detrás del ICONO de la que está abierta (detrás del hueco entero
+tocaba el borde y parecía un trozo pegado). **Y se aparta cuando llega el
+pie**, que Dex no necesita y una web sí: un menú encima de los enlaces
+del pie estorba, y esos enlaces son los que recorre Google. **Y los tres
+desplegables que son FILTROS** (series, rareza, categoría) pasan a ser
+chapas con su flechita; los del panel de filtros no se tocan, que ahí
+dentro un formulario es un formulario.
+
+**Lo que NO se ha copiado**: las expansiones en fila (miniatura a la
+izquierda) del móvil de Dex. Para que la tarjeta cambie de forma según SU
+ancho haría falta envolver cada una; con un `@media` funciona hoy y se
+rompe el día que esa rejilla salga en otro sitio (la lección de la 316).
+Si se quiere igualmente, va con el envoltorio.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En la rama `pruebas`:
+`test-tanda-406.mjs` (nuevo).
+
+**En curso / pendiente**: lo mismo que dejó la 405 —los dos SQL sin
+lanzar (`supabase-migration-carpetas.sql` y
+`supabase-migration-quien-la-tiene.sql`) y los tres puentes temporales—.
+
 ## 2026-10-01 — PINGU-Claude (tanda 405 — mi colección, con la cara de una app)
 
 **Hecho**: la reestructura que pidió PINGU con las capturas de dextcg.com

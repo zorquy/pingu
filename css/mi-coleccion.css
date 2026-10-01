@@ -216,6 +216,69 @@
   display: flex;
 }
 
+/* LA BARRA, ABAJO Y FLOTANDO (tanda 406). Es lo que más cambia la
+   sensación de app en las capturas de Dex: una píldora pegada al fondo,
+   siempre a mano, en vez de una fila arriba que se va con el desplazamiento.
+   Con un detalle que Dex no necesita y una web sí: **se aparta cuando
+   llega el pie**, porque un menú flotando encima de los enlaces del pie
+   es un menú que estorba. Lo aparta un observador, no un oyente de
+   `scroll` corriendo todo el rato. */
+@media (max-width: 899px) {
+  .mc-pestanias {
+    position: fixed;
+    /* Por debajo de la barra de arriba (100) y de sus menús (110): si un
+       menú de la barra baja hasta aquí, tiene que pasar por encima. */
+    z-index: 90;
+    right: var(--e-sm);
+    bottom: var(--e-sm);
+    left: var(--e-sm);
+    margin: 0;
+    /* Sin relleno a los lados: con él, un quinto se queda en 71 px y
+       «Expansiones» pide 69 más su propio aire. */
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--white);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+    transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+  }
+
+  .mc-pestanias.apartada {
+    opacity: 0;
+    transform: translateY(120%);
+    pointer-events: none;
+  }
+
+  /* El sitio que ocupa la barra, para que no tape la última fila. */
+  .mc-pagina {
+    padding-bottom: 88px;
+  }
+
+  /* La de turno: la chapa va detrás del ICONO, no detrás del hueco
+     entero. Pintando el hueco, el bloque azul toca el borde de la
+     píldora y parece un trozo pegado; y para separarlo haría falta un
+     relleno que la barra no tiene —con él, un quinto se queda en 71 px y
+     «Expansiones» pide 69 más su aire—. */
+  .mc-pestania.activa {
+    border-bottom-color: transparent;
+    background: transparent;
+    color: var(--navy);
+  }
+
+  .mc-pestania.activa > svg {
+    padding: 4px;
+    border-radius: var(--radius-md);
+    background: var(--navy-solid);
+    color: var(--blanco-fijo);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-pestanias {
+    transition: none;
+  }
+}
+
 @media (min-width: 900px) {
   /* La columna a la izquierda y el panel a la derecha. Las pestañas que no
      son la de turno están en `display: none`, así que no ocupan hueco en
@@ -887,6 +950,16 @@
   flex-wrap: wrap;
   gap: var(--e-md);
   margin-bottom: var(--e-lg);
+}
+
+/* Un filtro no es un campo de formulario (tanda 406): en Dex cada uno es
+   una píldora con su flechita, y aquí eran rectángulos grises de
+   formulario al lado de un buscador ya redondo. La flecha ya la pone
+   `select` en style.css; esto solo le da la forma. */
+.mc-chapa-select {
+  border-radius: var(--radius-pill);
+  font-size: var(--t-sm);
+  font-weight: 600;
 }
 
 .mc-estanteria-barra select {

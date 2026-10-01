@@ -1812,6 +1812,18 @@ function pintarIconos() {
 function enganchar() {
   pintarIconos()
   for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.pestania))
+  // La barra flota pegada al fondo en el móvil (tanda 406), así que al
+  // llegar al pie taparía justo los enlaces del pie. Se aparta sola
+  // cuando el pie entra en pantalla — con un observador y no con un
+  // oyente de `scroll`, que correría en cada píxel. En el ordenador la
+  // clase no pinta nada: su regla vive en el `@media` del móvil.
+  const pie = document.querySelector('footer')
+  if (pie && 'IntersectionObserver' in window) {
+    new IntersectionObserver(
+      ([e]) => $('mcMenu').classList.toggle('apartada', e.isIntersecting),
+    ).observe(pie)
+  }
+
   // El «Más» del móvil: despliega las pestañas que no caben en los cinco
   // sitios de la barra. En el ordenador está escondido por CSS.
   $('mcMenuMas').addEventListener('click', () => {
