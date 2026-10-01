@@ -155,8 +155,11 @@ console.log('\n── 4. «No has apuntado nada» no es «no hay nadie» ──'
   // «no hay nadie» (que sería mentira y encima desanima).
   const { page } = await abrir({ coleccion: [linea({ id: 'm1', user_id: 'admin-1', card_id: 'sv1-1', cantidad: 3 })] })
   const t = limpio(await page.locator('#mcCambiosPanel').textContent())
-  check('sin lista de búsqueda, se dice qué hacer', /Apunta abajo las cartas que buscas/.test(t), t.slice(0, 160))
-  check('  …y sin dar nada, también', /Marca abajo cuántas copias das/.test(t), t.slice(0, 300))
+  // La 415 cambió CÓMO se dice —tres pasos en vez de dos tablones
+  // vacíos—, pero lo que se comprueba es lo mismo: que dice qué hacer y
+  // no «no hay nadie», que sería mentira y encima desanima.
+  check('sin lista de búsqueda, se dice qué hacer', /Apunta lo que buscas/.test(t), t.slice(0, 160))
+  check('  …y sin dar nada, también', /Marca lo que das/.test(t), t.slice(0, 300))
   check('  …y no se dice «no hay nadie»', !/Todavía no hay nadie/.test(t), t.slice(0, 200))
   await page.close()
 }

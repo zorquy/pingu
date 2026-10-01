@@ -148,6 +148,11 @@ console.log('\n── 6. Cuatro cajas, dos columnas ──')
   // Con tres columnas la cuarta se queda sola en una fila con media
   // pantalla en blanco al lado. Se mide dónde acaban pintadas.
   const { page } = await abrir(COL)
+  // Desde la 410 las estadísticas largas viven detrás de «Ver todas las
+  // estadísticas». Hay que abrirlas para medir dónde caen: escondidas,
+  // todas miden 0 y «dos por fila» pasaría a ser «una sola fila».
+  await page.locator('#mcVerTodo').click()
+  await page.waitForTimeout(500)
   const filas = await page.evaluate(() =>
     [...document.querySelectorAll('.mc-resumen-rejilla .mc-resumen-caja')].map((e) => Math.round(e.getBoundingClientRect().top))
   )
