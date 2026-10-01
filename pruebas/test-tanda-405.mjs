@@ -132,13 +132,13 @@ console.log('\n── 3. Las expansiones, todas del mismo tamaño ──')
   await page.close()
 }
 
-console.log('\n── 4. El menú: columna en el ordenador, cinco sitios en el móvil ──')
+console.log('\n── 4. El menú, a la izquierda en el ordenador ──')
 {
   const { page } = await abrir()
-  // En el ordenador la columna va A LA IZQUIERDA del panel. Es lo que
-  // pidió PINGU («el menú de Dex es lateral, que deja meter más cosas sin
-  // que las pestañas se vayan mucho») y lo que arregla el problema: una
-  // columna crece hacia abajo y no se pelea con el ancho.
+  // Es lo que pidió PINGU («el menú de Dex es lateral, que deja meter más
+  // cosas sin que las pestañas se vayan mucho») y lo que arregla el
+  // problema: una columna crece hacia abajo y no se pelea con el ancho.
+  // (Las cinco pestañas y las mudanzas, en test-tanda-408.)
   const sitio = await page.evaluate(() => {
     const m = document.getElementById('mcMenu').getBoundingClientRect()
     const p = document.getElementById('mcPanelCartas').getBoundingClientRect()
@@ -147,58 +147,15 @@ console.log('\n── 4. El menú: columna en el ordenador, cinco sitios en el m
   check('el menú está a la izquierda del panel', sitio.menuDerecha <= sitio.panelIzquierda + 1,
     JSON.stringify(sitio))
   check('  …y no se come la pantalla', sitio.menuAncho < 280, sitio.menuAncho)
-  check('los grupos se ven', await page.locator('.mc-menu-titulo').first().isVisible())
-  check('  …y el «Más» no, que es del móvil', (await page.locator('#mcMenuMas').isVisible()) === false)
-  const todas = await page.locator('#mcMenu [data-pestania]:not(.hidden)').count()
+  const todas = await page.locator('#mcMenu [data-pestania]').count()
   const visibles = await page.locator('#mcMenu [data-pestania]:visible').count()
-  check('en el ordenador se ven las ocho', visibles === todas && todas >= 8, `${visibles}/${todas}`)
+  check('se ven todas', visibles === todas && todas >= 5, `${visibles}/${todas}`)
   // Los iconos salen de js/icons.js y los pone el JavaScript: copiarlos a
   // mano en el HTML deja dos versiones del mismo dibujo.
   check('cada pestaña lleva su icono',
-    (await page.locator('#mcMenu [data-pestania] svg').count()) === todas,
-    await page.locator('#mcMenu [data-pestania] svg').count())
+    (await page.locator('#mcMenu [data-pestania] > svg').count()) === todas,
+    await page.locator('#mcMenu [data-pestania] > svg').count())
   await page.close()
-}
-
-{
-  const { page } = await abrir()
-  await page.setViewportSize({ width: 390, height: 780 })
-  await page.waitForTimeout(400)
-  // Cinco sitios, como la app: cuatro pestañas y el «Más».
-  const enBarra = await page.locator('#mcMenu button:visible').count()
-  check('en el móvil la barra tiene cinco sitios', enBarra === 5, enBarra)
-  check('  …y el «Más» es uno de ellos', await page.locator('#mcMenuMas').isVisible())
-  const escondidas = await page.locator('#mcMenu [data-pestania]:visible').count()
-  check('  …y las demás están guardadas', escondidas === 4, escondidas)
-  await page.locator('#mcMenuMas').click()
-  await page.waitForTimeout(300)
-  check('al pulsar «Más» salen todas',
-    (await page.locator('#mcMenu [data-pestania]:visible').count()) >= 8,
-    await page.locator('#mcMenu [data-pestania]:visible').count())
-  // Y elegir una cierra el desplegable: si se queda abierto, tapa justo
-  // lo que acabas de abrir.
-  await page.locator('#mcMenu [data-pestania="resumen"]').click()
-  await page.waitForTimeout(400)
-  check('  …y al elegir una se cierra',
-    (await page.locator('#mcMenu [data-pestania="resumen"]').isVisible()) === false)
-  check('  …y el panel es el suyo',
-    (await page.locator('#mcPanelResumen').evaluate((e) => e.classList.contains('hidden'))) === false)
-  await page.close()
-}
-
-{
-  // LA FORMA DEL FALLO, no el fallo: `?ver=` tiene una lista blanca de
-  // pestañas, así que una pestaña nueva que no esté en ella no se abre
-  // por enlace y no da error en ninguna parte. Se comprueban TODAS las
-  // del menú contra la lista, no la que acabo de añadir.
-  const html = leer('mi-coleccion.html')
-  const js = leer('js/mi-coleccion.js')
-  const nombres = [...html.matchAll(/data-pestania="([a-z]+)"/g)].map((m) => m[1])
-  const lista = js.match(/\[((?:'[a-z]+', ?)+'[a-z]+')\]\.includes\(params\.get\('ver'\)\)/)
-  const permitidas = lista ? lista[1].split(',').map((x) => x.trim().replace(/'/g, '')) : []
-  check('se encuentra la lista blanca de ?ver=', permitidas.length >= 8, permitidas.join(','))
-  const fuera = nombres.filter((n) => !permitidas.includes(n))
-  check('  …y todas las pestañas del menú están en ella', fuera.length === 0, fuera.join(','))
 }
 
 console.log('\n── 5. La barra de buscar, más pequeña y con chapas ──')
@@ -215,11 +172,13 @@ console.log('\n── 5. La barra de buscar, más pequeña y con chapas ──')
   check('el campo no ocupa toda la barra', m.campo < m.barra * 0.75, JSON.stringify(m))
   check('  …y es redondo', /999|50%/.test(m.radio) || parseFloat(m.radio) >= 20, m.radio)
   // Y la lupa la lleva TODO buscador de la pantalla, no solo este: las
-  // cuatro barras (cartas, expansiones, Pokédex y añadir) son la misma
-  // pieza desde la 405, que era medio motivo de que no se parecieran.
+  // tres barras (cartas, expansiones y Pokédex) son la misma pieza desde
+  // la 405, que era medio motivo de que no se parecieran. Eran cuatro
+  // hasta la 408, cuando el buscador de «Añadir cartas» se fundió con el
+  // de «Cartas».
   const buscadores = await page.locator('.mc-buscador').count()
   check('  …y lleva su lupa dentro',
-    buscadores >= 4 && (await page.locator('.mc-buscador > .mc-buscador-lupa > svg').count()) === buscadores,
+    buscadores >= 3 && (await page.locator('.mc-buscador > .mc-buscador-lupa > svg').count()) === buscadores,
     `${buscadores} buscadores`)
   check('el botón de filtros es una chapa',
     await page.locator('#mcAbrirFiltros.mc-chip-mando').count() === 1)
