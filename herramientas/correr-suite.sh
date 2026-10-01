@@ -1,14 +1,25 @@
 #!/bin/bash
-# La suite. Reconstruida tras perderse el entorno el 2026-08-28: hoy
-# cubre torneos (tandas 223, 229 y 230) y el foro (tanda 226). Las pruebas de
-# foro, guÃƒÂ­as y cursos se perdieron con el contenedor y NO estÃƒÂ¡n aquÃƒÂ­.
+# La suite. Reconstruida tras perderse el entorno el 2026-08-28.
+#
+# Tanda 405: las pruebas se cogen DEL WORKTREE de la rama `pruebas`, que es
+# donde viven de verdad, y no de las copias que hubiera en el scratchpad.
+# Antes la lista era una lista escrita a mano y corría lo que encontrase en
+# el directorio de trabajo: las pruebas que nunca se copiaron allí salían
+# «AUSENTE» y las nuevas no estaban ni en la lista — la 398, la 399, la
+# 400, la 402, la 403 y la 405 no se habían corrido NI UNA VEZ en la suite.
+# Una lista curada a mano se queda vieja; el directorio no.
 SC=/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad
-cd "$SC"
-PRUEBAS="test-migraciones.mjs test-tcgdex-codigo.mjs test-selector-mazo.mjs test-sets-live.mjs test-decklist-idiomas.mjs test-sprites.mjs test-partidas.mjs test-partidas-pagina.mjs test-torneos-22.mjs test-torneos-23.mjs test-meta-torneo.mjs test-torneos-21.mjs test-torneos-20.mjs test-vivo.mjs test-sondeo.mjs test-foro-1.mjs test-foro-2.mjs test-torneos-19.mjs test-torneos-18.mjs test-torneos-17.mjs test-torneos-16.mjs test-torneos-15.mjs test-tanda-247.mjs test-tanda-248.mjs test-correos.mjs test-tanda-251.mjs test-tanda-252.mjs test-tanda-253.mjs test-tanda-254.mjs test-tanda-255.mjs test-tanda-256.mjs test-tanda-261.mjs test-tanda-262.mjs test-tanda-266.mjs test-tanda-267.mjs test-tanda-268.mjs test-tanda-269.mjs test-tanda-270.mjs test-tanda-271.mjs test-tanda-272.mjs test-tanda-273.mjs test-tanda-275.mjs test-tanda-276.mjs test-tanda-277.mjs test-tanda-278.mjs test-tanda-280.mjs test-tanda-282.mjs test-tanda-286.mjs test-tanda-287.mjs test-tanda-288.mjs test-tanda-289.mjs test-tanda-290.mjs test-tanda-291.mjs test-tanda-293.mjs test-tanda-294.mjs test-tanda-295.mjs test-tanda-296.mjs test-tanda-297.mjs test-tanda-298.mjs test-tanda-299.mjs test-tanda-300.mjs test-tanda-301.mjs test-tanda-302.mjs test-tanda-305.mjs test-tanda-306.mjs test-tanda-308.mjs test-noticias.mjs test-ficha-guia.mjs test-tanda-309.mjs test-tanda-310.mjs test-tanda-311.mjs test-tanda-312.mjs test-tanda-313.mjs test-tanda-314.mjs test-tanda-315.mjs test-tanda-316.mjs test-tanda-319.mjs test-tanda-320.mjs test-tanda-321.mjs test-tanda-322.mjs test-tanda-323.mjs test-tanda-324.mjs test-tanda-325.mjs test-tanda-326.mjs test-tanda-327.mjs test-tanda-328.mjs test-tanda-329.mjs test-tanda-330.mjs test-tanda-331.mjs test-tanda-334.mjs test-tanda-335.mjs test-tanda-336.mjs test-tanda-337.mjs test-tanda-339.mjs test-tanda-340.mjs test-tanda-341.mjs test-tanda-342.mjs test-tanda-343.mjs test-tanda-344.mjs test-tanda-345.mjs test-tanda-346.mjs test-tanda-349.mjs test-tanda-350.mjs test-tanda-351.mjs test-tanda-352.mjs test-tanda-353.mjs test-tanda-355.mjs test-constructor.mjs test-tanda-359.mjs test-tanda-361.mjs test-tanda-362.mjs test-tanda-363.mjs test-tanda-367.mjs test-tanda-368.mjs test-tanda-369.mjs test-tanda-370.mjs test-tanda-371.mjs test-tanda-372.mjs test-tanda-373.mjs test-tanda-374.mjs test-tanda-375.mjs test-tanda-376.mjs test-tanda-377.mjs test-tanda-380.mjs test-tanda-381.mjs test-tanda-382.mjs test-tanda-383.mjs test-tanda-384.mjs test-tanda-385.mjs test-tanda-386.mjs test-tanda-387.mjs test-tanda-388.mjs test-tanda-391.mjs test-tanda-392.mjs test-tanda-394.mjs"
+PR=/tmp/wt-pruebas/pruebas
+cd "$SC" || exit 1
 > suite.log
+# Orden: primero las de siempre (torneos y foro, que son las más largas) y
+# luego las de tanda por número, para que un fallo de lo nuevo se lea al
+# final y no haya que buscarlo.
+PRUEBAS=$(cd "$PR" && ls test-*.mjs | grep -v '^test-tanda-' | sort)
+PRUEBAS="$PRUEBAS $(cd "$PR" && ls test-tanda-*.mjs 2>/dev/null | sort -t- -k3 -n)"
 for p in $PRUEBAS; do
-  [ -f "$p" ] || { echo "AUSENTE $p" >> suite.log; continue; }
-  if /opt/node22/bin/node "$p" > "/tmp/suite-$p.out" 2>&1; then
+  [ -f "$PR/$p" ] || { echo "AUSENTE $p" >> suite.log; continue; }
+  if /opt/node22/bin/node "$PR/$p" > "/tmp/suite-$p.out" 2>&1; then
     echo "VERDE  $p" >> suite.log
   else
     echo "ROJO   $p" >> suite.log
