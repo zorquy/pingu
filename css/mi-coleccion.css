@@ -1158,9 +1158,23 @@
 }
 
 /* ── El editor ── */
+/* ── La ficha de una carta (tanda 393) ──
+   PINGU: «el pop-up es muy pocho, se abre en una esquina y es horrible;
+   debería verse la carta en grande porque es la protagonista».
+   Tenía razón: era una ventana de 560 px con el escaneo a 96, o sea del
+   tamaño de un sello, y la carta era lo único que no se veía.
+
+   Ahora ocupa de verdad y se centra. `margin: auto` es lo que la centra
+   —un diálogo sin margen se queda arriba a la izquierda— y el alto va
+   TOPADO con desplazamiento dentro: una ficha larga en un portátil se
+   salía por abajo y los botones de guardar quedaban fuera de la
+   pantalla. */
 .mc-editor {
-  width: min(560px, calc(100vw - 32px));
+  width: min(1040px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  margin: auto;
   padding: var(--e-xl);
+  overflow: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
@@ -1179,25 +1193,121 @@
    El escaneo a la izquierda y quién es a la derecha. La foto lleva un
    ancho FIJO y su proporción: si midiera «lo que quepa», la ventana
    pegaría un salto al llegar la imagen. */
-.mc-editor-cabecera {
-  display: flex;
-  gap: var(--e-lg);
-  align-items: flex-start;
+/* Dos columnas: la carta manda en la izquierda y todo lo demás se lee en
+   la derecha. En móvil se apilan, con la carta arriba — sigue siendo lo
+   primero que quieres ver. */
+.mc-ficha {
+  display: grid;
+  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+  gap: var(--e-xl);
+  align-items: start;
 }
 
+@media (max-width: 760px) {
+  .mc-ficha {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--e-lg);
+  }
+
+  /* Y ahí la carta no se come la pantalla entera: con el alto de un
+     móvil, una carta a ancho completo deja los datos fuera de vista. */
+  .mc-ficha-carta {
+    max-width: 260px;
+    margin: 0 auto;
+  }
+}
+
+.mc-ficha-set {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.mc-ficha-datos > h2 {
+  margin: var(--e-xs) 0 var(--e-sm);
+  font-size: var(--t-2xl);
+  line-height: 1.2;
+}
+
+.mc-ficha-chapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  margin: 0 0 var(--e-lg);
+}
+
+.mc-ficha-bloque {
+  margin-bottom: var(--e-lg);
+}
+
+.mc-ficha-bloque h3 {
+  margin: 0 0 var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mc-ficha-precio {
+  margin: 0 0 var(--e-sm);
+  font-size: var(--t-md);
+}
+
+.mc-ficha-enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+/* La tabla de datos: dos columnas de pares, que es como caben siete
+   filas sin hacer una lista larguísima. Cada par es su propia caja para
+   que el nombre y el valor no se despeguen al plegarse. */
+.mc-ficha-tabla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--e-xs) var(--e-lg);
+  margin: 0;
+}
+
+.mc-ficha-tabla > div {
+  display: flex;
+  gap: var(--e-sm);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--e-xs) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.mc-ficha-tabla dt {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-ficha-tabla dd {
+  margin: 0;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-align: right;
+}
+
+/* La carta, a tamaño de carta. `contain` y no `cover`: a una carta no se
+   le recorta un borde para que encaje. */
 .mc-editor-foto {
-  flex: 0 0 auto;
-  width: 96px;
+  width: 100%;
   aspect-ratio: 245 / 342;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--bg);
 }
 
 .mc-editor-foto img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .mc-editor-quien {

@@ -18,6 +18,50 @@ mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
 que falló es que ninguno de los dos la releyó justo antes de numerar,
 porque las dos tandas se empezaron con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 393 — la ficha, con la carta de protagonista)
+
+**Hecho**: PINGU, al ver la 392: «el pop-up es muy pocho, se abre en una
+esquina y es horrible; debería verse la carta en grande porque es la
+protagonista, y después las otras cosas igual que Dex, con los mismos
+datos».
+
+Tenía razón: era una ventana de 560 px con el escaneo a 96, o sea la
+carta era lo único que NO se veía. Y se pegaba a una esquina porque un
+`<dialog>` sin `margin: auto` se queda arriba a la izquierda.
+
+Ahora son dos columnas, 1.040 px y centrada: la carta ocupa su columna
+entera a la izquierda (380 px, con `object-fit: contain`, que a una carta
+no se le recorta un borde), y a la derecha se lee en orden — de dónde es,
+cómo se llama, las chapas de TU copia, el precio con sus dos enlaces, los
+campos para editarla y, al final, **la tabla de datos**: tipo, energía,
+rareza, número, ilustrador, salida y número nacional.
+
+Esa tabla no es adorno, y es lo que dijo PINGU: «son datos muy
+importantes para luego utilizar los filtros». Verlos aquí es lo que
+enseña por qué se va a poder filtrar. Tres columnas nuevas en la consulta
+(`illustrator`, `types`, `dex_ids`) — de la misma petición, ni una más.
+
+**Lo que no se sabe no se pinta**: una fila con una raya ocupa lo mismo
+que el dato y además miente sobre lo que el catálogo tiene. Y el número
+nacional solo sale si la carta es de UNA especie: una TAG TEAM lleva dos
+y «25, 133» no es un número de Pokédex, es una lista.
+
+El alto va topado con desplazamiento dentro: sin eso, una ficha larga en
+un portátil dejaba los botones de guardar fuera de la pantalla.
+
+**Tres pruebas se mudaron, no se borraron**: la 369 (Cardmarket), la 375
+(el precio prestado del reverso) y la 376 miraban esos datos en la
+CASILLA, y desde la 392 viven en la ficha. Comprueban lo mismo; lo que
+cambió es dónde mirar.
+
+**Ficheros**: `mi-coleccion.html`, `css/mi-coleccion.css`,
+`js/mi-coleccion.js`, `js/mi-coleccion/datos.js`. En `pruebas`:
+`test-tanda-392.mjs`, `test-tanda-369.mjs`, `test-tanda-375.mjs`,
+`test-tanda-376.mjs`.
+
+**En curso / pendiente**: la tanda B (Stack/Split Variants y las tres
+barras de la cabecera del set).
+
 ## 2026-10-01 — PINGU-Claude (tanda 392 — la colección enseña la CARTA)
 
 **Hecho**: la «tanda A» de lo que pidió PINGU viendo la app de Dex: «me

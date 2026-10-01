@@ -23,7 +23,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // y el barrido de la 299 sigue los imports —así que importarlo por una
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
-import { rarezaEs, categoriaEs } from './carta-traducciones.js'
+import { rarezaEs, categoriaEs, tipoEs } from './carta-traducciones.js'
 import { esDelTCG } from './catalogo-series.js'
 import {
   IDIOMAS,
@@ -459,7 +459,19 @@ function abrirEditor(l) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   $('mcEdFoto').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''
   $('mcEditorTitulo').textContent = nombreDe(c)
-  $('mcEdSet').textContent = c ? `${c.tcg_sets?.name || ''} · ${c.local_id}` : l.card_id
+  // El set va ARRIBA del nombre y el número con él, como una miga de pan:
+  // «de dónde es» antes que «cómo se llama» (tanda 393).
+  $('mcEdSet').textContent = c
+    ? `${c.tcg_sets?.name || ''}${c.local_id ? ` · ${c.local_id}` : ''}`
+    : l.card_id
+  // Las chapas de TU copia, para no tener que leer los desplegables:
+  // versión, idioma, estado, gradeo y cuántas das.
+  $('mcEdChapas').innerHTML = chipsDe(l)
+  // Y la tabla de datos. No es adorno: la rareza, el tipo de energía y el
+  // ilustrador son justo por lo que se filtra, así que verlos aquí es lo
+  // que enseña qué se puede pedir. Una fila que no se sabe NO se pinta —
+  // «Ilustrador: —» ocupa lo mismo que el dato y no dice nada.
+  $('mcEdTabla').innerHTML = tablaDeCarta(c)
   $('mcEdIdioma').innerHTML = opciones(IDIOMAS, l.idioma)
   $('mcEdEstado').innerHTML = opciones(ESTADOS, l.estado)
   $('mcEdVariante').innerHTML = opciones(VARIANTES, l.variante)
@@ -496,6 +508,30 @@ function abrirEditor(l) {
   }
   d.dataset.linea = l.id
   d.showModal()
+}
+
+// La tabla de datos de la ficha (tanda 393), con lo mismo que enseña
+// Dex. Lo que no se sabe no se pinta: una fila con una raya ocupa igual
+// que el dato y no dice nada — y además miente sobre lo que el catálogo
+// tiene (la regla de los tres estados, tanda 319).
+function tablaDeCarta(c) {
+  if (!c) return ''
+  const fecha = c.tcg_sets?.release_date
+  const filas = [
+    ['Tipo', categoriaEs(c.category)],
+    ['Energía', Array.isArray(c.types) && c.types.length ? c.types.map(tipoEs).join(', ') : ''],
+    ['Rareza', rarezaEs(c.rarity)],
+    ['Número', c.local_id ? `${c.local_id}${c.tcg_sets?.card_count_official ? ` / ${c.tcg_sets.card_count_official}` : ''}` : ''],
+    ['Ilustrador', c.illustrator],
+    ['Salida', fecha ? new Date(fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''],
+    // El número nacional solo si la carta es de UNA especie: una TAG TEAM
+    // lleva dos y «25, 133» no es un número de Pokédex, es una lista.
+    ['N.º nacional', Array.isArray(c.dex_ids) && c.dex_ids.length === 1 ? String(c.dex_ids[0]) : ''],
+  ]
+  return filas
+    .filter(([, v]) => v)
+    .map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd></div>`)
+    .join('')
 }
 
 async function guardarEditor(e) {

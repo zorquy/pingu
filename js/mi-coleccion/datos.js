@@ -109,7 +109,10 @@ export async function borrar(id) {
 // `tcg_online_code` va aquí desde la tanda 370: es lo que necesita el
 // segundo sitio donde buscar un escaneo cuando TCGdex no tiene el de esa
 // carta (ver js/escaneo-carta.js).
-const COLUMNAS_CARTA = 'id,set_id,local_id,name,name_es,image_path,rarity,category,variants,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
+// `illustrator`, `types` y `dex_ids` entran en la tanda 393: son la
+// tabla de detalles de la ficha. No es una petición más —son columnas de
+// la misma consulta—, y además son por lo que luego se puede filtrar.
+const COLUMNAS_CARTA = 'id,set_id,local_id,name,name_es,image_path,rarity,category,variants,illustrator,types,dex_ids,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
 
 export async function cartasPorIds(ids) {
   const unicos = [...new Set(ids.filter(Boolean))]

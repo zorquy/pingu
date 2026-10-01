@@ -329,25 +329,39 @@
 
     <dialog class="mc-editor" id="mcEditor" aria-labelledby="mcEditorTitulo">
       <form id="mcEditorForm" method="dialog">
-        <!-- La cabecera con la CARTA a la vista (tanda 369). Antes era un
-             título de texto y ya está: abrías el editor y no sabías si te
-             habías equivocado de fila hasta guardar. Con el escaneo
-             delante, se ve de qué carta hablas. -->
-        <div class="mc-editor-cabecera">
-          <div class="mc-editor-foto" id="mcEdFoto"></div>
-          <div class="mc-editor-quien">
-            <h2 id="mcEditorTitulo">Editar</h2>
-            <p class="mc-editor-set" id="mcEdSet"></p>
-            <p class="subtext" id="mcEdPrecio"></p>
-            <a class="mc-accion mc-accion-cm" id="mcEdCardmarket" href="#" target="_blank" rel="noopener"></a>
-            <!-- La ficha ENTERA sigue siendo una página (tanda 392): es la
-                 que indexa Google, la que se comparte y la que trae los
-                 ataques, las reimpresiones y el tablón de intercambios.
-                 Este diálogo es el atajo de dentro de tu colección, no su
-                 sustituto. -->
-            <a class="mc-accion" id="mcEdFicha" href="#">Ver la ficha completa</a>
+        <!-- La ficha de una carta (tanda 393). La carta MANDA: ocupa su
+             columna entera a la izquierda, porque es lo que has venido a
+             mirar. Antes esto era una cabecera estrecha con el escaneo
+             del tamaño de un sello y el diálogo pegado a una esquina.
+
+             A la derecha, en el orden en el que se lee: de dónde es, cómo
+             se llama, qué versión, cuántas tienes, cuánto vale, y al final
+             la tabla de datos — que no es adorno: la rareza, el tipo y el
+             ilustrador son justo por lo que se filtra. -->
+        <div class="mc-ficha">
+          <div class="mc-ficha-carta">
+            <div class="mc-editor-foto" id="mcEdFoto"></div>
           </div>
-        </div>
+          <div class="mc-ficha-datos">
+            <p class="mc-ficha-set" id="mcEdSet"></p>
+            <h2 id="mcEditorTitulo">Editar</h2>
+            <p class="mc-ficha-chapas" id="mcEdChapas"></p>
+
+            <section class="mc-ficha-bloque">
+              <h3>Precio</h3>
+              <p class="mc-ficha-precio" id="mcEdPrecio"></p>
+              <div class="mc-ficha-enlaces">
+                <a class="mc-accion mc-accion-cm" id="mcEdCardmarket" href="#" target="_blank" rel="noopener"></a>
+                <!-- La ficha ENTERA sigue siendo una página (tanda 392): es
+                     la que indexa Google, la que se comparte y la que trae
+                     los ataques, las reimpresiones y el tablón. Este
+                     diálogo es el atajo de dentro de tu colección. -->
+                <a class="mc-accion" id="mcEdFicha" href="#">Ver la ficha completa</a>
+              </div>
+            </section>
+
+            <section class="mc-ficha-bloque">
+              <h3>Tu copia</h3>
         <div class="mc-editor-campos">
           <label>Idioma <select id="mcEdIdioma"></select></label>
           <label>Estado <select id="mcEdEstado"></select></label>
@@ -362,6 +376,14 @@
           <label>Tu valor (€, opcional) <input type="text" id="mcEdValor" inputmode="decimal" placeholder="Manda sobre Cardmarket" /></label>
           <label>Lo que pagaste (€) <input type="text" id="mcEdCompra" inputmode="decimal" /></label>
           <label class="mc-editor-notas">Notas <textarea id="mcEdNotas" maxlength="280" rows="2"></textarea></label>
+        </div>
+            </section>
+
+            <section class="mc-ficha-bloque">
+              <h3>Datos de la carta</h3>
+              <dl class="mc-ficha-tabla" id="mcEdTabla"></dl>
+            </section>
+          </div>
         </div>
         <div class="mc-editor-acciones">
           <button type="button" class="link-btn mc-borrar" id="mcEdBorrar">Quitar de la colección</button>
