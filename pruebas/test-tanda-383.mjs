@@ -109,8 +109,10 @@ async function abrir(viewport = { width: 1280, height: 1200 }) {
 
   // Y el progreso del álbum NO se mueve por versiones: un bolsillo lo
   // llena cualquiera de ellas.
+  // Desde la 398 son TRES barras; la de «completo» es la que cuenta
+  // bolsillos, que es lo que mira esta comprobación.
   check('el progreso cuenta bolsillos, no versiones',
-    /1 de 4 cartas/.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
+    /Set completo 1 de 4/.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
     limpio(await page.locator('#mcAlbumProgreso').textContent()))
 
   await chip().click()

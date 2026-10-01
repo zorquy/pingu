@@ -136,8 +136,12 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
   check('ni en el HTML', !/mcAlbumTocar/.test(leer('mi-coleccion.html')))
   // Un <button> dentro de un <a> no es HTML válido: el navegador lo
   // desmonta por su cuenta y el mando dejaría de funcionar sin dar error.
+  // Hasta el CIERRE del enlace, no «en los 400 caracteres siguientes»:
+  // esa ventana se come el `</a>` y marca como malo un botón que está
+  // fuera. Es la misma trampa que ya picó en esta prueba, escrita otra
+  // vez: una distancia no es una estructura.
   check('el bolsillo no mete botones dentro del enlace',
-    !/<a class="mc-bolsillo[^"]*"[^>]*>[\s\S]{0,400}<button/.test(js))
+    !/<a class="mc-bolsillo[^"]*"[^>]*>(?:(?!<\/a>)[\s\S])*?<button/.test(js))
 
   const { page, errores } = await abrir('/mi-coleccion.html', {
     tablas: {
