@@ -261,7 +261,7 @@ console.log('\n── 8. «De esas, doy» va en la línea, no en una lista apart
     coleccion: [linea({ id: 'm1', user_id: 'admin-1', card_id: 'sv1-1', cantidad: 3 })],
     pestania: 'cartas',
   })
-  await page.locator('[data-editar]').first().click()
+  await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(600)
   check('el editor tiene el campo', (await page.locator('#mcEdCambio').count()) === 1)
   await page.fill('#mcEdCambio', '2')
@@ -270,14 +270,14 @@ console.log('\n── 8. «De esas, doy» va en la línea, no en una lista apart
   // Y no se pueden dar más copias de las que tienes: el tope se recorta
   // en el cliente para no dar un error feo, y en la base porque la API
   // está abierta.
-  await page.locator('[data-editar]').first().click()
+  await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(600)
   check('se guardó', (await page.locator('#mcEdCambio').inputValue()) === '2',
     await page.locator('#mcEdCambio').inputValue())
   await page.fill('#mcEdCambio', '99')
   await page.locator('#mcEditorForm button[type="submit"]').click()
   await page.waitForTimeout(1200)
-  await page.locator('[data-editar]').first().click()
+  await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(600)
   check('  …y no se dan más de las que tienes', (await page.locator('#mcEdCambio').inputValue()) === '3',
     await page.locator('#mcEdCambio').inputValue())

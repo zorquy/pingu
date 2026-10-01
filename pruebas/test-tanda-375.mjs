@@ -113,10 +113,18 @@ async function abrir(coleccion) {
 {
   const { page, errores } = await abrir([{ id: 'l1', card_id: 'sv1-1', cantidad: 1, variante: 'reverse', idioma: 'es', estado: 'NM' }])
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const valor = limpio(await page.locator('.mc-carta-valor').first().textContent())
+  // El precio salió de la casilla en la tanda 392 —la colección enseña
+  // la carta y ya— y vive en la ficha, que se abre pulsándola. Lo que se
+  // comprueba no cambia; cambia dónde mirarlo.
+  await page.locator('.mc-carta-foto').first().click()
+  await page.waitForTimeout(500)
+  const valor = limpio(await page.locator('#mcEdPrecio').textContent())
   check('la carta en reverse YA no dice «Sin precio»', !/Sin precio/.test(valor), valor)
   check('  …y enseña el de la normal', /5,50/.test(valor), valor)
-  check('  …diciendo de dónde sale', /de la normal/.test(valor), valor)
+  // La ficha lo dice con más palabras que la casilla de antes («de la
+  // versión normal: Cardmarket no publica el del reverso»), que es lo
+  // mismo pero explicado. Lo que importa es que NO se dé por suyo.
+  check('  …diciendo de dónde sale', /de la versión normal/.test(valor), valor)
   // Y el total de arriba deja de decir que te falta un precio.
   const nota = limpio(await page.locator('#mcResumenNota').textContent())
   check('  …y arriba no se cuenta como carta sin precio', !/no tiene precio/.test(nota), nota)
@@ -126,9 +134,11 @@ async function abrir(coleccion) {
 console.log('\n── 4. Y una normal no dice de dónde sale, porque sale de su sitio ──')
 {
   const { page } = await abrir([{ id: 'l1', card_id: 'sv1-1', cantidad: 1, variante: 'normal', idioma: 'es', estado: 'NM' }])
-  const valor = limpio(await page.locator('.mc-carta-valor').first().textContent())
+  await page.locator('.mc-carta-foto').first().click()
+  await page.waitForTimeout(500)
+  const valor = limpio(await page.locator('#mcEdPrecio').textContent())
   check('la normal enseña su precio', /5,50/.test(valor), valor)
-  check('  …y sin la coletilla', !/de la normal/.test(valor), valor)
+  check('  …y sin la coletilla', !/de la versión normal/.test(valor), valor)
   await page.close()
 }
 

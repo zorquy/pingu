@@ -36,6 +36,9 @@ const abrir = async ({ conImagen = true } = {}) => {
     window.__FAKE_CARTAS__ = [1, 2, 3, 4].map((n) => ({
       id: `sv1-${n}`, set_id: 'sv1', local_id: String(n), name: `Carta ${n}`,
       image_path: hay ? `x/${n}` : null, market: 'WEST', variants: { normal: true, reverse: true },
+      // La primera va SIN ilustrador ni rareza a propósito: es el caso de
+      // «no se sabe», que no puede pintarse como una raya.
+      ...(n === 1 ? {} : { illustrator: 'Mitsuhiro Arita', rarity: 'Rare', types: ['Water'] }),
     }))
     window.__FAKE_COLECCION__ = [1, 2, 3, 4].map((n) => ({
       id: `l${n}`, card_id: `sv1-${n}`, cantidad: n === 2 ? 3 : 1,
@@ -103,13 +106,13 @@ console.log('\n── 3. La ficha, en un diálogo ──')
 {
   const { page, errores } = await abrir()
   check('el diálogo empieza cerrado', (await page.locator('#mcEditor[open]').count()) === 0)
-  await page.locator('.mc-carta-foto').first().click()
+  await page.locator('.mc-carta-foto').nth(1).click()
   await page.waitForTimeout(600)
   check('pulsar la carta lo abre', (await page.locator('#mcEditor[open]').count()) === 1)
 
   // Lo que se quitó de la casilla tiene que estar AQUÍ, o se ha perdido.
   const texto = (await page.locator('#mcEditor').textContent())?.replace(/\s+/g, ' ') || ''
-  check('con el nombre de la carta', /Carta 1/.test(texto), texto.slice(0, 120))
+  check('con el nombre de la carta', /Carta 2/.test(texto), texto.slice(0, 120))
   check('con su set', /Scarlet/.test(texto))
   check('con el precio', /Cardmarket|precio/i.test(texto))
   check('y con los campos para editarla', (await page.locator('#mcEdCantidad').count()) === 1)
@@ -119,6 +122,42 @@ console.log('\n── 3. La ficha, en un diálogo ──')
   const ficha = await page.locator('#mcEdFicha').getAttribute('href')
   check('y la salida a la ficha entera', /^\/carta\//.test(ficha || ''), ficha)
   check('sin errores', errores.length === 0, errores.join(' | '))
+
+  // ── La ficha, con la carta de protagonista (tanda 393) ──
+  // PINGU: «es muy pocho, se abre en una esquina y es horrible; debería
+  // verse la carta en grande porque es la protagonista».
+  const caja = await page.locator('#mcEditor').boundingBox()
+  const foto = await page.locator('#mcEdFoto').boundingBox()
+  check('la ventana ocupa de verdad', (caja?.width || 0) >= 900, `${Math.round(caja?.width || 0)}px`)
+  // Un diálogo sin `margin: auto` se queda arriba a la izquierda, que es
+  // justo lo que PINGU llamó «se abre en una esquina».
+  const centro = (caja?.x || 0) + (caja?.width || 0) / 2
+  check('  …y está centrada', Math.abs(centro - 640) < 4, `centro en ${Math.round(centro)} de 640`)
+  check('la carta se ve GRANDE', (foto?.width || 0) >= 300, `${Math.round(foto?.width || 0)}px`)
+  // Y cabe entera: con el alto topado, los botones de guardar se salían
+  // de la pantalla en un portátil.
+  check('  …y la ventana cabe en la pantalla', (caja?.height || 0) <= 900 - 40,
+    `${Math.round(caja?.height || 0)} de 900`)
+
+  // La tabla de datos no es adorno: la rareza, la energía y el ilustrador
+  // son por lo que se filtra, y verlos aquí enseña qué se puede pedir.
+  const tabla = (await page.locator('#mcEdTabla').textContent())?.replace(/\s+/g, ' ') || ''
+  check('la tabla trae los datos de la carta',
+    /Rareza/.test(tabla) && /Ilustrador/.test(tabla) && /Número/.test(tabla), tabla.slice(0, 120))
+  await page.close()
+}
+
+console.log('\n── 4. Lo que no se sabe no se pinta ──')
+{
+  // Una fila con una raya ocupa lo mismo que el dato y no dice nada; y
+  // además miente sobre lo que el catálogo tiene (la regla de los tres
+  // estados, tanda 319). Estas cartas van sin ilustrador ni rareza.
+  const { page } = await abrir()
+  await page.locator('.mc-carta-foto').first().click()
+  await page.waitForTimeout(600)
+  const tabla = (await page.locator('#mcEdTabla').textContent())?.replace(/\s+/g, ' ') || ''
+  check('sin ilustrador, no sale la fila del ilustrador', !/Ilustrador/.test(tabla), tabla.slice(0, 120))
+  check('  …pero sí lo que sí se sabe', /Número/.test(tabla), tabla.slice(0, 120))
   await page.close()
 }
 

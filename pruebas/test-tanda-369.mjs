@@ -120,24 +120,30 @@ console.log('\n── 2. En el móvil sigue abriéndose por una hoja ──')
   await page.close()
 }
 
-console.log('\n── 3. La lista: el logo, y dos acciones que se distinguen ──')
+console.log('\n── 3. Cardmarket, ahora dentro de la ficha ──')
 {
+  // Esto miraba la LISTA. Desde la tanda 392 la casilla es solo la carta
+  // —sin nombre, sin precio y sin botones— y Cardmarket vive en la ficha,
+  // que se abre pulsándola. Lo que se comprueba es lo mismo que antes; lo
+  // que ha cambiado es dónde está, así que la prueba se muda con el dato
+  // en vez de borrarse.
   const { page, errores } = await abrir(6, [{ id: 'c1', card_id: 'sv1-1', cantidad: 2 }])
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const fila = page.locator('.mc-carta').first()
+  await page.locator('.mc-carta-foto').first().click()
+  await page.waitForTimeout(500)
+  const cm = page.locator('#mcEdCardmarket')
   check('Cardmarket va con su marca, no con un enlace de texto',
-    (await fila.locator('.mc-accion-cm .cm-marca').count()) === 1)
+    (await cm.locator('.cm-marca').count()) === 1)
   check('  …y sigue llevando a cardmarket.com',
-    /cardmarket\.com/.test((await fila.locator('.mc-accion-cm').getAttribute('href')) || ''),
-    await fila.locator('.mc-accion-cm').getAttribute('href'))
-  // Quien no ve el dibujo tiene que poder leer a dónde va.
-  check('  …y dice a dónde lleva para quien no lo ve',
-    /cardmarket/i.test((await fila.locator('.mc-accion-cm').getAttribute('aria-label')) || ''),
-    await fila.locator('.mc-accion-cm').getAttribute('aria-label'))
+    /cardmarket\.com/.test((await cm.getAttribute('href')) || ''), await cm.getAttribute('href'))
   // Lo que se pulsa mide 44 (norma de la casa); con ratón se deja en 32,
   // que es la excepción ya declarada para los controles densos.
-  const alto = await fila.locator('[data-editar]').evaluate((e) => e.getBoundingClientRect().height)
-  check('las dos acciones se pueden pulsar', alto >= 32, `${Math.round(alto)}px`)
+  const alto = await cm.evaluate((e) => e.getBoundingClientRect().height)
+  check('y se puede pulsar', alto >= 32, `${Math.round(alto)}px`)
+  // Y la carta de la lista también: es el único control que queda ahí.
+  const carta = await page.locator('.mc-carta-foto').first().evaluate((e) => e.getBoundingClientRect())
+  check('la carta de la lista también se puede pulsar',
+    carta.width >= 44 && carta.height >= 44, `${Math.round(carta.width)}×${Math.round(carta.height)}`)
   await page.close()
 }
 
@@ -150,7 +156,7 @@ console.log('\n── 4. La ventana de editar enseña la carta ──')
     { id: 'c1', card_id: 'sv1-1', cantidad: 2 },
     { id: 'c2', card_id: 'sv1-3', cantidad: 1 },
   ])
-  await page.locator('[data-editar]').first().click()
+  await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(700)
   const d = page.locator('#mcEditor')
   check('la ventana se abre', await d.isVisible())
@@ -165,7 +171,7 @@ console.log('\n── 4. La ventana de editar enseña la carta ──')
   const primera = await d.locator('#mcEditorTitulo').textContent()
   await page.keyboard.press('Escape')
   await page.waitForTimeout(400)
-  await page.locator('[data-editar]').nth(1).click()
+  await page.locator('.mc-carta-foto').nth(1).click()
   await page.waitForTimeout(700)
   check('  …y cambia al abrir otra línea', (await d.locator('#mcEditorTitulo').textContent()) !== primera,
     `${primera} → ${await d.locator('#mcEditorTitulo').textContent()}`)
