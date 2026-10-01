@@ -23,7 +23,83 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
-## 2026-10-01 — PINGU-Claude (tanda 395 — el día del torneo: mesas, check-in y jueces)
+## 2026-10-01 — PINGU-Claude (tanda 396 — la ficha, vestida)
+
+**Hecho**: lo que PINGU llevaba pidiendo dos veces y yo no había hecho —
+arreglé las cuatro cosas concretas de la 395 pero no el ASPECTO: «sigue
+siendo muy pocho, mira qué bonito y moderno lo muestra Dex».
+
+Lo que hacía que lo suyo pareciera montado y lo nuestro no era el
+AGRUPAMIENTO: allí cada grupo vive en su caja con su fondo y su aire, y
+aquí eran rótulos sueltos sobre el fondo del diálogo, así que nada
+separaba «el precio» de «tu copia» salvo un hueco. Ahora cada bloque es
+un panel, el nombre pesa más, el precio se lee como el número que es, y
+la carta se queda PEGADA mientras bajas por los datos (la ficha se
+desplaza por dentro, y sin eso la protagonista se iba arriba).
+
+Y las copias llevan sus dos botones: un campo de número a secas obliga a
+seleccionar y teclear para sumar una, que es lo que más se hace aquí —
+te llega un sobre y metes la que ya tenías.
+
+**Dos cosas que cazaron las pruebas y no yo**: el diálogo medía 897 de un
+tope de 852, porque con `content-box` el relleno se SUMA al `max-height`;
+y la aserción que lo cantó comparaba contra 900 mientras esa prueba abre
+a 1000 de alto — un número a mano donde tenía que ir el alto de verdad.
+
+**Y un fallo mío al resolver el conflicto de la 395**: en un `rebase`,
+`<<<<<<< HEAD` es lo que YA ESTABA en el remoto, no lo propio. Renumeré
+el bloque de Ibai y dejé el mío con el número viejo. Arreglado aquí: lo
+del día del torneo es la 394 y lo del holo la 395.
+
+**Ficheros**: `css/mi-coleccion.css`, `mi-coleccion.html`,
+`js/mi-coleccion.js`, `BITACORA.md`. En `pruebas`: `test-tanda-392.mjs`.
+
+**En curso / pendiente**: la tanda B (Stack/Split Variants y las tres
+barras del set). Y del plan largo: filtros en panel lateral, cabecera de
+la Pokédex, carpetas e intercambios por objetivo.
+
+## 2026-10-01 — PINGU-Claude (tanda 395 — el holo en la colección, y salir pulsando fuera)
+
+**Hecho**: cuatro cosas que pidió PINGU viendo la 393.
+
+1. **La imagen de la ficha era la MINIATURA.** Se reutilizaba la de la
+   rejilla (`low`), y a 380 px de ancho una imagen pensada para 140 se ve
+   borrosa — justo la carta, que es lo que has venido a mirar. Ahora pide
+   `high`, la misma que /carta.
+2. **El holo, en la ficha y en la rejilla.** PINGU: «la animación de la
+   ficha completa cuando pasas el ratón, que se mueva así como en 3D y
+   con el holo, es bastante mejor». Se reutiliza `js/carta-holo.js` y el
+   MISMO envoltorio y `data-brillo` que /carta: si fueran otros, el día
+   que alguien toque el efecto arreglaría una pantalla y dejaría la otra
+   a medias. Fuera el «levantarse» de la 392.
+3. **En la rejilla se monta al PASAR por encima**, no al pintar: con
+   trescientas cartas, montarlo en todas serían trescientos juegos de
+   escuchas para las dos o tres por las que vas a pasar.
+4. **Pulsar fuera cierra la ficha.** Un `<dialog>` no lo hace solo. Y se
+   mira que el clic caiga FUERA de su caja, no solo que el destino sea el
+   diálogo: sin eso, pulsar en el hueco entre dos campos lo cerraría con
+   lo que estabas escribiendo a medias.
+
+Para lo del holo hubo que sacar su bloque de `css/carta.css` a
+**`css/carta-holo.css`**: ahora lo cargan CUATRO páginas (/carta,
+/cartas, /coleccion y /mi-coleccion). Cargar `carta.css` entera habría
+traído las dos columnas, las migas y el bloque de combate, que en la
+colección no pintan nada.
+
+**El barrido de la 299 hizo su trabajo**: avisó de que `cartas.html` y
+`coleccion.html` también usan esas clases y se habían quedado sin la
+hoja. Y la 368 y la 373 leían el CSS en `carta.css`: apuntadas a la hoja
+nueva.
+
+**Ficheros**: `css/carta-holo.css` (**nuevo**), `css/carta.css`,
+`css/mi-coleccion.css`, `js/mi-coleccion.js`, `carta.html`,
+`cartas.html`, `coleccion.html`, `mi-coleccion.html`. En `pruebas`:
+`test-tanda-392.mjs`, `test-tanda-368.mjs`, `test-tanda-373.mjs`.
+
+**En curso / pendiente**: PINGU sigue viendo la ficha «pocha» al lado de
+Dex. Queda una pasada de forma —ritmo, jerarquía y aire— que no es
+reordenar datos sino vestirlos. Y la tanda B (Stack/Split Variants).
+## 2026-10-01 — PINGU-Claude (tanda 394 — el día del torneo: mesas, check-in y jueces)
 
 **Hecho**: cuatro peticiones de PINGU para los torneos.
 
@@ -65,48 +141,6 @@ bundle pasó a ser la 393, y mientras se empujaba llegó la 393 (la
 ficha): queda como la **394**, con `test-tanda-391.mjs` y
 `rigor-tanda-391.py` renombrados al 394 — el choque de números de la
 384/385, dos veces en la misma tanda.
-## 2026-10-01 — PINGU-Claude (tanda 394 — el holo en la colección, y salir pulsando fuera)
-
-**Hecho**: cuatro cosas que pidió PINGU viendo la 393.
-
-1. **La imagen de la ficha era la MINIATURA.** Se reutilizaba la de la
-   rejilla (`low`), y a 380 px de ancho una imagen pensada para 140 se ve
-   borrosa — justo la carta, que es lo que has venido a mirar. Ahora pide
-   `high`, la misma que /carta.
-2. **El holo, en la ficha y en la rejilla.** PINGU: «la animación de la
-   ficha completa cuando pasas el ratón, que se mueva así como en 3D y
-   con el holo, es bastante mejor». Se reutiliza `js/carta-holo.js` y el
-   MISMO envoltorio y `data-brillo` que /carta: si fueran otros, el día
-   que alguien toque el efecto arreglaría una pantalla y dejaría la otra
-   a medias. Fuera el «levantarse» de la 392.
-3. **En la rejilla se monta al PASAR por encima**, no al pintar: con
-   trescientas cartas, montarlo en todas serían trescientos juegos de
-   escuchas para las dos o tres por las que vas a pasar.
-4. **Pulsar fuera cierra la ficha.** Un `<dialog>` no lo hace solo. Y se
-   mira que el clic caiga FUERA de su caja, no solo que el destino sea el
-   diálogo: sin eso, pulsar en el hueco entre dos campos lo cerraría con
-   lo que estabas escribiendo a medias.
-
-Para lo del holo hubo que sacar su bloque de `css/carta.css` a
-**`css/carta-holo.css`**: ahora lo cargan CUATRO páginas (/carta,
-/cartas, /coleccion y /mi-coleccion). Cargar `carta.css` entera habría
-traído las dos columnas, las migas y el bloque de combate, que en la
-colección no pintan nada.
-
-**El barrido de la 299 hizo su trabajo**: avisó de que `cartas.html` y
-`coleccion.html` también usan esas clases y se habían quedado sin la
-hoja. Y la 368 y la 373 leían el CSS en `carta.css`: apuntadas a la hoja
-nueva.
-
-**Ficheros**: `css/carta-holo.css` (**nuevo**), `css/carta.css`,
-`css/mi-coleccion.css`, `js/mi-coleccion.js`, `carta.html`,
-`cartas.html`, `coleccion.html`, `mi-coleccion.html`. En `pruebas`:
-`test-tanda-392.mjs`, `test-tanda-368.mjs`, `test-tanda-373.mjs`.
-
-**En curso / pendiente**: PINGU sigue viendo la ficha «pocha» al lado de
-Dex. Queda una pasada de forma —ritmo, jerarquía y aire— que no es
-reordenar datos sino vestirlos. Y la tanda B (Stack/Split Variants).
-
 ## 2026-10-01 — PINGU-Claude (tanda 393 — la ficha, con la carta de protagonista)
 
 **Hecho**: PINGU, al ver la 392: «el pop-up es muy pocho, se abre en una
