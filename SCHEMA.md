@@ -22214,3 +22214,84 @@ uno en la suya, sin rótulos vacíos, y **un número que todavía no existe
 cayendo en la última en vez de perderse**—; y en pantalla, el anillo con
 su porcentaje, su degradado cónico y su etiqueta, los nueve rótulos con
 su cuenta, y que al buscar solo quedan los rótulos con algo debajo.
+
+## Tanda 415 — los dibujos que faltaban (oct. 2026)
+
+PINGU, mirando las expansiones ya en producción: «hay expansiones que no
+tienen logo, no sé de dónde los estáis sacando pero hay un montón que no
+salen»; «has metido McDonald's Collection entre Espada y Escudo y
+Escarlata y Púrpura, y McDonald's no es un set como tal»; «hay un montón
+de cartas en la colección que no se muestran»; «en el panel, dale sin
+scroll y que haya una flechita»; «el tema de los cambios ponlo mucho más
+visual».
+
+### El logo que no está: hay una segunda fuente, y era nuestra
+
+El logo sale de TCGdex, que es un catálogo comunitario, y hay sets a los
+que sencillamente no se lo han puesto —los más nuevos y los de promos—.
+No es un fallo de importación: es que ese dato no existe allí.
+
+Pero la misma fila guarda el **símbolo** del set (`symbol_url`), que
+llevaba ahí **sin que lo usara nadie** desde que se importa el catálogo.
+Es más pequeño y más feo que un logo, pero es el dibujo de esa colección.
+Y si tampoco está, el **nombre**, pintado dentro de la cabecera.
+
+Lo importante es que la cadena **no pueda acabar en nada**: una tarjeta
+sin dibujo y sin nombre no dice qué colección es. Se recorre con el mismo
+mecanismo que los escaneos de carta (`atributosDeEscaneo`), así que si el
+símbolo tampoco carga, el nombre aparece solo.
+
+El nombre de debajo pasa a ser SIEMPRE `sr-only`: el visible es el de la
+cabecera, y enseñar los dos lo escribe dos veces en la misma tarjeta.
+
+### Las cartas sin escaneo
+
+Lo mismo por el otro lado: TCGdex no tiene foto de muchas promos y de
+cartas viejas, y de Limitless solo se puede sacar si la colección tiene
+código de TCG Live. Donde no hay ninguna de las dos, el hueco se quedaba
+**en blanco** — y en un álbum eso es peor que no pintar nada, porque un
+bolsillo vacío ya significa «no la tienes»: un bolsillo LLENO y en blanco
+dice lo contrario de lo que pasa. Ahora lleva el nombre escrito.
+
+### McDonald's, Futsal y compañía
+
+Son colaboraciones y productos sueltos: salen con el número de una era
+pero no son de su línea. La lista creció con lo que PINGU fue viendo.
+Sigue siendo una lista a mano y se quedará vieja —el día que salga otra
+colaboración se colará en medio—, pero el error por ese lado es que una
+colección rara aparezca entre las buenas, no que una ERA entera caiga al
+fondo.
+
+### La tira, sin barra y con flechas
+
+Se mueve de tarjeta en tarjeta —el ancho de una más su hueco— y no una
+cantidad fija de píxeles: con una fija, la tira acaba parándose a mitad
+de una tarjeta. Las flechas se apagan en los extremos, porque una flecha
+que no lleva a ninguna parte miente. Con el dedo no se pintan: se desliza
+igual, y dos círculos encima de las tarjetas tapan justo lo que hay que
+leer.
+
+**Y una trampa de CSS**: `display: grid` en la clase GANA al `[hidden]`
+del navegador, que es una regla de etiqueta. La flecha apagada se seguía
+viendo con el atributo puesto. Quien gana es la regla más fuerte, no la
+última.
+
+### Los cambios, por delante
+
+El problema no eran las tarjetas de quien encaja contigo —esas ya llevan
+avatar, cartas y un botón—: era que **sin nada apuntado** la pantalla
+eran cuatro cajas grises seguidas, que es justo como la ve todo el mundo
+la primera vez. Ahora empieza por tres cifras y, si no hay nada, por los
+tres pasos de cómo funciona en vez de por dos tablones vacíos.
+
+### Comprobado
+
+`test-tanda-415.mjs`: qué nombres se van al fondo y cuáles se quedan en
+su era; que una tarjeta de expansión **nunca** acaba sin decir qué es
+—sin logo ni símbolo no se pide ninguna imagen y sale el nombre; con
+símbolo y sin logo se pide el símbolo; con logo, el símbolo queda de
+respaldo— mirando las direcciones que se PIDEN y no el `<img>` después,
+porque aquí ninguna imagen carga y para cuando se mira la cadena ya se ha
+agotado; que un bolsillo sin escaneo lleva el nombre; y la tira, con las
+flechas apagándose en los extremos, moviendo una tarjeta entera y **sin
+barra pero deslizable**.

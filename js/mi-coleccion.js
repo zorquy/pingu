@@ -297,6 +297,7 @@ function pintarResumenPanel() {
   const total = valorDeAhora()
 
   caja.innerHTML = `
+    <div class="mc-tira-caja">
     <div class="mc-tira" id="mcTira" tabindex="0" role="group" aria-label="Resumen de tu colección">
       ${diapoHtml('Tu colección', `
         <p class="mc-diapo-cifra">${copias.toLocaleString('es-ES')}</p>
@@ -329,6 +330,16 @@ function pintarResumenPanel() {
       ${diapoHtml('Por rareza', porRareza.length
         ? barrasHtml(porRareza.slice(0, 5))
         : '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>')}
+    </div>
+      <!-- La flecha (tanda 415). PINGU: «dale sin scroll y que haya una
+           flechita para moverlo para un lado en una esquina, así más
+           moderno». La barra de desplazamiento se esconde y la tira se
+           mueve de tarjeta en tarjeta. Las flechas se apagan en los
+           extremos: una flecha que no lleva a ninguna parte miente.
+           El desplazamiento con el dedo sigue funcionando igual: lo que
+           se quita es la BARRA, no el deslizamiento. -->
+      <button type="button" class="mc-tira-flecha mc-tira-izq" id="mcTiraIzq" aria-label="Ver lo anterior" hidden>‹</button>
+      <button type="button" class="mc-tira-flecha mc-tira-der" id="mcTiraDer" aria-label="Ver lo siguiente">›</button>
     </div>
 
     <!-- El botón va AQUÍ y no al final: lo largo no se enseña hasta que
@@ -374,12 +385,34 @@ function pintarResumenPanel() {
       </div>
     </div>`
 
+  engancharTira()
   $('mcVerTodo').addEventListener('click', () => {
     const abierto = !$('mcEstadisticas').classList.toggle('hidden')
     $('mcVerTodo').setAttribute('aria-expanded', abierto ? 'true' : 'false')
     $('mcVerTodo').textContent = abierto ? 'Ocultar las estadísticas' : 'Ver todas las estadísticas'
     if (abierto) pintarValorEnElTiempo()
   })
+}
+
+// Las flechas de la tira. Se mueve de tarjeta en tarjeta —el ancho de
+// una más su hueco— y no una cantidad fija de píxeles: con una fija, la
+// tira acaba parándose a mitad de una tarjeta.
+function engancharTira() {
+  const tira = $('mcTira')
+  if (!tira) return
+  const paso = () => {
+    const una = tira.querySelector('.mc-diapo')
+    return una ? una.getBoundingClientRect().width + 12 : tira.clientWidth
+  }
+  const pintarFlechas = () => {
+    const resto = tira.scrollWidth - tira.clientWidth - tira.scrollLeft
+    $('mcTiraIzq').hidden = tira.scrollLeft <= 4
+    $('mcTiraDer').hidden = resto <= 4
+  }
+  $('mcTiraIzq').addEventListener('click', () => tira.scrollBy({ left: -paso(), behavior: 'smooth' }))
+  $('mcTiraDer').addEventListener('click', () => tira.scrollBy({ left: paso(), behavior: 'smooth' }))
+  tira.addEventListener('scroll', pintarFlechas, { passive: true })
+  pintarFlechas()
 }
 
 // Una tarjeta de la tira. Todas iguales por fuera: lo que cambia es lo
@@ -854,7 +887,7 @@ async function cargarSets() {
     // El logo y la serie viajan desde la tanda 372: la estantería se ve
     // por los logos, y agrupar por serie es lo que hace navegable una
     // lista de 220 colecciones.
-    .select('id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total,tcg_online_code')
+    .select('id,name,serie_id,serie_name,logo_path,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code')
     .eq('market', 'WEST')
     .order('release_date', { ascending: false, nullsFirst: false })
     .limit(1000)
@@ -942,25 +975,45 @@ function totalDe(set) {
 function tarjetaDeSet(set, tengo) {
   const total = totalDe(set)
   const pct = total ? Math.round((tengo / total) * 100) : 0
+  // DÓNDE SE BUSCA EL DIBUJO (tanda 415). PINGU: «hay expansiones que no
+  // tienen logo; no sé de dónde los estáis sacando, pero hay un montón
+  // que no salen».
+  //
+  // El logo sale de TCGdex y hay sets a los que sencillamente no se lo
+  // han puesto —los más nuevos y los de promos—. Pero la misma fila
+  // guarda el SÍMBOLO del set, que estaba ahí sin usarse desde que se
+  // importa: es más pequeño y más feo que un logo, pero es el dibujo de
+  // esa colección y es mejor que un cuadro vacío.
+  //
+  // Y si tampoco está, el NOMBRE, pintado en la cabecera. Lo importante
+  // es que la cadena no pueda acabar en nada: una tarjeta sin dibujo y
+  // sin nombre no dice qué colección es.
   const logo = urlDeLogo(set.logo_path)
+  const simbolo = set.symbol_url ? `${set.symbol_url}.webp` : null
+  const dibujos = [logo, simbolo].filter(Boolean)
   const completo = total && tengo >= total
   const codigo = set.tcg_online_code || ''
   return `
     <button type="button" class="mc-set-tarjeta${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}">
       <span class="mc-set-cabecera">
-        ${logo ? `<span class="mc-set-arte" style="--arte:url('${escapeHtml(logo)}')" aria-hidden="true"></span>` : ''}
+        ${dibujos.length ? `<span class="mc-set-arte" style="--arte:url('${escapeHtml(dibujos[0])}')" aria-hidden="true"></span>` : ''}
         <span class="mc-set-logo">${
-          logo
+          dibujos.length
             // El logo LLEVA el nombre escrito, así que el <span> de abajo
             // se esconde a la vista cuando hay logo y se queda para quien
             // navega con lector de pantalla (misma decisión que la 346).
-            ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy" />`
+            ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />`
             : ''
         }</span>
+        <span class="mc-set-rotulo${dibujos.length ? ' hidden' : ''}">${escapeHtml(set.name || set.id)}</span>
         ${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}
       </span>
       <span class="mc-set-info">
-        <span class="mc-set-nombre${logo ? ' sr-only' : ''}">${escapeHtml(set.name || set.id)}</span>
+        <!-- El nombre de debajo se queda SIEMPRE para el lector de
+             pantalla: desde la 415 el visible es el de la cabecera, que
+             sale cuando no hay dibujo. Enseñar los dos lo escribe dos
+             veces en la misma tarjeta. -->
+        <span class="mc-set-nombre sr-only">${escapeHtml(set.name || set.id)}</span>
         ${
           total
             ? `<span class="mc-set-cuenta">${tengo} de ${total}${completo ? ' · completa' : ` · ${pct} %`}</span>
@@ -980,7 +1033,12 @@ function respaldarNombresDeSet(zona) {
   zona.addEventListener('error', (e) => {
     const img = e.target
     if (!img.matches?.('.mc-set-logo img')) return
-    img.closest('.mc-set-tarjeta')?.querySelector('.mc-set-nombre')?.classList.remove('sr-only')
+    // Si a la cadena le quedan sitios donde mirar, aquí no se hace nada:
+    // su propio `onerror` cambia el `src` y lo vuelve a intentar. Actuar
+    // en el primer fallo enseñaría el nombre mientras llega el símbolo.
+    if ((img.dataset.respaldos || '').trim()) return
+    const tarjeta = img.closest('.mc-set-tarjeta')
+    tarjeta?.querySelector('.mc-set-rotulo')?.classList.remove('hidden')
     img.remove()
   }, true)
 }
@@ -1068,7 +1126,14 @@ function bolsilloDeVariante(c, v) {
   const nombre = nombreDe(c)
   const etiqueta = `${nombre} (${c.local_id}), ${v.nombre}${n ? `, tienes ${n}` : ', te falta'}`
   const dentro = `
-    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
+    ${
+      escaneo
+        ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
+        // Sin escaneo, el nombre en el hueco (tanda 415): un bolsillo
+        // vacío ya significa «no la tienes», así que un bolsillo LLENO y
+        // en blanco dice lo contrario de lo que pasa.
+        : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
+    }
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
   const pie = `<span class="mc-bolsillo-variante">${escapeHtml(v.nombre)}</span>`
@@ -1092,7 +1157,14 @@ function bolsilloHtml(c) {
   const nombre = nombreDe(c)
   const etiqueta = `${nombre} (${c.local_id})${n ? `, tienes ${n}` : ', te falta'}`
   const dentro = `
-    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
+    ${
+      escaneo
+        ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
+        // Sin escaneo, el nombre en el hueco (tanda 415): un bolsillo
+        // vacío ya significa «no la tienes», así que un bolsillo LLENO y
+        // en blanco dice lo contrario de lo que pasa.
+        : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
+    }
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
   if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}</div>`
@@ -1726,6 +1798,16 @@ async function abrirCambios() {
   }
 }
 
+// Una cifra de los cambios. Mismo dibujo que las chapas del resto de la
+// pantalla: el icono, el número y de qué va.
+function chapaDeCambio(n, texto, icono) {
+  return `<div class="mc-cambio-cifra">
+    <span class="mc-cambio-icono" aria-hidden="true">${icons[icono] ? icons[icono](18) : ''}</span>
+    <strong>${n}</strong>
+    <span>${escapeHtml(texto)}</span>
+  </div>`
+}
+
 async function pintarCambios() {
   const caja = $('mcCambiosPanel')
   const doy = loQueDoy()
@@ -1751,8 +1833,31 @@ async function pintarCambios() {
     const nuevas = await datos.cartasPorIds(faltan)
     for (const [id, c] of nuevas) cartas.set(id, c)
   }
+  // LO PRIMERO, LAS CIFRAS (tanda 415). PINGU: «el tema de los cambios
+  // ponlo mucho más visual, de otra manera». El problema no eran las
+  // tarjetas de quien encaja contigo —esas ya llevan avatar, cartas y un
+  // botón—, era que SIN NADA APUNTADO la pantalla eran cuatro cajas
+  // grises de texto seguidas. Y sin nada apuntado es como la ve todo el
+  // mundo la primera vez.
+  const encajan = tiene.length + busca.length
+  const vacio = !doy.length && !deseos.length
   caja.innerHTML = `
-    ${tablon.tablonHtml({ tiene, busca, cartas, deseos, doy })}
+    <div class="mc-cambio-cifras">
+      ${chapaDeCambio(encajan, 'encajan contigo', 'refreshCw')}
+      ${chapaDeCambio(doy.length, doy.length === 1 ? 'carta que das' : 'cartas que das', 'package')}
+      ${chapaDeCambio(deseos.length, deseos.length === 1 ? 'carta que buscas' : 'cartas que buscas', 'target')}
+    </div>
+    ${
+      vacio
+        // Sin nada apuntado no se enseñan dos tablones vacíos: se enseña
+        // CÓMO funciona, que es lo que hace falta la primera vez.
+        ? `<ol class="mc-cambio-pasos">
+             <li><span class="mc-cambio-paso">1</span><div><strong>Marca lo que das</strong><p class="subtext">En «Cartas», abre una repetida y pon cuántas copias das.</p></div></li>
+             <li><span class="mc-cambio-paso">2</span><div><strong>Apunta lo que buscas</strong><p class="subtext">Aquí abajo, con el buscador.</p></div></li>
+             <li><span class="mc-cambio-paso">3</span><div><strong>Te decimos quién encaja</strong><p class="subtext">Y le escribes desde aquí, sin salir de PokeDoc.</p></div></li>
+           </ol>`
+        : tablon.tablonHtml({ tiene, busca, cartas, deseos, doy })
+    }
     <section class="mc-cambio-bloque">
       <h3>Lo que das</h3>
       ${doy.length

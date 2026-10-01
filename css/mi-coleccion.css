@@ -3476,3 +3476,163 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-size: var(--t-xs);
   font-weight: 600;
 }
+
+/* El nombre de la colección DENTRO de la cabecera (tanda 415), para
+   cuando no hay ni logo ni símbolo. Un cuadro de color vacío no dice qué
+   colección es; el nombre sí, y el de abajo se queda para el lector de
+   pantalla. */
+.mc-set-rotulo {
+  position: relative;
+  padding: 0 var(--e-md);
+  color: var(--text);
+  font-size: var(--t-md);
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+}
+
+/* ── La tira, sin barra y con flechas (tanda 415) ──
+   PINGU: «dale sin scroll y que haya una flechita para moverlo para un
+   lado en una esquina, así más moderno». Lo que se quita es la BARRA, no
+   el deslizamiento: con el dedo se sigue moviendo igual. */
+.mc-tira-caja {
+  position: relative;
+}
+
+.mc-tira {
+  scrollbar-width: none;
+}
+
+.mc-tira::-webkit-scrollbar {
+  display: none;
+}
+
+.mc-tira-flecha {
+  display: grid;
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 18%);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-xl);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mc-tira-izq {
+  left: calc(var(--e-sm) * -1);
+}
+
+.mc-tira-der {
+  right: calc(var(--e-sm) * -1);
+}
+
+.mc-tira-flecha:hover {
+  border-color: var(--navy);
+}
+
+.mc-tira-flecha:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* Con el dedo no hacen falta: se desliza, y dos círculos encima de las
+   tarjetas tapan justo lo que hay que leer. */
+@media (pointer: coarse) {
+  .mc-tira-flecha {
+    display: none;
+  }
+}
+
+/* `display: grid` en la clase GANA al `[hidden]` del navegador, que es
+   una regla de etiqueta: la flecha apagada se seguía viendo. Es la misma
+   trampa de siempre —quien gana es la regla más fuerte, no la última— y
+   aquí solo se nota mirando. */
+.mc-tira-flecha[hidden] {
+  display: none;
+}
+
+/* ── Los cambios, por delante (tanda 415) ──
+   El problema no eran las tarjetas de quien encaja contigo: era que sin
+   nada apuntado la pantalla eran cuatro cajas grises seguidas, que es
+   como la ve todo el mundo la primera vez. */
+.mc-cambio-cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+}
+
+.mc-cambio-cifra {
+  display: flex;
+  gap: var(--e-sm);
+  align-items: center;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.mc-cambio-cifra strong {
+  color: var(--text);
+  font-size: var(--t-xl);
+  font-weight: 800;
+}
+
+.mc-cambio-icono {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.mc-cambio-pasos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--e-md);
+  margin: 0 0 var(--e-xl);
+  padding: 0;
+  list-style: none;
+}
+
+.mc-cambio-pasos li {
+  display: flex;
+  gap: var(--e-md);
+  align-items: flex-start;
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.mc-cambio-pasos p {
+  margin: var(--e-xs) 0 0;
+}
+
+.mc-cambio-paso {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-sm);
+  font-weight: 800;
+}

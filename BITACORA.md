@@ -29,6 +29,32 @@ es mirar el REMOTO justo antes del commit, no al empezar.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 415 — los dibujos que faltaban)
+
+**Hecho**, todo de lo que vio PINGU en producción:
+
+- **Los logos que faltan**: no es un fallo de importación, es que TCGdex
+  no tiene logo de esos sets. Pero la misma fila guarda el **símbolo**
+  (`symbol_url`), que llevaba ahí SIN USARSE desde que se importa el
+  catálogo; y si tampoco está, el **nombre** en la cabecera. La cadena ya
+  no puede acabar en nada.
+- **Las cartas sin escaneo** llevan el nombre en el hueco. En un álbum,
+  un bolsillo lleno y en blanco dice lo contrario de lo que pasa.
+- **McDonald's, Futsal, Battle Academy, Trick or Trade, My First
+  Battle…** se van a «Sets especiales».
+- **La tira del panel**, sin barra y con flechas que se apagan en los
+  extremos. (Y una trampa: `display: grid` en la clase gana al `[hidden]`
+  del navegador, así que la flecha apagada se seguía viendo.)
+- **Los cambios**: tres cifras arriba y, sin nada apuntado, los tres
+  pasos de cómo funciona en vez de dos tablones vacíos.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/estanteria.js`,
+`js/mi-coleccion/pokedex.js`, `css/mi-coleccion.css`, `SCHEMA.md`. En la
+rama `pruebas`: `test-tanda-415.mjs` (nuevo).
+
+**En curso / pendiente**: los cuatro SQL ya están lanzados (PINGU, hoy).
+Queda pasar la suite entera.
+
 ## 2026-10-01 — PINGU-Claude (tanda 414 — la Pokédex: el anillo y las generaciones)
 
 **Hecho**: la Pokédex pasa de ser un muro de 1.025 casillas a un índice:

@@ -26,7 +26,20 @@ const SERIES_ESPECIALES = ['tk', 'pop', 'np']
 // Y por el nombre, para los que no traen serie. `\b` a los dos lados y no
 // «contiene»: la trampa de siempre es que al barrer por una cadena cuenta
 // todo lo que la CONTIENE, y aquí buscamos la PALABRA.
-const NOMBRES_ESPECIALES = /\btrainer kit\b|\bpop series\b|\bprerelease\b/i
+//
+// La lista creció en la 415 con lo que PINGU fue viendo: «has metido
+// McDonald's Collection entre Espada y Escudo y Escarlata y Púrpura;
+// McDonald's también debería ir para abajo porque no es un set como tal.
+// Pokémon Futsal también, porque no es un set de Espada y Escudo. Solo
+// los sets principales y las promos deberían ir ahí».
+//
+// Son colaboraciones y productos sueltos: salen con el número de una era
+// pero no son de su línea. Y sí, es una lista a mano y se quedará vieja
+// —el día que salga otra colaboración se colará en medio—, pero el error
+// por ese lado es que una colección rara aparezca entre las buenas, no
+// que una ERA entera caiga al fondo.
+const NOMBRES_ESPECIALES =
+  /\btrainer kit\b|\bpop series\b|\bprerelease\b|\bmcdonald'?s\b|\bfutsal\b|\bbattle academy\b|\btrick or trade\b|\bmy first battle\b|\bholiday calendar\b|\btheme deck\b/i
 
 export function esEspecial(set) {
   if (SERIES_ESPECIALES.includes(String(set?.serie_id || '').toLowerCase())) return true

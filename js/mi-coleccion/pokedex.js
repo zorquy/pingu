@@ -173,8 +173,20 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false }) {
         .map((c) => {
           const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
           const mia = tuyas.has(c.id)
+          // Sin escaneo, el NOMBRE y el número en el hueco (tanda 415).
+          // PINGU: «hay un montón de cartas en la colección que no se
+          // muestran y no sé por qué». No hay por qué: TCGdex es un
+          // catálogo comunitario y a esas cartas no les han subido la
+          // foto, y de Limitless solo se puede sacar si la colección
+          // tiene código de TCG Live. Lo que no puede ser es que el hueco
+          // se quede vacío: un sitio en blanco se lee como un fallo, y
+          // una carta con su nombre escrito se lee como una carta.
           return `<a class="pdx-carta${mia ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" title="${escapeHtml(nombreDe(c))} — ${escapeHtml(c.tcg_sets?.name || c.set_id)}">
-            ${escaneo ? `<img ${escaneo} alt="${escapeHtml(nombreDe(c))}" width="245" height="342" loading="lazy" />` : ''}
+            ${
+              escaneo
+                ? `<img ${escaneo} alt="${escapeHtml(nombreDe(c))}" width="245" height="342" loading="lazy" />`
+                : `<span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}${c.local_id ? `<small>${escapeHtml(c.local_id)}</small>` : ''}</span>`
+            }
             <span class="pdx-carta-set">${escapeHtml(c.tcg_sets?.name || c.set_id)}</span>
           </a>`
         })
