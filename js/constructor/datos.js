@@ -499,7 +499,14 @@ export async function guardarMazo({ id, name, format, cards, cover_card, is_publ
   if (error) throw traducirError(error)
   // Un UPDATE que la política rechaza NO da error: vuelve vacío (CLAUDE.md,
   // torneos). Sin fila de vuelta, no se ha guardado — y hay que decirlo.
-  if (!data) throw new Error('No se ha guardado: este mazo no es tuyo. Haz una copia para guardarlo en tu cuenta.')
+  // `sinFila` dice POR QUÉ (tanda 420): el mazo de ese id no está en tu
+  // cuenta —se borró, o es de otra—, y quien guarda puede hacerlo como
+  // mazo nuevo en vez de quedarse con el error.
+  if (!data) {
+    const e = new Error(id ? 'Ese mazo ya no está en tu cuenta.' : 'No se ha guardado. Prueba otra vez.')
+    e.sinFila = Boolean(id)
+    throw e
+  }
   return data
 }
 

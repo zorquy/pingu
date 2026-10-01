@@ -22396,3 +22396,79 @@ Y seis pruebas puestas al día, que daban por hecho el archivador dentro
 de una expansión: 371 (que ahora mira el del álbum soñado), 372, 382
 —donde una sección entera desaparece: comprobaba que filtrar volvía a la
 página 1, y sin páginas ese fallo ya no PUEDE pasar—, 383, 398 y 412.
+
+## Tanda 420 — «este mazo no es tuyo» al guardar un mazo tuyo (oct. 2026)
+
+El borrador del constructor vive en el NAVEGADOR (`localStorage`), no en
+la cuenta, y guarda el id del mazo que se estaba editando. Si ese mazo se
+borra desde «Mis mazos», o el borrador es de otra cuenta que entró antes
+en el mismo navegador, el id apunta a algo que ya no es tuyo: «Seguir con
+él» lo recuperaba tal cual, «Guardar» hacía un UPDATE que la política de
+`user_decks` rechaza **sin dar error** (vuelve vacío) y salía «este mazo
+no es tuyo». Le pasó a PINGU con un mazo suyo.
+
+- `ponerBorrador` comprueba con `cargarMazo` que el mazo del borrador es
+  de quien ha entrado; si no, `estado.id = null` y es un mazo nuevo.
+- `guardarMazo` marca con `sinFila` el UPDATE que vuelve vacío, y el
+  constructor, en ese caso y solo en ese, guarda como mazo nuevo y lo dice.
+  Cubre lo que el borrador no puede ver: el mazo borrado en otra pestaña
+  mientras se editaba.
+
+`test-tanda-420.mjs`: el borrador de un mazo que ya no existe (el caso de
+PINGU), el de un mazo de otra cuenta (que no se toca), el mazo borrado a
+mitad, y que lo normal —tu mazo, tu borrador— sigue guardando en su
+sitio sin crear otro. Su rigor, 4 mutaciones, las 4 detectadas.
+
+## Tanda 421 — el meta sin variantes repetidas, y la imagen que se vuelve a importar (oct. 2026)
+
+### El meta, por Pokémon principal
+
+El arquetipo deducido son dos iconos, y el segundo es la pareja o la
+carta técnica de cada jugador: en la Copa RyuCards, 24 filas para 32
+jugadores, con el mismo Zoroark de N en cinco. `claveDelMeta` agrupa por
+la ESPECIE del primer icono (`dexesDeNombre`: inglés y español dan la
+misma, y una Mega tiene su propio número). Un mazo cuyo principal no es
+un Pokémon (los «Martillos») se agrupa como antes.
+
+Un grupo en el que todos jugaron lo mismo se enseña con su arquetipo
+entero. Con variantes, con el principal solo —el nombre que más se
+repite— y las variantes contadas aparte (`claveDeVariante`: mismos
+Pokémon por especie, o mismo objeto), y en el detalle cada jugador lleva
+lo que jugó. Con los datos de la Copa RyuCards: 17 mazos.
+
+### La imagen exportada
+
+Una sola rejilla en el orden de la lista, tres filas para una lista
+normal (entre 6 y 10 por fila, repartidas a partes iguales), sobre fondo
+TRANSPARENTE. Las copias, en un hexágono azul con canto blanco en la zona
+donde Limitless pone el suyo rojo (`js/insignia-copias.js`, que lo pinta
+y dice qué píxel es de su azul). Debajo, una franja con la marca, el
+nombre, el resumen y pokedoc.es. Las cartas salen primero de Limitless
+(por `/escaneo`) y de respaldo de TCGdex.
+
+### Importarla
+
+- **La lista va dentro del PNG** (`js/lista-en-png.js`): un trozo `iTXt`
+  con la clave `pokedoc:lista` y la lista en el formato de TCG Live, con
+  la impresión que se enseña. El constructor lo busca antes que nada; si
+  está, pasa al modo texto con la lista escrita. Exacta.
+- **Si no está** (recomprimida), el reconocimiento de siempre
+  (`js/constructor/imagen.js`), con tres cambios:
+  - `detectar` reconoce un fondo CLARO y liso (marco claro y uniforme en
+    un 80 %): una carta es lo que se aparta del fondo, no lo que lo
+    supera. Y el tamaño de carta es el que más superficie ocupa, no la
+    mediana de las alturas.
+  - Las plantillas del hexágono azul (1–60) se pintan al vuelo con
+    `dibujarInsignia` sobre una carta de 138×192, y `leerContador` acepta
+    el predicado de color y el mínimo. Se leen el rojo y el azul y gana el
+    de mejor nota.
+  - `detectar` sigue siendo IDÉNTICA en `herramientas/huellas-limitless.js`
+    (lo vigila la 355). No hace falta regenerar `huellas.bin`.
+
+`test-tanda-421.mjs`: la lista dentro del PNG (con tildes, y PIL lo abre
+con su suma de control); el meta con cuatro Zoroark de N —uno en
+español—, dos Dragapult y un Mega-Lucario que no es el Lucario; la imagen
+medida píxel a píxel (transparente en esquinas y huecos, el azul de las
+insignias y de la franja); importarla exacta en el constructor; y,
+quitándole la lista, reconocerla sobre transparente, negro y blanco con
+las copias bien leídas. Su rigor, 17 mutaciones, las 17 detectadas.

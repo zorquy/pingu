@@ -29,6 +29,94 @@ es mirar el REMOTO justo antes del commit, no al empezar.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 16:45 — PINGU-Claude (tanda 421 — el meta sin variantes repetidas, y la imagen que se vuelve a importar)
+
+**Hecho**: dos cosas que pidió PINGU. (Esta y la 420 se hicieron en local
+como 416 y 415; el remoto llegó a la 418 y se numeraron 419 y 420, pero
+la 419 se la había llevado ya el arreglo del doble en `pruebas`: al
+integrarlas desde el bundle van como **420 y 421**.)
+
+1. **El meta junta las variantes de un mismo mazo.** «Hay arquetipos
+   que se repiten y aparecen por separado, no tiene sentido.» En la Copa
+   RyuCards salían 24 filas para 32 jugadores: el segundo icono que se
+   deduce es la pareja o la carta técnica de cada uno («N's Zoroark ex
+   N's Darmanitan», «… Pecharunt ex», «… Munkidori», «Zoroark ex de N
+   Darmanitan de N» exportado en español…). Ahora se agrupa por el
+   Pokémon PRINCIPAL, por especie (`dexesDeNombre`, que entiende los dos
+   idiomas; una Mega no es la básica): con sus datos reales, 17 mazos y el
+   Zoroark de N con 6 jugadores. Dentro de cada mazo salen sus variantes
+   contadas y, en cada jugador, lo que jugó.
+2. **La imagen exportada: todas las cartas juntas, fondo transparente y
+   se puede importar.** Una sola rejilla como la de Limitless (24 cartas
+   distintas, 8×3; repartidas sin cartas sueltas), las copias en un
+   hexágono AZUL de la casa donde Limitless pone el rojo
+   (`js/insignia-copias.js`) y debajo una franja con la marca, el nombre
+   del mazo y pokedoc.es. Para importarla en el constructor (pegarla o
+   subirla en «Importar → Imagen»):
+   - **exacta**: el PNG lleva la lista en texto dentro, en un trozo
+     `iTXt` (`js/lista-en-png.js`); el constructor la lee y la deja
+     escrita para revisar e importar, sin bajar los 3 MB del
+     reconocimiento;
+   - **si se ha recomprimido** (una red social se lleva el texto): por
+     cómo se ve. Las cartas son ahora los escaneos de Limitless (por
+     `/escaneo`), los mismos de las huellas; el lector lee el hexágono
+     azul con plantillas que se pinta él con la MISMA función; y
+     encuentra las cartas sobre transparente, negro o BLANCO.
+
+**Dos cosas del lector de imágenes que salieron al probarlo** (y que
+tocan `detectar`, así que van también en `herramientas/huellas-limitless.js`,
+que tiene que ser idéntica; `huellas.bin` no hay que regenerarlo: en una
+imagen de Limitless sale lo mismo que antes):
+- el tamaño de carta se elegía por la MEDIANA de las alturas, y la franja
+  de la marca se partía en diecisiete «cartas» bajitas que le ganaban por
+  número a las siete de verdad. Ahora gana el que más superficie ocupa;
+- el lector de Limitless se creía que había hexágono ROJO en cualquier
+  carta de fuego y leía un número de nada encima del azul. Ahora se leen
+  los dos y gana el que mejor casa.
+
+**Ficheros**: nuevos `js/insignia-copias.js` y `js/lista-en-png.js`.
+Tocados `js/torneos/meta-torneo.js`, `css/torneos.css`,
+`js/torneos/decklist-imagen.js`, `js/constructor/imagen.js`,
+`herramientas/huellas-limitless.js`, `js/constructor.js`,
+`constructor.html`. En `pruebas`: `test-tanda-421.mjs`,
+`rigor-tanda-421.py` y la 413 al día (la forma vieja de la imagen).
+
+**Prueba y rigor**: `test-tanda-421.mjs` en verde; su rigor, 17 mutaciones,
+las 17 detectadas. Pasadas también, en verde, las del constructor y de
+torneos que tocan esto (413, 420, 355, 359, 370, 384, 394, torneos-22 y
+23, meta-torneo, 326, 328, sets-live) y los barridos de CSS (299, 309,
+311–316).
+
+**En curso / pendiente**: nada.
+
+## 2026-10-01 15:50 — PINGU-Claude (tanda 420 — «este mazo no es tuyo» al guardar un mazo tuyo)
+
+**Hecho**: PINGU: «no entiendo este error al guardar un mazo; cada uno
+puede guardar el mazo que quiera en su cuenta». El mazo SÍ era suyo. Lo
+miré en su navegador: el borrador del constructor («AlakaClefa», 29
+cartas, del 30-09) apuntaba a un mazo que **ya no existía en su cuenta**.
+El borrador vive en el NAVEGADOR, no en la cuenta: «Seguir con él» lo
+recuperaba con ese id, «Guardar» intentaba pisar ese mazo, la base no
+tocaba nada (la política dice que no SIN dar error) y salía «No se ha
+guardado: este mazo no es tuyo», sin forma de salir de ahí.
+
+1. **Recuperar un borrador mira de quién es su mazo**: si ya no existe,
+   o es de otra cuenta que entró antes en este navegador, es un mazo
+   NUEVO y «Guardar» lo crea en tu cuenta.
+2. **Guardar un mazo que ya no está en tu cuenta** (por ejemplo, borrado
+   en «Mis mazos» en otra pestaña mientras lo editabas) lo guarda como
+   nuevo y lo dice («Guardado como mazo nuevo en tus mazos»), en vez del
+   error. `guardarMazo` marca ese caso con `sinFila`; los demás errores
+   siguen saliendo como errores.
+
+**Ficheros**: `js/constructor.js`, `js/constructor/datos.js`. En
+`pruebas`: `test-tanda-420.mjs` y `rigor-tanda-420.py` (4 mutaciones, las
+4 detectadas). Pasadas también la del constructor, la 359, la 370, la 384
+(que a veces falla en «Escape cierra el laboratorio» y a la segunda pasa:
+es la de siempre, no de esto), la 413 y la 299.
+
+**En curso / pendiente**: nada.
+
 ## 2026-10-01 — PINGU-Claude (tandas 417 y 418 — la expansión, en rejilla)
 
 **417**: dentro de una expansión ya no hay archivador: hay una **tira**

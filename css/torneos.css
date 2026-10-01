@@ -2887,6 +2887,15 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   display: grid;
   gap: 2px;
 }
+/* Con variantes, qué jugó cada uno, debajo de su nombre (tanda 421). */
+.torneo-meta-variante {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.torneo-meta-variantes { margin: 0; }
 .torneo-meta-quien strong {
   white-space: nowrap;
   overflow: hidden;

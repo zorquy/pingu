@@ -126,7 +126,12 @@
     for (let y = 0; y < H; y += 3) for (let X = 0; X < W; X += 3) if (X < fx || X > W - fx || y < fy || y > H - fy) marco.push(L[y * W + X])
     marco.sort((a, b) => a - b)
     let fondo = marco.length ? marco[Math.floor(marco.length / 2)] : 30
-    if (fondo > 110) {
+    // Un marco CLARO y LISO es un fondo claro de verdad, no una imagen
+    // recortada justa: la que exporta PokeDoc es transparente, y hay
+    // aplicaciones que la aplanan sobre blanco (tanda 421). Entonces una
+    // carta es lo que se APARTA del fondo, hacia arriba o hacia abajo.
+    const claro = fondo > 110 && marco.filter((v) => Math.abs(v - fondo) < 12).length >= marco.length * 0.8
+    if (fondo > 110 && !claro) {
       const hist = new Array(256).fill(0)
       let tot = 0
       for (let i = 0; i < W * H; i += 7) {
@@ -143,6 +148,7 @@
       }
     }
     const T = Math.min(200, fondo + 45)
+    const esCarta = claro ? (v) => Math.abs(v - fondo) > 45 : (v) => v > T
 
     const tramos = (a, t, minimo) => {
       const r = []
@@ -162,7 +168,7 @@
     for (let y = 0; y < H; y++) {
       let n = 0
       const o = y * W
-      for (let X = 0; X < W; X++) if (L[o + X] > T) n++
+      for (let X = 0; X < W; X++) if (esCarta(L[o + X])) n++
       filas[y] = n
     }
     const bandas = tramos(filas, W * 0.02, H * 0.04)
@@ -173,7 +179,7 @@
       const col = new Array(W).fill(0)
       for (let y = y0; y <= y1; y++) {
         const o = y * W
-        for (let X = 0; X < W; X++) if (L[o + X] > T) col[X]++
+        for (let X = 0; X < W; X++) if (esCarta(L[o + X])) col[X]++
       }
       // Cartas pegadas: se parte el tramo según el ancho esperado.
       const anchoCarta = bh * 0.72
@@ -193,9 +199,21 @@
       const ar = c.w / c.h
       return ar > 0.6 && ar < 0.86
     })
+    // El tamaño dominante es el que más SUPERFICIE ocupa, no la mediana
+    // de las alturas (tanda 421): la franja de la marca de una imagen de
+    // PokeDoc se parte en diecisiete «cartas» bajitas, y por número le
+    // ganaban a las siete de verdad. En una de Limitless, todas las cartas
+    // miden lo mismo y sale lo mismo que antes.
     if (celdas.length) {
-      const hs = celdas.map((c) => c.h).sort((a, b) => a - b)
-      const mh = hs[Math.floor(hs.length / 2)]
+      let mh = celdas[0].h
+      let mejor = -1
+      for (const c of celdas) {
+        const area = celdas.filter((o) => Math.abs(o.h - c.h) / c.h < 0.2).reduce((s, o) => s + o.w * o.h, 0)
+        if (area > mejor) {
+          mejor = area
+          mh = c.h
+        }
+      }
       celdas = celdas.filter((c) => Math.abs(c.h - mh) / mh < 0.2)
     }
     return { W, H, celdas }

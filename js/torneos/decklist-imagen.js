@@ -1,22 +1,30 @@
 // Bajar una decklist como imagen PNG.
 //
-// Desde la tanda 413, con las CARTAS, como la de Limitless (PINGU: «que
-// la imagen que te exportas sea estilo Limitless pero con el toque de
-// PokeDoc»): la rejilla de cartas con sus copias, por secciones, sobre el
-// azul de la casa, con el nombre del mazo arriba y pokedoc.es abajo. La de
-// antes (tanda 219) era una lista de texto: servía para leerla, no para
-// compartirla.
+// Tanda 421: TODAS LAS CARTAS JUNTAS en una sola rejilla y con el FONDO
+// TRANSPARENTE, como la de Limitless (PINGU: «que salgan todas las cartas
+// juntas, con el toque de PokeDoc y con el fondo transparente, y así
+// podamos importar una lista mediante la imagen»). Las copias van en el
+// hexágono azul de la casa (js/insignia-copias.js), donde Limitless pone
+// el suyo rojo, y debajo de las cartas una franja con la marca, el nombre
+// del mazo y pokedoc.es.
+//
+// Y se puede IMPORTAR en el constructor de dos maneras:
+//   · exacta: el PNG lleva la lista en texto dentro (js/lista-en-png.js);
+//   · si la imagen se ha recomprimido por el camino (una red social), por
+//     cómo se ve: las cartas son los escaneos de Limitless —los mismos de
+//     los que salen las huellas del reconocimiento— y el lector sabe leer
+//     el hexágono azul.
 //
 // Las cartas son las MISMAS que enseña la rejilla de la página
 // (js/lista-canonica.js): la impresión de rareza más baja de su colección
 // y una casilla por carta.
 //
-// Se dibuja a mano en un canvas, sin librerías. Y un canvas solo se puede
-// guardar si TODAS sus imágenes traen permiso (CORS): las de TCGdex y las
-// de pokemontcg.io lo traen; las de Limitless no, así que esas se piden a
-// /escaneo, que las sirve desde nuestro dominio
-// (netlify/functions/escaneo.mjs). Una carta que no llega por ningún lado
-// se pinta como una caja con su nombre: la imagen sale igual.
+// Un canvas solo se puede guardar si TODAS sus imágenes traen permiso
+// (CORS): las de Limitless no lo traen, así que se piden a /escaneo, que
+// las sirve desde nuestro dominio (netlify/functions/escaneo.mjs); las de
+// TCGdex y pokemontcg.io sí, y quedan de respaldo. Una carta que no llega
+// por ningún lado se pinta como una caja con su nombre: la imagen sale
+// igual.
 //
 // Vive SUELTO de decklist-export.js (tanda 358): esto no pinta ni una
 // clase de CSS, y el constructor de mazos lo usa desde una página que no
@@ -24,45 +32,48 @@
 import { showToast } from '../toast.js'
 import { cardImageUrl } from '../tcgdex.js'
 import { letraDeEnergiaBasica, LETRAS_DE_ENERGIA } from '../imagen-carta.js'
+import { dibujarInsignia, cargarLetraInsignia } from '../insignia-copias.js'
+import { meterLista } from '../lista-en-png.js'
 
 const SECCIONES = [
-  { campo: 'pokemon', titulo: 'Pokémon' },
-  { campo: 'trainer', titulo: 'Entrenadores' },
-  { campo: 'energy', titulo: 'Energías' },
+  { campo: 'pokemon', titulo: 'Pokémon', cabecera: 'Pokémon' },
+  { campo: 'trainer', titulo: 'Entrenadores', cabecera: 'Trainer' },
+  { campo: 'energy', titulo: 'Energías', cabecera: 'Energy' },
 ]
 
 // La paleta de la casa, escrita aquí porque un canvas no lee variables de
 // CSS. Son los tokens fijos de style.css (los que no cambian con el tema).
 const COLOR = {
-  fondoArriba: '#163d59', // --navy-solid-dark
-  fondoAbajo: '#1e5175', // --navy-solid
+  fondoArriba: '#1e5175', // --navy-solid
+  fondoAbajo: '#163d59', // --navy-solid-dark
   hielo: '#7cc6d8',
   textoSuave: '#bfdcec',
   blanco: '#ffffff',
-  ambar: '#e0b252',
-  ambarOscuro: '#c8720a',
   caja: '#2a6b96', // --navy-solid-light
 }
 
-const ANCHO = 1200
-const MARGEN = 40
-const COLUMNAS = 9
-const HUECO = 12
-const CARTA_W = Math.floor((ANCHO - MARGEN * 2 - HUECO * (COLUMNAS - 1)) / COLUMNAS)
+// Las medidas, en píxeles «de diseño»: la imagen sale al doble.
+const CARTA_W = 150
 const CARTA_H = Math.round((CARTA_W * 342) / 245)
+const HUECO = 12
+const MARGEN = 24
+const FRANJA = 76 // la de la marca, debajo de las cartas
+const ESCALA = 2
 
 // Las direcciones de donde se intenta sacar cada carta, de mejor a peor,
-// y TODAS se pueden pintar en un canvas sin mancharlo.
+// y TODAS se pueden pintar en un canvas sin mancharlo. Primero Limitless
+// (por /escaneo): son las mismas imágenes de las que salen las huellas
+// del reconocimiento, así que una imagen exportada se reconoce mejor al
+// importarla. Después TCGdex, que no pasa por nuestra función.
 export function fuentesDeCarta(linea) {
   const letra = letraDeEnergiaBasica(linea?.name)
   if (letra) {
     const i = LETRAS_DE_ENERGIA.indexOf(letra)
-    return [`https://images.pokemontcg.io/sve/${i + 1}.png`, `/escaneo/MEE/${9 + i}`]
+    return [`/escaneo/MEE/${9 + i}`, `https://images.pokemontcg.io/sve/${i + 1}.png`]
   }
   const fuentes = []
-  if (linea?.carta?.exacta && linea.carta.image_path) fuentes.push(cardImageUrl(linea.carta.image_path, 'low'))
   if (linea?.set && linea?.number) fuentes.push(`/escaneo/${encodeURIComponent(String(linea.set).toUpperCase())}/${encodeURIComponent(String(linea.number).replace(/^0+(?=\d)/, ''))}`)
-  if (linea?.carta?.image_path && !linea.carta.exacta) fuentes.push(cardImageUrl(linea.carta.image_path, 'low'))
+  if (linea?.carta?.image_path) fuentes.push(cardImageUrl(linea.carta.image_path, 'low'))
   return [...new Set(fuentes.filter(Boolean))]
 }
 
@@ -109,7 +120,7 @@ function recortar(ctx, texto, ancho) {
   return `${t}…`
 }
 
-// El nombre de una carta sin imagen, en dos líneas como mucho.
+// El nombre de una carta sin imagen, en tres líneas como mucho.
 function nombreEnCaja(ctx, nombre, x, y, w) {
   const palabras = String(nombre).split(/\s+/)
   const lineas = ['']
@@ -124,9 +135,11 @@ function nombreEnCaja(ctx, nombre, x, y, w) {
 function dibujarCarta(ctx, linea, img, x, y) {
   ctx.save()
   rectanguloRedondo(ctx, x, y, CARTA_W, CARTA_H, 8)
+  // Sombra suave: sobre fondo transparente separa la carta de lo que
+  // haya detrás, sea claro u oscuro.
   ctx.shadowColor = 'rgba(0, 0, 0, 0.35)'
-  ctx.shadowBlur = 12
-  ctx.shadowOffsetY = 4
+  ctx.shadowBlur = 10
+  ctx.shadowOffsetY = 3
   ctx.fillStyle = COLOR.caja
   ctx.fill()
   ctx.shadowColor = 'transparent'
@@ -137,36 +150,11 @@ function dibujarCarta(ctx, linea, img, x, y) {
     ctx.fillStyle = COLOR.blanco
     ctx.font = '600 14px Inter, system-ui, sans-serif'
     ctx.textAlign = 'center'
-    nombreEnCaja(ctx, linea.name, x + CARTA_W / 2, y + CARTA_H / 2 - 12, CARTA_W - 16)
+    nombreEnCaja(ctx, linea.name, x + CARTA_W / 2, y + CARTA_H / 2 - 30, CARTA_W - 16)
     ctx.textAlign = 'left'
   }
   ctx.restore()
-
-  // Las copias, en la esquina de abajo: la pastilla ámbar de la casa, en
-  // el sitio donde Limitless pone su hexágono rojo.
-  const r = 19
-  const cx = x + CARTA_W - r - 4
-  const cy = y + CARTA_H - r - 4
-  ctx.save()
-  ctx.beginPath()
-  ctx.arc(cx, cy, r, 0, Math.PI * 2)
-  const g = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r)
-  g.addColorStop(0, COLOR.ambar)
-  g.addColorStop(1, COLOR.ambarOscuro)
-  ctx.fillStyle = g
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)'
-  ctx.shadowBlur = 6
-  ctx.fill()
-  ctx.shadowColor = 'transparent'
-  ctx.lineWidth = 3
-  ctx.strokeStyle = COLOR.blanco
-  ctx.stroke()
-  ctx.fillStyle = COLOR.blanco
-  ctx.font = '800 18px Inter, system-ui, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(String(linea.quantity), cx, cy + 1)
-  ctx.restore()
+  dibujarInsignia(ctx, linea.quantity, x, y, CARTA_W, CARTA_H)
 }
 
 // La marca: el cuadrado girado del favicon, en blanco sobre el azul, y
@@ -178,7 +166,7 @@ function dibujarMarca(ctx, x, y) {
   rectanguloRedondo(ctx, -18, -18, 36, 36, 10)
   ctx.fillStyle = COLOR.blanco
   ctx.fill()
-  ctx.fillStyle = COLOR.fondoAbajo
+  ctx.fillStyle = COLOR.fondoArriba
   ctx.font = '800 22px Inter, system-ui, sans-serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
@@ -192,16 +180,37 @@ function dibujarMarca(ctx, x, y) {
   const w = ctx.measureText('Poke').width
   ctx.fillStyle = COLOR.hielo
   ctx.fillText('Doc', x + 48 + w, y + 19)
+  const ancho = 48 + w + ctx.measureText('Doc').width
   ctx.restore()
+  return ancho
 }
 
-// Cuánto mide la imagen, sección a sección, antes de dibujar nada.
+// Las cartas en el orden de la lista (Pokémon, entrenadores, energías)
+// y cuántas por fila: tres filas para una lista normal, como Limitless
+// (24 cartas distintas → 8 por fila), entre 6 y 10; y luego repartidas a
+// partes iguales, para que no quede una carta sola en la última fila
+// (siete cartas van 4 + 3 y no 6 + 1).
 export function medidas(porSeccion) {
-  const secciones = SECCIONES.map((s) => ({ ...s, lineas: porSeccion?.[s.campo] || [] })).filter((s) => s.lineas.length)
-  let alto = 190 // la cabecera
-  for (const s of secciones) alto += 40 + Math.ceil(s.lineas.length / COLUMNAS) * (CARTA_H + HUECO)
-  alto += 70 // el pie
-  return { secciones, alto }
+  const cartas = SECCIONES.flatMap((s) => porSeccion?.[s.campo] || [])
+  const n = cartas.length
+  const tope = Math.max(1, Math.min(10, Math.max(Math.min(n, 6), Math.ceil(n / 3))))
+  const filas = Math.max(1, Math.ceil(n / tope))
+  const columnas = Math.max(1, Math.ceil(n / filas))
+  const ancho = MARGEN * 2 + columnas * CARTA_W + (columnas - 1) * HUECO
+  const alto = MARGEN + filas * CARTA_H + (filas - 1) * HUECO + 20 + FRANJA + MARGEN
+  return { cartas, columnas, filas, ancho, alto }
+}
+
+// La lista en el formato de TCG Live, que es el que lee el importador.
+export function textoDeLista(porSeccion) {
+  return SECCIONES.map((s) => {
+    const lineas = porSeccion?.[s.campo] || []
+    if (!lineas.length) return ''
+    const n = lineas.reduce((m, l) => m + (Number(l.quantity) || 0), 0)
+    return [`${s.cabecera}: ${n}`, ...lineas.map((l) => [l.quantity, l.name, l.set, l.number].filter((x) => x !== undefined && x !== null && x !== '').join(' '))].join('\n')
+  })
+    .filter(Boolean)
+    .join('\n\n')
 }
 
 export async function descargarImagenDecklist(nombre, parsed, { subtitulo = '' } = {}) {
@@ -218,90 +227,85 @@ export async function descargarImagenDecklist(nombre, parsed, { subtitulo = '' }
     // Sin base no se elige impresión: se dibuja la lista tal cual viene.
     porSeccion = parsed
   }
-  const { secciones, alto } = medidas(porSeccion)
+  const { cartas, columnas, ancho, alto } = medidas(porSeccion)
 
   // Las letras tienen que estar cargadas ANTES de dibujar: un canvas no
   // espera a una fuente, pinta con la de respaldo y ya no cambia.
   try {
-    await Promise.all(['700 26px Fredoka', '700 40px Fredoka', '800 18px Inter', '600 14px Inter'].map((f) => document.fonts.load(f)))
+    await Promise.all(['700 26px Fredoka', '600 14px Inter', '500 16px Inter'].map((f) => document.fonts.load(f)))
   } catch {}
+  await cargarLetraInsignia()
 
   // Las imágenes, todas a la vez.
-  const imagenes = new Map()
-  await Promise.all(
-    secciones.flatMap((s) => s.lineas).map(async (l) => imagenes.set(l, await primeraQueLlegue(fuentesDeCarta(l))))
-  )
+  const imagenes = await Promise.all(cartas.map((l) => primeraQueLlegue(fuentesDeCarta(l))))
 
   const canvas = document.createElement('canvas')
-  const escala = 2 // nítido también en pantallas retina
-  canvas.width = ANCHO * escala
-  canvas.height = alto * escala
+  canvas.width = ancho * ESCALA
+  canvas.height = alto * ESCALA
   const ctx = canvas.getContext('2d')
-  ctx.scale(escala, escala)
+  ctx.scale(ESCALA, ESCALA)
+  // Sin fondo: transparente, para ponerla encima de lo que se quiera.
 
-  // El fondo: el azul de la cabecera de los torneos, con su trama de
-  // puntos arriba.
-  const fondo = ctx.createLinearGradient(0, 0, 0, alto)
+  cartas.forEach((l, i) => {
+    const fila = Math.floor(i / columnas)
+    const col = i % columnas
+    dibujarCarta(ctx, l, imagenes[i], MARGEN + col * (CARTA_W + HUECO), MARGEN + fila * (CARTA_H + HUECO))
+  })
+
+  // La franja de la casa, debajo de las cartas: la marca, el nombre del
+  // mazo con su resumen y la dirección.
+  const fy = alto - MARGEN - FRANJA
+  const fw = ancho - MARGEN * 2
+  ctx.save()
+  rectanguloRedondo(ctx, MARGEN, fy, fw, FRANJA, 18)
+  const fondo = ctx.createLinearGradient(0, fy, 0, fy + FRANJA)
   fondo.addColorStop(0, COLOR.fondoArriba)
   fondo.addColorStop(1, COLOR.fondoAbajo)
   ctx.fillStyle = fondo
-  ctx.fillRect(0, 0, ANCHO, alto)
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.06)'
-  for (let y = 12; y < 170; y += 16) for (let x = 12; x < ANCHO; x += 16) ctx.fillRect(x, y, 2, 2)
-
-  dibujarMarca(ctx, MARGEN, 32)
-  const total = secciones.reduce((n, s) => n + s.lineas.reduce((m, l) => m + l.quantity, 0), 0)
-  ctx.fillStyle = COLOR.blanco
-  ctx.font = '700 40px Fredoka, Inter, system-ui, sans-serif'
-  ctx.textBaseline = 'alphabetic'
-  ctx.fillText(recortar(ctx, nombre || 'Mazo', ANCHO - MARGEN * 2), MARGEN, 124)
-  ctx.fillStyle = COLOR.textoSuave
-  ctx.font = '500 18px Inter, system-ui, sans-serif'
+  ctx.fill()
+  ctx.restore()
+  const marca = dibujarMarca(ctx, MARGEN + 20, fy + FRANJA / 2 - 18)
+  ctx.save()
+  ctx.font = '600 16px Inter, system-ui, sans-serif'
+  ctx.textBaseline = 'middle'
+  ctx.textAlign = 'right'
+  ctx.fillStyle = COLOR.hielo
+  const web = 'pokedoc.es'
+  ctx.fillText(web, MARGEN + fw - 22, fy + FRANJA / 2)
+  const anchoWeb = ctx.measureText(web).width
+  ctx.textAlign = 'left'
+  const x0 = MARGEN + 20 + marca + 28
+  const libre = MARGEN + fw - 22 - anchoWeb - 24 - x0
+  const total = cartas.reduce((m, l) => m + (Number(l.quantity) || 0), 0)
   const resumen = [
     `${total} cartas`,
-    ...secciones.map((s) => `${s.lineas.reduce((m, l) => m + l.quantity, 0)} ${s.titulo.toLowerCase()}`),
+    ...SECCIONES.map((s) => `${(porSeccion?.[s.campo] || []).reduce((m, l) => m + (Number(l.quantity) || 0), 0)} ${s.titulo.toLowerCase()}`),
     subtitulo,
   ].filter(Boolean)
-  ctx.fillText(recortar(ctx, resumen.join(' · '), ANCHO - MARGEN * 2), MARGEN, 156)
-
-  let y = 190
-  for (const s of secciones) {
-    const cuantas = s.lineas.reduce((m, l) => m + l.quantity, 0)
-    ctx.fillStyle = COLOR.hielo
-    ctx.font = '700 15px Inter, system-ui, sans-serif'
-    ctx.fillText(`${s.titulo.toUpperCase()}  ${cuantas}`, MARGEN, y + 24)
-    y += 40
-    s.lineas.forEach((l, i) => {
-      const fila = Math.floor(i / COLUMNAS)
-      const col = i % COLUMNAS
-      dibujarCarta(ctx, l, imagenes.get(l), MARGEN + col * (CARTA_W + HUECO), y + fila * (CARTA_H + HUECO))
-    })
-    y += Math.ceil(s.lineas.length / COLUMNAS) * (CARTA_H + HUECO)
-  }
-
-  // El pie.
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.12)'
-  ctx.fillRect(MARGEN, alto - 58, ANCHO - MARGEN * 2, 1)
   ctx.fillStyle = COLOR.blanco
-  ctx.font = '700 20px Fredoka, Inter, system-ui, sans-serif'
-  ctx.fillText('pokedoc.es', MARGEN, alto - 24)
+  ctx.font = '700 22px Fredoka, Inter, system-ui, sans-serif'
+  ctx.fillText(recortar(ctx, nombre || 'Mazo', libre), x0, fy + FRANJA / 2 - 12)
   ctx.fillStyle = COLOR.textoSuave
   ctx.font = '500 14px Inter, system-ui, sans-serif'
-  ctx.textAlign = 'right'
-  ctx.fillText('La comunidad española de Pokémon TCG', ANCHO - MARGEN, alto - 25)
-  ctx.textAlign = 'left'
+  ctx.fillText(recortar(ctx, resumen.join(' · '), libre), x0, fy + FRANJA / 2 + 14)
+  ctx.restore()
 
-  let datos
+  let blob
   try {
-    datos = canvas.toDataURL('image/png')
+    blob = await new Promise((ok, mal) => canvas.toBlob((b) => (b ? ok(b) : mal(new Error('sin imagen'))), 'image/png'))
   } catch {
     // Una imagen sin permiso se ha colado y el canvas no se deja guardar.
     showToast('No se ha podido montar la imagen. Prueba a copiar la lista.', 'error')
     return
   }
+  // La lista va DENTRO del PNG: el constructor la lee al importar la
+  // imagen, y entonces la importación es exacta (js/lista-en-png.js).
+  const bytes = meterLista(new Uint8Array(await blob.arrayBuffer()), textoDeLista(porSeccion))
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }))
   const enlace = document.createElement('a')
-  enlace.href = datos
-  enlace.download = `mazo-${String(nombre).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'pokedoc'}.png`
+  enlace.href = url
+  enlace.download = `mazo-${String(nombre).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'pokedoc'}.png`
   enlace.click()
+  setTimeout(() => URL.revokeObjectURL(url), 60000)
   return canvas
 }

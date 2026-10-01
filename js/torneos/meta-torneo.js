@@ -12,7 +12,71 @@
 // `agruparMeta` es pura (sin DOM ni base) y se prueba en Node; el pintado
 // va debajo y lo monta ronda.js con lo que ya tiene a mano.
 import { escapeHtml } from '../app.js'
-import { claveDeArquetipo } from './arquetipos.js'
+import { claveDeArquetipo, dexesDeNombre } from './arquetipos.js'
+
+// La clave del META es el Pokémon PRINCIPAL del mazo, no el arquetipo
+// entero (tanda 421). PINGU: «hay arquetipos que se repiten y aparecen
+// por separado, no tiene sentido». En la Copa RyuCards salían 24 filas
+// para 32 jugadores: «N's Zoroark ex N's Darmanitan», «N's Zoroark ex
+// Pecharunt ex», «N's Zoroark ex Munkidori», «N's Zoroark ex» a secas y
+// «Zoroark ex de N Darmanitan de N» (el mismo mazo exportado en español)
+// eran cinco filas de un jugador para lo que es UN mazo con seis. El
+// segundo icono que se deduce es la pareja o la carta técnica de cada
+// uno, y partía el meta en variantes.
+//
+// El principal es el primer icono (el que más pesa en la lista) y se
+// compara por su ESPECIE (`dexesDeNombre`, que entiende el inglés y el
+// español), así que el idioma tampoco parte nada. Una Mega no es la
+// básica: «Mega Lucario ex» y «Lucario» tienen especies distintas. Un mazo
+// cuyo principal no es un Pokémon (los «Martillos») se agrupa como antes.
+export function claveDelMeta(arq) {
+  if (!arq) return 'sin-mazo'
+  const principal = arq.iconos?.[0]
+  const dex = dexesDeNombre(principal?.nombre ?? principal?.name ?? '')[0]
+  return dex ? `p:${dex}` : claveDeArquetipo(arq)
+}
+
+// Dos jugadores llevan la MISMA variante si sus iconos son los mismos
+// Pokémon (por especie: el mismo mazo exportado en inglés y en español
+// no son dos variantes) o, si un icono es un objeto, el mismo objeto.
+function claveDeVariante(arq) {
+  if (arq.id) return `a:${arq.id}`
+  const partes = (arq.iconos || []).map((i) => {
+    const nombre = String(i?.nombre ?? i?.name ?? '')
+    return String(dexesDeNombre(nombre)[0] ?? nombre.trim().toLowerCase())
+  })
+  return partes.length ? partes.sort().join('|') : claveDeArquetipo(arq)
+}
+
+// Cómo se enseña un grupo. Si todos jugaron exactamente lo mismo, su
+// arquetipo tal cual (con sus dos iconos). Si hay variantes, el
+// principal solo —con el nombre que más se repite; a igualdad, el de
+// quien quedó más arriba— y la lista de variantes aparte, para no
+// perder qué jugó cada uno.
+function representar(jugadores) {
+  const porVariante = new Map()
+  for (const j of jugadores) {
+    const clave = claveDeVariante(j.arq)
+    if (!porVariante.has(clave)) porVariante.set(clave, { nombre: j.arq.nombre, cuantos: 0 })
+    porVariante.get(clave).cuantos++
+  }
+  if (porVariante.size === 1) return { arq: jugadores[0].arq, variantes: [] }
+  const nombres = new Map()
+  for (const j of jugadores) {
+    const icono = j.arq.iconos?.[0]
+    const nombre = icono?.nombre ?? icono?.name
+    if (!nombre) continue
+    if (!nombres.has(nombre)) nombres.set(nombre, { cuantos: 0, icono })
+    nombres.get(nombre).cuantos++
+  }
+  // sort es estable: a igual cuenta, el primero que apareció (los
+  // jugadores ya vienen en el orden de la clasificación).
+  const [nombre, { icono }] = [...nombres].sort((a, b) => b[1].cuantos - a[1].cuantos)[0]
+  return {
+    arq: { id: null, nombre, iconos: [icono], curado: jugadores.every((j) => j.arq.curado) },
+    variantes: [...porVariante.values()].sort((a, b) => b.cuantos - a.cuantos),
+  }
+}
 
 // arquetipos: Map userId → { id, nombre, iconos, curado } (los que tienen lista)
 // tabla: la clasificación del motor, ya ordenada ({ playerId, matchPoints,
@@ -27,10 +91,10 @@ export function agruparMeta(arquetipos, tabla) {
   const grupos = new Map()
   for (const [userId, arq] of arquetipos || []) {
     if (!arq) continue
-    const clave = claveDeArquetipo(arq)
-    if (!grupos.has(clave)) grupos.set(clave, { clave, arq, jugadores: [] })
+    const clave = claveDelMeta(arq)
+    if (!grupos.has(clave)) grupos.set(clave, { clave, jugadores: [] })
     const p = puestoDe.get(userId)
-    grupos.get(clave).jugadores.push({ userId, puesto: p?.puesto ?? null, e: p?.e ?? null })
+    grupos.get(clave).jugadores.push({ userId, arq, puesto: p?.puesto ?? null, e: p?.e ?? null })
   }
   const total = [...grupos.values()].reduce((n, g) => n + g.jugadores.length, 0)
   const conPuesto = (a, b) => (a.puesto ?? Infinity) - (b.puesto ?? Infinity)
@@ -44,6 +108,7 @@ export function agruparMeta(arquetipos, tabla) {
     const partidas = victorias + suma('losses') + suma('draws')
     return {
       ...g,
+      ...representar(g.jugadores),
       cuantos: g.jugadores.length,
       cuota: total ? g.jugadores.length / total : 0,
       mejorPuesto: g.jugadores[0]?.puesto ?? null,
@@ -102,7 +167,7 @@ export function metaHtml(meta, abierto, ayudas) {
           <span class="torneo-meta-datos">
             <span class="torneo-meta-nombre">${escapeHtml(g.arq.nombre)}</span>
             <span class="torneo-meta-barra" aria-hidden="true"><span style="--parte: ${(g.cuota * 100).toFixed(1)}%"></span></span>
-            <span class="subtext">${g.cuantos} ${g.cuantos === 1 ? 'jugador' : 'jugadores'} · mejor puesto ${ordinal(g.mejorPuesto)}${g.porcentajeVictorias !== null ? ` · ${pct(g.porcentajeVictorias)} de victorias` : ''}</span>
+            <span class="subtext">${g.cuantos} ${g.cuantos === 1 ? 'jugador' : 'jugadores'}${g.variantes.length ? ` · ${g.variantes.length} variantes` : ''} · mejor puesto ${ordinal(g.mejorPuesto)}${g.porcentajeVictorias !== null ? ` · ${pct(g.porcentajeVictorias)} de victorias` : ''}</span>
           </span>
           <strong class="torneo-meta-cuota">${pct(g.cuota)}</strong>
         </button>
@@ -127,7 +192,7 @@ function detalleHtml(g, meta, ayudas) {
       return `
       <li class="torneo-meta-jugador">
         <span class="torneo-pos${j.puesto && j.puesto <= 3 ? ` torneo-pos-${j.puesto}` : ''}"><span class="sr-only">Puesto </span>${j.puesto ?? '—'}</span>
-        <span class="torneo-meta-quien"><strong>${nombre}</strong><span class="subtext">${resultado}</span></span>
+        <span class="torneo-meta-quien"><strong>${nombre}</strong>${g.variantes.length ? `<span class="torneo-meta-variante">${escapeHtml(j.arq.nombre)}</span>` : ''}<span class="subtext">${resultado}</span></span>
         <button type="button" class="btn-secondary torneo-ver-lista" data-meta-lista="${escapeHtml(j.userId)}" aria-label="Ver lista de ${nombre}">Ver lista</button>
       </li>`
     })
@@ -137,6 +202,11 @@ function detalleHtml(g, meta, ayudas) {
     <div class="torneo-meta-cabecera">
       <span class="torneo-meta-mazo">${ayudas.chapa(g.arq)}</span>
       <h4 class="torneo-meta-nombre">${escapeHtml(g.arq.nombre)}</h4>
+      ${
+        g.variantes.length
+          ? `<p class="subtext torneo-meta-variantes">Variantes: ${g.variantes.map((v) => `${escapeHtml(v.nombre)}${v.cuantos > 1 ? ` ×${v.cuantos}` : ''}`).join(' · ')}</p>`
+          : ''
+      }
       <span class="subtext">${g.cuantos} de ${meta.total} ${meta.total === 1 ? 'lista' : 'listas'} (${pct(g.cuota)}) · ${g.victorias}-${g.derrotas}-${g.empates} entre todos, sin contar byes</span>
     </div>
     <ol class="torneo-meta-jugadores">${filas}</ol>`

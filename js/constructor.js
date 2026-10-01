@@ -564,6 +564,21 @@ async function leerImagenSubida(fichero) {
   $('cmImagenFilas').innerHTML = ''
   $('cmImportarBoton').disabled = true
   try {
+    // Una imagen exportada por PokeDoc lleva la lista en texto dentro
+    // (tanda 421): si sigue ahí, la importación es EXACTA y no hace falta
+    // reconocer nada. Se pasa al modo texto con la lista escrita, para
+    // revisarla antes de pulsar «Importar» como con cualquier otra.
+    const { sacarLista } = await import('./lista-en-png.js')
+    const incrustada = sacarLista(new Uint8Array(await fichero.arrayBuffer()))
+    if (turno !== turnoImagen) return
+    if (incrustada) {
+      $('cmImportarTexto').value = incrustada
+      cambiarModoImportar('texto')
+      const res = $('cmImportarResultado')
+      res.innerHTML = '<p>Esta imagen es de PokeDoc y trae la lista dentro: aquí la tienes, exacta. Revísala y pulsa «Importar».</p>'
+      res.classList.remove('hidden')
+      return
+    }
     const mod = await import('./constructor/imagen.js')
     if (!dbImagen) {
       aviso.textContent = 'Cargando la base de cartas (solo la primera vez, unos segundos)…'
@@ -575,7 +590,7 @@ async function leerImagenSubida(fichero) {
     })
     if (turno !== turnoImagen) return // llegó otra imagen mientras tanto
     if (!filas.length) {
-      aviso.textContent = 'No he encontrado cartas en esta imagen. Tiene que ser una lista hecha con Limitless: las cartas en rejilla sobre fondo oscuro.'
+      aviso.textContent = 'No he encontrado cartas en esta imagen. Tiene que ser una lista de Limitless o de PokeDoc: las cartas en rejilla, sobre fondo oscuro, claro o transparente.'
       return
     }
     filasImagen = filas.map((f) => ({ ...f, elegida: f.candidatas[0] }))
@@ -795,14 +810,27 @@ async function guardar() {
   boton.disabled = true
   try {
     const copia = estado.soloLectura
-    const fila = await guardarMazo({
-      id: copia ? null : estado.id,
+    const datos = {
       name: estado.nombre || 'Mazo sin nombre',
       format: estado.formato,
       cards: lista().map((e) => ({ id: e.carta.id, n: e.n })),
       cover_card: elegirPortada(),
       is_public: copia ? false : estado.publico,
-    })
+    }
+    let fila
+    let nuevo = false
+    try {
+      fila = await guardarMazo({ id: copia ? null : estado.id, ...datos })
+    } catch (err) {
+      // El mazo que se estaba editando ya no está en tu cuenta: se borró
+      // desde «Mis mazos» (o en otra pestaña), o venía de un borrador de
+      // otra cuenta que entró en este navegador. Antes salía «este mazo no
+      // es tuyo» y no había forma de guardarlo; PINGU: «cada uno puede
+      // guardar el mazo que quiera en su cuenta». Se guarda como NUEVO.
+      if (!err.sinFila) throw err
+      fila = await guardarMazo({ id: null, ...datos })
+      nuevo = true
+    }
     estado.id = fila.id
     estado.duenoId = fila.user_id
     estado.soloLectura = false
@@ -811,7 +839,7 @@ async function guardar() {
     guardarBorrador()
     pintarCabecera()
     pintarEstadoGuardado()
-    showToast(copia ? 'Copia guardada en tus mazos.' : 'Mazo guardado.', 'success')
+    showToast(copia ? 'Copia guardada en tus mazos.' : nuevo ? 'Guardado como mazo nuevo en tus mazos.' : 'Mazo guardado.', 'success')
   } catch (err) {
     showToast(err.message || 'No se ha podido guardar.', 'error')
   } finally {
@@ -962,7 +990,16 @@ async function ponerFila(fila) {
 
 async function ponerBorrador(b) {
   const mapa = await cartasPorIds(b.cartas.map((c) => c.id))
-  estado.id = b.id || null
+  // El borrador vive en el NAVEGADOR, no en la cuenta: puede apuntar a un
+  // mazo que ya no existe (borrado en «Mis mazos») o que es de otra cuenta
+  // que entró aquí antes (tanda 420). Entonces es un mazo nuevo: si no,
+  // «Guardar» intentaba pisar ese y salía «este mazo no es tuyo».
+  let id = b.id || null
+  if (id) {
+    const fila = estado.sesion ? await cargarMazo(id).catch(() => null) : null
+    if (!fila || fila.user_id !== estado.sesion.user.id) id = null
+  }
+  estado.id = id
   estado.nombre = b.nombre || ''
   estado.formato = b.formato || 'standard'
   estado.publico = !!b.publico

@@ -3,6 +3,12 @@
 // copias en un hexágono rojo). Es lo que la gente comparte en Twitter y
 // en Discord, y hasta ahora había que copiarlo carta a carta.
 //
+// Y desde la tanda 421, también la que exporta PokeDoc: la misma rejilla
+// sobre fondo TRANSPARENTE con el hexágono AZUL de la casa
+// (js/insignia-copias.js). Esa además lleva la lista en texto dentro del
+// PNG (js/lista-en-png.js) y, si sigue ahí, el constructor ni pasa por
+// aquí; esto es para cuando la imagen se ha recomprimido por el camino.
+//
 // No hay texto que leer: se RECONOCE cada carta por cómo se ve.
 //   1. Se localiza la rejilla de cartas en la imagen (bandas claras sobre
 //      el fondo oscuro).
@@ -26,7 +32,10 @@
 // a las de la herramienta. Si cambias una, cambia la otra y regenera el
 // fichero.
 //
-// Módulo sin importaciones y sin HTML: solo cuentas sobre píxeles.
+// Sin HTML: solo cuentas sobre píxeles. La única importación es el
+// dibujo de la insignia de PokeDoc, para hacerse sus plantillas con el
+// MISMO código que la pinta.
+import { dibujarInsignia, esAzulInsignia, cargarLetraInsignia } from '../insignia-copias.js'
 
 export const URL_HUELLAS = '/assets/constructor/huellas.bin'
 
@@ -182,7 +191,12 @@ export function detectar(bmp) {
   for (let y = 0; y < H; y += 3) for (let X = 0; X < W; X += 3) if (X < fx || X > W - fx || y < fy || y > H - fy) marco.push(L[y * W + X])
   marco.sort((a, b) => a - b)
   let fondo = marco.length ? marco[Math.floor(marco.length / 2)] : 30
-  if (fondo > 110) {
+  // Un marco CLARO y LISO es un fondo claro de verdad, no una imagen
+  // recortada justa: la que exporta PokeDoc es transparente, y hay
+  // aplicaciones que la aplanan sobre blanco (tanda 421). Entonces una
+  // carta es lo que se APARTA del fondo, hacia arriba o hacia abajo.
+  const claro = fondo > 110 && marco.filter((v) => Math.abs(v - fondo) < 12).length >= marco.length * 0.8
+  if (fondo > 110 && !claro) {
     const hist = new Array(256).fill(0)
     let tot = 0
     for (let i = 0; i < W * H; i += 7) {
@@ -199,6 +213,7 @@ export function detectar(bmp) {
     }
   }
   const T = Math.min(200, fondo + 45)
+  const esCarta = claro ? (v) => Math.abs(v - fondo) > 45 : (v) => v > T
 
   const tramos = (a, t, minimo) => {
     const r = []
@@ -218,7 +233,7 @@ export function detectar(bmp) {
   for (let y = 0; y < H; y++) {
     let n = 0
     const o = y * W
-    for (let X = 0; X < W; X++) if (L[o + X] > T) n++
+    for (let X = 0; X < W; X++) if (esCarta(L[o + X])) n++
     filas[y] = n
   }
   const bandas = tramos(filas, W * 0.02, H * 0.04)
@@ -229,7 +244,7 @@ export function detectar(bmp) {
     const col = new Array(W).fill(0)
     for (let y = y0; y <= y1; y++) {
       const o = y * W
-      for (let X = 0; X < W; X++) if (L[o + X] > T) col[X]++
+      for (let X = 0; X < W; X++) if (esCarta(L[o + X])) col[X]++
     }
     // Cartas pegadas: se parte el tramo según el ancho esperado.
     const anchoCarta = bh * 0.72
@@ -249,9 +264,21 @@ export function detectar(bmp) {
     const ar = c.w / c.h
     return ar > 0.6 && ar < 0.86
   })
+  // El tamaño dominante es el que más SUPERFICIE ocupa, no la mediana
+  // de las alturas (tanda 421): la franja de la marca de una imagen de
+  // PokeDoc se parte en diecisiete «cartas» bajitas, y por número le
+  // ganaban a las siete de verdad. En una de Limitless, todas las cartas
+  // miden lo mismo y sale lo mismo que antes.
   if (celdas.length) {
-    const hs = celdas.map((c) => c.h).sort((a, b) => a - b)
-    const mh = hs[Math.floor(hs.length / 2)]
+    let mh = celdas[0].h
+    let mejor = -1
+    for (const c of celdas) {
+      const area = celdas.filter((o) => Math.abs(o.h - c.h) / c.h < 0.2).reduce((s, o) => s + o.w * o.h, 0)
+      if (area > mejor) {
+        mejor = area
+        mh = c.h
+      }
+    }
     celdas = celdas.filter((c) => Math.abs(c.h - mh) / mh < 0.2)
   }
   return { W, H, celdas }
@@ -331,20 +358,21 @@ function prepararPlantillas(crudas) {
 // Correlación normalizada contra cada plantilla, dejando que el número
 // se desplace ±3 píxeles. Devuelve el mejor, su nota y la del segundo
 // (si están muy cerca, el número es dudoso).
-function leerContador(bmp, c, plantillas) {
+const esRojoLimitless = (r, g, b) => r > 120 && r - g > 70 && r - b > 50
+
+function leerContador(bmp, c, plantillas, { esHexagono = esRojoLimitless, minimo = 0.25 } = {}) {
   const { bw, bh, d } = parcheContador(bmp, c)
   // ¿Hay hexágono? ImgGen solo lo pinta hasta 20 copias, y una imagen que
   // no sea de ImgGen no lo trae. Sin él, cualquier plantilla «casa» un
   // poco y saldría un número inventado: mejor decir que no se sabe.
   let rojos = 0
   for (let i = 0; i < bw * bh; i++) {
-    const r = d[i * 4]
-    if (r > 120 && r - d[i * 4 + 1] > 70 && r - d[i * 4 + 2] > 50) rojos++
+    if (esHexagono(d[i * 4], d[i * 4 + 1], d[i * 4 + 2])) rojos++
   }
   // Un hexágono de verdad pone de rojo casi un tercio del recuadro o más (se
   // midió: 1.100–3.000 de 3.721 píxeles); el rojo suelto de la franja de
   // una carta de entrenador se queda en ~300.
-  if (rojos < bw * bh * 0.25) return { n: 0, nota: 0, segunda: 0 }
+  if (rojos < bw * bh * minimo) return { n: 0, nota: 0, segunda: 0 }
   const q = new Float32Array(bw * bh)
   for (let i = 0; i < bw * bh; i++) q[i] = Math.min(d[i * 4], d[i * 4 + 1], d[i * 4 + 2])
   let mejor = { n: 0, s: -2 }
@@ -383,6 +411,60 @@ function leerContador(bmp, c, plantillas) {
   return { n: mejor.n, nota: mejor.s, segunda }
 }
 
+// ── Las plantillas del hexágono AZUL de PokeDoc (tanda 421) ──
+//
+// No vienen en huellas.bin: se pintan aquí, una vez, con la misma función
+// que pinta la imagen exportada, sobre una carta del tamaño al que
+// `parcheContador` lleva cada carta (138×192). Del 1 al 60, que una lista
+// puede llevar más de 20 energías y la imagen de PokeDoc las numera todas.
+export const COPIAS_POKEDOC = 60
+// Una insignia azul ocupa ~un tercio de la zona; el azul suelto del dibujo
+// de una carta de agua no llega.
+const MINIMO_AZUL = 0.18
+let plantillasPokedoc = null
+
+export async function prepararPlantillasPokedoc() {
+  if (plantillasPokedoc) return plantillasPokedoc
+  await cargarLetraInsignia()
+  const { nw, nh } = ZONA_CONTADOR
+  const crudas = {}
+  for (let n = 1; n <= COPIAS_POKEDOC; n++) {
+    const k = lienzo(nw, nh)
+    const x = ctx2d(k)
+    x.fillStyle = '#808080'
+    x.fillRect(0, 0, nw, nh)
+    dibujarInsignia(x, n, 0, 0, nw, nh)
+    crudas[n] = plantillaDeInsignia(k, nw, nh)
+  }
+  plantillasPokedoc = prepararPlantillas(crudas)
+  return plantillasPokedoc
+}
+
+// Como `plantillaCruda`, pero el hexágono es el azul de la casa.
+function plantillaDeInsignia(k, nw, nh) {
+  const { bw, bh, d } = parcheContador(k, { x: 0, y: 0, w: nw, h: nh })
+  const w = new Uint8Array(bw * bh)
+  const spans = []
+  for (let i = 0; i < bw * bh; i++) w[i] = Math.min(d[i * 4], d[i * 4 + 1], d[i * 4 + 2])
+  for (let y = 0; y < bh; y++) {
+    let a = -1
+    let b = -1
+    for (let X = 0; X < bw; X++) {
+      const i = (y * bw + X) * 4
+      if (esAzulInsignia(d[i], d[i + 1], d[i + 2])) {
+        if (a < 0) a = X
+        b = X
+      }
+    }
+    spans.push(b - a >= 4 ? [a, b] : null)
+  }
+  return { bw, bh, w, spans }
+}
+
+export function leerInsignia(bmp, c, plantillas) {
+  return leerContador(bmp, c, plantillas, { esHexagono: esAzulInsignia, minimo: MINIMO_AZUL })
+}
+
 function mejores(f, db, k = 8) {
   const top = []
   for (let i = 0; i < db.cartas.length; i++) {
@@ -404,6 +486,8 @@ function mejores(f, db, k = 8) {
 //     copias, dudaCarta, dudaCopias }
 export async function leerImagen(fuente, db, alProgresar) {
   const bmp = await createImageBitmap(fuente)
+  // Las de PokeDoc se pintan al vuelo; si algo falla, se lee solo el rojo.
+  const azules = await prepararPlantillasPokedoc().catch(() => [])
   try {
     const { celdas } = detectar(bmp)
     const filas = []
@@ -411,7 +495,16 @@ export async function leerImagen(fuente, db, alProgresar) {
       const c = celdas[k]
       const f = compactar(huella(bmp, c.x, c.y, c.w, c.h, db.fw, db.fh), db.fw, db.fh)
       const top = mejores(f, db)
-      const cnt = db.plantillas.length ? leerContador(bmp, c, db.plantillas) : { n: 1, nota: 0, segunda: 0 }
+      // El hexágono rojo de Limitless o el azul de PokeDoc: se leen los
+      // dos y gana el que mejor casa. No vale «el rojo y, si no hay, el
+      // azul»: una carta de fuego tiene rojo de sobra en esa zona, el
+      // lector de Limitless se cree que hay hexágono y lee un número de
+      // nada encima de la insignia azul.
+      const nada = { n: 0, nota: 0, segunda: 0 }
+      const rojo = db.plantillas.length ? leerContador(bmp, c, db.plantillas) : nada
+      const azul = azules.length ? leerInsignia(bmp, c, azules) : nada
+      let cnt = azul.n && azul.nota > rojo.nota ? azul : rojo
+      if (!cnt.n && !db.plantillas.length && !azules.length) cnt = { n: 1, nota: 0, segunda: 0 }
       const b = top[0]
       // La segunda más parecida CON OTRO NOMBRE: dos impresiones de la
       // misma carta que se parecen no son una duda (valen lo mismo).
