@@ -1,225 +1,23 @@
-// La decklist con cartas de verdad: cada línea del export de TCG Live
-// se busca en NUESTRO espejo de cartas (`tcg_cards`, el mismo que usa el
-// buscador — a TCGdex no se le llama desde aquí) y se pinta con su
-// imagen y su contador. Lo que el espejo no tenga se queda como línea de
-// texto, que una lista nunca debe perder cartas por culpa del catálogo.
+// La decklist con cartas de verdad: la rejilla de imágenes de una lista
+// y los iconos del arquetipo.
 //
-// La tabla de códigos de set de TCG Live vive en comun.js (sin DOM):
-// con ella la carta se busca dentro de SU set y por su NÚMERO — sin
-// pasar por el nombre, que el export viene en el idioma del jugador y
-// el espejo guarda el español cuando existe: cruzar nombres entre
-// idiomas era la causa de las cartas «sin imagen». Sin correspondencia
-// de set, se cae a la búsqueda global por nombre de siempre.
-//
-// Además de la imagen, la carta trae su MARCA DE REGULACIÓN (D…J): con
-// las marcas legales de la temporada (site_settings 'torneos_reglas',
-// hoy H/I/J) la rejilla señala las cartas fuera del reglamento. Las
-// energías básicas están exentas, como en el juego real. Una carta que
-// el espejo aún no tenga marcada (columna a NULL) no se señala: sin
-// dato no hay acusación.
-//
-// Y la REGLA DE LA REIMPRESIÓN, que es como lo hace el juego oficial (y
-// Limitless): una impresión antigua VALE si existe una carta con el
-// MISMO NOMBRE y una marca legal. Quien pega su lista con la
-// «Investigación de Profesores» de hace tres temporadas no está haciendo
-// trampas — está jugando la versión moderna con otra ilustración. Antes de acusar a una
-// carta de marca vieja, se mira si tiene reimpresión legal; solo si NO
-// la tiene se señala. Y señalar es AVISAR: el reglamento nunca impide
-// guardar la lista — de eso se encarga el juez, no el formulario.
-import { supabase } from '../supabase.js'
+// Desde la tanda 413, CÓMO se resuelve cada línea contra el espejo —el
+// código de set, la impresión exacta, la gemela por nombre, la impresión
+// que se enseña— vive en js/lista-canonica.js, que no pinta nada: así la
+// imagen exportada (que usa también el constructor) enseña las mismas
+// cartas sin arrastrar las clases de aquí. Las tres de siempre se
+// reexportan para quien ya las importaba de este fichero.
 import { rutaDeCarta } from '../carta-ruta.js'
-import { searchCards, cardImageUrl, normalizeSearch } from '../tcgdex.js'
+import { cardImageUrl } from '../tcgdex.js'
 import { escapeHtml } from '../app.js'
-import { nombreDeSetLive } from './comun.js'
-// Las dos preguntas de legalidad viven fuera desde la tanda 335: las
-// hace también la ficha de una carta, y una copia se habría separado el
-// día que cambiara la temporada.
 import { marcasLegales, hayReimpresionLegal } from '../carta-legalidad.js'
 import { spriteDeCarta, respaldoDeSprite } from './sprites-pokemon.js'
 // La imagen de cada línea con su cadena de respaldos, y las energías
 // básicas con las nuestras (tanda 366).
-import { cadenaDeImagenes, atributosDeImagen, letraDeEnergiaBasica } from '../imagen-carta.js'
+import { cadenaDeImagenes, atributosDeImagen } from '../imagen-carta.js'
+import { resolverCarta, codigosSinResolver, COLUMNAS_DE_LISTA, esEnergiaBasica, listaParaEnsenar } from '../lista-canonica.js'
 
-const cache = new Map()
-const setsPorCodigo = new Map() // código Live → set_id del espejo (o null)
-
-// Una energía básica nunca está fuera de reglamento, lleve la marca que
-// lleve (regla del juego real). Por nombre y no por categoría: la
-// importación básica del espejo deja category a null.
-function esEnergiaBasica(linea) {
-  return /^basic\b|b[áa]sica/i.test(linea.name)
-}
-
-// Los códigos que un admin ha asignado a mano desde /admin, en
-// site_settings. Existen porque la tabla de comun.js está escrita a mano
-// y se queda corta CADA VEZ que sale un set: el 2026-09-01 una lista
-// traía ASC, POR, CRI y MEE, y ninguno estaba — las cartas de esos
-// cuatro sets salían sin imagen y nadie podía arreglarlo sin desplegar.
-//
-// Con esto se arregla desde el panel en un minuto y sin tocar código.
-// Manda sobre la tabla del código: si algo está mal ahí, se corrige
-// aquí sin esperar a nadie.
-let codigosDeAdmin = null
-async function overridesDeSets() {
-  if (codigosDeAdmin) return codigosDeAdmin
-  try {
-    const { data } = await supabase.from('site_settings').select('value').eq('key', 'torneos_sets_live').maybeSingle()
-    codigosDeAdmin = data?.value?.codigos || {}
-  } catch {
-    codigosDeAdmin = {}
-  }
-  return codigosDeAdmin
-}
-
-// De «TWM» al identificador de nuestro set. Tres intentos, en este
-// orden y por este motivo:
-//
-//   1. Lo que un admin haya dicho a mano. Va primero para poder corregir
-//      un error de TCGdex sin esperar a nadie. Casi siempre está vacío.
-//   2. LA BASE: `tcg_sets.tcg_online_code`, que lo rellena la
-//      importación con lo que dice TCGdex (tanda 233). Este es el camino
-//      normal, y el que hace que un set nuevo funcione SOLO.
-//   3. La tabla escrita a mano de comun.js, que busca por el nombre del
-//      set. Iba a quedarse como red para los sets viejos y nada más,
-//      pero TCGdex dejó de traer `tcgOnline` en la era ME (comprobado
-//      el 2026-09-14: vacío en todos los sets me*), así que el paso 2
-//      no tiene con qué trabajar y la tabla vuelve a ampliarse a mano
-//      set a set. Si TCGdex retoma el campo, el paso 2 manda otra vez.
-async function setDeCodigo(codigo) {
-  if (setsPorCodigo.has(codigo)) return setsPorCodigo.get(codigo)
-  const clave = String(codigo || '').toUpperCase()
-
-  const overrides = await overridesDeSets()
-  if (overrides[clave]) {
-    setsPorCodigo.set(codigo, overrides[clave])
-    return overrides[clave]
-  }
-
-  let setId = null
-  try {
-    const { data } = await supabase
-      .from('tcg_sets')
-      .select('id')
-      .eq('market', 'WEST')
-      .eq('tcg_online_code', clave)
-      .limit(1)
-    setId = data?.[0]?.id || null
-  } catch {
-    // Sin la columna (migración sin ejecutar) esto falla y se sigue por
-    // la tabla de siempre, que es exactamente lo que hacía antes.
-    setId = null
-  }
-
-  if (!setId) {
-    const nombre = nombreDeSetLive(clave)
-    if (nombre) {
-      try {
-        const { data } = await supabase.from('tcg_sets').select('id').eq('market', 'WEST').eq('name', nombre).limit(1)
-        setId = data?.[0]?.id || null
-      } catch {
-        setId = null
-      }
-    }
-  }
-
-  setsPorCodigo.set(codigo, setId)
-  return setId
-}
-
-// Los códigos de set que aparecen en una lista y que NO sabemos
-// resolver. Es lo que el panel de /admin enseña para que se puedan
-// asignar: sin esto, un set nuevo se queda sin imágenes en silencio y
-// hay que descubrirlo mirando decklists a mano.
-export async function codigosSinResolver(parsed) {
-  const lineas = [...(parsed?.pokemon || []), ...(parsed?.trainer || []), ...(parsed?.energy || [])]
-  const codigos = [...new Set(lineas.map((l) => String(l.set || '').toUpperCase()).filter(Boolean))]
-  const sinResolver = []
-  for (const c of codigos) {
-    if (!(await setDeCodigo(c))) sinResolver.push(c)
-  }
-  return sinResolver
-}
-
-// Devuelve la carta Y CÓMO se ha encontrado, que es lo que faltaba
-// (tanda 328).
-//
-// `exacta: true` = por su set y su número, o sea, ES la impresión que el
-// jugador escribió. `exacta: false` = no hemos sabido cuál es y hemos
-// cogido una gemela por el nombre, que sirve para poner una imagen y no
-// sirve para NADA MÁS.
-//
-// La diferencia no era un matiz: el comprobador de reglamento juzgaba la
-// gemela como si fuera la carta. PINGU jugó un torneo con un Mew ex de
-// 30th Celebration y la lista se lo marcó en rojo como marca G, porque
-// la gemela que encontramos por nombre era de 2022. Acusar a alguien de
-// llevar una carta fuera de reglamento basándose en OTRA carta es lo
-// peor que puede hacer esta pantalla.
-export async function resolverCarta(linea) {
-  const clave = `${normalizeSearch(linea.name)}|${linea.set}|${linea.number}`
-  if (cache.has(clave)) return cache.get(clave)
-  const nombreNorm = normalizeSearch(linea.name)
-  let carta = null
-  let exacta = false
-  try {
-    // Primero el tiro exacto: su set y su número de colección, SIN el
-    // nombre (los sets nuevos numeran con ceros por delante — 057 — y
-    // el export dice 57, así que se prueban las dos formas).
-    const setId = await setDeCodigo(linea.set)
-    if (setId) {
-      const numero = String(linea.number)
-      const { data } = await supabase
-        .from('tcg_cards')
-        .select('id, set_id, local_id, name, image_path, regulation_mark')
-        .eq('market', 'WEST')
-        .eq('set_id', setId)
-        .in('local_id', [numero, numero.padStart(3, '0')])
-        .limit(1)
-      carta = data?.[0] || null
-      exacta = Boolean(carta)
-    }
-    // Sin set en el espejo (o carta que no aparece): por nombre, como antes.
-    if (!carta) {
-      const { cartas } = await searchCards(linea.name, { limite: 24 })
-      const gemelas = cartas.filter((c) => normalizeSearch(c.name) === nombreNorm)
-      // Si el número de colección coincide, esa ES la impresión que el
-      // jugador escribió. Si no, la MÁS NUEVA — antes se cogía la primera
-      // por orden alfabético, que entre diez gemelas era casi siempre una
-      // impresión ANTIGUA: imagen vieja y marca fuera de reglamento para
-      // una carta que el jugador puso bien.
-      //
-      // «Más nueva» se decide así: marca legal primero, luego marca más
-      // alta (la marca ES cronológica: D 2019 … J 2026), luego la fecha
-      // del set. Las SIN marca van al final a propósito: una gemela sin
-      // marca es una carta anterior a 2019 o un promo raro (hay hasta
-      // promos de Pocket en el espejo) — no es la que se está jugando.
-      // La fecha del set va de último desempate porque HOY está a NULL en
-      // todo el espejo (la importación de sets no la ha rellenado aún);
-      // cuando se rellene, afinará sola.
-      const legales = await marcasLegales()
-      const fecha = (c) => String(c.tcg_sets?.release_date || '')
-      const marca = (c) => String(c.regulation_mark || '')
-      const mejor = [...gemelas].sort((a, b) => {
-        const va = legales.includes(a.regulation_mark) ? 1 : 0
-        const vb = legales.includes(b.regulation_mark) ? 1 : 0
-        if (va !== vb) return vb - va
-        if (marca(a) !== marca(b)) return marca(b).localeCompare(marca(a))
-        return fecha(b).localeCompare(fecha(a))
-      })
-      // El número se busca sobre la lista YA ordenada: si dos sets
-      // distintos coinciden en el número (pasa, con miles de cartas),
-      // que gane la impresión nueva, no la primera del alfabeto.
-      carta = mejor.find((c) => c.local_id === String(linea.number)) || mejor[0] || cartas[0] || null
-    }
-  } catch {
-    carta = null
-  }
-  // La marca de la gemela NO se deja salir: quien la reciba no tiene
-  // forma de saber que no es de esta carta, y ya sabemos en qué acaba
-  // eso. Sin marca, el comprobador no puede juzgarla aunque quiera.
-  const salida = carta ? { ...carta, exacta, regulation_mark: exacta ? carta.regulation_mark : null } : null
-  cache.set(clave, salida)
-  return salida
-}
+export { resolverCarta, codigosSinResolver, COLUMNAS_DE_LISTA }
 
 // ── Los dos iconos del arquetipo (tanda 230) ──
 //
@@ -363,113 +161,76 @@ const SECCIONES = [
   { campo: 'energy', titulo: 'Energía' },
 ]
 
-// Pinta la rejilla en `contenedor` y va rellenando las imágenes según se
-// resuelven. Devuelve cuando todas las líneas están decididas.
+// Pinta la rejilla en `contenedor`. Primero los nombres y las copias —es
+// lo que se lee, y sale al momento—; cuando todas las líneas están
+// resueltas, la rejilla de verdad con sus imágenes.
+//
+// Entre medias va la IMPRESIÓN QUE SE ENSEÑA (tanda 413,
+// js/impresion-canonica.js): la de rareza más baja de su colección, y una
+// sola colección por carta. Por eso la rejilla se pinta DOS veces y no se
+// va rellenando casilla a casilla: dos líneas de la lista pueden acabar
+// siendo una sola casilla.
 export async function pintarDecklistVisual(contenedor, parsed) {
   if (!parsed || !SECCIONES.some((s) => parsed[s.campo]?.length)) {
     contenedor.innerHTML = ''
     return
   }
-  contenedor.innerHTML =
+  const rejilla = (porSeccion, conPie = false) =>
     '<p class="torneo-decklist-reglamento hidden" data-reglamento></p>' +
-    SECCIONES.filter((s) => parsed[s.campo]?.length)
+    SECCIONES.filter((s) => porSeccion[s.campo]?.length)
       .map(
         (s) => `
-      <h5 class="torneo-cartas-titulo">${s.titulo} <span class="subtext">(${parsed[s.campo].reduce((n, l) => n + l.quantity, 0)})</span></h5>
+      <h5 class="torneo-cartas-titulo">${s.titulo} <span class="subtext">(${porSeccion[s.campo].reduce((n, l) => n + l.quantity, 0)})</span></h5>
       <div class="torneo-cartas-rejilla">
-        ${parsed[s.campo]
+        ${porSeccion[s.campo]
           .map(
             (l, i) => `
           <figure class="torneo-carta" data-linea="${s.campo}-${i}">
             <span class="torneo-carta-cuantas">×${l.quantity}</span>
-            <figcaption>${escapeHtml(l.name)}</figcaption>
+            <figcaption>${conPie && l.carta ? `<a class="torneo-carta-enlace" href="${escapeHtml(rutaDeCarta(l.carta))}">${escapeHtml(l.name)}</a>` : escapeHtml(l.name)}</figcaption>
           </figure>`
           )
           .join('')}
       </div>`
       )
       .join('')
+  contenedor.innerHTML = rejilla(parsed)
 
   const legales = await marcasLegales()
+  // Lo que se enseña: cada línea resuelta, con su impresión de rareza más
+  // baja y una sola colección por carta (js/lista-canonica.js).
+  const { porSeccion, sinIdentificar } = await listaParaEnsenar(parsed)
+  contenedor.innerHTML = rejilla(porSeccion, true)
+
   let fuera = 0
-  // Las que no hemos podido identificar. No son ilegales: son
-  // desconocidas, y casi siempre quiere decir que el catálogo se ha
-  // quedado viejo y le falta el set que salió la semana pasada.
-  let sinIdentificar = 0
   await Promise.all(
     SECCIONES.flatMap((s) =>
-      (parsed[s.campo] || []).map(async (linea, i) => {
-        // Las energías básicas se pintan YA, sin esperar a la base: su
-        // imagen es nuestra y no depende de encontrar la carta (tanda 366).
-        if (letraDeEnergiaBasica(linea.name)) {
-          const h = contenedor.querySelector(`[data-linea="${s.campo}-${i}"]`)
-          const attrs = atributosDeImagen(cadenaDeImagenes(linea, null, cardImageUrl))
-          if (h && attrs) h.insertAdjacentHTML('afterbegin', `<span class="torneo-carta-foto"><img ${attrs} alt="${escapeHtml(linea.name)}" width="245" height="342" loading="lazy" /></span>`)
-        }
-        const carta = await resolverCarta(linea)
-        // Se cuenta ANTES de la salida temprana, y por eso cuenta
-        // también lo que no se ha encontrado en absoluto. Ese caso —la
-        // carta que sale sin imagen y sin nada— era el más confuso de
-        // todos: no decía nada y parecía que la lista estaba mal
-        // escrita. Una energía básica no cuenta: esas se escriben de mil
-        // maneras y no se identifican nunca.
-        if ((!carta || !carta.exacta) && !esEnergiaBasica(linea)) sinIdentificar += linea.quantity
+      porSeccion[s.campo].map(async (linea, i) => {
         const hueco = contenedor.querySelector(`[data-linea="${s.campo}-${i}"]`)
         if (!hueco) return
-        // Sin carta en el espejo también se prueba la imagen: la CDN de
-        // Limitless la tiene por set y número aunque nosotros no sepamos
-        // cruzar el set (tanda 366). Lo que no se puede es enlazarla.
-        if (!carta) {
-          const attrs = letraDeEnergiaBasica(linea.name) ? null : atributosDeImagen(cadenaDeImagenes(linea, null, cardImageUrl))
-          if (attrs) hueco.insertAdjacentHTML('afterbegin', `<span class="torneo-carta-foto"><img ${attrs} alt="${escapeHtml(linea.name)}" width="245" height="342" loading="lazy" /></span>`)
-          return
+        const carta = linea.carta
+        // La imagen con su cadena de respaldos (js/imagen-carta.js): las
+        // energías básicas con las suyas, y sin carta en el espejo la CDN
+        // de Limitless por set y número (tanda 366). Sin carta no se
+        // enlaza: no hay dirección que poner.
+        const attrs = atributosDeImagen(cadenaDeImagenes(linea, carta, (ruta) => cardImageUrl(ruta, 'low')))
+        if (attrs) {
+          const img = `<img ${attrs} alt="${escapeHtml(linea.name)}" width="245" height="342" loading="lazy" />`
+          // La IMAGEN también enlaza (tanda 340), sin foco propio y oculta
+          // al lector de pantalla: el enlace del pie ya lleva al mismo
+          // sitio (la excepción de los 44 px de un enlace que repite el
+          // destino de una caja mayor).
+          hueco.insertAdjacentHTML(
+            'afterbegin',
+            carta
+              ? `<a class="torneo-carta-foto" href="${escapeHtml(rutaDeCarta(carta))}" tabindex="-1" aria-hidden="true">${img}</a>`
+              : `<span class="torneo-carta-foto">${img}</span>`
+          )
         }
-        // La IMAGEN también enlaza (tanda 340). Antes solo lo hacía el
-        // nombre del pie, que es letra pequeña debajo de un escaneo de
-        // 245 px: la gente pulsa la carta, no su nombre. Lo dijo PINGU:
-        // «una carta debería ser clicable desde cualquier sitio».
-        //
-        // Va sin foco propio y oculta al lector de pantalla porque el
-        // enlace del pie ya lleva al mismo sitio: dos paradas de tabulador
-        // seguidas al mismo destino son ruido. Es la excepción que la
-        // norma de los 44 px ya admite — «un enlace que repite un destino
-        // que ya cubre una caja mayor».
-        //
-        // La imagen va con su cadena de respaldos (js/imagen-carta.js):
-        // antes era `src` del espejo a secas, y una energía básica (sin
-        // escaneo en TCGdex) o una CDN caída dejaban la caja vacía.
-        const yaPintada = hueco.querySelector('.torneo-carta-foto')
-        if (yaPintada) {
-          // La energía ya está puesta: solo se le pone el enlace.
-          yaPintada.outerHTML = `<a class="torneo-carta-foto" href="${escapeHtml(rutaDeCarta(carta))}" tabindex="-1" aria-hidden="true">${yaPintada.innerHTML}</a>`
-        } else {
-          const attrs = atributosDeImagen(cadenaDeImagenes(linea, carta, (ruta) => cardImageUrl(ruta, 'low')))
-          if (attrs) {
-            hueco.insertAdjacentHTML(
-              'afterbegin',
-              `<a class="torneo-carta-foto" href="${escapeHtml(rutaDeCarta(carta))}" tabindex="-1" aria-hidden="true"><img ${attrs} alt="${escapeHtml(linea.name)}" width="245" height="342" loading="lazy" /></a>`
-            )
-          }
-        }
-
-        // Y el nombre pasa a ser un enlace a la ficha de la carta
-        // (tanda 326). Es el enlace interno que más vale del sitio: sale
-        // de una página que la gente LEE de verdad —la lista de un mazo
-        // que acaba de ganar un torneo— y apunta justo a la ficha que
-        // cuenta cuántos mazos la llevan.
-        //
-        // Solo cuando la carta se ha resuelto: sin identificador no hay
-        // dirección que poner, y un enlace roto es peor que ninguno.
-        const pie = hueco.querySelector('figcaption')
-        if (pie) {
-          pie.innerHTML = `<a class="torneo-carta-enlace" href="${escapeHtml(rutaDeCarta(carta))}">${escapeHtml(linea.name)}</a>`
-        }
-        // `carta.exacta` es la guarda nueva y la más importante: sin
-        // ella se juzgaba a una gemela encontrada por el nombre. Va la
-        // PRIMERA porque las demás comprobaciones no significan nada si
-        // no sabemos de qué carta hablamos.
+        // `carta.exacta` es la guarda más importante: sin ella se juzgaba
+        // a una gemela encontrada por el nombre (tanda 328).
         if (
-          carta.exacta &&
+          carta?.exacta &&
           carta.regulation_mark &&
           !legales.includes(carta.regulation_mark) &&
           !esEnergiaBasica(linea) &&

@@ -16,6 +16,7 @@ import { codigoLiveDeNombreDeSet } from '../torneos/comun.js'
 import { marcasLegales } from '../carta-legalidad.js'
 import { canonizarCarta } from '../carta-detalle.js'
 import { claveDeNombre, esEnergiaBasica, idDeEnergiaBasica, letraDeCartaDeEnergia, letraDeEnergia, plano } from './nucleo.js'
+import { canonizarEntradas } from '../impresiones-del-set.js'
 
 // Las marcas legales de la temporada salen del mismo sitio que la ficha
 // de carta (site_settings, con respaldo): se reexportan para que la
@@ -329,8 +330,18 @@ export async function resolverLineas(lineas) {
 
   const candidatos = new Map() // línea → [ids]
   for (const l of lineas) {
-    const letra = letraDeEnergia(l.nombre)
-    const esBasica = letra && (/^(basic\s+)?(\{[a-z]\}|[a-z]+)\s+energy$/i.test(plano(l.nombre)) || /^energia\s+\S+$/.test(plano(l.nombre)))
+    // Una línea de un ENLACE (los de /meta y los del constructor de
+    // Limitless) no trae nombre: solo set y número. Las energías del 30
+    // aniversario son MEE 9–16, que el espejo no tiene (solo MEE 1–8), y
+    // por eso un mazo abierto desde /meta llegaba con 52 cartas y «No he
+    // encontrado 3 MEE 13, 3 MEE 10…» (tanda 413). El tipo sale del
+    // número, que va en el orden de siempre (G R W L P F D M).
+    const letra = letraDeEnergia(l.nombre) || letraDeEnergiaPorNumero(l.set, l.numero)
+    const esBasica =
+      letra &&
+      (letraDeEnergiaPorNumero(l.set, l.numero) ||
+        /^(basic\s+)?(\{[a-z]\}|[a-z]+)\s+energy$/i.test(plano(l.nombre)) ||
+        /^energia\s+\S+$/.test(plano(l.nombre)))
     // Una energía básica es la misma carta la escriban como la escriban
     // («SVE 18», «MEE 10», «Energy 2», una de 2004…): se lleva SIEMPRE a
     // la MEE de su tipo, que es la que se pinta con el dibujo del 30
@@ -369,7 +380,32 @@ export async function resolverLineas(lineas) {
       else sinResolver.push(l)
     })
   }
-  return { resueltas, sinResolver }
+
+  // La impresión que se enseña (tanda 413, js/impresion-canonica.js): la
+  // de rareza más baja de su colección, y una sola colección por carta.
+  // Juntar es también lo que hace que dos líneas de la MISMA carta (MEE 13
+  // y SVE 5, las dos Psíquica) sumen sus copias: antes la segunda pisaba
+  // a la primera en el mapa del mazo y se perdían cartas.
+  const { codigoDeId } = await cargarSets()
+  const juntas = await canonizarEntradas(
+    resueltas.map((r) => ({ carta: r.carta, n: r.linea.n, linea: r.linea, exacta: r.exacta })),
+    { columnas: COLUMNAS, codigoDeSet: (id) => codigoDeId.get(id) || '' }
+  ).catch(() => resueltas.map((r) => ({ carta: r.carta, n: r.linea.n, linea: r.linea, exacta: r.exacta })))
+  return {
+    resueltas: juntas.map((e) => ({ linea: { ...e.linea, n: e.n }, carta: canonizarCarta(e.carta), exacta: e.exacta })),
+    sinResolver,
+  }
+}
+
+// El tipo de una energía básica por su número, para las líneas que no
+// traen nombre. MEE 1–8 y 9–16 (las del 30 aniversario) y SVE 1–8 van
+// en el mismo orden.
+export function letraDeEnergiaPorNumero(set, numero) {
+  const codigo = String(set || '').toUpperCase()
+  const n = Number(String(numero || '').replace(/^0+(?=\d)/, ''))
+  const tope = codigo === 'MEE' ? 16 : codigo === 'SVE' ? 8 : 0
+  if (!tope || !Number.isInteger(n) || n < 1 || n > tope) return null
+  return 'GRWLPFDM'[(n - 1) % 8]
 }
 
 // De todas las cartas que se llaman así, la que se juega hoy: marca legal
@@ -464,6 +500,17 @@ export async function guardarMazo({ id, name, format, cards, cover_card, is_publ
   // Un UPDATE que la política rechaza NO da error: vuelve vacío (CLAUDE.md,
   // torneos). Sin fila de vuelta, no se ha guardado — y hay que decirlo.
   if (!data) throw new Error('No se ha guardado: este mazo no es tuyo. Haz una copia para guardarlo en tu cuenta.')
+  return data
+}
+
+// Cambiar SOLO la portada (tanda 413, «Mis mazos»): sin tocar las
+// cartas ni el nombre, para no pisar un cambio hecho en otra pestaña.
+// Con `.select()` como guardarMazo: un update que la política rechaza
+// vuelve vacío y sin error.
+export async function cambiarPortada(id, cartaId) {
+  const { data, error } = await supabase.from('user_decks').update({ cover_card: cartaId }).eq('id', id).select(COLUMNAS_MAZO).maybeSingle()
+  if (error) throw traducirError(error)
+  if (!data) throw new Error('No se ha cambiado: este mazo no es tuyo.')
   return data
 }
 

@@ -124,6 +124,15 @@
   to = "/tema.html?t=:id"
   status = 200
 
+# El escaneo de una carta de Limitless, servido por nosotros (tanda 413):
+# la imagen que se exporta de un mazo se dibuja en un canvas, y uno que
+# pinta una imagen de Limitless (sin CORS) ya no se puede guardar. Solo
+# set y número, validados por la función: no es un proxy abierto.
+[[redirects]]
+  from = "/escaneo/:set/:n"
+  to = "/.netlify/functions/escaneo?set=:set&n=:n"
+  status = 200
+
 # La miniatura de un vídeo de YouTube, servida por nosotros (tanda 276).
 # La pide el servidor y se la damos ya hecha, para que el navegador de
 # quien lee no tenga que hablar con Google — que es lo que promete la

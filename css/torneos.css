@@ -2747,6 +2747,22 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   min-width: 44px;
   min-height: 44px;
 }
+/* Lo que se hace con la lista: guardarla, abrirla y exportarla. */
+.torneo-lista-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.torneo-lista-acciones .torneo-exportar { margin: 0; }
+/* Los cuatro del mismo tamaño: «Guardar» y «Abrir» salían con el relleno
+   grande de la casa y los dos de exportar con el pequeño, y la fila
+   parecía de dos sitios distintos. */
+.torneo-lista-acciones .btn-primary,
+.torneo-lista-acciones .btn-secondary {
+  padding: 8px 16px;
+  font-size: var(--t-sm);
+}
 .torneo-lista-texto summary {
   cursor: pointer;
   font-weight: 600;
@@ -2758,6 +2774,137 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
      de 24 px del fondo, la rejilla se quedaba en dos cartas por fila. */
   .torneo-lista-modal { padding: 8px; }
   .torneo-lista-modal .modal-box { max-height: 94vh; padding: 16px; }
+}
+
+/* ── El meta del torneo (tanda 413) ──
+   Una fila por mazo, del más jugado al menos: los iconos, el nombre, la
+   barra de cuánto pesó en el torneo y la cifra grande a la derecha, que
+   es lo que se busca de un vistazo. Pulsar la fila entra en el mazo. */
+.torneo-meta-lista {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.torneo-meta-fila {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+}
+.torneo-meta-fila:hover { border-color: var(--border-strong); background: var(--bg); }
+.torneo-meta-fila:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+/* La chapa de los iconos, sin su nombre: aquí el nombre va al lado, en
+   grande, y repetirlo dentro de la chapa lo diría dos veces. */
+.torneo-meta-mazo {
+  display: flex;
+  justify-content: center;
+  min-width: 68px;
+}
+.torneo-meta-mazo .torneo-arquetipo { margin-left: 0; }
+.torneo-meta-mazo .torneo-arquetipo-nombre { display: none; }
+.torneo-meta-datos {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.torneo-meta-datos .torneo-meta-nombre {
+  font-weight: 700;
+  font-size: var(--t-lg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.torneo-meta-barra {
+  display: block;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  overflow: hidden;
+}
+.torneo-meta-barra > span {
+  display: block;
+  height: 100%;
+  width: var(--parte, 0%);
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+  transition: width 0.3s var(--ease);
+}
+.torneo-meta-cuota {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  /* Del mismo ancho en todas las filas: si «11 %» ocupara menos que
+     «44 %», su barra acabaría más a la derecha y las barras no se
+     podrían comparar a ojo, que es para lo que están. */
+  min-width: 5ch;
+  text-align: right;
+}
+/* Dentro de un mazo: volver, quién es, y la tabla de quién lo jugó. */
+.torneo-meta-volver { margin: 4px 0 8px; }
+.torneo-meta-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 16px;
+}
+.torneo-meta-cabecera h4.torneo-meta-nombre { margin: 0; font-size: var(--t-xl); }
+.torneo-meta-cabecera .subtext { flex-basis: 100%; }
+.torneo-meta-jugadores {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.torneo-meta-jugador {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+.torneo-meta-quien {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.torneo-meta-quien strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.torneo-meta-jugador .torneo-pos,
+.torneo-meta-jugador .torneo-ver-lista { flex: none; }
+@media (max-width: 560px) {
+  .torneo-meta-fila { gap: 8px; padding: 12px; }
+  .torneo-meta-mazo { min-width: 0; }
+  .torneo-meta-cuota { font-size: var(--t-lg); }
+}
+@media (pointer: coarse) {
+  .torneo-meta-volver { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .torneo-meta-fila,
+  .torneo-meta-barra > span { transition: none; }
 }
 
 /* ── Tanda 220: jornadas editables y descripción con formato ── */

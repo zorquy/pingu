@@ -22019,3 +22019,166 @@ se abre al pedirlo y **flota** en vez de empujar, y que las chapas de
 versión están en la fila de filtros; y en el móvil, que las cifras van en
 una sola fila deslizable, que la nota del valor no está fuera del Panel y
 sí dentro, y que el buscador entra en la primera pantalla.
+
+## Tanda 413 — la impresión de la colección, guardarse cualquier lista, la portada y el meta del torneo (oct. 2026)
+
+Cinco cosas que pidió PINGU de una tacada. Nada de base: sin migración.
+
+### 1. Una impresión por carta, la de rareza más baja de su colección
+
+Una lista de TCG Live trae la impresión que tiene cada jugador, y la
+gente juega con lo que tiene: «3 Mega Lucario ex MEP 10» y «1 Mega
+Lucario ex MEG 179» eran dos casillas, dos dibujos (la promo y la
+ilustración especial) para lo que es UNA carta con cuatro copias. Ahora
+la rejilla de una lista (torneos y /meta), la imagen exportada, el
+constructor y «Guardar en mis mazos» enseñan lo mismo, con dos reglas
+(`js/impresion-canonica.js`, puro, y `js/impresiones-del-set.js`, que
+trae de la base lo justo):
+
+1. **La rareza más baja, dentro de su colección.** Las rarezas altas van
+   numeradas DESPUÉS de la colección oficial (MEG tiene 132 cartas y la
+   ilustración especial es la 179), así que lo que pasa de
+   `tcg_sets.card_count_official` se cambia por la misma carta de ese set
+   con el número más bajo DENTRO. La rareza no se lee de `rarity`: viene
+   mitad en inglés y mitad en español y a medio rellenar; el número es
+   fiable. Un número de dentro no se toca nunca, y un set con la cuenta a
+   0 (las promos) no tiene «fuera».
+2. **Una sola colección por carta.** La misma carta de dos sets se junta
+   en una casilla, sumando copias, con la del set que más copias trae —y
+   nunca una promo si hay colección—. «La misma carta» es el mismo
+   `name_key`; para un **Pokémon, además, los mismos ataques**: dos Riolu
+   con otro ataque son dos cartas, y sin saber los ataques de alguno, NO
+   se junta (enseñar una lista que no es la que se jugó es peor que dos
+   casillas).
+
+Solo entran las cartas identificadas por set y número (`exacta`): una
+gemela encontrada por el nombre no se sabe qué carta es (tanda 328). Las
+energías básicas, una casilla por tipo, identificadas o no: «Basic {F}
+Energy SVE 6» y «Fighting Energy MEE 14» son la misma. Y una básica ya
+no cuenta como «sin identificar» por no empezar por «Basic».
+
+La resolución que vivía en `cartas-decklist.js` se mudó a
+`js/lista-canonica.js` (`listaParaEnsenar`), **sin una sola clase**: la
+usa también la imagen exportada, que se carga desde el constructor, y el
+barrido de la 299 sigue los imports.
+
+### 2. «En el constructor muchas cartas no se ven»
+
+Dos causas, comprobadas contra producción:
+
+- El constructor pintaba la imagen del espejo y, si no había, NADA. Las
+  promos de Mega Evolución (MEP) no tienen escaneo en TCGdex. Ahora usa
+  la misma cadena que el laboratorio, la ficha y el catálogo
+  (`cadenaDeEscaneo`): el espejo y, detrás, la CDN de Limitless por
+  código y número.
+- Un mazo abierto desde un enlace (los de /meta) llegaba con 52 de 60:
+  las líneas de enlace no traen nombre, y las energías del 30 aniversario
+  son MEE 9–16, que el espejo no tiene. El tipo sale del número
+  (`letraDeEnergiaPorNumero`, G R W L P F D M). Y de paso: dos líneas de
+  la MISMA carta se pisaban en el mapa del mazo y se perdían copias;
+  ahora se suman.
+
+### 3. Guardarse cualquier lista
+
+«Guardar en mis mazos» en la ventana de la lista de un jugador del
+torneo y en cada lista de /meta (`js/guardar-lista.js`): se resuelve con
+el mismo camino que una lista pegada y va a `user_decks` como mazo
+PRIVADO, con portada. Lo que no está en el catálogo no impide guardar: se
+dice cuántas faltan. Sin cuenta, se manda a entrar y se vuelve. Al
+guardar, el botón pasa a ser «Abrir mi copia». La ventana lleva también
+«Abrir en el constructor».
+
+### 4. La portada que quieras, y «Mis mazos» vestido
+
+La tarjeta de /mazos es ahora la ilustración de la carta de portada en
+grande, con su nombre, las chapas y las acciones. «Portada» abre una
+ventana con las cartas del mazo (Pokémon primero) y un buscador para
+poner CUALQUIER otra. `cambiarPortada` toca solo `cover_card`, con
+`.select()` (un update que la política rechaza vuelve vacío y sin error).
+
+El constructor recalculaba la portada en CADA guardado y pisaba la
+elegida. Ahora la respeta si sigue en el mazo **o si se eligió de fuera**
+(`portadaDeFuera`: una portada que al abrir el mazo no está en él la ha
+puesto alguien a propósito, porque el constructor solo elige entre las
+del mazo). Una que estaba y se quita del mazo deja de valer. Y la ficha
+de una carta del mazo tiene «Usar de portada».
+
+### 5. La imagen exportada, estilo Limitless
+
+La de la tanda 219 era una lista de texto. Ahora es la rejilla de cartas
+con sus copias en la pastilla ámbar de la casa, por secciones, sobre el
+azul de las cabeceras de torneos, con la marca arriba y pokedoc.es abajo,
+a 2400 px. Las cartas son las mismas que la rejilla (`listaParaEnsenar`).
+
+**Un canvas solo se guarda si todas sus imágenes traen permiso (CORS).**
+TCGdex y pokemontcg.io lo traen; Limitless NO (comprobado desde
+pokedoc.es). De ahí `netlify/functions/escaneo.mjs`, servida en
+`/escaneo/:set/:n`: trae el escaneo de Limitless desde nuestro dominio.
+No es un proxy abierto: solo acepta set y número y monta la dirección con
+`imagenDeLimitless`, la misma del resto del sitio; solo devuelve
+imágenes, y se guarda un año. Las imágenes se piden con
+`crossOrigin = 'anonymous'`: una que no trae permiso falla (en vez de
+manchar el lienzo) y se prueba la siguiente; una que no llega por ningún
+lado se pinta como caja con su nombre.
+
+### 6. El meta del torneo
+
+Una pestaña «Meta» (`js/torneos/meta-torneo.js`): los mazos jugados, de
+más a menos, con su parte del torneo en barra y cifra, el mejor puesto y
+el % de victorias **sin los byes** (el motor los cuenta como victorias
+para los puntos, pero un bye no dice nada de un mazo). Pulsar uno enseña
+quién lo jugó, en el ORDEN FINAL, con su resultado y «Ver lista» (la
+ventana de siempre).
+
+**El orden final no es la clasificación de las suizas cuando hay corte**:
+quien gana el top 8 pudo entrar octavo. `ordenFinal` ordena por hasta
+dónde llegó cada uno en el corte (el campeón, uno más) y a igualdad por
+las suizas. La ventana de una lista usa el mismo puesto.
+
+Sale de los arquetipos que ya se deducen para las chapas (tanda 230), así
+que existe EXACTAMENTE cuando las listas pueden verse: al terminar, o en
+juego si es de lista abierta (y entonces avisa de que los puestos van
+cambiando). No se guarda nada. Un refresco de la ficha no saca del mazo
+que se estaba mirando.
+
+En el móvil, quién lo jugó va en filas y no en tabla: con cinco columnas,
+el «Ver lista» se quedaba fuera de la pantalla.
+
+### Comprobado
+
+`test-tanda-413.mjs` (179 comprobaciones): las dos reglas caso a caso en Node;
+`/escaneo` con un fetch inyectado (la dirección, que no pide nada que no
+sea una carta, que no deja pasar una página de error con un 200); en el
+navegador, la lista de Ash con diez líneas que se quedan en siete
+casillas con la impresión correcta, guardarla (25 cartas, privada, con
+portada) y sin cuenta; la imagen exportada leída píxel a píxel, con una
+carta servida SIN permiso que sale de /escaneo; la pestaña Meta con y sin
+corte, en juego, sin cuenta y a 390 px; el constructor con las 25 cartas
+y la de MEP con cara; la portada de fuera que sobrevive a guardar y la
+que se quita del mazo que no; y «Mis mazos» con la ventana de portada,
+el buscador, Escape, pulsar fuera y el móvil en los dos temas.
+
+Su rigor: **43 mutaciones, las 43 detectadas** — seis a la segunda, y
+cada una enseñó algo de la prueba:
+
+- **El doble devolvía la fila entera pidiera lo que pidiera**, así que
+  los ataques llegaban aunque nadie los pidiera y «no pedir los ataques»
+  pasaba en verde (en producción, dos impresiones de un Pokémon no se
+  habrían juntado nunca). El doble tiene ahora `window.__PROYECTAR__`:
+  en las tablas que diga, devuelve SOLO las columnas pedidas, como
+  PostgREST. Es optativo para no cambiarle el suelo a las pruebas viejas.
+- «Tres por fila» se medía contando filas: con 4 cartas, a tres por fila
+  y a dos salen DOS filas. Se cuenta cuántas caben en la primera.
+- El campo de buscar sin su estilo seguía midiendo 44 px por la regla
+  global: lo que cambiaba era el FONDO, y es lo que se mira ahora.
+- Que la chapa no repita el nombre solo se nota cuando la chapa se queda
+  sin iconos; con iconos ya lo esconde su propia regla.
+- Con los ataques sin saber en una de las dos ya salía «distintas»; hacía
+  falta el caso de NINGUNA de las dos.
+- Y la cuenta de las cartas «que no aparecen por ningún lado» (heredada
+  de la 328, que ya no la veía) necesitaba una lista con sets que el
+  catálogo no tiene.
+
+**La mudanza a `lista-canonica.js`** dejó viejos los anclajes de los
+rigores 232, 233, 326 y 328 y dos lecturas de texto de las pruebas 328 y
+345: movidos, y las mutaciones movidas, comprobadas una a una.

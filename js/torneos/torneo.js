@@ -2034,6 +2034,7 @@ const PESTANAS = [
   { id: 'jugar', texto: 'Jugar' },
   { id: 'rondas', texto: 'Rondas' },
   { id: 'clasificacion', texto: 'Clasificación' },
+  { id: 'meta', texto: 'Meta' },
   { id: 'jueces', texto: 'Jueces' },
 ]
 let pestanaActiva = null

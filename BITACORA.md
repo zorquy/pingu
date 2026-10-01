@@ -23,6 +23,78 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 13:45 — PINGU-Claude (tanda 413 — la impresión de la colección, guardar cualquier lista, la portada y el meta del torneo)
+
+**Hecho**: cinco cosas que pidió PINGU de una tacada. Sin migración.
+(Empezada en local como la 398; mientras se probaba, el remoto llegó a
+la 410, así que se numeró 411 — al integrarla desde el bundle la 411
+de las carpetas había llegado antes (412), y al empujarla llegó la 412
+de los mandos del archivador: queda como la **413**. El choque de la
+384 y la 394, por tercera y cuarta vez en el mismo día.)
+
+1. **Una impresión por carta, la de rareza más baja de su colección.**
+   «Que no salgan distintos reprints»: la rejilla de una lista (torneos
+   y /meta), la imagen exportada, el constructor y «Guardar en mis
+   mazos» enseñan lo mismo. Lo que pasa de `card_count_official` se
+   cambia por la misma carta de su set con el número más bajo dentro; la
+   misma carta de dos sets va en UNA casilla sumando copias (nunca la
+   promo si hay colección). Un Pokémon solo se junta si tiene los
+   MISMOS ATAQUES: dos Riolu distintos siguen siendo dos.
+2. **«En el constructor muchas cartas no se ven»**: las promos MEP no
+   tienen escaneo en TCGdex y el constructor no tenía respaldo; ahora va
+   a Limitless como el resto del sitio. Y un mazo abierto desde /meta
+   llegaba con 52 de 60 (las energías MEE 9–16 no se resolvían por
+   número, y dos líneas de la misma carta se pisaban).
+3. **Guardarse cualquier lista**: «Guardar en mis mazos» en la ventana de
+   la lista de un jugador del torneo y en /meta. Privado, con portada.
+4. **La portada que quieras** en «Mis mazos» (de las del mazo o buscando
+   cualquiera), con la tarjeta rehecha. El constructor ya no la pisa al
+   guardar.
+5. **La imagen exportada, estilo Limitless** (rejilla de cartas con sus
+   copias, azul de la casa). Las de Limitless no traen CORS y mancharían
+   el lienzo: van por `/escaneo/:set/:n`, función nueva que solo acepta
+   set y número.
+6. **El meta del torneo**: pestaña «Meta» con los mazos y su parte, y
+   dentro de cada uno quién lo jugó en el ORDEN FINAL (con corte, manda
+   el corte) y su lista. Existe solo cuando las listas pueden verse.
+
+**OJO, mudanza**: la resolución de una lista contra el espejo salió de
+`cartas-decklist.js` a `js/lista-canonica.js` (sin clases: la usa la
+imagen exportada desde el constructor). `cartas-decklist.js` la
+reexporta, así que los imports de siempre siguen valiendo. En `pruebas`
+he movido a la vez los anclajes de los rigores 232, 233, 326 y 328 y dos
+comprobaciones de texto de las pruebas 328 y 345.
+
+**Ficheros**: nuevos `js/impresion-canonica.js`,
+`js/impresiones-del-set.js`, `js/lista-canonica.js`,
+`js/guardar-lista.js`, `js/torneos/meta-torneo.js`,
+`netlify/functions/escaneo.mjs`. Tocados `js/torneos/cartas-decklist.js`,
+`js/torneos/decklist-imagen.js`, `js/torneos/ronda.js`,
+`js/torneos/torneo.js`, `torneo.html`, `css/torneos.css`,
+`js/constructor.js`, `js/constructor/datos.js`, `constructor.html`,
+`js/mazos.js`, `mazos.html`, `css/constructor.css`, `js/meta-mazo.js`,
+`netlify.toml`, `SCHEMA.md`. En `pruebas`: `test-tanda-413.mjs`,
+`rigor-tanda-413.py`, `stub-supabase.js` (`__PROYECTAR__`) y los ajustes
+de la mudanza (la 413 entra sola en `correr-suite.sh`, que desde la 405
+lee el directorio).
+
+**Prueba y rigor**: `test-tanda-413.mjs`, 179 comprobaciones; su rigor,
+43 mutaciones, las 43 detectadas. **El doble de Supabase tiene un
+interruptor nuevo**, `window.__PROYECTAR__ = ['tcg_cards']`: devuelve
+solo las columnas pedidas, como PostgREST (sin él devuelve la fila
+entera, y un código que usa una columna que NO pide funciona aquí y no
+en producción). Optativo: las pruebas viejas no cambian.
+
+**Suite**: entera sobre la 397 (verde salvo lo que no era mío), y otra
+vez después de traerme de la 398 a la 408: la mía, todas las de torneos,
+constructor y catálogo, los barridos de CSS (299, 309–316) y las diez
+nuevas de la 398 a la 408, en verde (la 409 y la 410 llegaron después).
+**Una roja que NO es de esta tanda**: `test-tanda-310` («solo dos duraciones de transición») canta el `0.2s`
+de `css/mi-coleccion.css:205`, que entró con la 406. No lo he tocado:
+es un fichero que otra sesión está moviendo ahora mismo.
+
+**En curso / pendiente**: nada a medias. La roja de la 310, para quien
+lleve `mi-coleccion.css`.
 ## 2026-10-01 — PINGU-Claude (tanda 412 — los mandos del archivador y la cabecera)
 
 **Hecho**: repaso de interfaz. En el **archivador**, las cinco filas de

@@ -100,7 +100,10 @@
 
   <main id="contenido" class="page-content container cm-pagina">
     <div class="cm-cabecera-pagina">
-      <h1>Mis mazos</h1>
+      <div>
+        <h1>Mis mazos</h1>
+        <p class="subtext cm-mazos-cuenta" id="mzCuenta"></p>
+      </div>
       <a class="btn-primary cm-btn" href="/constructor?nuevo=1">Nuevo mazo</a>
     </div>
     <div id="cmAviso" class="cm-aviso hidden" role="status"></div>
@@ -108,9 +111,26 @@
     <div class="cm-mazos" id="mzLista"></div>
     <div class="cm-vacio hidden" id="mzVacio">
       <p><strong>Todavía no has guardado ningún mazo.</strong></p>
-      <p>Móntalo en el <a class="link-btn" href="/constructor?nuevo=1">constructor</a> y pulsa «Guardar»: aparecerá aquí.</p>
+      <p>Móntalo en el <a class="link-btn" href="/constructor?nuevo=1">constructor</a> y pulsa «Guardar»: aparecerá aquí. También puedes guardarte cualquier lista de un torneo o de los <a class="link-btn" href="/meta">mazos del meta</a>.</p>
     </div>
   </main>
+
+  <!-- Elegir la portada de un mazo (tanda 413): cualquier carta del
+       mazo, o cualquier otra buscándola. La rellena js/mazos.js. -->
+  <div class="modal-overlay hidden" id="mzModalPortada" role="dialog" aria-modal="true" aria-labelledby="mzPortadaTitulo">
+    <div class="modal-box modal-box-wide cm-portada-modal">
+      <div class="cm-portada-cabecera">
+        <h3 id="mzPortadaTitulo">Elegir la portada</h3>
+        <button type="button" class="modal-close cm-cerrar" id="mzPortadaCerrar" data-cerrar aria-label="Cerrar">×</button>
+      </div>
+      <p class="subtext">Pulsa la carta que quieras de portada.</p>
+      <div class="cm-portada-rejilla" id="mzPortadaDelMazo"></div>
+      <label class="cm-portada-buscar">¿Otra carta? Búscala
+        <input type="search" id="mzPortadaBuscar" placeholder="Nombre de la carta (en español o en inglés)" autocomplete="off" />
+      </label>
+      <div class="cm-portada-rejilla" id="mzPortadaResultados"></div>
+    </div>
+  </div>
 
   <footer class="footer">
     <div class="pie-rejilla">

@@ -11,6 +11,7 @@ import { supabase } from './supabase.js'
 import { showToast } from './toast.js'
 import { cardImageUrl } from './tcgdex.js'
 import { rutaDeCarta } from './carta-ruta.js'
+import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import {
   validarMazo,
   seccionesDelMazo,
@@ -53,6 +54,17 @@ const estado = {
   formato: 'standard',
   publico: false,
   entradas: new Map(), // id de carta → { carta, n }
+  // La carta que hace de portada en «Mis mazos» (tanda 413). Null = la
+  // elige el constructor al guardar; con una puesta, se respeta mientras
+  // siga en el mazo — antes se recalculaba en CADA guardado y pisaba la
+  // que hubieras elegido en «Mis mazos».
+  portada: null,
+  // …o aunque NO esté, si se eligió de fuera: en «Mis mazos» se puede
+  // buscar cualquier carta de portada, y el constructor solo elige entre
+  // las del mazo, así que una portada que no está en él la ha puesto
+  // alguien a propósito. Una que sí estaba y se ha quitado del mazo deja
+  // de valer: el mazo ya es otro.
+  portadaDeFuera: false,
   historia: [],
   cambiado: false,
   sesion: null,
@@ -147,6 +159,8 @@ function guardarBorrador() {
         nombre: estado.nombre,
         formato: estado.formato,
         publico: estado.publico,
+        portada: estado.portada,
+        portadaDeFuera: estado.portadaDeFuera,
         cartas: lista().map((e) => ({ id: e.carta.id, n: e.n })),
         cambiado: estado.cambiado,
         cuando: Date.now(),
@@ -164,22 +178,26 @@ function leerBorrador() {
 }
 
 // ── Pintar el mazo ──
-// La imagen de una carta, y si no tiene (las energías básicas: TCGdex no
-// las trae), la de su energía del 30 aniversario, con su respaldo.
-function fuenteDeImagen(carta, calidad = 'low') {
-  const url = cardImageUrl(carta.image_path, calidad)
-  if (url) return { url, respaldo: '' }
-  if (!esEnergiaBasica(carta)) return { url: '', respaldo: '' }
-  return imagenDeEnergiaBasica(carta, calidad === 'high' ? 'LG' : 'SM') || { url: '', respaldo: '' }
+// La imagen de una carta, con su cadena de respaldos (tanda 413). Hasta
+// ahora era la del espejo y, si no había, NADA: las promos de Mega
+// Evolución (MEP) no tienen escaneo en TCGdex y salían como una caja con
+// el nombre — «en el constructor muchas cartas no se ven». La CDN de
+// Limitless sí las tiene por código y número, que es la misma cadena que
+// ya usaban el laboratorio, la ficha y el catálogo (js/escaneo-carta.js).
+// Las energías básicas, con la suya del 30 aniversario.
+function cadenaDeImagen(carta, calidad = 'low') {
+  if (!carta.image_path && esEnergiaBasica(carta)) {
+    const e = imagenDeEnergiaBasica(carta, calidad === 'high' ? 'LG' : 'SM')
+    if (e) return [e.url, e.respaldo].filter(Boolean)
+  }
+  return cadenaDeEscaneo(carta, codigoDeSet(carta.set_id), calidad, cardImageUrl)
 }
 
 function imagenHtml(carta, calidad = 'low') {
-  const { url, respaldo } = fuenteDeImagen(carta, calidad)
-  // El nombre va DEBAJO de la imagen: si la CDN no contesta, la imagen se
+  // El nombre va DEBAJO de la imagen: si no contesta nadie, la imagen se
   // quita y queda el nombre — nunca un hueco sin nada (CLAUDE.md, 321).
-  // Con respaldo, antes de quitarla se prueba el respaldo una vez.
-  const alFallar = respaldo ? `if(this.dataset.r){this.src=this.dataset.r;this.dataset.r=''}else this.remove()` : 'this.remove()'
-  return `<span class="cm-sin-imagen">${escapeHtml(nombreVisible(carta))}</span>${url ? `<img src="${escapeHtml(url)}" alt="" width="245" height="342" loading="lazy"${respaldo ? ` data-r="${escapeHtml(respaldo)}"` : ''} onerror="${alFallar}" />` : ''}`
+  const attrs = atributosDeEscaneo(cadenaDeImagen(carta, calidad))
+  return `<span class="cm-sin-imagen">${escapeHtml(nombreVisible(carta))}</span>${attrs ? `<img ${attrs} alt="" width="245" height="342" loading="lazy" />` : ''}`
 }
 
 function etiquetaSet(carta) {
@@ -402,14 +420,15 @@ function cerrarModal() {
 let cartaAbierta = null
 function abrirCarta(carta) {
   cartaAbierta = carta
-  const grande = fuenteDeImagen(carta, 'high')
-  $('cmCartaImg').src = grande.url || ''
-  $('cmCartaImg').onerror = grande.respaldo
-    ? () => {
-        $('cmCartaImg').onerror = null
-        $('cmCartaImg').src = grande.respaldo
-      }
-    : null
+  // La grande recorre la misma cadena que la pequeña, de un sitio al
+  // siguiente.
+  const cadena = cadenaDeImagen(carta, 'high')
+  const img = $('cmCartaImg')
+  img.src = cadena.shift() || ''
+  img.onerror = () => {
+    if (cadena.length) img.src = cadena.shift()
+    else img.onerror = null
+  }
   $('cmCartaImg').alt = nombreVisible(carta)
   $('cmCartaNombre').textContent = nombreVisible(carta)
   const set = estado.sets?.porId.get(carta.set_id)
@@ -431,6 +450,15 @@ function pintarCartaAbierta() {
   $('cmCartaProbabilidad').textContent = n
     ? `Con ${n} ${n === 1 ? 'copia' : 'copias'}, la tienes en la mano inicial el ${Math.round(probabilidadEnMano(copiasDelNombre(cartaAbierta), t) * 100)} % de las veces.`
     : `Con 1 copia la tendrías en la mano inicial el ${Math.round(probabilidadEnMano(1, t) * 100)} % de las veces; con 4, el ${Math.round(probabilidadEnMano(4, t) * 100)} %.`
+  // «Usar de portada» (tanda 413): solo con la carta en el mazo, y si ya
+  // lo es, lo dice en vez de ofrecerlo.
+  const portada = $('cmCartaPortada')
+  if (portada) {
+    const esLa = elegirPortada() === cartaAbierta.id
+    portada.classList.toggle('hidden', n === 0 || estado.soloLectura)
+    portada.disabled = esLa
+    portada.textContent = esLa ? 'Es la portada del mazo' : 'Usar de portada'
+  }
   const v = validarMazo(lista(), { formato: estado.formato, legales: estado.legales, reimpresionLegal: estado.reimpresion })
   $('cmCartaAvisos').innerHTML = (v.porCarta.get(cartaAbierta.id) || []).map((m) => `<li>${escapeHtml(m)}</li>`).join('')
 }
@@ -739,6 +767,8 @@ function empezarNuevo() {
   estado.soloLectura = false
   estado.nombre = ''
   estado.publico = false
+  estado.portada = null
+  estado.portadaDeFuera = false
   estado.entradas = new Map()
   estado.historia = []
   estado.cambiado = false
@@ -789,9 +819,11 @@ async function guardar() {
   }
 }
 
-// La portada de la tarjeta en /mazos: el Pokémon del que más copias hay
-// (casi siempre el que da nombre al mazo).
+// La portada de la tarjeta en /mazos: la que hayas elegido, si sigue en
+// el mazo; si no, el Pokémon del que más copias hay (casi siempre el que
+// da nombre al mazo).
 function elegirPortada() {
+  if (estado.portada && (estado.portadaDeFuera || estado.entradas.has(estado.portada))) return estado.portada
   const p = seccionesDelMazo(lista()).P
   const mejor = [...p].sort((a, b) => b.n - a.n)[0] || lista()[0]
   return mejor?.carta.id || null
@@ -921,7 +953,10 @@ async function ponerFila(fila) {
   estado.nombre = fila.name
   estado.formato = fila.format
   estado.publico = fila.is_public
+  estado.portada = fila.cover_card || null
   estado.entradas = new Map((fila.cards || []).filter((c) => mapa.get(c.id)).map((c) => [c.id, { carta: mapa.get(c.id), n: c.n }]))
+  // Si al abrirlo la portada no está en el mazo, es que se eligió de fuera.
+  estado.portadaDeFuera = Boolean(estado.portada && !estado.entradas.has(estado.portada))
   estado.cambiado = false
 }
 
@@ -931,6 +966,8 @@ async function ponerBorrador(b) {
   estado.nombre = b.nombre || ''
   estado.formato = b.formato || 'standard'
   estado.publico = !!b.publico
+  estado.portada = b.portada || null
+  estado.portadaDeFuera = !!b.portadaDeFuera
   estado.entradas = new Map(b.cartas.filter((c) => mapa.get(c.id)).map((c) => [c.id, { carta: mapa.get(c.id), n: c.n }]))
   estado.cambiado = !!b.cambiado
   pintarCabecera()
@@ -1155,6 +1192,16 @@ function enganchar() {
   })
   $('cmCartaMenos').addEventListener('click', () => {
     if (cartaAbierta && sumar(cartaAbierta, -1)) pintarCartaAbierta()
+  })
+  $('cmCartaPortada')?.addEventListener('click', () => {
+    if (!cartaAbierta || estado.soloLectura) return
+    estado.portada = cartaAbierta.id
+    estado.portadaDeFuera = false
+    estado.cambiado = true
+    guardarBorrador()
+    pintarEstadoGuardado()
+    pintarCartaAbierta()
+    showToast(estado.id ? 'Portada elegida: se queda al guardar.' : 'Portada elegida: será la de «Mis mazos» al guardar.', 'success')
   })
   $('cmImportarBoton').addEventListener('click', importar)
   $('cmImportarModoTexto').addEventListener('click', () => cambiarModoImportar('texto'))

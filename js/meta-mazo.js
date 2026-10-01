@@ -8,7 +8,9 @@ import { showToast } from './toast.js'
 import { rutaDeCarta } from './carta-ruta.js'
 import { cardImageUrl } from './tcgdex.js'
 import { tarjetaDeGuia } from './guia-tarjeta.js'
-import { resolverCarta, pintarDecklistVisual } from './torneos/cartas-decklist.js'
+import { resolverCarta, pintarDecklistVisual, COLUMNAS_DE_LISTA } from './torneos/cartas-decklist.js'
+import { canonizarEntradas } from './impresiones-del-set.js'
+import { guardarListaEnMisMazos, enlaceParaEntrar } from './guardar-lista.js'
 import { copiarDecklist, descargarImagenDecklist } from './torneos/decklist-export.js'
 import { cadenaDeImagenes, atributosDeImagen, letraDeEnergiaBasica } from './imagen-carta.js'
 import * as datos from './meta/datos.js'
@@ -131,7 +133,17 @@ async function rellenarImagen(hueco, f) {
     if (attrs) hueco.insertAdjacentHTML('afterbegin', `<span class="torneo-carta-foto"><img ${attrs} alt="${escapeHtml(f.nombre)}" width="245" height="342" loading="lazy" /></span>`)
     return
   }
-  const carta = await resolverCarta(linea).catch(() => null)
+  let carta = await resolverCarta(linea).catch(() => null)
+  // La impresión de rareza más baja de su colección (tanda 413): la
+  // carta más jugada de la media puede ser la ilustración especial, y
+  // aquí se enseña la carta, no la versión de quien más la ha usado.
+  if (carta?.exacta) {
+    const [e] = await canonizarEntradas([{ carta, n: 1 }], { columnas: COLUMNAS_DE_LISTA }).catch(() => [{ carta }])
+    if (e?.carta && e.carta.id !== carta.id) {
+      carta = { ...e.carta, exacta: true }
+      linea.number = carta.local_id
+    }
+  }
   const attrs = atributosDeImagen(cadenaDeImagenes(linea, carta, (r) => cardImageUrl(r, 'low')))
   if (!attrs) return
   const img = `<img ${attrs} alt="${escapeHtml(f.nombre)}" width="245" height="342" loading="lazy" />`
@@ -214,6 +226,7 @@ function listaHtml(l, i) {
             <button type="button" class="btn-primary" data-copiar>Copiar para TCG Live</button>
             <a class="btn-secondary" href="${escapeHtml(enlaceConstructor(l.lista, nombreMazo))}">Abrir en el constructor</a>
             <a class="btn-secondary" href="${escapeHtml(enlaceConstructor(l.lista, nombreMazo, { laboratorio: true }))}">Probar en el laboratorio</a>
+            <button type="button" class="btn-secondary" data-guardar>Guardar en mis mazos</button>
             <button type="button" class="btn-secondary" data-imagen>Descargar imagen</button>
             ${ver ? `<a class="link-btn" href="${escapeHtml(ver.url)}"${ver.fuera ? ' target="_blank" rel="noopener"' : ''}>${ver.texto}</a>` : ''}
           </div>
@@ -254,10 +267,30 @@ function engancharListas() {
     if (!l) return
     if (e.target.closest('[data-copiar]')) copiarDecklist(textoTcgLive(l.lista))
     else if (e.target.closest('[data-imagen]')) descargarImagenDecklist(`${nombreMazo} — ${l.nombre_jugador || 'lista'}`, comoDecklist(l.lista))
+    else if (e.target.closest('[data-guardar]')) void guardarEnMisMazos(e.target.closest('[data-guardar]'), l)
   })
   $('mmCopiarMejor').addEventListener('click', () => {
     if (listas[0]) copiarDecklist(textoTcgLive(listas[0].lista))
   })
+}
+
+// Guardar una lista de otro en «Mis mazos» (tanda 413): sin pasar por
+// el constructor, como mazo privado. Al terminar, el botón pasa a ser el
+// enlace a la copia, que es lo siguiente que se quiere hacer con ella.
+async function guardarEnMisMazos(boton, l) {
+  boton.disabled = true
+  try {
+    const r = await guardarListaEnMisMazos({ lista: l.lista, nombre: `${nombreMazo} — ${l.nombre_jugador || 'lista'}` })
+    if (r.entrar) {
+      location.href = enlaceParaEntrar()
+      return
+    }
+    showToast(r.faltan ? `Guardado en tus mazos. Faltan ${r.faltan} cartas que no están en el catálogo: complétalo en el constructor.` : 'Guardado en tus mazos.', 'success')
+    boton.outerHTML = `<a class="btn-secondary" href="/constructor?mazo=${encodeURIComponent(r.mazo.id)}">Abrir mi copia</a>`
+  } catch (err) {
+    showToast(err.message || 'No se ha podido guardar.', 'error')
+    boton.disabled = false
+  }
 }
 
 // ── Las guías ──

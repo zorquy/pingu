@@ -29,6 +29,9 @@ import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } fro
 import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas } from './mesas.js'
+import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
+import { enlaceConstructor } from '../meta/nucleo.js'
+import { agruparMeta, metaHtml, ordenFinal } from './meta-torneo.js'
 
 let ctx = null // { torneo, session, perfil, inscripciones, recargarFicha }
 let rondas = []
@@ -1764,7 +1767,7 @@ async function abrirListaRival(userId) {
   }
   const p = lista.parsed_cards || {}
   // Dónde quedó, que es lo que se pregunta quien abre la lista de otro.
-  const puesto = computeStandings(montarSnapshot(rondas.length)).findIndex((e) => e.playerId === userId)
+  const puesto = clasificacionFinal().findIndex((e) => e.playerId === userId)
   const overlay = modalLista()
   const contenido = overlay.querySelector('#torneoListaContenido')
   contenido.innerHTML = `
@@ -1775,7 +1778,11 @@ async function abrirListaRival(userId) {
       </div>
       <button type="button" class="modal-close" id="btnCerrarListaRival" aria-label="Cerrar">×</button>
     </div>
-    ${botonesExportarHtml()}
+    <div class="torneo-lista-acciones">
+      <button type="button" class="btn-primary" id="btnGuardarListaRival">Guardar en mis mazos</button>
+      <a class="btn-secondary" href="${escapeHtml(enlaceConstructor(comoListaDeMeta(p), nombreDeLaCopia(userId)))}">Abrir en el constructor</a>
+      ${botonesExportarHtml()}
+    </div>
     <div class="torneo-decklist-visual" id="listaRivalCartas"></div>
     <details class="torneo-lista-texto">
       <summary>Ver como texto</summary>
@@ -1788,8 +1795,40 @@ async function abrirListaRival(userId) {
   overlay.querySelector('#btnCerrarListaRival').addEventListener('click', cerrarLista)
   overlay.querySelector('#btnCerrarListaRival').focus()
   engancharExportar(contenido, { nombre: nombreDe(userId), rawText: lista.raw_text, parsed: p })
+  overlay.querySelector('#btnGuardarListaRival').addEventListener('click', (e) => guardarListaRival(e.currentTarget, p, userId))
   void rellenarChapasArquetipo(overlay)
   if (p.pokemon || p.trainer || p.energy) await pintarDecklistVisual(contenido.querySelector('#listaRivalCartas'), p)
+}
+
+// ── Guardarse la lista de otro (tanda 413) ──
+//
+// PINGU: «que tú siempre te puedas guardar el mazo que quieras». Desde la
+// ventana de la lista, a «Mis mazos» de un toque —como mazo privado— o al
+// constructor para tocarlo antes.
+const nombreDeLaCopia = (userId) => {
+  const arq = arquetipos.get(userId)
+  return `${arq?.nombre ? `${arq.nombre} — ` : ''}${nombreDe(userId)}`.slice(0, 80)
+}
+
+// La decklist de torneo ({ quantity }) con la forma de una lista de /meta
+// ({ count }), que es la que sabe convertir en enlace del constructor.
+const comoListaDeMeta = (p) =>
+  Object.fromEntries(['pokemon', 'trainer', 'energy'].map((s) => [s, (p?.[s] || []).map((l) => ({ ...l, count: l.quantity }))]))
+
+async function guardarListaRival(boton, parsed, userId) {
+  boton.disabled = true
+  try {
+    const r = await guardarListaEnMisMazos({ lista: parsed, nombre: nombreDeLaCopia(userId) })
+    if (r.entrar) {
+      location.href = enlaceParaEntrar()
+      return
+    }
+    showToast(r.faltan ? `Guardado en tus mazos. Faltan ${r.faltan} cartas que no están en el catálogo: complétalo en el constructor.` : 'Guardado en tus mazos.', 'success')
+    boton.outerHTML = `<a class="btn-primary" href="/constructor?mazo=${encodeURIComponent(r.mazo.id)}">Abrir mi copia</a>`
+  } catch (err) {
+    showToast(err.message || 'No se ha podido guardar.', 'error')
+    boton.disabled = false
+  }
 }
 
 function pintarClasificacion() {
@@ -2009,10 +2048,75 @@ function olvidarPintado(clave) {
   ultimoPintado.delete(clave)
 }
 
+// ── El meta del torneo (tanda 413) ──
+//
+// La pestaña «Meta»: qué mazos se jugaron, cuánto, y quién jugó cada uno
+// en el orden en que quedó. Sale de los arquetipos que ya se deducen para
+// las chapas, así que existe exactamente cuando las listas pueden verse.
+let metaAbierto = null // la clave del arquetipo que se está mirando
+let metaEnganchado = false
+
+// Dónde quedó cada uno de verdad: con corte, manda el corte.
+function clasificacionFinal() {
+  const campeon = ctx.torneo.status === 'finished' ? podioDelTorneo()[0] ?? null : null
+  return ordenFinal(computeStandings(montarSnapshot(rondas.length)), { rondas, partidas, campeon })
+}
+
+function pintarMeta() {
+  const caja = $('torneoMetaCaja')
+  if (!caja) return
+  if (!puedenVerseLasListas() || !arquetipos.size) {
+    caja.classList.add('hidden')
+    olvidarPintado('meta')
+    return
+  }
+  caja.classList.remove('hidden')
+  const meta = agruparMeta(arquetipos, clasificacionFinal())
+  // El arquetipo que se miraba puede desaparecer (llega una lista nueva
+  // y lo recataloga): entonces se vuelve a la vista general.
+  if (metaAbierto && !meta.arquetipos.some((g) => g.clave === metaAbierto)) metaAbierto = null
+  const marcar = Boolean(mando() || ctx.esJuez)
+  const html = metaHtml(meta, metaAbierto, {
+    chapa: (arq) => chapaArquetipoHtml(arq, { marcar }),
+    nombreDe,
+    enJuego: ctx.torneo.status !== 'finished',
+  })
+  const contenido = $('metaContenido')
+  if (!metaEnganchado) {
+    metaEnganchado = true
+    // UNA escucha en la caja, que no se repinta: los botones de dentro
+    // sí, cada vez que cambia algo.
+    contenido.addEventListener('click', (e) => {
+      const fila = e.target.closest('[data-meta-arquetipo]')
+      const volver = e.target.closest('[data-meta-volver]')
+      const ver = e.target.closest('[data-meta-lista]')
+      if (fila) {
+        metaAbierto = fila.dataset.metaArquetipo
+        pintarMeta()
+        contenido.querySelector('[data-meta-volver]')?.focus()
+      } else if (volver) {
+        const desde = metaAbierto
+        metaAbierto = null
+        pintarMeta()
+        // El foco vuelve al mazo del que se venía, no al principio.
+        ;[...contenido.querySelectorAll('[data-meta-arquetipo]')].find((b) => b.dataset.metaArquetipo === desde)?.focus()
+      } else if (ver) {
+        listaRivalAbierta = ver.dataset.metaLista
+        focoAntesDeLista = ver
+        void abrirListaRival(listaRivalAbierta)
+      }
+    })
+  }
+  if (yaEstaPintado('meta', html)) return
+  contenido.innerHTML = html
+  void rellenarChapasArquetipo(contenido)
+}
+
 function pintarCiclo() {
   pintarRondas()
   pintarMiPartida()
   pintarClasificacion()
+  pintarMeta()
   ctx.alRepintar?.()
 
   // El sondeo ya no vive aquí: torneo.js refresca la ficha ENTERA cada

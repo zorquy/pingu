@@ -1083,42 +1083,52 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   font-size: var(--t-sm);
 }
 
-/* ── /mazos ── */
+/* ── /mazos (rehecho en la tanda 413) ──
+   Cada mazo es su PORTADA: la ilustración de la carta elegida, en
+   grande, con el nombre debajo. Antes era una miniatura de 72 px al lado
+   del texto y todas las tarjetas se parecían. */
+.cm-mazos-cuenta { margin: 0; }
+
 .cm-mazos {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
   gap: var(--e-lg);
 }
 
 .cm-mazo-tarjeta {
   display: flex;
-  gap: var(--e-md);
-  padding: var(--e-md);
+  flex-direction: column;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  overflow: hidden;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.15s var(--ease);
 }
 
 .cm-mazo-tarjeta:hover {
   border-color: var(--navy);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cm-mazo-tarjeta {
     transition: none;
   }
+  .cm-mazo-tarjeta:hover {
+    transform: none;
+  }
 }
 
+/* La portada: un recorte de la carta a la altura de su ilustración. Se
+   amplía un poco para que el marco de la carta quede fuera, y debajo va
+   un fondo azul por si la imagen no llega. */
 .cm-mazo-portada {
   position: relative;
-  flex: 0 0 72px;
-  aspect-ratio: 245 / 342;
-  border-radius: var(--radius-sm);
+  display: block;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--navy-solid-dark), var(--navy-solid-light));
 }
 
 .cm-mazo-portada img {
@@ -1127,12 +1137,40 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: 50% 24%;
+  transform: scale(1.22);
+  transform-origin: 50% 28%;
+}
+
+/* Un velo abajo, para que el nombre de la carta se lea sobre cualquier
+   dibujo. */
+.cm-mazo-portada::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 48px;
+  background: linear-gradient(transparent, rgba(13, 27, 42, 0.62));
+}
+
+.cm-mazo-portada-nombre {
+  position: absolute;
+  left: var(--e-md);
+  right: var(--e-md);
+  bottom: var(--e-sm);
+  z-index: 1;
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cm-mazo-info {
   display: flex;
   flex-direction: column;
-  gap: var(--e-xs);
+  gap: var(--e-sm);
+  padding: var(--e-md);
   min-width: 0;
   flex: 1;
 }
@@ -1141,20 +1179,44 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   font-family: var(--font-display);
   font-weight: 600;
   font-size: var(--t-lg);
+  line-height: 1.25;
   color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.cm-mazo-nombre:hover {
+  color: var(--navy);
+}
+
+.cm-mazo-chapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  margin: 0;
 }
 
 .cm-mazo-meta {
   font-size: var(--t-xs);
+  margin: 0;
 }
 
 .cm-mazo-acciones {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--e-sm);
   margin-top: auto;
+  padding-top: var(--e-sm);
+  border-top: 1px solid var(--border);
+}
+
+.cm-mazo-acciones .cm-btn {
+  min-height: 36px;
+  padding: var(--e-xs) var(--e-md);
+  font-size: var(--t-sm);
 }
 
 .cm-mazo-acciones .link-btn {
@@ -1162,10 +1224,113 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   font-size: var(--t-sm);
 }
 
+/* Borrar, apartado a la derecha y en el rojo que se lee: es lo único de
+   la fila que no se deshace. */
+.cm-mazo-acciones .cm-mazo-borrar {
+  margin-left: auto;
+  color: var(--danger);
+}
+
 @media (pointer: coarse) {
+  .cm-mazo-acciones .cm-btn,
   .cm-mazo-acciones .link-btn {
     min-height: 44px;
   }
+}
+
+/* ── Elegir la portada ── */
+.cm-portada-modal {
+  max-width: 760px;
+  gap: var(--e-sm);
+}
+
+.cm-portada-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--e-md);
+}
+
+.cm-portada-cabecera h3 {
+  margin: 0;
+}
+
+.cm-portada-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--e-sm);
+}
+
+.cm-portada-rejilla:empty {
+  display: none;
+}
+
+/* En el móvil, tres por fila: a dos, las cartas del mazo ocupaban la
+   pantalla entera y el buscador se quedaba fuera de la vista. */
+@media (max-width: 480px) {
+  .cm-portada-rejilla { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+}
+
+.cm-portada-rejilla > .subtext {
+  grid-column: 1 / -1;
+}
+
+.cm-portada-opcion {
+  position: relative;
+  display: block;
+  aspect-ratio: 245 / 342;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.cm-portada-opcion img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.cm-portada-opcion:hover,
+.cm-portada-opcion:focus-visible {
+  border-color: var(--navy-light);
+}
+
+.cm-portada-opcion.elegida {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 2px var(--ice);
+}
+
+.cm-portada-buscar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin-top: var(--e-sm);
+  font-weight: 600;
+  font-size: var(--t-sm);
+}
+/* El campo, como el del buscador del constructor: sin esto se quedaba
+   con el blanco del navegador también en el tema oscuro. */
+.cm-portada-buscar input {
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+  font-size: var(--t-md);
+}
+.cm-portada-buscar input:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
 }
 
 .cm-chapa {
@@ -1180,6 +1345,17 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
 }
 
 .cm-chapa-publico {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.cm-chapa-privado {
+  background: var(--bg);
+  color: var(--text-mid);
+}
+
+/* 60 justas: listo para jugar. */
+.cm-chapa-completo {
   background: var(--success-bg);
   color: var(--success);
 }
