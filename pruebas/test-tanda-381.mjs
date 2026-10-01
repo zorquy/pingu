@@ -113,10 +113,25 @@ console.log('\n── 3. El relleno del catálogo ──')
   let vuelta = 0
   const falso = async (ruta, o) => {
     if (!o) return ++vuelta === 1 ? catalogo : []
-    escrito.push(...JSON.parse(o.body))
+    // Desde la tanda 391 el lote se manda a `rpc/pokedex_marcar` dentro
+    // de `p_filas`, y ya no como un array suelto en un upsert — aquel
+    // reventaba contra los NOT NULL de la tabla.
+    const cuerpo = JSON.parse(o.body)
+    escrito.push(...(Array.isArray(cuerpo) ? cuerpo : cuerpo.p_filas))
     return null
   }
-  const r = await procesar({ env: { SUPABASE_SERVICE_ROLE_KEY: 'x' }, fetchImpl: falso })
+  const rutas = []
+  const falsoConRutas = async (ruta, o) => {
+    rutas.push(ruta)
+    return falso(ruta, o)
+  }
+  const r = await procesar({ env: { SUPABASE_SERVICE_ROLE_KEY: 'x' }, fetchImpl: falsoConRutas })
+  // Y por la FUNCIÓN, no por un upsert: un upsert parcial revienta
+  // contra los NOT NULL de `tcg_cards` y dejó la Pokédex vacía desde
+  // esta misma tanda hasta la 391.
+  check('escribe por rpc/pokedex_marcar', rutas.some((x) => String(x).includes('rpc/pokedex_marcar')),
+    rutas.join(' | '))
+  check('  …y no por un upsert', !rutas.some((x) => String(x).includes('on_conflict')), rutas.join(' | '))
   check('mira lo que falta y lo escribe', r.ok && r.miradas === 4, JSON.stringify(r))
   check('  …con las especies bien', JSON.stringify(escrito.map((f) => f.dex_ids)) === '[[25],[],[25,644],[250]]',
     JSON.stringify(escrito.map((f) => f.dex_ids)))
