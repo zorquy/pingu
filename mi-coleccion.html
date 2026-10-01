@@ -460,6 +460,25 @@
 
     <dialog class="mc-editor" id="mcEditor" aria-labelledby="mcEditorTitulo">
       <form id="mcEditorForm" method="dialog">
+        <!-- El mando de la ficha (tanda 422). Dos cosas que faltaban:
+             MOVERSE a la carta de al lado sin cerrar y volver a abrir —si
+             estás repasando un set de 200, cerrar la ficha en cada carta
+             son 400 toques— y un botón de CERRAR a la vista. Hasta ahora
+             esta ficha solo se cerraba con Escape o pulsando fuera: en un
+             teléfono no hay Escape, y «pulsa fuera» no se le ocurre a
+             nadie que no lo sepa ya.
+
+             El sitio («12 de 198») no es adorno: es lo que dice si merece
+             la pena seguir pulsando la flecha o es mejor cerrar y buscar.
+             -->
+        <div class="mc-ficha-mando">
+          <div class="mc-ficha-pasos" id="mcEdPasos">
+            <button type="button" class="mc-ficha-flecha" id="mcEdAnterior" aria-label="La carta anterior">‹</button>
+            <span class="mc-ficha-sitio" id="mcEdSitio" aria-live="polite"></span>
+            <button type="button" class="mc-ficha-flecha" id="mcEdSiguiente" aria-label="La carta siguiente">›</button>
+          </div>
+          <button type="button" class="mc-panel-cerrar" id="mcEdCerrar" aria-label="Cerrar la ficha">✕</button>
+        </div>
         <!-- La ficha de una carta (tanda 393). La carta MANDA: ocupa su
              columna entera a la izquierda, porque es lo que has venido a
              mirar. Antes esto era una cabecera estrecha con el escaneo

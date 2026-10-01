@@ -22525,3 +22525,123 @@ para que nadie la vuelva a coger.
 Y la 413 mide el PNG exportado con Pillow, que estaba sin instalar: sus
 tres medidas salían con un `ModuleNotFoundError` metido donde debía ir el
 valor, así que la prueba fallaba diciendo `undefined,undefined,undefined`.
+
+## Tanda 422 — moverse por la ficha sin cerrarla (oct. 2026)
+
+### Las flechas
+
+La ficha de una carta (`#mcEditor`) gana un mando pegado arriba:
+`‹ · n de N · ›` y el cerrar. Repasar un set de 200 cartas eran 400
+toques, porque cada ficha había que cerrarla para abrir la de al lado.
+
+**El vecindario se lee del DOM, no de los datos.** `fijarVecindario(zona,
+selector, atributo, actual)` recoge los IDs que hay EN LA PANTALLA en el
+momento de abrir. Es a propósito y por dos motivos:
+
+1. la rejilla ya está filtrada y ordenada por quien mira, así que «la
+   siguiente» tiene que ser la de al lado en la pantalla. Sacándola de una
+   lista interna, con un filtro puesto la flecha llevaría a cartas que no
+   están a la vista y el «de N» diría un número que no se corresponde con
+   nada;
+2. el mismo mecanismo vale para las TRES rejillas —`#mcCartas` (tus
+   líneas), `#mcAlbum` (una expansión entera, tengas la carta o no) y
+   `#mcPanelPokedex`— sin que ninguna tenga que contarle nada a la ficha.
+   De ahí el `modo`: `'linea'` abre por línea de tu colección y `'carta'`
+   por carta del catálogo.
+
+Guarda **IDs y no elementos**: entre una flecha y la siguiente la rejilla
+puede repintarse (bajas una copia a cero) y los elementos de antes ya no
+estarían en la página.
+
+El teclado mueve con ← y → **salvo con el foco en un campo**
+(`input, select, textarea`). Dentro de un desplegable esas teclas son
+suyas: quitárselas sería cambiarle el idioma o el estado a la carta que
+tienes delante creyendo que pasas a la siguiente.
+
+**`showModal()` sobre un diálogo ya abierto lanza `InvalidStateError`.**
+Hasta ahora abrir la ficha era siempre lo primero que pasaba; con las
+flechas se repinta la MISMA ficha una y otra vez sin cerrarla, así que
+ahora va con `if (!d.open)`. Y al cambiar de carta, `scrollTop = 0`:
+quedarse a media altura de la anterior deja la carta nueva fuera de la
+pantalla.
+
+### El guardado a medias
+
+La ficha se guarda sola según tocas, con retardo. Cambiar de carta tiene
+que **llevárselo por delante guardándolo**, no descartándolo: sin
+`cerrarGuardadoPendiente()`, el temporizador saltaba con OTRA ficha ya
+puesta — `guardarEditor()` lee el id del `dataset` del diálogo en el
+momento de saltar, pero los campos los lee de la pantalla —, así que se
+perdía lo escrito en esta carta y se reescribía la de al lado con sus
+propios valores. No daba error en ninguna parte.
+
+Y el temporizador **se pone a `null` al saltar**. Antes la variable
+guardaba un id ya gastado para siempre, así que «¿hay algo a medias?» no
+se podía preguntar: siempre decía que sí.
+
+### El cerrar
+
+`#mcEdCerrar`. Esta ficha solo se cerraba con Escape o pulsando fuera (la
+tanda 395 puso lo segundo). En un teléfono no hay Escape, y «pulsa fuera»
+no se le ocurre a nadie que no lo sepa ya. Los tres controles miden 44 px.
+
+### Y el rigor que no podía fallar
+
+Esto es de las herramientas, pero es lo más importante de la tanda.
+
+`rigor_comun.correr()` corría `node $SC/<prueba>`. En el scratchpad de
+este contenedor **no había ninguna prueba**: las canónicas viven en la
+rama `pruebas`. Y `node` con un fichero que no existe sale con **código
+1**, que es exactamente lo que el rigor lee como «mutación detectada».
+Resultado: todas detectadas, siempre, en todos los rigores, sin que nada
+fallara. **Un rigor que no puede fallar no prueba nada**, que es justo lo
+que un rigor existe para no ser. Es el mismo fallo que tenían
+`correr-suite.sh` (copias viejas de las pruebas) y `sync-forum.sh` (copia
+vieja del doble, tanda 419): **un fichero con una casa canónica y una
+copia de trabajo se separa, y el que lee la copia no se entera**. Van
+tres.
+
+Dos arreglos:
+
+- `rigor_comun` coge la prueba y el `sync` del árbol de la rama y, antes
+  de mutar nada, **corre la prueba sobre el árbol LIMPIO y exige que
+  pase**. Sin esa pasada, «la prueba falla» puede significar que no
+  existe, que el servidor está caído o que ya estaba roja — y las tres se
+  leen como un rigor impecable.
+- `herramientas/preparar-entorno.sh` deja el scratchpad con **enlaces** a
+  la rama en vez de copias. Los 78 rigores siguen buscando ahí, y un
+  enlace no se queda viejo, que era el único problema. Cambiarles la ruta
+  a los 78 habría sido una transformación en bloque sobre ficheros que
+  nadie va a releer, y el riesgo no compensaba.
+
+### Y lo primero que encontró el rigor arreglado: tres agujeros suyos
+
+Con el andamio funcionando otra vez, la primera pasada sobre la 422 dejó
+**tres mutaciones sin detectar**. Las tres son la misma lección de
+`CLAUDE.md` —*una mutación que no cambia el comportamiento no es una
+prueba aprobada*— vista desde el otro lado, y merecen quedar escritas
+porque ninguna se parece a las otras:
+
+1. **Un `click({ force: true })` sobre un botón DESACTIVADO no dispara
+   nada.** La prueba pulsaba la flecha ya apagada para comprobar que no se
+   sale de la lista por el final, y el clic nunca llegaba: la guarda no se
+   ejecutaba, así que quitarla no se notaba. Para llegar a ella hay que
+   encender el botón a mano. Un `force` fuerza la posición, no el estado.
+
+2. **El caso que se probaba no era alcanzable.** Se comprobaba que los
+   pasos se esconden sin vecindario, pero por la interfaz no hay forma de
+   abrir la ficha sin venir de una rejilla: era código defensivo, no
+   comportamiento. En vez de inventarse un camino para probarlo, se cambió
+   la regla por una que **sí pasa de verdad**: con UNA sola carta detrás
+   no se pintan pasos (y basta con que el buscador deje una). Si un
+   `if` solo se puede probar con un camino que nadie puede recorrer, el
+   que sobra es el `if`.
+
+3. **La prueba se llevaba por delante lo que iba a probar.** Lo del
+   temporizador a `null` se comprobaba cambiando de carta justo después de
+   escribir — pero esa flecha VACÍA el temporizador, así que con mutación
+   y sin ella el estado posterior era el mismo. Lo que lo distingue es
+   dejar que el guardado salte SOLO y mirar lo que queda DESPUÉS: con el
+   id gastado puesto, la siguiente flecha dispara un guardado de una carta
+   que nadie ha tocado, con su «Guardado» en pantalla. En un set de 200,
+   200 escrituras que no pide nadie.

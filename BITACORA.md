@@ -29,6 +29,75 @@ es mirar el REMOTO justo antes del commit, no al empezar.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+**OJO, CHOQUE DE NÚMEROS (y van CUATRO)**: la 420 se usó a la vez en
+las dos sesiones. La otra llegó antes al remoto —con la 420 Y la 421—,
+así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
+funciona no es releer la bitácora al empezar: es **mirar el remoto justo
+antes del commit**, que es lo que lo cazó esta vez.
+
+## 2026-10-01 — PINGU-Claude (tanda 422 — moverse por la ficha, y un rigor que podía fallar)
+
+**Hecho**: la ficha de una carta gana **flechas** para pasar a la de al
+lado sin cerrarla, y un **botón de cerrar** a la vista.
+
+**Las flechas**. Repasar un set de 200 cartas eran 400 toques: una ficha
+no se podía dejar abierta y pasar a la siguiente. Ahora hay ‹ y › y un
+«3 de 198» entre medias, que es lo que dice si merece la pena seguir
+pulsando o es mejor cerrar y buscar. Funcionan también con ← y → del
+teclado — **salvo con el foco en un campo**: dentro de un desplegable
+esas teclas son suyas, y robárselas sería cambiarle el estado a la carta
+creyendo que pasas a la siguiente.
+
+**El orden sale del DOM, no de los datos.** La rejilla ya está filtrada y
+ordenada por quien mira, así que «la siguiente» tiene que ser la de al
+lado EN LA PANTALLA. Sacarla de una lista interna llevaría a cartas que no
+están a la vista y el «de N» mentiría. De paso, el mismo mecanismo vale
+para las tres rejillas —tu colección, una expansión y la Pokédex— sin que
+ninguna tenga que contarle nada a la ficha. Guarda IDs y no elementos:
+entre una flecha y otra la rejilla puede repintarse.
+
+**Y lo que estabas escribiendo se guarda en SU carta.** El guardado va con
+retardo mientras escribes; sin cerrarlo antes de cambiar, el temporizador
+saltaba con otra ficha ya puesta: se perdía lo de esta y se reescribía la
+de al lado. Además el temporizador se pone a null al saltar — si no, la
+variable guarda un id ya gastado y no hay forma de distinguir «hay algo a
+medias» de «no hay nada».
+
+**El cerrar**: esta ficha solo se cerraba con Escape o pulsando fuera. En
+un teléfono no hay Escape, y «pulsa fuera» no se le ocurre a nadie que no
+lo sepa ya.
+
+**Y la parte de las herramientas, que es la que más vale escribir.** El
+andamio de los rigores corría la prueba desde el scratchpad, donde en este
+contenedor no había NINGUNA. Una prueba que no existe hace que `node` salga
+con código 1 — que es exactamente lo que el rigor lee como «mutación
+detectada». Todas, siempre, sin que nada falle. **Un rigor que no puede
+fallar no prueba nada**, que es justo lo que un rigor existe para no ser.
+Dos arreglos: `rigor_comun` coge la prueba y el `sync` del árbol de esta
+rama y, antes de mutar nada, **exige que la prueba pase sobre el árbol
+limpio** (si ya está roja, o no existe, o el servidor está caído, «falla»
+no significa «se ve la mutación»). Y `herramientas/preparar-entorno.sh`
+deja el scratchpad con ENLACES a la rama en vez de copias: los 78 rigores
+siguen buscando ahí, y un enlace no se queda viejo, que era el único
+problema. Cambiarles la ruta a los 78 habría sido una transformación en
+bloque sobre ficheros que nadie va a releer.
+
+**Y lo primero que hizo el rigor arreglado fue encontrar TRES agujeros de
+mi propia prueba**: un `click({ force: true })` sobre un botón
+desactivado no dispara nada (así que la guarda del final de la lista no se
+pisaba nunca); el caso de «sin lista detrás» no era alcanzable por la
+interfaz, así que se cambió por uno que SÍ pasa —con una sola carta no se
+pintan pasos—; y la comprobación del temporizador se llevaba por delante
+lo que iba a probar, porque la propia flecha lo vacía. Las tres están
+contadas en `SCHEMA.md`. Al final, 20 mutaciones y las 20 detectadas.
+
+**Ficheros**: `mi-coleccion.html`, `css/mi-coleccion.css`,
+`js/mi-coleccion.js`. En la rama `pruebas`: `pruebas/test-tanda-422.mjs`
+(nuevo), `rigor/rigor-tanda-422.py` (nuevo), `rigor/rigor_comun.py`,
+`herramientas/preparar-entorno.sh` (nuevo).
+
+**En curso / pendiente**: nada a medias.
+
 ## 2026-10-01 16:45 — PINGU-Claude (tanda 421 — el meta sin variantes repetidas, y la imagen que se vuelve a importar)
 
 **Hecho**: dos cosas que pidió PINGU. (Esta y la 420 se hicieron en local

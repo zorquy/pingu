@@ -1460,6 +1460,80 @@
   color: var(--text);
 }
 
+/* ── El mando de la ficha (tanda 422) ──
+   Pegado arriba del diálogo, que se desplaza por dentro: si se fuera con
+   el desplazamiento, para pasar a la carta siguiente habría que subir
+   primero. Los márgenes negativos son los del relleno del diálogo, para
+   que la barra llegue a los bordes y tape lo que pasa por debajo. */
+.mc-ficha-mando {
+  display: flex;
+  position: sticky;
+  z-index: 3;
+  top: calc(var(--e-xl) * -1);
+  align-items: center;
+  gap: var(--e-sm);
+  margin: calc(var(--e-xl) * -1) calc(var(--e-xl) * -1) var(--e-md);
+  padding: var(--e-xs) var(--e-lg);
+  background: var(--white);
+}
+
+.mc-ficha-pasos {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+/* El `display` de la clase gana al `[hidden]` del navegador, que es
+   `display: none` de hoja de estilos de usuario (tanda 412): sin esta
+   regla, la ficha abierta desde un sitio sin lista enseñaría unos pasos
+   que no llevan a ninguna parte. */
+.mc-ficha-pasos[hidden] {
+  display: none;
+}
+
+/* El cerrar, al otro extremo. */
+.mc-ficha-mando .mc-panel-cerrar {
+  margin-left: auto;
+}
+
+.mc-ficha-flecha {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-xl);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mc-ficha-flecha:hover:not(:disabled) {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.mc-ficha-flecha:disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+
+/* Dónde estás de la lista. Es un metadato de refilón —el gris apagado es
+   justo para esto—, pero el ancho es FIJO: con «9 de 198» y «10 de 198»
+   midiendo distinto, las dos flechas se moverían de sitio entre una carta
+   y la siguiente. */
+.mc-ficha-sitio {
+  min-width: 72px;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
 .mc-editor::backdrop {
   background: rgba(13, 27, 42, 0.5);
 }

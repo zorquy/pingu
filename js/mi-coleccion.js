@@ -675,6 +675,59 @@ function pintarFiltros() {
 // Para una carta que no tienes no hay línea que editar, así que se monta
 // una de mentira SOLO para pintar —no se guarda nunca— y en vez del
 // bloque de «tu copia» sale el de añadirla.
+// ── Moverse por la ficha sin cerrarla (tanda 422) ──
+//
+// El vecindario es la LISTA que estabas mirando cuando abriste la ficha,
+// leída del DOM en ese momento. Se lee del DOM a propósito y no de los
+// datos: la rejilla ya está filtrada y ordenada por quien mira, así que
+// «la siguiente» es la de al lado EN LA PANTALLA y no la siguiente de una
+// lista que nadie ve. Y así el mismo mecanismo vale para las tres
+// rejillas sin que ninguna tenga que contarle nada.
+//
+// Guarda IDs y no elementos: entre una flecha y la siguiente la rejilla
+// puede repintarse (bajas una copia a cero) y los elementos de antes ya
+// no estarían en la página.
+let vecindario = null // { modo: 'linea' | 'carta', ids: [], i }
+
+function fijarVecindario(zona, selector, atributo, actual) {
+  const ids = [...($(zona)?.querySelectorAll(selector) || [])].map((x) => x.dataset[atributo]).filter(Boolean)
+  const i = ids.indexOf(actual)
+  vecindario = i < 0 ? null : { modo: atributo === 'linea' ? 'linea' : 'carta', ids, i }
+}
+
+async function abrirVecino(paso) {
+  if (!vecindario) return
+  const i = vecindario.i + paso
+  if (i < 0 || i >= vecindario.ids.length) return
+  // Lo que estabas escribiendo se guarda ANTES de cambiar de carta. El
+  // guardado va con retardo, así que sin esto el temporizador saltaría ya
+  // con la ficha de OTRA carta puesta: se perdería lo escrito en esta y
+  // se reescribiría la de al lado con sus propios valores.
+  await cerrarGuardadoPendiente()
+  vecindario.i = i
+  const id = vecindario.ids[i]
+  if (vecindario.modo === 'linea') {
+    const l = lineas.find((x) => x.id === id)
+    if (l) abrirEditor(l)
+    return
+  }
+  abrirCarta(id)
+}
+
+// El mando de la ficha: dónde estás y si hay a dónde ir. Con UNA sola
+// carta detrás no se pinta nada: dos flechas apagadas y un «1 de 1» son
+// tres cosas que ocupan sitio para decir que no hay nada que hacer — y
+// pasa de verdad, en cuanto el buscador deja una sola carta.
+function pintarPasosDeLaFicha() {
+  const pasos = $('mcEdPasos')
+  if (!pasos) return
+  pasos.hidden = !vecindario || vecindario.ids.length < 2
+  if (!vecindario) return
+  $('mcEdSitio').textContent = `${vecindario.i + 1} de ${vecindario.ids.length}`
+  $('mcEdAnterior').disabled = vecindario.i === 0
+  $('mcEdSiguiente').disabled = vecindario.i >= vecindario.ids.length - 1
+}
+
 function abrirCarta(cardId, carta = null) {
   // La carta puede no estar en `cartas`: ese mapa es el de TU colección,
   // y aquí se abre cualquiera. Se busca donde esté a la vista —la
@@ -782,7 +835,14 @@ function abrirEditor(l) {
     ficha.hidden = true
   }
   d.dataset.linea = l.id
-  d.showModal()
+  pintarPasosDeLaFicha()
+  // `showModal()` sobre un diálogo YA abierto revienta (InvalidStateError):
+  // con las flechas de la 422 se repinta la misma ficha una y otra vez sin
+  // cerrarla, así que abrir dejó de ser siempre lo primero que pasa.
+  if (!d.open) d.showModal()
+  // Y al cambiar de carta, arriba: la ficha es otra, y quedarse a media
+  // altura de la anterior deja la carta nueva fuera de la pantalla.
+  else d.scrollTop = 0
 }
 
 // La tabla de datos de la ficha (tanda 393), con lo mismo que enseña
@@ -824,6 +884,18 @@ function tablaDeCarta(c) {
 // una nota. Los desplegables y el contador no esperan: ahí el cambio ya
 // está hecho en cuanto sueltas.
 let guardadoPendiente = null
+
+// Cerrar lo que estuviera a medias (tanda 422). El guardado va con retardo
+// mientras escribes; cambiar de carta tiene que llevárselo por delante
+// GUARDÁNDOLO, no descartándolo. Y el temporizador se pone a null al
+// saltar: si no, la variable guarda un id ya gastado y esto no sabría
+// distinguir «hay algo a medias» de «no hay nada».
+async function cerrarGuardadoPendiente() {
+  if (!guardadoPendiente) return
+  clearTimeout(guardadoPendiente)
+  guardadoPendiente = null
+  await guardarEditor()
+}
 
 function leerEditor() {
   const num = (v) => (String(v).trim() === '' ? null : Math.max(0, Math.round(Number(String(v).replace(',', '.')) * 100) / 100))
@@ -869,7 +941,10 @@ async function guardarEditor({ retardo = 0 } = {}) {
   if (!id) return
   clearTimeout(guardadoPendiente)
   if (retardo) {
-    guardadoPendiente = setTimeout(() => guardarEditor(), retardo)
+    guardadoPendiente = setTimeout(() => {
+      guardadoPendiente = null
+      void guardarEditor()
+    }, retardo)
     return
   }
   const cambios = leerEditor()
@@ -2327,8 +2402,25 @@ function enganchar() {
     // otras pantallas que todavía pintan la fila con su botón.
     if (!e.target.closest('[data-ficha], [data-editar]')) return
     const l = lineas.find((x) => x.id === e.target.closest('[data-linea]').dataset.linea)
-    if (l) abrirEditor(l)
+    if (!l) return
+    fijarVecindario('mcCartas', '[data-linea]', 'linea', l.id)
+    abrirEditor(l)
   })
+  // Las flechas y el cerrar de la ficha (tanda 422).
+  $('mcEdAnterior')?.addEventListener('click', () => void abrirVecino(-1))
+  $('mcEdSiguiente')?.addEventListener('click', () => void abrirVecino(1))
+  $('mcEdCerrar')?.addEventListener('click', () => $('mcEditor').close())
+  // Y con el teclado, que es como se repasa una lista larga. Solo cuando
+  // el foco NO está en un campo: dentro de un desplegable o de un número
+  // las flechas ya hacen lo suyo, y robárselas sería cambiar el valor de
+  // la carta creyendo que pasas a la siguiente.
+  $('mcEditor').addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+    if (e.target.closest('input, select, textarea')) return
+    e.preventDefault()
+    void abrirVecino(e.key === 'ArrowRight' ? 1 : -1)
+  })
+
   // Pulsar FUERA cierra la ficha (tanda 395). Un `<dialog>` no lo hace
   // solo: el clic en el fondo llega al propio diálogo, así que se mira si
   // el destino ES el diálogo —y no algo de dentro— y si cae fuera de su
@@ -2492,6 +2584,7 @@ function enganchar() {
       const enlace = e.target.closest(selector)
       if (!enlace || !enlace.dataset.carta) return
       e.preventDefault()
+      fijarVecindario(zona, selector, 'carta', enlace.dataset.carta)
       abrirCarta(enlace.dataset.carta)
     })
   }
