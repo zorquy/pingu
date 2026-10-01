@@ -26,7 +26,7 @@ import {
   PREMIO_MAXIMO,
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
-import { montarJueces } from './jueces.js'
+import { montarJueces, pendientesDeJuez } from './jueces.js'
 import { contarPalmares, hitosMerecidos } from './palmares.js'
 import { getAllAchievements, addXP } from '../gamification.js'
 import { urlTema } from '../foro-comun.js'
@@ -2055,11 +2055,18 @@ function pintarPestanas() {
   // abierto a inscripciones queda «Torneo» y nada más, y ahí flotaba
   // suelta entre el cartel y la primera tarjeta. Se esconde.
   nav.classList.toggle('hidden', visibles.length < 2)
+  // La de jueces lleva cuántas cosas esperan (tanda 394): quien no ha
+  // hecho check-in, llamadas sin atender y disputas. Con la pestaña
+  // cerrada, el número es lo único que avisa.
+  const pendientes = pendientesDeJuez()
   const html = visibles
-    .map(
-      (p) =>
-        `<button class="torneo-pestana ${p.id === pestanaActiva ? 'activa' : ''}" data-pestana="${p.id}">${p.texto}</button>`
-    )
+    .map((p) => {
+      const cuenta =
+        p.id === 'jueces' && pendientes
+          ? ` <span class="torneo-pestana-aviso">${pendientes}<span class="sr-only"> pendiente${pendientes === 1 ? '' : 's'}</span></span>`
+          : ''
+      return `<button class="torneo-pestana ${p.id === pestanaActiva ? 'activa' : ''}" data-pestana="${p.id}">${p.texto}${cuenta}</button>`
+    })
     .join('')
   // Las pestañas son lo PRIMERO de la página: rehacerlas mueve todo lo
   // que hay debajo. Se repintan solo si cambian de verdad (una pestaña

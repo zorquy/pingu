@@ -10,7 +10,9 @@
 import { supabase } from '../supabase.js'
 import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
-import { puedeLlevar } from './comun.js'
+import { icons } from '../icons.js'
+import { puedeLlevar, faltaLaRpc, avisoDeMigracion } from './comun.js'
+import { sinCheckin, cierreDeCheckin } from './mesas.js'
 import { pintarDecklistVisual } from './cartas-decklist.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { pintarSiCambia } from './pintar.js'
@@ -23,6 +25,8 @@ let decklistsTorneo = [] // completas, con texto: solo se piden si eres juez u o
 let mesasPorId = {}
 let miPartida = null
 let disputadas = []
+let rondaViva = null // la ronda en juego (status 'active'), si la hay
+let faltanCheckin = [] // quién no ha hecho check-in en ella (mesas.js)
 const perfiles = {} // id → username, para nombres que no están inscritos
 
 const $ = (id) => document.getElementById(id)
@@ -75,6 +79,14 @@ async function cargar() {
   mesasPorId = Object.fromEntries(mesas.map((m) => [m.id, m]))
   disputadas = mesas.filter((m) => m.status === 'disputed')
 
+  // Quién no ha hecho check-in (tanda 394). Solo para quien lo puede
+  // usar: a un jugador o a un espectador no le incumbe quién falta.
+  rondaViva = rondas.find((r) => r.status === 'active') || null
+  faltanCheckin =
+    mando() || ctx.esJuez
+      ? sinCheckin({ ronda: rondaViva, mesas, reportes: ctx.ciclo?.reportes || [], inscripciones: ctx.inscripciones })
+      : []
+
   // ── Las llamadas al juez, solo a quien le incumben (tanda 255) ──
   //
   // Antes se pedían en CADA refresco para todo el que tuviera la ficha
@@ -96,12 +108,15 @@ async function cargar() {
     llamadas = []
   }
 
-  const rondaViva = rondas.find((r) => r.status !== 'finished') || null
+  // La de «tu partida» es la ronda sin cerrar, pareada o en juego: no
+  // es la misma pregunta que la de arriba (que solo quiere la que se
+  // está jugando, porque antes de empezar no hay check-in que hacer).
+  const rondaAbierta = rondas.find((r) => r.status !== 'finished') || null
   // El `mi &&` importa: sin sesión yo() es null, y la mesa del bye tiene
   // player_b_id a null — sin él, un visitante «tendría» esa partida.
   const mi = yo()
-  miPartida = mi && rondaViva
-    ? mesas.find((m) => m.round_id === rondaViva.id && (m.player_a_id === mi || m.player_b_id === mi)) || null
+  miPartida = mi && rondaAbierta
+    ? mesas.find((m) => m.round_id === rondaAbierta.id && (m.player_a_id === mi || m.player_b_id === mi)) || null
     : null
 
   // Las decklists completas SOLO para juez u organizador (SPEC §9: los
@@ -126,6 +141,129 @@ async function cargar() {
     ...solicitudes.map((s) => s.user_id),
     ...llamadas.flatMap((c) => [c.created_by, c.assigned_judge_id]),
   ])
+}
+
+// ── Sin check-in (tanda 394) ──
+//
+// PINGU: «cuando un jugador en una ronda no ha hecho el check-in, que su
+// nombre salga en un apartado de los jueces para avisarle y poder darle
+// de baja. Esa baja la tiene que dar el juez, siempre».
+//
+// Así que aquí NO se da de baja a nadie solo: se dice a quién mirar y se
+// deja el botón a mano. La mesa sí cae sola al cerrarse la ventana (el
+// barredor, SPEC §6.4) — eso es el resultado de ESTA ronda; la baja es
+// que no entre en la SIGUIENTE, y esa decisión es de una persona.
+
+const horaCorta = (ms) => new Date(ms).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+
+function pintarSinCheckin() {
+  const caja = $('torneoSinCheckinCaja')
+  if (!caja) return
+  const soyJuez = mando() || ctx.esJuez
+  if (!soyJuez || !rondaViva?.started_at) {
+    caja.classList.add('hidden')
+    return
+  }
+  caja.classList.remove('hidden')
+
+  const cierre = cierreDeCheckin(rondaViva, ctx.torneo.checkin_minutes)
+  const cerrado = Date.now() >= cierre
+  const ronda = rondaViva.phase === 'top_cut' ? `Top cut, ronda ${rondaViva.round_number}` : `Ronda ${rondaViva.round_number}`
+  const cabecera = `<p class="subtext torneo-sincheckin-plazo">${ronda} · el check-in ${cerrado ? 'se cerró' : 'se cierra'} a las <strong>${horaCorta(cierre)}</strong>.</p>`
+
+  if (!faltanCheckin.length) {
+    pintarSiCambia(
+      $('sinCheckinContenido'),
+      `${cabecera}<p class="torneo-sincheckin-todos">${icons.checkCircle(16)} Todo el mundo ha hecho check-in.</p>`
+    )
+    return
+  }
+
+  const filas = faltanCheckin
+    .map((f) => {
+      const insc = ctx.inscripciones.find((i) => i.user_id === f.userId)
+      const tcg = insc?.tcg_live_username ? ` · TCG Live: ${escapeHtml(insc.tcg_live_username)}` : ''
+      // Tres momentos distintos, y al juez le importa cuál: aún puede
+      // llegar, ya no puede, o su mesa ya ha caído.
+      const estado = f.noSePresento
+        ? '<span class="torneo-chapa torneo-chapa-neutra">No se presentó</span>'
+        : cerrado
+          ? '<span class="torneo-chapa torneo-chapa-aviso">Plazo cumplido</span>'
+          : '<span class="torneo-chapa torneo-chapa-aviso">Aún en plazo</span>'
+      return `
+      <li class="torneo-sincheckin-fila">
+        <span class="torneo-sincheckin-quien">
+          <strong>${escapeHtml(nombreDe(f.userId))}</strong>
+          <span class="subtext">Mesa ${f.mesa} · contra ${escapeHtml(nombreDe(f.rivalId))}${tcg}</span>
+        </span>
+        ${estado}
+        <button type="button" class="btn-secondary torneo-sincheckin-baja" data-baja-juez="${escapeHtml(f.inscripcionId)}"
+          data-nombre="${escapeHtml(nombreDe(f.userId))}">Dar de baja</button>
+      </li>`
+    })
+    .join('')
+  const html = `${cabecera}
+    <p class="subtext">Avísales. Si no aparecen, dales de baja: su ronda cuenta como está y no entran en el pareo de la siguiente.</p>
+    <ul class="torneo-sincheckin">${filas}</ul>`
+  if (!pintarSiCambia($('sinCheckinContenido'), html)) return
+  document.querySelectorAll('[data-baja-juez]').forEach((b) => b.addEventListener('click', () => darDeBaja(b)))
+}
+
+async function darDeBaja(boton) {
+  // Dos toques, como «Expulsar»: una baja no se deshace desde aquí y el
+  // botón está en una lista donde es fácil dar al de al lado.
+  if (boton.dataset.confirmar !== '1') {
+    boton.dataset.confirmar = '1'
+    boton.textContent = '¿Seguro?'
+    return
+  }
+  boton.disabled = true
+  const id = boton.dataset.bajaJuez
+  const nombre = boton.dataset.nombre || 'El jugador'
+  const { data, error } = await supabase.rpc('torneos_dar_de_baja', { p_inscripcion: id })
+  if (error) {
+    if (!faltaLaRpc(error)) {
+      showToast(error.message || 'No se ha podido dar de baja.', 'error')
+      boton.disabled = false
+      return
+    }
+    // Sin la función (la migración aún no se ha ejecutado): quien LLEVA
+    // el torneo sí puede por la puerta de siempre —la de «Expulsar»—,
+    // con `.select('id')` para no cantar victoria si la política dice
+    // que no. Un juez, no: se le dice qué falta en vez de fingir que
+    // funcionó (tanda 293).
+    if (!mando()) {
+      showToast(avisoDeMigracion('supabase-migration-torneos-jueces.sql'), 'error')
+      boton.disabled = false
+      return
+    }
+    const r = await supabase
+      .from('tournament_registrations')
+      .update({ status: 'dropped', dropped_at: new Date().toISOString(), dropped_after_round_id: ctx.torneo.current_round_id || null })
+      .eq('id', id)
+      .eq('status', 'active')
+      .select('id')
+    if (r.error || !r.data?.length) {
+      showToast(r.error?.message || 'No se ha podido dar de baja.', 'error')
+      boton.disabled = false
+      return
+    }
+  } else if (data === false) {
+    showToast(`${nombre} ya no estaba en el torneo.`)
+    await ctx.recargarFicha()
+    return
+  }
+  showToast(`${nombre}, de baja. Su ronda cuenta como está y no entra en la siguiente.`, 'success')
+  await ctx.recargarFicha()
+}
+
+// Cuántas cosas esperan a un juez, para el número de la pestaña: quien
+// no ha hecho check-in, las llamadas sin atender y las mesas en disputa.
+// La pestaña puede estar cerrada, y entonces es la única forma de
+// enterarse sin ir a mirar.
+export function pendientesDeJuez() {
+  if (!ctx || !(mando() || ctx.esJuez)) return 0
+  return faltanCheckin.length + llamadas.filter((c) => c.status === 'open').length + disputadas.length
 }
 
 // ── Las decklists del torneo (SPEC §9 y /juez/.../decklists) ──
@@ -552,6 +690,7 @@ async function decidirJuez(solicitudId, decision) {
 // ── Arranque ──
 
 function pintarJueces() {
+  pintarSinCheckin()
   pintarSolicitudes()
   pintarCola()
   pintarDecklistsJuez()

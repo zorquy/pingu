@@ -28,6 +28,7 @@ import {
 import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } from './cartas-decklist.js'
 import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
+import { TERMINALES, progresoDeMesas } from './mesas.js'
 
 let ctx = null // { torneo, session, perfil, inscripciones, recargarFicha }
 let rondas = []
@@ -51,7 +52,6 @@ const $ = (id) => document.getElementById(id)
 const miId = () => ctx.session?.user?.id ?? null
 // Quién LLEVA este torneo: el equipo, o quien lo creó (tanda 296).
 const mando = () => puedeLlevar(ctx.perfil, ctx.torneo, miId())
-const TERMINALES = new Set(['finished', 'bye', 'forfeit_a', 'forfeit_b', 'forfeit_both'])
 
 const ahora = () => new Date().toISOString()
 
@@ -126,8 +126,11 @@ async function cargarCiclo() {
   // Y lo que se acaba de cargar se deja a mano del módulo de jueces,
   // que necesita las mismas rondas y las mismas mesas: montarJueces()
   // corre después de este, así que las lee de aquí en vez de volver a
-  // pedirlas a la base. Dos consultas menos por refresco.
-  ctx.ciclo = { rondas, partidas }
+  // pedirlas a la base. Dos consultas menos por refresco. Los reportes
+  // también (tanda 394): la caja de «Sin check-in» de los jueces los
+  // necesita para no señalar a quien ya ha reportado — y a ellos solo se
+  // les cargan si son jueces u organizador, que es justo quien la ve.
+  ctx.ciclo = { rondas, partidas, reportes }
 
   await cargarArquetipos()
   await conciliarPendientes()
@@ -856,6 +859,24 @@ async function conciliarPendientes() {
 // ── Resolución a mano del organizador (SPEC §6.7) ──
 
 async function resolverPartida(partida, resultado) {
+  // Un JUEZ que no lleva el torneo va por su función (tanda 394). Las
+  // tablas solo las escribe quien manda (torneos_mando), así que su
+  // update de abajo no tocaba nada SIN DAR ERROR y aquí salía «Mesa
+  // resuelta» en verde: el resolutor lleva enseñándose a los jueces
+  // desde la tanda 207 y no les ha funcionado nunca.
+  if (!mando()) {
+    const { error } = await supabase.rpc('torneos_resolver_como_juez', { p_partida: partida.id, p_resultado: resultado })
+    if (error) {
+      showToast(
+        faltaLaRpc(error) ? avisoDeMigracion('supabase-migration-torneos-jueces.sql') : error.message || 'No se ha podido resolver la mesa.',
+        'error'
+      )
+      return false
+    }
+    showToast('Mesa resuelta.', 'success')
+    await ctx.recargarFicha()
+    return true
+  }
   const lado = resolutionWinnerSide(resultado)
   await supabase
     .from('tournament_matches')
@@ -1009,21 +1030,46 @@ function pintarBarraViva(ronda) {
     if (!miListo) der = '<span class="torneo-viva-pide">Te falta el check-in</span>'
     else if (!rivalListo) der = `<span class="torneo-viva-espera">${escapeHtml(nombreDe(rivalId))} aún no ha hecho check-in</span>`
     der += '<a class="btn-primary torneo-viva-boton" href="#torneoMiPartida">Ir a tu mesa</a>'
-  } else {
-    const sinCerrar = partidas.filter((m) => m.round_id === ronda.id && !TERMINALES.has(m.status)).length
-    titular = sinCerrar ? `${sinCerrar} mesa${sinCerrar === 1 ? '' : 's'} sin resultado` : 'Todas las mesas cerradas'
   }
 
-  const html = `${rotulo}|${titular}|${der}`
+  // El contador de mesas (tanda 394): «4/7 mesas han terminado», para
+  // todo el mundo — también para quien juega, que en cuanto acaba la
+  // suya lo único que quiere saber es cuánto falta para la siguiente.
+  // Se pone al día solo: la ficha se refresca con cada cambio de una
+  // mesa (tiempo real, con el sondeo detrás) y esto se repinta con ella.
+  const progreso = progresoDeMesas(partidas.filter((m) => m.round_id === ronda.id))
+  if (!mia) titular = progreso.todas ? 'Todas las mesas han terminado' : 'Ronda en marcha'
+  const mesasHtml = contadorDeMesasHtml(progreso)
+
+  const html = `${rotulo}|${titular}|${der}|${mesasHtml}`
   caja.classList.remove('hidden')
   if (yaEstaPintado('barraViva', html)) return
   $('torneoVivaRotulo').textContent = rotulo
   $('torneoVivaTitular').textContent = titular
   $('torneoVivaDer').innerHTML = der
+  const contador = $('torneoVivaMesas')
+  if (contador) {
+    contador.innerHTML = mesasHtml
+    contador.classList.toggle('hidden', !mesasHtml)
+  }
   // El anillo se monta una vez; el tictac solo le cambia la cifra y la
   // vuelta. Repintarlo cada segundo sería rehacer un SVG por segundo.
   const anillo = $('torneoVivaAnillo')
   if (anillo && !anillo.querySelector('b')) anillo.innerHTML = '<b>–:––</b>'
+}
+
+// El contador de mesas, el mismo en la barra viva y en la pestaña de
+// rondas. La cifra va a la vista y la frase entera para el lector de
+// pantalla: «4/7» leído en voz alta es «cuatro barra siete».
+function contadorDeMesasHtml({ terminadas, total, todas }) {
+  if (!total) return ''
+  const parte = Math.round((terminadas / total) * 100)
+  return `<span class="torneo-mesas-cuenta${todas ? ' completa' : ''}" aria-hidden="true">
+      <span class="torneo-mesas-cifra"><b>${terminadas}</b>/${total}</span>
+      <span class="torneo-mesas-rotulo">mesas terminadas</span>
+      <span class="torneo-mesas-barra"><span style="--parte: ${parte}%"></span></span>
+    </span>
+    <span class="sr-only">${terminadas} de ${total} mesas han terminado</span>`
 }
 
 function arrancarReloj(ronda) {
@@ -1338,8 +1384,13 @@ function pintarRondasResto(actual) {
   // evento en vivo del torneo, y ahí dentro están los botones del juez.
   // Si sale el mismo HTML, no se toca (y así los escuchas de abajo tampoco
   // hacen falta: sus botones siguen siendo los mismos nodos de antes).
+  // Con la ronda en juego, el contador de mesas va al lado del título
+  // (tanda 394): es la pestaña a la que mira el organizador para saber
+  // si ya puede cerrar.
+  const contador =
+    paraMesas?.status === 'active' ? contadorDeMesasHtml(progresoDeMesas(partidas.filter((m) => m.round_id === paraMesas.id))) : ''
   const htmlMesas = paraMesas
-    ? `<h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ronda ${paraMesas.round_number}`}${paraMesas.status === 'finished' ? ' (cerrada)' : ''}</h4>${pestanas}${pintarMesas(paraMesas)}`
+    ? `<div class="torneo-mesas-cabecera"><h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ronda ${paraMesas.round_number}`}${paraMesas.status === 'finished' ? ' (cerrada)' : ''}</h4>${contador ? `<div class="torneo-mesas-progreso">${contador}</div>` : ''}</div>${pestanas}${pintarMesas(paraMesas)}`
     : ''
   // El reloj se rearma SIEMPRE, antes de la guarda: se apaga y se vuelve
   // a poner en cada pasada, y saltárselo lo dejaría parado.
@@ -1366,7 +1417,12 @@ function pintarRondasResto(actual) {
         sel.value = ''
         return
       }
-      resolverPartida(partida, sel.value)
+      // Si no se pudo (un juez sin la migración, o la base dijo que no),
+      // el desplegable vuelve a «Resolver…»: dejarlo con la opción
+      // elegida haría creer que la mesa está resuelta.
+      void resolverPartida(partida, sel.value).then((ok) => {
+        if (ok === false) sel.value = ''
+      })
     })
   })
   void rellenarChapasArquetipo(caja)
@@ -1515,7 +1571,7 @@ function pintarMiPartida() {
 // un «Ver lista» que abre la decklist del rival — solo con el torneo ya
 // en juego, que las listas se sellan al arrancar la R1.
 let vistaClasificacion = 'general' // 'general' o el número de una jornada
-let listaRivalAbierta = null // user_id de la decklist desplegada bajo la tabla
+let listaRivalAbierta = null // user_id de la lista abierta en su ventana (tanda 394)
 let historialAbierto = null // user_id del historial de partidas desplegado
 const listasRivales = new Map() // user_id → fila de tournament_decklists (o null)
 
@@ -1649,9 +1705,46 @@ function puedenVerseLasListas() {
   return modo === 'en_juego' && ctx.torneo.status === 'in_progress'
 }
 
+// ── La lista de un jugador, en una VENTANA (tanda 394) ──
+//
+// PINGU: «que las listas de los jugadores se abran en otra ventana y no
+// abajo, porque si no, no se ven». Se desplegaban DEBAJO de la
+// clasificación: con dieciséis filas, el «Ver lista» del primero la
+// abría a una pantalla de distancia y parecía que el botón no hacía
+// nada. Ahora sale encima de todo, como el historial de partidas: el
+// mismo patrón modal-overlay/modal-box, colgado del body para que el
+// repintado de la tabla cada diez segundos no se la lleve por delante.
+let focoAntesDeLista = null
+
+function modalLista() {
+  let overlay = document.getElementById('torneoListaModal')
+  if (overlay) return overlay
+  overlay = document.createElement('div')
+  overlay.id = 'torneoListaModal'
+  overlay.className = 'modal-overlay hidden torneo-lista-modal'
+  overlay.innerHTML = `<div class="modal-box modal-box-wide" role="dialog" aria-modal="true" aria-labelledby="torneoListaTitulo">
+    <div id="torneoListaContenido"></div>
+  </div>`
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) cerrarLista()
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay.classList.contains('hidden')) cerrarLista()
+  })
+  document.body.appendChild(overlay)
+  return overlay
+}
+
+function cerrarLista() {
+  listaRivalAbierta = null
+  document.getElementById('torneoListaModal')?.classList.add('hidden')
+  // El foco vuelve al «Ver lista» que la abrió: si no, quien va con
+  // teclado acaba al principio de la página.
+  if (focoAntesDeLista?.isConnected) focoAntesDeLista.focus()
+  focoAntesDeLista = null
+}
+
 async function abrirListaRival(userId) {
-  const hueco = $('clasificacionListaRival')
-  if (!hueco) return
   if (!listasRivales.has(userId)) {
     const { data } = await supabase
       .from('tournament_decklists')
@@ -1661,30 +1754,42 @@ async function abrirListaRival(userId) {
       .maybeSingle()
     listasRivales.set(userId, data || null)
   }
+  // Mientras llegaba, se ha pedido OTRA (o se ha cerrado): esta ya no.
+  if (listaRivalAbierta !== userId) return
   const lista = listasRivales.get(userId)
   if (!lista) {
     listaRivalAbierta = null
-    hueco.innerHTML = ''
     showToast('Ese jugador no tiene lista entregada.', 'info')
     return
   }
   const p = lista.parsed_cards || {}
-  hueco.innerHTML = `
-    <div class="torneo-decklist-detalle torneo-lista-rival">
-      <div class="torneo-decklist-fila">
-        <span><strong>Lista de ${escapeHtml(nombreDe(userId))}</strong> — ${p.total ?? '?'} cartas</span>
-        <button class="btn-secondary" id="btnCerrarListaRival">Cerrar</button>
+  // Dónde quedó, que es lo que se pregunta quien abre la lista de otro.
+  const puesto = computeStandings(montarSnapshot(rondas.length)).findIndex((e) => e.playerId === userId)
+  const overlay = modalLista()
+  const contenido = overlay.querySelector('#torneoListaContenido')
+  contenido.innerHTML = `
+    <div class="torneo-lista-cabecera">
+      <div class="torneo-lista-quien">
+        <h3 id="torneoListaTitulo">Lista de ${escapeHtml(nombreDe(userId))}</h3>${chapaDe(userId)}
+        <span class="subtext">${puesto >= 0 ? `${puesto + 1}.º · ` : ''}${p.total ?? '?'} cartas · ${escapeHtml(ctx.torneo.name)}</span>
       </div>
-      ${botonesExportarHtml()}
-      <div class="torneo-decklist-visual" id="listaRivalCartas"></div>
+      <button type="button" class="modal-close" id="btnCerrarListaRival" aria-label="Cerrar">×</button>
+    </div>
+    ${botonesExportarHtml()}
+    <div class="torneo-decklist-visual" id="listaRivalCartas"></div>
+    <details class="torneo-lista-texto">
+      <summary>Ver como texto</summary>
       <pre class="torneo-decklist-cruda">${escapeHtml(lista.raw_text || '')}</pre>
-    </div>`
-  $('btnCerrarListaRival').addEventListener('click', () => {
-    listaRivalAbierta = null
-    hueco.innerHTML = ''
-  })
-  engancharExportar(hueco, { nombre: nombreDe(userId), rawText: lista.raw_text, parsed: p })
-  if (p.pokemon || p.trainer || p.energy) await pintarDecklistVisual($('listaRivalCartas'), p)
+    </details>`
+  overlay.classList.remove('hidden')
+  // Arriba del todo cada vez: la caja recuerda el scroll de la lista de
+  // antes, y abrir la de otro a media altura parecería otra cosa.
+  overlay.querySelector('.modal-box').scrollTop = 0
+  overlay.querySelector('#btnCerrarListaRival').addEventListener('click', cerrarLista)
+  overlay.querySelector('#btnCerrarListaRival').focus()
+  engancharExportar(contenido, { nombre: nombreDe(userId), rawText: lista.raw_text, parsed: p })
+  void rellenarChapasArquetipo(overlay)
+  if (p.pokemon || p.trainer || p.energy) await pintarDecklistVisual(contenido.querySelector('#listaRivalCartas'), p)
 }
 
 function pintarClasificacion() {
@@ -1792,7 +1897,6 @@ function pintarClasificacion() {
         <tbody>${filas}</tbody>
       </table>
     </div>
-    <div id="clasificacionListaRival"></div>
     ${general && corte > 0 && !rondas.some((r) => r.phase === 'top_cut') ? `<p class="subtext torneo-nota-corte">Las plazas marcadas con «Top ${corte}» clasifican al corte.</p>` : ''}
     <details class="torneo-desempates">
       <summary>¿Cómo se desempata?</summary>
@@ -1826,6 +1930,7 @@ function pintarClasificacion() {
   document.querySelectorAll('[data-ver-lista]').forEach((b) =>
     b.addEventListener('click', () => {
       listaRivalAbierta = b.dataset.verLista
+      focoAntesDeLista = b
       void abrirListaRival(listaRivalAbierta)
     })
   )
@@ -1834,9 +1939,6 @@ function pintarClasificacion() {
   document.querySelectorAll('[data-historial]').forEach((b) =>
     b.addEventListener('click', () => abrirHistorialJugador(b.dataset.historial))
   )
-  // El refresco de cada 10 s repinta la caja entera: si había una lista
-  // de rival abierta, se vuelve a poner (la caché evita repedirla).
-  if (listaRivalAbierta && verListas) void abrirListaRival(listaRivalAbierta)
   // Las cartas de las chapas llegan después: el HTML se construye de una
   // vez y resolverlas es ir a la base.
   void rellenarChapasArquetipo(caja)

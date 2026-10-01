@@ -18,6 +18,49 @@ mío pasa a ser la **385**. La bitácora existe para que esto no pase: lo
 que falló es que ninguno de los dos la releyó justo antes de numerar,
 porque las dos tandas se empezaron con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 394 — el día del torneo: mesas, check-in y jueces)
+
+**Hecho**: cuatro peticiones de PINGU para los torneos.
+
+1. **«4/7 mesas terminadas»** en la barra viva (para todo el mundo) y
+   junto al título de las mesas. Se actualiza solo con el tiempo real. El
+   bye no cuenta como mesa.
+2. **«Sin check-in»**, lo primero de la pestaña Jueces: quién falta en la
+   ronda en juego (mesa, rival, TCG Live) con «Dar de baja» a dos toques.
+   La baja la da siempre una persona; la mesa sigue cayendo sola con el
+   barredor. La pestaña lleva un número rojo con lo pendiente.
+3. **Fuera el recuadro dorado** de los arquetipos sin catalogar (queda
+   solo en el texto de ayuda).
+4. **«Ver lista» abre una ventana** en vez de desplegarse bajo la
+   clasificación, donde no se veía.
+
+**Lo que salió al hacerlo**: un juez aprobado NO podía escribir nada del
+torneo (las políticas piden `torneos_mando`). Su «Resolver…» no hacía nada
+y decía «Mesa resuelta» desde la tanda 207. Arreglado con dos funciones,
+sin abrir tablas: `torneos_dar_de_baja` y `torneos_resolver_como_juez`.
+
+**SQL a ejecutar**: `supabase-migration-torneos-jueces.sql` (**nuevo**).
+Probada contra PostgreSQL 16 (`sql-jueces.sql`). Sin ella, al juez se le
+dice qué falta y el organizador sigue pudiendo dar de baja.
+
+**Ficheros**: `js/torneos/mesas.js` y
+`supabase-migration-torneos-jueces.sql` (**nuevos**),
+`js/torneos/ronda.js`, `js/torneos/jueces.js`, `js/torneos/torneo.js`,
+`torneo.html`, `css/torneos.css`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-394.mjs`, `sql-jueces.sql` y `rigor-tanda-394.py`
+(**nuevos**), el doble (las dos funciones) y `correr-suite.sh`.
+
+**Suite**: entera en verde (133 pruebas) y rigor 17 de 17. La 384 (el
+laboratorio) salió roja UNA vez con la suite cargada: esperaba 150 ms
+fijos tras un Escape. Ahora espera a que el estado cambie.
+
+**En curso / pendiente**: nada a medias. Se escribió como 391, pero la
+391 (la Pokédex) y la 392 llegaron antes al remoto; integrada desde el
+bundle pasó a ser la 393, y mientras se empujaba llegó la 393 (la
+ficha): queda como la **394**, con `test-tanda-391.mjs` y
+`rigor-tanda-391.py` renombrados al 394 — el choque de números de la
+384/385, dos veces en la misma tanda.
+
 ## 2026-10-01 — PINGU-Claude (tanda 393 — la ficha, con la carta de protagonista)
 
 **Hecho**: PINGU, al ver la 392: «el pop-up es muy pocho, se abre en una

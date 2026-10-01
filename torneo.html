@@ -195,6 +195,11 @@
         <span class="torneo-viva-rotulo" id="torneoVivaRotulo"></span>
         <span class="torneo-viva-titular" id="torneoVivaTitular"></span>
       </div>
+      <!-- Cuántas mesas han terminado (tanda 394), para todo el mundo: es
+           lo que mira quien ya ha jugado y espera la ronda siguiente. Es
+           una región «status» para que el lector de pantalla diga el
+           cambio sin que nadie recargue. -->
+      <div class="torneo-viva-mesas hidden" id="torneoVivaMesas" role="status"></div>
       <div class="torneo-viva-der" id="torneoVivaDer"></div>
       <!-- El reloj de siempre: lo escribe arrancarReloj() y aquí es lo
            que se lee dentro del anillo. -->
@@ -253,9 +258,17 @@
       </div>
     </section>
 
-    <!-- Pestaña JUECES: la cola y las decklists del torneo. Solo para
-         jueces aprobados y el organizador. -->
+    <!-- Pestaña JUECES: quién no ha hecho check-in, la cola y las
+         decklists del torneo. Solo para jueces aprobados y el
+         organizador. -->
     <section class="torneo-panel" data-panel="jueces">
+      <!-- Lo primero, porque es lo que corre prisa (tanda 394): quién no
+           ha hecho check-in en la ronda viva, para avisarle y, si no
+           aparece, darle de baja. La baja la da siempre un juez. -->
+      <div class="simple-card hidden" id="torneoSinCheckinCaja">
+        <h3>Sin check-in</h3>
+        <div id="sinCheckinContenido"></div>
+      </div>
       <div class="simple-card hidden" id="torneoColaCaja">
         <h3>Cola del juez</h3>
         <div id="colaContenido"></div>

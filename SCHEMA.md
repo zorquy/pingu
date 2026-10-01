@@ -21386,3 +21386,103 @@ verdad: la suma atómica sube y recalcula el nivel, un premio de 99.999 o
 de −50 se rechaza sin mover el total, sin perfil revienta, y la carrera de
 dos conexiones da 255 donde el camino viejo daba 105. Pasadas además la
 299, 301, 306, 386 y 387.
+
+## Tanda 394 — el día del torneo: mesas, check-in y jueces (oct. 2026)
+
+Cuatro cosas que pidió PINGU, y un agujero que salió al hacer la segunda.
+
+### 1. «4/7 mesas han terminado»
+
+Un contador en la barra viva —para todo el mundo, también para quien
+juega: en cuanto acaba su mesa, lo único que quiere saber es cuánto falta
+para la siguiente— y otro junto al título de las mesas en la pestaña
+Rondas, que es la que mira el organizador para saber si ya puede cerrar.
+
+Se pone al día solo porque la ficha ya se refresca con cada cambio de una
+mesa (tiempo real, con el sondeo detrás). La trampa es la de siempre: la
+barra solo se repinta si cambia lo que se compara (`yaEstaPintado`), así
+que **el contador tiene que estar en esa cadena**; sin él, para alguien
+cuyo titular no cambia, el número se quedaba congelado sin dar error. El
+rigor lo vigila.
+
+**El bye no es una mesa.** Nace cerrado: contarlo haría que una ronda
+recién empezada dijera «1/8» y que con jugadores impares nunca llegase a
+cero. Se cuentan las mesas con dos jugadores.
+
+La lógica vive en `js/torneos/mesas.js`, sin DOM ni base, para probarla en
+Node. No va en `motor.js`: eso es traducción 1:1 de TrainerArena y esto
+no es lógica de juego, es cómo se lee una ronda desde fuera.
+
+### 2. «Sin check-in», en la pestaña de jueces
+
+Lo primero de la pestaña, porque es lo que corre prisa: quién no ha hecho
+check-in en la ronda en juego, con su mesa, su rival y su TCG Live, y un
+botón «Dar de baja» que pide confirmación. **La baja la da siempre una
+persona** (lo dijo PINGU): aquí no se da de baja a nadie solo. La mesa sí
+sigue cayendo sola al cerrarse la ventana (el barredor, SPEC §6.4) — eso es
+el resultado de ESTA ronda; la baja es que no entre en la SIGUIENTE.
+
+Quién sale y quién no (`sinCheckin`):
+
+- fuera el bye, quien ya está de baja y las mesas TERMINADAS con
+  resultado (si tiene ganador es que se jugó, aunque alguien olvidara el
+  botón);
+- fuera quien ha REPORTADO: estaba ahí;
+- DENTRO quien no vino y su mesa ya cayó por incomparecencia: es justo
+  al que hay que dar de baja. Sale marcado «No se presentó».
+
+La pestaña «Jueces» lleva un número rojo con lo que espera (sin check-in,
+llamadas sin atender y disputas): con la pestaña cerrada es lo único que
+avisa. **Ojo con el nombre**: es `.torneo-pestana-aviso` y no
+`.torneo-pestana-cuenta`, que ya existía —es la cuenta GRIS de /torneos— y
+la primera versión se la pisaba.
+
+### 3. El agujero: un juez no podía escribir NADA
+
+Las políticas de inscripciones, mesas y resultados piden
+`torneos_mando()`, y un juez aprobado no es admin, ni organizador, ni
+creador. El «Resolver…» de cada mesa se le enseñaba desde la tanda 207;
+lo elegía, la base no tocaba nada sin dar error y salía «Mesa resuelta»
+en verde. **Nunca le había funcionado.**
+
+No se le abren las tablas: `supabase-migration-torneos-jueces.sql` le da
+dos funciones `security definer` con la puerta escrita en un `if`
+(`torneos_mando() or torneos_soy_juez()`):
+
+- `torneos_dar_de_baja(inscripción)`: la misma baja que la propia o el
+  «Expulsar» (SPEC §6.9). Devuelve false si ya no estaba activo.
+- `torneos_resolver_como_juez(mesa, resultado)`: solo mesas VIVAS de una
+  ronda en juego. Corregir una cerrada sigue siendo del organizador, y en
+  el top cut no hay empate.
+
+Quien lleva el torneo sigue por su camino de siempre. Sin la migración,
+al juez se le dice qué SQL falta (tanda 293: no fingir); al organizador,
+la baja cae a la puerta de «Expulsar», que a él sí le funciona.
+
+### 4. Los arquetipos, sin recuadro
+
+El recuadro discontinuo dorado marcaba a organizador y jueces los mazos
+que el catálogo no conoce. En la clasificación, que es donde más hay,
+parecía un fallo de pintado: PINGU no sabía qué era. Se queda la pista en
+el texto de ayuda («(sin catalogar)» al pasar por encima) y nada más.
+
+### 5. La lista de un jugador, en su ventana
+
+«Ver lista» la desplegaba DEBAJO de la clasificación; con dieciséis filas,
+el botón del primero la abría a una pantalla de distancia y parecía que
+no hacía nada. Ahora es una ventana (el patrón modal de siempre, colgada
+del body para que el repintado de la tabla no la cierre), con el puesto,
+exportar, la rejilla de cartas y el texto plegado. Escape, pulsar fuera o
+la × la cierran, y el foco vuelve al botón que la abrió.
+
+### Comprobado
+
+`test-tanda-394.mjs`: las cuentas de `mesas.js` caso a caso; la
+migración leída (las dos puertas, sin políticas nuevas); `sql-jueces.sql`
+contra PostgreSQL de verdad (21 comprobaciones: el juez de ESE torneo sí,
+el de otro, el pendiente y un jugador no, ni por la puerta de atrás; sin
+corregir cerradas ni empatar en el corte; anon sin permiso); el contador
+pasando de 1/4 a 2/4 y 4/4 **sin recargar**; la caja del juez de punta a
+punta, también sin la migración; el sprite sin recuadro; y la ventana de
+la lista, también a 360 px. Su rigor rompe el origen de cada cosa:
+17 mutaciones, las 17 detectadas.

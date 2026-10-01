@@ -1199,6 +1199,73 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   .torneo-viva-titular { font-size: var(--t-lg); }
 }
 
+/* ── Cuántas mesas han terminado (tanda 394) ──
+   «4/7 mesas terminadas» con su barrita, en la barra viva y junto al
+   título de las mesas. La cifra es lo que se busca, así que va en la
+   letra de los números grandes; la barra dice lo mismo sin leer. */
+/* A la derecha, con lo que te pide la barra al lado. */
+.torneo-viva-mesas { flex: none; margin-left: auto; }
+.torneo-viva-mesas:not(.hidden) + .torneo-viva-der { margin-left: 0; }
+.torneo-mesas-cuenta {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  column-gap: 8px;
+  row-gap: 4px;
+  min-width: 132px;
+}
+.torneo-mesas-cifra {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-mid);
+}
+.torneo-mesas-cifra b { color: var(--navy); }
+.torneo-mesas-rotulo {
+  font-size: var(--t-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  font-weight: 700;
+}
+.torneo-mesas-barra {
+  grid-column: 1 / -1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  overflow: hidden;
+}
+.torneo-mesas-barra > span {
+  display: block;
+  height: 100%;
+  width: var(--parte, 0%);
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+  transition: width 0.3s var(--ease);
+}
+/* Todas cerradas: en verde, que es «ya se puede cerrar la ronda». */
+.torneo-mesas-cuenta.completa .torneo-mesas-cifra b { color: var(--success); }
+.torneo-mesas-cuenta.completa .torneo-mesas-barra > span { background: var(--success); }
+/* Junto al título de las mesas, a la derecha y sin empujarlo. */
+.torneo-mesas-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.torneo-mesas-progreso { flex: none; }
+/* En la barra viva la cifra es protagonista: es lo que se mira desde
+   lejos con el móvil en la mano. */
+.torneo-viva-mesas .torneo-mesas-cifra { font-size: var(--t-xl); }
+@media (max-width: 640px) {
+  .torneo-viva-mesas { width: 100%; margin-left: 0; }
+  .torneo-viva-mesas .torneo-mesas-cuenta { grid-template-columns: auto 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .torneo-mesas-barra > span { transition: none; }
+}
+
 /* ── Las pestañas de la FICHA, en pastillas (tanda 298) ──
    Las de la lista son chips de FILTRO (tanda 297); estas son navegación
    entre las partes del torneo, así que van juntas en un grupo, como un
@@ -2004,6 +2071,64 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 .torneo-disputa { font-size: var(--t-md); padding: 8px 0; }
 
+/* ── Sin check-in (tanda 394) ──
+   Una fila por jugador: quién y en qué mesa, en qué punto está, y la
+   baja a mano. El botón se queda a la derecha y no se estira. */
+.torneo-sincheckin-plazo { margin: 0 0 8px; }
+.torneo-sincheckin {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.torneo-sincheckin-fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+.torneo-sincheckin-quien {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.torneo-sincheckin-baja { flex: none; }
+.torneo-sincheckin-todos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--success);
+  font-weight: 600;
+}
+@media (pointer: coarse) {
+  .torneo-sincheckin-baja { min-height: 44px; }
+}
+
+/* El número de la pestaña de jueces: cuántas cosas esperan. Rojo de
+   FONDO con blanco encima, así que el token es el sólido (tanda 311).
+   NO es `.torneo-pestana-cuenta`: esa es la cuenta GRIS de las pestañas
+   de /torneos («En juego 3»), que dice cuántos hay y no pide nada. */
+.torneo-pestana-aviso {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  margin-left: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
+
 .torneo-solicitud-juez {
   display: flex;
   align-items: center;
@@ -2587,16 +2712,53 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 .torneo-exportar button { padding: 4px 12px; font-size: var(--t-xs); }
 
-/* La lista de un rival bajo la clasificación y sus botones «Ver lista». */
+/* Los botones «Ver lista» de la clasificación. */
 .torneo-ver-lista { padding: 4px 12px; font-size: var(--t-xs); white-space: nowrap; }
 .torneo-clasif-chips { margin: 12px 0; }
-.torneo-lista-rival {
-  margin-top: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 12px 16px 16px;
+
+/* La lista de un jugador, en su ventana (tanda 394). Más ancha que un
+   modal de texto: es una rejilla de cartas, y a 620 px se queda en
+   cuatro por fila. */
+.torneo-lista-modal .modal-box {
+  max-width: 880px;
+  max-height: 88vh;
+  gap: 8px;
 }
-.torneo-lista-rival .torneo-decklist-fila { border-bottom: 0; padding-bottom: 0; }
+.torneo-lista-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.torneo-lista-quien {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.torneo-lista-quien h3 { margin: 0; }
+.torneo-lista-quien .subtext { flex-basis: 100%; }
+.torneo-lista-modal .modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+}
+.torneo-lista-texto summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-mid);
+  padding: 8px 0;
+}
+@media (max-width: 640px) {
+  /* En el móvil la ventana ocupa casi toda la pantalla: con el margen
+     de 24 px del fondo, la rejilla se quedaba en dos cartas por fila. */
+  .torneo-lista-modal { padding: 8px; }
+  .torneo-lista-modal .modal-box { max-height: 94vh; padding: 16px; }
+}
 
 /* ── Tanda 220: jornadas editables y descripción con formato ── */
 
@@ -2793,18 +2955,11 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-historial-pierde { background: var(--danger-bg); color: var(--danger); }
 .torneo-historial-empata { background: rgba(160, 160, 160, 0.14); color: var(--text-mid); }
 
-/* Al organizador y a los jueces se les señala lo que el catálogo aún no
-   conoce: es la lista de arquetipos que falta por añadir. */
-.torneo-arquetipo-sin-catalogar .torneo-arquetipo-icono,
-.torneo-arquetipo-sin-catalogar .torneo-arquetipo-marco {
-  outline: 1px dashed var(--warning);
-  outline-offset: 1px;
-}
-/* El recuadro ya lo pone el marco: repetirlo en la imagen de dentro
-   pintaría una raya cortada por el recorte. */
-.torneo-arquetipo-sin-catalogar .torneo-arquetipo-marco .torneo-arquetipo-icono {
-  outline: none;
-}
+/* Lo que el catálogo aún no conoce se le señala al organizador y a los
+   jueces SOLO en el texto de ayuda («(sin catalogar)», al pasar por
+   encima). Hasta la tanda 394 llevaba además un recuadro discontinuo
+   dorado en cada sprite, y en la clasificación —que es donde más mazos
+   hay— parecía un fallo de pintado: PINGU no sabía qué era. */
 .torneo-arquetipo-sin-catalogar .torneo-arquetipo-nombre {
   font-style: italic;
 }
