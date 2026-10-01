@@ -23,6 +23,49 @@ porque las dos tandas se empezaron con el repo al día.
 segunda vez (la primera fue con la 384): releer la bitácora justo antes
 de numerar no basta cuando los dos empezamos con el repo al día.
 
+## 2026-10-01 — PINGU-Claude (tanda 405 — mi colección, con la cara de una app)
+
+**Hecho**: la reestructura que pidió PINGU con las capturas de dextcg.com
+delante. **El menú ya es lateral en el ordenador** y agrupado en tres
+—«Tu colección», «Explorar», «Tu actividad»—, porque ocho pestañas en una
+fila no caben en un portátil; **en el móvil es la barra de cinco sitios de
+la app** (Cartas · Expansiones · Pokédex · Carpetas · Más), con el mismo
+DOM para las dos formas. **La barra de buscar** es ahora la misma pieza en
+las cuatro pantallas: campo de 320 px con la lupa dentro, chapa de filtros
+con contador y un ✕ que quita texto y filtros. Y de la tanda anterior, sin
+subir todavía: **la ficha** con el rótulo fuera de la caja y la nota
+plegada, y **las expansiones** con el fondo emborronado, el logo centrado
+y el código del set.
+
+**Tres rojos que no eran de esta tanda y llevaban desde la 398**: un
+`border-radius: 10px` a pelo (309), un `padding: 0 6px` que no es un paso
+(311) y la foto grande de la ficha sin `loading` (310 — va `eager` a
+propósito, es la carta que acabas de pulsar, y ahora lo dice el atributo).
+
+**Y el motivo de que no se vieran, que es lo gordo**: `correr-suite.sh`
+corría las COPIAS de las pruebas que hubiera en el directorio de trabajo,
+no las de la rama `pruebas`. Las que no se copiaron salían «AUSENTE»
+(380-383), las copias viejas daban rojos FALSOS (la 373 leía
+`css/carta.css`, de donde el holo se mudó en la 394) y **la 398, 399, 400,
+402, 403 y 405 no estaban ni en la lista: no se habían corrido ni una
+vez**. Ya las coge del worktree y las ordena por número.
+
+**Y un respaldo que faltaba**: el nombre de un set va en `sr-only` porque
+el logo lo lleva escrito, así que el día que la CDN no conteste la tarjeta
+se quedaba sin NADA que leer. Ahora, al fallar la imagen, el nombre vuelve
+a la vista.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En la rama `pruebas`:
+`test-tanda-405.mjs` (nuevo) y `herramientas/correr-suite.sh`.
+
+**En curso / pendiente**: dos SQL sin lanzar —
+`supabase-migration-carpetas.sql` y
+`supabase-migration-quien-la-tiene.sql`—. Los tres puentes temporales
+siguen puestos a propósito (hasta que PINGU confirme que esas migraciones
+corren en producción). Y las tandas 395-404 no tienen entrada en
+`SCHEMA.md`; la 405 sí.
+
 ## 2026-10-01 — PINGU-Claude (tanda 404 — la pestaña se llama Expansiones)
 
 **Hecho**: lo que quedaba de la estructura. La pestaña «Álbum» pasa a

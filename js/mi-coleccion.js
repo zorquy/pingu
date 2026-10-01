@@ -459,12 +459,24 @@ function cuantosFiltros() {
     ($('mcFiltroSet')?.value ? 1 : 0) + ($('mcFiltroIdioma')?.value ? 1 : 0)
 }
 
+function limpiarFiltros() {
+  for (const g of GRUPOS) filtros[g.id].clear()
+  $('mcFiltroSet').value = ''
+  $('mcFiltroIdioma').value = ''
+  pintarGruposDeChips()
+  pintarCartas()
+  pintarCuentaDeFiltros()
+}
+
 function pintarCuentaDeFiltros() {
   const chapa = $('mcFiltrosCuenta')
   if (!chapa) return
   const n = cuantosFiltros()
   chapa.textContent = n ? String(n) : ''
   chapa.classList.toggle('hidden', n === 0)
+  // La chapa de quitarlo todo cuenta también el texto buscado: para quien
+  // mira, «lo que estoy filtrando» incluye lo que ha escrito.
+  $('mcFiltrosQuitar')?.classList.toggle('hidden', n === 0 && !$('mcBuscar')?.value)
 }
 
 function lineasFiltradas() {
@@ -541,10 +553,14 @@ function abrirEditor(l) {
   // `.carta-scan-holo` y el `data-brillo` son los mismos que allí —si
   // fueran otros, el día que alguien toque el efecto arreglaría una
   // pantalla y dejaría la otra a medias.
+  // Esta imagen va `eager` a propósito y no diferida como las de la
+  // rejilla: es la carta que ACABAS de pulsar, así que diferirla es
+  // retrasar lo único que has pedido. Es la misma excepción que el
+  // lightbox, y va escrita en el atributo para que se lea aquí.
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c, null, 'high'))
   const brillo = c ? familiaDeBrillo(c.rarity) : null
   $('mcEdFoto').innerHTML = escaneo
-    ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}><img ${escaneo} alt="" width="600" height="825" decoding="async" /></span>`
+    ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}><img ${escaneo} alt="" width="600" height="825" decoding="async" loading="eager" /></span>`
     : ''
   // El holo se monta sobre el envoltorio recién pintado. A demanda, como
   // en /carta: con el dedo o con «menos movimiento» puesto no se monta
@@ -580,6 +596,7 @@ function abrirEditor(l) {
   $('mcEdValor').value = l.valor_manual ?? ''
   $('mcEdCompra').value = l.precio_compra ?? ''
   $('mcEdNotas').value = l.notas || ''
+  pintarNota(l.notas || '')
   const precio = precioDe(l)
   // Con `precio` a secas salía «Desde — · tendencia —» para una carta
   // de la que solo se sabe el `idProduct`: dos rayas no son un precio.
@@ -667,6 +684,22 @@ function leerEditor() {
   }
 }
 
+// La nota, plegada (tanda 405). Tres estados y no dos: sin nota se
+// ofrece ponerla, con nota se LEE (y se puede tocar para cambiarla), y
+// escribiendo está el campo. Un campo de texto vacío ocupando cinco
+// renglones en una ficha que casi nunca lleva nota es el bulto más
+// grande de la pantalla.
+function pintarNota(texto, abierta = false) {
+  const puesta = $('mcEdNotaPuesta')
+  const campo = $('mcEdNotaCampo')
+  const abrir = $('mcEdNotaAbrir')
+  if (!puesta || !campo || !abrir) return
+  campo.classList.toggle('hidden', !abierta)
+  puesta.classList.toggle('hidden', abierta || !texto)
+  abrir.classList.toggle('hidden', abierta || Boolean(texto))
+  puesta.textContent = texto
+}
+
 async function guardarEditor({ retardo = 0 } = {}) {
   const d = $('mcEditor')
   const id = d.dataset.linea
@@ -734,7 +767,7 @@ async function cargarSets() {
     // El logo y la serie viajan desde la tanda 372: la estantería se ve
     // por los logos, y agrupar por serie es lo que hace navegable una
     // lista de 220 colecciones.
-    .select('id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total')
+    .select('id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total,tcg_online_code')
     .eq('market', 'WEST')
     .order('release_date', { ascending: false, nullsFirst: false })
     .limit(1000)
@@ -809,29 +842,64 @@ function pctDe(set, cuantas) {
   return total ? (cuantas.get(set.id) || 0) / total : 0
 }
 
+// La tarjeta de una expansión (rehecha en la tanda 405).
+//
+// PINGU: «algunos logos se salen, todos deberían ser del mismo tamaño, y
+// podríamos hacer como Dex, que pone una imagen de fondo emborronada y
+// el logo en el medio más pequeñito».
+//
+// El fondo es el PROPIO logo, ampliado y desenfocado. No hace falta
+// pedir el arte de una carta del set —serían doscientas peticiones más—
+// y el resultado es el mismo lavado de color, con una imagen que el
+// navegador ya tiene en la caché porque la enseña encima.
+//
+// Y el logo, con el alto Y el ancho topados: antes solo tenía alto, así
+// que los logos anchos —Roaring Skies, Primal Clash— se salían de la
+// tarjeta. Un `max-height` no contiene nada a lo ancho.
 function tarjetaDeSet(set, tengo) {
   const total = totalDe(set)
   const pct = total ? Math.round((tengo / total) * 100) : 0
   const logo = urlDeLogo(set.logo_path)
   const completo = total && tengo >= total
+  const codigo = set.tcg_online_code || ''
   return `
     <button type="button" class="mc-set-tarjeta${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}">
-      <span class="mc-set-logo">${
-        logo
-          // El logo LLEVA el nombre escrito, así que el <span> de abajo
-          // se esconde a la vista cuando hay logo y se queda para quien
-          // navega con lector de pantalla (misma decisión que la 346).
-          ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy" onerror="this.remove()" />`
-          : ''
-      }</span>
-      <span class="mc-set-nombre${logo ? ' sr-only' : ''}">${escapeHtml(set.name || set.id)}</span>
-      ${
-        total
-          ? `<span class="mc-set-cuenta">${tengo} de ${total}${completo ? ' · completa' : ` · ${pct} %`}</span>
-             <span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>`
-          : '<span class="mc-set-cuenta">Sin numeración</span>'
-      }
+      <span class="mc-set-cabecera">
+        ${logo ? `<span class="mc-set-arte" style="--arte:url('${escapeHtml(logo)}')" aria-hidden="true"></span>` : ''}
+        <span class="mc-set-logo">${
+          logo
+            // El logo LLEVA el nombre escrito, así que el <span> de abajo
+            // se esconde a la vista cuando hay logo y se queda para quien
+            // navega con lector de pantalla (misma decisión que la 346).
+            ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy" />`
+            : ''
+        }</span>
+        ${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}
+      </span>
+      <span class="mc-set-info">
+        <span class="mc-set-nombre${logo ? ' sr-only' : ''}">${escapeHtml(set.name || set.id)}</span>
+        ${
+          total
+            ? `<span class="mc-set-cuenta">${tengo} de ${total}${completo ? ' · completa' : ` · ${pct} %`}</span>
+               <span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>`
+            : '<span class="mc-set-cuenta">Sin numeración</span>'
+        }
+      </span>
     </button>`
+}
+
+// El logo LLEVA el nombre escrito y por eso el `<span>` del nombre va en
+// `sr-only`. Pero el día que la CDN no conteste —el 2026-09-20 se cayó
+// entera— la tarjeta se quedaba sin NADA que leer: sin logo y sin nombre,
+// y sin dar error. Al fallar la imagen, el nombre vuelve a la vista.
+// El `error` de una imagen no burbujea, así que se escucha en captura.
+function respaldarNombresDeSet(zona) {
+  zona.addEventListener('error', (e) => {
+    const img = e.target
+    if (!img.matches?.('.mc-set-logo img')) return
+    img.closest('.mc-set-tarjeta')?.querySelector('.mc-set-nombre')?.classList.remove('sr-only')
+    img.remove()
+  }, true)
 }
 
 // ── Abrir y cerrar el archivador ──
@@ -1250,6 +1318,8 @@ async function anadirSeleccion(e) {
 // ── Pestañas y repintado ──
 function cambiarPestania(nueva) {
   pestania = nueva
+  $('mcMenu')?.classList.remove('abierto')
+  $('mcMenuMas')?.setAttribute('aria-expanded', 'false')
   for (const b of document.querySelectorAll('[data-pestania]')) {
     const activa = b.dataset.pestania === nueva
     b.classList.toggle('activa', activa)
@@ -1729,14 +1799,51 @@ function repintar() {
   if (pestania === 'pokedex') abrirPokedex()
 }
 
+// Los iconos del menú y de la barra se ponen desde aquí y no en el HTML:
+// el dibujo de cada uno vive en js/icons.js y copiarlo a mano en la página
+// deja dos versiones del mismo icono que se separan.
+function pintarIconos() {
+  for (const el of document.querySelectorAll('[data-icono]')) {
+    const dibujar = icons[el.dataset.icono]
+    if (dibujar) el.insertAdjacentHTML('afterbegin', dibujar(18))
+  }
+}
+
 function enganchar() {
+  pintarIconos()
   for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.pestania))
+  // El «Más» del móvil: despliega las pestañas que no caben en los cinco
+  // sitios de la barra. En el ordenador está escondido por CSS.
+  $('mcMenuMas').addEventListener('click', () => {
+    const abierto = $('mcMenu').classList.toggle('abierto')
+    $('mcMenuMas').setAttribute('aria-expanded', abierto ? 'true' : 'false')
+  })
   for (const id of ['mcBuscar', 'mcFiltroSet', 'mcFiltroIdioma', 'mcOrden']) {
     $(id).addEventListener(id === 'mcBuscar' ? 'input' : 'change', () => {
       pintarCartas()
       pintarCuentaDeFiltros()
     })
   }
+
+  // ── La nota, plegada (tanda 405) ──
+  $('mcEdNotaAbrir').addEventListener('click', () => {
+    pintarNota($('mcEdNotas').value, true)
+    $('mcEdNotas').focus()
+  })
+  // Tocar la nota puesta la abre para cambiarla: si no, habría que
+  // borrarla para corregir una letra.
+  $('mcEdNotaPuesta').addEventListener('click', () => {
+    pintarNota($('mcEdNotas').value, true)
+    $('mcEdNotas').focus()
+  })
+  $('mcEdNotaCerrar').addEventListener('click', () => pintarNota($('mcEdNotas').value, false))
+  $('mcEdNotaQuitar').addEventListener('click', () => {
+    $('mcEdNotas').value = ''
+    pintarNota('', false)
+    // Se guarda al momento, como todo lo demás: quitar una nota es un
+    // cambio, no un borrador.
+    guardarEditor()
+  })
 
   // ── Las carpetas (tanda 402) ──
   $('mcCarpetaNueva').addEventListener('click', async () => {
@@ -1841,13 +1948,13 @@ function enganchar() {
     $('mcOrdenAlReves').setAttribute('aria-pressed', ordenAlReves ? 'true' : 'false')
     pintarCartas()
   })
-  $('mcFiltrosLimpiar').addEventListener('click', () => {
-    for (const g of GRUPOS) filtros[g.id].clear()
-    $('mcFiltroSet').value = ''
-    $('mcFiltroIdioma').value = ''
-    pintarGruposDeChips()
-    pintarCartas()
-    pintarCuentaDeFiltros()
+  $('mcFiltrosLimpiar').addEventListener('click', limpiarFiltros)
+  // El ✕ de la barra limpia ADEMÁS el texto, porque es lo que se ve a su
+  // lado: dejarlo puesto haría que la lista siguiera recortada después de
+  // pulsar «quitar» y parecería que no ha hecho nada.
+  $('mcFiltrosQuitar').addEventListener('click', () => {
+    $('mcBuscar').value = ''
+    limpiarFiltros()
   })
   $('mcCartas').addEventListener('click', (e) => {
     // Ahora la ficha se abre pulsando la CARTA, no un botón «Editar» en
@@ -1927,6 +2034,7 @@ function enganchar() {
     const b = e.target.closest('[data-set]')
     if (b) abrirAlbum(b.dataset.set)
   })
+  respaldarNombresDeSet($('mcEstanteriaRejilla'))
   $('mcAlbumVolver').addEventListener('click', volverALaEstanteria)
 
   // ── La Pokédex (tanda 381) ──

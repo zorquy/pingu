@@ -124,27 +124,67 @@
       <p class="mc-nota" id="mcResumenNota"></p>
       <p class="subtext" id="mcCargando">Cargando la colección…</p>
 
-      <div class="mc-pestanias" role="tablist" aria-label="Vistas de la colección">
-        <button type="button" role="tab" class="mc-pestania activa" data-pestania="cartas" aria-selected="true" aria-controls="mcPanelCartas">Cartas</button>
-        <button type="button" role="tab" class="mc-pestania" data-pestania="album" aria-selected="false" aria-controls="mcPanelAlbum">Expansiones</button>
-        <button type="button" role="tab" class="mc-pestania" data-pestania="albumes" aria-selected="false" aria-controls="mcPanelAlbumes">Álbumes soñados</button>
-        <button type="button" role="tab" class="mc-pestania" data-pestania="anadir" aria-selected="false" aria-controls="mcPanelAnadir">Añadir cartas</button>
-        <button type="button" role="tab" class="mc-pestania" data-pestania="resumen" aria-selected="false" aria-controls="mcPanelResumen">Resumen</button>
-        <button type="button" role="tab" class="mc-pestania" data-pestania="cambios" aria-selected="false" aria-controls="mcPanelCambios">Cambios</button>
-        <button type="button" role="tab" class="mc-pestania" data-pestania="carpetas" aria-selected="false" aria-controls="mcPanelCarpetas">Carpetas</button>
-        <button type="button" role="tab" class="mc-pestania" data-pestania="pokedex" aria-selected="false" aria-controls="mcPanelPokedex">Pokédex</button>
-      </div>
+      <!-- EL MENÚ (tanda 405). Eran ocho pestañas en una fila y en un
+           portátil ya no caían: la fila se partía o se iba a un
+           desplazamiento lateral que esconde la mitad. En Dex el menú es
+           LATERAL, y eso es lo que arregla el problema de verdad — una
+           columna crece hacia abajo sin pelearse con el ancho, así que
+           caben las ocho Y agrupadas, que es lo que dice para qué sirve
+           cada una.
+           En el móvil no hay sitio para una columna, así que el mismo
+           menú se vuelve una barra de CINCO sitios como la de la app:
+           las cuatro de mirar y un «Más» que despliega el resto. Un solo
+           DOM para las dos formas (los grupos van a `display: contents`),
+           porque dos copias de los mismos botones se separan. -->
+      <nav class="mc-pestanias mc-menu" id="mcMenu" aria-label="Vistas de la colección">
+        <div class="mc-menu-grupo">
+          <p class="mc-menu-titulo">Tu colección</p>
+          <div class="mc-menu-lista" role="tablist" aria-label="Tu colección">
+            <button type="button" role="tab" class="mc-pestania activa" data-pestania="cartas" data-icono="cards" data-sitio="1" aria-selected="true" aria-controls="mcPanelCartas"><span class="mc-menu-texto">Cartas</span></button>
+            <button type="button" role="tab" class="mc-pestania" data-pestania="carpetas" data-icono="folder" data-sitio="4" aria-selected="false" aria-controls="mcPanelCarpetas"><span class="mc-menu-texto">Carpetas</span></button>
+            <button type="button" role="tab" class="mc-pestania" data-pestania="albumes" data-icono="star" aria-selected="false" aria-controls="mcPanelAlbumes"><span class="mc-menu-texto mc-menu-largo">Álbumes soñados</span><span class="mc-menu-texto mc-menu-corto">Álbumes</span></button>
+          </div>
+        </div>
+        <div class="mc-menu-grupo">
+          <p class="mc-menu-titulo">Explorar</p>
+          <div class="mc-menu-lista" role="tablist" aria-label="Explorar">
+            <button type="button" role="tab" class="mc-pestania" data-pestania="album" data-icono="layers" data-sitio="2" aria-selected="false" aria-controls="mcPanelAlbum"><span class="mc-menu-texto">Expansiones</span></button>
+            <button type="button" role="tab" class="mc-pestania" data-pestania="pokedex" data-icono="target" data-sitio="3" aria-selected="false" aria-controls="mcPanelPokedex"><span class="mc-menu-texto">Pokédex</span></button>
+            <button type="button" role="tab" class="mc-pestania" data-pestania="anadir" data-icono="search" aria-selected="false" aria-controls="mcPanelAnadir"><span class="mc-menu-texto mc-menu-largo">Añadir cartas</span><span class="mc-menu-texto mc-menu-corto">Añadir</span></button>
+          </div>
+        </div>
+        <div class="mc-menu-grupo">
+          <p class="mc-menu-titulo">Tu actividad</p>
+          <div class="mc-menu-lista" role="tablist" aria-label="Tu actividad">
+            <button type="button" role="tab" class="mc-pestania" data-pestania="resumen" data-icono="barChart" aria-selected="false" aria-controls="mcPanelResumen"><span class="mc-menu-texto">Resumen</span></button>
+            <button type="button" role="tab" class="mc-pestania" data-pestania="cambios" data-icono="refreshCw" aria-selected="false" aria-controls="mcPanelCambios"><span class="mc-menu-texto">Cambios</span></button>
+          </div>
+        </div>
+        <!-- El quinto sitio de la barra del móvil. En el ordenador no
+             existe: allí están las ocho a la vista. -->
+        <button type="button" class="mc-menu-mas" id="mcMenuMas" data-icono="moreHorizontal" aria-expanded="false" aria-controls="mcMenu"><span class="mc-menu-texto">Más</span></button>
+      </nav>
 
       <section id="mcPanelCartas" role="tabpanel" aria-label="Cartas">
         <!-- La barra se queda con lo de siempre: buscar y abrir los
              filtros. El resto se fue a un panel (tanda 399) porque cuatro
              desplegables en fila no caben en un móvil y porque los de
              verdad —tipo, energía, rareza— son muchos más de cuatro. -->
+        <!-- La barra, más pequeña (tanda 405): el campo ocupaba todo el
+             ancho y al lado llevaba un botón gris de formulario. Ahora el
+             campo mide lo que mide una búsqueda —320 px— con su lupa
+             dentro, y lo demás son chapas. La de limpiar va FUERA del
+             campo a propósito: dentro no podría medir los 44 px que pide
+             un icono sin reventar el alto del campo. -->
         <div class="mc-filtros hidden" id="mcFiltros">
-          <input type="search" id="mcBuscar" placeholder="Buscar en tu colección" aria-label="Buscar en tu colección" />
-          <button type="button" class="btn-secondary mc-abrir-filtros" id="mcAbrirFiltros" aria-haspopup="dialog">
-            Filtros <span class="mc-filtros-cuenta hidden" id="mcFiltrosCuenta"></span>
+          <div class="mc-buscador">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" id="mcBuscar" placeholder="Buscar en tu colección" aria-label="Buscar en tu colección" />
+          </div>
+          <button type="button" class="mc-chip-mando" id="mcAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+            <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcFiltrosCuenta"></span>
           </button>
+          <button type="button" class="mc-chip-mando mc-chip-solo-icono hidden" id="mcFiltrosQuitar" aria-label="Quitar la búsqueda y los filtros">✕</button>
         </div>
 
         <dialog class="mc-panel-filtros" id="mcPanelFiltros" aria-labelledby="mcPanelFiltrosTitulo">
@@ -201,7 +241,10 @@
              volver al día siguiente. -->
         <div id="mcEstanteriaZona">
           <div class="mc-estanteria-barra">
-            <input type="search" id="mcEstanteriaBuscar" placeholder="Buscar una colección…" aria-label="Buscar una colección" />
+            <div class="mc-buscador">
+              <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+              <input type="search" id="mcEstanteriaBuscar" placeholder="Buscar una colección…" aria-label="Buscar una colección" />
+            </div>
             <select id="mcEstanteriaSerie" aria-label="Serie"></select>
           </div>
           <div id="mcEstanteriaRejilla"></div>
@@ -314,7 +357,10 @@
 
       <section id="mcPanelPokedex" class="hidden" role="tabpanel" aria-label="Pokédex">
         <div class="pdx-mandos" id="mcPdxMandos">
-          <input type="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número…" autocomplete="off" />
+          <div class="mc-buscador">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número…" autocomplete="off" aria-label="Busca un Pokémon" />
+          </div>
           <label class="mc-tocar-opcion"><input type="checkbox" id="mcPdxSoloMios" /> Solo los que tengo</label>
           <span class="subtext" id="mcPdxCuenta"></span>
         </div>
@@ -371,7 +417,10 @@
       </section>
 
       <section id="mcPanelAnadir" class="hidden" role="tabpanel" aria-label="Añadir cartas">
-        <input type="search" id="mcAnadirBuscar" class="mc-anadir-buscar" placeholder="Busca una carta por su nombre (en español o en inglés)" aria-label="Buscar una carta" />
+        <div class="mc-buscador mc-buscador-ancho">
+          <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+          <input type="search" id="mcAnadirBuscar" placeholder="Busca una carta por su nombre (en español o en inglés)" aria-label="Buscar una carta" />
+        </div>
         <form class="mc-anadir-form hidden" id="mcAnadirForm">
           <div class="mc-anadir-elegida" id="mcAnadirElegida"></div>
           <div class="mc-anadir-campos">
@@ -408,6 +457,7 @@
 
             <section class="mc-ficha-bloque">
               <h3>Precio</h3>
+              <div class="mc-ficha-caja">
               <p class="mc-ficha-precio" id="mcEdPrecio"></p>
               <div class="mc-ficha-enlaces">
                 <a class="mc-accion mc-accion-cm" id="mcEdCardmarket" href="#" target="_blank" rel="noopener"></a>
@@ -417,10 +467,12 @@
                      diálogo es el atajo de dentro de tu colección. -->
                 <a class="mc-accion" id="mcEdFicha" href="#">Ver la ficha completa</a>
               </div>
+              </div>
             </section>
 
             <section class="mc-ficha-bloque">
               <h3>Tu copia</h3>
+              <div class="mc-ficha-caja">
         <div class="mc-editor-campos">
           <label>Idioma <select id="mcEdIdioma"></select></label>
           <label>Estado <select id="mcEdEstado"></select></label>
@@ -445,8 +497,25 @@
           <label>Gradeo <input type="text" id="mcEdGradeo" maxlength="20" placeholder="CGC 10" /></label>
           <label>Tu valor (€, opcional) <input type="text" id="mcEdValor" inputmode="decimal" placeholder="Manda sobre Cardmarket" /></label>
           <label>Lo que pagaste (€) <input type="text" id="mcEdCompra" inputmode="decimal" /></label>
-          <label class="mc-editor-notas">Notas <textarea id="mcEdNotas" maxlength="280" rows="2"></textarea></label>
+          <!-- Las notas, PLEGADAS (tanda 405). PINGU: «el trozo de las
+               notas no te abre el formulario para escribir hasta que no
+               le des a añadir nota». Y es mejor: un campo de texto vacío
+               ocupando cinco renglones en una ficha que casi nunca lleva
+               nota es el bulto más grande de la pantalla. -->
+          <div class="mc-editor-notas">
+            <button type="button" class="mc-anadir-nota" id="mcEdNotaAbrir">+ Añadir una nota</button>
+            <p class="mc-nota-puesta hidden" id="mcEdNotaPuesta"></p>
+            <div class="mc-nota-campo hidden" id="mcEdNotaCampo">
+              <label class="sr-only" for="mcEdNotas">Nota</label>
+              <textarea id="mcEdNotas" maxlength="280" rows="3" placeholder="¿Algo que recordar de esta copia?"></textarea>
+              <div class="mc-nota-mandos">
+                <button type="button" class="link-btn" id="mcEdNotaQuitar">Quitar la nota</button>
+                <button type="button" class="btn-secondary" id="mcEdNotaCerrar">Listo</button>
+              </div>
+            </div>
+          </div>
         </div>
+              </div>
             </section>
 
             <!-- Quién de los que sigues la tiene (tanda 403). El bloque
@@ -454,7 +523,7 @@
                  hueco vacío dice «no tienes amigos» sin querer. -->
             <section class="mc-ficha-bloque hidden" id="mcEdQuienBloque">
               <h3>La tienen</h3>
-              <div class="mc-quien" id="mcEdQuien"></div>
+              <div class="mc-ficha-caja"><div class="mc-quien" id="mcEdQuien"></div></div>
             </section>
 
             <!-- En qué carpetas está esta copia (tanda 402). Va antes de
@@ -462,12 +531,12 @@
                  carta son de consulta. -->
             <section class="mc-ficha-bloque" id="mcEdCarpetasBloque">
               <h3>Carpetas</h3>
-              <div class="mc-chips-filtro" id="mcEdCarpetas"></div>
+              <div class="mc-ficha-caja"><div class="mc-chips-filtro" id="mcEdCarpetas"></div></div>
             </section>
 
             <section class="mc-ficha-bloque">
               <h3>Datos de la carta</h3>
-              <dl class="mc-ficha-tabla" id="mcEdTabla"></dl>
+              <div class="mc-ficha-caja"><dl class="mc-ficha-tabla" id="mcEdTabla"></dl></div>
             </section>
           </div>
         </div>

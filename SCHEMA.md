@@ -21486,3 +21486,117 @@ pasando de 1/4 a 2/4 y 4/4 **sin recargar**; la caja del juez de punta a
 punta, también sin la migración; el sprite sin recuadro; y la ventana de
 la lista, también a 360 px. Su rigor rompe el origen de cada cosa:
 17 mutaciones, las 17 detectadas.
+
+## Tanda 405 — mi colección, con la cara de una app (oct. 2026)
+
+PINGU, con capturas de dextcg.com al lado: «la ficha de Dex es mucho más
+bonita», «hay demasiadas pestañas», «el menú de Dex es lateral, que deja
+meter más cosas sin que las pestañas se vayan mucho», «en el móvil son
+cinco pestañas y podríamos adaptar eso», «los botones de buscar y todo,
+que sean más visuales», «algunos logos se salen».
+
+### 1. El menú: una columna en el ordenador, cinco sitios en el móvil
+
+Eran OCHO pestañas en una fila. En un portátil no caben: la fila se parte
+o se va a un desplazamiento lateral que esconde la mitad, y entonces la
+mitad de la sección no existe para quien no sepa que está ahí.
+
+La columna lo arregla de verdad porque crece hacia abajo y no se pelea
+con el ancho — y, de regalo, deja AGRUPARLAS, que es lo que dice para qué
+sirve cada una: «Tu colección» (Cartas, Carpetas, Álbumes soñados),
+«Explorar» (Expansiones, Pokédex, Añadir cartas) y «Tu actividad»
+(Resumen, Cambios).
+
+En el móvil no hay sitio para una columna, así que la misma pieza se
+vuelve la barra de cinco sitios de la app: Cartas · Expansiones ·
+Pokédex · Carpetas · **Más**, y el «Más» despliega las otras cuatro en
+una segunda fila.
+
+**Un solo DOM para las dos formas.** Los grupos pasan a
+`display: contents` en el móvil, así que los botones son hijos directos
+de la rejilla de cinco columnas y el orden lo dice `data-sitio` y no el
+orden del documento. Dos copias de los mismos botones —una para cada
+forma— se separan, y la que no se mira se queda vieja.
+
+**La barra va de lado a lado.** Con los 24 px de margen de la página a
+cada lado, un quinto se queda en 65 px y «Expansiones» pide 69: el
+nombre salía cortado. El margen negativo es el del contenedor, escrito
+con su token. Y «Álbumes soñados» y «Añadir cartas» tienen un segundo
+nombre, el que CABE, que no es una abreviatura a ojo.
+
+### 2. La barra de buscar, más pequeña y la misma en las cuatro pantallas
+
+El campo medía todo el ancho con un botón gris de formulario al lado. Una
+búsqueda no es más larga por tener la pantalla más ancha: ahora mide 320
+px, lleva su lupa dentro y es redondo; el de filtros es una chapa con su
+contador, y al lado sale un ✕ que quita texto Y filtros —si solo quitara
+los filtros, la lista seguiría recortada y parecería que no hace nada—.
+
+La misma pieza (`.mc-buscador`) la usan las cuatro barras: cartas,
+expansiones, Pokédex y añadir. Antes cada una se había escrito por su
+cuenta, y ese era medio motivo de que no se parecieran.
+
+El ✕ va FUERA del campo a propósito: dentro no podría medir los 44 px que
+pide un icono sin reventar el alto del campo.
+
+### 3. La ficha, como la de Dex
+
+El rótulo de cada bloque sale FUERA de su caja: dentro, cada bloque
+parecía un campo de formulario. Y la nota se pliega — un campo de texto
+vacío de cinco renglones es el bulto más grande de una pantalla donde
+casi ninguna copia lleva nota. Hay tres estados: el botón «+ Añadir una
+nota», la nota ESCRITA (que se lee, y tocarla la abre) y el campo.
+
+### 4. Las expansiones, todas del mismo tamaño
+
+La cabecera mide 92 px fijos, con el propio logo ampliado y emborronado
+de fondo, el logo pequeño centrado encima y el código del set en una
+chapa en la esquina. Lo del fondo sale del propio logo y no del arte de
+una carta: serían 220 peticiones más y el navegador ya tiene la imagen.
+
+Dos cosas que había que arreglar debajo: `max-height` no contiene nada a
+lo ANCHO —por eso los logos anchos se salían—, y `tcg_online_code` no se
+pedía en la consulta de sets, así que la chapa del código no habría
+salido NUNCA.
+
+**Y el nombre, el día que la CDN no conteste.** El nombre del set va en
+`sr-only` porque el logo lo lleva escrito (tanda 346). Pero si el logo no
+llega —el 2026-09-20 se cayó `r2.limitlesstcg.net` entera— la tarjeta se
+quedaba sin NADA que leer, sin dar error. Ahora, al fallar la imagen, el
+nombre vuelve a la vista. El `error` de una imagen no burbujea: se
+escucha en captura.
+
+### Tres rojos que no eran de esta tanda
+
+La suite no se había pasado entera desde la 398, y en ese hueco entraron
+tres: un `border-radius: 10px` escrito a pelo donde hay token (309), un
+`padding: 0 6px` que no es un paso de la escala (311) y la foto grande de
+la ficha sin `loading` (310). Esta última va `eager` **a propósito** —es
+la carta que acabas de pulsar, la misma excepción que el lightbox— y
+ahora lo dice el atributo en vez de callarlo.
+
+### El lanzador de la suite corría COPIAS de las pruebas
+
+Lo que hizo que esos tres rojos vivieran tres tandas. `correr-suite.sh`
+tenía una lista escrita a mano y corría los ficheros que hubiera en el
+directorio de trabajo, no los de la rama `pruebas`. Consecuencias: las
+pruebas que nunca se copiaron allí salían «AUSENTE» (380-383), las copias
+viejas daban rojos FALSOS (la 373 leía `css/carta.css`, de donde el holo
+se había mudado en la 394) —y, lo de verdad grave, **la 398, la 399, la
+400, la 402, la 403 y la 405 no estaban ni en la lista: no se habían
+corrido ni una vez**. Ahora las coge del worktree y las ordena por
+número. Una lista curada a mano se queda vieja; el directorio no.
+
+### Comprobado
+
+`test-tanda-405.mjs`: el rótulo fuera de la caja y el bloque sin borde;
+los tres estados de la nota; la tarjeta de expansión con su fondo
+emborronado, su código y su logo dentro de la caja, y el nombre
+apareciendo cuando el logo no llega; el menú a la izquierda del panel con
+sus ocho y sin «Más» en el ordenador, y los cinco sitios en el móvil con
+el «Más» desplegando las otras cuatro y cerrándose al elegir; el campo de
+buscar sin comerse la barra, redondo, con lupa en los CUATRO buscadores,
+y el ✕ apareciendo, limpiando y escondiéndose. Y la forma del fallo, no
+el fallo: **todas** las pestañas del menú contra la lista blanca de
+`?ver=` —una pestaña que no esté en ella no se abre por enlace y no da
+error en ninguna parte—.

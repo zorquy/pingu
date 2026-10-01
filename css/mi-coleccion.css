@@ -119,27 +119,72 @@
   border-color: var(--navy);
 }
 
-/* ── Las pestañas ── */
+/* ── EL MENÚ (tanda 405) ──
+   Dos formas y un solo DOM. En el móvil es la barra de cinco sitios de la
+   app: una rejilla de cinco columnas, así que las cuatro pestañas que no
+   tienen sitio caen a una segunda fila cuando se pulsa «Más» sin cambiar
+   de sistema de colocación a medio camino. En el ordenador es una COLUMNA
+   a la izquierda, que es lo que deja caber las ocho con sus grupos. */
 .mc-pestanias {
-  display: flex;
-  gap: var(--e-xs);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  /* De lado a lado, como la barra de una app. No es un capricho: con los
+     24 px de margen de la página a cada lado, un quinto se queda en 65 px
+     y «Expansiones» pide 69 — el nombre salía cortado. Los 24 son los de
+     `.page-content`, y por eso se escriben con su token. */
+  margin-inline: calc(var(--e-xl) * -1);
   margin-bottom: var(--e-lg);
+  padding-inline: var(--e-xs);
   border-bottom: 1px solid var(--border);
-  overflow-x: auto;
 }
 
-.mc-pestania {
-  min-height: 44px;
-  padding: 0 var(--e-lg);
+/* Los grupos dejan de ser caja para que los botones sean hijos directos
+   de la rejilla: con ellos por medio, los cinco sitios serían tres. */
+.mc-menu-grupo,
+.mc-menu-lista {
+  display: contents;
+}
+
+.mc-menu-titulo {
+  display: none;
+}
+
+.mc-pestania,
+.mc-menu-mas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 56px;
+  padding: var(--e-xs) 2px;
   border: 0;
   border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--text-mid);
   font: inherit;
-  font-size: var(--t-md);
+  font-size: var(--t-2xs);
   font-weight: 600;
-  white-space: nowrap;
   cursor: pointer;
+}
+
+/* Dos nombres para dos sitios: en un quinto de 390 px, «Álbumes soñados»
+   se queda en «Álbume…», que no dice nada. El corto no es una
+   abreviatura a ojo — es el nombre que cabe. */
+.mc-menu-largo {
+  display: none;
+}
+
+/* El nombre necesita su propia caja con `min-width: 0` para que el recorte
+   sea unos puntos y no un hachazo. */
+.mc-menu-texto {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mc-pestania.activa {
@@ -147,9 +192,133 @@
   color: var(--text);
 }
 
-.mc-pestania:focus-visible {
+.mc-pestania:focus-visible,
+.mc-menu-mas:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: -2px;
+}
+
+/* Los cinco sitios de la barra. El orden lo dice el HTML con `data-sitio`
+   y no el orden del documento, porque en el documento van agrupadas. */
+.mc-menu [data-sitio="1"] { order: 1; }
+.mc-menu [data-sitio="2"] { order: 2; }
+.mc-menu [data-sitio="3"] { order: 3; }
+.mc-menu [data-sitio="4"] { order: 4; }
+.mc-menu-mas { order: 5; }
+.mc-menu [data-pestania]:not([data-sitio]) { order: 6; }
+
+/* Las que no tienen sitio, solo con el «Más» desplegado. */
+.mc-menu [data-pestania]:not([data-sitio]) {
+  display: none;
+}
+
+.mc-menu.abierto [data-pestania]:not([data-sitio]) {
+  display: flex;
+}
+
+@media (min-width: 900px) {
+  /* La columna a la izquierda y el panel a la derecha. Las pestañas que no
+     son la de turno están en `display: none`, así que no ocupan hueco en
+     la rejilla: el panel visible se coloca él solo en la columna 2. */
+  #mcContenido {
+    display: grid;
+    grid-template-columns: 216px minmax(0, 1fr);
+    gap: var(--e-xl);
+    align-items: start;
+  }
+
+  #mcContenido > .mc-resumen,
+  #mcContenido > .mc-nota,
+  #mcContenido > .subtext,
+  #mcContenido > .mc-aviso {
+    grid-column: 1 / -1;
+  }
+
+  #mcContenido > section[role="tabpanel"] {
+    grid-column: 2;
+  }
+
+  .mc-pestanias {
+    display: block;
+    position: sticky;
+    top: var(--e-md);
+    margin: 0;
+    padding-left: 0;
+    padding-right: var(--e-md);
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+  }
+
+  .mc-menu-grupo {
+    display: block;
+  }
+
+  .mc-menu-grupo + .mc-menu-grupo {
+    margin-top: var(--e-md);
+  }
+
+  .mc-menu-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mc-menu-titulo {
+    display: block;
+    margin: 0 0 var(--e-xs);
+    padding: 0 var(--e-sm);
+    color: var(--text-mid);
+    font-size: var(--t-2xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .mc-pestania {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--e-sm);
+    min-height: 44px;
+    padding: 0 var(--e-sm);
+    border-bottom: 0;
+    border-radius: var(--radius-md);
+    font-size: var(--t-sm);
+    text-align: left;
+  }
+
+  .mc-pestania:hover {
+    background: var(--white);
+    color: var(--text);
+  }
+
+  /* La de turno va en azul SÓLIDO con blanco encima: en una columna el
+     subrayado de abajo no se ve, y un gris algo más oscuro no basta para
+     decir «estás aquí». */
+  .mc-pestania.activa,
+  .mc-pestania.activa:hover {
+    background: var(--navy-solid);
+    color: var(--blanco-fijo);
+  }
+
+  .mc-menu .mc-menu-texto {
+    max-width: none;
+  }
+
+  .mc-menu-largo {
+    display: block;
+  }
+
+  .mc-menu-corto {
+    display: none;
+  }
+
+  .mc-menu-mas {
+    display: none;
+  }
+
+  .mc-menu [data-pestania]:not([data-sitio]) {
+    display: flex;
+  }
 }
 
 /* ── Las cartas ── */
@@ -160,11 +329,73 @@
   margin-bottom: var(--e-lg);
 }
 
-.mc-filtros input,
-.mc-filtros select {
-  flex: 1 1 180px;
+/* LA BARRA (tanda 405). El campo ya no se estira: una búsqueda no es más
+   larga por tener la pantalla más ancha, y el hueco que sobraba es lo que
+   hacía que la barra pareciera un formulario. */
+.mc-buscador {
+  position: relative;
+  /* Crece hasta 320 y se encoge sin obligar a la barra a partirse: con una
+     base de 320 y la chapa al lado, en un móvil la fila se rompía en dos. */
+  flex: 1 1 160px;
   min-width: 0;
+  max-width: 320px;
+}
+
+/* El de «Añadir cartas» pide más sitio: su texto de ejemplo es una frase
+   entera y recortada no dice qué se puede buscar. */
+.mc-buscador-ancho {
+  max-width: 520px;
+}
+
+.mc-buscador-lupa {
+  position: absolute;
+  top: 50%;
+  left: var(--e-sm);
+  display: flex;
+  color: var(--text-mid);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.mc-buscador input[type="search"] {
+  width: 100%;
   min-height: 44px;
+  padding-left: 36px;
+  border-radius: var(--radius-pill);
+}
+
+.mc-chip-mando {
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mc-chip-mando:hover {
+  border-color: var(--navy);
+  color: var(--text);
+}
+
+/* Sin texto al lado, la chapa es un icono y nada más: se le pide también
+   el ancho, que a un control con palabra no se le pide. */
+.mc-chip-solo-icono {
+  justify-content: center;
+  min-width: 44px;
+  padding: 0;
+}
+
+.mc-chip-mando:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
 }
 
 .mc-cartas {
@@ -658,7 +889,6 @@
   margin-bottom: var(--e-lg);
 }
 
-.mc-estanteria-barra input,
 .mc-estanteria-barra select {
   flex: 1 1 220px;
   min-width: 0;
@@ -683,8 +913,11 @@
 .mc-set-tarjeta {
   display: flex;
   flex-direction: column;
-  gap: var(--e-sm);
-  padding: var(--e-md);
+  /* Sin hueco y sin relleno: la cabecera va a sangre, como en Dex. El
+     aire lo pone `.mc-set-info` por dentro. */
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
@@ -695,6 +928,52 @@
   transition: border-color 0.15s var(--ease);
 }
 
+/* La cabecera: el fondo emborronado, el logo encima y el código en una
+   esquina. Alto FIJO, que es lo que hace que las doscientas tarjetas
+   midan igual aunque sus logos no. */
+.mc-set-cabecera {
+  display: grid;
+  position: relative;
+  place-items: center;
+  height: 92px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* El propio logo, ampliado y desenfocado. `scale` además del blur: el
+   desenfoque come por los bordes y sin ampliar se vería el marco
+   difuminado contra el fondo. */
+.mc-set-arte {
+  position: absolute;
+  inset: 0;
+  background-image: var(--arte);
+  background-position: center;
+  background-size: cover;
+  filter: blur(18px) saturate(1.4);
+  opacity: 0.55;
+  transform: scale(1.4);
+}
+
+.mc-set-codigo {
+  position: absolute;
+  right: var(--e-sm);
+  bottom: var(--e-sm);
+  padding: 1px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgba(20, 20, 25, 0.6);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.mc-set-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  padding: var(--e-md);
+}
+
 .mc-set-tarjeta:hover {
   border-color: var(--navy);
 }
@@ -702,16 +981,25 @@
 /* El logo lleva un alto FIJO y no medidas: los hay anchos y los hay
    cuadrados, y darle width/height mentiría sobre su forma. Con el alto
    reservado, la rejilla no baila mientras cargan doscientos. */
+/* El logo, encima del fondo y topado por los DOS lados: antes solo tenía
+   alto, así que los logos anchos —Roaring Skies, Primal Clash— se salían
+   de la tarjeta. Un `max-height` no contiene nada a lo ancho. */
 .mc-set-logo {
   display: grid;
+  position: relative;
   place-items: center;
-  height: 56px;
+  width: 100%;
+  height: 100%;
+  padding: var(--e-md) var(--e-lg);
 }
 
 .mc-set-logo img {
   max-width: 100%;
-  max-height: 100%;
+  max-height: 64px;
   object-fit: contain;
+  /* Una sombra suave para despegarlo del fondo emborronado, que a veces
+     sale del mismo color que el propio logo. */
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
 }
 
 .mc-set-nombre {
@@ -1058,9 +1346,7 @@
 }
 
 /* ── Añadir ── */
-.mc-anadir-buscar {
-  width: 100%;
-  min-height: 44px;
+.mc-buscador-ancho {
   margin-bottom: var(--e-lg);
 }
 
@@ -1291,16 +1577,27 @@
    eran rótulos sueltos sobre el fondo del diálogo, así que nada separaba
    «el precio» de «tu copia» salvo un hueco. Agrupar es lo que convierte
    una lista de datos en una ficha. */
+/* El rótulo va FUERA y la caja es solo el contenido (tanda 405). PINGU,
+   comparando con Dex: con el rótulo DENTRO de una caja con borde, cada
+   bloque parece un campo de formulario; fuera, el rótulo titula y la
+   caja es contenido. Es el mismo contenido y se lee como otra cosa. */
 .mc-ficha-bloque {
-  margin-bottom: var(--e-md);
-  padding: var(--e-md) var(--e-lg) var(--e-lg);
-  border: 1px solid var(--border);
+  margin-bottom: var(--e-lg);
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.mc-ficha-caja {
+  padding: var(--e-lg);
   border-radius: var(--radius-md);
+  /* Sin borde: el fondo ya la separa, y un borde más una sombra más un
+     fondo son tres maneras de decir lo mismo. */
   background: var(--bg);
 }
 
 .mc-ficha-bloque h3 {
-  margin: 0 0 var(--e-md);
+  margin: 0 0 var(--e-sm);
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 800;
@@ -1365,16 +1662,24 @@
 .mc-editor-foto {
   width: 100%;
   aspect-ratio: 245 / 342;
-  overflow: hidden;
-  border-radius: 10px;
-  background: var(--bg);
+  overflow: visible;
+  border-radius: 12px;
+  background: none;
+}
+
+/* La carta, con su sombra: en Dex flota sobre el panel y eso es lo que
+   la hace parecer una carta y no una imagen pegada. */
+.mc-editor-foto .carta-scan-holo,
+.mc-editor-foto img {
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .mc-editor-foto .carta-scan-holo {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 .mc-editor-foto img {
@@ -2041,11 +2346,8 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 .pdx-mandos input[type='search'] {
-  flex: 1 1 240px;
-  min-height: 44px;
   padding: var(--e-sm) var(--e-md);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
   background: var(--white);
   color: var(--text);
   font-size: var(--t-md);
@@ -2529,16 +2831,10 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 /* La chapa del botón: sin ella, un filtro olvidado parece una colección
-   que ha encogido. */
-.mc-abrir-filtros {
-  display: inline-flex;
-  gap: var(--e-sm);
-  align-items: center;
-}
-
+   que ha encogido. El dibujo del botón lo pone `.mc-chip-mando`. */
 .mc-filtros-cuenta {
   min-width: 20px;
-  padding: 0 6px;
+  padding: 0 var(--e-xs);
   border-radius: var(--radius-pill);
   background: var(--navy-solid);
   color: var(--blanco-fijo);
@@ -2705,5 +3001,57 @@ input.mc-alb-titulo:not([readonly]):focus {
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 700;
+}
+
+/* ── La nota, plegada (tanda 405) ── */
+.mc-editor-notas {
+  grid-column: 1 / -1;
+}
+
+.mc-anadir-nota {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  /* Discontinuo: dice «aquí cabe algo» sin parecer un botón de acción
+     principal, que es justo lo que es. */
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-anadir-nota:hover {
+  border-color: var(--navy);
+  color: var(--text);
+}
+
+/* La nota ya puesta: se LEE, y se toca para cambiarla. */
+.mc-nota-puesta {
+  margin: 0;
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border-left: 3px solid var(--navy);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--t-sm);
+  cursor: text;
+  white-space: pre-wrap;
+}
+
+.mc-nota-campo textarea {
+  width: 100%;
+  min-height: 88px;
+}
+
+.mc-nota-mandos {
+  display: flex;
+  gap: var(--e-md);
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--e-sm);
 }
 
