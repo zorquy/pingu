@@ -13,8 +13,14 @@ const check = (l, ok, extra = '') => {
 const BASE = 'http://localhost:8892'
 const browser = await chromium.launch()
 
-const abrir = async (ancho, alto, ruta = '/mi-coleccion.html') => {
-  const page = await browser.newPage({ viewport: { width: ancho, height: alto } })
+const abrir = async (ancho, alto, ruta = '/mi-coleccion.html', { dedo = false } = {}) => {
+  // `dedo` enciende el puntero GRUESO. Hace falta porque la regla de los
+  // 44 px (CLAUDE.md, tanda 312) no es «todo mide 44 siempre»: la barra de
+  // arriba sí, pero los controles DENSOS —chips, pestañas, los filtros de
+  // la estantería— piden sus 44 detrás de `pointer: coarse`, que es donde
+  // se tocan con el dedo. Medirlos con un ratón y exigirles 44 es medir
+  // otra cosa.
+  const page = await browser.newPage({ viewport: { width: ancho, height: alto }, hasTouch: dedo, isMobile: dedo })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 150)))
   await page.addInitScript(() => {
@@ -107,10 +113,20 @@ console.log('\n── 4. Un filtro es una chapa, no un campo de formulario ─�
       flecha: c.backgroundImage.slice(0, 20) }
   })
   check('el desplegable de series es una píldora', parseFloat(s.radio) >= 20, s.radio)
-  // Y sigue siendo pulsable: la forma no se come los 44 px.
-  check('  …y mide sus 44', s.alto >= 44, s.alto)
   check('  …y conserva su flecha', /url/.test(s.flecha), s.flecha)
   await page.close()
+
+  // Y los 44 px SE MIDEN CON EL DEDO, no con el ratón (tanda 447). Con
+  // ratón este desplegable mide 36 desde la 445, que es cuando PINGU pidió
+  // los filtros más pequeños —«son demasiado grandes y eso queda cutre»—;
+  // la prueba seguía exigiéndole 44 en un portátil y marcaba en rojo un
+  // cambio que se había pedido. Lo que la regla protege es el dedo, y ahí
+  // los 44 siguen estando.
+  const { page: movil } = await abrir(390, 800, '/mi-coleccion.html?ver=album', { dedo: true })
+  await movil.waitForTimeout(600)
+  const alto = await movil.locator('#mcEstanteriaSerie').evaluate((e) => e.getBoundingClientRect().height)
+  check('  …y con el dedo mide sus 44', alto >= 44, alto)
+  await movil.close()
 }
 
 await browser.close()

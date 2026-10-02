@@ -10,6 +10,12 @@
 // sessionStorage para que una prueba pueda comprobar QUÉ se guardó
 // aunque la página navegue después.
 
+// El doble se copia ENCIMA de js/supabase.js, así que `./texto.js` es el
+// de verdad. Se importa para generar `name_search` con la MISMA función
+// que usa la web: una copia a mano del cálculo de una columna generada se
+// separa de la base sin dar error (tanda 447).
+import { normalizeSearch } from './texto.js'
+
 // ── Las tablas ──
 const T = {
   user_profiles: [],
@@ -144,7 +150,35 @@ const sesion = quienSoy === 'none' ? null : { user: { id: quienSoy, email: `${qu
 function sembrar(gancho, tabla, porDefecto) {
   const filas = typeof window !== 'undefined' ? window[gancho] : null
   if (!Array.isArray(filas)) return
-  filas.forEach((fila, i) => T[tabla].push({ ...porDefecto(i), ...fila }))
+  filas.forEach((fila, i) => T[tabla].push(generadas(tabla, { ...porDefecto(i), ...fila })))
+}
+
+// LAS COLUMNAS GENERADAS SE GENERAN, no se siembran (tanda 447).
+//
+// `name_search` y `name_key` de `tcg_cards` son columnas GENERADAS en la
+// base (supabase-migration-cartas-nombre-es.sql): Postgres las calcula de
+// `name` y `name_es` y NO SE PUEDEN ESCRIBIR. Aquí no se generaban, así
+// que cada fixture se las escribía A MANO — y una copia a mano de algo
+// que la base calcula sola dice lo que quiera el que la escribe.
+//
+// Lo que costó descubrirlo: la prueba del escáner buscaba «Charizard» en
+// un fixture SIN `name_search`, y el `like` comparaba contra la cadena
+// vacía. CERO resultados, con la carta delante. Al revés también pica:
+// una fila con `name: 'Carta 1'` y `name_search: 'charizard'` habría dado
+// un verde que en producción no puede pasar.
+//
+// Y el valor es el de la base, con sus DOS nombres pegados —el inglés y
+// el español— porque el buscador tiene que encontrar por los dos.
+function generadas(tabla, fila) {
+  if (tabla !== 'tcg_cards') return fila
+  // Si alguien la sembró a mano, se la pisa: en la base no hay forma de
+  // escribirla, y una prueba que dependa de haberla escrito no habla de
+  // la web.
+  return {
+    ...fila,
+    name_search: normalizeSearch(`${fila.name || ''} ${fila.name_es || ''}`),
+    name_key: normalizeSearch(fila.name || ''),
+  }
 }
 
 sembrar('__FAKE_TORNEOS__', 'tournaments', (i) => ({

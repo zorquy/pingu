@@ -44,7 +44,14 @@ const abrir = async () => {
       id: `l${n}`, card_id: `sv1-${n}`, cantidad: 1, idioma: 'es', estado: 'nueva', variante: 'normal',
     }))
   })
-  await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
+  // `?ver=cartas` desde la tanda 447, y NO es un detalle de la prueba: la
+  // pestaña por defecto es el PANEL desde la 440, y lo que esta prueba
+  // mira vive en la pestaña de CARTAS. Sin el parámetro, el panel de
+  // cartas está `hidden` y Playwright encuentra los elementos —existen en
+  // el DOM— pero no son visibles: la prueba se cae con un «element is not
+  // visible» que parece un fallo de la web y es una prueba que se quedó
+  // vieja. Buscar un elemento NO es lo mismo que verlo.
+  await page.goto(`${BASE}/mi-coleccion.html?ver=cartas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
   return { page, errores }
 }
@@ -107,8 +114,13 @@ console.log('\n── 2. Dentro suman, entre grupos restan ──')
 console.log('\n── 3. El orden al revés ──')
 {
   const { page } = await abrir()
-  await page.locator('#mcAbrirFiltros').click()
-  await page.waitForTimeout(400)
+  // SIN abrir el panel de filtros (tanda 447): el orden y su «Al revés»
+  // viven en la BARRA desde la 444, no dentro del panel. Abrirlo deja un
+  // `<dialog>` modal por delante, y el modal se come la pulsación — el
+  // error dice «intercepts pointer events» y no «no está», que es la
+  // pista. Un control que se muda de sitio deja la prueba apuntando a
+  // donde estaba.
+  await page.waitForTimeout(300)
   await page.selectOption('#mcOrden', 'nombre')
   await page.waitForTimeout(500)
   const nombres = () => page.locator('.mc-carta-foto').evaluateAll((as) => as.map((a) => a.getAttribute('aria-label')))

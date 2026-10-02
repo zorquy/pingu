@@ -46,7 +46,14 @@ const abrir = async ({ conImagen = true } = {}) => {
       idioma: 'es', estado: 'nueva', variante: n === 3 ? 'reverse' : 'normal', gradeo: null,
     }))
   }, conImagen)
-  await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
+  // `?ver=cartas` desde la tanda 447, y NO es un detalle de la prueba: la
+  // pestaña por defecto es el PANEL desde la 440, y lo que esta prueba
+  // mira vive en la pestaña de CARTAS. Sin el parámetro, el panel de
+  // cartas está `hidden` y Playwright encuentra los elementos —existen en
+  // el DOM— pero no son visibles: la prueba se cae con un «element is not
+  // visible» que parece un fallo de la web y es una prueba que se quedó
+  // vieja. Buscar un elemento NO es lo mismo que verlo.
+  await page.goto(`${BASE}/mi-coleccion.html?ver=cartas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
   return { page, errores }
 }
@@ -276,7 +283,7 @@ console.log('\n── 8. El número de copias se lee en los DOS temas ──')
       window.__FAKE_CARTAS__ = [{ id: 'sv1-1', set_id: 'sv1', local_id: '1', name: 'A', image_path: 'x/1', market: 'WEST', variants: { normal: true } }]
       window.__FAKE_COLECCION__ = [{ id: 'l1', card_id: 'sv1-1', cantidad: 1, idioma: 'es', estado: 'nueva', variante: 'normal' }]
     }, tema)
-    await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
+    await page.goto(`${BASE}/mi-coleccion.html?ver=cartas`, { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(2500)
     await page.locator('.mc-carta-foto').first().click()
     await page.waitForTimeout(600)

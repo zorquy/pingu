@@ -35,14 +35,23 @@ const abrir = async (ruta = '/mi-coleccion.html?ver=cartas', ancho = 1280, alto 
   return { page, errores }
 }
 
-const CINCO = ['cartas', 'album', 'pokedex', 'carpetas', 'resumen']
+// EL MENÚ, desde la tanda 447. «Cartas» SALE del menú —PINGU, con Dex
+// delante: «no tiene sentido meter en el menú las cartas»— y entra
+// «Buscar», que busca en todo el catálogo. El orden es el del HTML.
+const EN_EL_MENU = ['resumen', 'album', 'pokedex', 'carpetas', 'buscar']
+// Pero la PANTALLA de cartas se queda y se abre por enlace: lo apuntan el
+// «Ver todas» del panel y las URLs que la gente tenga guardadas. Quitar la
+// pestaña no es quitar la página, y esta lista es la que lo vigila.
+const POR_ENLACE = [...EN_EL_MENU, 'cartas']
+const PANEL_DE = { resumen: 'mcPanelResumen', album: 'mcPanelAlbum', pokedex: 'mcPanelPokedex',
+  carpetas: 'mcPanelCarpetas', buscar: 'mcPanelBuscar', cartas: 'mcPanelCartas' }
 
 console.log('\n── 1. Cinco pestañas, y las mismas en el móvil ──')
 {
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
   const hay = await page.locator('#mcMenu [data-pestania]').evaluateAll((l) => l.map((e) => e.dataset.pestania))
-  check('son estas cinco', JSON.stringify(hay) === JSON.stringify(CINCO), hay.join(','))
+  check('son estas cinco', JSON.stringify(hay) === JSON.stringify(EN_EL_MENU), hay.join(','))
   // Y cada una tiene su panel: una pestaña sin panel no da error, deja la
   // pantalla en blanco.
   for (const p of hay) {
@@ -72,16 +81,35 @@ console.log('\n── 2. Lo que se mudó sigue llegando por su enlace viejo ─�
   // comprueban las tres mudanzas, no la que acabo de hacer.
   for (const [viejo, nuevo] of [['anadir', 'cartas'], ['albumes', 'carpetas'], ['cambios', 'resumen']]) {
     const { page } = await abrir(`/mi-coleccion.html?ver=${viejo}`)
-    const activa = await page.locator('.mc-pestania.activa').getAttribute('data-pestania')
-    check(`?ver=${viejo} lleva a «${nuevo}»`, activa === nuevo, activa)
+    check(`?ver=${viejo} lleva a «${nuevo}»`, await page.locator(`#${PANEL_DE[nuevo]}`).isVisible(), nuevo)
     await page.close()
   }
-  // Y las cinco de ahora se abren por enlace, que es la otra mitad de la
-  // misma trampa.
-  for (const v of CINCO) {
+
+  // Y la decisión que esto deja escrita (tanda 447): en la pantalla de
+  // CARTAS no hay ninguna pestaña encendida, porque ya no tiene. Es una
+  // SUBPANTALLA del Panel —se entra por su «Ver todas»—, no un sitio
+  // perdido. Se comprueba a propósito: si mañana alguien «arregla» esto
+  // encendiendo el Panel, estaría diciendo que estás en el Panel cuando no
+  // lo estás.
+  {
+    const { page } = await abrir('/mi-coleccion.html?ver=cartas')
+    check('en Cartas no hay pestaña encendida, porque es una subpantalla',
+      (await page.locator('.mc-pestania.activa').count()) === 0,
+      await page.locator('.mc-pestania.activa').count())
+    check('  …y desde ahí se puede volver al menú', await page.locator('#mcMenu').isVisible())
+    await page.close()
+  }
+  // Y todas se abren por enlace, que es la otra mitad de la misma trampa.
+  // Se mira el PANEL que queda a la vista y no la pestaña encendida: la
+  // de cartas ya no tiene pestaña que encender, y comprobar la pestaña
+  // dejaría sin vigilar justo la pantalla que corre peligro de perderse.
+  for (const v of POR_ENLACE) {
     const { page } = await abrir(`/mi-coleccion.html?ver=${v}`)
-    const activa = await page.locator('.mc-pestania.activa').getAttribute('data-pestania')
-    check(`?ver=${v} abre la suya`, activa === v, activa)
+    check(`?ver=${v} abre su pantalla`, await page.locator(`#${PANEL_DE[v]}`).isVisible(), v)
+    if (EN_EL_MENU.includes(v)) {
+      const activa = await page.locator('.mc-pestania.activa').getAttribute('data-pestania')
+      check(`  …y con su pestaña encendida`, activa === v, activa)
+    }
     await page.close()
   }
   // Y nadie sigue ESCRIBIENDO los nombres viejos en una URL. Sin comentarios:

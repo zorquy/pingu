@@ -42,7 +42,14 @@ async function abrir(cuantas, coleccion, opciones = {}) {
     }))
     window.__FAKE_COLECCION__ = col
   }, [cuantas, coleccion])
-  await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
+  // `?ver=cartas` desde la tanda 447, y NO es un detalle de la prueba: la
+  // pestaña por defecto es el PANEL desde la 440, y lo que esta prueba
+  // mira vive en la pestaña de CARTAS. Sin el parámetro, el panel de
+  // cartas está `hidden` y Playwright encuentra los elementos —existen en
+  // el DOM— pero no son visibles: la prueba se cae con un «element is not
+  // visible» que parece un fallo de la web y es una prueba que se quedó
+  // vieja. Buscar un elemento NO es lo mismo que verlo.
+  await page.goto(`${BASE}/mi-coleccion.html?ver=cartas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
   return { page, errores }
 }

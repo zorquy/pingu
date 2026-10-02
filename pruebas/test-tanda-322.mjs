@@ -127,7 +127,16 @@ console.log('\n── 5. La URL, y el mapa de idiomas que está copiado ──')
   // Se lee el fichero como TEXTO en vez de importarlo, justamente porque
   // importarlo arrastraría ./supabase.js y esta prueba dejaría de correr
   // en Node.
-  const fuente = readFileSync('/home/user/pingu/js/tcgdex.js', 'utf8')
+  //
+  // Y el fichero es `js/mercados.js` desde la tanda 438, que es cuando
+  // `MERCADOS` salió de `js/tcgdex.js`. ESTA GUARDA SE QUEDÓ MIRANDO UN
+  // SITIO VACÍO y estuvo dos tandas dando por buena una copia que ya no
+  // comparaba con nada —`original` salía con CERO claves—. La gracia del
+  // asunto: es justo el fallo contra el que la guarda existe, en la propia
+  // guarda. Por eso ahora el «se ha encontrado el original» va antes que
+  // la comparación: una comparación contra un objeto vacío no distingue
+  // «iguales» de «no he encontrado nada».
+  const fuente = readFileSync('/home/user/pingu/js/mercados.js', 'utf8')
   const bloque = fuente.match(/export const MERCADOS = \{([\s\S]*?)\n\}/)?.[1] ?? ''
   const original = {}
   for (const [, k, v] of bloque.matchAll(/(\w+):\s*'([^']+)'/g)) original[k] = v
@@ -143,7 +152,12 @@ console.log('\n── 5. La URL, y el mapa de idiomas que está copiado ──')
   // vigila comparándolas de verdad —las dos son funciones puras— en vez
   // de mirar el texto: lo que importa no es que estén escritas igual,
   // sino que digan lo mismo.
-  const cuerpo = fuente.match(/export function codigoLiveDeSet\(set\) \{([\s\S]*?)\n\}/)?.[1] ?? ''
+  // Y esta sigue en `js/tcgdex.js`: son dos ficheros distintos y la
+  // prueba lee cada guarda donde VIVE su original. Compartir la variable
+  // `fuente` fue justo lo que dejó esta mirando a un sitio vacío cuando
+  // `MERCADOS` se mudó.
+  const fuenteTcgdex = readFileSync('/home/user/pingu/js/tcgdex.js', 'utf8')
+  const cuerpo = fuenteTcgdex.match(/export function codigoLiveDeSet\(set\) \{([\s\S]*?)\n\}/)?.[1] ?? ''
   check('se ha encontrado el original del código', cuerpo.includes('tcgOnline'), cuerpo.slice(0, 80))
   const original2 = new Function('set', cuerpo)
   const casos = ['twm', 'TWM', '30C', 'mee', '', '  sfa  ', 'demasiadolargo', 'a', 'A-B', null, 12]

@@ -205,12 +205,18 @@ console.log('\n── 5. Los bordes tienen escala ──')
   // blanco de una carta— y esos van aparte, declarados aquí para que se
   // vea que son excepciones y no despistes.
   const FIGURAS = ['1.8', '3']
+  // Y una figura que solo existe en una hoja se declara EN su hoja, no a
+  // lo ancho de todas: el aro del disparador del escáner (tanda 447) es
+  // de 4px porque dibuja un botón de hacer foto, pero un 4px suelto en
+  // cualquier otro sitio sigue siendo un despiste.
+  const FIGURAS_POR_HOJA = { 'mi-coleccion.css': ['4'] }
   const sinComentarios = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '')
   const hojas = readdirSync(`${RAIZ}/css`).filter((f) => f.endsWith('.css'))
   const fuera = []
   for (const f of hojas) {
     for (const m of sinComentarios(leer(`css/${f}`)).matchAll(/border:\s*([0-9.]+)px/g)) {
-      if (!['1', '2'].includes(m[1]) && !FIGURAS.includes(m[1])) fuera.push(`css/${f}: ${m[1]}px`)
+      const suyas = FIGURAS_POR_HOJA[f] || []
+      if (!['1', '2'].includes(m[1]) && !FIGURAS.includes(m[1]) && !suyas.includes(m[1])) fuera.push(`css/${f}: ${m[1]}px`)
     }
   }
   check('ningún contorno fuera de 1px y 2px', fuera.length === 0, [...new Set(fuera)].slice(0, 6).join(', '))

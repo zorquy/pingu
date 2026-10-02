@@ -48,7 +48,14 @@ async function abrir(coleccion, opciones = {}) {
       })))
     window.__FAKE_COLECCION__ = col
   }, [SETS, coleccion])
-  await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
+  // `?ver=album` y los localizadores ACOTADOS a ese panel, desde la tanda
+  // 447. La estantería se pinta en DOS sitios: aquí y en el vistazo «Tus
+  // colecciones» del Panel (tanda 443), con la misma clase. Sin acotar,
+  // `.mc-set-tarjeta` contaba SEIS donde hay cuatro y
+  // `.mc-set-tarjeta.completo` casaba con dos — una violación de modo
+  // estricto que tumbaba la prueba. Una clase que se pinta en dos
+  // pantallas necesita que la prueba diga en CUÁL mira.
+  await page.goto(`${BASE}/mi-coleccion.html?ver=album`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
   await page.locator('[data-pestania="album"]').click()
   await page.waitForTimeout(1600)
@@ -73,9 +80,9 @@ console.log('\n── 2. La estantería, con su progreso ──')
     ...Array.from({ length: 3 }, (_, i) => ({ id: `b${i}`, card_id: `swsh1-${i + 1}`, cantidad: 1 })),
   ])
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('salen las cuatro colecciones', (await page.locator('.mc-set-tarjeta').count()) === 4,
-    String(await page.locator('.mc-set-tarjeta').count()))
-  const texto = (n) => page.locator('.mc-set-tarjeta').nth(n).textContent()
+  check('salen las cuatro colecciones', (await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()) === 4,
+    String(await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()))
+  const texto = (n) => page.locator('#mcPanelAlbum .mc-set-tarjeta').nth(n).textContent()
   check('la primera dice cuánto llevas', /9 de 20/.test((await texto(0)) || ''), (await texto(0))?.replace(/\s+/g, ' '))
 
   // Desde la tanda 409 el orden NO es «las tuyas primero»: PINGU lo quitó
@@ -84,13 +91,13 @@ console.log('\n── 2. La estantería, con su progreso ──')
   // colección empezada se queda en la suya. Lo que sigue siendo de esta
   // tanda es el progreso, que es lo que se comprueba aquí.
   check('los rótulos son eras y no «tus colecciones»',
-    !(await page.locator('.mc-estanteria-titulo').allTextContents()).some((t) => /tus colecciones|empezar otra/i.test(t)),
-    (await page.locator('.mc-estanteria-titulo').allTextContents()).join(' | '))
+    !(await page.locator('#mcPanelAlbum .mc-estanteria-titulo').allTextContents()).some((t) => /tus colecciones|empezar otra/i.test(t)),
+    (await page.locator('#mcPanelAlbum .mc-estanteria-titulo').allTextContents()).join(' | '))
 
   // La barra no se estira: `.mc-barra` nace con `flex: 1 1 200px` para
   // vivir en una FILA, y dentro de una tarjeta en columna ese grow la
   // convierte en un óvalo del tamaño de la tarjeta. Se mide.
-  const alto = await page.locator('.mc-set-tarjeta .mc-barra').first().evaluate((e) => Math.round(e.getBoundingClientRect().height))
+  const alto = await page.locator('#mcPanelAlbum .mc-set-tarjeta .mc-barra').first().evaluate((e) => Math.round(e.getBoundingClientRect().height))
   check('la barra de progreso sigue siendo una barra', alto <= 12, `${alto}px`)
   await page.close()
 }
@@ -98,7 +105,7 @@ console.log('\n── 2. La estantería, con su progreso ──')
 console.log('\n── 3. Una colección completa se nota ──')
 {
   const { page } = await abrir(Array.from({ length: 12 }, (_, i) => ({ id: `s${i}`, card_id: `sm1-${i + 1}`, cantidad: 1 })))
-  const completa = page.locator('.mc-set-tarjeta.completo')
+  const completa = page.locator('#mcPanelAlbum .mc-set-tarjeta.completo')
   check('la completa va marcada', (await completa.count()) === 1, String(await completa.count()))
   check('  …y lo dice con palabras', /completa/i.test((await completa.textContent()) || ''),
     (await completa.textContent())?.replace(/\s+/g, ' '))
@@ -110,14 +117,14 @@ console.log('\n── 4. Buscar y filtrar por serie ──')
   const { page } = await abrir([{ id: 'a', card_id: 'sv1-1', cantidad: 1 }])
   await page.fill('#mcEstanteriaBuscar', 'paldea')
   await page.waitForTimeout(500)
-  check('el buscador filtra', (await page.locator('.mc-set-tarjeta').count()) === 1,
-    String(await page.locator('.mc-set-tarjeta').count()))
+  check('el buscador filtra', (await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()) === 1,
+    String(await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()))
   await page.fill('#mcEstanteriaBuscar', '')
   await page.waitForTimeout(400)
   await page.selectOption('#mcEstanteriaSerie', 'swsh')
   await page.waitForTimeout(500)
-  check('y la serie también', (await page.locator('.mc-set-tarjeta').count()) === 1,
-    String(await page.locator('.mc-set-tarjeta').count()))
+  check('y la serie también', (await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()) === 1,
+    String(await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()))
   // Las series salen de los sets que hay, no de una lista escrita a
   // mano: una serie nueva aparece sola.
   check('  …con las series que hay de verdad', (await page.locator('#mcEstanteriaSerie option').count()) === 4,
@@ -128,7 +135,7 @@ console.log('\n── 4. Buscar y filtrar por serie ──')
 console.log('\n── 5. Abrir una colección y volver ──')
 {
   const { page, errores } = await abrir([{ id: 'a', card_id: 'sv1-1', cantidad: 1 }])
-  await page.locator('.mc-set-tarjeta').first().click()
+  await page.locator('#mcPanelAlbum .mc-set-tarjeta').first().click()
   await page.waitForTimeout(1600)
   // Desde la 417 una expansión es una REJILLA y no un archivador: el
   // formato álbum se quedó para los álbumes soñados, que es donde el

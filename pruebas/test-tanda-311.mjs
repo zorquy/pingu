@@ -229,7 +229,11 @@ console.log('\n── 4. El espaciado cuadra en la retícula ──')
   // de la escala y tiene que ser uno de los seis. Por encima ya no es un
   // paso: es una medida —el hueco de un avatar, el alto de una barra
   // pegada— y solo se le pide que siga en la retícula de 4.
-  const ESCALA = new Set([1, 2, 4, 8, 12, 16, 24, 32])
+  // El 0 entra (tanda 447): `padding: 0px` es tan válido como `padding: 0`,
+  // y hace falta escribirlo CON unidad dentro de un `calc()` — el respaldo
+  // de `env(safe-area-inset-bottom, 0px)` no puede ser un cero a secas,
+  // que en un `calc` con longitudes es inválido.
+  const ESCALA = new Set([0, 1, 2, 4, 8, 12, 16, 24, 32])
   const fuera = []
   for (const hoja of HOJAS) {
     for (const m of sinComentarios(leer(hoja)).matchAll(/(?:padding|margin|gap)(?:-[a-z]+)?\s*:([^;{]+);/g)) {
