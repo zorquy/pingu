@@ -40,7 +40,14 @@ function faltaLaColumnaCambio(error) {
   return true
 }
 
-export async function lineasDe(userId) {
+// EL MERCADO ES DEL TODO, no solo del catálogo (tanda 437). Quien elige
+// el japonés quiere ver SU colección japonesa, no sus cartas inglesas
+// sobre un catálogo japonés. Y además hace falta que sea así: la clave de
+// `tcg_cards` es (id, market) porque el japonés comparte cuatro
+// identificadores de set con el inglés, de modo que un mapa de cartas en
+// memoria con la id a secas mezclaría dos cartas DISTINTAS sin dar ningún
+// error. Mientras cada pantalla mira un solo mercado, el choque no existe.
+export async function lineasDe(userId, mercado = 'WEST') {
   const filas = []
   // Con paginación: una colección grande pasa de las 1.000 filas que
   // PostgREST devuelve de una vez, y cortar ahí sin avisar diría un valor
@@ -50,6 +57,7 @@ export async function lineasDe(userId) {
       .from('user_collection')
       .select(COLUMNAS_LINEA)
       .eq('user_id', userId)
+      .eq('market', mercado)
       .order('created_at', { ascending: false })
       .range(desde, desde + 999)
     if (error) {
@@ -77,13 +85,13 @@ export async function lineasDeCarta(userId, cardId) {
 // Añadir: si ya hay una línea igual (misma carta, idioma, estado,
 // versión y gradeo) se le suman copias en vez de crear otra. Dos filas
 // iguales separadas solo harían la lista más larga.
-export async function anadir(userId, linea) {
+export async function anadir(userId, linea, mercado = 'WEST') {
   const existentes = await lineasDeCarta(userId, linea.card_id)
   const igual = existentes.find((l) => claveDeLinea(l) === claveDeLinea(linea))
   if (igual) {
     return actualizar(igual.id, { cantidad: Math.min(999, igual.cantidad + (linea.cantidad || 1)) })
   }
-  const { data, error } = await supabase.from('user_collection').insert({ market: 'WEST', ...linea }).select(COLUMNAS_LINEA).single()
+  const { data, error } = await supabase.from('user_collection').insert({ market: mercado, ...linea }).select(COLUMNAS_LINEA).single()
   if (error) throw traducir(error)
   return data
 }
@@ -99,7 +107,7 @@ export async function anadir(userId, linea) {
 // Las que YA tienes con la misma clave suben de copias, y esas sí van una
 // a una: son `update` sobre ids distintos y PostgREST no sabe hacerlo de
 // otra forma. Normalmente son pocas —marcas lo que te acaba de llegar—.
-export async function anadirVarias(userId, nuevasLineas) {
+export async function anadirVarias(userId, nuevasLineas, mercado = 'WEST') {
   // Se reciben LÍNEAS y no ids sueltos: en «separar variantes» cada
   // casilla es una versión, así que dos casillas de la misma carta son
   // dos líneas distintas y un id no bastaría para decir cuál se marcó.
@@ -123,7 +131,7 @@ export async function anadirVarias(userId, nuevasLineas) {
   for (const linea of porMeter) {
     const ya = porClave.get(claveDeLinea(linea))
     if (ya) suben.push(ya)
-    else nuevas.push({ market: 'WEST', ...linea })
+    else nuevas.push({ market: mercado, ...linea })
   }
   const puestas = []
   if (nuevas.length) {
@@ -172,18 +180,18 @@ export async function borrar(id) {
 // la misma consulta—, y además son por lo que luego se puede filtrar.
 const COLUMNAS_CARTA = 'id,set_id,local_id,name,name_es,image_path,rarity,category,variants,illustrator,types,dex_ids,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
 
-export async function cartasPorIds(ids) {
+export async function cartasPorIds(ids, mercado = 'WEST') {
   const unicos = [...new Set(ids.filter(Boolean))]
   const mapa = new Map()
   for (let i = 0; i < unicos.length; i += 150) {
-    const { data, error } = await supabase.from('tcg_cards').select(COLUMNAS_CARTA).eq('market', 'WEST').in('id', unicos.slice(i, i + 150))
+    const { data, error } = await supabase.from('tcg_cards').select(COLUMNAS_CARTA).eq('market', mercado).in('id', unicos.slice(i, i + 150))
     if (error) throw traducir(error)
     for (const c of data || []) mapa.set(c.id, c)
   }
   return mapa
 }
 
-export async function cartasDeSet(setId) {
+export async function cartasDeSet(setId, mercado = 'WEST') {
   const { data, error } = await supabase
     .from('tcg_cards')
     // `category` desde la 382: sin ella el filtro de categoría del
@@ -192,7 +200,7 @@ export async function cartasDeSet(setId) {
     // `serie_id` desde la 434: hace falta para montar a mano la ruta del
     // asset de TCGdex cuando `image_path` está a null.
     .select('id,set_id,local_id,name,name_es,image_path,rarity,category,variants,tcg_sets(tcg_online_code,serie_id)')
-    .eq('market', 'WEST')
+    .eq('market', mercado)
     .eq('set_id', setId)
     .limit(1000)
   if (error) throw traducir(error)
@@ -265,8 +273,16 @@ export const tieneCifras = (p) => Boolean(p && (p.tendencia || p.media30 || p.de
 // Lo que TIENE cada uno no se pregunta: la página ya lleva su colección
 // en memoria y contar por especie sale gratis en el navegador. Una
 // consulta que ya está hecha no se vuelve a hacer.
-export async function pokedexResumen() {
-  const { data, error } = await supabase.rpc('pokedex_resumen')
+export async function pokedexResumen(mercado = 'WEST') {
+  // UN PUENTE, como el de la columna `cambio`: `pokedex_resumen()` nació
+  // sin parámetro y con 'WEST' escrito dentro. Para el catálogo de siempre
+  // se la sigue llamando igual, así que la página funciona con la
+  // migración puesta o sin ella; solo el japonés la necesita, y si no
+  // está, `traducir` lo ve (PGRST202) y la pestaña lo dice en vez de
+  // enseñar los totales del inglés haciéndolos pasar por japoneses.
+  const { data, error } = mercado === 'WEST'
+    ? await supabase.rpc('pokedex_resumen')
+    : await supabase.rpc('pokedex_resumen', { p_market: mercado })
   if (error) {
     // Sin la migración no hay Pokédex, pero el resto de la página no
     // tiene por qué enterarse: se devuelve vacío y la pestaña lo dice.
@@ -282,11 +298,11 @@ export async function pokedexResumen() {
 // El tope es de verdad: de Pikachu hay más de 300 cartas y nadie las
 // mira todas de una vez. Se piden las más nuevas primero, que es el
 // orden en el que la gente busca.
-export async function cartasDeEspecie(dex, limite = 300) {
+export async function cartasDeEspecie(dex, limite = 300, mercado = 'WEST') {
   const { data, error } = await supabase
     .from('tcg_cards')
     .select(COLUMNAS_CARTA)
-    .eq('market', 'WEST')
+    .eq('market', mercado)
     .contains('dex_ids', [Number(dex)])
     .limit(limite)
   if (error) {

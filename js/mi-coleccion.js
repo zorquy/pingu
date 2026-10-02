@@ -14,7 +14,7 @@ import { escapeHtml, getSession, profileUrl, avatarStyle, getInitial } from './a
 import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
 import { supabase } from './supabase.js'
-import { normalizeSearch } from './tcgdex.js'
+import { normalizeSearch, NOMBRE_MERCADO } from './tcgdex.js'
 import { rutaDeCarta, urlDeLogo, urlDeLogoPorPartes } from './carta-ruta.js'
 // El escaneo con su respaldo (tanda 370): TCGdex no tiene imagen de
 // muchas cartas viejas, y sin esto el bolsillo se quedaba en blanco.
@@ -81,6 +81,41 @@ const pedida = params.get('ver')
 // tienes, que es a lo que entra uno cuando entra sin un plan.
 let pestania = PESTANAS.includes(pedida) ? pedida : MUDANZAS[pedida] || 'resumen'
 let albumesAbiertos = false
+
+// ── QUÉ CATÁLOGO SE MIRA (tanda 437) ──
+//
+// PINGU: «vamos a hacer que tengamos dos catálogos distintos… y después,
+// si seleccionas las japonesas». Ya están los cuatro en la base —el
+// occidental con 206 colecciones, el japonés con 186, el taiwanés con 98 y
+// el chino simplificado con 56—, así que esto no trae datos: deja de fijar
+// 'WEST' a mano en las diez consultas que lo tenían escrito.
+//
+// EL MERCADO ES DE TODA LA PANTALLA, no solo del catálogo. Quien elige el
+// japonés quiere ver SU colección japonesa, no sus cartas inglesas sobre
+// un catálogo japonés — y además hace falta que sea así: la clave de
+// `tcg_cards` es (id, market) porque el japonés comparte cuatro
+// identificadores de set con el inglés, de modo que el mapa `cartas`, que
+// va por la id a secas, mezclaría dos cartas DISTINTAS sin dar ningún
+// error. Mientras cada visita mira un solo mercado, ese choque no existe.
+//
+// Los cuatro son los que están importados (MERCADOS_A_IMPORTAR en
+// js/tcgdex.js). Los otros tres que admite la base —coreano, indonesio y
+// tailandés— no se ofrecen porque saldrían vacíos.
+const MERCADOS_A_LA_VISTA = ['WEST', 'JP', 'TW', 'CN']
+const CLAVE_MERCADO = 'mc-mercado'
+
+// Se recuerda por navegador, no en el perfil: es cómo MIRAS la página, no
+// un dato tuyo, y quien colecciona las dos cosas cambia a menudo. El
+// try/catch no es por gusto — en una ventana privada `localStorage` lanza.
+function mercadoGuardado() {
+  try {
+    const v = localStorage.getItem(CLAVE_MERCADO)
+    return MERCADOS_A_LA_VISTA.includes(v) ? v : 'WEST'
+  } catch {
+    return 'WEST'
+  }
+}
+let mercado = mercadoGuardado()
 // Las expansiones favoritas. TRES estados y no dos: `null` es «no se
 // sabe» —la migración no está puesta—, y entonces ni se pinta el grupo ni
 // sale la estrella. Un `new Set()` por defecto diría «no tienes ninguna»,
@@ -1145,7 +1180,7 @@ async function cargarSets() {
     // por los logos, y agrupar por serie es lo que hace navegable una
     // lista de 220 colecciones.
     .select('id,name,serie_id,serie_name,logo_path,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code')
-    .eq('market', 'WEST')
+    .eq('market', mercado)
     .order('release_date', { ascending: false, nullsFirst: false })
     .limit(1000)
   todosLosSets = (data || []).filter((s) => esDelTCG(s))
@@ -1368,7 +1403,7 @@ async function abrirAlbum(setId) {
   pintarEstrella()
   $('mcAlbum').innerHTML = '<p class="subtext">Cargando la colección…</p>'
   try {
-    album.cartas = (await datos.cartasDeSet(setId)).sort(porNumero)
+    album.cartas = (await datos.cartasDeSet(setId, mercado)).sort(porNumero)
   } catch (err) {
     $('mcAlbum').innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
     return
@@ -1784,7 +1819,7 @@ async function guardarMarcadas() {
   })
   boton.disabled = true
   try {
-    const puestas = await datos.anadirVarias(sesion.user.id, lineasNuevas)
+    const puestas = await datos.anadirVarias(sesion.user.id, lineasNuevas, mercado)
     // Las que ya estaban vuelven ACTUALIZADAS y las nuevas, nuevas: se
     // mezclan por id para no acabar con la misma línea dos veces en la
     // lista, que es lo que pasa si se hace `unshift` a lo bruto.
@@ -1816,7 +1851,7 @@ async function tocarBolsillo(cardId, variante = 'normal') {
   const idioma = $('mcTocarIdioma').value
   const estado = $('mcTocarEstado').value
   try {
-    const nueva = await datos.anadir(sesion.user.id, { card_id: cardId, idioma, estado, variante, cantidad: 1 })
+    const nueva = await datos.anadir(sesion.user.id, { card_id: cardId, idioma, estado, variante, cantidad: 1 }, mercado)
     const i = lineas.findIndex((l) => l.id === nueva.id)
     if (i >= 0) lineas[i] = nueva
     else lineas.unshift(nueva)
@@ -1882,7 +1917,7 @@ async function alternarVariante(cardId, variante) {
         estado: $('mcTocarEstado').value,
         variante,
         cantidad: 1,
-      })
+      }, mercado)
       lineas.unshift(nueva)
       // La carta puede no estar en el mapa: el álbum se pinta con las
       // del set, no con las tuyas (mismo caso que `tocarBolsillo`).
@@ -1917,7 +1952,7 @@ let turnoBusqueda = 0
 // cambios. Copiarla habría dejado dos buscadores que se separan sin
 // que nadie se entere — la lección de `IDIOMA_POR_MERCADO`.
 async function buscarCartas(texto, limite = 60) {
-  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,image_path,rarity,tcg_sets(id,name,serie_id,release_date,tcg_online_code)').eq('market', 'WEST')
+  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,image_path,rarity,tcg_sets(id,name,serie_id,release_date,tcg_online_code)').eq('market', mercado)
   for (const p of texto.split(/\s+/).filter(Boolean)) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
   const { data, error } = await q.order('name_search').limit(limite)
   if (error) throw error
@@ -1992,7 +2027,7 @@ async function anadirSeleccion(e) {
       estado: $('mcAnadirEstado').value,
       variante: $('mcAnadirVariante').value,
       cantidad: Math.max(1, Math.min(999, Math.round(Number($('mcAnadirCantidad').value) || 1))),
-    })
+    }, mercado)
     const i = lineas.findIndex((l) => l.id === nueva.id)
     if (i >= 0) lineas[i] = nueva
     else lineas.unshift(nueva)
@@ -2200,7 +2235,7 @@ async function abrirPokedex() {
     try {
       const [modulo, totales] = await Promise.all([
         import('./mi-coleccion/pokedex.js'),
-        datos.pokedexResumen().catch(() => []),
+        datos.pokedexResumen(mercado).catch(() => []),
       ])
       pokedex = modulo
       totalesPokedex = new Map((totales || []).map((f) => [Number(f.dex), Number(f.cartas)]))
@@ -2250,7 +2285,7 @@ async function pintarEspecie(dex) {
   caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
   let delCatalogo = []
   try {
-    delCatalogo = await datos.cartasDeEspecie(dex)
+    delCatalogo = await datos.cartasDeEspecie(dex, 300, mercado)
   } catch {
     // Que no se vea el catálogo no puede dejar la pantalla en blanco:
     // abajo se enseña lo tuyo igualmente.
@@ -2337,7 +2372,7 @@ async function pintarCambios() {
   // y esta página solo cargó las tuyas.
   const faltan = [...tiene, ...busca, ...deseos].map((f) => f.card_id).filter((id) => !cartas.has(id))
   if (faltan.length) {
-    const nuevas = await datos.cartasPorIds(faltan)
+    const nuevas = await datos.cartasPorIds(faltan, mercado)
     for (const [id, c] of nuevas) cartas.set(id, c)
   }
   // LO PRIMERO, LAS CIFRAS (tanda 415). PINGU: «el tema de los cambios
@@ -2556,6 +2591,11 @@ function pintarIconos() {
 
 function enganchar() {
   pintarIconos()
+  // El selector de catálogo (tanda 437), en los tres sitios a la vez.
+  pintarMercados()
+  for (const sel of document.querySelectorAll('.mc-mercado')) {
+    sel.addEventListener('change', () => void cambiarMercado(sel.value))
+  }
   for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.pestania))
   // AQUÍ VIVÍA el observador que apartaba la barra flotante al llegar al
   // pie (tanda 406). Se fue en la 419 y el motivo merece quedar escrito:
@@ -3045,6 +3085,11 @@ const contexto = {
     return cartas
   },
   sets: () => cargarSets(),
+  // Un getter y no un valor: el mercado cambia sin recargar la página, y
+  // una copia se quedaría con el de cuando se montó el contexto.
+  get mercado() {
+    return mercado
+  },
   porNumero,
 }
 
@@ -3129,13 +3174,23 @@ async function iniciar() {
   pintarCompartir()
   cambiarPestania(pestania)
 
+  await cargarColeccion(dueno.id, { primeraVez: true })
+  window.addEventListener('resize', () => album.set && pintarAlbum())
+}
+
+// La carga, suelta desde la tanda 437 porque se hace DOS veces: al entrar
+// y cada vez que se cambia de catálogo. Copiarla habría dejado dos cargas
+// que se separan sin que nadie se entere.
+let duenoActual = null
+async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
+  duenoActual = duenoId
   try {
-    lineas = await datos.lineasDe(dueno.id)
+    lineas = await datos.lineasDe(duenoId, mercado)
     const ids = lineas.map((l) => l.card_id)
-    ;[cartas, guardados] = await Promise.all([datos.cartasPorIds(ids), datos.preciosGuardados(ids)])
+    ;[cartas, guardados] = await Promise.all([datos.cartasPorIds(ids, mercado), datos.preciosGuardados(ids)])
     // Las favoritas van aparte y sin parar nada: si fallan, la estantería
     // se pinta igual, solo que sin su grupo de arriba.
-    if (esMia) favoritos = await datos.favoritosDeSets(dueno.id).catch(() => null)
+    if (esMia) favoritos = await datos.favoritosDeSets(duenoId).catch(() => null)
   } catch (err) {
     aviso(`<p>${escapeHtml(err.message)}</p>`)
     return
@@ -3144,12 +3199,60 @@ async function iniciar() {
   repintar()
   if (pestania === 'album') pintarEstanteria()
   // Si se entró directo a un álbum, se repinta ahora que se sabe qué
-  // cartas tienes.
-  if (pestania === 'carpetas' && params.get('album')) albumes.abrir(params.get('album'))
+  // cartas tienes. Solo al entrar: al cambiar de catálogo, el `?album=`
+  // de la dirección ya no es dónde estás.
+  if (primeraVez && pestania === 'carpetas' && params.get('album')) albumes.abrir(params.get('album'))
   // Los precios que falten llegan después y repintan: la lista no espera.
   await completarPrecios()
   repintar()
-  window.addEventListener('resize', () => album.set && pintarAlbum())
+}
+
+// ── Cambiar de catálogo (tanda 437) ──
+//
+// Todo lo que hay en memoria es DE UN MERCADO: las líneas, el mapa de
+// cartas, los precios, la lista de colecciones, la Pokédex, el álbum
+// abierto y la gráfica del valor. Se tira TODO y se vuelve a cargar — no
+// es una optimización que falte, es que quedarse con la mitad mezclaría
+// dos catálogos en la misma pantalla y nada daría error.
+async function cambiarMercado(nuevo) {
+  if (!MERCADOS_A_LA_VISTA.includes(nuevo) || nuevo === mercado) return
+  mercado = nuevo
+  try {
+    localStorage.setItem(CLAVE_MERCADO, nuevo)
+  } catch {
+    // En una ventana privada no se puede guardar. Se pierde la elección
+    // al recargar y ya está: no es motivo para no cambiar de catálogo.
+  }
+  todosLosSets = null
+  album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false }
+  pokedex = null
+  pokedexCargada = false
+  especieAbierta = null
+  historico = null
+  // Estas tres las vuelve a escribir `cargarColeccion` enseguida, así que
+  // parecen de sobra. No lo son: si la carga FALLA, su `catch` enseña el
+  // aviso y vuelve, y sin vaciarlas antes la pantalla se quedaría con la
+  // colección del catálogo anterior debajo del rótulo del nuevo.
+  lineas = []
+  cartas = new Map()
+  guardados = new Map()
+  pintarMercados()
+  $('mcCargando')?.classList.remove('hidden')
+  await cargarColeccion(duenoActual)
+}
+
+// El mismo desplegable en los tres sitios donde se mira el catálogo: la
+// estantería, la lista de cartas y la Pokédex. Es UNO repetido y no tres
+// distintos, así que se pintan y se escuchan juntos — si se separan, un
+// camino se queda con el mercado viejo y lo enseña como si tal cosa.
+function pintarMercados() {
+  const opciones = MERCADOS_A_LA_VISTA
+    .map((m) => `<option value="${m}">${escapeHtml(NOMBRE_MERCADO[m] || m)}</option>`)
+    .join('')
+  for (const sel of document.querySelectorAll('.mc-mercado')) {
+    if (sel.innerHTML !== opciones) sel.innerHTML = opciones
+    sel.value = mercado
+  }
 }
 
 iniciar()

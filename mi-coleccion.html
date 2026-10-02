@@ -164,6 +164,11 @@
           <button type="button" class="mc-chip-mando" id="mcAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
             <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcFiltrosCuenta"></span>
           </button>
+          <!-- Qué catálogo se mira (tanda 437). Va en los TRES sitios donde
+               se mira el catálogo —aquí, la estantería y la Pokédex— porque
+               el que cambia es el mismo y quien está en una pantalla no
+               tiene por qué irse a otra para cambiarlo. -->
+          <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
           <button type="button" class="mc-chip-mando mc-chip-solo-icono hidden" id="mcFiltrosQuitar" aria-label="Quitar la búsqueda y los filtros">✕</button>
         </div>
 
@@ -248,6 +253,7 @@
               <input type="search" id="mcEstanteriaBuscar" placeholder="Buscar una colección…" aria-label="Buscar una colección" />
             </div>
             <select id="mcEstanteriaSerie" class="mc-chapa-select" aria-label="Serie"></select>
+            <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
           </div>
           <div id="mcEstanteriaRejilla"></div>
         </div>
@@ -505,6 +511,7 @@
                colecciona no es «el siguiente por número», es «¿a cuál le
                falta UNA?», y esa lista no existía. Los dos datos ya
                estaban en memoria. -->
+          <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
           <select id="mcPdxOrden" class="mc-chapa-select" aria-label="Cómo se ordena la Pokédex">
             <option value="dex">Por número</option>
             <option value="cerca">Los que casi completas</option>

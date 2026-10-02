@@ -118,7 +118,7 @@ async function pintarLista() {
   }
   // Las portadas que no estén en la colección, de una vez.
   const faltan = albumes.map((a) => a.cartas?.[0]?.id).filter((id) => id && !ctx.cartas.has(id) && !cartasDelAlbum.has(id))
-  if (faltan.length) for (const [id, c] of await datos.cartasPorIds(faltan).catch(() => new Map())) cartasDelAlbum.set(id, c)
+  if (faltan.length) for (const [id, c] of await datos.cartasPorIds(faltan, ctx.mercado).catch(() => new Map())) cartasDelAlbum.set(id, c)
   $('mcAlbumesRejilla').innerHTML = albumes.map(tarjetaHtml).join('')
   $('mcAlbumesVacio').classList.toggle('hidden', albumes.length > 0)
 }
@@ -138,7 +138,7 @@ async function nuevoAlbum({ nombre, icono, dex_id, emoji, color }) {
       for (const c of orden) if (!vistas.has(c.id)) vistas.add(c.id) && ids.push(c.id)
     } else if (origen === 'set') {
       const setId = $('mcAlbSet').value
-      if (setId) ids = (await datos.cartasDeSet(setId)).sort(ctx.porNumero).map((c) => c.id)
+      if (setId) ids = (await datos.cartasDeSet(setId, ctx.mercado)).sort(ctx.porNumero).map((c) => c.id)
     }
     const fila = await crearAlbum({
       nombre: String(nombre).trim().slice(0, 80) || 'Mi álbum',
@@ -168,7 +168,7 @@ export async function abrir(id, { soloVer = false } = {}) {
   pagina = 0
   const ids = actual.cartas.map((c) => c.id)
   const faltan = ids.filter((id) => !ctx.cartas.has(id) && !cartasDelAlbum.has(id))
-  if (faltan.length) for (const [cid, c] of await datos.cartasPorIds(faltan).catch(() => new Map())) cartasDelAlbum.set(cid, c)
+  if (faltan.length) for (const [cid, c] of await datos.cartasPorIds(faltan, ctx.mercado).catch(() => new Map())) cartasDelAlbum.set(cid, c)
 
   $('mcAlbumesLista').classList.add('hidden')
   $('mcAlbumesDetalle').classList.remove('hidden')

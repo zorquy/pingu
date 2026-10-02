@@ -23116,3 +23116,65 @@ sexta era un camino que la prueba no andaba: entrar por `?ver=cartas` y
 pulsar «Panel», que es cuando los vistazos no se han pintado NUNCA y el
 repintado de `repintar()` ya no sirve de red porque corrió con el panel
 escondido.
+
+## Tanda 437 — qué catálogo se mira (oct. 2026)
+
+PINGU: «vamos a hacer que tengamos dos catálogos distintos… y después, si
+seleccionas las japonesas». Los cuatro mercados ya estaban importados
+—occidental 206 colecciones, japonés 186, taiwanés 98, chino simplificado
+56—, así que esto no trae datos: deja de fijar `'WEST'` a mano en las diez
+consultas que lo tenían escrito.
+
+**El mercado es de TODA la pantalla, no solo del catálogo.** Es la decisión
+que lo sostiene todo, y no es de gusto: la clave de `tcg_cards` es
+`(id, market)` porque el japonés comparte identificadores de set con el
+inglés —`sv1` existe en los dos y son colecciones DISTINTAS—. El mapa
+`cartas` de `/mi-coleccion` va por la id a secas, así que mezclar dos
+mercados en la misma visita juntaría dos cartas distintas bajo la misma
+clave, **sin dar ningún error**. Mientras cada visita mira un solo mercado,
+ese choque no existe. Por eso al elegir japonés se ven TUS cartas
+japonesas: `user_collection` ya tenía su columna `market`, con 'WEST' por
+defecto, desde la migración de mercados.
+
+**Dónde está.** `mercado` es estado del módulo, se guarda en
+`localStorage` (`mc-mercado`) y no en el perfil: es cómo MIRAS la página,
+no un dato tuyo. `MERCADOS_A_LA_VISTA` son los cuatro importados y no los
+siete que admite la base — ofrecer el coreano sería ofrecer una pantalla
+vacía. El mismo `<select class="mc-mercado">` va en los tres sitios donde
+se mira un catálogo (cartas, estantería y Pokédex): `pintarMercados()` los
+llena y los sincroniza a los tres de golpe, porque si uno se queda atrás
+quien entra por esa pantalla ve un catálogo creyendo que ve otro.
+
+**Cambiar de catálogo tira TODO lo que hay en memoria** —`todosLosSets`,
+el álbum abierto, la Pokédex, la gráfica, las líneas, el mapa de cartas y
+los precios— y vuelve a cargar. No es una optimización que falte:
+quedarse con la mitad mezclaría dos catálogos en la misma pantalla. La
+carga se sacó a `cargarColeccion()` para que la haga el arranque y la haga
+el cambio, en vez de tener dos copias que se separan.
+
+**La Pokédex necesitaba la base.** `pokedex_resumen()` nació con `'WEST'`
+escrito dentro, así que en japonés habría dicho «de Pikachu hay 312
+cartas» contando las INGLESAS mientras el progreso de al lado cuenta las
+japonesas que tienes: dos catálogos en la misma frase y sin error. De ahí
+`supabase-migration-pokedex-mercado.sql`, que le pone `p_market` **con
+valor por defecto**, de modo que `pokedex_resumen()` a secas siga
+significando lo mismo. El cliente hace de puente: para 'WEST' la llama sin
+argumento, así que la página funciona con la migración puesta o sin ella.
+
+**Lo que enseñó el rigor (14/16 a la primera).** Las dos que se escaparon
+eran el mismo agujero: la prueba miraba las LISTAS —la estantería
+japonesa, la rejilla de la Pokédex— pero no **abría** nada. Enseñar la
+estantería japonesa no prueba que dentro de un set japonés haya cartas
+japonesas, y menos cuando `sv1` existe en los dos mercados. Son dos
+consultas más (`cartasDeSet` y `cartasDeEspecie`) y nadie las andaba.
+
+**Y un fallo del DOBLE que salió de su propia salida.** Con la expansión
+abierta, una carta japonesa se rotulaba «Scarlet & Violet»: el doble
+resolvía el embebido `tcg_sets(…)` por `set_id` a secas, mientras que en
+la base la clave ajena es `(set_id, market) → (id, market)` justo para
+impedirlo. O sea que el doble escondía la clase de fallo que la base no
+puede tener. Ahora `EMBEBIDOS_TAMBIEN_POR` declara las columnas que además
+tienen que coincidir, **con su valor por defecto**: la columna es
+`not null default 'WEST'`, así que una fila de fixture que no diga nada ES
+occidental — sin eso, comparar `null` contra `'WEST'` habría dejado sin set
+a casi todas las cartas de las pruebas viejas.

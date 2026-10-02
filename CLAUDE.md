@@ -341,6 +341,20 @@ perfectamente válido, y lo escrito mientras tanto sencillamente no estaba.
 sino una restauración limpia. Si hay que seguir trabajando mientras corre
 un rigor, trabaja en otro fichero.
 
+**Un doble más simple que la base esconde fallos que la base no puede
+tener** (tanda 437). El doble de Supabase resolvía el embebido
+`tcg_sets(…)` por `set_id` a secas, pero en la base la clave ajena es
+`(set_id, market) → (id, market)` — compuesta A PROPÓSITO, porque el
+japonés comparte identificadores de set con el inglés. Resultado: una carta
+japonesa salía rotulada con el nombre INGLÉS de su colección, en una
+prueba en verde, mientras que en producción eso no puede pasar. Se vio de
+casualidad, leyendo lo que la prueba imprimía al lado de un `ok`. Si el
+doble simplifica una restricción de la base, la prueba deja de hablar de la
+web. Y al copiar una restricción, cópiale también **el valor por defecto**:
+`market` es `not null default 'WEST'`, así que una fila de fixture que no
+diga nada ES occidental — comparar `null` contra `'WEST'` dejaba sin set a
+casi todas las cartas de las pruebas viejas.
+
 Y **no mates un rigor con `pkill`**: el 2026-09-16 se hizo para dejar
 sitio a la suite y pilló una mutación puesta —`foro.html` se quedó sin el
 enlace de salto—. El salvavidas lo arregló (`rigor_comun.rescatar()`),

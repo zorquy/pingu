@@ -35,6 +35,72 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 437 — qué catálogo se mira)
+
+**Hecho**: PINGU: «vamos a hacer que tengamos dos catálogos distintos… y
+después, si seleccionas las japonesas». Los cuatro mercados YA estaban
+importados —occidental 206 colecciones, japonés 186, taiwanés 98, chino
+simplificado 56—, así que esto no trae datos: quita el `'WEST'` fijo de las
+diez consultas que lo tenían escrito y pone un selector en los tres sitios
+donde se mira un catálogo (cartas, estantería y Pokédex).
+
+**La decisión que lo sostiene todo: el mercado es de TODA la pantalla, no
+solo del catálogo.** Elegir japonés enseña TU colección japonesa.
+`user_collection` ya tenía su columna `market` desde la migración de
+mercados, así que no hace falta nada nuevo para eso — y además tiene que
+ser así: la clave de `tcg_cards` es `(id, market)` porque el japonés
+comparte identificadores de set con el inglés (`sv1` existe en los dos y
+son colecciones DISTINTAS), y el mapa `cartas` de /mi-coleccion va por la
+id a secas. Mezclar dos mercados en la misma visita juntaría dos cartas
+distintas bajo la misma clave **sin dar ningún error**.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`,
+`js/mi-coleccion/albumes.js`, `mi-coleccion.html`,
+`supabase-migration-pokedex-mercado.sql` (NUEVO). Pruebas (rama `pruebas`):
+`test-tanda-437.mjs` (NUEVO), `rigor/rigor-tanda-437.py` (NUEVO),
+`herramientas/stub-supabase.js`.
+
+**HAY QUE EJECUTAR UN SQL**: `supabase-migration-pokedex-mercado.sql`.
+`pokedex_resumen()` nació con `'WEST'` escrito dentro, así que en japonés
+diría «de Pikachu hay 312 cartas» contando las INGLESAS mientras el
+progreso de al lado cuenta las japonesas que tienes. El parámetro lleva
+valor por defecto, y el cliente llama sin argumento para el occidental, así
+que la página funciona con la migración puesta o sin ella. Validada contra
+PostgreSQL 16 de verdad: sube desde la función vieja, deja UNA sola firma y
+es idempotente.
+
+**Rigor**: 14 de 16 a la primera. Las dos que se escaparon eran el mismo
+agujero: la prueba miraba las LISTAS pero no ABRÍA nada. Enseñar la
+estantería japonesa no prueba que dentro de un set japonés haya cartas
+japonesas — y menos cuando `sv1` existe en los dos mercados. Son dos
+consultas más (`cartasDeSet` y `cartasDeEspecie`) y nadie las andaba.
+
+**Y un fallo DEL DOBLE que salió de su propia salida**: con la expansión
+abierta, una carta japonesa se rotulaba «Scarlet & Violet». El doble
+resolvía el embebido `tcg_sets(…)` por `set_id` a secas; en la base la
+clave ajena es `(set_id, market) → (id, market)` justo para impedirlo. O
+sea que el doble escondía la clase de fallo que la base no puede tener.
+Arreglado con `EMBEBIDOS_TAMBIEN_POR`, y con el valor POR DEFECTO de la
+columna dentro: es `not null default 'WEST'`, así que una fila de fixture
+sin mercado ES occidental — sin eso, comparar `null` contra `'WEST'`
+dejaría sin set a casi todas las cartas de las pruebas viejas.
+
+**En curso / pendiente**: siguen sin ejecutar
+`supabase-migration-trainer-gallery.sql` y, después,
+`supabase-migration-trainer-gallery-serie.sql`.
+
+Lo que NO entra aquí y es lo siguiente de esta conversación: el eje
+**español/inglés**, que es otra cosa distinta del mercado —el mercado dice
+QUÉ cartas existen; el idioma, cómo se ESCRIBEN (`name` contra `name_es`) y
+a qué Cardmarket se enlaza—. Y dos cosas quedan sabidas y sin resolver: las
+expansiones favoritas se guardan por `set_id` a secas, así que una
+favorita occidental marcaría la japonesa del mismo id; y los álbumes
+soñados guardan `card_id` sin mercado. Ninguna de las dos se rompe hoy
+porque las dos listas son cortas y de un solo catálogo, pero están
+apuntadas aquí para que no se descubran dentro de seis meses.
+
+---
+
 ## 2026-10-02 — PINGU-Claude (tanda 436 — el Panel primero, y un asomo de cada pestaña)
 
 **Hecho**: PINGU, con el panel de control de Dex delante: «el panel debería
