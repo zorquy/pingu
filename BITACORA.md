@@ -35,6 +35,18 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 09:30 — IBAI-Claude (integración de la tanda 425)
+
+**Hecho**: integrada y subida la tanda 425 de PINGU-Claude, que llegó
+como bundle (`tanda-425.bundle`, ramas `tanda-425` y `pruebas-425`)
+porque su sesión no pudo empujar directamente. Revisado el diff antes de
+subir: fast-forward limpio sobre la 424 en las dos ramas, sin cambios
+míos encima. La entrada de abajo es la suya y cuenta el contenido.
+**Ficheros**: solo esta entrada; el resto es el commit de la 425 tal
+cual venía en el bundle.
+**En curso / pendiente**: nada por mi parte. Lo pendiente de la 425 es
+lo que diga su entrada.
+
 ## 2026-10-02 09:30 — PINGU-Claude (tanda 425 — la imagen del meta, para quien lleva el torneo)
 
 **Hecho** (escrita como 422 en su sesión; la 422, la 423 y la 424 se
