@@ -23592,3 +23592,137 @@ ninguna pestaña**. Es a propósito: se entra por el «Ver todas» del Panel,
 como una subpantalla suya. `test-tanda-408` lo comprueba expresamente —que
 no haya ninguna activa— porque el arreglo que pide el cuerpo es encender el
 Panel, y eso sería decir que estás en el Panel cuando no lo estás.
+
+## Tandas 449 y 450 — ordenar y filtrar como en Dex (oct. 2026)
+
+PINGU, con Dex delante: «ordenado por fecha de salida, nombre, ilustrador,
+número de la Pokédex, precio, cuántas tienes y tipo de energía; y filtrar
+por estado, notas, tipo de carta, tipo de energía, tipo de entrenador y
+rareza».
+
+### La bandeja, y por qué no es un desplegable
+
+Era un `<select>` de cuatro opciones. Diez criterios en un desplegable de
+móvil es una lista de diez renglones encima de la pantalla; Dex sube una
+**hoja desde abajo** con los criterios en lista, su icono y una marca en el
+elegido, y el sentido en un interruptor de dos arriba. Eso es lo que hay.
+
+Sube desde **abajo** y no desde el lado como el panel de filtros, a
+propósito: el pulgar está abajo, y esta hoja se abre, se toca una cosa y se
+cierra. El panel de filtros se queda abierto mientras pruebas.
+
+Y el botón de la barra **dice qué orden hay puesto**, no «Ordenar» a secas:
+un control que guarda un estado y no lo enseña obliga a abrirlo para saber
+qué pusiste.
+
+### Lo que no se sabe va al final, mire como se mire
+
+Es lo único de `js/mi-coleccion/filtros.js` que no es obvio, y es lo que
+más defiende la prueba. El ilustrador, el número de Pokédex y el tipo de
+energía los rellena la función programada `cartas-detalle` **carta a
+carta**, así que en cualquier momento hay cartas que todavía no lo tienen.
+Si una carta sin ilustrador se ordenara como si su ilustrador fuera la
+cadena vacía, saldría **la primera** al ordenar por ilustrador — y quien
+mira entiende «estas son las de ese ilustrador», que es mentira.
+
+Por eso un orden no es un comparador: es una **clave** más un **sentido**.
+Las claves que no se saben se apartan antes de comparar y se pegan al final
+en los dos sentidos. Corolario: **el sentido no puede ser un `reverse()`**
+de la lista ya ordenada, que es lo que hacía el botón «Al revés» — eso las
+subiría arriba del todo.
+
+Y cada criterio trae su **sentido natural**: el precio de más caro a más
+barato, el nombre de la A a la Z. Obligar a tocar dos controles para ver lo
+normal es de las cosas que hacen que una pantalla parezca torpe.
+
+### Un número suelto no es parte del nombre (tanda 450)
+
+PINGU: «si pongo el Mega-Mewtwo X de Breakthrough, que es el número 64, y
+escribo *Mewtwo 64*, ya no me hace la búsqueda». El buscador cruzaba cada
+palabra contra `name_search` —que son los dos nombres y nada más—, así que
+exigía que «64» estuviera EN EL NOMBRE. Cero resultados, sin ningún error.
+
+Ahora `partirBusqueda` separa los dígitos del nombre, y un número vale por
+**las dos cosas que puede significar**: el número impreso (`local_id`,
+también con ceros delante, que hay sets que imprimen «064») o el **número
+nacional de Pokédex** (`dex_ids`, que tiene índice GIN). Quedarse con uno
+dejaría media web sin encontrar a la primera. Un número **solo** también
+busca: «64» quiere decir «enséñame las 64».
+
+Y solo pasan dígitos, que esto se monta dentro de un `or=` de PostgREST:
+una coma o un paréntesis del usuario cambiarían la consulta.
+
+**El ilustrador va en una SEGUNDA consulta**, no en un `or` de la primera.
+Un `or` entre `name_search` e `illustrator` no puede usar el índice del
+nombre y obligaría a recorrer las 23.000 cartas **en cada tecla**. Así el
+caso normal sigue yendo por su índice y la pasada cara solo ocurre cuando
+ya no hay nada que perder — y la cuenta lo dice («· por ilustrador»),
+porque si no parece que el buscador ha entendido otra cosa.
+
+### Lo humano filtra; lo que lee un OCR, ordena
+
+El escáner **sigue** buscando por nombre y subiendo la carta del número
+leído con `afinarPorNumero`, aunque ahora meter el número en la búsqueda
+sería más corto. Un número no vale lo mismo según quién lo escriba: el que
+teclea una persona es lo que esa persona quiere, y filtrar por él es
+obedecer; el que saca un OCR de una foto movida es una **pista**, y un 8
+leído donde hay un 6 convertido en filtro deja cero resultados con la carta
+correcta delante.
+
+### Los filtros de Buscar van EN LA CONSULTA
+
+Y esta es la diferencia que lo cambia todo respecto a los de tu colección.
+En tu colección se filtra en memoria porque las cartas ya están en la
+página. En el catálogo hay 21.000 y la consulta trae 120, así que **filtrar
+después de traerlas sería filtrar la muestra, no el catálogo**: pedir
+«Pikachu» y luego quedarse con las de fuego daría las de fuego *de las 120
+primeras por nombre*, no las que hay.
+
+De ahí también que la cuenta diga «hay más, afina la búsqueda» al llegar al
+tope: ordenar 120 de 400 por fecha no da «las más nuevas del catálogo», da
+«las más nuevas de estas 120», y callarlo sería enseñar una lista que
+parece lo que no es.
+
+Las opciones de los chips salen de los **mapas de traducción** de
+`js/carta-traducciones.js`, que es donde ya están escritas y traducidas: no
+es una lista a mano nueva, es la que ya había. Lo que eso deja fuera: una
+rareza que TCGdex invente mañana y que nadie haya traducido todavía no sale
+como chip — la carta se sigue encontrando, el filtro solo no la ofrece. Es
+la lección de la 323 con su mordida aceptada.
+
+### Los enums estaban a medias, y eso no da error: se queda viejo
+
+PINGU: «te he dicho solo partidario, objeto, herramienta y estadio;
+realmente hay muchos más». Son **ocho** en el `interfaces.d.ts` de TCGdex,
+y faltaban tres: máquina técnica, máquina secreta de Rocket y el casino de
+Ciudad Trigal. `traducir` devuelve el valor **tal cual** cuando no lo
+conoce, así que una carta de Neo salía rotulada «Technical Machine» en una
+web en español — y el chip del filtro, igual.
+
+Las fases estaban peor: faltaban BREAK, V-UNION y Baby, y «Restored» estaba
+escrito así cuando TCGdex dice `RESTORED`. La búsqueda de la clave es
+**exacta**, así que esa fase no llegaba nunca a traducirse.
+
+### Y una clase repetida te aplica el CSS de otro
+
+La bandeja se llamó primero `.mc-hoja`… y `.mc-hoja` **ya existía**: es una
+hoja de archivador y lleva `display: grid`. La bandeja heredó esa rejilla y
+el título, el interruptor y la lista salieron **en fila**, uno al lado del
+otro. No da error de ninguna clase. Se llama `.mc-bandeja`. Antes de
+inventar un nombre de clase, búscalo.
+
+### Qué hay de cada mercado (el botón de /admin)
+
+PINGU: «las colecciones chinas y japonesas no las estamos trayendo,
+¿verdad? No hay ni una carta cargada, ni los logos se cargan». El código
+soporta los cuatro mercados —`cargarSetsDeTcgdex` recorre
+`MERCADOS_A_IMPORTAR` y guarda cada set con el suyo, y `urlDeLogo` monta la
+dirección con el idioma del mercado—, así que lo más probable es que
+sencillamente **no se haya importado**.
+
+Pero desde la web las dos causas se ven IGUAL: un catálogo vacío y un
+camino roto dan los dos una pantalla sin nada. De ahí el botón **«Qué hay
+de cada mercado»** en /admin → Cartas: cuenta sets, sets con logo y cartas
+por mercado con `head: true` (ocho consultas de cuenta, sin traer filas), y
+dice qué hacer con lo que salga. Un número separa en un segundo lo que si
+no se discute a ciegas.

@@ -21,15 +21,30 @@ export const TIPOS_ES = {
   Metal: 'Metal', Fairy: 'Hada', Dragon: 'Dragón', Colorless: 'Incolora',
 }
 
+// Las ONCE fases de TCGdex, copiadas de su `interfaces.d.ts` (tanda 450).
+// Faltaban BREAK, V-UNION y Baby, y «Restored» estaba escrito así cuando
+// en TCGdex es `RESTORED`: `traducir` busca la clave EXACTA, así que esa
+// se enseñaba en inglés y en mayúsculas sin que nada diera error.
 export const FASES_ES = {
   Basic: 'Básico', Stage1: 'Fase 1', Stage2: 'Fase 2',
-  MEGA: 'MEGA', VMAX: 'VMAX', VSTAR: 'VSTAR', Restored: 'Restaurado',
+  MEGA: 'MEGA', VMAX: 'VMAX', VSTAR: 'VSTAR', 'V-UNION': 'V-UNION',
+  BREAK: 'BREAK', Baby: 'Bebé', RESTORED: 'Restaurado',
   'LEVEL-UP': 'Nivel superior',
 }
 
+// Los OCHO tipos de entrenador de TCGdex, no los cuatro de siempre. PINGU:
+// «te he dicho solo partidario, objeto, herramienta y estadio; realmente
+// hay muchos más — máquina técnica, máquina secreta de Rocket…». Los que
+// faltaban son de sets viejos, y por eso no se echan de menos hasta que
+// alguien colecciona Neo o EX Team Rocket Returns: entonces el filtro
+// enseña el valor en inglés, que es la forma de quedarse viejo sin dar
+// error.
 export const ENTRENADORES_ES = {
   Supporter: 'Partidario', Item: 'Objeto', Stadium: 'Estadio',
   Tool: 'Herramienta', 'Ace Spec': 'ACE SPEC',
+  'Technical Machine': 'Máquina técnica',
+  "Rocket's Secret Machine": 'Máquina secreta de Rocket',
+  'Goldenrod Game Corner': 'Casino de Ciudad Trigal',
 }
 
 export const CATEGORIAS_ES = { Pokemon: 'Pokémon', Trainer: 'Entrenador', Energy: 'Energía' }

@@ -2932,6 +2932,43 @@ async function diagnosticarCartas() {
   boton.disabled = false
 }
 
+// Cuenta lo que hay EN NUESTRA BASE por mercado (tanda 450). Son ocho
+// consultas de cuenta sin traer filas (`head: true`), así que da igual que
+// el catálogo tenga 90.000 cartas.
+//
+// PINGU: «las colecciones chinas y japonesas no las estamos trayendo,
+// ¿verdad? No hay ni una carta cargada, ni los logos se cargan». Desde la
+// web las dos causas posibles se ven IGUAL —un catálogo vacío y un camino
+// roto dan los dos una pantalla sin nada—, y este botón las separa en un
+// segundo: si salen 0 sets, es que nadie ha importado ese mercado; si
+// salen sets y 0 cartas, es que falta «Importar los que faltan»; y si
+// salen las dos cosas, entonces sí hay algo que mirar en la web.
+async function contarMercados() {
+  const btn = document.getElementById('btnContarMercados')
+  btn.disabled = true
+  cardsNota('Contando…')
+  try {
+    const lineas = []
+    for (const market of MERCADOS_A_IMPORTAR) {
+      const sets = await supabase.from('tcg_sets').select('id', { count: 'exact', head: true }).eq('market', market)
+      if (sets.error) throw sets.error
+      const cartas = await supabase.from('tcg_cards').select('id', { count: 'exact', head: true }).eq('market', market)
+      if (cartas.error) throw cartas.error
+      const conLogo = await supabase.from('tcg_sets').select('id', { count: 'exact', head: true }).eq('market', market).not('logo_path', 'is', null)
+      if (conLogo.error) throw conLogo.error
+      lineas.push(`${market}: ${sets.count} sets (${conLogo.count} con logo), ${cartas.count} cartas`)
+    }
+    const vacios = lineas.filter((l) => / 0 sets/.test(l))
+    cardsNota(lineas.join(' · ') + (vacios.length
+      ? ' — los que están a 0 no se han importado nunca: dale a «Buscar sets en TCGdex» y luego a «Importar los que faltan».'
+      : ''))
+  } catch (err) {
+    cardsNota(`No se ha podido contar: ${err.message}`)
+  } finally {
+    btn.disabled = false
+  }
+}
+
 async function importarSets(ids) {
   if (ids.length === 0) {
     cardsNota('No queda ningún set por importar.')
@@ -3035,6 +3072,7 @@ async function importarSets(ids) {
 
 function initCardsSection() {
   document.getElementById('btnLoadTcgSets')?.addEventListener('click', cargarSetsDeTcgdex)
+  document.getElementById('btnContarMercados')?.addEventListener('click', contarMercados)
   document.getElementById('btnDiagnosticar')?.addEventListener('click', diagnosticarCartas)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))

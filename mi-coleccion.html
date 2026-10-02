@@ -208,14 +208,19 @@
                el que cambia es el mismo y quien está en una pantalla no
                tiene por qué irse a otra para cambiarlo. -->
           <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
-          <!-- Ordenar, a la vista desde la tanda 441. -->
-          <select id="mcOrden" class="mc-chapa-select" aria-label="Ordenar">
-            <option value="valor">Más valiosas</option>
-            <option value="recientes">Añadidas hace poco</option>
-            <option value="coleccion">Por colección y número</option>
-            <option value="nombre">Por nombre</option>
-          </select>
-          <button type="button" class="mc-chip-filtro mc-chip-mando" id="mcOrdenAlReves" aria-pressed="false">Al revés</button>
+          <!-- ORDENAR, en su propia hoja (tanda 449). Era un <select> con
+               cuatro opciones; PINGU pidió diez criterios y el sentido
+               aparte, y un desplegable de diez renglones en un móvil es
+               justo lo que Dex no hace: él abre una hoja desde abajo con
+               los criterios en lista, su icono y una marca en el elegido.
+
+               El botón dice QUÉ orden hay puesto, no «Ordenar» a secas: el
+               rótulo de un control que guarda un estado tiene que decir el
+               estado, o hay que abrirlo para saber qué pusiste. -->
+          <button type="button" class="mc-chip-mando" id="mcAbrirOrden" data-icono="listOrdered" aria-haspopup="dialog">
+            <span class="mc-chip-texto" id="mcOrdenRotulo">Precio</span>
+            <span class="mc-orden-flecha" id="mcOrdenFlecha" aria-hidden="true">↓</span>
+          </button>
           <button type="button" class="mc-chip-mando mc-chip-solo-icono hidden" id="mcFiltrosQuitar" aria-label="Quitar la búsqueda y los filtros">✕</button>
           <!-- CUÁNTAS ESTÁS VIENDO (tanda 441). Con un filtro puesto la
                rejilla se acorta y nada decía por qué: no había ningún
@@ -226,6 +231,25 @@
           </div>
           <p class="mc-cuantas" id="mcCuantas" role="status" aria-live="polite"></p>
         </div>
+
+        <!-- LA HOJA DE ORDENAR. Sube desde abajo en el móvil y sale
+             centrada en el ordenador; el sentido va arriba en un
+             interruptor de dos, porque «descendente/ascendente» es UNA
+             pregunta con dos respuestas y dos botones sueltos la cuentan
+             como dos. -->
+        <dialog class="mc-bandeja" id="mcHojaOrden" aria-labelledby="mcHojaOrdenTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcHojaOrdenTitulo">Ordenar por</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcOrdenCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-sentido" role="radiogroup" aria-label="Sentido del orden">
+            <button type="button" class="mc-sentido-opcion" data-sentido="desc" role="radio" aria-checked="true">Descendente</button>
+            <button type="button" class="mc-sentido-opcion" data-sentido="asc" role="radio" aria-checked="false">Ascendente</button>
+          </div>
+          <div class="mc-panel-cuerpo">
+            <ul class="mc-orden-lista" id="mcOrdenLista"></ul>
+          </div>
+        </dialog>
 
         <dialog class="mc-panel-filtros" id="mcPanelFiltros" aria-labelledby="mcPanelFiltrosTitulo">
           <div class="mc-panel-cabecera">
@@ -579,30 +603,39 @@
         <div class="mc-filtros" id="mcBuscarBarra">
           <div class="mc-buscador">
             <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-            <input type="search" id="mcBuscarTodo" placeholder="Busca cualquier carta…" autocomplete="off" aria-label="Buscar en todo el catálogo" />
+            <input type="search" id="mcBuscarTodo" placeholder="Nombre, número o ilustrador…" autocomplete="off" aria-label="Buscar en todo el catálogo" />
           </div>
           <div class="mc-mandos">
+            <!-- LOS MISMOS MANDOS QUE EN CARTAS Y EN EL MISMO ORDEN (tanda
+                 450): filtros, catálogo y orden. Dos pantallas que hacen
+                 lo mismo con los botones en distinto sitio parecen dos
+                 webs. Lo que cambia es QUÉ ofrecen, no dónde están. -->
+            <button type="button" class="mc-chip-mando" id="mcBuscarAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+              <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcBuscarFiltrosCuenta"></span>
+            </button>
             <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+            <button type="button" class="mc-chip-mando" id="mcBuscarAbrirOrden" data-icono="listOrdered" aria-haspopup="dialog">
+              <span class="mc-chip-texto" id="mcBuscarOrdenRotulo">Nombre</span>
+              <span class="mc-orden-flecha" id="mcBuscarOrdenFlecha" aria-hidden="true">↑</span>
+            </button>
           </div>
           <p class="mc-cuantas" id="mcBuscarCuantas" role="status" aria-live="polite"></p>
         </div>
 
         <div class="mc-vacio-buscar" id="mcBuscarVacio">
-          <!-- La frase dice lo que el buscador HACE, no lo que nos
-               gustaría que hiciera. `buscarCartas` cruza contra
-               `name_search`, que son los dos nombres —el inglés y el
-               español— y nada más: una primera versión de esta frase
-               prometía ilustrador y número, y dos de las tres sugerencias
-               devolvían CERO resultados. Por ahí no hay error de ninguna
-               clase, solo una pantalla vacía y la sensación de que la web
-               está rota. Buscar por ilustrador y por número llega con los
-               filtros. -->
+          <!-- La frase dice lo que el buscador HACE, ni más ni menos, y
+               cada ejemplo que se puede pulsar tiene que devolver algo —
+               hay una prueba que los pulsa todos. En la tanda 447 esta
+               frase prometía ilustrador y número y el buscador no sabía
+               hacerlo: dos de las tres sugerencias daban CERO resultados
+               sin ningún error, solo una pantalla vacía. Desde la 450 sí
+               sabe, y por eso vuelven a estar. -->
           <p class="mc-vacio-buscar-texto">
-            Busca cualquier carta del catálogo por su <strong>nombre</strong>, en español o en
-            inglés. Para empezar, prueba con
+            Busca cualquier carta del catálogo por su <strong>nombre</strong> (en español o en
+            inglés), por su <strong>número</strong> o por su <strong>ilustrador</strong>. Prueba con
             <button type="button" class="mc-sugerencia" data-sugerencia="Charizard">Charizard</button>,
-            <button type="button" class="mc-sugerencia" data-sugerencia="Pikachu ex">Pikachu ex</button> o
-            <button type="button" class="mc-sugerencia" data-sugerencia="Mewtwo">Mewtwo</button>.
+            <button type="button" class="mc-sugerencia" data-sugerencia="Mewtwo 64">Mewtwo 64</button> o
+            <button type="button" class="mc-sugerencia" data-sugerencia="Mitsuhiro Arita">Mitsuhiro Arita</button>.
           </p>
           <button type="button" class="btn-primary mc-escanear" id="mcEscanear">
             <span data-icono="scan" aria-hidden="true"></span> Escanear cartas
@@ -611,6 +644,41 @@
         </div>
 
         <div class="mc-resultados" id="mcBuscarResultados"></div>
+
+        <!-- La bandeja de ordenar del catálogo. Es la MISMA pieza que la de
+             Cartas —mismo CSS, mismo molde— con otra lista: aquí no hay
+             precio de compra ni «cuántas tienes», porque la carta no es
+             tuya. -->
+        <dialog class="mc-bandeja" id="mcBuscarHojaOrden" aria-labelledby="mcBuscarOrdenTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcBuscarOrdenTitulo">Ordenar por</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcBuscarOrdenCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-sentido" role="radiogroup" aria-label="Sentido del orden">
+            <button type="button" class="mc-sentido-opcion" data-bsentido="desc" role="radio" aria-checked="false">Descendente</button>
+            <button type="button" class="mc-sentido-opcion" data-bsentido="asc" role="radio" aria-checked="true">Ascendente</button>
+          </div>
+          <div class="mc-panel-cuerpo">
+            <ul class="mc-orden-lista" id="mcBuscarOrdenLista"></ul>
+          </div>
+        </dialog>
+
+        <!-- Y los filtros. Estos van EN LA CONSULTA y no en memoria: el
+             catálogo tiene 21.000 cartas y la consulta trae 120, así que
+             filtrar después sería filtrar la muestra y no el catálogo. -->
+        <dialog class="mc-panel-filtros" id="mcBuscarPanelFiltros" aria-labelledby="mcBuscarFiltrosTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcBuscarFiltrosTitulo">Filtros</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcBuscarFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
+          </div>
+          <div class="mc-panel-cuerpo">
+            <div id="mcBuscarGrupos"></div>
+          </div>
+          <div class="mc-panel-pie">
+            <button type="button" class="link-btn" id="mcBuscarFiltrosLimpiar">Limpiar</button>
+            <button type="button" class="btn-primary" id="mcBuscarFiltrosVer">Ver resultados</button>
+          </div>
+        </dialog>
       </section>
 
       <!-- EL ESCÁNER (tanda 447). PINGU vio el de Dex y pidió lo mismo:

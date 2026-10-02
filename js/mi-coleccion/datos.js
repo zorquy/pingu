@@ -178,7 +178,13 @@ export async function borrar(id) {
 // `illustrator`, `types` y `dex_ids` entran en la tanda 393: son la
 // tabla de detalles de la ficha. No es una petición más —son columnas de
 // la misma consulta—, y además son por lo que luego se puede filtrar.
-const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,image_path,rarity,category,variants,illustrator,types,dex_ids,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
+// `trainer_type` y `energy_type` entran en la tanda 449: son el filtro de
+// «tipo de entrenador» que pidió PINGU (supporter, objeto, herramienta,
+// estadio). Son dos textos cortos y el filtro no se puede hacer sin
+// ellos; como son datos de DETALLE, las cartas que `cartas-detalle`
+// todavía no ha engordado los traen a null, y el grupo de chips
+// sencillamente no las ofrece.
+const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,image_path,rarity,category,variants,illustrator,types,dex_ids,trainer_type,energy_type,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
 
 export async function cartasPorIds(ids, mercado = 'WEST') {
   const unicos = [...new Set(ids.filter(Boolean))]

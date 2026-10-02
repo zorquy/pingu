@@ -35,6 +35,55 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tandas 449 y 450 — ordenar y filtrar como en Dex)
+
+**Hecho**: la hoja de **«Ordenar por»** al estilo de Dex (sube desde abajo,
+interruptor Descendente/Ascendente arriba, los criterios en lista con su
+icono y una marca en el elegido), en Cartas Y en Buscar. Diez criterios en
+Cartas y seis en Buscar —allí no hay precio de compra ni «cuántas tienes»,
+porque la carta no es tuya—. Y los **filtros**: tipo de carta, tipo de
+energía, tipo de entrenador, rareza, versión, estado y notas.
+
+Lo que más importa de todo esto está en `js/mi-coleccion/filtros.js`, que no
+importa nada del DOM para poder probarlo en Node: **lo que no se sabe va al
+final mire como se mire**. El ilustrador y el número de Pokédex los rellena
+`cartas-detalle` carta a carta, así que siempre hay cartas a medias; una sin
+ilustrador ordenada como cadena vacía saldría LA PRIMERA. Por eso un orden
+es una CLAVE más un SENTIDO y no un comparador, y por eso el sentido **no
+puede ser un `reverse()`** —que es lo que hacía el viejo botón «Al revés»—.
+
+**El fallo que PINGU encontró**: «Mewtwo 64» no devolvía nada. El buscador
+exigía que «64» estuviera en el NOMBRE. Ahora un número suelto se busca
+como número impreso O como número nacional de Pokédex, un número solo vale
+como búsqueda entera, y si por nombre no sale nada se prueba por
+ILUSTRADOR en una segunda consulta (un `or` no podría usar el índice del
+nombre y recorrería 23.000 cartas en cada tecla).
+
+Los filtros de Buscar van **en la consulta**: el catálogo tiene 21.000
+cartas y la consulta trae 120, así que filtrar lo que vuelve sería filtrar
+la muestra. Y la cuenta avisa cuando se llega al tope.
+
+Los **tipos de entrenador eran ocho y teníamos cuatro** (faltaban máquina
+técnica, máquina secreta de Rocket y el casino de Ciudad Trigal), y las
+fases once y teníamos ocho —con «Restored» mal escrito, que TCGdex llama
+`RESTORED` y por tanto no se traducía nunca—.
+
+**PARA PINGU, lo del japonés y el chino**: hay un botón nuevo en /admin →
+Cartas, **«Qué hay de cada mercado»**, que cuenta sets, sets con logo y
+cartas de los cuatro. El código soporta los cuatro desde la 437; lo más
+probable es que no se haya importado nunca. El botón lo dice en un segundo
+y, si sale 0, el orden es «Buscar sets en TCGdex» y después «Importar los
+que faltan».
+
+**Ficheros**: **NUEVO** `js/mi-coleccion/filtros.js`, `js/mi-coleccion.js`,
+`mi-coleccion.html`, `css/mi-coleccion.css`, `js/carta-traducciones.js`,
+`js/mi-coleccion/datos.js`, `admin/index.html`, `admin/js/admin.js`,
+`SCHEMA.md`. En `pruebas`: `herramientas/stub-supabase.js` (su `.or()`
+no entendía `cs` ni `ilike`), **NUEVAS** `test-tanda-449.mjs` y
+`test-tanda-450.mjs`, y arreglos en 399, 408, 422, 441, 447 y 449.
+
+**En curso / pendiente**: nada a medias. Rigores pendientes: 443 a 450.
+
 ## 2026-10-02 — PINGU-Claude (tanda 448 — por qué el escáner no veía la clave)
 
 **Hecho**: PINGU puso `OCR_API_KEY` en Netlify y el escáner seguía

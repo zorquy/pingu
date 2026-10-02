@@ -24,7 +24,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // y el barrido de la 299 sigue los imports —así que importarlo por una
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
-import { rarezaEs, categoriaEs, tipoEs, familiaDeBrillo } from './carta-traducciones.js'
+import { rarezaEs, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
 import { esDelTCG } from './catalogo-series.js'
 import {
   IDIOMAS,
@@ -46,7 +46,8 @@ import { marcaCardmarket } from './cardmarket-marca.js'
 import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
-import { ORDENES, ordenar, porNumero } from './mi-coleccion/orden.js'
+import { ORDENES, ordenar, porNumero, rangoDeRareza } from './mi-coleccion/orden.js'
+import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtrosVacios, sentidoNatural, FILTROS_CATALOGO, ORDENES_CATALOGO, filtrosCatalogoVacios, cuantosFiltrosCatalogo, ordenarCartas } from './mi-coleccion/filtros.js'
 import { balanceDeCompra } from './mi-coleccion/balance.js'
 import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
@@ -805,21 +806,55 @@ function lineaHtml(l) {
 // las que salgan mañana (la lección de la tanda 323). Si de un grupo solo
 // sale un valor, el grupo no se pinta: un filtro con una sola opción no
 // filtra nada.
-const filtros = { tipo: new Set(), energia: new Set(), rareza: new Set(), variante: new Set(), estado: new Set() }
-let ordenAlReves = false
+const filtros = filtrosVacios()
+const GRUPOS = GRUPOS_FILTRO
+let ordenElegido = 'valor'
+let sentidoElegido = sentidoNatural('valor')
 
-const GRUPOS = [
-  { id: 'tipo', nombre: 'Tipo de carta', de: (l, c) => (c?.category ? [categoriaEs(c.category)] : []) },
-  { id: 'energia', nombre: 'Energía', de: (l, c) => (Array.isArray(c?.types) ? c.types.map(tipoEs) : []) },
-  { id: 'rareza', nombre: 'Rareza', de: (l, c) => (c?.rarity ? [rarezaEs(c.rarity)] : []) },
-  { id: 'variante', nombre: 'Versión', de: (l) => [varianteDe(l.variante).nombre] },
-  { id: 'estado', nombre: 'Estado', de: (l) => [estadoDe(l.estado).nombre] },
-]
+// Las traducciones y los descodificadores que los grupos y los órdenes
+// necesitan. Van en un objeto y no sueltos porque `filtros.js` NO importa
+// nada del navegador a propósito —así se prueba en Node—, y lo que no
+// importa hay que dárselo.
+const AYUDAS = {
+  categoriaEs, tipoEs, rarezaEs, entrenadorEs, varianteDe, estadoDe,
+  carta: (l) => cartas.get(l.card_id),
+  nombre: (c) => nombreDe(c),
+  valor: (l) => valorDeLinea(l, precioDe(l)) || 0,
+  rango: rangoDeRareza,
+  porNumero,
+}
 
 function valoresDeGrupo(g) {
   const vistos = new Set()
-  for (const l of lineas) for (const v of g.de(l, cartas.get(l.card_id))) if (v) vistos.add(v)
+  for (const l of lineas) for (const v of g.de(l, cartas.get(l.card_id), AYUDAS)) if (v) vistos.add(v)
   return [...vistos].sort((a, b) => a.localeCompare(b, 'es'))
+}
+
+// La hoja de ordenar, con el elegido marcado. El rótulo del botón de la
+// barra se repinta aquí mismo: son la misma información y tenerla en dos
+// sitios que se actualizan por separado es cómo se desincronizan.
+function pintarHojaOrden() {
+  const lista = $('mcOrdenLista')
+  if (!lista) return
+  lista.innerHTML = ORDENES_COLECCION.map((o) => {
+    const elegido = o.id === ordenElegido
+    return `<li><button type="button" class="mc-orden-opcion${elegido ? ' elegido' : ''}" data-orden="${escapeHtml(o.id)}" aria-current="${elegido ? 'true' : 'false'}">
+      <span class="mc-orden-icono" aria-hidden="true">${icons[o.icono] ? icons[o.icono](18) : ''}</span>
+      <span class="mc-orden-nombre">${escapeHtml(o.nombre)}</span>
+      <span class="mc-orden-marca" aria-hidden="true">${elegido ? icons.checkCircle(18) : ''}</span>
+    </button></li>`
+  }).join('')
+  for (const b of $('mcHojaOrden').querySelectorAll('[data-sentido]')) {
+    const puesto = b.dataset.sentido === sentidoElegido
+    b.classList.toggle('elegido', puesto)
+    b.setAttribute('aria-checked', puesto ? 'true' : 'false')
+  }
+  const rotulo = $('mcOrdenRotulo')
+  if (rotulo) rotulo.textContent = ORDENES_COLECCION.find((o) => o.id === ordenElegido)?.nombre || 'Ordenar'
+  // La flecha dice el sentido sin gastar una palabra, que en una barra que
+  // se desliza es sitio que no hay.
+  const flecha = $('mcOrdenFlecha')
+  if (flecha) flecha.textContent = sentidoElegido === 'desc' ? '↓' : '↑'
 }
 
 function pintarGruposDeChips() {
@@ -868,38 +903,19 @@ function lineasFiltradas() {
   const texto = normalizeSearch($('mcBuscar').value)
   const set = $('mcFiltroSet').value
   const idioma = $('mcFiltroIdioma').value
-  const orden = $('mcOrden').value
   const filtradas = lineas.filter((l) => {
     const c = cartas.get(l.card_id)
     if (set && c?.set_id !== set) return false
     if (idioma && l.idioma !== idioma) return false
     if (texto && !normalizeSearch(`${c?.name || ''} ${c?.name_es || ''} ${c?.tcg_sets?.name || ''}`).includes(texto)) return false
-    // Los chips: dentro de un grupo suman (quiero Agua O Fuego) y entre
-    // grupos restan (Agua Y rara). Es como se espera de un filtro, y al
-    // revés no serviría: elegir dos rarezas dejaría cero resultados.
-    for (const g of GRUPOS) {
-      if (!filtros[g.id].size) continue
-      const suyos = g.de(l, c)
-      if (!suyos.some((v) => filtros[g.id].has(v))) return false
-    }
-    return true
+    return pasaLosFiltros(l, c, filtros, AYUDAS)
   })
-  const valor = (l) => valorDeLinea(l, precioDe(l)) || 0
-  const cmp = {
-    valor: (a, b) => valor(b) - valor(a),
-    recientes: (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
-    nombre: (a, b) => nombreDe(cartas.get(a.card_id)).localeCompare(nombreDe(cartas.get(b.card_id)), 'es'),
-    coleccion: (a, b) => {
-      const ca = cartas.get(a.card_id)
-      const cb = cartas.get(b.card_id)
-      return String(cb?.tcg_sets?.release_date || '').localeCompare(String(ca?.tcg_sets?.release_date || '')) || String(ca?.set_id).localeCompare(String(cb?.set_id)) || porNumero(ca || {}, cb || {})
-    },
-  }[orden]
-  const ordenadas = filtradas.sort(cmp)
-  // Al revés = al revés de lo que diga el orden elegido, sea cual sea.
-  // Invertir la lista YA ordenada y no escribir cuatro comparadores más
-  // es lo que hace que un orden nuevo salga con su vuelta puesta.
-  return ordenAlReves ? ordenadas.reverse() : ordenadas
+  // El orden vive en `js/mi-coleccion/filtros.js`, sin DOM, para poder
+  // probarlo en Node. Y el sentido NO es un `reverse()` de la lista ya
+  // ordenada (tanda 449): lo que no se sabe —una carta cuyo ilustrador
+  // todavía no ha curado `cartas-detalle`— tiene que quedarse al final
+  // MIRE COMO SE MIRE, y un `reverse()` la subiría la primera.
+  return ordenarLineas(filtradas, ordenElegido, sentidoElegido, AYUDAS)
 }
 
 function pintarCartas() {
@@ -2071,6 +2087,56 @@ async function alternarVariante(cardId, variante) {
 // reutiliza a propósito: dos buscadores que buscan lo mismo se separan y
 // acaban dando resultados distintos (la lección de `IDIOMA_POR_MERCADO`).
 let turnoBuscarTodo = 0
+const filtrosCatalogo = filtrosCatalogoVacios()
+let ordenCatalogo = 'nombre'
+let sentidoCatalogo = sentidoNatural('nombre')
+
+// Los chips del catálogo salen de los mapas de traducción, que es donde ya
+// están escritos y traducidos. En tu colección salen de lo que TIENES;
+// aquí no hay nada de donde sacarlos.
+const MAPAS = { CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES }
+
+function pintarGruposDelCatalogo() {
+  const hueco = $('mcBuscarGrupos')
+  if (!hueco) return
+  hueco.innerHTML = FILTROS_CATALOGO.map((g) => {
+    const mapa = MAPAS[g.mapa] || {}
+    return `<div class="mc-grupo-filtro"><h3>${escapeHtml(g.nombre)}</h3><div class="mc-chips-filtro">${Object.entries(mapa)
+      .map(([clave, rotulo]) => {
+        const puesto = filtrosCatalogo[g.id].has(clave)
+        return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-cgrupo="${g.id}" data-cvalor="${escapeHtml(clave)}" aria-pressed="${puesto ? 'true' : 'false'}">${escapeHtml(rotulo)}</button>`
+      })
+      .join('')}</div></div>`
+  }).join('')
+  const n = cuantosFiltrosCatalogo(filtrosCatalogo)
+  const chapa = $('mcBuscarFiltrosCuenta')
+  if (chapa) {
+    chapa.textContent = n ? String(n) : ''
+    chapa.classList.toggle('hidden', n === 0)
+  }
+}
+
+function pintarBandejaCatalogo() {
+  const lista = $('mcBuscarOrdenLista')
+  if (!lista) return
+  lista.innerHTML = ORDENES_CATALOGO.map((o) => {
+    const elegido = o.id === ordenCatalogo
+    return `<li><button type="button" class="mc-orden-opcion${elegido ? ' elegido' : ''}" data-borden="${escapeHtml(o.id)}" aria-current="${elegido ? 'true' : 'false'}">
+      <span class="mc-orden-icono" aria-hidden="true">${icons[o.icono] ? icons[o.icono](18) : ''}</span>
+      <span class="mc-orden-nombre">${escapeHtml(o.nombre)}</span>
+      <span class="mc-orden-marca" aria-hidden="true">${elegido ? icons.checkCircle(18) : ''}</span>
+    </button></li>`
+  }).join('')
+  for (const b of $('mcBuscarHojaOrden').querySelectorAll('[data-bsentido]')) {
+    const puesto = b.dataset.bsentido === sentidoCatalogo
+    b.classList.toggle('elegido', puesto)
+    b.setAttribute('aria-checked', puesto ? 'true' : 'false')
+  }
+  const rotulo = $('mcBuscarOrdenRotulo')
+  if (rotulo) rotulo.textContent = ORDENES_CATALOGO.find((o) => o.id === ordenCatalogo)?.nombre || 'Ordenar'
+  const flecha = $('mcBuscarOrdenFlecha')
+  if (flecha) flecha.textContent = sentidoCatalogo === 'desc' ? '↓' : '↑'
+}
 
 async function buscarEnTodo() {
   const campo = $('mcBuscarTodo')
@@ -2080,9 +2146,11 @@ async function buscarEnTodo() {
   const vacio = $('mcBuscarVacio')
   const caja = $('mcBuscarResultados')
   const cuenta = $('mcBuscarCuantas')
-  // Con menos de dos letras no se busca: una sola trae media base. Y
-  // entonces vuelve el estado vacío, que es donde está el escáner.
-  if (texto.length < 2) {
+  // Con menos de dos letras no se busca: una sola trae media base. Un
+  // NÚMERO sí vale solo —«64» quiere decir «enséñame las 64»—, que es
+  // justo lo que no se podía antes de la tanda 450.
+  const { soloNumero } = partirBusqueda(texto)
+  if (texto.length < 2 && !soloNumero) {
     vacio?.classList.remove('hidden')
     caja.innerHTML = ''
     if (cuenta) cuenta.textContent = ''
@@ -2090,9 +2158,17 @@ async function buscarEnTodo() {
   }
   vacio?.classList.add('hidden')
   caja.innerHTML = '<div class="skeleton" style="height:180px"></div>'
+  const TOPE = 120
   let lista
+  let porIlustrador = false
   try {
-    lista = await buscarCartas(texto, 120)
+    lista = await buscarCartas(texto, TOPE, { filtros: filtrosCatalogo })
+    // Si por nombre no sale nada, se prueba por ILUSTRADOR. La pasada cara
+    // solo ocurre cuando ya no hay nada que perder.
+    if (!lista.length) {
+      lista = await buscarPorIlustrador(texto, TOPE)
+      porIlustrador = lista.length > 0
+    }
   } catch (error) {
     if (mio !== turnoBuscarTodo) return
     caja.innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`
@@ -2101,7 +2177,21 @@ async function buscarEnTodo() {
   // El turno: sin esto, una búsqueda lenta pisa a la que escribiste
   // después y la pantalla enseña lo que ya no buscas.
   if (mio !== turnoBuscarTodo) return
-  if (cuenta) cuenta.textContent = lista.length ? `${lista.length} ${lista.length === 1 ? 'carta' : 'cartas'}` : ''
+  // El orden se aplica a lo que HA VUELTO. Y por eso la cuenta dice
+  // cuándo se ha llegado al tope: ordenar 120 de 400 por fecha no da «las
+  // más nuevas del catálogo», da «las más nuevas de estas 120», y callarlo
+  // sería enseñar una lista que parece lo que no es.
+  lista = ordenarCartas(lista, ordenCatalogo, sentidoCatalogo, {
+    nombre: (c) => nombreDe(c),
+    valor: () => null,
+    rango: rangoDeRareza,
+    porNumero,
+  })
+  if (cuenta) {
+    const cuantas = lista.length ? `${lista.length} ${lista.length === 1 ? 'carta' : 'cartas'}` : ''
+    const tope = lista.length >= TOPE ? ' · hay más, afina la búsqueda' : ''
+    cuenta.textContent = cuantas + (porIlustrador ? ' · por ilustrador' : '') + tope
+  }
   caja.innerHTML = lista.length
     ? lista.map((c) => {
         const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
@@ -2285,8 +2375,15 @@ async function dispararEscaner() {
 }
 
 // Deja arriba las cartas cuyo número impreso coincide con el leído. No
-// las filtra: un OCR puede leer un 8 donde hay un 6, y esconder la carta
-// buena por fiarse de eso sería peor que enseñarla la segunda.
+// las filtra, Y ESO SIGUE SIENDO ASÍ DESPUÉS DE LA TANDA 450, aunque el
+// buscador ya entienda «Mewtwo 64» y meter el número en la búsqueda
+// fuera más corto.
+//
+// El motivo es que un número NO VALE LO MISMO según quién lo escriba. El
+// que teclea una persona es lo que esa persona quiere: filtrar por él es
+// obedecer. El que saca un OCR de una foto movida es una PISTA, y un 8
+// leído donde hay un 6 convertido en filtro deja cero resultados con la
+// carta correcta delante. Así que lo humano filtra y lo leído ordena.
 function afinarPorNumero(numero) {
   const caja = $('mcBuscarResultados')
   if (!caja) return
@@ -2319,9 +2416,69 @@ let turnoBusqueda = 0
 // usan DOS sitios: «Añadir cartas» y la lista de búsqueda de los
 // cambios. Copiarla habría dejado dos buscadores que se separan sin
 // que nadie se entere — la lección de `IDIOMA_POR_MERCADO`.
-async function buscarCartas(texto, limite = 60) {
-  let q = supabase.from('tcg_cards').select('id,market,set_id,local_id,name,name_es,image_path,rarity,tcg_sets(id,name,serie_id,release_date,tcg_online_code)').eq('market', mercado)
-  for (const p of texto.split(/\s+/).filter(Boolean)) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
+const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,image_path,rarity,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,serie_id,release_date,tcg_online_code)'
+
+// UN NÚMERO SUELTO NO ES PARTE DEL NOMBRE (tanda 450), y esto era un fallo
+// de verdad: PINGU escribió «Mewtwo 64» —el Mega-Mewtwo X de Breakthrough,
+// que es la 64— y no salía NADA. El buscador exigía que «64» estuviera
+// también en `name_search`, que son los dos nombres y nada más.
+//
+// Y un número que alguien escribe junto a un nombre puede querer decir dos
+// cosas, así que vale cualquiera de las dos: el NÚMERO IMPRESO de la carta
+// («la 64 del set») o el NÚMERO NACIONAL de Pokédex («el 25 es Pikachu»).
+// Quedarse solo con uno dejaría media web sin encontrar a la primera.
+//
+// Se acepta como número una palabra de dígitos sola, y se compara también
+// con ceros delante porque hay sets que imprimen «064». Y solo dígitos:
+// esto se monta dentro de un `or=` de PostgREST, donde una coma o un
+// paréntesis del usuario cambiaría la consulta.
+export function partirBusqueda(texto) {
+  const palabras = String(texto || '').split(/\s+/).filter(Boolean)
+  const numeros = palabras.filter((p) => /^\d{1,4}$/.test(p))
+  const nombre = palabras.filter((p) => !/^\d{1,4}$/.test(p))
+  // Si SOLO se escribe un número, ese número es la búsqueda entera y no
+  // un afinado: «64» a secas quiere decir «enséñame las 64».
+  return { nombre, numero: numeros[0] || null, soloNumero: numeros.length > 0 && nombre.length === 0 }
+}
+
+function variantesDeNumero(n) {
+  const limpio = String(n).replace(/^0+/, '') || '0'
+  return [...new Set([limpio, limpio.padStart(2, '0'), limpio.padStart(3, '0'), String(n)])]
+}
+
+async function buscarCartas(texto, limite = 60, { filtros: fcat = null } = {}) {
+  const { nombre, numero } = partirBusqueda(texto)
+  let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', mercado)
+  for (const p of nombre) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
+  if (numero) {
+    const comoLocal = variantesDeNumero(numero).map((v) => `local_id.eq.${v}`)
+    q = q.or([...comoLocal, `dex_ids.cs.{${Number(numero)}}`].join(','))
+  }
+  // Los filtros del catálogo van EN LA CONSULTA, no después: el catálogo
+  // tiene 21.000 cartas y esto trae 120, así que filtrar lo que vuelve
+  // sería filtrar la muestra y no el catálogo.
+  for (const g of FILTROS_CATALOGO) {
+    const puestos = [...(fcat?.[g.id] || [])]
+    if (!puestos.length) continue
+    if (g.array) q = q.overlaps(g.columna, puestos)
+    else q = q.in(g.columna, puestos)
+  }
+  const { data, error } = await q.order('name_search').limit(limite)
+  if (error) throw error
+  return (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }))
+}
+
+// Y si por nombre no sale nada, se prueba por ILUSTRADOR. Va como segunda
+// consulta y no como un `or` de la primera a propósito: un `or` entre
+// `name_search` y `illustrator` no puede usar el índice del nombre y
+// obligaría a recorrer las 23.000 cartas EN CADA TECLA. Así el caso
+// normal —buscar un nombre— sigue yendo por su índice, y la pasada cara
+// solo ocurre cuando ya no hay nada que perder.
+async function buscarPorIlustrador(texto, limite = 60) {
+  const { nombre } = partirBusqueda(texto)
+  if (!nombre.length) return []
+  let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', mercado)
+  for (const p of nombre) q = q.ilike('illustrator', `%${p.replace(/[%_]/g, '')}%`)
   const { data, error } = await q.order('name_search').limit(limite)
   if (error) throw error
   return (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }))
@@ -3003,7 +3160,7 @@ function enganchar() {
   // sitio. Así la barra está SIEMPRE, como en una app.
 
   let esperaCatalogo = null
-  for (const id of ['mcBuscar', 'mcFiltroSet', 'mcFiltroIdioma', 'mcOrden']) {
+  for (const id of ['mcBuscar', 'mcFiltroSet', 'mcFiltroIdioma']) {
     $(id).addEventListener(id === 'mcBuscar' ? 'input' : 'change', () => {
       pintarCartas()
       pintarCuentaDeFiltros()
@@ -3160,11 +3317,39 @@ function enganchar() {
     pintarCartas()
     pintarCuentaDeFiltros()
   })
-  $('mcOrdenAlReves').addEventListener('click', () => {
-    ordenAlReves = !ordenAlReves
-    $('mcOrdenAlReves').classList.toggle('activo', ordenAlReves)
-    $('mcOrdenAlReves').setAttribute('aria-pressed', ordenAlReves ? 'true' : 'false')
-    pintarCartas()
+  $('mcAbrirOrden').addEventListener('click', () => {
+    pintarHojaOrden()
+    $('mcHojaOrden').showModal()
+  })
+  $('mcOrdenCerrar').addEventListener('click', () => $('mcHojaOrden').close())
+  $('mcHojaOrden').addEventListener('click', (e) => {
+    const sentido = e.target.closest('[data-sentido]')
+    if (sentido) {
+      sentidoElegido = sentido.dataset.sentido
+      pintarHojaOrden()
+      pintarCartas()
+      return
+    }
+    const criterio = e.target.closest('[data-orden]')
+    if (criterio) {
+      // Al cambiar de criterio se pone SU sentido natural: el precio se
+      // mira de más caro a más barato y el nombre de la A a la Z, y
+      // heredar el sentido del criterio anterior deja la lista al revés
+      // de como la espera quien acaba de elegir.
+      ordenElegido = criterio.dataset.orden
+      sentidoElegido = sentidoNatural(ordenElegido)
+      pintarHojaOrden()
+      pintarCartas()
+      // Elegir un criterio ES la respuesta a la pregunta de la hoja, así
+      // que la hoja se va. El sentido no la cierra: es un ajuste del
+      // mismo criterio y se toca mirando el resultado.
+      $('mcHojaOrden').close()
+      return
+    }
+    // Pulsar fuera de la hoja la cierra, como el panel de filtros.
+    const c = e.currentTarget.getBoundingClientRect()
+    const dentro = e.clientX >= c.left && e.clientX <= c.right && e.clientY >= c.top && e.clientY <= c.bottom
+    if (!dentro) e.currentTarget.close()
   })
   $('mcFiltrosLimpiar').addEventListener('click', limpiarFiltros)
   // El ✕ de la barra limpia ADEMÁS el texto, porque es lo que se ve a su
@@ -3306,6 +3491,58 @@ function enganchar() {
 
   // El buscador de todo el catálogo (tanda 447).
   $('mcBuscarTodo')?.addEventListener('input', () => void buscarEnTodo())
+  // ── Los mandos de Buscar (tanda 450) ──
+  $('mcBuscarAbrirOrden')?.addEventListener('click', () => {
+    pintarBandejaCatalogo()
+    $('mcBuscarHojaOrden').showModal()
+  })
+  $('mcBuscarOrdenCerrar')?.addEventListener('click', () => $('mcBuscarHojaOrden').close())
+  $('mcBuscarHojaOrden')?.addEventListener('click', (e) => {
+    const sentido = e.target.closest('[data-bsentido]')
+    if (sentido) {
+      sentidoCatalogo = sentido.dataset.bsentido
+      pintarBandejaCatalogo()
+      void buscarEnTodo()
+      return
+    }
+    const criterio = e.target.closest('[data-borden]')
+    if (criterio) {
+      ordenCatalogo = criterio.dataset.borden
+      sentidoCatalogo = sentidoNatural(ordenCatalogo)
+      pintarBandejaCatalogo()
+      void buscarEnTodo()
+      $('mcBuscarHojaOrden').close()
+      return
+    }
+    const c = e.currentTarget.getBoundingClientRect()
+    const dentro = e.clientX >= c.left && e.clientX <= c.right && e.clientY >= c.top && e.clientY <= c.bottom
+    if (!dentro) e.currentTarget.close()
+  })
+  $('mcBuscarAbrirFiltros')?.addEventListener('click', () => {
+    pintarGruposDelCatalogo()
+    $('mcBuscarPanelFiltros').showModal()
+  })
+  $('mcBuscarFiltrosCerrar')?.addEventListener('click', () => $('mcBuscarPanelFiltros').close())
+  $('mcBuscarFiltrosVer')?.addEventListener('click', () => $('mcBuscarPanelFiltros').close())
+  $('mcBuscarFiltrosLimpiar')?.addEventListener('click', () => {
+    for (const g of FILTROS_CATALOGO) filtrosCatalogo[g.id].clear()
+    pintarGruposDelCatalogo()
+    void buscarEnTodo()
+  })
+  $('mcBuscarGrupos')?.addEventListener('click', (e) => {
+    const chip = e.target.closest('[data-cgrupo]')
+    if (!chip) return
+    const conjunto = filtrosCatalogo[chip.dataset.cgrupo]
+    if (conjunto.has(chip.dataset.cvalor)) conjunto.delete(chip.dataset.cvalor)
+    else conjunto.add(chip.dataset.cvalor)
+    pintarGruposDelCatalogo()
+    void buscarEnTodo()
+  })
+  $('mcBuscarPanelFiltros')?.addEventListener('click', (e) => {
+    const c = e.currentTarget.getBoundingClientRect()
+    const dentro = e.clientX >= c.left && e.clientX <= c.right && e.clientY >= c.top && e.clientY <= c.bottom
+    if (!dentro) e.currentTarget.close()
+  })
   // Las sugerencias del estado vacío escriben en el campo y buscan: son un
   // ejemplo que se puede pulsar, no un adorno.
   $('mcBuscarVacio')?.addEventListener('click', (e) => {
@@ -3593,6 +3830,12 @@ async function iniciar() {
     $('mcTocarOpciones').classList.add('hidden')
   }
   pintarCompartir()
+  // La hoja de ordenar se pinta UNA vez al arrancar, no al abrirla: el
+  // rótulo del botón de la barra sale de aquí, y sin esto diría «Ordenar»
+  // hasta que alguien la abriera — o sea, mentiría sobre el orden puesto.
+  pintarHojaOrden()
+  pintarBandejaCatalogo()
+  pintarGruposDelCatalogo()
   cambiarPestania(pestania)
 
   await cargarColeccion(dueno.id, { primeraVez: true })

@@ -4702,3 +4702,138 @@ input.mc-alb-titulo:not([readonly]):focus {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   LA BANDEJA DE ORDENAR (tanda 449)
+   ══════════════════════════════════════════════════════════════════
+   Era un <select> de cuatro opciones; PINGU pidió diez criterios y el
+   sentido aparte. Un desplegable de diez renglones en un móvil es justo
+   lo que Dex no hace: él sube una hoja desde abajo con los criterios en
+   lista, su icono y una marca en el elegido.
+
+   SE LLAMA «BANDEJA» Y NO «HOJA» porque `.mc-hoja` YA EXISTE desde la
+   tanda del archivador: es una hoja de álbum, y lleva `display: grid`. La
+   primera versión de esto se llamaba igual y heredó esa rejilla, así que
+   el título, el interruptor y la lista salieron EN FILA, uno al lado del
+   otro. No dio error: una clase repetida nunca lo da, simplemente te
+   aplica el CSS de otro. Antes de inventar un nombre, búscalo.
+
+   Sube desde ABAJO y no desde el lado como el panel de filtros, y es a
+   propósito: el pulgar está abajo, y esta hoja se abre, se toca una cosa
+   y se cierra. El panel de filtros se queda abierto mientras pruebas. */
+.mc-bandeja {
+  width: 100%;
+  max-width: 100%;
+  max-height: 85dvh;
+  /* `auto` arriba y 0 abajo: eso la pega al fondo. */
+  margin: auto 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--white);
+  color: var(--text);
+  overscroll-behavior: contain;
+}
+
+.mc-bandeja::backdrop {
+  background: rgba(13, 27, 42, 0.5);
+}
+
+/* El interruptor de sentido: UNA pregunta con dos respuestas. Dos botones
+   sueltos la contarían como dos preguntas, y entonces «ninguna puesta» y
+   «las dos puestas» serían estados posibles que aquí no existen. */
+.mc-sentido {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 0 var(--e-lg) var(--e-md);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.mc-sentido-opcion {
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mc-sentido-opcion.elegido {
+  background: var(--white);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgb(13 27 42 / 12%);
+}
+
+.mc-orden-lista {
+  margin: 0;
+  padding: 0 var(--e-sm) var(--e-lg);
+  list-style: none;
+}
+
+.mc-orden-opcion {
+  display: grid;
+  grid-template-columns: 24px 1fr 24px;
+  gap: var(--e-md);
+  align-items: center;
+  width: 100%;
+  /* Una lista que se recorre con el pulgar: 48 y no 44. Es una MEDIDA
+     —por encima de 32— y sigue en la retícula de 4. */
+  min-height: 48px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-md);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-orden-opcion:hover {
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.mc-orden-opcion.elegido {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.mc-orden-icono,
+.mc-orden-marca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-mid);
+}
+
+.mc-orden-opcion.elegido .mc-orden-icono,
+.mc-orden-opcion.elegido .mc-orden-marca {
+  color: var(--navy);
+}
+
+/* La flecha del botón de la barra dice el sentido sin gastar una palabra,
+   que en una barra que se desliza es sitio que no hay. */
+.mc-orden-flecha {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+/* En el ordenador no hay pulgar ni borde de abajo: la hoja se centra y se
+   queda con el ancho de un diálogo normal. */
+@media (min-width: 700px) {
+  .mc-bandeja {
+    width: min(420px, calc(100vw - 32px));
+    max-height: 80vh;
+    margin: auto;
+    border-radius: var(--radius-xl);
+  }
+}
