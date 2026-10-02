@@ -35,6 +35,76 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+**OJO, CHOQUE DE NÚMEROS (y van CINCO)**: esta tanda se escribió como la
+459 y al ir a subir el remoto ya tenía la 459, la 460 y la 461 de la otra
+sesión de PINGU, así que lo mío pasa a ser la **462** (renombrados los
+comentarios, la prueba y el rigor). Lo cazó, otra vez, mirar el remoto
+justo antes del commit.
+
+## 2026-10-03 — PINGU-Claude (tanda 462 — los efectos de las cartas solos, el activo en el centro y /repeticiones)
+
+**Hecho**: tres cosas que pidió PINGU, por orden.
+
+1. **Los efectos de las cartas, solos.** «Cuando tienes el Casco Suerte,
+   que si te hacen daño robas 2, automáticamente; si te pega Budew, que no
+   puedas usar objetos; fíjate en esos detalles de todas las cartas». Un
+   lector de los TEXTOS de las cartas (`js/constructor/textos.js`, nuevo)
+   convierte cada frase de un ataque en un paso que la partida ejecuta, con
+   la regla de **todo o nada** (un ataque entendido a medias se queda como
+   estaba). Las habilidades pasivas salen como rasgos (defensas, cierres,
+   bonos, lo que pasa al caer), y las herramientas y energías que
+   reaccionan al recibir un ataque actúan solas. Lo que un ataque deja para
+   el turno siguiente (vetos, «no se retira», escudos…) se ve en la mesa
+   como chapas. Una Herramienta ya no cuenta como Objeto (Budew no la
+   bloquea; Jellicent ex sí, porque lo dice).
+2. **El Pokémon activo, en el centro del tapete**, y no la pareja carta +
+   vida (columnas de los lados a partes iguales y un contrapeso del ancho
+   del pie a la izquierda de la carta).
+3. **/repeticiones** (página nueva, en «Jugar»): pegas el registro de una
+   partida de TCG Live —en español o en inglés— y se reproduce sola, con
+   pausa, jugada a jugada, turno a turno, deslizador, velocidades, teclado,
+   el registro al lado y «Girar la mesa». La mesa es la del laboratorio
+   (mismas clases). El registro se lee entero y las 60 cartas de cada
+   jugador cuadran en cada foto; los casos que el registro cuenta a medias
+   (gemelos, la jugada contada dos veces, el KO sin su línea) están en
+   SCHEMA. Con un ejemplo real con los nombres cambiados por Rojo y Azul.
+
+Y dos arreglos de la mesa del laboratorio que salieron mirando la
+repetición: la última carta del descarte salía con su NOMBRE encima del
+dibujo, y en el móvil la vida del activo de arriba se metía 10 px debajo
+de su mazo.
+
+**Ficheros**: `js/constructor/textos.js` (nuevo), `js/constructor/partida.js`,
+`js/constructor/efectos.js`, `js/constructor/laboratorio.js`,
+`css/laboratorio.css`; `repeticiones.html`, `js/repeticiones.js`,
+`js/repeticiones/registro.js`, `js/repeticiones/estado.js`,
+`js/repeticiones/iconos.js`, `js/repeticiones/ejemplo.js` y
+`css/repeticiones.css` (nuevos); el enlace «Repeticiones» en el menú
+«Jugar» de 30 páginas más (`index.html` incluida: se apretó un comentario
+para que cupiera, 174.017 de 174.080 bytes); `netlify/functions/sitemap.mjs`;
+`SCHEMA.md`. En `pruebas`: `test-tanda-462.mjs` y `rigor-tanda-462.py`
+(nuevos), y `test-tanda-312` / `test-tanda-326`, que cuentan ya 32 páginas
+con pie.
+
+**La suite entera** (la lección de la 447): verde salvo siete rojos de
+/mi-coleccion que no eran de esta tanda (386, 405, 426, 428, 436, 438 y
+444). Al ir a subir, la otra sesión ya los había arreglado en SU 459, así
+que aquí no se tocan. **Rigor**: 23 mutaciones, las 23 detectadas (tres
+salieron sin detectar a la primera y destaparon huecos de la prueba: un
+veto de objetos que bloqueara también los partidarios, el intercambio
+contado dos veces mirado por NOMBRE —los dos Abra se llaman igual— en vez
+de por su sitio, y los controles del móvil medidos por alto en vez de por
+filas).
+
+**En curso / pendiente**: diez textos de ataque de la ficha de pruebas
+siguen sin leerse (los que copian otro ataque, como el Zoroark ex de N, o
+cuentan de formas que no se repiten): se juegan preguntando el daño, como
+antes. La forma EXACTA del KO y del premio en el registro en español no
+está confirmada con un registro que los tenga (el de ejemplo acaba en
+rendición): se reconocen por «Fuera de Combate» y «cartas de Premio», y si
+el KO se escapa se deduce de la vida. Si alguien pega uno con KO, mirar
+que no salga ninguna línea «sin entender».
+
 ## 2026-10-03 — PINGU-Claude (tanda 461 — la chapa de la versión y la cabecera como Dex)
 
 **Hecho**: (1) La chapa de la VERSIÓN encima de cada carta, en una

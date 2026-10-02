@@ -24670,3 +24670,185 @@ de compartir, con su globo, dice lo mismo en 36 px.
   y las **tarjetas de datos** a `--e-md` de relleno con la cifra en
   `--t-2xl`. En la pantalla de una expansión eso son 494 px hasta la
   primera carta, donde antes de la 459 había 920.
+
+## Tanda 462 — los efectos de las cartas, solos; el activo en el centro; y /repeticiones (oct. 2026)
+
+### Los efectos, sin hacerlos a mano
+
+PINGU: «que funcionen los efectos de las cartas: cuando tienes el Casco
+Suerte, que si te hacen daño robas 2 cartas, que se haga automáticamente.
+Si te pegan con Budew, que no puedas usar objetos. Fíjate en esos detalles
+de todas las cartas». Hasta aquí `efectos.js` escribía a mano lo que hacía
+cada carta del meta, una por una, y el resto se jugaba «a mano»: el que
+juega contra sí mismo no se acuerda de que el Casco Suerte roba dos.
+
+**Leer el texto de la carta** (`js/constructor/textos.js`, nuevo). La
+inmensa mayoría de los ataques dicen lo mismo con las mismas palabras
+—«Your opponent's Active Pokémon is now Confused», «During your opponent's
+next turn, they can't play any Item cards from their hand»—, y el espejo
+guarda el texto en INGLÉS, que es donde las plantillas no cambian. El
+módulo convierte cada frase en un paso (`{ t: 'veto', que: 'objetos' }`,
+`{ t: 'estadoRival', estado: 'confundido' }`…) y la partida los ejecuta.
+La regla que manda es **todo o nada**: si una sola frase del ataque no se
+entiende, el ataque entero se queda como estaba (preguntando el daño).
+Aplicar la mitad de un efecto sería peor que no aplicar ninguno, porque el
+jugador creería que la carta ya ha hecho lo suyo. Sobre la ficha de
+pruebas, 79 de 89 textos se leen enteros; los diez que no son ataques que
+copian otro ataque o cuentan de una forma que no se repite.
+
+Lo que un ataque **deja para el turno siguiente** vive en el Pokémon o en
+la partida, con el número del turno en el que vale: los vetos del rival
+(`s.vetos`: objetos, partidarios, evolucionar), «no puede retirarse», «no
+puede usar ese ataque», «hace N menos», los escudos («recibe N menos»,
+«no le afecta nada»), la marca de «recibe N más». Se van al pasar a la
+banca o al evolucionar (`limpiarEfectosDeAtaque`), que es lo que dice el
+reglamento.
+
+Las **habilidades que no se pulsan** salen del texto como RASGOS
+(`rasgosDeCarta`): reducir el daño recibido, prevenir el de los ex o el de
+los básicos, proteger la banca, cerrar objetos y herramientas al rival
+mientras están de activo (Jellicent ex), silenciar el activo rival
+(Flutter Mane), sumar daño, cambiar la debilidad (la Zona Feérica), lo que
+pasa al caer (Agujas Explosivas, Fainting Spell) y los premios de menos.
+Su botón dice «Se aplica sola: no se usa con un botón».
+
+Y lo que **reacciona al recibir un ataque** (`alRecibirDanioDeAtaque`):
+Casco Suerte (roba 2), Energía Punzante (2 contadores al atacante),
+Ventilador de Mano (una energía del atacante a su banca). Además: la
+Energía Legado da un premio menos UNA vez por partida, el Festival en
+Cabeza ataca dos veces con la Pradera del Festival, y desde Escarlata y
+Púrpura una **Herramienta NO es un Objeto**: el veto de Budew no la toca
+(el de Jellicent ex lo dice aparte).
+
+En la mesa, cada efecto se VE: chapas ámbar en el Pokémon («No se retira»,
+«Sin Polen Picazón», «−20 al atacar», «Escudo −30», «Recibe +100») con la
+carta que lo puso en el `title`, y en la barra del turno los vetos («Sin
+objetos»). Sin esto el efecto estaba y no se veía.
+
+### El Pokémon activo, en el centro
+
+PINGU: «que el Pokémon activo sea lo que está centrado en la pantalla y no
+la barra de vida». La carta y su pie (la vida, las energías) iban juntos
+en el centro, así que lo centrado era la PAREJA. Dos piezas: las columnas
+de los lados del tapete se reparten a partes iguales
+(`minmax(max-content, 1fr) auto minmax(max-content, 1fr)`), y a la
+izquierda de la carta va un hueco del ancho del pie (`::before`), que es
+el contrapeso de la vida de la derecha. En el móvil no: allí el activo va
+a la izquierda y las pilas al lado.
+
+### /repeticiones
+
+PINGU: «un apartado para ver repeticiones: que te peguen el log de una
+partida de Pokémon TCG Live en español y que se reproduzca sola». Página
+nueva, pública e indexable, en «Jugar». Tres piezas, cada una en su
+fichero:
+
+- `js/repeticiones/registro.js` lee el texto y saca **eventos** con forma
+  fija. El registro es texto para personas, no un formato: cada línea es
+  una frase, las que empiezan por «- » cuelgan de la de antes y las que
+  empiezan por «•» son la lista de cartas de la de antes. Los nombres de
+  usuario no llevan espacios pero los de las cartas sí, y llevan «de»
+  («Determinación de Lylia», «Zoroark ex de N»): «El Zoroark ex de N de
+  Pepe» solo se parte bien sabiendo quién juega, así que los dos jugadores
+  se sacan primero de la preparación. Lee también el registro en INGLÉS.
+  Lo que no entiende sale en el registro sin mover la mesa: mejor eso que
+  inventarse una jugada.
+- `js/repeticiones/estado.js` aplica los eventos y saca una **foto** de la
+  mesa por evento. Ir hacia atrás es mirar la foto de antes, no deshacer.
+  Cada foto lleva su `foco` (lo que se acaba de mover), que es lo que la
+  pantalla ilumina.
+- `js/repeticiones.js` pinta la foto que toca y la va pasando sola, con un
+  tiempo por jugada (un ataque se queda más que un robo).
+
+La mesa es la del **laboratorio**: la página carga `css/laboratorio.css`
+y usa sus clases (`lab-tapete`, `lab-lado`, `lab-slot`…). Una partida
+jugada allí y una mirada aquí se ven igual, y lo que se arregla en una se
+arregla en las dos (salió así lo del descarte, abajo).
+
+**Lo que el registro no dice no se inventa.** La mano del rival es una
+cuenta; la del dueño del registro se conoce casi entera (roba con nombre),
+y lo que no se conoce va boca abajo. Los PS salen de la impresión que mejor
+case con el nombre (el registro no dice cuál era), así que la vida se pinta
+solo cuando se sabe y el daño —que sí viene en el registro— siempre. Las
+imágenes se resuelven por detrás, de seis en seis nombres (como una lista
+sin códigos en el constructor), y la mesa se va llenando mientras se juega.
+
+Los casos que el registro cuenta **a medias**, todos con su prueba:
+
+- **Dos Pokémon que se llaman igual.** Una herramienta a «el Abra» va al
+  Abra que no lleva otra (nadie puede llevar dos); el que sube tras una
+  retirada no es el que se acaba de retirar; y «3 cards were discarded
+  from X's Raikou V» justo después de su KO habla del que acaba de caer:
+  buscarlo en la mesa encontraba a su GEMELO de la banca y lo tiraba
+  también.
+- **La misma jugada contada dos veces**: «X se ha intercambiado con Y y
+  pasa a ser el Pokémon Activo» va SIEMPRE seguida de «X pasa a estar en
+  el Puesto Activo». Con un gemelo en la banca, la segunda los volvía a
+  cambiar.
+- **Un premio no es una carta que se llame «2 cartas de Premio»**: la frase
+  del premio va ANTES que la de «ha robado (lo que sea)».
+- **Un KO sin su línea.** La forma exacta del KO en el registro en español
+  no está garantizada: se reconoce por «Fuera de Combate» y el ÚLTIMO
+  «Pokémon de jugador» de la frase (vale para «El X de A ha quedado Fuera
+  de Combate» y para «El X de A ha dejado Fuera de Combate al Y de B»). Y si
+  aun así se escapa, un Pokémon con más daño que vida que deja su puesto
+  cae igual (con los PS a mano, las fotos se rehacen).
+- «Ha jugado Dudunsparce» con un Dudunsparce EN JUEGO es su habilidad (así
+  lo escribe el juego): no sale de la mano.
+
+Con todo eso, las **60 cartas** de cada jugador están en su sitio en cada
+foto del ejemplo (mano + mazo + premios + descarte + en juego + estadio),
+y es la comprobación que caza casi todo lo de arriba.
+
+El reproductor: reproducir y pausa, jugada a jugada, turno a turno (el
+«anterior» lleva al principio de ESTE turno y, si ya estás en él, al del
+anterior, como cualquier reproductor), un deslizador, cuatro velocidades
+(la elegida se recuerda en el navegador) y el teclado (Espacio, ← →, y
+Mayús para saltar de turno; en el `title` de cada botón). El registro va
+al lado con la jugada actual marcada, y pulsar una línea lleva a ella; se
+desplaza dentro de SU caja, no la página. Girar la mesa pone abajo al
+otro, y el color sigue a la PERSONA, no al sitio. Pulsar un Pokémon, el
+descarte o el estadio los enseña en grande. El ejemplo («Probar con un
+ejemplo», o `?ejemplo`) es un registro real con los jugadores cambiados
+por Rojo y Azul, en su propio módulo y pedido al pulsar.
+
+Lo que ilumina cada jugada: el Pokémon que entra, evoluciona o recibe
+algo brilla; el que recibe un ataque tiembla con el daño encima; en el
+centro sale lo que se juega, el ataque y su daño, la moneda, el KO, los
+premios o la copa. El cambio de turno es el cartel del laboratorio, solo
+al AVANZAR (saltar con el deslizador es mirar, no jugar) y quitado con un
+temporizador. Con «menos movimiento» no tiembla ni sube nada, pero el
+daño se queda escrito hasta la jugada siguiente.
+
+La página dice que el registro «se lee en tu navegador y no se guarda: lo
+único que sale de él son los nombres de las cartas, para buscar sus
+dibujos» — y es exactamente lo que hace (tanda 447: una frase de la
+interfaz es una afirmación; la prueba mira que no haya ni un `fetch` ni una
+escritura en esos módulos).
+
+Los iconos del reproductor viven en `js/repeticiones/iconos.js` (tanda 452:
+`js/icons.js` lo baja la portada). El enlace «Repeticiones» va en el menú
+«Jugar» de las 31 páginas que lo tienen; para que cupiera en la portada se
+apretó un comentario de `index.html` (174.017 bytes de 174.080).
+
+### Dos arreglos de la mesa del laboratorio, que salieron aquí
+
+- **La última carta del descarte** salía con su NOMBRE encima del dibujo:
+  el nombre va en absoluto (es el respaldo de la tanda 321) y la imagen
+  iba en el flujo normal, que se pinta ANTES que lo posicionado. Ahora la
+  imagen va posicionada, como la de cualquier carta.
+- **El pie del activo de arriba en el móvil** (la vida y las energías)
+  se pasaba 10 px de su columna a 360 px: con tres energías, la tercera
+  quedaba debajo del mazo. Ahora mide 64 px, que es justo lo que ocupan
+  tres energías en fila.
+
+`test-tanda-462.mjs`: los efectos jugando contra el motor (31 formas, de
+Budew y el Casco Suerte a la Zona Feérica), la cobertura del lector de
+textos y el todo-o-nada, el registro en los dos idiomas con sus casos a
+medias y las 60 cartas en cada foto, /repeticiones en el navegador (sola,
+pausa, deslizador, botones, teclado, registro, girar, ver cartas,
+errores, el cartel del turno que se va solo con «menos movimiento», que
+quepa en tres portátiles y en dos móviles), el activo centrado en la
+repetición y en el laboratorio, la última del descarte con su dibujo
+encima, y el enlace en las 31 páginas y en el sitemap. `test-tanda-312` y
+`test-tanda-326` cuentan ya 32 páginas con pie.

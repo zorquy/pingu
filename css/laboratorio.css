@@ -430,6 +430,14 @@ button.lab-carta:focus-visible {
   color: var(--text);
 }
 
+/* Un efecto de ataque que le dura hasta el turno que viene (tanda 462):
+   ámbar, que no es un estado especial pero hay que verlo. */
+.lab-chapa-efecto {
+  background: var(--warning-bg);
+  border-color: var(--warning);
+  color: var(--text);
+}
+
 /* ── La energía: un punto con la letra del tipo ──
    Los colores son los de los tipos del TCG y viven en `--tipo-energia`,
    la excepción declarada de la tanda 311 (paleta cerrada de identidad).
@@ -590,6 +598,12 @@ button.lab-carta:focus-visible {
   background: var(--danger-solid);
   border-color: var(--danger-solid);
   color: var(--blanco-fijo);
+}
+
+.lab-tapete .lab-chapa-efecto {
+  border-color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 30%, transparent);
+  color: var(--tp-texto);
 }
 
 .lab-tapete .lab-chapa-alerta {
@@ -772,6 +786,7 @@ button.lab-carta:focus-visible {
 
 .lab-slot-activo {
   --lab-ancho-slot: var(--lab-c-activo);
+  --lab-pie-activo: 112px;
   flex-direction: row;
   align-items: flex-start;
   gap: var(--e-sm);
@@ -786,9 +801,44 @@ button.lab-carta:focus-visible {
 }
 
 .lab-slot-activo .lab-slot-pie {
-  width: 112px;
+  width: var(--lab-pie-activo);
   gap: var(--e-xs);
   padding-top: var(--e-xs);
+}
+
+/* Lo centrado es el POKÉMON, no la pareja carta + vida (tanda 462). PINGU:
+   «que el Pokémon activo sea lo que está centrado en la pantalla y no la
+   barra de vida». Dos piezas:
+   · las columnas de los lados (premios y pilas) se reparten a partes
+     iguales, así que la del medio cae en el centro del tapete aunque los
+     premios y las pilas no midan lo mismo;
+   · y a la izquierda de la carta va un hueco del ancho del pie, que es el
+     contrapeso de la vida de la derecha.
+   En el móvil no: allí el activo va a la izquierda y las pilas al lado. */
+@media (min-width: 761px) {
+  .lab-lado {
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+  }
+
+  .lab-slot-activo::before {
+    content: '';
+    flex: 0 0 var(--lab-pie-activo);
+  }
+
+  /* Con las columnas de los lados más anchas que lo que llevan, cada cosa
+     se pega a SU borde del tapete (antes la columna medía justo lo suyo y
+     el mazo y el descarte iban juntos; estirada, se separaban). */
+  .lab-lado-propio .lab-zona-premios,
+  .lab-lado-propio .lab-lado-cab,
+  .lab-lado-rival .lab-zona-pilas {
+    justify-self: start;
+  }
+
+  .lab-lado-propio .lab-zona-pilas,
+  .lab-lado-rival .lab-zona-premios,
+  .lab-lado-rival .lab-lado-cab {
+    justify-self: end;
+  }
 }
 
 .lab-slot-pie .lab-energias,
@@ -1079,7 +1129,14 @@ button.lab-pila:hover {
     4px 4px 0 0 var(--tp-linea);
 }
 
+/* La imagen, POSICIONADA como la de una carta (tanda 462): el nombre de
+   debajo va en absoluto, y una imagen en el flujo normal se pinta antes
+   que lo posicionado — así que el nombre salía ENCIMA del dibujo de la
+   última carta del descarte, con su velo. Se vio en /repeticiones, que
+   usa estas mismas pilas. */
 .lab-pila-cara img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -2734,8 +2791,8 @@ button.lab-carta.lab-no-vale:hover {
     padding-bottom: var(--e-xs);
   }
 
-  .lab-slot-activo .lab-slot-pie {
-    width: 96px;
+  .lab-slot-activo {
+    --lab-pie-activo: 96px;
   }
 
   .lab-zona-pilas {
@@ -2749,9 +2806,12 @@ button.lab-carta.lab-no-vale:hover {
   }
 
   /* El pie del activo de arriba, más estrecho: a 360 px se metía debajo
-     de su mazo. */
-  .lab-lado-rival .lab-slot-activo .lab-slot-pie {
-    width: 72px;
+     de su mazo. Con 72 aún se pasaba 10 px de su columna (64 de carta, 8
+     de hueco y 72 de pie, en 150): con tres energías, la tercera quedaba
+     debajo del mazo (tanda 462, al medirlo en /repeticiones). 64 es justo
+     lo que ocupan tres energías en fila. */
+  .lab-lado-rival .lab-slot-activo {
+    --lab-pie-activo: 64px;
   }
 
   .lab-lado-rival .lab-zona-pilas {

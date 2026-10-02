@@ -20,7 +20,7 @@
 import {
   esPokemon, esEntrenador, esEnergia, esPartidario, esObjeto, esHerramienta, esEstadio,
   faseDe, esBasicoEnJuego, esEvolucion, tieneRegla, esEx, esMegaEx, esTera, esDeTipo, esDe,
-  evolucionaDe, claveDeEfecto, ponerEstado, unidadesDeEnergia, costeEnLetras,
+  evolucionaDe, claveDeEfecto, ponerEstado, unidadesDeEnergia, costeEnLetras, limpiarEfectosDeAtaque,
 } from './partida.js'
 import { esEnergiaBasica, letraDeCartaDeEnergia, nombreVisible, plano } from './nucleo.js'
 
@@ -360,6 +360,7 @@ const entrenadores = {
     texto: 'Elige 1 de tus Pokémon básicos en juego. Si tienes en la mano una carta de Fase 2 que evolucione de ese Pokémon, ponla sobre él (cuenta como evolucionar). No puedes usarla en tu primer turno ni sobre un básico que haya entrado en juego este turno.',
     puede(p, ctx) {
       if (p.s.estricta && p.esMiPrimerTurno) return 'No se puede usar en tu primer turno.'
+      if (p.s.estricta && p.vetado('evolucionar')) return `Este turno no puedes evolucionar desde la mano (${p.vetado('evolucionar')}).`
       return parejasCaramelo(p, ctx).length > 0 || 'No tienes una Fase 2 en la mano que evolucione de uno de tus básicos (que no haya entrado este turno).'
     },
     async usar(p, ui, ctx) {
@@ -374,6 +375,7 @@ const entrenadores = {
       slot.cartas.push(uid)
       slot.evolucionoTurno = p.s.turno
       slot.estados = []
+      limpiarEfectosDeAtaque(slot)
       p.log(`Caramelo Raro: ${antes} evoluciona a ${p.nombre(uid)}.`)
       await p.habilidadAlEvolucionar(slot, ui)
     },
@@ -1195,7 +1197,13 @@ const habilidades = {
   munkidori: {
     nombre: 'Adrena-Brain',
     texto: 'Una vez por turno, si tiene Energía {D} unida, mueve hasta 3 contadores de daño de 1 de tus Pokémon a 1 de los del rival.',
-    puede: (p, s) => s.energias.some((u) => unidadesDeEnergia(p.carta(u), p.cartaDe(s), p).some((x) => x.includes('D') || x.includes('*'))) || 'Necesita Energía Oscura unida.',
+    puede(p, s) {
+      // Ojo Vigilante (Patrat, de cualquiera de los dos): los contadores no
+      // se pueden mover (tanda 462).
+      const quietos = [p, p.oponente].filter(Boolean).some((j) => j.rasgosEnJuego('contadoresQuietos').length)
+      if (quietos) return 'Un Patrat en juego (Ojo Vigilante) impide mover contadores.'
+      return s.energias.some((u) => unidadesDeEnergia(p.carta(u), p.cartaDe(s), p).some((x) => x.includes('D') || x.includes('*'))) || 'Necesita Energía Oscura unida.'
+    },
     async usar(p, ui) {
       const s = await elegirPropio(p, ui, { titulo: '¿De qué Pokémon tuyo quitas contadores?', filtro: (c, s) => s.danio > 0 })
       if (!s) return p.log('Ninguno de tus Pokémon tiene daño.')

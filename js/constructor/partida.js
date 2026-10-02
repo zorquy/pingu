@@ -15,8 +15,9 @@
 // Y las elecciones tampoco: cuando una carta dice «elige», el motor se lo
 // pregunta a un `ui` que le pasa quien llama. En la web es una ventana;
 // en las pruebas, un guion. Por eso todo lo que elige es asíncrono.
-import { plano, categoriaDe, esBasico, esEnergiaBasica, letraDeCartaDeEnergia, claveDeNombre, nombreVisible, subtipoDeEntrenador } from './nucleo.js'
+import { plano, categoriaDe, esBasico, esEnergiaBasica, letraDeCartaDeEnergia, claveDeNombre, nombreVisible, subtipoDeEntrenador, esAsTactico } from './nucleo.js'
 import { INGLES_DE } from './nombres.js'
+import { lecturaDeAtaque, rasgosDeCarta, normalizarTexto } from './textos.js'
 
 // ════════════════════════════════════════════════════════════════════
 // Qué es cada carta, a efectos de jugarla
@@ -369,6 +370,11 @@ export class Partida {
       manosMulligan: [],
       flags: this.flagsNuevas(),
       koUltimoTurnoRival: false,
+      // Lo que el otro te ha prohibido para tu turno que viene («durante
+      // el próximo turno de tu rival, no puede jugar objetos»): por qué
+      // turno TUYO vale y qué carta lo puso. Tanda 462.
+      vetos: {},
+      koUltimo: [],
       conocimiento: { arriba: 0, abajo: 0, confirmados: {} },
       rival: crearRival(rival || {}),
       registro: [],
@@ -825,7 +831,12 @@ export class Partida {
   chequeo() {
     const s = this.s
     for (const p of this.enJuego) {
-      if (p.estados.includes('envenenado')) this.ponerDanio(p, 10, { motivo: 'veneno' })
+      if (p.estados.includes('envenenado')) {
+        // Sometimiento Tóxico (Pecharunt del otro, de activo): 5 contadores más.
+        const op = this.oponente
+        const mas = op && p === this.s.activo && op.s.activo ? op.rasgosDe(op.s.activo, 'venenoMas').reduce((t, r) => t + r.n, 0) : 0
+        this.ponerDanio(p, 10 + mas, { motivo: mas ? 'veneno, Sometimiento Tóxico' : 'veneno' })
+      }
       if (p.estados.includes('quemado')) {
         this.ponerDanio(p, 20, { motivo: 'quemadura' })
         if (this.moneda()) quitarEstado(p, 'quemado')
@@ -889,6 +900,7 @@ export class Partida {
     if (!evolucionaDe(evo, base)) return `${nombreVisible(evo)} no evoluciona de ${nombreVisible(base)}.`
     if (!this.s.estricta) return null
     if (this.esMiPrimerTurno && !desdeMazo) return 'Nadie puede evolucionar en su primer turno.'
+    if (!desdeMazo && this.vetado('evolucionar')) return `Este turno no puedes evolucionar desde la mano (${this.vetado('evolucionar')}).`
     const bosque = this.s.estadio && claveDeEfecto(this.carta(this.s.estadio)) === 'forest of vitality' && esDeTipo(base, 'G') && esDeTipo(evo, 'G')
     if (slot.entroTurno === this.s.turno && !bosque) return 'Ese Pokémon ha entrado en juego este turno.'
     if (slot.evolucionoTurno === this.s.turno && !bosque) return 'Ese Pokémon ya ha evolucionado este turno.'
@@ -957,6 +969,11 @@ export class Partida {
         if (s.estadio && claveDeNombre(this.carta(s.estadio)) === claveDeNombre(c)) return 'Ese estadio ya está en juego.'
       }
       if (esObjeto(c) && s.flags.sinObjetos) return 'Este turno no puedes jugar objetos.'
+      if (esObjeto(c) && this.vetado('objetos')) return `Este turno no puedes jugar objetos (${this.vetado('objetos')}).`
+      if (esPartidario(c) && this.vetado('partidarios')) return `Este turno no puedes jugar partidarios (${this.vetado('partidarios')}).`
+      const cierre = this.cierreDelRival()
+      if (esObjeto(c) && cierre.objetos) return `No puedes jugar objetos mientras ${cierre.objetos} siga de activo.`
+      if (esAsTactico(c) && cierre.aceSpec) return `No puedes jugar cartas AS TÁCTICO: lo impide ${cierre.aceSpec}.`
     }
     if (ef?.puede) {
       const r = ef.puede(this, { uid, carta: c })
@@ -1037,8 +1054,10 @@ export class Partida {
     const antes = this.cartaDe(slot)
     slot.cartas.push(uid)
     slot.evolucionoTurno = this.s.turno
-    // Evolucionar cura los estados especiales.
+    // Evolucionar cura los estados especiales y le quita los efectos de
+    // ataques que tuviera encima (es otro Pokémon).
     slot.estados = []
+    limpiarEfectosDeAtaque(slot)
     this.log(`${nombreVisible(antes)} evoluciona a ${this.nombre(uid)}.`)
     if (!desdeMazo && !sinHabilidad) await this.habilidadAlEvolucionar(slot, ui)
   }
@@ -1080,7 +1099,11 @@ export class Partida {
   unirHerramienta(uid, slot) {
     if (!slot) throw new NoSePuede('Ese Pokémon ya no está en juego.')
     if (slot.herramienta) throw new NoSePuede('Ese Pokémon ya lleva una herramienta.')
-    if (this.s.estricta && this.s.flags.sinObjetos) throw new NoSePuede('Este turno no puedes jugar objetos.')
+    // Desde Escarlata y Púrpura, una Herramienta NO es un Objeto: lo que
+    // prohíbe «jugar objetos» (Budew) no la toca; lo que prohíbe también
+    // las herramientas lo dice aparte (Jellicent ex).
+    const cierre = this.cierreDelRival()
+    if (this.s.estricta && cierre.herramientas) throw new NoSePuede(`No puedes unir herramientas mientras ${cierre.herramientas} siga de activo.`)
     this.quitarDeMano(uid)
     slot.herramienta = uid
     this.log(`Unes ${this.nombre(uid)} a ${nombreVisible(this.cartaDe(slot))}.`)
@@ -1162,6 +1185,13 @@ export class Partida {
     const c = this.cartaDe(slot)
     const est = this.s.estadio && claveDeEfecto(this.carta(this.s.estadio))
     if (est === "team rocket's watchtower" && esDeTipo(c, 'C')) return false
+    // Flutter Mane de activo: el activo del otro no tiene habilidades
+    // (salvo la suya, que es la que lo dice).
+    const op = this.oponente
+    if (op && slot === this.s.activo && op.s.activo && !rasgosDeCarta(c).some((r) => r.t === 'silenciaActivo')) {
+      const fm = op.cartaDe(op.s.activo)
+      if (rasgosDeCarta(fm).some((r) => r.t === 'silenciaActivo') && modernaOSinMarca(fm) && !(est === "team rocket's watchtower" && esDeTipo(fm, 'C'))) return false
+    }
     return true
   }
 
@@ -1181,6 +1211,7 @@ export class Partida {
 
   motivoNoHabilidad(slot) {
     const def = this.habilidadDe(slot)
+    if (!def && rasgosDeCarta(this.cartaDe(slot)).length) return 'Se aplica sola: no se usa con un botón.'
     if (!def) return 'Esta habilidad no está automatizada.'
     if (!this.habilidadActiva(slot)) return 'Ahora mismo este Pokémon no tiene habilidades.'
     if (def.cuando === 'bajar' || def.cuando === 'evolucionar' || def.pasiva) return 'Se activa sola cuando toca.'
@@ -1219,6 +1250,8 @@ export class Partida {
     if (esBasicoEnJuego(c) && this.hayHabilidadActiva('latias ex')) coste = 0
     const est = this.s.estadio && claveDeEfecto(this.carta(this.s.estadio))
     if (est === "n's castle" && esDe(c, 'n')) coste = 0
+    // Llama Atadura (Mega Chandelure ex del otro): tu activo cuesta {C} más.
+    if (this.oponente && slot === this.s.activo) coste += this.oponente.rasgosEnJuego('retiradaRivalMas').reduce((t, { r }) => t + r.n, 0)
     return Math.max(0, coste)
   }
 
@@ -1278,7 +1311,10 @@ export class Partida {
     const viejo = s.activo
     s.banca.splice(i, 1)
     if (viejo) {
+      // Pasar a la banca quita los estados especiales y los efectos de
+      // ataques («durante el próximo turno, no puede retirarse»…).
       viejo.estados = []
+      limpiarEfectosDeAtaque(viejo)
       s.banca.push(viejo)
     }
     s.activo = slot
@@ -1385,8 +1421,18 @@ export class Partida {
   // El maniquí rival
   // ════════════════════════════════════════════════════════════════
 
-  danioAlRival(objetivo, cantidad, { motivo = '', contadores = false } = {}) {
+  danioAlRival(objetivo, cantidad, { motivo = '', contadores = false, comprobado = false } = {}) {
     if (!objetivo || cantidad <= 0) return
+    // Con mesa, lo que el otro tiene para evitarlo (tanda 462): la banca
+    // protegida, los contadores por efectos. El daño principal de un ataque
+    // al activo ya viene mirado (`comprobado`).
+    if (this.oponente && !comprobado) {
+      const no = this.oponente.proteccionDe(objetivo, { contadores, porHabilidad: !this.s.flags.enAtaque })
+      if (no) {
+        this.log(`${nombreVisible(this.oponente.cartaDe(objetivo))} no recibe ${contadores ? 'los contadores' : 'el daño'} (${no}).`)
+        return
+      }
+    }
     objetivo.danio += cantidad
     const r = this.rival
     const donde = this.oponente
@@ -1441,14 +1487,54 @@ export class Partida {
         extra += s.flags.premioExtra || 0
       }
       const c = op.cartaDe(d)
-      const n = Math.min(premiosQueDa(c) + extra, s.premios.length)
+      // Lo que el que cae tiene para cuando cae por un ATAQUE (tanda 462):
+      // un premio menos (Energía Legado, Perla de Lylia, Ocultación
+      // Sombría) y lo que le pasa al atacante (Hechizo Desmayo, Agujas
+      // Explosivas).
+      let menos = 0
+      const porQue = []
+      if (s.flags.enAtaque) {
+        const atacante = this.slot(s.flags.atacante)
+        const ca = atacante && this.cartaDe(atacante)
+        if (!op.s.legadoUsado && d.energias.some((u) => claveDeEfecto(op.carta(u)) === 'legacy energy')) {
+          menos++
+          op.s.legadoUsado = true
+          porQue.push('Energía Legado')
+        }
+        if (op.herramientaActiva(d, "lillie's pearl") && esDe(c, 'lillie')) {
+          menos++
+          porQue.push('Perla de Lylia')
+        }
+        const oculta = ca && esEx(ca) && op.rasgosEnJuego('menosPremio').find(({ r }) => esDeTipo(c, r.letra))
+        if (oculta) {
+          menos++
+          porQue.push(oculta.r.habilidad)
+        }
+        if (d === op.s.activo && atacante && op.habilidadActiva(d) && modernaOSinMarca(c)) {
+          for (const r of rasgosDeCarta(c)) {
+            if (r.t === 'alCaerMoneda') {
+              this.log(`${r.habilidad}: ${op.nombreJugador} lanza una moneda.`)
+              if (op.moneda()) {
+                atacante.danio = Math.max(atacante.danio, this.psDe(atacante))
+                this.log(`${nombreVisible(ca)} queda fuera de combate (${r.habilidad}).`)
+              }
+            } else if (r.t === 'alCaerContadores') {
+              this.ponerDanio(atacante, r.n, { motivo: r.habilidad })
+            }
+          }
+        }
+      }
+      const n = Math.max(0, Math.min(premiosQueDa(c) + extra - menos, s.premios.length))
       op.alDescarteDeSuDueno(op.cartasDelSlot(d))
       op.quitarDelJuego(d)
       op.s.caidos = (op.s.caidos || 0) + 1
       // Lo ha dejado KO quien juega ahora: para el otro, eso pasa «en el
       // último turno de su rival» (Estampa Injusta, Fezandipiti…).
-      if (this.enTurno) op.s.koUltimoTurnoRival = true
-      this.log(`${nombreVisible(c)} de ${op.nombreJugador} queda fuera de combate: ${this.nombreJugador} coge ${n} ${n === 1 ? 'premio' : 'premios'}.`)
+      if (this.enTurno) {
+        op.s.koUltimoTurnoRival = true
+        op.s.koUltimo = [...(op.s.koUltimo || []), claveDeEfecto(c)]
+      }
+      this.log(`${nombreVisible(c)} de ${op.nombreJugador} queda fuera de combate: ${this.nombreJugador} coge ${n} ${n === 1 ? 'premio' : 'premios'}${porQue.length ? ` (uno menos: ${porQue.join(', ')})` : ''}.`)
       await this.cogerPremios(n, ui)
     }
     this.comprobarFin()
@@ -1494,6 +1580,233 @@ export class Partida {
   }
 
   // ════════════════════════════════════════════════════════════════
+  // Lo que las cartas hacen SOLAS (tanda 462)
+  // ════════════════════════════════════════════════════════════════
+  //
+  // Las habilidades que no se usan con un botón (defensas, cierres, lo que
+  // pasa al caer), las herramientas y energías que actúan al recibir un
+  // ataque, y los efectos que un ataque deja para el turno siguiente. Todo
+  // esto antes se tenía que hacer a mano, y el que juega contra sí mismo
+  // no se acuerda de que el Casco Suerte roba dos.
+
+  // ¿Qué te prohibió el otro para ESTE turno? Devuelve el porqué (la carta
+  // que lo puso) o null.
+  vetado(que) {
+    const v = this.s.vetos?.[que]
+    return v && v.turno === this.s.turno ? v.por : null
+  }
+
+  // Los rasgos pasivos (textos.js) de los Pokémon de este jugador cuya
+  // habilidad funciona ahora mismo. `{ slot, r }` por cada uno.
+  rasgosEnJuego(tipo) {
+    const out = []
+    for (const slot of this.enJuego) {
+      const c = this.cartaDe(slot)
+      if (!c || !modernaOSinMarca(c) || !this.habilidadActiva(slot)) continue
+      for (const r of rasgosDeCarta(c)) if (!tipo || r.t === tipo) out.push({ slot, r, c })
+    }
+    return out
+  }
+  rasgosDe(slot, tipo) {
+    const c = this.cartaDe(slot)
+    if (!c || !modernaOSinMarca(c) || !this.habilidadActiva(slot)) return []
+    return rasgosDeCarta(c).filter((r) => !tipo || r.t === tipo)
+  }
+
+  // Lo que el activo del OTRO te cierra mientras siga ahí (Jellicent ex:
+  // ni objetos ni herramientas) o desde cualquier sitio (Genesect con una
+  // herramienta: nada de AS TÁCTICO).
+  cierreDelRival() {
+    const op = this.oponente
+    const out = {}
+    if (!op) return out
+    const a = op.s.activo
+    if (a) {
+      for (const r of op.rasgosDe(a, 'cierraObjetos')) {
+        out.objetos = nombreVisible(op.cartaDe(a))
+        if (r.herramientas) out.herramientas = nombreVisible(op.cartaDe(a))
+      }
+    }
+    for (const { slot, c } of op.rasgosEnJuego('cierraAceSpec')) if (slot.herramienta) out.aceSpec = nombreVisible(c)
+    return out
+  }
+
+  // ¿Este Pokémon está a salvo de los EFECTOS de un ataque (o de una
+  // habilidad) del otro? El daño no es un efecto; los estados, los
+  // contadores, «no puede retirarse», descartarle energía… sí. Devuelve el
+  // porqué o null.
+  previeneEfectosEn(slot, { porHabilidad = false } = {}) {
+    if (!slot) return null
+    const c = this.cartaDe(slot)
+    const op = this.oponente
+    if (!porHabilidad) {
+      if (op && (slot.escudos || []).some((e) => e.tipo === 'todoYEfectos' && e.turnoRival === op.s.turno)) return 'lo protege su último ataque'
+      for (const u of slot.energias) {
+        const k = claveDeEfecto(this.carta(u))
+        if (k === 'mist energy') return 'Energía Niebla'
+        if (k === 'rocky fighting energy' && esDeTipo(c, 'F')) return 'Energía Lucha Rocosa'
+      }
+      if (slot !== this.s.activo && this.rasgosEnJuego('protegeBanca').some(({ r }) => r.efectos)) return 'lo protege una habilidad'
+      if (esBasicoEnJuego(c) && this.rasgosEnJuego('sinEfectosBasicosDe').some(({ r }) => esDe(c, r.dueno.replace(/'s$/, '')))) return 'lo protege una habilidad'
+    }
+    for (const r of this.rasgosDe(slot, 'sinEfectos')) if (!porHabilidad || r.habilidades) return r.habilidad || 'su habilidad'
+    return null
+  }
+
+  // Inmune a los estados especiales: Energía Agua Burbujeante (en un
+  // Pokémon {W}) y la Pradera del Festival (con alguna energía unida).
+  inmuneAEstados(slot) {
+    if (!slot) return false
+    const c = this.cartaDe(slot)
+    if (esDeTipo(c, 'W') && slot.energias.some((u) => claveDeEfecto(this.carta(u)) === 'bubbly water energy')) return true
+    const est = this.s.estadio && claveDeEfecto(this.carta(this.s.estadio))
+    return est === 'festival grounds' && slot.energias.length > 0
+  }
+
+  // Poner un estado al activo del rival (maniquí o jugador), mirando lo
+  // que lo impide.
+  estadoAlRival(e, porque = '') {
+    const r = this.rival.activo
+    if (!r) return
+    const op = this.oponente
+    if (op) {
+      const no = op.previeneEfectosEn(r)
+      if (no) return this.log(`${nombreVisible(op.cartaDe(r))} no se ve afectado (${no}).`)
+      if (op.inmuneAEstados(r)) return this.log(`${nombreVisible(op.cartaDe(r))} no puede sufrir estados especiales.`)
+    }
+    // La parálisis se va al final del SIGUIENTE turno del afectado: con
+    // mesa, cuenta el turno de su dueño.
+    ponerEstado(r, e, op ? op.s.turno : this.s.turno)
+    this.log(`${op ? nombreVisible(op.cartaDe(r)) : 'El activo rival'} queda ${e}${porque ? ` (${porque})` : ''}.`)
+  }
+
+  // El daño de un ATAQUE que recibe un Pokémon de este jugador, después de
+  // la debilidad y la resistencia: los escudos del último ataque, las
+  // habilidades que lo bajan o lo evitan. `atacante`: { partida, slot }.
+  reduccionAlRecibir(slot, atacante, cantidad) {
+    const razones = []
+    let n = cantidad
+    const ca = atacante.partida.cartaDe(atacante.slot)
+    const evita = (porque) => {
+      razones.push(`evitado: ${porque}`)
+      n = 0
+    }
+    for (const e of slot.escudos || []) {
+      if (e.turnoRival !== atacante.partida.s.turno) continue
+      if (e.tipo === 'menos') {
+        n -= e.n
+        razones.push(`−${e.n} ${e.por || 'su último ataque'}`)
+      } else if (e.tipo === 'todo' || e.tipo === 'todoYEfectos') evita(e.por || 'su último ataque')
+      else if (e.tipo === 'desdeBasicos' && esBasicoEnJuego(ca)) evita(e.por || 'su último ataque')
+      else if (e.tipo === 'desdeEvolucion' && esEvolucion(ca)) evita(e.por || 'su último ataque')
+      else if (e.tipo === 'desdeEx' && esEx(ca)) evita(e.por || 'su último ataque')
+    }
+    for (const r of this.rasgosDe(slot)) {
+      if (r.t === 'reduce') {
+        n -= r.n
+        razones.push(`−${r.n} ${r.habilidad}`)
+      } else if (r.t === 'previene') {
+        const tiene = Array.isArray(ca?.abilities) && ca.abilities.length > 0
+        if ((r.de === 'ex' && esEx(ca)) || (r.de === 'basicos' && esBasicoEnJuego(ca)) || (r.de === 'evolucion' && esEvolucion(ca)) || (r.de === 'conHabilidad' && tiene)) evita(r.habilidad)
+      }
+    }
+    // El muro de Bouffalant: con OTRO de su nombre en juego, los básicos
+    // incoloros reciben menos. No se suma consigo mismo.
+    const c = this.cartaDe(slot)
+    if (esBasicoEnJuego(c) && esDeTipo(c, 'C')) {
+      const muro = this.rasgosEnJuego('muroIncoloro').find(({ r }) => this.enJuego.filter((x) => normalizarNombre(this.cartaDe(x)?.name) === r.nombre).length >= 2)
+      if (muro) {
+        n -= muro.r.n
+        razones.push(`−${muro.r.n} ${muro.r.habilidad}`)
+      }
+    }
+    return { total: Math.max(0, n), razones }
+  }
+
+  // Lo que evita el daño o los contadores en la BANCA (Shaymin, Rabsca, la
+  // Energía Oscura Sombría) y los contadores por efectos (Jaula de
+  // Combate, Escondite). `porHabilidad`: lo ponen una habilidad del otro.
+  proteccionDe(slot, { contadores = false, porHabilidad = false } = {}) {
+    if (!slot) return null
+    const c = this.cartaDe(slot)
+    const enBanca = slot !== this.s.activo
+    if (contadores) {
+      const est = this.s.estadio && claveDeEfecto(this.carta(this.s.estadio))
+      if (enBanca && est === 'battle cage') return 'Jaula de Combate'
+      return this.previeneEfectosEn(slot, { porHabilidad })
+    }
+    if (enBanca && !porHabilidad) {
+      if (esDeTipo(c, 'D') && slot.energias.some((u) => claveDeEfecto(this.carta(u)) === 'shadowy darkness energy')) return 'Energía Oscura Sombría'
+      for (const { r } of this.rasgosEnJuego('protegeBanca')) if (r.efectos || (r.sinRegla && !tieneRegla(c))) return r.habilidad
+    }
+    return null
+  }
+
+  // Al recibir daño de un ataque en el puesto activo (aunque caiga):
+  // Casco Suerte, Ventilador de Mano, Energía Punzante.
+  async alRecibirDanioDeAtaque(slot, atacante, ui) {
+    if (slot !== this.s.activo) return
+    const yo = this.nombreJugador || 'Tu Pokémon'
+    if (this.herramientaActiva(slot, 'lucky helmet')) {
+      this.log(`Casco Suerte: ${yo} roba 2 cartas.`)
+      this.robar(2, { motivo: 'Casco Suerte' })
+    }
+    if (slot.energias.some((u) => claveDeEfecto(this.carta(u)) === 'spiky energy')) {
+      atacante.partida.ponerDanio(atacante.slot, 20, { motivo: 'Energía Punzante' })
+    }
+    if (this.herramientaActiva(slot, 'handheld fan')) {
+      const ap = atacante.partida
+      const a = atacante.slot
+      if (a.energias.length && ap.s.banca.length) {
+        const [u] = a.energias.length === 1 ? a.energias : await ui.cartas({ titulo: `Ventilador de Mano: ¿qué energía del atacante se mueve?`, opciones: [...a.energias], min: 1, max: 1, partida: this })
+        const [id] = ap.s.banca.length === 1 ? [ap.s.banca[0].id] : await ui.pokemon({ titulo: 'Ventilador de Mano: ¿a qué Pokémon de su banca?', opciones: ap.s.banca.map((x) => x.id), min: 1, max: 1, partida: this })
+        const destino = ap.s.banca.find((x) => x.id === id)
+        a.energias = a.energias.filter((x) => x !== u)
+        destino.energias.push(u)
+        this.log(`Ventilador de Mano: ${ap.nombre(u)} pasa de ${nombreVisible(ap.cartaDe(a))} a ${nombreVisible(ap.cartaDe(destino))}.`)
+      }
+    }
+  }
+
+  // El daño de un ataque al activo del rival, con todo: los bonos de quien
+  // ataca, lo que el otro le quitó con su último ataque (Gruñido), la
+  // debilidad y la resistencia, lo que el defensor evita o reduce, y lo que
+  // pasa al recibirlo. `mods`: lo que dice el propio ataque (sin debilidad,
+  // «no le afectan los efectos del activo rival»…).
+  async danioDeAtaque(slot, danio, ui, mods = {}) {
+    const objetivo = this.rival.activo
+    if (!(danio > 0) || !objetivo) return 0
+    const op = this.oponente
+    const { extra, razones } = this.bonosDeDanio(slot)
+    let total = danio + extra
+    if (slot.debil && slot.debil.turno === this.s.turno) {
+      total = Math.max(0, total - slot.debil.n)
+      razones.push(`−${slot.debil.n} ${slot.debil.por || 'efecto rival'}`)
+    }
+    if (op) {
+      const dr = mods.sinDR ? { total, razones: [] } : this.debilidadYResistencia(slot, objetivo, total, mods)
+      total = dr.total
+      razones.push(...dr.razones)
+      if (!mods.ignoraEfectos) {
+        if (objetivo.marca && objetivo.marca.turno === this.s.turno && objetivo.marca.de === this.prefijo) {
+          total += objetivo.marca.n
+          razones.push(`+${objetivo.marca.n} ${objetivo.marca.por || 'su último ataque'}`)
+        }
+        const red = op.reduccionAlRecibir(objetivo, { partida: this, slot }, total)
+        total = red.total
+        razones.push(...red.razones)
+      }
+    }
+    if (total <= 0) {
+      this.log(`El ataque no hace daño${razones.length ? ` (${razones.join(', ')})` : ''}.`)
+      return 0
+    }
+    this.danioAlRival(objetivo, total, { motivo: razones.join(', '), comprobado: true })
+    if (op) await op.alRecibirDanioDeAtaque(objetivo, { partida: this, slot }, ui)
+    return total
+  }
+
+  // ════════════════════════════════════════════════════════════════
   // Atacar
   // ════════════════════════════════════════════════════════════════
 
@@ -1523,6 +1836,10 @@ export class Partida {
     }
     const est = this.s.estadio && claveDeEfecto(this.carta(this.s.estadio))
     if (est === 'nighttime mine' && esTera(this.cartaDe(slot))) coste = [...coste, 'C']
+    // Perdición de Plasma (Kyurem): con una carta «Colress» en el descarte
+    // del otro, Tritormenta cuesta {C}.
+    const op = this.oponente
+    if (op && normalizarTexto(ataque?.name) === 'trifrost' && (c?.abilities || []).some((h) => normalizarTexto(h?.name) === 'plasma bane') && this.habilidadActiva(slot) && op.s.descarte.some((u) => /colress/.test(normalizarNombre(op.carta(u)?.name)))) coste = ['C']
     return coste
   }
 
@@ -1539,10 +1856,22 @@ export class Partida {
       if (b.indice == null) return 'Este Pokémon no puede atacar este turno (lo dice su último ataque).'
       if (c.attacks?.indexOf(ataque) === b.indice) return 'No puede repetir este ataque este turno.'
     }
+    for (const x of slot.bloqueos || []) {
+      if (x.turno !== s.turno || prestadoDe) continue
+      if (x.indice == null) return `Este Pokémon no puede atacar este turno${x.por ? ` (${x.por})` : ''}.`
+      if (c.attacks?.indexOf(ataque) === x.indice) return `No puede usar este ataque este turno${x.por ? ` (${x.por})` : ''}.`
+    }
+    for (const r of this.rasgosDe(slot, 'atacaSiTiene')) {
+      const n = this.enJuego.filter((x) => esDe(this.cartaDe(x), r.dueno.replace(/'s$/, ''))).length
+      if (n < r.n) return `${r.habilidad}: no puede atacar con menos de ${r.n} Pokémon así en juego (tienes ${n}).`
+    }
     const def = this.defDeAtaque(c, ataque)
     if (def?.puede) {
       const r = def.puede(this, slot)
       if (r && r !== true) return r
+    }
+    if (!def && lecturaDeAtaque(ataque).completo && lecturaDeAtaque(ataque).pasos.some((p) => p.t === 'soloSegundoPrimerTurno') && !(!s.vaPrimero && s.turno === 1)) {
+      return 'Este ataque solo se puede usar si vas segundo, en tu primer turno.'
     }
     const coste = this.costeDeAtaque(slot, ataque, prestadoDe)
     if (!pagaCoste(coste, this.unidadesDe(slot))) return 'No tiene la energía que pide el ataque.'
@@ -1574,6 +1903,15 @@ export class Partida {
     if (esDe(c, 'cynthia') && this.hayHabilidadActiva("cynthia's roserade")) suma(30, 'Roserade de Cintia')
     if (esEvolucion(c) && esDeTipo(c, 'R') && this.hayHabilidadActiva('victini')) suma(10, 'Victini')
     if (esDeTipo(c, 'L') && slot.energias.some((u) => claveDeEfecto(this.carta(u)) === 'voltaic lightning energy')) suma(20, 'Energía Rayo Voltaica')
+    if (this.herramientaActiva(slot, 'binding mochi') && slot.estados.includes('envenenado')) suma(40, 'Mochi Atadura')
+    // Las habilidades de «los ataques de tus Pokémon X hacen N más», leídas
+    // del texto (las que ya tenían su línea arriba, no se cuentan dos veces).
+    for (const { r, c: dueno } of this.rasgosEnJuego('bono')) {
+      if (BONOS_CON_NOMBRE.has(claveDeEfecto(dueno))) continue
+      if (r.salvo && claveDeEfecto(c) === normalizarNombre(r.salvo)) continue
+      const vale = r.de === 'future' ? /^iron /.test(claveDeEfecto(c)) : /'s$/.test(r.de) ? esDe(c, r.de.replace(/'s$/, '')) : false
+      if (vale) suma(r.n, r.habilidad)
+    }
     return { extra, razones }
   }
 
@@ -1581,23 +1919,28 @@ export class Partida {
   // activo del otro jugador frente a los tipos de quien ataca. Se aplican
   // después de los bonos, que es lo que dicen todas esas cartas («antes de
   // aplicar Debilidad y Resistencia»).
-  debilidadYResistencia(atacante, objetivo, danio) {
+  debilidadYResistencia(atacante, objetivo, danio, { sinDebilidad = false, sinResistencia = false } = {}) {
     const op = this.oponente
     const def = op.cartaDe(objetivo)
     const tipos = tiposDe(this.cartaDe(atacante))
+    // La Zona Feérica de la Clefairy ex de Lylia: la debilidad de los
+    // Pokémon {N} del otro pasa a ser {P} (×2).
+    let debilidades = Array.isArray(def?.weaknesses) ? def.weaknesses : []
+    const zona = this.rasgosEnJuego('cambiaDebilidad').find(({ r }) => esDeTipo(def, r.de))
+    if (zona) debilidades = [{ type: Object.keys(LETRA_DE_TIPO).find((k) => LETRA_DE_TIPO[k] === zona.r.a), value: '×2' }]
     const numero = (v, porDefecto) => {
       const n = Number(String(v ?? '').replace(/[^0-9]/g, ''))
       return Number.isFinite(n) && n > 0 ? n : porDefecto
     }
     let total = danio
     const razones = []
-    for (const w of Array.isArray(def?.weaknesses) ? def.weaknesses : []) {
+    for (const w of sinDebilidad ? [] : debilidades) {
       if (!tipos.includes(letraDeTipo(w?.type))) continue
       if (/\+/.test(String(w.value ?? ''))) total += numero(w.value, 0)
       else total *= numero(w.value, 2)
       razones.push('debilidad')
     }
-    for (const r of Array.isArray(def?.resistances) ? def.resistances : []) {
+    for (const r of sinResistencia || !Array.isArray(def?.resistances) ? [] : def.resistances) {
       if (!tipos.includes(letraDeTipo(r?.type))) continue
       total -= numero(r.value, 30)
       razones.push('resistencia')
@@ -1621,36 +1964,436 @@ export class Partida {
       this.retirarKOPropios()
       return this.finDeAtaque(ui)
     }
+    await this.ejecutarAtaque(slot, c, ataque, ui)
+    // Festival en Cabeza (Dipplin, Goldeen, Seaking): con la Pradera del
+    // Festival en juego, puede usar un ataque dos veces. Si el primero deja
+    // KO al activo, el segundo va después de que el otro suba uno nuevo
+    // (eso ya lo ha hecho la resolución del KO).
+    if (this.festivalEnCabeza(slot) && s.fase !== 'fin' && this.rival.activo && (await ui.confirmar({ titulo: 'Festival en Cabeza', texto: '¿Atacas otra vez?' }))) {
+      const ataques = (c.attacks || []).map((a, i) => ({ a, i })).filter(({ a }) => !this.motivoNoAtacarOtraVez(slot, a))
+      if (ataques.length) {
+        const i = ataques.length === 1 ? ataques[0].i : Number(await ui.opcion({ titulo: '¿Qué ataque?', opciones: ataques.map(({ a, i }) => ({ id: String(i), texto: a.name })) }))
+        await this.ejecutarAtaque(slot, c, c.attacks[i], ui)
+      }
+    }
+    return this.finDeAtaque(ui)
+  }
+
+  festivalEnCabeza(slot) {
+    const est = this.s.estadio && claveDeEfecto(this.carta(this.s.estadio))
+    if (est !== 'festival grounds' || slot !== this.s.activo) return false
+    const c = this.cartaDe(slot)
+    return this.habilidadActiva(slot) && (c?.abilities || []).some((h) => normalizarTexto(h?.name) === 'festival lead')
+  }
+
+  // Para el segundo ataque: el coste y los bloqueos, sin la regla de «ya
+  // has atacado».
+  motivoNoAtacarOtraVez(slot, ataque) {
+    if (slot.estados.some((e) => e === 'dormido' || e === 'paralizado')) return 'No puede atacar.'
+    return pagaCoste(this.costeDeAtaque(slot, ataque), this.unidadesDe(slot)) ? null : 'No tiene la energía.'
+  }
+
+  // Un ataque, de la frase «X ataca con Y» a los KO que deja. No termina el
+  // turno: eso lo hace quien llama.
+  async ejecutarAtaque(slot, c, ataque, ui) {
+    const s = this.s
     this.log(`${nombreVisible(this.cartaDe(slot))} ataca con ${ataque.name}.`)
     s.flags.atacante = slot.id
     s.flags.enAtaque = true
     const def = this.defDeAtaque(c, ataque)
+    // Sin efecto escrito a mano, el que se LEE del texto de la carta
+    // (textos.js), si se entiende entero.
+    const lectura = !def ? lecturaDeAtaque(ataque) : null
+    const porTexto = !!(lectura && !lectura.vacio && lectura.completo)
     const { base, signo } = danioImpreso(ataque)
     let danio = base
+    let calculo = { mods: {}, despues: [], objetivo: null, nada: false }
     if (def?.usar) {
       const r = await def.usar(this, ui, slot, { base, ataque })
       if (typeof r === 'number') danio = r
       else if (r && typeof r === 'object') danio = r.danio ?? danio
+    } else if (porTexto) {
+      calculo = await this.calcularPorTexto(slot, ataque, lectura, { base, signo }, ui)
+      danio = calculo.danio
     } else if (signo === '+' || signo === '×') {
       // Sin automatizar y con daño variable: que lo diga el jugador.
       danio = await ui.numero({ titulo: `${ataque.name}: ¿cuánto daño hace?`, texto: ataque.effect || '', min: 0, max: 990, paso: 10, valor: base })
     } else if (ataque.effect && !def) {
       this.log(`(El texto de ${ataque.name} no está automatizado: aplica lo que falte a mano.)`)
     }
-    const objetivo = this.rival.activo
-    if (danio > 0 && objetivo) {
-      const { extra, razones } = this.bonosDeDanio(slot)
-      // Contra otro jugador, la debilidad y la resistencia del Pokémon de
-      // verdad (el maniquí no tiene: mide TU daño).
-      const dr = this.oponente ? this.debilidadYResistencia(slot, objetivo, danio + extra) : { total: danio + extra, razones: [] }
-      this.danioAlRival(objetivo, dr.total, { motivo: [...razones, ...dr.razones].join(', ') })
+    if (calculo.nada) {
+      this.log(`${ataque.name} no hace nada.`)
+    } else if (calculo.objetivo && calculo.objetivo !== this.rival.activo) {
+      // «Hace N de daño a 1 de los Pokémon del rival» y se eligió uno de
+      // la banca: sin debilidad, sin resistencia, sin bonos (los bonos
+      // dicen «al activo»).
+      this.danioAlRival(calculo.objetivo, danio)
+    } else {
+      await this.danioDeAtaque(slot, danio, ui, calculo.mods)
     }
     s.flags.atacado = true
+    if (porTexto && !calculo.nada) await this.efectosPorTexto(slot, ataque, calculo.despues, ui)
     if (def?.despues) await def.despues(this, ui, slot)
     await this.resolverKORival(ui)
     s.flags.enAtaque = false
     this.retirarKOPropios()
-    return this.finDeAtaque(ui)
+  }
+
+  // ── El texto del ataque, paso a paso (tanda 462) ──
+  //
+  // Primero lo que decide el DAÑO (monedas, «N más por cada…», «no le
+  // afecta la debilidad»); el resto se guarda para después del daño, en
+  // el orden de la carta.
+  async calcularPorTexto(slot, ataque, lectura, { base, signo }, ui) {
+    const s = this.s
+    const r = this.rival
+    const op = this.oponente
+    const ra = r.activo
+    const cr = op && ra ? op.cartaDe(ra) : null
+    const out = { danio: base, mods: {}, despues: [], objetivo: null, nada: false }
+    // «N por cada…»: con «×» impreso el daño ES eso; con «+», se suma.
+    const porCada = (cuenta, n) => {
+      const v = cuenta * n
+      out.danio = signo === '×' ? v : out.danio + v
+    }
+    const sinDummy = (que) => {
+      if (!op) this.log(`(${ataque.name} cuenta ${que} del rival: el maniquí no tiene, así que cuenta 0.)`)
+    }
+    const energiasDe = (sl, letra) => this.unidadesDe(sl).filter((u) => !letra || u.includes(letra)).length
+    const aplicar = async (p) => {
+      switch (p.t) {
+        case 'mas': out.danio += p.n; break
+        case 'nada': out.nada = true; out.danio = 0; break
+        case 'monedasPor': {
+          let caras = 0
+          if (p.n == null) while (this.moneda()) caras++
+          else for (let i = 0; i < p.n; i++) if (this.moneda()) caras++
+          out.danio = (p.mas ? out.danio : 0) + caras * p.por
+          break
+        }
+        case 'porContadoresRival': porCada(Math.floor((ra?.danio || 0) / 10), p.n); break
+        case 'porContadoresPropio': porCada(Math.floor(slot.danio / 10), p.n); break
+        case 'porEnergiaRival': sinDummy('las energías'); porCada(op && ra ? ra.energias.length : 0, p.n); break
+        case 'porEnergiaPropia': porCada(slot.energias.length, p.n); break
+        case 'porEnergiaTipo': porCada(p.todos ? this.enJuego.reduce((t, x) => t + energiasDe(x, p.letra), 0) : energiasDe(slot, p.letra), p.n); break
+        case 'porManoRival': sinDummy('la mano'); porCada(op ? op.s.mano.length : 0, p.n); break
+        case 'porManoPropia': porCada(s.mano.length, p.n); break
+        case 'porRetiradaRival': sinDummy('el coste de retirada'); porCada(op && ra ? op.costeDeRetirada(ra) : 0, p.n); break
+        case 'porBanca': porCada(p.de === 'propia' ? s.banca.length : p.de === 'rival' ? r.banca.length : s.banca.length + r.banca.length, p.n); break
+        case 'porEnJuegoDe': porCada(this.enJuego.filter((x) => esDe(this.cartaDe(x), p.dueno.replace(/'s$/, ''))).length, p.n); break
+        case 'porEnergiaDescarteRival': sinDummy('el descarte'); porCada(op ? op.s.descarte.filter((u) => esEnergiaBasica(op.carta(u))).length : 0, p.n); break
+        case 'porDescartePropio': porCada(s.descarte.filter((u) => cartaDeClase(this.carta(u), p.clase) && (!p.contiene || normalizarNombre(this.carta(u)?.name).includes(normalizarNombre(p.contiene)))).length, p.n); break
+        case 'siRivalEx': if (ra?.ex) out.danio += p.n; break
+        case 'siRivalFase': if (op ? faseDe(cr) === p.fase : p.fase === 0) out.danio += p.n; break
+        case 'siRivalTipo': if (cr && esDeTipo(cr, p.letra)) out.danio += p.n; break
+        case 'siRivalDanado': if (ra?.danio > 0) out.danio += p.n; break
+        case 'siPropioDanado': if (slot.danio > 0) out.danio += p.n; break
+        case 'siRivalEstado': if (ra && (p.estado ? ra.estados?.includes(p.estado) : ra.estados?.length)) out.danio += p.n; break
+        case 'siBancaDanada': if (s.banca.some((x) => x.danio > 0)) out.danio += p.n; break
+        case 'siSubioEsteTurno': if (slot.subioTurno === s.turno) out.danio += p.n; break
+        case 'siEnergiaExtra': if (this.unidadesDe(slot).length >= this.costeDeAtaque(slot, ataque).length + p.extra) out.danio += p.n; break
+        case 'siTieneEnergia': if (slot.energias.some((u) => claveDeEfecto(this.carta(u)) === normalizarNombre(p.nombre))) out.danio += p.n; break
+        case 'siEstadio': if (s.estadio) out.danio += p.n; break
+        case 'nadaSinEstadio': if (!s.estadio) { out.nada = true; out.danio = 0 } break
+        case 'nadaSinEnBanca': if (!s.banca.some((x) => normalizarNombre(this.cartaDe(x)?.name).includes(normalizarNombre(p.nombre)) || claveDeEfecto(this.cartaDe(x)).includes(normalizarNombre(p.nombre)))) { out.nada = true; out.danio = 0 } break
+        case 'nadaSalvoPremios': if (!p.premios.includes(r.premios)) { out.nada = true; out.danio = 0 } break
+        case 'siDescarteConHabilidad': if (cuentaConHabilidad(this, p.habilidad) >= p.cuantos) out.danio += p.n; break
+        case 'siKOUltimoTurno': if (s.koUltimoTurnoRival && (!p.dueno || (s.koUltimo || []).some((k) => k.startsWith(normalizarNombre(p.dueno))))) out.danio += p.n; break
+        case 'sinDR': out.mods.sinDR = true; break
+        case 'sinDebilidad': out.mods.sinDebilidad = true; break
+        case 'sinResistencia': out.mods.sinResistencia = true; break
+        case 'ignoraEfectos': out.mods.ignoraEfectos = true; break
+        case 'opcionalDescartar': {
+          const vale = slot.energias.filter((u) => !p.letra || unidadesDeEnergia(this.carta(u), this.cartaDe(slot), this).some((x) => x.includes(p.letra)))
+          const hacen = p.cuantas === 'todas' ? slot.energias.length : p.cuantas
+          if (!hacen || vale.length < hacen) break
+          if (!(await ui.confirmar({ titulo: ataque.name, texto: `¿Descartas ${p.cuantas === 'todas' ? 'todas las energías' : `${hacen} ${hacen === 1 ? 'energía' : 'energías'}`} de este Pokémon para hacer ${p.n} más?` }))) break
+          const fuera = p.cuantas === 'todas' ? [...slot.energias] : vale.length === hacen ? vale : await ui.cartas({ titulo: `Descarta ${hacen}`, opciones: vale, min: hacen, max: hacen })
+          this.descartarEnergiasDe(slot, fuera, ataque.name)
+          out.danio += p.n
+          break
+        }
+        case 'opcionalEnergiaAMano': {
+          const vale = slot.energias.filter((u) => !p.letra || unidadesDeEnergia(this.carta(u), this.cartaDe(slot), this).some((x) => x.includes(p.letra)))
+          if (!vale.length) break
+          if (!(await ui.confirmar({ titulo: ataque.name, texto: `¿Pones una energía de este Pokémon en tu mano para hacer ${p.n} más?` }))) break
+          const [u] = vale.length === 1 ? vale : await ui.cartas({ titulo: '¿Qué energía vuelve a la mano?', opciones: vale, min: 1, max: 1 })
+          slot.energias = slot.energias.filter((x) => x !== u)
+          s.mano.push(u)
+          this.log(`${this.nombre(u)} vuelve a la mano (${ataque.name}).`)
+          out.danio += p.n
+          break
+        }
+        case 'danioAUno': {
+          const lista = (p.soloBanca ? r.banca : [ra, ...r.banca]).filter(Boolean)
+          if (!lista.length) break
+          const [id] = lista.length === 1 ? [lista[0].id] : await ui.pokemon({ titulo: `${ataque.name}: ¿a quién?`, opciones: lista.map((d) => d.id), min: 1, max: 1 })
+          out.objetivo = lista.find((d) => d.id === id)
+          out.danio = p.n
+          break
+        }
+        default: break
+      }
+    }
+    for (const p of lectura.pasos) {
+      if (out.nada) break
+      if (p.t === 'moneda' && p.calc) {
+        const rama = this.moneda() ? p.cara : p.cruz
+        for (const q of rama) {
+          if (q.calc) await aplicar(q)
+          else out.despues.push(q)
+        }
+        continue
+      }
+      if (p.calc) await aplicar(p)
+      else out.despues.push(p)
+    }
+    out.danio = Math.max(0, out.danio)
+    return out
+  }
+
+  descartarEnergiasDe(slot, uids, porque = '') {
+    if (!uids.length) return
+    slot.energias = slot.energias.filter((u) => !uids.includes(u))
+    this.alDescarteDeSuDueno(uids)
+    this.log(`Se descarta${uids.length > 1 ? 'n' : ''} ${uids.map((u) => this.nombre(u)).join(', ')} de ${nombreVisible(this.cartaDe(slot))}${porque ? ` (${porque})` : ''}.`)
+    // La Energía Bumerán vuelve a unirse a su Pokémon después del ataque.
+    const vuelven = uids.filter((u) => claveDeEfecto(this.carta(u)) === 'boomerang energy' && this.uidsPropios.has(u) && this.s.flags.enAtaque)
+    for (const u of vuelven) {
+      this.s.descarte = this.s.descarte.filter((x) => x !== u)
+      slot.energias.push(u)
+      this.log(`La Energía Bumerán vuelve a unirse a ${nombreVisible(this.cartaDe(slot))}.`)
+    }
+  }
+
+  async efectosPorTexto(slot, ataque, pasos, ui) {
+    const s = this.s
+    const op = this.oponente
+    const r = this.rival
+    const ra = r.activo
+    const c = this.cartaDe(slot)
+    const por = `${ataque.name}${c ? ` de ${nombreVisible(c)}` : ''}`
+    const alManiqui = (que) => this.log(`(${ataque.name}: ${que}. El maniquí no juega, así que aquí no cambia nada.)`)
+    const prevenido = (d) => {
+      const no = op && d ? op.previeneEfectosEn(d) : null
+      if (no) this.log(`${nombreVisible(op.cartaDe(d))} no se ve afectado (${no}).`)
+      return !!no
+    }
+    const elegir = async (lista, titulo, max = 1) => {
+      if (!lista.length) return []
+      if (lista.length <= max) return lista
+      const ids = await ui.pokemon({ titulo, opciones: lista.map((d) => d.id), min: max, max })
+      return lista.filter((d) => ids.includes(d.id))
+    }
+    const hacer = async (p) => {
+      switch (p.t) {
+        case 'moneda': {
+          const rama = this.moneda() ? p.cara : p.cruz
+          for (const q of rama) await hacer(q)
+          break
+        }
+        case 'descartarEstadio': {
+          const fuera = this.quitarEstadio()
+          if (fuera) this.log(`${this.nombre(fuera)} se descarta (${ataque.name}).`)
+          break
+        }
+        case 'estadoRival': for (const e of p.estados) this.estadoAlRival(e, por); break
+        case 'estadoPropio':
+          if (this.inmuneAEstados(slot)) break
+          ponerEstado(slot, p.estado, s.turno)
+          this.log(`${nombreVisible(c)} queda ${p.estado}.`)
+          break
+        case 'curarEstadosPropio':
+          if (slot.estados.length) this.log(`${nombreVisible(c)} se recupera de sus estados especiales.`)
+          slot.estados = []
+          break
+        case 'danioPropio': this.ponerDanio(slot, p.n, { motivo: ataque.name }); break
+        case 'bancaRival': {
+          const objetivos = p.cuantos === 'cada' ? r.banca : await elegir(r.banca, `${ataque.name}: ${p.n} de daño a ${p.cuantos === 1 ? '1 Pokémon' : `${p.cuantos} Pokémon`} de la banca rival`, p.cuantos)
+          for (const d of objetivos) this.danioAlRival(d, p.n)
+          break
+        }
+        case 'siEnergiaExtraBanca':
+          if (this.unidadesDe(slot).length >= this.costeDeAtaque(slot, ataque).length + p.extra) {
+            for (const d of await elegir(r.banca, `${ataque.name}: ${p.n} de daño a 1 de la banca rival`)) this.danioAlRival(d, p.n)
+          }
+          break
+        case 'bancaPropia': for (const b of s.banca) this.ponerDanio(b, p.n, { motivo: ataque.name }); break
+        case 'contadoresActivo': this.danioAlRival(ra, p.n * 10, { contadores: true }); break
+        case 'contadoresCada': for (const d of [ra, ...r.banca].filter(Boolean)) this.danioAlRival(d, p.n * 10, { contadores: true }); break
+        case 'contadoresUno': for (const d of await elegir((p.soloBanca ? r.banca : [ra, ...r.banca]).filter(Boolean), `${ataque.name}: ${p.n} ${p.n === 1 ? 'contador' : 'contadores'}, ¿a quién?`)) this.danioAlRival(d, p.n * 10, { contadores: true }); break
+        case 'siDescarteConHabilidadContadores':
+          if (cuentaConHabilidad(this, p.habilidad) >= p.cuantos) for (const d of [ra, ...r.banca].filter(Boolean)) this.danioAlRival(d, p.n * 10, { contadores: true })
+          break
+        case 'ambosKO':
+          if (ra && !prevenido(ra)) ra.danio = Math.max(ra.danio, op ? op.psDe(ra) : ra.ps)
+          slot.danio = Math.max(slot.danio, this.psDe(slot))
+          this.log('Los dos Pokémon activos quedan fuera de combate.')
+          break
+        case 'koSiEstado':
+          if (ra && ra.estados?.length && !prevenido(ra)) {
+            ra.danio = Math.max(ra.danio, op ? op.psDe(ra) : ra.ps)
+            this.log('El activo rival tenía un estado especial: queda fuera de combate.')
+          }
+          break
+        case 'premioExtra': s.flags.premioExtra = (s.flags.premioExtra || 0) + p.n; break
+        case 'curarPropio': this.curar(slot, p.n); break
+        case 'curarUno': for (const d of await elegir(this.enJuego.filter((x) => x.danio > 0), `${ataque.name}: cura ${p.n} a 1 de tus Pokémon`)) this.curar(d, p.n); break
+        case 'curarTodos': for (const d of this.enJuego) this.curar(d, p.n); break
+        case 'descartarEnergiaPropia': {
+          const vale = slot.energias.filter((u) => !p.letra || unidadesDeEnergia(this.carta(u), c, this).some((x) => x.includes(p.letra)))
+          const n = p.cuantas === 'todas' ? vale.length : Math.min(p.cuantas, vale.length)
+          if (!n) break
+          const fuera = n >= vale.length ? vale : await ui.cartas({ titulo: `${ataque.name}: descarta ${n} ${n === 1 ? 'energía' : 'energías'} de este Pokémon`, opciones: vale, min: n, max: n })
+          this.descartarEnergiasDe(slot, fuera, ataque.name)
+          break
+        }
+        case 'descartarEnergiaRival': {
+          if (!op) { alManiqui('descarta una energía del activo rival'); break }
+          if (!ra?.energias.length || prevenido(ra)) break
+          const [u] = ra.energias.length === 1 ? ra.energias : await ui.cartas({ titulo: `${ataque.name}: ¿qué energía del activo rival se descarta?`, opciones: [...ra.energias], min: 1, max: 1 })
+          op.descartarEnergiasDe(ra, [u], ataque.name)
+          break
+        }
+        case 'moverEnergiaABanca': {
+          if (!slot.energias.length || !s.banca.length) break
+          const [u] = slot.energias.length === 1 ? slot.energias : await ui.cartas({ titulo: `${ataque.name}: ¿qué energía mueves?`, opciones: [...slot.energias], min: 1, max: 1 })
+          const [d] = await elegir(s.banca, '¿A qué Pokémon de tu banca?')
+          slot.energias = slot.energias.filter((x) => x !== u)
+          d.energias.push(u)
+          this.log(`${this.nombre(u)} pasa a ${nombreVisible(this.cartaDe(d))}.`)
+          break
+        }
+        case 'energiaPropiaAMano': {
+          if (!slot.energias.length) break
+          const [u] = slot.energias.length === 1 ? slot.energias : await ui.cartas({ titulo: `${ataque.name}: ¿qué energía vuelve a la mano?`, opciones: [...slot.energias], min: 1, max: 1 })
+          slot.energias = slot.energias.filter((x) => x !== u)
+          s.mano.push(u)
+          this.log(`${this.nombre(u)} vuelve a la mano.`)
+          break
+        }
+        case 'moverEnergiaRival': {
+          if (!op) { alManiqui('mueve una energía entre los Pokémon del rival'); break }
+          const con = op.enJuego.filter((d) => d.energias.length && !op.previeneEfectosEn(d))
+          if (!con.length || op.enJuego.length < 2) break
+          const [de] = await elegir(con, `${ataque.name}: ¿de qué Pokémon del rival sale la energía?`)
+          const [u] = de.energias.length === 1 ? de.energias : await ui.cartas({ titulo: '¿Qué energía?', opciones: [...de.energias], min: 1, max: 1 })
+          const [a] = await elegir(op.enJuego.filter((d) => d !== de), '¿A qué otro Pokémon del rival?')
+          de.energias = de.energias.filter((x) => x !== u)
+          a.energias.push(u)
+          this.log(`${op.nombre(u)} pasa de ${nombreVisible(op.cartaDe(de))} a ${nombreVisible(op.cartaDe(a))}.`)
+          break
+        }
+        case 'unirDescarte': {
+          const opciones = s.descarte.filter((u) => esEnergiaBasica(this.carta(u)) && letraDeCartaDeEnergia(this.carta(u)) === p.letra)
+          const el = opciones.length <= p.n ? opciones : await ui.cartas({ titulo: `${ataque.name}: hasta ${p.n} del descarte`, opciones, min: 0, max: p.n, zona: 'descarte' })
+          for (const u of el) this.unirEnergia(u, slot, { desde: 'descarte' })
+          break
+        }
+        case 'robar': this.robar(p.n, { motivo: ataque.name }); break
+        case 'molerRival': {
+          if (!op) { alManiqui(`descarta ${p.n} del mazo rival`); break }
+          const fuera = op.s.mazo.slice(0, p.n)
+          for (const u of fuera) {
+            op.sacarDelMazo(u)
+            op.s.descarte.push(u)
+          }
+          if (fuera.length) this.log(`Del mazo de ${op.nombreJugador} al descarte: ${fuera.map((u) => op.nombre(u)).join(', ')}.`)
+          break
+        }
+        case 'descartarDeManoRival': {
+          if (!op) { alManiqui('descarta una carta de la mano rival'); break }
+          if (!op.s.mano.length) break
+          const el = await ui.cartas({ titulo: `${ataque.name}: la mano de ${op.nombreJugador}, descarta 1`, opciones: [...op.s.mano], min: 1, max: 1, zona: 'mano', partida: op })
+          op.descartar(el)
+          break
+        }
+        case 'aLaMano': {
+          const cartas = this.cartasDelSlot(slot)
+          this.quitarDelJuego(slot)
+          s.mano.push(...cartas.filter((u) => this.uidsPropios.has(u) || !this.oponente))
+          this.log(`${nombreVisible(c)} y todo lo unido vuelven a la mano.`)
+          break
+        }
+        case 'buscarBasicosBanca': await this.buscarEnMazo(ui, { titulo: `${ataque.name}: hasta ${p.n} básicos a la banca`, filtro: (x) => esPokemon(x) && esBasicoEnJuego(x), max: Math.min(p.n, this.huecosBanca), destino: 'banca' }); break
+        case 'buscarCartas': await this.buscarEnMazo(ui, { titulo: `${ataque.name}: ${p.n === 1 ? 'una carta' : `hasta ${p.n} cartas`}`, max: p.n }); break
+        case 'cambiarPropio':
+          if (!s.banca.length || s.activo !== slot) break
+          if (p.opcional && !(await ui.confirmar({ titulo: ataque.name, texto: '¿Cambias este Pokémon por uno de tu banca?' }))) break
+          await this.elegirYCambiar(ui)
+          break
+        case 'echarRival': {
+          if (!ra || !r.banca.length || prevenido(ra)) break
+          if (!op) { this.cambiarActivoRival(0); break }
+          const [id] = op.s.banca.length === 1 ? [op.s.banca[0].id] : await ui.pokemon({ titulo: `${op.nombreJugador}: elige quién pasa a tu puesto activo`, opciones: op.s.banca.map((d) => d.id), min: 1, max: 1, sinCancelar: true, partida: op })
+          op.cambiarActivo(op.s.banca.find((d) => d.id === id))
+          break
+        }
+        case 'atraerRival': {
+          if (!r.banca.length) break
+          const [d] = await elegir(r.banca, `${ataque.name}: ¿qué Pokémon de la banca rival sube?`)
+          this.cambiarActivoRival(r.banca.indexOf(d))
+          break
+        }
+        case 'veto': {
+          const que = { objetos: 'objetos', partidarios: 'partidarios', evolucionar: 'evolucionar desde la mano' }[p.que]
+          if (!op) { alManiqui(`el rival no podría jugar ${que} en su turno`); break }
+          op.s.vetos = { ...(op.s.vetos || {}), [p.que]: { turno: op.s.turno + 1, por } }
+          this.log(`${op.nombreJugador} no podrá ${p.que === 'evolucionar' ? 'evolucionar desde la mano' : `jugar ${que}`} en su próximo turno (${por}).`)
+          break
+        }
+        case 'rivalNoRetira':
+          if (!ra || prevenido(ra)) break
+          if (op) ra.noRetirarHasta = op.s.turno + 1
+          this.log(`El activo rival no podrá retirarse en su próximo turno (${por}).`)
+          break
+        case 'rivalNoAtaca':
+          if (!ra || prevenido(ra)) break
+          if (op) ra.bloqueos = [...(ra.bloqueos || []), { turno: op.s.turno + 1, indice: null, por }]
+          this.log(`El activo rival no podrá atacar en su próximo turno (${por}).`)
+          break
+        case 'rivalNoUsa': {
+          if (!op || !ra || prevenido(ra)) break
+          const at = op.cartaDe(ra)?.attacks || []
+          if (!at.length) break
+          const i = at.length === 1 ? 0 : Number(await ui.opcion({ titulo: `${ataque.name}: ¿qué ataque no podrá usar?`, opciones: at.map((a, k) => ({ id: String(k), texto: a.name })) }))
+          ra.bloqueos = [...(ra.bloqueos || []), { turno: op.s.turno + 1, indice: i, por }]
+          this.log(`${nombreVisible(op.cartaDe(ra))} no podrá usar ${at[i]?.name} en su próximo turno.`)
+          break
+        }
+        case 'rivalDebil':
+          if (!ra || prevenido(ra)) break
+          if (op) ra.debil = { turno: op.s.turno + 1, n: p.n, por }
+          this.log(`Los ataques del activo rival harán ${p.n} menos en su próximo turno (${por}).`)
+          break
+        case 'escudo':
+          slot.escudos = [...(slot.escudos || []), { turnoRival: op ? op.s.turno + 1 : -1, tipo: p.tipo, n: p.n, por }]
+          this.log(`${nombreVisible(c)} queda protegido para el próximo turno del rival (${p.tipo === 'menos' ? `−${p.n} de daño` : p.tipo === 'todoYEfectos' ? 'ni daño ni efectos' : p.tipo === 'desdeBasicos' ? 'de los básicos' : p.tipo === 'desdeEvolucion' ? 'de las evoluciones' : p.tipo === 'desdeEx' ? 'de los ex' : 'todo el daño'}).`)
+          break
+        case 'noAtacaSiguiente': slot.bloqueos = [...(slot.bloqueos || []), { turno: s.turno + 1, indice: null, por }]; break
+        case 'noUsaSiguiente': {
+          const i = (c.attacks || []).findIndex((a) => normalizarNombre(a?.name) === normalizarNombre(p.nombre))
+          slot.bloqueos = [...(slot.bloqueos || []), { turno: s.turno + 1, indice: i >= 0 ? i : (c.attacks || []).indexOf(ataque), por }]
+          break
+        }
+        case 'marcaRival':
+          if (!ra || prevenido(ra)) break
+          ra.marca = { turno: s.turno + 1, n: p.n, de: this.prefijo, por }
+          this.log(`En tu próximo turno, el activo rival recibirá ${p.n} más de tus ataques (${por}).`)
+          break
+        case 'opcionalDescartarEstado': {
+          const vale = slot.energias.filter((u) => !p.letra || unidadesDeEnergia(this.carta(u), c, this).some((x) => x.includes(p.letra)))
+          if (vale.length < p.cuantas) break
+          if (!(await ui.confirmar({ titulo: ataque.name, texto: `¿Descartas ${p.cuantas} energías de este Pokémon para dejar ${p.estado} al activo rival?` }))) break
+          const fuera = vale.length === p.cuantas ? vale : await ui.cartas({ titulo: `Descarta ${p.cuantas}`, opciones: vale, min: p.cuantas, max: p.cuantas })
+          this.descartarEnergiasDe(slot, fuera, ataque.name)
+          this.estadoAlRival(p.estado, por)
+          break
+        }
+        default: break
+      }
+    }
+    for (const p of pasos) await hacer(p)
   }
 
   // Un ataque «a mano»: para cartas cuyo texto el catálogo aún no tiene
@@ -1782,11 +2525,45 @@ export class Partida {
 
 // A quién le vale cada bono de turno. El maniquí rival solo sabe si es
 // ex (no distingue una V): Kieran cuenta las dos, así que aquí basta.
+// Las habilidades de bono que ya se suman por su nombre en bonosDeDanio.
+const BONOS_CON_NOMBRE = new Set(["cynthia's roserade", "hop's snorlax", 'victini'])
+
 const BONOS_DE_TURNO = {
   cinturon: (p) => !!p.rival.activo?.ex,
   kieran: (p) => !!p.rival.activo?.ex,
   premium: (p, slot) => esDeTipo(p.cartaDe(slot), 'F'),
   gladion: (p, slot) => !tieneRegla(p.cartaDe(slot)),
+}
+
+// Para los ataques que cuentan cartas de una clase («cada Partidario que
+// tenga "Team Rocket" en su nombre en tu descarte»).
+function cartaDeClase(c, clase) {
+  if (clase === 'supporter') return esPartidario(c)
+  if (clase === 'item') return esObjeto(c)
+  if (clase === 'energy') return esEnergia(c)
+  return esPokemon(c)
+}
+
+// Los Pokémon de TU descarte que tienen una habilidad con ese nombre
+// (Escondite: Dhelmise, Sinistcha, Spiritomb).
+function cuentaConHabilidad(p, habilidad) {
+  const h = normalizarTexto(habilidad)
+  return p.s.descarte.filter((u) => {
+    const c = p.carta(u)
+    return esPokemon(c) && (c.abilities || []).some((a) => normalizarTexto(a?.name) === h)
+  }).length
+}
+
+// Los efectos de ataques que viven en un Pokémon (tanda 462). Se van
+// cuando pasa a la banca o evoluciona, que es lo que dice el reglamento.
+export function limpiarEfectosDeAtaque(p) {
+  if (!p) return
+  delete p.bloqueo
+  delete p.bloqueos
+  delete p.noRetirarHasta
+  delete p.escudos
+  delete p.debil
+  delete p.marca
 }
 
 function quitarEstado(p, e) {
@@ -2058,6 +2835,7 @@ export class Mesa {
     this.comprobarFin()
     if (this.terminada) return
     j.s.koUltimoTurnoRival = false
+    j.s.koUltimo = []
     j.s.fase = 'espera'
     this.m.turnoDe = this.indice(op)
     op.s.fase = 'turno'

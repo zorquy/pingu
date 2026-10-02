@@ -35,6 +35,7 @@ import {
   unidadesDeEnergia, premiosQueDa, ponerEstado, claveDeEfecto,
 } from './partida.js'
 import { EFECTOS, textoDeCarta, estaAutomatizada } from './efectos.js'
+import { rasgosDeCarta } from './textos.js'
 
 const PREFS = 'pokedoc-laboratorio'
 const PULSACION_LARGA = 500 // ms para «mantener pulsado = ver la carta»
@@ -437,6 +438,35 @@ function energiaHtml(uid, portador, partida) {
 
 const ESTADOS = { envenenado: 'Envenenado', quemado: 'Quemado', dormido: 'Dormido', paralizado: 'Paralizado', confundido: 'Confundido' }
 
+// Lo que un ataque le ha dejado encima a un Pokémon para el turno que
+// viene (tanda 462): que no pueda retirarse, que no pueda atacar, un
+// escudo, sus ataques rebajados. Sin esto se jugaba a ciegas: el efecto
+// estaba y no se veía. Cada chapa lleva en el `title` la carta que lo puso.
+function efectosDeSlot(slot, partida) {
+  const s = partida.s
+  const op = partida.oponente
+  const out = []
+  const chapa = (texto, por) => out.push(`<span class="lab-chapa lab-chapa-efecto"${por ? ` title="${escapeHtml(por)}"` : ''}>${texto}</span>`)
+  // ¿Sigue valiendo un efecto para el turno N de este jugador? Vale si
+  // ese turno aún no ha llegado, o si es el que se está jugando.
+  const vigente = (n, j = partida) => n != null && (n > j.s.turno || (n === j.s.turno && j.s.fase === 'turno'))
+  if (vigente(slot.noRetirarHasta) && slot === s.activo) chapa('No se retira', 'Un ataque le impide retirarse en su turno')
+  for (const b of [...(slot.bloqueos || []), ...(slot.bloqueo ? [slot.bloqueo] : [])]) {
+    if (!vigente(b.turno)) continue
+    const nombre = b.indice == null ? null : partida.cartaDe(slot)?.attacks?.[b.indice]?.name
+    chapa(nombre ? `Sin ${escapeHtml(nombre)}` : 'No ataca', b.por || '')
+  }
+  if (slot.debil && vigente(slot.debil.turno)) chapa(`−${slot.debil.n} al atacar`, slot.debil.por || '')
+  if (op) {
+    for (const e of slot.escudos || []) {
+      if (!vigente(e.turnoRival, op)) continue
+      chapa(e.tipo === 'menos' ? `Escudo −${e.n}` : e.tipo === 'todoYEfectos' ? 'Intocable' : 'Escudo', e.por || '')
+    }
+    if (slot.marca && vigente(slot.marca.turno, op)) chapa(`Recibe +${slot.marca.n}`, slot.marca.por || '')
+  }
+  return out.join('')
+}
+
 // La barra de vida, con su nivel: verde, ámbar por debajo de la mitad y
 // rojo en el último cuarto. El número va al lado (no es solo color).
 const vidaHtml = (pct, titulo = '') => `<div class="lab-ps" data-vida="${pct <= 25 ? 'baja' : pct <= 50 ? 'media' : 'alta'}"${titulo ? ` title="${titulo}"` : ''}><span style="--pct: ${pct}%"></span></div>`
@@ -454,6 +484,7 @@ function slotHtml(slot, partida, { activo = false, rival = false, bocaAbajo = fa
   const herramienta = slot.herramienta ? `<span class="lab-chapa lab-chapa-herramienta" title="${escapeHtml(partida.nombre(slot.herramienta))}">${escapeHtml(partida.nombre(slot.herramienta))}</span>` : ''
   const estados = slot.estados.map((e) => `<span class="lab-chapa lab-chapa-estado">${ESTADOS[e] || e}</span>`).join('')
   const nuevo = partida.s.fase === 'turno' && slot.entroTurno === partida.s.turno ? '<span class="lab-chapa">nuevo</span>' : ''
+  const efectos = efectosDeSlot(slot, partida)
   const evo = slot.cartas.length > 1 ? `<span class="lab-chapa" title="${escapeHtml(slot.cartas.slice(0, -1).map((u) => partida.nombre(u)).join(' → '))}">evol. ${slot.cartas.length - 1}</span>` : ''
   const apuntable = !rival && L.apuntar?.opciones?.[slot.id]
   const dato = rival ? `data-rival-carta="${slot.id}"` : `data-slot-carta="${slot.id}"`
@@ -465,7 +496,7 @@ function slotHtml(slot, partida, { activo = false, rival = false, bocaAbajo = fa
         ${vidaHtml(pct, `${vida} / ${ps} PS`)}
         <p class="lab-ps-texto">${vida}/${ps}</p>
         ${energias ? `<div class="lab-energias">${energias}</div>` : ''}
-        ${herramienta || evo || nuevo ? `<div class="lab-chapas">${herramienta}${evo}${nuevo}</div>` : ''}
+        ${herramienta || evo || nuevo || efectos ? `<div class="lab-chapas">${herramienta}${evo}${nuevo}${efectos}</div>` : ''}
       </div>
     </div>`
 }
@@ -632,6 +663,7 @@ function pintarCentro() {
         ${chip(f.estadio, 'Estadio jugado', 'Estadio libre')}
         ${chip(f.retirada, 'Ya se ha retirado', 'Retirada libre')}
         ${!m && s.koUltimoTurnoRival ? '<span class="lab-estado lab-estado-alerta">El rival te dejó KO un Pokémon el turno pasado</span>' : ''}
+        ${vetosHtml(p)}
         ${!s.estricta ? '<span class="lab-estado lab-estado-alerta">Modo libre: sin reglas</span>' : ''}
       </div>
       ${ultimo ? `<p class="lab-ultimo">${escapeHtml(ultimo.texto)}</p>` : ''}`
@@ -650,6 +682,22 @@ function pintarCentro() {
      <div class="lab-centro-medio">${medio}</div>
      <div class="lab-centro-botones">${botones}</div>`
   )
+}
+
+// Lo que el otro te tiene prohibido ESTE turno, a la vista (tanda 462):
+// Polen Picazón de Budew, el Grito de Scream Tail, Jellicent ex de activo…
+function vetosHtml(p) {
+  const out = []
+  const chip = (texto, por) => out.push(`<span class="lab-estado lab-estado-alerta"${por ? ` title="${escapeHtml(por)}"` : ''}>${texto}</span>`)
+  const v = (que) => p.vetado(que)
+  if (v('objetos')) chip('Sin objetos este turno', v('objetos'))
+  if (v('partidarios')) chip('Sin partidarios este turno', v('partidarios'))
+  if (v('evolucionar')) chip('Sin evolucionar desde la mano', v('evolucionar'))
+  const cierre = p.cierreDelRival()
+  if (cierre.herramientas) chip('Sin objetos ni herramientas', `Mientras ${cierre.herramientas} siga de activo`)
+  else if (cierre.objetos) chip('Sin objetos', `Mientras ${cierre.objetos} siga de activo`)
+  if (cierre.aceSpec) chip('Sin AS TÁCTICO', `Lo impide ${cierre.aceSpec}`)
+  return out.join('')
 }
 
 function pintarPropio() {
@@ -1069,10 +1117,13 @@ function menuDeSlot(id, ancla) {
     }
     const hab = Array.isArray(c.abilities) && c.abilities[0]
     const def = p.habilidadDe(slot)
+    // Las que actúan solas (defensas, cierres…) se leen del texto: no se
+    // usan con un botón, y no son «a mano» (tanda 462).
+    const pasiva = !def && rasgosDeCarta(c).length > 0
     if (hab || def) {
       ops.push({
         texto: `Habilidad: ${escapeHtml(hab?.name || def?.nombre || '')}`,
-        detalle: def ? '' : 'no automatizada: hazla a mano',
+        detalle: def || pasiva ? '' : 'no automatizada: hazla a mano',
         no: p.motivoNoHabilidad(slot),
         accion: () => hacer(() => p.usarHabilidad(slot, ui)),
       })

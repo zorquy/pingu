@@ -68,13 +68,11 @@
   </script>
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <!-- Estos seis módulos los carga TODA página. Sin esto el navegador
-       los descubre en cascada —la página pide su .js, ese pide app.js,
-       app.js pide supabase.js y ese el bundle de 152 KB—, y cada salto
-       es un viaje de ida y vuelta más antes de poder pintar. Con
-       modulepreload se piden los seis a la vez, desde el primer momento.
-       Van estos y no todo el grafo a propósito: son los que no cambian
-       de página a página, así que no se quedan obsoletos solos. -->
+  <!-- Los seis módulos de TODA página, pedidos a la vez desde el
+       principio: si no, se descubren en cascada (la página pide su .js,
+       ese app.js, ese supabase.js y ese el bundle de 152 KB) y cada salto
+       es un viaje más antes de pintar. Estos y no todo el grafo: no
+       cambian de página a página, así que no se quedan obsoletos. -->
   <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
   <link rel="modulepreload" href="/js/supabase.js" />
   <link rel="modulepreload" href="/js/app.js" />
@@ -126,6 +124,7 @@
             <a href="/constructor">Constructor de mazos</a>
             <a href="/mazos">Mis mazos</a>
             <a href="/mis-partidas">Mis partidas</a>
+            <a href="/repeticiones">Repeticiones</a>
           </div>
         </div>
       </div>
@@ -163,6 +162,7 @@
         <a href="/constructor">Constructor de mazos</a>
         <a href="/mazos">Mis mazos</a>
         <a href="/mis-partidas">Mis partidas</a>
+        <a href="/repeticiones">Repeticiones</a>
       </details>
     </div>
   </nav>

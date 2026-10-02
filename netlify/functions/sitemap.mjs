@@ -55,6 +55,10 @@ const ESTATICAS = [
   // Los mazos del meta (tanda 364): cambia cada día y es de lo que más
   // se busca de un juego de cartas («mejores mazos pokémon tcg»).
   ['/meta', '0.8'],
+  // Las repeticiones (tanda 462): pegas el registro de TCG Live y se
+  // reproduce. Pública y sin cuenta; la partida no se guarda, así que no
+  // hay una página por repetición que indexar.
+  ['/repeticiones', '0.6'],
   // La página que explica el proyecto: es a la que apuntan el vídeo y el
   // enlace de la biografía, así que conviene que Google la tenga.
   ['/sobre.html', '0.7'],

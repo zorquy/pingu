@@ -1,0 +1,799 @@
+/* ── /repeticiones (tanda 462) ──
+   Hoja propia: solo la usa esta pantalla. La mesa es la del laboratorio
+   (css/laboratorio.css, que esta página carga entera): el tapete, las
+   cartas, el pie con la vida y las pilas son las MISMAS clases `lab-`,
+   para que una partida jugada allí y una mirada aquí se vean igual. Lo
+   que hay aquí es lo que el laboratorio no tiene: el reproductor, el
+   registro al lado y las luces de la jugada que se está viendo. */
+
+.rep-cabecera h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-3xl);
+}
+
+.rep-lema {
+  max-width: 720px;
+  margin-top: var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-md);
+}
+
+/* ── Pegar el registro ── */
+.rep-pegar {
+  max-width: 880px;
+  margin-top: var(--e-xl);
+  padding: var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.rep-pegar h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.rep-pegar-ayuda {
+  max-width: 72ch;
+  margin-top: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rep-pegar textarea {
+  display: block;
+  width: 100%;
+  min-height: 240px;
+  margin-top: var(--e-lg);
+  padding: var(--e-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--t-sm);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.rep-pegar textarea:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.rep-pegar-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin-top: var(--e-lg);
+}
+
+.rep-error {
+  margin-top: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+  background: var(--danger-bg);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+/* ── La sala: cabecera, mesa, controles y registro ── */
+.rep-sala {
+  /* Lo que la mesa del laboratorio define en `.lab` (que aquí no está):
+     los colores de cada jugador y el tamaño de las cartas, que sigue al
+     alto de la pantalla para que la mesa quepa sin desplazarse. */
+  --lab-j1: #9fd0f0;
+  --lab-j2: #f5cf7a;
+  --lab-brillo: #ffd166;
+  --lab-c-activo: clamp(72px, min(9.6vh, 8.5vw), 120px);
+  --lab-c-banca: clamp(48px, min(6vh, 5.6vw), 80px);
+  --lab-c-premio: clamp(24px, 3.6vh, 36px);
+  --lab-c-pila: clamp(40px, 5.2vh, 60px);
+  margin-top: var(--e-lg);
+}
+
+.rep-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm) var(--e-lg);
+  margin-bottom: var(--e-md);
+}
+
+.rep-quienes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  min-width: 0;
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.rep-resumen {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rep-cab-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.rep-sin-leer {
+  margin-bottom: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
+  background: var(--warning-bg);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+.rep-escena {
+  /* La barra de arriba es fija: sin este margen, la mesa empezaba
+     debajo de ella. */
+  scroll-margin-top: 76px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-lg);
+}
+
+.rep-juego {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+
+@media (min-width: 1100px) {
+  .rep-escena {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
+/* ── El tapete ── */
+.rep-tapete {
+  min-width: 0;
+}
+
+/* El centro: la línea del registro y, a la derecha, la jugada en grande.
+   La línea ocupa siempre DOS renglones aunque traiga uno: si no, la mesa
+   pegaba un salto en cada jugada. */
+.rep-turno {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--tp-tenue);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rep-turno .lab-jugador {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.rep-linea {
+  display: -webkit-box;
+  min-height: calc(2 * 1.4em);
+  overflow: hidden;
+  color: var(--tp-texto);
+  font-size: var(--t-sm);
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* El nombre ya lleva su espacio en la frase: el margen de la chapa
+   pequeña lo doblaba («de Rojo .»). */
+.rep-linea .lab-jugador-mini {
+  margin-right: 0;
+}
+
+.rep-destacado {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: calc(var(--lab-c-pila) * 342 / 245);
+}
+
+.rep-destacado > * {
+  animation: rep-aparece 0.3s var(--ease) both;
+}
+
+@keyframes rep-aparece {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rep-foco-carta {
+  --lab-ancho: var(--lab-c-pila);
+  box-shadow: 0 0 0 2px var(--lab-brillo), var(--shadow-sm);
+}
+
+.rep-foco-ko {
+  filter: grayscale(1);
+}
+
+.rep-foco-texto {
+  max-width: 160px;
+  color: var(--tp-texto);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.rep-foco-alerta {
+  color: var(--lab-brillo);
+}
+
+.rep-foco-ataque {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: 0;
+}
+
+.rep-foco-que {
+  max-width: 160px;
+  color: var(--tp-texto);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.rep-foco-danio {
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+
+/* La moneda: cara o cruz, y la palabra al lado (no es solo el dibujo). */
+.rep-moneda {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--lab-brillo);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--navy-solid-dark) 40%, transparent);
+  color: var(--navy-solid-dark);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 700;
+}
+
+.rep-moneda[data-cara='no'] {
+  background: var(--tp-velo-fuerte);
+  color: var(--tp-texto);
+  box-shadow: inset 0 0 0 2px var(--tp-linea);
+}
+
+.rep-copa {
+  display: inline-flex;
+  color: var(--lab-brillo);
+}
+
+/* ── Lo que la jugada de ahora mueve ──
+   El Pokémon que entra, evoluciona, recibe energía o usa algo: con el
+   brillo de «elegir dónde va» del laboratorio, y entrando con un salto.
+   El que recibe el golpe: tiembla, y el daño sube encima. */
+.rep-foco .lab-slot-carta {
+  outline: 2px solid var(--lab-brillo);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--lab-brillo) 30%, transparent);
+  animation: rep-entra 0.45s var(--ease) both;
+}
+
+@keyframes rep-entra {
+  from {
+    transform: scale(0.88);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+.rep-golpe .lab-slot-carta {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger-solid) 70%, transparent);
+  animation: rep-tiembla 0.5s ease-in-out both;
+}
+
+@keyframes rep-tiembla {
+  20% {
+    transform: translateX(-8px);
+  }
+
+  40% {
+    transform: translateX(8px);
+  }
+
+  60% {
+    transform: translateX(-4px);
+  }
+
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+/* El daño se QUEDA al final de su subida (no se borra): con «menos
+   movimiento» no sube, pero se ve igual hasta la jugada siguiente. */
+.rep-golpe-num {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  z-index: 2;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 700;
+  line-height: 1.3;
+  box-shadow: var(--shadow-sm);
+  transform: translate(-50%, -50%);
+  animation: rep-sube 0.8s var(--ease) both;
+  pointer-events: none;
+}
+
+.lab-slot:not(.lab-slot-activo) .rep-golpe-num {
+  font-size: var(--t-sm);
+}
+
+@keyframes rep-sube {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 0);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Las pilas, los premios y la mano que se mueven en esta jugada. */
+.rep-foco-zona {
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 2px var(--lab-brillo);
+}
+
+/* La mano del de abajo, dentro del tapete y en una tira. */
+.rep-mano-zona {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  padding-top: var(--e-sm);
+  border-top: 1px solid var(--tp-linea);
+}
+
+.rep-mano-rotulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs);
+  margin: 0;
+  font-size: var(--t-xs);
+}
+
+.rep-mano-rotulo strong {
+  color: var(--tp-texto);
+}
+
+.rep-mano-nota {
+  color: var(--tp-tenue);
+}
+
+.rep-mano {
+  display: flex;
+  gap: var(--e-xs);
+  min-height: calc(var(--lab-c-premio) * 1.5 * 342 / 245);
+  overflow-x: auto;
+  padding-bottom: var(--e-xs);
+}
+
+.rep-mano .rep-mano-carta {
+  --lab-ancho: calc(var(--lab-c-premio) * 1.5);
+}
+
+.rep-solo-danio {
+  grid-column: 1 / -1;
+}
+
+/* ── Los controles ── */
+.rep-controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.rep-botones {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.rep-ctrl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text);
+  transition: background 0.15s var(--ease);
+}
+
+.rep-ctrl:hover:not(:disabled) {
+  background: var(--ice-dark);
+}
+
+.rep-ctrl:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.rep-ctrl:focus-visible,
+.rep-progreso:focus-visible,
+.rep-velocidad select:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.rep-ctrl-principal {
+  min-width: 56px;
+  min-height: 56px;
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.rep-ctrl-principal:hover:not(:disabled) {
+  background: var(--navy-solid-dark);
+}
+
+.rep-progreso {
+  flex: 1 1 120px;
+  min-width: 0;
+  min-height: 44px;
+  accent-color: var(--navy);
+}
+
+.rep-cuenta {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rep-velocidad {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rep-velocidad select {
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+/* ── El registro, al lado ── */
+.rep-registro {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  overflow: hidden;
+}
+
+.rep-registro-titulo {
+  padding: var(--e-md) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.rep-lineas {
+  max-height: 50vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* En el ordenador, el registro mide lo que mide la mesa y se desplaza
+   dentro: si midiera lo suyo, la página entera se haría larguísima. */
+@media (min-width: 1100px) {
+  .rep-registro {
+    position: relative;
+  }
+
+  .rep-lineas {
+    position: absolute;
+    inset: 52px 0 0;
+    max-height: none;
+  }
+}
+
+.rep-bloque-titulo {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: var(--e-sm) var(--e-lg);
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rep-bloque-titulo .lab-jugador {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.rep-bloque ol {
+  padding: var(--e-xs) 0;
+  list-style: none;
+}
+
+.rep-paso {
+  display: block;
+  width: 100%;
+  padding: var(--e-xs) var(--e-lg);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  line-height: 1.45;
+  text-align: left;
+}
+
+.rep-paso:hover {
+  background: var(--ice);
+  color: var(--text);
+}
+
+.rep-paso:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: -2px;
+}
+
+.rep-paso-sub {
+  padding-left: var(--e-2xl);
+}
+
+.rep-paso-sin-leer {
+  font-style: italic;
+}
+
+.rep-paso[aria-current] {
+  background: var(--ice);
+  box-shadow: inset 2px 0 0 var(--navy);
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (pointer: coarse) {
+  .rep-paso {
+    min-height: 44px;
+  }
+}
+
+/* ── Ver cartas en grande ── */
+.rep-ver {
+  width: min(960px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.rep-ver::backdrop {
+  background: color-mix(in srgb, var(--navy-solid-dark) 60%, transparent);
+}
+
+.rep-ver-cab {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  padding: var(--e-sm) var(--e-sm) var(--e-sm) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+
+.rep-ver-cab h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.rep-ver-cerrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  color: var(--text-mid);
+  font-size: var(--t-xl);
+  line-height: 1;
+}
+
+.rep-ver-cerrar:hover {
+  background: var(--ice);
+  color: var(--text);
+}
+
+.rep-ver-cartas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--e-lg);
+  padding: var(--e-lg);
+}
+
+.rep-ver-carta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin: 0;
+}
+
+.rep-ver-carta .lab-carta {
+  --lab-ancho: 100%;
+}
+
+.rep-ver-carta figcaption {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-align: center;
+}
+
+.rep-ver-vacio {
+  grid-column: 1 / -1;
+  color: var(--text-mid);
+}
+
+/* ── El móvil ── */
+@media (max-width: 760px) {
+  .rep-sala {
+    --lab-c-activo: 80px;
+    --lab-c-banca: 52px;
+    --lab-c-premio: 24px;
+    --lab-c-pila: 40px;
+  }
+
+  .rep-pegar {
+    padding: var(--e-lg);
+  }
+
+  /* La mesa, casi de borde a borde: con el margen de la página (24 px por
+     lado) el activo de arriba y su vida se metían debajo de las pilas a
+     360 px. Así mide lo mismo que la del laboratorio a ese ancho. */
+  .rep-juego {
+    margin-inline: calc(-1 * var(--e-lg));
+  }
+
+  /* Los controles se quedan pegados abajo mientras se mira la mesa, que
+     en el móvil no cabe entera en la pantalla. */
+  .rep-controles {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    justify-content: center;
+    padding: var(--e-sm);
+    padding-bottom: calc(var(--e-sm) + env(safe-area-inset-bottom));
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Dos filas y no cuatro: el deslizador arriba, a lo ancho, y los
+     botones con la velocidad debajo. La cuenta se queda para el lector
+     (va en el deslizador): el turno ya lo dice el centro del tapete. */
+  .rep-controles {
+    gap: var(--e-xs) var(--e-sm);
+  }
+
+  .rep-progreso {
+    order: 1;
+    flex-basis: 100%;
+  }
+
+  .rep-botones {
+    order: 2;
+    gap: 2px;
+  }
+
+  .rep-ctrl-principal {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .rep-cuenta,
+  .rep-velocidad-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .rep-velocidad {
+    order: 3;
+  }
+
+  .rep-destacado {
+    justify-content: flex-start;
+  }
+
+  .rep-foco-texto,
+  .rep-foco-que {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rep-destacado > *,
+  .rep-foco .lab-slot-carta,
+  .rep-golpe .lab-slot-carta,
+  .rep-golpe-num {
+    animation: none;
+  }
+
+  .rep-ctrl {
+    transition: none;
+  }
+}
