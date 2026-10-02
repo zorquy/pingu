@@ -355,6 +355,16 @@ web. Y al copiar una restricción, cópiale también **el valor por defecto**:
 diga nada ES occidental — comparar `null` contra `'WEST'` dejaba sin set a
 casi todas las cartas de las pruebas viejas.
 
+**Mientras corra un rigor, commitea nombrando los ficheros uno a uno,
+nunca con `git add -A`** (tanda 438). Es la tercera cara de la misma
+moneda. Preparando un push, `git status` enseñaba `js/mi-coleccion.js`
+modificado sin que nadie lo hubiera tocado: era una mutación del rigor,
+viva en disco en ese instante. Un `-A` habría subido la tanda ROTA a una
+rama que Netlify despliega en directo. `comprobar-arbol.sh` no lo habría
+cantado, porque mientras el rigor corre la mutación está puesta a
+propósito. Lo que lo cazó fue mirar por qué aparecía un fichero que no era
+de los míos.
+
 Y **no mates un rigor con `pkill`**: el 2026-09-16 se hizo para dejar
 sitio a la suite y pilló una mutación puesta —`foro.html` se quedó sin el
 enlace de salto—. El salvavidas lo arregló (`rigor_comun.rescatar()`),

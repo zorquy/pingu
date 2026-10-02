@@ -35,6 +35,70 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 438 — el idioma del catálogo, y las imágenes que iban al sitio equivocado)
+
+**Hecho**: tres cosas que PINGU pidió juntas, y un fallo mío de la 437 que
+salió al preguntarlas.
+
+**1. El selector pasa de MERCADO a VISTA, con banderas y sin texto.** Las
+cuatro: 🇪🇸 Español, 🇬🇧 Inglés, 🇯🇵 Japonés, 🇨🇳 Chino. PINGU preguntó si
+meter español obligaba a meter alemán, francés e italiano. **No**, y el
+porqué estaba ya medido en la migración de mercados: son DOS ejes. El
+MERCADO dice qué cartas EXISTEN —y el occidental es UN catálogo publicado
+en ocho idiomas con las MISMAS cartas: el español comparte sus 154
+identificadores de set con el inglés, el alemán 153, el italiano 190—. El
+IDIOMA dice cómo se ESCRIBE (`name_es` contra `name`). Así que español e
+inglés son el mismo catálogo con dos rótulos, y añadir alemán mañana es una
+línea en `VISTAS` y ni una carta más que importar. Cambiar entre esos dos NO
+vuelve a cargar nada: repinta y ya.
+
+El chino tradicional sale de la lista porque PINGU lo pidió. **Queda
+apuntado que es el que tiene catálogo de verdad**: 98 colecciones y 7.436
+cartas, contra las 56 y 877 del simplificado. Volver a meterlo es una línea.
+
+**2. El Panel, la primera pestaña.** Desde la 436 es la que se abre sola;
+tenerla la última decía que era la menos importante.
+
+**3. EL FALLO: las imágenes de los otros catálogos iban a la carpeta
+inglesa.** PINGU: «las cartas no traen imagen, pero no sé si es que está
+cargando». No estaba cargando. `js/carta-ruta.js` montaba las tres
+direcciones —escaneo, logo de set y logo a mano— con el idioma `en`
+ESCRITO A FUEGO. Mientras el catálogo era uno solo daba igual; desde la 437
+cada imagen japonesa se pedía a `assets.tcgdex.net/en/…` cuando vive en
+`/ja/…`. **Un 404 de imagen no da error en ninguna parte**: la cadena de
+respaldo pasa al siguiente sitio, se queda sin sitios y quita la imagen. La
+pantalla sale entera sin una sola foto y con pinta de estar cargando.
+
+El motivo estaba escrito en el propio código: quien sabe montar bien esa
+dirección es `cardImageUrl`, que vive en `tcgdex.js` y arrastra Supabase.
+Ese nudo se deshace: los mercados se van a **`js/mercados.js`, sin una sola
+dependencia**, y `tcgdex.js` lo reexporta. De paso, la copia a mano que
+llevaba la función de Netlify deja de tener razón de ser.
+
+**Ficheros**: `js/mercados.js` (NUEVO), `js/tcgdex.js`, `js/carta-ruta.js`,
+`js/escaneo-carta.js`, `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`,
+`mi-coleccion.html`. Pruebas: `test-tanda-438.mjs` (NUEVO), y adaptadas
+`test-tanda-437.mjs` y su rigor (el selector ya no dice códigos de mercado).
+
+**Y UN SUSTO, que es la lección de hoy**: preparando un push, `git status`
+enseñaba `js/mi-coleccion.js` modificado y yo no lo había tocado. Era **una
+mutación del rigor, viva en disco en ese instante**. Un `git add -A` habría
+subido la 437 rota a producción, que se despliega en directo. Se cazó
+porque el fichero no era de los míos y se miró el diff. **Mientras corra un
+rigor, se commitea nombrando los ficheros uno a uno, nunca con `-A`.**
+
+**En curso / pendiente**: el rigor de la 438 y el repaso VISUAL de
+/mi-coleccion, que PINGU pidió en el mismo mensaje: «hay cosas que sobran,
+hay cosas que son demasiado grandes». Lo que ya se ve en las capturas: el
+listón de cifras de arriba y las dos primeras diapositivas del panel dicen
+LO MISMO, y en el móvil el listón se sale por la derecha.
+
+Siguen sin ejecutar `supabase-migration-pokedex-mercado.sql`,
+`supabase-migration-trainer-gallery.sql` y
+`supabase-migration-trainer-gallery-serie.sql`.
+
+---
+
 ## 2026-10-02 — PINGU-Claude (tanda 437 — qué catálogo se mira)
 
 **Hecho**: PINGU: «vamos a hacer que tengamos dos catálogos distintos… y

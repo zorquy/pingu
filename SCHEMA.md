@@ -23178,3 +23178,56 @@ tienen que coincidir, **con su valor por defecto**: la columna es
 `not null default 'WEST'`, así que una fila de fixture que no diga nada ES
 occidental — sin eso, comparar `null` contra `'WEST'` habría dejado sin set
 a casi todas las cartas de las pruebas viejas.
+
+## Tanda 438 — el idioma del catálogo, y las imágenes que iban al sitio equivocado (oct. 2026)
+
+**MERCADO e IDIOMA son dos ejes, y confundirlos es lo que lleva a
+preguntarse si hay que importar el alemán.** PINGU lo preguntó tal cual.
+La respuesta estaba medida desde la migración de mercados:
+
+- El **mercado** dice qué cartas EXISTEN. El occidental es UN catálogo
+  publicado en ocho idiomas con las MISMAS cartas: el español comparte sus
+  154 identificadores de set con el inglés, el alemán 153, el italiano 190.
+  El japonés y los dos chinos sí son catálogos propios.
+- El **idioma** dice cómo se ESCRIBE: `name_es` contra `name`.
+
+Por eso `VISTAS` tiene cuatro entradas —🇪🇸 🇬🇧 🇯🇵 🇨🇳— y cada una lleva su
+`mercado` y si va `enEspanol`. Español e inglés comparten mercado, así que
+cambiar entre ellos **no vuelve a cargar nada**: `cambiarVista` sale por un
+atajo y repinta. Ese atajo va ARRIBA del vaciado de memoria, y el orden ES
+la corrección: puesto debajo, repintaba sobre una colección ya borrada y
+dejaba la pantalla en blanco.
+
+El tradicional sale de la lista porque se pidió. Queda escrito que es el
+que tiene catálogo de verdad: 98 colecciones y 7.436 cartas contra las 56 y
+877 del simplificado.
+
+**Las banderas son la segunda excepción deliberada a «iconos, nunca
+emojis»** (la primera era la banderita del tono). El motivo: una bandera no
+es un icono de interfaz, es el nombre de un idioma, y dibujar cuatro
+banderas a mano en SVG sería dibujar banderas peor. El nombre no se pierde:
+va en el `title` de cada opción y en el `aria-label` del desplegable.
+
+**El fallo que se veía como «todavía está cargando».** `js/carta-ruta.js`
+montaba las tres direcciones de imagen —escaneo, logo de set, logo a mano—
+con el idioma `en` ESCRITO A FUEGO. Daba igual mientras el catálogo era uno
+solo; desde la 437, cada imagen japonesa se pedía a
+`assets.tcgdex.net/en/…` cuando vive en `/ja/…`. **Un 404 de imagen no da
+error en ninguna parte**: la cadena de respaldo pasa al siguiente sitio, se
+queda sin sitios y quita la imagen, así que la pantalla sale entera sin una
+sola foto.
+
+El nudo estaba escrito en el propio código: quien monta bien esa dirección
+es `cardImageUrl`, que vive en `tcgdex.js` y arrastra Supabase. De ahí
+**`js/mercados.js`, sin una sola dependencia**, que `tcgdex.js` reexporta.
+Con eso `urlDeImagen`, `urlDeLogo` y `urlDeLogoPorPartes` toman mercado, y
+`cadenaDeEscaneo` pasa el de la carta cuando nadie le inyecta un espejo
+—que es justo el caso de /mi-coleccion—. Para que la carta SEPA su mercado,
+`market` entra en las columnas que se piden: sin ella, una fila se da por
+occidental y el fallo vuelve calladito.
+
+**Cómo se prueba algo así**: mirando lo que se PIDE, no lo que se pinta. Con
+la red cerrada, el DOM dice que no hay imagen tanto si la dirección es buena
+como si es mala, así que `test-tanda-438.mjs` escucha las peticiones a
+`assets.tcgdex.net` y comprueba que la japonesa va a `/ja/` **y no** a
+`/en/`. Es la misma lección de las tandas 434 y 435.

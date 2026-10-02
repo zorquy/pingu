@@ -14,7 +14,7 @@ import { escapeHtml, getSession, profileUrl, avatarStyle, getInitial } from './a
 import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
 import { supabase } from './supabase.js'
-import { normalizeSearch, NOMBRE_MERCADO } from './tcgdex.js'
+import { normalizeSearch } from './tcgdex.js'
 import { rutaDeCarta, urlDeLogo, urlDeLogoPorPartes } from './carta-ruta.js'
 // El escaneo con su respaldo (tanda 370): TCGdex no tiene imagen de
 // muchas cartas viejas, y sin esto el bolsillo se quedaba en blanco.
@@ -101,21 +101,49 @@ let albumesAbiertos = false
 // Los cuatro son los que están importados (MERCADOS_A_IMPORTAR en
 // js/tcgdex.js). Los otros tres que admite la base —coreano, indonesio y
 // tailandés— no se ofrecen porque saldrían vacíos.
-const MERCADOS_A_LA_VISTA = ['WEST', 'JP', 'TW', 'CN']
-const CLAVE_MERCADO = 'mc-mercado'
+// Y lo que se elige NO es un mercado, es una VISTA (tanda 438). PINGU:
+// «tendrías que meter español, inglés, japonés y chino». Eso son DOS ejes
+// y conviene no confundirlos, porque confundirlos es lo que lleva a
+// preguntarse si hay que meter también el alemán y el italiano:
+//
+//   - El MERCADO dice qué cartas EXISTEN. El occidental es UN catálogo
+//     publicado en ocho idiomas con las MISMAS cartas —el español
+//     comparte sus 154 identificadores de set con el inglés, el alemán
+//     153, el italiano 190: todos—. El japonés y los dos chinos sí son
+//     catálogos propios.
+//   - El IDIOMA dice cómo se ESCRIBE: `name_es` contra `name`.
+//
+// O sea que español e inglés son el MISMO catálogo con dos rótulos, y por
+// eso añadir alemán o italiano mañana es una línea en esta lista y ni una
+// carta más que importar. Mientras que japonés y chino traen su catálogo.
+//
+// El tradicional se queda fuera porque PINGU lo pidió. Queda apuntado que
+// es el que tiene catálogo DE VERDAD: 98 colecciones y 7.436 cartas,
+// contra las 56 y 877 del simplificado.
+const VISTAS = [
+  { id: 'es', bandera: '🇪🇸', nombre: 'Español', mercado: 'WEST', enEspanol: true },
+  { id: 'en', bandera: '🇬🇧', nombre: 'Inglés', mercado: 'WEST', enEspanol: false },
+  { id: 'ja', bandera: '🇯🇵', nombre: 'Japonés', mercado: 'JP', enEspanol: false },
+  { id: 'zh', bandera: '🇨🇳', nombre: 'Chino', mercado: 'CN', enEspanol: false },
+]
+const CLAVE_MERCADO = 'mc-vista'
 
 // Se recuerda por navegador, no en el perfil: es cómo MIRAS la página, no
 // un dato tuyo, y quien colecciona las dos cosas cambia a menudo. El
 // try/catch no es por gusto — en una ventana privada `localStorage` lanza.
-function mercadoGuardado() {
+function vistaGuardada() {
   try {
     const v = localStorage.getItem(CLAVE_MERCADO)
-    return MERCADOS_A_LA_VISTA.includes(v) ? v : 'WEST'
+    return VISTAS.some((x) => x.id === v) ? v : 'es'
   } catch {
-    return 'WEST'
+    return 'es'
   }
 }
-let mercado = mercadoGuardado()
+let vista = vistaGuardada()
+const laVista = () => VISTAS.find((v) => v.id === vista) || VISTAS[0]
+// `mercado` se queda como lo que es: el catálogo que se consulta. Lo
+// calcula la vista, así que las diez consultas de la 437 no se enteran.
+let mercado = laVista().mercado
 // Las expansiones favoritas. TRES estados y no dos: `null` es «no se
 // sabe» —la migración no está puesta—, y entonces ni se pinta el grupo ni
 // sale la estrella. Un `new Set()` por defecto diría «no tienes ninguna»,
@@ -143,7 +171,11 @@ let totalesPokedex = new Map()
 let pokedexCargada = false
 let especieAbierta = null
 
-const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
+// EN ESPAÑOL se pinta el traducido; en las demás vistas, el de la carta
+// (tanda 438). El inglés es además la CLAVE con la que se cruzan las
+// decklists y las reimpresiones, así que `name` nunca se toca: lo que
+// cambia es cuál de los dos se ENSEÑA.
+const nombreDe = (c) => (laVista().enEspanol ? c?.name_es || c?.name : c?.name || c?.name_es) || 'Carta'
 
 // `porNumero` vive en `mi-coleccion/orden.js` desde la 427, con los otros
 // tres órdenes. Estaba aquí, y una constante copiada se separa sin que
@@ -1179,7 +1211,7 @@ async function cargarSets() {
     // El logo y la serie viajan desde la tanda 372: la estantería se ve
     // por los logos, y agrupar por serie es lo que hace navegable una
     // lista de 220 colecciones.
-    .select('id,name,serie_id,serie_name,logo_path,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code')
+    .select('id,market,name,serie_id,serie_name,logo_path,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code')
     .eq('market', mercado)
     .order('release_date', { ascending: false, nullsFirst: false })
     .limit(1000)
@@ -1280,13 +1312,13 @@ function tarjetaDeSet(set, tengo) {
   // Y si tampoco está, el NOMBRE, pintado en la cabecera. Lo importante
   // es que la cadena no pueda acabar en nada: una tarjeta sin dibujo y
   // sin nombre no dice qué colección es.
-  const logo = urlDeLogo(set.logo_path)
+  const logo = urlDeLogo(set.logo_path, set.market || mercado)
   // Y si no hay, la ruta montada a mano (tanda 434): TCGdex tiene logos en
   // su CDN que su manifiesto no lista, y la ruta es `serie/set/logo`. De
   // los 41 sets sin dibujo, el curador de la 380 ya pasó por 37 y volvió
   // vacío —o sea que la API no lo da—, pero el fichero puede estar igual.
   // Si no está, la cadena sigue al símbolo y acaba en el nombre.
-  const logoAMano = set.logo_path ? null : urlDeLogoPorPartes(set.serie_id, set.id)
+  const logoAMano = set.logo_path ? null : urlDeLogoPorPartes(set.serie_id, set.id, set.market || mercado)
   const simbolo = set.symbol_url ? `${set.symbol_url}.webp` : null
   const dibujos = [logo, logoAMano, simbolo].filter(Boolean)
   const completo = total && tengo >= total
@@ -1952,7 +1984,7 @@ let turnoBusqueda = 0
 // cambios. Copiarla habría dejado dos buscadores que se separan sin
 // que nadie se entere — la lección de `IDIOMA_POR_MERCADO`.
 async function buscarCartas(texto, limite = 60) {
-  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,image_path,rarity,tcg_sets(id,name,serie_id,release_date,tcg_online_code)').eq('market', mercado)
+  let q = supabase.from('tcg_cards').select('id,market,set_id,local_id,name,name_es,image_path,rarity,tcg_sets(id,name,serie_id,release_date,tcg_online_code)').eq('market', mercado)
   for (const p of texto.split(/\s+/).filter(Boolean)) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
   const { data, error } = await q.order('name_search').limit(limite)
   if (error) throw error
@@ -2592,9 +2624,9 @@ function pintarIconos() {
 function enganchar() {
   pintarIconos()
   // El selector de catálogo (tanda 437), en los tres sitios a la vez.
-  pintarMercados()
+  pintarVistas()
   for (const sel of document.querySelectorAll('.mc-mercado')) {
-    sel.addEventListener('change', () => void cambiarMercado(sel.value))
+    sel.addEventListener('change', () => void cambiarVista(sel.value))
   }
   for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.pestania))
   // AQUÍ VIVÍA el observador que apartaba la barra flotante al llegar al
@@ -3214,15 +3246,25 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
 // abierto y la gráfica del valor. Se tira TODO y se vuelve a cargar — no
 // es una optimización que falte, es que quedarse con la mitad mezclaría
 // dos catálogos en la misma pantalla y nada daría error.
-async function cambiarMercado(nuevo) {
-  if (!MERCADOS_A_LA_VISTA.includes(nuevo) || nuevo === mercado) return
-  mercado = nuevo
+async function cambiarVista(nuevo) {
+  if (!VISTAS.some((v) => v.id === nuevo) || nuevo === vista) return
+  const antes = mercado
+  vista = nuevo
+  mercado = laVista().mercado
   try {
     localStorage.setItem(CLAVE_MERCADO, nuevo)
   } catch {
     // En una ventana privada no se puede guardar. Se pierde la elección
     // al recargar y ya está: no es motivo para no cambiar de catálogo.
   }
+  pintarVistas()
+  // ATAJO, Y VA AQUÍ ARRIBA: entre español e inglés NO cambia el catálogo
+  // —son el mismo mercado, el occidental—, solo cuál de los dos nombres se
+  // enseña. Tirar la colección entera para volver a pedirla igual sería
+  // una espera por nada... pero además, puesto DEBAJO del vaciado de aquí
+  // abajo, repintaba sobre una memoria ya borrada y dejaba la pantalla en
+  // blanco. El orden ES la corrección.
+  if (mercado === antes) return repintar()
   todosLosSets = null
   album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false }
   pokedex = null
@@ -3236,7 +3278,6 @@ async function cambiarMercado(nuevo) {
   lineas = []
   cartas = new Map()
   guardados = new Map()
-  pintarMercados()
   $('mcCargando')?.classList.remove('hidden')
   await cargarColeccion(duenoActual)
 }
@@ -3245,13 +3286,22 @@ async function cambiarMercado(nuevo) {
 // estantería, la lista de cartas y la Pokédex. Es UNO repetido y no tres
 // distintos, así que se pintan y se escuchan juntos — si se separan, un
 // camino se queda con el mercado viejo y lo enseña como si tal cosa.
-function pintarMercados() {
-  const opciones = MERCADOS_A_LA_VISTA
-    .map((m) => `<option value="${m}">${escapeHtml(NOMBRE_MERCADO[m] || m)}</option>`)
+// SOLO LA BANDERA, sin texto: lo pidió PINGU y es como lo hace Dex. Es
+// la segunda excepción deliberada a la regla de «iconos, nunca emojis»
+// (la primera era la banderita del tono español) y tiene su motivo: una
+// bandera no es un icono de interfaz, es el nombre de un idioma, y
+// dibujar cuatro banderas a mano en SVG sería dibujar banderas peor.
+//
+// El nombre no se pierde: va en el `title` de cada opción y en el
+// `aria-label` del desplegable, que es lo que lee un lector de pantalla.
+function pintarVistas() {
+  const opciones = VISTAS
+    .map((v) => `<option value="${v.id}" title="${escapeHtml(v.nombre)}">${v.bandera}</option>`)
     .join('')
   for (const sel of document.querySelectorAll('.mc-mercado')) {
     if (sel.innerHTML !== opciones) sel.innerHTML = opciones
-    sel.value = mercado
+    sel.value = vista
+    sel.setAttribute('aria-label', `Idioma del catálogo: ${laVista().nombre}`)
   }
 }
 
