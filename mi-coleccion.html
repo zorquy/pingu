@@ -120,7 +120,12 @@
     </div>
 
     <div id="mcContenido">
-      <dl class="mc-resumen" id="mcResumen"></dl>
+      <!-- El envoltorio existe para colgar de él el velo del móvil (tanda
+           439): la tira es `overflow-x: auto` y un `::after` suyo se
+           desplazaría con ella en vez de quedarse en el borde. -->
+      <div class="mc-cabecera-cifras">
+        <dl class="mc-resumen" id="mcResumen"></dl>
+      </div>
       <p class="mc-nota" id="mcResumenNota"></p>
       <p class="subtext" id="mcCargando">Cargando la colección…</p>
 

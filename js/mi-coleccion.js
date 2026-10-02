@@ -263,8 +263,11 @@ function pintarResumen() {
         ? `<div class="mc-cifra"><dt>Pagado en ${conCompra.toLocaleString('es-ES')} ${conCompra === 1 ? 'carta' : 'cartas'}</dt><dd>${euros(pagado)}</dd></div>`
         : ''
     }`
-  $('mcResumenNota').textContent = lineas.length
-    ? `El valor suma la tendencia de Cardmarket de cada carta (o el valor que le hayas puesto tú), sin ajustar por estado.${sinPrecio ? ` ${sinPrecio} ${sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía.` : ''}`
+  // Solo lo que hay que saber para leer el número de al lado (tanda 439).
+  // La explicación larga de cómo se calcula el valor estaba aquí Y dentro
+  // de la diapositiva, dos renglones encima de la primera carta.
+  $('mcResumenNota').textContent = lineas.length && sinPrecio
+    ? `${sinPrecio} ${sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía.`
     : ''
 }
 
@@ -371,35 +374,29 @@ function pintarResumenPanel() {
     caja.innerHTML = '<p class="subtext">Cuando añadas cartas, aquí te contamos qué tienes.</p>'
     return
   }
-  const copias = lineas.reduce((n, l) => n + l.cantidad, 0)
-  const distintas = new Set(lineas.map((l) => l.card_id)).size
-  const colecciones = new Set([...cartas.values()].map((c) => c?.set_id).filter(Boolean)).size
   const rep = repetidas()
   const sobran = rep.reduce((n, r) => n + r.sobran, 0)
   const valiosas = masValiosas(3)
   const porRareza = repartoPor((c) => (c?.rarity ? rarezaEs(c.rarity) : null))
-  const total = valorDeAhora()
 
   caja.innerHTML = `
     <div class="mc-tira-caja">
     <div class="mc-tira" id="mcTira" tabindex="0" role="group" aria-label="Resumen de tu colección">
-      ${diapoHtml('Tu colección', `
-        <p class="mc-diapo-cifra">${copias.toLocaleString('es-ES')}</p>
-        <p class="mc-diapo-pie">cartas contando las repetidas</p>
-        <dl class="mc-diapo-datos">
-          <div><dt>Distintas</dt><dd>${distintas.toLocaleString('es-ES')}</dd></div>
-          <div><dt>Colecciones</dt><dd>${colecciones}</dd></div>
-        </dl>`)}
-      ${diapoHtml('Lo que vale', `
-        <p class="mc-diapo-cifra">${escapeHtml(euros(total))}</p>
-        <p class="mc-diapo-pie">la tendencia de Cardmarket, sin ajustar por estado</p>
-        ${
-          valiosas.length
-            ? `<ul class="mc-diapo-lista">${valiosas
-                .map((v) => `<li><span>${escapeHtml(nombreDe(v.carta))}</span><strong>${escapeHtml(euros(v.valor))}</strong></li>`)
-                .join('')}</ul>`
-            : '<p class="subtext">Todavía no sabemos el precio de ninguna.</p>'
-        }`)}
+      ${
+        // AQUÍ VIVÍAN «Tu colección» y el total de «Lo que vale» (fuera en
+        // la 439). Las cartas, las distintas, las colecciones y el valor ya
+        // están en el listón de arriba, que además se ve desde CUALQUIER
+        // pestaña: repetirlos aquí era decir cuatro números dos veces y
+        // gastar en ello las dos primeras diapositivas, que son las únicas
+        // que se ven sin deslizar. Lo que sí añadía la segunda —CUÁLES son
+        // las que más valen— se queda, que es lo que no estaba en ningún
+        // otro sitio.
+        valiosas.length
+          ? diapoHtml('Las que más valen', `<ul class="mc-diapo-lista">${valiosas
+              .map((v) => `<li><span>${escapeHtml(nombreDe(v.carta))}</span><strong>${escapeHtml(euros(v.valor))}</strong></li>`)
+              .join('')}</ul>`)
+          : ''
+      }
       ${esMia ? diapoDelBalance() : ''}
       ${diapoHtml('Lo que te sobra', `
         <p class="mc-diapo-cifra">${sobran.toLocaleString('es-ES')}</p>
@@ -491,6 +488,25 @@ function pintarResumenPanel() {
 // Las flechas de la tira. Se mueve de tarjeta en tarjeta —el ancho de
 // una más su hueco— y no una cantidad fija de píxeles: con una fija, la
 // tira acaba parándose a mitad de una tarjeta.
+// Solo la máscara, sin flechas (tanda 439): el listón de cifras del móvil
+// se desliza pero no lleva flechas —con el dedo no hacen falta—, y aun así
+// necesita decir que hay más a la derecha. Y necesita DEJAR de decirlo al
+// llegar al final, que es la mitad que se olvida.
+//
+// Se cuelga del `scroll` y del `resize`: en el escritorio la tira no
+// desborda, así que `resto` es 0 y la máscara no llega ni a encenderse.
+function velarTira(id) {
+  const tira = $(id)
+  if (!tira) return
+  const mirar = () => {
+    const resto = tira.scrollWidth - tira.clientWidth - tira.scrollLeft
+    tira.classList.toggle('mc-tira-final', resto <= 4)
+  }
+  tira.addEventListener('scroll', mirar, { passive: true })
+  window.addEventListener('resize', mirar)
+  mirar()
+}
+
 function engancharTira(idTira = 'mcTira', idIzq = 'mcTiraIzq', idDer = 'mcTiraDer') {
   const tira = $(idTira)
   if (!tira) return
@@ -502,6 +518,12 @@ function engancharTira(idTira = 'mcTira', idIzq = 'mcTiraIzq', idDer = 'mcTiraDe
     const resto = tira.scrollWidth - tira.clientWidth - tira.scrollLeft
     $(idIzq).hidden = tira.scrollLeft <= 4
     $(idDer).hidden = resto <= 4
+    // Y la máscara que desvanece el borde derecho (tanda 439) se apaga
+    // cuando ya no queda nada a la derecha: una tira que está al final y
+    // aun así desvanece su última tarjeta estaría diciendo que hay más.
+    // Es el mismo dato que decide la flecha, así que se decide aquí y no
+    // en otro sitio que pueda desincronizarse.
+    tira.classList.toggle('mc-tira-final', resto <= 4)
   }
   $(idIzq).addEventListener('click', () => tira.scrollBy({ left: -paso(), behavior: 'smooth' }))
   $(idDer).addEventListener('click', () => tira.scrollBy({ left: paso(), behavior: 'smooth' }))
@@ -2416,11 +2438,19 @@ async function pintarCambios() {
   const encajan = tiene.length + busca.length
   const vacio = !doy.length && !deseos.length
   caja.innerHTML = `
-    <div class="mc-cambio-cifras">
+    ${
+      // Sin nada apuntado, las tres chapas son tres CEROS, y debajo ya
+      // están los tres pasos que explican qué hacer (tanda 439). Una fila
+      // de ceros encima de «así funciona» no informa: ocupa. Con algo
+      // apuntado sí dicen, que es cuando salen.
+      vacio
+        ? ''
+        : `<div class="mc-cambio-cifras">
       ${chapaDeCambio(encajan, 'encajan contigo', 'refreshCw')}
       ${chapaDeCambio(doy.length, doy.length === 1 ? 'carta que das' : 'cartas que das', 'package')}
       ${chapaDeCambio(deseos.length, deseos.length === 1 ? 'carta que buscas' : 'cartas que buscas', 'target')}
-    </div>
+    </div>`
+    }
     ${
       vacio
         // Sin nada apuntado no se enseñan dos tablones vacíos: se enseña
@@ -2624,6 +2654,7 @@ function pintarIconos() {
 function enganchar() {
   pintarIconos()
   // El selector de catálogo (tanda 437), en los tres sitios a la vez.
+  velarTira('mcResumen')
   pintarVistas()
   for (const sel of document.querySelectorAll('.mc-mercado')) {
     sel.addEventListener('change', () => void cambiarVista(sel.value))

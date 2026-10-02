@@ -35,6 +35,67 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 439 — fuera lo que se decía dos veces)
+
+**Hecho**: PINGU, mirando /mi-coleccion: «hay cosas que sobran, hay cosas
+que son demasiado grandes… está bien, pero es un poco cutrón». Primera
+pasada, la de quitar lo repetido.
+
+Lo que más sobraba era literal: **el listón de cifras de arriba y las dos
+primeras diapositivas del panel daban los MISMOS cuatro números**, con el
+total en cuerpo gigante dos veces en la misma pantalla. Y las dos primeras
+diapositivas son justo las únicas que se ven sin deslizar, o sea que el
+carrusel abría contándote lo que ya tenías delante. Fuera «Tu colección»
+entera y fuera el total de «Lo que vale»; se queda lo que esa diapositiva
+SÍ añadía, que es CUÁLES son las que más valen.
+
+La nota de debajo del listón repetía, palabra por palabra, la explicación
+que ya lleva la diapositiva. Se queda con lo único accionable: cuántas no
+tienen precio.
+
+Y en «Cambios», sin nada apuntado salían tres chapas con 0 ENCIMA de los
+tres pasos que explican qué hacer. Los pasos ya lo dicen.
+
+**DOS ERRORES MÍOS, y los dos los cazó la medida y no el ojo**:
+
+1. Cambié el listón del móvil por una rejilla de dos columnas. Se ve
+   mejor… y sube de 804 a 867 px lo que tardas en ver la primera carta,
+   que es EXACTAMENTE lo que la tanda 412 vino a bajar. El problema no era
+   la disposición: era que nada avisaba de que aquello se desliza.
+2. El aviso lo puse como un velo pintado encima, que funde hacia `--bg`
+   (#f6f8fa) sobre una tarjeta BLANCA: **un 3 % de diferencia, invisible**.
+   CSS muerto disfrazado de solución. Ahora es una `mask` que desvanece la
+   propia tarjeta, y **se apaga al llegar al final** —una tira que ya no
+   tiene más y sigue desvaneciendo su borde está mintiendo—.
+
+Y una tercera, de las de siempre: meter el envoltorio
+`.mc-cabecera-cifras` rompió el escritorio porque
+`#mcContenido > .mc-resumen` pide HIJO DIRECTO. La tira se fue a la
+columna de las pestañas y la primera carta pasó de 704 px a 1.005, **sin
+dar ningún error**.
+
+**Medido**: escritorio 704 → 681 px hasta la primera carta y 2.160 → 2.064
+de alto; móvil 804 → 737 y 3.216 → 3.005.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`mi-coleccion.html`. Pruebas: `test-tanda-439.mjs` (NUEVO).
+
+**En curso / pendiente**: **el rediseño de verdad**, que es lo que PINGU
+pidió después: «quiero algo mucho mejor pensado… me gusta mucho la app Dex
+y creo que lo tienen perfecto y muy moderno visualmente». Lo acordado: el
+panel tiene SEIS zonas apiladas y TRES son lo mismo (resumen de números) —
+el listón, el carrusel y la caja del valor—, y eso es la raíz. Estructura
+nueva: cabecera de perfil con las cifras DENTRO, «dónde estás cerca»,
+últimas añadidas, la gráfica, y el resto detrás de «Ver más». **Y fuera el
+carrusel entero**: una tira horizontal de tarjetas de estadísticas es lo
+que hace que algo se vea viejo.
+
+Siguen sin ejecutar `supabase-migration-pokedex-mercado.sql`,
+`supabase-migration-trainer-gallery.sql` y
+`supabase-migration-trainer-gallery-serie.sql`.
+
+---
+
 ## 2026-10-02 — PINGU-Claude (tanda 438 — el idioma del catálogo, y las imágenes que iban al sitio equivocado)
 
 **Hecho**: tres cosas que PINGU pidió juntas, y un fallo mío de la 437 que

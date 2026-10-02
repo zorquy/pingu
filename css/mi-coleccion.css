@@ -248,7 +248,13 @@
     align-items: start;
   }
 
-  #mcContenido > .mc-resumen,
+  /* `.mc-cabecera-cifras` desde la 439: la tira de cifras pasó a ir
+     envuelta para poder colgarle el velo del móvil, y estas reglas piden
+     HIJO DIRECTO. Al meter el envoltorio, la tira dejó de casar, se
+     colocó en la columna 1 —la de las pestañas, de 216 px— y la primera
+     carta se fue de 704 px a 1005 sin que nada diera error. Es la trampa
+     de siempre: un envoltorio nuevo rompe a quien contaba los saltos. */
+  #mcContenido > .mc-cabecera-cifras,
   #mcContenido > .mc-nota,
   #mcContenido > .subtext,
   #mcContenido > .mc-aviso {
@@ -3621,7 +3627,17 @@ input.mc-alb-titulo:not([readonly]):focus {
    Las cuatro cifras en dos filas de cajas grandes se comían 200 px antes
    de la primera carta, en TODAS las pestañas. En una pantalla de 390 px
    eso es un cuarto de pantalla repetido cinco veces. Pasan a ser una tira
-   que se desliza, como la del panel: la misma pieza, la misma idea. */
+   que se desliza, como la del panel: la misma pieza, la misma idea.
+
+   LA 439 PROBÓ A VOLVER A UNA REJILLA de dos columnas, porque la tira se
+   LEE como una caja cortada por el borde —PINGU: «es un poco cutrón»—. Y
+   la medida dijo que no: con cinco cifras, dos columnas son TRES filas, y
+   la primera carta se iba de 804 px a 867. O sea que la rejilla arregla
+   el aspecto rompiendo justo lo que la 412 vino a arreglar.
+
+   Lo que fallaba no era la disposición, era que nada avisaba de que
+   aquello se desliza. Eso se arregla con el velo de abajo, que cuesta
+   cero píxeles de alto. Medido, no mirado. */
 @media (max-width: 599px) {
   .mc-resumen {
     display: flex;
@@ -3630,6 +3646,15 @@ input.mc-alb-titulo:not([readonly]):focus {
     padding-inline: var(--e-xl);
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+  }
+
+  /* Lo que dice «hay más»: la última tarjeta se DESVANECE en el borde.
+     Va con `mask` y no con un velo pintado encima, y el motivo es que se
+     probaron las dos: un velo funde hacia `--bg` (#f6f8fa) sobre una
+     tarjeta BLANCA, o sea un 3 % de diferencia, invisible. La máscara
+     desvanece la tarjeta de verdad, y además le da igual el tema. */
+  .mc-resumen:not(.mc-tira-final) {
+    mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
   }
 
   .mc-cifra {
@@ -3735,6 +3760,18 @@ input.mc-alb-titulo:not([readonly]):focus {
    el deslizamiento: con el dedo se sigue moviendo igual. */
 .mc-tira-caja {
   position: relative;
+}
+
+/* Y la diapositiva cortada, igual: se desvanece en el borde para que se
+   lea como «hay más» y no como «se ha roto» (tanda 439). Con `mask` por lo
+   mismo que arriba —un velo pintado tendría que saber de qué color es el
+   fondo, y encima de una tarjeta blanca no se ve—, y además una máscara no
+   es un elemento, así que no tapa nada ni se come un clic.
+
+   Se apaga cuando la tira ya está al final: una tira que no tiene más a la
+   derecha y aun así desvanece su último borde estaría mintiendo. */
+.mc-tira:not(.mc-tira-final) {
+  mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent);
 }
 
 .mc-tira {
