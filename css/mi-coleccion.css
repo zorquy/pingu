@@ -4940,22 +4940,12 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin-top: var(--e-2xl);
 }
 
-/* Los filtros de dentro de un Pokémon (tanda 453). A la vista y no detrás
-   de un botón: las opciones salen de las cartas que hay, y con la regla de
-   que un grupo con menos de dos valores no se pinta casi siempre queda
-   uno. Un modal para abrir una fila de chips es una puerta para cruzar un
-   pasillo. */
-.pdx-filtros {
-  display: grid;
-  gap: var(--e-sm);
-  margin-bottom: var(--e-md);
-}
+/* Los filtros de dentro de un Pokémon van en el MISMO panel que los de
+   Buscar desde la tanda 455, así que aquí no hace falta nada: la barra es
+   `.mc-filtros` + `.mc-mandos`, que ya existen.
 
-.pdx-grupo h4 {
-  margin: 0 0 var(--e-xs);
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
+   La primera versión (453) los puso sueltos en la pantalla, apostando a
+   que casi siempre quedaría un grupo. En un Bulbasaur con 31 cartas
+   quedaron TRES, con siete rarezas: 300 px de chips antes de ver una
+   carta. La apuesta era razonable y salió mal — y lo que la deshace no es
+   una regla nueva, es una captura. */

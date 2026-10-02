@@ -24054,3 +24054,57 @@ japonesas desde Sol y Luna. Nuestro `imagenDeLimitless` monta
 direcciones de la CDN se comprueban abriéndolas antes de aplicarlas como
 regla (lo dice el comentario de esa misma función, con su fecha). Si la
 variante existe, añadirla es un eslabón más en la cadena que ya hay.
+
+## Tanda 455 — los filtros de la Pokédex, y los enums que vienen traducidos
+
+PINGU mandó una captura de Bulbasaur: tres grupos de chips apilados, **300
+px antes de ver una sola carta**, y dentro «Pokémon · Pokémon», «Planta ·
+Planta» y «Común · Común · Ninguno · None». Dos problemas distintos en la
+misma foto.
+
+### La apuesta de la 453 que salió mal
+
+Los chips se pusieron sueltos en la pantalla apostando a que, con la regla
+de «un grupo con menos de dos valores no se pinta», casi siempre quedaría
+uno. En un Bulbasaur con 31 cartas quedaron **tres**, con siete rarezas.
+
+La apuesta era razonable y la deshace una captura, no una regla nueva.
+Ahora es la **misma barra que Buscar**: una fila con un botón de «Filtros»
+y su chapa, y el mismo panel. Lo que cambia entre las dos pantallas sigue
+siendo lo que OFRECEN —ahí todas las opciones del catálogo, aquí solo las
+que tiene esta especie—, no dónde están.
+
+Medido: entre el nombre del Pokémon y la primera carta hay **64 px**.
+
+### Y la otra mitad: TCGdex TRADUCE LOS ENUMS
+
+«Pokémon · Pokémon» no es un fallo de pintado: son **dos valores crudos
+distintos**. Si pides el catálogo en español, TCGdex devuelve
+`category: 'Pokémon'` y `rarity: 'Común'`; en inglés, `'Pokemon'` y
+`'Common'`. Es la lección de la tanda 334 —que se aprendió con los
+NOMBRES— y vale igual para los enums. Como el catálogo se ha ido importando
+en varios momentos y en varios idiomas, **la columna tiene las dos formas
+mezcladas**.
+
+Agrupando por el valor crudo salen dos chips que dicen lo mismo. Y lo peor
+no se veía: **pulsar uno dejaba fuera la mitad de las cartas**, las
+guardadas en el otro idioma.
+
+Dos arreglos:
+
+1. Las opciones se agrupan por el **rótulo traducido**, y cada rótulo se
+   queda con todas las formas crudas que ha visto. Un chip, y encuentra las
+   dos.
+2. En **Buscar**, donde el filtro va en la consulta y manda valores crudos,
+   se mandan **las dos formas** (`in.("Common","Común")`). Mandar solo la
+   inglesa enseñaba la mitad del catálogo sin que nada lo dijera.
+
+### Cuando su palabra en español no es la nuestra
+
+Quedaba un caso: «Ninguno» y «None» seguían siendo dos chips, porque
+nuestra tabla traduce `None` a algo y la palabra que usa TCGdex es otra. Lo
+mismo con «Rara Ilustración» (suya) contra «Ilustración rara» (nuestra).
+
+De ahí `ALIAS_TCGDEX`, que junta las que no coinciden. Y el día que salga
+otra se verá igual de claro —**un chip repetido en la pantalla**—, que es
+un fallo que al menos SE VE.

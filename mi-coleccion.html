@@ -507,6 +507,25 @@
            como SUBPANTALLA, igual que «Cartas»: se llega por su tarjeta
            del Panel y por `?ver=cambios`, y no enciende ninguna pestaña
            porque no tiene. -->
+      <!-- Los filtros de una especie (tanda 455), en el mismo panel que los
+           de Buscar. La primera versión los puso sueltos en la pantalla y
+           en un Bulbasaur eran 300 px de chips antes de la primera carta.
+           Lo que ofrecen sigue saliendo de las cartas que hay; lo que
+           cambia es que ya no están por delante de ellas. -->
+      <dialog class="mc-panel-filtros" id="mcPdxPanelFiltros" aria-labelledby="mcPdxFiltrosTitulo">
+        <div class="mc-panel-cabecera">
+          <h2 id="mcPdxFiltrosTitulo">Filtros</h2>
+          <button type="button" class="mc-panel-cerrar" id="mcPdxFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
+        </div>
+        <div class="mc-panel-cuerpo">
+          <div id="mcPdxGrupos"></div>
+        </div>
+        <div class="mc-panel-pie">
+          <button type="button" class="link-btn" id="mcPdxFiltrosLimpiar">Limpiar</button>
+          <button type="button" class="btn-primary" id="mcPdxFiltrosVer">Ver resultados</button>
+        </div>
+      </dialog>
+
       <section id="mcPanelCambios" class="hidden" role="tabpanel" aria-label="Cambios">
         <div class="mc-bloque-cambios" id="mcBloqueCambios">
           <h2 class="mc-subtitulo">Cambios</h2>

@@ -59,7 +59,35 @@ export const RAREZAS_ES = {
   'Radiant Rare': 'Rara radiante', Promo: 'Promo', 'ACE SPEC Rare': 'ACE SPEC',
 }
 
-const traducir = (tabla, valor) => (valor ? tabla[valor] || String(valor) : null)
+// LO QUE TCGdex DICE EN ESPAÑOL, QUE NO ES LO QUE DECIMOS NOSOTROS
+// (tanda 455).
+//
+// TCGdex traduce los enums, así que la misma rareza está guardada como
+// `Common` o como `Común` según en qué idioma se importara esa fila — y el
+// catálogo se ha importado en varios. Eso ya se resuelve solo cuando SU
+// palabra y la nuestra coinciden («Común» traduce a «Común»), pero cuando
+// no coinciden salen DOS chips que dicen lo mismo: PINGU mandó la captura
+// de un Bulbasaur con «Ninguno» y «None» uno al lado del otro.
+//
+// Esta tabla junta las que no coinciden. Y el día que salga otra se verá
+// igual de claro —un chip repetido en la pantalla—, que es un fallo que al
+// menos SE VE: mejor que uno silencioso.
+const ALIAS_TCGDEX = {
+  Ninguno: 'Sin rareza',
+  None: 'Sin rareza',
+  'Rara Ilustración': 'Ilustración rara',
+  'Rara Doble': 'Doble rara',
+  'Rara Ultra': 'Ultra rara',
+  'Rara Secreta': 'Hiperrara',
+}
+
+const traducir = (tabla, valor) => {
+  if (!valor) return null
+  const alias = ALIAS_TCGDEX[valor]
+  if (alias) return alias
+  const nuestro = tabla[valor]
+  return nuestro ? ALIAS_TCGDEX[nuestro] || nuestro : String(valor)
+}
 
 export const tipoEs = (v) => traducir(TIPOS_ES, v)
 export const faseEs = (v) => traducir(FASES_ES, v)

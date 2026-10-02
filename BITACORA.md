@@ -35,6 +35,38 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 455 — los filtros de la Pokédex, y los enums traducidos)
+
+**Hecho**: dos cosas que salieron de una captura de Bulbasaur.
+
+**La forma**: los chips de la 453 iban sueltos en la pantalla, apostando a
+que casi siempre quedaría un grupo. En un Bulbasaur con 31 cartas quedaron
+TRES con siete rarezas: 300 px antes de ver una carta. Ahora es la MISMA
+barra que Buscar —botón de «Filtros» con su chapa y el mismo panel—. Medido:
+64 px entre el nombre y la primera carta.
+
+**El fondo, que es peor**: salían «Pokémon · Pokémon» y «Común · Común ·
+Ninguno · None». No es un fallo de pintado: **TCGdex traduce los enums**, y
+como el catálogo se ha importado en varios idiomas la columna tiene las dos
+formas MEZCLADAS. Agrupando por el valor crudo salen dos chips que dicen lo
+mismo — y lo que no se veía: pulsar uno dejaba fuera la mitad de las
+cartas. Ahora se agrupa por el RÓTULO y cada rótulo se queda con todas las
+formas crudas; y en Buscar, donde el filtro va en la consulta, se mandan
+las dos formas.
+
+Y para los casos en que la palabra española de TCGdex no es la nuestra
+(«Ninguno», «Rara Ilustración»), `ALIAS_TCGDEX` en js/carta-traducciones.js.
+El día que salga otra se verá como un chip repetido, que es un fallo que al
+menos SE VE.
+
+**Ficheros**: `js/mi-coleccion/filtros.js`, `js/mi-coleccion/pokedex.js`,
+`js/mi-coleccion.js`, `js/carta-traducciones.js`, `mi-coleccion.html`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`: `test-tanda-453.mjs`.
+
+**En curso / pendiente**: nada a medias. Sigue pendiente que PINGU dé a
+«Completar los datos que faltan de los sets» en /admin. Rigores pendientes:
+443 a 455.
+
 ## 2026-10-02 — PINGU-Claude (tanda 454 — las fechas de los sets, y los logos que faltan)
 
 **Hecho**: arreglado de raíz el orden de las eras. El botón «Traer códigos

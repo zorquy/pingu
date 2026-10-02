@@ -226,23 +226,69 @@ export function ordenarCartas(cartas, orden, sentido, ayudas) {
 // valores no se pinta— lo que queda es justo lo que distingue a unas
 // cartas de otras de ese Pokémon: casi siempre la rareza, y a veces el
 // tipo de energía.
+export const MAPA_DE_GRUPO = { category: 'categoriaEs', types: 'tipoEs', trainer_type: 'entrenadorEs', rarity: 'rarezaEs' }
+
+// SE AGRUPA POR EL RÓTULO, NO POR EL VALOR CRUDO (tanda 455), y esto no es
+// cosmético. PINGU mandó una captura de Bulbasaur con los chips
+// «Pokémon · Pokémon», «Planta · Planta» y «Común · Común · Ninguno ·
+// None»: cada uno dos veces, y uno de ellos en inglés.
+//
+// El motivo es de los que no dan error: **TCGdex TRADUCE LOS ENUMS**. Si
+// pides el catálogo en español te devuelve `category: 'Pokémon'` y
+// `rarity: 'Común'`; en inglés, `'Pokemon'` y `'Common'`. Es la lección de
+// la tanda 334, que se aprendió con los NOMBRES y vale igual para los
+// enums. Como el catálogo se ha ido importando en varios momentos y en
+// varios idiomas, la columna tiene las dos formas mezcladas — y agrupando
+// por el valor crudo salen dos chips que dicen lo mismo.
+//
+// Así que la clave es el RÓTULO TRADUCIDO y cada rótulo se queda con TODAS
+// las formas crudas que ha visto. Eso arregla las dos mitades a la vez: ya
+// no hay chips repetidos, y pulsar «Común» encuentra también las que están
+// guardadas como `Common`, que antes se quedaban fuera sin que nada lo
+// dijera.
 export function valoresDeCartas(cartas, ayudas) {
-  const mapas = { category: 'categoriaEs', types: 'tipoEs', trainer_type: 'entrenadorEs', rarity: 'rarezaEs' }
   return FILTROS_CATALOGO.map((g) => {
-    const traducir = ayudas[mapas[g.id]] || ((v) => v)
-    const vistos = new Map()
+    const traducir = ayudas[MAPA_DE_GRUPO[g.id]] || ((v) => v)
+    const porRotulo = new Map()
     for (const c of cartas) {
       const crudos = g.array ? (Array.isArray(c?.[g.columna]) ? c[g.columna] : []) : [c?.[g.columna]]
       // Un campo a null no es un cajón: es que `cartas-detalle` todavía no
       // ha llegado a esa carta. Meterla en un «sin rareza» la mezclaría
       // con las que de verdad no llevan.
-      for (const v of crudos) if (v) vistos.set(v, traducir(v))
+      for (const v of crudos) {
+        if (!v) continue
+        const rotulo = traducir(v)
+        if (!porRotulo.has(rotulo)) porRotulo.set(rotulo, new Set())
+        porRotulo.get(rotulo).add(v)
+      }
     }
-    return { ...g, valores: [...vistos].sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'es')) }
+    return {
+      ...g,
+      valores: [...porRotulo]
+        .map(([rotulo, crudos]) => ({ rotulo, crudos: [...crudos] }))
+        .sort((a, b) => a.rotulo.localeCompare(b.rotulo, 'es')),
+    }
   }).filter((g) => g.valores.length > 1)
 }
 
-export function pasaFiltrosDeCarta(carta, puestos) {
+// Lo que se guarda al pulsar un chip es el RÓTULO, y aquí se compara contra
+// el rótulo de la carta: así da igual en qué idioma se importara su fila.
+export function pasaFiltrosDeCarta(carta, puestos, ayudas = {}) {
+  for (const g of FILTROS_CATALOGO) {
+    const elegidos = puestos?.[g.id]
+    if (elegidos && elegidos.size) {
+      const traducir = ayudas[MAPA_DE_GRUPO[g.id]] || ((v) => v)
+      const suyos = g.array ? (Array.isArray(carta?.[g.columna]) ? carta[g.columna] : []) : [carta?.[g.columna]]
+      if (!suyos.some((v) => v && elegidos.has(traducir(v)))) return false
+    }
+  }
+  return true
+}
+
+// La versión vieja, que compara contra el valor crudo. La usa el buscador
+// del catálogo, que filtra EN LA CONSULTA y por tanto manda valores
+// crudos.
+export function pasaFiltrosCrudos(carta, puestos) {
   for (const g of FILTROS_CATALOGO) {
     const elegidos = puestos?.[g.id]
     if (!elegidos || !elegidos.size) continue

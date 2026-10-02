@@ -214,24 +214,39 @@ export function rejillaHtml(filas, orden = 'dex') {
 // buscar, porque dentro de un Pokémon también puede haber distintas
 // rarezas y tipos».
 //
-// Van EN LA PANTALLA y no detrás de un botón como los de Buscar, y es a
-// propósito: ahí son cuatro grupos con todas las opciones del catálogo y
-// no caben; aquí las opciones salen de las cartas que hay, y con la regla
-// de que un grupo con menos de dos valores no se pinta casi siempre queda
-// uno —la rareza—. Un modal para abrir una fila de chips es una puerta
-// para cruzar un pasillo.
-function chipsDeEspecie(grupos, puestos) {
+// LA MISMA BARRA QUE BUSCAR (tanda 455). La primera versión los puso
+// sueltos en la pantalla, pensando que casi siempre quedaría un grupo. En
+// un Bulbasaur con 31 cartas quedaron TRES, con siete rarezas, y eso son
+// 300 px de chips antes de ver una sola carta — PINGU mandó la captura:
+// «estos filtros son una mierda; qué dijimos de los filtros, que ocupasen
+// poco, igual que en buscar».
+//
+// Así que una fila que se desliza con un botón de «Filtros» y su chapa,
+// exactamente como la de Buscar. La diferencia sigue siendo lo que
+// OFRECEN, no dónde están: ahí todas las opciones del catálogo, aquí solo
+// las que tiene esta especie.
+function barraDeEspecie(grupos, cuantos) {
   if (!grupos.length) return ''
-  return `<div class="pdx-filtros">${grupos
+  return `<div class="mc-filtros">
+    <div class="mc-mandos">
+      <button type="button" class="mc-chip-mando" id="pdxAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+        <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta${cuantos ? '' : ' hidden'}">${cuantos || ''}</span>
+      </button>
+    </div>
+  </div>`
+}
+
+export function gruposDeEspecieHtml(grupos, puestos) {
+  return grupos
     .map(
-      (g) => `<div class="pdx-grupo"><h4>${escapeHtml(g.nombre)}</h4><div class="mc-chips-filtro">${g.valores
-        .map(([crudo, rotulo]) => {
-          const puesto = !!puestos?.[g.id]?.has(crudo)
-          return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-egrupo="${escapeHtml(g.id)}" data-evalor="${escapeHtml(crudo)}" aria-pressed="${puesto ? 'true' : 'false'}">${escapeHtml(rotulo)}</button>`
+      (g) => `<div class="mc-grupo-filtro"><h3>${escapeHtml(g.nombre)}</h3><div class="mc-chips-filtro">${g.valores
+        .map(({ rotulo }) => {
+          const puesto = !!puestos?.[g.id]?.has(rotulo)
+          return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-egrupo="${escapeHtml(g.id)}" data-evalor="${escapeHtml(rotulo)}" aria-pressed="${puesto ? 'true' : 'false'}">${escapeHtml(rotulo)}</button>`
         })
         .join('')}</div></div>`
     )
-    .join('')}</div>`
+    .join('')
 }
 
 export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null }) {
@@ -288,7 +303,7 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = 
         }</p>
       </div>
     </div>
-    ${chipsDeEspecie(grupos, puestos)}
+    ${barraDeEspecie(grupos, puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0)}
     ${cuerpo}`
 }
 

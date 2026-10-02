@@ -48,7 +48,7 @@ import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
 import { ORDENES, ordenar, porNumero, rangoDeRareza } from './mi-coleccion/orden.js'
-import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtrosVacios, sentidoNatural, FILTROS_CATALOGO, ORDENES_CATALOGO, filtrosCatalogoVacios, cuantosFiltrosCatalogo, ordenarCartas, valoresDeCartas, pasaFiltrosDeCarta } from './mi-coleccion/filtros.js'
+import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtrosVacios, sentidoNatural, FILTROS_CATALOGO, ORDENES_CATALOGO, filtrosCatalogoVacios, cuantosFiltrosCatalogo, ordenarCartas, valoresDeCartas, pasaFiltrosDeCarta, pasaFiltrosCrudos } from './mi-coleccion/filtros.js'
 import { balanceDeCompra } from './mi-coleccion/balance.js'
 import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
@@ -2480,6 +2480,24 @@ let turnoBusqueda = 0
 // usan DOS sitios: «Añadir cartas» y la lista de búsqueda de los
 // cambios. Copiarla habría dejado dos buscadores que se separan sin
 // que nadie se entere — la lección de `IDIOMA_POR_MERCADO`.
+// LAS DOS FORMAS DE CADA VALOR (tanda 455). TCGdex TRADUCE LOS ENUMS: si
+// pides el catálogo en español te devuelve `rarity: 'Común'`, y en inglés
+// `'Common'`. El catálogo se ha ido importando en varios momentos y en
+// varios idiomas, así que la columna tiene las dos formas MEZCLADAS — se
+// ve a simple vista en los chips de la Pokédex, donde salían «Común» y
+// «Common» como si fueran rarezas distintas.
+//
+// El chip guarda la clave inglesa, que es la del mapa. Si la consulta
+// mandara solo esa, las filas guardadas en español se quedarían fuera y el
+// filtro enseñaría LA MITAD sin que nada lo dijera. Así que se mandan las
+// dos.
+function variantesDeValor(clave) {
+  const traducciones = [CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES]
+    .map((m) => m[clave])
+    .filter((v) => v && v !== clave)
+  return [...new Set([clave, ...traducciones])]
+}
+
 const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,image_path,rarity,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,serie_id,release_date,tcg_online_code)'
 
 // UN NÚMERO SUELTO NO ES PARTE DEL NOMBRE (tanda 450), y esto era un fallo
@@ -2522,7 +2540,7 @@ async function buscarCartas(texto, limite = 60, { filtros: fcat = null } = {}) {
   // tiene 21.000 cartas y esto trae 120, así que filtrar lo que vuelve
   // sería filtrar la muestra y no el catálogo.
   for (const g of FILTROS_CATALOGO) {
-    const puestos = [...(fcat?.[g.id] || [])]
+    const puestos = [...(fcat?.[g.id] || [])].flatMap(variantesDeValor)
     if (!puestos.length) continue
     if (g.array) q = q.overlaps(g.columna, puestos)
     else q = q.in(g.columna, puestos)
@@ -2909,7 +2927,15 @@ function pintarEspecieFiltrada() {
   if (!caja || especieAbierta == null) return
   const tuyas = new Set(lineas.map((l) => l.card_id))
   const grupos = valoresDeCartas(cartasDeLaEspecie, AYUDAS)
-  const lista = cartasDeLaEspecie.filter((c) => pasaFiltrosDeCarta(c, filtrosEspecie))
+  // Se compara por el RÓTULO traducido y no por el valor crudo: la columna
+  // tiene las dos formas mezcladas porque TCGdex traduce los enums y el
+  // catálogo se ha importado en varios idiomas (tanda 455).
+  const lista = cartasDeLaEspecie.filter((c) => pasaFiltrosDeCarta(c, filtrosEspecie, AYUDAS))
+  // Los chips viven en el panel, que está FUERA de la caja que se repinta:
+  // si se pintaran dentro, abrir el panel después de filtrar enseñaría los
+  // de antes.
+  const hueco = $('mcPdxGrupos')
+  if (hueco) hueco.innerHTML = pokedex.gruposDeEspecieHtml(grupos, filtrosEspecie)
   caja.innerHTML = pokedex.especieHtml({
     dex: especieAbierta,
     cartas: lista,
@@ -3771,12 +3797,26 @@ function enganchar() {
   engancharFicha('mcAlbum', '.mc-bolsillo-enlace')
   engancharFicha('mcPanelPokedex', '.pdx-carta')
   $('mcPokedexPanel')?.addEventListener('click', (e) => {
+    if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()
+  })
+  $('mcPdxGrupos')?.addEventListener('click', (e) => {
     const chip = e.target.closest('[data-egrupo]')
     if (!chip) return
     const conjunto = filtrosEspecie[chip.dataset.egrupo]
     if (conjunto.has(chip.dataset.evalor)) conjunto.delete(chip.dataset.evalor)
     else conjunto.add(chip.dataset.evalor)
     pintarEspecieFiltrada()
+  })
+  $('mcPdxFiltrosCerrar')?.addEventListener('click', () => $('mcPdxPanelFiltros').close())
+  $('mcPdxFiltrosVer')?.addEventListener('click', () => $('mcPdxPanelFiltros').close())
+  $('mcPdxFiltrosLimpiar')?.addEventListener('click', () => {
+    for (const g of FILTROS_CATALOGO) filtrosEspecie[g.id].clear()
+    pintarEspecieFiltrada()
+  })
+  $('mcPdxPanelFiltros')?.addEventListener('click', (e) => {
+    const c = e.currentTarget.getBoundingClientRect()
+    const dentro = e.clientX >= c.left && e.clientX <= c.right && e.clientY >= c.top && e.clientY <= c.bottom
+    if (!dentro) e.currentTarget.close()
   })
   // Y los resultados de Buscar (tanda 452). PINGU: «cuando abres una carta
   // desde el buscador te va a la ficha completa, y hemos dicho que toda
