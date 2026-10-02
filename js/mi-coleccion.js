@@ -71,7 +71,7 @@ const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
 // siguen llegando por enlace: no se borran, se REDIRIGEN a donde se ha
 // mudado cada cosa. Un `?ver=` que ya no existe no da error — abre la
 // primera pestaña y parece que el enlace estaba mal.
-const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen']
+const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar']
 const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas', cambios: 'resumen' }
 const pedida = params.get('ver')
 // El PANEL es lo primero que se abre (tanda 436). PINGU: «el panel
@@ -2062,6 +2062,244 @@ async function alternarVariante(cardId, variante) {
   }
 }
 
+// ══════════════════════════════════════════════════════════════════
+// BUSCAR EN TODO EL CATÁLOGO (tanda 447)
+// ══════════════════════════════════════════════════════════════════
+//
+// La consulta ya existía —`buscarCartas`, la misma que usa el bloque de
+// «añadir» de la pestaña de cartas—, así que lo nuevo es la PANTALLA. Se
+// reutiliza a propósito: dos buscadores que buscan lo mismo se separan y
+// acaban dando resultados distintos (la lección de `IDIOMA_POR_MERCADO`).
+let turnoBuscarTodo = 0
+
+async function buscarEnTodo() {
+  const campo = $('mcBuscarTodo')
+  if (!campo) return
+  const texto = normalizeSearch(campo.value)
+  const mio = ++turnoBuscarTodo
+  const vacio = $('mcBuscarVacio')
+  const caja = $('mcBuscarResultados')
+  const cuenta = $('mcBuscarCuantas')
+  // Con menos de dos letras no se busca: una sola trae media base. Y
+  // entonces vuelve el estado vacío, que es donde está el escáner.
+  if (texto.length < 2) {
+    vacio?.classList.remove('hidden')
+    caja.innerHTML = ''
+    if (cuenta) cuenta.textContent = ''
+    return
+  }
+  vacio?.classList.add('hidden')
+  caja.innerHTML = '<div class="skeleton" style="height:180px"></div>'
+  let lista
+  try {
+    lista = await buscarCartas(texto, 120)
+  } catch (error) {
+    if (mio !== turnoBuscarTodo) return
+    caja.innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`
+    return
+  }
+  // El turno: sin esto, una búsqueda lenta pisa a la que escribiste
+  // después y la pantalla enseña lo que ya no buscas.
+  if (mio !== turnoBuscarTodo) return
+  if (cuenta) cuenta.textContent = lista.length ? `${lista.length} ${lista.length === 1 ? 'carta' : 'cartas'}` : ''
+  caja.innerHTML = lista.length
+    ? lista.map((c) => {
+        const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+        return `<a class="mc-resultado" href="${escapeHtml(rutaDeCarta(c))}">
+          <span class="mc-resultado-foto">
+            <span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}</span>
+            ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
+          </span>
+          <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
+          <span class="mc-resultado-set">${escapeHtml(c.tcg_sets?.name || c.set_id)} · ${escapeHtml(c.local_id)}</span>
+        </a>`
+      }).join('')
+    : '<p class="empty-state">No encuentro ninguna carta así. Prueba con menos letras.</p>'
+}
+
+// ── EL ESCÁNER (tanda 447) ──
+//
+// El módulo con las cuentas entra por un `import()` dinámico: quien no
+// abra el escáner no se baja ni una línea de él, igual que la pestaña del
+// foro de los perfiles. Y la cámara no se pide hasta que se abre — pedirla
+// al cargar la página saca el aviso del navegador sin que nadie lo haya
+// pedido, que es la forma más rápida de que te digan que no para siempre.
+let escaner = null
+let camara = null
+
+async function abrirEscaner() {
+  const caja = $('mcEscanerCaja')
+  if (!caja) return
+  const ayuda = $('mcEscanerAyuda')
+  try {
+    escaner = escaner || (await import('./mi-coleccion/escaner.js'))
+  } catch {
+    showToast('No se ha podido cargar el escáner.', 'error')
+    return
+  }
+  const sel = $('mcEscanerIdioma')
+  if (sel && !sel.options.length) {
+    sel.innerHTML = escaner.IDIOMAS_ESCANER
+      .map((i) => `<option value="${i.id}">${escapeHtml(i.nombre)}</option>`)
+      .join('')
+    // El idioma de la carta se recuerda: quien colecciona japonés escanea
+    // japonés veinte veces seguidas.
+    try {
+      const guardado = localStorage.getItem('mc-escaner-idioma')
+      if (guardado && escaner.IDIOMAS_ESCANER.some((i) => i.id === guardado)) sel.value = guardado
+    } catch {
+      // Ventana privada: se queda el primero y ya está.
+    }
+    sel.addEventListener('change', () => {
+      try {
+        localStorage.setItem('mc-escaner-idioma', sel.value)
+      } catch {
+        // Lo mismo: no poder recordarlo no impide escanear.
+      }
+    })
+  }
+  if (!caja.open) caja.showModal()
+  if (ayuda) ayuda.textContent = 'Pidiendo permiso para la cámara…'
+  try {
+    // `environment` es la cámara de atrás. Y se PIDE, no se exige: un
+    // portátil solo tiene la de delante y con `exact` fallaría del todo.
+    camara = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false,
+    })
+  } catch (err) {
+    // Aquí hay que distinguir: que digas que NO es distinto de que el
+    // aparato no tenga cámara, y un mensaje que no distingue deja a la
+    // gente dándole al botón sin saber qué pasa.
+    const nombre = String(err?.name || '')
+    if (ayuda) {
+      ayuda.textContent = nombre === 'NotAllowedError'
+        ? 'Has dicho que no a la cámara. Dale permiso en el candado de la barra de direcciones.'
+        : nombre === 'NotFoundError'
+          ? 'Este aparato no tiene cámara.'
+          : 'No se ha podido abrir la cámara.'
+    }
+    $('mcEscanerDisparo')?.setAttribute('disabled', '')
+    return
+  }
+  const video = $('mcEscanerVideo')
+  video.srcObject = camara
+  await video.play().catch(() => null)
+  $('mcEscanerDisparo')?.removeAttribute('disabled')
+  if (ayuda) ayuda.textContent = 'Encuadra la carta dentro del marco'
+}
+
+// APAGAR LA CÁMARA AL CERRAR, y esto no es limpieza opcional: una pista de
+// vídeo que se queda viva deja el piloto del móvil encendido y se come la
+// batería hasta que recargas la página.
+function cerrarEscaner() {
+  const caja = $('mcEscanerCaja')
+  const video = $('mcEscanerVideo')
+  if (camara) {
+    for (const pista of camara.getTracks()) pista.stop()
+    camara = null
+  }
+  if (video) video.srcObject = null
+  if (caja?.open) caja.close()
+}
+
+// DISPARAR. Se recortan las dos franjas en el navegador y se mandan a
+// leer. No se manda la foto: una foto de cámara son dos o tres megas para
+// leer cuatro palabras, y el dibujo de la carta es justo donde un OCR se
+// inventa texto.
+let leyendo = false
+
+async function dispararEscaner() {
+  if (leyendo || !escaner) return
+  const video = $('mcEscanerVideo')
+  const marco = $('mcEscanerMarco')
+  const lienzo = $('mcEscanerLienzo')
+  const ayuda = $('mcEscanerAyuda')
+  const boton = $('mcEscanerDisparo')
+  const franjas = escaner.recortarFranjas(video, marco, lienzo)
+  if (!franjas) {
+    if (ayuda) ayuda.textContent = 'No he podido leer la imagen. Inténtalo otra vez.'
+    return
+  }
+  leyendo = true
+  boton?.setAttribute('disabled', '')
+  if (ayuda) ayuda.textContent = 'Leyendo la carta…'
+  try {
+    const res = await fetch('/.netlify/functions/leer-carta', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ nombre: franjas.nombre, codigo: franjas.codigo, idioma: $('mcEscanerIdioma')?.value || 'es' }),
+    })
+    const datos = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      // El mensaje del servidor tal cual: distingue «no está montado» de
+      // «no se te ha leído la carta», y quien lo prueba necesita saber
+      // cuál de las dos es.
+      if (ayuda) ayuda.textContent = datos.error || 'No he podido leer la carta.'
+      return
+    }
+    // CÓMO SE USA LO LEÍDO, que no es «meterlo todo en el buscador».
+    //
+    // El buscador cruza contra `name_search`, o sea contra el NOMBRE. Si
+    // se le echa el texto entero —«Charizard ex SSP 125»— exige que «SSP»
+    // y «125» estén también en el nombre, y no lo están: salen CERO
+    // resultados con la carta correcta delante. Lo descubrió la primera
+    // prueba del camino completo.
+    //
+    // Así que cada franja hace su trabajo: la de arriba BUSCA y la de
+    // abajo AFINA. El número de la franja del código se usa para quedarse
+    // con la carta que lo lleva, que es lo que distingue una Charizard de
+    // las otras veinte.
+    const nombreLeido = String(datos?.textos?.nombre || '').trim()
+    if (!nombreLeido) {
+      if (ayuda) ayuda.textContent = 'No he reconocido el nombre. Acerca más la carta.'
+      return
+    }
+    // El número impreso: lo que vaya detrás de letras y espacios en la
+    // franja de abajo. Se queda en `null` si no se lee nada — y entonces
+    // simplemente no afina, que es mejor que afinar con un número
+    // inventado.
+    const numero = (String(datos?.textos?.codigo || '').match(/\b(\d{1,3})\b/) || [])[1] || null
+    cerrarEscaner()
+    cambiarPestania('buscar')
+    $('mcBuscarTodo').value = nombreLeido
+    await buscarEnTodo()
+    if (numero) afinarPorNumero(numero)
+  } catch {
+    if (ayuda) ayuda.textContent = 'No he podido conectar. Mira tu conexión.'
+  } finally {
+    leyendo = false
+    boton?.removeAttribute('disabled')
+  }
+}
+
+// Deja arriba las cartas cuyo número impreso coincide con el leído. No
+// las filtra: un OCR puede leer un 8 donde hay un 6, y esconder la carta
+// buena por fiarse de eso sería peor que enseñarla la segunda.
+function afinarPorNumero(numero) {
+  const caja = $('mcBuscarResultados')
+  if (!caja) return
+  const filas = [...caja.children]
+  // El número se compara ENTERO contra el de la fila, no con un
+  // `includes`: «· 12» está dentro de «· 125», así que buscar el trozo
+  // sube a las 12x delante de la que de verdad es la 12. Es la trampa de
+  // la tanda 312 (un nombre de clase se comprueba entero) con otra ropa.
+  const numeroDe = (n) => {
+    const rotulo = n.querySelector('.mc-resultado-set')?.textContent || ''
+    return rotulo.split('·').pop().trim()
+  }
+  const casan = filas.filter((n) => numeroDe(n) === String(numero))
+  if (!casan.length || casan.length === filas.length) return
+  // Se prepende del último al primero para que arriba queden en el mismo
+  // orden en el que venían. `reverse()` cambia el array, así que la que
+  // va a quedar primera se guarda ANTES.
+  const primera = casan[0]
+  for (const n of [...casan].reverse()) caja.prepend(n)
+  primera.classList.add('mc-resultado-casa')
+  const cuenta = $('mcBuscarCuantas')
+  if (cuenta) cuenta.textContent = `${filas.length} ${filas.length === 1 ? 'carta' : 'cartas'} · la n.º ${numero} primero`
+}
+
 // ── Pestaña «Añadir» ──
 let seleccion = null
 let turnoBusqueda = 0
@@ -2169,7 +2407,7 @@ function cambiarPestania(nueva) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar']]) {
     $(id).classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
@@ -2216,6 +2454,8 @@ function cambiarPestania(nueva) {
   if (nueva === 'resumen' && esMia) abrirCambios()
   if (nueva === 'carpetas') abrirCarpetas()
   if (nueva === 'pokedex') abrirPokedex()
+  // Al entrar en Buscar, el foco al campo: se viene a escribir.
+  if (nueva === 'buscar') $('mcBuscarTodo')?.focus({ preventScroll: true })
 
 }
 
@@ -3044,6 +3284,26 @@ function enganchar() {
   for (const id of ['mcEstanteriaBuscar', 'mcEstanteriaSerie']) {
     $(id).addEventListener(id === 'mcEstanteriaBuscar' ? 'input' : 'change', () => pintarEstanteria())
   }
+  // El escáner (tanda 447).
+  $('mcEscanear')?.addEventListener('click', () => void abrirEscaner())
+  $('mcEscanerCerrar')?.addEventListener('click', cerrarEscaner)
+  $('mcEscanerDisparo')?.addEventListener('click', () => void dispararEscaner())
+  // Y con la tecla de escape, que es como se cierra un diálogo. El evento
+  // `close` lo cubre todo: lo dispara tanto el botón como el escape, así
+  // que la cámara se apaga por los dos caminos sin escribirlo dos veces.
+  $('mcEscanerCaja')?.addEventListener('close', cerrarEscaner)
+
+  // El buscador de todo el catálogo (tanda 447).
+  $('mcBuscarTodo')?.addEventListener('input', () => void buscarEnTodo())
+  // Las sugerencias del estado vacío escriben en el campo y buscan: son un
+  // ejemplo que se puede pulsar, no un adorno.
+  $('mcBuscarVacio')?.addEventListener('click', (e) => {
+    const s = e.target.closest('[data-sugerencia]')
+    if (!s) return
+    $('mcBuscarTodo').value = s.dataset.sugerencia
+    void buscarEnTodo()
+  })
+
   $('mcEstanteriaEmpezadas')?.addEventListener('click', () => {
     soloEmpezadas = !soloEmpezadas
     $('mcEstanteriaEmpezadas').classList.toggle('activo', soloEmpezadas)

@@ -228,33 +228,12 @@ export function fetchCard(cardId, market = MERCADO_POR_DEFECTO) {
 // función de servidor y este fichero importa `./supabase.js`, que es del
 // navegador. Arrastrarlo entero a Netlify no funciona.
 
-// Postgres guarda `name_search` en minúsculas y sin tildes (columna
-// generada con unaccent). Aquí se hace lo mismo con lo que se teclea:
-// si no, quien escriba "pomez" no encontraría "Piedra Pómez" — y con
-// 1.159 cartas acentuadas en el catálogo, eso pasa constantemente.
-export function normalizeSearch(texto) {
-  return String(texto || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    // unaccent() de Postgres tambien convierte la puntuacion tipografica
-    // a su equivalente ASCII, y JS no. Sin esto, 31 cartas con apostrofo
-    // curvo ("Farfetch\u2019d", "Rocket\u2019s Mewtwo") quedaban guardadas con
-    // apostrofo recto e imposibles de encontrar. Se comprobo comparando
-    // las 23.505 cartas reales contra un Postgres de verdad.
-    .replace(/[\u2018\u2019\u02bc]/g, "'")
-    .replace(/[\u201c\u201d]/g, '"')
-    .replace(/[\u2013\u2014]/g, '-')
-    // Y las letras y signos que no son "letra + tilde" y por tanto NFD no
-    // descompone: la ligadura de "Fundacion \u00c6ther" y la apertura de
-    // interrogacion y exclamacion, que en espanol salen constantemente.
-    .replace(/\u00e6/g, 'ae').replace(/\u00c6/g, 'AE')
-    .replace(/\u0153/g, 'oe').replace(/\u0152/g, 'OE')
-    .replace(/\u00df/g, 'ss')
-    .replace(/\u00bf/g, '?').replace(/\u00a1/g, '!')
-    .replace(/[\u00f8\u00d8]/g, 'o')
-    .toLowerCase()
-    .trim()
-}
+// `normalizeSearch` vive en `js/texto.js` desde la tanda 447 y se
+// reexporta desde aquí porque la importan diez sitios. Se mudó porque la
+// necesitaba el DOBLE de Supabase de las pruebas para generar
+// `name_search`, y este fichero importa `./supabase.js` —que en las
+// pruebas ES el doble—: arrastrarlo habría cerrado el círculo.
+export { normalizeSearch } from './texto.js'
 
 // Busca en NUESTRO espejo, no en TCGdex, y SIEMPRE dentro de un mercado.
 //

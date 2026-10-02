@@ -153,10 +153,19 @@
            nombres se leen de un vistazo. -->
       <nav class="mc-pestanias mc-menu" id="mcMenu" role="tablist" aria-label="Vistas de la colección">
         <button type="button" role="tab" class="mc-pestania activa" data-pestania="resumen" data-icono="barChart" aria-selected="true" aria-controls="mcPanelResumen"><span class="mc-menu-texto">Panel</span></button>
-        <button type="button" role="tab" class="mc-pestania" data-pestania="cartas" data-icono="cards" aria-selected="false" aria-controls="mcPanelCartas"><span class="mc-menu-texto">Cartas</span></button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="album" data-icono="layers" aria-selected="false" aria-controls="mcPanelAlbum"><span class="mc-menu-texto">Expansiones</span></button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="pokedex" data-icono="target" aria-selected="false" aria-controls="mcPanelPokedex"><span class="mc-menu-texto">Pokédex</span></button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="carpetas" data-icono="folder" aria-selected="false" aria-controls="mcPanelCarpetas"><span class="mc-menu-texto">Carpetas</span></button>
+        <!-- BUSCAR (tanda 447). PINGU, con Dex delante: «no tiene sentido
+             meter en el menú las cartas; yo dejaría panel, expansiones,
+             Pokédex, carpetas y al final una nueva sección que sea buscar,
+             que te busque las cartas en general de toda la base de datos».
+
+             «Cartas» SALE del menú pero la pantalla se queda: se llega por
+             el «Ver todas» del panel y por `?ver=cartas`, que es lo que
+             siguen apuntando los enlaces viejos. Quitar la pestaña no es
+             quitar la página. -->
+        <button type="button" role="tab" class="mc-pestania" data-pestania="buscar" data-icono="search" aria-selected="false" aria-controls="mcPanelBuscar"><span class="mc-menu-texto">Buscar</span></button>
       </nav>
 
       <section id="mcPanelCartas" role="tabpanel" aria-label="Cartas">
@@ -556,6 +565,92 @@
         </div>
         </div>
       </section>
+
+      <!-- BUSCAR EN TODO EL CATÁLOGO (tanda 447). No es «añadir a mi
+           colección» con otro nombre: aquí se busca en las 21.000 cartas
+           del catálogo, tengas la carta o no. El bloque de «añadir» de la
+           pestaña de cartas sigue donde estaba, para cuando ya estás
+           mirando lo tuyo.
+
+           El ESTADO VACÍO no es un hueco en blanco: es lo que explica qué
+           se puede escribir —y es donde vive el botón de escanear, igual
+           que en Dex. En cuanto buscas algo, desaparece. -->
+      <section id="mcPanelBuscar" class="hidden" role="tabpanel" aria-label="Buscar">
+        <div class="mc-filtros" id="mcBuscarBarra">
+          <div class="mc-buscador">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" id="mcBuscarTodo" placeholder="Busca cualquier carta…" autocomplete="off" aria-label="Buscar en todo el catálogo" />
+          </div>
+          <div class="mc-mandos">
+            <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+          </div>
+          <p class="mc-cuantas" id="mcBuscarCuantas" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="mc-vacio-buscar" id="mcBuscarVacio">
+          <!-- La frase dice lo que el buscador HACE, no lo que nos
+               gustaría que hiciera. `buscarCartas` cruza contra
+               `name_search`, que son los dos nombres —el inglés y el
+               español— y nada más: una primera versión de esta frase
+               prometía ilustrador y número, y dos de las tres sugerencias
+               devolvían CERO resultados. Por ahí no hay error de ninguna
+               clase, solo una pantalla vacía y la sensación de que la web
+               está rota. Buscar por ilustrador y por número llega con los
+               filtros. -->
+          <p class="mc-vacio-buscar-texto">
+            Busca cualquier carta del catálogo por su <strong>nombre</strong>, en español o en
+            inglés. Para empezar, prueba con
+            <button type="button" class="mc-sugerencia" data-sugerencia="Charizard">Charizard</button>,
+            <button type="button" class="mc-sugerencia" data-sugerencia="Pikachu ex">Pikachu ex</button> o
+            <button type="button" class="mc-sugerencia" data-sugerencia="Mewtwo">Mewtwo</button>.
+          </p>
+          <button type="button" class="btn-primary mc-escanear" id="mcEscanear">
+            <span data-icono="scan" aria-hidden="true"></span> Escanear cartas
+          </button>
+          <p class="mc-vacio-buscar-pie">Enfoca la carta y la reconocemos por su nombre y por su número.</p>
+        </div>
+
+        <div class="mc-resultados" id="mcBuscarResultados"></div>
+      </section>
+
+      <!-- EL ESCÁNER (tanda 447). PINGU vio el de Dex y pidió lo mismo:
+           «se abre la cámara y reconoce nombre, tipo, código y el artista».
+           Dex lo hace en TIEMPO REAL porque es una app nativa y usa el OCR
+           del propio iPhone (el framework Vision de Apple — su lista de
+           idiomas es literalmente la de Vision). Una web no puede: el
+           equivalente del navegador, la Shape Detection API, solo va en
+           Chrome tras una bandera y en Safari de iOS dejó de funcionar en
+           iOS 18.
+
+           Así que aquí se hace lo otro que Dex también tiene, su modo
+           «Snap»: encuadras con las MISMAS dos guías, tocas para capturar,
+           y se recortan SOLO esas dos franjas —no la foto entera— y se
+           mandan a leer. El coste es por carta y no por fotograma, que es
+           la diferencia entre viable y ruinoso.
+
+           Y de esas dos franjas salen CUATRO señales —nombre, tipo, código
+           de colección e ilustrador— que tenemos las cuatro en la base: con
+           que el OCR acierte dos, la carta se resuelve. Por eso no hace
+           falta que sea perfecto. -->
+      <dialog class="mc-escaner" id="mcEscanerCaja" aria-label="Escanear una carta">
+        <video class="mc-escaner-video" id="mcEscanerVideo" playsinline muted></video>
+        <div class="mc-escaner-velo" aria-hidden="true">
+          <div class="mc-escaner-marco" id="mcEscanerMarco">
+            <span class="mc-escaner-guia mc-escaner-guia-arriba"><i>Nombre y tipo</i></span>
+            <span class="mc-escaner-guia mc-escaner-guia-abajo"><i>Código e ilustrador</i></span>
+          </div>
+        </div>
+        <div class="mc-escaner-arriba">
+          <button type="button" class="mc-escaner-redondo" id="mcEscanerCerrar" aria-label="Cerrar el escáner">✕</button>
+          <p class="mc-escaner-ayuda" id="mcEscanerAyuda">Encuadra la carta dentro del marco</p>
+        </div>
+        <div class="mc-escaner-abajo">
+          <select class="mc-chapa-select" id="mcEscanerIdioma" aria-label="Idioma de la carta"></select>
+          <button type="button" class="mc-escaner-disparo" id="mcEscanerDisparo" aria-label="Capturar la carta"></button>
+          <span class="mc-escaner-hueco" aria-hidden="true"></span>
+        </div>
+        <canvas class="hidden" id="mcEscanerLienzo"></canvas>
+      </dialog>
 
       <section id="mcPanelPokedex" class="hidden" role="tabpanel" aria-label="Pokédex">
         <div class="pdx-mandos" id="mcPdxMandos">

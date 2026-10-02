@@ -23369,3 +23369,226 @@ interruptor, dos desplegables y la cuenta, y **un hijo de flex cede antes
 de desbordar**: el campo se encogía hasta partir el texto a media palabra.
 Con su propia fila cabe entero. Si una pantalla se maqueta de una forma y
 la de al lado de otra, la segunda parece la vieja.
+
+## Tanda 447 — el menú como el de Dex, Buscar, y el escáner de cartas (oct. 2026)
+
+PINGU, con Dex delante: «no tiene sentido meter en el menú las cartas; yo
+dejaría panel, expansiones, Pokédex, carpetas y al final una nueva sección
+que sea buscar, que te busque las cartas en general de toda la base de
+datos». Y: «quiero que mires la posibilidad de escanear cartas».
+
+### El menú, y lo que NO se quitó
+
+El menú queda **Panel · Expansiones · Pokédex · Carpetas · Buscar**.
+«Cartas» sale del menú pero **la pantalla se queda**: se llega por el «Ver
+todas» del panel y por `?ver=cartas`, que es lo que apuntan los enlaces
+viejos y lo que la gente tiene guardado. Quitar una pestaña no es quitar
+una página; si se hubiera borrado el panel, media web habría quedado
+apuntando a un sitio que ya no existe.
+
+### Buscar: el catálogo entero, con la consulta que ya existía
+
+La pantalla es nueva; la consulta **no**. Reutiliza `buscarCartas`, la
+misma que usa el bloque de «añadir» de la pestaña de cartas. Dos
+buscadores que buscan lo mismo se separan y acaban dando resultados
+distintos — la lección de `IDIOMA_POR_MERCADO`.
+
+Con menos de dos letras no se busca (una sola trae media base) y entonces
+vuelve el **estado vacío**, que es donde vive el botón de escanear: igual
+que en Dex, el escáner está cuando no has buscado nada y desaparece cuando
+sí.
+
+### El escáner: por qué NO es el de Dex, y qué es
+
+Dex lee **en tiempo real**: apuntas la cámara y reconoce la carta sin
+tocar nada. Eso no se puede hacer en una web, y conviene tener escrito por
+qué para no volver a intentarlo:
+
+- Dex es una **app nativa de iOS** y usa el OCR del propio iPhone, el
+  framework **Vision** de Apple. La lista de idiomas de su pantalla de
+  escáner es literalmente la lista de idiomas de Vision, que es cómo se
+  sabe.
+- El equivalente del navegador es la **Shape Detection API**
+  (`TextDetector`). Solo existe en Chrome tras una bandera de funciones
+  experimentales, y en Safari de iOS **dejó de funcionar en iOS 18**. O
+  sea: no está donde hace falta.
+- Una librería de OCR en el cliente (Tesseract y compañía) son un par de
+  megas de WASM y una dependencia nueva de npm para el cliente, que
+  CLAUDE.md prohíbe.
+
+Así que lo que hay es **el otro modo que Dex también tiene, el «Snap»**:
+encuadras con las mismas dos guías, tocas, y se leen esas dos franjas. Se
+pierde el «apunta y ya»; se gana que funcione en iPhone, en Android y en
+el ordenador.
+
+### Dos franjas, no una foto
+
+`js/mi-coleccion/escaner.js` recorta **dos bandas** del fotograma y manda
+solo esas: la del **nombre** (el 14 % de arriba) y la del **código e
+ilustrador** (el 12 % de abajo). Las dos cosas que esto compra:
+
+- **Peso**: una foto de cámara son dos o tres megas para leer cuatro
+  palabras. Las dos franjas en JPEG salen por unos pocos kilobytes
+  (medido: 5 KB con la cámara de prueba).
+- **Acierto**: el dibujo de la carta es justo donde un OCR se inventa
+  texto. Quitándolo de la petición, no tiene de dónde inventar.
+
+Y hay una cuenta que no se puede saltar: el vídeo va con `object-fit:
+cover`, así que **las coordenadas de la pantalla no son las del
+fotograma**. `marcoEnElVideo()` deshace el recorte del `cover` (la escala
+es la MAYOR de las dos y lo que sobra se sale a partes iguales). Sin esa
+cuenta las franjas se recortan desplazadas y el OCR lee el dibujo.
+
+El marco tiene la proporción **63 × 88 mm** de una carta de Pokémon
+(0,716), y la prueba la mide: si el marco deja de tener esa forma, las dos
+franjas caen donde no hay texto.
+
+**La cámara se apaga al cerrar**, y eso no es limpieza opcional: una pista
+de vídeo que se queda viva deja el piloto del móvil encendido y se come la
+batería hasta que recargas la página.
+
+### Cada franja hace un trabajo distinto, y eso costó un fallo
+
+La primera prueba del camino completo dio **CERO resultados con la carta
+delante**. El OCR devuelve «Charizard ex» arriba y «SSP 125/191 illus.
+Kodama» abajo, y meter el texto entero en el buscador exige que «SSP» y
+«125» estén también en el NOMBRE. No lo están.
+
+Así que la franja de arriba **BUSCA** y la de abajo **AFINA**:
+`afinarPorNumero()` sube al principio las cartas cuyo número impreso
+coincide con el leído. No las **filtra**: un OCR puede leer un 8 donde hay
+un 6, y esconder la carta buena por fiarse de eso sería peor que
+enseñarla la segunda.
+
+Y el número se compara **entero**, no con un `includes`: «· 12» está
+dentro de «· 125», así que buscar el trozo subiría las 12x por delante de
+la que de verdad es la 12. Es la trampa de la tanda 312 —un nombre de
+clase se comprueba entero y entre comillas— con otra ropa.
+
+### La función: `netlify/functions/leer-carta.mjs`
+
+Recibe las dos franjas, las valida (JPEG, con un tope de 900 KB para los
+dos: esto recibe imágenes de fuera y sin tope cualquiera manda veinte
+megas y los pagamos nosotros) y las manda a leer **a la vez**. En serie
+serían dos esperas sumadas, y una función de Netlify se mata a los 10
+segundos.
+
+El proveedor es **OCR.space**, y no es un gusto: plan gratuito de verdad
+(25.000 peticiones al mes, 500 al día por IP), acepta el base64 tal cual
+lo manda el navegador, no necesita SDK —es un POST de formulario— y lee
+los siete idiomas de carta de la pantalla. **Hace falta poner
+`OCR_API_KEY` en Netlify**; sin ella la función devuelve 503 con
+`sinConfigurar` y el escáner lo dice en pantalla, en vez de no contestar
+nada: un escáner mudo es indistinguible de uno roto, y quien lo pruebe
+tiene que saber si el problema es su carta, su cámara o que esto no está
+montado todavía.
+
+**El motor importa, y silenciosamente**: el motor 2 lee mejor el alfabeto
+latino pero **no sabe japonés ni chino** — se los salta devolviendo texto
+VACÍO, sin dar error. Así que `IDIOMAS` lleva el motor pegado a cada
+idioma y el japonés y el chino van por el motor 1. Una carta japonesa por
+el motor 2 daría «no he reconocido el nombre» para siempre.
+
+Esa tabla `IDIOMAS` es **copia** de `IDIOMAS_ESCANER` del cliente (una
+función de Netlify no puede importar un módulo del navegador), así que va
+vigilada con una prueba que compara las dos listas — lo de
+`IDIOMA_POR_MERCADO` de la tanda 322. Lo que pasaría sin ella: añades un
+idioma al desplegable, la carta se escanea en otro, y sale «no he
+reconocido el nombre» sin más explicación.
+
+### Y lo que salió al probarlo: el doble no generaba una columna generada
+
+La prueba del escáner buscaba «Charizard» en un fixture **sin
+`name_search`** y el `like` comparaba contra la cadena vacía. Cero
+resultados.
+
+`name_search` y `name_key` son columnas **GENERADAS** en la base
+(`immutable_unaccent(lower(...))`, ver
+`supabase-migration-cartas-nombre-es.sql`): Postgres las calcula y **no se
+pueden escribir**. El doble no las generaba, así que **cada fixture se las
+escribía a mano** — y una copia a mano de algo que la base calcula sola
+dice lo que quiera quien la escriba. Al revés también pica: una fila con
+`name: 'Carta 1'` y `name_search: 'charizard'` habría dado un verde que en
+producción no puede pasar.
+
+Ahora el doble las genera al sembrar, **con la misma función que usa la
+web**. Para eso `normalizeSearch` se muda de `js/tcgdex.js` a
+`js/texto.js` (y se reexporta, que la importan diez sitios): `tcgdex.js`
+importa `./supabase.js`, que en las pruebas **ES el doble**, así que
+arrastrarla habría cerrado el círculo. Es el mismo movimiento que
+`js/mercados.js` en la 438.
+
+Es la tercera cara de lo de la tanda 437: **si el doble simplifica algo de
+la base, la prueba deja de hablar de la web.** Y una columna que la base
+calcula sola es justo donde más cuesta notarlo, porque el fixture siempre
+«funciona»: dice lo que tú le pusiste.
+
+### Y una frase que prometía lo que el buscador no hace
+
+El estado vacío decía «busca por **nombre**, **ilustrador** o **número**» y
+ofrecía tres botones de ejemplo: «Charizard», «Mitsuhiro Arita» y «Pikachu
+25». `buscarCartas` cruza contra `name_search`, que son los DOS nombres —el
+inglés y el español— y nada más, así que **dos de las tres sugerencias
+devolvían cero resultados**. No salta ningún error: sale una pantalla
+vacía justo después de tocar lo que la propia web te ofrece, que es la
+forma más rápida de que alguien decida que la web está rota.
+
+La frase ahora dice lo que el buscador hace. Y la prueba se escribe contra
+la **forma** del fallo y no contra el caso: lee las sugerencias DEL HTML,
+siembra una carta por cada una y comprueba que todas encuentran algo, así
+que vale también para las que haya mañana. Buscar por ilustrador y por
+número llega con los filtros, que es otra tanda.
+
+### Once rojos que no eran de esta tanda
+
+Al correr la suite ENTERA —cosa que entre la 437 y la 446 no se había
+hecho: solo se pasaban las pruebas de cada tanda— salieron once rojos, y
+ninguno venía del escáner. Merece la pena la lista, porque los cuatro
+tipos son distintos:
+
+1. **Una guarda que se quedó mirando un sitio vacío.** `test-tanda-322`
+   vigila que `IDIOMA_POR_MERCADO` (copiada en una función de Netlify) no
+   se separe de `MERCADOS`, y lee el original como TEXTO. `MERCADOS` se
+   mudó a `js/mercados.js` en la **438**, así que el `match` devolvía
+   cadena vacía, `original` salía con CERO claves y la comparación se hacía
+   contra un objeto vacío. Dicho de otra forma: **la guarda contra las
+   copias que se separan se había separado ella**. Y había una segunda,
+   `codigoLiveDeSet`, colgando de la misma variable. Ahora cada guarda lee
+   el fichero donde vive SU original, y el «se ha encontrado» va antes de
+   la comparación — comparar contra la nada no distingue «iguales» de «no
+   he encontrado nada».
+
+2. **Encontrar un elemento no es verlo.** Cuatro pruebas (369, 375, 392 y
+   399) abrían `/mi-coleccion.html` a secas y pulsaban algo de la pestaña
+   de Cartas. Desde la **440** la pestaña por defecto es el Panel, así que
+   el panel de cartas está `hidden`: Playwright RESUELVE el localizador
+   —los elementos están en el DOM— y se cae con un «element is not
+   visible», que leído deprisa parece un fallo de la web. Llevan ya su
+   `?ver=cartas`.
+
+3. **Una clase que se pinta en dos pantallas necesita que la prueba diga en
+   cuál mira.** `test-tanda-372` contaba `.mc-set-tarjeta` y le salían SEIS
+   donde hay cuatro, porque desde la **443** el Panel pinta también un
+   vistazo de «Tus colecciones» con la misma clase; y
+   `.mc-set-tarjeta.completo` casaba con dos y tumbaba la prueba por modo
+   estricto. Ahora los localizadores van acotados a `#mcPanelAlbum`.
+
+4. **Un objetivo táctil se mide con el dedo, no con el ratón.**
+   `test-tanda-406` exigía 44 px al desplegable de series en un portátil.
+   La **445** lo dejó en 36 porque PINGU pidió los filtros más pequeños
+   («son demasiado grandes y eso queda cutre»), y la regla de CLAUDE.md
+   pide los 44 a los controles densos **detrás de `pointer: coarse`**. La
+   prueba marcaba en rojo un cambio que se había pedido: ahora abre la
+   página con `hasTouch` y los mide ahí, donde la regla dice algo.
+
+Y la lección que los engloba: **un rojo que no se mira se acumula**. Para
+cuando lo miras ya no sabes cuál de las ocho tandas lo trajo, y el rato que
+cuesta averiguarlo es mucho mayor que el de haber pasado la suite.
+
+### Una decisión que la prueba deja escrita: Cartas es una SUBPANTALLA
+
+Con «Cartas» fuera del menú, `?ver=cartas` abre su pantalla y **no enciende
+ninguna pestaña**. Es a propósito: se entra por el «Ver todas» del Panel,
+como una subpantalla suya. `test-tanda-408` lo comprueba expresamente —que
+no haya ninguna activa— porque el arreglo que pide el cuerpo es encender el
+Panel, y eso sería decir que estás en el Panel cuando no lo estás.

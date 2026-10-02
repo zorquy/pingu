@@ -39,18 +39,40 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-09-20 van 169,3 y queda
-  0,7**: el pie de la tanda 312 está en las 22 páginas y suma, la
-  313 sacó el editor de texto rico a `css/editor-texto.css` para hacer
-  sitio, y la 319 le metió a la portada la consulta del progreso. Queda
-  MENOS DE UN KILOBYTE: la próxima tanda que toque la portada tiene que
-  empezar por hacer sitio, no por mirar si cabe. El candidato es
-  `components.css` (28,6 KB gzip, el mayor de los que baja todo el
-  mundo). Antes de meter nada más en la portada, haz sitio —
+  CSS) debe caber en 170 KB gzip. **A 2026-10-02 van 169,9 y queda 0,1**
+  (medido con `pesar-portada.mjs`; el 169,3 de la nota vieja se quedó
+  atrás). O sea: CIEN BYTES. La próxima tanda que toque la portada no
+  cabe, y punto —tiene que empezar por hacer sitio—. Historia: el pie de
+  la tanda 312 está en las 22 páginas y suma, la 313 sacó el editor de
+  texto rico a `css/editor-texto.css` para hacer sitio, y la 319 le metió
+  a la portada la consulta del progreso. El candidato para hacer sitio es
+  `components.css` (26 KB gzip, el mayor de los que baja todo el mundo). Antes de meter nada más en la portada, haz sitio —
   `pesar-portada.mjs` dice quién ocupa qué— y el camino es siempre el
   mismo: lo que solo usa una pantalla, a su hoja. `components.css` y `js/app.js` los
   baja TODO el mundo — el CSS o JS de una sola página va en su propio
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
+- **Una frase de la interfaz es una AFIRMACIÓN sobre lo que hace el
+  código** (tanda 447). El estado vacío de /mi-coleccion → Buscar decía
+  «busca por nombre, ilustrador o número» y ofrecía «Mitsuhiro Arita» y
+  «Pikachu 25» como ejemplos que se pulsan; el buscador cruza contra
+  `name_search`, que son los dos nombres y nada más, así que dos de las
+  tres sugerencias daban CERO resultados. No salta ningún error: sale una
+  pantalla vacía justo después de tocar lo que la web te ofrece. Si
+  escribes un texto que promete algo, pruébalo — y si pones ejemplos que se
+  pulsan, hay prueba que los pulsa todos.
+- **El OCR en tiempo real de Dex no se puede hacer en una web** (tanda
+  447), y conviene tenerlo escrito para no volver a intentarlo: Dex es una
+  app NATIVA y usa el framework **Vision** de Apple (la lista de idiomas de
+  su pantalla de escáner es literalmente la de Vision, que es cómo se
+  sabe). El equivalente del navegador, la Shape Detection API, solo existe
+  en Chrome tras una bandera y en Safari de iOS **dejó de funcionar en iOS
+  18**; y una librería de OCR en el cliente son dos megas de WASM y una
+  dependencia nueva de npm, que aquí está prohibida. Lo que sí se puede es
+  el otro modo que Dex también tiene, el «Snap»: encuadras, tocas, y se
+  leen **dos franjas** —nombre arriba, código abajo— en el servidor. Y se
+  mandan las franjas y no la foto por dos motivos: una foto son dos o tres
+  megas para leer cuatro palabras, y el dibujo de la carta es justo donde
+  un OCR se inventa texto.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en
@@ -354,6 +376,37 @@ web. Y al copiar una restricción, cópiale también **el valor por defecto**:
 `market` es `not null default 'WEST'`, así que una fila de fixture que no
 diga nada ES occidental — comparar `null` contra `'WEST'` dejaba sin set a
 casi todas las cartas de las pruebas viejas.
+
+**Pasar «las pruebas que tocan» no es pasar la suite** (tanda 447). Al
+correrla entera salieron ONCE rojos, y ninguno era de la tanda: la guarda
+de `MERCADOS` llevaba desde la **438** leyendo `js/tcgdex.js`, de donde esa
+constante se había mudado —encontraba CERO claves y comparaba contra un
+objeto vacío, o sea que la guarda contra las copias que se separan se había
+separado ella—; cuatro pruebas de /mi-coleccion seguían abriendo la página
+sin `?ver=cartas` desde que la **440** puso el Panel de pestaña por
+defecto, y se caían con un «element is not visible» que parece un fallo de
+la web (el elemento EXISTE en el DOM, escondido: **encontrar un elemento no
+es verlo**); y la **445** hizo los filtros más pequeños porque se pidió, y
+una prueba les seguía exigiendo 44 px **con el ratón**, cuando la regla
+pide los 44 detrás de `pointer: coarse`. Nada de eso se vio porque entre la
+437 y la 446 se corrieron solo las pruebas de cada tanda. Un rojo que no se
+mira se acumula, y para cuando lo miras ya no sabes cuál de las ocho tandas
+lo trajo.
+
+**Una columna que la base CALCULA no se siembra: se genera** (tanda 447).
+`name_search` y `name_key` de `tcg_cards` son columnas GENERADAS
+(`immutable_unaccent(lower(...))`) y en Postgres **no se pueden escribir**.
+El doble no las generaba, así que cada fixture se las escribía a mano — y
+una copia a mano de algo que la base calcula sola dice lo que quiera quien
+la escriba. Se vio porque la prueba del escáner buscaba «Charizard» contra
+un fixture sin `name_search` y el `like` comparaba contra la cadena vacía:
+CERO resultados con la carta delante. Al revés también pica, y peor: una
+fila con `name: 'Carta 1'` y `name_search: 'charizard'` da un verde que en
+producción **no puede pasar**. Ahora el doble las genera al sembrar y con
+la MISMA función que usa la web (de ahí que `normalizeSearch` viva en
+`js/texto.js`, que no importa nada, y no en `js/tcgdex.js`, que importa
+`./supabase.js` — o sea el propio doble). Si añades una columna generada a
+la base, genérala también en el doble.
 
 **Mientras corra un rigor, commitea nombrando los ficheros uno a uno,
 nunca con `git add -A`** (tanda 438). Es la tercera cara de la misma

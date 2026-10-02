@@ -57,3 +57,39 @@ export function contienePlegado(texto, consultaPlegada) {
   if (!consultaPlegada) return true
   return plegarTexto(texto).includes(consultaPlegada)
 }
+
+// ── Lo que Postgres guarda en `name_search` y `name_key` ──
+//
+// Las dos son columnas GENERADAS de `tcg_cards`
+// (supabase-migration-cartas-nombre-es.sql) y las dos se calculan con
+// `immutable_unaccent(lower(...))`. Vive aquí, y no en `js/tcgdex.js`,
+// porque este fichero no importa nada: así lo puede usar también el doble
+// de Supabase de las pruebas, que ES `js/supabase.js` y no puede
+// depender de quien depende de él.
+//
+// Y la misma función se le aplica a lo que SE TECLEA, que es el punto: si
+// no, quien escriba "pomez" no encontraría "Piedra Pómez" — y con 1.159
+// cartas acentuadas en el catálogo, eso pasa constantemente.
+export function normalizeSearch(texto) {
+  return String(texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    // unaccent() de Postgres tambien convierte la puntuacion tipografica
+    // a su equivalente ASCII, y JS no. Sin esto, 31 cartas con apostrofo
+    // curvo ("Farfetch\u2019d", "Rocket\u2019s Mewtwo") quedaban guardadas con
+    // apostrofo recto e imposibles de encontrar. Se comprobo comparando
+    // las 23.505 cartas reales contra un Postgres de verdad.
+    .replace(/[\u2018\u2019\u02bc]/g, "'")
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/[\u2013\u2014]/g, '-')
+    // Y las letras y signos que no son "letra + tilde" y por tanto NFD no
+    // descompone: la ligadura de "Fundacion \u00c6ther" y la apertura de
+    // interrogacion y exclamacion, que en espanol salen constantemente.
+    .replace(/\u00e6/g, 'ae').replace(/\u00c6/g, 'AE')
+    .replace(/\u0153/g, 'oe').replace(/\u0152/g, 'OE')
+    .replace(/\u00df/g, 'ss')
+    .replace(/\u00bf/g, '?').replace(/\u00a1/g, '!')
+    .replace(/[\u00f8\u00d8]/g, 'o')
+    .toLowerCase()
+    .trim()
+}

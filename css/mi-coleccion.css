@@ -373,8 +373,17 @@
     grid-column: 1 / -1;
   }
 
+  /* LA RAYA VA EN EL PANEL, NO EN EL MENÚ (tanda 447). El menú es
+     `sticky` y mide lo que miden sus cinco pestañas —unos 300 px—, así que
+     una raya suya se cortaba a un tercio de una pantalla con mil píxeles
+     de contenido al lado y parecía un trozo de borde olvidado. Puesta en
+     el panel, la raya mide lo que mide la pantalla, que es lo que se
+     esperaba de ella. Y no se puede arreglar estirando el menú: un
+     `align-self: stretch` le quita el sentido al `sticky`. */
   #mcContenido > section[role="tabpanel"] {
     grid-column: 2;
+    padding-left: var(--e-xl);
+    border-left: 1px solid var(--border);
   }
 
   .mc-pestanias {
@@ -392,8 +401,7 @@
     top: 88px;
     margin: 0;
     padding-left: 0;
-    padding-right: var(--e-md);
-    border-right: 1px solid var(--border);
+    padding-right: 0;
     border-bottom: 0;
   }
 
@@ -4308,4 +4316,389 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-dlg-adorno .mc-panel-cabecera,
 .mc-dlg-adorno .mc-panel-pie {
   flex: 0 0 auto;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   BUSCAR EN TODO EL CATÁLOGO (tanda 447)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* EL ESTADO VACÍO. PINGU: «cuida mucho el apartado visual, que no sea una
+   función cutre y pocha». Así que no es un párrafo gris con un botón
+   debajo: es una pieza centrada, con aire, donde lo que manda es el
+   escáner y el texto explica qué puedes escribir.
+
+   Y no vive para siempre: en cuanto escribes dos letras desaparece y deja
+   el sitio a los resultados — igual que en Dex. */
+/* Alineado con el buscador, no centrado en la columna. El buscador tiene
+   tope de 520 px (tanda 444) y arranca a la izquierda; con este bloque
+   centrado en los 840 de la columna, los dos se veían descolgados el uno
+   del otro en un portátil. Mismo ancho y mismo borde izquierdo: una
+   columna sola. */
+.mc-vacio-buscar {
+  display: grid;
+  gap: var(--e-lg);
+  justify-items: center;
+  max-width: 520px;
+  margin: var(--e-2xl) 0;
+  padding: var(--e-xl);
+  text-align: center;
+}
+
+.mc-vacio-buscar-texto {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-lg);
+  line-height: 1.55;
+}
+
+.mc-vacio-buscar-texto strong {
+  color: var(--text);
+}
+
+/* Las sugerencias son EJEMPLOS QUE SE PULSAN, no texto en negrita: quien
+   no sepa qué escribir toca una y ve el resultado. Van en línea dentro de
+   la frase, que es la excepción de la regla de los 44 px que ya está
+   declarada en test-tanda-312. */
+.mc-sugerencia {
+  padding: 2px var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--navy);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mc-sugerencia:hover {
+  border-color: var(--navy);
+  background: color-mix(in srgb, var(--navy) 8%, var(--white));
+}
+
+/* EL BOTÓN DEL ESCÁNER. Es lo único que se pulsa aquí, así que pide el
+   turno: ancho, con su icono y en el azul sólido del sitio. */
+.mc-escanear {
+  display: inline-flex;
+  gap: var(--e-sm);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 360px;
+  min-height: 52px;
+  font-size: var(--t-lg);
+}
+
+.mc-escanear svg {
+  width: 22px;
+  height: 22px;
+}
+
+.mc-vacio-buscar-pie {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--t-sm);
+}
+
+/* LOS RESULTADOS. Una rejilla de cartas con su nombre y su colección
+   debajo — aquí el nombre SÍ va fuera, porque buscando por «Pikachu 25»
+   lo que se compara es cuál de las veinte es. */
+.mc-resultados {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: var(--e-lg) var(--e-md);
+}
+
+.mc-resultados .mc-resultado {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+/* El mismo hueco reservado y el mismo «si la imagen no llega, el nombre»
+   de la tanda 441: aquí hay MÁS cartas sin escaneo que en ningún otro
+   sitio, porque se busca en el catálogo entero y no en lo tuyo. */
+.mc-resultado-foto {
+  display: block;
+  position: relative;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.mc-resultado-foto img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mc-resultados .mc-resultado-nombre {
+  margin-top: var(--e-xs);
+  overflow: hidden;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-resultados .mc-resultado-set {
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-resultados .mc-resultado:hover .mc-resultado-foto {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.mc-resultados .mc-resultado:focus-visible .mc-resultado-foto {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   EL ESCÁNER (tanda 447)
+   ══════════════════════════════════════════════════════════════════
+   A pantalla completa y en negro: lo que importa es lo que ve la cámara,
+   y cualquier cosa alrededor compite con el encuadre. */
+.mc-escaner {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #000;
+  color: var(--blanco-fijo);
+  overscroll-behavior: contain;
+}
+
+.mc-escaner::backdrop {
+  background: #000;
+}
+
+.mc-escaner-video {
+  width: 100%;
+  height: 100%;
+  /* `cover` para que la cámara llene la pantalla sin deformarse. Ojo: con
+     esto las coordenadas de la PANTALLA dejan de ser las del fotograma, y
+     por eso el recorte las recalcula en `marcoEnElVideo`. */
+  object-fit: cover;
+}
+
+/* El velo con el agujero del marco. Es una sola capa con `box-shadow`
+   enorme hacia fuera: así el oscurecido de alrededor y el marco son la
+   MISMA pieza y no pueden descuadrarse entre ellos. */
+.mc-escaner-velo {
+  display: grid;
+  position: absolute;
+  inset: 0;
+  place-items: center;
+  pointer-events: none;
+}
+
+.mc-escaner-marco {
+  position: relative;
+  /* La proporción de una carta de Pokémon. El ancho se queda corto a
+     propósito: con el marco pegado a los bordes nadie sabe si le sobra o
+     le falta encuadre. */
+  width: min(78vw, 46vh);
+  aspect-ratio: 63 / 88;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 62%);
+  outline: 2px solid rgb(255 255 255 / 85%);
+  outline-offset: -2px;
+}
+
+/* Las dos franjas que se leen, dibujadas donde se van a recortar. No son
+   un adorno: enseñan EXACTAMENTE qué parte de la carta hay que encuadrar
+   bien, que es lo que hace que el escaneo salga a la primera. */
+.mc-escaner-guia {
+  display: flex;
+  position: absolute;
+  left: 4%;
+  align-items: center;
+  width: 92%;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 8%);
+}
+
+/* El rótulo va FUERA de su franja, no dentro. Dentro se pone encima de
+   justo lo que hay que encuadrar bien —el nombre de la carta— y tapa lo
+   único que la guía existe para enseñar. Fuera cae sobre el dibujo, que
+   aquí no se lee. */
+.mc-escaner-guia i {
+  position: absolute;
+  top: calc(100% + var(--e-xs));
+  right: 8px;
+  color: rgb(255 255 255 / 85%);
+  font-size: var(--t-2xs);
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
+  white-space: nowrap;
+}
+
+/* Los mismos números que `FRANJAS` en js/mi-coleccion/escaner.js. Si
+   cambias uno, cambia el otro: el dibujo tiene que enseñar dónde se
+   RECORTA de verdad, o el marco estaría mintiendo. */
+.mc-escaner-guia-arriba {
+  top: 3%;
+  height: 14%;
+}
+
+.mc-escaner-guia-abajo {
+  top: 86%;
+  height: 12%;
+}
+
+/* La de abajo, por encima de su franja: debajo se saldría de la carta. */
+.mc-escaner-guia-abajo i {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + var(--e-xs));
+  left: 8px;
+}
+
+.mc-escaner-arriba {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  gap: var(--e-md);
+  align-items: center;
+  width: 100%;
+  padding: var(--e-lg);
+  /* `env(safe-area-inset-top)` por la muesca del iPhone: sin esto el botón
+     de cerrar se mete debajo de la hora. */
+  padding-top: calc(var(--e-lg) + env(safe-area-inset-top, 0px));
+  /* Un velo que se desvanece. La sombra del texto sola basta sobre una
+     escena oscura, pero la gente escanea cartas con la lámpara encima: una
+     ayuda blanca sobre un folio blanco no se lee, y el botón de cerrar
+     desaparece. El degradado no tapa el encuadre porque el marco vive en
+     el centro. */
+  background: linear-gradient(to bottom, rgb(0 0 0 / 55%), rgb(0 0 0 / 0%));
+}
+
+.mc-escaner-ayuda {
+  margin: 0;
+  color: rgb(255 255 255 / 85%);
+  font-size: var(--t-sm);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
+}
+
+.mc-escaner-redondo {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 18%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+
+.mc-escaner-redondo:hover {
+  background: rgb(255 255 255 / 28%);
+}
+
+.mc-escaner-abajo {
+  display: flex;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  gap: var(--e-md);
+  align-items: center;
+  /* Centrados, no repartidos de lado a lado: en un portátil el
+     desplegable del idioma se quedaba solo en la esquina, a setecientos
+     píxeles del disparador. Los mandos de una cámara van juntos, y el
+     hueco de la derecha mantiene el disparador en el centro exacto. El
+     velo, en cambio, sí va de lado a lado — por eso el ancho se queda. */
+  justify-content: center;
+  width: 100%;
+  padding: var(--e-xl);
+  padding-bottom: calc(var(--e-xl) + env(safe-area-inset-bottom, 0px));
+  /* El mismo velo que arriba, por el mismo motivo. */
+  background: linear-gradient(to top, rgb(0 0 0 / 55%), rgb(0 0 0 / 0%));
+}
+
+/* El disparador, redondo y grande: es lo único que se pulsa aquí y se
+   pulsa con el pulgar, a veces con una mano sola. */
+.mc-escaner-disparo {
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  /* 4px, y es una EXCEPCIÓN declarada en test-tanda-309.mjs: este borde
+     no rodea un contenido, DIBUJA el aro de un disparador de cámara —la
+     misma categoría que la lupa del buscador y el canto de una carta—. A
+     2px el aro se ve como un contorno cualquiera y deja de parecer un
+     botón de hacer foto. */
+  border: 4px solid rgb(255 255 255 / 90%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 25%);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.mc-escaner-disparo:hover {
+  background: rgb(255 255 255 / 40%);
+}
+
+.mc-escaner-disparo:active {
+  transform: scale(0.93);
+}
+
+.mc-escaner-disparo[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* El hueco de la derecha existe para que el disparador quede CENTRADO: con
+   el desplegable solo a la izquierda, el botón se iba hacia un lado. */
+/* 128 y no 110: con 110 «Español» se cortaba a «Españo». El hueco de la
+   derecha mide lo mismo para que el disparador quede centrado de verdad. */
+.mc-escaner-hueco,
+.mc-escaner-abajo .mc-chapa-select {
+  flex: 0 0 128px;
+  width: 128px;
+}
+
+.mc-escaner-abajo .mc-chapa-select {
+  border-color: rgb(255 255 255 / 30%);
+  background-color: rgb(255 255 255 / 15%);
+  color: var(--blanco-fijo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-escaner-disparo {
+    transition: none;
+  }
+
+  .mc-escaner-disparo:active {
+    transform: none;
+  }
+}
+
+/* La carta cuyo número coincide con el leído por el escáner. Se marca, no
+   se filtra: un OCR puede leer un 8 donde hay un 6, y esconder la buena
+   por fiarse de eso sería peor que enseñarla la segunda. */
+.mc-resultado-casa .mc-resultado-foto {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
 }

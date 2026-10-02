@@ -35,6 +35,66 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 447 — el menú como el de Dex, Buscar y el escáner de cartas)
+
+**Hecho**: el menú de /mi-coleccion queda como el de Dex —**Panel ·
+Expansiones · Pokédex · Carpetas · Buscar**—, con «Cartas» fuera del menú
+pero la PANTALLA intacta (se llega por el «Ver todas» del panel y por
+`?ver=cartas`, que es lo que apuntan los enlaces viejos). **Buscar** es
+nueva: busca en todo el catálogo con la consulta que ya existía
+(`buscarCartas`, la misma del bloque de «añadir»), y su estado vacío lleva
+el botón de **escanear cartas**, igual que en Dex.
+
+Y el **escáner**. Lo de Dex en tiempo real NO se puede hacer en una web
+(es una app nativa y usa el framework Vision de Apple; el equivalente del
+navegador solo va en Chrome tras una bandera y en Safari de iOS murió con
+iOS 18), así que está el otro modo que Dex también tiene, el «Snap»:
+encuadras con dos guías, tocas, y se recortan y se mandan a leer **solo
+dos franjas** —nombre arriba, código e ilustrador abajo— y no la foto.
+Medido: 5 KB las dos juntas. La franja de arriba BUSCA y la de abajo
+AFINA; el número leído sube su carta al principio sin esconder las demás.
+`netlify/functions/leer-carta.mjs` llama a **OCR.space** (plan gratuito de
+verdad, siete idiomas, sin SDK, el base64 tal cual).
+
+**PENDIENTE DE UN HUMANO**: hay que poner **`OCR_API_KEY`** en las
+variables de entorno de Netlify (clave gratuita de ocr.space). Hasta
+entonces la función devuelve 503 con `sinConfigurar` y el escáner lo dice
+en pantalla — el resto de /mi-coleccion no se entera.
+
+De paso salió un fallo del DOBLE, no de la web: `name_search` y `name_key`
+de `tcg_cards` son columnas **generadas** y el doble no las generaba, así
+que cada fixture se las escribía a mano. La prueba del escáner buscaba
+«Charizard» contra un fixture sin ella y daba CERO resultados con la carta
+delante. Ahora el doble las genera al sembrar con la MISMA función que usa
+la web, y para eso `normalizeSearch` se muda de `js/tcgdex.js` a
+`js/texto.js` (reexportada, que la importan diez sitios).
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `js/texto.js`, `js/tcgdex.js`, **NUEVO**
+`js/mi-coleccion/escaner.js`, **NUEVO**
+`netlify/functions/leer-carta.mjs`, `SCHEMA.md`, `CLAUDE.md`. En la rama
+`pruebas`: `herramientas/stub-supabase.js`, los arreglos de
+`test-tanda-322/369/372/375/392/399/406/408.mjs`, y **NUEVAS**
+`pruebas/test-tanda-447.mjs` y `pruebas/test-leer-carta.mjs`.
+
+Y al pasar la suite ENTERA —que entre la 437 y la 446 no se había
+pasado— salieron **once rojos que no eran de esta tanda**: la guarda de
+`MERCADOS` llevaba desde la 438 leyendo el fichero del que esa constante se
+había MUDADO (o sea, la guarda contra las copias que se separan se había
+separado ella); cuatro pruebas de /mi-coleccion seguían abriendo la página
+sin `?ver=cartas` desde que la 440 puso el Panel de pestaña por defecto;
+`test-tanda-372` contaba seis colecciones donde hay cuatro porque la 443
+pinta las mismas tarjetas en el Panel; y la 406 le exigía 44 px CON EL
+RATÓN a un filtro que la 445 encogió a propósito. Todas arregladas en la
+rama `pruebas`; ninguna tocó la web.
+
+**En curso / pendiente**: nada a medias en ningún fichero. Queda de la
+lista de PINGU el **componente de filtros compartido** (barra de búsqueda,
+idioma, interruptor cuadrícula/lista y la hoja «Ordenar» de Dex con sus
+ocho criterios, más estado, variantes, rareza y tipos), que se montará UNA
+vez y se usará en Cartas, Buscar y Expansiones. Rigores pendientes: 443,
+444, 445, 446 y 447.
+
 ## 2026-10-02 — PINGU-Claude (tanda 446 — el menú bajo la barra, la carta huérfana y los enlaces pochos)
 
 **Hecho**: tres cosas que PINGU vio en una captura del panel y que no dan
