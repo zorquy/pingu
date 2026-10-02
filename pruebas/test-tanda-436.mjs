@@ -79,7 +79,12 @@ console.log('\n── 1. El Panel es lo primero ──')
   // La pestaña por defecto es la que NO lleva `?ver=`: si no, compartir
   // /mi-coleccion a secas llevaría a otra cosa que abrirla.
   check('la dirección se queda sin `?ver=`', (await page.evaluate(() => location.search)) === '')
-  await page.click('[data-pestania="cartas"]')
+  // A «Cartas» NO SE VA POR EL MENÚ desde la tanda 447, que la sacó de ahí
+  // a propósito —el menú es Panel · Expansiones · Pokédex · Carpetas ·
+  // Buscar— y dejó la PANTALLA, a la que se llega por el «Ver todas» del
+  // Panel y por `?ver=cartas`. Esta prueba clicaba la pestaña que ya no
+  // existe y se caía con un tiempo agotado que parece un fallo de la web.
+  await page.click('[data-ir-a="cartas"]')
   await page.waitForTimeout(500)
   check('ir a Cartas sí lo pone', (await page.evaluate(() => location.search)) === '?ver=cartas')
   await page.click('[data-pestania="resumen"]')
@@ -91,14 +96,26 @@ console.log('\n── 1. El Panel es lo primero ──')
 {
   // Las otras pestañas se siguen pudiendo pedir por la dirección.
   const { page } = await abrir('/mi-coleccion.html?ver=cartas')
-  check('`?ver=cartas` abre las cartas', (await activa(page)) === 'Cartas', await activa(page))
+  // «Cartas» salió del menú en la 447 y la PANTALLA se quedó, así que no
+  // hay pestaña activa que mirar: lo que dice que estás en las cartas es
+  // que su panel sea el que se ve. Preguntarle a un menú por una pantalla
+  // que ya no está en el menú se cae con un tiempo agotado y parece un
+  // fallo de la web.
+  check('`?ver=cartas` abre las cartas',
+    (await page.locator('#mcPanelCartas').isVisible()) && (await page.locator('#mcPanelResumen').isHidden()))
   await page.close()
   const pok = await abrir('/mi-coleccion.html?ver=pokedex')
   check('`?ver=pokedex` abre la Pokédex', (await activa(pok.page)) === 'Pokédex', await activa(pok.page))
   await pok.page.close()
-  // Y los nombres viejos siguen mudando a donde toca (las MUDANZAS).
-  const viejo = await abrir('/mi-coleccion.html?ver=cambios')
-  check('un nombre viejo sigue mudando al Panel', (await activa(viejo.page)) === 'Panel', await activa(viejo.page))
+  // Y los nombres viejos siguen mudando a donde toca (las MUDANZAS). Se
+  // prueba con `?ver=anadir`, que SÍ es una mudanza: `?ver=cambios` dejó de
+  // serlo cuando la 451 le dio su propia pantalla, y una prueba escrita
+  // contra el mapa de ayer dice que la web está rota cuando lo que ha
+  // pasado es que una mudanza se ha convertido en un destino.
+  const viejo = await abrir('/mi-coleccion.html?ver=anadir')
+  check('un nombre viejo sigue mudando a donde toca',
+    (await viejo.page.locator('#mcPanelCartas').isVisible()) && (await viejo.page.evaluate(() => location.search)) === '?ver=cartas',
+    await viejo.page.evaluate(() => location.search))
   await viejo.page.close()
 }
 
@@ -107,8 +124,12 @@ console.log('\n── 2. Los vistazos ──')
 {
   const { page, errores } = await abrir()
   const titulos = await page.locator('.mc-vistazo .mc-subtitulo').allTextContents()
+  // Los DOS primeros son los de esta tanda; detrás han ido entrando otros
+  // (la 451 metió «Cambios»). Se comprueba que estos dos están y en este
+  // orden, no que sean los únicos: una lista cerrada convierte cada tanda
+  // siguiente en un rojo que no dice nada.
   check('hay un vistazo de cartas y otro de expansiones',
-    titulos.join('|') === 'Tus cartas|Expansiones', titulos.join('|'))
+    titulos[0] === 'Tus cartas' && titulos[1] === 'Expansiones', titulos.join('|'))
 
   // ESTO es lo que más importa: entrando DIRECTO al panel, los vistazos se
   // pintan de lo que hay en memoria... y al arrancar no hay nada. Es el
@@ -136,10 +157,14 @@ console.log('\n── 2. Los vistazos ──')
   // «por dónde vas», dice «no has empezado», y de esas hay doscientas.
   const sets = await page.locator('.mc-vistazo .mc-set-nombre').allTextContents()
   check('  …y la que no has empezado no sale', !sets.some((t) => /Obsidian/.test(t)), sets.join(' | '))
-  // Y en la que más llevas, primero: lo que se quiere ver de un vistazo es
-  // dónde estás cerca de algo.
-  const cuentas = await page.locator('.mc-vistazo .mc-set-cuenta').allTextContents()
-  check('  …con la que más llevas delante', cuentas[0].startsWith('8 de 10'), cuentas.join(' | '))
+  // Y LA MÁS NUEVA, primero. Esta tanda puso delante la que más llevas, y
+  // la 451 lo cambió a propósito: PINGU, «¿qué ha pasado con las
+  // expansiones? ¿ya no están las más nuevas?». En un vistazo de una sola
+  // fila, ordenar por cuántas tienes esconde justo lo que acabas de
+  // empezar — y decía una cosa distinta de la pantalla de Expansiones.
+  const fechas = await page.locator('.mc-vistazo .mc-set-tarjeta').evaluateAll(
+    (ns) => ns.map((n) => n.getAttribute('data-set')))
+  check('  …con la más nueva delante', fechas[0] === 'sv2', fechas.join(' | '))
 
   // Una carta cuyo escaneo no llega tiene que seguir siendo una carta y no
   // un hueco invisible (la decisión de la 415).
@@ -159,7 +184,9 @@ console.log('\n── 3. Los vistazos llevan a su pestaña ──')
   const { page, errores } = await abrir()
   await page.locator('[data-ir-a="cartas"]').click()
   await page.waitForTimeout(600)
-  check('«ver todas» de las cartas lleva a Cartas', (await activa(page)) === 'Cartas', await activa(page))
+  // Sin pestaña que mirar desde la 447: lo que dice que has llegado es que
+  // su panel sea el que se ve.
+  check('«ver todas» de las cartas lleva a Cartas', await page.locator('#mcPanelCartas').isVisible())
   await page.click('[data-pestania="resumen"]')
   await page.waitForTimeout(1200)
   await page.locator('[data-ir-a="album"]').click()
@@ -174,7 +201,8 @@ console.log('\n── 3. Los vistazos llevan a su pestaña ──')
   await page.locator('.mc-vistazo .mc-set-tarjeta').first().click()
   await page.waitForTimeout(1500)
   check('pulsar una expansión abre ESA expansión', (await activa(page)) === 'Expansiones', await activa(page))
-  check('  …y no la estantería', (await page.locator('#mcAlbumTitulo').textContent()) === 'Scarlet & Violet',
+  // La PRIMERA del vistazo es la más NUEVA desde la 451, que es Paldea.
+  check('  …y no la estantería', (await page.locator('#mcAlbumTitulo').textContent()) === 'Paldea Evolved',
     await page.locator('#mcAlbumTitulo').textContent())
   check('sin errores', !errores.length, errores[0])
   await page.close()
@@ -189,7 +217,7 @@ console.log('\n── 3. Los vistazos llevan a su pestaña ──')
 console.log('\n── 4. Llegar al Panel desde otra pestaña ──')
 {
   const { page, errores } = await abrir('/mi-coleccion.html?ver=cartas')
-  check('se abre en Cartas', (await activa(page)) === 'Cartas', await activa(page))
+  check('se abre en Cartas', await page.locator('#mcPanelCartas').isVisible())
   check('  …y los vistazos todavía no están', (await page.locator('.mc-vistazo-carta').count()) === 0)
   await page.click('[data-pestania="resumen"]')
   await page.waitForTimeout(1500)

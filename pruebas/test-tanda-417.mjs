@@ -46,7 +46,7 @@ console.log('\n── 1. Dentro de una expansión, todas las cartas de una vez �
   await page.close()
 }
 
-console.log('\n── 2. La tira de la colección ──')
+console.log('\n── 2. Los datos de la colección ──')
 {
   const { page } = await abrir()
   await page.locator('[data-set="sv1"]').click()
@@ -55,10 +55,12 @@ console.log('\n── 2. La tira de la colección ──')
   check('hay tres tarjetas', titulos.length === 3, titulos.join(' | '))
   check('  …y la primera es el conjunto', /conjunto/i.test(titulos[0] || ''), titulos[0])
   check('  …con su anillo', (await page.locator('#mcAlbumProgreso .mc-anillo').count()) === 1)
-  // Es la misma pieza que la del panel: misma clase, mismas flechas.
-  check('  …y con las flechas de la tira', (await page.locator('#mcTiraSetDer').count()) === 1)
-  check('la flecha hacia atrás empieza apagada',
-    (await page.locator('#mcTiraSetIzq').isVisible()) === false)
+  // Es la misma pieza que la del panel: misma clase, misma rejilla. Las
+  // flechas se fueron en la 459 con la tira —sus tres tarjetas no se
+  // deslizaban, se encogían— y aquí se comprueba que no han vuelto.
+  check('  …en una rejilla y no en una tira', (await page.locator('#mcAlbumProgreso .mc-diapos').count()) === 1)
+  check('  …sin flechas que no llevan a ninguna parte',
+    (await page.locator('#mcAlbumProgreso .mc-tira-flecha, #mcTiraSetDer, #mcTiraSetIzq').count()) === 0)
   await page.close()
 }
 

@@ -97,7 +97,10 @@ console.log('\n── 3. Las expansiones, todas del mismo tamaño ──')
   const { page } = await abrir('/mi-coleccion.html?ver=album')
   await page.waitForTimeout(800)
   const t = page.locator('.mc-set-tarjeta').first()
-  check('la tarjeta tiene su cabecera', (await t.locator('.mc-set-cabecera').count()) === 1)
+  // La cabecera se llama `.mc-set-titulo` desde la 458, que rehizo la
+  // tarjeta con el reparto de Dex: el logo pequeño a un lado y el nombre
+  // como TEXTO al otro.
+  check('la tarjeta tiene su cabecera', (await t.locator('.mc-set-titulo').count()) === 1)
   // El fondo emborronado: el propio logo, ampliado. No hace falta pedir
   // el arte de una carta —serían doscientas peticiones más— y el
   // navegador ya tiene la imagen porque la enseña encima.
@@ -122,14 +125,16 @@ console.log('\n── 3. Las expansiones, todas del mismo tamaño ──')
   check('el código del set está', (await t.locator('.mc-set-codigo').count()) === 1)
   check('  …y es el suyo', (await t.locator('.mc-set-codigo').textContent()) === 'ROS',
     await t.locator('.mc-set-codigo').textContent())
-  // El nombre va en `sr-only` porque el logo lo lleva escrito. Pero si el
-  // logo NO LLEGA —aquí nunca llega, la CDN está cortada, y el 2026-09-20
-  // se cayó de verdad— la tarjeta se quedaba sin nada que leer y sin dar
-  // error. Desde la 415 el que vuelve a la vista es el rótulo de la
-  // CABECERA, y el de debajo se queda solo para el lector de pantalla:
-  // enseñar los dos lo escribía dos veces en la misma tarjeta.
+  // El nombre se lee LLEGUE O NO EL LOGO (tanda 458). Antes iba en
+  // `sr-only` porque un logo occidental lleva su nombre escrito; pero si el
+  // logo no llegaba —aquí nunca llega, la CDN está cortada, y el
+  // 2026-09-20 se cayó de verdad— la tarjeta se quedaba sin nada que leer
+  // y sin dar error. Y con los catálogos japoneses el logo que sí llega
+  // está en kanji, que para quien mira es lo mismo que no llegar.
   check('si el logo no llega, el nombre se lee',
-    await t.locator('.mc-set-rotulo').isVisible())
+    await t.locator('.mc-set-nombre').isVisible())
+  check('  …y dice cuál es', (await t.locator('.mc-set-nombre').textContent()) === 'Roaring Skies',
+    await t.locator('.mc-set-nombre').textContent())
   // El código viene de `tcg_online_code`, que había que PEDIR: la
   // consulta de sets no lo traía y la chapa no habría salido nunca.
   check('  …y la consulta lo pide', /card_count_total,tcg_online_code/.test(leer('js/mi-coleccion.js')))

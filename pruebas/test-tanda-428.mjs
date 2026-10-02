@@ -195,9 +195,16 @@ console.log('\n── 3. Y la cifra de arriba ya no engaña ──')
     linea('l1', 'sv1-101', 3, { precio_compra: 10, valor_manual: 25 }),
     linea('l2', 'sv1-102', 1, { valor_manual: 500 }),
   ])
+  // «Pagado» SALIÓ DE LA CABECERA en la tanda 440 —eran cinco cifras donde
+  // caben cuatro— y vive en la tarjeta «Lo que te costó» del Panel, que es
+  // donde se mira ahora. Lo que esta tanda defiende no es DÓNDE está, sino
+  // que la cuenta sea de CARTAS y no de líneas: con tres copias en una
+  // línea las dos formas dan números distintos, y con una sola copia el
+  // fallo no asoma. Así que se mira donde esté.
   const cab = await limpio(page.locator('#mcResumen'))
-  check('«Pagado» dice sobre cuántas CARTAS es, no cuántas líneas', /Pagado en 3 cartas/.test(cab), cab)
-  check('  …y suma las tres copias', /30,00/.test(cab), cab)
+  const costo = await limpio(diapo(page))
+  check('«Pagado» dice sobre cuántas CARTAS es, no cuántas líneas', /\b3 cartas\b/.test(costo), costo)
+  check('  …y suma las tres copias', /30,00/.test(costo), costo)
   check('  …y el valor estimado sigue siendo el de todas', /575,00/.test(cab), cab)
   await page.close()
 }

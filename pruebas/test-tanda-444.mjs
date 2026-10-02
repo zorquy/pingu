@@ -46,8 +46,13 @@ console.log('\n── 1. La cabecera, solo en el Panel ──')
   const { page, errores } = await abrir(390)
   check('en el Panel la cabecera está entera', (await altoDeLaCabecera(page)) > 150,
     String(await altoDeLaCabecera(page)))
+  // A «Cartas» NO SE VA POR EL MENÚ desde la tanda 447, que la sacó de ahí
+  // a propósito —el menú es Panel · Expansiones · Pokédex · Carpetas ·
+  // Buscar— y dejó la PANTALLA, a la que se llega por el «Ver todas» del
+  // Panel y por `?ver=cartas`. Esta prueba clicaba la pestaña que ya no
+  // existe y se caía con un tiempo agotado que parece un fallo de la web.
   for (const t of ['cartas', 'album', 'pokedex', 'carpetas']) {
-    await page.click(`[data-pestania="${t}"]`)
+    await page.click(t === 'cartas' ? '[data-ir-a="cartas"]' : `[data-pestania="${t}"]`)
     await page.waitForTimeout(500)
     // CERO, no «poco»: el relleno del móvil lo pone un `@media` que va más
     // abajo en la hoja, y un `@media` NO suma especificidad. Con una sola
@@ -98,13 +103,22 @@ console.log('\n── 2. Los mandos, en una fila que se desliza ──')
     }
   })
   check('en el móvil son UNA fila', m.filas === 1, JSON.stringify(m))
-  check('  …que se desliza', m.desliza, JSON.stringify(m))
   // Y lo que importa de verdad: que NO se encojan. Un hijo de flex cede
   // antes de desbordar (la lección de la 320), así que sin `flex: 0 0
   // auto` la fila cabe siempre… con los botones aplastados.
+  //
+  // Se mira el `flex-shrink` y no si la fila SE DESLIZA (tanda 459): que
+  // se deslice depende de cuántos mandos haya ese día —la 449 juntó dos en
+  // uno y la fila pasó a caber—, así que exigirlo convertía una barra
+  // perfecta en un rojo. Lo que no puede cambiar nunca es que un mando
+  // ceda; eso es la regla.
+  const ceden = await page.locator('#mcMandos > *').evaluateAll(
+    (ns) => ns.filter((n) => n.getBoundingClientRect().width > 0 && getComputedStyle(n).flexShrink !== '0')
+      .map((n) => n.id || n.className))
+  check('  …sin que ningún mando ceda', ceden.length === 0, ceden.join(' | '))
   const anchos = await page.locator('#mcMandos > *').evaluateAll(
     (ns) => ns.map((n) => Math.round(n.getBoundingClientRect().width)).filter((a) => a > 0))
-  check('  …sin que ningún mando se aplaste', anchos.length >= 4 && anchos.every((a) => a >= 44),
+  check('  …sin que ningún mando se aplaste', anchos.length >= 3 && anchos.every((a) => a >= 44),
     JSON.stringify(anchos))
   // Y que la PÁGINA no desborde: la tira se desliza ella sola.
   check('  …y la página no se va de ancho',

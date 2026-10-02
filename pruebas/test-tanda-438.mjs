@@ -140,7 +140,16 @@ console.log('\n── 5. Y el logo de la expansión, igual ──')
   pedidas.length = 0
   await elegir(page, 'ja')
   check('el logo japonés, a /ja/', logos().some((u) => u.includes('/ja/sv/sv1a/logo')), logos().join(' | '))
-  check('  …y NO a la inglesa', !logos().some((u) => u.includes('/en/sv/sv1a/logo')), logos().join(' | '))
+  // EL INGLÉS SÍ SALE, PERO DETRÁS (tanda 454). PINGU: «no hay fotos de los
+  // sets japoneses». De los catálogos que no son el inglés faltan
+  // muchísimos logos, y como el identificador de set es EL MISMO, la misma
+  // dirección con /en/ delante suele existir. Es un logo en inglés sobre
+  // una colección japonesa, sí — pero la alternativa de hoy no es un logo
+  // japonés, es el nombre en una caja gris. Lo que esta prueba defiende es
+  // el ORDEN: primero el suyo, y el inglés solo como último respaldo.
+  const orden = logos().map((u) => (u.includes('/ja/') ? 'ja' : u.includes('/en/') ? 'en' : '?'))
+  check('  …y antes que la inglesa', orden.indexOf('ja') >= 0 && (orden.indexOf('en') === -1 || orden.indexOf('ja') < orden.indexOf('en')),
+    logos().join(' | '))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }

@@ -201,7 +201,18 @@ console.log('\n── 5. Guardar: UNA petición, no una por carta ──')
   // Y lo guardado entra en la lista de la página, no solo en la base: sin
   // eso, la pestaña «Cartas» seguiría enseñando la colección de antes
   // hasta que recargaras, y no daría error en ninguna parte.
-  await page.click('[data-pestania="cartas"]')
+  // A «Cartas» NO SE VA POR EL MENÚ desde la tanda 447, que la sacó de ahí
+  // a propósito —el menú es Panel · Expansiones · Pokédex · Carpetas ·
+  // Buscar— y dejó la PANTALLA, a la que se llega por el «Ver todas» del
+  // Panel y por `?ver=cartas`. Esta prueba clicaba la pestaña que ya no
+  // existe y se caía con un tiempo agotado que parece un fallo de la web.
+  //
+  // Y se va por el «Ver todas», no recargando con `?ver=cartas`: lo que se
+  // comprueba aquí es que lo guardado entra en la lista DE LA PÁGINA, y una
+  // recarga la traería de la base y daría verde pase lo que pase.
+  await page.click('[data-pestania="resumen"]')
+  await page.waitForTimeout(700)
+  await page.click('[data-ir-a="cartas"]')
   await page.waitForTimeout(900)
   check('las nuevas salen ya en «Cartas»', (await page.locator('#mcCartas .mc-carta').count()) === 4,
     String(await page.locator('#mcCartas .mc-carta').count()))
