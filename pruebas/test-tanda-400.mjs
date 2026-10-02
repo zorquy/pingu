@@ -3,6 +3,11 @@
 // PINGU, enseñando Dex: arriba de su Pokédex hay cuatro cifras —cuántos
 // llevas, cuántos has completado, el que más tienes y el que menos— y
 // aquí solo había un «X de 1.025» en letra pequeña.
+//
+// «Completados» se fue en la tanda 431, a petición suya: «es una
+// estadística que sobra porque nadie o casi nadie tendrá completadas todas
+// las cartas de un Pokémon». Un Pikachu tiene más de 300, así que era un
+// cero permanente ocupando un cuarto de la cabecera.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
 let fails = 0
@@ -11,7 +16,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 200) : ''}`)
 }
 
-console.log('\n── 1. Las cuatro cifras, sin navegador ──')
+console.log('\n── 1. Las cifras, sin navegador ──')
 {
   const { resumenDePokedex, cabeceraHtml } = await import('/home/user/pingu/js/mi-coleccion/pokedex.js')
   const mio = new Map([[1, 3], [25, 31], [150, 1], [4, 0]])
@@ -20,8 +25,8 @@ console.log('\n── 1. Las cuatro cifras, sin navegador ──')
 
   check('cuenta los que tienes', r.registrados === 3, String(r.registrados))
   check('  …y el que está a cero no cuenta', r.registrados !== 4)
-  // Completado es tener TODAS las que el catálogo conoce.
-  check('completado es tenerlas todas', r.completados === 1, String(r.completados))
+  // Y «completados» ya no existe (tanda 431): era un cero permanente.
+  check('ya no se cuentan los completados', r.completados === undefined, String(r.completados))
   check('el que más tienes', r.mas.dex === 25 && r.mas.cuantas === 31, JSON.stringify(r.mas))
   // El que MENOS es entre los que tienes: un cero no es «poco», es que
   // no lo tienes, y para eso ya está lo que falta.
@@ -34,7 +39,9 @@ console.log('\n── 1. Las cuatro cifras, sin navegador ──')
   const html = cabeceraHtml(vacia)
   check('  …y esas dos tarjetas no se pintan',
     !/El que más/.test(html) && !/El que menos/.test(html))
-  check('  …pero las otras dos sí', /Registrados/.test(html) && /Completados/.test(html))
+  check('  …pero «Registrados» sí', /Registrados/.test(html))
+  check('  …y «Completados» ya no está en ninguna', !/Completados/.test(html) &&
+    !/Completados/.test(cabeceraHtml(r)))
 
   // 2 de 1.025 redondeado da «0 %», que parece que no tienes nada.
   const poco = cabeceraHtml(resumenDePokedex({ mio: new Map([[1, 1], [2, 1]]), totales: new Map() }))
