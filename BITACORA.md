@@ -35,6 +35,30 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 453 — filtros dentro de un Pokémon)
+
+**Hecho**: la ficha de una especie en la Pokédex tiene ya los mismos cuatro
+grupos de filtros que Buscar. La diferencia que importa: **las opciones
+salen de las cartas que hay**, no de los mapas de traducción. En Buscar no
+hay de dónde sacarlas —21.000 cartas y la consulta trae 120—; aquí la
+especie entera está en memoria. Y es mejor: dentro de un Pikachu, ofrecer
+«Estadio» sería un filtro que deja la pantalla en blanco siempre. Con la
+regla de que un grupo con menos de dos valores no se pinta, queda justo lo
+que distingue unas cartas de otras: la rareza y, a veces, el tipo de
+energía. Por eso van a la vista y no detrás de un botón.
+
+Cada opción guarda el valor CRUDO y el rótulo traducido —se filtra con uno
+y se lee el otro—, una carta sin curar no inventa un cajón «sin rareza», y
+los filtros se limpian al cambiar de especie.
+
+**Ficheros**: `js/mi-coleccion/filtros.js`, `js/mi-coleccion/pokedex.js`,
+`js/mi-coleccion.js`, `css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`:
+**NUEVA** `test-tanda-453.mjs`.
+
+**En curso / pendiente**: nada a medias. La portada sigue en **170,0 de
+170,0, sin un byte libre** (ver la entrada de la 452). Rigores pendientes:
+443 a 453.
+
 ## 2026-10-02 — PINGU-Claude (tanda 452 — la burbuja del menú)
 
 **Hecho**: el menú del móvil pasa a ser la **burbuja flotante** de Dex:

@@ -48,7 +48,7 @@ import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
 import { ORDENES, ordenar, porNumero, rangoDeRareza } from './mi-coleccion/orden.js'
-import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtrosVacios, sentidoNatural, FILTROS_CATALOGO, ORDENES_CATALOGO, filtrosCatalogoVacios, cuantosFiltrosCatalogo, ordenarCartas } from './mi-coleccion/filtros.js'
+import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtrosVacios, sentidoNatural, FILTROS_CATALOGO, ORDENES_CATALOGO, filtrosCatalogoVacios, cuantosFiltrosCatalogo, ordenarCartas, valoresDeCartas, pasaFiltrosDeCarta } from './mi-coleccion/filtros.js'
 import { balanceDeCompra } from './mi-coleccion/balance.js'
 import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
@@ -2880,6 +2880,32 @@ function pintarPokedex() {
 }
 
 let cartasDeLaEspecie = []
+// Los filtros de la especie abierta (tanda 453). Se vacían al abrir otra:
+// las rarezas de un Pikachu no son las de un Charizard, así que arrastrar
+// un filtro de una especie a la siguiente dejaría la pantalla vacía sin
+// que nada dijera por qué.
+const filtrosEspecie = filtrosCatalogoVacios()
+
+// Repinta la especie abierta con los filtros puestos. Las cartas no se
+// vuelven a pedir: están todas en memoria desde que se abrió, así que
+// aquí se filtra en memoria —al revés que en Buscar, donde la consulta
+// trae 120 de 21.000 y filtrar lo que vuelve sería filtrar la muestra.
+function pintarEspecieFiltrada() {
+  const caja = $('mcPokedexPanel')
+  if (!caja || especieAbierta == null) return
+  const tuyas = new Set(lineas.map((l) => l.card_id))
+  const grupos = valoresDeCartas(cartasDeLaEspecie, AYUDAS)
+  const lista = cartasDeLaEspecie.filter((c) => pasaFiltrosDeCarta(c, filtrosEspecie))
+  caja.innerHTML = pokedex.especieHtml({
+    dex: especieAbierta,
+    cartas: lista,
+    tuyas,
+    sinCatalogo: cartasDeLaEspecie.length === 0,
+    grupos,
+    puestos: filtrosEspecie,
+    deCuantas: cartasDeLaEspecie.length,
+  })
+}
 
 async function pintarEspecie(dex) {
   const caja = $('mcPokedexPanel')
@@ -2907,7 +2933,8 @@ async function pintarEspecie(dex) {
   // Se guardan para la ficha (tanda 418): al pulsar una carta de aquí
   // hay que poder pintarla, y las que no son tuyas no están en `cartas`.
   cartasDeLaEspecie = lista
-  caja.innerHTML = pokedex.especieHtml({ dex, cartas: lista, tuyas, sinCatalogo: delCatalogo.length === 0 })
+  for (const g of FILTROS_CATALOGO) filtrosEspecie[g.id].clear()
+  pintarEspecieFiltrada()
 }
 
 // Por colección y, dentro, por número impreso: es el orden del álbum, y
@@ -3729,6 +3756,14 @@ function enganchar() {
   }
   engancharFicha('mcAlbum', '.mc-bolsillo-enlace')
   engancharFicha('mcPanelPokedex', '.pdx-carta')
+  $('mcPokedexPanel')?.addEventListener('click', (e) => {
+    const chip = e.target.closest('[data-egrupo]')
+    if (!chip) return
+    const conjunto = filtrosEspecie[chip.dataset.egrupo]
+    if (conjunto.has(chip.dataset.evalor)) conjunto.delete(chip.dataset.evalor)
+    else conjunto.add(chip.dataset.evalor)
+    pintarEspecieFiltrada()
+  })
   // Y los resultados de Buscar (tanda 452). PINGU: «cuando abres una carta
   // desde el buscador te va a la ficha completa, y hemos dicho que toda
   // carta que se abra desde mi colección tiene que abrir el pop-up y desde

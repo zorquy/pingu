@@ -207,3 +207,47 @@ export function ordenarCartas(cartas, orden, sentido, ayudas) {
   const puente = { ...ayudas, carta: (l) => l.carta }
   return ordenarLineas(envueltas, orden, sentido, puente).map((l) => l.carta)
 }
+
+// ── Los mismos filtros, DENTRO de un Pokémon (tanda 453) ──
+//
+// PINGU: «cuando entras a un Pokémon en la Pokédex no hay filtros; debería
+// haber los mismos que en buscar, porque dentro de un Pokémon también
+// puede haber distintas rarezas y tipos».
+//
+// Son los mismos cuatro grupos, pero las OPCIONES salen de otro sitio y
+// eso cambia la pantalla entera. En Buscar salen de los mapas de
+// traducción porque no hay nada de donde sacarlas —el catálogo son 21.000
+// cartas y la consulta trae 120—; aquí las cartas de la especie están
+// TODAS en memoria, así que salen de ellas.
+//
+// Y eso es mejor, no solo más barato: dentro de un Pikachu, ofrecer
+// «Entrenador» o «Estadio» sería ofrecer un filtro que deja la pantalla en
+// blanco siempre. Con la regla de siempre —un grupo con menos de dos
+// valores no se pinta— lo que queda es justo lo que distingue a unas
+// cartas de otras de ese Pokémon: casi siempre la rareza, y a veces el
+// tipo de energía.
+export function valoresDeCartas(cartas, ayudas) {
+  const mapas = { category: 'categoriaEs', types: 'tipoEs', trainer_type: 'entrenadorEs', rarity: 'rarezaEs' }
+  return FILTROS_CATALOGO.map((g) => {
+    const traducir = ayudas[mapas[g.id]] || ((v) => v)
+    const vistos = new Map()
+    for (const c of cartas) {
+      const crudos = g.array ? (Array.isArray(c?.[g.columna]) ? c[g.columna] : []) : [c?.[g.columna]]
+      // Un campo a null no es un cajón: es que `cartas-detalle` todavía no
+      // ha llegado a esa carta. Meterla en un «sin rareza» la mezclaría
+      // con las que de verdad no llevan.
+      for (const v of crudos) if (v) vistos.set(v, traducir(v))
+    }
+    return { ...g, valores: [...vistos].sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'es')) }
+  }).filter((g) => g.valores.length > 1)
+}
+
+export function pasaFiltrosDeCarta(carta, puestos) {
+  for (const g of FILTROS_CATALOGO) {
+    const elegidos = puestos?.[g.id]
+    if (!elegidos || !elegidos.size) continue
+    const suyos = g.array ? (Array.isArray(carta?.[g.columna]) ? carta[g.columna] : []) : [carta?.[g.columna]]
+    if (!suyos.some((v) => v && elegidos.has(v))) return false
+  }
+  return true
+}

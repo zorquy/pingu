@@ -23917,3 +23917,50 @@ campo al entrar es un atajo para UNA de las dos cosas que se pueden hacer
 en esa pantalla, y en un móvil no es un atajo barato: el teclado se come
 media pantalla y tapa justo la otra opción. En un escritorio costaría cero
 — pero el que escanea es precisamente el del móvil.
+
+## Tanda 453 — los mismos filtros, dentro de un Pokémon (oct. 2026)
+
+PINGU: «cuando entras a un Pokémon en la Pokédex no hay filtros; debería
+haber los mismos que en buscar, porque dentro de un Pokémon también puede
+haber distintas rarezas y tipos».
+
+Son los mismos cuatro grupos (`FILTROS_CATALOGO`), pero **las opciones
+salen de otro sitio, y eso cambia la pantalla entera**:
+
+- En **Buscar** salen de los mapas de traducción, porque no hay nada de
+  donde sacarlas: el catálogo son 21.000 cartas y la consulta trae 120.
+- **Aquí** las cartas de la especie están TODAS en memoria desde que se
+  abrió, así que salen de ellas.
+
+Y eso no es solo más barato, es **mejor**: dentro de un Pikachu, ofrecer
+«Entrenador» o «Estadio» sería ofrecer un filtro que deja la pantalla en
+blanco siempre. Con la regla de siempre —un grupo con menos de dos valores
+no se pinta— queda justo lo que distingue a unas cartas de otras de ese
+Pokémon: casi siempre la rareza, y a veces el tipo de energía.
+
+Por el mismo motivo los chips van **a la vista y no detrás de un botón**:
+en Buscar son cuatro grupos con todas las opciones del catálogo y no caben;
+aquí casi siempre queda uno, y un modal para abrir una fila de chips es una
+puerta para cruzar un pasillo.
+
+Tres detalles que la prueba fija:
+
+- **Cada opción guarda su valor crudo Y su rótulo traducido.** Se filtra
+  con el crudo y se lee el traducido; si se guardara el traducido, el
+  filtro compararía «Común» contra `Common` y no casaría con nada. Es lo de
+  `name_es` de la tanda 334 otra vez.
+- **Un campo a null no es un cajón.** Una carta a la que `cartas-detalle`
+  todavía no ha llegado no inventa un «sin rareza» que la mezclaría con las
+  que de verdad no llevan.
+- **Los filtros no se arrastran de una especie a otra.** Las rarezas de un
+  Pikachu no son las de un Charizard: un filtro heredado dejaría la
+  pantalla vacía sin que nada dijera por qué. Y con un filtro puesto la
+  cabecera dice «2 de 6 con los filtros», que es la lección de la 441.
+
+### Y la trampa de la clase compartida, por tercera tanda seguida
+
+Escribiendo la prueba puse `.mc-chip-filtro.activo` sin acotar, y salió
+rojo: esa clase la usan también las pestañas del diálogo de adornos, que
+nacen con una encendida. Van tres seguidas —las tarjetas de colección en la
+447, las dos bandejas en la 452 y esta—, siempre igual: **una clase que se
+pinta en dos pantallas necesita que la prueba diga en cuál mira.**

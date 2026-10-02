@@ -209,7 +209,32 @@ export function rejillaHtml(filas, orden = 'dex') {
 // `tuyas` es el conjunto de identificadores que tienes, para marcarlas.
 // Las que no tienes salen en gris, igual que los bolsillos vacíos del
 // álbum: es el mismo gesto y no hay que aprender otro.
-export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false }) {
+// LOS FILTROS DE LA ESPECIE (tanda 453). PINGU: «cuando entras a un
+// Pokémon en la Pokédex no hay filtros; debería haber los mismos que en
+// buscar, porque dentro de un Pokémon también puede haber distintas
+// rarezas y tipos».
+//
+// Van EN LA PANTALLA y no detrás de un botón como los de Buscar, y es a
+// propósito: ahí son cuatro grupos con todas las opciones del catálogo y
+// no caben; aquí las opciones salen de las cartas que hay, y con la regla
+// de que un grupo con menos de dos valores no se pinta casi siempre queda
+// uno —la rareza—. Un modal para abrir una fila de chips es una puerta
+// para cruzar un pasillo.
+function chipsDeEspecie(grupos, puestos) {
+  if (!grupos.length) return ''
+  return `<div class="pdx-filtros">${grupos
+    .map(
+      (g) => `<div class="pdx-grupo"><h4>${escapeHtml(g.nombre)}</h4><div class="mc-chips-filtro">${g.valores
+        .map(([crudo, rotulo]) => {
+          const puesto = !!puestos?.[g.id]?.has(crudo)
+          return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-egrupo="${escapeHtml(g.id)}" data-evalor="${escapeHtml(crudo)}" aria-pressed="${puesto ? 'true' : 'false'}">${escapeHtml(rotulo)}</button>`
+        })
+        .join('')}</div></div>`
+    )
+    .join('')}</div>`
+}
+
+export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null }) {
   const nombre = especiePorDex(dex) || `N.º ${dex}`
   const sprite = urlDeSprite(dex)
   const tengo = cartas.filter((c) => tuyas.has(c.id)).length
@@ -238,7 +263,9 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false }) {
         .join('')}</div>`
     : sinCatalogo
       ? '<p class="empty-state">El catálogo todavía no sabe de qué Pokémon habla cada carta. En cuanto termine de repasarlo, aquí saldrán todas las de este Pokémon.</p>'
-      : '<p class="empty-state">No hay ninguna carta de este Pokémon en el catálogo.</p>'
+      : puestos && deCuantas
+        ? '<p class="empty-state">Ninguna carta de este Pokémon encaja con esos filtros.</p>'
+        : '<p class="empty-state">No hay ninguna carta de este Pokémon en el catálogo.</p>'
   return `
     <div class="pdx-cabecera">
       <!-- La flecha en texto, como el «← Todas las colecciones» del
@@ -253,9 +280,15 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false }) {
         <h3>${escapeHtml(nombre)}</h3>
         <p class="subtext">N.º ${String(dex).padStart(4, '0')}${
           cartas.length ? ` · tienes ${tengo} de ${cartas.length}` : ''
+        }${
+          // Con un filtro puesto, la cuenta de arriba se queda corta y
+          // nada diría por qué: es la misma lección que la de «9 de 12»
+          // de la tanda 441.
+          deCuantas && deCuantas !== cartas.length ? ` · ${cartas.length} de ${deCuantas} con los filtros` : ''
         }</p>
       </div>
     </div>
+    ${chipsDeEspecie(grupos, puestos)}
     ${cuerpo}`
 }
 
