@@ -24548,3 +24548,45 @@ ganándole por peso al `flex: 0 0 auto` de `.mc-mandos` desde la 445, así
 que los dos desplegables de la estantería tampoco se deslizaban — se
 encogían. Es exactamente el mismo fallo, en la pantalla de al lado, y
 llevaba catorce tandas ahí.
+
+---
+
+## Tanda 460 — Nidoran♀ y Nidoran♂ son dos especies (oct. 2026)
+
+PINGU: **«has metido al Nidoran macho dentro de la categoría de Nidoran
+hembra en la Pokédex. Hay que hacer diferenciación entre estos dos»**.
+
+Para encontrar el número de Pokédex de un nombre se APLASTA: sin tildes,
+sin mayúsculas y sin nada que no sea letra o número. Con eso «Farfetch'd»,
+«Mr. Mime» y «Ho-Oh» encuentran el suyo… y los dos símbolos de género
+desaparecen, así que «Nidoran♀» y «Nidoran♂» se quedaban los dos en
+`nidoran`. La tabla la construye un bucle donde **el primero gana**, y el
+primero es la hembra (29): todas las cartas del macho (32) acababan en la
+ficha de la hembra, con su sprite y su línea de evolución.
+
+**No daba ningún error**, que es lo de siempre: la especie existe, la carta
+existe y el número que salía era un número válido. Solo estaba mal.
+
+La curiosidad es que el SPRITE sí salía bien, porque `slugLimitless` ya
+traducía el símbolo a letra (`nidoran-f`, `nidoran-m`) — o sea que el
+mecanismo correcto estaba escrito dos funciones más abajo. Ahora `aplastar`
+hace lo mismo, y «Nidoran» a secas se registra aparte como la hembra: un
+nombre de mazo escrito a mano no lleva el símbolo, y dejar de resolverlo
+sería cambiar una firma de arquetipo por arreglar otra cosa.
+
+### Y las filas ya escritas
+
+`tcg_cards.dex_ids` **se guarda**, y la función programada solo mira las
+que están a `null`. O sea que arreglar el cliente no alcanza a lo que ya
+está escrito: la Pokédex seguiría enseñando el macho dentro de la hembra
+con el código ya correcto, que es la peor versión del fallo porque ya no se
+puede reproducir leyendo el código.
+`supabase-migration-nidoran-genero.sql` las devuelve a la cola con `null`
+—y no con `{}`, que es «mirado y no hay ninguno» y las dejaría fuera para
+siempre—.
+
+### La prueba, contra la forma
+
+No mira a Nidoran: recorre las 1.025 especies y exige que **no haya dos con
+la misma clave aplastada**. Hoy Nidoran es el único caso; el que venga
+mañana se caza solo.

@@ -223,8 +223,20 @@ export const POKEMON_POR_DEX = [
 // Misma normalización que se usó al generar la tabla: sin tildes, sin
 // mayúsculas y sin nada que no sea letra o número. Es lo que hace que
 // «Farfetch'd», «Mr. Mime» y «Ho-Oh» encuentren su número.
+//
+// EL SÍMBOLO DE GÉNERO SE QUEDA, COMO LETRA (tanda 460). PINGU: «has
+// metido al Nidoran macho dentro de la categoría de Nidoran hembra en la
+// Pokédex». Son DOS especies con dos números (29 y 32), dos sprites y dos
+// líneas de evolución, y aquí se borraban los dos símbolos y las dos
+// casaban con «nidoran» — ganaba la primera, la hembra, y todas las cartas
+// del macho acababan en la ficha de la hembra. Sin dar ningún error: la
+// especie existe, la carta existe y el número que sale es un número
+// válido. Es el mismo mapeo que ya hacía `slugLimitless` para pedir el
+// sprite (nidoran-f / nidoran-m), que por eso sí salía bien.
 function aplastar(texto) {
   return String(texto ?? '')
+    .replace(/♀/g, 'f')
+    .replace(/♂/g, 'm')
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
@@ -234,9 +246,12 @@ function aplastar(texto) {
 const DEX_POR_NOMBRE = new Map()
 for (let i = 0; i < POKEMON_POR_DEX.length; i++) {
   const clave = aplastar(POKEMON_POR_DEX[i])
-  // El primero gana: Nidoran♀ y Nidoran♂ colapsan en el mismo nombre.
   if (!DEX_POR_NOMBRE.has(clave)) DEX_POR_NOMBRE.set(clave, i + 1)
 }
+// Y «Nidoran» A SECAS sigue dando la hembra, que es lo que daba antes.
+// Un nombre de mazo escrito a mano no lleva el símbolo, y dejar de
+// resolverlo sería cambiar una firma de arquetipo por arreglar otra cosa.
+if (!DEX_POR_NOMBRE.has('nidoran')) DEX_POR_NOMBRE.set('nidoran', 29)
 
 // ── Formas con carta PROPIA en el TCG ──
 //

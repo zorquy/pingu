@@ -35,6 +35,26 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 460 — los dos Nidoran)
+
+**Hecho**: PINGU: «has metido al Nidoran macho dentro de la categoría de
+Nidoran hembra en la Pokédex». Al aplastar un nombre para buscar su número
+se borraban los símbolos de género, así que ♀ y ♂ caían los dos en
+«nidoran» y ganaba el primero de la tabla (la hembra, 29). El sprite SÍ
+salía bien, porque `slugLimitless` ya traducía el símbolo — el mecanismo
+correcto estaba escrito dos funciones más abajo. La prueba recorre las
+1.025 especies exigiendo que no haya dos con la misma clave.
+
+**Ficheros**: `js/torneos/sprites-pokemon.js`,
+`supabase-migration-nidoran-genero.sql` (NUEVO), `SCHEMA.md`. En `pruebas`:
+`test-tanda-460.mjs` (NUEVO).
+
+**En curso / pendiente**: ⚠️ **HAY QUE EJECUTAR
+`supabase-migration-nidoran-genero.sql`** en el SQL Editor: `dex_ids` está
+guardado y las filas viejas dicen 29 donde toca 32; sin eso la Pokédex
+sigue igual con el código ya arreglado. Sigue la lista de la noche (ver la
+entrada de la 459).
+
 ## 2026-10-02 — PINGU-Claude (tanda 459 — la pantalla de una expansión, en el móvil)
 
 **Hecho**: PINGU, con la captura de una expansión en el móvil: «en movil se
