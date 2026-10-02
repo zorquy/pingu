@@ -41,7 +41,12 @@ with pares as (
     vacia.tcg_online_code as codigo,
     vacia.release_date as fecha,
     vacia.logo_path as logo,
-    vacia.symbol_url as simbolo
+    vacia.symbol_url as simbolo,
+    -- La SERIE, que se me olvidó en la primera versión y es por donde
+    -- agrupa la estantería: sin ella las cuatro galerías se salían de
+    -- «Espada y Escudo» y caían en «Sin serie» (tanda 433).
+    vacia.serie_id as serie,
+    vacia.serie_name as serie_nombre
   from tcg_sets conCartas
   join tcg_sets vacia
     on vacia.market = conCartas.market
@@ -57,7 +62,9 @@ update tcg_sets s
 set tcg_online_code = coalesce(s.tcg_online_code, p.codigo),
     release_date    = coalesce(s.release_date, p.fecha),
     logo_path       = coalesce(s.logo_path, p.logo),
-    symbol_url      = coalesce(s.symbol_url, p.simbolo)
+    symbol_url      = coalesce(s.symbol_url, p.simbolo),
+    serie_id        = coalesce(s.serie_id, p.serie),
+    serie_name      = coalesce(s.serie_name, p.serie_nombre)
 from pares p
 where s.id = p.destino and s.market = 'WEST';
 

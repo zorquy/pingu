@@ -75,6 +75,52 @@ rigor, 32 de 32 (pasado sobre este mismo código antes de renumerar: solo
 cambian comentarios). Con lo de la 422 a la 424 debajo, en verde también
 la 413, 421, 422, 414, 384, 305, 310, 369 y 406.
 
+## 2026-10-02 — PINGU-Claude (tanda 433 — devolverle su era a las galerías: ARREGLO DE UN FALLO MÍO)
+
+**Hecho**: `supabase-migration-trainer-gallery.sql` (tanda 432) juntó las
+dos mitades de cada Trainer Gallery —código, fecha y dibujo de la gemela
+vacía, y después borrarla— pero **se me olvidó `serie_id`**. Y la
+estantería agrupa justo por ahí (`const clave = s.serie_id || ''`), así
+que las cuatro galerías se salieron de «Espada y Escudo» y cayeron en
+«Sin serie». Lo vio PINGU: «la Trainer Gallery de Silver Tempest debería
+estar al lado de Silver Tempest».
+
+**La gemela ya no está para copiarle nada**, así que la era hay que
+sacarla de otro sitio, y el mejor es el NOMBRE: «Silver Tempest Trainer
+Gallery» es de la era de «Silver Tempest». Es como lo dijo PINGU y como lo
+entiende cualquiera. Nada de recortar identificadores —`swsh12.5tg` menos
+`.5tg` da `swsh12`, pero eso es una regla que hay que saberse y que se
+rompe en cuanto cambie el patrón.
+
+Vale igual para las Galarian Gallery, y de paso le pone la fecha del set
+padre si le faltaba: dentro de una era los sets van por fecha, así que sin
+ella la galería se iría al fondo en vez de quedarse al lado de su set.
+
+**Y la migración de la 432 queda arreglada también**, para quien la
+ejecute de cero: ahora copia `serie_id` y `serie_name` de la gemela.
+
+**Probado contra PostgreSQL 16** con dos trampas: una galería que YA tiene
+era (no se toca) y una galería SIN set padre (se queda sin resolver en vez
+de inventarse una). Pasada dos veces: idempotente. Y la original,
+reejecutada de cero, deja las cuatro con su era.
+
+**Y el asunto de los logos queda CERRADO**: los 37 sets sin dibujo tienen
+`curado_v = 1`, visitados el 2026-09-30. O sea que el curador que SÍ sabe
+de logos (tanda 380) ya pasó por ellos y volvió con las manos vacías:
+**TCGdex no tiene logo de esos sets**. No hay nada que arreglar en nuestro
+código, y lo que hace la web —enseñar el nombre en la caja, tanda 415— es
+la respuesta correcta.
+
+**Ficheros**: nuevo `supabase-migration-trainer-gallery-serie.sql`;
+corregido `supabase-migration-trainer-gallery.sql`; `diagnostico-imagenes
+.sql` al día.
+
+**En curso / pendiente**: PINGU tiene que ejecutar la migración nueva. De
+las 1.231 cartas sin imagen: 619 YA SE VEN por Limitless, 120 las arregla
+la 432, y las ~492 restantes —trainer kits, McDonald's, promos sueltas—
+TCGdex no las tiene. Queda decidir si se mete `pokemontcg.io` como segunda
+fuente o se asume.
+
 ## 2026-10-02 — PINGU-Claude (tanda 431 — fuera «Completados», y el diagnóstico de las imágenes)
 
 **Hecho**: PINGU, con la Pokédex delante: «deberías quitar lo de
