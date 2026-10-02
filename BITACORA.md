@@ -75,6 +75,61 @@ rigor, 32 de 32 (pasado sobre este mismo código antes de renumerar: solo
 cambian comentarios). Con lo de la 422 a la 424 debajo, en verde también
 la 413, 421, 422, 414, 384, 305, 310, 369 y 406.
 
+## 2026-10-02 — PINGU-Claude (tanda 435 — el CDN de pokemontcg.io, de último recurso)
+
+**Hecho**: un cuarto sitio donde buscar el escaneo de una carta, el
+último de la cadena.
+
+**Cómo se llegó**: PINGU pasó una carta concreta —su Bulbasaur SWSH303 de
+SWSH Black Star Promos— y abrió a mano las cuatro direcciones candidatas,
+que es como se resuelve esto cuando el contenedor no tiene red. Resultado:
+
+  · TCGdex no la tiene. **Confirmado en su propio código**: el fichero
+    `SWSH303.ts` de `tcgdex/cards-database` no lleva campo de imagen. O sea
+    que el truco de la 434 —montar la ruta a mano— no la salva: ese
+    arregla los casos del issue #2362 (`mep`, `P-A`, `svp`), donde el
+    fichero SÍ está en el CDN pero su manifiesto no lo lista.
+  · Limitless tampoco, ni con `SP` ni con `SWSHP` de carpeta.
+  · **pokemontcg.io sí**, y sin pedir clave.
+
+**Lo que hace que esto no sea una dependencia de verdad**: sus FOTOS no
+piden clave. La clave de pokemontcg.io es para su API de datos;
+`images.pokemontcg.io` es un CDN a secas. Es una dirección más que probar,
+y si no contesta la cadena sigue igual que antes.
+
+Va la ÚLTIMA a propósito: las tres de delante son el escaneo oficial de
+TPCi, y esta es la red de seguridad. Además es la de futuro más incierto
+—su web ya dice «now part of Scrydex», que es de pago—, así que cuanto
+menos dependa de ella la pantalla, mejor.
+
+**El identificador de set es el nuestro casi siempre** (`swshp` es
+`swshp`), con una familia que no: las colecciones de McDonald's, que ellos
+nombran por el AÑO. Se DEDUCE —`2021swsh` → `mcd21`, `2014xy` → `mcd14`—
+en vez de escribir una tabla: una tabla de doce entradas se queda vieja a
+la siguiente colaboración (la lección de la 323) y el patrón es el mismo
+desde 2011. La prueba incluye un `2027sv` inventado para comprobar que una
+era futura se resolvería sola. Lo que no encaja —los trainer kits, que
+ellos llaman `tk1a`— se deja pasar tal cual: da 404 y la cadena sigue.
+
+**Dos cosas dichas sin adornos**:
+
+  · NO se puede concluir que nuestro mapeo de Limitless esté mal. Fallaron
+    las DOS carpetas, así que lo más probable es que Limitless no tenga esa
+    carta. Si hubiera cargado `SWSHP` y no `SP`, ahí sí habría un fallo
+    nuestro afectando a 307 promos. Queda descartado, no confirmado.
+  · Esto es hotlinking a un CDN ajeno, igual que ya hacemos con Limitless
+    y con TCGdex. Si algún día cortan, esas cartas vuelven al hueco con el
+    nombre: la cadena degrada sola, que para eso está.
+
+**Ficheros**: `js/escaneo-carta.js`. En `pruebas`: `test-tanda-435.mjs` y
+`rigor/rigor-tanda-435.py` (nuevos; 11 mutaciones, las 11 detectadas a la
+primera).
+
+**En curso / pendiente**: mirar en producción si aparecen el SWSH303 y
+alguna de McDonald's. Y queda la vía de subir las que falten al Ingest de
+TCGdex (manager.tcgdex.net), que ayuda a todo el mundo y no solo a
+nosotros.
+
 ## 2026-10-02 — PINGU-Claude (tanda 434 — la ruta del asset de TCGdex, montada a mano)
 
 **Hecho**: cuando `image_path` está a null, la dirección del escaneo **se

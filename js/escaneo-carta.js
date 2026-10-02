@@ -83,6 +83,50 @@ export function imagenDeLimitless(set, numero, tamanio = 'SM') {
   return `${CDN}/${s}/${s}_${num}_R_EN_${tamanio}.png`
 }
 
+// ── El último sitio: el CDN de imágenes de pokemontcg.io (tanda 435) ──
+//
+// Lo comprobó PINGU abriendo las direcciones a mano, que es como se
+// resuelven estas cosas cuando el contenedor no tiene red: de su Bulbasaur
+// SWSH303 no tienen escaneo ni TCGdex ni Limitless, y pokemontcg.io sí.
+//
+// Lo importante de esta fuente: **las fotos no piden clave**. La clave de
+// pokemontcg.io es para su API de datos; `images.pokemontcg.io` es un CDN
+// a secas. Así que esto no es una dependencia nueva de verdad — es una
+// dirección más que probar, y si no contesta la cadena sigue.
+//
+// Va la ÚLTIMA a propósito. Las dos de delante son el escaneo oficial de
+// TPCi; esta es la red de seguridad, y su futuro es el más incierto de
+// las tres (su web ya dice «now part of Scrydex», que es de pago).
+const POKEMONTCG = 'https://images.pokemontcg.io'
+
+// Sus identificadores de set son los nuestros casi siempre —`swshp` es
+// `swshp`—, con una familia que no: las colecciones de McDonald's, que
+// ellos nombran por el AÑO. `2021swsh` es `mcd21` y `2023sv` es `mcd23`.
+//
+// Se DEDUCE en vez de escribir una tabla: una tabla de doce entradas se
+// queda vieja a la siguiente colaboración (la lección de la 323), y el
+// patrón es el mismo desde 2011. Lo que no se deduce —los trainer kits,
+// que ellos llaman `tk1a`— se deja pasar tal cual: si el identificador no
+// es el suyo, la dirección da 404 y no pasa nada.
+const MCDONALDS = /^(\d{4})(swsh|sv|sm|xy|bw)$/i
+
+export function setDePokemonTCG(setId) {
+  const s = String(setId ?? '').trim()
+  if (!s || /[/?#\s]/.test(s)) return null
+  const m = s.match(MCDONALDS)
+  return m ? `mcd${m[1].slice(2)}` : s
+}
+
+// `_hires` es su versión grande; sin sufijo, la pequeña. Se eligen con la
+// misma palabra que el resto de la cadena para que quien pida 'high' la
+// reciba grande en los tres sitios.
+export function imagenDePokemonTCG(setId, numero, calidad = 'low') {
+  const set = setDePokemonTCG(setId)
+  const n = String(numero ?? '').trim()
+  if (!set || !n || /[/?#\s]/.test(n)) return null
+  return `${POKEMONTCG}/${set}/${n}${calidad === 'high' ? '_hires' : ''}.png`
+}
+
 // ── El código de TCG Live de la carta que sea ──
 //
 // De dónde sale depende de cómo venga la fila: con su set embebido
@@ -152,6 +196,10 @@ export function cadenaDeEscaneo(carta, codigoDeSet = null, calidad = 'low', urlD
   const occidental = !carta?.market || carta.market === 'WEST'
   const limitless = occidental ? imagenDeLimitless(codigoDeSetDe(carta, codigoDeSet), carta?.local_id) : null
   if (limitless) cadena.push(limitless)
+  // Y el último sitio (tanda 435), también solo para las occidentales: su
+  // catálogo es el inglés, igual que el de Limitless.
+  const otro = occidental ? imagenDePokemonTCG(carta?.set_id, carta?.local_id, calidad) : null
+  if (otro) cadena.push(otro)
   return [...new Set(cadena)]
 }
 
