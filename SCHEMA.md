@@ -24590,3 +24590,83 @@ siempre—.
 No mira a Nidoran: recorre las 1.025 especies y exige que **no haya dos con
 la misma clave aplastada**. Hoy Nidoran es el único caso; el que venga
 mañana se caza solo.
+
+---
+
+## Tanda 461 — la chapa de la versión, y la cabecera como la de Dex (oct. 2026)
+
+Tres cosas que PINGU pidió con la app de Dex delante.
+
+### 1. «Sale Weedle y Weedle, o sea, no pone la diferencia»
+
+Con «separar variantes» puesto, una carta con normal y reverse ocupa dos
+casillas… **idénticas**: el catálogo guarda UN escaneo por carta.
+
+Lo bueno es que el rótulo existía desde la tanda 383
+(`.mc-bolsillo-variante`). Lo malo es dónde: en el flujo normal, **debajo**
+de `.mc-bolsillo-enlace`, que va a `inset: 0` y cubre el bolsillo entero.
+O sea que llevaba 78 tandas pintado y tapado. Un `textContent` lo
+encontraba —la prueba de la 398 lo contaba y salía verde—, pero nadie lo
+vio nunca. Es la lección de la 447 llevada al píxel: **encontrar un
+elemento no es verlo**, y por eso la prueba nueva hace un `elementFromPoint`
+sobre el centro de la chapa y comprueba que le toca a ella.
+
+Ahora es `.mc-chapa-variante`, encima de la ilustración y por encima del
+mando de copias, y **sale siempre, también en la normal**: si solo saliera
+en la rara, la normal se leería como «no se sabe» en vez de como «esta es
+la normal». Va igual en /mi-coleccion → Cartas, que es donde PINGU la pidió
+primero.
+
+### 2. El velo del reverse
+
+«Las reverse son más oscuras porque tienen el holográfico en toda la carta;
+igual meterle un filtro». Literal: el brillo va en TODO el marco y no solo
+en la ilustración. `.mc-velo-reverse` es un tornasol en `mix-blend-mode:
+screen` con un oscurecido suave — aclara el tornasol y deja la carta
+debajo, en vez de pintar un velo plano encima.
+
+Es un ELEMENTO y no un `::after` del botón, y eso no es un gusto: en
+«Cartas» el botón es `.carta-scan-holo`, que ya se gasta sus dos pseudos en
+el brillo de la rareza. Dos dueños para el mismo pseudo se rompen al tocar
+cualquiera de los dos.
+
+### 3. La cabecera, con sus iconos
+
+«Fíjate en Dex: tiene unos botones arriba, el de seleccionar múltiples
+cartas, el corazón para marcar el set como favorito y uno de compartir.
+Nosotros estamos ocupando mucho con botones muy grandes y es una diferencia
+tremenda.»
+
+Los tres existían y los tres eran chapas con texto en la fila de filtros:
+«Marcar varias», «Marcar como favorita» y «Copiar las 485 que me faltan»
+son 440 px de fila para tres acciones que casi no se usan y que, cuando se
+usan, se buscan ARRIBA. Ahora son iconos de 36 px (44 en táctil) junto al
+nombre.
+
+Y el cuarto, el engranaje del «Al añadir». PINGU dijo «eso yo lo
+quitaría», y lo que sobraba era la CHAPA, no el ajuste: el `+` de una carta
+suma una copia en ESE idioma y ESE estado, y sin poder cambiarlo quien
+colecciona en inglés tendría que editar carta por carta. **Y ahora se
+recuerda en el navegador**, que es lo que un ajuste tiene que hacer: el de
+antes se olvidaba al recargar, o sea que pedía elegir otra vez en cada
+visita.
+
+Lo de «copiar lo que me falta es un botón que no hace nada» tampoco era
+que no hiciera: es que una chapa que dice «Copiar las 485 que me faltan»
+ocupa una fila entera y aun así no cuenta qué pasa al pulsarla. Como icono
+de compartir, con su globo, dice lo mismo en 36 px.
+
+### Y el repaso de tamaños
+
+- Los mandos de la tira, **todos a la misma altura**: eran tres familias de
+  chapa con tres alturas (36, 44 y 44) y la fila salía escalonada. PINGU:
+  «alinear, por ejemplo cualquier categoría y juntar variantes».
+- **La flecha del desplegable ya no pisa la letra**: la pinta `style.css`
+  como fondo a 12 px del canto y con 12 de ancha, así que el texto tiene
+  que parar antes de 24 — con 32 de relleno se le quedaba a 8, que con una
+  «a» final es rozarla. Son 36, que es lo que pide la regla global; aquí se
+  repite porque el relleno de arriba es un atajo que lo borra.
+- El **buscador** baja a 40 px con ratón (44 en táctil, que no se negocia)
+  y las **tarjetas de datos** a `--e-md` de relleno con la cifra en
+  `--t-2xl`. En la pantalla de una expansión eso son 494 px hasta la
+  primera carta, donde antes de la 459 había 920.

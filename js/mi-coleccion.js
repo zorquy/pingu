@@ -800,6 +800,9 @@ function notaDePrecio(l, precio) {
 function lineaHtml(l) {
   const c = cartas.get(l.card_id)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  // Solo para la ETIQUETA que lee quien no ve la carta: lo que se PINTA es
+  // la chapa de encima (tanda 461), que sale siempre. Aquí se calla cuando
+  // es la normal porque decir «Pikachu, Normal» en voz alta no añade nada.
   const variante = l.variante !== 'normal' ? varianteDe(l.variante).nombre : ''
   const brillo = c ? familiaDeBrillo(c.rarity) : null
   // La etiqueta la lee quien no ve la carta, así que lleva lo que la
@@ -836,9 +839,10 @@ function lineaHtml(l) {
           }</span>` +
           (escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : '')
         }
+        ${veloDeVariante(l.variante)}
         ${l.cantidad > 1 ? `<span class="mc-cantidad">×${l.cantidad}</span>` : ''}
+        ${chapaDeVarianteHtml(l.variante)}
       </button>
-      ${variante ? `<span class="mc-carta-variante">${escapeHtml(variante)}</span>` : ''}
     </article>`
 }
 
@@ -1568,7 +1572,11 @@ function pintarEstrella() {
   const marcada = favoritos.has(album.set)
   b.classList.toggle('activa', marcada)
   b.setAttribute('aria-pressed', marcada ? 'true' : 'false')
-  b.querySelector('.mc-estrella-texto').textContent = marcada ? 'Favorita' : 'Marcar como favorita'
+  // Desde la 461 es un icono en la cabecera, sin rótulo: lo que dice qué
+  // hace es el `title` y el `aria-label`, que cambian con el estado.
+  const dice = marcada ? 'Quitar de favoritas' : 'Marcar como favorita'
+  b.title = dice
+  b.setAttribute('aria-label', dice)
 }
 
 async function cambiarFavorita() {
@@ -1665,6 +1673,50 @@ function marcaDeBolsillo(cardId, variante = 'normal') {
 const claseMarcada = (cardId, variante = 'normal') =>
   marcadas?.has(claveMarca(cardId, variante)) ? ' marcada' : ''
 
+// ── LA CHAPA DE LA VERSIÓN (tanda 461) ──
+//
+// PINGU, con la pantalla de una expansión en «separar variantes»: «sale
+// Weedle y Weedle, o sea, no pone la diferencia; debería haber una
+// tarjetita que ponga Holo o Reverse». Y tenía toda la razón: el rótulo
+// EXISTÍA desde la 383 (`.mc-bolsillo-variante`), pero iba en el flujo
+// normal DEBAJO de `.mc-bolsillo-enlace`, que está puesto a `inset: 0` y
+// cubre el bolsillo entero. O sea que estaba pintado y tapado: dos huecos
+// idénticos, y el dato que los distingue debajo de una capa.
+//
+// Ahora es una chapa ENCIMA de la carta, como en Dex, y sale SIEMPRE —
+// también en la normal—: si solo saliera en la rara, la normal se leería
+// como «no se sabe» y no como «esta es la normal».
+//
+// El código corto va dentro y el nombre al lado, que es lo que hace que se
+// entienda sin tener que aprenderse las siglas.
+function chapaDeVarianteHtml(id) {
+  const v = varianteDe(id)
+  const corto = CORTO_DE_VARIANTE[v.id] || 'N'
+  // El nombre va en su propia caja para que pueda recortarse sin empujar al
+  // código: un hijo de flex sin `min-width: 0` no cede, desborda (la 320).
+  return `<span class="mc-chapa-variante" data-var="${escapeHtml(v.id)}" aria-hidden="true"><b>${escapeHtml(corto)}</b><span>${escapeHtml(v.nombre)}</span></span>`
+}
+
+const CORTO_DE_VARIANTE = { normal: 'N', reverse: 'RH', holo: 'H', primera: '1.ª' }
+
+// EL VELO DEL REVERSE (tanda 461). PINGU: «sé que la carta es la misma
+// imagen para las dos; en Dex sí las diferencian, las reverse son como más
+// oscuras porque tienen el holográfico en toda la carta; igual meterle un
+// filtro más oscuro».
+//
+// Y es exactamente eso: un reverse holo lleva el brillo en TODO el marco,
+// no solo en la ilustración, así que se ve más oscuro y con tornasol. El
+// catálogo guarda UN escaneo por carta —el normal—, de modo que sin esto
+// las dos casillas son la misma imagen y la chapa es el único dato.
+//
+// Va como ELEMENTO y no como `::after` del botón: en la pantalla de Cartas
+// el botón es `.carta-scan-holo`, que ya se gasta sus dos pseudos en el
+// brillo de la rareza (css/carta-holo.css). Dos dueños para el mismo
+// pseudo es un apaño que se rompe al tocar cualquiera de los dos.
+function veloDeVariante(id) {
+  return id === 'reverse' ? '<span class="mc-velo-reverse" aria-hidden="true"></span>' : ''
+}
+
 function bolsilloDeVariante(c, v) {
   const n = tengoDe(c.id, v.nuestro)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
@@ -1689,11 +1741,12 @@ function bolsilloDeVariante(c, v) {
   const dentro = `
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
-    <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
+    ${veloDeVariante(v.nuestro)}
+    <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
+    ${chapaDeVarianteHtml(v.nuestro)}`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
-  const pie = `<span class="mc-bolsillo-variante">${escapeHtml(v.nombre)}</span>`
-  if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}${pie}</div>`
-  return `<div class="mc-bolsillo${n ? ' tengo' : ''}${claseMarcada(c.id, v.nuestro)} mc-bolsillo-con-mando">${enlace}${pie}
+  if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}</div>`
+  return `<div class="mc-bolsillo${n ? ' tengo' : ''}${claseMarcada(c.id, v.nuestro)} mc-bolsillo-con-mando">${enlace}
     <span class="mc-bolsillo-controles mc-bolsillo-mando">
       <button type="button" data-quitar="${escapeHtml(c.id)}" data-var="${escapeHtml(v.nuestro)}" ${n ? '' : 'disabled'} aria-label="Quitar una copia de ${escapeHtml(nombre)}, ${escapeHtml(v.nombre)}">−</button>
       <span class="mc-bolsillo-cuenta" aria-hidden="true">${n}</span>
@@ -1872,10 +1925,17 @@ function pintarBotonDeFaltan(filtrando) {
   const cuantas = loQueFaltaAhora().length
   // Un botón que no lleva a ninguna parte miente: sin nada que copiar, se
   // apaga y lo dice.
+  //
+  // Y desde la 461 es un ICONO en la cabecera, así que lo que lo cuenta es
+  // su rótulo accesible —que es también el globo al pasar por encima—: un
+  // icono que cambia de dibujo según cuántas faltan no se entendería, pero
+  // uno cuyo globo dice «Copiar las 485 que me faltan» sí.
   boton.disabled = !cuantas
-  boton.textContent = cuantas
+  const dice = cuantas
     ? `Copiar las ${cuantas} que me faltan`
     : filtrando ? 'No te falta ninguna de estas' : 'No te falta ninguna'
+  boton.title = dice
+  boton.setAttribute('aria-label', dice)
 }
 
 async function copiarLoQueFalta() {
@@ -3950,8 +4010,27 @@ function prepararOpcionesDeFormulario() {
   $('mcAnadirIdioma').innerHTML = opciones(IDIOMAS, IDIOMA_POR_DEFECTO)
   $('mcAnadirEstado').innerHTML = opciones(ESTADOS, ESTADO_POR_DEFECTO)
   $('mcAnadirVariante').innerHTML = opciones(VARIANTES, 'normal')
-  $('mcTocarIdioma').innerHTML = opciones(IDIOMAS, IDIOMA_POR_DEFECTO)
-  $('mcTocarEstado').innerHTML = opciones(ESTADOS, ESTADO_POR_DEFECTO)
+  // CON QUÉ SE AÑADE, Y SE RECUERDA (tanda 461). Era un ajuste que se
+  // olvidaba al recargar: quien colecciona en inglés tenía que volver a
+  // elegirlo en cada visita, lo que convierte un ajuste en un trámite. Va
+  // en el navegador y no en la base porque es gusto de quien mira, igual
+  // que el color de la tapa (tanda 371) y la vista de variantes.
+  for (const [id, lista, porDefecto] of [
+    ['mcTocarIdioma', IDIOMAS, IDIOMA_POR_DEFECTO],
+    ['mcTocarEstado', ESTADOS, ESTADO_POR_DEFECTO],
+  ]) {
+    let puesto = porDefecto
+    // En una ventana privada `localStorage` LANZA, no devuelve null: sin el
+    // try/catch se caería la preparación entera del formulario.
+    try {
+      const guardado = localStorage.getItem(id)
+      if (guardado && lista.some((x) => x.id === guardado)) puesto = guardado
+    } catch {}
+    $(id).innerHTML = opciones(lista, puesto)
+    $(id).addEventListener('change', () => {
+      try { localStorage.setItem(id, $(id).value) } catch {}
+    })
+  }
 }
 
 // Lo que los álbumes soñados necesitan de esta página. Con getters: la

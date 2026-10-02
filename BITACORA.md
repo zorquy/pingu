@@ -35,6 +35,38 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 461 — la chapa de la versión y la cabecera como Dex)
+
+**Hecho**: (1) La chapa de la VERSIÓN encima de cada carta, en una
+expansión con «separar variantes» y en Cartas. El rótulo existía desde la
+383 pero iba DEBAJO de `.mc-bolsillo-enlace`, que va a `inset: 0`: llevaba
+78 tandas pintado y tapado, y la prueba de la 398 lo contaba con un
+`textContent` y salía verde. La nueva hace `elementFromPoint` sobre el
+centro de la chapa. (2) El velo del reverse, que es un tornasol en
+`mix-blend-mode: screen`: el catálogo guarda UN escaneo por carta, así que
+sin él las dos casillas son la misma imagen. (3) La cabecera de una
+expansión con cuatro iconos de 36 px (marcar varias · favorita · compartir
+· ajuste de «al añadir») donde había cuatro chapas con texto, y el ajuste
+AHORA SE RECUERDA. Más el repaso de tamaños que pidió PINGU: mandos todos a
+la misma altura, la flecha del desplegable sin pisar la letra, el buscador
+a 40 con ratón y las tarjetas de datos más compactas. De 920 px hasta la
+primera carta (antes de la 459) se ha pasado a 494.
+
+**Ficheros**: `mi-coleccion.html`, `css/mi-coleccion.css`,
+`js/mi-coleccion.js`, `SCHEMA.md`. En `pruebas`: `test-tanda-461.mjs`
+(NUEVO) y arreglos en la 398 y la 430, que miraban el texto de controles
+que ahora son iconos.
+
+**En curso / pendiente**: sigue la lista de la noche. Hecho hasta ahora:
+459 (la pantalla de una expansión en el móvil), 460 (los dos Nidoran) y
+461. Queda: la tabla de rarezas en español con sus iconos oficiales
+(círculo, diamante, estrella, dos estrellas…), el gráfico del valor con
+rangos 1D/7D/1M/3M/6M/MAX y más detallado, y el repaso del resto de
+pestañas de Mi colección (Panel, Cartas, Pokédex, Carpetas, Buscar) con el
+mismo criterio: más pequeño, más simple y sin enlaces pochos.
+⚠️ Sigue sin ejecutar `supabase-migration-nidoran-genero.sql`.
+**Rigores pendientes: 443 a 461.**
+
 ## 2026-10-03 — PINGU-Claude (tanda 460 — los dos Nidoran)
 
 **Hecho**: PINGU: «has metido al Nidoran macho dentro de la categoría de

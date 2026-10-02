@@ -63,6 +63,56 @@
   gap: var(--e-md);
 }
 
+/* ── UN AJUSTE, DETRÁS DE SU ENGRANAJE (tanda 461) ──
+ * PINGU: «al añadir, eso yo lo quitaría». Lo que sobraba era la CHAPA —una
+ * fila entera para un ajuste que se toca una vez—, no el ajuste. Aquí
+ * cuelga de un icono de la cabecera, que es donde se busca un ajuste. */
+.mc-ajustes-caja {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.mc-ajustes-caja > summary {
+  list-style: none;
+  user-select: none;
+}
+
+.mc-ajustes-caja > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mc-ajustes-caja > .mc-ajustes {
+  display: none;
+}
+
+.mc-ajustes-caja[open] > .mc-ajustes {
+  display: flex;
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--e-xs));
+  right: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--e-sm);
+  width: max-content;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+
+.mc-ajuste-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
 .mc-interruptor {
   display: inline-flex;
   align-items: center;
@@ -77,10 +127,6 @@
 .mc-interruptor input {
   width: 20px;
   height: 20px;
-}
-
-.mc-compartir .link-btn {
-  min-height: 44px;
 }
 
 /* ── El resumen ── */
@@ -558,8 +604,16 @@
    la casa son 44 px para lo que se pulsa, y estos son controles densos,
    que es justo el caso que CLAUDE.md manda dejar en 44 tras
    `pointer: coarse`. Con ratón sí se encogen, que es donde sobraban. */
+/* TODOS LOS MANDOS DE LA TIRA MIDEN LO MISMO (ampliado en la 461). PINGU:
+   «alinear, como ves, por ejemplo cualquier categoría y juntar variantes,
+   alinearlo». Eran tres familias de chapa con tres alturas —36 los mandos,
+   44 las chapas de filtro y 44 las de vista—, así que la fila quedaba
+   escalonada. Aquí se nombran todas: la que entre mañana y no esté en esta
+   lista volverá a desalinearse, así que la lista es la regla. */
 .mc-mandos .mc-chapa-select,
-.mc-mandos .mc-chip-mando {
+.mc-mandos .mc-chip-mando,
+.mc-mandos .mc-chip-filtro,
+.mc-mandos .mc-chip-vista {
   min-height: 36px;
   padding: 0 var(--e-md);
   font-size: var(--t-sm);
@@ -568,14 +622,24 @@
 .mc-mandos .mc-chapa-select {
   /* Un desplegable pide de ancho lo que mida su opción más larga, y «Todas
      las series» le daba 350 px a un control que elige entre nueve cosas.
-     Lo que no cabe se recorta: para eso lleva su flechita. */
+     Lo que no cabe se recorta: para eso lleva su flechita.
+
+     Y el hueco de la flecha son 36 px y no 32 (tanda 461). PINGU: «la
+     flecha del desplegable se choca con las letras de cualquier
+     categoría». La flecha la pinta `style.css` como fondo, a 12 px del
+     canto y con 12 de ancha: el texto tiene que parar ANTES de 24, y a 32
+     se le queda a 8 px — que con una «a» final es justo rozarla. 36 es lo
+     que pide la regla global, y aquí se repite porque el relleno de arriba
+     es un atajo que lo borra. */
   max-width: 180px;
-  padding-right: 32px;
+  padding-right: 36px;
 }
 
 @media (pointer: coarse) {
   .mc-mandos .mc-chapa-select,
-  .mc-mandos .mc-chip-mando {
+  .mc-mandos .mc-chip-mando,
+  .mc-mandos .mc-chip-filtro,
+  .mc-mandos .mc-chip-vista {
     min-height: 44px;
   }
 }
@@ -615,8 +679,15 @@
 
 .mc-buscador input[type="search"] {
   width: 100%;
-  min-height: 44px;
+  /* MÁS BAJO CON RATÓN (tanda 461). PINGU: «la barra de búsqueda es muy
+     pequeñita [en Dex], igual que los botones de filtro; nosotros estamos
+     ocupando mucho con botones muy grandes y es una diferencia tremenda».
+     Los 40 son con ratón; en una pantalla táctil vuelve a 44, que es la
+     regla de la casa y no es negociable. Es el mismo trato que la 445 le
+     dio a los mandos. */
+  min-height: 40px;
   padding-left: 36px;
+  font-size: var(--t-sm);
   /* SUTIL (tanda 444). PINGU: «la barra de búsqueda es muy sutil» —en Dex
      es un hueco apenas marcado, no una caja blanca con sombra—. Un
      buscador es un sitio donde escribir si quieres, no lo primero que la
@@ -630,6 +701,12 @@
 .mc-buscador input[type="search"]:focus {
   border-color: var(--navy);
   background: var(--white);
+}
+
+@media (pointer: coarse) {
+  .mc-buscador input[type="search"] {
+    min-height: 44px;
+  }
 }
 
 .mc-chip-mando {
@@ -791,14 +868,123 @@
 /* La variante, debajo y callada: solo sale cuando NO es la normal, que
    es cuando la ilustración no basta para distinguirla (un reverso holo
    y un normal son el mismo dibujo). */
-.mc-carta-variante {
+/* ── LA CHAPA DE LA VERSIÓN (tanda 461) ──
+ *
+ * AQUÍ ESTABA `.mc-carta-variante`, un renglón de texto DEBAJO de la foto
+ * que además solo salía cuando la versión no era la normal. PINGU, con Dex
+ * delante: «en Dex tienen todos una chapita». Y la diferencia no es el
+ * gusto: debajo, el dato se lee después de la carta y solo a veces;
+ * encima, se lee CON la carta y siempre, que es lo que hace que dos
+ * casillas iguales dejen de ser dos casillas iguales.
+ *
+ * Va centrada abajo, sobre la ilustración y por encima del mando de
+ * copias. `pointer-events: none` porque flota sobre el enlace que ocupa el
+ * bolsillo entero: sin eso se come el clic y no da ningún error. */
+.mc-chapa-variante {
+  display: flex;
+  position: absolute;
+  z-index: 2;
+  bottom: var(--e-xs);
+  left: 50%;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100% - 16px);
+  padding: 2px var(--e-sm);
+  transform: translateX(-50%);
+  border-radius: var(--radius-pill);
+  background: rgb(20 24 32 / 82%);
+  color: var(--blanco-fijo);
   overflow: hidden;
-  color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 700;
-  text-align: center;
-  text-overflow: ellipsis;
+  line-height: 1.6;
   white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+/* El nombre CEDE y el redondel no: al revés, «Reverse holo» empuja a su
+   código fuera de la chapa en una casilla estrecha. Y lo que se recorta no
+   se pierde — la casilla entera lleva la versión en su rótulo accesible. */
+.mc-chapa-variante > span {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+/* Y si el bolsillo lleva mando de copias, la chapa se sube por encima: el
+   mando vive pegado abajo (32 px de alto más su aire), y dos cosas en el
+   mismo borde se tapan. No es un paso de la escala, es una MEDIDA — la
+   altura de otra pieza — así que solo se le pide la retícula de 4. */
+.mc-bolsillo-con-mando .mc-chapa-variante {
+  bottom: 40px;
+}
+
+/* El código corto, en su redondel: es lo que se reconoce de lejos cuando
+   el nombre no cabe. */
+.mc-chapa-variante b {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 22%);
+  /* El escalón más bajo de la escala y no un 9 px a ojo: si no cabe en el
+     redondel, lo que se cambia es el redondel (la regla de la 305). */
+  font-size: var(--t-2xs);
+  line-height: 1;
+}
+
+/* Y cada versión con su color, que es la pista que se lee sin leer. */
+.mc-chapa-variante[data-var='reverse'] b {
+  background: linear-gradient(120deg, #ff4fa3, #46c8ff 50%, #b7ff6b);
+  color: #10141c;
+}
+
+.mc-chapa-variante[data-var='holo'] b {
+  background: linear-gradient(120deg, #ffd34d, #ff8a3d);
+  color: #10141c;
+}
+
+.mc-chapa-variante[data-var='primera'] b {
+  background: var(--blanco-fijo);
+  color: #10141c;
+}
+
+/* ── EL VELO DEL REVERSE (tanda 461) ──
+ *
+ * PINGU: «sé que la carta es la misma imagen para las dos; las reverse son
+ * como más oscuras porque tienen el holográfico en toda la carta; igual
+ * meterle un filtro más oscuro». Es literalmente eso: el brillo va en TODO
+ * el marco y no solo en la ilustración. El catálogo guarda UN escaneo por
+ * carta —el normal—, así que sin esto las dos casillas son la misma
+ * imagen.
+ *
+ * Es un ELEMENTO y no un `::after` del botón: en Cartas el botón es
+ * `.carta-scan-holo`, que ya se gasta sus dos pseudos en el brillo de la
+ * rareza. Dos dueños para el mismo pseudo se rompen al tocar cualquiera.
+ *
+ * `mix-blend-mode: screen` sobre un tornasol oscuro: aclara el tornasol y
+ * deja la carta debajo, en vez de pintarle un velo plano encima. */
+.mc-velo-reverse {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      118deg,
+      rgb(255 0 128 / 22%) 0 14%,
+      rgb(0 180 255 / 20%) 34%,
+      rgb(120 255 140 / 16%) 52%,
+      rgb(255 200 0 / 20%) 72%,
+      rgb(190 0 255 / 20%) 100%
+    );
+  box-shadow: inset 0 0 0 100vmax rgb(10 14 22 / 16%);
+  mix-blend-mode: screen;
+  pointer-events: none;
 }
 
 .mc-carta-foto img,
@@ -970,24 +1156,12 @@
 }
 
 /* ── El álbum ── */
-.mc-album-barra,
-.mc-tocar {
+.mc-album-barra {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--e-md);
   margin-bottom: var(--e-md);
-}
-
-.mc-tocar {
-  padding: var(--e-sm) var(--e-md);
-  border-radius: var(--radius-md);
-  background: var(--ice);
-  font-size: var(--t-sm);
-}
-
-.mc-tocar select {
-  min-height: 44px;
 }
 
 .mc-progreso {
@@ -1910,8 +2084,7 @@
    PINGU: «es un enlace pocho». Pasa a ser una chapa, que es lo que es: un
    sitio al que ir. La clase global `.link-btn` no se toca —la usa media
    web—, esto es una pieza de esta pantalla. */
-.mc-vistazo-cabecera .link-btn,
-.mc-compartir .link-btn {
+.mc-vistazo-cabecera .link-btn {
   min-height: 32px;
   padding: 0 var(--e-md);
   border: 1px solid var(--border);
@@ -1921,15 +2094,13 @@
   text-decoration: none;
 }
 
-.mc-vistazo-cabecera .link-btn:hover,
-.mc-compartir .link-btn:hover {
+.mc-vistazo-cabecera .link-btn:hover {
   border-color: var(--navy);
   color: var(--navy);
 }
 
 @media (pointer: coarse) {
-  .mc-vistazo-cabecera .link-btn,
-  .mc-compartir .link-btn {
+  .mc-vistazo-cabecera .link-btn {
     min-height: 44px;
   }
 }
@@ -3189,14 +3360,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 /* Las acciones (el ajuste de «al añadir» y los dos botones) NO van en la
    tira: despliegan un panel y una tira recorta lo que se sale de ella. */
-.mc-album-acciones {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e-sm);
-  margin-bottom: var(--e-md);
-}
-
 /* Volver, en su fila y como chapa (tanda 459). */
 .mc-album-volver-fila {
   margin: 0 0 var(--e-md);
@@ -3374,17 +3537,11 @@ input.mc-alb-titulo:not([readonly]):focus {
 /* El nombre de la versión, bajo su casilla. Solo sale en «una por
    versión»: ahí es lo único que distingue dos huecos con el mismo
    dibujo. */
-.mc-bolsillo-variante {
-  display: block;
-  overflow: hidden;
-  padding: 2px var(--e-xs) 0;
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* AQUÍ ESTABA `.mc-bolsillo-variante` (fuera en la 461). Era el rótulo de
+   la versión del bolsillo… pintado en el flujo normal, DEBAJO de
+   `.mc-bolsillo-enlace`, que va a `inset: 0` y cubre el bolsillo entero.
+   O sea: existía desde la 383 y nunca se vio. Lo sustituye
+   `.mc-chapa-variante`, que va encima. */
 
 /* ── El panel de filtros (tanda 399) ──
    Entra por la derecha y ocupa el alto entero, como el de Dex: un modal
@@ -3687,38 +3844,73 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 
 /* ── La estrella de una expansión (tanda 409) ── */
-.mc-estrella {
-  display: inline-flex;
+/* ── LOS MANDOS DE ICONO DE LA CABECERA (tanda 461) ──
+ *
+ * PINGU, con Dex delante: «fíjate, tiene unos botones arriba: el de
+ * seleccionar múltiples cartas, el corazón para marcar el set como
+ * favorito y uno de compartir. Nosotros estamos ocupando mucho con
+ * botones muy grandes y es una diferencia tremenda».
+ *
+ * Los tres existían y los tres eran chapas con texto en la fila de
+ * filtros: «Marcar varias», «Marcar como favorita» y «Copiar las 485 que
+ * me faltan» son 440 px de fila para tres acciones que no se usan casi
+ * nunca y que, cuando se usan, se buscan ARRIBA, junto al nombre.
+ *
+ * Son icono y nada más, así que aquí SÍ se les pide el ancho: la regla de
+ * la 312 dice que un control con texto mide lo que mide su palabra y uno
+ * de icono mide 44. Con ratón bajan a 36, que es lo que hace que la
+ * cabecera no pese más que el título que acompaña. */
+.mc-album-iconos {
+  display: flex;
+  flex: 0 0 auto;
   gap: var(--e-xs);
-  align-items: center;
-  min-height: 44px;
-  padding: 0 var(--e-md);
+  margin-left: auto;
+}
+
+.mc-icono-mando {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   background: var(--white);
   color: var(--text-mid);
   font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 600;
   cursor: pointer;
 }
 
-.mc-estrella:hover {
+.mc-icono-mando:hover:not(:disabled) {
   border-color: var(--navy);
   color: var(--text);
 }
 
-/* Marcada: el relleno de la estrella no basta —es un icono de trazo— así
-   que lo que cambia es la chapa entera. */
-.mc-estrella.activa {
+.mc-icono-mando:disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+
+.mc-icono-mando:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* Puesto: el relleno del icono no basta —son de trazo— así que lo que
+   cambia es la chapa entera. Vale para la estrella y para el modo de
+   marcar varias, que son los dos que GUARDAN un estado. */
+.mc-icono-mando.activa,
+.mc-icono-mando[aria-pressed='true'] {
   border-color: transparent;
   background: var(--navy-solid);
   color: var(--blanco-fijo);
 }
 
-.mc-estrella:focus-visible {
-  outline: 2px solid var(--navy);
-  outline-offset: 2px;
+@media (pointer: coarse) {
+  .mc-icono-mando {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 /* ── EL PANEL: AQUÍ VIVÍA LA TIRA DE TARJETAS (tanda 410) ──
@@ -3740,11 +3932,16 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin-bottom: var(--e-lg);
 }
 
+/* MÁS COMPACTAS (tanda 461). PINGU: «los slides con las estadísticas del
+   set también son más pequeñitos [en Dex]». Un dato de una línea no
+   necesita 16 px de aire por cada lado ni una cifra de titular: lo que
+   hace que se lea de un vistazo es el CONTRASTE entre el rótulo y la
+   cifra, no el tamaño absoluto de la cifra. */
 .mc-diapo {
   display: flex;
   flex-direction: column;
   gap: var(--e-xs);
-  padding: var(--e-lg);
+  padding: var(--e-md);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
@@ -3762,7 +3959,7 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 .mc-diapo-cifra {
   margin: 0;
-  font-size: var(--t-3xl);
+  font-size: var(--t-2xl);
   font-weight: 800;
   line-height: 1.1;
 }
@@ -4088,46 +4285,10 @@ input.mc-alb-titulo:not([readonly]):focus {
   padding: var(--e-lg);
 }
 
-/* ── Los mandos del archivador, en una fila (tanda 412) ──
-   Había cinco filas de controles entre el título de la colección y la
-   primera carta: los filtros, la frase de «al pulsar +», las barras, las
-   dos chapas de versión y la paginación. Ahora las barras van arriba
-   —cuánto llevas es lo que se viene a ver— y el resto es una fila. */
-.mc-tocar-caja {
-  position: relative;
-}
-
-.mc-tocar-caja > summary {
-  list-style: none;
-  user-select: none;
-}
-
-.mc-tocar-caja > summary::-webkit-details-marker {
-  display: none;
-}
-
-/* Abierto, el ajuste cuelga de su chapa en vez de empujar la fila. */
-.mc-tocar-caja[open] > .mc-tocar {
-  display: flex;
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + var(--e-xs));
-  left: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e-sm);
-  width: max-content;
-  max-width: min(420px, 90vw);
-  padding: var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
-}
-
-.mc-tocar-caja > .mc-tocar {
-  display: none;
-}
+/* AQUÍ ESTABA `.mc-tocar-caja` (fuera en la 461), la chapa de «Al
+   añadir» con su panel colgando. PINGU: «al añadir, eso yo lo quitaría».
+   El ajuste sigue, en los ajustes de la colección, que es donde se busca
+   un ajuste. */
 
 /* ── La cabecera en el móvil (tandas 412 y 440) ──
    AQUÍ VIVÍA la tira de cifras que se desliza, con su máscara de la 439.
@@ -4417,8 +4578,13 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 #mcAlbumProgreso .mc-anillo {
   position: absolute;
-  top: var(--e-lg);
-  right: var(--e-lg);
+  /* A juego con el relleno de la tarjeta, que bajó a `--e-md` en la 461:
+     un elemento que flota en una esquina tiene que seguir al relleno o se
+     queda descolgado. */
+  top: var(--e-md);
+  right: var(--e-md);
+  width: 64px;
+  height: 64px;
 }
 
 /* Y como flota, el título le reserva el sitio: son 72 px de anillo más su

@@ -120,9 +120,12 @@
           <h1 id="mcTitulo">Mi colección</h1>
           <p class="mc-hero-desde" id="mcHeroDesde"></p>
         </div>
+        <!-- Compartir la colección. El «Copiar enlace» era un `link-btn`
+             azul subrayado y pasa a chapa (tanda 461): van cuatro sitios
+             donde PINGU ha dicho «no quiero enlaces pochos». -->
         <div class="mc-compartir hidden" id="mcCompartir">
           <label class="mc-interruptor"><input type="checkbox" id="mcPublica" /> Colección pública</label>
-          <button type="button" class="link-btn hidden" id="mcCopiarEnlace">Copiar enlace</button>
+          <button type="button" class="mc-chip-mando hidden" id="mcCopiarEnlace">Copiar enlace</button>
         </div>
       </div>
       <dl class="mc-resumen" id="mcResumen"></dl>
@@ -349,8 +352,61 @@
           <p class="mc-album-volver-fila">
             <button type="button" class="mc-chip-mando mc-album-volver" id="mcAlbumVolver">← Todas las colecciones</button>
           </p>
+          <!-- LA CABECERA, COMO LA DE DEX (tanda 461). PINGU: «fíjate en
+               Dex: tiene unos botones arriba, el de seleccionar múltiples
+               cartas, el corazón para marcar el set como favorito y uno de
+               compartir». Los tres existían ya, pero vivían de chapa con
+               texto en la fila de filtros, ocupando media pantalla para
+               decir lo que dicen tres iconos. Aquí arriba, junto al
+               nombre, es además donde se buscan. -->
           <div class="mc-album-barra">
             <h3 class="mc-album-titulo" id="mcAlbumTitulo"></h3>
+            <div class="mc-album-iconos">
+              <!-- Marcar varias de golpe (tanda 426). Apuntar un sobre son
+                   diez cartas, y una a una eran diez búsquedas con el ojo,
+                   diez botones pequeños y veinte peticiones.
+
+                   OJO con lo que ya pasó: en la tanda 365 hubo un
+                   interruptor de «tocar una carta la añade» y se quitó en
+                   la 368 porque obligaba a elegir. Esto NO es eso: es un
+                   modo que se enciende, se usa y se apaga, con su barra a
+                   la vista. Mientras no lo enciendas, la rejilla se
+                   comporta igual que siempre. -->
+              <button type="button" class="mc-icono-mando" id="mcMarcarAbrir" data-icono="checkSquare" aria-pressed="false" aria-label="Marcar varias cartas" title="Marcar varias"></button>
+              <!-- La estrella (tanda 409). Lo que sube una expansión arriba
+                   del todo es que TÚ la marques, no que tengas una carta
+                   suelta: con cien empezadas, «arriba» deja de significar
+                   nada. -->
+              <button type="button" class="mc-icono-mando hidden" id="mcAlbumFavorito" data-icono="star" aria-pressed="false" aria-label="Marcar esta colección como favorita" title="Favorita"></button>
+              <!-- Lo que me falta, para pegarlo en un chat (tanda 430, de
+                   chapa a icono en la 461). PINGU: «copiar las que faltan
+                   es un botón que no hace nada». No es que no hiciera
+                   nada: es que una chapa que dice «Copiar las 485 que me
+                   faltan» ocupa una fila entera y aun así no cuenta qué
+                   pasa al pulsarla. Es el botón de COMPARTIR de Dex, y lo
+                   que se comparte de una colección es justo lo que te
+                   falta — es la otra mitad de un intercambio. -->
+              <button type="button" class="mc-icono-mando" id="mcFaltanCopiar" data-icono="share" aria-label="Copiar lo que me falta de esta colección" title="Compartir lo que me falta"></button>
+              <!-- CON QUÉ SE AÑADE, detrás de un engranaje (tanda 461).
+                   PINGU: «al añadir, eso yo lo quitaría». Lo que sobraba
+                   era la CHAPA —una fila entera para un ajuste que se toca
+                   una vez—, no el ajuste: el + de una carta suma una copia
+                   en ESE idioma y ESE estado, y sin poder cambiarlo quien
+                   colecciona en inglés tendría que editar carta por carta.
+                   Y ahora se RECUERDA en el navegador, que es lo que un
+                   ajuste tiene que hacer: el de antes se olvidaba al
+                   recargar, o sea que pedía elegir otra vez cada visita. -->
+              <details class="mc-ajustes-caja" id="mcTocarCaja">
+                <summary class="mc-icono-mando" data-icono="settings" aria-label="Con qué se añade al pulsar más" title="Al añadir"></summary>
+                <div class="mc-ajustes" id="mcTocarOpciones">
+                  <p class="mc-ajuste-fila">
+                    <span>Al pulsar + se suma una copia en</span>
+                    <select id="mcTocarIdioma" class="mc-chapa-select" aria-label="Idioma al añadir"></select>
+                    <select id="mcTocarEstado" class="mc-chapa-select" aria-label="Estado al añadir"></select>
+                  </p>
+                </div>
+              </details>
+            </div>
           </div>
           <!-- Los filtros DENTRO de una colección (tanda 382). Es lo que
                le faltaba a esta pantalla frente a la app de TCGdex: en
@@ -407,51 +463,18 @@
               <button type="button" class="mc-chip-vista activo" id="mcVistaStack" aria-pressed="true">Juntar variantes</button>
               <button type="button" class="mc-chip-vista" id="mcVistaSplit" aria-pressed="false">Separar variantes</button>
             </div>
-            <!-- La estrella (tanda 409). Lo que sube una expansión arriba
-                 del todo es que TÚ la marques, no que tengas una carta
-                 suelta: con cien empezadas, «arriba» deja de significar
-                 nada. -->
-            <button type="button" class="mc-estrella hidden" id="mcAlbumFavorito" data-icono="star" aria-pressed="false"><span class="mc-estrella-texto">Favorita</span></button>
           </div>
-          <!-- Y lo que no es un filtro, debajo: el ajuste de con qué se
-               añade y las dos acciones. Separarlos no es cosmética —son
-               los que despliegan un panel, y un panel dentro de una tira
-               que se desliza sale recortado—. -->
-          <div class="mc-album-acciones">
-            <!-- Con qué se añade. Es un ajuste que se toca una vez y antes
-                 ocupaba una fila entera con su frase; ahora vive detrás de
-                 su chapa. -->
-            <details class="mc-tocar-caja" id="mcTocarCaja">
-              <summary class="mc-chip-mando">Al añadir</summary>
-              <div class="mc-tocar" id="mcTocarOpciones">
-                <span>Al pulsar + se suma una copia en</span>
-                <select id="mcTocarIdioma" class="mc-chapa-select" aria-label="Idioma al añadir"></select>
-                <select id="mcTocarEstado" class="mc-chapa-select" aria-label="Estado al añadir"></select>
-              </div>
-            </details>
-            <!-- Marcar varias de golpe (tanda 426). Apuntar un sobre son
-                 diez cartas, y una a una eran diez búsquedas con el ojo,
-                 diez botones pequeños y veinte peticiones.
-
-                 OJO con lo que ya pasó: en la tanda 365 hubo un
-                 interruptor de «tocar una carta la añade» y se quitó en la
-                 368 porque obligaba a elegir —con él puesto no podías
-                 abrir una ficha, y sin él no podías añadir—. Esto NO es
-                 eso: es un modo que se enciende, se usa y se apaga, con su
-                 barra a la vista diciendo en qué estás y con un botón de
-                 guardar. Mientras no lo enciendas, la rejilla se comporta
-                 igual que siempre. -->
-            <button type="button" class="mc-chip-mando" id="mcMarcarAbrir" aria-pressed="false">Marcar varias</button>
-            <!-- Lo que me falta, para pegarlo en un chat (tanda 430). Es
-                 la otra mitad de un intercambio: el Panel dice desde la
-                 374 lo que te SOBRA —lo que puedes ofrecer— y lo que te
-                 falta había que ir leyéndolo de la rejilla hueco por
-                 hueco. Sale como TEXTO y no como enlace a propósito: esto
-                 se pega en un grupo, y un enlace obliga al otro a salir a
-                 mirarlo. -->
-            <button type="button" class="mc-chip-mando" id="mcFaltanCopiar">Copiar lo que me falta</button>
-            <span class="subtext" id="mcAlbumCuenta"></span>
-          </div>
+          <!-- AQUÍ ESTABA LA FILA DE ACCIONES (fuera en la tanda 461).
+               Llevaba tres cosas y las tres se han ido a donde se buscan:
+               «Marcar varias» y «Copiar lo que me falta» son los dos
+               iconos de la cabecera, y el ajuste de «Al añadir» se ha ido
+               a los ajustes de la colección. PINGU: «al añadir, eso yo lo
+               quitaría; marcar varias es muy necesario; copiar las que
+               faltan es un botón que no hace nada». Lo de «no hace nada»
+               no era que no hiciera: una chapa que dice «Copiar las 485
+               que me faltan» ocupa una fila entera y aun así no cuenta qué
+               pasa al pulsarla. -->
+          <p class="mc-cuantas" id="mcAlbumCuenta" role="status" aria-live="polite"></p>
           <!-- La barra va ARRIBA y no pegada abajo: en el móvil abajo está
                la barra de pestañas, y dos barras flotantes peleándose por
                el mismo borde es justo el lío que arreglaba la 419. -->
