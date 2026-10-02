@@ -143,9 +143,54 @@ export function porGeneraciones(filas) {
   return grupos.filter((g) => g.filas.length)
 }
 
-export function rejillaHtml(filas) {
+// ── Los que casi completas (tanda 429) ──
+//
+// Lo que persigue quien colecciona no es «el siguiente por número», es
+// «¿a cuál le falta UNA?». Esa lista no existía y los datos ya estaban
+// los dos en memoria: lo que tienes de cada especie y cuántas hay.
+//
+// Se ordena por lo que FALTA y no por porcentaje: a quien le faltan 2 de
+// 4 (50 %) está más cerca de terminar que a quien le faltan 20 de 200
+// (90 %), y lo que se va a hacer con la lista es ir a buscar cartas.
+//
+// Quedan fuera tres grupos, y los tres por un motivo distinto:
+//   · los que no has empezado — no es que estés cerca, es que no has
+//     empezado;
+//   · los que ya tienes enteros — no hay nada que perseguir;
+//   · y los que no sabemos cuántas cartas tienen (`total` a null, el
+//     catálogo todavía sin engordar): sin saber el total no se puede
+//     decir cuánto falta, y un 0 ahí diría «ya está» (la regla de los
+//     tres estados, 319).
+export function casiCompletos(filas) {
+  return filas
+    // El `f.total &&` es REDUNDANTE y se queda a propósito: con `total` a
+    // null, `f.tengo < f.total` ya da falso porque JavaScript convierte el
+    // null en 0. O sea que el filtro funcionaría igual sin él — pero
+    // entonces dependería de una coerción que nadie ve al leerlo, y el día
+    // que `total` llegue como `undefined` o como cadena la comparación
+    // dice otra cosa. Lo que importa aquí es lo que se lee: «hace falta
+    // saber cuántas hay».
+    .filter((f) => f.tengo > 0 && f.total && f.tengo < f.total)
+    .sort((a, b) => (a.total - a.tengo) - (b.total - b.tengo) ||
+      b.tengo / b.total - a.tengo / a.total || a.dex - b.dex)
+}
+
+export function rejillaHtml(filas, orden = 'dex') {
   if (!filas.length) {
     return '<p class="empty-state">Ningún Pokémon con ese nombre.</p>'
+  }
+  if (orden === 'cerca') {
+    const cerca = casiCompletos(filas)
+    if (!cerca.length) {
+      return `<p class="empty-state">Todavía no tienes ningún Pokémon a medias: en cuanto tengas alguna carta de uno, aquí te diremos cuánto te falta para completarlo.</p>`
+    }
+    // Sin generaciones: agrupar por generación una lista que ya está
+    // ordenada por otra cosa rompería justo el orden que se ha pedido.
+    return `<h3 class="pdx-generacion">
+        <span>Los que casi completas</span>
+        <small>${cerca.length}</small>
+      </h3>
+      <div class="pdx-rejilla">${cerca.map(filaHtml).join('')}</div>`
   }
   return porGeneraciones(filas)
     .map((g) => {

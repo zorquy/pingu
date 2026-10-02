@@ -22976,3 +22976,42 @@ correcto y lo miraba bien, pero **no llegaba a pasar por el caso**.
    comprobarlo: resolver el token en la página (`var(--success)` sobre un
    elemento de usar y tirar) y comparar el color PINTADO con él, más
    exigir que `--success` y `--danger` no sean el mismo color.
+
+## Tanda 429 — los que casi completas (oct. 2026)
+
+`casiCompletos(filas)` en `js/mi-coleccion/pokedex.js`, y un desplegable
+con dos vistas. Lo que persigue quien colecciona no es «el siguiente por
+número», es «¿a cuál le falta UNA?».
+
+**El criterio es lo que FALTA, no el porcentaje.** A quien le faltan 2 de
+4 (50 %) le queda menos que a quien le faltan 20 de 200 (90 %), y lo que
+se va a hacer con la lista es ir a buscar cartas. A igualdad de lo que
+falta desempata el que va más adelantado, y después el número.
+
+**Fuera tres grupos, cada uno por un motivo distinto**: los que no has
+empezado (no estás cerca: no has empezado), los completos (nada que
+perseguir) y aquellos cuyo `total` es `null` —el catálogo sin engordar—,
+porque sin saber cuántas hay no se puede decir cuánto falta. Es la regla
+de los tres estados de la 319 otra vez.
+
+Y la vista «casi» **no agrupa por generación**: agrupar una lista ya
+ordenada por otra cosa rompe el orden que se ha pedido. Lleva su propio
+rótulo con cuántos son.
+
+### Una redundancia que se queda, y por qué
+
+El rigor no detecta quitar el `f.total &&` del filtro: con `total` a null,
+`f.tengo < f.total` ya da falso porque JavaScript convierte el null en 0.
+Es, técnicamente, una guarda respaldada por otra — el caso que en esta
+misma sesión se resolvió tres veces BORRANDO la guarda (una regla CSS
+muerta en la 426, un valor inicial inalcanzable, y la misma guarda escrita
+dos veces al entrar y al salir de una expansión).
+
+**Aquí la decisión es la contraria, y la diferencia importa**: allí
+sobraba un `if` escrito dos veces; aquí lo que sobra es una comparación
+que funciona por una COERCIÓN invisible al leer. Quitarla dejaría el
+filtro dependiendo de que `total` llegue siempre como número o como null —
+con `undefined`, con una cadena o con un `NaN` la cosa cambia—. Así que la
+guarda se queda con el motivo escrito encima y **lo que se quita es la
+mutación**: un rigor que dice «detectada» sobre algo que no cambia nada
+miente, y eso es justo lo que un rigor existe para no hacer.

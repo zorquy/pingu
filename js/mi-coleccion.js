@@ -2089,7 +2089,7 @@ function pintarPokedex() {
   // set no cambia al filtrar por rareza.
   const resumen = pokedex.resumenDePokedex({ mio, totales: totalesPokedex })
   caja.innerHTML = pokedex.cabeceraHtml(resumen, { nombreDe: (d) => especiePorDex(d) || `#${d}` }) +
-    pokedex.rejillaHtml(filas)
+    pokedex.rejillaHtml(filas, $('mcPdxOrden')?.value || 'dex')
   // El contador de arriba cuenta especies DISTINTAS, no cartas: es una
   // Pokédex, y lo que se llena son huecos de Pokémon.
   $('mcPdxCuenta').textContent = `${resumen.registrados} de 1.025 Pokémon`
@@ -2707,7 +2707,7 @@ function enganchar() {
   // pestaña: el panel se repinta entero en cada filtro, así que un
   // oyente puesto dentro se duplicaría en cada tecla. La caja de fuera
   // no se repinta nunca.
-  for (const id of ['mcPdxBuscar', 'mcPdxSoloMios']) {
+  for (const id of ['mcPdxBuscar', 'mcPdxSoloMios', 'mcPdxOrden']) {
     $(id).addEventListener(id === 'mcPdxBuscar' ? 'input' : 'change', () => {
       // Al filtrar se vuelve a la rejilla: filtrar con una especie
       // abierta no significa nada.

@@ -481,6 +481,14 @@
             <input type="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número…" autocomplete="off" aria-label="Busca un Pokémon" />
           </div>
           <label class="mc-interruptor"><input type="checkbox" id="mcPdxSoloMios" /> Solo los que tengo</label>
+          <!-- Los que casi completas (tanda 429). Lo que persigue quien
+               colecciona no es «el siguiente por número», es «¿a cuál le
+               falta UNA?», y esa lista no existía. Los dos datos ya
+               estaban en memoria. -->
+          <select id="mcPdxOrden" class="mc-chapa-select" aria-label="Cómo se ordena la Pokédex">
+            <option value="dex">Por número</option>
+            <option value="cerca">Los que casi completas</option>
+          </select>
           <span class="subtext" id="mcPdxCuenta"></span>
         </div>
         <div id="mcPokedexPanel"></div>

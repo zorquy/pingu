@@ -75,6 +75,53 @@ rigor, 32 de 32 (pasado sobre este mismo código antes de renumerar: solo
 cambian comentarios). Con lo de la 422 a la 424 debajo, en verde también
 la 413, 421, 422, 414, 384, 305, 310, 369 y 406.
 
+## 2026-10-02 — PINGU-Claude (tanda 429 — los que casi completas, en la Pokédex)
+
+**Hecho**: un desplegable en la Pokédex con dos vistas: «Por número» (la
+de siempre, con sus generaciones) y **«Los que casi completas»**. Lo que
+persigue quien colecciona no es «el siguiente por número», es «¿a cuál le
+falta UNA?», y esa lista no existía. Los dos datos ya estaban en memoria
+—lo que tienes de cada especie y cuántas hay en el catálogo—, así que no
+cuesta ni una consulta.
+
+**Manda lo que FALTA, no el porcentaje**: a quien le faltan 2 de 4 (50 %)
+le queda menos que a quien le faltan 20 de 200 (90 %), y lo que vas a
+hacer con esa lista es ir a buscar cartas. A igualdad, el que va más
+adelantado.
+
+**Quedan fuera tres grupos y cada uno por un motivo distinto**: los que no
+has empezado (no es que estés cerca, es que no has empezado), los que ya
+tienes enteros (no hay nada que perseguir) y aquellos de los que **no se
+sabe cuántas cartas tienen** —el catálogo todavía sin engordar—: sin el
+total no se puede decir cuánto falta. La regla de los tres estados (319).
+
+Y la vista «casi» **no agrupa por generación**: agrupar una lista que ya
+está ordenada por otra cosa rompe justo el orden que se ha pedido.
+
+**La prueba cazó un fallo MÍO, de expectativa**: escribí que entre «2 de
+3» y «3 de 4» iba primero el 2/3, cuando mi propia regla dice que a
+igualdad de lo que falta manda el más adelantado. El código hacía lo
+documentado; la prueba decía otra cosa. Se corrigió la prueba.
+
+**Y una decisión al revés de las tres anteriores, que conviene leer
+junta**: el rigor no detectaba quitar el `f.total &&` del filtro, porque
+con `total` a null la comparación de al lado (`tengo < total`) ya da falso
+—JavaScript convierte el null en 0—. En la 426 y en esta misma tanda, las
+guardas redundantes se quitaron del código. **Aquí no**: esa redundancia
+no es un `if` escrito dos veces, es que el filtro funcionaría por una
+COERCIÓN que no se ve al leerlo y que deja de valer el día que `total`
+llegue como `undefined`. Así que se queda la guarda, con el motivo escrito
+encima, y lo que se va es la mutación: fingir que se detecta algo
+invisible es peor que admitir que no se puede.
+
+**Ficheros**: `js/mi-coleccion/pokedex.js`, `js/mi-coleccion.js`,
+`mi-coleccion.html`. En `pruebas`: `test-tanda-429.mjs` y
+`rigor/rigor-tanda-429.py` (nuevos).
+
+**En curso / pendiente**: sigue preguntado a PINGU si la Pokédex por TIPO
+merece una tabla curada de 1.025 especies. Esta tanda es la alternativa
+que no cuesta nada.
+
 ## 2026-10-02 — PINGU-Claude (tanda 428 — lo que te costó contra lo que vale)
 
 **Hecho**: una tarjeta nueva en el Panel, **«Lo que te costó»**, pegada a
