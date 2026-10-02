@@ -1251,14 +1251,23 @@
   transition: border-color 0.15s var(--ease);
 }
 
-/* La cabecera: el fondo emborronado, el logo encima y el código en una
-   esquina. Alto FIJO, que es lo que hace que las doscientas tarjetas
-   midan igual aunque sus logos no. */
-.mc-set-cabecera {
+/* EL REPARTO DE DEX (tanda 458): el logo pequeño a la izquierda y el
+   texto a la derecha. Antes el logo ocupaba la tarjeta entera y el nombre
+   se escondía detrás —un logo occidental lleva su nombre escrito—, pero un
+   logo japonés está en kanji y un set sin logo se quedaba en una caja.
+   Ahora el nombre no depende ni de que haya dibujo ni del idioma. */
+.mc-set-tarjeta {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: stretch;
+}
+
+/* El cuadro del logo: alto FIJO, que es lo que hace que las doscientas
+   tarjetas midan igual aunque sus logos no. */
+.mc-set-mini {
   display: grid;
   position: relative;
   place-items: center;
-  height: 92px;
   overflow: hidden;
   background: var(--bg);
 }
@@ -1277,14 +1286,13 @@
   transform: scale(1.4);
 }
 
+/* El código ya no va flotando sobre el logo: va al lado de la fecha, que
+   es donde se lee sin tapar nada. */
 .mc-set-codigo {
-  position: absolute;
-  right: var(--e-sm);
-  bottom: var(--e-sm);
   padding: 1px var(--e-sm);
   border-radius: var(--radius-pill);
-  background: rgba(20, 20, 25, 0.6);
-  color: var(--blanco-fijo);
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 800;
   letter-spacing: 0.5px;
@@ -1293,8 +1301,21 @@
 .mc-set-info {
   display: flex;
   flex-direction: column;
-  gap: var(--e-xs);
+  gap: 2px;
+  justify-content: center;
+  min-width: 0;
   padding: var(--e-md);
+}
+
+/* La fecha y el código, en una línea. `flex-wrap` porque un código y una
+   fecha larga no caben juntos en una tarjeta estrecha. */
+.mc-set-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  align-items: center;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
 }
 
 .mc-set-tarjeta:hover {
@@ -1313,19 +1334,26 @@
   place-items: center;
   width: 100%;
   height: 100%;
-  padding: var(--e-md) var(--e-lg);
+  padding: var(--e-sm);
 }
 
 .mc-set-logo img {
   max-width: 100%;
-  max-height: 64px;
+  max-height: 56px;
   object-fit: contain;
   /* Una sombra suave para despegarlo del fondo emborronado, que a veces
      sale del mismo color que el propio logo. */
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
 }
 
+/* El nombre ya no está en `sr-only`: se LEE, que es de lo que iba todo
+   esto. Dos líneas como mucho —«30th Celebration: Classic Collection» no
+   cabe en una— y lo que pase de ahí, con puntos suspensivos. */
 .mc-set-nombre {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: var(--t-sm);
   font-weight: 700;
 }
@@ -2968,10 +2996,18 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 /* El hueco del sprite va reservado: son 1.025 y sin esto la rejilla
    baila entera según van llegando. */
+/* 48 y no 68 (tanda 458). PINGU: «los sprites están como muy estirados
+   algunos; no hace falta que sean tan grandes, si lo puedes hacer más
+   pequeño pero que se vea bien, adelante».
+   
+   No estaban deformados —`max-width/max-height` respetan la proporción—:
+   estaban AGRANDADOS. Son dibujos de pocos píxeles, y pintarlos más
+   grandes que su tamaño original enseña las escaleras. Aquí achicar no es
+   una concesión: se ven MEJOR. */
 .pdx-sprite {
   display: flex;
-  width: 68px;
-  height: 56px;
+  width: 48px;
+  height: 40px;
   align-items: center;
   justify-content: center;
 }
@@ -2982,9 +3018,20 @@ input.mc-alb-titulo:not([readonly]):focus {
   image-rendering: pixelated;
 }
 
+/* 64 y no 96 (tanda 458). PINGU: «el Bulbasaur es demasiado grande». Y lo
+   era por lo mismo que los de la rejilla: estos sprites son dibujos de
+   pocos píxeles y al estirarlos se ven las escaleras. Más pequeño se ve
+   MEJOR, no solo ocupa menos. */
 .pdx-sprite-grande {
-  width: 96px;
-  height: 80px;
+  width: 64px;
+  height: 56px;
+}
+
+/* Volver, en su propia fila y encima del nombre: al lado del sprite
+   competía con el título por el sitio y el conjunto se leía como tres
+   cosas sueltas. */
+.pdx-volver-fila {
+  margin: 0 0 var(--e-md);
 }
 
 .pdx-num {

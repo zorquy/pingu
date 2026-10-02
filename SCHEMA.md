@@ -24353,3 +24353,98 @@ pestañas en el móvil, la cabecera de la tableta, el juego junto a 1.920,
 la chapa de «nueva» visible en la mano solapada, la copa, que sin
 imágenes ningún nombre salga cortado (y «Risky Ruins» en dos líneas en el
 estadio) y que todo lo nuevo se apague con «menos movimiento».
+## Tanda 458 — la Pokédex como Buscar, la tarjeta de set como Dex, y un bolsillo en blanco
+
+### La pantalla de una especie, con la misma barra
+
+PINGU: «debería haber una barra de búsqueda igual; quiero que me lo
+mantengas igual que en el apartado de buscar, porque es lo mismo. Incluso
+el idioma: si desde aquí quiero cambiarlo, debería poder».
+
+El argumento es suyo y es el bueno: **son la misma pieza**. Una pantalla
+que enseña una rejilla de cartas lleva buscador, idioma, filtros y orden, y
+que aquí faltaran tres de los cuatro la hacía parecer de otra web. El
+buscador se queda aunque dentro de una especie haya treinta cartas: «un
+Bulbasaur de Pokémon GO» se encuentra antes escribiendo que mirando treinta
+dibujos.
+
+Dos detalles de cómo está hecho:
+
+- El oyente del campo va **en delegación** sobre el panel, no sobre el
+  `<input>`: la cabecera se repinta entera con cada tecla, así que un
+  oyente puesto en el campo se perdería con el primer repintado. Y el foco
+  y la posición del cursor se devuelven a mano por lo mismo.
+- `pintarIconos()` se volvió **idempotente**. Mete el dibujo al principio
+  del elemento, así que una segunda pasada dejaba dos iconos en cada botón
+  viejo.
+
+Y «← Todos los Pokémon» pasa a ser una chapa: *«no quiero enlaces pochos
+así»*. Va en su propia fila encima del nombre — al lado del sprite competía
+con el título y el conjunto se leía como tres cosas sueltas.
+
+### Los sprites se ven mejor PEQUEÑOS
+
+«Los sprites están como muy estirados algunos». No estaban deformados
+—`max-width`/`max-height` respetan la proporción—: estaban **agrandados**.
+Son dibujos de pocos píxeles, y pintarlos más grandes que su tamaño enseña
+las escaleras. 68 → 48 en la rejilla y 96 → 64 en la cabecera. Achicar aquí
+no es una concesión.
+
+### La tarjeta de un set: el nombre, siempre
+
+Hasta ahora el logo ocupaba la tarjeta entera y el nombre se escondía
+detrás, porque **un logo occidental lleva su nombre escrito**. Con los
+catálogos asiáticos cargados eso dejó de valer: PINGU, *«si no viene el
+nombre y solo viene el logo va a ser muy complicado saber qué set es»* — un
+logo japonés está en kanji.
+
+Así que el reparto de Dex: el logo pequeño a la **izquierda** sobre su
+propio arte desenfocado, y a la derecha el **nombre**, la **fecha** y el
+progreso como texto. El nombre ya no depende ni de que haya dibujo ni del
+idioma en que esté escrito.
+
+Con eso desaparece el parche de la 415 —sacar el nombre cuando la imagen
+falla—, que existía justo porque el nombre estaba escondido.
+
+### Y el bolsillo que se quedaba EN BLANCO
+
+Al arreglar la prueba de la 415 salió un fallo de producción. El nombre de
+una carta en el álbum se pintaba **solo cuando la cadena de escaneos estaba
+vacía**. Pero la cadena casi nunca está vacía: desde la 434 se monta una
+ruta a mano y desde la 435 hay un tercer sitio. El caso normal es el otro
+—la cadena TIENE direcciones y todas fallan—, y entonces
+`atributosDeEscaneo` quita el `<img>` y el bolsillo se queda **literalmente
+en blanco**.
+
+Y un bolsillo vacío ya significa «no la tienes», así que uno **lleno y en
+blanco dice lo contrario de lo que pasa**. Es la lección de la tanda 441 en
+el sitio donde no se había aplicado — y con los catálogos japoneses recién
+cargados es el caso COMÚN, no el raro. Ahora el nombre va siempre debajo y
+la imagen encima, como en los resultados de Buscar.
+
+**Y son DOS pintadores de bolsillo**, el normal y el de las variantes.
+Arreglar uno deja medio álbum con el fallo, y ni se nota: cuál te toca
+depende de si esa carta tiene varias versiones.
+
+### Dos cosas más
+
+- **El avatar de la cabecera** salía como una inicial: la consulta del
+  perfil PROPIO no pedía `avatar_url` (la de otra persona sí, así que se
+  veía bien mirando la colección ajena y mal mirando la tuya). Un dato que
+  no se pide no da error: se dibuja el respaldo, que es exactamente lo que
+  se ve cuando de verdad no tienes foto.
+- **La gráfica del valor** se repinta al cambiar la colección. Su último
+  punto ya era el valor de AHORA, pero se pintaba una sola vez al abrir el
+  panel: añadir una carta movía la cifra de la cabecera y dejaba la gráfica
+  quieta, o sea dos números distintos de lo mismo en la misma pantalla. No
+  cuesta una consulta — el histórico está en memoria desde la primera vez.
+
+### Y la cuarta prueba con el resto de la 440
+
+`test-tanda-415` tenía una sección entera sobre `#mcTira`, el carrusel que
+la 440 quitó: reventaba con un `null` y no se veía porque fallaba DESPUÉS
+de los fallos de arriba. Van cuatro —410, 415, y las dos de la 447—. Y otra
+que fallaba por el RELOJ: esperaba 900 ms a que la cadena de imágenes se
+agotara, y la cadena ha ido creciendo. Un número fijo de milisegundos se
+queda corto sin avisar, y entonces la prueba falla por el reloj y parece
+que falla la web.

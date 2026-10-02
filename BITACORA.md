@@ -148,6 +148,45 @@ que quitarle su mínimo no se notaba. Cede con un turno LARGO («Turno 12 ·
 Jugador 2 — …»): sin el mínimo baja a 0 px y «Laboratorio» se monta en los
 modos. La prueba mira ahora los dos. En verde también la 384, 299, 305,
 309, 310, 311, 312, 313 y 315. La suite entera, en la entrada de la 457.
+**OJO, CHOQUE DE NÚMEROS (y van CINCO)**: la 456 la usamos los dos a la
+vez. La otra sesión llegó antes al remoto —con la 456 Y la 457—, así que lo
+mío pasa a ser la **458**. Van 384, 394, 413, 420 y 456. Lo que funciona
+sigue siendo mirar el remoto JUSTO ANTES del commit, no al empezar: esta
+vez lo cazó el `git push` rechazado, que es tarde pero no tanto.
+
+## 2026-10-02 — PINGU-Claude (tanda 458 — la Pokédex como Buscar y la tarjeta de set como Dex)
+
+**Hecho**: la pantalla de una especie tiene ya la MISMA barra que Buscar
+—buscador, filtros e idioma—, el «← Todos los Pokémon» es una chapa y no un
+enlace, y los sprites bajan de 68 a 48 (de 96 a 64 en la cabecera): no
+estaban deformados, estaban AGRANDADOS, y un dibujo de pocos píxeles
+pintado más grande enseña las escaleras.
+
+**La tarjeta de un set, como la de Dex**: logo pequeño a la izquierda sobre
+su arte desenfocado, y a la derecha nombre, fecha y progreso como TEXTO. El
+nombre se escondía detrás del logo porque un logo occidental lo lleva
+escrito — con los japoneses eso dejó de valer.
+
+**Y un fallo de producción que salió al arreglar una prueba**: el nombre de
+una carta del álbum solo se pintaba cuando la cadena de escaneos estaba
+VACÍA, y casi nunca lo está. El caso normal es que tenga direcciones y
+fallen todas, y entonces el bolsillo se quedaba EN BLANCO — que dice lo
+contrario de lo que pasa, porque un bolsillo vacío ya significa «no la
+tienes». Es la 441 otra vez. Y son DOS pintadores de bolsillo.
+
+También: el **avatar** de la cabecera (la consulta del perfil propio no
+pedía `avatar_url`; la de otra persona sí, así que fallaba solo en la tuya)
+y la **gráfica del valor**, que ahora se repinta al añadir o quitar cartas.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/pokedex.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`: `test-tanda-415.mjs` y
+`test-tanda-434.mjs`.
+
+**En curso / pendiente**: quedan DOS cosas que pidió PINGU y no entran
+aquí: (1) en /admin, una lista de sets con logo y código editables a mano,
+con subida de imagen para el logo; (2) los nombres de los sets japoneses
+occidentalizados (hoy salen en kanji) — hace falta decidir de dónde se saca
+ese nombre, porque TCGdex da el japonés. Rigores pendientes: 443 a 456.
 
 ## 2026-10-02 — PINGU-Claude (tanda 455 — los filtros de la Pokédex, y los enums traducidos)
 

@@ -297,6 +297,19 @@ function pintarResumen() {
   $('mcResumenNota').textContent = lineas.length && sinPrecio
     ? `${sinPrecio} ${sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía.`
     : ''
+  // Y LA GRÁFICA, QUE TAMBIÉN ENSEÑA ESE NÚMERO (tanda 458). PINGU: «¿cada
+  // cuándo se actualiza la barra de los precios? Si yo añado o quito
+  // cartas, el gráfico debería subir o bajar».
+  //
+  // Su último punto es el valor de AHORA, no la foto de las 4:07 — eso ya
+  // era así— pero se pintaba una sola vez al abrir el panel, así que
+  // añadir una carta movía la cifra de la cabecera y dejaba la gráfica
+  // quieta: dos números distintos de lo mismo en la misma pantalla.
+  //
+  // Repintar no cuesta una consulta: el histórico está en memoria desde la
+  // primera vez, y si todavía no ha llegado esta llamada no hace nada —la
+  // suya lo pintará con el valor bueno—.
+  if (historico) void pintarValorEnElTiempo()
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1500,52 +1513,61 @@ function tarjetaDeSet(set, tengo) {
   const dibujos = [logo, logoAMano, logoIngles, simbolo].filter(Boolean)
   const completo = total && tengo >= total
   const codigo = set.tcg_online_code || ''
+  // EL NOMBRE, SIEMPRE A LA VISTA (tanda 458), y el logo a un lado.
+  //
+  // Hasta ahora el logo ocupaba la tarjeta entera y el nombre se escondía
+  // detrás de él, porque un logo occidental LLEVA SU NOMBRE ESCRITO. PINGU,
+  // con los sets japoneses ya cargados: «si no viene el nombre y solo viene
+  // el logo va a ser muy complicado saber qué set es». Y tiene razón dos
+  // veces: un logo japonés está en kanji, y un set sin logo se quedaba
+  // enseñando solo una caja.
+  //
+  // Así que el reparto de Dex, que resuelve las dos: el logo pequeño a la
+  // IZQUIERDA sobre su propio arte desenfocado, y a la derecha el nombre,
+  // la fecha y el progreso como TEXTO. El nombre ya no depende de que haya
+  // dibujo ni de en qué idioma esté escrito.
+  const fecha = set.release_date
+    ? new Date(set.release_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+    : ''
   return `
     <button type="button" class="mc-set-tarjeta${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}">
-      <span class="mc-set-cabecera">
+      <span class="mc-set-mini">
         ${dibujos.length ? `<span class="mc-set-arte" style="--arte:url('${escapeHtml(dibujos[0])}')" aria-hidden="true"></span>` : ''}
         <span class="mc-set-logo">${
-          dibujos.length
-            // El logo LLEVA el nombre escrito, así que el <span> de abajo
-            // se esconde a la vista cuando hay logo y se queda para quien
-            // navega con lector de pantalla (misma decisión que la 346).
-            ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />`
-            : ''
+          dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />` : ''
         }</span>
-        <span class="mc-set-rotulo${dibujos.length ? ' hidden' : ''}">${escapeHtml(set.name || set.id)}</span>
-        ${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}
       </span>
       <span class="mc-set-info">
-        <!-- El nombre de debajo se queda SIEMPRE para el lector de
-             pantalla: desde la 415 el visible es el de la cabecera, que
-             sale cuando no hay dibujo. Enseñar los dos lo escribe dos
-             veces en la misma tarjeta. -->
-        <span class="mc-set-nombre sr-only">${escapeHtml(set.name || set.id)}</span>
+        <span class="mc-set-nombre">${escapeHtml(set.name || set.id)}</span>
+        <span class="mc-set-sub">${fecha ? escapeHtml(fecha) : ''}${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}</span>
         ${
           total
-            ? `<span class="mc-set-cuenta">${tengo} de ${total}${completo ? ' · completa' : ` · ${pct} %`}</span>
-               <span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>`
+            ? `<span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>
+               <span class="mc-set-cuenta">${tengo} de ${total}${completo ? ' · completa' : ` · ${pct} %`}</span>`
             : '<span class="mc-set-cuenta">Sin numeración</span>'
         }
       </span>
     </button>`
 }
 
-// El logo LLEVA el nombre escrito y por eso el `<span>` del nombre va en
-// `sr-only`. Pero el día que la CDN no conteste —el 2026-09-20 se cayó
-// entera— la tarjeta se quedaba sin NADA que leer: sin logo y sin nombre,
-// y sin dar error. Al fallar la imagen, el nombre vuelve a la vista.
-// El `error` de una imagen no burbujea, así que se escucha en captura.
+// EL RESPALDO DEL NOMBRE YA NO HACE FALTA (tanda 458) y por eso se queda
+// en nada. Existía porque el nombre iba en `sr-only` —el logo lo llevaba
+// escrito— y el día que la CDN se cayó entera (2026-09-20) las tarjetas se
+// quedaron sin NADA que leer. Ahora el nombre está siempre a la vista, así
+// que la caída de la CDN deja una tarjeta sin dibujo y con su nombre, que
+// es justo lo que aquel parche conseguía a la brava.
+//
+// Lo que SÍ se hace es quitar la imagen rota: la cadena ya ha probado
+// todos sus sitios y un hueco con el icono roto del navegador se lee como
+// un fallo. El `error` de una imagen no burbujea, así que se escucha en
+// captura.
 function respaldarNombresDeSet(zona) {
   zona.addEventListener('error', (e) => {
     const img = e.target
     if (!img.matches?.('.mc-set-logo img')) return
     // Si a la cadena le quedan sitios donde mirar, aquí no se hace nada:
-    // su propio `onerror` cambia el `src` y lo vuelve a intentar. Actuar
-    // en el primer fallo enseñaría el nombre mientras llega el símbolo.
+    // su propio `onerror` cambia el `src` y lo vuelve a intentar.
     if ((img.dataset.respaldos || '').trim()) return
-    const tarjeta = img.closest('.mc-set-tarjeta')
-    tarjeta?.querySelector('.mc-set-rotulo')?.classList.remove('hidden')
     img.remove()
   }, true)
 }
@@ -1658,15 +1680,25 @@ function bolsilloDeVariante(c, v) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
   const etiqueta = `${nombre} (${c.local_id}), ${v.nombre}${n ? `, tienes ${n}` : ', te falta'}`
+  // EL NOMBRE SE PINTA SIEMPRE, DEBAJO (tanda 458), y la imagen encima.
+  //
+  // Antes el nombre salía solo cuando la cadena de escaneos estaba VACÍA.
+  // Pero la cadena casi nunca lo está —desde la 434 se monta una ruta a
+  // mano y desde la 435 hay un tercer sitio—, así que el caso normal es
+  // otro: la cadena TIENE direcciones y todas fallan. Entonces
+  // `atributosDeEscaneo` quita el `<img>` y el bolsillo se quedaba
+  // literalmente en blanco. Y un bolsillo vacío ya significa «no la
+  // tienes», así que uno LLENO y en blanco dice lo contrario de lo que
+  // pasa.
+  //
+  // Es la lección de la tanda 441 —una carta cuya imagen no responde se
+  // queda en un rectángulo invisible— en el sitio donde no se había
+  // aplicado. Y con los catálogos japoneses recién cargados es el caso
+  // COMÚN y no el raro. Se hace como en los resultados de Buscar: los dos
+  // puestos, y el que quede manda.
   const dentro = `
-    ${
-      escaneo
-        ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
-        // Sin escaneo, el nombre en el hueco (tanda 415): un bolsillo
-        // vacío ya significa «no la tienes», así que un bolsillo LLENO y
-        // en blanco dice lo contrario de lo que pasa.
-        : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
-    }
+    <span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>
+    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
   const pie = `<span class="mc-bolsillo-variante">${escapeHtml(v.nombre)}</span>`
@@ -1689,15 +1721,13 @@ function bolsilloHtml(c) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
   const etiqueta = `${nombre} (${c.local_id})${n ? `, tienes ${n}` : ', te falta'}`
+  // Igual que el bolsillo de arriba (tanda 458): el nombre siempre debajo.
+  // Son DOS pintadores de bolsillo —este y el de las variantes— y arreglar
+  // uno solo deja medio álbum con el fallo; ni siquiera se nota, porque
+  // cuál de los dos te toca depende de si la carta tiene varias versiones.
   const dentro = `
-    ${
-      escaneo
-        ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
-        // Sin escaneo, el nombre en el hueco (tanda 415): un bolsillo
-        // vacío ya significa «no la tienes», así que un bolsillo LLENO y
-        // en blanco dice lo contrario de lo que pasa.
-        : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
-    }
+    <span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>
+    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id)}>${dentro}</a>`
   if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}</div>`
@@ -2917,6 +2947,7 @@ let cartasDeLaEspecie = []
 // un filtro de una especie a la siguiente dejaría la pantalla vacía sin
 // que nada dijera por qué.
 const filtrosEspecie = filtrosCatalogoVacios()
+let textoEspecie = ''
 
 // Repinta la especie abierta con los filtros puestos. Las cartas no se
 // vuelven a pedir: están todas en memoria desde que se abrió, así que
@@ -2930,7 +2961,15 @@ function pintarEspecieFiltrada() {
   // Se compara por el RÓTULO traducido y no por el valor crudo: la columna
   // tiene las dos formas mezcladas porque TCGdex traduce los enums y el
   // catálogo se ha importado en varios idiomas (tanda 455).
-  const lista = cartasDeLaEspecie.filter((c) => pasaFiltrosDeCarta(c, filtrosEspecie, AYUDAS))
+  const texto = normalizeSearch(textoEspecie).trim()
+  const lista = cartasDeLaEspecie.filter((c) => {
+    if (!pasaFiltrosDeCarta(c, filtrosEspecie, AYUDAS)) return false
+    // Por nombre, número o ilustrador, igual que el buscador de Buscar
+    // (tanda 458). Aquí se hace en memoria porque las cartas de la especie
+    // ya están todas cargadas; allí va en la consulta porque son 21.000.
+    if (!texto) return true
+    return normalizeSearch(`${c.name || ''} ${c.name_es || ''} ${c.local_id || ''} ${c.illustrator || ''} ${c.tcg_sets?.name || ''}`).includes(texto)
+  })
   // Los chips viven en el panel, que está FUERA de la caja que se repinta:
   // si se pintaran dentro, abrir el panel después de filtrar enseñaría los
   // de antes.
@@ -2944,7 +2983,13 @@ function pintarEspecieFiltrada() {
     grupos,
     puestos: filtrosEspecie,
     deCuantas: cartasDeLaEspecie.length,
+    texto: textoEspecie,
   })
+  // El selector de catálogo se repinta porque la cabecera entera es HTML
+  // nuevo: sus `<option>` los pone `pintarVistas`, y sin esta llamada
+  // saldría vacío — un desplegable sin opciones es peor que no tenerlo.
+  pintarVistas()
+  pintarIconos()
 }
 
 async function pintarEspecie(dex) {
@@ -2974,6 +3019,7 @@ async function pintarEspecie(dex) {
   // hay que poder pintarla, y las que no son tuyas no están en `cartas`.
   cartasDeLaEspecie = lista
   for (const g of FILTROS_CATALOGO) filtrosEspecie[g.id].clear()
+  textoEspecie = ''
   pintarEspecieFiltrada()
 }
 
@@ -3260,8 +3306,14 @@ function repintar() {
 // Los iconos del menú y de la barra se ponen desde aquí y no en el HTML:
 // el dibujo de cada uno vive en js/icons.js y copiarlo a mano en la página
 // deja dos versiones del mismo icono que se separan.
+// Se puede llamar las veces que haga falta (tanda 458): desde que la
+// cabecera de una especie se vuelve a pintar entera, hay botones con
+// `data-icono` que nacen después del arranque. Y como esto METE el dibujo
+// al principio del elemento, sin la guarda una segunda pasada dejaría dos
+// iconos en cada botón viejo — un fallo que se ve, pero solo si miras.
 function pintarIconos() {
   for (const el of document.querySelectorAll('[data-icono]')) {
+    if (el.querySelector('svg')) continue
     // Los de esta pantalla primero: viven en su propio módulo para no
     // engordar `js/icons.js`, que lo baja también la portada.
     const dibujar = ICONOS_COLECCION[el.dataset.icono] || icons[el.dataset.icono]
@@ -3799,6 +3851,21 @@ function enganchar() {
   $('mcPokedexPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()
   })
+  // En DELEGACIÓN, no en el campo: la cabecera de la especie se vuelve a
+  // pintar entera con cada tecla, así que un oyente puesto sobre el
+  // `<input>` se perdería con el primer repintado. Y el foco y el cursor
+  // se devuelven a mano por lo mismo.
+  $('mcPokedexPanel')?.addEventListener('input', (e) => {
+    if (e.target.id !== 'pdxEspecieBuscar') return
+    const donde = e.target.selectionStart
+    textoEspecie = e.target.value
+    pintarEspecieFiltrada()
+    const campo = $('pdxEspecieBuscar')
+    if (campo) {
+      campo.focus()
+      campo.setSelectionRange(donde, donde)
+    }
+  })
   $('mcPdxGrupos')?.addEventListener('click', (e) => {
     const chip = e.target.closest('[data-egrupo]')
     if (!chip) return
@@ -3965,7 +4032,15 @@ async function iniciar() {
       }
       // sin rango: el nombre del dueño de la colección va en el título de la
       // pantalla («La colección de Ash»), como texto (tanda 386).
-      const { data } = await supabase.from('user_profiles').select('id,username,display_name,coleccion_publica').eq('id', sesion.user.id).maybeSingle()
+      // `avatar_url` ENTRA AQUÍ (tanda 458). PINGU: «hay una P con mi
+      // avatar arriba a la izquierda, pero debería estar cogiendo el que
+      // tengo en el perfil». La cabecera pinta la inicial cuando no hay
+      // foto, y aquí no había foto porque esta consulta no la pedía — la
+      // de OTRA persona (`perfilPorUsuario`) sí, así que el avatar salía
+      // bien mirando la colección ajena y mal mirando la tuya. Un dato que
+      // no se pide no da error: se dibuja el respaldo, que es exactamente
+      // lo que se ve cuando de verdad no tienes foto.
+      const { data } = await supabase.from('user_profiles').select('id,username,display_name,avatar_url,coleccion_publica').eq('id', sesion.user.id).maybeSingle()
       dueno = data || { id: sesion.user.id }
       esMia = true
     }

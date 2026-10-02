@@ -225,13 +225,30 @@ export function rejillaHtml(filas, orden = 'dex') {
 // exactamente como la de Buscar. La diferencia sigue siendo lo que
 // OFRECEN, no dónde están: ahí todas las opciones del catálogo, aquí solo
 // las que tiene esta especie.
-function barraDeEspecie(grupos, cuantos) {
-  if (!grupos.length) return ''
+// LA MISMA BARRA, ENTERA (tanda 458). PINGU: «debería haber una barra de
+// búsqueda igual; quiero que me lo mantengas igual que en el apartado de
+// buscar, porque es lo mismo. Incluso el idioma: si desde aquí quiero
+// cambiarlo, debería poder».
+//
+// Tiene razón y el argumento es suyo: son la misma pieza. Una pantalla que
+// enseña una rejilla de cartas lleva buscador, idioma, filtros y orden, y
+// que aquí faltaran tres de los cuatro la hacía parecer de otra web.
+//
+// El buscador se queda aunque dentro de una especie haya treinta cartas y
+// no veintiún mil: «un Bulbasaur de Pokémon GO» se encuentra antes
+// escribiendo que mirando treinta dibujos, y PINGU lo dijo — «quizá aquí
+// puedes quitarla, pero yo igualmente la mantendría».
+function barraDeEspecie(grupos, cuantos, texto) {
   return `<div class="mc-filtros">
+    <div class="mc-buscador">
+      <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+      <input type="search" id="pdxEspecieBuscar" placeholder="Nombre, número o ilustrador…" autocomplete="off" aria-label="Buscar entre las cartas de este Pokémon" value="${escapeHtml(texto || '')}" />
+    </div>
     <div class="mc-mandos">
-      <button type="button" class="mc-chip-mando" id="pdxAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+      ${grupos.length ? `<button type="button" class="mc-chip-mando" id="pdxAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
         <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta${cuantos ? '' : ' hidden'}">${cuantos || ''}</span>
-      </button>
+      </button>` : ''}
+      <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
     </div>
   </div>`
 }
@@ -249,7 +266,7 @@ export function gruposDeEspecieHtml(grupos, puestos) {
     .join('')
 }
 
-export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null }) {
+export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null, texto = '' }) {
   const nombre = especiePorDex(dex) || `N.º ${dex}`
   const sprite = urlDeSprite(dex)
   const tengo = cartas.filter((c) => tuyas.has(c.id)).length
@@ -282,14 +299,20 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = 
         ? '<p class="empty-state">Ninguna carta de este Pokémon encaja con esos filtros.</p>'
         : '<p class="empty-state">No hay ninguna carta de este Pokémon en el catálogo.</p>'
   return `
+    <!-- VOLVER ES UNA CHAPA, NO UN ENLACE (tanda 458). PINGU: «el link de
+         todos los Pokémon no lo quiero, no quiero enlaces pochos así;
+         hazme una tarjeta o un botón, algo, una chapa». Y va en SU PROPIA
+         fila, encima del nombre: metido al lado del sprite competía con el
+         título por el sitio y el conjunto se leía como tres cosas sueltas.
+         La flecha se queda en texto porque no hay icono de flecha en
+         js/icons.js y meterlo solo para esto engordaría la hoja que baja
+         todo el mundo. -->
+    <p class="pdx-volver-fila">
+      <button type="button" class="mc-chip-mando" id="pdxVolver">← Todos los Pokémon</button>
+    </p>
     <div class="pdx-cabecera">
-      <!-- La flecha en texto, como el «← Todas las colecciones» del
-           álbum: no hay icono de flecha en js/icons.js y meterlo solo
-           para esto sería añadir un dibujo a la hoja que baja todo el
-           mundo. Y así los dos botones de volver se leen igual. -->
-      <button type="button" class="link-btn mc-album-volver" id="pdxVolver">← Todos los Pokémon</button>
       <span class="pdx-sprite pdx-sprite-grande">${
-        sprite ? `<img src="${escapeHtml(sprite)}" alt="" width="96" height="80"${atributosDeRespaldo(sprite)} />` : ''
+        sprite ? `<img src="${escapeHtml(sprite)}" alt="" width="64" height="56"${atributosDeRespaldo(sprite)} />` : ''
       }</span>
       <div>
         <h3>${escapeHtml(nombre)}</h3>
@@ -303,7 +326,7 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = 
         }</p>
       </div>
     </div>
-    ${barraDeEspecie(grupos, puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0)}
+    ${barraDeEspecie(grupos, puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0, texto)}
     ${cuerpo}`
 }
 
