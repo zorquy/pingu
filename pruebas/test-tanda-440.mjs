@@ -113,46 +113,10 @@ console.log('\n── 2. Fuera el carrusel, y las listas de números al final �
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 3. Dónde estás cerca ──')
-{
-  const { page, errores } = await abrir()
-  const titulos = await page.locator('.mc-vistazo .mc-subtitulo').allTextContents()
-  // Va EL PRIMERO: es lo único del panel que dice qué hacer. Todo lo
-  // demás cuenta lo que ya tienes.
-  check('es el primer bloque del panel', titulos[0] === 'Dónde estás cerca', titulos.join(' | '))
-
-  const filas = await page.locator('.mc-cerca-fila').evaluateAll((ns) => ns.map((n) => ({
-    nombre: n.querySelector('.mc-cerca-nombre').textContent.trim(),
-    faltan: Number(n.querySelector('.mc-cerca-faltan').firstChild.textContent.trim()),
-  })))
-  // Ordenado por CARTAS QUE FALTAN y no por porcentaje. Un 96 % de un set
-  // de 100 son 4 cartas y un 80 % de uno de 10 son 2: el porcentaje dice
-  // que vas mejor en el primero y la verdad es que acabas antes el
-  // segundo. Lo que se pregunta aquí es «¿cuál puedo cerrar?».
-  check('ordenado por las que menos faltan',
-    filas.map((f) => f.faltan).join(',') === '2,4,12,186', JSON.stringify(filas))
-  check('  …y NO por porcentaje: la del 96 % va detrás de la del 80 %',
-    filas[0].nombre === 'Promo Pequeña' && filas[1].nombre === 'Casi Entera',
-    filas.map((f) => f.nombre).join(' | '))
-  check('  …y dice CUÁNTAS faltan, no un porcentaje',
-    /te faltan/.test(await page.locator('.mc-cerca-faltan').first().textContent()),
-    await page.locator('.mc-cerca-faltan').first().textContent())
-  // La completa no sale: ahí no hay nada que hacer, que es de lo que va
-  // este bloque.
-  check('la que ya tienes completa no sale',
-    !filas.some((f) => /Ya Completa/.test(f.nombre)), JSON.stringify(filas.map((f) => f.nombre)))
-
-  // Y pulsar una abre ESA expansión, no la estantería.
-  await page.locator('.mc-cerca-fila').first().click()
-  await page.waitForTimeout(1800)
-  check('pulsar una abre esa expansión',
-    (await page.locator('.mc-pestania.activa .mc-menu-texto').textContent()) === 'Expansiones')
-  check('  …y es la que se pulsó',
-    (await page.locator('#mcAlbumTitulo').textContent()) === 'Promo Pequeña',
-    await page.locator('#mcAlbumTitulo').textContent())
-  check('sin errores', !errores.length, errores[0])
-  await page.close()
-}
+// AQUÍ VIVÍA el bloque 3, «Dónde estás cerca», que duró de la tanda 440 a
+// la 441. PINGU, al verlo puesto: «no tiene sentido porque abajo ya están
+// las expansiones». Es el mismo argumento con el que la 439 quitó las dos
+// diapositivas repetidas, así que fuera.
 
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')
