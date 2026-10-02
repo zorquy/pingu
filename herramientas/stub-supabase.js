@@ -781,6 +781,18 @@ function consulta(tabla, estado = {}) {
   }
 
   const resolver = () => {
+    // ── Una escritura que la POLÍTICA rechaza (tanda 426) ──
+    //
+    // En PostgREST no da error: no toca nada y vuelve con el cuerpo
+    // VACÍO. Es de los fallos que más veces ha mordido en este repo
+    // (CLAUDE.md lo cuenta tres veces), y el doble no sabía fingirlo: con
+    // él, un código que no mira lo que vuelve pasaba por bueno aquí y
+    // mentía en producción. Las tablas que lo hagan van en
+    // `window.__SIN_PERMISO__`.
+    const sinPermiso = (typeof window !== 'undefined' && window.__SIN_PERMISO__) || []
+    if (['insert', 'upsert', 'update', 'delete'].includes(st.op) && sinPermiso.includes(tabla)) {
+      return { data: st.unico ? null : [], error: null }
+    }
     // Escrituras
     if (st.op === 'insert' || st.op === 'upsert') {
       const filas = (Array.isArray(st.cuerpo) ? st.cuerpo : [st.cuerpo]).map((f, i) => ({
