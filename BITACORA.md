@@ -35,6 +35,81 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tandas 443 y 444 — la estantería filtrable, la barra como la de Dex, y la cabecera solo en el Panel)
+
+**Antes de nada, una RETRACTACIÓN.** La entrada de la 442 dejó apuntado
+que en Expansiones había «dos colecciones rotuladas SWS». **No existe tal
+fallo**: era el fixture de las capturas, que generaba el código de TCG Live
+como las tres primeras letras del id, y `swsh11`/`swsh12` dan los dos
+«SWS». Con los códigos de verdad son SSP, SCR, TWM, TEF, SIT y LOR, todos
+distintos. Segunda vez en dos días que un dato inventado para mirar una
+pantalla miente sobre la pantalla; la primera fueron las capturas vacías de
+la 441. **Un fixture inventado también miente.**
+
+### Tanda 443 — la estantería, filtrable
+
+Hay 206 colecciones y de casi todas no tienes ninguna carta, así que la
+pantalla son doscientas tarjetas diciendo «0 de N · 0 %». Un chip **«Solo
+las empezadas»** las quita. Ojo con el matiz: la tanda 409 ya probó a
+SUBIRLAS arriba y lo descartó con razón —con cien empezadas eso no es un
+orden, es la misma lista sin fechas—; **un filtro es otra cosa: QUITA las
+doscientas**. Y con él, la cuenta de cuántas estás viendo («2 de 8»), igual
+que la de las cartas.
+
+La prueba cubre lo que de verdad se rompe solo: **dos filtros a la vez**.
+Con la serie puesta Y el chip pulsado tiene que quedar la empezada DE ESA
+SERIE, no las dos empezadas ni las cuatro de la serie. Y que el total sea
+el del CATÁLOGO y no el de lo ya filtrado — si se calculara sobre lo
+filtrado diría «2 de 2», que es cierto y no sirve de nada.
+
+### Tanda 444 — la barra como la de Dex, y la cabecera solo en el Panel
+
+PINGU, con capturas de Dex: «puedes deslizar para un lado para ver los
+filtros y botones, además la barra de búsqueda es muy sutil; lo nuestro
+ocupa demasiadísimo». Y: «lo de mi colección debería verse solo en el
+panel, porque en los demás módulos es un espacio desperdiciado».
+
+**La cabecera, solo en el Panel.** ~400 px de avatar, cifras e interruptor
+repetidos en las cinco pestañas para decir lo que el Panel cuenta entero.
+**El `<h1>` NO se va con ella**: un `display: none` lo saca también del
+árbol de accesibilidad y la pantalla se queda SIN encabezado — y la prueba
+que cuenta `<h1>` habría seguido en verde, porque cuenta en el DOM. Se
+queda en `sr-only`.
+
+**La barra**: buscador en su propia fila y sin fondo blanco ni sombra, y
+todos los mandos en UNA fila que se desliza. La misma en Cartas y en
+Expansiones.
+
+**Y me contradigo con la 439 A PROPÓSITO, que quede escrito**: allí se quitó
+una tira deslizable. Pero aquella llevaba CIFRAS, que hay que LEER, y una
+cifra cortada por el borde se lee como un fallo. Estos son MANDOS: que
+asome medio botón es la pista de que hay más, y es el gesto normal en un
+móvil. No es la misma pieza — que nadie «arregle» una con el argumento de
+la otra.
+
+**Medido**: en un móvil, hasta ver la primera carta, **de 804 px a 230**.
+
+**Y la trampa de siempre otra vez**: `.mc-hero-mini` ponía `padding: 0`,
+pero el relleno del móvil lo pone un `@media` que va más abajo en la hoja y
+**un `@media` no suma especificidad**. Ganaba el de abajo por orden y la
+cabecera «escondida» seguía midiendo 32 px en el móvil y cero en el
+escritorio. Se cazó MIDIENDO EL ALTO, no mirando la captura; de ahí que la
+prueba exija cero y no «que tenga la clase puesta». Se arregla con dos
+clases (`.mc-hero.mc-hero-mini`), no moviendo la regla de sitio.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`mi-coleccion.html`. Pruebas: `test-tanda-443.mjs` y `test-tanda-444.mjs`
+(NUEVAS).
+
+**Suite**: 444, 443, 441, 440, 439, 412, 405, 409, 311 (contraste), 312
+(objetivos táctiles), 313, 299 y 305 — todas en verde.
+
+**En curso / pendiente**: los rigores de la 443 y la 444. Y PINGU confirmó
+que **los tres SQL están ejecutados**, así que la Pokédex por catálogo y las
+Trainer Gallery devueltas a su serie ya están en vivo.
+
+---
+
 ## 2026-10-02 — PINGU-Claude (tanda 442 — el pie de los precios, una guarda muerta, y los dos rigores cerrados)
 
 **Hecho**: tanda pequeña, salida entera de pasar los rigores de la 440 y

@@ -103,6 +103,36 @@
   background: linear-gradient(160deg, color-mix(in srgb, var(--navy) 9%, var(--white)), var(--white) 62%);
 }
 
+/* FUERA DEL PANEL, la cabecera no ocupa nada (tanda 444). PINGU: «lo de
+   mi colección debería verse solo en el panel, porque en los demás módulos
+   es un espacio desperdiciado». Son ~400 px de avatar, cifras e
+   interruptor repetidos en las cinco pestañas para decir lo que el Panel
+   ya cuenta entero.
+
+   El `<h1>` no entra aquí: se queda, en `sr-only`, porque esconderlo con
+   `display: none` lo saca TAMBIÉN del árbol de accesibilidad y la pantalla
+   se queda sin encabezado. Eso lo pone el JavaScript. */
+/* DOS clases a propósito, no una. La cabecera tiene un `@media` más
+   abajo que le pone su relleno del móvil, y **un `@media` no suma
+   especificidad**: con `.mc-hero-mini` a secas ganaba el de abajo por
+   orden y la cabecera «escondida» seguía midiendo 32 px en el móvil y
+   cero en el escritorio. Es la trampa que CLAUDE.md tiene escrita desde
+   la 299, y se cazó midiendo el alto, no mirando. */
+.mc-hero.mc-hero-mini {
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.mc-hero-mini > *:not(.mc-hero-quien),
+.mc-hero-mini .mc-hero-avatar,
+.mc-hero-mini .mc-hero-desde,
+.mc-hero-mini .mc-compartir {
+  display: none;
+}
+
 .mc-hero-quien {
   display: flex;
   gap: var(--e-md);
@@ -392,23 +422,75 @@
 }
 
 /* ── Las cartas ── */
+/* ── LA BARRA, COMO LA DE DEX (tanda 444) ──
+   Dos filas y no una que se parte: el buscador arriba, los mandos debajo
+   en una fila que se desliza. Antes eran seis controles con `flex-wrap`,
+   que en un móvil daban TRES filas de 44 px —132 px de mandos antes de la
+   primera carta— y encima en un orden que cambiaba con el ancho. */
 .mc-filtros {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: var(--e-sm);
-  margin-bottom: var(--e-lg);
+  margin-bottom: var(--e-md);
 }
 
-/* LA BARRA (tanda 405). El campo ya no se estira: una búsqueda no es más
-   larga por tener la pantalla más ancha, y el hueco que sobraba es lo que
-   hacía que la barra pareciera un formulario. */
+/* Los mandos, en UNA fila que se desliza. Es lo que hace Dex y es el
+   gesto normal en un móvil.
+   Y sí: la tanda 439 quitó una tira deslizable… pero aquella llevaba
+   CIFRAS, que hay que LEER, y una cifra cortada por el borde se lee como
+   un fallo. Estos son MANDOS: que asome medio botón es justo la pista de
+   que hay más. No es la misma pieza. */
+.mc-mandos {
+  display: flex;
+  gap: var(--e-sm);
+  /* Se sale hasta el borde de la pantalla para que el botón cortado se
+     vea cortado por la PANTALLA y no por una caja a 16 px del borde, que
+     es lo que parece un error de maquetación. */
+  margin-inline: calc(var(--e-xl) * -1);
+  padding-inline: var(--e-xl);
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.mc-mandos::-webkit-scrollbar {
+  display: none;
+}
+
+/* Un hijo de flex CEDE antes de desbordar (la lección de la 320): sin
+   esto, los mandos se encogen hasta ser ilegibles en vez de deslizarse. */
+.mc-mandos > * {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+/* Un desplegable pide de ancho lo que mida su opción más larga, y «Todas
+   las series» le daba 350 px a un control que elige entre nueve cosas. Se
+   acota: lo que no cabe se recorta, que para eso lleva su flechita. */
+.mc-mandos .mc-chapa-select {
+  max-width: 220px;
+}
+
+/* Con sitio de sobra no hace falta deslizar nada, así que la fila deja de
+   ser una tira y se queda quieta. */
+@media (min-width: 900px) {
+  .mc-mandos {
+    margin-inline: 0;
+    padding-inline: 0;
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}
+
+/* LA BARRA (tanda 405, rehecha en la 444). El campo tiene ahora su propia
+   fila, así que puede ocupar el ancho sin empujar a nadie — lo que la 405
+   le recortaba era por ir en la MISMA fila que las chapas, y eso ya no
+   pasa. El tope de 520 es para que en un escritorio ancho no se convierta
+   en una barra de un extremo a otro, que es lo que la hacía parecer el
+   campo principal de un formulario. */
 .mc-buscador {
   position: relative;
-  /* Crece hasta 320 y se encoge sin obligar a la barra a partirse: con una
-     base de 320 y la chapa al lado, en un móvil la fila se rompía en dos. */
-  flex: 1 1 160px;
   min-width: 0;
-  max-width: 320px;
+  max-width: 520px;
 }
 
 .mc-buscador-lupa {
@@ -425,7 +507,19 @@
   width: 100%;
   min-height: 44px;
   padding-left: 36px;
+  /* SUTIL (tanda 444). PINGU: «la barra de búsqueda es muy sutil» —en Dex
+     es un hueco apenas marcado, no una caja blanca con sombra—. Un
+     buscador es un sitio donde escribir si quieres, no lo primero que la
+     pantalla te pide. Al enfocarlo sí se enciende, que es cuando importa. */
+  border-color: transparent;
   border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  box-shadow: none;
+}
+
+.mc-buscador input[type="search"]:focus {
+  border-color: var(--navy);
+  background: var(--white);
 }
 
 .mc-chip-mando {
@@ -983,11 +1077,13 @@
  * colecciones, `auto-fit` las estiraría a un tercio de pantalla cada
  * una. Una tarjeta de colección mide lo que mide, haya tres o doscientas.
  */
+/* La misma barra que la de las cartas desde la 444: el buscador en su
+   fila y los mandos en una que se desliza. Si una pantalla se maqueta de
+   una forma y la de al lado de otra, la segunda parece la vieja. */
 .mc-estanteria-barra {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-md);
-  margin-bottom: var(--e-lg);
+  display: grid;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
 }
 
 /* Un filtro no es un campo de formulario (tanda 406): en Dex cada uno es

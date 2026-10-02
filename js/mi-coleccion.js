@@ -1268,6 +1268,9 @@ async function guardarEditor({ retardo = 0 } = {}) {
 // Un archivador de nueve bolsillos: páginas de 3×3, de dos en dos en
 // pantalla ancha (como al abrirlo) y de una en una en el móvil.
 let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false }
+// Solo las colecciones de las que tienes algo (tanda 443). Fuera del
+// objeto `album` porque no es del álbum abierto, es de la estantería.
+let soloEmpezadas = false
 let todosLosSets = null
 
 async function cargarSets() {
@@ -1319,7 +1322,13 @@ async function pintarEstanteria() {
   const texto = normalizeSearch($('mcEstanteriaBuscar')?.value || '').trim()
   const serie = $('mcEstanteriaSerie')?.value || ''
   const cumple = (s) =>
-    (!serie || s.serie_id === serie) && (!texto || normalizeSearch(`${s.name} ${s.id}`).includes(texto))
+    (!serie || s.serie_id === serie) &&
+    (!texto || normalizeSearch(`${s.name} ${s.id}`).includes(texto)) &&
+    // Y la de la 443: con 206 colecciones, de casi todas no tienes
+    // ninguna. Esto QUITA esas, que es distinto de ordenarlas —la 409
+    // probó a subirlas arriba y con cien empezadas la lista seguía
+    // midiendo lo mismo—.
+    (!soloEmpezadas || cuantas.has(s.id))
 
   // Por ERAS, y dentro por año (tanda 409). Antes subían arriba las que
   // tenías empezadas; con cien empezadas eso no es un orden, es una lista
@@ -1339,6 +1348,18 @@ async function pintarEstanteria() {
       <div class="mc-estanteria">${g.sets.map((x) => tarjetaDeSet(x, cuantas.get(x.id) || 0)).join('')}</div>`)
     .join('')
   $('mcAlbumVacio').classList.toggle('hidden', visibles.length > 0)
+  // Cuántas estás viendo de cuántas hay. `cumple` ya lleva el filtro
+  // dentro, así que el total se cuenta aparte: es el del catálogo, no el
+  // de lo que queda después de filtrar.
+  const hay = sets.filter((s) => esMia || cuantas.has(s.id)).length
+  const caja = $('mcEstanteriaCuantas')
+  if (caja) {
+    caja.textContent = !hay
+      ? ''
+      : visibles.length === hay
+        ? `${hay.toLocaleString('es-ES')} ${hay === 1 ? 'colección' : 'colecciones'}`
+        : `${visibles.length.toLocaleString('es-ES')} de ${hay.toLocaleString('es-ES')}`
+  }
 }
 
 // Cuántas cartas tiene una colección. `card_count_official` es la
@@ -2160,6 +2181,19 @@ function cambiarPestania(nueva) {
   // 442). Son las cartas y el panel; en Expansiones, la Pokédex y las
   // carpetas no hay ninguno.
   $('mcFuente')?.classList.toggle('hidden', !['cartas', 'resumen'].includes(nueva))
+  // LA CABECERA, SOLO EN EL PANEL (tanda 444). PINGU: «lo de mi colección
+  // debería verse solo en el panel, porque en los demás módulos es un
+  // espacio desperdiciado». Son ~400 px de avatar, cifras y interruptor
+  // antes de la primera carta, repetidos en las cinco pestañas, diciendo
+  // lo mismo que el Panel ya cuenta entero.
+  //
+  // El `<h1>` NO se esconde con el resto: se queda en `sr-only`. Un
+  // `display: none` lo saca también del árbol de accesibilidad y la
+  // pantalla se queda SIN encabezado, que es peor que el espacio. Así
+  // sigue leyéndose en voz alta y ocupa cero.
+  const mini = nueva !== 'resumen'
+  $('mcHero')?.classList.toggle('mc-hero-mini', mini)
+  $('mcTitulo')?.classList.toggle('sr-only', mini)
   // La pestaña por defecto es la que NO lleva `?ver=`: si no, compartir
   // /mi-coleccion a secas llevaría a una pestaña distinta de la que ve
   // quien la abre.
@@ -3010,6 +3044,12 @@ function enganchar() {
   for (const id of ['mcEstanteriaBuscar', 'mcEstanteriaSerie']) {
     $(id).addEventListener(id === 'mcEstanteriaBuscar' ? 'input' : 'change', () => pintarEstanteria())
   }
+  $('mcEstanteriaEmpezadas')?.addEventListener('click', () => {
+    soloEmpezadas = !soloEmpezadas
+    $('mcEstanteriaEmpezadas').classList.toggle('activo', soloEmpezadas)
+    $('mcEstanteriaEmpezadas').setAttribute('aria-pressed', soloEmpezadas ? 'true' : 'false')
+    void pintarEstanteria()
+  })
   $('mcEstanteriaRejilla').addEventListener('click', (e) => {
     const b = e.target.closest('[data-set]')
     if (b) abrirAlbum(b.dataset.set)

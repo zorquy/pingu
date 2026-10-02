@@ -170,11 +170,27 @@
              dentro, y lo demás son chapas. La de limpiar va FUERA del
              campo a propósito: dentro no podría medir los 44 px que pide
              un icono sin reventar el alto del campo. -->
+        <!-- LA BARRA, COMO LA DE DEX (tanda 444). PINGU, con Dex delante:
+             «puedes deslizar para un lado para ver los filtros y botones,
+             además la barra de búsqueda es muy sutil; lo nuestro ocupa
+             demasiadísimo».
+
+             El buscador se lleva su propia fila y se calla —sin fondo
+             blanco ni sombra, que es lo que lo hacía parecer el campo
+             principal de un formulario—, y TODOS los mandos van en UNA
+             fila que se desliza.
+
+             Sí, la tanda 439 quitó una tira que se deslizaba… pero aquella
+             llevaba CIFRAS, que hay que leer, y una cifra cortada por el
+             borde se lee como un fallo. Esto son MANDOS: deslizar una fila
+             de botones es el gesto normal en un móvil y es justo lo que
+             hace Dex. No es la misma pieza. -->
         <div class="mc-filtros hidden" id="mcFiltros">
           <div class="mc-buscador">
             <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
             <input type="search" id="mcBuscar" placeholder="Buscar en tu colección" aria-label="Buscar en tu colección" />
           </div>
+          <div class="mc-mandos" id="mcMandos">
           <button type="button" class="mc-chip-mando" id="mcAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
             <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcFiltrosCuenta"></span>
           </button>
@@ -198,6 +214,7 @@
                de la colección ENTERA; esta es la de lo que tienes delante.
                Va dentro de la barra, al final, para no meter un bloque
                nuevo entre la barra y las cartas. -->
+          </div>
           <p class="mc-cuantas" id="mcCuantas" role="status" aria-live="polite"></p>
         </div>
 
@@ -274,8 +291,18 @@
               <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
               <input type="search" id="mcEstanteriaBuscar" placeholder="Buscar una colección…" aria-label="Buscar una colección" />
             </div>
+            <div class="mc-mandos">
             <select id="mcEstanteriaSerie" class="mc-chapa-select" aria-label="Serie"></select>
             <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+            <!-- SOLO LAS EMPEZADAS (tanda 443). Hay 206 colecciones y de
+                 casi todas no tienes ninguna, así que la pantalla son
+                 doscientas tarjetas diciendo «0 de N · 0 %». La 409 ya
+                 probó a SUBIR arriba las empezadas y lo descartó —con cien
+                 empezadas eso no es un orden, es la misma lista sin
+                 fechas—; un filtro es otra cosa: QUITA las doscientas. -->
+            <button type="button" class="mc-chip-filtro mc-chip-mando" id="mcEstanteriaEmpezadas" aria-pressed="false">Solo las empezadas</button>
+            </div>
+            <p class="mc-cuantas" id="mcEstanteriaCuantas" role="status" aria-live="polite"></p>
           </div>
           <div id="mcEstanteriaRejilla"></div>
         </div>
