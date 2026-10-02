@@ -106,3 +106,17 @@ export function urlDeLogo(logoPath) {
   if (!logoPath) return null
   return `${ASSETS}/en/${logoPath}.webp`
 }
+
+// El logo montado a mano (tanda 434), para cuando `logo_path` está a null.
+//
+// Es el mismo truco que con el escaneo de una carta: TCGdex tiene ficheros
+// en su CDN que su manifiesto no lista (cards-database#2362), y la ruta de
+// un logo es `serie/set/logo`. Si está, se ve; si no, la cadena de la
+// tarjeta pasa al símbolo y después al nombre, que es lo que hace hoy.
+//
+// Sin serie no hay dirección: inventarla daría una que no es.
+export function urlDeLogoPorPartes(serieId, setId) {
+  if (!serieId || !setId) return null
+  if ([serieId, setId].some((v) => /[/?#\s]/.test(String(v)))) return null
+  return `${ASSETS}/en/${String(serieId).trim()}/${String(setId).trim()}/logo.webp`
+}

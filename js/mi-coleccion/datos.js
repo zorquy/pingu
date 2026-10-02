@@ -189,7 +189,9 @@ export async function cartasDeSet(setId) {
     // `category` desde la 382: sin ella el filtro de categoría del
     // álbum tendría un desplegable vacío y no filtraría nada — y no
     // daría ningún error, que es lo de siempre.
-    .select('id,set_id,local_id,name,name_es,image_path,rarity,category,variants,tcg_sets(tcg_online_code)')
+    // `serie_id` desde la 434: hace falta para montar a mano la ruta del
+    // asset de TCGdex cuando `image_path` está a null.
+    .select('id,set_id,local_id,name,name_es,image_path,rarity,category,variants,tcg_sets(tcg_online_code,serie_id)')
     .eq('market', 'WEST')
     .eq('set_id', setId)
     .limit(1000)

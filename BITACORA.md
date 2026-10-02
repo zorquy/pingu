@@ -75,6 +75,67 @@ rigor, 32 de 32 (pasado sobre este mismo código antes de renumerar: solo
 cambian comentarios). Con lo de la 422 a la 424 debajo, en verde también
 la 413, 421, 422, 414, 384, 305, 310, 369 y 406.
 
+## 2026-10-02 — PINGU-Claude (tanda 434 — la ruta del asset de TCGdex, montada a mano)
+
+**Hecho**: cuando `image_path` está a null, la dirección del escaneo **se
+monta a mano** con `serie/set/número`. Y lo mismo con el logo de un set:
+`serie/set/logo`.
+
+**Por qué funciona**: TCGdex tiene un fallo conocido y abierto
+(cards-database#2362) — hay imágenes SUBIDAS A SU CDN que su `datas.json`
+no lista, así que la API devuelve el campo `image` vacío y nuestra columna
+nace a null. El issue nombra tres sets que son de los nuestros —`mep`,
+`P-A`, `svp`— y da la dirección que sí responde:
+
+    https://assets.tcgdex.net/en/sv/svp/196/high.png → 200
+
+Y esa dirección es la que YA montamos: nuestro `image_path` ES
+`serie/set/número`. O sea que con tres datos que ya tenemos en la base se
+escribe sola. **Sin API nueva, sin clave y sin dependencia.**
+
+Va DELANTE de Limitless en la cadena, porque es la misma fuente que el
+espejo —mismo arte y mismo idioma—; Limitless se queda de respaldo, con su
+arte siempre inglés. Y no se comprueba nada antes de pedirla, igual que
+con Limitless: si el fichero no está, el `onerror` pasa al siguiente y, si
+se acaban, quita la imagen. El coste de equivocarse es un 404; el de no
+intentarlo, una carta en blanco.
+
+**Tres cautelas**: sin serie no se monta nada —el módulo ya decía que una
+dirección inventada es una imagen rota—; ningún trozo puede llevar una
+barra ni un espacio, que cambiaría de carpeta o partiría la dirección; y
+no se monta si ya hay `image_path`, o la misma saldría dos veces.
+
+**Y DOS LECCIONES DE MÉTODO, las dos de la misma familia y nueva**:
+
+1. **La prueba miraba el sitio equivocado.** Comprobaba qué queda PINTADO,
+   y aquí la red está cerrada: el asset no llega, salta el respaldo de la
+   415 y la imagen desaparece. Estaba comprobando el respaldo. Ahora mira
+   **qué PIDE la página** (`page.on('request')`), que es lo que prueba que
+   la dirección se monta — y además funciona con la red cerrada.
+2. **El caso de prueba hacía indistinguibles las dos ramas del `if`.** El
+   set «con logo» tenía un `logo_path` que producía EXACTAMENTE la
+   dirección que montaría la mano; y la carta «con `image_path`» apuntaba
+   a `sv/svp/196`, que es justo lo que montaría la mano — y como la cadena
+   deduplica con un `Set`, el código roto y el bueno daban la misma lista.
+   No es que la prueba mirase mal (426) ni que los datos fueran más fáciles
+   que el mundo (427): es que **el ejemplo elegido coincidía con lo que
+   calcularía la otra rama**. Se arregla haciendo que el valor «ya
+   existente» apunte a OTRO sitio (`viejo/camino/9`).
+
+**No se ha podido comprobar contra TCGdex**: el proxy de este contenedor
+deniega `assets.tcgdex.net`. Se sabrá al desplegar. Lo que sí está probado
+es que si el fichero no llega, no se queda ningún icono roto.
+
+**Ficheros**: `js/escaneo-carta.js`, `js/carta-ruta.js`,
+`js/mi-coleccion.js`, `js/mi-coleccion/datos.js`. En `pruebas`:
+`test-tanda-434.mjs` y `rigor/rigor-tanda-434.py` (nuevos).
+
+**En curso / pendiente**: medir en producción cuántas se recuperan. Con
+eso se decide si pokemontcg.io —gratis con clave, 20.000 al día, pero con
+el futuro incierto por lo de Scrydex— merece la pena para los huecos que
+queden, o si se asume. Y queda la vía de subir las que falten al Ingest de
+TCGdex (manager.tcgdex.net), que ayuda a todo el mundo.
+
 ## 2026-10-02 — PINGU-Claude (tanda 433 — devolverle su era a las galerías: ARREGLO DE UN FALLO MÍO)
 
 **Hecho**: `supabase-migration-trainer-gallery.sql` (tanda 432) juntó las

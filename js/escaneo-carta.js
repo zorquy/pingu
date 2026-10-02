@@ -94,6 +94,39 @@ export function codigoDeSetDe(carta, porDefecto = null) {
 }
 
 
+// ── La ruta del asset, montada a mano (tanda 434) ──
+//
+// TCGdex tiene un fallo conocido y abierto —cards-database#2362—: hay
+// imágenes SUBIDAS A SU CDN que su `datas.json` no lista, así que la API
+// devuelve el campo `image` vacío y nuestro `image_path` nace a null. El
+// issue nombra tres sets que son de los nuestros (`mep`, `P-A`, `svp`) y
+// da la dirección que SÍ responde:
+//
+//     https://assets.tcgdex.net/en/sv/svp/196/high.png   → 200
+//
+// Y resulta que esa dirección es exactamente la que ya montamos: nuestro
+// `image_path` ES `serie/set/número`. O sea que cuando la columna está
+// vacía, la ruta se puede escribir con tres datos que ya tenemos.
+//
+// No se comprueba nada antes de pedirla, igual que con Limitless: si el
+// fichero no está, el `onerror` de la cadena pasa al siguiente sitio y, si
+// se acaban, quita la imagen. El coste de equivocarse es una petición que
+// devuelve 404; el de no intentarlo, una carta en blanco.
+//
+// La serie hace falta y NO está en la carta: viene de su set. Si no llega,
+// se devuelve null — inventarse una serie daría una dirección que no es.
+export function rutaDeAssetDeTCGdex(carta, serieDeSet = null) {
+  const serie = serieDeSet || carta?.tcg_sets?.serie_id || carta?.serie_id || null
+  const set = carta?.set_id || carta?.tcg_sets?.id || null
+  const numero = carta?.local_id
+  if (!serie || !set || !numero) return null
+  // Los tres trozos van en una dirección, así que nada de barras ni de
+  // cosas raras: un identificador con una barra dentro cambiaría de carpeta.
+  const limpio = (v) => String(v).trim()
+  if ([serie, set, numero].some((v) => /[/?#\s]/.test(limpio(v)))) return null
+  return `${limpio(serie)}/${limpio(set)}/${limpio(numero)}`
+}
+
 // ── La cadena entera: dónde buscar el escaneo, por orden ──
 //
 // `urlDelEspejo` se puede cambiar porque el idioma del escaneo depende
@@ -103,12 +136,15 @@ export function codigoDeSetDe(carta, porDefecto = null) {
 // la inglesa, que es la del catálogo.
 export function cadenaDeEscaneo(carta, codigoDeSet = null, calidad = 'low', urlDelEspejo = null) {
   const cadena = []
-  const espejo = carta?.image_path
-    ? urlDelEspejo
-      ? urlDelEspejo(carta.image_path, calidad)
-      : urlDeImagen(carta.image_path, calidad)
-    : null
+  const comoEspejo = (ruta) => (urlDelEspejo ? urlDelEspejo(ruta, calidad) : urlDeImagen(ruta, calidad))
+  const espejo = carta?.image_path ? comoEspejo(carta.image_path) : null
   if (espejo) cadena.push(espejo)
+  // Y si la columna está vacía, la MISMA dirección montada a mano (tanda
+  // 434). Va aquí y no detrás de Limitless porque es la misma fuente que
+  // el espejo: mismo arte y mismo idioma. Limitless es el respaldo, y su
+  // arte es siempre el inglés.
+  const aMano = carta?.image_path ? null : rutaDeAssetDeTCGdex(carta)
+  if (aMano) cadena.push(comoEspejo(aMano))
   // Limitless SOLO para las occidentales: sus ficheros son el arte
   // inglés (`_R_EN_`). Enseñar la impresión inglesa de una carta japonesa
   // sería peor que no enseñar ninguna — en una guía sobre cartas

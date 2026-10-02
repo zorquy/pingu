@@ -15,7 +15,7 @@ import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
 import { supabase } from './supabase.js'
 import { normalizeSearch } from './tcgdex.js'
-import { rutaDeCarta, urlDeLogo } from './carta-ruta.js'
+import { rutaDeCarta, urlDeLogo, urlDeLogoPorPartes } from './carta-ruta.js'
 // El escaneo con su respaldo (tanda 370): TCGdex no tiene imagen de
 // muchas cartas viejas, y sin esto el bolsillo se quedaba en blanco.
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
@@ -1163,8 +1163,14 @@ function tarjetaDeSet(set, tengo) {
   // es que la cadena no pueda acabar en nada: una tarjeta sin dibujo y
   // sin nombre no dice qué colección es.
   const logo = urlDeLogo(set.logo_path)
+  // Y si no hay, la ruta montada a mano (tanda 434): TCGdex tiene logos en
+  // su CDN que su manifiesto no lista, y la ruta es `serie/set/logo`. De
+  // los 41 sets sin dibujo, el curador de la 380 ya pasó por 37 y volvió
+  // vacío —o sea que la API no lo da—, pero el fichero puede estar igual.
+  // Si no está, la cadena sigue al símbolo y acaba en el nombre.
+  const logoAMano = set.logo_path ? null : urlDeLogoPorPartes(set.serie_id, set.id)
   const simbolo = set.symbol_url ? `${set.symbol_url}.webp` : null
-  const dibujos = [logo, simbolo].filter(Boolean)
+  const dibujos = [logo, logoAMano, simbolo].filter(Boolean)
   const completo = total && tengo >= total
   const codigo = set.tcg_online_code || ''
   return `
