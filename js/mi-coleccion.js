@@ -47,6 +47,7 @@ import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
 import { ORDENES, ordenar, porNumero } from './mi-coleccion/orden.js'
+import { balanceDeCompra } from './mi-coleccion/balance.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante } from './mi-coleccion/variantes.js'
@@ -161,11 +162,15 @@ function pintarResumen() {
   let valor = 0
   let sinPrecio = 0
   let pagado = 0
+  let conCompra = 0
   for (const l of lineas) {
     const v = valorDeLinea(l, precioDe(l))
     if (v) valor += v
     else sinPrecio += l.cantidad
-    if (Number(l.precio_compra) > 0) pagado += Number(l.precio_compra) * l.cantidad
+    if (Number(l.precio_compra) > 0) {
+      pagado += Number(l.precio_compra) * l.cantidad
+      conCompra += l.cantidad
+    }
   }
   const sets = new Set(lineas.map((l) => cartas.get(l.card_id)?.set_id).filter(Boolean)).size
   $('mcResumen').innerHTML = `
@@ -173,7 +178,17 @@ function pintarResumen() {
     <div class="mc-cifra"><dt>Distintas</dt><dd>${distintas.toLocaleString('es-ES')}</dd></div>
     <div class="mc-cifra"><dt>Colecciones</dt><dd>${sets.toLocaleString('es-ES')}</dd></div>
     <div class="mc-cifra mc-cifra-valor"><dt>Valor estimado</dt><dd>${euros(valor)}</dd></div>
-    ${pagado > 0 && esMia ? `<div class="mc-cifra"><dt>Pagado</dt><dd>${euros(pagado)}</dd></div>` : ''}`
+    ${
+      // «Pagado» dice EN CUÁNTAS cartas (tanda 428). Al lado de «Valor
+      // estimado», que es el de la colección ENTERA, un «Pagado: 20 €» a
+      // secas se lee como un balance y no lo es: lo pagado solo se sabe
+      // de donde lo hayas apuntado, que pueden ser tres cartas de
+      // cuatrocientas. El balance de verdad —las mismas cartas en los dos
+      // lados— está en el Panel.
+      pagado > 0 && esMia
+        ? `<div class="mc-cifra"><dt>Pagado en ${conCompra.toLocaleString('es-ES')} ${conCompra === 1 ? 'carta' : 'cartas'}</dt><dd>${euros(pagado)}</dd></div>`
+        : ''
+    }`
   $('mcResumenNota').textContent = lineas.length
     ? `El valor suma la tendencia de Cardmarket de cada carta (o el valor que le hayas puesto tú), sin ajustar por estado.${sinPrecio ? ` ${sinPrecio} ${sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía.` : ''}`
     : ''
@@ -311,6 +326,7 @@ function pintarResumenPanel() {
                 .join('')}</ul>`
             : '<p class="subtext">Todavía no sabemos el precio de ninguna.</p>'
         }`)}
+      ${esMia ? diapoDelBalance() : ''}
       ${diapoHtml('Lo que te sobra', `
         <p class="mc-diapo-cifra">${sobran.toLocaleString('es-ES')}</p>
         <p class="mc-diapo-pie">${sobran === 1 ? 'copia repetida' : 'copias repetidas'}${rep.length ? `, de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}` : ''}</p>
@@ -422,6 +438,49 @@ function engancharTira(idTira = 'mcTira', idIzq = 'mcTiraIzq', idDer = 'mcTiraDe
 // Una tarjeta de la tira. Todas iguales por fuera: lo que cambia es lo
 // que llevan dentro, y así la tira se lee como una tira y no como cuatro
 // cajas distintas puestas en fila.
+// ── Lo que te costó (tanda 428) ──
+//
+// Un balance solo vale sobre las MISMAS cartas en los dos lados. Si se
+// compara lo pagado —que solo se sabe de donde lo hayas apuntado— con el
+// valor de la colección entera, sale una ganancia inventada.
+//
+// Y dice SOBRE CUÁNTAS es: «+12,40 €» sin saber si es de tres cartas o de
+// trescientas no es un dato, es un número suelto.
+function diapoDelBalance() {
+  const b = balanceDeCompra(lineas, (l) => valorDeLinea(l, precioDe(l)))
+  if (!b.hayBalance) {
+    return diapoHtml('Lo que te costó', `
+      <p class="subtext">Apunta lo que pagaste por una carta —en su ficha, «Precio de compra»— y aquí te decimos si vas ganando.</p>`)
+  }
+  // Redondeado a céntimos ANTES de decidir el signo: una diferencia de
+  // 0,004 € es «ni ganas ni pierdes», y un «+0,00 €» con el signo puesto
+  // se lee como una ganancia que no existe.
+  const dif = Math.round(b.diferencia * 100) / 100
+  // «en las 1 carta» no lo escribe nadie: con una se dice de otra manera.
+  const cuantas = b.copias === 1
+    ? 'la única carta en la que apuntaste lo que pagaste'
+    : `las ${b.copias.toLocaleString('es-ES')} cartas en las que apuntaste lo que pagaste`
+  const clase = dif === 0 ? '' : dif > 0 ? ' mc-gana' : ' mc-pierde'
+  // El signo delante, que es lo que lee quien no distingue el verde del
+  // rojo: el color nunca va solo.
+  const signo = dif === 0 ? '' : dif > 0 ? '+' : '−'
+  return diapoHtml('Lo que te costó', `
+    <p class="mc-diapo-cifra${clase}">${signo}${escapeHtml(euros(Math.abs(dif)))}</p>
+    <p class="mc-diapo-pie">${dif === 0 ? 'ni ganas ni pierdes, ' : ''}en ${escapeHtml(cuantas)}</p>
+    <dl class="mc-diapo-datos">
+      <div><dt>Pagaste</dt><dd>${escapeHtml(euros(b.pagado))}</dd></div>
+      <div><dt>Valen</dt><dd>${escapeHtml(euros(b.valor))}</dd></div>
+    </dl>
+    ${
+      // Las que tienen precio de compra pero no de mercado se dicen, no se
+      // cuentan como cero: un cero diría que no valen nada, y lo que pasa
+      // es que no se sabe.
+      b.sinValorar
+        ? `<p class="subtext">${b.sinValorar} ${b.sinValorar === 1 ? 'carta más tiene' : 'cartas más tienen'} precio de compra pero todavía no de mercado, así que ${b.sinValorar === 1 ? 'no entra' : 'no entran'} en la cuenta.</p>`
+        : ''
+    }`)
+}
+
 function diapoHtml(titulo, dentro) {
   return `<article class="mc-diapo">
     <h3 class="mc-diapo-titulo">${escapeHtml(titulo)}</h3>

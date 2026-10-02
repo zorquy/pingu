@@ -75,6 +75,54 @@ rigor, 32 de 32 (pasado sobre este mismo código antes de renumerar: solo
 cambian comentarios). Con lo de la 422 a la 424 debajo, en verde también
 la 413, 421, 422, 414, 384, 305, 310, 369 y 406.
 
+## 2026-10-02 — PINGU-Claude (tanda 428 — lo que te costó contra lo que vale)
+
+**Hecho**: una tarjeta nueva en el Panel, **«Lo que te costó»**, pegada a
+«Lo que vale»: la diferencia en grande con su signo, sobre cuántas cartas
+es, y lo pagado y lo que valen debajo.
+
+**Y de paso arregla algo que ya estaba mal.** La cabecera llevaba desde la
+374 un «Pagado» al lado de «Valor estimado», y esa pareja MIENTE: lo
+pagado solo se sabe de las cartas en las que lo has apuntado —pueden ser
+tres de cuatrocientas— y el valor es el de TODAS. Leídas juntas parecen un
+balance y dicen «has ganado 280 €» cuando lo único cierto es que te
+costaron 20. Ahora la cifra dice **«Pagado en 6 cartas»**, que es lo que
+la convierte de trampa en dato, y el balance de verdad —las mismas cartas
+en los dos lados— está en el Panel.
+
+**Las reglas que lleva dentro**, que son las de siempre:
+
+- el **signo va delante** del número, porque el color nunca va solo: hay
+  quien no distingue el verde del rojo;
+- **dice sobre cuántas cartas es**: «+12,40 €» sin saber si es de tres
+  cartas o de trescientas no es un dato, es un número suelto;
+- las que tienen precio de compra pero **todavía no de mercado se dicen
+  aparte**, no se cuentan como cero — un cero diría que no valen nada, y
+  lo que pasa es que no se sabe (la regla de los tres estados, 319);
+- **sin nada apuntado no sale un «0 €»** —que se leería como «estás en
+  tablas»— sino dónde se apunta;
+- y un **empate va sin signo y sin color**: un «+0,00 €» en verde se lee
+  como una ganancia que no existe.
+
+**El rigor encontró tres agujeros, los tres del mismo tipo: la prueba no
+visitaba el caso.** El empate no estaba probado en pantalla; la cabecera
+se probaba con UNA copia, y contar líneas o contar cartas da lo mismo con
+`cantidad: 1`; y el color se comprobaba **por la clase** y no por el
+color, así que `.mc-gana` pintando de rojo pasaba — la trampa de la 313,
+«una prueba que mira si se LLAMA a una función no prueba lo que hace».
+Ahora compara el color pintado con el token `--success` resuelto y exige
+que no sea el rojo.
+
+**Ficheros**: nuevo `js/mi-coleccion/balance.js`. Tocados
+`js/mi-coleccion.js`, `css/mi-coleccion.css`. En `pruebas`:
+`test-tanda-428.mjs` y `rigor/rigor-tanda-428.py` (nuevos).
+
+**En curso / pendiente**: nada a medias. Queda preguntado a PINGU si la
+Pokédex por TIPO merece una tabla curada de 1.025 especies (~10 KB y
+mantenimiento por generación): ese dato no está en la base — `types` es el
+tipo de energía de cada CARTA, no el del Pokémon — y la rejilla de las
+1.025 se pinta hoy sin una sola consulta.
+
 ## 2026-10-02 — PINGU-Claude (tanda 427 — ordenar una expansión)
 
 **Hecho**: una expansión se puede ordenar de cuatro maneras, según lo que

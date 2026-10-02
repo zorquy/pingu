@@ -1460,6 +1460,19 @@
   color: var(--text);
 }
 
+/* Lo que te costó (tanda 428): verde si vas ganando, rojo si no. El rojo
+   sale del token de peligro, que es el único rojo que hay — y es `--danger`
+   y no `--danger-solid` porque aquí es TEXTO, no un fondo con blanco
+   encima. El color no va solo: delante va un + o un −, que es lo que lee
+   quien no distingue los dos. */
+.mc-diapo-cifra.mc-gana {
+  color: var(--success);
+}
+
+.mc-diapo-cifra.mc-pierde {
+  color: var(--danger);
+}
+
 /* ── Marcar varias de golpe (tanda 426) ── */
 .mc-marcar-barra {
   display: flex;

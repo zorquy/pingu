@@ -22924,3 +22924,55 @@ a aparecer una segunda copia.
 200 cartas de un set es otra consulta con un `in()` enorme. No es que se
 haya olvidado: es un coste, como el de la tanda 233 con `cardToRow`. Si
 algún día se hace, que sea con esa decisión escrita.
+
+## Tanda 428 — lo que te costó contra lo que vale (oct. 2026)
+
+### El fallo que venía de la 374
+
+La cabecera de /mi-coleccion enseña «Valor estimado» y, al lado, «Pagado».
+**Esa pareja miente.** El valor es el de la colección ENTERA; lo pagado
+solo se sabe de las líneas donde hayas rellenado `precio_compra`, que
+pueden ser tres de cuatrocientas. Juntas se leen como un balance y dicen
+una ganancia que nadie ha calculado.
+
+Un balance solo se puede hacer **sobre las mismas cartas en los dos
+lados**. Eso es `balanceDeCompra` en `js/mi-coleccion/balance.js`: filtra
+las líneas con precio de compra y suma, de ESAS, lo pagado y lo que valen.
+El módulo no toca el DOM para poder probarlo en Node — son cuentas de
+dinero, y una cuenta mal hecha no da error nunca.
+
+La cifra de la cabecera se queda, pero diciendo **en cuántas cartas** es
+(y cuenta COPIAS, no líneas). Eso la convierte de trampa en dato.
+
+### Los tres estados, otra vez
+
+Una línea con precio de compra puede no tener precio de mercado. Esa no se
+puede poner en el otro lado de la balanza, así que **se cuenta aparte**
+(`sinValorar`) en vez de valer cero: un cero diría que no vale nada, y lo
+que pasa es que no se sabe. Y sin ninguna carta comparable
+`hayBalance: false`, para que la tarjeta no enseñe un «0 €» que se leería
+como «estás en tablas».
+
+Lo mismo con el empate de verdad: la diferencia se redondea a céntimos
+ANTES de decidir el signo, y un cero va **sin signo y sin color**. Un
+«+0,00 €» en verde se lee como una ganancia que no existe.
+
+Y el **signo va delante del número**, porque el color nunca va solo.
+
+### Lo que enseñó el rigor: tres casos que la prueba no visitaba
+
+Las tres mutaciones que sobrevivieron eran del mismo tipo, y no de la
+misma forma que las de tandas anteriores: aquí la prueba miraba el sitio
+correcto y lo miraba bien, pero **no llegaba a pasar por el caso**.
+
+1. **El empate** no estaba probado en pantalla, solo en Node.
+2. **La cabecera se probaba con una sola copia**, y con `cantidad: 1`
+   contar líneas o contar cartas da exactamente lo mismo. Es hermano del
+   `10a` de la tanda 427: el juego de datos era más simple que el mundo.
+3. **El color se comprobaba por la CLASE y no por el color.** Con
+   `.mc-gana` pintando de rojo, un `/mc-gana/.test(...)` sale verde igual.
+   Es la trampa de la 313 —«una prueba que mira si se LLAMA a una función
+   no prueba lo que la función hace»— aplicada al CSS. La forma de
+   comprobarlo: resolver el token en la página (`var(--success)` sobre un
+   elemento de usar y tirar) y comparar el color PINTADO con él, más
+   exigir que `--success` y `--danger` no sean el mismo color.
