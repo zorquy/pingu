@@ -194,22 +194,37 @@ console.log('\n── 5. «Solo las que me faltan» FILTRA, no solo se enciende 
   await page.close()
 }
 
-console.log('\n── 6. El ajuste que se despliega NO va en la tira ──')
+console.log('\n── 6. Nada que se despliegue vive dentro de una tira ──')
 {
-  // Es el motivo de que las acciones tengan su propia fila: una tira
-  // recorta lo que se sale de ella, así que un panel colgado de una chapa
-  // de dentro saldría cortado — y sin dar ningún error.
+  // Una tira recorta lo que se sale de ella, así que un panel colgado de
+  // una chapa de dentro sale cortado — y sin dar ningún error. Es la forma
+  // del fallo, no el caso: el «Al añadir» que lo estrenó se fue a los
+  // ajustes en la 461, y la regla sigue valiendo para el que venga.
   const { page } = await abrir()
-  await page.click('#mcTocarCaja > summary')
-  await page.waitForTimeout(400)
-  const panel = await page.locator('#mcTocarOpciones').evaluate((n) => {
-    const r = n.getBoundingClientRect()
-    return { visible: r.width > 0 && r.height > 0, izq: Math.round(r.left), der: Math.round(r.right), ventana: innerWidth }
+  const malos = await page.evaluate(() => {
+    const fuera = []
+    for (const d of document.querySelectorAll('details')) {
+      // Solo los que FLOTAN. Un `details` que empuja lo de abajo dentro de
+      // una caja que se desplaza está bien —así es el menú del móvil—; el
+      // que se rompe es el que cuelga en `position: absolute`, porque ahí
+      // el recorte del padre se lo come.
+      const abierto = d.open
+      d.open = true
+      const panel = [...d.children].find((c) => c.tagName !== 'SUMMARY')
+      const flota = panel && ['absolute', 'fixed'].includes(getComputedStyle(panel).position)
+      d.open = abierto
+      if (!flota) continue
+      for (let p = d.parentElement; p && p !== document.body; p = p.parentElement) {
+        const cs = getComputedStyle(p)
+        if (['auto', 'scroll'].includes(cs.overflowX) || ['auto', 'scroll'].includes(cs.overflowY)) {
+          fuera.push((d.id || d.className) + ' dentro de ' + (p.id || p.className))
+          break
+        }
+      }
+    }
+    return fuera
   })
-  check('el panel de «al añadir» se ve entero',
-    panel.visible && panel.izq >= 0 && panel.der <= panel.ventana, JSON.stringify(panel))
-  check('  …y su chapa está fuera de la tira de mandos',
-    (await page.locator('#mcAlbumFiltros #mcTocarCaja').count()) === 0)
+  check('ningún panel desplegable cuelga de una caja que recorta', malos.length === 0, malos.join(' | '))
   await page.close()
 }
 

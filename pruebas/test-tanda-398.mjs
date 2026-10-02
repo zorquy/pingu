@@ -90,13 +90,18 @@ const abrir = async () => {
   check('  …o sea que el recuento oficial LLEGA', !/Set completo 1 de 3/.test(barras), barras)
 
   console.log('  · una por versión')
-  const pies = () => page.locator('.mc-bolsillo-variante').count()
+  // El rótulo de la versión se llama `.mc-chapa-variante` desde la 461 y
+  // va ENCIMA de la carta. Antes era `.mc-bolsillo-variante` y se pintaba
+  // en el flujo normal, debajo del enlace que cubre el bolsillo entero: o
+  // sea que esta prueba llevaba desde la 398 contando rótulos que **nunca
+  // se vieron**. Contar que un elemento existe no es verlo.
+  const pies = () => page.locator('.mc-album-rejilla .mc-chapa-variante').count()
   check('de entrada no hay pies de versión', (await pies()) === 0)
   await page.locator('#mcVistaSplit').click()
   await page.waitForTimeout(1200)
   check('al partir, cada versión tiene su casilla', (await pies()) === 6, `${await pies()}`)
   check('  …y cada una dice cuál es',
-    /Normal|Reverse/.test((await page.locator('.mc-bolsillo-variante').first().textContent()) || ''))
+    /Normal|Reverse/.test((await page.locator('.mc-album-rejilla .mc-chapa-variante').first().textContent()) || ''))
   // Para quien no ve el color del chip activo.
   check('  …y el interruptor lo dice sin color',
     (await page.locator('#mcVistaSplit').getAttribute('aria-pressed')) === 'true' &&

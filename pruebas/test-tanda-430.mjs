@@ -85,11 +85,18 @@ const abrir = async () => {
   return { page, errores }
 }
 const pegado = (page) => page.evaluate(() => navigator.clipboard.readText())
+// DESDE LA 461 ES UN ICONO en la cabecera de la expansión, con el reparto
+// de Dex (marcar varias · favorita · compartir). Lo que cuenta cuántas
+// faltan ya no es su TEXTO sino su rótulo accesible, que es también el
+// globo al pasar por encima: un icono que cambiara de dibujo según el
+// número no se entendería, pero un globo que dice «Copiar las 5 que me
+// faltan» sí. La prueba sigue mirando lo mismo, en el sitio donde ahora se
+// lee.
+const dice = async (boton) => (await boton.getAttribute('aria-label') || '').trim()
 {
   const { page, errores } = await abrir()
   const boton = page.locator('#mcFaltanCopiar')
-  check('el botón dice cuántas son', (await boton.textContent()).trim() === 'Copiar las 5 que me faltan',
-    await boton.textContent())
+  check('el botón dice cuántas son', (await dice(boton)) === 'Copiar las 5 que me faltan', await dice(boton))
   await boton.click()
   await page.waitForTimeout(600)
   const t = await pegado(page)
@@ -102,8 +109,7 @@ const pegado = (page) => page.evaluate(() => navigator.clipboard.readText())
   // filtros y el orden sin saber nada de ellos.
   await page.selectOption('#mcAlbumRareza', { index: 1 })
   await page.waitForTimeout(700)
-  check('con un filtro, el botón cuenta otra cosa', (await boton.textContent()).trim() === 'Copiar las 3 que me faltan',
-    await boton.textContent())
+  check('con un filtro, el botón cuenta otra cosa', (await dice(boton)) === 'Copiar las 3 que me faltan', await dice(boton))
   await boton.click()
   await page.waitForTimeout(600)
   const f = await pegado(page)
@@ -138,7 +144,7 @@ const pegado = (page) => page.evaluate(() => navigator.clipboard.readText())
   await page.waitForTimeout(900)
   const boton = page.locator('#mcFaltanCopiar')
   check('con las versiones separadas cuenta huecos, no cartas',
-    (await boton.textContent()).trim() === 'Copiar las 3 que me faltan', await boton.textContent())
+    (await dice(boton)) === 'Copiar las 3 que me faltan', await dice(boton))
   await boton.click()
   await page.waitForTimeout(600)
   const t = await pegado(page)
@@ -159,7 +165,7 @@ const pegado = (page) => page.evaluate(() => navigator.clipboard.readText())
   await page.waitForTimeout(900)
   const boton = page.locator('#mcFaltanCopiar')
   check('sin nada que falte, el botón se apaga', await boton.isDisabled())
-  check('  …y lo dice', /No te falta ninguna/.test(await boton.textContent()), await boton.textContent())
+  check('  …y lo dice', /No te falta ninguna/.test(await dice(boton)), await dice(boton))
   await page.close()
 }
 
