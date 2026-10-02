@@ -180,7 +180,12 @@ export function rutaDeAssetDeTCGdex(carta, serieDeSet = null) {
 // la inglesa, que es la del catálogo.
 export function cadenaDeEscaneo(carta, codigoDeSet = null, calidad = 'low', urlDelEspejo = null) {
   const cadena = []
-  const comoEspejo = (ruta) => (urlDelEspejo ? urlDelEspejo(ruta, calidad) : urlDeImagen(ruta, calidad))
+  // El MERCADO de la carta decide la carpeta de idioma del CDN (tanda
+  // 438). Antes `urlDeImagen` llevaba `en` escrito a fuego, asi que sin
+  // `urlDelEspejo` inyectado —que es el caso de /mi-coleccion— una carta
+  // japonesa pedia su escaneo a la carpeta inglesa y devolvia 404.
+  const comoEspejo = (ruta) =>
+    urlDelEspejo ? urlDelEspejo(ruta, calidad) : urlDeImagen(ruta, calidad, carta?.market)
   const espejo = carta?.image_path ? comoEspejo(carta.image_path) : null
   if (espejo) cadena.push(espejo)
   // Y si la columna está vacía, la MISMA dirección montada a mano (tanda

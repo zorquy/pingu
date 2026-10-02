@@ -12,6 +12,11 @@
 // `carta-nucleo.js` lo reexporta, así que nada de lo que ya lo
 // importaba de allí se entera.
 
+// `js/mercados.js` no importa nada (tanda 438), asi que esto se puede
+// seguir importando desde una funcion de Netlify y desde /torneo, que es
+// justo de lo que trata el comentario de arriba.
+import { idiomaDeMercado } from './mercados.js'
+
 const ASSETS = 'https://assets.tcgdex.net'
 
 // ── La dirección ──
@@ -63,9 +68,15 @@ export function candidatosDeRuta(ruta) {
   return fuera
 }
 
-export function urlDeImagen(imagePath, calidad = 'high') {
+// EL IDIOMA DE LA CARPETA ES EL DEL MERCADO (tanda 438), no siempre `en`.
+// Lo era hasta la 437 porque el catalogo era uno solo; en cuanto se pudo
+// mirar el japones, cada escaneo se pedia a `/en/...` y devolvia 404. Y un
+// 404 de imagen NO DA ERROR EN NINGUNA PARTE: la cadena de respaldo pasa
+// al siguiente sitio, se queda sin sitios y quita la imagen, asi que la
+// pantalla sale entera sin una sola foto y con pinta de estar cargando.
+export function urlDeImagen(imagePath, calidad = 'high', mercado = 'WEST') {
   if (!imagePath) return null
-  return `${ASSETS}/en/${imagePath}/${calidad}.webp`
+  return `${ASSETS}/${idiomaDeMercado(mercado)}/${imagePath}/${calidad}.webp`
 }
 
 // ── La dirección de una colección (tanda 346) ──
@@ -102,9 +113,9 @@ export function filtroDeColeccion(clave) {
   return `id.eq.${limpia.toLowerCase()},tcg_online_code.eq.${limpia.toUpperCase()}`
 }
 
-export function urlDeLogo(logoPath) {
+export function urlDeLogo(logoPath, mercado = 'WEST') {
   if (!logoPath) return null
-  return `${ASSETS}/en/${logoPath}.webp`
+  return `${ASSETS}/${idiomaDeMercado(mercado)}/${logoPath}.webp`
 }
 
 // El logo montado a mano (tanda 434), para cuando `logo_path` está a null.
@@ -115,8 +126,8 @@ export function urlDeLogo(logoPath) {
 // tarjeta pasa al símbolo y después al nombre, que es lo que hace hoy.
 //
 // Sin serie no hay dirección: inventarla daría una que no es.
-export function urlDeLogoPorPartes(serieId, setId) {
+export function urlDeLogoPorPartes(serieId, setId, mercado = 'WEST') {
   if (!serieId || !setId) return null
   if ([serieId, setId].some((v) => /[/?#\s]/.test(String(v)))) return null
-  return `${ASSETS}/en/${String(serieId).trim()}/${String(setId).trim()}/logo.webp`
+  return `${ASSETS}/${idiomaDeMercado(mercado)}/${String(serieId).trim()}/${String(setId).trim()}/logo.webp`
 }
