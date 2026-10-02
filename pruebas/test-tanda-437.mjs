@@ -74,11 +74,22 @@ const elegir = async (page, m) => {
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 1. El selector está, y en los tres sitios ──')
+console.log('\n── 1. El selector está, y en todos los sitios ──')
 {
   const { page, errores } = await abrir()
+  // CUATRO desde la tanda 450, no tres: «Buscar» estrenó el suyo. Y lo que
+  // esta comprobación defiende no es el número sino la REGLA — que el
+  // selector esté en TODAS las pantallas donde se mira el catálogo, porque
+  // el que cambia es el mismo y quien está en una no tiene por qué irse a
+  // otra para cambiarlo. Así que se cuenta contra las pantallas que lo
+  // necesitan y no contra un número escrito a mano, que es lo que se queda
+  // viejo cada vez que se añade una.
+  const conCatalogo = ['mcPanelCartas', 'mcPanelAlbum', 'mcPanelPokedex', 'mcPanelBuscar']
+  const donde = await page.evaluate((ids) => ids.filter((id) => document.querySelector(`#${id} .mc-mercado`)), conCatalogo)
+  check('hay un selector en cada pantalla donde se mira el catálogo',
+    donde.length === conCatalogo.length, `${donde.join(', ')} de ${conCatalogo.join(', ')}`)
   const cuantos = await page.locator('.mc-mercado').count()
-  check('hay un selector por cada sitio donde se mira el catálogo', cuantos === 3, String(cuantos))
+  check('  …y ninguno de más', cuantos === conCatalogo.length, String(cuantos))
   // Lo que se elige ya no es el CÓDIGO del mercado: desde la tanda 438 es
   // una VISTA, y «español» e «inglés» son el mismo catálogo con dos
   // rótulos. Lo que ofrece y cómo se pinta es cosa de test-tanda-438; lo
