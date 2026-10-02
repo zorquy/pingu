@@ -113,10 +113,19 @@ console.log('\n── 3. La cabecera, más corta ──')
     const c = document.getElementById('mcResumen')
     return { filas: new Set([...c.children].map((e) => Math.round(e.getBoundingClientRect().top))).size,
       desliza: getComputedStyle(c).overflowX,
+      // Lo que de verdad importa: que no se salga. Un `overflow` concreto
+      // es CÓMO se arregla; esto es QUÉ se arregla.
+      sobra: c.scrollWidth > c.clientWidth + 4,
       buscador: Math.round(document.getElementById('mcFiltros').getBoundingClientRect().top),
       nota: document.getElementById('mcResumenNota').classList.contains('hidden') }
   })
-  check('las cifras van en UNA fila que se desliza', r.filas === 1 && r.desliza === 'auto', JSON.stringify(r))
+  // UNA fila, y desde la tanda 440 SIN deslizarse: las cifras perdieron el
+  // recuadro y pasaron a vivir dentro de la cabecera de perfil, así que
+  // caben en 390 px. Lo que la 412 pedía era que no se comieran la
+  // pantalla, y eso se sigue pidiendo igual —lo que ha cambiado es CÓMO se
+  // consigue, y la tira era un rodeo—.
+  check('las cifras van en UNA fila', r.filas === 1, JSON.stringify(r))
+  check('  …y ya no hace falta deslizarlas', !r.sobra, JSON.stringify(r))
   check('  …y la nota del valor no está aquí', r.nota)
   check('  …así que el buscador entra en la primera pantalla', r.buscador < 400, `${r.buscador} px`)
   // Pero la nota SÍ está donde se explica el valor.

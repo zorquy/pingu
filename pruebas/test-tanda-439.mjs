@@ -44,8 +44,10 @@ console.log('\n── 1. El panel no repite lo que ya dice el listón ──')
 {
   const { page, errores } = await abrir()
   const arriba = await page.locator('#mcResumen .mc-cifra dt').allTextContents()
+  // «Valor» a secas desde la 440: en una fila sin cajas, un rótulo que
+  // parte en dos líneas estira la fila entera.
   check('el listón sigue dando las cuatro cifras',
-    ['Cartas', 'Distintas', 'Colecciones', 'Valor estimado'].every((t) => arriba.includes(t)), arriba.join(' | '))
+    ['Cartas', 'Distintas', 'Colecciones', 'Valor'].every((t) => arriba.includes(t)), arriba.join(' | '))
 
   const titulos = await page.locator('.mc-diapo-titulo').allTextContents()
   // «Tu colección» era copia exacta de las tres primeras cifras del
@@ -83,36 +85,13 @@ console.log('\n── 2. Tres ceros no informan ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 3. La tira avisa de que se desliza… y deja de avisar al final ──')
-{
-  // En el móvil el listón ES una tira (tanda 412) y así se queda: la 439
-  // probó a volver a una rejilla y la MEDIDA dijo que no —dos columnas son
-  // tres filas y la primera carta se iba 63 px más abajo—. Lo que faltaba
-  // era el aviso, que cuesta cero píxeles de alto.
-  const { page, errores } = await abrir(390)
-  const tira = page.locator('#mcResumen')
-  check('en el móvil el listón sigue siendo una fila que se desliza',
-    await tira.evaluate((n) => n.scrollWidth > n.clientWidth + 4))
-  check('  …y avisa de que hay más', await tira.evaluate((n) => getComputedStyle(n).maskImage !== 'none'))
-  // La otra mitad, que es la que se olvida: al llegar al final el aviso se
-  // apaga. Una tira que ya no tiene más y sigue desvaneciendo su borde
-  // está diciendo que sí lo tiene.
-  await tira.evaluate((n) => { n.scrollLeft = n.scrollWidth })
-  await page.waitForTimeout(500)
-  check('  …y al llegar al final deja de avisar',
-    await tira.evaluate((n) => getComputedStyle(n).maskImage === 'none'))
-  check('sin errores', !errores.length, errores[0])
-  await page.close()
-}
-{
-  const { page } = await abrir()
-  const tira = page.locator('#mcTira')
-  check('el carrusel del panel, igual', await tira.evaluate((n) => getComputedStyle(n).maskImage !== 'none'))
-  await tira.evaluate((n) => { n.scrollLeft = n.scrollWidth })
-  await page.waitForTimeout(500)
-  check('  …y deja de avisar al final', await tira.evaluate((n) => getComputedStyle(n).maskImage === 'none'))
-  await page.close()
-}
+// AQUÍ VIVÍA el bloque 3, sobre la tira de cifras del móvil y la máscara
+// que avisaba de que se deslizaba. Las dos se fueron en la tanda 440: las
+// cifras perdieron el recuadro, caben en una fila y no hay nada que
+// deslizar — y el carrusel del panel se convirtió en una rejilla. Lo que
+// aquella máscara disimulaba lo arregló quitar la caja, así que no queda
+// nada que comprobar. Lo que SÍ queda vivo es la lección, y está escrita
+// en la bitácora: el aviso era un parche sobre un problema de tamaño.
 
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')
