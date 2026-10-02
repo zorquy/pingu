@@ -105,7 +105,9 @@ console.log('\n── 3. La cabecera, más corta ──')
     window.__FAKE_COLECCION__ = window.__FAKE_CARTAS__.map((c, i) => ({ id: 'l' + i, card_id: c.id,
       cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', notas: null }))
   })
-  await page.goto('http://localhost:8892/mi-coleccion.html', { waitUntil: 'domcontentloaded' })
+  // Desde la tanda 436 la pestaña que se abre sola es el Panel, así que
+  // una ruta sin parámetros ya no entra en las cartas.
+  await page.goto('http://localhost:8892/mi-coleccion.html?ver=cartas', { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
   const r = await page.evaluate(() => {
     const c = document.getElementById('mcResumen')

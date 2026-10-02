@@ -25,7 +25,9 @@ const abrirFicha = async (ancho, alto) => {
     window.__FAKE_COLECCION__ = [{ id: 'l1', card_id: 'sv1-104', cantidad: 1, idioma: 'es',
       estado: 'NM', variante: 'normal', notas: null }]
   })
-  await page.goto('http://localhost:8892/mi-coleccion.html', { waitUntil: 'domcontentloaded' })
+  // Desde la tanda 436 la pestaña que se abre sola es el Panel, así que
+  // una ruta sin parámetros ya no entra en las cartas.
+  await page.goto('http://localhost:8892/mi-coleccion.html?ver=cartas', { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
   await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(700)

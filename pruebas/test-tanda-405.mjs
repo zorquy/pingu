@@ -17,7 +17,9 @@ const BASE = 'http://localhost:8892'
 const leer = (f) => readFileSync(`/home/user/pingu/${f}`, 'utf8')
 const browser = await chromium.launch()
 
-const abrir = async (ruta = '/mi-coleccion.html') => {
+// `?ver=cartas` desde la tanda 436: la pestaña que se abre sola pasó a ser
+// el Panel, así que una ruta sin parámetros ya no entra en las cartas.
+const abrir = async (ruta = '/mi-coleccion.html?ver=cartas') => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 150)))
