@@ -990,9 +990,21 @@ function consulta(tabla, estado = {}) {
           const lista = valor.replace(/^\(|\)$/g, '').split(',').map((s) => s.trim())
           return (f) => lista.includes(String(f[col]))
         }
-        if (op === 'like') {
-          const r = new RegExp('^' + valor.split('*').map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$')
+        if (op === 'like' || op === 'ilike') {
+          const r = new RegExp('^' + valor.split('*').map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$', op === 'ilike' ? 'i' : '')
           return (f) => f[col] != null && r.test(String(f[col]))
+        }
+        // `cs` es el `@>` de Postgres sobre una columna ARRAY, y lo usa el
+        // buscador desde la tanda 450: un número suelto puede ser el
+        // número impreso de la carta O su número nacional de Pokédex, que
+        // vive en `dex_ids`. Sin esto el doble revienta con «.or() no
+        // entiende», que al menos CANTA — pero no estaba.
+        if (op === 'cs') {
+          const lista = valor.replace(/^\{|\}$/g, '').split(',').map((x) => x.trim()).filter(Boolean)
+          return (f) => {
+            const suyos = Array.isArray(f[col]) ? f[col].map(String) : []
+            return lista.every((v) => suyos.includes(String(v)))
+          }
         }
         throw new Error(`stub: .or() no entiende «${t}». Añádelo si el cliente lo usa.`)
       })

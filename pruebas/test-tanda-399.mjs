@@ -65,7 +65,7 @@ console.log('\n── 1. Los grupos salen de lo que hay ──')
   await page.waitForTimeout(500)
   const grupos = await page.locator('#mcGruposChips h3').allTextContents()
   check('hay grupo de tipo, energía y rareza',
-    ['Tipo de carta', 'Energía', 'Rareza'].every((g) => grupos.includes(g)), grupos.join(', '))
+    ['Tipo de carta', 'Tipo de energía', 'Rareza'].every((g) => grupos.includes(g)), grupos.join(', '))
   // Todas las líneas son normal/nueva/es: esos grupos tendrían UN valor
   // y no se pintan.
   check('un grupo con un solo valor no se pinta',
@@ -121,19 +121,28 @@ console.log('\n── 3. El orden al revés ──')
   // pista. Un control que se muda de sitio deja la prueba apuntando a
   // donde estaba.
   await page.waitForTimeout(300)
-  await page.selectOption('#mcOrden', 'nombre')
-  await page.waitForTimeout(500)
+  // Desde la tanda 449 el orden es una BANDEJA con su interruptor de
+  // sentido, no un <select> más un botón «Al revés».
+  const ponOrden = async (orden, sentido) => {
+    await page.locator('#mcAbrirOrden').click()
+    await page.waitForTimeout(350)
+    if (orden) await page.locator(`[data-orden="${orden}"]`).click()
+    else await page.locator(`[data-sentido="${sentido}"]`).click()
+    await page.waitForTimeout(500)
+    if (!orden) await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
+  }
+  await ponOrden('nombre')
   const nombres = () => page.locator('.mc-carta-foto').evaluateAll((as) => as.map((a) => a.getAttribute('aria-label')))
   const antes = await nombres()
-  await page.locator('#mcOrdenAlReves').click()
-  await page.waitForTimeout(500)
+  await ponOrden(null, 'desc')
   const despues = await nombres()
   // Se invierte la lista YA ordenada, así que un orden nuevo sale con su
   // vuelta puesta sin escribir otro comparador.
   check('al revés es al revés', JSON.stringify(despues) === JSON.stringify([...antes].reverse()),
     `${antes.join(' | ')} → ${despues.join(' | ')}`)
-  check('  …y lo dice sin color',
-    (await page.locator('#mcOrdenAlReves').getAttribute('aria-pressed')) === 'true')
+  check('  …y el interruptor lo dice',
+    (await page.locator('[data-sentido="desc"]').getAttribute('aria-checked')) === 'true')
   await page.close()
 }
 

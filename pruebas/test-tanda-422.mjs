@@ -47,7 +47,11 @@ const abrir = async ({ ancho = 1280, alto = 1000 } = {}) => {
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 160)))
   await page.addInitScript(semilla)
-  await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
+  // `?ver=cartas`: la pestaña por defecto es el Panel desde la 440 y esto
+  // mira la rejilla de CARTAS. Sin el parámetro los elementos existen en
+  // el DOM pero escondidos, y Playwright se cae con «element is not
+  // visible» — encontrar un elemento no es verlo.
+  await page.goto(`${BASE}/mi-coleccion.html?ver=cartas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
   return { page, errores }
 }
@@ -102,7 +106,11 @@ console.log('\n── 2. El orden es el de LA PANTALLA, no el de una lista inter
   // Con un filtro puesto la rejilla enseña menos cartas. Si las flechas
   // salieran de los datos y no del DOM, «la siguiente» sería una carta
   // que no está a la vista y el «de N» mentiría.
-  await page.selectOption('#mcOrden', { index: 1 }).catch(() => {})
+  // El orden es una bandeja desde la 449; aquí solo hacía falta «tocar el
+  // orden», así que vale cualquiera.
+  await page.locator('#mcAbrirOrden').click().catch(() => {})
+  await page.waitForTimeout(300)
+  await page.locator('[data-orden="nombre"]').click().catch(() => {})
   await page.fill('#mcBuscar', 'Carta 2')
   await page.waitForTimeout(900)
   const aLaVista = await page.locator('#mcCartas .mc-carta').count()

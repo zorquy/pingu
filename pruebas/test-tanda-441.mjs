@@ -109,14 +109,23 @@ console.log('\n── 2. Ordenar, a la vista ──')
   const { page } = await abrir()
   // Estaba DENTRO del modal de Filtros. Un filtro se pone una vez; un
   // orden se toca cada dos por tres.
+  // El <select> es una BANDEJA desde la tanda 449 (diez criterios no caben
+  // en un desplegable de móvil), pero lo que esta tanda defendía sigue en
+  // pie y es lo que se comprueba: que el orden se toca DESDE LA BARRA, sin
+  // abrir el modal de filtros.
   check('el orden vive en la barra, no en el modal',
-    await page.locator('#mcFiltros #mcOrden').count() === 1)
-  check('  …y no en el diálogo', await page.locator('#mcPanelFiltros #mcOrden').count() === 0)
-  check('  …y «Al revés» con él', await page.locator('#mcFiltros #mcOrdenAlReves').count() === 1)
-  check('se puede usar sin abrir nada', await page.locator('#mcOrden').isVisible())
+    await page.locator('#mcFiltros #mcAbrirOrden').count() === 1)
+  check('  …y no en el diálogo', await page.locator('#mcPanelFiltros #mcAbrirOrden').count() === 0)
+  check('se puede usar sin abrir los filtros', await page.locator('#mcAbrirOrden').isVisible())
+  // Y el botón DICE qué orden hay puesto: un control que guarda un estado
+  // y no lo enseña obliga a abrirlo para saber qué pusiste.
+  check('  …y dice cuál está puesto', (await page.locator('#mcOrdenRotulo').textContent()).trim().length > 0,
+    await page.locator('#mcOrdenRotulo').textContent())
   // Y sigue ordenando, que es lo que no se puede dar por hecho al mover
   // un control de sitio.
-  await page.selectOption('#mcOrden', 'nombre')
+  await page.locator('#mcAbrirOrden').click()
+  await page.waitForTimeout(400)
+  await page.locator('[data-orden="nombre"]').click()
   await page.waitForTimeout(600)
   const nombres = await page.locator('#mcCartas .mc-carta-sinfoto').allTextContents()
   check('  …y ordena de verdad', /Boss/.test(nombres[0] || ''), nombres.join(' | ').slice(0, 120))
@@ -169,16 +178,19 @@ console.log('\n── 4. «Dónde estás cerca», fuera ──')
 // Tres renglones de letra pequeña que no vienen a cuento son ruido.
 console.log('\n── 5. La nota de los precios, donde hay precios ──')
 {
-  const { page } = await abrir({ ruta: '/mi-coleccion.html' })
   const donde = {}
+  // Se va a cada pantalla POR SU ENLACE y no pulsando su pestaña: desde la
+  // 447 «Cartas» no tiene pestaña —es una subpantalla del Panel— y pulsar
+  // una que no existe se cae con un «element is not visible» que parece un
+  // fallo de la web. El enlace llega a las cinco igual.
   for (const t of ['resumen', 'cartas', 'album', 'pokedex', 'carpetas']) {
-    await page.click(`[data-pestania="${t}"]`)
-    await page.waitForTimeout(500)
+    const { page } = await abrir({ ruta: `/mi-coleccion.html?ver=${t}` })
+    await page.waitForTimeout(400)
     donde[t] = await page.locator('#mcFuente').isVisible()
+    await page.close()
   }
   check('sale en el panel y en las cartas', donde.resumen && donde.cartas, JSON.stringify(donde))
   check('  …y no en las otras tres', !donde.album && !donde.pokedex && !donde.carpetas, JSON.stringify(donde))
-  await page.close()
 }
 
 await browser.close()

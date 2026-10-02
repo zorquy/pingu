@@ -95,44 +95,13 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   await p.close()
 }
 
-// ── 2 bis. TODA sugerencia tiene que devolver algo ──
-// La primera versión de esta pantalla ofrecía «Mitsuhiro Arita» y «Pikachu
-// 25», y el buscador cruza contra `name_search`, que son los dos nombres y
-// nada más: las dos daban CERO resultados. No hay error por ninguna parte,
-// solo una pantalla vacía después de tocar lo que la propia web te ofrece.
-//
-// La prueba se escribe contra la FORMA del fallo y no contra el caso: lee
-// las sugerencias DEL HTML y siembra una carta por cada una, así que vale
-// para las que haya mañana.
-{
-  const sugerencias = [...readFileSync('/home/user/pingu/mi-coleccion.html', 'utf8')
-    .matchAll(/data-sugerencia="([^"]+)"/g)].map((m) => m[1])
-  ok(sugerencias.length > 0, 'hay sugerencias que probar', String(sugerencias.length))
-  const p = await navegador.newPage({ viewport: { width: 420, height: 900 } })
-  await p.route('**assets.tcgdex.net/**', (r) => r.abort())
-  await p.addInitScript((lista) => {
-    window.__FAKE_SETS__ = [{ id: 'sv8', name: 'Chispas Centelleantes', serie_id: 'sv', market: 'WEST', card_count_official: 191 }]
-    // Una carta por sugerencia, con ESE nombre exacto: si el buscador deja
-    // de encontrar por nombre, no la encuentra tampoco.
-    window.__FAKE_CARTAS__ = lista.map((name, i) => ({
-      id: `sv8-s${i}`, market: 'WEST', set_id: 'sv8', local_id: String(900 + i),
-      name, name_es: name, image_path: `x/sv8/s${i}`, rarity: 'Rare', category: 'Pokemon',
-      dex_ids: [1], variants: { normal: true },
-    }))
-    window.__FAKE_COLECCION__ = []
-  }, sugerencias)
-  await p.goto(`${BASE}/mi-coleccion.html?ver=buscar`, { waitUntil: 'domcontentloaded' })
-  await p.waitForTimeout(2500)
-  for (const texto of sugerencias) {
-    await p.click(`[data-sugerencia="${texto}"]`)
-    await p.waitForTimeout(900)
-    const n = await p.$$eval('#mcBuscarResultados .mc-resultado', (ns) => ns.length)
-    ok(n > 0, `la sugerencia «${texto}» encuentra algo`, `${n} resultados`)
-    await p.fill('#mcBuscarTodo', '')
-    await p.waitForTimeout(400)
-  }
-  await p.close()
-}
+// ── 2 bis. Las sugerencias ──
+// La guarda de que TODA sugerencia devuelve algo vive en
+// `test-tanda-450.mjs` desde que el buscador entiende números e
+// ilustradores: la de aquí sembraba una carta POR NOMBRE, y «Mewtwo 64»
+// ya no se busca por nombre. Dos pruebas de lo mismo con fixtures
+// distintos acaban contradiciéndose, así que esta se va y queda la que
+// sabe de qué va la búsqueda.
 
 // ── 3. El escáner se abre, con su marco en proporción de carta ──
 {

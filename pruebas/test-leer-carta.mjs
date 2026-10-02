@@ -1,7 +1,7 @@
 // La función que lee una carta (tanda 447), probada SIN gastar peticiones
 // contra el proveedor: `leerCarta` recibe la clave y el `fetch`
 // inyectados, que es el patrón de las demás funciones del repo.
-import { leerCarta, leerFranja, limpiar, esRecorte, IDIOMAS } from '/home/user/pingu/netlify/functions/leer-carta.mjs'
+import { leerCarta, leerFranja, limpiar, esRecorte, laClave, clavesALaVista, IDIOMAS, NOMBRES_CLAVE } from '/home/user/pingu/netlify/functions/leer-carta.mjs'
 
 let fallos = 0
 const ok = (b, msg, extra = '') => {
@@ -18,27 +18,55 @@ const respuesta = (texto) => ({
 // ── Lo que se valida antes de gastar una petición ──
 {
   const nunca = () => { throw new Error('no debería llamarse') }
-  let r = await leerCarta({ nombre: 'hola', codigo: FRANJA }, { clave: 'k', fetchImpl: nunca })
+  let r = await leerCarta({ nombre: 'hola', codigo: FRANJA }, { env: { OCR_API_KEY: 'k' }, fetchImpl: nunca })
   ok(r.estado === 400, 'sin los dos recortes, 400 y no se llama al proveedor', String(r.estado))
-  r = await leerCarta({ nombre: FRANJA, codigo: 'data:image/png;base64,AAAA' }, { clave: 'k', fetchImpl: nunca })
+  r = await leerCarta({ nombre: FRANJA, codigo: 'data:image/png;base64,AAAA' }, { env: { OCR_API_KEY: 'k' }, fetchImpl: nunca })
   ok(r.estado === 400, 'un PNG no es un recorte nuestro', String(r.estado))
   const gordo = 'data:image/jpeg;base64,' + 'A'.repeat(900 * 1024)
-  r = await leerCarta({ nombre: gordo, codigo: FRANJA }, { clave: 'k', fetchImpl: nunca })
+  r = await leerCarta({ nombre: gordo, codigo: FRANJA }, { env: { OCR_API_KEY: 'k' }, fetchImpl: nunca })
   ok(r.estado === 413, 'y un recorte de veinte megas no se le manda a nadie', String(r.estado))
 }
 
 // ── Sin clave lo DICE, y lo dice de una forma que el navegador distingue ──
 {
-  const r = await leerCarta({ nombre: FRANJA, codigo: FRANJA }, { clave: '', fetchImpl: () => { throw new Error('no') } })
+  const r = await leerCarta({ nombre: FRANJA, codigo: FRANJA }, { env: {}, fetchImpl: () => { throw new Error('no') } })
   ok(r.estado === 503 && r.datos.sinConfigurar === true, 'sin OCR_API_KEY: 503 con `sinConfigurar`')
   ok(/OCR_API_KEY/.test(r.datos.detalle || ''), 'y el detalle dice qué falta', r.datos.detalle)
+
+  // Y DISTINGUE LOS DOS FALLOS QUE SE PARECEN (tanda 448). PINGU puso la
+  // clave en Netlify y el escáner seguía diciendo que no está configurado.
+  // Desde fuera eso tiene dos causas idénticas: que esté con otro nombre,
+  // o que no le llegue a la función (sin el ámbito «Functions», o con un
+  // deploy anterior a la variable — Netlify no vuelve a desplegar una
+  // función cuya suma de control no ha cambiado). Sin este detalle hay que
+  // adivinar cuál de las dos es.
+  const conOtroNombre = await leerCarta({ nombre: FRANJA, codigo: FRANJA },
+    { env: { OCR_SPACE_KEY_RARA: 'x' }, fetchImpl: () => { throw new Error('no') } })
+  ok(/OCR_SPACE_KEY_RARA/.test(conOtroNombre.datos.detalle || ''),
+    'si hay una parecida con otro nombre, lo DICE', conOtroNombre.datos.detalle)
+  ok(!/: *x\b/.test(conOtroNombre.datos.detalle || ''),
+    'y dice el NOMBRE, nunca el valor — esto sale por HTTP')
+  ok(/ámbito|Functions/.test(r.datos.detalle || ''),
+    'y si no llega ninguna, manda mirar el ámbito y volver a desplegar', r.datos.detalle)
+
+  // Los cuatro nombres valen: el nuestro y los tres que es fácil escribir
+  // de memoria mirando la documentación del proveedor.
+  for (const nombre of NOMBRES_CLAVE) {
+    const hecho = await leerCarta({ nombre: FRANJA, codigo: FRANJA },
+      { env: { [nombre]: 'k' }, fetchImpl: async () => respuesta('x') })
+    ok(hecho.estado === 200, `la clave vale llamándose ${nombre}`, String(hecho.estado))
+  }
+  ok(laClave({ OCR_API_KEY: 'a', OCR_KEY: 'b' }).nombre === 'OCR_API_KEY', 'y el nuestro manda sobre los demás')
+  ok(!clavesALaVista({ SUPABASE_URL: 'x', OCR_API_KEY: 'y' }).includes('SUPABASE_URL'),
+    'la lista de diagnóstico no enseña variables que no vienen al caso',
+    clavesALaVista({ SUPABASE_URL: 'x', OCR_API_KEY: 'y' }).join(','))
 }
 
 // ── El camino bueno ──
 {
   const pedidos = []
   const r = await leerCarta({ nombre: FRANJA, codigo: FRANJA, idioma: 'es' }, {
-    clave: 'clave-de-prueba',
+    env: { OCR_API_KEY: 'clave-de-prueba' },
     fetchImpl: async (url, opc) => {
       pedidos.push({ url, cuerpo: new URLSearchParams(opc.body), clave: opc.headers.apikey })
       return respuesta(pedidos.length === 1 ? 'Charizard ex\r\n' : '  SSP   125/191  illus. Kodama ')
@@ -65,7 +93,7 @@ const respuesta = (texto) => ({
   ok(Object.keys(IDIOMAS).join(',') === 'es,en,ja,zh,de,fr,it', 'los siete de la pantalla del escáner, ni uno más ni uno menos', Object.keys(IDIOMAS).join(','))
   const pedidos = []
   await leerCarta({ nombre: FRANJA, codigo: FRANJA, idioma: 'ja' }, {
-    clave: 'k',
+    env: { OCR_API_KEY: 'k' },
     fetchImpl: async (url, opc) => { pedidos.push(new URLSearchParams(opc.body)); return respuesta('リザードン') },
   })
   ok(pedidos[0].get('OCREngine') === '1' && pedidos[0].get('language') === 'jpn', 'una carta japonesa va con jpn y motor 1')
@@ -75,7 +103,7 @@ const respuesta = (texto) => ({
 {
   const pedidos = []
   const r = await leerCarta({ nombre: FRANJA, codigo: FRANJA, idioma: 'klingon' }, {
-    clave: 'k',
+    env: { OCR_API_KEY: 'k' },
     fetchImpl: async (url, opc) => { pedidos.push(new URLSearchParams(opc.body)); return respuesta('x') },
   })
   ok(r.estado === 200 && pedidos[0].get('language') === 'spa', 'un idioma desconocido se lee en español y no falla')
@@ -86,7 +114,7 @@ const respuesta = (texto) => ({
 // veces contra un servicio caído.
 {
   let r = await leerCarta({ nombre: FRANJA, codigo: FRANJA }, {
-    clave: 'k', fetchImpl: async () => ({ ok: false, status: 503, json: async () => ({}) }),
+    env: { OCR_API_KEY: 'k' }, fetchImpl: async () => ({ ok: false, status: 503, json: async () => ({}) }),
   })
   ok(r.estado === 502, 'si el proveedor devuelve 503, nosotros 502', String(r.estado))
   ok(/no contesta/.test(r.datos.error), 'y el mensaje habla del lector, no de la carta', r.datos.error)
@@ -94,7 +122,7 @@ const respuesta = (texto) => ({
   // `IsErroredOnProcessing` llega con un 200: un `res.ok` a secas se lo
   // tragaría y devolveríamos texto vacío como si todo hubiera ido bien.
   r = await leerCarta({ nombre: FRANJA, codigo: FRANJA }, {
-    clave: 'k',
+    env: { OCR_API_KEY: 'k' },
     fetchImpl: async () => ({ ok: true, json: async () => ({ IsErroredOnProcessing: true, ErrorMessage: ['Apikey no válida'] }) }),
   })
   ok(r.estado === 502, 'un error del OCR con un 200 por delante TAMBIÉN es un fallo', String(r.estado))
@@ -104,7 +132,7 @@ const respuesta = (texto) => ({
 // ── Sin texto no se inventa nada ──
 {
   const r = await leerCarta({ nombre: FRANJA, codigo: FRANJA }, {
-    clave: 'k', fetchImpl: async () => respuesta(''),
+    env: { OCR_API_KEY: 'k' }, fetchImpl: async () => respuesta(''),
   })
   ok(r.estado === 200 && r.datos.textos.nombre === '', 'una franja ilegible devuelve cadena vacía, no null')
 }
