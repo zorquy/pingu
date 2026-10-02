@@ -2,7 +2,9 @@
 // Feather/Lucide) — sin depender de ningún paquete ni CDN externo. Se
 // heredan el color de texto (`stroke="currentColor"`) para que combinen
 // con cualquier fondo claro u oscuro sin CSS aparte.
-function icon(inner, size = 18) {
+// `icon` se exporta para que una pantalla dibuje los suyos sin meterlos
+// aquí (tanda 452; el porqué, en js/mi-coleccion/iconos.js).
+export function icon(inner, size = 18) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`
 }
 

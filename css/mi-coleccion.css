@@ -303,22 +303,83 @@
    enlaces del pie es un menú que estorba. Lo aparta un observador, no un
    oyente de `scroll` corriendo todo el rato. */
 @media (max-width: 899px) {
+  /* LA BURBUJA (tanda 452). PINGU, con el menú de Dex delante: «me gusta
+     mucho la burbuja flotante; quitaría los títulos y dejaría solo los
+     iconos, queda mucho más estético».
+   
+     Lo que cambia respecto a la barra de la 406 no es solo el dibujo: era
+     una barra DE LADO A LADO con cinco huecos iguales, y pasa a ser una
+     píldora que mide LO QUE MIDEN SUS CINCO ICONOS y se centra. Eso es lo
+     que la hace flotar: si toca los dos bordes, es una barra; si deja aire
+     a los lados, es una burbuja.
+   
+     Y sin los nombres se acaba el problema que traía la de antes: con
+     cinco huecos iguales, «Expansiones» pedía 69 px y se le daban 71, así
+     que cualquier palabra más larga se cortaba. Un icono mide siempre lo
+     mismo. */
   .mc-pestanias {
+    display: flex;
     position: fixed;
     /* Por debajo de la barra de arriba (100) y de sus menús (110): si un
        menú de la barra baja hasta aquí, tiene que pasar por encima. */
     z-index: 90;
-    right: var(--e-sm);
     bottom: var(--e-sm);
-    left: var(--e-sm);
-    margin: 0;
-    /* Sin relleno a los lados: con él, un quinto se queda en 71 px y
-       «Expansiones» pide 69 más su propio aire. */
-    padding: 0;
+    /* Centrada: `inset-inline: 0` más `margin-inline: auto` y el ancho que
+       pida el contenido. Con `left/right` fijos se estiraría de borde a
+       borde y volvería a ser una barra. */
+    inset-inline: 0;
+    width: max-content;
+    max-width: calc(100% - var(--e-lg) * 2);
+    margin: 0 auto;
+    padding: 4px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-pill);
+    /* Translúcida y con desenfoque, que es lo que hace que parezca que
+       flota POR ENCIMA de la página y no pegada a ella. El respaldo va
+       delante: `backdrop-filter` no existe en todos los navegadores, y sin
+       él un fondo medio transparente deja leer la página por debajo del
+       menú. Donde no hay desenfoque, opaco. */
     background: var(--white);
     box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+  }
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .mc-pestanias {
+      background: color-mix(in srgb, var(--white) 82%, transparent);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+  }
+
+  /* Un icono y nada más. El NOMBRE NO SE BORRA, se esconde para la vista:
+     es lo que lee en voz alta un lector de pantalla, y un menú de cinco
+     dibujos sin nombre no se puede usar sin ver. `display: none` lo sacaría
+     también del árbol de accesibilidad. */
+  .mc-menu-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* 52 de ancho Y de alto. El ancho se le pide porque aquí SÍ es un icono
+     y nada más (la regla de la tanda 312): sin él, el hueco pulsable sería
+     el del dibujo, 24 px, y fallarías la mitad de las veces. */
+  .mc-pestania {
+    gap: 0;
+    min-width: 52px;
+    min-height: 52px;
+    padding: 0;
+    border-radius: var(--radius-pill);
+  }
+
+  .mc-pestania > svg {
+    width: 24px;
+    height: 24px;
   }
 
   /* El sitio que ocupa la barra, para que no tape la última fila. Y el
@@ -340,17 +401,20 @@
      entero. Pintando el hueco, el bloque azul toca el borde de la
      píldora y parece un trozo pegado; y para separarlo haría falta un
      relleno que la barra no tiene. */
+  /* La de turno, con el hueco entero teñido. En la barra de la 406 esto no
+     se podía —el bloque azul tocaba el borde de la píldora y parecía un
+     trozo pegado—, pero la burbuja tiene 4 px de relleno a su alrededor,
+     que es justo el aire que faltaba. */
   .mc-pestania.activa {
     border-bottom-color: transparent;
-    background: transparent;
-    color: var(--navy);
+    background: var(--navy-solid);
+    color: var(--blanco-fijo);
   }
 
   .mc-pestania.activa > svg {
-    padding: 4px;
-    border-radius: var(--radius-md);
-    background: var(--navy-solid);
-    color: var(--blanco-fijo);
+    padding: 0;
+    background: transparent;
+    color: inherit;
   }
 }
 
@@ -605,8 +669,14 @@
 .mc-cartas {
   display: grid;
   /* Más apretada que antes (tanda 392): sin nombre ni precio debajo, la
-     casilla es la carta y caben bastantes más por fila. */
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+     casilla es la carta y caben bastantes más por fila.
+     Y TRES POR FILA EN EL MÓVIL desde la 452. PINGU: «se muestran en
+     columnas de 2; creo que es mejor enseñar 3, que sean más pequeñas, así
+     caben más por pantalla y no tienes que scrollear tanto». El número no
+     se fija: se baja el MÍNIMO, y entonces en una pantalla de 390 caben
+     tres y en una de 1280 siguen cabiendo ocho. Fijar «3» rompería el
+     escritorio. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 104px), 1fr));
   gap: var(--e-md);
 }
 
@@ -1658,10 +1728,20 @@
   width: 96px;
 }
 
+/* UNA SOLA VEZ (tanda 452). Esta clase estaba definida DOS veces en esta
+   misma hoja —aquí y en el bloque de Buscar de la 447—, y ganaba la de
+   abajo por orden: la rejilla de arriba no pintaba nada y los resultados
+   seguían saliendo de dos en dos en el móvil después de cambiarla. Una
+   clase repetida no da error, simplemente hace que uno de los dos sitios
+   donde la has escrito no sirva para nada. */
 .mc-resultados {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: var(--e-md);
+  /* Tres por fila en el móvil, como las tuyas (tanda 452). */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 104px), 1fr));
+  /* Más aire entre filas que entre columnas: debajo de cada resultado van
+     el nombre y la colección, y sin ese respiro el nombre de una fila se
+     lee pegado a la carta de la siguiente. */
+  gap: var(--e-lg) var(--e-md);
 }
 
 .mc-resultado {
@@ -2846,7 +2926,9 @@ input.mc-alb-titulo:not([readonly]):focus {
 .pdx-rejilla {
   display: grid;
   gap: var(--e-sm);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+  /* La Pokédex iba de dos en dos en el móvil y es la que más se recorre
+     (tanda 452). */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 108px), 1fr));
 }
 
 .pdx-especie {
@@ -2948,7 +3030,7 @@ input.mc-alb-titulo:not([readonly]):focus {
 .pdx-cartas {
   display: grid;
   gap: var(--e-md);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 132px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 104px), 1fr));
 }
 
 .pdx-carta {
@@ -4409,12 +4491,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 /* LOS RESULTADOS. Una rejilla de cartas con su nombre y su colección
    debajo — aquí el nombre SÍ va fuera, porque buscando por «Pikachu 25»
    lo que se compara es cuál de las veinte es. */
-.mc-resultados {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: var(--e-lg) var(--e-md);
-}
-
 .mc-resultados .mc-resultado {
   display: grid;
   gap: 2px;

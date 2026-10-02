@@ -23834,3 +23834,86 @@ De paso, el botón de «Ver todas las estadísticas» deja de ser un botón
 suelto detrás del último bloque —pegado debajo de la tarjeta de Cambios
 parecía SUYO— y pasa a tener la misma cabecera que todos los demás bloques
 del Panel.
+
+## Tanda 452 — la burbuja del menú, y el peso que casi se escapa (oct. 2026)
+
+PINGU, con el menú de Dex delante: «me gusta mucho la burbuja flotante;
+quitaría los títulos y dejaría solo los iconos, queda mucho más estético.
+Y el icono de Pokédex puedes hacerte tú uno».
+
+### Qué distingue una burbuja de una barra
+
+No es el dibujo: es el **ancho**. La barra de la 406 iba de lado a lado con
+cinco huecos iguales; la burbuja mide **lo que miden sus cinco iconos** y se
+centra. Si toca los dos bordes es una barra; si deja aire a los lados,
+flota. Lo demás —píldora, sombra, fondo translúcido con desenfoque— es
+acabado.
+
+El desenfoque va detrás de un `@supports`, y el respaldo **opaco** delante:
+`backdrop-filter` no está en todos los navegadores, y sin él un fondo medio
+transparente deja leer la página por debajo del menú.
+
+Y sin los nombres se acaba de paso el problema que traía la barra: con
+cinco huecos iguales, «Expansiones» pedía 69 px y se le daban 71. Un icono
+mide siempre lo mismo.
+
+**El nombre no se borra, se esconde para la vista.** `display: none` lo
+sacaría también del árbol de accesibilidad y la burbuja serían cinco
+dibujos sin nombre. Va en `sr-only`, y la prueba comprueba las dos cosas: que
+no se vea y que siga estando.
+
+### Un icono se dibuja al tamaño al que se mira
+
+El de la Pokédex empezó con dos pilotos y una pantalla de dos renglones, y
+a **24 px** —que es el tamaño al que se ve de verdad— los pilotos se
+empastaban en un churro y los renglones en una mancha. Lo que sobra a 96
+px tapa a 24. Quedó la caja, la lente, un piloto y la pantalla.
+
+### Y el peso: 170,4 de 170
+
+Meter ese icono en `js/icons.js` pasó la portada de 169,9 a **170,4**, o
+sea la rompió. `js/icons.js` lo baja TODO el mundo —5 KB gzip, unos setenta
+iconos— y la portada usa dieciséis.
+
+La solución es la misma regla que la del CSS: **lo que usa una sola
+pantalla va en su fichero**. El icono vive en `js/mi-coleccion/iconos.js`,
+`icons.js` solo exporta el envoltorio `icon()`, y el resolutor de
+`data-icono` mira primero los de la pantalla. Vuelve a caber.
+
+Pero cabe **justo**: 170,0 de 170,0, **cero bytes libres**. La próxima tanda
+que toque la portada tiene que empezar por hacer sitio. El plan concreto,
+por si sirve: de los setenta iconos de `js/icons.js` la portada usa
+dieciséis; sacar los que solo pinta una pantalla a módulos como este
+liberaría unos 3 KB. No se hizo aquí porque es un barrido que toca quince
+ficheros y los iconos fallan en SILENCIO —una referencia que no existe no
+pinta nada y no da error—, y eso no se hace con prisa sobre una rama que
+despliega en directo.
+
+### Tres cosas más que pidió PINGU
+
+**La ficha, no la página.** Desde Buscar, pulsar una carta llevaba a la
+ficha completa; la norma de la casa es que toda carta abierta desde
+/mi-coleccion abre el diálogo, y desde ahí se va a la página. Se engancha
+con `engancharFicha`, que ya lo hacía en el álbum y en la Pokédex. **El
+`href` se queda** aunque el clic normal ya no navegue: es lo que hace que
+el Ctrl+clic y el «abrir en otra pestaña» sigan funcionando, y es el enlace
+que ve Google. Un `<a>` sin destino es un botón disfrazado.
+
+**Tres cartas por fila en el móvil**, no dos. El número no se fija: se baja
+el MÍNIMO de la rejilla, así que en una pantalla de 390 caben tres y en una
+de 1280 siguen cabiendo ocho. Fijar «3» rompería el escritorio.
+
+Y al cambiarlo, la rejilla de los resultados de Buscar **seguía saliendo de
+dos en dos**: `.mc-resultados` estaba definida DOS VECES en la misma hoja
+—aquí y en el bloque que añadió la 447— y ganaba la de abajo por orden. Una
+clase repetida no da error: simplemente hace que uno de los dos sitios
+donde la has escrito no sirva para nada. Es la segunda vez en dos tandas
+(la otra, `.mc-hoja`).
+
+**Y fuera el foco automático al entrar en Buscar.** PINGU: «siempre que lo
+abres te abre ya el teclado, pero también tienes el botón de escanear;
+alguien que quiere escanear tendría que cerrar el teclado». Enfocar un
+campo al entrar es un atajo para UNA de las dos cosas que se pueden hacer
+en esa pantalla, y en un móvil no es un atajo barato: el teclado se come
+media pantalla y tapa justo la otra opción. En un escritorio costaría cero
+— pero el que escanea es precisamente el del móvil.

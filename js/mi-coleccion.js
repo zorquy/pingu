@@ -40,6 +40,7 @@ import {
   valorDeLinea,
 } from './cardmarket.js'
 import { icons } from './icons.js'
+import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
 // cargan esta página y la ficha de una carta).
 import { marcaCardmarket } from './cardmarket-marca.js'
@@ -1083,6 +1084,7 @@ function abrirCarta(cardId, carta = null) {
     || cartas.get(cardId)
     || album.cartas?.find((x) => x.id === cardId)
     || cartasDeLaEspecie.find((x) => x.id === cardId)
+    || ultimaBusqueda.find((x) => x.id === cardId)
   if (encontrada && !cartas.has(cardId)) cartas.set(cardId, encontrada)
   const mia = lineas.find((x) => x.card_id === cardId)
   if (mia) return abrirEditor(mia)
@@ -2145,6 +2147,10 @@ async function alternarVariante(cardId, variante) {
 // reutiliza a propósito: dos buscadores que buscan lo mismo se separan y
 // acaban dando resultados distintos (la lección de `IDIOMA_POR_MERCADO`).
 let turnoBuscarTodo = 0
+// Lo último que ha devuelto el buscador. Hace falta para abrir la ficha:
+// `cartas` es el mapa de TU colección y aquí sale cualquiera del catálogo,
+// así que sin esto la ficha se abriría vacía.
+let ultimaBusqueda = []
 const filtrosCatalogo = filtrosCatalogoVacios()
 let ordenCatalogo = 'nombre'
 let sentidoCatalogo = sentidoNatural('nombre')
@@ -2250,10 +2256,11 @@ async function buscarEnTodo() {
     const tope = lista.length >= TOPE ? ' · hay más, afina la búsqueda' : ''
     cuenta.textContent = cuantas + (porIlustrador ? ' · por ilustrador' : '') + tope
   }
+  ultimaBusqueda = lista
   caja.innerHTML = lista.length
     ? lista.map((c) => {
         const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-        return `<a class="mc-resultado" href="${escapeHtml(rutaDeCarta(c))}">
+        return `<a class="mc-resultado" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}">
           <span class="mc-resultado-foto">
             <span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}</span>
             ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
@@ -2666,7 +2673,16 @@ function cambiarPestania(nueva) {
   if (nueva === 'carpetas') abrirCarpetas()
   if (nueva === 'pokedex') abrirPokedex()
   // Al entrar en Buscar, el foco al campo: se viene a escribir.
-  if (nueva === 'buscar') $('mcBuscarTodo')?.focus({ preventScroll: true })
+  // AQUÍ SE ENFOCABA EL BUSCADOR, y se quita (tanda 452). PINGU: «en móvil,
+  // siempre que abres Buscar te abre ya el teclado, pero también tienes el
+  // botón de escanear; alguien que quiere escanear tendría que cerrar el
+  // teclado».
+  //
+  // Tiene razón y es un caso de libro: enfocar un campo al entrar es un
+  // atajo para UNA de las dos cosas que se pueden hacer en esta pantalla, y
+  // en un móvil no es un atajo barato — el teclado se come media pantalla y
+  // tapa justo la otra opción. En un escritorio el coste sería cero, pero
+  // el que escanea es precisamente el del móvil.
 
 }
 
@@ -3179,7 +3195,9 @@ function repintar() {
 // deja dos versiones del mismo icono que se separan.
 function pintarIconos() {
   for (const el of document.querySelectorAll('[data-icono]')) {
-    const dibujar = icons[el.dataset.icono]
+    // Los de esta pantalla primero: viven en su propio módulo para no
+    // engordar `js/icons.js`, que lo baja también la portada.
+    const dibujar = ICONOS_COLECCION[el.dataset.icono] || icons[el.dataset.icono]
     if (dibujar) el.insertAdjacentHTML('afterbegin', dibujar(18))
   }
 }
@@ -3711,6 +3729,16 @@ function enganchar() {
   }
   engancharFicha('mcAlbum', '.mc-bolsillo-enlace')
   engancharFicha('mcPanelPokedex', '.pdx-carta')
+  // Y los resultados de Buscar (tanda 452). PINGU: «cuando abres una carta
+  // desde el buscador te va a la ficha completa, y hemos dicho que toda
+  // carta que se abra desde mi colección tiene que abrir el pop-up y desde
+  // ahí dar la opción de ir a la ficha completa».
+  //
+  // El `href` SE QUEDA aunque el clic normal ya no navegue: es lo que hace
+  // que el Ctrl+clic y el «abrir en otra pestaña» sigan funcionando —de eso
+  // se encarga `abreLaPagina`— y es el enlace que ve Google. Un `<a>` sin
+  // destino es un botón disfrazado.
+  engancharFicha('mcBuscarResultados', '.mc-resultado')
 
   $('mcAlbum').addEventListener('click', (e) => {
     const mas = e.target.closest('button[data-anadir]')

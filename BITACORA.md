@@ -35,6 +35,40 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 452 — la burbuja del menú)
+
+**Hecho**: el menú del móvil pasa a ser la **burbuja flotante** de Dex:
+solo iconos, centrada, píldora translúcida con desenfoque. Lo que la
+distingue de una barra no es el dibujo sino el ANCHO — mide lo que miden
+sus cinco iconos en vez de ir de lado a lado. Los nombres no se borran, se
+esconden en `sr-only`: `display: none` los sacaría del árbol de
+accesibilidad y serían cinco dibujos sin nombre. Y la Pokédex estrena icono
+propio (usaba `target`, que es una diana).
+
+**OJO CON EL PESO**: meter ese icono en `js/icons.js` pasó la portada de
+169,9 a **170,4** y la rompió. Ese fichero lo baja todo el mundo y la
+portada usa dieciséis de sus setenta iconos. El icono se ha movido a
+`js/mi-coleccion/iconos.js` —misma regla que la del CSS— y vuelve a caber,
+pero **justo: 170,0 de 170,0, cero bytes libres**. La próxima tanda que
+toque la portada tiene que empezar por hacer sitio; el plan está en
+SCHEMA.md (sacar de `icons.js` los iconos de una sola pantalla, ~3 KB).
+
+También: desde **Buscar** una carta abre la FICHA y no la página (el `href`
+se queda para el Ctrl+clic y para Google); **tres cartas por fila en el
+móvil** en vez de dos, bajando el mínimo de la rejilla y no fijando el
+número; y **fuera el foco automático** al entrar en Buscar, que abría el
+teclado y tapaba el botón de escanear.
+
+Al cambiar la rejilla salió que `.mc-resultados` estaba definida DOS VECES
+en la misma hoja y ganaba la de abajo: la segunda clase repetida en dos
+tandas, después de `.mc-hoja`.
+
+**Ficheros**: `js/icons.js`, **NUEVO** `js/mi-coleccion/iconos.js`,
+`js/mi-coleccion.js`, `css/mi-coleccion.css`, `mi-coleccion.html`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-408.mjs`.
+
+**En curso / pendiente**: nada a medias. Rigores pendientes: 443 a 452.
+
 ## 2026-10-02 — PINGU-Claude (tanda 451 — la franja de arriba no es el nombre)
 
 **Hecho**: PINGU escaneó un Reshiram EX y en el buscador le quedó «BÁSICO
