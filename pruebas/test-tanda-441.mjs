@@ -80,14 +80,26 @@ console.log('\n── 1. Una carta sin imagen sigue siendo una carta ──')
   const { page } = await abrir({ imagenes: true })
   const img = page.locator('#mcCartas .mc-carta-foto img').first()
   check('con la imagen puesta, la imagen está', (await img.count()) === 1)
-  check('  …y tapa al nombre',
-    await page.locator('#mcCartas .mc-carta-sinfoto').first().evaluate((sp) => {
-      const img2 = sp.parentElement.querySelector('img')
-      if (!img2) return false
-      const a = getComputedStyle(sp).zIndex
-      const b = getComputedStyle(img2).zIndex
-      return (b === 'auto' ? 0 : Number(b)) > (a === 'auto' ? 0 : Number(a))
-    }))
+  // TAPA de verdad, no «está por delante en el z-index». El nombre tiene
+  // que ocupar EL BOTÓN ENTERO y quedarse detrás; si se queda en el flujo
+  // normal, mide cuatro renglones, EMPUJA a la imagen hacia abajo y las
+  // dos cosas se ven a la vez. El rigor lo cazó: mirar el z-index no
+  // distinguía las dos, porque el z-index seguía puesto.
+  const tapa = await page.locator('#mcCartas .mc-carta-foto').first().evaluate((bt) => {
+    const sp = bt.querySelector('.mc-carta-sinfoto')
+    const img2 = bt.querySelector('img')
+    if (!sp || !img2) return null
+    const b = bt.getBoundingClientRect()
+    const s2 = sp.getBoundingClientRect()
+    const i = img2.getBoundingClientRect()
+    return {
+      nombreLlenaElBoton: Math.abs(s2.height - b.height) < 2 && Math.abs(s2.top - b.top) < 2,
+      imagenLlenaElBoton: Math.abs(i.height - b.height) < 2,
+      seSolapan: Math.abs(s2.top - i.top) < 2,
+    }
+  })
+  check('  …y el nombre ocupa el botón entero, detrás', tapa && tapa.nombreLlenaElBoton, JSON.stringify(tapa))
+  check('  …sin empujar a la imagen', tapa && tapa.imagenLlenaElBoton && tapa.seSolapan, JSON.stringify(tapa))
   await page.close()
 }
 
@@ -146,6 +158,26 @@ console.log('\n── 4. «Dónde estás cerca», fuera ──')
   check('  …y el panel empieza por tus cartas', titulos[0] === 'Tus cartas', titulos.join(' | '))
   check('  …con las expansiones debajo, que es lo que lo repetía',
     titulos.includes('Expansiones'), titulos.join(' | '))
+  await page.close()
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// Tanda 442 — el pie de los precios, solo donde hay precios.
+//
+// Vive FUERA de las pestañas, así que salía en las cinco: también en
+// Expansiones y en la Pokédex, donde no hay ni un precio que explicar.
+// Tres renglones de letra pequeña que no vienen a cuento son ruido.
+console.log('\n── 5. La nota de los precios, donde hay precios ──')
+{
+  const { page } = await abrir({ ruta: '/mi-coleccion.html' })
+  const donde = {}
+  for (const t of ['resumen', 'cartas', 'album', 'pokedex', 'carpetas']) {
+    await page.click(`[data-pestania="${t}"]`)
+    await page.waitForTimeout(500)
+    donde[t] = await page.locator('#mcFuente').isVisible()
+  }
+  check('sale en el panel y en las cartas', donde.resumen && donde.cartas, JSON.stringify(donde))
+  check('  …y no en las otras tres', !donde.album && !donde.pokedex && !donde.carpetas, JSON.stringify(donde))
   await page.close()
 }
 
