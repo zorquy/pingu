@@ -48,6 +48,8 @@ import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
 import { ORDENES, ordenar, porNumero } from './mi-coleccion/orden.js'
 import { balanceDeCompra } from './mi-coleccion/balance.js'
+import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
+import { copiarEnlace } from './compartir.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante } from './mi-coleccion/variantes.js'
@@ -1489,6 +1491,55 @@ function pintarAlbum() {
   // páginas y tapa— se queda para los álbumes soñados, que es donde el
   // orden lo pones tú.
   $('mcAlbum').innerHTML = `<div class="mc-album-rejilla">${paraPintar.map(bolsilloHtml).join('')}</div>`
+  // Lo que hay EN PANTALLA, que es de donde sale la lista de «lo que me
+  // falta» (tanda 430). Se guarda aquí y no se recalcula allí: recalcular
+  // sería escribir una segunda vez los filtros, el orden y el split, y dos
+  // listas que se parecen acaban siendo dos que ya no se parecen.
+  album.aLaVista = paraPintar
+  // Y si hay filtros puestos, que ya lo sabe `pintarAlbum`: deducirlo otra
+  // vez más abajo sería escribir la misma regla dos veces, y con «separar
+  // variantes» la segunda saldría MAL —hay más huecos que cartas, así que
+  // comparar tamaños diría «filtrando» sin que haya ningún filtro—.
+  album.filtrando = filtrando
+  pintarBotonDeFaltan(filtrando)
+}
+
+// ── Lo que me falta, para pegarlo en un chat (tanda 430) ──
+//
+// Es la otra mitad de un intercambio: el Panel dice desde la 374 lo que te
+// SOBRA, que es lo que puedes ofrecer, y lo que te falta había que ir
+// leyéndolo de la rejilla hueco por hueco.
+function loQueFaltaAhora() {
+  return (album.aLaVista || []).filter((c) => !tengoDe(c.id, c.__variante?.nuestro || null))
+}
+
+function pintarBotonDeFaltan(filtrando) {
+  const boton = $('mcFaltanCopiar')
+  if (!boton) return
+  const cuantas = loQueFaltaAhora().length
+  // Un botón que no lleva a ninguna parte miente: sin nada que copiar, se
+  // apaga y lo dice.
+  boton.disabled = !cuantas
+  boton.textContent = cuantas
+    ? `Copiar las ${cuantas} que me faltan`
+    : filtrando ? 'No te falta ninguna de estas' : 'No te falta ninguna'
+}
+
+async function copiarLoQueFalta() {
+  const faltan = loQueFaltaAhora()
+  if (!faltan.length) return
+  const elSet = (todosLosSets || []).find((x) => x.id === album.set) || null
+  const texto = textoDeLoQueFalta(faltan, {
+    nombreDelSet: elSet?.name,
+    codigo: elSet?.tcg_online_code,
+    // Con las versiones separadas, el total del set no cuadra con lo que
+    // se está listando —son huecos de versión, no cartas—, así que no se
+    // dice ninguno. `null` aquí es una respuesta, no un olvido.
+    total: album.split ? null : album.cartas.length,
+    filtrando: Boolean(album.filtrando),
+  })
+  const bien = await copiarEnlace(texto)
+  showToast(bien ? `Copiadas ${faltan.length}. Ya puedes pegarlas donde quieras.` : 'No se ha podido copiar.', bien ? 'success' : 'error')
 }
 
 // ── La tira de una expansión (tanda 417) ──
@@ -2598,6 +2649,8 @@ function enganchar() {
     fijarVecindario('mcCartas', '[data-linea]', 'linea', l.id)
     abrirEditor(l)
   })
+  $('mcFaltanCopiar')?.addEventListener('click', () => void copiarLoQueFalta())
+
   // ── Marcar varias (tanda 426) ──
   $('mcMarcarAbrir')?.addEventListener('click', () => modoMarcar(!marcadas))
   $('mcMarcarCancelar')?.addEventListener('click', () => modoMarcar(false))

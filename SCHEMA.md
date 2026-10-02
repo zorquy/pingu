@@ -23015,3 +23015,53 @@ con `undefined`, con una cadena o con un `NaN` la cosa cambia—. Así que la
 guarda se queda con el motivo escrito encima y **lo que se quita es la
 mutación**: un rigor que dice «detectada» sobre algo que no cambia nada
 miente, y eso es justo lo que un rigor existe para no hacer.
+
+## Tanda 430 — lo que te falta, para pegarlo en un chat (oct. 2026)
+
+Un botón en los mandos de una expansión que copia al portapapeles la lista
+de lo que te falta, en texto plano. Es la otra mitad de un intercambio:
+desde la 374 el Panel dice lo que te SOBRA, que es lo que puedes ofrecer.
+
+**Texto y no enlace**, a propósito: esto se pega en un grupo de WhatsApp o
+en un mensaje del foro, y un enlace obliga a la otra persona a salir a
+mirarlo.
+
+**La lista es exactamente lo que hay en pantalla y no tienes.** Por eso
+`pintarAlbum` guarda `album.aLaVista` (lo que acaba de pintar) y
+`album.filtrando` (lo que ya había calculado), en vez de que el botón
+vuelva a deducirlos: así los filtros, el orden de la 427 y el «separar
+variantes» ya han hecho su trabajo antes de llegar aquí, y el botón no
+sabe nada de ellos.
+
+### El encabezado tiene TRES formas, no dos
+
+- **Con filtros**: lo avisa y no dice ningún total. Sin eso, quien filtró
+  por «ultra raras» pega una lista de cinco cartas y quien la lee entiende
+  que le faltan cinco del set entero. Una lista que miente sobre su propio
+  alcance es peor que no tenerla.
+- **Sin filtros**: el total es el del SET («me faltan 5 de las 108»), que
+  es el número que significa algo para quien lo lee.
+- **Con las versiones separadas**: no se dice total ninguno. Lo que se
+  lista son huecos de VERSIÓN y no cartas, así que cualquier número de ahí
+  pide que se lo expliquen. `total` llega a `null` a propósito, que es
+  distinto de que no se sepa.
+
+Y cada línea dice la versión cuando la hay (`004 · Rayquaza EX (Reverse
+holo)`): con el número a secas, quien te busca la carta no sabe si quieres
+la normal o el reverso. El separador es `·` y no un guion porque un guion
+se confunde con los que llevan los nombres: «Ho-Oh», «Porygon-Z».
+
+### El fallo que destapó el rigor
+
+La bandera de «¿hay filtros puestos?» se deducía comparando el tamaño de
+lo que hay en pantalla con el número de cartas del set. **Eso falla justo
+con «separar variantes»**, donde hay más huecos que cartas por definición:
+el texto habría avisado de filtros inexistentes y habría escondido el
+total, sin dar ningún error. Es la lección de siempre con otra cara — la
+misma regla escrita dos veces, y la segunda copia mal— y se arregla
+preguntándole el dato a quien ya lo tiene en vez de volver a deducirlo.
+
+El otro hueco era de la prueba, y es el mismo de la tanda 427: **nunca
+abría «separar variantes» en pantalla**, así que no se comprobaba que la
+lista mire la VERSIÓN y no solo la carta. Teniendo la normal de una carta,
+su reverse holo te sigue faltando y tiene que salir en la lista.

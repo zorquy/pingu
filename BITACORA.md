@@ -75,6 +75,63 @@ rigor, 32 de 32 (pasado sobre este mismo código antes de renumerar: solo
 cambian comentarios). Con lo de la 422 a la 424 debajo, en verde también
 la 413, 421, 422, 414, 384, 305, 310, 369 y 406.
 
+## 2026-10-02 — PINGU-Claude (tanda 430 — la lista de lo que te falta, para pegarla en un chat)
+
+**Hecho**: en una expansión, un botón **«Copiar las N que me faltan»**
+que deja en el portapapeles un texto listo para pegar:
+
+```
+Me faltan 5 de las 108 de Roaring Skies (ROS):
+004 · Rayquaza EX
+017 · Mega Rayquaza EX
+```
+
+Es la otra mitad de un intercambio: desde la 374 el Panel dice lo que te
+SOBRA —lo que puedes ofrecer— y lo que te falta había que ir leyéndolo de
+la rejilla hueco por hueco.
+
+**Texto y no enlace, a propósito**: esto se pega en un grupo o en un
+mensaje del foro, y un enlace obliga a la otra persona a salir a mirarlo.
+
+**Es EXACTAMENTE lo que hay en pantalla.** Así se lleva bien con los
+filtros, con el orden de la 427 y con «separar variantes» sin saber nada
+de ellos: ya han hecho su trabajo antes de llegar aquí. Por eso
+`pintarAlbum` guarda `album.aLaVista` en vez de recalcularlo: recalcular
+sería escribir los filtros y el orden una segunda vez.
+
+**Y el texto dice su propio alcance**, que es lo que lo hace fiable:
+
+- con filtros puestos lo AVISA y no dice ningún total. Sin eso, quien
+  filtró por «ultra raras» pega cinco cartas y la otra persona entiende
+  que le faltan cinco del set entero;
+- sin filtros, el total es el del SET, que es el número que significa algo;
+- y con las versiones separadas **no se dice total ninguno**: lo que se
+  lista son huecos de versión y no cartas, así que cualquier número de
+  ahí pide que se lo expliquen. El `null` es una respuesta, no un olvido.
+
+El separador es `·` y no un guion, porque un guion se confunde con los
+que llevan los nombres: «Ho-Oh», «Porygon-Z».
+
+**EL FALLO QUE DESTAPÓ EL RIGOR, y era de verdad**: la bandera de «¿hay
+filtros puestos?» la deducía comparando cuántas cosas hay en pantalla con
+cuántas cartas tiene el set. Eso vale… salvo con «separar variantes»
+puestas, donde hay MÁS HUECOS QUE CARTAS por definición: el texto habría
+avisado de filtros que no existen y habría escondido el total. Es la misma
+regla escrita dos veces —`pintarAlbum` ya lo sabe— y la segunda copia
+salía mal. Ahora se pregunta en vez de deducirse.
+
+Y el otro hueco era de la prueba: **nunca abría «separar variantes» en
+pantalla**, así que no se comprobaba que la lista mire la VERSIÓN y no
+solo la carta. Teniendo la normal de la 101, el reverse holo te sigue
+faltando y tiene que salir. Es el mismo tipo de hueco que la 427: el juego
+de datos era más fácil que el mundo.
+
+**Ficheros**: nuevo `js/mi-coleccion/lo-que-falta.js`. Tocados
+`js/mi-coleccion.js`, `mi-coleccion.html`. En `pruebas`:
+`test-tanda-430.mjs` y `rigor/rigor-tanda-430.py` (nuevos).
+
+**En curso / pendiente**: nada a medias.
+
 ## 2026-10-02 — PINGU-Claude (tanda 429 — los que casi completas, en la Pokédex)
 
 **Hecho**: un desplegable en la Pokédex con dos vistas: «Por número» (la
