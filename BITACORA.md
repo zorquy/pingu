@@ -35,6 +35,68 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 457 — el pulido de estilos del laboratorio)
+
+**Hecho**: PINGU, con el laboratorio a dos (la 456) hecho: «mejorar los
+estilos tanto para móviles como para ordenadores, lo más profesional
+posible, cuidando los detalles». Se miró a ojo cada estado del laboratorio
+a siete anchos y en los dos temas, con cartas de mentira de la proporción
+real servidas con `page.route` (la red a TCGdex está cerrada aquí), y se
+arregló lo que salió:
+- La mesa a dos cabe **sin desplazar** en 1280×720, 1366×768, 1440×900,
+  1536×864 y 1920×1080 (antes sobraban hasta 107 px).
+- La mano va en **una fila**: con muchas cartas se solapan, y la que
+  señalas sube. En una tableta la mano en dos filas tapaba la banca.
+- La banca de cinco cabe en una fila en la tableta.
+- La vida cambia de color al bajar, y el cambio de turno se anuncia en el
+  tapete.
+- El registro separa los turnos con una línea.
+- El muñeco son fichas de verdad.
+- Antes de empezar, los premios son seis huecos.
+- El dorso lleva marco.
+- El menú del móvil es una hoja con velo y asa.
+- Al ganar sale una copa.
+- Sin imágenes (la lección de la 441: se miró también con TODAS caídas),
+  el nombre que queda debajo salía **cortado** si tenía una palabra larga
+  («Determination», «Fezandipiti», «Risky» en el estadio). Ahora se parte
+  antes que perder letras.
+- Otros detalles del móvil y la tableta (en SCHEMA.md).
+
+**Ficheros**: css/laboratorio.css, js/constructor/laboratorio.js,
+SCHEMA.md. En `pruebas`: test-tanda-457.mjs y rigor/rigor-tanda-457.py
+(NUEVOS); test-tanda-456.mjs (la comprobación de «menos movimiento»
+admite el selector agrupado, y la cabecera se mira también con un turno
+LARGO) y rigor/rigor-tanda-456.py (el ancla del latido, con el selector
+agrupado).
+
+**En curso / pendiente**: nada. **Pruebas**: la 457 en verde y su rigor,
+**28 de 28** mutaciones detectadas (cada una rompe el ORIGEN de algo que
+no da error: la mesa que no cabe, la mano en dos filas, la barra siempre
+verde, el aviso que se queda con los clics, el nombre cortado sin
+imagen…). La 456 y la 384, en verde. **Suite entera** sobre la 451 de la
+otra sesión, con las dos encima: **173 de 180** (en tres tiradas a la vez;
+los rojos, repetidos solos). Las siete rojas están **igual de rojas en el
+remoto puro** (18ce986, sin la 456 ni la 457), así que son de la otra
+sesión y no las toco: 415, 426, 428, 436, 437 y 444 (Mi colección) y 434
+(la cadena de imágenes ya acaba en el CDN de la 435). Para la sesión que
+lleve Mi colección. De la 452 a la 455 de la otra sesión llegaron con la
+suite ya corrida (tocan Mi colección y el admin, y la 452 exporta `icon`
+de js/icons.js): encima de ellas, la 456, la 457 y la 384, otra vez en
+verde.
+
+**OJO, CHOQUE DE NÚMEROS (y van de la CINCO a la ONCE)**: el laboratorio a
+dos se escribió como 426, y la otra sesión fue llegando al remoto antes
+cada vez: con la 426 a la 430 (pasó a ser la 431), con la 431 a la 438 (la
+439, y este pulido la 440), con la 439 a la 442 (la 443 y la 444), con la
+443 a la 451 mientras corrían los rigores (la 452 y la 453), con la 452
+mientras corría la suite (la 453 y la 454), con la 453 mientras se
+empaquetaba (la 454 y la 455), y con la 454 y la 455 mientras se daba
+permiso para subir. Van como **456** y **457**, montadas encima de la 455,
+y esta vez se suben directamente. Un bundle numerado se queda viejo en
+cuanto el otro sube algo: el número se decide al INTEGRAR, no al escribir.
+**Los bundles `tanda-431` y `tanda-454-455` que se entregaron ya no valen:
+no se integran.**
+
 ## 2026-10-02 — PINGU-Claude (tanda 456 — el laboratorio a dos: «tú contra ti», y una mesa de un clic)
 
 **Hecho** (escrita como 426, y renumerada como 431, 439, 443, 452, 453 y

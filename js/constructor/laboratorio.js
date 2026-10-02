@@ -209,6 +209,7 @@ function cuerpoHtml() {
         <section class="lab-centro-mesa" id="labCentro" aria-label="La mesa"></section>
         <section class="lab-lado lab-lado-propio" id="labLadoPropio" aria-label="Tu lado de la mesa"></section>
         <div class="lab-apuntar hidden" id="labApuntar" role="status"></div>
+        <div class="lab-cambio" id="labCambio" aria-hidden="true" hidden></div>
       </div>
       <section class="lab-mano-zona" aria-labelledby="labManoTitulo">
         <div class="lab-mano-cab">
@@ -289,7 +290,10 @@ async function hacer(fn) {
     const ahora = L.mesa ? L.mesa.actual : L.partida
     const previa = ahora === quien ? antes : antesOtro || antes
     L.nuevas = new Set(ahora.s.mano.filter((u) => !previa.has(u)))
-    if (L.mesa && ahora !== quien && !L.mesa.terminada) L.anuncio = L.mesa.fase === 'preparacion' ? `Prepara ${ahora.nombreJugador}` : `Turno de ${ahora.nombreJugador}`
+    if (L.mesa && ahora !== quien && !L.mesa.terminada) {
+      L.anuncio = L.mesa.fase === 'preparacion' ? `Prepara ${ahora.nombreJugador}` : `Turno de ${ahora.nombreJugador}`
+      mostrarCambio(ahora, L.anuncio)
+    }
   } catch (err) {
     if (err?.cancelado) {
       // Cancelar una elección deja todo como estaba: no hay nada que decir.
@@ -304,6 +308,24 @@ async function hacer(fn) {
     pintar()
     devolverFoco(foco)
   }
+}
+
+// El aviso del cambio de turno, en el centro del tapete. Se esconde con
+// un temporizador y no al acabar la animación: con «menos movimiento» la
+// animación no corre y `animationend` no llegaría nunca (tanda 313).
+let temporizadorCambio = null
+function mostrarCambio(partida, texto) {
+  const el = $('#labCambio')
+  if (!el) return
+  clearTimeout(temporizadorCambio)
+  el.dataset.j = String(L.mesa.indice(partida))
+  el.textContent = texto
+  el.hidden = false
+  // Si el anterior sigue a la vista, la animación vuelve a empezar.
+  el.style.animation = 'none'
+  void el.offsetWidth
+  el.style.animation = ''
+  temporizadorCambio = setTimeout(() => (el.hidden = true), 1300)
 }
 
 function deshacer() {
@@ -415,6 +437,10 @@ function energiaHtml(uid, portador, partida) {
 
 const ESTADOS = { envenenado: 'Envenenado', quemado: 'Quemado', dormido: 'Dormido', paralizado: 'Paralizado', confundido: 'Confundido' }
 
+// La barra de vida, con su nivel: verde, ámbar por debajo de la mitad y
+// rojo en el último cuarto. El número va al lado (no es solo color).
+const vidaHtml = (pct, titulo = '') => `<div class="lab-ps" data-vida="${pct <= 25 ? 'baja' : pct <= 50 ? 'media' : 'alta'}"${titulo ? ` title="${titulo}"` : ''}><span style="--pct: ${pct}%"></span></div>`
+
 // Un Pokémon en juego. `rival`: es del otro jugador (se lee, no se juega).
 function slotHtml(slot, partida, { activo = false, rival = false, bocaAbajo = false } = {}) {
   const c = partida.cartaDe(slot)
@@ -436,7 +462,7 @@ function slotHtml(slot, partida, { activo = false, rival = false, bocaAbajo = fa
     <div class="lab-slot${activo ? ' lab-slot-activo' : ''}${apuntable ? ' lab-apuntable' : ''}${slot.danio && vida <= 0 ? ' lab-slot-caido' : ''}" data-slot="${slot.id}">
       <button type="button" class="lab-carta lab-slot-carta" ${dato} aria-label="${etiqueta}">${imagenHtml(c)}${slot.danio ? `<span class="lab-danio" aria-hidden="true">${slot.danio}</span>` : ''}${estados ? `<span class="lab-slot-estados">${estados}</span>` : ''}</button>
       <div class="lab-slot-pie">
-        <div class="lab-ps" title="${vida} / ${ps} PS"><span style="--pct: ${pct}%"></span></div>
+        ${vidaHtml(pct, `${vida} / ${ps} PS`)}
         <p class="lab-ps-texto">${vida}/${ps}</p>
         ${energias ? `<div class="lab-energias">${energias}</div>` : ''}
         ${herramienta || evo || nuevo ? `<div class="lab-chapas">${herramienta}${evo}${nuevo}</div>` : ''}
@@ -447,7 +473,10 @@ function slotHtml(slot, partida, { activo = false, rival = false, bocaAbajo = fa
 // Los premios: boca abajo (o boca arriba si los has visto).
 function premiosHtml(partida, { rival = false } = {}) {
   const s = partida.s
-  if (!s.premios.length) return `<p class="lab-vacio">${s.fase === 'preparacion' || s.fase === 'mulligan' ? 'Se ponen al empezar' : 'Sin premios'}</p>`
+  if (!s.premios.length && (s.fase === 'preparacion' || s.fase === 'mulligan')) {
+    return `<div class="lab-premios" aria-hidden="true">${'<span class="lab-hueco lab-hueco-premio"></span>'.repeat(6)}</div><p class="lab-cuenta-mini lab-cuenta-prep">Se ponen al empezar</p>`
+  }
+  if (!s.premios.length) return '<p class="lab-vacio">Sin premios</p>'
   if (rival) return `<div class="lab-premios" role="img" aria-label="${s.premios.length} premios">${s.premios.map(() => `<span class="lab-carta lab-carta-dorso">${dorsoHtml()}</span>`).join('')}</div><p class="lab-cuenta-mini">${s.premios.length} ${s.premios.length === 1 ? 'premio' : 'premios'}</p>`
   return `<div class="lab-premios">${s.premios.map((u, i) => (s.premiosVistos[u] ? cartaHtml(u, { extra: ' data-premio' }) : `<button type="button" class="lab-carta lab-carta-dorso" data-premio="${u}" aria-label="Premio ${i + 1}, boca abajo">${dorsoHtml()}</button>`)).join('')}</div><p class="lab-cuenta-mini">${s.premios.length} ${s.premios.length === 1 ? 'premio' : 'premios'}</p>`
 }
@@ -501,10 +530,11 @@ function maniquiHtml(d, { activo = false } = {}) {
   const estados = (d.estados || []).map((e) => `<span class="lab-chapa lab-chapa-estado">${ESTADOS[e] || e}</span>`).join('')
   return `
     <div class="lab-maniqui${activo ? ' lab-maniqui-activo' : ''}" data-rival="${d.id}">
-      <p class="lab-maniqui-nombre">${activo ? 'Activo · ' : ''}${escapeHtml(d.nombre)}</p>
-      <div class="lab-ps"><span style="--pct: ${pct}%"></span></div>
-      <p class="lab-ps-texto">${vida}/${d.ps} PS · ${d.premios} ${d.premios === 1 ? 'premio' : 'premios'}</p>
-      ${estados ? `<div class="lab-chapas">${estados}</div>` : ''}
+      <p class="lab-maniqui-puesto">${activo ? 'Activo' : 'Banca'}</p>
+      <p class="lab-maniqui-nombre">${escapeHtml(d.nombre)}</p>
+      <p class="lab-maniqui-vida"><strong>${vida}</strong> / ${d.ps} PS</p>
+      ${vidaHtml(pct)}
+      <div class="lab-chapas"><span class="lab-chapa">${d.premios} ${d.premios === 1 ? 'premio' : 'premios'}</span>${estados}</div>
     </div>`
 }
 
@@ -686,9 +716,12 @@ function pintarFin() {
     sub = `${s.mulligans ? `${s.mulligans} ${s.mulligans === 1 ? 'mulligan' : 'mulligans'} · ` : ''}${s.rival.caidos || 0} KO al rival · ${6 - s.premios.length} premios cogidos`
   }
   const puede = m ? m.puedeDeshacer : L.partida.puedeDeshacer
+  // La copa, solo cuando alguien gana (no con «no se puede empezar»).
+  const gana = m ? m.m.resultado?.tipo !== 'sin-basicos' && m.m.resultado?.ganador != null : s.resultado?.tipo === 'victoria'
   poner(
     el,
     `<div class="lab-fin-caja">
+      ${gana ? `<span class="lab-fin-icono" aria-hidden="true">${icons.trophy(28)}</span>` : ''}
       <h3>${titulo}</h3>
       <p>${texto}</p>
       ${sub ? `<p class="subtext">${sub}</p>` : ''}
@@ -778,7 +811,11 @@ function registroHtml() {
   const m = L.mesa
   const r = (m ? m.m.registro : L.partida.s.registro).slice(-160)
   const chapa = (j) => (m && j >= 0 ? `<span class="lab-jugador lab-jugador-mini" data-j="${j}">J${j + 1}</span>` : '')
-  return `<ol class="lab-registro-lista" id="labRegistro">${r.map((x) => `<li${/^── /.test(x.texto) ? ' class="lab-registro-turno"' : ''}>${/^── /.test(x.texto) ? '' : chapa(x.j)}${escapeHtml(x.texto)}</li>`).join('') || '<li>Aún no ha pasado nada.</li>'}</ol>`
+  const linea = (x) => {
+    if (/^── /.test(x.texto)) return `<li class="lab-registro-turno"><span>${escapeHtml(x.texto.replace(/^──\s*|\s*──$/g, ''))}</span></li>`
+    return `<li>${chapa(x.j)}<span>${escapeHtml(x.texto)}</span></li>`
+  }
+  return `<ol class="lab-registro-lista" id="labRegistro">${r.map(linea).join('') || '<li>Aún no ha pasado nada.</li>'}</ol>`
 }
 
 function tablaAhora() {
@@ -1665,7 +1702,7 @@ function dialogoNueva(modo = L.opciones.modo, { seguir = false } = {}) {
     const n = m ? m.entradas.reduce((t, e) => t + e.n, 0) : 0
     return `<div class="lab-mazo-fila">
       <span class="lab-jugador" data-j="${i}">Jugador ${i + 1}</span>
-      <span class="lab-mazo-nombre">${m ? `<strong>${escapeHtml(m.nombre)}</strong> <span class="subtext">${n} cartas</span>` : '<span class="subtext">Sin elegir</span>'}</span>
+      <span class="lab-mazo-nombre">${m ? `<strong>${escapeHtml(m.nombre)}</strong><span class="lab-mazo-cuenta">${n} cartas</span>` : '<span class="lab-mazo-cuenta">Sin elegir</span>'}</span>
       <button type="button" class="btn-secondary lab-btn" data-cambiar-mazo="${i}">${m ? 'Cambiar' : 'Elegir'}</button>
     </div>`
   }

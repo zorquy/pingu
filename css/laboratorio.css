@@ -29,9 +29,11 @@ html.lab-abierto {
   /* El tamaño de las cartas sigue al ALTO de la pantalla: la mesa entera
      (los dos lados y tu mano) tiene que caber sin desplazarse en un
      portátil de 900 px de alto, y en uno más alto, crecer. */
-  --lab-c-activo: clamp(76px, 10.5vh, 124px);
-  --lab-c-banca: clamp(52px, 7vh, 84px);
-  --lab-c-mano: clamp(64px, 8.5vh, 108px);
+  /* …y también al ANCHO (el `min`): en una tableta en vertical, con el
+     alto de sobra, la banca de cinco ya no cabía en una fila. */
+  --lab-c-activo: clamp(76px, min(10.5vh, 9vw), 128px);
+  --lab-c-banca: clamp(52px, min(7vh, 6vw), 88px);
+  --lab-c-mano: clamp(68px, 9vh, 120px);
   --lab-c-premio: clamp(28px, 4.4vh, 44px);
   --lab-c-pila: clamp(40px, 5.6vh, 64px);
   position: fixed;
@@ -171,6 +173,20 @@ html.lab-abierto {
   }
 }
 
+/* Y en una tableta en vertical, el título se queda para el lector (como
+   en el móvil): con él a la vista, el turno iba en tres líneas. */
+@media (min-width: 761px) and (max-width: 1023px) {
+  .lab-titulo {
+    position: absolute;
+    width: 1px;
+    min-width: 0;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 /* Sin sitio para la barra en una línea, los tres botones se quedan con
    su icono: el nombre sigue para el lector y en el `title`. El corte está
    MEDIDO con dos mazos y el turno más largo («Turno N · Jugador 1 (va
@@ -305,16 +321,25 @@ html.lab-abierto {
   object-fit: cover;
 }
 
+/* El nombre, debajo de la imagen: es lo que se ve cuando la imagen no
+   responde (CLAUDE.md, tanda 441: «una captura con los datos a medias es
+   OTRA pantalla»). Mirado así, con todas las imágenes caídas, una palabra
+   larga («Determination», «Fezandipiti») no cabía en la banca ni en el
+   estadio y salía CORTADA por los dos lados. Se parte por donde haga
+   falta antes que perder letras, y el margen es de 2 px: en el estadio,
+   con 4, «Risky» ya no cabe. */
 .lab-sin-imagen {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--e-xs);
+  padding: 2px;
   text-align: center;
   font-size: var(--t-2xs);
   font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
   color: var(--text-mid);
   overflow: hidden;
 }
@@ -344,8 +369,11 @@ button.lab-carta:focus-visible {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 50%, var(--blanco-fijo) 0 12%, transparent 13%),
-    repeating-linear-gradient(45deg, var(--navy-solid) 0 8px, var(--navy-solid-dark) 8px 16px);
+    radial-gradient(circle at 50% 50%, var(--navy-solid-dark) 0 8%, var(--blanco-fijo) 8.5% 14%, transparent 14.5%),
+    repeating-linear-gradient(45deg, var(--navy-solid) 0 6px, var(--navy-solid-dark) 6px 12px);
+  box-shadow:
+    inset 0 0 0 2px var(--navy-solid-dark),
+    inset 0 0 0 3px color-mix(in srgb, var(--blanco-fijo) 35%, transparent);
 }
 
 .lab-chapa {
@@ -384,9 +412,11 @@ button.lab-carta:focus-visible {
   box-shadow: var(--shadow-ring);
 }
 
+/* Arriba a la IZQUIERDA: en la mano solapada, la esquina derecha queda
+   debajo de la carta siguiente. */
 .lab-carta .lab-chapa-nueva {
   position: absolute;
-  right: var(--e-xs);
+  left: var(--e-xs);
   top: var(--e-xs);
   z-index: 1;
   background: var(--navy-solid);
@@ -518,6 +548,18 @@ button.lab-carta:focus-visible {
     radial-gradient(ellipse 70% 50% at 50% 50%, var(--navy-solid-light) 0%, transparent 100%),
     linear-gradient(180deg, var(--navy-solid-dark) 0%, var(--navy-solid) 50%, var(--navy-solid-dark) 100%);
   box-shadow: inset 0 0 0 1px var(--tp-linea);
+}
+
+/* En una pantalla muy ancha el tapete sigue de lado a lado, pero el
+   juego se queda junto: a 1.920 px los premios y el mazo quedaban a un
+   metro del activo. */
+@media (min-width: 1600px) {
+  .lab-tapete > .lab-lado,
+  .lab-tapete > .lab-centro-mesa {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+  }
 }
 
 /* Sobre el azul, el anillo de foco azul de la casa no se ve. */
@@ -826,6 +868,15 @@ button.lab-carta:focus-visible {
   width: var(--pct, 0%);
   height: 100%;
   background: var(--success);
+  transition: width 0.3s var(--ease), background 0.3s var(--ease);
+}
+
+.lab-ps[data-vida='media'] span {
+  background: var(--warning);
+}
+
+.lab-ps[data-vida='baja'] span {
+  background: var(--danger-solid);
 }
 
 .lab-ps-texto {
@@ -872,6 +923,11 @@ button.lab-carta:focus-visible {
   width: var(--lab-c-pila);
 }
 
+.lab-hueco-premio {
+  display: block;
+  width: var(--lab-c-premio);
+}
+
 /* ── Elegir dónde va una carta ──
    Los que valen brillan y laten; los demás se apagan. El latido se
    apaga con «menos movimiento» (abajo), y el brillo se queda. */
@@ -892,6 +948,55 @@ button.lab-carta:focus-visible {
 .lab-modo-apuntar .lab-lado-rival .lab-slot,
 .lab-modo-apuntar .lab-mano-carta:not(.lab-apuntando) {
   opacity: 0.45;
+}
+
+/* El cambio de turno con mesa: el nombre de a quién le toca, un momento
+   en el centro del tapete (la mesa acaba de girar y hay que saberlo de un
+   vistazo). No se puede tocar: los clics pasan a lo de debajo. */
+.lab-cambio {
+  --lab-color-j: var(--blanco-fijo);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 7;
+  padding: var(--e-md) var(--e-xl);
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid-dark);
+  box-shadow: var(--shadow-lg), inset 0 0 0 2px var(--lab-color-j);
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 700;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  animation: lab-cambio 1.2s var(--ease) both;
+}
+
+.lab-cambio[data-j='0'] {
+  --lab-color-j: var(--lab-j1);
+}
+
+.lab-cambio[data-j='1'] {
+  --lab-color-j: var(--lab-j2);
+}
+
+@keyframes lab-cambio {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+
+  20%,
+  75% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%);
+  }
 }
 
 .lab-apuntar {
@@ -916,6 +1021,12 @@ button.lab-carta:focus-visible {
 
 .lab-apuntar .btn-secondary {
   flex-shrink: 0;
+}
+
+@media (pointer: coarse) {
+  .lab-apuntar kbd {
+    display: none;
+  }
 }
 
 .lab-apuntar kbd {
@@ -961,7 +1072,11 @@ button.lab-pila:hover {
 
 /* El mazo, con canto: se nota que es un montón y no una carta. */
 .lab-pila[data-pila='mazo'] > .lab-dorso {
-  box-shadow: 2px 2px 0 0 var(--navy-solid-dark), 4px 4px 0 0 var(--tp-linea);
+  box-shadow:
+    inset 0 0 0 2px var(--navy-solid-dark),
+    inset 0 0 0 3px color-mix(in srgb, var(--blanco-fijo) 35%, transparent),
+    2px 2px 0 0 var(--navy-solid-dark),
+    4px 4px 0 0 var(--tp-linea);
 }
 
 .lab-pila-cara img {
@@ -1201,7 +1316,11 @@ button.lab-pila:hover {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--e-sm) var(--e-md);
+  align-self: flex-start;
+  gap: var(--e-sm) var(--e-lg);
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--navy-solid-dark) 60%, transparent);
   font-size: var(--t-sm);
 }
 
@@ -1290,23 +1409,50 @@ button.lab-pila:hover {
 }
 
 .lab-maniqui {
-  flex: 0 0 136px;
-  padding: var(--e-sm);
+  display: flex;
+  flex: 0 0 156px;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+  padding: var(--e-sm) var(--e-md) var(--e-md);
   border: 1px solid var(--tp-linea);
   border-radius: var(--radius-md);
   background: var(--tp-velo);
 }
 
 .lab-maniqui-activo {
-  flex-basis: 176px;
-  border: 2px solid var(--blanco-fijo);
+  flex-basis: 188px;
+  border-color: var(--blanco-fijo);
   background: var(--tp-velo-fuerte);
+  box-shadow: 0 0 0 1px var(--blanco-fijo), var(--shadow-sm);
+}
+
+.lab-maniqui-puesto {
+  color: var(--tp-tenue);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .lab-maniqui-nombre {
-  font-size: var(--t-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t-md);
   font-weight: 700;
-  margin-bottom: var(--e-xs);
+}
+
+.lab-maniqui-vida {
+  color: var(--tp-tenue);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lab-maniqui-vida strong {
+  color: var(--tp-texto);
+  font-size: var(--t-lg);
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -1321,12 +1467,57 @@ button.lab-pila:hover {
   z-index: 3;
   display: flex;
   flex-direction: column;
-  gap: var(--e-sm);
-  padding: var(--e-sm) var(--e-md) var(--e-md);
+  gap: var(--e-xs);
+  padding: var(--e-sm) var(--e-md);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
   box-shadow: 0 -8px 24px rgba(13, 27, 42, 0.12);
+}
+
+/* En una pantalla BAJA (los portátiles de 768 y de 864 px de alto, los
+   más comunes) la cabecera de la mano se queda para el lector y el
+   estadio y los huecos se aprietan: cada píxel de alto es tapete, y así
+   cabe entera sin desplazar. Quién juega ya lo dice la barra de arriba. */
+@media (max-height: 740px) and (min-width: 761px) {
+  .lab {
+    --lab-c-activo: 68px;
+    --lab-c-banca: 48px;
+    --lab-c-mano: 64px;
+  }
+
+  .lab-mesa {
+    gap: var(--e-xs);
+  }
+}
+
+@media (max-height: 880px) and (min-width: 761px) {
+  .lab-lado {
+    row-gap: var(--e-xs);
+  }
+
+  .lab-estadio .lab-carta,
+  .lab-hueco-estadio {
+    --lab-ancho: 36px;
+    width: 36px;
+  }
+
+  .lab-centro-mesa {
+    padding-block: var(--e-xs);
+  }
+
+  .lab-mano-cab {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .lab-tapete {
+    padding: var(--e-sm) var(--e-md);
+  }
 }
 
 .lab-mano-cab {
@@ -1359,14 +1550,52 @@ button.lab-pila:hover {
   flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--e-sm);
-  min-height: calc(var(--lab-c-mano) * 342 / 245 + 28px);
+  min-height: calc(var(--lab-c-mano) * 342 / 245 + 24px);
 }
 
 .lab-mano-carta {
+  position: relative;
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   width: var(--lab-c-mano);
   transition: opacity 0.15s var(--ease);
+}
+
+.lab-mano .lab-carta {
+  box-shadow: var(--shadow-xs);
+}
+
+/* Fuera del móvil, la mano va en UNA fila, como en la mesa: si no caben,
+   se solapan —cada carta asoma por debajo de la siguiente— y la que se
+   señala (con el ratón o con el teclado) sube entera. En dos filas
+   tapaba la banca en una tableta. */
+@media (min-width: 761px) {
+  .lab-mano {
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+
+  .lab-mano-carta {
+    flex: 0 1 calc(var(--lab-c-mano) + var(--e-sm));
+    width: auto;
+    min-width: 28px;
+  }
+
+  .lab-mano-carta:last-child {
+    flex-shrink: 0;
+    flex-basis: var(--lab-c-mano);
+  }
+
+  .lab-mano-carta .lab-mas {
+    width: auto;
+    max-width: var(--lab-c-mano);
+  }
+
+  .lab-mano-carta:hover,
+  .lab-mano-carta:focus-within {
+    z-index: 2;
+  }
 }
 
 .lab-mano .lab-carta {
@@ -1400,8 +1629,7 @@ button.lab-pila:hover {
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 28px;
-  margin-top: 2px;
+  min-height: 24px;
   border-radius: var(--radius-sm);
   color: var(--text-mid);
 }
@@ -1559,15 +1787,38 @@ button.lab-pila:hover {
 }
 
 .lab-registro-lista li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-xs);
   padding: 2px 0;
 }
 
-.lab-registro-turno {
-  margin-top: var(--e-sm);
-  padding-top: var(--e-xs);
-  border-top: 1px solid var(--border);
-  font-weight: 700;
+.lab-registro-lista .lab-jugador-mini {
+  flex-shrink: 0;
+  margin-right: 0;
+}
+
+.lab-registro-lista li.lab-registro-turno {
+  align-items: center;
+  gap: var(--e-sm);
+  margin-top: var(--e-md);
+  padding: var(--e-xs) 0;
   color: var(--text);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lab-registro-turno::before,
+.lab-registro-turno::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--border);
+}
+
+.lab-registro-turno span {
+  flex-shrink: 0;
 }
 
 /* ── Las probabilidades ── */
@@ -1761,6 +2012,7 @@ button.lab-pila:hover {
   left: var(--x, 8px);
   top: var(--y, 8px);
   z-index: 20;
+  animation: lab-aparece 0.15s var(--ease);
   width: min(320px, calc(100vw - 16px));
   max-height: calc(100vh - 16px);
   overflow-y: auto;
@@ -1851,7 +2103,20 @@ button.lab-pila:hover {
     bottom: 0;
     width: 100%;
     max-height: 70vh;
+    padding-bottom: calc(var(--e-sm) + env(safe-area-inset-bottom));
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    /* El velo de detrás, sin otro elemento: una sombra que lo cubre todo. */
+    box-shadow: 0 0 0 100vmax rgba(13, 27, 42, 0.36);
+  }
+
+  .lab-menu::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: var(--e-xs) auto var(--e-xs);
+    border-radius: var(--radius-pill);
+    background: var(--border-strong);
   }
 }
 
@@ -1864,6 +2129,7 @@ button.lab-pila:hover {
   justify-content: center;
   padding: var(--e-lg);
   background: rgba(13, 27, 42, 0.48);
+  backdrop-filter: blur(2px);
 }
 
 /* La ventana no se desplaza entera: se desplaza su cuerpo, y el título y
@@ -1881,6 +2147,17 @@ button.lab-pila:hover {
   background: var(--white);
   box-shadow: var(--shadow-lg);
   outline: none;
+  animation: lab-aparece 0.15s var(--ease);
+}
+
+/* Las ventanas y el menú entran con un deslizamiento corto (se apaga con
+   «menos movimiento»; nada se BORRA al terminar, así que no hace falta
+   temporizador). */
+@keyframes lab-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 .lab-dialogo-medio {
@@ -2167,10 +2444,20 @@ button.lab-carta.lab-no-vale:hover {
 }
 
 .lab-mazo-nombre {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+}
+
+.lab-mazo-nombre strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.lab-mazo-cuenta {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
 }
 
 .lab-lista-mazos {
@@ -2300,6 +2587,18 @@ button.lab-carta.lab-no-vale:hover {
   font-size: var(--t-2xl);
 }
 
+.lab-fin-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
 .lab-acciones-botones {
   display: flex;
   flex-wrap: wrap;
@@ -2376,7 +2675,7 @@ button.lab-carta.lab-no-vale:hover {
   }
 
   .lab-mesa {
-    padding: var(--e-sm);
+    padding: var(--e-sm) var(--e-sm) calc(var(--e-sm) + env(safe-area-inset-bottom));
     gap: var(--e-sm);
   }
 
@@ -2591,13 +2890,47 @@ button.lab-carta.lab-no-vale:hover {
     padding: var(--e-xs) var(--e-sm);
   }
 
+  /* El rótulo («Empieza», «Vas») se queda para el lector: a la vista,
+     las tres opciones caben en una fila. */
   .lab-segmentos-rotulo {
-    padding: 0 var(--e-xs);
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Los seis huecos ya dicen qué va ahí; la frase, en el móvil, partía
+     la fila en tres líneas. */
+  .lab-cuenta-prep,
+  .lab-estadio .lab-vacio {
+    display: none;
+  }
+
+  .lab-dialogo .lab-pestania {
+    padding: var(--e-xs);
+    font-size: var(--t-xs);
+    white-space: nowrap;
+  }
+
+  .lab-maniqui {
+    flex-basis: 132px;
+    padding: var(--e-xs) var(--e-sm) var(--e-sm);
+  }
+
+  .lab-maniqui-activo {
+    flex-basis: 148px;
+  }
+
+  .lab-apuntar .btn-secondary {
+    margin-left: auto;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   button.lab-carta,
+  .lab-ps span,
   .lab-modo,
   .lab-segmento,
   .lab-mano-carta,
@@ -2612,7 +2945,10 @@ button.lab-carta.lab-no-vale:hover {
     transform: none;
   }
 
-  .lab-apuntable .lab-slot-carta {
+  .lab-apuntable .lab-slot-carta,
+  .lab-dialogo,
+  .lab-menu,
+  .lab-cambio {
     animation: none;
   }
 }

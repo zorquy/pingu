@@ -24262,3 +24262,94 @@ cabecera a seis anchos, los dos temas, que quepa a 1440×900, y el móvil
 a 360 y 390. `test-tanda-384.mjs` cambia con la mesa nueva: los
 selectores, el panel abierto de serie en ancho y el menú de una carta,
 que ahora sale del «⋯» (tocar la carta la juega).
+
+## Tanda 457 — el pulido de estilos del laboratorio (oct. 2026)
+
+PINGU, con el laboratorio a dos (la 456) ya hecho: «mejorar los estilos tanto para móviles como
+para ordenadores, lo más profesional posible, cuidando los detalles y
+pequeños errores». Se miró a ojo todo el laboratorio —cada estado, a siete
+anchos y en los dos temas, con cartas de mentira de imagen entera para ver
+lo que va ENCIMA de una carta— y esto es lo que salió.
+
+### Que quepa entero
+
+La mesa a dos cabe sin desplazar en los portátiles de siempre: 1280×720,
+1366×768, 1440×900, 1536×864 y 1920×1080. Las cartas siguen midiéndose por
+el alto (`--lab-c-*`), un poco más contenidas, y por debajo de 880 px de
+alto se aprieta lo que no es juego: la cabecera de la mano se queda para
+el lector (quién juega ya lo dice la barra de arriba), el estadio y el
+centro se estrechan, y por debajo de 740 px los mínimos bajan. La banca
+también mira el ANCHO (`min(7vh, 6vw)`): en una tableta en vertical, con
+alto de sobra, la banca de cinco se partía en dos filas.
+
+### La mano, en una fila
+
+Fuera del móvil la mano va en una fila, como en la mesa: si no caben, las
+cartas se solapan (cada una cede sitio a la de su derecha, la última no
+cede nunca para no salirse) y la que se señala —con el ratón o con el
+teclado— sube entera por encima. En dos filas, en una tableta, tapaba la
+banca. En el móvil sigue siendo una tira que se desplaza. La chapa de
+«nueva» va arriba a la IZQUIERDA, que es lo que asoma de una carta
+solapada.
+
+### Lo que se lee de un vistazo
+
+- **La vida cambia de color**: verde, ámbar por debajo de la mitad y rojo
+  en el último cuarto (`data-vida` en `.lab-ps`). El número va al lado: no
+  es solo color.
+- **El cambio de turno se anuncia** con mesa: «Turno de Jugador 2» un
+  momento en el centro del tapete, con el color del jugador. No se puede
+  tocar (los clics pasan) y se esconde con un temporizador, no al acabar
+  la animación (tanda 313).
+- **El registro separa los turnos** con una línea y el turno en versalitas,
+  no con rayas de texto («── Turno 3 ──»).
+- **El muñeco** son fichas con la forma de un Pokémon en juego: el puesto,
+  el nombre, la vida grande, la barra y sus premios en una chapa. Antes
+  eran cajas de texto con «230/230 PS · 2 premios» partido en dos líneas.
+  Sus ajustes van en una barra de herramientas discreta.
+- **Antes de empezar**, los premios son seis huecos, no una frase.
+- **El dorso** lleva marco y un aro (propio de PokeDoc: nada que recuerde
+  al dorso oficial), también en el mazo, con su canto.
+- **Al ganar**, la ventana del final lleva una copa.
+
+### El móvil y la tableta
+
+- El menú es una hoja que sube desde abajo con su asa, un velo detrás (una
+  sombra de 100vmax, sin otro elemento) y sitio para la barra de inicio del
+  teléfono (`env(safe-area-inset-bottom)`).
+- El interruptor de quién empieza cabe en una fila (el rótulo se queda para
+  el lector) y las pestañas de una ventana, en una línea cada una.
+- En la tableta en vertical el título se queda para el lector, como en el
+  móvil: con él a la vista, el turno iba en tres líneas.
+- Al apuntar con el dedo no se ofrece la tecla Escape.
+
+### Los detalles
+
+Las ventanas y el menú entran con un deslizamiento corto, el velo de las
+ventanas difumina lo de detrás, y todo lo que anima se apaga con «menos
+movimiento». En una pantalla muy ancha el tapete sigue de lado a lado pero
+el juego se queda junto (1.280 px como mucho): a 1.920 los premios y el
+mazo quedaban a un metro del activo.
+
+### Sin imágenes, el nombre entero
+
+La lección de la 441 (CLAUDE.md: «una captura con los datos a medias es
+OTRA pantalla»), aplicada aquí: se miró el laboratorio también con TODAS
+las imágenes caídas. El laboratorio ya ponía el nombre debajo de la imagen
+(tanda 321), así que nada se quedaba invisible; pero una palabra larga
+—«Determination», «Fezandipiti», «Munkidori» en la banca— no cabía en la
+ranura y salía cortada por los dos lados, y en el estadio ni «Risky». El
+nombre se parte por donde haga falta (`overflow-wrap: anywhere`) antes que
+perder letras, y su margen es de 2 px: con 4, en el estadio de un
+portátil, «Risky» ya no cabe en su línea.
+
+`test-tanda-457.mjs`, contra la FORMA de cada fallo: que la mesa quepa a
+cinco tamaños de portátil, la mano en una fila sin salirse y la señalada
+por encima, la banca de cinco en una tableta, los tres colores de la
+vida, el aviso del turno (que se va solo, también sin animación, y no se
+queda los clics), el separador del registro, la hoja del móvil, los
+huecos de los premios, las fichas del muñeco, el interruptor y las
+pestañas en el móvil, la cabecera de la tableta, el juego junto a 1.920,
+la chapa de «nueva» visible en la mano solapada, la copa, que sin
+imágenes ningún nombre salga cortado (y «Risky Ruins» en dos líneas en el
+estadio) y que todo lo nuevo se apague con «menos movimiento».
