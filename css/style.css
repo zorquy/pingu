@@ -289,8 +289,19 @@ input[type='url'],
 input[type='date'],
 textarea,
 select {
-  background: #ffffff;
-  color: #0d1b2a;
+  /* TOKENS, no un blanco a fuego (tanda 445). Esto llevaba
+     `background: #ffffff; color: #0d1b2a` escritos a mano, así que en el
+     tema OSCURO todos los campos y desplegables del sitio eran islas
+     blancas sobre el fondo azul oscuro. Alguien se dio cuenta a medias:
+     más abajo hay una regla que le cambia el color a la FLECHA del
+     desplegable para el tema oscuro — o sea que se pensó en el tema, y el
+     fondo se quedó.
+     Y no lo cantó el medidor de contraste de la 311, porque blanco con
+     letra oscura contrasta de maravilla: lo que estaba mal no era la
+     legibilidad, era que no es la superficie del tema. `--white` es
+     justamente eso —la superficie—, y en oscuro vale #182430. */
+  background: var(--white);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 12px 12px;

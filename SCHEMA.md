@@ -23320,3 +23320,52 @@ en el HTML. Lo que hace el trabajo es el `position`: sin él la imagen sería
 contenido en flujo, y el contenido en flujo se pinta POR DEBAJO de un
 hermano posicionado. La respuesta a una guarda que no guarda es borrarla,
 no escribirle una comprobación.
+
+## Tanda 445 — los campos del tema oscuro, en todo el sitio (oct. 2026)
+
+**`input`, `textarea` y `select` llevaban el blanco escrito a fuego.** La
+regla base de `css/style.css` decía `background: #ffffff; color: #0d1b2a`,
+sin tokens, así que en el tema OSCURO todos los campos del sitio eran islas
+blancas sobre el fondo azul oscuro — el login, el buscador de cartas, el
+foro, los torneos. Y se había pensado en el tema a medias: veinte líneas más
+abajo vive `:root[data-theme='dark'] select`, que le cambia el color a la
+FLECHA del desplegable. Alguien miró el tema oscuro, cambió la flecha y no
+el fondo.
+
+**Por qué nadie lo cazó.** `test-tanda-311` mide el contraste en ocho
+páginas por los dos temas y lleva verde desde que existe. Y hace bien:
+blanco con letra oscura contrasta de maravilla. Lo que estaba mal no era la
+legibilidad, era que ese blanco **no es la superficie del tema**. De ahí la
+regla que sale de aquí: **una prueba de contraste no es una prueba de que
+el tema oscuro esté bien.** Mide si se LEE, no si PERTENECE.
+
+Lo correcto es `var(--white)` —que ES la superficie, y en oscuro vale
+`#182430`— y `var(--text)`. Es la otra cara de la lección de la 315: allí
+el fallo fue «ordenar» un `#fff` que iba ENCIMA de un color a
+`var(--white)`; aquí el fallo fue no ordenar un `#fff` que SÍ era una
+superficie. El mismo literal, dos papeles opuestos, y la pregunta que los
+separa es si ese blanco lleva algo encima o es el fondo de la cosa.
+
+## Tanda 445 (bis) — la barra, cuadrada y más pequeña
+
+**Un `scroll-snap` descuadra el primer elemento de un carril.** `.mc-mandos`
+se sale hasta el borde de la pantalla con un margen negativo y se devuelve
+con `padding-inline`, para que el botón cortado lo corte la PANTALLA. Con
+`scroll-snap-type` puesto, el enganche alinea el primer hijo con el borde
+del CONTENEDOR y no con el de su relleno: el chip de «Filtros» se pegaba al
+canto izquierdo y quedaba descuadrado respecto al buscador. Se quita el
+enganche —no pinta nada en una fila de botones— en vez de compensarlo con
+un `scroll-padding` que habría que mantener a juego con el relleno.
+
+**El alto de lo que se pulsa no baja en una pantalla táctil.** Los mandos
+pasan a 36 px con ratón, pero siguen en 44 tras `pointer: coarse`. Lo que
+sí se encoge en el móvil es la letra, el relleno y el ancho —el desplegable
+del orden iba a ~470 px y ahora tiene tope de 180—, que es de donde venía
+la sensación de bulto.
+
+**Y la Pokédex se había quedado con la barra vieja** (la 444 solo tocó
+Cartas y Expansiones). Su buscador compartía `flex-wrap` con el
+interruptor, dos desplegables y la cuenta, y **un hijo de flex cede antes
+de desbordar**: el campo se encogía hasta partir el texto a media palabra.
+Con su propia fila cabe entero. Si una pantalla se maqueta de una forma y
+la de al lado de otra, la segunda parece la vieja.

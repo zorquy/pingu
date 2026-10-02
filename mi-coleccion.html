@@ -563,6 +563,11 @@
             <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
             <input type="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número…" autocomplete="off" aria-label="Busca un Pokémon" />
           </div>
+          <!-- La misma barra que las otras dos desde la 445: el buscador en
+               su fila y los mandos en una que se desliza. La Pokédex se
+               quedó con la vieja en la 444 y se notaba — tres filas de
+               mandos y el buscador cortado a media palabra. -->
+          <div class="mc-mandos">
           <label class="mc-interruptor"><input type="checkbox" id="mcPdxSoloMios" /> Solo los que tengo</label>
           <!-- Los que casi completas (tanda 429). Lo que persigue quien
                colecciona no es «el siguiente por número», es «¿a cuál le
@@ -573,7 +578,8 @@
             <option value="dex">Por número</option>
             <option value="cerca">Los que casi completas</option>
           </select>
-          <span class="subtext" id="mcPdxCuenta"></span>
+          </div>
+          <span class="subtext mc-cuantas" id="mcPdxCuenta"></span>
         </div>
         <div id="mcPokedexPanel"></div>
       </section>

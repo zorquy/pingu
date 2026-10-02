@@ -35,6 +35,66 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 445 — los campos del tema OSCURO en todo el sitio, y la barra, más pequeña y cuadrada)
+
+**Hecho**: PINGU, con capturas del móvil: «los filtros son demasiado
+grandes y eso queda cutre, además no están en la mitad de la pantalla —
+¿ves que "Filtros" está muy a la izquierda? — y el color es blanco aun en
+el modo oscuro». Tres cosas, y la del color era mucho más gorda de lo que
+parecía.
+
+**1. EL BLANCO NO ERA DE LOS FILTROS: ERA DE TODO EL SITIO.** En
+`css/style.css`, la regla base de `input`, `textarea` y `select` llevaba
+`background: #ffffff; color: #0d1b2a` **escritos a fuego, sin token**. O
+sea que en el tema oscuro TODOS los campos y desplegables de PokeDoc eran
+islas blancas sobre el fondo azul oscuro: el login, el buscador de cartas,
+el foro, los torneos. Y alguien se dio cuenta A MEDIAS: veinte líneas más
+abajo hay una regla `:root[data-theme='dark'] select` que le cambia el
+color a la FLECHA del desplegable para el tema oscuro. Se pensó en el
+tema; el fondo se quedó.
+
+**Y el medidor de contraste de la 311 no lo cantó nunca, con razón**:
+blanco con letra oscura contrasta de maravilla. Lo que estaba mal no era
+la legibilidad, era que no es la superficie del tema. Esa es la lección:
+**una prueba de contraste no es una prueba de que el tema oscuro esté
+bien.** Ahora va con `var(--white)` y `var(--text)`, que es lo que debió
+ser desde el principio — `--white` ES la superficie y en oscuro vale
+#182430.
+
+**2. «Filtros» pegado al canto izquierdo**: un `scroll-snap-type` que puse
+yo en la 444. El enganche alinea el primer hijo con el borde del
+CONTENEDOR y no con el de su relleno, así que el chip se iba al canto de
+la pantalla y quedaba descuadrado respecto al buscador de arriba. Fuera:
+enganchar tiene sentido para una tira de tarjetas que se leen de una en
+una, no para una fila de botones que se empuja con el dedo. Ahora los dos
+arrancan en el mismo píxel.
+
+**3. Más pequeños**: la letra baja a `--t-sm`, el relleno se recorta y el
+desplegable del orden pasa de ~470 px a 180. **El ALTO no baja en pantalla
+táctil y no es negociable**: son 44 px, que es la regla de la casa para lo
+que se pulsa y el caso exacto que CLAUDE.md manda dejar tras
+`pointer: coarse`. Con ratón sí bajan a 36, que es donde sobraban.
+
+**4. Y la Pokédex, que se me había quedado con la barra vieja.** La 444
+solo tocó Cartas y Expansiones. Eso explica además lo del buscador
+cortado: estaba en un `flex-wrap` con el interruptor, dos desplegables y
+la cuenta, y **un hijo de flex cede antes de desbordar** (la lección de la
+320), así que el campo se encogía hasta partir el texto a media palabra
+—«Busca un Pokémon o su nú…»—. Con su propia fila cabe entero: medido en
+390 px, buscador de 342 con el texto completo y los mandos en UNA fila.
+
+**Ficheros**: `css/style.css` (ESTE toca TODA la web), `css/mi-coleccion.css`,
+`mi-coleccion.html`.
+
+**Suite**: pasada entera después del cambio, no solo la de /mi-coleccion,
+porque `style.css` lo baja todo el mundo.
+
+**En curso / pendiente**: los rigores de la 443, la 444 y la 445. Y queda
+por mirar si el cambio de los campos deja algo raro en pantallas con
+formularios largos que no están en la suite (/admin, el constructor).
+
+---
+
 ## 2026-10-02 — PINGU-Claude (tandas 443 y 444 — la estantería filtrable, la barra como la de Dex, y la cabecera solo en el Panel)
 
 **Antes de nada, una RETRACTACIÓN.** La entrada de la 442 dejó apuntado

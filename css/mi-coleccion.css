@@ -449,7 +449,15 @@
   padding-inline: var(--e-xl);
   overflow-x: auto;
   scrollbar-width: none;
-  scroll-snap-type: x proximity;
+  /* SIN `scroll-snap` (tanda 445). Lo llevaba, y el enganche alinea el
+     primer hijo con el borde del CONTENEDOR, no con el de su relleno: el
+     chip de «Filtros» se pegaba al canto izquierdo de la pantalla y salía
+     cortado, descuadrado respecto al buscador de arriba. PINGU: «¿ves que
+     Filtros está muy a la izquierda?».
+     Y además no pintaba nada: enganchar tiene sentido para una tira de
+     tarjetas que se leen de una en una, no para una fila de botones que se
+     empuja con el dedo. Se quita, que es más barato que arreglarlo con un
+     `scroll-padding` que hay que mantener a juego con el relleno. */
 }
 
 .mc-mandos::-webkit-scrollbar {
@@ -463,11 +471,34 @@
   scroll-snap-align: start;
 }
 
-/* Un desplegable pide de ancho lo que mida su opción más larga, y «Todas
-   las series» le daba 350 px a un control que elige entre nueve cosas. Se
-   acota: lo que no cabe se recorta, que para eso lleva su flechita. */
+/* MÁS PEQUEÑOS (tanda 445). PINGU: «los filtros son demasiado grandes y
+   eso queda cutre». Un mando de barra es un rótulo con una flechita, no un
+   campo de formulario: baja la letra, el relleno y el ancho.
+
+   El ALTO no baja en una pantalla táctil y no es negociable: la regla de
+   la casa son 44 px para lo que se pulsa, y estos son controles densos,
+   que es justo el caso que CLAUDE.md manda dejar en 44 tras
+   `pointer: coarse`. Con ratón sí se encogen, que es donde sobraban. */
+.mc-mandos .mc-chapa-select,
+.mc-mandos .mc-chip-mando {
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  font-size: var(--t-sm);
+}
+
 .mc-mandos .mc-chapa-select {
-  max-width: 220px;
+  /* Un desplegable pide de ancho lo que mida su opción más larga, y «Todas
+     las series» le daba 350 px a un control que elige entre nueve cosas.
+     Lo que no cabe se recorta: para eso lleva su flechita. */
+  max-width: 180px;
+  padding-right: 32px;
+}
+
+@media (pointer: coarse) {
+  .mc-mandos .mc-chapa-select,
+  .mc-mandos .mc-chip-mando {
+    min-height: 44px;
+  }
 }
 
 /* Con sitio de sobra no hace falta deslizar nada, así que la fila deja de
@@ -2704,12 +2735,30 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 /* ── La Pokédex (tanda 381) ──
    La gente no colecciona sets, colecciona Pokémon. */
+/* La misma barra que las otras dos desde la 445. Antes era un `flex-wrap`
+   con el buscador, el interruptor, dos desplegables y la cuenta, y en un
+   móvil eso son TRES filas — y el buscador, encogido por sus compañeros de
+   fila, cortaba el texto a media palabra: «Busca un Pokémon o su nú…». */
 .pdx-mandos {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+/* El interruptor no es un chip, pero va en la fila de mandos, así que no
+   se encoge y respeta el alto de lo que se pulsa. */
+.mc-mandos .mc-interruptor {
+  display: inline-flex;
+  gap: var(--e-xs);
   align-items: center;
-  gap: var(--e-md);
-  margin-bottom: var(--e-lg);
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+@media (pointer: coarse) {
+  .mc-mandos .mc-interruptor {
+    min-height: 44px;
+  }
 }
 
 /* Sin `padding`: lo pone `.mc-buscador input` y ahí está el hueco de la
