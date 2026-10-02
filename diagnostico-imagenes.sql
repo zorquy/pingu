@@ -1,64 +1,55 @@
 -- Diagnóstico de las imágenes que faltan (tandas 431 y 432).
 --
--- ESTO NO CAMBIA NADA: son SELECT. Se pega en el SQL Editor de Supabase.
+-- ESTO NO CAMBIA NADA: son SELECT.
 --
--- La primera tanda de consultas ya está contestada y el resultado está en
--- la bitácora. Lo que queda es UNA pregunta, y es la que decide si hay que
--- escribir código o solo ejecutar una migración que se quedó sin ejecutar.
+-- ── LO QUE YA SE SABE ──
 --
--- ── EL CONTEXTO ──
+-- 21.721 cartas, 1.231 sin `image_path` (5,7 %):
 --
--- El relleno de logos YA EXISTE desde la tanda 380: `curarSet` en
--- `netlify/functions/cartas-detalle.mjs` pide el set COMPLETO a TCGdex y
--- rellena logo, símbolo y las dos cuentas. Y `faltaVisitar` tiene un
--- cerrojo con dos llaves:
+--   · 619 están en sets CON código de TCG Live, y esas YA SE VEN: la
+--     cadena de escaneo monta la dirección de Limitless con el código, sin
+--     necesitar la columna. Rellenarla no cambiaría nada en pantalla.
+--   · 612 están en sets SIN código. De esas, 120 son las cuatro Trainer
+--     Gallery, que tienen arreglo (ver supabase-migration-trainer-gallery
+--     .sql) y las otras ~492 son trainer kits, McDonald's y promos sueltas
+--     de las que TCGdex NO TIENE escaneo: `image_path` sale de `card.image`
+--     del listado del set, así que un null ahí significa que no lo hay, y
+--     reimportar daría null otra vez.
+--
+-- Y de los 41 sets sin logo ni símbolo, 37 ya los ha visitado `curarSet`.
+-- Las dos columnas del cerrojo existen, así que la hipótesis de «la
+-- migración sin ejecutar» queda descartada.
+--
+-- ── LA PREGUNTA QUE QUEDA ──
+--
+-- `faltaVisitar` usa DOS llaves:
 --
 --     if ('curado_v' in fila && (fila.curado_v ?? 0) < VERSION_CURADO) return true
 --     if ('curado_at' in fila) return !fila.curado_at
 --
--- O sea: si la columna `curado_v` NO EXISTE, un set con `curado_at`
--- puesto no vuelve a visitarse NUNCA — y los que se curaron antes de la
--- 380, cuando el curador todavía no sabía de logos, se quedaron marcados
--- como hechos sin logo. No daría ningún error: simplemente no pasa nada.
+-- Con `VERSION_CURADO = 1`, un set con `curado_v` a NULL vuelve a
+-- visitarse; uno con `curado_v = 1` ya no. Y eso cambia el diagnóstico
+-- por completo:
+--
+--   · si los 37 tienen `curado_v = 1` → el curador que SÍ sabe de logos
+--     ya pasó por ellos y volvió con las manos vacías: TCGdex no tiene
+--     logo de esos sets, y no hay nada que arreglar en nuestro código;
+--   · si tienen `curado_v` a NULL → es que la función programada todavía
+--     no ha llegado; van por fecha de más nuevo a más viejo y casi todos
+--     son viejos. Entonces se arregla SOLO, con paciencia.
 
--- ── 1. ¿Existen las dos columnas del cerrojo? ──
--- Si `curado_v` no sale aquí, ese es el fallo entero.
-select column_name, data_type
-from information_schema.columns
-where table_schema = 'public' and table_name = 'tcg_sets'
-  and column_name in ('curado_at', 'curado_v')
-order by column_name;
-
--- ── 2. En qué estado están los 41 sets sin dibujo ──
--- `curado_at` con fecha y `curado_v` nulo o 0 = marcados como hechos por
--- un curador que todavía no sabía rellenar el logo.
 select
   count(*) as sets_sin_dibujo,
-  count(*) filter (where curado_at is not null) as ya_visitados,
-  count(*) filter (where curado_at is null) as sin_visitar
+  count(*) filter (where curado_v is null) as sin_version_volveran,
+  count(*) filter (where curado_v is not null) as ya_con_version,
+  min(curado_at) as visita_mas_vieja,
+  max(curado_at) as visita_mas_nueva
 from tcg_sets
 where market = 'WEST' and logo_path is null and symbol_url is null;
 
--- ── 3. Y los cuatro sets que parecen DUPLICADOS ──
--- `swsh9.5tg`, `swsh10.5tg`, `swsh11.5tg` y `swsh12.5tg` tienen el mismo
--- nombre que `swsh9tg`…`swsh12tg`, pero sin código, sin fecha y con sus
--- 30 cartas sin imagen. Si son copias, son 120 cartas fantasma que
--- inflan las cuentas de la colección y de la Pokédex.
-select s.id, s.name, s.tcg_online_code, s.release_date,
-       count(c.id) as cartas,
-       count(*) filter (where c.image_path is not null) as con_imagen,
-       count(distinct c.local_id) as numeros_distintos
-from tcg_sets s
-left join tcg_cards c on c.set_id = s.id and c.market = 'WEST'
-where s.market = 'WEST' and s.id like 'swsh%tg'
-group by s.id, s.name, s.tcg_online_code, s.release_date
-order by s.id;
-
--- ── 4. ¿Alguien tiene cartas de esos cuatro? ──
--- Antes de tocar un set duplicado hay que saber si hay colecciones
--- apuntadas en él: borrarlo se las llevaría por delante.
-select c.set_id, count(*) as lineas_de_coleccion, count(distinct u.user_id) as personas
-from user_collection u
-join tcg_cards c on c.id = u.card_id
-where c.set_id in ('swsh9.5tg', 'swsh10.5tg', 'swsh11.5tg', 'swsh12.5tg')
-group by c.set_id;
+-- Y los diez primeros, con su estado, por si hay que mirar alguno a mano.
+select id, name, tcg_online_code, release_date, curado_at, curado_v
+from tcg_sets
+where market = 'WEST' and logo_path is null and symbol_url is null
+order by release_date desc nulls last
+limit 10;
