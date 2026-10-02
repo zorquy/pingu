@@ -31,23 +31,34 @@ const abrir = async (ancho = 1280, alto = 950) => {
   return { page, errores }
 }
 
-console.log('\n── 1. La tira ──')
+// LA TIRA YA NO EXISTE, Y ES A PROPÓSITO (tanda 440). Esta sección
+// defendía un carrusel deslizable con enganche; la 440 lo cambió por una
+// REJILLA porque las diapositivas llevan CIFRAS, y una cifra cortada por
+// el borde de la pantalla se lee como un fallo. Lo que sigue en pie es que
+// las tarjetas estén y se puedan ver enteras, y eso es lo que se mira
+// ahora. (Esta prueba llevaba roja desde la 440 sin que nadie la mirara:
+// es uno de los once de la 447.)
+console.log('\n── 1. Las diapositivas, en rejilla ──')
 {
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('hay cuatro tarjetas', (await page.locator('.mc-diapo').count()) === 4,
-    await page.locator('.mc-diapo').count())
-  const t = await page.locator('#mcTira').evaluate((e) => {
-    const c = getComputedStyle(e)
-    return { desliza: c.overflowX, enganche: c.scrollSnapType, ancho: e.clientWidth, dentro: e.scrollWidth }
+  // Con este fixture no hay precios, así que «Las que más valen» no se
+  // pinta: una diapositiva vacía no informa. Lo que tiene que estar es lo
+  // que SÍ se puede calcular sin precios.
+  const titulos = await page.locator('.mc-diapo h3, .mc-diapo h4').allTextContents()
+  for (const t of ['Lo que te costó', 'Lo que te sobra', 'Por rareza']) {
+    check(`está «${t}»`, titulos.some((x) => x.trim() === t), titulos.join(' | '))
+  }
+  check('y no queda ninguna tira deslizable, que es lo que quitó la 440',
+    (await page.locator('#mcTira').count()) === 0)
+  // Y se ven ENTERAS: lo que la 440 arreglaba es que una cifra no se corte
+  // por el borde. En una rejilla eso significa que ninguna tarjeta se sale
+  // de su contenedor.
+  const sobresalen = await page.locator('.mc-diapos').evaluate((caja) => {
+    const c = caja.getBoundingClientRect()
+    return [...caja.children].filter((n) => n.getBoundingClientRect().right > c.right + 1).length
   })
-  check('  …y se deslizan', t.desliza === 'auto' || t.desliza === 'scroll', t.desliza)
-  check('  …con enganche', /x/.test(t.enganche), t.enganche)
-  // Una zona que se desplaza sola tiene que poder recorrerse con el
-  // teclado: si no, lo que hay a la derecha no existe para quien no usa
-  // ratón.
-  check('  …y se puede llegar con el teclado',
-    (await page.locator('#mcTira').getAttribute('tabindex')) === '0')
+  check('  …y ninguna se sale por el borde', sobresalen === 0, String(sobresalen))
 }
 
 console.log('\n── 2. Lo largo, detrás de un botón ──')

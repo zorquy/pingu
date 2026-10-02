@@ -34,7 +34,10 @@ const abrir = async (ancho = 1280) => {
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
   await page.addInitScript(semilla)
-  await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
+  // `?ver=cambios`: desde la tanda 451 los cambios tienen SU pantalla y ya
+  // no están al final del Panel — eran una pantalla entera puesta debajo
+  // de otra y había que bajar demasiado.
+  await page.goto(`${BASE}/mi-coleccion.html?ver=cambios`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3200)
   return { page, errores }
 }

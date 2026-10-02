@@ -184,39 +184,27 @@ const pagina = async (ancho = 1280, alto = 1000) => {
     }
   })
   ok(tras.cerrado, 'al leer, el escáner se cierra y deja ver el resultado')
-  // SOLO el nombre va al buscador. Con el texto entero («Charizard ex SSP
-  // 125») el buscador exige que «SSP» esté en el nombre y da CERO.
-  ok(tras.campo === 'Charizard ex', 'en el buscador queda el NOMBRE, no el texto entero', tras.campo)
-  ok(tras.cuantas === 3, 'y salen las tres Charizard', String(tras.cuantas))
-  // Y el número de la franja de abajo AFINA: la 125 arriba.
-  ok(tras.orden[0] === '125', 'la n.º 125 queda primera', JSON.stringify(tras.orden))
-  ok(tras.casa === 0, 'y marcada')
-  ok(/125/.test(tras.cuenta), 'la cuenta lo dice', tras.cuenta)
+  // El NOMBRE LIMPIO más el NÚMERO (tanda 451). Lo que NO puede pasar es
+  // que vaya el texto entero de la franja: «Charizard ex SSP 125» exigiría
+  // que «SSP» estuviera en el nombre y daría CERO. Lo de la franja de
+  // arriba y lo de la de abajo se separan y se usan cada uno para lo suyo;
+  // el camino completo con sus dos ramas vive en `test-tanda-451.mjs`.
+  ok(tras.campo === 'Charizard ex 125', 'en el buscador queda el nombre limpio y el número', tras.campo)
+  ok(!/SSP|illus/i.test(tras.campo), '  …y nada del código del set ni del ilustrador', tras.campo)
+  ok(tras.cuantas === 1, 'y sale LA carta, no las tres', String(tras.cuantas))
+  ok(tras.orden[0] === '125', '  …que es la 125', JSON.stringify(tras.orden))
   await p.close()
 }
 
-// ── 5. El número se compara ENTERO, no por trozos ──
-// «· 12» está dentro de «· 125»: con un `includes` la 12 subiría también
-// la 125 y la 223 se quedaría abajo por el motivo equivocado.
-{
-  const p = await pagina(420, 900)
-  await p.route('**/.netlify/functions/leer-carta', (ruta) => ruta.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ textos: { nombre: 'Charizard ex', codigo: 'SSP 12/191' }, idioma: 'es' }),
-  }))
-  await p.goto(`${BASE}/mi-coleccion.html?ver=buscar`, { waitUntil: 'domcontentloaded' })
-  await p.waitForTimeout(2500)
-  await p.click('#mcEscanear')
-  await p.waitForTimeout(1500)
-  await p.click('#mcEscanerDisparo')
-  await p.waitForTimeout(1800)
-  const orden = await p.$$eval('#mcBuscarResultados > *', (ns) => ns.map((n) => n.querySelector('.mc-resultado-set')?.textContent.split('·').pop().trim()))
-  ok(orden[0] === '12', 'leyendo la 12 sube la 12 y no la 125', JSON.stringify(orden))
-  const casan = await p.$$eval('.mc-resultado-casa', (ns) => ns.length)
-  ok(casan === 1, 'y solo una va marcada', String(casan))
-  await p.close()
-}
+// ── 5. El número que falla se TIRA ──
+// Aquí vivía la comprobación de `afinarPorNumero`, que subía la carta del
+// número leído sin filtrar por él. Esa función se quitó en la tanda 451 al
+// ver que había quedado no solo muerta sino DAÑINA: desde que el buscador
+// entiende «Charizard ex 125», si el número casa con algo la búsqueda ya lo
+// encuentra, así que `afinar` solo corría cuando el número NO casaba con
+// nada — y entonces usarlo para ordenar pondría PRIMERA una carta elegida
+// por una lectura que acaba de demostrarse mala. El camino de aflojar lo
+// prueba `test-tanda-451.mjs`.
 
 // ── 6. Sin clave de OCR, el mensaje lo dice; no se cae en silencio ──
 {

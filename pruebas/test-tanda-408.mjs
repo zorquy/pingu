@@ -79,7 +79,10 @@ console.log('\n── 2. Lo que se mudó sigue llegando por su enlace viejo ─�
   // LA FORMA DEL FALLO: un `?ver=` que ya no existe NO da error — abre la
   // primera pestaña y parece que el enlace estaba mal escrito. Se
   // comprueban las tres mudanzas, no la que acabo de hacer.
-  for (const [viejo, nuevo] of [['anadir', 'cartas'], ['albumes', 'carpetas'], ['cambios', 'resumen']]) {
+  // `cambios` sale de esta lista en la tanda 451: ya no se muda al Panel,
+  // porque ha vuelto a tener pantalla propia. Su enlace de siempre lleva
+  // otra vez a donde dice, que es lo que se comprueba más abajo.
+  for (const [viejo, nuevo] of [['anadir', 'cartas'], ['albumes', 'carpetas']]) {
     const { page } = await abrir(`/mi-coleccion.html?ver=${viejo}`)
     check(`?ver=${viejo} lleva a «${nuevo}»`, await page.locator(`#${PANEL_DE[nuevo]}`).isVisible(), nuevo)
     await page.close()
@@ -152,7 +155,7 @@ console.log('\n── 3. Un solo buscador: lo tuyo y, debajo, el catálogo ─�
   await page.close()
 }
 
-console.log('\n── 4. Los álbumes, en Carpetas; los cambios, en el Panel ──')
+console.log('\n── 4. Los álbumes, en Carpetas; los cambios, en su pantalla ──')
 {
   const { page } = await abrir('/mi-coleccion.html?ver=carpetas')
   check('los álbumes soñados están dentro de Carpetas',
@@ -162,12 +165,26 @@ console.log('\n── 4. Los álbumes, en Carpetas; los cambios, en el Panel ─
   await page.close()
 }
 {
-  const { page } = await abrir('/mi-coleccion.html?ver=resumen')
-  check('los cambios están dentro del Panel',
-    await page.locator('#mcPanelResumen #mcBloqueCambios').isVisible())
+  // Los cambios se fueron del Panel en la tanda 451: eran una pantalla
+  // entera —cifras, quién encaja contigo y el explicador de tres pasos—
+  // puesta debajo de otra, y había que bajar demasiado. Ahora son una
+  // SUBPANTALLA como «Cartas»: su enlace lleva a ella y no enciende
+  // ninguna pestaña, porque no tiene.
+  const { page } = await abrir('/mi-coleccion.html?ver=cambios')
+  check('los cambios tienen SU pantalla', await page.locator('#mcPanelCambios').isVisible())
   check('  …y con su rótulo', /Cambios/.test(
     (await page.locator('#mcBloqueCambios > h2').textContent()) || ''))
+  check('  …y no la enciende ninguna pestaña, porque no tiene',
+    (await page.locator('.mc-pestania.activa').count()) === 0)
   await page.close()
+
+  // Y el Panel deja una PUERTA: una pantalla sin nadie que enlace a ella
+  // es una pantalla que no existe.
+  const { page: panel } = await abrir('/mi-coleccion.html')
+  check('  …y el Panel lleva a ella', await panel.locator('#mcVistazos [data-ir-a="cambios"]').isVisible())
+  check('  …y el bloque gordo ya no está en el Panel',
+    !(await panel.locator('#mcPanelResumen #mcBloqueCambios').count()))
+  await panel.close()
 }
 
 await browser.close()
