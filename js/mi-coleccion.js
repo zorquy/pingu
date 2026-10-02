@@ -230,6 +230,32 @@ function valorDeAhora() {
   return total
 }
 
+// Quién eres y desde cuándo, que es lo que abre el panel de Dex y lo que
+// aquí era un título suelto. La fecha sale de TU LÍNEA MÁS ANTIGUA y no de
+// cuándo te registraste: dice desde cuándo coleccionas AQUÍ, que es lo que
+// significa en esta pantalla, y además no hace falta pedir una columna más.
+function pintarHero() {
+  const quien = esMia ? 'tu' : dueno?.display_name || dueno?.username || ''
+  const av = $('mcHeroAvatar')
+  if (av) {
+    const perfil = { avatar_url: dueno?.avatar_url || null, display_name: dueno?.display_name, username: dueno?.username }
+    av.setAttribute('style', avatarStyle(perfil))
+    av.textContent = perfil.avatar_url ? '' : getInitial(dueno?.display_name || dueno?.username || 'P')
+  }
+  const desde = $('mcHeroDesde')
+  if (!desde) return
+  if (!lineas.length) {
+    desde.textContent = esMia ? 'Todavía no has añadido ninguna carta.' : ''
+    return
+  }
+  const primera = lineas.reduce((a, b) => (String(a.created_at || '9') <= String(b.created_at || '9') ? a : b))
+  const cuando = primera?.created_at ? new Date(primera.created_at) : null
+  desde.textContent = cuando && !Number.isNaN(cuando.getTime())
+    ? `Coleccionando desde ${cuando.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`
+    : ''
+  void quien
+}
+
 function pintarResumen() {
   const copias = lineas.reduce((s, l) => s + l.cantidad, 0)
   const distintas = new Set(lineas.map((l) => l.card_id)).size
@@ -251,21 +277,19 @@ function pintarResumen() {
     <div class="mc-cifra"><dt>Cartas</dt><dd>${copias.toLocaleString('es-ES')}</dd></div>
     <div class="mc-cifra"><dt>Distintas</dt><dd>${distintas.toLocaleString('es-ES')}</dd></div>
     <div class="mc-cifra"><dt>Colecciones</dt><dd>${sets.toLocaleString('es-ES')}</dd></div>
-    <div class="mc-cifra mc-cifra-valor"><dt>Valor estimado</dt><dd>${euros(valor)}</dd></div>
-    ${
-      // «Pagado» dice EN CUÁNTAS cartas (tanda 428). Al lado de «Valor
-      // estimado», que es el de la colección ENTERA, un «Pagado: 20 €» a
-      // secas se lee como un balance y no lo es: lo pagado solo se sabe
-      // de donde lo hayas apuntado, que pueden ser tres cartas de
-      // cuatrocientas. El balance de verdad —las mismas cartas en los dos
-      // lados— está en el Panel.
-      pagado > 0 && esMia
-        ? `<div class="mc-cifra"><dt>Pagado en ${conCompra.toLocaleString('es-ES')} ${conCompra === 1 ? 'carta' : 'cartas'}</dt><dd>${euros(pagado)}</dd></div>`
-        : ''
-    }`
+    <div class="mc-cifra mc-cifra-valor"><dt>Valor</dt><dd>${euros(valor)}</dd></div>
+`
+  // AQUÍ VIVÍA «Pagado» (fuera en la 440). Sigue existiendo, pero en su
+  // sitio: la tarjeta «Lo que te costó» del panel, que además dice en
+  // CUÁNTAS cartas lo has apuntado —que es el dato sin el cual un «Pagado:
+  // 20 €» al lado del valor de la colección ENTERA se lee como un balance
+  // y no lo es—. En la cabecera eran cinco cifras donde caben cuatro.
+  void pagado
+  void conCompra
   // Solo lo que hay que saber para leer el número de al lado (tanda 439).
   // La explicación larga de cómo se calcula el valor estaba aquí Y dentro
   // de la diapositiva, dos renglones encima de la primera carta.
+  pintarHero()
   $('mcResumenNota').textContent = lineas.length && sinPrecio
     ? `${sinPrecio} ${sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía.`
     : ''
@@ -379,9 +403,36 @@ function pintarResumenPanel() {
   const valiosas = masValiosas(3)
   const porRareza = repartoPor((c) => (c?.rarity ? rarezaEs(c.rarity) : null))
 
+  // Arriba, solo la gráfica: es la ÚNICA cifra que cambia sola y es a
+  // lo que se entra (la lección de la 416). Las listas de números van
+  // debajo de tus cartas y plegadas, en #mcMasEstadisticas.
   caja.innerHTML = `
-    <div class="mc-tira-caja">
-    <div class="mc-tira" id="mcTira" tabindex="0" role="group" aria-label="Resumen de tu colección">
+    <!-- LA GRÁFICA, A LA VISTA (tanda 416). La 410 la metió detrás de
+         «Ver todas las estadísticas» para que el panel no fuera tan
+         largo, y PINGU: «¿y dónde está el gráfico de precios? No
+         existe». Tenía razón: es la ÚNICA cifra que cambia sola, y es la
+         que se viene a mirar. Escondida detrás de un botón, no existe.
+         Lo que sigue detrás del botón es lo demás, que son listas. -->
+    <section class="mc-resumen-caja mc-valor-caja" id="mcValorCaja">
+      <h3>Lo que vale tu colección</h3>
+      <div class="skeleton" style="height:120px"></div>
+    </section>
+
+`
+
+  const mas = $('mcMasEstadisticas')
+  if (mas) {
+    mas.innerHTML = `
+    <!-- El botón va AQUÍ y no al final: lo largo no se enseña hasta que
+         se pide, y así los cambios quedan a una pantalla y no a cuatro.
+         Además, la gráfica del valor es una consulta: sin abrir esto, no
+         se pide. -->
+    <p class="mc-ver-todo-fila">
+      <button type="button" class="btn-secondary" id="mcVerTodo" aria-expanded="false" aria-controls="mcEstadisticas">Ver todas las estadísticas</button>
+    </p>
+
+    <div class="mc-estadisticas hidden" id="mcEstadisticas">
+          <div class="mc-diapos">
       ${
         // AQUÍ VIVÍAN «Tu colección» y el total de «Lo que vale» (fuera en
         // la 439). Las cartas, las distintas, las colecciones y el valor ya
@@ -413,37 +464,6 @@ function pintarResumenPanel() {
         ? barrasHtml(porRareza.slice(0, 5))
         : '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>')}
     </div>
-      <!-- La flecha (tanda 415). PINGU: «dale sin scroll y que haya una
-           flechita para moverlo para un lado en una esquina, así más
-           moderno». La barra de desplazamiento se esconde y la tira se
-           mueve de tarjeta en tarjeta. Las flechas se apagan en los
-           extremos: una flecha que no lleva a ninguna parte miente.
-           El desplazamiento con el dedo sigue funcionando igual: lo que
-           se quita es la BARRA, no el deslizamiento. -->
-      <button type="button" class="mc-tira-flecha mc-tira-izq" id="mcTiraIzq" aria-label="Ver lo anterior" hidden>‹</button>
-      <button type="button" class="mc-tira-flecha mc-tira-der" id="mcTiraDer" aria-label="Ver lo siguiente">›</button>
-    </div>
-
-    <!-- El botón va AQUÍ y no al final: lo largo no se enseña hasta que
-         se pide, y así los cambios quedan a una pantalla y no a cuatro.
-         Además, la gráfica del valor es una consulta: sin abrir esto, no
-         se pide. -->
-    <p class="mc-ver-todo-fila">
-      <button type="button" class="btn-secondary" id="mcVerTodo" aria-expanded="false" aria-controls="mcEstadisticas">Ver todas las estadísticas</button>
-    </p>
-
-    <!-- LA GRÁFICA, A LA VISTA (tanda 416). La 410 la metió detrás de
-         «Ver todas las estadísticas» para que el panel no fuera tan
-         largo, y PINGU: «¿y dónde está el gráfico de precios? No
-         existe». Tenía razón: es la ÚNICA cifra que cambia sola, y es la
-         que se viene a mirar. Escondida detrás de un botón, no existe.
-         Lo que sigue detrás del botón es lo demás, que son listas. -->
-    <section class="mc-resumen-caja mc-valor-caja" id="mcValorCaja">
-      <h3>Lo que vale tu colección</h3>
-      <div class="skeleton" style="height:120px"></div>
-    </section>
-
-    <div class="mc-estadisticas hidden" id="mcEstadisticas">
       <div class="mc-resumen-rejilla">
         <section class="mc-resumen-caja">
           <h3>Tus repetidas</h3>
@@ -473,8 +493,10 @@ function pintarResumenPanel() {
         </section>
       </div>
     </div>`
+  }
 
-  engancharTira()
+  // AQUÍ SE LLAMABA A `engancharTira()` (fuera en la 440): el resumen ya no
+  // es una tira. La del álbum sigue llamándola con sus propios ids.
   $('mcVerTodo').addEventListener('click', () => {
     const abierto = !$('mcEstadisticas').classList.toggle('hidden')
     $('mcVerTodo').setAttribute('aria-expanded', abierto ? 'true' : 'false')
@@ -488,25 +510,6 @@ function pintarResumenPanel() {
 // Las flechas de la tira. Se mueve de tarjeta en tarjeta —el ancho de
 // una más su hueco— y no una cantidad fija de píxeles: con una fija, la
 // tira acaba parándose a mitad de una tarjeta.
-// Solo la máscara, sin flechas (tanda 439): el listón de cifras del móvil
-// se desliza pero no lleva flechas —con el dedo no hacen falta—, y aun así
-// necesita decir que hay más a la derecha. Y necesita DEJAR de decirlo al
-// llegar al final, que es la mitad que se olvida.
-//
-// Se cuelga del `scroll` y del `resize`: en el escritorio la tira no
-// desborda, así que `resto` es 0 y la máscara no llega ni a encenderse.
-function velarTira(id) {
-  const tira = $(id)
-  if (!tira) return
-  const mirar = () => {
-    const resto = tira.scrollWidth - tira.clientWidth - tira.scrollLeft
-    tira.classList.toggle('mc-tira-final', resto <= 4)
-  }
-  tira.addEventListener('scroll', mirar, { passive: true })
-  window.addEventListener('resize', mirar)
-  mirar()
-}
-
 function engancharTira(idTira = 'mcTira', idIzq = 'mcTiraIzq', idDer = 'mcTiraDer') {
   const tira = $(idTira)
   if (!tira) return
@@ -631,6 +634,50 @@ function vistazoDeCartas() {
 // Las expansiones en las que MÁS llevas. No las más nuevas: lo que se
 // quiere ver de un vistazo es dónde estás cerca de algo, que es lo mismo
 // que decidió la tanda 429 para la Pokédex.
+// ── DÓNDE ESTÁS CERCA (tanda 440) ──
+//
+// Lo único ACCIONABLE que puede tener el panel, y no existía en ninguna
+// parte: a qué colección le faltan menos cartas. Todo lo demás del panel
+// cuenta lo que YA tienes; esto dice qué hacer esta tarde.
+//
+// Se ordena por CUÁNTAS FALTAN y no por porcentaje. Un 90 % de un set de
+// 191 son 19 cartas y un 60 % de uno de 20 son 8: el porcentaje dice que
+// vas mejor en el primero y la verdad es que acabas antes el segundo. Lo
+// que se pregunta aquí es «¿cuál puedo cerrar?», y eso se mide en cartas.
+//
+// Fuera las completas —ahí no hay nada que hacer— y fuera las que tienen
+// la numeración a null: sin total no se puede decir cuántas faltan, y un
+// «te faltan NaN» es peor que no salir.
+const DE_CERCA = 5
+
+function vistazoDeCerca(sets) {
+  const cerca = (sets || [])
+    .map((s) => {
+      const total = totalDe(s)
+      const tengo = [...cartas.values()].filter((c) => c?.set_id === s.id && tengoDe(c.id) > 0).length
+      return { set: s, tengo, total, faltan: total - tengo }
+    })
+    .filter((x) => x.total > 0 && x.tengo > 0 && x.faltan > 0)
+    .sort((a, b) => a.faltan - b.faltan)
+    .slice(0, DE_CERCA)
+  if (!cerca.length) return ''
+  const filas = cerca.map((x) => {
+    const pct = Math.min(100, Math.round((x.tengo / x.total) * 100))
+    const dibujos = [urlDeLogo(x.set.logo_path, x.set.market || mercado), x.set.symbol_url ? `${x.set.symbol_url}.webp` : null].filter(Boolean)
+    return `<button type="button" class="mc-cerca-fila" data-set="${escapeHtml(x.set.id)}">
+      <span class="mc-cerca-logo">${
+        dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />` : ''
+      }</span>
+      <span class="mc-cerca-texto">
+        <span class="mc-cerca-nombre">${escapeHtml(x.set.name || x.set.id)}</span>
+        <span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>
+      </span>
+      <span class="mc-cerca-faltan">${x.faltan}<small>${x.faltan === 1 ? 'te falta' : 'te faltan'}</small></span>
+    </button>`
+  }).join('')
+  return vistazoHtml('Dónde estás cerca', 'album', `<div class="mc-cerca">${filas}</div>`)
+}
+
 function vistazoDeSets(sets) {
   const conAlgo = (sets || [])
     .map((s) => {
@@ -655,6 +702,11 @@ async function pintarVistazos() {
   caja.innerHTML = vistazoDeCartas()
   const sets = await cargarSets().catch(() => null)
   if (pestania !== 'resumen') return
+  // «Dónde estás cerca» va ARRIBA del todo, delante incluso de tus cartas:
+  // es lo único de esta pantalla que dice qué HACER. Se mete con
+  // `afterbegin` y no antes porque depende de una consulta, y el panel no
+  // puede quedarse en blanco esperándola (la decisión de la 436).
+  caja.insertAdjacentHTML('afterbegin', vistazoDeCerca(sets))
   caja.insertAdjacentHTML('beforeend', vistazoDeSets(sets))
   if (carpetasLista.length) {
     caja.insertAdjacentHTML('beforeend', vistazoHtml('Carpetas', 'carpetas',
@@ -2654,7 +2706,6 @@ function pintarIconos() {
 function enganchar() {
   pintarIconos()
   // El selector de catálogo (tanda 437), en los tres sitios a la vez.
-  velarTira('mcResumen')
   pintarVistas()
   for (const sel of document.querySelectorAll('.mc-mercado')) {
     sel.addEventListener('change', () => void cambiarVista(sel.value))

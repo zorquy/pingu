@@ -84,11 +84,84 @@
 }
 
 /* ── El resumen ── */
+/* ── LA CABECERA DE PERFIL (tanda 440) ──
+   El quién y el cuánto, en UNA pieza. Antes eran un título suelto y
+   cuatro recuadros de cifras debajo, que en 390 px no caben: de ahí la
+   tira que se desliza de la 412 y el corte que la 439 tuvo que disimular.
+   Sin recuadro, cuatro cifras caben en una fila a cualquier ancho — el
+   problema deja de existir en vez de taparse. */
+.mc-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-lg);
+  margin-bottom: var(--e-xl);
+  padding: var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  /* Un azul muy lavado, no un bloque de color: la cabecera tiene que
+     separarse del fondo sin pedir el turno antes que las cartas. */
+  background: linear-gradient(160deg, color-mix(in srgb, var(--navy) 9%, var(--white)), var(--white) 62%);
+}
+
+.mc-hero-quien {
+  display: flex;
+  gap: var(--e-md);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mc-hero-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  /* Una MEDIDA y no un paso (por encima de 32 px), en la retícula de 4. */
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  /* `--t-2xl` (26 px) y no un 24 suelto. La excepción que CLAUDE.md
+     declara para los avatares es para los que pinta el JAVASCRIPT en un
+     `style=`, donde el diámetro viene de un dato; este círculo mide 56 px
+     fijos en la hoja, así que su inicial cabe en la escala igual que
+     cualquier otro texto. Lo cantó test-tanda-305, que barre las hojas. */
+  font-size: var(--t-2xl);
+  font-weight: 700;
+  background-size: cover;
+  background-position: center;
+}
+
+.mc-hero-nombre {
+  flex: 1 1 200px;
+  /* `min-width: 0` para que el nombre largo pueda recortarse en vez de
+     empujar al interruptor fuera de la caja (la lección de la 320). */
+  min-width: 0;
+}
+
+.mc-hero-nombre h1 {
+  margin: 0;
+}
+
+.mc-hero-desde {
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+/* Las cifras, dentro de la cabecera y SIN caja: separadas por una línea,
+   como en un panel de verdad. */
 .mc-resumen {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--e-md);
-  margin: 0 0 var(--e-sm);
+  /* 72 y no 84: en 390 px, descontados los 32 del margen de la página y
+     los 32 del relleno de la cabecera, quedan 326, y cuatro columnas de 84
+     piden 336. Se pasaba por diez píxeles y las cifras bajaban a DOS
+     filas, que es justo lo que esta cabecera vino a evitar. Lo cantó
+     test-tanda-412, no el ojo. */
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: var(--e-md) 0;
+  margin: 0;
+  padding-top: var(--e-lg);
+  border-top: 1px solid var(--border);
 }
 
 .mc-resumen:empty {
@@ -96,27 +169,41 @@
 }
 
 .mc-cifra {
-  padding: var(--e-md) var(--e-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
+  padding: 0 var(--e-md);
+  border-left: 1px solid var(--border);
+}
+
+/* La primera no lleva raya: una raya a la izquierda de la primera cifra
+   es un borde de la caja, no un separador. */
+.mc-cifra:first-child {
+  padding-left: 0;
+  border-left: 0;
 }
 
 .mc-cifra dt {
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 600;
+  /* En una fila sin cajas, un rótulo que parte en dos líneas estira la
+     fila ENTERA: «Valor estimado» hacía 16 px más alta la cabecera
+     completa. Se acorta el texto y se prohíbe el salto, que es la forma de
+     que un rótulo nuevo no vuelva a hacerlo sin que nadie se entere. */
+  white-space: nowrap;
 }
 
 .mc-cifra dd {
   margin: var(--e-xs) 0 0;
-  font-size: var(--t-xl);
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+  line-height: 1.1;
 }
 
-.mc-cifra-valor {
-  border-color: var(--navy);
+/* El valor se marca con el COLOR del número, no con un borde: sin caja no
+   hay borde que teñir, y además es la cifra que se viene a mirar. */
+.mc-cifra-valor dd {
+  color: var(--navy);
 }
 
 /* ── EL MENÚ (tandas 405 a 408) ──
@@ -248,14 +335,9 @@
     align-items: start;
   }
 
-  /* `.mc-cabecera-cifras` desde la 439: la tira de cifras pasó a ir
-     envuelta para poder colgarle el velo del móvil, y estas reglas piden
-     HIJO DIRECTO. Al meter el envoltorio, la tira dejó de casar, se
-     colocó en la columna 1 —la de las pestañas, de 216 px— y la primera
-     carta se fue de 704 px a 1005 sin que nada diera error. Es la trampa
-     de siempre: un envoltorio nuevo rompe a quien contaba los saltos. */
-  #mcContenido > .mc-cabecera-cifras,
-  #mcContenido > .mc-nota,
+  /* El listón de cifras ya no está aquí dentro: desde la 440 vive en la
+     cabecera de perfil, que va FUERA de `#mcContenido`. Y con él se fue
+     `.mc-nota`, que lo acompaña. */
   #mcContenido > .subtext,
   #mcContenido > .mc-aviso {
     grid-column: 1 / -1;
@@ -1506,6 +1588,100 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: var(--e-md);
+}
+
+/* ── DÓNDE ESTÁS CERCA (tanda 440) ──
+   Una LISTA y no tarjetas grandes: son cinco colecciones y lo que se lee
+   de cada una es un número. Cinco tiles de 240 px se comen la pantalla
+   para decir cinco cifras. */
+.mc-cerca {
+  display: grid;
+  gap: var(--e-xs);
+}
+
+.mc-cerca-fila {
+  display: flex;
+  gap: var(--e-md);
+  align-items: center;
+  width: 100%;
+  /* Lo que se pulsa mide 44 (tanda 312). Va en `min-height` y no en el
+     relleno, que cambiaría el dibujo. */
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-cerca-fila:hover {
+  border-color: var(--navy);
+}
+
+.mc-cerca-fila:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.mc-cerca-logo {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  /* Una MEDIDA, en la retícula de 4: el hueco del logo, que no se encoge
+     —un hijo de flex cede antes de desbordar (tanda 320)—. */
+  width: 56px;
+  height: 36px;
+}
+
+.mc-cerca-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.mc-cerca-texto {
+  display: grid;
+  gap: var(--e-xs);
+  flex: 1 1 auto;
+  /* Para que el nombre largo se recorte en vez de empujar a la cifra
+     fuera: `ellipsis` no hace nada sin su propia caja con `min-width: 0`
+     (tanda 320). */
+  min-width: 0;
+}
+
+.mc-cerca-nombre {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-cerca-faltan {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: end;
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* La CIFRA va en la tipografía de los títulos y el rótulo de debajo no, y
+   como el padre la impone hay que deshacerla aquí. Se escribe la pila del
+   cuerpo tal cual —la misma de `body` en style.css— y NO un
+   `var(--font-base, …)`: ese token no existe, y pedir con respaldo algo
+   que no existe es lo que CLAUDE.md prohíbe, porque dice que hay un token
+   cuando lo que hay es el valor de reserva. */
+.mc-cerca-faltan small {
+  color: var(--text-mid);
+  font-family: 'Inter', sans-serif;
+  font-size: var(--t-2xs);
+  font-weight: 500;
 }
 
 /* Con fondo y borde, como un bolsillo del álbum: una carta cuyo escaneo
@@ -3233,9 +3409,19 @@ input.mc-alb-titulo:not([readonly]):focus {
   outline-offset: 4px;
 }
 
+/* La rejilla que sustituye al carrusel (tanda 440). `auto-fit` y no un
+   número de columnas: las tarjetas son tres o cuatro según lo que tengas
+   —el balance solo sale si es tu colección—, y una rejilla de tres fijas
+   dejaría un hueco cuando son dos. */
+.mc-diapos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+}
+
 .mc-diapo {
   display: flex;
-  flex: 0 0 min(300px, 82%);
   flex-direction: column;
   gap: var(--e-xs);
   padding: var(--e-lg);
@@ -3623,49 +3809,32 @@ input.mc-alb-titulo:not([readonly]):focus {
   display: none;
 }
 
-/* ── La cabecera, más corta en el móvil (tanda 412) ──
-   Las cuatro cifras en dos filas de cajas grandes se comían 200 px antes
-   de la primera carta, en TODAS las pestañas. En una pantalla de 390 px
-   eso es un cuarto de pantalla repetido cinco veces. Pasan a ser una tira
-   que se desliza, como la del panel: la misma pieza, la misma idea.
+/* ── La cabecera en el móvil (tandas 412 y 440) ──
+   AQUÍ VIVÍA la tira de cifras que se desliza, con su máscara de la 439.
+   Las dos sobran desde que las cifras no llevan caja: cuatro cifras sin
+   recuadro caben en una fila de 390 px, así que no hay nada que deslizar
+   ni, por tanto, nada que avisar. La 412 arregló el ALTO de cuatro cajas
+   grandes y la 439 disimuló el corte que eso creaba; quitar la caja
+   resuelve las dos de una vez, que es por lo que el repaso de la 440
+   empezó por aquí y no por los colores.
 
-   LA 439 PROBÓ A VOLVER A UNA REJILLA de dos columnas, porque la tira se
-   LEE como una caja cortada por el borde —PINGU: «es un poco cutrón»—. Y
-   la medida dijo que no: con cinco cifras, dos columnas son TRES filas, y
-   la primera carta se iba de 804 px a 867. O sea que la rejilla arregla
-   el aspecto rompiendo justo lo que la 412 vino a arreglar.
-
-   Lo que fallaba no era la disposición, era que nada avisaba de que
-   aquello se desliza. Eso se arregla con el velo de abajo, que cuesta
-   cero píxeles de alto. Medido, no mirado. */
+   Solo queda bajar el aire, que en un móvil pesa. */
 @media (max-width: 599px) {
-  .mc-resumen {
-    display: flex;
-    gap: var(--e-sm);
-    margin-inline: calc(var(--e-xl) * -1);
-    padding-inline: var(--e-xl);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
+  .mc-hero {
+    gap: var(--e-md);
+    padding: var(--e-lg) var(--e-md);
   }
 
-  /* Lo que dice «hay más»: la última tarjeta se DESVANECE en el borde.
-     Va con `mask` y no con un velo pintado encima, y el motivo es que se
-     probaron las dos: un velo funde hacia `--bg` (#f6f8fa) sobre una
-     tarjeta BLANCA, o sea un 3 % de diferencia, invisible. La máscara
-     desvanece la tarjeta de verdad, y además le da igual el tema. */
-  .mc-resumen:not(.mc-tira-final) {
-    mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+  .mc-resumen {
+    padding-top: var(--e-md);
   }
 
   .mc-cifra {
-    flex: 0 0 auto;
-    min-width: 128px;
-    padding: var(--e-sm) var(--e-md);
-    scroll-snap-align: start;
+    padding: 0 var(--e-sm);
   }
 
   .mc-cifra dd {
-    font-size: var(--t-lg);
+    font-size: var(--t-xl);
   }
 }
 

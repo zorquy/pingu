@@ -35,6 +35,85 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 440 — el rediseño del panel: cabecera de perfil, fuera el carrusel, y «dónde estás cerca»)
+
+**Hecho**: PINGU paró la pasada anterior en seco: «quiero algo mucho mejor
+pensado, cosas quizá sobran; me gusta mucho la app Dex y creo que lo tienen
+perfecto y muy moderno visualmente». Tenía razón: la 439 eran parches. Esto
+es el rediseño.
+
+El diagnóstico, que es lo que lo ordena todo: **el panel tenía SEIS zonas
+apiladas y TRES eran la misma cosa** —un resumen de números—: el listón de
+cifras, el carrusel de diapositivas y la caja del valor. Por eso ocupaba
+tanto y por eso parecía viejo.
+
+**1. Cabecera de perfil.** Avatar, nombre, «coleccionando desde» y las
+cifras DENTRO de la misma pieza, sin recuadro, separadas por una línea. La
+fecha sale de TU LÍNEA MÁS ANTIGUA y no de cuándo te registraste: dice
+desde cuándo coleccionas AQUÍ, que es lo que significa en esta pantalla, y
+no hace falta pedir ninguna columna nueva.
+
+Y quitar el recuadro **deshace dos parches que llevaban dos tandas
+encima**: cuatro cajas con borde no caben en 390 px (de ahí la tira que se
+desliza de la 412) y una tira cortada parece rota (de ahí el disimulo de
+la 439). Sin caja, cuatro cifras caben en una fila a cualquier ancho. El
+problema deja de existir en vez de taparse — y por eso el repaso empezó
+por la estructura y no por los colores.
+
+**2. Fuera el carrusel.** Era la pieza que más envejecía la pantalla, y
+encima ESCONDÍA: con la pantalla ancha de sobra se veían dos tarjetas y
+media. Ahora es una rejilla `auto-fit` que baja de fila sola.
+
+**3. Y las listas de números, al final y plegadas.** Lo que se ve al
+entrar es quién eres, cuánto llevas, cuánto vale y tus cartas. Arriba se
+queda solo la gráfica del valor, que es lo único que cambia solo (la
+decisión de la 416).
+
+**4. DÓNDE ESTÁS CERCA**, que es lo que PINGU pidió después y lo único
+accionable que puede tener el panel: a qué colección le faltan menos
+cartas. Ordenado por **cartas que faltan y no por porcentaje** — un 96 % de
+un set de 100 son 4 cartas y un 80 % de uno de 10 son 2: el porcentaje dice
+que vas mejor en el primero y la verdad es que acabas antes el segundo. Lo
+que se pregunta es «¿cuál puedo cerrar?», y eso se mide en cartas. Fuera
+las completas (ahí no hay nada que hacer) y fuera las que tienen la
+numeración a null (sin total, «te faltan NaN»).
+
+**Medido, hasta ver la primera carta**: escritorio 704 → **502 px**; móvil
+804 → **632 px**.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`mi-coleccion.html`. Pruebas: `test-tanda-440.mjs` (NUEVO), y adaptadas
+`test-tanda-412.mjs` y `test-tanda-439.mjs`.
+
+**Tres errores míos por el camino, y los tres cazados midiendo o mirando
+el DOM, nunca la foto**:
+
+1. Metí acentos graves dentro de un comentario que vive DENTRO de un
+   template literal: parte la cadena en dos y revienta el fichero entero.
+2. Al mover bloques se coló un `</div>` de más que dejaba la rejilla de
+   números FUERA de su caja plegada. Se veían abiertas y **sin dar ningún
+   error** — el DOM lo dijo en un `evaluate`, la captura no.
+3. Puse `font-size: 24px` en el avatar pensando que entraba en la
+   excepción de CLAUDE.md. No: esa excepción es para los avatares que
+   pinta el JAVASCRIPT en un `style=`, donde el diámetro viene de un dato.
+   Este círculo mide 56 px fijos en la hoja. Lo cantó `test-tanda-305`.
+
+Y uno en la PRUEBA, que es el de más valor: la primera versión ordenaba
+tres sets donde «por cartas» y «por porcentaje» daban **el mismo orden**,
+así que la afirmación que decide la tanda no probaba nada. Ahora son cinco
+y los dos criterios dan primeros distintos.
+
+**En curso / pendiente**: el rigor de la 440. Y lo que queda del rediseño
+si PINGU quiere seguir: el botón «Ver todas las estadísticas» aún se lee
+huérfano, y la columna de pestañas del escritorio deja un hueco grande
+debajo.
+
+Siguen sin ejecutar `supabase-migration-pokedex-mercado.sql`,
+`supabase-migration-trainer-gallery.sql` y
+`supabase-migration-trainer-gallery-serie.sql`.
+
+---
+
 ## 2026-10-02 — PINGU-Claude (tanda 439 — fuera lo que se decía dos veces)
 
 **Hecho**: PINGU, mirando /mi-coleccion: «hay cosas que sobran, hay cosas

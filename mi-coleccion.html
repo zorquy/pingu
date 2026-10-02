@@ -102,15 +102,31 @@
   </nav>
 
   <main id="contenido" class="page-content container mc-pagina">
-    <header class="mc-cabecera">
-      <div>
-        <h1 id="mcTitulo">Mi colección</h1>
-        <p class="mc-lema">Tus cartas, lo que valen en Cardmarket y tu álbum por colecciones.</p>
+    <!-- LA CABECERA DE PERFIL (tanda 440). PINGU: «me gusta mucho la app
+         Dex y creo que lo tienen perfecto y muy moderno visualmente».
+         Lo que hace Dex y aquí no se hacía: el quién y el cuánto van
+         JUNTOS, en una sola pieza, en vez de un título suelto arriba y
+         cuatro cajas de cifras debajo.
+
+         Las cifras van DENTRO y sin caja propia. Eso no es un gusto: eran
+         cuatro recuadros con borde que en 390 px no caben, y de ahí salía
+         la tira que se desliza de la 412 y el corte que la 439 tuvo que
+         disimular. Sin caja, cuatro cifras caben en una fila a cualquier
+         ancho y el problema deja de existir en vez de taparse. -->
+    <header class="mc-hero" id="mcHero">
+      <div class="mc-hero-quien">
+        <span class="mc-hero-avatar" id="mcHeroAvatar" aria-hidden="true"></span>
+        <div class="mc-hero-nombre">
+          <h1 id="mcTitulo">Mi colección</h1>
+          <p class="mc-hero-desde" id="mcHeroDesde"></p>
+        </div>
+        <div class="mc-compartir hidden" id="mcCompartir">
+          <label class="mc-interruptor"><input type="checkbox" id="mcPublica" /> Colección pública</label>
+          <button type="button" class="link-btn hidden" id="mcCopiarEnlace">Copiar enlace</button>
+        </div>
       </div>
-      <div class="mc-compartir hidden" id="mcCompartir">
-        <label class="mc-interruptor"><input type="checkbox" id="mcPublica" /> Colección pública</label>
-        <button type="button" class="link-btn hidden" id="mcCopiarEnlace">Copiar enlace</button>
-      </div>
+      <dl class="mc-resumen" id="mcResumen"></dl>
+      <p class="mc-nota" id="mcResumenNota"></p>
     </header>
     <div id="mcAviso" class="mc-aviso hidden" role="status"></div>
 
@@ -120,13 +136,6 @@
     </div>
 
     <div id="mcContenido">
-      <!-- El envoltorio existe para colgar de él el velo del móvil (tanda
-           439): la tira es `overflow-x: auto` y un `::after` suyo se
-           desplazaría con ella en vez de quedarse en el borde. -->
-      <div class="mc-cabecera-cifras">
-        <dl class="mc-resumen" id="mcResumen"></dl>
-      </div>
-      <p class="mc-nota" id="mcResumenNota"></p>
       <p class="subtext" id="mcCargando">Cargando la colección…</p>
 
       <!-- EL MENÚ (tandas 405 a 408). Empezó siendo ocho pestañas en una
@@ -407,6 +416,14 @@
              primero que se abre desde esta misma tanda. Lo que ya está en
              memoria —tus cartas— se pinta al momento. -->
         <div class="mc-vistazos" id="mcVistazos"></div>
+
+        <!-- LO DEMÁS, DETRÁS DEL BOTÓN (tanda 440). El botón y las
+             estadísticas vivían arriba del todo, dentro de #mcResumenPanel,
+             y con el carrusel convertido en rejilla eso apilaba tres
+             tarjetas de números ENCIMA de tus cartas: en el móvil, 200 px
+             más antes de ver la primera. Lo que cambia solo —la gráfica—
+             se queda arriba; lo que son listas, aquí abajo y plegado. -->
+        <div id="mcMasEstadisticas"></div>
 
         <!-- LOS CAMBIOS, AQUÍ (tanda 408). En el panel de control de Dex,
              «Intercambiar» es un acceso más del panel: no es una sección
