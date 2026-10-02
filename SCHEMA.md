@@ -24010,6 +24010,31 @@ japonesa, sí; pero el dibujo es el mismo y lo que cambia es el rótulo, y la
 alternativa de hoy no es un logo japonés: es el nombre escrito en una caja
 gris.
 
+### Y la tercera cosa que solo está en el set completo: LA SERIE
+
+PINGU, empujando: «pero te puedes traer los logos de sets y las cartas
+asiáticas desde la API de TCGdex». Tenía razón en empujar, y mirándolo con
+eso en la cabeza aparece el eslabón que faltaba.
+
+Nuestro código YA pide los assets asiáticos con su idioma —`urlDeLogo` y
+`cardImageUrl` montan la carpeta con `idiomaDeMercado(market)`— y YA tiene
+un respaldo para cuando el manifiesto de TCGdex no lista el fichero: montar
+la dirección a mano (tanda 434 para los logos, y `rutaDeAssetDeTCGdex` para
+las cartas).
+
+**Pero esa ruta empieza por la SERIE.** Y la serie, igual que el código y
+la fecha, solo está en el set COMPLETO: `setToRow` corre sobre el listado y
+la deja a null. Sin serie, `urlDeLogoPorPartes` y `rutaDeAssetDeTCGdex`
+devuelven null y la cadena se queda **sin ese eslabón**.
+
+Así que «no hay logos de los sets japoneses» y «no hay fotos de las cartas
+japonesas» no son dos problemas: son **el mismo agujero visto dos veces**.
+En esos catálogos el manifiesto trae menos ficheros, o sea que el respaldo
+es justo el que tendría que estar trabajando — y era el que estaba apagado.
+
+El mismo botón que ya pedía el set entero guarda ahora las tres: código,
+fecha y serie. Cero peticiones de más.
+
 ### Lo de Bulbapedia, y por qué no
 
 PINGU: «sé que Bulbapedia guarda los logos de todos los sets, y los

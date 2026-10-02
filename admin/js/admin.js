@@ -2704,11 +2704,12 @@ async function traerCodigosLive() {
   // mercados: el japonés y el chino tienen sus propios sets y su propio
   // orden, y filtrarlos fuera los dejaba sin fecha para siempre.
   const pendientes = tcgSetsLocales
-    .filter((x) => !x.tcg_online_code || !x.release_date)
+    .filter((x) => !x.tcg_online_code || !x.release_date || !x.serie_id)
     .sort((a, b) => String(b.release_date || '').localeCompare(String(a.release_date || '')))
 
   let traidos = 0
   let fechas = 0
+  let series = 0
   let sinCodigo = 0
   try {
     for (let i = 0; i < pendientes.length; i++) {
@@ -2730,6 +2731,21 @@ async function traerCodigosLive() {
       const cambios = {}
       if (codigo && !fila.tcg_online_code) cambios.tcg_online_code = codigo
       if (fecha && !fila.release_date) cambios.release_date = fecha
+      // Y LA SERIE, que es la tercera cosa que solo está en el set
+      // completo — y la que más se echa de menos sin saberlo.
+      //
+      // Sin ella no hay RESPALDO de imagen. Cuando a un set o a una carta
+      // le falta el fichero en el manifiesto de TCGdex, la cadena monta la
+      // dirección a mano (`serie/set/logo`, `serie/set/numero`), y esa
+      // ruta empieza por la serie: sin serie devuelve null y la cadena se
+      // queda sin ese eslabón. Por eso «no hay logos de los sets
+      // japoneses» y «no hay fotos de las cartas japonesas» son el mismo
+      // agujero visto dos veces — en esos catálogos el manifiesto trae
+      // menos ficheros, así que el respaldo es justo el que trabaja.
+      if (set.serie?.id && !fila.serie_id) {
+        cambios.serie_id = set.serie.id
+        if (set.serie?.name) cambios.serie_name = set.serie.name
+      }
       if (!codigo && market === 'WEST' && !fila.tcg_online_code) {
         // No es un error que haya que enseñar, pero tampoco es «es un set
         // viejo»: TCGdex no lo da para NINGUNO desde 2023. Se cuentan y
@@ -2751,6 +2767,11 @@ async function traerCodigosLive() {
           fila.release_date = cambios.release_date
           fechas++
         }
+        if (cambios.serie_id) {
+          fila.serie_id = cambios.serie_id
+          fila.serie_name = cambios.serie_name || fila.serie_name
+          series++
+        }
       }
     }
   } finally {
@@ -2762,6 +2783,7 @@ async function traerCodigosLive() {
     const partes = []
     if (traidos) partes.push(`${traidos} códigos de TCG Live`)
     if (fechas) partes.push(`${fechas} fechas de salida`)
+    if (series) partes.push(`${series} series (con eso vuelven los logos y las fotos que faltaban)`)
     nota.textContent = partes.length
       ? `Guardado: ${partes.join(' y ')}.${fechas ? ' Las expansiones ya se ordenan por fecha.' : ''}` +
         `${sinCodigo ? ` (${sinCodigo} sets sin código en TCGdex.)` : ''}`
@@ -2994,6 +3016,10 @@ async function contarMercados() {
       // las que pueden estar enteras sin ella (tanda 454).
       const conFecha = await supabase.from('tcg_sets').select('id', { count: 'exact', head: true }).eq('market', market).not('release_date', 'is', null)
       if (conFecha.error) throw conFecha.error
+      // Y la SERIE, que es la que enciende los respaldos de imagen: sin
+      // ella no se puede montar a mano ni el logo ni el escaneo.
+      const conSerie = await supabase.from('tcg_sets').select('id', { count: 'exact', head: true }).eq('market', market).not('serie_id', 'is', null)
+      if (conSerie.error) throw conSerie.error
       // Y cuántas cartas tienen FOTO. «No se ven las cartas japonesas»
       // tiene dos causas que desde la web se ven igual —que no estén
       // importadas, o que TCGdex no tenga escaneo de ellas— y este número
@@ -3001,14 +3027,14 @@ async function contarMercados() {
       // es que ese catálogo no tiene imágenes y hace falta otra fuente.
       const conFoto = await supabase.from('tcg_cards').select('id', { count: 'exact', head: true }).eq('market', market).not('image_path', 'is', null)
       if (conFoto.error) throw conFoto.error
-      lineas.push(`${market}: ${sets.count} sets (${conLogo.count} con logo, ${conFecha.count} con fecha), ${cartas.count} cartas (${conFoto.count} con foto)`)
+      lineas.push(`${market}: ${sets.count} sets (${conLogo.count} con logo, ${conFecha.count} con fecha, ${conSerie.count} con serie), ${cartas.count} cartas (${conFoto.count} con foto)`)
     }
     const vacios = lineas.filter((l) => / 0 sets/.test(l))
-    const sinFecha = lineas.some((l) => /\(\d+ con logo, 0 con fecha\)/.test(l))
+    const sinFecha = /0 con fecha|0 con serie/.test(lineas.join(' '))
     cardsNota(lineas.join(' · ') + (vacios.length
       ? ' — los que están a 0 no se han importado nunca: dale a «Buscar sets en TCGdex» y luego a «Importar los que faltan».'
       : '') + (sinFecha
-      ? ' — y los que no tienen fecha salen al fondo de la estantería: dale a «Traer códigos y fechas que falten».'
+      ? ' — sin FECHA una era se va al fondo de la estantería, y sin SERIE no hay respaldo para el logo ni para el escaneo de sus cartas: dale a «Completar los datos que faltan de los sets».'
       : ''))
   } catch (err) {
     cardsNota(`No se ha podido contar: ${err.message}`)

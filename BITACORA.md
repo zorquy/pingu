@@ -53,6 +53,16 @@ OCCIDENTAL del mismo set. El identificador de set es el mismo en todos los
 mercados, así que la dirección con `/en/` suele existir aunque la japonesa
 no.
 
+Y empujando PINGU («pero te puedes traer los logos y las cartas asiáticas
+desde la API de TCGdex») salió el eslabón que faltaba: nuestro código YA
+pide los assets con el idioma del mercado y YA monta la dirección a mano
+cuando el manifiesto no lista el fichero… **pero esa ruta empieza por la
+SERIE**, y la serie —como el código y la fecha— solo está en el set
+completo, así que estaba a null. Sin serie, el respaldo devuelve null.
+«No hay logos japoneses» y «no hay fotos japonesas» eran el MISMO agujero
+visto dos veces. El botón guarda ahora las tres cosas, sin pedir nada de
+más.
+
 **PARA PINGU, dos cosas que necesitan tus manos**:
 1. En /admin → Cartas, dale a **«Traer códigos y fechas que falten»**. Eso
    coloca Escarlata y Púrpura y Mega Evolución donde van.
