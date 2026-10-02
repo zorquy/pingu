@@ -74,12 +74,24 @@ console.log('\n── 2. La cadena de escaneo ──')
   check('con `image_path`, se usa el SUYO', conRuta[0] === 'https://assets.tcgdex.net/en/viejo/camino/9/high.webp',
     JSON.stringify(conRuta))
   check('  …y no se monta ninguno a mano', !conRuta.some((u) => /\/sv\/svp\/196\//.test(u)), JSON.stringify(conRuta))
-  check('  …así que la cadena son dos: el suyo y Limitless', conRuta.length === 2, JSON.stringify(conRuta))
+  // TRES desde la tanda 435, que añadió pokemontcg.io como último sitio:
+  // el suyo, Limitless y ese. Esta comprobación llevaba roja desde
+  // entonces sin que nadie la mirara — lo que defiende es que con la
+  // columna puesta NO se monte nada a mano, que es la línea de arriba; el
+  // número total es de la cadena, y la cadena crece cuando se le añade una
+  // fuente. Se cuenta contra lo que hay, no contra un número de entonces.
+  check('  …así que a la cadena solo se le suman los RESPALDOS, ninguno a mano',
+    conRuta.length === 3 && /limitless/i.test(conRuta[1]) && /pokemontcg\.io/.test(conRuta[2]),
+    JSON.stringify(conRuta))
 
-  // Una carta sin serie y sin código se queda como estaba: sin nada que
-  // enseñar. No se inventa.
+  // Una carta sin serie y sin código no se inventa NUESTRA ruta ni la de
+  // Limitless: las dos necesitan un dato que no está. Lo que sí queda es
+  // pokemontcg.io (tanda 435), que se monta con el `set_id` a secas — así
+  // que «la cadena vacía» de la 434 ya no es vacía, y lo que sigue en pie
+  // es que no haya nada INVENTADO por nosotros.
   const nada = cadenaDeEscaneo({ set_id: '2021swsh', local_id: '1', image_path: null, market: 'WEST' }, null, 'high')
-  check('sin serie y sin código, la cadena sigue vacía', nada.length === 0, JSON.stringify(nada))
+  check('sin serie y sin código no se monta nada a mano',
+    !nada.some((u) => /assets\.tcgdex\.net|limitless/i.test(u)), JSON.stringify(nada))
 
   // Y el idioma: una japonesa no se enseña con el arte inglés de
   // Limitless, pero su asset de TCGdex sí vale (lo monta `urlDelEspejo`).

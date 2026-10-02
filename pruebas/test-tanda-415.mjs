@@ -62,21 +62,26 @@ console.log('\n── 2. Una tarjeta de expansión NUNCA se queda sin decir qué
   check('sin errores', errores.length === 0, errores.join(' | '))
   const sinSimbolo = await page.locator('[data-set="nada"] .mc-set-logo img').count()
   check('sin logo ni símbolo no se pide ninguna imagen', sinSimbolo === 0, String(sinSimbolo))
-  check('  …y el nombre se pinta en la cabecera',
-    await page.locator('[data-set="nada"] .mc-set-rotulo').isVisible())
+  check('  …y el nombre se lee igualmente',
+    await page.locator('[data-set="nada"] .mc-set-nombre').isVisible())
   await page.waitForTimeout(1200)
   // El símbolo llevaba guardado desde que se importa el catálogo y no lo
   // usaba nadie. Ahora es el segundo sitio donde mirar.
   check('se pide el logo', pedidas.some((u) => /\/x\/logo/.test(u)), '')
   check('  …y, al fallar, el símbolo', pedidas.some((u) => /simbolo\.webp/.test(u)),
     pedidas.filter((u) => /simbolo|logo/.test(u)).join(' | ').slice(0, 160))
-  const rotulos = await page.locator('.mc-set-rotulo:visible').count()
-  check('cuando ninguna imagen llega, las tres dicen su nombre', rotulos === 3, String(rotulos))
-  // Y no lo dice DOS veces: el de abajo se queda SOLO para el lector de
-  // pantalla. (`:visible` no vale aquí: un `sr-only` mide 1x1 px, no está
-  // en `display: none`, así que para Playwright se ve.)
-  check('  …y solo una vez cada una',
-    await page.locator('[data-set="nada"] .mc-set-nombre').evaluate((e) => e.classList.contains('sr-only')))
+  // EL NOMBRE ESTÁ SIEMPRE desde la tanda 456, llegue la imagen o no. Esta
+  // comprobación nació porque el nombre se escondía detrás del logo —un
+  // logo occidental lo lleva escrito— y había que sacarlo cuando el dibujo
+  // fallaba; con los sets japoneses eso dejó de valer (un logo en kanji no
+  // dice el nombre a quien no lee kanji), así que ahora el nombre es texto
+  // y el logo es un dibujo al lado. Lo que se defiende sigue siendo lo
+  // mismo: que una tarjeta NUNCA se quede sin decir qué es.
+  const conNombre = await page.locator('.mc-set-nombre:visible').count()
+  check('todas las tarjetas dicen su nombre, llegue o no la imagen', conNombre === 3, String(conNombre))
+  // Y una sola vez: el truco viejo dejaba dos sitios donde escribirlo.
+  const veces = await page.locator('[data-set="nada"] .mc-set-nombre').count()
+  check('  …y solo una vez cada una', veces === 1, String(veces))
   await page.close()
 }
 
@@ -84,33 +89,28 @@ console.log('\n── 3. Una carta sin escaneo dice su nombre ──')
 {
   const { page } = await abrir('/mi-coleccion.html?ver=album')
   await page.locator('[data-set="nada"]').click()
-  await page.waitForTimeout(900)
-  check('el bolsillo lleva el nombre', /Bulbasaur/.test(
-    (await page.locator('.mc-bolsillo .mc-carta-sinfoto').first().textContent().catch(() => '')) || ''))
+  // SE ESPERA AL RESPALDO, no 900 ms. El nombre sale cuando la cadena de
+  // imágenes se AGOTA, y la cadena ha ido creciendo —la 434 le añadió la
+  // ruta montada a mano y la 435 pokemontcg.io—, así que cada fuente nueva
+  // alarga la espera y un número fijo se queda corto sin avisar: la prueba
+  // falla por el reloj y parece que falla la web.
+  const nombre = page.locator('.mc-bolsillo .mc-carta-sinfoto').first()
+  await nombre.waitFor({ state: 'attached', timeout: 15000 }).catch(() => {})
+  check('el bolsillo lleva el nombre', /Bulbasaur/.test((await nombre.textContent().catch(() => '')) || ''))
   await page.close()
 }
 
-console.log('\n── 4. La tira, sin barra y con flechas ──')
+// LA TIRA YA NO EXISTE (tanda 440), igual que en test-tanda-410: aquella
+// tanda cambió el carrusel por una rejilla porque las diapositivas llevan
+// CIFRAS y una cifra cortada por el borde se lee como un fallo. Esta
+// sección llevaba rota desde entonces —reventaba con un `null` al buscar
+// `#mcTiraIzq`— y no se veía porque el fallo salía DESPUÉS de los de
+// arriba. Es el tercer sitio con el mismo resto de la 440.
+console.log('\n── 4. Las diapositivas, sin tira ──')
 {
   const { page } = await abrir('/mi-coleccion.html?ver=resumen')
-  const estado = () => page.evaluate(() => ({
-    izq: !document.getElementById('mcTiraIzq').hidden,
-    der: !document.getElementById('mcTiraDer').hidden,
-    x: Math.round(document.getElementById('mcTira').scrollLeft),
-  }))
-  check('al abrir, no hay flecha hacia atrás', (await estado()).izq === false)
-  check('  …y sí hacia delante', (await estado()).der === true)
-  check('  …y la apagada no se ve de verdad',
-    (await page.locator('#mcTiraIzq').isVisible()) === false)
-  await page.locator('#mcTiraDer').click()
-  await page.waitForTimeout(900)
-  const tras = await estado()
-  check('la flecha mueve una tarjeta entera', tras.x > 200, String(tras.x))
-  check('  …y entonces sí hay vuelta atrás', tras.izq)
-  const barra = await page.locator('#mcTira').evaluate((e) => ({
-    oculta: getComputedStyle(e).scrollbarWidth, desliza: getComputedStyle(e).overflowX }))
-  check('la barra está escondida', barra.oculta === 'none', JSON.stringify(barra))
-  check('  …pero se sigue pudiendo deslizar', barra.desliza === 'auto', JSON.stringify(barra))
+  check('no queda ninguna tira deslizable', (await page.locator('#mcTira').count()) === 0)
+  check('  …ni sus flechas', (await page.locator('#mcTiraIzq, #mcTiraDer').count()) === 0)
   await page.close()
 }
 
