@@ -267,21 +267,22 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false }) {
 //
 // «Completado» es tener TODAS las cartas que el catálogo conoce de esa
 // especie. Hace falta saber el total, así que una especie de la que no
-// se sabe cuántas hay no cuenta ni como completada ni como pendiente:
-// no se sabe, que no es lo mismo que cero (la regla de la 319).
+// AQUÍ HABÍA UN «COMPLETADOS» y se fue en la tanda 431. PINGU: «es una
+// estadística que sobra porque nadie o casi nadie tendrá completadas todas
+// las cartas de un Pokémon». Tenía razón: un Pikachu tiene más de 300
+// cartas, así que esa cifra era un cero permanente ocupando un cuarto de
+// la cabecera. Lo que sí sirve —a cuál le falta poco— lo dice la vista
+// «Los que casi completas» de la 429.
 //
 // Puro: `mio` es un Map dex → cuántas tienes, `totales` otro dex →
 // cuántas hay. Se prueba en Node.
 export function resumenDePokedex({ mio = new Map(), totales = new Map(), total = 1025 } = {}) {
   let registrados = 0
-  let completados = 0
   let masDex = null
   let menosDex = null
   for (const [dex, n] of mio) {
     if (!n) continue
     registrados++
-    const hay = totales.get(dex)
-    if (hay && n >= hay) completados++
     if (masDex === null || n > mio.get(masDex)) masDex = dex
     // El que MENOS tienes es entre los que tienes: un cero no es «poco»,
     // es que no lo tienes, y para eso ya está lo que falta.
@@ -290,7 +291,6 @@ export function resumenDePokedex({ mio = new Map(), totales = new Map(), total =
   return {
     registrados,
     total,
-    completados,
     // null y no {dex: 0}: con la Pokédex vacía no hay «el que más», y
     // enseñar a Bulbasaur con un 0 sería inventarlo.
     mas: masDex === null ? null : { dex: masDex, cuantas: mio.get(masDex) },
@@ -330,7 +330,6 @@ export function cabeceraHtml(resumen, { nombreDe = (d) => `#${d}` } = {}) {
       </div>
       ${anillo}
     </div>
-    ${tarjeta('Completados', `${resumen.completados}`, 'con todas sus cartas')}
     ${resumen.mas ? tarjeta('El que más tienes', `${resumen.mas.cuantas}`, nombreDe(resumen.mas.dex)) : ''}
     ${resumen.menos ? tarjeta('El que menos', `${resumen.menos.cuantas}`, nombreDe(resumen.menos.dex)) : ''}
   </div>`

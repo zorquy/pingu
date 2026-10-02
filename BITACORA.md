@@ -75,6 +75,52 @@ rigor, 32 de 32 (pasado sobre este mismo código antes de renumerar: solo
 cambian comentarios). Con lo de la 422 a la 424 debajo, en verde también
 la 413, 421, 422, 414, 384, 305, 310, 369 y 406.
 
+## 2026-10-02 — PINGU-Claude (tanda 431 — fuera «Completados», y el diagnóstico de las imágenes)
+
+**Hecho**: PINGU, con la Pokédex delante: «deberías quitar lo de
+completados, es una estadística que sobra porque nadie o casi nadie
+tendrá completadas todas las cartas de un Pokémon». Tiene razón: un
+Pikachu pasa de las 300 cartas, así que esa cifra era un **cero
+permanente ocupando un cuarto de la cabecera**. Lo que sí sirve —a cuál
+le falta poco— lo dice la vista «Los que casi completas» de la 429.
+
+Se va la tarjeta Y la cuenta: nadie pedía `completados`, así que
+calcularlo era trabajo para nadie.
+
+**Y lo otro que preguntó —las cartas y los sets sin imagen— se queda en
+DIAGNÓSTICO a propósito**, en `diagnostico-imagenes.sql`. El motivo está
+escrito dentro: una carta sin escaneo puede serlo por tres razones
+distintas y cada una se arregla de otra manera.
+
+Lo que SÍ se ha podido determinar desde aquí, leyendo el código:
+
+- los sets que salen con el nombre escrito (Temporal Forces, Scarlet &
+  Violet Energies, SVP Black Star Promos) tienen `logo_path` Y
+  `symbol_url` **a null en la base**. No es un 404: el fondo borroso de
+  la tarjeta (`.mc-set-arte`) solo se pinta cuando hay dibujo, y en esas
+  tres sale plano;
+- `setToRow` corre sobre el LISTADO de TCGdex, que es un «SetResume» —la
+  lección de las tandas 233 y 322—, así que si ahí no viene el logo, la
+  columna nace vacía y nadie se entera;
+- y para las CARTAS, lo barato ya está dicho en CLAUDE.md: **los nombres
+  y las imágenes SÍ vienen en el listado de cartas de un set**, así que
+  rellenarlas son ~220 peticiones y no 23.000. Es el mismo coste que la
+  fase de fechas de la 322.
+
+No se ha podido comprobar contra TCGdex ni contra Limitless porque este
+contenedor tiene la red cerrada (403 del proxy a `api.tcgdex.net`,
+`assets.tcgdex.net`, la CDN de Limitless y `api.pokemontcg.io`). Por eso
+el paso siguiente es el SQL y no una función programada escrita a ciegas.
+
+**Ficheros**: `js/mi-coleccion/pokedex.js`, nuevo
+`diagnostico-imagenes.sql`. En `pruebas`: `test-tanda-400.mjs` al día.
+
+**En curso / pendiente**: PINGU tiene que correr
+`diagnostico-imagenes.sql` y pasarme los cuatro resultados. Con ellos se
+decide si hace falta una fase de relleno de logos (~220 peticiones) y
+otra de imágenes de carta (~220 más), o si lo que falta sencillamente no
+lo tiene TCGdex.
+
 ## 2026-10-02 — PINGU-Claude (tanda 430 — la lista de lo que te falta, para pegarla en un chat)
 
 **Hecho**: en una expansión, un botón **«Copiar las N que me faltan»**
