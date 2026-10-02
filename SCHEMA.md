@@ -22771,3 +22771,90 @@ cuenta, torneo en juego); la imagen bajada —tamaño, todo lo que escribe
 los píxeles de fondo, cabecera, trozo y sprite—; el respaldo cuando
 /sprite no lo tiene; sin ningún sprite; y en el móvil. Su rigor, 32
 mutaciones, las 32 detectadas.
+
+## Tanda 426 — marcar varias cartas de golpe (oct. 2026)
+
+Dentro de una expansión, un botón **«Marcar varias»**. Con el modo puesto
+pulsar una carta la marca, el − y el + se esconden y una barra pegada
+arriba dice cuántas llevas; nada se escribe hasta pulsar «Añadir N».
+
+### Lo que lo hace valer la pena
+
+`anadir` hace un `select` por carta antes de su insert, así que apuntar un
+sobre —diez cartas— eran **veinte peticiones** y diez repintados de la
+rejilla. `anadirVarias` hace UNA lectura (`.in('card_id', ids)`) y UN
+insert con todas las nuevas dentro. Las que ya tienes suben de copias, y
+esas sí van una a una: son `update` sobre ids distintos.
+
+Se mira contra la BASE y no contra `lineas`, que es lo que el navegador
+tiene en memoria: entre que se cargó la página y se marca el sobre, la
+misma carta puede haber entrado desde el móvil, y entonces lo correcto es
+subirle una copia y no crear una fila gemela que la lista enseñaría dos
+veces.
+
+### El modo, y el precedente de la 365
+
+En la tanda 365 hubo un interruptor de «tocar una carta la añade» y la
+368 lo quitó porque **obligaba a elegir**: con él puesto no se podía abrir
+una ficha, sin él no se podía añadir, y vivía puesto para siempre. La
+diferencia de este: se enciende, se usa y se apaga; lleva su barra
+diciendo en qué estás; y no guarda nada hasta que lo dices. Mientras está
+apagado la rejilla se comporta igual que siempre — y eso lo comprueba la
+prueba, que es la parte que importa.
+
+La clave de una marca es `cardId|variante` y no el id a secas: en
+«separar variantes» cada casilla ES una versión, así que marcar el reverse
+holo marcaría también la normal.
+
+Y la marca se pinta desde el Set en `bolsilloHtml`, no solo al pulsar: la
+rejilla se repinta entera con cada búsqueda o filtro, y una marca que
+viviera únicamente en una clase del DOM se perdería en el primer
+repintado — sin dar error, y pareciendo que la has quitado tú.
+
+Los atributos (`data-marca`, `role="button"`, `aria-pressed`) van en el
+ENLACE y no en la caja: una caja con `role="button"` que lleva dentro un
+enlace y dos botones son controles anidados. El − y el + se esconden con
+`display: none`, que además los saca del tabulador.
+
+### Lo que enseñó el rigor
+
+Siete mutaciones sin detectar en la primera pasada. **Cuatro eran agujeros
+de la prueba**, y las cuatro valen como regla:
+
+1. **`isHidden()` sale verde por el PADRE.** Comprobar que salir de la
+   expansión apaga el modo mirando si la barra está oculta no prueba nada:
+   al salir se esconde la zona entera. Hay que volver a entrar y mirar
+   allí.
+2. **Al leer el CSS como texto, `content: ''` también casa con
+   `/content:/`.** Es la trampa de las tandas 312 y 313 por tercera vez:
+   todo lo que CONTIENE la cadena cuenta. El visto se mira pintado
+   (`getComputedStyle(n, '::after')`) y se le pide que ocupe sitio.
+3. Un interruptor hay que probarlo **apagando**, no solo encendiendo.
+4. Lo que se guarda tiene que entrar **en la lista de la página**, no solo
+   en la base: sin eso la pestaña «Cartas» sigue enseñando la colección de
+   antes hasta que recargas.
+
+**Y tres mutaciones se quitaron porque no cambiaban nada**, que es
+información y no un estorbo:
+
+- el valor inicial de `marcadas` no se ve nunca, porque `abrirAlbum` apaga
+  el modo al entrar;
+- `.mc-marcar-barra.hidden` era **código muerto**: la clase global
+  `.hidden` es `display: none !important`. Ojo con no confundirla con el
+  ATRIBUTO `[hidden]` de la tanda 412, que viene de la hoja del navegador
+  y sí se puede pisar con un `display` en una clase;
+- apagar el modo estaba escrito **dos veces**, al salir de la expansión y
+  al entrar. Se ha quedado la de entrar, que es por donde pasan todos los
+  caminos; dos guardas que son red de repuesto una de la otra no se pueden
+  probar, porque quitar cualquiera deja todo igual.
+
+### Y una pieza nueva en el doble: `__SIN_PERMISO__`
+
+Una escritura que la política rechaza **no da error** en PostgREST: no
+toca nada y vuelve con el cuerpo vacío. CLAUDE.md lo cuenta tres veces, y
+sin embargo el doble no sabía fingirlo: un código que no mira lo que
+vuelve pasaba por bueno en las pruebas y mentía en producción. Ahora las
+tablas que se pongan en `window.__SIN_PERMISO__` devuelven vacío sin error
+en insert, update, upsert y delete. La 426 lo usa para comprobar que
+marcar y guardar sin permiso **dice que no ha podido**, deja la barra
+puesta para reintentar y no escribe nada.

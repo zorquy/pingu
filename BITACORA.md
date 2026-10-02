@@ -75,6 +75,72 @@ rigor, 32 de 32 (pasado sobre este mismo código antes de renumerar: solo
 cambian comentarios). Con lo de la 422 a la 424 debajo, en verde también
 la 413, 421, 422, 414, 384, 305, 310, 369 y 406.
 
+## 2026-10-02 — PINGU-Claude (tanda 426 — marcar varias cartas de golpe)
+
+**Hecho**: dentro de una expansión hay un botón **«Marcar varias»**. Con
+el modo puesto, pulsar una carta la MARCA en vez de abrir su ficha; el −
+y el + se esconden (cada casilla tiene un solo destino, y de paso salen
+del tabulador); una barra pegada arriba dice cuántas llevas, y nada se
+escribe hasta pulsar **«Añadir 7»**, que dice el número.
+
+**Por qué**: apuntar un sobre son diez cartas. Una a una eran diez
+botones pequeños, diez repintados de la rejilla y **veinte peticiones**,
+porque `anadir` hace un `select` por carta antes de su insert. Ahora es
+UNA lectura para todas y UN insert con las nuevas dentro (`anadirVarias`).
+Las que ya tienes suben de copias en vez de nacer una fila gemela — y eso
+se mira contra la BASE y no contra lo que el navegador tiene en memoria:
+entre que cargaste la página y marcaste el sobre, la misma carta puede
+haber entrado desde el móvil.
+
+**El precedente, que está escrito en el propio HTML**: en la tanda 365
+hubo un interruptor de «tocar una carta la añade» y se quitó en la 368
+porque OBLIGABA A ELEGIR — con él puesto no podías abrir una ficha, sin
+él no podías añadir. Este no es eso: se enciende, se usa y se apaga, y
+mientras está apagado la rejilla se comporta igual que siempre. La prueba
+lo vigila a propósito.
+
+**Dos cosas que cambiaron al verlas funcionando**: la barra iba a
+`top: 0` y se metía por debajo de la barra del sitio (que es `sticky` a 0
+con 70 px), y era azul sólido, con lo que el «Añadir» —que ya es azul
+sólido— desaparecía encima. Ahora va a 72 y es una superficie normal con
+contorno. Y se cayó «Quitar la selección»: tres controles se iban a tres
+renglones en el móvil y «Cancelar» ya hacía lo mismo.
+
+**El rigor encontró SIETE agujeros, y cuatro eran de la prueba**:
+
+1. `isHidden()` salía verde POR EL PADRE. Comprobaba que salir de la
+   expansión apaga el modo mirando la barra — pero al salir se esconde la
+   zona entera, así que pasaba aunque el modo siguiera puesto.
+2. El visto se comprobaba leyendo el CSS con un `/content:/`, y
+   `content: ''` también lo contiene. La trampa de las tandas 312 y 313,
+   otra vez. Ahora se mira el pseudo-elemento PINTADO.
+3. El botón nunca se probaba APAGANDO, solo encendiendo.
+4. Nadie miraba que lo guardado entrara en la lista de la página, solo en
+   la base.
+
+**Y tres mutaciones se quitaron porque no cambiaban nada, que también es
+información**: el valor inicial de `marcadas` no se ve nunca porque
+`abrirAlbum` lo apaga al entrar; la regla `.mc-marcar-barra.hidden` era
+CÓDIGO MUERTO (la clase global `.hidden` es `display: none !important` —
+el truco de la 412 era con el ATRIBUTO `[hidden]`, que viene de la hoja
+del navegador y sí se puede pisar); y la guarda de apagar el modo estaba
+DOS VECES, al salir de la expansión y al entrar. Esa se ha quitado del
+código: el único camino de vuelta a una rejilla pasa por `abrirAlbum`.
+
+**El doble aprendió algo que le faltaba**: `window.__SIN_PERMISO__`. Una
+escritura que la política rechaza NO da error en PostgREST: no toca nada
+y vuelve con el cuerpo vacío. Es de los fallos que más veces ha mordido
+en este repo —CLAUDE.md lo cuenta tres veces— y el doble no sabía
+fingirlo, así que un código que no mira lo que vuelve pasaba por bueno
+aquí y mentía en producción.
+
+**Ficheros**: `mi-coleccion.html`, `css/mi-coleccion.css`,
+`js/mi-coleccion.js`, `js/mi-coleccion/datos.js`. En `pruebas`:
+`test-tanda-426.mjs` y `rigor/rigor-tanda-426.py` (nuevos) y
+`herramientas/stub-supabase.js`.
+
+**En curso / pendiente**: nada a medias.
+
 ## 2026-10-01 — PINGU-Claude (tanda 424 — el anillo de la Pokédex se salía de su caja)
 
 **Hecho**: PINGU, con una captura del móvil: «el circulito que te está

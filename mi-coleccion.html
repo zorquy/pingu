@@ -306,7 +306,30 @@
                 <select id="mcTocarEstado" class="mc-chapa-select" aria-label="Estado al añadir"></select>
               </div>
             </details>
+            <!-- Marcar varias de golpe (tanda 426). Apuntar un sobre son
+                 diez cartas, y una a una eran diez búsquedas con el ojo,
+                 diez botones pequeños y veinte peticiones.
+
+                 OJO con lo que ya pasó: en la tanda 365 hubo un
+                 interruptor de «tocar una carta la añade» y se quitó en la
+                 368 porque obligaba a elegir —con él puesto no podías
+                 abrir una ficha, y sin él no podías añadir—. Esto NO es
+                 eso: es un modo que se enciende, se usa y se apaga, con su
+                 barra a la vista diciendo en qué estás y con un botón de
+                 guardar. Mientras no lo enciendas, la rejilla se comporta
+                 igual que siempre. -->
+            <button type="button" class="mc-chip-mando" id="mcMarcarAbrir" aria-pressed="false">Marcar varias</button>
             <span class="subtext" id="mcAlbumCuenta"></span>
+          </div>
+          <!-- La barra va ARRIBA y no pegada abajo: en el móvil abajo está
+               la barra de pestañas, y dos barras flotantes peleándose por
+               el mismo borde es justo el lío que arreglaba la 419. -->
+          <div class="mc-marcar-barra hidden" id="mcMarcarBarra">
+            <p class="mc-marcar-cuenta" id="mcMarcarCuenta" role="status" aria-live="polite">Toca las cartas que tienes</p>
+            <div class="mc-marcar-botones">
+              <button type="button" class="btn-secondary" id="mcMarcarCancelar">Cancelar</button>
+              <button type="button" class="btn-primary" id="mcMarcarGuardar" disabled>Añadir</button>
+            </div>
           </div>
         <!-- Aquí había un interruptor de «Tocar una carta la añade»
              (tanda 365) que se fue en la 368. Obligaba a elegir: con él

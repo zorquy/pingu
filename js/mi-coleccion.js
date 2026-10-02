@@ -1204,6 +1204,14 @@ function volverALaEstanteria() {
 }
 
 async function abrirAlbum(setId) {
+  // Entrar en una expansión empieza SIEMPRE con el modo marcar apagado
+  // (tanda 426): lo marcado es de un set concreto y no se ha guardado,
+  // así que arrastrarlo a otro sería guardar luego cartas que ya no
+  // estás mirando. Va aquí y SOLO aquí: ponerlo también al volver a la
+  // estantería era la misma guarda dos veces —el único camino de vuelta a
+  // una rejilla pasa por aquí—, y una guarda con red de repuesto no se
+  // puede probar, porque quitarla no cambia nada (CLAUDE.md).
+  if (marcadas) modoMarcar(false)
   album.set = setId
   album.pagina = 0
   // La estantería se va y sale el archivador (tanda 372). Los dos viven
@@ -1238,6 +1246,24 @@ async function abrirAlbum(setId) {
 // Una casilla de UNA versión (tanda 398). Misma forma que la de la carta
 // entera para que el pliego no baile, pero lo que cuenta y lo que marca
 // es solo esa versión.
+// Lo que una casilla necesita para poder MARCARSE (tanda 426). Va en los
+// dos moldes de bolsillo porque en «separar variantes» cada casilla es una
+// versión distinta de la misma carta. Y el estado se pinta AQUÍ y no solo
+// al pulsar: la rejilla se repinta entera a cada rato, y una marca que
+// vive únicamente en una clase del DOM se pierde en el primer repintado.
+// Los atributos van en el ENLACE, que es lo que ya se pulsa, y no en la
+// caja de fuera: una caja con `role="button"` que lleva dentro un enlace y
+// dos botones son controles anidados, y eso no lo sabe leer nadie. En modo
+// marcar, el − y el + se esconden con `display: none` —que además los saca
+// del tabulador—, así que cada casilla tiene UN solo destino.
+function marcaDeBolsillo(cardId, variante = 'normal') {
+  if (!marcadas) return ''
+  const clave = claveMarca(cardId, variante)
+  return ` data-marca="${escapeHtml(clave)}" role="button" aria-pressed="${marcadas.has(clave) ? 'true' : 'false'}"`
+}
+const claseMarcada = (cardId, variante = 'normal') =>
+  marcadas?.has(claveMarca(cardId, variante)) ? ' marcada' : ''
+
 function bolsilloDeVariante(c, v) {
   const n = tengoDe(c.id, v.nuestro)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
@@ -1253,10 +1279,10 @@ function bolsilloDeVariante(c, v) {
         : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
     }
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
-  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
+  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
   const pie = `<span class="mc-bolsillo-variante">${escapeHtml(v.nombre)}</span>`
   if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}${pie}</div>`
-  return `<div class="mc-bolsillo${n ? ' tengo' : ''} mc-bolsillo-con-mando">${enlace}${pie}
+  return `<div class="mc-bolsillo${n ? ' tengo' : ''}${claseMarcada(c.id, v.nuestro)} mc-bolsillo-con-mando">${enlace}${pie}
     <span class="mc-bolsillo-controles mc-bolsillo-mando">
       <button type="button" data-quitar="${escapeHtml(c.id)}" data-var="${escapeHtml(v.nuestro)}" ${n ? '' : 'disabled'} aria-label="Quitar una copia de ${escapeHtml(nombre)}, ${escapeHtml(v.nombre)}">−</button>
       <span class="mc-bolsillo-cuenta" aria-hidden="true">${n}</span>
@@ -1284,7 +1310,7 @@ function bolsilloHtml(c) {
         : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
     }
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
-  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
+  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id)}>${dentro}</a>`
   if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}</div>`
   // El número de copias vive DENTRO del mando y no suelto en una
   // esquina: así lo que dice cuántas tienes está pegado a lo que lo
@@ -1304,7 +1330,7 @@ function bolsilloHtml(c) {
         })
         .join('')}</span>`
     : ''
-  return `<div class="mc-bolsillo${n ? ' tengo' : ''} mc-bolsillo-con-mando">${enlace}${versiones}
+  return `<div class="mc-bolsillo${n ? ' tengo' : ''}${claseMarcada(c.id)} mc-bolsillo-con-mando">${enlace}${versiones}
     <span class="mc-bolsillo-controles mc-bolsillo-mando">
       <button type="button" data-quitar="${escapeHtml(c.id)}" ${n ? '' : 'disabled'} aria-label="Quitar una copia de ${escapeHtml(nombre)}">−</button>
       <span class="mc-bolsillo-cuenta" aria-hidden="true">${n}</span>
@@ -1480,6 +1506,108 @@ function masValiosasDe(filas, cuantas = 3) {
 
 // `variante` llega desde «una por versión» (tanda 398): ahí el + suma a
 // ESA versión y no a la normal, que es lo que distingue las casillas.
+// ── Marcar varias de golpe (tanda 426) ──
+//
+// PINGU no lo pidió con estas palabras, pero es lo que cuesta de verdad:
+// apuntar un sobre son diez cartas, y una a una eran diez botones
+// pequeños, diez repintados de la rejilla y veinte peticiones.
+//
+// NO es el interruptor de la tanda 365 que se quitó en la 368. Aquel
+// obligaba a elegir —con él puesto no se podía abrir una ficha, sin él no
+// se podía añadir— y vivía puesto para siempre. Este se enciende, se usa
+// y se apaga, lleva su barra diciendo en qué estás y no guarda NADA hasta
+// que lo dices. Mientras está apagado la rejilla se comporta igual que
+// siempre.
+//
+// La clave lleva la versión porque en «separar variantes» cada casilla ES
+// una versión: con el id de la carta a secas, marcar el reverse holo
+// marcaría también la normal.
+let marcadas = null // Set de `cardId|variante`, o null si el modo está apagado
+const claveMarca = (cardId, variante = 'normal') => `${cardId}|${variante || 'normal'}`
+
+function modoMarcar(encender) {
+  marcadas = encender ? new Set() : null
+  $('mcMarcarAbrir')?.setAttribute('aria-pressed', encender ? 'true' : 'false')
+  $('mcMarcarBarra')?.classList.toggle('hidden', !encender)
+  $('mcAlbum')?.classList.toggle('mc-album-marcando', Boolean(encender))
+  pintarMarcadas()
+  pintarAlbum()
+}
+
+function pintarMarcadas() {
+  const cuantas = marcadas ? marcadas.size : 0
+  const cuenta = $('mcMarcarCuenta')
+  if (cuenta) {
+    cuenta.textContent = cuantas
+      ? `${cuantas} ${cuantas === 1 ? 'carta marcada' : 'cartas marcadas'}`
+      : 'Toca las cartas que tienes'
+  }
+  const guardar = $('mcMarcarGuardar')
+  if (guardar) {
+    guardar.disabled = !cuantas
+    // El botón dice CUÁNTAS va a añadir: «Añadir» a secas, con doce
+    // marcadas, no deja claro si añade una o las doce.
+    guardar.textContent = cuantas ? `Añadir ${cuantas}` : 'Añadir'
+  }
+}
+
+// Marcar o desmarcar una casilla. No toca la base: lo que se marca vive
+// en memoria hasta que se pulsa «Añadir», que es lo que permite
+// corregirse sin haber escrito nada.
+function alternarMarca(enlace) {
+  if (!marcadas) return
+  const clave = enlace.dataset.marca
+  if (!clave) return
+  if (marcadas.has(clave)) marcadas.delete(clave)
+  else marcadas.add(clave)
+  const puesta = marcadas.has(clave)
+  enlace.setAttribute('aria-pressed', puesta ? 'true' : 'false')
+  // La clase va en la CAJA, que es la que se puede dibujar entera; el
+  // enlace es solo la foto. Y se toca a mano en vez de repintar la
+  // rejilla: con 200 casillas, repintar a cada toque se nota.
+  enlace.closest('.mc-bolsillo')?.classList.toggle('marcada', puesta)
+  pintarMarcadas()
+}
+
+async function guardarMarcadas() {
+  if (!marcadas?.size) return
+  const boton = $('mcMarcarGuardar')
+  const idioma = $('mcTocarIdioma').value
+  const estado = $('mcTocarEstado').value
+  const lineasNuevas = [...marcadas].map((clave) => {
+    const corte = clave.lastIndexOf('|')
+    return { card_id: clave.slice(0, corte), variante: clave.slice(corte + 1), idioma, estado }
+  })
+  boton.disabled = true
+  try {
+    const puestas = await datos.anadirVarias(sesion.user.id, lineasNuevas)
+    // Las que ya estaban vuelven ACTUALIZADAS y las nuevas, nuevas: se
+    // mezclan por id para no acabar con la misma línea dos veces en la
+    // lista, que es lo que pasa si se hace `unshift` a lo bruto.
+    for (const l of puestas) {
+      const i = lineas.findIndex((x) => x.id === l.id)
+      if (i >= 0) lineas[i] = l
+      else lineas.unshift(l)
+    }
+    // Y el catálogo, para que la rejilla de «Cartas» sepa pintarlas sin
+    // tener que volver a pedirlas.
+    const elSet = (todosLosSets || []).find((x) => x.id === album.set)
+    for (const l of puestas) {
+      if (cartas.has(l.card_id)) continue
+      const c = album.cartas.find((x) => x.id === l.card_id)
+      if (c) cartas.set(l.card_id, { ...c, tcg_sets: elSet ? { id: elSet.id, name: elSet.name, release_date: elSet.release_date } : null })
+    }
+    const cuantas = puestas.length
+    modoMarcar(false)
+    pintarResumen()
+    pintarCartas()
+    showToast(`${cuantas} ${cuantas === 1 ? 'carta añadida' : 'cartas añadidas'} a tu colección.`, 'success')
+  } catch (err) {
+    showToast(err.message || 'No se han podido añadir.', 'error')
+    boton.disabled = false
+  }
+}
+
 async function tocarBolsillo(cardId, variante = 'normal') {
   const idioma = $('mcTocarIdioma').value
   const estado = $('mcTocarEstado').value
@@ -2406,6 +2534,20 @@ function enganchar() {
     fijarVecindario('mcCartas', '[data-linea]', 'linea', l.id)
     abrirEditor(l)
   })
+  // ── Marcar varias (tanda 426) ──
+  $('mcMarcarAbrir')?.addEventListener('click', () => modoMarcar(!marcadas))
+  $('mcMarcarCancelar')?.addEventListener('click', () => modoMarcar(false))
+  $('mcMarcarGuardar')?.addEventListener('click', () => void guardarMarcadas())
+  // Con el teclado: un enlace ya responde a Intro, pero `role="button"`
+  // promete también la BARRA ESPACIADORA, y un enlace no la tiene.
+  $('mcAlbum')?.addEventListener('keydown', (e) => {
+    if (e.key !== ' ' && e.key !== 'Spacebar') return
+    const enlace = e.target.closest('.mc-bolsillo-enlace[data-marca]')
+    if (!marcadas || !enlace) return
+    e.preventDefault()
+    alternarMarca(enlace)
+  })
+
   // Las flechas y el cerrar de la ficha (tanda 422).
   $('mcEdAnterior')?.addEventListener('click', () => void abrirVecino(-1))
   $('mcEdSiguiente')?.addEventListener('click', () => void abrirVecino(1))
@@ -2580,9 +2722,16 @@ function enganchar() {
   const abreLaPagina = (e) => e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey
   const engancharFicha = (zona, selector) => {
     $(zona)?.addEventListener('click', (e) => {
-      if (abreLaPagina(e)) return
       const enlace = e.target.closest(selector)
       if (!enlace || !enlace.dataset.carta) return
+      // En modo marcar, pulsar una casilla la MARCA. Y aquí sí se le gana
+      // al Ctrl+clic: con el modo encendido, abrir la carta en otra
+      // pestaña no es lo que estabas haciendo.
+      if (marcadas && enlace.dataset.marca) {
+        e.preventDefault()
+        return alternarMarca(enlace)
+      }
+      if (abreLaPagina(e)) return
       e.preventDefault()
       fijarVecindario(zona, selector, 'carta', enlace.dataset.carta)
       abrirCarta(enlace.dataset.carta)

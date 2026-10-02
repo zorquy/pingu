@@ -1460,6 +1460,97 @@
   color: var(--text);
 }
 
+/* ── Marcar varias de golpe (tanda 426) ── */
+.mc-marcar-barra {
+  display: flex;
+  position: sticky;
+  z-index: 4;
+  /* Debajo de la barra de arriba del sitio, que es `sticky` a 0 con 70 px
+     de alto y un z-index de 100: a 0 esta se le metía por debajo y los
+     botones quedaban cortados. 72 y no 70 porque por encima de 32 px ya no
+     es un paso sino una MEDIDA, y una medida sigue la retícula de 4
+     (CLAUDE.md). Los 2 px de sobra son aire, no un error de cuenta. */
+  top: 72px;
+  flex-wrap: wrap;
+  gap: var(--e-sm) var(--e-md);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  /* Superficie normal con un contorno que la destaca, y NO el azul sólido
+     de fondo: encima van un `btn-primary` —que ya es azul sólido— y un
+     `link-btn`, y azul sobre azul no se lee. Una barra se hace notar con
+     el contorno y con estar pegada arriba; pintarla entera obliga a
+     repintar todo lo que lleva dentro. */
+  border: 2px solid var(--navy);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+}
+
+.mc-marcar-cuenta {
+  margin: 0;
+  font-weight: 700;
+}
+
+.mc-marcar-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  align-items: center;
+}
+
+/* En el móvil la barra se queda en dos renglones: lo que dice arriba y lo
+   que se pulsa abajo, ocupando el ancho. Con los tres botones apretados en
+   la misma línea que la cuenta se iba a tres y cuatro renglones. */
+@media (max-width: 599px) {
+  .mc-marcar-barra {
+    gap: var(--e-sm);
+  }
+
+  .mc-marcar-botones {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* Con el modo puesto, el − y el + se van: así cada casilla tiene UN
+   destino y, de paso, salen del tabulador. */
+.mc-album-marcando .mc-bolsillo-controles {
+  display: none;
+}
+
+.mc-album-marcando .mc-bolsillo-enlace {
+  cursor: pointer;
+}
+
+/* Marcada: un contorno grueso y una esquina con el visto. El color SOLO
+   no vale —hay quien no lo distingue—, así que la marca es también una
+   forma. */
+.mc-bolsillo.marcada {
+  /* El contorno sigue solo el redondeo de la caja, así que no hay que
+     repetirlo aquí. */
+  outline: 2px solid var(--navy);
+  outline-offset: 1px;
+}
+
+.mc-bolsillo.marcada::after {
+  content: '✓';
+  display: grid;
+  position: absolute;
+  z-index: 2;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 800;
+}
+
 /* ── El mando de la ficha (tanda 422) ──
    Pegado arriba del diálogo, que se desplaza por dentro: si se fuera con
    el desplazamiento, para pasar a la carta siguiente habría que subir

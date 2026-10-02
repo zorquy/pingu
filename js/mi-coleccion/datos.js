@@ -88,6 +88,61 @@ export async function anadir(userId, linea) {
   return data
 }
 
+// Marcar VARIAS de golpe (tanda 426).
+//
+// `anadir` hace un `select` por carta y luego su insert: marcar un sobre
+// —diez cartas— son veinte peticiones y diez repintados de la rejilla.
+// Aquí se lee UNA vez lo que ya tienes de todas ellas y se insertan las
+// nuevas en UNA sola, que es lo que convierte «apuntar un sobre» en algo
+// que se hace de un tirón.
+//
+// Las que YA tienes con la misma clave suben de copias, y esas sí van una
+// a una: son `update` sobre ids distintos y PostgREST no sabe hacerlo de
+// otra forma. Normalmente son pocas —marcas lo que te acaba de llegar—.
+export async function anadirVarias(userId, nuevasLineas) {
+  // Se reciben LÍNEAS y no ids sueltos: en «separar variantes» cada
+  // casilla es una versión, así que dos casillas de la misma carta son
+  // dos líneas distintas y un id no bastaría para decir cuál se marcó.
+  const porMeter = (nuevasLineas || []).map((l) => ({ cantidad: 1, ...l }))
+  const ids = [...new Set(porMeter.map((l) => l.card_id))]
+  if (!ids.length) return []
+  const { data, error } = await supabase
+    .from('user_collection')
+    .select(COLUMNAS_LINEA)
+    .eq('user_id', userId)
+    .in('card_id', ids)
+  if (error) throw traducir(error)
+  // Se mira contra lo que hay EN LA BASE y no contra lo que tiene el
+  // navegador en memoria: entre que se cargó la página y se marca el
+  // sobre, la misma carta puede haber entrado desde el móvil — y
+  // entonces lo correcto es subirle una copia, no crearle una fila
+  // gemela que la lista enseñaría dos veces.
+  const porClave = new Map((data || []).map((l) => [claveDeLinea(l), l]))
+  const nuevas = []
+  const suben = []
+  for (const linea of porMeter) {
+    const ya = porClave.get(claveDeLinea(linea))
+    if (ya) suben.push(ya)
+    else nuevas.push({ market: 'WEST', ...linea })
+  }
+  const puestas = []
+  if (nuevas.length) {
+    const { data: creadas, error: fallo } = await supabase
+      .from('user_collection')
+      .insert(nuevas)
+      .select(COLUMNAS_LINEA)
+    if (fallo) throw traducir(fallo)
+    // Una escritura que la política rechaza NO da error: vuelve vacía
+    // (CLAUDE.md). Sin mirarlo, «marcadas 10» mentiría.
+    if (!creadas?.length) throw new Error('No se ha podido guardar: revisa que has iniciado sesión.')
+    puestas.push(...creadas)
+  }
+  for (const l of suben) {
+    puestas.push(await actualizar(l.id, { cantidad: Math.min(999, (Number(l.cantidad) || 0) + 1) }))
+  }
+  return puestas
+}
+
 export async function actualizar(id, cambios) {
   // El puente otra vez, y aquí en el CUERPO y no en el `select`: sin la
   // migración, mandar `cambio` en el update devuelve 42703 y el
