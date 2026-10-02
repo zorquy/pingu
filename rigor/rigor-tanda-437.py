@@ -46,13 +46,15 @@ MUTACIONES = [
     (J, 'la eleccion no se guarda',
      "    localStorage.setItem(CLAVE_MERCADO, nuevo)", "    void nuevo"),
     (J, 'la eleccion guardada no se lee al entrar',
-     "    return MERCADOS_A_LA_VISTA.includes(v) ? v : 'WEST'", "    return v && 'WEST'"),
+     "    return VISTAS.some((x) => x.id === v) ? v : 'es'", "    return v && 'es'"),
     (J, 'solo se entera el primer selector de los tres',
-     "  for (const sel of document.querySelectorAll('.mc-mercado')) {\n    if (sel.innerHTML !== opciones) sel.innerHTML = opciones\n    sel.value = mercado\n  }",
-     "  const sel = document.querySelector('.mc-mercado')\n  if (sel) {\n    sel.innerHTML = opciones\n    sel.value = mercado\n  }"),
-    (J, 'se ofrece un catalogo que no esta importado',
-     "const MERCADOS_A_LA_VISTA = ['WEST', 'JP', 'TW', 'CN']",
-     "const MERCADOS_A_LA_VISTA = ['WEST', 'JP', 'TW', 'CN', 'KO']"),
+     "  for (const sel of document.querySelectorAll('.mc-mercado')) {\n    if (sel.innerHTML !== opciones) sel.innerHTML = opciones\n    sel.value = vista\n",
+     "  for (const sel of [document.querySelector('.mc-mercado')].filter(Boolean)) {\n    if (sel.innerHTML !== opciones) sel.innerHTML = opciones\n    sel.value = vista\n"),
+    # La lista pasó a ser de VISTAS en la 438. Quitarle el japonés deja a
+    # /mi-coleccion sin más catálogo que el occidental, que es el fallo de
+    # esta tanda al completo.
+    (J, 'se queda sin ningun catalogo que elegir aparte del occidental',
+     "  { id: 'ja', bandera: '\U0001F1EF\U0001F1F5', nombre: 'Japonés', mercado: 'JP', enEspanol: false },\n", "  "),
     (J, 'cambiar de catalogo no vuelve a cargar nada',
      "  $('mcCargando')?.classList.remove('hidden')\n  await cargarColeccion(duenoActual)",
      "  $('mcCargando')?.classList.remove('hidden')"),

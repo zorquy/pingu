@@ -79,19 +79,18 @@ console.log('\n── 1. El selector está, y en los tres sitios ──')
   const { page, errores } = await abrir()
   const cuantos = await page.locator('.mc-mercado').count()
   check('hay un selector por cada sitio donde se mira el catálogo', cuantos === 3, String(cuantos))
-  // Los cuatro que están importados, y no los siete que admite la base:
-  // ofrecer el coreano sería ofrecer una pantalla vacía.
+  // Lo que se elige ya no es el CÓDIGO del mercado: desde la tanda 438 es
+  // una VISTA, y «español» e «inglés» son el mismo catálogo con dos
+  // rótulos. Lo que ofrece y cómo se pinta es cosa de test-tanda-438; lo
+  // de aquí es que el catálogo SIGA a lo elegido, que es lo de la 437.
   const valores = await page.locator('.mc-mercado').first().evaluate(
     (n) => [...n.options].map((o) => o.value))
-  check('ofrece los cuatro catálogos importados', valores.join(',') === 'WEST,JP,TW,CN', valores.join(','))
-  const textos = await page.locator('.mc-mercado').first().evaluate(
-    (n) => [...n.options].map((o) => o.textContent))
-  check('  …con su nombre en español', textos[1] === 'Japonés', textos.join(' | '))
-  check('empieza en el occidental', (await page.locator('.mc-mercado').first().inputValue()) === 'WEST')
+  check('ofrece un catálogo japonés que elegir', valores.includes('ja'), valores.join(','))
+  check('empieza en el occidental', ['es', 'en'].includes(await page.locator('.mc-mercado').first().inputValue()))
   // Los tres son EL MISMO selector repetido: si uno se queda atrás, quien
   // entra por esa pantalla ve un catálogo y cree que ve otro.
   const todos = await page.locator('.mc-mercado').evaluateAll((ns) => ns.map((n) => n.value))
-  check('  …y los tres dicen lo mismo', todos.every((v) => v === 'WEST'), todos.join(','))
+  check('  …y los tres dicen lo mismo', new Set(todos).size === 1, todos.join(','))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }
@@ -102,7 +101,7 @@ console.log('\n── 2. Tu colección es la de ESE catálogo ──')
   const { page, errores } = await abrir('/mi-coleccion.html?ver=cartas')
   const cuenta = () => page.locator('#mcCartas .mc-carta').count()
   check('en occidental llevas dos cartas', (await cuenta()) === 2, String(await cuenta()))
-  await elegir(page, 'JP')
+  await elegir(page, 'ja')
   check('en japonés llevas una', (await cuenta()) === 1, String(await cuenta()))
   // Y es la japonesa, no una inglesa pintada con otro rótulo.
   const nombres = await page.locator('#mcCartas .mc-carta-foto').evaluateAll((ns) => ns.map((n) => n.getAttribute('aria-label')))
@@ -110,8 +109,8 @@ console.log('\n── 2. Tu colección es la de ESE catálogo ──')
   // Lo de los tres selectores otra vez, pero DESPUÉS de cambiar: es
   // cuando uno se queda con el valor viejo.
   const todos = await page.locator('.mc-mercado').evaluateAll((ns) => ns.map((n) => n.value))
-  check('  …y los tres selectores se enteran', todos.every((v) => v === 'JP'), todos.join(','))
-  await elegir(page, 'WEST')
+  check('  …y los tres selectores se enteran', todos.every((v) => v === 'ja'), todos.join(','))
+  await elegir(page, 'es')
   check('y al volver, las dos de antes', (await cuenta()) === 2, String(await cuenta()))
   check('sin errores', !errores.length, errores[0])
   await page.close()
@@ -124,7 +123,7 @@ console.log('\n── 3. Las expansiones, también ──')
   const sets = () => page.locator('#mcEstanteriaRejilla .mc-set-nombre').allTextContents()
   const oeste = await sets()
   check('en occidental sale el set inglés', oeste.join('|') === 'Scarlet & Violet', oeste.join('|'))
-  await elegir(page, 'JP')
+  await elegir(page, 'ja')
   const jp = await sets()
   check('en japonés salen los dos japoneses', jp.length === 2, jp.join('|'))
   // El set 'sv1' existe en los dos mercados con NOMBRES distintos: si la
@@ -144,7 +143,7 @@ console.log('\n── 4. El buscador y la Pokédex ──')
   const enOeste = await page.locator('#mcAnadirResultados .mc-resultado-nombre').allTextContents()
   check('el buscador trae solo cartas del catálogo mirado',
     enOeste.length > 0 && enOeste.every((t) => /inglesa/.test(t)), enOeste.join(' | ').slice(0, 120))
-  await elegir(page, 'JP')
+  await elegir(page, 'ja')
   await page.fill('#mcBuscar', 'carta')
   await page.waitForTimeout(1500)
   const enJp = await page.locator('#mcAnadirResultados .mc-resultado-nombre').allTextContents()
@@ -159,7 +158,7 @@ console.log('\n── 4. El buscador y la Pokédex ──')
   const pdx = await abrir('/mi-coleccion.html?ver=pokedex')
   const dePikachu = async () => (await pdx.page.locator('.pdx-especie[data-dex="25"] .pdx-cuenta').first().textContent()) || ''
   check('en occidental, Pikachu tiene tres cartas', /de 3$/.test((await dePikachu()).trim()), await dePikachu())
-  await elegir(pdx.page, 'JP')
+  await elegir(pdx.page, 'ja')
   check('  …y en japonés, dos', /de 2$/.test((await dePikachu()).trim()), await dePikachu())
   check('sin errores', !pdx.errores.length, pdx.errores[0])
   await pdx.page.close()
@@ -169,10 +168,10 @@ console.log('\n── 4. El buscador y la Pokédex ──')
 console.log('\n── 5. La elección se recuerda ──')
 {
   const { page } = await abrir('/mi-coleccion.html?ver=cartas')
-  await elegir(page, 'JP')
+  await elegir(page, 'ja')
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3000)
-  check('al recargar sigue en japonés', (await suyo(page).inputValue()) === 'JP', await suyo(page).inputValue())
+  check('al recargar sigue en japonés', (await suyo(page).inputValue()) === 'ja', await suyo(page).inputValue())
   check('  …y la colección es la japonesa', (await page.locator('#mcCartas .mc-carta').count()) === 1,
     String(await page.locator('#mcCartas .mc-carta').count()))
   await page.close()
@@ -187,7 +186,7 @@ console.log('\n── 5. La elección se recuerda ──')
 console.log('\n── 6. Dentro de una expansión y dentro de una especie ──')
 {
   const { page, errores } = await abrir('/mi-coleccion.html?ver=album')
-  await elegir(page, 'JP')
+  await elegir(page, 'ja')
   // El set que comparte id con el inglés, a propósito.
   await page.locator('#mcEstanteriaRejilla .mc-set-tarjeta[data-set="sv1"]').first().click()
   await page.waitForTimeout(2000)
@@ -215,7 +214,7 @@ console.log('\n── 6. Dentro de una expansión y dentro de una especie ──
   // Volver a la rejilla para poder cambiar de catálogo y entrar otra vez.
   await page.goto(`${BASE}/mi-coleccion.html?ver=pokedex`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3000)
-  await elegir(page, 'JP')
+  await elegir(page, 'ja')
   const jp = await abrirPikachu()
   check('  …y en japonés, las japonesas',
     jp.length === 2 && jp.every((t) => /japonesa/.test(t)), jp.join(' | ').slice(0, 160))
