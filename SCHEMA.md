@@ -22858,3 +22858,69 @@ tablas que se pongan en `window.__SIN_PERMISO__` devuelven vacío sin error
 en insert, update, upsert y delete. La 426 lo usa para comprobar que
 marcar y guardar sin permiso **dice que no ha podido**, deja la barra
 puesta para reintentar y no escribe nada.
+
+## Tanda 427 — ordenar una expansión (oct. 2026)
+
+Cuatro órdenes en `js/mi-coleccion/orden.js`: por número, por nombre, las
+más raras primero y lo que te falta primero. Una expansión se mira de una
+manera distinta según lo que vayas a hacer con ella, y hasta ahora solo
+había la primera.
+
+El módulo **no toca el DOM**, para poder probarlo en Node: lo que decide
+un orden es aritmética, y la aritmética no necesita un navegador para
+equivocarse. La mitad de `test-tanda-427` corre sin Playwright.
+
+### La escala de rareza, que no existía
+
+`rarity` es texto suelto en la base, así que la escala hay que ponerla. Y
+una lista a mano se queda vieja —la lección de la tanda 323—, por eso
+debajo de la tabla hay reconocimiento **por palabras**, el mismo patrón
+que `familiaDeBrillo`: una rareza nueva que diga «Hyper» se ordena arriba
+desde el día uno y no cuando alguien se acuerde de añadirla.
+
+**Con bordes de palabra, y no es un detalle**: `/rare/i` casa con
+«Rareza», así que sin `\b` una rareza que no se reconoce acabaría colocada
+en medio de la escala en vez de al final. Es la trampa de las tandas 312 y
+313 —al barrer texto, todo lo que CONTIENE la cadena cuenta— aplicada a un
+nombre de rareza. Lo mismo evita que «Uncommon» cuente como «Common».
+
+Y **tres respuestas, no dos** (la regla de la 319): un número si se sabe,
+`null` si no hay rareza y `null` también si la hay pero no se reconoce. Lo
+que no vale es inventarse un escalón, que colocaría una rareza desconocida
+en medio de la escala sin que nada lo cantara. Las `null` van **siempre al
+final**, se ordene como se ordene: arriba dirían que son las más raras del
+set, que es exactamente lo que no se sabe.
+
+Una promo va al escalón 0 porque no es un escalón de rareza: es de dónde
+salió la carta, y meterla en medio partiría la escala.
+
+### Dos detalles que el rigor sacó, y los dos eran del juego de datos
+
+- **Nombres repetidos.** Un set trae varias ilustraciones del mismo
+  Pokémon, así que el orden por nombre necesita desempatar por número. Sin
+  ningún nombre repetido en la prueba, quitar el desempate no se notaba.
+- **`10a` no es `TG1`.** `parseInt('10a')` devuelve 10, así que sin la
+  comprobación de «¿es TODO dígitos?» se colaría entre el 9 y el 20 en vez
+  de irse con los que llevan letra. La prueba no tenía ningún número con
+  letra pegada, solo prefijos.
+
+`ordenar` trabaja sobre una **copia**: `sort` muta, y `album.cartas` es la
+lista buena del set — ordenarla en el sitio dejaría «por número»
+dependiendo de lo último que hubieras elegido.
+
+El orden se aplica **después** de filtrar, no en vez de: filtrar y ordenar
+son cosas distintas y tienen que componerse.
+
+### `porNumero`, en un solo sitio
+
+Estaba escrito en `js/mi-coleccion.js` y lo necesitaba el módulo nuevo.
+Una constante copiada se separa y no da error (la lección de la 322), así
+que vive en `orden.js` y se importa; la prueba comprueba que no ha vuelto
+a aparecer una segunda copia.
+
+### Lo que se queda fuera a propósito
+
+**Ordenar por valor.** `cartasDeSet` no trae precios, y pedirlos para las
+200 cartas de un set es otra consulta con un `in()` enorme. No es que se
+haya olvidado: es un coste, como el de la tanda 233 con `cardToRow`. Si
+algún día se hace, que sea con esa decisión escrita.

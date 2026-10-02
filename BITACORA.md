@@ -75,6 +75,52 @@ rigor, 32 de 32 (pasado sobre este mismo código antes de renumerar: solo
 cambian comentarios). Con lo de la 422 a la 424 debajo, en verde también
 la 413, 421, 422, 414, 384, 305, 310, 369 y 406.
 
+## 2026-10-02 — PINGU-Claude (tanda 427 — ordenar una expansión)
+
+**Hecho**: una expansión se puede ordenar de cuatro maneras, según lo que
+vayas a hacer con ella: **por número** (el de siempre, el del álbum en la
+mano), **por nombre** (cuando buscas una), **las más raras primero**
+(cuando miras lo que vale) y **lo que te falta primero** (cuando vas a
+comprar o a cambiar). Antes solo existía la primera.
+
+**La escala de rareza no estaba en ningún sitio**: `rarity` es texto
+suelto en la base. Hay que ponerla, y una lista a mano SE QUEDA VIEJA —la
+lección de la 323 con las megas de `FORMAS_TCG`—, así que debajo hay
+reconocimiento por PALABRAS igual que en `familiaDeBrillo`: una rareza
+nueva que diga «Hyper» se ordena arriba desde el día uno. Y las que no se
+reconocen van SIEMPRE al final, se ordene como se ordene: arriba dirían
+que son las más raras del set, que es justo lo que no se sabe. Tres
+respuestas y no dos (la regla de la 319).
+
+**El fallo que cazó la prueba antes de que lo viera nadie**: metí a
+propósito una rareza inventada y salió colocada EN MEDIO de la escala,
+porque `/rare/i` casa con **«Rareza»**. Es la trampa de los substrings de
+las tandas 312 y 313, ahora en un nombre de rareza. Arreglado con bordes
+de palabra (`\brare\b`), que de paso deja de confundir «Uncommon» con
+«Common».
+
+**`porNumero` se mudó a `js/mi-coleccion/orden.js`**, donde viven los
+otros tres órdenes. Estaba en `mi-coleccion.js` y el módulo nuevo lo
+necesitaba: dos copias se separan sin dar error (la 322), así que una
+sola y se importa, con una prueba que lo vigila.
+
+**El rigor encontró dos agujeros, los dos por datos de prueba demasiado
+fáciles**: no había ningún nombre repetido —y un set trae varias
+ilustraciones del mismo Pokémon—, ni ningún número con una letra pegada
+(«10a»), que no es lo mismo que «TG1»: `parseInt('10a')` sí da 10, así
+que sin la comprobación de «¿es TODO dígitos?» se colaba entre el 9 y el
+20. Y de paso quité un `check` tautológico que se me había colado:
+comparaba una lista con una copia de sí misma, o sea verdad siempre.
+
+**Ficheros**: nuevo `js/mi-coleccion/orden.js`. Tocados
+`js/mi-coleccion.js`, `mi-coleccion.html`. En `pruebas`:
+`test-tanda-427.mjs` y `rigor/rigor-tanda-427.py` (nuevos).
+
+**En curso / pendiente**: ordenar por VALOR se queda fuera a propósito:
+`cartasDeSet` no trae precios y pedirlos para las 200 cartas de un set es
+otra consulta con un `in()` enorme. Si se hace, que sea con su propia
+decisión de coste, como la de la 322.
+
 ## 2026-10-02 — PINGU-Claude (tanda 426 — marcar varias cartas de golpe)
 
 **Hecho**: dentro de una expansión hay un botón **«Marcar varias»**. Con

@@ -46,6 +46,7 @@ import { marcaCardmarket } from './cardmarket-marca.js'
 import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
+import { ORDENES, ordenar, porNumero } from './mi-coleccion/orden.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante } from './mi-coleccion/variantes.js'
@@ -101,15 +102,9 @@ let especieAbierta = null
 
 const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
 
-// El número impreso ordena «como en el álbum»: 2 antes que 10, y los
-// que llevan letras (TG12, SV045) detrás de los numéricos.
-function porNumero(a, b) {
-  const na = parseInt(a.local_id, 10)
-  const nb = parseInt(b.local_id, 10)
-  const ea = String(a.local_id).match(/^\d+$/) ? 0 : 1
-  const eb = String(b.local_id).match(/^\d+$/) ? 0 : 1
-  return ea - eb || (Number.isFinite(na) && Number.isFinite(nb) ? na - nb : 0) || String(a.local_id).localeCompare(String(b.local_id))
-}
+// `porNumero` vive en `mi-coleccion/orden.js` desde la 427, con los otros
+// tres órdenes. Estaba aquí, y una constante copiada se separa sin que
+// nada lo cante (la lección de la 322): mejor una sola.
 
 function aviso(html) {
   $('mcAviso').innerHTML = html
@@ -1354,6 +1349,12 @@ function pintarFiltrosDeAlbum() {
   // borra lo elegido, y eso al filtrar sería insoportable.
   const rareza = $('mcAlbumRareza')
   const tipo = $('mcAlbumTipo')
+  // El de ORDEN no depende de la colección, así que se rellena una vez y
+  // no se toca al cambiar de set: repintarlo le borraría lo elegido.
+  const orden = $('mcAlbumOrden')
+  if (orden && !orden.options.length) {
+    orden.innerHTML = ORDENES.map((o) => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.nombre)}</option>`).join('')
+  }
   if (rareza.dataset.set !== album.set) {
     rareza.innerHTML = opcionesDe((c) => (c.rarity ? rarezaEs(c.rarity) : null), 'Cualquier rareza')
     tipo.innerHTML = opcionesDe((c) => (c.category ? categoriaEs(c.category) : null), 'Cualquier categoría')
@@ -1373,13 +1374,17 @@ function cartasDelAlbumFiltradas() {
   // carta, número o ilustrador», y el número es como se busca una carta
   // dentro de un set — «la 102» —, que es justo lo que no se podía.
   const texto = normalizeSearch($('mcAlbumBuscar')?.value || '').trim()
-  return album.cartas.filter((c) => {
+  const encajan = album.cartas.filter((c) => {
     if (album.soloFaltan && tengoDe(c.id)) return false
     if (rareza && (!c.rarity || rarezaEs(c.rarity) !== rareza)) return false
     if (tipo && (!c.category || categoriaEs(c.category) !== tipo)) return false
     if (texto && !normalizeSearch(`${nombreDe(c)} ${c.local_id || ''}`).includes(texto)) return false
     return true
   })
+  // El orden va DESPUÉS de filtrar y sobre una copia: `album.cartas` es la
+  // lista buena del set, y ordenarla en el sitio dejaría «por número»
+  // dependiendo de lo último que hubieras elegido.
+  return ordenar(encajan, $('mcAlbumOrden')?.value || 'numero', { tengo: tengoDe, nombre: nombreDe })
 }
 
 // Cuál de los dos está puesto. `aria-pressed` además de la clase: para
@@ -2664,7 +2669,7 @@ function enganchar() {
       pintarPokedex()
     }
   })
-  for (const id of ['mcAlbumRareza', 'mcAlbumTipo']) {
+  for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumOrden']) {
     $(id).addEventListener('change', () => {
       // Al filtrar se vuelve a la primera página: seguir en la 7 de una
       // lista que ahora tiene 2 deja el archivador en blanco.

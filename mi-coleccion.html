@@ -281,6 +281,14 @@
             <input type="search" id="mcAlbumBuscar" placeholder="Busca por nombre o número" aria-label="Buscar en esta colección" />
           </div>
           <div class="mc-album-filtros" id="mcAlbumFiltros">
+            <!-- Cómo se ordena (tanda 427). Una expansión se mira de
+                 cuatro maneras según lo que vayas a hacer: por número
+                 cuando la repasas en la mano, por nombre cuando buscas
+                 una, por rareza cuando miras lo que vale, y «lo que te
+                 falta» cuando vas a comprar o a cambiar. Las opciones las
+                 pone el JavaScript desde `orden.js`, que es quien sabe
+                 ordenar: dos listas iguales en dos sitios se separan. -->
+            <select id="mcAlbumOrden" class="mc-chapa-select" aria-label="Cómo se ordenan las cartas"></select>
             <select id="mcAlbumRareza" class="mc-chapa-select" aria-label="Filtrar por rareza"></select>
             <select id="mcAlbumTipo" class="mc-chapa-select" aria-label="Filtrar por categoría"></select>
             <!-- Stack / Split: una casilla por CARTA o una por VERSIÓN. En
