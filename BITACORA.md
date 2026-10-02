@@ -35,6 +35,68 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 446 — el menú bajo la barra, la carta huérfana y los enlaces pochos)
+
+**Hecho**: tres cosas que PINGU vio en una captura del panel y que no dan
+error de ninguna clase.
+
+**1. El menú pegajoso se metía DEBAJO de la barra del sitio.** La barra de
+arriba es `sticky` a 0 y mide **70 px medidos**; el menú se pegaba a 16, o
+sea que al bajar se le metía por detrás y la barra le tapaba el PRIMER
+elemento: «Panel» desaparecía y parecía que el menú empezaba en «Cartas».
+Ahora se pega a 88 —los 70 de la barra más aire, en la retícula de 4—, que
+es el mismo cálculo que la barra de marcar de la 426.
+
+**2. La carta huérfana del vistazo.** PINGU: «hay como una fila y luego una
+carta más». Y NO se arregla bajando `DE_VISTAZO` a siete, porque **cuántas
+caben depende del ancho**: siete en un escritorio, tres en un móvil. Se
+pide UNA fila (`grid-template-rows: auto` y `grid-auto-rows: 0` con
+recorte) y el número se ajusta solo a cualquier ancho sin que nadie lo
+mida. La prueba lo comprueba a dos anchos justamente por eso.
+
+Y un tropiezo por el camino: el primer intento fue solo `grid-auto-rows: 0`
+—sin el `grid-template-rows`—, y entonces TODAS las filas son automáticas,
+también la primera. Las cartas se salían de su fila de alto cero y se
+seguían viendo las dos.
+
+**3. «Ver todas» y «Copiar enlace» eran enlaces pochos**: texto azul
+subrayado al lado de un título en negrita, que se lee como el enlace de un
+pie de página. Pasan a ser chapas. **Sin tocar la clase global `.link-btn`**
+—la usa media web—, y la prueba vigila que siga subrayada en el resto del
+sitio.
+
+**Ficheros**: `css/mi-coleccion.css`. Pruebas: `test-tanda-446.mjs` (NUEVO).
+
+**Suite**: 446, 444, 443, 441, 440, 436, 312, 313, 299 y 311, en verde.
+
+**En curso / pendiente**: PINGU pidió en el mismo mensaje un cambio grande
+de estructura, con capturas de Dex:
+
+- **El menú pasa a ser Panel · Expansiones · Pokédex · Carpetas · BUSCAR.**
+  «Cartas» sale del menú (la pantalla se queda, se llega por el «Ver todas»
+  del panel) y entra una sección nueva que busca en TODO el catálogo.
+- **Ordenar, como hoja inferior** y no como `<select>`: segmentado
+  Descendente/Ascendente arriba y ocho criterios con icono y marca —
+  cantidad en posesión, expansión, fecha de lanzamiento, ilustrador,
+  nombre, **número nacional**, precio y **tipo de energía**—. Los dos
+  últimos no estaban en mi lista y los tenemos (`dex_ids` y `types`).
+- **Cuadrícula / Lista**, en todos los sitios donde se ven cartas.
+- El componente de filtros, **UNO** usado en los tres sitios: escrito tres
+  veces, en un mes dicen tres cosas distintas.
+
+**Y EL ESCÁNER, que no es lo que parecía**: la captura de Dex enseña DOS
+recuadros guía, «Name & Type» arriba y «Code & Artist» abajo. No reconoce
+la ilustración contra una base de imágenes: hace **OCR de dos franjas** y
+cruza el texto con su catálogo. Nosotros tenemos los cuatro datos que lee
+(`name`, el tipo, `tcg_online_code`, `local_id` e `illustrator`), así que
+el problema no es «una API que reconozca cartas» sino leer cuatro cadenas
+de una foto. El obstáculo es la decisión, y es de PINGU: OCR en el
+navegador (gratis, pero ~2 MB de librería, y CLAUDE.md prohíbe
+dependencias nuevas de npm para el cliente) u OCR en una función de
+Netlify (cumple las reglas, cuesta dinero y pide una clave).
+
+---
+
 ## 2026-10-02 — PINGU-Claude (tanda 445 — los campos del tema OSCURO en todo el sitio, y la barra, más pequeña y cuadrada)
 
 **Hecho**: PINGU, con capturas del móvil: «los filtros son demasiado

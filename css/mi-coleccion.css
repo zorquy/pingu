@@ -382,7 +382,14 @@
     flex-direction: column;
     gap: 2px;
     position: sticky;
-    top: var(--e-md);
+    /* 88 y no 16 (tanda 446). La barra de arriba del sitio es `sticky` a 0
+       y mide 70 px MEDIDOS, así que un menú pegado a 16 se mete DEBAJO de
+       ella y la barra le tapa el primer elemento: al bajar, «Panel»
+       desaparecía y parecía que el menú empezaba en «Cartas».
+       88 = los 70 de la barra más aire, en la retícula de 4 — por encima
+       de 32 px ya no es un paso sino una MEDIDA. Es el mismo cálculo que
+       la barra de marcar de la 426, que se pega a 72 por lo mismo. */
+    top: 88px;
     margin: 0;
     padding-left: 0;
     padding-right: var(--e-md);
@@ -1740,13 +1747,60 @@
   margin: 0;
 }
 
+/* «Ver todas» era un `.link-btn`: texto azul subrayado, que al lado de un
+   título en negrita se lee como el enlace de un pie de página (tanda 446).
+   PINGU: «es un enlace pocho». Pasa a ser una chapa, que es lo que es: un
+   sitio al que ir. La clase global `.link-btn` no se toca —la usa media
+   web—, esto es una pieza de esta pantalla. */
+.mc-vistazo-cabecera .link-btn,
+.mc-compartir .link-btn {
+  min-height: 32px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  text-decoration: none;
+}
+
+.mc-vistazo-cabecera .link-btn:hover,
+.mc-compartir .link-btn:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+@media (pointer: coarse) {
+  .mc-vistazo-cabecera .link-btn,
+  .mc-compartir .link-btn {
+    min-height: 44px;
+  }
+}
+
 /* Las cartas del vistazo se miden a SÍ MISMAS y no a la ventana (la
    lección de la 316): este bloque vive dentro del panel, que tiene un ancho
    propio distinto del de la página. */
+/* UNA SOLA FILA, caben las que caben (tanda 446). PINGU: «hay como una
+   fila y luego una carta más; yo quitaría esa carta extra para que sea
+   solo una fila y no ocupe tanto hueco». Tenía razón: un vistazo con una
+   carta huérfana debajo no parece un vistazo, parece una lista cortada.
+
+   No se arregla bajando DE_VISTAZO a un número fijo, porque cuántas caben
+   depende del ancho: siete en un escritorio, dos en un móvil. Se pide una
+   fila y las que sobren caen en filas de alto CERO, que el recorte del
+   contenedor se lleva. Así el número se ajusta solo a cualquier ancho sin
+   que nadie tenga que medirlo. */
 .mc-vistazo-cartas {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  /* La PRIMERA fila, a su alto natural; las que vengan después, a cero.
+     Sin el `grid-template-rows` explícito, TODAS son filas automáticas y el
+     `grid-auto-rows: 0` dejaba también la primera en cero: las cartas se
+     salían de su fila y se seguían viendo las dos. El recorte se las lleva
+     igual, pero el hueco ya estaba hecho. */
+  grid-template-rows: auto;
+  grid-auto-rows: 0;
   gap: var(--e-md);
+  overflow: hidden;
 }
 
 /* Con fondo y borde, como un bolsillo del álbum: una carta cuyo escaneo
