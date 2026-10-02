@@ -692,7 +692,7 @@ async function abrirLab() {
   $('cmProbar').disabled = true
   try {
     const { abrirLaboratorio } = await import('./constructor/laboratorio.js')
-    await abrirLaboratorio({ entradas: lista(), nombre: estado.nombre, codigoDeSet })
+    await abrirLaboratorio({ entradas: lista(), nombre: estado.nombre, codigoDeSet, userId: estado.sesion?.user?.id || null })
   } catch (err) {
     showToast(`No se ha podido abrir el laboratorio: ${err.message || 'error de red'}.`, 'error')
   } finally {

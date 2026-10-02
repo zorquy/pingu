@@ -1,16 +1,39 @@
-/* ── El laboratorio de pruebas del constructor (tanda 384) ──
+/* ── El laboratorio de pruebas del constructor (tandas 384 y 456) ──
    Hoja propia: solo la usa /constructor, y lo que baja todo el mundo
    (components.css) no puede crecer. Prefijo `lab-`.
 
    Ocupa la pantalla entera por encima de la página: una mesa de juego
    no cabe en una ventana de las de siempre, y el mazo que se prueba es
-   el que está debajo, sin guardar ni recargar nada. */
+   el que está debajo, sin guardar ni recargar nada.
+
+   Desde la 456 la mesa es un TAPETE: los dos lados enfrentados (el de
+   arriba en espejo, como si el rival estuviera sentado delante), sobre
+   los azules fijos de la casa. Fijos a propósito (tanda 315): un tapete
+   es el mismo en los dos temas, y todo lo que va encima lleva el blanco
+   fijo. Lo de fuera del tapete —la mano, el panel, las ventanas— sigue
+   con las superficies de la página. */
 
 html.lab-abierto {
   overflow: hidden;
 }
 
 .lab {
+  /* Los colores de cada jugador: una paleta de IDENTIDAD, como la de
+     las energías — tiene que ser la misma en los dos temas, y lleva
+     texto oscuro fijo encima. Azul y ámbar se distinguen también sin
+     ver el color (y siempre van con su nombre al lado). */
+  --lab-j1: #9fd0f0;
+  --lab-j2: #f5cf7a;
+  /* Lo que brilla cuando eliges dónde va una carta. */
+  --lab-brillo: #ffd166;
+  /* El tamaño de las cartas sigue al ALTO de la pantalla: la mesa entera
+     (los dos lados y tu mano) tiene que caber sin desplazarse en un
+     portátil de 900 px de alto, y en uno más alto, crecer. */
+  --lab-c-activo: clamp(76px, 10.5vh, 124px);
+  --lab-c-banca: clamp(52px, 7vh, 84px);
+  --lab-c-mano: clamp(64px, 8.5vh, 108px);
+  --lab-c-premio: clamp(28px, 4.4vh, 44px);
+  --lab-c-pila: clamp(40px, 5.6vh, 64px);
   position: fixed;
   inset: 0;
   /* Por debajo de los avisos (2000), que tienen que verse encima. */
@@ -50,6 +73,7 @@ html.lab-abierto {
 
 .lab-nombre {
   min-width: 0;
+  max-width: 320px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -57,10 +81,114 @@ html.lab-abierto {
   font-size: var(--t-md);
 }
 
+/* Contra quién: dos botones como un interruptor. */
+.lab-modos {
+  display: inline-flex;
+  gap: var(--e-xs);
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.lab-modo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+  padding: var(--e-xs) var(--e-md);
+  border-radius: var(--radius-sm);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.lab-modo svg {
+  flex-shrink: 0;
+}
+
+.lab-modo:hover {
+  color: var(--text);
+}
+
+.lab-modo[aria-checked='true'] {
+  background: var(--white);
+  color: var(--navy);
+  box-shadow: var(--shadow-xs);
+}
+
 .lab-turno {
+  flex: 1 1 160px;
+  min-width: 0;
   font-weight: 700;
   font-size: var(--t-md);
   color: var(--navy);
+}
+
+/* Fuera del móvil, la barra va en UNA línea: con dos mazos en la cabecera
+   pedía unos 1.300 px y entre 1.200 y 1.300 el × caía solo a una segunda
+   fila (tanda 320: un punto de corte a ojo es una afirmación sin medir).
+   No se parte: cede PRIMERO el nombre de los mazos (que es lo que menos
+   se mira), luego el turno, con sus puntos suspensivos, y los botones se
+   quedan enteros. */
+@media (min-width: 761px) {
+  .lab-barra {
+    flex-wrap: nowrap;
+  }
+
+  /* Cede el nombre de los mazos, nunca «Laboratorio»: sin un mínimo, el
+     título se montaba encima de «Contra el muñeco». */
+  .lab-titulo {
+    flex: 0 1000 auto;
+    min-width: 112px;
+  }
+
+  .lab-titulo h2,
+  .lab-modos,
+  .lab-barra-botones,
+  .lab-cerrar-lab {
+    flex-shrink: 0;
+  }
+
+  .lab-turno {
+    flex: 1 1 auto;
+    min-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Entre el móvil y el ancho, el turno no cabe en una línea al lado de los
+   modos: va en dos, más pequeño (cabe en el alto de los botones). */
+@media (min-width: 761px) and (max-width: 1099px) {
+  .lab-turno {
+    font-size: var(--t-sm);
+    line-height: 1.25;
+    white-space: normal;
+  }
+}
+
+/* Sin sitio para la barra en una línea, los tres botones se quedan con
+   su icono: el nombre sigue para el lector y en el `title`. El corte está
+   MEDIDO con dos mazos y el turno más largo («Turno N · Jugador 1 (va
+   primero) — te toca»): con los nombres enteros hacen falta 1.300 px. */
+@media (max-width: 1299px) {
+  .lab-barra-botones .lab-btn {
+    min-width: 44px;
+    padding: var(--e-xs) var(--e-sm);
+  }
+
+  .lab-btn-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
 .lab-barra-botones {
@@ -76,7 +204,11 @@ html.lab-abierto {
   padding: var(--e-sm) var(--e-lg);
 }
 
-.lab-btn-prob[aria-pressed='true'] {
+.lab-btn svg {
+  flex-shrink: 0;
+}
+
+.lab-btn-panel[aria-pressed='true'] {
   background: var(--navy-solid);
   border-color: var(--navy-solid);
   color: var(--blanco-fijo);
@@ -97,13 +229,19 @@ html.lab-abierto {
   color: var(--text);
 }
 
-/* ── El cuerpo: la mesa y, si se abre, la tabla ── */
+/* ── El cuerpo: la mesa y, pegado a la derecha, el panel ── */
 .lab-cuerpo {
   position: relative;
   flex: 1;
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1100px) {
+  .lab-con-panel .lab-cuerpo {
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 28vw, 420px);
+  }
 }
 
 .lab-cargando {
@@ -116,39 +254,11 @@ html.lab-abierto {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--e-lg);
   display: flex;
   flex-direction: column;
   gap: var(--e-md);
+  padding: var(--e-md);
   scrollbar-color: var(--border-strong) transparent;
-}
-
-@media (min-width: 1100px) {
-  .lab-con-prob .lab-cuerpo {
-    grid-template-columns: minmax(0, 1fr) minmax(380px, 460px);
-  }
-}
-
-.lab-prob {
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: var(--e-lg);
-  border-left: 1px solid var(--border);
-  background: var(--white);
-  scrollbar-color: var(--border-strong) transparent;
-}
-
-/* Sin sitio para las dos columnas, la tabla va por encima de la mesa,
-   como una hoja que se abre desde la derecha. */
-@media (max-width: 1099px) {
-  .lab-prob {
-    position: absolute;
-    inset: 0 0 0 auto;
-    width: min(100%, 480px);
-    z-index: 6;
-    box-shadow: var(--shadow-lg);
-  }
 }
 
 .lab-rotulo .subtext {
@@ -164,6 +274,11 @@ html.lab-abierto {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.lab-vacio {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
 }
 
 /* ── Las cartas ──
@@ -204,8 +319,12 @@ html.lab-abierto {
   overflow: hidden;
 }
 
+/* Mantener pulsado enseña la carta (tanda 456): sin esto, el móvil saca
+   encima su propio menú de «guardar imagen» y selecciona el texto. */
 button.lab-carta {
   cursor: pointer;
+  -webkit-touch-callout: none;
+  user-select: none;
   transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 
@@ -346,25 +465,732 @@ button.lab-carta:focus-visible {
   border-color: var(--text-mid);
 }
 
-/* ── El rival ── */
-.lab-rival {
-  padding: var(--e-md);
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--white);
+/* ── Quién es quién: la chapa de cada jugador ──
+   Sale en la mesa, en el registro y al elegir los mazos: siempre el
+   mismo color para el mismo jugador. */
+.lab-jugador {
+  --lab-color-j: var(--lab-j1);
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--lab-color-j);
+  color: var(--navy-solid-dark);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.lab-rival-cab {
+
+.lab-jugador[data-j='1'] {
+  --lab-color-j: var(--lab-j2);
+}
+
+.lab-jugador-mini {
+  margin-right: var(--e-xs);
+  padding: 0 var(--e-xs);
+  font-size: var(--t-2xs);
+  vertical-align: 1px;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   El tapete
+   ════════════════════════════════════════════════════════════════════ */
+.lab-tapete {
+  /* Los tonos de lo que va ENCIMA del tapete: el blanco fijo, entero o
+     mezclado con el fondo. Así nada de dentro depende del tema. */
+  --tp-texto: var(--blanco-fijo);
+  --tp-tenue: color-mix(in srgb, var(--blanco-fijo) 76%, transparent);
+  --tp-linea: color-mix(in srgb, var(--blanco-fijo) 24%, transparent);
+  --tp-velo: color-mix(in srgb, var(--blanco-fijo) 8%, transparent);
+  --tp-velo-fuerte: color-mix(in srgb, var(--blanco-fijo) 16%, transparent);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  border-radius: var(--radius-lg);
+  color: var(--tp-texto);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 50%, var(--navy-solid-light) 0%, transparent 100%),
+    linear-gradient(180deg, var(--navy-solid-dark) 0%, var(--navy-solid) 50%, var(--navy-solid-dark) 100%);
+  box-shadow: inset 0 0 0 1px var(--tp-linea);
+}
+
+/* Sobre el azul, el anillo de foco azul de la casa no se ve. */
+.lab-tapete button:focus-visible,
+.lab-tapete select:focus-visible {
+  outline: 2px solid var(--blanco-fijo);
+  outline-offset: 2px;
+}
+
+.lab-tapete .lab-rotulo,
+.lab-tapete .lab-vacio,
+.lab-tapete .lab-sin-imagen {
+  color: var(--tp-tenue);
+}
+
+.lab-tapete .lab-carta {
+  background: var(--tp-velo);
+  border-color: var(--tp-linea);
+}
+
+.lab-tapete .lab-chapa {
+  background: var(--tp-velo-fuerte);
+  border-color: var(--tp-linea);
+  color: var(--tp-texto);
+}
+
+.lab-tapete .lab-chapa-estado {
+  background: var(--danger-solid);
+  border-color: var(--danger-solid);
+  color: var(--blanco-fijo);
+}
+
+.lab-tapete .lab-chapa-alerta {
+  background: color-mix(in srgb, var(--warning) 30%, transparent);
+  border-color: var(--warning);
+  color: var(--tp-texto);
+  white-space: normal;
+}
+
+.lab-chapa-herramienta {
+  border-style: dashed;
+}
+
+.lab-tapete .lab-energia {
+  border-color: var(--tp-linea);
+}
+
+.lab-tapete .btn-secondary {
+  background: var(--tp-velo-fuerte);
+  border-color: var(--tp-linea);
+  color: var(--tp-texto);
+  box-shadow: 0 4px 0 0 var(--navy-solid-dark);
+}
+
+.lab-tapete .btn-secondary:hover {
+  background: color-mix(in srgb, var(--blanco-fijo) 26%, transparent);
+  border-color: var(--tp-tenue);
+}
+
+.lab-tapete .btn-primary {
+  background: var(--blanco-fijo);
+  color: var(--navy-solid-dark);
+  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--blanco-fijo) 40%, var(--navy-solid-dark));
+}
+
+.lab-tapete .btn-primary:hover {
+  background: color-mix(in srgb, var(--blanco-fijo) 86%, var(--navy-solid-light));
+}
+
+.lab-tapete .link-btn {
+  color: var(--tp-texto);
+  text-decoration: underline;
+}
+
+/* ── Un lado de la mesa ──
+   Tres columnas: los premios, el juego (activo y banca) y las pilas.
+   El lado de abajo pone el activo pegado al centro y la banca detrás;
+   el de arriba, en espejo, con la banca arriba del todo — como en una
+   mesa de verdad, se mira de frente al rival. */
+.lab-lado {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'premios activo pilas'
+    'cab     banca  pilas';
+  gap: var(--e-sm) var(--e-md);
+  align-items: start;
+  min-width: 0;
+}
+
+.lab-lado-rival {
+  grid-template-areas:
+    'pilas banca  cab'
+    'pilas activo premios';
+}
+
+.lab-lado-cab {
+  grid-area: cab;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--e-xs);
+  min-width: 0;
+  max-width: calc(var(--lab-c-premio) * 3 + var(--e-xs) * 2 + var(--e-lg));
+}
+
+.lab-lado-rival .lab-lado-cab {
+  align-self: start;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.lab-lado-propio .lab-lado-cab {
+  align-self: end;
+}
+
+.lab-lado-mazo {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tp-tenue);
+  font-size: var(--t-xs);
+}
+
+.lab-lado-turno {
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--blanco-fijo);
+  color: var(--navy-solid-dark);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.8;
+  text-transform: uppercase;
+}
+
+.lab-zona-premios {
+  grid-area: premios;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.lab-lado-rival .lab-zona-premios {
+  align-self: end;
+}
+
+.lab-premios {
+  display: grid;
+  grid-template-columns: repeat(3, var(--lab-c-premio));
+  gap: var(--e-xs);
+}
+
+.lab-premios .lab-carta {
+  --lab-ancho: var(--lab-c-premio);
+}
+
+.lab-cuenta-mini {
+  color: var(--tp-tenue);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-zona-activo {
+  grid-area: activo;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.lab-zona-banca {
+  grid-area: banca;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: var(--e-sm);
-  margin-bottom: var(--e-sm);
+  min-width: 0;
 }
 
-.lab-rival-cab .lab-rotulo {
+.lab-zona-pilas {
+  grid-area: pilas;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  align-content: start;
+  gap: var(--e-xs);
+}
+
+.lab-lado-propio .lab-zona-pilas {
+  align-self: start;
+}
+
+/* ── Un Pokémon en juego ──
+   La carta y, debajo, su vida. En la banca las energías van montadas
+   sobre el pie de la carta (como en la mesa, asomando por debajo) para
+   que la fila no crezca; el activo, que tiene sitio, las lleva al lado. */
+.lab-slot {
+  --lab-ancho-slot: var(--lab-c-banca);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.lab-slot .lab-slot-carta {
+  --lab-ancho: var(--lab-ancho-slot);
+}
+
+.lab-slot-activo {
+  --lab-ancho-slot: var(--lab-c-activo);
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--e-sm);
+}
+
+.lab-slot-pie {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px var(--e-xs);
+  width: var(--lab-ancho-slot);
+}
+
+.lab-slot-activo .lab-slot-pie {
+  width: 112px;
+  gap: var(--e-xs);
+  padding-top: var(--e-xs);
+}
+
+.lab-slot-pie .lab-energias,
+.lab-slot-pie .lab-chapas {
+  grid-column: 1 / -1;
+}
+
+.lab-slot:not(.lab-slot-activo) .lab-energias {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: calc(var(--lab-ancho-slot) * 342 / 245 - 24px);
+  z-index: 1;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.lab-slot:not(.lab-slot-activo) .lab-chapas {
+  justify-content: center;
+}
+
+.lab-energias,
+.lab-chapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.lab-danio {
+  position: absolute;
+  right: var(--e-xs);
+  top: var(--e-xs);
+  z-index: 1;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 800;
+  line-height: 1.5;
+  box-shadow: var(--shadow-xs);
+}
+
+.lab-slot-estados {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  max-width: calc(100% - 4px);
+}
+
+/* Le han dejado sin vida y aún no ha caído (daño puesto a mano, o
+   pendiente de resolver): apagado. */
+.lab-slot-caido .lab-slot-carta {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+/* La barra de vida. */
+.lab-ps {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  overflow: hidden;
+}
+
+.lab-tapete .lab-ps {
+  background: var(--tp-linea);
+}
+
+.lab-ps span {
+  display: block;
+  width: var(--pct, 0%);
+  height: 100%;
+  background: var(--success);
+}
+
+.lab-ps-texto {
+  margin-top: var(--e-xs);
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-tapete .lab-ps-texto {
+  color: var(--tp-tenue);
+}
+
+.lab-slot-pie .lab-ps-texto {
   margin: 0;
+  font-size: var(--t-2xs);
+  line-height: 1.4;
+}
+
+/* Los huecos vacíos: la forma de una carta, en línea de puntos. */
+.lab-hueco {
+  width: var(--lab-c-banca);
+  aspect-ratio: 245 / 342;
+  border: 1px dashed var(--tp-linea);
+  border-radius: var(--radius-sm);
+  background: var(--tp-velo);
+}
+
+.lab-hueco-activo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 240px);
+  aspect-ratio: auto;
+  min-height: calc(var(--lab-c-activo) * 342 / 245);
+  padding: var(--e-md);
+  text-align: center;
+  color: var(--tp-tenue);
+  font-size: var(--t-sm);
+}
+
+.lab-hueco-estadio {
+  display: block;
+  width: var(--lab-c-pila);
+}
+
+/* ── Elegir dónde va una carta ──
+   Los que valen brillan y laten; los demás se apagan. El latido se
+   apaga con «menos movimiento» (abajo), y el brillo se queda. */
+.lab-apuntable .lab-slot-carta {
+  outline: 2px solid var(--lab-brillo);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--lab-brillo) 35%, transparent);
+  animation: lab-latido 1.2s ease-in-out infinite;
+}
+
+@keyframes lab-latido {
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--lab-brillo) 12%, transparent);
+  }
+}
+
+.lab-modo-apuntar .lab-lado-propio .lab-slot:not(.lab-apuntable),
+.lab-modo-apuntar .lab-lado-rival .lab-slot,
+.lab-modo-apuntar .lab-mano-carta:not(.lab-apuntando) {
+  opacity: 0.45;
+}
+
+.lab-apuntar {
+  position: fixed;
+  left: 50%;
+  bottom: var(--e-xl);
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: var(--e-sm) var(--e-sm) var(--e-sm) var(--e-lg);
+  border-radius: var(--radius-lg);
+  background: var(--navy-solid-dark);
+  color: var(--blanco-fijo);
+  box-shadow: var(--shadow-lg), inset 0 0 0 2px var(--lab-brillo);
+  font-size: var(--t-md);
+  font-weight: 700;
+  transform: translateX(-50%);
+}
+
+.lab-apuntar .btn-secondary {
+  flex-shrink: 0;
+}
+
+.lab-apuntar kbd {
+  margin-left: var(--e-xs);
+  padding: 0 var(--e-xs);
+  border: 1px solid var(--tp-linea);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--t-2xs);
+  color: inherit;
+}
+
+/* ── Las pilas: mazo, descarte y (del rival) su mano ── */
+.lab-pila {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-xs);
+  min-width: 0;
+  padding: var(--e-xs);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--tp-texto);
+  text-align: center;
+}
+
+button.lab-pila:hover {
+  border-color: var(--tp-linea);
+  background: var(--tp-velo);
+}
+
+.lab-pila > .lab-dorso,
+.lab-pila-cara,
+.lab-pila-vacia {
+  position: relative;
+  display: block;
+  width: var(--lab-c-pila);
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* El mazo, con canto: se nota que es un montón y no una carta. */
+.lab-pila[data-pila='mazo'] > .lab-dorso {
+  box-shadow: 2px 2px 0 0 var(--navy-solid-dark), 4px 4px 0 0 var(--tp-linea);
+}
+
+.lab-pila-cara img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lab-pila-cara .lab-sin-imagen {
+  background: var(--tp-velo);
+}
+
+.lab-pila-vacia {
+  border: 1px dashed var(--tp-linea);
+  box-shadow: none;
+}
+
+.lab-pila-texto {
+  max-width: calc(var(--lab-c-pila) + 16px);
+  font-size: var(--t-2xs);
+  color: var(--tp-tenue);
+  line-height: 1.3;
+}
+
+.lab-pila-texto strong {
+  display: block;
+  color: var(--tp-texto);
+  font-size: var(--t-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-pila-sub {
+  color: var(--tp-tenue);
+}
+
+/* La mano del rival: boca abajo, en abanico, con la cuenta al lado. */
+.lab-pila-mano {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  justify-content: center;
+  gap: var(--e-sm);
+  text-align: left;
+}
+
+.lab-abanico {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  width: 60px;
+  height: 40px;
+}
+
+.lab-abanico .lab-dorso {
+  inset: auto;
+  top: 4px;
+  left: 0;
+  width: 24px;
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 1px var(--tp-linea);
+  transform-origin: 50% 100%;
+}
+
+.lab-abanico .lab-dorso:nth-child(1) { transform: rotate(-16deg); }
+.lab-abanico .lab-dorso:nth-child(2) { left: 8px; transform: rotate(-8deg); }
+.lab-abanico .lab-dorso:nth-child(3) { left: 16px; }
+.lab-abanico .lab-dorso:nth-child(4) { left: 24px; transform: rotate(8deg); }
+.lab-abanico .lab-dorso:nth-child(5) { left: 32px; transform: rotate(16deg); }
+
+/* ── El centro: el estadio, el turno y sus botones ── */
+.lab-centro-mesa {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'estadio medio botones';
+  align-items: center;
+  gap: var(--e-sm) var(--e-lg);
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--navy-solid-dark) 70%, transparent);
+  box-shadow: inset 0 0 0 1px var(--tp-linea);
+}
+
+.lab-estadio {
+  grid-area: estadio;
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.lab-estadio .lab-rotulo {
+  margin: 0;
+}
+
+.lab-estadio .lab-carta {
+  --lab-ancho: var(--lab-c-pila);
+}
+
+.lab-centro-medio {
+  grid-area: medio;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+.lab-centro-botones {
+  grid-area: botones;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--e-sm);
+}
+
+.lab-centro-botones:empty {
+  display: none;
+}
+
+.lab-guia,
+.lab-aviso {
+  font-size: var(--t-sm);
+  color: var(--tp-tenue);
+}
+
+.lab-aviso {
+  color: var(--tp-texto);
+}
+
+/* Lo último que ha pasado, en una línea: lo que una carta acaba de
+   hacer se lee sin abrir el registro. */
+.lab-ultimo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tp-tenue);
+  font-size: var(--t-sm);
+}
+
+.lab-estados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+}
+
+.lab-estado {
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--tp-linea);
+  color: var(--tp-tenue);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.lab-estado-hecho {
+  border-style: solid;
+  background: var(--tp-velo-fuerte);
+  color: var(--tp-texto);
+}
+
+.lab-estado-alerta {
+  border-style: solid;
+  border-color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 30%, transparent);
+  color: var(--tp-texto);
+}
+
+/* Quién va primero: un interruptor de tres, sobre el tapete. */
+.lab-segmentos {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--e-xs);
+  padding: var(--e-xs);
+  border-radius: var(--radius-md);
+  background: var(--tp-velo);
+  box-shadow: inset 0 0 0 1px var(--tp-linea);
+}
+
+.lab-segmentos-grupo {
+  display: inline-flex;
+  gap: var(--e-xs);
+}
+
+.lab-segmentos-rotulo {
+  padding: 0 var(--e-sm);
+  color: var(--tp-tenue);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lab-segmento {
+  min-height: 36px;
+  padding: var(--e-xs) var(--e-md);
+  border-radius: var(--radius-sm);
+  color: var(--tp-tenue);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.lab-segmento:hover {
+  background: var(--tp-velo-fuerte);
+  color: var(--tp-texto);
+}
+
+.lab-segmento[aria-checked='true'] {
+  background: var(--blanco-fijo);
+  color: var(--navy-solid-dark);
+}
+
+/* ── El muñeco ── */
+.lab-lado.lab-lado-muneco {
+  display: flex;
+  flex-direction: column;
+  /* El `start` de la rejilla de los lados, en una columna flexible, deja
+     a cada hijo con su ancho natural: la fila de muñecos se salía 120 px
+     del móvil en vez de desplazarse. */
+  align-items: stretch;
+  gap: var(--e-sm);
+}
+
+.lab-lado-muneco .lab-lado-cab {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs) var(--e-sm);
+  max-width: none;
 }
 
 .lab-rival-plegar {
@@ -384,6 +1210,11 @@ button.lab-carta:focus-visible {
   align-items: center;
   gap: var(--e-xs);
   color: var(--text-mid);
+}
+
+.lab-tapete .lab-campo-mini,
+.lab-tapete .lab-contador {
+  color: var(--tp-tenue);
 }
 
 .lab-campo-mini select {
@@ -408,6 +1239,10 @@ button.lab-carta:focus-visible {
   font-size: var(--t-lg);
 }
 
+.lab-tapete .lab-contador strong {
+  color: var(--tp-texto);
+}
+
 .lab-mini {
   min-width: 32px;
   min-height: 32px;
@@ -424,10 +1259,21 @@ button.lab-carta:focus-visible {
   background: var(--ice);
 }
 
+.lab-tapete .lab-mini {
+  border-color: var(--tp-linea);
+  background: var(--tp-velo-fuerte);
+  color: var(--tp-texto);
+}
+
 @media (pointer: coarse) {
+  .lab-mini,
+  .lab-modo,
+  .lab-segmento {
+    min-height: 44px;
+  }
+
   .lab-mini {
     min-width: 44px;
-    min-height: 44px;
   }
 
   .lab-campo-mini select {
@@ -437,6 +1283,7 @@ button.lab-carta:focus-visible {
 
 .lab-rival-fila {
   display: flex;
+  justify-content: center;
   gap: var(--e-sm);
   overflow-x: auto;
   padding-bottom: var(--e-xs);
@@ -445,14 +1292,15 @@ button.lab-carta:focus-visible {
 .lab-maniqui {
   flex: 0 0 136px;
   padding: var(--e-sm);
-  border: 1px solid var(--border);
+  border: 1px solid var(--tp-linea);
   border-radius: var(--radius-md);
-  background: var(--bg);
+  background: var(--tp-velo);
 }
 
 .lab-maniqui-activo {
   flex-basis: 176px;
-  border: 2px solid var(--navy);
+  border: 2px solid var(--blanco-fijo);
+  background: var(--tp-velo-fuerte);
 }
 
 .lab-maniqui-nombre {
@@ -461,337 +1309,453 @@ button.lab-carta:focus-visible {
   margin-bottom: var(--e-xs);
 }
 
-/* La barra de vida (tuya y del maniquí). */
-.lab-ps {
-  height: 8px;
+/* ════════════════════════════════════════════════════════════════════
+   La mano
+   ════════════════════════════════════════════════════════════════════ */
+/* Pegada abajo: si la mesa no cabe entera (una pantalla baja, el
+   móvil), lo que se desplaza es el tapete, y la mano —que es lo que más
+   se toca— se queda siempre a la vista. */
+.lab-mano-zona {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-md) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow: 0 -8px 24px rgba(13, 27, 42, 0.12);
+}
+
+.lab-mano-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e-xs) var(--e-md);
+}
+
+.lab-mano-cab .lab-rotulo {
+  margin: 0;
+}
+
+.lab-ayuda {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.lab-ayuda-icono {
+  display: inline-flex;
+  vertical-align: middle;
+  padding: 0 2px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.lab-mano {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--e-sm);
+  min-height: calc(var(--lab-c-mano) * 342 / 245 + 28px);
+}
+
+.lab-mano-carta {
+  display: flex;
+  flex-direction: column;
+  width: var(--lab-c-mano);
+  transition: opacity 0.15s var(--ease);
+}
+
+.lab-mano .lab-carta {
+  --lab-ancho: var(--lab-c-mano);
+}
+
+/* Las que se pueden jugar ahora llevan un anillo; las que no, se
+   apagan un poco. Las dos cosas: el anillo solo es color, y apagar es
+   lo que se nota sin distinguirlo. */
+.lab-jugable .lab-carta {
+  box-shadow: 0 0 0 2px var(--success);
+}
+
+.lab-jugable .lab-carta.lab-nueva {
+  box-shadow: 0 0 0 2px var(--success), var(--shadow-ring);
+}
+
+.lab-mano-carta:not(.lab-jugable) .lab-carta {
+  filter: saturate(0.6);
+  opacity: 0.78;
+}
+
+.lab-apuntando .lab-carta {
+  transform: translateY(-8px);
+  box-shadow: 0 0 0 2px var(--lab-brillo), var(--shadow-sm);
+}
+
+/* El «⋯»: todo lo que no es lo obvio. Debajo de la carta, a su ancho. */
+.lab-mas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 28px;
+  margin-top: 2px;
+  border-radius: var(--radius-sm);
+  color: var(--text-mid);
+}
+
+.lab-mas:hover {
+  background: var(--ice);
+  color: var(--navy);
+}
+
+@media (pointer: coarse) {
+  .lab-mas {
+    min-height: 44px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   El panel: probabilidades y registro
+   ════════════════════════════════════════════════════════════════════
+   En una pantalla ancha va pegado a la derecha de la mesa; en una
+   estrecha, por encima, como una hoja que sale desde la derecha. Y
+   cerrado, siempre queda su pestaña para volver a abrirlo. */
+.lab-panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  background: var(--white);
+}
+
+@media (max-width: 1099px) {
+  .lab-panel {
+    position: absolute;
+    inset: 0 0 0 auto;
+    z-index: 6;
+    width: min(100%, 440px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.lab-panel-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-sm) 0 var(--e-lg);
+}
+
+.lab-panel-cab h3 {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t-lg);
+}
+
+.lab-panel .lab-pestanias {
+  margin: var(--e-xs) var(--e-lg) var(--e-sm);
+}
+
+.lab-panel-cuerpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 var(--e-lg) var(--e-lg);
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* La lengüeta para volver a abrirlo, en el borde derecho. Solo en
+   ancho: más estrecho el panel va por encima de la mesa y la lengüeta
+   taparía la mano o los botones del turno — ahí está el botón de arriba,
+   que se ve siempre. */
+.lab-panel-pestana {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 5;
+  display: none;
+  align-items: center;
+  gap: var(--e-sm);
+  min-width: 44px;
+  padding: var(--e-lg) var(--e-sm);
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  transition: background 0.15s var(--ease);
+}
+
+.lab-panel-pestana:hover {
+  background: var(--navy-solid-light);
+}
+
+.lab-panel-pestana:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1100px) {
+  .lab-panel-pestana {
+    display: inline-flex;
+    writing-mode: vertical-rl;
+    transform: translateY(-50%);
+  }
+
+  /* Y la mesa le deja su sitio, para no tapar «Terminar el turno». */
+  .lab:not(.lab-con-panel) .lab-mesa {
+    padding-right: 56px;
+  }
+}
+
+.lab-modo-apuntar .lab-panel-pestana {
+  display: none;
+}
+
+.lab-pestanias {
+  display: flex;
+  gap: var(--e-xs);
+  margin-bottom: var(--e-md);
+  padding: var(--e-xs);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.lab-pestania {
+  flex: 1;
+  min-height: 36px;
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.lab-pestania.activa {
+  background: var(--white);
+  color: var(--navy);
+  box-shadow: var(--shadow-xs);
+}
+
+@media (pointer: coarse) {
+  .lab-pestania {
+    min-height: 44px;
+  }
+}
+
+/* ── El registro ── */
+.lab-registro-lista {
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.lab-registro-lista li {
+  padding: 2px 0;
+}
+
+.lab-registro-turno {
+  margin-top: var(--e-sm);
+  padding-top: var(--e-xs);
+  border-top: 1px solid var(--border);
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ── Las probabilidades ── */
+.lab-prob-resumen,
+.lab-cifras {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-sm);
+  margin-bottom: var(--e-sm);
+}
+
+.lab-prob-de {
+  margin-bottom: var(--e-sm);
+  font-size: var(--t-md);
+  font-weight: 700;
+}
+
+.lab-prob-saber {
+  margin-bottom: var(--e-sm);
+}
+
+.lab-robos {
+  margin-bottom: var(--e-sm);
+  font-size: var(--t-sm);
+}
+
+/* Sin desplazamiento propio: así la cabecera de la tabla se queda
+   pegada arriba mientras se baja por el panel (dentro de una caja que
+   desplaza en horizontal, `sticky` se pega a la caja y no al panel). */
+.lab-tabla-caja {
+  margin: 0 calc(-1 * var(--e-lg));
+  padding: 0 var(--e-lg);
+}
+
+/* Anchos fijos: con el automático, el nombre largo de una carta se
+   quedaba media tabla y la última columna se salía por la derecha. */
+.lab-tabla {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-tabla th,
+.lab-tabla td {
+  padding: var(--e-xs);
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.lab-tabla thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: normal;
+}
+
+.lab-tabla th[scope='row'],
+.lab-tabla thead th:first-child {
+  text-align: left;
+  white-space: normal;
+}
+
+.lab-tabla th[scope='row'] {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.lab-tabla thead th:nth-child(1) {
+  width: 33%;
+}
+
+.lab-tabla thead th:nth-child(2) {
+  width: 16%;
+}
+
+.lab-fila-nombre {
+  display: inline;
+}
+
+.lab-fila-pie {
+  display: block;
+  font-weight: 400;
+  font-size: var(--t-2xs);
+  color: var(--text-mid);
+}
+
+.lab-marca {
+  width: auto;
+  margin-right: var(--e-xs);
+  vertical-align: middle;
+}
+
+.lab-fila-seccion th {
+  padding-top: var(--e-md);
+  text-align: left;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lab-fila-grupo th[scope='row'] {
+  color: var(--navy);
+}
+
+.lab-fila-marcadas {
+  background: var(--ice);
+}
+
+.lab-fila-apagada {
+  opacity: 0.45;
+}
+
+.lab-num {
+  display: block;
+  text-align: right;
+}
+
+/* La barra va DEBAJO del número: al lado, la tabla no cabía en el panel
+   y la última columna se salía por la derecha. Un solo tono, más fuerte
+   cuanto más probable: el largo ya lo dice, y el tono deja ver de un
+   vistazo qué es casi seguro y qué es una lotería. */
+.lab-barra-prob {
+  display: block;
+  width: 100%;
+  height: 4px;
+  margin-top: 2px;
   border-radius: var(--radius-pill);
   background: var(--border);
   overflow: hidden;
 }
 
-.lab-ps span {
+.lab-barra-prob span {
   display: block;
   width: var(--pct, 0%);
   height: 100%;
-  background: var(--success);
+  background: var(--navy);
 }
 
-.lab-ps-texto {
-  margin-top: var(--e-xs);
-  font-size: var(--t-xs);
-  color: var(--text-mid);
+.lab-barra-prob[data-nivel='1'] span {
+  background: color-mix(in srgb, var(--navy) 45%, transparent);
+}
+
+.lab-barra-prob[data-nivel='2'] span {
+  background: color-mix(in srgb, var(--navy) 72%, transparent);
+}
+
+.lab-prob-nota {
+  margin-top: var(--e-md);
+}
+
+.lab-cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--e-sm);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.lab-cifra-valor {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-xl);
+  color: var(--navy);
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Tu lado ── */
-/* El tapete: tu lado de la mesa se distingue del rival y de la mano. */
-.lab-campo {
-  display: grid;
-  grid-template-columns: 112px minmax(0, 1fr) 112px;
-  gap: var(--e-md);
-  align-items: start;
-  padding: var(--e-md);
-  border-radius: var(--radius-lg);
-  background:
-    radial-gradient(ellipse at 50% 30%, var(--white) 0%, transparent 70%),
-    var(--ice);
-  border: 1px solid var(--border);
-}
-
-.lab-lado {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-md);
-  min-width: 0;
-}
-
-.lab-premios {
-  display: grid;
-  grid-template-columns: repeat(2, 48px);
-  gap: var(--e-xs);
-}
-
-.lab-premios .lab-carta {
-  --lab-ancho: 48px;
-}
-
-.lab-premios > p {
-  grid-column: 1 / -1;
-}
-
-.lab-estadio .lab-carta {
-  --lab-ancho: 84px;
-}
-
-.lab-centro {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--e-md);
-  min-width: 0;
-}
-
-.lab-activo {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.lab-banca {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--e-sm);
-  width: 100%;
-}
-
-.lab-slot {
-  display: flex;
-  gap: var(--e-sm);
-  align-items: flex-start;
-  padding: var(--e-sm);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-}
-
-.lab-slot .lab-slot-carta {
-  --lab-ancho: 76px;
-}
-
-.lab-slot-activo {
-  border: 2px solid var(--navy);
-  box-shadow: var(--shadow-sm);
-}
-
-.lab-slot-activo .lab-slot-carta {
-  --lab-ancho: 112px;
-}
-
-.lab-slot-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-xs);
-  width: 88px;
-  min-width: 0;
-}
-
-.lab-slot-activo .lab-slot-info {
-  width: 128px;
-}
-
-.lab-energias,
-.lab-chapas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-xs);
-}
-
-.lab-danio {
-  position: absolute;
-  right: var(--e-xs);
-  top: var(--e-xs);
-  z-index: 1;
-  padding: 0 var(--e-xs);
-  border-radius: var(--radius-pill);
-  background: var(--danger-solid);
-  color: var(--blanco-fijo);
-  font-size: var(--t-xs);
-  font-weight: 800;
-  line-height: 1.5;
-}
-
-.lab-hueco {
-  width: 76px;
-  aspect-ratio: 245 / 342;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-sm);
-}
-
-.lab-hueco-activo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 320px;
-  aspect-ratio: auto;
-  min-height: 120px;
-  padding: var(--e-md);
-  text-align: center;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
-
-.lab-pila {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--e-xs);
-  width: 100%;
-  padding: var(--e-sm);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  text-align: center;
-}
-
-.lab-pila:hover {
-  border-color: var(--navy);
-}
-
-.lab-pila > .lab-dorso,
-.lab-pila-cara,
-.lab-pila-vacia {
-  position: relative;
-  display: block;
-  width: 64px;
-  aspect-ratio: 245 / 342;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.lab-pila-cara img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.lab-pila-vacia {
-  border: 1px dashed var(--border-strong);
-}
-
-.lab-pila-texto {
-  font-size: var(--t-xs);
+.lab-cifra-texto {
+  font-size: var(--t-2xs);
   color: var(--text-mid);
   line-height: 1.3;
 }
 
-.lab-pila-texto strong {
-  display: block;
-  color: var(--text);
-  font-size: var(--t-lg);
-}
-
-/* ── La barra del turno ── */
-.lab-acciones {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e-sm) var(--e-md);
-  padding: var(--e-sm) var(--e-md);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  border: 1px solid var(--border);
-}
-
-.lab-acciones:empty {
-  display: none;
-}
-
-.lab-acciones-botones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-sm);
-  margin-left: auto;
-}
-
-.lab-guia,
-.lab-aviso {
-  flex: 1 1 280px;
-  font-size: var(--t-sm);
-  color: var(--text-mid);
-}
-
-.lab-aviso {
-  color: var(--text);
-}
-
-.lab-estados {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-xs);
-}
-
-.lab-estado {
-  padding: var(--e-xs) var(--e-sm);
-  border-radius: var(--radius-pill);
-  border: 1px dashed var(--border-strong);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 600;
-}
-
-.lab-estado-hecho {
-  border-style: solid;
-  background: var(--ice);
-  color: var(--text);
-}
-
-.lab-estado-alerta {
-  border-style: solid;
-  border-color: var(--warning);
-  background: var(--warning-bg);
-  color: var(--text);
-}
-
-/* ── La mano ── */
-.lab-mano {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-sm);
-  min-height: 120px;
-}
-
-.lab-mano .lab-carta {
-  --lab-ancho: 88px;
-}
-
-/* ── El registro ── */
-.lab-registro {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  padding: var(--e-sm) var(--e-md);
-}
-
-.lab-registro summary {
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-size: var(--t-sm);
-  font-weight: 700;
-  color: var(--text-mid);
-}
-
-@media (pointer: coarse) {
-  .lab-registro summary {
-    min-height: 44px;
-  }
-}
-
-.lab-registro-lista {
-  max-height: 180px;
-  overflow-y: auto;
-  padding-left: var(--e-lg);
-  list-style: none;
-  font-size: var(--t-sm);
-  color: var(--text-mid);
-  scrollbar-color: var(--border-strong) transparent;
-}
-
-.lab-registro-lista li {
-  padding: 1px 0;
-}
-
-.lab-registro-turno {
-  margin-top: var(--e-xs);
-  font-weight: 700;
-  color: var(--text);
-}
-
-/* ── El menú de una carta ── */
+/* ════════════════════════════════════════════════════════════════════
+   El menú, las ventanas y el final
+   ════════════════════════════════════════════════════════════════════ */
 .lab-menu {
   position: fixed;
   left: var(--x, 8px);
@@ -891,7 +1855,6 @@ button.lab-carta:focus-visible {
   }
 }
 
-/* ── Las ventanas de elegir ── */
 .lab-velo {
   position: absolute;
   inset: 0;
@@ -920,6 +1883,10 @@ button.lab-carta:focus-visible {
   outline: none;
 }
 
+.lab-dialogo-medio {
+  width: min(600px, 100%);
+}
+
 .lab-dialogo h3 {
   font-size: var(--t-lg);
 }
@@ -939,6 +1906,12 @@ button.lab-carta:focus-visible {
   margin: 0 calc(-1 * var(--e-xs));
 }
 
+.lab-dialogo-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+}
+
 .lab-dialogo-cuenta {
   font-size: var(--t-sm);
   font-weight: 600;
@@ -949,6 +1922,10 @@ button.lab-carta:focus-visible {
   min-height: 1em;
   font-size: var(--t-sm);
   color: var(--danger);
+}
+
+.lab-dialogo-error:empty {
+  display: none;
 }
 
 .lab-dialogo-botones {
@@ -967,6 +1944,10 @@ button.lab-carta:focus-visible {
 
 .lab-rejilla-cartas .lab-carta {
   --lab-ancho: 100%;
+}
+
+.lab-rejilla-premios {
+  grid-template-columns: repeat(auto-fill, minmax(72px, 96px));
 }
 
 .lab-rejilla-mini {
@@ -1119,6 +2100,125 @@ button.lab-carta.lab-no-vale:hover {
   width: auto;
 }
 
+/* ── Nueva partida: contra quién, y con qué mazos ── */
+.lab-elige-modo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.lab-tarjeta-modo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: var(--e-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.lab-tarjeta-modo:hover {
+  border-color: var(--navy);
+}
+
+.lab-tarjeta-modo:has(input:checked) {
+  border-color: var(--navy);
+  background: var(--ice);
+  box-shadow: inset 0 0 0 1px var(--navy);
+}
+
+.lab-tarjeta-modo input {
+  width: auto;
+  margin-top: 2px;
+}
+
+.lab-tarjeta-modo > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lab-tarjeta-modo strong {
+  font-size: var(--t-md);
+}
+
+.lab-solo-modo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+}
+
+.lab-mazos-elegir {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+}
+
+.lab-mazo-fila {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-sm) var(--e-sm) var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.lab-mazo-nombre {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lab-lista-mazos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+}
+
+.lab-mazo-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  text-align: left;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.lab-mazo-opcion:hover {
+  border-color: var(--navy);
+  background: var(--ice);
+}
+
+.lab-mazo-opcion:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.lab-campo-texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.lab-campo-texto textarea {
+  font-size: var(--t-sm);
+  font-weight: 400;
+  resize: vertical;
+}
+
 /* ── Ver una carta ── */
 .lab-ver {
   display: grid;
@@ -1200,255 +2300,220 @@ button.lab-carta.lab-no-vale:hover {
   font-size: var(--t-2xl);
 }
 
-.lab-fin-caja .lab-acciones-botones {
+.lab-acciones-botones {
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  margin: var(--e-sm) 0 0;
-}
-
-/* ── La tabla de probabilidades ── */
-.lab-prob-cab {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: var(--e-sm);
-  margin-bottom: var(--e-sm);
+  margin-top: var(--e-sm);
 }
 
-.lab-prob-cab h3 {
-  font-size: var(--t-lg);
-}
-
-.lab-pestanias {
-  display: flex;
-  gap: var(--e-xs);
-  margin-bottom: var(--e-md);
-  padding: var(--e-xs);
-  border-radius: var(--radius-md);
-  background: var(--bg);
-}
-
-.lab-pestania {
-  flex: 1;
-  min-height: 36px;
-  padding: var(--e-xs) var(--e-sm);
-  border-radius: var(--radius-sm);
-  font-size: var(--t-sm);
-  font-weight: 700;
-  color: var(--text-mid);
-}
-
-.lab-pestania.activa {
-  background: var(--white);
-  color: var(--navy);
-  box-shadow: var(--shadow-xs);
-}
-
-@media (pointer: coarse) {
-  .lab-pestania {
-    min-height: 44px;
-  }
-}
-
-.lab-prob-resumen {
-  font-weight: 700;
-  font-size: var(--t-md);
-}
-
-.lab-prob-saber {
-  margin: var(--e-xs) 0 var(--e-sm);
-}
-
-.lab-robos {
-  margin-bottom: var(--e-sm);
-  font-size: var(--t-sm);
-}
-
-.lab-tabla-caja {
-  overflow-x: auto;
-  margin: 0 calc(-1 * var(--e-lg));
-  padding: 0 var(--e-lg);
-}
-
-/* Anchos fijos: con el automático, el nombre largo de una carta se
-   quedaba media tabla y la última columna se salía por la derecha. */
-.lab-tabla {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  font-size: var(--t-sm);
-  font-variant-numeric: tabular-nums;
-}
-
-.lab-tabla th,
-.lab-tabla td {
-  padding: var(--e-xs) var(--e-xs);
-  border-bottom: 1px solid var(--border);
-  text-align: right;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
-.lab-tabla thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: var(--white);
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: normal;
-}
-
-.lab-tabla th[scope='row'],
-.lab-tabla thead th:first-child {
-  text-align: left;
-  white-space: normal;
-}
-
-.lab-tabla th[scope='row'] {
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.lab-tabla thead th:nth-child(1) {
-  width: 36%;
-}
-
-.lab-tabla thead th:nth-child(2) {
-  width: 13%;
-}
-
-.lab-fila-nombre {
-  display: inline;
-}
-
-.lab-fila-pie {
-  display: block;
-  font-weight: 400;
-  font-size: var(--t-2xs);
-  color: var(--text-mid);
-}
-
-.lab-marca {
-  width: auto;
-  margin-right: var(--e-xs);
-  vertical-align: middle;
-}
-
-.lab-fila-seccion th {
-  padding-top: var(--e-md);
-  text-align: left;
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.lab-fila-grupo th[scope='row'] {
-  color: var(--navy);
-}
-
-.lab-fila-apagada {
-  opacity: 0.45;
-}
-
-.lab-num {
-  display: block;
-  text-align: right;
-}
-
-/* La barra va DEBAJO del número: al lado, la tabla no cabía en el panel
-   de 460 px y la última columna se salía por la derecha. */
-.lab-barra-prob {
-  display: block;
-  width: 100%;
-  height: 4px;
-  margin-top: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--border);
-  overflow: hidden;
-}
-
-
-
-.lab-barra-prob span {
-  display: block;
-  width: var(--pct, 0%);
-  height: 100%;
-  background: var(--navy);
-}
-
-.lab-prob-nota {
-  margin-top: var(--e-md);
-}
-
-.lab-cifras {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--e-sm);
-  margin-bottom: var(--e-md);
-}
-
-.lab-cifra {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--e-sm);
-  border-radius: var(--radius-md);
-  background: var(--bg);
-}
-
-.lab-cifra-valor {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--t-xl);
-  color: var(--navy);
-}
-
-.lab-cifra-texto {
-  font-size: var(--t-2xs);
-  color: var(--text-mid);
-  line-height: 1.3;
-}
-
-/* ── Pantalla estrecha ── */
+/* ════════════════════════════════════════════════════════════════════
+   Pantalla estrecha
+   ════════════════════════════════════════════════════════════════════ */
 @media (max-width: 760px) {
-  /* La cabecera en tres filas cortas, con el × siempre arriba a la
-     derecha: antes el × caía solo en una cuarta fila. */
+  .lab {
+    --lab-c-activo: 88px;
+    --lab-c-banca: 56px;
+    --lab-c-mano: 76px;
+    --lab-c-premio: 28px;
+    --lab-c-pila: 40px;
+  }
+
+  /* La cabecera en DOS filas: con cuatro, la mesa empezaba a 180 px de
+     arriba. Contra quién y el ×; el turno y los tres botones, solo con
+     su icono (el nombre sigue ahí para el lector y en el `title`). El
+     título se queda para el lector: el diálogo lo usa de nombre. */
   .lab-barra {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--e-xs) var(--e-sm);
-    padding: var(--e-sm) var(--e-md);
+    flex-wrap: wrap;
+    gap: var(--e-xs);
+    padding: var(--e-xs) var(--e-xs) var(--e-xs) var(--e-sm);
   }
 
   .lab-titulo {
-    grid-column: 1;
-    grid-row: 1;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Primera línea: contra quién y el ×, que la llenan entera; así lo
+     demás baja a la segunda sin un salto forzado. */
+  .lab-modos {
+    order: 1;
+    flex: 1 1 calc(100% - 48px);
+    min-width: 0;
   }
 
   .lab-cerrar-lab {
-    grid-column: 2;
-    grid-row: 1;
+    order: 2;
   }
 
   .lab-turno {
-    grid-column: 1 / -1;
+    order: 3;
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: var(--t-sm);
+    line-height: 1.25;
   }
 
   .lab-barra-botones {
-    grid-column: 1 / -1;
+    order: 4;
     margin: 0;
     flex-wrap: nowrap;
-    overflow-x: auto;
+    gap: var(--e-xs);
+  }
+
+  .lab-modo {
+    flex: 1;
+    justify-content: center;
   }
 
   .lab-barra-botones .lab-btn {
-    padding: var(--e-xs) var(--e-sm);
-    font-size: var(--t-sm);
+    padding: var(--e-xs);
+  }
+
+  .lab-mesa {
+    padding: var(--e-sm);
+    gap: var(--e-sm);
+  }
+
+  .lab-tapete {
+    padding: var(--e-sm);
+    gap: var(--e-xs);
+  }
+
+  /* Cada lado en filas: el activo y sus pilas, la banca, y los premios
+     con la chapa del jugador. El de arriba, al revés. */
+  .lab-lado {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'activo  pilas'
+      'banca   banca'
+      'premios cab';
+    gap: var(--e-xs) var(--e-sm);
+  }
+
+  .lab-lado-rival {
+    grid-template-areas:
+      'premios cab'
+      'banca   banca'
+      'activo  pilas';
+  }
+
+  .lab-lado-cab,
+  .lab-lado-rival .lab-lado-cab,
+  .lab-lado-propio .lab-lado-cab {
+    align-self: center;
+    align-items: flex-end;
+    max-width: 160px;
+    text-align: right;
+  }
+
+  .lab-zona-premios,
+  .lab-lado-rival .lab-zona-premios {
+    flex-direction: row;
+    align-self: center;
+    justify-self: start;
+  }
+
+  .lab-premios {
+    grid-template-columns: repeat(6, var(--lab-c-premio));
+  }
+
+  .lab-zona-activo {
+    justify-content: flex-start;
+  }
+
+  /* La banca, en una tira que se desplaza: cinco no caben en 360 px. */
+  .lab-zona-banca {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: var(--e-xs);
+  }
+
+  .lab-slot-activo .lab-slot-pie {
+    width: 96px;
+  }
+
+  .lab-zona-pilas {
+    grid-template-columns: repeat(2, auto);
+  }
+
+  .lab-lado-rival {
+    --lab-c-activo: 64px;
+    --lab-c-banca: 44px;
+    --lab-c-pila: 32px;
+  }
+
+  /* El pie del activo de arriba, más estrecho: a 360 px se metía debajo
+     de su mazo. */
+  .lab-lado-rival .lab-slot-activo .lab-slot-pie {
+    width: 72px;
+  }
+
+  .lab-lado-rival .lab-zona-pilas {
+    grid-template-columns: repeat(3, auto);
+  }
+
+  .lab-lado-rival .lab-pila-mano {
+    grid-column: auto;
+    flex-direction: column;
+    gap: var(--e-xs);
+    text-align: center;
+  }
+
+  .lab-lado-rival .lab-abanico {
+    width: 52px;
+    height: 44px;
+  }
+
+  .lab-mano-cab {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .lab-estado {
+    padding: 0 var(--e-xs);
+    font-size: var(--t-2xs);
+  }
+
+  .lab-pila-texto strong {
+    font-size: var(--t-md);
+  }
+
+  .lab-centro-mesa {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'estadio medio'
+      'botones botones';
+    gap: var(--e-sm);
+    padding: var(--e-sm);
+  }
+
+  .lab-estadio .lab-rotulo {
+    display: none;
+  }
+
+  .lab-centro-botones {
+    justify-content: stretch;
+  }
+
+  .lab-centro-botones .lab-btn {
+    flex: 1 1 auto;
+  }
+
+  .lab-lado-muneco .lab-lado-cab {
+    align-items: center;
+    max-width: none;
+    text-align: left;
   }
 
   .lab-rival-plegar {
@@ -1466,12 +2531,21 @@ button.lab-carta.lab-no-vale:hover {
     display: flex;
   }
 
-  .lab-premios {
-    grid-template-columns: repeat(3, 40px);
+  .lab-rival-fila {
+    justify-content: flex-start;
   }
 
-  .lab-premios .lab-carta {
-    --lab-ancho: 40px;
+  /* La mano, en una tira que se desplaza: con 8 cartas en dos filas no
+     quedaba sitio para la mesa. */
+  .lab-mano {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: var(--e-sm) 0 var(--e-xs);
+    min-height: 0;
+  }
+
+  .lab-ayuda {
+    display: none;
   }
 
   .lab-rejilla-cartas {
@@ -1486,70 +2560,59 @@ button.lab-carta.lab-no-vale:hover {
     width: 34%;
   }
 
-  .lab-mesa {
-    padding: var(--e-md);
+  .lab-cifras,
+  .lab-prob-resumen {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .lab-campo {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  .lab-cifra-valor {
+    font-size: var(--t-lg);
   }
 
-  .lab-centro {
-    grid-column: 1 / -1;
-    grid-row: 1;
+  .lab-apuntar {
+    bottom: var(--e-md);
+    flex-wrap: wrap;
+    width: calc(100vw - 32px);
   }
 
-  .lab-lado-der {
-    flex-direction: row;
+  /* Eligiendo dónde va una carta, la mano se aparta: en el móvil tapaba
+     la banca, que es justo donde suele ir. Se cancela con el botón del
+     aviso (o tocando fuera), y la mesa deja sitio debajo para el aviso. */
+  .lab-modo-apuntar .lab-mano-zona {
+    display: none;
   }
 
-  /* Las dos pilas, una al lado de la otra, tienen que caber en media
-     pantalla de 320 px. */
-  .lab-pila {
-    min-width: 0;
-    padding: var(--e-xs);
+  .lab-modo-apuntar .lab-mesa {
+    padding-bottom: 160px;
+    scroll-padding-bottom: 160px;
   }
 
-  .lab-pila > .lab-dorso,
-  .lab-pila-cara,
-  .lab-pila-vacia {
-    width: 44px;
+  .lab-segmento {
+    padding: var(--e-xs) var(--e-sm);
   }
 
-  .lab-banca {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow-x: auto;
-    padding-bottom: var(--e-xs);
-  }
-
-  .lab-slot-activo .lab-slot-carta {
-    --lab-ancho: 96px;
-  }
-
-  .lab-slot .lab-slot-carta {
-    --lab-ancho: 64px;
-  }
-
-  .lab-slot-info {
-    width: 72px;
-  }
-
-  .lab-mano .lab-carta {
-    --lab-ancho: 72px;
-  }
-
-  .lab-cifras {
-    grid-template-columns: minmax(0, 1fr);
+  .lab-segmentos-rotulo {
+    padding: 0 var(--e-xs);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  button.lab-carta {
+  button.lab-carta,
+  .lab-modo,
+  .lab-segmento,
+  .lab-mano-carta,
+  .lab-panel-pestana,
+  .lab-tarjeta-modo,
+  .lab-mazo-opcion {
     transition: none;
   }
 
-  button.lab-carta:hover {
+  button.lab-carta:hover,
+  .lab-apuntando .lab-carta {
     transform: none;
+  }
+
+  .lab-apuntable .lab-slot-carta {
+    animation: none;
   }
 }

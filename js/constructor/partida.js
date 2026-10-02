@@ -318,15 +318,30 @@ const MAX_BANCA = 5
 export class Partida {
   // `entradas`: el mazo del constructor ({ carta, n }).
   // `efectos`: la biblioteca (efectos.js). `semilla`: para repetir.
-  constructor({ entradas, efectos = {}, semilla = Date.now() >>> 0, vaPrimero = true, estricta = true, rival = null } = {}) {
+  //
+  // Para jugar contra otro mazo (tanda 456) dos partidas se sientan en una
+  // `Mesa`: cada una con su `prefijo` —los uids y los huecos de las dos no
+  // pueden llamarse igual— y las `cartas` compartidas, para que cada lado
+  // pueda leer las del otro (su activo, el estadio que ha puesto…).
+  constructor({ entradas, efectos = {}, semilla = Date.now() >>> 0, vaPrimero = true, estricta = true, rival = null, prefijo = '', cartas = null, nombre = '' } = {}) {
     this.efectos = efectos
+    this.prefijo = prefijo
+    this.nombreJugador = nombre
     // Cada copia física es una carta con su uid; el estado solo guarda
     // uids, así se clona barato para deshacer.
-    this.cartas = new Map()
+    this.cartas = cartas || new Map()
+    this.uidsPropios = new Set()
     let n = 0
     for (const e of entradas || []) {
-      for (let i = 0; i < e.n; i++) this.cartas.set(`c${++n}`, e.carta)
+      for (let i = 0; i < e.n; i++) {
+        const uid = `${prefijo}c${++n}`
+        this.cartas.set(uid, e.carta)
+        this.uidsPropios.add(uid)
+      }
     }
+    // Con mesa: el otro jugador y la mesa. Sin ella, el maniquí.
+    this.oponente = null
+    this.mesa = null
     this.historia = []
     this.s = this.estadoInicial({ semilla, vaPrimero, estricta, rival })
   }
@@ -334,11 +349,13 @@ export class Partida {
   estadoInicial({ semilla, vaPrimero, estricta, rival }) {
     return {
       semilla: semilla >>> 0,
-      fase: 'mulligan', // mulligan → preparacion → turno ⇄ (rival) → fin
+      // mulligan → preparacion → turno ⇄ (rival) → fin. Con mesa, el que
+      // no juega está en «espera» mientras el otro hace su turno.
+      fase: 'mulligan',
       vaPrimero,
       estricta,
       turno: 0,
-      mazo: [...this.cartas.keys()],
+      mazo: [...this.uidsPropios],
       mano: [],
       premios: [],
       premiosVistos: {},
@@ -377,11 +394,72 @@ export class Partida {
     return cara
   }
   log(texto) {
+    // Con mesa, el registro es UNO para los dos: si no, «coges 2 premios»
+    // y «tu activo cae» saldrían en dos listas sin orden entre sí.
+    if (this.mesa) return this.mesa.log(this, texto)
     this.s.registro.push({ turno: this.s.turno, texto })
     if (this.s.registro.length > 400) this.s.registro.shift()
   }
   nombre(uid) {
     return nombreVisible(this.carta(uid))
+  }
+
+  // ── El rival ──
+  //
+  // Sin mesa es el maniquí, tal cual vive en el estado. Con mesa es el
+  // OTRO jugador, visto con la misma forma que el maniquí ({activo, banca,
+  // premios}) para que los efectos que ya miraban al maniquí —Boss, los
+  // contadores de Dragapult, Pecharunt que cuenta premios…— valgan sin
+  // reescribirlos. Los huecos son los de verdad (dañarlos daña al otro);
+  // lo que el maniquí guarda y un Pokémon calcula (sus PS, si es ex, cuántos
+  // premios da) se les apunta al pedir la vista, que es cuando hace falta.
+  get rival() {
+    const op = this.oponente
+    if (!op) return this.s.rival
+    const ver = (slot) => {
+      if (!slot) return null
+      const c = op.cartaDe(slot)
+      slot.ps = op.psDe(slot)
+      slot.ex = esEx(c)
+      slot.nombre = nombreVisible(c)
+      slot.premios = premiosQueDa(c)
+      return slot
+    }
+    return { activo: ver(op.s.activo), banca: op.s.banca.map(ver), premios: op.s.premios.length, caidos: op.s.caidos || 0, real: true, partida: op }
+  }
+
+  // El turno «del rival» a efectos de cuándo se le quita una parálisis:
+  // la cuenta es la SUYA, que no tiene por qué ir a la par con la tuya.
+  get turnoDelRival() {
+    return this.oponente ? this.oponente.s.turno : this.s.turno
+  }
+
+  // De quién es una carta: con mesa, un estadio o una herramienta pueden
+  // ser del otro, y al descartarse van a SU descarte.
+  duenoDe(uid) {
+    return !this.oponente || this.uidsPropios.has(uid) ? this : this.oponente
+  }
+  alDescarteDeSuDueno(uids) {
+    for (const u of uids) this.duenoDe(u).s.descarte.push(u)
+  }
+
+  // El estadio es de la mesa, no de un jugador: hay uno para los dos.
+  ponerEstadio(uid) {
+    const viejo = this.s.estadio
+    if (viejo) {
+      this.alDescarteDeSuDueno([viejo])
+      this.log(`${this.nombre(viejo)} se va al descarte.`)
+    }
+    this.s.estadio = uid
+    if (this.oponente) this.oponente.s.estadio = uid
+  }
+  quitarEstadio() {
+    const viejo = this.s.estadio
+    if (!viejo) return null
+    this.alDescarteDeSuDueno([viejo])
+    this.s.estadio = null
+    if (this.oponente) this.oponente.s.estadio = null
+    return viejo
   }
 
   // ── Deshacer ──
@@ -392,13 +470,18 @@ export class Partida {
     this.historia.push(structuredClone(this.s))
     if (this.historia.length > 80) this.historia.shift()
   }
+  // Con mesa, deshacer es cosa de la mesa: una jugada toca a los DOS
+  // (un Boss mueve el activo del otro), y volver atrás solo un lado
+  // dejaría la partida en un sitio que no ha existido nunca.
   deshacer() {
+    if (this.mesa) return this.mesa.deshacer()
     const antes = this.historia.pop()
     if (!antes) return false
     this.s = antes
     return true
   }
   get puedeDeshacer() {
+    if (this.mesa) return this.mesa.puedeDeshacer
     return this.historia.length > 0
   }
 
@@ -406,7 +489,8 @@ export class Partida {
   // cierra la ventana de elegir) o no se puede, el estado vuelve a como
   // estaba. Así una carta que se juega a medias nunca deja la partida
   // en un sitio imposible.
-  async accion(fn) {
+  async accion(fn, ui = null) {
+    if (this.mesa) return this.mesa.accion(fn, ui)
     this.foto()
     try {
       const r = await fn()
@@ -433,7 +517,7 @@ export class Partida {
     return slot ? this.carta(slot.cartas[slot.cartas.length - 1]) : null
   }
   nuevoSlot(uid) {
-    return { id: `p${++this.s.seq}`, cartas: [uid], energias: [], herramienta: null, danio: 0, estados: [], entroTurno: this.s.turno, evolucionoTurno: -1 }
+    return { id: `${this.prefijo}p${++this.s.seq}`, cartas: [uid], energias: [], herramienta: null, danio: 0, estados: [], entroTurno: this.s.turno, evolucionoTurno: -1 }
   }
   get maxBanca() {
     // Zona Cero Profunda: con un Teracristal en juego, hasta 8.
@@ -651,17 +735,30 @@ export class Partida {
     }
   }
 
-  // Los premios salen de arriba del mazo, y empieza el turno 1.
-  empezar() {
+  // Los premios salen de arriba del mazo, y empieza el turno 1. Con mesa
+  // (`arrancar: false`) se ponen los premios y se espera: quien empieza lo
+  // decide la mesa, cuando los dos están listos.
+  empezar({ arrancar = true } = {}) {
     const s = this.s
     if (s.fase !== 'preparacion') return
     if (!s.activo) throw new NoSePuede('Elige primero tu Pokémon activo.')
     s.premios = s.mazo.splice(0, 6)
     s.premiosVistos = {}
     for (const p of this.enJuego) p.entroTurno = 0
-    this.log(`Empiezas ${s.vaPrimero ? 'PRIMERO: este turno no puedes atacar ni jugar partidarios' : 'SEGUNDO'}. Seis premios boca abajo.`)
+    this.log(`${this.mesa ? 'Empieza' : 'Empiezas'} ${s.vaPrimero ? `PRIMERO: ${this.mesa ? 'su primer turno no puede' : 'este turno no puedes'} atacar ni jugar partidarios` : 'SEGUNDO'}. Seis premios boca abajo.`)
+    if (!arrancar) {
+      s.fase = 'espera'
+      return
+    }
     s.fase = 'turno'
     this.empezarTurno()
+  }
+
+  // Cambiar quién va primero mientras se prepara (tanda 456): el reparto
+  // es el mismo, solo cambia el orden.
+  ponerVaPrimero(primero) {
+    if (this.s.fase !== 'preparacion' && this.s.fase !== 'mulligan') return
+    this.s.vaPrimero = !!primero
   }
 
   // ════════════════════════════════════════════════════════════════
@@ -681,9 +778,10 @@ export class Partida {
     const s = this.s
     s.turno++
     s.flags = this.flagsNuevas()
-    this.log(`── Turno ${s.turno} ──`)
+    if (this.mesa) this.mesa.nuevoTurno(this)
+    this.log(this.mesa ? `── Turno ${this.mesa.m.turnoGlobal} · ${this.nombreJugador} (su turno ${s.turno}) ──` : `── Turno ${s.turno} ──`)
     if (!s.mazo.length) {
-      this.terminar('derrota', 'No te quedan cartas que robar al empezar el turno.')
+      this.terminar('derrota', this.mesa ? `${this.nombreJugador} no tiene cartas que robar al empezar su turno.` : 'No te quedan cartas que robar al empezar el turno.')
       return
     }
     this.robar(1, { motivo: 'Robo del turno' })
@@ -696,6 +794,19 @@ export class Partida {
   terminarTurno() {
     const s = this.s
     if (s.fase !== 'turno') return
+    this.finDeTurnoPropio()
+    this.chequeo()
+    if (s.fase === 'fin') return
+    s.koUltimoTurnoRival = false
+    this.log('Turno del rival: el maniquí no hace nada.')
+    this.chequeo()
+    if (s.fase === 'fin') return
+    this.empezarTurno()
+  }
+
+  // Lo que se va al final de TU turno, antes del Chequeo.
+  finDeTurnoPropio() {
+    const s = this.s
     // La Energía Ignición se descarta al final de tu turno.
     for (const p of this.enJuego) {
       const fuera = p.energias.filter((u) => claveDeEfecto(this.carta(u)) === 'ignition energy')
@@ -707,13 +818,6 @@ export class Partida {
     }
     // La parálisis se quita al final del turno siguiente del afectado.
     for (const p of this.enJuego) if (p.paralizadoEn != null && p.paralizadoEn < s.turno) quitarEstado(p, 'paralizado')
-    this.chequeo()
-    if (s.fase === 'fin') return
-    s.koUltimoTurnoRival = false
-    this.log('Turno del rival: el maniquí no hace nada.')
-    this.chequeo()
-    if (s.fase === 'fin') return
-    this.empezarTurno()
   }
 
   // El Chequeo Pokémon: veneno, quemadura, sueño y las habilidades que
@@ -737,7 +841,9 @@ export class Partida {
       }
     }
     this.retirarKOPropios()
-    // El maniquí también sufre sus estados.
+    // El maniquí también sufre sus estados. (Con mesa no: el otro jugador
+    // pasa su propio Chequeo, que es el de arriba.)
+    if (this.oponente) return
     const r = s.rival.activo
     if (r?.estados?.includes('envenenado')) this.danioAlRival(r, 10, { motivo: 'veneno', contadores: true })
     if (r?.estados?.includes('quemado')) this.danioAlRival(r, 20, { motivo: 'quemadura', contadores: true })
@@ -752,9 +858,15 @@ export class Partida {
   comprobarFin() {
     const s = this.s
     if (s.fase === 'fin' || s.fase === 'mulligan' || s.fase === 'preparacion') return
-    if (!s.premios.length && s.resultado?.tipo !== 'victoria') this.terminar('victoria', `¡Has cogido todos tus premios en el turno ${s.turno}!`)
-    else if (s.rival.premios <= 0) this.terminar('derrota', 'El rival ha cogido todos sus premios.')
-    else if (!s.activo && !s.banca.length) this.terminar('derrota', 'Te has quedado sin Pokémon en juego.')
+    // Con mesa, «el rival ha cogido todos sus premios» solo vale cuando
+    // el otro ya ha puesto los suyos: antes, cero premios es que no ha
+    // empezado.
+    const op = this.oponente
+    const rivalJugando = !op || ['turno', 'espera', 'fin'].includes(op.s.fase)
+    const quien = this.mesa ? this.nombreJugador : null
+    if (!s.premios.length && s.resultado?.tipo !== 'victoria') this.terminar('victoria', quien ? `¡${quien} coge todos sus premios!` : `¡Has cogido todos tus premios en el turno ${s.turno}!`)
+    else if (rivalJugando && this.rival.premios <= 0) this.terminar('derrota', quien ? `${op.nombreJugador} coge todos sus premios.` : 'El rival ha cogido todos sus premios.')
+    else if (!s.activo && !s.banca.length) this.terminar('derrota', quien ? `${quien} se queda sin Pokémon en juego.` : 'Te has quedado sin Pokémon en juego.')
   }
 
   // ════════════════════════════════════════════════════════════════
@@ -989,11 +1101,9 @@ export class Partida {
     const ctx = { uid, carta: c }
     this.log(`Juegas ${nombreVisible(c)}.`)
     if (esEstadio(c)) {
-      if (s.estadio) {
-        s.descarte.push(s.estadio)
-        this.log(`${this.nombre(s.estadio)} se va al descarte.`)
-      }
-      s.estadio = uid
+      // El que había se va al descarte de quien lo puso, que puede ser el
+      // otro jugador.
+      this.ponerEstadio(uid)
       s.flags.estadio = true
       if (ef?.alPoner) await ef.alPoner(this, ui, ctx)
       return
@@ -1231,8 +1341,21 @@ export class Partida {
     const s = this.s
     const c = this.cartaDe(slot)
     const premios = premiosQueDa(c)
-    s.descarte.push(...this.cartasDelSlot(slot))
+    this.alDescarteDeSuDueno(this.cartasDelSlot(slot))
     this.quitarDelJuego(slot)
+    s.caidos = (s.caidos || 0) + 1
+    const op = this.oponente
+    if (op) {
+      // Con mesa, el otro coge premios DE VERDAD (cartas a su mano). Se
+      // apuntan y los coge la mesa en cuanto puede preguntarle cuáles: esto
+      // pasa en sitios que no esperan (el veneno del Chequeo, un
+      // contador de Ruinas Arriesgadas).
+      if (delRival || op.enTurno) s.koUltimoTurnoRival = true
+      const n = Math.min(premios, op.s.premios.length)
+      this.mesa?.premiosPendientes(op, n)
+      this.log(`${nombreVisible(c)} de ${this.nombreJugador} queda fuera de combate${texto ? ` (${texto})` : ''}: ${op.nombreJugador} coge ${n} ${n === 1 ? 'premio' : 'premios'}.`)
+      return
+    }
     s.rival.premios = Math.max(0, s.rival.premios - premios)
     if (delRival) s.koUltimoTurnoRival = true
     this.log(`${nombreVisible(c)} queda fuera de combate${texto ? ` (${texto})` : ''}: el rival coge ${premios} ${premios === 1 ? 'premio' : 'premios'} (le quedan ${s.rival.premios}).`)
@@ -1249,7 +1372,8 @@ export class Partida {
   async reponerActivo(ui) {
     const s = this.s
     if (s.activo || !s.banca.length || s.fase === 'fin') return
-    const [id] = await ui.pokemon({ titulo: 'Tu activo ha caído: elige quién sube', opciones: s.banca.map((p) => p.id), min: 1, max: 1, sinCancelar: true })
+    const titulo = this.mesa ? `${this.nombreJugador}: tu activo ha caído, elige quién sube` : 'Tu activo ha caído: elige quién sube'
+    const [id] = await ui.pokemon({ titulo, opciones: s.banca.map((p) => p.id), min: 1, max: 1, sinCancelar: true, partida: this })
     const p = this.slot(id)
     s.banca = s.banca.filter((x) => x !== p)
     s.activo = p
@@ -1264,7 +1388,10 @@ export class Partida {
   danioAlRival(objetivo, cantidad, { motivo = '', contadores = false } = {}) {
     if (!objetivo || cantidad <= 0) return
     objetivo.danio += cantidad
-    const donde = objetivo === this.s.rival.activo ? 'activo rival' : 'Pokémon de la banca rival'
+    const r = this.rival
+    const donde = this.oponente
+      ? `${objetivo === r.activo ? 'activo' : 'Pokémon de la banca'} de ${this.oponente.nombreJugador} (${nombreVisible(this.oponente.cartaDe(objetivo))})`
+      : objetivo === r.activo ? 'activo rival' : 'Pokémon de la banca rival'
     this.log(`${contadores ? `${cantidad / 10} ${cantidad === 10 ? 'contador' : 'contadores'} al` : `${cantidad} de daño al`} ${donde}${motivo ? ` (${motivo})` : ''}.`)
   }
 
@@ -1272,6 +1399,7 @@ export class Partida {
   // abajo) y sube otro. El maniquí no se acaba nunca: si no le queda
   // banca, sale uno nuevo igual al primero.
   async resolverKORival(ui) {
+    if (this.oponente) return this.resolverKOOponente(ui)
     const s = this.s
     const r = s.rival
     const caidos = [r.activo, ...r.banca].filter((d) => d && d.danio >= d.ps)
@@ -1298,12 +1426,43 @@ export class Partida {
     this.comprobarFin()
   }
 
+  // Con mesa: los Pokémon del otro que han caído. Se cogen los premios
+  // (los elige quien ataca, boca abajo) y el otro sube un nuevo activo —en
+  // ese orden, que es el del reglamento—.
+  async resolverKOOponente(ui) {
+    const s = this.s
+    const op = this.oponente
+    const caidos = op.enJuego.filter((d) => op.psDe(d) > 0 && d.danio >= op.psDe(d))
+    for (const d of caidos) {
+      let extra = 0
+      if (d === op.s.activo && s.flags.enAtaque) {
+        const atacante = this.cartaDe(this.slot(s.flags.atacante))
+        if (s.flags.briar && esTera(atacante)) extra++
+        extra += s.flags.premioExtra || 0
+      }
+      const c = op.cartaDe(d)
+      const n = Math.min(premiosQueDa(c) + extra, s.premios.length)
+      op.alDescarteDeSuDueno(op.cartasDelSlot(d))
+      op.quitarDelJuego(d)
+      op.s.caidos = (op.s.caidos || 0) + 1
+      // Lo ha dejado KO quien juega ahora: para el otro, eso pasa «en el
+      // último turno de su rival» (Estampa Injusta, Fezandipiti…).
+      if (this.enTurno) op.s.koUltimoTurnoRival = true
+      this.log(`${nombreVisible(c)} de ${op.nombreJugador} queda fuera de combate: ${this.nombreJugador} coge ${n} ${n === 1 ? 'premio' : 'premios'}.`)
+      await this.cogerPremios(n, ui)
+    }
+    this.comprobarFin()
+    op.comprobarFin()
+    if (this.mesa) this.mesa.comprobarFin()
+    if (!this.mesa?.terminada) await op.reponerActivo(ui)
+  }
+
   async cogerPremios(n, ui) {
     const s = this.s
     if (n <= 0 || !s.premios.length) return
     let elegidos
     if (n >= s.premios.length) elegidos = [...s.premios]
-    else elegidos = await ui.premios({ titulo: `Coge ${n} ${n === 1 ? 'premio' : 'premios'}`, n, sinCancelar: true })
+    else elegidos = await ui.premios({ titulo: `${this.mesa ? `${this.nombreJugador}: c` : 'C'}oge ${n} ${n === 1 ? 'premio' : 'premios'}`, n, sinCancelar: true, partida: this })
     for (const u of elegidos) {
       s.premios = s.premios.filter((x) => x !== u)
       delete s.premiosVistos[u]
@@ -1314,6 +1473,13 @@ export class Partida {
 
   // Boss / Captura: el rival sube un Pokémon de su banca.
   cambiarActivoRival(indiceBanca) {
+    const op = this.oponente
+    if (op) {
+      const d = op.s.banca[indiceBanca]
+      if (!d) return false
+      op.cambiarActivo(d)
+      return true
+    }
     const r = this.s.rival
     const d = r.banca[indiceBanca]
     if (!d) return false
@@ -1388,7 +1554,7 @@ export class Partida {
   bonosDeDanio(slot) {
     const s = this.s
     const c = this.cartaDe(slot)
-    const rivalEx = s.rival.activo?.ex
+    const rivalEx = this.rival.activo?.ex
     let extra = 0
     const razones = []
     const suma = (n, porque) => {
@@ -1409,6 +1575,34 @@ export class Partida {
     if (esEvolucion(c) && esDeTipo(c, 'R') && this.hayHabilidadActiva('victini')) suma(10, 'Victini')
     if (esDeTipo(c, 'L') && slot.energias.some((u) => claveDeEfecto(this.carta(u)) === 'voltaic lightning energy')) suma(20, 'Energía Rayo Voltaica')
     return { extra, razones }
+  }
+
+  // La debilidad (×2, o «+N» en cartas viejas) y la resistencia (−30) del
+  // activo del otro jugador frente a los tipos de quien ataca. Se aplican
+  // después de los bonos, que es lo que dicen todas esas cartas («antes de
+  // aplicar Debilidad y Resistencia»).
+  debilidadYResistencia(atacante, objetivo, danio) {
+    const op = this.oponente
+    const def = op.cartaDe(objetivo)
+    const tipos = tiposDe(this.cartaDe(atacante))
+    const numero = (v, porDefecto) => {
+      const n = Number(String(v ?? '').replace(/[^0-9]/g, ''))
+      return Number.isFinite(n) && n > 0 ? n : porDefecto
+    }
+    let total = danio
+    const razones = []
+    for (const w of Array.isArray(def?.weaknesses) ? def.weaknesses : []) {
+      if (!tipos.includes(letraDeTipo(w?.type))) continue
+      if (/\+/.test(String(w.value ?? ''))) total += numero(w.value, 0)
+      else total *= numero(w.value, 2)
+      razones.push('debilidad')
+    }
+    for (const r of Array.isArray(def?.resistances) ? def.resistances : []) {
+      if (!tipos.includes(letraDeTipo(r?.type))) continue
+      total -= numero(r.value, 30)
+      razones.push('resistencia')
+    }
+    return { total: Math.max(0, total), razones }
   }
 
   async atacar(slot, indice, ui, { prestadoDe = null } = {}) {
@@ -1443,10 +1637,13 @@ export class Partida {
     } else if (ataque.effect && !def) {
       this.log(`(El texto de ${ataque.name} no está automatizado: aplica lo que falte a mano.)`)
     }
-    if (danio > 0 && s.rival.activo) {
+    const objetivo = this.rival.activo
+    if (danio > 0 && objetivo) {
       const { extra, razones } = this.bonosDeDanio(slot)
-      const total = danio + extra
-      this.danioAlRival(s.rival.activo, total, { motivo: razones.join(', ') })
+      // Contra otro jugador, la debilidad y la resistencia del Pokémon de
+      // verdad (el maniquí no tiene: mide TU daño).
+      const dr = this.oponente ? this.debilidadYResistencia(slot, objetivo, danio + extra) : { total: danio + extra, razones: [] }
+      this.danioAlRival(objetivo, dr.total, { motivo: [...razones, ...dr.razones].join(', ') })
     }
     s.flags.atacado = true
     if (def?.despues) await def.despues(this, ui, slot)
@@ -1467,7 +1664,7 @@ export class Partida {
     this.log(`${nombreVisible(this.cartaDe(s.activo))} ataca (a mano) por ${danio}.`)
     s.flags.atacante = s.activo.id
     s.flags.enAtaque = true
-    if (danio > 0 && s.rival.activo) this.danioAlRival(s.rival.activo, danio)
+    if (danio > 0 && this.rival.activo) this.danioAlRival(this.rival.activo, danio)
     s.flags.atacado = true
     await this.resolverKORival(ui)
     s.flags.enAtaque = false
@@ -1483,6 +1680,8 @@ export class Partida {
   // El botón de terminar turno. Antes de acabar se repone el activo si
   // hace falta (un Pokémon puede caer por sus propios contadores).
   async pasarTurno(ui) {
+    // Con mesa, terminar el turno es darle el turno al otro: lo hace ella.
+    if (this.mesa) return this.mesa.pasarTurno(ui)
     const s = this.s
     if (s.fase !== 'turno') return
     await this.reponerActivo(ui)
@@ -1584,8 +1783,8 @@ export class Partida {
 // A quién le vale cada bono de turno. El maniquí rival solo sabe si es
 // ex (no distingue una V): Kieran cuenta las dos, así que aquí basta.
 const BONOS_DE_TURNO = {
-  cinturon: (p) => !!p.s.rival.activo?.ex,
-  kieran: (p) => !!p.s.rival.activo?.ex,
+  cinturon: (p) => !!p.rival.activo?.ex,
+  kieran: (p) => !!p.rival.activo?.ex,
   premium: (p, slot) => esDeTipo(p.cartaDe(slot), 'F'),
   gladion: (p, slot) => !tieneRegla(p.cartaDe(slot)),
 }
@@ -1633,6 +1832,267 @@ export function crearRival({ plantilla = 'ex', banca = 2 } = {}) {
   r.activo = nuevoManiqui(p, ++r.seq)
   r.banca = Array.from({ length: banca }, () => nuevoManiqui(p, ++r.seq))
   return r
+}
+
+// ════════════════════════════════════════════════════════════════════
+// La mesa: tú contra ti, con dos mazos (tanda 456)
+// ════════════════════════════════════════════════════════════════════
+//
+// PINGU: «poder jugar una partida en el laboratorio tú contra ti mismo con
+// los 2 mazos que quieras», como tcgmasters.net. Dos `Partida` sentadas
+// frente a frente: cada una es un jugador entero (mazo, mano, premios,
+// banca, descarte, sus reglas de turno) y la otra es su rival de verdad.
+// La mesa pone lo que es de los dos: de quién es el turno, el registro,
+// el estadio (que es uno), y DESHACER, que tiene que volver atrás los dos
+// lados a la vez.
+//
+// Las dos juegan con el mismo motor y los mismos efectos que contra el
+// maniquí: el rival se ve con su forma (`Partida.rival`), así que una
+// carta que ya sabía hacer daño al maniquí se lo hace al otro jugador.
+export class Mesa {
+  constructor({ mazos, nombres = ['Jugador 1', 'Jugador 2'], efectos = {}, semilla = Date.now() >>> 0, empieza = 'azar', estricta = true } = {}) {
+    this.cartas = new Map()
+    // La moneda de quién empieza sale de la semilla de la mesa: con la
+    // misma semilla, la misma partida (las pruebas lo necesitan).
+    const azar = { semilla: semilla >>> 0 }
+    const primero = empieza === 'azar' ? (siguienteAzar(azar) < 0.5 ? 0 : 1) : empieza === 1 || empieza === 'b' ? 1 : 0
+    this.jugadores = [0, 1].map(
+      (i) =>
+        new Partida({
+          entradas: mazos[i],
+          efectos,
+          semilla: (Math.floor(siguienteAzar(azar) * 2 ** 32) >>> 0) || i + 1,
+          vaPrimero: i === primero,
+          estricta,
+          prefijo: i ? 'b' : 'a',
+          cartas: this.cartas,
+          nombre: nombres[i] || `Jugador ${i + 1}`,
+        })
+    )
+    const [a, b] = this.jugadores
+    a.oponente = b
+    b.oponente = a
+    a.mesa = this
+    b.mesa = this
+    this.historia = []
+    this.m = {
+      fase: 'mulligan', // mulligan → preparacion → juego → fin
+      primero,
+      turnoDe: primero,
+      preparando: primero,
+      listos: [false, false],
+      turnoGlobal: 0,
+      registro: [],
+      pendientes: [],
+      resultado: null,
+      monedaInicial: empieza === 'azar',
+    }
+    if (empieza === 'azar') this.log(null, `Moneda: empieza ${this.jugadores[primero].nombreJugador}.`)
+  }
+
+  // ── Lo que se ve desde fuera ──
+  get fase() {
+    return this.m.fase
+  }
+  get terminada() {
+    return this.m.fase === 'fin'
+  }
+  // El jugador que tiene que hacer algo ahora: el que prepara su mesa o
+  // el que juega su turno.
+  get actual() {
+    return this.jugadores[this.m.fase === 'preparacion' ? this.m.preparando : this.m.turnoDe]
+  }
+  indice(partida) {
+    return this.jugadores.indexOf(partida)
+  }
+
+  log(partida, texto) {
+    const j = partida ? this.indice(partida) : -1
+    this.m.registro.push({ turno: this.m.turnoGlobal, j, texto })
+    if (this.m.registro.length > 600) this.m.registro.shift()
+  }
+
+  nuevoTurno() {
+    this.m.turnoGlobal++
+  }
+
+  // ── Deshacer: los dos lados y la mesa, juntos ──
+  foto() {
+    this.historia.push(structuredClone({ a: this.jugadores[0].s, b: this.jugadores[1].s, m: this.m }))
+    if (this.historia.length > 80) this.historia.shift()
+  }
+  restaurar(f) {
+    this.jugadores[0].s = f.a
+    this.jugadores[1].s = f.b
+    this.m = f.m
+  }
+  deshacer() {
+    const antes = this.historia.pop()
+    if (!antes) return false
+    this.restaurar(antes)
+    return true
+  }
+  get puedeDeshacer() {
+    return this.historia.length > 0
+  }
+
+  // Una jugada, con su foto. Después de cada una se resuelve lo que haya
+  // dejado pendiente: premios que coger por un KO que pasó donde no se
+  // podía preguntar, y Pokémon del otro que hayan caído por un efecto que
+  // no es un ataque (una habilidad que pone contadores).
+  async accion(fn, ui) {
+    this.foto()
+    try {
+      const r = await fn()
+      await this.resolver(ui)
+      return r
+    } catch (err) {
+      this.restaurar(this.historia.pop())
+      throw err
+    }
+  }
+
+  premiosPendientes(partida, n) {
+    if (n > 0) this.m.pendientes.push({ j: this.indice(partida), n })
+  }
+
+  async resolver(ui) {
+    if (this.m.fase !== 'juego') return this.comprobarFin()
+    const j = this.actual
+    const op = j.oponente
+    if (op.enJuego.some((d) => op.psDe(d) > 0 && d.danio >= op.psDe(d))) await j.resolverKOOponente(ui)
+    j.retirarKOPropios()
+    while (this.m.pendientes.length && !this.terminada) {
+      const { j: i, n } = this.m.pendientes.shift()
+      await this.jugadores[i].cogerPremios(n, ui)
+      this.comprobarFin()
+    }
+    this.comprobarFin()
+    if (this.terminada) return
+    // Quien se ha quedado sin activo sube uno: el otro en cuanto se
+    // entera, y el que juega antes de seguir.
+    await op.reponerActivo(ui)
+    await j.reponerActivo(ui)
+    this.comprobarFin()
+  }
+
+  // ── Empezar ──
+  repartir() {
+    for (const j of this.jugadores) j.repartir()
+    const sin = this.jugadores.find((j) => j.s.fase === 'fin')
+    if (sin) {
+      this.m.fase = 'fin'
+      this.m.resultado = { ganador: null, texto: `El mazo de ${sin.nombreJugador} no tiene ningún Pokémon básico: no se puede empezar.`, tipo: 'sin-basicos' }
+      return
+    }
+    this.m.fase = 'preparacion'
+    this.m.preparando = this.m.primero
+    this.m.listos = [false, false]
+  }
+
+  // Cambiar quién empieza mientras se prepara.
+  ponerPrimero(i) {
+    if (this.m.fase !== 'preparacion' && this.m.fase !== 'mulligan') return
+    this.m.primero = i
+    this.m.turnoDe = i
+    this.jugadores.forEach((j, k) => j.ponerVaPrimero(k === i))
+    this.log(null, `Empieza ${this.jugadores[i].nombreJugador}.`)
+  }
+  lanzarMoneda() {
+    const i = this.jugadores[0].azar() < 0.5 ? 0 : 1
+    this.log(null, `Moneda: ${i === 0 ? 'cara' : 'cruz'}.`)
+    this.ponerPrimero(i)
+    return i
+  }
+
+  // El que prepara dice «listo»: pasa al otro, y con los dos, empieza.
+  async listo(ui) {
+    const j = this.actual
+    if (this.m.fase !== 'preparacion') return
+    if (!j.s.activo) throw new NoSePuede(`${j.nombreJugador}: elige primero tu Pokémon activo.`)
+    this.m.listos[this.m.preparando] = true
+    const otro = 1 - this.m.preparando
+    if (!this.m.listos[otro]) {
+      this.m.preparando = otro
+      return
+    }
+    await this.empezar(ui)
+  }
+
+  async empezar(ui) {
+    for (const j of this.jugadores) j.empezar({ arrancar: false })
+    this.m.fase = 'juego'
+    // Por cada mulligan del otro, puedes robar una carta de más (si
+    // quieres: no es obligatorio).
+    for (const j of this.jugadores) {
+      const n = j.oponente.s.mulligans
+      if (!n) continue
+      const cuantas = ui?.numero ? await ui.numero({ titulo: `${j.nombreJugador}: ${j.oponente.nombreJugador} hizo ${n} ${n === 1 ? 'mulligan' : 'mulligans'}`, texto: '¿Cuántas cartas robas de más? (Hasta una por mulligan.)', min: 0, max: n, valor: n }) : n
+      if (cuantas > 0) j.robar(cuantas, { motivo: 'Por los mulligans del rival' })
+    }
+    this.m.turnoDe = this.m.primero
+    const p = this.jugadores[this.m.primero]
+    p.s.fase = 'turno'
+    p.empezarTurno()
+    this.comprobarFin()
+  }
+
+  // ── Pasar el turno ──
+  //
+  // Lo de final de turno de quien acaba, el Chequeo Pokémon de LOS DOS
+  // activos, los premios y activos que eso deje pendientes, y el turno
+  // del otro (que roba; si no puede, pierde).
+  async pasarTurno(ui) {
+    if (this.m.fase !== 'juego') return
+    const j = this.actual
+    const op = j.oponente
+    if (j.s.fase !== 'turno') return
+    await j.reponerActivo(ui)
+    j.finDeTurnoPropio()
+    j.chequeo()
+    op.chequeo()
+    await this.resolverPendientes(ui)
+    if (this.terminada) return
+    await j.reponerActivo(ui)
+    await op.reponerActivo(ui)
+    this.comprobarFin()
+    if (this.terminada) return
+    j.s.koUltimoTurnoRival = false
+    j.s.fase = 'espera'
+    this.m.turnoDe = this.indice(op)
+    op.s.fase = 'turno'
+    op.empezarTurno()
+    this.comprobarFin()
+  }
+
+  async resolverPendientes(ui) {
+    while (this.m.pendientes.length && !this.terminada) {
+      const { j: i, n } = this.m.pendientes.shift()
+      await this.jugadores[i].cogerPremios(n, ui)
+      this.comprobarFin()
+    }
+    this.comprobarFin()
+  }
+
+  // ── El final ──
+  comprobarFin() {
+    if (this.m.fase === 'fin' || this.m.fase === 'mulligan' || this.m.fase === 'preparacion') return
+    for (const j of this.jugadores) j.comprobarFin()
+    const acabado = this.jugadores.find((j) => j.s.fase === 'fin')
+    if (!acabado) return
+    const r = acabado.s.resultado || {}
+    const ganador = r.tipo === 'victoria' ? acabado : acabado.oponente
+    this.m.fase = 'fin'
+    this.m.pendientes = []
+    this.m.resultado = { ganador: this.indice(ganador), texto: r.texto || 'Fin de la partida.', turno: this.m.turnoGlobal }
+    for (const j of this.jugadores) {
+      if (j.s.fase !== 'fin') {
+        j.s.fase = 'fin'
+        j.s.resultado = { tipo: j === ganador ? 'victoria' : 'derrota', texto: r.texto, turno: j.s.turno }
+      }
+    }
+    this.log(null, `Gana ${ganador.nombreJugador}. ${r.texto || ''}`.trim())
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════

@@ -35,6 +35,58 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 456 — el laboratorio a dos: «tú contra ti», y una mesa de un clic)
+
+**Hecho** (escrita como 426, y renumerada como 431, 439, 443, 452, 453 y
+454: la otra sesión llegó antes con las siete, así que va como **456**):
+lo que pidió PINGU con tcgmasters.net de referencia: poder jugar en el
+laboratorio **tú contra ti** con los dos mazos que quieras, sin perder el
+**muñeco**; elegir si vas **primero o segundo**; la **tabla de
+probabilidades siempre a mano**; y jugar más fácil: **clic** hace lo obvio
+(si una energía o una evolución vale para varios Pokémon, brillan los que
+valen y eliges tocando uno), **clic derecho** o mantener pulsado enseña la
+carta, y el «⋯» tiene todo lo demás. Y la mesa nueva: un tapete con los
+dos lados enfrentados, que GIRA para enseñar abajo al que le toca. El
+motor de dos (`Mesa`) lleva premios de verdad, debilidad y resistencia, el
+estadio compartido y deshacer de los dos lados; las cartas que tocan al
+rival (Juez, Iono, Xerosic, los martillos…) ya hacen lo que pone. El
+detalle, en SCHEMA.md.
+
+**Una revisión independiente** (otra instancia, sin ver cómo se hizo)
+encontró cinco cosas que ya están arregladas y con su prueba: una ventana
+que HAY que contestar (coger premios, quién sube) se podía cerrar con
+Escape y dejaba la mesa bloqueada; cambiar un mazo en «Nueva partida» y
+cancelar cambiaba la partida en juego (ahora es un borrador hasta
+«Repartir»); el foco se caía al `body` tras cada jugada y al cerrar una
+ventana (y con él el teclado); la cabecera se partía entre 1.200 y 1.300
+px; y cerrar el panel estrecho mandaba el foco a una lengüeta escondida.
+De paso, uno de antes: el **Ctrl+Z del laboratorio le llegaba también al
+constructor** de debajo y deshacía un cambio del MAZO. El teclado vive
+ahora en la ventana, en captura, y lo que usa el laboratorio no sigue.
+
+**Ficheros**: js/constructor/partida.js (la `Mesa`), js/constructor/efectos.js,
+js/constructor/laboratorio.js (la pantalla, reescrita), css/laboratorio.css
+(reescrita; la paleta de energías, intacta), js/constructor.js (le pasa
+`userId` al laboratorio, para «Mis mazos»), SCHEMA.md. En `pruebas`:
+test-tanda-456.mjs y rigor/rigor-tanda-456.py (NUEVOS), y
+test-tanda-384.mjs (los selectores de la mesa nueva; el menú de una carta
+sale ahora del «⋯», porque tocarla la juega).
+
+**En curso / pendiente**: nada a medias. Ideas que se quedan fuera: un
+reloj por turno, y arrastrar cartas (con clic ya se hace todo). Lo único
+que el laboratorio no sabe del otro jugador es lo que el catálogo no
+tiene (efectos sin automatizar: siguen «a mano», como antes).
+**Pruebas**: la 456 en verde y su rigor, **60 de 60** mutaciones
+detectadas, pasado otra vez sobre el árbol FINAL (con la 457 encima). Las
+cuatro que se escapaban en la primera pasada —el tabulador, el corte de la
+cabecera…— se cazan con la prueba contra la FORMA del fallo: que nada de
+la barra se pise, a ocho anchos. Y en la pasada final se escapó una: con
+la cabecera de la 457 el título ya no se aprieta con un turno corto, así
+que quitarle su mínimo no se notaba. Cede con un turno LARGO («Turno 12 ·
+Jugador 2 — …»): sin el mínimo baja a 0 px y «Laboratorio» se monta en los
+modos. La prueba mira ahora los dos. En verde también la 384, 299, 305,
+309, 310, 311, 312, 313 y 315. La suite entera, en la entrada de la 457.
+
 ## 2026-10-02 — PINGU-Claude (tanda 455 — los filtros de la Pokédex, y los enums traducidos)
 
 **Hecho**: dos cosas que salieron de una captura de Bulbasaur.

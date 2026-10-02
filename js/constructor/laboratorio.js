@@ -11,58 +11,90 @@
 // solo se pinta y se escucha. Las elecciones que piden las cartas («elige
 // 2 cartas», «¿a quién?») son ventanas que devuelven una promesa: ese es
 // el `ui` que recibe el motor.
+//
+// Desde la tanda 456, dos maneras de jugar (PINGU, con tcgmasters.net de
+// referencia): contra el MUÑECO de siempre, que no juega y mide tu daño,
+// o TÚ CONTRA TI con dos mazos, cada uno con su mano, sus premios y su
+// banca, y la mesa girando para enseñar abajo al que le toca. Y una forma
+// de jugar más directa: un clic hace lo obvio (un básico baja, una
+// energía o una evolución con un solo sitio posible se pone; con varios,
+// se iluminan los Pokémon que valen y eliges tocando uno), el clic
+// derecho o mantener pulsado enseña la carta, y el «⋯» abre todo lo demás.
 import { escapeHtml } from '../html.js'
 import { showToast } from '../toast.js'
+import { icons } from '../icons.js'
 import { cardImageUrl } from '../tcgdex.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { canonizarCarta } from '../carta-detalle.js'
-import { detallesDeJuego } from './datos.js'
-import { claveDeNombre, nombreVisible, imagenDeEnergiaBasica, esEnergiaBasica, letraDeCartaDeEnergia, seccionesDelMazo } from './nucleo.js'
+import { resumen as resumenDelMeta, listasDestacadas } from '../meta/datos.js'
+import { detallesDeJuego, misMazos, cartasPorIds, resolverLineas } from './datos.js'
+import { claveDeNombre, nombreVisible, imagenDeEnergiaBasica, esEnergiaBasica, letraDeCartaDeEnergia, seccionesDelMazo, leerLista, esBasico } from './nucleo.js'
 import {
-  Partida, Cancelado, oddsDelMazo, probabilidadDeGrupo, contextoDeProbabilidad, PLANTILLAS_RIVAL, crearRival, nuevoManiqui,
+  Partida, Mesa, Cancelado, oddsDelMazo, probabilidadDeGrupo, contextoDeProbabilidad, PLANTILLAS_RIVAL, crearRival, nuevoManiqui,
   esPokemon, esEnergia, esPartidario, esBasicoEnJuego, costeEnLetras, danioImpreso, NOMBRE_DE_LETRA,
   unidadesDeEnergia, premiosQueDa, ponerEstado, claveDeEfecto,
 } from './partida.js'
 import { EFECTOS, textoDeCarta, estaAutomatizada } from './efectos.js'
 
 const PREFS = 'pokedoc-laboratorio'
+const PULSACION_LARGA = 500 // ms para «mantener pulsado = ver la carta»
 
 // ── El estado de la pantalla ──
 const L = {
   raiz: null,
+  // El jugador que tiene que hacer algo AHORA. Contra el muñeco es la
+  // partida; con mesa, el que prepara o el que juega su turno.
   partida: null,
-  entradas: [],
-  nombre: '',
+  mesa: null,
+  // El mazo del constructor (el que se prueba contra el muñeco), y los
+  // dos de la mesa: el 0 sale de serie del constructor; el 1 es el del
+  // otro jugador. { nombre, entradas, odds }
+  mazoConstructor: null,
+  mazos: [null, null],
+  // «Nueva partida» trabaja sobre un BORRADOR (mazos y opciones) que solo
+  // pasa a la mesa al repartir.
+  borrador: null,
+  firma: '',
   codigoDeSet: () => null,
-  opciones: { primero: 'azar', estricta: true, rival: 'ex', banca: 2 },
-  probAbierta: false,
-  // En el móvil los ajustes del rival van plegados: ocupaban media
-  // pantalla antes de llegar a la mesa.
+  userId: null,
+  opciones: { modo: 'muneco', primero: 'azar', empieza: 'azar', estricta: true, rival: 'ex', banca: 2, mazo2: null },
+  // El panel de probabilidades: null = lo que toque por el ancho.
+  panelAbierto: null,
+  panelPestania: 'ahora',
   rivalAbierto: false,
-  probPestania: 'ahora',
   nRobos: 3,
   seleccion: new Set(),
   ocupado: false,
   cacheHtml: new WeakMap(),
-  odds: null,
   focoPrevio: null,
+  nuevas: new Set(),
+  // Apuntar: una carta de la mano esperando a que elijas su Pokémon.
+  apuntar: null,
+  anuncio: '',
+  ignorarClic: false,
 }
 
 const $ = (sel) => L.raiz.querySelector(sel)
+const conMesa = () => !!L.mesa
+const mazoDe = (partida) => (L.mesa ? L.mazos[L.mesa.indice(partida)] : L.mazoConstructor) || L.mazoConstructor
+const anchoGrande = () => window.matchMedia('(min-width: 1100px)').matches
+const panelVisible = () => (L.panelAbierto == null ? anchoGrande() : L.panelAbierto)
 
 function leerPrefs() {
   try {
     const p = JSON.parse(localStorage.getItem(PREFS) || 'null')
     if (p && typeof p === 'object') {
       Object.assign(L.opciones, p.opciones || {})
-      L.probAbierta = !!p.probAbierta
+      if (typeof p.panelAbierto === 'boolean') L.panelAbierto = p.panelAbierto
+      else if (typeof p.probAbierta === 'boolean' && p.probAbierta) L.panelAbierto = true
+      if (['ahora', 'mazo', 'registro'].includes(p.panelPestania)) L.panelPestania = p.panelPestania
       if (Number.isInteger(p.nRobos)) L.nRobos = Math.max(1, Math.min(20, p.nRobos))
     }
   } catch {}
 }
 function guardarPrefs() {
   try {
-    localStorage.setItem(PREFS, JSON.stringify({ opciones: L.opciones, probAbierta: L.probAbierta, nRobos: L.nRobos }))
+    localStorage.setItem(PREFS, JSON.stringify({ opciones: L.opciones, panelAbierto: L.panelAbierto, panelPestania: L.panelPestania, nRobos: L.nRobos }))
   } catch {}
 }
 
@@ -73,45 +105,54 @@ function guardarPrefs() {
 // `entradas`: el mazo tal cual lo tiene el constructor. Aquí se engorda
 // con lo que el buscador no pide (ataques, habilidades, retirada) — una
 // sola consulta por los identificadores del mazo.
-export async function abrirLaboratorio({ entradas, nombre = '', codigoDeSet = () => null }) {
+export async function abrirLaboratorio({ entradas, nombre = '', codigoDeSet = () => null, userId = null }) {
   leerPrefs()
-  L.nombre = nombre
   L.codigoDeSet = codigoDeSet
+  L.userId = userId
   montar()
   L.focoPrevio = document.activeElement
   L.raiz.hidden = false
   document.documentElement.classList.add('lab-abierto')
-  $('#labNombre').textContent = nombre || 'Mazo sin nombre'
   $('#labTitulo').focus()
   // Cerrar para mirar el mazo y volver no tira la partida: si el mazo es
   // el mismo, se sigue donde estaba. Para empezar otra, «Nueva partida».
   const firma = entradas.map((e) => `${e.n}~${e.carta.id}`).join('_')
-  if (L.partida && L.firma === firma && L.partida.s.fase !== 'fin') {
+  const sigue = L.mesa ? !L.mesa.terminada : L.partida && L.partida.s.fase !== 'fin'
+  if (L.partida && L.firma === firma && sigue) {
     L.cacheHtml = new WeakMap()
     pintar()
     return
   }
   L.firma = firma
   $('#labCuerpo').innerHTML = '<p class="lab-cargando">Preparando la mesa…</p>'
-  try {
-    const ids = [...new Set(entradas.map((e) => e.carta.id))]
-    const detalles = await detallesDeJuego(ids).catch(() => new Map())
-    L.entradas = entradas.map((e) => ({ n: e.n, carta: canonizarCarta({ ...e.carta, ...(detalles.get(e.carta.id) || {}) }) }))
-  } catch {
-    L.entradas = entradas.map((e) => ({ ...e }))
-  }
-  L.odds = oddsDelMazo(L.entradas)
+  const preparadas = await prepararEntradas(entradas).catch(() => entradas.map((e) => ({ ...e })))
+  L.mazoConstructor = { nombre: nombre || 'Tu mazo', entradas: preparadas, odds: oddsDelMazo(preparadas), mismo: true }
+  // El mazo ha cambiado (si no, se habría seguido la partida): el jugador
+  // 1 vuelve a ser él, y un jugador 2 que era «el mismo» se va con el
+  // anterior.
+  L.mazos[0] = L.mazoConstructor
+  if (L.mazos[1]?.mismo) L.mazos[1] = null
   L.seleccion = new Set()
   $('#labCuerpo').innerHTML = cuerpoHtml()
+  if (L.opciones.modo === 'mesa' && !L.mazos[1]) await recuperarMazo2()
   nuevaPartida()
 }
 
 function cerrar() {
   if (!L.raiz) return
   cerrarMenu()
+  L.apuntar = null
   L.raiz.hidden = true
   document.documentElement.classList.remove('lab-abierto')
   L.focoPrevio?.focus?.()
+}
+
+// Engordar un mazo con lo que juega (ataques, habilidades, debilidad…) y
+// dejar sus cartas en la forma canónica que entiende el motor.
+async function prepararEntradas(entradas) {
+  const ids = [...new Set(entradas.map((e) => e.carta.id))]
+  const detalles = await detallesDeJuego(ids).catch(() => new Map())
+  return entradas.map((e) => ({ n: e.n, carta: canonizarCarta({ ...e.carta, ...(detalles.get(e.carta.id) || {}) }) }))
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -127,7 +168,7 @@ function montar() {
   raiz.setAttribute('role', 'dialog')
   raiz.setAttribute('aria-modal', 'true')
   // Para poder devolverle el foco cuando se cierra un menú y no hay a
-  // dónde volver (tanda 422). Sin esto el foco se queda en el `body`, y
+  // dónde volver (tanda 423). Sin esto el foco se queda en el `body`, y
   // como el oyente de Escape vive AQUÍ, deja de llegarle: el laboratorio
   // se quedaba sin poder cerrarse con el teclado.
   raiz.tabIndex = -1
@@ -138,18 +179,22 @@ function montar() {
         <h2 id="labTitulo" tabindex="-1">Laboratorio</h2>
         <span class="lab-nombre" id="labNombre"></span>
       </div>
+      <div class="lab-modos" role="radiogroup" aria-label="Contra quién juegas">
+        <button type="button" class="lab-modo" role="radio" data-modo="muneco" aria-checked="true">${icons.target(16)}<span>Contra el muñeco</span></button>
+        <button type="button" class="lab-modo" role="radio" data-modo="mesa" aria-checked="false">${icons.users(16)}<span>Tú contra ti</span></button>
+      </div>
       <p class="lab-turno" id="labTurno" aria-live="polite"></p>
       <div class="lab-barra-botones">
-        <button type="button" class="btn-secondary lab-btn" data-accion="nueva">Nueva partida</button>
-        <button type="button" class="btn-secondary lab-btn" data-accion="deshacer" title="Deshacer (Ctrl+Z)">Deshacer</button>
-        <button type="button" class="btn-secondary lab-btn lab-btn-prob" data-accion="prob" aria-pressed="false" aria-controls="labProb">Probabilidades</button>
+        <button type="button" class="btn-secondary lab-btn" data-accion="deshacer" title="Deshacer (Ctrl+Z)">${icons.refreshCw(16)}<span class="lab-btn-texto">Deshacer</span></button>
+        <button type="button" class="btn-secondary lab-btn" data-accion="nueva" title="Nueva partida">${icons.cards(16)}<span class="lab-btn-texto">Nueva partida</span></button>
+        <button type="button" class="btn-secondary lab-btn lab-btn-panel" data-accion="panel" aria-pressed="false" aria-controls="labPanel" title="Probabilidades (P)">${icons.barChart(16)}<span class="lab-btn-texto">Probabilidades</span></button>
       </div>
       <button type="button" class="lab-cerrar lab-cerrar-lab" data-accion="cerrar" aria-label="Cerrar el laboratorio">×</button>
     </header>
     <div class="lab-cuerpo" id="labCuerpo"></div>
     <div class="lab-menu hidden" id="labMenu" role="menu" tabindex="-1"></div>
     <div class="lab-velo hidden" id="labVelo">
-      <div class="lab-dialogo" id="labDialogo" role="dialog" aria-modal="true" aria-labelledby="labDialogoTitulo"></div>
+      <div class="lab-dialogo" id="labDialogo" role="dialog" aria-modal="true" aria-labelledby="labDialogoTitulo" tabindex="-1"></div>
     </div>`
   document.body.appendChild(raiz)
   L.raiz = raiz
@@ -159,38 +204,22 @@ function montar() {
 function cuerpoHtml() {
   return `
     <div class="lab-mesa" id="labMesa">
-      <section class="lab-rival" id="labRival" aria-label="Rival de prácticas"></section>
-      <section class="lab-campo" aria-label="Tu lado de la mesa">
-        <div class="lab-lado lab-lado-izq">
-          <div class="lab-zona">
-            <p class="lab-rotulo">Premios</p>
-            <div class="lab-premios" id="labPremios"></div>
-          </div>
-          <div class="lab-zona">
-            <p class="lab-rotulo">Estadio</p>
-            <div class="lab-estadio" id="labEstadio"></div>
-          </div>
-        </div>
-        <div class="lab-centro">
-          <div class="lab-activo" id="labActivo"></div>
-          <div class="lab-banca" id="labBanca"></div>
-        </div>
-        <div class="lab-lado lab-lado-der">
-          <button type="button" class="lab-pila" id="labMazo" data-pila="mazo"></button>
-          <button type="button" class="lab-pila" id="labDescarte" data-pila="descarte"></button>
-        </div>
-      </section>
-      <section class="lab-acciones" id="labAcciones" aria-label="Tu turno"></section>
+      <div class="lab-tapete" id="labTapete">
+        <section class="lab-lado lab-lado-rival" id="labLadoRival" aria-label="El rival"></section>
+        <section class="lab-centro-mesa" id="labCentro" aria-label="La mesa"></section>
+        <section class="lab-lado lab-lado-propio" id="labLadoPropio" aria-label="Tu lado de la mesa"></section>
+        <div class="lab-apuntar hidden" id="labApuntar" role="status"></div>
+      </div>
       <section class="lab-mano-zona" aria-labelledby="labManoTitulo">
-        <h3 class="lab-rotulo" id="labManoTitulo">Tu mano</h3>
+        <div class="lab-mano-cab">
+          <h3 class="lab-rotulo" id="labManoTitulo">Tu mano</h3>
+          <p class="lab-ayuda">Clic: jugar · Clic derecho o mantener: ver la carta · <span class="lab-ayuda-icono" aria-hidden="true">${icons.moreHorizontal(14)}</span>: todo lo demás</p>
+        </div>
         <div class="lab-mano" id="labMano"></div>
       </section>
-      <details class="lab-registro" id="labRegistroCaja" open>
-        <summary>Registro de la partida</summary>
-        <ol class="lab-registro-lista" id="labRegistro"></ol>
-      </details>
     </div>
-    <aside class="lab-prob hidden" id="labProb" aria-labelledby="labProbTitulo"></aside>
+    <aside class="lab-panel" id="labPanel" aria-labelledby="labPanelTitulo"></aside>
+    <button type="button" class="lab-panel-pestana" id="labPanelPestana" data-accion="panel" aria-controls="labPanel" aria-expanded="false">${icons.barChart(16)}<span>Probabilidades</span></button>
     <div class="lab-fin hidden" id="labFin" role="status"></div>`
 }
 
@@ -208,19 +237,33 @@ function poner(el, html) {
 // ════════════════════════════════════════════════════════════════════
 
 function nuevaPartida() {
+  // Por si una ventana se quedó sin contestar a medias de una jugada: la
+  // partida nueva no puede heredar la mesa «ocupada».
+  L.ocupado = false
   L.nuevas = new Set()
-  const o = L.opciones
-  const primero = o.primero === 'azar' ? Math.random() < 0.5 : o.primero === 'primero'
-  L.partida = new Partida({
-    entradas: L.entradas,
-    efectos: EFECTOS,
-    semilla: (Math.random() * 2 ** 32) >>> 0,
-    vaPrimero: primero,
-    estricta: o.estricta,
-    rival: { plantilla: o.rival, banca: o.banca },
-  })
-  L.partida.repartir()
+  L.apuntar = null
+  L.anuncio = ''
   L.cacheHtml = new WeakMap()
+  const o = L.opciones
+  const semilla = (Math.random() * 2 ** 32) >>> 0
+  if (o.modo === 'mesa' && L.mazos[1]) {
+    L.mesa = new Mesa({
+      mazos: [L.mazos[0].entradas, L.mazos[1].entradas],
+      nombres: ['Jugador 1', 'Jugador 2'],
+      efectos: EFECTOS,
+      semilla,
+      empieza: o.empieza === 'azar' ? 'azar' : Number(o.empieza) === 1 ? 1 : 0,
+      estricta: o.estricta,
+    })
+    L.mesa.repartir()
+    L.partida = L.mesa.actual
+  } else {
+    L.mesa = null
+    if (o.modo === 'mesa') o.modo = 'muneco'
+    const primero = o.primero === 'azar' ? Math.random() < 0.5 : o.primero === 'primero'
+    L.partida = new Partida({ entradas: L.mazoConstructor.entradas, efectos: EFECTOS, semilla, vaPrimero: primero, estricta: o.estricta, rival: { plantilla: o.rival, banca: o.banca } })
+    L.partida.repartir()
+  }
   pintar()
 }
 
@@ -230,13 +273,23 @@ async function hacer(fn) {
   if (L.ocupado || !L.partida) return
   L.ocupado = true
   cerrarMenu()
-  const antes = new Set(L.partida.s.mano)
+  const foco = marcaDelFoco()
+  L.apuntar = null
+  const quien = L.partida
+  const otro = L.mesa ? quien.oponente : null
+  const antes = new Set(quien.s.mano)
+  const antesOtro = otro ? new Set(otro.s.mano) : null
   try {
-    await L.partida.accion(fn)
+    if (L.mesa) await L.mesa.accion(fn, ui)
+    else await L.partida.accion(fn)
     // Lo que acaba de llegar a la mano se marca hasta la siguiente
     // acción: después de robar 6 con Lillie, saber CUÁLES son las nuevas
-    // es lo primero que se mira.
-    L.nuevas = new Set(L.partida.s.mano.filter((u) => !antes.has(u)))
+    // es lo primero que se mira. Con mesa, si el turno ha pasado, las
+    // nuevas son las del otro (su robo del turno).
+    const ahora = L.mesa ? L.mesa.actual : L.partida
+    const previa = ahora === quien ? antes : antesOtro || antes
+    L.nuevas = new Set(ahora.s.mano.filter((u) => !previa.has(u)))
+    if (L.mesa && ahora !== quien && !L.mesa.terminada) L.anuncio = L.mesa.fase === 'preparacion' ? `Prepara ${ahora.nombreJugador}` : `Turno de ${ahora.nombreJugador}`
   } catch (err) {
     if (err?.cancelado) {
       // Cancelar una elección deja todo como estaba: no hay nada que decir.
@@ -249,7 +302,41 @@ async function hacer(fn) {
   } finally {
     L.ocupado = false
     pintar()
+    devolverFoco(foco)
   }
+}
+
+function deshacer() {
+  if (L.ocupado) return
+  const ok = L.mesa ? L.mesa.deshacer() : L.partida?.deshacer()
+  if (!ok) return
+  L.apuntar = null
+  cerrarMenu()
+  const foco = marcaDelFoco()
+  pintar()
+  devolverFoco(foco)
+}
+
+// ── El foco ──
+//
+// Cada jugada repinta la mesa, y el botón que tenía el foco se sustituye
+// por uno nuevo: el foco se caía al `body`, y con él el teclado (Escape,
+// Ctrl+Z, «v», «p»). Se apunta QUÉ era —su carta, su Pokémon, su botón—
+// y se le devuelve a su equivalente después de pintar.
+const ATRIBUTOS_DE_FOCO = ['data-uid', 'data-slot-carta', 'data-rival-carta', 'data-mas', 'data-premio', 'data-accion', 'data-modo', 'data-primero', 'data-empieza', 'data-panel-pestania', 'data-marca', 'data-robos', 'data-rival-ajuste']
+function marcaDelFoco() {
+  const a = document.activeElement
+  if (!L.raiz || !a || a === L.raiz || !L.raiz.contains(a)) return null
+  if (a.dataset.pila) return `[data-pila="${a.dataset.pila}"][data-de="${a.dataset.de}"]`
+  for (const at of ATRIBUTOS_DE_FOCO) if (a.hasAttribute(at)) return `[${at}="${CSS.escape(a.getAttribute(at))}"]`
+  return a.id ? `#${CSS.escape(a.id)}` : null
+}
+function devolverFoco(marca, el = null) {
+  if (!L.raiz || L.raiz.hidden) return
+  const a = document.activeElement
+  if (a && a !== document.body && a.isConnected && L.raiz.contains(a)) return
+  const destino = (el?.isConnected && L.raiz.contains(el) ? el : null) || (marca && L.raiz.querySelector(marca)) || L.raiz
+  destino.focus({ preventScroll: true })
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -257,28 +344,39 @@ async function hacer(fn) {
 // ════════════════════════════════════════════════════════════════════
 
 function pintar() {
+  if (L.mesa) L.partida = L.mesa.actual
   const p = L.partida
   if (!p || !$('#labMesa')) return
-  pintarTurno()
+  pintarBarra()
   pintarRival()
-  pintarCampo()
-  pintarAcciones()
+  pintarCentro()
+  pintarPropio()
   pintarMano()
-  pintarRegistro()
-  pintarProb()
+  pintarPanel()
   pintarFin()
-  const d = $('[data-accion="deshacer"]')
-  if (d) d.disabled = !p.puedeDeshacer
+  pintarApuntar()
 }
 
-function pintarTurno() {
+function pintarBarra() {
   const p = L.partida
   const s = p.s
+  const m = L.mesa
+  $('#labNombre').textContent = m ? `${L.mazos[0].nombre} contra ${L.mazos[1].nombre}` : L.mazoConstructor?.nombre || ''
+  for (const b of L.raiz.querySelectorAll('[data-modo]')) b.setAttribute('aria-checked', String(b.dataset.modo === (m ? 'mesa' : 'muneco')))
   let t = ''
-  if (s.fase === 'preparacion') t = `Preparación · vas ${s.vaPrimero ? 'primero' : 'segundo'}`
+  if (m) {
+    if (m.fase === 'preparacion') t = `Preparación · ${p.nombreJugador}`
+    else if (m.fase === 'juego') t = `Turno ${m.m.turnoGlobal} · ${p.nombreJugador}${s.vaPrimero && s.turno === 1 ? ' (va primero)' : ''}`
+    else if (m.fase === 'fin') t = 'Partida terminada'
+  } else if (s.fase === 'preparacion') t = `Preparación · vas ${s.vaPrimero ? 'primero' : 'segundo'}`
   else if (s.fase === 'turno') t = `Tu turno ${s.turno} · vas ${s.vaPrimero ? 'primero' : 'segundo'}`
   else if (s.fase === 'fin') t = 'Partida terminada'
-  $('#labTurno').textContent = t
+  $('#labTurno').textContent = L.anuncio && m?.fase !== 'fin' ? `${t} — ${L.anuncio === `Turno de ${p.nombreJugador}` || L.anuncio === `Prepara ${p.nombreJugador}` ? 'te toca' : L.anuncio}` : t
+  L.anuncio = ''
+  const d = $('[data-accion="deshacer"]')
+  if (d) d.disabled = !(m ? m.puedeDeshacer : p.puedeDeshacer)
+  const abierto = panelVisible()
+  $('.lab-btn-panel')?.setAttribute('aria-pressed', String(abierto))
 }
 
 // ── Las cartas ──
@@ -297,19 +395,19 @@ function imagenHtml(carta, calidad = 'low') {
   return `<span class="lab-sin-imagen">${escapeHtml(nombreVisible(carta))}</span>${attrs ? `<img ${attrs} alt="" width="245" height="342" loading="lazy" />` : ''}`
 }
 
-function cartaHtml(uid, { extra = '', etiqueta = '', nueva = false } = {}) {
+function cartaHtml(uid, { extra = '', etiqueta = '', nueva = false, clase = '' } = {}) {
   const c = L.partida.carta(uid)
   const nombre = escapeHtml(nombreVisible(c))
   const auto = !estaAutomatizada(c) ? '<span class="lab-chapa lab-chapa-manual" title="Su efecto no está automatizado: se hace a mano">a mano</span>' : ''
-  return `<button type="button" class="lab-carta${nueva ? ' lab-nueva' : ''}" data-uid="${uid}" aria-label="${etiqueta || nombre}${nueva ? ' (nueva)' : ''}"${extra}>${imagenHtml(c)}${auto}${nueva ? '<span class="lab-chapa lab-chapa-nueva">nueva</span>' : ''}</button>`
+  return `<button type="button" class="lab-carta${clase}${nueva ? ' lab-nueva' : ''}" data-uid="${uid}" aria-label="${etiqueta || nombre}${nueva ? ' (nueva)' : ''}"${extra}>${imagenHtml(c)}${auto}${nueva ? '<span class="lab-chapa lab-chapa-nueva">nueva</span>' : ''}</button>`
 }
 
 const dorsoHtml = (extra = '') => `<span class="lab-dorso"${extra} aria-hidden="true"></span>`
 
 // La energía unida, como un punto con la letra de su tipo.
-function energiaHtml(uid, portador) {
-  const c = L.partida.carta(uid)
-  const unidades = unidadesDeEnergia(c, portador, L.partida)
+function energiaHtml(uid, portador, partida) {
+  const c = partida.carta(uid)
+  const unidades = unidadesDeEnergia(c, portador, partida)
   const letra = esEnergiaBasica(c) ? letraDeCartaDeEnergia(c) || 'C' : unidades[0]?.includes('*') ? '*' : unidades[0]?.[0] || 'C'
   const titulo = `${nombreVisible(c)}${unidades.length > 1 ? ` (da ${unidades.length})` : ''}`
   return `<span class="lab-energia${esEnergiaBasica(c) ? '' : ' lab-energia-especial'}" data-tipo="${letra}" title="${escapeHtml(titulo)}">${letra}${unidades.length > 1 ? `<sub>${unidades.length}</sub>` : ''}</span>`
@@ -317,27 +415,82 @@ function energiaHtml(uid, portador) {
 
 const ESTADOS = { envenenado: 'Envenenado', quemado: 'Quemado', dormido: 'Dormido', paralizado: 'Paralizado', confundido: 'Confundido' }
 
-function slotHtml(slot, { activo = false } = {}) {
-  const p = L.partida
-  const c = p.cartaDe(slot)
-  const ps = p.psDe(slot)
+// Un Pokémon en juego. `rival`: es del otro jugador (se lee, no se juega).
+function slotHtml(slot, partida, { activo = false, rival = false, bocaAbajo = false } = {}) {
+  const c = partida.cartaDe(slot)
+  if (bocaAbajo) {
+    return `<div class="lab-slot${activo ? ' lab-slot-activo' : ''}"><span class="lab-carta lab-carta-dorso lab-slot-carta" role="img" aria-label="Pokémon boca abajo">${dorsoHtml()}</span></div>`
+  }
+  const ps = partida.psDe(slot)
   const vida = Math.max(0, ps - slot.danio)
   const pct = ps ? Math.round((vida / ps) * 100) : 100
-  const energias = slot.energias.map((u) => energiaHtml(u, c)).join('')
-  const herramienta = slot.herramienta ? `<span class="lab-chapa" title="${escapeHtml(p.nombre(slot.herramienta))}">${escapeHtml(p.nombre(slot.herramienta))}</span>` : ''
+  const energias = slot.energias.map((u) => energiaHtml(u, c, partida)).join('')
+  const herramienta = slot.herramienta ? `<span class="lab-chapa lab-chapa-herramienta" title="${escapeHtml(partida.nombre(slot.herramienta))}">${escapeHtml(partida.nombre(slot.herramienta))}</span>` : ''
   const estados = slot.estados.map((e) => `<span class="lab-chapa lab-chapa-estado">${ESTADOS[e] || e}</span>`).join('')
-  const nuevo = p.s.fase === 'turno' && slot.entroTurno === p.s.turno ? '<span class="lab-chapa">nuevo</span>' : ''
-  const evo = slot.cartas.length > 1 ? `<span class="lab-chapa" title="${escapeHtml(slot.cartas.slice(0, -1).map((u) => p.nombre(u)).join(' → '))}">evol. ${slot.cartas.length - 1}</span>` : ''
+  const nuevo = partida.s.fase === 'turno' && slot.entroTurno === partida.s.turno ? '<span class="lab-chapa">nuevo</span>' : ''
+  const evo = slot.cartas.length > 1 ? `<span class="lab-chapa" title="${escapeHtml(slot.cartas.slice(0, -1).map((u) => partida.nombre(u)).join(' → '))}">evol. ${slot.cartas.length - 1}</span>` : ''
+  const apuntable = !rival && L.apuntar?.opciones?.[slot.id]
+  const dato = rival ? `data-rival-carta="${slot.id}"` : `data-slot-carta="${slot.id}"`
+  const etiqueta = `${escapeHtml(nombreVisible(c))}${activo ? ', activo' : ''}${rival ? ` de ${escapeHtml(partida.nombreJugador || 'el rival')}` : ''}: ${vida} de ${ps} PS${slot.energias.length ? `, ${slot.energias.length} ${slot.energias.length === 1 ? 'energía' : 'energías'}` : ''}${apuntable ? '. Tócalo para elegirlo' : ''}`
   return `
-    <div class="lab-slot${activo ? ' lab-slot-activo' : ''}" data-slot="${slot.id}">
-      <button type="button" class="lab-carta lab-slot-carta" data-slot-carta="${slot.id}" aria-label="${escapeHtml(nombreVisible(c))}${activo ? ', activo' : ''}: ${vida} de ${ps} PS">${imagenHtml(c)}${slot.danio ? `<span class="lab-danio">${slot.danio}</span>` : ''}</button>
-      <div class="lab-slot-info">
+    <div class="lab-slot${activo ? ' lab-slot-activo' : ''}${apuntable ? ' lab-apuntable' : ''}${slot.danio && vida <= 0 ? ' lab-slot-caido' : ''}" data-slot="${slot.id}">
+      <button type="button" class="lab-carta lab-slot-carta" ${dato} aria-label="${etiqueta}">${imagenHtml(c)}${slot.danio ? `<span class="lab-danio" aria-hidden="true">${slot.danio}</span>` : ''}${estados ? `<span class="lab-slot-estados">${estados}</span>` : ''}</button>
+      <div class="lab-slot-pie">
         <div class="lab-ps" title="${vida} / ${ps} PS"><span style="--pct: ${pct}%"></span></div>
-        <p class="lab-ps-texto">${vida}/${ps} PS</p>
+        <p class="lab-ps-texto">${vida}/${ps}</p>
         ${energias ? `<div class="lab-energias">${energias}</div>` : ''}
-        <div class="lab-chapas">${herramienta}${evo}${estados}${nuevo}</div>
+        ${herramienta || evo || nuevo ? `<div class="lab-chapas">${herramienta}${evo}${nuevo}</div>` : ''}
       </div>
     </div>`
+}
+
+// Los premios: boca abajo (o boca arriba si los has visto).
+function premiosHtml(partida, { rival = false } = {}) {
+  const s = partida.s
+  if (!s.premios.length) return `<p class="lab-vacio">${s.fase === 'preparacion' || s.fase === 'mulligan' ? 'Se ponen al empezar' : 'Sin premios'}</p>`
+  if (rival) return `<div class="lab-premios" role="img" aria-label="${s.premios.length} premios">${s.premios.map(() => `<span class="lab-carta lab-carta-dorso">${dorsoHtml()}</span>`).join('')}</div><p class="lab-cuenta-mini">${s.premios.length} ${s.premios.length === 1 ? 'premio' : 'premios'}</p>`
+  return `<div class="lab-premios">${s.premios.map((u, i) => (s.premiosVistos[u] ? cartaHtml(u, { extra: ' data-premio' }) : `<button type="button" class="lab-carta lab-carta-dorso" data-premio="${u}" aria-label="Premio ${i + 1}, boca abajo">${dorsoHtml()}</button>`)).join('')}</div><p class="lab-cuenta-mini">${s.premios.length} ${s.premios.length === 1 ? 'premio' : 'premios'}</p>`
+}
+
+// El mazo y el descarte. Los del rival se pueden mirar (su descarte es
+// público), no tocar.
+function pilasHtml(partida, { rival = false } = {}) {
+  const s = partida.s
+  const ctx = !rival && s.fase === 'turno' ? contextoDeProbabilidad(partida) : null
+  const ultima = s.descarte.at(-1)
+  const quien = rival ? 'rival' : 'propio'
+  const mano = rival
+    ? `<div class="lab-pila lab-pila-mano" role="img" aria-label="${s.mano.length} cartas en la mano"><span class="lab-abanico" aria-hidden="true">${Array.from({ length: Math.min(s.mano.length, 5) }, () => dorsoHtml()).join('')}</span><span class="lab-pila-texto"><strong>${s.mano.length}</strong> en la mano</span></div>`
+    : ''
+  return `
+    <button type="button" class="lab-pila" data-pila="mazo" data-de="${quien}" aria-label="${rival ? 'Mazo del rival' : 'Tu mazo'}: ${s.mazo.length} cartas">${dorsoHtml()}<span class="lab-pila-texto"><strong>${s.mazo.length}</strong> en el mazo${ctx && ctx.t ? `<br><span class="lab-pila-sub">${ctx.t} ${ctx.t === 1 ? 'conocida' : 'conocidas'} arriba</span>` : ''}</span></button>
+    <button type="button" class="lab-pila" data-pila="descarte" data-de="${quien}" aria-label="${rival ? 'Descarte del rival' : 'Tu descarte'}: ${s.descarte.length} cartas">${ultima ? `<span class="lab-pila-cara">${imagenHtml(partida.carta(ultima))}</span>` : '<span class="lab-pila-vacia" aria-hidden="true"></span>'}<span class="lab-pila-texto"><strong>${s.descarte.length}</strong> en el descarte</span></button>
+    ${mano}`
+}
+
+// Un lado entero de la mesa. El de arriba (rival) va en espejo: su banca
+// arriba y su activo pegado al centro, como si estuviera sentado enfrente.
+function ladoHtml(partida, { rival = false } = {}) {
+  const s = partida.s
+  const m = L.mesa
+  // Mientras se prepara, lo que ha colocado el otro está boca abajo.
+  const tapado = rival && m?.fase === 'preparacion'
+  const max = s.fase === 'preparacion' || s.fase === 'mulligan' ? 5 : partida.maxBanca
+  const huecos = Math.max(0, max - s.banca.length)
+  const activo = s.activo
+    ? slotHtml(s.activo, partida, { activo: true, rival, bocaAbajo: tapado })
+    : `<div class="lab-hueco lab-hueco-activo"><p>${rival ? 'Sin activo' : s.fase === 'preparacion' ? 'Toca un básico de tu mano para ponerlo aquí.' : 'Sin Pokémon activo.'}</p></div>`
+  const banca = s.banca.map((x) => slotHtml(x, partida, { rival, bocaAbajo: tapado })).join('') + Array.from({ length: huecos }, () => '<div class="lab-hueco" aria-hidden="true"></div>').join('')
+  const mazo = mazoDe(partida)
+  const cab = m
+    ? `<div class="lab-lado-cab"><span class="lab-jugador" data-j="${m.indice(partida)}">${escapeHtml(partida.nombreJugador)}</span><span class="lab-lado-mazo">${escapeHtml(mazo?.nombre || '')}</span>${m.fase === 'juego' && m.actual === partida ? '<span class="lab-lado-turno">Su turno</span>' : ''}${s.koUltimoTurnoRival && m.actual === partida ? '<span class="lab-chapa lab-chapa-alerta">Le dejaron KO el turno pasado</span>' : ''}</div>`
+    : '<div class="lab-lado-cab"><span class="lab-jugador" data-j="0">Tú</span></div>'
+  return `
+    ${cab}
+    <div class="lab-zona lab-zona-premios">${premiosHtml(partida, { rival })}</div>
+    <div class="lab-zona lab-zona-activo">${activo}</div>
+    <div class="lab-zona lab-zona-banca">${banca}</div>
+    <div class="lab-zona lab-zona-pilas">${pilasHtml(partida, { rival })}</div>`
 }
 
 // ── El rival ──
@@ -356,34 +509,43 @@ function maniquiHtml(d, { activo = false } = {}) {
 }
 
 function pintarRival() {
+  const el = $('#labLadoRival')
+  if (L.mesa) {
+    el.classList.remove('lab-lado-muneco')
+    el.setAttribute('aria-label', `Lado de ${L.partida.oponente.nombreJugador}`)
+    return poner(el, ladoHtml(L.partida.oponente, { rival: true }))
+  }
+  el.classList.add('lab-lado-muneco')
+  el.setAttribute('aria-label', 'Muñeco de prácticas')
   const r = L.partida.s.rival
   const plantillas = Object.values(PLANTILLAS_RIVAL)
     .map((t) => `<option value="${t.id}"${r.plantilla.id === t.id ? ' selected' : ''}>${t.nombre} (${t.ps} PS)</option>`)
     .join('')
   poner(
-    $('#labRival'),
+    el,
     `
-    <div class="lab-rival-cab">
-      <h3 class="lab-rotulo">Rival de prácticas <span class="subtext">(no juega: mide tu daño)</span></h3>
+    <div class="lab-lado-cab">
+      <span class="lab-jugador" data-j="1">Muñeco de prácticas</span>
+      <span class="lab-lado-mazo">No juega: mide tu daño</span>
       <button type="button" class="link-btn lab-rival-plegar" data-rival-ajuste="plegar" aria-expanded="${L.rivalAbierto ? 'true' : 'false'}" aria-controls="labRivalAjustes">${L.rivalAbierto ? 'Ocultar ajustes' : 'Ajustes'}</button>
-      <div class="lab-rival-ajustes${L.rivalAbierto ? ' abierto' : ''}" id="labRivalAjustes">
-        <label class="lab-campo-mini">Maniquí
-          <select data-rival-ajuste="plantilla">${plantillas}</select>
-        </label>
-        <div class="lab-contador" role="group" aria-label="Pokémon en la banca rival">
-          <span>Banca</span>
-          <button type="button" class="lab-mini" data-rival-ajuste="banca-" aria-label="Uno menos en la banca rival">−</button>
-          <strong>${r.banca.length}</strong>
-          <button type="button" class="lab-mini" data-rival-ajuste="banca+" aria-label="Uno más en la banca rival">+</button>
-        </div>
-        <div class="lab-contador" role="group" aria-label="Premios que le quedan al rival">
-          <span>Premios</span>
-          <button type="button" class="lab-mini" data-rival-ajuste="premios-" aria-label="Un premio menos para el rival">−</button>
-          <strong>${r.premios}</strong>
-          <button type="button" class="lab-mini" data-rival-ajuste="premios+" aria-label="Un premio más para el rival">+</button>
-        </div>
-        <button type="button" class="btn-secondary lab-btn" data-rival-ajuste="ataque">El rival te ataca…</button>
+    </div>
+    <div class="lab-rival-ajustes${L.rivalAbierto ? ' abierto' : ''}" id="labRivalAjustes">
+      <label class="lab-campo-mini">Muñeco
+        <select data-rival-ajuste="plantilla">${plantillas}</select>
+      </label>
+      <div class="lab-contador" role="group" aria-label="Pokémon en la banca rival">
+        <span>Banca</span>
+        <button type="button" class="lab-mini" data-rival-ajuste="banca-" aria-label="Uno menos en la banca rival">−</button>
+        <strong>${r.banca.length}</strong>
+        <button type="button" class="lab-mini" data-rival-ajuste="banca+" aria-label="Uno más en la banca rival">+</button>
       </div>
+      <div class="lab-contador" role="group" aria-label="Premios que le quedan al rival">
+        <span>Premios</span>
+        <button type="button" class="lab-mini" data-rival-ajuste="premios-" aria-label="Un premio menos para el rival">−</button>
+        <strong>${r.premios}</strong>
+        <button type="button" class="lab-mini" data-rival-ajuste="premios+" aria-label="Un premio más para el rival">+</button>
+      </div>
+      <button type="button" class="btn-secondary lab-btn" data-rival-ajuste="ataque">El muñeco te ataca…</button>
     </div>
     <div class="lab-rival-fila">
       ${r.activo ? maniquiHtml(r.activo, { activo: true }) : ''}
@@ -392,113 +554,147 @@ function pintarRival() {
   )
 }
 
-// ── Tu lado ──
+// ── El centro: el estadio, el turno y sus botones ──
 
-function pintarCampo() {
+function pintarCentro() {
   const p = L.partida
   const s = p.s
-  // Premios boca abajo (o boca arriba si los has visto).
-  poner(
-    $('#labPremios'),
-    s.premios.length
-      ? s.premios.map((u) => (s.premiosVistos[u] ? cartaHtml(u, { extra: ' data-premio' }) : `<button type="button" class="lab-carta lab-carta-dorso" data-premio="${u}" aria-label="Premio boca abajo">${dorsoHtml()}</button>`)).join('')
-      : s.fase === 'preparacion'
-        ? '<p class="subtext">Se ponen al empezar.</p>'
-        : '<p class="subtext">No te quedan.</p>'
-  )
-  poner($('#labEstadio'), s.estadio ? cartaHtml(s.estadio, { extra: ' data-estadio' }) : '<p class="subtext">Ninguno</p>')
-  poner(
-    $('#labActivo'),
-    s.activo
-      ? slotHtml(s.activo, { activo: true })
-      : `<div class="lab-hueco lab-hueco-activo"><p>${s.fase === 'preparacion' ? 'Elige tu Pokémon activo: toca un básico de tu mano.' : 'Sin Pokémon activo.'}</p></div>`
-  )
-  const huecos = Math.max(0, (s.fase === 'preparacion' ? 5 : p.maxBanca) - s.banca.length)
-  poner($('#labBanca'), s.banca.map((x) => slotHtml(x)).join('') + Array.from({ length: huecos }, () => '<div class="lab-hueco" aria-hidden="true"></div>').join(''))
-  const ctx = s.fase === 'turno' ? contextoDeProbabilidad(p) : null
-  poner(
-    $('#labMazo'),
-    `${dorsoHtml()}<span class="lab-pila-texto"><strong>${s.mazo.length}</strong> en el mazo${ctx && ctx.t ? `<br><span class="subtext">${ctx.t} ${ctx.t === 1 ? 'conocida' : 'conocidas'} arriba</span>` : ''}</span>`
-  )
-  const ultima = s.descarte.at(-1)
-  poner($('#labDescarte'), `${ultima ? `<span class="lab-pila-cara">${imagenHtml(p.carta(ultima))}</span>` : '<span class="lab-pila-vacia" aria-hidden="true"></span>'}<span class="lab-pila-texto"><strong>${s.descarte.length}</strong> en el descarte</span>`)
-}
-
-function pintarAcciones() {
-  const p = L.partida
-  const s = p.s
-  let html = ''
-  if (s.fase === 'preparacion') {
+  const m = L.mesa
+  const estadio = s.estadio ? cartaHtml(s.estadio, { extra: ' data-estadio', etiqueta: `Estadio: ${escapeHtml(p.nombre(s.estadio))}` }) : '<span class="lab-hueco lab-hueco-estadio" aria-hidden="true"></span>'
+  const estadioBloque = `<div class="lab-estadio"><p class="lab-rotulo">Estadio</p>${estadio}${s.estadio ? '' : '<p class="lab-vacio">Ninguno</p>'}</div>`
+  let medio = ''
+  let botones = ''
+  const fase = m ? m.fase : s.fase
+  if (fase === 'preparacion') {
     const mull = s.mulligans
-      ? `<p class="lab-aviso">${s.mulligans} ${s.mulligans === 1 ? 'mulligan' : 'mulligans'} antes de esta mano (sin básicos). <button type="button" class="link-btn" data-ver-mulligans>Verlas</button></p>`
+      ? `<p class="lab-aviso">${s.mulligans} ${s.mulligans === 1 ? 'mulligan' : 'mulligans'} antes de esta mano. <button type="button" class="link-btn" data-ver-mulligans>Verlas</button></p>`
       : ''
-    html = `
-      ${mull}
-      <p class="lab-guia">Toca los básicos de tu mano para ponerlos de activo o en la banca. Luego, empieza: se ponen los 6 premios y robas tu primera carta.</p>
-      <div class="lab-acciones-botones">
-        <button type="button" class="btn-primary lab-btn" data-accion="empezar"${s.activo ? '' : ' disabled'}>Empezar la partida</button>
-        <button type="button" class="btn-secondary lab-btn" data-accion="auto">Colocar automáticamente</button>
-      </div>`
+    // La moneda no es una opción más del grupo: es un botón que ELIGE una
+    // de las dos (y por eso va fuera del `radiogroup`).
+    const quien = m
+      ? `<div class="lab-segmentos">
+          <span class="lab-segmentos-rotulo" id="labRotuloEmpieza">Empieza</span>
+          <span class="lab-segmentos-grupo" role="radiogroup" aria-labelledby="labRotuloEmpieza">
+            ${[0, 1].map((i) => `<button type="button" class="lab-segmento" role="radio" data-empieza="${i}" aria-checked="${m.m.primero === i}">${escapeHtml(m.jugadores[i].nombreJugador)}</button>`).join('')}
+          </span>
+          <button type="button" class="lab-segmento" data-empieza="moneda">Moneda</button>
+        </div>`
+      : `<div class="lab-segmentos">
+          <span class="lab-segmentos-rotulo" id="labRotuloVas">Vas</span>
+          <span class="lab-segmentos-grupo" role="radiogroup" aria-labelledby="labRotuloVas">
+            <button type="button" class="lab-segmento" role="radio" data-primero="primero" aria-checked="${s.vaPrimero}">Primero</button>
+            <button type="button" class="lab-segmento" role="radio" data-primero="segundo" aria-checked="${!s.vaPrimero}">Segundo</button>
+          </span>
+          <button type="button" class="lab-segmento" data-primero="moneda">Moneda</button>
+        </div>`
+    medio = `${quien}${mull}<p class="lab-guia">${m ? `<strong>${escapeHtml(p.nombreJugador)}</strong>: toca` : 'Toca'} tus básicos para ponerlos (el primero va de activo, los demás a la banca).</p>`
+    botones = `<button type="button" class="btn-secondary lab-btn" data-accion="auto">Colocar solo</button>
+      <button type="button" class="btn-primary lab-btn" data-accion="empezar"${s.activo ? '' : ' disabled'}>${m ? (m.m.listos[1 - m.m.preparando] ? 'Listo: empezar' : `Listo: le toca a ${escapeHtml(p.oponente.nombreJugador)}`) : 'Empezar la partida'}</button>`
   } else if (s.fase === 'turno') {
     const f = s.flags
     const chip = (hecho, texto, pendiente) => `<span class="lab-estado${hecho ? ' lab-estado-hecho' : ''}">${hecho ? texto : pendiente}</span>`
     const primero = p.primerTurnoDelPrimero
-    html = `
+    const ultimo = (m ? m.m.registro : s.registro).filter((x) => !/^── /.test(x.texto)).at(-1)
+    medio = `
       <div class="lab-estados" aria-label="Lo que llevas este turno">
-        ${chip(f.energia, 'Energía unida', 'Energía por unir')}
+        ${chip(f.energia, 'Energía unida', 'Energía libre')}
         ${primero ? '<span class="lab-estado lab-estado-hecho">Sin partidario (turno 1)</span>' : chip(f.partidario, 'Partidario jugado', 'Partidario libre')}
         ${chip(f.estadio, 'Estadio jugado', 'Estadio libre')}
-        ${chip(f.retirada, 'Ya te has retirado', 'Retirada libre')}
-        ${s.koUltimoTurnoRival ? '<span class="lab-estado lab-estado-alerta">El rival te dejó KO un Pokémon el turno pasado</span>' : ''}
+        ${chip(f.retirada, 'Ya se ha retirado', 'Retirada libre')}
+        ${!m && s.koUltimoTurnoRival ? '<span class="lab-estado lab-estado-alerta">El rival te dejó KO un Pokémon el turno pasado</span>' : ''}
         ${!s.estricta ? '<span class="lab-estado lab-estado-alerta">Modo libre: sin reglas</span>' : ''}
       </div>
-      <div class="lab-acciones-botones">
-        <button type="button" class="btn-secondary lab-btn" data-accion="atacar"${s.activo ? '' : ' disabled'}>Atacar…</button>
-        ${s.estadio && EFECTOS.entrenadores[claveDeEfecto(p.carta(s.estadio))]?.estadio ? `<button type="button" class="btn-secondary lab-btn" data-accion="estadio">${escapeHtml(EFECTOS.entrenadores[claveDeEfecto(p.carta(s.estadio))].estadio.nombre)}</button>` : ''}
-        <button type="button" class="btn-primary lab-btn" data-accion="pasar">Terminar el turno</button>
-      </div>`
+      ${ultimo ? `<p class="lab-ultimo">${escapeHtml(ultimo.texto)}</p>` : ''}`
+    const estadioUso = s.estadio && EFECTOS.entrenadores[claveDeEfecto(p.carta(s.estadio))]?.estadio
+    botones = `
+      ${estadioUso ? `<button type="button" class="btn-secondary lab-btn" data-accion="estadio">${escapeHtml(estadioUso.nombre)}</button>` : ''}
+      <button type="button" class="btn-secondary lab-btn" data-accion="atacar"${s.activo ? '' : ' disabled'}>Atacar…</button>
+      <button type="button" class="btn-primary lab-btn lab-btn-turno" data-accion="pasar">Terminar el turno</button>`
+  } else if (fase === 'fin') {
+    medio = '<p class="lab-guia">Partida terminada.</p>'
+    botones = '<button type="button" class="btn-primary lab-btn" data-accion="otra">Otra partida</button>'
   }
-  poner($('#labAcciones'), html)
+  poner(
+    $('#labCentro'),
+    `${estadioBloque}
+     <div class="lab-centro-medio">${medio}</div>
+     <div class="lab-centro-botones">${botones}</div>`
+  )
 }
 
+function pintarPropio() {
+  const el = $('#labLadoPropio')
+  el.setAttribute('aria-label', L.mesa ? `Lado de ${L.partida.nombreJugador} (le toca)` : 'Tu lado de la mesa')
+  poner(el, ladoHtml(L.partida))
+}
 
+// La mano: cada carta con su «⋯» para todo lo demás. Las que se pueden
+// jugar ahora mismo van marcadas: es lo primero que se busca en la mesa.
 function pintarMano() {
   const p = L.partida
   const s = p.s
-  $('#labManoTitulo').textContent = `Tu mano (${s.mano.length})`
-  poner($('#labMano'), s.mano.length ? s.mano.map((u) => cartaHtml(u, { extra: ' data-mano', nueva: L.nuevas?.has(u) })).join('') : '<p class="subtext">No tienes cartas en la mano.</p>')
+  $('#labManoTitulo').textContent = L.mesa ? `Mano de ${p.nombreJugador} (${s.mano.length})` : `Tu mano (${s.mano.length})`
+  const jugable = (u) => (s.fase === 'preparacion' ? esPokemon(p.carta(u)) && esBasicoEnJuego(p.carta(u)) : p.opcionesDeMano(u).some((o) => !o.no))
+  poner(
+    $('#labMano'),
+    s.mano.length
+      ? s.mano
+          .map((u) => {
+            const j = s.fase === 'turno' || s.fase === 'preparacion' ? jugable(u) : false
+            const nombre = escapeHtml(p.nombre(u))
+            const apuntando = L.apuntar?.uid === u
+            return `<div class="lab-mano-carta${j ? ' lab-jugable' : ''}${apuntando ? ' lab-apuntando' : ''}">
+              ${cartaHtml(u, { extra: ` data-mano${j ? '' : ' data-no-jugable'}`, nueva: L.nuevas?.has(u), etiqueta: `${nombre}${j ? '' : ' (ahora no se puede jugar)'}` })}
+              <button type="button" class="lab-mas" data-mas="${u}" aria-label="Más opciones: ${nombre}" title="Más opciones">${icons.moreHorizontal(16)}</button>
+            </div>`
+          })
+          .join('')
+      : '<p class="lab-vacio">No hay cartas en la mano.</p>'
+  )
 }
 
-function pintarRegistro() {
-  const r = L.partida.s.registro
-  const ultimas = r.slice(-60)
-  poner(
-    $('#labRegistro'),
-    ultimas.map((x) => `<li${/^── /.test(x.texto) ? ' class="lab-registro-turno"' : ''}>${escapeHtml(x.texto)}</li>`).join('')
-  )
-  const lista = $('#labRegistro')
-  if (lista) lista.scrollTop = lista.scrollHeight
+
+function pintarApuntar() {
+  const el = $('#labApuntar')
+  if (!el) return
+  const a = L.apuntar
+  el.classList.toggle('hidden', !a)
+  L.raiz.classList.toggle('lab-modo-apuntar', !!a)
+  if (!a) return poner(el, '')
+  poner(el, `<span>${escapeHtml(a.texto)}</span><button type="button" class="btn-secondary lab-btn" data-accion="no-apuntar">Cancelar <kbd>Esc</kbd></button>`)
 }
 
 function pintarFin() {
-  const s = L.partida.s
   const el = $('#labFin')
   if (!el) return
-  if (s.fase !== 'fin' || !s.resultado) {
+  const m = L.mesa
+  const s = L.partida.s
+  if (m ? m.fase !== 'fin' || !m.m.resultado : s.fase !== 'fin' || !s.resultado) {
     el.classList.add('hidden')
     return
   }
-  const r = s.resultado
-  const titulo = r.tipo === 'victoria' ? '¡Victoria!' : r.tipo === 'sin-basicos' ? 'No se puede empezar' : 'Fin de la partida'
+  let titulo, texto, sub
+  if (m) {
+    const r = m.m.resultado
+    titulo = r.tipo === 'sin-basicos' ? 'No se puede empezar' : `Gana ${escapeHtml(m.jugadores[r.ganador].nombreJugador)}`
+    texto = escapeHtml(r.texto)
+    sub = r.tipo === 'sin-basicos' ? '' : m.jugadores.map((j) => `${escapeHtml(j.nombreJugador)}: ${6 - j.s.premios.length} premios cogidos`).join(' · ') + ` · ${m.m.turnoGlobal} turnos`
+  } else {
+    const r = s.resultado
+    titulo = r.tipo === 'victoria' ? '¡Victoria!' : r.tipo === 'sin-basicos' ? 'No se puede empezar' : 'Fin de la partida'
+    texto = escapeHtml(r.texto)
+    sub = `${s.mulligans ? `${s.mulligans} ${s.mulligans === 1 ? 'mulligan' : 'mulligans'} · ` : ''}${s.rival.caidos || 0} KO al rival · ${6 - s.premios.length} premios cogidos`
+  }
+  const puede = m ? m.puedeDeshacer : L.partida.puedeDeshacer
   poner(
     el,
     `<div class="lab-fin-caja">
       <h3>${titulo}</h3>
-      <p>${escapeHtml(r.texto)}</p>
-      <p class="subtext">${s.mulligans ? `${s.mulligans} ${s.mulligans === 1 ? 'mulligan' : 'mulligans'} · ` : ''}${s.rival.caidos || 0} ${s.rival.caidos === 1 ? 'KO' : 'KO'} al rival · ${6 - s.premios.length} premios cogidos</p>
+      <p>${texto}</p>
+      ${sub ? `<p class="subtext">${sub}</p>` : ''}
       <div class="lab-acciones-botones">
         <button type="button" class="btn-primary lab-btn" data-accion="otra">Otra partida</button>
-        ${L.partida.puedeDeshacer ? '<button type="button" class="btn-secondary lab-btn" data-accion="deshacer">Deshacer lo último</button>' : ''}
+        ${puede ? '<button type="button" class="btn-secondary lab-btn" data-accion="deshacer">Deshacer lo último</button>' : ''}
       </div>
     </div>`
   )
@@ -506,16 +702,23 @@ function pintarFin() {
 }
 
 // ════════════════════════════════════════════════════════════════════
-// La tabla de probabilidades
+// El panel: probabilidades y registro
 // ════════════════════════════════════════════════════════════════════
+//
+// PINGU: «la pestaña de probabilidades, que siempre tengas la opción de
+// verla». En pantalla ancha va pegada a la derecha de la mesa; en una
+// estrecha, una pestaña fija abajo la abre por encima.
 
 const pct = (x) => (x == null || Number.isNaN(x) ? '—' : x >= 0.9995 ? '100 %' : x > 0 && x < 0.0005 ? '<0,1 %' : `${(x * 100).toFixed(x < 0.1 && x > 0 ? 1 : 0).replace('.', ',')} %`)
-const barra = (x) => `<span class="lab-barra-prob" aria-hidden="true"><span style="--pct: ${Math.round((x || 0) * 100)}%"></span></span>`
+// El nivel de una probabilidad, para el color de su barra: de un vistazo
+// se ve qué es casi seguro y qué es una lotería.
+const nivel = (x) => (x == null ? 0 : x >= 0.75 ? 3 : x >= 0.4 ? 2 : x > 0 ? 1 : 0)
+const barra = (x) => `<span class="lab-barra-prob" data-nivel="${nivel(x)}" aria-hidden="true"><span style="--pct: ${Math.round((x || 0) * 100)}%"></span></span>`
 
 // Una fila por NOMBRE (las impresiones de una misma carta van juntas),
 // en el orden de las secciones del constructor.
-function gruposDelMazo() {
-  const secc = seccionesDelMazo(L.entradas)
+function gruposDelMazo(entradas) {
+  const secc = seccionesDelMazo(entradas)
   const salida = []
   for (const [clave, titulo] of [['P', 'Pokémon'], ['T', 'Entrenadores'], ['X', 'Sin clasificar'], ['E', 'Energías']]) {
     const vistas = new Map()
@@ -535,31 +738,53 @@ const GRUPOS_ESPECIALES = [
   { id: 'energias', texto: 'Cualquier Energía', f: (c) => esEnergia(c) },
 ]
 
-function pintarProb() {
-  const el = $('#labProb')
-  const boton = $('[data-accion="prob"]')
-  boton?.setAttribute('aria-pressed', String(L.probAbierta))
-  L.raiz.classList.toggle('lab-con-prob', L.probAbierta)
+function pintarPanel() {
+  const el = $('#labPanel')
+  const abierto = panelVisible()
+  L.raiz.classList.toggle('lab-con-panel', abierto)
+  const pestana = $('#labPanelPestana')
+  pestana?.setAttribute('aria-expanded', String(abierto))
+  pestana?.classList.toggle('hidden', abierto)
   if (!el) return
-  el.classList.toggle('hidden', !L.probAbierta)
-  if (!L.probAbierta) return
-  const pest = L.probPestania
+  el.classList.toggle('hidden', !abierto)
+  if (!abierto) return
+  const pest = L.panelPestania
+  const p = L.partida
+  const tab = (id, texto) => `<button type="button" role="tab" class="lab-pestania${pest === id ? ' activa' : ''}" aria-selected="${pest === id}" data-panel-pestania="${id}">${texto}</button>`
   const cab = `
-    <div class="lab-prob-cab">
-      <h3 id="labProbTitulo">Probabilidades</h3>
-      <button type="button" class="lab-cerrar lab-prob-cerrar" data-accion="prob" aria-label="Cerrar las probabilidades">×</button>
+    <div class="lab-panel-cab">
+      <h3 id="labPanelTitulo">${pest === 'registro' ? 'Registro' : `Probabilidades${L.mesa ? ` · ${escapeHtml(p.nombreJugador)}` : ''}`}</h3>
+      <button type="button" class="lab-cerrar lab-panel-cerrar" data-accion="panel" aria-label="Cerrar el panel">×</button>
     </div>
-    <div class="lab-pestanias" role="tablist" aria-label="Qué probabilidades">
-      <button type="button" role="tab" class="lab-pestania${pest === 'ahora' ? ' activa' : ''}" aria-selected="${pest === 'ahora'}" data-prob-pestania="ahora">En esta partida</button>
-      <button type="button" role="tab" class="lab-pestania${pest === 'mazo' ? ' activa' : ''}" aria-selected="${pest === 'mazo'}" data-prob-pestania="mazo">Del mazo, antes de robar</button>
+    <div class="lab-pestanias" role="tablist" aria-label="Qué enseña el panel">
+      ${tab('ahora', 'Esta partida')}${tab('mazo', 'El mazo')}${tab('registro', 'Registro')}
     </div>`
-  poner(el, cab + (pest === 'ahora' ? tablaAhora() : tablaMazo()))
+  const cuerpo = pest === 'registro' ? registroHtml() : pest === 'mazo' ? tablaMazo() : tablaAhora()
+  poner(el, `${cab}<div class="lab-panel-cuerpo" id="labPanelCuerpo">${cuerpo}</div>`)
+  if (pest === 'registro') {
+    const lista = $('#labRegistro')
+    if (lista) lista.scrollTop = lista.scrollHeight
+  }
+}
+
+// Repintar el panel sin perder el foco del control que lo ha pedido.
+function repintarPanel() {
+  const foco = marcaDelFoco()
+  pintarPanel()
+  devolverFoco(foco)
+}
+
+function registroHtml() {
+  const m = L.mesa
+  const r = (m ? m.m.registro : L.partida.s.registro).slice(-160)
+  const chapa = (j) => (m && j >= 0 ? `<span class="lab-jugador lab-jugador-mini" data-j="${j}">J${j + 1}</span>` : '')
+  return `<ol class="lab-registro-lista" id="labRegistro">${r.map((x) => `<li${/^── /.test(x.texto) ? ' class="lab-registro-turno"' : ''}>${/^── /.test(x.texto) ? '' : chapa(x.j)}${escapeHtml(x.texto)}</li>`).join('') || '<li>Aún no ha pasado nada.</li>'}</ol>`
 }
 
 function tablaAhora() {
   const p = L.partida
   const s = p.s
-  if (s.fase === 'fin' && s.resultado?.tipo === 'sin-basicos') return '<p class="subtext">No hay partida.</p>'
+  if (s.fase === 'fin' && (s.resultado?.tipo === 'sin-basicos' || L.mesa?.m.resultado?.tipo === 'sin-basicos')) return '<p class="subtext">No hay partida.</p>'
   const ctx = contextoDeProbabilidad(p)
   const n = L.nRobos
   const sel = [...L.seleccion]
@@ -579,10 +804,10 @@ function tablaAhora() {
   let filas = ''
   if (sel.length) {
     const set = new Set(sel)
-    filas += fila(`<strong>Cualquiera de tus ${sel.length} marcadas</strong>`, (c) => set.has(claveDeNombre(c)), { clase: 'lab-fila-grupo' })
+    filas += fila(`<strong>Cualquiera de tus ${sel.length} marcadas</strong>`, (c) => set.has(claveDeNombre(c)), { clase: 'lab-fila-grupo lab-fila-marcadas' })
   }
   filas += GRUPOS_ESPECIALES.map((g) => fila(g.texto, g.f, { clase: 'lab-fila-grupo' })).join('')
-  for (const seccion of gruposDelMazo()) {
+  for (const seccion of gruposDelMazo(mazoDe(p).entradas)) {
     filas += `<tr class="lab-fila-seccion"><th colspan="5" scope="colgroup">${seccion.titulo}</th></tr>`
     for (const g of seccion.grupos) {
       const m = enMano(g.clave)
@@ -592,9 +817,14 @@ function tablaAhora() {
       })
     }
   }
-  const saber = ctx.S === 0 && ctx.Ph > 0 ? 'Ya has visto tu mazo entero: sabes qué hay en los premios.' : ctx.conf.length || ctx.t || ctx.b ? `Sabes ${ctx.conf.length + ctx.t + ctx.b} ${ctx.conf.length + ctx.t + ctx.b === 1 ? 'carta' : 'cartas'} del mazo (las viste y siguen dentro).` : 'Aún no has mirado el mazo: lo que no ves puede estar en él o en los premios.'
+  const sabidas = ctx.conf.length + ctx.t + ctx.b
+  const saber = ctx.S === 0 && ctx.Ph > 0 ? 'Ya has visto tu mazo entero: sabes qué hay en los premios.' : sabidas ? `Sabes ${sabidas} ${sabidas === 1 ? 'carta' : 'cartas'} del mazo (las viste y siguen dentro).` : 'Aún no has mirado el mazo: lo que no ves puede estar en él o en los premios.'
   return `
-    <p class="lab-prob-resumen">${s.fase === 'preparacion' ? 'Antes de empezar' : `Turno ${s.turno}`} · mazo ${ctx.D} · premios boca abajo ${ctx.Ph}</p>
+    <div class="lab-prob-resumen">
+      <div class="lab-cifra"><span class="lab-cifra-valor">${ctx.D}</span><span class="lab-cifra-texto">en el mazo</span></div>
+      <div class="lab-cifra"><span class="lab-cifra-valor">${ctx.Ph}</span><span class="lab-cifra-texto">premios boca abajo</span></div>
+      <div class="lab-cifra"><span class="lab-cifra-valor">${s.fase === 'preparacion' || s.fase === 'mulligan' ? '—' : s.turno}</span><span class="lab-cifra-texto">${L.mesa ? 'su turno' : 'tu turno'}</span></div>
+    </div>
     <p class="subtext lab-prob-saber">${saber}</p>
     <div class="lab-contador lab-robos" role="group" aria-label="Cuántos robos mirar">
       <span>Mirar los próximos</span>
@@ -605,7 +835,7 @@ function tablaAhora() {
     </div>
     <div class="lab-tabla-caja">
       <table class="lab-tabla">
-        <thead><tr><th scope="col">Carta</th><th scope="col" title="En el mazo o en los premios">Quedan</th><th scope="col">Próximo robo</th><th scope="col">En ${n} ${n === 1 ? 'robo' : 'robos'}</th>${ctx.S === 0 && ctx.Ph > 0 ? '<th scope="col" title="Ya has visto el mazo entero: sabes cuántas hay en los premios">En premios</th>' : '<th scope="col" title="Probabilidad de que TODAS las que quedan estén en los premios">Todas premiadas</th>'}</tr></thead>
+        <thead><tr><th scope="col">Carta</th><th scope="col" title="En el mazo o en los premios">Quedan</th><th scope="col">Próximo robo</th><th scope="col">En ${n} ${n === 1 ? 'robo' : 'robos'}</th>${ctx.S === 0 && ctx.Ph > 0 ? '<th scope="col" title="Ya has visto el mazo entero: sabes cuántas hay en los premios">En premios</th>' : '<th scope="col" title="Probabilidad de que TODAS las que quedan estén en los premios">Todas en premios</th>'}</tr></thead>
         <tbody>${filas}</tbody>
       </table>
     </div>
@@ -613,10 +843,11 @@ function tablaAhora() {
 }
 
 function tablaMazo() {
-  const o = L.odds
+  const mazo = mazoDe(L.partida)
+  const o = mazo?.odds
   if (!o || o.total < 13) return '<p class="subtext">Hacen falta al menos 13 cartas.</p>'
   const filas = []
-  for (const seccion of gruposDelMazo()) {
+  for (const seccion of gruposDelMazo(mazo.entradas)) {
     filas.push(`<tr class="lab-fila-seccion"><th colspan="5" scope="colgroup">${seccion.titulo}</th></tr>`)
     for (const g of seccion.grupos) {
       const d = o.grupos.find((x) => x.clave === g.clave)
@@ -631,6 +862,7 @@ function tablaMazo() {
     }
   }
   return `
+    ${L.mesa ? `<p class="lab-prob-de">${escapeHtml(mazo.nombre)}</p>` : ''}
     <div class="lab-cifras">
       <div class="lab-cifra"><span class="lab-cifra-valor">${pct(o.mulligan)}</span><span class="lab-cifra-texto">de mulligan (${o.basicos} ${o.basicos === 1 ? 'básico' : 'básicos'} en ${o.total})</span></div>
       <div class="lab-cifra"><span class="lab-cifra-valor">${pct(o.dosBasicos)}</span><span class="lab-cifra-texto">de las manos que juegas salen con 2 o más básicos</span></div>
@@ -638,11 +870,60 @@ function tablaMazo() {
     </div>
     <div class="lab-tabla-caja">
       <table class="lab-tabla">
-        <thead><tr><th scope="col">Carta</th><th scope="col">En la mano inicial</th><th scope="col" title="Mano inicial + 2 robos">Para tu turno 2</th><th scope="col" title="Mano inicial + 3 robos">Para tu turno 3</th><th scope="col">Todas premiadas</th></tr></thead>
+        <thead><tr><th scope="col">Carta</th><th scope="col">En la mano inicial</th><th scope="col" title="Mano inicial + 2 robos">Para tu turno 2</th><th scope="col" title="Mano inicial + 3 robos">Para tu turno 3</th><th scope="col">Todas en premios</th></tr></thead>
         <tbody>${filas.join('')}</tbody>
       </table>
     </div>
     <p class="subtext lab-prob-nota">Exactas, no simuladas, y contando con el mulligan: la mano que juegas es la que tiene un básico. «Para tu turno N» es la mano inicial más un robo por turno (el que va primero también roba en su primer turno).</p>`
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Jugar con un clic (tanda 456)
+// ════════════════════════════════════════════════════════════════════
+//
+// Tocar una carta de la mano hace LO OBVIO: lo que haría cualquiera que
+// la juega en la mesa. Si solo se puede hacer una cosa, se hace; si la
+// carta va sobre un Pokémon y vale para varios (una energía, una
+// evolución, una herramienta), se iluminan los que valen y se elige
+// tocando uno. Lo raro (descartarla a mano, ponerla encima del mazo…) va
+// en el «⋯». Y si no se puede jugar, se dice por qué.
+
+function accionPrincipalDeMano(uid, ancla) {
+  const p = L.partida
+  const s = p.s
+  const c = p.carta(uid)
+  if (s.fase === 'preparacion') {
+    if (!esBasicoEnJuego(c) || !esPokemon(c)) return showToast('En la preparación solo se ponen Pokémon básicos.', 'error')
+    return hacer(() => p.colocar(uid, s.activo ? 'banca' : 'activo'))
+  }
+  if (s.fase !== 'turno') return
+  const ops = p.opcionesDeMano(uid)
+  const valen = ops.filter((o) => !o.no)
+  if (!valen.length) {
+    const porque = ops.find((o) => o.no)?.no || 'Esta carta no se puede jugar así.'
+    showToast(`${nombreVisible(c)}: ${porque}`, 'error')
+    return
+  }
+  const conSitio = valen.filter((o) => o.slot)
+  if (valen.length === 1 || !conSitio.length) return hacer(() => p.jugarDeMano(uid, valen[0], ui))
+  // Varios Pokémon posibles: a elegir en la mesa.
+  const verbo = valen[0].id === 'evolucionar' ? `¿Qué Pokémon evoluciona a ${nombreVisible(c)}?` : valen[0].id === 'energia' ? `¿A quién unes ${nombreVisible(c)}?` : `¿A quién le pones ${nombreVisible(c)}?`
+  L.apuntar = { uid, opciones: Object.fromEntries(conSitio.map((o) => [o.slot, o])), texto: `${verbo} Toca uno de los que brillan.`, ancla }
+  pintar()
+  // El foco, al primero que vale: con teclado también se elige. Y a la
+  // vista en el centro: en el móvil la banca suele quedar por debajo.
+  const primero = $(`.lab-apuntable [data-slot-carta]`)
+  primero?.focus({ preventScroll: true })
+  primero?.scrollIntoView({ block: 'center', inline: 'nearest' })
+}
+
+function cancelarApuntar() {
+  if (!L.apuntar) return false
+  const uid = L.apuntar.uid
+  L.apuntar = null
+  pintar()
+  L.raiz.querySelector(`[data-mano][data-uid="${uid}"]`)?.focus()
+  return true
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -681,7 +962,7 @@ function abrirMenu(ancla, titulo, opciones) {
   menu._ancla = ancla
   // Si TODAS las opciones están vetadas no hay ninguna que enfocar, y
   // entonces el foco se queda donde estuviera —que tras repintar la mano
-  // es el `body`— (tanda 422). Con el foco fuera del laboratorio, el
+  // es el `body`— (tanda 423). Con el foco fuera del laboratorio, el
   // Escape no le llega: el menú se cerraba y el siguiente Escape no hacía
   // nada. Un menú abierto se queda SIEMPRE con el foco, aunque no haya
   // nada que pulsar: si no, no se puede ni leer con el teclado.
@@ -713,7 +994,7 @@ function menuDeMano(uid, ancla) {
     accion: () => hacer(() => p.jugarDeMano(uid, o, ui)),
   }))
   const texto = textoDeCarta(c)
-  ops.push({ separador: true })
+  if (ops.length) ops.push({ separador: true })
   ops.push({ texto: 'Ver la carta', accion: () => verCarta(c) })
   ops.push({ texto: 'Descartar', detalle: 'a mano, sin reglas', accion: () => hacer(() => p.moverCarta(uid, 'descarte')) })
   ops.push({ texto: 'Poner encima del mazo', detalle: 'a mano', accion: () => hacer(() => p.moverCarta(uid, 'arriba')) })
@@ -730,7 +1011,7 @@ function menuDeSlot(id, ancla) {
   const ops = []
   if (s.fase === 'preparacion') {
     ops.push({ texto: 'Devolver a la mano', accion: () => hacer(() => p.descolocar(id)) })
-  } else {
+  } else if (s.fase === 'turno') {
     if (slot === s.activo) {
       for (const at of p.ataquesDe(slot)) {
         const coste = p.costeDeAtaque(slot, at.ataque, at.prestado ? at.de : null)
@@ -762,11 +1043,11 @@ function menuDeSlot(id, ancla) {
     if (slot !== s.activo) ops.push({ texto: 'Pasar al puesto activo', detalle: 'a mano, sin reglas', accion: () => hacer(() => p.cambiarActivo(slot)) })
   }
   ops.push({ separador: true })
-  ops.push({ texto: 'Ver la carta', accion: () => verCarta(c, slot) })
+  ops.push({ texto: 'Ver la carta', accion: () => verCarta(c, slot, p) })
   if (s.fase === 'turno') {
     ops.push({ texto: 'Poner o quitar daño…', detalle: 'a mano', accion: () => hacer(() => ajustarDanio(slot)) })
     ops.push({ texto: 'Estado especial…', detalle: 'a mano', accion: () => hacer(() => ajustarEstado(slot)) })
-    ops.push({ texto: 'Simular KO del rival', detalle: 'como si te lo hubiera dejado KO en su último turno', peligro: true, accion: () => hacer(() => koDelRival(slot)) })
+    if (!L.mesa) ops.push({ texto: 'Simular KO del rival', detalle: 'como si te lo hubiera dejado KO en su último turno', peligro: true, accion: () => hacer(() => koDelRival(slot)) })
     ops.push({ texto: 'Devolver a la mano', detalle: 'con todo lo unido', accion: () => hacer(() => devolverSlot(slot)) })
   }
   abrirMenu(ancla, escapeHtml(nombreVisible(c)), ops)
@@ -800,7 +1081,7 @@ async function devolverSlot(slot) {
   const p = L.partida
   p.s.mano.push(...p.cartasDelSlot(slot))
   p.quitarDelJuego(slot)
-  p.log(`${nombreVisible(p.carta(slot.cartas[0]))} y lo unido vuelven a tu mano (a mano).`)
+  p.log(`${nombreVisible(p.carta(slot.cartas[0]))} y lo unido vuelven a la mano (a mano).`)
   await p.reponerActivo(ui)
 }
 
@@ -810,9 +1091,9 @@ function menuDeMazo(ancla) {
     { texto: 'Robar una carta', detalle: 'a mano, fuera del robo del turno', accion: () => hacer(() => p.robar(1, { motivo: 'A mano' })) },
     { texto: 'Buscar en el mazo…', detalle: 'coger cualquier carta, a mano', accion: () => hacer(() => buscarAMano()) },
     { texto: 'Mirar las de arriba…', accion: () => hacer(() => mirarArribaAMano()) },
-    { texto: 'Barajar', accion: () => hacer(() => (p.barajar(), p.log('Barajas el mazo.'))) },
+    { texto: 'Barajar', accion: () => hacer(() => (p.barajar(), p.log('Baraja el mazo.'))) },
   ]
-  abrirMenu(ancla, `Tu mazo · ${p.s.mazo.length}`, ops)
+  abrirMenu(ancla, `${L.mesa ? `Mazo de ${escapeHtml(p.nombreJugador)}` : 'Tu mazo'} · ${p.s.mazo.length}`, ops)
 }
 
 async function buscarAMano() {
@@ -839,13 +1120,11 @@ async function mirarArribaAMano() {
   if (await ui.confirmar({ titulo: 'Y las demás…', texto: '¿Barajas el mazo? (Si no, se quedan arriba, en el mismo orden.)', si: 'Barajar', no: 'Dejarlas' })) p.barajar()
 }
 
-function menuDeDescarte(ancla) {
-  const p = L.partida
-  const ops = [
-    { texto: `Ver el descarte (${p.s.descarte.length})`, no: p.s.descarte.length ? null : 'Está vacío.', accion: () => verZona('descarte') },
-    { texto: 'Recuperar cartas…', detalle: 'a la mano, a mano', no: p.s.descarte.length ? null : 'Está vacío.', accion: () => hacer(() => recuperarAMano()) },
-  ]
-  abrirMenu(ancla, 'Tu descarte', ops)
+function menuDeDescarte(ancla, partida = L.partida, { rival = false } = {}) {
+  const p = partida
+  const ops = [{ texto: `Ver el descarte (${p.s.descarte.length})`, no: p.s.descarte.length ? null : 'Está vacío.', accion: () => verZona('descarte', p) }]
+  if (!rival) ops.push({ texto: 'Recuperar cartas…', detalle: 'a la mano, a mano', no: p.s.descarte.length ? null : 'Está vacío.', accion: () => hacer(() => recuperarAMano()) })
+  abrirMenu(ancla, rival ? `Descarte de ${escapeHtml(p.nombreJugador)}` : L.mesa ? `Descarte de ${escapeHtml(p.nombreJugador)}` : 'Tu descarte', ops)
 }
 
 async function recuperarAMano() {
@@ -858,8 +1137,8 @@ function menuDePremio(uid, ancla) {
   const p = L.partida
   const s = p.s
   const ops = [
-    { texto: 'Coger este premio', detalle: 'a mano (al dejar KO al rival se coge solo)', no: s.fase === 'turno' ? null : 'Ahora no.', accion: () => hacer(() => { s.premios = s.premios.filter((u) => u !== uid); delete s.premiosVistos[uid]; s.mano.push(uid); p.log(`Coges un premio: ${p.nombre(uid)}.`) }) },
-    { texto: 'Darles la vuelta a todos', detalle: 'es trampa: desde ahí las probabilidades saben qué hay', accion: () => hacer(() => { for (const u of s.premios) s.premiosVistos[u] = true; p.log('Miras tus premios (trampa).') }) },
+    { texto: 'Coger este premio', detalle: 'a mano (al dejar KO al rival se coge solo)', no: s.fase === 'turno' ? null : 'Ahora no.', accion: () => hacer(() => { s.premios = s.premios.filter((u) => u !== uid); delete s.premiosVistos[uid]; s.mano.push(uid); p.log(`Coge un premio: ${p.nombre(uid)}.`) }) },
+    { texto: 'Darles la vuelta a todos', detalle: 'es trampa: desde ahí las probabilidades saben qué hay', accion: () => hacer(() => { for (const u of s.premios) s.premiosVistos[u] = true; p.log('Mira sus premios (trampa).') }) },
   ]
   abrirMenu(ancla, 'Premio', ops)
 }
@@ -877,7 +1156,7 @@ function menuDeEstadio(ancla) {
   const def = EFECTOS.entrenadores[claveDeEfecto(c)]?.estadio
   const clave = `estadio:${claveDeEfecto(c)}`
   const ops = []
-  if (def) {
+  if (def && s.fase === 'turno') {
     const r = def.puede?.(p)
     ops.push({
       texto: escapeHtml(def.nombre),
@@ -890,7 +1169,7 @@ function menuDeEstadio(ancla) {
     })
   }
   ops.push({ texto: 'Ver la carta', accion: () => verCarta(c) })
-  ops.push({ texto: 'Descartar el estadio', detalle: 'a mano', accion: () => hacer(() => { s.descarte.push(s.estadio); s.estadio = null; p.log('Descartas el estadio (a mano).') }) })
+  ops.push({ texto: 'Descartar el estadio', detalle: 'a mano', accion: () => hacer(() => { p.quitarEstadio(); p.log('Descarta el estadio (a mano).') }) })
   abrirMenu(ancla, escapeHtml(nombreVisible(c)), ops)
 }
 
@@ -915,7 +1194,7 @@ function menuDelRival(ancla) {
     },
     { texto: 'Dejarte KO un Pokémon…', accion: () => hacer(async () => { const [id] = await ui.pokemon({ titulo: '¿Cuál te deja KO?', opciones: p.enJuego.map((x) => x.id), min: 1, max: 1 }); await koDelRival(p.slot(id)) }) },
   ]
-  abrirMenu(ancla, 'El rival te ataca (simulado)', ops)
+  abrirMenu(ancla, 'El muñeco te ataca (simulado)', ops)
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -926,14 +1205,27 @@ function menuDelRival(ancla) {
 // `Cancelado`, y el motor deshace lo que la carta llevara hecho.
 
 let cierreDialogo = null
+// Una ventana que HAY que contestar (coger premios, quién sube de activo):
+// cerrarla con Escape o tocando fuera dejaba la jugada esperando una
+// respuesta que no llegaba nunca, y la mesa entera bloqueada.
+let dialogoObligatorio = false
+// De dónde se abrió, para devolverle el foco al cerrar.
+let focoAntesDelDialogo = null
 
-function abrirDialogo(html, { alCerrar } = {}) {
+function abrirDialogo(html, { alCerrar, ancho = '', obligatorio = false } = {}) {
   cerrarMenu()
   const velo = $('#labVelo')
   const caja = $('#labDialogo')
+  // Una ventana que sustituye a otra hereda su origen.
+  if (velo.classList.contains('hidden')) focoAntesDelDialogo = { el: document.activeElement, marca: marcaDelFoco() }
+  caja.className = `lab-dialogo${ancho ? ` lab-dialogo-${ancho}` : ''}`
   caja.innerHTML = html
+  caja.onclick = null
+  caja.onchange = null
+  caja.oninput = null
   velo.classList.remove('hidden')
   cierreDialogo = alCerrar || null
+  dialogoObligatorio = obligatorio
   requestAnimationFrame(() => (caja.querySelector('[autofocus], .lab-dialogo-cuerpo button, button') || caja).focus?.())
   return caja
 }
@@ -942,9 +1234,17 @@ function cerrarDialogo() {
   $('#labVelo').classList.add('hidden')
   $('#labDialogo').innerHTML = ''
   cierreDialogo = null
+  dialogoObligatorio = false
+  const antes = focoAntesDelDialogo
+  focoAntesDelDialogo = null
+  devolverFoco(antes?.marca, antes?.el)
 }
 
 function cancelarDialogo() {
+  if (dialogoObligatorio) {
+    $('#labDialogo').focus()
+    return
+  }
   const f = cierreDialogo
   cerrarDialogo()
   f?.()
@@ -972,6 +1272,22 @@ function ordenar(uids, elegibles) {
   })
 }
 
+// Dónde está un Pokémon por su id: en cualquiera de los dos lados, o en
+// el muñeco.
+function buscarSlot(id) {
+  const jugadores = L.mesa ? L.mesa.jugadores : [L.partida]
+  for (const j of jugadores) {
+    const slot = j.slot(id)
+    if (slot) return { slot, partida: j }
+  }
+  if (!L.mesa) {
+    const r = L.partida.s.rival
+    const d = [r.activo, ...r.banca].find((x) => x?.id === id)
+    if (d) return { dummy: d, rival: r }
+  }
+  return null
+}
+
 const ui = {
   cartas({ titulo, texto = '', opciones, elegibles = null, min = 0, max = 1, validar = null, zona = '', enOrden = false, sinCancelar = false }) {
     return new Promise((resolve, reject) => {
@@ -988,7 +1304,7 @@ const ui = {
          </div></div>
          <p class="lab-dialogo-error" role="alert"></p>
          ${botonesDialogo({ cancelar: !sinCancelar })}`,
-        { alCerrar: sinCancelar ? null : () => reject(new Cancelado()) }
+        { alCerrar: sinCancelar ? null : () => reject(new Cancelado()), obligatorio: sinCancelar }
       )
       const repasar = () => {
         const n = sel.size
@@ -1028,9 +1344,6 @@ const ui = {
 
   pokemon({ titulo, texto = '', opciones, min = 1, max = 1, sinCancelar = false }) {
     return new Promise((resolve, reject) => {
-      const p = L.partida
-      const r = p.s.rival
-      const dummies = [r.activo, ...r.banca].filter(Boolean)
       const sel = new Set()
       const caja = abrirDialogo(
         `<h3 id="labDialogoTitulo">${escapeHtml(titulo)}</h3>
@@ -1038,19 +1351,22 @@ const ui = {
          <div class="lab-dialogo-cuerpo"><div class="lab-rejilla-pokemon">
            ${opciones
              .map((id) => {
-               const slot = p.slot(id)
-               if (slot) {
-                 const c = p.cartaDe(slot)
-                 return `<button type="button" class="lab-elegible lab-elegible-pokemon" data-elige="${id}" aria-pressed="false">${imagenHtml(c)}<span class="lab-elegible-nombre">${escapeHtml(nombreVisible(c))}${slot === p.s.activo ? ' (activo)' : ''}</span><span class="subtext">${Math.max(0, p.psDe(slot) - slot.danio)}/${p.psDe(slot)} PS</span></button>`
+               const e = buscarSlot(id)
+               if (e?.slot) {
+                 const { slot, partida } = e
+                 const c = partida.cartaDe(slot)
+                 const ajeno = L.mesa && partida !== L.partida
+                 const de = L.mesa ? ` · ${escapeHtml(partida.nombreJugador)}` : ''
+                 return `<button type="button" class="lab-elegible lab-elegible-pokemon${ajeno ? ' lab-elegible-rival' : ''}" data-elige="${id}" aria-pressed="false">${imagenHtml(c)}<span class="lab-elegible-nombre">${escapeHtml(nombreVisible(c))}${slot === partida.s.activo ? ' (activo)' : ''}${de}</span><span class="subtext">${Math.max(0, partida.psDe(slot) - slot.danio)}/${partida.psDe(slot)} PS</span></button>`
                }
-               const d = dummies.find((x) => x.id === id)
-               if (d) return `<button type="button" class="lab-elegible lab-elegible-pokemon lab-elegible-rival" data-elige="${id}" aria-pressed="false"><span class="lab-elegible-nombre">${d === r.activo ? 'Activo rival' : 'Banca rival'}: ${escapeHtml(d.nombre)}</span><span class="subtext">${Math.max(0, d.ps - d.danio)}/${d.ps} PS</span></button>`
+               const d = e?.dummy
+               if (d) return `<button type="button" class="lab-elegible lab-elegible-pokemon lab-elegible-rival" data-elige="${id}" aria-pressed="false"><span class="lab-elegible-nombre">${d === e.rival.activo ? 'Activo rival' : 'Banca rival'}: ${escapeHtml(d.nombre)}</span><span class="subtext">${Math.max(0, d.ps - d.danio)}/${d.ps} PS</span></button>`
                return ''
              })
              .join('')}
          </div></div>
          ${botonesDialogo({ cancelar: !sinCancelar, okDes: min > 0 })}`,
-        { alCerrar: sinCancelar ? null : () => reject(new Cancelado()) }
+        { alCerrar: sinCancelar ? null : () => reject(new Cancelado()), obligatorio: sinCancelar }
       )
       caja.onclick = (e) => {
         const b = e.target.closest('[data-elige]')
@@ -1164,18 +1480,24 @@ const ui = {
 
   repartir({ titulo, total, opciones }) {
     return new Promise((resolve, reject) => {
-      const p = L.partida
-      const r = p.s.rival
-      const dummies = [r.activo, ...r.banca].filter(Boolean)
       const reparto = Object.fromEntries(opciones.map((id) => [id, 0]))
+      const datos = (id) => {
+        const e = buscarSlot(id)
+        if (e?.slot) {
+          const ps = e.partida.psDe(e.slot)
+          return { donde: e.slot === e.partida.s.activo ? 'Activo' : 'Banca', nombre: nombreVisible(e.partida.cartaDe(e.slot)), vida: Math.max(0, ps - e.slot.danio) }
+        }
+        if (e?.dummy) return { donde: e.dummy === e.rival.activo ? 'Activo' : 'Banca', nombre: e.dummy.nombre, vida: Math.max(0, e.dummy.ps - e.dummy.danio) }
+        return { donde: '', nombre: id, vida: 0 }
+      }
       const caja = abrirDialogo(
         `<h3 id="labDialogoTitulo">${escapeHtml(titulo)}</h3>
          <p class="lab-dialogo-cuenta" aria-live="polite"></p>
          <div class="lab-dialogo-cuerpo"><div class="lab-reparto">
            ${opciones
              .map((id) => {
-               const d = dummies.find((x) => x.id === id)
-               return `<div class="lab-reparto-fila"><span>${d === r.activo ? 'Activo' : 'Banca'}: ${escapeHtml(d?.nombre || id)} <span class="subtext">(${Math.max(0, d.ps - d.danio)} PS)</span></span>
+               const d = datos(id)
+               return `<div class="lab-reparto-fila"><span>${d.donde}: ${escapeHtml(d.nombre)} <span class="subtext">(${d.vida} PS)</span></span>
                  <span class="lab-contador"><button type="button" class="lab-mini" data-rep="${id}" data-d="-1" aria-label="Uno menos">−</button><strong data-rep-n="${id}">0</strong><button type="button" class="lab-mini" data-rep="${id}" data-d="1" aria-label="Uno más">+</button></span></div>`
              })
              .join('')}
@@ -1209,9 +1531,11 @@ const ui = {
   },
 
   // Coger premios: boca abajo, se eligen «a ciegas» (como en la mesa).
-  premios({ titulo, n }) {
+  // Con mesa, `partida` dice de quién son: puede ser el otro jugador (el
+  // que coge porque le han dejado KO un Pokémon a su rival).
+  premios({ titulo, n, partida = null }) {
     return new Promise((resolve) => {
-      const p = L.partida
+      const p = partida || L.partida
       const s = p.s
       const sel = new Set()
       const caja = abrirDialogo(
@@ -1220,7 +1544,8 @@ const ui = {
          <div class="lab-dialogo-cuerpo"><div class="lab-rejilla-cartas lab-rejilla-premios">
            ${s.premios.map((u, i) => (s.premiosVistos[u] ? `<button type="button" class="lab-carta lab-elegible" data-elige="${u}" aria-pressed="false" aria-label="${escapeHtml(p.nombre(u))}">${imagenHtml(p.carta(u))}</button>` : `<button type="button" class="lab-carta lab-elegible lab-carta-dorso" data-elige="${u}" aria-pressed="false" aria-label="Premio ${i + 1}">${dorsoHtml()}</button>`)).join('')}
          </div></div>
-         ${botonesDialogo({ cancelar: false, okDes: true })}`
+         ${botonesDialogo({ cancelar: false, okDes: true })}`,
+        { obligatorio: true }
       )
       caja.onclick = (e) => {
         const b = e.target.closest('[data-elige]')
@@ -1248,14 +1573,16 @@ function conSimbolos(texto) {
 }
 
 // ── Ver una carta en grande, con su texto ──
-function verCarta(c, slot = null) {
-  const p = L.partida
+function verCarta(c, slot = null, partida = L.partida) {
+  const p = partida || L.partida
   const texto = textoDeCarta(c)
   const ataques = Array.isArray(c.attacks) ? c.attacks : []
   const habs = Array.isArray(c.abilities) ? c.abilities : []
   const bloques = []
   if (esPokemon(c)) {
-    bloques.push(`<p class="subtext">${[c.stage === 'Basic' ? 'Básico' : c.stage === 'Stage1' ? 'Fase 1' : c.stage === 'Stage2' ? 'Fase 2' : c.stage, c.hp ? `${c.hp} PS` : null, c.evolve_from ? `evoluciona de ${escapeHtml(c.evolve_from)}` : null, Number.isFinite(c.retreat) ? `retirada ${c.retreat}` : null, `${premiosQueDa(c)} ${premiosQueDa(c) === 1 ? 'premio' : 'premios'}`].filter(Boolean).join(' · ')}</p>`)
+    const debil = (Array.isArray(c.weaknesses) ? c.weaknesses : []).map((w) => `debilidad ${escapeHtml(NOMBRE_DE_LETRA[letraDeTipoTexto(w.type)] || w.type || '')} ${escapeHtml(String(w.value || '×2'))}`)
+    const resis = (Array.isArray(c.resistances) ? c.resistances : []).map((r) => `resistencia ${escapeHtml(NOMBRE_DE_LETRA[letraDeTipoTexto(r.type)] || r.type || '')} ${escapeHtml(String(r.value || '−30'))}`)
+    bloques.push(`<p class="subtext">${[c.stage === 'Basic' ? 'Básico' : c.stage === 'Stage1' ? 'Fase 1' : c.stage === 'Stage2' ? 'Fase 2' : c.stage, c.hp ? `${c.hp} PS` : null, c.evolve_from ? `evoluciona de ${escapeHtml(c.evolve_from)}` : null, Number.isFinite(c.retreat) ? `retirada ${c.retreat}` : null, `${premiosQueDa(c)} ${premiosQueDa(c) === 1 ? 'premio' : 'premios'}`, ...debil, ...resis].filter(Boolean).join(' · ')}</p>`)
     for (const h of habs) {
       const auto = p?.efectos?.habilidades?.[claveDeEfecto(c)]
       bloques.push(`<div class="lab-texto-bloque"><p><strong>Habilidad: ${escapeHtml(h.name || '')}</strong> ${auto ? '<span class="lab-chapa">automática</span>' : '<span class="lab-chapa lab-chapa-manual">a mano</span>'}</p>${h.effect ? `<p>${conSimbolos(h.effect)}</p>` : ''}</div>`)
@@ -1278,7 +1605,7 @@ function verCarta(c, slot = null) {
       <div class="lab-ver-texto">
         <h3 id="labDialogoTitulo">${escapeHtml(nombreVisible(c))}</h3>
         ${bloques.join('')}
-        ${slot ? `<p class="subtext">${slot.cartas.length > 1 ? `Debajo: ${slot.cartas.slice(0, -1).map((u) => escapeHtml(p.nombre(u))).join(', ')}. ` : ''}${slot.energias.length ? `Energías: ${slot.energias.map((u) => escapeHtml(p.nombre(u))).join(', ')}.` : ''}</p>` : ''}
+        ${slot ? `<p class="subtext">${slot.danio ? `Daño: ${slot.danio}. ` : ''}${slot.cartas.length > 1 ? `Debajo: ${slot.cartas.slice(0, -1).map((u) => escapeHtml(p.nombre(u))).join(', ')}. ` : ''}${slot.energias.length ? `Energías: ${slot.energias.map((u) => escapeHtml(p.nombre(u))).join(', ')}. ` : ''}${slot.herramienta ? `Herramienta: ${escapeHtml(p.nombre(slot.herramienta))}.` : ''}</p>` : ''}
       </div>
     </div>
     <div class="lab-dialogo-botones"><button type="button" class="btn-primary lab-btn" data-dlg="ok">Cerrar</button></div>`
@@ -1288,17 +1615,22 @@ function verCarta(c, slot = null) {
   }
 }
 
-function verZona(zona) {
-  const p = L.partida
+// El tipo de una debilidad viene en inglés canónico («Fire»).
+const LETRA_DE_NOMBRE = { grass: 'G', fire: 'R', water: 'W', lightning: 'L', psychic: 'P', fighting: 'F', darkness: 'D', metal: 'M', colorless: 'C', dragon: 'N', fairy: 'Y' }
+const letraDeTipoTexto = (t) => LETRA_DE_NOMBRE[String(t || '').toLowerCase()] || null
+
+function verZona(zona, partida = L.partida) {
+  const p = partida
   const lista = zona === 'descarte' ? [...p.s.descarte].reverse() : []
+  const de = L.mesa ? `de ${escapeHtml(p.nombreJugador)}` : ''
   const caja = abrirDialogo(
-    `<h3 id="labDialogoTitulo">Tu descarte (${lista.length})</h3>
-     <div class="lab-dialogo-cuerpo"><div class="lab-rejilla-cartas">${lista.map((u) => `<button type="button" class="lab-carta" data-ver="${u}" aria-label="${escapeHtml(p.nombre(u))}">${imagenHtml(p.carta(u))}</button>`).join('')}</div></div>
+    `<h3 id="labDialogoTitulo">${de ? `Descarte ${de}` : 'Tu descarte'} (${lista.length})</h3>
+     <div class="lab-dialogo-cuerpo"><div class="lab-rejilla-cartas">${lista.map((u) => `<button type="button" class="lab-carta" data-ver="${u}" aria-label="${escapeHtml(p.nombre(u))}">${imagenHtml(p.carta(u))}</button>`).join('') || '<p class="subtext">Está vacío.</p>'}</div></div>
      <div class="lab-dialogo-botones"><button type="button" class="btn-primary lab-btn" data-dlg="ok">Cerrar</button></div>`
   )
   caja.onclick = (e) => {
     const v = e.target.closest('[data-ver]')
-    if (v) return verCarta(p.carta(v.dataset.ver))
+    if (v) return verCarta(p.carta(v.dataset.ver), null, p)
     if (e.target.closest('[data-dlg]')) cerrarDialogo()
   }
 }
@@ -1307,7 +1639,7 @@ function verMulligans() {
   const p = L.partida
   const caja = abrirDialogo(
     `<h3 id="labDialogoTitulo">Manos sin básico</h3>
-     <p class="subtext">Se enseñan al rival, se barajan y se roba otra. Por cada una, tu rival puede robar una carta de más.</p>
+     <p class="subtext">Se enseñan al rival, se barajan y se roba otra. Por cada una, el rival puede robar una carta de más.</p>
      <div class="lab-dialogo-cuerpo">${p.s.manosMulligan.map((m, i) => `<p class="lab-rotulo">Mulligan ${i + 1}</p><div class="lab-rejilla-cartas lab-rejilla-mini">${m.map((u) => `<span class="lab-carta">${imagenHtml(p.carta(u))}</span>`).join('')}</div>`).join('')}</div>
      <div class="lab-dialogo-botones"><button type="button" class="btn-primary lab-btn" data-dlg="ok">Cerrar</button></div>`
   )
@@ -1316,32 +1648,270 @@ function verMulligans() {
   }
 }
 
-// ── Nueva partida: con qué opciones ──
-function dialogoNueva() {
-  const o = L.opciones
+// ════════════════════════════════════════════════════════════════════
+// Nueva partida, y elegir los mazos (tanda 456)
+// ════════════════════════════════════════════════════════════════════
+
+function dialogoNueva(modo = L.opciones.modo, { seguir = false } = {}) {
+  // Un BORRADOR hasta «Repartir»: cambiar un mazo o una opción y luego
+  // cancelar no puede tocar la partida que está en juego (las
+  // probabilidades del que juega ya salían del mazo nuevo, con el viejo
+  // en la mano).
+  if (!seguir || !L.borrador) L.borrador = { mazos: [...L.mazos], mazo2: L.opciones.mazo2, opciones: { ...L.opciones, modo } }
+  const b = L.borrador
+  const o = b.opciones
+  const filaMazo = (i) => {
+    const m = b.mazos[i]
+    const n = m ? m.entradas.reduce((t, e) => t + e.n, 0) : 0
+    return `<div class="lab-mazo-fila">
+      <span class="lab-jugador" data-j="${i}">Jugador ${i + 1}</span>
+      <span class="lab-mazo-nombre">${m ? `<strong>${escapeHtml(m.nombre)}</strong> <span class="subtext">${n} cartas</span>` : '<span class="subtext">Sin elegir</span>'}</span>
+      <button type="button" class="btn-secondary lab-btn" data-cambiar-mazo="${i}">${m ? 'Cambiar' : 'Elegir'}</button>
+    </div>`
+  }
   const caja = abrirDialogo(
     `<h3 id="labDialogoTitulo">Nueva partida</h3>
-     <fieldset class="lab-opciones-partida">
-       <legend>¿Quién empieza?</legend>
-       ${[['azar', 'Al azar (moneda)'], ['primero', 'Voy primero'], ['segundo', 'Voy segundo']].map(([v, t]) => `<label class="lab-radio"><input type="radio" name="labPrimero" value="${v}"${o.primero === v ? ' checked' : ''} /> ${t}</label>`).join('')}
-     </fieldset>
-     <label class="lab-radio"><input type="checkbox" id="labEstricta"${o.estricta ? ' checked' : ''} /> Reglas de verdad (una energía y un partidario por turno, sin evolucionar el primer turno…)</label>
-     <p class="subtext">Sin ellas es un tapete libre: puedes hacer cualquier cosa para montar una situación.</p>
-     ${botonesDialogo({ ok: 'Repartir' })}`
+     <div class="lab-dialogo-cuerpo">
+       <fieldset class="lab-opciones-partida lab-elige-modo">
+         <legend>¿Contra quién?</legend>
+         <label class="lab-tarjeta-modo"><input type="radio" name="labModo" value="muneco"${o.modo !== 'mesa' ? ' checked' : ''} /><span><strong>El muñeco de prácticas</strong><span class="subtext">No juega: mides tu daño, tus robos y tus probabilidades.</span></span></label>
+         <label class="lab-tarjeta-modo"><input type="radio" name="labModo" value="mesa"${o.modo === 'mesa' ? ' checked' : ''} /><span><strong>Tú contra ti</strong><span class="subtext">Dos mazos, una mano y unos premios cada uno, y la mesa gira para enseñar abajo al que le toca.</span></span></label>
+       </fieldset>
+       <div class="lab-solo-modo" data-solo="mesa">
+         <div class="lab-mazos-elegir">${filaMazo(0)}${filaMazo(1)}</div>
+         <fieldset class="lab-opciones-partida">
+           <legend>¿Quién empieza?</legend>
+           ${[['azar', 'Moneda'], ['0', 'Jugador 1'], ['1', 'Jugador 2']].map(([v, t]) => `<label class="lab-radio"><input type="radio" name="labEmpieza" value="${v}"${String(o.empieza) === v ? ' checked' : ''} /> ${t}</label>`).join('')}
+         </fieldset>
+       </div>
+       <div class="lab-solo-modo" data-solo="muneco">
+         <fieldset class="lab-opciones-partida">
+           <legend>¿Quién empieza?</legend>
+           ${[['azar', 'Moneda'], ['primero', 'Voy primero'], ['segundo', 'Voy segundo']].map(([v, t]) => `<label class="lab-radio"><input type="radio" name="labPrimero" value="${v}"${o.primero === v ? ' checked' : ''} /> ${t}</label>`).join('')}
+         </fieldset>
+       </div>
+       <label class="lab-radio"><input type="checkbox" id="labEstricta"${o.estricta ? ' checked' : ''} /> Reglas de verdad (una energía y un partidario por turno, sin evolucionar el primer turno…)</label>
+       <p class="subtext">Sin ellas es un tapete libre: puedes hacer cualquier cosa para montar una situación.</p>
+     </div>
+     <p class="lab-dialogo-error" role="alert"></p>
+     ${botonesDialogo({ ok: 'Repartir' })}`,
+    { ancho: 'medio', alCerrar: () => (L.borrador = null) }
   )
+  const elegido = () => caja.querySelector('input[name="labModo"]:checked')?.value || 'muneco'
+  const repasar = () => {
+    const m = elegido()
+    caja.querySelectorAll('[data-solo]').forEach((el) => el.classList.toggle('hidden', el.dataset.solo !== m))
+    caja.querySelector('.lab-dialogo-error').textContent = m === 'mesa' && !b.mazos[1] ? 'Elige el mazo del jugador 2.' : ''
+    caja.querySelector('[data-dlg="ok"]').disabled = m === 'mesa' && !b.mazos[1]
+  }
+  const leerOpciones = () => {
+    o.modo = elegido()
+    o.primero = caja.querySelector('input[name="labPrimero"]:checked')?.value || o.primero
+    o.empieza = caja.querySelector('input[name="labEmpieza"]:checked')?.value || o.empieza
+    o.estricta = caja.querySelector('#labEstricta').checked
+  }
+  caja.onchange = repasar
   caja.onclick = (e) => {
+    const cambiar = e.target.closest('[data-cambiar-mazo]')
+    if (cambiar) {
+      leerOpciones()
+      return elegirMazo(Number(cambiar.dataset.cambiarMazo))
+    }
     const d = e.target.closest('[data-dlg]')
     if (!d) return
-    if (d.dataset.dlg === 'cancelar') return cerrarDialogo()
-    o.primero = caja.querySelector('input[name="labPrimero"]:checked')?.value || 'azar'
-    o.estricta = caja.querySelector('#labEstricta').checked
+    if (d.dataset.dlg === 'cancelar') return cancelarDialogo()
+    leerOpciones()
+    if (o.modo === 'mesa' && !b.mazos[1]) return
+    // Repartir: ahora sí, el borrador pasa a la mesa.
+    L.mazos = [...b.mazos]
+    L.opciones = { ...o }
+    L.opciones.mazo2 = b.mazo2
+    L.borrador = null
     guardarPrefs()
     cerrarDialogo()
     nuevaPartida()
   }
+  repasar()
 }
 
-// ── Colocar solo: el básico con más PS delante y el resto a la banca ──
+// Elegir un mazo para un jugador: el del constructor, uno de los tuyos,
+// una lista del meta o una pegada. Al acabar se vuelve a «Nueva partida»
+// (al borrador: nada cambia en la mesa hasta repartir).
+function elegirMazo(i) {
+  const volver = () => dialogoNueva('mesa', { seguir: true })
+  const caja = abrirDialogo(
+    `<h3 id="labDialogoTitulo">Mazo del jugador ${i + 1}</h3>
+     <div class="lab-pestanias" role="tablist" aria-label="De dónde sale el mazo">
+       <button type="button" role="tab" class="lab-pestania activa" aria-selected="true" data-fuente="este">Este mazo</button>
+       <button type="button" role="tab" class="lab-pestania" aria-selected="false" data-fuente="mios">Mis mazos</button>
+       <button type="button" role="tab" class="lab-pestania" aria-selected="false" data-fuente="meta">Del meta</button>
+       <button type="button" role="tab" class="lab-pestania" aria-selected="false" data-fuente="texto">Pegar lista</button>
+     </div>
+     <div class="lab-dialogo-cuerpo" id="labFuente"></div>
+     <p class="lab-dialogo-error" role="alert"></p>
+     <div class="lab-dialogo-botones"><button type="button" class="btn-secondary lab-btn" data-dlg="volver">Volver</button></div>`,
+    { ancho: 'medio', alCerrar: volver }
+  )
+  const cuerpo = caja.querySelector('#labFuente')
+  const error = caja.querySelector('.lab-dialogo-error')
+  const lista = (filas) => `<div class="lab-lista-mazos">${filas.join('') || '<p class="subtext">No hay ninguno.</p>'}</div>`
+  const pestanias = {
+    este() {
+      const m = L.mazoConstructor
+      cuerpo.innerHTML = lista([`<button type="button" class="lab-mazo-opcion" data-usar="este"><strong>${escapeHtml(m.nombre)}</strong><span class="subtext">El que tienes en el constructor · ${m.entradas.reduce((t, e) => t + e.n, 0)} cartas</span></button>`])
+    },
+    async mios() {
+      if (!L.userId) {
+        cuerpo.innerHTML = '<p class="subtext">Entra en tu cuenta para ver tus mazos guardados.</p>'
+        return
+      }
+      cuerpo.innerHTML = '<p class="subtext">Cargando tus mazos…</p>'
+      try {
+        const filas = await misMazos(L.userId)
+        cuerpo._mios = filas
+        cuerpo.innerHTML = lista(filas.map((f, k) => `<button type="button" class="lab-mazo-opcion" data-usar="mio" data-k="${k}"><strong>${escapeHtml(f.name || 'Mazo sin nombre')}</strong><span class="subtext">${(f.cards || []).reduce((t, c) => t + (Number(c.n) || 0), 0)} cartas</span></button>`))
+      } catch (err) {
+        cuerpo.innerHTML = `<p class="subtext">No se han podido cargar: ${escapeHtml(err.message || 'error de red')}.</p>`
+      }
+    },
+    async meta() {
+      cuerpo.innerHTML = '<p class="subtext">Cargando los mazos del meta…</p>'
+      try {
+        const filas = (await resumenDelMeta(30)).filter((f) => f.listas > 0).slice(0, 40)
+        cuerpo.innerHTML = lista(filas.map((f) => `<button type="button" class="lab-mazo-opcion" data-usar="meta" data-arquetipo="${escapeHtml(f.arquetipo)}" data-nombre="${escapeHtml(f.nombre)}"><strong>${escapeHtml(f.nombre)}</strong><span class="subtext">${Number(f.cuota || 0).toFixed(1).replace('.', ',')} % del meta · se usa su lista más reciente con buen resultado</span></button>`))
+      } catch (err) {
+        cuerpo.innerHTML = `<p class="subtext">No se han podido cargar: ${escapeHtml(err.message || 'error de red')}.</p>`
+      }
+    },
+    texto() {
+      cuerpo.innerHTML = `<label class="lab-campo-texto">Pega una lista (la de TCG Live, Limitless o PokeDoc)
+        <textarea id="labListaTexto" rows="10" placeholder="Pokémon: 12&#10;4 Dreepy TWM 128&#10;…"></textarea></label>
+        <button type="button" class="btn-primary lab-btn" data-usar="texto">Usar esta lista</button>`
+    },
+  }
+  const usar = async (fuente, b) => {
+    error.textContent = ''
+    const anterior = b.innerHTML
+    b.disabled = true
+    b.textContent = 'Preparando…'
+    try {
+      let nombre
+      let entradas
+      let sinResolver = []
+      let recuerdo = { fuente: 'este' }
+      if (fuente === 'este') {
+        nombre = L.mazoConstructor.nombre
+        entradas = L.mazoConstructor.entradas
+      } else if (fuente === 'mio') {
+        const f = cuerpo._mios[Number(b.dataset.k)]
+        nombre = f.name || 'Mazo sin nombre'
+        recuerdo = { fuente, id: f.id }
+        ;({ entradas } = await entradasDeMazoGuardado(f))
+      } else if (fuente === 'meta') {
+        nombre = b.dataset.nombre
+        recuerdo = { fuente, arquetipo: b.dataset.arquetipo, nombre }
+        ;({ entradas, sinResolver } = await entradasDelMeta(b.dataset.arquetipo))
+      } else {
+        nombre = 'Lista pegada'
+        const texto = caja.querySelector('#labListaTexto').value
+        // Se guarda el texto: al volver a abrir, la mesa sale con ESTA
+        // lista y no con «el mismo mazo» sin decir nada.
+        recuerdo = { fuente: 'texto', texto: texto.slice(0, 20000) }
+        ;({ entradas, sinResolver } = await entradasDeTexto(texto))
+      }
+      const total = entradas.reduce((t, e) => t + e.n, 0)
+      if (total < 13) throw new Error(`solo ${total} cartas: hacen falta al menos 13`)
+      if (!entradas.some((e) => esBasico(e.carta) !== false)) throw new Error('el mazo no tiene ningún Pokémon básico')
+      const preparadas = fuente === 'este' ? entradas : await prepararEntradas(entradas)
+      // Si mientras se preparaba se cerró la ventana (Escape), no se
+      // vuelve a abrir nada por encima de lo que haya ahora.
+      if (!cuerpo.isConnected || !L.borrador) return
+      L.borrador.mazos[i] = { nombre, entradas: preparadas, odds: oddsDelMazo(preparadas), mismo: fuente === 'este' }
+      if (i === 1) L.borrador.mazo2 = recuerdo
+      if (sinResolver.length) showToast(`${sinResolver.length} ${sinResolver.length === 1 ? 'línea no se ha encontrado' : 'líneas no se han encontrado'}: el mazo tiene ${total} cartas.`, 'error')
+      volver()
+    } catch (err) {
+      if (!cuerpo.isConnected) return
+      error.textContent = `No se puede usar: ${err.message || 'error de red'}.`
+      b.disabled = false
+      b.innerHTML = anterior
+    }
+  }
+  caja.onclick = (e) => {
+    const t = e.target.closest('[data-fuente]')
+    if (t) {
+      caja.querySelectorAll('[data-fuente]').forEach((x) => {
+        x.classList.toggle('activa', x === t)
+        x.setAttribute('aria-selected', String(x === t))
+      })
+      error.textContent = ''
+      return pestanias[t.dataset.fuente]()
+    }
+    const u = e.target.closest('[data-usar]')
+    if (u && !u.disabled) return usar(u.dataset.usar, u)
+    if (e.target.closest('[data-dlg="volver"]')) volver()
+  }
+  pestanias.este()
+}
+
+async function entradasDeLineas(lineas) {
+  const { resueltas, sinResolver } = await resolverLineas(lineas)
+  return { entradas: resueltas.map((r) => ({ carta: r.carta, n: r.linea.n })), sinResolver }
+}
+
+// Las tres maneras de sacar un mazo que no es el del constructor, para
+// elegirlo y para recuperarlo al volver a abrir.
+async function entradasDeMazoGuardado(f) {
+  const piezas = (f.cards || []).filter((c) => c?.id && c.n > 0)
+  const mapa = await cartasPorIds(piezas.map((c) => c.id))
+  return { entradas: piezas.filter((c) => mapa.get(c.id)).map((c) => ({ carta: mapa.get(c.id), n: c.n })), sinResolver: [] }
+}
+async function entradasDelMeta(arquetipo) {
+  const [l] = await listasDestacadas(arquetipo, 30, 1)
+  if (!l) throw new Error('ese mazo no tiene listas en los últimos 30 días')
+  const lineas = ['pokemon', 'trainer', 'energy'].flatMap((sec) => (l.lista?.[sec] || []).map((x) => ({ n: Number(x.count), nombre: x.name || '', set: String(x.set || '').toUpperCase() || null, numero: String(x.number || '') || null, original: `${x.count} ${x.name} ${x.set || ''} ${x.number || ''}`.trim() })))
+  return entradasDeLineas(lineas)
+}
+async function entradasDeTexto(texto) {
+  const { lineas } = leerLista(texto)
+  if (!lineas.length) throw new Error('no he encontrado ninguna carta: cada línea empieza por la cantidad («4 Dreepy TWM 128»)')
+  return entradasDeLineas(lineas)
+}
+
+// Al volver a abrir en «tú contra ti», el mazo 2 de la última vez. Si no
+// se puede (otra cuenta, sin red), el mismo mazo contra sí mismo: así la
+// mesa sale igual, y se cambia en «Nueva partida».
+async function recuperarMazo2() {
+  const d = L.opciones.mazo2
+  try {
+    let nombre = null
+    let entradas = null
+    if (d?.fuente === 'mio' && L.userId) {
+      const f = (await misMazos(L.userId)).find((x) => x.id === d.id)
+      if (f) {
+        nombre = f.name || 'Mazo sin nombre'
+        ;({ entradas } = await entradasDeMazoGuardado(f))
+      }
+    } else if (d?.fuente === 'meta') {
+      nombre = d.nombre || 'Mazo del meta'
+      ;({ entradas } = await entradasDelMeta(d.arquetipo))
+    } else if (d?.fuente === 'texto' && d.texto) {
+      nombre = 'Lista pegada'
+      ;({ entradas } = await entradasDeTexto(d.texto))
+    }
+    if (entradas && entradas.reduce((t, e) => t + e.n, 0) >= 13) {
+      const listas = await prepararEntradas(entradas)
+      if (listas.some((e) => esBasico(e.carta) !== false)) {
+        L.mazos[1] = { nombre, entradas: listas, odds: oddsDelMazo(listas) }
+        return
+      }
+    }
+  } catch {}
+  L.mazos[1] = { ...L.mazoConstructor, mismo: true }
+}
+
+// ── Colocar solo: el básico que menos cuesta retirar delante, y el resto
+// a la banca ──
 function colocarAuto() {
   const p = L.partida
   const basicos = p.s.mano.filter((u) => esPokemon(p.carta(u)) && esBasicoEnJuego(p.carta(u)))
@@ -1362,9 +1932,46 @@ function colocarAuto() {
 // Eventos
 // ════════════════════════════════════════════════════════════════════
 
+// Qué carta hay debajo de un elemento, para «verla»: de la mano, de un
+// Pokémon en juego (tuyo o del otro), del estadio, de un premio vuelto…
+function cartaBajo(el) {
+  const p = L.partida
+  const conUid = el.closest('[data-uid]')
+  if (conUid) return { carta: p.carta(conUid.dataset.uid) }
+  const mas = el.closest('[data-mas]')
+  if (mas) return { carta: p.carta(mas.dataset.mas) }
+  const propio = el.closest('[data-slot-carta]')
+  if (propio) {
+    const slot = p.slot(propio.dataset.slotCarta)
+    return slot ? { carta: p.cartaDe(slot), slot, partida: p } : null
+  }
+  const ajeno = el.closest('[data-rival-carta]')
+  if (ajeno && L.mesa) {
+    const op = p.oponente
+    const slot = op.slot(ajeno.dataset.rivalCarta)
+    return slot ? { carta: op.cartaDe(slot), slot, partida: op } : null
+  }
+  return null
+}
+
+function verLoDeBajo(el) {
+  const c = cartaBajo(el)
+  if (!c?.carta) return false
+  cerrarMenu()
+  verCarta(c.carta, c.slot || null, c.partida || L.partida)
+  return true
+}
+
 function enganchar() {
   const raiz = L.raiz
   raiz.addEventListener('click', (e) => {
+    // Tras una pulsación larga (que ya ha enseñado la carta) el dedo
+    // levantado no tiene que jugarla.
+    if (L.ignorarClic) {
+      L.ignorarClic = false
+      e.preventDefault()
+      return
+    }
     const menu = $('#labMenu')
     // Una opción del menú.
     const op = e.target.closest('#labMenu [data-op]')
@@ -1380,31 +1987,73 @@ function enganchar() {
     if (e.target === $('#labVelo')) return cancelarDialogo()
     if (e.target.closest('#labVelo')) return
 
+    const modo = e.target.closest('[data-modo]')
+    if (modo) {
+      const quiere = modo.dataset.modo
+      if (quiere === (L.mesa ? 'mesa' : 'muneco')) return
+      return dialogoNueva(quiere)
+    }
     const a = e.target.closest('[data-accion]')
     if (a && !a.disabled) return accionDeBarra(a.dataset.accion, a)
     if (L.ocupado || !L.partida) return
     const p = L.partida
 
-    const mano = e.target.closest('[data-mano]')
-    if (mano) {
-      const uid = mano.dataset.uid
-      // En la preparación, tocar un básico lo coloca sin menú: activo si
-      // no hay, banca si ya lo hay. Es lo que se hace diez veces seguidas.
-      if (p.s.fase === 'preparacion') {
-        const c = p.carta(uid)
-        if (!esBasicoEnJuego(c) || !esPokemon(c)) return showToast('En la preparación solo se ponen Pokémon básicos.', 'error')
-        return hacer(() => p.colocar(uid, p.s.activo ? 'banca' : 'activo'))
+    // Apuntando: tocar uno de los que brillan termina la jugada; tocar
+    // otra cosa de la mesa la cancela.
+    if (L.apuntar) {
+      const sl = e.target.closest('[data-slot-carta]')
+      const o = sl && L.apuntar.opciones[sl.dataset.slotCarta]
+      if (o) {
+        const uid = L.apuntar.uid
+        return hacer(() => p.jugarDeMano(uid, o, ui))
       }
-      return menuDeMano(uid, mano)
+      const otraMano = e.target.closest('[data-mano]')
+      cancelarApuntar()
+      if (!otraMano) return
     }
+
+    const mas = e.target.closest('[data-mas]')
+    if (mas) return menuDeMano(mas.dataset.mas, mas)
+    const mano = e.target.closest('[data-mano]')
+    if (mano) return accionPrincipalDeMano(mano.dataset.uid, mano)
     const slot = e.target.closest('[data-slot-carta]')
     if (slot) return menuDeSlot(slot.dataset.slotCarta, slot)
+    if (e.target.closest('[data-rival-carta]')) return verLoDeBajo(e.target)
     const pila = e.target.closest('[data-pila]')
-    if (pila) return pila.dataset.pila === 'mazo' ? menuDeMazo(pila) : menuDeDescarte(pila)
+    if (pila) {
+      const rival = pila.dataset.de === 'rival'
+      if (pila.dataset.pila === 'descarte') return rival ? menuDeDescarte(pila, p.oponente, { rival: true }) : menuDeDescarte(pila)
+      if (!rival) return menuDeMazo(pila)
+      return showToast(`${p.oponente.nombreJugador} tiene ${p.oponente.s.mazo.length} cartas en el mazo.`)
+    }
     const premio = e.target.closest('[data-premio]')
     if (premio) return menuDePremio(premio.dataset.premio || premio.dataset.uid, premio)
     if (e.target.closest('[data-estadio]')) return menuDeEstadio(e.target.closest('[data-estadio]'))
     if (e.target.closest('[data-ver-mulligans]')) return verMulligans()
+
+    const primero = e.target.closest('[data-primero]')
+    if (primero) {
+      const v = primero.dataset.primero
+      return hacer(() => {
+        if (v === 'moneda') {
+          const sale = p.azar() < 0.5
+          p.log(`Moneda: ${sale ? 'cara, vas primero' : 'cruz, vas segundo'}.`)
+          p.ponerVaPrimero(sale)
+        } else p.ponerVaPrimero(v === 'primero')
+        L.opciones.primero = v === 'moneda' ? 'azar' : v
+        guardarPrefs()
+      })
+    }
+    const empieza = e.target.closest('[data-empieza]')
+    if (empieza && L.mesa) {
+      const v = empieza.dataset.empieza
+      return hacer(() => {
+        if (v === 'moneda') L.mesa.lanzarMoneda()
+        else L.mesa.ponerPrimero(Number(v))
+        L.opciones.empieza = v === 'moneda' ? 'azar' : v
+        guardarPrefs()
+      })
+    }
 
     const aj = e.target.closest('[data-rival-ajuste]')
     if (aj && aj.tagName === 'BUTTON') return ajusteRival(aj.dataset.rivalAjuste, aj)
@@ -1413,13 +2062,53 @@ function enganchar() {
     if (robos) {
       L.nRobos = Math.max(1, Math.min(20, L.nRobos + Number(robos.dataset.robos)))
       guardarPrefs()
-      return pintarProb()
+      return repintarPanel()
     }
-    const pest = e.target.closest('[data-prob-pestania]')
+    const pest = e.target.closest('[data-panel-pestania]')
     if (pest) {
-      L.probPestania = pest.dataset.probPestania
-      return pintarProb()
+      L.panelPestania = pest.dataset.panelPestania
+      guardarPrefs()
+      return repintarPanel()
     }
+  })
+
+  // Clic derecho: ver la carta (y no el menú del navegador).
+  raiz.addEventListener('contextmenu', (e) => {
+    if (e.target.closest('#labVelo, #labMenu')) return
+    if (verLoDeBajo(e.target)) e.preventDefault()
+  })
+
+  // Mantener pulsado (con el dedo): ver la carta.
+  let pulsacion = null
+  const soltar = () => {
+    clearTimeout(pulsacion)
+    pulsacion = null
+  }
+  raiz.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'touch' || e.target.closest('#labVelo, #labMenu')) return
+    if (!cartaBajo(e.target)) return
+    soltar()
+    const x0 = e.clientX
+    const y0 = e.clientY
+    const el = e.target
+    pulsacion = setTimeout(() => {
+      pulsacion = null
+      if (verLoDeBajo(el)) L.ignorarClic = true
+    }, PULSACION_LARGA)
+    const mover = (ev) => {
+      if (Math.abs(ev.clientX - x0) > 8 || Math.abs(ev.clientY - y0) > 8) soltar()
+    }
+    raiz.addEventListener('pointermove', mover, { passive: true })
+    const fin = () => {
+      soltar()
+      raiz.removeEventListener('pointermove', mover)
+      // Si la pulsación larga ya enseñó la carta, el clic que viene
+      // detrás se ignora; si no llega clic (el dedo se fue), que no se
+      // quede la marca puesta para el siguiente.
+      if (L.ignorarClic) setTimeout(() => (L.ignorarClic = false), 400)
+    }
+    raiz.addEventListener('pointerup', fin, { once: true })
+    raiz.addEventListener('pointercancel', fin, { once: true })
   })
 
   raiz.addEventListener('change', (e) => {
@@ -1427,7 +2116,7 @@ function enganchar() {
     if (marca) {
       if (marca.checked) L.seleccion.add(marca.dataset.marca)
       else L.seleccion.delete(marca.dataset.marca)
-      return pintarProb()
+      return repintarPanel()
     }
     const aj = e.target.closest('select[data-rival-ajuste="plantilla"]')
     if (aj) {
@@ -1443,17 +2132,101 @@ function enganchar() {
     }
   })
 
-  raiz.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      if (!$('#labVelo').classList.contains('hidden')) return cancelarDialogo()
-      if (!$('#labMenu').classList.contains('hidden')) return cerrarMenu()
-      return cerrar()
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !/input|textarea|select/i.test(document.activeElement?.tagName || '')) {
-      e.preventDefault()
-      accionDeBarra('deshacer')
-    }
-  })
+  // El teclado, en la VENTANA y en captura: así sigue funcionando aunque
+  // el foco se haya caído al `body`, y lo que el laboratorio usa no le
+  // llega además al constructor de debajo (su Ctrl+Z deshacía también un
+  // cambio del MAZO mientras se jugaba).
+  window.addEventListener(
+    'keydown',
+    (e) => {
+      if (!L.raiz || L.raiz.hidden) return
+      if (alTeclear(e)) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    },
+    true
+  )
+}
+
+// Devuelve true si la tecla era del laboratorio.
+function alTeclear(e) {
+  const velo = !$('#labVelo').classList.contains('hidden')
+  const menu = !$('#labMenu').classList.contains('hidden')
+  const foco = document.activeElement
+  if (e.key === 'Escape') {
+    if (velo) cancelarDialogo()
+    else if (menu) cerrarMenu()
+    else if (cancelarApuntar()) {
+      // nada más
+    } else if (panelVisible() && !anchoGrande()) {
+      // El panel por encima de la mesa (pantalla estrecha) se cierra antes
+      // que el laboratorio.
+      accionDeBarra('panel')
+    } else cerrar()
+    return true
+  }
+  // El foco no sale del laboratorio (es una ventana modal), ni de la
+  // ventana o el menú que haya abiertos encima.
+  if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) return atraparTab(e, velo ? $('#labDialogo') : menu ? $('#labMenu') : L.raiz)
+  const escribiendo = /input|textarea|select/i.test(foco?.tagName || '')
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'z' && !escribiendo) {
+    if (!velo) deshacer()
+    return true
+  }
+  if (escribiendo || e.ctrlKey || e.metaKey || e.altKey) return false
+  // Las flechas: por las opciones del menú, y por un grupo de opciones
+  // («contra quién», «quién empieza»).
+  if (menu) {
+    if (!/^(ArrowDown|ArrowUp|Home|End)$/.test(e.key)) return false
+    moverEnLista([...$('#labMenu').querySelectorAll('[data-op]')], e.key)
+    return true
+  }
+  if (velo) return false
+  const radio = foco?.closest?.('[role="radio"]')
+  if (radio && /^Arrow(Left|Right|Up|Down)$/.test(e.key)) {
+    moverEnLista([...radio.closest('[role="radiogroup"]').querySelectorAll('[role="radio"]')], e.key)
+    return true
+  }
+  // «v» enseña la carta enfocada (como el clic derecho; la tecla de menú
+  // y Mayús+F10 lanzan ese mismo clic derecho). Lo demás de una carta de
+  // la mano está en su «⋯», que es un botón más.
+  if ((e.key === 'v' || e.key === 'V') && foco && L.raiz.contains(foco) && cartaBajo(foco)) {
+    verLoDeBajo(foco)
+    return true
+  }
+  // «p» abre y cierra el panel de probabilidades.
+  if (e.key === 'p' || e.key === 'P') {
+    accionDeBarra('panel')
+    return true
+  }
+  return false
+}
+
+function moverEnLista(lista, tecla) {
+  const n = lista.length
+  if (!n) return
+  const i = lista.indexOf(document.activeElement)
+  const adelante = /Down|Right/.test(tecla)
+  const j = tecla === 'Home' ? 0 : tecla === 'End' ? n - 1 : i < 0 ? (adelante ? 0 : n - 1) : adelante ? (i + 1) % n : (i - 1 + n) % n
+  lista[j].focus()
+}
+
+function atraparTab(e, caja) {
+  const visibles = [...caja.querySelectorAll('button, [href], input, select, textarea, [tabindex]')].filter((x) => !x.disabled && x.tabIndex >= 0 && x.getClientRects().length)
+  const n = visibles.length
+  if (!n) {
+    caja.focus()
+    return true
+  }
+  const i = visibles.indexOf(document.activeElement)
+  let j
+  if (i < 0) j = e.shiftKey ? n - 1 : 0
+  else if (e.shiftKey && i === 0) j = n - 1
+  else if (!e.shiftKey && i === n - 1) j = 0
+  else return false // por dentro, sin dar la vuelta: lo hace el navegador
+  visibles[j].focus()
+  return true
 }
 
 function accionDeBarra(accion, boton) {
@@ -1466,14 +2239,25 @@ function accionDeBarra(accion, boton) {
     case 'otra':
       return nuevaPartida()
     case 'deshacer':
-      if (L.ocupado || !p?.deshacer()) return
-      cerrarMenu()
-      return pintar()
-    case 'prob':
-      L.probAbierta = !L.probAbierta
+      return deshacer()
+    case 'panel': {
+      L.panelAbierto = !panelVisible()
       guardarPrefs()
-      return pintarProb()
+      pintarPanel()
+      pintarBarra()
+      if (L.panelAbierto) $('#labPanel')?.querySelector('.lab-pestania.activa')?.focus()
+      else {
+        // La lengüeta solo se ve en ancho; si no, el botón de arriba (el
+        // foco a algo escondido se caía al `body`).
+        const pest = $('#labPanelPestana')
+        ;(pest && pest.getClientRects().length ? pest : $('.lab-btn-panel'))?.focus()
+      }
+      return
+    }
+    case 'no-apuntar':
+      return cancelarApuntar()
     case 'empezar':
+      if (L.mesa) return hacer(() => L.mesa.listo(ui))
       return hacer(() => p.empezar())
     case 'auto':
       return hacer(() => colocarAuto())

@@ -113,7 +113,7 @@ async function elegirPropio(p, ui, { titulo, filtro = () => true, texto = '' }) 
 
 // Elegir un Pokémon de la banca del RIVAL y subirlo (Boss, Captura…).
 async function atraerRival(p, ui, titulo = 'Elige el Pokémon de la banca rival que sube al puesto activo') {
-  const r = p.s.rival
+  const r = p.rival
   if (!r.banca.length) {
     p.log('El rival no tiene banca: no cambia nada.')
     return false
@@ -122,14 +122,14 @@ async function atraerRival(p, ui, titulo = 'Elige el Pokémon de la banca rival 
   return p.cambiarActivoRival(r.banca.findIndex((d) => d.id === id))
 }
 
-const rivalConBanca = (p) => p.s.rival.banca.length > 0 || 'El rival no tiene Pokémon en la banca.'
+const rivalConBanca = (p) => p.rival.banca.length > 0 || 'El rival no tiene Pokémon en la banca.'
 const conBanca = (p) => p.s.banca.length > 0 || 'No tienes Pokémon en la banca.'
 const huecoEnBanca = (p) => p.huecosBanca > 0 || 'Tu banca está llena.'
 const conMazo = (p) => p.s.mazo.length > 0 || 'No te quedan cartas en el mazo.'
 
 // Poner contadores de daño en los Pokémon del rival, repartidos.
 async function repartirContadores(p, ui, n, { donde = 'todos', titulo } = {}) {
-  const r = p.s.rival
+  const r = p.rival
   const objetivos = donde === 'banca' ? r.banca : [r.activo, ...r.banca].filter(Boolean)
   if (!objetivos.length) {
     p.log('No hay dónde poner los contadores.')
@@ -141,7 +141,7 @@ async function repartirContadores(p, ui, n, { donde = 'todos', titulo } = {}) {
 
 // Hacer daño o poner contadores en UN Pokémon rival que se elige.
 async function aUnRival(p, ui, cantidad, { titulo, soloBanca = false, soloEx = false, contadores = false } = {}) {
-  const r = p.s.rival
+  const r = p.rival
   const lista = (soloBanca ? r.banca : [r.activo, ...r.banca]).filter((d) => d && (!soloEx || d.ex))
   if (!lista.length) return p.log('No hay a quién.')
   const [id] = await ui.pokemon({ titulo: titulo || 'Elige un Pokémon del rival', opciones: lista.map((d) => d.id), min: 1, max: 1 })
@@ -192,14 +192,61 @@ function ponerBono(p, clave, n, porque) {
   p.s.flags.bonos.push({ clave, n, porque })
 }
 
-// Cartas que no afectan a nada en el laboratorio porque actúan sobre la
-// mano o la energía del rival, y el maniquí no tiene.
-const soloRival = (texto) => ({
+// Cartas que actúan sobre la mano o la energía del rival. El maniquí no
+// tiene ni una cosa ni otra, así que contra él no hacen nada (y lo dicen);
+// contra otro jugador de verdad (la mesa, tanda 456) hacen lo que pone.
+const NADA_AL_MANIQUI = '(Actúa sobre el rival: el maniquí no tiene mano ni energía, así que aquí no cambia nada.)'
+const soloRival = (texto, enMesa = null) => ({
   texto,
-  usar(p) {
-    p.log('(Actúa sobre el rival: el maniquí no tiene mano ni energía, así que aquí no cambia nada.)')
+  async usar(p, ui, ctx) {
+    if (p.oponente && enMesa) return enMesa(p, ui, ctx)
+    p.log(NADA_AL_MANIQUI)
   },
 })
+
+// ── El rival de verdad (con mesa) ──
+//
+// Barajar su mano en su mazo y robar: Juez, Estampa Injusta, Archer…
+function rivalBarajaYRoba(p, n, motivo) {
+  const op = p.oponente
+  if (!op) return
+  op.manoAlMazo()
+  op.robar(n, { motivo })
+}
+
+// Que el rival descarte de su mano hasta quedarse con N. Elige ÉL: en la
+// mesa los dos jugadores son la misma persona, así que la ventana lo dice.
+async function rivalDescartaHasta(p, ui, n) {
+  const op = p.oponente
+  const sobran = op.s.mano.length - n
+  if (sobran <= 0) return p.log(`${op.nombreJugador} tiene ${op.s.mano.length} o menos: no descarta.`)
+  const el = await ui.cartas({ titulo: `${op.nombreJugador}: descarta ${sobran} para quedarte con ${n}`, opciones: [...op.s.mano], min: sobran, max: sobran, zona: 'mano', partida: op })
+  op.descartar(el)
+}
+
+// Quitar una carta unida (energía o herramienta) a un Pokémon del rival:
+// se elige el Pokémon y luego la carta, y va al descarte de su dueño.
+async function quitarAlRival(p, ui, { titulo, cual = 'energia', filtro = () => true }) {
+  const op = p.oponente
+  const r = p.rival
+  const valen = (d) => (cual === 'herramienta' ? d.herramienta && filtro(op.carta(d.herramienta)) : d.energias.some((u) => filtro(op.carta(u))))
+  const con = [r.activo, ...r.banca].filter((d) => d && valen(d))
+  if (!con.length) return p.log(`${op.nombreJugador} no tiene nada que quitar ahí.`)
+  const [id] = await ui.pokemon({ titulo, opciones: con.map((d) => d.id), min: 1, max: 1 })
+  const d = con.find((x) => x.id === id)
+  let fuera
+  if (cual === 'herramienta') {
+    fuera = d.herramienta
+    d.herramienta = null
+  } else {
+    const opciones = d.energias.filter((u) => filtro(op.carta(u)))
+    ;[fuera] = opciones.length === 1 ? opciones : await ui.cartas({ titulo: '¿Qué energía se descarta?', opciones, min: 1, max: 1 })
+    d.energias = d.energias.filter((u) => u !== fuera)
+  }
+  op.s.descarte.push(fuera)
+  p.log(`${p.nombre(fuera)} de ${nombreVisible(op.cartaDe(d))} se descarta.`)
+  return d
+}
 
 // ════════════════════════════════════════════════════════════════════
 // ENTRENADORES
@@ -242,8 +289,18 @@ const entrenadores = {
   },
   'special red card': {
     texto: 'Solo puedes usar esta carta si a tu rival le quedan 3 premios o menos. Tu rival baraja su mano y la pone debajo de su mazo; si puso alguna carta así, roba 3.',
-    puede: (p) => p.s.rival.premios <= 3 || 'Solo si al rival le quedan 3 premios o menos (ajústalo en el panel del rival).',
-    usar: soloRival().usar,
+    puede: (p) => p.rival.premios <= 3 || (p.oponente ? `Solo si a ${p.oponente.nombreJugador} le quedan 3 premios o menos.` : 'Solo si al rival le quedan 3 premios o menos (ajústalo en el panel del rival).'),
+    usar: soloRival('', (p) => {
+      const op = p.oponente
+      const mano = op.s.mano.splice(0)
+      for (let i = mano.length - 1; i > 0; i--) {
+        const j = Math.floor(p.azar() * (i + 1))
+        ;[mano[i], mano[j]] = [mano[j], mano[i]]
+      }
+      op.alMazo(mano, 'abajo')
+      p.log(`${op.nombreJugador} pone su mano (${mano.length}) debajo de su mazo.`)
+      if (mano.length) op.robar(3, { motivo: 'Tarjeta Roja Especial' })
+    }).usar,
   },
   crispin: {
     texto: 'Busca en tu mazo hasta 2 Energías básicas de tipos distintos y enséñalas. Pon 1 en tu mano y une la otra a 1 de tus Pokémon. Después, baraja tu mazo.',
@@ -278,10 +335,12 @@ const entrenadores = {
   },
   'unfair stamp': {
     texto: 'Solo puedes usar esta carta si alguno de tus Pokémon quedó fuera de combate durante el último turno de tu rival. Cada jugador baraja su mano con su mazo. Después, tú robas 5 y tu rival 2.',
-    puede: (p) => p.s.koUltimoTurnoRival || 'Solo si el rival te dejó KO un Pokémon en su último turno (usa «Simular KO del rival» en uno de tus Pokémon).',
+    // Con mesa no hay «Simular KO»: el KO tiene que haber pasado de verdad.
+    puede: (p) => p.s.koUltimoTurnoRival || (p.oponente ? 'Solo si en su último turno te dejaron KO un Pokémon.' : 'Solo si el rival te dejó KO un Pokémon en su último turno (usa «Simular KO del rival» en uno de tus Pokémon).'),
     usar(p) {
       p.manoAlMazo()
       robar(p, 5, 'Estampa Injusta')
+      rivalBarajaYRoba(p, 2, 'Estampa Injusta')
     },
   },
   switch: {
@@ -294,6 +353,7 @@ const entrenadores = {
     usar(p) {
       p.manoAlMazo()
       robar(p, 4, 'Juez')
+      rivalBarajaYRoba(p, 4, 'Juez')
     },
   },
   'rare candy': {
@@ -332,7 +392,7 @@ const entrenadores = {
   },
   "rosa's encouragement": {
     texto: 'Solo puedes usar esta carta si te quedan más premios que a tu rival. Une hasta 2 Energías básicas de tu descarte a 1 de tus Pokémon de Fase 2.',
-    puede: (p) => (p.s.premios.length > p.s.rival.premios ? true : 'Solo si te quedan más premios que al rival.'),
+    puede: (p) => (p.s.premios.length > p.rival.premios ? true : 'Solo si te quedan más premios que al rival.'),
     async usar(p, ui) {
       const s = await elegirPropio(p, ui, { titulo: 'Elige tu Pokémon de Fase 2', filtro: (c) => faseDe(c) === 2 })
       if (!s) return p.log('No tienes Pokémon de Fase 2.')
@@ -369,9 +429,10 @@ const entrenadores = {
   },
   'crushing hammer': {
     texto: 'Lanza una moneda. Si sale cara, descarta una Energía unida a 1 de los Pokémon de tu rival.',
-    usar(p) {
-      p.moneda()
-      p.log('(El maniquí no tiene energías.)')
+    async usar(p, ui) {
+      const cara = p.moneda()
+      if (!p.oponente) return p.log('(El maniquí no tiene energías.)')
+      if (cara) await quitarAlRival(p, ui, { titulo: '¿A qué Pokémon del rival le quitas una energía?' })
     },
   },
   'sacred ash': {
@@ -425,7 +486,12 @@ const entrenadores = {
       robar(p, d.length * 3, 'Gwynn')
     },
   },
-  eri: soloRival('Tu rival enseña su mano y descartas hasta 2 Objetos que encuentres en ella.'),
+  eri: soloRival('Tu rival enseña su mano y descartas hasta 2 Objetos que encuentres en ella.', async (p, ui) => {
+    const op = p.oponente
+    p.log(`${op.nombreJugador} enseña su mano.`)
+    const el = await ui.cartas({ titulo: `La mano de ${op.nombreJugador}: descarta hasta 2 Objetos`, opciones: [...op.s.mano], elegibles: op.s.mano.filter((u) => esObjeto(op.carta(u))), min: 0, max: 2, zona: 'mano', partida: op })
+    op.descartar(el)
+  }),
   'bug catching set': {
     texto: 'Mira las 7 cartas de arriba de tu mazo. Puedes enseñar hasta 2 cartas, en cualquier combinación, de Pokémon {G} y Energías {G} básicas y ponerlas en tu mano. Baraja las demás con tu mazo.',
     puede: conMazo,
@@ -459,7 +525,7 @@ const entrenadores = {
       else ponerBono(p, 'kieran', 30, 'Kieran')
     },
   },
-  'enhanced hammer': soloRival('Descarta una Energía especial unida a 1 de los Pokémon de tu rival.'),
+  'enhanced hammer': soloRival('Descarta una Energía especial unida a 1 de los Pokémon de tu rival.', (p, ui) => quitarAlRival(p, ui, { titulo: '¿De qué Pokémon del rival descartas una Energía especial?', filtro: (c) => !esEnergiaBasica(c) })),
   'premium power pro': {
     texto: 'Durante este turno, los ataques de tus Pokémon {F} hacen 30 puntos de daño más al Pokémon activo de tu rival (antes de aplicar Debilidad y Resistencia).',
     usar: (p) => ponerBono(p, 'premium', 30, 'Premium Power Pro'),
@@ -478,8 +544,8 @@ const entrenadores = {
     puede: (p) => p.enJuego.some((s) => esTera(p.cartaDe(s))) || 'Solo si tienes un Pokémon Teracristal en juego.',
     usar: (p, ui) => unirDesdeDescarte(p, ui, { filtroEnergia: basica, filtroPokemon: (c, s) => s !== p.s.activo && esDeTipo(c, 'C'), max: 2, titulo: 'Energía básica del descarte' }),
   },
-  xerosic: soloRival('Tu rival descarta cartas de su mano hasta quedarse con 3.'),
-  "xerosic's machinations": soloRival('Tu rival descarta cartas de su mano hasta quedarse con 3.'),
+  xerosic: soloRival('Tu rival descarta cartas de su mano hasta quedarse con 3.', (p, ui) => rivalDescartaHasta(p, ui, 3)),
+  "xerosic's machinations": soloRival('Tu rival descarta cartas de su mano hasta quedarse con 3.', (p, ui) => rivalDescartaHasta(p, ui, 3)),
   "gladion's final battle": {
     texto: 'Solo puedes usar esta carta si es la última de tu mano. Durante este turno, los ataques de tus Pokémon sin Regla hacen 80 puntos de daño más al Pokémon activo de tu rival.',
     puede: (p, ctx) => otrasEnMano(p, ctx).length === 0 || 'Tiene que ser la última carta de tu mano.',
@@ -513,6 +579,7 @@ const entrenadores = {
     usar(p) {
       p.manoAlMazo()
       robar(p, 5, 'Archer del Team Rocket')
+      rivalBarajaYRoba(p, 3, 'Archer del Team Rocket')
     },
   },
   "janine's secret art": {
@@ -561,12 +628,14 @@ const entrenadores = {
   'tool scrapper': {
     texto: 'Elige hasta 2 Herramientas unidas a Pokémon en juego (tuyos o de tu rival) y descártalas.',
     async usar(p, ui) {
-      const con = p.enJuego.filter((s) => s.herramienta)
-      if (!con.length) return p.log('No hay herramientas en juego (el maniquí no lleva).')
+      const op = p.oponente
+      const suyos = op ? op.enJuego.filter((s) => s.herramienta) : []
+      const con = [...p.enJuego.filter((s) => s.herramienta), ...suyos]
+      if (!con.length) return p.log(op ? 'No hay herramientas en juego.' : 'No hay herramientas en juego (el maniquí no lleva).')
       const ids = await ui.pokemon({ titulo: 'Hasta 2 Pokémon: se descarta su herramienta', opciones: con.map((s) => s.id), min: 0, max: 2 })
       for (const id of ids) {
-        const s = p.slot(id)
-        p.s.descarte.push(s.herramienta)
+        const s = con.find((x) => x.id === id)
+        p.alDescarteDeSuDueno([s.herramienta])
         p.log(`Se descarta ${p.nombre(s.herramienta)}.`)
         s.herramienta = null
       }
@@ -574,7 +643,7 @@ const entrenadores = {
   },
   briar: {
     texto: 'Solo puedes usar esta carta si a tu rival le quedan exactamente 2 premios. Durante este turno, si el activo rival queda fuera de combate por el ataque de tu Pokémon Teracristal, coges 1 premio más.',
-    puede: (p) => p.s.rival.premios === 2 || 'Solo si al rival le quedan exactamente 2 premios.',
+    puede: (p) => p.rival.premios === 2 || 'Solo si al rival le quedan exactamente 2 premios.',
     usar(p) {
       p.s.flags.briar = true
     },
@@ -698,6 +767,7 @@ const entrenadores = {
   'hand trimmer': {
     texto: 'Cada jugador descarta cartas de su mano hasta quedarse con 5 (primero tu rival). Quien tenga 5 o menos no descarta.',
     async usar(p, ui) {
+      if (p.oponente) await rivalDescartaHasta(p, ui, 5)
       const sobran = p.s.mano.length - 5
       if (sobran > 0) await descartarDeMano(p, ui, sobran, { titulo: `Descarta ${sobran} para quedarte con 5` })
     },
@@ -711,14 +781,15 @@ const entrenadores = {
     puede: (p, ctx) => otrasEnMano(p, ctx).length >= 1 || 'Necesitas otra carta en la mano para descartarla.',
     async usar(p, ui) {
       await descartarDeMano(p, ui, 1)
-      robar(p, p.s.rival.banca.length, 'Convicción de Morti')
+      robar(p, p.rival.banca.length, 'Convicción de Morti')
     },
   },
   'dark bell': {
     texto: 'Los dos Pokémon activos que no sean {D} quedan Confundidos.',
     usar(p) {
       if (p.s.activo && !esDeTipo(p.cartaDe(p.s.activo), 'D')) ponerEstado(p.s.activo, 'confundido')
-      if (p.s.rival.activo) ponerEstado(p.s.rival.activo, 'confundido')
+      const suyo = p.rival.activo
+      if (suyo && !(p.oponente && esDeTipo(p.oponente.cartaDe(suyo), 'D'))) ponerEstado(suyo, 'confundido')
       p.log('Los activos que no son Oscuros quedan confundidos.')
     },
   },
@@ -745,7 +816,7 @@ const entrenadores = {
   'dangerous laser': {
     texto: 'El Pokémon activo de tu rival queda Quemado y Confundido.',
     usar(p) {
-      const r = p.s.rival.activo
+      const r = p.rival.activo
       if (r) {
         ponerEstado(r, 'quemado')
         ponerEstado(r, 'confundido')
@@ -753,7 +824,26 @@ const entrenadores = {
       p.log('El activo rival queda quemado y confundido.')
     },
   },
-  ruffian: soloRival('Descarta una Herramienta y una Energía especial de 1 de los Pokémon de tu rival.'),
+  ruffian: soloRival('Descarta una Herramienta y una Energía especial de 1 de los Pokémon de tu rival.', async (p, ui) => {
+    const op = p.oponente
+    const r = p.rival
+    const con = [r.activo, ...r.banca].filter((d) => d && (d.herramienta || d.energias.some((u) => !esEnergiaBasica(op.carta(u)))))
+    if (!con.length) return p.log(`${op.nombreJugador} no lleva herramientas ni energías especiales.`)
+    const [id] = await ui.pokemon({ titulo: 'Un Pokémon del rival: pierde su herramienta y una Energía especial', opciones: con.map((d) => d.id), min: 1, max: 1 })
+    const d = con.find((x) => x.id === id)
+    if (d.herramienta) {
+      op.s.descarte.push(d.herramienta)
+      p.log(`${p.nombre(d.herramienta)} se descarta.`)
+      d.herramienta = null
+    }
+    const esp = d.energias.filter((u) => !esEnergiaBasica(op.carta(u)))
+    if (esp.length) {
+      const [e] = esp.length === 1 ? esp : await ui.cartas({ titulo: '¿Qué Energía especial?', opciones: esp, min: 1, max: 1 })
+      d.energias = d.energias.filter((u) => u !== e)
+      op.s.descarte.push(e)
+      p.log(`${p.nombre(e)} se descarta.`)
+    }
+  }),
   'transformation tome': {
     texto: 'Tienes que jugar 2 Tomos de Transformación a la vez. Elige un Pokémon básico de tu descarte y cámbialo por 1 de tus Pokémon básicos en juego; todo lo unido, el daño y los efectos se quedan en el nuevo.',
   },
@@ -872,7 +962,22 @@ const entrenadores = {
         ;[mano[i], mano[j]] = [mano[j], mano[i]]
       }
       p.alMazo(mano, 'abajo')
-      if (L) robar(p, p.s.premios.length, 'Iono')
+      const op = p.oponente
+      let suya = []
+      if (op) {
+        suya = op.s.mano.splice(0)
+        for (let i = suya.length - 1; i > 0; i--) {
+          const j = Math.floor(p.azar() * (i + 1))
+          ;[suya[i], suya[j]] = [suya[j], suya[i]]
+        }
+        op.alMazo(suya, 'abajo')
+      }
+      // La carta: «si ALGUNO de los dos puso cartas así, CADA jugador
+      // roba…». Con la mano vacía también se roba si el otro tenía.
+      if (L || suya.length) {
+        robar(p, p.s.premios.length, 'Iono')
+        if (op) op.robar(op.s.premios.length, { motivo: 'Iono' })
+      }
     },
   },
   arven: {
@@ -893,7 +998,7 @@ const entrenadores = {
   },
   'counter catcher': {
     texto: 'Solo puedes usar esta carta si te quedan más premios que a tu rival. Cambia 1 de los Pokémon en la banca de tu rival por su activo.',
-    puede: (p) => (p.s.premios.length > p.s.rival.premios ? rivalConBanca(p) : 'Solo si te quedan más premios que al rival.'),
+    puede: (p) => (p.s.premios.length > p.rival.premios ? rivalConBanca(p) : 'Solo si te quedan más premios que al rival.'),
     usar: (p, ui) => atraerRival(p, ui),
   },
   'pal pad': {
@@ -1232,9 +1337,8 @@ const habilidades = {
     puede: (p) => !!p.s.estadio || 'No hay estadio.',
     usar(p) {
       if (!p.s.estadio) return
-      p.s.descarte.push(p.s.estadio)
       p.log(`${p.nombre(p.s.estadio)} se descarta.`)
-      p.s.estadio = null
+      p.quitarEstadio()
     },
   },
   tatsugiri: {
@@ -1408,7 +1512,7 @@ const habilidades = {
     texto: 'Una vez por turno, si está en el puesto activo, deja Quemado al activo rival.',
     soloActivo: true,
     usar(p) {
-      ponerEstado(p.s.rival.activo, 'quemado')
+      ponerEstado(p.rival.activo, 'quemado')
       p.log('El activo rival queda quemado.')
     },
   },
@@ -1440,7 +1544,7 @@ const habilidades = {
 // puede venir en español. `usar` devuelve el daño al activo rival (o no
 // devuelve nada y vale el impreso).
 
-const cuentaBanca = (p) => p.s.banca.length + p.s.rival.banca.length
+const cuentaBanca = (p) => p.s.banca.length + p.rival.banca.length
 const buscaAtaque = (titulo, filtro, max = 1, destino = 'mano') => ({ usar: (p, ui, s, { base }) => p.buscarEnMazo(ui, { titulo, filtro, max, destino }).then(() => base) })
 const robaAtaque = (n, motivo) => ({ usar: (p, ui, s, { base }) => (robar(p, n, motivo), base) })
 const cambiaAtaque = { usar: async (p, ui, s, { base }) => (await p.elegirYCambiar(ui, '¿Quién pasa al puesto activo?'), base) }
@@ -1523,7 +1627,7 @@ const ataques = {
         const fuera = await ui.cartas({ titulo: 'Descarta 2 energías de este Pokémon', opciones: [...s.energias], min: Math.min(2, s.energias.length), max: 2 })
         s.energias = s.energias.filter((u) => !fuera.includes(u))
         p.s.descarte.push(...fuera)
-        const objetivos = [p.s.rival.activo, ...p.s.rival.banca].filter(Boolean)
+        const objetivos = [p.rival.activo, ...p.rival.banca].filter(Boolean)
         const ids = await ui.pokemon({ titulo: '120 de daño a 2 de los Pokémon del rival', opciones: objetivos.map((d) => d.id), min: Math.min(2, objetivos.length), max: 2 })
         for (const d of objetivos) if (ids.includes(d.id)) p.danioAlRival(d, 120)
         return 0
@@ -1540,7 +1644,7 @@ const ataques = {
     '#0': { usar(p, ui, s, { base }) { let caras = 0; while (p.moneda()) caras++; return base + 50 * caras } },
   },
   // Contadores, no daño: no le suman los bonos de daño.
-  alakazam: { '#0': { usar: (p) => (p.danioAlRival(p.s.rival.activo, 20 * p.s.mano.length, { contadores: true }), 0) } },
+  alakazam: { '#0': { usar: (p) => (p.danioAlRival(p.rival.activo, 20 * p.s.mano.length, { contadores: true }), 0) } },
   'mega excadrill ex': {
     '#1': { usar: (p, ui, s, { base, ataque }) => base + (p.unidadesDe(s).length >= costeEnLetras(ataque).length + 2 ? 130 : 0) },
   },
@@ -1550,19 +1654,19 @@ const ataques = {
   dipplin: { '#0': { usar: (p) => 20 * p.s.banca.length } },
   passimian: { '#0': { usar: (p) => 20 * p.enJuego.filter((x) => esBasicoEnJuego(p.cartaDe(x))).length } },
   'beedrill ex': { '#0': { usar: (p) => 110 * p.enJuego.filter((x) => /^beedrill( ex)?$/.test(claveDeEfecto(p.cartaDe(x)))).length } },
-  'pecharunt ex': { '#0': { usar: (p) => 60 * (6 - p.s.rival.premios) } },
-  'mega mawile ex': { '#0': { usar: (p) => 80 * (6 - p.s.premios.length) }, '#1': { usar: (p, ui, s, { base }) => (p.s.rival.activo?.danio > 0 ? 30 : base) } },
-  moltres: { '#0': { usar: (p, ui, s, { base }) => base + (p.s.rival.activo?.ex ? 90 : 0) } },
+  'pecharunt ex': { '#0': { usar: (p) => 60 * (6 - p.rival.premios) } },
+  'mega mawile ex': { '#0': { usar: (p) => 80 * (6 - p.s.premios.length) }, '#1': { usar: (p, ui, s, { base }) => (p.rival.activo?.danio > 0 ? 30 : base) } },
+  moltres: { '#0': { usar: (p, ui, s, { base }) => base + (p.rival.activo?.ex ? 90 : 0) } },
   'blaziken ex': { '#0': noAtacaSiguiente },
   'iron leaves ex': { '#0': noAtacaSiguiente },
   'latias ex': { '#0': noAtacaSiguiente },
   "n's zekrom": { '#1': noAtacaSiguiente },
-  'bloodmoon ursaluna ex': { '#0': { ...noAtacaSiguiente, rebaja: (p) => 6 - p.s.rival.premios } },
-  'mega starmie ex': { '#0': { async usar(p, ui, s, { base }) { if (p.s.rival.banca.length) await aUnRival(p, ui, 50, { titulo: '50 de daño a 1 de la banca rival', soloBanca: true }); return base } } },
+  'bloodmoon ursaluna ex': { '#0': { ...noAtacaSiguiente, rebaja: (p) => 6 - p.rival.premios } },
+  'mega starmie ex': { '#0': { async usar(p, ui, s, { base }) { if (p.rival.banca.length) await aUnRival(p, ui, 50, { titulo: '50 de daño a 1 de la banca rival', soloBanca: true }); return base } } },
   'wellspring mask ogerpon ex': {
     '#1': {
       async usar(p, ui, s, { base }) {
-        if (s.energias.length >= 3 && p.s.rival.banca.length && (await ui.confirmar({ titulo: 'Bomba Torrencial', texto: '¿Barajas 3 energías de este Pokémon con tu mazo para hacer 120 a la banca?' }))) {
+        if (s.energias.length >= 3 && p.rival.banca.length && (await ui.confirmar({ titulo: 'Bomba Torrencial', texto: '¿Barajas 3 energías de este Pokémon con tu mazo para hacer 120 a la banca?' }))) {
           const el = await ui.cartas({ titulo: '3 energías al mazo', opciones: [...s.energias], min: 3, max: 3 })
           s.energias = s.energias.filter((u) => !el.includes(u))
           p.alMazo(el, 'barajar')
@@ -1590,26 +1694,26 @@ const ataques = {
       },
     },
   },
-  "n's darmanitan": { '#1': { async usar(p, ui, s, { base }) { p.s.descarte.push(...s.energias.splice(0)); if (p.s.rival.banca.length) await aUnRival(p, ui, 90, { soloBanca: true, titulo: '90 a 1 de la banca rival' }); return base } } },
-  "marnie's grimmsnarl ex": { '#0': { async usar(p, ui, s, { base }) { if (p.s.rival.banca.length) await aUnRival(p, ui, 30, { soloBanca: true, titulo: '30 a 1 de la banca rival' }); return base } } },
-  "hop's zacian ex": { '#0': { async usar(p, ui, s, { base }) { if (p.s.rival.banca.length) await aUnRival(p, ui, 30, { soloBanca: true, titulo: '30 a 1 de la banca rival' }); return base } }, '#1': noRepite(1) },
-  'flutter mane': { '#0': { async usar(p, ui, s, { base }) { if (p.s.rival.banca.length) await repartirContadores(p, ui, 2, { donde: 'banca' }); return base } } },
+  "n's darmanitan": { '#1': { async usar(p, ui, s, { base }) { p.s.descarte.push(...s.energias.splice(0)); if (p.rival.banca.length) await aUnRival(p, ui, 90, { soloBanca: true, titulo: '90 a 1 de la banca rival' }); return base } } },
+  "marnie's grimmsnarl ex": { '#0': { async usar(p, ui, s, { base }) { if (p.rival.banca.length) await aUnRival(p, ui, 30, { soloBanca: true, titulo: '30 a 1 de la banca rival' }); return base } } },
+  "hop's zacian ex": { '#0': { async usar(p, ui, s, { base }) { if (p.rival.banca.length) await aUnRival(p, ui, 30, { soloBanca: true, titulo: '30 a 1 de la banca rival' }); return base } }, '#1': noRepite(1) },
+  'flutter mane': { '#0': { async usar(p, ui, s, { base }) { if (p.rival.banca.length) await repartirContadores(p, ui, 2, { donde: 'banca' }); return base } } },
   'gengar ex': { '#0': { async usar(p, ui) { await aUnRival(p, ui, 130, { titulo: '13 contadores: ¿a quién?', contadores: true }); return 0 } } },
-  kyurem: { '#0': { async usar(p, ui, s) { p.s.descarte.push(...s.energias.splice(0)); const objetivos = [p.s.rival.activo, ...p.s.rival.banca].filter(Boolean); const ids = await ui.pokemon({ titulo: '110 de daño a 3 de los Pokémon del rival', opciones: objetivos.map((d) => d.id), min: Math.min(3, objetivos.length), max: 3 }); for (const d of objetivos) if (ids.includes(d.id)) p.danioAlRival(d, 110); return 0 } } },
-  'iron crown ex': { '#0': { async usar(p, ui) { const objetivos = [p.s.rival.activo, ...p.s.rival.banca].filter(Boolean); const ids = await ui.pokemon({ titulo: '50 de daño a 2 de los Pokémon del rival', opciones: objetivos.map((d) => d.id), min: Math.min(2, objetivos.length), max: 2 }); for (const d of objetivos) if (ids.includes(d.id)) p.danioAlRival(d, 50); return 0 } } },
+  kyurem: { '#0': { async usar(p, ui, s) { p.s.descarte.push(...s.energias.splice(0)); const objetivos = [p.rival.activo, ...p.rival.banca].filter(Boolean); const ids = await ui.pokemon({ titulo: '110 de daño a 3 de los Pokémon del rival', opciones: objetivos.map((d) => d.id), min: Math.min(3, objetivos.length), max: 3 }); for (const d of objetivos) if (ids.includes(d.id)) p.danioAlRival(d, 110); return 0 } } },
+  'iron crown ex': { '#0': { async usar(p, ui) { const objetivos = [p.rival.activo, ...p.rival.banca].filter(Boolean); const ids = await ui.pokemon({ titulo: '50 de daño a 2 de los Pokémon del rival', opciones: objetivos.map((d) => d.id), min: Math.min(2, objetivos.length), max: 2 }); for (const d of objetivos) if (ids.includes(d.id)) p.danioAlRival(d, 50); return 0 } } },
   'arboliva ex': {
     '#0': {
       async usar(p, ui) {
-        const objetivos = [p.s.rival.activo, ...p.s.rival.banca].filter(Boolean)
+        const objetivos = [p.rival.activo, ...p.rival.banca].filter(Boolean)
         const reparto = await ui.repartir({ titulo: 'Salva de Aceite: elige 6 veces (20 de daño cada una)', total: 6, opciones: objetivos.map((d) => d.id) })
         for (const d of objetivos) if (reparto[d.id]) p.danioAlRival(d, 20 * reparto[d.id])
         return 0
       },
     },
   },
-  'mega eelektross ex': { '#0': { async usar(p, ui) { const objetivos = [p.s.rival.activo, ...p.s.rival.banca].filter(Boolean); const ids = await ui.pokemon({ titulo: '60 de daño a 2 de los Pokémon del rival', opciones: objetivos.map((d) => d.id), min: Math.min(2, objetivos.length), max: 2 }); for (const d of objetivos) if (ids.includes(d.id)) p.danioAlRival(d, 60); return 0 } } },
-  'dudunsparce ex': { '#0': { usar: (p) => 60 * [p.s.rival.activo, ...p.s.rival.banca].filter((d) => d?.ex).length } },
-  'mega absol ex': { '#0': { usar(p) { const r = p.s.rival.activo; if (r && r.danio === 60) { r.danio = r.ps; p.log('El activo rival tenía 6 contadores: queda fuera de combate.') } return 0 } } },
+  'mega eelektross ex': { '#0': { async usar(p, ui) { const objetivos = [p.rival.activo, ...p.rival.banca].filter(Boolean); const ids = await ui.pokemon({ titulo: '60 de daño a 2 de los Pokémon del rival', opciones: objetivos.map((d) => d.id), min: Math.min(2, objetivos.length), max: 2 }); for (const d of objetivos) if (ids.includes(d.id)) p.danioAlRival(d, 60); return 0 } } },
+  'dudunsparce ex': { '#0': { usar: (p) => 60 * [p.rival.activo, ...p.rival.banca].filter((d) => d?.ex).length } },
+  'mega absol ex': { '#0': { usar(p) { const r = p.rival.activo; if (r && r.danio === 60) { r.danio = r.ps; p.log('El activo rival tenía 6 contadores: queda fuera de combate.') } return 0 } } },
   'ethan\'s typhlosion': { '#0': { usar: (p, ui, s, { base }) => base + 60 * p.s.descarte.filter((u) => claveDeEfecto(p.carta(u)) === "ethan's adventure").length } },
 }
 

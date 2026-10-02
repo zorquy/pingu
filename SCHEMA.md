@@ -24108,3 +24108,157 @@ mismo con «Rara Ilustración» (suya) contra «Ilustración rara» (nuestra).
 De ahí `ALIAS_TCGDEX`, que junta las que no coinciden. Y el día que salga
 otra se verá igual de claro —**un chip repetido en la pantalla**—, que es
 un fallo que al menos SE VE.
+
+## Tanda 456 — el laboratorio a dos: «tú contra ti», y una mesa de un clic (oct. 2026)
+
+PINGU, con tcgmasters.net de referencia: «quiero incluso poder jugar una
+partida en el laboratorio tú contra ti mismo con los 2 mazos que quieras
+[…] que sigas pudiendo jugar con un muñeco de pruebas, la pestaña de
+probabilidades que siempre tengas la opción de verla», y la forma de
+jugar: «si hacemos clic izquierdo en el Pokémon fase 1 se evolucionará a
+uno de los básicos donde pueda evolucionar, lo seleccionaría el usuario
+haciendo clic en el básico; si haces clic derecho ves la carta».
+
+### La mesa (`Mesa`, en `js/constructor/partida.js`)
+
+Dos `Partida` de verdad, una por jugador, enlazadas (`oponente`, `mesa`).
+Cada una con SUS cartas: los uid llevan el prefijo del jugador (`ac12`,
+`bc3`) y los huecos también (`ap4`, `bp1`), así que nada del uno se puede
+confundir con el otro; el `Map` de cartas es uno para los dos. Contra el
+muñeco no cambia nada: `rival` devuelve el muñeco de siempre; con mesa,
+una VISTA del otro jugador con sus huecos de verdad (los efectos que
+miraban `p.s.rival` miran ahora `p.rival`, y valen para los dos).
+
+- **Deshacer es de la mesa**: una foto con los dos lados y la mesa juntos
+  (`{a, b, m}`). Deshacer un ataque devuelve el Pokémon caído, los
+  premios cogidos y el turno.
+- **Los premios son de verdad**: al dejar KO a un Pokémon del otro se
+  cogen a la mano (los elige quien ataca, boca abajo) y el otro sube uno
+  de su banca. Un KO que no es de un ataque —el veneno entre turnos, un
+  contador de Ruinas— se apunta y la mesa lo resuelve en cuanto puede
+  preguntar (`premiosPendientes`, `resolver`).
+- **Debilidad y resistencia** (`debilidadYResistencia`): solo contra otro
+  jugador. El muñeco no tiene: está para medir TU daño tal cual.
+- **El estadio es de los dos**, y al cambiarlo el viejo va al descarte de
+  SU dueño (`ponerEstadio`, `alDescarteDeSuDueno`); lo mismo una
+  herramienta o una energía que se quita al otro.
+- **Las cartas que tocan al rival** ya hacen lo que pone (contra el
+  muñeco siguen diciendo que no tienen dónde): Juez, Estampa Injusta,
+  Tarjeta Roja Especial, Archer, Iono (los dos barajan y roban), Eri,
+  Xerosic (el otro descarta hasta 3), Recortamanos, Martillo Demoledor
+  (con cara), Martillo Mejorado, Ruffian, Desmontaherramientas (las de los
+  dos lados, cada una a su dueño) y la habilidad de Chien-Pao.
+- **El turno**: `pasarTurno` hace lo de fin de turno de quien acaba, el
+  Chequeo de los DOS activos, los premios y activos pendientes, y el
+  turno del otro, que roba (si no puede, pierde).
+- **Quién empieza**: moneda, uno o el otro (`empieza`), y se puede cambiar
+  mientras se prepara (`ponerPrimero`). Empezada la partida, ya no. Con el
+  muñeco, `ponerVaPrimero` hace lo mismo.
+- **La preparación** es por turnos: prepara el que empieza, dice «Listo»,
+  y prepara el otro. Lo que ha puesto el otro está boca abajo hasta que
+  empieza la partida. Por cada mulligan del otro se pregunta cuántas
+  cartas de más se roban.
+
+### Las dos maneras de jugar, y el mazo del otro
+
+Arriba, un interruptor: **Contra el muñeco** (lo de siempre) o **Tú
+contra ti**. «Nueva partida» dice contra quién, con qué mazos y quién
+empieza. El mazo del jugador 2 sale de cuatro sitios: **este mismo**,
+**uno de los tuyos** (`user_decks`: por eso el constructor le pasa ahora
+`userId` al laboratorio), **uno del meta** (la lista más reciente con buen
+resultado de `meta_listas`, resuelta con `resolverLineas`) o **una lista
+pegada** (la de TCG Live, Limitless o PokeDoc). Si tiene menos de 13
+cartas o ningún básico, no vale y dice por qué. Se recuerda en las
+preferencias (`mazo2`): uno tuyo o uno del meta se vuelve a pedir al
+abrir; si no se puede, la mesa sale con el mismo mazo en los dos lados.
+
+La mesa GIRA: abajo está siempre el que juega, con su mano; el otro,
+arriba y en espejo (su banca arriba del todo y su activo pegado al
+centro). Su mano, boca abajo con la cuenta.
+
+### Jugar con un clic
+
+- **Clic** en una carta de la mano hace LO OBVIO: en la preparación, un
+  básico va de activo y los demás a la banca; en el turno, si solo se
+  puede hacer una cosa, se hace. Si la carta va SOBRE un Pokémon (una
+  energía, una evolución, una herramienta) y vale para varios, se
+  iluminan los que valen —laten, y el resto se apaga—, el foco va al
+  primero, y se elige tocando uno (o con el teclado). Un aviso abajo dice
+  qué hacer y se cancela con su botón o con Escape. En el móvil la mano
+  se aparta mientras se elige, para no tapar la banca. Si la carta no se
+  puede jugar, se dice por qué.
+- **Clic derecho**, **mantener pulsado** (con el dedo, medio segundo) o
+  la tecla **«v»** enseñan la carta con su texto: de la mano, de la mesa,
+  del otro. El toque de después de una pulsación larga no juega la carta.
+- **«⋯»** debajo de cada carta (o la tecla de menú, o Mayús+F10): todo lo
+  demás, como antes —jugar de otra manera, descartarla a mano, ponerla
+  encima del mazo…—.
+- Las cartas que se pueden jugar llevan un anillo; las que no, se apagan
+  (las dos cosas: el anillo solo es color).
+
+### El panel: siempre a mano
+
+Las probabilidades y el registro van en un panel. En una pantalla ancha
+(≥ 1100 px) está abierto de serie, pegado a la derecha de la mesa; se
+cierra con su ×, y entonces queda una lengüeta en el borde derecho para
+volver (la mesa le deja sitio para no tapar «Terminar el turno»). Más
+estrecho, se abre por encima. En todos los anchos está el botón de arriba
+y la tecla «p». Se recuerda si lo cerraste. Con mesa, las probabilidades
+son del que juega (su mazo, sus premios, lo que él sabe), y el registro
+lleva la chapa de quién hizo cada cosa. La columna «Todas premiadas» se
+llama ahora «Todas en premios» (la palabra larga no cabía en el panel).
+
+### El dibujo
+
+El tapete sale de los tres azules FIJOS (`--navy-solid*`), los que no
+cambian de tema, con el blanco fijo encima y sus tonos mezclados
+(`--tp-*`): es el mismo tapete en claro y en oscuro. Lo de fuera —la
+mano, el panel, las ventanas— sigue con las superficies de la página.
+Las cartas miden según el ALTO de la pantalla (`--lab-c-*` con `clamp`):
+a 1440×900 caben los dos lados y la mano sin desplazar. Los colores de
+cada jugador (`--lab-j1`, `--lab-j2`) son una paleta de identidad, como
+la de las energías, y siempre van con su nombre.
+
+En el móvil: la cabecera en dos filas (contra quién y el ×; el turno y
+los tres botones, solo con su icono), el lado del otro más pequeño, la
+banca y la mano en tiras que se desplazan, y la mano pegada abajo.
+
+### El teclado, el foco y las ventanas
+
+- **El teclado vive en la ventana, en captura** (no en el laboratorio):
+  así sigue funcionando aunque el foco se haya caído al `body`, y lo que
+  usa el laboratorio —Escape, Ctrl+Z, «v», «p», las flechas, el
+  tabulador— no le llega además a la página de debajo. Antes, el Ctrl+Z
+  de una jugada deshacía también el último cambio del MAZO en el
+  constructor.
+- **El foco no se pierde**: cada jugada repinta la mesa y el botón
+  enfocado se sustituye por otro; se apunta QUÉ era (su carta, su
+  Pokémon, su botón) y se le devuelve a su equivalente. Al cerrar una
+  ventana, a quien la abrió. El tabulador da la vuelta dentro (es una
+  ventana modal), y las flechas se mueven por el menú y por los grupos
+  de opciones.
+- **Una ventana que HAY que contestar** —coger premios, quién sube de
+  activo— no se cierra con Escape ni tocando fuera
+  (`abrirDialogo({ obligatorio })`): dejaba la jugada esperando una
+  respuesta que no llegaba nunca y la mesa entera bloqueada.
+- **«Nueva partida» es un borrador** hasta «Repartir»: cambiar un mazo o
+  una opción y cancelar no toca la partida en juego.
+- **La cabecera va en una línea** fuera del móvil: cede primero el
+  nombre de los mazos, luego el turno, y los botones se quedan con su
+  icono por debajo de 1.300 px — corte MEDIDO con dos mazos y el turno
+  más largo, no elegido a ojo.
+
+`test-tanda-456.mjs`: la mesa (empezar, quién empieza, un KO con sus
+premios y deshacer de los dos lados, el veneno entre turnos, debilidad y
+resistencia —también en un ataque de verdad—, quedarse sin cartas), las
+cartas que tocan al rival (también Iono y la Campana Oscura), 24
+partidas al azar sin perder ni cruzar una carta, y la pantalla: elegir
+modo y mazo (este, una lista mala, los tuyos; y que cancelar no toque la
+partida), quién empieza, la preparación boca abajo, jugar con un clic y
+elegir dónde (energía y evolución), las ventanas que hay que contestar,
+ver la carta de las cuatro maneras, el foco, el tabulador, las flechas,
+que Ctrl+Z no le llegue al constructor, el panel y su lengüeta, la
+cabecera a seis anchos, los dos temas, que quepa a 1440×900, y el móvil
+a 360 y 390. `test-tanda-384.mjs` cambia con la mesa nueva: los
+selectores, el panel abierto de serie en ancho y el menú de una carta,
+que ahora sale del «⋯» (tocar la carta la juega).
