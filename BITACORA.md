@@ -35,6 +35,70 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 442 — el pie de los precios, una guarda muerta, y los dos rigores cerrados)
+
+**Hecho**: tanda pequeña, salida entera de pasar los rigores de la 440 y
+la 441.
+
+**1. El pie de los precios, solo donde hay precios.** El `<p>` que explica
+de dónde sale el precio de Cardmarket vive FUERA de las pestañas, así que
+salía en las cinco — también en Expansiones y en la Pokédex, donde no hay
+ni un precio. Ahora se apaga igual que la nota del valor de la 413.
+
+**2. Fuera un `z-index` que no hacía nada.** El rigor de la 441 le quitó el
+`z-index: 1` a la imagen de carta y **la prueba siguió pasando**. No es un
+agujero de la prueba: es que la línea sobra. Dos elementos POSICIONADOS se
+pintan en orden de DOM y la imagen va detrás del nombre en el HTML, así que
+ya queda encima; lo que hace el trabajo es el `position: relative`. La
+respuesta a una guarda que no guarda es BORRARLA, no escribirle una
+comprobación — y la mutación ahora ataca el `position`, que es lo que
+manda.
+
+**3. CORRECCIÓN de lo que escribí en la entrada de la tanda 440.** Allí
+puse que la cabecera funciona «porque sin recuadro las cifras caben».
+**Está a medias.** El rigor devolvió el recuadro a `.mc-cifra` y la prueba
+siguió pasando: las columnas son `1fr`, así que el reparto no depende del
+relleno. Lo que hizo que cupieran fue bajar el ancho mínimo de la pista de
+150 px a 72; quitar la caja es lo que hace que a 72 px se LEAN —con el
+relleno puesto, 40 de esos 72 se los come el `padding` y el número se sale
+de su hueco—. Son dos cosas. Queda bien escrito en SCHEMA.md, que es el
+documento vivo.
+
+**Rigores**: la 440 pasó de 7/11 a **11/11** y la 441 de 8/9 a **9/9**. Las
+cinco que se escaparon eran comprobaciones flojas MÍAS y ninguna un fallo
+del código. Las tres que merecen quedar escritas:
+
+- **`count()` cuenta también lo escondido.** Ponerle `hidden` al `<h1>`
+  pasaba la prueba tan tranquila. Lo que se pide es `isVisible()`.
+- **Comprobar que algo «es una rejilla» no es comprobar que REPARTE.** Una
+  rejilla de una sola columna de 300 px sigue siendo una rejilla, y es el
+  carrusel otra vez pero sin poder deslizarlo.
+- **Mirar el `z-index` no es mirar si tapa.** Al quitarle al nombre su
+  `position: absolute`, el `z-index` seguía puesto y la comprobación daba
+  verde, cuando lo que pasa de verdad es que el nombre EMPUJA a la imagen y
+  se ven las dos cosas. Ahora se miden las cajas.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`mi-coleccion.html`, `SCHEMA.md`. Pruebas: `test-tanda-441.mjs` (bloque
+nuevo), `test-tanda-440.mjs` (cuatro comprobaciones reforzadas y el fixture
+repartido en tres meses — estaban todas las líneas en el mismo mes, así que
+«la más vieja» no se distinguía de «la más nueva»), y
+`rigor/rigor-tanda-440.py` (NUEVO) y `rigor/rigor-tanda-441.py`.
+
+**Suite**: 441, 440, 439, 412, 413, 299 y 305, todas en verde.
+
+**En curso / pendiente**: en Expansiones hay DOS colecciones rotuladas
+igual, «SWS» las dos (Silver Tempest y Lost Origin, recortados a tres
+letras por el código de TCG Live). El nombre existe pero va en `sr-only`
+desde la 415, lo cual tiene sentido CUANDO EL LOGO CARGA, porque el logo lo
+lleva escrito. Es la misma forma del fallo de la 441: la rama de en medio.
+
+Siguen sin ejecutar `supabase-migration-pokedex-mercado.sql`,
+`supabase-migration-trainer-gallery.sql` y
+`supabase-migration-trainer-gallery-serie.sql`.
+
+---
+
 ## 2026-10-02 — PINGU-Claude (tanda 441 — la pestaña Cartas, y una carta invisible que llevaba tandas en producción)
 
 **Hecho**: cuatro cosas, y la primera es un FALLO que llevaba tandas a la

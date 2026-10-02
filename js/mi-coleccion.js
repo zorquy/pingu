@@ -2156,6 +2156,10 @@ function cambiarPestania(nueva) {
   // enseña el valor (tanda 413). En las otras cuatro pestañas eran tres
   // renglones de letra pequeña entre la cabecera y lo que venías a ver.
   $('mcResumenNota')?.classList.toggle('hidden', nueva !== 'resumen')
+  // Y de dónde salen los precios, solo donde se enseñan precios (tanda
+  // 442). Son las cartas y el panel; en Expansiones, la Pokédex y las
+  // carpetas no hay ninguno.
+  $('mcFuente')?.classList.toggle('hidden', !['cartas', 'resumen'].includes(nueva))
   // La pestaña por defecto es la que NO lleva `?ver=`: si no, compartir
   // /mi-coleccion a secas llevaría a una pestaña distinta de la que ve
   // quien la abre.

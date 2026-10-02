@@ -23271,3 +23271,52 @@ vistazo de Expansiones de debajo, que es el mismo motivo por el que la 439
 quitó las dos diapositivas duplicadas. El criterio queda escrito en el
 código por si vuelve en otro sitio: por CARTAS que faltan, no por
 porcentaje.
+
+## Tanda 440 — el panel rediseñado (oct. 2026), y lo que el rigor corrigió
+
+El panel tenía SEIS zonas apiladas y TRES eran lo mismo —un resumen de
+números—: el listón de cifras, el carrusel de diapositivas y la caja del
+valor. La cabecera de perfil junta el quién y el cuánto en una pieza
+(avatar, nombre, «coleccionando desde» —de tu línea más antigua, no de
+cuándo te registraste— y las cifras dentro); el carrusel pasa a ser una
+rejilla `auto-fit`; y las listas de números se van al final, plegadas.
+Arriba se queda solo la gráfica, que es lo único que cambia solo.
+
+**CORRECCIÓN sobre lo que se escribió en la bitácora.** Ahí quedó que la
+cabecera funciona «porque sin recuadro las cifras caben». Está a medias, y
+lo demostró el rigor: devolverle el recuadro a `.mc-cifra` NO las saca de
+la fila, porque las columnas son `1fr` y el reparto no depende del
+relleno. Lo que hizo que cupieran fue bajar el ancho mínimo de la pista de
+**150 px a 72**. Quitar la caja es lo que hace que a 72 px se **lean**: con
+el relleno puesto, 40 de esos 72 se los come el `padding` y el número se
+sale de su hueco. Son dos cosas y la prueba mide las dos —una fila, y cada
+cifra dentro de su hueco—.
+
+**Lo que enseñaron las cuatro mutaciones que se escaparon**, todas de la
+prueba y ninguna del código:
+
+- `count()` cuenta también lo escondido. Ponerle `hidden` al `<h1>` pasaba
+  la prueba. Lo que se pide es `isVisible()`.
+- Nadie miraba el avatar: sin su inicial es un círculo de color, y no hay
+  ningún otro sitio donde se vea de quién es la pantalla.
+- Comprobar que algo «es una rejilla» no es comprobar que REPARTE. Una
+  rejilla de una sola columna de 300 px sigue siendo una rejilla, y es el
+  carrusel otra vez pero sin poder deslizarlo.
+
+## Tanda 442 — el pie de los precios, y una guarda muerta (oct. 2026)
+
+**El pie que explica de dónde salen los precios** vive fuera de las
+pestañas, así que salía en las cinco — también en Expansiones y en la
+Pokédex, donde no hay ni un precio que explicar. Ahora se apaga igual que
+la nota del valor de la 413: `#mcFuente` solo en Cartas y en el Panel.
+
+**Y fuera un `z-index` que no hacía nada.** La imagen de una carta lleva
+`position: relative` para taparle el nombre que la 441 puso debajo, y
+llevaba además `z-index: 1`. El rigor lo quitó y la prueba siguió pasando,
+que es exactamente el aviso de CLAUDE.md: una mutación que no cambia el
+comportamiento no es una prueba aprobada. El motivo es que **dos elementos
+POSICIONADOS se pintan en orden de DOM**, y la imagen va detrás del nombre
+en el HTML. Lo que hace el trabajo es el `position`: sin él la imagen sería
+contenido en flujo, y el contenido en flujo se pinta POR DEBAJO de un
+hermano posicionado. La respuesta a una guarda que no guarda es borrarla,
+no escribirle una comprobación.

@@ -552,12 +552,17 @@
   font-weight: 400;
 }
 
-/* La imagen tapa al nombre mientras esté. Va posicionada por lo mismo que
-   el nombre: los dos ocupan el botón entero y se solapan, en vez de ir uno
-   detrás del otro en la columna. */
+/* La imagen tapa al nombre mientras esté.
+   `position: relative` SIN `z-index`, y no es un olvido: dos elementos
+   POSICIONADOS se pintan en orden de DOM, y la imagen va detrás del nombre
+   en el HTML, así que ya queda encima. Lo que hacía falta era el
+   `position` —sin él la imagen sería contenido en flujo, y el contenido en
+   flujo se pinta POR DEBAJO de un hermano posicionado—. El `z-index: 1`
+   que había aquí no cambiaba nada: lo cazó el rigor de la 441, que lo
+   quitó y la prueba siguió pasando. Una guarda que no guarda se borra, no
+   se le escribe una comprobación. */
 .mc-carta-foto img {
   position: relative;
-  z-index: 1;
 }
 
 /* El foco se ve SIEMPRE, y por fuera: un contorno pegado al canto de la

@@ -700,7 +700,13 @@
       </form>
     </dialog>
 
-    <p class="mc-fuente">Los precios son los de la guía de <a href="https://www.cardmarket.com" target="_blank" rel="noopener">Cardmarket</a> (vía TCGdex), de la carta en general. El enlace de cada carta abre Cardmarket con su idioma, su estado y su versión ya filtrados, que es donde está el mínimo exacto.</p>
+    <!-- De dónde salen los precios (tanda 442: con su id, para poder
+         enseñarla solo donde hay precios). Es un pie de página y vive
+         FUERA de las pestañas, así que salía en las cinco — también en
+         Expansiones y en la Pokédex, donde no hay ni un precio que
+         explicar. Tres renglones de letra pequeña que no vienen a
+         cuento son ruido, no una aclaración. -->
+    <p class="mc-fuente hidden" id="mcFuente">Los precios son los de la guía de <a href="https://www.cardmarket.com" target="_blank" rel="noopener">Cardmarket</a> (vía TCGdex), de la carta en general. El enlace de cada carta abre Cardmarket con su idioma, su estado y su versión ya filtrados, que es donde está el mínimo exacto.</p>
       <!-- EL DIÁLOGO DEL ADORNO (tanda 411). Uno solo para carpetas y
            álbumes: lo único que cambia es el título y la palabra del
            botón, y dos diálogos que se parecen acaban siendo dos que ya
