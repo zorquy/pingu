@@ -1258,17 +1258,22 @@
    Ahora el nombre no depende ni de que haya dibujo ni del idioma. */
 .mc-set-tarjeta {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  align-items: stretch;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: var(--e-md);
+  align-items: center;
+  padding: var(--e-sm);
 }
 
-/* El cuadro del logo: alto FIJO, que es lo que hace que las doscientas
-   tarjetas midan igual aunque sus logos no. */
+/* El cuadro del logo: CUADRADO, redondeado y con aire alrededor, como en
+   Dex — no pegado al canto de la tarjeta. Y de alto fijo, que es lo que
+   hace que las doscientas tarjetas midan igual aunque sus logos no. */
 .mc-set-mini {
   display: grid;
   position: relative;
   place-items: center;
+  aspect-ratio: 1;
   overflow: hidden;
+  border-radius: var(--radius-md);
   background: var(--bg);
 }
 
@@ -1304,7 +1309,47 @@
   gap: 2px;
   justify-content: center;
   min-width: 0;
-  padding: var(--e-md);
+  padding: 0 var(--e-sm) 0 0;
+}
+
+/* El nombre y el código, en línea: el código se va a la derecha y el
+   nombre se queda con lo que sobre. `min-width: 0` en el nombre para que
+   el recorte sean unos puntos y no un hachazo (la lección de la 320). */
+.mc-set-titulo {
+  display: flex;
+  gap: var(--e-sm);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.mc-set-titulo .mc-set-nombre {
+  min-width: 0;
+}
+
+.mc-set-codigo {
+  flex: 0 0 auto;
+}
+
+/* La cuenta y la barra, en una línea: la barra se queda con el hueco que
+   deje la cuenta. */
+.mc-set-progreso {
+  display: flex;
+  gap: var(--e-sm);
+  align-items: center;
+  margin-top: var(--e-xs);
+}
+
+.mc-set-progreso .mc-set-cuenta {
+  flex: 0 0 auto;
+}
+
+/* `flex: 1 1 0` y NO `auto`: con `auto` la base es el ancho del contenido,
+   y el contenido de una barra es un `<i>` vacío — o sea cero. La barra se
+   quedaba en una rayita de dos píxeles detrás de la cuenta. Con base 0 se
+   reparte el hueco que sobra, que es lo que se quería. */
+.mc-set-progreso .mc-barra {
+  flex: 1 1 0;
+  min-width: 48px;
 }
 
 /* La fecha y el código, en una línea. `flex-wrap` porque un código y una
@@ -1364,13 +1409,18 @@
   font-weight: 600;
 }
 
-/* La barra, sin estirarse. `.mc-barra` nace con `flex: 1 1 200px` porque
-   vive en una fila donde tiene que llenar el hueco; aquí la tarjeta es
-   una COLUMNA, así que ese `flex-grow` la estira a lo ALTO y con el
-   radio de píldora se convierte en un óvalo del tamaño de la tarjeta.
-   Un hijo de flex hereda el eje del padre, no el del sitio donde se
-   escribió la regla. */
-.mc-set-tarjeta .mc-barra {
+/* La barra, sin estirarse A LO ALTO. `.mc-barra` nace con `flex: 1 1 200px`
+   porque vive en una fila donde tiene que llenar el hueco; dentro de una
+   COLUMNA ese `flex-grow` la estira a lo alto y con el radio de píldora se
+   convierte en un óvalo del tamaño de la tarjeta. Un hijo de flex hereda
+   el eje del padre, no el del sitio donde se escribió la regla.
+   
+   Desde la tanda 458 la barra vive en una FILA otra vez —comparte renglón
+   con la cuenta, como en el móvil de Dex—, así que el `0 0 8px` solo vale
+   para quien NO esté en esa fila. Sin el `:not`, la barra se quedaba en
+   los 8 px de su base y salía una rayita detrás de la cuenta: la regla
+   vieja seguía ganando por especificidad y la nueva no hacía nada. */
+.mc-set-tarjeta .mc-barra:not(.mc-set-progreso .mc-barra) {
   flex: 0 0 8px;
   width: 100%;
 }

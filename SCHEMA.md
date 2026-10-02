@@ -24406,6 +24406,28 @@ idioma en que esté escrito.
 Con eso desaparece el parche de la 415 —sacar el nombre cuando la imagen
 falla—, que existía justo porque el nombre estaba escondido.
 
+### El remate, con la captura del móvil de Dex delante
+
+Con la segunda captura —la del móvil— aparecieron tres diferencias que en
+la de escritorio no se ven:
+
+- El cuadro del logo es **cuadrado, redondeado y con aire**, no pegado al
+  canto de la tarjeta.
+- El **código va arriba a la derecha**, en línea con el nombre: es una
+  etiqueta de la colección, no un dato más del pie.
+- La **cuenta y la barra comparten renglón**. Apiladas gastaban dos líneas
+  para decir una cosa, y en una tarjeta de 88 px eso es la mitad del alto.
+
+Y ahí picó una regla vieja. `.mc-barra` nace con `flex: 1 1 200px` para
+vivir en una fila; la tanda 372 la ató con `.mc-set-tarjeta .mc-barra
+{ flex: 0 0 8px }` porque entonces la tarjeta era una COLUMNA y ese
+`flex-grow` la estiraba a lo alto hasta volverla un óvalo. Ahora la barra
+vuelve a una fila, y aquella regla **seguía ganando por especificidad**:
+la barra se quedaba en los 8 px de su base y salía una rayita de nada
+detrás de la cuenta. Medido: 48 px donde tocaban 162.
+
+Se vio midiendo, no mirando — en la captura parecía un adorno más.
+
 ### Y el bolsillo que se quedaba EN BLANCO
 
 Al arreglar la prueba de la 415 salió un fallo de producción. El nombre de

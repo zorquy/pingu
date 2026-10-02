@@ -1538,12 +1538,22 @@ function tarjetaDeSet(set, tengo) {
         }</span>
       </span>
       <span class="mc-set-info">
-        <span class="mc-set-nombre">${escapeHtml(set.name || set.id)}</span>
-        <span class="mc-set-sub">${fecha ? escapeHtml(fecha) : ''}${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}</span>
+        <!-- El código arriba a la derecha y en línea con el nombre, como en
+             Dex: es una etiqueta de la colección, no un dato más del pie. -->
+        <span class="mc-set-titulo">
+          <span class="mc-set-nombre">${escapeHtml(set.name || set.id)}</span>
+          ${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}
+        </span>
+        ${fecha ? `<span class="mc-set-sub">${escapeHtml(fecha)}</span>` : ''}
         ${
           total
-            ? `<span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>
-               <span class="mc-set-cuenta">${tengo} de ${total}${completo ? ' · completa' : ` · ${pct} %`}</span>`
+            // La cuenta y la barra en la MISMA línea (como en el móvil de
+            // Dex): apiladas gastaban dos renglones para decir una cosa, y
+            // en una tarjeta de 88 px eso es la mitad del alto.
+            ? `<span class="mc-set-progreso">
+                 <span class="mc-set-cuenta">${tengo} de ${total}${completo ? ' · completa' : ''}</span>
+                 <span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>
+               </span>`
             : '<span class="mc-set-cuenta">Sin numeración</span>'
         }
       </span>
