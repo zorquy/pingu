@@ -35,6 +35,61 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 436 — el Panel primero, y un asomo de cada pestaña)
+
+**Hecho**: PINGU, con el panel de control de Dex delante: «el panel debería
+ser lo primero que se abre cuando abres mi colección» y «que el panel se
+asemeje más a lo que existe en Dex, cogiendo la información de las otras
+pestañas». Son dos cosas y van las dos.
+
+La primera: `/mi-coleccion` abre en el **Panel** y no en Cartas. Y con ella
+cambia cuál es la pestaña «sin dirección»: la que NO lleva `?ver=` tiene
+que ser la de por defecto, o compartir `/mi-coleccion` a secas llevaría a
+una pestaña distinta de la que ve quien la abre. Así que ahora `?ver=`
+desaparece en el Panel y se pone en las otras cuatro, al revés que antes.
+
+La segunda son los **VISTAZOS**: un asomo de cada pestaña dentro del panel,
+con su «Ver todas». Tus ocho últimas cartas (por `created_at`, no por
+nombre: una lista alfabética no cambia nunca y deja de decir nada), las
+cuatro expansiones en las que MÁS llevas (no las más nuevas — lo que se
+quiere ver de un vistazo es dónde estás cerca de algo, igual que decidió la
+429 para la Pokédex) y las carpetas. Pulsar una expansión del vistazo abre
+ESA expansión, no la estantería.
+
+**El fallo de la 377, otra vez y con una pieza nueva**: los vistazos se
+pintan de lo que hay en memoria, y al arrancar no hay nada. El panel decía
+«todavía no has añadido ninguna carta» con la colección entera cargada,
+igual que le pasó al resto del panel en la 377 — y ahora con más motivo,
+porque desde esta tanda el panel es lo PRIMERO que se abre. De ahí la línea
+de `repintar()`.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`mi-coleccion.html`. Pruebas (rama `pruebas`): `test-tanda-436.mjs` (NUEVO),
+`rigor/rigor-tanda-436.py` (NUEVO).
+
+**Rigor**: 12 de 12. Cinco no las cazaba la primera versión de la prueba y
+las cinco son de la misma familia — **un fixture que no distingue las dos
+ramas no prueba el reparto**. Con dos sets y cinco líneas, quitar el corte
+a ocho no cambiaba nada (había cinco), quitar el filtro de «expansiones en
+las que llevas algo» tampoco (llevaba algo de las dos), y el orden no se
+miraba. Ahora la semilla tiene TRES sets —de uno no llevas nada— y DIEZ
+líneas con fechas de dos meses distintos. La sexta era un camino que la
+prueba no andaba: entrar por `?ver=cartas` y pulsar «Panel», que es cuando
+los vistazos no se han pintado NUNCA y el repintado no sirve de red.
+
+**En curso / pendiente**: la **tanda 437** (el selector de catálogo: WEST /
+japonés / taiwanés / chino, que ya están todos importados en la base) se
+había empezado y **el rigor de la 436 se la llevó por delante** —restauró
+`js/mi-coleccion.js` desde la copia que guardó antes de escribirla—. Hay que
+rehacerla. Lección, y va en CLAUDE.md: mientras corre un rigor **no se
+commitea Y TAMPOCO SE EDITA** ninguno de los ficheros que muta.
+
+Siguen pendientes de ejecutar en el SQL Editor, por este orden:
+`supabase-migration-trainer-gallery.sql` y luego
+`supabase-migration-trainer-gallery-serie.sql`.
+
+---
+
 ## 2026-10-02 09:30 — IBAI-Claude (integración de la tanda 425)
 
 **Hecho**: integrada y subida la tanda 425 de PINGU-Claude, que llegó

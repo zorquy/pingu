@@ -74,7 +74,12 @@ const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
 const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen']
 const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas', cambios: 'resumen' }
 const pedida = params.get('ver')
-let pestania = PESTANAS.includes(pedida) ? pedida : MUDANZAS[pedida] || 'cartas'
+// El PANEL es lo primero que se abre (tanda 436). PINGU: «el panel
+// debería ser lo primero que se abre cuando abres mi colección». Tiene
+// sentido: las otras cuatro pestañas son para hacer algo concreto —buscar
+// una carta, repasar un set, ver la Pokédex—, y el panel es para ver qué
+// tienes, que es a lo que entra uno cuando entra sin un plan.
+let pestania = PESTANAS.includes(pedida) ? pedida : MUDANZAS[pedida] || 'resumen'
 let albumesAbiertos = false
 // Las expansiones favoritas. TRES estados y no dos: `null` es «no se
 // sabe» —la migración no está puesta—, y entonces ni se pinta el grupo ni
@@ -488,6 +493,84 @@ function diapoHtml(titulo, dentro) {
     <h3 class="mc-diapo-titulo">${escapeHtml(titulo)}</h3>
     ${dentro}
   </article>`
+}
+
+// ── Los vistazos del panel (tanda 436) ──
+//
+// PINGU, con el panel de Dex delante: «que el panel se asemeje más a lo
+// que existe en Dex, cogiendo la información de las otras pestañas». Eso
+// es lo que son: un asomo de cada pestaña con su «ver todas», para que el
+// panel sea una PORTADA de la colección y no una pestaña más.
+//
+// Lo que ya está en memoria se pinta al momento; lo que son consultas
+// —las expansiones y las carpetas— llega después, igual que la gráfica. Y
+// se piden una sola vez por visita.
+const DE_VISTAZO = 8
+
+function vistazoHtml(titulo, pestana, dentro) {
+  return `<section class="mc-vistazo">
+    <div class="mc-vistazo-cabecera">
+      <h2 class="mc-subtitulo">${escapeHtml(titulo)}</h2>
+      <button type="button" class="link-btn" data-ir-a="${escapeHtml(pestana)}">Ver todas</button>
+    </div>
+    ${dentro}
+  </section>`
+}
+
+// Las últimas que has metido, que es lo que se quiere ver al entrar: «¿qué
+// añadí el otro día?». Por `created_at` y no por nombre — una lista
+// alfabética no cambia nunca y deja de decir nada.
+function vistazoDeCartas() {
+  const ultimas = [...lineas]
+    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
+    .slice(0, DE_VISTAZO)
+  if (!ultimas.length) {
+    return vistazoHtml('Tus cartas', 'cartas', '<p class="empty-state">Todavía no has añadido ninguna carta.</p>')
+  }
+  const cuerpo = ultimas.map((l) => {
+    const c = cartas.get(l.card_id)
+    const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+    const nombre = nombreDe(c)
+    return `<a class="mc-vistazo-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}" aria-label="${escapeHtml(nombre)}">${
+      escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
+        : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
+    }</a>`
+  }).join('')
+  return vistazoHtml('Tus cartas', 'cartas', `<div class="mc-vistazo-cartas">${cuerpo}</div>`)
+}
+
+// Las expansiones en las que MÁS llevas. No las más nuevas: lo que se
+// quiere ver de un vistazo es dónde estás cerca de algo, que es lo mismo
+// que decidió la tanda 429 para la Pokédex.
+function vistazoDeSets(sets) {
+  const conAlgo = (sets || [])
+    .map((s) => {
+      const suyas = [...cartas.values()].filter((c) => c?.set_id === s.id)
+      const tengo = suyas.filter((c) => tengoDe(c.id) > 0).length
+      return { set: s, tengo }
+    })
+    .filter((x) => x.tengo > 0)
+    .sort((a, b) => b.tengo - a.tengo)
+    .slice(0, 4)
+  if (!conAlgo.length) {
+    return vistazoHtml('Expansiones', 'album', '<p class="empty-state">Cuando añadas cartas, aquí verás por dónde vas en cada colección.</p>')
+  }
+  return vistazoHtml('Expansiones', 'album', `<div class="mc-estanteria">${conAlgo.map((x) => tarjetaDeSet(x.set, x.tengo)).join('')}</div>`)
+}
+
+async function pintarVistazos() {
+  const caja = $('mcVistazos')
+  if (!caja || !esMia) return
+  // Lo de memoria, ya. Lo demás, cuando llegue: el panel es lo primero que
+  // se abre y no puede quedarse en blanco esperando a dos consultas.
+  caja.innerHTML = vistazoDeCartas()
+  const sets = await cargarSets().catch(() => null)
+  if (pestania !== 'resumen') return
+  caja.insertAdjacentHTML('beforeend', vistazoDeSets(sets))
+  if (carpetasLista.length) {
+    caja.insertAdjacentHTML('beforeend', vistazoHtml('Carpetas', 'carpetas',
+      carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)))
+  }
 }
 
 // La gráfica llega DESPUÉS y por su cuenta: el resto del resumen sale de
@@ -1940,7 +2023,10 @@ function cambiarPestania(nueva) {
   // enseña el valor (tanda 413). En las otras cuatro pestañas eran tres
   // renglones de letra pequeña entre la cabecera y lo que venías a ver.
   $('mcResumenNota')?.classList.toggle('hidden', nueva !== 'resumen')
-  if (nueva === 'cartas') url.searchParams.delete('ver')
+  // La pestaña por defecto es la que NO lleva `?ver=`: si no, compartir
+  // /mi-coleccion a secas llevaría a una pestaña distinta de la que ve
+  // quien la abre.
+  if (nueva === 'resumen') url.searchParams.delete('ver')
   else url.searchParams.set('ver', nueva)
   if (nueva !== 'carpetas') url.searchParams.delete('album')
   history.replaceState(null, '', url)
@@ -1952,7 +2038,10 @@ function cambiarPestania(nueva) {
     albumes.entrar(params.get('album'))
   }
   if (nueva === 'album' && !album.set) pintarEstanteria()
-  if (nueva === 'resumen') pintarResumenPanel()
+  if (nueva === 'resumen') {
+    pintarResumenPanel()
+    void pintarVistazos()
+  }
   if (nueva === 'resumen' && esMia) abrirCambios()
   if (nueva === 'carpetas') abrirCarpetas()
   if (nueva === 'pokedex') abrirPokedex()
@@ -2446,6 +2535,11 @@ function repintar() {
   // No se veía porque la prueba de la 374 PULSABA la pestaña, y para
   // entonces las líneas ya estaban. Un enlace directo, no.
   if (pestania === 'resumen') pintarResumenPanel()
+  // Y los vistazos, por lo mismo: se pintan de lo que hay en memoria, y al
+  // arrancar no hay nada todavía. Esta línea es la que evita repetir el
+  // fallo de la 377 con una pieza nueva — el panel decía «todavía no has
+  // añadido ninguna carta» con la colección entera cargada.
+  if (pestania === 'resumen') void pintarVistazos()
   if (pestania === 'resumen' && esMia) abrirCambios()
   if (pestania === 'pokedex') abrirPokedex()
 }
@@ -2656,6 +2750,20 @@ function enganchar() {
     abrirEditor(l)
   })
   $('mcFaltanCopiar')?.addEventListener('click', () => void copiarLoQueFalta())
+
+  // Los «ver todas» de los vistazos (tanda 436). Delegado en la caja, que
+  // no se repinta: los vistazos de dentro sí, y uno por botón habría que
+  // volver a colgarlo cada vez.
+  $('mcVistazos')?.addEventListener('click', (e) => {
+    const ir = e.target.closest('[data-ir-a]')
+    if (ir) return cambiarPestania(ir.dataset.irA)
+    // Y una expansión del vistazo abre esa expansión, no la estantería: es
+    // lo que espera quien pulsa una tarjeta con su nombre y su progreso.
+    const set = e.target.closest('[data-set]')
+    if (!set) return
+    cambiarPestania('album')
+    void abrirAlbum(set.dataset.set)
+  })
 
   // ── Marcar varias (tanda 426) ──
   $('mcMarcarAbrir')?.addEventListener('click', () => modoMarcar(!marcadas))

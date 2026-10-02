@@ -1473,6 +1473,53 @@
   color: var(--danger);
 }
 
+/* ── Los vistazos del panel (tanda 436) ── */
+.mc-vistazos {
+  display: grid;
+  gap: var(--e-2xl);
+  margin-top: var(--e-2xl);
+}
+
+.mc-vistazo-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--e-md);
+}
+
+.mc-vistazo-cabecera .mc-subtitulo {
+  margin: 0;
+}
+
+/* Las cartas del vistazo se miden a SÍ MISMAS y no a la ventana (la
+   lección de la 316): este bloque vive dentro del panel, que tiene un ancho
+   propio distinto del de la página. */
+.mc-vistazo-cartas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--e-md);
+}
+
+/* Con fondo y borde, como un bolsillo del álbum: una carta cuyo escaneo
+   no llega tiene que seguir siendo una carta y no un hueco invisible — es
+   la misma decisión de la tanda 415. */
+.mc-vistazo-carta {
+  display: block;
+  aspect-ratio: 245 / 342;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.mc-vistazo-carta img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* ── Marcar varias de golpe (tanda 426) ── */
 .mc-marcar-barra {
   display: flex;

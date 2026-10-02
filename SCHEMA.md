@@ -23065,3 +23065,54 @@ El otro hueco era de la prueba, y es el mismo de la tanda 427: **nunca
 abría «separar variantes» en pantalla**, así que no se comprobaba que la
 lista mire la VERSIÓN y no solo la carta. Teniendo la normal de una carta,
 su reverse holo te sigue faltando y tiene que salir en la lista.
+
+## Tanda 436 — el Panel primero, y un asomo de cada pestaña (oct. 2026)
+
+PINGU, con el panel de control de Dex delante: «el panel debería ser lo
+primero que se abre cuando abres mi colección» y «que el panel se asemeje
+más a lo que existe en Dex, cogiendo la información de las otras
+pestañas».
+
+**La pestaña por defecto.** `let pestania = … || 'resumen'` en vez de
+`'cartas'`. Y con ella cambia cuál es la pestaña «sin dirección»: en
+`cambiarPestania()` el `?ver=` ahora se BORRA en `resumen` y se pone en
+las otras cuatro, al revés que antes. No es cosmético — la pestaña por
+defecto tiene que ser la que no lleva parámetro, o compartir
+`/mi-coleccion` a secas lleva a una pantalla distinta de la que ve quien
+la abre.
+
+**Los vistazos.** `pintarVistazos()` mete en `#mcVistazos` tres secciones,
+cada una con su «Ver todas» (`data-ir-a`):
+
+- **Tus cartas**: las `DE_VISTAZO` (8) últimas por `created_at`. Por fecha
+  y no por nombre: una lista alfabética no cambia nunca y deja de decir
+  nada.
+- **Expansiones**: las cuatro en las que MÁS llevas, filtrando las que
+  están a cero. No las más nuevas — lo que se quiere ver de un vistazo es
+  dónde estás cerca de algo, que es lo mismo que decidió la 429 para la
+  Pokédex. Y pulsar una abre ESA expansión (`abrirAlbum`), no la
+  estantería.
+- **Carpetas**, si hay.
+
+Lo de memoria se pinta al momento; las expansiones y las carpetas son
+consultas y llegan después, igual que la gráfica. El `if (pestania !==
+'resumen') return` de en medio es para que una consulta que vuelve tarde
+no escriba en un panel que ya no se está mirando.
+
+**El fallo de la 377, con una pieza nueva.** Los vistazos se pintan de lo
+que hay en memoria, y al arrancar no hay nada: el panel decía «todavía no
+has añadido ninguna carta» con la colección entera cargada. De ahí la
+línea de `repintar()`. Es el mismo fallo que la 377 arregló para el resto
+del panel, y ahora pesa más porque el panel es lo PRIMERO que se abre.
+
+**Lo que costó cazar (rigor, 12/12).** Cinco mutaciones se escaparon de la
+primera versión de la prueba y las cinco son la misma familia: **un
+fixture que no distingue las dos ramas no prueba el reparto**. Con dos
+sets y cinco líneas, quitar `.slice(0, DE_VISTAZO)` no cambiaba nada —no
+llegaban a ocho—, quitar `.filter((x) => x.tengo > 0)` tampoco —se llevaba
+algo de los dos sets— y el orden no se miraba. La semilla pasó a tener
+TRES sets, de uno sin nada, y DIEZ líneas repartidas en dos meses. La
+sexta era un camino que la prueba no andaba: entrar por `?ver=cartas` y
+pulsar «Panel», que es cuando los vistazos no se han pintado NUNCA y el
+repintado de `repintar()` ya no sirve de red porque corrió con el panel
+escondido.

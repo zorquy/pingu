@@ -320,7 +320,8 @@ aprobada** (tanda 314): si dos guardas son red de repuesto una de la
 otra, quitar cualquiera de ellas deja todo igual y el rigor lo apunta
 como «sin detectar». Muta el ORIGEN del dato, no una de sus guardas.
 
-**El rigor rompe el repo a propósito: no commitees mientras corre.**
+**El rigor rompe el repo a propósito: ni commitees NI EDITES mientras
+corre.**
 Un script de rigor muta un fichero de verdad, pasa las pruebas y lo
 restaura. Si el contenedor se muere a mitad (pasó el 2026-09-15, y antes
 el 2026-08-28), el fichero se queda ROTO en disco y el árbol tiene pinta
@@ -329,6 +330,16 @@ Desde la tanda 301 el andamio común (`rigor_comun.py`, en la rama
 `pruebas`) guarda el original en disco antes de tocarlo y lo deshace solo
 al arrancar la siguiente pasada. **Pasa `comprobar-arbol.sh` antes de
 cada commit**: canta si quedó alguna mutación a medias.
+
+Y **lo de no editar** se aprendió el 2026-10-02, que es la otra mitad de la
+misma moneda: el rigor de la 436 guardó su copia de `js/mi-coleccion.js`, y
+mientras corría se empezó a escribir ahí la 437. Al acabar, el rigor
+restauró SU copia —la de antes— y se llevó la tanda nueva por delante. **No
+dio ningún error**: el rigor salió en verde, el fichero quedó en disco
+perfectamente válido, y lo escrito mientras tanto sencillamente no estaba.
+`comprobar-arbol.sh` tampoco lo canta, porque no es una mutación a medias
+sino una restauración limpia. Si hay que seguir trabajando mientras corre
+un rigor, trabaja en otro fichero.
 
 Y **no mates un rigor con `pkill`**: el 2026-09-16 se hizo para dejar
 sitio a la suite y pilló una mutación puesta —`foro.html` se quedó sin el
