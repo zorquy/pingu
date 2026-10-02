@@ -686,12 +686,27 @@ function consulta(tabla, estado = {}) {
   // No se adivina la relación por el nombre: `categories` se enlaza por
   // `category_id`, y de «categories» a «category» no se llega con una
   // regla. Van declaradas, que además documenta cuáles usa el sitio.
+  //
+  // Y hay una que se resuelve por DOS columnas (tanda 437): la clave ajena
+  // de `tcg_cards` a `tcg_sets` es (set_id, market) -> (id, market),
+  // porque el japones comparte identificadores de set con el ingles y un
+  // join por la id a secas traeria el set del otro catalogo. Resolverlo
+  // aqui por la id sola dejaba una carta japonesa ensenando el nombre
+  // INGLES de su coleccion, y en verde: el doble escondia justo la clase
+  // de fallo que la base de verdad impide por construccion.
   const EMBEBIDOS = {
     categories: 'category_id',
     guides: 'guide_id',
     tcg_sets: 'set_id',
     forum_posts: 'post_id',
   }
+  // Columnas que, ademas de la clave ajena, tienen que coincidir, con el
+  // valor POR DEFECTO que tienen en la base. El defecto no es un detalle:
+  // en `tcg_cards` y `tcg_sets` la columna es `not null default 'WEST'`,
+  // asi que una fila de un fixture que no diga nada ES occidental. Sin
+  // esto, comparar null contra 'WEST' dejaria sin set a todas las cartas
+  // sembradas sin mercado, que son casi todas las de las pruebas viejas.
+  const EMBEBIDOS_TAMBIEN_POR = { tcg_sets: [['market', 'WEST']] }
 
   const embebidosDe = (cols) => {
     const fuera = []
@@ -715,7 +730,9 @@ function consulta(tabla, estado = {}) {
     return filas.map((fila) => {
       const copia = { ...fila }
       for (const e of embebidos) {
-        const relacionada = (T[e.tabla] || []).find((r) => r.id === fila[e.fk])
+        const tambien = EMBEBIDOS_TAMBIEN_POR[e.tabla] || []
+        const relacionada = (T[e.tabla] || []).find(
+          (r) => r.id === fila[e.fk] && tambien.every(([c, pordefecto]) => (r[c] ?? pordefecto) === (fila[c] ?? pordefecto)))
         // Sin relación, `null` — que es lo que devuelve PostgREST, y lo
         // que las páginas ya saben manejar con `?.`.
         copia[e.clave] = relacionada
@@ -1150,9 +1167,14 @@ export const supabase = {
     // resultados de una encuesta: devolverlo a mano haría que «tienes 3
     // de 12» comprobara la semilla y no la pantalla.
     if (nombre === 'pokedex_resumen') {
+      // `p_market` desde la tanda 437: la funcion nacio sin parametro y
+      // con 'WEST' escrito dentro, y el cliente la sigue llamando asi para
+      // el catalogo de siempre. Sin el `||` aqui, el doble contestaria
+      // vacio a la llamada vieja y la Pokedex saldria a cero.
+      const quiero = args?.p_market || 'WEST'
       const porDex = new Map()
       for (const c of T.tcg_cards) {
-        if ((c.market || 'WEST') !== 'WEST') continue
+        if ((c.market || 'WEST') !== quiero) continue
         for (const d of c.dex_ids || []) porDex.set(d, (porDex.get(d) || 0) + 1)
       }
       return {
