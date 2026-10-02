@@ -341,15 +341,16 @@
         </div>
 
         <div id="mcArchivadorZona" class="hidden">
+          <!-- Volver, en su propia fila y como CHAPA (tanda 459). PINGU, por
+               tercera vez: «ahí hay otro enlace pocho». Era un `link-btn`
+               azul subrayado en una fila donde todo lo demás son botones;
+               es la misma mudanza que la 458 le hizo al «Todos los
+               Pokémon» de la Pokédex, y por el mismo motivo. -->
+          <p class="mc-album-volver-fila">
+            <button type="button" class="mc-chip-mando mc-album-volver" id="mcAlbumVolver">← Todas las colecciones</button>
+          </p>
           <div class="mc-album-barra">
-            <button type="button" class="link-btn mc-album-volver" id="mcAlbumVolver">← Todas las colecciones</button>
             <h3 class="mc-album-titulo" id="mcAlbumTitulo"></h3>
-            <!-- La estrella (tanda 409). Lo que sube una expansión arriba
-                 del todo es que TÚ la marques, no que tengas una carta
-                 suelta: con cien empezadas, «arriba» deja de significar
-                 nada. -->
-            <button type="button" class="mc-estrella hidden" id="mcAlbumFavorito" data-icono="star" aria-pressed="false"><span class="mc-estrella-texto">Favorita</span></button>
-            <label class="mc-interruptor"><input type="checkbox" id="mcAlbumSoloFaltan" /> Solo las que me faltan</label>
           </div>
           <!-- Los filtros DENTRO de una colección (tanda 382). Es lo que
                le faltaba a esta pantalla frente a la app de TCGdex: en
@@ -368,7 +369,16 @@
             <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
             <input type="search" id="mcAlbumBuscar" placeholder="Busca por nombre o número" aria-label="Buscar en esta colección" />
           </div>
-          <div class="mc-album-filtros" id="mcAlbumFiltros">
+          <!-- LOS MANDOS, EN UNA TIRA (tanda 459). PINGU, con la pantalla
+               de una expansión en el móvil: «se ve fatal». Eran cuatro
+               filas de controles —264 px— entre el buscador y la primera
+               carta, porque esta era la única pantalla de la sección que
+               no usaba `.mc-mandos`: la estantería, Buscar y la Pokédex ya
+               deslizan sus mandos en una sola fila desde la 445.
+               Los que ABREN algo (el «Al añadir», que cuelga de su chapa)
+               no pueden ir aquí: la tira recorta lo que se sale, así que
+               esos se quedan en la fila de acciones de abajo. -->
+          <div class="mc-album-filtros mc-mandos" id="mcAlbumFiltros">
             <!-- Cómo se ordena (tanda 427). Una expansión se mira de
                  cuatro maneras según lo que vayas a hacer: por número
                  cuando la repasas en la mano, por nombre cuando buscas
@@ -377,6 +387,12 @@
                  pone el JavaScript desde `orden.js`, que es quien sabe
                  ordenar: dos listas iguales en dos sitios se separan. -->
             <select id="mcAlbumOrden" class="mc-chapa-select" aria-label="Cómo se ordenan las cartas"></select>
+            <!-- CHAPA Y NO CASILLA (tanda 459). Era un `<label>` con su
+                 `<input type="checkbox">` en una fila donde todo lo demás
+                 son chapas, y en la tira de mandos desentonaba. Es el mismo
+                 control que «Solo las empezadas» de la estantería, así que
+                 ahora es la misma pieza. -->
+            <button type="button" class="mc-chip-filtro mc-chip-mando" id="mcAlbumSoloFaltan" aria-pressed="false">Solo las que me faltan</button>
             <select id="mcAlbumRareza" class="mc-chapa-select" aria-label="Filtrar por rareza"></select>
             <select id="mcAlbumTipo" class="mc-chapa-select" aria-label="Filtrar por categoría"></select>
             <!-- Stack / Split: una casilla por CARTA o una por VERSIÓN. En
@@ -391,6 +407,17 @@
               <button type="button" class="mc-chip-vista activo" id="mcVistaStack" aria-pressed="true">Juntar variantes</button>
               <button type="button" class="mc-chip-vista" id="mcVistaSplit" aria-pressed="false">Separar variantes</button>
             </div>
+            <!-- La estrella (tanda 409). Lo que sube una expansión arriba
+                 del todo es que TÚ la marques, no que tengas una carta
+                 suelta: con cien empezadas, «arriba» deja de significar
+                 nada. -->
+            <button type="button" class="mc-estrella hidden" id="mcAlbumFavorito" data-icono="star" aria-pressed="false"><span class="mc-estrella-texto">Favorita</span></button>
+          </div>
+          <!-- Y lo que no es un filtro, debajo: el ajuste de con qué se
+               añade y las dos acciones. Separarlos no es cosmética —son
+               los que despliegan un panel, y un panel dentro de una tira
+               que se desliza sale recortado—. -->
+          <div class="mc-album-acciones">
             <!-- Con qué se añade. Es un ajuste que se toca una vez y antes
                  ocupaba una fila entera con su frase; ahora vive detrás de
                  su chapa. -->

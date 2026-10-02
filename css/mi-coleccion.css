@@ -979,12 +979,6 @@
   margin-bottom: var(--e-md);
 }
 
-.mc-album-barra select {
-  flex: 1 1 280px;
-  min-width: 0;
-  min-height: 44px;
-}
-
 .mc-tocar {
   padding: var(--e-sm) var(--e-md);
   border-radius: var(--radius-md);
@@ -1212,11 +1206,12 @@
   font-weight: 600;
 }
 
-.mc-estanteria-barra select {
-  flex: 1 1 220px;
-  min-width: 0;
-  min-height: 44px;
-}
+/* AQUÍ ESTABA `.mc-estanteria-barra select { flex: 1 1 220px }`, y era
+   un hijo de flex que CEDE (tanda 459, hallazgo de su propio barrido).
+   Desde la 445 esos dos `<select>` viven dentro de un `.mc-mandos`, que
+   dice `flex: 0 0 auto` a sus hijos para que la fila SE DESLICE; pero
+   aquel `flex` tenía más peso y ganaba, así que la fila no se deslizaba
+   nunca: se encogía. El alto y el ancho ya los pone `.mc-mandos`. */
 
 .mc-estanteria-titulo {
   margin: var(--e-xl) 0 var(--e-md);
@@ -1441,11 +1436,8 @@
   }
 }
 
-/* La cabecera del archivador abierto: volver, el nombre y el filtro. */
-.mc-album-volver {
-  flex: 0 0 auto;
-}
-
+/* La cabecera del archivador abierto: ahora solo el nombre (tanda 459),
+   que volver tiene su fila y los mandos la suya. */
 .mc-album-titulo {
   flex: 1;
   min-width: 0;
@@ -3181,8 +3173,23 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
-/* Los filtros dentro de una colección (tanda 382). */
+/* Los filtros dentro de una colección (tanda 382, rehechos en la 459).
+   Ya NO maquetan: desde la 459 la fila es un `.mc-mandos`, la misma pieza
+   que la estantería, Buscar y la Pokédex. Aquí solo queda lo suyo. */
 .mc-album-filtros {
+  margin-bottom: var(--e-md);
+  align-items: center;
+}
+
+/* El grupo de «juntar / separar» lleva su propio margen de abajo porque
+   fuera de la tira es una fila entera; dentro, descuadraría a los demás. */
+.mc-mandos .mc-vista-variantes {
+  margin-bottom: 0;
+}
+
+/* Las acciones (el ajuste de «al añadir» y los dos botones) NO van en la
+   tira: despliegan un panel y una tira recorta lo que se sale de ella. */
+.mc-album-acciones {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -3190,14 +3197,9 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin-bottom: var(--e-md);
 }
 
-.mc-album-filtros select {
-  min-height: 44px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--text);
-  font-size: var(--t-sm);
+/* Volver, en su fila y como chapa (tanda 459). */
+.mc-album-volver-fila {
+  margin: 0 0 var(--e-md);
 }
 
 /* ── Las versiones de una carta, en su bolsillo (tanda 383) ──
@@ -3719,28 +3721,15 @@ input.mc-alb-titulo:not([readonly]):focus {
   outline-offset: 2px;
 }
 
-/* ── EL PANEL: la tira de tarjetas (tanda 410) ──
-   PINGU: «el panel está desordenadísimo, es demasiado scroll para lo que
-   es. En Dex te pone slides con toda la info». Una tira que se desliza
-   enseña cuatro cosas en el alto de una, y lo que no cabe se pide. */
-.mc-tira {
-  display: flex;
-  gap: var(--e-md);
-  margin-bottom: var(--e-lg);
-  padding-bottom: var(--e-xs);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  /* De lado a lado en el móvil, como la barra: una tira que empieza y
-     acaba con margen no parece que siga. */
-  scroll-padding-inline: var(--e-xl);
-}
+/* ── EL PANEL: AQUÍ VIVÍA LA TIRA DE TARJETAS (tanda 410) ──
+   Se la llevó la 440 del Panel y la 459 del álbum, que era el último sitio
+   donde quedaba. Lo que la mató no fue el gusto: una tira de tarjetas con
+   CIFRAS no se deslizaba sola —sus hijos cedían antes de desbordar, la
+   lección de la 320— y aunque se deslizara, una cifra cortada por el borde
+   se lee como un fallo. Las tarjetas siguen (`.mc-diapo`); lo que se fue
+   es la tira. Las flechas se quedan, que las usa el archivador de pliegos.
 
-.mc-tira:focus-visible {
-  outline: 2px solid var(--navy);
-  outline-offset: 4px;
-}
-
-/* La rejilla que sustituye al carrusel (tanda 440). `auto-fit` y no un
+   La rejilla que la sustituye (tanda 440). `auto-fit` y no un
    número de columnas: las tarjetas son tres o cuatro según lo que tengas
    —el balance solo sale si es tu colección—, y una rejilla de tres fijas
    dejaría un hueco cuando son dos. */
@@ -4254,34 +4243,11 @@ input.mc-alb-titulo:not([readonly]):focus {
   text-align: center;
 }
 
-/* ── La tira, sin barra y con flechas (tanda 415) ──
+/* ── Las flechas, sin barra (tanda 415) ──
    PINGU: «dale sin scroll y que haya una flechita para moverlo para un
-   lado en una esquina, así más moderno». Lo que se quita es la BARRA, no
-   el deslizamiento: con el dedo se sigue moviendo igual. */
-.mc-tira-caja {
-  position: relative;
-}
-
-/* Y la diapositiva cortada, igual: se desvanece en el borde para que se
-   lea como «hay más» y no como «se ha roto» (tanda 439). Con `mask` por lo
-   mismo que arriba —un velo pintado tendría que saber de qué color es el
-   fondo, y encima de una tarjeta blanca no se ve—, y además una máscara no
-   es un elemento, así que no tapa nada ni se come un clic.
-
-   Se apaga cuando la tira ya está al final: una tira que no tiene más a la
-   derecha y aun así desvanece su último borde estaría mintiendo. */
-.mc-tira:not(.mc-tira-final) {
-  mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent);
-}
-
-.mc-tira {
-  scrollbar-width: none;
-}
-
-.mc-tira::-webkit-scrollbar {
-  display: none;
-}
-
+   lado en una esquina, así más moderno». Las usa el archivador de pliegos;
+   su `.mc-tira-caja` se fue con la tira en la 459, y quien las coloca es
+   el `position: relative` de `.mc-archivador-caja`. */
 .mc-tira-flecha {
   display: grid;
   position: absolute;
@@ -4423,16 +4389,44 @@ input.mc-alb-titulo:not([readonly]):focus {
   gap: var(--e-md);
 }
 
-/* La tira de una expansión: la misma pieza que la del panel, pero con el
-   anillo y las barras dentro de la primera tarjeta. */
-#mcAlbumProgreso .mc-diapo {
-  flex-basis: min(320px, 86%);
+/* Los datos de una expansión: la misma pieza que la del panel, pero con
+   el anillo y las barras dentro de la primera tarjeta.
+
+   DOS COLUMNAS Y NO `auto-fit` (tanda 459), porque la primera tarjeta
+   CRUZA la fila entera —lleva el anillo y las barras, y a 163 px no cabe
+   ninguna de las dos— y `auto-fit` no pliega una pista que alguien cruza
+   (la lección de la 316): en un escritorio dejaría las otras dos a 150 px
+   con cuatro pistas vacías al lado. Así que las columnas se dicen. */
+#mcAlbumProgreso .mc-diapos {
+  grid-template-columns: 1fr 1fr;
+}
+
+#mcAlbumProgreso .mc-diapo:first-child {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 900px) {
+  #mcAlbumProgreso .mc-diapos {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  #mcAlbumProgreso .mc-diapo:first-child {
+    grid-column: auto;
+  }
 }
 
 #mcAlbumProgreso .mc-anillo {
   position: absolute;
   top: var(--e-lg);
   right: var(--e-lg);
+}
+
+/* Y como flota, el título le reserva el sitio: son 72 px de anillo más su
+   aire, una MEDIDA y no un paso (por encima de 32 solo se le pide seguir
+   en la retícula de 4). Sin esto el título no se recorta ni da error: se
+   mete DEBAJO del anillo en cuanto crece una palabra. */
+#mcAlbumProgreso .mc-diapo:first-child .mc-diapo-titulo {
+  padding-right: 80px;
 }
 
 #mcAlbumProgreso .mc-diapo {
@@ -4445,6 +4439,33 @@ input.mc-alb-titulo:not([readonly]):focus {
   gap: var(--e-sm);
   align-items: center;
   font-size: var(--t-2xs);
+}
+
+/* La primera tarjeta ocupa la fila entera, así que sus tres barras caben
+   en una línea cada una: hay que DESHACER el apilado que la escala de la
+   398 hace por debajo de 560 px, que aquí partía cada barra en tres
+   renglones y estiraba la tarjeta sin motivo. */
+#mcAlbumProgreso .mc-diapo:first-child .mc-barra-fila .mc-barra {
+  grid-column: auto;
+}
+
+/* Las otras dos van a media fila —163 px en un móvil— y ahí «nombre ·
+   barra · número» no cabe: el nombre se recortaba a «Pokém…» y a la barra
+   le quedaban 18 px, que no dibujan nada. Lo que se cae es la BARRA, que
+   es la parte decorativa; los dos DATOS se quedan, uno a cada lado. */
+@media (max-width: 899px) {
+  #mcAlbumProgreso .mc-diapo:not(:first-child) .mc-reparto li {
+    justify-content: space-between;
+    gap: var(--e-sm);
+  }
+
+  #mcAlbumProgreso .mc-diapo:not(:first-child) .mc-reparto .mc-barra {
+    display: none;
+  }
+
+  #mcAlbumProgreso .mc-diapo:not(:first-child) .mc-reparto-nombre {
+    flex: 0 1 auto;
+  }
 }
 
 /* ── Las flechas del archivador, a los lados (tanda 418) ──

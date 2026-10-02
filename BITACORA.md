@@ -35,6 +35,61 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 459 — la pantalla de una expansión, en el móvil)
+
+**Hecho**: PINGU, con la captura de una expansión en el móvil: «en movil se
+ve fatal y ademas ahi hay otro enlace pocho». Dos cosas. (1) El «← Todas
+las colecciones» era un `link-btn` azul subrayado; ahora es una chapa, y la
+prueba barre la pantalla entera exigiendo que no quede NINGUNO —van tres
+veces que lo pide—. (2) Las tres tarjetas de datos iban en un `.mc-tira`
+que NUNCA se deslizó: un hijo de flex cede antes de desbordar (la 320), así
+que en 390 px se encogían a 97 px cada una, con el anillo encima del título
+y 328 px de alto. Ahora son una rejilla —la primera cruza la fila, las
+otras dos la comparten—, como la 440 hizo con el Panel. Y los mandos pasan
+a la tira `.mc-mandos` de Buscar y la Pokédex: de 264 px en cuatro filas a
+una sola fila de 44. De 920 px hasta la primera carta a 729.
+
+De regalo, el barrido de la prueba nueva —que busca la FORMA: cajas que se
+deslizan con hijos que ceden— cazó uno que no era de esta tanda:
+`.mc-estanteria-barra select { flex: 1 1 220px }` le ganaba por peso al
+`flex: 0 0 auto` de `.mc-mandos` desde la 445, así que los dos desplegables
+de la estantería tampoco se deslizaban.
+
+**Y SE HA PASADO LA SUITE ENTERA**, que llevaba sin pasarse desde la 447:
+siete rojos, **ninguno de esta tanda**. La 447 sacó «Cartas» del menú a
+propósito y dejó la pantalla, y tres pruebas (426, 436, 444) seguían
+clicando `[data-pestania="cartas"]` —se caían con un tiempo agotado que
+parece un fallo de la web—; la 440 sacó «Pagado» de la cabecera (428); la
+451 cambió el orden del vistazo de expansiones y le añadió el de Cambios
+(436); la 454 metió el logo inglés como último respaldo de los catálogos
+asiáticos (438); la 458 rehizo la tarjeta de set (405) y su comentario
+nuevo empujó un `// sin rango:` fuera de las siete líneas que mira el
+barrido de la 386. Es la lección de la 447 otra vez: entre la 448 y la 458
+se corrieron solo las pruebas de cada tanda.
+
+**Ficheros**: `mi-coleccion.html`, `css/mi-coleccion.css`,
+`js/mi-coleccion.js`, `SCHEMA.md`. En la rama `pruebas`:
+`test-tanda-459.mjs` (NUEVO) y arreglos en la 386, 405, 417, 426, 428, 436,
+438 y 444.
+
+**En curso / pendiente**: PINGU se ha ido a dormir y ha dejado la noche
+pedida — repaso entero de Mi colección (todas las pestañas, móvil y
+ordenador), con permiso para reestructurar y para QUITAR lo que sobre
+(«prefiero la sencillez»). La lista, suya: Nidoran ♀ y ♂ separados en la
+Pokédex; la tabla de rarezas en español con sus iconos oficiales (círculo,
+diamante, estrella, dos estrellas…); el gráfico del valor con rangos
+1D/7D/1M/3M/6M/MAX y más detallado, como Collectr; la carta que al añadirla
+se queda oscura y debería ponerse en color; la fila de filtros («Al añadir»
+fuera, «Copiar lo que me falta» fuera, alinear, y la flecha del desplegable
+que pisa el texto); las chapas de VARIANTE (Normal / Holo / Reverse Holo)
+encima de cada carta en Cartas y en una expansión con «separar variantes»,
+con la reverse distinguida a la vista; y los mandos de la cabecera de una
+expansión al estilo de Dex (marcar varias, corazón de favorita y compartir
+arriba), todo más PEQUEÑO: buscador, filtros y tarjetas de datos.
+Y siguen pendientes: el editor de sets del panel de admin (logo y código a
+mano, con subida de imagen) y los nombres occidentalizados de los sets
+japoneses. **Rigores pendientes: 443 a 459.**
+
 ## 2026-10-02 — PINGU-Claude (tanda 457 — el pulido de estilos del laboratorio)
 
 **Hecho**: PINGU, con el laboratorio a dos (la 456) hecho: «mejorar los

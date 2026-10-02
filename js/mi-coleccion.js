@@ -521,7 +521,8 @@ function pintarResumenPanel() {
   }
 
   // AQUÍ SE LLAMABA A `engancharTira()` (fuera en la 440): el resumen ya no
-  // es una tira. La del álbum sigue llamándola con sus propios ids.
+  // es una tira. La del álbum tampoco desde la 459, así que la función se
+  // ha ido con ella.
   $('mcVerTodo').addEventListener('click', () => {
     const abierto = !$('mcEstadisticas').classList.toggle('hidden')
     $('mcVerTodo').setAttribute('aria-expanded', abierto ? 'true' : 'false')
@@ -530,33 +531,6 @@ function pintarResumenPanel() {
   // La gráfica es una consulta y llega cuando llega: el resto del panel
   // sale de lo que ya está en memoria y no la espera.
   pintarValorEnElTiempo()
-}
-
-// Las flechas de la tira. Se mueve de tarjeta en tarjeta —el ancho de
-// una más su hueco— y no una cantidad fija de píxeles: con una fija, la
-// tira acaba parándose a mitad de una tarjeta.
-function engancharTira(idTira = 'mcTira', idIzq = 'mcTiraIzq', idDer = 'mcTiraDer') {
-  const tira = $(idTira)
-  if (!tira) return
-  const paso = () => {
-    const una = tira.querySelector('.mc-diapo')
-    return una ? una.getBoundingClientRect().width + 12 : tira.clientWidth
-  }
-  const pintarFlechas = () => {
-    const resto = tira.scrollWidth - tira.clientWidth - tira.scrollLeft
-    $(idIzq).hidden = tira.scrollLeft <= 4
-    $(idDer).hidden = resto <= 4
-    // Y la máscara que desvanece el borde derecho (tanda 439) se apaga
-    // cuando ya no queda nada a la derecha: una tira que está al final y
-    // aun así desvanece su última tarjeta estaría diciendo que hay más.
-    // Es el mismo dato que decide la flecha, así que se decide aquí y no
-    // en otro sitio que pueda desincronizarse.
-    tira.classList.toggle('mc-tira-final', resto <= 4)
-  }
-  $(idIzq).addEventListener('click', () => tira.scrollBy({ left: -paso(), behavior: 'smooth' }))
-  $(idDer).addEventListener('click', () => tira.scrollBy({ left: paso(), behavior: 'smooth' }))
-  tira.addEventListener('scroll', pintarFlechas, { passive: true })
-  pintarFlechas()
 }
 
 // Una tarjeta de la tira. Todas iguales por fuera: lo que cambia es lo
@@ -1642,6 +1616,12 @@ async function abrirAlbum(setId) {
   const set = (todosLosSets || []).find((s) => s.id === setId)
   $('mcAlbumTitulo').textContent = set?.name || ''
   pintarEstrella()
+  // La chapa de «solo las que me faltan» se pone a lo que DIGA el estado y
+  // no al revés (tanda 459). Cambiar de catálogo vacía `album` entero, así
+  // que el filtro se apaga sin que nadie toque la chapa: si no se pintara
+  // aquí, se quedaría encendida enseñando la colección completa.
+  $('mcAlbumSoloFaltan').classList.toggle('activo', album.soloFaltan)
+  $('mcAlbumSoloFaltan').setAttribute('aria-pressed', album.soloFaltan ? 'true' : 'false')
   $('mcAlbum').innerHTML = '<p class="subtext">Cargando la colección…</p>'
   try {
     album.cartas = (await datos.cartasDeSet(setId, mercado)).sort(porNumero)
@@ -1942,9 +1922,16 @@ function pintarTiraDeSet(elSet) {
   }
   const porTipo = [...tipos.entries()].sort((a, b) => b[1] - a[1])
 
+  // UNA REJILLA Y NO UNA TIRA (tanda 459). Era `.mc-tira`, y sus tres
+  // tarjetas no se deslizaban: un hijo de flex CEDE antes de desbordar (la
+  // lección de la 320), así que en un móvil de 390 px las tres se
+  // encogían a 97 px cada una —el anillo del porcentaje encima del título,
+  // «de 40 cartas» partido en dos renglones y 328 px de alto— y la flecha
+  // de «ver lo siguiente» no llevaba a ninguna parte. Es la misma mudanza
+  // que la 440 le hizo al Panel y por el mismo motivo: estas tarjetas
+  // llevan CIFRAS, y una cifra cortada por el borde se lee como un fallo.
   caja.innerHTML = `
-    <div class="mc-tira-caja">
-      <div class="mc-tira" id="mcTiraSet" tabindex="0" role="group" aria-label="Resumen de la colección">
+    <div class="mc-diapos">
         ${diapoHtml('Conjunto completo', `
           <p class="mc-diapo-cifra">${completo ? completo.tengo : 0}</p>
           <p class="mc-diapo-pie">de ${completo ? completo.total : 0} cartas</p>
@@ -1970,11 +1957,7 @@ function pintarTiraDeSet(elSet) {
              <p class="mc-diapo-pie">${porTipo.map(([t]) => escapeHtml(t)).join(', ')}</p>
              ${barrasHtml(porTipo)}`
           : '<p class="subtext">El catálogo todavía no dice de qué clase es cada carta.</p>')}
-      </div>
-      <button type="button" class="mc-tira-flecha mc-tira-izq" id="mcTiraSetIzq" aria-label="Ver lo anterior" hidden>‹</button>
-      <button type="button" class="mc-tira-flecha mc-tira-der" id="mcTiraSetDer" aria-label="Ver lo siguiente">›</button>
     </div>`
-  engancharTira('mcTiraSet', 'mcTiraSetIzq', 'mcTiraSetDer')
 }
 
 // Lo más valioso de una lista de líneas, por el valor de UNA copia.
@@ -3791,8 +3774,10 @@ function enganchar() {
       pintarAlbum()
     })
   }
-  $('mcAlbumSoloFaltan').addEventListener('change', (e) => {
-    album.soloFaltan = e.target.checked
+  $('mcAlbumSoloFaltan').addEventListener('click', () => {
+    album.soloFaltan = !album.soloFaltan
+    $('mcAlbumSoloFaltan').classList.toggle('activo', album.soloFaltan)
+    $('mcAlbumSoloFaltan').setAttribute('aria-pressed', album.soloFaltan ? 'true' : 'false')
     album.pagina = 0
     pintarAlbum()
   })
@@ -4040,8 +4025,6 @@ async function iniciar() {
         $('mcEntrar').classList.remove('hidden')
         return
       }
-      // sin rango: el nombre del dueño de la colección va en el título de la
-      // pantalla («La colección de Ash»), como texto (tanda 386).
       // `avatar_url` ENTRA AQUÍ (tanda 458). PINGU: «hay una P con mi
       // avatar arriba a la izquierda, pero debería estar cogiendo el que
       // tengo en el perfil». La cabecera pinta la inicial cuando no hay
@@ -4050,6 +4033,13 @@ async function iniciar() {
       // bien mirando la colección ajena y mal mirando la tuya. Un dato que
       // no se pide no da error: se dibuja el respaldo, que es exactamente
       // lo que se ve cuando de verdad no tienes foto.
+      //
+      // Y la marca de abajo va PEGADA a la consulta y no arriba del todo
+      // (tanda 459): el barrido de la 386 la busca en las siete líneas
+      // anteriores, así que el comentario de la 458 la empujó fuera y la
+      // prueba se puso roja sin que la consulta hubiera cambiado.
+      // sin rango: el nombre del dueño de la colección va en el título de la
+      // pantalla («La colección de Ash»), como texto (tanda 386).
       const { data } = await supabase.from('user_profiles').select('id,username,display_name,avatar_url,coleccion_publica').eq('id', sesion.user.id).maybeSingle()
       dueno = data || { id: sesion.user.id }
       esMia = true

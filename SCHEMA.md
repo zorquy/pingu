@@ -24470,3 +24470,81 @@ que fallaba por el RELOJ: esperaba 900 ms a que la cadena de imágenes se
 agotara, y la cadena ha ido creciendo. Un número fijo de milisegundos se
 queda corto sin avisar, y entonces la prueba falla por el reloj y parece
 que falla la web.
+
+---
+
+## Tanda 459 — la pantalla de una expansión, en el móvil (oct. 2026)
+
+PINGU, con la captura de /mi-coleccion → Expansiones → Mega Evolution en un
+móvil: **«en movil se ve fatal y ademas ahi hay otro enlace pocho»**.
+
+### El enlace pocho, y van tres
+
+El «← Todas las colecciones» era un `link-btn` —azul y subrayado— en una
+pantalla donde todo lo demás son botones. Es la tercera vez que lo dice
+(«no quiero enlaces pochos, quiero botones»), así que la prueba no mira ESE
+botón: barre la pantalla entera y exige que no quede **ningún** `link-btn`
+dentro de una expansión. Un caso arreglado no es una regla.
+
+### Y lo que se veía fatal: una tira que nunca se deslizó
+
+Las tres tarjetas de datos —«Conjunto completo», «Lo que tienes de aquí»,
+«Tipos de carta»— iban en un `.mc-tira`, que es flex. Y **un hijo de flex
+CEDE antes de desbordar** (la lección de la 320): en 390 px las tres se
+encogían a **97 px cada una** en vez de deslizarse. Con eso:
+
+- el anillo del porcentaje, que flota en la esquina, caía **encima del
+  título** («CONJUNTO COMPLETO» tapado por un 23 %);
+- «de 40 cartas» se partía en dos renglones y «Set maestro» en tres;
+- la tarjeta medía **328 px de alto** para decir tres números;
+- y la flecha de «ver lo siguiente» no llevaba a ninguna parte, porque no
+  había nada a lo que deslizarse.
+
+**No daba ningún error.** Llevaba así desde la 417.
+
+Ahora es una **rejilla**, que es lo mismo que la 440 le hizo al Panel y por
+el mismo motivo escrito entonces: estas tarjetas llevan CIFRAS, y una cifra
+cortada por el borde se lee como un fallo. La primera cruza la fila entera
+—lleva el anillo y las dos barras, y a media fila no cabe ninguno de los
+dos— y las otras dos la comparten. Las columnas se dicen a mano y no con
+`auto-fit`, porque **`auto-fit` no pliega una pista que alguien cruza** (la
+lección de la 316): con la primera a `1 / -1`, en un escritorio dejaría las
+otras dos a 150 px con cuatro pistas vacías al lado.
+
+Y el título lleva ahora su `padding-right` de 80 px: el anillo FLOTA, así
+que el hueco hay que reservarlo. Sin él no se recorta ni avisa — se mete
+debajo en cuanto el título crece una palabra.
+
+Con la tira se fueron `engancharTira()` y su CSS, que ya no usaba nadie.
+Las flechas se quedan: las usa el archivador de pliegos.
+
+### Los mandos, en UNA fila que se desliza
+
+Entre el buscador y la primera carta había **264 px de controles en cuatro
+filas**, porque la de una expansión era la única pantalla de la sección que
+no usaba `.mc-mandos` — la estantería, Buscar y la Pokédex deslizan sus
+mandos en una sola fila desde la 445. Ahora también esta.
+
+Dos cosas que no son cosmética:
+
+- **Lo que DESPLIEGA algo no puede ir en la tira**: una tira recorta lo que
+  se sale de ella, y el panel de «Al añadir» cuelga de su chapa. Así que
+  los filtros van en la tira y las acciones —«Al añadir», «Marcar varias»,
+  «Copiar lo que me falta»— en su propia fila, que no recorta.
+- **«Solo las que me faltan» pasa de casilla a chapa**, que es la misma
+  pieza que «Solo las empezadas» de la estantería. Y se pinta al abrir una
+  expansión **desde el estado**, no al revés: cambiar de catálogo vacía
+  `album` entero, así que el filtro se apaga solo; si la chapa no se
+  repintara, se quedaría encendida enseñando la colección completa.
+
+De 920 px hasta la primera carta se ha pasado a **729**.
+
+### Lo que encontró el barrido
+
+La prueba no comprueba el caso, comprueba la forma: recorre la pestaña
+buscando **cajas que se deslizan con hijos que ceden**. Y cazó una que no
+era de esta tanda: `.mc-estanteria-barra select { flex: 1 1 220px }` seguía
+ganándole por peso al `flex: 0 0 auto` de `.mc-mandos` desde la 445, así
+que los dos desplegables de la estantería tampoco se deslizaban — se
+encogían. Es exactamente el mismo fallo, en la pantalla de al lado, y
+llevaba catorce tandas ahí.
