@@ -535,36 +535,41 @@ const browser = await chromium.launch()
   const primero = nombresMano.findIndex((n) => basicos.includes(n))
   await page.locator('[data-mano]').nth(primero).click()
   await page.waitForTimeout(200)
-  check('tocar un básico en la preparación lo pone de activo', (await page.locator('#labActivo .lab-slot-activo').count()) === 1)
+  check('tocar un básico en la preparación lo pone de activo', (await page.locator('#labLadoPropio .lab-zona-activo .lab-slot-activo').count()) === 1)
   await page.click('[data-accion="empezar"]')
   await page.waitForTimeout(200)
-  check('empieza: turno 1 y 6 premios boca abajo', /Tu turno 1/.test(await page.locator('#labTurno').innerText()) && (await page.locator('#labPremios [data-premio]').count()) === 6)
+  check('empieza: turno 1 y 6 premios boca abajo', /Tu turno 1/.test(await page.locator('#labTurno').innerText()) && (await page.locator('#labLadoPropio .lab-zona-premios [data-premio]').count()) === 6)
 
-  // La tabla de probabilidades.
-  await page.click('[data-accion="prob"]')
+  // La tabla de probabilidades: en una pantalla ancha, abierta de serie
+  // al lado de la mesa (tanda 456); el botón la cierra y la vuelve a abrir.
+  check('en ancho, la tabla está abierta de serie', await page.locator('#labPanel:not(.hidden) .lab-tabla').isVisible())
+  await page.click('.lab-barra [data-accion="panel"]')
   await page.waitForTimeout(200)
-  check('el botón abre la tabla', await page.locator('#labProb:not(.hidden) .lab-tabla').isVisible())
-  const filas = await page.locator('#labProb tbody tr:not(.lab-fila-seccion)').count()
+  const cerrada = await page.locator('#labPanel').isHidden()
+  await page.click('.lab-barra [data-accion="panel"]')
+  await page.waitForTimeout(200)
+  check('el botón la cierra y la abre', cerrada && (await page.locator('#labPanel:not(.hidden) .lab-tabla').isVisible()))
+  const filas = await page.locator('#labPanel tbody tr:not(.lab-fila-seccion)').count()
   const distintas = new Set(entradas.map((e) => claveDeNombre(e.carta))).size
   check('una fila por carta distinta, más las tres de grupo', filas === distintas + 3, `${filas} filas, ${distintas} cartas`)
   const saberAntes = await page.locator('.lab-prob-saber').innerText()
   check('  …y dice que aún no has mirado el mazo', /no has mirado/i.test(saberAntes), saberAntes)
   // El número de una fila, contra la fórmula: Dragapult ex, sin mirar nada.
-  const filaDrag = page.locator('#labProb tbody tr', { hasText: 'Dragapult ex' }).first()
+  const filaDrag = page.locator('#labPanel tbody tr', { hasText: 'Dragapult ex' }).first()
   const siguiente = await filaDrag.locator('td').nth(1).innerText()
   const quedan = Number(await filaDrag.locator('td').nth(0).innerText())
-  const mazoN = Number((await page.locator('#labMazo strong').innerText()).trim())
+  const mazoN = Number((await page.locator('#labLadoPropio [data-pila="mazo"] strong').innerText()).trim())
   const esperado = `${((quedan / (mazoN + 6)) * 100).toFixed(1).replace('.', ',')} %`
   check('el «próximo robo» de la pantalla es k / (mazo + premios)', siguiente.trim() === esperado, `${siguiente.trim()} vs ${esperado}`)
   // Marcar dos cartas añade la fila de «cualquiera de las marcadas».
   await page.locator('[data-marca]').nth(0).check()
   await page.locator('[data-marca]').nth(1).check()
   await page.waitForTimeout(150)
-  check('marcar dos cartas añade «cualquiera de tus 2 marcadas»', (await page.locator('#labProb tbody tr', { hasText: 'Cualquiera de tus 2 marcadas' }).count()) === 1)
+  check('marcar dos cartas añade «cualquiera de tus 2 marcadas»', (await page.locator('#labPanel tbody tr', { hasText: 'Cualquiera de tus 2 marcadas' }).count()) === 1)
 
   // Buscar en el mazo a mano: la ventana, y lo que cambia en la tabla.
   const manoAntes = await page.locator('[data-mano]').count()
-  await page.click('#labMazo')
+  await page.click('#labLadoPropio [data-pila="mazo"]')
   await page.locator('#labMenu [data-op]', { hasText: 'Buscar en el mazo' }).click()
   await page.locator('#labDialogo [data-opcion="mano"]').click()
   await page.waitForTimeout(150)
@@ -582,7 +587,7 @@ const browser = await chromium.launch()
   check('la tabla ya sabe qué hay en los premios', /mazo entero/i.test(saberDespues), saberDespues)
   // textContent y no innerText: la cabecera va en versalitas por CSS, e
   // innerText devuelve el texto como SE PINTA («EN PREMIOS»).
-  check('  …y la columna pasa a decir cuántas hay', /En premios/.test(await page.locator('#labProb thead').textContent()))
+  check('  …y la columna pasa a decir cuántas hay', /En premios/.test(await page.locator('#labPanel thead').textContent()))
 
   // Deshacer.
   await page.click('[data-accion="deshacer"]')
@@ -590,8 +595,9 @@ const browser = await chromium.launch()
   check('«Deshacer» devuelve la mano', (await page.locator('[data-mano]').count()) === manoAntes)
   check('  …y lo que se sabía del mazo', /no has mirado/i.test(await page.locator('.lab-prob-saber').innerText()))
 
-  // Una carta de la mano: el menú dice por qué no se puede.
-  await page.locator('[data-mano][aria-label="Lillie\'s Determination"]').first().click().catch(() => {})
+  // Una carta de la mano: su «⋯» abre el menú con su texto. (Tocar la
+  // carta la JUEGA desde la tanda 456.)
+  await page.locator('[data-mas][aria-label="Más opciones: Lillie\'s Determination"]').first().click().catch(() => {})
   await page.waitForTimeout(150)
   if (await page.locator('#labMenu:not(.hidden)').count()) {
     check('el menú de una carta enseña su texto (el espejo no lo tiene)', /Baraja tu mano/.test(await page.locator('#labMenu').innerText()))
@@ -634,7 +640,7 @@ const browser = await chromium.launch()
   })
   check('[360 px] la mesa no se sale de ancho', medidas.sobra <= 1, `${medidas.sobra}px`)
   check('[360 px] el × se ve arriba', medidas.cerrar)
-  await mv.page.click('[data-accion="prob"]')
+  await mv.page.click('.lab-barra [data-accion="panel"]')
   await mv.page.waitForTimeout(200)
   const tabla = await mv.page.evaluate(() => {
     const t = document.querySelector('.lab-tabla')
