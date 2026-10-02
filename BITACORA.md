@@ -35,6 +35,39 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 454 — las fechas de los sets, y los logos que faltan)
+
+**Hecho**: arreglado de raíz el orden de las eras. El botón «Traer códigos
+de TCG Live» del admin pedía el set COMPLETO, sacaba el código **y tiraba
+la fecha de salida que tenía en la mano** — y esa fecha es la que ordena
+las eras, así que Escarlata y Púrpura y Mega Evolución se iban al fondo por
+no tenerla. Ahora el botón se llama «Traer códigos y fechas que falten»,
+entra también lo que solo necesita la fecha, y mira TODOS los mercados.
+
+El contador de /admin dice ahora por mercado: sets, cuántos con logo,
+cuántos con fecha, cartas y **cuántas con foto**. Eso separa las dos causas
+de «no se ven las cartas japonesas», que desde la web se ven igual.
+
+Y la tarjeta de colección prueba un dibujo más antes de rendirse: el logo
+OCCIDENTAL del mismo set. El identificador de set es el mismo en todos los
+mercados, así que la dirección con `/en/` suele existir aunque la japonesa
+no.
+
+**PARA PINGU, dos cosas que necesitan tus manos**:
+1. En /admin → Cartas, dale a **«Traer códigos y fechas que falten»**. Eso
+   coloca Escarlata y Púrpura y Mega Evolución donde van.
+2. Lo de Bulbapedia NO sirve: sus imágenes van por hash del nombre de
+   fichero, no hay patrón que montar. La que sí promete es Limitless, que
+   tiene las japonesas desde Sol y Luna; nuestra función monta
+   `…/SET/SET_123_R_EN_SM.png` y habría que comprobar si existe la variante
+   `_JP_`. Ábrela a mano y me dices, que aquí la red a esa CDN está cerrada.
+
+**Ficheros**: `admin/js/admin.js`, `admin/index.html`, `js/mi-coleccion.js`,
+`SCHEMA.md`.
+
+**En curso / pendiente**: nada a medias. La portada sigue en 170,0 de
+170,0. Rigores pendientes: 443 a 454.
+
 ## 2026-10-02 — PINGU-Claude (tanda 453 — filtros dentro de un Pokémon)
 
 **Hecho**: la ficha de una especie en la Pokédex tiene ya los mismos cuatro

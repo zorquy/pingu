@@ -23964,3 +23964,68 @@ rojo: esa clase la usan también las pestañas del diálogo de adornos, que
 nacen con una encendida. Van tres seguidas —las tarjetas de colección en la
 447, las dos bandejas en la 452 y esta—, siempre igual: **una clase que se
 pinta en dos pantallas necesita que la prueba diga en cuál mira.**
+
+## Tanda 454 — las fechas que ordenan las eras, y los logos que faltan (oct. 2026)
+
+### El botón que tiraba la mitad de lo que pedía
+
+PINGU: «lo primero que se ve es Espada y Escudo, pero tiene que estar
+Escarlata y Púrpura y, el primero de todo, Mega Evolución».
+
+La estantería ordena las eras por la fecha del set más nuevo, y una era sin
+NINGUNA fecha se va al fondo (tanda 451). Las recién salidas son justo las
+que pueden estar enteras sin ella, porque `release_date` **no viene en el
+listado de TCGdex** —es un «SetResume»—: solo está en el set COMPLETO.
+
+Y resulta que ya pedíamos el set completo. «Traer códigos de TCG Live»
+hacía `fetchSet` de cada set sin código, sacaba el código… **y tiraba la
+fecha que tenía en la mano**. Es la lección de la 322 repetida dentro del
+mismo botón: si vas a pedir el set entero, cógele todo lo que solo está
+ahí.
+
+Ahora el botón se llama «Traer códigos y fechas que falten» y entra
+también lo que solo le falta la fecha, y de **todos los mercados** —el
+japonés y el chino tienen sus propios sets y su propio orden, y filtrarlos
+fuera los dejaba sin fecha para siempre—.
+
+### Y un número antes de discutir
+
+El contador de /admin dice ahora, por mercado: sets, **cuántos con logo**,
+**cuántos con fecha**, cartas y **cuántas con foto**. «No se ven las cartas
+japonesas» tiene dos causas que desde la web se ven idénticas —que no estén
+importadas, o que TCGdex no tenga escaneo de ellas— y ese número las
+separa: si salen 5.000 cartas y 0 con foto, no es cosa nuestra.
+
+### Un dibujo más en la cadena del logo
+
+La tarjeta de una colección ya probaba tres cosas: el logo guardado, la
+ruta montada a mano (tanda 434) y el símbolo, y acababa en el nombre. Se
+mete una cuarta **antes del símbolo**: el logo OCCIDENTAL del mismo set.
+
+TCGdex guarda los ficheros por idioma y de los catálogos que no son el
+inglés faltan muchísimos, pero **el identificador de set es el mismo** —por
+eso la clave ajena de `tcg_cards` es compuesta—, así que la misma dirección
+con `/en/` delante suele existir. Es un logo en inglés sobre una colección
+japonesa, sí; pero el dibujo es el mismo y lo que cambia es el rótulo, y la
+alternativa de hoy no es un logo japonés: es el nombre escrito en una caja
+gris.
+
+### Lo de Bulbapedia, y por qué no
+
+PINGU: «sé que Bulbapedia guarda los logos de todos los sets, y los
+símbolos de rareza; igual podemos sacarlo de ahí».
+
+No sirve como fuente programática, y conviene dejar escrito el porqué para
+no volver a intentarlo: sus imágenes viven en `archives.bulbagarden.net`
+con **rutas calculadas por el hash del nombre del fichero**
+(`/media/upload/a/ab/…`). No hay patrón que se pueda montar sabiendo el
+set: haría falta una llamada a su API por cada imagen, y además es un wiki
+con sus condiciones de uso, no una CDN.
+
+La fuente que sí tiene pinta es **Limitless**, que aloja las cartas
+japonesas desde Sol y Luna. Nuestro `imagenDeLimitless` monta
+`…/SET/SET_123_R_EN_SM.png` — con un `_EN_` en medio que invita a probar
+`_JP_`. No se ha puesto porque **no está comprobado**, y aquí las
+direcciones de la CDN se comprueban abriéndolas antes de aplicarlas como
+regla (lo dice el comentario de esa misma función, con su fecha). Si la
+variante existe, añadirla es un eslabón más en la cadena que ya hay.

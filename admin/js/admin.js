@@ -2688,39 +2688,69 @@ async function traerCodigosLive() {
   btn.disabled = true
   document.getElementById('btnCancelarCodigos')?.classList.remove('hidden')
 
+  // ESTE BOTÓN TRAE DOS COSAS, NO UNA (tanda 454), y antes tiraba la
+  // segunda teniéndola en la mano. `fetchSet` devuelve el set COMPLETO, que
+  // es el único sitio donde están el código de TCG Live Y LA FECHA DE
+  // SALIDA —el listado es un «SetResume» y no trae ninguna de las dos—. Se
+  // pedía el set entero, se sacaba el código y la fecha se tiraba.
+  //
+  // Y la fecha no es un adorno: es lo que ORDENA las eras en la
+  // estantería. PINGU: «lo primero que se ve es Espada y Escudo, pero
+  // tiene que estar Escarlata y Púrpura y, el primero de todo, Mega
+  // Evolución». Una era sin ninguna fecha se va al fondo, y las recién
+  // salidas son justo las que pueden estar enteras sin ella.
+  //
+  // Por eso ahora entra también lo que solo le falta la fecha, y TODOS los
+  // mercados: el japonés y el chino tienen sus propios sets y su propio
+  // orden, y filtrarlos fuera los dejaba sin fecha para siempre.
   const pendientes = tcgSetsLocales
-    .filter((x) => (x.market || 'WEST') === 'WEST' && !x.tcg_online_code)
+    .filter((x) => !x.tcg_online_code || !x.release_date)
     .sort((a, b) => String(b.release_date || '').localeCompare(String(a.release_date || '')))
 
   let traidos = 0
+  let fechas = 0
   let sinCodigo = 0
   try {
     for (let i = 0; i < pendientes.length; i++) {
       if (codigosCancelado) break
       const fila = pendientes[i]
+      const market = fila.market || 'WEST'
       if (nota) nota.textContent = `Pidiendo ${i + 1} de ${pendientes.length}: ${fila.name}…`
-      let codigo = null
+      let set = null
       try {
-        codigo = codigoLiveDeSet(await fetchSet(fila.id, 'WEST'))
+        set = await fetchSet(fila.id, market)
       } catch {
         // Un set que falle no puede parar la tanda entera: se salta.
         continue
       }
-      if (!codigo) {
+      // El código solo existe en el mercado occidental: es el de TCG Live,
+      // que no juega en japonés ni en chino.
+      const codigo = market === 'WEST' ? codigoLiveDeSet(set) : null
+      const fecha = fechaDeSet(set)
+      const cambios = {}
+      if (codigo && !fila.tcg_online_code) cambios.tcg_online_code = codigo
+      if (fecha && !fila.release_date) cambios.release_date = fecha
+      if (!codigo && market === 'WEST' && !fila.tcg_online_code) {
         // No es un error que haya que enseñar, pero tampoco es «es un set
         // viejo»: TCGdex no lo da para NINGUNO desde 2023. Se cuentan y
         // se dice al final con esas palabras.
         sinCodigo++
-        continue
       }
+      if (!Object.keys(cambios).length) continue
       const { error } = await supabase
         .from('tcg_sets')
-        .update({ tcg_online_code: codigo })
+        .update(cambios)
         .eq('id', fila.id)
-        .eq('market', 'WEST')
+        .eq('market', market)
       if (!error) {
-        fila.tcg_online_code = codigo
-        traidos++
+        if (cambios.tcg_online_code) {
+          fila.tcg_online_code = cambios.tcg_online_code
+          traidos++
+        }
+        if (cambios.release_date) {
+          fila.release_date = cambios.release_date
+          fechas++
+        }
       }
     }
   } finally {
@@ -2729,11 +2759,14 @@ async function traerCodigosLive() {
   }
 
   if (nota) {
-    nota.textContent = traidos
-      ? `${traidos} códigos guardados${sinCodigo ? ` (${sinCodigo} sin código en TCGdex)` : ''}.` +
-        ' Las decklists ya los usan.'
-      : `Ningún código nuevo${sinCodigo ? ` (${sinCodigo} sets mirados)` : ''}. TCGdex ya no trae el campo: ` +
-        'era el código de TCG Online, que cerró en 2023. Apúntalos a mano aquí abajo.'
+    const partes = []
+    if (traidos) partes.push(`${traidos} códigos de TCG Live`)
+    if (fechas) partes.push(`${fechas} fechas de salida`)
+    nota.textContent = partes.length
+      ? `Guardado: ${partes.join(' y ')}.${fechas ? ' Las expansiones ya se ordenan por fecha.' : ''}` +
+        `${sinCodigo ? ` (${sinCodigo} sets sin código en TCGdex.)` : ''}`
+      : `Nada nuevo${sinCodigo ? ` (${sinCodigo} sets mirados)` : ''}. TCGdex ya no trae el código: ` +
+        'era el de TCG Online, que cerró en 2023. Apúntalos a mano aquí abajo.'
   }
   pintarSetsLive()
 }
@@ -2956,11 +2989,26 @@ async function contarMercados() {
       if (cartas.error) throw cartas.error
       const conLogo = await supabase.from('tcg_sets').select('id', { count: 'exact', head: true }).eq('market', market).not('logo_path', 'is', null)
       if (conLogo.error) throw conLogo.error
-      lineas.push(`${market}: ${sets.count} sets (${conLogo.count} con logo), ${cartas.count} cartas`)
+      // Y las FECHAS, que son las que ordenan las eras en la estantería:
+      // una era sin ninguna se va al fondo, y las recién salidas son justo
+      // las que pueden estar enteras sin ella (tanda 454).
+      const conFecha = await supabase.from('tcg_sets').select('id', { count: 'exact', head: true }).eq('market', market).not('release_date', 'is', null)
+      if (conFecha.error) throw conFecha.error
+      // Y cuántas cartas tienen FOTO. «No se ven las cartas japonesas»
+      // tiene dos causas que desde la web se ven igual —que no estén
+      // importadas, o que TCGdex no tenga escaneo de ellas— y este número
+      // las separa: si hay 5.000 cartas y 0 con foto, no es cosa nuestra,
+      // es que ese catálogo no tiene imágenes y hace falta otra fuente.
+      const conFoto = await supabase.from('tcg_cards').select('id', { count: 'exact', head: true }).eq('market', market).not('image_path', 'is', null)
+      if (conFoto.error) throw conFoto.error
+      lineas.push(`${market}: ${sets.count} sets (${conLogo.count} con logo, ${conFecha.count} con fecha), ${cartas.count} cartas (${conFoto.count} con foto)`)
     }
     const vacios = lineas.filter((l) => / 0 sets/.test(l))
+    const sinFecha = lineas.some((l) => /\(\d+ con logo, 0 con fecha\)/.test(l))
     cardsNota(lineas.join(' · ') + (vacios.length
       ? ' — los que están a 0 no se han importado nunca: dale a «Buscar sets en TCGdex» y luego a «Importar los que faltan».'
+      : '') + (sinFecha
+      ? ' — y los que no tienen fecha salen al fondo de la estantería: dale a «Traer códigos y fechas que falten».'
       : ''))
   } catch (err) {
     cardsNota(`No se ha podido contar: ${err.message}`)

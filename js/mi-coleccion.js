@@ -1482,8 +1482,22 @@ function tarjetaDeSet(set, tengo) {
   // vacío —o sea que la API no lo da—, pero el fichero puede estar igual.
   // Si no está, la cadena sigue al símbolo y acaba en el nombre.
   const logoAMano = set.logo_path ? null : urlDeLogoPorPartes(set.serie_id, set.id, set.market || mercado)
+  // Y EL OCCIDENTAL COMO ÚLTIMO DIBUJO (tanda 454). PINGU: «no hay fotos
+  // de los sets japoneses, chinos ni de los demás idiomas que no sean
+  // inglés». TCGdex guarda los ficheros por idioma, y de los catálogos que
+  // no son el inglés faltan muchísimos; pero el identificador de set es EL
+  // MISMO —por eso la clave ajena de `tcg_cards` es compuesta—, así que la
+  // misma dirección con `/en/` delante suele existir.
+  //
+  // Es un logo en inglés sobre una colección japonesa, sí. Pero el dibujo
+  // de un logo es el mismo y lo que cambia es el rótulo, así que se
+  // reconoce igual — y la alternativa de hoy no es un logo japonés: es el
+  // nombre escrito en una caja gris. Va el ÚLTIMO de los logos y antes del
+  // símbolo, que es el orden de «lo más suyo primero».
+  const suMercado = set.market || mercado
+  const logoIngles = suMercado === 'WEST' ? null : urlDeLogoPorPartes(set.serie_id, set.id, 'WEST')
   const simbolo = set.symbol_url ? `${set.symbol_url}.webp` : null
-  const dibujos = [logo, logoAMano, simbolo].filter(Boolean)
+  const dibujos = [logo, logoAMano, logoIngles, simbolo].filter(Boolean)
   const completo = total && tengo >= total
   const codigo = set.tcg_online_code || ''
   return `
