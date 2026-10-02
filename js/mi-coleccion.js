@@ -72,8 +72,10 @@ const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
 // siguen llegando por enlace: no se borran, se REDIRIGEN a donde se ha
 // mudado cada cosa. Un `?ver=` que ya no existe no da error — abre la
 // primera pestaña y parece que el enlace estaba mal.
-const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar']
-const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas', cambios: 'resumen' }
+const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios']
+// `cambios` ya NO se muda al panel (tanda 451): vuelve a tener pantalla
+// propia, así que su enlace de siempre lleva otra vez a donde dice.
+const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas' }
 const pedida = params.get('ver')
 // El PANEL es lo primero que se abre (tanda 436). PINGU: «el panel
 // debería ser lo primero que se abre cuando abres mi colección». Tiene
@@ -424,13 +426,21 @@ function pintarResumenPanel() {
   const mas = $('mcMasEstadisticas')
   if (mas) {
     mas.innerHTML = `
-    <!-- El botón va AQUÍ y no al final: lo largo no se enseña hasta que
-         se pide, y así los cambios quedan a una pantalla y no a cuatro.
-         Además, la gráfica del valor es una consulta: sin abrir esto, no
-         se pide. -->
-    <p class="mc-ver-todo-fila">
-      <button type="button" class="btn-secondary" id="mcVerTodo" aria-expanded="false" aria-controls="mcEstadisticas">Ver todas las estadísticas</button>
-    </p>
+    <!-- CON LA MISMA CABECERA QUE LOS DEMÁS BLOQUES DEL PANEL (tanda
+         451). Era un botón suelto detrás del último vistazo, y PINGU: «el
+         botón de ver todas es un enlace pocho». Pegado debajo de la
+         tarjeta de Cambios parecía además que era SUYO. Todo lo que hay en
+         este panel es una tarjeta con su título y su enlace a la derecha;
+         esto también, y así se sabe de qué es el botón sin leerlo entero.
+
+         Y lo largo sigue sin enseñarse hasta que se pide: la gráfica del
+         valor es una consulta, y sin abrir esto no se pide. -->
+    <section class="mc-vistazo">
+      <div class="mc-vistazo-cabecera">
+        <h2 class="mc-subtitulo">Estadísticas</h2>
+        <button type="button" class="link-btn" id="mcVerTodo" aria-expanded="false" aria-controls="mcEstadisticas">Ver todas</button>
+      </div>
+    </section>
 
     <div class="mc-estadisticas hidden" id="mcEstadisticas">
           <div class="mc-diapos">
@@ -501,7 +511,7 @@ function pintarResumenPanel() {
   $('mcVerTodo').addEventListener('click', () => {
     const abierto = !$('mcEstadisticas').classList.toggle('hidden')
     $('mcVerTodo').setAttribute('aria-expanded', abierto ? 'true' : 'false')
-    $('mcVerTodo').textContent = abierto ? 'Ocultar las estadísticas' : 'Ver todas las estadísticas'
+    $('mcVerTodo').textContent = abierto ? 'Ocultar' : 'Ver todas'
   })
   // La gráfica es una consulta y llega cuando llega: el resto del panel
   // sale de lo que ya está en memoria y no la espera.
@@ -600,11 +610,15 @@ function diapoHtml(titulo, dentro) {
 // se piden una sola vez por visita.
 const DE_VISTAZO = 8
 
-function vistazoHtml(titulo, pestana, dentro) {
+// El rótulo del enlace se puede cambiar (tanda 451): «Ver todas» vale
+// para cartas y para expansiones, pero debajo de «Cambios» suena a que
+// hay una lista de cambios que ver, y lo que hay es una pantalla donde se
+// hacen. Un enlace dice a dónde lleva o no sirve de nada.
+function vistazoHtml(titulo, pestana, dentro, rotulo = 'Ver todas') {
   return `<section class="mc-vistazo">
     <div class="mc-vistazo-cabecera">
       <h2 class="mc-subtitulo">${escapeHtml(titulo)}</h2>
-      <button type="button" class="link-btn" data-ir-a="${escapeHtml(pestana)}">Ver todas</button>
+      <button type="button" class="link-btn" data-ir-a="${escapeHtml(pestana)}">${escapeHtml(rotulo)}</button>
     </div>
     ${dentro}
   </section>`
@@ -656,12 +670,51 @@ function vistazoDeSets(sets) {
       return { set: s, tengo }
     })
     .filter((x) => x.tengo > 0)
-    .sort((a, b) => b.tengo - a.tengo)
-    .slice(0, 4)
+    // LAS MÁS NUEVAS PRIMERO (tanda 451), no las que tienes más llenas.
+    // PINGU: «¿qué ha pasado con las expansiones? ¿Ya no están las más
+    // nuevas? Escarlata y Púrpura se ha ido hacia abajo». Ordenaba por
+    // CUÁNTAS TIENES, y eso en un vistazo de una sola fila esconde justo
+    // lo que acabas de empezar — que es lo que uno viene a mirar. Y además
+    // decía una cosa distinta de la pantalla de Expansiones, que ordena
+    // por fecha: dos listas de lo mismo en dos órdenes distintos parecen
+    // dos webs.
+    //
+    // Sin fecha va al final y no al principio: lo que no se sabe no puede
+    // ser lo más nuevo.
+    .sort((a, b) => {
+      const fa = Date.parse(a.set?.release_date || '')
+      const fb = Date.parse(b.set?.release_date || '')
+      if (Number.isFinite(fa) && Number.isFinite(fb)) return fb - fa
+      if (Number.isFinite(fa)) return -1
+      if (Number.isFinite(fb)) return 1
+      return b.tengo - a.tengo
+    })
+    // SEIS en el DOM, UNA FILA a la vista. PINGU: «muestra cuatro
+    // expansiones y no tiene sentido porque son tres columnas máximo;
+    // debería estar mostrando tres, igual que tus cartas».
+    //
+    // Y por eso no se corta a tres aquí: cuántas caben depende del ancho —
+    // tres en un escritorio, una en un móvil—, así que un número fijo deja
+    // una huérfana en cualquier otro ancho que no sea el que miraste. Se
+    // pide UNA FILA en el CSS y las que sobren caen en filas de alto cero.
+    // Es exactamente lo que ya hace «Tus cartas» desde la tanda 446.
+    .slice(0, 6)
   if (!conAlgo.length) {
     return vistazoHtml('Expansiones', 'album', '<p class="empty-state">Cuando añadas cartas, aquí verás por dónde vas en cada colección.</p>')
   }
-  return vistazoHtml('Expansiones', 'album', `<div class="mc-estanteria">${conAlgo.map((x) => tarjetaDeSet(x.set, x.tengo)).join('')}</div>`)
+  return vistazoHtml('Expansiones', 'album', `<div class="mc-estanteria mc-vistazo-sets">${conAlgo.map((x) => tarjetaDeSet(x.set, x.tengo)).join('')}</div>`)
+}
+
+// La tarjeta de Cambios del Panel: dos cifras y la puerta. Las dos salen
+// de lo que YA está cargado —las líneas de tu colección—, así que no
+// cuesta ni una consulta: el Panel es lo primero que se abre y no puede
+// quedarse esperando a nadie.
+function vistazoDeCambios() {
+  const doy = loQueDoy().length
+  const dentro = doy
+    ? `<p class="subtext"><strong>${doy}</strong> ${doy === 1 ? 'carta tuya está' : 'cartas tuyas están'} para cambiar. Mira quién las busca y qué te falta a ti.</p>`
+    : '<p class="empty-state">Marca una carta como «la doy» y aquí verás con quién encajas.</p>'
+  return vistazoHtml('Cambios', 'cambios', dentro, 'Abrir')
 }
 
 async function pintarVistazos() {
@@ -673,6 +726,11 @@ async function pintarVistazos() {
   const sets = await cargarSets().catch(() => null)
   if (pestania !== 'resumen') return
   caja.insertAdjacentHTML('beforeend', vistazoDeSets(sets))
+  // LA TARJETA DE CAMBIOS (tanda 451). Lo que estaba debajo —la pantalla
+  // entera— se ha ido a la suya; aquí queda lo que el Panel sí tiene que
+  // decir: cuántas das, cuántas buscas, y un sitio por donde entrar. Sin
+  // esto, una pantalla que existe deja de tener puerta.
+  caja.insertAdjacentHTML('beforeend', vistazoDeCambios())
   if (carpetasLista.length) {
     caja.insertAdjacentHTML('beforeend', vistazoHtml('Carpetas', 'carpetas',
       carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)))
@@ -2351,61 +2409,46 @@ async function dispararEscaner() {
     // abajo AFINA. El número de la franja del código se usa para quedarse
     // con la carta que lo lleva, que es lo que distingue una Charizard de
     // las otras veinte.
-    const nombreLeido = String(datos?.textos?.nombre || '').trim()
+    // LA FRANJA DE ARRIBA NO ES EL NOMBRE (tanda 451). Lleva la fase a la
+    // izquierda, el nombre en medio y los puntos de vida con su símbolo a
+    // la derecha, y el OCR las lee las tres porque las tres están ahí.
+    // PINGU escaneó un Reshiram y en el buscador le quedó «BÁSICO Reshiram
+    // EX pv180·»: cero resultados.
+    const nombreLeido = escaner.nombreDeLaFranja(datos?.textos?.nombre)
     if (!nombreLeido) {
       if (ayuda) ayuda.textContent = 'No he reconocido el nombre. Acerca más la carta.'
       return
     }
-    // El número impreso: lo que vaya detrás de letras y espacios en la
-    // franja de abajo. Se queda en `null` si no se lee nada — y entonces
-    // simplemente no afina, que es mejor que afinar con un número
-    // inventado.
-    const numero = (String(datos?.textos?.codigo || '').match(/\b(\d{1,3})\b/) || [])[1] || null
+    // El número impreso viene como «22/99»: lo de delante de la barra es
+    // la carta, lo de detrás cuántas tiene el set.
+    const numero = escaner.numeroDeLaFranja(datos?.textos?.codigo)
     cerrarEscaner()
     cambiarPestania('buscar')
-    $('mcBuscarTodo').value = nombreLeido
+    // PRIMERO CON EL NÚMERO, Y SI NO SALE NADA, SIN ÉL. Desde la tanda 450
+    // el buscador entiende «Mewtwo 64», así que la búsqueda más fina es
+    // nombre + número; pero el número lo ha leído un OCR de una foto a
+    // pulso, y un 8 donde hay un 6 dejaría cero resultados con la carta
+    // delante. Así que se intenta lo preciso y se afloja si no hay nada:
+    // nunca se acaba en una pantalla vacía por culpa de una cifra.
+    const campo = $('mcBuscarTodo')
+    campo.value = numero ? `${nombreLeido} ${numero}` : nombreLeido
     await buscarEnTodo()
-    if (numero) afinarPorNumero(numero)
+    if (numero && !$('mcBuscarResultados').querySelector('.mc-resultado')) {
+      // Y al aflojar, el número SE TIRA. Aquí vivía `afinarPorNumero`, que
+      // lo usaba para subir la carta probable; se quitó al ver que en este
+      // punto ese número YA HA FALLADO —si casara con algo, la búsqueda de
+      // arriba habría encontrado esa carta—. Volver a confiarle el orden
+      // es confiar en una lectura que acaba de demostrarse mala, y lo que
+      // haría es poner PRIMERA una carta equivocada: peor que no ordenar.
+      campo.value = nombreLeido
+      await buscarEnTodo()
+    }
   } catch {
     if (ayuda) ayuda.textContent = 'No he podido conectar. Mira tu conexión.'
   } finally {
     leyendo = false
     boton?.removeAttribute('disabled')
   }
-}
-
-// Deja arriba las cartas cuyo número impreso coincide con el leído. No
-// las filtra, Y ESO SIGUE SIENDO ASÍ DESPUÉS DE LA TANDA 450, aunque el
-// buscador ya entienda «Mewtwo 64» y meter el número en la búsqueda
-// fuera más corto.
-//
-// El motivo es que un número NO VALE LO MISMO según quién lo escriba. El
-// que teclea una persona es lo que esa persona quiere: filtrar por él es
-// obedecer. El que saca un OCR de una foto movida es una PISTA, y un 8
-// leído donde hay un 6 convertido en filtro deja cero resultados con la
-// carta correcta delante. Así que lo humano filtra y lo leído ordena.
-function afinarPorNumero(numero) {
-  const caja = $('mcBuscarResultados')
-  if (!caja) return
-  const filas = [...caja.children]
-  // El número se compara ENTERO contra el de la fila, no con un
-  // `includes`: «· 12» está dentro de «· 125», así que buscar el trozo
-  // sube a las 12x delante de la que de verdad es la 12. Es la trampa de
-  // la tanda 312 (un nombre de clase se comprueba entero) con otra ropa.
-  const numeroDe = (n) => {
-    const rotulo = n.querySelector('.mc-resultado-set')?.textContent || ''
-    return rotulo.split('·').pop().trim()
-  }
-  const casan = filas.filter((n) => numeroDe(n) === String(numero))
-  if (!casan.length || casan.length === filas.length) return
-  // Se prepende del último al primero para que arriba queden en el mismo
-  // orden en el que venían. `reverse()` cambia el array, así que la que
-  // va a quedar primera se guarda ANTES.
-  const primera = casan[0]
-  for (const n of [...casan].reverse()) caja.prepend(n)
-  primera.classList.add('mc-resultado-casa')
-  const cuenta = $('mcBuscarCuantas')
-  if (cuenta) cuenta.textContent = `${filas.length} ${filas.length === 1 ? 'carta' : 'cartas'} · la n.º ${numero} primero`
 }
 
 // ── Pestaña «Añadir» ──
@@ -2575,7 +2618,7 @@ function cambiarPestania(nueva) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios']]) {
     $(id).classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
@@ -2619,7 +2662,7 @@ function cambiarPestania(nueva) {
     pintarResumenPanel()
     void pintarVistazos()
   }
-  if (nueva === 'resumen' && esMia) abrirCambios()
+  if (nueva === 'cambios' && esMia) abrirCambios()
   if (nueva === 'carpetas') abrirCarpetas()
   if (nueva === 'pokedex') abrirPokedex()
   // Al entrar en Buscar, el foco al campo: se viene a escribir.
@@ -3127,7 +3170,7 @@ function repintar() {
   // fallo de la 377 con una pieza nueva — el panel decía «todavía no has
   // añadido ninguna carta» con la colección entera cargada.
   if (pestania === 'resumen') void pintarVistazos()
-  if (pestania === 'resumen' && esMia) abrirCambios()
+  if (pestania === 'cambios' && esMia) abrirCambios()
   if (pestania === 'pokedex') abrirPokedex()
 }
 

@@ -23726,3 +23726,111 @@ de cada mercado»** en /admin → Cartas: cuenta sets, sets con logo y cartas
 por mercado con `head: true` (ocho consultas de cuenta, sin traer filas), y
 dice qué hacer con lo que salga. Un número separa en un segundo lo que si
 no se discute a ciegas.
+
+## Tanda 451 — la franja de arriba no es el nombre (oct. 2026)
+
+PINGU escaneó un Reshiram EX y en el buscador le quedó
+**«BÁSICO Reshiram EX pv180·»**. Cero resultados.
+
+### Qué hay de verdad en esa franja
+
+La franja de arriba de una carta es la **fila entera**, y lleva tres
+cosas: a la izquierda la **fase** («BÁSICO», «FASE 1», «MEGA»), en medio el
+**nombre**, y a la derecha los **puntos de vida** con su etiqueta y el
+símbolo del tipo. El OCR las lee las tres porque las tres están ahí.
+
+Y no se arregla recortando más estrecho: la fase y los PV están a la
+**misma altura** que el nombre, no encima ni debajo. Recortar por los
+lados tampoco, porque el nombre no empieza siempre en el mismo sitio. Lo
+que sí se puede es quitar lo que **se sabe** que no es el nombre, y eso es
+`nombreDeLaFranja`: la etiqueta de PV en los cinco alfabetos latinos (PV,
+HP, KP, PS), la fase en los siete idiomas del escáner, la basura que deja
+el símbolo de energía al leerse como letra, y los PV sin etiqueta —
+siempre múltiplos de diez, así que un «180» suelto es eso y un «Porygon2»
+no—.
+
+Y una guarda que importa: **si al limpiar no queda nada, se devuelve lo de
+antes**. Buscar de más da resultados raros; buscar la cadena vacía no da
+ninguno.
+
+De la franja de abajo, `numeroDeLaFranja` se queda con lo de **delante** de
+la barra: en «22/99» el 99 es cuántas tiene el set.
+
+### El `\b` no sirve para el japonés
+
+La primera versión metía `たね` y `基础` en la misma expresión que las fases
+latinas, con `\b` a los lados. **`\b` es el borde entre un carácter de
+palabra y uno que no lo es, y para JavaScript un kanji no es carácter de
+palabra**: `\bたね\b` no casa con «たね リザードン» nunca. Una expresión que
+no casa no da error — deja el nombre sin limpiar y la búsqueda sin
+resultados. Lo pilló el único caso japonés de la prueba. El CJK va en su
+propia expresión y sin `\b`.
+
+### Se busca fino y se afloja, y el número que falla se tira
+
+Desde la 450 el buscador entiende «Mewtwo 64», así que la búsqueda más
+precisa es **nombre + número**. Pero ese número lo ha leído un OCR de una
+foto a pulso. Así que: se intenta lo preciso y, si no sale nada, se repite
+solo con el nombre. Nunca se acaba en una pantalla vacía por una cifra.
+
+Y al aflojar, **el número se tira**. Aquí vivía `afinarPorNumero`, que lo
+usaba para subir la carta probable; se quitó al ver que había quedado no
+solo muerta sino **dañina**: si el número casara con algo, la búsqueda de
+arriba ya habría encontrado esa carta, así que `afinar` solo corría cuando
+el número NO casaba con nada — y entonces usarlo para ordenar pondría
+PRIMERA una carta elegida por una lectura que acaba de demostrarse mala.
+Un código que solo se ejecuta cuando su premisa es falsa no es código de
+reserva: es código equivocado.
+
+### El vistazo de Expansiones: una fila, y medida
+
+PINGU: «muestra cuatro expansiones y no tiene sentido porque son tres
+columnas máximo; debería estar mostrando tres, igual que tus cartas». No se
+corta a tres en el JavaScript, porque cuántas caben depende del ancho y un
+número fijo deja una huérfana en cualquier otro: se pide **una fila** en el
+CSS, como `.mc-vistazo-cartas`.
+
+Y ahí salió por qué asomaba una cuarta: **las filas sobrantes miden cero,
+pero los huecos entre ellas no**. Con seis filas y 12 px de hueco la caja
+medía 169 donde su única tarjeta mide 145, y por esos 24 px asomaba la fila
+siguiente. `row-gap: 0`. Lo mismo le pasaba a «Tus cartas» desde la 446,
+solo que menos visible. **Se vio midiendo, no mirando.**
+
+### Y el orden de las expansiones, que PINGU notó
+
+«¿Ya no están las más nuevas? Escarlata y Púrpura se ha ido hacia abajo, y
+Mega Evolución también». Dos cosas distintas:
+
+1. **El vistazo del Panel** ordenaba por CUÁNTAS TIENES. En una sola fila
+   eso esconde justo lo que acabas de empezar — y además decía una cosa
+   distinta de la pantalla de Expansiones, que ordena por fecha. Dos listas
+   de lo mismo en dos órdenes distintos parecen dos webs. Ahora va por
+   fecha, y lo que no la tiene al final: lo que no se sabe no puede ser lo
+   más nuevo.
+2. **Una era se hunde si NINGUNO de sus sets tiene fecha**, y eso le pasa
+   justo a lo recién salido: `release_date` no viene en el listado de
+   TCGdex, solo llega al importar las cartas del set o cuando la fase de
+   fechas de `cartas-detalle` alcanza ese set. Es la pega de la 322 saliendo
+   por otro lado. Y había un fallo encima: con DOS eras sin fecha, el
+   comparador restaba `-Infinity − (-Infinity)` = **NaN**, y un comparador
+   que devuelve NaN no ordena — deja el orden que le dé la gana al motor.
+   Ahora las sin fecha van al final y entre ellas en orden estable.
+
+### Los cambios, en su propia pantalla
+
+Estuvieron al final del Panel desde la 408. PINGU: «quizá hay que
+scrollear demasiado; o meterlo en una pestaña o en algún otro sitio». El
+motivo de fondo es que **no es un widget**: son unas cifras, la gente que
+encaja contigo y el explicador de tres pasos. Es una pantalla entera puesta
+debajo de otra.
+
+No entra en el menú —cinco entradas es lo que hace que se lea de un
+vistazo, y es la forma que tiene Dex—, así que va como **subpantalla**,
+igual que «Cartas»: se llega por su tarjeta del Panel y por `?ver=cambios`,
+y no enciende ninguna pestaña porque no tiene. Y el Panel deja la puerta:
+una pantalla sin nadie que enlace a ella es una pantalla que no existe.
+
+De paso, el botón de «Ver todas las estadísticas» deja de ser un botón
+suelto detrás del último bloque —pegado debajo de la tarjeta de Cambios
+parecía SUYO— y pasa a tener la misma cabecera que todos los demás bloques
+del Panel.

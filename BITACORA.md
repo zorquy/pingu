@@ -35,6 +35,53 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 451 — la franja de arriba no es el nombre)
+
+**Hecho**: PINGU escaneó un Reshiram EX y en el buscador le quedó «BÁSICO
+Reshiram EX pv180·». La franja de arriba de una carta es la FILA ENTERA:
+fase a la izquierda, nombre en medio, puntos de vida y símbolo del tipo a
+la derecha. Y no se arregla recortando más estrecho, porque están a la
+MISMA altura que el nombre. Ahora se quita lo que se sabe que no es el
+nombre, en los siete idiomas del escáner, y del «22/99» se coge el 22.
+
+Se busca **nombre + número** y, si no sale nada, se repite solo con el
+nombre: nunca se acaba en una pantalla vacía por una cifra mal leída. Y al
+aflojar **el número se tira** — `afinarPorNumero` se ha QUITADO: desde la
+450, si el número casa con algo la búsqueda ya lo encuentra, así que esa
+función solo corría cuando el número no casaba con nada, y entonces ponía
+primera una carta elegida por una lectura ya demostrada mala.
+
+Escribiendo la prueba salió un fallo mío: en japonés y chino el limpiador
+no hacía NADA. `\b` es el borde entre un carácter de palabra y uno que no
+lo es, y para JavaScript un kanji no es carácter de palabra.
+
+**Expansiones del Panel**: a UNA FILA. Y el motivo de que asomara una
+cuarta era que las filas sobrantes miden cero pero **los huecos entre ellas
+no** — la caja medía 169 donde la tarjeta mide 145. `row-gap: 0`, en los
+dos vistazos («Tus cartas» lo tenía igual desde la 446).
+
+**El orden de las expansiones**, que PINGU notó: el vistazo del Panel
+ordenaba por cuántas tienes y ahora va por fecha, como la pantalla de
+Expansiones. Y en la estantería había un NaN: con dos eras sin fecha,
+`-Infinity − (-Infinity)`, y un comparador que devuelve NaN no ordena. Las
+eras sin fecha son justo las recién salidas, porque `release_date` no viene
+en el listado de TCGdex.
+
+**Los cambios** se van a su propia pantalla (`?ver=cambios`), como
+subpantalla sin pestaña igual que «Cartas»: eran una pantalla entera puesta
+al final del Panel. En el Panel queda una tarjeta corta con su «Abrir». Y
+el «Ver todas las estadísticas» pasa a tener la cabecera de los demás
+bloques, que suelto debajo de Cambios parecía suyo.
+
+**Ficheros**: `js/mi-coleccion/escaner.js`, `js/mi-coleccion.js`,
+`js/mi-coleccion/estanteria.js`, `mi-coleccion.html`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`: **NUEVA**
+`test-tanda-451.mjs`, y arreglos en 408, 410, 439 y 447 — la 410 llevaba
+roja desde la **440**, defendiendo una tira deslizable que aquella tanda
+sustituyó por una rejilla.
+
+**En curso / pendiente**: nada a medias. Rigores pendientes: 443 a 451.
+
 ## 2026-10-02 — PINGU-Claude (tandas 449 y 450 — ordenar y filtrar como en Dex)
 
 **Hecho**: la hoja de **«Ordenar por»** al estilo de Dex (sube desde abajo,

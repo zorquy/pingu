@@ -493,14 +493,24 @@
              se queda arriba; lo que son listas, aquí abajo y plegado. -->
         <div id="mcMasEstadisticas"></div>
 
-        <!-- LOS CAMBIOS, AQUÍ (tanda 408). En el panel de control de Dex,
-             «Intercambiar» es un acceso más del panel: no es una sección
-             aparte, es algo que haces con lo que el panel te acaba de
-             contar —lo que te sobra—. -->
+      </section>
+
+      <!-- LOS CAMBIOS, EN SU PROPIA PANTALLA (tanda 451). Estuvieron al
+           final del Panel desde la 408, y PINGU: «quizá hay que scrollear
+           demasiado; o meterlo en una pestaña o en algún otro sitio».
+           Tiene razón, y el motivo es que esto NO ES UN WIDGET: son unas
+           cifras, la gente que encaja contigo y el explicador de tres
+           pasos. Es una pantalla entera puesta debajo de otra.
+
+           Y no entra en el menú: cinco entradas es lo que hace que un menú
+           se lea de un vistazo, y es la forma que tiene Dex. Así que va
+           como SUBPANTALLA, igual que «Cartas»: se llega por su tarjeta
+           del Panel y por `?ver=cambios`, y no enciende ninguna pestaña
+           porque no tiene. -->
+      <section id="mcPanelCambios" class="hidden" role="tabpanel" aria-label="Cambios">
         <div class="mc-bloque-cambios" id="mcBloqueCambios">
           <h2 class="mc-subtitulo">Cambios</h2>
-
-        <div id="mcCambiosPanel"></div>
+          <div id="mcCambiosPanel"></div>
         </div>
       </section>
 

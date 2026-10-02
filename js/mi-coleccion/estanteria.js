@@ -101,7 +101,26 @@ export function gruposDeEstanteria(sets, favoritos = new Set()) {
   // primero de la lista: desde que los promos se van al fondo, el primero
   // ya no es el más nuevo si la era SOLO tiene promos.
   const masNuevo = (sets) => Math.max(...sets.map(cuando))
-  eras.sort((a, b) => masNuevo(b.sets) - masNuevo(a.sets))
+  // Y DOS ERAS SIN NINGUNA FECHA NO SE PUEDEN RESTAR (tanda 451): las dos
+  // valen `-Infinity`, y `-Infinity - (-Infinity)` es **NaN**. Un
+  // comparador que devuelve NaN no ordena: deja el orden que le dé la gana
+  // al motor, y encima distinto según cuántas haya. No da ningún error.
+  //
+  // Pasa de verdad y justo con lo más nuevo: `release_date` no viene en el
+  // LISTADO de sets de TCGdex (es un «SetResume»), solo llega cuando se
+  // importan las cartas del set o cuando la fase de fechas de
+  // `cartas-detalle` llega hasta él — así que las eras recién salidas son
+  // precisamente las que pueden estar enteras sin fecha, y caen al fondo.
+  // Mientras no tengan fecha no hay forma de saber cuál es más nueva, pero
+  // sí se puede dejar un orden ESTABLE en vez de uno al azar.
+  eras.sort((a, b) => {
+    const na = masNuevo(a.sets)
+    const nb = masNuevo(b.sets)
+    if (Number.isFinite(na) && Number.isFinite(nb)) return nb - na
+    if (Number.isFinite(na)) return -1
+    if (Number.isFinite(nb)) return 1
+    return String(a.id).localeCompare(String(b.id))
+  })
   grupos.push(...eras)
 
   if (especiales.length) {

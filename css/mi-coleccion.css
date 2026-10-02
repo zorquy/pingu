@@ -1808,6 +1808,13 @@
   grid-template-rows: auto;
   grid-auto-rows: 0;
   gap: var(--e-md);
+  /* Y el hueco ENTRE FILAS a cero (tanda 451), que es la otra mitad de
+     este truco y faltaba. Las filas sobrantes miden cero, pero los HUECOS
+     entre ellas no: con seis filas y 12 px de hueco, la caja medía 12 px
+     más de lo que mide su única fila, y por esa rendija asomaba un trozo
+     de la fila siguiente. Se vio midiendo —145 de tarjeta dentro de una
+     caja de 169—, no mirando. */
+  row-gap: 0;
   overflow: hidden;
 }
 
@@ -4695,14 +4702,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
-/* La carta cuyo número coincide con el leído por el escáner. Se marca, no
-   se filtra: un OCR puede leer un 8 donde hay un 6, y esconder la buena
-   por fiarse de eso sería peor que enseñarla la segunda. */
-.mc-resultado-casa .mc-resultado-foto {
-  outline: 2px solid var(--navy);
-  outline-offset: 2px;
-}
-
 /* ══════════════════════════════════════════════════════════════════
    LA BANDEJA DE ORDENAR (tanda 449)
    ══════════════════════════════════════════════════════════════════
@@ -4836,4 +4835,31 @@ input.mc-alb-titulo:not([readonly]):focus {
     margin: auto;
     border-radius: var(--radius-xl);
   }
+}
+
+/* El vistazo de Expansiones del Panel, a UNA FILA (tanda 451). PINGU:
+   «muestra cuatro expansiones y no tiene sentido porque son tres columnas
+   máximo; debería estar mostrando tres, igual que tus cartas».
+
+   Mismo truco que `.mc-vistazo-cartas`, y por el mismo motivo: cuántas
+   caben depende del ancho —tres en un escritorio, una en un móvil—, así
+   que cortar a tres en el JavaScript dejaría una huérfana en cualquier
+   otro ancho. Se pide una fila y las que sobren caen en filas de alto
+   cero, que el recorte se lleva. */
+.mc-vistazo-sets {
+  grid-template-rows: auto;
+  grid-auto-rows: 0;
+  /* Lo mismo que en `.mc-vistazo-cartas`: las filas sobrantes miden cero
+     pero sus huecos no, y por esa rendija asoma la fila siguiente. */
+  row-gap: 0;
+  overflow: hidden;
+}
+
+/* Las estadísticas son un bloque más del Panel desde la tanda 451, pero
+   viven en SU propio contenedor (`#mcMasEstadisticas`) y no dentro de
+   `.mc-vistazos`, así que no heredan su hueco: sin esto, su título
+   aparecía pegado al párrafo del bloque de arriba y los dos se leían como
+   uno. El mismo paso que separa a los demás. */
+#mcMasEstadisticas > .mc-vistazo {
+  margin-top: var(--e-2xl);
 }

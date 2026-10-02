@@ -83,3 +83,78 @@ export function recortarFranjas(video, marco, lienzo, calidad = 0.85) {
   }
   return fuera
 }
+
+// ══════════════════════════════════════════════════════════════════
+// LIMPIAR LO QUE SE LEE DE LA FRANJA DE ARRIBA (tanda 451)
+// ══════════════════════════════════════════════════════════════════
+//
+// PINGU escaneó un Reshiram EX y en el buscador le quedó
+// «BÁSICO Reshiram EX pv180·». Cero resultados, claro.
+//
+// LA FRANJA DE ARRIBA NO ES EL NOMBRE: es la fila entera de la carta, y
+// lleva TRES cosas. A la izquierda la FASE («BÁSICO», «FASE 1», «MEGA»),
+// en medio el nombre, y a la derecha los PUNTOS DE VIDA con su etiqueta y
+// el símbolo del tipo. El OCR las lee todas, porque todas están ahí.
+//
+// Recortar la franja más estrecha no vale: la fase y los PV están a la
+// MISMA ALTURA que el nombre, no encima ni debajo. Y recortar por los
+// lados tampoco, porque el nombre no empieza siempre en el mismo sitio.
+// Lo que sí se puede es quitar lo que SE SABE que no es el nombre.
+
+// La etiqueta de los puntos de vida en los siete idiomas del escáner:
+// PV (español y francés), HP (inglés), KP (alemán), PS (italiano), y en
+// japonés y chino va con el número pegado a «HP».
+const PUNTOS_DE_VIDA = /\b(pv|hp|ps|kp)\s*\.?\s*\d{1,3}\b|\b\d{1,3}\s*(pv|hp|ps|kp)\b/gi
+
+// La fase, arriba a la izquierda. Son las de `FASES_ES` escritas como las
+// IMPRIME la carta, que no es lo mismo que como las llama TCGdex.
+const FASE = new RegExp(
+  '\\b(' + [
+    'b[aá]sico', 'basic', 'basis', 'base', 'b[aá]sica',
+    'fase\\s*\\d?', 'stage\\s*\\d?', 'phase\\s*\\d?', 'niveau\\s*\\d?', 'liv\\.?\\s*\\d?',
+    'mega', 'break', 'v-?union', 'vstar', 'vmax', 'restaurado', 'restored',
+  ].join('|') + ')\\b', 'gi')
+
+// El japonés y el chino van en SU PROPIA expresión y SIN `\b`. No es un
+// detalle de estilo: `\b` es el borde entre un carácter de palabra y uno
+// que no lo es, y para JavaScript un kanji NO es carácter de palabra. Así
+// que `\bたね\b` no casa con «たね リザードン» NUNCA — y la prueba lo pilló
+// con el único caso japonés que tenía. Una expresión que no casa no da
+// error: deja el nombre sin limpiar y la búsqueda sin resultados.
+const FASE_CJK = /(たね|[12１２]進化|基[础礎]|[一二]階|[一二]阶)/g
+
+// Lo que el símbolo de energía y el canto de la carta dejan al leerse como
+// si fueran letras.
+const BASURA = /[·•|¦×✕*_~^<>«»"'`´¨=+\\/•·]/g
+
+// Y los puntos de vida SIN su etiqueta. Siempre son múltiplos de diez de
+// dos o tres cifras, así que un «180» suelto en esta franja es eso; un
+// número que fuera parte del nombre («Porygon2», «Zygarde 50%») no va
+// suelto ni es múltiplo de diez.
+const VIDA_SUELTA = /\b\d{2,3}0\b/g
+
+export function nombreDeLaFranja(texto) {
+  let t = String(texto || '')
+  t = t.replace(BASURA, ' ')
+  t = t.replace(PUNTOS_DE_VIDA, ' ')
+  t = t.replace(FASE, ' ')
+  t = t.replace(FASE_CJK, ' ')
+  t = t.replace(VIDA_SUELTA, ' ')
+  // Lo que queda, con los espacios recogidos. Y si no queda NADA, se
+  // devuelve lo de antes sin tocar: un limpiador que se lleva por delante
+  // el nombre entero es peor que no limpiar — mejor buscar de más que no
+  // buscar nada.
+  const limpio = t.replace(/\s{2,}/g, ' ').trim()
+  return limpio || String(texto || '').trim()
+}
+
+// El número impreso de la franja de ABAJO, que viene como «22/99» o
+// «22/99 · Ilus. Shizurow». Se queda con lo de delante de la barra: el 99
+// es cuántas tiene el set, no la carta.
+export function numeroDeLaFranja(texto) {
+  const t = String(texto || '')
+  const conBarra = t.match(/\b(\d{1,3})\s*\/\s*\d{1,3}\b/)
+  if (conBarra) return conBarra[1]
+  const suelto = t.match(/\b(\d{1,3})\b/)
+  return suelto ? suelto[1] : null
+}
