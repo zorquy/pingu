@@ -35,6 +35,27 @@
 const LIMITE = 900 * 1024 // dos franjas en JPEG caben de sobra
 const OCR_URL = 'https://api.ocr.space/parse/image'
 
+// LOS NOMBRES QUE VALEN para la clave. El primero es el nuestro; los
+// otros tres son cómo se llama en la documentación del proveedor y cómo
+// es fácil que alguien la escriba de memoria. Aceptar cuatro nombres
+// cuesta cuatro líneas; que la clave esté puesta y el escáner diga que no
+// está configurado cuesta una tarde de buscar dónde.
+const NOMBRES_CLAVE = ['OCR_API_KEY', 'OCR_SPACE_API_KEY', 'OCRSPACE_API_KEY', 'OCR_KEY']
+
+// Qué variables PARECIDAS llega a ver la función. Solo los NOMBRES, nunca
+// los valores: esto sale por la respuesta HTTP y un valor ahí sería la
+// clave publicada. Sirve para distinguir los dos fallos que se parecen:
+// que la clave esté con otro nombre, o que esté con el nuestro pero sin
+// el ámbito «Functions» —y entonces aquí no se ve NINGUNA—.
+function clavesALaVista(env) {
+  return Object.keys(env).filter((k) => /ocr|vision/i.test(k)).sort()
+}
+
+function laClave(env) {
+  for (const nombre of NOMBRES_CLAVE) if (env[nombre]) return { clave: env[nombre], nombre }
+  return { clave: null, nombre: null }
+}
+
 // El idioma de la CARTA (el de la pantalla del escáner) al código del
 // proveedor. Y el MOTOR va aquí al lado a propósito: el motor 2 lee mejor
 // el alfabeto latino pero NO sabe japonés ni chino —se los salta sin dar
@@ -59,7 +80,7 @@ export default async function handler(req) {
   } catch {
     return json({ error: 'No he podido leer la petición.' }, 400)
   }
-  const { estado, datos } = await leerCarta(cuerpo, { clave: process.env.OCR_API_KEY })
+  const { estado, datos } = await leerCarta(cuerpo, { env: process.env })
   return json(datos, estado)
 }
 
@@ -68,7 +89,8 @@ export default async function handler(req) {
 // (`escaneo.mjs`, `cartas-detalle`), y aquí hace falta de verdad porque lo
 // único que se puede probar sin gastar peticiones de verdad contra el
 // proveedor es esto.
-export async function leerCarta(cuerpo, { clave, fetchImpl = fetch } = {}) {
+export async function leerCarta(cuerpo, { env = {}, fetchImpl = fetch } = {}) {
+  const { clave } = laClave(env)
   const { nombre, codigo, idioma } = cuerpo || {}
   if (!esRecorte(nombre) || !esRecorte(codigo)) {
     return { estado: 400, datos: { error: 'Faltan los dos recortes de la carta.' } }
@@ -82,11 +104,24 @@ export async function leerCarta(cuerpo, { clave, fetchImpl = fetch } = {}) {
   }
 
   if (!clave) {
+    // EL DETALLE DICE CUÁL DE LOS DOS FALLOS ES. «No está configurado»
+    // con la clave puesta en Netlify pasó de verdad, y los dos motivos
+    // posibles se parecen mucho desde fuera:
+    //
+    //  · Está con OTRO NOMBRE → aquí aparece ese nombre en la lista.
+    //  · Está con el nuestro pero SIN el ámbito «Functions» (o el deploy
+    //    es anterior a la variable: Netlify no vuelve a desplegar una
+    //    función cuya suma de control no ha cambiado, así que una
+    //    variable nueva no la alcanza hasta el siguiente deploy) → la
+    //    lista sale VACÍA.
+    const ala = clavesALaVista(env)
     return {
       estado: 503,
       datos: {
         error: 'El lector de cartas no está configurado todavía.',
-        detalle: 'Falta la variable OCR_API_KEY en Netlify.',
+        detalle: ala.length
+          ? `Hay variables parecidas, pero ninguna se llama como toca. Llegan: ${ala.join(', ')}. Vale cualquiera de ${NOMBRES_CLAVE.join(', ')}.`
+          : 'A la función no le llega NINGUNA variable de OCR. Mira que OCR_API_KEY tenga el ámbito «Functions» en Netlify y vuelve a desplegar: una variable nueva no alcanza a una función que no ha cambiado.',
         sinConfigurar: true,
       },
     }
@@ -171,4 +206,4 @@ function json(cuerpo, estado = 200) {
   })
 }
 
-export { leerFranja, limpiar, esRecorte, IDIOMAS, LIMITE }
+export { leerFranja, limpiar, esRecorte, laClave, clavesALaVista, IDIOMAS, NOMBRES_CLAVE, LIMITE }

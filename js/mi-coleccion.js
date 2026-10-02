@@ -2235,7 +2235,18 @@ async function dispararEscaner() {
       // El mensaje del servidor tal cual: distingue «no está montado» de
       // «no se te ha leído la carta», y quien lo prueba necesita saber
       // cuál de las dos es.
-      if (ayuda) ayuda.textContent = datos.error || 'No he podido leer la carta.'
+      //
+      // Y con `sinConfigurar` se enseña ADEMÁS el detalle, que dice POR QUÉ
+      // no llega la clave (otro nombre, o sin el ámbito «Functions»). No es
+      // un secreto: ahí van NOMBRES de variables, nunca valores. Y es un
+      // estado pasajero que desaparece en cuanto el escáner funciona —
+      // mientras dura, es la diferencia entre arreglarlo en un minuto y
+      // mirar el panel de Netlify a ciegas desde el móvil.
+      if (ayuda) {
+        ayuda.textContent = datos.sinConfigurar && datos.detalle
+          ? `${datos.error} ${datos.detalle}`
+          : datos.error || 'No he podido leer la carta.'
+      }
       return
     }
     // CÓMO SE USA LO LEÍDO, que no es «meterlo todo en el buscador».

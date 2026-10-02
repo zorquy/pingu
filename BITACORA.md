@@ -35,6 +35,34 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 448 — por qué el escáner no veía la clave)
+
+**Hecho**: PINGU puso `OCR_API_KEY` en Netlify y el escáner seguía
+diciendo «el lector de cartas no está configurado todavía». La causa más
+probable es de Netlify y conviene tenerla escrita: **una variable nueva no
+alcanza a una función que no ha cambiado**, porque Netlify no vuelve a
+desplegar una función cuya suma de control es la misma; y además la
+variable necesita el ámbito **Functions** (las de `netlify.toml` NO lo
+tienen nunca). Este push cambia el fichero de la función, así que la
+redespliega él solo.
+
+Y para no volver a adivinar, la función se diagnostica: acepta cuatro
+nombres de clave (`OCR_API_KEY`, `OCR_SPACE_API_KEY`, `OCRSPACE_API_KEY`,
+`OCR_KEY`) y, cuando no encuentra ninguna, dice si le llegan variables
+PARECIDAS —con su nombre, nunca su valor, que esto sale por HTTP— o si no
+le llega ninguna, que es el otro fallo y pide otra cosa. El escáner enseña
+ese detalle en pantalla mientras esté sin configurar.
+
+**Ficheros**: `netlify/functions/leer-carta.mjs`, `js/mi-coleccion.js`. En
+`pruebas`: `pruebas/test-leer-carta.mjs`.
+
+**En curso / pendiente**: estoy montando el **componente de filtros** que
+pidió PINGU (ordenar por fecha de salida, nombre, ilustrador, número de
+Pokédex, precio, cantidad y tipo de energía; y filtrar por estado, notas,
+tipo de carta, tipo de energía, tipo de entrenador y rareza). Toca
+`mi-coleccion.html`, `js/mi-coleccion.js` y `css/mi-coleccion.css` — **si
+eres IBAI, no los toques**. Rigores pendientes: 443 a 448.
+
 ## 2026-10-02 — PINGU-Claude (tanda 447 — el menú como el de Dex, Buscar y el escáner de cartas)
 
 **Hecho**: el menú de /mi-coleccion queda como el de Dex —**Panel ·
