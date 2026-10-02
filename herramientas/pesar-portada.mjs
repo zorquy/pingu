@@ -46,7 +46,7 @@ for (const m of html.matchAll(/<script[^>]+type="module"[^>]+src="([^"]+)"/g)) {
 }
 
 detalle.sort((a, b) => b[1] - a[1])
-for (const [f, gz] of detalle.slice(0, 8)) console.log(`  ${(gz / 1024).toFixed(1).padStart(6)} KB  ${f}`)
+for (const [f, gz] of detalle) console.log(`  ${(gz / 1024).toFixed(1).padStart(6)} KB  ${f}`)
 console.log(`  ${'—'.repeat(30)}`)
 console.log(`  ${(total / 1024).toFixed(1)} KB gzip en total (${vistos.size} ficheros)`)
 console.log(`  Presupuesto: 170 KB → ${total / 1024 <= 170 ? `✅ caben ${(170 - total / 1024).toFixed(1)} KB más` : '❌ PASADO'}`)

@@ -66,11 +66,33 @@ console.log('\n── 1. Cinco pestañas, y las mismas en el móvil ──')
   check('en el móvil se ven las cinco',
     (await page.locator('#mcMenu [data-pestania]:visible').count()) === 5)
   check('  …y ya no hace falta un «Más»', (await page.locator('#mcMenuMas').count()) === 0)
-  // Y los nombres caben enteros: un quinto de 390 px da para «Expansiones»
-  // solo si la barra va de lado a lado.
-  const cortados = await page.locator('#mcMenu .mc-menu-texto').evaluateAll((l) =>
-    l.filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent))
-  check('  …y ningún nombre sale cortado', cortados.length === 0, cortados.join(','))
+  // LOS NOMBRES YA NO SE VEN (tanda 452): el menú del móvil es una burbuja
+  // de iconos, como la de Dex. Lo que se comprobaba aquí —que «Expansiones»
+  // no se cortara— deja de tener sentido cuando no hay texto, y se cambia
+  // por lo que SÍ importa ahora: que el nombre siga estando para quien no
+  // ve. Esconderlo con `display: none` lo sacaría también del árbol de
+  // accesibilidad y la burbuja serían cinco dibujos sin nombre.
+  const estado = await page.locator('#mcMenu [role="tab"]').evaluateAll((l) =>
+    l.map((b) => ({
+      nombre: (b.textContent || '').trim(),
+      seVe: [...b.querySelectorAll('.mc-menu-texto')].some((t) => t.getBoundingClientRect().width > 5),
+      icono: b.querySelectorAll('svg').length,
+    })))
+  check('  …sin letra a la vista, que es la burbuja de Dex',
+    estado.every((b) => !b.seVe), JSON.stringify(estado.filter((b) => b.seVe)))
+  check('  …pero con su nombre para quien no ve',
+    estado.every((b) => b.nombre.length > 2), JSON.stringify(estado.map((b) => b.nombre)))
+  check('  …y cada uno con su icono', estado.every((b) => b.icono === 1), JSON.stringify(estado.map((b) => b.icono)))
+
+  // Y FLOTA: no toca los bordes. Si los tocara sería una barra, que es lo
+  // que había antes de la 452.
+  const burbuja = await page.locator('#mcMenu').evaluate((n) => {
+    const c = n.getBoundingClientRect()
+    return { izq: Math.round(c.left), der: Math.round(innerWidth - c.right), radio: parseFloat(getComputedStyle(n).borderRadius) }
+  })
+  check('  …y flota, con aire a los dos lados',
+    burbuja.izq > 8 && Math.abs(burbuja.izq - burbuja.der) <= 2, JSON.stringify(burbuja))
+  check('  …y es una píldora', burbuja.radio >= 24, String(burbuja.radio))
   await page.close()
 }
 
