@@ -371,6 +371,16 @@ enlace de salto—. El salvavidas lo arregló (`rigor_comun.rescatar()`),
 pero solo porque `comprobar-arbol.sh` lo cantó. Si hay que parar uno,
 espera a que acabe la mutación en curso o rescata justo después.
 
+**Una captura con los datos a medias no es la pantalla: es OTRA pantalla**
+(tanda 441). Todo el repaso visual de las tandas 439 y 440 se hizo sobre
+capturas donde las cartas salían en blanco, porque en este contenedor la
+red a TCGdex está cerrada, y se dio por hecho que era cosa del contenedor.
+Lo era… y además tapaba un fallo: una carta cuya imagen no responde se
+quedaba en un RECTÁNGULO INVISIBLE —ocupa, se puede pulsar, no dibuja
+nada—, y eso en producción le pasaba a cientos. Se vio al interceptar las
+peticiones con `page.route` y servir una carta de mentira con la
+proporción real. Si vas a mirar una pantalla, llénala primero.
+
 **Dónde va cada hoja de CSS** (tanda 299, y el fallo que costó
 aprenderlo): `components.css` y `style.css` los baja TODO el mundo; lo
 de una sola pantalla va en su hoja (`foro.css`, `portada.css`,

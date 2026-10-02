@@ -476,6 +476,20 @@
    escaneo ya trae la suya pintada y un marco encima de otro marco es
    ruido. Lo que no se ve mirando la ilustración —cuántas tienes y qué
    variante es— va encima; el resto, en la ficha. */
+/* La cuenta de lo que estás viendo (tanda 441). Va al final de la barra y
+   se lleva el hueco que sobra, así que queda pegada a la derecha sin tener
+   que sacarla de la fila. */
+.mc-cuantas {
+  margin: 0 0 0 auto;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-cuantas:empty {
+  display: none;
+}
+
 .mc-carta {
   display: flex;
   flex-direction: column;
@@ -511,13 +525,18 @@
 /* El hueco de una carta sin escaneo. Lleva el mismo `aspect-ratio` que
    la imagen para que la fila no baile cuando una de cada diez no tiene
    foto, y el nombre dentro para que se sepa qué es. */
+/* El nombre va SIEMPRE, debajo de la imagen (tanda 441). No se ve mientras
+   el escaneo cargue; aparece solo si la imagen se quita porque no quedaba
+   ningún sitio de dónde sacarla. Así no hay que montar HTML dentro de un
+   `onerror`. */
 .mc-carta-sinfoto {
   display: flex;
+  position: absolute;
+  inset: 0;
   flex-direction: column;
   gap: var(--e-xs);
   align-items: center;
   justify-content: center;
-  aspect-ratio: 245 / 342;
   padding: var(--e-sm);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -531,6 +550,14 @@
 .mc-carta-sinfoto small {
   color: var(--text-dim);
   font-weight: 400;
+}
+
+/* La imagen tapa al nombre mientras esté. Va posicionada por lo mismo que
+   el nombre: los dos ocupan el botón entero y se solapan, en vez de ir uno
+   detrás del otro en la columna. */
+.mc-carta-foto img {
+  position: relative;
+  z-index: 1;
 }
 
 /* El foco se ve SIEMPRE, y por fuera: un contorno pegado al canto de la
@@ -1588,100 +1615,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: var(--e-md);
-}
-
-/* ── DÓNDE ESTÁS CERCA (tanda 440) ──
-   Una LISTA y no tarjetas grandes: son cinco colecciones y lo que se lee
-   de cada una es un número. Cinco tiles de 240 px se comen la pantalla
-   para decir cinco cifras. */
-.mc-cerca {
-  display: grid;
-  gap: var(--e-xs);
-}
-
-.mc-cerca-fila {
-  display: flex;
-  gap: var(--e-md);
-  align-items: center;
-  width: 100%;
-  /* Lo que se pulsa mide 44 (tanda 312). Va en `min-height` y no en el
-     relleno, que cambiaría el dibujo. */
-  min-height: 44px;
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.mc-cerca-fila:hover {
-  border-color: var(--navy);
-}
-
-.mc-cerca-fila:focus-visible {
-  outline: 2px solid var(--navy);
-  outline-offset: 2px;
-}
-
-.mc-cerca-logo {
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  /* Una MEDIDA, en la retícula de 4: el hueco del logo, que no se encoge
-     —un hijo de flex cede antes de desbordar (tanda 320)—. */
-  width: 56px;
-  height: 36px;
-}
-
-.mc-cerca-logo img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.mc-cerca-texto {
-  display: grid;
-  gap: var(--e-xs);
-  flex: 1 1 auto;
-  /* Para que el nombre largo se recorte en vez de empujar a la cifra
-     fuera: `ellipsis` no hace nada sin su propia caja con `min-width: 0`
-     (tanda 320). */
-  min-width: 0;
-}
-
-.mc-cerca-nombre {
-  overflow: hidden;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mc-cerca-faltan {
-  display: grid;
-  flex: 0 0 auto;
-  justify-items: end;
-  color: var(--navy);
-  font-family: var(--font-display);
-  font-size: var(--t-lg);
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-/* La CIFRA va en la tipografía de los títulos y el rótulo de debajo no, y
-   como el padre la impone hay que deshacerla aquí. Se escribe la pila del
-   cuerpo tal cual —la misma de `body` en style.css— y NO un
-   `var(--font-base, …)`: ese token no existe, y pedir con respaldo algo
-   que no existe es lo que CLAUDE.md prohíbe, porque dice que hay un token
-   cuando lo que hay es el valor de reserva. */
-.mc-cerca-faltan small {
-  color: var(--text-mid);
-  font-family: 'Inter', sans-serif;
-  font-size: var(--t-2xs);
-  font-weight: 500;
 }
 
 /* Con fondo y borde, como un bolsillo del álbum: una carta cuyo escaneo

@@ -634,49 +634,18 @@ function vistazoDeCartas() {
 // Las expansiones en las que MÁS llevas. No las más nuevas: lo que se
 // quiere ver de un vistazo es dónde estás cerca de algo, que es lo mismo
 // que decidió la tanda 429 para la Pokédex.
-// ── DÓNDE ESTÁS CERCA (tanda 440) ──
+// AQUÍ VIVIÓ «DÓNDE ESTÁS CERCA», de la tanda 440 a la 441, y se va por
+// donde se fueron las dos diapositivas repetidas de la 439: PINGU, al
+// verlo puesto, «no tiene sentido porque abajo ya están las expansiones».
+// Y es el mismo argumento que se usó para quitar aquellas — una pantalla
+// que dice lo mismo dos veces con dos formas distintas no dice más, dice
+// lo mismo más largo. El vistazo de «Expansiones» de aquí abajo ya enseña
+// por dónde vas en cada colección, con su barra y su cuenta.
 //
-// Lo único ACCIONABLE que puede tener el panel, y no existía en ninguna
-// parte: a qué colección le faltan menos cartas. Todo lo demás del panel
-// cuenta lo que YA tienes; esto dice qué hacer esta tarde.
-//
-// Se ordena por CUÁNTAS FALTAN y no por porcentaje. Un 90 % de un set de
-// 191 son 19 cartas y un 60 % de uno de 20 son 8: el porcentaje dice que
-// vas mejor en el primero y la verdad es que acabas antes el segundo. Lo
-// que se pregunta aquí es «¿cuál puedo cerrar?», y eso se mide en cartas.
-//
-// Fuera las completas —ahí no hay nada que hacer— y fuera las que tienen
-// la numeración a null: sin total no se puede decir cuántas faltan, y un
-// «te faltan NaN» es peor que no salir.
-const DE_CERCA = 5
-
-function vistazoDeCerca(sets) {
-  const cerca = (sets || [])
-    .map((s) => {
-      const total = totalDe(s)
-      const tengo = [...cartas.values()].filter((c) => c?.set_id === s.id && tengoDe(c.id) > 0).length
-      return { set: s, tengo, total, faltan: total - tengo }
-    })
-    .filter((x) => x.total > 0 && x.tengo > 0 && x.faltan > 0)
-    .sort((a, b) => a.faltan - b.faltan)
-    .slice(0, DE_CERCA)
-  if (!cerca.length) return ''
-  const filas = cerca.map((x) => {
-    const pct = Math.min(100, Math.round((x.tengo / x.total) * 100))
-    const dibujos = [urlDeLogo(x.set.logo_path, x.set.market || mercado), x.set.symbol_url ? `${x.set.symbol_url}.webp` : null].filter(Boolean)
-    return `<button type="button" class="mc-cerca-fila" data-set="${escapeHtml(x.set.id)}">
-      <span class="mc-cerca-logo">${
-        dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />` : ''
-      }</span>
-      <span class="mc-cerca-texto">
-        <span class="mc-cerca-nombre">${escapeHtml(x.set.name || x.set.id)}</span>
-        <span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>
-      </span>
-      <span class="mc-cerca-faltan">${x.faltan}<small>${x.faltan === 1 ? 'te falta' : 'te faltan'}</small></span>
-    </button>`
-  }).join('')
-  return vistazoHtml('Dónde estás cerca', 'album', `<div class="mc-cerca">${filas}</div>`)
-}
+// Queda escrito el criterio por si vuelve en otra parte: se ordenaba por
+// CARTAS QUE FALTAN y no por porcentaje, porque un 96 % de un set de 100
+// son 4 cartas y un 80 % de uno de 10 son 2 — el porcentaje dice que vas
+// mejor en el primero y la verdad es que acabas antes el segundo.
 
 function vistazoDeSets(sets) {
   const conAlgo = (sets || [])
@@ -702,11 +671,6 @@ async function pintarVistazos() {
   caja.innerHTML = vistazoDeCartas()
   const sets = await cargarSets().catch(() => null)
   if (pestania !== 'resumen') return
-  // «Dónde estás cerca» va ARRIBA del todo, delante incluso de tus cartas:
-  // es lo único de esta pantalla que dice qué HACER. Se mete con
-  // `afterbegin` y no antes porque depende de una consulta, y el panel no
-  // puede quedarse en blanco esperándola (la decisión de la 436).
-  caja.insertAdjacentHTML('afterbegin', vistazoDeCerca(sets))
   caja.insertAdjacentHTML('beforeend', vistazoDeSets(sets))
   if (carpetasLista.length) {
     caja.insertAdjacentHTML('beforeend', vistazoHtml('Carpetas', 'carpetas',
@@ -802,16 +766,28 @@ function lineaHtml(l) {
         brillo ? ` data-brillo="${brillo}"` : ''
       } data-ficha aria-label="${escapeHtml(etiqueta)}">
         ${
-          // Sin escaneo se pinta un hueco CON EL NOMBRE dentro, no nada.
-          // Al quitar el texto de debajo, una carta sin imagen se quedaba
-          // en un botón vacío de cero píxeles: invisible y, peor, sin
-          // poder pulsarse para abrir su ficha. Un hueco que no se puede
-          // tocar es una carta que has perdido.
-          escaneo
-            ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
-            : `<span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}${
-                c?.local_id ? `<small>${escapeHtml(c.local_id)}</small>` : ''
-              }</span>`
+          // EL NOMBRE VA SIEMPRE DEBAJO, y la imagen encima (tanda 441).
+          //
+          // Antes era un «o esto o lo otro»: con escaneo, la imagen; sin
+          // escaneo, el nombre. El caso que faltaba es el de en medio —hay
+          // dirección PERO NO RESPONDE—, y es de lejos el más común: la
+          // cadena de respaldo se queda sin sitios, el `onerror` quita la
+          // imagen y el botón se queda vacío. No es un hueco de cero
+          // píxeles (el `aspect-ratio` del botón lo reserva desde la 321),
+          // es algo peor de explicar: un rectángulo INVISIBLE que sí se
+          // puede pulsar. Y ahora mismo le pasa a cientos de cartas, que
+          // es lo que PINGU viene diciendo desde hace tandas.
+          //
+          // Poniendo el nombre DEBAJO y la imagen ENCIMA no hace falta
+          // inventar nada al fallar: basta con que la imagen se quite y
+          // debajo aparece el nombre, que es lo que ya se pintaba cuando
+          // no había dirección. Cero cadenas montadas dentro de un
+          // `onerror` —que con un apellido como «Boss's Orders» es justo
+          // donde se rompen las comillas—.
+          `<span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}${
+            c?.local_id ? `<small>${escapeHtml(c.local_id)}</small>` : ''
+          }</span>` +
+          (escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : '')
         }
         ${l.cantidad > 1 ? `<span class="mc-cantidad">×${l.cantidad}</span>` : ''}
       </button>
@@ -932,6 +908,22 @@ function pintarCartas() {
   $('mcCartasVacio').classList.toggle('hidden', lineas.length > 0)
   $('mcFiltros').classList.toggle('hidden', !lineas.length)
   $('mcSinResultados').classList.toggle('hidden', !lineas.length || lista.length > 0)
+  pintarCuantas(lista.length)
+}
+
+// Cuántas estás viendo (tanda 441). Dice «9 de 12» SOLO cuando hay algo
+// filtrado: un «12 de 12» es ruido, y además la cuenta de la colección
+// entera ya está en la cabecera. Lo que faltaba era el caso en que la
+// rejilla se acorta y nada explica por qué.
+function pintarCuantas(cuantas) {
+  const caja = $('mcCuantas')
+  if (!caja) return
+  const total = lineas.length
+  caja.textContent = !total
+    ? ''
+    : cuantas === total
+      ? `${total.toLocaleString('es-ES')} ${total === 1 ? 'carta' : 'cartas'}`
+      : `${cuantas.toLocaleString('es-ES')} de ${total.toLocaleString('es-ES')}`
 }
 
 function pintarFiltros() {

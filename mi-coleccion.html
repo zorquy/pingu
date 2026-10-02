@@ -183,7 +183,22 @@
                el que cambia es el mismo y quien está en una pantalla no
                tiene por qué irse a otra para cambiarlo. -->
           <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+          <!-- Ordenar, a la vista desde la tanda 441. -->
+          <select id="mcOrden" class="mc-chapa-select" aria-label="Ordenar">
+            <option value="valor">Más valiosas</option>
+            <option value="recientes">Añadidas hace poco</option>
+            <option value="coleccion">Por colección y número</option>
+            <option value="nombre">Por nombre</option>
+          </select>
+          <button type="button" class="mc-chip-filtro mc-chip-mando" id="mcOrdenAlReves" aria-pressed="false">Al revés</button>
           <button type="button" class="mc-chip-mando mc-chip-solo-icono hidden" id="mcFiltrosQuitar" aria-label="Quitar la búsqueda y los filtros">✕</button>
+          <!-- CUÁNTAS ESTÁS VIENDO (tanda 441). Con un filtro puesto la
+               rejilla se acorta y nada decía por qué: no había ningún
+               sitio donde leer «9 de 12». La cuenta de la cabecera es la
+               de la colección ENTERA; esta es la de lo que tienes delante.
+               Va dentro de la barra, al final, para no meter un bloque
+               nuevo entre la barra y las cartas. -->
+          <p class="mc-cuantas" id="mcCuantas" role="status" aria-live="polite"></p>
         </div>
 
         <dialog class="mc-panel-filtros" id="mcPanelFiltros" aria-labelledby="mcPanelFiltrosTitulo">
@@ -192,19 +207,12 @@
             <button type="button" class="mc-panel-cerrar" id="mcFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
           </div>
           <div class="mc-panel-cuerpo">
-            <div class="mc-grupo-filtro">
-              <h3>Ordenar</h3>
-              <select id="mcOrden" aria-label="Ordenar">
-                <option value="valor">Más valiosas</option>
-                <option value="recientes">Añadidas hace poco</option>
-                <option value="coleccion">Por colección y número</option>
-                <option value="nombre">Por nombre</option>
-              </select>
-              <!-- Dar la vuelta al orden: en Dex se toca el campo otra
-                   vez, pero un segundo significado escondido en el mismo
-                   sitio no se descubre. Aquí va su propio botón. -->
-              <button type="button" class="mc-chip-filtro" id="mcOrdenAlReves" aria-pressed="false">Al revés</button>
-            </div>
+            <!-- AQUÍ VIVÍA «Ordenar» (fuera en la tanda 441). Ordenar es de
+                 lo que más se cambia —«a ver las caras», «a ver las
+                 últimas»— y estaba detrás de un botón que abre un modal.
+                 Un filtro se pone una vez y se olvida; un orden se toca
+                 cada dos por tres. Ahora vive en la barra, al lado del
+                 buscador. -->
             <div class="mc-grupo-filtro">
               <h3>Colección</h3>
               <select id="mcFiltroSet" aria-label="Colección"></select>

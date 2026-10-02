@@ -35,6 +35,67 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-02 — PINGU-Claude (tanda 441 — la pestaña Cartas, y una carta invisible que llevaba tandas en producción)
+
+**Hecho**: cuatro cosas, y la primera es un FALLO que llevaba tandas a la
+vista sin que nadie lo viera.
+
+**0. Fuera «Dónde estás cerca»**, que duró una tanda. PINGU al verlo
+puesto: «no tiene sentido porque abajo ya están las expansiones». Y es el
+mismo argumento con el que la 439 quitó las diapositivas repetidas, así
+que fuera sin discusión. Queda escrito en el código el criterio por si
+vuelve: se ordenaba por CARTAS que faltan y no por porcentaje.
+
+**1. CÓMO SE ENCONTRÓ EL FALLO, que es la lección de hoy.** Todas las
+capturas de este repaso visual salían con las cartas en blanco, y se daba
+por hecho que era cosa del contenedor —la red a TCGdex está cerrada—. Al
+ponerse a tocar la pestaña Cartas se hizo lo que había que haber hecho
+desde el principio: **interceptar las peticiones y servir una carta de
+mentira con la proporción real**. Con las cartas puestas, la pantalla era
+otra. **Una captura con los datos a medias no es la pantalla: es otra
+pantalla.**
+
+**2. EL FALLO: una carta sin imagen era un rectángulo INVISIBLE.** No un
+hueco de cero píxeles —eso lo arregló la 321 poniendo el `aspect-ratio` en
+el propio botón— sino algo peor de explicar: una caja que ocupa, que se
+puede pulsar, y que no dibuja nada. El código tenía un «o esto o lo
+otro»: con `image_path`, la imagen; sin `image_path`, el nombre. **Faltaba
+el caso de en medio —hay ruta PERO NO RESPONDE—, que es el de cientos de
+cartas ahora mismo**: la cadena de respaldo se queda sin sitios, el
+`onerror` quita la imagen y el botón se queda vacío.
+
+La solución NO es montar HTML dentro del `onerror` —con «Boss\'s Orders»
+ahí es donde se rompen las comillas—: el nombre va **siempre debajo** y la
+imagen **encima**. Si la imagen se quita, debajo aparece el nombre, que es
+lo que ya se pintaba cuando no había ruta. Cero cadenas inventadas.
+
+**3. Ordenar, a la vista.** Estaba DENTRO del modal de Filtros. Un filtro
+se pone una vez y se olvida; un orden se toca cada dos por tres («a ver las
+caras», «a ver las últimas»). Ahora vive en la barra con su «Al revés».
+
+**4. La cuenta de lo que estás viendo.** Con un filtro puesto la rejilla se
+acortaba y nada decía por qué. Dice «9 de 12» al filtrar y «12 cartas» sin
+filtrar — la cifra de la cabecera es la de la colección ENTERA y esta es la
+de lo que tienes delante. Comprobado que la barra no desborda a 390, 768
+ni 1280.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`mi-coleccion.html`. Pruebas: `test-tanda-441.mjs` (NUEVO), y
+`test-tanda-440.mjs` pierde su bloque 3.
+
+**Suite**: 405, 412, 426, 427, 436, 439, 440, 299, 305, 312 y 313, todas en
+verde.
+
+**En curso / pendiente**: el rigor de la 440 y el de la 441. Y del repaso
+visual quedan el botón «Ver todas las estadísticas», que se lee huérfano, y
+el hueco grande que deja la columna de pestañas en el escritorio.
+
+Siguen sin ejecutar `supabase-migration-pokedex-mercado.sql`,
+`supabase-migration-trainer-gallery.sql` y
+`supabase-migration-trainer-gallery-serie.sql`.
+
+---
+
 ## 2026-10-02 — PINGU-Claude (tanda 440 — el rediseño del panel: cabecera de perfil, fuera el carrusel, y «dónde estás cerca»)
 
 **Hecho**: PINGU paró la pasada anterior en seco: «quiero algo mucho mejor

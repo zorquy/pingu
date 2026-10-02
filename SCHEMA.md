@@ -23231,3 +23231,43 @@ la red cerrada, el DOM dice que no hay imagen tanto si la dirección es buena
 como si es mala, así que `test-tanda-438.mjs` escucha las peticiones a
 `assets.tcgdex.net` y comprueba que la japonesa va a `/ja/` **y no** a
 `/en/`. Es la misma lección de las tandas 434 y 435.
+
+## Tanda 441 — la pestaña Cartas, y la carta invisible (oct. 2026)
+
+**El fallo, y cómo se encontró.** Todo el repaso visual de las tandas 439
+y 440 se hizo sobre capturas donde las cartas salían en blanco: en este
+contenedor la red a TCGdex está cerrada. Se daba por hecho que era eso. Al
+empezar a tocar la pestaña Cartas se interceptaron las peticiones con
+`page.route` y se sirvió una carta de mentira con la proporción real
+(245×342), y la pantalla era otra.
+
+Lo que tapaba: **una carta cuya imagen no responde era un rectángulo
+invisible**. No un hueco de cero píxeles —la 321 puso el `aspect-ratio` en
+el propio botón para eso— sino una caja que ocupa, que se puede pulsar y
+que no dibuja nada. El código tenía dos ramas: con `image_path`, la
+imagen; sin `image_path`, el nombre. La rama que faltaba es la de en
+medio: **hay ruta y la ruta no responde**, que es el caso de cientos de
+cartas mientras el catálogo siga sin engordar.
+
+**La forma de arreglarlo importa.** Lo evidente —montar el nombre dentro
+del `onerror`— es una cadena de HTML dentro de un atributo: con un nombre
+como «Boss's Orders» ahí es donde se rompen las comillas. En vez de eso, el
+nombre va SIEMPRE en el DOM, debajo, y la imagen ENCIMA (`position:
+absolute` el nombre, `z-index: 1` la imagen). Si la imagen se quita, debajo
+aparece el nombre, que es exactamente lo que ya se pintaba cuando no había
+ruta. Cero cadenas inventadas y un caso menos.
+
+**Ordenar sale del modal.** Estaba dentro del diálogo de Filtros. Un
+filtro se pone una vez y se olvida; un orden se toca cada dos por tres. Va
+en la barra con su «Al revés».
+
+**Y la cuenta de lo que estás viendo**: «9 de 12» cuando hay algo
+filtrado, «12 cartas» cuando no. La cifra de la cabecera es la de la
+colección ENTERA; esta es la de lo que tienes delante, y sin ella la
+rejilla se acortaba sin que nada lo explicara.
+
+**Fuera «Dónde estás cerca»** (vivió una tanda). Repetía lo que ya dice el
+vistazo de Expansiones de debajo, que es el mismo motivo por el que la 439
+quitó las dos diapositivas duplicadas. El criterio queda escrito en el
+código por si vuelve en otro sitio: por CARTAS que faltan, no por
+porcentaje.
