@@ -25041,3 +25041,50 @@ son necesarias, prefiero que las quites».
 
 La prueba mira **las dos caras**, que es lo que hace que la regla valga:
 cuando coinciden sale una, y cuando no coinciden salen las dos.
+
+---
+
+## Tanda 467 — el orden de una expansión, y los datos deslizables (oct. 2026)
+
+PINGU, con Dex al lado: **«debería ser como en Dex, que tienes los filtros
+arriba, porque tiene más sentido. Y después las estadísticas en
+deslizables, ¿ves que se pueden deslizar? Y luego ya irían las cartas
+abajo. Ahora mismo me estás poniendo primero las estadísticas y luego los
+filtros con el buscador y queda muy raro»**.
+
+Las dos corrigen tandas de esta misma semana, y conviene escribir por qué
+las de antes no estaban mal del todo.
+
+### El orden
+
+La **412** puso el progreso delante «porque es lo que se viene a ver», y
+con **cinco filas de controles encima** tenía razón: lo que arreglaba era
+que el progreso estuviera enterrado. Pero desde que la 459 metió los
+controles en una sola fila, el problema que resolvía ya no existe — y lo
+que queda es que **lo primero que se hace al abrir una expansión de 200
+cartas es BUSCAR una**, y para eso había que pasar por tres tarjetas de
+datos. Ahora: buscador, mandos, datos y cartas.
+
+### La tira
+
+La **459** las sacó de un `.mc-tira` y las puso en rejilla, y el motivo que
+escribí —«una cifra cortada por el borde se lee como un fallo», la lección
+de la 439— era prestado. **El síntoma que medí entonces era otro**: las
+tres tarjetas se encogían a 97 px cada una. O sea que la tira no estaba
+mal: es que **no se deslizaba**. Un hijo de flex cede antes de desbordar
+(la 320) y le faltaba el `flex-shrink: 0`.
+
+Con él puesto, lo que asoma por el borde es **la tarjeta de al lado** y no
+la mitad de la que estás leyendo, que es la diferencia entre «hay más» y
+«se ha roto». Y los puntos de debajo lo dicen con todas las letras, que es
+lo que la 439 intentó decir con una máscara.
+
+Los puntos son **botones**: pulsar uno lleva a su tarjeta, y al arrastrar
+con el dedo siguen a la tira. Las dos direcciones, porque si solo
+funcionara una los puntos mentirían en cuanto alguien hiciera la otra. Se
+calcula por el CENTRO de la tira y no por `scrollLeft / ancho`: con la
+última tarjeta el desplazamiento se queda corto —no hay sitio para llevarla
+al borde— y la cuenta diría que estás en la penúltima para siempre.
+
+En un escritorio no hay nada que deslizar: las tres en fila y los puntos
+fuera, que serían tres adornos.

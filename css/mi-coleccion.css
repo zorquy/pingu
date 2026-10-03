@@ -4661,29 +4661,124 @@ input.mc-alb-titulo:not([readonly]):focus {
   gap: var(--e-md);
 }
 
-/* Los datos de una expansión: la misma pieza que la del panel, pero con
-   el anillo y las barras dentro de la primera tarjeta.
-
-   DOS COLUMNAS Y NO `auto-fit` (tanda 459), porque la primera tarjeta
-   CRUZA la fila entera —lleva el anillo y las barras, y a 163 px no cabe
-   ninguna de las dos— y `auto-fit` no pliega una pista que alguien cruza
-   (la lección de la 316): en un escritorio dejaría las otras dos a 150 px
-   con cuatro pistas vacías al lado. Así que las columnas se dicen. */
+/* ── LOS DATOS DE UNA EXPANSIÓN: UNA TIRA QUE SE DESLIZA (tanda 467) ──
+ *
+ * PINGU, con Dex al lado: «las estadísticas, en deslizables, ¿ves que se
+ * pueden deslizar? Pues igual».
+ *
+ * La 459 las sacó de una tira y las puso en rejilla, y el motivo que
+ * escribió —«una cifra cortada por el borde se lee como un fallo»— era el
+ * de la 439. Pero el síntoma que se midió entonces era otro: las tres
+ * tarjetas se encogían a 97 px CADA UNA. No es que la tira estuviera mal,
+ * es que NO SE DESLIZABA — un hijo de flex cede antes de desbordar (la
+ * lección de la 320) y le faltaba el `flex-shrink: 0`.
+ *
+ * Con él puesto, lo que asoma por el borde es la tarjeta DE AL LADO y no
+ * la mitad de la que estás leyendo, que es la diferencia entre «hay más» y
+ * «se ha roto». Y los puntos de debajo lo dicen con todas las letras, que
+ * es lo que la 439 intentó decir con una máscara. */
 #mcAlbumProgreso .mc-diapos {
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  /* De borde a borde de la PANTALLA: una tira que empieza y acaba con
+     margen no parece que siga (la misma razón que en `.mc-mandos`). */
+  margin-inline: calc(var(--e-xl) * -1);
+  padding-inline: var(--e-xl);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--e-xl);
+  scrollbar-width: none;
 }
 
-#mcAlbumProgreso .mc-diapo:first-child {
-  grid-column: 1 / -1;
+#mcAlbumProgreso .mc-diapos::-webkit-scrollbar {
+  display: none;
 }
 
+#mcAlbumProgreso .mc-diapo {
+  /* LOS TRES VALORES, y el que importa es el del medio: `flex-shrink: 0`.
+     Sin él la tira cabe siempre… con las tarjetas aplastadas. */
+  flex: 0 0 86%;
+  scroll-snap-align: center;
+}
+
+/* Con sitio de sobra no hay nada que deslizar: las tres en fila y los
+   puntos fuera, que no dirían nada. */
 @media (min-width: 900px) {
   #mcAlbumProgreso .mc-diapos {
+    display: grid;
     grid-template-columns: repeat(3, 1fr);
+    margin-inline: 0;
+    padding-inline: 0;
+    overflow-x: visible;
   }
 
-  #mcAlbumProgreso .mc-diapo:first-child {
-    grid-column: auto;
+  #mcAlbumProgreso .mc-diapo {
+    flex: 1 1 auto;
+  }
+
+  #mcAlbumProgreso .mc-puntos {
+    display: none;
+  }
+}
+
+/* ── LOS PUNTOS ──
+ * Dicen cuántas tarjetas hay y en cuál estás. Son botones y no adornos:
+ * pulsar uno lleva a su tarjeta, que es lo que espera quien los ve. */
+.mc-puntos {
+  display: flex;
+  gap: var(--e-xs);
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--e-sm);
+}
+
+.mc-puntos:empty {
+  display: none;
+}
+
+.mc-punto {
+  /* El BLANCO que se pulsa mide 24 px aunque el punto mida 6: lo que hace
+     que un punto se pueda tocar es su caja, no su dibujo (la regla de la
+     312).
+     Y el dibujo se centra con `place-items` y no con relleno: un relleno
+     de 9 px para centrar un punto de 6 en una caja de 24 es un número
+     impar elegido por la resta, que es justo lo que la escala de la 310
+     prohíbe — y además se rompe en cuanto el punto cambia de tamaño, como
+     le pasa al activo. */
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mc-punto::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: background 0.15s ease, width 0.15s ease;
+}
+
+.mc-punto.activo::before {
+  width: 16px;
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+}
+
+.mc-punto:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 0;
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-punto::before {
+    transition: none;
   }
 }
 

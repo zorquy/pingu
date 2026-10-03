@@ -2023,14 +2023,23 @@ function pintarTiraDeSet(elSet) {
   }
   const porTipo = [...tipos.entries()].sort((a, b) => b[1] - a[1])
 
-  // UNA REJILLA Y NO UNA TIRA (tanda 459). Era `.mc-tira`, y sus tres
-  // tarjetas no se deslizaban: un hijo de flex CEDE antes de desbordar (la
-  // lección de la 320), así que en un móvil de 390 px las tres se
-  // encogían a 97 px cada una —el anillo del porcentaje encima del título,
-  // «de 40 cartas» partido en dos renglones y 328 px de alto— y la flecha
-  // de «ver lo siguiente» no llevaba a ninguna parte. Es la misma mudanza
-  // que la 440 le hizo al Panel y por el mismo motivo: estas tarjetas
-  // llevan CIFRAS, y una cifra cortada por el borde se lee como un fallo.
+  // ── UNA TIRA QUE SE DESLIZA DE VERDAD (tanda 467) ──
+  //
+  // PINGU, con Dex al lado: «las estadísticas, en deslizables, ¿ves que se
+  // pueden deslizar? Pues igual».
+  //
+  // La 459 las sacó de una tira y las puso en rejilla, y el motivo que
+  // escribió —«una cifra cortada por el borde se lee como un fallo»— era
+  // el de la 439… pero el síntoma que medí entonces era otro: las tres
+  // tarjetas se encogían a 97 px CADA UNA. No es que la tira estuviera
+  // mal, es que **no se deslizaba**: un hijo de flex cede antes de
+  // desbordar (la 320) y le faltaba el `flex-shrink: 0`. Con él, la tira
+  // hace lo que decía hacer: una tarjeta entera a la vista, la siguiente
+  // asomando y los puntos diciendo cuántas hay.
+  //
+  // Y una cifra ya no se corta, porque lo que asoma es la tarjeta DE AL
+  // LADO y no la mitad de la que estás leyendo. En un escritorio no hay
+  // nada que deslizar y se quedan las tres en fila.
   caja.innerHTML = `
     <div class="mc-diapos">
         ${diapoHtml('Conjunto completo', `
@@ -2058,7 +2067,65 @@ function pintarTiraDeSet(elSet) {
              <p class="mc-diapo-pie">${porTipo.map(([t]) => escapeHtml(t)).join(', ')}</p>
              ${barrasHtml(porTipo)}`
           : '<p class="subtext">El catálogo todavía no dice de qué clase es cada carta.</p>')}
-    </div>`
+    </div>
+    <div class="mc-puntos" id="mcAlbumPuntos" role="tablist" aria-label="Qué dato se está viendo"></div>`
+  engancharPuntos('mcAlbumProgreso')
+}
+
+// ── LOS PUNTOS DE UNA TIRA (tanda 467) ──
+//
+// Dicen cuántas tarjetas hay y en cuál estás, que es lo que convierte un
+// corte por el borde en «hay más a la derecha». Sin ellos, una tira es
+// indistinguible de una tarjeta mal cortada — que es justo lo que la 439
+// intentó disimular con una máscara.
+//
+// Se pintan DESDE AQUÍ y no en la plantilla porque cuántos hay depende de
+// cuántas tarjetas se hayan pintado, y eso cambia: «Tipos de carta» no
+// sale si el catálogo no sabe de qué clase es ninguna.
+function engancharPuntos(idCaja) {
+  const caja = $(idCaja)
+  const tira = caja?.querySelector('.mc-diapos')
+  const puntos = caja?.querySelector('.mc-puntos')
+  if (!tira || !puntos) return
+  const tarjetas = [...tira.children]
+  if (tarjetas.length < 2) {
+    puntos.innerHTML = ''
+    return
+  }
+  puntos.innerHTML = tarjetas
+    .map((t, i) => {
+      const titulo = t.querySelector('.mc-diapo-titulo')?.textContent || `Dato ${i + 1}`
+      return `<button type="button" class="mc-punto${i === 0 ? ' activo' : ''}" role="tab" aria-selected="${i === 0 ? 'true' : 'false'}" aria-label="${escapeHtml(titulo)}"></button>`
+    })
+    .join('')
+  const marcar = () => {
+    // Por el CENTRO de la tira y no por `scrollLeft / ancho`: con la
+    // última tarjeta el desplazamiento se queda corto —no hay sitio para
+    // llevarla al borde izquierdo— y la cuenta diría que estás en la
+    // penúltima para siempre.
+    const centro = tira.scrollLeft + tira.clientWidth / 2
+    let cual = 0
+    let mejor = Infinity
+    tarjetas.forEach((t, i) => {
+      const medio = t.offsetLeft + t.offsetWidth / 2
+      const d = Math.abs(medio - centro)
+      if (d < mejor) {
+        mejor = d
+        cual = i
+      }
+    })
+    puntos.querySelectorAll('.mc-punto').forEach((p, i) => {
+      p.classList.toggle('activo', i === cual)
+      p.setAttribute('aria-selected', i === cual ? 'true' : 'false')
+    })
+  }
+  tira.addEventListener('scroll', marcar, { passive: true })
+  puntos.addEventListener('click', (e) => {
+    const i = [...puntos.children].indexOf(e.target.closest('.mc-punto'))
+    if (i < 0) return
+    tira.scrollTo({ left: tarjetas[i].offsetLeft - tira.offsetLeft, behavior: 'smooth' })
+  })
+  marcar()
 }
 
 // Lo más valioso de una lista de líneas, por el valor de UNA copia.

@@ -35,6 +35,31 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 467 — el orden de una expansión y los datos deslizables)
+
+**Hecho**: PINGU, con Dex al lado: «los filtros arriba, porque tiene más
+sentido; y las estadísticas en deslizables; y luego ya las cartas». Las dos
+corrigen tandas de esta semana. (1) EL ORDEN: la 412 puso el progreso
+delante «porque es lo que se viene a ver», y con cinco filas de controles
+encima tenía razón; con los controles ya en una fila (459), lo primero que
+se hace es BUSCAR, y para eso había que pasar por tres tarjetas. Ahora:
+buscador, mandos, datos, cartas. (2) LA TIRA: la 459 la quitó con un motivo
+prestado de la 439, pero el síntoma que medí era otro —las tres se encogían
+a 97 px—: la tira no estaba mal, es que NO SE DESLIZABA, le faltaba el
+`flex-shrink: 0`. Vuelve, con puntos que son botones y que siguen a la tira
+en las dos direcciones.
+
+**Ficheros**: `mi-coleccion.html`, `css/mi-coleccion.css`,
+`js/mi-coleccion.js`, `SCHEMA.md`. En `pruebas`: `test-tanda-467.mjs`
+(NUEVO) y arreglos en la 412 y la 459, que afirmaban el orden y la rejilla
+de antes.
+
+**En curso / pendiente**: ⚠️ sigue sin ejecutar
+`supabase-migration-nidoran-genero.sql`. La cabecera de la Pokédex tiene las
+mismas tarjetas de datos y de momento NO se desliza — se dejó así porque
+ahí no se aplastan; si PINGU las quiere iguales, es el mismo CSS.
+**Rigores pendientes: 443 a 467.**
+
 ## 2026-10-03 — PINGU-Claude (tanda 466 — dos tarjetas que decían lo mismo)
 
 **Hecho**: en la cabecera de la Pokédex, «El que más tienes» y «El que
