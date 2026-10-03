@@ -46,6 +46,42 @@ console.log('\n── 1. Nadie hace un UPSERT parcial sobre una tabla con NOT NU
     return bloque.split('\n').find((l) => l.trim().startsWith(col + ' ')) || ''
   }
 
+  // ── EL BARRIDO TIENE QUE SEGUIR AL MAPEADOR (tanda 472) ──
+  //
+  // Mirar solo el texto de alrededor da por hecho que las columnas se
+  // escriben a mano justo ahí. `catalogo-asia.mjs` las monta con
+  // `cardToRow(...)`, que vive en `js/catalogo-tcgdex.js`, así que la
+  // guarda lo cantó como «upsert sin set_id, local_id, name» cuando las
+  // tres estaban. Es la lección de la 307 otra vez: un barrido que no
+  // sigue de dónde sale el dato afirma cosas sobre un sitio donde el dato
+  // no está.
+  //
+  // Se recogen los cuerpos de las funciones PURAS que montan filas y, si
+  // el trozo llama a una, se le pega su cuerpo antes de buscar. Si alguien
+  // le quita `name` a `cardToRow`, esto se pone rojo — que es lo que la
+  // guarda tiene que hacer.
+  const MODULOS_PUROS = ['js/catalogo-tcgdex.js', 'netlify/lib/carta-detalle.mjs', 'js/carta-detalle.js']
+  const mapeadores = new Map()
+  for (const f of MODULOS_PUROS) {
+    for (const m of leer(f).matchAll(/export function (\w+)\(([\s\S]*?)\n\}/g)) {
+      mapeadores.set(m[1], m[2])
+    }
+  }
+  check('se han encontrado los mapeadores puros', mapeadores.has('cardToRow') && mapeadores.has('setToRow'),
+    `${mapeadores.size} funciones`)
+
+  // La función (o la constante con flecha) que contiene esa posición: desde
+  // la última declaración a nivel de fichero que hay por encima, hasta el
+  // `}` de la columna cero que la cierra. Es la unidad natural — quien hace
+  // el upsert es quien monta las filas.
+  function funcionQueContiene(texto, pos) {
+    const antes = texto.slice(0, pos)
+    const decl = [...antes.matchAll(/\n(?:export )?(?:async )?(?:function|const) /g)]
+    const desde = decl.length ? decl[decl.length - 1].index : 0
+    const cierre = texto.indexOf('\n}', pos)
+    return texto.slice(desde, cierre === -1 ? texto.length : cierre + 2)
+  }
+
   const malos = []
   for (const f of readdirSync(`${RAIZ}/netlify/functions`).filter((x) => x.endsWith('.mjs'))) {
     const t = leer(`netlify/functions/${f}`)
@@ -53,8 +89,19 @@ console.log('\n── 1. Nadie hace un UPSERT parcial sobre una tabla con NOT NU
       const tabla = m[1]
       const req = obligatorias(tabla)
       if (!req || !req.length) continue
-      // Las claves que manda: se busca el objeto que se construye cerca.
-      const trozo = t.slice(Math.max(0, m.index - 1200), m.index + 400)
+      // Las claves que manda: LA FUNCIÓN QUE HACE EL UPSERT, entera.
+      //
+      // Era una ventana de ±1.200 caracteres y eso es demasiado flojo: en
+      // `catalogo-asia.mjs` arrastraba la función de al lado, que llama a
+      // `setToRow` — y `setToRow` tiene `name`, así que la guarda daba por
+      // buena una `cardToRow` a la que le quitaras el `name`. Comprobado
+      // quitándoselo: salía verde. **Una mutación que no cambia el
+      // resultado no es una prueba aprobada** (la norma de la 314).
+      let trozo = funcionQueContiene(t, m.index)
+      // Más el cuerpo de los mapeadores puros a los que ESA función llame.
+      for (const [nombre, cuerpo] of mapeadores) {
+        if (new RegExp(`\\b${nombre}\\(`).test(trozo)) trozo += '\n' + cuerpo
+      }
       const faltan = req.filter((c) => !new RegExp(`\\b${c}\\b`).test(trozo))
       if (faltan.length) malos.push(`${f}: upsert a ${tabla} sin ${faltan.join(', ')}`)
     }
