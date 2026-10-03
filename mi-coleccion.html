@@ -692,9 +692,47 @@
       <!-- Carpetas (tanda 402): ordenar tu colección como quieras, con
            subcarpetas dentro. Lo pidió PINGU viendo Dex. -->
       <section id="mcPanelCarpetas" role="tabpanel" aria-label="Carpetas" class="hidden">
-        <div class="mc-carpetas-mandos">
-          <button type="button" class="btn-primary" id="mcCarpetaNueva">Nueva carpeta</button>
-          <p class="mc-migas-carpetas" id="mcCarpetaMigas"></p>
+        <!-- DENTRO DE UNA CARPETA SE VE COMO DENTRO DE UNA EXPANSIÓN
+             (tanda 477). PINGU: «mejoraría visualmente el apartado de
+             carpetas porque se ve un poco pocho… el menú de cada carpeta
+             es lo mismo que una colección».
+
+             Así que es la misma pantalla, pieza por pieza: la miga, el
+             título con su ⋮, el buscador y lo de dentro. Antes aquí solo
+             había un botón azul suelto y una fila de migas pegada a él. -->
+        <div id="mcCarpetaMigas"></div>
+        <div class="mc-album-barra hidden" id="mcCarpetaBarra">
+          <h3 class="mc-album-titulo" id="mcCarpetaTitulo"></h3>
+          <details class="mc-menu-caja" id="mcCarpetaMenu">
+            <summary class="mc-icono-mando" data-icono="moreHorizontal" aria-label="Más opciones de esta carpeta" title="Más opciones"></summary>
+            <div class="mc-menu">
+              <button type="button" class="mc-menu-opcion" id="mcCarpetaSub">
+                <span class="mc-menu-icono" data-icono="folder" aria-hidden="true"></span>Nueva subcarpeta
+              </button>
+              <button type="button" class="mc-menu-opcion" id="mcCarpetaEditar">
+                <span class="mc-menu-icono" data-icono="edit" aria-hidden="true"></span>Cambiar la carpeta
+              </button>
+            </div>
+          </details>
+        </div>
+        <!-- El buscador solo DENTRO: en la lista de carpetas no hay nada
+             que buscar —son cuatro burbujas— y un buscador vacío encima de
+             cuatro burbujas es justo el tipo de cosa que PINGU llama
+             pocha. -->
+        <div class="mc-buscador mc-buscador-ancho hidden" id="mcCarpetaBuscadorCaja">
+          <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+          <input type="search" id="mcCarpetaBuscar" placeholder="Busca en esta carpeta" aria-label="Buscar en esta carpeta" />
+        </div>
+        <!-- «Nueva carpeta», de botón azul a chapa (tanda 477): es un mando
+             más, como «Filtros» o «Variantes juntas», y un `btn-primary`
+             solo en una pantalla dice «esto es lo que hay que hacer aquí»,
+             que no es verdad cuando ya tienes carpetas. Dentro de una
+             carpeta se esconde: ahí lo que se crea es una SUBcarpeta, y
+             eso está en el ⋮. -->
+        <div class="mc-mandos" id="mcCarpetasMandos">
+          <button type="button" class="mc-chip-mando" id="mcCarpetaNueva" data-icono="folder">
+            <span class="mc-chip-texto">Nueva carpeta</span>
+          </button>
         </div>
         <div id="mcCarpetasPanel"></div>
 

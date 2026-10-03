@@ -35,6 +35,45 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 477 — dentro de una carpeta, como dentro de una expansión)
+
+**Hecho**: PINGU: «mejoraría visualmente el apartado de carpetas porque se
+ve un poco pocho… el menú de cada carpeta es lo mismo que una colección».
+Las SUBCARPETAS ya existían desde la 411 —el modelo, el árbol, el resumen
+recursivo y el «nueva estando dentro»—; lo que faltaba era la PANTALLA.
+Ahora dentro de una carpeta hay miga corta, título con su ⋮ («Nueva
+subcarpeta» y «Cambiar la carpeta» — las dos acciones que antes solo
+existían desde fuera) y buscador, cuyo vacío dice CUÁL de los dos vacíos es.
+Y fuera, «Nueva carpeta» pasa de botón azul a chapa, y dentro se esconde:
+dos botones que crean cosas distintas con el mismo rótulo es justo cómo se
+pulsa el que no era. Se van `.mc-carpetas-mandos` y `.mc-migas-carpetas`. El
+cierre del ⋮ pasa a ir por CLASE: con un segundo menú, copiarlo con otro
+`#id` delante es cómo se acaba con uno que se cierra y otro que no.
+
+**OJO, LO GORDO**: el doble de Supabase **no tenía carpetas**.
+`listarCarpetas` daba un 42P01, el cliente lo lee como «falta la
+migración» y la pestaña salía vacía en TODAS las pruebas — o sea que esta
+pantalla no la había probado nadie nunca, y nada lo cantaba porque el
+vacío es un estado legítimo de ella. El doble tiene ahora
+`collection_folders`, `collection_folder_cards` y la RPC
+`carpetas_resumen`, calculada RECURSIVA como en la base (la lección de la
+437: si el doble simplifica, la prueba deja de hablar de la web).
+
+**Y un token que no existía**: `test-tanda-299` cazó un `var(--bg-soft)` en
+el `:hover` de las opciones del menú de la 475. Ese token no existe, así
+que el resalte no se pintaba — y un token inventado no da ningún error.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`, `BITACORA.md`. En la rama `pruebas`:
+`test-tanda-477.mjs` (NUEVO, 28 comprobaciones), el **doble con carpetas**
+(`stub-supabase.js`) y `test-tanda-475.mjs` acotada — su barra la comparten
+ahora dos pantallas.
+
+**En curso / pendiente**: nada a medias. **Sigue sin ejecutar
+`supabase-migration-idioma-chino.sql`** (tanda 472). De la cola de PINGU
+queda SOLO el botón de VISTA (cuadrícula / lista / archivador). Rigores
+pendientes desde la 443. Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 476 — la Pokédex, con la tira de una expansión)
 
 **Hecho**: PINGU: «la Pokédex tiene que ser igual». Y lo decía de dos

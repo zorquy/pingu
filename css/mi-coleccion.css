@@ -3836,18 +3836,15 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 
 /* ── Las carpetas (tanda 402) ── */
-.mc-carpetas-mandos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-md);
-  align-items: center;
-  margin-bottom: var(--e-lg);
-}
+/* Aquí vivían `.mc-carpetas-mandos` y `.mc-migas-carpetas` (fuera en la
+   tanda 477). La pantalla de dentro de una carpeta usa ahora las MISMAS
+   piezas que la de una expansión —la miga, `.mc-album-barra`, el buscador
+   y `.mc-mandos`—, que es lo que PINGU pidió: «el menú de cada carpeta es
+   lo mismo que una colección». Dos pantallas que hacen lo mismo con dos
+   juegos de clases acaban siendo dos pantallas distintas. */
 
-.mc-migas-carpetas {
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
+#mcCarpetasMandos {
+  margin-bottom: var(--e-lg);
 }
 
 .mc-carpetas {
@@ -5570,7 +5567,12 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 .mc-menu-opcion:hover {
-  background: var(--bg-soft);
+  /* `--bg` es el fondo de la página: encima de `--white` se lee como un
+     resalte suave, que es justo lo que pide una opción de menú. Aquí había
+     un `--bg-soft` QUE NO EXISTE (lo puso la 475), así que el resalte no se
+     pintaba — y un token inventado no da ningún error: la regla
+     sencillamente no hace nada. Lo cantó `test-tanda-299`. */
+  background: var(--bg);
 }
 
 .mc-menu-opcion[aria-pressed='true'] {
@@ -5601,4 +5603,29 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 #mcTocarOpciones .mc-ajuste-fila {
   padding: 0 var(--e-md) var(--e-xs);
+}
+
+/* ── Dentro de una carpeta: subcarpetas, y luego cartas (tanda 477) ──
+
+   Los dos bloques se tocaban: el borde de abajo de la última burbuja era
+   el borde de arriba de la primera carta, y la de debajo —«Álbumes
+   soñados»— empezaba pegada a la última carta. No se pisaban, pero sin un
+   hueco entre ellos se leen como una sola cosa revuelta, que es
+   exactamente lo que PINGU llama «pocho».
+
+   Va por el identificador del panel y no por `.mc-burbujas` a secas: esa
+   clase la usan también los álbumes soñados, que ahí sí van pegados a su
+   rótulo. */
+#mcCarpetasPanel .mc-burbujas {
+  margin-bottom: var(--e-lg);
+}
+
+/* El buscador lleva su hueco por lo mismo: en una expansión lo pone la
+   fila de mandos que va justo debajo, y aquí debajo va el contenido. */
+#mcCarpetaBuscadorCaja {
+  margin-bottom: var(--e-lg);
+}
+
+#mcCarpetaCartas {
+  margin-bottom: var(--e-xl);
 }

@@ -25717,3 +25717,67 @@ pueden faltar. Consecuencia para quien escriba una prueba: un fixture con
 `name: 'Carta 1'` y `dex_ids: [1]` deja la Pokédex **a cero**, y la prueba
 se queda afirmando cosas sobre una pantalla vacía sin que nada dé error.
 Los nombres del fixture tienen que ser nombres de Pokémon de verdad.
+
+---
+
+## Tanda 477 — dentro de una carpeta se ve como dentro de una expansión
+
+PINGU: «yo quizá mejoraría visualmente el apartado de carpetas porque se ve
+un poco pocho. Lo haría… como tiene Dex… las carpetas tienen
+subcarpetas… el menú de cada carpeta es lo mismo que una colección».
+
+Las **subcarpetas ya existían** desde la tanda 411: el modelo las tiene
+(`parent_id`), `arbolDeCarpetas` las agrupa, el resumen las cuenta
+recursivamente y pulsar «Nueva carpeta» estando dentro de una crea una
+subcarpeta. Lo que faltaba era la PANTALLA.
+
+Dentro de una carpeta no había ni título, ni menú, ni buscador: solo una
+miga y las cosas sueltas. Y «Nueva carpeta» era un botón azul que, estando
+dentro, creaba una SUBcarpeta **sin que ninguna palabra lo dijera**.
+
+Ahora es la misma pantalla que una expansión, pieza por pieza:
+
+- La **miga**, en forma corta («Carpetas ›»): el nombre lo dice el título
+  de debajo, y repetirlo eran dos renglones diciendo lo mismo.
+- El **título** con su **⋮**: «Nueva subcarpeta» y «Cambiar la carpeta».
+  Las dos acciones que antes solo existían desde FUERA — cambiarla pedía
+  salir, buscar su burbuja y pulsar su engranaje.
+- El **buscador**, que filtra en memoria. Y su vacío dice **cuál de los dos
+  vacíos** es: una carpeta sin cartas no es lo mismo que una búsqueda sin
+  resultados, y la frase de la primera mandaba a la ficha de una carta
+  cuando el problema era lo escrito.
+- Fuera, «Nueva carpeta» pasa de `btn-primary` a chapa: un botón azul solo
+  en una pantalla dice «esto es lo que hay que hacer aquí», que no es
+  verdad cuando ya tienes carpetas. Y dentro se esconde, porque dos botones
+  que crean cosas distintas con el mismo rótulo es justo cómo se pulsa el
+  que no era.
+
+Con eso se van `.mc-carpetas-mandos` y `.mc-migas-carpetas`: dos pantallas
+que hacen lo mismo con dos juegos de clases acaban siendo dos pantallas
+distintas.
+
+### El cierre del ⋮, por clase
+
+La tanda 475 lo colgó de `#mcAlbumMenu`. Con un segundo menú, copiar esas
+seis líneas con otro `#id` delante es cómo se acaba con un menú que se
+cierra y otro que no. Ahora recorre `.mc-menu-caja`.
+
+### ⚠️ Y lo gordo: el doble no tenía carpetas
+
+`listarCarpetas` daba un 42P01, el cliente lo lee como «falta la migración»
+y **la pestaña salía vacía en TODAS las pruebas**. O sea que esta pantalla
+no la había probado nadie nunca — y nada lo cantaba, porque el vacío es un
+estado legítimo de ella.
+
+El doble tiene ahora `collection_folders`, `collection_folder_cards` y la
+RPC `carpetas_resumen`, que se calcula **recursiva como en la base**: una
+carpeta cuenta lo suyo y lo de sus subcarpetas. Sumar solo lo propio habría
+hecho que una carpeta que solo contiene carpetas dijera «0 cartas» en la
+prueba y otra cosa en producción — la lección de la 437, otra vez.
+
+### Y un token que no existía
+
+`test-tanda-299` cazó un `var(--bg-soft)` en el `:hover` de las opciones
+del menú de la 475. **Ese token no existe**, así que el resalte no se
+pintaba — y un token inventado no da ningún error: la regla sencillamente
+no hace nada.

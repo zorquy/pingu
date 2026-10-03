@@ -3239,6 +3239,9 @@ async function recargarCarpetas() {
 function pintarCarpetas() {
   const caja = $('mcCarpetasPanel')
   const migas = $('mcCarpetaMigas')
+  const barra = $('mcCarpetaBarra')
+  const buscador = $('mcCarpetaBuscadorCaja')
+  const mandos = $('mcCarpetasMandos')
   if (carpetaAbierta) {
     const c = carpetasLista.find((x) => x.id === carpetaAbierta)
     if (!c) {
@@ -3246,31 +3249,67 @@ function pintarCarpetas() {
       return pintarCarpetas()
     }
     const hijas = carpetasLista.filter((x) => x.parent_id === c.id).map((x) => ({ ...x, hijas: [] }))
-    // Y aquí la miga es la de verdad, con sus dos pasos (tanda 474): esta
-    // pantalla SÍ necesita decir en cuál estás, porque una carpeta no tiene
-    // un título grande debajo como lo tienen una expansión y un Pokémon.
-    // Mismo molde que las otras dos: eran tres chapas escritas tres veces.
-    migas.innerHTML = migasHtml([
-      { texto: 'Carpetas', id: 'mcCarpetaVolver' },
-      { texto: c.nombre },
-    ])
+    // La miga, en su forma CORTA desde la tanda 477: el nombre lo dice el
+    // título grande de debajo, como en una expansión, y repetirlo en la
+    // miga era decir dos veces lo mismo en dos renglónes seguidos.
+    migas.innerHTML = migasHtml([{ texto: 'Carpetas', id: 'mcCarpetaVolver' }])
+    $('mcCarpetaTitulo').textContent = c.nombre
+    barra.classList.remove('hidden')
+    buscador.classList.remove('hidden')
+    // Dentro de una carpeta lo que se crea es una SUBcarpeta, y eso vive
+    // en el ⋮: dos botones que crean cosas distintas con el mismo rótulo
+    // es justo cómo se pulsa el que no era.
+    mandos.classList.add('hidden')
     caja.innerHTML = (hijas.length ? carpetas.rejillaHtml(hijas, carpetasResumen) : '') +
       '<div class="mc-cartas" id="mcCarpetaCartas"></div>'
     pintarCartasDeCarpeta(c.id)
     return
   }
   migas.textContent = ''
+  barra.classList.add('hidden')
+  buscador.classList.add('hidden')
+  mandos.classList.remove('hidden')
+  // Al salir se olvida lo buscado: un filtro que sobrevive a la pantalla
+  // que lo puso deja la siguiente medio vacía sin decir por qué.
+  if ($('mcCarpetaBuscar')) $('mcCarpetaBuscar').value = ''
   caja.innerHTML = carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)
 }
+
+// Las de dentro se piden UNA vez y se guardan: el buscador de la 477
+// filtra en memoria, y volver a preguntar en cada tecla sería una consulta
+// por letra.
+let lineasDeLaCarpeta = []
 
 async function pintarCartasDeCarpeta(id) {
   const hueco = $('mcCarpetaCartas')
   if (!hueco) return
   const ids = new Set(await carpetas.lineasDeCarpeta(id).catch(() => []))
-  const dentro = lineas.filter((l) => ids.has(l.id))
+  lineasDeLaCarpeta = lineas.filter((l) => ids.has(l.id))
+  pintarCartasDeCarpetaFiltradas()
+}
+
+function pintarCartasDeCarpetaFiltradas() {
+  const hueco = $('mcCarpetaCartas')
+  if (!hueco) return
+  const texto = normalizeSearch($('mcCarpetaBuscar')?.value || '').trim()
+  // Por nombre y por colección, igual que el buscador de la pestaña
+  // «Cartas»: dentro de una carpeta de 200 cartas, llegar a una a ojo es
+  // lo mismo de imposible que dentro de una expansión (la lección de la
+  // 417).
+  const dentro = texto
+    ? lineasDeLaCarpeta.filter((l) => {
+        const c = cartas.get(l.card_id)
+        return normalizeSearch(`${c?.name || ''} ${c?.name_es || ''} ${c?.local_id || ''} ${c?.tcg_sets?.name || ''}`).includes(texto)
+      })
+    : lineasDeLaCarpeta
   hueco.innerHTML = dentro.length
     ? dentro.map(lineaHtml).join('')
-    : '<p class="empty-state">Esta carpeta todavía no tiene cartas. Ábrelas desde tu colección y métela en una carpeta desde su ficha.</p>'
+    // Y el vacío DICE CUÁL de los dos vacíos es: una carpeta sin cartas no
+    // es lo mismo que una búsqueda sin resultados, y la primera frase
+    // mandaba a la ficha de una carta cuando el problema era lo escrito.
+    : texto
+      ? '<p class="empty-state">Ninguna carta de esta carpeta encaja con lo que buscas.</p>'
+      : '<p class="empty-state">Esta carpeta todavía no tiene cartas. Ábrelas desde tu colección y métela en una carpeta desde su ficha.</p>'
 }
 
 // ── La Pokédex (tanda 381) ──
@@ -3795,6 +3834,19 @@ function enganchar() {
       },
     })
   })
+  // ── El ⋮ de una carpeta abierta (tanda 477) ──
+  //
+  // Las dos acciones que antes solo existían desde FUERA: crear dentro
+  // —que era pulsar «Nueva carpeta» estando dentro, y no lo decía ninguna
+  // palabra— y cambiarla, que pedía salir, buscar su burbuja y pulsar su
+  // engranaje.
+  $('mcCarpetaSub')?.addEventListener('click', () => $('mcCarpetaNueva').click())
+  $('mcCarpetaEditar')?.addEventListener('click', () => {
+    const c = carpetasLista.find((x) => x.id === carpetaAbierta)
+    if (c) editarCarpeta(c)
+  })
+  $('mcCarpetaBuscar')?.addEventListener('input', pintarCartasDeCarpetaFiltradas)
+
   $('mcCarpetasPanel').addEventListener('click', async (e) => {
     const abrir = e.target.closest('[data-abrir]')
     if (abrir) {
@@ -3805,6 +3857,13 @@ function enganchar() {
     if (!editar) return
     const c = carpetasLista.find((x) => x.id === editar.dataset.ajustes)
     if (!c) return
+    editarCarpeta(c)
+  })
+
+  // El diálogo de cambiar una carpeta, en una función: lo abren el
+  // engranaje de su burbuja y el ⋮ de dentro (tanda 477), y escribirlo dos
+  // veces es como se separan dos cosas que tenían que ser una.
+  function editarCarpeta(c) {
     abrirDialogoAdorno({
       titulo: 'Cambiar la carpeta',
       boton: 'Guardar',
@@ -3835,7 +3894,8 @@ function enganchar() {
         }
       },
     })
-  })
+  }
+
   $('mcCarpetaMigas').addEventListener('click', (e) => {
     // Por ID desde la tanda 474: la miga ya no lleva `data-volver-carpetas`
     // —el molde común pone un identificador y nada más—, y el viejo se
@@ -4146,15 +4206,22 @@ function enganchar() {
   // has venido a mirar. Así que al elegir una opción se cierra — pero no
   // al tocar los dos desplegables de «al pulsar +», que son un ajuste y no
   // una acción: ahí se suele cambiar los dos seguidos.
-  const menu = $('mcAlbumMenu')
-  menu?.addEventListener('click', (e) => {
-    if (e.target.closest('.mc-menu-opcion')) menu.open = false
-  })
-  // Y al tocar fuera, como cualquier menú. `capture` no hace falta: basta
-  // con que el clic llegue al documento, y los de dentro no llegan aquí
-  // porque se comprueba quién lo recibió.
+  //
+  // Y va por CLASE y no por el identificador del menú de una expansión
+  // (tanda 477): la carpeta abierta tiene el suyo, y copiar estas seis
+  // líneas con otro `#id` delante es cómo se acaba con un menú que se
+  // cierra y otro que no.
+  for (const menu of document.querySelectorAll('.mc-menu-caja')) {
+    menu.addEventListener('click', (e) => {
+      if (e.target.closest('.mc-menu-opcion')) menu.open = false
+    })
+  }
+  // Y al tocar fuera, como cualquier menú. Uno solo para todos: se cierra
+  // el que esté abierto y que no haya recibido el clic.
   document.addEventListener('click', (e) => {
-    if (menu?.open && !e.target.closest('#mcAlbumMenu')) menu.open = false
+    for (const menu of document.querySelectorAll('.mc-menu-caja[open]')) {
+      if (!menu.contains(e.target)) menu.open = false
+    }
   })
   // DELEGADO, porque la miga se pinta con la pantalla (tanda 474): al
   // arrancar `#mcAlbumVolver` todavía no existe, y un `addEventListener`
