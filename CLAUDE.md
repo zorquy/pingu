@@ -234,6 +234,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   regla sigue valiendo — pero esa copia concreta YA NO EXISTE: en la 471
   `IDIOMA_POR_MERCADO` pasó a SER `MERCADOS`, importado de
   `js/mercados.js`. Ver la norma de abajo, que es la lección completa.
+- **La especie de una carta sale del NOMBRE, no de `dex_ids`** (tanda
+  476). Es a propósito —`loMioPorEspecie` y `esDeLaEspecie` lo explican:
+  mientras esa columna se rellena, las cartas que tienes todavía no la
+  traen y son justo las que no pueden faltar—. Para una PRUEBA eso
+  significa que un fixture con `name: 'Carta 1'` y `dex_ids: [1]` deja la
+  Pokédex a CERO, y la prueba se queda afirmando cosas sobre una pantalla
+  vacía sin que nada dé error. Los nombres del fixture tienen que ser
+  nombres de Pokémon de verdad.
 - **Un `display` suelto en un `<dialog>` lo deja A LA VISTA SIEMPRE**
   (tanda 473). Lo que esconde un diálogo cerrado es una regla del
   NAVEGADOR —`dialog:not([open]) { display: none }`—, así que un

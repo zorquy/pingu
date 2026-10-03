@@ -25659,3 +25659,61 @@ panel ahora es `.mc-menu-caja`, que es la misma idea con otro contenido.
 engancha el clic, y **cinco pruebas los pulsan**. Lo que esas pruebas han
 tenido que aprender es otra cosa — que ahora hay que abrir el menú antes,
 porque encontrar un elemento no es poder pulsarlo.
+
+---
+
+## Tanda 476 — la Pokédex, con la misma tira de datos que una expansión
+
+PINGU: «la Pokédex tiene que ser igual» (que la pantalla de una
+expansión). Y antes, sobre esa: «las estadísticas, en deslizables, ¿ves
+que se pueden deslizar? Pues igual».
+
+Tenía razón en lo de «igual», y lo decía de dos pantallas escritas aparte:
+la tira de una expansión la montaba `js/mi-coleccion.js` y la cabecera de
+la Pokédex la montaba `pokedex.js`, **con su propia familia de clases**
+(`.mc-pdx-caja`, `.mc-pdx-cifra`, `.mc-pdx-rotulo`, `.mc-pdx-pie`,
+`.mc-pdx-principal`) para decir exactamente lo mismo. Dos moldes para el
+mismo objeto se separan — la lección de la tarjeta de guía de la 316.
+
+Y ocupaba: dos cajas apiladas, **230 px antes del primer Pokémon**. Ahora
+es una tira de 92 px.
+
+El molde vive en `js/mi-coleccion/diapos.js`, sin dependencias, y lo usan
+los dos: `diapoHtml(titulo, dentro)` y `tiraHtml(diapos, {idPuntos})`.
+
+### `mc-tira-datos`, y por qué no vale `.mc-diapos` a secas
+
+Las reglas que hacen deslizable la tira colgaban de `#mcAlbumProgreso`, o
+sea del identificador de la caja de una expansión. Copiarlas con otro `#id`
+delante es exactamente cómo se separan dos cosas que tenían que ser una,
+así que ahora van por clase.
+
+Pero no sobre `.mc-diapos`: esa clase la usa también el bloque de
+«Estadísticas» del panel, que **no es una tira con puntos** sino una
+rejilla larga. Darle el ajuste a pantalla de aquí le dejaría las tarjetas a
+lo ancho de la pantalla y los datos a tres pantallazos de distancia. De ahí
+que `tiraHtml` ponga las dos clases y el CSS cuelgue de la segunda.
+
+### `auto-flow: column` y no `repeat(3, 1fr)`
+
+En un escritorio la tira se vuelve rejilla. Era de tres columnas fijas
+porque una expansión siempre pinta tres tarjetas — pero **la Pokédex pinta
+dos o tres** según si «el que menos» es otro Pokémon que «el que más»
+(tanda 466), y tres columnas fijas le dejarían un hueco vacío.
+
+### El anillo, también por clase
+
+`#mcAlbumProgreso .mc-anillo { position: absolute }` era lo que lo pone a
+flotar en la esquina de la primera tarjeta. Sin generalizarlo, el anillo de
+la Pokédex caía debajo de la cifra y la tarjeta crecía 60 px. Una tarjeta
+de datos tiene que leerse igual en las dos pantallas.
+
+### ⚠️ Y una trampa de las pruebas que conviene dejar escrita
+
+**La especie de una carta sale del NOMBRE, no de `dex_ids`.** Es a
+propósito (`loMioPorEspecie`, `esDeLaEspecie`): mientras esa columna se
+rellena, las cartas que tienes todavía no la traen, y son justo las que no
+pueden faltar. Consecuencia para quien escriba una prueba: un fixture con
+`name: 'Carta 1'` y `dex_ids: [1]` deja la Pokédex **a cero**, y la prueba
+se queda afirmando cosas sobre una pantalla vacía sin que nada dé error.
+Los nombres del fixture tienen que ser nombres de Pokémon de verdad.

@@ -3830,41 +3830,10 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 /* ── La cabecera de la Pokédex (tanda 400) ── */
-.mc-pdx-cabecera {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: var(--e-md);
-  margin-bottom: var(--e-lg);
-}
 
-.mc-pdx-caja {
-  padding: var(--e-md) var(--e-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg);
-}
 
-.mc-pdx-rotulo {
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
 
-.mc-pdx-cifra {
-  margin: var(--e-xs) 0 0;
-  font-size: var(--t-2xl);
-  font-weight: 800;
-  line-height: 1.1;
-}
 
-.mc-pdx-pie {
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
 
 /* ── Las carpetas (tanda 402) ── */
 .mc-carpetas-mandos {
@@ -4460,25 +4429,6 @@ input.mc-alb-titulo:not([readonly]):focus {
    Es el mismo dato que el pie, pero un número suelto no dice si vas por
    la mitad o por el final. Un `conic-gradient` y un agujero encima: ni
    dependencia ni dibujo, es un fondo. */
-.mc-pdx-principal {
-  /* La caja de «Registrados» se lleva DOS pistas (tanda 424). Lleva 84 px
-     de texto y un anillo de 72 que no cede —es `flex: 0 0 auto`, y un
-     círculo que se encoge deja de ser un círculo—, así que pide 200 px; la
-     pista de la rejilla mide 185 en cuanto caben dos columnas, y el anillo
-     se salía por el borde derecho. Medido, no mirado.
-
-     `span 2` y no `1 / -1`: así coge sitio SOLO cuando le hace falta. Con
-     una sola columna se queda en una, con dos se las lleva las dos, y en
-     el escritorio con cuatro se queda en dos —la fila entera la dejaba de
-     840 px con el anillo perdido a lo lejos—. Lo pide el contenido, que
-     tiene más cosas dentro que las otras tres cajas, y no un punto de
-     corte elegido a ojo. */
-  grid-column: span 2;
-  display: flex;
-  gap: var(--e-md);
-  align-items: center;
-  justify-content: space-between;
-}
 
 .mc-anillo {
   display: grid;
@@ -4703,7 +4653,11 @@ input.mc-alb-titulo:not([readonly]):focus {
  * la mitad de la que estás leyendo, que es la diferencia entre «hay más» y
  * «se ha roto». Y los puntos de debajo lo dicen con todas las letras, que
  * es lo que la 439 intentó decir con una máscara. */
-#mcAlbumProgreso .mc-diapos {
+/* Y desde la tanda 476 va por CLASE y no por el identificador de la caja:
+   la Pokédex pidió la misma tira —PINGU: «la Pokédex tiene que ser
+   igual»— y copiar cuatro reglas con otro `#id` delante es exactamente
+   cómo se separan dos cosas que tenían que ser una. */
+.mc-tira-datos {
   display: flex;
   /* De borde a borde de la PANTALLA: una tira que empieza y acaba con
      margen no parece que siga (la misma razón que en `.mc-mandos`). */
@@ -4715,11 +4669,11 @@ input.mc-alb-titulo:not([readonly]):focus {
   scrollbar-width: none;
 }
 
-#mcAlbumProgreso .mc-diapos::-webkit-scrollbar {
+.mc-tira-datos::-webkit-scrollbar {
   display: none;
 }
 
-#mcAlbumProgreso .mc-diapo {
+.mc-tira-datos > .mc-diapo {
   /* LOS TRES VALORES, y el que importa es el del medio: `flex-shrink: 0`.
      Sin él la tira cabe siempre… con las tarjetas aplastadas. */
   flex: 0 0 86%;
@@ -4729,19 +4683,23 @@ input.mc-alb-titulo:not([readonly]):focus {
 /* Con sitio de sobra no hay nada que deslizar: las tres en fila y los
    puntos fuera, que no dirían nada. */
 @media (min-width: 900px) {
-  #mcAlbumProgreso .mc-diapos {
+  .mc-tira-datos {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    /* `auto-flow: column` y no `repeat(3, 1fr)` (tanda 476): la Pokédex
+       pinta DOS tarjetas o tres según si «el que menos» es otro que «el
+       que más», y una rejilla de tres fijas le dejaría un hueco vacío. */
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
     margin-inline: 0;
     padding-inline: 0;
     overflow-x: visible;
   }
 
-  #mcAlbumProgreso .mc-diapo {
+  .mc-tira-datos > .mc-diapo {
     flex: 1 1 auto;
   }
 
-  #mcAlbumProgreso .mc-puntos {
+  .mc-tira-datos + .mc-puntos {
     display: none;
   }
 }
@@ -4808,7 +4766,11 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
-#mcAlbumProgreso .mc-anillo {
+/* Por CLASE desde la tanda 476: la Pokédex tiene su propio anillo en la
+   primera tarjeta y una tarjeta de datos tiene que leerse igual en las dos
+   pantallas. Antes esto colgaba de `#mcAlbumProgreso` y el anillo de la
+   Pokédex se quedaba debajo de la cifra, en vez de en su esquina. */
+.mc-tira-datos .mc-anillo {
   position: absolute;
   /* A juego con el relleno de la tarjeta, que bajó a `--e-md` en la 461:
      un elemento que flota en una esquina tiene que seguir al relleno o se
@@ -4823,11 +4785,11 @@ input.mc-alb-titulo:not([readonly]):focus {
    aire, una MEDIDA y no un paso (por encima de 32 solo se le pide seguir
    en la retícula de 4). Sin esto el título no se recorta ni da error: se
    mete DEBAJO del anillo en cuanto crece una palabra. */
-#mcAlbumProgreso .mc-diapo:first-child .mc-diapo-titulo {
+.mc-tira-datos > .mc-diapo:first-child .mc-diapo-titulo {
   padding-right: 80px;
 }
 
-#mcAlbumProgreso .mc-diapo {
+.mc-tira-datos > .mc-diapo {
   position: relative;
 }
 

@@ -35,6 +35,43 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 476 — la Pokédex, con la tira de una expansión)
+
+**Hecho**: PINGU: «la Pokédex tiene que ser igual». Y lo decía de dos
+pantallas escritas aparte: la tira de datos de una expansión la montaba
+`js/mi-coleccion.js` y la cabecera de la Pokédex la montaba `pokedex.js`
+con SU PROPIA familia de clases (`.mc-pdx-caja`, `.mc-pdx-cifra`…) para
+decir lo mismo — dos moldes para el mismo objeto se separan (la 316). Y
+ocupaba: dos cajas apiladas, 230 px antes del primer Pokémon; ahora una
+tira de 92. El molde compartido vive en `js/mi-coleccion/diapos.js`.
+Tres detalles que costaron: (1) las reglas de deslizar colgaban de
+`#mcAlbumProgreso`, así que van por clase —pero por `mc-tira-datos` y no
+por `.mc-diapos` a secas, porque esa la usa también el bloque de
+«Estadísticas» del panel, que es una rejilla larga y no una tira—; (2) la
+rejilla de escritorio era de tres columnas FIJAS y la Pokédex pinta dos o
+tres según si «el que menos» es otro que «el que más» (la 466), así que
+`auto-flow: column`; (3) el anillo flotante también colgaba del
+identificador, y sin generalizarlo caía debajo de la cifra.
+
+**Y una trampa de las pruebas, apuntada en CLAUDE.md**: la especie de una
+carta sale del NOMBRE y no de `dex_ids` (a propósito). Un fixture con
+`name: 'Carta 1'` deja la Pokédex A CERO y la prueba se queda afirmando
+cosas sobre una pantalla vacía, sin que nada dé error. Me pasó escribiendo
+la prueba de esta tanda.
+
+**Ficheros**: `js/mi-coleccion/diapos.js` (NUEVO), `js/mi-coleccion.js`,
+`js/mi-coleccion/pokedex.js`, `css/mi-coleccion.css`, `SCHEMA.md`,
+`BITACORA.md`, `CLAUDE.md`. En la rama `pruebas`: `test-tanda-476.mjs`
+(NUEVO, 29 comprobaciones, que mira LAS DOS pantallas porque el molde es
+compartido) y cuatro repintadas —400, 414 y 466 por las clases que
+cambian, más las de la 475—.
+
+**En curso / pendiente**: nada a medias. **Sigue sin ejecutar
+`supabase-migration-idioma-chino.sql`** (tanda 472). De la cola de PINGU
+quedan: las carpetas con subcarpetas al estilo de Dex y el botón de VISTA
+(cuadrícula / lista / archivador). Rigores pendientes desde la 443.
+Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 475 — los cuatro mandos, detrás de un ⋮)
 
 **Hecho**: PINGU: «estás ocupando mucho espacio arriba… he pensado en poner

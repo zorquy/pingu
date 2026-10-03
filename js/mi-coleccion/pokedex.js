@@ -22,6 +22,7 @@
 // pestaña: se trae `sprites-pokemon.js`, que son los 1.025 nombres.
 import { escapeHtml } from '../html.js'
 import { migasHtml } from './migas.js'
+import { diapoHtml, tiraHtml } from './diapos.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { especiesDeCarta, especiePorDex, POKEMON_POR_DEX } from '../pokedex-especies.js'
@@ -374,45 +375,46 @@ export function resumenDePokedex({ mio = new Map(), totales = new Map(), total =
 // tarjeta con una raya ocupa lo mismo que el dato.
 export function cabeceraHtml(resumen, { nombreDe = (d) => `#${d}` } = {}) {
   // Con un decimal por debajo del 10 %: 2 de 1.025 redondeado da «0 %»,
-  // que parece que no tienes nada cuando sí tienes. Y el total con punto
-  // de millar, que «1025» se lee como un número de carta.
+  // que parece que no tienes nada cuando sí tienes.
   const crudo = resumen.total ? (resumen.registrados / resumen.total) * 100 : 0
   const pct = crudo > 0 && crudo < 10 ? crudo.toFixed(1).replace('.', ',') : Math.round(crudo)
-  // : en español los números de cuatro cifras no
-  // se agrupan por defecto, así que 1025 salía sin punto y se leía como
-  // un número de carta.
   // `useGrouping: 'always'`: en español los números de cuatro cifras no se
   // agrupan por defecto, así que 1025 salía sin punto y se leía como un
   // número de carta.
   const miles = (n) => new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(n)
-  const tarjeta = (rotulo, cifra, pie) =>
-    `<div class="mc-pdx-caja"><p class="mc-pdx-rotulo">${escapeHtml(rotulo)}</p><p class="mc-pdx-cifra">${escapeHtml(String(cifra))}</p><p class="mc-pdx-pie">${escapeHtml(pie)}</p></div>`
   // El anillo (tanda 414). Es el mismo dato que el pie —el porcentaje—,
   // pero un número suelto no dice si vas por la mitad o por el final; un
   // anillo sí, de un vistazo y sin leer. Va con `conic-gradient`, sin
   // dependencias ni dibujo: es un fondo.
   const anillo = `<span class="mc-anillo" style="--pct:${crudo.toFixed(1)}" role="img" aria-label="${escapeHtml(String(pct))} % registrado"><b>${escapeHtml(String(pct))} %</b></span>`
-  return `<div class="mc-pdx-cabecera">
-    <div class="mc-pdx-caja mc-pdx-principal">
-      <div>
-        <p class="mc-pdx-rotulo">Registrados</p>
-        <p class="mc-pdx-cifra">${resumen.registrados}</p>
-        <p class="mc-pdx-pie">de ${escapeHtml(miles(resumen.total))}</p>
-      </div>
-      ${anillo}
-    </div>
-    ${resumen.mas ? tarjeta('El que más tienes', `${resumen.mas.cuantas}`, nombreDe(resumen.mas.dex)) : ''}
-    ${
-      // «EL QUE MENOS» SOLO SI ES OTRO (tanda 466). Mientras todas tus
-      // especies tengan una carta —o sea, al empezar, que es cuando más
-      // gente lo mira— el que más y el que menos son EL MISMO, y la
-      // cabecera enseñaba dos tarjetas con el mismo nombre y el mismo
-      // número. Dos cajas que dicen lo mismo no son dos datos: son una
-      // repetida, y PINGU pidió sencillez.
-      resumen.menos && resumen.menos.dex !== resumen.mas?.dex
-        ? tarjeta('El que menos', `${resumen.menos.cuantas}`, nombreDe(resumen.menos.dex))
-        : ''
-    }
-  </div>`
+  // ── LA MISMA TIRA QUE UNA EXPANSIÓN (tanda 476) ──
+  //
+  // PINGU: «la Pokédex tiene que ser igual». Eran dos cajas apiladas que se
+  // comían 230 px antes de la primera fila de Pokémon; ahora es la tira que
+  // se desliza de la 467, con el molde compartido en `diapos.js`. Tenían
+  // su propia familia de clases (`.mc-pdx-caja`, `.mc-pdx-cifra`…) para
+  // decir lo mismo que `.mc-diapo`, y dos moldes para el mismo objeto se
+  // separan.
+  return tiraHtml([
+    diapoHtml('Registrados', `
+      <p class="mc-diapo-cifra">${resumen.registrados}</p>
+      <p class="mc-diapo-pie">de ${escapeHtml(miles(resumen.total))}</p>
+      ${anillo}`),
+    resumen.mas
+      ? diapoHtml('El que más tienes', `
+        <p class="mc-diapo-cifra">${resumen.mas.cuantas}</p>
+        <p class="mc-diapo-pie">${escapeHtml(nombreDe(resumen.mas.dex))}</p>`)
+      : '',
+    // «EL QUE MENOS» SOLO SI ES OTRO (tanda 466). Mientras todas tus
+    // especies tengan una carta —o sea, al empezar, que es cuando más gente
+    // lo mira— el que más y el que menos son EL MISMO, y la cabecera
+    // enseñaba dos tarjetas con el mismo nombre y el mismo número. Dos
+    // cajas que dicen lo mismo no son dos datos: son una repetida.
+    resumen.menos && resumen.menos.dex !== resumen.mas?.dex
+      ? diapoHtml('El que menos', `
+        <p class="mc-diapo-cifra">${resumen.menos.cuantas}</p>
+        <p class="mc-diapo-pie">${escapeHtml(nombreDe(resumen.menos.dex))}</p>`)
+      : '',
+  ], { idPuntos: 'mcPdxPuntos', etiqueta: 'Qué dato de la Pokédex se está viendo' })
 }
 

@@ -46,6 +46,7 @@ import { marcaCardmarket } from './cardmarket-marca.js'
 import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
+import { diapoHtml, tiraHtml } from './mi-coleccion/diapos.js'
 import { migasHtml } from './mi-coleccion/migas.js'
 import { ORDENES, ordenar, porNumero, rangoDeRareza } from './mi-coleccion/orden.js'
 import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtrosVacios, sentidoNatural, FILTROS_CATALOGO, ORDENES_CATALOGO, filtrosCatalogoVacios, cuantosFiltrosCatalogo, ordenarCartas, valoresDeCartas, pasaFiltrosDeCarta, pasaFiltrosCrudos } from './mi-coleccion/filtros.js'
@@ -695,12 +696,9 @@ function diapoDelBalance() {
     }`)
 }
 
-function diapoHtml(titulo, dentro) {
-  return `<article class="mc-diapo">
-    <h3 class="mc-diapo-titulo">${escapeHtml(titulo)}</h3>
-    ${dentro}
-  </article>`
-}
+// `diapoHtml` y `tiraHtml` se mudaron a `js/mi-coleccion/diapos.js` en la
+// tanda 476: la Pokédex tenía su propio molde de tarjeta de datos
+// (`.mc-pdx-caja`) y dos moldes para el mismo objeto se separan.
 
 // ── Los vistazos del panel (tanda 436) ──
 //
@@ -2231,9 +2229,8 @@ function pintarTiraDeSet(elSet) {
   // Y una cifra ya no se corta, porque lo que asoma es la tarjeta DE AL
   // LADO y no la mitad de la que estás leyendo. En un escritorio no hay
   // nada que deslizar y se quedan las tres en fila.
-  caja.innerHTML = `
-    <div class="mc-diapos">
-        ${diapoHtml('Conjunto completo', `
+  caja.innerHTML = tiraHtml([
+        diapoHtml('Conjunto completo', `
           <p class="mc-diapo-cifra">${completo ? completo.tengo : 0}</p>
           <p class="mc-diapo-pie">de ${completo ? completo.total : 0} cartas</p>
           <span class="mc-anillo" style="--pct:${pct}" role="img" aria-label="${pct} % del conjunto"><b>${pct} %</b></span>
@@ -2244,22 +2241,21 @@ function pintarTiraDeSet(elSet) {
               <span class="mc-barra" aria-hidden="true"><i style="--ancho:${porcentaje(b) ?? 0}%"></i></span>
               <span class="mc-barra-cuenta"><strong>${b.tengo}</strong> de ${b.total}</span>
             </div>`)
-            .join('')}`)}
-        ${diapoHtml('Lo que tienes de aquí', `
+            .join('')}`),
+        diapoHtml('Lo que tienes de aquí', `
           <p class="mc-diapo-cifra">${escapeHtml(euros(valor))}</p>
           <p class="mc-diapo-pie">${mias.length ? `en ${mias.length} ${mias.length === 1 ? 'carta' : 'cartas'} tuyas` : 'todavía no tienes ninguna'}</p>
           ${caras.length
             ? `<ul class="mc-diapo-lista">${caras
                 .map((v) => `<li><span>${escapeHtml(nombreDe(v.carta))}</span><strong>${escapeHtml(euros(v.valor))}</strong></li>`)
                 .join('')}</ul>`
-            : ''}`)}
-        ${diapoHtml('Tipos de carta', porTipo.length
+            : ''}`),
+        diapoHtml('Tipos de carta', porTipo.length
           ? `<p class="mc-diapo-cifra">${porTipo.length}</p>
              <p class="mc-diapo-pie">${porTipo.map(([t]) => escapeHtml(t)).join(', ')}</p>
              ${barrasHtml(porTipo)}`
-          : '<p class="subtext">El catálogo todavía no dice de qué clase es cada carta.</p>')}
-    </div>
-    <div class="mc-puntos" id="mcAlbumPuntos" role="tablist" aria-label="Qué dato se está viendo"></div>`
+          : '<p class="subtext">El catálogo todavía no dice de qué clase es cada carta.</p>'),
+  ], { idPuntos: 'mcAlbumPuntos' })
   engancharPuntos('mcAlbumProgreso')
 }
 
@@ -3326,6 +3322,10 @@ function pintarPokedex() {
   const resumen = pokedex.resumenDePokedex({ mio, totales: totalesPokedex })
   caja.innerHTML = pokedex.cabeceraHtml(resumen, { nombreDe: (d) => especiePorDex(d) || `#${d}` }) +
     pokedex.rejillaHtml(filas, $('mcPdxOrden')?.value || 'dex')
+  // Los puntos de la tira, como en una expansión (tanda 476). Se enganchan
+  // DESPUÉS de pintar porque cuántos hay depende de cuántas tarjetas hayan
+  // salido: «El que menos» no sale si es el mismo que «el que más».
+  engancharPuntos('mcPokedexPanel')
   // El contador de arriba cuenta especies DISTINTAS, no cartas: es una
   // Pokédex, y lo que se llena son huecos de Pokémon.
   $('mcPdxCuenta').textContent = `${resumen.registrados} de 1.025 Pokémon`
