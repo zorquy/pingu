@@ -58,6 +58,7 @@ import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarT
 import { variantesDeCarta, tieneVarias, nombreDeVariante } from './mi-coleccion/variantes.js'
 import { especiePorDex } from './pokedex-especies.js'
 import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
+import { MERCADO_POR_DEFECTO } from './mercados.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -68,6 +69,33 @@ let dueno = null // { id, username, display_name, coleccion_publica }
 let esMia = false
 let lineas = []
 let cartas = new Map() // id → fila de tcg_cards
+// ── EL PANEL ES GENERAL, LAS OTRAS CUATRO PESTAÑAS SON DEL CATÁLOGO
+// (tanda 485) ──
+//
+// PINGU: «cambio el idioma y pongo japonés […] y seguido me vuelvo al panel
+// y me sale solo mi colección en ese idioma. Está mal. Debería ser un
+// overall de todas las cartas que tengas independientemente del idioma. El
+// panel es general».
+//
+// Así que hay DOS colecciones en memoria y no una filtrada de dos formas:
+// `lineas`/`cartas` son del mercado elegido —y las pintan Cartas,
+// Expansiones, Carpetas y la Pokédex— y este par es TODO lo que tienes, y
+// lo pinta solo el Panel.
+//
+// OJO A LA CLAVE, que es la razón por la que no vale filtrar: `cartas` va
+// por id a secas y puede, porque mira un solo mercado. Con los cuatro
+// juntos eso se rompe — la clave de `tcg_cards` es (id, market) porque el
+// japonés comparte identificadores de set con el inglés (tanda 437), así
+// que `sv1a-1` son DOS cartas y un mapa por id se queda con una SIN DAR
+// NINGÚN ERROR. Este va por `claveDeCarta(id, market)`.
+let lineasTodo = []
+let cartasTodo = new Map() // `id|market` → fila de tcg_cards
+// La carta de una línea, en cada una de las dos memorias. Van sueltas
+// porque los ayudantes del Panel las reciben como argumento: así el mismo
+// cálculo sirve para las dos y no hay dos versiones de «lo que te sobra»
+// que se puedan separar.
+const cartaDeLinea = (l) => cartas.get(l?.card_id)
+const cartaDeLineaTodo = (l) => cartasTodo.get(datos.claveDeLineaEnMercado(l))
 let guardados = new Map() // id → fila de tcg_card_prices
 const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
 // Las cinco pestañas (tanda 408) y, al lado, los tres nombres viejos que
@@ -327,7 +355,15 @@ const SIN_VIVOS = new Map()
 const yaSeSabe = (id) => datos.tieneCifras(datos.precioDeLinea({ card_id: id }, guardados, SIN_VIVOS))
 
 async function completarPrecios() {
-  const faltan = [...new Set(lineas.map((l) => l.card_id))].filter((id) => !vivos.has(id) && !yaSeSabe(id)).slice(0, EN_VIVO_POR_VISITA)
+  // EL CATÁLOGO ELEGIDO PRIMERO Y LO DEMÁS DETRÁS (tanda 485). El Panel
+  // suma la colección ENTERA, así que un precio que no se pida deja esa
+  // carta en «sin precio» y el total de arriba más bajo del que es. Pero el
+  // presupuesto por visita es el mismo, así que el orden importa: lo que
+  // está EN PANTALLA se pregunta antes que lo que solo aparece en un total.
+  const delCatalogo = lineas.map((l) => l.card_id)
+  const faltan = [...new Set([...delCatalogo, ...lineasTodo.map((l) => l.card_id)])]
+    .filter((id) => !vivos.has(id) && !yaSeSabe(id))
+    .slice(0, EN_VIVO_POR_VISITA)
   let i = 0
   const trabajador = async () => {
     while (i < faltan.length) {
@@ -345,9 +381,16 @@ async function completarPrecios() {
 // DOS sitios: la cifra de arriba y la cabecera de la gráfica del valor.
 // Sumarlo dos veces sería la forma más fácil de que un día dijeran
 // números distintos de lo mismo en la misma pantalla.
+// DE TODA LA COLECCIÓN (tanda 485), y aquí había un desajuste de antes:
+// el HISTÓRICO de la gráfica sale de `user_collection_value`, que se filtra
+// solo por `user_id` y por tanto YA era de todos los catálogos — mientras
+// que este punto, el de «ahora», era del catálogo elegido. Con el japonés
+// puesto, la gráfica subía dos años y se caía por un precipicio en el
+// último punto. No daba error: daba una gráfica que parecía decir que
+// acabas de perder tu colección.
 function valorDeAhora() {
   let total = 0
-  for (const l of lineas) total += valorDeLinea(l, precioDe(l)) || 0
+  for (const l of (lineasTodo.length ? lineasTodo : lineas)) total += valorDeLinea(l, precioDe(l)) || 0
   return total
 }
 
@@ -365,11 +408,18 @@ function pintarHero() {
   }
   const desde = $('mcHeroDesde')
   if (!desde) return
-  if (!lineas.length) {
+  // DE TODA LA COLECCIÓN, no del catálogo elegido (tanda 485). Con el
+  // japonés puesto y sin cartas japonesas todavía, esto decía «Todavía no
+  // has añadido ninguna carta» a alguien con 21.000 — y eso no es un filtro
+  // que se note: es la cabecera de la página negando la colección entera.
+  // Y la fecha, igual: desde cuándo coleccionas no depende del catálogo que
+  // tengas abierto ahora mismo.
+  const todo = lineasTodo.length ? lineasTodo : lineas
+  if (!todo.length) {
     desde.textContent = esMia ? 'Todavía no has añadido ninguna carta.' : ''
     return
   }
-  const primera = lineas.reduce((a, b) => (String(a.created_at || '9') <= String(b.created_at || '9') ? a : b))
+  const primera = todo.reduce((a, b) => (String(a.created_at || '9') <= String(b.created_at || '9') ? a : b))
   const cuando = primera?.created_at ? new Date(primera.created_at) : null
   desde.textContent = cuando && !Number.isNaN(cuando.getTime())
     ? `Coleccionando desde ${cuando.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`
@@ -377,14 +427,26 @@ function pintarHero() {
   void quien
 }
 
+// LAS CUATRO CIFRAS DE ARRIBA SON DE TODA LA COLECCIÓN (tanda 485), no
+// del catálogo elegido. Viven en la cabecera, que se ve en las cinco
+// pestañas, y lo que dicen es «cuánto tienes» — con el japonés elegido,
+// «Cartas: 312» cuando tienes 21.788 no es una cifra filtrada: es una
+// cifra FALSA debajo del rótulo «Mi colección».
+//
+// Lo del catálogo tiene su sitio y ya lo tiene: la estantería de
+// Expansiones mide cada colección, y las pestañas de Cartas y Pokédex son
+// del catálogo porque ahí es donde se va a MIRAR algo concreto.
 function pintarResumen() {
-  const copias = lineas.reduce((s, l) => s + l.cantidad, 0)
-  const distintas = new Set(lineas.map((l) => l.card_id)).size
+  const todo = lineasTodo.length ? lineasTodo : lineas
+  const buscaTodo = lineasTodo.length ? cartaDeLineaTodo : cartaDeLinea
+  const claveTodo = lineasTodo.length ? datos.claveDeLineaEnMercado : (l) => l.card_id
+  const copias = todo.reduce((s, l) => s + l.cantidad, 0)
+  const distintas = new Set(todo.map(claveTodo)).size
   let valor = 0
   let sinPrecio = 0
   let pagado = 0
   let conCompra = 0
-  for (const l of lineas) {
+  for (const l of todo) {
     const v = valorDeLinea(l, precioDe(l))
     if (v) valor += v
     else sinPrecio += l.cantidad
@@ -393,7 +455,13 @@ function pintarResumen() {
       conCompra += l.cantidad
     }
   }
-  const sets = new Set(lineas.map((l) => cartas.get(l.card_id)?.set_id).filter(Boolean)).size
+  // Las colecciones DISTINTAS se cuentan con el mercado delante: el set
+  // `sv1a` japonés y el `sv1a` inglés no son la misma colección, y sin el
+  // mercado dos estanterías se contarían como una (tanda 485).
+  const sets = new Set(todo.map((l) => {
+    const c = buscaTodo(l)
+    return c?.set_id ? `${c.set_id}|${c.market || l.market || ''}` : null
+  }).filter(Boolean)).size
   $('mcResumen').innerHTML = `
     <div class="mc-cifra"><dt>Cartas</dt><dd>${copias.toLocaleString('es-ES')}</dd></div>
     <div class="mc-cifra"><dt>Distintas</dt><dd>${distintas.toLocaleString('es-ES')}</dd></div>
@@ -411,9 +479,21 @@ function pintarResumen() {
   // La explicación larga de cómo se calcula el valor estaba aquí Y dentro
   // de la diapositiva, dos renglones encima de la primera carta.
   pintarHero()
-  $('mcResumenNota').textContent = lineas.length && sinPrecio
-    ? `${sinPrecio} ${sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía.`
-    : ''
+  // Y LA NOTA DICE DE QUÉ HABLAN LAS CIFRAS (tanda 485). Dos números del
+  // mismo sitio con dos alcances distintos —arriba toda la colección, en
+  // Expansiones la del catálogo— se leen como una contradicción si nadie
+  // lo dice. La frase solo sale cuando hay algo de más de un catálogo, que
+  // es cuando la diferencia existe: decírselo a quien solo colecciona
+  // occidental sería contarle un problema que no tiene.
+  const cuantosCatalogos = new Set(todo.map((l) => l.market || MERCADO_POR_DEFECTO)).size
+  const avisos = []
+  if (todo.length && sinPrecio) {
+    avisos.push(`${sinPrecio} ${sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía.`)
+  }
+  if (cuantosCatalogos > 1) {
+    avisos.push('Estas cifras y el Panel son de TODA tu colección; Cartas, Expansiones y Pokédex son del catálogo que tengas elegido.')
+  }
+  $('mcResumenNota').textContent = avisos.join(' ')
   // Y LA GRÁFICA, QUE TAMBIÉN ENSEÑA ESE NÚMERO (tanda 458). PINGU: «¿cada
   // cuándo se actualiza la barra de los precios? Si yo añado o quito
   // cartas, el gráfico debería subir o bajar».
@@ -436,6 +516,39 @@ function pintarResumen() {
 // Las cuatro cifras de arriba dicen CUÁNTO tienes; esta pestaña dice QUÉ
 // tienes. Todo sale de lo que ya está guardado — ni una consulta más.
 
+// ── Meter, cambiar y quitar una línea: EN LAS DOS MEMORIAS (tanda 485) ──
+//
+// Desde que el Panel se pinta con la colección ENTERA y las otras cuatro
+// pestañas con la del catálogo, cada cambio local hay que hacerlo dos
+// veces. Había SEIS sitios que hacían `lineas.unshift(...)` a mano; con el
+// par nuevo, cada uno de los seis que se olvidara dejaría el Panel
+// diciendo lo de antes justo después de añadir una carta — y sin dar
+// ningún error, que es el fallo de esta casa.
+//
+// Por eso van aquí y no a mano: una función que no se puede hacer a medias.
+function meterLinea(l, carta = null) {
+  for (const lista of [lineas, lineasTodo]) {
+    const i = lista.findIndex((x) => x.id === l.id)
+    if (i >= 0) lista[i] = l
+    else lista.unshift(l)
+  }
+  if (carta) {
+    if (!cartas.has(l.card_id)) cartas.set(l.card_id, carta)
+    const k = datos.claveDeLineaEnMercado(l)
+    if (!cartasTodo.has(k)) cartasTodo.set(k, { ...carta, market: carta.market || l.market || mercado })
+  }
+}
+
+function cambiarLinea(id, nueva) {
+  lineas = lineas.map((l) => (l.id === id ? nueva : l))
+  lineasTodo = lineasTodo.map((l) => (l.id === id ? nueva : l))
+}
+
+function quitarLinea(id) {
+  lineas = lineas.filter((l) => l.id !== id)
+  lineasTodo = lineasTodo.filter((l) => l.id !== id)
+}
+
 // ── Las repetidas ──
 //
 // «tienes 3 · te sobran 2». Es la puerta a los intercambios: sin saber
@@ -445,12 +558,23 @@ function pintarResumen() {
 // Se cuenta por CARTA y no por línea: tres copias de la misma carta en
 // tres estados distintos son tres líneas y una sola carta repetida. Lo
 // que sobra es todo menos una.
-function repetidas() {
+//
+// Y SE AGRUPA POR LA CLAVE DE LA CARTA, no por su id (tanda 485). En el
+// Panel, que ahora mira los cuatro catálogos, agrupar por id juntaría la
+// Charizard japonesa con la inglesa y las llamaría «repetidas»: son dos
+// cartas distintas y para quien colecciona eso no se parece ni de lejos.
+// Por eso el agrupador y el mapa usan LA MISMA clave — si fueran dos, una
+// diría que tienes dos copias y el otro no encontraría la carta.
+function repetidas(ls = lineas, clave = (l) => l.card_id, busca = cartaDeLinea) {
   const porCarta = new Map()
-  for (const l of lineas) porCarta.set(l.card_id, (porCarta.get(l.card_id) || 0) + l.cantidad)
+  for (const l of ls) {
+    const k = clave(l)
+    if (!porCarta.has(k)) porCarta.set(k, { n: 0, linea: l })
+    porCarta.get(k).n += l.cantidad
+  }
   return [...porCarta.entries()]
-    .filter(([, n]) => n > 1)
-    .map(([id, n]) => ({ carta: cartas.get(id), id, tengo: n, sobran: n - 1 }))
+    .filter(([, v]) => v.n > 1)
+    .map(([k, v]) => ({ carta: busca(v.linea), id: v.linea.card_id, clave: k, tengo: v.n, sobran: v.n - 1 }))
     .sort((a, b) => b.sobran - a.sobran)
 }
 
@@ -459,18 +583,19 @@ function repetidas() {
 // Por el valor de UNA copia y no por el de la línea entera: diez cartas
 // de un euro no son «lo más valioso que tienes», son diez cartas de un
 // euro. Lo que se quiere enseñar es la pieza.
-function masValiosas(cuantas = 10) {
+function masValiosas(cuantas = 10, ls = lineas, clave = (l) => l.card_id, busca = cartaDeLinea) {
   const porCarta = new Map()
-  for (const l of lineas) {
+  for (const l of ls) {
     const v = valorDeLinea(l, precioDe(l))
     if (!v) continue
     const unidad = v / (Number(l.cantidad) || 1)
-    if (unidad > (porCarta.get(l.card_id) || 0)) porCarta.set(l.card_id, unidad)
+    const k = clave(l)
+    if (unidad > (porCarta.get(k)?.valor || 0)) porCarta.set(k, { valor: unidad, linea: l })
   }
   return [...porCarta.entries()]
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => b[1].valor - a[1].valor)
     .slice(0, cuantas)
-    .map(([id, v]) => ({ carta: cartas.get(id), id, valor: v }))
+    .map(([k, v]) => ({ carta: busca(v.linea), id: v.linea.card_id, clave: k, valor: v.valor }))
 }
 
 // ── El reparto ──
@@ -478,12 +603,14 @@ function masValiosas(cuantas = 10) {
 // Cuántas cartas DISTINTAS por serie y por rareza. Distintas y no
 // copias: «tengo 40 de Espada y Escudo» se entiende; «tengo 78 contando
 // repetidas» no dice nada de la colección.
-function repartoPor(saca) {
+function repartoPor(saca, ls = lineas, clave = (l) => l.card_id, busca = cartaDeLinea) {
   const cuenta = new Map()
-  for (const id of new Set(lineas.map((l) => l.card_id))) {
-    const clave = saca(cartas.get(id))
-    if (!clave) continue
-    cuenta.set(clave, (cuenta.get(clave) || 0) + 1)
+  const vistas = new Map()
+  for (const l of ls) if (!vistas.has(clave(l))) vistas.set(clave(l), l)
+  for (const l of vistas.values()) {
+    const k = saca(busca(l))
+    if (!k) continue
+    cuenta.set(k, (cuenta.get(k) || 0) + 1)
   }
   return [...cuenta.entries()].sort((a, b) => b[1] - a[1])
 }
@@ -525,17 +652,28 @@ function filaDeCartaHtml(c, derecha) {
 // único del panel que pide hacer algo— y, detrás de un botón, las
 // estadísticas largas. Lo que antes ocupaba cuatro pantallas de
 // desplazamiento ahora cabe en una.
+// Y DE TODA LA COLECCIÓN, no del catálogo elegido (tanda 485). Los tres
+// ayudantes reciben con qué contar: `pTodo()` devuelve el trío —líneas,
+// clave y buscador— de la colección entera, y las otras pestañas siguen
+// llamándolos sin argumentos, que es su valor por defecto.
+function pTodo() {
+  return lineasTodo.length
+    ? [lineasTodo, datos.claveDeLineaEnMercado, cartaDeLineaTodo]
+    : [lineas, (l) => l.card_id, cartaDeLinea]
+}
+
 function pintarResumenPanel() {
   const caja = $('mcResumenPanel')
   if (!caja) return
-  if (!lineas.length) {
+  const [ls, clave, busca] = pTodo()
+  if (!ls.length) {
     caja.innerHTML = '<p class="subtext">Cuando añadas cartas, aquí te contamos qué tienes.</p>'
     return
   }
-  const rep = repetidas()
+  const rep = repetidas(ls, clave, busca)
   const sobran = rep.reduce((n, r) => n + r.sobran, 0)
-  const valiosas = masValiosas(3)
-  const porRareza = repartoPor((c) => (c?.rarity ? rarezaEs(c.rarity) : null))
+  const valiosas = masValiosas(3, ls, clave, busca)
+  const porRareza = repartoPor((c) => (c?.rarity ? rarezaEs(c.rarity) : null), ls, clave, busca)
 
   // Arriba, solo la gráfica: es la ÚNICA cifra que cambia sola y es a
   // lo que se entra (la lección de la 416). Las listas de números van
@@ -611,7 +749,10 @@ function pintarResumenPanel() {
           <h3>Tus repetidas</h3>
           ${
             rep.length
-              ? `<p class="subtext">Te sobran <strong>${sobran}</strong> ${sobran === 1 ? 'copia' : 'copias'} de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}. Son las que puedes cambiar.</p>
+              // El verbo concuerda también (tanda 485): «Te sobran 1 copia»
+              // se leía con una sola repetida, y lo vi en lo que imprimía
+              // la prueba al lado de un `ok`.
+              ? `<p class="subtext">${sobran === 1 ? 'Te sobra' : 'Te sobran'} <strong>${sobran}</strong> ${sobran === 1 ? 'copia' : 'copias'} de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}. ${sobran === 1 ? 'Es la que puedes' : 'Son las que puedes'} cambiar.</p>
                  <ul class="mc-lista-cartas">${rep.slice(0, 12).map((r) => filaDeCartaHtml(r.carta, `tienes ${r.tengo} · <strong>te sobran ${r.sobran}</strong>`)).join('')}</ul>`
               : '<p class="subtext">No tienes ninguna repetida todavía.</p>'
           }
@@ -619,15 +760,15 @@ function pintarResumenPanel() {
         <section class="mc-resumen-caja">
           <h3>Lo más valioso</h3>
           ${
-            masValiosas().length
-              ? `<ul class="mc-lista-cartas">${masValiosas().map((v) => filaDeCartaHtml(v.carta, `<strong>${euros(v.valor)}</strong>`)).join('')}</ul>
+            masValiosas(10, ls, clave, busca).length
+              ? `<ul class="mc-lista-cartas">${masValiosas(10, ls, clave, busca).map((v) => filaDeCartaHtml(v.carta, `<strong>${euros(v.valor)}</strong>`)).join('')}</ul>
                  <p class="subtext">Por lo que vale UNA copia, no la línea entera.</p>`
               : '<p class="subtext">Todavía no sabemos el precio de ninguna de tus cartas.</p>'
           }
         </section>
         <section class="mc-resumen-caja">
           <h3>Por colección</h3>
-          ${barrasHtml(repartoPor((c) => c?.tcg_sets?.name).slice(0, 10)) || '<p class="subtext">—</p>'}
+          ${barrasHtml(repartoPor((c) => c?.tcg_sets?.name, ls, clave, busca).slice(0, 10)) || '<p class="subtext">—</p>'}
         </section>
         <section class="mc-resumen-caja">
           <h3>Por rareza</h3>
@@ -662,7 +803,9 @@ function pintarResumenPanel() {
 // Y dice SOBRE CUÁNTAS es: «+12,40 €» sin saber si es de tres cartas o de
 // trescientas no es un dato, es un número suelto.
 function diapoDelBalance() {
-  const b = balanceDeCompra(lineas, (l) => valorDeLinea(l, precioDe(l)))
+  // De toda la colección (tanda 485): «si vas ganando» no es una pregunta
+  // sobre un catálogo, y lo que pagaste por una carta japonesa lo pagaste.
+  const b = balanceDeCompra(lineasTodo.length ? lineasTodo : lineas, (l) => valorDeLinea(l, precioDe(l)))
   if (!b.hayBalance) {
     return diapoHtml('Lo que te costó', `
       <p class="subtext">Apunta lo que pagaste por una carta —en su ficha, «Precio de compra»— y aquí te decimos si vas ganando.</p>`)
@@ -729,15 +872,20 @@ function vistazoHtml(titulo, pestana, dentro, rotulo = 'Ver todas') {
 // Las últimas que has metido, que es lo que se quiere ver al entrar: «¿qué
 // añadí el otro día?». Por `created_at` y no por nombre — una lista
 // alfabética no cambia nunca y deja de decir nada.
+// Y DE TODA LA COLECCIÓN (tanda 485): «lo último que añadí» es la pregunta
+// que contesta esta tira, y la carta que acabas de meter no deja de ser lo
+// último porque ahora estés mirando otro catálogo. Era justo el caso de
+// PINGU: añadir una japonesa, volver al Panel y no verla.
 function vistazoDeCartas() {
-  const ultimas = [...lineas]
+  const [ls, , busca] = pTodo()
+  const ultimas = [...ls]
     .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
     .slice(0, DE_VISTAZO)
   if (!ultimas.length) {
     return vistazoHtml('Tus cartas', 'cartas', '<p class="empty-state">Todavía no has añadido ninguna carta.</p>')
   }
   const cuerpo = ultimas.map((l) => {
-    const c = cartas.get(l.card_id)
+    const c = busca(l)
     const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
     const nombre = nombreDe(c)
     return `<a class="mc-vistazo-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}" aria-label="${escapeHtml(nombre)}">${
@@ -1462,7 +1610,7 @@ async function guardarEditor({ retardo = 0 } = {}) {
         return
       }
       await datos.borrar(id)
-      lineas = lineas.filter((l) => l.id !== id)
+      quitarLinea(id)
       d.dataset.linea = ''
       d.close()
       showToast('Quitada de tu colección.', 'success')
@@ -1470,7 +1618,7 @@ async function guardarEditor({ retardo = 0 } = {}) {
       return
     }
     const nueva = await datos.actualizar(id, cambios)
-    lineas = lineas.map((l) => (l.id === id ? nueva : l))
+    cambiarLinea(id, nueva)
     // Sin toast: saldría uno por cada toque del contador. El aviso vive
     // en la propia ficha y se apaga solo.
     if (aviso) {
@@ -2493,11 +2641,7 @@ async function guardarMarcadas() {
     // Las que ya estaban vuelven ACTUALIZADAS y las nuevas, nuevas: se
     // mezclan por id para no acabar con la misma línea dos veces en la
     // lista, que es lo que pasa si se hace `unshift` a lo bruto.
-    for (const l of puestas) {
-      const i = lineas.findIndex((x) => x.id === l.id)
-      if (i >= 0) lineas[i] = l
-      else lineas.unshift(l)
-    }
+    for (const l of puestas) meterLinea(l)
     // Y el catálogo, para que la rejilla de «Cartas» sepa pintarlas sin
     // tener que volver a pedirlas.
     const elSet = (todosLosSets || []).find((x) => x.id === album.set)
@@ -2522,14 +2666,9 @@ async function tocarBolsillo(cardId, variante = 'normal') {
   const estado = $('mcTocarEstado').value
   try {
     const nueva = await datos.anadir(sesion.user.id, { card_id: cardId, idioma, estado, variante, cantidad: 1 }, mercado)
-    const i = lineas.findIndex((l) => l.id === nueva.id)
-    if (i >= 0) lineas[i] = nueva
-    else lineas.unshift(nueva)
-    if (!cartas.has(cardId)) {
-      const c = album.cartas.find((x) => x.id === cardId)
-      const set = (todosLosSets || []).find((s) => s.id === album.set)
-      if (c) cartas.set(cardId, { ...c, tcg_sets: set ? { id: set.id, name: set.name, release_date: set.release_date } : null })
-    }
+    const c = album.cartas.find((x) => x.id === cardId)
+    const set = (todosLosSets || []).find((s) => s.id === album.set)
+    meterLinea(nueva, c ? { ...c, tcg_sets: set ? { id: set.id, name: set.name, release_date: set.release_date } : null } : null)
     pintarAlbum()
     pintarResumen()
   } catch (err) {
@@ -2588,14 +2727,11 @@ async function alternarVariante(cardId, variante) {
         variante,
         cantidad: 1,
       }, mercado)
-      lineas.unshift(nueva)
       // La carta puede no estar en el mapa: el álbum se pinta con las
       // del set, no con las tuyas (mismo caso que `tocarBolsillo`).
-      if (!cartas.has(cardId)) {
-        const c = album.cartas.find((x) => x.id === cardId)
-        const set = (todosLosSets || []).find((x) => x.id === album.set)
-        if (c) cartas.set(cardId, { ...c, tcg_sets: set ? { id: set.id, name: set.name, release_date: set.release_date } : null })
-      }
+      const c = album.cartas.find((x) => x.id === cardId)
+      const elSetDeAqui = (todosLosSets || []).find((x) => x.id === album.set)
+      meterLinea(nueva, c ? { ...c, tcg_sets: elSetDeAqui ? { id: elSetDeAqui.id, name: elSetDeAqui.name, release_date: elSetDeAqui.release_date } : null } : null)
     } else {
       const l = suyas.reduce((a, b) => (String(a.created_at || '') >= String(b.created_at || '') ? a : b))
       if ((Number(l.cantidad) || 1) > 1) {
@@ -3120,9 +3256,7 @@ async function anadirSeleccion(e) {
       variante: $('mcAnadirVariante').value,
       cantidad: Math.max(1, Math.min(999, Math.round(Number($('mcAnadirCantidad').value) || 1))),
     }, mercado)
-    const i = lineas.findIndex((l) => l.id === nueva.id)
-    if (i >= 0) lineas[i] = nueva
-    else lineas.unshift(nueva)
+    meterLinea(nueva, seleccion)
     cartas.set(seleccion.id, seleccion)
     showToast(`${nombreDe(seleccion)} añadida.`, 'success')
     $('mcAnadirCantidad').value = 1
@@ -4769,9 +4903,29 @@ let duenoActual = null
 async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   duenoActual = duenoId
   try {
-    lineas = await datos.lineasDe(duenoId, mercado)
+    // Las DOS colecciones, a la vez (tanda 485): la del catálogo elegido,
+    // que pintan Cartas / Expansiones / Carpetas / Pokédex, y la ENTERA,
+    // que pinta el Panel. No es una filtrada de la otra — ver el comentario
+    // de `lineasTodo` arriba: la clave de una carta solo puede ser la id a
+    // secas mientras se mire un mercado.
+    //
+    // Si la entera falla, el Panel se queda con la del catálogo y lo demás
+    // sigue: es peor número, pero es un número — y los ayudantes ya caen
+    // solos a `lineas` cuando `lineasTodo` está vacío.
+    ;[lineas, lineasTodo] = await Promise.all([
+      datos.lineasDe(duenoId, mercado),
+      datos.lineasDeTodo(duenoId).catch(() => []),
+    ])
     const ids = lineas.map((l) => l.card_id)
-    ;[cartas, guardados] = await Promise.all([datos.cartasPorIds(ids, mercado), datos.preciosGuardados(ids)])
+    // Los PRECIOS se piden con las ids de las DOS: `tcg_card_prices` va por
+    // `card_id` sin mercado, así que un solo mapa sirve a las dos
+    // colecciones y pedirlo dos veces sería pedir lo mismo.
+    const idsTodo = [...new Set([...ids, ...lineasTodo.map((l) => l.card_id)])]
+    ;[cartas, cartasTodo, guardados] = await Promise.all([
+      datos.cartasPorIds(ids, mercado),
+      datos.cartasPorClaves(lineasTodo).catch(() => new Map()),
+      datos.preciosGuardados(idsTodo),
+    ])
     // Las favoritas van aparte y sin parar nada: si fallan, la estantería
     // se pinta igual, solo que sin su grupo de arriba.
     if (esMia) favoritos = await datos.favoritosDeSets(duenoId).catch(() => null)
@@ -4843,6 +4997,11 @@ async function cambiarVista(nuevo) {
   lineas = []
   cartas = new Map()
   guardados = new Map()
+  // `lineasTodo` y `cartasTodo` NO se vacían a propósito (tanda 485):
+  // cambiar de catálogo no cambia la colección entera, así que vaciarlas
+  // aquí dejaría el Panel en blanco durante la recarga —y si la recarga
+  // falla, para siempre— a cambio de nada. `cargarColeccion` las vuelve a
+  // pedir igual, y mientras tanto lo que hay sigue siendo verdad.
   $('mcCargando')?.classList.remove('hidden')
   await cargarColeccion(duenoActual)
 }

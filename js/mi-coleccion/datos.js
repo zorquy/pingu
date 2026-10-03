@@ -2,6 +2,11 @@
 // el bloque de precio y colección de la ficha de una carta.
 import { supabase } from '../supabase.js'
 import { urlDePrecio, precioDe, precioDeFila, claveDeLinea } from '../cardmarket.js'
+// El mercado por defecto NO se escribe aquí a mano (tanda 485): `market` es
+// `not null default 'WEST'` en la base, así que una línea que no diga nada ES
+// occidental, y una copia de ese valor que se separe dejaría el Panel
+// buscando cartas con una clave que no existe.
+import { MERCADO_POR_DEFECTO } from '../mercados.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-mi-coleccion.sql'
 
@@ -93,6 +98,80 @@ export async function lineasDe(userId, mercado = 'WEST') {
     if (!data || data.length < 1000) break
   }
   return filas
+}
+
+// ── Y TODA la colección, de TODOS los catálogos (tanda 485) ──
+//
+// PINGU: «cambio el idioma y pongo japonés […] y seguido me vuelvo al panel
+// y me sale solo mi colección en ese idioma. Está mal. Debería ser un
+// overall de todas las cartas que tengas independientemente del idioma. El
+// panel es general. Luego ya cuando tú vayas a mirar las cartas o
+// colecciones o lo que sea y cambies el idioma, eso ya tiene que ser del
+// idioma».
+//
+// O sea: el PANEL es una portada de lo que tienes y no de un catálogo, y
+// las otras cuatro pestañas sí son del catálogo elegido. Son DOS
+// colecciones en memoria, no una filtrada de dos formas.
+//
+// Y ESTA no se puede guardar con la id a secas. Es el aviso de arriba
+// cobrado: la clave de `tcg_cards` es (id, market) porque el japonés
+// comparte identificadores de set con el inglés, así que con todos los
+// mercados juntos `sv1a-1` son DOS cartas distintas y un mapa por id se
+// quedaría con una de ellas SIN DAR NINGÚN ERROR. De ahí `claveDeCarta`.
+export const claveDeCarta = (id, market) => `${id}|${market || MERCADO_POR_DEFECTO}`
+export const claveDeLineaEnMercado = (l) => claveDeCarta(l?.card_id, l?.market)
+
+export async function lineasDeTodo(userId) {
+  const filas = []
+  for (let desde = 0; ; desde += 1000) {
+    const { data, error } = await supabase
+      .from("user_collection")
+      .select(COLUMNAS_LINEA)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .range(desde, desde + 999)
+    if (error) {
+      if (faltaLaColumnaCambio(error)) {
+        desde -= 1000
+        continue
+      }
+      throw traducir(error)
+    }
+    filas.push(...(data || []))
+    if (!data || data.length < 1000) break
+  }
+  return filas
+}
+
+// Las cartas de esas líneas, UNA CONSULTA POR MERCADO y no una por carta:
+// `market` es una columna sola, así que preguntar por los cuatro a la vez
+// con un `in` de ids traería cruces (la `sv1a-1` inglesa al pedir la
+// japonesa) y el mapa se quedaría con la que llegara después.
+export async function cartasPorClaves(lineas) {
+  const porMercado = new Map()
+  for (const l of lineas || []) {
+    if (!l?.card_id) continue
+    const m = l.market || MERCADO_POR_DEFECTO
+    if (!porMercado.has(m)) porMercado.set(m, new Set())
+    porMercado.get(m).add(l.card_id)
+  }
+  const mapa = new Map()
+  for (const [m, ids] of porMercado) {
+    const unicos = [...ids]
+    for (let i = 0; i < unicos.length; i += 150) {
+      const { data, error } = await supabase
+        .from("tcg_cards")
+        .select(COLUMNAS_CARTA)
+        .eq("market", m)
+        .in("id", unicos.slice(i, i + 150))
+      if (error) throw traducir(error)
+      // La clave se monta con el mercado de la FILA, no con el del bucle:
+      // si un día la columna trajera otra cosa, el mapa seguiría diciendo
+      // la verdad en vez de rotular la fila con lo que yo esperaba.
+      for (const c of data || []) mapa.set(claveDeCarta(c.id, c.market), c)
+    }
+  }
+  return mapa
 }
 
 export async function lineasDeCarta(userId, cardId) {

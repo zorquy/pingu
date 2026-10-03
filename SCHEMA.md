@@ -26262,3 +26262,106 @@ proyecto con salida a TCGdex**: una función de Netlify la tiene, pero no
 hay nadie delante leyéndola, y este contenedor no la tiene.
 
 **Ficheros**: `admin/index.html`, `admin/js/admin.js`.
+
+## Tanda 485 — el Panel es GENERAL; las otras cuatro pestañas son del catálogo
+
+PINGU: «yo he cambiado el idioma en modo de expansiones, cambio el idioma y
+pongo japonés y me salen los sets japoneses. Y seguido me vuelvo al panel y
+me sale solo mi colección en **ese** idioma. Está mal. Debería ser un
+**overall** de todas las cartas que tengas independientemente del idioma. O
+sea, **el panel es general**. Luego ya cuando tú vayas a mirar las cartas o
+colecciones o lo que sea y cambies el idioma, eso ya tiene que ser del
+idioma».
+
+### Por qué no vale filtrar
+
+La tanda 437 metió el mercado «en el todo» a propósito y lo dejó escrito en
+`datos.js`: «mientras cada pantalla mira un solo mercado, el choque no
+existe». Eso era una CONDICIÓN, no una propiedad — y el Panel general la
+rompe.
+
+El choque es este: `cartas` es un `Map` por `card_id` a secas, y puede
+serlo porque mira un mercado. La clave de `tcg_cards` es **(id, market)**
+porque el japonés comparte identificadores de set con el inglés, así que con
+los cuatro catálogos juntos `sv1a-1` son **DOS cartas distintas** y un mapa
+por id se queda con una de ellas **sin dar ningún error**. Lo mismo al
+agrupar: contar repetidas por id juntaría la Charizard japonesa con la
+inglesa y diría «te sobran 2 copias de 1 carta» de dos cartas que no se
+parecen en nada.
+
+Por eso son **DOS colecciones en memoria** y no una filtrada de dos formas:
+
+- `lineas` / `cartas` — del mercado elegido, por `card_id`. Las pintan
+  **Cartas, Expansiones, Carpetas y la Pokédex**.
+- `lineasTodo` / `cartasTodo` — TODO lo que tienes, por
+  **`claveDeCarta(id, market)`** (`` `${id}|${market}` ``). Lo pinta el
+  **Panel** y la **cabecera**.
+
+`datos.lineasDeTodo(userId)` es `lineasDe` sin el `.eq('market', …)`, y
+`datos.cartasPorClaves(lineas)` pide **una consulta por mercado** y no una
+por carta: `market` es una columna sola, así que un `in` de ids con los
+cuatro mercados a la vez traería cruces —la `sv1a-1` inglesa al pedir la
+japonesa— y el mapa se quedaría con la que llegara después.
+
+### Qué se ha vuelto general, y qué no
+
+General: las **cuatro cifras de la cabecera** (Cartas, Distintas,
+Colecciones, Valor), el **«Coleccionando desde»**, el **valor de ahora**,
+el **balance de compra**, **«Tus cartas»** (lo último que añadiste), **«Lo
+que te sobra»**, **«Lo más valioso»** y los dos **repartos** (por colección
+y por rareza).
+
+Del catálogo, a propósito: **«Expansiones»** del Panel, porque su lista de
+sets ES la del mercado y su «Ver todas» lleva a la estantería de ese
+catálogo; y las cuatro pestañas de mirar algo concreto, que es lo que PINGU
+pidió que siguiera así.
+
+Y la cabecera arregla algo que no era un filtro sino una NEGACIÓN: con el
+japonés puesto y sin cartas japonesas todavía, el hero decía «Todavía no has
+añadido ninguna carta» **a alguien con 21.000**.
+
+### Un desajuste que ya existía y ha salido de paso
+
+El HISTÓRICO de la gráfica del valor sale de `user_collection_value`, que se
+filtra solo por `user_id` — o sea que **ya era de todos los catálogos** —
+mientras que su último punto, el de «ahora», era del catálogo elegido. Con
+el japonés puesto, la gráfica subía dos años y se caía por un precipicio en
+el último punto. No daba error: daba una gráfica que parecía decir que
+acabas de perder tu colección.
+
+### Las dos memorias se tocan JUNTAS
+
+Había **SEIS** sitios que hacían `lineas.unshift(...)` / `lineas.filter(...)`
+a mano. Con el par nuevo, cualquiera de los seis que se olvidara dejaría el
+Panel diciendo lo de antes justo después de añadir una carta, y **sin dar
+ningún error**. Ahora pasan por `meterLinea(l, carta)`, `cambiarLinea(id,
+nueva)` y `quitarLinea(id)`, que es una función que no se puede hacer a
+medias.
+
+Y al **cambiar de catálogo**, `lineasTodo`/`cartasTodo` **no se vacían a
+propósito**: cambiar de catálogo no cambia la colección entera, así que
+vaciarlas dejaría el Panel en blanco durante la recarga —y si la recarga
+falla, para siempre— a cambio de nada.
+
+### Los precios
+
+`tcg_card_prices` va por `card_id` **sin mercado**, así que un solo mapa
+sirve a las dos colecciones y se pide una vez con la unión de las ids. Los
+precios EN VIVO llevan presupuesto por visita, así que se piden **primero
+los del catálogo elegido** —lo que está en pantalla— y lo demás detrás: un
+precio que no se pide deja esa carta en «sin precio» y el total de arriba
+más bajo del que es.
+
+Queda apuntado lo que esa tabla no puede decir: para los pocos
+identificadores que el japonés y el inglés comparten, **el precio es la
+misma fila**. Es una propiedad de la tabla y no de esta tanda, y arreglarla
+sería añadirle `market`.
+
+### La nota, porque dos alcances distintos se leen como una contradicción
+
+Debajo de las cifras, y **solo cuando hay cartas de más de un catálogo**:
+«Estas cifras y el Panel son de TODA tu colección; Cartas, Expansiones y
+Pokédex son del catálogo que tengas elegido». A quien solo colecciona
+occidental no se le cuenta un problema que no tiene.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`.

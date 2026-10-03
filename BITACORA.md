@@ -35,6 +35,72 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 485 — el Panel es GENERAL; las otras cuatro pestañas son del catálogo)
+
+**Hecho**: PINGU: «cambio el idioma y pongo japonés y me salen los sets
+japoneses. Y seguido me vuelvo al panel y me sale solo mi colección en ESE
+idioma. Está mal. Debería ser un overall de todas las cartas que tengas
+independientemente del idioma. El panel es general».
+
+Y **no vale filtrar**, que es lo interesante. La 437 metió el mercado «en el
+todo» y lo dejó escrito en `datos.js`: «mientras cada pantalla mira un solo
+mercado, el choque no existe» — eso era una CONDICIÓN, y el Panel general la
+rompe. `cartas` es un mapa por `card_id` a secas y puede serlo porque mira
+un mercado; con los cuatro juntos la clave de `tcg_cards` es (id, market)
+—el japonés comparte identificadores de set con el inglés— así que
+`sv1a-1` son DOS cartas y el mapa se queda con una SIN DAR ERROR. Y al
+agrupar repetidas por id, la Charizard japonesa y la inglesa salían como
+«te sobran 2 copias de 1 carta».
+
+Así que son **DOS colecciones en memoria**: `lineas`/`cartas` del mercado
+elegido (Cartas, Expansiones, Carpetas, Pokédex) y `lineasTodo`/`cartasTodo`
+de todo, por `claveDeCarta(id, market)` (Panel y cabecera). Nuevas en
+`datos.js`: `lineasDeTodo`, `cartasPorClaves` —una consulta POR MERCADO, que
+un `in` de ids con los cuatro juntos traería cruces— y `claveDeCarta`.
+
+General ahora: las cuatro cifras de la cabecera, el «Coleccionando desde»,
+el valor de ahora, el balance de compra, «Tus cartas», «Lo que te sobra»,
+«Lo más valioso» y los dos repartos. **Del catálogo a propósito**: las
+«Expansiones» del Panel —su lista de sets ES la del mercado y su «Ver todas»
+lleva a esa estantería— y las cuatro pestañas de mirar algo concreto.
+
+**Tres cosas que salieron de paso**:
+
+1. La cabecera no filtraba, **negaba**: con el japonés puesto y sin
+   japonesas todavía decía «Todavía no has añadido ninguna carta» a alguien
+   con 21.000.
+2. El **histórico** de la gráfica sale de `user_collection_value`, filtrado
+   solo por `user_id`, o sea que YA era de todos los catálogos — mientras
+   su punto de «ahora» era del catálogo. Con el japonés puesto, la gráfica
+   subía dos años y se caía por un precipicio en el último punto.
+3. «Te sobran 1 copia», que vi en lo que imprimía la prueba al lado de un
+   `ok`.
+
+**Y las dos memorias se tocan JUNTAS**: había SEIS sitios que mutaban
+`lineas` a mano, y cualquiera que se olvidara dejaría el Panel diciendo lo
+de antes justo después de añadir una carta. Ahora pasan por `meterLinea`,
+`cambiarLinea` y `quitarLinea`. Al cambiar de catálogo, `lineasTodo` **no se
+vacía a propósito**: cambiar de catálogo no cambia la colección entera.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`, `SCHEMA.md`,
+`BITACORA.md`. En la rama `pruebas`: `pruebas/test-tanda-485.mjs` (nuevo).
+
+**Prueba**: `test-tanda-485.mjs`, siete bloques en verde, con un fixture que
+tiene el choque de verdad dentro (un `sv1a-1` occidental y otro japonés).
+Mutada dos veces: quitándole el mercado a `claveDeCarta` caen tres
+comprobaciones y sale «Distintas: 3» y «2 copias repetidas de 1 carta»;
+volviendo el Panel al catálogo caen OCHO y reproduce el fallo de PINGU al
+pie de la letra (con el japonés puesto, el Panel enseña solo
+「フシギダネ」「リザードン」). Y la **suite entera**, por la lección de la 447.
+
+**En curso / pendiente**: (1) PINGU tiene que pulsar el botón nuevo de
+/admin → Cartas («Qué contesta TCGdex de un set», `sv1a JP` y `cs1a CN`) y
+pasarme el cuadro: es lo que zanja si los logos asiáticos existen arriba.
+(2) Sigue sin ejecutar `supabase-migration-idioma-chino.sql` (tanda 472).
+(3) Queda apuntado que `tcg_card_prices` no tiene `market`, así que para los
+pocos ids que el japonés y el inglés comparten el precio es la misma fila.
+(4) Rigores pendientes desde la 443. (5) Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 484 — «revisa bien la API»: una deducción disfrazada de respuesta)
 
 **Hecho**: PINGU: «me has dicho que TCGdex no guarda las imágenes de los
