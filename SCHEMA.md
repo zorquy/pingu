@@ -27230,3 +27230,61 @@ día y no después del relleno japonés.
 **Ficheros**: `netlify/lib/admin.mjs` (nuevo),
 `netlify/functions/scrydex-sonda.mjs` (nuevo), `netlify/lib/scrydex.mjs`,
 `admin/index.html`, `admin/js/admin.js`.
+
+## Tanda 501 — su fecha viene con barras, y mi fixture se lo había inventado
+
+La sonda de la 500 contestó, y la primera respuesta real de Scrydex trajo
+un fallo que habría tumbado la integración entera.
+
+Pidiendo `en/expansions?page_size=1`:
+
+```json
+{"id":"me55c","name":"30th Celebration: Classic Collection",
+ "series":"Mega Evolution","code":"30C","total":30,"printed_total":null,
+ "language":"English","language_code":"EN","release_date":"2026/09/16",
+ "is_online_only":false,
+ "logo":"https://images.scrydex.com/pokemon/me55c-logo/logo",
+ "symbol":"https://images.scrydex.com/pokemon/me55c-symbol/symbol"}
+```
+
+con **`"total_count": 224`** expansiones inglesas, contra nuestras 210.
+
+### El fallo: `2026/09/16`
+
+Su fecha viene **con barras**. `huellaDeSet` validaba con
+`/^\d{4}-\d{2}-\d{2}/` —como la escribe Postgres, que es como la escribí
+yo en el fixture— así que **todos** sus sets habrían salido con `fecha:
+null`, y como el emparejamiento casa por fecha, **no habría casado ni uno**:
+los 224 como «sueltos», sin un solo error en ninguna parte.
+
+La prueba estaba en verde porque **el fixture lo había escrito yo antes de
+ver una respuesta**. Ahora la respuesta real está dentro de la prueba
+pegada byte por byte, y mutar el validador para que vuelva a exigir
+guiones tira 8 comprobaciones.
+
+### El regalo: `code`
+
+Traen **`"code": "30C"`**, que es el código corto del set —el de las
+decklists— y es lo que nosotros guardamos en `tcg_online_code`. Es la
+señal de emparejamiento más fuerte que tienen: un identificador, no una
+cadena que se *parezca*. Ahora desempata **antes que el nombre**.
+
+Pero **no se empareja solo por él**, y por un motivo concreto: el nuestro
+está vacío en los sets viejos, porque viene del set COMPLETO de TCGdex y
+de 2023 para atrás ni existe (la 345).
+
+### Cómo se llaman sus campos
+
+| Suyo | Nuestro | |
+|---|---|---|
+| `release_date` | `release_date` | **con barras** |
+| `printed_total` | `card_count_official` | el impreso, sin secretas; **puede ser null** |
+| `total` | `card_count_total` | el de verdad |
+| `code` | `tcg_online_code` | |
+| `logo` / `symbol` | `logo_path` / `symbol_url` | **sin extensión** en la URL |
+
+Y el primer set que devolvieron es justo uno de los que ya nos han dado
+guerra: la **30th Classic Collection**, que TCGdex tiene partida en dos
+identificadores (la 347) y a la que le faltaba la cuenta (la 348).
+
+**Ficheros**: `netlify/lib/scrydex.mjs`, `CLAUDE.md`.

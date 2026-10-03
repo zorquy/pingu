@@ -70,7 +70,18 @@ export function clave(texto) {
     .replace(/[^a-z0-9]+/g, '')
 }
 
-const fecha = (v) => (/^\d{4}-\d{2}-\d{2}/.test(String(v || '')) ? String(v).slice(0, 10) : null)
+// Su fecha viene con BARRAS: `"release_date": "2026/09/16"`. La nuestra
+// con guiones, que es lo que entiende Postgres.
+//
+// Esto no es cosmética: la primera versión validaba solo `AAAA-MM-DD`, así
+// que TODOS sus sets habrían salido sin fecha y el emparejamiento —que casa
+// por fecha— no habría casado NI UNO. Todo «suelto», y sin un solo error.
+// No se vio hasta tener delante una respuesta de verdad: el fixture lo
+// había escrito yo con guiones porque me lo imaginé.
+const fecha = (v) => {
+  const s = String(v || '').trim().slice(0, 10).replace(/\//g, '-')
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null
+}
 const entero = (v) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Math.round(Number(v)) : null)
 
 // La huella de un set: su fecha y cuántas cartas tiene. Es lo único que
@@ -83,7 +94,14 @@ export function huellaDeSet(set, campos = {}) {
   const f = fecha(set?.[campos.fecha || 'release_date'])
   const oficial = entero(set?.[campos.oficial || 'card_count_official'])
   const total = entero(set?.[campos.total || 'card_count_total'])
-  return { fecha: f, oficial, total, nombre: clave(set?.[campos.nombre || 'name']) }
+  // EL CÓDIGO, que es la señal más fuerte que tienen (`"code": "30C"`).
+  // Es el código corto del set —el que sale en las decklists— y nosotros
+  // lo guardamos en `tcg_online_code`. Donde los dos lo tengan, casan sin
+  // discusión; pero NO se puede emparejar solo por él, porque el nuestro
+  // está vacío en los sets viejos (viene del set COMPLETO de TCGdex, y de
+  // 2023 para atrás ni existe: la lección de la 345).
+  const codigo = String(set?.[campos.codigo || 'tcg_online_code'] || '').trim().toUpperCase() || null
+  return { fecha: f, oficial, total, codigo, nombre: clave(set?.[campos.nombre || 'name']) }
 }
 
 // Dos huellas casan si comparten la fecha Y alguna de las dos cuentas.
@@ -136,7 +154,15 @@ export function emparejarSets(nuestros, suyos, campos = {}) {
       sueltos.push({ nuestro, porque: 'ninguno suyo con esa fecha y esa cuenta' })
       continue
     }
-    // Varios: solo se desempata si UNO tiene el mismo nombre normalizado.
+    // Varios candidatos. Se desempata primero por el CÓDIGO —`30C`, `PBL`—,
+    // que es un identificador corto y no una cadena que se parezca: si los
+    // dos lo tienen y coincide, no hay duda. Y si no, por el nombre.
+    const porCodigo = candidatos.filter((c) => h.codigo && c.h.codigo && c.h.codigo === h.codigo)
+    if (porCodigo.length === 1) {
+      yaUsados.add(porCodigo[0].set)
+      pares.push({ nuestro, suyo: porCodigo[0].set, por: 'fecha+cuenta+código' })
+      continue
+    }
     const porNombre = candidatos.filter((c) => c.h.nombre && c.h.nombre === h.nombre)
     if (porNombre.length === 1) {
       yaUsados.add(porNombre[0].set)
@@ -193,4 +219,33 @@ export function urlDeSonda(ruta, params = {}) {
   }
   const cola = qs.toString()
   return `${BASE}/${r}${cola ? `?${cola}` : ''}`
+}
+
+// ── Cómo se llaman SUS campos ──
+//
+// Medido el 2026-10-04 con la sonda, pidiendo `en/expansions?page_size=1`.
+// La respuesta, tal cual, para que esto no sea una suposición:
+//
+//   {"id":"me55c","name":"30th Celebration: Classic Collection",
+//    "series":"Mega Evolution","code":"30C","total":30,
+//    "printed_total":null,"language":"English","language_code":"EN",
+//    "release_date":"2026/09/16","is_online_only":false,
+//    "logo":"https://images.scrydex.com/pokemon/me55c-logo/logo",
+//    "symbol":"https://images.scrydex.com/pokemon/me55c-symbol/symbol"}
+//
+// Y `"total_count":224` expansiones inglesas, contra nuestras 210.
+//
+// Tres cosas que conviene no confundir:
+//   · `printed_total` es el número IMPRESO (sin secretas) y puede ser null;
+//     `total` es el de verdad. O sea `printed_total`→`card_count_official`
+//     y `total`→`card_count_total`.
+//   · `release_date` viene con BARRAS.
+//   · Las URL de imagen NO llevan extensión, y su servidor contesta 200
+//     con un relleno para cualquier id — ver `esRelleno`.
+export const CAMPOS_SUYOS = {
+  fecha: 'release_date',
+  oficial: 'printed_total',
+  total: 'total',
+  codigo: 'code',
+  nombre: 'name',
 }

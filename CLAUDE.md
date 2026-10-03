@@ -66,6 +66,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   falta en una guarda: un falso negativo es CSS sin su hoja, un falso
   positivo solo es una clase que no se puede mudar. Pero la regla para
   quien muda es la de arriba: **greparla a mano en el JS**.
+- **Un fixture que te inventas prueba tu imaginación, no la API** (tanda
+  501). Escribí el emparejamiento con Scrydex y su prueba ANTES de tener
+  una respuesta suya delante, con fechas `2023-03-10` porque es como las
+  escribe Postgres. **Las suyas vienen con barras**: `"2026/09/16"`. El
+  validador era `/^\d{4}-\d{2}-\d{2}/`, así que TODOS sus sets habrían
+  salido sin fecha y el emparejamiento —que casa por fecha— no habría
+  casado NI UNO: todo «suelto», y sin un solo error. La prueba estaba en
+  verde porque mi fixture tenía guiones. **En cuanto haya una respuesta
+  real, el fixture ES esa respuesta**, pegada byte por byte, no una que se
+  le parezca.
 - **Los COMENTARIOS DE CSS los baja TODO EL MUNDO** (tanda 489). Aquí no
   hay build step, así que un bloque de veinte líneas explicando el porqué en
   `style.css` o en `components.css` son bytes de la portada — y la portada

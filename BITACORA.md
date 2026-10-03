@@ -35,6 +35,48 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 — PINGU-Claude (tanda 501 — su fecha viene con barras, y mi fixture se lo había inventado)
+
+**Hecho**: PINGU pulsó la sonda de la 500 y la primera respuesta real de
+Scrydex trajo un fallo que habría tumbado la integración entera.
+
+**Su fecha viene CON BARRAS** (`"release_date":"2026/09/16"`). Mi
+`huellaDeSet` validaba `/^\d{4}-\d{2}-\d{2}/` —como la escribe Postgres, que
+es como la escribí yo en el fixture—, así que **todos** sus sets habrían
+salido con `fecha: null`, y como el emparejamiento casa por fecha **no
+habría casado NI UNO**: los 224 como «sueltos», sin un solo error.
+
+Y la prueba estaba EN VERDE, porque el fixture lo había escrito yo **antes
+de ver una respuesta**. Esa es la lección y va a `CLAUDE.md`: **un fixture
+que te inventas prueba tu imaginación, no la API.** Ahora la respuesta real
+está dentro de la prueba pegada byte por byte, y mutar el validador para
+que vuelva a exigir guiones tira 8 comprobaciones.
+
+**El regalo**: traen `"code":"30C"`, que es el código corto del set y lo que
+nosotros guardamos en `tcg_online_code`. Es la señal más fuerte que tienen
+—un identificador, no una cadena que se PAREZCA— y ahora desempata antes
+que el nombre. Pero no se empareja solo por él: el nuestro está vacío en los
+sets viejos (viene del set completo de TCGdex, y de 2023 para atrás ni
+existe, la 345).
+
+**Sus campos**: `release_date` (barras) · `printed_total` → nuestro
+`card_count_official`, el impreso sin secretas y **puede ser null** ·
+`total` → `card_count_total` · `code` → `tcg_online_code` · `logo` y
+`symbol`, **sin extensión** en la URL. Y **224 expansiones inglesas** contra
+nuestras 210.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`, `CLAUDE.md`, `SCHEMA.md`,
+`BITACORA.md`. En la rama `pruebas`: `pruebas/test-tanda-499.mjs` (ampliada
+con la respuesta real).
+
+**En curso / pendiente**: (1) **PINGU: pulsa la sonda con la opción 3** («Una
+carta cualquiera»), que falta ver cómo son sus CARTAS — sobre todo cómo
+viene la imagen y el número dentro del set. (2) Y después **medir el
+inglés**: 1.351 escaneos y 63 logos. (3) Migrar `generate-course` y
+`telegram-mandar` a `netlify/lib/admin.mjs`. (4) Preguntarles por escrito lo
+de «wholesale data source». (5) No quitar chino ni taiwanés sin mirar el
+dato.
+
 ## 2026-10-04 — PINGU-Claude (tanda 500 — la sonda de Scrydex, y la guarda de admin en un sitio)
 
 **Hecho**: PINGU ya tiene `SCRYDEX_API_KEY` y `SCRYDEX_TEAM_ID` en Netlify
