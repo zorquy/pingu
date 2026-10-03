@@ -26181,3 +26181,84 @@ Y el reparto del presupuesto de la pasada es el de la tanda 333: los sets
 se llevan 12 de los 22 segundos y el engorde se queda con el resto. Una
 fase excluyente —«primero los sets y lo que sobre»— es justo lo que dejó el
 engorde occidental sin arrancar jamás.
+
+## Tanda 484 — «revisa bien la API»: una deducción disfrazada de respuesta
+
+PINGU: «me has dicho que TCGdex no guarda las imágenes de los sets
+japoneses y los logos, **pero sí lo hace. Revisa bien la API**, porque
+tiene un montón de cosas. De hecho, antiguamente ya trajimos todo el
+catálogo chino y japonés con imágenes, con todo. […] No sé si estás
+cogiendo solo la parte de la API de TCG Live, pero eso es más importante
+solamente para la parte jugable. Nosotros aquí estamos construyendo la
+colección. […] Tienes que fijarte en la API general».
+
+### El error no era el dato: era de dónde salía
+
+Lo que yo le había contestado —«TCGdex no publica los logos japoneses»— no
+era una lectura de su API. Era una **DEDUCCIÓN a partir de nuestras propias
+columnas**: 188 sets japoneses curados, cero con `logo_path`, luego arriba
+no está. Y esa deducción sale **exactamente igual** si el que lee mal somos
+nosotros. Una columna vacía no dice de quién es la culpa, y yo se la había
+atribuido al tercero sin tener nada con que sostenerlo.
+
+Es pariente de la trampa de la tanda 441 (una captura con los datos a
+medias no es la pantalla) y de la 322 (el listado no trae lo que el set
+completo sí): **el síntoma de «el tercero no lo tiene» y el de «nosotros no
+lo leemos» son el MISMO síntoma**, y hace falta un dato de fuera para
+separarlos.
+
+### Lo que sí se puede comprobar sin red, comprobado
+
+En este contenedor la salida a `api.tcgdex.net` está cerrada por la
+política del entorno, así que su API no se puede leer desde aquí. Pero
+nuestra mitad de la cadena sí, y está entera:
+
+- `imagePathFromUrl` recorta bien el host y el idioma en los **siete**
+  idiomas del catálogo, `zh-cn` y `zh-tw` incluidos —que gastan los cinco
+  caracteres de su `[a-z-]{2,5}`, o sea que el margen es cero—. El camino
+  que se guarda no lleva el idioma dentro, que es lo que permite que el
+  logo inglés valga de último respaldo para un set japonés (tanda 454).
+- Al pintar, cada mercado pide a SU carpeta: `urlDeLogo`,
+  `urlDeLogoPorPartes` y `urlDeImagen` llevan el mercado desde la 438.
+- `loQueFaltaDeUnSet` escribe `logo_path` desde `completo.logo` y nunca
+  null encima de algo bueno.
+
+O sea que si TCGdex manda el logo, nosotros lo guardamos. No hay agujero
+nuestro en ese camino, y eso es lo único que podía afirmar con lo que
+tenía aquí.
+
+### Y las imágenes de las cartas tienen otra explicación, ya escrita
+
+JP al 30 % (3.882 de 13.006) y TW al 29 % (2.146 de 7.436) no dicen «TCGdex
+tiene el 30 %»: dicen **«el LISTADO del set trae `image` en el 30 %»**. Es
+la nota de la tanda 348, la de la Classic Collection del 30 aniversario —
+el listado de un set es un resumen y a muchas cartas les falta la imagen,
+mientras la **ficha de cada carta sí la trae**. Y la ficha es justo lo que
+pide el engorde de la 483: `detalleDeCarta` cura `image_path` cuando viene,
+y `catalogo-asia` manda el detalle entero en el PATCH. O sea que esas
+imágenes se están rellenando solas ahora mismo, y el 30 % es un número en
+movimiento, no un techo.
+
+### El botón que lo zanja: «Qué contesta TCGdex de un set»
+
+/admin → Cartas. Pide un `<setId> <MERCADO>` (por defecto `sv1a JP`), le
+pide a TCGdex el set **COMPLETO** con `fetchSet` —no el listado, que es un
+SetResume y volvería a decir «no lo tiene», esta vez por nuestra culpa— y
+vuelca los campos **CRUDOS**: `logo`, `symbol`, `serie`, `releaseDate`,
+`tcgOnline`, `cardCount`, y cuántas de sus cartas vienen con `image` y
+cuántas sin ella, con tres ejemplos de cada. **Al lado**, nuestras columnas
+(`logo_path`, `symbol_url`, `serie_id`, `release_date`, `imported_cards`),
+porque el campo crudo solo no dice de quién es la culpa — que es el error
+de esta tanda.
+
+Y lleva la clave de lectura escrita dentro, para que no haya que
+interpretarla: `logo` viene y `logo_path` está a null → **el fallo es
+nuestro**; `logo` no viene → TCGdex no lo publica en ese idioma y la
+tarjeta cae al símbolo y al nombre, que es lo que hace hoy; hay cartas sin
+`image` en el listado → esas salen de la ficha, y las trae el engorde.
+
+Va en el navegador porque **el navegador del panel es el único sitio del
+proyecto con salida a TCGdex**: una función de Netlify la tiene, pero no
+hay nadie delante leyéndola, y este contenedor no la tiene.
+
+**Ficheros**: `admin/index.html`, `admin/js/admin.js`.

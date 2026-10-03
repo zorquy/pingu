@@ -35,6 +35,61 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 484 — «revisa bien la API»: una deducción disfrazada de respuesta)
+
+**Hecho**: PINGU: «me has dicho que TCGdex no guarda las imágenes de los
+sets japoneses y los logos, **pero sí lo hace. Revisa bien la API**. […]
+Nosotros aquí estamos construyendo la colección».
+
+Tenía razón en lo de fondo, y el error no era el dato: era **de dónde
+salía**. Lo que yo le contesté no era una lectura de la API de TCGdex, era
+una DEDUCCIÓN a partir de nuestras propias columnas —«188 sets curados,
+cero logos, luego arriba no está»— y esa deducción sale EXACTAMENTE IGUAL
+si el que lee mal somos nosotros. Una columna vacía no dice de quién es la
+culpa, y yo se la había atribuido al tercero sin nada con que sostenerlo.
+
+Desde este contenedor su API **no se puede leer** (la política de red del
+entorno cierra `api.tcgdex.net`), así que la tanda hace las dos cosas que
+sí se pueden:
+
+1. **Comprobar nuestra mitad**, que está entera: `imagePathFromUrl` recorta
+   bien el logo y el escaneo en los SIETE idiomas —`zh-cn` y `zh-tw`
+   gastan los cinco caracteres de su `[a-z-]{2,5}`, margen cero—, el camino
+   guardado no lleva el idioma dentro, cada mercado pide a SU carpeta
+   (438) y `loQueFaltaDeUnSet` escribe `logo_path` desde `completo.logo`.
+   Si TCGdex manda el logo, lo guardamos.
+2. **Preguntárselo a TCGdex de verdad**, desde el único sitio del proyecto
+   con salida a su API: el navegador del panel. Botón nuevo en /admin →
+   Cartas, **«Qué contesta TCGdex de un set»**: pide el set COMPLETO con
+   `fetchSet` (no el listado, que es un SetResume y volvería a decir «no lo
+   tiene» por nuestra culpa) y vuelca `logo`, `symbol`, `serie`,
+   `releaseDate`, `tcgOnline`, `cardCount` y cuántas cartas traen `image`
+   y cuántas no — **al lado** de nuestras columnas, porque el campo crudo
+   solo no dice de quién es la culpa. Con su clave de lectura dentro.
+
+Y una explicación que mi respuesta se había saltado, ya escrita en
+nuestras notas desde la 348: **JP al 30 % de fotos no es «TCGdex al 30 %»,
+es «el LISTADO del set al 30 %»**. La ficha de cada carta sí trae la
+imagen, `detalleDeCarta` la cura y `catalogo-asia` manda el detalle entero
+en el PATCH — o sea que esas imágenes se están rellenando solas ahora
+mismo con el engorde de la 483. El 30 % es un número en movimiento.
+
+**Ficheros**: `admin/index.html`, `admin/js/admin.js`, `SCHEMA.md`,
+`BITACORA.md`. En la rama `pruebas`: `pruebas/test-tanda-484.mjs` (nuevo).
+
+**Prueba**: `test-tanda-484.mjs`, 40 comprobaciones en verde. Mutada: con
+`[a-z]{2,3}` en vez de `[a-z-]{2,5}` caen los dos chinos y el invariante
+del camino sin idioma; quitándole el botón al panel cae la cuarta sección.
+
+**En curso / pendiente**: (1) **PINGU tiene que pulsar ese botón** y pasarme
+el cuadro — con `sv1a JP` y un `cs1a CN` basta para zanjar si los logos
+asiáticos existen arriba o no. (2) El **Panel de /mi-coleccion debe ser
+GLOBAL** (todas las cartas de todos los catálogos, independientemente del
+idioma); Cartas, Expansiones y Pokédex siguen siendo del catálogo elegido —
+pedido y sin empezar. (3) Sigue sin ejecutar
+`supabase-migration-idioma-chino.sql` (tanda 472). (4) Rigores pendientes
+desde la 443. (5) Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 483 — la Pokédex japonesa, vacía con 13.006 cartas dentro)
 
 **Hecho**: PINGU: «me voy a la Pokédex japonesa y ningún Pokémon tiene

@@ -3049,6 +3049,84 @@ async function contarMercados() {
   }
 }
 
+// ── QUÉ CONTESTA TCGDEX, CRUDO (tanda 484) ──
+//
+// PINGU: «me has dicho que TCGdex no guarda las imágenes de los sets
+// japoneses y los logos, pero sí lo hace. Revisa bien la API».
+//
+// Y tenía derecho a dudar. Lo que yo tenía no era la respuesta de TCGdex:
+// era una DEDUCCIÓN a partir de nuestras propias columnas —«188 sets
+// curados y cero logos, luego TCGdex no los da»— y esa deducción sale
+// EXACTAMENTE IGUAL si el que parsea mal somos nosotros. Una columna vacía
+// no dice de quién es la culpa.
+//
+// Esto no deduce: pide el set a TCGdex desde el NAVEGADOR —el único sitio
+// del proyecto con salida a su API— y enseña los campos tal cual, al lado
+// de lo que tenemos guardado. Si `logo` viene y nuestra columna está a
+// null, el fallo es nuestro y se ve en dos renglones.
+async function mirarUnSet() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnMirarSet')
+  const cual = window.prompt(
+    'Identificador del set (y el mercado si no es el occidental).\n\nEjemplos: sv1a JP · cs1a CN · sv8 WEST',
+    'sv1a JP'
+  )
+  if (!cual) return
+  const [setId, market = 'WEST'] = cual.trim().split(/\s+/)
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = `Pidiendo ${setId} (${market}) a TCGdex…`
+  try {
+    const completo = await fetchSet(setId, market)
+    const nuestro = tcgSetsLocales.find((x) => x.id === setId && (x.market || 'WEST') === market) || null
+    const cartas = completo?.cards || []
+    // Las primeras con imagen y las primeras sin ella: así se ve de un
+    // golpe si el listado del set la trae a veces sí y a veces no, que es
+    // justo lo que pasaba con la Classic Collection del 30 aniversario
+    // (tanda 348) — y lo que explicaría un catálogo al 30 %.
+    const con = cartas.filter((c) => c.image)
+    const sin = cartas.filter((c) => !c.image)
+    const linea = (k, v) => `  ${k}: ${v === undefined ? '(no viene)' : JSON.stringify(v)}`
+    caja.value = [
+      `TCGdex dice de ${setId} (${market}), tal cual:`,
+      linea('name', completo?.name),
+      linea('logo', completo?.logo),
+      linea('symbol', completo?.symbol),
+      linea('serie', completo?.serie),
+      linea('releaseDate', completo?.releaseDate),
+      linea('tcgOnline', completo?.tcgOnline),
+      linea('cardCount', completo?.cardCount),
+      '',
+      `Sus cartas: ${cartas.length} en el listado del set, ${con.length} CON image y ${sin.length} SIN image.`,
+      ...con.slice(0, 3).map((c) => `  con image → ${c.localId} ${c.name}: ${JSON.stringify(c.image)}`),
+      ...sin.slice(0, 3).map((c) => `  SIN image → ${c.localId} ${c.name}`),
+      '',
+      'Y lo que tenemos guardado nosotros:',
+      nuestro
+        ? [
+            linea('logo_path', nuestro.logo_path),
+            linea('symbol_url', nuestro.symbol_url),
+            linea('serie_id', nuestro.serie_id),
+            linea('release_date', nuestro.release_date),
+            linea('imported_cards', nuestro.imported_cards),
+          ].join('\n')
+        : '  (ese set no está en nuestra tabla)',
+      '',
+      'CÓMO SE LEE ESTO:',
+      '  · `logo` viene y `logo_path` está a null → el fallo es NUESTRO, al guardarlo.',
+      '  · `logo` no viene → TCGdex no lo publica en ese idioma; la tarjeta',
+      '    cae al símbolo y al nombre, que es lo que hace hoy.',
+      '  · Hay cartas SIN image en el listado → esas imágenes solo salen de la',
+      '    ficha de cada carta, que es lo que engorda `catalogo-asia` (tanda 483).',
+    ].join('\n')
+    cardsNota('Listo. Copia el cuadro entero.')
+  } catch (err) {
+    caja.value = `No se ha podido: ${err.message}`
+    cardsNota(`No se ha podido mirar el set: ${err.message}`, true)
+  }
+  boton.disabled = false
+}
+
 async function importarSets(ids) {
   if (ids.length === 0) {
     cardsNota('No queda ningún set por importar.')
@@ -3154,6 +3232,7 @@ function initCardsSection() {
   document.getElementById('btnLoadTcgSets')?.addEventListener('click', cargarSetsDeTcgdex)
   document.getElementById('btnContarMercados')?.addEventListener('click', contarMercados)
   document.getElementById('btnDiagnosticar')?.addEventListener('click', diagnosticarCartas)
+  document.getElementById('btnMirarSet')?.addEventListener('click', mirarUnSet)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )
