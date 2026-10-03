@@ -35,6 +35,50 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 — PINGU-Claude (tanda 503 — la sonda que mide si Scrydex tapa el hueco del inglés)
+
+**Hecho**: la medición que decide si los 29 $ valen la pena. Es la mitad del
+motivo para pagar y lo único que la evaluación de Cowork no midió: ellos
+midieron el japonés carta a carta y del inglés solo contaron expansiones.
+Nuestros huecos occidentales: **1.351 cartas sin foto** de 21.476 y **63
+sets sin logo** de 210.
+
+**Cuesta TRES créditos y no trescientos**, y ése es el hallazgo: su URL de
+imagen es DERIVABLE (`images.scrydex.com/pokemon/<expansión>-<número>/…`) y
+**las imágenes no gastan créditos**. A la API solo se le pide su lista de
+expansiones inglesas (224, de cien en cien). Lo demás se mide gratis — y es
+además la pregunta correcta: «¿lo lista su API?» y «¿existe el escaneo?»
+son dos cosas distintas, como enseñó TCGdex callándose 3.579 ficheros que
+sí estaban.
+
+**Lo que la haría mentir**: su servidor contesta 200 con una imagen de
+RELLENO para cualquier id inexistente, así que sin comparar la huella la
+sonda diría «el 100 %» mire lo que mire. Se bajan solo los primeros 1.500
+bytes con un `Range` —si no serían quince mil imágenes enteras para
+comparar mil quinientos bytes— y se comparan con la del relleno.
+
+**Tres cosas que hacen que el número signifique algo**: (1) es un SUELO y
+se dice, porque un id derivado que no acierte cuenta como «no la tienen»;
+(2) «sin emparejar» es un fallo NUESTRO y NO entra en la cuenta, que si no
+un fallo de emparejamiento se leería como que a Scrydex le falta catálogo;
+(3) si su API se cae no se concluye nada, porque un 0 % por un 500
+parecería un veredicto sobre su catálogo.
+
+**Ficheros**: `netlify/functions/scrydex-ingles.mjs` (NUEVO),
+`netlify/lib/scrydex.mjs`, `admin/index.html`, `admin/js/admin.js`,
+`SCHEMA.md`, `BITACORA.md`. En la rama `pruebas`:
+`pruebas/test-tanda-503.mjs` (NUEVO).
+
+**Prueba**: 33 comprobaciones. Una de ellas era un `check('…', true)` —un
+aprobado regalado, justo lo que esta casa castiga— y se ha cambiado por una
+que mira de verdad que cada imagen se pide con `Range: bytes=0-1499`.
+
+**En curso / pendiente**: (1) **PINGU: pulsa «¿Tapa Scrydex el hueco del
+inglés?» en /admin → Cartas** y pásame el cuadro. Eso decide si se hace el
+relleno occidental o solo el japonés. (2) Migrar `generate-course` y
+`telegram-mandar` a `netlify/lib/admin.mjs`. (3) Preguntarles lo de
+«wholesale data source». (4) No quitar chino ni taiwanés sin mirar el dato.
+
 ## 2026-10-04 — PINGU-Claude (tanda 502 — sus cartas: el regalo y la trampa)
 
 **Hecho**: segunda sonda (`cards?page_size=1`, 47.481 cartas en total) y

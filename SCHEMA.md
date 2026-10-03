@@ -27342,3 +27342,49 @@ null en esta carta, y mandarlo borraría el que ya tuviéramos curado.
   emparejado el set, las cartas se piden sin adivinar nada.
 
 **Ficheros**: `netlify/lib/scrydex.mjs`.
+
+## Tanda 503 — la sonda que mide si Scrydex tapa el hueco del INGLÉS
+
+Es la mitad del motivo para pagar los 29 $ y lo único que la evaluación de
+COWORK no midió: ellos midieron el japonés carta a carta y del inglés solo
+contaron expansiones. Nuestros huecos occidentales son **1.351 cartas sin
+foto** de 21.476 y **63 sets sin logo** de 210.
+
+### Por qué cuesta tres créditos y no trescientos
+
+Porque **su URL de imagen es derivable** —
+`images.scrydex.com/pokemon/<expansión>-<número>/<calidad>`, y
+`<expansión>-logo/logo` para un logo— **y las imágenes no gastan
+créditos**. Lo único que se le pide a la API es su lista de expansiones
+inglesas (224, de cien en cien: tres peticiones). Con eso se emparejan los
+sets por hechos y el resto se mide gratis.
+
+Y esa es además **la pregunta correcta**. «¿Lo lista su API?» y «¿existe el
+escaneo?» son dos cosas distintas: con TCGdex resultó que la API callaba
+3.579 ficheros que sí estaban. Aquí se mira el fichero.
+
+### Lo que la haría mentir si se olvidara
+
+**Su servidor contesta 200 con una imagen de relleno** para cualquier
+identificador que no exista. Sin comparar la huella, esta sonda diría «el
+100 %» mire lo que mire. Por eso se bajan **solo los primeros 1.500 bytes**
+de cada fichero —con un `Range`, que si no serían quince mil imágenes
+enteras para comparar mil quinientos bytes— y se comparan con la del
+relleno.
+
+### Tres cosas que hacen que el número signifique algo
+
+1. **Es un SUELO, y se dice.** El identificador de cada carta se deriva del
+   número, y uno que no acierte cuenta como «no la tienen».
+2. **«Sin emparejar» es un fallo NUESTRO, no un hueco suyo.** Los sets que
+   no se han podido casar **no entran en la cuenta** y se listan aparte; si
+   entraran, un fallo de emparejamiento se leería como que a Scrydex le
+   falta el catálogo.
+3. **Si su API se cae, no se concluye nada** — un 0 % por un 500 parecería
+   un veredicto sobre su catálogo.
+
+Y el veredicto va en una frase que se lee sin interpretar («Las tienen: 24
+de 30», «NO las tienen: 2 de 30»), no en un porcentaje suelto.
+
+**Ficheros**: `netlify/functions/scrydex-ingles.mjs` (nuevo),
+`netlify/lib/scrydex.mjs`, `admin/index.html`, `admin/js/admin.js`.

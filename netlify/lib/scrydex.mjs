@@ -334,3 +334,60 @@ export function cartaDeScrydex(carta) {
   if (dex.length) fila.dex_ids = dex
   return fila
 }
+
+// ── Sus imágenes, que NO gastan créditos ──
+//
+// La dirección es derivable: `images.scrydex.com/pokemon/<id>/<calidad>`,
+// con `<id>` = `<expansión>-<número>` para una carta y `<expansión>-logo`
+// para un logo. Y como las imágenes no cuentan como crédito, se puede
+// MEDIR la cobertura entera sin gastar casi nada: un puñado de peticiones
+// a la API para emparejar los sets, y lo demás gratis.
+//
+// Es el mismo método con el que COWORK midió TCGdex, y es el único que
+// contesta la pregunta de verdad. «¿Lo lista la API?» y «¿existe el
+// fichero?» son dos preguntas distintas, y aquí la que importa es la
+// segunda.
+const IMAGENES = 'https://images.scrydex.com/pokemon'
+
+export function urlDeCartaScrydex(expansionId, numero, calidad = 'small') {
+  const e = String(expansionId || '').trim()
+  const n = numeroComparable(numero)
+  if (!e || !n || /[^a-z0-9_-]/i.test(e)) return null
+  return `${IMAGENES}/${e}-${n}/${calidad}`
+}
+
+export function urlDeLogoScrydex(expansionId) {
+  const e = String(expansionId || '').trim()
+  if (!e || /[^a-z0-9_-]/i.test(e)) return null
+  return `${IMAGENES}/${e}-logo/logo`
+}
+
+// Lo que se concluye de un puñado de medidas. Se saca aparte porque es
+// aritmética y porque la conclusión tiene que ser legible sin interpretar:
+// «de 30 que nos faltan, tienen 24» se entiende; un porcentaje suelto, no.
+//
+// Y lleva el aviso que hace honesto el número: un identificador derivado
+// que no acierte cuenta como «no la tienen», así que esto es un SUELO y no
+// una medida exacta. Decirlo es parte del resultado.
+export function conclusion({ pedidas, conEscaneo, relleno, fallos }) {
+  const miradas = Number(pedidas) || 0
+  const si = Number(conEscaneo) || 0
+  const pct = miradas ? Math.round((si / miradas) * 100) : 0
+  return {
+    miradas,
+    conEscaneo: si,
+    relleno: Number(relleno) || 0,
+    fallos: Number(fallos) || 0,
+    porcentaje: pct,
+    // El veredicto en una frase, que es lo que se lee.
+    veredicto:
+      miradas === 0
+        ? 'No se ha podido mirar ninguna: mira los sueltos de abajo.'
+        : pct >= 80
+          ? `Las tienen: ${si} de ${miradas} (${pct} %). Merece la pena rellenar.`
+          : pct >= 30
+            ? `A medias: ${si} de ${miradas} (${pct} %). Rellena lo que haya, pero no lo tapa todo.`
+            : `NO las tienen: ${si} de ${miradas} (${pct} %). Por aquí no se arregla el hueco.`,
+    aviso: 'Es un SUELO: el identificador de cada carta se deriva del número, y uno que no acierte cuenta como «no la tienen».',
+  }
+}

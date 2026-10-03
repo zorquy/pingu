@@ -3037,6 +3037,69 @@ const SONDAS_SCRYDEX = [
   ['Una carta cualquiera', 'cards', { page_size: '1' }],
 ]
 
+// ── ¿TAPA SCRYDEX LOS HUECOS DEL CATÁLOGO OCCIDENTAL? (tanda 503) ──
+//
+// Es la mitad del motivo para pagar los 29 $ y lo único que la evaluación
+// de Cowork no midió: midieron el japonés carta a carta y del inglés solo
+// contaron expansiones. Nuestros huecos son 1.351 cartas sin foto de 21.476
+// y 63 sets sin logo de 210.
+//
+// Cuesta TRES créditos, no trescientos: lo único que se le pide a la API es
+// su lista de expansiones; las imágenes no gastan y su dirección se deriva.
+async function medirInglesScrydex() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnMedirIngles')
+  const { data: { session } = {} } = await supabase.auth.getSession()
+  if (!session) {
+    cardsNota('No hay sesión: vuelve a entrar.', true)
+    return
+  }
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = 'Midiendo el inglés contra Scrydex… (pide su lista de expansiones y comprueba fichero a fichero)'
+  try {
+    const res = await fetch('/.netlify/functions/scrydex-ingles', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+    })
+    const r = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      caja.value = `No se ha podido: ${r.error || res.status}`
+      cardsNota(r.error || `Ha fallado (${res.status}).`, true)
+      boton.disabled = false
+      return
+    }
+    const bloque = (titulo, d) => [
+      `${titulo}`,
+      `  ${d.veredicto}`,
+      `  miradas ${d.miradas} · con escaneo ${d.conEscaneo} · relleno ${d.relleno} · fallos ${d.fallos}`,
+      d.sinPareja?.length ? `  sin emparejar (NO cuentan): ${d.sinPareja.slice(0, 8).join(', ')}` : '',
+      ...(d.ejemplos || []).map((e) => `  · ${e}`),
+    ].filter(Boolean).join('\n')
+    caja.value = [
+      `Créditos gastados: ${r.creditos}`,
+      `Sus expansiones inglesas: ${r.susExpansiones}`,
+      `Emparejados: ${r.emparejados} · ambiguos ${r.ambiguos} · sin emparejar ${r.sinEmparejar}`,
+      '',
+      bloque('LOGOS (nos faltan 63 de 210):', r.logos),
+      '',
+      bloque('ESCANEOS (nos faltan 1.351 de 21.476):', r.cartas),
+      '',
+      'CÓMO SE LEE ESTO:',
+      `  · ${r.logos.aviso}`,
+      '  · «relleno» son las que su servidor contesta con la imagen de relleno:',
+      '    un 200 con una imagen que no es la carta. Esas NO las tienen.',
+      '  · «sin emparejar» es un fallo NUESTRO, no un hueco suyo: esos sets no',
+      '    se han podido casar con los suyos y por eso no cuentan.',
+    ].join('\n')
+    cardsNota('Medido. Copia el cuadro entero.')
+  } catch (err) {
+    caja.value = `No se ha podido: ${err.message}`
+    cardsNota(`Ha fallado: ${err.message}`, true)
+  }
+  boton.disabled = false
+}
+
 async function sondearScrydex() {
   const caja = document.getElementById('cardsDiagnostico')
   const boton = document.getElementById('btnSondearScrydex')
@@ -3435,6 +3498,7 @@ function initCardsSection() {
   document.getElementById('btnMirarSet')?.addEventListener('click', mirarUnSet)
   document.getElementById('btnSondearMercado')?.addEventListener('click', sondearMercado)
   document.getElementById('btnSondearScrydex')?.addEventListener('click', sondearScrydex)
+  document.getElementById('btnMedirIngles')?.addEventListener('click', medirInglesScrydex)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )
