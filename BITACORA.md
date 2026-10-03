@@ -66,6 +66,14 @@ mirando la 459 y la 473.
 `test-tanda-478.mjs` (NUEVO, 31 comprobaciones) y repintadas la 459 y la
 473, que afirmaban cosas sobre una barra de dos chapas.
 
+**SUITE ENTERA, CON LAS SIETE TANDAS DENTRO: 201 VERDES Y CERO ROJOS.**
+Es la primera pasada limpia desde la 437 (la 471 sacó 193/1 y el rojo era
+la guarda de los upsert). Lo que la ensució por el camino fueron trece
+pruebas que afirmaban cosas que estas tandas cambiaron A PROPÓSITO —382,
+398, 400, 409, 412, 414, 418, 426, 427, 430, 459, 461, 466, 473 y 475—,
+casi todas por lo mismo: un control que se mudó dentro de un panel o de un
+menú, y encontrar un elemento no es poder pulsarlo.
+
 **En curso / pendiente**: **LA COLA DE PINGU SE HA ACABADO.** Lo único
 pendiente que no es mío: ejecutar `supabase-migration-idioma-chino.sql`
 (tanda 472) — hasta entonces no se puede guardar una carta china. Rigores
