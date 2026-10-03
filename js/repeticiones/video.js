@@ -25,6 +25,15 @@ import { arriba } from './estado.js'
 
 export const ANCHO = 1280
 export const ALTO = 720
+// Los dos formatos (tanda 493). El vertical es para TikTok, Reels y
+// Shorts: 720×1280 y no 1080×1920, porque es lo más grande que cabe en el
+// mismo nivel de H.264 que el horizontal (3.1: 3.600 macrobloques), y un
+// teléfono no le saca más a un tapete.
+export const FORMATOS = {
+  horizontal: { ancho: ANCHO, alto: ALTO },
+  vertical: { ancho: 720, alto: 1280 },
+}
+const medidasDe = (formato) => FORMATOS[formato] || FORMATOS.horizontal
 const FPS = 24
 // Cuánto dura lo que se mueve al principio de cada jugada (el golpe, el
 // cartel del turno); el resto de la jugada es UN fotograma largo.
@@ -39,11 +48,11 @@ const CODECS = [
   { codec: 'vp09.00.31.08', caja: 'vp09' },
 ]
 
-export async function codecDisponible() {
+export async function codecDisponible(formato = 'horizontal') {
   if (typeof VideoEncoder !== 'function' || typeof VideoFrame !== 'function') return null
   for (const c of CODECS) {
     try {
-      const r = await VideoEncoder.isConfigSupported(configDe(c))
+      const r = await VideoEncoder.isConfigSupported(configDe(c, formato))
       if (r?.supported) return c
     } catch {
       /* ese no: el siguiente */
@@ -52,11 +61,12 @@ export async function codecDisponible() {
   return null
 }
 
-function configDe(c) {
+function configDe(c, formato = 'horizontal') {
+  const { ancho, alto } = medidasDe(formato)
   return {
     codec: c.codec,
-    width: ANCHO,
-    height: ALTO,
+    width: ancho,
+    height: alto,
     bitrate: 1_500_000,
     framerate: FPS,
     ...(c.caja === 'avc1' ? { avc: { format: 'avc' } } : {}),
@@ -266,175 +276,217 @@ function barraDeVida(ctx, C, x, y, w, vida, ps) {
 // Lo que el dibujo necesita saber de la jugada en curso, en el instante t
 // (segundos desde que empezó): el golpe tiembla, el daño sube, el cartel
 // entra y sale.
+//
+// Desde la tanda 493 hay dos composiciones —la horizontal de siempre y una
+// vertical para el móvil— hechas con las MISMAS piezas: el Pokémon con su
+// vida y sus energías, las pilas, la jugada del centro, la carta en
+// grande, la mano, la firma y el cartel. Lo que cambia es dónde va cada
+// una; una pieza arreglada en una se arregla en las dos.
 function dibujarFoto(ctx, C, s, t, M) {
   const { abajo, imagenes, psDe, letraDe, colorDe } = M
-  const f = s.foco
-  const arribaJ = s.orden.find((n) => n !== abajo)
-  const img = (n) => imagenes.get(n) || null
+  const K = {
+    ctx,
+    C,
+    s,
+    t,
+    f: s.foco,
+    abajo,
+    arribaJ: s.orden.find((n) => n !== abajo),
+    img: (n) => imagenes.get(n) || null,
+    psDe,
+    letraDe,
+    colorDe,
+  }
+  if (M.formato === 'vertical') dibujarVertical(K)
+  else dibujarHorizontal(K)
+}
 
-  // El tapete.
-  const g = ctx.createLinearGradient(0, 0, 0, ALTO)
+// ── Las piezas ──
+
+function pintarTapete(K, ancho, alto, cy) {
+  const { ctx, C } = K
+  const g = ctx.createLinearGradient(0, 0, 0, alto)
   g.addColorStop(0, C.oscuro)
   g.addColorStop(0.5, C.medio)
   g.addColorStop(1, C.oscuro)
   ctx.fillStyle = g
-  ctx.fillRect(0, 0, ANCHO, ALTO)
-  const r = ctx.createRadialGradient(ANCHO / 2, 300, 40, ANCHO / 2, 300, 620)
+  ctx.fillRect(0, 0, ancho, alto)
+  const r = ctx.createRadialGradient(ancho / 2, cy, 40, ancho / 2, cy, 620)
   r.addColorStop(0, 'rgba(255,255,255,0.10)')
   r.addColorStop(1, 'rgba(255,255,255,0)')
   ctx.fillStyle = r
-  ctx.fillRect(0, 0, ANCHO, ALTO)
+  ctx.fillRect(0, 0, ancho, alto)
+}
 
-  const lado = (nombre, rival) => {
-    const p = s.jugadores[nombre]
-    // Arriba: la banca arriba y el activo pegado al centro, como en la
-    // mesa de la página (se mira de frente al rival).
-    const yActivo = rival ? 112 : 346
-    const yBanca = rival ? 14 : 488
-    const yCab = rival ? 18 : 346
-    // El nombre y los premios, a la izquierda.
-    pastilla(ctx, nombre, 24, yCab, { fondo: C.j[colorDe(nombre)], color: C.oscuro, tam: 15 })
-    if (s.deQuien === nombre && !s.fin) pastilla(ctx, 'SU TURNO', 24, yCab + 30, { fondo: C.blanco, color: C.oscuro, tam: 11, peso: 800 })
-    if (s.fin?.ganador === nombre) pastilla(ctx, 'GANA', 24, yCab + 30, { fondo: C.brillo, color: C.oscuro, tam: 11, peso: 800 })
-    const yPrem = rival ? 112 : 410
-    for (let k = 0; k < (s.turno ? p.premios : 6); k++) {
-      const px = 24 + (k % 3) * (W_PREMIO + 6)
-      const py = yPrem + Math.floor(k / 3) * (H_PREMIO + 6)
-      if (s.turno) dorso(ctx, C, px, py, W_PREMIO, H_PREMIO)
-      else {
-        redondo(ctx, px, py, W_PREMIO, H_PREMIO, 3)
-        ctx.strokeStyle = 'rgba(255,255,255,0.28)'
-        ctx.setLineDash([3, 3])
-        ctx.stroke()
-        ctx.setLineDash([])
-      }
-    }
-    const brillaPremio = f?.tipo === 'premio' && f.jugador === nombre
-    ctx.save()
-    ctx.fillStyle = brillaPremio ? C.brillo : 'rgba(255,255,255,0.76)'
-    ctx.font = '600 13px Inter, sans-serif'
-    ctx.fillText(s.turno ? `${p.premios} ${p.premios === 1 ? 'premio' : 'premios'}` : 'Premios', 24, yPrem + 2 * (H_PREMIO + 6) + 14)
-    ctx.restore()
+// El nombre del jugador y, debajo, si es su turno o si ha ganado.
+function pintarNombre(K, nombre, x, y) {
+  const { ctx, C, s, colorDe } = K
+  pastilla(ctx, nombre, x, y, { fondo: C.j[colorDe(nombre)], color: C.oscuro, tam: 15 })
+  if (s.deQuien === nombre && !s.fin) pastilla(ctx, 'SU TURNO', x, y + 30, { fondo: C.blanco, color: C.oscuro, tam: 11, peso: 800 })
+  if (s.fin?.ganador === nombre) pastilla(ctx, 'GANA', x, y + 30, { fondo: C.brillo, color: C.oscuro, tam: 11, peso: 800 })
+}
 
-    // Las pilas, a la derecha: mazo, descarte y (del de arriba) la mano.
-    const xPilas = 1040
-    const yPilas = rival ? 112 : 352
-    dorso(ctx, C, xPilas, yPilas, W_PILA, H_PILA)
-    const ultima = p.descarte.at(-1)
-    if (ultima) carta(ctx, C, img(ultima), ultima, xPilas + 64, yPilas, W_PILA, H_PILA)
+// Los premios, en una rejilla de `columnas`, con su cuenta debajo.
+function pintarPremios(K, nombre, x, y, { columnas = 3, ancho = W_PREMIO, alinear = 'left' } = {}) {
+  const { ctx, C, s, f } = K
+  const p = s.jugadores[nombre]
+  const alto = Math.round((ancho * 342) / 245)
+  const n = s.turno ? p.premios : 6
+  const filas = Math.ceil(6 / columnas)
+  for (let k = 0; k < n; k++) {
+    const px = x + (k % columnas) * (ancho + 6)
+    const py = y + Math.floor(k / columnas) * (alto + 6)
+    if (s.turno) dorso(ctx, C, px, py, ancho, alto)
     else {
-      redondo(ctx, xPilas + 64, yPilas, W_PILA, H_PILA, 4)
+      redondo(ctx, px, py, ancho, alto, 3)
       ctx.strokeStyle = 'rgba(255,255,255,0.28)'
       ctx.setLineDash([3, 3])
       ctx.stroke()
       ctx.setLineDash([])
     }
-    ctx.save()
+  }
+  const brillaPremio = f?.tipo === 'premio' && f.jugador === nombre
+  ctx.save()
+  ctx.fillStyle = brillaPremio ? C.brillo : 'rgba(255,255,255,0.76)'
+  ctx.font = '600 13px Inter, sans-serif'
+  if (alinear === 'right') ctx.textAlign = 'right'
+  const xTexto = alinear === 'right' ? x + columnas * (ancho + 6) - 6 : x
+  ctx.fillText(s.turno ? `${p.premios} ${p.premios === 1 ? 'premio' : 'premios'}` : 'Premios', xTexto, y + filas * (alto + 6) + 14)
+  ctx.restore()
+}
+
+// Las pilas: mazo, descarte y (del de arriba) la mano.
+function pintarPilas(K, nombre, xPilas, yPilas, conMano) {
+  const { ctx, C, s, img } = K
+  const p = s.jugadores[nombre]
+  dorso(ctx, C, xPilas, yPilas, W_PILA, H_PILA)
+  const ultima = p.descarte.at(-1)
+  if (ultima) carta(ctx, C, img(ultima), ultima, xPilas + 64, yPilas, W_PILA, H_PILA)
+  else {
+    redondo(ctx, xPilas + 64, yPilas, W_PILA, H_PILA, 4)
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)'
+    ctx.setLineDash([3, 3])
+    ctx.stroke()
+    ctx.setLineDash([])
+  }
+  ctx.save()
+  ctx.fillStyle = C.blanco
+  ctx.textAlign = 'center'
+  ctx.font = '700 18px Inter, sans-serif'
+  ctx.fillText(String(p.mazo), xPilas + W_PILA / 2, yPilas + H_PILA + 20)
+  ctx.fillText(String(p.descarte.length), xPilas + 64 + W_PILA / 2, yPilas + H_PILA + 20)
+  ctx.font = '500 11px Inter, sans-serif'
+  ctx.fillStyle = 'rgba(255,255,255,0.76)'
+  ctx.fillText('mazo', xPilas + W_PILA / 2, yPilas + H_PILA + 34)
+  ctx.fillText('descarte', xPilas + 64 + W_PILA / 2, yPilas + H_PILA + 34)
+  if (conMano) {
     ctx.fillStyle = C.blanco
-    ctx.textAlign = 'center'
     ctx.font = '700 18px Inter, sans-serif'
-    ctx.fillText(String(p.mazo), xPilas + W_PILA / 2, yPilas + H_PILA + 20)
-    ctx.fillText(String(p.descarte.length), xPilas + 64 + W_PILA / 2, yPilas + H_PILA + 20)
+    ctx.fillText(String(p.mano), xPilas + 128 + W_PILA / 2, yPilas + H_PILA + 20)
     ctx.font = '500 11px Inter, sans-serif'
     ctx.fillStyle = 'rgba(255,255,255,0.76)'
-    ctx.fillText('mazo', xPilas + W_PILA / 2, yPilas + H_PILA + 34)
-    ctx.fillText('descarte', xPilas + 64 + W_PILA / 2, yPilas + H_PILA + 34)
-    if (rival) {
-      ctx.fillStyle = C.blanco
-      ctx.font = '700 18px Inter, sans-serif'
-      ctx.fillText(String(p.mano), xPilas + 128 + W_PILA / 2, yPilas + H_PILA + 20)
-      ctx.font = '500 11px Inter, sans-serif'
-      ctx.fillStyle = 'rgba(255,255,255,0.76)'
-      ctx.fillText('en la mano', xPilas + 128 + W_PILA / 2, yPilas + H_PILA + 34)
-    }
-    ctx.restore()
-    if (rival) for (let k = 0; k < Math.min(p.mano, 5); k++) dorso(ctx, C, xPilas + 128 + k * 4, yPilas + k * 2, W_PILA - 12, H_PILA - 16)
+    ctx.fillText('en la mano', xPilas + 128 + W_PILA / 2, yPilas + H_PILA + 34)
+  }
+  ctx.restore()
+  if (conMano) for (let k = 0; k < Math.min(p.mano, 5); k++) dorso(ctx, C, xPilas + 128 + k * 4, yPilas + k * 2, W_PILA - 12, H_PILA - 16)
+}
 
-    // El activo, en el centro; su vida y sus energías, a la derecha.
-    if (p.activo) slot(p.activo, ANCHO / 2 - W_ACTIVO / 2, yActivo, W_ACTIVO, H_ACTIVO, true)
+// El activo (o su hueco) y la banca, en fila y centrada en `cx`.
+function pintarActivo(K, p, cx, y, w = W_ACTIVO) {
+  const { ctx } = K
+  const h = Math.round((w * 342) / 245)
+  if (p.activo) pintarSlot(K, p.activo, cx - w / 2, y, w, h, true)
+  else {
+    redondo(ctx, cx - w / 2, y, w, h, 6)
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)'
+    ctx.setLineDash([4, 4])
+    ctx.stroke()
+    ctx.setLineDash([])
+  }
+}
+
+function pintarBanca(K, p, cx, y, wMax = W_BANCA, cabe = Infinity) {
+  const { ctx } = K
+  const huecos = Math.max(5, p.banca.length)
+  const hueco = 12
+  // Con más de cinco (un estadio que amplía la banca) y sin sitio, las
+  // cartas se encogen: la vertical no tiene los 1.232 px de la otra.
+  const w = Math.min(wMax, Math.floor((cabe - (huecos - 1) * hueco) / huecos))
+  const h = Math.round((w * 342) / 245)
+  const anchoBanca = huecos * w + (huecos - 1) * hueco
+  const x0 = cx - anchoBanca / 2
+  for (let k = 0; k < huecos; k++) {
+    const x = x0 + k * (w + hueco)
+    if (p.banca[k]) pintarSlot(K, p.banca[k], x, y, w, h, false)
     else {
-      redondo(ctx, ANCHO / 2 - W_ACTIVO / 2, yActivo, W_ACTIVO, H_ACTIVO, 6)
-      ctx.strokeStyle = 'rgba(255,255,255,0.28)'
-      ctx.setLineDash([4, 4])
+      redondo(ctx, x, y, w, h, 4)
+      ctx.fillStyle = 'rgba(255,255,255,0.05)'
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)'
+      ctx.setLineDash([3, 3])
       ctx.stroke()
       ctx.setLineDash([])
     }
-    // La banca, en fila y centrada.
-    const huecos = Math.max(5, p.banca.length)
-    const anchoBanca = huecos * W_BANCA + (huecos - 1) * 12
-    const x0 = ANCHO / 2 - anchoBanca / 2
-    for (let k = 0; k < huecos; k++) {
-      const x = x0 + k * (W_BANCA + 12)
-      if (p.banca[k]) slot(p.banca[k], x, yBanca, W_BANCA, H_BANCA, false)
-      else {
-        redondo(ctx, x, yBanca, W_BANCA, H_BANCA, 4)
-        ctx.fillStyle = 'rgba(255,255,255,0.05)'
-        ctx.fill()
-        ctx.strokeStyle = 'rgba(255,255,255,0.18)'
-        ctx.setLineDash([3, 3])
-        ctx.stroke()
-        ctx.setLineDash([])
-      }
-    }
   }
+}
 
-  const slot = (sl, x, y, w, h, activo) => {
-    const nombre = arriba(sl)
-    const ps = psDe(nombre)
-    const golpe = (f?.tipo === 'ataque' && f.objetivo === sl.id) || (f?.tipo === 'danio' && f.slot === sl.id)
-    const foco = !golpe && (f?.slot === sl.id || f?.slots?.includes(sl.id))
-    // El golpe: tiembla el primer medio segundo.
-    const dx = golpe && t < 0.5 ? Math.round(Math.sin(t * 40) * 6 * (1 - t / 0.5)) : 0
-    if (foco || golpe) {
+function pintarSlot(K, sl, x, y, w, h, activo) {
+  const { ctx, C, f, t, img, psDe, letraDe } = K
+  const nombre = arriba(sl)
+  const ps = psDe(nombre)
+  const golpe = (f?.tipo === 'ataque' && f.objetivo === sl.id) || (f?.tipo === 'danio' && f.slot === sl.id)
+  const foco = !golpe && (f?.slot === sl.id || f?.slots?.includes(sl.id))
+  // El golpe: tiembla el primer medio segundo.
+  const dx = golpe && t < 0.5 ? Math.round(Math.sin(t * 40) * 6 * (1 - t / 0.5)) : 0
+  if (foco || golpe) {
+    ctx.save()
+    ctx.shadowColor = golpe ? C.peligro : C.brillo
+    ctx.shadowBlur = 18
+    redondo(ctx, x + dx - 3, y - 3, w + 6, h + 6, 8)
+    ctx.strokeStyle = golpe ? C.peligro : C.brillo
+    ctx.lineWidth = 3
+    ctx.stroke()
+    ctx.restore()
+  }
+  carta(ctx, C, img(nombre), nombre, x + dx, y, w, h, { gris: ps && sl.danio >= ps })
+  if (sl.danio) pastilla(ctx, String(sl.danio), x + dx + w - 4, y + 4, { fondo: C.peligro, color: C.blanco, tam: activo ? 14 : 11, alinear: 'right', peso: 800 })
+  // Lo de debajo (o al lado, el activo).
+  if (activo) {
+    const xi = x + w + 14
+    if (ps) {
+      barraDeVida(ctx, C, xi, y + 8, 100, Math.max(0, ps - sl.danio), ps)
       ctx.save()
-      ctx.shadowColor = golpe ? C.peligro : C.brillo
-      ctx.shadowBlur = 18
-      redondo(ctx, x + dx - 3, y - 3, w + 6, h + 6, 8)
-      ctx.strokeStyle = golpe ? C.peligro : C.brillo
-      ctx.lineWidth = 3
-      ctx.stroke()
+      ctx.fillStyle = 'rgba(255,255,255,0.86)'
+      ctx.font = '600 13px Inter, sans-serif'
+      ctx.fillText(`${Math.max(0, ps - sl.danio)}/${ps}`, xi, y + 32)
       ctx.restore()
     }
-    carta(ctx, C, img(nombre), nombre, x + dx, y, w, h, { gris: ps && sl.danio >= ps })
-    if (sl.danio) pastilla(ctx, String(sl.danio), x + dx + w - 4, y + 4, { fondo: C.peligro, color: C.blanco, tam: activo ? 14 : 11, alinear: 'right', peso: 800 })
-    // Lo de debajo (o al lado, el activo).
-    if (activo) {
-      const xi = x + w + 14
-      if (ps) {
-        barraDeVida(ctx, C, xi, y + 8, 100, Math.max(0, ps - sl.danio), ps)
-        ctx.save()
-        ctx.fillStyle = 'rgba(255,255,255,0.86)'
-        ctx.font = '600 13px Inter, sans-serif'
-        ctx.fillText(`${Math.max(0, ps - sl.danio)}/${ps}`, xi, y + 32)
-        ctx.restore()
-      }
-      sl.energias.slice(0, 10).forEach((e, k) => energia(ctx, C, e, xi + (k % 5) * 20, y + 42 + Math.floor(k / 5) * 20, letraDe))
-      const chapas = []
-      if (sl.herramienta) chapas.push(sl.herramienta)
-      if (sl.cartas.length > 1) chapas.push(`evol. ${sl.cartas.length - 1}`)
-      chapas.forEach((c, k) => {
-        ctx.save()
-        ctx.font = '600 11px Inter, sans-serif'
-        pastilla(ctx, recortar(ctx, c, 140), xi, y + 88 + k * 22, { fondo: 'rgba(255,255,255,0.16)', color: C.blanco, tam: 11, peso: 600 })
-        ctx.restore()
-      })
-    } else {
-      if (ps) barraDeVida(ctx, C, x, y + h + 4, w, Math.max(0, ps - sl.danio), ps)
-      sl.energias.slice(0, 4).forEach((e, k) => energia(ctx, C, e, x + 2 + k * 14, y + h - 20, letraDe))
-    }
-    // El daño de este golpe, subiendo encima de la carta.
-    if (golpe && f.danio) {
-      const subida = Math.min(1, t / 0.6)
-      pastilla(ctx, `−${f.danio}`, x + w / 2, y + h * 0.42 - subida * 22, { fondo: C.peligro, color: C.blanco, tam: activo ? 24 : 16, alinear: 'center', peso: 800 })
-    }
+    sl.energias.slice(0, 10).forEach((e, k) => energia(ctx, C, e, xi + (k % 5) * 20, y + 42 + Math.floor(k / 5) * 20, letraDe))
+    const chapas = []
+    if (sl.herramienta) chapas.push(sl.herramienta)
+    if (sl.cartas.length > 1) chapas.push(`evol. ${sl.cartas.length - 1}`)
+    chapas.forEach((c, k) => {
+      ctx.save()
+      ctx.font = '600 11px Inter, sans-serif'
+      pastilla(ctx, recortar(ctx, c, 140), xi, y + 88 + k * 22, { fondo: 'rgba(255,255,255,0.16)', color: C.blanco, tam: 11, peso: 600 })
+      ctx.restore()
+    })
+  } else {
+    if (ps) barraDeVida(ctx, C, x, y + h + 4, w, Math.max(0, ps - sl.danio), ps)
+    sl.energias.slice(0, 4).forEach((e, k) => energia(ctx, C, e, x + 2 + k * 14, y + h - 20, letraDe))
   }
+  // El daño de este golpe, subiendo encima de la carta.
+  if (golpe && f.danio) {
+    const subida = Math.min(1, t / 0.6)
+    pastilla(ctx, `−${f.danio}`, x + w / 2, y + h * 0.42 - subida * 22, { fondo: C.peligro, color: C.blanco, tam: activo ? 24 : 16, alinear: 'center', peso: 800 })
+  }
+}
 
-  lado(arribaJ, true)
-  lado(abajo, false)
-
-  // El centro: el turno, la línea del registro y la jugada en grande.
+// La caja del centro: el estadio, el turno y la línea del registro.
+function pintarCentro(K, { x, y, w, h, xTexto, yEtiqueta, yLinea, anchoLinea, lineas, xEstadio, yEstadio }) {
+  const { ctx, C, s, img, colorDe } = K
   ctx.save()
-  redondo(ctx, 24, 256, ANCHO - 48, 74, 14)
+  redondo(ctx, x, y, w, h, 14)
   ctx.fillStyle = 'rgba(8, 24, 38, 0.55)'
   ctx.fill()
   ctx.strokeStyle = 'rgba(255,255,255,0.18)'
@@ -442,99 +494,113 @@ function dibujarFoto(ctx, C, s, t, M) {
   ctx.stroke()
   ctx.restore()
   if (s.estadio) {
-    carta(ctx, C, img(s.estadio.carta), s.estadio.carta, 36, 262, 44, 62)
+    carta(ctx, C, img(s.estadio.carta), s.estadio.carta, xEstadio, yEstadio, 44, 62)
   }
   ctx.save()
   ctx.fillStyle = 'rgba(255,255,255,0.76)'
   ctx.font = '700 12px Inter, sans-serif'
   const etiqueta = s.turno ? `TURNO ${s.turno}` : 'PREPARACIÓN'
-  ctx.fillText(etiqueta, 96, 280)
-  if (s.turno && s.deQuien) pastilla(ctx, s.deQuien, 96 + ctx.measureText(etiqueta).width + 8, 268, { fondo: C.j[colorDe(s.deQuien)], color: C.oscuro, tam: 11 })
+  ctx.fillText(etiqueta, xTexto, yEtiqueta)
+  if (s.turno && s.deQuien) pastilla(ctx, s.deQuien, xTexto + ctx.measureText(etiqueta).width + 8, yEtiqueta - 12, { fondo: C.j[colorDe(s.deQuien)], color: C.oscuro, tam: 11 })
   ctx.fillStyle = C.blanco
   ctx.font = '500 16px Inter, sans-serif'
-  renglones(ctx, s.linea || (s.turno ? '' : 'La partida está a punto de empezar.'), 760, 2).forEach((l, i) => ctx.fillText(l, 96, 302 + i * 20))
+  renglones(ctx, s.linea || (s.turno ? '' : 'La partida está a punto de empezar.'), anchoLinea, lineas).forEach((l, i) => ctx.fillText(l, xTexto, yLinea + i * 20))
   ctx.restore()
+}
 
-  // A la derecha del centro, lo que pasa.
-  const xF = 900
+// Lo que pasa, junto a la línea: el ataque y su daño, la moneda, el KO…
+// `yF` es la línea media; `xDanio`, el borde derecho del daño.
+function pintarJugada(K, xF, yF, xDanio) {
+  const { ctx, C, f, img } = K
   ctx.save()
   ctx.textBaseline = 'middle'
   if (f?.tipo === 'ataque' || f?.tipo === 'elige') {
     ctx.font = '700 16px Inter, sans-serif'
     ctx.fillStyle = C.blanco
-    ctx.fillText(recortar(ctx, f.que || 'Ataque', 200), xF, 293)
-    if (f.tipo === 'ataque' && f.danio) pastilla(ctx, String(f.danio), 1240, 276, { fondo: C.peligro, color: C.blanco, tam: 22, alinear: 'right', peso: 800 })
+    ctx.fillText(recortar(ctx, f.que || 'Ataque', 200), xF, yF)
+    if (f.tipo === 'ataque' && f.danio) pastilla(ctx, String(f.danio), xDanio, yF - 17, { fondo: C.peligro, color: C.blanco, tam: 22, alinear: 'right', peso: 800 })
   } else if (f?.tipo === 'moneda') {
     ctx.beginPath()
-    ctx.arc(xF + 20, 293, 20, 0, Math.PI * 2)
+    ctx.arc(xF + 20, yF, 20, 0, Math.PI * 2)
     ctx.fillStyle = f.cara ? C.brillo : 'rgba(255,255,255,0.18)'
     ctx.fill()
     ctx.fillStyle = f.cara ? C.oscuro : C.blanco
     ctx.font = '700 18px Inter, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText(f.cara ? 'C' : 'X', xF + 20, 294)
+    ctx.fillText(f.cara ? 'C' : 'X', xF + 20, yF + 1)
     ctx.textAlign = 'left'
     ctx.fillStyle = C.blanco
     ctx.font = '700 16px Inter, sans-serif'
-    ctx.fillText(f.cara ? 'Cara' : 'Cruz', xF + 52, 293)
+    ctx.fillText(f.cara ? 'Cara' : 'Cruz', xF + 52, yF)
   } else if (f?.tipo === 'premio') {
     ctx.fillStyle = C.blanco
     ctx.font = '700 16px Inter, sans-serif'
-    ctx.fillText(`${f.jugador} coge ${f.n} ${f.n === 1 ? 'premio' : 'premios'}`, xF, 293)
+    ctx.fillText(`${f.jugador} coge ${f.n} ${f.n === 1 ? 'premio' : 'premios'}`, xF, yF)
   } else if (f?.tipo === 'ko') {
     ctx.fillStyle = C.brillo
     ctx.font = '700 16px Inter, sans-serif'
-    ctx.fillText('Fuera de combate', xF + 56, 293)
-    carta(ctx, C, img(f.carta), f.carta, xF, 262, 44, 62, { gris: true })
+    ctx.fillText('Fuera de combate', xF + 56, yF)
+    carta(ctx, C, img(f.carta), f.carta, xF, yF - 31, 44, 62, { gris: true })
   } else if (f?.tipo === 'jugar' || f?.tipo === 'habilidad') {
     const nombre = f.tipo === 'habilidad' ? f.carta : f.carta
-    if (nombre) carta(ctx, C, img(nombre), nombre, xF, 262, 44, 62)
+    if (nombre) carta(ctx, C, img(nombre), nombre, xF, yF - 31, 44, 62)
     ctx.fillStyle = C.blanco
     ctx.font = '700 15px Inter, sans-serif'
-    ctx.fillText(recortar(ctx, f.tipo === 'habilidad' ? f.que || 'Habilidad' : f.estadio ? 'Pone el estadio' : 'Juega', 260), xF + 56, 293)
+    ctx.fillText(recortar(ctx, f.tipo === 'habilidad' ? f.que || 'Habilidad' : f.estadio ? 'Pone el estadio' : 'Juega', 260), xF + 56, yF)
   }
   ctx.restore()
+}
 
-  // La carta que se juega, en GRANDE un momento: es lo que en la mesa de
-  // verdad se enseña al rival.
+// La carta que se juega, en GRANDE un momento: es lo que en la mesa de
+// verdad se enseña al rival. `x` es su borde izquierdo y `cy` su centro.
+function pintarCartaGrande(K, x, cy, w = 170) {
+  const { ctx, C, f, t, img } = K
   if ((f?.tipo === 'jugar' || f?.tipo === 'evoluciona') && f.carta && t < ANIMACION + 0.4) {
     const entra = Math.min(1, t / 0.2)
     const sale = t > ANIMACION ? Math.max(0, 1 - (t - ANIMACION) / 0.4) : 1
-    const w = 170
     const h = Math.round((w * 342) / 245)
     ctx.save()
     ctx.shadowColor = 'rgba(0,0,0,0.5)'
     ctx.shadowBlur = 24
-    carta(ctx, C, img(f.carta), f.carta, 846, 360 - h / 2 + (1 - entra) * 20, w, h, { alfa: entra * sale })
+    carta(ctx, C, img(f.carta), f.carta, x, cy - h / 2 + (1 - entra) * 20, w, h, { alfa: entra * sale })
     ctx.restore()
   }
+}
 
-  // La mano del de abajo.
+// La mano del de abajo, en abanico si no cabe.
+function pintarMano(K, x, yRotulo, y, ancho, w = W_MANO) {
+  const { ctx, C, s, abajo, img } = K
+  const h = Math.round((w * 342) / 245)
   const p = s.jugadores[abajo]
   const conocidas = p.manoConocida.slice(0, p.mano)
   const tapadas = Math.max(0, p.mano - conocidas.length)
   ctx.save()
   ctx.fillStyle = 'rgba(255,255,255,0.76)'
   ctx.font = '700 12px Inter, sans-serif'
-  ctx.fillText(`MANO · ${p.mano}`, 24, 604)
+  ctx.fillText(`MANO · ${p.mano}`, x, yRotulo)
   ctx.restore()
   const total = conocidas.length + tapadas
-  const paso = total > 1 ? Math.min(W_MANO + 6, (1000 - W_MANO) / (total - 1)) : 0
-  conocidas.forEach((c, k) => carta(ctx, C, img(c), c, 24 + k * paso, 616, W_MANO, H_MANO))
-  for (let k = 0; k < tapadas; k++) dorso(ctx, C, 24 + (conocidas.length + k) * paso, 616, W_MANO, H_MANO)
+  const paso = total > 1 ? Math.min(w + 6, (ancho - w) / (total - 1)) : 0
+  conocidas.forEach((c, k) => carta(ctx, C, img(c), c, x + k * paso, y, w, h))
+  for (let k = 0; k < tapadas; k++) dorso(ctx, C, x + (conocidas.length + k) * paso, y, w, h)
+}
 
-  // La firma.
+function pintarFirma(K, x, y, alinear = 'right') {
+  const { ctx } = K
   ctx.save()
-  ctx.textAlign = 'right'
+  ctx.textAlign = alinear
   ctx.fillStyle = 'rgba(255,255,255,0.86)'
   ctx.font = '700 22px Fredoka, Inter, sans-serif'
-  ctx.fillText('PokeDoc', ANCHO - 24, 680)
+  ctx.fillText('PokeDoc', x, y)
   ctx.fillStyle = 'rgba(255,255,255,0.6)'
   ctx.font = '500 12px Inter, sans-serif'
-  ctx.fillText('pokedoc.es/repeticiones', ANCHO - 24, 700)
+  ctx.fillText('pokedoc.es/repeticiones', x, y + 20)
   ctx.restore()
+}
 
-  // El cartel del cambio de turno, y el del final.
+// El cartel del cambio de turno, y el del final, centrado en (cx, cy).
+function pintarCartel(K, cx, cy) {
+  const { ctx, C, s, f, t, colorDe } = K
   const cartel = f?.tipo === 'turno' && /^Turn|^Turno/.test(s.linea || '') ? `Turno de ${s.deQuien}` : f?.tipo === 'fin' ? `Gana ${s.fin?.ganador}` : null
   if (cartel && (f.tipo === 'fin' || t < 1.1)) {
     const a = f.tipo === 'fin' ? Math.min(1, t / 0.3) : t < 0.2 ? t / 0.2 : t > 0.8 ? Math.max(0, 1 - (t - 0.8) / 0.3) : 1
@@ -542,7 +608,7 @@ function dibujarFoto(ctx, C, s, t, M) {
     ctx.globalAlpha = a
     ctx.font = '700 34px Fredoka, Inter, sans-serif'
     const w = ctx.measureText(cartel).width + 64
-    redondo(ctx, ANCHO / 2 - w / 2, 262, w, 62, 31)
+    redondo(ctx, cx - w / 2, cy - 31, w, 62, 31)
     ctx.fillStyle = C.oscuro
     ctx.fill()
     ctx.lineWidth = 3
@@ -551,9 +617,74 @@ function dibujarFoto(ctx, C, s, t, M) {
     ctx.fillStyle = C.blanco
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(cartel, ANCHO / 2, 294)
+    ctx.fillText(cartel, cx, cy + 1)
     ctx.restore()
   }
+}
+
+// ── La horizontal (1280×720), la de siempre ──
+function dibujarHorizontal(K) {
+  const { s, abajo, arribaJ } = K
+  pintarTapete(K, ANCHO, ALTO, 300)
+  for (const [nombre, rival] of [[arribaJ, true], [abajo, false]]) {
+    const p = s.jugadores[nombre]
+    // Arriba: la banca arriba y el activo pegado al centro, como en la
+    // mesa de la página (se mira de frente al rival).
+    pintarNombre(K, nombre, 24, rival ? 18 : 346)
+    pintarPremios(K, nombre, 24, rival ? 112 : 410)
+    pintarPilas(K, nombre, 1040, rival ? 112 : 352, rival)
+    pintarActivo(K, p, ANCHO / 2, rival ? 112 : 346)
+    pintarBanca(K, p, ANCHO / 2, rival ? 14 : 488)
+  }
+  pintarCentro(K, { x: 24, y: 256, w: ANCHO - 48, h: 74, xTexto: 96, yEtiqueta: 280, yLinea: 302, anchoLinea: 760, lineas: 2, xEstadio: 36, yEstadio: 262 })
+  pintarJugada(K, 900, 293, 1240)
+  pintarCartaGrande(K, 846, 360)
+  pintarMano(K, 24, 604, 616, 1000)
+  pintarFirma(K, ANCHO - 24, 680)
+  pintarCartel(K, ANCHO / 2, 293)
+}
+
+// ── La vertical (720×1280), para el móvil ──
+//
+// Lo que importa —los dos activos y la jugada del centro— va entre los
+// 120 y los 1030 px de alto: TikTok, Reels y Shorts tapan arriba las
+// pestañas y abajo el texto y los botones. El de arriba se mira de frente,
+// como en la mesa: su banca arriba y su activo pegado al centro.
+const V = { ancho: 720, alto: 1280, activo: 124, banca: 84, mano: 56, premio: 22 }
+function dibujarVertical(K) {
+  const { s, abajo, arribaJ } = K
+  const cx = V.ancho / 2
+  const hActivo = Math.round((V.activo * 342) / 245)
+  const hBanca = Math.round((V.banca * 342) / 245)
+  pintarTapete(K, V.ancho, V.alto, 600)
+
+  // El de arriba.
+  const pa = s.jugadores[arribaJ]
+  pintarNombre(K, arribaJ, 24, 112)
+  pintarPremios(K, arribaJ, V.ancho - 24 - 6 * (V.premio + 6) + 6, 112, { columnas: 6, ancho: V.premio, alinear: 'right' })
+  pintarBanca(K, pa, cx, 168, V.banca, V.ancho - 48)
+  pintarActivo(K, pa, cx, 168 + hBanca + 24, V.activo)
+  pintarPilas(K, arribaJ, 24, 168 + hBanca + 40, true)
+
+  // El centro.
+  const yC = 168 + hBanca + 24 + hActivo + 18
+  pintarCentro(K, { x: 24, y: yC, w: V.ancho - 48, h: 168, xTexto: 92, yEtiqueta: yC + 28, yLinea: yC + 54, anchoLinea: V.ancho - 48 - 92, lineas: 3, xEstadio: 36, yEstadio: yC + 14 })
+  pintarJugada(K, 92, yC + 134, V.ancho - 40)
+
+  // El de abajo.
+  const pb = s.jugadores[abajo]
+  const yA = yC + 168 + 18
+  pintarActivo(K, pb, cx, yA, V.activo)
+  pintarPilas(K, abajo, 24, yA + 16, false)
+  pintarBanca(K, pb, cx, yA + hActivo + 20, V.banca, V.ancho - 48)
+  const yN = yA + hActivo + 20 + hBanca + 22
+  pintarNombre(K, abajo, 24, yN)
+  pintarPremios(K, abajo, V.ancho - 24 - 6 * (V.premio + 6) + 6, yN, { columnas: 6, ancho: V.premio, alinear: 'right' })
+  pintarMano(K, 24, yN + 70, yN + 82, V.ancho - 48, V.mano)
+
+  pintarFirma(K, cx, V.alto - 56, 'center')
+  pintarCartaGrande(K, cx - 100, yC + 84, 200)
+  pintarCartel(K, cx, yC + 84)
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -626,10 +757,13 @@ function nombresDeLasFotos(fotos) {
 // Cada foto: unos fotogramas al principio mientras algo se mueve, y luego
 // UNO que dura el resto (lo que no cambia no hace falta repetirlo).
 // Devuelve [{ foto, t, duracion }] en segundos.
-export function lineaDeTiempo(fotos, esperaDe, ritmo) {
+//
+// `cierre`: segundos de más en la ÚLTIMA foto (tanda 493). Un trozo
+// recortado que no acaba en el final de la partida se cortaba en seco.
+export function lineaDeTiempo(fotos, esperaDe, ritmo, { cierre = 0 } = {}) {
   const out = []
   fotos.forEach((s, i) => {
-    const total = Math.max(0.25, esperaDe(s) / 1000 / ritmo) + (s.foco?.tipo === 'fin' ? 2.5 : 0)
+    const total = Math.max(0.25, esperaDe(s) / 1000 / ritmo) + (s.foco?.tipo === 'fin' ? 2.5 : i === fotos.length - 1 ? cierre : 0)
     const anima = ['ataque', 'danio', 'turno', 'jugar', 'evoluciona', 'fin', 'entra', 'sube', 'unir', 'habilidad'].includes(s.foco?.tipo)
     // El cartel del turno dura algo más que el resto.
     const tAnim = anima ? Math.min(total, s.foco?.tipo === 'turno' || s.foco?.tipo === 'fin' ? 1.2 : ANIMACION) : 0
@@ -655,9 +789,18 @@ export function lineaDeTiempo(fotos, esperaDe, ritmo) {
 
 // `fotos`: las de la repetición. `M`: { abajo, psDe, letraDe, colorDe,
 // fuentesDe, esperaDe }. `ritmo`: 1, 2 o 4. `alAvanzar(fase, fraccion)`.
-// `senal.cancelado`: para pararlo. Devuelve { blob, extension, codec,
-// tiempoReal }.
-export async function hacerVideo({ fotos, M, ritmo = 2, alAvanzar = () => {}, senal = {} }) {
+// `senal.cancelado`: para pararlo. `formato`: 'horizontal' o 'vertical'.
+// `desde`/`hasta`: las fotos del trozo (las dos dentro). Devuelve { blob,
+// extension, codec, tiempoReal }.
+export function tramoDe(fotos, desde = 0, hasta = fotos.length - 1) {
+  const a = Math.max(0, Math.min(desde, fotos.length - 1))
+  const b = Math.max(a, Math.min(hasta, fotos.length - 1))
+  return { fotos: fotos.slice(a, b + 1), cierre: b < fotos.length - 1 ? 1 : 0 }
+}
+
+export async function hacerVideo({ fotos: todas, M, ritmo = 2, alAvanzar = () => {}, senal = {}, formato = 'horizontal', desde = 0, hasta = todas.length - 1 }) {
+  const { fotos, cierre } = tramoDe(todas, desde, hasta)
+  const { ancho, alto } = medidasDe(formato)
   if (document.fonts?.load) {
     await Promise.all(['500 16px Inter', '700 16px Inter', '700 34px Fredoka'].map((f) => document.fonts.load(f).catch(() => null)))
   }
@@ -665,14 +808,14 @@ export async function hacerVideo({ fotos, M, ritmo = 2, alAvanzar = () => {}, se
   const imagenes = await cargarImagenes(nombresDeLasFotos(fotos), M.fuentesDe, (x) => alAvanzar('imagenes', x))
   const C = leerColores()
   const lienzo = document.createElement('canvas')
-  lienzo.width = ANCHO
-  lienzo.height = ALTO
+  lienzo.width = ancho
+  lienzo.height = alto
   const ctx = lienzo.getContext('2d')
-  const dibujo = { ...M, imagenes }
-  const linea = lineaDeTiempo(fotos, M.esperaDe, ritmo)
+  const dibujo = { ...M, imagenes, formato }
+  const linea = lineaDeTiempo(fotos, M.esperaDe, ritmo, { cierre })
 
-  const codec = await codecDisponible()
-  if (codec) return { ...(await conWebCodecs({ codec, lienzo, ctx, C, fotos, linea, dibujo, alAvanzar, senal })), tiempoReal: false }
+  const codec = await codecDisponible(formato)
+  if (codec) return { ...(await conWebCodecs({ codec, lienzo, ctx, C, fotos, linea, dibujo, alAvanzar, senal, formato })), tiempoReal: false }
   const grabadora = grabadoraDisponible()
   if (grabadora) return { ...(await conGrabadora({ grabadora, lienzo, ctx, C, fotos, linea, dibujo, alAvanzar, senal })), tiempoReal: true }
   throw new Error('Este navegador no sabe hacer vídeos. Prueba con Chrome, Edge o Safari al día.')
@@ -680,7 +823,7 @@ export async function hacerVideo({ fotos, M, ritmo = 2, alAvanzar = () => {}, se
 
 const cancelar = () => Object.assign(new Error('Cancelado.'), { name: 'AbortError' })
 
-async function conWebCodecs({ codec, lienzo, ctx, C, fotos, linea, dibujo, alAvanzar, senal }) {
+async function conWebCodecs({ codec, lienzo, ctx, C, fotos, linea, dibujo, alAvanzar, senal, formato }) {
   const trozos = []
   let descripcion = null
   let fallo = null
@@ -696,7 +839,7 @@ async function conWebCodecs({ codec, lienzo, ctx, C, fotos, linea, dibujo, alAva
       fallo = e
     },
   })
-  codificador.configure(configDe(codec))
+  codificador.configure(configDe(codec, formato))
   let us = 0
   let ultimaClave = -Infinity
   try {
@@ -740,7 +883,7 @@ async function conWebCodecs({ codec, lienzo, ctx, C, fotos, linea, dibujo, alAva
     dts += m.duracion
     return m
   })
-  const mp4 = empaquetarMp4({ codec: codec.caja, codecCompleto: codec.codec, ancho: ANCHO, alto: ALTO, escala: ESCALA_MP4, descripcion }, muestras)
+  const mp4 = empaquetarMp4({ codec: codec.caja, codecCompleto: codec.codec, ancho: lienzo.width, alto: lienzo.height, escala: ESCALA_MP4, descripcion }, muestras)
   return { blob: new Blob([mp4], { type: 'video/mp4' }), extension: 'mp4', codec: codec.caja }
 }
 
@@ -772,11 +915,12 @@ async function conGrabadora({ grabadora, lienzo, ctx, C, fotos, linea, dibujo, a
 }
 
 // Para las pruebas y para la vista previa: dibujar una foto suelta.
-export async function dibujarUna({ foto, M, t = 0 }) {
+export async function dibujarUna({ foto, M, t = 0, formato = 'horizontal' }) {
   const imagenes = await cargarImagenes(nombresDeLasFotos([foto]), M.fuentesDe)
+  const { ancho, alto } = medidasDe(formato)
   const lienzo = document.createElement('canvas')
-  lienzo.width = ANCHO
-  lienzo.height = ALTO
-  dibujarFoto(lienzo.getContext('2d'), leerColores(), foto, t, { ...M, imagenes })
+  lienzo.width = ancho
+  lienzo.height = alto
+  dibujarFoto(lienzo.getContext('2d'), leerColores(), foto, t, { ...M, imagenes, formato })
   return lienzo
 }

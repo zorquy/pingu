@@ -26778,3 +26778,94 @@ una cadena, todo lo que la CONTIENE cuenta.
 
 **Ficheros**: `css/guia.css` (nuevo), `css/components.css`, `guia.html`, y
 en la rama `pruebas`: `pruebas/test-tanda-299.mjs` (el barrido arreglado).
+
+## Tanda 492 — los momentos clave y la partida en números (oct. 2026)
+
+De la lista de ideas, PINGU eligió esta: «marcas en el deslizador para cada
+KO, premio y ataque gordo, y un botón de "siguiente KO"», y «la carrera de
+premios turno a turno, el daño total de cada uno, las cartas más jugadas y
+quién robó más». Todo sale de lo que ya había: los eventos (registro.js) y
+las fotos de la mesa (estado.js). Lo que se cuenta vive en
+`js/repeticiones/numeros.js`, sin DOM y probado en Node.
+
+### Los momentos
+
+- Un **KO** es un momento aunque caigan dos a la vez (el doble KO de
+  Picado Fantasma es uno), con el golpe que lo causó —y su foto es la del
+  GOLPE: se ve venir y luego caer— y los premios que se cogen por él.
+- Un **golpe gordo** es un ataque de 200 o más que no tumba a nadie (lo que
+  tumba ya sale como KO).
+- Y el **final**, con por qué (premios o rendición).
+
+Debajo de los controles hay una tira con un botón por momento (turno, de
+quién era el que cae —con su chapa, no solo su color—, qué lo tumbó y quién
+coge los premios) y **«Siguiente KO»**, que se apaga después del último. El
+botón del momento en el que estás queda marcado. En el deslizador, una marca
+por momento: es el DIBUJO de la tira (lo que se pulsa es la tira) y va
+`aria-hidden`. La marca se coloca con `calc(8px + (100% - 16px) * p)`: el
+centro del pulgar de un `<input type=range>` no llega a los bordes, y la
+prueba lo mide al píxel.
+
+### La partida en números
+
+Una tabla de los dos (daño hecho, golpe más fuerte, Pokémon noqueados,
+premios, cartas robadas, entrenadores jugados, energías, evoluciones y
+retiradas), la carrera de premios y lo que más jugó cada uno.
+
+- **El daño** cuenta los ataques, los contadores y el segundo golpe de un
+  ataque doble. Los contadores se le apuntan a quien los PONE: el registro
+  le cambia el dueño al que los recibe (tanda 481), pero `jugador` es
+  siempre el que los pone.
+- **Los KO** cuentan también los que la mesa deduce de la vida sin línea de
+  KO (estado.js): el activo de antes deja la mesa sin que el registro lo
+  diga.
+- **Jugar** es jugar una carta: usar el estadio que está en juego («ha
+  jugado Fábrica del Team Rocket») no cuenta.
+- **La carrera** son los premios que le QUEDAN a cada uno al acabar cada
+  turno, en escalones (los premios caen de golpe, no poco a poco), en SVG
+  (`js/repeticiones/carrera.js`). Dos series y un solo eje; la leyenda
+  siempre y el valor al final de cada línea solo si no se pisan; las dos
+  líneas, un pelo separadas, porque al principio van empatadas y una
+  taparía a la otra. Al pasar por encima, una raya se pega al turno más
+  cercano y dice los dos valores; un clic lleva la repetición a ese turno.
+  El gráfico va `aria-hidden` y la misma cuenta está en una tabla debajo.
+  Los nombres del registro entran con `textContent`, nunca con `innerHTML`.
+- La caja va sobre `--navy-solid-dark`, el azul del tapete, que **no cambia
+  con el tema** (tanda 315). Los dos colores de las líneas son los de cada
+  jugador un paso más hondos (`#3d93d9` y `#bf8512`): los de las chapas
+  (`#9fd0f0`, `#f5cf7a`) son demasiado claros y grises para una raya de 2
+  px. Validados contra ese azul: banda de luminosidad, croma, separación
+  para daltonismo y contraste ≥ 3.
+
+`test-tanda-492.mjs`: los momentos y los números contra el registro de la
+481, contados a mano; un KO deducido de la vida; la tira, las marcas (al
+píxel), «Siguiente KO», la tabla, la carrera y su nota, el clic, el
+contraste medido de las líneas y el móvil.
+
+## Tanda 493 — el vídeo vertical y el recorte por turnos (oct. 2026)
+
+PINGU, de la lista: «vídeo vertical 9:16 para TikTok, Reels y Shorts» y
+«recortar el vídeo: eliges "del turno 6 al 8" y te bajas solo ese trozo».
+
+- **La composición, a piezas.** `video.js` dibujaba la mesa de 1280×720 en
+  una sola función con las coordenadas escritas dentro. Ahora son piezas
+  —el nombre, los premios, las pilas, el activo, la banca, el centro, la
+  jugada, la carta en grande, la mano, la firma y el cartel— y dos
+  composiciones que las colocan. La horizontal se comparó **al píxel** con
+  la de antes en diez fotos (cero píxeles distintos).
+- **La vertical** es de 720×1280 y no de 1080×1920: es lo más grande que
+  cabe en el mismo nivel de H.264 que la horizontal (3.1, 3.600
+  macrobloques), y un teléfono no le saca más. Lo que importa —los dos
+  activos y la jugada del centro— va entre los 120 y los 1.030 px de alto:
+  TikTok, Reels y Shorts tapan arriba las pestañas y abajo el texto y los
+  botones. Con más de cinco en la banca y sin sitio, las cartas se encogen.
+- **El trozo**: «desde» (el principio o un turno) y «hasta» (un turno o el
+  final). Un «hasta» antes del «desde» se corrige solo, y las duraciones de
+  cada ritmo se vuelven a contar con el trozo. Un trozo que no acaba en el
+  final lleva un segundo de cierre: se cortaba en seco.
+- El fichero lo dice: `…-vertical-turnos-6-8.mp4`.
+
+`test-tanda-493.mjs`: el trozo y su cierre, las medidas, quién va arriba y
+el cartel del final en el vertical, la ventana, y un vídeo vertical de los
+turnos 6 a 8 de verdad (ffprobe: 720×1280 y lo que dijo la ventana; y el
+primer fotograma es el del turno 6, con la banca de arriba llena).

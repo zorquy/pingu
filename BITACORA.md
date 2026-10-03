@@ -35,6 +35,70 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tandas 492 y 493 — los momentos, los números y el vídeo vertical de /repeticiones)
+
+**Choque de números, el noveno (y doble)**: las tenía como 490 y 491, y la
+otra sesión subió SU 490 y SU 491 (hacer sitio en la portada, la hoja del
+artículo) mientras corría mi suite. Pasan a **492** y **493**. No tocamos
+ficheros en común: lo suyo es `components.css`, `perfil.css`, `guia.css`
+y el barrido de la 299; lo mío, /repeticiones. Después de traerme lo suyo
+he vuelto a pasar la 299 (con su barrido ya arreglado, que ahora ve las
+clases con `${…}`), la 492 y la 493: en verde.
+
+**Hecho, 492 — los momentos clave y la partida en números** (de la lista de
+ideas que pidió PINGU): `js/repeticiones/numeros.js` (nuevo, sin DOM) saca
+los MOMENTOS —cada KO con el golpe que lo causó y los premios, los golpes
+de 200 o más que no tumban, y el final— y los NÚMEROS de cada uno: daño
+hecho (ataques, contadores y el segundo golpe), el golpe más fuerte, KO
+(también los que el registro no escribe y la mesa deduce de la vida),
+premios, robadas, entrenadores jugados (usar el estadio no cuenta como
+jugarlo), energías, evoluciones y retiradas. En la página: marcas en el
+deslizador (caen debajo del pulgar al píxel: la cuenta es la del medio
+pulgar), una tira de momentos que se pulsa y un «Siguiente KO»; y «La
+partida en números» con la tabla, la CARRERA DE PREMIOS turno a turno
+(`js/repeticiones/carrera.js`, nuevo: SVG con su tabla debajo para quien no
+ve el gráfico, crucetas al pasar, pulsar un turno lleva a él) y lo que más
+jugó cada uno. Los colores de las dos líneas pasan el validador de
+dataviz sobre el azul fijo del tapete (`--navy-solid-dark`, que no cambia
+con el tema). Prueba `test-tanda-492.mjs`, 41 comprobaciones; rigor 18/18.
+
+**Hecho, 493 — el vídeo vertical y el recorte por turnos**: en la ventana
+del vídeo, «Formato» (horizontal 1280×720 o vertical 720×1280, para TikTok
+y Reels) y «Qué trozo» (desde el principio o un turno, hasta un turno o el
+final), con la duración de cada ritmo recalculada al vuelo y un «hasta»
+anterior al «desde» corregido solo. `video.js` se parte en piezas
+(tapete, nombre, premios, pilas, activo, banca, centro, jugada, mano,
+firma, cartel) y la composición horizontal sale **igual píxel a píxel**
+que antes (comparado); la vertical apila rival, centro y tú, con el
+cartel del final debajo de la jugada. Un trozo recortado no se corta en
+seco: aguanta un momento la última jugada. El nombre del fichero lo dice
+(`…-vertical-turnos-6-8.mp4`). H.264 a 720×1280 sigue en nivel 3.1.
+Prueba `test-tanda-493.mjs`, 19 comprobaciones (ffprobe lee los dos
+tamaños, el trozo y la duración); rigor 11/11. El ancla del rigor de la 480 se actualiza (la línea
+del vídeo cambió de forma).
+
+**Suite entera** antes de subir, sobre el árbol de ANTES de traerme la 490
+y la 491 de la otra sesión (las 212 pruebas, en dos mitades): todo en verde
+salvo la 470 (la conocida) y un rojo de la 480 que era MÍO y del
+contenedor —mi PostgreSQL de pruebas tenía ya la `repeticiones_guardar` de
+siete argumentos de lo que estoy preparando, y la migración vieja no la
+quita—; limpiada esa base, la 480 pasa (93 ok). Lo suyo lo cubre su propia
+pasada, que su entrada pide.
+
+**Ficheros**: `js/repeticiones/numeros.js` (nuevo), `js/repeticiones/
+carrera.js` (nuevo), `js/repeticiones/video.js`, `js/repeticiones.js`,
+`repeticiones.html`, `css/repeticiones.css`, `SCHEMA.md`. Rama `pruebas`:
+`test-tanda-492.mjs`, `test-tanda-493.mjs`, `rigor-tanda-492.py`,
+`rigor-tanda-493.py`, `rigor-tanda-480.py`.
+
+**En curso / pendiente**: lo demás que PINGU aprobó de la lista —los mazos
+por lo que se vio con «Abrir en el constructor», apuntar la partida en
+Mis partidas al guardar, notas en jugadas, adjuntar la repetición a una
+partida de torneo y «Jugar desde aquí» en el laboratorio— va en las
+siguientes, con `supabase-migration-repeticiones.sql` ampliada (habrá que
+ejecutarla OTRA VEZ). `js/repeticiones/mazos.js` ya está en el árbol pero
+nadie lo importa todavía: no se sube en estas dos.
+
 ## 2026-10-03 — PINGU-Claude (tanda 491 — lo del artículo a su hoja, y el agujero del barrido)
 
 **Hecho**: sigue la 490. Lo de `guia.html` era el trozo más grande que

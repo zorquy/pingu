@@ -24,6 +24,8 @@ import { resolverLineas, cargarSets, cartasPorIds } from './constructor/datos.js
 import { imagenDeEnergiaBasica, esEnergiaBasica, letraDeEnergia, plano } from './constructor/nucleo.js'
 import { leerRegistro } from './repeticiones/registro.js'
 import { usosPorCarta, usosDe, impresionQueCasa } from './repeticiones/impresion.js'
+import { momentosDe, numerosDe, siguienteKo } from './repeticiones/numeros.js'
+import { pintarCarrera } from './repeticiones/carrera.js'
 import { fotos as sacarFotos, indiceDeTurnos, arriba } from './repeticiones/estado.js'
 import { ICONOS_REPETICION as ICONO } from './repeticiones/iconos.js'
 import { icons } from './icons.js'
@@ -50,6 +52,10 @@ const R = {
   // Lo que se le ha visto hacer a cada carta (sus ataques y habilidades):
   // decide CUÁL de las que se llaman igual se jugó (repeticiones/impresion.js).
   usos: new Map(),
+  // Los momentos que merece la pena volver a ver y los números de la
+  // partida (repeticiones/numeros.js).
+  momentos: [],
+  numeros: null,
   codigoDeSet: () => null,
   // Cada lectura nueva sube el número: lo que llegue tarde de la anterior
   // (las imágenes que se resuelven por detrás) no pinta encima.
@@ -496,6 +502,11 @@ function pintarControles() {
   document.querySelector('[data-accion="turnoAnterior"]').disabled = R.i <= 0
   document.querySelector('[data-accion="siguiente"]').disabled = R.i >= ultimo
   document.querySelector('[data-accion="turnoSiguiente"]').disabled = R.i >= ultimo
+  const ko = document.querySelector('[data-accion="siguienteKo"]')
+  if (ko) ko.disabled = !siguienteKo(R.momentos, R.i)
+  const lista = $('repMomentosLista')
+  lista.querySelector('[aria-current]')?.removeAttribute('aria-current')
+  lista.querySelector(`[data-foto="${R.i}"]`)?.setAttribute('aria-current', 'step')
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -544,6 +555,104 @@ function marcarLinea() {
 // ════════════════════════════════════════════════════════════════════
 // Ver cartas en grande
 // ════════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════════
+// Los momentos y los números (tanda 492)
+// ════════════════════════════════════════════════════════════════════
+
+const premiosTexto = (n) => `${n} ${n === 1 ? 'premio' : 'premios'}`
+const PORQUE = { premios: 'por premios', rendicion: 'por rendición' }
+
+function textoDeMomento(m) {
+  if (m.tipo === 'ko') {
+    const caidos = m.caidos.length > 1 ? `${m.caidos.slice(0, -1).join(', ')} y ${m.caidos.at(-1)}` : m.caidos[0]
+    const como = m.ataque ? `${m.ataque}, ${m.danio}` : ''
+    const premios = m.premios ? `${m.premios.jugador} coge ${premiosTexto(m.premios.n)}` : ''
+    return { que: `KO de ${caidos}`, detalle: [como, premios].filter(Boolean).join(' · ') }
+  }
+  if (m.tipo === 'golpe') return { que: `Golpe de ${m.danio}`, detalle: `${m.ataque} de ${m.pokemon}` }
+  return { que: 'Final', detalle: `Gana ${m.jugador}${m.porque ? ` ${PORQUE[m.porque] || ''}` : ''}`.trim() }
+}
+
+// La tira de momentos, y sus marcas sobre el deslizador. Cada momento es
+// un botón (`data-foto`, como las líneas del registro); las marcas son su
+// dibujo y van `aria-hidden`: lo que se pulsa es la tira.
+function pintarMomentos() {
+  const ms = R.momentos
+  const ultimo = Math.max(1, R.fotos.length - 1)
+  $('repMomentos').classList.toggle('hidden', !ms.length)
+  $('repMomentosLista').innerHTML = ms
+    .map((m) => {
+      const { que, detalle } = textoDeMomento(m)
+      // De quién es: el que PIERDE el Pokémon en un KO, el que pega en un
+      // golpe, el que gana al final. Con su nombre, no solo su color.
+      const quien = m.tipo === 'ko' ? m.victima : m.jugador
+      return `<li><button type="button" class="rep-momento" data-foto="${m.foto}" data-tipo="${m.tipo}"><span class="rep-momento-turno">${m.turno ? `Turno ${m.turno}` : 'Preparación'} ${chapaJugador(quien, true)}</span> <span class="rep-momento-que">${escapeHtml(que)}</span>${detalle ? ` <span class="rep-momento-detalle">${escapeHtml(detalle)}</span>` : ''}</button></li>`
+    })
+    .join('')
+  $('repMarcas').innerHTML = ms.map((m) => `<span class="rep-marca" data-tipo="${m.tipo}" style="--p: ${(m.foto / ultimo).toFixed(4)}"></span>`).join('')
+}
+
+function irAlSiguienteKo() {
+  const m = siguienteKo(R.momentos, R.i)
+  if (!m) return
+  parar()
+  ir(m.foto)
+}
+
+// La partida en números: la tabla de los dos, la carrera de premios (con
+// su tabla debajo) y lo que más jugó cada uno.
+function pintarNumeros() {
+  const n = R.numeros
+  const caja = $('repNumerosCuerpo')
+  if (!n || !n.jugadores.length) return caja.replaceChildren()
+  const [a, b] = n.jugadores
+  const fila = (titulo, f) => `<tr><th scope="row">${titulo}</th><td>${f(n.por[a])}</td><td>${f(n.por[b])}</td></tr>`
+  const golpe = (p) => (p.golpeMax ? `${p.golpeMax.danio} <span class="rep-numeros-nota">${escapeHtml(p.golpeMax.ataque)}</span>` : '—')
+  const cabeza = `<thead><tr><th scope="col"><span class="sr-only">Dato</span></th><th scope="col">${chapaJugador(a)}</th><th scope="col">${chapaJugador(b)}</th></tr></thead>`
+  const tabla = `<table class="rep-tabla rep-tabla-numeros">${cabeza}<tbody>
+    ${fila('Daño hecho', (p) => p.danio)}
+    ${fila('Golpe más fuerte', golpe)}
+    ${fila('Pokémon noqueados', (p) => p.kos)}
+    ${fila('Premios cogidos', (p) => p.premios)}
+    ${fila('Cartas robadas', (p) => p.robadas)}
+    ${fila('Entrenadores jugados', (p) => p.jugadas)}
+    ${fila('Energías unidas', (p) => p.energias)}
+    ${fila('Evoluciones', (p) => p.evoluciones)}
+    ${fila('Retiradas', (p) => p.retiradas)}
+  </tbody></table>`
+  const carreraTabla = `<details class="rep-numeros-detalle"><summary>La carrera en tabla</summary><table class="rep-tabla">${cabeza.replace('<span class="sr-only">Dato</span>', 'Turno')}<tbody>${n.carrera
+    .map((c) => `<tr><th scope="row">${c.turno ? `${c.turno}${c.de ? ` <span class="rep-numeros-nota">de ${escapeHtml(c.de)}</span>` : ''}` : 'Inicio'}</th><td>${c.premios[a]}</td><td>${c.premios[b]}</td></tr>`)
+    .join('')}</tbody></table></details>`
+  const lista = (nombre) => {
+    const top = n.por[nombre].masJugadas.slice(0, 5)
+    return `<div class="rep-numeros-lista"><h4>${chapaJugador(nombre)}</h4>${top.length ? `<ol>${top.map((x) => `<li><span>${escapeHtml(x.carta)}</span> <strong>×${x.veces}</strong></li>`).join('')}</ol>` : '<p class="rep-numeros-nota">No jugó ninguna carta de Entrenador.</p>'}</div>`
+  }
+  caja.innerHTML = `
+    <div class="rep-numeros-rejilla">
+      <div class="rep-numeros-bloque">${tabla}</div>
+      <div class="rep-numeros-bloque">
+        <h3 class="rep-numeros-sub">La carrera de premios</h3>
+        <p class="rep-numeros-nota">Los premios que le quedan a cada uno al acabar cada turno.</p>
+        <ul class="rep-carrera-leyenda">${n.jugadores.map((x) => `<li><span class="rep-carrera-clave" data-j="${colorDe(x)}" aria-hidden="true"></span>${chapaJugador(x)}</li>`).join('')}</ul>
+        <div class="rep-carrera" id="repCarrera"></div>
+        ${carreraTabla}
+      </div>
+      <div class="rep-numeros-bloque">
+        <h3 class="rep-numeros-sub">Lo que más jugó cada uno</h3>
+        <div class="rep-numeros-listas">${lista(a)}${lista(b)}</div>
+      </div>
+    </div>`
+  pintarCarrera($('repCarrera'), n, {
+    colorDe,
+    alIr: (turno) => {
+      const t = R.turnos[turno - 1]
+      parar()
+      ir(t ? t.foto : 0)
+      $('repEscena').scrollIntoView({ block: 'start', behavior: menosMovimiento() ? 'auto' : 'smooth' })
+    },
+  })
+}
 
 function verCartas(titulo, nombres, { vacio = 'No hay ninguna.' } = {}) {
   const d = $('repVer')
@@ -602,6 +711,8 @@ function cargar(texto, { origen = null, conservarDireccion = false } = {}) {
   R.usos = usosPorCarta(lectura)
   R.fotos = sacarFotos(lectura, { psDe })
   R.turnos = indiceDeTurnos(lectura)
+  R.momentos = momentosDe(lectura, R.fotos)
+  R.numeros = numerosDe(lectura, R.fotos)
   R.abajo = R.fotos[0].protagonista
   R.i = 0
   R.cacheHtml = new WeakMap()
@@ -618,6 +729,8 @@ function cargar(texto, { origen = null, conservarDireccion = false } = {}) {
   $('repPegar').classList.add('hidden')
   $('repSala').classList.remove('hidden')
   pintarRegistro()
+  pintarMomentos()
+  pintarNumeros()
   ir(0, { anunciar: false })
   $('repAnuncio').textContent = `Repetición de ${a} contra ${b}, ${R.turnos.length} turnos.`
   // A la MESA, no a la cabecera: en un portátil, mesa y controles caben
@@ -684,6 +797,8 @@ const tituloPorDefecto = () => `${R.abajo} contra ${elOtro(R.abajo)}`
 function abrirDialogo(titulo, html) {
   $('repDialogoTitulo').textContent = titulo
   $('repDialogoCuerpo').innerHTML = html
+  // Lo que escuchaba la ventana de antes (los turnos del vídeo) no es de esta.
+  $('repDialogoCuerpo').onchange = null
   const d = $('repDialogo')
   if (!d.open) d.showModal()
   return $('repDialogoCuerpo')
@@ -857,8 +972,21 @@ const formatoTiempo = (seg) => {
   const s = Math.round(seg)
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
-const nombreDeFichero = () =>
-  `repeticion-${plano(`${R.abajo}-contra-${elOtro(R.abajo)}`).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
+const nombreDeFichero = ({ formato = 'horizontal', tramo = null } = {}) =>
+  `repeticion-${plano(`${R.abajo}-contra-${elOtro(R.abajo)}`).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}${formato === 'vertical' ? '-vertical' : ''}${tramo ? `-${tramo}` : ''}`
+
+// El trozo del vídeo (tanda 493): de qué turno a qué turno, en fotos. «Desde
+// el turno 6» es la foto en que empieza; «hasta el turno 8», la última
+// antes de que empiece el 9 (o el final de la partida).
+function tramoElegido(cuerpo) {
+  const ultimo = R.fotos.length - 1
+  const desde = Number(cuerpo.querySelector('#repDesde')?.value || 0)
+  const hasta = Number(cuerpo.querySelector('#repHasta')?.value ?? R.turnos.length)
+  const ini = desde === 0 ? 0 : R.turnos[desde - 1]?.foto ?? 0
+  const fin = hasta >= R.turnos.length ? ultimo : (R.turnos[hasta]?.foto ?? ultimo + 1) - 1
+  const entero = ini === 0 && fin === ultimo
+  return { desde: ini, hasta: Math.max(ini, fin), nombre: entero ? null : desde === hasta ? `turno-${desde}` : `turnos-${desde}-${hasta}` }
+}
 
 let videoEnMarcha = null
 async function dialogoVideo() {
@@ -870,15 +998,37 @@ async function dialogoVideo() {
     cuerpo.innerHTML = '<p class="rep-dialogo-texto">Este navegador no sabe hacer vídeos. Prueba con Chrome, Edge o Safari al día.</p>'
     return
   }
-  const duracion = (r) => V.lineaDeTiempo(R.fotos, esperaDe, r).reduce((t, x) => t + x.duracion, 0)
+  // Lo que dura cada ritmo CON el trozo elegido: cambia al elegir otro.
+  const duracion = (r) => {
+    const { desde, hasta } = tramoElegido(cuerpo)
+    const t = V.tramoDe(R.fotos, desde, hasta)
+    return V.lineaDeTiempo(t.fotos, esperaDe, r, { cierre: t.cierre }).reduce((x, y) => x + y.duracion, 0)
+  }
   const opcion = (r, nombre, marcada) =>
-    `<label class="rep-ritmo-opcion"><input type="radio" name="repRitmo" value="${r}"${marcada ? ' checked' : ''} /><span><strong>${nombre}</strong> · ${formatoTiempo(duracion(r))}</span></label>`
+    `<label class="rep-ritmo-opcion"><input type="radio" name="repRitmo" value="${r}"${marcada ? ' checked' : ''} /><span><strong>${nombre}</strong> · <span data-dura="${r}">${formatoTiempo(duracion(r))}</span></span></label>`
+  const formato = (valor, nombre, detalle, marcada) =>
+    `<label class="rep-ritmo-opcion"><input type="radio" name="repFormato" value="${valor}"${marcada ? ' checked' : ''} /><span><strong>${nombre}</strong> · ${detalle}</span></label>`
+  // «Desde»: el principio o el turno en que empieza. «Hasta»: el turno en
+  // que acaba, y el último es «el final».
+  const T = R.turnos.length
+  const turno = (k) => `Turno ${k} · ${escapeHtml(R.turnos[k - 1].jugador)}`
+  const opcionesDesde = [`<option value="0" selected>El principio</option>`, ...R.turnos.map((_, k) => `<option value="${k + 1}">${turno(k + 1)}</option>`)].join('')
+  const opcionesHasta = R.turnos.map((_, k) => (k + 1 === T ? `<option value="${T}" selected>El final (turno ${T})</option>` : `<option value="${k + 1}">${turno(k + 1)}</option>`)).join('')
   cuerpo.innerHTML = `
     <p class="rep-dialogo-texto">Se hace en tu navegador y se descarga en tu equipo: no se sube a ninguna parte.${
       codec
         ? ` Sale en MP4${codec.caja === 'avc1' ? ' (H.264, el que se ve en todas partes)' : ' (VP9)'} y tarda unos segundos.`
         : ` Este navegador lo graba en TIEMPO REAL: tarda lo que dure el vídeo, y mientras tanto no cambies de pestaña.${grabadora.extension === 'webm' ? ' Y solo sabe hacer WebM, no MP4.' : ''}`
     }</p>
+    <fieldset class="rep-ritmo">
+      <legend>Formato</legend>
+      ${formato('horizontal', 'Horizontal', '16:9, para YouTube o un ordenador', true)}${formato('vertical', 'Vertical', '9:16, para TikTok, Reels y Shorts', false)}
+    </fieldset>
+    <fieldset class="rep-ritmo rep-tramo">
+      <legend>Qué trozo</legend>
+      <label class="rep-tramo-campo"><span>Desde</span><select id="repDesde">${opcionesDesde}</select></label>
+      <label class="rep-tramo-campo"><span>Hasta</span><select id="repHasta">${opcionesHasta}</select></label>
+    </fieldset>
     <fieldset class="rep-ritmo">
       <legend>Ritmo</legend>
       ${opcion(1, 'Normal', false)}${opcion(2, 'Rápido', true)}${opcion(4, 'Muy rápido', false)}
@@ -889,15 +1039,30 @@ async function dialogoVideo() {
       <button type="button" class="btn-secondary" data-dlg="cancelar-video">Cancelar</button>
     </div>
     <p class="rep-dialogo-estado" role="status"></p>`
+  // Un «hasta» antes del «desde» se corrige solo, y las duraciones se
+  // vuelven a contar con el trozo nuevo.
+  cuerpo.onchange = (e) => {
+    const desde = cuerpo.querySelector('#repDesde')
+    const hasta = cuerpo.querySelector('#repHasta')
+    if (!desde || !hasta || !e.target.closest('#repDesde, #repHasta')) return
+    if (Number(hasta.value) < Number(desde.value)) {
+      if (e.target === desde) hasta.value = desde.value === '0' ? '1' : desde.value
+      else desde.value = hasta.value
+    }
+    cuerpo.querySelectorAll('[data-dura]').forEach((x) => (x.textContent = formatoTiempo(duracion(Number(x.dataset.dura)))))
+  }
 }
 
 async function hacerVideo() {
   const cuerpo = $('repDialogoCuerpo')
   const ritmo = Number(cuerpo.querySelector('input[name="repRitmo"]:checked')?.value) || 2
+  const formato = cuerpo.querySelector('input[name="repFormato"]:checked')?.value === 'vertical' ? 'vertical' : 'horizontal'
+  const tramo = tramoElegido(cuerpo)
+  const campos = cuerpo.querySelectorAll('input[name="repRitmo"], input[name="repFormato"], #repDesde, #repHasta')
   const progreso = cuerpo.querySelector('#repVideoProgreso')
   const barra = progreso.querySelector('[role="progressbar"]')
   cuerpo.querySelector('[data-dlg="hacer-video"]').disabled = true
-  cuerpo.querySelectorAll('input[name="repRitmo"]').forEach((x) => (x.disabled = true))
+  campos.forEach((x) => (x.disabled = true))
   progreso.classList.remove('hidden')
   const senal = { cancelado: false }
   videoEnMarcha = senal
@@ -908,6 +1073,9 @@ async function hacerVideo() {
       fotos: R.fotos,
       ritmo,
       senal,
+      formato,
+      desde: tramo.desde,
+      hasta: tramo.hasta,
       M: { abajo: R.abajo, psDe, letraDe: (n) => letraDeEnergia(n) || 'C', colorDe, fuentesDe, esperaDe },
       alAvanzar: (fase, x) => {
         const pct = Math.round((fase === 'imagenes' ? x * 0.1 : 0.1 + x * 0.9) * 100)
@@ -917,7 +1085,7 @@ async function hacerVideo() {
       },
     })
     const url = URL.createObjectURL(r.blob)
-    const fichero = `${nombreDeFichero()}.${r.extension}`
+    const fichero = `${nombreDeFichero({ formato, tramo: tramo.nombre })}.${r.extension}`
     const mb = (r.blob.size / 1048576).toLocaleString('es-ES', { maximumFractionDigits: 1 })
     progreso.classList.add('hidden')
     estadoDialogo('')
@@ -927,7 +1095,7 @@ async function hacerVideo() {
   } catch (err) {
     progreso.classList.add('hidden')
     cuerpo.querySelector('[data-dlg="hacer-video"]').disabled = false
-    cuerpo.querySelectorAll('input[name="repRitmo"]').forEach((x) => (x.disabled = false))
+    campos.forEach((x) => (x.disabled = false))
     estadoDialogo(err.name === 'AbortError' ? 'Cancelado.' : `No se ha podido hacer el vídeo: ${err.message}`, err.name === 'AbortError' ? '' : 'error')
   } finally {
     videoEnMarcha = null
@@ -1138,6 +1306,7 @@ function iniciar() {
     if (accion === 'guardar') return dialogoGuardar()
     if (accion === 'compartir') return dialogoCompartir()
     if (accion === 'video') return dialogoVideo()
+    if (accion === 'siguienteKo') return irAlSiguienteKo()
     if (accion === 'girar') {
       R.abajo = elOtro(R.abajo)
       R.cacheHtml = new WeakMap()

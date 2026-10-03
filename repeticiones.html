@@ -178,7 +178,10 @@ Azul ha ganado el lanzamiento de moneda.
               <button type="button" class="rep-ctrl" data-accion="siguiente" aria-label="Jugada siguiente" aria-keyshortcuts="ArrowRight" title="Jugada siguiente (→)"></button>
               <button type="button" class="rep-ctrl" data-accion="turnoSiguiente" aria-label="Turno siguiente" aria-keyshortcuts="Shift+ArrowRight" title="Turno siguiente (Mayús + →)"></button>
             </div>
-            <input type="range" class="rep-progreso" id="repProgreso" min="0" max="0" value="0" step="1" aria-label="Jugada" />
+            <div class="rep-progreso-caja">
+              <input type="range" class="rep-progreso" id="repProgreso" min="0" max="0" value="0" step="1" aria-label="Jugada" />
+              <div class="rep-marcas" id="repMarcas" aria-hidden="true"></div>
+            </div>
             <span class="rep-cuenta" id="repCuenta"></span>
             <label class="rep-velocidad"><span class="rep-velocidad-texto">Velocidad</span>
               <select id="repVelocidad">
@@ -189,12 +192,23 @@ Azul ha ganado el lanzamiento de moneda.
               </select>
             </label>
           </div>
+          <div class="rep-momentos hidden" id="repMomentos" role="group" aria-labelledby="repMomentosTitulo">
+            <div class="rep-momentos-cab">
+              <h3 class="rep-momentos-titulo" id="repMomentosTitulo">Momentos</h3>
+              <button type="button" class="link-btn" data-accion="siguienteKo">Siguiente KO</button>
+            </div>
+            <ol class="rep-momentos-lista" id="repMomentosLista"></ol>
+          </div>
         </div>
         <aside class="rep-registro" aria-labelledby="repRegistroTitulo">
           <h2 class="rep-registro-titulo" id="repRegistroTitulo">Registro</h2>
           <div class="rep-lineas" id="repLineas"></div>
         </aside>
       </div>
+      <section class="rep-numeros" id="repNumeros" aria-labelledby="repNumerosTitulo">
+        <h2 class="rep-numeros-titulo" id="repNumerosTitulo">La partida en números</h2>
+        <div class="rep-numeros-cuerpo" id="repNumerosCuerpo"></div>
+      </section>
       <p class="sr-only" id="repAnuncio" aria-live="polite"></p>
     </section>
 

@@ -518,11 +518,47 @@
   background: var(--navy-solid-dark);
 }
 
-.rep-progreso {
+.rep-progreso-caja {
+  position: relative;
   flex: 1 1 120px;
   min-width: 0;
+}
+
+.rep-progreso {
+  display: block;
+  width: 100%;
   min-height: 44px;
+  margin: 0;
   accent-color: var(--navy);
+}
+
+/* Las marcas de los momentos, debajo del carril. Son el DIBUJO de la tira
+   de momentos (que es lo que se pulsa): van sin eventos y escondidas al
+   lector. El 8 es medio pulgar del deslizador: su centro no llega a los
+   bordes, y las marcas tienen que caer donde cae él. */
+.rep-marcas {
+  position: absolute;
+  inset: auto 0 4px;
+  height: 8px;
+  pointer-events: none;
+}
+
+.rep-marca {
+  position: absolute;
+  left: calc(8px + (100% - 16px) * var(--p));
+  width: 2px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--text-mid);
+  transform: translateX(-1px);
+}
+
+.rep-marca[data-tipo='ko'] {
+  background: var(--danger);
+}
+
+.rep-marca[data-tipo='fin'] {
+  background: var(--navy);
 }
 
 .rep-cuenta {
@@ -928,6 +964,43 @@
   accent-color: var(--navy);
 }
 
+/* El trozo del vídeo (tanda 493): «desde» y «hasta», uno al lado del otro
+   si caben. */
+.rep-tramo {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--e-sm) var(--e-md);
+}
+
+.rep-tramo legend {
+  width: 100%;
+}
+
+.rep-tramo-campo {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.rep-tramo-campo select {
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+}
+
+.rep-tramo-campo select:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
 .rep-video-progreso {
   display: flex;
   align-items: center;
@@ -1047,6 +1120,376 @@
   }
 }
 
+/* ── Los momentos (tanda 492) ──
+   Una tira de botones bajo los controles: cada KO (con el golpe que lo
+   causó y los premios), cada golpe gordo y el final. En el móvil se
+   desliza de lado dentro de su caja, no la página. */
+.rep-momentos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin-top: var(--e-sm);
+}
+
+.rep-momentos-cab {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e-md);
+}
+
+.rep-momentos-titulo {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rep-momentos-cab .link-btn {
+  font-size: var(--t-sm);
+}
+
+.rep-momentos-cab .link-btn:disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+
+.rep-momentos-lista {
+  display: flex;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0 0 var(--e-xs);
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x proximity;
+}
+
+.rep-momentos-lista > li {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.rep-momento {
+  display: grid;
+  gap: 2px;
+  min-width: 160px;
+  max-width: 240px;
+  height: 100%;
+  padding: var(--e-xs) var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rep-momento:hover {
+  border-color: var(--navy);
+}
+
+.rep-momento[aria-current] {
+  border-color: var(--navy);
+  box-shadow: inset 0 0 0 1px var(--navy);
+}
+
+.rep-momento-turno {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.rep-momento-que {
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.rep-momento[data-tipo='ko'] .rep-momento-que {
+  color: var(--danger);
+}
+
+.rep-momento-detalle {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+@media (pointer: coarse) {
+  .rep-momento,
+  .rep-momentos-cab .link-btn {
+    min-height: 44px;
+  }
+}
+
+/* ── La partida en números (tanda 492) ──
+   Sobre el azul del tapete, como la mesa: los dos colores de las líneas
+   son los de cada jugador (azul y ámbar) un paso más hondos que los de
+   las chapas, porque una raya de 2 px necesita más color que una chapa
+   para verse. Validados contra --navy-solid-dark, que NO cambia con el
+   tema (tanda 315): el contraste es el mismo en claro y en oscuro. */
+.rep-numeros {
+  --rep-serie-0: #3d93d9;
+  --rep-serie-1: #bf8512;
+  --rn-texto: var(--blanco-fijo);
+  --rn-tenue: color-mix(in srgb, var(--blanco-fijo) 76%, transparent);
+  --rn-linea: color-mix(in srgb, var(--blanco-fijo) 18%, transparent);
+  container-type: inline-size;
+  margin-top: var(--e-lg);
+  padding: var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--navy-solid-dark);
+  color: var(--rn-texto);
+}
+
+.rep-numeros-titulo {
+  margin: 0 0 var(--e-md);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.rep-numeros-rejilla {
+  display: grid;
+  gap: var(--e-lg);
+}
+
+@container (min-width: 820px) {
+  .rep-numeros-rejilla {
+    grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
+  }
+
+  .rep-numeros-rejilla > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.rep-numeros-bloque {
+  min-width: 0;
+}
+
+.rep-numeros-sub {
+  margin: 0;
+  font-size: var(--t-md);
+}
+
+.rep-numeros-nota {
+  color: var(--rn-tenue);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+.rep-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-sm);
+}
+
+.rep-tabla th,
+.rep-tabla td {
+  padding: var(--e-xs) var(--e-sm);
+  border-bottom: 1px solid var(--rn-linea);
+  text-align: left;
+}
+
+.rep-tabla td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.rep-tabla thead th {
+  text-align: right;
+}
+
+.rep-tabla thead th:first-child,
+.rep-tabla tbody th {
+  color: var(--rn-tenue);
+  font-weight: 400;
+}
+
+.rep-tabla td .rep-numeros-nota {
+  display: block;
+}
+
+.rep-carrera-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-md);
+  margin: var(--e-sm) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rep-carrera-leyenda li {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.rep-carrera-clave {
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--rep-serie-0);
+  vertical-align: middle;
+}
+
+.rep-carrera-clave[data-j='1'] {
+  background: var(--rep-serie-1);
+}
+
+.rep-carrera {
+  position: relative;
+  min-height: 200px;
+}
+
+.rep-carrera-svg {
+  display: block;
+  max-width: 100%;
+}
+
+.rep-carrera-rejilla {
+  stroke: var(--rn-linea);
+  stroke-width: 1;
+}
+
+.rep-carrera-eje {
+  fill: var(--rn-tenue);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.rep-carrera-linea {
+  fill: none;
+  stroke: var(--rep-serie-0);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.rep-carrera-linea[data-j='1'] {
+  stroke: var(--rep-serie-1);
+}
+
+.rep-carrera-punto {
+  fill: var(--rep-serie-0);
+  stroke: var(--navy-solid-dark);
+  stroke-width: 2;
+}
+
+.rep-carrera-punto[data-j='1'] {
+  fill: var(--rep-serie-1);
+}
+
+.rep-carrera-raya {
+  stroke: var(--rn-tenue);
+  stroke-width: 1;
+}
+
+.rep-carrera-tapa {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.rep-carrera-nota {
+  position: absolute;
+  top: var(--e-xs);
+  min-width: 160px;
+  padding: var(--e-xs) var(--e-sm);
+  border: 1px solid var(--rn-linea);
+  border-radius: var(--radius-md);
+  background: var(--navy-solid);
+  box-shadow: var(--shadow-md);
+  font-size: var(--t-xs);
+  pointer-events: none;
+}
+
+.rep-carrera-nota[hidden] {
+  display: none;
+}
+
+.rep-carrera-nota p {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  margin: 0;
+}
+
+.rep-carrera-nota-titulo {
+  color: var(--rn-tenue);
+}
+
+.rep-carrera-final {
+  position: absolute;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.rep-numeros-detalle {
+  margin-top: var(--e-sm);
+  font-size: var(--t-sm);
+}
+
+.rep-numeros-detalle summary {
+  color: var(--rn-tenue);
+  cursor: pointer;
+}
+
+.rep-numeros-detalle .rep-tabla {
+  margin-top: var(--e-xs);
+}
+
+.rep-numeros-listas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--e-md);
+  margin-top: var(--e-sm);
+}
+
+.rep-numeros-lista h4 {
+  margin: 0 0 var(--e-xs);
+}
+
+.rep-numeros-lista ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rep-numeros-lista li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  padding: var(--e-xs) 0;
+  border-bottom: 1px solid var(--rn-linea);
+  font-size: var(--t-sm);
+}
+
+.rep-numeros-lista strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.rep-numeros :focus-visible {
+  outline: 2px solid var(--blanco-fijo);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .rep-numeros-detalle summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
 /* ── El móvil ── */
 @media (max-width: 760px) {
   .rep-sala {
@@ -1106,7 +1549,7 @@
     gap: var(--e-xs) var(--e-sm);
   }
 
-  .rep-progreso {
+  .rep-progreso-caja {
     order: 1;
     flex-basis: 100%;
   }
