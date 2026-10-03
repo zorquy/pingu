@@ -85,7 +85,7 @@ MUTACIONES = [
 
     # ── 6. El vídeo ──
     (VID, 'el vídeo no dura lo que dice la ventana',
-     '  const linea = lineaDeTiempo(fotos, M.esperaDe, ritmo)\n', '  const linea = lineaDeTiempo(fotos, M.esperaDe, ritmo * 2)\n'),
+     '  const linea = lineaDeTiempo(fotos, M.esperaDe, ritmo, { cierre })\n', '  const linea = lineaDeTiempo(fotos, M.esperaDe, ritmo * 2, { cierre })\n'),
     (VID, 'el vídeo acaba sin el cartel de quién gana',
      ": f?.tipo === 'fin' ? `Gana ${s.fin?.ganador}` : null", ': null'),
     (VID, 'cancelar no para nada',
