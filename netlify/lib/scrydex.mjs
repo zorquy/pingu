@@ -131,6 +131,32 @@ export function casan(a, b) {
 //
 // El nombre solo entra para DESEMPATAR entre varios candidatos que ya casan
 // por fecha y cuenta, y solo si uno de ellos gana claramente.
+
+// ── Rescatar un set que la fecha y la cuenta no encuentran (tanda 508) ──
+//
+// En la primera escritura de verdad quedaron 37 sets sin emparejar, los 37
+// con el mismo motivo: «ninguno suyo con esa fecha y esa cuenta». Son todo
+// promos (`svp`, `jumbo`, `miscp`, `ex9`, `ex10`…), donde los dos catálogos
+// cuentan distinto porque no hay un «total» oficial que contar.
+//
+// Y la salida estaba a la vista en el propio informe: **muchos de nuestros
+// ids SON los suyos** — `base1 → base1`, `sm10 → sm10`, `ex7 → ex7`. Un id
+// idéntico es prueba de sobra; no siempre coinciden (`me02.5 → me2pt5`,
+// `lc → base6`), pero cuando coinciden no hay duda.
+//
+// Esto solo PROPONE. Quien escribe vuelve a confirmar el par con una señal
+// que el idioma no puede engañar, así que una propuesta mala no llega a la
+// base: emparejar propone, verificar dispone.
+function rescate(nuestro, h, deEllos, yaUsados) {
+  const libres = deEllos.filter((c) => !yaUsados.has(c.set))
+  const miId = clave(nuestro?.id)
+  const porId = miId ? libres.filter((c) => clave(c.set?.id) === miId) : []
+  if (porId.length === 1) return { suyo: porId[0].set, por: 'id idéntico' }
+  const porCodigo = h.codigo ? libres.filter((c) => c.h.codigo && c.h.codigo === h.codigo) : []
+  if (porCodigo.length === 1) return { suyo: porCodigo[0].set, por: 'código' }
+  return null
+}
+
 export function emparejarSets(nuestros, suyos, campos = {}) {
   const deEllos = (suyos || []).map((s) => ({ set: s, h: huellaDeSet(s, campos.suyos) }))
   const pares = []
@@ -149,20 +175,13 @@ export function emparejarSets(nuestros, suyos, campos = {}) {
       //
       // Va solo en este caso y no antes de la fecha a propósito: así lo
       // que ya emparejaba sigue emparejando igual, y esto solo RESCATA.
-      const porCodigo = h.codigo
-        ? deEllos.filter((c) => !yaUsados.has(c.set) && c.h.codigo && c.h.codigo === h.codigo)
-        : []
-      if (porCodigo.length === 1) {
-        yaUsados.add(porCodigo[0].set)
-        pares.push({ nuestro, suyo: porCodigo[0].set, por: 'código' })
+      const r = rescate(nuestro, h, deEllos, yaUsados)
+      if (r) {
+        yaUsados.add(r.suyo)
+        pares.push({ nuestro, suyo: r.suyo, por: r.por })
         continue
       }
-      sueltos.push({
-        nuestro,
-        porque: h.codigo
-          ? `no tenemos su fecha y su código (${h.codigo}) no casa con uno solo de los suyos`
-          : 'no tenemos ni su fecha ni su código',
-      })
+      sueltos.push({ nuestro, porque: 'sin fecha nuestra, y ni el id ni el código casan con uno solo de los suyos' })
       continue
     }
     const candidatos = deEllos.filter((c) => !yaUsados.has(c.set) && casan(h, c.h))
@@ -172,7 +191,16 @@ export function emparejarSets(nuestros, suyos, campos = {}) {
       continue
     }
     if (candidatos.length === 0) {
-      sueltos.push({ nuestro, porque: 'ninguno suyo con esa fecha y esa cuenta' })
+      // Con fecha pero sin pareja: era el caso de los 37 de la primera
+      // escritura, todo promos donde las dos cuentas no coinciden porque
+      // no hay un total oficial que contar. El id y el código los rescatan.
+      const r = rescate(nuestro, h, deEllos, yaUsados)
+      if (r) {
+        yaUsados.add(r.suyo)
+        pares.push({ nuestro, suyo: r.suyo, por: r.por })
+        continue
+      }
+      sueltos.push({ nuestro, porque: 'ninguno suyo con esa fecha y esa cuenta, ni con ese id ni con ese código' })
       continue
     }
     // Varios candidatos. Se desempata primero por el CÓDIGO —`30C`, `PBL`—,
@@ -558,6 +586,15 @@ export function culpaDeLaDiscrepancia({ name, nameEs }) {
 
 const mismos = (a, b) => clave(a) && clave(b) && clave(a) === clave(b)
 
+// Rellenar solo lo que falta, y «faltar» no es lo mismo en un número que
+// en un texto (tanda 508): para un NÚMERO el cero es un valor —pisé el
+// `card_count_official` de `mep`, que valía 0, por usar `||`—; para un
+// TEXTO la cadena vacía no es nada que nadie quisiera guardar.
+export const rellenarNumero = (nuestro, suyo) => (nuestro ?? suyo ?? null)
+export const rellenarTexto = (nuestro, suyo) => (
+  (typeof nuestro === 'string' && nuestro.trim()) ? nuestro : (suyo ?? null)
+)
+
 function senalDeLaPokedex(nuestros, suyos) {
   const a = (nuestros || []).map(Number).filter(Number.isFinite)
   const b = (suyos || []).map(Number).filter(Number.isFinite)
@@ -567,18 +604,34 @@ function senalDeLaPokedex(nuestros, suyos) {
 
 export function senalesDelPar({ nuestra = {}, nuestroSet = {}, suya = {} }) {
   const exp = suya?.expansion || {}
+  // ── EL CÓDIGO DEL SET YA NO RECHAZA (tanda 508) ──
+  //
+  // En la primera escritura de verdad rechazó `ex7 → ex7`: mismo id, mismo
+  // set (*EX Team Rocket Returns*), y los códigos eran «RR» el nuestro y
+  // «TRR» el suyo. Los dos están bien; lo que pasa es que cada catálogo lo
+  // abrevia a su manera.
+  //
+  // Y ahí está la lección, que va un paso más allá de la 506: **una señal
+  // que no depende del IDIOMA puede seguir dependiendo del FABRICANTE**.
+  // Los números de Pokédex son canónicos —hay una sola Pokédex Nacional y
+  // la publica quien hace los juegos—. Un código de TCG Live es una
+  // CONVENCIÓN, y dos catálogos pueden abreviar bien y distinto.
+  //
+  // Así que confirma (acertó 126 veces de 167) y no rechaza: un código que
+  // no cuadra se queda en «discrepa» sin `decide`, y sale en el informe
+  // para mirarlo a mano.
   const deciden = [
-    {
-      que: 'el código del set', nuestro: nuestroSet.tcg_online_code, suyo: exp.code,
-      estado: !clave(nuestroSet.tcg_online_code) || !clave(exp.code)
-        ? 'muda'
-        : (mismos(nuestroSet.tcg_online_code, exp.code) ? 'coincide' : 'discrepa'),
-    },
     {
       que: 'los números de Pokédex', nuestro: nuestra.dex_ids, suyo: suya.national_pokedex_numbers,
       estado: senalDeLaPokedex(nuestra.dex_ids, suya.national_pokedex_numbers),
     },
   ]
+  const codigo = {
+    que: 'el código del set', nuestro: nuestroSet.tcg_online_code, suyo: exp.code,
+    estado: !clave(nuestroSet.tcg_online_code) || !clave(exp.code)
+      ? 'muda'
+      : (mismos(nuestroSet.tcg_online_code, exp.code) ? 'coincide' : 'discrepa'),
+  }
   // Estas dicen lo que VEN —«coincide» o «discrepa»—, y es la política de
   // `veredictoDelPar` la que sabe que un «discrepa» de aquí no rechaza.
   //
@@ -591,15 +644,19 @@ export function senalesDelPar({ nuestra = {}, nuestroSet = {}, suya = {} }) {
   // informe puede enseñar «el nombre discrepa pero el código confirma»,
   // que es información y no ruido.
   const confirman = [
+    codigo,
     { que: 'el ilustrador', nuestro: nuestra.illustrator, suyo: suya.artist },
     { que: 'los PS', nuestro: nuestra.hp, suyo: suya.hp },
     { que: 'el nombre', nuestro: nuestra.name, suyo: suya.name },
   ].map((s) => ({
     ...s,
     decide: false,
-    estado: !clave(s.nuestro) || !clave(s.suyo)
+    // El código ya trae su estado calculado arriba; los demás se comparan
+    // aquí. `s.estado` manda si existe, para no recalcularlo de dos formas
+    // —que es como se separan dos copias de la misma regla (tanda 471)—.
+    estado: s.estado ?? (!clave(s.nuestro) || !clave(s.suyo)
       ? 'muda'
-      : (mismos(s.nuestro, s.suyo) ? 'coincide' : 'discrepa'),
+      : (mismos(s.nuestro, s.suyo) ? 'coincide' : 'discrepa')),
   }))
   return { deciden: deciden.map((s) => ({ ...s, decide: true })), confirman }
 }
@@ -680,9 +737,18 @@ export function filaDeSetConScrydex(nuestro, suyo) {
     name: nuestro.name,
     logo_scrydex: suLogo || nuestro.logo_scrydex || null,
     symbol_scrydex: suSimbolo || nuestro.symbol_scrydex || null,
-    release_date: nuestro.release_date || suFecha || null,
-    tcg_online_code: nuestro.tcg_online_code || suyo?.code || null,
-    card_count_official: nuestro.card_count_official || (Number.isFinite(oficial) && oficial > 0 ? oficial : null),
+    // `??` Y NO `||` (tanda 508). Lo escribí con `||` y en la primera
+    // escritura de verdad pisé el `card_count_official` de `mep`, que
+    // valía **0**: `||` trata el cero como «vacío», y un cero es un VALOR.
+    // No hizo daño —`0` y `null` se pintan igual— pero la regla decía «no
+    // se pisa nada nuestro» y se pisó. Es la misma familia que el
+    // `progreso = {}` de la 319: confundir «no lo tengo» con «vale cero».
+    release_date: rellenarTexto(nuestro.release_date, suFecha),
+    tcg_online_code: rellenarTexto(nuestro.tcg_online_code, suyo?.code),
+    card_count_official: rellenarNumero(
+      nuestro.card_count_official,
+      Number.isFinite(oficial) && oficial > 0 ? oficial : null,
+    ),
   }
 }
 

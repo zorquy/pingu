@@ -27795,3 +27795,108 @@ tomando `esRelleno` de verdad. Mutar la rama ahora se caza.
 `js/carta-nucleo.js`, `js/cartas.js`, `js/coleccion.js`,
 `netlify/edge-functions/meta-social.js`. Prueba:
 `pruebas/test-tanda-507.mjs`, con catorce mutaciones y las catorce cazadas.
+
+## Tanda 508 — lo que enseñó la primera escritura de verdad
+
+La 507 se pasó contra producción: **167 sets escritos**, y su listado trae
+**224 de 224 logos y símbolos**, cero relleno. El ensayo en seco hizo
+exactamente aquello para lo que existía — enseñar tres cosas mal antes de
+que importaran. Una era mía.
+
+### 1. El CERO es un valor, y `||` no lo sabe
+
+`filaDeSetConScrydex` decía «las columnas nuestras solo se rellenan si están
+vacías», y lo escribí con `||`. En la primera escritura pisó el
+`card_count_official` de `mep`, que valía **0**:
+
+```
+· mep → mep   {"card_count_official": {"de": 0, "a": null}}
+```
+
+No hizo daño —`carta-nucleo.js` hace `card_count_official || card_count_total`,
+así que `0` y `null` se pintan igual— pero la regla era no pisar y se pisó.
+
+Y hay una segunda mitad: **«faltar» no significa lo mismo en un número que
+en un texto.** Para un número el cero es un valor; para un texto la cadena
+vacía no es nada que nadie quisiera guardar. Son dos reglas, así que viven
+en dos funciones con nombre —`rellenarNumero` y `rellenarTexto`— y no en la
+sutileza de un operador suelto en cada línea, donde no se ve cuál es cuál.
+
+Es pariente del `progreso = {}` de la tanda 319: confundir «no me lo han
+dado» con «me han dado cero».
+
+### 2. Una señal que no depende del IDIOMA puede depender del FABRICANTE
+
+La 506 puso el código del set a decidir. En la primera escritura rechazó:
+
+```
+· ex7 → ex7 — el código del set no cuadra: nuestro «RR» contra su «TRR»
+```
+
+**Mismo id, mismo set** (*EX Team Rocket Returns*). Los dos códigos están
+bien; lo que pasa es que cada catálogo lo abrevia a su manera. Y ahí está la
+distinción que faltaba, un paso más allá de la 506:
+
+> **Los números de Pokédex son CANÓNICOS**: hay una sola Pokédex Nacional y
+> la publica quien hace los juegos. **Un código de TCG Live es una
+> CONVENCIÓN**, y dos catálogos pueden abreviar bien y distinto.
+
+Así que el código **confirma** —acertó 126 de 167— y **ya no rechaza**: un
+código que no cuadra se queda en «discrepa» sin `decide` y sale en el
+informe para mirarlo a mano. Antes de poner una señal a rechazar, pregúntate
+si lo que compara lo publica UNA autoridad o lo escribe cada uno a su gusto.
+
+### 3. Emparejar propone, verificar dispone
+
+37 sets se quedaron sin pareja, y los 37 con el mismo motivo: «ninguno suyo
+con esa fecha y esa cuenta». Son todo promos (`svp`, `jumbo`, `miscp`,
+`2024sv`, `exu`, `ex9`, `ex10`, `ex12`, `ex16`…), donde los dos catálogos
+cuentan distinto porque no hay un total oficial que contar.
+
+Y el rescate por código que metió la 507 **no disparó ni una vez**: esos
+sets SÍ tienen fecha, así que nunca llegaban a esa rama. La rama estaba
+escrita para un caso que no era el que había.
+
+Ahora el rescate (`rescate()`) va también cuando la fecha está pero la
+cuenta no casa, y prueba primero el **id** — porque el propio informe lo
+enseñaba: `base1 → base1`, `sm10 → sm10`, `ex7 → ex7`. No siempre coinciden
+(`me02.5 → me2pt5`, `lc → base6`), pero cuando coinciden no hay duda.
+
+Lo que hace que se pueda ser generoso aquí es que las dos mitades están
+separadas: **emparejar PROPONE con una llave floja, y quien escribe vuelve a
+CONFIRMAR con una señal canónica**, así que una propuesta mala no llega a la
+base. Y un set suyo nunca se reparte a dos nuestros.
+
+### Un par que conviene mirar a ojo
+
+`ex5.5 → wb1` se confirmó por **un solo solape de Pokédex**, y en un set de
+promos eso puede ser casualidad (que los dos número 1 sean el mismo bicho).
+Es reversible —está en una columna nueva y no se ha destruido nada— pero no
+está cerrado.
+
+### Y el hallazgo de la 505, por fin medido
+
+El contador que metí en la migración de la 507 decía **14.105** y **estaba
+mal**: preguntaba «¿`name` vale lo mismo que `name_es`?», y para la mayoría
+de los Pokémon el nombre español ES el inglés («Pikachu» es «Pikachu»). Las
+marcaba todas.
+
+La consulta corregida —que exige además una marca de español: ` y `, ` de `,
+«Energía», o una tilde que no sea la `é` de «Poké»— dice:
+
+| | |
+|---|---|
+| Columnas iguales | 14.105 |
+| …de ellas, **sospechosas de llevar el español** | **1.890** |
+| …y iguales en los dos idiomas (sanas) | 12.215 |
+| Ya reparadas por la pasada de la 335 | 220 |
+
+O sea que **el 8,8 % del catálogo occidental** no casa con `tcg_card_play`,
+ni con el resolutor de decklists, ni con la huella de las reimpresiones, sin
+dar ningún error. Y la reparación de la 335 solo alcanzó a 220 porque criba
+por `name_es=not.is.null` y se quedó a medias.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`. Pruebas: `test-tanda-507.mjs` y
+`test-tanda-506.mjs` actualizadas con el caso `ex7` dentro. Doce mutaciones;
+cinco salieron «sin detectar» a la primera —dos equivalentes y **tres huecos
+de verdad**— y las tres están cubiertas.

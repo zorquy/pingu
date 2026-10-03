@@ -35,6 +35,69 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 — PINGU-Claude (tanda 508 — lo que enseñó la primera escritura de verdad)
+
+**Hecho**: PINGU pasó el botón de la 507 contra producción. **167 sets
+escritos**, su listado trae **224 de 224 logos y símbolos** (cero relleno), y
+el ensayo en seco hizo exactamente para lo que estaba: enseñar tres cosas
+mal antes de que importara. Una era mía.
+
+· **El CERO es un valor, y `||` no lo sabe.** `card_count_official` de `mep`
+  valía **0** y lo pisé con `null`. No hizo daño —se pintan igual— pero la
+  regla decía «no se pisa nada nuestro». Y «faltar» no es lo mismo en un
+  número que en un texto, así que ahora son dos funciones con nombre
+  (`rellenarNumero`, `rellenarTexto`) y no un operador suelto por línea.
+· **`ex7 → ex7` rechazado por «RR» contra «TRR»**, y el rechazo era falso:
+  mismo id, mismo set (*EX Team Rocket Returns*), y cada catálogo lo abrevia
+  a su manera. **Una señal que no depende del IDIOMA puede seguir
+  dependiendo del FABRICANTE**: la Pokédex Nacional es canónica, un código
+  de TCG Live es una convención. El código pasa a confirmar —acertó 126 de
+  167— y deja de rechazar.
+· **37 sin emparejar, los 37 por «ninguno suyo con esa fecha y esa cuenta»**
+  — todo promos, donde los dos catálogos cuentan distinto porque no hay un
+  total oficial. Y el rescate por código que metí en la 507 **no disparó ni
+  una vez**, porque esos sets SÍ tienen fecha y nunca llegaban a esa rama.
+  Ahora el rescate va también cuando la fecha está pero la cuenta no casa, y
+  prueba primero el **id**: el propio informe enseñaba que muchos de
+  nuestros ids SON los suyos. Y se puede ser generoso proponiendo porque
+  **quien escribe vuelve a confirmar**: emparejar propone, verificar dispone.
+
+**Y un par que conviene mirar a ojo**: `ex5.5 → wb1` se confirmó por un solo
+solape de Pokédex, y en un set de promos eso puede ser casualidad (que los
+dos número 1 sean el mismo bicho). Es reversible —está en una columna nueva
+y no se ha destruido nada—, pero no me fío del todo.
+
+**El hallazgo de la 505, ya medido**: mi contador de la 507 decía 14.105 y
+**estaba mal** — preguntaba «¿`name` vale lo mismo que `name_es`?», y para
+la mayoría de los Pokémon el nombre español ES el inglés. La consulta
+corregida dice **1.890 sospechosas** de llevar el español en `name`, 12.215
+que se llaman igual en los dos idiomas, y solo **220 ya reparadas** por la
+pasada de la 335. O sea que el 8,8 % del catálogo occidental no casa con
+`tcg_card_play`, ni con el resolutor de decklists, ni con la huella de las
+reimpresiones, sin dar error.
+
+**Ficheros**: `netlify/lib/scrydex.mjs` (`rellenarNumero`, `rellenarTexto`,
+`rescate`, el código fuera de las señales que deciden). En `pruebas`:
+`test-tanda-507.mjs` y `test-tanda-506.mjs` actualizadas —las aserciones que
+cambian son justo las que `ex7` demostró falsas— con el caso real dentro.
+
+**Rigor**: doce mutaciones. Cinco salieron «sin detectar» a la primera: dos
+eran equivalentes (una fecha nunca vale 0; sus ids son únicos) y **tres eran
+huecos de verdad** —no había fixture del caso CON fecha, ni de un set suyo
+repartido dos veces, ni del código fuera de las señales—. Las tres cubiertas.
+
+**Suite**: corriendo. La primera pasada dio 168 rojos y **eran todos
+`ERR_CONNECTION_REFUSED`**: en este contenedor no estaba levantado el
+servidor estático del 8892. Ni una regresión, pero tampoco una pasada
+válida. Levantado y repetida desde cero.
+
+**En curso / pendiente**: volver a darle al botón de los sets (debería pasar
+de 167 a ~205 de 210, y `ex7` ya no se rechaza). Después, **las cartas**:
+`en/cards` son 25.209 en inglés y su LISTADO trae la carta COMPLETA —imagen,
+ilustrador, Pokédex, PS y la expansión entera anidada—, así que el catálogo
+son ~101 páginas y no 21.476 peticiones. Es lo contrario del coste de
+TCGdex, y conviene no confundirlos.
+
 ## 2026-10-04 — PINGU-Claude (tanda 507 — la PRIMERA ESCRITURA desde Scrydex: los sets)
 
 **Hecho**: PINGU: «estamos pagando Scrydex, de algo tiene que servir.

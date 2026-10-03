@@ -66,6 +66,37 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   falta en una guarda: un falso negativo es CSS sin su hoja, un falso
   positivo solo es una clase que no se puede mudar. Pero la regla para
   quien muda es la de arriba: **greparla a mano en el JS**.
+- **Una señal que no depende del IDIOMA puede seguir dependiendo del
+  FABRICANTE** (tanda 508, y es el remate de la serie 504-508). La 506 puso
+  el código del set a decidir, y en la primera escritura de verdad rechazó
+  `ex7 → ex7`: **mismo id, mismo set** (*EX Team Rocket Returns*), con «RR»
+  el nuestro y «TRR» el suyo. Los dos están bien — cada catálogo lo abrevia
+  a su manera. La diferencia que importa: **los números de Pokédex son
+  CANÓNICOS** (hay una sola Pokédex Nacional y la publica quien hace los
+  juegos), mientras que **un código de TCG Live es una CONVENCIÓN**. Así que
+  el código confirma —acertó 126 de 167— y no rechaza. Antes de poner una
+  señal a rechazar, pregúntate si lo que compara lo publica UNA autoridad o
+  lo escribe cada uno a su gusto.
+- **El CERO es un valor, y `||` no lo sabe** (tanda 508). `filaDeSetConScrydex`
+  decía «solo relleno lo que esté vacío» y lo escribí con `||`: en la primera
+  escritura contra producción pisó el `card_count_official` de `mep`, que
+  valía **0**. No hizo daño —`0` y `null` se pintan igual— pero la regla era
+  no pisar y se pisó. Y «faltar» no significa lo mismo en un número que en un
+  texto: para un número el cero es un valor, para un texto la cadena vacía no
+  lo es. Son DOS reglas, así que viven en dos funciones con nombre
+  (`rellenarNumero`, `rellenarTexto`) y no en la sutileza de un operador
+  suelto en cada línea. Es pariente del `progreso = {}` de la 319: confundir
+  «no me lo han dado» con «me han dado cero».
+- **Emparejar PROPONE, verificar DISPONE** (tanda 508). De los 210 sets
+  occidentales, 37 se quedaron sin pareja y los 37 por lo mismo: «ninguno
+  suyo con esa fecha y esa cuenta». Eran todo promos, donde los dos
+  catálogos cuentan distinto porque no hay un total oficial que contar. Y la
+  salida estaba a la vista en el propio informe: **muchos de nuestros ids
+  SON los suyos** (`base1 → base1`, `sm10 → sm10`, `ex7 → ex7`). Se puede
+  proponer un par con una llave floja —el id, el código— **porque quien
+  escribe lo vuelve a confirmar con una señal canónica**, así que una
+  propuesta mala no llega a la base. Separar las dos mitades es lo que deja
+  ser generoso emparejando sin ser temerario escribiendo.
 - **Una señal que puede CONFIRMAR no siempre puede RECHAZAR, y hay que
   escribir cuál es cuál** (tanda 506, el final de la serie 504-505-506).
   Verificar los emparejamientos con Scrydex se intentó tres veces. Lo que lo
