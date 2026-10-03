@@ -70,6 +70,10 @@ const T = {
   // su dueño (ver `aplicar`), y se guardan y se abren por sus funciones,
   // como en supabase-migration-repeticiones.sql.
   replays: [],
+  // Las repeticiones adjuntas a una mesa de torneo (tanda 496): quién las
+  // ve lo decide la política (los dos jugadores, quien lleva el torneo y
+  // sus jueces), y nadie escribe en la tabla: se adjunta por función.
+  tournament_match_replays: [],
   match_log: [],
   match_log_torneos: [],
   guides: [],
@@ -491,6 +495,11 @@ sembrar('__FAKE_REPETICIONES__', 'replays', (i) => ({
   ganador: null,
   turnos: 10,
   compartida: false,
+  // Lo que se añadió en las tandas 494 y 495, con el valor por defecto de
+  // la base (tanda 437: al copiar una columna, su defecto también).
+  mazo_a: null,
+  mazo_b: null,
+  notas: [],
   created_at: new Date(Date.now() - (i + 1) * 86400e3).toISOString(),
   updated_at: new Date(Date.now() - (i + 1) * 3600e3).toISOString(),
 }))
@@ -622,6 +631,13 @@ sembrar('__FAKE_ARQUETIPOS__', 'tcg_archetypes', (i) => ({
   iconos: [],
   requiere: [],
   activo: true,
+}))
+
+sembrar('__FAKE_REPETICIONES_MESA__', 'tournament_match_replays', (i) => ({
+  match_id: 'mesa-1',
+  user_id: 'user-1',
+  replay_id: `rep${String(i + 1).padStart(7, '0')}`,
+  created_at: new Date(Date.now() - (10 - i) * 60e3).toISOString(),
 }))
 
 sembrar('__FAKE_JUECES__', 'judge_applications', (i) => ({
@@ -842,6 +858,20 @@ function consulta(tabla, estado = {}) {
     // esto, una pantalla que pidiera las repeticiones SIN filtrar por su
     // dueño vería aquí las de todo el mundo, y en la base ninguna ajena.
     if (tabla === 'replays') filas = filas.filter((f) => f.user_id === (sesion?.user?.id ?? '¬'))
+    // La de `tournament_match_replays` (tanda 496): las de una mesa las
+    // ven sus dos jugadores, quien lleva el torneo y un juez APROBADO.
+    if (tabla === 'tournament_match_replays') {
+      const yo = sesion?.user?.id ?? '¬'
+      const perfil = T.user_profiles.find((x) => x.id === yo) || {}
+      filas = filas.filter((f) => {
+        const m = T.tournament_matches.find((x) => x.id === f.match_id)
+        if (!m) return false
+        if (m.player_a_id === yo || m.player_b_id === yo) return true
+        const t = T.rounds.find((r) => r.id === m.round_id)?.tournament_id
+        if (perfil.is_admin || perfil.is_tournament_admin || T.tournaments.find((x) => x.id === t)?.admin_id === yo) return true
+        return T.judge_applications.some((j) => j.tournament_id === t && j.user_id === yo && j.status === 'approved')
+      })
+    }
     for (const f of st.filtros) filas = filas.filter(f)
     if (st.ordenes?.length) {
       filas.sort((a, b) => {
@@ -888,6 +918,15 @@ function consulta(tabla, estado = {}) {
         id: f.id || `${tabla}-nuevo-${(T[tabla] || []).length + i + 1}`,
         ...f,
       }))
+      // El índice único de supabase-migration-repeticiones.sql (tanda
+      // 494): la misma repetición no se apunta dos veces en Mis partidas.
+      if (tabla === 'match_log' && filas.some((f) => f.replay_id && T.match_log.some((x) => x.user_id === f.user_id && x.replay_id === f.replay_id))) {
+        return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint "match_log_repeticion"' } }
+      }
+      // Nadie escribe en las tablas del torneo a mano (tanda 252).
+      if (tabla === 'tournament_match_replays') {
+        return { data: null, error: { code: '42501', message: 'permission denied for table tournament_match_replays' } }
+      }
       T[tabla] = (T[tabla] || []).concat(filas)
       anotarEscritura(tabla, filas, st.op)
       return { data: st.unico ? filas[0] : filas, error: null }
@@ -1391,9 +1430,12 @@ export const supabase = {
       const texto = String(args.p_registro || '')
       if (texto.length < 100) return { data: null, error: { code: '22023', message: 'Eso no parece el registro de una partida.' } }
       const ya = T.replays.find((r) => r.user_id === yo && r.registro === texto)
+      const mazo = (k) => String(args.p_mazos?.[k] || '').trim().slice(0, 120) || null
       if (ya) {
         if (args.p_titulo) ya.titulo = String(args.p_titulo).slice(0, 120)
         if (args.p_compartida != null) ya.compartida = Boolean(args.p_compartida)
+        ya.mazo_a = mazo(0) ?? ya.mazo_a ?? null
+        ya.mazo_b = mazo(1) ?? ya.mazo_b ?? null
         return { data: [{ id: ya.id, compartida: ya.compartida, nueva: false }], error: null }
       }
       const fila = {
@@ -1406,6 +1448,9 @@ export const supabase = {
         ganador: args.p_ganador || null,
         turnos: args.p_turnos ?? null,
         compartida: Boolean(args.p_compartida),
+        mazo_a: mazo(0),
+        mazo_b: mazo(1),
+        notas: [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
@@ -1417,7 +1462,29 @@ export const supabase = {
       const r = T.replays.find((x) => x.id === args.p_id && (x.compartida || (nombre === 'repeticiones_leer' && yo && x.user_id === yo)))
       if (!r) return { data: [], error: null }
       if (nombre === 'repeticiones_resumen') return { data: [{ titulo: r.titulo, jugador_a: r.jugador_a, jugador_b: r.jugador_b, turnos: r.turnos }], error: null }
-      return { data: [{ registro: r.registro, titulo: r.titulo, jugador_a: r.jugador_a, jugador_b: r.jugador_b, turnos: r.turnos, created_at: r.created_at, mia: r.user_id === yo, compartida: r.compartida }], error: null }
+      return { data: [{ registro: r.registro, titulo: r.titulo, jugador_a: r.jugador_a, jugador_b: r.jugador_b, turnos: r.turnos, created_at: r.created_at, mia: r.user_id === yo, compartida: r.compartida, notas: r.notas || [], mazo_a: r.mazo_a ?? null, mazo_b: r.mazo_b ?? null }], error: null }
+    }
+    // Adjuntar y quitar la repetición de una mesa (tanda 496), con las
+    // mismas puertas que las funciones de verdad: solo un jugador de esa
+    // mesa, solo una repetición suya, y tres como mucho (un BO3).
+    if (nombre === 'torneos_adjuntar_repeticion' || nombre === 'torneos_quitar_repeticion') {
+      const yo = sesion?.user?.id
+      const no = (message, code = 'P0001') => ({ data: null, error: { code, message } })
+      if (!yo) return no('Hace falta iniciar sesión.', '28000')
+      if (nombre === 'torneos_quitar_repeticion') {
+        const antes = T.tournament_match_replays.length
+        T.tournament_match_replays = T.tournament_match_replays.filter((x) => !(x.match_id === args.p_partida && x.replay_id === args.p_repeticion && x.user_id === yo))
+        return { data: T.tournament_match_replays.length < antes, error: null }
+      }
+      const m = T.tournament_matches.find((x) => x.id === args.p_partida)
+      if (!m || (m.player_a_id !== yo && m.player_b_id !== yo)) return no('Solo los dos jugadores de una partida pueden adjuntarle su repetición.', '42501')
+      const r = T.replays.find((x) => x.id === args.p_repeticion && x.user_id === yo)
+      if (!r) return no('Esa repetición no es tuya: guárdala primero en «Tus repeticiones».', '42501')
+      if (T.tournament_match_replays.some((x) => x.match_id === m.id && x.replay_id === r.id)) return { data: true, error: null }
+      if (T.tournament_match_replays.filter((x) => x.match_id === m.id && x.user_id === yo).length >= 3) return no('Caben tres repeticiones tuyas por partida (una por juego de un BO3): quita una antes.')
+      r.compartida = true
+      T.tournament_match_replays.push({ match_id: m.id, user_id: yo, replay_id: r.id, created_at: new Date().toISOString() })
+      return { data: true, error: null }
     }
 
     // Y si la prueba dice qué tiene que devolver, se devuelve: la RPC de

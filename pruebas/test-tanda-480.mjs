@@ -166,7 +166,9 @@ console.log('\n── 3. La base, contra PostgreSQL ──')
   const SQL = leer('supabase-migration-repeticiones.sql')
   check('la migración NO tiene política de insert (se guarda por la función)', !/for insert/i.test(SQL) && /create or replace function public\.repeticiones_guardar/.test(SQL))
   check('  …ni deja leer las compartidas a todo el mundo (no se pueden listar)', !/for select using \([^)]*compartida/i.test(SQL) && /for select using \(auth\.uid\(\) = user_id\)/.test(SQL))
-  check('  …y el permiso de cambiar va por columnas (título y compartir)', /grant update \(titulo, compartida\) on table public\.replays to authenticated/.test(SQL))
+  // Desde la tanda 494 también las notas (las escribe su dueño); los mazos,
+  // no: los pone la función al guardar.
+  check('  …y el permiso de cambiar va por columnas (título, compartir y, desde la 494, las notas)', /grant update \(titulo, compartida(, notas)?\) on table public\.replays to authenticated/.test(SQL))
   const r = spawnSync('psql', ['-h', '/var/tmp', '-p', '5433', '-U', 'postgres', '-f', ruta], { encoding: 'utf8', timeout: 60000 })
   const salida = r.error ? null : `${r.stdout || ''}${r.stderr || ''}`
   if (salida === null || /could not connect|No such file|connection to server/.test(salida)) {
@@ -510,7 +512,10 @@ console.log('\n── 7. Lo demás ──')
 {
   check('schema-check vigila la tabla nueva', /tabla: 'replays', columna: 'compartida', fichero: 'supabase-migration-repeticiones\.sql'/.test(leer('js/schema-check.js')))
   const datos = leer('js/repeticiones/datos.js')
-  check('tus repeticiones se piden filtrando por TI (la política no basta en el doble)', /\.from\('replays'\)\s*\.select\(COLUMNAS_LISTA\)\s*\.eq\('user_id', userId\)/.test(datos))
+  // Desde la 494 la consulta va en una función (`pedir`), porque se repite
+  // sin los mazos si la base tiene la migración de antes: lo que importa
+  // es que el filtro por TI siga ahí.
+  check('tus repeticiones se piden filtrando por TI (la política no basta en el doble)', /\.from\('replays'\)\s*\.select\((COLUMNAS_LISTA|columnas)\)\s*\.eq\('user_id', userId\)/.test(datos))
   check('  …y sin el registro (10 o 20 KB por fila)', !/COLUMNAS_LISTA = '[^']*registro/.test(datos))
   check('un cambio que la política rechaza no pasa por bueno (se pide la fila de vuelta)', /\.update\(cambios\)\.eq\('id', id\)\.select\(/.test(datos) && /\.delete\(\)\.eq\('id', id\)\.select\(/.test(datos))
   check('el vídeo se carga solo al pedirlo (no lo baja quien solo mira)', /await import\('\.\/repeticiones\/video\.js'\)/.test(leer('js/repeticiones.js')) && !/from '\.\/repeticiones\/video\.js'/.test(leer('js/repeticiones.js')))
