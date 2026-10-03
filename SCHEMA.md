@@ -24852,3 +24852,67 @@ quepa en tres portátiles y en dos móviles), el activo centrado en la
 repetición y en el laboratorio, la última del descarte con su dibujo
 encima, y el enlace en las 31 páginas y en el sitemap. `test-tanda-312` y
 `test-tanda-326` cuentan ya 32 páginas con pie.
+---
+
+## Tanda 463 — las rarezas, con su nombre oficial y su marca (oct. 2026)
+
+**(Era la 462: Ibai llegó antes al remoto con ese número. Van SEIS
+colisiones —384, 394, 413, 420, 456 y esta—, y lo que la cazó, otra vez,
+fue mirar el remoto justo antes del push.)**
+
+PINGU mandó la tabla de rarezas de la web oficial de Pokémon en español,
+con sus dibujos: «te voy a pasar las imágenes de la web oficial para que lo
+veas, y con sus iconos».
+
+### El nombre, y por qué no era cosmético
+
+Nosotros decíamos «Doble rara», «Ultra rara», «Ilustración rara»,
+«Hiperrara». El oficial es **«Rara Doble», «Rara Ultra», «Rara
+Ilustración», «Rara Híper»** — y, lo que importa, **es el mismo que
+devuelve TCGdex cuando se le pide en español**, que es como está guardada
+media base.
+
+Mientras no coincidieran, un filtro de rareza mandaba a la consulta la
+clave inglesa y NUESTRA palabra (`variantesDeValor`, tanda 455), y las
+filas guardadas con la palabra de TCGdex se quedaban fuera: **el filtro
+enseñaba la mitad de las cartas y no daba ningún error**. Ahora decimos lo
+mismo que TCGdex, y además `formasDeRareza()` manda a la consulta **todas**
+las escrituras conocidas de esa rareza —la inglesa, la española de TCGdex y
+la que nosotros decíamos antes—, porque en el catálogo conviven las tres.
+
+De paso, la tabla `ALIAS_TCGDEX` de la 455 se queda **sin excepciones**:
+todas las que no coincidían eran rarezas, y eran rarezas porque éramos
+nosotros los que les habíamos puesto otro nombre.
+
+### La marca
+
+Una rareza se reconoce por su dibujo antes que por su nombre: lo que la
+carta lleva impreso en la esquina de abajo es un círculo, un diamante, una
+estrella o dos — no la palabra. Cuatro formas y **cuatro acabados** (negro,
+tornasol, oro, rosa-y-verde), que son los que se distinguen de un vistazo;
+más de cuatro ya no.
+
+El color va en el CSS y no dentro del SVG: la marca vive en un chip que en
+el tema oscuro tiene la letra clara, y un negro a fuego desaparecería
+contra su propio fondo (la lección de la 315). Las dos estrellas de «Rara
+Ataque Mega» son de dos colores distintos y por eso llevan clase cada una:
+es la única que no se pinta con un color solo.
+
+Una **promo no lleva marca**, y eso es una respuesta y no un olvido:
+dibujarle una estrella sería decir que es rara.
+
+### Dónde vive el CSS, que es la regla de la 299 otra vez
+
+La marca la pintan CUATRO páginas —la ficha de una carta, el catálogo, la
+colección de otra persona y /mi-coleccion— porque `carta-nucleo.js` importa
+`rarezas.js`. El barrido de la 299 sigue los IMPORTS, así que en cuanto eso
+pasó, las tres páginas de carta «usaron» `.rareza-marca` sin cargar la hoja
+donde estaba. Se mudó a `css/carta-holo.css`, que es justamente la que
+cargan las cuatro.
+
+### Y el brillo
+
+`BRILLO_POR_RAREZA` estaba escrito en INGLÉS y la misma carta puede estar
+guardada en español, así que media base se quedaba sin brillo sin dar
+error. Ahora la tabla está en los nombres canónicos y `familiaDeBrillo`
+pasa por `rarezaEs` antes de buscar.

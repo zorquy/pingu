@@ -319,3 +319,89 @@
   color: var(--text-dim);
   font-size: var(--t-sm);
 }
+
+/* ── LA MARCA DE LA RAREZA (tanda 463) ──
+ *
+ * PINGU mandó la tabla de rarezas de la web oficial de Pokémon en español,
+ * con sus dibujos. Y una rareza se reconoce por su dibujo antes que por su
+ * nombre: lo que lleva impreso la carta en la esquina de abajo es un
+ * círculo, un diamante, una estrella o dos — no la palabra.
+ *
+ * La FORMA la pone el SVG (js/rarezas.js) y el COLOR va aquí, porque la
+ * marca vive dentro de un chip que en oscuro tiene la letra clara: un
+ * negro a fuego desaparecería contra su propio fondo (la lección de la
+ * 315). Por eso el «negro» es `currentcolor` y los otros tres tienen su
+ * pareja para el tema oscuro. */
+.rareza-marca {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 1.15em;
+  height: 1.15em;
+  color: currentcolor;
+  vertical-align: -0.2em;
+}
+
+.rareza-marca svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Tornasol (holo y ultra), oro (ilustración e híper) y rosa-y-verde
+   (ataque mega y brillante). Son los tres acabados que se distinguen a
+   simple vista en la esquina de una carta. */
+.rareza-marca[data-acabado='holo'] {
+  color: #5a93b8;
+}
+
+.rareza-marca[data-acabado='oro'] {
+  color: #b5831f;
+}
+
+.rareza-marca[data-acabado='mega'] .uno {
+  fill: #e03d8c;
+}
+
+.rareza-marca[data-acabado='mega'] .dos {
+  fill: #1f9c5e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .rareza-marca[data-acabado='holo'] {
+    color: #9ecbe4;
+  }
+
+  :root:not([data-theme='light']) .rareza-marca[data-acabado='oro'] {
+    color: #f0c457;
+  }
+
+  :root:not([data-theme='light']) .rareza-marca[data-acabado='mega'] .uno {
+    fill: #ff7ab8;
+  }
+
+  :root:not([data-theme='light']) .rareza-marca[data-acabado='mega'] .dos {
+    fill: #4fd38a;
+  }
+}
+
+:root[data-theme='dark'] .rareza-marca[data-acabado='holo'] {
+  color: #9ecbe4;
+}
+
+:root[data-theme='dark'] .rareza-marca[data-acabado='oro'] {
+  color: #f0c457;
+}
+
+:root[data-theme='dark'] .rareza-marca[data-acabado='mega'] .uno {
+  fill: #ff7ab8;
+}
+
+:root[data-theme='dark'] .rareza-marca[data-acabado='mega'] .dos {
+  fill: #4fd38a;
+}
+
+/* Y en la ficha, pegada a la palabra sin empujarla. */
+.carta-ficha dd .rareza-marca,
+.mc-ficha-datos dd .rareza-marca {
+  margin-right: 4px;
+}

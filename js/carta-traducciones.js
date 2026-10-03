@@ -49,50 +49,33 @@ export const ENTRENADORES_ES = {
 
 export const CATEGORIAS_ES = { Pokemon: 'Pokémon', Trainer: 'Entrenador', Energy: 'Energía' }
 
-export const RAREZAS_ES = {
-  Common: 'Común', Uncommon: 'Poco común', Rare: 'Rara',
-  'Double rare': 'Doble rara', 'Ultra Rare': 'Ultra rara',
-  'Illustration rare': 'Ilustración rara',
-  'Special illustration rare': 'Ilustración especial rara',
-  'Hyper rare': 'Hiperrara', 'Shiny rare': 'Variocolor rara',
-  'Rare Holo': 'Rara holo', 'Amazing Rare': 'Rara asombrosa',
-  'Radiant Rare': 'Rara radiante', Promo: 'Promo', 'ACE SPEC Rare': 'ACE SPEC',
-}
+// LAS RAREZAS SE MUDARON A `js/rarezas.js` (tanda 463), con el nombre
+// OFICIAL en español y su marca impresa. Se re-exportan desde aquí para no
+// mover los seis sitios que las importan — y porque es verdad: siguen
+// siendo el español del catálogo, solo que con dibujo.
+export { RAREZAS_ES, rarezaEs, formasDeRareza, marcaDeRarezaHtml } from './rarezas.js'
+import { rarezaEs as rarezaEsImpl } from './rarezas.js'
 
-// LO QUE TCGdex DICE EN ESPAÑOL, QUE NO ES LO QUE DECIMOS NOSOTROS
-// (tanda 455).
+// AQUÍ ESTABA `ALIAS_TCGDEX` (tanda 455, fuera en la 463). TCGdex traduce
+// los enums, así que la misma cosa está guardada en inglés o en español
+// según en qué idioma se importara esa fila, y el catálogo se ha importado
+// en varios. La tabla juntaba las que NO coincidían… y todas las que no
+// coincidían eran RAREZAS, porque éramos nosotros los que les habíamos
+// puesto otro nombre («Doble rara» donde el oficial es «Rara Doble»).
+// Ahora decimos el nombre oficial, que es el mismo que dice TCGdex, y la
+// tabla de excepciones se queda sin excepciones. Las formas sueltas que
+// aún se ven en el catálogo viven en `js/rarezas.js`, junto a su rareza.
 //
-// TCGdex traduce los enums, así que la misma rareza está guardada como
-// `Common` o como `Común` según en qué idioma se importara esa fila — y el
-// catálogo se ha importado en varios. Eso ya se resuelve solo cuando SU
-// palabra y la nuestra coinciden («Común» traduce a «Común»), pero cuando
-// no coinciden salen DOS chips que dicen lo mismo: PINGU mandó la captura
-// de un Bulbasaur con «Ninguno» y «None» uno al lado del otro.
-//
-// Esta tabla junta las que no coinciden. Y el día que salga otra se verá
-// igual de claro —un chip repetido en la pantalla—, que es un fallo que al
-// menos SE VE: mejor que uno silencioso.
-const ALIAS_TCGDEX = {
-  Ninguno: 'Sin rareza',
-  None: 'Sin rareza',
-  'Rara Ilustración': 'Ilustración rara',
-  'Rara Doble': 'Doble rara',
-  'Rara Ultra': 'Ultra rara',
-  'Rara Secreta': 'Hiperrara',
-}
-
+// Lo que no esté en la tabla sale tal cual vino: vale más un «Trainer»
+// suelto que un hueco, y una categoría nueva de TCGdex no rompe nada.
 const traducir = (tabla, valor) => {
   if (!valor) return null
-  const alias = ALIAS_TCGDEX[valor]
-  if (alias) return alias
-  const nuestro = tabla[valor]
-  return nuestro ? ALIAS_TCGDEX[nuestro] || nuestro : String(valor)
+  return tabla[valor] || String(valor)
 }
 
 export const tipoEs = (v) => traducir(TIPOS_ES, v)
 export const faseEs = (v) => traducir(FASES_ES, v)
 export const categoriaEs = (v) => traducir(CATEGORIAS_ES, v)
-export const rarezaEs = (v) => traducir(RAREZAS_ES, v)
 export const entrenadorEs = (v) => traducir(ENTRENADORES_ES, v)
 
 // ── Qué brillo le toca a cada rareza (tanda 373) ──
@@ -110,21 +93,29 @@ export const entrenadorEs = (v) => traducir(ENTRENADORES_ES, v)
 //
 // `null` es una respuesta, no un olvido: una común NO brilla, y darle un
 // brillo suave sería mentir sobre lo que tienes en la mano.
+// POR EL NOMBRE CANÓNICO (tanda 463) y no por el inglés: la misma carta
+// está guardada en inglés o en español según en qué idioma se importara su
+// fila, así que una tabla en inglés dejaba sin brillo a media base. Pasa
+// por `rarezaEs`, que entiende las dos.
 const BRILLO_POR_RAREZA = {
-  Common: null,
-  Uncommon: null,
-  Rare: null,
+  Común: null,
+  Infrecuente: null,
+  Rara: null,
   Promo: null,
-  'Rare Holo': 'holo',
-  'Double rare': 'holo',
-  'ACE SPEC Rare': 'acespec',
-  'Ultra Rare': 'cosmos',
-  'Illustration rare': 'cosmos',
-  'Radiant Rare': 'radiante',
-  'Amazing Rare': 'radiante',
-  'Shiny rare': 'radiante',
-  'Special illustration rare': 'arcoiris',
-  'Hyper rare': 'dorada',
+  'Sin rareza': null,
+  'Rara Holo': 'holo',
+  'Rara Doble': 'holo',
+  'Rara ACE SPEC': 'acespec',
+  'Rara Ultra': 'cosmos',
+  'Rara Ilustración': 'cosmos',
+  'Rara Radiante': 'radiante',
+  'Rara Asombrosa': 'radiante',
+  'Rara Brillante': 'radiante',
+  'Rara Brillante Ultra': 'arcoiris',
+  'Rara Ilustración Especial': 'arcoiris',
+  'Rara Híper': 'dorada',
+  'Rara Híper Mega': 'dorada',
+  'Rara Ataque Mega': 'arcoiris',
 }
 
 // Las rarezas llegan canonizadas al inglés (`canonizarCarta`), pero el
@@ -134,13 +125,15 @@ const BRILLO_POR_RAREZA = {
 // uno, no cuando alguien se acuerde de añadirla.
 export function familiaDeBrillo(rareza) {
   if (!rareza) return null
-  const clave = Object.keys(BRILLO_POR_RAREZA).find((k) => k.toLowerCase() === String(rareza).toLowerCase())
+  const canonica = rarezaEsImpl(rareza)
+  if (canonica in BRILLO_POR_RAREZA) return BRILLO_POR_RAREZA[canonica]
+  const clave = Object.keys(BRILLO_POR_RAREZA).find((k) => k.toLowerCase() === String(canonica).toLowerCase())
   if (clave) return BRILLO_POR_RAREZA[clave]
   const r = String(rareza).toLowerCase()
   if (/hyper|hiperrara|rainbow|arco/.test(r)) return 'dorada'
   if (/special illustration|ilustraci[oó]n especial/.test(r)) return 'arcoiris'
   if (/radiant|radiante|shiny|variocolor|amazing|asombrosa/.test(r)) return 'radiante'
   if (/ultra|illustration|ilustraci[oó]n/.test(r)) return 'cosmos'
-  if (/holo|double rare|doble rara/.test(r)) return 'holo'
+  if (/holo|double rare|doble rara|rara doble/.test(r)) return 'holo'
   return null
 }

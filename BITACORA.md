@@ -35,6 +35,35 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 463 — las rarezas oficiales, con su marca)
+
+**OJO, CHOQUE DE NÚMEROS (y van SEIS)**: esta era la 462 y la cogió Ibai
+mientras la escribía; pasa a ser la **463**. Van 384, 394, 413, 420, 456 y
+esta. Lo que lo caza es mirar el REMOTO justo antes del push, no la
+bitácora al empezar.
+
+**Hecho**: PINGU mandó la tabla de rarezas de la web oficial de Pokémon en
+español con sus dibujos. Los nombres pasan a ser los OFICIALES («Rara
+Doble», no «Doble rara»), que además son los que devuelve TCGdex en
+español: mientras no coincidían, el filtro de rareza mandaba a la consulta
+la clave inglesa y NUESTRA palabra, y las filas guardadas con la de TCGdex
+se quedaban fuera — el filtro enseñaba la mitad sin dar error. Ahora
+`formasDeRareza()` manda las TRES escrituras. Y cada rareza lleva su marca
+impresa (círculo, diamante, una estrella, dos) con cuatro acabados: negro,
+tornasol, oro y rosa-y-verde. Sale en los chips de filtro de las dos
+pantallas y en la ficha de una carta. La tabla `ALIAS_TCGDEX` de la 455 se
+queda sin excepciones.
+
+**Ficheros**: `js/rarezas.js` (NUEVO), `js/carta-traducciones.js`,
+`js/carta-nucleo.js`, `js/mi-coleccion.js`, `css/carta-holo.css`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`: `test-tanda-462.mjs`
+(NUEVO) y arreglos en la 324, 331, 374 y 382, que esperaban los nombres
+viejos.
+
+**En curso / pendiente**: de la lista de la noche quedan el gráfico del
+valor con rangos 1D/7D/1M/3M/6M/MAX y el repaso del resto de pestañas de Mi
+colección. ⚠️ Sigue sin ejecutar `supabase-migration-nidoran-genero.sql`.
+**Rigores pendientes: 443 a 463.**
 **OJO, CHOQUE DE NÚMEROS (y van CINCO)**: esta tanda se escribió como la
 459 y al ir a subir el remoto ya tenía la 459, la 460 y la 461 de la otra
 sesión de PINGU, así que lo mío pasa a ser la **462** (renombrados los

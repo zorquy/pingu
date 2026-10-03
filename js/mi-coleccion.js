@@ -24,7 +24,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // y el barrido de la 299 sigue los imports —así que importarlo por una
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
-import { rarezaEs, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
+import { rarezaEs, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
 import { esDelTCG } from './catalogo-series.js'
 import {
   IDIOMAS,
@@ -916,7 +916,12 @@ function pintarGruposDeChips() {
     return `<div class="mc-grupo-filtro"><h3>${escapeHtml(g.nombre)}</h3><div class="mc-chips-filtro">${valores
       .map((v) => {
         const puesto = filtros[g.id].has(v)
-        return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-grupo="${g.id}" data-valor="${escapeHtml(v)}" aria-pressed="${puesto ? 'true' : 'false'}">${escapeHtml(v)}</button>`
+        // La MARCA de la rareza delante del nombre (tanda 463): una rareza
+        // se reconoce por su dibujo antes que por su nombre, y es lo que
+        // lleva impreso la carta en la esquina — o sea, la forma de
+        // comprobar que lo que dice la web es lo que tienes en la mano.
+        const marca = g.id === 'rareza' ? marcaDeRarezaHtml(v) : ''
+        return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-grupo="${g.id}" data-valor="${escapeHtml(v)}" aria-pressed="${puesto ? 'true' : 'false'}">${marca}${escapeHtml(v)}</button>`
       })
       .join('')}</div></div>`
   }).join('')
@@ -1204,7 +1209,13 @@ function tablaDeCarta(c) {
   ]
   return filas
     .filter(([, v]) => v)
-    .map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd></div>`)
+    .map(([k, v]) => {
+      // La rareza lleva su marca impresa delante: es la que trae la carta
+      // en la esquina de abajo, así que con ella la ficha se compara con
+      // lo que tienes en la mano sin leer nada.
+      const marca = k === 'Rareza' ? marcaDeRarezaHtml(c.rarity) : ''
+      return `<div><dt>${escapeHtml(k)}</dt><dd>${marca}${escapeHtml(String(v))}</dd></div>`
+    })
     .join('')
 }
 
@@ -2265,7 +2276,8 @@ function pintarGruposDelCatalogo() {
     return `<div class="mc-grupo-filtro"><h3>${escapeHtml(g.nombre)}</h3><div class="mc-chips-filtro">${Object.entries(mapa)
       .map(([clave, rotulo]) => {
         const puesto = filtrosCatalogo[g.id].has(clave)
-        return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-cgrupo="${g.id}" data-cvalor="${escapeHtml(clave)}" aria-pressed="${puesto ? 'true' : 'false'}">${escapeHtml(rotulo)}</button>`
+        const marca = g.id === 'rarity' ? marcaDeRarezaHtml(clave) : ''
+        return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-cgrupo="${g.id}" data-cvalor="${escapeHtml(clave)}" aria-pressed="${puesto ? 'true' : 'false'}">${marca}${escapeHtml(rotulo)}</button>`
       })
       .join('')}</div></div>`
   }).join('')
@@ -2578,7 +2590,13 @@ function variantesDeValor(clave) {
   const traducciones = [CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES]
     .map((m) => m[clave])
     .filter((v) => v && v !== clave)
-  return [...new Set([clave, ...traducciones])]
+  // Y LAS RAREZAS, TODAS SUS FORMAS (tanda 463). Con dos no basta: la
+  // misma rareza está escrita de hasta tres maneras en el catálogo —la
+  // inglesa de TCGdex, la española de TCGdex y la que nosotros decíamos
+  // antes de usar el nombre oficial—, así que mandar solo dos dejaba fuera
+  // las filas de la tercera. Y eso no da ningún error: el filtro enseña
+  // menos cartas de las que hay.
+  return [...new Set([clave, ...traducciones, ...formasDeRareza(clave)])]
 }
 
 const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,image_path,rarity,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,serie_id,release_date,tcg_online_code)'

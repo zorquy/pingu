@@ -58,6 +58,7 @@ import {
   faseEs,
   categoriaEs,
   rarezaEs,
+  marcaDeRarezaHtml,
   entrenadorEs,
   familiaDeBrillo,
 } from './carta-traducciones.js'
@@ -288,14 +289,17 @@ function bloqueFicha(carta, set) {
     filas.push(['Número', total ? `${carta.local_id} / ${total}` : String(carta.local_id)])
   }
   if (set?.name) filas.push(['Colección', set.name])
-  if (carta?.rarity) filas.push(['Rareza', rarezaEs(carta.rarity)])
+  // La RAREZA con su marca impresa delante (tanda 463): el círculo, el
+  // diamante o las estrellas que la carta lleva en la esquina de abajo.
+  // Con ella la ficha se compara con lo que tienes en la mano sin leer.
+  if (carta?.rarity) filas.push(['Rareza', rarezaEs(carta.rarity), marcaDeRarezaHtml(carta.rarity)])
   if (carta?.regulation_mark) filas.push(['Marca de regulación', carta.regulation_mark])
   if (carta?.illustrator) filas.push(['Ilustración', carta.illustrator])
   if (set?.release_date) filas.push(['Salió', fechaLarga(set.release_date)])
   if (!filas.length) return ''
   return (
     '<dl class="carta-ficha">' +
-    filas.map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join('') +
+    filas.map(([k, v, marca]) => `<div><dt>${escapeHtml(k)}</dt><dd>${marca || ''}${escapeHtml(v)}</dd></div>`).join('') +
     '</dl>'
   )
 }

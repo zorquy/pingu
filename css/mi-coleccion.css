@@ -5233,3 +5233,19 @@ input.mc-alb-titulo:not([readonly]):focus {
    quedaron TRES, con siete rarezas: 300 px de chips antes de ver una
    carta. La apuesta era razonable y salió mal — y lo que la deshace no es
    una regla nueva, es una captura. */
+
+/* LA MARCA DE LA RAREZA se fue a `css/carta-holo.css` (tanda 463). Allí
+   va porque la pintan CUATRO páginas —la ficha de una carta, el catálogo,
+   la colección de otra persona y esta—, y esa es la hoja que cargan las
+   cuatro. Aquí solo queda cómo la coloca el chip.
+   Es la regla de la 299 al pie de la letra: el barrido sigue los IMPORTS,
+   así que en cuanto `carta-nucleo.js` importó `rarezas.js` las tres
+   páginas de carta «usaron» estas clases sin cargar esta hoja. */
+
+/* Y el chip la lleva pegada a su palabra, sin que la palabra se mueva. */
+.mc-chip-filtro {
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: center;
+}
+
