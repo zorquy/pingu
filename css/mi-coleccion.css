@@ -226,18 +226,33 @@
 
 /* Las cifras, dentro de la cabecera y SIN caja: separadas por una línea,
    como en un panel de verdad. */
+/* ── LAS CUATRO CIFRAS ──
+ *
+ * DOS Y DOS EN UN MÓVIL (tanda 465), y cuatro en fila a partir de 560 px.
+ *
+ * La 412 las puso en una fila y la 440 lo dio por bueno porque «cuatro
+ * cifras caben en 390 px»… con las cifras que había delante. Con una
+ * colección de verdad no caben: «14.040,00 €» mide más que su columna de
+ * 79 px y se sale de la caja — la cifra que más se mira, cortada por el
+ * borde. No lo cantó ninguna prueba porque la rejilla NO se rompe: lo que
+ * se sale es el CONTENIDO, y eso no mueve ninguna fila.
+ *
+ * Es la lección de la 320 otra vez: un ancho elegido a ojo es una
+ * afirmación sobre un número que nadie ha medido. Dos y dos caben siempre
+ * —158 px por cifra— y se leen igual de bien. */
 .mc-resumen {
   display: grid;
-  /* 72 y no 84: en 390 px, descontados los 32 del margen de la página y
-     los 32 del relleno de la cabecera, quedan 326, y cuatro columnas de 84
-     piden 336. Se pasaba por diez píxeles y las cifras bajaban a DOS
-     filas, que es justo lo que esta cabecera vino a evitar. Lo cantó
-     test-tanda-412, no el ojo. */
-  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: var(--e-md) 0;
   margin: 0;
   padding-top: var(--e-lg);
   border-top: 1px solid var(--border);
+}
+
+@media (min-width: 560px) {
+  .mc-resumen {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .mc-resumen:empty {
@@ -249,11 +264,20 @@
   border-left: 1px solid var(--border);
 }
 
-/* La primera no lleva raya: una raya a la izquierda de la primera cifra
-   es un borde de la caja, no un separador. */
-.mc-cifra:first-child {
+/* La primera de cada fila no lleva raya: una raya pegada al canto de la
+   caja es un borde, no un separador. En dos columnas son la 1.ª y la 3.ª;
+   en cuatro, solo la 1.ª — y por eso se dice con `nth-child` y no con
+   `first-child`, que solo conocía el caso de una fila. */
+.mc-cifra:nth-child(odd) {
   padding-left: 0;
   border-left: 0;
+}
+
+@media (min-width: 560px) {
+  .mc-cifra:nth-child(odd):not(:first-child) {
+    padding-left: var(--e-md);
+    border-left: 1px solid var(--border);
+  }
 }
 
 .mc-cifra dt {
@@ -728,6 +752,25 @@
 .mc-chip-mando:hover {
   border-color: var(--navy);
   color: var(--text);
+}
+
+/* ── LA CHAPA DE PELIGRO (tanda 465) ──
+ * Borrar un álbum, quitar una nota, el «Borrar» de un diálogo: eran
+ * `link-btn` —azules y subrayados— mezclados con botones de verdad. PINGU
+ * lleva cuatro veces diciendo «no quiero enlaces pochos, quiero botones».
+ *
+ * Y de ROJO, porque son los tres que no se pueden deshacer. El token es
+ * `--danger`, que es el de TEXTO Y BORDES (la 311): aquí el rojo no lleva
+ * nada encima, así que no toca el sólido. */
+.mc-chip-peligro {
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  color: var(--danger);
+}
+
+.mc-chip-peligro:hover {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 /* Sin texto al lado, la chapa es un icono y nada más: se le pide también
@@ -2634,10 +2677,8 @@
   min-height: 44px;
 }
 
-.mc-alb-volver {
-  min-height: 44px;
-  margin-bottom: var(--e-sm);
-}
+/* `.mc-alb-volver` ya no necesita alto propio desde la 465: es una chapa
+   como las otras dos de volver, y su fila es `.mc-album-volver-fila`. */
 
 input.mc-alb-titulo {
   width: 100%;
@@ -2823,9 +2864,7 @@ input.mc-alb-titulo:not([readonly]):focus {
   text-align: right;
 }
 
-.mc-alb-borrar-zona .link-btn {
-  min-height: 44px;
-}
+/* Ya lo pone la chapa (tanda 465). */
 
 /* ── Los cambios (tanda 376) ──
    Es la pieza donde le ganamos a HoloNook, que manda los cambios «por
@@ -3758,10 +3797,12 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 .mc-bloque-albumes,
+/* El bloque de Cambios YA NO LLEVA SEPARADOR (tanda 465). La raya y los
+   32 px de aire venían de cuando vivía debajo de otra cosa; desde que
+   tiene su propia pantalla es lo PRIMERO que hay, así que la raya separa
+   de la nada y lo que se ve es una línea flotando bajo la barra. */
 .mc-bloque-cambios {
-  margin-top: var(--e-2xl);
-  padding-top: var(--e-lg);
-  border-top: 1px solid var(--border);
+  margin-top: 0;
 }
 
 /* ── La cabecera de la Pokédex (tanda 400) ── */

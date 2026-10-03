@@ -24970,3 +24970,58 @@ borde a borde estorbaban más de lo que contaban. El relleno pasa a ser un
 degradado que se apaga hacia abajo, y la línea lleva
 `vector-effect="non-scaling-stroke"` porque el SVG se estira a lo ancho:
 sin él, el trazo sale más gordo en una pantalla ancha que en una estrecha.
+
+---
+
+## Tanda 465 — el repaso de Mi colección (oct. 2026)
+
+PINGU, antes de irse a dormir: **«revisa toda la parte, todas las pestañas,
+la versión de móvil y la de PC. Si algo queda anticuado o pocho o cutre,
+reestructúralo. Prefiero la sencillez»**. Se miraron las siete pestañas a
+390 y a 1280 px, en los dos temas. Esto es lo que salió.
+
+### Ni un enlace pocho, y esta vez barriendo
+
+Van **cinco** veces que lo pide. La 458 arregló el de la Pokédex y la 459
+el de una expansión; aquí van los ocho que quedaban: volver a «Tus
+álbumes», volver a «Carpetas», los tres «Limpiar» de los paneles de
+filtros, el «Copiar enlace» de un álbum soñado, el «Borrar» y el «Cancelar»
+del diálogo, el «Quitar la nota» y el «Borrar este álbum».
+
+Los tres que no se pueden deshacer llevan ahora `.mc-chip-peligro`, que es
+una chapa con el token `--danger` —el de TEXTO Y BORDES, porque aquí el
+rojo no lleva nada encima (la regla de la 311)—.
+
+Y la prueba **no mira ninguno de ellos**: barre las siete pestañas
+exigiendo que no quede ningún `.link-btn` visible. Las dos excepciones van
+escritas: un enlace EN LÍNEA dentro de una frase (que la WCAG admite y la
+312 también) y la cabecera de un vistazo, que desde la 299 se pinta como
+chapa.
+
+### Las cuatro cifras que no caben
+
+La 412 puso las cuatro cifras de la cabecera en una fila y la 440 lo dio
+por bueno porque «cuatro cifras caben en una fila de 390 px». Caben… **con
+las cifras que había delante**. Con una colección de verdad, «14.040,00 €»
+mide más que su columna de 79 px y se corta por el borde — y es la cifra
+que más se mira.
+
+**No lo cantó ninguna prueba porque la REJILLA no se rompe**: las cuatro
+columnas caben, lo que se sale es el CONTENIDO, y eso no mueve ninguna
+fila. Es la lección de la 320 otra vez — un ancho elegido a ojo es una
+afirmación sobre un número que nadie ha medido—, y por eso la prueba de
+esta tanda siembra una colección CARA: con 9,00 € habría salido verde con
+el fallo puesto.
+
+Dos y dos por debajo de 560 px (158 px por cifra, caben siempre) y cuatro
+en fila por encima. La raya de separación pasa a `nth-child(odd)`: en dos
+columnas la primera de CADA FILA es la que no la lleva.
+
+### Lo demás
+
+- **«Solo los que tengo» de la Pokédex** era la última casilla suelta en
+  una fila de chapas. Ahora es la misma pieza que «Solo las empezadas» y
+  «Solo las que me faltan».
+- **El separador del bloque de Cambios** —una raya y 32 px de aire— venía
+  de cuando vivía debajo de otra cosa. Con su propia pantalla separaba de
+  la nada: lo que se veía era una línea flotando bajo la barra.

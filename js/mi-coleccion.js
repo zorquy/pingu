@@ -172,6 +172,7 @@ let tablonBusca = []
 // tiene por qué pesar en la primera visita de nadie.
 let pokedex = null
 let totalesPokedex = new Map()
+let pdxSoloMios = false
 let pokedexCargada = false
 let especieAbierta = null
 
@@ -2967,7 +2968,10 @@ function pintarCarpetas() {
       return pintarCarpetas()
     }
     const hijas = carpetasLista.filter((x) => x.parent_id === c.id).map((x) => ({ ...x, hijas: [] }))
-    migas.innerHTML = `<button type="button" class="link-btn" data-volver-carpetas>← Carpetas</button> <strong>${escapeHtml(c.nombre)}</strong>`
+    // Volver, como CHAPA (tanda 465): es el mismo botón que el de una
+    // expansión y el de la Pokédex, y PINGU lleva cuatro veces diciendo
+    // que no quiere enlaces pochos.
+    migas.innerHTML = `<button type="button" class="mc-chip-mando" data-volver-carpetas>← Carpetas</button> <strong>${escapeHtml(c.nombre)}</strong>`
     caja.innerHTML = (hijas.length ? carpetas.rejillaHtml(hijas, carpetasResumen) : '') +
       '<div class="mc-cartas" id="mcCarpetaCartas"></div>'
     pintarCartasDeCarpeta(c.id)
@@ -3026,7 +3030,7 @@ function pintarPokedex() {
   const filas = pokedex.filasDePokedex({
     mio,
     totales: totalesPokedex,
-    soloMios: $('mcPdxSoloMios').checked,
+    soloMios: pdxSoloMios,
     texto: $('mcPdxBuscar').value,
   })
   // La cabecera con las cuatro cifras (tanda 400), y debajo la rejilla.
@@ -3852,7 +3856,7 @@ function enganchar() {
   // pestaña: el panel se repinta entero en cada filtro, así que un
   // oyente puesto dentro se duplicaría en cada tecla. La caja de fuera
   // no se repinta nunca.
-  for (const id of ['mcPdxBuscar', 'mcPdxSoloMios', 'mcPdxOrden']) {
+  for (const id of ['mcPdxBuscar', 'mcPdxOrden']) {
     $(id).addEventListener(id === 'mcPdxBuscar' ? 'input' : 'change', () => {
       // Al filtrar se vuelve a la rejilla: filtrar con una especie
       // abierta no significa nada.
@@ -3860,6 +3864,15 @@ function enganchar() {
       if (pokedexCargada) pintarPokedex()
     })
   }
+  // «Solo los que tengo» es una CHAPA desde la 465, así que su estado lo
+  // guarda una variable y no un `checked`.
+  $('mcPdxSoloMios').addEventListener('click', () => {
+    pdxSoloMios = !pdxSoloMios
+    $('mcPdxSoloMios').classList.toggle('activo', pdxSoloMios)
+    $('mcPdxSoloMios').setAttribute('aria-pressed', pdxSoloMios ? 'true' : 'false')
+    especieAbierta = null
+    if (pokedexCargada) pintarPokedex()
+  })
   $('mcPanelPokedex').addEventListener('click', (e) => {
     const especie = e.target.closest('[data-dex]')
     if (especie) return pintarEspecie(Number(especie.dataset.dex))

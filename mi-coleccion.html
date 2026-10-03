@@ -282,7 +282,7 @@
             <div id="mcGruposChips"></div>
           </div>
           <div class="mc-panel-pie">
-            <button type="button" class="link-btn" id="mcFiltrosLimpiar">Limpiar</button>
+            <button type="button" class="mc-chip-mando" id="mcFiltrosLimpiar">Limpiar</button>
             <button type="button" class="btn-primary" id="mcFiltrosVer">Ver resultados</button>
           </div>
         </dialog>
@@ -573,7 +573,7 @@
           <div id="mcPdxGrupos"></div>
         </div>
         <div class="mc-panel-pie">
-          <button type="button" class="link-btn" id="mcPdxFiltrosLimpiar">Limpiar</button>
+          <button type="button" class="mc-chip-mando" id="mcPdxFiltrosLimpiar">Limpiar</button>
           <button type="button" class="btn-primary" id="mcPdxFiltrosVer">Ver resultados</button>
         </div>
       </dialog>
@@ -630,7 +630,13 @@
         </div>
 
         <div id="mcAlbumesDetalle" class="hidden">
-          <button type="button" class="link-btn mc-alb-volver" id="mcAlbVolver">← Tus álbumes</button>
+          <!-- Volver, como CHAPA (tanda 465). Es el cuarto «enlace pocho»
+               de la sección: el de la Pokédex lo arregló la 458, el de una
+               expansión la 459, y este y el de dentro de una carpeta van
+               aquí. PINGU lo ha dicho cuatro veces. -->
+          <p class="mc-album-volver-fila">
+            <button type="button" class="mc-chip-mando mc-alb-volver" id="mcAlbVolver">← Tus álbumes</button>
+          </p>
           <input type="text" class="mc-alb-titulo" id="mcAlbTitulo" maxlength="80" aria-label="Nombre del álbum" />
           <textarea class="mc-alb-descripcion" id="mcAlbDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)" aria-label="Descripción del álbum"></textarea>
           <p class="mc-progreso" id="mcAlbProgreso"></p>
@@ -641,7 +647,7 @@
               <button type="button" class="btn-secondary" id="mcAlbEditar">Ordenar y quitar</button>
               <label class="mc-interruptor"><input type="checkbox" id="mcAlbSoloFaltan" /> Solo las que me faltan</label>
               <label class="mc-interruptor"><input type="checkbox" id="mcAlbPublico" /> Público</label>
-              <button type="button" class="link-btn hidden" id="mcAlbCopiar">Copiar enlace</button>
+              <button type="button" class="mc-chip-mando hidden" id="mcAlbCopiar">Copiar enlace</button>
               <span class="mc-alb-estado" id="mcAlbEstado" role="status"></span>
             </div>
             <div class="mc-resultados mc-alb-resultados" id="mcAlbResultados"></div>
@@ -666,7 +672,7 @@
             <button type="button" class="btn-secondary mc-album-tapa" id="mcAlbumTapa" aria-expanded="false">Personalizar</button>
           </div>
           <div class="mc-tapas hidden" id="mcAlbumTapas" role="group" aria-label="Color del archivador"></div>
-          <p class="mc-alb-borrar-zona"><button type="button" class="link-btn mc-borrar" id="mcAlbBorrar">Borrar este álbum</button></p>
+          <p class="mc-alb-borrar-zona"><button type="button" class="mc-chip-mando mc-chip-peligro" id="mcAlbBorrar">Borrar este álbum</button></p>
         </div>
         </div>
       </section>
@@ -756,7 +762,7 @@
             <div id="mcBuscarGrupos"></div>
           </div>
           <div class="mc-panel-pie">
-            <button type="button" class="link-btn" id="mcBuscarFiltrosLimpiar">Limpiar</button>
+            <button type="button" class="mc-chip-mando" id="mcBuscarFiltrosLimpiar">Limpiar</button>
             <button type="button" class="btn-primary" id="mcBuscarFiltrosVer">Ver resultados</button>
           </div>
         </dialog>
@@ -812,7 +818,10 @@
                quedó con la vieja en la 444 y se notaba — tres filas de
                mandos y el buscador cortado a media palabra. -->
           <div class="mc-mandos">
-          <label class="mc-interruptor"><input type="checkbox" id="mcPdxSoloMios" /> Solo los que tengo</label>
+          <!-- CHAPA Y NO CASILLA (tanda 465), como «Solo las empezadas» de la
+               estantería y «Solo las que me faltan» de una expansión. Era la
+               única casilla suelta que quedaba en una fila de chapas. -->
+          <button type="button" class="mc-chip-filtro mc-chip-mando" id="mcPdxSoloMios" aria-pressed="false">Solo los que tengo</button>
           <!-- Los que casi completas (tanda 429). Lo que persigue quien
                colecciona no es «el siguiente por número», es «¿a cuál le
                falta UNA?», y esa lista no existía. Los dos datos ya
@@ -937,7 +946,7 @@
               <label class="sr-only" for="mcEdNotas">Nota</label>
               <textarea id="mcEdNotas" maxlength="280" rows="3" placeholder="¿Algo que recordar de esta copia?"></textarea>
               <div class="mc-nota-mandos">
-                <button type="button" class="link-btn" id="mcEdNotaQuitar">Quitar la nota</button>
+                <button type="button" class="mc-chip-mando mc-chip-peligro" id="mcEdNotaQuitar">Quitar la nota</button>
                 <button type="button" class="btn-secondary" id="mcEdNotaCerrar">Listo</button>
               </div>
             </div>
@@ -1031,8 +1040,8 @@
             </div>
           </div>
           <div class="mc-panel-pie">
-            <button type="button" class="link-btn mc-dlg-borrar hidden" id="mcDlgBorrar">Borrar</button>
-            <button type="button" class="link-btn" id="mcDlgCancelar">Cancelar</button>
+            <button type="button" class="mc-chip-mando mc-chip-peligro mc-dlg-borrar hidden" id="mcDlgBorrar">Borrar</button>
+            <button type="button" class="mc-chip-mando" id="mcDlgCancelar">Cancelar</button>
             <button type="submit" class="btn-primary" id="mcDlgGuardar">Crear</button>
           </div>
         </form>

@@ -35,6 +35,29 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 465 — el repaso de Mi colección)
+
+**Hecho**: repaso de las siete pestañas a 390 y 1280 px en los dos temas,
+que es lo que PINGU pidió antes de irse a dormir. (1) NI UN ENLACE POCHO:
+los ocho que quedaban —volver a «Tus álbumes» y a «Carpetas», los tres
+«Limpiar», el «Copiar enlace» de un álbum, el «Borrar» y el «Cancelar» del
+diálogo, el «Quitar la nota» y el «Borrar este álbum»— pasan a chapas, y
+los tres que no se pueden deshacer con `.mc-chip-peligro`. La prueba barre
+las SIETE pestañas en vez de mirarlos uno a uno. (2) LAS CUATRO CIFRAS DE
+LA CABECERA se salían de la caja con una colección cara: «14.040,00 €» mide
+más que su columna de 79 px. No lo cantó nadie porque la rejilla no se
+rompe —lo que se sale es el contenido—, así que la prueba siembra una
+colección cara a propósito. Dos y dos por debajo de 560 px. (3) «Solo los
+que tengo» de la Pokédex, de casilla a chapa. (4) El bloque de Cambios
+llevaba una raya de separación que ya no separaba de nada.
+
+**Ficheros**: `mi-coleccion.html`, `css/mi-coleccion.css`,
+`js/mi-coleccion.js`, `SCHEMA.md`. En `pruebas`: `test-tanda-465.mjs`
+(NUEVO).
+
+**En curso / pendiente**: ⚠️ sigue sin ejecutar
+`supabase-migration-nidoran-genero.sql`. **Rigores pendientes: 443 a 465.**
+
 ## 2026-10-03 — PINGU-Claude (tanda 464 — el gráfico del valor, con rangos)
 
 **Hecho**: PINGU, con una captura de Collectr: «quiero que pongas en
