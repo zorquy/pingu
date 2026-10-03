@@ -117,10 +117,36 @@
   font-size: var(--t-sm);
 }
 
+/* Las tres acciones de la partida, como botones; girar y pegar otra, que
+   son de la pantalla y no de la partida, como enlaces debajo. Cinco
+   botones iguales ocupaban tres filas en el móvil. */
 .rep-cab-botones {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--e-sm);
+}
+
+.rep-cab-acciones {
   display: flex;
   flex-wrap: wrap;
   gap: var(--e-sm);
+}
+
+.rep-cab-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-lg);
+}
+
+.rep-cab-extra .link-btn {
+  font-size: var(--t-sm);
+}
+
+@media (pointer: coarse) {
+  .rep-cab-extra .link-btn {
+    min-height: 44px;
+  }
 }
 
 .rep-sin-leer {
@@ -706,6 +732,316 @@
   color: var(--text-mid);
 }
 
+/* ── La cabecera de la sala: el título de una guardada y sus botones ── */
+.rep-cab-texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+.rep-nombre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.rep-chapa-compartida {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: 2px var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text-mid);
+  font-family: inherit;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rep-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.rep-btn-icono {
+  display: inline-flex;
+}
+
+/* ── La ventana de guardar, compartir y el vídeo ── */
+.rep-dialogo {
+  width: min(560px, calc(100vw - 32px));
+}
+
+.rep-dialogo-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+}
+
+.rep-dialogo-texto {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  line-height: 1.5;
+}
+
+.rep-dialogo-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.rep-dialogo-botones .btn-primary,
+.rep-dialogo-botones .btn-secondary,
+.rep-enlace .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.rep-dialogo-estado {
+  min-height: 1.5em;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rep-dialogo-estado[data-tipo='error'] {
+  color: var(--danger);
+}
+
+.rep-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+}
+
+.rep-campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.rep-campo input,
+.rep-enlace input {
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--t-md);
+}
+
+.rep-campo input:focus-visible,
+.rep-enlace input:focus-visible,
+.rep-check input:focus-visible,
+.rep-ritmo-opcion input:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.rep-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-sm);
+  color: var(--text);
+  font-size: var(--t-sm);
+  line-height: 1.4;
+}
+
+.rep-check input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--navy);
+}
+
+.rep-enlace {
+  display: flex;
+  gap: var(--e-sm);
+}
+
+.rep-enlace input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--t-sm);
+}
+
+.rep-ritmo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rep-ritmo legend {
+  margin-bottom: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.rep-ritmo-opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: var(--t-sm);
+  cursor: pointer;
+}
+
+.rep-ritmo-opcion:has(input:checked) {
+  border-color: var(--navy);
+  background: var(--ice);
+}
+
+.rep-ritmo-opcion input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--navy);
+}
+
+.rep-video-progreso {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+}
+
+.rep-barra-video {
+  flex: 1 1 auto;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  overflow: hidden;
+}
+
+.rep-barra-video span {
+  display: block;
+  width: var(--pct, 0%);
+  height: 100%;
+  background: var(--navy);
+  transition: width 0.3s var(--ease);
+}
+
+/* ── Tus repeticiones ── */
+.rep-guardadas {
+  margin-top: var(--e-2xl);
+}
+
+.rep-guardadas h2 {
+  margin-bottom: var(--e-md);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.rep-guardadas-cuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--e-md);
+}
+
+.rep-guardadas-vacio {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rep-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  width: 100%;
+  list-style: none;
+}
+
+.rep-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.rep-item-abrir {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  min-height: 44px;
+  justify-content: center;
+  text-align: left;
+}
+
+.rep-item-abrir:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.rep-item-titulo {
+  max-width: 100%;
+  color: var(--text);
+  font-size: var(--t-md);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.rep-item-abrir:hover .rep-item-titulo {
+  text-decoration: underline;
+}
+
+.rep-item-sub {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.rep-item-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-md);
+}
+
+.rep-item-acciones .link-btn {
+  font-size: var(--t-sm);
+}
+
+.rep-item-borrar {
+  color: var(--danger);
+}
+
+@media (pointer: coarse) {
+  .rep-item-acciones .link-btn {
+    min-height: 44px;
+  }
+}
+
 /* ── El móvil ── */
 @media (max-width: 760px) {
   .rep-sala {
@@ -717,6 +1053,25 @@
 
   .rep-pegar {
     padding: var(--e-lg);
+  }
+
+  .rep-cab-botones,
+  .rep-cab-acciones {
+    width: 100%;
+  }
+
+  .rep-cab-botones {
+    align-items: stretch;
+  }
+
+  .rep-cab-acciones > .rep-btn {
+    flex: 1 1 0;
+    justify-content: center;
+    padding-inline: var(--e-sm);
+  }
+
+  .rep-cab-extra {
+    justify-content: space-between;
   }
 
   /* La mesa, casi de borde a borde: con el margen de la página (24 px por
@@ -793,7 +1148,8 @@
     animation: none;
   }
 
-  .rep-ctrl {
+  .rep-ctrl,
+  .rep-barra-video span {
     transition: none;
   }
 }

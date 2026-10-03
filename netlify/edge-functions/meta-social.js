@@ -1143,6 +1143,30 @@ async function metaDeColeccion(url) {
   }
 }
 
+// Una repetición compartida (tanda 480): /repeticiones?r=<id>. Quien pega
+// el enlace en WhatsApp ve quién juega contra quién, no la vista previa
+// genérica. Se pide el RESUMEN (sin el registro, que son 10 o 20 KB) y
+// solo de las compartidas: el robot no tiene sesión, y una guardada sin
+// compartir no tiene por qué contar nada. Y en `noindex`: una partida
+// suelta no es una página para Google (tanda 322: miles de páginas casi
+// iguales hunden el dominio).
+async function metaDeRepeticion(url) {
+  const id = url.searchParams.get('r')
+  if (!id || !/^[0-9a-f]{6,20}$/i.test(id)) return null
+  const r = await pedir(`rpc/repeticiones_resumen?p_id=${encodeURIComponent(id)}`)
+  if (!r) return null
+  const quienes = r.jugador_a && r.jugador_b ? `${r.jugador_a} contra ${r.jugador_b}` : null
+  const titulo = r.titulo && r.titulo !== quienes ? `${r.titulo}${quienes ? ` (${quienes})` : ''}` : quienes || r.titulo || 'Una partida'
+  const turnos = Number.isInteger(r.turnos) ? `${r.turnos} ${r.turnos === 1 ? 'turno' : 'turnos'} de ` : ''
+  return {
+    url: `${SITIO}/repeticiones?r=${encodeURIComponent(id)}`,
+    titulo: `${titulo} — Repetición en PokeDoc`,
+    descripcion: recortar(`${turnos}JCC Pokémon Live, jugada a jugada: ábrela y se reproduce sola, con cada ataque, los KO y los premios.`),
+    imagen: IMAGEN_POR_DEFECTO,
+    robots: 'noindex,follow',
+  }
+}
+
 async function calcularMeta(url) {
   const ruta = url.pathname
   // Antes que /guia: una noticia se sirve DESDE guia.html, pero se pide
@@ -1160,6 +1184,7 @@ async function calcularMeta(url) {
   if (ruta.startsWith('/foro')) return metaDeForo(url)
   // Con cuidado: '/torneos' (la lista) también empieza por '/torneo'.
   if (/^\/torneo(\.html)?$/.test(ruta)) return metaDeTorneo(url)
+  if (/^\/repeticiones(\.html)?$/.test(ruta)) return metaDeRepeticion(url)
   return null
 }
 
@@ -1233,5 +1258,8 @@ export const config = {
     // La ficha de un torneo: /torneo?slug=… es como la enlazan las
     // tarjetas y como se comparte por WhatsApp.
     '/torneo',
+    // Una repetición compartida, por su enlace corto (tanda 480).
+    '/repeticiones',
+    '/repeticiones.html',
   ],
 }

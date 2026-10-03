@@ -35,6 +35,68 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 480 — compartir, guardar y descargar en vídeo una repetición)
+
+**Hecho**: lo que pidió PINGU sobre /repeticiones (tanda 462): «compartir
+el link de una repetición para que quien la abra lo pueda ver», «un
+apartado para ver tus repeticiones guardadas (así que necesitamos un botón
+para guardar)» y «descargar la repetición en mp4 o guardarla en la web como
+lo de los mazos».
+
+1. **Compartir.** Sin cuenta, el enlace LLEVA la partida comprimida detrás
+   del `#` (`/repeticiones#p=…`, ~1.900 caracteres el ejemplo; no llega ni
+   a nuestro servidor). Con cuenta, compartir la guarda y da el enlace
+   corto `/repeticiones?r=…`, con vista previa al pegarlo (título, quién
+   contra quién y turnos, en `noindex`).
+2. **Guardar y «Tus repeticiones».** Como los mazos: título, si se
+   comparte, y una lista al pie de la página con abrir, copiar el enlace,
+   dejar de compartir y borrar (con un segundo toque). La misma partida no
+   se guarda dos veces. Sin cuenta, Guardar ofrece entrar y al volver se
+   abre sola con la ventana de guardar delante.
+3. **El vídeo.** Botón «Vídeo»: la mesa se vuelve a dibujar en un lienzo
+   de 1280×720 y se codifica con WebCodecs (más rápido que el tiempo real)
+   en un MP4 montado a mano —H.264 donde el navegador lo tenga, si no
+   VP9—; sin WebCodecs, `MediaRecorder` en tiempo real, y la ventana lo
+   avisa. Tres ritmos, con lo que dura cada uno, y se puede cancelar.
+
+**HACE FALTA EJECUTAR `supabase-migration-repeticiones.sql`** en el SQL
+Editor para guardar y para el enlace corto. Mientras no esté, la página
+funciona igual (pegar, ver, el enlace largo y el vídeo) y Guardar dice qué
+fichero falta. La tabla NO deja listar las compartidas de otros: solo se
+abre una compartida con su enlace, por una función.
+
+**Ficheros**: `js/repeticiones/datos.js`, `js/repeticiones/enlace.js`,
+`js/repeticiones/mp4.js`, `js/repeticiones/video.js` y
+`supabase-migration-repeticiones.sql` (nuevos); `repeticiones.html`,
+`js/repeticiones.js`, `js/repeticiones/iconos.js`, `css/repeticiones.css`,
+`js/schema-check.js`, `netlify/edge-functions/meta-social.js`, `SCHEMA.md`.
+En `pruebas`: `test-tanda-480.mjs`, `sql-repeticiones.sql` y
+`rigor-tanda-480.py` (nuevos); `herramientas/stub-supabase.js` (la tabla
+`replays`, sus tres RPC, y fingir una tabla que falta ya funciona con
+cadenas largas); `test-tanda-462.mjs` (la página ya puede guardar, así que
+lo que se comprueba es que MIRAR no manda nada) y `test-tanda-388.mjs` (su
+expresión rompía con un argumento `text[]`: los corchetes se leían como
+una clase de caracteres vacía). La portada NO se toca.
+
+**La suite entera** (202 pruebas, con lo de la otra sesión hasta la 478
+ya dentro): verde salvo la 470, que pide un fichero que no está en este
+contenedor (`visual/carta-real.png`, una captura de la otra sesión) y no
+es de la web. **Rigor**: 26 mutaciones, las 26 detectadas. La prueba del
+cartel final se tropezó antes con una trampa de la PROPIA prueba: recortar
+una sola fila de píxeles de un vídeo 4:2:0 deja el croma a cero de alto,
+ffmpeg no escribe nada y el «no hay oro» parecía un fallo de la web.
+
+**En curso / pendiente**: el H.264 no se ha podido probar en ESTE Chromium
+(el de Playwright no trae el codificador): las pruebas sacan VP9, y el
+camino de H.264 del MP4 está probado con un H.264 de verdad hecho con
+ffmpeg y leído con ffprobe. Si en algún Chrome el vídeo saliera sin
+verse, mirar ahí primero. PINGU ya ha pasado otro registro, que acaba por
+KO y premios: va en la 481.
+
+**Número**: iba a ser la 479, y la otra sesión subió la suya mientras corría
+la suite: lo cazó mirar el remoto justo antes del commit, así que esta es la
+480 y lo que venga detrás, la 481.
+
 ## 2026-10-03 — PINGU-Claude (tanda 479 — el catálogo asiático, arrancando de verdad)
 
 **Hecho**: PINGU, mirando la web: «las cartas japonesas, chinas… no se están

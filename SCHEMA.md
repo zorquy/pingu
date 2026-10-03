@@ -25842,3 +25842,126 @@ apilamiento, así que quitárselos a la carta que SÍ tienes le quita lo único
 que mantenía la imagen por encima del nombre — y la carta se ve en negro.
 La prueba lo comprueba preguntándole al navegador qué se pinta en el
 centro, no leyendo el CSS.
+
+## Tanda 480 — compartir, guardar y descargar en vídeo una repetición (oct. 2026)
+
+PINGU, con /repeticiones ya hecho (tanda 462): «me gustaría poder compartir
+el link de una repetición para que quien la abra lo pueda ver», y después
+«un apartado para ver tus repeticiones guardadas (así que necesitamos un
+botón para guardar) y que te dé la opción de descargar la repetición en
+mp4 o guardarla en la web como lo de los mazos». En la cabecera de la sala
+hay tres acciones —**Guardar**, **Compartir** y **Vídeo**— y debajo de la
+página, **«Tus repeticiones»**. Girar la mesa y pegar otra partida pasan a
+ser enlaces debajo: son de la pantalla, no de la partida, y cinco botones
+iguales ocupaban tres filas en el móvil.
+
+### Compartir: dos enlaces
+
+- **Sin cuenta (o sin la migración puesta)**, el enlace LLEVA la partida:
+  `/repeticiones#p=…`, el registro comprimido (`deflate-raw`, con el
+  `CompressionStream` del navegador) y en base64 sin `+` ni `/`, para que
+  ningún chat lo parta. Lo de detrás del `#` no sale del navegador: no
+  llega ni a nuestro servidor. El ejemplo (8 KB) queda en 1.900
+  caracteres; si uno pasa de 2.000 la ventana avisa de que en Discord no
+  cabe en un mensaje. Un enlace cortado a medias no abre media partida:
+  dice que está roto (`js/repeticiones/enlace.js`, sin DOM, probado en
+  Node).
+- **Con cuenta**, compartir la GUARDA y da el enlace corto,
+  `/repeticiones?r=1a2b3c4d5e`. La ventana lo dice («Está guardada en “Tus
+  repeticiones” y compartida»), y deja de compartirla con un clic. Una
+  repetición que te han pasado se comparte con su mismo enlace, sin
+  guardar nada.
+- El enlace corto tiene **vista previa** al pegarlo en WhatsApp
+  (`netlify/edge-functions/meta-social.js`): el título y quién contra
+  quién, con los turnos. Se pide el RESUMEN (`repeticiones_resumen`, sin
+  el registro) y solo de las compartidas, y la página va en `noindex`:
+  una partida suelta no es una página para Google (tanda 322).
+
+### Guardar y «Tus repeticiones»
+
+Como los mazos: una repetición es de UNA persona. Guardar pide un título
+(el propuesto es «Rojo contra Azul») y si se comparte; el botón pasa a
+decir **«Guardada»** —el ESTADO, como el de variantes de la 473— y la
+dirección pasa a ser su enlace corto, así que recargar la vuelve a abrir.
+Pulsarlo otra vez cambia el título. Guardar dos veces la misma partida NO
+la duplica: la base la reconoce por la huella del texto. La lista dice
+título, quién contra quién, turnos, quién gana y la fecha, con abrir,
+compartir (que copia el enlace), dejar de compartir y borrar —con un
+segundo toque, sin ventanas del navegador—.
+
+Sin cuenta, Guardar ofrece entrar o crear una; antes de irse deja la
+partida en la pestaña (`sessionStorage`), y al volver se abre sola con la
+ventana de guardar delante.
+
+### La base (`supabase-migration-repeticiones.sql`)
+
+- `replays`: id de diez caracteres hexadecimales (el del enlace), dueño,
+  título, registro, su huella (`md5`, generada), jugadores, ganador,
+  turnos y `compartida`.
+- El dueño la ve, le cambia el título o si se comparte, y la borra:
+  políticas de `select`, `update` y `delete` solo para él, y el permiso de
+  `update` va POR COLUMNAS (título y compartir). Un disparador deja como
+  estaban el dueño, el enlace y la PARTIDA: un enlace mandado tiene que
+  seguir enseñando lo mismo.
+- **Sin política de insert**: se guarda por `repeticiones_guardar`, que
+  valida el texto, no duplica, y pone un tope de 30 por hora (una tabla en
+  la que escribe cualquiera es una tabla de spam) además del de 500 por
+  persona.
+- **Compartida no es pública**: nadie puede LISTAR las de otros. Una
+  política de «todos leen las compartidas» dejaría hacer
+  `select * from replays where compartida`. Una compartida solo la abre
+  quien tiene su enlace, por `repeticiones_leer`.
+- Probado contra PostgreSQL de verdad en `sql-repeticiones.sql` (rama
+  `pruebas`): 30 comprobaciones.
+
+La web funciona SIN la migración: pegar, ver, el enlace largo y el vídeo.
+Guardar dice qué fichero falta, y compartir da el enlace largo sin
+asustar a nadie. `js/schema-check.js` la vigila.
+
+### El vídeo
+
+PINGU: «descargar la repetición en mp4». La mesa de la página es HTML, y el
+HTML no se graba: se graba un LIENZO. `js/repeticiones/video.js` dibuja la
+mesa otra vez en un `<canvas>` de 1280×720, foto a foto —los dos lados, el
+centro con la línea del registro, la carta que se juega en grande un
+momento, el golpe que tiembla con su daño, el cartel del turno y el de
+quién gana, la mano del de abajo y la firma de PokeDoc— y la codifica:
+
+- Con **WebCodecs** (`VideoEncoder`), que codifica MÁS RÁPIDO que el
+  tiempo real: una partida de tres minutos sale en segundos. H.264 si el
+  navegador lo tiene (Chrome, Edge, Safari), que es el que se ve en todas
+  partes; si no, VP9. El codificador da trozos sueltos, y
+  `js/repeticiones/mp4.js` los mete en su caja: un MP4 hecho a mano, con
+  el índice DELANTE, porque la librería que lo hace sería una dependencia
+  nueva de npm. Probado con H.264 y VP9 de verdad (de ffmpeg) y ffprobe.
+- Sin WebCodecs, con **`MediaRecorder`** sobre el lienzo: graba en TIEMPO
+  REAL, y a veces solo sabe WebM. La ventana lo avisa.
+- Tres ritmos (normal, rápido y muy rápido), con lo que dura cada uno. Lo
+  quieto va en fotogramas de medio segundo como mucho: uno de tres
+  segundos se ve igual, pero hay reproductores que al saltar no encuentran
+  nada entre fotograma y fotograma.
+- **Las cartas se piden con permiso** (CORS): un lienzo que pinta una
+  imagen de otro dominio sin permiso queda manchado y ya no se puede
+  grabar. Las de Limitless vienen por `/escaneo` (tanda 413) y las de
+  TCGdex ya traen el permiso; la que no llegue sale como un hueco con su
+  nombre.
+- Los colores se LEEN de las hojas (los tokens fijos y la paleta de las
+  energías del laboratorio) en vez de copiarlos.
+- Se carga solo al pulsar «Vídeo» (`import()`): quien solo mira no se baja
+  el codificador. Se puede cancelar, y cerrar la ventana lo cancela.
+
+### Un arreglo del doble de Supabase
+
+Fingir una tabla que no existe (`__SIN_TABLAS__`) solo funcionaba con
+cadenas cortas: una larga (`select().eq().order().limit()`) resolvía al
+propio Proxy, `{ data, error }` salían dos funciones, y la página decía «no
+se ha podido hablar con la base» en vez de «falta la tabla». Ahora el
+`await` de cualquier cadena resuelve al error, como en la base.
+
+`test-tanda-480.mjs`: el enlace largo (ida y vuelta exacta, 60 KB, roto),
+el MP4 (H.264 y VP9 de ffmpeg, duraciones desiguales, `ctts`, índice
+delante), la base contra PostgreSQL, la vista previa, compartir y guardar
+con y sin cuenta, la lista, volver de entrar, sin la migración, el móvil,
+el vídeo (descarga, ffprobe, lo que dura, el cartel del final, las cartas
+por `/escaneo`, cancelar, sin WebCodecs) y que mirar no mande nada.
+`test-tanda-462` ajusta lo que la página promete (ahora se puede guardar).

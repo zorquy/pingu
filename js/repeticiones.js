@@ -26,6 +26,9 @@ import { leerRegistro } from './repeticiones/registro.js'
 import { fotos as sacarFotos, indiceDeTurnos, arriba } from './repeticiones/estado.js'
 import { ICONOS_REPETICION as ICONO } from './repeticiones/iconos.js'
 import { icons } from './icons.js'
+import { showToast } from './toast.js'
+import * as datos from './repeticiones/datos.js'
+import { empaquetar, desempaquetar, esEnlaceDeRepeticion } from './repeticiones/enlace.js'
 
 const $ = (id) => document.getElementById(id)
 const menosMovimiento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -48,6 +51,12 @@ const R = {
   // (las imágenes que se resuelven por detrás) no pinta encima.
   vez: 0,
   cacheHtml: new WeakMap(),
+  // El texto pegado (lo que se guarda o se comparte) y de dónde ha salido
+  // la partida: null si se ha pegado, o { id, titulo, mia, compartida } si
+  // es una guardada (tuya, o de alguien que la ha compartido).
+  texto: '',
+  origen: null,
+  sesion: null,
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -73,6 +82,25 @@ function imagenHtml(nombre, calidad = 'low') {
   // El nombre va DEBAJO de la imagen: si no carga ninguna, se queda el
   // nombre (tanda 321: un respaldo nunca termina en «nada»).
   return `<span class="lab-sin-imagen">${escapeHtml(nombre)}</span>${attrs ? `<img ${attrs} alt="" width="245" height="342" loading="lazy" />` : ''}`
+}
+
+// Las direcciones de una carta que se pueden PINTAR EN UN LIENZO (para el
+// vídeo): Limitless por /escaneo, que la sirve desde pokedoc.es (tanda
+// 413), y TCGdex, que ya trae el permiso. La cadena de la página (arriba)
+// no vale: un lienzo con una imagen de otro dominio sin permiso ya no se
+// puede grabar.
+function fuentesDe(nombre) {
+  const c = cartaDe(nombre)
+  if (c ? esEnergiaBasica(c) : esEnergiaBasica({ name: nombre })) {
+    const i = 'GRWLPFDM'.indexOf(letraDeEnergia(c?.name || nombre) || letraDeEnergia(c?.name_es) || '')
+    if (i >= 0) return [`/escaneo/MEE/${9 + i}`, `https://images.pokemontcg.io/sve/${i + 1}.png`]
+  }
+  if (!c) return []
+  const fuentes = []
+  const codigo = R.codigoDeSet(c.set_id)
+  if (codigo && c.local_id) fuentes.push(`/escaneo/${encodeURIComponent(codigo)}/${encodeURIComponent(String(c.local_id).replace(/^0+(?=\d)/, ''))}`)
+  if (c.image_path) fuentes.push(cardImageUrl(c.image_path, 'low'))
+  return fuentes
 }
 
 // Los nombres de todas las cartas que salen en la partida, en el orden
@@ -503,7 +531,17 @@ function mostrarError(texto) {
   el.classList.toggle('hidden', !texto)
 }
 
-function cargar(texto) {
+// La dirección de la página, sin recargar: con una guardada, su enlace
+// (así recargar la vuelve a abrir); con una pegada, la página a secas.
+function ponerDireccion(url) {
+  try {
+    history.replaceState(null, '', url)
+  } catch {
+    /* sin historial (un iframe raro): la dirección se queda como está */
+  }
+}
+
+function cargar(texto, { origen = null, conservarDireccion = false } = {}) {
   mostrarError('')
   if (!String(texto || '').trim()) return mostrarError('Pega primero el registro de una partida.')
   const lectura = leerRegistro(texto)
@@ -511,12 +549,15 @@ function cargar(texto) {
   if (lectura.eventos.length < 3) return mostrarError('Esto tiene muy pocas jugadas para ser una partida. ¿Has copiado el registro entero?')
   parar()
   R.vez += 1
+  R.texto = String(texto)
+  R.origen = origen
   R.lectura = lectura
   R.fotos = sacarFotos(lectura, { psDe })
   R.turnos = indiceDeTurnos(lectura)
   R.abajo = R.fotos[0].protagonista
   R.i = 0
   R.cacheHtml = new WeakMap()
+  if (!conservarDireccion) ponerDireccion(origen?.id ? `/repeticiones?r=${encodeURIComponent(origen.id)}` : '/repeticiones')
 
   const [a, b] = [R.abajo, elOtro(R.abajo)]
   $('repQuienes').innerHTML = `${chapaJugador(a)} <span>contra</span> ${chapaJugador(b)}`
@@ -524,6 +565,7 @@ function cargar(texto) {
   const sinLeer = lectura.sinLeer.length
   $('repSinLeer').textContent = sinLeer ? `${sinLeer} ${sinLeer === 1 ? 'línea no se ha entendido' : 'líneas no se han entendido'}: ${sinLeer === 1 ? 'sale' : 'salen'} en el registro, pero no ${sinLeer === 1 ? 'mueve' : 'mueven'} la mesa.` : ''
   $('repSinLeer').classList.toggle('hidden', !sinLeer)
+  pintarCabecera()
 
   $('repPegar').classList.add('hidden')
   $('repSala').classList.remove('hidden')
@@ -537,6 +579,25 @@ function cargar(texto) {
   // Se reproduce sola: es lo que se ha pedido.
   reproducir()
   resolverCartas(nombresDe(lectura), R.vez)
+  return true
+}
+
+// El título de una guardada, si lo tiene, y el botón de guardar diciendo
+// el ESTADO (tanda 473: un botón que dice lo que pasa, no lo que hará).
+function pintarCabecera() {
+  const o = R.origen
+  const nombre = $('repNombre')
+  nombre.classList.toggle('hidden', !o?.titulo)
+  nombre.innerHTML = o?.titulo ? `${escapeHtml(o.titulo)}${o.compartida ? ` <span class="rep-chapa-compartida">${icons.link(14)} Compartida</span>` : ''}` : ''
+  const guardar = document.querySelector('[data-accion="guardar"]')
+  if (guardar) {
+    const mia = Boolean(o?.mia)
+    guardar.querySelector('.rep-btn-texto').textContent = mia ? 'Guardada' : 'Guardar'
+    guardar.querySelector('.rep-btn-icono').innerHTML = mia ? icons.checkCircle(16) : icons.bookmark(16)
+    guardar.classList.toggle('btn-primary', !mia)
+    guardar.classList.toggle('btn-secondary', mia)
+    guardar.setAttribute('aria-label', mia ? 'Guardada: cambiar el título' : 'Guardar la repetición')
+  }
 }
 
 async function cargarEjemplo() {
@@ -560,6 +621,389 @@ function volverAPegar() {
   $('repTexto').focus()
 }
 
+// Lo que se manda a la base con la partida: los jugadores, quién gana y
+// los turnos van aparte para la lista y para la vista previa del enlace.
+function resumenDeLaPartida() {
+  const [a, b] = R.fotos[0].orden
+  return { jugadores: [a, b], ganador: R.fotos.at(-1)?.fin?.ganador || null, turnos: R.turnos.length }
+}
+const tituloPorDefecto = () => `${R.abajo} contra ${elOtro(R.abajo)}`
+
+// ════════════════════════════════════════════════════════════════════
+// Las ventanas: guardar, compartir, el vídeo
+// ════════════════════════════════════════════════════════════════════
+
+function abrirDialogo(titulo, html) {
+  $('repDialogoTitulo').textContent = titulo
+  $('repDialogoCuerpo').innerHTML = html
+  const d = $('repDialogo')
+  if (!d.open) d.showModal()
+  return $('repDialogoCuerpo')
+}
+
+const estadoDialogo = (texto, tipo = '') => {
+  const el = $('repDialogoCuerpo').querySelector('.rep-dialogo-estado')
+  if (!el) return
+  el.textContent = texto
+  el.dataset.tipo = tipo
+}
+
+// Antes de ir a entrar en la cuenta, la partida se queda en la pestaña:
+// al volver se abre sola y con la ventana de guardar delante.
+const CLAVE_PENDIENTE = 'pokedoc-repeticion-pendiente'
+function guardarPendiente() {
+  try {
+    sessionStorage.setItem(CLAVE_PENDIENTE, R.texto)
+  } catch {
+    /* sin almacenamiento: al volver habrá que pegarla otra vez */
+  }
+}
+
+const enlacesDeEntrar = () => `
+  <div class="rep-dialogo-botones">
+    <a class="btn-primary" href="/auth.html?volver=${encodeURIComponent('/repeticiones')}" data-pendiente>Entrar</a>
+    <a class="btn-secondary" href="/auth.html?registro=1&volver=${encodeURIComponent('/repeticiones')}" data-pendiente>Crear una cuenta</a>
+  </div>`
+
+function dialogoGuardar() {
+  if (!R.sesion) {
+    abrirDialogo(
+      'Guardar la repetición',
+      `<p class="rep-dialogo-texto">Para guardar repeticiones hace falta una cuenta: así las tienes en «Tus repeticiones», como tus mazos, y desde cualquier sitio.</p>${enlacesDeEntrar()}`
+    )
+    return
+  }
+  const o = R.origen
+  const mia = Boolean(o?.mia)
+  const cuerpo = abrirDialogo(
+    mia ? 'Tu repetición guardada' : 'Guardar la repetición',
+    `<form class="rep-form" id="repFormGuardar">
+      <label class="rep-campo">Título
+        <input type="text" id="repTitulo" maxlength="120" required value="${escapeHtml(o?.titulo || tituloPorDefecto())}" />
+      </label>
+      <label class="rep-check">
+        <input type="checkbox" id="repCompartirla"${o?.compartida && mia ? ' checked' : ''} />
+        <span>Compartirla con un enlace (la abre cualquiera que lo tenga; nadie puede buscarla)</span>
+      </label>
+      <div class="rep-dialogo-botones">
+        <button type="submit" class="btn-primary">${mia ? 'Guardar los cambios' : 'Guardar'}</button>
+      </div>
+      <p class="rep-dialogo-estado" role="status"></p>
+    </form>`
+  )
+  cuerpo.querySelector('#repTitulo').select()
+  cuerpo.querySelector('#repFormGuardar').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const boton = e.target.querySelector('[type=submit]')
+    const titulo = cuerpo.querySelector('#repTitulo').value.trim() || tituloPorDefecto()
+    const compartida = cuerpo.querySelector('#repCompartirla').checked
+    boton.disabled = true
+    estadoDialogo('Guardando…')
+    try {
+      let fila
+      if (mia) {
+        fila = await datos.renombrar(o.id, titulo)
+        if (Boolean(o.compartida) !== compartida) fila = await datos.compartir(o.id, compartida)
+        R.origen = { ...o, titulo: fila.titulo, compartida: fila.compartida }
+      } else {
+        fila = await datos.guardar({ registro: R.texto, titulo, ...resumenDeLaPartida(), compartida })
+        R.origen = { id: fila.id, titulo, mia: true, compartida: fila.compartida }
+      }
+      ponerDireccion(`/repeticiones?r=${encodeURIComponent(R.origen.id)}`)
+      pintarCabecera()
+      $('repDialogo').close()
+      showToast(mia ? 'Cambios guardados.' : 'Guardada en «Tus repeticiones».', 'success')
+      cargarGuardadas()
+    } catch (err) {
+      estadoDialogo(err.message, 'error')
+      boton.disabled = false
+    }
+  })
+}
+
+async function dialogoCompartir() {
+  const cuerpo = abrirDialogo(
+    'Compartir la repetición',
+    `<p class="rep-dialogo-texto" id="repCompartirNota">Preparando el enlace…</p>
+    <div class="rep-enlace hidden" id="repEnlaceCaja">
+      <label class="sr-only" for="repEnlace">Enlace de la repetición</label>
+      <input type="text" id="repEnlace" readonly />
+      <button type="button" class="btn-primary" data-dlg="copiar">${icons.link(16)} Copiar</button>
+    </div>
+    <div class="rep-dialogo-botones" id="repCompartirMas"></div>
+    <p class="rep-dialogo-estado" role="status"></p>`
+  )
+  const nota = cuerpo.querySelector('#repCompartirNota')
+  const o = R.origen
+  let url = null
+  let texto = ''
+  let mas = ''
+  try {
+    if (o?.id && !o.mia) {
+      // La ha compartido otra persona: su mismo enlace.
+      url = datos.enlaceCorto(o.id)
+      texto = 'Es el enlace con el que te la han pasado: quien lo abra ve esta misma repetición.'
+    } else if (R.sesion) {
+      if (o?.mia) {
+        if (!o.compartida) {
+          R.origen = { ...o, compartida: (await datos.compartir(o.id, true)).compartida }
+          cargarGuardadas()
+        }
+      } else {
+        const fila = await datos.guardar({ registro: R.texto, titulo: tituloPorDefecto(), ...resumenDeLaPartida(), compartida: true })
+        R.origen = { id: fila.id, titulo: o?.titulo || tituloPorDefecto(), mia: true, compartida: fila.compartida }
+        cargarGuardadas()
+      }
+      url = datos.enlaceCorto(R.origen.id)
+      ponerDireccion(`/repeticiones?r=${encodeURIComponent(R.origen.id)}`)
+      pintarCabecera()
+      texto = 'Está guardada en «Tus repeticiones» y compartida: la abre cualquiera que tenga el enlace (nadie puede buscarla).'
+      mas = '<button type="button" class="link-btn" data-dlg="dejar">Dejar de compartirla</button>'
+    }
+  } catch (err) {
+    // Sin la migración (o sin red), el enlace largo, que no necesita base.
+    url = null
+    texto = err.falta ? '' : `No se ha podido hacer el enlace corto (${err.message}). Este otro funciona igual: `
+  }
+  if (!url) {
+    url = `${location.origin}/repeticiones#${await empaquetar(R.texto)}`
+    texto += 'Este enlace lleva la partida DENTRO: no se guarda en ningún sitio, y quien lo abra la ve igual.'
+    if (!R.sesion) {
+      texto += ' Con una cuenta sale corto, y la tienes en «Tus repeticiones».'
+      mas = enlacesDeEntrar()
+    }
+    if (url.length > 2000) texto += ` Es largo (${url.length.toLocaleString('es-ES')} caracteres): en Discord no cabe en un mensaje.`
+  }
+  nota.textContent = texto
+  cuerpo.querySelector('#repEnlace').value = url
+  cuerpo.querySelector('#repEnlaceCaja').classList.remove('hidden')
+  if (navigator.share) mas = `<button type="button" class="btn-secondary" data-dlg="nativo">${icons.share(16)} Compartir en…</button>${mas}`
+  cuerpo.querySelector('#repCompartirMas').innerHTML = mas
+  cuerpo.dataset.url = url
+}
+
+async function copiarEnlace(url, boton = null) {
+  try {
+    await navigator.clipboard.writeText(url)
+    showToast('Enlace copiado.', 'success')
+    if (boton) {
+      const antes = boton.innerHTML
+      boton.innerHTML = `${icons.checkCircle(16)} Copiado`
+      setTimeout(() => (boton.innerHTML = antes), 2000)
+    }
+  } catch {
+    // Sin permiso para el portapapeles: se deja seleccionado para copiarlo
+    // a mano.
+    const campo = $('repEnlace')
+    if (campo) {
+      campo.focus()
+      campo.select()
+    }
+    showToast('Cópialo a mano: ya está seleccionado.', 'info')
+  }
+}
+
+// ── El vídeo ──
+
+const formatoTiempo = (seg) => {
+  const s = Math.round(seg)
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}
+const nombreDeFichero = () =>
+  `repeticion-${plano(`${R.abajo}-contra-${elOtro(R.abajo)}`).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
+
+let videoEnMarcha = null
+async function dialogoVideo() {
+  const cuerpo = abrirDialogo('Descargar en vídeo', '<p class="rep-dialogo-texto">Mirando qué sabe hacer tu navegador…</p>')
+  const V = await import('./repeticiones/video.js')
+  const codec = await V.codecDisponible()
+  const grabadora = codec ? null : V.grabadoraDisponible()
+  if (!codec && !grabadora) {
+    cuerpo.innerHTML = '<p class="rep-dialogo-texto">Este navegador no sabe hacer vídeos. Prueba con Chrome, Edge o Safari al día.</p>'
+    return
+  }
+  const duracion = (r) => V.lineaDeTiempo(R.fotos, esperaDe, r).reduce((t, x) => t + x.duracion, 0)
+  const opcion = (r, nombre, marcada) =>
+    `<label class="rep-ritmo-opcion"><input type="radio" name="repRitmo" value="${r}"${marcada ? ' checked' : ''} /><span><strong>${nombre}</strong> · ${formatoTiempo(duracion(r))}</span></label>`
+  cuerpo.innerHTML = `
+    <p class="rep-dialogo-texto">Se hace en tu navegador y se descarga en tu equipo: no se sube a ninguna parte.${
+      codec
+        ? ` Sale en MP4${codec.caja === 'avc1' ? ' (H.264, el que se ve en todas partes)' : ' (VP9)'} y tarda unos segundos.`
+        : ` Este navegador lo graba en TIEMPO REAL: tarda lo que dure el vídeo, y mientras tanto no cambies de pestaña.${grabadora.extension === 'webm' ? ' Y solo sabe hacer WebM, no MP4.' : ''}`
+    }</p>
+    <fieldset class="rep-ritmo">
+      <legend>Ritmo</legend>
+      ${opcion(1, 'Normal', false)}${opcion(2, 'Rápido', true)}${opcion(4, 'Muy rápido', false)}
+    </fieldset>
+    <div class="rep-dialogo-botones"><button type="button" class="btn-primary" data-dlg="hacer-video">${ICONO.descargar(16)} Hacer el vídeo</button></div>
+    <div class="rep-video-progreso hidden" id="repVideoProgreso">
+      <div class="rep-barra-video" role="progressbar" aria-label="Haciendo el vídeo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+      <button type="button" class="btn-secondary" data-dlg="cancelar-video">Cancelar</button>
+    </div>
+    <p class="rep-dialogo-estado" role="status"></p>`
+}
+
+async function hacerVideo() {
+  const cuerpo = $('repDialogoCuerpo')
+  const ritmo = Number(cuerpo.querySelector('input[name="repRitmo"]:checked')?.value) || 2
+  const progreso = cuerpo.querySelector('#repVideoProgreso')
+  const barra = progreso.querySelector('[role="progressbar"]')
+  cuerpo.querySelector('[data-dlg="hacer-video"]').disabled = true
+  cuerpo.querySelectorAll('input[name="repRitmo"]').forEach((x) => (x.disabled = true))
+  progreso.classList.remove('hidden')
+  const senal = { cancelado: false }
+  videoEnMarcha = senal
+  parar()
+  const V = await import('./repeticiones/video.js')
+  try {
+    const r = await V.hacerVideo({
+      fotos: R.fotos,
+      ritmo,
+      senal,
+      M: { abajo: R.abajo, psDe, letraDe: (n) => letraDeEnergia(n) || 'C', colorDe, fuentesDe, esperaDe },
+      alAvanzar: (fase, x) => {
+        const pct = Math.round((fase === 'imagenes' ? x * 0.1 : 0.1 + x * 0.9) * 100)
+        barra.setAttribute('aria-valuenow', String(pct))
+        barra.style.setProperty('--pct', `${pct}%`)
+        estadoDialogo(fase === 'imagenes' ? 'Preparando las cartas…' : `Haciendo el vídeo… ${pct} %`)
+      },
+    })
+    const url = URL.createObjectURL(r.blob)
+    const fichero = `${nombreDeFichero()}.${r.extension}`
+    const mb = (r.blob.size / 1048576).toLocaleString('es-ES', { maximumFractionDigits: 1 })
+    progreso.classList.add('hidden')
+    estadoDialogo('')
+    cuerpo.querySelector('.rep-dialogo-botones').innerHTML = `<a class="btn-primary" href="${url}" download="${escapeHtml(fichero)}" data-dlg="descargar">${ICONO.descargar(16)} Descargar ${escapeHtml(fichero)} (${mb} MB)</a>`
+    cuerpo.querySelector('[data-dlg="descargar"]').click()
+    estadoDialogo('Listo: si no se ha descargado solo, pulsa el botón.', 'ok')
+  } catch (err) {
+    progreso.classList.add('hidden')
+    cuerpo.querySelector('[data-dlg="hacer-video"]').disabled = false
+    cuerpo.querySelectorAll('input[name="repRitmo"]').forEach((x) => (x.disabled = false))
+    estadoDialogo(err.name === 'AbortError' ? 'Cancelado.' : `No se ha podido hacer el vídeo: ${err.message}`, err.name === 'AbortError' ? '' : 'error')
+  } finally {
+    videoEnMarcha = null
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Tus repeticiones
+// ════════════════════════════════════════════════════════════════════
+
+const fechaCorta = (iso) => new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+
+async function cargarGuardadas() {
+  const caja = $('repGuardadasCuerpo')
+  if (!R.sesion) {
+    caja.innerHTML = `<p class="rep-guardadas-vacio">Entra en tu cuenta para guardar tus repeticiones y tenerlas aquí, como tus mazos.</p>
+      <a class="btn-secondary" href="/auth.html?volver=${encodeURIComponent('/repeticiones')}">Entrar</a>`
+    return
+  }
+  caja.setAttribute('aria-busy', 'true')
+  if (!caja.querySelector('.rep-lista')) caja.innerHTML = '<p class="rep-guardadas-vacio">Cargando tus repeticiones…</p>'
+  try {
+    const lista = await datos.misRepeticiones(R.sesion.user.id)
+    caja.innerHTML = lista.length
+      ? `<ul class="rep-lista">${lista.map(itemHtml).join('')}</ul>`
+      : '<p class="rep-guardadas-vacio">Aún no has guardado ninguna. Abre una partida y pulsa «Guardar».</p>'
+  } catch (err) {
+    caja.innerHTML = `<p class="rep-guardadas-vacio">${escapeHtml(err.message)}</p>`
+  } finally {
+    caja.removeAttribute('aria-busy')
+  }
+}
+
+function itemHtml(r) {
+  const jug = [r.jugador_a, r.jugador_b].filter(Boolean)
+  const sub = [jug.length === 2 ? `${jug[0]} contra ${jug[1]}` : '', r.turnos != null ? `${r.turnos} ${r.turnos === 1 ? 'turno' : 'turnos'}` : '', r.ganador ? `gana ${r.ganador}` : '', fechaCorta(r.created_at)].filter(Boolean).join(' · ')
+  const id = escapeHtml(r.id)
+  return `
+    <li class="rep-item" data-id="${id}" data-titulo="${escapeHtml(r.titulo)}" data-compartida="${r.compartida ? 'si' : 'no'}">
+      <button type="button" class="rep-item-abrir" data-abrir="${id}">
+        <span class="rep-item-titulo">${escapeHtml(r.titulo)}</span>
+        <span class="rep-item-sub">${escapeHtml(sub)}</span>
+      </button>
+      ${r.compartida ? `<span class="rep-chapa-compartida">${icons.link(14)} Compartida</span>` : ''}
+      <div class="rep-item-acciones">
+        <button type="button" class="link-btn" data-copiar="${id}">${r.compartida ? 'Copiar enlace' : 'Compartir'}</button>
+        ${r.compartida ? `<button type="button" class="link-btn" data-privada="${id}">Dejar de compartir</button>` : ''}
+        <button type="button" class="link-btn rep-item-borrar" data-borrar="${id}">Borrar</button>
+      </div>
+    </li>`
+}
+
+async function abrirGuardada(id) {
+  mostrarError('')
+  try {
+    const fila = await datos.leer(id)
+    if (!fila) {
+      mostrarError('Esta repetición no existe o ya no se comparte.')
+      volverAPegar()
+      return
+    }
+    cargar(fila.registro, { origen: { id, titulo: fila.titulo, mia: Boolean(fila.mia), compartida: Boolean(fila.compartida) } })
+  } catch (err) {
+    mostrarError(err.falta ? 'Esta repetición no se puede abrir todavía: la parte de guardar no está puesta en la base.' : `No se ha podido abrir la repetición: ${err.message}`)
+    volverAPegar()
+  }
+}
+
+async function accionDeLista(e) {
+  const b = e.target.closest('button')
+  if (!b) return
+  const id = b.dataset.abrir || b.dataset.copiar || b.dataset.privada || b.dataset.borrar
+  if (!id) return
+  try {
+    if (b.dataset.abrir) return abrirGuardada(id)
+    if (b.dataset.copiar) {
+      const item = b.closest('.rep-item')
+      if (item.dataset.compartida !== 'si') {
+        await datos.compartir(id, true)
+        if (R.origen?.id === id) {
+          R.origen = { ...R.origen, compartida: true }
+          pintarCabecera()
+        }
+        cargarGuardadas()
+      }
+      return copiarEnlace(datos.enlaceCorto(id))
+    }
+    if (b.dataset.privada) {
+      await datos.compartir(id, false)
+      if (R.origen?.id === id) {
+        R.origen = { ...R.origen, compartida: false }
+        pintarCabecera()
+      }
+      showToast('Ya no se comparte: el enlace deja de abrirla.', 'success')
+      return cargarGuardadas()
+    }
+    if (b.dataset.borrar) {
+      // Borrar es para siempre: se pide un segundo toque, sin ventanas
+      // del navegador (bloquean la página).
+      if (b.dataset.confirmar !== 'si') {
+        b.dataset.confirmar = 'si'
+        b.textContent = '¿Seguro? Toca otra vez'
+        setTimeout(() => {
+          if (b.isConnected) {
+            delete b.dataset.confirmar
+            b.textContent = 'Borrar'
+          }
+        }, 4000)
+        return
+      }
+      await datos.borrar(id)
+      if (R.origen?.id === id) {
+        R.origen = null
+        pintarCabecera()
+        ponerDireccion('/repeticiones')
+      }
+      showToast('Repetición borrada.', 'success')
+      return cargarGuardadas()
+    }
+  } catch (err) {
+    showToast(err.message)
+  }
+}
+
 // ════════════════════════════════════════════════════════════════════
 // Arranque
 // ════════════════════════════════════════════════════════════════════
@@ -580,6 +1024,51 @@ function iniciar() {
     if (b) b.innerHTML = ICONO[icono](accion === 'reproducir' ? 22 : 20)
   }
 
+  // Los iconos de los botones de la cabecera.
+  const ICONOS_CAB = { guardar: icons.bookmark(16), compartir: icons.share(16), descargar: ICONO.descargar(16) }
+  document.querySelectorAll('[data-icono]').forEach((el) => (el.innerHTML = ICONOS_CAB[el.dataset.icono] || ''))
+
+  // La ventana de guardar, compartir y el vídeo.
+  $('repDialogo').addEventListener('click', async (e) => {
+    const d = $('repDialogo')
+    if (e.target === d || e.target.closest('[data-cerrar]')) return d.close()
+    if (e.target.closest('[data-pendiente]')) return guardarPendiente()
+    const b = e.target.closest('[data-dlg]')
+    if (!b) return
+    const url = $('repDialogoCuerpo').dataset.url
+    if (b.dataset.dlg === 'copiar') return copiarEnlace(url, b)
+    if (b.dataset.dlg === 'nativo') {
+      try {
+        await navigator.share({ title: `Repetición: ${tituloPorDefecto()}`, text: 'Mira esta partida de Pokémon TCG Live, jugada a jugada:', url })
+      } catch {
+        /* cancelado por quien comparte: nada que decir */
+      }
+      return
+    }
+    if (b.dataset.dlg === 'dejar') {
+      try {
+        await datos.compartir(R.origen.id, false)
+        R.origen = { ...R.origen, compartida: false }
+        pintarCabecera()
+        cargarGuardadas()
+        d.close()
+        showToast('Ya no se comparte: el enlace deja de abrirla.', 'success')
+      } catch (err) {
+        estadoDialogo(err.message, 'error')
+      }
+      return
+    }
+    if (b.dataset.dlg === 'hacer-video') return hacerVideo()
+    if (b.dataset.dlg === 'cancelar-video' && videoEnMarcha) videoEnMarcha.cancelado = true
+  })
+  // Cerrar la ventana a mitad de un vídeo lo para: nadie espera que siga
+  // trabajando algo que ya no ve.
+  $('repDialogo').addEventListener('close', () => {
+    if (videoEnMarcha) videoEnMarcha.cancelado = true
+    delete $('repDialogoCuerpo').dataset.url
+  })
+  $('repGuardadas').addEventListener('click', accionDeLista)
+
   $('repVer').addEventListener('click', (e) => {
     // Un clic en el velo (fuera de la caja) cierra.
     if (e.target === e.currentTarget || e.target.closest('[data-cerrar]')) $('repVer').close()
@@ -598,6 +1087,9 @@ function iniciar() {
     if (accion === 'turnoAnterior') return saltarTurno(-1)
     if (accion === 'turnoSiguiente') return saltarTurno(1)
     if (accion === 'otra') return volverAPegar()
+    if (accion === 'guardar') return dialogoGuardar()
+    if (accion === 'compartir') return dialogoCompartir()
+    if (accion === 'video') return dialogoVideo()
     if (accion === 'girar') {
       R.abajo = elOtro(R.abajo)
       R.cacheHtml = new WeakMap()
@@ -645,7 +1137,7 @@ function iniciar() {
   // seguir, flechas para ir de jugada en jugada (con mayúsculas, de turno
   // en turno). No dentro de un campo, que ahí las teclas son suyas.
   document.addEventListener('keydown', (e) => {
-    if ($('repSala').classList.contains('hidden') || $('repVer').open) return
+    if ($('repSala').classList.contains('hidden') || $('repVer').open || $('repDialogo').open) return
     if (e.target.closest('input, textarea, select, [contenteditable]') || e.altKey || e.ctrlKey || e.metaKey) return
     if (e.key === ' ' || e.key === 'k') {
       // Sobre un botón el espacio ya lo pulsa: no se hace dos veces.
@@ -672,7 +1164,38 @@ function iniciar() {
     if (document.hidden && R.jugando) parar()
   })
 
-  if (new URLSearchParams(location.search).has('ejemplo')) cargarEjemplo()
+  arrancar()
+}
+
+// Lo que dice la dirección: una guardada (?r=), una que viene en el
+// enlace (#p=), una que se quedó esperando a que entraras, o el ejemplo.
+async function arrancar() {
+  R.sesion = await datos.sesionActual()
+  cargarGuardadas()
+  const q = new URLSearchParams(location.search)
+  if (q.get('r')) {
+    mostrarError('')
+    $('repError').classList.add('hidden')
+    return abrirGuardada(q.get('r'))
+  }
+  if (esEnlaceDeRepeticion(location.hash)) {
+    const texto = await desempaquetar(location.hash)
+    if (texto) return cargar(texto, { conservarDireccion: true })
+    return mostrarError('El enlace de esta repetición está roto o incompleto: ¿se cortó al copiarlo?')
+  }
+  let pendiente = null
+  try {
+    pendiente = sessionStorage.getItem(CLAVE_PENDIENTE)
+    sessionStorage.removeItem(CLAVE_PENDIENTE)
+  } catch {
+    /* sin almacenamiento, nada pendiente */
+  }
+  if (pendiente) {
+    $('repTexto').value = pendiente
+    if (cargar(pendiente) && R.sesion) dialogoGuardar()
+    return
+  }
+  if (q.has('ejemplo')) cargarEjemplo()
 }
 
 iniciar()

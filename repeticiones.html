@@ -121,12 +121,12 @@
   <main id="contenido" class="page-content container">
     <header class="rep-cabecera">
       <h1>Repeticiones</h1>
-      <p class="rep-lema">Pega el registro de una partida de JCC Pokémon Live y se reproduce sola, jugada a jugada: quién pone qué, cada ataque con su daño, los KO y los premios. Puedes pararla, ir hacia atrás o saltar de turno en turno.</p>
+      <p class="rep-lema">Pega el registro de una partida de JCC Pokémon Live y se reproduce sola, jugada a jugada: quién pone qué, cada ataque con su daño, los KO y los premios. Puedes pararla, ir hacia atrás o saltar de turno en turno, compartirla con un enlace, guardarla o descargarla en vídeo.</p>
     </header>
 
     <section class="rep-pegar" id="repPegar" aria-labelledby="repPegarTitulo">
       <h2 id="repPegarTitulo">El registro de la partida</h2>
-      <p class="rep-pegar-ayuda">Copia el registro de la partida en JCC Pokémon Live y pégalo aquí. Vale en español y en inglés. Se lee en tu navegador y no se guarda: lo único que sale de él son los nombres de las cartas, para buscar sus dibujos.</p>
+      <p class="rep-pegar-ayuda">Copia el registro de la partida en JCC Pokémon Live y pégalo aquí. Vale en español y en inglés. Se lee en tu navegador y no se guarda en ningún sitio hasta que tú le das a «Guardar» o a «Compartir»; hasta entonces, lo único que sale de él son los nombres de las cartas, para buscar sus dibujos.</p>
       <form id="repFormulario">
         <label class="sr-only" for="repTexto">Registro de la partida</label>
         <textarea id="repTexto" spellcheck="false" autocomplete="off" placeholder="Preparación
@@ -144,13 +144,21 @@ Azul ha ganado el lanzamiento de moneda.
     <section class="rep-sala hidden" id="repSala" aria-labelledby="repSalaTitulo">
       <h2 class="sr-only" id="repSalaTitulo">La repetición</h2>
       <div class="rep-cab">
-        <div>
+        <div class="rep-cab-texto">
+          <p class="rep-nombre hidden" id="repNombre"></p>
           <p class="rep-quienes" id="repQuienes"></p>
           <p class="rep-resumen" id="repResumen"></p>
         </div>
         <div class="rep-cab-botones">
-          <button type="button" class="btn-secondary" data-accion="girar">Girar la mesa</button>
-          <button type="button" class="btn-secondary" data-accion="otra">Pegar otra partida</button>
+          <div class="rep-cab-acciones">
+            <button type="button" class="btn-primary rep-btn" data-accion="guardar"><span class="rep-btn-icono" data-icono="guardar"></span><span class="rep-btn-texto">Guardar</span></button>
+            <button type="button" class="btn-secondary rep-btn" data-accion="compartir"><span class="rep-btn-icono" data-icono="compartir"></span><span class="rep-btn-texto">Compartir</span></button>
+            <button type="button" class="btn-secondary rep-btn" data-accion="video"><span class="rep-btn-icono" data-icono="descargar"></span><span class="rep-btn-texto">Vídeo</span></button>
+          </div>
+          <div class="rep-cab-extra">
+            <button type="button" class="link-btn" data-accion="girar">Girar la mesa</button>
+            <button type="button" class="link-btn" data-accion="otra">Pegar otra partida</button>
+          </div>
         </div>
       </div>
       <p class="rep-sin-leer hidden" id="repSinLeer"></p>
@@ -189,6 +197,19 @@ Azul ha ganado el lanzamiento de moneda.
       </div>
       <p class="sr-only" id="repAnuncio" aria-live="polite"></p>
     </section>
+
+    <section class="rep-guardadas" id="repGuardadas" aria-labelledby="repGuardadasTitulo">
+      <h2 id="repGuardadasTitulo">Tus repeticiones</h2>
+      <div class="rep-guardadas-cuerpo" id="repGuardadasCuerpo" aria-live="polite"></div>
+    </section>
+
+    <dialog class="rep-ver rep-dialogo" id="repDialogo" aria-labelledby="repDialogoTitulo">
+      <div class="rep-ver-cab">
+        <h2 id="repDialogoTitulo"></h2>
+        <button type="button" class="rep-ver-cerrar" data-cerrar aria-label="Cerrar">×</button>
+      </div>
+      <div class="rep-dialogo-cuerpo" id="repDialogoCuerpo"></div>
+    </dialog>
 
     <dialog class="rep-ver" id="repVer" aria-labelledby="repVerTitulo">
       <div class="rep-ver-cab">

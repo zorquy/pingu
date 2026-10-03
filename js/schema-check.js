@@ -82,6 +82,9 @@ export const REQUISITOS = [
   // primera foto se toma esta noche» para siempre, y la función
   // programada se salta cada pasada sin dar guerra.
   { tabla: 'user_collection_value', columna: 'valor', fichero: 'supabase-migration-valor-historico.sql', rompe: 'La gráfica del valor de una colección no sale nunca (el resto de Mi colección funciona).' },
+  // Las repeticiones guardadas (tanda 480). Solo las lee su dueño: con
+  // sesión de admin, la consulta va bien si la tabla existe.
+  { tabla: 'replays', columna: 'compartida', fichero: 'supabase-migration-repeticiones.sql', rompe: 'No se pueden guardar repeticiones ni compartirlas con un enlace corto (el enlace largo, que lleva la partida dentro, sigue funcionando).' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que
