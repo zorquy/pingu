@@ -75,6 +75,21 @@ export function detalleDeCarta(card) {
   // solo se escribe SI VIENE. Ponerla a null cuando falta borraría lo
   // que ya estaba bien, y eso rompería la comprobación de reglamento de
   // las decklists sin que nadie se entere.
+  // DE QUÉ POKÉMON ES, que TCGdex da y nunca le habíamos pedido (tanda
+  // 483). La Pokédex de «Mi colección» saca la especie del NOMBRE
+  // (`especiesDeCarta`), y eso vale para el catálogo occidental y no vale
+  // para nada en el japonés: 「フシギダネ」 no casa con ninguna lista. Por eso
+  // la Pokédex japonesa salía VACÍA con 13.006 cartas importadas.
+  //
+  // `dexId` es un número nacional y no depende del idioma, así que es la
+  // única forma de saberlo en un catálogo que no se escribe en nuestro
+  // alfabeto. Se escribe SOLO si viene, por lo mismo que la marca de
+  // regulación: un Entrenador no tiene especie, y poner `[]` encima de lo
+  // que ya dedujo el nombre borraría trabajo bueno.
+  const dex = (Array.isArray(card.dexId) ? card.dexId : [])
+    .map((n) => Number(n))
+    .filter((n) => Number.isInteger(n) && n > 0)
+  if (dex.length) fila.dex_ids = dex
   if (card.regulationMark) fila.regulation_mark = card.regulationMark
   // Y la imagen, con la misma regla (tanda 348): SOLO si viene. El
   // listado de un set no siempre la trae —las cartas de la Classic

@@ -35,6 +35,44 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 483 — la Pokédex japonesa, vacía con 13.006 cartas dentro)
+
+**Hecho**: PINGU: «me voy a la Pokédex japonesa y ningún Pokémon tiene
+cartas. Está vacío». No tenía que hacer nada en /admin: **esto no lo
+arregla ningún botón**. Era nuestro y de dos sitios a la vez: (1)
+`cartas-pokedex` —la que rellena `dex_ids`— lleva `const MERCADO = 'WEST'`,
+así que las 21.000 cartas asiáticas la tienen a null; y (2) su mecanismo no
+habría servido igual, porque deduce la especie del NOMBRE y 「フシギダネ」 no
+casa con ninguna lista nuestra — y el respaldo de la pantalla
+(`esDeLaEspecie`) hacía exactamente lo mismo. Había dos caminos a la
+Pokédex y los dos pasaban por el alfabeto latino.
+
+Lo que sí sirve: **`dexId`**, que TCGdex da en el detalle de cada carta y
+que nunca le habíamos pedido — un número nacional no depende del idioma.
+`detalleDeCarta` lo mapea (solo si viene, como la marca de regulación), hay
+una TERCERA fase en `catalogo-asia` que engorda las cartas asiáticas igual
+que `cartas-detalle` hace con el occidental, y la pantalla pasa a
+`especiesDeLaCarta()`: la columna manda y el nombre es el respaldo. De paso
+el engorde trae rareza, tipo e ilustrador, que es lo que deja los filtros
+de una expansión japonesa sin nada que filtrar. Lo que NO toca es el
+`name`: en un catálogo asiático el japonés ES la clave canónica (334 y 335).
+
+**EL COSTE, DICHO CLARO**: ~21.000 cartas a 25 por pasada cada tres
+minutos son unas 500 a la hora, o sea **día y medio o dos** hasta que la
+Pokédex japonesa esté entera. Se va llenando sola mientras tanto. Y los
+sets se llevan 12 de los 22 segundos de la pasada y el engorde el resto:
+una fase excluyente es lo que dejó el engorde occidental sin arrancar jamás
+(la 333).
+
+**Ficheros**: `js/carta-detalle.js`, `js/mi-coleccion/pokedex.js`,
+`netlify/functions/catalogo-asia.mjs`, `SCHEMA.md`, `CLAUDE.md`,
+`BITACORA.md`. En la rama `pruebas`: `test-tanda-483.mjs` (NUEVO, 27
+comprobaciones) y `test-tanda-471.mjs` acotada a las ESCRITURAS de
+`tcg_cards`, que ahora también se consulta.
+
+**En curso / pendiente**: ejecutar `supabase-migration-idioma-chino.sql`
+(tanda 472). Rigores pendientes desde la 443. Portada a 169,9 de 170 KB.
+
 **OJO, CHOQUE DE NÚMEROS (y van SIETE)**: la 480 se usó a la vez en las
 dos sesiones. La otra llegó antes al remoto —con la 480 Y la 481—, así que
 lo mío pasa a ser la **482**. Van 384, 394, 413, 420, 456, 462 y 480. Y

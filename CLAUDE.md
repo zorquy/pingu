@@ -234,14 +234,24 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   regla sigue valiendo — pero esa copia concreta YA NO EXISTE: en la 471
   `IDIOMA_POR_MERCADO` pasó a SER `MERCADOS`, importado de
   `js/mercados.js`. Ver la norma de abajo, que es la lección completa.
-- **La especie de una carta sale del NOMBRE, no de `dex_ids`** (tanda
-  476). Es a propósito —`loMioPorEspecie` y `esDeLaEspecie` lo explican:
-  mientras esa columna se rellena, las cartas que tienes todavía no la
-  traen y son justo las que no pueden faltar—. Para una PRUEBA eso
-  significa que un fixture con `name: 'Carta 1'` y `dex_ids: [1]` deja la
-  Pokédex a CERO, y la prueba se queda afirmando cosas sobre una pantalla
-  vacía sin que nada dé error. Los nombres del fixture tienen que ser
-  nombres de Pokémon de verdad.
+- **La especie de una carta sale de `dex_ids`, y el NOMBRE es el
+  respaldo** (tandas 476 y 483). Hasta la 483 era solo el nombre, con un
+  motivo bueno —mientras la columna se rellena, las cartas que tienes no
+  la traen y son justo las que no pueden faltar— que no vio lo evidente:
+  deducir del nombre solo funciona si el nombre está en nuestro alfabeto.
+  「フシギダネ」 no casa con ninguna lista, así que la Pokédex japonesa salía
+  VACÍA con 13.006 cartas importadas. Ahora manda `especiesDeLaCarta()`.
+  Para una PRUEBA sigue valiendo el aviso: un fixture occidental con
+  `name: 'Carta 1'` y sin `dex_ids` deja la Pokédex a CERO y la prueba se
+  queda afirmando cosas sobre una pantalla vacía sin que nada dé error.
+- **Las columnas que rellena una función programada se rellenan POR
+  MERCADO** (tanda 483). `cartas-pokedex` lleva `const MERCADO = 'WEST'`,
+  igual que `cartas-detalle`, así que las cartas asiáticas no tenían ni
+  `dex_ids` ni rareza ni tipo. Lo de los asiáticos lo hace
+  `catalogo-asia`, que tiene su propia fase de engorde. Si añades una
+  columna que rellene una función programada, pregúntate quién la
+  rellena en los otros tres catálogos — la respuesta por defecto es
+  NADIE, y no da ningún error: la pantalla sale vacía.
 - **Un `display` suelto en un `<dialog>` lo deja A LA VISTA SIEMPRE**
   (tanda 473). Lo que esconde un diálogo cerrado es una regla del
   NAVEGADOR —`dialog:not([open]) { display: none }`—, así que un

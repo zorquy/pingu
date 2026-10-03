@@ -3,7 +3,7 @@ import { esDelTCG } from '../../js/catalogo-series.js'
 import {
   setToRow, cardToRow, sinDuplicados,
   loQueFaltaDeUnSet, faltaVisitar, VERSION_CURADO,
-  urlDeSet,
+  urlDeSet, urlDeCarta, detalleDeCarta,
 } from '../lib/carta-detalle.mjs'
 
 // Completa SOLO los catálogos asiáticos (tanda 471).
@@ -84,6 +84,19 @@ const PAUSA_MS = 350
 // Techo de sets por pasada. El corte de verdad es el presupuesto de
 // tiempo; esto solo evita que una pasada afortunada se desmande.
 const POR_PASADA = 20
+
+// Cuánto del presupuesto se lleva traer sets. Lo que sobre se lo queda el
+// engorde de cartas (tanda 483), que es una cola de 21.000 y tiene que
+// avanzar TAMBIÉN los días en que haya sets nuevos — si no, cualquier set
+// que aparezca paraía la Pokédex otra vez.
+const PRESUPUESTO_SETS_MS = 12000
+
+// Y cuántas cartas como mucho por pasada. El número no sale de lo que me
+// apetece: sale de ser educado. `cartas-detalle` ya hace 30 cada cinco
+// minutos contra el mismo catálogo comunitario y gratuito; 25 cada tres
+// suman ~860 peticiones a la hora entre las dos, que para un trabajo
+// FINITO es defendible y para uno perpetuo no lo sería.
+const CARTAS_POR_PASADA = 25
 
 // Cuántas cartas por sentencia. Un set japonés largo pasa de 300 y
 // PostgREST tiene un límite de tamaño de petición.
@@ -241,6 +254,71 @@ export async function visitarSet(pedir, traer, fila) {
   return { cartas, curado: Object.keys(cambios).length > 0 }
 }
 
+// ── Fase 3: ENGORDAR las cartas asiáticas (tanda 483) ──
+//
+// PINGU: «me voy a la Pokédex japonesa y ningún Pokémon tiene cartas. Está
+// vacío». Con 13.006 cartas japonesas importadas.
+//
+// Y no era de TCGdex, era nuestro, y de dos sitios a la vez:
+//
+//   · `cartas-pokedex` —la función que rellena `dex_ids`— lleva
+//     `const MERCADO = 'WEST'`, así que ninguna carta asiática lo tiene.
+//   · Y su mecanismo no habría servido igual: deduce la especie del
+//     NOMBRE, y 「フシギダネ」 no casa con ninguna lista nuestra. Lo mismo le
+//     pasa al respaldo por nombre de la pantalla (`esDeLaEspecie`).
+//
+// Un número de Pokédex no depende del idioma, y TCGdex lo da en el
+// detalle de cada carta (`dexId`) — nunca se lo habíamos pedido. Así que
+// esta fase es el mismo engorde que hace `cartas-detalle` con el
+// occidental, para los otros tres catálogos: una petición por carta, con
+// su pausa, reanudándose sola por `detalle_at`.
+//
+// De paso trae la rareza, el tipo y el ilustrador, que es lo que hoy deja
+// los filtros de una expansión japonesa sin nada que filtrar.
+//
+// LO QUE NO TOCA, Y ES LA REGLA DE LA CASA: el `name`. En un catálogo
+// asiático el nombre japonés ES la clave canónica, no una traducción
+// (tandas 334 y 335). `detalleDeCarta` no lo devuelve, y aquí tampoco se
+// añade.
+export async function engordarCartas(pedir, traer, reloj, hasta) {
+  const columnas = 'id,market'
+  const filas =
+    (await pedir(
+      `tcg_cards?select=${columnas}&market=in.(${MERCADOS.join(',')})&detalle_at=is.null&limit=${CARTAS_POR_PASADA}`
+    )) || []
+  let hechas = 0
+  let conEspecie = 0
+  for (const carta of filas) {
+    if (reloj() > hasta) break
+    try {
+      const detalle = detalleDeCarta(await traer(urlDeCarta(carta.id, carta.market)))
+      // `detalle_at` va en la MISMA sentencia que los datos: si fueran
+      // dos, un corte entre ellas dejaría la carta engordada y sin marcar,
+      // y la pasada siguiente la repetiría. Con 21.000 por delante eso no
+      // es un detalle, es no acabar nunca.
+      await pedir(`tcg_cards?id=eq.${encodeURIComponent(carta.id)}&market=eq.${carta.market}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ ...(detalle || {}), detalle_at: new Date().toISOString(), detalle_error: null }),
+      })
+      if (detalle?.dex_ids?.length) conEspecie++
+      hechas++
+    } catch (e) {
+      // El fallo se GUARDA en la fila y se marca la carta: una que TCGdex
+      // no conoce volvería en cada pasada para siempre, que es el cerrojo
+      // de la 333 otra vez. Un log de Netlify caduca; una columna deja
+      // preguntar mañana cuáles fallaron y por qué.
+      await pedir(`tcg_cards?id=eq.${encodeURIComponent(carta.id)}&market=eq.${carta.market}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ detalle_at: new Date().toISOString(), detalle_error: String(e?.message || e).slice(0, 200) }),
+      }).catch(() => {})
+    }
+    await esperar(PAUSA_MS)
+  }
+  return { hechas, conEspecie, pedidas: filas.length }
+}
+
 export async function procesar({ env = process.env, fetchImpl = null, traerImpl = null, reloj = () => Date.now() } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }
@@ -295,8 +373,14 @@ export async function procesar({ env = process.env, fetchImpl = null, traerImpl 
     // molesta más.
     pendientes.sort((a, b) => (a.imported_at ? 1 : 0) - (b.imported_at ? 1 : 0))
 
+    // Los sets se llevan su trozo del presupuesto y no la pasada entera
+    // (tanda 483): detrás va el engorde, que es una cola de 21.000 y tiene
+    // que avanzar también los días en que aparezca un set nuevo. Es el
+    // mismo reparto que `cartas-detalle` aprendió en la 333, cuando una
+    // fase excluyente dejó al engorde sin arrancar jamás.
+    const hastaLosSets = empezo + PRESUPUESTO_SETS_MS
     for (const fila of pendientes.slice(0, POR_PASADA)) {
-      if (reloj() - empezo > PRESUPUESTO_MS) break
+      if (reloj() > hastaLosSets) break
       try {
         const r = await visitarSet(pedir, traer, fila)
         cuenta.setsVisitados++
@@ -310,6 +394,11 @@ export async function procesar({ env = process.env, fetchImpl = null, traerImpl 
       }
       await esperar(PAUSA_MS)
     }
+
+    // Fase 3. El engorde, con lo que quede de pasada.
+    const engorde = await engordarCartas(pedir, traer, reloj, empezo + PRESUPUESTO_MS)
+    cuenta.engordadas = engorde.hechas
+    cuenta.conEspecie = engorde.conEspecie
   } catch (e) {
     const texto = String(e?.message || e)
     // Sin la migración puesta no es un fallo que haya que gritar cada

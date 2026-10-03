@@ -39,6 +39,24 @@ const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
 // Una carta puede caer en DOS especies (las TAG TEAM), y entonces cuenta
 // en las dos: si tienes «Pikachu & Zekrom-GX», tienes un Pikachu y
 // tienes un Zekrom. Eso no es contar de más — es lo que la carta enseña.
+// De qué Pokémon es una carta: PRIMERO lo que diga la columna, y si no
+// la trae, el nombre (tanda 483).
+//
+// El orden importa y antes era al revés — solo el nombre. El motivo
+// escrito era bueno: mientras `dex_ids` se rellena, las cartas que tienes
+// no la traen todavía y son justo las que no pueden faltar en la pantalla.
+// Pero deducir la especie de un nombre solo funciona si el nombre está en
+// nuestro alfabeto, y 「フシギダネ」 no casa con ninguna lista: PINGU se fue a
+// la Pokédex japonesa con 13.006 cartas importadas y la encontró VACÍA.
+//
+// Así que las dos, en este orden. La columna es la buena —es un número
+// nacional y no depende del idioma— y el nombre se queda de respaldo para
+// las occidentales que aún no la tengan.
+export function especiesDeLaCarta(carta) {
+  const dex = (carta?.dex_ids || []).map(Number).filter((n) => Number.isInteger(n) && n > 0)
+  return dex.length ? dex : especiesDeCarta(carta?.name || carta?.name_es)
+}
+
 export function loMioPorEspecie(lineas, cartas) {
   const porDex = new Map()
   const vistas = new Set()
@@ -47,19 +65,17 @@ export function loMioPorEspecie(lineas, cartas) {
     vistas.add(l.card_id)
     const carta = cartas.get(l.card_id)
     if (!carta) continue
-    for (const dex of especiesDeCarta(carta.name || carta.name_es)) {
+    for (const dex of especiesDeLaCarta(carta)) {
       porDex.set(dex, (porDex.get(dex) || 0) + 1)
     }
   }
   return porDex
 }
 
-// ¿Esta carta es de esta especie? Se pregunta por el NOMBRE y no por
-// `dex_ids`, porque mientras la columna se esté rellenando las cartas
-// que tienes no la traen todavía — y son justo las que no pueden
-// faltar en la pantalla.
+// ¿Esta carta es de esta especie? Misma regla: la columna manda y el
+// nombre es el respaldo.
 export function esDeLaEspecie(carta, dex) {
-  return especiesDeCarta(carta?.name || carta?.name_es).includes(Number(dex))
+  return especiesDeLaCarta(carta).includes(Number(dex))
 }
 
 // ── Las filas de la rejilla ──

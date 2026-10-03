@@ -26112,3 +26112,72 @@ que **la importación funciona y está hecha**. Lo que falta es de TCGdex:
 cero logos en los tres, y escaneos al 30 % en japonés, al 29 % en chino
 tradicional y al **0 %** en chino simplificado (contra el 94 % del
 occidental).
+
+---
+
+## Tanda 483 — la Pokédex japonesa, vacía con 13.006 cartas dentro
+
+PINGU: «me voy a la Pokédex japonesa y ningún Pokémon tiene cartas. Está
+vacío. Entonces, ¿cuál es el problema? Seguro que tengo que ir a admin y
+completar los datos que faltan de los sets, ¿o qué hago?».
+
+No tenía que hacer nada: **esto no lo arregla ningún botón de /admin**. Era
+nuestro, y de dos sitios a la vez.
+
+### 1. `cartas-pokedex` solo mira el occidental
+
+La función programada que rellena `tcg_cards.dex_ids` —que es por donde
+entra la Pokédex— lleva `const MERCADO = 'WEST'`. Las 13.006 cartas
+japonesas, las 7.436 taiwanesas y las 877 chinas la tienen a null.
+
+### 2. Y su mecanismo no habría servido igual
+
+`cartas-pokedex` deduce la especie **del NOMBRE** (`especiesDeCarta`). Eso
+funciona con «Pikachu ex» y no funciona con 「フシギダネ」: no casa con
+ninguna lista nuestra, ni la casará nunca. Y el respaldo de la pantalla
+(`esDeLaEspecie`, `loMioPorEspecie`) hacía exactamente lo mismo, así que
+tampoco rescataba nada.
+
+O sea que había dos caminos a la Pokédex y los dos pasaban por el alfabeto
+latino.
+
+### Lo que sí sirve: `dexId`
+
+**Un número de Pokédex no depende del idioma**, y TCGdex lo da en el
+detalle de cada carta. Nunca se lo habíamos pedido: `detalleDeCarta` mapea
+dieciocho campos y ese no estaba.
+
+Ahora lo mapea —solo si viene, como la marca de regulación: un Entrenador
+no tiene especie, y escribir `[]` encima de lo que ya dedujo el nombre
+borraría trabajo bueno— y hay una **tercera fase** en `catalogo-asia` que
+engorda las cartas asiáticas: una petición por carta, con su pausa,
+reanudándose sola por `detalle_at`, igual que `cartas-detalle` hace con el
+occidental.
+
+De paso trae la rareza, el tipo y el ilustrador, que es lo que hoy deja los
+filtros de una expansión japonesa sin nada que filtrar.
+
+**Lo que NO toca, y es la regla de la casa**: el `name`. En un catálogo
+asiático el nombre japonés ES la clave canónica, no una traducción (tandas
+334 y 335). `detalleDeCarta` no lo devuelve y la fase no lo añade.
+
+### Y la pantalla: la columna manda, el nombre es el respaldo
+
+`especiesDeLaCarta(carta)` mira primero `dex_ids` y cae al nombre si no la
+trae. El orden importa y antes era al revés —solo el nombre—, con un motivo
+que era bueno: mientras la columna se rellena, las cartas que tienes no la
+traen todavía y son justo las que no pueden faltar. Lo que ese motivo no
+vio es que **deducir del nombre solo funciona si el nombre está en nuestro
+alfabeto**.
+
+### El coste, dicho claro
+
+Son ~21.000 cartas entre los tres catálogos, a 25 por pasada cada tres
+minutos: unas **500 a la hora**, o sea **un día y medio o dos** hasta que la
+Pokédex japonesa esté entera. Va llenándose sola mientras tanto, de las
+colecciones más nuevas hacia atrás.
+
+Y el reparto del presupuesto de la pasada es el de la tanda 333: los sets
+se llevan 12 de los 22 segundos y el engorde se queda con el resto. Una
+fase excluyente —«primero los sets y lo que sobre»— es justo lo que dejó el
+engorde occidental sin arrancar jamás.
