@@ -937,10 +937,15 @@ console.log('\n── 6. El sitio ──')
   check('la página es indexable, con su descripción y su canónica', /<meta name="description" content="[^"]{60,}"/.test(html) && /<link rel="canonical" href="https:\/\/pokedoc\.es\/repeticiones" \/>/.test(html) && !/noindex/.test(html))
   check('carga la hoja del laboratorio (la mesa es la misma) y la suya', /href="\/css\/laboratorio\.css"/.test(html) && /href="\/css\/repeticiones\.css"/.test(html))
   // Una frase de la interfaz es una afirmación (tanda 447): la página dice
-  // que solo salen los nombres de las cartas. Que el registro no se guarde
-  // ni se mande: no hay ni una escritura a la base ni un fetch propio.
-  const js = ['js/repeticiones.js', 'js/repeticiones/registro.js', 'js/repeticiones/estado.js'].map(leer).join('\n')
-  check('el registro no se manda a ninguna parte (ni insert, ni fetch, ni guardado)', !/\.insert\(|\.upsert\(|fetch\(|setItem\([^)]*(repTexto|texto|registro)/i.test(js))
+  // que la partida no se guarda en ningún sitio hasta que tú le das a
+  // «Guardar» o a «Compartir» (desde la 480 se puede). Que leerla y pintarla
+  // no escriba nada: ni la lectura ni la mesa mandan nada, y la página solo
+  // deja la partida en la pestaña al ir a entrar para guardarla. Lo que se
+  // manda al pulsar, en la prueba de la 480.
+  const js = ['js/repeticiones/registro.js', 'js/repeticiones/estado.js'].map(leer).join('\n')
+  const pagina = leer('js/repeticiones.js')
+  check('leer y pintar la partida no la manda a ninguna parte', !/\.insert\(|\.upsert\(|fetch\(|setItem\(/i.test(js) && !/\.insert\(|\.upsert\(|fetch\(/.test(pagina))
+  check('  …y la página solo la deja en la pestaña para guardarla al volver de entrar', (pagina.match(/sessionStorage\.setItem\(/g) || []).length === 1 && /function guardarPendiente\(\) \{\s*try \{\s*sessionStorage\.setItem\(CLAVE_PENDIENTE, R\.texto\)/.test(pagina))
   check('los iconos del reproductor NO van en js/icons.js (lo baja la portada)', !/reproducir|turnoSiguiente/.test(leer('js/icons.js')))
 }
 

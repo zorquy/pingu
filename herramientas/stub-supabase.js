@@ -66,6 +66,10 @@ const T = {
   tcg_card_play: [],
   // Los mazos del constructor (tanda 361).
   user_decks: [],
+  // Las repeticiones guardadas (tanda 480). Solo las ve, cambia y borra
+  // su dueño (ver `aplicar`), y se guardan y se abren por sus funciones,
+  // como en supabase-migration-repeticiones.sql.
+  replays: [],
   match_log: [],
   match_log_torneos: [],
   guides: [],
@@ -477,6 +481,20 @@ sembrar('__FAKE_MAZOS__', 'user_decks', (i) => ({
   updated_at: new Date(Date.now() - (i + 1) * 3600e3).toISOString(),
 }))
 
+sembrar('__FAKE_REPETICIONES__', 'replays', (i) => ({
+  id: `rep${String(i + 1).padStart(7, '0')}`,
+  user_id: 'user-1',
+  titulo: `Repetición ${i + 1}`,
+  registro: '',
+  jugador_a: 'Rojo',
+  jugador_b: 'Azul',
+  ganador: null,
+  turnos: 10,
+  compartida: false,
+  created_at: new Date(Date.now() - (i + 1) * 86400e3).toISOString(),
+  updated_at: new Date(Date.now() - (i + 1) * 3600e3).toISOString(),
+}))
+
 sembrar('__FAKE_PARTIDAS__', 'match_log', (i) => ({
   id: `mlog-${i + 1}`,
   user_id: 'user-1',
@@ -820,6 +838,10 @@ function consulta(tabla, estado = {}) {
     // comprobar que la página se entera de que no ha borrado nada.
     if (st.op === 'delete' && SIN_BORRAR.includes(tabla)) filas = []
     if (st.op === 'update' && SIN_TOCAR.includes(tabla)) filas = []
+    // Las políticas de `replays`: ver, cambiar y borrar, solo lo tuyo. Sin
+    // esto, una pantalla que pidiera las repeticiones SIN filtrar por su
+    // dueño vería aquí las de todo el mundo, y en la base ninguna ajena.
+    if (tabla === 'replays') filas = filas.filter((f) => f.user_id === (sesion?.user?.id ?? '¬'))
     for (const f of st.filtros) filas = filas.filter(f)
     if (st.ordenes?.length) {
       filas.sort((a, b) => {
@@ -1115,9 +1137,17 @@ export const supabase = {
         data: null,
         error: { message: `relation "public.${tabla}" does not exist`, code: '42P01' },
       })
+      // `then` es lo que hace que el `await` del final de CUALQUIER cadena
+      // (select().eq().order().limit()…) resuelva al error. Hasta la tanda
+      // 480 devolvía undefined, y una cadena larga resolvía al propio
+      // Proxy: `{ data, error }` salían dos funciones y la página decía
+      // «no se ha podido hablar con la base» en vez de «falta la tabla».
       const api = new Proxy(
-        { then: undefined },
-        { get: (_, prop) => (prop === 'then' ? undefined : prop === 'maybeSingle' || prop === 'single' ? fallo : () => api) }
+        {},
+        {
+          get: (_, prop) =>
+            prop === 'then' ? (bien, mal) => fallo().then(bien, mal) : prop === 'maybeSingle' || prop === 'single' ? fallo : () => api,
+        }
       )
       // El await final: cualquier cadena termina resolviendo al error.
       return Object.assign(fallo(), api, { select: () => api, insert: fallo, upsert: fallo, delete: () => api })
@@ -1346,6 +1376,48 @@ export const supabase = {
       if (ya) Object.assign(ya, fila)
       else T.match_results.push({ id: `res-juez-${m.id}`, created_at: new Date().toISOString(), ...fila })
       return { data: true, error: null }
+    }
+
+    // ── Las repeticiones (tanda 480) ──
+    //
+    // Sobre la tabla, como en Postgres: guardar la MISMA partida dos veces
+    // no la duplica (por persona), y abrir una ajena solo vale si está
+    // compartida. La de verdad, con sus topes, se prueba contra PostgreSQL
+    // en sql-repeticiones.sql; esta es para que el navegador se comporte
+    // igual.
+    if (nombre === 'repeticiones_guardar') {
+      const yo = sesion?.user?.id
+      if (!yo) return { data: null, error: { code: '42501', message: 'permission denied for function repeticiones_guardar' } }
+      const texto = String(args.p_registro || '')
+      if (texto.length < 100) return { data: null, error: { code: '22023', message: 'Eso no parece el registro de una partida.' } }
+      const ya = T.replays.find((r) => r.user_id === yo && r.registro === texto)
+      if (ya) {
+        if (args.p_titulo) ya.titulo = String(args.p_titulo).slice(0, 120)
+        if (args.p_compartida != null) ya.compartida = Boolean(args.p_compartida)
+        return { data: [{ id: ya.id, compartida: ya.compartida, nueva: false }], error: null }
+      }
+      const fila = {
+        id: Math.random().toString(16).slice(2, 12).padEnd(10, '0'),
+        user_id: yo,
+        titulo: String(args.p_titulo || 'Repetición').slice(0, 120),
+        registro: texto,
+        jugador_a: args.p_jugadores?.[0] || null,
+        jugador_b: args.p_jugadores?.[1] || null,
+        ganador: args.p_ganador || null,
+        turnos: args.p_turnos ?? null,
+        compartida: Boolean(args.p_compartida),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      T.replays.push(fila)
+      return { data: [{ id: fila.id, compartida: fila.compartida, nueva: true }], error: null }
+    }
+    if (nombre === 'repeticiones_leer' || nombre === 'repeticiones_resumen') {
+      const yo = sesion?.user?.id
+      const r = T.replays.find((x) => x.id === args.p_id && (x.compartida || (nombre === 'repeticiones_leer' && yo && x.user_id === yo)))
+      if (!r) return { data: [], error: null }
+      if (nombre === 'repeticiones_resumen') return { data: [{ titulo: r.titulo, jugador_a: r.jugador_a, jugador_b: r.jugador_b, turnos: r.turnos }], error: null }
+      return { data: [{ registro: r.registro, titulo: r.titulo, jugador_a: r.jugador_a, jugador_b: r.jugador_b, turnos: r.turnos, created_at: r.created_at, mia: r.user_id === yo, compartida: r.compartida }], error: null }
     }
 
     // Y si la prueba dice qué tiene que devolver, se devuelve: la RPC de

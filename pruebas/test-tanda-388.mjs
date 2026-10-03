@@ -64,8 +64,13 @@ console.log('\n── 1. Quien revoca a public tiene que dar a alguien ──')
       if (!/\bpublic\b/.test(aQuien)) continue
       const corto = nombre.replace(/^public\./, '')
       if (!desdeFuera.has(corto)) continue
+      // Los argumentos se ESCAPAN enteros: un `text[]` metido tal cual en
+      // la expresión es una clase de caracteres vacía, que no casa con
+      // nada, y la función salía «muda» teniendo su grant (tanda 480, la
+      // de las repeticiones).
+      const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       const daAAlguien = new RegExp(
-        `grant execute on function ${nombre.replace('.', '\\.')}\\(${args.replace(/\s+/g, '\\s*')}\\)\\s*to`,
+        `grant execute on function ${esc(nombre)}\\(${args.split(/\s*,\s*/).map(esc).join('\\s*,\\s*')}\\)\\s*to`,
         'i'
       )
       if (!daAAlguien.test(t)) mudas.push(`${f}: ${corto}(${args})`)
