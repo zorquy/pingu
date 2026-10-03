@@ -35,6 +35,76 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 487 — el null que borra una foto buena al reimportar)
+
+**OJO, CHOQUE DE NÚMEROS (y van OCHO), Y ESTA VEZ CON UNA TERCERA
+SESIÓN**: existe una sesión de **COWORK** (también de PINGU) que ha escrito
+su propia **485**. Yo ya tenía la 485 (Panel general) y la 486 comiteadas y
+sus pruebas empujadas a `pruebas` con esos nombres de fichero, así que las
+mías se quedan y **lo de Cowork pasa a ser la 488** cuando se integre. Van
+384, 394, 413, 420, 456, 462, 480 y esta. Lo nuevo que aprender: la
+bitácora y «mirar el remoto antes del commit» suponen DOS sesiones, y ya
+somos tres — y la tercera no empuja, entrega un parche.
+
+**Hecho**: Cowork midió TCGdex de verdad (un HEAD por carta a las 20.442
+asiáticas) y encontró que **la API se calla `image` en miles de cartas
+cuyo fichero SÍ está publicado**: JP dice 3.882 y existen **7.365**; TW
+2.146 contra 2.242; CN 0 y 0. Y el campo falta **también en
+`/cards/{id}`**.
+
+**Eso deja mal dos cosas que escribí yo**, y las dos por deducir el
+catálogo entero de una muestra de uno: la **484** dijo «la ficha de cada
+carta sí trae la imagen» y la **486** dijo «cuando el escaneo existe viene
+en el listado». Las dos son falsas — SV1a, el set que sondeó PINGU, es de
+2023 y es justo el caso bueno. Corregido en `CLAUDE.md`, con los números
+medidos.
+
+**Y el fallo que esta tanda arregla**, que su nota dejaba señalado y vive
+en mis ficheros: `cardToRow` pone `image_path: null` cuando la API calla.
+Inofensivo al INSERTAR —la columna nace vacía igual— y **destructivo al
+REIMPORTAR**, porque las dos importaciones escriben con
+`merge-duplicates` y ese null **PISA** la foto que ya hubiera. «Importar
+los que faltan» borraría todo escaneo encontrado a mano, **sin dar ningún
+error**, y además dejaría la carta marcada como ya mirada.
+
+El arreglo es `porImagen(filas)` → `{ con, sin }` en
+`js/catalogo-tcgdex.js`: las que traen foto la escriben, las que no **no
+mencionan la columna**, y una columna que no se menciona no se toca. Son
+DOS sentencias porque PostgREST exige las MISMAS claves en cada una. La
+cadena vacía cuenta como que no hay (un `image_path: ` montaría
+`/ja//low.webp`, una foto rota guardada como buena).
+
+**Ficheros**: `js/catalogo-tcgdex.js`, `js/tcgdex.js`,
+`netlify/lib/carta-detalle.mjs`, `netlify/functions/catalogo-asia.mjs`,
+`admin/js/admin.js`, `CLAUDE.md`, `SCHEMA.md`, `BITACORA.md`. En la rama
+`pruebas`: `pruebas/test-tanda-487.mjs` (nuevo).
+
+**Prueba**: `test-tanda-487.mjs`, 24 comprobaciones en verde, con un
+barrido escrito contra la FORMA del fallo (cualquier escritura de
+`tcg_cards` con merge-duplicates que no pase por `porImagen`) y la
+comprobación de que el barrido LLEGA. Mutada por dos lados: dejando la
+clave puesta caen tres; volviendo a escribir las filas de golpe cae el
+bloque 4.
+
+**EL PARCHE DE COWORK, SIN INTEGRAR**: trae `escaneos-asia` (función
+programada que monta el camino, pregunta con HEAD y solo entonces guarda),
+una fase de `name_es` en latino desde `dex_ids`, y
+`supabase-migration-escaneo-buscado.sql`. **El clasificador de mi sesión
+bloqueó aplicarlo** —integración de código de terceros en una rama que sale
+a producción— y no he buscado la vuelta. Pendiente de que lo decida PINGU.
+Esta tanda es su PRERREQUISITO: sin `porImagen`, la primera reimportación
+borraría lo que esa función encuentre.
+
+**En curso / pendiente**: (1) **Decidir qué se hace con el parche de
+Cowork**. (2) Si se aplica, hay que ejecutar
+`supabase-migration-escaneo-buscado.sql` y renumerarlo a 488; su prueba se
+llama `test-tanda-485.mjs` y choca con la mía. (3) Su nota deja dicho que
+`nombreDeCarta` enseña `name_es` antes que `name`, así que las cartas
+japonesas pasarían a titularse en latino: es lo pedido, pero cambia lo que
+se ve. (4) Lo de Bulbapedia (logos, rarezas y nombres exactos) está
+analizado y sin empezar — ojo a la licencia CC BY-NC-SA y a no enlazar en
+caliente. (5) Rigores pendientes desde la 443. (6) Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 486 — la herramienta que vino a no deducir, deduciendo)
 
 **Hecho**: PINGU pulsó el botón de la 484 con `sv1a JP` y volvió con dos

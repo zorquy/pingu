@@ -13,7 +13,7 @@ import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
-import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet } from '../../js/tcgdex.js'
+import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet, porImagen } from '../../js/tcgdex.js'
 import { EJEMPLOS_DE_CORREO, renderFilaDeCola, textosDeTipo, familiaDeTipo } from '../../js/email-plantilla.js'
 import { checkSchema } from '../../js/schema-check.js'
 import { avisosDeMercados, lineaDeMercado, muestraDeSets } from './cuentas-mercado.js'
@@ -3278,9 +3278,19 @@ async function importarSets(ids) {
         (set.cards || []).map((c) => cardToRow(c, setId, market)),
         ['id', 'market']
       )
-      for (let i = 0; i < filas.length; i += 200) {
-        const { error } = await supabase.from('tcg_cards').upsert(filas.slice(i, i + 200), { onConflict: 'id,market' })
-        if (error) throw error
+      // EN DOS SENTENCIAS, Y NO ES UN CAPRICHO (tanda 487). `cardToRow`
+      // pone `image_path: null` cuando la API se calla el campo, y se lo
+      // calla en miles de cartas asiáticas cuyo fichero SÍ existe. Con un
+      // `merge-duplicates`, ese null PISA la foto que ya hubiera: volver a
+      // importar un set borraría los escaneos encontrados a mano, sin dar
+      // ningún error. Las que no traen foto no mencionan la columna, y una
+      // columna que no se menciona no se toca.
+      const { con, sin } = porImagen(filas)
+      for (const grupo of [con, sin]) {
+        for (let i = 0; i < grupo.length; i += 200) {
+          const { error } = await supabase.from('tcg_cards').upsert(grupo.slice(i, i + 200), { onConflict: 'id,market' })
+          if (error) throw error
+        }
       }
       // El código de TCG Live viene en el set COMPLETO (este `set`), no
       // en el listado. Se guarda aquí, que es el único sitio donde lo

@@ -26447,3 +26447,79 @@ arreglar. Verificado mutando ese `'WEST'` a `'JP'`.
 **Ficheros**: `admin/index.html`, `admin/js/admin.js`,
 `admin/js/cuentas-mercado.js`, `js/carta-ruta.js` (solo el aviso),
 `CLAUDE.md`.
+
+## Tanda 487 — el null que borra una foto buena al reimportar
+
+Lo dejó señalado la sesión de **COWORK**, que midió TCGdex de verdad —un
+HEAD por carta a las 20.442 asiáticas— y encontró que **la API se calla
+`image` en miles de cartas cuyo fichero SÍ está publicado**:
+
+| Mercado | Cartas | `image` en la API | Fichero que EXISTE |
+|---|---|---|---|
+| JP | 13.006 | 3.882 | **7.365** |
+| TW | 7.436 | 2.146 | 2.242 |
+| CN | 877 | 0 | 0 |
+
+Y el campo falta **también en `/cards/{id}`** (comprobado en SM1M-001,
+M4-001, S8b-001, SM12a-001). Eso deja mal dos cosas que escribí yo: la
+**484** dijo «la ficha de cada carta sí trae la imagen» y la **486** dijo
+«cuando el escaneo existe, viene en el listado». Las dos son falsas, y las
+dos por el mismo motivo: deducir el catálogo entero de una muestra de uno
+—SV1a, que es de 2023 y es el caso bueno—. Corregido en `CLAUDE.md`.
+
+### El fallo de esta tanda
+
+`cardToRow` pone `image_path: null` cuando la API se calla el campo. Eso es
+**inofensivo al INSERTAR** —la columna nace vacía igual— y **destructivo al
+REIMPORTAR**: las dos importaciones de cartas escriben con
+`merge-duplicates`, así que ese null **PISA** una foto que ya estuviera
+guardada.
+
+O sea que «importar los que faltan» o reimportar un set **borraría todo
+escaneo que se haya encontrado buscando el fichero a mano**, y no daría
+ningún error: la carta se queda sin foto y, con el buscador de escaneos
+puesto, además marcada como ya mirada —así que no se vuelve a mirar en un
+mes—.
+
+### El arreglo: dos sentencias, no una
+
+`porImagen(filas)` (en `js/catalogo-tcgdex.js`, que no importa nada)
+devuelve `{ con, sin }`: las que traen foto la escriben, y las que no **no
+mencionan la columna**. Una columna que no se menciona en un
+`merge-duplicates` no se toca.
+
+Y **no vale con omitir la clave y ya**: PostgREST exige que todos los
+objetos de UNA sentencia tengan **las mismas claves**, así que son dos
+sentencias. Por eso los dos sitios escriben `for (const grupo of [con,
+sin])`.
+
+La cadena vacía cuenta como «no hay»: un `image_path: ''` montaría la
+dirección `/ja//low.webp`, que es una foto rota guardada como buena.
+
+Los dos sitios son `admin/js/admin.js` (importar y reimportar) y
+`netlify/functions/catalogo-asia.mjs`. En el segundo es cinturón además de
+tirantes —hoy no reimporta, por el cerrojo de la 333— pero el cerrojo
+depende de `imported_at` y esto no depende de nada.
+
+Y la prueba lleva un **barrido por la FORMA** y no por el caso (la lección
+de la 303): busca cualquier escritura de `tcg_cards` con merge-duplicates
+que no pase por `porImagen`, y comprueba que el barrido LLEGA (la de la
+307).
+
+### Lo de COWORK, SIN INTEGRAR
+
+Su parche trae una función programada nueva (`escaneos-asia`) que monta el
+camino `serie/set/número`, pregunta con HEAD si el fichero existe y solo
+entonces guarda `image_path`; más una fase que escribe `name_es` en latino
+a partir de `dex_ids`, y la migración
+`supabase-migration-escaneo-buscado.sql`.
+
+**No está aplicado**: el clasificador de esta sesión bloqueó la
+integración de código de terceros, y en una rama que Netlify despliega a
+producción esa guarda tiene sentido. Queda pendiente de que lo decida
+PINGU. Esta tanda es el PRERREQUISITO de ese parche: sin `porImagen`, la
+primera reimportación borraría lo que su función encuentre.
+
+**Ficheros**: `js/catalogo-tcgdex.js`, `js/tcgdex.js`,
+`netlify/lib/carta-detalle.mjs`, `netlify/functions/catalogo-asia.mjs`,
+`admin/js/admin.js`, `CLAUDE.md`.

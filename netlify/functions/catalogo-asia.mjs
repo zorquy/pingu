@@ -1,7 +1,7 @@
 import { MERCADOS_A_IMPORTAR, idiomaDeMercado } from '../../js/mercados.js'
 import { esDelTCG } from '../../js/catalogo-series.js'
 import {
-  setToRow, cardToRow, sinDuplicados,
+  setToRow, cardToRow, sinDuplicados, porImagen,
   loQueFaltaDeUnSet, faltaVisitar, VERSION_CURADO,
   urlDeSet, urlDeCarta, detalleDeCarta,
 } from '../lib/carta-detalle.mjs'
@@ -215,12 +215,21 @@ export async function visitarSet(pedir, traer, fila) {
       (completo?.cards || []).map((c) => cardToRow(c, fila.id, market)),
       ['id', 'market']
     )
-    for (let i = 0; i < filas.length; i += CARTAS_POR_LOTE) {
-      await pedir('tcg_cards?on_conflict=id,market', {
-        method: 'POST',
-        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify(filas.slice(i, i + CARTAS_POR_LOTE)),
-      })
+    // EN DOS SENTENCIAS (tanda 487): las que no traen foto NO mencionan
+    // `image_path`, porque el null de `cardToRow` pisaría con un
+    // `merge-duplicates` la que se hubiera encontrado buscando el fichero
+    // a mano. Aquí hoy no reimportamos un set (el cerrojo de la 333), así
+    // que es cinturón además de tirantes — pero el cerrojo depende de
+    // `imported_at` y esto no depende de nada.
+    const { con, sin } = porImagen(filas)
+    for (const grupo of [con, sin]) {
+      for (let i = 0; i < grupo.length; i += CARTAS_POR_LOTE) {
+        await pedir('tcg_cards?on_conflict=id,market', {
+          method: 'POST',
+          headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify(grupo.slice(i, i + CARTAS_POR_LOTE)),
+        })
+      }
     }
     cartas = filas.length
   }

@@ -103,7 +103,7 @@ export function fetchSet(setId, market = MERCADO_POR_DEFECTO) {
 // Aquí va un `export … from` y no el import+reexport de los otros: ya
 // no se usa ninguna de las cinco por dentro, así que no hace falta el
 // enlace local —y pedirlo sería decir que sí se usa—.
-export { setToRow, cardToRow, fechaDeSet, codigoLiveDeSet, sinDuplicados } from './catalogo-tcgdex.js'
+export { setToRow, cardToRow, fechaDeSet, codigoLiveDeSet, sinDuplicados, porImagen } from './catalogo-tcgdex.js'
 
 
 // ── El detalle de UNA carta (tanda 322) ──

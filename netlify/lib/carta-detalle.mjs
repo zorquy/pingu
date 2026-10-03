@@ -45,8 +45,8 @@ export function urlDeSet(setId, market = 'WEST') {
 // Se importan Y se reexportan: un `export … from` no crea el enlace
 // local, y `fechaDeSet` y `codigoLiveDeSet` se usan aquí dentro, en
 // `loQueFaltaDeUnSet`.
-import { fechaDeSet, codigoLiveDeSet, setToRow, cardToRow, sinDuplicados } from '../../js/catalogo-tcgdex.js'
-export { fechaDeSet, codigoLiveDeSet, setToRow, cardToRow, sinDuplicados }
+import { fechaDeSet, codigoLiveDeSet, setToRow, cardToRow, sinDuplicados, porImagen } from '../../js/catalogo-tcgdex.js'
+export { fechaDeSet, codigoLiveDeSet, setToRow, cardToRow, sinDuplicados, porImagen }
 
 // El mapeo de la respuesta y el idioma de la ficha se mudaron a
 // `js/carta-detalle.js` en la tanda 331: los necesita también el

@@ -128,3 +128,42 @@ export function sinDuplicados(filas, claves) {
   }
   return { filas: limpias, repetidas }
 }
+
+// ── Las filas que traen foto y las que no, por separado (tanda 487) ──
+//
+// `cardToRow` pone `image_path: null` cuando la API se calla el campo. Y
+// se lo calla en MILES de cartas asiáticas cuyo fichero SÍ está publicado
+// en su servidor de imágenes: medido el 2026-10-03, en japonés la API dice
+// 3.882 con imagen y existen 7.365.
+//
+// Esos null son inofensivos al INSERTAR —la columna nace vacía igual— y
+// destructivos al REIMPORTAR: las dos importaciones escriben con
+// `merge-duplicates`, así que un null PISA una foto que ya estuviera
+// guardada. O sea que «importar los que faltan» o «reimportar un set»
+// borraría todo lo que se haya encontrado buscando el fichero a mano, y
+// **no daría ningún error**: la carta se queda sin foto y además marcada
+// como ya mirada.
+//
+// Y no vale con omitir la clave y ya: PostgREST exige que todos los
+// objetos de UNA sentencia tengan LAS MISMAS claves, así que son dos
+// sentencias — las que traen foto la escriben, y las que no, no la
+// mencionan. Una columna que no se menciona no se toca.
+//
+// Lo mismo valdría para cualquier otra columna que rellene alguien de
+// fuera de la importación: si la API la deja a null y otro la cura, la
+// importación no puede mandarla.
+export function porImagen(filas) {
+  const con = []
+  const sin = []
+  for (const f of filas || []) {
+    if (!f) continue
+    if (f.image_path) {
+      con.push(f)
+      continue
+    }
+    const { image_path: _fuera, ...resto } = f
+    void _fuera
+    sin.push(resto)
+  }
+  return { con, sin }
+}

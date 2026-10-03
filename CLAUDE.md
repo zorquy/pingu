@@ -209,18 +209,45 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   los logos japoneses, y era una **DEDUCCIÓN a partir de nuestras propias
   columnas** —188 sets curados, cero logos— que sale EXACTAMENTE IGUAL si
   el que lee mal somos nosotros. Una columna vacía no dice de quién es la
-  culpa. Lo que sí se sabe, porque se le ha preguntado: de **SV1a (JP)**
-  TCGdex **no manda `logo` ni `symbol`** —eso de arriba es verdad y no
-  nuestro— y en cambio **sus 103 cartas vienen con `image` ya en el
-  LISTADO, el 100 %**. O sea que cuando el escaneo existe, viene en el
-  listado y la importación ya se lo lleva: **el engorde no conjura
-  escaneos que arriba no estén**, y decir que «el 30 % es un número en
-  movimiento» fue otra deducción optimista. Desde aquí no se puede
-  comprobar —la red del contenedor cierra `api.tcgdex.net`—, así que lo
-  pregunta el navegador del panel: /admin → Cartas tiene **«Qué contesta
-  TCGdex de un set»** y **«Sondear un catálogo entero»** (nueve sets
-  repartidos por su historia, con la fecha al lado, que es lo que
-  distingue «cobertura por antigüedad» de «lo perdemos nosotros»).
+  culpa. Desde este contenedor no se puede preguntar —la red cierra
+  `api.tcgdex.net`—, así que lo pregunta el navegador del panel: /admin →
+  Cartas tiene **«Qué contesta TCGdex de un set»** y **«Sondear un
+  catálogo entero»**.
+- **La API de TCGdex y su servidor de FICHEROS son dos sitios, y la API
+  se calla fotos que el servidor sí tiene** (medido por la sesión de
+  COWORK el 2026-10-03, con un HEAD por carta a las 20.442 asiáticas):
+
+  | Mercado | Cartas | `image` en la API | Fichero que EXISTE |
+  |---|---|---|---|
+  | JP | 13.006 | 3.882 | **7.365** |
+  | TW | 7.436 | 2.146 | 2.242 |
+  | CN | 877 | 0 | 0 |
+
+  Son 3.483 cartas japonesas con su foto publicada y sin enseñar (Sol y
+  Luna entero, media Espada y Escudo, SV5M, SV8, SV10, M1S, M4). **Y el
+  campo falta TAMBIÉN en `/cards/{id}`**, comprobado en SM1M-001, M4-001,
+  S8b-001 y SM12a-001.
+
+  **ESO DEJA MAL DOS COSAS QUE ESCRIBÍ YO**, y las dos por el mismo
+  motivo —deducir de una muestra de uno—:
+
+  · La 484 dijo «la ficha de cada carta sí trae la imagen». **Es falso**:
+    falta en las dos. El engorde de la 483 no rellena estas fotos.
+  · La 486 dijo «cuando el escaneo existe, viene en el listado». **Es
+    falso**: PINGU sondeó SV1a, que da 103 de 103, y de ahí saqué una
+    regla del catálogo entero. SV1a es de 2023 y es el caso bueno.
+
+  La dirección del fichero es DETERMINISTA
+  (`assets.tcgdex.net/{idioma}/{serie}/{set}/{número}/low.webp`) y su
+  trozo del medio es exactamente lo que guarda `image_path`, así que se
+  puede montar a mano. Lo que **no** se puede es guardarlo sin preguntar:
+  un camino inventado en la base es una foto rota que nadie distingue de
+  una buena.
+
+  Los LOGOS, en cambio, no están: probando el fichero a mano en los 341
+  sets asiáticos existe **UNO** (M4) y ningún símbolo. Y 68 de los 186
+  sets JP **no tienen ni una carta** en TCGdex (XY, ADV, Legend, medio S).
+  Eso no es nuestro.
 - **Una lista curada a mano se queda vieja, y el buscador es quien lo
   nota** (tanda 323). Las megas de `FORMAS_TCG` se sondearon contra la
   CDN el 2026-09-02, y lo que salió después no estaba: quien buscaba
