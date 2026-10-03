@@ -94,15 +94,23 @@ console.log('\n── 1. La cabecera de perfil ──')
   await page.close()
 }
 {
-  // ESTO es lo que justifica la cabecera entera: cuatro cifras sin
-  // recuadro CABEN en 390 px. Con caja no cabían, y de ahí salieron la
+  // ESTO es lo que justifica la cabecera entera: cuatro cifras SIN
+  // RECUADRO caben en 390 px. Con caja no cabían, y de ahí salieron la
   // tira que se desliza de la 412 y el disimulo de la 439.
+  //
+  // DOS Y DOS, NO UNA FILA (corregido en la 465). Esta tanda dio por bueno
+  // «una fila» porque con las cifras que había delante cabían; con una
+  // colección de verdad, «14.040,00 €» mide más que su columna de 79 px y
+  // se corta por el borde — y no lo cantaba nada, porque la rejilla NO se
+  // rompe: lo que se sale es el contenido. Lo que esta tanda defiende
+  // sigue siendo cierto y es lo que se comprueba: que caben sin recuadro,
+  // sin deslizarse y sin que ninguna se salga de su hueco.
   const { page } = await abrir(390)
   const r = await page.locator('#mcResumen').evaluate((n) => ({
     filas: new Set([...n.children].map((e) => Math.round(e.getBoundingClientRect().top))).size,
     sobra: n.scrollWidth > n.clientWidth + 4,
   }))
-  check('en 390 px las cuatro cifras caben en una fila', r.filas === 1, JSON.stringify(r))
+  check('en 390 px las cuatro cifras caben en dos filas', r.filas === 2, JSON.stringify(r))
   check('  …y sin deslizarse', !r.sobra, JSON.stringify(r))
   // Y CABEN DE VERDAD, que es lo que la fila sola no dice: con el recuadro
   // puesto, la columna sigue siendo una cuarta parte del ancho pero el

@@ -81,9 +81,17 @@ console.log('\n── 1. La casilla es la carta ──')
     (await page.locator('.mc-cantidad').count()) === 1,
     await page.locator('.mc-cantidad').first().textContent())
   check('  …y dice cuántas', (await page.locator('.mc-cantidad').first().textContent())?.includes('3'))
-  check('la variante sale solo cuando no es la normal',
-    (await page.locator('.mc-carta-variante').count()) === 1,
-    await page.locator('.mc-carta-variante').first().textContent())
+  // LA VERSIÓN SALE SIEMPRE DESDE LA 461, y es un cambio a propósito:
+  // PINGU, con Dex delante, «en Dex tienen todos una chapita». Esta tanda
+  // la escondía en la normal para no meter ruido, pero entonces la normal
+  // se lee como «no se sabe» y no como «esta es la normal» — que es justo
+  // la diferencia que hace falta cuando dos casillas llevan la misma
+  // imagen. Lo que esta tanda defiende sigue en pie: que la etiqueta la
+  // diga para quien no ve la carta (ahí abajo).
+  const chapas = await page.locator('#mcCartas .mc-chapa-variante').allTextContents()
+  check('cada carta lleva su chapa de versión', chapas.length === (await page.locator('#mcCartas .mc-carta').count()),
+    chapas.join(' | '))
+  check('  …y una de ellas es la reverse', chapas.some((c) => /Reverse/.test(c)), chapas.join(' | '))
 
   // Quien no ve la carta se queda sin TODO lo que se ha quitado, así que
   // la etiqueta del botón tiene que decirlo.
