@@ -43,7 +43,12 @@ console.log('\n── 2. EL CASO QUE COSTÓ DOS TANDAS, ahora bien ──')
   const nuestra = { local_id: '1', name: 'Pheromosa y Buzzwole GX', name_es: 'Pheromosa y Buzzwole GX', dex_ids: [794, 795], illustrator: 'Mitsuhiro Arita', hp: 260 }
   const v = veredictoDelPar({ nuestra, nuestroSet: { id: 'sm10', tcg_online_code: 'UNB' }, suya: SM10_1 })
   check('se CONFIRMA, con el nombre en español y todo', v.veredicto === 'confirmado', JSON.stringify(v))
-  check('  …y dice con qué señal: el código del set', v.por === 'el código del set', JSON.stringify(v))
+  // Desde la 508 manda la Pokédex, que es canónica; el código confirma
+  // igual, pero ya no decide. Con las dos a favor gana la que decide.
+  check('  …y dice con qué señal', v.por === 'los números de Pokédex', JSON.stringify(v))
+  // Y el código SIGUE confirmando cuando es lo único que hay.
+  const soloCodigo = veredictoDelPar({ nuestra: {}, nuestroSet: { tcg_online_code: 'UNB' }, suya: { expansion: { code: 'UNB' } } })
+  check('  …y el código confirma cuando es lo único que hay', soloCodigo.veredicto === 'confirmado' && soloCodigo.por === 'el código del set', JSON.stringify(soloCodigo))
   // Y sin el código tampoco hace falta el nombre: la Pokédex basta.
   const sinCodigo = veredictoDelPar({ nuestra, nuestroSet: { id: 'sm10' }, suya: SM10_1 })
   check('sin código, deciden los números de Pokédex', sinCodigo.veredicto === 'confirmado' && sinCodigo.por === 'los números de Pokédex', JSON.stringify(sinCodigo))
@@ -54,14 +59,34 @@ console.log('\n── 2. EL CASO QUE COSTÓ DOS TANDAS, ahora bien ──')
 
 console.log('\n── 3. Un rechazo DE VERDAD, y solo de lo que no admite otra explicación ──')
 {
-  // Código distinto: `ex5.5 → wb1`, que es el par sospechoso de la 503.
+  // `ex5.5 → wb1`, el par sospechoso de la 503: la Pokédex los desmiente.
   const r = veredictoDelPar({
     nuestra: { name: 'Blaziken ex', dex_ids: [257] },
     nuestroSet: { id: 'ex5.5', tcg_online_code: 'LM' },
     suya: { name: 'Kecleon', national_pokedex_numbers: [352], expansion: { id: 'wb1', code: 'WBSP' } },
   })
-  check('un código de set distinto RECHAZA', r.veredicto === 'rechazado' && r.por === 'el código del set', JSON.stringify(r))
-  check('  …nombrando la señal y los dos valores', /LM/.test(r.porque) && /WBSP/.test(r.porque), r.porque)
+  check('dos Pokédex distintas RECHAZAN', r.veredicto === 'rechazado' && r.por === 'los números de Pokédex', JSON.stringify(r))
+  check('  …nombrando la señal y los dos valores', /257/.test(r.porque) && /352/.test(r.porque), r.porque)
+  // ── EL CASO `ex7`, DE LA PRIMERA ESCRITURA DE VERDAD (tanda 508) ──
+  //
+  // Mismo id, mismo set (*EX Team Rocket Returns*), y los códigos eran
+  // «RR» el nuestro y «TRR» el suyo. Los dos están BIEN: cada catálogo lo
+  // abrevia a su manera. Rechazarlo por eso dejó un set sin su logo.
+  //
+  // Una señal que no depende del IDIOMA puede seguir dependiendo del
+  // FABRICANTE: la Pokédex Nacional es canónica, un código es convención.
+  const ex7 = veredictoDelPar({
+    nuestra: {}, nuestroSet: { id: 'ex7', tcg_online_code: 'RR' },
+    suya: { expansion: { id: 'ex7', code: 'TRR' } },
+  })
+  check('«RR» contra «TRR» YA NO RECHAZA', ex7.veredicto !== 'rechazado', JSON.stringify(ex7))
+  check('  …se queda sin señal y se mira a mano', ex7.veredicto === 'sin-senal', JSON.stringify(ex7))
+  // Y con la Pokédex a favor, un código distinto NO estropea el acuerdo.
+  const conDex = veredictoDelPar({
+    nuestra: { dex_ids: [25] }, nuestroSet: { tcg_online_code: 'RR' },
+    suya: { national_pokedex_numbers: [25], expansion: { code: 'TRR' } },
+  })
+  check('con la Pokédex a favor, el código distinto no lo tumba', conDex.veredicto === 'confirmado', JSON.stringify(conDex))
   // Dos listas de Pokédex sin un número en común también rechazan.
   const d = veredictoDelPar({
     nuestra: { name: 'Pikachu', dex_ids: [25] },
@@ -200,9 +225,9 @@ const doble = () => {
   check('contesta 200', r.estado === 200, JSON.stringify(r.cuerpo?.error))
   check('LA CUENTA CUADRA', r.cuerpo.cuadraLaCuenta === true && !r.cuerpo.AVISO, JSON.stringify(r.cuerpo))
   check('confirma el que la 504 rechazaba', r.cuerpo.confirmados === 1, JSON.stringify(r.cuerpo.ejemplosConfirmados))
-  check('  …por el código del set', /el código del set/.test(JSON.stringify(r.cuerpo.ejemplosConfirmados)), JSON.stringify(r.cuerpo.ejemplosConfirmados))
+  check('  …diciendo con qué señal', /los números de Pokédex/.test(JSON.stringify(r.cuerpo.ejemplosConfirmados)), JSON.stringify(r.cuerpo.ejemplosConfirmados))
   check('y RECHAZA el `ex5.5 → wb1` de verdad', r.cuerpo.rechazados.length === 1 && r.cuerpo.rechazados[0].suyo === 'wb1', JSON.stringify(r.cuerpo.rechazados))
-  check('  …nombrando la señal, no «se llaman distinto»', /código del set/.test(r.cuerpo.rechazados[0].porque), r.cuerpo.rechazados[0].porque)
+  check('  …nombrando la señal, no «se llaman distinto»', /números de Pokédex/.test(r.cuerpo.rechazados[0].porque), r.cuerpo.rechazados[0].porque)
   check('nada queda «por mirar a mano»', r.cuerpo.porMirar.length === 0, JSON.stringify(r.cuerpo.porMirar))
   check('NO ESCRIBE NADA', !d.llamadas.some((l) => /patch|rpc|on_conflict/i.test(String(l))))
   // Y las columnas que dan señal se PIDEN. Sin ellas no hay veredicto.

@@ -34,6 +34,17 @@ console.log('── 1. Scrydex gana, pero NO PISA lo nuestro ──')
   const lleno = { id: 'sv10', market: 'WEST', name: 'Rivales', release_date: '2026-05-29', tcg_online_code: 'XXX', card_count_official: 999 }
   const g = filaDeSetConScrydex(lleno, suyo)
   check('nuestra fecha NO se pisa', g.release_date === '2026-05-29', g.release_date)
+  // EL CERO ES UN VALOR (tanda 508). Con `||` el cero se trataba como
+  // «vacío» y en la primera escritura de verdad pisé el
+  // `card_count_official` de `mep`, que valía 0. No hizo daño —`0` y
+  // `null` se pintan igual— pero la regla decía «no se pisa nada
+  // nuestro». Misma familia que el `progreso = {}` de la 319.
+  const cero = filaDeSetConScrydex({ ...lleno, card_count_official: 0 }, suyo)
+  check('un CERO nuestro no se trata como vacío', cero.card_count_official === 0, JSON.stringify(cero.card_count_official))
+  // Y al revés: en un TEXTO la cadena vacía SÍ es «no hay nada», que es
+  // una regla distinta de la del número y por eso está escrita aparte.
+  const vacia = filaDeSetConScrydex({ ...lleno, tcg_online_code: '  ' }, suyo)
+  check('un texto en blanco sí se rellena', vacia.tcg_online_code === 'DRI', JSON.stringify(vacia.tcg_online_code))
   check('nuestro código NO se pisa', g.tcg_online_code === 'XXX', g.tcg_online_code)
   check('nuestra cuenta NO se pisa', g.card_count_official === 999, String(g.card_count_official))
   check('y nuestro NOMBRE es el que va, que está en español a propósito', g.name === 'Rivales')
@@ -143,22 +154,28 @@ const huellaDePrueba = (buf) => (
   check('  …y no ha escrito NI UNA fila', d.escrito.length === 0, JSON.stringify(d.escrito))
   check('  …y dice cómo se escribe', /escribir/.test(r.cuerpo.COMO_ESCRIBIR || ''), r.cuerpo.COMO_ESCRIBIR)
   check('dice si su listado trae los logos, en vez de darlo por hecho', /4 de 4/.test(r.cuerpo.suListadoTraeLogos), r.cuerpo.suListadoTraeLogos)
-  // El par falso NO entra. Es lo que costaron las tandas 504 y 505.
-  check('el par con el código distinto se RECHAZA', r.cuerpo.rechazados.length === 1 && /ex5\.5/.test(r.cuerpo.rechazados[0].par), JSON.stringify(r.cuerpo.rechazados))
-  check('  …y no sale en los cambios', !JSON.stringify(r.cuerpo.cambios).includes('ex5.5'), JSON.stringify(r.cuerpo.cambios))
+  // EL PAR DUDOSO NO ENTRA, que es la propiedad que importa. Desde la
+  // 508 un código distinto ya NO rechaza —«RR» contra «TRR» era el mismo
+  // set—, así que se queda sin confirmar… y sin confirmar tampoco se
+  // escribe. Falla hacia el lado bueno.
+  check('el par con el código distinto NO se rechaza', r.cuerpo.rechazados.length === 0, JSON.stringify(r.cuerpo.rechazados))
+  check('  …pero tampoco se confirma', r.cuerpo.sinConfirmar.some((x) => /ex5\.5/.test(x.par)), JSON.stringify(r.cuerpo.sinConfirmar))
+  check('  …y NO sale en los cambios', !JSON.stringify(r.cuerpo.cambios).includes('ex5.5'), JSON.stringify(r.cuerpo.cambios))
   check('se confirma por el código cuando lo hay, gratis', r.cuerpo.porQueSeConfirman['el código del set'] >= 1, JSON.stringify(r.cuerpo.porQueSeConfirman))
   check('y por la Pokédex de una carta cuando no', r.cuerpo.porQueSeConfirman['los números de Pokédex'] === 1, JSON.stringify(r.cuerpo.porQueSeConfirman))
   check('hay algo que escribir', r.cuerpo.aEscribir > 0, String(r.cuerpo.aEscribir))
-  // EL RESCATE POR EL CÓDIGO: un set sin NUESTRA fecha se emparejaba
-  // antes a la basura, y son justo los que la 322 encontró vacíos.
-  check('un set sin nuestra fecha se rescata por el CÓDIGO',
+  // EL RESCATE: un set sin NUESTRA fecha se daba antes por perdido, y
+  // son justo los que la 322 encontró vacíos. Lo rescata el id o el
+  // código — aquí el ID, que es la llave más fuerte de las dos.
+  check('un set sin nuestra fecha se rescata',
     JSON.stringify(r.cuerpo.cambios).includes('sv10'), JSON.stringify(r.cuerpo.cambios.map((c) => c.set)))
-  // Y LA LIMITACIÓN, por escrito: sin fecha y sin código no hay con qué,
-  // y eso se DICE en vez de quedarse callado.
-  check('sin fecha ni código se queda suelto, y se dice por qué',
-    r.cuerpo.sinEmparejar === 1 && /ni su fecha ni su código/.test(JSON.stringify(r.cuerpo.porQueNoSeEmparejan)),
+  check('  …y se dice CON QUÉ se ha rescatado',
+    r.cuerpo.porQueSeEmparejan['id idéntico'] === 1, JSON.stringify(r.cuerpo.porQueSeEmparejan))
+  // Y LA LIMITACIÓN, por escrito: sin fecha, sin id y sin código no hay
+  // con qué, y eso se DICE en vez de quedarse callado.
+  check('sin nada con lo que casar se queda suelto, y se dice por qué',
+    r.cuerpo.sinEmparejar === 1 && /ni el id ni el código/.test(JSON.stringify(r.cuerpo.porQueNoSeEmparejan)),
     JSON.stringify(r.cuerpo.porQueNoSeEmparejan))
-  check('  …y se dice por qué sí se emparejan los demás', /código/.test(JSON.stringify(r.cuerpo.porQueSeEmparejan)), JSON.stringify(r.cuerpo.porQueSeEmparejan))
   check('el que ya está completo no entra en el upsert', !JSON.stringify(r.cuerpo.cambios).includes('base1'), JSON.stringify(r.cuerpo.cambios))
   check('la cuenta cuadra', r.cuerpo.cuadraLaCuenta === true, JSON.stringify(r.cuerpo))
   // LA GUARDA DE LA 499: cada imagen se mira antes de guardarla, y solo
@@ -195,6 +212,51 @@ const huellaDePrueba = (buf) => (
     !d.escrito.some((f) => f.logo_scrydex === LOGO_RELLENO), JSON.stringify(d.escrito.map((f) => [f.id, f.logo_scrydex])))
 }
 {
+  // EL CASO DE LOS 37 (tanda 508): un set NUESTRO que SÍ tiene fecha pero
+  // cuya cuenta no casa con ninguna de las suyas. Son todo promos, donde
+  // los dos catálogos cuentan distinto porque no hay un total oficial.
+  // Antes se daban por perdidos los 37; ahora los rescata el id.
+  const d = doble()
+  const cuentaDistinta = async (ruta) => {
+    // La carta la pide por el id NUEVO del set, así que el doble tiene
+    // que contestar por `svp` igual que contestaba por `promos`.
+    if (/tcg_cards/.test(ruta)) return d.restImpl(ruta.replace('set_id=eq.svp', 'set_id=eq.promos'))
+    const filas = await d.restImpl(ruta)
+    // `promos` conserva su fecha pero se le cambia la cuenta, así que ya
+    // no casa por fecha+cuenta con ninguna de las suyas.
+    return filas.map((f) => (f.id === 'promos' ? { ...f, id: 'svp', card_count_total: 9999 } : f))
+  }
+  const conSvp = async (url, o) => {
+    if (!/\/expansions/.test(url)) return d.fetchImpl(url, o)
+    const r = await d.fetchImpl(url, o)
+    const j = await r.json()
+    return { ok: true, json: async () => ({ ...j, data: j.data.map((e) => (e.id === 'svp' ? e : e)) }) }
+  }
+  const r = await procesar({ env: ENV, fetchImpl: conSvp, restImpl: cuentaDistinta, escribirImpl: d.escribirImpl, huellaImpl: huellaDePrueba })
+  // Y se comprueba por SU NOMBRE, no por un contador: con `sv10` también
+  // emparejando por id, un «>= 1» se habría cumplido sin rescatar a `svp`.
+  check('un set CON fecha cuya cuenta no casa se rescata por el id',
+    r.cuerpo.cambios.some((c) => c.set === 'svp'), JSON.stringify(r.cuerpo.cambios.map((c) => c.set)))
+  check('  …y se dice que ha sido por el id', r.cuerpo.porQueSeEmparejan['id idéntico'] === 2, JSON.stringify(r.cuerpo.porQueSeEmparejan))
+}
+{
+  // UN SET SUYO NO SE REPARTE DOS VECES. Si ya está emparejado con uno
+  // nuestro, el rescate no puede volver a cogerlo: serían dos sets
+  // nuestros con el mismo logo y uno de los dos estaría mal.
+  const d = doble()
+  const dosNuestros = async (ruta) => {
+    if (/tcg_cards/.test(ruta)) return d.restImpl(ruta)
+    const filas = await d.restImpl(ruta)
+    // Un segundo set nuestro que TAMBIÉN se llama `sv10`… no puede ser,
+    // así que se le da el mismo CÓDIGO, que es la otra llave del rescate.
+    return [...filas, { id: 'otro', market: 'WEST', name: 'Otro', tcg_online_code: 'DRI', release_date: null, card_count_total: 1, card_count_official: null, logo_path: null, logo_scrydex: null, symbol_scrydex: null }]
+  }
+  const r = await procesar({ env: ENV, fetchImpl: d.fetchImpl, restImpl: dosNuestros, escribirImpl: d.escribirImpl, huellaImpl: huellaDePrueba, escribir: true })
+  const suyos = d.escrito.map((f) => f.logo_scrydex).filter(Boolean)
+  check('ningún set suyo se reparte a DOS nuestros',
+    suyos.length === new Set(suyos).size, JSON.stringify(suyos))
+}
+{
   // DOS EXPANSIONES SUYAS CON EL MISMO CÓDIGO: entonces el código no
   // identifica a nadie, y elegir «la primera» sería elegir a ojo. Un par
   // inventado mete el logo de otro set en la base sin dar error.
@@ -210,7 +272,7 @@ const huellaDePrueba = (buf) => (
   check('con dos códigos iguales, `sv10` NO se empareja a ojo',
     !d.escrito.some((f) => f.id === 'sv10'), JSON.stringify(d.escrito.map((f) => f.id)))
   check('  …y se dice POR QUÉ, que es lo único que sirve para arreglarlo',
-    /no casa con uno solo/.test(JSON.stringify(r.cuerpo.porQueNoSeEmparejan)), JSON.stringify(r.cuerpo.porQueNoSeEmparejan))
+    /ni el id ni el código/.test(JSON.stringify(r.cuerpo.porQueNoSeEmparejan)), JSON.stringify(r.cuerpo.porQueNoSeEmparejan))
 }
 {
   // Si falta la migración, se dice QUÉ hay que ejecutar — no un «no se
