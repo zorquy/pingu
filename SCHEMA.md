@@ -27075,3 +27075,91 @@ navegador de una persona.
 
 **Ficheros**: `css/style.css`, `CLAUDE.md`, y en la rama `pruebas`:
 `pruebas/test-tanda-299.mjs`.
+
+## Tanda 499 — Scrydex: emparejar su catálogo con el nuestro, y su imagen de relleno
+
+PINGU paga el **Starter de Scrydex (29 $)** para tapar lo que TCGdex no
+tiene. Esto es la primera piedra: lo PURO de la integración, que es lo que
+se puede escribir y probar sin la clave y sin red.
+
+### Lo que se va a tapar, medido
+
+| | |
+|---|---|
+| Escaneos asiáticos que no existen en TCGdex | **11.712** (JP 5.641 · TW 5.194 · CN 877) |
+| Logos de set asiáticos | faltan **340** de 341 |
+| Sets JP que TCGdex no tiene ni empezados | **68** de 186 |
+| Escaneos OCCIDENTALES que nos faltan | **1.351** de 21.476 |
+| Logos occidentales | faltan **63** de 210 |
+
+Scrydex declara 231 expansiones japonesas y 22.272 cartas, con **99,9 % de
+escaneos reales** y **189 logos de 231** (medido por COWORK). **No tiene
+chino ni coreano**, y sus precios son **dólares y yenes, no euros** — así
+que los precios se quedan en Cardmarket vía TCGdex y de Scrydex solo se
+coge catálogo e imágenes.
+
+### El coste real, que no es el que parecía
+
+Un crédito es **una petición**, no una carta, y `page_size` es 100. El
+catálogo entero EN+JA son **~450 créditos**, y **las imágenes no gastan
+créditos**. Sin refresco de precios —que no queremos, porque son dólares—
+el gasto recurrente es casi nada: **Starter, uno o dos meses, y cancelar**.
+
+### Por qué NO se empareja por identificador
+
+Porque el suyo no se deriva del nuestro. Las cuatro cartas de control:
+
+| Nuestro | Suyo | |
+|---|---|---|
+| `SM1M-001` | `sm1m_ja-1` | minúsculas + `_ja` |
+| `M4-001` | `m4_ja-1` | igual |
+| `SM12a-001` | `sm12a_ja-1` | igual |
+| **`S8b-001`** | **`swsh8b_ja-1`** | **otro esquema** |
+
+La era Espada y Escudo la nombran con el prefijo **inglés** (`swsh`) donde
+TCGdex usa el **japonés** (`S`). O sea que «minúsculas + `_ja`» acierta en
+tres de cuatro — **la peor clase de regla: la que funciona lo bastante para
+que te la creas**. Y una tabla a mano se queda vieja el día que salga un
+set (la 323).
+
+`emparejarSets` casa por **HECHOS** que no dependen de cómo llame nadie a
+las cosas: la **fecha de salida** y **cuántas cartas** tiene.
+
+- La fecha sola no basta: en Japón salen tres o cuatro sets el mismo día
+  —un set y sus dos mazos de ejemplo— y por fecha se mezclarían.
+- La cuenta sola tampoco: hay decenas de sets de 30 cartas.
+- Vale que coincida **cualquiera** de las dos cuentas (oficial o total),
+  porque un catálogo cuenta las secretas y el otro puede que no.
+- El **nombre solo desempata** entre candidatos que ya casan, y nunca
+  empareja solo: el nombre de un set japonés y el de su versión inglesa no
+  se parecen en nada.
+
+Devuelve tres listas y **las tres importan**: `pares`, `ambiguos` (dos o
+más candidatos indistinguibles — **no se elige**, porque elegir aquí es
+escribir el escaneo de otro set encima del bueno sin dar error) y
+`sueltos`, con el porqué de cada uno. Y un set suyo **no se reparte entre
+dos nuestros**.
+
+### Su imagen de RELLENO, que es la trampa gorda
+
+`images.scrydex.com` devuelve **200 con una imagen de relleno** para
+cualquier identificador que no exista. **Un HEAD no prueba nada**:
+preguntar «¿existe?» contesta que sí SIEMPRE.
+
+Sin la guarda, el relleno entraría en la base como un escaneo bueno y la
+pantalla saldría con la misma imagen gris quince mil veces, **sin un solo
+error en ninguna parte**. Lo cazó COWORK comparando el SHA-1 de los
+primeros 1.500 bytes contra el del relleno: carta `ce9ae950ca`, logo
+`5422192d31`.
+
+`esRelleno(huella, tipo)` compara por prefijo, y **sin huella no dice que
+algo sea bueno**: dar por válido un fichero por no tener con qué
+compararlo es exactamente el fallo que la función existe para evitar.
+
+**Ficheros**: `netlify/lib/scrydex.mjs` (nuevo). En la rama `pruebas`:
+`pruebas/test-tanda-499.mjs` (nuevo).
+
+**Pendiente antes de pedir nada**: la **cabecera de autenticación** y la
+forma exacta de los endpoints, que no se pueden adivinar; y **medir el
+INGLÉS**, que es la mitad del motivo de pagar y lo único que la evaluación
+de COWORK no midió.

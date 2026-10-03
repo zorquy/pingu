@@ -35,6 +35,66 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 — PINGU-Claude (tanda 499 — Scrydex: el emparejamiento y la imagen de relleno)
+
+**Hecho**: PINGU paga el **Starter de Scrydex (29 $)** para tapar lo que
+TCGdex no tiene. Esto es la primera piedra: lo PURO, que es lo que se puede
+escribir y probar **sin la clave y sin red**.
+
+**Lo que se va a tapar**: 11.712 escaneos asiáticos, 340 logos de 341, 68
+sets JP enteros, y —sin medir todavía— **1.351 escaneos y 63 logos
+OCCIDENTALES**. Scrydex declara 231 expansiones japonesas con 99,9 % de
+escaneos reales y 189 logos de 231. **No tiene chino ni coreano**, y sus
+precios son dólares y yenes: los precios se quedan en Cardmarket vía
+TCGdex y de Scrydex solo se coge catálogo e imágenes.
+
+**El coste real no es el que parecía**: un crédito es una PETICIÓN, no una
+carta, y `page_size` es 100 — el catálogo entero EN+JA son **~450
+créditos**, y las imágenes no gastan. Sin refresco de precios, **Starter un
+mes o dos y cancelar**.
+
+**Por qué no se empareja por identificador**: el suyo no se deriva del
+nuestro. `SM1M-001`→`sm1m_ja-1`, `M4-001`→`m4_ja-1`,
+`SM12a-001`→`sm12a_ja-1`… pero **`S8b-001`→`swsh8b_ja-1`**, porque la era
+Espada y Escudo la nombran con el prefijo INGLÉS donde TCGdex usa el
+japonés. «Minúsculas + _ja» acierta en tres de cuatro: **la peor clase de
+regla, la que funciona lo bastante para que te la creas.**
+
+`emparejarSets` casa por HECHOS —fecha de salida y cuenta de cartas—, que
+no dependen de cómo llame nadie a las cosas. La fecha sola no basta (en
+Japón salen tres o cuatro sets el mismo día) y la cuenta sola tampoco (hay
+decenas de sets de 30). El nombre SOLO desempata. Devuelve `pares`,
+`ambiguos` —dos candidatos indistinguibles: **no se elige**, porque elegir
+aquí escribe el escaneo de otro set encima del bueno sin dar error— y
+`sueltos` con su porqué.
+
+**Y la trampa gorda: su servidor de imágenes devuelve 200 CON UNA IMAGEN DE
+RELLENO para cualquier id inexistente.** Un HEAD no prueba nada. Sin la
+guarda, el relleno entra en la base como un escaneo bueno y la pantalla
+sale con la misma imagen gris quince mil veces **sin un solo error**. Lo
+cazó COWORK comparando el SHA-1 de los primeros 1.500 bytes. `esRelleno`
+compara por prefijo y **sin huella no da nada por bueno**.
+
+**Ficheros**: `netlify/lib/scrydex.mjs` (NUEVO), `SCHEMA.md`, `BITACORA.md`.
+En la rama `pruebas`: `pruebas/test-tanda-499.mjs` (NUEVO).
+
+**Prueba**: 38 comprobaciones en verde, con los cuatro sets de control
+reales dentro. Mutada por los dos lados que fallarían en silencio: si el
+relleno deja de detectarse caen 4, y si se casa solo por fecha caen 2.
+
+**En curso / pendiente**: (1) **Hacen falta dos datos de su documentación
+que NO se pueden adivinar**: la cabecera de autenticación y la forma de los
+endpoints. (2) **Lo primero con la clave es MEDIR EL INGLÉS** —1.351
+escaneos y 63 logos—, que es la mitad del motivo de pagar y lo único que la
+evaluación de COWORK no midió. (3) La clave va en una variable de entorno
+de Netlify (`SCRYDEX_API_KEY`), **nunca en el repo**: una clave en el JS
+del navegador es una clave publicada, así que la sonda tiene que ser una
+función de servidor y /admin llamarla. (4) Preguntarles por escrito si
+bajarse el catálogo entero cae en su cláusula de «wholesale data source».
+(5) Chino y taiwanés: **no quitarlos** del selector sin mirar antes cuántas
+personas tienen colección ahí — mantenerlos no cuesta nada y quitarlos deja
+cartas huérfanas.
+
 ## 2026-10-03 — PINGU-Claude (tandas 494 a 497 — mazos, Mis partidas, notas, torneos y «Jugar desde aquí» en /repeticiones)
 
 Lo que quedaba de la lista de ideas que PINGU aprobó. **Hay que ejecutar
