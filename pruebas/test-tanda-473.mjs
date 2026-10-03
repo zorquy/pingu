@@ -58,8 +58,13 @@ const enLaBarra = await page.evaluate(() =>
     .filter((e) => !e.classList.contains('hidden'))
     .map((e) => e.id || e.tagName)
 )
-check('solo «Filtros» y el de variantes', enLaBarra.length === 2, enLaBarra.join(','))
-check('y son esos dos', enLaBarra.includes('mcAlbumAbrirFiltros') && enLaBarra.includes('mcVistaVariantes'), enLaBarra.join(','))
+// Tres desde la tanda 478, que añadió el de la VISTA (cuadrícula / lista /
+// archivador) — lo que esta prueba defiende es que no vuelvan los cinco
+// controles sueltos, no un número concreto.
+check('«Filtros», la vista y el de variantes', enLaBarra.length === 3, enLaBarra.join(','))
+check('y son esos tres',
+  enLaBarra.includes('mcAlbumAbrirFiltros') && enLaBarra.includes('mcVistaVariantes') && enLaBarra.includes('mcAlbumVista'),
+  enLaBarra.join(','))
 // Los desplegables sueltos ya no están EN LA BARRA: están dentro del panel.
 // Se mira dónde VIVEN y no si existen — existir, existen.
 const dondeViven = await page.evaluate(() =>
@@ -194,13 +199,25 @@ console.log('\n── 9. Y en el móvil cabe sin desbordar ──')
   const { page: p3 } = await abrir({ ancho: 390 })
   const r = await p3.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }))
   check('la página no se va de ancho', r.s <= r.c + 1, `${r.s} > ${r.c}`)
-  // Dos chapas en 390 px entran sin deslizar. No se exige que la tira NO
-  // pueda deslizarse —sigue siendo `.mc-mandos`—, sino que no haga falta.
+  // LA TIRA PUEDE DESLIZARSE, Y ESO ESTÁ BIEN. La 473 exigió que NO hiciera
+  // falta porque entonces eran dos chapas; con la tercera de la 478 —la
+  // vista— se pasa unos píxeles en un móvil de 390, y eso es exactamente
+  // para lo que `.mc-mandos` es una tira. Lo que sigue sin poder pasar, que
+  // es el fallo que la 459 arregló, es que los controles se APLASTEN para
+  // caber: un hijo de flex cede antes de desbordar (la 320).
   const tira = await p3.evaluate(() => {
     const t = document.getElementById('mcAlbumFiltros')
-    return { s: t.scrollWidth, c: t.clientWidth }
+    return {
+      fila: Math.round(t.getBoundingClientRect().height) <= 56,
+      anchos: [...t.children].filter((c) => c.getBoundingClientRect().width > 0)
+        .map((c) => Math.round(c.getBoundingClientRect().width)),
+      // Lo que mide cada chapa por su contenido, para ver si ha cedido.
+      pedidos: [...t.children].filter((c) => c.getBoundingClientRect().width > 0).map((c) => c.scrollWidth),
+    }
   })
-  check('y la barra de la expansión no hay que deslizarla', tira.s <= tira.c + 1, `${tira.s} > ${tira.c}`)
+  check('la barra sigue siendo UNA fila', tira.fila === true, JSON.stringify(tira))
+  check('  …y ninguna chapa se aplasta para caber',
+    tira.anchos.every((a, i) => a >= tira.pedidos[i] - 1), JSON.stringify(tira))
   await p3.close()
 }
 

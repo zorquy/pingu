@@ -170,14 +170,14 @@ console.log('\n── 4. Los mandos, en UNA fila que se desliza ──')
   })
   check('la fila de filtros es una tira de mandos', fila.mandos === true)
   check('  …de una sola altura de control', fila.alto <= 56, fila.alto)
-  // YA NO HACE FALTA QUE SE DESLICE (tanda 473), y eso es mejor y no peor:
-  // la 459 comprobó que la tira deslizaba porque había CINCO controles
-  // dentro y no cabían. La 473 se llevó cuatro al panel de «Filtros» y
-  // quedan dos, así que en un móvil entran de sobra. Lo que sigue
-  // importándole a esta prueba —que sea UNA fila y de una sola altura— se
-  // comprueba arriba; que no haga falta deslizarla lo mira la 473.
-  check('  …y ya ni hace falta deslizarla', fila.desliza === false, JSON.stringify(fila))
-  check('  …pero sigue pudiendo', fila.overflow === 'auto' || fila.overflow === 'scroll', fila.overflow)
+  // Y QUE PUEDA DESLIZARSE, que es lo que esta prueba defendía. Entre
+  // medias cambió dos veces: la 473 se llevó cuatro controles al panel de
+  // «Filtros» y dejó dos chapas, que en un móvil cabían; la 478 añadió la
+  // tercera —la vista— y vuelven a pasarse unos píxeles. Que quepan o no
+  // depende de cuántas haya, así que no es lo que hay que comprobar: lo
+  // que no puede pasar nunca es que se APLASTEN para caber (la 320), y eso
+  // lo miran la comprobación de arriba y la 473.
+  check('  …y puede deslizarse si no caben', fila.overflow === 'auto' || fila.overflow === 'scroll', fila.overflow)
   // Lo que se midió: antes de la 459 había 920 px entre el borde de arriba
   // y la primera carta, de los cuales 264 eran cuatro filas de controles.
   const hasta = await page.evaluate(() => {
