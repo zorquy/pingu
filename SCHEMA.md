@@ -25025,3 +25025,19 @@ columnas la primera de CADA FILA es la que no la lleva.
 - **El separador del bloque de Cambios** —una raya y 32 px de aire— venía
   de cuando vivía debajo de otra cosa. Con su propia pantalla separaba de
   la nada: lo que se veía era una línea flotando bajo la barra.
+
+---
+
+## Tanda 466 — dos tarjetas que decían lo mismo (oct. 2026)
+
+En la cabecera de la Pokédex hay «El que más tienes» y «El que menos».
+Mientras todas tus especies tengan una carta —o sea, **al empezar, que es
+justo cuando más gente lo mira**— son el mismo Pokémon con el mismo número,
+así que salían dos cajas idénticas una al lado de la otra.
+
+No da ningún error y las dos cifras son correctas. Pero dos cajas que dicen
+lo mismo no son dos datos, son uno repetido. PINGU: «si hay cosas que no
+son necesarias, prefiero que las quites».
+
+La prueba mira **las dos caras**, que es lo que hace que la regla valga:
+cuando coinciden sale una, y cuando no coinciden salen las dos.

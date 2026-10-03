@@ -402,7 +402,17 @@ export function cabeceraHtml(resumen, { nombreDe = (d) => `#${d}` } = {}) {
       ${anillo}
     </div>
     ${resumen.mas ? tarjeta('El que más tienes', `${resumen.mas.cuantas}`, nombreDe(resumen.mas.dex)) : ''}
-    ${resumen.menos ? tarjeta('El que menos', `${resumen.menos.cuantas}`, nombreDe(resumen.menos.dex)) : ''}
+    ${
+      // «EL QUE MENOS» SOLO SI ES OTRO (tanda 466). Mientras todas tus
+      // especies tengan una carta —o sea, al empezar, que es cuando más
+      // gente lo mira— el que más y el que menos son EL MISMO, y la
+      // cabecera enseñaba dos tarjetas con el mismo nombre y el mismo
+      // número. Dos cajas que dicen lo mismo no son dos datos: son una
+      // repetida, y PINGU pidió sencillez.
+      resumen.menos && resumen.menos.dex !== resumen.mas?.dex
+        ? tarjeta('El que menos', `${resumen.menos.cuantas}`, nombreDe(resumen.menos.dex))
+        : ''
+    }
   </div>`
 }
 

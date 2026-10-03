@@ -35,6 +35,19 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 466 — dos tarjetas que decían lo mismo)
+
+**Hecho**: en la cabecera de la Pokédex, «El que más tienes» y «El que
+menos» son el MISMO Pokémon mientras todas tus especies tengan una carta
+—o sea, al empezar, que es cuando más gente lo mira—. Dos cajas idénticas
+al lado. Ahora la segunda solo sale si es otro.
+
+**Ficheros**: `js/mi-coleccion/pokedex.js`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-466.mjs` (NUEVO).
+
+**En curso / pendiente**: ⚠️ sigue sin ejecutar
+`supabase-migration-nidoran-genero.sql`. **Rigores pendientes: 443 a 466.**
+
 ## 2026-10-03 — PINGU-Claude (tanda 465 — el repaso de Mi colección)
 
 **Hecho**: repaso de las siete pestañas a 390 y 1280 px en los dos temas,
