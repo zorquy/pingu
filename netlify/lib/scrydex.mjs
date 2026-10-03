@@ -391,3 +391,56 @@ export function conclusion({ pedidas, conEscaneo, relleno, fallos }) {
     aviso: 'Es un SUELO: el identificador de cada carta se deriva del número, y uno que no acierte cuenta como «no la tienen».',
   }
 }
+
+// ── Verificar un emparejamiento por el NOMBRE de una carta ──
+//
+// El emparejamiento de sets casa por fecha y cuenta, y eso acierta mucho…
+// pero no siempre. En la medida del inglés salió `ex5.5 → wb1`: comparten
+// fecha y cuenta, no había segundo candidato, y mi regla los casó con
+// confianza. Y como en `wb1-logo` HAY un logo de verdad, la sonda lo contó
+// como acierto.
+//
+// Ahí está la diferencia que importa: medir «¿existe una imagen en la URL
+// derivada?» vale para decidir si pagar. Para ESCRIBIR no vale, porque un
+// emparejamiento falso mete el logo de otro set encima del nuestro **sin
+// dar ningún error**.
+//
+// Un nombre de carta lo zanja: si nuestra `swsh12.5tg-TG04` se llama
+// «Jynx» y la suya `swsh12tg-tg4` también, el par está confirmado.
+//
+// Se compara con `clave()` —sin tildes, sin signos, en minúsculas— porque
+// «Pokémon GO» y «Pokemon GO» son la misma carta. Pero NO más tolerante
+// que eso: «Pikachu» y «Pikachu V» tienen que seguir siendo distintas, que
+// si no el verificador aprueba cualquier cosa y no sirve de nada.
+//
+// Y la trampa que ya picó en la 483: `clave()` tira todo lo que no es
+// a-z0-9, así que 「ピカチュウ」 se queda en NADA. Comparar un nombre japonés
+// con uno inglés no da «distinto», da una comparación que no existe — y lo
+// peor es el caso mixto: 「ピカチュウV」 deja «v», «Pikachu V» deja «pikachuv»,
+// y eso sí se parece a un RECHAZO. Sería un rechazo inventado por el
+// alfabeto. Así que si los dos nombres no están en el mismo alfabeto, el
+// veredicto es «no se puede» y se dice por qué.
+const TIENE_CJK = /[\u3000-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef\uac00-\ud7af]/
+
+export function verificarPar({ nuestroNombre, suyoNombre }) {
+  const na = String(nuestroNombre ?? '').trim()
+  const nb = String(suyoNombre ?? '').trim()
+  if (!na || !nb) return { veredicto: 'no-se-puede', porque: 'falta uno de los dos nombres' }
+  if (TIENE_CJK.test(na) !== TIENE_CJK.test(nb)) {
+    return { veredicto: 'no-se-puede', porque: `no están en el mismo alfabeto: «${na}» vs «${nb}»` }
+  }
+  const a = clave(na)
+  const b = clave(nb)
+  if (!a || !b) return { veredicto: 'no-se-puede', porque: 'ninguno de los dos nombres deja nada que comparar' }
+  if (a === b) return { veredicto: 'confirmado' }
+  return { veredicto: 'rechazado', porque: `se llaman distinto: «${na}» vs «${nb}»` }
+}
+
+// Su respuesta de UNA carta trae `data` como OBJETO; la de una lista, como
+// array. Confundirlos deja `undefined` y el verificador diría «no se puede»
+// de todo, que es un fallo que se lee como un resultado.
+export function laCarta(json) {
+  const d = json?.data
+  if (Array.isArray(d)) return d[0] || null
+  return d && typeof d === 'object' ? d : null
+}

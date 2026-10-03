@@ -3046,6 +3046,94 @@ const SONDAS_SCRYDEX = [
 //
 // Cuesta TRES créditos, no trescientos: lo único que se le pide a la API es
 // su lista de expansiones; las imágenes no gastan y su dirección se deriva.
+// Comprobar que los emparejamientos de set son los que creemos (tanda 504).
+//
+// La medida de la 503 contestó la pregunta que había —«¿tienen las fotos
+// que nos faltan?»— con un sí rotundo. Pero contestarla no bastaba para
+// ESCRIBIR, porque entre los 171 pares salió `ex5.5 → wb1`: misma fecha,
+// misma cuenta, ningún segundo candidato, y un logo de verdad al otro
+// lado. Un par falso mete el logo de otro set encima del nuestro **sin
+// dar ningún error**, así que se comprueba antes y uno por uno.
+//
+// Va solo de pasada en pasada hasta acabarse: lo que no se puede alcanzar
+// no se verifica, y un «quedan 111» sin forma de pedirlos no sirve.
+const MAX_PASADAS_VERIFICAR = 8
+
+async function verificarScrydex() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnVerificarScrydex')
+  const { data: { session } = {} } = await supabase.auth.getSession()
+  if (!session) {
+    cardsNota('No hay sesión: vuelve a entrar.', true)
+    return
+  }
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = 'Verificando los emparejamientos contra Scrydex, carta a carta…'
+
+  const rechazados = []
+  const sinComprobar = []
+  let confirmados = 0
+  let emparejados = 0
+  let ambiguos = 0
+  let sinEmparejar = 0
+  let cartasPedidas = 0
+  let desde = 0
+  let pasadas = 0
+  try {
+    while (pasadas < MAX_PASADAS_VERIFICAR) {
+      pasadas++
+      const res = await fetch('/.netlify/functions/scrydex-verificar', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ mercado: 'WEST', idioma: 'en', desde }),
+      })
+      const r = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        caja.value = `No se ha podido: ${r.error || res.status}`
+        cardsNota(r.error || `Ha fallado (${res.status}).`, true)
+        boton.disabled = false
+        return
+      }
+      emparejados = r.emparejados
+      ambiguos = r.ambiguos
+      sinEmparejar = r.sinEmparejar
+      confirmados += r.confirmados
+      cartasPedidas += r.verificadas || 0
+      rechazados.push(...(r.rechazados || []))
+      sinComprobar.push(...(r.sinComprobar || []))
+      caja.value = `Verificando… ${r.verificadosEnEstaPasada} · confirmados ${confirmados} · rechazados ${rechazados.length}`
+      if (r.siguienteDesde == null) break
+      desde = r.siguienteDesde
+    }
+    caja.value = [
+      `Emparejados: ${emparejados} · ambiguos ${ambiguos} · sin emparejar ${sinEmparejar}`,
+      `Comprobados en ${pasadas} pasada(s): ${cartasPedidas} · créditos ≈ ${cartasPedidas + pasadas * 3}`,
+      '',
+      `CONFIRMADOS: ${confirmados}`,
+      '',
+      `RECHAZADOS (NO se pueden usar para escribir): ${rechazados.length}`,
+      ...rechazados.map((x) => `  · ${x.nuestro} → ${x.suyo} (${x.por}) — nuestra ${x.carta}, suya «${x.suya}»`),
+      '',
+      `SIN COMPROBAR: ${sinComprobar.length}`,
+      ...sinComprobar.slice(0, 30).map((x) => `  · ${x.par} — ${x.porque}`),
+      '',
+      'CÓMO SE LEE ESTO:',
+      '  · «rechazado» es un par que casa por fecha y cuenta pero NO es el',
+      '    mismo set: usarlo metería el logo y las cartas de otro set.',
+      '  · «sin comprobar» NO es un rechazo. Casi siempre es que esa carta',
+      '    nuestra no existe en su set, o que su id no se monta como creemos:',
+      '    es un fallo NUESTRO, no una prueba de que el par esté mal.',
+      '  · Esto no ha escrito nada en la base.',
+    ].join('\n')
+    cardsNota(`Verificado: ${confirmados} confirmados, ${rechazados.length} rechazados.`)
+  } catch (err) {
+    caja.value = `No se ha podido: ${err.message}`
+    cardsNota(`Ha fallado: ${err.message}`, true)
+  }
+  boton.disabled = false
+}
+
 async function medirInglesScrydex() {
   const caja = document.getElementById('cardsDiagnostico')
   const boton = document.getElementById('btnMedirIngles')
@@ -3499,6 +3587,7 @@ function initCardsSection() {
   document.getElementById('btnSondearMercado')?.addEventListener('click', sondearMercado)
   document.getElementById('btnSondearScrydex')?.addEventListener('click', sondearScrydex)
   document.getElementById('btnMedirIngles')?.addEventListener('click', medirInglesScrydex)
+  document.getElementById('btnVerificarScrydex')?.addEventListener('click', verificarScrydex)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )

@@ -27388,3 +27388,88 @@ de 30», «NO las tienen: 2 de 30»), no en un porcentaje suelto.
 
 **Ficheros**: `netlify/functions/scrydex-ingles.mjs` (nuevo),
 `netlify/lib/scrydex.mjs`, `admin/index.html`, `admin/js/admin.js`.
+
+## Tanda 504 — verificar los emparejamientos ANTES de escribir nada
+
+La 503 contestó la pregunta que había —«¿tiene Scrydex las fotos que nos
+faltan?»— con un sí rotundo: de nuestros 210 sets occidentales emparejó
+171 contra sus 224 expansiones, y en la muestra salieron **16 de 16
+logos** y **40 de 40 escaneos**, cero relleno. Eso justifica los 29 $.
+
+Lo que no justifica es ESCRIBIR, y la propia medición dejó la pista: entre
+los 171 pares está **`ex5.5 → wb1`**. No es el mismo set. Comparten fecha
+de salida y cuenta de cartas, no había un segundo candidato, la regla los
+casó con confianza… y como en `wb1-logo` hay un logo DE VERDAD, la sonda lo
+contó como un acierto.
+
+Ahí está la diferencia que importa, y conviene tenerla escrita:
+
+> **Medir «¿existe una imagen en la URL derivada?» vale para decidir si
+> pagar. Para ESCRIBIR no vale**, porque un emparejamiento falso mete el
+> logo de otro set encima del nuestro y las cartas de otro set dentro del
+> nuestro, **sin dar ningún error**. Y una foto equivocada en la base no se
+> distingue de una buena mirándola: hay que saber de qué set es.
+
+Un nombre de carta lo zanja. Se coge la carta NUESTRA de número más bajo de
+ese set, se le pide a Scrydex su gemela (`cards/<suSet>-<número>`) y se
+comparan los dos nombres: si nuestra `swsh12.5tg-TG04` se llama «Jynx» y la
+suya `swsh12tg-tg4` también, el par está confirmado. Cuesta un crédito por
+set — 171 para los occidentales, de los 5.000 al mes del plan Starter.
+
+`netlify/functions/scrydex-verificar` (POST, solo admin, botón «¿Son de
+verdad los emparejamientos?» en /admin → Cartas). **NO ESCRIBE NADA**, y
+eso es parte del diseño: una verificación que escribiera mientras verifica
+no se podría correr solo para mirar. Devuelve tres listas —confirmados,
+rechazados (con los dos nombres, para que se vea POR QUÉ) y sin
+comprobar—, y el panel va solo de pasada en pasada hasta acabarse.
+
+### Cuatro fallos que no dan error, y que se arreglaron escribiéndolo
+
+**1. La trampa de la 483, otra vez: el ALFABETO.** `clave()` normaliza
+tirando todo lo que no es `a-z0-9`, así que 「フシギダネ」 se queda en NADA.
+Comparar un nombre japonés con uno inglés no da «distinto»: da una
+comparación que no existe. Y el caso MIXTO es el peligroso de verdad —
+「ピカチュウV」 deja «v», «Pikachu V» deja «pikachuv», y eso **sí se parece a un
+rechazo**. Sería un rechazo inventado por el alfabeto, que habría tirado un
+emparejamiento bueno. Desde la 504, si los dos nombres no están en el mismo
+alfabeto (`TIENE_CJK`), el veredicto es `no-se-puede` y se dice por qué.
+Dos japoneses entre ellos tampoco se «confirman» por quedarse los dos
+vacíos.
+
+**2. Un 404 NO es un rechazo.** Si su API no encuentra `wb1-1` puede ser
+que esa carta nuestra no exista en su set, o que su id no se monte como
+creemos. Contarlo como rechazo tiraría un emparejamiento BUENO por un fallo
+nuestro. Va en «sin comprobar», que es una lista aparte y se dice que no es
+un rechazo. Lo mismo con un error de red.
+
+**3. `order=local_id.asc` es un orden de TEXTO.** «10» va antes que «2», así
+que la primera fila no es la carta 1. Se piden `CANDIDATAS = 12` y se elige
+la de número más bajo de verdad, poniendo detrás las que no son un número
+puro (una «TG01» sirve igual pero es menos segura).
+
+**4. Una consulta con `limit` global miente sobre el catálogo.** La primera
+versión pedía las cartas de los 60 sets de la pasada en una sola consulta
+con `limit=4000`: 60 × ~200 cartas no caben, así que los últimos sets se
+quedaban fuera por truncado y el informe decía «no tenemos ninguna carta de
+ese set» de sets llenos de cartas. Un fallo de la consulta leído como un
+dato del catálogo. Se piden **set a set**.
+
+### Y `desde`, que no es un detalle
+
+`POR_PASADA = 60`. Sin un parámetro para seguir, «quedan 111 por verificar»
+es un número que no lleva a ninguna parte: quien lo lee no tiene forma de
+pedir los siguientes, así que esos 111 **no se verifican nunca**. La
+respuesta trae `siguienteDesde` con el número que hay que meter, y el panel
+lo encadena solo hasta que vale `null` (con un tope de 8 pasadas, para que
+un fallo no se convierta en un bucle que gasta créditos).
+
+**Dos añadidos a `netlify/lib/scrydex.mjs`**: `verificarPar({nuestroNombre,
+suyoNombre})` con los tres veredictos, y `laCarta(json)` — porque su
+respuesta de UNA carta trae `data` como **objeto** y la de una lista como
+**array**, y confundirlos deja `undefined` y el verificador diría «no se
+puede» de todo, que es un fallo que se lee como un resultado.
+
+**Ficheros**: `netlify/functions/scrydex-verificar.mjs` (nuevo),
+`netlify/lib/scrydex.mjs`, `admin/index.html`, `admin/js/admin.js`.
+Prueba: `pruebas/test-tanda-504.mjs` (rama `pruebas`), con siete mutaciones
+a mano y las siete cazadas.

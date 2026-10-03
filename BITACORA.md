@@ -35,6 +35,66 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 — PINGU-Claude (tanda 504 — verificar los emparejamientos antes de escribir nada)
+
+**Hecho**: la 503 contestó la pregunta que había —«¿tiene Scrydex las fotos
+que nos faltan?»— con un sí rotundo: 16/16 logos, 40/40 escaneos, cero
+relleno. Pero entre sus 171 pares salió **`ex5.5 → wb1`**, y no es el mismo
+set: comparten fecha y cuenta de cartas, no había un segundo candidato, la
+regla los casó con confianza, y como en `wb1-logo` hay un logo DE VERDAD
+aquella sonda lo contó como acierto. Para decidir si pagar, eso daba igual.
+Para ESCRIBIR no, porque un par falso mete el logo y las cartas de otro set
+dentro del nuestro **sin dar ningún error**. Así que antes de escribir nada
+se comprueba par a par con el NOMBRE de una carta: se coge la carta nuestra
+de número más bajo de ese set, se pide su gemela a Scrydex y se comparan los
+dos nombres. `netlify/functions/scrydex-verificar` (POST, solo admin) **no
+escribe nada**: dice qué pares están confirmados, cuáles hay que tirar y
+cuáles no se han podido comprobar. Botón en /admin → Cartas, y va solo de
+pasada en pasada hasta acabar con los 171.
+
+**Cuatro cosas que se aprendieron escribiéndolo**, y las cuatro son fallos
+que no dan error:
+
+· **La trampa de la 483, otra vez: el ALFABETO.** `clave()` tira todo lo que
+  no es a-z0-9, así que 「フシギダネ」 se queda en NADA. Comparar un nombre
+  japonés con uno inglés no da «distinto», da una comparación que no existe
+  — y el caso MIXTO es el peligroso: 「ピカチュウV」 deja «v» y «Pikachu V» deja
+  «pikachuv», o sea un RECHAZO INVENTADO POR EL ALFABETO que habría tirado
+  un par bueno. Si los dos nombres no están en el mismo alfabeto, el
+  veredicto es «no se puede» y se dice por qué.
+· **Un 404 NO es un rechazo.** Puede ser que esa carta nuestra no exista en
+  su set, o que su id no se monte como creemos. Contarlo como rechazo
+  tiraría un emparejamiento BUENO por un fallo nuestro.
+· **`order=local_id.asc` es un orden de TEXTO**, así que «10» va antes que
+  «2» y la primera fila no es la carta 1. Se piden unas pocas y se elige la
+  de número más bajo de verdad.
+· **Una consulta con `limit` global miente sobre el catálogo.** Con 60 sets
+  por pasada y un `limit=4000`, los últimos sets se quedaban fuera por
+  truncado y el informe decía «no tenemos ninguna carta de ese set» de sets
+  llenos de cartas: un fallo de la consulta leído como un dato. Se piden set
+  a set.
+
+Y **`desde`**, que no es un detalle: sin él, «quedan 111 por verificar» es un
+número que no lleva a ninguna parte — quien lo lee no tiene forma de pedir
+los siguientes, así que esos 111 no se verifican nunca.
+
+**Ficheros**: `netlify/functions/scrydex-verificar.mjs` (NUEVO),
+`netlify/lib/scrydex.mjs` (`verificarPar`, `laCarta`), `admin/index.html`,
+`admin/js/admin.js`, `SCHEMA.md`. En la rama `pruebas`:
+`pruebas/test-tanda-504.mjs` (NUEVO, 40 comprobaciones, verde).
+
+**Rigor**: siete mutaciones a mano, las siete cazadas — quitar la guarda del
+alfabeto, `laCarta` sin el caso objeto, contar un 404 como rechazo, coger la
+primera fila en vez de la de número más bajo, ignorar `desde`, pedir las
+cartas con un `in.()` global, y confirmar siempre.
+
+**En curso / pendiente**: que PINGU le dé al botón — hasta que no sepamos
+cuáles de los 171 pares son de verdad, **no se escribe ni un logo ni una
+foto**. Sigue pendiente migrar `generate-course.mjs` y `telegram-mandar.mjs`
+a `netlify/lib/admin.mjs`, y preguntarle a Scrydex por escrito si bajar el
+catálogo entero cae dentro de su prohibición de «substitute backend, proxy,
+or wholesale data source».
+
 ## 2026-10-04 — PINGU-Claude (tanda 503 — la sonda que mide si Scrydex tapa el hueco del inglés)
 
 **Hecho**: la medición que decide si los 29 $ valen la pena. Es la mitad del
