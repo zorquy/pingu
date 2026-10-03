@@ -97,15 +97,16 @@ const abrir = async () => {
   // se vieron**. Contar que un elemento existe no es verlo.
   const pies = () => page.locator('.mc-album-rejilla .mc-chapa-variante').count()
   check('de entrada no hay pies de versión', (await pies()) === 0)
-  await page.locator('#mcVistaSplit').click()
+  await page.locator('#mcVistaVariantes').click()
   await page.waitForTimeout(1200)
   check('al partir, cada versión tiene su casilla', (await pies()) === 6, `${await pies()}`)
   check('  …y cada una dice cuál es',
     /Normal|Reverse/.test((await page.locator('.mc-album-rejilla .mc-chapa-variante').first().textContent()) || ''))
   // Para quien no ve el color del chip activo.
   check('  …y el interruptor lo dice sin color',
-    (await page.locator('#mcVistaSplit').getAttribute('aria-pressed')) === 'true' &&
-      (await page.locator('#mcVistaStack').getAttribute('aria-pressed')) === 'false')
+    // Desde la tanda 473 es UN botón con `aria-pressed`, no dos chapas en
+    // un grupo: una de las dos estaba siempre de adorno.
+    (await page.locator('#mcVistaVariantes').getAttribute('aria-pressed')) === 'true')
 
   // El «+» de una casilla partida suma a SU versión, no a la normal: si
   // no, las cuatro casillas de una carta harían lo mismo.

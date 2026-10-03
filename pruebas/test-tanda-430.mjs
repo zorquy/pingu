@@ -107,7 +107,13 @@ const dice = async (boton) => (await boton.getAttribute('aria-label') || '').tri
 
   // Es EXACTAMENTE lo que hay en pantalla: así se lleva bien con los
   // filtros y el orden sin saber nada de ellos.
+  // El control vive DENTRO del panel de «Filtros» desde la tanda 473,
+  // así que hay que abrirlo: encontrar un elemento no es poder pulsarlo.
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(400)
   await page.selectOption('#mcAlbumRareza', { index: 1 })
+  await page.click('#mcAlbumFiltrosVer')
+  await page.waitForTimeout(400)
   await page.waitForTimeout(700)
   check('con un filtro, el botón cuenta otra cosa', (await dice(boton)) === 'Copiar las 3 que me faltan', await dice(boton))
   await boton.click()
@@ -140,7 +146,7 @@ const dice = async (boton) => (await boton.getAttribute('aria-label') || '').tri
   await page.waitForTimeout(2600)
   await page.locator('.mc-set-tarjeta').first().click()
   await page.waitForTimeout(1500)
-  await page.click('#mcVistaSplit')
+  await page.click('#mcVistaVariantes')
   await page.waitForTimeout(900)
   const boton = page.locator('#mcFaltanCopiar')
   check('con las versiones separadas cuenta huecos, no cartas',

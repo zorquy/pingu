@@ -89,13 +89,14 @@ console.log('\n── 2. El archivador, con los mandos en una fila ──')
   const flota = await page.locator('#mcTocarOpciones').evaluate((e) => getComputedStyle(e).position)
   check('  …sin empujar lo de abajo', flota === 'absolute', flota)
 
-  // Las dos chapas de versión viven ahora en la misma fila que los
-  // filtros, no en una suya.
+  // La chapa de versión vive en la misma fila que los filtros, no en una
+  // suya. Desde la tanda 473 es UNA y no dos: eran «Juntar variantes» y
+  // «Separar variantes», y una de las dos estaba siempre de adorno.
   const mismaFila = await page.evaluate(() => {
     const f = document.getElementById('mcAlbumFiltros')
-    return f.contains(document.getElementById('mcVistaStack'))
+    return f.contains(document.getElementById('mcVistaVariantes'))
   })
-  check('las chapas de versión están en la fila de filtros', mismaFila)
+  check('la chapa de versión está en la fila de filtros', mismaFila)
   await page.close()
 }
 

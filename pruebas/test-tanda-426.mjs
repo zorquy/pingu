@@ -226,7 +226,7 @@ console.log('\n── 5. Guardar: UNA petición, no una por carta ──')
 console.log('\n── 6. Con las versiones separadas, cada casilla es la suya ──')
 {
   const { page, errores } = await abrir()
-  await page.click('#mcVistaSplit')
+  await page.click('#mcVistaVariantes')
   await page.waitForTimeout(900)
   await page.click('#mcMarcarAbrir')
   await page.waitForTimeout(400)

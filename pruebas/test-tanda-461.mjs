@@ -65,7 +65,7 @@ console.log('\n── 1. La chapa de la versión SE VE, no solo existe ──')
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
   await abrirSet(page)
-  await page.click('#mcVistaSplit')
+  await page.click('#mcVistaVariantes')
   await page.waitForTimeout(1000)
   const chapas = await page.locator('.mc-album-rejilla .mc-chapa-variante').allTextContents()
   check('cada casilla lleva su chapa', chapas.length === 24, String(chapas.length))
@@ -97,7 +97,7 @@ console.log('\n── 2. El velo del reverse, solo en las reverse ──')
 {
   const { page } = await abrir()
   await abrirSet(page)
-  await page.click('#mcVistaSplit')
+  await page.click('#mcVistaVariantes')
   await page.waitForTimeout(1000)
   const velos = await page.locator('.mc-album-rejilla .mc-bolsillo').evaluateAll((ns) =>
     ns.slice(0, 4).map((n) => ({
@@ -193,8 +193,13 @@ console.log('\n── 6. La fila de mandos: alineada y sin pisarse ──')
 {
   const { page } = await abrir()
   await abrirSet(page)
+  // Los que NO se ven no cuentan (desde la tanda 473 la barra lleva una ✕
+  // que solo sale cuando hay algo puesto, y un elemento escondido mide 0).
+  // Lo que esta prueba vigila es que la fila no quede escalonada, y una
+  // caja de 0 px no escalona nada.
   const altos = await page.locator('#mcAlbumFiltros > *').evaluateAll((ns) =>
-    ns.map((n) => Math.round(n.getBoundingClientRect().height)))
+    ns.filter((n) => n.getBoundingClientRect().height > 0)
+      .map((n) => Math.round(n.getBoundingClientRect().height)))
   check('todos los mandos miden lo mismo de alto', new Set(altos).size === 1, JSON.stringify(altos))
   // La flecha del desplegable la pinta `style.css` como fondo, a 12 px del
   // canto y con 12 de ancha: el texto tiene que parar antes de 24, y con

@@ -114,10 +114,15 @@ console.log('\n── 3. Los nombres de las dos vistas ──')
   await page.waitForTimeout(800)
   // «Una por carta / una por versión» decía el RESULTADO y había que
   // pensarlo; «juntar / separar» dice lo que hace.
-  check('se llaman juntar y separar',
-    (await page.locator('#mcVistaStack').textContent()) === 'Juntar variantes' &&
-      (await page.locator('#mcVistaSplit').textContent()) === 'Separar variantes',
-    `${await page.locator('#mcVistaStack').textContent()} / ${await page.locator('#mcVistaSplit').textContent()}`)
+  // EL VOCABULARIO SIGUE SIENDO EL DE LA 418 —juntar/separar, no «una por
+  // carta»—, pero desde la tanda 473 es UN botón y dice el ESTADO: un
+  // control que guarda un estado tiene que decir el estado, o hay que
+  // pulsarlo para saber qué tenías puesto.
+  const rotulo = () => page.locator('#mcVistaVariantes').textContent().then((t) => t.trim())
+  check('dice cómo están las variantes', (await rotulo()) === 'Variantes juntas', await rotulo())
+  await page.click('#mcVistaVariantes')
+  await page.waitForTimeout(700)
+  check('  …y al separarlas lo dice', (await rotulo()) === 'Variantes separadas', await rotulo())
   await page.close()
 }
 

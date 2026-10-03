@@ -73,17 +73,21 @@ console.log('\n── 1. Ni un enlace pocho dentro de una expansión ──')
     ns.map((n) => n.id || n.textContent.trim().slice(0, 30)))
   check('no queda ningún `link-btn` en la pantalla de una expansión',
     pochos.length === 0, pochos.join(' | '))
+  // EL DE VOLVER YA NO ES UNA CHAPA (tanda 474), y esto lo decía: la 459
+  // lo hizo chapa para quitarle la pinta de enlace pocho, y eso sigue
+  // estando bien — pero PINGU volvió con «estás ocupando mucho espacio
+  // arriba» y una chapa de 44 px en una fila para ella sola es mucho sitio.
+  // Ahora es una MIGA, y lo que hay que seguir vigilando es lo mismo de
+  // siempre: que no vuelva a ser un enlace azul y subrayado. Lo prueba
+  // `test-tanda-474.mjs`, que las mira todas.
   const volver = page.locator('#mcAlbumVolver')
-  check('  …y el de volver es una chapa',
-    (await volver.evaluate((n) => n.classList.contains('mc-chip-mando'))) === true)
-  // Un botón se lee como un botón: ni subrayado ni del azul de los enlaces.
+  check('  …y el de volver es una miga',
+    (await volver.evaluate((n) => n.classList.contains('mc-miga'))) === true)
   const pinta = await volver.evaluate((n) => {
     const cs = getComputedStyle(n)
-    return { deco: cs.textDecorationLine, borde: cs.borderTopWidth, alto: Math.round(n.getBoundingClientRect().height) }
+    return { deco: cs.textDecorationLine, alto: Math.round(n.getBoundingClientRect().height) }
   })
-  check('  …sin subrayado y con su contorno', pinta.deco === 'none' && pinta.borde !== '0px', JSON.stringify(pinta))
-  // Lo que se pulsa mide 44 px en una pantalla táctil (regla de la casa).
-  check('  …y mide 44 px de alto', pinta.alto >= 44, pinta.alto)
+  check('  …sin subrayado', pinta.deco === 'none', JSON.stringify(pinta))
   await page.close()
 }
 
@@ -166,7 +170,14 @@ console.log('\n── 4. Los mandos, en UNA fila que se desliza ──')
   })
   check('la fila de filtros es una tira de mandos', fila.mandos === true)
   check('  …de una sola altura de control', fila.alto <= 56, fila.alto)
-  check('  …y se desliza de verdad', fila.desliza === true)
+  // YA NO HACE FALTA QUE SE DESLICE (tanda 473), y eso es mejor y no peor:
+  // la 459 comprobó que la tira deslizaba porque había CINCO controles
+  // dentro y no cabían. La 473 se llevó cuatro al panel de «Filtros» y
+  // quedan dos, así que en un móvil entran de sobra. Lo que sigue
+  // importándole a esta prueba —que sea UNA fila y de una sola altura— se
+  // comprueba arriba; que no haga falta deslizarla lo mira la 473.
+  check('  …y ya ni hace falta deslizarla', fila.desliza === false, JSON.stringify(fila))
+  check('  …pero sigue pudiendo', fila.overflow === 'auto' || fila.overflow === 'scroll', fila.overflow)
   // Lo que se midió: antes de la 459 había 920 px entre el borde de arriba
   // y la primera carta, de los cuales 264 eran cuatro filas de controles.
   const hasta = await page.evaluate(() => {
@@ -184,14 +195,26 @@ console.log('\n── 5. «Solo las que me faltan» FILTRA, no solo se enciende 
   const { page } = await abrir()
   const cuantas = () => page.locator('.mc-album-rejilla > *').count()
   check('se abren las 48 cartas del set', (await cuantas()) === 48, await cuantas())
-  await page.locator('#mcAlbumSoloFaltan').scrollIntoViewIfNeeded()
+  // La chapa vive DENTRO del panel de «Filtros» desde la tanda 473, así
+  // que hay que abrirlo: encontrar un elemento no es poder pulsarlo (la
+  // lápida de la 447). Lo que esta prueba vigila sigue siendo lo mismo —
+  // que la chapa FILTRE y no solo se encienda.
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(400)
   await page.locator('#mcAlbumSoloFaltan').click()
   await page.waitForTimeout(600)
+  await page.click('#mcAlbumFiltrosVer')
+  await page.waitForTimeout(500)
   check('  …y con la chapa puesta quedan las 39 que faltan', (await cuantas()) === 39, await cuantas())
   check('  …con la chapa marcada como pulsada',
     (await page.locator('#mcAlbumSoloFaltan').getAttribute('aria-pressed')) === 'true')
+  // Y para apagarla, otra vez por el panel: es donde vive.
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(400)
   await page.locator('#mcAlbumSoloFaltan').click()
   await page.waitForTimeout(600)
+  await page.click('#mcAlbumFiltrosVer')
+  await page.waitForTimeout(500)
   check('  …y al apagarla vuelven las 48', (await cuantas()) === 48, await cuantas())
   await page.close()
 }

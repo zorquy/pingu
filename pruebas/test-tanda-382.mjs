@@ -102,6 +102,13 @@ async function abrir(opciones = {}) {
   check('  …con «cualquiera» la primera', /Cualquier rareza/.test(rarezas[0]), rarezas[0])
 
   const bolsillos = () => page.locator('.mc-bolsillo:not(.mc-hoja-fantasma .mc-bolsillo)').count()
+  // LOS FILTROS VIVEN DENTRO DEL PANEL desde la tanda 473, así que se abre
+  // una vez y se queda abierto durante toda esta parte: encontrar un
+  // elemento no es poder pulsarlo (la lápida de la 447). Leer un texto o
+  // contar elementos SÍ funciona con el panel delante — no es una
+  // comprobación de que se vea, es de lo que dice.
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(400)
   await page.selectOption('#mcAlbumRareza', 'Rara Ultra')
   await page.waitForTimeout(700)
   // 18 cartas, una de cada seis es Rara Ultra → 3.
@@ -128,6 +135,8 @@ async function abrir(opciones = {}) {
     await page.waitForTimeout(500)
     return limpio(await page.locator('#mcAlbumCuenta').textContent()) === ''
   }))
+  await page.click('#mcAlbumFiltrosVer')
+  await page.waitForTimeout(300)
   await page.close()
 }
 
@@ -140,7 +149,13 @@ console.log('\n── 3. Filtrar no deja la pantalla en blanco ──')
   // Lo que se sigue comprobando es el efecto: que al filtrar se ve lo
   // filtrado.
   const { page } = await abrir({ cuantas: 54 })
+  // El control vive DENTRO del panel de «Filtros» desde la tanda 473,
+  // así que hay que abrirlo: encontrar un elemento no es poder pulsarlo.
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(400)
   await page.selectOption('#mcAlbumRareza', 'Rara Ultra')
+  await page.click('#mcAlbumFiltrosVer')
+  await page.waitForTimeout(400)
   await page.waitForTimeout(700)
   check('se ve lo filtrado', (await page.locator('.mc-bolsillo').count()) > 0,
     String(await page.locator('.mc-bolsillo').count()))

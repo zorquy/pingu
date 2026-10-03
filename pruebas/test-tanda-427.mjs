@@ -151,16 +151,34 @@ const nums = (page) => page.locator('#mcAlbum .mc-bolsillo-num').allTextContents
   const { page, errores } = await abrir()
   check('el desplegable trae los cuatro', (await page.locator('#mcAlbumOrden option').count()) === 4)
   check('  …y empieza por número', (await nums(page)).join(',') === '101,102,103,104,105,106', (await nums(page)).join(','))
+  // El control vive DENTRO del panel de «Filtros» desde la tanda 473,
+  // así que hay que abrirlo: encontrar un elemento no es poder pulsarlo.
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(400)
   await page.selectOption('#mcAlbumOrden', 'nombre')
+  await page.click('#mcAlbumFiltrosVer')
+  await page.waitForTimeout(400)
   await page.waitForTimeout(600)
   check('por nombre', (await nums(page)).join(',') === '102,104,106,103,105,101', (await nums(page)).join(','))
+  // El control vive DENTRO del panel de «Filtros» desde la tanda 473,
+  // así que hay que abrirlo: encontrar un elemento no es poder pulsarlo.
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(400)
   await page.selectOption('#mcAlbumOrden', 'rareza')
+  await page.click('#mcAlbumFiltrosVer')
+  await page.waitForTimeout(400)
   await page.waitForTimeout(600)
   // 106 lleva «Rareza Inventada», que CONTIENE «rare»: sin bordes de
   // palabra se colaría en medio de la escala en vez de irse al final.
   check('por rareza, y la desconocida al final', (await nums(page)).join(',') === '102,104,103,105,101,106',
     (await nums(page)).join(','))
+  // El control vive DENTRO del panel de «Filtros» desde la tanda 473,
+  // así que hay que abrirlo: encontrar un elemento no es poder pulsarlo.
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(400)
   await page.selectOption('#mcAlbumOrden', 'falta')
+  await page.click('#mcAlbumFiltrosVer')
+  await page.waitForTimeout(400)
   await page.waitForTimeout(600)
   check('lo que te falta primero', (await nums(page)).join(',') === '101,103,104,106,102,105', (await nums(page)).join(','))
   check('sin errores', !errores.length, errores[0])
@@ -171,7 +189,13 @@ const nums = (page) => page.locator('#mcAlbum .mc-bolsillo-num').allTextContents
 console.log('\n── 5. El orden se lleva bien con lo demás ──')
 {
   const { page, errores } = await abrir()
+  // El control vive DENTRO del panel de «Filtros» desde la tanda 473,
+  // así que hay que abrirlo: encontrar un elemento no es poder pulsarlo.
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(400)
   await page.selectOption('#mcAlbumOrden', 'rareza')
+  await page.click('#mcAlbumFiltrosVer')
+  await page.waitForTimeout(400)
   await page.waitForTimeout(600)
   // Filtrar y ordenar son cosas distintas y tienen que componerse: el
   // orden va DESPUÉS del filtro, no en vez de él.
