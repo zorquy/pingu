@@ -205,6 +205,11 @@
 
 html {
   scroll-behavior: smooth;
+  /* La barra de arriba es `sticky; top: 0`, así que un ancla o un
+     `scrollIntoView` dejaban su destino TAPADO por ella (tanda 498; la 489
+     ya lo quiso y no cabía — el porqué largo, en SCHEMA.md). Los 72 son los
+     71 MEDIDOS de la barra en la retícula de 4. */
+  scroll-padding-top: 72px;
 }
 
 body {

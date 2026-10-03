@@ -51,6 +51,21 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mismo: lo que solo usa una pantalla, a su hoja. `components.css` y `js/app.js` los
   baja TODO el mundo — el CSS o JS de una sola página va en su propio
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
+- **Un nombre de clase COMPUESTO no lo ve ningún barrido** (tanda 498), y
+  antes de mudar CSS hay que buscarlo A MANO. `js/medallero.js` escribe
+  `class="medalla-chip medalla-${medalla}"`: de ahí se saca «medalla-chip»,
+  pero **«medalla-oro» no existe en ninguna parte del código** —se arma en
+  ejecución—, así que el barrido de `test-tanda-299.mjs` jura que es de
+  /aprender y de nadie más. Y es falso: la pinta un ayudante compartido al
+  que la PORTADA llega por `js/guide-card.js`, así que mudarla le habría
+  quitado la chapa de medalla a las tarjetas de guía de la portada. Es el
+  mismo susto que `.emoji-big` en la 491, y el patrón es siempre el mismo:
+  **el barrido dice «esta clase es de una sola pantalla» y miente**. Desde
+  la 498 el barrido apunta además el PREFIJO (`medalla-`) y perdona todo lo
+  que empiece por él — marca de más, nunca de menos, que es lo que hace
+  falta en una guarda: un falso negativo es CSS sin su hoja, un falso
+  positivo solo es una clase que no se puede mudar. Pero la regla para
+  quien muda es la de arriba: **greparla a mano en el JS**.
 - **Los COMENTARIOS DE CSS los baja TODO EL MUNDO** (tanda 489). Aquí no
   hay build step, así que un bloque de veinte líneas explicando el porqué en
   `style.css` o en `components.css` son bytes de la portada — y la portada

@@ -27022,3 +27022,56 @@ la API), la de leer con notas y mazos, `match_log.replay_id` con su índice
 torneos (si los torneos están puestos). Sin ejecutarla, la página sigue
 funcionando: guardar sin mazos, la lista sin ellos, y los avisos de
 `js/schema-check.js` en /admin.
+## Tanda 498 — lo que ningún barrido puede ver, y el `scroll-padding-top` que ya cabe
+
+### Lo de `aprender` NO se puede mudar, y casi lo muevo
+
+La 490 dejó medido que de `components.css` se podían sacar 0,34 KB más,
+los de `aprender.html`. Al ir a hacerlo salieron DOS cosas:
+
+1. `.medalla-chip` **no es de /aprender**. La escribe `chipMedallaHtml()` en
+   `js/medallero.js`, y a ese ayudante la **PORTADA** llega por
+   `js/guide-card.js`. Mudarla le habría quitado la chapa de medalla a las
+   tarjetas de guía de la portada. Lo cazó el barrido **ya arreglado** en la
+   491: con el regex viejo, `class="medalla-chip medalla-${m}"` era
+   invisible y la lista decía que era de /aprender.
+2. Y lo que **ningún barrido puede ver**: `medalla-oro`, `medalla-plata` y
+   `medalla-bronce` **no existen escritas en ninguna parte del código**. Se
+   arman en ejecución con `medalla-${medalla}`. Así que seguían saliendo
+   como «de /aprender» incluso con el regex bueno, y son igual de
+   compartidas que `medalla-chip`.
+
+Lo que quedaba de verdad movible —`esq-guia`, `esq-cuerpo`, `medallero`,
+`medallero-titulo`, `medallero-restante`— son unos 0,1 KB, y además
+`.esq-guia i` está dentro de una lista compartida del
+`@media (prefers-reduced-motion: reduce)` que habría que partir. **No vale
+la cirugía**: queda descartado, no pendiente.
+
+### El barrido, ahora con prefijos
+
+`test-tanda-299.mjs` apunta además el PREFIJO de lo que se arma en
+ejecución (`class="x-${…}"` → `x-`) y cuenta como USADA cualquier clase
+definida que empiece por él.
+
+Es de grano gordo a propósito: **marca de más, nunca de menos**. En una
+guarda, un falso negativo es CSS que se queda sin su hoja —un fallo en
+producción, invisible— y un falso positivo solo es una clase que no se
+puede mudar. Con el cambio puesto la prueba sigue en verde.
+
+Pero la red no sustituye al criterio, y eso está en `CLAUDE.md`: **antes de
+mudar una clase, greparla a mano en el JS.**
+
+### Y el `scroll-padding-top`
+
+Lo que la 489 quiso y no cupo. Con los 2,3 KB que dejaron la 490 y la 491,
+`html` estrena `scroll-padding-top: 72px` —los 71 medidos de la barra, en
+la retícula de 4—, así que un ancla, un `scrollIntoView` o el salto al
+contenido dejan de aterrizar debajo de la barra fija. La portada: 167,7 →
+**167,8 KB**.
+
+Sigue sin arreglar el clic de Playwright, y eso ya se sabía: su
+desplazamiento va por CDP y no honra `scroll-padding`. Esto es para el
+navegador de una persona.
+
+**Ficheros**: `css/style.css`, `CLAUDE.md`, y en la rama `pruebas`:
+`pruebas/test-tanda-299.mjs`.

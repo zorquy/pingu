@@ -185,6 +185,70 @@ partida de torneo y «Jugar desde aquí» en el laboratorio— va en las
 siguientes, con `supabase-migration-repeticiones.sql` ampliada (habrá que
 ejecutarla OTRA VEZ). `js/repeticiones/mazos.js` ya está en el árbol pero
 nadie lo importa todavía: no se sube en estas dos.
+**OJO, CHOQUE DE NÚMEROS (y van NUEVE)**: usé la 492 a la vez que la otra
+sesión, que además gastó de la 492 a la 497 de un tirón y llegó antes al
+remoto. Lo mío pasa a ser la **498**. Van 384, 394, 413, 420, 456, 462,
+480, 488 y esta. Y la lección nueva: mirar el remoto antes del commit NO
+basta si el otro empuja SEIS tandas mientras tú escribes una — lo que hace
+falta es mirarlo justo antes del **push**, que es cuando lo cacé.
+
+## 2026-10-03 — PINGU-Claude (tanda 498 — lo que ningún barrido puede ver)
+
+**Hecho**: iba a sacar de `components.css` los 0,34 KB de `aprender.html`
+que la 490 dejó medidos, y **no se pueden sacar**. Salieron dos cosas, y la
+segunda es la lección:
+
+1. `.medalla-chip` **no es de /aprender**: la escribe `chipMedallaHtml()` en
+   `js/medallero.js`, y a ese ayudante la **PORTADA** llega por
+   `js/guide-card.js`. Mudarla le habría quitado la chapa de medalla a las
+   tarjetas de guía de la portada. Lo cazó el barrido ya arreglado en la
+   491 — con el regex viejo era invisible.
+2. Y lo que **ningún barrido puede ver**: `medalla-oro`, `medalla-plata` y
+   `medalla-bronce` **no existen escritas en ninguna parte del código**. Se
+   arman con `medalla-${medalla}` en ejecución, así que seguían saliendo
+   como «de /aprender» incluso con el regex bueno. Son igual de compartidas
+   que `medalla-chip`.
+
+Lo que quedaba movible de verdad son ~0,1 KB y encima `.esq-guia i` está
+dentro de una lista compartida del `@media (prefers-reduced-motion)` que
+habría que partir. **No vale la cirugía: queda DESCARTADO, no pendiente.**
+
+**El barrido, ahora con prefijos**: `test-tanda-299.mjs` apunta el PREFIJO
+de lo que se arma en ejecución (`class="x-${…}"` → `x-`) y perdona todo lo
+que empiece por él. Es de grano gordo a propósito — **marca de más, nunca
+de menos**, porque en una guarda un falso negativo es CSS sin su hoja (un
+fallo invisible en producción) y un falso positivo solo es una clase que no
+se puede mudar. Sigue en verde.
+
+Y la norma para quien muda, en `CLAUDE.md`: **antes de mover una clase,
+greparla A MANO en el JS**. Van dos sustos iguales —`.emoji-big` en la 491
+y `.medalla-*` aquí— y el patrón es el mismo: el barrido dice «esta clase
+es de una sola pantalla» y miente.
+
+**Y el `scroll-padding-top`**, lo que la 489 quiso y no cupo: con los 2,3
+KB que dejaron la 490 y la 491, `html` estrena `scroll-padding-top: 72px`
+(los 71 medidos de la barra, en la retícula de 4), así que un ancla o el
+salto al contenido dejan de aterrizar debajo de la barra fija. Portada:
+167,7 → **167,8 KB**. Sigue sin arreglar el clic de Playwright, que va por
+CDP y no honra `scroll-padding` — eso ya se sabía.
+
+**Ficheros**: `css/style.css`, `CLAUDE.md`, `SCHEMA.md`, `BITACORA.md`. En
+la rama `pruebas`: `pruebas/test-tanda-299.mjs`.
+
+**Prueba**: `test-tanda-299` en verde con el barrido de prefijos y con la
+portada a 167,8 KB. Las dos pasadas de SUITE ENTERA de antes dieron **210
+verdes y CERO rojos** (una hasta la 489 y otra con la 490 y la 491 dentro);
+el **426 salió VERDE en las dos**, lo que confirma que su rojo de antes era
+una carrera y no un fallo — y que estuvo bien no ablandar la prueba.
+
+**En curso / pendiente**: (1) **Bulbapedia**: recomiendo descartarlo (SA
+comprometería parte de nuestra base a licencia no comercial para siempre, y
+en España aplica el derecho *sui generis* de bases de datos sobre una
+extracción masiva). Lo que sí vale es usarla A MANO como referencia.
+Pendiente de que PINGU lo cierre. (2) Si quiere los nombres occidentales
+exactos, la fuente a evaluar es **pokemontcg.io**, que ya usamos como
+respaldo de imagen en tres sitios. (3) Rigores pendientes desde la 443.
+(4) Queda 2,2 KB de margen en la portada.
 
 ## 2026-10-03 — PINGU-Claude (tanda 491 — lo del artículo a su hoja, y el agujero del barrido)
 
