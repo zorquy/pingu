@@ -156,7 +156,11 @@ const dia = (n, valor, sinPrecio = 0) => ({
   // El hueco está reservado: sin alto fijo el resumen pega un salto
   // cuando llega la consulta.
   const alto = await caja.locator('svg').evaluate((e) => Math.round(e.getBoundingClientRect().height))
-  check('  …con su hueco reservado', alto === 160, `${alto}px`)
+  // 180 desde la 464, que le dio sitio para que se lea con relieve. Lo
+  // que esta tanda defiende no es el número sino que el hueco ESTÉ: sin
+  // alto fijo el resumen pega un salto cuando llega la consulta. Así que
+  // se comprueba que haya uno y que coincida con el esqueleto de al lado.
+  check('  …con su hueco reservado', alto >= 120, `${alto}px`)
 
   // Y el color no es lo único que dice si sube: el signo va delante,
   // que es lo que lee quien no distingue los dos colores.
