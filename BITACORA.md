@@ -35,6 +35,29 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 464 — el gráfico del valor, con rangos)
+
+**Hecho**: PINGU, con una captura de Collectr: «quiero que pongas en
+cuántos días quieres ver el gráfico». Seis chapas (1D · 7D · 1M · 3M · 6M ·
+MAX) debajo del dibujo, con la elección recordada en el navegador. El corte
+se hace por FECHA y no por número de puntos —con una foto al día son lo
+mismo, pero con un hueco «los últimos 7 puntos» serían diez días—, y el
+rótulo dice los días DE VERDAD, como Collectr, no el nombre del rango. Y el
+tope: `valorHistorico` pedía 90 días, así que 6M y MAX habrían enseñado lo
+mismo que 3M sin decirlo; ahora pide 730. De paso se van el punto del
+último día y el pie de fechas, que repetían lo que dice la cifra de arriba,
+y el relleno pasa a degradado.
+
+**Ficheros**: `js/mi-coleccion/grafica-valor.js`, `js/mi-coleccion/datos.js`,
+`js/mi-coleccion.js`, `css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-464.mjs` (NUEVO) y un arreglo en la 377 (el alto de la gráfica).
+
+**En curso / pendiente**: de la lista de la noche queda el repaso del resto
+de pestañas de Mi colección (Panel, Cartas, Pokédex, Carpetas, Buscar) con
+el criterio de PINGU: más pequeño, más simple, sin enlaces pochos y sin
+botones anticuados. ⚠️ Sigue sin ejecutar
+`supabase-migration-nidoran-genero.sql`. **Rigores pendientes: 443 a 464.**
+
 ## 2026-10-03 — PINGU-Claude (tanda 463 — las rarezas oficiales, con su marca)
 
 **OJO, CHOQUE DE NÚMEROS (y van SEIS)**: esta era la 462 y la cogió Ibai

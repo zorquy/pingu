@@ -3088,13 +3088,32 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-valor-grafica {
   display: block;
   width: 100%;
-  height: 160px;
+  /* Más alta y de borde a borde (tanda 464): PINGU, con Collectr delante,
+     «el gráfico quiero que sea más así, más detallado». Lo que lo hace
+     detallado no es tener más datos —son los mismos— sino darle sitio:
+     con 180 px de alto y sin márgenes laterales, los mismos puntos
+     dibujan una línea con relieve en vez de una raya. */
+  height: 180px;
+  margin-inline: calc(var(--e-md) * -1);
+  width: calc(100% + var(--e-md) * 2);
 }
 
+/* El relleno, en degradado y no en un velo plano: es lo que separa una
+   gráfica de hoy de una de 2010. Los dos colores salen del mismo token,
+   así que sigue al tema sin tener que redefinirse. */
 .mc-valor-area {
-  fill: var(--navy);
-  opacity: 0.12;
+  fill: url('#mcValorDegradado');
   stroke: none;
+}
+
+.mc-valor-arriba {
+  stop-color: var(--navy);
+  stop-opacity: 0.28;
+}
+
+.mc-valor-abajo {
+  stop-color: var(--navy);
+  stop-opacity: 0;
 }
 
 .mc-valor-linea {
@@ -3108,19 +3127,70 @@ input.mc-alb-titulo:not([readonly]):focus {
   vector-effect: non-scaling-stroke;
 }
 
-.mc-valor-punto {
-  fill: var(--navy);
-  stroke: var(--white);
-  stroke-width: 2;
-  vector-effect: non-scaling-stroke;
+/* AQUÍ ESTABAN `.mc-valor-punto` y `.mc-valor-pie` (fuera en la 464). El
+   punto marcaba el último día y el pie ponía las dos fechas a los lados:
+   los dos decían lo que ya dice la cifra de arriba («348,20 € en los
+   últimos 119 días»), y en una gráfica que ahora va de borde a borde
+   estorbaban más de lo que contaban. PINGU: «prefiero la sencillez».
+
+   ── LOS RANGOS (tanda 464) ──
+   PINGU: «quiero que pongas en cuántos días quieres ver el gráfico: uno,
+   siete días, un mes, tres meses, seis meses o MAX». Como en Collectr: una
+   fila de chapas pequeñas debajo del dibujo, y la puesta, rellena. */
+.mc-valor-rangos {
+  display: flex;
+  gap: var(--e-xs);
+  justify-content: space-around;
+  margin: var(--e-sm) 0 0;
 }
 
-.mc-valor-pie {
-  display: flex;
-  justify-content: space-between;
-  margin: var(--e-xs) 0 var(--e-sm);
+.mc-valor-rango {
+  /* Reparten el ancho pero con tope: sin él, en un escritorio la chapa
+     puesta se convierte en una pastilla de 150 px y deja de parecer un
+     mando de una fila para parecer un botón principal. */
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 72px;
+  min-height: 32px;
+  padding: 0 var(--e-xs);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
   color: var(--text-mid);
+  font: inherit;
   font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-valor-rango:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.mc-valor-rango.activo {
+  background: var(--navy-solid);
+  /* Blanco FIJO: `--white` es la superficie y en oscuro vale #182430, así
+     que dejaría letra oscura sobre azul (la 315). */
+  color: var(--blanco-fijo);
+}
+
+/* Un rango sin dos puntos no se puede dibujar, así que su chapa se apaga:
+   un botón que no lleva a ninguna parte miente. El gris apagado ES el
+   mensaje, que es la excepción que admite la regla de la 311. */
+.mc-valor-rango:disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+
+.mc-valor-rango:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .mc-valor-rango {
+    min-height: 40px;
+  }
 }
 
 /* ── La Pokédex (tanda 381) ──

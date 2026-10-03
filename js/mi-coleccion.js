@@ -730,6 +730,18 @@ async function pintarVistazos() {
 // Se pide una sola vez por visita.
 let historico = null
 
+// EN CUÁNTOS DÍAS SE MIRA (tanda 464). PINGU, con Collectr delante:
+// «quiero que pongas en cuántos días quieres ver el gráfico». Se recuerda
+// en el navegador, como el color de la tapa y la vista de variantes: es
+// gusto de quien mira, no un dato de la colección.
+let rangoDelValor = 'MAX'
+try {
+  const guardado = localStorage.getItem('mc-valor-rango')
+  if (guardado) rangoDelValor = guardado
+} catch {
+  // En una ventana privada `localStorage` LANZA, no devuelve null.
+}
+
 async function pintarValorEnElTiempo() {
   const caja = $('mcValorCaja')
   if (!caja) return
@@ -744,12 +756,29 @@ async function pintarValorEnElTiempo() {
     // Con el valor de AHORA, que es el mismo que enseña la cifra de
     // arriba: la foto diaria es de las 4:07 y sin esto la pantalla
     // enseñaría dos totales distintos de lo mismo.
-    caja.innerHTML = `<h3>Lo que vale tu colección</h3>${historico.grafica.graficaHtml(historico.filas, { ahora: valorDeAhora() })}`
+    caja.innerHTML = `<h3>Lo que vale tu colección</h3>${historico.grafica.graficaHtml(historico.filas, { ahora: valorDeAhora(), rango: rangoDelValor })}`
+    engancharRangosDelValor()
   } catch {
     // Una gráfica que no llega no puede tumbar el resumen: se quita la
     // caja y lo demás sigue ahí.
     caja.remove()
   }
+}
+
+// Los botones de rango. Delegado en la CAJA y enganchado una sola vez: la
+// gráfica se repinta entera en cada cambio, así que un oyente por botón
+// se quedaría colgando de un botón que ya no está.
+function engancharRangosDelValor() {
+  const caja = $('mcValorCaja')
+  if (!caja || caja.dataset.enganchada) return
+  caja.dataset.enganchada = '1'
+  caja.addEventListener('click', (e2) => {
+    const b2 = e2.target.closest('[data-rango]')
+    if (!b2 || b2.disabled) return
+    rangoDelValor = b2.dataset.rango
+    try { localStorage.setItem('mc-valor-rango', rangoDelValor) } catch {}
+    void pintarValorEnElTiempo()
+  })
 }
 
 // ── Pestaña «Cartas» ──

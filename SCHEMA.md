@@ -24916,3 +24916,57 @@ cargan las cuatro.
 guardada en español, así que media base se quedaba sin brillo sin dar
 error. Ahora la tabla está en los nombres canónicos y `familiaDeBrillo`
 pasa por `rarezaEs` antes de buscar.
+
+---
+
+## Tanda 464 — el gráfico del valor, con sus rangos (oct. 2026)
+
+PINGU, con una captura de la app de Collectr: **«quiero que pongas en
+cuántos días quieres ver el gráfico: uno, siete días, un mes, tres meses,
+seis meses o MAX. Y según lo que cliques, que te muestre un gráfico u otro.
+Y el gráfico quiero que sea más así, más detallado»**.
+
+### Los rangos
+
+Seis chapas debajo del dibujo (1D · 7D · 1M · 3M · 6M · MAX), la puesta
+rellena, y la elección se recuerda en el navegador — como el color de la
+tapa y la vista de variantes: es gusto de quien mira, no un dato de la
+colección.
+
+Tres decisiones que no se ven pero sostienen el resto:
+
+- **El corte se hace por FECHA y no por cuántos puntos hay.** Con una foto
+  al día son lo mismo, pero el día que falte una —un despliegue, una noche
+  sin cron— «los últimos 7 puntos» serían diez días y el rótulo mentiría.
+- **Y se añade el punto de ANTES del corte solo si falta el del borde.**
+  Sin él, una serie con huecos empieza la línea a mitad del hueco y parece
+  que la colección no existía; añadiéndolo siempre, «1D» decía «en los
+  últimos 2 días».
+- **Un rango sin dos puntos no se dibuja**: cae en el que haya. Un botón
+  que no lleva a ninguna parte miente, y una línea plana de un punto diría
+  «no ha cambiado nada» cuando lo que pasa es que no sabemos nada (la
+  lección de la 319).
+
+### Y el rótulo dice los días DE VERDAD
+
+Como Collectr («in the last 151 days») y no el nombre del rango: con MAX
+puesto y dos semanas de historia, «todo» no dice nada y «en los últimos 14
+días» sí. El cambio y el porcentaje son **los del rango**, que es lo que
+hace que el botón sirva para algo.
+
+### El tope de 90 días, que habría hecho mentir a dos botones
+
+`valorHistorico` pedía 90 días. Estaba bien mientras la gráfica enseñaba
+«todo lo que hay» —nadie notaba el tope—, pero con botones de 6M y MAX los
+dos habrían enseñado exactamente lo mismo que 3M **sin decirlo**. Ahora
+pide 730: es UNA FILA POR DÍA Y POR PERSONA, así que dos años son 730 filas
+de cinco columnas.
+
+### Lo que se fue
+
+El punto del último día y el pie con las dos fechas a los lados. Los dos
+decían lo que ya dice la cifra de arriba, y en una gráfica que ahora va de
+borde a borde estorbaban más de lo que contaban. El relleno pasa a ser un
+degradado que se apaga hacia abajo, y la línea lleva
+`vector-effect="non-scaling-stroke"` porque el SVG se estira a lo ancho:
+sin él, el trazo sale más gordo en una pantalla ancha que en una estrecha.

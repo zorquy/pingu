@@ -323,7 +323,15 @@ export async function cartasDeEspecie(dex, limite = 300, mercado = 'WEST') {
 // La foto diaria la toma una función programada; aquí solo se lee. Y se
 // lee desde una fecha y no entera: para una gráfica de tres meses no
 // hacen falta tres años de días.
-export async function valorHistorico(userId, dias = 90) {
+// DOS AÑOS Y NO NOVENTA DÍAS (tanda 464). Los 90 estaban bien mientras la
+// gráfica enseñaba «todo lo que hay»: nadie notaba el tope. Desde que hay
+// botones de 6M y MAX, un tope de 90 días hace que los dos enseñen lo
+// mismo que 3M — un botón que miente sin dar ningún error.
+//
+// Y no cuesta nada: es UNA FILA POR DÍA Y POR PERSONA, así que dos años
+// son 730 filas de cinco columnas. Lo que habría que pensarse es un tope
+// por debajo, no por encima.
+export async function valorHistorico(userId, dias = 730) {
   const desde = new Date(Date.now() - dias * 86400000).toISOString().slice(0, 10)
   const { data, error } = await supabase
     .from('user_collection_value')
