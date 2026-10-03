@@ -35,6 +35,29 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 470 — la carta en negro, y la culpa era de `position`)
+
+**Hecho**: lo de PINGU por tercera vez, y esta vez con el mecanismo. La
+imagen ESTABA —cargada, a tamaño completo, opacidad 1— pero se pintaba
+debajo del nombre: `.mc-carta-sinfoto` va a `position: absolute` y la
+imagen no estaba posicionada; las de las cartas que NO tienes llevan
+`opacity: .55` y un `filter`, que CREAN contexto de apilamiento y las
+suben. O sea que `.tengo img { filter: none; opacity: 1 }` —la regla que
+pone la carta en color— era la que la escondía. La 441 arregló esto mismo
+en el otro pintador y dejó el porqué escrito al lado. Lo resolvió un
+`elementFromPoint`, no leer el CSS: por eso la prueba es un hit-test. Y el
+panel verde de la 469 se queda en un marco fino.
+
+**Ficheros**: `css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-470.mjs` (NUEVO) y un arreglo en la 469.
+
+**En curso / pendiente**: sigue la cola de PINGU — el idioma al añadir
+siguiendo al selector de catálogo; la barra de una expansión al estilo de
+Dex (buscador · vista · agrupar/dividir en UN botón · Filtros en panel);
+quitar los dos «volver» y poner migas; los iconos de cabecera detrás de un
+⋮; la Pokédex con datos deslizables; y Carpetas rediseñadas con subcarpetas.
+**Rigores pendientes: 443 a 470.**
+
 ## 2026-10-03 — PINGU-Claude (tanda 469 — la carta que se quedaba en negro)
 
 **Hecho**: PINGU lo dijo dos veces y la primera no lo encontré porque miré

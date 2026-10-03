@@ -916,16 +916,21 @@
   box-shadow: inset 0 0 0 1px var(--border), inset 0 0 0 7px var(--bg), inset 0 0 0 8px var(--border);
 }
 
-/* Y LA TUYA, CON COLOR. Es lo que PINGU pedía y lo que la imagen no podía
-   dar: el verde de «lo tienes», el mismo de las barras de progreso. */
+/* Y LA TUYA, CON EL MARCO VERDE Y NADA MÁS (tanda 470).
+ *
+ * La 469 le puso un panel verde entero, y PINGU: «mira cómo se queda; yo
+ * quiero la carta con color, simplemente. Ahora mismo se ve así y no se
+ * ve». Tenía razón: un rectángulo verde de 150 px no es «la carta con
+ * color», es un cartel —y encima tapaba la poca información que hay, que
+ * es el nombre—.
+ *
+ * Cuando la carta SÍ tiene escaneo, «con color» ya funciona y lo hace
+ * `.tengo img { filter: none }`. Esto es solo para cuando no lo tiene, y
+ * entonces lo único que hace falta es que se distinga de las que no
+ * tienes: el marco en verde y el nombre a plena luz. El cuánto lo dice el
+ * mando de copias, que está justo debajo. */
 .mc-bolsillo.tengo .mc-carta-sinfoto {
-  background:
-    linear-gradient(160deg, color-mix(in srgb, var(--success) 22%, transparent), transparent 65%),
-    color-mix(in srgb, var(--success) 8%, var(--white));
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--success) 45%, transparent),
-    inset 0 0 0 7px color-mix(in srgb, var(--success) 8%, var(--white)),
-    inset 0 0 0 8px color-mix(in srgb, var(--success) 35%, transparent);
+  box-shadow: inset 0 0 0 2px var(--success), inset 0 0 0 8px var(--bg), inset 0 0 0 9px var(--border);
   color: var(--text);
 }
 
@@ -1863,6 +1868,31 @@
  * reconocer de un vistazo si lo que falta es un Charizard o un Squirtle,
  * que es para lo que se mira la página. */
 .mc-bolsillo img {
+  /* ── AQUI ESTABA EL FALLO, y el culpable es `position` (tanda 470) ──
+   *
+   * PINGU, tres veces: «cuando agregas una carta se queda negra, no sale
+   * la imagen». Y no era la imagen: estaba cargada, a tamano completo y
+   * con opacidad 1. Lo que pasaba es que se pintaba DEBAJO del nombre.
+   *
+   * El nombre (`.mc-carta-sinfoto`) va a `position: absolute`, y un
+   * elemento POSICIONADO se pinta por encima del contenido en flujo. La
+   * imagen no estaba posicionada... pero las de las cartas que NO tienes
+   * llevan `opacity: 0.55` y un `filter`, **y las dos cosas crean un
+   * contexto de apilamiento**: eso las promociona a la capa de los
+   * posicionados y, por orden de DOM, quedan encima del nombre.
+   *
+   * O sea que la regla que pone la carta EN COLOR —`.tengo img { filter:
+   * none; opacity: 1 }`— era justamente la que la escondia: al quitarle la
+   * opacidad le quitaba lo que la mantenia arriba. Por eso solo pasaba con
+   * las que TIENES, que es como lo describia PINGU.
+   *
+   * La 441 arreglo esto mismo en `.mc-carta-foto img` y dejo el porque
+   * escrito al lado. Es la leccion de los DOS PINTADORES DE BOLSILLO otra
+   * vez (la 458): arreglar uno deja el otro con el fallo, y ni se nota.
+   *
+   * Sin `z-index`, que no hace falta: dos posicionados se pintan en orden
+   * de DOM y la imagen va despues del nombre. */
+  position: relative;
   width: 100%;
   height: 100%;
   object-fit: cover;

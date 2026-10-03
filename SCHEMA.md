@@ -25166,3 +25166,61 @@ leyendo el fondo con `/\d+/g`, y un `color-mix` se computa como
 `color(srgb 0.10 0.19 0.22)` —de 0 a 1 y con decimales—, así que leía 10,
 19 y 22 sobre 255. La cuenta salía… y daba 1.258.971. **Un verde que no se
 puede explicar no es un verde.**
+
+
+---
+
+## Tanda 470 — la carta que tienes se veía en negro, y la culpa era de `position` (oct. 2026)
+
+PINGU, **tres veces**: «cuando agregas una carta, mira cómo se queda en la
+lista: se queda negra, no sale la imagen. Yo quiero la carta con color,
+simplemente».
+
+Y no era la imagen. La imagen **estaba**: cargada, a tamaño completo, con
+opacidad 1 y 245 px de ancho natural. Lo que pasaba es que se pintaba
+**debajo del nombre**.
+
+### El mecanismo
+
+`.mc-carta-sinfoto` —el nombre que se enseña cuando no hay foto— va a
+`position: absolute`, y un elemento POSICIONADO se pinta por encima del
+contenido en flujo. La imagen del bolsillo no estaba posicionada… pero las
+de las cartas que NO tienes llevan `opacity: 0.55` y un `filter`, **y las
+dos cosas crean un contexto de apilamiento**. Eso las promociona a la capa
+de los posicionados y, por orden de DOM, quedan encima del nombre.
+
+O sea que **la regla que pone la carta EN COLOR era justamente la que la
+escondía**:
+
+```css
+.mc-bolsillo.tengo img { filter: none; opacity: 1; }
+```
+
+Al quitarle la opacidad y el filtro le quitaba lo único que la mantenía
+arriba. Por eso solo pasaba con las que TIENES — que es exactamente como lo
+describía PINGU— y por eso yo no lo encontré mirando: en una rejilla, las
+que no tienes salen bien.
+
+La 441 arregló esto mismo en `.mc-carta-foto img` y dejó el porqué escrito
+al lado, palabra por palabra. Es la lección de los **dos pintadores de
+bolsillo** (la 458) otra vez: arreglar uno deja el otro con el fallo, y ni
+se nota.
+
+### Por qué tardé tres intentos
+
+Las dos primeras veces lo busqué leyendo el CSS y mirando capturas, y las
+dos veces concluí otra cosa (la 469 se inventó un panel verde para tapar un
+agujero que no existía). Lo que lo resolvió fue **preguntarle al navegador
+qué elemento se pinta en el centro del bolsillo** — un `elementFromPoint`
+con los dos candidatos recibiendo el puntero. La respuesta fue
+`SPAN.mc-carta-sinfoto` en la que tengo e `IMG` en la que no, y ahí se
+acabó la discusión.
+
+Por eso la prueba es un hit-test y no una comprobación de clases: **qué se
+pinta encima no se deduce leyendo el CSS.**
+
+### Y el panel verde de la 469, a marco
+
+Se queda lo que sirve —que una carta sin escaneo se distinga de las que no
+tienes— con un marco verde fino y el nombre a plena luz. El relleno entero
+era un cartel que además tapaba el único dato que hay.
