@@ -150,9 +150,17 @@ const doble = ({ soloLiteral = true } = {}) => {
   // inglés ya está puesto y aun así no coincide.
   check('y «por mirar» queda SOLO el que de verdad lo pide', r.cuerpo.porMirar.length === 1 && r.cuerpo.porMirar[0].suyo === 'tk8b', JSON.stringify(r.cuerpo.porMirar))
   check('NO ESCRIBE NADA', !d.llamadas.some((l) => /patch|rpc|on_conflict/i.test(String(l))))
-  // Y la palabra «rechazado» desaparece de la respuesta: era una
-  // conclusión que la comparación de nombres no sostiene.
-  check('ya no se afirma ningún «rechazado»', !/rechaz/i.test(JSON.stringify(r.cuerpo)), JSON.stringify(Object.keys(r.cuerpo)))
+  // LA GUARDA DE ESTA TANDA, estrechada en la 506: desde la 506 SÍ hay una
+  // vía de rechazo, pero sale de una señal que el idioma no puede engañar
+  // (el código del set, los números de Pokédex). Lo que no puede pasar
+  // nunca es que un rechazo salga del NOMBRE — y en este doble ninguna
+  // señal dice nada (ni `tcg_online_code`, ni `code`, ni `dex_ids`), así
+  // que la lista de rechazos tiene que estar VACÍA aunque tres nombres
+  // discrepen.
+  check('sin ninguna señal, el nombre no rechaza NADA', (r.cuerpo.rechazados || []).length === 0, JSON.stringify(r.cuerpo.rechazados))
+  check('  …y los tres discrepantes están repartidos en las otras casillas',
+    r.cuerpo.confirmados + r.cuerpo.nuestroNombreEnEspanol + r.cuerpo.porMirar.length + r.cuerpo.sinComprobarTotal === r.cuerpo.verificadas,
+    JSON.stringify(r.cuerpo))
 }
 {
   // Un 404 de TODAS las formas sigue siendo «sin comprobar», no un rechazo.
@@ -173,12 +181,11 @@ console.log('\n── 5. Y el panel no vuelve a decir «rechazado» ──')
   const js = readFileSync('/home/user/pingu/admin/js/admin.js', 'utf8')
   const i = js.indexOf('async function verificarScrydex()')
   const fn = js.slice(i, i + js.slice(i).indexOf('\n}\n'))
-  // OJO: aquí no se busca «rechaz» a secas — es la trampa de la 312. El
-  // informe SÍ dice «tampoco es un rechazo», que es una frase buena y que
-  // contiene la cadena. Lo que no puede haber es un APARTADO que afirme
-  // rechazos ni una variable que los junte.
-  check('no hay apartado de rechazados', !/RECHAZADOS/.test(fn), (fn.match(/.{0,40}RECHAZADOS.{0,40}/) || [''])[0])
-  check('  …ni una lista de rechazados que pintar', !/\brechazados\b/.test(fn), (fn.match(/.{0,40}\brechazados\b.{0,40}/) || [''])[0])
+  // El panel SÍ tiene apartado de rechazos desde la 506 — pero tiene que
+  // decir DE DÓNDE sale, porque un rechazo a secas es lo que llevó a los
+  // ocho falsos. Y tiene que seguir diciendo que el nombre ya no decide.
+  check('el apartado de rechazos dice que sale de una SEÑAL', /RECHAZADOS DE VERDAD/.test(fn) && /se[ñn]al independiente del idioma/.test(fn), (fn.match(/.{0,80}RECHAZADOS.{0,80}/) || [''])[0])
+  check('  …y se dice que el nombre YA NO rechaza', /nombre YA NO puede rechazar/.test(fn))
   check('enseña «por mirar a mano» uno a uno', /porMirar\.map/.test(fn))
   check('y los del español aparte, con su porqué', /nuestroNombreEnEspanol/.test(fn) && /est[áa] en español/i.test(fn))
   check('sigue diciendo que no ha escrito nada', /no ha escrito nada/.test(fn))
