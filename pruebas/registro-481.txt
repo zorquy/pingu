@@ -1,0 +1,250 @@
+Preparación
+Rojo ha elegido cruz para el lanzamiento de moneda inicial.
+Azul ha ganado el lanzamiento de moneda.
+Azul ha decidido empezar en segundo lugar.
+Rojo ha robado 7 cartas de la mano inicial.
+- 7 cartas robadas.
+   • Más PP de N, Pokochos Gemelos, Energía Oscura Básica, Darumaka de N, Ultra Ball, Zorua de N, Zorua de N
+Azul ha robado 7 cartas de la mano inicial.
+- 7 cartas robadas.
+Azul ha declarado un mulligan.
+- Cartas mostradas por el mulligan número 1
+   • Camilla Nocturna, Cambio, Pokochos Gemelos, Ultra Ball, Caramelo Raro, Frogadier, Órdenes de Jefes
+Rojo ha robado una carta más porque Azul ha declarado al menos un mulligan.
+- Rojo ha robado Tarjeta Roja Especial.
+Rojo ha puesto en juego a Zorua de N en el Puesto Activo.
+Rojo ha puesto en juego a Zorua de N en la Banca.
+Azul ha puesto en juego a Shaymin en el Puesto Activo.
+
+Turno de Rojo
+Rojo ha robado Pecharunt.
+Rojo ha jugado Pokochos Gemelos.
+- Rojo ha robado 2 cartas y las ha puesto en juego en la Banca.
+   • Zorua de N, Zorua de N
+- Rojo ha barajado su baraja.
+Rojo ha unido Energía Oscura Básica al Zorua de N en el Puesto Activo.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha jugado Pokochos Gemelos.
+- Azul ha robado 2 cartas y las ha puesto en juego en la Banca.
+   • Budew, Dreepy
+- Azul ha barajado su baraja.
+Azul ha unido Globo Helio al Shaymin en el Puesto Activo.
+Azul ha retirado a Shaymin a la Banca.
+El Budew de Azul pasa a estar en el Puesto Activo.
+Azul ha jugado Pokétableta.
+- Azul ha robado Froakie.
+- Azul ha barajado su baraja.
+Azul ha puesto en juego a Froakie en la Banca.
+Azul ha unido Energía Fuego Básica al Dreepy en la Banca.
+Azul ha jugado Denis.
+- Azul ha robado Energía Psíquica Básica.
+- Azul ha unido Energía Agua Básica al Froakie en la Banca.
+- Azul ha barajado su baraja.
+El Budew de Azul ha infligido 20 puntos de daño usando Polen Picazón contra el Zorua de N de Rojo. El Zorua de N de Rojo ha recibido 10 puntos de daño más por su Debilidad al tipo Planta.
+- Resumen del daño:
+   • Daño base: 10 puntos de daño
+   • Debilidad al tipo Planta: 10 puntos de daño
+   • Daño total: 20 puntos de daño
+
+
+Turno de Rojo
+Rojo ha robado Ultra Ball.
+El Zorua de N de Rojo ha infligido 20 puntos de daño usando Arañazo contra el Budew de Azul.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha hecho que el Dreepy en Banca evolucione a Drakloak.
+El Drakloak de Azul ha usado Orden de Búsqueda.
+- Azul ha robado una carta.
+Azul ha hecho que el Froakie en Banca evolucione a Frogadier.
+Azul ha jugado Maya.
+- Azul ha robado 3 cartas.
+   • Fezandipiti ex, Drakloak, Dragapult ex
+- Azul ha barajado su baraja.
+Azul ha puesto en juego a Fezandipiti ex en la Banca.
+Azul ha unido Energía Psíquica Básica al Drakloak en la Banca.
+El Budew de Azul ha infligido 20 puntos de daño usando Polen Picazón contra el Zorua de N de Rojo. El Zorua de N de Rojo ha recibido 10 puntos de daño más por su Debilidad al tipo Planta.
+- Resumen del daño:
+   • Daño base: 10 puntos de daño
+   • Debilidad al tipo Planta: 10 puntos de daño
+   • Daño total: 20 puntos de daño
+
+
+Turno de Rojo
+Rojo ha robado Pokétableta.
+El Zorua de N de Rojo ha infligido 20 puntos de daño usando Arañazo contra el Budew de Azul.
+¡El Budew de Azul ha quedado Fuera de Combate!
+Rojo ha cogido una carta de Premio.
+Se ha añadido Zoroark ex de N a la mano de Rojo.
+El Shaymin de Azul pasa a estar en el Puesto Activo.
+
+Turno de Azul
+Azul ha robado una carta.
+El Drakloak de Azul ha usado Orden de Búsqueda.
+- Azul ha robado una carta.
+El Fezandipiti ex de Azul ha usado Giro de Guion.
+- Azul ha robado 3 cartas.
+Azul ha hecho que el Drakloak en Banca evolucione a Dragapult ex.
+Azul ha retirado a Shaymin a la Banca.
+El Dragapult ex de Azul pasa a estar en el Puesto Activo.
+Azul ha jugado Ultra Ball.
+- Azul ha descartado 2 cartas.
+   • Dragapult ex, Energía Psíquica Básica
+- Azul ha robado Dreepy.
+- Azul ha barajado su baraja.
+Azul ha puesto en juego a Dreepy en la Banca.
+Azul ha unido Energía Agua Básica al Frogadier en la Banca.
+Azul ha jugado Órdenes de Jefes.
+- El Zorua de N de Rojo se ha intercambiado con el Zorua de N de Rojo y pasa a ser el Pokémon Activo.
+El Zorua de N de Rojo pasa a estar en el Puesto Activo.
+El Dragapult ex de Azul ha infligido 200 puntos de daño usando Picado Fantasma contra el Zorua de N de Rojo.
+- El Zorua de N de Azul ha recibido 3 contadores de daño de Azul.
+- El Zorua de N de Azul ha recibido 3 contadores de daño de Azul.
+¡El Zorua de N de Rojo ha quedado Fuera de Combate!
+¡El Zorua de N de Rojo ha quedado Fuera de Combate!
+Se ha descartado Energía Oscura Básica del Zorua de N de Rojo.
+Azul ha cogido 2 cartas de Premio.
+Se ha añadido Una carta a la mano de Azul.
+Se ha añadido Una carta a la mano de Azul.
+El Zorua de N de Rojo pasa a estar en el Puesto Activo.
+
+Turno de Rojo
+Rojo ha robado Más PP de N.
+Rojo ha hecho que el Zorua de N en Banca evolucione a Zoroark ex de N.
+Rojo ha jugado Ultra Ball.
+- Rojo ha descartado 2 cartas.
+   • Ultra Ball, Darumaka de N
+- Rojo ha robado Fezandipiti ex.
+- Rojo ha barajado su baraja.
+Rojo ha puesto en juego a Fezandipiti ex en la Banca.
+Rojo ha jugado Más PP de N.
+- Rojo ha unido Energía Oscura Básica al Zoroark ex de N en la Banca.
+Rojo ha jugado Pokétableta.
+- Rojo ha robado Reshiram de N.
+- Rojo ha barajado su baraja.
+El Fezandipiti ex de Rojo ha usado Giro de Guion.
+- Rojo ha robado 3 cartas.
+   • Determinación de Lylia, Energía Oscura Básica, Energía Oscura Básica
+Rojo ha puesto en juego a Reshiram de N en la Banca.
+Rojo ha unido Energía Oscura Básica al Zoroark ex de N en la Banca.
+El Zoroark ex de N de Rojo ha usado Intercambiar.
+- Rojo ha descartado Energía Oscura Básica.
+- Rojo ha robado 2 cartas.
+   • Más PP de N, Pokétableta
+Rojo ha puesto en juego a Pecharunt en la Banca.
+Rojo ha jugado Más PP de N.
+- Rojo ha unido Energía Oscura Básica al Zoroark ex de N en la Banca.
+Rojo ha jugado Determinación de Lylia.
+- Rojo ha puesto 3 cartas en su baraja y ha barajado todas las cartas.
+   • Más PP de N, Tarjeta Roja Especial, Pokétableta
+- Rojo ha robado 6 cartas.
+   • Determinación de Lylia, Mochi Cadena, Palacio de N, Pokochos Gemelos, Órdenes de Jefes, Zoroark ex de N
+Rojo ha puesto en juego la carta de Estadio Palacio de N.
+Rojo ha hecho que el Zorua de N del Puesto Activo evolucione a Zoroark ex de N.
+El Zoroark ex de N de Rojo ha usado Intercambiar.
+- Rojo ha descartado Pokochos Gemelos.
+- Rojo ha robado 2 cartas.
+   • Pokochos Gemelos, Energía Oscura Básica
+Rojo ha retirado a Zoroark ex de N a la Banca.
+El Zoroark ex de N de Rojo pasa a estar en el Puesto Activo.
+El Zoroark ex de N de Rojo ha infligido 170 puntos de daño usando Bromista Nocturno contra el Dragapult ex de Azul.
+- Rojo ha elegido Llama Virtuosa
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha hecho que el Dreepy en Banca evolucione a Drakloak.
+El Drakloak de Azul ha usado Orden de Búsqueda.
+- Azul ha robado una carta.
+Azul ha puesto en juego la carta de Estadio Fábrica del Team Rocket.
+- Rojo ha descartado Palacio de N.
+Azul ha hecho que el Frogadier en Banca evolucione a Mega-Greninja ex.
+Azul ha jugado Petrel del Team Rocket.
+- Azul ha robado Ciclón Levante.
+- Azul ha barajado su baraja.
+Azul ha jugado Fábrica del Team Rocket.
+- Azul ha robado 2 cartas.
+Azul ha puesto en juego a Froakie en la Banca.
+El Dragapult ex de Azul ha infligido 200 puntos de daño usando Picado Fantasma contra el Zoroark ex de N de Rojo.
+- El Fezandipiti ex de Azul ha recibido un contador de daño de Azul.
+- El Pecharunt de Azul ha recibido 2 contadores de daño de Azul.
+- El Zoroark ex de N de Azul ha recibido 3 contadores de daño de Azul.
+
+Turno de Rojo
+Rojo ha robado Camilla Nocturna.
+Rojo ha jugado Camilla Nocturna.
+- Rojo ha movido Zorua de N de Rojo a su mano.
+Rojo ha puesto en juego a Zorua de N en la Banca.
+Rojo ha unido Energía Oscura Básica al Zoroark ex de N en la Banca.
+Rojo ha jugado Órdenes de Jefes.
+- El Mega-Greninja ex de Azul se ha intercambiado con el Dragapult ex de Azul y pasa a ser el Pokémon Activo.
+El Mega-Greninja ex de Azul pasa a estar en el Puesto Activo.
+El Zoroark ex de N de Rojo ha usado Intercambiar.
+- Rojo ha descartado Pokochos Gemelos.
+- Rojo ha robado 2 cartas.
+   • Energía Oscura Básica, Más PP de N
+El Zoroark ex de N de Rojo ha usado Intercambiar.
+- Rojo ha descartado Energía Oscura Básica.
+- Rojo ha robado 2 cartas.
+   • Zekrom de N, Energía Oscura Básica
+Rojo ha jugado Más PP de N.
+- Rojo ha unido Energía Oscura Básica al Zoroark ex de N en la Banca.
+El Zoroark ex de N de Rojo ha infligido 460 puntos de daño usando Bromista Nocturno contra el Mega-Greninja ex de Azul.
+- Resumen del daño:
+   • 23 contadores de daño: 460 puntos de daño
+
+- Rojo ha elegido Ira Recia
+¡El Mega-Greninja ex de Azul ha quedado Fuera de Combate!
+- Se han descartado 4 cartas del Mega-Greninja ex de Azul.
+   • Energía Agua Básica, Energía Agua Básica, Frogadier, Froakie
+Rojo ha cogido 3 cartas de Premio.
+Se ha añadido Órdenes de Jefes a la mano de Rojo.
+Se ha añadido Mochi Cadena a la mano de Rojo.
+Se ha añadido Zoroark ex de N a la mano de Rojo.
+El Froakie de Azul pasa a estar en el Puesto Activo.
+
+Turno de Azul
+Azul ha robado una carta.
+El Drakloak de Azul ha usado Orden de Búsqueda.
+- Azul ha robado una carta.
+El Fezandipiti ex de Azul ha usado Giro de Guion.
+- Azul ha robado 3 cartas.
+Azul ha jugado Caramelo Raro.
+- Azul ha hecho que el Froakie del Puesto Activo evolucione a Greninja ex.
+Azul ha jugado Apoyo de Nanci.
+- Azul ha unido Energía Agua Básica al Greninja ex en el Puesto Activo.
+- Azul ha unido Energía Agua Básica al Greninja ex en el Puesto Activo.
+Azul ha jugado Ciclón Levante.
+- Azul ha movido 5 cartas de Azul a su mano.
+   • Dragapult ex, Energía Fuego Básica, Energía Psíquica Básica, Drakloak, Dreepy
+Azul ha puesto en juego a Dreepy en la Banca.
+Azul ha unido Energía Fuego Básica al Greninja ex en el Puesto Activo.
+El Greninja ex de Azul ha infligido 120 puntos de daño usando Ráfaga Espejismo contra el Zoroark ex de N de Rojo.
+- El Zorua de N de Rojo ha recibido 120 puntos de daño.
+- Se han descartado 2 cartas del Greninja ex de Azul.
+   • Energía Agua Básica, Energía Fuego Básica
+¡El Zoroark ex de N de Rojo ha quedado Fuera de Combate!
+- Se han descartado 4 cartas del Zoroark ex de N de Rojo.
+   • Energía Oscura Básica, Energía Oscura Básica, Energía Oscura Básica, Zorua de N
+¡El Zorua de N de Rojo ha quedado Fuera de Combate!
+Azul ha cogido 3 cartas de Premio.
+Se ha añadido Una carta a la mano de Azul.
+Se ha añadido Una carta a la mano de Azul.
+Se ha añadido Una carta a la mano de Azul.
+El Zoroark ex de N de Rojo pasa a estar en el Puesto Activo.
+
+Turno de Rojo
+Rojo ha robado Interruptor de Energía.
+Rojo ha puesto en juego a Zekrom de N en la Banca.
+Rojo ha jugado Órdenes de Jefes.
+- El Fezandipiti ex de Azul se ha intercambiado con el Greninja ex de Azul y pasa a ser el Pokémon Activo.
+El Fezandipiti ex de Azul pasa a estar en el Puesto Activo.
+El Zoroark ex de N de Rojo ha infligido 250 puntos de daño usando Bromista Nocturno contra el Fezandipiti ex de Azul.
+- Rojo ha elegido Furia Trueno
+¡El Fezandipiti ex de Azul ha quedado Fuera de Combate!
+Rojo ha cogido 2 cartas de Premio.
+Se ha añadido Energía Oscura Básica a la mano de Rojo.
+Se ha añadido Ultra Ball a la mano de Rojo.
+Todas las cartas de Premio cogidas. Rojo ha ganado.
