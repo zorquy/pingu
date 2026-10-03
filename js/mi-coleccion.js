@@ -1681,7 +1681,7 @@ async function cargarSets() {
     // El logo y la serie viajan desde la tanda 372: la estantería se ve
     // por los logos, y agrupar por serie es lo que hace navegable una
     // lista de 220 colecciones.
-    .select('id,market,name,serie_id,serie_name,logo_path,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code')
+    .select('id,market,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code')
     .eq('market', mercado)
     .order('release_date', { ascending: false, nullsFirst: false })
     .limit(1000)
@@ -1822,7 +1822,12 @@ function tarjetaDeSet(set, tengo) {
   const suMercado = set.market || mercado
   const logoIngles = suMercado === 'WEST' ? null : urlDeLogoPorPartes(set.serie_id, set.id, 'WEST')
   const simbolo = set.symbol_url ? `${set.symbol_url}.webp` : null
-  const dibujos = [logo, logoAMano, logoIngles, simbolo].filter(Boolean)
+  // SCRYDEX VA PRIMERO (tanda 507). Es de pago y tiene los logos que a
+  // TCGdex le faltan, así que manda — pero la cadena de TCGdex se queda
+  // DETRÁS y no se borra: un respaldo que vive en el mismo sitio no es un
+  // respaldo (tanda 321), y el día que su CDN no conteste se sigue viendo
+  // algo. Su URL va entera y sin extensión, que es como la publican.
+  const dibujos = [set.logo_scrydex, logo, logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
   const completo = total && tengo >= total
   const codigo = set.tcg_online_code || ''
   // EL NOMBRE, SIEMPRE A LA VISTA (tanda 458), y el logo a un lado.

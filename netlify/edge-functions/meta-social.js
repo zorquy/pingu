@@ -1080,7 +1080,7 @@ async function metaDeColeccion(url) {
   // resuelvan igual.
   let set = await pedir(
     `tcg_sets?or=(${encodeURIComponent(filtroDeColeccion(clave))})&market=eq.WEST` +
-      '&select=id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
+      '&select=id,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
   )
   // Pokémon TCG Pocket es otro juego: su colección no tiene página aquí.
   if (!set || !esDelTCG(set)) return null
@@ -1092,7 +1092,7 @@ async function metaDeColeccion(url) {
   if (padre) {
     const suyo = await pedir(
       `tcg_sets?id=eq.${encodeURIComponent(padre)}&market=eq.WEST` +
-        '&select=id,name,serie_id,serie_name,logo_path,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
+        '&select=id,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
     )
     if (suyo) set = suyo
   }

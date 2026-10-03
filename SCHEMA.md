@@ -27675,3 +27675,123 @@ donde creemos.
 `pruebas/test-tanda-506.mjs` y el fixture real; las de la 504 y la 505
 estrechadas —la de la 505 ya no pide «cero rechazos» sino «el nombre no
 rechaza NADA», que es lo que de verdad enseñó.
+
+## Tanda 507 — la primera escritura desde Scrydex: los sets
+
+PINGU: «estamos pagando Scrydex, de algo tiene que servir. Tráete cartas,
+logos, tráete todo. Empieza por el catálogo completo inglés. Fíate del
+catálogo de Scrydex, y si falta algo en Scrydex cógelo de las otras cosas».
+
+Scrydex pasa a ser la **fuente principal** del catálogo occidental y TCGdex
+el **respaldo**. Esta tanda es la mitad pequeña y la que se puede mirar a
+ojo: los sets, 210 filas. Las cartas son 21.476 y van aparte.
+
+**Hay que ejecutar `supabase-migration-scrydex.sql`.** Añade tres columnas
+y no borra ni renombra nada; si falta, la función contesta 409 diciendo
+cuál es.
+
+### Por qué columnas NUEVAS y no las de siempre
+
+Porque `logo_path` e `image_path` **no guardan una URL**: guardan un trozo
+de ruta de TCGdex sin el idioma delante (`swsh/swsh3/logo`), y quien pinta
+le monta alrededor el dominio, el idioma y la extensión. Y la calidad se
+escribe distinto en cada sitio — TCGdex pide `/high.webp`, Scrydex
+`/large`. Meter una URL de Scrydex en esas columnas es la trampa de la
+tanda 335 (una columna con dos trabajos) y el síntoma sería una imagen rota
+que nadie distingue de una buena.
+
+Y `symbol_url`, que parecía libre porque guarda una URL entera, tampoco lo
+está: se pinta como `${set.symbol_url}.webp`, así que le falta la extensión
+a propósito.
+
+De ahí **una columna por fuente**: `tcg_sets.logo_scrydex`,
+`tcg_sets.symbol_scrydex`, `tcg_cards.image_scrydex`. El nombre dice de
+dónde viene —que es justo lo que no se puede deducir de una columna vacía,
+la lección de las tandas 484 y 486— y hace imposible confundir las formas.
+
+**Y no se borra nada.** Lo de TCGdex se queda y sigue siendo el respaldo:
+un respaldo que vive en el mismo sitio no es un respaldo (tanda 321). La
+cadena de /mi-coleccion queda
+`[logo_scrydex, logo, logoAMano, logoIngles, symbol_scrydex, simbolo]`.
+
+### Las tres reglas de seguridad de `scrydex-sets`
+
+**1. Ensayo en seco por defecto.** `escribir` solo cuenta si es exactamente
+`true` (un `undefined`, un `''` o un `0` no escriben), y el ensayo devuelve
+fila a fila lo que cambiaría **con el valor de antes al lado**
+(`loQueCambia`). El botón del panel hace el ensayo, lo pinta entero y
+pregunta con el número delante antes de escribir. Netlify despliega esta
+rama en directo: una escritura contra producción que no se puede mirar
+antes es una escritura a ciegas.
+
+**2. Solo sets con el emparejamiento confirmado**, por una señal que el
+idioma no puede engañar (tanda 506): el código del set —gratis— o los
+números de Pokédex de una carta —un crédito—. Lo que no se confirma no se
+escribe, que es exactamente lo que costaron las tandas 504 y 505.
+
+**3. No se pisa nada nuestro.** Las columnas de Scrydex son nuevas y se
+escriben siempre que él las tenga. Las nuestras (`release_date`,
+`tcg_online_code`, `card_count_official`) solo se rellenan si están
+vacías — y la fila lleva **siempre las mismas claves**, con el valor
+nuestro cuando lo hay, porque PostgREST exige claves uniformes en todos los
+objetos de una misma sentencia y «no pisar» quitando claves partiría el
+upsert en diez sentencias.
+
+Hay además un `TOPE_DE_ESCRITURA` de 260: si saldrían más sets que eso,
+algo ha ido mal en el emparejamiento y no se escribe nada.
+
+### El fallo silencioso de esta tanda
+
+Si un `select` de `tcg_sets` no pide `logo_scrydex`, **se escriben 160
+logos y en pantalla no cambia nada, sin un solo error**. Eran SEIS `select`
+en cuatro ficheros, incluido `netlify/edge-functions/meta-social.js`, que
+es la otra mitad del artículo y tiene que decir lo mismo que el navegador.
+
+Lo vigila `test-tanda-507.mjs` escrito contra la **forma** del fallo
+(lección de la 303): toda lista de columnas que mencione `logo_path` tiene
+que traer también `logo_scrydex`. Y se mira lista por lista, no el fichero
+entero — con un `select` arreglado de cinco, el fichero contendría la
+cadena y la comprobación pasaría (trampa de la 312). La primera versión de
+esa comprobación casaba además `urlDeLogo(set.logo_path, …)`, que es código
+y no una consulta, y daba un rojo que no era.
+
+### `emparejarSets` exigía NUESTRA fecha, y eso dejaba fuera a los que más falta hacen
+
+`emparejarSets` casa por fecha y cuenta, y si nuestra fila no tiene fecha
+se daba por perdida. Pero **los sets sin fecha son exactamente los que la
+tanda 322 encontró vacíos** —el listado de TCGdex es un «SetResume» y no
+trae la fecha—, o sea los que más falta hace rellenar. Círculo cerrado.
+
+Ahora, cuando no hay fecha nuestra, queda el **código**: «DRI», «UNB»,
+«30C» es corto, canónico y no depende del idioma, así que es una llave
+mejor que la fecha. Va solo en ese caso y no antes de la fecha a propósito:
+así todo lo que ya emparejaba sigue emparejando igual y esto solo rescata.
+Y si dos expansiones suyas comparten código, el código no identifica a
+nadie y **no se elige a ojo**.
+
+El informe dice ahora `porQueSeEmparejan` y `porQueNoSeEmparejan`
+agrupados: «sin emparejar: 37» no dice nada que se pueda arreglar, «31
+porque no tenemos ni su fecha ni su código» sí.
+
+### La guarda del relleno (tanda 499) aquí es obligatoria
+
+Su servidor de imágenes contesta **200 con una imagen de relleno** para
+cualquier id que no exista. Y la cadena de dibujos solo pasa al siguiente
+cuando la imagen **da error** — un relleno no da error, así que se pintaría
+un cuadro de «no image» en una colección y nadie lo distinguiría de un
+logo. Cada URL se mira antes de guardarla, con un `Range` de 1.500 bytes
+(las imágenes no gastan créditos).
+
+Y una cosa de pruebas que valió la pena: **ese guardarraíl no se podía
+probar**. No se pueden fabricar unos bytes cuyo sha-1 empiece por una
+huella dada, así que la prueba no llegaba nunca a la rama que tira la URL
+—y es justo la rama que importa—. La huella pasa a ser **inyectable**
+(`huellaImpl`), como el `fetchImpl` y el `restImpl`; la decisión la sigue
+tomando `esRelleno` de verdad. Mutar la rama ahora se caza.
+
+**Ficheros**: `supabase-migration-scrydex.sql` (nuevo),
+`netlify/functions/scrydex-sets.mjs` (nuevo), `netlify/lib/scrydex.mjs`,
+`admin/index.html`, `admin/js/admin.js`, `js/mi-coleccion.js`,
+`js/carta-nucleo.js`, `js/cartas.js`, `js/coleccion.js`,
+`netlify/edge-functions/meta-social.js`. Prueba:
+`pruebas/test-tanda-507.mjs`, con catorce mutaciones y las catorce cazadas.

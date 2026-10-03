@@ -141,7 +141,28 @@ export function emparejarSets(nuestros, suyos, campos = {}) {
   for (const nuestro of nuestros || []) {
     const h = huellaDeSet(nuestro, campos.nuestros)
     if (!h.fecha) {
-      sueltos.push({ nuestro, porque: 'no tenemos su fecha de salida' })
+      // SIN NUESTRA FECHA QUEDA EL CÓDIGO (tanda 507), y es una llave
+      // MEJOR: «DRI», «UNB», «30C» es corto, canónico y no depende del
+      // idioma. Hasta ahora un set sin fecha se daba por perdido sin
+      // más — y los sets sin fecha son exactamente los que la tanda 322
+      // encontró vacíos, o sea los que más falta hace rellenar.
+      //
+      // Va solo en este caso y no antes de la fecha a propósito: así lo
+      // que ya emparejaba sigue emparejando igual, y esto solo RESCATA.
+      const porCodigo = h.codigo
+        ? deEllos.filter((c) => !yaUsados.has(c.set) && c.h.codigo && c.h.codigo === h.codigo)
+        : []
+      if (porCodigo.length === 1) {
+        yaUsados.add(porCodigo[0].set)
+        pares.push({ nuestro, suyo: porCodigo[0].set, por: 'código' })
+        continue
+      }
+      sueltos.push({
+        nuestro,
+        porque: h.codigo
+          ? `no tenemos su fecha y su código (${h.codigo}) no casa con uno solo de los suyos`
+          : 'no tenemos ni su fecha ni su código',
+      })
       continue
     }
     const candidatos = deEllos.filter((c) => !yaUsados.has(c.set) && casan(h, c.h))
@@ -622,4 +643,60 @@ export function cuentaDelInforme(verificadas, casillas) {
     cuadra: false,
     aviso: `LAS CASILLAS NO SUMAN: ${suma} de ${verificadas}. Falta una casilla por enseñar.`,
   }
+}
+
+// ── La fila de un set, con Scrydex delante y TCGdex detrás (tanda 507) ──
+//
+// PINGU: «fíate del catálogo de Scrydex, y si falta algo en Scrydex
+// cógelo de las otras cosas». Aquí está esa regla escrita UNA vez.
+//
+// Dos clases de columna, y la diferencia importa:
+//
+//   · Las de Scrydex (`logo_scrydex`, `symbol_scrydex`) son NUEVAS y se
+//     escriben siempre que él las tenga. No pisan nada: lo de TCGdex se
+//     queda donde está y sigue siendo el respaldo.
+//
+//   · Las NUESTRAS (`release_date`, `tcg_online_code`,
+//     `card_count_official`) solo se rellenan si están vacías. Son las
+//     que la tanda 322 encontró a null en los 220 sets porque el listado
+//     de TCGdex es un «SetResume» y no las trae.
+//
+// Y devuelve SIEMPRE las mismas claves, con el valor nuestro cuando lo
+// hay: PostgREST exige claves uniformes en todos los objetos de una
+// misma sentencia, y una escritura que repite el valor que ya estaba no
+// hace nada. Así se respeta «no pisar» sin partir el upsert en diez
+// sentencias distintas.
+export function filaDeSetConScrydex(nuestro, suyo) {
+  const suLogo = typeof suyo?.logo === 'string' && /^https:\/\//.test(suyo.logo) ? suyo.logo : null
+  const suSimbolo = typeof suyo?.symbol === 'string' && /^https:\/\//.test(suyo.symbol) ? suyo.symbol : null
+  const suFecha = fecha(suyo?.release_date)
+  const oficial = Number(suyo?.printed_total)
+  return {
+    id: nuestro.id,
+    market: nuestro.market || 'WEST',
+    // `name` es `not null`, así que va en el upsert — con EL NUESTRO. El
+    // nombre de un set es lo que lee la gente y el nuestro está en
+    // español a propósito.
+    name: nuestro.name,
+    logo_scrydex: suLogo || nuestro.logo_scrydex || null,
+    symbol_scrydex: suSimbolo || nuestro.symbol_scrydex || null,
+    release_date: nuestro.release_date || suFecha || null,
+    tcg_online_code: nuestro.tcg_online_code || suyo?.code || null,
+    card_count_official: nuestro.card_count_official || (Number.isFinite(oficial) && oficial > 0 ? oficial : null),
+  }
+}
+
+// Qué cambia de verdad entre la fila que hay y la que se va a escribir.
+// Existe para el ENSAYO EN SECO: una escritura contra producción que no
+// se puede mirar antes es una escritura a ciegas, y esta rama la
+// despliega Netlify en directo.
+export function loQueCambia(antes, despues) {
+  const cambios = {}
+  for (const k of Object.keys(despues)) {
+    if (k === 'id' || k === 'market' || k === 'name') continue
+    const a = antes?.[k] ?? null
+    const b = despues[k] ?? null
+    if (String(a) !== String(b)) cambios[k] = { de: a, a: b }
+  }
+  return cambios
 }

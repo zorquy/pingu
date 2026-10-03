@@ -3046,6 +3046,97 @@ const SONDAS_SCRYDEX = [
 //
 // Cuesta TRES créditos, no trescientos: lo único que se le pide a la API es
 // su lista de expansiones; las imágenes no gastan y su dirección se deriva.
+// Traer de Scrydex lo que falta de nuestros SETS (tanda 507).
+//
+// Es la primera escritura desde Scrydex, así que va en dos pasos: ENSAYO
+// EN SECO —que enseña fila a fila lo que cambiaría, con el valor de antes
+// al lado— y solo después, si se confirma, la escritura. Netlify despliega
+// esta rama en directo: una escritura contra producción que no se puede
+// mirar antes es una escritura a ciegas.
+async function setsScrydex() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnSetsScrydex')
+  const { data: { session } = {} } = await supabase.auth.getSession()
+  if (!session) {
+    cardsNota('No hay sesión: vuelve a entrar.', true)
+    return
+  }
+  const pedir = async (escribir) => {
+    const res = await fetch('/.netlify/functions/scrydex-sets', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ mercado: 'WEST', idioma: 'en', escribir }),
+    })
+    return { ok: res.ok, estado: res.status, r: await res.json().catch(() => ({})) }
+  }
+  const pintar = (r) => [
+    r.ensayoEnSeco ? '── ENSAYO EN SECO: NO SE HA TOCADO LA BASE ──' : `── ESCRITO: ${r.escritas} sets ──`,
+    '',
+    `Créditos: ${r.creditos}`,
+    `Sus expansiones: ${r.susExpansiones}`,
+    `Su listado trae logos: ${r.suListadoTraeLogos} · símbolos: ${r.suListadoTraeSimbolos}`,
+    '',
+    `Emparejados: ${r.emparejados} ${JSON.stringify(r.porQueSeEmparejan)} · ambiguos ${r.ambiguos}`,
+    `Sin emparejar: ${r.sinEmparejar} ${JSON.stringify(r.porQueNoSeEmparejan)}`,
+    ...(r.ejemplosSinEmparejar || []).map((x) => `  · ${x}`),
+    `Confirmados: ${r.confirmados} ${JSON.stringify(r.porQueSeConfirman)}`,
+    r.rechazados?.length ? `RECHAZADOS (no se escriben): ${r.rechazados.length}` : '',
+    ...(r.rechazados || []).map((x) => `  · ${x.par} — ${x.porque}`),
+    r.sinConfirmar?.length ? `SIN CONFIRMAR (no se escriben): ${r.sinConfirmar.length}` : '',
+    ...(r.sinConfirmar || []).slice(0, 15).map((x) => `  · ${x.par} — ${x.porque}`),
+    r.cuadraLaCuenta === false ? `⚠ ${r.AVISO}` : '',
+    '',
+    `Descartados por ser la imagen de RELLENO: ${r.descartadosPorRelleno}`,
+    ...(r.ejemplosDeRelleno || []).map((x) => `  · ${x.set} ${x.campo} — ${x.porque}`),
+    '',
+    `Sin nada que cambiar: ${r.sinNadaQueCambiar} · A ESCRIBIR: ${r.aEscribir}`,
+    '',
+    'FILA A FILA, con el valor de ANTES al lado:',
+    ...(r.cambios || []).map((c) => `  · ${c.set} → ${c.suyo} (${c.confirmado})\n      ${JSON.stringify(c.cambia)}`),
+    r.cambiosTotal > (r.cambios || []).length ? `  … y ${r.cambiosTotal - r.cambios.length} más` : '',
+  ].filter(Boolean).join('\n')
+
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = 'Ensayo en seco: mirando qué traería de Scrydex… (no escribe nada)'
+  try {
+    const { ok, estado, r } = await pedir(false)
+    if (!ok) {
+      caja.value = `No se ha podido: ${r.error || estado}${r.detalle ? '\n\n' + r.detalle : ''}`
+      cardsNota(r.error || `Ha fallado (${estado}).`, true)
+      boton.disabled = false
+      return
+    }
+    caja.value = pintar(r)
+    if (!r.aEscribir) {
+      cardsNota('Ensayo hecho: no hay nada que escribir.')
+      boton.disabled = false
+      return
+    }
+    // LA CONFIRMACIÓN ES LO QUE SEPARA EL ENSAYO DE LA ESCRITURA. Con el
+    // número delante, que es lo que se está aceptando.
+    if (!window.confirm(`El ensayo dice que cambiarían ${r.aEscribir} sets. Lee el cuadro y, si está bien, acepta para ESCRIBIRLO en la base.`)) {
+      cardsNota('Ensayo hecho. No se ha escrito nada.')
+      boton.disabled = false
+      return
+    }
+    caja.value = 'Escribiendo…'
+    const dos = await pedir(true)
+    if (!dos.ok) {
+      caja.value = `No se ha podido escribir: ${dos.r.error || dos.estado}`
+      cardsNota(dos.r.error || `Ha fallado (${dos.estado}).`, true)
+      boton.disabled = false
+      return
+    }
+    caja.value = pintar(dos.r)
+    cardsNota(`Escritos ${dos.r.escritas} sets desde Scrydex.`)
+  } catch (err) {
+    caja.value = `No se ha podido: ${err.message}`
+    cardsNota(`Ha fallado: ${err.message}`, true)
+  }
+  boton.disabled = false
+}
+
 // Comprobar que los emparejamientos de set son los que creemos (tanda 504).
 //
 // La medida de la 503 contestó la pregunta que había —«¿tienen las fotos
@@ -3194,7 +3285,9 @@ async function medirInglesScrydex() {
     caja.value = [
       `Créditos gastados: ${r.creditos}`,
       `Sus expansiones inglesas: ${r.susExpansiones}`,
-      `Emparejados: ${r.emparejados} · ambiguos ${r.ambiguos} · sin emparejar ${r.sinEmparejar}`,
+      `Emparejados: ${r.emparejados} ${JSON.stringify(r.porQueSeEmparejan)} · ambiguos ${r.ambiguos}`,
+    `Sin emparejar: ${r.sinEmparejar} ${JSON.stringify(r.porQueNoSeEmparejan)}`,
+    ...(r.ejemplosSinEmparejar || []).map((x) => `  · ${x}`),
       '',
       bloque('LOGOS (nos faltan 63 de 210):', r.logos),
       '',
@@ -3615,6 +3708,7 @@ function initCardsSection() {
   document.getElementById('btnSondearScrydex')?.addEventListener('click', sondearScrydex)
   document.getElementById('btnMedirIngles')?.addEventListener('click', medirInglesScrydex)
   document.getElementById('btnVerificarScrydex')?.addEventListener('click', verificarScrydex)
+  document.getElementById('btnSetsScrydex')?.addEventListener('click', setsScrydex)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )

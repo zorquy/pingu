@@ -33,7 +33,7 @@ function insignia(set) {
 async function colecciones() {
   const { data, error } = await supabase
     .from('tcg_sets')
-    .select('id,name,serie_id,serie_name,logo_path,tcg_online_code,release_date,card_count_official,card_count_total')
+    .select('id,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,tcg_online_code,release_date,card_count_official,card_count_total')
     .eq('market', MERCADO)
     // Lo más nuevo primero, y las que no tienen fecha al final. Aquí sí
     // funciona `nullslast`: es una columna PROPIA de la tabla, no una
