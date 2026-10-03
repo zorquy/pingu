@@ -113,7 +113,7 @@ console.log('\n── 3. El reparto cuenta DISTINTAS ──')
   check('  …y Espada y Escudo 2', /Espada y Escudo 2/.test(t.replace(/\s+/g, ' ')), t.slice(0, 120))
   const porRareza = page.locator('.mc-resumen-rejilla .mc-resumen-caja').nth(3)
   // Las rarezas salen EN CRISTIANO, no en el inglés del catálogo.
-  check('las rarezas salen traducidas', /Hiperrara|Ultra rara|Rara holo/.test(limpio(await porRareza.textContent())),
+  check('las rarezas salen traducidas', /Rara Híper|Rara Ultra|Rara Holo/.test(limpio(await porRareza.textContent())),
     limpio(await porRareza.textContent()).slice(0, 120))
   await page.close()
 }

@@ -98,13 +98,13 @@ async function abrir(opciones = {}) {
   // escrita a mano: un set con rareza nueva la trae solo (lección 323).
   const rarezas = await page.locator('#mcAlbumRareza option').allTextContents()
   check('las rarezas salen de la colección', rarezas.length === 4, rarezas.join(' | '))
-  check('  …y en español', rarezas.includes('Ultra rara'), rarezas.join(' | '))
+  check('  …y en español', rarezas.includes('Rara Ultra'), rarezas.join(' | '))
   check('  …con «cualquiera» la primera', /Cualquier rareza/.test(rarezas[0]), rarezas[0])
 
   const bolsillos = () => page.locator('.mc-bolsillo:not(.mc-hoja-fantasma .mc-bolsillo)').count()
-  await page.selectOption('#mcAlbumRareza', 'Ultra rara')
+  await page.selectOption('#mcAlbumRareza', 'Rara Ultra')
   await page.waitForTimeout(700)
-  // 18 cartas, una de cada seis es Ultra rara → 3.
+  // 18 cartas, una de cada seis es Rara Ultra → 3.
   check('filtrar por rareza deja 3', /3 de 18 cartas a la vista/.test(limpio(await page.locator('#mcAlbumCuenta').textContent())),
     limpio(await page.locator('#mcAlbumCuenta').textContent()))
 
@@ -140,7 +140,7 @@ console.log('\n── 3. Filtrar no deja la pantalla en blanco ──')
   // Lo que se sigue comprobando es el efecto: que al filtrar se ve lo
   // filtrado.
   const { page } = await abrir({ cuantas: 54 })
-  await page.selectOption('#mcAlbumRareza', 'Ultra rara')
+  await page.selectOption('#mcAlbumRareza', 'Rara Ultra')
   await page.waitForTimeout(700)
   check('se ve lo filtrado', (await page.locator('.mc-bolsillo').count()) > 0,
     String(await page.locator('.mc-bolsillo').count()))

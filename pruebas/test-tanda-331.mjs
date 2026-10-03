@@ -118,7 +118,7 @@ console.log('\n── 1. Una carta sin engordar se pinta ENTERA ──')
   check('sale la debilidad, con su icono',
     (await page.locator('.carta-combate div').first().locator('.carta-energia').count()) === 1)
   const ficha = limpio((await page.locator('.carta-ficha div').allTextContents()).join(' | '))
-  check('y la rareza y el ilustrador, que tampoco estaban', /Doble rara/.test(ficha) && /PLANETA/.test(ficha), ficha)
+  check('y la rareza y el ilustrador, que tampoco estaban', /Rara Doble/.test(ficha) && /PLANETA/.test(ficha), ficha)
   // Español primero, y sin pedir el inglés de más.
   check('el precio pide la carta en inglés', pidioElPrecio(pedidas), pedidas.join(','))
   check('solo se pide el español', sinLaDelPrecio(pedidas).join(',') === 'es', pedidas.join(','))

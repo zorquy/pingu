@@ -107,7 +107,10 @@ console.log('\n── 1. La ficha dice lo que la carta es ──')
 
   const ficha = limpio((await page.locator('.carta-ficha div').allTextContents()).join(' | '))
   check('la ficha trae el número sobre el total', ficha.includes('36 / 162'), ficha)
-  check('…la rareza en español', ficha.includes('Doble rara'), ficha)
+  // Los nombres de las rarezas son los OFICIALES en español desde la 462
+  // («Rara Doble», no «Doble rara»): es el mismo que devuelve TCGdex cuando
+  // se le pide en español, que es como está guardada media base.
+  check('…la rareza en español', ficha.includes('Rara Doble'), ficha)
   check('…y quién la ilustró', ficha.includes('Shin Nagasawa'), ficha)
 
   const combate = limpio((await page.locator('.carta-combate div').allTextContents()).join(' | '))
