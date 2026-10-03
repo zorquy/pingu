@@ -35,6 +35,33 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 469 — la carta que se quedaba en negro)
+
+**Hecho**: PINGU lo dijo dos veces y la primera no lo encontré porque miré
+con las imágenes FUNCIONANDO. TCGdex no tiene escaneo de cientos de cartas;
+cuando la cadena se agota, el `onerror` quita el `<img>` y queda el nombre
+sobre el fondo del bolsillo — en oscuro, un rectángulo negro—, y el de la
+carta que TIENES es el que peor sale porque pierde la sombra del bolsillo
+vacío y gana el brillo del plástico. Y «ponerse con color» no se podía
+arreglar donde se intentó: la regla era `.tengo img { filter: none }`, que
+descolorea una imagen que no está. Ahora el bolsillo sin foto dibuja una
+carta —marco por dentro, nombre en medio— y la tuya, en verde. La prueba
+sirve las imágenes CAÍDAS a propósito.
+
+**Ficheros**: `css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-469.mjs` (NUEVO).
+
+**En curso / pendiente** (cola de PINGU, por orden): el idioma al añadir
+tiene que seguir al selector de catálogo —si miras el inglés, la carta se
+añade en inglés y no en español—; la barra de una expansión al estilo de
+Dex (buscador · vista · agrupar/dividir en UN botón · Filtros en un panel);
+quitar los dos «volver» y poner migas; los cuatro iconos de la cabecera
+detrás de un ⋮; la Pokédex con sus datos deslizables y más pequeños; y el
+rediseño de Carpetas con subcarpetas, al estilo de Dex.
+⚠️ Nidoran: la migración está ejecutada y las cartas volverán cuando
+`cartas-pokedex` repase la cola.
+**Rigores pendientes: 443 a 469.**
+
 ## 2026-10-03 — PINGU-Claude (tanda 468 — el botón de atrás, que no volvía)
 
 **Hecho**: PINGU: «abro una expansión, le doy para atrás y me saca al

@@ -882,6 +882,53 @@
   font-weight: 400;
 }
 
+/* ── UN BOLSILLO SIN ESCANEO NO ES UN AGUJERO NEGRO (tanda 469) ──
+ *
+ * PINGU, dos veces: «cuando agregas una carta, mira cómo se queda en la
+ * lista: se queda negra, no sale la imagen; debería ponerse con color».
+ *
+ * Y las dos cosas eran la misma. TCGdex no tiene escaneo de cientos de
+ * cartas —las viejas y las de los catálogos que no son el inglés—, así que
+ * la cadena de respaldos se agota, el `onerror` quita el `<img>` y lo que
+ * queda es el nombre sobre el fondo del bolsillo. En el tema oscuro eso es
+ * literalmente un rectángulo negro… y el de la carta que TIENES es el que
+ * peor sale, porque pierde la sombra interior del bolsillo vacío y gana el
+ * brillo del plástico encima.
+ *
+ * Y «ponerse con color» NO PUEDE arreglarse donde se intentó: `.tengo img
+ * { filter: none }` quita el gris de una imagen… que no está. Si no hay
+ * foto, el color tiene que ponerlo ESTO.
+ *
+ * Lo que se dibuja es una carta de verdad aunque no haya escaneo: el marco
+ * por dentro, el nombre en medio y, cuando es tuya, el color de la casa.
+ * Así una rejilla con medio catálogo sin foto sigue leyéndose como un
+ * álbum y no como una pantalla rota. */
+.mc-bolsillo .mc-carta-sinfoto,
+.mc-carta-foto .mc-carta-sinfoto {
+  gap: 2px;
+  padding: var(--e-md) var(--e-sm);
+  border: 0;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--text) 7%, transparent), transparent 60%),
+    var(--bg);
+  /* El marco de la carta, por dentro: es lo que hace que un rectángulo
+     parezca una carta sin dibujar nada. */
+  box-shadow: inset 0 0 0 1px var(--border), inset 0 0 0 7px var(--bg), inset 0 0 0 8px var(--border);
+}
+
+/* Y LA TUYA, CON COLOR. Es lo que PINGU pedía y lo que la imagen no podía
+   dar: el verde de «lo tienes», el mismo de las barras de progreso. */
+.mc-bolsillo.tengo .mc-carta-sinfoto {
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--success) 22%, transparent), transparent 65%),
+    color-mix(in srgb, var(--success) 8%, var(--white));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--success) 45%, transparent),
+    inset 0 0 0 7px color-mix(in srgb, var(--success) 8%, var(--white)),
+    inset 0 0 0 8px color-mix(in srgb, var(--success) 35%, transparent);
+  color: var(--text);
+}
+
 /* La imagen tapa al nombre mientras esté.
    `position: relative` SIN `z-index`, y no es un olvido: dos elementos
    POSICIONADOS se pintan en orden de DOM, y la imagen va detrás del nombre

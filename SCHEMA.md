@@ -25126,3 +25126,43 @@ lo que dicen.
 `goBack()` y `goForward()` de verdad. Comprobar que se llama a `pushState`
 no prueba que el botón de atrás funcione — es la lección de la 313: una
 prueba que mira si se LLAMA a una función no prueba lo que la función hace.
+
+---
+
+## Tanda 469 — un bolsillo sin escaneo no es un agujero negro (oct. 2026)
+
+PINGU, dos veces: **«cuando agregas una carta, mira cómo se queda en la
+lista: se queda negra, no sale la imagen. Y lo que debería salir es, en vez
+de estar así en gris la carta, que se ponga con color»**.
+
+Las dos cosas eran la misma, y la primera vez no la encontré porque **miré
+con las imágenes funcionando**.
+
+TCGdex no tiene escaneo de cientos de cartas —las viejas, y casi todas las
+de los catálogos que no son el inglés—. Cuando la cadena de respaldos se
+agota, el `onerror` **quita el `<img>`** y lo que queda es el nombre sobre
+el fondo del bolsillo: en el tema oscuro, un rectángulo negro. Y el de la
+carta que TIENES es el que peor sale, porque pierde la sombra interior del
+bolsillo vacío y gana el brillo del plástico encima.
+
+Y «ponerse con color» **no se podía arreglar donde se intentó**: la regla
+que lo hacía es `.tengo img { filter: none }`, que le quita el gris a una
+imagen… que no está.
+
+Ahora, sin foto, el bolsillo dibuja una carta igual: el marco por dentro
+—que es lo que hace que un rectángulo parezca una carta sin dibujar nada—,
+el nombre en medio y, cuando es tuya, el verde de «lo tienes», el mismo de
+las barras de progreso.
+
+### La prueba sirve las imágenes CAÍDAS a propósito
+
+Es la lección de la 441 al revés. Allí se dijo «una captura con los datos a
+medias no es la pantalla, es OTRA pantalla»; aquí **esa otra pantalla es la
+que hay que mirar**, porque en producción le pasa a cientos de cartas. Con
+las imágenes funcionando, este fallo no existe.
+
+Y de paso, una trampa de la propia prueba: el contraste se calculaba
+leyendo el fondo con `/\d+/g`, y un `color-mix` se computa como
+`color(srgb 0.10 0.19 0.22)` —de 0 a 1 y con decimales—, así que leía 10,
+19 y 22 sobre 255. La cuenta salía… y daba 1.258.971. **Un verde que no se
+puede explicar no es un verde.**
