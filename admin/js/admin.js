@@ -3072,8 +3072,10 @@ async function verificarScrydex() {
   caja.value = 'Verificando los emparejamientos contra Scrydex, carta a carta…'
 
   const porMirar = []
+  const rechazados = []
   const enEspanol = []
   const sinComprobar = []
+  const avisos = []
   let enEspanolTotal = 0
   let confirmados = 0
   let emparejados = 0
@@ -3103,10 +3105,15 @@ async function verificarScrydex() {
       confirmados += r.confirmados
       cartasPedidas += r.verificadas || 0
       porMirar.push(...(r.porMirar || []))
+      rechazados.push(...(r.rechazados || []))
+      // SI LA CUENTA NO CUADRA, SE DICE. Es lo que faltó en la pasada de la
+      // 505: el panel en caché leía un campo que ya no existía y se comió
+      // nueve pares sin que nada chistara.
+      if (r.cuadraLaCuenta === false) avisos.push(r.AVISO || 'Las casillas no suman el total.')
       enEspanol.push(...(r.ejemplosEnEspanol || []))
       enEspanolTotal += r.nuestroNombreEnEspanol || 0
       sinComprobar.push(...(r.sinComprobar || []))
-      caja.value = `Verificando… ${r.verificadosEnEstaPasada} · confirmados ${confirmados} · por mirar ${porMirar.length}`
+      caja.value = `Verificando… ${r.verificadosEnEstaPasada} · confirmados ${confirmados} · rechazados ${rechazados.length} · por mirar ${porMirar.length}`
       if (r.siguienteDesde == null) break
       desde = r.siguienteDesde
     }
@@ -3114,7 +3121,12 @@ async function verificarScrydex() {
       `Emparejados: ${emparejados} · ambiguos ${ambiguos} · sin emparejar ${sinEmparejar}`,
       `Comprobados en ${pasadas} pasada(s): ${cartasPedidas} · créditos ≈ ${cartasPedidas + pasadas * 3}`,
       '',
+      ...avisos.map((a) => `⚠ ${a}`),
+      avisos.length ? '' : null,
       `CONFIRMADOS: ${confirmados}`,
+      '',
+      `RECHAZADOS DE VERDAD (una señal independiente del idioma los desmiente): ${rechazados.length}`,
+      ...rechazados.map((x) => `  · ${x.nuestro} → ${x.suyo} — ${x.porque}`),
       '',
       `POR MIRAR A MANO: ${porMirar.length}`,
       ...porMirar.map((x) => `  · ${x.nuestro} → ${x.suyo} (${x.por}) — nuestra ${x.carta}, suya «${x.suya}»`),
@@ -3126,16 +3138,22 @@ async function verificarScrydex() {
       ...sinComprobar.slice(0, 30).map((x) => `  · ${x.par} — ${x.porque}`),
       '',
       'CÓMO SE LEE ESTO:',
-      '  · «por mirar a mano» son nombres que no coinciden y de los que NO se',
-      '    puede demostrar que la culpa sea nuestra. Solo estos hay que mirar.',
+      '  · «confirmado» dice CON QUÉ señal: el código del set («UNB») y los',
+      '    números de Pokédex deciden; el ilustrador, los PS y el nombre solo',
+      '    confirman. El nombre YA NO puede rechazar nada (tandas 504 y 505).',
+      '  · «rechazado de verdad» es un código de set distinto o dos listas de',
+      '    Pokédex sin un número en común. Eso no se explica con una traducción.',
+      '  · «por mirar a mano» son nombres que no coinciden, sin ninguna señal',
+      '    que decida, y de los que NO se puede demostrar que la culpa sea',
+      '    nuestra. Solo estos hay que mirar.',
       '  · «nuestro nombre está en español» NO dice nada del par: nuestro',
       '    `name` vale lo mismo que `name_es`, o sea que lleva el español',
       '    metido dentro. Es un fallo NUESTRO, de los que la 335 dejó a medias.',
       '  · «sin comprobar» tampoco es un rechazo: casi siempre es que esa',
       '    carta nuestra no existe en su set.',
       '  · Esto no ha escrito nada en la base.',
-    ].join('\n')
-    cardsNota(`Verificado: ${confirmados} confirmados, ${porMirar.length} por mirar.`)
+    ].filter((l) => l !== null).join('\n')
+    cardsNota(`Verificado: ${confirmados} confirmados, ${rechazados.length} rechazados, ${porMirar.length} por mirar.`)
   } catch (err) {
     caja.value = `No se ha podido: ${err.message}`
     cardsNota(`Ha fallado: ${err.message}`, true)

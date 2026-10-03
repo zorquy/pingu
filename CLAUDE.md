@@ -66,6 +66,43 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   falta en una guarda: un falso negativo es CSS sin su hoja, un falso
   positivo solo es una clase que no se puede mudar. Pero la regla para
   quien muda es la de arriba: **greparla a mano en el JS**.
+- **Una señal que puede CONFIRMAR no siempre puede RECHAZAR, y hay que
+  escribir cuál es cuál** (tanda 506, el final de la serie 504-505-506).
+  Verificar los emparejamientos con Scrydex se intentó tres veces. Lo que lo
+  resolvió fue tener delante su ficha de verdad (`cards/sm10-1`) y encontrar
+  **cuatro señales que el idioma no puede engañar**: `expansion.code`
+  («UNB», que es nuestro `tcg_online_code`), `national_pokedex_numbers`
+  (nuestro `dex_ids`), `artist` (nuestro `illustrator`) y `hp`. Y la mejor
+  no era la que yo iba buscando —el ilustrador—, sino el CÓDIGO DEL SET:
+  porque la pregunta va sobre el SET y no sobre la carta, y viene gratis en
+  la misma petición. Las señales van en dos clases y la diferencia es la
+  norma: **DECIDEN** (confirman y rechazan) el código del set y la Pokédex,
+  porque un código distinto o dos listas de Pokédex sin un número en común
+  no se explican con una traducción; **CONFIRMAN SOLO** el ilustrador (los
+  catálogos lo acreditan «Mitsuhiro Arita» o «Arita Mitsuhiro»), los PS
+  (cientos de cartas comparten 260) y el nombre. Un falso negativo deja un
+  par sin verificar; un falso positivo mete el logo de otro set en la base.
+- **Dos guardas que se cubren una a otra no se pueden observar NINGUNA**
+  (tanda 506, y es la de la 314 en su forma pura). La regla «el nombre no
+  rechaza» estaba escrita dos veces: la señal devolvía «muda» cuando en
+  realidad discrepaba, Y la política solo miraba las que deciden. Con las
+  dos puestas, quitar cualquiera no cambiaba nada y el rigor lo apuntaba
+  como «sin detectar» — tres mutaciones seguidas salieron así. Y de paso la
+  señal MENTÍA, así que el informe no podía enseñar «el nombre discrepa pero
+  el código confirma», que es información. La salida: **que cada señal diga
+  lo que ve (`coincide`/`discrepa`/`muda`) y que decida UNO**, con un solo
+  interruptor (`decide`). Entonces las tres mutaciones se cazan.
+- **Un informe cuyas casillas no suman el total tiene un agujero, y nadie
+  avisa** (tanda 506). El panel enseñó «160 confirmados + 2 sin comprobar»
+  de 171 verificados: faltaban NUEVE y no salió ni un error. El navegador
+  tenía el panel viejo en CACHÉ y leía un campo que la respuesta ya no
+  traía, así que una casilla entera se perdió en silencio — y los números
+  que quedaban eran creíbles. Desde la 506 la respuesta trae
+  `cuadraLaCuenta` y el panel lo canta. Y la guarda vive en una función
+  pura (`cuentaDelInforme`) por un motivo: **una guarda que solo se prueba
+  cuando NO salta no se está probando** — ponerle `cuadra = true` a pelo
+  pasaba desapercibido hasta que la prueba la llamó con los números reales
+  de la pasada mala (171 contra 160+2).
 - **El MISMO alfabeto en otro IDIOMA no lo detecta ninguna guarda** (tanda
   505), y es la trampa de la 483 un paso más allá. El verificador de la 504
   comparaba el nombre de una carta nuestra con el de Scrydex y llamaba

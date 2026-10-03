@@ -35,6 +35,77 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 — PINGU-Claude (tanda 506 — verificar con señales que el idioma no puede engañar)
+
+**Hecho**: el final de la serie. La 504 verificó los emparejamientos por el
+nombre de una carta y falló los OCHO rechazos; la 505 le quitó la palabra
+«rechazado» porque la comparación no la sostenía y arregló once de los trece
+404. Esto es lo que faltaba, y salió de **tener delante su ficha de verdad**
+(`cards/sm10-1`, sondeada por PINGU) en vez de imaginármela:
+
+```
+"artist": "Mitsuhiro Arita",
+"national_pokedex_numbers": [794, 795],
+"hp": "260",
+"expansion": { "id": "sm10", "code": "UNB", "total": 238, … }
+```
+
+Cuatro señales que el idioma no puede engañar. **Y la mejor no era la que yo
+iba buscando** —el ilustrador—: es `expansion.code`, «UNB», que es nuestro
+`tcg_online_code`. Va sobre el SET, que es justo lo que se verifica, y viene
+gratis en la petición que ya hacíamos.
+
+Van en dos clases: **deciden** (confirman y rechazan) el código del set y
+los números de Pokédex; **confirman solo** el ilustrador —los catálogos lo
+acreditan al revés—, los PS —cientos de cartas comparten 260— y el nombre.
+El caso que costó dos tandas, `sm10 → sm10` con nuestra carta «Pheromosa y
+Buzzwole GX» contra su «Pheromosa & Buzzwole-GX», ahora se CONFIRMA por el
+código, con el nombre en español y todo.
+
+**Tres cosas más que salieron del rigor y valen más que la tanda**:
+
+· **Dos guardas que se cubren una a otra no se pueden observar ninguna** —la
+  de la 314 en su forma pura—. La regla «el nombre no rechaza» estaba
+  escrita dos veces (la señal devolvía «muda» cuando discrepaba, Y la
+  política solo miraba las que deciden), así que TRES mutaciones seguidas
+  salieron «sin detectar». Ahora cada señal dice lo que ve y decide UNO, con
+  un solo interruptor. Las tres se cazan.
+· **Una guarda que solo se prueba cuando NO salta no se está probando**:
+  comprobaba que la cuenta cuadra en el caso bueno y nunca montaba uno malo,
+  así que `cuadra = true` a pelo pasaba desapercibido. La saqué a
+  `cuentaDelInforme` para llamarla con los números de la pasada mala.
+· **La cuarta forma del id**: de los dos 404 que quedaban, uno era `cel25c`
+  con nuestra `CC001` — se probaban «CC001» y «cc1», y la suya es **«CC1»**,
+  sin los ceros pero CON las mayúsculas. `numeroComparable` quitaba las dos
+  cosas de golpe.
+
+**Y el agujero que la pasada de la 505 enseñó sin querer**: el panel dijo
+«160 confirmados + 2 sin comprobar» de 171. Faltaban NUEVE, y ningún error.
+El navegador tenía el panel viejo en CACHÉ y leía un campo que la respuesta
+ya no traía, así que una casilla entera se perdió en silencio con unos
+números que parecían buenos. Desde ahora la respuesta trae `cuadraLaCuenta`
+y el panel lo canta.
+
+**Ficheros**: `netlify/lib/scrydex.mjs` (`senalesDelPar`, `veredictoDelPar`,
+`cuentaDelInforme`, cuarta forma en `formasDeId`),
+`netlify/functions/scrydex-verificar.mjs`, `admin/js/admin.js`, `CLAUDE.md`,
+`SCHEMA.md`. En la rama `pruebas`: `pruebas/test-tanda-506.mjs` (NUEVO),
+`pruebas/fixtures/scrydex-cards-sm10-1.json` (NUEVO — su respuesta real,
+byte por byte, norma de la 501) y las de la 504 y 505 estrechadas: la de la
+505 ya no pide «cero rechazos» sino «el nombre no rechaza NADA», que es lo
+que de verdad enseñó.
+
+**Rigor**: once mutaciones. Las tres que salían «sin detectar» eran el
+problema de las guardas de repuesto, y se cazan desde el rediseño.
+
+**En curso / pendiente**: pasar la pasada otra vez **con el panel recargado
+a lo bruto** (Ctrl+Shift+R), que es lo que faltó la vez anterior. Queda
+contar cuántas cartas occidentales tienen el español en `tcg_cards.name` —el
+hallazgo de la 505, que por la norma de las 334/335 rompe el cruce de
+`tcg_card_play`, el resolutor de decklists y la huella de las reimpresiones
+sin dar error—, y el `30th-c → me55c` que sigue en 404 por las cuatro
+formas.
+
 ## 2026-10-04 — PINGU-Claude (tanda 505 — los ocho «rechazados» de la 504 eran falsos)
 
 **Hecho**: PINGU pasó el verificador de la 504 contra los 171 pares reales:

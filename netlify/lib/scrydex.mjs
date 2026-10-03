@@ -469,7 +469,11 @@ export function laCarta(json) {
 export function formasDeId(suSetId, localId) {
   const n = String(localId ?? '').trim()
   if (!suSetId || !n) return []
-  const formas = [n, n.toUpperCase(), numeroComparable(n)]
+  // La cuarta forma la pidió la pasada de la 505: de los trece 404 quedaron
+  // DOS, y uno era `cel25c` con nuestra carta `CC001`. Se probaron «CC001»
+  // y «cc1» — y la que ellos guardan es **«CC1»**: sin los ceros, pero CON
+  // las mayúsculas. `numeroComparable` quitaba las dos cosas a la vez.
+  const formas = [n, n.toUpperCase(), numeroComparable(n), numeroComparable(n).toUpperCase()]
   return [...new Set(formas.filter(Boolean))].map((f) => `${suSetId}-${f}`)
 }
 
@@ -496,4 +500,126 @@ export function culpaDeLaDiscrepancia({ name, nameEs }) {
     return { culpa: 'nuestra', porque: 'nuestro `name` está en español (vale lo mismo que `name_es`), así que esto no dice nada del par' }
   }
   return { culpa: 'desconocida', porque: 'puede ser que el par esté mal, o que nuestro nombre esté traducido' }
+}
+
+// ── Verificar un par con señales que el IDIOMA NO PUEDE ENGAÑAR (tanda 506) ──
+//
+// La 504 verificó por el nombre y se equivocó en los ocho rechazos; la 505
+// le quitó la palabra «rechazado» porque la comparación no la sostenía.
+// Esto es lo que faltaba, y salió de tener delante su ficha de verdad
+// (`cards/sm10-1`, sondeada el 2026-10-04) en vez de imaginármela:
+//
+//   "artist": "Mitsuhiro Arita",
+//   "national_pokedex_numbers": [794, 795],
+//   "hp": "260",
+//   "expansion": { "id": "sm10", "code": "UNB", "total": 238, … }
+//
+// Y la mejor de las cuatro no es el ilustrador: es **`expansion.code`**.
+// Porque la pregunta que se está contestando es sobre el SET, no sobre la
+// carta — y ese código («UNB», «30C») es exactamente nuestro
+// `tcg_online_code`, es corto, es canónico y viene GRATIS en la misma
+// petición que ya hacíamos.
+//
+// Las señales van en DOS clases, y la diferencia es la lección de la 505:
+//
+//   · DECIDEN (pueden confirmar Y rechazar): el código del set y los
+//     números de Pokédex. Un código distinto o dos listas de Pokédex sin
+//     un número en común no se explican con una traducción.
+//
+//   · CONFIRMAN SOLO (nunca rechazan): el ilustrador, los PS y el nombre.
+//     El ilustrador porque los catálogos lo acreditan de formas distintas
+//     («Mitsuhiro Arita» / «Arita Mitsuhiro»), los PS porque cientos de
+//     cartas comparten 260, y el nombre porque puede estar traducido.
+//
+// Un falso negativo aquí solo deja un par sin verificar. Un falso positivo
+// mete el logo de otro set en la base. Así que se rechaza solo con lo que
+// no admite otra explicación.
+
+const mismos = (a, b) => clave(a) && clave(b) && clave(a) === clave(b)
+
+function senalDeLaPokedex(nuestros, suyos) {
+  const a = (nuestros || []).map(Number).filter(Number.isFinite)
+  const b = (suyos || []).map(Number).filter(Number.isFinite)
+  if (!a.length || !b.length) return 'muda'
+  return a.some((n) => b.includes(n)) ? 'coincide' : 'discrepa'
+}
+
+export function senalesDelPar({ nuestra = {}, nuestroSet = {}, suya = {} }) {
+  const exp = suya?.expansion || {}
+  const deciden = [
+    {
+      que: 'el código del set', nuestro: nuestroSet.tcg_online_code, suyo: exp.code,
+      estado: !clave(nuestroSet.tcg_online_code) || !clave(exp.code)
+        ? 'muda'
+        : (mismos(nuestroSet.tcg_online_code, exp.code) ? 'coincide' : 'discrepa'),
+    },
+    {
+      que: 'los números de Pokédex', nuestro: nuestra.dex_ids, suyo: suya.national_pokedex_numbers,
+      estado: senalDeLaPokedex(nuestra.dex_ids, suya.national_pokedex_numbers),
+    },
+  ]
+  // Estas dicen lo que VEN —«coincide» o «discrepa»—, y es la política de
+  // `veredictoDelPar` la que sabe que un «discrepa» de aquí no rechaza.
+  //
+  // Antes mentían: devolvían «muda» cuando en realidad discrepaban, para
+  // que no pudieran rechazar. Eso dejaba la regla escrita DOS VECES —aquí
+  // y en la política— y por tanto ninguna de las dos se podía observar:
+  // quitar cualquiera de ellas no cambiaba nada y el rigor lo apuntaba
+  // como «sin detectar». Es la lección de la 314, y la salida es la de
+  // siempre: **que cada uno diga la verdad y que decida UNO**. De paso, el
+  // informe puede enseñar «el nombre discrepa pero el código confirma»,
+  // que es información y no ruido.
+  const confirman = [
+    { que: 'el ilustrador', nuestro: nuestra.illustrator, suyo: suya.artist },
+    { que: 'los PS', nuestro: nuestra.hp, suyo: suya.hp },
+    { que: 'el nombre', nuestro: nuestra.name, suyo: suya.name },
+  ].map((s) => ({
+    ...s,
+    decide: false,
+    estado: !clave(s.nuestro) || !clave(s.suyo)
+      ? 'muda'
+      : (mismos(s.nuestro, s.suyo) ? 'coincide' : 'discrepa'),
+  }))
+  return { deciden: deciden.map((s) => ({ ...s, decide: true })), confirman }
+}
+
+export function veredictoDelPar({ nuestra, nuestroSet, suya }) {
+  const { deciden, confirman } = senalesDelPar({ nuestra, nuestroSet, suya })
+  // LA POLÍTICA, en un solo sitio: solo rechaza lo que lleva `decide`.
+  // Un «discrepa» del nombre o del ilustrador se ve en el informe y no
+  // decide nada.
+  const contra = [...deciden, ...confirman].find((s) => s.decide && s.estado === 'discrepa')
+  if (contra) {
+    return {
+      veredicto: 'rechazado',
+      por: contra.que,
+      porque: `${contra.que} no cuadra: nuestro «${contra.nuestro}» contra su «${contra.suyo}»`,
+    }
+  }
+  const aFavor = [...deciden, ...confirman].find((s) => s.estado === 'coincide')
+  if (aFavor) return { veredicto: 'confirmado', por: aFavor.que }
+  // Ninguna señal dice nada. No es un rechazo: es que no tenemos con qué.
+  const mudas = [...deciden, ...confirman].filter((s) => s.estado === 'muda').map((s) => s.que)
+  return { veredicto: 'sin-senal', porque: `no coincide ni contradice nada (mudas: ${mudas.join(', ')})` }
+}
+
+// ── La cuenta del informe tiene que cuadrar (tanda 506) ──
+//
+// En la pasada de la 505 el panel enseñó «160 confirmados + 2 sin
+// comprobar» de 171 verificados. Faltaban NUEVE y nada dijo nada: el
+// navegador tenía el panel viejo en caché y leía un campo que la respuesta
+// ya no traía, así que una casilla entera se perdió EN SILENCIO.
+//
+// Un informe cuyas casillas no suman el total es un informe con un
+// agujero, y quien lo lee no tiene forma de saberlo. Vive aquí y no dentro
+// de la función para poder ejercitarla con un total que NO cuadra: una
+// guarda que solo se prueba cuando no salta no se está probando.
+export function cuentaDelInforme(verificadas, casillas) {
+  const suma = (casillas || []).reduce((t, c) => t + (Array.isArray(c) ? c.length : Number(c) || 0), 0)
+  if (suma === verificadas) return { suma, cuadra: true }
+  return {
+    suma,
+    cuadra: false,
+    aviso: `LAS CASILLAS NO SUMAN: ${suma} de ${verificadas}. Falta una casilla por enseñar.`,
+  }
 }

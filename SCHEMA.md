@@ -27566,3 +27566,112 @@ language-independent. El ILUSTRADOR es un nombre propio y vale igual en
 todos los idiomas, y ya tenemos la columna (`illustrator`, la rellena
 `cartas-detalle`). Falta saber **cómo se llama ese campo en su ficha de
 carta**, y eso no se inventa (norma de la 501): se sondea.
+
+## Tanda 506 — verificar con señales que el idioma no puede engañar
+
+Tercer intento, y el que cierra la serie. La **504** verificó los
+emparejamientos por el nombre de una carta y falló los ocho rechazos. La
+**505** le quitó la palabra «rechazado», porque la comparación de nombres no
+la sostiene mientras nuestro `name` pueda estar traducido, y arregló once de
+los trece 404. Lo que faltaba era una señal que el idioma no pudiera
+engañar — y lo que la dio fue **tener delante su ficha de verdad** en vez de
+imaginármela.
+
+`cards/sm10-1`, sondeada el 2026-10-04 (guardada byte por byte en
+`pruebas/fixtures/scrydex-cards-sm10-1.json`):
+
+```json
+"artist": "Mitsuhiro Arita",
+"national_pokedex_numbers": [794, 795],
+"hp": "260",
+"number": "1", "printed_number": "1/214",
+"expansion": { "id": "sm10", "code": "UNB", "total": 238, "printed_total": 214,
+               "release_date": "2019/05/03", "logo": "…", "symbol": "…" }
+```
+
+Cuatro señales útiles. **Y la mejor no es la que yo iba buscando.** Fui a por
+el ilustrador —un nombre propio, igual en todos los idiomas— y lo que había
+era mejor: **`expansion.code`**, «UNB», que es exactamente nuestro
+`tcg_online_code`. Porque la pregunta que se contesta va sobre el **SET** y
+no sobre la carta, es corto y canónico, y **viene gratis** en la misma
+petición que ya se hacía. (De paso: la ficha trae el `expansion` entero,
+`logo` y `symbol` incluidos.)
+
+### Las dos clases de señal, que es la norma
+
+| Señal | Nuestro | Suyo | ¿Puede rechazar? |
+|---|---|---|---|
+| Código del set | `tcg_sets.tcg_online_code` | `expansion.code` | **Sí** |
+| Números de Pokédex | `dex_ids` | `national_pokedex_numbers` | **Sí** |
+| Ilustrador | `illustrator` | `artist` | No |
+| PS | `hp` | `hp` | No |
+| Nombre | `name` | `name` | No |
+
+Las dos primeras **deciden**: un código distinto, o dos listas de Pokédex
+sin un número en común, no se explican con una traducción. Las tres últimas
+**solo confirman**: el ilustrador porque los catálogos lo acreditan de
+formas distintas («Mitsuhiro Arita» / «Arita Mitsuhiro»), los PS porque
+cientos de cartas comparten 260, y el nombre por todo lo de la 505.
+
+El criterio es asimétrico a propósito: **un falso negativo deja un par sin
+verificar; un falso positivo mete el logo de otro set en la base.**
+
+Una señal con un lado vacío se queda **muda**, nunca «discrepa»: una columna
+nuestra sin rellenar no puede contradecir nada (la lección del
+`progreso = {}` de la 319).
+
+### Dos guardas que se cubren una a otra no se pueden observar ninguna
+
+Esto es lo que más valió de la tanda, y es la lección de la **314** en su
+forma pura. La regla «el nombre no rechaza» quedó escrita DOS VECES:
+
+1. La señal devolvía `'muda'` cuando en realidad discrepaba.
+2. Y la política solo miraba las señales que deciden.
+
+Con las dos puestas, quitar cualquiera **no cambiaba nada**, y tres
+mutaciones seguidas salieron «sin detectar» (`decide: false → true`,
+`estado: 'muda' → 'contradice'`, y la política mirando todas las señales).
+Y encima la señal **mentía**, así que el informe no podía enseñar «el nombre
+discrepa pero el código confirma», que es información y no ruido.
+
+La salida es la de siempre: **que cada señal diga lo que ve
+(`coincide`/`discrepa`/`muda`) y que decida UNO**, con un solo interruptor
+(`decide`). Con un vocabulario único y una sola palanca, las tres mutaciones
+se cazan.
+
+### Un informe cuyas casillas no suman tiene un agujero
+
+La pasada de la 505 lo enseñó en vivo: el panel dijo «160 confirmados + 2
+sin comprobar» de **171 verificados**. Faltaban nueve y no salió ni un
+error. El navegador tenía el panel viejo en CACHÉ y leía un campo que la
+respuesta ya no traía, así que una casilla entera se perdió en silencio —
+con unos números que parecían perfectamente buenos.
+
+Desde la 506 la respuesta trae `cuadraLaCuenta` y el panel lo canta. Y la
+guarda vive en una función pura, `cuentaDelInforme(verificadas, casillas)`,
+por un motivo concreto: **una guarda que solo se prueba cuando NO salta no
+se está probando**. Dentro de la función, ponerle `cuadra = true` a pelo
+pasaba desapercibido; fuera, la prueba la llama con los números de la pasada
+mala (171 contra 160+2) y la mutación se caza.
+
+### La cuarta forma del id
+
+De los trece 404 de la 504 quedaban dos tras la 505. Uno era `cel25c` con
+nuestra carta `CC001`: se probaban «CC001» y «cc1», y la suya es **«CC1»** —
+sin los ceros pero **con** las mayúsculas. `numeroComparable` quitaba las
+dos cosas de golpe, así que `formasDeId` prueba ahora las cuatro:
+
+```
+CC001 → CC001, cc1, CC1        001 → 001, 1
+```
+
+El `30th-c → me55c` sigue en 404 con las cuatro, y eso queda abierto: su
+`me55c-58` existe (se sondeó), así que el numerado de ese set no empieza
+donde creemos.
+
+**Ficheros**: `netlify/lib/scrydex.mjs` (`senalesDelPar`,
+`veredictoDelPar`, `cuentaDelInforme`, cuarta forma en `formasDeId`),
+`netlify/functions/scrydex-verificar.mjs`, `admin/js/admin.js`. Pruebas:
+`pruebas/test-tanda-506.mjs` y el fixture real; las de la 504 y la 505
+estrechadas —la de la 505 ya no pide «cero rechazos» sino «el nombre no
+rechaza NADA», que es lo que de verdad enseñó.

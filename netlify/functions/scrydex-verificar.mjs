@@ -2,6 +2,7 @@ import { idDeAdmin, tokenDe } from '../lib/admin.mjs'
 import {
   cabecerasDe, urlDeSonda, emparejarSets, CAMPOS_SUYOS,
   numeroComparable, verificarPar, laCarta, formasDeId, culpaDeLaDiscrepancia,
+  veredictoDelPar, cuentaDelInforme,
 } from '../lib/scrydex.mjs'
 
 // Comprobar que cada emparejamiento de set es el que creemos (tanda 504).
@@ -108,7 +109,7 @@ export async function procesar({
   const unaDe = new Map()
   await enTandas(aVerificar, A_LA_VEZ, async (par) => {
     const filas = await pedir(
-      `tcg_cards?select=local_id,name,name_es&market=eq.${mercado}`
+      `tcg_cards?select=local_id,name,name_es,dex_ids,illustrator,hp&market=eq.${mercado}`
       + `&set_id=eq.${encodeURIComponent(par.nuestro.id)}`
       + `&order=local_id.asc&limit=${CANDIDATAS}`,
     )
@@ -117,6 +118,9 @@ export async function procesar({
   })
 
   const confirmados = []
+  // RECHAZADOS DE VERDAD (tanda 506): los que una señal independiente del
+  // idioma CONTRADICE. Esto sí se puede usar para decidir.
+  const rechazados = []
   // «Discrepan» y no «rechazados» (tanda 505): la 504 llamó rechazo a un
   // nombre que no coincide y se equivocó en los OCHO casos, porque nuestro
   // `name` occidental está en español en parte de las filas. Ahora se
@@ -149,13 +153,21 @@ export async function procesar({
         // tirar un emparejamiento bueno por un fallo nuestro.
         return anotar(par, `404 en todas las formas: ${probados.join(', ')}`)
       }
-      const v = verificarPar({ nuestroNombre: nuestra.name, suyoNombre: suya?.name })
       const linea = {
         nuestro: par.nuestro.id, suyo: par.suyo.id, por: par.por,
         carta: `${nuestra.local_id} «${nuestra.name}»`, suya: suya?.name || '(sin nombre)',
       }
-      if (v.veredicto === 'confirmado') return confirmados.push(linea)
-      if (v.veredicto !== 'discrepan') return anotar(par, v.porque)
+      // Desde la 506 el veredicto sale de las señales que el IDIOMA NO
+      // PUEDE ENGAÑAR —el código del set y los números de Pokédex deciden;
+      // el ilustrador, los PS y el nombre solo confirman—. El nombre ya no
+      // puede rechazar nada, que es lo que costó las dos tandas anteriores.
+      const v = veredictoDelPar({ nuestra, nuestroSet: par.nuestro, suya })
+      if (v.veredicto === 'confirmado') return confirmados.push({ ...linea, por: v.por })
+      if (v.veredicto === 'rechazado') return rechazados.push({ ...linea, porque: v.porque })
+      // Sin ninguna señal, el nombre es lo último que queda — y como puede
+      // estar en español, se separa quién tiene la culpa igual que en la 505.
+      const n = verificarPar({ nuestroNombre: nuestra.name, suyoNombre: suya?.name })
+      if (n.veredicto !== 'discrepan') return anotar(par, `${v.porque}; ${n.porque}`)
       const c = culpaDeLaDiscrepancia({ name: nuestra.name, nameEs: nuestra.name_es })
       ;(c.culpa === 'nuestra' ? culpaNuestra : porMirar).push({ ...linea, porque: c.porque })
     } catch (e) {
@@ -164,6 +176,9 @@ export async function procesar({
   })
 
   const siguiente = arranque + aVerificar.length
+  // La cuenta tiene que cuadrar — el porqué está en `cuentaDelInforme`.
+  const cuenta = cuentaDelInforme(aVerificar.length,
+    [confirmados, rechazados, culpaNuestra, porMirar, sinComprobar])
   return {
     estado: 200,
     cuerpo: {
@@ -178,11 +193,16 @@ export async function procesar({
       // cifra de una cadena con guion largo dentro es un número que se
       // rompe el día que se reescriba la frase.
       verificadas: aVerificar.length,
+      cuadraLaCuenta: cuenta.cuadra,
+      ...(cuenta.cuadra ? {} : { AVISO: cuenta.aviso }),
       // Si quedan, se dice CON el número que hay que meter para seguir.
       siguienteDesde: siguiente < pares.length ? siguiente : null,
       ambiguos: ambiguos.length,
       sinEmparejar: sueltos.length,
       confirmados: confirmados.length,
+      // LOS RECHAZOS DE VERDAD: una señal que el idioma no puede engañar
+      // dice que no es el mismo set. Con el porqué, que nombra la señal.
+      rechazados,
       // LO QUE HAY QUE MIRAR A MANO, y solo esto: los nombres que no
       // coinciden y de los que NO se puede demostrar que la culpa sea
       // nuestra. Con los dos nombres, para no fiarse de un número.
