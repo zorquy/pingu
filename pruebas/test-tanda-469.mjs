@@ -75,17 +75,22 @@ console.log('\n── 1. Sin escaneo, el bolsillo sigue pareciendo una carta ─
 console.log('\n── 2. Y la que TIENES se pone con color ──')
 {
   const { page } = await abrir()
-  const antes = await page.locator('.mc-bolsillo').first().evaluate((n) => getComputedStyle(n.querySelector('.mc-carta-sinfoto')).backgroundImage)
+  // EL MARCO y no el fondo (cambiado en la 470). Esta tanda le puso un
+  // panel verde entero y PINGU: «yo quiero la carta con color, simplemente;
+  // ahora mismo se ve asi y no se ve». Lo que esta tanda defiende sigue en
+  // pie —que una carta sin escaneo se distinga de las que no tienes— y es
+  // lo que se comprueba, en el sitio donde ahora se dice.
+  const antes = await page.locator('.mc-bolsillo').first().evaluate((n) => getComputedStyle(n.querySelector('.mc-carta-sinfoto')).boxShadow)
   await page.locator('.mc-bolsillo [data-anadir]').first().click()
   await page.waitForTimeout(1500)
   const m = await page.locator('.mc-bolsillo').first().evaluate((n) => ({
     tengo: n.classList.contains('tengo'),
-    fondo: getComputedStyle(n.querySelector('.mc-carta-sinfoto')).backgroundImage,
+    fondo: getComputedStyle(n.querySelector('.mc-carta-sinfoto')).boxShadow,
     // Y el nombre tiene que seguir leyéndose sobre el color nuevo.
     color: getComputedStyle(n.querySelector('.mc-carta-sinfoto')).color,
   }))
   check('al añadirla queda marcada como tuya', m.tengo)
-  check('  …y el bolsillo cambia de color', m.fondo !== antes, `${antes.slice(0, 40)} → ${m.fondo.slice(0, 40)}`)
+  check('  …y el bolsillo se marca como tuyo', m.fondo !== antes, `${antes.slice(0, 40)} → ${m.fondo.slice(0, 40)}`)
   // Lo que PINGU no podía ver y es el porqué: la regla que «ponía color»
   // era `.tengo img { filter: none }`, y aquí no hay ninguna imagen.
   check('  …aunque no haya ninguna imagen que descolorear',
