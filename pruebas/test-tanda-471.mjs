@@ -236,5 +236,24 @@ const { llamadas: l12 } = await correr({ listado: [] })
 check('no se inserta ningún set', !l12.some((x) => x.ruta === 'tcg_sets' && x.metodo === 'POST'))
 check('y las visitas siguen', l12.filter((x) => x.metodo === 'PATCH').length === 2)
 
+console.log('\n── 13. Un mercado VACÍO se llena el primero (tanda 479) ──')
+// Un mercado con CERO sets es el tapón de todo lo demás: sin sus filas en
+// `tcg_sets`, la fase de las cartas no tiene a quién visitar y la pasada
+// entera no hace nada. Con el turno por el reloj, llenar el japés dependía
+// de que le tocara.
+{
+  // `nuestros: []` = ese mercado está a cero. El reloj dice que tocaría
+  // otro, así que si sale el vacío es porque manda el vacío.
+  const { llamadas } = await correr({ nuestros: [], sets: [] }, () => 60000)
+  const pedido = llamadas.find((x) => x.tcgdex?.endsWith('/sets'))?.tcgdex
+  check('se pide el listado del primero que esté a cero', /\/v2\/ja\/sets$/.test(pedido || ''), String(pedido))
+  // Y sin reloj: traer ~400 sets de un catálogo vacío es una petición
+  // gorda y cuatro inserciones, y cortarlo a los cinco segundos dejaba la
+  // pasada siguiente empezándolo otra vez desde el principio.
+  const { r } = await correr({ nuestros: [], sets: [] }, () => 60000)
+  check('  …y se insertan sus sets', r.setsNuevos > 0, JSON.stringify(r))
+  check('  …y se dice cuál se está arrancando', r.arrancando === 'JP', JSON.stringify(r))
+}
+
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
 process.exit(fails === 0 ? 0 : 1)
