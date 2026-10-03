@@ -26050,3 +26050,65 @@ la impresión con un TCGdex de mentira (casa, no casa, no se sabe, sin
 red, el nombre entero), y la página: el Greninja ex que sale es el de 310
 PS, sin la ficha de TCGdex sale el otro (el contraste), y en otra partida
 con el Filo Acuático vuelve a ser el de 30th Celebration.
+
+---
+
+## Tanda 482 — el diagnóstico de /admin que daba un consejo falso
+
+PINGU pegó la línea de «Qué hay de cada mercado», y venía con este consejo
+detrás:
+
+> …sin FECHA una era se va al fondo de la estantería, y sin SERIE no hay
+> respaldo: **dale a «Completar los datos que faltan de los sets»**
+
+Con los 210 sets occidentales a **210 con fecha y 210 con serie**, y los
+186 japoneses igual. O sea: no faltaba ninguna.
+
+El aviso se decidía leyendo la FRASE con una expresión regular, y
+`/0 con fecha/` casaba con **el cero de «210 con fecha»**. Es la trampa que
+el CLAUDE.md tiene escrita desde la tanda 312 —al barrer una cadena, todo
+lo que la CONTIENE cuenta, no solo lo que ES—, esta vez dentro del propio
+diagnóstico.
+
+Y no es cosmético: un aviso que manda a pulsar un botón que no va a hacer
+nada gasta el tiempo de quien lo lee y le deja creyendo que el problema es
+suyo cuando no lo es.
+
+Ahora los avisos salen de los NÚMEROS, en `admin/js/cuentas-mercado.js`
+—puro, sin DOM ni base, se prueba en Node— y separan **cuatro** cosas que
+en la web se ven igual:
+
+1. **No se ha importado nunca** (0 sets) → «Buscar sets en TCGdex».
+2. **Importado y sin curar** (serie o fecha por debajo del total) → «Completar
+   los datos que faltan», con cuántos faltan.
+3. **Curado y aun así sin logos** → eso ya no es nuestro: TCGdex no publica
+   logos de ese catálogo.
+4. **Cartas sin ni un escaneo** → tampoco es nuestro.
+
+Los dos últimos son la mitad que faltaba. La respuesta honesta a «¿por qué
+no hay logos japoneses?» es **«no los hay»**, no «pulsa aquí».
+
+### Un detalle que cazó la prueba
+
+La condición del aviso 3 era `serie === sets` («los tiene todos curados»), y
+el japonés tiene **186 de 188**: el pleno lo dejaba fuera justo del mercado
+por el que PINGU preguntaba. Lo que hace falta saber es si **ya le
+preguntamos a TCGdex**, y haber curado un solo set y haber vuelto con cero
+logos ya lo contesta — así que la condición es `serie > 0 && logo === 0`.
+Los dos sin curar son otra cosa, y los dice el aviso 2.
+
+### Y «con símbolo» en la cuenta
+
+El símbolo es el último dibujo de la cadena de la tarjeta de una colección
+(logo propio → logo a mano → logo inglés → símbolo → el nombre). Sin
+contarlo no se podía saber si a los sets sin logo les queda algo que
+enseñar o si van directos al nombre.
+
+### Lo que esos números dicen del catálogo asiático, para el archivo
+
+Con la 471 y la 479 puestas, el 2026-10-03: **JP 188 sets / 13.006 cartas,
+TW 98 / 7.436, CN 56 / 877**, los tres con fecha y serie al completo. O sea
+que **la importación funciona y está hecha**. Lo que falta es de TCGdex:
+cero logos en los tres, y escaneos al 30 % en japonés, al 29 % en chino
+tradicional y al **0 %** en chino simplificado (contra el 94 % del
+occidental).

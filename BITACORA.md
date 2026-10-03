@@ -35,6 +35,44 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+**OJO, CHOQUE DE NÚMEROS (y van SIETE)**: la 480 se usó a la vez en las
+dos sesiones. La otra llegó antes al remoto —con la 480 Y la 481—, así que
+lo mío pasa a ser la **482**. Van 384, 394, 413, 420, 456, 462 y 480. Y
+otra vez lo mismo: miré el remoto antes del commit y estaba limpio; lo que
+no cubre eso es que el otro empuje MIENTRAS escribo el mensaje. El push es
+quien lo caza, y rebasar y renumerar cuesta cinco minutos.
+
+## 2026-10-03 — PINGU-Claude (tanda 482 — el diagnóstico de /admin que mentía)
+
+**Hecho**: PINGU pegó la línea de «Qué hay de cada mercado» y venía con
+«dale a Completar los datos que faltan de los sets» detrás — con los 210
+sets occidentales a 210 con fecha y 210 con serie, y los 186 japoneses
+igual. No faltaba ninguna. El aviso se decidía leyendo la FRASE con una
+expresión regular, y `/0 con fecha/` casaba con **el cero de «210 con
+fecha»**. Es la trampa que el CLAUDE.md tiene escrita desde la 312, esta
+vez dentro del propio diagnóstico. Ahora los avisos salen de los NÚMEROS,
+en `admin/js/cuentas-mercado.js` (puro, se prueba en Node), y separan
+CUATRO casos y no dos: no importado → «Buscar sets»; importado y sin curar
+→ «Completar los datos» con cuántos faltan; curado y aun así sin logos →
+**eso ya no es nuestro**; y cartas sin ni un escaneo → tampoco. Los dos
+últimos son la mitad que faltaba: la respuesta honesta a «¿por qué no hay
+logos japoneses?» es «no los hay», no «pulsa aquí». Y se añade «con
+símbolo» a la cuenta, que es el último dibujo de la cadena de la tarjeta.
+
+**Y PARA EL ARCHIVO, lo que esos números dicen**: con la 471 y la 479
+puestas, el 2026-10-03 hay **JP 188 sets / 13.006 cartas, TW 98 / 7.436, CN
+56 / 877**, los tres con fecha y serie al completo. La importación
+FUNCIONA y está hecha. Lo que falta es de TCGdex: cero logos en los tres, y
+escaneos al 30 % en japonés, 29 % en chino tradicional y **0 %** en chino
+simplificado, contra el 94 % del occidental.
+
+**Ficheros**: `admin/js/cuentas-mercado.js` (NUEVO), `admin/js/admin.js`,
+`SCHEMA.md`, `BITACORA.md`. En la rama `pruebas`: `test-tanda-482.mjs`
+(NUEVO, 16 comprobaciones, con los números DE VERDAD que pegó PINGU).
+
+**En curso / pendiente**: ejecutar `supabase-migration-idioma-chino.sql`
+(tanda 472). Rigores pendientes desde la 443. Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 481 — el registro que acaba por premios, y el Greninja ex que no era)
 
 **Hecho**: el segundo registro de verdad de PINGU («termina por KO y

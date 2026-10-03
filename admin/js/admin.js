@@ -16,6 +16,7 @@ import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet } from '../../js/tcgdex.js'
 import { EJEMPLOS_DE_CORREO, renderFilaDeCola, textosDeTipo, familiaDeTipo } from '../../js/email-plantilla.js'
 import { checkSchema } from '../../js/schema-check.js'
+import { avisosDeMercados, lineaDeMercado } from './cuentas-mercado.js'
 
 let categories = []
 let guidesCache = []
@@ -3002,40 +3003,45 @@ async function contarMercados() {
   const btn = document.getElementById('btnContarMercados')
   btn.disabled = true
   cardsNota('Contando…')
+  // Una cuenta sin traer filas (`head: true`), así que da igual que el
+  // catálogo tenga 90.000 cartas.
+  const cuantos = async (tabla, market, columna = null) => {
+    let q = supabase.from(tabla).select('id', { count: 'exact', head: true }).eq('market', market)
+    if (columna) q = q.not(columna, 'is', null)
+    const { count, error } = await q
+    if (error) throw error
+    return count || 0
+  }
   try {
-    const lineas = []
+    // Se guardan los NÚMEROS, y lo que significan lo decide un módulo puro
+    // (tanda 482). Antes el aviso se sacaba leyendo la FRASE con una
+    // expresión regular, y `/0 con fecha/` casaba con el CERO DE «210 con
+    // fecha»: PINGU vio «dale a Completar los datos que faltan» con los
+    // 210 sets occidentales completos.
+    const datos = []
     for (const market of MERCADOS_A_IMPORTAR) {
-      const sets = await supabase.from('tcg_sets').select('id', { count: 'exact', head: true }).eq('market', market)
-      if (sets.error) throw sets.error
-      const cartas = await supabase.from('tcg_cards').select('id', { count: 'exact', head: true }).eq('market', market)
-      if (cartas.error) throw cartas.error
-      const conLogo = await supabase.from('tcg_sets').select('id', { count: 'exact', head: true }).eq('market', market).not('logo_path', 'is', null)
-      if (conLogo.error) throw conLogo.error
-      // Y las FECHAS, que son las que ordenan las eras en la estantería:
-      // una era sin ninguna se va al fondo, y las recién salidas son justo
-      // las que pueden estar enteras sin ella (tanda 454).
-      const conFecha = await supabase.from('tcg_sets').select('id', { count: 'exact', head: true }).eq('market', market).not('release_date', 'is', null)
-      if (conFecha.error) throw conFecha.error
-      // Y la SERIE, que es la que enciende los respaldos de imagen: sin
-      // ella no se puede montar a mano ni el logo ni el escaneo.
-      const conSerie = await supabase.from('tcg_sets').select('id', { count: 'exact', head: true }).eq('market', market).not('serie_id', 'is', null)
-      if (conSerie.error) throw conSerie.error
-      // Y cuántas cartas tienen FOTO. «No se ven las cartas japonesas»
-      // tiene dos causas que desde la web se ven igual —que no estén
-      // importadas, o que TCGdex no tenga escaneo de ellas— y este número
-      // las separa: si hay 5.000 cartas y 0 con foto, no es cosa nuestra,
-      // es que ese catálogo no tiene imágenes y hace falta otra fuente.
-      const conFoto = await supabase.from('tcg_cards').select('id', { count: 'exact', head: true }).eq('market', market).not('image_path', 'is', null)
-      if (conFoto.error) throw conFoto.error
-      lineas.push(`${market}: ${sets.count} sets (${conLogo.count} con logo, ${conFecha.count} con fecha, ${conSerie.count} con serie), ${cartas.count} cartas (${conFoto.count} con foto)`)
+      datos.push({
+        market,
+        sets: await cuantos('tcg_sets', market),
+        logo: await cuantos('tcg_sets', market, 'logo_path'),
+        // El SÍMBOLO es el último dibujo de la cadena de la tarjeta de una
+        // colección (logo propio → logo a mano → logo inglés → símbolo →
+        // el nombre). Sin contarlo no se sabía si a los sets sin logo les
+        // queda algo que enseñar o si van directos al nombre.
+        simbolo: await cuantos('tcg_sets', market, 'symbol_url'),
+        // Las FECHAS ordenan las eras de la estantería y la SERIE enciende
+        // los respaldos de imagen (tanda 454).
+        fecha: await cuantos('tcg_sets', market, 'release_date'),
+        serie: await cuantos('tcg_sets', market, 'serie_id'),
+        cartas: await cuantos('tcg_cards', market),
+        // «No se ven las cartas japonesas» tiene dos causas que desde la
+        // web se ven igual —que no estén importadas, o que TCGdex no tenga
+        // escaneo— y este número las separa.
+        foto: await cuantos('tcg_cards', market, 'image_path'),
+      })
     }
-    const vacios = lineas.filter((l) => / 0 sets/.test(l))
-    const sinFecha = /0 con fecha|0 con serie/.test(lineas.join(' '))
-    cardsNota(lineas.join(' · ') + (vacios.length
-      ? ' — los que están a 0 no se han importado nunca: dale a «Buscar sets en TCGdex» y luego a «Importar los que faltan».'
-      : '') + (sinFecha
-      ? ' — sin FECHA una era se va al fondo de la estantería, y sin SERIE no hay respaldo para el logo ni para el escaneo de sus cartas: dale a «Completar los datos que faltan de los sets».'
-      : ''))
+    const avisos = avisosDeMercados(datos)
+    cardsNota(datos.map(lineaDeMercado).join(' · ') + (avisos.length ? ` — ${avisos.join(' ')}` : ' — todo en orden.'))
   } catch (err) {
     cardsNota(`No se ha podido contar: ${err.message}`)
   } finally {
