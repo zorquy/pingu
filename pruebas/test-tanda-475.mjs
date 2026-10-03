@@ -52,8 +52,11 @@ const { page, errores } = await abrir()
 
 console.log('── 1. La cabecera se queda en el título y UN botón ──')
 check('se ha abierto la expansión', await page.locator('#mcArchivadorZona').isVisible())
+// Dentro de `#mcArchivadorZona`: desde la tanda 477 la carpeta abierta usa
+// la MISMA pieza (`.mc-album-barra`), así que sin acotar esto contaría las
+// dos barras y diría cuatro.
 const enLaBarra = await page.evaluate(() =>
-  [...document.querySelectorAll('.mc-album-barra > *')].map((e) => e.id || e.tagName))
+  [...document.querySelectorAll('#mcArchivadorZona .mc-album-barra > *')].map((e) => e.id || e.tagName))
 check('dos cosas y nada más', enLaBarra.length === 2, enLaBarra.join(','))
 check('el título y el menú', enLaBarra.includes('mcAlbumTitulo') && enLaBarra.includes('mcAlbumMenu'), enLaBarra.join(','))
 // La fila de cuatro iconos ya no existe.

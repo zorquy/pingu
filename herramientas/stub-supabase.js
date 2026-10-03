@@ -29,6 +29,13 @@ const T = {
   user_wants: [],
   // La foto diaria del valor de una coleccion (tanda 377).
   user_collection_value: [],
+  // Las CARPETAS (tandas 402 y 411), que el doble no tenia hasta la 477:
+  // `listarCarpetas` daba un 42P01, el cliente lo lee como «falta la
+  // migracion» y la pestaña salia vacia en TODAS las pruebas. O sea que
+  // la pantalla de carpetas no la habia probado nadie nunca, y nada lo
+  // cantaba porque el vacio es un estado legitimo de esa pantalla.
+  collection_folders: [],
+  collection_folder_cards: [],
   tournament_decklists: [],
   rounds: [],
   tournament_matches: [],
@@ -433,6 +440,15 @@ sembrar('__FAKE_LECTURAS__', 'forum_thread_reads', (i) => ({
 // que pasa en producción hasta que un admin la llene.
 // El catálogo de cartas y sus sets (tanda 232): hacen falta para probar
 // que un código de TCG Live resuelve a una carta con imagen.
+sembrar('__FAKE_CARPETAS__', 'collection_folders', (i) => ({
+  id: `carpeta-${i}`, user_id: 'admin-1', parent_id: null, nombre: `Carpeta ${i}`,
+  icono: 'folder', dex_id: null, emoji: null, color: null, orden: i,
+  created_at: new Date(2026, 0, 1 + i).toISOString(),
+}))
+sembrar('__FAKE_CARPETA_CARTAS__', 'collection_folder_cards', (i) => ({
+  id: `cc-${i}`, user_id: 'admin-1', folder_id: 'carpeta-0', line_id: `linea-${i}`,
+}))
+
 sembrar('__FAKE_SETS__', 'tcg_sets', (i) => ({
   id: `set-${i}`, name: `Set ${i}`, market: 'WEST',
 }))
@@ -1227,6 +1243,35 @@ export const supabase = {
         data: [...porDex.entries()].sort((a, b) => a[0] - b[0]).map(([dex, cartas]) => ({ dex, cartas })),
         error: null,
       }
+    }
+    // El resumen de las carpetas (tanda 402, en el doble desde la 477).
+    //
+    // Es RECURSIVO en la base: una carpeta cuenta lo suyo Y lo de sus
+    // subcarpetas. Aqui se hace igual —y no sumando solo lo propio—
+    // porque si no, una carpeta que solo contiene carpetas dira «0
+    // cartas» en la prueba y en produccion no, que es exactamente la
+    // clase de simplificacion que esconde fallos (la leccion de la 437).
+    if (nombre === 'carpetas_resumen') {
+      const hijasDe = new Map()
+      for (const c of T.collection_folders) {
+        if (!hijasDe.has(c.parent_id)) hijasDe.set(c.parent_id, [])
+        hijasDe.get(c.parent_id).push(c.id)
+      }
+      const conSusHijas = (id, vistas = new Set()) => {
+        if (vistas.has(id)) return []
+        vistas.add(id)
+        return [id, ...(hijasDe.get(id) || []).flatMap((h) => conSusHijas(h, vistas))]
+      }
+      const filas = T.collection_folders.map((c) => {
+        const rama = new Set(conSusHijas(c.id))
+        const lineas = new Set(
+          T.collection_folder_cards.filter((x) => rama.has(x.folder_id)).map((x) => x.line_id)
+        )
+        let copias = 0
+        for (const id of lineas) copias += Number(T.user_collection.find((l) => l.id === id)?.cantidad || 0)
+        return { folder_id: c.id, cartas: lineas.size, copias }
+      })
+      return { data: filas, error: null }
     }
     if (nombre === 'forum_ver_tema') {
       const tema = T.forum_threads.find((t) => t.id === args.p_thread)
