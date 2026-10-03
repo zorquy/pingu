@@ -3071,8 +3071,10 @@ async function verificarScrydex() {
   caja.classList.remove('hidden')
   caja.value = 'Verificando los emparejamientos contra Scrydex, carta a carta…'
 
-  const rechazados = []
+  const porMirar = []
+  const enEspanol = []
   const sinComprobar = []
+  let enEspanolTotal = 0
   let confirmados = 0
   let emparejados = 0
   let ambiguos = 0
@@ -3100,9 +3102,11 @@ async function verificarScrydex() {
       sinEmparejar = r.sinEmparejar
       confirmados += r.confirmados
       cartasPedidas += r.verificadas || 0
-      rechazados.push(...(r.rechazados || []))
+      porMirar.push(...(r.porMirar || []))
+      enEspanol.push(...(r.ejemplosEnEspanol || []))
+      enEspanolTotal += r.nuestroNombreEnEspanol || 0
       sinComprobar.push(...(r.sinComprobar || []))
-      caja.value = `Verificando… ${r.verificadosEnEstaPasada} · confirmados ${confirmados} · rechazados ${rechazados.length}`
+      caja.value = `Verificando… ${r.verificadosEnEstaPasada} · confirmados ${confirmados} · por mirar ${porMirar.length}`
       if (r.siguienteDesde == null) break
       desde = r.siguienteDesde
     }
@@ -3112,21 +3116,26 @@ async function verificarScrydex() {
       '',
       `CONFIRMADOS: ${confirmados}`,
       '',
-      `RECHAZADOS (NO se pueden usar para escribir): ${rechazados.length}`,
-      ...rechazados.map((x) => `  · ${x.nuestro} → ${x.suyo} (${x.por}) — nuestra ${x.carta}, suya «${x.suya}»`),
+      `POR MIRAR A MANO: ${porMirar.length}`,
+      ...porMirar.map((x) => `  · ${x.nuestro} → ${x.suyo} (${x.por}) — nuestra ${x.carta}, suya «${x.suya}»`),
+      '',
+      `NUESTRO NOMBRE ESTÁ EN ESPAÑOL: ${enEspanolTotal}`,
+      ...enEspanol.map((x) => `  · ${x.nuestro} — nuestra ${x.carta}, suya «${x.suya}»`),
       '',
       `SIN COMPROBAR: ${sinComprobar.length}`,
       ...sinComprobar.slice(0, 30).map((x) => `  · ${x.par} — ${x.porque}`),
       '',
       'CÓMO SE LEE ESTO:',
-      '  · «rechazado» es un par que casa por fecha y cuenta pero NO es el',
-      '    mismo set: usarlo metería el logo y las cartas de otro set.',
-      '  · «sin comprobar» NO es un rechazo. Casi siempre es que esa carta',
-      '    nuestra no existe en su set, o que su id no se monta como creemos:',
-      '    es un fallo NUESTRO, no una prueba de que el par esté mal.',
+      '  · «por mirar a mano» son nombres que no coinciden y de los que NO se',
+      '    puede demostrar que la culpa sea nuestra. Solo estos hay que mirar.',
+      '  · «nuestro nombre está en español» NO dice nada del par: nuestro',
+      '    `name` vale lo mismo que `name_es`, o sea que lleva el español',
+      '    metido dentro. Es un fallo NUESTRO, de los que la 335 dejó a medias.',
+      '  · «sin comprobar» tampoco es un rechazo: casi siempre es que esa',
+      '    carta nuestra no existe en su set.',
       '  · Esto no ha escrito nada en la base.',
     ].join('\n')
-    cardsNota(`Verificado: ${confirmados} confirmados, ${rechazados.length} rechazados.`)
+    cardsNota(`Verificado: ${confirmados} confirmados, ${porMirar.length} por mirar.`)
   } catch (err) {
     caja.value = `No se ha podido: ${err.message}`
     cardsNota(`Ha fallado: ${err.message}`, true)

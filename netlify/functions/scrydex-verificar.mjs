@@ -1,7 +1,7 @@
 import { idDeAdmin, tokenDe } from '../lib/admin.mjs'
 import {
   cabecerasDe, urlDeSonda, emparejarSets, CAMPOS_SUYOS,
-  numeroComparable, verificarPar, laCarta,
+  numeroComparable, verificarPar, laCarta, formasDeId, culpaDeLaDiscrepancia,
 } from '../lib/scrydex.mjs'
 
 // Comprobar que cada emparejamiento de set es el que creemos (tanda 504).
@@ -108,7 +108,7 @@ export async function procesar({
   const unaDe = new Map()
   await enTandas(aVerificar, A_LA_VEZ, async (par) => {
     const filas = await pedir(
-      `tcg_cards?select=local_id,name&market=eq.${mercado}`
+      `tcg_cards?select=local_id,name,name_es&market=eq.${mercado}`
       + `&set_id=eq.${encodeURIComponent(par.nuestro.id)}`
       + `&order=local_id.asc&limit=${CANDIDATAS}`,
     )
@@ -117,32 +117,47 @@ export async function procesar({
   })
 
   const confirmados = []
-  const rechazados = []
+  // «Discrepan» y no «rechazados» (tanda 505): la 504 llamó rechazo a un
+  // nombre que no coincide y se equivocó en los OCHO casos, porque nuestro
+  // `name` occidental está en español en parte de las filas. Ahora se
+  // separan por CULPA: las nuestras, que no dicen nada del par, y las que
+  // de verdad hay que mirar a mano.
+  const culpaNuestra = []
+  const porMirar = []
   const sinComprobar = []
   const anotar = (par, porque) => sinComprobar.push({ par: `${par.nuestro.id} → ${par.suyo.id}`, porque })
 
   await enTandas(aVerificar, A_LA_VEZ, async (par) => {
     const nuestra = unaDe.get(par.nuestro.id)
     if (!nuestra) return anotar(par, 'no tenemos ninguna carta de ese set con nombre y número')
-    const suId = `${par.suyo.id}-${numeroComparable(nuestra.local_id)}`
+    // Las dos formas del id, la LITERAL primero: ellos guardan el número
+    // tal como está impreso («TG01», «XY01», «SWSH001»), y normalizarlo
+    // dejó trece pares en 404 en la 504.
+    const formas = formasDeId(par.suyo.id, nuestra.local_id)
     try {
-      const res = await fetchImpl(urlDeSonda(`cards/${suId}`), { headers: cabeceras })
-      if (!res.ok) {
-        // Un 404 NO es «el par está mal»: puede que esa carta nuestra no
-        // exista en su set, o que su id no se monte como creemos. Se dice
-        // aparte y no se cuenta como rechazo — contarlo sería tirar un
-        // emparejamiento bueno por un fallo nuestro.
-        return anotar(par, `su API devolvió ${res.status} para ${suId}`)
+      let suya = null
+      const probados = []
+      for (const suId of formas) {
+        probados.push(suId)
+        const res = await fetchImpl(urlDeSonda(`cards/${suId}`), { headers: cabeceras })
+        if (res.ok) { suya = laCarta(await res.json()); break }
+        if (res.status !== 404) return anotar(par, `su API devolvió ${res.status} para ${suId}`)
       }
-      const suya = laCarta(await res.json())
+      if (!suya) {
+        // Un 404 de TODAS las formas NO es «el par está mal»: puede que esa
+        // carta nuestra no exista en su set. Contarlo como rechazo sería
+        // tirar un emparejamiento bueno por un fallo nuestro.
+        return anotar(par, `404 en todas las formas: ${probados.join(', ')}`)
+      }
       const v = verificarPar({ nuestroNombre: nuestra.name, suyoNombre: suya?.name })
       const linea = {
         nuestro: par.nuestro.id, suyo: par.suyo.id, por: par.por,
         carta: `${nuestra.local_id} «${nuestra.name}»`, suya: suya?.name || '(sin nombre)',
       }
-      if (v.veredicto === 'confirmado') confirmados.push(linea)
-      else if (v.veredicto === 'rechazado') rechazados.push({ ...linea, porque: v.porque })
-      else anotar(par, v.porque)
+      if (v.veredicto === 'confirmado') return confirmados.push(linea)
+      if (v.veredicto !== 'discrepan') return anotar(par, v.porque)
+      const c = culpaDeLaDiscrepancia({ name: nuestra.name, nameEs: nuestra.name_es })
+      ;(c.culpa === 'nuestra' ? culpaNuestra : porMirar).push({ ...linea, porque: c.porque })
     } catch (e) {
       anotar(par, String(e?.message || e).slice(0, 90))
     }
@@ -168,9 +183,15 @@ export async function procesar({
       ambiguos: ambiguos.length,
       sinEmparejar: sueltos.length,
       confirmados: confirmados.length,
-      // LO QUE HAY QUE MIRAR: los rechazados, con los dos nombres, para
-      // que se vea POR QUÉ está mal y no haya que fiarse de un número.
-      rechazados,
+      // LO QUE HAY QUE MIRAR A MANO, y solo esto: los nombres que no
+      // coinciden y de los que NO se puede demostrar que la culpa sea
+      // nuestra. Con los dos nombres, para no fiarse de un número.
+      porMirar,
+      // Y aparte, los que discrepan porque nuestro `name` está en español.
+      // Esos no dicen nada del par — pero sí son un fallo NUESTRO, que es
+      // justo lo que la 335 dejó a medias.
+      nuestroNombreEnEspanol: culpaNuestra.length,
+      ejemplosEnEspanol: culpaNuestra.slice(0, 10),
       sinComprobar: sinComprobar.slice(0, 20),
       sinComprobarTotal: sinComprobar.length,
       ejemplosConfirmados: confirmados.slice(0, 5),

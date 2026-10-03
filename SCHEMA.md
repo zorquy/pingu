@@ -27473,3 +27473,96 @@ puede» de todo, que es un fallo que se lee como un resultado.
 `netlify/lib/scrydex.mjs`, `admin/index.html`, `admin/js/admin.js`.
 Prueba: `pruebas/test-tanda-504.mjs` (rama `pruebas`), con siete mutaciones
 a mano y las siete cazadas.
+
+## Tanda 505 — los ocho «rechazados» de la 504 eran falsos
+
+La 504 se pasó contra los 171 pares reales y contestó: **150 confirmados, 8
+rechazados, 13 en 404**. Los ocho rechazos eran falsos. Los ocho:
+
+```
+sm10         → sm10       «Pheromosa y Buzzwole GX»        vs «Pheromosa & Buzzwole-GX»
+sv10         → sv10       «Pinsir de Eco»                  vs «Ethan's Pinsir»
+sm12         → sm12       «Venusaur y Snivy GX»            vs «Venusaur & Snivy-GX»
+me02.5       → me2pt5     «Oddish de Erika»                vs «Erika's Oddish»
+sm11         → sm11       «Rowlet y Exeggutor de Alola GX» vs «Rowlet & Alolan Exeggutor-GX»
+sve          → sve        «Energía Planta»                 vs «Basic Grass Energy»
+tk-xy-latia  → tk8b       «Energía Planta»                 vs «Grass Energy»
+tk-xy-su     → tk9a       «Energía Agua»                   vs «Water Energy»
+```
+
+Seis de los ocho **tienen el id idéntico**. Son el mismo set con toda
+seguridad, y el nombre no coincide porque nuestro `name` está en ESPAÑOL:
+«Pinsir de Eco» es *Ethan's Pinsir* (Ethan se llama Eco en español), «Oddish
+de Erika» es *Erika's Oddish*, «Energía Planta» es *Basic Grass Energy*, y
+los GX dobles llevan «y» donde el inglés lleva «&».
+
+### La guarda de la 504 no podía verlo, y el porqué es la lección
+
+La 504 puso una guarda del ALFABETO precisamente para esto: 「ピカチュウV」 deja
+«v» y «Pikachu V» deja «pikachuv», o sea un rechazo inventado. Y funciona.
+Lo que no vio es el caso de al lado:
+
+> **El mismo alfabeto en otro IDIOMA no lo detecta ninguna guarda.**
+> `TIENE_CJK` no salta con el español. «Energía Planta» y «Grass Energy» se
+> parecen tanto a una traducción como a dos cartas distintas, y no hay nada
+> que sacar de mirar más las dos cadenas.
+
+De ahí los dos cambios:
+
+**1. El veredicto se llama «discrepan», no «rechazado».** Un nombre que
+COINCIDE confirma —si las dos se llaman «Jynx», es la misma carta—. Uno que
+no coincide **no concluye nada** mientras nuestro `name` pueda estar
+traducido. «Rechazado» era una conclusión que la comparación no sostiene, y
+poner el nombre honesto en el veredicto es lo que impide volver a usarlo
+para decidir.
+
+**2. Quién tiene la culpa se decide con una prueba LOCAL, no mirando las
+cadenas.** La migración de la 335 copió el nombre traducido a `name_es`
+antes de recuperar el inglés. Así que una fila en la que `name` y `name_es`
+valen **lo mismo** tiene el español metido en `name`: la discrepancia es
+NUESTRA y no dice absolutamente nada del emparejamiento
+(`culpaDeLaDiscrepancia`). El informe separa las dos cosas, y «por mirar a
+mano» queda con los que de verdad lo piden.
+
+### Los trece 404 eran todos la misma forma
+
+```
+swsh12tg-tg1   ← nuestra carta es la TG01
+xyp-xy1        ← la XY01
+swshp-swsh1    ← la SWSH001
+dpp-dp1        ← la DP01
+```
+
+Scrydex guarda el número **tal como está impreso en la carta**, con sus
+mayúsculas y sus ceros. `numeroComparable` existe por un motivo bueno —que
+nuestro «001» japonés case con su «1»— y aquí lo estropeaba. `formasDeId`
+prueba la **literal primero** y la normalizada después, y un 404 de las dos
+sí es un 404 (se dicen las formas probadas, para poder arreglarlo). Un 500
+no se confunde con un 404: ahí no se sigue probando.
+
+### Y el hallazgo que NO es del verificador, y es más gordo
+
+Hay cartas occidentales con el español metido en `tcg_cards.name`. Por la
+norma de las tandas 334/335, ese nombre es la **clave** con la que se cruzan
+el agregado de `tcg_card_play`, el respaldo del resolutor de decklists y la
+huella de las reimpresiones. Esas cartas no casan con nada, **sin dar
+error**.
+
+La reparación de la 335 (`repararNombresDeUnSet`) criba por
+`name_es=not.is.null`, que era la criba correcta para lo que se arreglaba
+entonces. Pero una fila con el español en `name` y `name_es` a null **no
+entra en la criba y no se arregla nunca**. Antes de decidir qué se hace hay
+que contarlas; la pasada nueva ya las cuenta y da ejemplos.
+
+**Ficheros**: `netlify/lib/scrydex.mjs` (`formasDeId`,
+`culpaDeLaDiscrepancia`, y `verificarPar` que ahora dice «discrepan»),
+`netlify/functions/scrydex-verificar.mjs`, `admin/js/admin.js`. Pruebas:
+`pruebas/test-tanda-505.mjs` (nueva) y `test-tanda-504.mjs` actualizada al
+vocabulario nuevo — las dos afirmaciones que cambiaron eran justo las
+equivocadas.
+
+**Lo que falta para que un rechazo sea un rechazo**: un campo
+language-independent. El ILUSTRADOR es un nombre propio y vale igual en
+todos los idiomas, y ya tenemos la columna (`illustrator`, la rellena
+`cartas-detalle`). Falta saber **cómo se llama ese campo en su ficha de
+carta**, y eso no se inventa (norma de la 501): se sondea.

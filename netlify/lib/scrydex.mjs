@@ -405,8 +405,12 @@ export function conclusion({ pedidas, conEscaneo, relleno, fallos }) {
 // emparejamiento falso mete el logo de otro set encima del nuestro **sin
 // dar ningún error**.
 //
-// Un nombre de carta lo zanja: si nuestra `swsh12.5tg-TG04` se llama
-// «Jynx» y la suya `swsh12tg-tg4` también, el par está confirmado.
+// Un nombre de carta que COINCIDE lo zanja: si nuestra `swsh12.5tg-TG04`
+// se llama «Jynx» y la suya también, el par está confirmado.
+//
+// Uno que NO coincide no zanja nada, y eso costó la tanda 505: un nombre
+// puede no coincidir porque el par esté mal O porque nuestro `name` esté en
+// español. De ahí que el veredicto se llame «discrepan» y no «rechazado».
 //
 // Se compara con `clave()` —sin tildes, sin signos, en minúsculas— porque
 // «Pokémon GO» y «Pokemon GO» son la misma carta. Pero NO más tolerante
@@ -433,7 +437,10 @@ export function verificarPar({ nuestroNombre, suyoNombre }) {
   const b = clave(nb)
   if (!a || !b) return { veredicto: 'no-se-puede', porque: 'ninguno de los dos nombres deja nada que comparar' }
   if (a === b) return { veredicto: 'confirmado' }
-  return { veredicto: 'rechazado', porque: `se llaman distinto: «${na}» vs «${nb}»` }
+  // «discrepan» y no «rechazado» a propósito (tanda 505): que dos nombres
+  // no coincidan NO es una conclusión sobre el par mientras nuestro `name`
+  // pueda estar traducido. Quien decide es `culpaDeLaDiscrepancia`.
+  return { veredicto: 'discrepan', porque: `se llaman distinto: «${na}» vs «${nb}»` }
 }
 
 // Su respuesta de UNA carta trae `data` como OBJETO; la de una lista, como
@@ -443,4 +450,50 @@ export function laCarta(json) {
   const d = json?.data
   if (Array.isArray(d)) return d[0] || null
   return d && typeof d === 'object' ? d : null
+}
+
+// ── Las FORMAS en que se puede escribir el id de una carta suya (tanda 505) ──
+//
+// La 504 montaba el id con `numeroComparable`, que pasa a minúsculas y
+// quita los ceros de delante — porque eso es lo que hace falta para que
+// nuestro «001» japonés case con su «1». Y para los sets normales acierta.
+//
+// Pero de los 171 pares, TRECE contestaron 404, y los trece con la misma
+// forma: `swsh12tg-tg1` donde nuestra carta es la `TG01`, `xyp-xy1` donde
+// es la `XY01`, `swshp-swsh1` donde es la `SWSH001`. O sea que ellos
+// guardan el número **tal como está impreso en la carta**, con sus
+// mayúsculas y sus ceros, y mi normalización lo estropeaba.
+//
+// Así que se prueban las dos formas, y la literal PRIMERO: es la que lleva
+// la información completa. Un 404 de las dos sí es un 404.
+export function formasDeId(suSetId, localId) {
+  const n = String(localId ?? '').trim()
+  if (!suSetId || !n) return []
+  const formas = [n, n.toUpperCase(), numeroComparable(n)]
+  return [...new Set(formas.filter(Boolean))].map((f) => `${suSetId}-${f}`)
+}
+
+// ── De quién es la culpa cuando los dos nombres no coinciden (tanda 505) ──
+//
+// La 504 llamó «rechazado» a un nombre que no coincide, y se equivocó en
+// los OCHO casos: nuestro `name` del catálogo occidental está en ESPAÑOL en
+// parte de las filas —«Pinsir de Eco» es *Ethan's Pinsir*, «Energía Planta»
+// es *Basic Grass Energy*— y el suyo en inglés. Seis de los ocho pares
+// tenían el id IDÉNTICO, así que eran el mismo set con toda seguridad.
+//
+// La guarda del alfabeto no lo vio porque esto no es otro alfabeto: es el
+// MISMO alfabeto en otro IDIOMA. Y ahí no hay nada que detectar mirando las
+// dos cadenas: «Energía Planta» y «Grass Energy» se parecen tanto a una
+// traducción como a dos cartas distintas.
+//
+// Lo que sí hay es una prueba LOCAL y gratis de quién tiene la culpa. La
+// migración de la 335 copió el nombre traducido a `name_es` antes de
+// recuperar el inglés, así que una fila en la que `name` y `name_es` valen
+// LO MISMO tiene el español metido en `name`: la discrepancia es NUESTRA y
+// no dice absolutamente nada del emparejamiento.
+export function culpaDeLaDiscrepancia({ name, nameEs }) {
+  if (name && nameEs && clave(name) === clave(nameEs)) {
+    return { culpa: 'nuestra', porque: 'nuestro `name` está en español (vale lo mismo que `name_es`), así que esto no dice nada del par' }
+  }
+  return { culpa: 'desconocida', porque: 'puede ser que el par esté mal, o que nuestro nombre esté traducido' }
 }

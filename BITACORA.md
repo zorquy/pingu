@@ -35,6 +35,67 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 — PINGU-Claude (tanda 505 — los ocho «rechazados» de la 504 eran falsos)
+
+**Hecho**: PINGU pasó el verificador de la 504 contra los 171 pares reales:
+150 confirmados, **8 rechazados**, 13 en 404. Y los ocho rechazos eran
+FALSOS, los ocho por el mismo motivo. Nuestro `name` del catálogo
+occidental está en ESPAÑOL en parte de las filas —«Pinsir de Eco» es
+*Ethan's Pinsir*, «Oddish de Erika» es *Erika's Oddish*, «Energía Planta»
+es *Basic Grass Energy*— y el de Scrydex en inglés. **Seis de los ocho
+tenían el id IDÉNTICO** (`sm10 → sm10`, `sv10 → sv10`, `sm12 → sm12`,
+`sm11 → sm11`, `sve → sve`, `me02.5 → me2pt5`): eran el mismo set con toda
+seguridad.
+
+Escribí la guarda del alfabeto en la 504 y no vi el caso de al lado: esto
+no es otro alfabeto, es el **MISMO alfabeto en otro IDIOMA**. `TIENE_CJK`
+no salta con el español, así que la discrepancia salía rotulada como un
+rechazo con toda la confianza del mundo.
+
+**Lo que cambia**:
+
+· El veredicto se llama **«discrepan»** y no «rechazado». Un nombre que
+  COINCIDE confirma; uno que no coincide no concluye nada mientras nuestro
+  `name` pueda estar traducido.
+· Y para saber de quién es la culpa, una prueba **LOCAL y gratis** en vez de
+  mirar más las dos cadenas: la migración de la 335 copió el español a
+  `name_es`, así que si `name` vale lo mismo que `name_es` el español está
+  metido en `name` y la culpa es NUESTRA (`culpaDeLaDiscrepancia`). El
+  informe lo separa: «por mirar a mano» son solo los que NO se pueden
+  explicar así, y los demás se cuentan aparte como fallo nuestro.
+· Los **trece 404** eran todos de la misma forma: ellos guardan el número
+  TAL COMO ESTÁ IMPRESO (`TG01`, `XY01`, `SWSH001`) y mi normalización lo
+  estropeaba. `formasDeId` prueba la literal primero y la normalizada
+  después — el «001»→«1» del japonés sigue hecho falta y sigue ahí.
+
+**Y un hallazgo que NO es del verificador y es más gordo**: hay cartas
+occidentales con el español metido en `tcg_cards.name`. Según la norma de
+las tandas 334/335 ese nombre es la CLAVE con la que se cruzan
+`tcg_card_play`, el respaldo del resolutor de decklists y la huella de las
+reimpresiones — así que esas cartas no casan con nada, **sin dar error**. La
+reparación de la 335 criba por `name_es=not.is.null`, así que una fila con
+el español en `name` y `name_es` a null no la arregla nunca. Hay que
+contarlas antes de decidir qué se hace: la pasada nueva ya las cuenta.
+
+**Ficheros**: `netlify/lib/scrydex.mjs` (`formasDeId`,
+`culpaDeLaDiscrepancia`, `verificarPar` ahora dice «discrepan»),
+`netlify/functions/scrydex-verificar.mjs`, `admin/js/admin.js`, `CLAUDE.md`,
+`SCHEMA.md`. En la rama `pruebas`: `pruebas/test-tanda-505.mjs` (NUEVO) y
+`test-tanda-504.mjs` actualizado al vocabulario nuevo — las dos
+afirmaciones que cambié eran justo las equivocadas, no se ha aflojado nada.
+
+**Rigor**: siete mutaciones, las siete cazadas. La séptima no se cazaba al
+principio porque **mi doble devolvía `name_es` aunque no se pidiera**, o sea
+más generoso que PostgREST (lección de la 437). Ahora el doble respeta el
+`select=`.
+
+**En curso / pendiente**: me falta UNA cosa de Scrydex para que un rechazo
+pueda ser un rechazo de verdad: el nombre del campo del ILUSTRADOR en su
+ficha de carta, que es un nombre propio y vale igual en todos los idiomas.
+No me lo invento (norma de la 501): hace falta un sondeo a pelo de
+`cards/sm10-1`. Y pendiente contar cuántas cartas occidentales tienen el
+español en `name`.
+
 ## 2026-10-04 — PINGU-Claude (tanda 504 — verificar los emparejamientos antes de escribir nada)
 
 **Hecho**: la 503 contestó la pregunta que había —«¿tiene Scrydex las fotos

@@ -66,6 +66,31 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   falta en una guarda: un falso negativo es CSS sin su hoja, un falso
   positivo solo es una clase que no se puede mudar. Pero la regla para
   quien muda es la de arriba: **greparla a mano en el JS**.
+- **El MISMO alfabeto en otro IDIOMA no lo detecta ninguna guarda** (tanda
+  505), y es la trampa de la 483 un paso más allá. El verificador de la 504
+  comparaba el nombre de una carta nuestra con el de Scrydex y llamaba
+  «RECHAZADO» a lo que no coincidía. En la pasada real salieron OCHO
+  rechazos, y **los ocho eran falsos**: nuestro `name` del catálogo
+  occidental está en español en parte de las filas —«Pinsir de Eco» es
+  *Ethan's Pinsir*, «Energía Planta» es *Basic Grass Energy*— y el suyo en
+  inglés. SEIS de los ocho tenían el id IDÉNTICO (`sm10 → sm10`), o sea que
+  eran el mismo set con toda seguridad. La guarda del alfabeto que había
+  mira `CJK`, así que español contra inglés pasa de largo y sale un rechazo
+  con toda la confianza del mundo. Dos lecciones: **un nombre que COINCIDE
+  confirma, uno que NO coincide no concluye nada** —de ahí que el veredicto
+  se llame «discrepan» y no «rechazado»—, y cuando hace falta saber de quién
+  es la culpa, se busca una prueba LOCAL en vez de mirar más las dos cadenas:
+  la migración de la 335 copió el español a `name_es`, así que una fila en la
+  que `name` vale lo mismo que `name_es` lleva el español metido en `name` y
+  la discrepancia es NUESTRA.
+- **Un id ajeno se prueba TAL COMO ESTÁ antes de normalizarlo** (tanda 505).
+  `numeroComparable` pasa a minúsculas y quita los ceros de delante, que es
+  lo que hace falta para que nuestro «001» japonés case con su «1». Pero
+  Scrydex guarda el número **tal como está impreso en la carta**, así que de
+  los 171 pares TRECE contestaron 404 y los trece con la misma forma:
+  `swsh12tg-tg1` donde la carta es la `TG01`, `xyp-xy1` donde es la `XY01`,
+  `swshp-swsh1` donde es la `SWSH001`. Se prueban las dos formas y la
+  literal PRIMERO, que es la que lleva la información completa.
 - **Un fixture que te inventas prueba tu imaginación, no la API** (tanda
   501). Escribí el emparejamiento con Scrydex y su prueba ANTES de tener
   una respuesta suya delante, con fechas `2023-03-10` porque es como las
