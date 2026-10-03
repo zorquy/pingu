@@ -249,3 +249,88 @@ export const CAMPOS_SUYOS = {
   codigo: 'code',
   nombre: 'name',
 }
+
+// ── Las CARTAS ──
+//
+// Su respuesta real, pedida con `cards?page_size=1` el 2026-10-04 (recortada
+// a lo que importa, y pegada entera en `test-tanda-502.mjs`):
+//
+//   {"id":"me55c-58","name":"Pikachu","supertype":"Pokémon",
+//    "number":"58","printed_number":"58/102","rarity":"Common",
+//    "rarity_code":"C","artist":"Mitsuhiro Arita",
+//    "national_pokedex_numbers":[25],"regulation_mark":null,
+//    "images":[{"type":"front","small":"…/small","medium":"…","large":"…"}],
+//    "expansion":{…la expansión ENTERA…},"language_code":"EN",
+//    "variants":[{"name":"holofoil","marketplaces":[…],"prices":[]}]}
+//
+// con `"total_count":47481` cartas en total.
+//
+// Tres cosas que no se ven de un vistazo y deciden el diseño:
+//
+//   1. `images` es una LISTA de objetos con `type`, no una cadena. Hay que
+//      coger la de `type: "front"` — dar por hecho que la primera es la
+//      buena es una suposición que aguanta hasta que no.
+//   2. La expansión viene ENTERA dentro de cada carta, así que pedir
+//      cartas trae de paso con qué emparejar su set.
+//   3. `national_pokedex_numbers` es nuestro `dex_ids` — el que la tanda
+//      483 tuvo que ir a buscar carta a carta para que la Pokédex japonesa
+//      no saliera vacía. Aquí viene de serie.
+
+// EL NÚMERO, COMPARABLE. Es la trampa fina de todo esto.
+//
+// Nuestro `local_id` sale tal cual de TCGdex, que en el catálogo japonés
+// escribe `"001"`. El suyo es `"58"`, sin rellenar. Cruzar las cartas por
+// ese campo a pelo daría CERO coincidencias y ningún error: el set
+// emparejado, las cartas dentro, y ni una casando.
+//
+// Así que para COMPARAR se quitan los ceros de delante de cada tramo de
+// dígitos —`001`→`1`, `TG01`→`tg1`, `SV001`→`sv1`— y se compara eso. Lo
+// que se GUARDA sigue siendo el original: el número impreso en la carta es
+// `001` y así hay que enseñarlo.
+export function numeroComparable(n) {
+  const s = String(n ?? '').trim().toLowerCase()
+  if (!s) return ''
+  // Cada tramo de dígitos pierde sus ceros a la izquierda. Un número que
+  // sea solo ceros se queda en «0» y no en nada, que es distinto.
+  return s.replace(/\d+/g, (d) => String(Number(d)))
+}
+
+// La imagen de la CARA de una carta, en la calidad que se pida.
+//
+// Devuelve null si no hay: una URL que nos inventemos la contestaría su
+// servidor con un relleno y 200 (ver `esRelleno`), así que aquí no se monta
+// nada a mano.
+export function imagenDeCarta(carta, calidad = 'large') {
+  const lista = Array.isArray(carta?.images) ? carta.images : []
+  // Por `type`, no por posición: que hoy la primera sea la cara no quiere
+  // decir que mañana no venga primero un reverso.
+  const cara = lista.find((i) => String(i?.type || '').toLowerCase() === 'front') || null
+  const url = cara?.[calidad] || cara?.large || cara?.medium || cara?.small || null
+  return typeof url === 'string' && /^https:\/\//.test(url) ? url : null
+}
+
+// Lo que de una carta suya nos sirve, con NUESTROS nombres de columna.
+//
+// Solo se devuelve lo que VIENE: una clave ausente no se toca al escribir
+// (la lección de la 487), así que un campo que ellos no tengan no borra el
+// que nosotros ya hubiéramos curado.
+export function cartaDeScrydex(carta) {
+  if (!carta || typeof carta !== 'object') return null
+  const fila = {}
+  const imagen = imagenDeCarta(carta)
+  if (imagen) fila.imagen_url = imagen
+  if (carta.rarity) fila.rarity = String(carta.rarity)
+  if (carta.artist) fila.illustrator = String(carta.artist)
+  if (carta.regulation_mark) fila.regulation_mark = String(carta.regulation_mark)
+  // `supertype` viene con tilde («Pokémon») y nuestra `category` es la
+  // canónica inglesa, que es con la que se cruza (tandas 334 y 335).
+  if (carta.supertype) {
+    const s = String(carta.supertype).normalize('NFD').replace(/[̀-ͯ]/g, '')
+    fila.category = s
+  }
+  const dex = (Array.isArray(carta.national_pokedex_numbers) ? carta.national_pokedex_numbers : [])
+    .map((n) => Number(n))
+    .filter((n) => Number.isInteger(n) && n > 0)
+  if (dex.length) fila.dex_ids = dex
+  return fila
+}

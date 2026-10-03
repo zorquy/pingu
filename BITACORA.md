@@ -35,6 +35,50 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 — PINGU-Claude (tanda 502 — sus cartas: el regalo y la trampa)
+
+**Hecho**: segunda sonda (`cards?page_size=1`, 47.481 cartas en total) y
+con la respuesta real delante salen una trampa y un regalo.
+
+**LA TRAMPA, el número.** Su `number` es `"58"`; nuestro `local_id` sale tal
+cual de TCGdex, que en japonés escribe `"001"`. Cruzar por ahí a pelo
+dejaría el set emparejado, las cartas dentro y **NI UNA casando**, sin un
+solo error. `numeroComparable` quita los ceros de delante de cada tramo de
+dígitos (`001`→`1`, `TG01`→`tg1`) solo para COMPARAR: lo que se guarda
+sigue siendo el original, que es lo que está impreso en la carta. Con dos
+cuidados: `000` se queda en `0` y no en vacío —confundirlos casaría
+cualquier carta sin número— y `1` y `10` siguen siendo distintas.
+
+**EL REGALO, `national_pokedex_numbers`.** Es nuestro `dex_ids`: el que la
+483 tuvo que ir a buscar carta a carta con una función programada para que
+la Pokédex japonesa no saliera vacía. Aquí viene de serie en cada carta.
+
+**Lo demás**: `artist`→`illustrator`, `rarity`→`rarity`,
+`supertype`→`category` (viene CON TILDE, «Pokémon», y la nuestra es la
+canónica inglesa porque es con la que se cruza, 334 y 335). `images` es una
+LISTA de objetos con `type`: se coge la de `type:"front"` y no la primera,
+porque que hoy la primera sea la cara no quiere decir que mañana no venga
+antes un reverso. Y solo `https://`.
+
+**Y dos cosas que simplifican el relleno**: la expansión viene ENTERA
+dentro de cada carta (no hacen falta dos pasadas) y el id de una carta es
+`<expansión>-<número>`, así que emparejado el set las cartas se piden sin
+adivinar nada.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`, `SCHEMA.md`, `BITACORA.md`. En la
+rama `pruebas`: `pruebas/test-tanda-502.mjs` (NUEVO).
+
+**Prueba**: 30 comprobaciones con su respuesta pegada byte por byte.
+Mutada: sin normalizar el número caen 5, y cogiendo la imagen por posición
+en vez de por tipo caen 2.
+
+**En curso / pendiente**: (1) **MEDIR EL INGLÉS**, que es lo que decide si
+los 29 $ valen: 1.351 escaneos y 63 logos. Hace falta una sonda que compare
+nuestros huecos contra ellos, no una carta suelta. (2) Migrar
+`generate-course` y `telegram-mandar` a `netlify/lib/admin.mjs`. (3)
+Preguntarles lo de «wholesale data source». (4) No quitar chino ni taiwanés
+sin mirar el dato.
+
 ## 2026-10-04 — PINGU-Claude (tanda 501 — su fecha viene con barras, y mi fixture se lo había inventado)
 
 **Hecho**: PINGU pulsó la sonda de la 500 y la primera respuesta real de

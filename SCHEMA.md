@@ -27288,3 +27288,57 @@ guerra: la **30th Classic Collection**, que TCGdex tiene partida en dos
 identificadores (la 347) y a la que le faltaba la cuenta (la 348).
 
 **Ficheros**: `netlify/lib/scrydex.mjs`, `CLAUDE.md`.
+
+## Tanda 502 — sus cartas: el regalo, y la trampa que da cero coincidencias
+
+Segunda sonda, `cards?page_size=1`. **`"total_count": 47481`** cartas.
+
+### La trampa: el número
+
+Su `number` es **`"58"`**. Nuestro `local_id` sale tal cual de TCGdex, que
+en el catálogo japonés escribe **`"001"`**. Cruzar las cartas por ese campo
+a pelo dejaría el set emparejado, las cartas dentro, y **ni una casando** —
+sin un solo error.
+
+`numeroComparable` quita los ceros de delante de cada tramo de dígitos
+(`001`→`1`, `TG01`→`tg1`, `SV001`→`sv1`) y eso es lo que se compara. Lo que
+se **guarda** sigue siendo el original: el número impreso en la carta es
+`001` y así hay que enseñarlo. Dos cuidados: `000` se queda en `0` y no en
+nada —`0` y vacío son cosas distintas, y confundirlas casaría cualquier
+carta sin número— y `1` y `10` siguen siendo distintas.
+
+### El regalo: `national_pokedex_numbers`
+
+Es nuestro **`dex_ids`**: el que la tanda 483 tuvo que ir a buscar carta a
+carta con una función programada para que la Pokédex japonesa no saliera
+vacía. Aquí viene **de serie en cada carta**.
+
+### Lo demás de su carta
+
+| Suyo | Nuestro |
+|---|---|
+| `number` | `local_id` (ojo al relleno de ceros) |
+| `printed_number` | — (es `58/102`, el impreso con el total) |
+| `rarity` | `rarity` |
+| `artist` | `illustrator` |
+| `national_pokedex_numbers` | `dex_ids` |
+| `supertype` | `category` — **viene con tilde** («Pokémon») y la nuestra es la canónica inglesa, que es con la que se CRUZA (334 y 335) |
+| `images[]` | — |
+| `expansion` | la expansión **ENTERA**, dentro de cada carta |
+
+**`images` es una LISTA de objetos con `type`**, no una cadena. Se coge la
+de `type: "front"` y no la primera: que hoy la primera sea la cara no
+quiere decir que mañana no venga antes un reverso. Y solo `https://` — una
+URL rara guardada es una foto rota que nadie distingue de una buena.
+
+Y **lo que no viene no se escribe** (la 487): `regulation_mark` llega a
+null en esta carta, y mandarlo borraría el que ya tuviéramos curado.
+
+### Dos cosas que simplifican el relleno
+
+- La **expansión viene dentro de cada carta**, así que pedir cartas trae de
+  paso con qué emparejar su set: no hacen falta dos pasadas.
+- El id de una carta es **`<expansión>-<número>`** (`me55c-58`), así que
+  emparejado el set, las cartas se piden sin adivinar nada.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`.
