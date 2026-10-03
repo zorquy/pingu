@@ -80,6 +80,14 @@ function frases(J) {
     [/^(\d+) cartas robadas$|^(\d+) drawn cards$/, () => ({ tipo: 'nada' })],
     [new RegExp(`^${P} (?:ha hecho|ha declarado) (?:un )?mulligan`, 'i'), (m) => ({ tipo: 'mulligan', jugador: m[1] })],
     [new RegExp(`^${P} took a mulligan`, 'i'), (m) => ({ tipo: 'mulligan', jugador: m[1] })],
+    // La mano del mulligan se ENSEÑA («Cartas mostradas por el mulligan
+    // número 1 • …»): es la que vuelve al mazo, no una que llega.
+    [/^Cartas mostradas por el mulligan|^Cards revealed from Mulligan/i, () => ({ tipo: 'mostrar' })],
+    // La carta de más por el mulligan del otro: su nombre va en la sublínea
+    // siguiente («- Rojo ha robado Tarjeta Roja Especial»), que es LA
+    // MISMA carta y no otra (tanda 481).
+    [new RegExp(`^${P} ha robado (una|\\d+) cartas? más porque`), (m) => ({ tipo: 'robar', jugador: m[1], n: num(m[2]), seNombraDespues: true })],
+    [new RegExp(`^${P} drew (a|\\d+) (?:more |extra )?cards? because`), (m) => ({ tipo: 'robar', jugador: m[1], n: num(m[2]), seNombraDespues: true })],
     [new RegExp(`^${P} ha puesto en juego a (.+) en el Puesto Activo$`), (m) => ({ tipo: 'poner', jugador: m[1], carta: nombreDeCarta(m[2]), donde: 'activo' })],
     [new RegExp(`^${P} ha puesto en juego a (.+) en la Banca$`), (m) => ({ tipo: 'poner', jugador: m[1], carta: nombreDeCarta(m[2]), donde: 'banca' })],
     [new RegExp(`^${P} played (.+) to the Active Spot$`), (m) => ({ tipo: 'poner', jugador: m[1], carta: nombreDeCarta(m[2]), donde: 'activo' })],
@@ -132,8 +140,14 @@ function frases(J) {
     // para «El X de A ha dejado Fuera de Combate al Y de B».
     [new RegExp(`fuera de combate|noquead|debilitad`, 'i'), (m, l) => koEnEspanol(l, P)],
     [new RegExp(`^${P}'s (.+) was Knocked Out`), (m) => ({ tipo: 'ko', jugador: m[1], pokemon: nombreDeCarta(m[2]) })],
-    [new RegExp(`^${P} ha puesto (\\d+|un|una) contadores? de daño (?:en|a) el (.+) de ${P}$`), (m) => ({ tipo: 'contadores', jugador: m[1], n: num(m[2]), pokemon: nombreDeCarta(m[3]), deQuien: m[4] })],
+    [new RegExp(`^${P} ha puesto (\\d+|un|una) contador(?:es)? de daño (?:en|a) el (.+) de ${P}$`), (m) => ({ tipo: 'contadores', jugador: m[1], n: num(m[2]), pokemon: nombreDeCarta(m[3]), deQuien: m[4] })],
     [new RegExp(`^${P} put (\\d+|a) damage counters? on ${P}'s (.+)$`), (m) => ({ tipo: 'contadores', jugador: m[1], n: num(m[2]), deQuien: m[3], pokemon: nombreDeCarta(m[4]) })],
+    // «- El Zorua de N de Azul ha recibido 3 contadores de daño de
+    // Azul»: el registro le pone al Pokémon el dueño EQUIVOCADO (el que
+    // ataca), y lo hace siempre. Se guarda lo que dice y estado.js decide:
+    // si el rival del que los pone tiene uno que se llame así, es suyo.
+    [new RegExp(`^El (.+) de ${P} ha recibido (\\d+|un|una) contador(?:es)? de daño de ${P}$`), (m) => ({ tipo: 'contadores', jugador: m[4], n: num(m[3]), pokemon: nombreDeCarta(m[1]), dice: m[2] })],
+    [new RegExp(`^El (.+) de ${P} ha recibido (\\d+) puntos? de daño$`), (m) => ({ tipo: 'danio', jugador: m[2], pokemon: nombreDeCarta(m[1]), danio: +m[3] })],
 
     // — Energía y cartas que se van —
     [/^Se ha activado (.+)$/, (m) => ({ tipo: 'activar', carta: nombreDeCarta(m[1]) })],
@@ -144,11 +158,25 @@ function frases(J) {
     [new RegExp(`^(?:A card|Una carta) (?:was added to|se ha añadido a la mano de) ${P}(?:'s hand)?$`), (m) => ({ tipo: 'llegaAMano', jugador: m[1] })],
     [new RegExp(`^(.+) was added to ${P}'s hand$`), (m) => ({ tipo: 'llegaAMano', jugador: m[2], cartas: [nombreDeCarta(m[1])] })],
     [new RegExp(`^(?:Se ha añadido )?(.+?) (?:se )?(?:ha añadido|ha pasado) a la mano de ${P}$`), (m) => ({ tipo: 'llegaAMano', jugador: m[2], cartas: [nombreDeCarta(m[1])] })],
+    // «Se ha añadido Zoroark ex de N a la mano de Rojo», el nombre de un
+    // premio; «Una carta» es uno que no se enseña (el del rival).
+    [new RegExp(`^Se ha añadido (.+) a la mano de ${P}$`), (m) => ({ tipo: 'llegaAMano', jugador: m[2], cartas: /^una carta$/i.test(m[1].trim()) ? [] : [nombreDeCarta(m[1])] })],
+    // Camilla Nocturna, Ciclón Levante: «ha movido X de J a su mano», o
+    // «ha movido 5 cartas de J a su mano» con la lista debajo.
+    [new RegExp(`^${P} ha movido (\\d+) cartas? de ${P} a su mano$`), (m) => ({ tipo: 'aMano', jugador: m[3], n: num(m[2]) })],
+    [new RegExp(`^${P} ha movido (.+) de ${P} a su mano$`), (m) => ({ tipo: 'aMano', jugador: m[3], n: 1, cartas: [nombreDeCarta(m[2])] })],
     [new RegExp(`^${P} put (\\d+|a) cards? on the (?:bottom|top) of their deck$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: num(m[2]) })],
     [new RegExp(`^${P} put (.+) on (?:the )?(?:top|bottom) of their deck$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: 1, cartas: [nombreDeCarta(m[2])] })],
     [new RegExp(`^${P} ha puesto (una|\\d+) cartas? (?:en el fondo|debajo|encima) de su baraja$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: num(m[2]) })],
     [/^(.+) was activated$/, (m) => ({ tipo: 'activar', carta: nombreDeCarta(m[1]) })],
     [new RegExp(`^${P} chose (.+)$`), () => ({ tipo: 'nada' })],
+    // «- Rojo ha elegido Llama Virtuosa»: el ataque que copia Bromista
+    // Nocturno. Se enseña y no mueve nada (la moneda del principio, que
+    // también «ha elegido», va arriba y casa antes).
+    [new RegExp(`^${P} ha elegido (.+)$`), (m) => ({ tipo: 'elige', jugador: m[1], que: m[2] })],
+    // «- Resumen del daño:» con el desglose en viñetas debajo: el desglose
+    // no son CARTAS (leerRegistro lo junta en la propia línea).
+    [/^Resumen del daño:?$|^Damage breakdown:?$/i, () => ({ tipo: 'resumen' })],
     [new RegExp(`^Se han descartado (\\d+) cartas del (.+) de ${P}$`), (m) => ({ tipo: 'descartarTodoDe', jugador: m[3], pokemon: nombreDeCarta(m[2]) })],
     [new RegExp(`^(\\d+) cards were discarded from ${P}'s (.+)$`), (m) => ({ tipo: 'descartarTodoDe', jugador: m[2], pokemon: nombreDeCarta(m[3]) })],
     [new RegExp(`^${P} ha descartado (una|\\d+) cartas?$`), (m) => ({ tipo: 'descartar', jugador: m[1], n: num(m[2]) })],
@@ -173,6 +201,10 @@ function frases(J) {
 
     // — El final —
     [new RegExp(`^El rival se ha rendido\\.? ${P} ha ganado$`), (m) => ({ tipo: 'fin', ganador: m[1], porque: 'rendicion' })],
+    // El final por premios (tanda 481): «Todas las cartas de Premio
+    // cogidas. Rojo ha ganado.» empieza por la razón, no por quién gana.
+    [new RegExp(`^Todas las cartas de Premio (?:cogidas|tomadas)\\.? ${P} ha ganado$`), (m) => ({ tipo: 'fin', ganador: m[1], porque: 'premios' })],
+    [new RegExp(`^All Prize cards taken\\.? ${P} wins$`), (m) => ({ tipo: 'fin', ganador: m[1], porque: 'premios' })],
     [new RegExp(`^${P} ha ganado`), (m) => ({ tipo: 'fin', ganador: m[1] })],
     [new RegExp(`^(?:Opponent conceded|.*conceded)\\.? ${P} wins`), (m) => ({ tipo: 'fin', ganador: m[1], porque: 'rendicion' })],
     [new RegExp(`${P} wins$`), (m) => ({ tipo: 'fin', ganador: m[1] })],
@@ -189,11 +221,16 @@ export function leerRegistro(texto) {
   const eventos = []
   const sinLeer = []
   let ultimo = null
+  let padre = null
   for (const cruda of limpias) {
     const t = cruda.trim()
     if (!t) continue
     // «   • Erin, Dunsparce, …»: la lista de cartas de la línea de antes.
     if (/^[•·]/.test(t)) {
+      if (ultimo?.tipo === 'resumen') {
+        ultimo.linea += `${ultimo.linea.endsWith(':') ? ' ' : ' · '}${t.replace(/^[•·]\s*/, '')}`
+        continue
+      }
       const cartas = t.replace(/^[•·]\s*/, '').split(/,\s*/).map(nombreDeCarta).filter(Boolean)
       if (ultimo) ultimo.cartas = [...(ultimo.cartasLista ? ultimo.cartas || [] : []), ...cartas]
       if (ultimo) ultimo.cartasLista = true
@@ -223,9 +260,25 @@ export function leerRegistro(texto) {
     if (ev.tipo === 'nada') continue
     ev.linea = t.replace(/^-\s*/, '')
     ev.sub = sub
+    // De qué cuelga una sublínea: una energía que se une «- …» bajo una
+    // carta de Entrenador sale de otro sitio que bajo un ataque.
+    if (sub && padre) ev.padre = { tipo: padre.tipo, jugador: padre.jugador || null, carta: padre.carta || padre.que || null }
+    // La carta de más por el mulligan se nombra en la sublínea siguiente:
+    // es la MISMA, no una segunda.
+    if (sub && ev.tipo === 'robar' && ultimo?.seNombraDespues && ultimo.jugador === ev.jugador && ev.cartas?.length) {
+      ev.tipo = 'nombrar'
+      ultimo.seNombraDespues = false
+    }
+    // «Cartas mostradas por el mulligan» no dice de quién: del que acaba
+    // de hacerlo.
+    if (ev.tipo === 'mostrar' && padre?.tipo === 'mulligan') ev.jugador = padre.jugador
+    if (!sub) padre = ev
     eventos.push(ev)
     ultimo = ev
   }
-  for (const e of eventos) delete e.cartasLista
+  for (const e of eventos) {
+    delete e.cartasLista
+    delete e.seNombraDespues
+  }
   return { jugadores, eventos, sinLeer }
 }

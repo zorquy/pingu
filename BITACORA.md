@@ -35,6 +35,51 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 481 — el registro que acaba por premios, y el Greninja ex que no era)
+
+**Hecho**: el segundo registro de verdad de PINGU («termina por KO y
+cogiendo todos los premios, con Zoroark ex, y el rival jugó un Greninja ex
+teracristal que sale como el de la colección del 30 aniversario»). Tenía
+27 líneas sin entender y la mesa se descuadraba sin dar error; ahora se
+entiende entero y cuadra en las 208 jugadas.
+
+1. **El Greninja ex que se jugó.** El resolutor por nombre elige la
+   impresión más nueva con marca legal, y de «Greninja ex» hay dos cartas
+   distintas. Nuevo `js/repeticiones/impresion.js`: lo que se le ve hacer a
+   cada carta en el registro («usando Ráfaga Espejismo») se mira en TCGdex
+   en español, y si la elegida no lo hace se busca la que sí. Una petición
+   por Pokémon que ataca, y más solo si no casa.
+2. **Lo que no se entendía**: el final por premios, el nombre de cada
+   premio, Camilla Nocturna y Ciclón Levante, los contadores que se
+   reciben (con el dueño mal puesto por el propio registro), el segundo
+   golpe de un ataque doble, «ha elegido» (Bromista Nocturno), el desglose
+   del daño y el mulligan.
+3. **Lo que se descuadraba**: el mulligan dejaba la mano a cero; con
+   gemelos caía el Zorua equivocado; el estadio que se va se descartaba dos
+   veces; usar la Fábrica descartaba una carta; Más PP de N quitaba la
+   energía al activo; Ráfaga Espejismo se llevaba al Greninja entero.
+
+**Ficheros**: `js/repeticiones/impresion.js` (nuevo),
+`js/repeticiones/registro.js`, `js/repeticiones/estado.js`,
+`js/repeticiones.js`, `js/repeticiones/video.js`, `SCHEMA.md`. En
+`pruebas`: `test-tanda-481.mjs`, `registro-481.txt` (el registro, con los
+nombres cambiados por Rojo y Azul) y `rigor-tanda-481.py` (nuevos). La
+portada NO se toca.
+
+**Pruebas**: la suite entera se pasó hace una hora para la 480 (verde
+salvo la 470, que es del contenedor). Esta tanda solo toca ficheros de
+/repeticiones, y se han pasado las 19 pruebas que los leen o que barren
+todo el JS y el CSS: en verde. **Rigor**: 22 mutaciones, las 22
+detectadas. Una salió sin detectar a la primera: con el Mega-Greninja el
+ÚLTIMO de la lista de mentira, el filtro de nombre podía ser «contiene» y
+no se notaba (la carta buena salía antes). Ahora el Mega va el primero.
+
+**En curso / pendiente**: de dónde sale una energía que une un Entrenador
+propio se deduce (del descarte si está ahí, si no del mazo): con el texto de
+la carta se sabría seguro. «Apoyo de Nanci» une dos de Agua y se ha leído
+así; si en otro registro no cuadra, mirar ahí. PINGU va a pasar más
+registros.
+
 ## 2026-10-03 — PINGU-Claude (tanda 480 — compartir, guardar y descargar en vídeo una repetición)
 
 **Hecho**: lo que pidió PINGU sobre /repeticiones (tanda 462): «compartir

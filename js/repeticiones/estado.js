@@ -52,6 +52,34 @@ function buscar(p, nombre, donde = null) {
   }
   return casa(p.activo) ? p.activo : p.banca.find(casa) || null
 }
+const todosLosQueSeLlaman = (p, nombre) => enJuego(p).filter((s) => igual(arriba(s), nombre))
+
+// El que cae, con gemelos (tanda 481). «¡El Zorua de N de Rojo ha
+// quedado Fuera de Combate!» dos veces seguidas: el activo, y el de la
+// banca al que Picado Fantasma acaba de rematar. El primero de la banca
+// era el que NO tenía daño. Se mira por este orden: el que tiene más daño
+// que vida, el activo, y el que más daño lleva.
+function elQueCae(p, nombre, psDe) {
+  const todos = todosLosQueSeLlaman(p, nombre)
+  if (todos.length < 2) return todos[0] || null
+  const ps = psDe?.(nombre)
+  const muertos = ps ? todos.filter((x) => x.danio >= ps) : []
+  const pool = muertos.length ? muertos : todos
+  if (pool.includes(p.activo)) return p.activo
+  return [...pool].sort((a, b) => b.danio - a.danio)[0]
+}
+
+// A quién le caen los contadores de un ataque que reparte (Picado
+// Fantasma: 6 entre la banca): con gemelos, al que todavía no ha recibido
+// nada de ESTE ataque, y de esos al que más daño lleva — es a quien se
+// remata. Así lo cuentan después las líneas de KO.
+function aQuienLeCae(p, nombre, golpeados) {
+  const todos = todosLosQueSeLlaman(p, nombre)
+  if (todos.length < 2) return todos[0] || null
+  const libres = todos.filter((x) => !golpeados.includes(x.id))
+  const pool = libres.length ? libres : todos
+  return [...pool].sort((a, b) => b.danio - a.danio)[0]
+}
 
 function quitarDeMano(p, carta) {
   // Con la mano a cero según la cuenta, esa carta llegó por algo que el
@@ -106,9 +134,32 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       s.foco = { tipo: 'robar', jugador: e.jugador }
       break
     case 'mulligan':
-      p.mano = 0
+      // Vuelve la mano al mazo y roba OTRAS siete. El registro no siempre
+      // repite «ha robado 7 cartas de la mano inicial» después (el de la
+      // tanda 481 no lo hace), y sin esto el que hizo mulligan jugaba la
+      // partida con la mano a cero y sacando del mazo lo que ponía.
+      p.mano = 7
       p.manoConocida = []
-      p.mazo = 60
+      p.mazo = 53
+      s.foco = { tipo: 'robar', jugador: e.jugador }
+      break
+    case 'mostrar':
+      s.foco = { tipo: 'mostrar', jugador: e.jugador, cartas: e.cartas || [] }
+      break
+    case 'elige':
+      // El ataque que se copia (Bromista Nocturno → «ha elegido Llama
+      // Virtuosa»): se enseña en el centro como el nombre de un ataque.
+      s.foco = { tipo: 'elige', jugador: e.jugador, que: e.que }
+      break
+    case 'resumen':
+      // El desglose del daño va en su línea; en la mesa se queda el golpe
+      // que lo ha causado.
+      s.foco = estado.foco
+      break
+    case 'nombrar':
+      // La carta de más por un mulligan, con su nombre: ya está contada.
+      p.manoConocida.push(...(e.cartas || []))
+      s.foco = { tipo: 'robar', jugador: e.jugador, cartas: e.cartas }
       break
     case 'decide':
       p.empieza = e.primero
@@ -135,6 +186,8 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       s.caido = null
       s.retirado = null
       s.subio = null
+      s.golpeados = []
+      s.estadioQuitado = null
       s.foco = { tipo: 'turno', jugador: e.jugador }
       break
     case 'finTurno':
@@ -169,13 +222,26 @@ export function aplicar(estado, e, { psDe = null } = {}) {
         s.foco = { tipo: 'habilidad', jugador: e.jugador, slot: enMesa.id, carta: e.carta }
         break
       }
+      // Y lo mismo con el ESTADIO: «ha jugado Fábrica del Team Rocket» con
+      // la Fábrica en juego es usar su efecto (robar 2). Se descartaba una
+      // carta de la mano que nadie había jugado.
+      if (s.estadio && igual(s.estadio.carta, e.carta)) {
+        s.foco = { tipo: 'jugar', jugador: e.jugador, carta: e.carta, estadio: true }
+        break
+      }
       quitarDeMano(p, e.carta)
       p.descarte.push(e.carta)
       s.foco = { tipo: 'jugar', jugador: e.jugador, carta: e.carta }
       break
     }
     case 'estadio':
-      if (s.estadio) s.jugadores[s.estadio.dueno]?.descarte.push(s.estadio.carta)
+      // El que había se va al descarte de su dueño. El registro lo cuenta
+      // además en una sublínea («- Rojo ha descartado Palacio de N»), que
+      // es ESTE mismo descarte y no una carta de su mano.
+      if (s.estadio) {
+        s.jugadores[s.estadio.dueno]?.descarte.push(s.estadio.carta)
+        s.estadioQuitado = { ...s.estadio }
+      }
       s.estadio = { carta: e.carta, dueno: e.jugador }
       quitarDeMano(p, e.carta)
       s.foco = { tipo: 'jugar', jugador: e.jugador, carta: e.carta, estadio: true }
@@ -187,13 +253,21 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       const libre = !energia && enJuego(p).find((x) => igual(arriba(x), e.a) && !x.herramienta && (e.donde !== 'activo' || x === p.activo) && (e.donde !== 'banca' || x !== p.activo))
       const slot = libre || buscar(p, e.a, e.donde)
       if (!slot) break
-      // En una sublínea («- X ha unido…» bajo el ataque de otro, como el
-      // Pequeño Cambio de Elgyem) la energía se MUEVE desde otro Pokémon
-      // de ese jugador; si no la tiene ninguno, sale de la mano.
+      // De dónde sale una energía unida en una SUBLÍNEA depende de qué
+      // cuelga. Bajo lo que hace el rival (el Pequeño Cambio de Elgyem, que
+      // el registro escribe «ha usado») o bajo un ataque, se MUEVE desde
+      // otro Pokémon de ese jugador. Bajo una carta de Entrenador o una
+      // habilidad del MISMO jugador (Más PP de N, Abrazo Psíquico…) sale
+      // del descarte si está ahí, y si no, del mazo: leerla como «de otro
+      // Pokémon» le quitaba la energía al activo para dársela a la banca
+      // (tanda 481).
+      const deEfecto = e.sub && e.padre && e.padre.tipo !== 'ataque' && e.padre.jugador === e.jugador
       let deOtro = null
-      if (e.sub) deOtro = enJuego(p).find((x) => x !== slot && x.energias.some((c) => igual(c, e.carta)))
+      if (e.sub && !deEfecto) deOtro = enJuego(p).find((x) => x !== slot && x.energias.some((c) => igual(c, e.carta)))
+      const enDescarte = deEfecto ? p.descarte.findIndex((c) => igual(c, e.carta)) : -1
       if (deOtro) deOtro.energias.splice(deOtro.energias.findIndex((c) => igual(c, e.carta)), 1)
-      else if (!e.sub || p.manoConocida.some((c) => igual(c, e.carta))) quitarDeMano(p, e.carta)
+      else if (enDescarte >= 0) p.descarte.splice(enDescarte, 1)
+      else if (!e.sub || (!deEfecto && p.manoConocida.some((c) => igual(c, e.carta)))) quitarDeMano(p, e.carta)
       // Si no, la trae un efecto desde el mazo (Generador Eléctrico…).
       else p.mazo = Math.max(0, p.mazo - 1)
       if (energia || slot.herramienta) slot.energias.push(e.carta)
@@ -219,14 +293,39 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       const q = s.jugadores[e.deQuien]
       const obj = q ? buscar(q, e.objetivo, 'activo') : null
       if (obj) obj.danio += e.danio
+      s.golpeados = obj ? [obj.id] : []
       s.foco = { tipo: 'ataque', jugador: e.jugador, slot: at?.id, objetivo: obj?.id, deQuien: e.deQuien, danio: e.danio, que: e.ataque }
       break
     }
     case 'contadores': {
-      const q = s.jugadores[e.deQuien]
-      const obj = q ? buscar(q, e.pokemon) : null
-      if (obj) obj.danio += e.n * 10
-      s.foco = { tipo: 'danio', jugador: e.deQuien, slot: obj?.id, danio: e.n * 10 }
+      // «El X de A ha recibido N contadores de daño de B»: el registro le
+      // pone a X el dueño equivocado (B, el que los pone). Si el rival de B
+      // tiene uno que se llame así, es suyo; si no, el que diga la línea.
+      let dueno = e.deQuien
+      if (!dueno) {
+        const rival = s.orden.find((n) => n !== e.jugador)
+        dueno = todosLosQueSeLlaman(s.jugadores[rival], e.pokemon).length ? rival : e.dice
+      }
+      const q = s.jugadores[dueno]
+      const golpeados = s.golpeados || []
+      const obj = q ? aQuienLeCae(q, e.pokemon, golpeados) : null
+      if (obj) {
+        obj.danio += e.n * 10
+        s.golpeados = [...golpeados, obj.id]
+      }
+      s.foco = { tipo: 'danio', jugador: dueno, slot: obj?.id, danio: e.n * 10 }
+      break
+    }
+    case 'danio': {
+      // «- El Zorua de N de Rojo ha recibido 120 puntos de daño»: el
+      // segundo golpe de un ataque que pega a dos (Ráfaga Espejismo).
+      const golpeados = s.golpeados || []
+      const obj = aQuienLeCae(p, e.pokemon, golpeados)
+      if (obj) {
+        obj.danio += e.danio
+        s.golpeados = [...golpeados, obj.id]
+      }
+      s.foco = { tipo: 'danio', jugador: e.jugador, slot: obj?.id, danio: e.danio }
       break
     }
     case 'retirar': {
@@ -282,13 +381,13 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       break
     }
     case 'ko': {
-      const slot = buscar(p, e.pokemon, 'activo')
+      const slot = elQueCae(p, e.pokemon, psDe)
       if (!slot) break
       slot.ko = true
       // Fuera ya: el que sube lo dirá la línea siguiente.
       quitarSlot(p, slot)
       p.descarte.push(...cartasDe(slot))
-      s.caido = { jugador: e.jugador, nombre: arriba(slot) }
+      s.caido = { jugador: e.jugador, nombre: arriba(slot), cartas: cartasDe(slot) }
       s.foco = { tipo: 'ko', jugador: e.jugador, carta: arriba(slot), cartas: cartasDe(slot) }
       break
     }
@@ -302,6 +401,24 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       }
       const slot = buscar(p, e.pokemon)
       if (!slot) break
+      // Con la lista debajo, son ESAS cartas y el Pokémon se queda: «Se han
+      // descartado 2 cartas del Greninja ex • Energía Agua, Energía Fuego»
+      // es el coste de Ráfaga Espejismo, no que se vaya entero (tanda 481).
+      if (e.cartas?.length && e.cartas.length < cartasDe(slot).length) {
+        for (const c of e.cartas) {
+          const i = slot.energias.findIndex((x) => igual(x, c))
+          if (i >= 0) slot.energias.splice(i, 1)
+          else if (slot.herramienta && igual(slot.herramienta, c)) slot.herramienta = null
+          else {
+            const k = slot.cartas.findIndex((x, n) => n < slot.cartas.length - 1 && igual(x, c))
+            if (k < 0) continue
+            slot.cartas.splice(k, 1)
+          }
+          p.descarte.push(c)
+        }
+        s.foco = { tipo: 'descarta', jugador: e.jugador, slot: slot.id }
+        break
+      }
       quitarSlot(p, slot)
       p.descarte.push(...cartasDe(slot))
       break
@@ -332,7 +449,33 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       s.foco = { tipo: 'robar', jugador: e.jugador, cartas }
       break
     }
+    case 'aMano': {
+      // ¿Es un Pokémon en juego con todo lo suyo (Ciclón Levante)? Si no,
+      // cada carta sale del descarte si está ahí (Camilla Nocturna) y si
+      // no, del mazo.
+      const cartas = e.cartas || []
+      const slot = slotQueSonEstas(p, cartas)
+      if (slot) {
+        quitarSlot(p, slot)
+        aMano(p, cartas)
+        s.foco = { tipo: 'robar', jugador: e.jugador, cartas }
+        break
+      }
+      for (const c of cartas) {
+        const i = p.descarte.findIndex((x) => igual(x, c))
+        if (i >= 0) p.descarte.splice(i, 1)
+        else p.mazo = Math.max(0, p.mazo - 1)
+      }
+      if (!cartas.length) p.mazo = Math.max(0, p.mazo - (e.n || 1))
+      aMano(p, cartas, cartas.length || e.n || 1)
+      s.foco = { tipo: 'robar', jugador: e.jugador, cartas }
+      break
+    }
     case 'descartarDe': {
+      // «Se ha descartado Energía Oscura del Zorua de N» justo después de
+      // que un Zorua de N caiga habla del caído, cuyas cartas ya están en
+      // el descarte: buscarla en la mesa se la quitaba a su GEMELO.
+      if (s.caido && s.caido.jugador === e.jugador && igual(s.caido.nombre, e.pokemon) && (s.caido.cartas || []).some((c) => igual(c, e.carta))) break
       // De los que se llaman así, el que TIENE esa carta (y si acaba de
       // retirarse uno, ese).
       const tiene = (x) => igual(arriba(x), e.pokemon) && (x.energias.some((c) => igual(c, e.carta)) || igual(x.herramienta, e.carta))
@@ -347,6 +490,12 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       break
     }
     case 'descartar': {
+      const q = s.estadioQuitado
+      if (e.sub && q && q.dueno === e.jugador && e.cartas?.length === 1 && igual(e.cartas[0], q.carta)) {
+        s.estadioQuitado = null
+        s.foco = { tipo: 'descarta', jugador: e.jugador }
+        break
+      }
       const cartas = e.cartas || []
       const n = cartas.length || e.n || 1
       for (let i = 0; i < n; i++) quitarDeMano(p, cartas[i] || '')

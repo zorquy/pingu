@@ -25965,3 +25965,88 @@ con y sin cuenta, la lista, volver de entrar, sin la migración, el móvil,
 el vídeo (descarga, ffprobe, lo que dura, el cartel del final, las cartas
 por `/escaneo`, cancelar, sin WebCodecs) y que mirar no mande nada.
 `test-tanda-462` ajusta lo que la página promete (ahora se puede guardar).
+
+## Tanda 481 — el registro que acaba por premios, y el Greninja ex que no era (oct. 2026)
+
+PINGU pasó un segundo registro de verdad: «termina por KO y cogiendo todos
+los premios, además con Zoroark ex, y justo el rival jugó con un Greninja
+ex teracristal; he probado la repetición y sale como si fuera el Greninja
+ex de la colección del 30 aniversario, lógicamente no es así». Con él
+salieron **27 líneas sin entender** y una mesa que se descuadraba sin dar
+ningún error. Va como prueba (`registro-481.txt` en la rama `pruebas`,
+con los nombres cambiados por Rojo y Azul) junto al de la 462.
+
+### Qué impresión se jugó (`js/repeticiones/impresion.js`)
+
+El registro solo dice el NOMBRE, y de «Greninja ex» hay dos cartas que no
+se parecen en nada: el teracristal de Máscaras del Crepúsculo (Ráfaga
+Espejismo) y el de 30th Celebration (Tajo Sigiloso, Filo Acuático). El
+resolutor por nombre del constructor elige la impresión **más nueva con
+marca legal** —lo que quiere un mazo pegado sin códigos— y aquí era justo
+la otra.
+
+Lo que sí dice el registro es qué ATACÓ y qué HABILIDAD usó cada carta, y
+eso es su huella. Después de pintar la mesa, por cada Pokémon al que se le
+ha visto hacer algo se mira su ficha en **TCGdex en español** (así escribe
+los ataques TCG Live; los nuestros van en inglés): si la elegida lo hace,
+se queda —una petición—; si no, se piden las que se llaman EXACTAMENTE
+igual («Mega-Greninja ex» no es un «Greninja ex») hasta dar con una que
+lo haga, y se trae por su colección y su número, como una línea con
+código. No saber (TCGdex sin la ficha, sin red) no es no casar: se queda
+la que había. Las cartas se resuelven otra vez en cada partida: el mismo
+nombre puede ser otra carta en otra.
+
+### Lo que no se entendía
+
+- **El final por premios**: «Todas las cartas de Premio cogidas. Rojo ha
+  ganado.» empieza por la razón y no por quién gana.
+- **«Se ha añadido X a la mano de J»** (el nombre de cada premio; «Una
+  carta» si es del rival) y **«J ha movido X de J a su mano»** (Camilla
+  Nocturna; con «5 cartas» y la lista debajo, Ciclón Levante, que se lleva
+  el Pokémon con todo lo suyo).
+- **Contadores que se reciben**: «El Zorua de N de Azul ha recibido 3
+  contadores de daño de Azul». El registro le pone al Pokémon el dueño
+  EQUIVOCADO (el que ataca), y lo hace siempre: si el rival del que los
+  pone tiene uno que se llame así, es suyo. Y «un contador», en singular,
+  no casaba (`contadores?` no casa «contador»).
+- **El segundo golpe** («El Zorua de N de Rojo ha recibido 120 puntos de
+  daño»), de los ataques que pegan a dos.
+- **«Ha elegido Llama Virtuosa»**: el ataque que copia Bromista Nocturno.
+  Sale en el centro como el nombre de un ataque.
+- **«Resumen del daño:»** con su desglose en viñetas debajo: las viñetas
+  se leían como CARTAS, y se iban a buscar sus dibujos. Ahora van en la
+  propia línea.
+- **El mulligan**: la mano que se enseña («Cartas mostradas por el
+  mulligan») es la que vuelve al mazo, y la carta de más del otro se nombra
+  en la sublínea siguiente — que es la MISMA carta, no una segunda.
+
+### Lo que se descuadraba sin dar error
+
+- **El que hace mulligan jugaba con la mano a cero**: este registro no
+  repite «ha robado 7 cartas de la mano inicial» después, y lo que ponía
+  salía del mazo.
+- **Gemelos.** Picado Fantasma con cuatro Zorua de N: 200 al activo y 3+3
+  en la banca, y caen dos. El segundo es el que ya llevaba daño, y era el
+  primero de la banca el que se iba (y luego se le quitaba la energía a su
+  gemelo vivo). Ahora los contadores de un mismo ataque van al que todavía
+  no ha recibido y más daño lleva, y de dos que caen con el mismo nombre se
+  va el que tiene más daño que vida, el activo, o el más tocado.
+- **El estadio**: el que se va lo cuenta el registro otra vez («- Rojo ha
+  descartado Palacio de N»), y se descartaba dos veces sacándolo de la
+  mano. Y «ha jugado Fábrica del Team Rocket» con la Fábrica en juego es
+  usarla, no jugar una carta.
+- **Una energía unida bajo un Entrenador propio** (Más PP de N) sale del
+  descarte, no de otro Pokémon: se le quitaba al activo para dársela a la
+  banca. Bajo lo que hace el RIVAL (el Pequeño Cambio de Elgyem, que el
+  registro escribe «ha usado» como una habilidad) sí se mueve. Para saberlo,
+  cada sublínea lleva ahora de qué cuelga (`padre`).
+- **«Se han descartado 2 cartas del Greninja ex» con la lista debajo** es
+  el coste de Ráfaga Espejismo: esas dos cartas, y el Greninja se queda. Se
+  lo llevaba entero.
+
+`test-tanda-481.mjs`: el registro entero (sin una línea sin leer, las 60
+cartas de cada uno en las 208 fotos, y cada caso de arriba por separado),
+la impresión con un TCGdex de mentira (casa, no casa, no se sabe, sin
+red, el nombre entero), y la página: el Greninja ex que sale es el de 310
+PS, sin la ficha de TCGdex sale el otro (el contraste), y en otra partida
+con el Filo Acuático vuelve a ser el de 30th Celebration.

@@ -459,11 +459,11 @@ function dibujarFoto(ctx, C, s, t, M) {
   const xF = 900
   ctx.save()
   ctx.textBaseline = 'middle'
-  if (f?.tipo === 'ataque') {
+  if (f?.tipo === 'ataque' || f?.tipo === 'elige') {
     ctx.font = '700 16px Inter, sans-serif'
     ctx.fillStyle = C.blanco
     ctx.fillText(recortar(ctx, f.que || 'Ataque', 200), xF, 293)
-    if (f.danio) pastilla(ctx, String(f.danio), 1240, 276, { fondo: C.peligro, color: C.blanco, tam: 22, alinear: 'right', peso: 800 })
+    if (f.tipo === 'ataque' && f.danio) pastilla(ctx, String(f.danio), 1240, 276, { fondo: C.peligro, color: C.blanco, tam: 22, alinear: 'right', peso: 800 })
   } else if (f?.tipo === 'moneda') {
     ctx.beginPath()
     ctx.arc(xF + 20, 293, 20, 0, Math.PI * 2)

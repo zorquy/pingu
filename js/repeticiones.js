@@ -20,9 +20,10 @@
 import { escapeHtml } from './html.js'
 import { cardImageUrl } from './tcgdex.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
-import { resolverLineas, cargarSets } from './constructor/datos.js'
+import { resolverLineas, cargarSets, cartasPorIds } from './constructor/datos.js'
 import { imagenDeEnergiaBasica, esEnergiaBasica, letraDeEnergia, plano } from './constructor/nucleo.js'
 import { leerRegistro } from './repeticiones/registro.js'
+import { usosPorCarta, usosDe, impresionQueCasa } from './repeticiones/impresion.js'
 import { fotos as sacarFotos, indiceDeTurnos, arriba } from './repeticiones/estado.js'
 import { ICONOS_REPETICION as ICONO } from './repeticiones/iconos.js'
 import { icons } from './icons.js'
@@ -46,6 +47,9 @@ const R = {
   // Nombre de carta (plano) → la fila del catálogo que mejor le casa.
   cartas: new Map(),
   pedidas: new Set(),
+  // Lo que se le ha visto hacer a cada carta (sus ataques y habilidades):
+  // decide CUÁL de las que se llaman igual se jugó (repeticiones/impresion.js).
+  usos: new Map(),
   codigoDeSet: () => null,
   // Cada lectura nueva sube el número: lo que llegue tarde de la anterior
   // (las imágenes que se resuelven por detrás) no pinta encima.
@@ -128,22 +132,56 @@ async function resolverCartas(nombres, vez) {
     /* sin códigos se pinta igual: la cadena de escaneo tiene más sitios */
   }
   const pendientes = nombres.filter((n) => !R.cartas.has(plano(n)) && !R.pedidas.has(plano(n)))
+  const porAfinar = []
   for (let k = 0; k < pendientes.length; k += 6) {
     const tanda = pendientes.slice(k, k + 6)
     tanda.forEach((n) => R.pedidas.add(plano(n)))
     try {
       const { resueltas } = await resolverLineas(tanda.map((nombre) => ({ n: 1, nombre })))
-      for (const r of resueltas) R.cartas.set(plano(r.linea.nombre), r.carta)
+      for (const r of resueltas) {
+        R.cartas.set(plano(r.linea.nombre), r.carta)
+        if (usosDe(R.usos, r.linea.nombre).size) porAfinar.push([r.linea.nombre, r.carta])
+      }
     } catch {
       /* esa tanda se queda con el nombre: la mesa se entiende igual */
     }
     if (vez !== R.vez) return
-    // Con los PS a mano cambian las fotos (un KO que el registro no
-    // escribe se deduce de la vida): se rehacen, que es barato.
-    R.fotos = sacarFotos(R.lectura, { psDe })
-    R.cacheHtml = new WeakMap()
-    pintar()
+    rehacerFotos()
   }
+  // Y después, con la mesa ya pintada, la impresión que de verdad se jugó
+  // (tanda 481): de una en una, que son peticiones a un catálogo gratuito.
+  for (const [nombre, carta] of porAfinar) {
+    if (vez !== R.vez) return
+    if (await afinarImpresion(nombre, carta, vez)) rehacerFotos()
+  }
+}
+
+// Con los PS a mano cambian las fotos (un KO que el registro no escribe se
+// deduce de la vida): se rehacen, que es barato.
+function rehacerFotos() {
+  R.fotos = sacarFotos(R.lectura, { psDe })
+  R.cacheHtml = new WeakMap()
+  pintar()
+}
+
+// «Greninja ex» puede ser el teracristal o el de 30th Celebration: si lo
+// que atacó no es de la elegida, se busca la que sí (impresion.js) y se
+// trae por su colección y su número, como una línea con código.
+async function afinarImpresion(nombre, carta, vez) {
+  const buena = await impresionQueCasa(nombre, usosDe(R.usos, nombre), carta)
+  if (!buena || vez !== R.vez) return false
+  let nueva = null
+  try {
+    const { codigoDeId } = await cargarSets()
+    const codigo = codigoDeId.get(buena.set)
+    if (codigo) nueva = (await resolverLineas([{ n: 1, nombre, set: codigo, numero: buena.numero }])).resueltas.find((r) => r.exacta)?.carta || null
+    if (!nueva) nueva = (await cartasPorIds([buena.id])).get(buena.id) || null
+  } catch {
+    return false
+  }
+  if (!nueva || vez !== R.vez) return false
+  R.cartas.set(plano(nombre), nueva)
+  return true
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -282,6 +320,10 @@ function focoHtml(s) {
     }
     case 'ataque':
       return `<p class="rep-foco-ataque"><span class="rep-foco-que">${escapeHtml(f.que || 'Ataque')}</span>${f.danio ? `<strong class="rep-foco-danio">${f.danio}</strong>` : ''}</p>`
+    case 'elige':
+      return `<p class="rep-foco-ataque"><span class="rep-foco-que">${escapeHtml(f.que || '')}</span></p><p class="rep-foco-texto">${quien}elige</p>`
+    case 'mostrar':
+      return `<p class="rep-foco-texto">${quien}enseña su mano y roba otras 7</p>`
     case 'ko':
       return `${carta(f.carta, ' rep-foco-ko')}<p class="rep-foco-texto rep-foco-alerta">Fuera de combate</p>`
     case 'moneda':
@@ -367,7 +409,7 @@ function cartelDeTurno(nombre) {
 
 // Cuánto se queda cada jugada en pantalla (a velocidad 1): lo que cambia
 // la partida, más; lo que es contar cartas, menos.
-const ESPERA = { turno: 1400, ataque: 1800, ko: 1800, jugar: 1200, habilidad: 1100, moneda: 1300, premio: 1300, entra: 850, sube: 900, evoluciona: 1000, unir: 800, retirar: 900, robar: 650, descarta: 700, danio: 1000 }
+const ESPERA = { turno: 1400, ataque: 1800, ko: 1800, jugar: 1200, habilidad: 1100, moneda: 1300, premio: 1300, entra: 850, sube: 900, evoluciona: 1000, unir: 800, retirar: 900, robar: 650, descarta: 700, danio: 1000, elige: 1200, mostrar: 1400 }
 const esperaDe = (s) => (s.foco ? ESPERA[s.foco.tipo] || 700 : 600)
 
 function ir(i, { anunciar = true } = {}) {
@@ -552,6 +594,12 @@ function cargar(texto, { origen = null, conservarDireccion = false } = {}) {
   R.texto = String(texto)
   R.origen = origen
   R.lectura = lectura
+  // Las cartas se resuelven OTRA VEZ en cada partida: el mismo nombre
+  // puede ser otra impresión en otra (un Greninja ex teracristal aquí, el
+  // de 30th Celebration allí).
+  R.cartas = new Map()
+  R.pedidas = new Set()
+  R.usos = usosPorCarta(lectura)
   R.fotos = sacarFotos(lectura, { psDe })
   R.turnos = indiceDeTurnos(lectura)
   R.abajo = R.fotos[0].protagonista
