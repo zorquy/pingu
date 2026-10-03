@@ -1735,9 +1735,13 @@ function pintarEstrella() {
   const marcada = favoritos.has(album.set)
   b.classList.toggle('activa', marcada)
   b.setAttribute('aria-pressed', marcada ? 'true' : 'false')
-  // Desde la 461 es un icono en la cabecera, sin rótulo: lo que dice qué
-  // hace es el `title` y el `aria-label`, que cambian con el estado.
+  // Desde la 475 es una opción del menú de ⋮ y SÍ lleva rótulo, así que
+  // lo que dice qué hace es el texto. El `title` y el `aria-label` se
+  // quedan por si acaso, pero el que se lee es el de dentro: un icono
+  // suelto cuyo globo hay que esperar es justo lo que PINGU no quería.
   const dice = marcada ? 'Quitar de favoritas' : 'Marcar como favorita'
+  const texto = $('mcAlbumFavoritoTexto')
+  if (texto) texto.textContent = dice
   b.title = dice
   b.setAttribute('aria-label', dice)
 }
@@ -2156,6 +2160,12 @@ function pintarBotonDeFaltan(filtrando) {
   const dice = cuantas
     ? `Copiar las ${cuantas} que me faltan`
     : filtrando ? 'No te falta ninguna de estas' : 'No te falta ninguna'
+  // Y desde la 475 lo dice EN PANTALLA, dentro del menú de ⋮: el aviso de
+  // arriba valía para un icono cuyo globo hay que esperar, y una opción de
+  // menú tiene sitio para la frase entera — que era justo lo que PINGU
+  // echaba de menos («es un botón que no hace nada»).
+  const texto = $('mcFaltanCopiarTexto')
+  if (texto) texto.textContent = dice
   boton.title = dice
   boton.setAttribute('aria-label', dice)
 }
@@ -4128,6 +4138,24 @@ function enganchar() {
   })
   respaldarNombresDeSet($('mcEstanteriaRejilla'))
   $('mcAlbumFavorito').addEventListener('click', cambiarFavorita)
+
+  // ── El menú de ⋮ se cierra solo (tanda 475) ──
+  //
+  // Un `<details>` se queda abierto hasta que alguien lo cierra, y un menú
+  // que sigue abierto encima de lo que acabas de cambiar tapa justo lo que
+  // has venido a mirar. Así que al elegir una opción se cierra — pero no
+  // al tocar los dos desplegables de «al pulsar +», que son un ajuste y no
+  // una acción: ahí se suele cambiar los dos seguidos.
+  const menu = $('mcAlbumMenu')
+  menu?.addEventListener('click', (e) => {
+    if (e.target.closest('.mc-menu-opcion')) menu.open = false
+  })
+  // Y al tocar fuera, como cualquier menú. `capture` no hace falta: basta
+  // con que el clic llegue al documento, y los de dentro no llegan aquí
+  // porque se comprueba quién lo recibió.
+  document.addEventListener('click', (e) => {
+    if (menu?.open && !e.target.closest('#mcAlbumMenu')) menu.open = false
+  })
   // DELEGADO, porque la miga se pinta con la pantalla (tanda 474): al
   // arrancar `#mcAlbumVolver` todavía no existe, y un `addEventListener`
   // sobre un elemento que no está no engancha nada — y no da error, que es

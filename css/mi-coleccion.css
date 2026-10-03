@@ -63,45 +63,11 @@
   gap: var(--e-md);
 }
 
-/* ── UN AJUSTE, DETRÁS DE SU ENGRANAJE (tanda 461) ──
- * PINGU: «al añadir, eso yo lo quitaría». Lo que sobraba era la CHAPA —una
- * fila entera para un ajuste que se toca una vez—, no el ajuste. Aquí
- * cuelga de un icono de la cabecera, que es donde se busca un ajuste. */
-.mc-ajustes-caja {
-  position: relative;
-  flex: 0 0 auto;
-}
-
-.mc-ajustes-caja > summary {
-  list-style: none;
-  user-select: none;
-}
-
-.mc-ajustes-caja > summary::-webkit-details-marker {
-  display: none;
-}
-
-.mc-ajustes-caja > .mc-ajustes {
-  display: none;
-}
-
-.mc-ajustes-caja[open] > .mc-ajustes {
-  display: flex;
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + var(--e-xs));
-  right: 0;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--e-sm);
-  width: max-content;
-  max-width: min(360px, calc(100vw - 32px));
-  padding: var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
-}
+/* Aquí vivía `.mc-ajustes-caja`, el engranaje de «al añadir» de la tanda
+   461 (fuera en la 475). Ese ajuste se fue DENTRO del menú de ⋮, así que
+   ya no cuelga de su propio botón: un desplegable dentro de otro
+   desplegable es un acertijo. Lo que lo dibuja ahora es `.mc-menu-caja`,
+   que es la misma idea con otro contenido. */
 
 .mc-ajuste-fila {
   display: flex;
@@ -4029,10 +3995,12 @@ input.mc-alb-titulo:not([readonly]):focus {
  * la 312 dice que un control con texto mide lo que mide su palabra y uno
  * de icono mide 44. Con ratón bajan a 36, que es lo que hace que la
  * cabecera no pese más que el título que acompaña. */
-.mc-album-iconos {
-  display: flex;
+/* Aquí vivía `.mc-album-iconos`, la fila de cuatro iconos de la cabecera
+   (fuera en la tanda 475). Ahora es UN botón con un menú detrás, y el que
+   se coloca a la derecha es la caja del menú. */
+.mc-menu-caja {
+  position: relative;
   flex: 0 0 auto;
-  gap: var(--e-xs);
   margin-left: auto;
 }
 
@@ -5568,4 +5536,107 @@ input.mc-alb-titulo:not([readonly]):focus {
   .mc-miga {
     min-height: 44px;
   }
+}
+
+/* ── EL MENÚ DE ⋮ DE UNA EXPANSIÓN (tanda 475) ──
+
+   PINGU: «estás ocupando mucho espacio arriba… he pensado en poner tres
+   puntos como pasa en la aplicación de Dex». Eran cuatro iconos en fila, y
+   cuatro iconos seguidos sin una palabra al lado son un acertijo: hay que
+   pulsarlos para saber qué hacen. Dentro del menú caben con su nombre.
+
+   El dibujo es el mismo que el de `.mc-ajustes`, que es de donde sale: un
+   panel que cuelga de su botón, pegado por la derecha. Lo que cambia es
+   que ahora lleva opciones y no un solo ajuste. */
+.mc-menu-caja > summary {
+  list-style: none;
+  user-select: none;
+}
+
+.mc-menu-caja > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mc-menu-caja > .mc-menu {
+  display: none;
+}
+
+.mc-menu-caja[open] > .mc-menu {
+  display: flex;
+  position: absolute;
+  z-index: 20;
+  /* A la DERECHA y no a la izquierda: el botón está al final de la
+     cabecera, así que un panel anclado por la izquierda se saldría de la
+     pantalla en un móvil. */
+  top: calc(100% + var(--e-xs));
+  right: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--e-xs);
+  width: max-content;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+
+/* Una opción es texto, así que se le pide ALTO y no ancho (la regla de la
+   312): estirarla a 44 de ancho dejaría un área invisible pisando a la de
+   al lado. Aquí los 44 van SIEMPRE y no solo detrás de `pointer: coarse`,
+   porque una lista de opciones no es un control denso: no hay nada que
+   apretar. */
+.mc-menu-opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  /* `--text` y no `--text-mid`: esto se pulsa Y se lee (la regla de la
+     311), y además es la única forma de llegar a estas cuatro cosas. */
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  font-family: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mc-menu-opcion:hover {
+  background: var(--bg-soft);
+}
+
+.mc-menu-opcion[aria-pressed='true'] {
+  background: var(--navy-solid);
+  /* Blanco FIJO: `--white` es la superficie de la página y en oscuro vale
+     #182430, así que dejaría letra oscura sobre azul (tanda 315). */
+  color: var(--blanco-fijo);
+}
+
+.mc-menu-icono {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+}
+
+.mc-menu-icono svg {
+  width: 16px;
+  height: 16px;
+}
+
+.mc-menu-raya {
+  margin: var(--e-xs) 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+#mcTocarOpciones .mc-ajuste-fila {
+  padding: 0 var(--e-md) var(--e-xs);
 }

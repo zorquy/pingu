@@ -25601,3 +25601,61 @@ todavía — y un `addEventListener` sobre un elemento que no está **no
 engancha nada y no da ningún error**: el botón sale y no hace nada. Los
 tres cuelgan de la zona que los contiene (`#mcArchivadorZona`,
 `#mcAlbumesDetalle`, el panel de carpetas).
+
+---
+
+## Tanda 475 — los cuatro mandos de la cabecera, detrás de un ⋮
+
+PINGU: «estás ocupando mucho espacio arriba… he pensado en poner tres
+puntos como pasa en la aplicación de Dex».
+
+La cabecera de una expansión llevaba **cuatro iconos en fila** —marcar
+varias, favorita, compartir y el engranaje de «al añadir»—, puestos ahí en
+la tanda 461 para sacarlos de la fila de filtros, donde ocupaban media
+pantalla. Eso estuvo bien, pero cuatro iconos seguidos **sin una palabra al
+lado son un acertijo**: hay que pulsarlos para saber qué hacen. Y entre los
+cuatro empujaban el título a media cabecera.
+
+Ahora la cabecera es el título y un botón. Dentro del menú los tres mandos
+caben **con su nombre escrito**, que es lo que hace Dex y lo que hace que
+se entiendan.
+
+Y hay un caso donde el rótulo escrito arregla algo que llevaba tiempo
+torcido: «Copiar lo que me falta». PINGU dijo de él «es un botón que no
+hace nada» cuando era una chapa (tanda 461) y por eso se convirtió en
+icono — pero un icono cuyo globo hay que esperar dice menos todavía. En el
+menú dice **«Copiar las 7 que me faltan»**, que es exactamente lo que pasa
+al pulsarlo.
+
+### Por qué `<details>` y no `<dialog>`
+
+Es un menú corto que cuelga de su botón, no una pantalla. Y un `<details>`
+se abre y se cierra **sin JavaScript**: si el módulo tarda en llegar, el
+menú funciona igual.
+
+### Dos cosas que un `<details>` no hace solo
+
+1. **Cerrarse al elegir.** Se queda abierto hasta que alguien lo cierra, y
+   un menú abierto encima de lo que acabas de cambiar tapa justo lo que has
+   venido a mirar.
+2. **Cerrarse al tocar fuera**, que es lo que espera cualquiera.
+
+Pero *no* se cierra al tocar los dos desplegables de «al pulsar +»: son un
+ajuste y no una acción, y ahí se cambian los dos seguidos.
+
+### El engranaje propio desaparece
+
+«Al añadir» colgaba de su propio `<details>` desde la 461. Dentro del menú
+ya no: **un desplegable dentro de otro desplegable es un acertijo**. Va
+detrás de una raya, con su frase delante.
+
+Con eso se van `.mc-album-iconos` y `.mc-ajustes-caja`; lo que dibuja el
+panel ahora es `.mc-menu-caja`, que es la misma idea con otro contenido.
+
+### Los identificadores no cambian
+
+`mcMarcarAbrir`, `mcAlbumFavorito`, `mcFaltanCopiar`, `mcTocarIdioma` y
+`mcTocarEstado` siguen llamándose igual: son por los que los busca quien
+engancha el clic, y **cinco pruebas los pulsan**. Lo que esas pruebas han
+tenido que aprender es otra cosa — que ahora hay que abrir el menú antes,
+porque encontrar un elemento no es poder pulsarlo.

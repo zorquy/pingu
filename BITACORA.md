@@ -35,6 +35,38 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 475 — los cuatro mandos, detrás de un ⋮)
+
+**Hecho**: PINGU: «estás ocupando mucho espacio arriba… he pensado en poner
+tres puntos como pasa en la aplicación de Dex». La cabecera de una
+expansión llevaba cuatro iconos en fila —marcar varias, favorita, compartir
+y el engranaje de «al añadir»—, y cuatro iconos seguidos sin una palabra
+al lado son un acertijo: hay que pulsarlos para saber qué hacen. Ahora la
+cabecera es el título y UN botón, y dentro del menú los tres mandos van con
+su nombre escrito. De paso se arregla algo que llevaba tiempo torcido:
+«Copiar lo que me falta» ahora dice **«Copiar las 7 que me faltan»** en
+pantalla, que es lo que PINGU echaba de menos cuando dijo «es un botón que
+no hace nada». Va con `<details>` y no con un `<dialog>` a propósito —es un
+menú corto que cuelga de su botón, y se abre sin JavaScript—, con las dos
+cosas que un `<details>` no hace solo: cerrarse al elegir y cerrarse al
+tocar fuera. Pero NO al tocar los desplegables de «al pulsar +», que son un
+ajuste y se cambian los dos seguidos. El engranaje propio desaparece: un
+desplegable dentro de otro desplegable es un acertijo. Se van
+`.mc-album-iconos` y `.mc-ajustes-caja`.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`, `BITACORA.md`. En la rama `pruebas`:
+`test-tanda-475.mjs` (NUEVO, 28 comprobaciones) y cinco repintadas —409,
+412, 426, 430 y 461—, todas por lo mismo: hay que abrir el menú antes de
+pulsar, porque encontrar un elemento no es poder pulsarlo.
+
+**En curso / pendiente**: nada a medias. **Sigue sin ejecutar
+`supabase-migration-idioma-chino.sql`** (tanda 472). De la cola de PINGU
+quedan: la Pokédex con los datos deslizables como las expansiones, las
+carpetas con subcarpetas al estilo de Dex, y el botón de VISTA
+(cuadrícula / lista / archivador). Rigores pendientes desde la 443.
+Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 474 — las migas de pan)
 
 **Hecho**: PINGU: «estás ocupando mucho espacio arriba… el botón de volver
