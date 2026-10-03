@@ -30,7 +30,6 @@ import {
   IDIOMAS,
   ESTADOS,
   VARIANTES,
-  IDIOMA_POR_DEFECTO,
   ESTADO_POR_DEFECTO,
   idiomaDe,
   estadoDe,
@@ -205,6 +204,64 @@ const laVista = () => VISTAS.find((v) => v.id === vista) || VISTAS[0]
 // `mercado` se queda como lo que es: el catálogo que se consulta. Lo
 // calcula la vista, así que las diez consultas de la 437 no se enteran.
 let mercado = laVista().mercado
+
+// ── CON QUÉ IDIOMA SE AÑADE LO MANDA EL CATÁLOGO (tanda 472) ──
+//
+// PINGU: «tenemos el filtro de idioma en todos los sitios… si yo tengo el
+// filtro en español y agrego una carta, se me está agregando en español.
+// Me gustaría que cuando cambiases el idioma en el menú, si yo pongo
+// inglés… esa carta debería añadirse en inglés. Lo mismo con la carta en
+// japonés, en chino… es un añadido de calidad de vida totalmente
+// necesario».
+//
+// Y es más que comodidad: en el catálogo JAPONÉS no existe una carta en
+// español, así que ofrecerlo era ofrecer algo que no se puede tener. Una
+// opción de la interfaz es una AFIRMACIÓN sobre lo que hay (la norma de la
+// 447), y esta decía que sí.
+//
+// Los dos ejes del comentario de arriba, otra vez: el MERCADO dice qué
+// cartas EXISTEN y el IDIOMA cómo se escriben. El occidental es UN
+// catálogo publicado en ocho idiomas, así que ahí se ofrecen todos; el
+// japonés y el chino son catálogos propios y ofrecen el suyo y nada más.
+const IDIOMA_UNICO_DE_VISTA = { ja: 'ja', zh: 'zh' }
+
+function idiomasDeLaVista() {
+  const solo = IDIOMA_UNICO_DE_VISTA[vista]
+  if (solo) return IDIOMAS.filter((i) => i.id === solo)
+  // El chino fuera del catálogo chino no es que no se ofrezca por gusto:
+  // una carta china no está en el catálogo occidental, así que no hay
+  // ninguna a la que ponerle esa etiqueta.
+  return IDIOMAS.filter((i) => i.id !== 'zh')
+}
+
+// El idioma por defecto es EL DE LA VISTA. Los cuatro identificadores de
+// vista (`es`, `en`, `ja`, `zh`) coinciden a propósito con los de
+// `IDIOMAS`: si alguna vez deja de coincidir, el `|| lista[0]` evita que
+// se quede sin valor, pero lo que hay que arreglar es la coincidencia.
+function idiomaDeLaVista() {
+  const lista = idiomasDeLaVista()
+  return (lista.find((i) => i.id === vista) || lista[0])?.id
+}
+
+// Para EDITAR una línea que ya existe hace falta una lista distinta: la
+// que lleva además el idioma que esa línea tiene.
+//
+// Sin esto, abrir en el catálogo español una carta que apuntaste en
+// francés pintaría el desplegable en la primera opción —porque un
+// `<select>` cuyo valor no está entre sus opciones se queda con la
+// primera— y al guardar le cambiaría el idioma SIN QUE NADIE LO PIDIERA.
+// No daría ningún error: diría que tu carta francesa es española.
+function idiomasParaEditar(idioma) {
+  const lista = idiomasDeLaVista()
+  if (!idioma || lista.some((i) => i.id === idioma)) return lista
+  return [...lista, ...IDIOMAS.filter((i) => i.id === idioma)]
+}
+
+// Lo que se eligió se recuerda POR CATÁLOGO y no a secas, y esa es justo
+// la mitad que faltaba (tanda 461 lo guardó en una clave única). Con una
+// sola clave, quien había elegido «español» una vez se lo llevaba al
+// catálogo inglés para siempre — que es el fallo que PINGU describe.
+const claveDeIdioma = (id) => `${id}-${vista}`
 // Las expansiones favoritas. TRES estados y no dos: `null` es «no se
 // sabe» —la migración no está puesta—, y entonces ni se pinta el grupo ni
 // sale la estrella. Un `new Set()` por defecto diría «no tienes ninguna»,
@@ -1171,7 +1228,10 @@ function abrirCarta(cardId, carta = null) {
   if (encontrada && !cartas.has(cardId)) cartas.set(cardId, encontrada)
   const mia = lineas.find((x) => x.card_id === cardId)
   if (mia) return abrirEditor(mia)
-  abrirEditor({ id: null, card_id: cardId, cantidad: 0, idioma: IDIOMAS[0]?.id, estado: ESTADOS[0]?.id, variante: 'normal' })
+  // El idioma de una carta NUEVA sale del catálogo que miras, no de la
+  // primera opción de la lista (tanda 472): en el catálogo japonés
+  // `IDIOMAS[0]` es el español, y una carta japonesa en español no existe.
+  abrirEditor({ id: null, card_id: cardId, cantidad: 0, idioma: idiomaDeLaVista(), estado: ESTADOS[0]?.id, variante: 'normal' })
 }
 
 function abrirEditor(l) {
@@ -1230,7 +1290,11 @@ function abrirEditor(l) {
   if (l.id) pintarCarpetasDeLaFicha(l.id)
   else $('mcEdCarpetasBloque')?.classList.add('hidden')
   pintarQuienLaTiene(l.card_id)
-  $('mcEdIdioma').innerHTML = opciones(IDIOMAS, l.idioma)
+  // La lista lleva además el idioma que ESTA línea tiene, aunque el
+  // catálogo de ahora no lo ofrezca: un `<select>` cuyo valor no está
+  // entre sus opciones se queda con la primera, y al guardar le cambiaría
+  // el idioma a la carta sin que nadie lo pidiera (tanda 472).
+  $('mcEdIdioma').innerHTML = opciones(idiomasParaEditar(l.idioma), l.idioma)
   $('mcEdEstado').innerHTML = opciones(ESTADOS, l.estado)
   $('mcEdVariante').innerHTML = opciones(VARIANTES, l.variante)
   $('mcEdCantidad').value = l.cantidad
@@ -2558,25 +2622,42 @@ async function abrirEscaner() {
     return
   }
   const sel = $('mcEscanerIdioma')
-  if (sel && !sel.options.length) {
+  if (sel) {
+    // Se repinta CADA VEZ que se abre el escáner, y no solo la primera
+    // (tanda 472). El idioma por defecto sale del catálogo que miras, y el
+    // catálogo cambia sin recargar la página: con el `!sel.options.length`
+    // de antes, quien abría el escáner una vez en español se lo llevaba
+    // en español al catálogo japonés el resto de la visita.
     sel.innerHTML = escaner.IDIOMAS_ESCANER
       .map((i) => `<option value="${i.id}">${escapeHtml(i.nombre)}</option>`)
       .join('')
-    // El idioma de la carta se recuerda: quien colecciona japonés escanea
-    // japonés veinte veces seguidas.
+    // El idioma de la carta se recuerda —quien colecciona japonés escanea
+    // japonés veinte veces seguidas— y se recuerda POR CATÁLOGO, por lo
+    // mismo que los otros dos desplegables.
+    //
+    // La lista del escáner es la suya y no `IDIOMAS`: aquí el idioma dice
+    // en qué está ESCRITA la carta que tienes delante, que es otra pregunta.
+    const clave = claveDeIdioma('mc-escaner-idioma')
+    const porDefecto = escaner.IDIOMAS_ESCANER.some((i) => i.id === idiomaDeLaVista())
+      ? idiomaDeLaVista()
+      : sel.value
+    sel.value = porDefecto
     try {
-      const guardado = localStorage.getItem('mc-escaner-idioma')
+      const guardado = localStorage.getItem(clave)
       if (guardado && escaner.IDIOMAS_ESCANER.some((i) => i.id === guardado)) sel.value = guardado
     } catch {
-      // Ventana privada: se queda el primero y ya está.
+      // Ventana privada: se queda el del catálogo y ya está.
     }
-    sel.addEventListener('change', () => {
+    // `onchange` y no `addEventListener`: esto corre cada vez que se abre
+    // el escáner, y con `addEventListener` se apilaría un oyente por
+    // apertura, cada uno escribiendo en la clave de otro catálogo.
+    sel.onchange = () => {
       try {
-        localStorage.setItem('mc-escaner-idioma', sel.value)
+        localStorage.setItem(clave, sel.value)
       } catch {
         // Lo mismo: no poder recordarlo no impide escanear.
       }
-    })
+    }
   }
   if (!caja.open) caja.showModal()
   if (ayuda) ayuda.textContent = 'Pidiendo permiso para la cámara…'
@@ -4199,8 +4280,14 @@ function pintarCompartir() {
 }
 
 function prepararOpcionesDeFormulario() {
-  $('mcFiltroIdioma').innerHTML = '<option value="">Todos los idiomas</option>' + opciones(IDIOMAS, '')
-  $('mcAnadirIdioma').innerHTML = opciones(IDIOMAS, IDIOMA_POR_DEFECTO)
+  // Los idiomas son los DEL CATÁLOGO que se mira (tanda 472), y por eso
+  // esto se vuelve a llamar al cambiar de catálogo. Filtrar por francés en
+  // el catálogo japonés no encuentra nada — y ofrecerlo dice que sí.
+  //
+  // Al repintar, un `<select>` vuelve a su primera opción: en el filtro esa
+  // es «Todos los idiomas», que es justo donde debe quedarse si el idioma
+  // que había elegido ya no se ofrece.
+  $('mcFiltroIdioma').innerHTML = '<option value="">Todos los idiomas</option>' + opciones(idiomasDeLaVista(), '')
   $('mcAnadirEstado').innerHTML = opciones(ESTADOS, ESTADO_POR_DEFECTO)
   $('mcAnadirVariante').innerHTML = opciones(VARIANTES, 'normal')
   // CON QUÉ SE AÑADE, Y SE RECUERDA (tanda 461). Era un ajuste que se
@@ -4208,21 +4295,32 @@ function prepararOpcionesDeFormulario() {
   // elegirlo en cada visita, lo que convierte un ajuste en un trámite. Va
   // en el navegador y no en la base porque es gusto de quien mira, igual
   // que el color de la tapa (tanda 371) y la vista de variantes.
-  for (const [id, lista, porDefecto] of [
-    ['mcTocarIdioma', IDIOMAS, IDIOMA_POR_DEFECTO],
-    ['mcTocarEstado', ESTADOS, ESTADO_POR_DEFECTO],
+  //
+  // Y los DOS desplegables de idioma (el de «Añadir» y el de tocar una
+  // carta en el álbum) llevan su memoria POR CATÁLOGO: con una sola clave,
+  // haber elegido «español» una vez se lo llevaba al catálogo inglés para
+  // siempre, que es el fallo que PINGU describe. El ESTADO no lleva
+  // catálogo: «Near Mint» es Near Mint en todos.
+  for (const [id, lista, porDefecto, clave] of [
+    ['mcAnadirIdioma', idiomasDeLaVista(), idiomaDeLaVista(), claveDeIdioma('mcAnadirIdioma')],
+    ['mcTocarIdioma', idiomasDeLaVista(), idiomaDeLaVista(), claveDeIdioma('mcTocarIdioma')],
+    ['mcTocarEstado', ESTADOS, ESTADO_POR_DEFECTO, 'mcTocarEstado'],
   ]) {
     let puesto = porDefecto
     // En una ventana privada `localStorage` LANZA, no devuelve null: sin el
     // try/catch se caería la preparación entera del formulario.
     try {
-      const guardado = localStorage.getItem(id)
+      const guardado = localStorage.getItem(clave)
       if (guardado && lista.some((x) => x.id === guardado)) puesto = guardado
     } catch {}
     $(id).innerHTML = opciones(lista, puesto)
-    $(id).addEventListener('change', () => {
-      try { localStorage.setItem(id, $(id).value) } catch {}
-    })
+    // `onchange` y no `addEventListener`: esto se vuelve a llamar cada vez
+    // que se cambia de catálogo, y con `addEventListener` se apilaría un
+    // oyente más en cada cambio — todos escribiendo en la clave del
+    // catálogo que había cuando se engancharon, o sea en la equivocada.
+    $(id).onchange = () => {
+      try { localStorage.setItem(clave, $(id).value) } catch {}
+    }
   }
 }
 
@@ -4404,6 +4502,12 @@ async function cambiarVista(nuevo) {
     // al recargar y ya está: no es motivo para no cambiar de catálogo.
   }
   pintarVistas()
+  // Los desplegables de idioma dependen del catálogo (tanda 472), y esto va
+  // ANTES del atajo de abajo: entre español e inglés no cambia el mercado
+  // pero SÍ cambia con qué idioma se añade, que es justo lo que pedía
+  // PINGU. Puesto después del `return`, el caso más común —cambiar de
+  // español a inglés— sería el único que no se arreglaría.
+  prepararOpcionesDeFormulario()
   // ATAJO, Y VA AQUÍ ARRIBA: entre español e inglés NO cambia el catálogo
   // —son el mismo mercado, el occidental—, solo cuál de los dos nombres se
   // enseña. Tirar la colección entera para volver a pedirla igual sería

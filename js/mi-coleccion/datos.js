@@ -11,7 +11,26 @@ export const FICHERO_MIGRACION = 'supabase-migration-mi-coleccion.sql'
 export function traducir(error) {
   if (!error) return null
   const sin = ['PGRST202', 'PGRST205', '42P01', '42703'].includes(error.code) || /does not exist|Could not find/i.test(error.message || '')
-  const e = new Error(sin ? `Falta ejecutar ${FICHERO_MIGRACION} en Supabase.` : error.message || 'No se ha podido consultar.')
+  // El CHECK del idioma, que es otra migración y otro mensaje (tanda 472).
+  // Desde que el catálogo CHINO se puede mirar, añadir de él guarda la
+  // carta con `idioma: 'zh'` — y hasta que
+  // `supabase-migration-idioma-chino.sql` se ejecute, Postgres la rechaza
+  // con un 23514. Sin esto la web ensañaba el texto crudo de Postgres
+  // («violates check constraint "user_collection_idioma"»), que no le dice
+  // nada a nadie y menos aún qué hacer.
+  const idioma = error.code === '23514' && /_idioma\b/.test(error.message || '')
+  const e = new Error(
+    idioma
+      ? 'Falta ejecutar supabase-migration-idioma-chino.sql en Supabase: todavía no se puede guardar una carta en chino.'
+      : sin
+        ? `Falta ejecutar ${FICHERO_MIGRACION} en Supabase.`
+        : error.message || 'No se ha podido consultar.'
+  )
+  // `sinMigracion` NO se enciende aquí: esa marca la usan los caminos de
+  // LECTURA para tragarse el error y devolver una lista vacía —«esto
+  // todavía no está desplegado»—, y tragarse un fallo al ESCRIBIR dejaría
+  // a alguien pulsando un botón que no hace nada. El del idioma tiene que
+  // verse.
   e.sinMigracion = sin
   return e
 }

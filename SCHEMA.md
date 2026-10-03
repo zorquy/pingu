@@ -25354,3 +25354,119 @@ como texto.
 
 La conclusión, que va al CLAUDE.md: una copia vigilada es mejor que una
 copia a secas, pero **no copiar es mejor que las dos**.
+
+---
+
+## Tanda 472 — el idioma con el que añades lo manda el catálogo
+
+PINGU: «tenemos el filtro de idioma en todos los sitios… si yo tengo el
+filtro en español y agrego una carta, se me está agregando en español. Me
+gustaría que cuando cambiases el idioma en el menú, si yo pongo inglés, y
+agrego una carta, esa carta se sigue metiendo en español — y al haber
+metido el filtro de inglés, debería añadirse en inglés. Lo mismo con la
+carta en japonés, en chino… es un añadido de calidad de vida totalmente
+necesario».
+
+Era eso exactamente: el idioma salía de `IDIOMA_POR_DEFECTO` (`'es'`) o,
+en el desplegable de tocar cartas, de una preferencia guardada en UNA
+clave de `localStorage` compartida por los cuatro catálogos. El selector
+de catálogo no mandaba nada.
+
+### Y hay una mitad que no es comodidad
+
+**En el catálogo japonés no existe una carta en español.** Ofrecer
+«Español» era ofrecer algo que no se puede tener, y una opción de la
+interfaz es una AFIRMACIÓN sobre lo que hay (la norma de la 447, que
+nació de tres sugerencias pulsables que daban cero resultados).
+
+Así que la lista de idiomas depende del catálogo, y los dos ejes de
+siempre explican cómo:
+
+- El **mercado** dice qué cartas EXISTEN. El occidental es UN catálogo
+  publicado en ocho idiomas con las mismas cartas, así que ahí se ofrecen
+  todos los occidentales.
+- El **idioma** dice cómo se ESCRIBE. El japonés y el chino son catálogos
+  propios: ofrecen el suyo y nada más.
+
+`idiomasDeLaVista()` devuelve la lista, `idiomaDeLaVista()` el que se pone
+por defecto. Los cuatro identificadores de vista (`es`, `en`, `ja`, `zh`)
+coinciden a propósito con los de `IDIOMAS`.
+
+### Tres trampas que había que esquivar
+
+**1. El atajo de `cambiarVista`.** Entre español e inglés NO cambia el
+mercado, y la función se sale por un `return repintar()` antes de tirar la
+memoria. Si los desplegables se repintaran después de ese `return`, el
+caso MÁS COMÚN —pasar de español a inglés, que es justo el que PINGU
+describe— sería el único que no se arreglaría. Va antes.
+
+**2. La memoria compartida.** La tanda 461 guardó «con qué se añade» en
+`localStorage` para que no fuera un trámite en cada visita, y lo guardó en
+una clave única. Con una sola clave, haber elegido «español» una vez te lo
+llevas al catálogo inglés para siempre. Ahora la clave lleva el catálogo
+dentro (`mcTocarIdioma-en`), así que cada uno recuerda lo suyo. El ESTADO
+no lleva catálogo: «Near Mint» es Near Mint en todos.
+
+**3. Editar una línea vieja.** Un `<select>` cuyo valor no está entre sus
+opciones **se queda con la primera**. PINGU tiene ahora mismo cartas
+japonesas guardadas con `idioma: 'es'`, porque hasta esta tanda añadir del
+catálogo japonés las guardaba así; abrir una de esas en el catálogo
+japonés —donde solo se ofrece `ja`— habría pintado «Japonés» y al guardar
+le habría reescrito el idioma a la carta. Sin dar ningún error: la web
+diría que tu carta española es japonesa. De ahí `idiomasParaEditar(idioma)`,
+que añade a la lista el idioma que ESA línea tiene.
+
+### Y el escáner
+
+Su desplegable se montaba una sola vez (`if (sel && !sel.options.length)`),
+así que quien abría el escáner en español se lo llevaba en español al
+catálogo japonés el resto de la visita. Ahora se repinta en cada apertura,
+con el idioma del catálogo por defecto y memoria por catálogo. Su lista es
+la suya y no `IDIOMAS`: aquí el idioma dice en qué está ESCRITA la carta
+que tienes delante, que es otra pregunta.
+
+### LA MIGRACIÓN: `supabase-migration-idioma-chino.sql`
+
+`user_collection` y `user_wants` tienen un CHECK con los idiomas
+permitidos, y el chino no estaba:
+
+```sql
+check (idioma in ('es', 'en', 'fr', 'de', 'it', 'pt', 'ja'))
+```
+
+Hasta que se ejecute, guardar una carta china da un 23514. **Este sí da
+error** —no es de los silenciosos—, pero el texto crudo de Postgres
+(«violates check constraint "user_collection_idioma"») no le dice a nadie
+qué hacer, así que `traducir()` lo cambia por el nombre del fichero.
+
+Y `sinMigracion` NO se enciende en ese caso a propósito: esa marca la usan
+los caminos de LECTURA para tragarse el error y devolver una lista vacía
+(«esto todavía no está desplegado»), y tragarse un fallo al ESCRIBIR
+dejaría a alguien pulsando un botón que no hace nada.
+
+**El aviso de /admin → Base de datos no puede ver esta migración**, y
+conviene tenerlo escrito: `REQUISITOS` comprueba que una COLUMNA se pueda
+leer, y aquí no falta ninguna columna — lo que cambia es qué VALORES
+admite. Lo que avisa es el mensaje al intentar añadir.
+
+### Y una guarda que se estaba quedando floja
+
+La suite entera salió **193 verdes y 1 rojo**, y el rojo era
+`test-tanda-391` — la que vigila que ningún UPSERT parcial se deje una
+columna NOT NULL. Cantó el upsert de cartas de `catalogo-asia.mjs` «sin
+set_id, local_id, name» cuando las tres estaban: las monta `cardToRow`, y
+la guarda mira el TEXTO de alrededor. Es la lección de la 307 otra vez:
+un barrido que no sigue de dónde sale el dato afirma cosas sobre un sitio
+donde el dato no está.
+
+Al arreglarla saltó algo peor, y de los que no se ven. La ventana era de
+±1.200 caracteres, y en ese fichero arrastraba la función de al lado
+—`repasarListado`, que llama a `setToRow`—. `setToRow` tiene `name`, así
+que **la guarda daba por buena una `cardToRow` a la que le quitaras el
+`name`**: comprobado quitándoselo, salía verde. Una mutación que no cambia
+el resultado no es una prueba aprobada (la norma de la 314).
+
+Ahora la unidad no es una ventana de caracteres sino **la función que hace
+el upsert**, y se le pegan los cuerpos de los mapeadores puros a los que
+ESA función llama. Con eso vuelve a morder: quitarle el `name` a
+`cardToRow` la pone roja.

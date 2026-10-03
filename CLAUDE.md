@@ -234,6 +234,22 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   regla sigue valiendo — pero esa copia concreta YA NO EXISTE: en la 471
   `IDIOMA_POR_MERCADO` pasó a SER `MERCADOS`, importado de
   `js/mercados.js`. Ver la norma de abajo, que es la lección completa.
+- **Un `<select>` cuyo valor no está entre sus opciones se queda con la
+  PRIMERA** (tanda 472), y al guardar escribe esa. No da ningún error. Pasó
+  con el idioma de una carta: desde la 472 el catálogo japonés solo ofrece
+  «japonés», y las cartas japonesas que ya había guardadas dicen
+  `idioma: 'es'` — abrir una habría pintado «Japonés» y al guardar le
+  habría reescrito el idioma. Si acotas las opciones de un desplegable,
+  mete SIEMPRE el valor que la fila ya tiene (`idiomasParaEditar`).
+- **El idioma con el que se AÑADE sale del selector de catálogo** (tanda
+  472), no de una constante ni de una preferencia global: en el catálogo
+  japonés no existe una carta en español, así que ofrecerlo era afirmar
+  que sí. Y lo que se recuerda se recuerda **por catálogo**
+  (`mcTocarIdioma-en`): con una clave única, haber elegido «español» una
+  vez te lo llevas al catálogo inglés para siempre. Si añades un control
+  que dependa del catálogo, repíntalo en `cambiarVista` **antes** del
+  atajo de español↔inglés, que es el cambio más común y el que se sale
+  por un `return` sin tocar la memoria.
 - **No copiar es mejor que una copia vigilada** (tanda 471). La norma de
   la 322 decía «una constante copiada se vigila con una prueba», y era
   poco: la guarda de `IDIOMA_POR_MERCADO` llevaba desde la **438**

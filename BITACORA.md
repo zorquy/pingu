@@ -35,6 +35,63 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 472 — el idioma con el que añades lo manda el catálogo)
+
+**Hecho**: lo que PINGU llamó «totalmente necesario». El idioma de una
+carta nueva salía de `IDIOMA_POR_DEFECTO` (`'es'`) o de una preferencia
+guardada en UNA clave compartida por los cuatro catálogos, así que con el
+selector en inglés la carta se guardaba en español. Ahora la lista de
+idiomas y el que viene puesto salen del CATÁLOGO: en el occidental se
+ofrecen los ocho occidentales, y en el japonés y el chino **solo el suyo**
+— porque en el catálogo japonés no existe una carta en español, y ofrecerlo
+era afirmar que sí (la norma de la 447). Tres trampas esquivadas: (1) va
+ANTES del atajo de `cambiarVista`, porque entre español e inglés no cambia
+el mercado y la función se sale por un `return` — puesto después, el caso
+más común habría sido el único sin arreglar; (2) la memoria de la 461
+lleva ahora el catálogo en la clave (`mcTocarIdioma-en`), que era lo que
+se llevaba el «español» a todos los catálogos para siempre; (3)
+`idiomasParaEditar()`, porque un `<select>` cuyo valor no está entre sus
+opciones **se queda con la primera** — y PINGU tiene cartas japonesas
+guardadas con `idioma: 'es'`, así que abrirlas en el catálogo japonés les
+habría reescrito el idioma al guardar, sin dar ningún error. El escáner
+también: su desplegable se montaba UNA sola vez, así que no se enteraba de
+los cambios de catálogo.
+
+**OJO, HAY MIGRACIÓN**: `supabase-migration-idioma-chino.sql`. Las dos
+tablas (`user_collection` y `user_wants`) tienen un CHECK con los idiomas
+permitidos y el chino no estaba, así que hasta ejecutarla **no se puede
+guardar una carta china**: Postgres la rechaza con un 23514. Este sí da
+error, pero el texto crudo no dice qué hacer, así que `traducir()` lo
+cambia por el nombre del fichero. Y **el aviso de /admin → Base de datos
+NO la ve**: `REQUISITOS` comprueba que una COLUMNA se pueda leer, y aquí no
+falta ninguna columna — lo que cambia es qué valores admite.
+
+**Ficheros**: `supabase-migration-idioma-chino.sql` (NUEVO),
+`js/mi-coleccion.js`, `js/mi-coleccion/datos.js`, `js/cardmarket.js`
+(entra el idioma `zh`), `SCHEMA.md`, `BITACORA.md`. En la rama `pruebas`:
+`test-tanda-472.mjs` (NUEVO, 25 comprobaciones con el navegador de
+verdad: los cuatro catálogos, la memoria por catálogo, la carta nueva y
+la línea vieja que no se le cambia el idioma sola) y arreglada
+`test-tanda-391.mjs`.
+
+**SUITE ENTERA PASADA** sobre la tanda 471: **193 verdes, 1 rojo**, y el
+rojo era la guarda de los UPSERT parciales (391), que mira el TEXTO de
+alrededor y no vio que las columnas las monta `cardToRow` — la lección de
+la 307. Al arreglarla saltó algo peor: su ventana de ±1.200 caracteres
+arrastraba la función de al lado, que llama a `setToRow`, y `setToRow`
+tiene `name` — así que **daba por buena una `cardToRow` sin `name`**
+(comprobado quitándoselo: verde). Ahora la unidad es la FUNCIÓN que hace
+el upsert más los mapeadores que ella llama, y vuelve a morder.
+
+**En curso / pendiente**: nada a medias, salvo ejecutar la migración. De
+la cola de PINGU quedan, en este orden: la barra de una expansión al
+estilo de Dex (buscador · Vista · UN botón Agrupar/Dividir · «Filtros»
+en un panel, y los selects sueltos fuera), quitar los dos «volver» por
+migas de pan, los cuatro iconos de cabecera tras un ⋮, la Pokédex con
+los datos deslizables como las expansiones, y las carpetas con
+subcarpetas al estilo de Dex. Rigores pendientes desde la 443. Portada a
+169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 471 — el catálogo japonés y los dos chinos, que se llenan solos)
 
 **Hecho**: contestado el «¿de dónde estamos cogiendo?» de PINGU — de

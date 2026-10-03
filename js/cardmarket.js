@@ -38,6 +38,11 @@ export const IDIOMAS = [
   { id: 'it', cm: 5, nombre: 'Italiano' },
   { id: 'pt', cm: 8, nombre: 'Portugués' },
   { id: 'ja', cm: null, nombre: 'Japonés' },
+  // El chino entra en la tanda 472, cuando el selector de catálogo pasó a
+  // mandar con qué idioma se añade: sin él, añadir del catálogo chino
+  // guardaba la carta como ESPAÑOLA. `cm: null` como la japonesa — en
+  // Cardmarket es otro producto, no un filtro de este.
+  { id: 'zh', cm: null, nombre: 'Chino' },
 ]
 export const IDIOMA_POR_DEFECTO = 'es'
 
