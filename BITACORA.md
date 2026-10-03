@@ -35,6 +35,42 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 474 — las migas de pan)
+
+**Hecho**: PINGU: «estás ocupando mucho espacio arriba… el botón de volver
+atrás, yo quitaría ese botón». Las CUATRO pantallas con un «dentro» —una
+expansión, un Pokémon, una carpeta y un álbum soñado— llevaban su propia
+chapa de volver, escrita cuatro veces y con tres pintas distintas según la
+tanda que la hubiera tocado (458, 459, 465). Cada una ocupaba una fila de
+44 px para ella sola, y lo decía al revés: una chapa cuenta A DÓNDE VAS y
+lo que hace falta saber es DE DÓNDE VIENES. Ahora son migas, con el molde
+en `js/mi-coleccion/migas.js` (sin dependencias, porque lo usan tres
+ficheros). Dos formas: la corta —«Expansiones ›», «Pokédex ›»— cuando el
+título grande de debajo ya dice dónde estás, y la de dos pasos —«Carpetas
+› Mis dúos»— cuando no lo hay. Y **no es un «enlace pocho»**: eso es un
+`link-btn` azul y subrayado en una fila de botones; una miga es un rótulo
+gris encima del título. Los identificadores (`mcAlbumVolver`, `pdxVolver`,
+`mcAlbVolver`) se quedan igual a propósito — hay media docena de pruebas
+que los pulsan. El clic va DELEGADO porque la miga se pinta con la
+pantalla: un `addEventListener` sobre algo que todavía no existe no
+engancha nada y no da error, o sea que el botón saldría y no haría nada.
+
+**Ficheros**: `js/mi-coleccion/migas.js` (NUEVO), `mi-coleccion.html`,
+`js/mi-coleccion.js`, `js/mi-coleccion/pokedex.js`,
+`js/mi-coleccion/albumes.js`, `css/mi-coleccion.css`, `SCHEMA.md`,
+`BITACORA.md`. En la rama `pruebas`: `test-tanda-474.mjs` (NUEVO, 25
+comprobaciones) y **ocho pruebas repintadas por la 473 y la 474** —382,
+398, 412, 418, 426, 427, 430, 459 y 461—, todas por lo mismo: los filtros
+de una expansión viven ahora DENTRO del panel y el botón de variantes es
+uno en vez de dos. Encontrar un elemento no es poder pulsarlo.
+
+**En curso / pendiente**: nada a medias. **Sigue sin ejecutar
+`supabase-migration-idioma-chino.sql`** (tanda 472). De la cola de PINGU
+quedan: los cuatro iconos de cabecera tras un ⋮ (va ahora), la Pokédex con
+los datos deslizables como las expansiones, las carpetas con subcarpetas,
+y el botón de VISTA (cuadrícula / lista / archivador). Rigores pendientes
+desde la 443. Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 473 — la barra de una expansión, como la de «Cartas»)
 
 **Hecho**: lo que PINGU pidió mirando Dex. Dentro de una expansión había

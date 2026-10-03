@@ -46,6 +46,7 @@ import { marcaCardmarket } from './cardmarket-marca.js'
 import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
+import { migasHtml } from './mi-coleccion/migas.js'
 import { ORDENES, ordenar, porNumero, rangoDeRareza } from './mi-coleccion/orden.js'
 import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtrosVacios, sentidoNatural, FILTROS_CATALOGO, ORDENES_CATALOGO, filtrosCatalogoVacios, cuantosFiltrosCatalogo, ordenarCartas, valoresDeCartas, pasaFiltrosDeCarta, pasaFiltrosCrudos } from './mi-coleccion/filtros.js'
 import { balanceDeCompra } from './mi-coleccion/balance.js'
@@ -1789,6 +1790,10 @@ async function abrirAlbum(setId, { push = true } = {}) {
   $('mcAlbumTitulo').textContent = set?.name || ''
   pintarEstrella()
   pintarSoloFaltan()
+  // La miga se pinta aquí y no una vez al arrancar: su botón vive dentro
+  // del HTML que esta función repinta, y el clic va delegado en la zona
+  // (ver `mcArchivadorZona`), así que no hay oyente que volver a colgar.
+  $('mcAlbumMigas').innerHTML = migasHtml([{ texto: 'Expansiones', id: 'mcAlbumVolver' }])
   $('mcAlbum').innerHTML = '<p class="subtext">Cargando la colección…</p>'
   try {
     album.cartas = (await datos.cartasDeSet(setId, mercado)).sort(porNumero)
@@ -3235,10 +3240,14 @@ function pintarCarpetas() {
       return pintarCarpetas()
     }
     const hijas = carpetasLista.filter((x) => x.parent_id === c.id).map((x) => ({ ...x, hijas: [] }))
-    // Volver, como CHAPA (tanda 465): es el mismo botón que el de una
-    // expansión y el de la Pokédex, y PINGU lleva cuatro veces diciendo
-    // que no quiere enlaces pochos.
-    migas.innerHTML = `<button type="button" class="mc-chip-mando" data-volver-carpetas>← Carpetas</button> <strong>${escapeHtml(c.nombre)}</strong>`
+    // Y aquí la miga es la de verdad, con sus dos pasos (tanda 474): esta
+    // pantalla SÍ necesita decir en cuál estás, porque una carpeta no tiene
+    // un título grande debajo como lo tienen una expansión y un Pokémon.
+    // Mismo molde que las otras dos: eran tres chapas escritas tres veces.
+    migas.innerHTML = migasHtml([
+      { texto: 'Carpetas', id: 'mcCarpetaVolver' },
+      { texto: c.nombre },
+    ])
     caja.innerHTML = (hijas.length ? carpetas.rejillaHtml(hijas, carpetasResumen) : '') +
       '<div class="mc-cartas" id="mcCarpetaCartas"></div>'
     pintarCartasDeCarpeta(c.id)
@@ -3818,7 +3827,10 @@ function enganchar() {
     })
   })
   $('mcCarpetaMigas').addEventListener('click', (e) => {
-    if (!e.target.closest('[data-volver-carpetas]')) return
+    // Por ID desde la tanda 474: la miga ya no lleva `data-volver-carpetas`
+    // —el molde común pone un identificador y nada más—, y el viejo se
+    // queda admitido por si alguna prueba o algún sitio lo usa todavía.
+    if (!e.target.closest('#mcCarpetaVolver, [data-volver-carpetas]')) return
     const c = carpetasLista.find((x) => x.id === carpetaAbierta)
     carpetaAbierta = c?.parent_id || null
     pintarCarpetas()
@@ -4116,7 +4128,13 @@ function enganchar() {
   })
   respaldarNombresDeSet($('mcEstanteriaRejilla'))
   $('mcAlbumFavorito').addEventListener('click', cambiarFavorita)
-  $('mcAlbumVolver').addEventListener('click', volverALaEstanteria)
+  // DELEGADO, porque la miga se pinta con la pantalla (tanda 474): al
+  // arrancar `#mcAlbumVolver` todavía no existe, y un `addEventListener`
+  // sobre un elemento que no está no engancha nada — y no da error, que es
+  // lo peor: el botón sale y no hace nada.
+  $('mcArchivadorZona').addEventListener('click', (e) => {
+    if (e.target.closest('#mcAlbumVolver')) volverALaEstanteria()
+  })
 
   // ── La Pokédex (tanda 381) ──
   //

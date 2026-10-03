@@ -346,14 +346,19 @@
         </div>
 
         <div id="mcArchivadorZona" class="hidden">
-          <!-- Volver, en su propia fila y como CHAPA (tanda 459). PINGU, por
-               tercera vez: «ahí hay otro enlace pocho». Era un `link-btn`
-               azul subrayado en una fila donde todo lo demás son botones;
-               es la misma mudanza que la 458 le hizo al «Todos los
-               Pokémon» de la Pokédex, y por el mismo motivo. -->
-          <p class="mc-album-volver-fila">
-            <button type="button" class="mc-chip-mando mc-album-volver" id="mcAlbumVolver">← Todas las colecciones</button>
-          </p>
+          <!-- UNA MIGA, NO UNA CHAPA (tanda 474). PINGU: «estás ocupando
+               mucho espacio arriba… el botón de volver atrás, yo quitaría
+               ese botón». Una chapa de 44 px en una fila para ella sola es
+               mucho sitio para decir dónde estás — y lo dice al revés: una
+               chapa cuenta A DÓNDE VAS, y lo que hace falta saber es DE
+               DÓNDE VIENES. El molde está en `js/mi-coleccion/migas.js`,
+               que lo usan también la Pokédex y las carpetas: eran tres
+               chapas escritas tres veces y con tres pintas.
+
+               El identificador `mcAlbumVolver` se queda igual a propósito:
+               es por el que lo busca quien engancha el clic, y cambiarlo
+               sería romper media docena de sitios para no ganar nada. -->
+          <div id="mcAlbumMigas"></div>
           <!-- LA CABECERA, COMO LA DE DEX (tanda 461). PINGU: «fíjate en
                Dex: tiene unos botones arriba, el de seleccionar múltiples
                cartas, el corazón para marcar el set como favorito y uno de
@@ -691,13 +696,12 @@
         </div>
 
         <div id="mcAlbumesDetalle" class="hidden">
-          <!-- Volver, como CHAPA (tanda 465). Es el cuarto «enlace pocho»
-               de la sección: el de la Pokédex lo arregló la 458, el de una
-               expansión la 459, y este y el de dentro de una carpeta van
-               aquí. PINGU lo ha dicho cuatro veces. -->
-          <p class="mc-album-volver-fila">
-            <button type="button" class="mc-chip-mando mc-alb-volver" id="mcAlbVolver">← Tus álbumes</button>
-          </p>
+          <!-- La cuarta miga (tanda 474). Las cuatro pantallas que tienen
+               un «dentro» —una expansión, un Pokémon, una carpeta y un
+               álbum soñado— llevaban su propia chapa de volver, escrita
+               cuatro veces. La pinta la rellena `albumes.js` con el molde
+               común; el identificador `mcAlbVolver` se queda igual. -->
+          <div id="mcAlbMigas"></div>
           <input type="text" class="mc-alb-titulo" id="mcAlbTitulo" maxlength="80" aria-label="Nombre del álbum" />
           <textarea class="mc-alb-descripcion" id="mcAlbDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)" aria-label="Descripción del álbum"></textarea>
           <p class="mc-progreso" id="mcAlbProgreso"></p>

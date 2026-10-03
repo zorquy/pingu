@@ -9,6 +9,7 @@
 // supabase-migration-albumes.sql). Guarda solo: cada cambio se escribe a
 // los pocos cientos de milisegundos, como el borrador del constructor.
 import { supabase } from '../supabase.js'
+import { migasHtml } from './migas.js'
 import { escapeHtml } from '../html.js'
 import { showToast } from '../toast.js'
 import { normalizeSearch } from '../tcgdex.js'
@@ -173,7 +174,10 @@ export async function abrir(id, { soloVer = false } = {}) {
   $('mcAlbumesLista').classList.add('hidden')
   $('mcAlbumesDetalle').classList.remove('hidden')
   const mio = esMio() && !soloVer
-  $('mcAlbVolver').classList.toggle('hidden', !mio)
+  // La miga se pinta aquí porque su botón no existe hasta ahora (tanda
+  // 474), y solo si el álbum es TUYO: a quien llega de fuera a ver un
+  // álbum compartido, «Tus álbumes» no le lleva a ninguna parte suya.
+  $('mcAlbMigas').innerHTML = mio ? migasHtml([{ texto: 'Tus álbumes', id: 'mcAlbVolver' }]) : ''
   $('mcAlbTitulo').value = actual.nombre
   $('mcAlbTitulo').readOnly = !mio
   $('mcAlbDescripcion').value = actual.descripcion || ''
@@ -393,7 +397,12 @@ export function iniciarAlbumes(contexto) {
     const b = e.target.closest('[data-album]')
     if (b) abrir(b.dataset.album)
   })
-  $('mcAlbVolver')?.addEventListener('click', () => {
+  // DELEGADO, porque la miga se pinta al abrir un álbum (tanda 474): al
+  // arrancar `#mcAlbVolver` todavía no existe, y un `addEventListener` sobre
+  // algo que no está no engancha nada — sin dar error, que es lo peor: el
+  // botón sale y no hace nada.
+  $('mcAlbumesDetalle')?.addEventListener('click', (e) => {
+    if (!e.target.closest('#mcAlbVolver')) return
     const url = new URL(location.href)
     url.searchParams.delete('album')
     history.replaceState(null, '', url)

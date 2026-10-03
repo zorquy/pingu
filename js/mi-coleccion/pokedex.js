@@ -21,6 +21,7 @@
 // Este módulo entra por `import()` y no se carga hasta que abres la
 // pestaña: se trae `sprites-pokemon.js`, que son los 1.025 nombres.
 import { escapeHtml } from '../html.js'
+import { migasHtml } from './migas.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { especiesDeCarta, especiePorDex, POKEMON_POR_DEX } from '../pokedex-especies.js'
@@ -299,17 +300,16 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = 
         ? '<p class="empty-state">Ninguna carta de este Pokémon encaja con esos filtros.</p>'
         : '<p class="empty-state">No hay ninguna carta de este Pokémon en el catálogo.</p>'
   return `
-    <!-- VOLVER ES UNA CHAPA, NO UN ENLACE (tanda 458). PINGU: «el link de
-         todos los Pokémon no lo quiero, no quiero enlaces pochos así;
-         hazme una tarjeta o un botón, algo, una chapa». Y va en SU PROPIA
-         fila, encima del nombre: metido al lado del sprite competía con el
-         título por el sitio y el conjunto se leía como tres cosas sueltas.
-         La flecha se queda en texto porque no hay icono de flecha en
-         js/icons.js y meterlo solo para esto engordaría la hoja que baja
-         todo el mundo. -->
-    <p class="pdx-volver-fila">
-      <button type="button" class="mc-chip-mando" id="pdxVolver">← Todos los Pokémon</button>
-    </p>
+    <!-- UNA MIGA (tanda 474). Era una chapa de 44 px en una fila para ella
+         sola —la 458 la hizo chapa para quitar un «enlace pocho», y eso
+         estuvo bien—, pero PINGU: «estás ocupando mucho espacio arriba».
+         Una miga ocupa un renglón de texto y además dice lo que hace falta
+         saber: de dónde vienes, no a dónde vas.
+
+         Y no es un enlace pocho: no va subrayada, no va del azul de los
+         enlaces y no compite con el título. El identificador pdxVolver se
+         queda igual, que es por el que lo busca quien engancha el clic. -->
+    ${migasHtml([{ texto: 'Pokédex', id: 'pdxVolver' }])}
     <div class="pdx-cabecera">
       <span class="pdx-sprite pdx-sprite-grande">${
         sprite ? `<img src="${escapeHtml(sprite)}" alt="" width="64" height="56"${atributosDeRespaldo(sprite)} />` : ''

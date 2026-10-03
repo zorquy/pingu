@@ -25540,3 +25540,64 @@ encuadre — las mías salieron bien. Lo cantó la prueba, que comprueba que al
 cerrarlo deja de verse: `open` pasaba a `false` y el panel seguía
 visible. Por eso la regla va en `.mc-panel-filtros[open]`, y vale para
 cualquier `display` que se le ponga a un `<dialog>`.
+
+---
+
+## Tanda 474 — las migas de pan, en las cuatro pantallas con un «dentro»
+
+PINGU: «estás ocupando mucho espacio arriba… los botones de todas las
+colecciones, el botón de volver atrás, yo quitaría ese botón».
+
+Cuatro pantallas de la sección tienen un «dentro»: una expansión abierta,
+un Pokémon de la Pokédex, una carpeta y un álbum soñado. Las cuatro
+llevaban **su propia chapa de volver** —«← Todas las colecciones», «←
+Todos los Pokémon», «← Carpetas», «← Tus álbumes»— escrita cuatro veces y
+con tres pintas distintas según la tanda que la hubiera tocado por última
+vez (458, 459, 465).
+
+Cada una ocupaba una fila de 44 px para ella sola. Y lo decía al revés:
+**una chapa cuenta A DÓNDE VAS, y lo que hace falta saber es DE DÓNDE
+VIENES.**
+
+Ahora las cuatro son una miga, con el molde en `js/mi-coleccion/migas.js`
+—sin dependencias, porque lo usan esta página, `pokedex.js` y
+`albumes.js`—. Tres copias de una miga se separan; es exactamente lo que
+acababa de pasar con las tres chapas.
+
+### Esto NO es un «enlace pocho»
+
+PINGU lleva cuatro tandas pidiendo que no haya, y conviene dejar escrito
+qué es y qué no: un «enlace pocho» es un `link-btn` **azul y subrayado**
+metido en una fila donde todo lo demás son botones. Una miga no va
+subrayada, no va del azul de los enlaces y no compite con nada — es un
+rótulo gris encima del título, que es justo donde se busca.
+
+Sigue siendo un `<button>` y no un `<a>`: no navega a ninguna URL, cambia
+de pantalla dentro de la página.
+
+### Dos formas, y la diferencia importa
+
+- **Expansión y Pokédex**: un solo paso, «Expansiones ›» / «Pokédex ›». El
+  título grande de debajo ya dice dónde estás, así que la miga no lo
+  repite.
+- **Carpeta**: dos pasos, «Carpetas › Mis dúos». Una carpeta no tiene un
+  título grande debajo, así que aquí la miga sí tiene que decirlo.
+
+El molde pone un «›» detrás de CADA paso que se pulsa, también si es el
+último: eso es lo que hace que la forma corta salga bien sin un caso
+especial.
+
+### Los identificadores se quedan igual
+
+`mcAlbumVolver`, `pdxVolver` y `mcAlbVolver` siguen llamándose igual a
+propósito: son por los que los busca quien engancha el clic, y hay media
+docena de pruebas que los pulsan. Cambiarlos sería romper seis sitios para
+no ganar nada.
+
+### Y el clic, DELEGADO
+
+La miga se pinta con la pantalla, así que al arrancar la página no existe
+todavía — y un `addEventListener` sobre un elemento que no está **no
+engancha nada y no da ningún error**: el botón sale y no hace nada. Los
+tres cuelgan de la zona que los contiene (`#mcArchivadorZona`,
+`#mcAlbumesDetalle`, el panel de carpetas).

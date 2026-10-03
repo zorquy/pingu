@@ -2752,9 +2752,6 @@
   min-height: 44px;
 }
 
-/* `.mc-alb-volver` ya no necesita alto propio desde la 465: es una chapa
-   como las otras dos de volver, y su fila es `.mc-album-volver-fila`. */
-
 input.mc-alb-titulo {
   width: 100%;
   padding: var(--e-xs) 0;
@@ -3424,13 +3421,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   height: 56px;
 }
 
-/* Volver, en su propia fila y encima del nombre: al lado del sprite
-   competía con el título por el sitio y el conjunto se leía como tres
-   cosas sueltas. */
-.pdx-volver-fila {
-  margin: 0 0 var(--e-md);
-}
-
 .pdx-num {
   color: var(--text-mid);
   font-size: var(--t-2xs);
@@ -3538,11 +3528,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 /* Las acciones (el ajuste de «al añadir» y los dos botones) NO van en la
    tira: despliegan un panel y una tira recorta lo que se sale de ella. */
-/* Volver, en su fila y como chapa (tanda 459). */
-.mc-album-volver-fila {
-  margin: 0 0 var(--e-md);
-}
-
 /* ── Las versiones de una carta, en su bolsillo (tanda 383) ──
    Arriba del bolsillo y no abajo: abajo está el mando de copias, y dos
    controles pegados en el mismo borde se pulsan mal. */
@@ -5528,3 +5513,59 @@ input.mc-alb-titulo:not([readonly]):focus {
   align-items: center;
 }
 
+
+/* ── LAS MIGAS DE PAN (tanda 474) ──
+
+   Las cuatro pantallas con un «dentro» —una expansión, un Pokémon, una
+   carpeta y un álbum soñado— llevaban su propia chapa de volver, escrita
+   cuatro veces y con tres pintas distintas según la tanda que la hubiera
+   tocado por última vez. PINGU: «estás ocupando mucho espacio arriba… el
+   botón de volver atrás, yo quitaría ese botón».
+
+   Y OJO CON CONFUNDIR ESTO con lo que PINGU lleva cuatro tandas pidiendo
+   que no haya: un «enlace pocho» es un `link-btn` azul y subrayado metido
+   en una fila de botones. Una miga no va subrayada, no va del azul de los
+   enlaces y no compite con nada — es un rótulo gris encima del título. */
+.mc-migas {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  margin: 0 0 var(--e-sm);
+  font-size: var(--t-xs);
+}
+
+.mc-miga {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-mid);
+  font-size: inherit;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.mc-miga:hover {
+  color: var(--text);
+}
+
+/* `--text-mid` y no `--text-dim`: esto SE PULSA, y el gris apagado da 2,35
+   de contraste (la regla de la 311). El apagado es para un metadato de
+   refilón, no para la única salida de la pantalla. */
+.mc-miga-sep {
+  color: var(--text-dim);
+}
+
+.mc-miga-aqui {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Lo que se pulsa mide 44 px en una pantalla táctil (regla de la 312).
+   Se le pide ALTO y no ancho: una miga es texto, y estirarla a 44 de ancho
+   dejaría un área invisible pisando a la de al lado. */
+@media (pointer: coarse) {
+  .mc-miga {
+    min-height: 44px;
+  }
+}
