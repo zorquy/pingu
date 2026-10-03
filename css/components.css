@@ -1198,32 +1198,8 @@ tcg-deck {
   font-size: var(--t-md);
 }
 
-/* El título se recorta con "…" en vez de partirse en varias líneas,
-   para que todas las filas midan lo mismo sin importar lo largo que
-   sea el título (el atributo title="" del span deja leerlo entero al
-   pasar el ratón). El badge y los botones nunca se encogen ni saltan
-   de línea: solo el título cede espacio. */
-.my-guide-title {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .my-guide-row > .badge {
   flex-shrink: 0;
-}
-
-.my-guide-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-  /* Los botones Editar/Eliminar solo salen en borradores y guías
-     rechazadas; en las demás filas este hueco queda vacío. Se
-     reserva su altura igualmente para que todas las filas midan lo
-     mismo tengan o no botones. */
-  min-height: 24px;
 }
 
 /* La fila de guías rechazadas sí puede ser más alta que el resto —
@@ -1232,42 +1208,9 @@ tcg-deck {
   flex-wrap: wrap;
 }
 
-.my-guide-actions button {
-  font-size: var(--t-xs);
-  font-weight: 700;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--ice);
-  color: var(--navy);
-}
-
-/* "Ver" / "Vista previa" es un enlace, no un botón, porque lleva a otra
-   página — pero se viste igual que sus vecinos para que la fila no parezca
-   tener dos clases de cosas. */
-.my-guide-actions .my-guide-ver {
-  font-size: var(--t-xs);
-  font-weight: 700;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--ice);
-  color: var(--navy);
-}
-
 .my-guide-actions button.danger {
   background: var(--danger-bg);
   color: var(--danger);
-}
-
-.my-guide-reason {
-  width: 100%;
-  font-size: var(--t-xs);
-  color: var(--danger);
-  margin: 0;
-}
-
-.color-swatch-row {
-  display: flex;
-  gap: 12px;
 }
 
 .color-swatch {
@@ -2426,27 +2369,6 @@ a.rater-name:hover {
   height: 12px;
 }
 
-/* ── Cómo va mi guía (perfil → Mis guías) ── */
-.my-guide-stats {
-  flex-basis: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  margin: 8px 0 0;
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-}
-
-.my-guide-stats strong {
-  color: var(--text);
-  font-weight: 800;
-}
-
-.my-guide-stats-vacio {
-  font-style: italic;
-  color: var(--text-dim);
-}
-
 /* ── Sugerir una corrección ── */
 .sugerencia-btn {
   display: inline-flex;
@@ -2507,54 +2429,6 @@ a.rater-name:hover {
 .guide-creditos a {
   color: var(--navy);
   font-weight: 600;
-}
-
-/* Revisar las sugerencias (perfil → Mis guías) */
-.my-guide-sugerencias {
-  flex-basis: 100%;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 4px 12px;
-  align-self: flex-start;
-  border-radius: var(--radius-pill);
-  background: var(--warning-bg);
-  color: var(--warning);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  cursor: pointer;
-  width: fit-content;
-}
-
-.sugerencia-item {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.sugerencia-cita {
-  margin: 0 0 8px;
-  padding-left: 12px;
-  border-left: 3px solid var(--border-strong);
-  font-size: var(--t-sm);
-  color: var(--text-mid);
-  font-style: italic;
-}
-
-.sugerencia-cuerpo {
-  margin: 0 0 12px;
-  font-size: var(--t-md);
-  line-height: 1.6;
-}
-
-.sugerencia-item-acciones {
-  display: flex;
-  gap: 8px;
-}
-
-.sugerencia-item-acciones button {
-  padding: 8px 16px;
-  font-size: var(--t-sm);
 }
 
 /* ── Guía destacada de la portada ── */
@@ -3458,41 +3332,6 @@ yt-video .yt-enlace:hover { color: var(--blanco-fijo); }
   color: var(--navy);
   font-weight: 700;
   border-left-color: var(--navy);
-}
-
-/* ── Tanda crecimiento: invitar, top del mes ── */
-
-.panel-invitar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.panel-invitar h3 {
-  margin: 0 0 2px;
-  font-size: var(--t-lg);
-}
-
-.panel-invitar-enlace {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.panel-invitar-enlace code {
-  background: var(--ice);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  font-size: var(--t-xs);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 46vw;
 }
 
 /* Mismo radio y sombra que las tarjetas del reto de al lado: la

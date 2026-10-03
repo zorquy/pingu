@@ -35,6 +35,52 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 490 — hacer sitio en la portada, midiendo primero)
+
+**Hecho**: la portada iba a **169,9 de 170 KB** y `CLAUDE.md` lleva desde
+la 436 diciendo que lo próximo que la toque no cabe. Lo que faltaba era
+saber QUÉ sacar, así que primero se midió: reutilizando el barrido de
+`test-tanda-299.mjs` salen **112 clases de `components.css` que usa UNA
+SOLA página**.
+
+**Y el dato estaba al revés de lo que parecía**: 39 de esas 112 son de la
+PORTADA, y moverlas a `portada.css` **no ahorra un byte**, porque la
+portada baja las dos hojas. Lo que la adelgaza es sacar lo que la portada
+NUNCA usa. Medido bloque a bloque y recomprimiendo: guia 1,40 KB · perfil
+0,71 · aprender 0,34 · el resto ~0,3.
+
+Se han movido las **19 de perfil** (`.my-guide-*`, `.sugerencia-*`,
+`.panel-invitar*`, `.color-swatch-row`) a `css/perfil.css` — que cargan
+perfil.html Y usuario.html, así que las dos fichas de persona siguen
+vestidas.
+
+**Las guardas pararon lo de `aprender`**, y es la trampa de la 299 literal:
+el `@media (prefers-reduced-motion)` de `components.css` menciona
+`.esq-guia` y se quedaría ANTES que su base mudada, así que «menos
+movimiento» dejaría de apagar el barrido del esqueleto. Hay que partir ese
+`@media` y eso es otra tanda (una sección de CSS no es una unidad de
+mudanza, 316). Medido y pendiente: 0,34 KB.
+
+**Resultado**: `components.css` 25,95 → **25,24 KB**; la portada 169,9 →
+**169,2**, o sea de 0,1 KB de margen a **0,8**.
+
+**Ficheros**: `css/components.css`, `css/perfil.css`, `SCHEMA.md`,
+`BITACORA.md`.
+
+**Prueba**: `test-tanda-299` (el barrido en las 26 páginas + el peso de la
+portada: 169,2 KB), `test-tanda-306` (las dos fichas de persona, que es
+donde aterrizan las reglas) y `test-tanda-301` (/usuarios). Las tres en
+verde. Y la suite entera corriendo de fondo.
+
+**En curso / pendiente**: (1) Lo de **aprender** (0,34 KB) partiendo su
+`@media`, y lo de **guia** (1,40 KB), que es el premio gordo pero no tiene
+hoja propia: habría que crear `css/guia.css` y enlazarla. (2) Con 0,8 KB de
+margen ya cabe el `scroll-padding-top` que la 489 tuvo que dejar fuera.
+(3) **PINGU tiene que decidir lo de Bulbapedia**: técnicamente resuelto,
+pero su texto es CC BY-NC-SA 2.5 — atribución visible y uso NO comercial—,
+y eso es una decisión sobre PokeDoc, no técnica. (4) El 426 sigue rojo,
+diagnosticado. (5) Rigores pendientes desde la 443.
+
 ## 2026-10-03 — PINGU-Claude (tandas 488 y 489 — el parche de Cowork integrado, y lo que la suite cazó)
 
 **Hecho, 488**: integrado el parche de la sesión de **COWORK** (PINGU lo
@@ -120,9 +166,13 @@ Se vio porque `window.__TABLAS__` era `undefined`. **Si montas una copia a
 mano, cópiale los dobles**: `sync-forum.sh` los pone después de cada copia
 y por eso existe.
 
-**En curso / pendiente**: (1) **PINGU: ejecuta
-`supabase-migration-escaneo-buscado.sql`** — sin ella la fase de escaneos
-se salta (no falla) y solo salen los nombres. (2) El **426** sigue rojo,
+**En curso / pendiente**: (1) ~~ejecutar
+`supabase-migration-escaneo-buscado.sql`~~ — **EJECUTADA por PINGU el
+2026-10-03**, así que `escaneos-asia` ya tiene su columna y la fase de
+escaneos arranca sola (cada 4 min, 160 cartas por pasada: unas seis horas
+para las ~15.000 sin foto). Se comprueba con el `select` del final del
+propio fichero de migración, o desde /admin → «Contar mercados»: el
+`con_foto` de JP tiene que subir de ~3.900 hacia ~7.400. (2) El **426** sigue rojo,
 diagnosticado y sin arreglar. (3) Lo de **Bulbapedia** (logos, rarezas y
 nombres occidentales exactos) está analizado y sin empezar: ojo a la
 licencia CC BY-NC-SA 2.5 —atribución visible y uso no comercial—, a no

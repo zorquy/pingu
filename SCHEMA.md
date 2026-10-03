@@ -26642,3 +26642,71 @@ Dos cosas que conviene tener escritas:
    `components.css` (26 KB gzip).
 
 **Ficheros**: `css/repeticiones.css`, `js/mi-coleccion.js`.
+
+## Tanda 490 — hacer sitio en la portada, midiendo primero quién ocupa qué
+
+`CLAUDE.md` lleva pidiendo esto desde la 436: la portada iba a **169,9 de
+170 KB**, o sea CIEN BYTES, y lo próximo que la tocara no cabía. Lo que
+faltaba no era la voluntad, era saber **qué** sacar.
+
+### El dato que estaba al revés de lo que parecía
+
+La norma de la 299 es «lo que solo usa una pantalla, a su hoja», y el
+candidato señalado era `components.css` (26 KB gzip, el mayor de los que
+baja todo el mundo). Reutilizando el barrido de `test-tanda-299.mjs` —el
+único que sigue los `import()` dinámicos y las páginas de `admin/`, porque
+una página «usa» una clase por importar el módulo que la pinta (la 316)—
+salieron **112 clases que usa UNA SOLA página**, y 39 de ellas son de la
+PORTADA.
+
+Y esas 39 **no sirven de nada**: mover algo de `components.css` a
+`portada.css` no le ahorra un byte a la portada, porque la portada baja las
+dos hojas. **Lo que la adelgaza es sacar lo que la portada NUNCA usa.**
+Medido bloque a bloque, recomprimiendo:
+
+| Página | Bloques | Ahorro real en la portada |
+|---|---|---|
+| guia.html | 41 | 1,40 KB |
+| **perfil.html** | **19** | **0,71 KB** |
+| aprender.html | 14 | 0,34 KB |
+| guardados / tema / usuarios / buscar / categoria | 17 | ~0,3 KB |
+
+### Lo que se ha movido, y lo que las guardas no dejaron mover
+
+Las 19 de **perfil** (`.my-guide-*`, `.sugerencia-*`, `.panel-invitar*`,
+`.color-swatch-row`) → `css/perfil.css`, que **perfil.html Y usuario.html
+cargan las dos**, así que las dos fichas de persona siguen vestidas.
+
+Antes de escribir nada, las dos trampas documentadas, comprobadas a máquina:
+
+- **Un `@media` que se queda con su base mudada** (299): en perfil, cero.
+  En **aprender, UNO** — el `@media (prefers-reduced-motion: reduce)` de
+  `components.css` menciona `.esq-guia`, y `components.css` carga PRIMERO,
+  así que la base mudada ganaría y «menos movimiento» dejaría de apagar el
+  barrido del esqueleto. Por eso aprender **NO se ha movido**: hay que
+  partir ese `@media`, y una sección de CSS no es una unidad de mudanza
+  (316). Queda medido y pendiente.
+- **Contra qué chocan al llegar** (306): las reglas aterrizan DESPUÉS de
+  las que ya estaban y empatan por especificidad ganan por orden. Cero
+  choques de selector en `perfil.css`.
+
+Dos bloques se quedan en `components.css` a propósito, porque mencionan
+clases COMPARTIDAS: `.my-guide-row:has(.my-guide-reason)` —`.my-guide-row`
+no es solo de perfil— y `.my-guide-actions button.danger`. El segundo
+carga ANTES que su base y aun así gana, porque `(0,2,1)` es más específico
+que el `(0,1,1)` de `.my-guide-actions button`.
+
+### El resultado
+
+`components.css`: **25,95 → 25,24 KB** gzip. La portada: **169,9 → 169,2**,
+o sea de 0,1 KB de margen a **0,8**.
+
+Y una advertencia sobre el barrido, para quien lo repita: su lista de «esto
+no lo usa nadie» (63 clases) **no es de fiar**. Están ahí `arte-1..6`,
+`toast`, `toast-error`, los `rt-*` y `mencion`, que SÍ se usan pero se
+montan con plantillas (`` `toast ${tipo}` ``), y también `css`, `html`,
+`js`, `md` y `mjs`, que no son clases: son extensiones de fichero que el
+regex pescó dentro de un comentario. Borrar por esa lista sería la
+transformación en bloque de las tandas 310 y 311 otra vez.
+
+**Ficheros**: `css/components.css`, `css/perfil.css`.
