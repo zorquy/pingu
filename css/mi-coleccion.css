@@ -5575,6 +5575,11 @@ input.mc-alb-titulo:not([readonly]):focus {
   background: var(--bg);
 }
 
+/* La puesta se marca, y por los DOS atributos: el menú del ⋮ usa
+   `aria-pressed` (son interruptores) y el de la vista `aria-checked` (es
+   una pregunta con tres respuestas). Sin esto, la hoja de la vista se abre
+   sin decir cuál tienes puesta — que es justo lo que se va a mirar. */
+.mc-menu-opcion[aria-checked='true'],
 .mc-menu-opcion[aria-pressed='true'] {
   background: var(--navy-solid);
   /* Blanco FIJO: `--white` es la superficie de la página y en oscuro vale
@@ -5628,4 +5633,169 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 #mcCarpetaCartas {
   margin-bottom: var(--e-xl);
+}
+
+/* ── LAS TRES VISTAS DE UNA EXPANSIÓN (tanda 478) ──
+
+   PINGU, enumerando la barra de Dex: «un botón que si le das te sale el
+   desplegable si lo quieres ver en grid, en lista o en binder». Son tres
+   cosas distintas de verdad y no tres tamaños: el archivador es la de
+   APUNTAR (con sus mandos), la cuadrícula la de MIRAR y la lista la de
+   BUSCAR. */
+
+/* Dentro de la hoja, las tres opciones se reparten el ancho: una lista de
+   tres cosas en una bandeja que ocupa la pantalla entera con los renglones
+   pegados a la izquierda se lee como un menú cortado. */
+#mcAlbumVistaMenu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+}
+
+/* ── Cuadrícula: los escaneos y nada más ── */
+.mc-album-cuadricula {
+  display: grid;
+  /* 96 px es el ancho al que una carta todavía se reconoce de un vistazo;
+     por debajo es un cromo de color. Con `auto-fill` caben cuatro en un
+     móvil y once en un escritorio, que es «ver el set entero». */
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--e-sm);
+  margin-bottom: var(--e-lg);
+}
+
+.mc-rejilla-celda {
+  display: block;
+  position: relative;
+  /* El hueco reservado ANTES de que llegue la imagen (regla de la casa):
+     sin él la rejilla da un salto por cada escaneo que entra. */
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.mc-rejilla-celda img {
+  /* `position: relative` y no por gusto: las que NO tienes llevan filtro y
+     opacidad, y las dos cosas crean un contexto de apilamiento que las
+     pone POR ENCIMA del nombre. Al quitárselos a las que sí tienes, la
+     imagen perdía lo único que la mantenía arriba y la carta se veía en
+     negro — es el fallo de la 470, que vive en cuanto se pinta un hueco
+     con un nombre debajo de una foto. */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.12) brightness(1.35) contrast(0.7);
+  opacity: 0.55;
+}
+
+.mc-rejilla-celda.tengo img {
+  filter: none;
+  opacity: 1;
+}
+
+/* El nombre, debajo de la foto y a la vista solo cuando no hay foto. */
+.mc-rejilla-celda .mc-carta-sinfoto {
+  position: absolute;
+  inset: 0;
+}
+
+.mc-rejilla-celda.tengo {
+  box-shadow: inset 0 0 0 2px var(--success);
+}
+
+.mc-rejilla-copias {
+  position: absolute;
+  right: var(--e-xs);
+  bottom: var(--e-xs);
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  /* Blanco FIJO: `--white` es la superficie y en oscuro vale #182430
+     (tanda 315). */
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+}
+
+/* ── Lista: un renglón por carta ── */
+.mc-album-lista {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.mc-album-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  /* Lo que se pulsa mide 44 (regla de la 312). Aquí va SIEMPRE y no solo
+     con el dedo: una lista de renglones no es un control denso. */
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  font-size: var(--t-sm);
+  text-decoration: none;
+}
+
+.mc-album-fila:first-child {
+  border-top: 0;
+}
+
+.mc-album-fila:hover {
+  background: var(--bg);
+}
+
+.mc-album-fila-num {
+  flex: 0 0 48px;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* `min-width: 0` para que el recorte funcione: `text-overflow` no hace
+   nada sobre un hijo de flex sin él (la lección de la 320). */
+.mc-album-fila-nombre {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mc-album-fila-nombre small {
+  color: var(--text-mid);
+  font-weight: 400;
+}
+
+/* La rareza se cae en el móvil: el nombre es lo que se busca, y a 390 px
+   «Rara Ilustración Especial» se come la fila entera. */
+.mc-album-fila-rareza {
+  display: none;
+  flex: 0 0 auto;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+@media (min-width: 560px) {
+  .mc-album-fila-rareza {
+    display: block;
+  }
+}
+
+.mc-album-fila-cuenta {
+  flex: 0 0 40px;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-align: right;
+}
+
+.mc-album-fila.tengo .mc-album-fila-cuenta {
+  color: var(--success);
 }

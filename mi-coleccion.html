@@ -497,11 +497,43 @@
                  pulsarlo para saber qué tenías puesto (la lección de la
                  449). Y se queda el vocabulario de la 418, que es el que
                  PINGU pidió: juntas / separadas, no «una por carta». -->
-            <button type="button" class="mc-chip-mando" id="mcVistaVariantes" aria-pressed="false" data-icono="layers">
+            <!-- CÓMO SE VEN LAS CARTAS (tanda 478). PINGU, enumerando la
+                 barra de Dex: «un botón que si le das te sale el
+                 desplegable si lo quieres ver en grid, en lista o en
+                 binder».
+
+                 El rótulo dice LA VISTA QUE HAY PUESTA y no «Vista» a
+                 secas, por lo mismo que el botón de ordenar de la 449: un
+                 control que guarda un estado tiene que decir el estado, o
+                 hay que abrirlo para saber qué pusiste. -->
+            <button type="button" class="mc-chip-mando" id="mcAlbumVista" data-icono="eye" aria-haspopup="dialog">
+              <span class="mc-chip-texto" id="mcAlbumVistaRotulo">Archivador</span>
+            </button>
+            <button type="button" class="mc-chip-mando" id="mcVistaVariantes" aria-pressed="false" data-icono="cards">
               <span class="mc-chip-texto" id="mcVistaVariantesRotulo">Variantes juntas</span>
             </button>
             <button type="button" class="mc-chip-mando mc-chip-solo-icono hidden" id="mcAlbumQuitar" aria-label="Quitar la búsqueda y los filtros">✕</button>
           </div>
+
+          <!-- LA HOJA DE LA VISTA (tanda 478), y va aquí FUERA de la tira
+               de mandos a propósito. Lo intenté primero con un `<details>`
+               colgando de su chapa, y es justo la trampa que la 459 dejó
+               escrita: una tira recorta lo que se sale de ella, así que un
+               panel colgado de una chapa de dentro sale cortado — y sin
+               dar ningún error. Un `<dialog>` no se recorta.
+
+               Y de paso es la misma pieza que la hoja de ordenar de la
+               pestaña «Cartas» (tanda 449): sube desde abajo en el móvil
+               y sale centrada en el ordenador. -->
+          <dialog class="mc-bandeja" id="mcAlbumVistaHoja" aria-labelledby="mcAlbumVistaTitulo">
+            <div class="mc-panel-cabecera">
+              <h2 id="mcAlbumVistaTitulo">Cómo se ven las cartas</h2>
+              <button type="button" class="mc-panel-cerrar" id="mcAlbumVistaCerrar" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="mc-panel-cuerpo">
+              <div class="mc-menu" role="radiogroup" aria-labelledby="mcAlbumVistaTitulo" id="mcAlbumVistaMenu"></div>
+            </div>
+          </dialog>
 
           <!-- EL PANEL. Mismo molde que los otros tres de la sección
                (Cartas, Pokédex y Buscar): sube desde abajo en el móvil y

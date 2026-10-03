@@ -25781,3 +25781,64 @@ prueba y otra cosa en producción — la lección de la 437, otra vez.
 del menú de la 475. **Ese token no existe**, así que el resalte no se
 pintaba — y un token inventado no da ningún error: la regla sencillamente
 no hace nada.
+
+---
+
+## Tanda 478 — las tres vistas de una expansión
+
+PINGU, enumerando la barra de Dex: «un botón que si le das te sale el
+desplegable si lo quieres ver en grid, en lista o en binder».
+
+Y son tres cosas distintas de verdad, no tres tamaños del mismo dibujo:
+
+- **Archivador** es lo que había: cada carta en su bolsillo, con su −, su +
+  y sus chapas de versión. Es la de **APUNTAR** — lo que haces con un sobre
+  recién abierto en la mano.
+- **Cuadrícula** es la de **MIRAR**: los escaneos y nada más, el triple por
+  fila, sin un solo mando encima. Es como se repasa un set entero.
+- **Lista** es la de **BUSCAR**: un renglón por carta con su número, su
+  nombre, su rareza y cuántas tienes. En un set de 200, leer una columna de
+  nombres es muchísimo más rápido que mirar 200 dibujos.
+
+El rótulo del botón dice **la vista puesta** y no «Vista» a secas, por lo
+mismo que el de ordenar de la 449. Y la vista se recuerda, como «juntas /
+separadas»: quien repasa un set en cuadrícula lo quiere así en el
+siguiente.
+
+El icono del botón es `eye` y no el de la vista puesta: **este dibujo
+identifica el CONTROL y la palabra identifica el ESTADO.** Con el icono de
+la vista, el botón diría «Lista» con el dibujo de un archivador el primer
+segundo después de cambiarla. Los que distinguen las tres están dentro de
+la hoja, que es donde se eligen — y ahí no son adorno: son lo único que
+separa tres renglones con tres palabras parecidas.
+
+### ⚠️ La hoja NO puede colgar de la tira de mandos
+
+Lo hice primero con un `<details>` colgando de su chapa, y es exactamente
+la trampa que la tanda 459 dejó escrita y vigilada: **una tira recorta lo
+que se sale de ella**, así que un panel colgado de una chapa de dentro sale
+cortado — y sin dar ningún error. Lo cazó `test-tanda-459`, que lo
+comprueba por la FORMA del fallo y no por el caso que lo estrenó.
+
+Así que es un `<dialog class="mc-bandeja">`, la misma pieza que la hoja de
+ordenar de la pestaña «Cartas»: sube desde abajo en el móvil y sale
+centrada en el ordenador. Un `<dialog>` no lo recorta nadie.
+
+### Y la tira vuelve a poder deslizarse, que está bien
+
+Con la tercera chapa, los mandos de una expansión se pasan unos píxeles en
+un móvil de 390. La tanda 473 había comprobado que NO hacía falta
+deslizarla — pero eso era cierto porque entonces eran dos. Que quepan o no
+depende de cuántas haya, así que no es lo que hay que vigilar: **lo que no
+puede pasar nunca es que se aplasten para caber** (la lección de la 320), y
+eso sí lo comprueban la 459 y la 473.
+
+### Una cosa que se repite y conviene reconocer a la primera
+
+La celda de la cuadrícula lleva `position: relative` en su `<img>`. Es el
+fallo de la **tanda 470**, que reaparece en cuanto se pinta un hueco con un
+nombre debajo de una foto: `opacity` y `filter` crean un contexto de
+apilamiento, así que quitárselos a la carta que SÍ tienes le quita lo único
+que mantenía la imagen por encima del nombre — y la carta se ve en negro.
+La prueba lo comprueba preguntándole al navegador qué se pinta en el
+centro, no leyendo el CSS.

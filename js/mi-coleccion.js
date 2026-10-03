@@ -1495,7 +1495,32 @@ async function guardarEditor({ retardo = 0 } = {}) {
 //
 // Un archivador de nueve bolsillos: páginas de 3×3, de dos en dos en
 // pantalla ancha (como al abrirlo) y de una en una en el móvil.
-let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false }
+let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false, vista: 'archivador' }
+
+// ── LAS TRES FORMAS DE VER UNA EXPANSIÓN (tanda 478) ──
+//
+// PINGU, enumerando la barra de Dex: «un botón que si le das te sale el
+// desplegable si lo quieres ver en grid, en lista o en binder».
+//
+// Y son tres cosas distintas de verdad, no tres tamaños:
+//
+//   · ARCHIVADOR es lo que había: cada carta en su bolsillo, con su −, su
+//     + y sus chapas de versión. Es la de APUNTAR — lo que haces con un
+//     sobre recién abierto en la mano.
+//   · CUADRÍCULA es la de MIRAR: los escaneos y nada más, el doble por
+//     fila, sin un solo mando encima. Es como se repasa un set entero.
+//   · LISTA es la de BUSCAR: un renglón por carta con su número, su
+//     nombre y cuántas tienes. En un set de 200, leer una columna de
+//     nombres es muchísimo más rápido que mirar 200 dibujos.
+//
+// El icono de cada una no es adorno: es lo único que distingue tres
+// renglones de menú que dicen tres palabras parecidas.
+const VISTAS_DE_ALBUM = [
+  { id: 'archivador', nombre: 'Archivador', icono: 'layers' },
+  { id: 'cuadricula', nombre: 'Cuadrícula', icono: 'image' },
+  { id: 'lista', nombre: 'Lista', icono: 'alignLeft' },
+]
+const CLAVE_VISTA_ALBUM = 'mc-album-vista'
 // Solo las colecciones de las que tienes algo (tanda 443). Fuera del
 // objeto `album` porque no es del álbum abierto, es de la estantería.
 let soloEmpezadas = false
@@ -2032,6 +2057,22 @@ function cartasDelAlbumFiltradas() {
 // saber qué tenías puesto (la lección de la 449 con el botón de ordenar).
 // Y `aria-pressed` además de la clase, porque para quien no ve el color la
 // clase no dice nada.
+// El rótulo del botón dice la vista PUESTA, y el menú marca cuál es
+// (tanda 478). Las dos cosas: el rótulo para quien mira la barra, el
+// `aria-checked` para quien abre el menú y para quien no ve el color.
+function pintarVistaDeAlbum() {
+  const actual = VISTAS_DE_ALBUM.find((v) => v.id === album.vista) || VISTAS_DE_ALBUM[0]
+  const rotulo = $('mcAlbumVistaRotulo')
+  if (rotulo) rotulo.textContent = actual.nombre
+  const boton = $('mcAlbumVista')
+  if (boton) boton.setAttribute('aria-label', `Cómo se ven las cartas: ${actual.nombre}`)
+  for (const b of document.querySelectorAll('#mcAlbumVistaMenu [data-vista]')) {
+    const suya = b.dataset.vista === actual.id
+    b.setAttribute('aria-checked', suya ? 'true' : 'false')
+    b.classList.toggle('activo', suya)
+  }
+}
+
 function pintarVistaVariantes() {
   const b = $('mcVistaVariantes')
   if (!b) return
@@ -2088,6 +2129,47 @@ function pintarSoloFaltan() {
   b.setAttribute('aria-pressed', album.soloFaltan ? 'true' : 'false')
 }
 
+// La CUADRÍCULA: el escaneo y nada más. Sin mandos a propósito — si
+// quieres apuntar, la vista de apuntar es el archivador; aquí lo que se
+// quiere es ver el set. El nombre se queda de respaldo para la carta sin
+// escaneo (la lección de la 415: un hueco en blanco se lee como un fallo
+// y una carta con su nombre escrito se lee como una carta).
+function celdaDeCuadriculaHtml(c) {
+  const v = c.__variante || null
+  const n = tengoDe(c.id, v?.nuestro || null)
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  const nombre = nombreDe(c)
+  const etiqueta = `${nombre} (${c.local_id})${v ? ` — ${v.nombre}` : ''}${n ? `, tienes ${n}` : ', te falta'}`
+  return `<a class="mc-rejilla-celda${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}" title="${escapeHtml(etiqueta)}">
+    <span class="mc-carta-sinfoto">${escapeHtml(nombre)}<small>${escapeHtml(c.local_id || '')}</small></span>
+    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
+    ${n > 1 ? `<span class="mc-rejilla-copias" aria-hidden="true">×${n}</span>` : ''}
+  </a>`
+}
+
+// La LISTA: un renglón por carta. El número PRIMERO porque es por donde
+// se busca dentro de un set —«la 102»— y porque alineado en una columna
+// se recorre con el ojo sin leer.
+function filaDeAlbumHtml(c) {
+  const v = c.__variante || null
+  const n = tengoDe(c.id, v?.nuestro || null)
+  const nombre = nombreDe(c)
+  return `<a class="mc-album-fila${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}">
+    <span class="mc-album-fila-num">${escapeHtml(c.local_id || '')}</span>
+    <span class="mc-album-fila-nombre">${escapeHtml(nombre)}${v ? ` <small>${escapeHtml(v.nombre)}</small>` : ''}</span>
+    ${c.rarity ? `<span class="mc-album-fila-rareza">${escapeHtml(rarezaEs(c.rarity))}</span>` : ''}
+    <span class="mc-album-fila-cuenta">${n ? `×${n}` : '—'}</span>
+  </a>`
+}
+
+// Qué pintor toca. Un objeto y no un `if` en cascada: añadir una vista
+// cuarta tiene que ser una línea en `VISTAS_DE_ALBUM` y otra aquí.
+const PINTOR_DE_VISTA = {
+  archivador: { clase: 'mc-album-rejilla', celda: bolsilloHtml },
+  cuadricula: { clase: 'mc-album-cuadricula', celda: celdaDeCuadriculaHtml },
+  lista: { clase: 'mc-album-lista', celda: filaDeAlbumHtml },
+}
+
 function pintarAlbum() {
   pintarFiltrosDeAlbum()
   pintarCuentaDeFiltrosDeAlbum()
@@ -2120,7 +2202,8 @@ function pintarAlbum() {
   // ordenada y lo que se quiere es verla entera. El archivador —pliegos,
   // páginas y tapa— se queda para los álbumes soñados, que es donde el
   // orden lo pones tú.
-  $('mcAlbum').innerHTML = `<div class="mc-album-rejilla">${paraPintar.map(bolsilloHtml).join('')}</div>`
+  const pintor = PINTOR_DE_VISTA[album.vista] || PINTOR_DE_VISTA.archivador
+  $('mcAlbum').innerHTML = `<div class="${pintor.clase}">${paraPintar.map(pintor.celda).join('')}</div>`
   // Lo que hay EN PANTALLA, que es de donde sale la lista de «lo que me
   // falta» (tanda 430). Se guarda aquí y no se recalcula allí: recalcular
   // sería escribir una segunda vez los filtros, el orden y el split, y dos
@@ -4421,6 +4504,50 @@ function enganchar() {
     const version = e.target.closest('button[data-variante]')
     if (version) return void alternarVariante(version.dataset.carta, version.dataset.variante)
   })
+  // ── El menú de la VISTA (tanda 478) ──
+  //
+  // Se pinta una vez y se marca la puesta con `aria-checked`: es un
+  // `menuitemradio` y no tres botones sueltos porque son UNA pregunta con
+  // tres respuestas, y tres botones la cuentan como tres (la misma razón
+  // por la que el sentido del orden es un interruptor y no dos chapas).
+  const menuVista = $('mcAlbumVistaMenu')
+  if (menuVista) {
+    menuVista.innerHTML = VISTAS_DE_ALBUM.map((v) =>
+      `<button type="button" class="mc-menu-opcion" role="menuitemradio" data-vista="${v.id}" aria-checked="false">
+        <span class="mc-menu-icono" data-icono="${v.icono}" aria-hidden="true"></span>${escapeHtml(v.nombre)}
+      </button>`).join('')
+    // Los dibujos, aquí mismo: `pintarIconos` corre UNA vez al arrancar y
+    // este menú se pinta después, así que sin esta llamada los tres
+    // renglones saldrían sin icono — y el icono es lo único que distingue
+    // tres palabras parecidas. No da error: salen vacíos.
+    pintarIconos()
+    menuVista.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-vista]')
+      if (!b) return
+      album.vista = b.dataset.vista
+      album.pagina = 0
+      try { localStorage.setItem(CLAVE_VISTA_ALBUM, album.vista) } catch {}
+      pintarVistaDeAlbum()
+      pintarAlbum()
+      // La hoja se cierra al elegir: lo que has venido a ver está debajo.
+      $('mcAlbumVistaHoja')?.close()
+    })
+  }
+  $('mcAlbumVista')?.addEventListener('click', () => $('mcAlbumVistaHoja')?.showModal())
+  $('mcAlbumVistaCerrar')?.addEventListener('click', () => $('mcAlbumVistaHoja')?.close())
+  // El clic en el FONDO cierra, como las otras hojas: se distingue del de
+  // dentro porque `e.target` es el propio `<dialog>`.
+  $('mcAlbumVistaHoja')?.addEventListener('click', (e) => {
+    if (e.target === $('mcAlbumVistaHoja')) $('mcAlbumVistaHoja').close()
+  })
+  // Se recuerda, como «juntas / separadas»: quien repasa un set entero en
+  // cuadrícula lo quiere en cuadrícula también en el siguiente.
+  try {
+    const guardada = localStorage.getItem(CLAVE_VISTA_ALBUM)
+    if (VISTAS_DE_ALBUM.some((v) => v.id === guardada)) album.vista = guardada
+  } catch {}
+  pintarVistaDeAlbum()
+
   // Juntas / separadas, en un solo botón (tanda 473). Se recuerda, porque
   // quien colecciona set maestro lo quiere SIEMPRE y volver a pulsarlo en
   // cada set sería un peaje. La clave de `localStorage` no cambia: lo que

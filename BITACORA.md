@@ -35,6 +35,42 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 478 — las tres vistas de una expansión)
+
+**Hecho**: lo último que quedaba de la cola de PINGU: «un botón que si le
+das te sale el desplegable si lo quieres ver en grid, en lista o en
+binder». Y son tres cosas distintas de verdad: ARCHIVADOR es la de APUNTAR
+(bolsillos con su −, su + y sus chapas de versión), CUADRÍCULA la de MIRAR
+(los escaneos y nada más, el triple por fila, sin un solo mando) y LISTA la
+de BUSCAR (un renglón por carta con número, nombre, rareza y cuántas
+tienes). El rótulo del botón dice la vista PUESTA, y la vista se recuerda.
+El icono del botón es `eye` y no el de la vista: el dibujo identifica el
+CONTROL y la palabra el ESTADO.
+
+**La trampa, y la cazó una prueba vieja**: lo hice primero con un
+`<details>` colgando de su chapa, y es exactamente lo que la 459 dejó
+escrito — una tira RECORTA lo que se sale de ella, así que un panel colgado
+de una chapa de dentro sale cortado, sin dar ningún error.
+`test-tanda-459` lo cantó porque comprueba la FORMA del fallo y no el caso
+que lo estrenó. Ahora es un `<dialog class="mc-bandeja">`, la misma pieza
+que la hoja de ordenar de «Cartas».
+
+**Y la tira vuelve a deslizarse unos píxeles en un móvil de 390**, que está
+bien: la 473 comprobó que no hacía falta, pero eso era cierto porque
+entonces eran DOS chapas. Que quepan depende de cuántas haya; lo que no
+puede pasar nunca es que se APLASTEN para caber (la 320), y eso lo siguen
+mirando la 459 y la 473.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`, `BITACORA.md`. En la rama `pruebas`:
+`test-tanda-478.mjs` (NUEVO, 31 comprobaciones) y repintadas la 459 y la
+473, que afirmaban cosas sobre una barra de dos chapas.
+
+**En curso / pendiente**: **LA COLA DE PINGU SE HA ACABADO.** Lo único
+pendiente que no es mío: ejecutar `supabase-migration-idioma-chino.sql`
+(tanda 472) — hasta entonces no se puede guardar una carta china. Rigores
+pendientes desde la 443. Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 477 — dentro de una carpeta, como dentro de una expansión)
 
 **Hecho**: PINGU: «mejoraría visualmente el apartado de carpetas porque se
