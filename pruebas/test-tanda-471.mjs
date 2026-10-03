@@ -140,7 +140,9 @@ check('y Pokémon TCG Pocket se queda fuera', !nuevos.some((x) => x.id === 'A1')
 check('el set nuevo lleva su mercado', nuevos[0]?.market === 'JP', String(nuevos[0]?.market))
 
 console.log('\n── 5. Las cartas ──')
-const cartas = llamadas.filter((l) => l.ruta?.startsWith('tcg_cards'))
+// Solo las que ESCRIBEN: desde la tanda 483 la pasada también CONSULTA
+// `tcg_cards` para el engorde, y contar las dos juntas diría dos.
+const cartas = llamadas.filter((l) => l.ruta?.startsWith('tcg_cards') && l.metodo === 'POST')
 check('van en un upsert por (id, mercado)', cartas.length === 1 && cartas[0].ruta.includes('on_conflict=id,market'), cartas.map((c) => c.ruta).join(' | '))
 const filasCarta = cartas[0]?.cuerpo || []
 check('la repetida se cae', filasCarta.length === 2, JSON.stringify(filasCarta.map((c) => c.id)))
