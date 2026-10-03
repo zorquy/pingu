@@ -25,14 +25,17 @@ console.log('── 1. El veredicto de un par, por el nombre de una carta ──
   check('las tildes no cuentan', verificarPar({ nuestroNombre: 'Flabébé', suyoNombre: 'Flabebe' }).veredicto === 'confirmado')
   check('ni los signos', verificarPar({ nuestroNombre: "Farfetch'd", suyoNombre: 'Farfetchd' }).veredicto === 'confirmado')
   // Y AQUÍ ESTÁ EL VALOR: si no es el mismo set, los nombres no coinciden.
+  // OJO al vocabulario (tanda 505): esto es «discrepan», no «rechazado».
+  // Un nombre que no coincide puede ser un par malo O nuestro `name` en
+  // español, y esta función no puede distinguirlos.
   const r = verificarPar({ nuestroNombre: 'Blaziken ex', suyoNombre: 'Pikachu' })
-  check('dos nombres distintos RECHAZAN', r.veredicto === 'rechazado', JSON.stringify(r))
+  check('dos nombres distintos DISCREPAN', r.veredicto === 'discrepan', JSON.stringify(r))
   check('  …y el porqué trae los dos nombres, para no fiarse de un número',
     /Blaziken ex/.test(r.porque) && /Pikachu/.test(r.porque), r.porque)
   // NO más tolerante que eso: si aprobara «Pikachu» contra «Pikachu V» el
   // verificador aprobaría cualquier cosa y no serviría para nada.
   check('«Pikachu» y «Pikachu V» siguen siendo distintas',
-    verificarPar({ nuestroNombre: 'Pikachu', suyoNombre: 'Pikachu V' }).veredicto === 'rechazado')
+    verificarPar({ nuestroNombre: 'Pikachu', suyoNombre: 'Pikachu V' }).veredicto === 'discrepan')
   check('sin uno de los dos nombres, no se puede',
     verificarPar({ nuestroNombre: 'Jynx', suyoNombre: undefined }).veredicto === 'no-se-puede')
 }
@@ -127,10 +130,13 @@ const doble = ({ cuatrocientocuatro = [], expansionesPorPagina = null } = {}) =>
   check('el tercero se queda suelto', r.cuerpo.sinEmparejar === 1, String(r.cuerpo.sinEmparejar))
   // LO QUE IMPORTA: el par bueno se confirma y el falso se RECHAZA.
   check('confirma el par bueno', r.cuerpo.confirmados === 1, JSON.stringify(r.cuerpo.ejemplosConfirmados))
-  check('y RECHAZA el falso', r.cuerpo.rechazados.length === 1 && r.cuerpo.rechazados[0].suyo === 'wb1', JSON.stringify(r.cuerpo.rechazados))
+  // El falso SALE A LA SUPERFICIE, que es para lo que existe la tanda — y
+  // desde la 505 sale en «por mirar a mano», porque nuestro fixture no
+  // tiene `name_es` y por tanto no se puede echar la culpa a nadie.
+  check('y SACA el falso', r.cuerpo.porMirar.length === 1 && r.cuerpo.porMirar[0].suyo === 'wb1', JSON.stringify(r.cuerpo.porMirar))
   check('  …diciendo los dos nombres, no solo que falla',
-    /Blaziken ex/.test(JSON.stringify(r.cuerpo.rechazados[0])) && /Kecleon/.test(JSON.stringify(r.cuerpo.rechazados[0])),
-    JSON.stringify(r.cuerpo.rechazados[0]))
+    /Blaziken ex/.test(JSON.stringify(r.cuerpo.porMirar[0])) && /Kecleon/.test(JSON.stringify(r.cuerpo.porMirar[0])),
+    JSON.stringify(r.cuerpo.porMirar[0]))
   // La carta elegida es la de número más bajo DE VERDAD: el doble devuelve
   // «10», «TG01» y «2», y el orden de texto pondría el 10 primero.
   check('elige la carta de número más bajo, no la primera fila',
@@ -151,7 +157,7 @@ console.log('\n── 5. Un 404 no es un rechazo ──')
   // rechazo tiraría un emparejamiento BUENO por un fallo nuestro.
   const d = doble({ cuatrocientocuatro: ['sus_bueno-2'] })
   const r = await procesar({ env: ENV, fetchImpl: d.fetchImpl, restImpl: d.restImpl })
-  check('un 404 no rechaza el par', !r.cuerpo.rechazados.some((x) => x.suyo === 'sus_bueno'), JSON.stringify(r.cuerpo.rechazados))
+  check('un 404 no rechaza el par', !r.cuerpo.porMirar.some((x) => x.suyo === 'sus_bueno'), JSON.stringify(r.cuerpo.porMirar))
   check('  …sino que se declara sin comprobar', r.cuerpo.sinComprobar.some((x) => /sus_bueno/.test(x.par) && /404/.test(x.porque)), JSON.stringify(r.cuerpo.sinComprobar))
   check('  …y no cuenta como confirmado', r.cuerpo.confirmados === 0, String(r.cuerpo.confirmados))
 }
@@ -160,7 +166,7 @@ console.log('\n── 5. Un 404 no es un rechazo ──')
   const d = doble()
   const sinCartas = async (ruta) => (/tcg_cards/.test(ruta) ? [] : d.restImpl(ruta))
   const r = await procesar({ env: ENV, fetchImpl: d.fetchImpl, restImpl: sinCartas })
-  check('sin cartas nuestras, no se rechaza nada', r.cuerpo.rechazados.length === 0 && r.cuerpo.sinComprobarTotal === 2, JSON.stringify(r.cuerpo))
+  check('sin cartas nuestras, no se rechaza nada', r.cuerpo.porMirar.length === 0 && r.cuerpo.sinComprobarTotal === 2, JSON.stringify(r.cuerpo))
 }
 
 console.log('\n── 6. Los pares que no caben en una pasada se pueden ALCANZAR ──')
@@ -172,7 +178,7 @@ console.log('\n── 6. Los pares que no caben en una pasada se pueden ALCANZAR
   check('con todo verificado, no manda seguir', r0.cuerpo.siguienteDesde === null, String(r0.cuerpo.siguienteDesde))
   const r1 = await procesar({ env: ENV, fetchImpl: d.fetchImpl, restImpl: d.restImpl, desde: 1 })
   check('`desde` salta los ya vistos', r1.cuerpo.verificadas === 1 && /^2–2 /.test(r1.cuerpo.verificadosEnEstaPasada), r1.cuerpo.verificadosEnEstaPasada)
-  check('  …y ahí solo queda el par falso', r1.cuerpo.rechazados.length === 1 && r1.cuerpo.confirmados === 0, JSON.stringify(r1.cuerpo.rechazados))
+  check('  …y ahí solo queda el par falso', r1.cuerpo.porMirar.length === 1 && r1.cuerpo.confirmados === 0, JSON.stringify(r1.cuerpo.porMirar))
   const r9 = await procesar({ env: ENV, fetchImpl: d.fetchImpl, restImpl: d.restImpl, desde: 99 })
   // Y el rótulo no dice una frase sin sentido: «3–2 de 2» no es nada.
   check('un `desde` pasado de rosca no revienta ni repite',
@@ -199,7 +205,7 @@ console.log('\n── 7. Y si algo falla, no se concluye nada ──')
     return d.fetchImpl(url, o)
   }
   const r4 = await procesar({ env: ENV, fetchImpl: revienta, restImpl: d.restImpl })
-  check('un error de red tampoco rechaza', r4.estado === 200 && r4.cuerpo.rechazados.length === 0 && r4.cuerpo.sinComprobarTotal === 2, JSON.stringify(r4.cuerpo))
+  check('un error de red tampoco rechaza', r4.estado === 200 && r4.cuerpo.porMirar.length === 0 && r4.cuerpo.sinComprobarTotal === 2, JSON.stringify(r4.cuerpo))
 }
 
 console.log('\n── 8. Y no se puede llamar sin ser admin ──')
@@ -227,8 +233,8 @@ console.log('\n── 9. Y el panel lo enseña sin que haya que interpretarlo �
   // Va solo de pasada en pasada: si no, los pares de más allá del corte no
   // se verifican nunca y nadie se enteraría.
   check('va solo hasta acabarse', /siguienteDesde/.test(fn) && /MAX_PASADAS_VERIFICAR/.test(fn))
-  check('enseña los rechazados uno a uno, no solo el número', /rechazados\.map/.test(fn))
-  check('dice que «sin comprobar» NO es un rechazo', /NO es un rechazo/.test(fn))
+  check('enseña los que hay que mirar uno a uno, no solo el número', /porMirar\.map/.test(fn))
+  check('dice que «sin comprobar» no es un rechazo', /tampoco es un rechazo/.test(fn))
   check('y que no ha escrito nada', /no ha escrito nada/.test(fn))
 }
 
