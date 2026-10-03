@@ -168,6 +168,26 @@ export async function repasarListado(pedir, traer, market) {
   return { vistos: filas.length, nuevos: nuevos.length }
 }
 
+// A qué mercado le toca el listado en esta pasada (tanda 479).
+//
+// Era un turno por el reloj a secas, y eso está bien para ir recogiendo
+// los sets NUEVOS — pero no para arrancar. Un mercado con CERO sets es el
+// tapón de todo lo demás: sin sus filas en `tcg_sets`, la fase de las
+// cartas no tiene a quién visitar y la pasada entera no hace nada. Y con
+// el turno por el reloj, llenar el japés dependía de que le tocara.
+//
+// Así que primero el que esté a cero, y sin prisa; y cuando no quede
+// ninguno, el turno de siempre.
+export async function aQuienLeToca(pedir, minuto) {
+  for (const market of MERCADOS) {
+    // `head: true` por la cabecera `Prefer: count=exact` y `limit=1`: no
+    // trae filas, solo cuántas hay.
+    const filas = await pedir(`tcg_sets?select=id&market=eq.${market}&limit=1`).catch(() => null)
+    if (Array.isArray(filas) && filas.length === 0) return { market, bootstrap: true }
+  }
+  return { market: MERCADOS[minuto % MERCADOS.length], bootstrap: false }
+}
+
 // ── Fase 2: la VISITA a un set ──
 //
 // Una petición, dos trabajos. Devuelve qué se hizo para poder contarlo.
@@ -238,9 +258,11 @@ export async function procesar({ env = process.env, fetchImpl = null, traerImpl 
   if (!MERCADOS.length) return { ok: true, ...cuenta, nota: 'no hay mercados asiáticos en MERCADOS_A_IMPORTAR' }
 
   try {
-    // Fase 1. El mercado le toca por el reloj, no por azar: así los tres
-    // se repasan por turnos y la pasada siguiente coge al que sigue.
-    const turno = MERCADOS[Math.floor(empezo / 60000) % MERCADOS.length]
+    // Fase 1. El que esté VACÍO primero, y si no hay ninguno, por turnos
+    // según el reloj (tanda 479).
+    const { market: turno, bootstrap } = await aQuienLeToca(pedir, Math.floor(empezo / 60000))
+    cuenta.listado = turno
+    if (bootstrap) cuenta.arrancando = turno
     // El corte por tiempo se escribe así y no con un `Promise.race` a
     // secas: una promesa que PIERDE la carrera sigue corriendo, y si
     // falla después nadie recoge su error — eso es un «unhandled
@@ -251,7 +273,13 @@ export async function procesar({ env = process.env, fetchImpl = null, traerImpl 
       (r) => ({ r }),
       (e) => ({ e })
     )
+    // Y al ARRANQUE no se le pone reloj: traer los ~400 sets de un
+    // catálogo vacío es una petición gorda y cuatro inserciones, y
+    // cortarlo a los cinco segundos dejaba la pasada siguiente
+    // empezándolo otra vez desde el principio. Sin sus filas no hay nada
+    // más que hacer en esta pasada, así que esperar es justo lo correcto.
     const corte = new Promise((listo) => {
+      if (bootstrap) return
       const t = setTimeout(() => listo({ tarde: true }), PRESUPUESTO_LISTADO_MS)
       trabajo.then(() => clearTimeout(t))
     })
@@ -302,12 +330,15 @@ export default async function handler() {
   return new Response(JSON.stringify(r), { status: 200, headers: { 'content-type': 'application/json' } })
 }
 
-// Cada seis minutos, y de vida corta: con ~550 sets entre los tres
-// mercados y ~15 por pasada, el catálogo asiático entero se llena en
-// unas cuatro horas. Después esto cuesta una consulta que devuelve una
-// lista corta y un listado de 400 sets que no trae nada nuevo.
+// Cada TRES minutos (tanda 479; nací con seis). Con ~550 sets entre los
+// tres mercados y ~15 por pasada, a seis minutos eran cinco horas largas
+// — y eso es mucho tiempo mirando un catálogo vacío sin saber si está
+// pasando algo. A tres son unas dos horas.
 //
-// Seis y no cinco para no coincidir SIEMPRE con `cartas-detalle`, que va
-// a `*/5` y también le pide cosas a TCGdex. Coincidirán cada media hora
-// en vez de cada vez.
-export const config = { schedule: '*/6 * * * *' }
+// Y sigue siendo de vida corta: cuando no quede nada que visitar, esto
+// cuesta una consulta que devuelve una lista corta y un listado que no
+// trae nada nuevo. El gasto contra TCGdex es finito y se acaba solo.
+//
+// Tres y no cinco para no coincidir SIEMPRE con `cartas-detalle`, que va a
+// `*/5`: así coinciden una de cada cinco pasadas en vez de todas.
+export const config = { schedule: '*/3 * * * *' }

@@ -35,6 +35,44 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 479 — el catálogo asiático, arrancando de verdad)
+
+**Hecho**: PINGU, mirando la web: «las cartas japonesas, chinas… no se están
+rellenando, los logos no han cargado, las cartas no han cargado, no hay
+imágenes». Dos cosas de la 471 que se portaban mal justo en el ARRANQUE, que
+es el único momento en el que estamos:
+
+1. **El listado iba por turnos según el reloj**, y eso está bien para ir
+   recogiendo los sets nuevos — pero no para empezar. Un mercado con CERO
+   sets es el TAPÓN de todo lo demás: sin sus filas en `tcg_sets`, la fase
+   de las cartas no tiene a quién visitar y la pasada entera no hace nada.
+   Y con el turno por el reloj, llenar el japés dependía de que le tocara.
+   Ahora el que esté a cero va PRIMERO.
+2. **Y al arranque se le ponía un reloj de cinco segundos.** Traer los ~400
+   sets de un catálogo vacío es una petición gorda y cuatro inserciones;
+   cortarlo a los cinco segundos dejaba la pasada siguiente empezándolo
+   otra vez desde el principio. Sin esas filas no hay NADA más que hacer en
+   esa pasada, así que esperar es justo lo correcto.
+
+Y de `*/6` a `*/3`: con ~550 sets y ~15 por pasada eran cinco horas largas,
+que es mucho tiempo mirando un catálogo vacío sin saber si pasa algo. Ahora
+unas dos. Sigue siendo de vida corta y el gasto contra TCGdex se acaba solo.
+
+**OJO, LO QUE NO SÉ**: desde este contenedor no se ve ni Netlify ni la base
+—la red a `api.tcgdex.net` y a Supabase está cerrada—, así que **no puedo
+saber si la función está corriendo o está fallando**. Quien lo dice en un
+segundo es /admin → Cartas → «Qué hay de cada mercado»: si JP sale con 0
+sets, la función no ha llegado a escribir nunca; si sale con sets y 0
+cartas, está a medias; y si salen las dos cosas, entonces el problema es de
+la pantalla y no del catálogo.
+
+**Ficheros**: `netlify/functions/catalogo-asia.mjs`, `BITACORA.md`. En la
+rama `pruebas`: `test-tanda-471.mjs` con tres comprobaciones más (el
+arranque).
+
+**En curso / pendiente**: ejecutar `supabase-migration-idioma-chino.sql`
+(tanda 472). Rigores pendientes desde la 443. Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 478 — las tres vistas de una expansión)
 
 **Hecho**: lo último que quedaba de la cola de PINGU: «un botón que si le
