@@ -197,7 +197,20 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
     const meter = (s) => {
       for (const c of String(s).split(/\s+/)) if (/^[a-zA-Z][\w-]*$/.test(c)) fuera.add(c)
     }
-    for (const m of txt.matchAll(/class="([^"$]*)"/g)) meter(m[1])
+    // EL `$` NO DESCARTA LA CADENA ENTERA (tanda 491). Era
+    // `/class="([^"$]*)"/`, y ese `[^"$]` existía para no pescar `${...}`
+    // — pero se llevaba por delante LA CADENA COMPLETA, así que
+    // `class="emoji-big ${tinte(id)}"` era INVISIBLE para esta guarda y su
+    // parte literal se perdía. Son 143 clases que el barrido no veía, casi
+    // todo lo de torneos, mi-coleccion, el laboratorio y las tarjetas.
+    //
+    // Se vio mudando CSS de `components.css`: el barrido decía que
+    // `.emoji-big` era solo de guia.html, y `js/categoria.js` la escribe
+    // así — moverla habría dejado el icono de /categoria sin su
+    // `inline-block`, que es el que hace que el recorte recorte.
+    //
+    // Ahora se le quitan los `${...}` y se queda lo literal.
+    for (const m of txt.matchAll(/class="([^"]*)"/g)) meter(m[1].replace(/\$\{[^}]*\}/g, ' '))
     // `x.className = 'a b'` y `x.className += ' a'`.
     for (const m of txt.matchAll(/\.className\s*\+?=\s*'([^'$]*)'/g)) meter(m[1])
     // `classList.add('a', 'b')`, `.toggle('a', cond)`, `.remove('a')`.
