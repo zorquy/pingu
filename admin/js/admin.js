@@ -16,7 +16,7 @@ import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet } from '../../js/tcgdex.js'
 import { EJEMPLOS_DE_CORREO, renderFilaDeCola, textosDeTipo, familiaDeTipo } from '../../js/email-plantilla.js'
 import { checkSchema } from '../../js/schema-check.js'
-import { avisosDeMercados, lineaDeMercado } from './cuentas-mercado.js'
+import { avisosDeMercados, lineaDeMercado, muestraDeSets } from './cuentas-mercado.js'
 
 let categories = []
 let guidesCache = []
@@ -2999,6 +2999,93 @@ async function diagnosticarCartas() {
 // segundo: si salen 0 sets, es que nadie ha importado ese mercado; si
 // salen sets y 0 cartas, es que falta «Importar los que faltan»; y si
 // salen las dos cosas, entonces sí hay algo que mirar en la web.
+// ── SONDEAR UN CATÁLOGO ENTERO (tanda 486) ──
+//
+// La pregunta que el botón de un solo set NO contesta: PINGU sondeó SV1a
+// (JP) y salió que sus 103 cartas vienen con imagen YA EN EL LISTADO, el
+// 100 %. Y nuestra tabla dice que de las 13.006 cartas japonesas
+// importadas solo 3.882 tienen foto, el 30 %. Las dos cosas no pueden ser
+// verdad del catálogo entero, así que falta un dato: ¿es que TCGdex tiene
+// escaneos de los sets MODERNOS y no de los viejos, o es que los
+// perdemos nosotros al guardarlos?
+//
+// Un set no lo dice —SV1a es de 2023 y es justo el caso bueno—, y pedir
+// los 188 son 188 peticiones. Así que se sondea una MUESTRA repartida por
+// toda la lista: diez peticiones y una respuesta con números.
+//
+// Y de paso resuelve el otro tropiezo: `cs1a CN` devolvió 404 porque ese
+// identificador no existe: el chino nombra sus sets de otra forma. El
+// listado los trae, así que enseñarlos quita de adivinar.
+async function sondearMercado() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnSondearMercado')
+  const market = (window.prompt('¿Qué catálogo sondeo?\n\nJP · CN · TW · WEST', 'JP') || '').trim().toUpperCase()
+  if (!market) return
+  if (!MERCADOS_A_IMPORTAR.includes(market)) {
+    cardsNota(`«${market}» no es uno de los catálogos (${MERCADOS_A_IMPORTAR.join(', ')}).`, true)
+    return
+  }
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = `Pidiendo el listado de ${market} a TCGdex…`
+  const lineas = []
+  try {
+    const lista = await fetchSets(market)
+    const muestra = muestraDeSets(lista || [])
+    lineas.push(`TCGdex tiene ${(lista || []).length} sets en el catálogo ${market}.`)
+    lineas.push(`Así se llaman los diez primeros: ${(lista || []).slice(0, 10).map((s) => s.id).join(', ')}`)
+    lineas.push(`Y los diez últimos: ${(lista || []).slice(-10).map((s) => s.id).join(', ')}`)
+    lineas.push('')
+    lineas.push(`Sondeo de ${muestra.length} repartidos por toda la lista (el set COMPLETO de cada uno):`)
+    let conLogo = 0
+    let conSimbolo = 0
+    let cartas = 0
+    let conFoto = 0
+    for (let i = 0; i < muestra.length; i++) {
+      const s = muestra[i]
+      caja.value = `${lineas.join('\n')}\n  …pidiendo ${s.id} (${i + 1} de ${muestra.length})`
+      try {
+        const completo = await fetchSet(s.id, market)
+        const suyas = completo?.cards || []
+        const foto = suyas.filter((c) => c.image).length
+        if (completo?.logo) conLogo++
+        if (completo?.symbol) conSimbolo++
+        cartas += suyas.length
+        conFoto += foto
+        lineas.push(
+          `  ${s.id} · ${completo?.releaseDate || 'sin fecha'} · logo ${completo?.logo ? 'SÍ' : 'no'}` +
+            ` · símbolo ${completo?.symbol ? 'SÍ' : 'no'} · ${foto} de ${suyas.length} cartas con imagen` +
+            ` · ${completo?.name || ''}`
+        )
+      } catch (e) {
+        lineas.push(`  ${s.id} · NO CONTESTA: ${String(e?.message || e).slice(0, 80)}`)
+      }
+      // Lo mismo que se le pide a la función programada: no atizar un
+      // catálogo comunitario y gratuito.
+      await new Promise((r) => setTimeout(r, 350))
+    }
+    const pct = cartas ? Math.round((conFoto / cartas) * 100) : 0
+    lineas.push('')
+    lineas.push(`EN LA MUESTRA: ${conLogo} de ${muestra.length} sets con logo, ${conSimbolo} con símbolo,`)
+    lineas.push(`y ${conFoto} de ${cartas} cartas con imagen (${pct} %).`)
+    lineas.push('')
+    lineas.push('CÓMO SE LEE ESTO:')
+    lineas.push('  · Si en la muestra las cartas con imagen rondan el 100 % y nuestra tabla')
+    lineas.push('    dice 30 %, el fallo es NUESTRO: o no hemos importado esos sets todavía,')
+    lineas.push('    o los importamos sin la imagen. Lo primero se ve en «Contar mercados».')
+    lineas.push('  · Si en la muestra ya rondan el 30 %, entonces es la COBERTURA de TCGdex')
+    lineas.push('    y no hay nada que arreglar aquí: lo que no existe arriba no se baja.')
+    lineas.push('  · Mira la columna de la FECHA: si los que no tienen imagen son los viejos')
+    lineas.push('    y los nuevos sí, es cobertura de TCGdex por antigüedad.')
+    caja.value = lineas.join('\n')
+    cardsNota('Sondeo hecho. Copia el cuadro entero.')
+  } catch (err) {
+    caja.value = `${lineas.join('\n')}\n\nNo se ha podido: ${err.message}`
+    cardsNota(`El sondeo ha fallado: ${err.message}`, true)
+  }
+  boton.disabled = false
+}
+
 async function contarMercados() {
   const btn = document.getElementById('btnContarMercados')
   btn.disabled = true
@@ -3078,7 +3165,25 @@ async function mirarUnSet() {
   caja.value = `Pidiendo ${setId} (${market}) a TCGdex…`
   try {
     const completo = await fetchSet(setId, market)
-    const nuestro = tcgSetsLocales.find((x) => x.id === setId && (x.market || 'WEST') === market) || null
+    // SIN DISTINGUIR MAYÚSCULAS, y por el id QUE DEVUELVE TCGdex (tanda
+    // 486). La primera versión de esto comparaba contra lo que se había
+    // escrito en el prompt, y el catálogo japonés nombra sus sets en
+    // MAYÚSCULAS —`SV1a`, serie `SV`— mientras el occidental los nombra en
+    // minúsculas. PINGU escribió `sv1a`, la API no distingue y contestó, y
+    // mi comparación sí distinguía: salió «ese set no está en nuestra
+    // tabla» de un set que puede estar perfectamente.
+    //
+    // O sea que la herramienta que nació para no deducir volvió a dar un
+    // resultado AMBIGUO —«no importado» y «lo escribiste en otra caja»
+    // dicen lo mismo—, que es el fallo que vino a arreglar.
+    const comoSeLlama = String(completo?.id || setId)
+    const igual = (a, b) => String(a || '').toLowerCase() === String(b || '').toLowerCase()
+    const nuestro =
+      tcgSetsLocales.find((x) => igual(x.id, comoSeLlama) && (x.market || 'WEST') === market) ||
+      tcgSetsLocales.find((x) => igual(x.id, setId) && (x.market || 'WEST') === market) ||
+      null
+    // Y cuántos tenemos de ese mercado, para que «no está» signifique algo.
+    const deEseMercado = tcgSetsLocales.filter((x) => (x.market || 'WEST') === market)
     const cartas = completo?.cards || []
     // Las primeras con imagen y las primeras sin ella: así se ve de un
     // golpe si el listado del set la trae a veces sí y a veces no, que es
@@ -3104,13 +3209,22 @@ async function mirarUnSet() {
       'Y lo que tenemos guardado nosotros:',
       nuestro
         ? [
+            linea('id guardado', nuestro.id),
             linea('logo_path', nuestro.logo_path),
             linea('symbol_url', nuestro.symbol_url),
             linea('serie_id', nuestro.serie_id),
             linea('release_date', nuestro.release_date),
             linea('imported_cards', nuestro.imported_cards),
+            linea('imported_at', nuestro.imported_at),
+            linea('curado_at', nuestro.curado_at),
           ].join('\n')
-        : '  (ese set no está en nuestra tabla)',
+        : [
+            `  NO lo tenemos. TCGdex lo llama «${comoSeLlama}».`,
+            `  De ${market} tenemos ${deEseMercado.length} sets, ${deEseMercado.filter((x) => x.imported_at).length} con cartas.`,
+            deEseMercado.length
+              ? `  Unos cuantos de los nuestros, para comparar cómo se escriben: ${deEseMercado.slice(0, 8).map((x) => x.id).join(', ')}`
+              : '  Ninguno: ese mercado está vacío.',
+          ].join('\n'),
       '',
       'CÓMO SE LEE ESTO:',
       '  · `logo` viene y `logo_path` está a null → el fallo es NUESTRO, al guardarlo.',
@@ -3233,6 +3347,7 @@ function initCardsSection() {
   document.getElementById('btnContarMercados')?.addEventListener('click', contarMercados)
   document.getElementById('btnDiagnosticar')?.addEventListener('click', diagnosticarCartas)
   document.getElementById('btnMirarSet')?.addEventListener('click', mirarUnSet)
+  document.getElementById('btnSondearMercado')?.addEventListener('click', sondearMercado)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )

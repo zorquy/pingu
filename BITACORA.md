@@ -35,6 +35,65 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 486 — la herramienta que vino a no deducir, deduciendo)
+
+**Hecho**: PINGU pulsó el botón de la 484 con `sv1a JP` y volvió con dos
+datos y dos fallos del propio botón.
+
+**Los datos**: (1) TCGdex **no publica `logo` ni `symbol`** de SV1a (JP) —
+primera vez que eso es un dato y no mi deducción, así que los 0 de 188
+logos japoneses son de arriba y no nuestros. (2) Sus **103 cartas vienen
+con `image` YA EN EL LISTADO, el 100 %**, y eso apunta al revés de lo que
+le dije: si el escaneo existe viene en el listado y la importación ya se lo
+lleva, o sea que **el engorde no conjura escaneos que arriba no estén**. Lo
+de «el 30 % es un número en movimiento» fue otra deducción optimista y
+queda corregido en `CLAUDE.md`.
+
+**Los fallos del botón**: comparaba el id **distinguiendo mayúsculas** y
+contra lo ESCRITO en el prompt. El japonés nombra sus sets en MAYÚSCULAS
+(`SV1a`, serie `SV`), su API no distingue caja y contestó, y mi
+comparación sí: salió «ese set no está en nuestra tabla» de un set que
+puede estar. **La herramienta hecha para no dar respuestas ambiguas dio
+una.** Y `cs1a CN` dio 404 porque ese identificador no existe.
+
+**Lo nuevo**: «**Sondear un catálogo entero**» (/admin → Cartas). Pide el
+LISTADO del mercado —y enseña los diez primeros y los diez últimos
+identificadores, que es lo que faltaba con el 404 del chino—, coge una
+muestra de NUEVE repartidos por toda la lista y de cada uno pide el set
+completo: logo, símbolo, cuántas cartas con imagen **y su fecha**. La fecha
+al lado es la pieza que contesta la pregunta — si los que no traen imagen
+son los viejos, es cobertura de TCGdex por antigüedad; si la muestra ronda
+el 100 % y nuestra tabla dice 30 %, el fallo es nuestro. Diez peticiones,
+350 ms entre ellas, y un set que no contesta no tumba el sondeo.
+
+**Y un cable trampa**: `filtroDeColeccion` baja la clave a minúsculas, lo
+que con el japonés daría un 404 sin error. Hoy no pasa porque
+`js/coleccion.js` lleva `const MERCADO = WEST` — y como un comentario que
+justifica un atajo caduca (la 471), el aviso que SÍ salta es una
+comprobación de la prueba.
+
+**Ficheros**: `admin/index.html`, `admin/js/admin.js`,
+`admin/js/cuentas-mercado.js`, `js/carta-ruta.js` (solo el aviso),
+`CLAUDE.md`, `SCHEMA.md`, `BITACORA.md`. En la rama `pruebas`:
+`pruebas/test-tanda-486.mjs` (nuevo).
+
+**Prueba**: `test-tanda-486.mjs`, 28 comprobaciones en verde. Mutada tres
+veces: dejando la muestra en un extremo cae «el último de la lista»;
+volviendo la comparación sensible a la caja cae el bloque 3; y poniendo
+`MERCADO = JP` en `coleccion.js` salta el cable trampa con el texto de
+qué arreglar.
+
+**MIGRACIÓN EJECUTADA**: PINGU pasó `supabase-migration-idioma-chino.sql`.
+Los dos CHECKs (`user_collection_idioma` y `user_wants_idioma`) ya llevan
+`zh`, confirmado leyendo `pg_constraint`. Ya se pueden añadir cartas del
+catálogo chino.
+
+**En curso / pendiente**: (1) **PINGU: pulsa «Sondear un catálogo entero»
+con JP** y pásame el cuadro — es lo que cierra la pregunta del 30 %. (2) La
+485 (Panel general) está comiteada y esperando que acabe la suite.
+(3) Queda apuntado que `tcg_card_prices` no tiene `market`. (4) Rigores
+pendientes desde la 443. (5) Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 485 — el Panel es GENERAL; las otras cuatro pestañas son del catálogo)
 
 **Hecho**: PINGU: «cambio el idioma y pongo japonés y me salen los sets

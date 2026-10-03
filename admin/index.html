@@ -519,6 +519,19 @@
                su API) y enseña los campos TAL CUAL, al lado de lo que
                tenemos guardado. -->
           <button class="btn-outline" id="btnMirarSet">Qué contesta TCGdex de un set</button>
+          <!-- Y EL CATÁLOGO ENTERO, POR MUESTRA (tanda 486). El de un set
+               solo no contesta la pregunta del 30 %: PINGU sondeó SV1a (JP)
+               y sus 103 cartas vienen con imagen YA en el listado, el 100 %
+               — mientras nuestra tabla dice que de las 13.006 japonesas
+               importadas solo 3.882 tienen foto. Las dos cosas no pueden
+               ser verdad del catálogo entero, y un set no lo dice: SV1a es
+               de 2023 y es justo el caso bueno.
+               Esto sondea NUEVE repartidos por toda la lista —diez
+               peticiones— y dice si lo que falta es cobertura de TCGdex en
+               los sets viejos o si lo perdemos nosotros. Y enseña los
+               identificadores de verdad, que es lo que faltaba cuando
+               `cs1a CN` dio 404: el chino los nombra de otra forma. -->
+          <button class="btn-outline" id="btnSondearMercado">Sondear un catálogo entero</button>
         </div>
         <p class="admin-note" id="cardsImportNote"></p>
         <!-- Para que nadie vuelva a intentar importar el japón a mano

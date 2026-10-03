@@ -26365,3 +26365,85 @@ Pokédex son del catálogo que tengas elegido». A quien solo colecciona
 occidental no se le cuenta un problema que no tiene.
 
 **Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`.
+
+## Tanda 486 — la herramienta que vino a no deducir, deduciendo
+
+PINGU pulsó el botón de la 484 con `sv1a JP` y volvió con cuatro cosas:
+dos datos y dos fallos del propio botón.
+
+### Los dos datos
+
+**1. TCGdex NO publica `logo` ni `symbol` de SV1a (JP).** Es la primera vez
+que eso es un dato y no una deducción mía: los **0 de 188** logos japoneses
+son de arriba, no nuestros. Mi respuesta de la 484 acertaba, pero no tenía
+derecho a afirmarlo — lo que tenía era una lectura de nuestras columnas, que
+sale igual si el que lee mal somos nosotros.
+
+**2. Sus 103 cartas vienen con `image` YA EN EL LISTADO, el 100 %.** Y eso
+apunta justo al revés de lo que le dije: si el escaneo existe, viene en el
+listado y nuestra importación ya se lo lleva, así que **el engorde no
+conjura escaneos que arriba no estén**. «El 30 % es un número en
+movimiento» fue otra deducción optimista. Queda por saber si el 30 % de
+nuestra tabla es cobertura de TCGdex en los sets VIEJOS o si los perdemos
+nosotros — y eso es lo que contesta el sondeo de abajo.
+
+Y la fecha de SV1a importa para leer el resto: es de **marzo de 2023**, o
+sea un set moderno. El caso bueno. Un set no dice nada del catálogo.
+
+### Los dos fallos del botón
+
+**El id se comparaba distinguiendo mayúsculas, y contra lo ESCRITO.** El
+catálogo japonés nombra sus sets en MAYÚSCULAS —`SV1a`, serie `SV`— y el
+occidental en minúsculas. La API de TCGdex **no distingue caja** en la ruta,
+así que `/ja/sets/sv1a` contesta; nuestra comparación sí distinguía, y salió
+«ese set no está en nuestra tabla» de un set que puede estar perfectamente.
+
+O sea que **la herramienta hecha para no dar respuestas ambiguas dio una**:
+«no importado» y «lo escribiste en otra caja» se leen igual. Ahora compara
+sin caja, por el id **que devuelve TCGdex**, y cuando de verdad no lo
+tenemos lo dice con contexto: cuántos sets de ese mercado hay, cuántos con
+cartas, y ocho de nuestros ids para comparar cómo se escriben.
+
+**`cs1a CN` dio 404** porque ese identificador no existe: el chino los
+nombra de otra forma, y no había manera de saber cuáles son.
+
+### «Sondear un catálogo entero»
+
+/admin → Cartas. Pide el **LISTADO** del mercado (y enseña los diez
+primeros y los diez últimos identificadores, que es lo que faltaba cuando
+`cs1a` dio 404), coge una **muestra de nueve repartidos por toda la lista**
+—el primero, el último y a trechos parejos— y de cada uno pide el set
+COMPLETO. Por cada uno: si tiene `logo`, si tiene `symbol`, cuántas de sus
+cartas traen `image`, **y su fecha**.
+
+La fecha al lado es la pieza que contesta la pregunta: si los que no traen
+imagen son los viejos y los nuevos sí, es cobertura de TCGdex por
+antigüedad y no hay nada que arreglar; si la muestra ronda el 100 % y
+nuestra tabla dice 30 %, el fallo es nuestro.
+
+Diez peticiones con 350 ms entre ellas, la misma cortesía que se le pide a
+la función programada. Un set que no contesta no tumba el sondeo — es lo que
+le pasó a PINGU con `cs1a`.
+
+La muestra es **aritmética pura** y vive en `admin/js/cuentas-mercado.js`,
+que no importa nada, y no en `admin.js`, que arrastra `supabase.js` y no se
+puede probar sin navegador (la norma de la 471). Se reparte por **POSICIÓN**
+y no por fecha: el listado es un «SetResume» y la fecha no viene en él.
+
+### El cable trampa de las mayúsculas
+
+`filtroDeColeccion` resuelve `/coleccion/<clave>` con
+`id.eq.${clave.toLowerCase()}` porque los ids occidentales son minúsculas.
+Con el japonés eso no casaría —`id.eq.` de Postgres distingue caja— y la
+ficha de una colección japonesa daría un **404 sin que nada diera error**.
+
+Hoy no pasa por un motivo concreto y no por suerte: `js/coleccion.js` lleva
+`const MERCADO = 'WEST'`. Pero un comentario que justifica un atajo caduca y
+nadie vuelve a leerlo (la 471), así que el aviso que SÍ salta es una
+comprobación: si `coleccion.js` deja de ser de un solo mercado y el filtro
+sigue bajando la caja, `test-tanda-486.mjs` se pone roja y dice qué
+arreglar. Verificado mutando ese `'WEST'` a `'JP'`.
+
+**Ficheros**: `admin/index.html`, `admin/js/admin.js`,
+`admin/js/cuentas-mercado.js`, `js/carta-ruta.js` (solo el aviso),
+`CLAUDE.md`.

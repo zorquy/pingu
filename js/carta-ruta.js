@@ -108,6 +108,22 @@ export function idDeRutaDeColeccion(ruta) {
 // Se limpia lo que llega: un `or=(…)` de PostgREST se parte por comas y
 // paréntesis, así que una clave con uno de esos dentro no rompe la
 // consulta — se queda sin él y no encuentra nada, que es lo correcto.
+//
+// OJO AL `toLowerCase()` SI /coleccion DEJA DE SER SOLO OCCIDENTAL (tanda
+// 486). Baja la clave a minúsculas porque los identificadores de set del
+// catálogo occidental lo son (`sv08`, `me05`) — pero **el japonés los
+// nombra en MAYÚSCULAS**: TCGdex contesta `SV1a` con serie `SV`. Su API no
+// distingue caja, pero `id.eq.` de Postgres sí, así que `id.eq.sv1a` no
+// casaría con `SV1a` y la ficha de una colección japonesa daría un 404 sin
+// que nada diera error.
+//
+// Hoy no pasa, y por un motivo concreto y no por suerte: `js/coleccion.js`
+// lleva `const MERCADO = 'WEST'`, o sea que esta función solo resuelve
+// direcciones del catálogo occidental. El día que esa línea cambie, hay que
+// cambiar esta — y como un comentario que justifica un atajo caduca y nadie
+// vuelve a leerlo (la lección de la 471), lo vigila `test-tanda-486.mjs`:
+// si `coleccion.js` deja de ser de un solo mercado y esto sigue bajando la
+// caja, la prueba se pone roja.
 export function filtroDeColeccion(clave) {
   const limpia = String(clave ?? '').replace(/[^A-Za-z0-9.\-_]/g, '')
   return `id.eq.${limpia.toLowerCase()},tcg_online_code.eq.${limpia.toUpperCase()}`

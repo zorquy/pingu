@@ -194,6 +194,33 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   le había olvidado a alguien y salió al querer ordenar el catálogo por
   lo más reciente. Si añades una columna que venga de un set, pregúntate
   si viene en el LISTADO o solo en el set completo.
+- **El catálogo japonés nombra sus sets en MAYÚSCULAS** (tanda 486), y
+  el occidental en minúsculas: TCGdex contesta `SV1a` con serie `SV`
+  donde el inglés dice `sv8` con serie `sv`. Su API **no distingue
+  mayúsculas** en la ruta, así que pedir `/ja/sets/sv1a` funciona y
+  devuelve el set rotulado `SV1a` — pero **nuestras comparaciones sí
+  distinguen**. Le pasó al botón de la 484: comparaba el id ESCRITO
+  contra `tcg_sets.id` y contestó «ese set no está en nuestra tabla» de un
+  set que sí podía estar. Si cruzas un id de set contra el nuestro,
+  hazlo sin distinguir caja — y guarda siempre el id **que devuelve la
+  API**, no el que alguien escribió.
+- **De TCGdex se afirma lo que TCGdex ha contestado, y lo demás no se
+  afirma** (tandas 484 y 486). Yo le dije a PINGU que TCGdex no publica
+  los logos japoneses, y era una **DEDUCCIÓN a partir de nuestras propias
+  columnas** —188 sets curados, cero logos— que sale EXACTAMENTE IGUAL si
+  el que lee mal somos nosotros. Una columna vacía no dice de quién es la
+  culpa. Lo que sí se sabe, porque se le ha preguntado: de **SV1a (JP)**
+  TCGdex **no manda `logo` ni `symbol`** —eso de arriba es verdad y no
+  nuestro— y en cambio **sus 103 cartas vienen con `image` ya en el
+  LISTADO, el 100 %**. O sea que cuando el escaneo existe, viene en el
+  listado y la importación ya se lo lleva: **el engorde no conjura
+  escaneos que arriba no estén**, y decir que «el 30 % es un número en
+  movimiento» fue otra deducción optimista. Desde aquí no se puede
+  comprobar —la red del contenedor cierra `api.tcgdex.net`—, así que lo
+  pregunta el navegador del panel: /admin → Cartas tiene **«Qué contesta
+  TCGdex de un set»** y **«Sondear un catálogo entero»** (nueve sets
+  repartidos por su historia, con la fecha al lado, que es lo que
+  distingue «cobertura por antigüedad» de «lo perdemos nosotros»).
 - **Una lista curada a mano se queda vieja, y el buscador es quien lo
   nota** (tanda 323). Las megas de `FORMAS_TCG` se sondearon contra la
   CDN el 2026-09-02, y lo que salió después no estaba: quien buscaba

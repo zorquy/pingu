@@ -82,3 +82,27 @@ export function lineaDeMercado(d) {
     `${d.fecha} con fecha, ${d.serie} con serie), ${d.cartas} cartas (${d.foto} con foto)`
   )
 }
+
+// ── La MUESTRA de un sondeo de catálogo (tanda 486) ──
+//
+// Vive aquí y no en `admin.js` por la norma de la 471: `admin.js` importa
+// `supabase.js` y no se puede probar sin navegador, y esto es aritmética.
+// El módulo no importa NADA a propósito.
+//
+// El primero, el último y repartidos por el medio. Por POSICIÓN en la
+// lista y no por fecha: el listado de sets es un «SetResume» y la fecha no
+// viene en él (la lección de la 322, otra vez). La posición sí sirve,
+// porque TCGdex devuelve el listado en orden.
+export const CUANTOS_SONDEOS = 9
+
+export function muestraDeSets(lista, cuantos = CUANTOS_SONDEOS) {
+  const todos = Array.isArray(lista) ? lista.filter((s) => s && s.id) : []
+  if (cuantos < 2 || todos.length <= cuantos) return todos.slice()
+  const fuera = []
+  for (let i = 0; i < cuantos; i++) {
+    fuera.push(todos[Math.round((i * (todos.length - 1)) / (cuantos - 1))])
+  }
+  // Sin repetidos: con una lista corta, dos posiciones redondean al mismo
+  // set, y sondear dos veces el mismo gasta una petición y no dice nada.
+  return [...new Map(fuera.map((s) => [s.id, s])).values()]
+}
