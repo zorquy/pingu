@@ -11,7 +11,15 @@ import { supabase } from '../supabase.js'
 export const FICHERO_MIGRACION = 'supabase-migration-repeticiones.sql'
 
 // Las columnas de la lista: sin el registro, que son 10 o 20 KB por fila.
-const COLUMNAS_LISTA = 'id,titulo,jugador_a,jugador_b,ganador,turnos,compartida,created_at'
+// Los mazos llegaron en la tanda 494: una base con la migración de ANTES no
+// las tiene, y la lista no puede romperse por eso (se piden sin ellas).
+const COLUMNAS_BASE = 'id,titulo,jugador_a,jugador_b,ganador,turnos,compartida,created_at'
+const COLUMNAS_LISTA = `${COLUMNAS_BASE},mazo_a,mazo_b`
+
+// La migración de antes: le falta una COLUMNA o un ARGUMENTO que vino
+// después (42703 en Postgres, PGRST204 y PGRST202 en PostgREST).
+export const migracionVieja = (error) => ['42703', 'PGRST204', 'PGRST202'].includes(error?.code) || /column .* does not exist|could not find the .* column/i.test(error?.message || '')
+const DE_NUEVO = `Para esto hay que ejecutar otra vez ${FICHERO_MIGRACION} en la base (trae lo nuevo sin tocar lo que ya hay).`
 
 function faltaLaMigracion(error) {
   if (!error) return false
@@ -37,15 +45,18 @@ export async function sesionActual() {
 
 // Guardar (o volver a guardar la misma partida, que no la duplica).
 // Devuelve { id, compartida, nueva }.
-export async function guardar({ registro, titulo = null, jugadores = null, ganador = null, turnos = null, compartida = null }) {
-  const { data, error } = await supabase.rpc('repeticiones_guardar', {
+export async function guardar({ registro, titulo = null, jugadores = null, ganador = null, turnos = null, compartida = null, mazos = null }) {
+  const args = {
     p_registro: registro,
     p_titulo: titulo,
     p_jugadores: jugadores,
     p_ganador: ganador,
     p_turnos: turnos,
     p_compartida: compartida,
-  })
+  }
+  let { data, error } = await supabase.rpc('repeticiones_guardar', mazos ? { ...args, p_mazos: mazos } : args)
+  // Con la función de antes (sin `p_mazos`) se guarda igual, sin los mazos.
+  if (error && mazos && error.code === 'PGRST202') ({ data, error } = await supabase.rpc('repeticiones_guardar', args))
   if (error) throw traducir(error)
   const fila = Array.isArray(data) ? data[0] : data
   if (!fila?.id) throw new Error('La base no ha devuelto la repetición guardada.')
@@ -62,12 +73,9 @@ export async function leer(id) {
 }
 
 export async function misRepeticiones(userId) {
-  const { data, error } = await supabase
-    .from('replays')
-    .select(COLUMNAS_LISTA)
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(500)
+  const pedir = (columnas) => supabase.from('replays').select(columnas).eq('user_id', userId).order('created_at', { ascending: false }).limit(500)
+  let { data, error } = await pedir(COLUMNAS_LISTA)
+  if (error && migracionVieja(error)) ({ data, error } = await pedir(COLUMNAS_BASE))
   if (error) throw traducir(error)
   return data || []
 }
@@ -76,8 +84,8 @@ export async function misRepeticiones(userId) {
 // no toca nada y vuelve como si hubiera ido bien (CLAUDE.md). Por eso se
 // pide la fila de vuelta y, si no viene, se dice.
 async function cambiar(id, cambios) {
-  const { data, error } = await supabase.from('replays').update(cambios).eq('id', id).select('id,titulo,compartida')
-  if (error) throw traducir(error)
+  const { data, error } = await supabase.from('replays').update(cambios).eq('id', id).select(`id,titulo,compartida${'notas' in cambios ? ',notas' : ''}`)
+  if (error) throw migracionVieja(error) ? new Error(DE_NUEVO) : traducir(error)
   if (!data?.length) throw new Error('No se ha podido cambiar: ¿es tuya y sigue existiendo?')
   return data[0]
 }
@@ -85,11 +93,72 @@ async function cambiar(id, cambios) {
 export const compartir = (id, si = true) => cambiar(id, { compartida: Boolean(si) })
 export const renombrar = (id, titulo) => cambiar(id, { titulo: String(titulo || '').trim().slice(0, 120) || 'Repetición' })
 
+// Las notas del dueño (tanda 495): [{ fila, texto }], ordenadas por la línea
+// del registro a la que van (ver notasEnFotos en repeticiones.js).
+export const guardarNotas = (id, notas) => cambiar(id, { notas })
+
 export async function borrar(id) {
   const { data, error } = await supabase.from('replays').delete().eq('id', id).select('id')
   if (error) throw traducir(error)
   if (!data?.length) throw new Error('No se ha podido borrar: ¿es tuya y sigue existiendo?')
 }
 
+// El catálogo de arquetipos, para ponerle nombre a lo que se vio de cada
+// mazo (tanda 494). Lo lee cualquiera, con cuenta o sin ella; si no llega,
+// el nombre sale deducido de las cartas, que es lo que hace el torneo.
+export async function catalogoDeArquetipos() {
+  try {
+    const { data, error } = await supabase.from('tcg_archetypes').select('*').eq('activo', true)
+    return error ? [] : data || []
+  } catch {
+    return []
+  }
+}
+
 // El enlace corto de una guardada.
 export const enlaceCorto = (id, origen = location.origin) => `${origen}/repeticiones?r=${encodeURIComponent(id)}`
+
+// ── Mis partidas (tanda 494) ──
+//
+// Guardar una repetición apunta la partida en /mis-partidas con su enlace.
+// La tabla es la de siempre (supabase-migration-partidas.sql): cada uno
+// escribe la suya. La columna `replay_id` y el índice que impide apuntar
+// la misma repetición dos veces son de supabase-migration-repeticiones.sql.
+export async function partidaApuntada(userId, replayId) {
+  const { data, error } = await supabase.from('match_log').select('id,resultado,mi_mazo_nombre,rival_mazo_nombre').eq('user_id', userId).eq('replay_id', replayId).limit(1)
+  if (error) return null
+  return data?.[0] || null
+}
+
+export async function apuntarPartida(fila) {
+  const { data, error } = await supabase.from('match_log').insert(fila).select('id')
+  if (error?.code === '23505') return { ya: true }
+  if (error) throw migracionVieja(error) ? new Error(DE_NUEVO) : new Error(error.message || 'No se ha podido apuntar la partida.')
+  if (!data?.length) throw new Error('No se ha podido apuntar la partida.')
+  return { id: data[0].id }
+}
+
+// ── Los torneos (tanda 496) ──
+//
+// Adjuntar la repetición de tu partida y quitarla: por función, nunca
+// escribiendo en la tabla (un jugador no escribe en las tablas del torneo).
+// Hasta tres por jugador y partida: lo que dura un BO3.
+export async function adjuntarATorneo(partidaId, replayId) {
+  const { error } = await supabase.rpc('torneos_adjuntar_repeticion', { p_partida: partidaId, p_repeticion: replayId })
+  if (error) throw faltaLaMigracion(error) ? new Error(DE_NUEVO) : new Error(error.message || 'No se ha podido adjuntar.')
+}
+
+export async function quitarDeTorneo(partidaId, replayId) {
+  const { error } = await supabase.rpc('torneos_quitar_repeticion', { p_partida: partidaId, p_repeticion: replayId })
+  if (error) throw faltaLaMigracion(error) ? new Error(DE_NUEVO) : new Error(error.message || 'No se ha podido quitar.')
+}
+
+// Las repeticiones adjuntas a unas partidas: las que la base te deje ver
+// (las de tus mesas, o todas si llevas o arbitras el torneo).
+export async function repeticionesDePartidas(partidaIds) {
+  if (!partidaIds?.length) return []
+  const { data, error } = await supabase.from('tournament_match_replays').select('match_id,user_id,replay_id,created_at').in('match_id', partidaIds).order('created_at')
+  if (error) return []
+  return data || []
+}
+

@@ -26869,3 +26869,156 @@ PINGU, de la lista: «vídeo vertical 9:16 para TikTok, Reels y Shorts» y
 el cartel del final en el vertical, la ventana, y un vídeo vertical de los
 turnos 6 a 8 de verdad (ffprobe: 720×1280 y lo que dijo la ventana; y el
 primer fotograma es el del turno 6, con la banca de arriba llena).
+
+## Tanda 494 — los mazos de una repetición, y guardarla la apunta en Mis partidas (oct. 2026)
+
+PINGU, de la lista de ideas: «con las cartas que enseñó cada jugador saco
+su arquetipo, etiqueto con él "Tus repeticiones" y añado "Abrir en el
+constructor"» y «al guardar una repetición, que se apunte la partida en
+/mis-partidas».
+
+### Lo que se ve de un mazo (`js/repeticiones/mazos.js`, sin DOM)
+
+- Un registro no trae las listas: trae lo que pasa. Cada cuenta es un
+  **mínimo**, y se cuenta con el **máximo de copias que se vieron A LA
+  VEZ** —en juego (lo de arriba, lo de debajo, energías y herramienta), en
+  el descarte, en la mano que se conoce, el estadio y la mano que se enseña
+  al hacer mulligan—. Es lo único que no cuenta dos veces una carta que va
+  y vuelve (un Zorua que cae y se recupera sigue siendo uno). Tope de 4,
+  salvo las energías.
+- El tipo: lo que estuvo en juego es Pokémon (se sabe sin catálogo); lo
+  demás, por la categoría del catálogo. Un Darumaka que solo pasó por el
+  descarte es Pokémon porque lo dice el catálogo.
+- **El arquetipo se cruza con el nombre INGLÉS** de la carta del catálogo
+  (`name`, tanda 334), no con el del registro: el registro viene en el
+  idioma de quien juega, y el catálogo de arquetipos y la Pokédex de los
+  sprites van por la clave inglesa. Con el español, «Zoroark ex de N» no
+  casaba con ningún arquetipo. Se usa `arquetipoDeMazo` de los torneos, tal
+  cual: si el catálogo tiene uno, su nombre; si no, el deducido de las
+  líneas.
+
+### En la página
+
+- El mazo sale al lado de cada jugador en la cabecera, con sus sprites, en
+  cuanto se sabe; primero con los nombres del registro y otra vez cuando las
+  cartas están encontradas.
+- **«Los mazos, por lo que se vio»**: un bloque por jugador con su
+  arquetipo, cuántas de las 60 se vieron, las cartas por secciones y
+  **«Abrir en el constructor (N cartas)»**: `/constructor?l=…&nombre=…&de=
+  repeticion`, con las cartas que el catálogo encontró (el botón dice
+  cuántas: pueden ser menos que las vistas). El constructor le pone el
+  nombre al mazo y avisa de que es lo que se VIO, no la lista.
+- El catálogo de arquetipos y la Pokédex (unos 25 KB) se bajan con
+  `import()` cuando ya hay partida, no con la página.
+- Al guardar, el **nombre** del mazo de cada uno va a la base (`mazo_a`,
+  `mazo_b`, en el orden de `jugador_a` y `jugador_b`), para etiquetar «Tus
+  repeticiones» sin traerse el registro. Los pone la FUNCIÓN de guardar:
+  el dueño no los puede escribir a mano. Una guardada de antes los recibe
+  al «Guardar los cambios» (guardar la misma partida solo los rellena).
+
+### Mis partidas
+
+- En la ventana de guardar: **«¿Cuál de los dos eres tú?»** y «Apuntarla
+  en Mis partidas como ganada/perdida: tu mazo contra el suyo». Se marca
+  el nombre de TCG Live recordado en el navegador
+  (`pokedoc-repeticion-yo`) si juega esa partida; si se recuerda OTRO,
+  nadie (estás mirando la de alguien) y no se apunta; sin nada recordado,
+  el del registro (quien lo copió).
+- La fila va con las **mismas claves** que una partida de torneo
+  (`claveDeArquetipo`), `donde: 'TCG Live'`, `tipo: 'normal'` y su
+  `replay_id`. Un índice único (`match_log_repeticion`, por usuario y
+  repetición) impide apuntarla dos veces: guardarla otra vez lo dice en vez
+  de duplicarla, y abrirla otra vez enseña «Ya está apuntada».
+- Un registro sin final (cortado antes) no ofrece apuntarla: no se sabe
+  quién ganó, y un resultado inventado ensucia tus números.
+- En /mis-partidas, la fila que vino de una repetición lleva **«Ver la
+  repetición»**. Borrar la repetición no borra la partida: solo le quita
+  el enlace (`on delete set null`).
+
+## Tanda 495 — las notas del dueño en jugadas concretas (oct. 2026)
+
+PINGU: «notas en jugadas concretas ("aquí tenía que haber retirado"), que
+se vean al llegar a esa jugada».
+
+- Una nota es `{ fila, texto }` en `replays.notas` (jsonb). **Se ancla a la
+  LÍNEA del registro** (`fila`, desde 0; cada evento la lleva desde esta
+  tanda) y no al número de jugada: el registro guardado no cambia nunca, y
+  el número de jugada sí, el día que el lector aprende a leer una línea
+  más. Si la línea de una nota deja de ser jugada, la nota cae en la de
+  antes.
+- La escribe el dueño («Añadir una nota aquí» / «Cambiar la nota», en la
+  cabecera de la tira de momentos); en una partida pegada el botón explica
+  que van con la guardada y lleva a guardarla. La lee también quien abre la
+  compartida (`repeticiones_leer` devuelve las notas).
+- Al llegar a su jugada sale dentro de los controles —en el móvil van
+  pegados abajo, y fuera de ellos caería debajo de la pantalla—, con
+  `textContent` (la escribe una persona). Es un momento más de la tira y
+  una marca del deslizador. Reproduciendo, la jugada se queda lo que se
+  tarda en LEERLA (25 letras por segundo, de 1,5 a 8 s), y eso no va más
+  deprisa a 4×: lo que corre es la partida, no quien lee.
+- La base solo acepta una lista de hasta 300, cada una con `fila` numérica
+  y texto de 1 a 500 (`replays_notas_validas`, en un `check`). El permiso
+  de cambiar va por columnas: título, compartir y notas.
+
+## Tanda 496 — la repetición de una partida de torneo (oct. 2026)
+
+PINGU: «adjuntar la repetición a una partida de un torneo: la ven los dos
+jugadores, y la organización y los jueces cuando hay una disputa».
+
+- Tabla `tournament_match_replays (match_id, user_id, replay_id)`, clave
+  `(match_id, replay_id)`: **hasta tres por jugador y partida** (un BO3).
+  La política de leer: los dos jugadores de la mesa, quien lleva el torneo
+  (`torneos_mando`) y un juez APROBADO (`repeticiones_juez_de`, que mira
+  `judge_applications` si está puesta). Nadie escribe en ella: se adjunta y
+  se quita por `torneos_adjuntar_repeticion` y `torneos_quitar_repeticion`
+  (tanda 252: un jugador no escribe en las tablas del torneo). Adjuntar
+  solo vale a un jugador de esa mesa y con una repetición SUYA, y la
+  **comparte** (si no, los demás no la podrían abrir).
+- En la ficha: bajo tu mesa (en «Tu partida» y en «Mesas»), «Adjuntar la
+  repetición» se vuelve un desplegable con TUS guardadas, primero las que
+  se jugaron contra tu rival (su nombre de TCG Live, sin mayúsculas). Una
+  pendiente o un bye no ofrecen nada. Los demás ven «Repetición de X»;
+  «Quitar» solo en la tuya. Con la mesa en disputa, «Tu partida» lo
+  sugiere: es donde más sirve.
+- Se piden con los reportes y por la misma razón (tanda 255): solo para
+  quien juega, lleva o arbitra el torneo. Sin cuenta, ni se pregunta.
+
+## Tanda 497 — «Jugar desde aquí»: la mesa de una repetición en el laboratorio (oct. 2026)
+
+PINGU: «un botón "Juega desde aquí" que abre el laboratorio con la mesa tal
+cual está en ese momento, para probar otra línea».
+
+- `js/repeticiones/posicion.js` (sin DOM ni motor, probado en Node contra
+  los dos registros de verdad, jugada a jugada). **El mazo** de cada uno es
+  lo que se le vio (mazos.js) y, hasta 60, «Carta sin ver» (una carta que
+  no es Pokémon, ni Entrenador, ni Energía: el motor no le ofrece nada que
+  hacer). **La mesa**: cada carta a su sitio —activo y banca con lo que
+  llevan, el daño, el descarte, el estadio, la mano que se conoce— y lo que
+  queda, barajado con el azar de la partida, a los premios, a la mano que
+  no se conoce y al mazo. Las cuentas cuadran con la repetición en todas
+  las jugadas.
+- **Lo que el turno ya gastó**: la energía de la mano (una línea suelta,
+  no la de debajo de una carta: la que une una habilidad no la gasta), el
+  partidario, el estadio, la retirada y el ataque. Lo que entró este turno
+  no evoluciona, y lo que ya evolucionó, tampoco.
+- **Los premios pendientes**: la foto de un KO llega antes que la línea de
+  sus premios; se le dejan a la mesa, que los cobra en cuanto se abre (y
+  pide cuáles), junto con el activo de quien se quedó sin él. El siguiente
+  KO no se cuenta: ese lo resuelve el propio motor por la vida.
+- El laboratorio expone `abrirLaboratorioEnPosicion({ mazos, nombres,
+  colocar, aviso })`: «tú contra ti» con los dos mazos, y la posición la
+  pone quien llama — el laboratorio no sabe leer registros, solo jugar. Se
+  baja con `import()` al pulsar. Con él encima, las teclas de la
+  repetición no se mueven.
+- Apagado en la preparación y al final: no hay partida que seguir.
+
+### Lo que hay que ejecutar
+
+`supabase-migration-repeticiones.sql` **otra vez** (es idempotente): añade
+`mazo_a`, `mazo_b` y `notas` a `replays`, la función de guardar con los
+mazos (quita la de seis argumentos: dos con el mismo nombre se pisan por
+la API), la de leer con notas y mazos, `match_log.replay_id` con su índice
+único (si Mis partidas está puesta) y la tabla y las dos funciones de los
+torneos (si los torneos están puestos). Sin ejecutarla, la página sigue
+funcionando: guardar sin mazos, la lista sin ellos, y los avisos de
+`js/schema-check.js` en /admin.

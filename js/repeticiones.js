@@ -21,11 +21,13 @@ import { escapeHtml } from './html.js'
 import { cardImageUrl } from './tcgdex.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { resolverLineas, cargarSets, cartasPorIds } from './constructor/datos.js'
-import { imagenDeEnergiaBasica, esEnergiaBasica, letraDeEnergia, plano } from './constructor/nucleo.js'
+import { imagenDeEnergiaBasica, esEnergiaBasica, letraDeEnergia, plano, codificarMazo } from './constructor/nucleo.js'
 import { leerRegistro } from './repeticiones/registro.js'
 import { usosPorCarta, usosDe, impresionQueCasa } from './repeticiones/impresion.js'
 import { momentosDe, numerosDe, siguienteKo } from './repeticiones/numeros.js'
 import { pintarCarrera } from './repeticiones/carrera.js'
+import { cartasVistas, listaParaArquetipo, entradasDelConstructor, totalVisto } from './repeticiones/mazos.js'
+import { mazosDeLaPosicion, colocarPosicion, sePuedeJugarDesde } from './repeticiones/posicion.js'
 import { fotos as sacarFotos, indiceDeTurnos, arriba } from './repeticiones/estado.js'
 import { ICONOS_REPETICION as ICONO } from './repeticiones/iconos.js'
 import { icons } from './icons.js'
@@ -56,14 +58,24 @@ const R = {
   // partida (repeticiones/numeros.js).
   momentos: [],
   numeros: null,
+  // Lo que se vio del mazo de cada uno y su arquetipo (repeticiones/
+  // mazos.js): { [jugador]: { vistas, arq, entradas } }, o null mientras
+  // no se sabe.
+  mazos: null,
+  // Las notas del dueño, ya puestas en su jugada: [{ fila, texto, foto }].
+  notas: [],
   codigoDeSet: () => null,
+  // La resolución de las cartas de esta partida (la promesa): «Juega desde
+  // aquí» la espera, porque el laboratorio sin cartas no sabe jugar.
+  resolviendo: null,
   // Cada lectura nueva sube el número: lo que llegue tarde de la anterior
   // (las imágenes que se resuelven por detrás) no pinta encima.
   vez: 0,
   cacheHtml: new WeakMap(),
   // El texto pegado (lo que se guarda o se comparte) y de dónde ha salido
-  // la partida: null si se ha pegado, o { id, titulo, mia, compartida } si
-  // es una guardada (tuya, o de alguien que la ha compartido).
+  // la partida: null si se ha pegado, o { id, titulo, mia, compartida,
+  // notas, mazos } si es una guardada (tuya, o de alguien que la ha
+  // compartido).
   texto: '',
   origen: null,
   sesion: null,
@@ -154,12 +166,27 @@ async function resolverCartas(nombres, vez) {
     if (vez !== R.vez) return
     rehacerFotos()
   }
+  // Con las cartas encontradas, los mazos se leen bien: el tipo de cada
+  // una y su nombre inglés, que es con el que se cruza el arquetipo.
+  pintarMazos()
+  // El afinado va por detrás y sin esperarlo: quien espera a que las
+  // cartas estén (Juega desde aquí) no tiene por qué esperar también a
+  // esto, que son peticiones de una en una.
+  afinarTodas(porAfinar, vez)
+}
+
+async function afinarTodas(porAfinar, vez) {
   // Y después, con la mesa ya pintada, la impresión que de verdad se jugó
   // (tanda 481): de una en una, que son peticiones a un catálogo gratuito.
+  let afinada = false
   for (const [nombre, carta] of porAfinar) {
     if (vez !== R.vez) return
-    if (await afinarImpresion(nombre, carta, vez)) rehacerFotos()
+    if (await afinarImpresion(nombre, carta, vez)) {
+      rehacerFotos()
+      afinada = true
+    }
   }
+  if (afinada && vez === R.vez) pintarMazos()
 }
 
 // Con los PS a mano cambian las fotos (un KO que el registro no escribe se
@@ -391,6 +418,7 @@ function pintar() {
   poner(ladoB, ladoHtml(abajo, { abajo: true }))
   poner($('repMano'), manoHtml(abajo))
   pintarControles()
+  pintarNota()
   marcarLinea()
 }
 
@@ -458,8 +486,13 @@ function programar() {
   R.temporizador = setTimeout(() => {
     ir(R.i + 1)
     programar()
-  }, esperaDe(foto()) / R.velocidad)
+  }, esperaDe(foto()) / R.velocidad + esperaDeNota(notaDe(R.i)))
 }
+
+// Una nota se queda en pantalla lo que se tarda en LEERLA, y eso no va más
+// deprisa a 4×: lo que corre es la partida, no quien lee. 25 letras por
+// segundo, con un mínimo y un tope.
+const esperaDeNota = (n) => (n ? Math.min(8000, 1500 + n.texto.length * 40) : 0)
 
 // El turno en el que cae la foto i (0 = la preparación).
 function turnoDe(i) {
@@ -504,6 +537,17 @@ function pintarControles() {
   document.querySelector('[data-accion="turnoSiguiente"]').disabled = R.i >= ultimo
   const ko = document.querySelector('[data-accion="siguienteKo"]')
   if (ko) ko.disabled = !siguienteKo(R.momentos, R.i)
+  const jugar = document.querySelector('[data-accion="jugar"]')
+  if (jugar && !jugar.dataset.abriendo) {
+    const se = sePuedeJugarDesde(R.lectura, R.fotos, R.i)
+    jugar.disabled = !se
+    jugar.title = se ? 'Abre el laboratorio con la mesa de esta jugada, para probar otra línea' : 'En la preparación y al final no hay partida que seguir'
+  }
+  const nota = document.querySelector('[data-accion="nota"]')
+  if (nota) {
+    nota.classList.toggle('hidden', !puedeAnotar())
+    nota.textContent = notaDe(Math.max(1, R.i)) ? 'Cambiar la nota' : 'Añadir una nota aquí'
+  }
   const lista = $('repMomentosLista')
   lista.querySelector('[aria-current]')?.removeAttribute('aria-current')
   lista.querySelector(`[data-foto="${R.i}"]`)?.setAttribute('aria-current', 'step')
@@ -571,6 +615,7 @@ function textoDeMomento(m) {
     return { que: `KO de ${caidos}`, detalle: [como, premios].filter(Boolean).join(' · ') }
   }
   if (m.tipo === 'golpe') return { que: `Golpe de ${m.danio}`, detalle: `${m.ataque} de ${m.pokemon}` }
+  if (m.tipo === 'nota') return { que: 'Nota', detalle: m.texto }
   return { que: 'Final', detalle: `Gana ${m.jugador}${m.porque ? ` ${PORQUE[m.porque] || ''}` : ''}`.trim() }
 }
 
@@ -578,16 +623,22 @@ function textoDeMomento(m) {
 // un botón (`data-foto`, como las líneas del registro); las marcas son su
 // dibujo y van `aria-hidden`: lo que se pulsa es la tira.
 function pintarMomentos() {
-  const ms = R.momentos
+  // Las notas del dueño son momentos también (tanda 495): las ha puesto
+  // alguien para que se vuelva a ellas.
+  const ms = [...R.momentos, ...R.notas.map((n) => ({ foto: n.foto, turno: turnoDe(n.foto), tipo: 'nota', texto: n.texto }))].sort((a, b) => a.foto - b.foto)
   const ultimo = Math.max(1, R.fotos.length - 1)
-  $('repMomentos').classList.toggle('hidden', !ms.length)
+  // La cabecera de la tira se queda siempre (lleva «Juega desde aquí» y
+  // las notas); la lista, solo si hay algo que poner.
+  $('repMomentos').classList.remove('hidden')
+  $('repMomentosLista').classList.toggle('hidden', !ms.length)
   $('repMomentosLista').innerHTML = ms
     .map((m) => {
       const { que, detalle } = textoDeMomento(m)
       // De quién es: el que PIERDE el Pokémon en un KO, el que pega en un
-      // golpe, el que gana al final. Con su nombre, no solo su color.
-      const quien = m.tipo === 'ko' ? m.victima : m.jugador
-      return `<li><button type="button" class="rep-momento" data-foto="${m.foto}" data-tipo="${m.tipo}"><span class="rep-momento-turno">${m.turno ? `Turno ${m.turno}` : 'Preparación'} ${chapaJugador(quien, true)}</span> <span class="rep-momento-que">${escapeHtml(que)}</span>${detalle ? ` <span class="rep-momento-detalle">${escapeHtml(detalle)}</span>` : ''}</button></li>`
+      // golpe, el que gana al final. Con su nombre, no solo su color. Una
+      // nota no es de ninguno de los dos.
+      const quien = m.tipo === 'ko' ? m.victima : m.tipo === 'nota' ? null : m.jugador
+      return `<li><button type="button" class="rep-momento" data-foto="${m.foto}" data-tipo="${m.tipo}"><span class="rep-momento-turno">${m.turno ? `Turno ${m.turno}` : 'Preparación'}${quien ? ` ${chapaJugador(quien, true)}` : ''}</span> <span class="rep-momento-que">${m.tipo === 'nota' ? `${ICONO.nota(14)} ` : ''}${escapeHtml(que)}</span>${detalle ? ` <span class="rep-momento-detalle">${escapeHtml(detalle)}</span>` : ''}</button></li>`
     })
     .join('')
   $('repMarcas').innerHTML = ms.map((m) => `<span class="rep-marca" data-tipo="${m.tipo}" style="--p: ${(m.foto / ultimo).toFixed(4)}"></span>`).join('')
@@ -654,6 +705,248 @@ function pintarNumeros() {
   })
 }
 
+// ════════════════════════════════════════════════════════════════════
+// Los mazos, por lo que se vio (tanda 494)
+// ════════════════════════════════════════════════════════════════════
+
+// El catálogo de arquetipos y la Pokédex de los sprites son 25 KB que solo
+// hacen falta con la partida ya puesta: se piden entonces, y una vez.
+let modulosMazos = null
+let mazosCargados = null
+function cargarModulosDeMazos() {
+  modulosMazos ||= Promise.all([import('./torneos/arquetipos.js'), import('./torneos/sprites-pokemon.js'), datos.catalogoDeArquetipos()])
+    .then(([a, sp, catalogo]) => (mazosCargados = { ...a, ...sp, catalogo }))
+    .catch((err) => {
+      // Que la próxima partida lo vuelva a intentar.
+      modulosMazos = null
+      throw err
+    })
+  return modulosMazos
+}
+
+// Los minisprites de un arquetipo, como en /mis-partidas: los iconos del
+// catálogo si lo es, y si no, las especies de su nombre. Si la imagen no
+// llega, la cadena de respaldos (tanda 321) y al final se esconde.
+function spritesDeArq(arq, clase = 'rep-sprite') {
+  const m = mazosCargados
+  if (!arq || !m) return ''
+  let urls = (arq.iconos || []).map((i) => m.spriteDeCarta(i.nombre ?? i.name)).filter(Boolean)
+  if (!urls.length) urls = m.dexesDeNombre(arq.nombre).slice(0, 2).map(m.urlDeSprite).filter(Boolean)
+  return urls.map((u) => `<img class="${clase}" src="${escapeHtml(u)}" alt="" width="32" height="32" loading="lazy"${m.atributosDeRespaldo(u)} />`).join('')
+}
+
+async function pintarMazos() {
+  if (!R.lectura) return
+  const vez = R.vez
+  const vistas = cartasVistas(R.fotos, cartaDe)
+  try {
+    await cargarModulosDeMazos()
+  } catch {
+    /* sin el catálogo el mazo se queda sin nombre: sus cartas, igual */
+  }
+  if (vez !== R.vez) return
+  const m = mazosCargados
+  R.mazos = Object.fromEntries(
+    R.fotos[0].orden.map((n) => {
+      const v = vistas[n] || []
+      // Sin un solo Pokémon a la vista no hay de qué deducir un mazo:
+      // «Sin identificar» lo dice con menos letras.
+      const arq = m && v.some((x) => x.tipo === 'pokemon') ? m.arquetipoDeMazo(listaParaArquetipo(v, cartaDe, R.codigoDeSet), m.catalogo) : null
+      return [n, { vistas: v, arq, entradas: entradasDelConstructor(v, cartaDe) }]
+    })
+  )
+  pintarQuienes()
+  pintarBloqueMazos()
+}
+
+// Los dos jugadores de la cabecera, con su mazo al lado en cuanto se sabe.
+// En el orden de la mesa al abrirla: el del registro, abajo, primero.
+function pintarQuienes() {
+  const a = R.fotos[0].protagonista
+  const b = elOtro(a)
+  const mazo = (n) => {
+    const arq = R.mazos?.[n]?.arq
+    if (!arq) return ''
+    return ` <span class="rep-mazo-mini" title="${escapeHtml(`Mazo de ${n}: ${arq.nombre}`)}">${spritesDeArq(arq, 'rep-sprite rep-sprite-mini')}<span class="rep-mazo-mini-nombre">${escapeHtml(arq.nombre)}</span></span>`
+  }
+  $('repQuienes').innerHTML = `${chapaJugador(a)}${mazo(a)} <span>contra</span> ${chapaJugador(b)}${mazo(b)}`
+}
+
+const SECCIONES = [
+  ['pokemon', 'Pokémon'],
+  ['entrenador', 'Entrenadores'],
+  ['energia', 'Energías'],
+]
+const cartasTexto = (n) => `${n} ${n === 1 ? 'carta' : 'cartas'}`
+
+function pintarBloqueMazos() {
+  if (!R.mazos) return
+  const a = R.fotos[0].protagonista
+  $('repMazos').classList.remove('hidden')
+  $('repMazosCuerpo').innerHTML = [a, elOtro(a)]
+    .map((n) => {
+      const { vistas, arq, entradas } = R.mazos[n]
+      const total = totalVisto(vistas)
+      const secciones = SECCIONES.map(([tipo, titulo]) => {
+        const cartas = vistas.filter((v) => v.tipo === tipo)
+        if (!cartas.length) return ''
+        const suma = cartas.reduce((k, v) => k + v.copias, 0)
+        return `<section class="rep-mazo-seccion"><h4>${titulo} <span class="rep-mazo-cuenta">${suma}</span></h4><ul>${cartas.map((v) => `<li><span class="rep-mazo-n">${v.copias}</span> <span>${escapeHtml(v.nombre)}</span></li>`).join('')}</ul></section>`
+      }).join('')
+      // Al constructor solo van las cartas encontradas en el catálogo: el
+      // botón dice cuántas, que pueden ser menos que las vistas.
+      const enConstructor = entradas.reduce((k, e) => k + e.n, 0)
+      const enlace = entradas.length ? `/constructor?${new URLSearchParams({ l: codificarMazo(entradas), ...(arq ? { nombre: arq.nombre } : {}), de: 'repeticion' })}` : null
+      return `<article class="rep-mazo">
+        <header class="rep-mazo-cab">
+          ${arq ? `<span class="rep-mazo-sprites">${spritesDeArq(arq)}</span>` : ''}
+          <div class="rep-mazo-titulos">
+            <h3 class="rep-mazo-nombre">${escapeHtml(arq?.nombre || 'Sin identificar')}</h3>
+            <p class="rep-mazo-de">${chapaJugador(n, true)} <span>${total ? `se vieron ${total} de sus 60 cartas` : 'no enseñó ninguna carta'}</span></p>
+          </div>
+        </header>
+        ${secciones ? `<div class="rep-mazo-secciones">${secciones}</div>` : ''}
+        ${enlace ? `<a class="btn-secondary rep-mazo-abrir" href="${escapeHtml(enlace)}">Abrir en el constructor <span class="rep-mazo-nota">(${cartasTexto(enConstructor)})</span></a>` : ''}
+      </article>`
+    })
+    .join('')
+}
+
+// Lo que se guarda en la base: el NOMBRE del mazo de cada uno, en el orden
+// de los jugadores (`jugador_a` con `mazo_a`). Para etiquetar «Tus
+// repeticiones» sin tener que traerse el registro.
+const mazosParaGuardar = () => (R.mazos ? R.fotos[0].orden.map((n) => R.mazos[n]?.arq?.nombre || '') : null)
+
+// ════════════════════════════════════════════════════════════════════
+// Juega desde aquí (tanda 497)
+// ════════════════════════════════════════════════════════════════════
+
+// El laboratorio, «tú contra ti», con los dos mazos de la partida y la mesa
+// de esta jugada (repeticiones/posicion.js). Se baja al pulsar: el motor y
+// los efectos son mucho, y quien solo mira la repetición no los necesita.
+async function jugarDesdeAqui() {
+  const i = R.i
+  if (!sePuedeJugarDesde(R.lectura, R.fotos, i)) return
+  parar()
+  const boton = document.querySelector('[data-accion="jugar"]')
+  boton.disabled = true
+  boton.dataset.abriendo = 'si'
+  try {
+    await R.resolviendo
+    const orden = R.fotos[0].orden
+    const vistas = cartasVistas(R.fotos, cartaDe)
+    const mazos = orden.map((n) => mazosDeLaPosicion(vistas[n], cartaDe))
+    const { abrirLaboratorioEnPosicion } = await import('./constructor/laboratorio.js')
+    await abrirLaboratorioEnPosicion({
+      mazos: orden.map((n, k) => ({ nombre: R.mazos?.[n]?.arq ? `${n} (${R.mazos[n].arq.nombre})` : n, entradas: mazos[k].entradas })),
+      nombres: orden,
+      colocar: (mesa) => colocarPosicion(mesa, { lectura: R.lectura, fotos: R.fotos, i, idDe: Object.fromEntries(orden.map((n, k) => [n, mazos[k].idDe])), cartaDe }),
+      aviso: (r) => `Partida cargada de una repetición: la jugada ${i}, en el turno ${r.turno} (de ${r.deQuien}).${r.sinVer ? ' Lo que no se vio en la partida sale como «Carta sin ver».' : ''}`,
+      codigoDeSet: R.codigoDeSet,
+      userId: R.sesion?.user?.id || null,
+    })
+  } catch (err) {
+    showToast(`No se ha podido abrir el laboratorio: ${err.message}`, 'error')
+  } finally {
+    delete boton.dataset.abriendo
+    pintarControles()
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Las notas del dueño (tanda 495)
+// ════════════════════════════════════════════════════════════════════
+
+// Cada nota va anclada a una LÍNEA del registro (`fila`): aquí se pone en
+// la jugada que sale de ella. Si un día el lector deja de leer esa línea,
+// la nota cae en la jugada de antes en vez de perderse.
+function notasEnFotos(notas) {
+  const ev = R.lectura?.eventos || []
+  return (Array.isArray(notas) ? notas : [])
+    .filter((n) => Number.isInteger(n?.fila) && typeof n.texto === 'string' && n.texto.trim())
+    .map((n) => {
+      let k = -1
+      for (let i = 0; i < ev.length && ev[i].fila <= n.fila; i++) k = i
+      return { fila: n.fila, texto: n.texto, foto: Math.max(1, k + 1) }
+    })
+    .sort((x, y) => x.foto - y.foto)
+}
+
+const notaDe = (i) => R.notas.find((n) => n.foto === i) || null
+// Las notas las pone el dueño. Una partida pegada también ofrece el botón:
+// es la forma de enterarse de que existen (y lleva a guardarla).
+const puedeAnotar = () => !R.origen || Boolean(R.origen.mia)
+
+function pintarNota() {
+  const n = notaDe(R.i)
+  const caja = $('repNota')
+  caja.classList.toggle('hidden', !n)
+  $('repNotaTexto').textContent = n ? n.texto : ''
+}
+
+async function cambiarNota(i, texto) {
+  const ev = R.lectura.eventos[i - 1]
+  if (!ev) throw new Error('Esa jugada no existe.')
+  const otras = R.notas.filter((n) => n.foto !== i).map(({ fila, texto: t }) => ({ fila, texto: t }))
+  const nuevas = (texto ? [...otras, { fila: ev.fila, texto }] : otras).sort((x, y) => x.fila - y.fila)
+  if (nuevas.length > 300) throw new Error('Caben 300 notas por repetición: borra alguna antes de añadir otra.')
+  const fila = await datos.guardarNotas(R.origen.id, nuevas)
+  R.origen = { ...R.origen, notas: Array.isArray(fila.notas) ? fila.notas : nuevas }
+  R.notas = notasEnFotos(R.origen.notas)
+  pintarMomentos()
+  ir(i, { anunciar: false })
+}
+
+function dialogoNota() {
+  parar()
+  if (!R.origen?.mia) {
+    abrirDialogo(
+      'Añadir una nota',
+      `<p class="rep-dialogo-texto">Las notas van con la repetición guardada, para que las vea también quien la abra con su enlace. Guárdala primero y luego añade las que quieras.</p>
+      <div class="rep-dialogo-botones"><button type="button" class="btn-primary" data-dlg="guardar">Guardar la repetición</button></div>`
+    )
+    return
+  }
+  // En la preparación (antes de la primera jugada) la nota va a la primera.
+  const i = Math.max(1, R.i)
+  const actual = notaDe(i)
+  const linea = R.lectura.eventos[i - 1]?.linea || ''
+  const cuerpo = abrirDialogo(
+    actual ? 'Tu nota en esta jugada' : 'Añadir una nota',
+    `<form class="rep-form" id="repFormNota">
+      <p class="rep-dialogo-texto">En la jugada ${i}: «${escapeHtml(linea)}»</p>
+      <label class="rep-campo">Tu nota
+        <textarea id="repNotaCampo" maxlength="500" rows="4" required>${escapeHtml(actual?.texto || '')}</textarea>
+      </label>
+      <p class="rep-dialogo-texto">${R.origen.compartida ? 'La verá también quien abra la repetición con su enlace.' : 'Si la compartes, la verá también quien abra la repetición con su enlace.'}</p>
+      <div class="rep-dialogo-botones">
+        <button type="submit" class="btn-primary">Guardar la nota</button>
+        ${actual ? '<button type="button" class="btn-secondary" data-dlg="borrar-nota">Borrar la nota</button>' : ''}
+      </div>
+      <p class="rep-dialogo-estado" role="status"></p>
+    </form>`
+  )
+  cuerpo.dataset.nota = String(i)
+  const campo = cuerpo.querySelector('#repNotaCampo')
+  campo.focus()
+  cuerpo.querySelector('#repFormNota').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const texto = campo.value.trim()
+    if (!texto) return estadoDialogo('Escribe algo, o pulsa «Borrar la nota».', 'error')
+    const boton = e.target.querySelector('[type=submit]')
+    boton.disabled = true
+    estadoDialogo('Guardando…')
+    try {
+      await cambiarNota(i, texto)
+      $('repDialogo').close()
+      showToast('Nota guardada.', 'success')
+    } catch (err) {
+      estadoDialogo(err.message, 'error')
+      boton.disabled = false
+    }
+  })
+}
+
 function verCartas(titulo, nombres, { vacio = 'No hay ninguna.' } = {}) {
   const d = $('repVer')
   $('repVerTitulo').textContent = titulo
@@ -713,13 +1006,16 @@ function cargar(texto, { origen = null, conservarDireccion = false } = {}) {
   R.turnos = indiceDeTurnos(lectura)
   R.momentos = momentosDe(lectura, R.fotos)
   R.numeros = numerosDe(lectura, R.fotos)
+  R.mazos = null
+  R.notas = notasEnFotos(origen?.notas)
   R.abajo = R.fotos[0].protagonista
   R.i = 0
   R.cacheHtml = new WeakMap()
   if (!conservarDireccion) ponerDireccion(origen?.id ? `/repeticiones?r=${encodeURIComponent(origen.id)}` : '/repeticiones')
 
   const [a, b] = [R.abajo, elOtro(R.abajo)]
-  $('repQuienes').innerHTML = `${chapaJugador(a)} <span>contra</span> ${chapaJugador(b)}`
+  pintarQuienes()
+  $('repMazos').classList.add('hidden')
   $('repResumen').textContent = `${R.turnos.length} ${R.turnos.length === 1 ? 'turno' : 'turnos'} · ${lectura.eventos.length} jugadas`
   const sinLeer = lectura.sinLeer.length
   $('repSinLeer').textContent = sinLeer ? `${sinLeer} ${sinLeer === 1 ? 'línea no se ha entendido' : 'líneas no se han entendido'}: ${sinLeer === 1 ? 'sale' : 'salen'} en el registro, pero no ${sinLeer === 1 ? 'mueve' : 'mueven'} la mesa.` : ''
@@ -731,6 +1027,7 @@ function cargar(texto, { origen = null, conservarDireccion = false } = {}) {
   pintarRegistro()
   pintarMomentos()
   pintarNumeros()
+  pintarMazos()
   ir(0, { anunciar: false })
   $('repAnuncio').textContent = `Repetición de ${a} contra ${b}, ${R.turnos.length} turnos.`
   // A la MESA, no a la cabecera: en un portátil, mesa y controles caben
@@ -739,7 +1036,7 @@ function cargar(texto, { origen = null, conservarDireccion = false } = {}) {
   document.querySelector('[data-accion="reproducir"]')?.focus({ preventScroll: true })
   // Se reproduce sola: es lo que se ha pedido.
   reproducir()
-  resolverCartas(nombresDe(lectura), R.vez)
+  R.resolviendo = resolverCartas(nombresDe(lectura), R.vez)
   return true
 }
 
@@ -828,6 +1125,62 @@ const enlacesDeEntrar = () => `
     <a class="btn-secondary" href="/auth.html?registro=1&volver=${encodeURIComponent('/repeticiones')}" data-pendiente>Crear una cuenta</a>
   </div>`
 
+// ¿Quién eres en esta partida? (tanda 494) El nombre de TCG Live se
+// recuerda en este navegador: quien guarda partidas suele ser el mismo.
+const CLAVE_YO = 'pokedoc-repeticion-yo'
+function yoRecordado() {
+  try {
+    return localStorage.getItem(CLAVE_YO) || null
+  } catch {
+    return null
+  }
+}
+function recordarYo(nombre) {
+  try {
+    localStorage.setItem(CLAVE_YO, nombre)
+  } catch {
+    /* sin almacenamiento: se pregunta la próxima vez */
+  }
+}
+
+// Quién sale marcado: el nombre recordado si juega esta partida; si se
+// recuerda OTRO, nadie (estás mirando la partida de alguien); y si no se
+// recuerda ninguno, el del registro, que es quien lo copió.
+function yoPorDefecto() {
+  const jugadores = R.fotos[0].orden
+  const recordado = yoRecordado()
+  if (recordado && jugadores.includes(recordado)) return recordado
+  return recordado ? '' : R.fotos[0].protagonista
+}
+
+const ganadorDeLaPartida = () => R.fotos.at(-1)?.fin?.ganador || null
+
+// La fila de /mis-partidas, con las MISMAS claves de mazo que una partida
+// de torneo (claveDeArquetipo), para que caigan en la misma casilla.
+function partidaParaApuntar(yo, replayId) {
+  const rival = elOtro(yo)
+  const arqYo = R.mazos?.[yo]?.arq || null
+  const arqRival = R.mazos?.[rival]?.arq || null
+  const clave = (arq) => (arq && mazosCargados ? mazosCargados.claveDeArquetipo(arq) : 'sin-mazo')
+  return {
+    user_id: R.sesion.user.id,
+    mi_mazo: clave(arqYo),
+    rival_mazo: clave(arqRival),
+    mi_mazo_nombre: arqYo?.nombre || 'Sin identificar',
+    rival_mazo_nombre: arqRival?.nombre || 'Sin identificar',
+    resultado: ganadorDeLaPartida() === yo ? 'win' : 'loss',
+    tipo: 'normal',
+    donde: 'TCG Live',
+    replay_id: replayId,
+  }
+}
+
+function textoDeApuntar(yo) {
+  if (!yo) return 'Apuntarla en «Mis partidas» (antes, dinos cuál de los dos eres)'
+  const p = partidaParaApuntar(yo, null)
+  return `Apuntarla en «Mis partidas» como ${p.resultado === 'win' ? 'ganada' : 'perdida'}: ${p.mi_mazo_nombre} contra ${p.rival_mazo_nombre}`
+}
+
 function dialogoGuardar() {
   if (!R.sesion) {
     abrirDialogo(
@@ -838,6 +1191,23 @@ function dialogoGuardar() {
   }
   const o = R.origen
   const mia = Boolean(o?.mia)
+  const ganador = ganadorDeLaPartida()
+  const yo = yoPorDefecto()
+  // Apuntarla en «Mis partidas» pide saber quién ganó: un registro cortado
+  // antes del final no lo dice, y un resultado inventado ensucia tus números.
+  const apuntar = ganador
+    ? `<fieldset class="rep-ritmo" id="repQuien">
+        <legend>¿Cuál de los dos eres tú?</legend>
+        ${R.fotos[0].orden.map((j) => `<label class="rep-ritmo-opcion"><input type="radio" name="repYo" value="${escapeHtml(j)}"${j === yo ? ' checked' : ''} /> ${chapaJugador(j, true)}</label>`).join('')}
+        <label class="rep-ritmo-opcion"><input type="radio" name="repYo" value=""${yo ? '' : ' checked'} /> Ninguno: solo la estoy mirando</label>
+      </fieldset>
+      <div id="repApuntarCaja">
+        <label class="rep-check">
+          <input type="checkbox" id="repApuntar"${yo ? ' checked' : ' disabled'} />
+          <span id="repApuntarTexto">${escapeHtml(textoDeApuntar(yo))}</span>
+        </label>
+      </div>`
+    : '<p class="rep-dialogo-texto">El registro no dice quién ganó (¿se cortó antes del final?), así que no se puede apuntar en «Mis partidas».</p>'
   const cuerpo = abrirDialogo(
     mia ? 'Tu repetición guardada' : 'Guardar la repetición',
     `<form class="rep-form" id="repFormGuardar">
@@ -848,6 +1218,7 @@ function dialogoGuardar() {
         <input type="checkbox" id="repCompartirla"${o?.compartida && mia ? ' checked' : ''} />
         <span>Compartirla con un enlace (la abre cualquiera que lo tenga; nadie puede buscarla)</span>
       </label>
+      ${apuntar}
       <div class="rep-dialogo-botones">
         <button type="submit" class="btn-primary">${mia ? 'Guardar los cambios' : 'Guardar'}</button>
       </div>
@@ -855,11 +1226,33 @@ function dialogoGuardar() {
     </form>`
   )
   cuerpo.querySelector('#repTitulo').select()
+  // El texto de apuntar dice ganada o perdida según quién eres: se cambia
+  // con la elección, y sin elegir a nadie no hay nada que apuntar.
+  cuerpo.onchange = (e) => {
+    if (e.target.name !== 'repYo') return
+    const caja = cuerpo.querySelector('#repApuntar')
+    if (!caja) return
+    caja.disabled = !e.target.value
+    caja.checked = Boolean(e.target.value)
+    cuerpo.querySelector('#repApuntarTexto').textContent = textoDeApuntar(e.target.value)
+  }
+  // Una guardada que ya se apuntó no se apunta otra vez (la base tampoco
+  // lo dejaría): se dice, y con el enlace.
+  if (mia && ganador) {
+    datos.partidaApuntada(R.sesion.user.id, o.id).then((ya) => {
+      if (!ya || !cuerpo.isConnected || cuerpo.querySelector('#repFormGuardar') === null) return
+      cuerpo.querySelector('#repQuien')?.remove()
+      const caja = cuerpo.querySelector('#repApuntarCaja')
+      if (caja) caja.innerHTML = '<p class="rep-dialogo-texto">Ya está apuntada en <a href="/mis-partidas">Mis partidas</a>.</p>'
+    })
+  }
   cuerpo.querySelector('#repFormGuardar').addEventListener('submit', async (e) => {
     e.preventDefault()
     const boton = e.target.querySelector('[type=submit]')
     const titulo = cuerpo.querySelector('#repTitulo').value.trim() || tituloPorDefecto()
     const compartida = cuerpo.querySelector('#repCompartirla').checked
+    const elegido = cuerpo.querySelector('[name=repYo]:checked')?.value || ''
+    const apuntarla = Boolean(elegido) && Boolean(cuerpo.querySelector('#repApuntar')?.checked)
     boton.disabled = true
     estadoDialogo('Guardando…')
     try {
@@ -868,14 +1261,42 @@ function dialogoGuardar() {
         fila = await datos.renombrar(o.id, titulo)
         if (Boolean(o.compartida) !== compartida) fila = await datos.compartir(o.id, compartida)
         R.origen = { ...o, titulo: fila.titulo, compartida: fila.compartida }
+        // Una guardada de antes de los mazos (tanda 494) los recibe al
+        // guardar los cambios: es la misma partida, así que solo los añade.
+        const mazos = mazosParaGuardar()
+        if (!o.mazos?.some(Boolean) && mazos?.some(Boolean)) {
+          datos
+            .guardar({ registro: R.texto, mazos })
+            .then(() => {
+              R.origen = { ...R.origen, mazos }
+              cargarGuardadas()
+            })
+            .catch(() => {})
+        }
       } else {
-        fila = await datos.guardar({ registro: R.texto, titulo, ...resumenDeLaPartida(), compartida })
-        R.origen = { id: fila.id, titulo, mia: true, compartida: fila.compartida }
+        const mazos = mazosParaGuardar()
+        fila = await datos.guardar({ registro: R.texto, titulo, ...resumenDeLaPartida(), compartida, mazos })
+        R.origen = { id: fila.id, titulo, mia: true, compartida: fila.compartida, notas: [], mazos }
+      }
+      if (elegido) recordarYo(elegido)
+      let aviso = mia ? 'Cambios guardados.' : 'Guardada en «Tus repeticiones».'
+      let tipo = 'success'
+      if (apuntarla) {
+        try {
+          const r = await datos.apuntarPartida(partidaParaApuntar(elegido, R.origen.id))
+          aviso = r.ya ? `${aviso} La partida ya estaba en «Mis partidas».` : mia ? 'Cambios guardados y partida apuntada en «Mis partidas».' : 'Guardada y apuntada en «Mis partidas».'
+        } catch (err) {
+          aviso = `${aviso} Pero no se ha podido apuntar en «Mis partidas»: ${err.message}`
+          tipo = 'error'
+        }
       }
       ponerDireccion(`/repeticiones?r=${encodeURIComponent(R.origen.id)}`)
       pintarCabecera()
+      // Ya guardada, el botón de las notas lleva a escribir una.
+      pintarMomentos()
+      pintarControles()
       $('repDialogo').close()
-      showToast(mia ? 'Cambios guardados.' : 'Guardada en «Tus repeticiones».', 'success')
+      showToast(aviso, tipo)
       cargarGuardadas()
     } catch (err) {
       estadoDialogo(err.message, 'error')
@@ -913,9 +1334,11 @@ async function dialogoCompartir() {
           cargarGuardadas()
         }
       } else {
-        const fila = await datos.guardar({ registro: R.texto, titulo: tituloPorDefecto(), ...resumenDeLaPartida(), compartida: true })
-        R.origen = { id: fila.id, titulo: o?.titulo || tituloPorDefecto(), mia: true, compartida: fila.compartida }
+        const mazos = mazosParaGuardar()
+        const fila = await datos.guardar({ registro: R.texto, titulo: tituloPorDefecto(), ...resumenDeLaPartida(), compartida: true, mazos })
+        R.origen = { id: fila.id, titulo: o?.titulo || tituloPorDefecto(), mia: true, compartida: fila.compartida, notas: [], mazos }
         cargarGuardadas()
+        pintarMomentos()
       }
       url = datos.enlaceCorto(R.origen.id)
       ponerDireccion(`/repeticiones?r=${encodeURIComponent(R.origen.id)}`)
@@ -1133,10 +1556,14 @@ function itemHtml(r) {
   const jug = [r.jugador_a, r.jugador_b].filter(Boolean)
   const sub = [jug.length === 2 ? `${jug[0]} contra ${jug[1]}` : '', r.turnos != null ? `${r.turnos} ${r.turnos === 1 ? 'turno' : 'turnos'}` : '', r.ganador ? `gana ${r.ganador}` : '', fechaCorta(r.created_at)].filter(Boolean).join(' · ')
   const id = escapeHtml(r.id)
+  // El mazo de cada uno, en el orden de los jugadores (tanda 494). Las
+  // guardadas de antes no lo tienen y no dicen nada.
+  const mazos = r.mazo_a || r.mazo_b ? `<span class="rep-item-mazos">${escapeHtml(r.mazo_a || 'Sin identificar')} <span class="rep-item-contra">contra</span> ${escapeHtml(r.mazo_b || 'Sin identificar')}</span>` : ''
   return `
     <li class="rep-item" data-id="${id}" data-titulo="${escapeHtml(r.titulo)}" data-compartida="${r.compartida ? 'si' : 'no'}">
       <button type="button" class="rep-item-abrir" data-abrir="${id}">
         <span class="rep-item-titulo">${escapeHtml(r.titulo)}</span>
+        ${mazos}
         <span class="rep-item-sub">${escapeHtml(sub)}</span>
       </button>
       ${r.compartida ? `<span class="rep-chapa-compartida">${icons.link(14)} Compartida</span>` : ''}
@@ -1157,7 +1584,9 @@ async function abrirGuardada(id) {
       volverAPegar()
       return
     }
-    cargar(fila.registro, { origen: { id, titulo: fila.titulo, mia: Boolean(fila.mia), compartida: Boolean(fila.compartida) } })
+    cargar(fila.registro, {
+      origen: { id, titulo: fila.titulo, mia: Boolean(fila.mia), compartida: Boolean(fila.compartida), notas: fila.notas || [], mazos: [fila.mazo_a || null, fila.mazo_b || null] },
+    })
   } catch (err) {
     mostrarError(err.falta ? 'Esta repetición no se puede abrir todavía: la parte de guardar no está puesta en la base.' : `No se ha podido abrir la repetición: ${err.message}`)
     volverAPegar()
@@ -1243,6 +1672,7 @@ function iniciar() {
   // Los iconos de los botones de la cabecera.
   const ICONOS_CAB = { guardar: icons.bookmark(16), compartir: icons.share(16), descargar: ICONO.descargar(16) }
   document.querySelectorAll('[data-icono]').forEach((el) => (el.innerHTML = ICONOS_CAB[el.dataset.icono] || ''))
+  document.querySelector('.rep-nota-icono').innerHTML = ICONO.nota(18)
 
   // La ventana de guardar, compartir y el vídeo.
   $('repDialogo').addEventListener('click', async (e) => {
@@ -1275,6 +1705,19 @@ function iniciar() {
       return
     }
     if (b.dataset.dlg === 'hacer-video') return hacerVideo()
+    if (b.dataset.dlg === 'guardar') return dialogoGuardar()
+    if (b.dataset.dlg === 'borrar-nota') {
+      b.disabled = true
+      try {
+        await cambiarNota(Number($('repDialogoCuerpo').dataset.nota), null)
+        d.close()
+        showToast('Nota borrada.', 'success')
+      } catch (err) {
+        estadoDialogo(err.message, 'error')
+        b.disabled = false
+      }
+      return
+    }
     if (b.dataset.dlg === 'cancelar-video' && videoEnMarcha) videoEnMarcha.cancelado = true
   })
   // Cerrar la ventana a mitad de un vídeo lo para: nadie espera que siga
@@ -1282,6 +1725,7 @@ function iniciar() {
   $('repDialogo').addEventListener('close', () => {
     if (videoEnMarcha) videoEnMarcha.cancelado = true
     delete $('repDialogoCuerpo').dataset.url
+    delete $('repDialogoCuerpo').dataset.nota
   })
   $('repGuardadas').addEventListener('click', accionDeLista)
 
@@ -1307,6 +1751,8 @@ function iniciar() {
     if (accion === 'compartir') return dialogoCompartir()
     if (accion === 'video') return dialogoVideo()
     if (accion === 'siguienteKo') return irAlSiguienteKo()
+    if (accion === 'nota') return dialogoNota()
+    if (accion === 'jugar') return jugarDesdeAqui()
     if (accion === 'girar') {
       R.abajo = elOtro(R.abajo)
       R.cacheHtml = new WeakMap()
@@ -1355,6 +1801,9 @@ function iniciar() {
   // en turno). No dentro de un campo, que ahí las teclas son suyas.
   document.addEventListener('keydown', (e) => {
     if ($('repSala').classList.contains('hidden') || $('repVer').open || $('repDialogo').open) return
+    // Con el laboratorio encima, las teclas son suyas: la repetición que
+    // queda debajo no se mueve.
+    if (document.documentElement.classList.contains('lab-abierto')) return
     if (e.target.closest('input, textarea, select, [contenteditable]') || e.altKey || e.ctrlKey || e.metaKey) return
     if (e.key === ' ' || e.key === 'k') {
       // Sobre un botón el espacio ya lo pulsa: no se hace dos veces.

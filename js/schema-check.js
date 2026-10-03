@@ -85,6 +85,12 @@ export const REQUISITOS = [
   // Las repeticiones guardadas (tanda 480). Solo las lee su dueño: con
   // sesión de admin, la consulta va bien si la tabla existe.
   { tabla: 'replays', columna: 'compartida', fichero: 'supabase-migration-repeticiones.sql', rompe: 'No se pueden guardar repeticiones ni compartirlas con un enlace corto (el enlace largo, que lleva la partida dentro, sigue funcionando).' },
+  // Lo que se le añadió a la misma migración después (tandas 494 a 496):
+  // con la de antes puesta, guardar sigue funcionando, y esto avisa de que
+  // hay que ejecutarla otra vez.
+  { tabla: 'replays', columna: 'notas', fichero: 'supabase-migration-repeticiones.sql', rompe: 'Las repeticiones guardadas no llevan su mazo ni se les pueden poner notas (guardar y compartir sí funcionan): hay que ejecutar la migración otra vez.' },
+  { tabla: 'match_log', columna: 'replay_id', fichero: 'supabase-migration-repeticiones.sql', rompe: 'Guardar una repetición no la apunta en Mis partidas: hay que ejecutar la migración otra vez.' },
+  { tabla: 'tournament_match_replays', columna: 'replay_id', fichero: 'supabase-migration-repeticiones.sql', rompe: 'No se puede adjuntar la repetición de una partida de torneo: hay que ejecutar la migración otra vez.' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

@@ -1669,6 +1669,24 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-mesa-resolver { grid-column: 2 / -1; }
 .torneo-mesa-resolver select { font-size: var(--t-sm); max-width: 220px; }
 .torneo-mesa .torneo-disputa-reportes { grid-column: 1 / -1; }
+/* Las repeticiones de una mesa (tanda 496): a lo ancho, debajo de los
+   jugadores. En «Tu partida» van sueltas, con su margen. */
+.torneo-mesa .torneo-mesa-reps { grid-column: 2 / -1; margin-top: 0; }
+.torneo-mesa-reps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 12px;
+  font-size: var(--t-sm);
+}
+.torneo-rep { display: inline-flex; align-items: center; gap: 4px; }
+.torneo-rep a { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+.torneo-rep-elegir { max-width: 100%; min-height: 44px; font-size: var(--t-sm); }
+@media (pointer: coarse) {
+  .torneo-mesa-reps .link-btn,
+  .torneo-rep a { min-height: 44px; }
+}
 @media (max-width: 560px) {
   .torneo-mesa { grid-template-columns: 30px 1fr auto; gap: 12px; padding: 12px 8px; }
   .torneo-mesa-lado.der { flex-direction: row; text-align: left; grid-column: 2; }

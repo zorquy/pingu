@@ -222,7 +222,7 @@ export function leerRegistro(texto) {
   const sinLeer = []
   let ultimo = null
   let padre = null
-  for (const cruda of limpias) {
+  for (const [fila, cruda] of limpias.entries()) {
     const t = cruda.trim()
     if (!t) continue
     // «   • Erin, Dunsparce, …»: la lista de cartas de la línea de antes.
@@ -259,6 +259,10 @@ export function leerRegistro(texto) {
     }
     if (ev.tipo === 'nada') continue
     ev.linea = t.replace(/^-\s*/, '')
+    // La línea del texto de la que sale (desde 0). Es lo que no cambia el
+    // día que este lector aprenda a leer una línea más: las notas de una
+    // repetición guardada se anclan aquí y no al número de jugada.
+    ev.fila = fila
     ev.sub = sub
     // De qué cuelga una sublínea: una energía que se une «- …» bajo una
     // carta de Entrenador sale de otro sitio que bajo un ataque.

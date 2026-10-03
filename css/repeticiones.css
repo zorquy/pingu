@@ -561,6 +561,10 @@
   background: var(--navy);
 }
 
+.rep-marca[data-tipo='nota'] {
+  background: var(--indigo);
+}
+
 .rep-cuenta {
   color: var(--text-mid);
   font-size: var(--t-sm);
@@ -876,6 +880,7 @@
 }
 
 .rep-campo input,
+.rep-campo textarea,
 .rep-enlace input {
   min-height: 44px;
   padding: 0 var(--e-md);
@@ -887,11 +892,23 @@
 }
 
 .rep-campo input:focus-visible,
+.rep-campo textarea:focus-visible,
 .rep-enlace input:focus-visible,
 .rep-check input:focus-visible,
 .rep-ritmo-opcion input:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
+}
+
+/* La nota (tanda 495): varias líneas, y del alto que pida quien escribe. */
+.rep-campo textarea {
+  min-height: 96px;
+  padding: var(--e-sm) var(--e-md);
+  font: inherit;
+  font-size: var(--t-md);
+  font-weight: 400;
+  line-height: 1.5;
+  resize: vertical;
 }
 
 .rep-check {
@@ -1100,6 +1117,17 @@
   font-size: var(--t-xs);
 }
 
+/* El mazo de cada uno (tanda 494), entre el título y los datos. */
+.rep-item-mazos {
+  color: var(--text);
+  font-size: var(--t-sm);
+  overflow-wrap: anywhere;
+}
+
+.rep-item-contra {
+  color: var(--text-mid);
+}
+
 .rep-item-acciones {
   display: flex;
   flex-wrap: wrap;
@@ -1147,6 +1175,13 @@
   text-transform: uppercase;
 }
 
+.rep-momentos-botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--e-xs) var(--e-md);
+}
+
 .rep-momentos-cab .link-btn {
   font-size: var(--t-sm);
 }
@@ -1173,6 +1208,7 @@
 
 .rep-momento {
   display: grid;
+  align-content: start;
   gap: 2px;
   min-width: 160px;
   max-width: 240px;
@@ -1218,6 +1254,58 @@
 .rep-momento-detalle {
   color: var(--text-mid);
   font-size: var(--t-xs);
+}
+
+/* Una nota en la tira: con su icono, y el texto en dos líneas como mucho
+   (entera se lee al llegar a su jugada). */
+.rep-momento[data-tipo='nota'] .rep-momento-que {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--indigo);
+}
+
+.rep-momento[data-tipo='nota'] .rep-momento-detalle {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* La nota de la jugada que se está viendo (tanda 495). Va DENTRO de los
+   controles y la primera de la fila: en el móvil los controles se quedan
+   pegados abajo, y fuera de ellos la nota caería debajo de la pantalla
+   justo mientras se mira la mesa. */
+.rep-nota {
+  display: flex;
+  flex-basis: 100%;
+  align-items: flex-start;
+  gap: var(--e-sm);
+  order: -1;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--indigo);
+  border-radius: var(--radius-md);
+  background: var(--indigo-bg);
+  color: var(--text);
+  font-size: var(--t-sm);
+  line-height: 1.5;
+}
+
+.rep-nota-icono {
+  display: inline-flex;
+  flex: none;
+  color: var(--indigo);
+}
+
+.rep-nota-texto {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.rep-nota-quien {
+  color: var(--indigo);
 }
 
 @media (pointer: coarse) {
@@ -1490,6 +1578,153 @@
   }
 }
 
+/* ── Los mazos, por lo que se vio (tanda 494) ──
+   Dos columnas cuando caben en SU caja (tanda 316: la tarjeta se mide a
+   sí misma), una debajo de otra si no. */
+.rep-mazos {
+  container-type: inline-size;
+  margin-top: var(--e-lg);
+}
+
+.rep-mazos-titulo {
+  margin: 0 0 var(--e-xs);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.rep-mazos-nota {
+  margin: 0 0 var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rep-mazos-cuerpo {
+  display: grid;
+  gap: var(--e-md);
+}
+
+@container (min-width: 720px) {
+  .rep-mazos-cuerpo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.rep-mazo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+  min-width: 0;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.rep-mazo-cab {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.rep-mazo-sprites {
+  display: flex;
+  flex: none;
+}
+
+.rep-sprite {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.rep-mazo-titulos {
+  min-width: 0;
+}
+
+.rep-mazo-nombre {
+  margin: 0;
+  font-size: var(--t-lg);
+  overflow-wrap: anywhere;
+}
+
+.rep-mazo-de {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs);
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rep-mazo-secciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--e-md);
+}
+
+.rep-mazo-seccion h4 {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rep-mazo-seccion ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rep-mazo-seccion li {
+  display: flex;
+  gap: var(--e-sm);
+  font-size: var(--t-sm);
+}
+
+.rep-mazo-n {
+  min-width: 2ch;
+  color: var(--text-mid);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.rep-mazo-abrir {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.rep-mazo-nota {
+  font-weight: 400;
+}
+
+/* El mazo al lado de cada jugador, en la cabecera. */
+.rep-mazo-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 400;
+}
+
+.rep-sprite-mini {
+  width: 24px;
+  height: 24px;
+}
+
 /* ── El móvil ── */
 @media (max-width: 760px) {
   .rep-sala {
@@ -1580,6 +1815,12 @@
 
   .rep-destacado {
     justify-content: flex-start;
+  }
+
+  /* La tira de momentos va dentro de la mesa, que en el móvil llega de
+     borde a borde: su cabecera y sus botones, con el margen de la página. */
+  .rep-momentos {
+    padding-inline: var(--e-sm);
   }
 
   .rep-foco-texto,

@@ -32,6 +32,8 @@ import { TERMINALES, progresoDeMesas } from './mesas.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
 import { agruparMeta, metaHtml, ordenFinal } from './meta-torneo.js'
+import { adjuntarATorneo, quitarDeTorneo, repeticionesDePartidas, misRepeticiones } from '../repeticiones/datos.js'
+import { ICONOS_REPETICION } from '../repeticiones/iconos.js'
 
 let ctx = null // { torneo, session, perfil, inscripciones, recargarFicha }
 let rondas = []
@@ -47,6 +49,10 @@ let rondaVista = null // qué ronda se está mirando en «Mesas» (null = la viv
 // camino.
 let arquetipos = new Map()
 let catalogoArquetipos = null // el catálogo curado, una vez por página
+// Las repeticiones adjuntas a las mesas (tanda 496): { match_id, user_id,
+// replay_id }. Las que la base deja ver: las de tus mesas, o todas si
+// llevas o arbitras el torneo.
+let repeticionesMesas = []
 
 const $ = (id) => document.getElementById(id)
 // Quién mira. Puede ser NULL: desde la tanda 229 la ficha se abre
@@ -111,14 +117,21 @@ async function cargarCiclo() {
     const necesitaReportes = Boolean(
       mando() || ctx.esJuez || (mi && partidas.some((m) => m.player_a_id === mi || m.player_b_id === mi))
     )
-    const [{ data: reps }, { data: ress }] = await Promise.all([
+    // Las repeticiones de las mesas (tanda 496), por lo mismo que los
+    // reportes: solo le sirven a quien juega, lleva o arbitra, y la base
+    // no le enseña ninguna a nadie más. Van en la misma tanda de consultas.
+    const [{ data: reps }, { data: ress }, adjuntas] = await Promise.all([
       necesitaReportes
         ? supabase.from('match_reports').select('*').in('match_id', idsPartidas)
         : Promise.resolve({ data: [] }),
       supabase.from('match_results').select('*').in('match_id', idsPartidas),
+      necesitaReportes ? repeticionesDePartidas(idsPartidas) : Promise.resolve([]),
     ])
     reportes = reps || []
     resultados = ress || []
+    repeticionesMesas = adjuntas || []
+  } else {
+    repeticionesMesas = []
   }
   // OJO: el historial de cruces (pairing_history) NO se pide aquí.
   // Solo lo usa el pareo suizo, que es un botón del organizador, y
@@ -1229,6 +1242,7 @@ function pintarMesas(ronda) {
         ${lado(m.player_b_id, ganaB, m.check_in_b_at, true)}
         ${resolver}
         ${enfrentados}
+        ${repeticionesDeMesaHtml(m)}
       </div>`
     })
     .join('')
@@ -1407,6 +1421,7 @@ function pintarRondasResto(actual) {
     })
   )
 
+  engancharRepeticiones($('mesasContenido'))
   document.querySelectorAll('[data-resolver]').forEach((sel) => {
     sel.addEventListener('change', () => {
       if (!sel.value) return
@@ -1429,6 +1444,105 @@ function pintarRondasResto(actual) {
     })
   })
   void rellenarChapasArquetipo(caja)
+}
+
+// ── La repetición de una partida (tanda 496) ──
+//
+// Un jugador adjunta la repetición de SU partida, guardada antes en
+// /repeticiones (hasta tres: un BO3). La ven los dos jugadores, quien lleva
+// el torneo y sus jueces, y para ellos es lo que pasó de verdad cuando los
+// reportes no casan. Quién la ve lo decide la base, no este `if`.
+const sinMayusculas = (x) => String(x || '').trim().toLowerCase()
+
+function repeticionesDeMesaHtml(m) {
+  const yo = miId()
+  const esMia = Boolean(yo && (m.player_a_id === yo || m.player_b_id === yo))
+  const reps = repeticionesMesas.filter((r) => r.match_id === m.id)
+  // Una mesa pendiente o un bye no tienen partida que ver.
+  const hayPartida = m.status !== 'pending' && m.status !== 'bye' && m.player_a_id && m.player_b_id
+  const mias = reps.filter((r) => r.user_id === yo).length
+  const puedeAdjuntar = esMia && hayPartida && mias < 3
+  if (!reps.length && !puedeAdjuntar) return ''
+  const enlaces = reps.map((r) => {
+    const delMismo = reps.filter((x) => x.user_id === r.user_id)
+    const n = delMismo.length > 1 ? ` (${delMismo.indexOf(r) + 1})` : ''
+    const texto = r.user_id === yo ? `Tu repetición${n}` : `Repetición de ${nombreDe(r.user_id)}${n}`
+    return `<span class="torneo-rep"><a href="/repeticiones?r=${encodeURIComponent(r.replay_id)}">${ICONOS_REPETICION.reproducir(14)} ${escapeHtml(texto)}</a>${
+      r.user_id === yo ? ` <button type="button" class="link-btn" data-quitar-rep="${m.id}" data-rep="${escapeHtml(r.replay_id)}">Quitar</button>` : ''
+    }</span>`
+  })
+  const adjuntar = puedeAdjuntar
+    ? `<button type="button" class="link-btn" data-adjuntar-rep="${m.id}">${mias ? 'Adjuntar otra repetición' : 'Adjuntar la repetición'}</button>`
+    : ''
+  return `<div class="torneo-mesa-reps">${enlaces.join('')}${adjuntar}</div>`
+}
+
+function engancharRepeticiones(caja) {
+  caja.querySelectorAll('[data-adjuntar-rep]').forEach((b) => b.addEventListener('click', () => elegirRepeticion(b)))
+  caja.querySelectorAll('[data-quitar-rep]').forEach((b) => b.addEventListener('click', () => quitarRepeticion(b)))
+}
+
+// El botón se vuelve un desplegable con TUS repeticiones guardadas, las
+// que se jugaron contra tu rival (por su nombre de TCG Live) primero.
+async function elegirRepeticion(boton) {
+  const matchId = boton.dataset.adjuntarRep
+  const m = partidas.find((x) => x.id === matchId)
+  if (!m) return
+  boton.disabled = true
+  let guardadas
+  try {
+    guardadas = await misRepeticiones(miId())
+  } catch (err) {
+    showToast(err.message, 'error')
+    boton.disabled = false
+    return
+  }
+  const yaPuestas = new Set(repeticionesMesas.filter((r) => r.match_id === matchId).map((r) => r.replay_id))
+  const rivalId = m.player_a_id === miId() ? m.player_b_id : m.player_a_id
+  const tcgRival = sinMayusculas(ctx.inscripciones.find((i) => i.user_id === rivalId)?.tcg_live_username)
+  const contraRival = (r) => Boolean(tcgRival) && [r.jugador_a, r.jugador_b].some((j) => sinMayusculas(j) === tcgRival)
+  // `sort` es estable: dentro de cada grupo sigue el orden de la base, de
+  // la más nueva a la más vieja.
+  const lista = guardadas.filter((r) => !yaPuestas.has(r.id)).sort((a, b) => contraRival(b) - contraRival(a))
+  if (!lista.length) {
+    const aviso = document.createElement('span')
+    aviso.className = 'subtext'
+    aviso.innerHTML = 'No tienes ninguna repetición guardada que adjuntar. <a href="/repeticiones">Guarda la de esta partida</a> y vuelve.'
+    boton.replaceWith(aviso)
+    return
+  }
+  const sel = document.createElement('select')
+  sel.className = 'torneo-rep-elegir'
+  sel.setAttribute('aria-label', 'Elige la repetición de esta partida')
+  sel.innerHTML = `<option value="">Elige una de tus repeticiones…</option>${lista
+    .map((r) => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.titulo)}${contraRival(r) ? ' — contra tu rival' : ''}</option>`)
+    .join('')}`
+  boton.replaceWith(sel)
+  sel.focus()
+  sel.addEventListener('change', async () => {
+    if (!sel.value) return
+    sel.disabled = true
+    try {
+      await adjuntarATorneo(matchId, sel.value)
+      showToast('Adjuntada. La ven tu rival y quien lleva o arbitra el torneo, y queda compartida: la abre cualquiera con su enlace.', 'success')
+      await ctx.recargarFicha()
+    } catch (err) {
+      showToast(err.message, 'error')
+      sel.disabled = false
+    }
+  })
+}
+
+async function quitarRepeticion(boton) {
+  boton.disabled = true
+  try {
+    await quitarDeTorneo(boton.dataset.quitarRep, boton.dataset.rep)
+    showToast('Quitada de la mesa. Sigue en «Tus repeticiones».', 'success')
+    await ctx.recargarFicha()
+  } catch (err) {
+    showToast(err.message, 'error')
+    boton.disabled = false
+  }
 }
 
 function pintarMiPartida() {
@@ -1463,13 +1577,21 @@ function pintarMiPartida() {
     const r = resultadoDe(mia.id)
     const texto =
       r?.winner_id === miId() ? '¡Ganaste esta ronda!' : r?.result === 'draw' ? 'Empate.' : 'Esta ronda no cayó de tu lado.'
-    const html = `<p class="torneo-partida-nota">Mesa ${mia.table_number} — ${texto}</p>`
-    if (!yaEstaPintado('miPartida', html)) contenido.innerHTML = html
+    const html = `<p class="torneo-partida-nota">Mesa ${mia.table_number} — ${texto}</p>${repeticionesDeMesaHtml(mia)}`
+    if (!yaEstaPintado('miPartida', html)) {
+      contenido.innerHTML = html
+      engancharRepeticiones(contenido)
+    }
     return
   }
   if (mia.status === 'disputed') {
-    const html = '<p class="torneo-partida-nota">Los reportes no coinciden: lo revisará el organizador o un juez.</p>'
-    if (!yaEstaPintado('miPartida', html)) contenido.innerHTML = html
+    // Con la repetición delante, el juez ve lo que pasó en vez de dos
+    // palabras contra dos palabras: aquí es donde más sirve adjuntarla.
+    const html = `<p class="torneo-partida-nota">Los reportes no coinciden: lo revisará el organizador o un juez. Si guardaste la repetición, adjúntala: la verán.</p>${repeticionesDeMesaHtml(mia)}`
+    if (!yaEstaPintado('miPartida', html)) {
+      contenido.innerHTML = html
+      engancharRepeticiones(contenido)
+    }
     return
   }
   // El TABLERO (tanda 298): tú a un lado, tu rival al otro y el marcador
@@ -1554,9 +1676,10 @@ function pintarMiPartida() {
       </div>`
   // Aquí es donde más duele repintar de más: debajo están los botones de
   // Victoria y Derrota. Si el HTML es el mismo, no se toca nada.
-  const html = `${cabecera}${reloj}${checkin}${botones}`
+  const html = `${cabecera}${reloj}${checkin}${botones}${repeticionesDeMesaHtml(mia)}`
   if (yaEstaPintado('miPartida', html)) return
   contenido.innerHTML = html
+  engancharRepeticiones(contenido)
   void rellenarChapasArquetipo(contenido)
   if ($('btnCheckin')) $('btnCheckin').addEventListener('click', () => marcarListo(mia))
   contenido.querySelectorAll('[data-reporte]').forEach((b) => {

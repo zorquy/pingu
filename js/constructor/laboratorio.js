@@ -139,6 +139,50 @@ export async function abrirLaboratorio({ entradas, nombre = '', codigoDeSet = ()
   nuevaPartida()
 }
 
+// Abrir el laboratorio con una partida YA EMPEZADA (tanda 497): la de una
+// repetición, en la jugada que se estaba mirando («Juega desde aquí»). Es
+// «tú contra ti» con los dos mazos de la partida; quien llama trae los
+// mazos y la función que pone cada carta en su sitio (`colocar(mesa)`,
+// repeticiones/posicion.js): el laboratorio no sabe leer registros, solo
+// jugar. Devuelve lo que `colocar` cuente.
+export async function abrirLaboratorioEnPosicion({ mazos, nombres, colocar, aviso = '', codigoDeSet = () => null, userId = null }) {
+  leerPrefs()
+  L.codigoDeSet = codigoDeSet
+  L.userId = userId
+  montar()
+  L.focoPrevio = document.activeElement
+  L.raiz.hidden = false
+  document.documentElement.classList.add('lab-abierto')
+  $('#labTitulo').focus()
+  $('#labCuerpo').innerHTML = '<p class="lab-cargando">Preparando la mesa…</p>'
+  const preparadas = await Promise.all(mazos.map((m) => prepararEntradas(m.entradas).catch(() => m.entradas.map((e) => ({ ...e })))))
+  L.mazos = mazos.map((m, i) => ({ nombre: m.nombre, entradas: preparadas[i], odds: oddsDelMazo(preparadas[i]), mismo: false }))
+  L.mazoConstructor = L.mazos[0]
+  // Una firma que no es la de ningún mazo del constructor: abrir luego el
+  // laboratorio desde allí empieza de cero, en vez de seguir ESTA partida
+  // con el mazo equivocado.
+  L.firma = 'repeticion'
+  L.seleccion = new Set()
+  L.ocupado = false
+  L.nuevas = new Set()
+  L.apuntar = null
+  L.cacheHtml = new WeakMap()
+  $('#labCuerpo').innerHTML = cuerpoHtml()
+  const semilla = (Math.random() * 2 ** 32) >>> 0
+  L.mesa = new Mesa({ mazos: L.mazos.map((m) => m.entradas), nombres, efectos: EFECTOS, semilla, empieza: 0, estricta: L.opciones.estricta })
+  const resumen = colocar(L.mesa)
+  const texto = typeof aviso === 'function' ? aviso(resumen) : aviso
+  if (texto) L.mesa.log(null, texto)
+  L.partida = L.mesa.actual
+  L.anuncio = `Turno de ${L.partida.nombreJugador}`
+  pintar()
+  // La jugada de un KO llega con sus premios por coger y, a veces, con
+  // alguien sin activo. La mesa lo resuelve ya, como después de cualquier
+  // jugada (y se puede deshacer): así se empieza desde una mesa en regla.
+  if (L.mesa.m.pendientes.length || L.mesa.jugadores.some((j) => !j.s.activo && j.s.banca.length)) await hacer(async () => {})
+  return resumen
+}
+
 function cerrar() {
   if (!L.raiz) return
   cerrarMenu()

@@ -35,6 +35,93 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tandas 494 a 497 — mazos, Mis partidas, notas, torneos y «Jugar desde aquí» en /repeticiones)
+
+Lo que quedaba de la lista de ideas que PINGU aprobó. **Hay que ejecutar
+OTRA VEZ `supabase-migration-repeticiones.sql`** (es idempotente): sin ella
+la página funciona igual que antes, y lo nuevo que pide la base lo dice
+(y /admin lo avisa por `js/schema-check.js`).
+
+**494 — los mazos de una repetición, y guardarla la apunta en Mis
+partidas.** `js/repeticiones/mazos.js` (nuevo, sin DOM): lo que se vio de
+cada mazo, contado como el MÁXIMO de copias a la vez (en juego, descarte,
+mano conocida, estadio, la mano del mulligan), que es lo único que no cuenta
+dos veces una carta que va y vuelve. El arquetipo con `arquetipoDeMazo` de
+los torneos, **cruzado por el nombre INGLÉS** del catálogo: con el del
+registro («Zoroark ex de N») no casaba con nada — lo cazó la prueba. En la
+página: el mazo al lado de cada jugador, el bloque «Los mazos, por lo que
+se vio» con «Abrir en el constructor (N cartas)» (el constructor le pone el
+nombre y avisa de que es lo VISTO, no la lista), y el mazo de cada uno en
+«Tus repeticiones» (`mazo_a`/`mazo_b`, que pone la función de guardar).
+Al guardar: «¿Cuál de los dos eres tú?» (se recuerda tu nombre de TCG
+Live) y «Apuntarla en Mis partidas como ganada/perdida: X contra Y», con
+las MISMAS claves que una partida de torneo y su `replay_id`; un índice
+único impide apuntarla dos veces, y /mis-partidas enseña «Ver la
+repetición». Un registro cortado no ofrece apuntarla (no se sabe quién
+ganó).
+
+**495 — las notas del dueño.** Ancladas a la LÍNEA del registro (`fila`,
+que cada evento lleva desde ahora), no al número de jugada, que cambia el
+día que el lector aprende una línea más. Salen al llegar a su jugada
+(dentro de los controles, que en el móvil van pegados abajo), en la tira
+de momentos y como marca; reproduciendo, la jugada se queda lo que se
+tarda en leer la nota, también a 4×. Las lee quien abre la compartida; las
+escribe solo el dueño (en una pegada, el botón lleva a guardarla). La base
+solo acepta notas bien formadas (`replays_notas_validas`).
+
+**496 — la repetición de una partida de torneo.** `tournament_match_replays`
+(hasta tres por jugador y mesa: un BO3) y dos funciones; nadie escribe en
+la tabla (tanda 252). La ven los dos jugadores, quien lleva el torneo y un
+juez aprobado; adjuntar la comparte. En la ficha, bajo tu mesa, un
+desplegable con tus guardadas (las de contra tu rival, primero); los demás
+ven «Repetición de X»; «Quitar» solo en la tuya. Se piden con los
+reportes, solo para quien juega, lleva o arbitra.
+
+**497 — «Jugar desde aquí».** `js/repeticiones/posicion.js` (nuevo, sin DOM
+ni motor) sienta una Mesa del laboratorio en la jugada que se mira: mazos de
+lo visto completados con «Carta sin ver», cada carta en su sitio (las
+cuentas cuadran con la repetición en TODAS las jugadas de los dos registros
+de prueba), lo que el turno ya gastó gastado, lo que entró este turno sin
+poder evolucionar, y los premios de un KO que el registro aún no ha cobrado
+como pendientes (la mesa los cobra al abrirse). `abrirLaboratorioEnPosicion`
+en el laboratorio, que no sabe leer registros: solo juega.
+
+**Pruebas** (rama `pruebas`): `test-tanda-494.mjs` (48), `test-tanda-495.mjs`
+(31), `test-tanda-496.mjs` (28), `test-tanda-497.mjs` (38);
+`sql-repeticiones.sql` ampliada (65 comprobaciones contra PostgreSQL, y
+ahora limpia también las funciones nuevas al empezar: una base de pruebas
+con una versión vieja daba un rojo del contenedor, que fue el de la 480);
+el doble de Supabase con la tabla de los torneos, las dos funciones, el
+índice único de Mis partidas y los mazos y notas de `replays`.
+**Rigores**: 13/13, 8/8, 8/8 y 11/11. La primera pasada dejó cuatro sin
+detectar y las cuatro eran agujeros de la PRUEBA: ninguna mesa pendiente
+con un jugador logueado, ningún «adjuntar otra» con una ya puesta, un ancla
+repetida (adjuntar y quitar mandaban el mismo objeto) y ninguna energía
+unida por un efecto ANTES de la de la mano en el mismo turno. Las cuatro,
+añadidas.
+
+**Suite entera** (las 216, con las cuatro nuevas): 214 en verde a la
+primera, la 470 (la conocida) y la 480, que miraba la FORMA de una consulta
+(`.select(COLUMNAS_LISTA)`) y desde ahora va en una función que se repite
+sin los mazos si la base tiene la migración de antes. Cambiada para mirar
+lo que importaba, que es el filtro por ti; en verde.
+
+**Ficheros**: `js/repeticiones/mazos.js` y `js/repeticiones/posicion.js`
+(nuevos), `js/repeticiones.js`, `js/repeticiones/datos.js`,
+`js/repeticiones/registro.js`, `js/repeticiones/iconos.js`,
+`repeticiones.html`, `css/repeticiones.css`, `js/constructor.js`,
+`js/constructor/laboratorio.js`, `js/mis-partidas.js`,
+`js/torneos/ronda.js`, `css/torneos.css`, `js/schema-check.js`,
+`supabase-migration-repeticiones.sql`, `SCHEMA.md`. Rama `pruebas`: las
+cuatro pruebas, sus rigores, `sql-repeticiones.sql`, `test-tanda-480.mjs`
+(el permiso por columnas incluye ya las notas) y
+`herramientas/stub-supabase.js`.
+
+**En curso / pendiente**: que un humano ejecute la migración. Las notas no
+salen en el vídeo (se podría: un rótulo en la jugada). Un mazo de lo visto
+es un mínimo: «Jugar desde aquí» rellena el resto con «Carta sin ver», que
+es honesto pero hace que robar una de esas no diga nada.
+
 ## 2026-10-03 — PINGU-Claude (tandas 492 y 493 — los momentos, los números y el vídeo vertical de /repeticiones)
 
 **Choque de números, el noveno (y doble)**: las tenía como 490 y 491, y la

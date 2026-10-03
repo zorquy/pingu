@@ -151,6 +151,9 @@ async function partidasApuntadas() {
     // comparten fecha de juego: la del torneo).
     torneoId: p.torneo_id || null,
     creada: p.created_at,
+    // La repetición de la que se apuntó (tanda 494), si se apuntó al
+    // guardarla en /repeticiones. Una fila de antes no la trae.
+    repeticion: p.replay_id || null,
   }))
 }
 
@@ -290,6 +293,7 @@ function pintarLista(partidas) {
         p.deTorneo
           ? ''
           : `<span class="partidas-fila-acciones">
+              ${p.repeticion ? `<a class="btn-outline" href="/repeticiones?r=${encodeURIComponent(p.repeticion)}">Ver la repetición</a>` : ''}
               <button class="btn-outline" data-editar="${escapeHtml(p.id)}">Editar</button>
               <button class="btn-outline partidas-borrar" data-borrar="${escapeHtml(p.id)}">Borrar</button>
             </span>`

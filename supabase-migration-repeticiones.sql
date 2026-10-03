@@ -37,6 +37,20 @@
 --   · Jugadores, ganador y turnos van aparte para la lista y para la
 --     vista previa al pegar el enlace, que así no se traen el registro.
 --
+-- LO QUE SE AÑADIÓ DESPUÉS (tandas 494 a 496)
+--
+--   · El MAZO de cada uno, deducido de lo que se vio (`mazo_a`, `mazo_b`):
+--     para etiquetar «Tus repeticiones» sin traerse el registro entero.
+--   · Las NOTAS del dueño en jugadas concretas (`notas`).
+--   · Mis partidas: una partida apuntada al guardar una repetición lleva
+--     su enlace (`match_log.replay_id`), y guardarla otra vez no la apunta
+--     dos veces.
+--   · Los torneos: un jugador adjunta la repetición de su partida, y la
+--     ven los dos jugadores y quien lleva o arbitra el torneo.
+--
+-- Si ya la ejecutaste antes, ejecútala OTRA VEZ: lo de arriba se añade sin
+-- tocar lo que ya hay.
+--
 -- CÓMO SE EJECUTA
 --
 -- Pégalo entero en el SQL Editor de Supabase y dale a Run. Es idempotente:
@@ -122,6 +136,44 @@ create trigger replays_tope
   before insert on public.replays
   for each row execute function public.replays_tope();
 
+-- ── 1 bis. Lo que se añadió después ──
+--
+-- Con `add column if not exists`: en una base donde ya estaba la tabla se
+-- añaden, y en una nueva no estorban.
+alter table public.replays add column if not exists mazo_a text;
+alter table public.replays add column if not exists mazo_b text;
+alter table public.replays add column if not exists notas jsonb not null default '[]'::jsonb;
+
+alter table public.replays drop constraint if exists replays_mazos;
+alter table public.replays add constraint replays_mazos check (
+  char_length(coalesce(mazo_a, '')) <= 120 and char_length(coalesce(mazo_b, '')) <= 120);
+
+-- Una nota es { fila, texto }: la jugada y lo que dice, de 1 a 500
+-- caracteres. Como mucho 300 por repetición. La jugada va por la LÍNEA del
+-- registro (`fila`, contando desde 0) y no por el número de jugada de la
+-- página: el registro guardado no cambia nunca, y el número de jugada sí
+-- cambia el día que el lector aprende a leer una línea más. Se comprueba
+-- nota a nota con una función (un `check` no puede recorrer una lista él
+-- solo).
+create or replace function public.replays_notas_validas(n jsonb)
+returns boolean
+language sql
+immutable
+as $$
+  select jsonb_typeof(n) = 'array'
+     and jsonb_array_length(n) <= 300
+     and coalesce((
+       select bool_and(
+         jsonb_typeof(e) = 'object'
+         and jsonb_typeof(e -> 'fila') = 'number'
+         and (e ->> 'fila')::numeric between 0 and 100000
+         and jsonb_typeof(e -> 'texto') = 'string'
+         and char_length(e ->> 'texto') between 1 and 500)
+       from jsonb_array_elements(n) e), true)
+$$;
+alter table public.replays drop constraint if exists replays_notas;
+alter table public.replays add constraint replays_notas check (public.replays_notas_validas(notas));
+
 -- ── 2. Quién ve y toca qué ──
 alter table public.replays enable row level security;
 
@@ -138,23 +190,29 @@ create policy replays_borrar on public.replays
   for delete using (auth.uid() = user_id);
 
 -- Sin política de insert, a propósito: se guarda por la función. Y el
--- permiso de cambiar va POR COLUMNAS: el título y si se comparte.
+-- permiso de cambiar va POR COLUMNAS: el título, si se comparte y las
+-- notas. Los mazos los pone la función al guardar: salen del registro, no
+-- de lo que alguien escriba.
 revoke all on table public.replays from anon, authenticated;
 grant select, delete on table public.replays to authenticated;
-grant update (titulo, compartida) on table public.replays to authenticated;
+grant update (titulo, compartida, notas) on table public.replays to authenticated;
 
 -- ── 3. Guardar ──
 --
 -- Devuelve el identificador del enlace, si queda compartida y si la fila
 -- es nueva. Guardar otra vez la misma partida cambia el título (si se da)
 -- y lo de compartir (si se dice), y devuelve la de antes.
+-- La de antes tenía un argumento menos: se quita, porque dos funciones del
+-- mismo nombre con argumentos por defecto se pisan al llamarlas por la API.
+drop function if exists public.repeticiones_guardar(text, text, text[], text, int, boolean);
 create or replace function public.repeticiones_guardar(
   p_registro text,
   p_titulo text default null,
   p_jugadores text[] default null,
   p_ganador text default null,
   p_turnos int default null,
-  p_compartida boolean default null
+  p_compartida boolean default null,
+  p_mazos text[] default null
 )
 returns table (id text, compartida boolean, nueva boolean)
 language plpgsql
@@ -180,7 +238,9 @@ begin
   if v_id is not null then
     update public.replays r
        set titulo = coalesce(v_titulo, r.titulo),
-           compartida = coalesce(p_compartida, r.compartida)
+           compartida = coalesce(p_compartida, r.compartida),
+           mazo_a = coalesce(left(nullif(trim(p_mazos[1]), ''), 120), r.mazo_a),
+           mazo_b = coalesce(left(nullif(trim(p_mazos[2]), ''), 120), r.mazo_b)
      where r.id = v_id
      returning r.compartida into v_compartida;
     return query select v_id, v_compartida, false;
@@ -194,7 +254,7 @@ begin
   loop
     v_intentos := v_intentos + 1;
     begin
-      insert into public.replays (user_id, titulo, registro, jugador_a, jugador_b, ganador, turnos, compartida)
+      insert into public.replays (user_id, titulo, registro, jugador_a, jugador_b, ganador, turnos, compartida, mazo_a, mazo_b)
       values (
         v_yo,
         coalesce(v_titulo, 'Repetición'),
@@ -203,7 +263,9 @@ begin
         left(nullif(trim(p_jugadores[2]), ''), 40),
         left(nullif(trim(p_ganador), ''), 40),
         case when p_turnos between 0 and 500 then p_turnos end,
-        coalesce(p_compartida, false)
+        coalesce(p_compartida, false),
+        left(nullif(trim(p_mazos[1]), ''), 120),
+        left(nullif(trim(p_mazos[2]), ''), 120)
       )
       returning replays.id, replays.compartida into v_id, v_compartida;
       return query select v_id, v_compartida, true;
@@ -228,15 +290,18 @@ $$;
 -- ── 4. Abrir una con su enlace ──
 --
 -- La tuya siempre; la de otra persona, solo si está compartida.
+-- Con los mazos y las notas desde las tandas 494 y 495: cambiar lo que devuelve
+-- una función pide quitarla antes.
+drop function if exists public.repeticiones_leer(text);
 create or replace function public.repeticiones_leer(p_id text)
-returns table (registro text, titulo text, jugador_a text, jugador_b text, turnos int, created_at timestamptz, mia boolean, compartida boolean)
+returns table (registro text, titulo text, jugador_a text, jugador_b text, turnos int, created_at timestamptz, mia boolean, compartida boolean, notas jsonb, mazo_a text, mazo_b text)
 language sql
 stable
 security definer
 set search_path = public
 as $$
   select r.registro, r.titulo, r.jugador_a, r.jugador_b, r.turnos, r.created_at,
-         r.user_id = auth.uid(), r.compartida
+         coalesce(r.user_id = auth.uid(), false), r.compartida, r.notas, r.mazo_a, r.mazo_b
   from public.replays r
   where r.id = p_id
     and (r.compartida or r.user_id = auth.uid())
@@ -262,8 +327,8 @@ $$;
 -- Una función nueva nace con EXECUTE para PUBLIC: se quita y se da a quien
 -- toca (y a `service_role` aparte, que el `revoke` de public se lo quita
 -- también — tanda 387).
-revoke all on function public.repeticiones_guardar(text, text, text[], text, int, boolean) from public, anon;
-grant execute on function public.repeticiones_guardar(text, text, text[], text, int, boolean) to authenticated, service_role;
+revoke all on function public.repeticiones_guardar(text, text, text[], text, int, boolean, text[]) from public, anon;
+grant execute on function public.repeticiones_guardar(text, text, text[], text, int, boolean, text[]) to authenticated, service_role;
 
 revoke all on function public.repeticiones_leer(text) from public;
 grant execute on function public.repeticiones_leer(text) to anon, authenticated, service_role;
@@ -272,6 +337,146 @@ revoke all on function public.repeticiones_resumen(text) from public;
 grant execute on function public.repeticiones_resumen(text) to anon, authenticated, service_role;
 
 revoke all on function public.replays_tope() from public, anon, authenticated;
+
+-- ── 6. Mis partidas (tanda 494) ──
+--
+-- Guardar una repetición apunta la partida en Mis partidas (si dices cuál
+-- de los dos eres): la fila lleva el enlace de la repetición, y guardarla
+-- otra vez no la apunta dos veces. Si Mis partidas no está puesta en esta
+-- base (supabase-migration-partidas.sql), esto se salta.
+do $$
+begin
+  if to_regclass('public.match_log') is not null then
+    alter table public.match_log add column if not exists replay_id text references public.replays (id) on delete set null;
+    create unique index if not exists match_log_repeticion on public.match_log (user_id, replay_id) where replay_id is not null;
+  end if;
+end
+$$;
+
+-- ── 7. La repetición de una partida de torneo (tanda 496) ──
+--
+-- Un jugador adjunta la repetición de SU partida: hasta tres por jugador y
+-- partida, que es lo que dura un BO3. La ven los dos jugadores, quien
+-- lleva el torneo y sus jueces:
+-- sirve para resolver una disputa con la partida delante. Nadie escribe en
+-- la tabla directamente (tanda 252: un jugador normal no escribe en las
+-- tablas del torneo): se adjunta y se quita por dos funciones. Adjuntar la
+-- COMPARTE, porque si no, los demás no la podrían abrir.
+--
+-- Si los torneos no están puestos en esta base, esto se salta.
+-- El juez de un torneo, si los jueces están puestos (tanda 394); si no, no
+-- hay jueces que mirar.
+create or replace function public.repeticiones_juez_de(p_torneo uuid)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if to_regclass('public.judge_applications') is null then
+    return false;
+  end if;
+  return exists (
+    select 1 from public.judge_applications j
+     where j.tournament_id = p_torneo and j.user_id = auth.uid() and j.status = 'approved');
+end;
+$$;
+
+do $$
+begin
+  if to_regclass('public.tournament_matches') is null or to_regclass('public.rounds') is null then
+    return;
+  end if;
+
+  create table if not exists public.tournament_match_replays (
+    match_id uuid not null references public.tournament_matches (id) on delete cascade,
+    user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+    replay_id text not null references public.replays (id) on delete cascade,
+    created_at timestamptz not null default now(),
+    primary key (match_id, replay_id)
+  );
+  create index if not exists tmr_por_jugador on public.tournament_match_replays (match_id, user_id);
+  alter table public.tournament_match_replays enable row level security;
+  revoke all on table public.tournament_match_replays from anon, authenticated;
+  grant select on table public.tournament_match_replays to authenticated;
+
+  drop policy if exists tmr_ver on public.tournament_match_replays;
+  create policy tmr_ver on public.tournament_match_replays for select using (
+    exists (
+      select 1
+        from public.tournament_matches m
+        join public.rounds r on r.id = m.round_id
+       where m.id = match_id
+         and (m.player_a_id = auth.uid()
+           or m.player_b_id = auth.uid()
+           or public.torneos_mando(r.tournament_id)
+           or public.repeticiones_juez_de(r.tournament_id))
+    )
+  );
+end
+$$;
+
+create or replace function public.torneos_adjuntar_repeticion(p_partida uuid, p_repeticion text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_yo uuid := auth.uid();
+begin
+  if v_yo is null then
+    raise exception 'Hace falta iniciar sesión.' using errcode = '28000';
+  end if;
+  if not exists (
+    select 1 from public.tournament_matches m
+     where m.id = p_partida and (m.player_a_id = v_yo or m.player_b_id = v_yo)
+  ) then
+    raise exception 'Solo los dos jugadores de una partida pueden adjuntarle su repetición.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from public.replays r where r.id = p_repeticion and r.user_id = v_yo) then
+    raise exception 'Esa repetición no es tuya: guárdala primero en «Tus repeticiones».' using errcode = '42501';
+  end if;
+  -- La misma otra vez no cuenta: ya está.
+  if exists (select 1 from public.tournament_match_replays t where t.match_id = p_partida and t.replay_id = p_repeticion) then
+    return true;
+  end if;
+  if (select count(*) from public.tournament_match_replays t where t.match_id = p_partida and t.user_id = v_yo) >= 3 then
+    raise exception 'Caben tres repeticiones tuyas por partida (una por juego de un BO3): quita una antes.' using errcode = 'P0001';
+  end if;
+  update public.replays set compartida = true where id = p_repeticion;
+  insert into public.tournament_match_replays (match_id, user_id, replay_id)
+  values (p_partida, v_yo, p_repeticion);
+  return true;
+end;
+$$;
+
+-- Quitar una: solo la tuya. La repetición se queda guardada (y compartida,
+-- que es cosa de «Tus repeticiones»): esto solo la desengancha de la mesa.
+drop function if exists public.torneos_quitar_repeticion(uuid);
+create or replace function public.torneos_quitar_repeticion(p_partida uuid, p_repeticion text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Hace falta iniciar sesión.' using errcode = '28000';
+  end if;
+  delete from public.tournament_match_replays
+   where match_id = p_partida and replay_id = p_repeticion and user_id = auth.uid();
+  return found;
+end;
+$$;
+
+revoke all on function public.repeticiones_juez_de(uuid) from public, anon;
+grant execute on function public.repeticiones_juez_de(uuid) to authenticated, service_role;
+revoke all on function public.torneos_adjuntar_repeticion(uuid, text) from public, anon;
+grant execute on function public.torneos_adjuntar_repeticion(uuid, text) to authenticated, service_role;
+revoke all on function public.torneos_quitar_repeticion(uuid, text) from public, anon;
+grant execute on function public.torneos_quitar_repeticion(uuid, text) to authenticated, service_role;
 
 commit;
 

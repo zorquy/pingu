@@ -934,6 +934,15 @@ async function cargarDesdeUrl() {
       estado.nombre = b.nombre || ''
       estado.formato = b.formato || 'standard'
     }
+    // Desde una repetición (tanda 494) llega también el nombre del
+    // arquetipo, como desde /meta, y un aviso: lo que trae es lo que se
+    // VIO en la partida, no la lista, y eso hay que decirlo.
+    const nombre = (p.get('nombre') || '').trim().slice(0, 80)
+    if (nombre && !estado.nombre) estado.nombre = nombre
+    if (p.get('de') === 'repeticion') {
+      const n = lista().reduce((k, e) => k + e.n, 0)
+      aviso(`<p>Esto es lo que se vio de este mazo en la repetición: ${n} ${n === 1 ? 'carta' : 'cartas'}, y cada cuenta es lo mínimo que llevaba. Lo que no salió en la partida no está: el resto lo pones tú.</p>`)
+    }
     return
   }
 
