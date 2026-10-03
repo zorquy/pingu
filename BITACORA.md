@@ -35,6 +35,62 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 — PINGU-Claude (tanda 500 — la sonda de Scrydex, y la guarda de admin en un sitio)
+
+**Hecho**: PINGU ya tiene `SCRYDEX_API_KEY` y `SCRYDEX_TEAM_ID` en Netlify
+(su documentación pide LAS DOS cabeceras, `X-Api-Key` y `X-Team-ID`). Esto
+es con qué preguntarle sin romper nada.
+
+**Un detalle de sus docs que decide el diseño**: una petición SIN
+autenticar **no falla**, pasa «con el límite de peticiones muy reducido».
+Olvidar una variable no daría un error que cante, daría una API que parece
+ir mal. Por eso `cabecerasDe` exige las dos y no sale de casa si falta
+alguna, diciendo cuál por su NOMBRE (nunca su valor).
+
+**Por qué una función de servidor y no JS de /admin**: la clave estaría en
+el navegador, y **una clave en el JS de una página es una clave
+publicada**. El panel solo pide el resultado, con la sesión de admin.
+
+**Las dos formas caras de que salga mal, y sus guardas**:
+
+1. **Que cualquiera gaste los créditos.** Una función de Netlify es una URL
+   pública; con 5.000 créditos al mes eso se agota en una tarde. Guarda de
+   admin, como `generate-course`.
+2. **Que nuestras claves salgan a otro servidor.** A la petición se le
+   enganchan las dos, así que una `ruta` sin acotar las mandaría adonde
+   diga quien llame. Que solo llame un admin REDUCE el riesgo, no lo quita.
+   Ruta validada y parámetros por `URLSearchParams`; ocho rutas maliciosas
+   en la prueba. Y lo que devuelve no lleva las claves.
+
+**Y la guarda de admin, por fin en un sitio**: había DOS copias y ya habían
+DIVERGIDO (`requireAdminUserId` devuelve el id y no acepta `fetchImpl`;
+`esAdmin` devuelve booleano y sí). La de Scrydex habría sido la tercera —la
+norma de la 471—. Ahora vive en `netlify/lib/admin.mjs` con prueba, y
+lleva una decisión que merece su línea: **un corte de red NO es un
+permiso**, porque lo contrario convierte una caída de Supabase en barra
+libre con nuestra clave de pago.
+
+**Ficheros**: `netlify/lib/admin.mjs` (NUEVO),
+`netlify/functions/scrydex-sonda.mjs` (NUEVO), `netlify/lib/scrydex.mjs`,
+`admin/index.html`, `admin/js/admin.js`, `SCHEMA.md`, `BITACORA.md`. En la
+rama `pruebas`: `pruebas/test-tanda-500.mjs` (NUEVO).
+
+**Prueba**: 50 comprobaciones en verde. Mutada por los dos caminos de
+seguridad: si la ruta deja de validarse caen 9, y si un corte de red cuenta
+como permiso cae 1.
+
+**En curso / pendiente**: (1) **PINGU: pulsa «Preguntar a Scrydex» en
+/admin → Cartas** (opción 1, expansiones inglesas) y pásame el cuadro: hace
+falta para saber cómo se llaman sus campos antes de emparejar nada. (2)
+**Lo primero que hay que MEDIR es el inglés** —1.351 escaneos y 63 logos—,
+que es la mitad del motivo de pagar y lo único que la evaluación de Cowork
+no midió. (3) **Migrar `generate-course` y `telegram-mandar`** a
+`netlify/lib/admin.mjs`: no se ha hecho aquí porque son camino de seguridad
+en producción y ninguna prueba los cubría. (4) Preguntar a Scrydex por
+escrito si bajarse el catálogo entero cae en su cláusula de «wholesale data
+source». (5) No quitar chino ni taiwanés del selector sin mirar antes
+cuántas personas tienen colección ahí.
+
 ## 2026-10-04 — PINGU-Claude (tanda 499 — Scrydex: el emparejamiento y la imagen de relleno)
 
 **Hecho**: PINGU paga el **Starter de Scrydex (29 $)** para tapar lo que

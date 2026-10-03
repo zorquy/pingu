@@ -3016,6 +3016,82 @@ async function diagnosticarCartas() {
 // Y de paso resuelve el otro tropiezo: `cs1a CN` devolvió 404 porque ese
 // identificador no existe: el chino nombra sus sets de otra forma. El
 // listado los trae, así que enseñarlos quita de adivinar.
+// ── PREGUNTARLE A SCRYDEX, EN CRUDO (tanda 500) ──
+//
+// PINGU paga el Starter de Scrydex (29 $) para tapar lo que TCGdex no
+// tiene. Antes de escribir una sola fila en la base hay que VER qué
+// contesta, y por el mismo motivo que los dos botones de TCGdex: llevamos
+// una sesión entera pagando el precio de afirmar cosas de una API que no
+// se había llamado.
+//
+// Va por una FUNCIÓN DE SERVIDOR y no desde aquí porque la clave estaría
+// en el JavaScript de esta página, y una clave en el JS de una web es una
+// clave publicada. Aquí solo se pide el resultado, con la sesión de admin.
+//
+// LO PRIMERO QUE HAY QUE MEDIR ES EL INGLÉS: nos faltan 1.351 escaneos y
+// 63 logos occidentales, y es la mitad del motivo para pagar — y lo único
+// que la evaluación de Cowork no midió.
+const SONDAS_SCRYDEX = [
+  ['Expansiones inglesas (una, para ver los campos)', 'en/expansions', { page_size: '1' }],
+  ['Expansiones japonesas (una)', 'ja/expansions', { page_size: '1' }],
+  ['Una carta cualquiera', 'cards', { page_size: '1' }],
+]
+
+async function sondearScrydex() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnSondearScrydex')
+  const sugerencia = SONDAS_SCRYDEX.map((s, i) => `${i + 1}. ${s[0]}`).join('\n')
+  const elegido = window.prompt(
+    `¿Qué le pregunto a Scrydex?\n\n${sugerencia}\n\nEscribe 1, 2 o 3 — o una ruta suya a pelo, como «en/expansions».`,
+    '1'
+  )
+  if (!elegido) return
+  const n = Number(elegido.trim())
+  const [, ruta, params] = SONDAS_SCRYDEX[n - 1] || [null, elegido.trim(), { page_size: '1' }]
+
+  const { data: { session } = {} } = await supabase.auth.getSession()
+  if (!session) {
+    cardsNota('No hay sesión: vuelve a entrar.', true)
+    return
+  }
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = `Preguntando a Scrydex por «${ruta}»…`
+  try {
+    const res = await fetch('/.netlify/functions/scrydex-sonda', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ ruta, params }),
+    })
+    const r = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      caja.value = `No se ha podido: ${r.error || res.status}`
+      cardsNota(r.error || `La sonda ha fallado (${res.status}).`, true)
+      boton.disabled = false
+      return
+    }
+    caja.value = [
+      `GET ${r.url}`,
+      `HTTP ${r.estadoHttp}${r.recortado ? '  (respuesta recortada)' : ''}`,
+      '',
+      r.respuesta,
+      '',
+      'CÓMO SE LEE ESTO:',
+      '  · HTTP 401/403 → la clave o el id de equipo no están bien en Netlify.',
+      '  · HTTP 200 con datos → mira cómo se llaman sus campos: hace falta',
+      '    para emparejar su catálogo con el nuestro.',
+      '  · Ojo con las imágenes: su servidor devuelve una imagen de RELLENO',
+      '    con un 200 para cualquier id que no exista, así que una URL en el',
+      '    JSON no significa que haya escaneo (ver `esRelleno`).',
+    ].join('\n')
+    cardsNota('Listo. Copia el cuadro entero.')
+  } catch (err) {
+    caja.value = `No se ha podido: ${err.message}`
+    cardsNota(`La sonda ha fallado: ${err.message}`, true)
+  }
+  boton.disabled = false
+}
+
 async function sondearMercado() {
   const caja = document.getElementById('cardsDiagnostico')
   const boton = document.getElementById('btnSondearMercado')
@@ -3358,6 +3434,7 @@ function initCardsSection() {
   document.getElementById('btnDiagnosticar')?.addEventListener('click', diagnosticarCartas)
   document.getElementById('btnMirarSet')?.addEventListener('click', mirarUnSet)
   document.getElementById('btnSondearMercado')?.addEventListener('click', sondearMercado)
+  document.getElementById('btnSondearScrydex')?.addEventListener('click', sondearScrydex)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )

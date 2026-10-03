@@ -147,3 +147,50 @@ export function emparejarSets(nuestros, suyos, campos = {}) {
   }
   return { pares, ambiguos, sueltos }
 }
+
+// ── La petición: adónde se va y con qué ──
+
+export const BASE = 'https://api.scrydex.com/pokemon/v1'
+
+// Las dos cabeceras que pide su documentación. Devuelve `{ cabeceras }` o
+// `{ faltan }` con los NOMBRES de las variables que no están — nunca sus
+// valores, que esto se imprime en pantalla.
+//
+// Las dos son obligatorias y conviene saber por qué: según sus docs, una
+// petición SIN autenticar **no falla**, pasa con el límite de peticiones
+// «muy reducido». O sea que olvidarse de una no da un error que cante: da
+// un relleno lento que parece que la API va mal. Mejor no salir de casa.
+export function cabecerasDe(env = {}) {
+  const faltan = ['SCRYDEX_API_KEY', 'SCRYDEX_TEAM_ID'].filter((n) => !env[n])
+  if (faltan.length) return { faltan }
+  return {
+    cabeceras: {
+      'X-Api-Key': env.SCRYDEX_API_KEY,
+      'X-Team-ID': env.SCRYDEX_TEAM_ID,
+      accept: 'application/json',
+    },
+  }
+}
+
+// La URL de una sonda, validada.
+//
+// LA VALIDACIÓN NO ES PAPELEO: a esta petición se le enganchan NUESTRAS
+// DOS CLAVES. Una `ruta` sin acotar —un `https://…` entero, un `../..`, un
+// `//otro-host`— mandaría las claves a donde diga quien llame. Que solo
+// pueda llamar un admin reduce el riesgo, no lo quita: un admin con la
+// sesión robada, o un enlace que alguien le pase, bastan.
+//
+// Así que la ruta es un trozo de camino y nada más, y los parámetros van
+// por `URLSearchParams`, que escapa lo que haga falta.
+const RUTA_BUENA = /^[a-z0-9][a-z0-9/_-]*$/i
+export function urlDeSonda(ruta, params = {}) {
+  const r = String(ruta || '').replace(/^\/+|\/+$/g, '')
+  if (!r || !RUTA_BUENA.test(r) || r.includes('..') || r.includes('//')) return null
+  const qs = new URLSearchParams()
+  for (const [k, v] of Object.entries(params || {})) {
+    if (v === undefined || v === null || v === '') continue
+    qs.set(String(k), String(v))
+  }
+  const cola = qs.toString()
+  return `${BASE}/${r}${cola ? `?${cola}` : ''}`
+}

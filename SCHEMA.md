@@ -27163,3 +27163,70 @@ compararlo es exactamente el fallo que la función existe para evitar.
 forma exacta de los endpoints, que no se pueden adivinar; y **medir el
 INGLÉS**, que es la mitad del motivo de pagar y lo único que la evaluación
 de COWORK no midió.
+
+## Tanda 500 — la sonda de Scrydex: que la clave no se escape y que nadie más la gaste
+
+PINGU ya tiene **`SCRYDEX_API_KEY`** y **`SCRYDEX_TEAM_ID`** en Netlify. Su
+documentación pide **las dos** cabeceras —`X-Api-Key` y `X-Team-ID`— en
+cada llamada, sobre `https://api.scrydex.com/pokemon/v1/`.
+
+Y un detalle de sus docs que decide el diseño: **una petición sin
+autenticar NO falla**, pasa «con el límite de peticiones muy reducido». O
+sea que olvidar una variable no da un error que cante: da una API que
+parece ir mal. Por eso `cabecerasDe` exige las dos y **no sale de casa** si
+falta alguna, diciendo cuál por su nombre (nunca su valor).
+
+### Por qué una función de servidor y no JavaScript de /admin
+
+Porque la clave estaría en el navegador, y **una clave en el JS de una
+página es una clave publicada**: cualquiera abre el inspector y se la
+lleva. La sonda vive en `netlify/functions/scrydex-sonda.mjs` y el panel
+solo pide el resultado, con la sesión de admin.
+
+### Las dos formas caras de que esto salga mal
+
+**1. Que cualquiera gaste nuestros créditos.** Una función de Netlify es
+una URL pública; sin guarda, quien la descubra tiene una API de pago gratis
+y con 5.000 créditos al mes eso se agota en una tarde. Es el mismo motivo
+por el que `generate-course` la lleva desde el primer día.
+
+**2. Que nuestras claves salgan a otro servidor.** A esta petición se le
+enganchan las dos. Una `ruta` sin acotar —un `https://…` entero, un
+`../..`, un `//otro-host`— las mandaría adonde diga quien llame. Que solo
+pueda llamar un admin **reduce** el riesgo, no lo quita: un admin con la
+sesión robada, o un enlace que alguien le pase, bastan. Por eso la ruta es
+un trozo de camino validado y los parámetros van por `URLSearchParams`.
+
+Y lo que devuelve **no lleva las claves**: se pega en un cuadro de texto y
+se copia por ahí.
+
+### La guarda de admin, por fin en un sitio
+
+Había **DOS copias y ya habían divergido**: `requireAdminUserId` en
+`generate-course.mjs` devuelve el id y no acepta `fetchImpl`; `esAdmin` en
+`telegram-mandar.mjs` devuelve un booleano y sí. La de Scrydex habría sido
+la tercera, que es justo lo que prohíbe la norma de la 471.
+
+Ahora está en **`netlify/lib/admin.mjs`**, con prueba. Devuelve el ID y no
+un booleano a propósito: quien solo quiera un sí o un no pregunta por
+`!!id`, pero quien necesite apuntar QUIÉN hizo algo lo tiene sin pedirlo
+otra vez; al revés no se puede.
+
+Y lleva una decisión que merece su línea: **un corte de red NO es un
+permiso.** Si Supabase no contesta, no se pasa — lo contrario convertiría
+su caída en barra libre con nuestra clave de pago.
+
+**Las otras dos NO se han migrado aquí**, a propósito: son camino de
+seguridad en producción y **ninguna prueba las cubría**. Primero existe la
+versión compartida y probada; después se migran a conciencia. Pendiente.
+
+### Qué medir primero
+
+**El inglés.** Nos faltan **1.351 escaneos y 63 logos** occidentales, es la
+mitad del motivo para pagar y es lo único que la evaluación de COWORK no
+midió. Si el inglés está igual de flojo que TCGdex, mejor saberlo el primer
+día y no después del relleno japonés.
+
+**Ficheros**: `netlify/lib/admin.mjs` (nuevo),
+`netlify/functions/scrydex-sonda.mjs` (nuevo), `netlify/lib/scrydex.mjs`,
+`admin/index.html`, `admin/js/admin.js`.
