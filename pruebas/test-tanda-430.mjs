@@ -14,6 +14,16 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 240) : ''}`)
 }
+
+// ── LOS MANDOS DE LA CABECERA VIVEN DETRÁS DEL ⋮ (tanda 475) ──
+// Encontrar un elemento no es poder pulsarlo, así que hay que abrir el menú
+// primero. Y se cierra solo al elegir, así que cada pulsación abre otra vez.
+const porElMenu = async (page, sel) => {
+  await page.click('#mcAlbumMenu > summary')
+  await page.waitForTimeout(250)
+  await page.click(sel)
+  await page.waitForTimeout(350)
+}
 const RAIZ = '/home/user/pingu'
 const BASE = process.env.BASE || 'http://localhost:8892'
 const { textoDeLoQueFalta } = await import(`${RAIZ}/js/mi-coleccion/lo-que-falta.js`)
@@ -97,7 +107,7 @@ const dice = async (boton) => (await boton.getAttribute('aria-label') || '').tri
   const { page, errores } = await abrir()
   const boton = page.locator('#mcFaltanCopiar')
   check('el botón dice cuántas son', (await dice(boton)) === 'Copiar las 5 que me faltan', await dice(boton))
-  await boton.click()
+  await porElMenu(page, '#mcFaltanCopiar')
   await page.waitForTimeout(600)
   const t = await pegado(page)
   check('copia la lista', /Me faltan 5 de las 6 de Roaring Skies \(ROS\)/.test(t), t.split('\n')[0])
@@ -116,7 +126,7 @@ const dice = async (boton) => (await boton.getAttribute('aria-label') || '').tri
   await page.waitForTimeout(400)
   await page.waitForTimeout(700)
   check('con un filtro, el botón cuenta otra cosa', (await dice(boton)) === 'Copiar las 3 que me faltan', await dice(boton))
-  await boton.click()
+  await porElMenu(page, '#mcFaltanCopiar')
   await page.waitForTimeout(600)
   const f = await pegado(page)
   check('  …y el texto AVISA de que hay filtros', /filtros puestos/.test(f), f.split('\n')[0])
@@ -151,7 +161,7 @@ const dice = async (boton) => (await boton.getAttribute('aria-label') || '').tri
   const boton = page.locator('#mcFaltanCopiar')
   check('con las versiones separadas cuenta huecos, no cartas',
     (await dice(boton)) === 'Copiar las 3 que me faltan', await dice(boton))
-  await boton.click()
+  await porElMenu(page, '#mcFaltanCopiar')
   await page.waitForTimeout(600)
   const t = await pegado(page)
   check('  …el reverse de la que tienes SIGUE faltando', /101 · Carta 1 \(/.test(t), t)

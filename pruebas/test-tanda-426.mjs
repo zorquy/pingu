@@ -26,6 +26,16 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 200) : ''}`)
 }
+
+// ── LOS MANDOS DE LA CABECERA VIVEN DETRÁS DEL ⋮ (tanda 475) ──
+// Encontrar un elemento no es poder pulsarlo, así que hay que abrir el menú
+// primero. Y se cierra solo al elegir, así que cada pulsación abre otra vez.
+const porElMenu = async (page, sel) => {
+  await page.click('#mcAlbumMenu > summary')
+  await page.waitForTimeout(250)
+  await page.click(sel)
+  await page.waitForTimeout(350)
+}
 const BASE = process.env.BASE || 'http://localhost:8892'
 const leer = (f) => readFileSync(`/home/user/pingu/${f}`, 'utf8')
 const browser = await chromium.launch()
@@ -81,7 +91,7 @@ console.log('\n── 2. Encendido: se marca, y no se escribe nada ──')
 {
   const { page, errores } = await abrir()
   await page.evaluate(() => sessionStorage.removeItem('__escrituras__'))
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(400)
   check('sale la barra', await page.locator('#mcMarcarBarra').isVisible())
   check('  …diciendo qué hacer', /Toca las cartas/.test(await page.locator('#mcMarcarCuenta').textContent()))
@@ -96,12 +106,12 @@ console.log('\n── 2. Encendido: se marca, y no se escribe nada ──')
   check('pulsar marca, no abre la ficha', (await page.locator('#mcEditor[open]').count()) === 0)
   check('  …y van dos', (await marcadas(page)) === 2, String(await marcadas(page)))
   // El mismo botón lo apaga: es un interruptor, no un encendedor.
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(500)
   check('el mismo botón lo apaga', await page.locator('#mcMarcarBarra').isHidden())
   check('  …y lo dice', (await page.locator('#mcMarcarAbrir').getAttribute('aria-pressed')) === 'false')
   check('  …y el − y el + vuelven', await page.locator('#mcAlbum .mc-bolsillo-mando').first().isVisible())
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(500)
   check('  …y al volver a encenderlo no quedan marcas de antes', (await marcadas(page)) === 0, String(await marcadas(page)))
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(1).click()
@@ -127,7 +137,7 @@ console.log('\n── 3. Lo marcado aguanta un repintado ──')
   // perdería en el primer repintado, y sin dar error: parecería que has
   // desmarcado tú.
   const { page } = await abrir()
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(400)
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(1).click()
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(3).click()
@@ -144,7 +154,7 @@ console.log('\n── 3. Lo marcado aguanta un repintado ──')
 console.log('\n── 4. Cancelar no guarda nada ──')
 {
   const { page } = await abrir()
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(400)
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(1).click()
   await page.waitForTimeout(300)
@@ -156,7 +166,7 @@ console.log('\n── 4. Cancelar no guarda nada ──')
   check('  …y sin marcas', (await marcadas(page)) === 0)
   check('  …y el − y el + vuelven', await page.locator('#mcAlbum .mc-bolsillo-mando').first().isVisible())
   // Y salir de la expansión también lo apaga: lo marcado es de ESTE set.
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(300)
   await page.click('#mcAlbumVolver')
   await page.waitForTimeout(800)
@@ -175,7 +185,7 @@ console.log('\n── 4. Cancelar no guarda nada ──')
 console.log('\n── 5. Guardar: UNA petición, no una por carta ──')
 {
   const { page, errores } = await abrir()
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(400)
   const enlaces = page.locator('#mcAlbum .mc-bolsillo-enlace')
   // Tres que no tengo y la primera, que SÍ tengo.
@@ -228,7 +238,7 @@ console.log('\n── 6. Con las versiones separadas, cada casilla es la suya �
   const { page, errores } = await abrir()
   await page.click('#mcVistaVariantes')
   await page.waitForTimeout(900)
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(400)
   // La carta 1 tiene normal y reverse: dos casillas con el MISMO id de
   // carta. Con el id a secas, marcar una marcaría las dos.
@@ -255,7 +265,7 @@ console.log('\n── 6. Con las versiones separadas, cada casilla es la suya �
 console.log('\n── 7. Teclado y señales que no son solo color ──')
 {
   const { page } = await abrir()
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(400)
   const enlace = page.locator('#mcAlbum .mc-bolsillo-enlace').nth(1)
   // `role="button"` promete la barra espaciadora, y un enlace no la tiene.
@@ -291,7 +301,7 @@ console.log('\n── 7 bis. Si la base no deja escribir, se dice ──')
   // cuerpo vacío (CLAUDE.md, y van tres veces). Sin mirarlo, «4 cartas
   // añadidas» saldría igual y no se habría guardado nada.
   const { page } = await abrir({ antes: { __SIN_PERMISO__: ['user_collection'] } })
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(400)
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(1).click()
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(2).click()
@@ -311,7 +321,7 @@ console.log('\n── 7 bis. Si la base no deja escribir, se dice ──')
 console.log('\n── 8. En el móvil ──')
 {
   const { page, errores } = await abrir({ ancho: 390, alto: 820 })
-  await page.click('#mcMarcarAbrir')
+  await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(400)
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(1).click()
   await page.waitForTimeout(300)

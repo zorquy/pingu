@@ -27,6 +27,16 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
+
+// ── LOS MANDOS DE LA CABECERA VIVEN DETRÁS DEL ⋮ (tanda 475) ──
+// Encontrar un elemento no es poder pulsarlo, así que hay que abrir el menú
+// primero. Y se cierra solo al elegir, así que cada pulsación abre otra vez.
+const porElMenu = async (page, sel) => {
+  await page.click('#mcAlbumMenu > summary')
+  await page.waitForTimeout(250)
+  await page.click(sel)
+  await page.waitForTimeout(350)
+}
 const browser = await chromium.launch()
 const SC = '/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad'
 
@@ -138,23 +148,40 @@ console.log('\n── 4. La cabecera, con sus iconos ──')
 {
   const { page } = await abrir()
   await abrirSet(page)
-  const iconos = await page.locator('.mc-album-iconos > *').evaluateAll((ns) => ns.map((n) => ({
-    id: n.id, svg: Boolean(n.querySelector('svg')),
-    // El del ajuste es un `<details>`: quien lleva el rótulo es su
-    // `<summary>`, que es el botón de verdad.
-    rotulo: n.getAttribute('aria-label') || n.querySelector('summary')?.getAttribute('aria-label') || '',
-    ancho: Math.round(n.getBoundingClientRect().width),
-    alto: Math.round(n.getBoundingClientRect().height),
-  })))
-  check('están los cuatro', iconos.length === 4, JSON.stringify(iconos.map((i) => i.id)))
-  check('  …en el orden de Dex: marcar, favorita, compartir y el ajuste',
-    iconos.map((i) => i.id).join(',') === 'mcMarcarAbrir,mcAlbumFavorito,mcFaltanCopiar,mcTocarCaja', JSON.stringify(iconos.map((i) => i.id)))
-  check('  …cada uno con su dibujo', iconos.every((i) => i.svg), JSON.stringify(iconos))
-  // Un icono sin palabra NO puede quedarse sin rótulo: es la única pista.
-  check('  …y con su rótulo para quien no lo ve', iconos.every((i) => i.rotulo.length > 4), JSON.stringify(iconos.map((i) => i.rotulo)))
+  // LOS CUATRO SIGUEN ESTANDO, PERO DETRÁS DE UN ⋮ (tanda 475). PINGU:
+  // «estás ocupando mucho espacio arriba… he pensado en poner tres puntos
+  // como pasa en la aplicación de Dex». Lo que esta prueba defendía —que
+  // estén los cuatro, en orden, con su dibujo y con su rótulo— sigue
+  // valiendo; lo que cambia es dónde vive la lista.
+  const boton = page.locator('#mcAlbumMenu > summary')
+  const caja = await boton.evaluate((n) => {
+    const r = n.getBoundingClientRect()
+    return { svg: Boolean(n.querySelector('svg')), rotulo: n.getAttribute('aria-label') || '',
+      ancho: Math.round(r.width), alto: Math.round(r.height) }
+  })
+  check('la cabecera se queda en UN botón', caja.svg === true, JSON.stringify(caja))
+  check('  …con su rótulo para quien no lo ve', caja.rotulo.length > 4, caja.rotulo)
   // Lo que es SOLO un icono sí mide 44 de ancho (la regla de la 312: al de
   // texto se le pide alto, al de icono también ancho).
-  check('  …y miden 36 con ratón', iconos.every((i) => i.ancho >= 36 && i.alto >= 36), JSON.stringify(iconos))
+  check('  …y mide 36 con ratón', caja.ancho >= 36 && caja.alto >= 36, JSON.stringify(caja))
+  await boton.click()
+  await page.waitForTimeout(350)
+  const iconos = await page.locator('#mcAlbumMenu .mc-menu-opcion').evaluateAll((ns) => ns.map((n) => ({
+    id: n.id, svg: Boolean(n.querySelector('svg')), texto: n.textContent.trim(),
+    alto: Math.round(n.getBoundingClientRect().height),
+  })))
+  check('están los tres mandos dentro', iconos.length === 3, JSON.stringify(iconos.map((i) => i.id)))
+  check('  …en el orden de Dex: marcar, favorita y compartir',
+    iconos.map((i) => i.id).join(',') === 'mcMarcarAbrir,mcAlbumFavorito,mcFaltanCopiar', JSON.stringify(iconos.map((i) => i.id)))
+  check('  …cada uno con su dibujo', iconos.every((i) => i.svg), JSON.stringify(iconos))
+  // Y aquí dentro SÍ llevan palabra, que es la gracia del menú: cuatro
+  // iconos seguidos sin un rótulo al lado son un acertijo.
+  check('  …y con su nombre escrito', iconos.every((i) => i.texto.length > 4), JSON.stringify(iconos.map((i) => i.texto)))
+  check('  …y miden 44 de alto', iconos.every((i) => i.alto >= 44), JSON.stringify(iconos))
+  // Y el ajuste de «al añadir», el cuarto, también está dentro.
+  check('  …y el ajuste de añadir, con ellos', await page.locator('#mcAlbumMenu #mcTocarOpciones').isVisible())
+  await page.click('#mcAlbumMenu > summary')
+  await page.waitForTimeout(250)
   // Y las chapas con texto que los sustituyeron ya no están en la fila.
   const fila = await page.locator('#mcAlbumFiltros').textContent()
   check('«Al añadir» ya no ocupa la fila de filtros', !/Al añadir/.test(fila), fila.slice(0, 120))
@@ -170,7 +197,7 @@ console.log('\n── 5. El ajuste de «al añadir» sigue existiendo, en los aj
   // colecciona en inglés tendría que editar carta por carta.
   const { page } = await abrir()
   await abrirSet(page)
-  await page.click('#mcTocarCaja > summary')
+  await page.click('#mcAlbumMenu > summary')
   await page.waitForTimeout(400)
   const panel = await page.locator('#mcTocarOpciones').evaluate((n) => {
     const r = n.getBoundingClientRect()

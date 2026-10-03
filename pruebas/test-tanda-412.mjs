@@ -6,6 +6,16 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 200) : ''}`)
 }
+
+// ── LOS MANDOS DE LA CABECERA VIVEN DETRÁS DEL ⋮ (tanda 475) ──
+// Encontrar un elemento no es poder pulsarlo, así que hay que abrir el menú
+// primero. Y se cierra solo al elegir, así que cada pulsación abre otra vez.
+const porElMenu = async (page, sel) => {
+  await page.click('#mcAlbumMenu > summary')
+  await page.waitForTimeout(250)
+  await page.click(sel)
+  await page.waitForTimeout(350)
+}
 const browser = await chromium.launch()
 const abrir = async (ruta) => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } })
@@ -81,12 +91,15 @@ console.log('\n── 2. El archivador, con los mandos en una fila ──')
   // frase para un ajuste que se toca una vez. Ahora cuelga de su chapa.
   check('el ajuste de añadir no ocupa sitio',
     (await page.locator('#mcTocarOpciones').isVisible()) === false)
-  await page.locator('#mcTocarCaja summary').click()
+  await page.click('#mcAlbumMenu > summary')
   await page.waitForTimeout(300)
   check('  …y se abre al pedirlo', await page.locator('#mcTocarOpciones').isVisible())
   // Y colgando: si empujara la fila, al abrirlo se movería todo lo de
-  // debajo y se perdería de vista lo que estabas mirando.
-  const flota = await page.locator('#mcTocarOpciones').evaluate((e) => getComputedStyle(e).position)
+  // debajo y se perdería de vista lo que estabas mirando. Desde la tanda
+  // 475 quien flota es EL MENÚ que lo lleva dentro, no el ajuste suelto:
+  // el engranaje propio desapareció porque un desplegable dentro de otro
+  // desplegable es un acertijo.
+  const flota = await page.locator('#mcAlbumMenu .mc-menu').evaluate((e) => getComputedStyle(e).position)
   check('  …sin empujar lo de abajo', flota === 'absolute', flota)
 
   // La chapa de versión vive en la misma fila que los filtros, no en una

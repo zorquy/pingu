@@ -114,7 +114,11 @@ const titulos = (page) =>
   const { page } = await abrir()
   await page.locator('[data-set="sv1"]').click()
   await page.waitForTimeout(900)
+  // Desde la tanda 475 la estrella vive dentro del menú de ⋮, así que para
+  // VERLA hay que abrirlo — encontrar un elemento no es verlo.
   const b = page.locator('#mcAlbumFavorito')
+  await page.click('#mcAlbumMenu > summary')
+  await page.waitForTimeout(300)
   check('dentro de una expansión hay estrella', await b.isVisible())
   check('  …con su icono de js/icons.js', (await b.locator('svg').count()) === 1)
   check('  …y sin marcar de entrada', (await b.getAttribute('aria-pressed')) === 'false')
