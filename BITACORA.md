@@ -35,6 +35,60 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 491 — lo del artículo a su hoja, y el agujero del barrido)
+
+**Hecho**: sigue la 490. Lo de `guia.html` era el trozo más grande que
+quedaba en `components.css` —la maqueta del artículo, los diez
+`.forum-post-*` de los comentarios, el «¿te ha servido?», el muro de pago,
+los avisos de borrador y pendiente, el «escribe tú una guía» y la llamada
+al curso—, y la portada **lo bajaba** sin pintar nada de eso. Ahora vive en
+**`css/guia.css`**, enlazada desde `guia.html`, que sirve `/guia/:slug`,
+`/noticias/:slug` y la vista previa del editor.
+
+`components.css` **25,24 → 23,71 KB**; la portada **169,2 → 167,7**, o sea
+**2,3 KB de margen** donde había 0,1.
+
+Tres de los cuatro `@media` se mudan ENTEROS (hablan solo de estas clases).
+El cuarto —`max-width: 520px` sobre `.guia-cta-curso .btn-primary`— **se
+queda a propósito**: su base también se queda, y los dos juntos no separan
+nada. Comprobado en la pantalla a los dos lados del corte: a 1024 el
+`.article-main` pierde el centrado y la lateral aparece; a 1023 vuelve el
+`margin: 0 auto` y se esconde. Con el `@media` huérfano se vería lo
+contrario.
+
+**Y LO IMPORTANTE, que vale más que el kilobyte: el barrido de
+`test-tanda-299.mjs` tenía un agujero.** Buscaba con
+`/class="([^"$]*)"/`; ese `[^"$]` estaba para no pescar `${...}` pero
+**descarta la cadena COMPLETA**, así que `class="emoji-big ${tinte(id)}"`
+era INVISIBLE para la guarda que vigila el CSS huérfano. Son **143 clases**
+que no veía: casi todo lo de torneos, mi-colección, el laboratorio,
+mis-partidas y las tarjetas de guía.
+
+Se vio porque el barrido me dijo que `.emoji-big` era solo de guia, y es
+mentira: `js/categoria.js` también la escribe. Moverla habría dejado el
+icono de /categoria sin su `display: inline-block` —el que hace que el
+recorte recorte— **sin dar ningún error**. Así que `.emoji-big` NO se ha
+movido, y el barrido está arreglado: ahora se le quitan los `${...}` y se
+queda lo literal. **Con el arreglo puesto la prueba sigue en VERDE**, así
+que no había ningún fallo vivo tapado — pero la red llevaba a medias desde
+la tanda 299.
+
+**Y mi propia herramienta picó en la trampa de la 312**: leía nombres de
+clase DENTRO de los comentarios, así que `/* ── Article (guia.html) ── */`
+le colaba `.html` y daba por compartidas dos bases que son de guia.
+
+**Ficheros**: `css/guia.css` (NUEVO), `css/components.css`, `guia.html`,
+`SCHEMA.md`, `BITACORA.md`. En la rama `pruebas`:
+`pruebas/test-tanda-299.mjs` (el barrido arreglado).
+
+**En curso / pendiente**: (1) **La suite entera hay que volver a pasarla**:
+la que acabó cubría hasta la 489, y la 490 y la 491 mueven CSS. (2) Queda
+lo de `aprender` (0,34 KB) partiendo su `@media` de «menos movimiento».
+(3) Con 2,3 KB de margen ya cabe de sobra el `scroll-padding-top` que la
+489 dejó fuera. (4) **PINGU tiene que decidir lo de Bulbapedia** (CC
+BY-NC-SA 2.5: atribución visible y uso NO comercial). (5) El 426 sigue
+rojo, diagnosticado. (6) Rigores pendientes desde la 443.
+
 ## 2026-10-03 — PINGU-Claude (tanda 490 — hacer sitio en la portada, midiendo primero)
 
 **Hecho**: la portada iba a **169,9 de 170 KB** y `CLAUDE.md` lleva desde

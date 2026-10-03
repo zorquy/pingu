@@ -1,0 +1,360 @@
+/* Lo de la página de un ARTÍCULO (guia.html), que sirve /guia/:slug,
+   /noticias/:slug y la vista previa del editor (tanda 491).
+
+   Vivía en components.css, que lo baja TODO el mundo —incluida la
+   portada, que va a 170 KB justos— y solo lo usa esta pantalla. Es la
+   norma de la 299: lo que solo usa una pantalla, a su hoja.
+
+   Los TRES @media que hay aquí vienen ENTEROS, no partidos: cada uno
+   habla solo de estas clases. Si se hubieran quedado en components.css se
+   habrían cargado ANTES que su base, y un @media no suma especificidad —
+   la maqueta del artículo se habría roto en escritorio y en móvil sin que
+   nada diera error (la trampa de la 299).
+
+   Hay un CUARTO que NO está aquí y es a propósito:
+   `@media (max-width: 520px) { .guia-cta-curso .btn-primary }` se queda en
+   components.css porque su base, `.guia-cta-curso .btn-primary`, también
+   se queda (menciona `.btn-primary`, que es compartida). Los dos juntos
+   allí no separan nada; traerse uno sin el otro sí.
+
+   Y `.emoji-big` tampoco está: `js/categoria.js` la escribe también, y
+   categoria.html no carga esta hoja.
+
+   El porqué de cada regla viaja con ella, en su comentario. */
+
+/* ── Article (guia.html) ── */
+.article-layout {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.article-main {
+  max-width: 700px;
+  margin: 0 auto;
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .article-main {
+    margin: 0;
+  }
+}
+
+.article-header {
+  padding: 8px 0 24px;
+}
+
+/* El aviso de "pendiente de revisión". Cuando quien mira es el autor
+   lleva dentro el botón de seguir editando, así que el texto tiene que
+   poder encogerse y el botón quedarse entero — de ahí el `flex:1` en el
+   texto y el `margin-left:auto` en el botón. En móvil se apila. */
+.guia-aviso-pendiente,
+.guia-aviso-borrador {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--ice);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+/* El de "no publicada" va en color de aviso, no en el azul de la casa: es
+   una advertencia —lo que estás mirando no lo ve nadie— y no una etiqueta
+   informativa más. */
+.guia-aviso-borrador {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+}
+
+.guia-aviso-pendiente > span,
+.guia-aviso-borrador > span {
+  flex: 1;
+  min-width: 200px;
+}
+
+.guia-seguir-editando {
+  margin-left: auto;
+  padding: 8px 12px;
+  font-size: var(--t-sm);
+  white-space: nowrap;
+}
+
+.article-header h1 {
+  font-size: var(--t-2xl);
+  font-weight: 800;
+  margin: 12px 0 8px;
+  letter-spacing: -0.6px;
+}
+
+.article-header .lead {
+  font-size: var(--t-lg);
+  color: var(--text-mid);
+  line-height: 1.5;
+}
+
+.article-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.article-sidebar {
+  width: 210px;
+  flex-shrink: 0;
+  display: none;
+  position: sticky;
+  top: 92px;
+}
+
+@media (min-width: 1024px) {
+  .article-sidebar {
+    display: block;
+  }
+}
+
+.article-sidebar h4 {
+  font-size: var(--t-2xs);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.4px;
+}
+
+.article-sidebar a {
+  display: block;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+  padding: 8px 0;
+  border-left: 2px solid var(--border);
+  padding-left: 12px;
+  transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+
+.article-sidebar a:hover {
+  color: var(--navy);
+  border-left-color: var(--navy);
+}
+
+/* ── Modal ampliado de guía ── */
+
+/* La autoría en la página de la guía. Antes vivía en el pop-up; se
+   quedó cuando este desapareció, pero el nombre ya no encajaba. */
+.guide-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* ── Guía Pro (paywall) ── */
+.pro-paywall {
+  border: 1px dashed #f2b705;
+  background: linear-gradient(180deg, rgba(242, 183, 5, 0.08), transparent 60%);
+  border-radius: var(--radius-lg);
+}
+
+/* ── Comentarios de guía estilo foro ── */
+.guide-forum {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.forum-post {
+  display: flex;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.forum-post-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.forum-post-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.forum-post-author {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.forum-post-date {
+  font-size: var(--t-xs);
+  color: var(--text-dim);
+}
+
+.forum-post-text {
+  margin-top: 8px;
+  font-size: var(--t-md);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.forum-quote {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.forum-post-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.forum-reply-btn {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.forum-reply-btn:hover {
+  color: var(--navy);
+}
+
+.forum-delete-btn {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.forum-delete-btn:hover {
+  color: var(--danger);
+}
+
+/* Invitación a escribir, al final de una guía. Deliberadamente sosa: no
+ * es una llamada a la acción que compita con el contenido, es una puerta
+ * que se ve si la buscas. Un banner de colores al final de CADA guía
+ * cansa a la décima que lees. */
+.write-invite {
+  margin: 16px 0 0;
+  font-size: var(--t-sm);
+  line-height: 1.6;
+  color: var(--text-mid);
+  text-align: center;
+}
+
+.write-invite svg {
+  vertical-align: -2px;
+  margin-right: 2px;
+}
+
+.write-invite a {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+/* ── "Me ha servido" ──
+   Deliberadamente más grande y más visible que las estrellas: es lo que
+   va a pulsar la mayoría, porque no obliga a juzgar a nadie. */
+.helpful-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 24px 0 8px;
+}
+
+.helpful-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-weight: 700;
+  font-size: var(--t-md);
+  cursor: pointer;
+}
+
+.helpful-btn:hover {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.helpful-btn.helpful-on {
+  background: var(--success-bg);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.helpful-count,
+.helpful-solo-contador {
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+  margin: 24px 0 8px;
+}
+
+.helpful-count {
+  margin: 0;
+}
+
+/* ── El puente entre la guía y su curso ──
+   La guía y el curso son dos páginas de la misma cosa y no se
+   enlazaban entre sí. Esto es la llamada del final de la guía; el botón
+   pequeño de arriba y el de vuelta desde el curso reutilizan
+   .btn-secondary tal cual. */
+.guia-cta-curso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 24px 0 4px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, var(--navy), var(--indigo));
+  color: var(--white);
+  border-radius: var(--radius-lg);
+}
+
+.guia-cta-curso h2 {
+  margin: 0;
+  font-size: var(--t-xl);
+  color: var(--white);
+}
+
+/* Los botones de la cabecera de la guía: Guardar, Compartir y, si la hay,
+   ir al curso. Van juntos y son los tres del mismo tamaño discreto — el
+   protagonista de esa zona es el título, no ellos. */
+.guia-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  /* En una guía que además tiene curso son TRES botones, y a 360 px no
+     caben en una línea. Sin esto se salen por la derecha y la página
+     entera se arrastra de lado. */
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+/* En el móvil no caben en la línea de las etiquetas. Bajan los tres
+   juntos y pegados a la izquierda: con el "margin-left: auto" puesto se
+   irían al lado derecho, lejos de todo lo demás. */
+@media (max-width: 560px) {
+  .guia-acciones {
+    margin-left: 0;
+    width: 100%;
+  }
+}

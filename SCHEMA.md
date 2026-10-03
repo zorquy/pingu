@@ -26710,3 +26710,71 @@ regex pescó dentro de un comentario. Borrar por esa lista sería la
 transformación en bloque de las tandas 310 y 311 otra vez.
 
 **Ficheros**: `css/components.css`, `css/perfil.css`.
+
+## Tanda 491 — lo del artículo a su hoja, y el agujero del barrido que lo destapó
+
+Sigue la 490. Lo de `guia.html` era el trozo más grande que quedaba en
+`components.css`: la maqueta del artículo (`.article-layout`, `-header`,
+`-main`, `-sidebar`, `-meta`), los comentarios (los diez `.forum-post-*`,
+`.forum-quote`, responder y borrar), el «¿te ha servido?» (`.helpful-*`),
+el muro de pago, los avisos de borrador y de pendiente, el «escribe tú una
+guía» y la llamada al curso. Nada de eso lo pinta la portada, y la portada
+**lo bajaba**.
+
+Ahora vive en **`css/guia.css`**, enlazada desde `guia.html` — que es la
+página de `/guia/:slug`, de `/noticias/:slug` y de la vista previa del
+editor, las tres por reescritura, así que las tres la cargan.
+
+`components.css`: **25,24 → 23,71 KB** gzip. La portada: **169,2 → 167,7**,
+o sea **2,3 KB de margen** donde había 0,1.
+
+### Los @media, enteros y no partidos
+
+Tres de los cuatro `@media` implicados hablan SOLO de estas clases, así que
+se mudan enteros. El cuarto —`@media (max-width: 520px)` sobre
+`.guia-cta-curso .btn-primary`— **se queda**, y a propósito: su base
+`.guia-cta-curso .btn-primary` también se queda (menciona `.btn-primary`,
+que es compartida), y los dos juntos allí no separan nada. Traerse uno sin
+el otro sí lo haría.
+
+Comprobado en la pantalla, a los dos lados del corte: a **1024 px** el
+`.article-main` pierde su centrado (`margin: 0`) y la lateral aparece
+(`display: block`); a **1023** vuelve el `margin: 0 auto` (121,5 px a cada
+lado) y la lateral se esconde. Si el `@media` se hubiera quedado huérfano,
+a 1024 habría ganado la base y se vería justo lo contrario.
+
+### EL AGUJERO DEL BARRIDO, que es la lección
+
+`.emoji-big` **no se ha movido**, y el motivo vale más que el kilobyte.
+
+El barrido decía que era de `guia.html` y de nadie más. Es mentira:
+`js/categoria.js` también la escribe. Y la razón de que no se viera es que
+el barrido —el de `test-tanda-299.mjs`, que es **la guarda que vigila el
+CSS huérfano**— buscaba con `/class="([^"$]*)"/`. Ese `[^"$]` estaba para
+no pescar `${...}`, pero **descarta la cadena COMPLETA**, así que
+`class="emoji-big ${tinte(id)}"` era INVISIBLE y su parte literal se
+perdía.
+
+Son **143 clases** que la guarda no veía: casi todo lo de torneos
+(`torneo-tarjeta`, `torneo-mesa`, `torneo-pestana`…), de mi-colección
+(`mc-bolsillo`, `mc-set-tarjeta`, `mc-chip-filtro`…), del laboratorio, de
+mis-partidas y de las tarjetas de guía. Ahora se le quitan los `${...}` y
+se queda lo literal; con el arreglo puesto la prueba **sigue en verde**, así
+que no había ningún fallo vivo tapado — pero la red estaba a medias desde
+la tanda 299.
+
+Si `.emoji-big` se hubiera movido, el icono de `/categoria` se habría
+quedado sin su `display: inline-block` —el que hace que el recorte recorte,
+según su propio comentario— **sin dar ningún error**.
+
+### Y mi herramienta picó en la trampa de la 312
+
+El detector que escribí para elegir qué mudar leía nombres de clase
+**dentro de los comentarios**. El comentario `/* ── Article (guia.html)
+── */` le colaba `.html` y el de `.guia-cta-curso` le colaba
+`.btn-secondary`, así que daba por COMPARTIDAS dos bases que son de guia y
+las dejaba atrás. Es la trampa de la 312 otra vez: al barrer en busca de
+una cadena, todo lo que la CONTIENE cuenta.
+
+**Ficheros**: `css/guia.css` (nuevo), `css/components.css`, `guia.html`, y
+en la rama `pruebas`: `pruebas/test-tanda-299.mjs` (el barrido arreglado).
