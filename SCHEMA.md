@@ -26523,3 +26523,122 @@ primera reimportación borraría lo que su función encuentre.
 **Ficheros**: `js/catalogo-tcgdex.js`, `js/tcgdex.js`,
 `netlify/lib/carta-detalle.mjs`, `netlify/functions/catalogo-asia.mjs`,
 `admin/js/admin.js`, `CLAUDE.md`.
+
+## Tanda 488 — los escaneos que TCGdex tiene y su API no dice (de COWORK)
+
+Lo escribió y lo **midió** la sesión de **COWORK** de PINGU, que es una
+TERCERA sesión en este repo y la única con salida a TCGdex. Llegó numerada
+como 485 y pasa a **488** porque la 485 y la 486 ya estaban comiteadas aquí
+con sus pruebas empujadas: es el OCTAVO choque de números y el primero con
+tres sesiones.
+
+**Columna nueva**: `tcg_cards.escaneo_buscado_at timestamptz` (migración
+`supabase-migration-escaneo-buscado.sql`, **sin ejecutar**). `null` = no se
+le ha buscado el escaneo; con fecha = se miró ese día. Con `image_path` a
+null y fecha puesta significa «se preguntó y no había», y se vuelve a mirar
+al mes. Índice parcial `tcg_cards_escaneo_cola_idx` sobre las que no tienen
+foto.
+
+**Lo medido** (2026-10-03, un HEAD por carta a
+`assets.tcgdex.net/{idioma}/{serie}/{set}/{número}/low.webp`):
+
+| Mercado | Cartas | `image` en la API | Fichero que EXISTE |
+|---|---|---|---|
+| JP | 13.006 | 3.882 | **7.365** |
+| TW | 7.436 | 2.146 | 2.242 |
+| CN | 877 | 0 | 0 |
+
+El campo falta en el listado del set **y también en la ficha de la carta**,
+lo contrario de lo que anotó la 484. La dirección es DETERMINISTA y su
+trozo del medio es exactamente lo que guarda `image_path` (`SM/SM1M/001`).
+
+Logos y símbolos asiáticos: la API da 0 logos en JP/TW/CN y 4 símbolos
+(neo1–4). Probando el fichero a mano en los 341 sets existe **UN** logo (M4)
+y ningún símbolo. De los 186 sets JP, **68 no tienen ni una carta** en
+TCGdex.
+
+**Función nueva**: `netlify/functions/escaneos-asia.mjs` (cada 4 min, en
+`2-59/4` para no coincidir con `catalogo-asia` en `*/3` ni con
+`cartas-detalle` en `*/5`), con lo puro en `netlify/lib/escaneos-asia.mjs`:
+
+1. *Escaneos*: cartas asiáticas con `image_path is null` → monta el camino
+   por partes → HEAD → **2xx** guarda `image_path` + la marca en la misma
+   sentencia; **4xx** solo marca; **5xx o sin respuesta NO TOCA NADA** y la
+   carta vuelve en la pasada siguiente. Esa tercera es la que importa:
+   apuntar «no está» por un 503 dejaría miles de cartas sin foto un mes por
+   un mal rato del servidor. 160 por pasada, 8 a la vez.
+2. *Nombres*: cartas asiáticas con `dex_ids` y sin `name_es` → escribe en
+   `name_es` el nombre de la especie con su sufijo (`リザードンex` →
+   «Charizard ex»), con los cuatro prefijos regionales y el «Mega». `name`
+   **no se toca**, que es la regla de las tandas 334 y 335. Y como
+   `name_search` es una columna GENERADA sobre `name || ' ' || name_es`,
+   buscar «Charizard» en el catálogo japonés funciona **sin tocar el
+   buscador** — comprobado leyendo `supabase-migration-cartas-nombre-es.sql`.
+   Depende de que el engorde de la 483 haya traído `dex_ids`.
+
+Las dos fases fallan **por separado**: sin la migración, la primera se salta
+—no es un error— y los nombres siguen saliendo.
+
+Un detalle que conviene no perder: `nombreDeCarta()` enseña `name_es` antes
+que `name`, así que las cartas japonesas **pasarán a titularse en latino**.
+Es lo pedido, pero cambia lo que se ve.
+
+**Ficheros**: `netlify/functions/escaneos-asia.mjs` (nuevo),
+`netlify/lib/escaneos-asia.mjs` (nuevo),
+`supabase-migration-escaneo-buscado.sql` (nuevo).
+
+## Tanda 489 — un 76 elegido a ojo, una regresión, y los comentarios que pesan
+
+### Lo que la suite cazó de la 485
+
+Al marcar varias cartas de golpe, las nuevas entraban en `cartas` pero no
+en `cartasTodo`, así que el Panel —que desde la 485 se pinta con la memoria
+global— las sacaba **SIN NOMBRE** («Carta») en «Tus cartas». No daba ningún
+error: lo cazó la suite entera, con un clic que esas tarjetas sin nombre
+interceptaban.
+
+La causa fue mía y es la de siempre con dos memorias: **esto eran DOS
+bucles** —uno para las líneas y otro para el catálogo— y al pasar el primero
+por `meterLinea` el segundo se quedó rellenando solo `cartas`. Ahora es un
+bucle: si la carta va en el mismo sitio que la línea, no hay un segundo que
+se pueda quedar corto.
+
+### El 76 que era 71
+
+La barra de arriba es `position: sticky; top: 0` y mide **71 px**, medidos
+en cinco páginas y dos anchos. A su alrededor había tres números escritos a
+mano: el `88` del menú lateral y el `72` de la barra de marcar —los dos de
+la tanda 446, con su cálculo al lado y bien— y un **`76` a ojo** en
+`css/repeticiones.css`. Ese pasa a `72px`, con la medición en el comentario.
+
+### Y LO QUE NO SE HA SUBIDO, QUE ES LA LECCIÓN
+
+Esta tanda empezó queriendo hacer dos cosas más, y **ninguna cabe**:
+
+- un token `--nav-alto` en `:root`;
+- `html { scroll-padding-top: var(--nav-alto) }`, para que un ancla o un
+  `scrollIntoView` no dejen su destino tapado por la barra.
+
+Con las dos puestas y sus comentarios, la portada se fue a **170,5 KB** y
+la prueba de la 299 cantó. Recortando los comentarios bajó a 170,1, luego a
+170,0 —justo en el límite, cero holgura— y **solo quitando el token de
+`:root` volvió a 169,9**. O sea que el token, una línea, cuesta el último
+décimo que había.
+
+Dos cosas que conviene tener escritas:
+
+1. **En este repo los COMENTARIOS DE CSS los baja todo el mundo.** No hay
+   build step, así que un bloque de veinte líneas explicando el porqué en
+   `style.css` son bytes de la portada. El porqué largo va a `SCHEMA.md`,
+   que no se descarga, y en la hoja se queda un renglón que apunta allí.
+   Es la primera vez que esto se paga, y la portada llevaba 0,1 KB de
+   margen desde la tanda 436.
+2. **`scroll-padding-top` es lo correcto y sigue pendiente.** Arregla un
+   fallo real —la barra tapa el destino de un ancla— pero no lo pidió nadie
+   y, comprobado, **no arregla el rojo del 426**: el desplazamiento de
+   Playwright va por CDP y no honra `scroll-padding`. Así que espera a una
+   tanda que empiece por hacer sitio en la portada, que es lo que
+   `CLAUDE.md` lleva pidiendo desde la 436. El candidato sigue siendo
+   `components.css` (26 KB gzip).
+
+**Ficheros**: `css/repeticiones.css`, `js/mi-coleccion.js`.

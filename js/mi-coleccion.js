@@ -2641,14 +2641,22 @@ async function guardarMarcadas() {
     // Las que ya estaban vuelven ACTUALIZADAS y las nuevas, nuevas: se
     // mezclan por id para no acabar con la misma línea dos veces en la
     // lista, que es lo que pasa si se hace `unshift` a lo bruto.
-    for (const l of puestas) meterLinea(l)
-    // Y el catálogo, para que la rejilla de «Cartas» sepa pintarlas sin
-    // tener que volver a pedirlas.
+    //
+    // Y CON SU CARTA, en la MISMA pasada (tanda 487). Esto eran DOS bucles
+    // —uno para las líneas y otro para el catálogo— y al pasar el primero
+    // por `meterLinea` se quedó el segundo rellenando solo `cartas` y no
+    // `cartasTodo`. Resultado: el Panel, que desde la 485 se pinta con la
+    // memoria global, sacaba las recién marcadas SIN NOMBRE («Carta») en
+    // «Tus cartas». No daba ningún error — lo cazó la suite entera, con un
+    // clic que esas tarjetas sin nombre interceptaban.
+    //
+    // La lección es la de siempre con dos memorias: un solo camino. Si la
+    // carta va en el mismo sitio que la línea, no hay un segundo bucle que
+    // se pueda quedar corto.
     const elSet = (todosLosSets || []).find((x) => x.id === album.set)
     for (const l of puestas) {
-      if (cartas.has(l.card_id)) continue
       const c = album.cartas.find((x) => x.id === l.card_id)
-      if (c) cartas.set(l.card_id, { ...c, tcg_sets: elSet ? { id: elSet.id, name: elSet.name, release_date: elSet.release_date } : null })
+      meterLinea(l, c ? { ...c, tcg_sets: elSet ? { id: elSet.id, name: elSet.name, release_date: elSet.release_date } : null } : null)
     }
     const cuantas = puestas.length
     modoMarcar(false)

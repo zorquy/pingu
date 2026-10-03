@@ -51,6 +51,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mismo: lo que solo usa una pantalla, a su hoja. `components.css` y `js/app.js` los
   baja TODO el mundo — el CSS o JS de una sola página va en su propio
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
+- **Los COMENTARIOS DE CSS los baja TODO EL MUNDO** (tanda 489). Aquí no
+  hay build step, así que un bloque de veinte líneas explicando el porqué en
+  `style.css` o en `components.css` son bytes de la portada — y la portada
+  lleva 0,1 KB de margen desde la 436. Me lo comí entero con los comentarios
+  de UNA tanda: 169,9 → **170,5**, y la prueba de la 299 lo cantó. El porqué
+  largo va a `SCHEMA.md`, que no se descarga; en la hoja se queda un renglón
+  que apunta allí. Y lo mismo vale para un TOKEN: `--nav-alto` en `:root`,
+  una línea, costaba el último décimo — si solo lo usa una pantalla, el
+  número va en su hoja (lo de siempre, pero también para los tokens).
 - **Una frase de la interfaz es una AFIRMACIÓN sobre lo que hace el
   código** (tanda 447). El estado vacío de /mi-coleccion → Buscar decía
   «busca por nombre, ilustrador o número» y ofrecía «Mitsuhiro Arita» y

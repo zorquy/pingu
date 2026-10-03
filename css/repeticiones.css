@@ -161,8 +161,13 @@
 
 .rep-escena {
   /* La barra de arriba es fija: sin este margen, la mesa empezaba
-     debajo de ella. */
-  scroll-margin-top: 76px;
+     debajo de ella. Eran 76 px elegidos a ojo y la barra mide 71 MEDIDOS
+     (tanda 489, en cinco páginas y dos anchos), así que 72 — la retícula
+     de 4, que es lo que ya usa la barra de marcar de la 426.
+     NO sale de un token en `:root` a propósito: `style.css` lo baja TODO
+     el mundo y la portada va a 170 KB justos, así que un token que solo
+     usa esta hoja no cabe. El porqué largo, en SCHEMA.md. */
+  scroll-margin-top: 72px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--e-lg);

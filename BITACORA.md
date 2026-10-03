@@ -35,6 +35,101 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tandas 488 y 489 — el parche de Cowork integrado, y lo que la suite cazó)
+
+**Hecho, 488**: integrado el parche de la sesión de **COWORK** (PINGU lo
+autorizó expresamente: la primera vez el clasificador me lo bloqueó por
+código de terceros en una rama que sale a producción, y no busqué la
+vuelta). Llegaba numerado como 485 y pasa a **488**: mis 485 y 486 ya
+estaban comiteadas con sus pruebas empujadas. **Octavo choque de números, y
+el primero con TRES sesiones** — la bitácora da por hecho que somos dos.
+
+Trae `escaneos-asia` (cada 4 min, en `2-59/4` para no coincidir con
+`catalogo-asia` ni con `cartas-detalle`): monta el camino
+`serie/set/número`, pregunta con HEAD si el fichero existe y **solo
+entonces** guarda `image_path`. Un 4xx marca la carta como mirada (se
+repasa al mes); un **5xx no toca nada**, que es la decisión fina — apuntar
+«no está» por un mal rato del servidor dejaría miles de cartas sin foto un
+mes. Y una segunda fase que escribe `name_es` en latino desde `dex_ids`
+sin tocar `name`. Su prueba, renumerada a `test-tanda-488.mjs`, **62
+comprobaciones en verde**.
+
+Comprobado por mi parte antes de subirlo: `js/pokedex-especies.js` exporta
+`especiePorDex`; `name_search` es GENERADA sobre `name || ' ' || name_es`
+(leído en `supabase-migration-cartas-nombre-es.sql`), así que buscar
+«Charizard» en el catálogo japonés funcionará sin tocar el buscador; y
+ninguna prueba de la suite enumera las funciones programadas, así que la
+nueva no rompe nada.
+
+**Hecho, 489**, dos cosas que salieron de pasar la suite entera:
+
+1. **Un 76 que era 71, y una lección que me costó la portada.** La barra
+   es `sticky; top: 0` y mide **71 px medidos** (cinco páginas, dos anchos);
+   `repeticiones.css` llevaba un **76 a ojo** y pasa a 72.
+   Lo que **NO** se ha subido, que es lo interesante: quise además un token
+   `--nav-alto` en `:root` y `html { scroll-padding-top }`, y con sus
+   comentarios la portada se fue a **170,5 KB** — la prueba de la 299 lo
+   cantó. Recortando los comentarios bajó a 170,1, luego a 170,0 (justo en
+   el límite, cero holgura) y **solo quitando el token volvió a 169,9**.
+   O sea: **en este repo los comentarios de CSS los baja todo el mundo** (no
+   hay build step), y un token de una línea en `:root` cuesta el último
+   décimo. Apuntado en `CLAUDE.md`. `scroll-padding-top` es lo correcto y
+   queda PENDIENTE de una tanda que empiece por hacer sitio — y comprobado
+   que **no** arregla el rojo del 426: el desplazamiento de Playwright va
+   por CDP y no honra `scroll-padding`.
+2. **Una regresión MÍA de la 485.** Al marcar varias de golpe, las nuevas
+   entraban en `cartas` pero no en `cartasTodo`, y el Panel las sacaba
+   **sin nombre** («Carta»). Eran DOS bucles —líneas y catálogo— y al pasar
+   el primero por `meterLinea` el segundo se quedó corto. Ahora es uno.
+   **No daba ningún error** y solo la cazó la suite COMPLETA: es la lección
+   de la 447 cobrada otra vez.
+
+**Ficheros**: `netlify/functions/escaneos-asia.mjs` (NUEVO),
+`netlify/lib/escaneos-asia.mjs` (NUEVO),
+`supabase-migration-escaneo-buscado.sql` (NUEVO), `css/repeticiones.css`,
+`js/mi-coleccion.js`, `CLAUDE.md`, `SCHEMA.md`, `BITACORA.md`.
+**`css/style.css` NO se toca**: ver arriba, no cabía.
+En la rama `pruebas`: `pruebas/test-tanda-488.mjs` (nuevo) y
+`pruebas/test-tanda-471.mjs` (puesto al día por la 487).
+
+**SUITE ENTERA, pasada**: 205 verdes y DOS rojos, y los dos mirados:
+
+· **471**, mío: la 487 partió el insert de cartas en dos sentencias, y una
+  de sus afirmaciones —«una sin escaneo se guarda a null»— era justo lo que
+  había que quitar. Puesta al día: ahora afirma que la que no trae escaneo
+  **NO menciona** `image_path`, y que cada sentencia va con una sola forma
+  de fila. **En verde.**
+· **426**, ANTERIOR a mis tandas y sin arreglar. Todas sus afirmaciones
+  pasan; lo que se cae es el ÚLTIMO clic, el del «Ver todas» del Panel, que
+  Playwright reintenta hasta agotar el tiempo con un «navUserBtn intercepts
+  pointer events». **A/B limpio**: con el código de la 483 falla igual, así
+  que no lo traje yo. Y en un sondeo directo de la misma pantalla el botón
+  está en y=470 con la barra acabando en y=70 y `elementFromPoint` devuelve
+  el botón — o sea que **es pulsable**, y el fallo tiene pinta de carrera
+  con `pintarVistazos`, que es `async`. Probé un desplazamiento a mano
+  antes del clic y NO lo arregla (Playwright vuelve a desplazar en cada
+  reintento), así que lo he revertido en vez de subir un cambio de prueba
+  que no puedo demostrar.
+
+**Y UN FALLO DE MÉTODO MÍO, que casi me hace sacar conclusiones falsas**:
+monté un segundo servidor en 8893 para iterar mientras corría la suite, y
+lo monté con un `tar` del repo **sin el doble de Supabase**. Durante un
+rato medí contra el Supabase de PRODUCCIÓN (cerrado por la red del
+contenedor), así que todo lo que leí allí —incluido un A/B— no valía nada.
+Se vio porque `window.__TABLAS__` era `undefined`. **Si montas una copia a
+mano, cópiale los dobles**: `sync-forum.sh` los pone después de cada copia
+y por eso existe.
+
+**En curso / pendiente**: (1) **PINGU: ejecuta
+`supabase-migration-escaneo-buscado.sql`** — sin ella la fase de escaneos
+se salta (no falla) y solo salen los nombres. (2) El **426** sigue rojo,
+diagnosticado y sin arreglar. (3) Lo de **Bulbapedia** (logos, rarezas y
+nombres occidentales exactos) está analizado y sin empezar: ojo a la
+licencia CC BY-NC-SA 2.5 —atribución visible y uso no comercial—, a no
+enlazar en caliente sus imágenes y a que los escaneos de carta son otro
+orden de magnitud. (4) `tcg_card_prices` no tiene `market`. (5) Rigores
+pendientes desde la 443. (6) Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 487 — el null que borra una foto buena al reimportar)
 
 **OJO, CHOQUE DE NÚMEROS (y van OCHO), Y ESTA VEZ CON UNA TERCERA
