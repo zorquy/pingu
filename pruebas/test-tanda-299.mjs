@@ -192,6 +192,9 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
   // Es la misma forma de fallo que los `import()` dinámicos de la 307:
   // el barrido miraba una de las maneras de hacer las cosas y daba por
   // hecho que era la única.
+  // Los prefijos de las clases que se arman en ejecución (`x-${…}`). Van
+  // en un Set aparte porque no son clases: son el principio de muchas.
+  const prefijos = new Set()
   const clasesDeTexto = (txt) => {
     const fuera = new Set()
     const meter = (s) => {
@@ -211,6 +214,26 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
     //
     // Ahora se le quitan los `${...}` y se queda lo literal.
     for (const m of txt.matchAll(/class="([^"]*)"/g)) meter(m[1].replace(/\$\{[^}]*\}/g, ' '))
+    // Y LOS PREFIJOS, porque un nombre COMPUESTO no lo resuelve ningún
+    // regex (tanda 492). `js/medallero.js` escribe
+    // `class="medalla-chip medalla-${medalla}"`: de ahí se saca
+    // «medalla-chip», pero «medalla-oro» NO EXISTE en ninguna parte del
+    // código — se arma en tiempo de ejecución.
+    //
+    // Casi me cuesta la chapa de medalla de las tarjetas de guía de la
+    // PORTADA: el barrido decía que `medalla-oro` era de /aprender y de
+    // nadie más, cuando la pinta un ayudante compartido al que la portada
+    // llega por `js/guide-card.js`.
+    //
+    // Así que de `x-${…}` se apunta el PREFIJO `x-`, y quien recoja las
+    // clases usadas cuenta como usada cualquiera que empiece por él. Es
+    // de grano gordo —marca de más, nunca de menos— y eso es exactamente
+    // lo que hace falta en una guarda: un falso negativo aquí es CSS que
+    // se queda sin su hoja, y un falso positivo solo es una clase que no
+    // se puede mudar.
+    for (const m of txt.matchAll(/class="([^"]*)"/g)) {
+      for (const pre of m[1].matchAll(/([a-zA-Z][\w-]*-)\$\{/g)) prefijos.add(pre[1])
+    }
     // `x.className = 'a b'` y `x.className += ' a'`.
     for (const m of txt.matchAll(/\.className\s*\+?=\s*'([^'$]*)'/g)) meter(m[1])
     // `classList.add('a', 'b')`, `.toggle('a', cond)`, `.remove('a')`.
@@ -280,7 +303,12 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
     recogidas[pagina] = usadas
     const tiene = reglasDe(hojas)
     const enOtra = reglasDe(todasLasHojas.filter((h) => !hojas.includes(h)))
-    const huerfanas = [...usadas].filter((c) => !tiene.has(c) && enOtra.has(c))
+    // Una clase que empieza por un prefijo armado en ejecución cuenta como
+    // USADA aquí: no se puede saber si esta página la compone o no, y
+    // equivocarse por exceso solo impide mudarla, mientras que
+    // equivocarse por defecto la deja sin hoja.
+    const porPrefijo = (c) => [...prefijos].some((p) => c.startsWith(p))
+    const huerfanas = [...usadas].filter((c) => !tiene.has(c) && enOtra.has(c) && !porPrefijo(c))
     if (huerfanas.length) rotas.push(`${pagina}: ${huerfanas.slice(0, 6).join(', ')}`)
   }
   check(`ninguna de las ${paginas.length} páginas usa clases de una hoja que no carga`, rotas.length === 0, rotas.join(' | '))
