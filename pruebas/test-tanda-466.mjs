@@ -22,7 +22,11 @@ const check = (l, ok, extra = '') => {
 }
 
 const cabecera = (mio) => cabeceraHtml(resumenDePokedex({ mio: new Map(mio), totales: new Map(), total: 1025 }), { nombreDe: (d) => ({ 1: 'Bulbasaur', 4: 'Charmander', 7: 'Squirtle' })[d] || ('#' + d) })
-const cuantas = (html) => (html.match(/mc-pdx-caja/g) || []).length
+// Desde la tanda 476 la cabecera de la Pokédex es la MISMA tira que la de
+// una expansión (PINGU: «la Pokédex tiene que ser igual»), así que sus
+// tarjetas son `.mc-diapo` y no la familia `.mc-pdx-caja` que tenía para
+// ella sola. Lo que esta prueba vigila —cuántas tarjetas salen— no cambia.
+const cuantas = (html) => (html.match(/class="mc-diapo"/g) || []).length
 
 console.log('\n── 1. Cuando el que más y el que menos son el mismo ──')
 {
@@ -42,7 +46,7 @@ console.log('\n── 2. Y cuando son distintos, salen las dos ──')
   // Sin el pie de «Registrados» («de 1.025»), que no es un nombre: con él
   // dentro, tres cadenas distintas pasarían la comprobación aunque los dos
   // Pokémon fueran el mismo.
-  const nombres = [...h.matchAll(/mc-pdx-pie">([^<]+)</g)].map((m) => m[1]).filter((n) => !/^de /.test(n))
+  const nombres = [...h.matchAll(/mc-diapo-pie">([^<]+)</g)].map((m) => m[1]).filter((n) => !/^de /.test(n))
   check('  …y de dos Pokémon distintos', nombres.length === 2 && new Set(nombres).size === 2, nombres.join(' | '))
 }
 
@@ -51,7 +55,7 @@ console.log('\n── 3. Con la Pokédex vacía no se inventa ninguna ──')
   // null y no {dex: 0}: enseñar a Bulbasaur con un 0 sería inventarlo.
   const h = cabecera([])
   check('solo «Registrados»', cuantas(h) === 1, String(cuantas(h)))
-  check('  …y dice cero', /mc-pdx-cifra">0</.test(h))
+  check('  …y dice cero', /mc-diapo-cifra">0</.test(h))
 }
 
 console.log(fails ? `\n${fails} FALLOS` : '\nTODO OK')

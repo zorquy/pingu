@@ -95,7 +95,13 @@ console.log('\n── 3. El anillo no se sale de su caja (tanda 424) ──')
     await page.goto('http://localhost:8892/mi-coleccion.html?ver=pokedex', { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(2600)
     const r = await page.evaluate(() => {
-      const caja = document.querySelector('.mc-pdx-principal')
+      // Desde la tanda 476 la primera tarjeta de la Pokédex es la primera
+      // `.mc-diapo` de la tira, no una `.mc-pdx-principal` con su propia
+      // familia de clases. Lo que esta prueba vigila —que el anillo quepa
+      // dentro de su caja y siga siendo redondo— no cambia; lo que cambia
+      // es que ahora el anillo FLOTA en la esquina, como el de una
+      // expansión, y por eso hay que mirarlo igual que allí.
+      const caja = document.querySelector('#mcPokedexPanel .mc-diapo')
       const anillo = caja?.querySelector('.mc-anillo')
       if (!caja || !anillo) return null
       const c = caja.getBoundingClientRect()

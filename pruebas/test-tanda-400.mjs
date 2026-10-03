@@ -70,8 +70,12 @@ console.log('\n── 2. En la pantalla ──')
   await page.goto('http://localhost:8892/mi-coleccion.html?ver=pokedex', { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3000)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('la cabecera está', (await page.locator('.mc-pdx-caja').count()) >= 2)
-  const texto = (await page.locator('.mc-pdx-cabecera').textContent())?.replace(/\s+/g, ' ') || ''
+  // Desde la tanda 476 es la MISMA tira que la de una expansión (PINGU: «la
+  // Pokédex tiene que ser igual»): sus tarjetas son `.mc-diapo` y la caja es
+  // `.mc-tira-datos`. Lo que esta prueba vigila —que la cabecera esté y qué
+  // dice— no cambia.
+  check('la cabecera está', (await page.locator('#mcPokedexPanel .mc-diapo').count()) >= 2)
+  const texto = (await page.locator('#mcPokedexPanel .mc-tira-datos').textContent())?.replace(/\s+/g, ' ') || ''
   check('dice cuántos llevas', /Registrados/.test(texto) && /de 1\.025/.test(texto), texto.slice(0, 120))
   // `especiePorDex` devuelve el NOMBRE, no un objeto: pedirle `.nombre`
   // daba undefined y salía «#25» en vez de «Pikachu».
