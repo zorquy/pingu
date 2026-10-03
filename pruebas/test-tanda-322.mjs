@@ -12,6 +12,11 @@
 // mapeamos bien LO QUE CREEMOS que llega — no que TCGdex mande eso.
 // Esa segunda mitad la tiene que confirmar la primera pasada real.
 import { detalleDeCarta, urlDeCarta, IDIOMA_POR_MERCADO, codigoLiveDeSet } from '/home/user/pingu/netlify/lib/carta-detalle.mjs'
+// Los dos ORIGINALES, importados de verdad. Se puede desde la tanda
+// 471: los dos ficheros son dependencia-cero a propósito, así que ya
+// no hay que leerlos como texto para no arrastrar ./supabase.js.
+import { MERCADOS } from '/home/user/pingu/js/mercados.js'
+import { codigoLiveDeSet as codigoOriginal } from '/home/user/pingu/js/catalogo-tcgdex.js'
 import { readFileSync } from 'node:fs'
 
 let fails = 0
@@ -100,7 +105,7 @@ console.log('\n── 4. La marca de regulación NO se borra ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 5. La URL, y el mapa de idiomas que está copiado ──')
+console.log('\n── 5. La URL, y las copias que ya no existen ──')
 {
   check('la URL lleva el idioma del mercado', urlDeCarta('sv5-36', 'WEST') === 'https://api.tcgdex.net/v2/en/cards/sv5-36', urlDeCarta('sv5-36', 'WEST'))
   // Y un mercado que NO sea el occidental, que es lo que de verdad
@@ -118,55 +123,50 @@ console.log('\n── 5. La URL, y el mapa de idiomas que está copiado ──')
   check('un mercado desconocido cae al occidental', urlDeCarta('x', 'ZZ').includes('/en/'), urlDeCarta('x', 'ZZ'))
   check('el identificador va escapado', urlDeCarta('a b', 'WEST').includes('a%20b'))
 
-  // `IDIOMA_POR_MERCADO` es una COPIA de `MERCADOS` en js/tcgdex.js,
-  // porque aquel fichero importa ./supabase.js y no se puede arrastrar a
-  // una función de Netlify. Una copia sin vigilar se separa: el día que
-  // alguien añada un mercado en un sitio y no en el otro, las cartas de
-  // ese mercado se pedirían en inglés sin que nada diera error.
+  // ── YA NO HAY COPIA, Y ESO ES LO QUE SE VIGILA (tanda 471) ──
   //
-  // Se lee el fichero como TEXTO en vez de importarlo, justamente porque
-  // importarlo arrastraría ./supabase.js y esta prueba dejaría de correr
-  // en Node.
+  // Aquí había dos guardas que comparában dos copias a mano con sus
+  // originales, porque `js/tcgdex.js` importa `./supabase.js` y no se
+  // puede arrastrar a una función de Netlify. Y una de las dos se
+  // separó ella sola: desde la tanda 438 `MERCADOS` vivía en
+  // `js/mercados.js` y la guarda seguía leyendo `js/tcgdex.js`,
+  // encontrando CERO claves y comparando contra un objeto vacío. Dos
+  // tandas dando por buena una copia que no comparaba con nada — el
+  // fallo contra el que la guarda existía, en la propia guarda.
   //
-  // Y el fichero es `js/mercados.js` desde la tanda 438, que es cuando
-  // `MERCADOS` salió de `js/tcgdex.js`. ESTA GUARDA SE QUEDÓ MIRANDO UN
-  // SITIO VACÍO y estuvo dos tandas dando por buena una copia que ya no
-  // comparaba con nada —`original` salía con CERO claves—. La gracia del
-  // asunto: es justo el fallo contra el que la guarda existe, en la propia
-  // guarda. Por eso ahora el «se ha encontrado el original» va antes que
-  // la comparación: una comparación contra un objeto vacío no distingue
-  // «iguales» de «no he encontrado nada».
-  const fuente = readFileSync('/home/user/pingu/js/mercados.js', 'utf8')
-  const bloque = fuente.match(/export const MERCADOS = \{([\s\S]*?)\n\}/)?.[1] ?? ''
-  const original = {}
-  for (const [, k, v] of bloque.matchAll(/(\w+):\s*'([^']+)'/g)) original[k] = v
-  check('se ha encontrado el original', Object.keys(original).length >= 7, String(Object.keys(original).length))
-  const distintos = Object.keys({ ...original, ...IDIOMA_POR_MERCADO })
-    .filter((k) => original[k] !== IDIOMA_POR_MERCADO[k])
-  check('la copia no se ha separado del original', distintos.length === 0,
-    distintos.map((k) => `${k}: ${original[k]} vs ${IDIOMA_POR_MERCADO[k]}`).join(' | '))
+  // La conclusión de la 471: una copia vigilada es mejor que una copia
+  // a secas, pero **no copiar es mejor que las dos**. Lo puro se mudó a
+  // dos ficheros sin dependencias —`js/mercados.js` y
+  // `js/catalogo-tcgdex.js`— que los importan los dos lados.
+  //
+  // Y la guarda cambia de pregunta: ya no es «¿dicen lo mismo?», que es
+  // una pregunta que se puede contestar bien por casualidad, sino «¿es
+  // LA MISMA?». Identidad, no parecido: si alguien vuelve a escribir la
+  // copia, esto se pone rojo el mismo día.
+  check('el mapa de idiomas ES `MERCADOS`, no una copia suya', IDIOMA_POR_MERCADO === MERCADOS,
+    `${Object.keys(IDIOMA_POR_MERCADO).length} claves`)
+  check('y trae los siete mercados', Object.keys(MERCADOS).length >= 7, String(Object.keys(MERCADOS).length))
+  check('el código de TCG Live ES la función de js/catalogo-tcgdex.js',
+    codigoLiveDeSet === codigoOriginal)
+  // Y que siga diciendo lo que dice, que es lo que la hacía falta
+  // vigilar en primer lugar: un código raro traduce una decklist a la
+  // carta equivocada.
+  const casos = [['twm', 'TWM'], ['  sfa  ', 'SFA'], ['30C', '30C'], ['', null], ['demasiadolargo', null], ['a', null], ['A-B', null]]
+  const mal2 = casos.filter(([v, esperado]) => codigoLiveDeSet({ tcgOnline: v }) !== esperado)
+  check('y normaliza igual que siempre', mal2.length === 0,
+    mal2.map(([v]) => `${JSON.stringify(v)} → ${codigoLiveDeSet({ tcgOnline: v })}`).join(' | '))
+  check('un set sin el campo no da código', codigoLiveDeSet(null) === null && codigoLiveDeSet({ tcgOnline: 12 }) === null)
 
-  // ── Y la SEGUNDA copia vigilada (tanda 329) ──
-  //
-  // `codigoLiveDeSet` también está dos veces, y por lo mismo. Esta se
-  // vigila comparándolas de verdad —las dos son funciones puras— en vez
-  // de mirar el texto: lo que importa no es que estén escritas igual,
-  // sino que digan lo mismo.
-  // Y esta sigue en `js/tcgdex.js`: son dos ficheros distintos y la
-  // prueba lee cada guarda donde VIVE su original. Compartir la variable
-  // `fuente` fue justo lo que dejó esta mirando a un sitio vacío cuando
-  // `MERCADOS` se mudó.
+  // Y que NADIE las haya vuelto a escribir en `js/tcgdex.js`. Esta es la
+  // mitad que las comprobaciones de identidad no pueden ver: una copia
+  // NUEVA con otro nombre no rompe ninguna igualdad.
   const fuenteTcgdex = readFileSync('/home/user/pingu/js/tcgdex.js', 'utf8')
-  const cuerpo = fuenteTcgdex.match(/export function codigoLiveDeSet\(set\) \{([\s\S]*?)\n\}/)?.[1] ?? ''
-  check('se ha encontrado el original del código', cuerpo.includes('tcgOnline'), cuerpo.slice(0, 80))
-  const original2 = new Function('set', cuerpo)
-  const casos = ['twm', 'TWM', '30C', 'mee', '', '  sfa  ', 'demasiadolargo', 'a', 'A-B', null, 12]
-  const discrepan = casos.filter((v) => {
-    const set = v === null ? null : { tcgOnline: v }
-    return original2(set) !== codigoLiveDeSet(set)
-  })
-  check('las dos versiones del código dicen lo mismo', discrepan.length === 0,
-    discrepan.map((v) => `${JSON.stringify(v)}: ${original2({ tcgOnline: v })} vs ${codigoLiveDeSet({ tcgOnline: v })}`).join(' | '))
+  for (const nombre of ['codigoLiveDeSet', 'fechaDeSet', 'setToRow', 'cardToRow', 'sinDuplicados']) {
+    check(`js/tcgdex.js no vuelve a declarar ${nombre}`,
+      !new RegExp(`function ${nombre}\\(`).test(fuenteTcgdex))
+  }
+  const fuenteLib = readFileSync('/home/user/pingu/netlify/lib/carta-detalle.mjs', 'utf8')
+  check('y la función de Netlify tampoco', !/export const IDIOMA_POR_MERCADO = \{/.test(fuenteLib))
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

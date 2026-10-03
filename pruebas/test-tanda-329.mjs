@@ -120,15 +120,22 @@ console.log('\n── 4. El importador no vuelve a vaciarlo ──')
   // `setToRow` corre sobre el listado. Si escribe la serie desde ahí,
   // pone null en los 210 y BORRA lo que la tarea acaba de curar — y solo
   // se nota al reimportar, que es cuando ya es tarde.
-  const fuente = readFileSync(`${RAIZ}/js/tcgdex.js`, 'utf8')
-  const fila = fuente.slice(fuente.indexOf('export function setToRow'), fuente.indexOf('export function codigoLiveDeSet'))
+  // Vive en `js/catalogo-tcgdex.js` desde la tanda 471: es puro y lo
+  // necesita también el servidor. Y el «se ha encontrado» va PRIMERO,
+  // porque un trozo vacío pasa los tres `!test` de abajo sin enterarse
+  // — exactamente lo que le pasó a esta prueba al mudarse el fichero.
+  const fuente = readFileSync(`${RAIZ}/js/catalogo-tcgdex.js`, 'utf8')
+  const fila = fuente.slice(fuente.indexOf('export function setToRow'), fuente.indexOf('export function cardToRow'))
+  check('se ha encontrado `setToRow`', fila.includes('logo_path'), String(fila.length))
   check('la serie NO va en el objeto base', !/serie_id: set\.serie/.test(fila), 'la escribiría a null desde el listado')
   check('…se pone solo si llega de verdad', /if \(set\.serie\?\.id\) fila\.serie_id/.test(fila))
   check('…igual que el código, que ya lo hacía así', /if \(codigo\) fila\.tcg_online_code/.test(fila))
 
   // Y el filtro de Pocket del importador, que es como entraron los catorce.
+  // Este sí se queda en `js/tcgdex.js`: `fetchSets` habla con la red.
+  const cliente = readFileSync(`${RAIZ}/js/tcgdex.js`, 'utf8')
   check('fetchSets filtra con esDelTCG, no con la serie',
-    /filter\(esDelTCG\)/.test(fuente), 'volvería a filtrar por algo que el listado no trae')
+    /filter\(esDelTCG\)/.test(cliente), 'volvería a filtrar por algo que el listado no trae')
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

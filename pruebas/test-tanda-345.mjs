@@ -7,7 +7,9 @@
 // plataforma VIEJA, que cerró en 2023— y TCGdex dejó de rellenarlo
 // entonces. El dato no existe arriba.
 import { readFileSync } from 'node:fs'
-import { codigoLiveDeSet } from '/home/user/pingu/js/tcgdex.js'
+// Mudado a `js/catalogo-tcgdex.js` en la tanda 471 (puro, sin
+// dependencias, lo usan el navegador y el servidor).
+import { codigoLiveDeSet } from '/home/user/pingu/js/catalogo-tcgdex.js'
 import { nombreDeSetLive } from '/home/user/pingu/js/torneos/comun.js'
 
 let fails = 0
@@ -25,7 +27,7 @@ console.log('\n── 1. Lo que TCGdex ya no da ──')
   check('…y con él, sí', codigoLiveDeSet({ tcgOnline: 'obf' }) === 'OBF')
   // Que quede dicho en el código: si no, la siguiente persona vuelve a
   // pensar que curando más sets se arregla.
-  check('el porqué está escrito donde se lee', /plataforma vieja, que cerró en 2023/.test(leer('js/tcgdex.js')))
+  check('el porqué está escrito donde se lee', /plataforma vieja, que cerró en 2023/.test(leer('js/catalogo-tcgdex.js')))
 }
 
 console.log('\n── 2. La siembra ──')
