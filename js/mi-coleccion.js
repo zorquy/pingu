@@ -86,6 +86,63 @@ const pedida = params.get('ver')
 let pestania = PESTANAS.includes(pedida) ? pedida : MUDANZAS[pedida] || 'resumen'
 let albumesAbiertos = false
 
+// ── EL BOTÓN DE ATRÁS (tanda 468) ──
+//
+// PINGU: «en el PC estoy en mi colección, abro una expansión o un Pokémon,
+// le doy para atrás y no me lleva para atrás: me saca al inicio».
+//
+// Y era eso exactamente: TODA la navegación de esta página usaba
+// `history.replaceState`, que CAMBIA la entrada actual en vez de añadir
+// una. Así que el historial nunca tenía dónde volver dentro de la página y
+// el botón de atrás te sacaba a la anterior — que normalmente es el
+// inicio. Lo mismo con el gesto de deslizar en el móvil.
+//
+// Peor: abrir una expansión no tocaba la dirección SIQUIERA, así que
+// recargar te devolvía a la estantería y no se podía compartir el enlace
+// de una colección abierta.
+//
+// Ahora cada paso que CAMBIA lo que ves añade su entrada (`pushState`) y
+// `popstate` reconstruye la pantalla desde la dirección. El primer pintado
+// no empuja: la entrada de llegada ya existe.
+function irA(cambios, { push = true } = {}) {
+  const url = new URL(location.href)
+  for (const [k, v] of Object.entries(cambios)) {
+    if (v == null || v === '') url.searchParams.delete(k)
+    else url.searchParams.set(k, String(v))
+  }
+  // Sin cambio, sin entrada: si no, pulsar dos veces la misma pestaña
+  // dejaría dos entradas iguales y el botón de atrás no haría nada la
+  // primera vez.
+  if (url.href === location.href) return
+  if (push) history.pushState(null, '', url)
+  else history.replaceState(null, '', url)
+}
+
+// Reconstruye la pantalla desde la dirección. Es lo que corre al dar
+// atrás, y por eso NINGUNO de los pasos que da puede volver a empujar: se
+// les pasa `desdeHistorial` para que no lo hagan.
+function aplicarDireccion() {
+  const p = new URLSearchParams(location.search)
+  const pedidaAhora = p.get('ver')
+  const ver = PESTANAS.includes(pedidaAhora) ? pedidaAhora : MUDANZAS[pedidaAhora] || 'resumen'
+  if (ver !== pestania) cambiarPestania(ver, { push: false })
+  if (ver === 'album') {
+    const set = p.get('set')
+    if (set && album.set !== set) void abrirAlbum(set, { push: false })
+    else if (!set && album.set) volverALaEstanteria({ push: false })
+  }
+  if (ver === 'pokedex') {
+    const dex = Number(p.get('dex')) || null
+    if (dex && especieAbierta !== dex) void pintarEspecie(dex, { push: false })
+    else if (!dex && especieAbierta != null) {
+      especieAbierta = null
+      pintarPokedex()
+    }
+  }
+}
+
+window.addEventListener('popstate', aplicarDireccion)
+
 // ── QUÉ CATÁLOGO SE MIRA (tanda 437) ──
 //
 // PINGU: «vamos a hacer que tengamos dos catálogos distintos… y después,
@@ -1639,7 +1696,8 @@ async function cambiarFavorita() {
 }
 
 // ── Abrir y cerrar el archivador ──
-function volverALaEstanteria() {
+function volverALaEstanteria({ push = true } = {}) {
+  if (push) irA({ set: null })
   album.set = null
   album.pagina = 0
   $('mcEstanteriaZona').classList.remove('hidden')
@@ -1647,7 +1705,8 @@ function volverALaEstanteria() {
   pintarEstanteria()
 }
 
-async function abrirAlbum(setId) {
+async function abrirAlbum(setId, { push = true } = {}) {
+  if (push) irA({ ver: 'album', set: setId })
   // Entrar en una expansión empieza SIEMPRE con el modo marcar apagado
   // (tanda 426): lo marcado es de un set concreto y no se ha guardado,
   // así que arrastrarlo a otro sería guardar luego cartas que ya no
@@ -2848,7 +2907,7 @@ async function anadirSeleccion(e) {
 }
 
 // ── Pestañas y repintado ──
-function cambiarPestania(nueva) {
+function cambiarPestania(nueva, { push = true } = {}) {
   pestania = nueva
   for (const b of document.querySelectorAll('[data-pestania]')) {
     const activa = b.dataset.pestania === nueva
@@ -2886,7 +2945,14 @@ function cambiarPestania(nueva) {
   if (nueva === 'resumen') url.searchParams.delete('ver')
   else url.searchParams.set('ver', nueva)
   if (nueva !== 'carpetas') url.searchParams.delete('album')
-  history.replaceState(null, '', url)
+  // Y al salir de una pestaña se va lo que había abierto DENTRO: un
+  // `?set=` colgando en la pestaña de la Pokédex no significa nada, y al
+  // volver abriría una expansión que no habías pedido.
+  if (nueva !== 'album') url.searchParams.delete('set')
+  if (nueva !== 'pokedex') url.searchParams.delete('dex')
+  // Cambiar de pestaña ES un paso: el botón de atrás vuelve a la anterior.
+  if (push && url.href !== location.href) history.pushState(null, '', url)
+  else history.replaceState(null, '', url)
   // Los álbumes soñados (tanda 366) se cargan la primera vez que se abren.
   // Los álbumes soñados viven dentro de «Carpetas» desde la 408, así que
   // es esa pestaña la que los enciende la primera vez.
@@ -3163,8 +3229,9 @@ function pintarEspecieFiltrada() {
   pintarIconos()
 }
 
-async function pintarEspecie(dex) {
+async function pintarEspecie(dex, { push = true } = {}) {
   const caja = $('mcPokedexPanel')
+  if (push) irA({ ver: 'pokedex', dex })
   especieAbierta = dex
   $('mcPdxMandos').classList.add('hidden')
   caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
@@ -3946,10 +4013,9 @@ function enganchar() {
     if (e.target.closest('#pdxVolver')) {
       especieAbierta = null
       // Y fuera de la dirección: si se queda, recargar vuelve a abrir la
-      // especie que acabas de cerrar.
-      const url = new URL(location.href)
-      url.searchParams.delete('dex')
-      history.replaceState(null, '', url)
+      // especie que acabas de cerrar. Con `pushState` desde la 468, para
+      // que el botón de atrás del navegador haga lo mismo que este.
+      irA({ dex: null })
       pintarPokedex()
     }
   })
@@ -4303,6 +4369,13 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   $('mcCargando').classList.add('hidden')
   repintar()
   if (pestania === 'album') pintarEstanteria()
+  // Y si el enlace trae una expansión abierta, se abre (tanda 468). Es la
+  // otra mitad de meter `?set=` en la dirección: sin esto, el enlace de
+  // una colección abierta llevaría a la estantería, y al dar atrás desde
+  // dentro la dirección diría una cosa y la pantalla otra.
+  // Solo al ENTRAR: al cambiar de catálogo, el `?set=` de la dirección ya
+  // no es dónde estás.
+  if (primeraVez && pestania === 'album' && params.get('set')) void abrirAlbum(params.get('set'), { push: false })
   // Si se entró directo a un álbum, se repinta ahora que se sabe qué
   // cartas tienes. Solo al entrar: al cambiar de catálogo, el `?album=`
   // de la dirección ya no es dónde estás.

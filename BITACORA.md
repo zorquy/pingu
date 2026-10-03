@@ -35,6 +35,28 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 468 — el botón de atrás, que no volvía)
+
+**Hecho**: PINGU: «abro una expansión, le doy para atrás y me saca al
+inicio». TODA la navegación usaba `replaceState`, que cambia la entrada
+actual en vez de añadir una, así que el historial no tenía a dónde volver
+dentro de la página. Y abrir una expansión no tocaba la dirección
+siquiera. Ahora cada paso empuja su entrada y `popstate` reconstruye la
+pantalla; `?ver=album&set=sv8` abre esa expansión directamente. Se prueba
+con `goBack()` de verdad, no mirando si se llama a `pushState`.
+
+**Ficheros**: `js/mi-coleccion.js`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-468.mjs` (NUEVO).
+
+**En curso / pendiente**: esto era el REQUISITO para quitar los botones de
+«← Todas las colecciones» y «← Todos los Pokémon», que es lo siguiente,
+junto con la barra de mandos al estilo de Dex (buscador · vista ·
+agrupar/dividir en UN botón · Filtros en un panel) y la Pokédex con sus
+datos deslizables. ⚠️ Nidoran: PINGU ejecutó la migración y ahora no sale
+ninguna carta — es la cola de `cartas-pokedex`, que tiene que repasarlas;
+hay que comprobar que la función esté corriendo.
+**Rigores pendientes: 443 a 468.**
+
 ## 2026-10-03 — PINGU-Claude (tanda 467 — el orden de una expansión y los datos deslizables)
 
 **Hecho**: PINGU, con Dex al lado: «los filtros arriba, porque tiene más

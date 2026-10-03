@@ -25088,3 +25088,41 @@ al borde— y la cuenta diría que estás en la penúltima para siempre.
 
 En un escritorio no hay nada que deslizar: las tres en fila y los puntos
 fuera, que serían tres adornos.
+
+---
+
+## Tanda 468 — el botón de atrás, que no volvía (oct. 2026)
+
+PINGU: **«en el PC estoy en mi colección, abro una expansión o un Pokémon,
+le doy para atrás y no me lleva para atrás: me saca al inicio»**.
+
+Y era eso exactamente. **Toda** la navegación de la página usaba
+`history.replaceState`, que CAMBIA la entrada actual del historial en vez
+de añadir una. Así que dentro de /mi-coleccion el historial no tenía nunca
+a dónde volver: el botón de atrás —y el gesto de deslizar en el móvil—
+salían de la página entera, normalmente al inicio.
+
+Peor todavía: **abrir una expansión no tocaba la dirección siquiera**. O
+sea que recargar te devolvía a la estantería, y el enlace de una colección
+abierta no se podía compartir ni guardar en marcadores.
+
+Ahora cada paso que CAMBIA lo que ves añade su entrada —cambiar de
+pestaña, abrir una expansión, abrir un Pokémon— y `popstate` reconstruye la
+pantalla desde la dirección. Tres detalles que no se ven:
+
+- **El primer pintado no empuja.** La entrada de llegada ya existe; empujar
+  otra obligaría a dar atrás dos veces para salir.
+- **Sin cambio, sin entrada.** Pulsar dos veces la misma pestaña dejaría
+  dos entradas iguales y el primer «atrás» no haría nada.
+- **Al cambiar de pestaña se va lo que había abierto dentro.** Un `?set=`
+  colgando en la pestaña de la Pokédex no significa nada, y al volver
+  abriría una expansión que nadie había pedido.
+
+Y de regalo, `?ver=album&set=sv8` y `?ver=pokedex&dex=4` abren directamente
+lo que dicen.
+
+### Se prueba con el navegador, no con un espía
+
+`goBack()` y `goForward()` de verdad. Comprobar que se llama a `pushState`
+no prueba que el botón de atrás funcione — es la lección de la 313: una
+prueba que mira si se LLAMA a una función no prueba lo que la función hace.
