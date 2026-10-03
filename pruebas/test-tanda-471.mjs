@@ -143,13 +143,36 @@ console.log('\n── 5. Las cartas ──')
 // Solo las que ESCRIBEN: desde la tanda 483 la pasada también CONSULTA
 // `tcg_cards` para el engorde, y contar las dos juntas diría dos.
 const cartas = llamadas.filter((l) => l.ruta?.startsWith('tcg_cards') && l.metodo === 'POST')
-check('van en un upsert por (id, mercado)', cartas.length === 1 && cartas[0].ruta.includes('on_conflict=id,market'), cartas.map((c) => c.ruta).join(' | '))
-const filasCarta = cartas[0]?.cuerpo || []
+// EN DOS SENTENCIAS DESDE LA TANDA 487, y no es que se haya roto nada: es
+// que la de antes afirmaba justo lo que había que quitar. `cardToRow` pone
+// `image_path: null` cuando la API se calla el campo —y se lo calla en
+// MILES de cartas asiáticas cuyo fichero SÍ está publicado: en japonés la
+// API dice 3.882 y existen 7.365—, así que ese null PISA con un
+// `merge-duplicates` la foto que se haya encontrado buscando el fichero a
+// mano. Las que traen foto van en una sentencia y las que no, en otra sin
+// mencionar la columna. Son dos porque PostgREST exige las MISMAS claves
+// en cada una.
+check('todas van por upsert de (id, mercado)',
+  cartas.length >= 1 && cartas.every((c) => c.ruta.includes('on_conflict=id,market')), cartas.map((c) => c.ruta).join(' | '))
+check('  …en DOS sentencias: con foto y sin foto', cartas.length === 2, String(cartas.length))
+const filasCarta = cartas.flatMap((c) => c.cuerpo || [])
 check('la repetida se cae', filasCarta.length === 2, JSON.stringify(filasCarta.map((c) => c.id)))
 check('con el mercado dentro', filasCarta.every((c) => c.market === 'JP'))
-check('el nombre es el JAPONÉS, que es el catálogo', filasCarta[0]?.name === 'フシギダネ', filasCarta[0]?.name)
-check('la imagen se guarda sin el idioma', filasCarta[0]?.image_path === 'sv/sv1a/1', filasCarta[0]?.image_path)
-check('una sin escaneo se guarda a null, no se inventa', filasCarta[1]?.image_path === null, String(filasCarta[1]?.image_path))
+check('el nombre es el JAPONÉS, que es el catálogo',
+  filasCarta.some((c) => c.name === 'フシギダネ'), JSON.stringify(filasCarta.map((c) => c.name)))
+const conFoto = filasCarta.filter((c) => c.image_path)
+const sinFoto = filasCarta.filter((c) => !c.image_path)
+check('la imagen se guarda sin el idioma', conFoto[0]?.image_path === 'sv/sv1a/1', conFoto[0]?.image_path)
+// LO QUE ANTES SE AFIRMABA AL REVÉS: la que no trae escaneo no manda la
+// columna. Una columna que no se menciona en un merge-duplicates no se
+// toca; mandarla a null borraría una foto buena SIN DAR NINGÚN ERROR.
+check('una sin escaneo NO menciona `image_path`',
+  sinFoto.length === 1 && !('image_path' in sinFoto[0]), JSON.stringify(sinFoto))
+// Y cada sentencia con las MISMAS claves, que es la razón de que sean dos.
+for (const c of cartas) {
+  const formas = new Set((c.cuerpo || []).map((f) => Object.keys(f).sort().join(',')))
+  check(`  …y cada sentencia va con una sola forma de fila`, formas.size <= 1, JSON.stringify([...formas]))
+}
 // `name_search` y `name_key` las CALCULA la base (columnas generadas) y
 // en Postgres no se pueden escribir: mandarlas tumbaría la sentencia.
 check('no se manda ninguna columna generada',
