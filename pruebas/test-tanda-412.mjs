@@ -61,9 +61,18 @@ console.log('\n── 2. El archivador, con los mandos en una fila ──')
     return { titulo: t('.mc-album-barra'), barras: t('#mcAlbumProgreso'), filtros: t('#mcAlbumFiltros'),
       cartas: t('#mcAlbum') }
   })
-  // Primero cuánto llevas, que es lo que se viene a ver, y después los
-  // mandos. Antes las barras estaban por debajo de dos filas de controles.
-  check('las barras van antes que los filtros', y.barras < y.filtros, JSON.stringify(y))
+  // EL ORDEN SE DIO LA VUELTA EN LA 467, y es un cambio a propósito. Esta
+  // tanda puso las barras primero «porque es lo que se viene a ver», y con
+  // CINCO filas de controles encima tenía razón: lo que arreglaba era que
+  // el progreso estuviera enterrado. Con los controles ya en una sola fila
+  // (459) el reparto correcto es el de Dex, y PINGU lo dijo mirando los
+  // dos: «me estás poniendo primero las estadísticas y luego los filtros
+  // con el buscador y queda muy raro».
+  //
+  // Lo que esta tanda defiende sigue en pie y es lo que se comprueba: que
+  // entre el título y la primera carta no haya cinco filas de controles.
+  check('los mandos son UNA fila entre el título y los datos',
+    y.filtros < y.barras && y.barras - y.filtros < 140, JSON.stringify(y))
   // Y los filtros antes que las cartas. (Era «antes que la paginación»;
   // desde la 417 una expansión no tiene páginas, es una rejilla.)
   check('  …y los filtros antes que las cartas', y.filtros < y.cartas, JSON.stringify(y))

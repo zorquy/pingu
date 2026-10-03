@@ -145,10 +145,12 @@ console.log('\n── 3. Los datos de la colección, legibles en 390 px ──')
     }
   })
   check('siguen siendo tres tarjetas', datos.cuantas === 3, JSON.stringify(datos.anchos))
-  // La primera lleva el anillo y las barras: a media fila no cabe ninguna
-  // de las dos, así que cruza la fila entera y las otras dos la comparten.
-  check('  …la del conjunto cruza la fila entera', datos.anchos[0] >= 300, datos.anchos[0])
-  check('  …y las otras dos van a la par', datos.anchos[1] === datos.anchos[2] && datos.anchos[1] >= 140, JSON.stringify(datos.anchos))
+  // DESDE LA 467 SON UNA TIRA QUE SE DESLIZA, que es lo que PINGU pidió
+  // mirando Dex. Lo que esta tanda arregló —que no se encogieran a 97 px
+  // cada una— sigue siendo lo que se comprueba, y es justo lo que hace que
+  // la tira se deslice en vez de caber a la fuerza.
+  check('  …todas del mismo ancho', new Set(datos.anchos).size === 1, JSON.stringify(datos.anchos))
+  check('  …y ninguna aplastada', datos.anchos.every((a) => a >= 260), JSON.stringify(datos.anchos))
   check('ningún rótulo sale recortado', datos.recortados.length === 0, datos.recortados.join(' | '))
   check('el anillo no cae encima del título', datos.pisa === false)
   check('y el bloque entero no pasa de 360 px de alto', datos.alto <= 360, datos.alto)
